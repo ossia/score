@@ -1,0 +1,8 @@
+{
+  "module": "malighting-grandma3",
+  "config": { "host": "10.99.0.2", "port": 8001, "prefix": "gma3" },
+  "actions": [
+    { "id": "quickey", "options": { "quickey": 9999 } },
+    { "id": "exec_button", "options": {} }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "id": "score-mock",
+  "name": "score-mock",
+  "shortname": "Mock",
+  "description": "Companion module double used by score's Bitfocus tests",
+  "version": "1.0.0",
+  "license": "GPL-3.0",
+  "manufacturer": "ossia",
+  "products": ["Mock"],
+  "runtime": {
+    "type": "node22",
+    "api": "nodejs-ipc",
+    "apiVersion": "1.14.1",
+    "entrypoint": "../main.js"
+  }
+}

@@ -1,0 +1,97 @@
+{
+  "module": "malighting-msc",
+  "config": {
+    "txAddress": "10.99.0.2",
+    "txPort": 6000,
+    "rxEnabled": true,
+    "rxAddress": "0.0.0.0",
+    "rxPort": 6001,
+    "rxExecList": "1,2",
+    "consoleType": "dot"
+  },
+  "actions": [
+    {
+      "id": "goto",
+      "options": {
+        "cue": "1.5",
+        "exec": "2",
+        "page": "1",
+        "fade": 3
+      }
+    },
+    {
+      "id": "goto",
+      "options": {
+        "cue": "12",
+        "exec": "3",
+        "page": "2"
+      }
+    },
+    {
+      "id": "pause",
+      "options": {
+        "exec": "5"
+      }
+    },
+    {
+      "id": "resume",
+      "options": {
+        "exec": "5"
+      }
+    },
+    {
+      "id": "fader",
+      "options": {
+        "percent": "50",
+        "exec": "2"
+      }
+    },
+    {
+      "id": "fader",
+      "options": {
+        "percent": "10",
+        "action": "inc",
+        "exec": "2"
+      }
+    },
+    {
+      "id": "fire",
+      "options": {
+        "macro": "12"
+      }
+    },
+    {
+      "id": "off",
+      "options": {
+        "exec": "5"
+      }
+    }
+  ],
+  "inject": [
+    {
+      "port": 6001,
+      "hex": "474d41004d5343001c000000f07f7f027f01312e35303000322e31f7",
+      "wait": 400
+    },
+    {
+      "port": 6001,
+      "hex": "474d41004d5343001c000000f07f7f027f01372e30303000332e31f7",
+      "wait": 400
+    },
+    {
+      "port": 6001,
+      "hex": "474d41004d5343001c000000f07f7f027f02302e30303000322e31f7",
+      "wait": 400
+    },
+    {
+      "port": 6001,
+      "hex": "474d41004d53430017000000f07f7f027f0600017f5ff7",
+      "wait": 400
+    },
+    {
+      "port": 6001,
+      "hex": "474d41004d5343001c000000f07f7f027f0a302e30303000332e31f7",
+      "wait": 400
+    }
+  ]
+}

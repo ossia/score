@@ -75,6 +75,14 @@ set(SCORE_TEST_GUARD_ALLOWED_HARNESSES
   corpus/generate-corpus.sh
   corpus/run-corpus.sh
   corpus/run-hwdec.sh
+  # The companion-modules sweep: runs the ~600 modules of the package, which
+  # has to be installed first, for an hour or more. By hand, per sweep.py.
+  tools/bitfocus/sweep.py
+  tools/bitfocus/scenario.py
+  tools/bitfocus/analyze.py
+  tools/bitfocus/summarize.py
+  tools/bitfocus/catcher.py
+  tools/bitfocus/netns-run.sh
   # The score-document corpus harness. The corpus is the user's own
   # working files, lives outside the repository (SCORE_CORPUS_DIR, default
   # $HOME/ossia/score-corpus) and must never be committed; and a document that

@@ -399,6 +399,16 @@ score_add_test(test_integration_device_address_edit
   GUI
   PLUGINS score_plugin_deviceexplorer score_lib_device score_plugin_scenario)
 
+# A Bitfocus companion device loaded from a document, against a mock module.
+if(UNIX AND NOT EMSCRIPTEN)
+  score_add_test(test_integration_bitfocus_device
+    SOURCES BitfocusDeviceTest.cpp
+    APP
+    PLUGINS score_plugin_deviceexplorer score_lib_device)
+  target_compile_definitions(test_integration_bitfocus_device PRIVATE
+    SCORE_BITFOCUS_MOCK_DIR="${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-protocols/Tests/data/bitfocus-mock")
+endif()
+
 # Learning an OSC namespace: the value type each learned address ends up with.
 score_add_test(test_integration_osc_learn_value_type
   SOURCES OscLearnValueTypeTest.cpp

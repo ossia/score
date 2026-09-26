@@ -1,0 +1,16 @@
+{
+  "module": "malighting-grandma3",
+  "config": { "host": "10.99.0.2", "port": 8000, "prefix": "" },
+  "actions": [
+    { "id": "quickey", "options": { "quickey": 5 } },
+    { "id": "quickey_name", "options": { "quickey": "My Key" } },
+    { "id": "group", "options": { "group": 12 } },
+    { "id": "group_name", "options": {} },
+    { "id": "atmenu", "options": { "atmenu": "At Zero" } },
+    { "id": "command", "options": { "command": "Go+ Sequence 3" } },
+    { "id": "exec_button", "options": { "page": 2, "button_number": 101, "button_state": "push" } },
+    { "id": "exec_button", "options": { "current_page": true, "button_number": 301, "button_state": "release" } },
+    { "id": "macro", "options": { "macro": 7 } },
+    { "id": "macro_name", "options": {} }
+  ]
+}

@@ -300,6 +300,7 @@ set(BITFOCUS_HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Bitfocus/BitfocusContext.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Bitfocus/BitfocusEnumerator.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Bitfocus/BitfocusDevice.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Bitfocus/BitfocusProtocol.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Bitfocus/BitfocusProtocolFactory.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Bitfocus/BitfocusProtocolSettingsWidget.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Bitfocus/BitfocusSpecificSettings.hpp"
@@ -307,8 +308,10 @@ set(BITFOCUS_HDRS
 
 set(BITFOCUS_SRCS
   "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Bitfocus/BitfocusContext.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Bitfocus/BitfocusNodeRuntime.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Bitfocus/BitfocusEnumerator.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Bitfocus/BitfocusDevice.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Bitfocus/BitfocusProtocol.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Bitfocus/BitfocusProtocolFactory.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Bitfocus/BitfocusProtocolSettingsWidget.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Bitfocus/BitfocusSpecificSettingsSerialization.cpp"

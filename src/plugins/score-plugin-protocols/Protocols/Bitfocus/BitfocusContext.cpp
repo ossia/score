@@ -1,72 +1,265 @@
 #include "BitfocusContext.hpp"
 
-#include <Library/LibrarySettings.hpp>
-
-#include <score/application/ApplicationContext.hpp>
-#include <score/tools/std/String.hpp>
-
-#include <ossia/detail/flat_map.hpp>
-
 #include <boost/asio/ip/udp.hpp>
 
-#include <QDirIterator>
+#include <QHostInfo>
+#include <QNetworkDatagram>
+#include <QPointer>
+#include <QTimer>
+#include <QUdpSocket>
 #include <QVersionNumber>
 
 #include <oscpack/osc/OscOutboundPacketStream.h>
 
 #include <wobjectimpl.h>
 
+#include <charconv>
+#include <cmath>
+#include <limits>
+
 W_OBJECT_IMPL(bitfocus::module_handler)
 namespace bitfocus
 {
-static QString toNodePath(QString nodeVersion)
-{
-  static ossia::flat_map<QString, QString> node_path_cache;
-  if(node_path_cache.empty())
-  {
-    const auto& set = score::AppContext().settings<Library::Settings::Model>();
-    QString path = set.getPackagesPath() + "/companion-modules/node-runtime";
-    if(QDir{path}.exists())
-    {
-      QDirIterator d{
-          path, QDir::Dirs | QDir::NoDotAndDotDot, QDirIterator::NoIteratorFlags};
-      while(d.hasNext())
-      {
-        QString name = d.next();
-        auto version = QDir{name}.dirName().split('.');
-        if(!version.isEmpty())
-        {
-          QString path = name;
-#if defined(_WIN32)
-          path += "/node.exe";
-#else
-          path += "/bin/node";
-#endif
-          node_path_cache["node" + version.front()] = path;
+static const bool g_trace = qEnvironmentVariableIsSet("SCORE_BITFOCUS_TRACE");
 
-          QFile p{path};
-          p.setPermissions(p.permissions() | QFile::Permission::ExeUser);
-        }
-      }
+static bool isIntegral(const QVariant& v)
+{
+  if(!v.isValid() || v.isNull())
+    return true;
+  bool ok{};
+  const double d = v.toDouble(&ok);
+  return ok && std::floor(d) == d;
+}
+
+bool module_data::config_field::isInteger() const noexcept
+{
+  auto absent = [](const QVariant& v) { return !v.isValid() || v.isNull(); };
+  if(absent(default_value) && absent(min) && absent(max))
+    return false;
+  return isIntegral(default_value) && isIntegral(min) && isIntegral(max)
+         && isIntegral(step);
+}
+
+double floatToDouble(float f)
+{
+  char buf[64];
+  auto res = std::to_chars(buf, buf + sizeof(buf), f);
+  double d{};
+  std::from_chars(buf, res.ptr, d);
+  return d;
+}
+
+QVariant widenFloat(const QVariant& v)
+{
+  if(v.typeId() == QMetaType::Float)
+    return floatToDouble(v.toFloat());
+  if(v.typeId() == QMetaType::QVariantList)
+  {
+    auto list = v.toList();
+    for(auto& e : list)
+      e = widenFloat(e);
+    return list;
+  }
+  return v;
+}
+
+QJsonValue defaultOptionValue(const module_data::config_field& f)
+{
+  return f.default_json;
+}
+
+static QJsonValue choiceValue(const module_data::config_field& f, const QVariant& v)
+{
+  const QString str = v.toString();
+  for(const auto& c : f.choices)
+    if(c.id == str)
+      return c.value;
+  return QJsonValue::fromVariant(v);
+}
+
+static bool isDefaultValue(const module_data::config_field& f, const QVariant& v)
+{
+  const auto& d = f.default_json;
+  if(d.isUndefined())
+    return false;
+  if(d.isNull())
+    return !v.isValid() || v.toString().isEmpty();
+  if(v.typeId() == QMetaType::Bool && !d.isString())
+    return (d.isBool() ? d.toBool() : d.toDouble() != 0.) == v.toBool();
+  if(!d.isArray() && v.typeId() == QMetaType::QVariantList)
+  {
+    const auto list = v.toList();
+    return list.size() == 1 && d.toVariant().toString() == list[0].toString();
+  }
+  if(d.isArray())
+  {
+    const auto arr = d.toArray();
+    const auto list = v.toList();
+    if(arr.size() != list.size())
+      return false;
+    for(int i = 0; i < arr.size(); i++)
+      if(arr[i].toVariant().toString() != list[i].toString())
+        return false;
+    return true;
+  }
+  return d.toVariant().toString() == v.toString();
+}
+
+QJsonValue toModuleValue(const module_data::config_field& f, const QVariant& v_)
+{
+  const QVariant v = widenFloat(v_);
+  if(f.type == "static-text")
+    return QJsonValue::Undefined;
+  if(isDefaultValue(f, v))
+    return f.default_json;
+  if(f.type == "number")
+  {
+    if(f.isInteger())
+      return (qint64)std::llround(v.toDouble());
+    return v.toDouble();
+  }
+  if(f.type == "checkbox")
+    return v.toBool();
+  if(f.type == "dropdown")
+    return choiceValue(f, v);
+  if(f.type == "multidropdown")
+  {
+    QJsonArray arr;
+    if(v.typeId() == QMetaType::QVariantList || v.typeId() == QMetaType::QStringList)
+    {
+      for(const auto& e : v.toList())
+        arr.append(choiceValue(f, e));
     }
+    else if(!v.toString().isEmpty())
+    {
+      arr.append(choiceValue(f, v));
+    }
+    return arr;
+  }
+  if(f.type == "colorpicker")
+  {
+    if(f.default_json.isString() || f.returnType == "string")
+      return v.toString();
+    return (qint64)v.toLongLong();
   }
 
-  if(auto it = node_path_cache.find(nodeVersion); it != node_path_cache.end())
-    return it->second;
-
-  // Hope it's in the PATH
-#if defined(_WIN32)
-  return "node.exe";
-#else
-  return "node";
-#endif
+  return v.toString();
 }
-module_handler::~module_handler() { }
+
+QJsonValue ejsonDecode(const QJsonValue& v)
+{
+  if(v.isArray())
+  {
+    QJsonArray arr = v.toArray();
+    for(auto it = arr.begin(); it != arr.end(); ++it)
+      *it = ejsonDecode(*it);
+    return arr;
+  }
+  if(!v.isObject())
+    return v;
+
+  QJsonObject obj = v.toObject();
+  if(obj.size() == 1)
+  {
+    const auto key = obj.begin().key();
+    const auto val = obj.begin().value();
+    if(key == "$binary")
+      return val;
+    if(key == "$date")
+      return val.toDouble();
+    if(key == "$InfNaN")
+    {
+      const int s = val.toInt();
+      return s == 0 ? std::numeric_limits<double>::quiet_NaN()
+                    : s * std::numeric_limits<double>::infinity();
+    }
+    if(key == "$escape")
+      return val;
+  }
+  for(auto it = obj.begin(); it != obj.end(); ++it)
+    *it = ejsonDecode(*it);
+  return obj;
+}
+
+static QByteArray ejsonBinary(const QJsonValue& v)
+{
+  if(v.isObject())
+  {
+    auto obj = v.toObject();
+    if(auto bin = obj.find("$binary"); bin != obj.end())
+      return QByteArray::fromBase64(bin->toString().toLatin1());
+    // Buffer.toJSON()
+    if(obj["type"] == QStringLiteral("Buffer"))
+    {
+      QByteArray res;
+      for(auto b : obj["data"].toArray())
+        res.push_back((char)b.toInt());
+      return res;
+    }
+  }
+  if(v.isArray())
+  {
+    QByteArray res;
+    for(auto b : v.toArray())
+      res.push_back((char)b.toInt());
+    return res;
+  }
+  return v.toString().toUtf8();
+}
+
+static QJsonObject ejsonBinaryValue(const QByteArray& data)
+{
+  return QJsonObject{{"$binary", QString::fromLatin1(data.toBase64())}};
+}
+
+struct shared_udp_port : QObject
+{
+  QUdpSocket socket;
+  QString family;
+  int port{};
+  std::vector<std::pair<QPointer<module_handler>, QString>> members;
+
+  static auto& registry()
+  {
+    static std::map<std::pair<QString, int>, std::weak_ptr<shared_udp_port>> reg;
+    return reg;
+  }
+
+  void on_read()
+  {
+    while(socket.hasPendingDatagrams())
+    {
+      auto dgram = socket.receiveDatagram();
+      auto sender = dgram.senderAddress();
+      const bool v6 = sender.protocol() == QAbstractSocket::IPv6Protocol
+                      && !sender.toIPv4Address();
+      const QString address = v6 ? sender.toString()
+                                 : QHostAddress(sender.toIPv4Address()).toString();
+      auto members_copy = members;
+      for(auto& [h, id] : members_copy)
+        if(h)
+          h->sharedUdpSocketMessage(
+              id, port, dgram.data(), address, dgram.senderPort(), v6);
+    }
+  }
+};
+
+module_handler::~module_handler()
+{
+  destroy();
+  for(auto& [id, port] : m_shared_udp_handles)
+    std::erase_if(port->members, [id = id](auto& m) { return m.second == id; });
+}
 
 module_handler::module_handler(
     QString path, QString entrypoint, QString nodeVersion, QString apiversion,
-    module_configuration conf)
-    : module_handler_base{toNodePath(nodeVersion), path, entrypoint}
+    module_configuration conf, QString label, bool firstInit,
+    std::optional<int> upgradeIndex, std::optional<std::set<QString>> secretKeys)
+    : module_handler_base{
+        nodeExecutable(nodeVersion), path, entrypoint,
+        QUuid::createUuid().toString(QUuid::WithoutBraces)}
+    , m_label{label.isEmpty() ? QStringLiteral("connection") : label}
+    , m_firstInit{firstInit}
 {
   for(QChar& c : apiversion)
     if(!c.isDigit() && c != '.')
@@ -76,6 +269,13 @@ module_handler::module_handler(
       = QVersionNumber::fromString(apiversion) >= QVersionNumber(1, 2);
 
   this->m_model.config = std::move(conf);
+  this->m_model.upgradeIndex = upgradeIndex;
+  if(secretKeys)
+  {
+    m_secretFields = std::move(*secretKeys);
+    m_secretsKnown = true;
+  }
+  m_uptime.start();
 
   // Init an udp socket for sending osc
   boost::system::error_code ec;
@@ -111,6 +311,8 @@ module_handler::module_handler(
 void module_handler::do_write(QString str)
 {
   auto res = str.toUtf8().append('\n');
+  if(g_trace)
+    fprintf(stderr, "[bitfocus] -> %s", res.constData());
   module_handler_base::do_write(std::string_view(res.data(), res.size()));
 }
 
@@ -129,6 +331,8 @@ void module_handler::afterRegistration(std::function<void()> f)
 
 void module_handler::processMessage(std::string_view v)
 {
+  if(g_trace)
+    fprintf(stderr, "[bitfocus] <- %.*s\n", (int)v.size(), v.data());
   auto doc = QJsonDocument::fromJson(QByteArray::fromRawData(v.data(), v.size()));
 
   auto dobj = doc.object();
@@ -140,18 +344,17 @@ void module_handler::processMessage(std::string_view v)
 
   auto payload_json = QJsonDocument::fromJson(pay.toString().toUtf8());
 
-  // auto pretty
-  //     = [&] { qDebug() << " <- " << payload_json.toJson().toStdString().data(); };
-
   if(direction == "call")
   {
+    const bool hasCallback = !id.isUndefined() && !id.isNull();
     if(name == "register")
     {
       // First message
       on_register(id);
 
       QMetaObject::invokeMethod(this, [this] {
-        m_init_msg_id = init("label_" + QString::number(std::abs(rand() % 100)));
+        m_init_msg_id = init(m_label);
+        m_req_cfg_id = requestConfigFields();
       });
     }
     else if(name == "upgradedItems")
@@ -161,20 +364,16 @@ void module_handler::processMessage(std::string_view v)
     else if(name == "setFeedbackDefinitions")
       on_setFeedbackDefinitions(payload_json["feedbacks"].toArray());
     else if(name == "setVariableDefinitions")
-      on_setVariableDefinitions(payload_json["variables"].toArray());
+      on_setVariableDefinitions(
+          payload_json["variables"].toArray(), payload_json["newValues"].toArray());
     else if(name == "setPresetDefinitions")
       on_setPresetDefinitions(payload_json["presets"].toArray());
     else if(name == "setVariableValues")
       on_setVariableValues(payload_json["newValues"].toArray());
     else if(name == "log-message")
-    {
-      // qDebug() << " !! Unhandled !! " << name;
-      // pretty();
-    }
+      on_log_message(payload_json.object());
     else if(name == "set-status")
-    {
-      // on_set_status(payload_json.object());
-    }
+      on_set_status(payload_json.object());
     else if(name == "updateFeedbackValues")
       on_updateFeedbackValues(payload_json.object());
     else if(name == "saveConfig")
@@ -182,9 +381,7 @@ void module_handler::processMessage(std::string_view v)
     else if(name == "send-osc")
       on_send_osc(payload_json.object());
     else if(name == "parseVariablesInString")
-    {
       on_parseVariablesInString(id, payload_json.object());
-    }
     else if(name == "recordAction")
       on_recordAction(payload_json.object());
     else if(name == "setCustomVariable")
@@ -202,42 +399,59 @@ void module_handler::processMessage(std::string_view v)
       send_success(id);
     }
     else
-      qDebug() << "Unhandled: " << name;
+    {
+      qDebug() << "Bitfocus: unhandled call" << name;
+      if(hasCallback)
+        writeReply(
+            id,
+            QJsonObject{{"message", QStringLiteral("Unknown command \"%1\"").arg(name.toString())}},
+            false);
+    }
   }
   else if(direction == "response")
   {
-    if(id == m_init_msg_id)
-    {
-      // Capture init response values
-      m_hasHttpHandler = payload_json["hasHttpHandler"].toBool();
+    const int idInt = id.toInt(-1);
 
-      // Query config field
-      m_req_cfg_id = this->requestConfigFields();
+    if(idInt == m_init_msg_id)
+    {
+      if(success.toBool())
+        on_init_response(payload_json.object());
+      else
+        qWarning() << "Bitfocus:" << m_label << "init failed:"
+                   << payload_json["message"].toString();
+      m_initDone = true;
+      completeRegistration();
     }
-    else if(id == m_req_cfg_id)
+    else if(idInt == m_req_cfg_id)
     {
       on_response_configFields(payload_json["fields"].toArray());
-      for(auto fun : m_afterRegistrationQueue)
-        fun();
-      m_afterRegistrationQueue.clear();
-      m_registered = true;
+      m_fieldsDone = true;
+      completeRegistration();
     }
-    else
+    else if(auto act = m_pendingActions.find(idInt); act != m_pendingActions.end())
     {
-      // Check for HTTP response callbacks
-      int idInt = id.toInt(-1);
-      if(auto it = m_httpCallbacks.find(idInt); it != m_httpCallbacks.end())
+      const bool ok = success.toBool() && payload_json["success"].toBool(true);
+      if(!ok)
       {
-        auto response = payload_json["response"].toObject();
-        int status = response["status"].toInt(200);
-        QString respBody = response["body"].toString();
-        QMap<QString, QString> respHeaders;
-        auto hObj = response["headers"].toObject();
-        for(const auto& k : hObj.keys())
-          respHeaders[k] = hObj[k].toString();
-        it->second(status, respHeaders, respBody);
-        m_httpCallbacks.erase(it);
+        auto msg = payload_json["errorMessage"].toString();
+        if(msg.isEmpty())
+          msg = payload_json["message"].toString();
+        qWarning() << "Bitfocus:" << m_label << "action" << act->second
+                   << "failed:" << msg;
       }
+      m_pendingActions.erase(act);
+    }
+    else if(auto it = m_httpCallbacks.find(idInt); it != m_httpCallbacks.end())
+    {
+      auto response = payload_json["response"].toObject();
+      int status = response["status"].toInt(200);
+      QString respBody = response["body"].toString();
+      QMap<QString, QString> respHeaders;
+      auto hObj = response["headers"].toObject();
+      for(const auto& k : hObj.keys())
+        respHeaders[k] = hObj[k].toString();
+      it->second(status, respHeaders, respBody);
+      m_httpCallbacks.erase(it);
     }
   }
 }
@@ -253,6 +467,16 @@ int module_handler::writeRequest(QString name, QString p)
 
   do_write(jsonToString(obj));
   return id;
+}
+
+void module_handler::writeNotification(QString name, QString p)
+{
+  QJsonObject obj;
+  obj["direction"] = "call";
+  obj["name"] = name;
+  obj["payload"] = p;
+
+  do_write(jsonToString(obj));
 }
 
 void module_handler::writeReply(QJsonValue id, QString p)
@@ -295,8 +519,64 @@ void module_handler::on_register(QJsonValue id)
   do_write(jsonToString(obj));
 }
 
+void module_handler::on_process_exited()
+{
+  if(m_destroyed)
+    return;
+
+  if(m_uptime.isValid() && m_uptime.elapsed() > 60000)
+    m_restarts = 0;
+  const int delay = std::min(30000, 1000 << std::min(m_restarts, 5));
+  m_restarts++;
+  qWarning() << "Bitfocus:" << m_label << "module exited, restarting in" << delay << "ms";
+
+  m_registered = false;
+  m_initDone = false;
+  m_fieldsDone = false;
+  m_firstInit = false;
+  m_pendingActions.clear();
+  m_httpCallbacks.clear();
+  for(auto& [id, port] : m_shared_udp_handles)
+    std::erase_if(port->members, [id = id](auto& m) { return m.second == id; });
+  m_shared_udp_handles.clear();
+
+  QTimer::singleShot(delay, this, [this] {
+    if(!m_destroyed && restart_process())
+      m_uptime.start();
+  });
+}
+
+void module_handler::completeRegistration()
+{
+  if(!m_initDone || !m_fieldsDone || m_registered)
+    return;
+  m_registered = true;
+  if(std::exchange(m_everRegistered, true))
+    reregistered();
+  auto queue = std::move(m_afterRegistrationQueue);
+  m_afterRegistrationQueue.clear();
+  for(auto& fun : queue)
+    fun();
+}
+
+void module_handler::notifyDefinitionsChanged(DefinitionCategory c)
+{
+  m_changedDefinitions |= c;
+  if(!m_registered || m_definitionsPending)
+    return;
+  m_definitionsPending = true;
+  QTimer::singleShot(0, this, [this] {
+    m_definitionsPending = false;
+    definitionsChanged();
+  });
+}
+
 void module_handler::on_setActionDefinitions(QJsonArray actions)
 {
+  if(actions == m_lastActions)
+    return;
+  m_lastActions = actions;
+  m_model.actions.clear();
   for(auto act : actions)
   {
     auto obj = act.toObject();
@@ -308,21 +588,39 @@ void module_handler::on_setActionDefinitions(QJsonArray actions)
 
     m_model.actions.emplace(obj["id"].toString(), std::move(def));
   }
+  notifyDefinitionsChanged(Actions);
 }
 
-void module_handler::on_setVariableDefinitions(QJsonArray vars)
+void module_handler::on_setVariableDefinitions(QJsonArray vars, QJsonArray values)
 {
+  if(vars == m_lastVariables)
+  {
+    on_setVariableValues(values);
+    return;
+  }
+  m_lastVariables = vars;
+  auto old = std::move(m_model.variables);
+  m_model.variables.clear();
   for(auto var : vars)
   {
     auto obj = var.toObject();
+    const auto id = obj["id"].toString();
     bitfocus::module_data::variable_definition def;
     def.name = obj["name"].toString();
-    m_model.variables[obj["id"].toString()] = std::move(def);
+    if(auto it = old.find(id); it != old.end())
+      def.value = it->second.value;
+    m_model.variables[id] = std::move(def);
   }
+  on_setVariableValues(values);
+  notifyDefinitionsChanged(Variables);
 }
 
 void module_handler::on_setFeedbackDefinitions(QJsonArray fbs)
 {
+  if(fbs == m_lastFeedbacks)
+    return;
+  m_lastFeedbacks = fbs;
+  m_model.feedbacks.clear();
   for(auto fb : fbs)
   {
     auto obj = fb.toObject();
@@ -335,10 +633,12 @@ void module_handler::on_setFeedbackDefinitions(QJsonArray fbs)
 
     m_model.feedbacks.emplace(obj["id"].toString(), std::move(def));
   }
+  notifyDefinitionsChanged(Feedbacks);
 }
 
 void module_handler::on_setPresetDefinitions(QJsonArray presets)
 {
+  m_model.presets.clear();
   for(auto preset : presets)
   {
     auto obj = preset.toObject();
@@ -362,32 +662,41 @@ void module_handler::on_setVariableValues(QJsonArray vars)
   {
     auto obj = var.toObject();
     const auto& id = obj["id"].toString();
+    if(!obj.contains("value"))
+      continue;
     auto& vv = m_model.variables[id];
-    vv.value = obj["value"].toVariant();
+    vv.value = ejsonDecode(obj["value"]).toVariant();
     variableChanged(id, vv.value);
   }
 }
 
-module_data::config_field module_handler::parseConfigField(QJsonObject f)
+module_data::config_field module_handler::parseConfigField(const QJsonObject& f)
 {
   module_data::config_field res;
   res.id = f["id"].toString();
   res.label = f["label"].toString();
   res.type = f["type"].toString();
   res.regex = f["regex"].toString();
+  res.tooltip = f["tooltip"].toString();
+  res.isVisibleFn = f["isVisibleFn"].toString();
   res.value = f["value"].toVariant();
+  res.default_json = f.contains("default") ? f["default"] : QJsonValue(QJsonValue::Undefined);
   res.default_value = f["default"].toVariant();
   res.min = f["min"].toVariant();
   res.max = f["max"].toVariant();
+  res.step = f["step"].toVariant();
   res.width = f["width"].toDouble();
+  res.allowCustom = f["allowCustom"].toBool();
+  res.returnType = f["returnType"].toString();
   {
     for(auto choice_obj : f["choices"].toArray())
     {
       module_data::config_field::choice c;
       auto choice = choice_obj.toObject();
-      c.id = choice["id"].toString();
+      c.value = choice["id"];
+      c.id = c.value.toVariant().toString();
       c.label = choice["label"].toString();
-      if(!c.id.isEmpty())
+      if(!c.value.isUndefined() && !c.value.isNull())
         res.choices.push_back(std::move(c));
     }
   }
@@ -397,12 +706,93 @@ module_data::config_field module_handler::parseConfigField(QJsonObject f)
 void module_handler::on_response_configFields(QJsonArray fields)
 {
   m_model.config_fields.clear();
+  m_secretFields.clear();
+  m_secretsKnown = true;
   for(auto obj : fields)
   {
-    m_model.config_fields.push_back(parseConfigField(obj.toObject()));
+    auto field = parseConfigField(obj.toObject());
+    if(field.type.startsWith("secret"))
+      m_secretFields.insert(field.id);
+    m_model.config_fields.push_back(std::move(field));
   }
 
   configurationParsed();
+}
+
+static void writeOscArgument(oscpack::OutboundPacketStream& p, const QJsonValue& arg)
+{
+  switch(arg.type())
+  {
+    case QJsonValue::Type::Null:
+    case QJsonValue::Type::Undefined:
+      break;
+    case QJsonValue::Type::Bool:
+      p << arg.toBool();
+      break;
+    case QJsonValue::Type::Double:
+      p << (float)arg.toDouble();
+      break;
+    case QJsonValue::Type::String:
+      p << arg.toString().toStdString();
+      break;
+    case QJsonValue::Type::Array:
+      for(const auto& a : arg.toArray())
+        writeOscArgument(p, a);
+      break;
+    case QJsonValue::Type::Object: {
+      auto obj = arg.toObject();
+      if(obj.contains("$binary"))
+      {
+        auto blob = ejsonBinary(obj);
+        p << oscpack::Blob(blob.data(), blob.size());
+        break;
+      }
+      const auto t = obj["type"].toString();
+      const auto v = obj["value"];
+      if(t == "i")
+        p << (int32_t)v.toDouble();
+      else if(t == "h")
+        p << (int64_t)v.toDouble();
+      else if(t == "f")
+        p << (float)v.toDouble();
+      else if(t == "d")
+        p << v.toDouble();
+      else if(t == "s" || t == "S")
+        p << v.toString().toStdString();
+      else if(t == "b")
+      {
+        auto blob = ejsonBinary(v);
+        p << oscpack::Blob(blob.data(), blob.size());
+      }
+      else if(t == "T")
+        p << true;
+      else if(t == "F")
+        p << false;
+      else if(t == "I")
+        p << oscpack::Infinitum();
+      else if(t == "c")
+        p << (char)(v.isString() ? v.toString().toLatin1().append('\0').at(0) : v.toInt());
+      else if(t == "t")
+        p << oscpack::TimeTag((uint64_t)v.toDouble());
+      else if(t == "r")
+      {
+        auto c = v.toObject();
+        p << oscpack::RgbaColor(
+            (uint32_t(c["r"].toInt()) << 24) | (uint32_t(c["g"].toInt()) << 16)
+            | (uint32_t(c["b"].toInt()) << 8)
+            | uint32_t(std::lround(c["a"].toDouble(1.) * 255.)));
+      }
+      else if(t == "m")
+      {
+        auto bytes = ejsonBinary(v);
+        bytes.resize(4);
+        p << oscpack::MidiMessage(
+            (uint32_t(uint8_t(bytes[0])) << 24) | (uint32_t(uint8_t(bytes[1])) << 16)
+            | (uint32_t(uint8_t(bytes[2])) << 8) | uint32_t(uint8_t(bytes[3])));
+      }
+      break;
+    }
+  }
 }
 
 void module_handler::on_send_osc(QJsonObject obj)
@@ -411,92 +801,117 @@ void module_handler::on_send_osc(QJsonObject obj)
   const auto pp = obj["port"];
   const int port = pp.isDouble() ? pp.toInt() : pp.toString().toInt();
   const std::string path = obj["path"].toString().toStdString();
-  const auto args = obj["args"].toArray();
 
   char buf[65535];
   oscpack::OutboundPacketStream p{buf, 65535};
-  p << oscpack::BeginMessageN(path);
-  for(auto arg : args)
-  {
-    switch(arg.type())
-    {
-      case QJsonValue::Type::Null:
-        // p << oscpack::OscNil();
-        break;
-      case QJsonValue::Type::Undefined:
-        p << oscpack::Infinitum();
-        break;
-      case QJsonValue::Type::Bool:
-        p << arg.toBool();
-        break;
-      case QJsonValue::Type::Double:
-        p << (float)arg.toDouble();
-        break;
-      case QJsonValue::Type::String:
-        p << arg.toString().toStdString();
-        break;
-      case QJsonValue::Type::Object: {
-        auto obj = arg.toObject();
-        auto t = obj["type"].toString();
-        if(t == "i")
-          p << (int)obj["value"].toDouble();
-        else if(t == "f")
-          p << (float)obj["value"].toDouble();
-        else if(t == "d")
-          p << obj["value"].toDouble();
-        else if(t == "s")
-          p << obj["value"].toString().toStdString();
-        else if(t == "b")
-        {
-          auto blob = obj["value"].toString().toStdString();
-          p << oscpack::Blob(blob.data(), blob.size());
-        }
-
-        //auto v = obj["value"].toString();
-        break;
-      }
-      case QJsonValue::Type::Array:
-        // FIXME
-        // FIXME UInt8Array ???
-        break;
-    }
-  }
-  p << oscpack::EndMessage();
-
   try
   {
-    boost::system::error_code ec;
-    boost::asio::ip::udp::endpoint endpoint{
-        boost::asio::ip::make_address(host, ec), (uint16_t)port};
-    if(ec != boost::system::error_code{})
-      return;
-    m_socket.send_to(boost::asio::const_buffer(p.Data(), p.Size()), endpoint, 0, ec);
+    p << oscpack::BeginMessageN(path);
+    writeOscArgument(p, obj["args"]);
+    p << oscpack::EndMessage();
   }
   catch(...)
   {
+    return;
   }
+
+  auto send = [this, port](const boost::asio::ip::address& addr, const std::string& data) {
+    boost::system::error_code ec;
+    boost::asio::ip::udp::endpoint endpoint{addr, (uint16_t)port};
+    m_socket.send_to(boost::asio::buffer(data), endpoint, 0, ec);
+  };
+  std::string data(p.Data(), p.Size());
+  boost::system::error_code ec;
+  if(auto addr = boost::asio::ip::make_address(host, ec); !ec)
+  {
+    send(addr, data);
+    return;
+  }
+  QHostInfo::lookupHost(
+      QString::fromStdString(host), this,
+      [send, data = std::move(data)](const QHostInfo& info) {
+    for(const auto& a : info.addresses())
+    {
+      if(a.protocol() != QAbstractSocket::IPv4Protocol)
+        continue;
+      boost::system::error_code ec;
+      if(auto addr = boost::asio::ip::make_address(a.toString().toStdString(), ec); !ec)
+        send(addr, data);
+      return;
+    }
+  });
+}
+
+QJsonObject module_handler::configObject(bool secrets) const
+{
+  const bool known = m_secretsKnown;
+  QJsonObject config;
+  for(auto& [k, v] : this->m_model.config)
+  {
+    const bool isSecret = m_secretFields.contains(k);
+    if(!known || isSecret == secrets)
+      config[k] = QJsonValue::fromVariant(v);
+  }
+  return config;
 }
 
 int module_handler::init(QString label)
 {
   QJsonObject obj;
   obj["label"] = label;
-  obj["isFirstInit"] = true;
-  QJsonObject config;
-  for(auto& [k, v] : this->m_model.config)
-  {
-    config[k] = QJsonValue::fromVariant(v);
-  }
-  obj["config"] = std::move(config);
-  obj["lastUpgradeIndex"] = -1;
+  obj["isFirstInit"] = m_firstInit;
+  obj["config"] = configObject(false);
+  obj["secrets"] = configObject(true);
+  obj["lastUpgradeIndex"] = m_firstInit ? -1 : m_model.upgradeIndex.value_or(-1);
   obj["actions"] = QJsonObject{};
   obj["feedbacks"] = QJsonObject{};
 
   return writeRequest("init", jsonToString(obj));
 }
 
+void module_handler::on_init_response(const QJsonObject& payload)
+{
+  m_hasHttpHandler = payload["hasHttpHandler"].toBool();
+  bool changed = false;
+  if(auto idx = payload["newUpgradeIndex"]; idx.isDouble())
+  {
+    changed = m_model.upgradeIndex != idx.toInt();
+    m_model.upgradeIndex = idx.toInt();
+  }
+
+  auto merge = [&](const QJsonValue& v) {
+    if(!v.isObject())
+      return;
+    const auto obj = v.toObject();
+    for(auto it = obj.begin(); it != obj.end(); ++it)
+    {
+      auto val = it.value().toVariant();
+      auto& cur = m_model.config[it.key()];
+      if(cur != val)
+      {
+        cur = std::move(val);
+        changed = true;
+      }
+    }
+  };
+  merge(payload["updatedConfig"]);
+  if(auto secrets = payload["updatedSecrets"]; secrets.isObject())
+  {
+    auto obj = secrets.toObject();
+    const auto conf = payload["updatedConfig"].toObject();
+    for(auto it = conf.begin(); it != conf.end(); ++it)
+      obj.remove(it.key());
+    merge(obj);
+  }
+  if(changed || m_firstInit)
+    configurationSaved();
+  m_firstInit = false;
+}
+
 void module_handler::send_success(QJsonValue id)
 {
+  if(id.isUndefined() || id.isNull())
+    return;
   QJsonObject obj;
   obj["direction"] = "response";
   obj["callbackId"] = id;
@@ -504,39 +919,61 @@ void module_handler::send_success(QJsonValue id)
   do_write(jsonToString(obj));
 }
 
+void module_handler::on_log_message(QJsonObject obj)
+{
+  const auto level = obj["level"].toString();
+  if(level == "error" || level == "warn")
+    qWarning().noquote() << "Bitfocus:" << m_label << obj["message"].toString();
+}
+
 void module_handler::on_set_status(QJsonObject obj) { }
-void module_handler::on_saveConfig(QJsonObject obj) { }
+
+void module_handler::on_saveConfig(QJsonObject obj)
+{
+  auto apply = [this](const QJsonValue& v, bool secrets) {
+    if(!v.isObject())
+      return;
+    std::erase_if(m_model.config, [&](const auto& kv) {
+      return m_secretFields.contains(kv.first) == secrets;
+    });
+    const auto conf = v.toObject();
+    for(auto it = conf.begin(); it != conf.end(); ++it)
+      m_model.config[it.key()] = it.value().toVariant();
+  };
+  apply(obj["config"], false);
+  apply(obj["secrets"], true);
+  configurationSaved();
+}
+
 void module_handler::on_parseVariablesInString(QJsonValue id, QJsonObject obj)
 {
   QString text = obj["text"].toString();
-  QStringList referencedVarIds;
+  QJsonArray varIds;
 
-  // Parse $(label:variable) patterns
-  static QRegularExpression varRegex(R"(\$\(([^:)]+):([^)]+)\))");
-  QString parsed = text;
-
+  static const QRegularExpression varRegex(R"(\$\(([^:$)]+):([^)$]+)\))");
+  QString parsed;
+  qsizetype last = 0;
   auto matchIt = varRegex.globalMatch(text);
   while(matchIt.hasNext())
   {
     auto match = matchIt.next();
-    QString label = match.captured(1);
-    QString varName = match.captured(2);
-    QString fullId = label + ":" + varName;
-    referencedVarIds.append(fullId);
+    const QString label = match.captured(1);
+    const QString varName = match.captured(2);
+    varIds.append(QString(label + ":" + varName));
 
-    // Look up variable value if we have it
-    if(auto vit = m_model.variables.find(varName); vit != m_model.variables.end())
-    {
-      parsed.replace(match.captured(0), vit->second.value.toString());
-    }
+    parsed += QStringView{text}.mid(last, match.capturedStart() - last);
+    auto vit = m_model.variables.find(varName);
+    if(label == m_label && vit != m_model.variables.end() && vit->second.value.isValid())
+      parsed += vit->second.value.toString();
+    else
+      parsed += QStringLiteral("$NA");
+    last = match.capturedEnd();
   }
-
-  QJsonArray varIds;
-  for(const auto& v : referencedVarIds)
-    varIds.append(v);
+  parsed += QStringView{text}.mid(last);
 
   writeReply(id, QJsonObject{{"text", parsed}, {"variableIds", varIds}}, true);
 }
+
 void module_handler::on_updateFeedbackValues(QJsonObject obj)
 {
   auto values = obj["values"].toArray();
@@ -545,7 +982,7 @@ void module_handler::on_updateFeedbackValues(QJsonObject obj)
     auto v = val.toObject();
     QString id = v["id"].toString();
     QString controlId = v["controlId"].toString();
-    QVariant value = v["value"].toVariant();
+    QVariant value = ejsonDecode(v["value"]).toVariant();
     feedbackValueChanged(id, controlId, value);
   }
 }
@@ -553,79 +990,71 @@ void module_handler::on_recordAction(QJsonObject obj) { }
 void module_handler::on_setCustomVariable(QJsonObject obj) { }
 void module_handler::on_sharedUdpSocketJoin(QJsonValue id, QJsonObject obj)
 {
-  QString family = obj["family"].toString();
-  int portNumber = obj["portNumber"].toInt();
-  QString handleId = QUuid::createUuid().toString(QUuid::WithoutBraces);
+  const QString family = obj["family"].toString() == "udp6" ? "udp6" : "udp4";
+  const int portNumber = obj["portNumber"].toInt();
 
-  auto handle = std::make_unique<shared_udp_handle>(m_send_service);
-  handle->handleId = handleId;
-  handle->family = family;
-  handle->portNumber = portNumber;
-
-  boost::system::error_code ec;
-  auto protocol = (family == "udp6") ? boost::asio::ip::udp::v6()
-                                     : boost::asio::ip::udp::v4();
-
-  handle->socket.open(protocol, ec);
-  if(ec)
+  auto& reg = shared_udp_port::registry();
+  auto port = reg[{family, portNumber}].lock();
+  if(!port)
   {
-    qDebug() << "sharedUdpSocketJoin: failed to open socket:" << ec.message();
-    writeReply(id, QJsonObject{}, false);
-    return;
+    port = std::make_shared<shared_udp_port>();
+    port->family = family;
+    port->port = portNumber;
+    const bool ok = port->socket.bind(
+        family == "udp6" ? QHostAddress::AnyIPv6 : QHostAddress::AnyIPv4, portNumber,
+        QAbstractSocket::ShareAddress | QAbstractSocket::ReuseAddressHint);
+    if(!ok)
+    {
+      writeReply(id, QJsonObject{{"message", port->socket.errorString()}}, false);
+      return;
+    }
+    QObject::connect(
+        &port->socket, &QUdpSocket::readyRead, port.get(), &shared_udp_port::on_read);
+    reg[{family, portNumber}] = port;
   }
 
-  handle->socket.set_option(boost::asio::socket_base::reuse_address(true), ec);
-  handle->socket.bind(boost::asio::ip::udp::endpoint(protocol, portNumber), ec);
-  if(ec)
-  {
-    qDebug() << "sharedUdpSocketJoin: failed to bind socket:" << ec.message();
-    writeReply(id, QJsonObject{}, false);
-    return;
-  }
+  const QString handleId = QUuid::createUuid().toString(QUuid::WithoutBraces);
+  port->members.emplace_back(this, handleId);
+  m_shared_udp_handles[handleId] = port;
 
-  start_udp_receive(handle.get());
-  m_shared_udp_handles[handleId] = std::move(handle);
-
-  // Reply with the handleId - the response payload is just the string
-  writeReply(id, handleId, true);
+  writeReply(id, QStringLiteral("\"%1\"").arg(handleId), true);
 }
 
-void module_handler::start_udp_receive(shared_udp_handle* h)
+void module_handler::sharedUdpSocketMessage(
+    const QString& handleId, int port, const QByteArray& data, const QString& address,
+    int sourcePort, bool ipv6)
 {
-  h->socket.async_receive_from(
-      boost::asio::buffer(h->recv_buffer), h->sender_endpoint,
-      [this, h](boost::system::error_code ec, std::size_t bytes) {
-    if(!ec && bytes > 0)
-    {
-      QByteArray data(h->recv_buffer.data(), bytes);
-      QJsonObject msg;
-      msg["handleId"] = h->handleId;
-      msg["portNumber"] = h->portNumber;
-      msg["message"] = QString::fromLatin1(data.toBase64());
-      msg["source"] = QJsonObject{
-          {"address",
-           QString::fromStdString(h->sender_endpoint.address().to_string())},
-          {"port", static_cast<int>(h->sender_endpoint.port())},
-          {"family", h->family}};
+  QJsonObject msg;
+  msg["handleId"] = handleId;
+  msg["portNumber"] = port;
+  msg["message"] = ejsonBinaryValue(data);
+  msg["source"] = QJsonObject{
+      {"address", address},
+      {"family", ipv6 ? "IPv6" : "IPv4"},
+      {"port", sourcePort},
+      {"size", (int)data.size()}};
+  writeNotification("sharedUdpSocketMessage", jsonToString(msg));
+}
 
-      writeRequest("sharedUdpSocketMessage", jsonToString(msg));
-      start_udp_receive(h);
-    }
-    else if(ec)
-    {
-      QJsonObject err;
-      err["handleId"] = h->handleId;
-      err["portNumber"] = h->portNumber;
-      err["errorMessage"] = QString::fromStdString(ec.message());
-      writeRequest("sharedUdpSocketError", jsonToString(err));
-    }
-      });
+void module_handler::sharedUdpSocketError(
+    const QString& handleId, int port, const QString& message)
+{
+  QJsonObject err;
+  err["handleId"] = handleId;
+  err["portNumber"] = port;
+  err["error"] = QJsonObject{{"message", message}};
+  writeNotification("sharedUdpSocketError", jsonToString(err));
 }
 
 void module_handler::on_sharedUdpSocketLeave(QJsonObject obj)
 {
   QString handleId = obj["handleId"].toString();
-  m_shared_udp_handles.erase(handleId);
+  if(auto it = m_shared_udp_handles.find(handleId); it != m_shared_udp_handles.end())
+  {
+    std::erase_if(
+        it->second->members, [&](auto& m) { return m.second == handleId; });
+    m_shared_udp_handles.erase(it);
+  }
 }
 
 void module_handler::on_sharedUdpSocketSend(QJsonObject obj)
@@ -635,40 +1064,44 @@ void module_handler::on_sharedUdpSocketSend(QJsonObject obj)
   if(it == m_shared_udp_handles.end())
     return;
 
-  QByteArray data = QByteArray::fromBase64(obj["message"].toString().toLatin1());
-  QString address = obj["address"].toString();
-  int port = obj["port"].toInt();
+  const QByteArray data = ejsonBinary(obj["message"]);
+  const QString address = obj["address"].toString();
+  const int port = obj["port"].toInt();
 
-  boost::system::error_code ec;
-  boost::asio::ip::udp::endpoint dest{
-      boost::asio::ip::make_address(address.toStdString(), ec),
-      static_cast<uint16_t>(port)};
-  if(ec)
+  if(QHostAddress dest{address}; !dest.isNull())
+  {
+    it->second->socket.writeDatagram(data, dest, port);
     return;
-
-  it->second->socket.send_to(
-      boost::asio::buffer(data.data(), data.size()), dest, 0, ec);
+  }
+  QHostInfo::lookupHost(
+      address, it->second.get(),
+      [sock = it->second, data, port](const QHostInfo& info) {
+    if(!info.addresses().isEmpty())
+      sock->socket.writeDatagram(data, info.addresses().front(), port);
+  });
 }
+
 void module_handler::updateConfigAndLabel(QString label, module_configuration conf)
 {
-  this->m_model.config = std::move(conf);
+  if(label.isEmpty())
+    label = m_label;
+  if(label == m_label && conf == m_model.config)
+    return;
 
-  QJsonObject config;
-  for(auto& [k, v] : this->m_model.config)
-  {
-    config[k] = QJsonValue::fromVariant(v);
-  }
+  m_label = label;
+  this->m_model.config = std::move(conf);
 
   if(m_expects_label_updates)
   {
     QJsonObject obj;
-    obj["config"] = std::move(config);
+    obj["config"] = configObject(false);
+    obj["secrets"] = configObject(true);
     obj["label"] = label;
     writeRequest("updateConfigAndLabel", jsonToString(obj));
   }
   else
   {
-    writeRequest("updateConfig", jsonToString(config));
+    writeRequest("updateConfig", jsonToString(configObject(false)));
   }
 }
 
@@ -689,14 +1122,16 @@ void module_handler::updateFeedbacks(
     }
     else
     {
+      const int upgradeIndex
+          = fb.upgradeIndex >= 0 ? fb.upgradeIndex : m_model.upgradeIndex.value_or(-1);
       fb_map[id] = QJsonObject{
           {"id", id},
           {"controlId", fb.controlId},
           {"feedbackId", fb.definitionId},
           {"options", QJsonObject::fromVariantMap(fb.options)},
-          {"image", QJsonArray{fb.imageWidth, fb.imageHeight}},
-          {"upgradeIndex", fb.upgradeIndex >= 0 ? QJsonValue(fb.upgradeIndex)
-                                                : QJsonValue::Null},
+          {"isInverted", fb.isInverted},
+          {"image", QJsonObject{{"width", fb.imageWidth}, {"height", fb.imageHeight}}},
+          {"upgradeIndex", upgradeIndex >= 0 ? QJsonValue(upgradeIndex) : QJsonValue::Null},
           {"disabled", false},
       };
     }
@@ -738,30 +1173,38 @@ void module_handler::actionLearnValues()
 
 void module_handler::actionRun(std::string_view act, QVariantMap options)
 {
+  const auto actionId = QString::fromUtf8(act.data(), act.size());
   QJsonObject act_object;
-  act_object["id"] = QString("foo");
-  act_object["controlId"] = QString("bank:0");
-  act_object["actionId"] = QString::fromUtf8(act.data(), act.size());
+  act_object["id"] = QStringLiteral("score-%1").arg(++m_actionId);
+  act_object["controlId"] = QString(QStringLiteral("action/") + actionId);
+  act_object["actionId"] = actionId;
   act_object["options"] = QJsonObject::fromVariantMap(options);
   act_object["upgradeIndex"] = QJsonValue{QJsonValue::Type::Null};
   act_object["disabled"] = false;
   QJsonObject root;
   root["action"] = act_object;
-  root["surfaceId"] = QString("hot:tablet"); // could be undefined
 
-  writeRequest("executeAction", jsonToString(root));
+  const int id = writeRequest("executeAction", jsonToString(root));
+  m_pendingActions[id] = actionId;
 }
 
 void module_handler::destroy()
 {
-  // Close all shared UDP sockets
+  if(m_destroyed)
+    return;
+  m_destroyed = true;
+
+  for(auto& [id, port] : m_shared_udp_handles)
+    std::erase_if(port->members, [id = id](auto& m) { return m.second == id; });
   m_shared_udp_handles.clear();
 
-  // Clear pending callbacks
   m_httpCallbacks.clear();
 
-  // Send destroy command to module
-  writeRequest("destroy", "{}");
+  if(m_registered)
+  {
+    writeRequest("destroy", "{}");
+    release_grace_ms = 1000;
+  }
 }
 
 void module_handler::executeHttpRequest(
@@ -803,18 +1246,15 @@ void module_handler::startStopRecordingActions()
   qDebug() << "TODO" << Q_FUNC_INFO;
 }
 
-void module_handler::sharedUdpSocketMessage()
-{
-  qDebug() << "TODO" << Q_FUNC_INFO;
-}
-
-void module_handler::sharedUdpSocketError()
-{
-  qDebug() << "TODO" << Q_FUNC_INFO;
-}
-
 const module_data& module_handler::model()
 {
   return m_model;
+}
+
+std::optional<std::set<QString>> module_handler::secretKeys() const
+{
+  if(!m_secretsKnown)
+    return std::nullopt;
+  return m_secretFields;
 }
 }
