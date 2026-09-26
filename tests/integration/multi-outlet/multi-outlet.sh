@@ -41,7 +41,7 @@ IMAGE="${MULTI_OUTLET_IMAGE:-$HERE/fixture/scene.png}"
 MODEL="${MULTI_OUTLET_MODEL:-$HERE/fixture/two_outputs.onnx}"
 echo "model: $MODEL"
 echo "image: $IMAGE"
-OSC=6666
+OSC=${SCORE_LOCAL_OSC_PORT:-6666}
 TIMEOUT="${TIMEOUT:-420}"
 GRABS="${GRABS:-40}"
 

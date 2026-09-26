@@ -98,7 +98,7 @@ _resolve_scene_scripts() {
 }
 
 SCRIPTS="${SCRIPTS:-$(_resolve_scene_scripts "$SRCROOT" "csf-testers/tests-scene/scripts")}"
-OSC=6666
+OSC=${SCORE_LOCAL_OSC_PORT:-6666}
 BLANK_MEAN="${BLANK_MEAN:-0.002}"
 TIMEOUT="${TIMEOUT:-90}"
 GRABTRIES="${GRABTRIES:-25}"   # x2s poll for the grab (ASAN startup is slow)

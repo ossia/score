@@ -53,7 +53,7 @@ OUT="${OUT:-/tmp/text-render}"
 REFS="$HERE/refs"
 COMPARE="$HERE/../golden-render/compare.py"
 DIFFDIR="$OUT/diff"
-OSC=6666
+OSC=${SCORE_LOCAL_OSC_PORT:-6666}
 TIMEOUT="${TIMEOUT:-420}"
 SETTLE="${SETTLE:-1.2}"
 ASAN="detect_leaks=0:halt_on_error=0:handle_segv=1:detect_odr_violation=0:protect_shadow_gap=0"

@@ -19,7 +19,7 @@ HERE="$(cd "$(dirname "$0")" && pwd)"
 SRCROOT="$(cd "$HERE/../../.." && pwd)"  # tests/integration/timeline-scenarios -> repo root
 BIN="${OSSIA_SCORE:-$SRCROOT/build-sanitizers/ossia-score}"
 OUT="${OUT:-/tmp/timeline-scenarios}"
-OSC=6666
+OSC=${SCORE_LOCAL_OSC_PORT:-6666}
 RAMP_MS=10000
 POSITIONS=(${POSITIONS:-2000 5000 8000})
 # One-directional value band: the grab lands ahead of T by the settle time, so

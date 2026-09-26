@@ -27,7 +27,7 @@ SCRIPTS="${1:-${SCENE_SCRIPTS_DIR:-$HOME/Documents/ossia/score/packages/csf-exam
 BIN="${OSSIA_SCORE:-ossia-score}"
 command -v "$BIN" >/dev/null 2>&1 || BIN="./ossia-score"
 OUT_ROOT="${OUT_ROOT:-/tmp/scene-js-sweep}"
-OSC_PORT=6666
+OSC_PORT=${SCORE_LOCAL_OSC_PORT:-6666}
 GRAB_DELAY="${GRAB_DELAY:-6}"     # seconds to let the graph build + render before grabbing
 BLANK_MEAN="${BLANK_MEAN:-0.002}" # pixel mean at/below which a PNG counts as blank
 

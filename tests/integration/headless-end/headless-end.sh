@@ -22,7 +22,7 @@ HERE="$(cd "$(dirname "$0")" && pwd)"
 SRCROOT="$(cd "$HERE/../../.." && pwd)"
 BIN="${OSSIA_SCORE:-$SRCROOT/build-developer/ossia-score}"
 OUT="${OUT:-/tmp/headless-end}"
-OSC=6666
+OSC=${SCORE_LOCAL_OSC_PORT:-6666}
 
 command -v oscsend >/dev/null || { echo "SKIP: oscsend not found"; exit 77; }
 [ -x "$BIN" ] || { echo "SKIP: $BIN not built"; exit 77; }

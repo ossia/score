@@ -31,7 +31,7 @@ BINDIR="$(cd "$(dirname "$BIN")" && pwd)"
 GFXSO="$BINDIR/plugins/libscore_plugin_gfx.so"
 GFXSRC="$SRCROOT/src/plugins/score-plugin-gfx/Gfx"
 OUT="${OUT:-/tmp/live-edit}"
-OSC=6666
+OSC=${SCORE_LOCAL_OSC_PORT:-6666}
 TICK="${TICK:-0.5}"
 BLANK_MEAN="${BLANK_MEAN:-0.002}"
 ASAN="detect_leaks=0:halt_on_error=0:handle_segv=1:detect_odr_violation=0:protect_shadow_gap=0"
