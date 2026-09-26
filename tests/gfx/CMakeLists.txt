@@ -2376,3 +2376,9 @@ if(TARGET score_plugin_threedim AND TARGET score_plugin_avnd)
     $<TARGET_PROPERTY:score_plugin_avnd,INCLUDE_DIRECTORIES>
     $<TARGET_PROPERTY:score_plugin_gfx,INCLUDE_DIRECTORIES>)
 endif()
+
+# Procedural raw raster adopting its geometry's storage image and auxiliary.
+score_add_gfx_test(procedural_geometry_adopt GfxProceduralGeometryAdopt.cpp)
+
+# A compute-written image read by an ISF and a raw raster keeps its orientation.
+score_add_gfx_test(compute_image_orientation GfxComputeImageOrientation.cpp)

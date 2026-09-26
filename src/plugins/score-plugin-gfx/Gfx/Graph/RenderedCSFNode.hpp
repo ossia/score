@@ -289,6 +289,11 @@ private:
     int vertex_count{0};       // Number of elements (vertices) in the geometry
     int instance_count{1};      // Number of instances
     int input_port_index{-1};   // Input port index for this binding (-1 = no input port, e.g. write_only generator)
+    int outlet_index{-1};       // Geometry outlet this binding publishes on (-1 = none)
+    //! Whether the input port's upstream is downstream of this node, as of
+    //! Edge::generation == closesCycleGeneration.
+    bool closesCycle{false};
+    uint64_t closesCycleGeneration{~uint64_t{0}};
     bool has_output{false};     // true if any attribute is writable
     bool has_vertex_count_spec{false};   // true if vertex_count expression is set
     bool has_instance_count_spec{false}; // true if instance_count expression is set

@@ -236,6 +236,7 @@ struct SCORE_PLUGIN_GFX_EXPORT Edge
 
   ~Edge()
   {
+    generation.fetch_add(1, std::memory_order_relaxed);
     if(auto it = std::find(source->edges.begin(), source->edges.end(), this);
        it != source->edges.end())
       source->edges.erase(it);
@@ -247,6 +248,10 @@ struct SCORE_PLUGIN_GFX_EXPORT Edge
   Port* source{};
   Port* sink{};
   Process::CableType type{};
+
+  //! Bumped whenever an edge is created or destroyed: lets per-frame code
+  //! cache what it derives from the graph's connectivity.
+  static inline std::atomic<uint64_t> generation{0};
 };
 
 /**
