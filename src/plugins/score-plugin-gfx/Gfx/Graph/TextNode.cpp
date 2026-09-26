@@ -136,6 +136,8 @@ private:
 
   void initState(RenderList& renderer, QRhiResourceUpdateBatch& res) override
   {
+    // The texture holds QPainter's premultiplied pixels.
+    m_outputPremultiplied = true;
     rerender();
     m_mesh = &renderer.defaultQuad();
     defaultMeshInit(renderer, *m_mesh, res);
