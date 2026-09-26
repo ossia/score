@@ -1438,6 +1438,8 @@ if(TARGET score_plugin_avnd AND TARGET score_plugin_engine)
             score_plugin_scenario score_lib_process)
   target_include_directories(test_integration_scriptable_dynamic_ports PRIVATE
     "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish")
+  target_compile_definitions(test_integration_scriptable_dynamic_ports PRIVATE
+    DYNAMIC_PORTS_DATA_DIR="${SCORE_ROOT_SOURCE_DIR}/tests/data/dynamic-ports")
 endif()
 
 if(TARGET score_plugin_fx AND TARGET score_plugin_protocols)

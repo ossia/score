@@ -273,6 +273,7 @@ private:
     m_outlets.clear();
 
     init_all_ports();
+    init_dynamic_port_instances();
 
     // A port the spec gained since the save just comes back at its default:
     // only a saved port that matched nothing actually lost its value.
@@ -751,6 +752,33 @@ private:
     outletsChanged();
     for(auto port : to_delete)
       delete port;
+  }
+
+  //! init_all_ports() builds the static ports only: re-create the dynamic
+  //! ones at the counts read from the document, so that the saved ports find
+  //! their place again and the counts match m_inlets / m_outlets.
+  void init_dynamic_port_instances()
+  {
+    if constexpr(avnd::dynamic_ports_input_introspection<Info>::size > 0)
+    {
+      avnd::dynamic_ports_input_introspection<Info>::for_all_n2(
+          avnd::get_inputs((Info&)object_storage_for_ports_callbacks),
+          [&]<std::size_t N>(auto& port, auto, avnd::field_index<N> idx) {
+        auto& count = dynamic_ports.num_in_ports(idx);
+        const int n = std::exchange(count, 0);
+        request_new_dynamic_input_count(port, idx, n);
+      });
+    }
+    if constexpr(avnd::dynamic_ports_output_introspection<Info>::size > 0)
+    {
+      avnd::dynamic_ports_output_introspection<Info>::for_all_n2(
+          avnd::get_outputs((Info&)object_storage_for_ports_callbacks),
+          [&]<std::size_t N>(auto& port, auto, avnd::field_index<N> idx) {
+        auto& count = dynamic_ports.num_out_ports(idx);
+        const int n = std::exchange(count, 0);
+        request_new_dynamic_output_count(port, idx, n);
+      });
+    }
   }
 
   void init_all_ports()
