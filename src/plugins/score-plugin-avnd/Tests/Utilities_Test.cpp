@@ -105,3 +105,61 @@ TEST_CASE("Counter: when the count is sent", "[avnd][utilities][counter]")
     CHECK(r.ceilings == 1);
   }
 }
+
+#include <examples/Advanced/Utilities/Accumulator.hpp>
+
+namespace
+{
+std::optional<float> tick(ao::Accumulator& a, std::optional<float> in, bool output = false)
+{
+  a.inputs.in.value = in;
+  if(output)
+    a.inputs.output.update(a);
+  a();
+  return a.outputs.sum.value;
+}
+}
+
+TEST_CASE("Accumulator: when the statistics are sent", "[avnd][utilities][accumulator]")
+{
+  SECTION("every tick, as before")
+  {
+    ao::Accumulator a;
+    CHECK(tick(a, 1.f) == 1.f);
+    CHECK(tick(a, std::nullopt) == 1.f);
+  }
+  SECTION("on new input only")
+  {
+    ao::Accumulator a;
+    a.inputs.when.value = ao::Accumulator::OnInput;
+    CHECK(tick(a, 1.f) == 1.f);
+    CHECK_FALSE(tick(a, std::nullopt));
+    CHECK(tick(a, 2.f) == 3.f);
+  }
+  SECTION("only on the Output bang")
+  {
+    ao::Accumulator a;
+    a.inputs.when.value = ao::Accumulator::Manually;
+    CHECK_FALSE(tick(a, 1.f));
+    CHECK_FALSE(tick(a, 2.f));
+    CHECK(tick(a, std::nullopt, true) == 3.f);
+    CHECK(a.outputs.count.value == 2.f);
+    CHECK_FALSE(tick(a, std::nullopt));
+  }
+}
+
+TEST_CASE("Accumulator: reset forgets everything", "[avnd][utilities][accumulator]")
+{
+  ao::Accumulator a;
+  a.inputs.when.value = ao::Accumulator::OnInput;
+  tick(a, 1.f);
+  tick(a, 5.f);
+  a.inputs.reset.update(a);
+  // Reset is sent once, as zeros.
+  CHECK(tick(a, std::nullopt) == 0.f);
+  CHECK(a.outputs.count.value == 0.f);
+  CHECK_FALSE(tick(a, std::nullopt));
+  // The consecutive difference starts over too.
+  tick(a, 2.f);
+  CHECK(a.outputs.diff.value == 2.f);
+}
