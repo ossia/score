@@ -561,6 +561,14 @@ private:
     using Port = std::remove_pointer_t<typename Ports::value_type>;
     Ports old{first, first + count}, next;
     next.reserve(rows.size());
+    // A row without text is named like a port of a count-based group: the
+    // port's name with "{}" replaced by its position ("Input 2").
+    using port_type = std::decay_t<decltype(port.ports[0])>;
+    const auto templateName = [] {
+      const std::string_view nm = avnd::get_name<port_type>();
+      return QString::fromUtf8(nm.data(), nm.size());
+    }();
+    int row = 0;
     for(const auto& [key, text] : rows)
     {
       auto found
@@ -590,8 +598,15 @@ private:
         p = added.front();
       }
       p->stableIdentity = true;
-      p->setName(QString::fromStdString(text));
+      auto name = QString::fromStdString(text);
+      if(name.trimmed().isEmpty())
+      {
+        name = templateName;
+        name.replace(QStringLiteral("{}"), QString::number(row));
+      }
+      p->setName(name);
       next.push_back(p);
+      row++;
     }
     const bool changed = !std::equal(next.begin(), next.end(), first, first + count);
     const auto offset = first - all.begin();
