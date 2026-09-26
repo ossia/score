@@ -1,0 +1,10 @@
+{
+  "name": "score-bitfocus-sweep",
+  "private": true,
+  "description": "Reference host for tests/tools/bitfocus/sweep.py",
+  "dependencies": {
+    "ejson": "^2.2.3",
+    "osc": "^2.4.5",
+    "semver": "^7.7.2"
+  }
+}
