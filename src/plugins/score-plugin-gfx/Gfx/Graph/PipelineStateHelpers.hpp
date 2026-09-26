@@ -30,6 +30,12 @@ QRhiGraphicsPipeline::FrontFace toFrontFace(std::string_view s) noexcept;
 SCORE_PLUGIN_GFX_EXPORT
 QRhiGraphicsPipeline::PolygonMode toPolygonMode(std::string_view s) noexcept;
 
+// Fill when `requested` is not Fill and the backend does not report
+// QRhi::NonFillPolygonMode; warns once per process in that case.
+SCORE_PLUGIN_GFX_EXPORT
+QRhiGraphicsPipeline::PolygonMode supportedPolygonMode(
+    QRhiGraphicsPipeline::PolygonMode requested, bool nonFillSupported) noexcept;
+
 SCORE_PLUGIN_GFX_EXPORT
 QRhiGraphicsPipeline::BlendFactor toBlendFactor(std::string_view s) noexcept;
 

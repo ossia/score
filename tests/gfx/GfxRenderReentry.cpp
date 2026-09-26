@@ -131,6 +131,9 @@ struct Outcome
   int64_t readbackOuterFrames{-1};
   int nestedBegins{-1};
   int skippedEntries{-1};
+  int renderFramesRefusals{-1};
+  int nestedListRefusals{-1};
+  int actionableRefusals{-1};
   int64_t framesAfter[2]{-1, -1};
   int clockRendersOutsideFrames{-1};
   bool magenta{};
@@ -250,13 +253,15 @@ Outcome run(score::gfx::GraphicsApi backend)
       otherSink->shared_readback->completed = {};
     }
 
-    out.nestedBegins = warningsContaining("within a still active frame")
-                       + warningsContaining("entered while a frame is already recording");
-    out.skippedEntries = warningsContaining("while a frame is being rendered")
-                         + warningsContaining("while this list is already rendering");
-
-    qInstallMessageHandler(g_previousHandler);
-    g_previousHandler = {};
+    out.nestedBegins = warningsContaining(u"within a still active frame")
+                       + warningsContaining(u"entered while a frame is already recording");
+    out.skippedEntries = warningsContaining(u"refused: a frame is already being rendered")
+                         + warningsContaining(u"refused: this list is already rendering");
+    out.renderFramesRefusals = warningsContaining(u"score.gfx: renderFrames refused");
+    out.nestedListRefusals = warningsContaining(u"score.gfx: RenderList::render refused");
+    out.actionableRefusals = warningsContaining(
+        u"Call renderFrames/grab outside a node's tick() or a readback callback.");
+    log.reset();
 
     const int64_t h0 = hookRl->frame;
     const int64_t o0 = otherRl->frame;
@@ -317,6 +322,9 @@ TEST_CASE(
 
   CHECK(o.nestedBegins == 0);
   CHECK(o.skippedEntries > 0);
+  CHECK(o.renderFramesRefusals > 0);
+  CHECK(o.nestedListRefusals > 0);
+  CHECK(o.actionableRefusals == o.skippedEntries);
 
   CHECK(o.framesAfter[0] == 4);
   CHECK(o.framesAfter[1] == 4);

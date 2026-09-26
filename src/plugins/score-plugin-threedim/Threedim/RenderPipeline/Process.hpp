@@ -71,6 +71,7 @@ public:
 private:
   void init();
   void initDefaultPorts();
+  void addCameraInlet();
   QString prettyName() const noexcept override;
   ShaderSource m_program;
   ProcessedProgram m_processedProgram;

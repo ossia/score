@@ -3,6 +3,7 @@
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Dataflow/WidgetInlets.hpp>
 
+#include <Gfx/Graph/ISFNode.hpp>
 #include <Gfx/Graph/Node.hpp>
 #include <Gfx/ISFProcess.hpp>
 #include <Gfx/TexturePort.hpp>
@@ -47,6 +48,18 @@ Model::Model(
 Model::~Model() = default;
 
 void Model::initDefaultPorts() { }
+
+void Model::addCameraInlet()
+{
+  static constexpr int camera_inlet_id = 1001;
+  if(!score::gfx::ISFNode::hasCameraInput(m_processedProgram.descriptor))
+    return;
+  for(auto* inl : m_inlets)
+    if(inl->id().val() == camera_inlet_id)
+      return;
+  m_inlets.push_back(
+      new GeometryInlet{"Camera", Id<Process::Port>(camera_inlet_id), this});
+}
 
 void Model::init()
 {
@@ -173,6 +186,7 @@ Process::ScriptChangeResult Model::setProgram(ShaderSource f)
 
     ISFHelpers::setupISFModelPorts(
         *this, m_processedProgram.descriptor, previous_values);
+    addCameraInlet();
 
     return {.valid = true, .inlets = std::move(inls), .outlets = std::move(outls)};
   }
@@ -209,6 +223,7 @@ void DataStreamWriter::write(Gfx::RenderPipeline::Model& proc)
   writePorts(
       *this, components.interfaces<Process::PortFactoryList>(), proc.m_inlets,
       proc.m_outlets, &proc);
+  proc.addCameraInlet();
 
   checkDelimiter();
 }
@@ -234,4 +249,5 @@ void JSONWriter::write(Gfx::RenderPipeline::Model& proc)
   writePorts(
       *this, components.interfaces<Process::PortFactoryList>(), proc.m_inlets,
       proc.m_outlets, &proc);
+  proc.addCameraInlet();
 }

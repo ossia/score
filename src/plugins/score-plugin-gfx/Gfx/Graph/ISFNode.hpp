@@ -33,6 +33,11 @@ public:
   score::gfx::NodeRenderer* createRenderer(RenderList& r) const noexcept override;
 
   const isf::descriptor& descriptor() const noexcept { return m_descriptor; }
+
+  // A raw raster whose shader reads the `camera` block gets one extra Scene
+  // input, after every INPUTS port: a Camera wired there fills that block.
+  static bool hasCameraInput(const isf::descriptor& desc) noexcept;
+  int cameraInput() const noexcept { return m_cameraInput; }
   void process(Message&& msg) override;
   friend SinglePassISFNode;
   friend RenderedISFNode;
@@ -49,6 +54,7 @@ public:
   QString m_computeS;
   std::vector<int*> m_event_ports;
 
+  int m_cameraInput{-1};
   int m_materialSize{};
   // Bytes of m_material_data the shader's material UBO actually covers. USER
   // dispatch ports are appended past this: their values are read on the CPU to

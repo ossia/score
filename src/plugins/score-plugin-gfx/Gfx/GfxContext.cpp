@@ -448,7 +448,7 @@ void GfxContext::recomputeTimers()
         const RenderDepth scope{m_renderDepth};
         updateGraph();
         for(auto* output : m_graph->outputs())
-          if(output && output->canRender())
+          if(output && !output->configuration().hostDriven && output->canRender())
             output->render();
       });
       m_freewheel_timer->start();
@@ -1185,9 +1185,13 @@ bool GfxContext::refuseNestedRender(const char* entry) noexcept
   if(!renderInProgress())
     return false;
   if((m_nestedRenders++ % 600) == 0)
-    qWarning() << "score.gfx:" << entry
-               << "reached while a frame is being rendered; skipped (occurrence"
-               << m_nestedRenders << ")";
+    qWarning().nospace().noquote()
+        << "score.gfx: " << entry
+        << " refused: a frame is already being rendered, so it was skipped. It was "
+           "reached from inside that frame: a node's tick() or a readback callback "
+           "called renderFrames/grab or pumped the event loop. Call renderFrames/grab "
+           "outside a node's tick() or a readback callback. (occurrence "
+        << m_nestedRenders << ")";
   return true;
 }
 
@@ -1282,7 +1286,7 @@ void GfxContext::renderFrames(int frames)
 
     for(auto output : m_graph->outputs())
     {
-      if(output && output->canRender())
+      if(output && !output->configuration().hostDriven && output->canRender())
         output->render();
     }
   }

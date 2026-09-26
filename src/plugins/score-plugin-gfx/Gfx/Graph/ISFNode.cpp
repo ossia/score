@@ -10,6 +10,8 @@
 
 #include <boost/algorithm/string/replace.hpp>
 
+#include <algorithm>
+
 namespace score::gfx
 {
 struct isf_input_port_vis
@@ -392,6 +394,12 @@ ISFNode::ISFNode(const isf::descriptor& desc, const QString& vert, const QString
   for(const isf::input& input : desc.inputs)
     ossia::visit(visitor, input.data);
 
+  if(hasCameraInput(desc))
+  {
+    m_cameraInput = (int)input.size();
+    input.push_back(new Port{this, {}, Types::Scene, {}});
+  }
+
   if(desc.outputs.empty())
   {
     // Default: single color output
@@ -467,6 +475,14 @@ ISFNode::ISFNode(const isf::descriptor& desc, const QString& comp)
 }
 
 ISFNode::~ISFNode() { }
+
+bool ISFNode::hasCameraInput(const isf::descriptor& desc) noexcept
+{
+  return desc.mode == isf::descriptor::RawRaster
+         && std::any_of(desc.auxiliary.begin(), desc.auxiliary.end(), [](const auto& aux) {
+    return aux.name == "camera" && aux.is_uniform;
+  });
+}
 
 void ISFNode::process(Message&& msg)
 {
