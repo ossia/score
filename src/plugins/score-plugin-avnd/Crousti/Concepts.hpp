@@ -559,10 +559,18 @@ make_control_in(avnd::field_index<N>, Id<Process::Port>&& id, QObject* parent)
                    c.init == 0.f;
                  })
     {
+      // halp::range only has a scalar init: a port that needs another
+      // default per axis sets it in its constructor.
+      std::array<float, 3> init{c.init, c.init, c.init};
+      if constexpr(std::is_default_constructible_v<T>)
+      {
+        const auto [ix, iy, iz] = T{}.value;
+        init = {float(ix), float(iy), float(iz)};
+      }
       return new Process::XYZSpinboxes{
           {c.min, c.min, c.min},
           {c.max, c.max, c.max},
-          {c.init, c.init, c.init},
+          {init[0], init[1], init[2]},
           false,
           qname,
           id,

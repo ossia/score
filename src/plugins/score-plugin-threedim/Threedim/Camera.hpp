@@ -81,7 +81,7 @@ public:
     // the non-uniform defaults are applied in the subclass constructor.
     struct Eye : halp::xyz_spinboxes_f32<"Eye", halp::range{-10000., 10000., 0.}>
     {
-      Eye() { value = {0.f, 1.f, 3.f}; }
+      Eye() { value = {1.f, 1.f, 1.f}; }
       void update(Camera& n) { n.rebuild(); }
     } eye;
     struct : halp::xyz_spinboxes_f32<"Target", halp::range{-10000., 10000., 0.}>
