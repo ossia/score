@@ -240,7 +240,24 @@ TEST_CASE("a loaded Bitfocus device keeps what the module upgraded", "[integrati
       QCoreApplication::processEvents(QEventLoop::AllEvents, 10);
     CHECK(mockEvents("updateConfigAndLabel").empty());
     CHECK(mockEvents("init").size() == 1);
+    CHECK(std::as_const(mockEvents("init")[0])["msg"]["isFirstInit"] == false);
     CHECK(versionOf() == R"({"String":"new"})");
+
+    // A module without configuration was initialised before: not a new connection
+    const auto json2 = QStringLiteral(R"({
+      "Path": "%1", "Entrypoint": "main.js", "Identifier": "score-mock",
+      "Name": "Mock", "Brand": "ossia", "Product": "", "NodeVersion": "node22",
+      "APIVersion": "1.14.1", "Description": "", "UpgradeIndex": 3, "Configuration": []
+    })").arg(SCORE_BITFOCUS_MOCK_DIR);
+    auto json_doc2 = readJson(json2.toUtf8());
+    JSONWriter wrt2{json_doc2};
+    Device::DeviceSettings set2;
+    set2.name = "mock2";
+    set2.protocol = fact->concreteKey();
+    set2.deviceSpecificSettings = fact->makeProtocolSpecificSettings(wrt2.toVariant());
+    disp.submit(new Explorer::Command::LoadDevice{devplug, std::move(set2)});
+    REQUIRE(waitFor([&] { return mockEvents("init").size() == 2; }));
+    CHECK(std::as_const(mockEvents("init")[1])["msg"]["isFirstInit"] == false);
   });
 }
 

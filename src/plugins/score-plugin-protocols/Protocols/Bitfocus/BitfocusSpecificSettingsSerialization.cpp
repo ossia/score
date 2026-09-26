@@ -49,7 +49,7 @@ Protocols::BitfocusSpecificSettings::makeHandler(const QString& label) const
 {
   return std::make_shared<bitfocus::module_handler>(
       path, entrypoint, nodeVersion, apiVersion, moduleConfiguration(), label,
-      configuration.empty(), upgradeIndex,
+      configuration.empty() && !upgradeIndex, upgradeIndex,
       secretKeys ? std::optional{std::set<QString>(secretKeys->begin(), secretKeys->end())}
                  : std::nullopt);
 }

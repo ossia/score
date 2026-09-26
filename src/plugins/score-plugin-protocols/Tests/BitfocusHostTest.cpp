@@ -169,6 +169,15 @@ TEST_CASE("init carries the saved configuration", "[bitfocus]")
   CHECK(id1 != id2);
 }
 
+TEST_CASE("a configuration of unknown age goes through every upgrade script", "[bitfocus]")
+{
+  if(!hasNode())
+    return;
+  mock m{{{"host", "a"}}, false, std::nullopt};
+  REQUIRE(waitFor([&] { return m.registered; }));
+  CHECK(m.waitEvent("init")["msg"]["lastUpgradeIndex"] == -1);
+}
+
 TEST_CASE("a new connection gets the configuration the module computes", "[bitfocus]")
 {
   if(!hasNode())

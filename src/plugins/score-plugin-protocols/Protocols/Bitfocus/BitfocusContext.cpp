@@ -864,9 +864,8 @@ int module_handler::init(QString label)
   obj["isFirstInit"] = m_firstInit;
   obj["config"] = configObject(false);
   obj["secrets"] = configObject(true);
-  // Without a recorded index the saved configuration is assumed current
-  obj["lastUpgradeIndex"]
-      = m_firstInit ? -1 : m_model.upgradeIndex.value_or(std::numeric_limits<int>::max());
+  // Unknown, as in companion: every upgrade script runs
+  obj["lastUpgradeIndex"] = m_firstInit ? -1 : m_model.upgradeIndex.value_or(-1);
   obj["actions"] = QJsonObject{};
   obj["feedbacks"] = QJsonObject{};
 
