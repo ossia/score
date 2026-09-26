@@ -70,11 +70,10 @@ private:
     ossia::net::node_base* variables{};
   } nodes;
 
-  // What push() may compare against from the execution thread
   std::atomic<ossia::net::node_base*> m_actionsNode{};
   std::atomic<ossia::net::node_base*> m_feedbacksNode{};
 
-  // Options set through the tree: {"action" or "feedback", node, option}
+  //! {"action" or "feedback", node, option} set through the tree
   std::set<std::tuple<std::string, std::string, std::string>> m_touched;
   std::mutex m_touchedMutex;
 

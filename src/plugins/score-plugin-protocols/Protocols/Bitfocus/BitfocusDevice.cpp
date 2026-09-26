@@ -56,7 +56,6 @@ bool BitfocusDevice::reconnect()
 
     if(!stgs.handler)
     {
-      // init carries the configuration to a new module
       stgs.handler = stgs.makeHandler(label);
       m_settings.deviceSpecificSettings = QVariant::fromValue(stgs);
     }
@@ -68,7 +67,6 @@ bool BitfocusDevice::reconnect()
       });
     }
 
-    // What the module saves itself is kept with the document
     QObject::disconnect(m_configurationSaved);
     m_configurationSaved = connect(
         stgs.handler.get(), &bitfocus::module_handler::configurationSaved, this,

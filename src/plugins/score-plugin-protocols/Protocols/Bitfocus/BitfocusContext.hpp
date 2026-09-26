@@ -44,7 +44,7 @@ struct module_data
     {
       QString id;
       QString label;
-      //! The id as the module declared it: modules compare it strictly, 1 != "1"
+      //! The id with the type the module declared
       QJsonValue value;
     };
 

@@ -52,8 +52,7 @@ private:
     std::function<ossia::value()> getValue;
     std::function<void(ossia::value)> setValue;
 
-    // What the field showed when loaded and where that came from: kept as-is,
-    // or left out when there was nothing, while the user does not change it
+    // The value shown when loaded, and the one it came from
     ossia::value shown;
     std::optional<ossia::value> source;
   };

@@ -31,7 +31,6 @@ void module_handler_base::start_process()
     pfd[0] = pfd[1] = -1;
     return;
   }
-  // Only the child's end is inherited
   ::fcntl(pfd[0], F_SETFD, FD_CLOEXEC);
 #if defined(SO_NOSIGPIPE)
   {
@@ -73,7 +72,6 @@ void module_handler_base::start_process()
 
   process->start();
 
-  // Reads see EOF once the child exits
   ::close(pfd[1]);
   pfd[1] = -1;
 }
@@ -89,7 +87,6 @@ void module_handler_base::release_process(int grace_ms)
   if(!proc)
     return;
 
-  // Given time to shut down, then terminated, without blocking
   auto done = std::make_shared<bool>(false);
   auto finish = [proc, fd, done] {
     if(std::exchange(*done, true))
@@ -130,7 +127,7 @@ void module_handler_base::on_read(QSocketDescriptor, QSocketNotifier::Type)
   if(rl == 0)
   {
     socket->setEnabled(false);
-    // Queued: the handler may restart the process, which deletes this notifier
+    // Queued: restarting deletes this notifier
     QMetaObject::invokeMethod(this, [this] { on_process_exited(); }, Qt::QueuedConnection);
     return;
   }

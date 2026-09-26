@@ -51,7 +51,6 @@ void applyDomain(ossia::net::parameter_base& p, const config_field& opt)
   }
 }
 
-// Integers beyond 32 bits, e.g. timestamps in ms, stay exact as text
 ossia::value receivedValue(const QVariant& v)
 {
   constexpr double int_min = std::numeric_limits<int32_t>::min();
@@ -199,7 +198,6 @@ bitfocus_protocol::bitfocus_protocol(
       m_rc.get(), &bitfocus::module_handler::definitionsChanged, this,
       [this] { init_device(m_rc->takeChangedDefinitions()); });
 
-  // A restarted module has no feedback subscribed
   QObject::connect(
       m_rc.get(), &bitfocus::module_handler::reregistered, this, [this] {
     m_subscribed.clear();
@@ -215,7 +213,6 @@ void bitfocus_protocol::set_received_value(ossia::net::parameter_base& p, ossia:
     return;
   const auto cur = p.get_value_type();
   const auto next = v.get_type();
-  // Once a number has had decimals it stays a float
   if(cur == ossia::val_type::FLOAT && next == ossia::val_type::INT)
   {
     p.set_value(float(*v.target<int>()));
@@ -249,7 +246,6 @@ QVariantMap bitfocus_protocol::collectOptions(
       continue;
     const auto val = p->value();
     const QVariant qv = val.apply(ossia::qt::ossia_to_qvariant{});
-    // Untouched: companion sends the default as declared, or nothing without one
     const bool touched
         = m_touched.contains({group, node.get_name(), opt.id.toStdString()});
     if(!touched && val == optionDefault(opt))
@@ -267,8 +263,7 @@ QVariantMap bitfocus_protocol::collectOptions(
 
 bool bitfocus_protocol::push(const ossia::net::parameter_base& p, const ossia::value& v)
 {
-  // Called from the execution thread: the definitions and the tree are only
-  // read on the handler's thread
+  // Called from the execution thread
   auto& node = p.get_node();
   auto parent = node.get_parent();
   if(!parent)

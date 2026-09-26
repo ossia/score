@@ -83,7 +83,6 @@ Device::DeviceSettings BitfocusProtocolSettingsWidget::getSettings() const
   const bitfocus::module_data* model = osc.handler ? &osc.handler->model() : nullptr;
   if(model && m_fieldsLoaded)
   {
-    // Keys the module keeps in its configuration without showing them
     for(auto& [k, v] : model->config)
       if(k != "product" && !m_widgets.contains(k))
         if(ossia::none_of(osc.configuration, [&k](auto& kv) { return kv.first == k; }))
@@ -154,7 +153,6 @@ static ossia::value toSetting(const bitfocus::module_data::config_field& field, 
   return ossia::qt::qt_to_ossia{}(bitfocus::toModuleValue(field, v).toVariant());
 }
 
-// A number without default stays undefined until it is set, as in companion
 template <typename Spin>
 static void setupEmptyNumber(Spin* widg, const bitfocus::module_data::config_field& field)
 {
@@ -285,7 +283,6 @@ void BitfocusProtocolSettingsWidget::updateFields()
       const auto default_v = field.default_value.toString();
       for(const auto& choice : field.choices)
         widg->addItem(choice.label, choice.id);
-      // A default outside of the choices stays selected as-is, as in companion
       if(int idx = widg->findData(default_v); idx != -1)
         widg->setCurrentIndex(idx);
       else if(field.allowCustom)
@@ -379,7 +376,6 @@ void BitfocusProtocolSettingsWidget::updateFields()
   m_subForm->addStretch(1);
   m_fieldsLoaded = true;
 
-  // The declared default, then what the module holds, then what the user had set
   for(auto& field : m.config_fields)
     loadValue(
         field.id, field.hasDefault() ? std::optional{ossia::qt::qt_to_ossia{}(

@@ -110,7 +110,6 @@ QJsonValue toModuleValue(const module_data::config_field& f, const QVariant& v_)
   const QVariant v = widenFloat(v_);
   if(f.type == "static-text")
     return QJsonValue::Undefined;
-  // Companion sends the default as the module wrote it, whatever its type
   if(isDefaultValue(f, v))
     return f.default_json;
   if(f.type == "number")
@@ -213,7 +212,6 @@ static QJsonObject ejsonBinaryValue(const QByteArray& data)
   return QJsonObject{{"$binary", QString::fromLatin1(data.toBase64())}};
 }
 
-// Companion shares a UDP port between all the connections which listen on it
 struct shared_udp_port : QObject
 {
   QUdpSocket socket;
@@ -348,14 +346,12 @@ void module_handler::processMessage(std::string_view v)
 
   if(direction == "call")
   {
-    // Before 1.5 module-base used string callback ids
     const bool hasCallback = !id.isUndefined() && !id.isNull();
     if(name == "register")
     {
       // First message
       on_register(id);
 
-      // The fields do not wait for init, which may wait for the device
       QMetaObject::invokeMethod(this, [this] {
         m_init_msg_id = init(m_label);
         m_req_cfg_id = requestConfigFields();
@@ -528,7 +524,6 @@ void module_handler::on_process_exited()
   if(m_destroyed)
     return;
 
-  // As companion does: start the module again, backing off if it keeps failing
   if(m_uptime.isValid() && m_uptime.elapsed() > 60000)
     m_restarts = 0;
   const int delay = std::min(30000, 1000 << std::min(m_restarts, 5));
@@ -667,7 +662,6 @@ void module_handler::on_setVariableValues(QJsonArray vars)
   {
     auto obj = var.toObject();
     const auto& id = obj["id"].toString();
-    // An undefined value removes the variable
     if(!obj.contains("value"))
       continue;
     auto& vv = m_model.variables[id];
@@ -850,7 +844,6 @@ void module_handler::on_send_osc(QJsonObject obj)
 
 QJsonObject module_handler::configObject(bool secrets) const
 {
-  // Until the fields are known, secrets cannot be told apart
   const bool known = m_secretsKnown;
   QJsonObject config;
   for(auto& [k, v] : this->m_model.config)
@@ -869,7 +862,6 @@ int module_handler::init(QString label)
   obj["isFirstInit"] = m_firstInit;
   obj["config"] = configObject(false);
   obj["secrets"] = configObject(true);
-  // Unknown, as in companion: every upgrade script runs
   obj["lastUpgradeIndex"] = m_firstInit ? -1 : m_model.upgradeIndex.value_or(-1);
   obj["actions"] = QJsonObject{};
   obj["feedbacks"] = QJsonObject{};
@@ -903,7 +895,6 @@ void module_handler::on_init_response(const QJsonObject& payload)
     }
   };
   merge(payload["updatedConfig"]);
-  // What was sent as a secret only while unknown comes back in both
   if(auto secrets = payload["updatedSecrets"]; secrets.isObject())
   {
     auto obj = secrets.toObject();
@@ -1185,7 +1176,6 @@ void module_handler::actionRun(std::string_view act, QVariantMap options)
   const auto actionId = QString::fromUtf8(act.data(), act.size());
   QJsonObject act_object;
   act_object["id"] = QStringLiteral("score-%1").arg(++m_actionId);
-  // One control per action node: modules keep per-button state by control id
   act_object["controlId"] = QString(QStringLiteral("action/") + actionId);
   act_object["actionId"] = actionId;
   act_object["options"] = QJsonObject::fromVariantMap(options);
@@ -1210,7 +1200,6 @@ void module_handler::destroy()
 
   m_httpCallbacks.clear();
 
-  // The module closes its connections before the process is terminated
   if(m_registered)
   {
     writeRequest("destroy", "{}");
