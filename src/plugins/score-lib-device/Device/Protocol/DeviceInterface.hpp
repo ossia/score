@@ -201,6 +201,12 @@ public:
   void deviceChanged(ossia::net::device_base* old_dev, ossia::net::device_base* new_dev)
       E_SIGNAL(SCORE_LIB_DEVICE_EXPORT, deviceChanged, old_dev, new_dev)
 
+  //! Emitted by disconnect() before it destroys the device's nodes: holders of
+  //! parameter pointers into that tree must drop them here, deviceChanged
+  //! comes after the nodes are gone.
+  void deviceClearing(ossia::net::device_base* dev)
+      E_SIGNAL(SCORE_LIB_DEVICE_EXPORT, deviceClearing, dev)
+
   /* If logging is enabled, these two signals may be sent
    * when something happens */
   void logInbound(const QString& arg_1) const

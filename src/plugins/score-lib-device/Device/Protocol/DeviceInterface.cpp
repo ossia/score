@@ -366,6 +366,7 @@ void DeviceInterface::disconnect()
   m_callbacks.clear();
   if(auto dev = getDevice())
   {
+    deviceClearing(dev);
     auto& root = dev->get_root_node();
     root.clear_children();
   }

@@ -75,6 +75,9 @@ public:
     connect(
         d, &Device::DeviceInterface::deviceChanged, this,
         &observable_device_roots::on_deviceAddedCallback, Qt::UniqueConnection);
+    connect(
+        d, &Device::DeviceInterface::deviceClearing, this,
+        &observable_device_roots::on_deviceClearing, Qt::UniqueConnection);
     if(auto dev = d->getDevice())
     {
       std::lock_guard l{m_devicesLock};
@@ -85,6 +88,15 @@ public:
     QTimer::singleShot(1, this, [this, n] {
       rootsChanged(roots(), n);
     });
+  }
+
+  //! Main thread, before the device's nodes are destroyed: waits for a script
+  //! inside Device.read/write and drops the cached parameters of that tree.
+  void on_deviceClearing(ossia::net::device_base* d)
+  {
+    std::lock_guard l{m_devicesLock};
+    notify_removing(d);
+    ossia::remove_erase(m_devices, d);
   }
 
   void
@@ -113,6 +125,9 @@ public:
     disconnect(
         d, &Device::DeviceInterface::deviceChanged, this,
         &observable_device_roots::on_deviceAddedCallback);
+    disconnect(
+        d, &Device::DeviceInterface::deviceClearing, this,
+        &observable_device_roots::on_deviceClearing);
     {
       std::lock_guard l{m_devicesLock};
       notify_removing(d->getDevice());
