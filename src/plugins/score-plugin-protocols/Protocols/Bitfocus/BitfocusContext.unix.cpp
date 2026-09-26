@@ -1,6 +1,6 @@
 #include "BitfocusContext.hpp"
 
-#include <QElapsedTimer>
+#include <QTimer>
 
 #include <poll.h>
 #include <signal.h>
@@ -47,16 +47,17 @@ void module_handler_base::start_process()
   QObject::connect(
       socket, &QSocketNotifier::activated, this, &module_handler_base::on_read);
 
-  process.setProcessChannelMode(QProcess::ForwardedChannels);
-  process.setProgram(m_nodePath);
-  process.setArguments({m_entrypoint});
-  process.setWorkingDirectory(m_modulePath);
-  process.setProcessEnvironment(genv);
+  process = std::make_unique<QProcess>();
+  process->setProcessChannelMode(QProcess::ForwardedChannels);
+  process->setProgram(m_nodePath);
+  process->setArguments({m_entrypoint});
+  process->setWorkingDirectory(m_modulePath);
+  process->setProcessEnvironment(genv);
 
   // Own session: the module and everything it spawns can then be signaled as a single
   // process group. PR_SET_PDEATHSIG makes the kernel terminate it if score goes away
   // without running any cleanup; the getppid check closes the fork/prctl race.
-  process.setChildProcessModifier([parent = ::getpid()] {
+  process->setChildProcessModifier([parent = ::getpid()] {
     ::setsid();
 #if defined(__linux__)
     ::prctl(PR_SET_PDEATHSIG, SIGTERM);
@@ -65,42 +66,56 @@ void module_handler_base::start_process()
       ::_exit(0);
   });
 
-  process.start();
+  process->start();
 
   // Reads see EOF once the child exits
   ::close(pfd[1]);
   pfd[1] = -1;
 }
 
-void module_handler_base::stop_process()
+void module_handler_base::release_process(int grace_ms)
 {
-  if(const auto pid = process.processId(); pid > 0)
-  {
-    ::kill(-pid, SIGTERM);
-    if(!process.waitForFinished(1000))
-    {
-      ::kill(-pid, SIGKILL);
-      process.waitForFinished(1000);
-    }
-  }
   delete socket;
   socket = nullptr;
-  if(pfd[0] >= 0)
-    ::close(pfd[0]);
-  pfd[0] = -1;
   queue.clear();
+  const int fd = std::exchange(pfd[0], -1);
+  auto proc = process.release();
+  if(!proc)
+    return;
+
+  // Given time to shut down, then terminated, without blocking
+  auto done = std::make_shared<bool>(false);
+  auto finish = [proc, fd, done] {
+    if(std::exchange(*done, true))
+      return;
+    if(fd >= 0)
+      ::close(fd);
+    proc->deleteLater();
+  };
+  const auto pid = proc->processId();
+  if(pid <= 0 || proc->state() == QProcess::NotRunning)
+  {
+    finish();
+    return;
+  }
+  QObject::connect(proc, &QProcess::finished, proc, finish);
+  QTimer::singleShot(grace_ms, proc, [pid] { ::kill(-pid, SIGTERM); });
+  QTimer::singleShot(grace_ms + 1000, proc, [pid, finish] {
+    ::kill(-pid, SIGKILL);
+    finish();
+  });
 }
 
 bool module_handler_base::restart_process()
 {
-  stop_process();
+  release_process(0);
   start_process();
   return true;
 }
 
 module_handler_base::~module_handler_base()
 {
-  stop_process();
+  release_process(release_grace_ms);
 }
 
 void module_handler_base::on_read(QSocketDescriptor, QSocketNotifier::Type)
@@ -133,27 +148,6 @@ void module_handler_base::process_queue()
     start += len + 1;
   }
   queue.erase(queue.begin(), queue.begin() + start);
-}
-
-bool module_handler_base::wait_for_reply(int id, int timeout_ms)
-{
-  waiting_reply = id;
-  reply_received = false;
-  QElapsedTimer t;
-  t.start();
-  while(!reply_received && t.elapsed() < timeout_ms)
-  {
-    pollfd p{.fd = pfd[0], .events = POLLIN, .revents = 0};
-    if(::poll(&p, 1, int(timeout_ms - t.elapsed())) <= 0)
-      break;
-    ssize_t rl = ::read(pfd[0], buf, sizeof(buf));
-    if(rl <= 0)
-      break;
-    queue.insert(queue.end(), buf, buf + rl);
-    process_queue();
-  }
-  waiting_reply = -1;
-  return reply_received;
 }
 
 void module_handler_base::do_write(std::string_view res)

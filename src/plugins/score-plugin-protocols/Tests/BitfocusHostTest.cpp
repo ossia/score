@@ -552,7 +552,10 @@ TEST_CASE("send-osc encodes typed arguments", "[bitfocus]")
 
   QUdpSocket recv;
   REQUIRE(recv.bind(QHostAddress::LocalHost, 0));
+  // A host name, resolved without blocking
+  d.param("/action/osc/host")->push_value(std::string("localhost"));
   d.param("/action/osc/port")->push_value((int)recv.localPort());
+  d.run("/action/osc");
 
   REQUIRE(waitFor([&] { return recv.hasPendingDatagrams(); }));
   const auto data = recv.receiveDatagram().data();
@@ -587,8 +590,13 @@ TEST_CASE("the module is told to destroy itself before it is stopped", "[bitfocu
 {
   if(!hasNode())
     return;
-  mock m;
+  mock m{{{"slowDestroy", true}}};
   REQUIRE(waitFor([&] { return m.registered; }));
+
+  // Without waiting for the module to be done
+  QElapsedTimer t;
+  t.start();
   m.handler.reset();
-  CHECK(m.events("destroy").size() == 1);
+  CHECK(t.elapsed() < 200);
+  CHECK(waitFor([&] { return m.events("destroy").size() == 1; }));
 }

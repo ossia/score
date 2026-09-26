@@ -304,11 +304,6 @@ bool module_handler_base::restart_process()
   return false;
 }
 
-bool module_handler_base::wait_for_reply(int id, int timeout_ms)
-{
-  return false;
-}
-
 void module_handler_base::do_write(std::string_view res)
 {
   handles->write(res);

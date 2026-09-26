@@ -67,7 +67,7 @@ const actions = [
 	{ id: 'addFeedback', name: 'Defines one more feedback', options: [] },
 	{ id: 'redefine', name: 'Adds an action', options: [] },
 	{ id: 'udp', name: 'Shared UDP', options: [{ type: 'number', id: 'port', label: 'Port', default: 0, min: 0, max: 65535 }] },
-	{ id: 'osc', name: 'Send OSC', options: [{ type: 'number', id: 'port', label: 'Port', default: 0, min: 0, max: 65535 }] },
+	{ id: 'osc', name: 'Send OSC', options: [{ type: 'number', id: 'port', label: 'Port', default: 0, min: 0, max: 65535 }, { type: 'textinput', id: 'host', label: 'Host', default: '127.0.0.1' }] },
 ]
 
 const feedbacks = [
@@ -199,7 +199,7 @@ const handlers = {
 				break
 			case 'osc':
 				notify('send-osc', {
-					host: '127.0.0.1',
+					host: a.options.host ?? '127.0.0.1',
 					port: a.options.port,
 					path: '/mock',
 					args: [{ type: 'i', value: 7 }, { type: 's', value: 'x' }, { type: 'b', value: Buffer.from([1, 2, 3]) }],
@@ -224,7 +224,10 @@ const handlers = {
 			port: msg.source.port,
 		})
 	},
-	destroy: async () => log({ ev: 'destroy' }),
+	destroy: async () => {
+		log({ ev: 'destroy' })
+		if (config.slowDestroy) await new Promise((r) => setTimeout(r, 3000))
+	},
 }
 
 process.on('message', (msg) => {

@@ -415,8 +415,6 @@ void module_handler::processMessage(std::string_view v)
   else if(direction == "response")
   {
     const int idInt = id.toInt(-1);
-    if(idInt == waiting_reply)
-      reply_received = true;
 
     if(idInt == m_init_msg_id)
     {
@@ -823,24 +821,31 @@ void module_handler::on_send_osc(QJsonObject obj)
     return;
   }
 
-  try
-  {
+  auto send = [this, port](const boost::asio::ip::address& addr, const std::string& data) {
     boost::system::error_code ec;
-    auto addr = boost::asio::ip::make_address(host, ec);
-    if(ec)
-    {
-      boost::asio::ip::udp::resolver resolver{m_send_service};
-      auto res = resolver.resolve(boost::asio::ip::udp::v4(), host, "", ec);
-      if(ec || res.empty())
-        return;
-      addr = res.begin()->endpoint().address();
-    }
     boost::asio::ip::udp::endpoint endpoint{addr, (uint16_t)port};
-    m_socket.send_to(boost::asio::const_buffer(p.Data(), p.Size()), endpoint, 0, ec);
-  }
-  catch(...)
+    m_socket.send_to(boost::asio::buffer(data), endpoint, 0, ec);
+  };
+  std::string data(p.Data(), p.Size());
+  boost::system::error_code ec;
+  if(auto addr = boost::asio::ip::make_address(host, ec); !ec)
   {
+    send(addr, data);
+    return;
   }
+  QHostInfo::lookupHost(
+      QString::fromStdString(host), this,
+      [send, data = std::move(data)](const QHostInfo& info) {
+    for(const auto& a : info.addresses())
+    {
+      if(a.protocol() != QAbstractSocket::IPv4Protocol)
+        continue;
+      boost::system::error_code ec;
+      if(auto addr = boost::asio::ip::make_address(a.toString().toStdString(), ec); !ec)
+        send(addr, data);
+      return;
+    }
+  });
 }
 
 QJsonObject module_handler::configObject(bool secrets) const
@@ -1072,15 +1077,17 @@ void module_handler::on_sharedUdpSocketSend(QJsonObject obj)
   const QString address = obj["address"].toString();
   const int port = obj["port"].toInt();
 
-  QHostAddress dest{address};
-  if(dest.isNull())
+  if(QHostAddress dest{address}; !dest.isNull())
   {
-    const auto addrs = QHostInfo::fromName(address).addresses();
-    if(addrs.isEmpty())
-      return;
-    dest = addrs.front();
+    it->second->socket.writeDatagram(data, dest, port);
+    return;
   }
-  it->second->socket.writeDatagram(data, dest, port);
+  QHostInfo::lookupHost(
+      address, it->second.get(),
+      [sock = it->second, data, port](const QHostInfo& info) {
+    if(!info.addresses().isEmpty())
+      sock->socket.writeDatagram(data, info.addresses().front(), port);
+  });
 }
 
 void module_handler::updateConfigAndLabel(QString label, module_configuration conf)
@@ -1203,9 +1210,12 @@ void module_handler::destroy()
 
   m_httpCallbacks.clear();
 
-  // Let the module close its connections before the process gets killed
+  // The module closes its connections before the process is terminated
   if(m_registered)
-    wait_for_reply(writeRequest("destroy", "{}"), 1000);
+  {
+    writeRequest("destroy", "{}");
+    release_grace_ms = 1000;
+  }
 }
 
 void module_handler::executeHttpRequest(

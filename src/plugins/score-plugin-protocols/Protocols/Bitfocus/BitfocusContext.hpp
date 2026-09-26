@@ -158,21 +158,20 @@ struct module_handler_base : public QObject
       QString connection_id);
   virtual ~module_handler_base();
   void do_write(std::string_view res);
-  bool wait_for_reply(int id, int timeout_ms);
   //! Starts the module again, false where unsupported
   bool restart_process();
   virtual void processMessage(std::string_view) = 0;
   virtual void on_process_exited() { }
 
-  int waiting_reply{-1};
-  bool reply_received{};
+  //! How long the process gets to shut down once released
+  int release_grace_ms{};
 };
 #else
 struct module_handler_base : public QObject
 {
   char buf[16 * 4096]{};
   std::vector<char> queue;
-  QProcess process{};
+  std::unique_ptr<QProcess> process;
   QSocketNotifier* socket{};
   int pfd[2]{-1, -1};
 
@@ -183,20 +182,18 @@ struct module_handler_base : public QObject
 
   void on_read(QSocketDescriptor, QSocketNotifier::Type);
   void do_write(std::string_view res);
-  //! Blocks until the module answers the call `id`, messages are processed meanwhile
-  bool wait_for_reply(int id, int timeout_ms);
   //! Starts the module again, false where unsupported
   bool restart_process();
 
   virtual void processMessage(std::string_view) = 0;
   virtual void on_process_exited() { }
 
-  int waiting_reply{-1};
-  bool reply_received{};
+  //! How long the process gets to shut down once released
+  int release_grace_ms{};
 
 private:
   void start_process();
-  void stop_process();
+  void release_process(int grace_ms);
   void process_queue();
 
   QString m_nodePath, m_modulePath, m_entrypoint, m_connectionId;
