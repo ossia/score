@@ -13,6 +13,7 @@
 
 #include <QCoreApplication>
 #include <QDir>
+#include <QFileInfo>
 #include <QStringList>
 #include <QJsonDocument>
 #include <QJsonObject>
@@ -195,7 +196,10 @@ loadPlugin(const QString& fileName, const std::vector<score::Addon>& availablePl
     auto score_factory = ptr.symbol<decltype(&plugin_instance)>("plugin_instance");
     if(!score_factory)
     {
-      qDebug() << "Warning: plugin" << fileName << "is not a correct score plugin.";
+      // The shared libraries of a dynamic-plugin build (libscore_lib_*) sit
+      // next to the plugins: they are expected here, not a broken plugin.
+      if(!QFileInfo{fileName}.fileName().contains(QStringLiteral("score_lib_")))
+        qDebug() << "Warning: plugin" << fileName << "is not a correct score plugin.";
 
       return std::make_pair(nullptr, PluginLoadingError::NotAPlugin);
     }
