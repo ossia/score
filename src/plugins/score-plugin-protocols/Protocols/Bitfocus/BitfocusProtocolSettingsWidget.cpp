@@ -373,6 +373,8 @@ void BitfocusProtocolSettingsWidget::updateFields()
         widg->setText(QString::fromStdString(ossia::convert<std::string>(v)));
       }};
     }
+    if(auto w = m_widgets.find(field.id); w != m_widgets.end() && w->second.widg)
+      w->second.widg->setObjectName(field.id);
   }
   m_subForm->addStretch(1);
   m_fieldsLoaded = true;

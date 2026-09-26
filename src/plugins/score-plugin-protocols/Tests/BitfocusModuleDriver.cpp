@@ -23,6 +23,7 @@
 #include <QDir>
 #include <QElapsedTimer>
 #include <QFile>
+#include <QFileInfo>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
@@ -329,7 +330,23 @@ int run(int argc, char** argv)
 
 int main(int argc, char** argv)
 {
-  qputenv("SCORE_BITFOCUS_TRACE", "1");
+  // run_in_app changes the working directory: paths are made absolute first
+  std::vector<QByteArray> storage;
+  std::vector<char*> args{argv[0]};
+  for(int i = 1; i < argc; i++)
+  {
+    const bool isPath = i > 1 && QByteArray(argv[i - 1]) != "--gap"
+                        && QByteArray(argv[i - 1]) != "--settle"
+                        && QByteArray(argv[i - 1]).startsWith("--");
+    storage.push_back(
+        isPath ? QFileInfo(QString::fromLocal8Bit(argv[i])).absoluteFilePath().toLocal8Bit()
+               : QByteArray(argv[i]));
+  }
+  for(auto& a : storage)
+    args.push_back(a.data());
+  argc = int(args.size());
+  argv = args.data();
+
   int ret = 1;
   score::test::run_in_app([&](const score::GUIApplicationContext&) { ret = run(argc, argv); });
   return ret;

@@ -84,6 +84,12 @@ struct mock
     return res;
   }
 
+  ~mock()
+  {
+    handler.reset();
+    qunsetenv("MOCK_LOG");
+  }
+
   const QJsonObject waitEvent(const QString& ev, std::size_t count = 1)
   {
     waitFor([&] { return events(ev).size() >= count; });
@@ -125,14 +131,15 @@ struct device
   }
 };
 
+// Set SCORE_TESTS_REQUIRE_NODE where node is expected, so that it is not skipped
 bool hasNode()
 {
-  if(QStandardPaths::findExecutable("node").isEmpty())
-  {
-    SKIP("node is not installed");
-    return false;
-  }
-  return true;
+  if(!QStandardPaths::findExecutable("node").isEmpty())
+    return true;
+  if(qEnvironmentVariableIsSet("SCORE_TESTS_REQUIRE_NODE"))
+    FAIL("node is not installed");
+  SKIP("node is not installed");
+  return false;
 }
 }
 

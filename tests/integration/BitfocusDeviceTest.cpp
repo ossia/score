@@ -39,6 +39,17 @@ namespace
 {
 constexpr auto bitfocusKey = "303993ed-b39a-4edb-90a6-2a3ae45043c4";
 
+// Set SCORE_TESTS_REQUIRE_NODE where node is expected, so that it is not skipped
+bool hasNode()
+{
+  if(!QStandardPaths::findExecutable("node").isEmpty())
+    return true;
+  if(qEnvironmentVariableIsSet("SCORE_TESTS_REQUIRE_NODE"))
+    FAIL("node is not installed");
+  SKIP("node is not installed");
+  return false;
+}
+
 bool waitFor(const std::function<bool()>& pred, int ms = 15000)
 {
   QElapsedTimer t;
@@ -77,8 +88,8 @@ QJsonObject settingsJson(Device::ProtocolFactory& fact, const Device::DeviceSett
 
 TEST_CASE("a saved Bitfocus device follows the module's tree", "[integration][bitfocus]")
 {
-  if(QStandardPaths::findExecutable("node").isEmpty())
-    SKIP("node is not installed");
+  if(!hasNode())
+    return;
 
   QTemporaryDir logDir;
   const QString logPath = logDir.path() + "/mock.jsonl";
@@ -155,13 +166,7 @@ TEST_CASE("a saved Bitfocus device follows the module's tree", "[integration][bi
     std::unique_ptr<Device::ProtocolSettingsWidget> widget{fact->makeSettingsWidget()};
     widget->setSettings(device->settings());
     QLineEdit* hostEdit{};
-    REQUIRE(waitFor([&] {
-      auto edits = widget->findChildren<QLineEdit*>();
-      // The device name, then the fields: host is the first one
-      if(edits.size() >= 2)
-        hostEdit = edits[1];
-      return hostEdit != nullptr;
-    }));
+    REQUIRE(waitFor([&] { return (hostEdit = widget->findChild<QLineEdit*>("host")); }));
     hostEdit->setText("10.1.2.3");
     device->updateSettings(widget->getSettings());
 
@@ -180,8 +185,8 @@ TEST_CASE("a saved Bitfocus device follows the module's tree", "[integration][bi
 
 TEST_CASE("a loaded Bitfocus device keeps what the module upgraded", "[integration][bitfocus]")
 {
-  if(QStandardPaths::findExecutable("node").isEmpty())
-    SKIP("node is not installed");
+  if(!hasNode())
+    return;
 
   QTemporaryDir logDir;
   const QString logPath = logDir.path() + "/mock.jsonl";
@@ -263,8 +268,8 @@ TEST_CASE("a loaded Bitfocus device keeps what the module upgraded", "[integrati
 
 TEST_CASE("the Bitfocus settings dialog saves what companion would", "[integration][bitfocus]")
 {
-  if(QStandardPaths::findExecutable("node").isEmpty())
-    SKIP("node is not installed");
+  if(!hasNode())
+    return;
 
   score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
     auto* fact = ctx.interfaces<Device::ProtocolFactoryList>().get(
