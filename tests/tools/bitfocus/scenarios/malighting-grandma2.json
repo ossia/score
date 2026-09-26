@@ -1,0 +1,17 @@
+{
+  "module": "malighting-grandma2",
+  "persona": "grandma2",
+  "config": { "host": "10.99.0.2", "user": "administrator", "pass": "admin" },
+  "actions": [
+    { "id": "command", "options": { "command": "Go Executor 1.1" } },
+    { "id": "command", "options": { "command": "Label Group 1 \"$(dev:response)\"" } },
+    { "id": "button", "options": {} },
+    { "id": "button", "options": { "button": "12", "dir": "false" } },
+    { "id": "wheel", "options": {} },
+    { "id": "wheel", "options": { "steps": "-3" } },
+    { "id": "encoder", "options": { "enc": 3, "dir": "1", "steps": 10 } },
+    { "id": "encoder", "options": {} },
+    { "id": "encoder", "options": { "encoder_from_variable": true, "encoder_variable": "4", "dir": "-1", "steps": 2 } },
+    { "id": "encoder_p", "options": { "enc": 2, "dir": "false" } }
+  ]
+}
