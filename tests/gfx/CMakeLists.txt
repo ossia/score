@@ -2388,3 +2388,6 @@ score_add_gfx_test(e6_compute_image_orientation GfxE6ComputeImageOrientation.cpp
 
 # A raw raster Mode that overrides the cabled geometry topology warns once (agent E7).
 score_add_gfx_test(raw_raster_mode_topology_e7 GfxRawRasterModeTopologyE7.cpp)
+
+# Raw raster Mode Geometry follows the cabled topology; CSF geometry TOPOLOGY (agent E9).
+score_add_gfx_test(raw_raster_mode_geometry_e9 GfxRawRasterModeGeometryE9.cpp)

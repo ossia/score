@@ -401,6 +401,24 @@ static bool inputClosesCycle(const score::gfx::Node& self, const score::gfx::Por
 // what it points at, so the reference count follows the slot exactly: the
 // producer's release of a borrowed buffer is deferred until the slot lets go,
 // and the binding built from the slot never names a freed object.
+static void applyDeclaredTopology(ossia::geometry& geo, const std::string& t) noexcept
+{
+  if(t.empty())
+    return;
+  if(t == "triangles")
+    geo.topology = ossia::geometry::triangles;
+  else if(t == "triangle_strip")
+    geo.topology = ossia::geometry::triangle_strip;
+  else if(t == "triangle_fan")
+    geo.topology = ossia::geometry::triangle_fan;
+  else if(t == "lines")
+    geo.topology = ossia::geometry::lines;
+  else if(t == "line_strip")
+    geo.topology = ossia::geometry::line_strip;
+  else if(t == "points")
+    geo.topology = ossia::geometry::points;
+}
+
 template <typename Slot>
 static void releaseSlot(score::gfx::RenderList& renderer, Slot& slot) noexcept
 {
@@ -2423,6 +2441,7 @@ void RenderedCSFNode::pushOutputGeometry(RenderList& renderer, QRhiResourceUpdat
         out_geo.filter_tag            = binding_upstream->filter_tag;
         out_geo.filter_material_index = binding_upstream->filter_material_index;
       }
+      applyDeclaredTopology(out_geo, geo_input->topology);
 
       for(int attr_idx = 0; attr_idx < (int)geo_input->attributes.size(); attr_idx++)
       {
@@ -2969,6 +2988,7 @@ void RenderedCSFNode::pushOutputGeometry(RenderList& renderer, QRhiResourceUpdat
         out_geo.topology = (decltype(out_geo.topology))binding_upstream->topology;
         out_geo.cull_mode = (decltype(out_geo.cull_mode))binding_upstream->cull_mode;
         out_geo.front_face = (decltype(out_geo.front_face))binding_upstream->front_face;
+        applyDeclaredTopology(out_geo, geo_input->topology);
 
         // Update index buffer handle from upstream
         if(out_geo.index.buffer >= 0 && out_geo.index.buffer < (int)out_geo.buffers.size()

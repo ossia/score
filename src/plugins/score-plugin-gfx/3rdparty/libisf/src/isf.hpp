@@ -474,6 +474,11 @@ struct geometry_input
   // CSFs that don't author an output format.
   std::string format_id;
 
+  // Primitive topology of an output geometry: triangles, triangle_strip,
+  // triangle_fan, lines, line_strip or points. Empty inherits the upstream
+  // geometry's topology, or points without one.
+  std::string topology;
+
   struct indirect_request
   {
     std::string count; // expression string (same resolver as vertex_count)

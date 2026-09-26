@@ -1002,10 +1002,33 @@ void RenderedRawRasterPipelineNode::warnModeOverridesGeometry(
   qWarning().noquote()
       << QStringLiteral(
              "RawRaster: the Mode control draws %1 but the cabled geometry is "
-             "Triangles; set Mode to Triangles, or declare PIPELINE_STATE TOPOLOGY in "
-             "the shader")
+             "Triangles; set Mode to Triangles or Geometry, or declare PIPELINE_STATE "
+             "TOPOLOGY in the shader")
              .arg(family == 0 ? "Points" : "Lines")
       << QString::fromStdString(n.descriptor().description.substr(0, 80));
+}
+
+void RenderedRawRasterPipelineNode::applyModeTopology(
+    QRhiGraphicsPipeline& ps, int mode,
+    std::optional<QRhiGraphicsPipeline::Topology> geometry)
+{
+  switch(mode)
+  {
+    default:
+    case 0:
+      ps.setTopology(QRhiGraphicsPipeline::Triangles);
+      break;
+    case 1:
+      ps.setTopology(QRhiGraphicsPipeline::Points);
+      break;
+    case 2:
+      ps.setTopology(QRhiGraphicsPipeline::Lines);
+      break;
+    case 3:
+      ps.setTopology(geometry.value_or(QRhiGraphicsPipeline::Triangles));
+      return;
+  }
+  warnModeOverridesGeometry(geometry, ps.topology());
 }
 
 void RenderedRawRasterPipelineNode::initPass(
@@ -1308,20 +1331,7 @@ void RenderedRawRasterPipelineNode::initPass(
     // (tests/gfx/GfxPointCloudCount.cpp).
     if(!desc.default_state.topology.has_value())
     {
-      switch(mat.mode)
-      {
-        default:
-        case 0:
-          ps->setTopology(QRhiGraphicsPipeline::Triangles);
-          break;
-        case 1:
-          ps->setTopology(QRhiGraphicsPipeline::Points);
-          break;
-        case 2:
-          ps->setTopology(QRhiGraphicsPipeline::Lines);
-          break;
-      }
-      warnModeOverridesGeometry(geometryTopology, ps->topology());
+      applyModeTopology(*ps, mat.mode, geometryTopology);
     }
 
     // Remap vertex inputs by semantic, honouring explicit SEMANTIC overrides
@@ -2497,20 +2507,7 @@ void RenderedRawRasterPipelineNode::initMRTPass(
     // declared PIPELINE_STATE TOPOLOGY wins over the material mode control.
     if(!desc.default_state.topology.has_value())
     {
-      switch(mat.mode)
-      {
-        default:
-        case 0:
-          ps->setTopology(QRhiGraphicsPipeline::Triangles);
-          break;
-        case 1:
-          ps->setTopology(QRhiGraphicsPipeline::Points);
-          break;
-        case 2:
-          ps->setTopology(QRhiGraphicsPipeline::Lines);
-          break;
-      }
-      warnModeOverridesGeometry(geometryTopology, ps->topology());
+      applyModeTopology(*ps, mat.mode, geometryTopology);
     }
 
     // Remap vertex inputs by semantic (CSF-style; honour explicit

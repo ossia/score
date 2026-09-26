@@ -1431,6 +1431,24 @@ static void parse_input(geometry_input& inp, const sajson::value& v)
       if(val.get_type() == sajson::TYPE_STRING)
         inp.format_id = val.as_string();
     }
+    else if(k == "TOPOLOGY")
+    {
+      auto val = v.get_object_value(i);
+      if(val.get_type() == sajson::TYPE_STRING)
+      {
+        std::string t = val.as_string();
+        boost::algorithm::to_lower(t);
+        if(t != "triangles" && t != "triangle_strip" && t != "triangle_fan"
+           && t != "lines" && t != "line_strip" && t != "points")
+        {
+          throw invalid_file{
+              "geometry TOPOLOGY \"" + t
+              + "\" is unknown. Expected triangles, triangle_strip, triangle_fan, "
+                "lines, line_strip or points."};
+        }
+        inp.topology = std::move(t);
+      }
+    }
     else if(k == "AUXILIARY")
     {
       parse_auxiliary_array(v.get_object_value(i), inp.auxiliary, inp.auxiliary_textures);
@@ -4806,7 +4824,7 @@ void parser::parse_raw_raster_pipeline()
           input{
               .name = "Mode",
               .label = "Mode",
-              .data = long_enum(0, "Triangles", "Points", "Lines")});
+              .data = long_enum(0, "Triangles", "Points", "Lines", "Geometry")});
 
       static const auto blend_factors = long_enum(
           1, "Zero", "One", "SrcColor", "OneMinusSrcColor", "DstColor",
@@ -6511,6 +6529,8 @@ std::string parser::write_isf() const
           }
           if(!geo.format_id.empty())
             oss << ",\n      \"FORMAT_ID\": \"" << escape_json(geo.format_id) << "\"";
+          if(!geo.topology.empty())
+            oss << ",\n      \"TOPOLOGY\": \"" << escape_json(geo.topology) << "\"";
           if(geo.persistent)
             oss << ",\n      \"PERSISTENT\": true";
           if(!geo.attributes.empty())

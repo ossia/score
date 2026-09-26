@@ -244,6 +244,9 @@ private:
   ossia::geometry_spec m_primitiveGeometry;
   bool m_warnedPrimitiveData{false};
 
+  void applyModeTopology(
+      QRhiGraphicsPipeline& ps, int mode,
+      std::optional<QRhiGraphicsPipeline::Topology> geometry);
   void warnModeOverridesGeometry(
       std::optional<QRhiGraphicsPipeline::Topology> geometry,
       QRhiGraphicsPipeline::Topology drawn);
