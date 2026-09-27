@@ -702,3 +702,107 @@ TEST_CASE("mtk::MidiHumanizer is reproducible for a given seed", "[avnd][midi][h
       differs = true;
   CHECK(differs);
 }
+
+namespace
+{
+//! Per pitch, note-ons and note-offs alternate, starting with a note-on, and
+//! nothing is left sounding at the end: no ghost note-off, no double note-on.
+void check_well_formed(const std::vector<event>& out)
+{
+  std::map<int, bool> sounding;
+  int ghosts = 0, doubles = 0;
+  for(auto& e : out)
+  {
+    if(e.type == (int)libremidi::message_type::NOTE_ON && e.velocity > 0)
+    {
+      doubles += sounding[e.pitch];
+      sounding[e.pitch] = true;
+    }
+    else if(
+        e.type == (int)libremidi::message_type::NOTE_OFF
+        || (e.type == (int)libremidi::message_type::NOTE_ON && e.velocity == 0))
+    {
+      ghosts += !sounding[e.pitch];
+      sounding[e.pitch] = false;
+    }
+  }
+  int hung = 0;
+  for(auto& [p, on] : sounding)
+    hung += on;
+  CHECK(doubles == 0);
+  CHECK(ghosts == 0);
+  CHECK(hung == 0);
+}
+}
+
+// A session-player-like stream: repeated and overlapping notes of the same
+// pitch, legato, chords. The per-note deviations reorder them; the output
+// must still be valid MIDI.
+TEST_CASE("mtk::MidiHumanizer always outputs well-formed MIDI", "[avnd][midi][humanize]")
+{
+  for(int pitchDev : {0, 3})
+  {
+    CAPTURE(pitchDev);
+    driver d;
+    auto& in = d.fx.inputs;
+    in.timing.value = 0.05f;
+    in.early.value = 0.5f;
+    in.length.value = 1.f;
+    in.velocity.value = 20;
+    in.seed.value = 7;
+    in.pitch.value = pitchDev;
+
+    uint32_t lcg = 12345;
+    auto rnd = [&](int n) {
+      lcg = lcg * 1664525u + 1013904223u;
+      return int((lcg >> 8) % uint32_t(n));
+    };
+    std::map<int, int> held; // input-side balance, to keep the input valid
+    for(int block = 0; block < 400; block++)
+    {
+      const int events = rnd(6);
+      for(int i = 0; i < events; i++)
+      {
+        const int pitch = 58 + rnd(6); // few pitches: lots of overlap
+        const int ts = rnd(512);
+        if(held[pitch] > 0 && rnd(2))
+        {
+          d.note_off(pitch, ts);
+          held[pitch]--;
+        }
+        else if(held[pitch] < 2) // overlapping instances of the same pitch
+        {
+          d.note_on(pitch, 90, ts);
+          held[pitch]++;
+        }
+      }
+      d.tick(512);
+    }
+    for(auto& [p, n] : held)
+      for(int i = 0; i < n; i++)
+        d.note_off(p, 0);
+    d.drain(16, 4096);
+
+    REQUIRE(!d.notes_on().empty());
+    check_well_formed(d.out);
+  }
+}
+
+TEST_CASE("mtk::MidiHumanizer transposes notes with Pitch", "[avnd][midi][humanize]")
+{
+  driver d;
+  d.fx.inputs.pitch.value = 4;
+  d.fx.inputs.seed.value = 3;
+  for(int i = 0; i < 64; i++)
+  {
+    d.note_on(60, 100, 0);
+    d.note_off(60, 100);
+    d.tick(512);
+  }
+  d.drain();
+  int moved = 0;
+  for(auto& e : d.notes_on())
+    moved += e.pitch != 60;
+  CHECK(moved > 16);
+  check_well_formed(d.out);
+}
