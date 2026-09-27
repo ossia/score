@@ -30,6 +30,8 @@
 
 #include <ossia-qt/invoke.hpp>
 
+#include <halp/mappers.hpp>
+
 #include <QAction>
 #include <QApplication>
 #include <QCheckBox>
@@ -588,7 +590,9 @@ struct FloatSpinBox
   }
 };
 
-struct TimeChooser
+//! Normalizer: how the knob's travel maps to seconds in free mode.
+template <typename Normalizer>
+struct TimeChooserT
 {
   static Process::PortItemLayout layout() noexcept
   {
@@ -632,7 +636,9 @@ struct TimeChooser
     initWidgetProperties(inlet, *sl);
     bindFloatDomain(slider, inlet, *sl);
 
-    ConcreteNormalizer<LinearNormalizer, T> norm{slider};
+    ConcreteNormalizer<Normalizer, T> norm{slider};
+    sl->positionToSeconds = [norm](double p) { return norm.from01(p); };
+    sl->secondsToPosition = [norm](double s) { return norm.to01(s); };
 
     sl->setValue(mapTimeToUI(norm, ossia::convert<ossia::vec2f>(inlet.value())));
 
@@ -677,6 +683,9 @@ struct TimeChooser
     return sl;
   }
 };
+
+//! Every time chooser: short times get most of the knob's travel.
+using TimeChooser = TimeChooserT<MappedNormalizer<halp::time_chooser_mapper>>;
 
 struct Toggle
 {

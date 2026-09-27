@@ -266,8 +266,14 @@ QRectF QGraphicsTimeChooser::boundingRect() const
 
 QString QGraphicsTimeChooser::freeText() const
 {
-  const double secs = min + m_value * (max - min);
-  if(secs < 1.)
+  const double secs
+      = positionToSeconds ? positionToSeconds(m_value) : min + m_value * (max - min);
+  // A few milliseconds matter in an envelope: 0.4 ms is not "0 ms". Decided on
+  // the rounded value: 0.01f is 9.99999977 ms, and "10.0 ms" is too wide for
+  // the knob, which would cut the unit off.
+  if(secs * 1000. < 9.95)
+    return QString::number(secs * 1000., 'f', 1) + QStringLiteral(" ms");
+  else if(secs < 0.9995)
     return QString::number(secs * 1000., 'f', 0) + QStringLiteral(" ms");
   else if(secs < 10.)
     return QString::number(secs, 'f', 2) + QStringLiteral(" s");
@@ -419,8 +425,9 @@ void QGraphicsTimeChooser::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event
   if(m_sync)
     m_value = default_sync_index / double(division_count - 1);
   else
-    m_value
-        = max != min ? ossia::clamp((init - min) / (max - min), 0., 1.) : 0.;
+    m_value = secondsToPosition ? ossia::clamp(secondsToPosition(init), 0., 1.)
+              : max != min ? ossia::clamp((init - min) / (max - min), 0., 1.)
+                           : 0.;
 
   m_grab = true;
   sliderMoved();

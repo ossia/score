@@ -1,4 +1,5 @@
 #pragma once
+#include <functional>
 #include <score/graphics/widgets/Constants.hpp>
 
 #include <ossia/network/value/vec.hpp>
@@ -33,6 +34,12 @@ public:
   double min{}, max{1.}, init{};
   bool moving{};
 
+  //! Free mode: seconds for a knob position, and the reverse. Linear in the
+  //! range unless the control's normalizer says otherwise (the factory sets
+  //! them from it, so that the readout and the value agree).
+  std::function<double(double)> positionToSeconds;
+  std::function<double(double)> secondsToPosition;
+
   explicit QGraphicsTimeChooser(QGraphicsItem* parent);
   ~QGraphicsTimeChooser();
 
@@ -59,6 +66,8 @@ public:
     Triplet
   };
   [[nodiscard]] bool synced() const noexcept { return m_sync; }
+  //! The readout in free mode: seconds, milliseconds, one decimal under 10 ms.
+  [[nodiscard]] QString freeText() const;
   [[nodiscard]] Feel feel() const noexcept { return m_feel; }
 
   QRectF boundingRect() const override;
@@ -80,7 +89,6 @@ private:
   int syncIndex() const noexcept;
   //! Knob position, 0..1, for a {x, sync} pair in the current mode
   double position(ossia::vec2f v) const noexcept;
-  QString freeText() const;
 
   QRectF m_rect{0., 0., 35., 35.};
 

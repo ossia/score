@@ -653,6 +653,12 @@ score_add_test(test_unit_time_chooser_feedback
   SOURCES TimeChooserFeedbackTest.cpp
   APP)
 
+# The time chooser's free mode tapers through halp::time_chooser_mapper.
+score_add_test(test_unit_time_chooser_taper
+  SOURCES TimeChooserTaperTest.cpp
+  APP
+  PLUGINS score_lib_process)
+
 # The spinbox maps the drag itself instead of going through
 # InfiniteScroller::move(); APP because its header pulls in the skin.
 score_add_test(test_unit_spinbox_drag

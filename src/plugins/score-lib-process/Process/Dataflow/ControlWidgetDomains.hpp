@@ -192,6 +192,43 @@ struct LogNormalizer
   }
 };
 
+//! A LinearNormalizer seen through an avendish mapper (halp::log_mapper,
+//! halp::pow_mapper...): the position on the widget is map() of the linear
+//! position of the value in its range.
+template <typename Mapper>
+struct MappedNormalizer
+{
+  static double to01(double min, double range, double val) noexcept
+  {
+    return Mapper::map(ossia::clamp((val - min) / range, 0., 1.));
+  }
+
+  static double from01(double min, double range, double val) noexcept
+  {
+    return min + Mapper::unmap(ossia::clamp(val, 0., 1.)) * range;
+  }
+
+  template <typename T>
+  static double to01(const T& slider, double val) noexcept
+  {
+    auto min = getMin<double>(slider);
+    auto max = getMax<double>(slider);
+    if(max - min == 0)
+      max = min + 1;
+    return to01(min, max - min, val);
+  }
+
+  template <typename T>
+  static double from01(const T& slider, double val) noexcept
+  {
+    auto min = getMin<double>(slider);
+    auto max = getMax<double>(slider);
+    if(max - min == 0)
+      max = min + 1;
+    return from01(min, max - min, val);
+  }
+};
+
 template <typename Norm_T>
 struct FixedNormalizer
 {
