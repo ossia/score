@@ -357,9 +357,25 @@ LV2Data::LV2Data(HostContext& h, EffectContext& ctx)
     , effect{ctx}
 {
   const auto numports = effect.plugin.get_num_ports();
+  atom_minimum_sizes.assign(numports, 0);
   for(std::size_t i = 0; i < numports; i++)
   {
     Lilv::Port port = effect.plugin.get_port_by_index(i);
+
+    // A plug-in which sends more than a few events at once (a whole pattern
+    // to its UI...) says how big its atom buffers must be; smaller ones make
+    // it drop what does not fit.
+    if(LilvNodes* sizes = lilv_port_get_value(
+           effect.plugin.me, port.me, host.resize_minimum_size.me))
+    {
+      LILV_FOREACH(nodes, it, sizes)
+      {
+        const LilvNode* n = lilv_nodes_get(sizes, it);
+        if(lilv_node_is_int(n) && lilv_node_as_int(n) > 0)
+          atom_minimum_sizes[i] = std::max(atom_minimum_sizes[i], uint32_t(lilv_node_as_int(n)));
+      }
+      lilv_nodes_free(sizes);
+    }
 
     auto cl = port.get_classes();
     auto debug_port = [&] {

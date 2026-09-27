@@ -8,10 +8,12 @@
  *   4  control in  "mode"   integer [0, 3] default 0 (ignored by run)
  *   5  control in  "bypass" toggled default 0        (ignored by run)
  */
+#include <lv2/lv2plug.in/ns/ext/atom/util.h>
 #include <lv2/lv2plug.in/ns/lv2core/lv2.h>
 
 #include <math.h>
 #include <stdlib.h>
+#include <string.h>
 
 #define SCORE_TEST_GAIN_URI "urn:score:test:gain"
 
@@ -92,6 +94,77 @@ static const LV2_Descriptor descriptor2
     = {SCORE_TEST_GAIN_URI "2", instantiate, connect_port, NULL, run, NULL,
        cleanup,                  NULL};
 
+/* urn:score:test:notify: answers the first event of each block on its atom
+ * input with one NOTIFY_SIZE-byte event on its atom output, as a plug-in
+ * sends its whole state to a UI that just opened. Both ports
+ * ask for rsz:minimumSize 65536; an answer that does not fit the output
+ * buffer is dropped, as an LV2 atom forge drops what overflows.
+ *
+ * Ports:
+ *   0  atom in  "control"  atom:Sequence, supports midi:MidiEvent
+ *   1  atom out "notify"   atom:Sequence, supports midi:MidiEvent
+ */
+#define NOTIFY_SIZE 10000
+
+typedef struct
+{
+  const LV2_Atom_Sequence* in;
+  LV2_Atom_Sequence* out;
+} test_notify;
+
+static LV2_Handle instantiate_notify(
+    const LV2_Descriptor* descriptor, double rate, const char* bundle_path,
+    const LV2_Feature* const* features)
+{
+  (void)descriptor;
+  (void)rate;
+  (void)bundle_path;
+  (void)features;
+  return calloc(1, sizeof(test_notify));
+}
+
+static void connect_port_notify(LV2_Handle instance, uint32_t port, void* data)
+{
+  test_notify* self = (test_notify*)instance;
+  if(port == 0)
+    self->in = (const LV2_Atom_Sequence*)data;
+  else if(port == 1)
+    self->out = (LV2_Atom_Sequence*)data;
+}
+
+static void run_notify(LV2_Handle instance, uint32_t n_samples)
+{
+  (void)n_samples;
+  test_notify* self = (test_notify*)instance;
+  if(!self->in || !self->out)
+    return;
+
+  const uint32_t capacity = self->out->atom.size;
+  self->out->atom.type = self->in->atom.type; /* atom:Sequence */
+  self->out->atom.size = sizeof(LV2_Atom_Sequence_Body);
+  self->out->body.unit = 0;
+  self->out->body.pad = 0;
+
+  LV2_ATOM_SEQUENCE_FOREACH(self->in, ev)
+  {
+    const uint32_t needed = sizeof(LV2_Atom_Sequence_Body) + sizeof(LV2_Atom_Event)
+                            + lv2_atom_pad_size(NOTIFY_SIZE);
+    if(needed > capacity)
+      break;
+    LV2_Atom_Event* out = lv2_atom_sequence_end(&self->out->body, self->out->atom.size);
+    out->time.frames = 0;
+    out->body.type = ev->body.type;
+    out->body.size = NOTIFY_SIZE;
+    memset(out + 1, 0x5a, NOTIFY_SIZE);
+    self->out->atom.size += sizeof(LV2_Atom_Event) + lv2_atom_pad_size(NOTIFY_SIZE);
+    break;
+  }
+}
+
+static const LV2_Descriptor descriptor_notify
+    = {"urn:score:test:notify", instantiate_notify, connect_port_notify, NULL,
+       run_notify,              NULL,               cleanup,             NULL};
+
 LV2_SYMBOL_EXPORT const LV2_Descriptor* lv2_descriptor(uint32_t index)
 {
   switch(index)
@@ -100,6 +173,8 @@ LV2_SYMBOL_EXPORT const LV2_Descriptor* lv2_descriptor(uint32_t index)
       return &descriptor;
     case 1:
       return &descriptor2;
+    case 2:
+      return &descriptor_notify;
     default:
       return NULL;
   }

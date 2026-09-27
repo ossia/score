@@ -26,6 +26,7 @@ public:
 private:
   void resizeEvent(QResizeEvent* event) override;
   void closeEvent(QCloseEvent* event) override;
+  void drainUiEvents();
 
   const Model& m_model;
   QWidget* m_widget{};

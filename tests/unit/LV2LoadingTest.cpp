@@ -603,3 +603,109 @@ TEST_CASE("lv2_node replicates voices per input channel", "[lv2]")
     QCoreApplication::processEvents();
   });
 }
+
+namespace
+{
+struct fn_hook
+{
+  std::function<void()> fn;
+  void operator()() const noexcept
+  {
+    if(fn)
+      fn();
+  }
+};
+using hooked_node = LV2::lv2_node<fn_hook, fn_hook>;
+
+//! A fixture plug-in of the test bundle, instantiated as the Model does.
+struct fixture_plugin
+{
+  LV2::EffectContext effect;
+  fixture_plugin(
+      LV2::ApplicationPlugin& plug, const char* uri, const char* name, bool midi = false)
+  {
+    LV2::PluginInfo info;
+    info.bundle = bundlePath();
+    info.uri = uri;
+    info.name = name;
+    info.class_label = "Utility";
+    info.midi_in = midi;
+    info.midi_out = midi;
+    info.valid = true;
+    plug.setCachedDescriptors({makeGainInfo(), info});
+    auto res = LV2::find_lv2_plugin(plug.lilv, uri);
+    REQUIRE(res);
+    effect.plugin = *res;
+    auto* inst = lilv_plugin_instantiate(
+        effect.plugin.me, 48000, plug.lv2_context->features());
+    REQUIRE(inst);
+    effect.instance_holder = std::make_shared<LV2::InstanceHandle>(inst);
+    effect.instance = inst;
+  }
+};
+
+template <typename Node>
+void run_node(Node& node, ossia::execution_state& st, bool playing = true)
+{
+  ossia::exec_state_facade fac{&st};
+  ossia::token_request tk{};
+  if(playing)
+  {
+    tk = ossia::token_request{
+        ossia::time_value{0},       ossia::time_value{64},
+        ossia::time_value{1000000}, ossia::time_value{0},
+        1.,                         ossia::time_signature{4, 4},
+        120.};
+    tk.start_sample = 0;
+    tk.length_sample = 64;
+  }
+  static_cast<ossia::graph_node&>(node).run(tk, fac);
+}
+}
+
+// Atom ports that ask for rsz:minimumSize 65536 get it: a plug-in sends its
+// whole state to a UI that opens, and a smaller buffer drops it. The fixture
+// plug-in answers each input event with a 10000-byte event.
+TEST_CASE("lv2_node gives atom ports the buffer size they ask for", "[lv2]")
+{
+  prepare_lv2_test_environment();
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    auto& plug = setupLV2(ctx);
+    fixture_plugin p{plug, "urn:score:test:notify", "Score Test Notify", true};
+    LV2::LV2Data data{plug.lv2_host_context, p.effect};
+    REQUIRE(data.midi_in_ports.size() == 1);
+    REQUIRE(data.midi_out_ports.size() == 1);
+    CHECK(data.atomBufferSize(data.midi_in_ports[0]) >= 65536);
+    CHECK(data.atomBufferSize(data.midi_out_ports[0]) >= 65536);
+
+    {
+      hooked_node node{data, 48000, {LV2::voice_routing::single, 1}, {}, {}};
+      REQUIRE(node.voices.size() == 1);
+
+      // What on_finish forwards to the UI: every event of the output port.
+      std::vector<uint32_t> sent;
+      node.on_finished.fn = [&] {
+        LV2_ATOM_SEQUENCE_FOREACH(&node.voices[0]->midi_atom_outs[0].buf->atoms, ev)
+          sent.push_back(ev->body.size);
+      };
+
+      // A message from the UI, as on_start queues it
+      LV2::Message msg;
+      msg.index = data.midi_in_ports[0];
+      msg.protocol = plug.lv2_host_context.atom_eventTransfer;
+      const uint8_t note_on[3]{0x90, 60, 100};
+      msg.body.resize(sizeof(LV2_Atom) + 3);
+      auto* atom = reinterpret_cast<LV2_Atom*>(msg.body.data());
+      atom->type = plug.lv2_host_context.midi_event_id;
+      atom->size = 3;
+      std::memcpy(msg.body.data() + sizeof(LV2_Atom), note_on, 3);
+      node.voices[0]->message_for_midi_atom_ins[0].push_back(msg);
+
+      ossia::execution_state st;
+      run_node(node, st);
+      REQUIRE(sent.size() == 1);
+      CHECK(sent[0] == 10000u);
+    }
+    QCoreApplication::processEvents();
+  });
+}

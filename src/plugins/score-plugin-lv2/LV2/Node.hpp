@@ -316,24 +316,28 @@ struct lv2_node final : public ossia::graph_node
     v.message_for_midi_atom_ins.resize(midi_in_size);
     for(std::size_t i = 0; i < midi_in_size; i++)
       v.midi_atom_ins.emplace_back(
-          2048, data.host.atom_chunk_id, data.host.midi_event_id, true);
+          data.atomBufferSize(data.midi_in_ports[i]), data.host.atom_chunk_id,
+          data.host.midi_event_id, true);
 
     v.midi_atom_outs.reserve(midi_out_size);
     v.midi_1to2.resize(midi_out_size);
     for(std::size_t i = 0; i < midi_out_size; i++)
       v.midi_atom_outs.emplace_back(
-          2048, data.host.atom_chunk_id, data.host.midi_event_id, false);
+          data.atomBufferSize(data.midi_out_ports[i]), data.host.atom_chunk_id,
+          data.host.midi_event_id, false);
 
     v.atom_ins.reserve(atom_in_size);
     v.message_for_atom_ins.resize(atom_in_size);
     for(std::size_t i = 0; i < atom_in_size; i++)
       v.atom_ins.emplace_back(
-          2048, data.host.atom_chunk_id, data.host.atom_object_id, true);
+          data.atomBufferSize(data.atom_in_ports[i]), data.host.atom_chunk_id,
+          data.host.atom_object_id, true);
 
     v.atom_outs.reserve(atom_out_size);
     for(std::size_t i = 0; i < atom_out_size; i++)
       v.atom_outs.emplace_back(
-          2048, data.host.atom_chunk_id, data.host.atom_object_id, false);
+          data.atomBufferSize(data.atom_out_ports[i]), data.host.atom_chunk_id,
+          data.host.atom_object_id, false);
 
     // time:Position may share a MIDI port (atom:supports midi+time) or have its own atom port
     v.atom_timePosition_owned_buffers.reserve(data.time_Position_ports.size());
@@ -640,11 +644,9 @@ struct lv2_node final : public ossia::graph_node
             return stdx::error{};
           });
         }
-        else
-        {
-          // FIXME forward non-MIDI atom outputs (patch:Set etc.) to a value outlet
-          qDebug() << "Unhandled LV2 event type: " << ev->body.type;
-        }
+        // Other events on a MIDI port are for the plug-in's UI (on_finish
+        // forwards them); FIXME also forward them (patch:Set...) to a value
+        // outlet.
       }
     }
 

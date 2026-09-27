@@ -1,5 +1,8 @@
 @prefix doap: <http://usefulinc.com/ns/doap#> .
 @prefix lv2:  <http://lv2plug.in/ns/lv2core#> .
+@prefix atom: <http://lv2plug.in/ns/ext/atom#> .
+@prefix midi: <http://lv2plug.in/ns/ext/midi#> .
+@prefix rsz:  <http://lv2plug.in/ns/ext/resize-port#> .
 
 <urn:score:test:gain>
     a lv2:Plugin, lv2:AmplifierPlugin ;
@@ -77,4 +80,28 @@
         lv2:index 3 ;
         lv2:symbol "level" ;
         lv2:name "Level"
+    ] .
+
+# Sends a 10000-byte event on "notify" for each block with an input event: a
+# plug-in answering its UI with a whole state, which needs the 64 KiB buffers
+# it asks for.
+<urn:score:test:notify>
+    a lv2:Plugin, lv2:UtilityPlugin ;
+    doap:name "Score Test Notify" ;
+    lv2:port [
+        a lv2:InputPort, atom:AtomPort ;
+        atom:bufferType atom:Sequence ;
+        atom:supports midi:MidiEvent ;
+        lv2:index 0 ;
+        lv2:symbol "control" ;
+        lv2:name "Control" ;
+        rsz:minimumSize 65536
+    ] , [
+        a lv2:OutputPort, atom:AtomPort ;
+        atom:bufferType atom:Sequence ;
+        atom:supports midi:MidiEvent ;
+        lv2:index 1 ;
+        lv2:symbol "notify" ;
+        lv2:name "Notify" ;
+        rsz:minimumSize 65536
     ] .

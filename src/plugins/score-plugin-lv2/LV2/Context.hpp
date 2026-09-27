@@ -84,6 +84,8 @@ struct HostContext
   Lilv::Node work_interface{make_node(LV2_WORKER__interface)};
   Lilv::Node work_schedule{make_node(LV2_WORKER__schedule)};
 
+  Lilv::Node resize_minimum_size{make_node(LV2_RESIZE_PORT__minimumSize)};
+
   Lilv::Node time_time_class{make_node(LV2_TIME__Time)};
   Lilv::Node time_Position_class{make_node(LV2_TIME__Position)};
   Lilv::Node time_rate_class{make_node(LV2_TIME__Rate)};
@@ -276,7 +278,18 @@ struct SCORE_PLUGIN_LV2_EXPORT LV2Data
 
   ossia::small_vector<int, 2> time_Position_ports{};
 
-  // ossia::small_vector<int, 2> atom_in_ports, atom_out_ports;
+  //! Bytes to allocate for the buffer of atom port `port_index`: at least
+  //! what the plug-in asks for with rsz:minimumSize.
+  uint32_t atomBufferSize(int port_index) const noexcept
+  {
+    constexpr uint32_t default_size = 2048;
+    if(port_index >= 0 && std::size_t(port_index) < atom_minimum_sizes.size())
+      return std::max(default_size, atom_minimum_sizes[port_index]);
+    return default_size;
+  }
+
+  //! rsz:minimumSize of each port, by port index; 0 when not given.
+  std::vector<uint32_t> atom_minimum_sizes;
 };
 
 struct Message

@@ -202,7 +202,7 @@ Window::Window(const Model& fx, const score::DocumentContext& ctx, QWidget* pare
   QPointer<const Model> fx_ptr{&fx};
   connect(&ctx.coarseUpdateTimer, &QTimer::timeout, this, [&, fx_ptr] {
     // score -> UI
-    if(!fx_ptr)
+    if(!fx_ptr || !fx.effectContext.ui_instance)
       return;
 
     {
@@ -216,39 +216,7 @@ Window::Window(const Model& fx, const score::DocumentContext& ctx, QWidget* pare
     }
 
     // UI -> score
-    {
-      auto& plug = score::GUIAppContext().applicationPlugin<LV2::ApplicationPlugin>();
-      Message ev;
-      while(fx.ui_events.try_dequeue(ev))
-      {
-        if(ev.protocol == 0)
-        {
-          SCORE_ASSERT(ev.body.size() == sizeof(float));
-
-          auto it = fx.control_map.find(ev.index);
-          if(it != fx.control_map.end())
-          {
-            auto port = fx.control_map.at(ev.index).first;
-            SCORE_ASSERT(port);
-
-            float f = *(float*)ev.body.data();
-            port->setValue(f);
-          }
-          else
-          {
-            fx.to_process_events.enqueue(std::move(ev));
-          }
-        }
-        else if(ev.protocol == plug.lv2_host_context.atom_eventTransfer)
-        {
-          fx.to_process_events.enqueue(std::move(ev));
-        }
-        else
-        {
-          qDebug() << "LV2: Unknown protocol" << ev.protocol;
-        }
-      }
-    }
+    drainUiEvents();
   });
 
   // Set initial control port values
@@ -295,6 +263,42 @@ void Window::resizeEvent(QResizeEvent* event)
   */
 }
 
+//! What the UI sent, to the controls and to the plug-in's queue.
+void Window::drainUiEvents()
+{
+  auto& plug = score::GUIAppContext().applicationPlugin<LV2::ApplicationPlugin>();
+  Message ev;
+  while(m_model.ui_events.try_dequeue(ev))
+  {
+    if(ev.protocol == 0)
+    {
+      SCORE_ASSERT(ev.body.size() == sizeof(float));
+
+      auto it = m_model.control_map.find(ev.index);
+      if(it != m_model.control_map.end())
+      {
+        auto port = m_model.control_map.at(ev.index).first;
+        SCORE_ASSERT(port);
+
+        float f = *(float*)ev.body.data();
+        port->setValue(f);
+      }
+      else
+      {
+        m_model.to_process_events.enqueue(std::move(ev));
+      }
+    }
+    else if(ev.protocol == plug.lv2_host_context.atom_eventTransfer)
+    {
+      m_model.to_process_events.enqueue(std::move(ev));
+    }
+    else
+    {
+      qDebug() << "LV2: Unknown protocol" << ev.protocol;
+    }
+  }
+}
+
 void Window::closeEvent(QCloseEvent* event)
 {
   if(m_widget)
@@ -304,6 +308,17 @@ void Window::closeEvent(QCloseEvent* event)
 
   p.suil.instance_free(m_model.effectContext.ui_instance);
   m_model.effectContext.ui_instance = nullptr;
+
+  // What the UI said while closing (B.Sequencer's "UI off"...) goes to the
+  // plug-in now: the timer that would carry it is gone with this window.
+  // What the plug-in had for this UI is dropped: the next one asks afresh.
+  drainUiEvents();
+  {
+    Message ev;
+    while(m_model.plugin_events.try_dequeue(ev))
+    {
+    }
+  }
   m_model.externalUIVisible(false);
   const_cast<QWidget*&>(m_model.externalUI) = nullptr;
   QDialog::closeEvent(event);
