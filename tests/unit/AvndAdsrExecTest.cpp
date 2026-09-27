@@ -384,3 +384,23 @@ TEST_CASE("ADSR: booleans on Hold still hold, and an impulse does not release it
     CHECK(!e.object().inputs.hold.value);
   });
 }
+
+TEST_CASE("ADSR v2: stage times reach 0, and take a synced value", "[avnd][adsr]")
+{
+  auto peak_of_first_buffer = [](float attack) {
+    ao::ADSR_v2 a;
+    a.prepare({.input_channels = 0, .output_channels = 0, .frames = 64, .rate = 48000.});
+    a.inputs.attack.value = attack;
+    a.inputs.attack.update(a);
+    a.inputs.decay.value = 1.f;
+    a.inputs.decay.update(a);
+    a.inputs.trig.value.emplace();
+    a(64);
+    return a.outputs.out.value;
+  };
+  // An attack of 0: full level in the first buffer
+  CHECK(peak_of_first_buffer(0.f) == Approx(1.f).margin(0.01));
+  // A synced sixteenth at 120 BPM, as the binding hands it over: 125 ms, so
+  // 64 samples at 48 kHz are about 1 % of the way up
+  CHECK(peak_of_first_buffer(0.125f) < 0.05f);
+}

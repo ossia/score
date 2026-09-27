@@ -514,6 +514,12 @@ avnd_make_score(
   NAMESPACE ao
 )
 avnd_make_score(
+  SOURCES "${AVND_FOLDER}/examples/Advanced/Utilities/ADSR.hpp"
+  TARGET adsr_v2
+  MAIN_CLASS ADSR_v2
+  NAMESPACE ao
+)
+avnd_make_score(
   SOURCES "${AVND_FOLDER}/examples/Advanced/Audio/Bitcrush.hpp"
   TARGET bitcrush
   MAIN_CLASS Bitcrush
@@ -527,8 +533,20 @@ avnd_make_score(
 )
 avnd_make_score(
   SOURCES "${AVND_FOLDER}/examples/Advanced/Audio/Dynamics.hpp"
+  TARGET compressor_v2
+  MAIN_CLASS Compressor_v2
+  NAMESPACE ao
+)
+avnd_make_score(
+  SOURCES "${AVND_FOLDER}/examples/Advanced/Audio/Dynamics.hpp"
   TARGET limiter
   MAIN_CLASS Limiter
+  NAMESPACE ao
+)
+avnd_make_score(
+  SOURCES "${AVND_FOLDER}/examples/Advanced/Audio/Dynamics.hpp"
+  TARGET limiter_v2
+  MAIN_CLASS Limiter_v2
   NAMESPACE ao
 )
 avnd_make_score(
@@ -541,6 +559,12 @@ avnd_make_score(
   SOURCES "${AVND_FOLDER}/examples/Advanced/Audio/Flanger.hpp"
   TARGET flanger
   MAIN_CLASS Flanger
+  NAMESPACE ao
+)
+avnd_make_score(
+  SOURCES "${AVND_FOLDER}/examples/Advanced/Audio/Flanger.hpp"
+  TARGET flanger_v2
+  MAIN_CLASS Flanger_v2
   NAMESPACE ao
 )
 avnd_make_score(
