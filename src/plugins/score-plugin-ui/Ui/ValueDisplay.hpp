@@ -20,6 +20,8 @@
 
 #include <QApplication>
 #include <QClipboard>
+#include <QElapsedTimer>
+#include <QTimer>
 #include <QMenu>
 #include <QPainter>
 
@@ -253,6 +255,13 @@ struct Node
     QString txt_cache;
     std::string m_buf;
 
+    //! Lit when values arrive, fading out: a value that does not change the
+    //! text (the same number again) still shows it arrived.
+    static constexpr int flash_ms = 300;
+    static constexpr int flash_step_ms = 50;
+    QElapsedTimer m_flash;
+    QTimer m_flashTimer;
+
     int logging() const noexcept
     {
       return std::clamp(ossia::convert<int>(log_inlet->value()), 1, max_log);
@@ -302,11 +311,18 @@ struct Node
       auto& value_inlet = *process.inlets()[0];
       if(auto* fact = portFactory.get(value_inlet.concreteKey()))
         if(auto* port = fact->makePortItem(value_inlet, doc, this, this))
-          port->setPos(0, 5);
+          port->setPos(0, 9); // under the arrival light
 
       log_inlet = static_cast<Process::ControlInlet*>(process.inlets()[1]);
       if(process.inlets().size() > 2)
         format_inlet = qobject_cast<Process::ControlInlet*>(process.inlets()[2]);
+
+      m_flashTimer.setInterval(flash_step_ms);
+      connect(&m_flashTimer, &QTimer::timeout, this, [this] {
+        if(!m_flash.isValid() || m_flash.elapsed() > flash_ms)
+          m_flashTimer.stop();
+        update(flashRect());
+      });
 
       auto* out = static_cast<Process::ControlOutlet*>(process.outlets()[0]);
       connect(
@@ -355,7 +371,23 @@ struct Node
       while(std::ssize(values) > logging())
         values.pop_back();
 
+      // Restarted: while values keep arriving, rebuildText() repaints and the
+      // light stays lit; the fade only runs once they stop.
+      m_flash.start();
+      m_flashTimer.start();
       rebuildText();
+    }
+
+    //! In the gutter left of the text, above the input port.
+    static QRectF flashRect() noexcept { return {2., 0., 6., 6.}; }
+
+    //! 1 when values just arrived, 0 once the flash has faded.
+    double flashLevel() const noexcept
+    {
+      if(!m_flash.isValid())
+        return 0.;
+      const auto t = m_flash.elapsed();
+      return t >= flash_ms ? 0. : 1. - double(t) / flash_ms;
     }
 
     void reset()
@@ -367,10 +399,21 @@ struct Node
 
     void paint_impl(QPainter* p) const override
     {
+      const auto& skin = score::Skin::instance();
+      if(const double level = flashLevel(); level > 0.)
+      {
+        QColor c = skin.Base4.main.brush.color();
+        c.setAlphaF(level);
+        p->setRenderHint(QPainter::Antialiasing, true);
+        p->setPen(Qt::NoPen);
+        p->setBrush(c);
+        p->drawEllipse(flashRect());
+        p->setRenderHint(QPainter::Antialiasing, false);
+      }
+
       if(txt_cache.isEmpty())
         return;
 
-      const auto& skin = score::Skin::instance();
       p->setFont(skin.MonoFontSmall);
       p->setRenderHint(QPainter::Antialiasing, true);
       p->setPen(skin.Light.main.pen1_solid_flat_miter);
