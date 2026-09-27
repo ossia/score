@@ -279,3 +279,33 @@ TEST_CASE("SCRATCH loop held", "[deuterium][scratch]")
     WARN("ignore " << ign << " held (sustain 1) silent after " << double(ticks) * st.bufferSize / st.sampleRate << ": " << curve);
   }, 0.1);
 }
+
+// Each note keeps the note-off mode it started in, so a note held while the
+// mode switches between Release and Ignore does not get stuck.
+TEST_CASE("Deuterium: a note keeps the note-off mode it started with", "[deuterium][execution]")
+{
+  with_deuterium([](rig& r) {
+    // Started in Release mode, released after the switch to Ignore: stops
+    r.midi(note_on(1, 60, 100));
+    REQUIRE(r.tick() > 0.05);
+    r.control(note_off_mode, true);
+    r.midi(note_off(1, 60, 0));
+    r.tick();
+    CHECK(r.tick() < 0.001);
+
+    // Started in Ignore mode, back to Release before the note-off: the note
+    // still ends by its own envelope (a sustain of 1 and a 0.2 s release)
+    r.control(release, ossia::vec2f{0.2f, 0.f});
+    r.midi(note_on(1, 62, 100));
+    REQUIRE(r.tick() > 0.05);
+    r.control(note_off_mode, false);
+    r.midi(note_off(1, 62, 0));
+    auto& st = *r.plug.context().execState;
+    int ticks = 1;
+    while(ticks < 1000 && r.tick() > 0.0005)
+      ticks++;
+    const double seconds = double(ticks) * st.bufferSize / st.sampleRate;
+    INFO("silent after " << seconds << " s");
+    CHECK(seconds < 0.5);
+  });
+}
