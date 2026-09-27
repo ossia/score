@@ -862,6 +862,13 @@ score_add_test(test_integration_interval_brace_drag
   GUI
   PLUGINS score_plugin_scenario score_lib_process)
 
+# The piano roll: arrow keys transpose the selection, undoing a resize resizes
+# the note views, and the rows are tints that let the bar lines through.
+score_add_test(test_integration_piano_roll
+  SOURCES PianoRollTest.cpp
+  APP
+  PLUGINS score_plugin_scenario score_lib_process score_plugin_midi)
+
 # Fold state lives on the process so that it survives save/reload and follows a
 # preset dropped onto an open node.
 score_add_test(test_integration_process_fold_mode
