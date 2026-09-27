@@ -6,6 +6,7 @@
 #include <ossia/detail/math.hpp>
 
 #include <QGraphicsSceneMouseEvent>
+#include <string_view>
 #include <QPainter>
 
 #include <wobjectimpl.h>
@@ -36,24 +37,34 @@ constexpr Division divisions[] = {
 constexpr int division_count = std::ssize(divisions);
 constexpr int default_sync_index = 8; // 1/8th
 
-// Indices of the straight (non-dotted, non-triplet) divisions: a plain drag
-// detents on these; Alt or Shift unlocks the full table.
-constexpr int straight_indices[] = {0, 2, 5, 8, 11, 14, 17, 19, 21};
+using Feel = QGraphicsTimeChooser::Feel;
 
-// Snap a 0..1 knob position onto a division detent, so that the knob angle,
-// the emitted value and the execution feedback all land on the exact same
-// positions.
-double snapSyncPosition(double v01, bool fullTable) noexcept
+constexpr Feel feelOf(int index) noexcept
+{
+  std::string_view l = divisions[index].label;
+  if(l.back() == '.')
+    return Feel::Dotted;
+  if(l.back() == 'T')
+    return Feel::Triplet;
+  return Feel::Straight;
+}
+
+// Snap a 0..1 knob position onto a division detent of that feel (any with
+// Alt or Shift), so that the knob angle, the emitted value and the execution
+// feedback all land on the exact same positions.
+double snapSyncPosition(double v01, Feel feel, bool fullTable) noexcept
 {
   const double target = ossia::clamp(v01, 0., 1.) * (division_count - 1);
   if(fullTable)
     return std::lround(target) / double(division_count - 1);
-  int best = straight_indices[0];
-  double bestDist = std::abs(target - best);
-  for(const int i : straight_indices)
+  int best = -1;
+  double bestDist = 0.;
+  for(int i = 0; i < division_count; i++)
   {
+    if(feelOf(i) != feel)
+      continue;
     const double d = std::abs(target - i);
-    if(d < bestDist)
+    if(best < 0 || d < bestDist)
     {
       bestDist = d;
       best = i;
@@ -76,6 +87,52 @@ int nearestDivision(float frac) noexcept
     }
   }
   return best;
+}
+
+//! The division of that feel nearest to a note length.
+int nearestDivision(float frac, Feel feel) noexcept
+{
+  int best = -1;
+  float bestDist = 0.f;
+  for(int i = 0; i < division_count; i++)
+  {
+    if(feelOf(i) != feel)
+      continue;
+    const float d = std::abs(divisions[i].fraction - frac);
+    if(best < 0 || d < bestDist)
+    {
+      bestDist = d;
+      best = i;
+    }
+  }
+  return best;
+}
+
+//! How long the note is, straight: a dotted note is 3/2 of it, a triplet 2/3.
+float straightLength(int index) noexcept
+{
+  switch(feelOf(index))
+  {
+    case Feel::Dotted:
+      return divisions[index].fraction / 1.5f;
+    case Feel::Triplet:
+      return divisions[index].fraction * 1.5f;
+    default:
+      return divisions[index].fraction;
+  }
+}
+
+float withFeel(float straight, Feel feel) noexcept
+{
+  switch(feel)
+  {
+    case Feel::Dotted:
+      return straight * 1.5f;
+    case Feel::Triplet:
+      return straight / 1.5f;
+    default:
+      return straight;
+  }
 }
 }
 
@@ -129,6 +186,8 @@ void QGraphicsTimeChooser::setValue(ossia::vec2f v)
 {
   m_sync = v[1] != 0.f;
   m_value = position(v);
+  if(m_sync)
+    m_feel = feelOf(syncIndex());
   update();
 }
 
@@ -161,6 +220,39 @@ void QGraphicsTimeChooser::syncChanged(bool sync)
   // Per-mode memory: come back to where that mode was left
   std::swap(m_value, m_other01);
   m_sync = sync;
+  if(m_sync)
+    m_feel = feelOf(syncIndex());
+
+  sliderMoved();
+  sliderReleased();
+  update();
+}
+
+void QGraphicsTimeChooser::cycleMode()
+{
+  if(!m_sync)
+  {
+    // Back to the synced value last left, straight
+    std::swap(m_value, m_other01);
+    m_sync = true;
+    const int idx = syncIndex();
+    m_feel = Feel::Straight;
+    m_value = nearestDivision(straightLength(idx), Feel::Straight)
+              / double(division_count - 1);
+  }
+  else if(m_feel != Feel::Triplet)
+  {
+    // The same note, dotted then triplet
+    const float straight = straightLength(syncIndex());
+    m_feel = m_feel == Feel::Straight ? Feel::Dotted : Feel::Triplet;
+    m_value = nearestDivision(withFeel(straight, m_feel), m_feel)
+              / double(division_count - 1);
+  }
+  else
+  {
+    std::swap(m_value, m_other01);
+    m_sync = false;
+  }
 
   sliderMoved();
   sliderReleased();
@@ -251,11 +343,11 @@ void QGraphicsTimeChooser::hoverLeaveEvent(QGraphicsSceneHoverEvent* event)
 
 void QGraphicsTimeChooser::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
-  // The readout row below the knob toggles between free and synced
+  // The readout row below the knob cycles: free, straight, dotted, triplet
   if(event->button() == Qt::LeftButton
      && event->pos().y() >= defaultKnobSize.height() - 10.)
   {
-    syncChanged(!m_sync);
+    cycleMode();
     event->accept();
     return;
   }
@@ -272,7 +364,7 @@ void QGraphicsTimeChooser::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
     double v = InfiniteScroller::move(event);
     if(m_sync)
       v = snapSyncPosition(
-          v, event->modifiers() & (Qt::AltModifier | Qt::ShiftModifier));
+          v, m_feel, event->modifiers() & (Qt::AltModifier | Qt::ShiftModifier));
     if(v != m_value)
     {
       m_value = v;
@@ -292,7 +384,7 @@ void QGraphicsTimeChooser::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
     double v = InfiniteScroller::move(event);
     if(m_sync)
       v = snapSyncPosition(
-          v, event->modifiers() & (Qt::AltModifier | Qt::ShiftModifier));
+          v, m_feel, event->modifiers() & (Qt::AltModifier | Qt::ShiftModifier));
     if(v != m_value)
     {
       m_value = v;

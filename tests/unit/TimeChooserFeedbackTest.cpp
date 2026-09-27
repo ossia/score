@@ -92,3 +92,40 @@ TEST_CASE("time chooser feedback follows the division detents when synced")
     REQUIRE(item.executionPosition() == Catch::Approx(0.1).margin(1e-5));
   });
 }
+
+// A click on the readout cycles free, straight, dotted, triplet; the note
+// stays the same across the three feels.
+TEST_CASE("time chooser readout cycles free, straight, dotted and triplet")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext&) {
+    using Feel = score::QGraphicsTimeChooser::Feel;
+    score::QGraphicsTimeChooser item{nullptr};
+    item.setRange(0.001, 5., 0.1);
+    item.setValue(ossia::vec2f{1.f / 8.f, 1.f}); // 1/8
+    REQUIRE(item.synced());
+    REQUIRE(item.feel() == Feel::Straight);
+
+    item.cycleMode();
+    CHECK(item.feel() == Feel::Dotted);
+    CHECK(item.value()[0] == Catch::Approx(3.f / 16.f)); // 1/8.
+    CHECK(item.value()[1] != 0.f);
+
+    item.cycleMode();
+    CHECK(item.feel() == Feel::Triplet);
+    CHECK(item.value()[0] == Catch::Approx(1.f / 12.f)); // 1/8T
+
+    item.cycleMode();
+    CHECK(!item.synced());
+    CHECK(item.value()[1] == 0.f);
+
+    // Back to synced: the same note, straight
+    item.cycleMode();
+    CHECK(item.synced());
+    CHECK(item.feel() == Feel::Straight);
+    CHECK(item.value()[0] == Catch::Approx(1.f / 8.f));
+
+    // A value given as dotted is in the dotted feel
+    item.setValue(ossia::vec2f{3.f / 8.f, 1.f}); // 1/4.
+    CHECK(item.feel() == Feel::Dotted);
+  });
+}

@@ -47,6 +47,20 @@ public:
 
   void syncChanged(bool sync);
 
+  //! What a click on the readout does: free, then synced to straight, dotted
+  //! and triplet values of the same note, then free again.
+  void cycleMode();
+
+  //! Synced values the knob steps through (Alt or Shift: all of them).
+  enum class Feel : uint8_t
+  {
+    Straight,
+    Dotted,
+    Triplet
+  };
+  [[nodiscard]] bool synced() const noexcept { return m_sync; }
+  [[nodiscard]] Feel feel() const noexcept { return m_feel; }
+
   QRectF boundingRect() const override;
 
   void sliderMoved() E_SIGNAL(SCORE_LIB_BASE_EXPORT, sliderMoved)
@@ -74,6 +88,7 @@ private:
   double m_execValue{};
   double m_other01{};   // remembered position of the inactive mode
   bool m_sync{};
+  Feel m_feel{Feel::Straight};
   bool m_grab{};
   bool m_hasExec{};
   bool m_hover{};
