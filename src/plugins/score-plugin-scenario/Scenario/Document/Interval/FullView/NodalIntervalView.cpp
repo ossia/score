@@ -12,6 +12,7 @@
 
 #include <Scenario/Commands/Cohesion/InterpolateMacro.hpp>
 #include <score/application/GUIApplicationContext.hpp>
+#include <score/graphics/FirstUserInput.hpp>
 #include <score/graphics/GraphicsItem.hpp>
 #include <score/graphics/ZoomItem.hpp>
 #include <score/model/Skin.hpp>
@@ -110,6 +111,14 @@ NodalIntervalView::NodalIntervalView(
         connect(gv, &ProcessGraphicsView::visibleRectChanged, this, [this] {
           recenterRelativeToView();
         }, Qt::DirectConnection);
+        if(m_autoCenter)
+          new score::FirstUserInput{gv->viewport(), this, [this] {
+            // Pinned where it is now: from here on it moves only when asked.
+            if(!std::exchange(m_autoCenter, false))
+              return;
+            if(!m_nodeItems.empty() && !boundingRect().isEmpty())
+              storeCenterFromContainer();
+          }};
       }
     }
   }

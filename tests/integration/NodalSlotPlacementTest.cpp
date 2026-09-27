@@ -171,6 +171,62 @@ TEST_CASE(
   });
 }
 
+TEST_CASE(
+    "Once the user acts in the view, a node changing size leaves the canvas where it is",
+    "[integration][nodal][gui]")
+{
+  score::test::run_in_gui_app([](const score::GUIApplicationContext& app) {
+    auto doc = score::test::new_document(app);
+    REQUIRE(doc);
+    auto& itv = newInterval(*doc);
+    auto proc = dropEffect(*doc, itv, effect_key);
+    if(!proc)
+      SKIP("avnd Counter not built");
+
+    auto nodal = nodalViewOf(*doc, *proc);
+    REQUIRE(nodal);
+    auto& container = nodal->nodeContainer();
+
+    // A new node settling on its size: the canvas follows it.
+    const QSizeF sz = proc->size();
+    proc->setSize(QSizeF{sz.width() + 100., sz.height() + 60.});
+    run_events_for(50);
+    const double followedScale = container.scale();
+
+    // The user presses in the view (to resize the node, say): from then on the
+    // canvas stays put under the cursor, whatever the node's size does.
+    auto pr = score::IDocument::try_presenterDelegate<Scenario::ScenarioDocumentPresenter>(*doc);
+    auto* vp = pr->view().view().viewport();
+    const QPoint at = pr->view().view().mapFromScene(nodal->sceneBoundingRect().center());
+    QMouseEvent press{
+        QEvent::MouseButtonPress, QPointF(at), vp->mapToGlobal(QPointF(at)), Qt::LeftButton,
+        Qt::LeftButton, Qt::NoModifier};
+    QApplication::sendEvent(vp, &press);
+    QMouseEvent release{
+        QEvent::MouseButtonRelease, QPointF(at), vp->mapToGlobal(QPointF(at)),
+        Qt::LeftButton, Qt::NoButton, Qt::NoModifier};
+    QApplication::sendEvent(vp, &release);
+    run_events_for(50);
+    const QPointF pinned = container.pos();
+
+    const auto slotHeight = [&] {
+      auto& sv = itv.smallView();
+      return std::find_if(sv.begin(), sv.end(), [](auto& s) { return s.nodal; })->height;
+    };
+    const double slotBefore = slotHeight();
+    proc->setSize(QSizeF{sz.width() + 400., sz.height() + 300.});
+    run_events_for(50);
+    // Neither the canvas nor the slot around it follow the node any more.
+    CHECK(slotHeight() == slotBefore);
+    CHECK(container.pos() == pinned);
+    CHECK(container.scale() == Approx(followedScale));
+    proc->setSize(sz);
+    run_events_for(50);
+    CHECK(container.pos() == pinned);
+    CHECK(container.scale() == Approx(followedScale));
+  });
+}
+
 #include <score/model/Skin.hpp>
 
 #include <QGraphicsView>

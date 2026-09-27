@@ -33,6 +33,7 @@
 
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/document/DocumentInterface.hpp>
+#include <score/graphics/FirstUserInput.hpp>
 #include <score/graphics/GraphicsItem.hpp>
 #include <score/model/ModelMetadata.hpp>
 #include <score/selection/Selectable.hpp>
@@ -514,7 +515,8 @@ void TemporalIntervalPresenter::fitNewNodalSlot(const Slot& slt)
   // The size the process has now (right for a pasted one), then each size its
   // node computes (a new process only has a placeholder size, and the node
   // goes through a few). It stops following once the slot is resized by
-  // something else, e.g. the user.
+  // something else, or at the user's first press in the view: a node the user
+  // resizes must not drag the slot, and the canvas in it, under the cursor.
   auto fitted = std::make_shared<std::optional<double>>();
   auto conn = std::make_shared<QMetaObject::Connection>();
   auto fit = [this, fitted, conn](QSizeF sz) {
@@ -536,6 +538,9 @@ void TemporalIntervalPresenter::fitNewNodalSlot(const Slot& slt)
   };
   fit(proc->size());
   *conn = connect(&*proc, &Process::ProcessModel::sizeChanged, this, fit);
+  if(auto v = getView(*m_view))
+    new score::FirstUserInput{
+        v->viewport(), this, [conn] { QObject::disconnect(*conn); }};
 }
 
 void TemporalIntervalPresenter::createCollapsedSlot(int pos, const Slot& slt)

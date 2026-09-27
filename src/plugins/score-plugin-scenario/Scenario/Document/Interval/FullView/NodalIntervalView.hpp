@@ -100,7 +100,9 @@ private:
   QPointF m_rubberBandOrigin{};
   QRectF m_rubberBandRect{};
   bool m_rubberBanding{false};
-  //! Centers on the nodes whenever they change size, until panned or zoomed.
+  //! Centers on the nodes whenever they change size, until the user first
+  //! does anything in the view: a new node settles on its size on its own,
+  //! but a node or slot the user resizes must stay under the cursor.
   bool m_autoCenter{false};
 };
 
