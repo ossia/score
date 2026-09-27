@@ -1670,3 +1670,9 @@ if(TARGET score AND UNIX AND NOT APPLE AND NOT EMSCRIPTEN
   add_test(NAME test_app_allocator_symbols_unversioned
     COMMAND sh -c "n=$(nm -D --defined-only --with-symbol-versions \"$1\" | grep -cE ' (malloc|calloc|realloc|free|_Znwm|_Znam|_ZdlPv|_ZdlPvm|_ZdaPv)@'); echo \"versioned allocator symbols: $n\"; test \"$n\" -eq 0" _ $<TARGET_FILE:score>)
 endif()
+
+# Temporal -> nodal -> temporal: the interval keeps the zoom the view uses.
+score_add_test(test_integration_view_mode_switch_zoom
+  SOURCES ViewModeSwitchZoomTest.cpp
+  GUI
+  PLUGINS score_plugin_scenario score_lib_process)

@@ -990,9 +990,11 @@ void ScenarioDocumentPresenter::on_minimapChanged(double l, double r)
   const QRectF visible_scene_rect = view().visibleSceneRect();
   const double y = visible_scene_rect.top();
 
-  // Set zoom
-  if(newZoom != m_zoomRatio)
-    setZoomRatio(newZoom);
+  // Set zoom. Even when it is the one already set: a display built since
+  // (the temporal view coming back from the nodal one) starts at the
+  // interval's stored zoom, which differs when the stored one could not be
+  // honoured (an interval shorter than the view is fitted to it).
+  setZoomRatio(newZoom);
 
   // Set viewport position
   auto newView = QRectF{newX, y, (qreal)w, (qreal)h};
