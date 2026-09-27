@@ -2642,16 +2642,16 @@ TEST_CASE("A sampled segment is drawn as a line where it is sparse, and not wher
   });
 }
 
-TEST_CASE("Curvature is set on the clicked segment, or all the selected ones with Alt", "[curve][edition]")
+TEST_CASE("Curvature is set on the clicked segment, or on all the selected ones", "[curve][edition]")
 {
   score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
     CurveDoc d{ctx};
     d.setPolyline({{0., 0.}, {0.3, 1.}, {0.6, 0.}, {1., 1.}});
     auto& curve = d.curve();
     auto sorted = curve.sortedSegments();
-    for(auto s : sorted)
-      const_cast<Curve::SegmentModel*>(s)->selection.set(true);
 
+    // Only the clicked segment selected: it alone bends.
+    const_cast<Curve::SegmentModel*>(sorted[0])->selection.set(true);
     Curve::StateBase state;
     Curve::SetSegmentParametersCommandObject co{curve, d.context().commandStack};
     co.setCurveState(&state);
@@ -2665,32 +2665,19 @@ TEST_CASE("Curvature is set on the clicked segment, or all the selected ones wit
     CHECK(gammaOf(curve, sorted[0]->id().val()) != Approx(1.));
     CHECK(gammaOf(curve, sorted[1]->id().val()) == Approx(1.));
 
-    QWindow win;
-    win.show();
-    QWindowSystemInterface::handleKeyEvent<QWindowSystemInterface::SynchronousDelivery>(
-        &win, QEvent::KeyPress, Qt::Key_Alt, Qt::AltModifier);
-    REQUIRE(qApp->keyboardModifiers() & Qt::AltModifier);
+    // Clicked within a selection of several: all of them bend, no modifier
+    // needed.
+    for(auto s : sorted)
+      const_cast<Curve::SegmentModel*>(s)->selection.set(true);
     state.clickedSegmentId = sorted[1]->id();
     state.currentPoint = {0.4, 0.5};
     co.press();
     state.currentPoint = {0.4, 0.2};
     co.move();
     co.release();
-    QWindowSystemInterface::handleKeyEvent<QWindowSystemInterface::SynchronousDelivery>(
-        &win, QEvent::KeyRelease, Qt::Key_Alt, Qt::NoModifier);
     settle();
     CHECK(gammaOf(curve, sorted[1]->id().val()) != Approx(1.));
     CHECK(gammaOf(curve, sorted[2]->id().val()) != Approx(1.));
-
-    // Cancelled: back to where it was.
-    const double before = gammaOf(curve, sorted[2]->id().val());
-    state.clickedSegmentId = sorted[2]->id();
-    co.press();
-    state.currentPoint = {0.4, 0.9};
-    co.move();
-    co.cancel();
-    settle();
-    CHECK(gammaOf(curve, sorted[2]->id().val()) == Approx(before));
 
     // The clicked segment is gone before the move.
     state.clickedSegmentId = Id<Curve::SegmentModel>{12345};
@@ -3692,6 +3679,61 @@ TEST_CASE("The presenter switches to direct drawing and back, and drops all view
   });
 }
 
+TEST_CASE(
+    "Segments selected together are curved together by a drag on one of them",
+    "[curve][edition]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    CurveDoc d{ctx};
+    d.setPolyline({{0., 0.}, {0.25, 1.}, {0.5, 0.}, {0.75, 1.}, {1., 0.}});
+    CurveUi ui{d};
+    EditionSettingsGuard guard{ui.settings()};
+
+    // Selected as a lasso would: every segment.
+    Selection all;
+    for(auto* s : d.curve().sortedSegments())
+      all.append(const_cast<Curve::SegmentModel*>(s));
+    d.doc->selectionStack().pushNewSelection(all);
+    settle();
+    const auto sorted = d.curve().sortedSegments();
+    for(auto* s : sorted)
+      REQUIRE(s->selection.get());
+
+    // Shift's tool, and no other modifier.
+    ui.settings().setTool(Curve::Tool::SetSegment);
+    // On the second segment, dragged down.
+    ui.press({0.375, 0.5});
+    ui.move({0.375, 0.3});
+    ui.release({0.375, 0.3});
+
+    settle();
+
+    int bent = 0, selected = 0;
+    for(auto* s : sorted)
+    {
+      bent += gammaOf(d.curve(), s->id().val()) != Approx(1.);
+      selected += s->selection.get();
+    }
+    INFO("selected after the press: " << selected);
+    CHECK(bent == int(sorted.size()));
+    CHECK(selected == int(sorted.size()));
+
+    // A press on a segment that is not selected still selects it alone. (Straight
+    // segments again, so that the press lands on the last one.)
+    d.setPolyline({{0., 0.}, {0.25, 1.}, {0.5, 0.}, {0.75, 1.}, {1., 0.}});
+    d.doc->selectionStack().pushNewSelection(Selection{
+        const_cast<Curve::SegmentModel*>(d.curve().sortedSegments().front())});
+    settle();
+    ui.press({0.875, 0.5});
+    ui.release({0.875, 0.5});
+    int nowSelected = 0;
+    for(auto* s : d.curve().sortedSegments())
+      nowSelected += s->selection.get();
+    CHECK(nowSelected == 1);
+    CHECK(d.curve().sortedSegments().back()->selection.get());
+  });
+}
+
 TEST_CASE("The curve tool follows the modifiers held, whatever order they come in", "[curve][tools]")
 {
   score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
@@ -3712,7 +3754,7 @@ TEST_CASE("The curve tool follows the modifiers held, whatever order they come i
     key(QEvent::KeyPress, Qt::Key_Shift, Qt::ShiftModifier);
     CHECK(s.tool() == SetSegment);
     key(QEvent::KeyPress, Qt::Key_Alt, Qt::ShiftModifier | Qt::AltModifier);
-    CHECK(s.tool() == SetSegment); // Alt then bends every selected segment
+    CHECK(s.tool() == SetSegment);
     key(QEvent::KeyRelease, Qt::Key_Shift, Qt::AltModifier);
     CHECK(s.tool() == CreatePen);
     key(QEvent::KeyRelease, Qt::Key_Alt, Qt::NoModifier);

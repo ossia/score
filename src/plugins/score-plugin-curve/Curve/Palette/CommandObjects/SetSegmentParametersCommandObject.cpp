@@ -14,7 +14,6 @@
 #include <score/model/path/Path.hpp>
 #include <score/tools/Clamp.hpp>
 
-#include <QGuiApplication>
 
 namespace Curve
 {
@@ -61,10 +60,13 @@ void SetSegmentParametersCommandObject::move()
   double newHorizontal
       = clicked_orig.second ? clamp(*clicked_orig.second + hampl, -1., 1.) : 0.;
 
-  if(qApp->keyboardModifiers() & Qt::ALT)
+  // A drag on a segment that is part of the selection bends every selected
+  // segment by the same amount (press() recorded them; a press on a segment
+  // outside the selection selected it alone). No Alt: Shift + Alt is taken by
+  // some systems before it reaches the application.
+  if(m_orig.size() > 1)
   {
-    // Every selected segment moves by the same amount: sorted, then turned
-    // into the flat map in one go.
+    // Sorted, then turned into the flat map in one go.
     m_params.clear();
     m_params.emplace_back(
         m_state->clickedSegmentId, std::pair{newVertical, newHorizontal});

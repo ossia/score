@@ -22,9 +22,8 @@ public:
   void on_keyPressEvent(QKeyEvent& event) override;
   void on_keyReleaseEvent(QKeyEvent& event) override;
 
-  //! The tool the held modifiers ask for: Shift sets segments (Alt then
-  //! applies to every selected one), else Ctrl creates points, else Alt draws
-  //! with the pen; none is selection.
+  //! The tool the held modifiers ask for: Shift sets segments, else Ctrl
+  //! creates points, else Alt draws with the pen; none is selection.
   static Tool toolForModifiers(Qt::KeyboardModifiers mods) noexcept;
 
 private:

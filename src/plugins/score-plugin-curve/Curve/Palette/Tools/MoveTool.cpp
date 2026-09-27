@@ -37,8 +37,11 @@ void EditionToolForCreate::on_pressed(QPointF scenePoint, Curve::Point curvePoin
       [&](const SegmentView* segment) {
     if(m_parentSM.editionSettings().tool() != Tool::SetSegment)
       select(segment->model(), m_parentSM.model().selectedChildren(), true);
-    else
+    else if(!segment->model().selection.get())
       select(segment->model(), m_parentSM.model().selectedChildren());
+    // A press on a segment that is already selected keeps the selection:
+    // the drag bends every selected segment, and would otherwise find only
+    // the one pressed.
     localSM().postEvent(new ClickOnSegment_Event(curvePoint, segment));
   },
       [&]() { localSM().postEvent(new ClickOnNothing_Event(curvePoint, nullptr)); });
