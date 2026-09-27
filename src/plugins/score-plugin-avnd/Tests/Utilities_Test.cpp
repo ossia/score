@@ -311,3 +311,25 @@ TEST_CASE("Array recombiner groups vec2f / vec3f / vec4f too", "[avnd][utilities
   r.inputs.transpose.value = false;
   CHECK(r(list{1, 2, 3}) == list{list{1, 2}, list{3}});
 }
+
+#include <examples/Advanced/Image/LightnessSampler.hpp>
+
+TEST_CASE("Lightness sampler draws the image at its aspect ratio", "[avnd][utilities][image]")
+{
+  using D = vo::LightnessSamplerTextureDisplay;
+  // 16:9 in the 200 x 200 item: full width, letterboxed vertically
+  auto r = D::imageRect(1920, 1080);
+  CHECK(r.w == 200.);
+  CHECK(r.h == Catch::Approx(112.5));
+  CHECK(r.x == 0.);
+  CHECK(r.y == Catch::Approx((200. - 112.5) / 2.));
+  // Portrait: full height, pillarboxed
+  r = D::imageRect(100, 400);
+  CHECK(r.h == 200.);
+  CHECK(r.w == 50.);
+  CHECK(r.x == 75.);
+  // Square: the whole item
+  r = D::imageRect(64, 64);
+  CHECK(r.w == 200.);
+  CHECK(r.h == 200.);
+}
