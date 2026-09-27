@@ -292,3 +292,15 @@ TEST_CASE("a write path expands %t and %n, a read path does not", "[integration]
     CHECK(r.get<std::string>() == "/tmp/score-test-%t-%n.txt");
   });
 }
+
+TEST_CASE("Enumerator is available as a process", "[integration][utilities]")
+{
+  score::test::run_in_gui_app([](const score::GUIApplicationContext& app) {
+    auto doc = score::test::new_document(app);
+    auto e = score::test::add_process(
+        *doc, QStringLiteral("7e998d33-864d-4483-83f4-a9db48e5703f"), {});
+    REQUIRE(e);
+    CHECK(control(*e, QStringLiteral("Mode")));
+    CHECK(control(*e, QStringLiteral("Interval")));
+  });
+}

@@ -333,3 +333,82 @@ TEST_CASE("Lightness sampler draws the image at its aspect ratio", "[avnd][utili
   CHECK(r.w == 200.);
   CHECK(r.h == 200.);
 }
+
+#include <examples/Advanced/Utilities/Enumerator.hpp>
+
+namespace
+{
+struct EnumRig
+{
+  ao::Enumerator e;
+  explicit EnumRig(ao::Enumerator::Mode mode, ao::Enumerator::Bounds bounds)
+  {
+    e.inputs.mode.value = mode;
+    e.inputs.bounds.value = bounds;
+    e.inputs.list.value = std::vector<ossia::value>{10, 20, 30};
+    e.prepare(halp::setup{.rate = 1000.});
+  }
+  std::optional<ossia::value> tick(std::optional<ossia::value> trig = {}, int frames = 1)
+  {
+    e.inputs.trigger.value = std::move(trig);
+    e(halp::tick{frames});
+    return e.outputs.value.value;
+  }
+};
+const ossia::value bang{ossia::impulse{}};
+}
+
+TEST_CASE("Enumerator: bangs walk the list with each bound mode", "[avnd][utilities][enumerator]")
+{
+  using E = ao::Enumerator;
+  auto walk = [](E::Bounds b) {
+    EnumRig r{E::Manual, b};
+    std::vector<int> seen;
+    for(int i = 0; i < 6; i++)
+      seen.push_back(r.tick(bang)->get<int>());
+    return seen;
+  };
+  CHECK(walk(E::Clip) == std::vector<int>{10, 20, 30, 30, 30, 30});
+  CHECK(walk(E::Wrap) == std::vector<int>{10, 20, 30, 10, 20, 30});
+  CHECK(walk(E::Fold) == std::vector<int>{10, 20, 30, 20, 10, 20});
+}
+
+TEST_CASE("Enumerator: a number is an index, nothing without a trigger", "[avnd][utilities][enumerator]")
+{
+  EnumRig r{ao::Enumerator::Manual, ao::Enumerator::Wrap};
+  CHECK_FALSE(r.tick());
+  CHECK(r.tick(ossia::value{2}) == ossia::value{30});
+  CHECK(r.e.outputs.index.value == 2);
+  CHECK(r.tick(ossia::value{4}) == ossia::value{20}); // wrapped
+  CHECK(r.tick(bang) == ossia::value{30});             // continues from there
+  // Same index again: the value goes out, the index does not
+  r.tick(ossia::value{2});
+  CHECK(r.e.outputs.value.value == ossia::value{30});
+  CHECK_FALSE(r.e.outputs.index.value);
+}
+
+TEST_CASE("Enumerator: automatic modes", "[avnd][utilities][enumerator]")
+{
+  SECTION("every tick")
+  {
+    EnumRig r{ao::Enumerator::EveryTick, ao::Enumerator::Wrap};
+    CHECK(r.tick() == ossia::value{10});
+    CHECK(r.tick() == ossia::value{20});
+  }
+  SECTION("at an interval")
+  {
+    EnumRig r{ao::Enumerator::Timed, ao::Enumerator::Wrap};
+    r.e.inputs.interval.value = 0.1f; // 100 ms, at 1 kHz = 100 frames
+    int sent = 0;
+    for(int i = 0; i < 10; i++) // 10 ticks of 50 ms
+      sent += bool(r.tick({}, 50));
+    CHECK(sent == 5);
+  }
+  SECTION("vec3f lists")
+  {
+    EnumRig r{ao::Enumerator::Manual, ao::Enumerator::Clip};
+    r.e.inputs.list.value = ossia::vec3f{1.f, 2.f, 3.f};
+    r.tick(bang);
+    CHECK(r.tick(bang) == ossia::value{2.f});
+  }
+}

@@ -1174,6 +1174,13 @@ avnd_make_score(
 )
 
 avnd_make_score(
+  SOURCES "${AVND_FOLDER}/examples/Advanced/Utilities/Enumerator.hpp"
+  TARGET enumerator
+  MAIN_CLASS Enumerator
+  NAMESPACE ao
+)
+
+avnd_make_score(
   SOURCES "${AVND_FOLDER}/examples/Midi/MidiSyncInput.hpp"
   TARGET midi_sync_input
   MAIN_CLASS MIDISyncIn
