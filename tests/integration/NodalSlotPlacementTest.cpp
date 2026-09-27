@@ -263,3 +263,69 @@ TEST_CASE("The hand cursor shows over a port only, in the document's view", "[in
     }
   });
 }
+
+#include <score/graphics/TextItem.hpp>
+
+#include <QDrag>
+#include <QTimer>
+
+// A cable can be dragged from a port's name too, not only from its circle.
+TEST_CASE("Dragging a port's label starts a cable from the port", "[integration][nodal][gui][cable]")
+{
+  score::test::run_in_gui_app([](const score::GUIApplicationContext& app) {
+    auto doc = score::test::new_document(app);
+    REQUIRE(doc);
+    auto& itv = newInterval(*doc);
+    auto proc = dropEffect(*doc, itv, float_key);
+    if(!proc)
+      SKIP("avnd Float not built");
+
+    auto nodal = nodalViewOf(*doc, *proc);
+    REQUIRE(nodal);
+    Dataflow::PortItem* out{};
+    for(auto item : nodal->scene()->items())
+      if(auto p = dynamic_cast<Dataflow::PortItem*>(item))
+        if(&p->port() == proc->outlets()[0])
+          out = p;
+    REQUIRE(out);
+    score::SimpleTextItem* label{};
+    for(auto* sibling : out->parentItem()->childItems())
+      if(auto* t = dynamic_cast<score::SimpleTextItem*>(sibling))
+        label = t;
+    REQUIRE(label);
+
+    auto pr = score::IDocument::try_presenterDelegate<Scenario::ScenarioDocumentPresenter>(*doc);
+    auto& gv = pr->view().view();
+    auto* vp = gv.viewport();
+    gv.centerOn(label->sceneBoundingRect().center());
+    run_events_for(30);
+    const QPoint at = gv.mapFromScene(label->sceneBoundingRect().center());
+    REQUIRE(vp->rect().contains(at));
+    REQUIRE(gv.itemAt(at) == label);
+
+    // Seen from inside the drag loop, which is then cancelled.
+    Dataflow::PortItem* dragged{};
+    QTimer::singleShot(50, [&] {
+      dragged = Dataflow::PortItem::clickedPort;
+      QDrag::cancel();
+    });
+
+    QMouseEvent press{
+        QEvent::MouseButtonPress, QPointF(at), vp->mapToGlobal(QPointF(at)), Qt::LeftButton,
+        Qt::LeftButton, Qt::NoModifier};
+    QApplication::sendEvent(vp, &press);
+    const QPoint to = at + QPoint{40, 10};
+    QMouseEvent move{
+        QEvent::MouseMove, QPointF(to), vp->mapToGlobal(QPointF(to)), Qt::NoButton,
+        Qt::LeftButton, Qt::NoModifier};
+    QApplication::sendEvent(vp, &move);
+    run_events_for(100);
+    QMouseEvent release{
+        QEvent::MouseButtonRelease, QPointF(to), vp->mapToGlobal(QPointF(to)),
+        Qt::LeftButton, Qt::NoButton, Qt::NoModifier};
+    QApplication::sendEvent(vp, &release);
+
+    CHECK(dragged == out);
+    CHECK(Dataflow::PortItem::clickedPort == nullptr);
+  });
+}

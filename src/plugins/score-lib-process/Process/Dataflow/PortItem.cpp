@@ -1187,11 +1187,62 @@ PortItem::itemChange(QGraphicsItem::GraphicsItemChange change, const QVariant& v
   return QGraphicsItem::itemChange(change, value);
 }
 
+namespace
+{
+//! A port's name: a click selects the port, and a drag starts a cable from it
+//! as from the port itself.
+class PortLabel final : public score::SimpleTextItem
+{
+public:
+  PortLabel(const Process::Port& port, const score::BrushSet& brush, QGraphicsItem* parent)
+      : score::SimpleTextItem{brush, parent}
+      , m_port{port}
+  {
+    // The pointing hand stays the port's own: it says where a click lands a
+    // cable end, which a label next to the port does not.
+    setAcceptedMouseButtons(Qt::LeftButton);
+  }
+
+private:
+  //! The port item drawn next to this label: a sibling, in every layout.
+  PortItem* portItem() const noexcept
+  {
+    if(auto* p = parentItem())
+      for(auto* item : p->childItems())
+        if(auto* port = dynamic_cast<PortItem*>(item); port && &port->port() == &m_port)
+          return port;
+    return nullptr;
+  }
+
+  void mousePressEvent(QGraphicsSceneMouseEvent* event) override
+  {
+    auto& ctx = score::IDocument::documentContext(m_port);
+    ctx.selectionStack.pushNewSelection({const_cast<Process::Port*>(&m_port)});
+    event->accept();
+  }
+
+  void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override
+  {
+    event->accept();
+    const auto dragged
+        = (event->screenPos() - event->buttonDownScreenPos(Qt::LeftButton))
+              .manhattanLength();
+    if(dragged > QApplication::startDragDistance())
+      if(auto* port = portItem())
+        beginPortDrag(*port, event->scenePos());
+  }
+
+  void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override { event->accept(); }
+
+  const Process::Port& m_port;
+};
+}
+
 score::SimpleTextItem* makePortLabel(const Process::Port& port, QGraphicsItem* parent)
 {
   const auto& brush = Process::labelBrush(port);
 
-  auto lab = new score::ClickableTextItem{brush, parent};
+  auto lab = new PortLabel{port, brush, parent};
   auto text = port.visualName();
   if(text.isEmpty())
   {
@@ -1242,11 +1293,6 @@ score::SimpleTextItem* makePortLabel(const Process::Port& port, QGraphicsItem* p
   }
 
   lab->setText(text);
-
-  QObject::connect(lab, &score::ClickableTextItem::clicked, &port, [&port] {
-    auto& ctx = score::IDocument::documentContext(port);
-    ctx.selectionStack.pushNewSelection({const_cast<Process::Port*>(&port)});
-  });
 
   QObject::connect(&port.selection, &Selectable::changed, lab, [lab, &port](bool b) {
     lab->setColor(Process::labelBrush(port));
