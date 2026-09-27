@@ -950,8 +950,9 @@ public:
     {
       for(auto state : eff.full_state())
       {
-        avnd::input_introspection<Node>::for_all(
-            state.inputs, [&](auto& field) { if_possible(field.update(state.effect)); });
+        avnd::input_introspection<Node>::for_all(state.inputs, [&](auto& field) {
+          avnd::update_if_holding_value(state, field);
+        });
       }
     }
   }

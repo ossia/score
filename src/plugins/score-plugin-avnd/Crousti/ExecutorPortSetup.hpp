@@ -148,11 +148,11 @@ struct setup_control_for_exec_base
       {
         if constexpr(avnd::dynamic_ports_port<Field>)
         {
-          if_possible(param.ports[k].update(state.effect));
+          avnd::update_if_holding_value(state, param.ports[k]);
         }
         else
         {
-          if_possible(param.update(state.effect));
+          avnd::update_if_holding_value(state, param);
         }
       }
     }

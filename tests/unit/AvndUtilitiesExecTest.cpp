@@ -32,6 +32,11 @@
 #include <examples/Advanced/Utilities/Counter.hpp>
 #include <examples/Advanced/Utilities/Enumerator.hpp>
 #include <examples/Helpers/ValueDelay.hpp>
+#include <examples/Advanced/Utilities/Accumulator.hpp>
+#include <examples/Advanced/Utilities/ArrayBest.hpp>
+#include <examples/Advanced/Utilities/ArrayRecombiner.hpp>
+#include <examples/Advanced/Utilities/Spigot.hpp>
+#include <AvndProcesses/Queue.hpp>
 #include <score_test/App.hpp>
 #include <score_test/Document.hpp>
 #include <score_test/Execution.hpp>
@@ -172,6 +177,21 @@ const ossia::value bang{ossia::impulse{}};
 const QString enumerator_uuid = QStringLiteral("7e998d33-864d-4483-83f4-a9db48e5703f");
 const QString counter_uuid = QStringLiteral("acdc0a7e-676f-462c-b46d-c6cd99fa74a2");
 const QString value_delay_uuid = QStringLiteral("39a7a489-a86b-4eaa-a617-ec2c9d559744");
+const QString spigot_uuid = QStringLiteral("8b75d69b-5ce4-4360-a066-c4a7f37f3353");
+const QString array_best_uuid = QStringLiteral("9e793245-72a1-4aa2-a813-5f5836cf1637");
+const QString recombiner_uuid = QStringLiteral("8a833254-04ef-42f0-bd39-a8a3b8ce94c3");
+const QString accumulator_uuid = QStringLiteral("5c5b37b5-da06-432a-bc51-81657b6d59e1");
+const QString queue_uuid = QStringLiteral("8f68b81e-e5ba-4a10-a888-6581a5d770fe");
+
+//! "A | B | C": the names of the inlets, to check the indices used.
+template <typename E>
+std::string inlet_names(E& e)
+{
+  std::string names;
+  for(auto* i : e.proc.inlets())
+    names += (names.empty() ? "" : " | ") + i->name().toStdString();
+  return names;
+}
 }
 
 // Enumerator inlets: Trigger, List, Mode, Bounds, Interval
@@ -278,5 +298,136 @@ TEST_CASE("Value Delay through the binding: the Time control", "[avnd][value_del
     e.port(4, ossia::value{2});
     e.tick();
     CHECK(e.object().inputs.time.value == 2.f);
+  });
+}
+
+TEST_CASE("Spigot through the binding: Enabled from the inspector and from a cable", "[avnd][spigot][execution]")
+{
+  with<ao::Spigot>(spigot_uuid, [](auto& e) {
+    REQUIRE(inlet_names(e) == "Input | Enabled");
+    e.port(0, ossia::value{1.5f});
+    CHECK_FALSE(e.tick()); // disabled by default
+
+    e.gui(1, ossia::value{true});
+    e.port(0, ossia::value{2.5f});
+    auto v = e.tick();
+    REQUIRE(v);
+    CHECK(*v == ossia::value{2.5f});
+    CHECK_FALSE(e.tick()); // only what arrives
+
+    // A cable or an OSC message with a number: 0 disables, 1 enables
+    e.port(1, ossia::value{0});
+    e.port(0, ossia::value{3.f});
+    CHECK_FALSE(e.tick());
+    e.port(1, ossia::value{1});
+    e.port(0, ossia::value{4.f});
+    CHECK(e.tick() == ossia::value{4.f});
+    e.port(1, ossia::value{0.f});
+    e.port(0, ossia::value{5.f});
+    CHECK_FALSE(e.tick());
+  });
+}
+
+TEST_CASE("Array recombiner through the binding: lists and vectors", "[avnd][recombiner][execution]")
+{
+  with<ao::ArrayRecombiner>(recombiner_uuid, [](auto& e) {
+    INFO(inlet_names(e));
+    REQUIRE(e.proc.inlets().size() == 3);
+    e.gui(1, ossia::value{2});
+    e.port(0, ossia::value{std::vector<ossia::value>{1, 2, 3, 4, 5, 6}});
+    auto v = e.tick();
+    REQUIRE(v);
+    CHECK(*v == ossia::value{std::vector<ossia::value>{
+               std::vector<ossia::value>{1, 2}, std::vector<ossia::value>{3, 4},
+               std::vector<ossia::value>{5, 6}}});
+    // Nothing new: nothing out
+    CHECK_FALSE(e.tick());
+    e.port(0, ossia::value{ossia::vec4f{1.f, 2.f, 3.f, 4.f}});
+    v = e.tick();
+    REQUIRE(v);
+    CHECK(*v == ossia::value{std::vector<ossia::value>{
+               std::vector<ossia::value>{1.f, 2.f}, std::vector<ossia::value>{3.f, 4.f}}});
+  });
+}
+
+TEST_CASE("Accumulator through the binding: Output in Manually mode", "[avnd][accumulator][execution]")
+{
+  with<ao::Accumulator>(accumulator_uuid, [](auto& e) {
+    REQUIRE(inlet_names(e) == "In | Reset | Output | Send");
+    e.gui_choice(3, "Manually");
+    REQUIRE(e.object().inputs.when.value == ao::Accumulator::Manually);
+    for(float f : {1.f, 2.f, 3.f})
+    {
+      e.port(0, ossia::value{f});
+      CHECK_FALSE(e.tick(0)); // Sum: nothing until the bang
+    }
+    SECTION("inspector")
+    {
+      e.gui_bang(2);
+      CHECK(e.tick(0) == ossia::value{6.f});
+    }
+    SECTION("cable / OSC")
+    {
+      e.port(2, bang);
+      CHECK(e.tick(0) == ossia::value{6.f});
+    }
+    CHECK_FALSE(e.tick(0));
+  });
+}
+
+TEST_CASE("Buffer queue through the binding: Bang and Clear", "[avnd][queue][execution]")
+{
+  with<avnd_tools::Queue>(queue_uuid, [](auto& e) {
+    REQUIRE(inlet_names(e) == "Input | Max length | Clear | Lock | Mode | Data | Bang");
+    for(int i : {1, 2, 3})
+    {
+      e.port(0, ossia::value{i});
+      e.tick();
+    }
+    SECTION("Bang from the inspector and from a cable")
+    {
+      e.gui_bang(6);
+      CHECK(e.tick());
+      e.port(6, bang);
+      CHECK(e.tick());
+    }
+    SECTION("Clear: an impulse clears once")
+    {
+      e.port(2, bang);
+      e.tick();
+      CHECK_FALSE(e.object().inputs.clear.value); // released after the tick
+      e.port(0, ossia::value{7});
+      e.tick();
+      e.gui_bang(6);
+      auto v = e.tick();
+      REQUIRE(v);
+      INFO(fmt::format("{}", *v));
+      // Only what came after the clear
+      CHECK(ossia::convert<std::string>(*v).find('1') == std::string::npos);
+    }
+  });
+}
+
+TEST_CASE("Array best through the binding: sends when an array arrives", "[avnd][array-best][execution]")
+{
+  with<ao::ArrayBest>(array_best_uuid, [](auto& e) {
+    INFO(inlet_names(e));
+    e.port(0, ossia::value{std::vector<ossia::value>{0.1f, 0.7f, 0.2f}});
+    CHECK(e.tick(0) == ossia::value{1}); // Index
+    // Nothing new: nothing out, instead of the same index at every tick
+    CHECK_FALSE(e.tick(0));
+    // A control change recomputes with the last array
+    e.gui_choice(1, "Lowest");
+    CHECK(e.tick(0) == ossia::value{0});
+  });
+}
+
+TEST_CASE("Impulse buttons are not pressed by starting the execution", "[avnd][impulse][execution]")
+{
+  with<ao::Accumulator>(accumulator_uuid, [](auto& e) {
+    CHECK_FALSE(e.object().bang);
+  });
+  with<avnd_tools::Queue>(queue_uuid, [](auto& e) {
+    CHECK_FALSE(e.object().banged);
   });
 }
