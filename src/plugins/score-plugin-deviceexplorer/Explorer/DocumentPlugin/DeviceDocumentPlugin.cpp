@@ -502,6 +502,17 @@ void DeviceDocumentPlugin::setupConnections(
       updateProxy.updateLocalSettings(addr, set, device);
         },
         Qt::QueuedConnection));
+
+    // The device built its whole tree again by itself (a Mapper whose script
+    // was edited): the explorer takes the new one, nodes and values, where
+    // pathAdded alone would keep every node it already had.
+    vec.push_back(con(
+        device, &Device::DeviceInterface::namespaceUpdated, this,
+        [this, ptr = QPointer{&device}] {
+      if(ptr && m_list.findDevice(ptr->settings().name) == ptr.data())
+        refreshDeviceTree(*ptr);
+        },
+        Qt::QueuedConnection));
   }
   else
   {

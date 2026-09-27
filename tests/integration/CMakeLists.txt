@@ -34,6 +34,20 @@ if(TARGET score_plugin_protocols AND TARGET score_plugin_js
     "SCORE_TEST_QML_PROTOCOL_DIR=\"${SCORE_ROOT_SOURCE_DIR}/tests/testdata/protocols-qml\"")
   set_tests_properties(test_integration_mapper_cross_device_teardown PROPERTIES
     TIMEOUT 180 LABELS "integration;mapper")
+
+  score_add_test(test_integration_mapper_values
+    SOURCES MapperValuesTest.cpp
+    APP
+    PLUGINS score_plugin_js score_plugin_protocols score_plugin_deviceexplorer
+            score_lib_device
+    LIBS ossia ${QT_PREFIX}::Qml)
+  target_include_directories(test_integration_mapper_values PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-js"
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-protocols")
+  target_compile_definitions(test_integration_mapper_values PRIVATE
+    "SCORE_TEST_QML_PROTOCOL_DIR=\"${SCORE_ROOT_SOURCE_DIR}/tests/testdata/protocols-qml\"")
+  set_tests_properties(test_integration_mapper_values PROPERTIES
+    TIMEOUT 120 LABELS "integration;mapper")
 endif()
 
 # Every shell harness below spawns the real score binary and maps real windows.

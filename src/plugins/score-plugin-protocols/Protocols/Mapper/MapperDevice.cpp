@@ -372,6 +372,9 @@ class mapper_protocol final
 {
   W_OBJECT(mapper_protocol)
 public:
+  //! Main thread, each time the script's tree has been built.
+  std::function<void()> tree_built;
+
   mapper_protocol(
       const QByteArray& code, ossia::net::network_context_ptr ctx,
       Device::DeviceList& roots)
@@ -670,7 +673,7 @@ public:
 
     if(!script.read.isCallable())
     {
-      with_parameter(id, [&](mapper_parameter& p) { p.push_value(v); });
+      with_parameter(id, [&](mapper_parameter& p) { p.set_value(v); });
     }
     else
     {
@@ -683,7 +686,7 @@ public:
       else
       {
         auto val = qt::value_from_js(std::move(res));
-        with_parameter(id, [&](mapper_parameter& p) { p.push_value(val); });
+        with_parameter(id, [&](mapper_parameter& p) { p.set_value(val); });
       }
     }
   }
@@ -843,6 +846,9 @@ private:
       m_device->on_node_created(*node);
 
     reset_tree();
+
+    if(tree_built)
+      tree_built();
   }
 
   void create_node(
@@ -1174,6 +1180,10 @@ public:
       auto proto = std::make_unique<ossia::net::mapper_protocol>(
           stgs.text.toUtf8(), this->net_context, *devlist);
       auto nm = settings().name.toStdString();
+      // The tree is built on the main thread once the script has run, after
+      // reconnect() returns: the explorer reads it again then, nodes and
+      // values, instead of keeping what the previous script built.
+      proto->tree_built = [this] { namespaceUpdated(); };
       m_dev = std::make_unique<ossia::net::mapper_device>(
           static_cast<std::unique_ptr<ossia::net::mapper_protocol>&&>(proto), nm);
 
