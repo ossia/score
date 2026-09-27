@@ -930,6 +930,12 @@ avnd_make_score(
   MAIN_CLASS Switch
   NAMESPACE ao
 )
+avnd_make_score(
+  SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/AvndProcesses/Regex.hpp"
+  TARGET regex
+  MAIN_CLASS Regex
+  NAMESPACE ao
+)
 
 
 avnd_make_score(
@@ -1381,6 +1387,9 @@ addAvndTest(switch_Test
              "${CMAKE_CURRENT_SOURCE_DIR}/Tests/Switch_Test.cpp")
 target_include_directories(Avnd_switch_Test PRIVATE
   "${CMAKE_CURRENT_SOURCE_DIR}" "${AVND_FOLDER}/examples")
+addAvndTest(regex_Test
+             "${CMAKE_CURRENT_SOURCE_DIR}/Tests/Regex_Test.cpp")
+target_include_directories(Avnd_regex_Test PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}")
 addAvndTest(adsr_Test
              "${CMAKE_CURRENT_SOURCE_DIR}/Tests/ADSR_Test.cpp")
 target_include_directories(Avnd_adsr_Test PRIVATE
