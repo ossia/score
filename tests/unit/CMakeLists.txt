@@ -187,6 +187,12 @@ if(EXISTS "${SCORE_AVND_SOURCE_DIR}/../../../3rdparty/avendish/examples/Advanced
     PRIVATE "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/examples/Advanced")
 endif()
 
+# MIDI display: the window is a time chooser, sent in seconds by the node.
+score_add_test(test_unit_midi_display_window
+  SOURCES MidiDisplayWindowTest.cpp
+  APP
+  PLUGINS score_plugin_ui score_lib_process)
+
 # The comment box: trailing spaces and reflow, both QTextDocument behaviour.
 score_add_test(test_unit_textbox_layout
   SOURCES TextBoxLayoutTest.cpp

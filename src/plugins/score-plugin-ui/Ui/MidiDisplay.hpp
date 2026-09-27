@@ -89,12 +89,13 @@ struct Node
   struct
   {
     halp::midi_bus<"in"> midi;
-    halp::hslider_f32<"Window", halp::range{0.5f, 60.f, 8.f}> window;
+    //! How much of the past is shown: seconds, or a note value (bars).
+    halp::time_chooser<"Window", halp::range{0.5, 60., 8.}> window;
   } inputs;
 
   struct
   {
-    // [now, held, stuck, (seq, time, status, data1, data2, flags)...]
+    // [now, held, stuck, window, (seq, time, status, data1, data2, flags)...]
     struct : halp::val_port<"events", std::optional<std::vector<float>>>
     {
       enum widget
@@ -110,7 +111,9 @@ struct Node
   static constexpr double heartbeat_seconds = 0.03;
   static constexpr int max_events = 512;
   static constexpr int fields_per_event = 6;
-  static constexpr int header_fields = 3;
+  // The window is in the header: a synced one is only in seconds on this side,
+  // where the tempo is.
+  static constexpr int header_fields = 4;
   // A note held for longer than this without a note-off is reported as stuck.
   static constexpr double stuck_after_seconds = 2.;
 
@@ -200,6 +203,7 @@ struct Node
       payload.push_back(float(t1));
       payload.push_back(float(held));
       payload.push_back(float(stuck));
+      payload.push_back(float(inputs.window.value));
       for(const auto& e : m_ring)
         payload.insert(payload.end(), e.begin(), e.end());
 
@@ -333,6 +337,7 @@ struct Node
     float m_now = 0.f;
     float m_last_seq = -1.f;
     // Held / stuck counts come from the node: it has seen the whole stream.
+    double m_window = 0.;
     int m_held = 0;
     int m_stuck = 0;
 
@@ -393,7 +398,11 @@ struct Node
     {
       if(!m_window_inlet)
         return 8.;
-      const double w = ossia::convert<float>(m_window_inlet->value());
+      // The node's, once it has sent one: a synced window is only in seconds
+      // there. Until then, the free value of the port.
+      const double w = m_window > 0.
+                           ? m_window
+                           : ossia::convert<ossia::vec2f>(m_window_inlet->value())[0];
       return std::isfinite(w) && w > 0.05 ? w : 8.;
     }
 
@@ -428,6 +437,7 @@ struct Node
       m_now = now;
       m_held = ossia::convert<int>((*list)[1]);
       m_stuck = ossia::convert<int>((*list)[2]);
+      m_window = ossia::convert<float>((*list)[3]);
 
       for(int i = header_fields; i + fields_per_event <= N; i += fields_per_event)
       {
