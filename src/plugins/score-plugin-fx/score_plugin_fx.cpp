@@ -23,6 +23,7 @@
 #include <Fx/Envelope.hpp>
 #include <Fx/LFO.hpp>
 #include <Fx/LFO_v2.hpp>
+#include <Fx/LFO_v3.hpp>
 #include <Fx/Looper.hpp>
 #include <Fx/MathAudioFilter.hpp>
 #include <Fx/MathAudioGenerator.hpp>
@@ -74,6 +75,7 @@ std::vector<score::InterfaceBase*> score_plugin_fx::factories(
   oscr::instantiate_fx<Nodes::PulseToNote::Node>(fx, ctx, key);
   oscr::instantiate_fx<Nodes::LFO::v1::Node>(fx, ctx, key);
   oscr::instantiate_fx<Nodes::LFO::v2::Node>(fx, ctx, key);
+  oscr::instantiate_fx<Nodes::LFO::v3::Node>(fx, ctx, key);
   oscr::instantiate_fx<Nodes::MidiHiRes::Input>(fx, ctx, key);
   oscr::instantiate_fx<Nodes::MidiHiRes::Output>(fx, ctx, key);
   oscr::instantiate_fx<Nodes::MidiUtil::Node>(fx, ctx, key);

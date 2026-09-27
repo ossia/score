@@ -30,6 +30,7 @@ set(HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/Fx/FactorOracle.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Fx/LFO.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Fx/LFO_v2.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Fx/LFO_v3.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Fx/Metro.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Fx/EmptyMapping.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Fx/Looper.hpp"

@@ -19,12 +19,13 @@ namespace Nodes::LFO::v2
 {
 struct Node
 {
-  halp_meta(name, "LFO")
+  halp_meta(name, "LFO (v2)")
   halp_meta(c_name, "LFO")
   halp_meta(category, "Control/Generators")
   halp_meta(author, "ossia score")
   halp_meta(manual_url, "https://ossia.io/score-docs/processes/lfo.html#lfo")
   halp_meta(description, "Low-frequency oscillator")
+  halp_flag(deprecated);
   halp_meta(recommended_height, 130.)
   halp_meta(uuid, "1e17e479-3513-44c8-a8a7-017be9f6ac8a");
 

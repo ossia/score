@@ -54,6 +54,10 @@ void QGraphicsPixmapEnum::setupDefaultColumns(int N)
       this->columns = 5;
       this->rows = 2;
       break;
+    case 12:
+      this->columns = 4;
+      this->rows = 3;
+      break;
     case 16:
       this->columns = 4;
       this->rows = 4;

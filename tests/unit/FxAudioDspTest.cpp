@@ -1,5 +1,6 @@
 #include <Fx/Envelope.hpp>
 #include <Fx/LFO_v2.hpp>
+#include <Fx/LFO_v3.hpp>
 #include <Fx/MathAudioFilter.hpp>
 
 #include <catch2/catch_approx.hpp>
@@ -350,6 +351,225 @@ Nodes::LFO::v2::Node make_lfo(float freq, float ampl, float offset, auto wavefor
   lfo.inputs.waveform.value = waveform;
   return lfo;
 }
+}
+
+TEST_CASE("LFO v3: a period in seconds, or synced to the bars", "[fx][lfo]")
+{
+  auto make = [](float period, bool sync) {
+    Nodes::LFO::v3::Node lfo;
+    lfo.inputs.period.value = period;
+    lfo.inputs.period.sync = sync;
+    lfo.inputs.ampl.value = 1.f;
+    lfo.inputs.offset.value = 0.f;
+    lfo.inputs.jitter.value = 0.f;
+    lfo.inputs.phase.value = 0.f;
+    lfo.inputs.waveform.value = Nodes::LFO::v3::Sin;
+    return lfo;
+  };
+
+  SECTION("free: a 1 s period is v2 at 1 Hz")
+  {
+    const int64_t dt = int64_t(flicks_per_second / 10);
+    auto v3 = make(1.f, false);
+    auto v2 = make_lfo(1.f, 1.f, 0.f, Control::Widgets::Waveform::Sin);
+    for(int i = 0; i < 12; i++)
+    {
+      v3(make_flicks_tick(i * dt, (i + 1) * dt, 64));
+      v2(make_flicks_tick(i * dt, (i + 1) * dt, 64));
+      REQUIRE(v3.outputs.out.value.has_value());
+      CHECK(*v3.outputs.out.value == Approx(*v2.outputs.out.value).margin(1e-6));
+    }
+  }
+
+  SECTION("synced: a quarter note is one cycle per quarter, whatever the tempo")
+  {
+    for(double tempo : {60., 120., 173.})
+    {
+      // What the binding hands the object for a synced quarter: seconds.
+      auto lfo = make(float(60. / tempo), true);
+      auto tick = [&](double q0, double q1) {
+        halp::tick_flicks tk{};
+        tk.frames = 64;
+        tk.tempo = tempo;
+        tk.signature = {4, 4};
+        tk.start_position_in_quarters = q0;
+        tk.end_position_in_quarters = q1;
+        tk.last_signature_change = 0.;
+        lfo(tk);
+        return *lfo.outputs.out.value;
+      };
+      tick(0., 0.25); // phase 0
+      // A quarter of a quarter later: a quarter of a cycle, sin = 1
+      CHECK(tick(0.25, 0.5) == Approx(1.).margin(1e-5));
+      CHECK(tick(0.5, 0.75) == Approx(0.).margin(1e-5));
+      CHECK(tick(0.75, 1.) == Approx(-1.).margin(1e-5));
+    }
+  }
+}
+
+TEST_CASE("LFO v3: shape, retrigger, the stepped modes and drift", "[fx][lfo]")
+{
+  using namespace Nodes::LFO::v3;
+  auto make = [](Waveform w, float shape = 0.5f) {
+    Node lfo;
+    lfo.inputs.period.value = 1.f; // a cycle a second
+    lfo.inputs.period.sync = false;
+    lfo.inputs.shape.value = shape;
+    lfo.inputs.ampl.value = 1.f;
+    lfo.inputs.offset.value = 0.f;
+    lfo.inputs.jitter.value = 0.f;
+    lfo.inputs.phase.value = 0.f;
+    lfo.inputs.waveform.value = w;
+    return lfo;
+  };
+  // 100 ticks of 10 ms: one cycle
+  const int64_t dt = int64_t(flicks_per_second / 100);
+  auto run = [&](Node& lfo, int n, int64_t& t) {
+    std::vector<std::optional<float>> out;
+    for(int i = 0; i < n; i++, t += dt)
+    {
+      lfo.outputs.out.value.reset();
+      lfo(make_flicks_tick(t, t + dt, 64));
+      out.push_back(lfo.outputs.out.value);
+    }
+    return out;
+  };
+
+  SECTION("shape is the square's pulse width")
+  {
+    for(float shape : {0.25f, 0.5f, 0.8f})
+    {
+      auto lfo = make(Square, shape);
+      int64_t t = 0;
+      int high = 0;
+      for(auto v : run(lfo, 100, t))
+        high += *v > 0.f;
+      CHECK(std::abs(high - int(shape * 100)) <= 2);
+    }
+  }
+
+  SECTION("square on change: a value at each edge only; square: every tick")
+  {
+    auto on_change = make(SquareOnChange);
+    auto every = make(Square);
+    int64_t t1 = 0, t2 = 0;
+    const auto a = run(on_change, 200, t1);
+    const auto b = run(every, 200, t2);
+    int sent_a = 0, sent_b = 0;
+    for(auto& v : a)
+      sent_a += v.has_value();
+    for(auto& v : b)
+      sent_b += v.has_value();
+    CHECK(sent_b == 200);
+    CHECK(sent_a >= 4); // the first, and two edges a cycle
+    CHECK(sent_a <= 6);
+  }
+
+  SECTION("sample and hold: on change or every tick, the same held values")
+  {
+    auto on_change = make(SampleAndHold);
+    auto every = make(SampleAndHoldEveryTick);
+    int64_t t1 = 0, t2 = 0;
+    const auto a = run(on_change, 200, t1);
+    const auto b = run(every, 200, t2);
+    int sent_a = 0;
+    for(auto& v : a)
+      sent_a += v.has_value();
+    CHECK(sent_a >= 3);
+    CHECK(sent_a <= 6);
+    for(auto& v : b)
+      REQUIRE(v.has_value());
+    // Every tick repeats the held value between two changes
+    int changes = 0;
+    for(std::size_t i = 1; i < b.size(); i++)
+      changes += *b[i] != *b[i - 1];
+    CHECK(changes <= 5);
+  }
+
+  SECTION("0.5 is the plain waveform; sine and triangle peak where the shape says")
+  {
+    using N = Nodes::LFO::v3::Node;
+    for(double x : {0., 0.1, 0.3, 0.6, 0.9})
+    {
+      CHECK(N::sine(x, 0.5) == Approx(std::sin(2. * std::numbers::pi * x)).margin(1e-9));
+      CHECK(N::triangle(x, 0.5)
+            == Approx(std::asin(std::sin(2. * std::numbers::pi * x)) * 2. / std::numbers::pi)
+                   .margin(1e-9));
+    }
+    // A shape of 0.8: 80 % of the cycle rising from the trough (at -0.25) to
+    // the peak, which is then at 0.55
+    CHECK(N::sine(0.55, 0.8) == Approx(1.));
+    CHECK(N::triangle(0.55, 0.8) == Approx(1.));
+    CHECK(N::sine(0.75, 0.8) < 0.9);
+    // Smooth: no kink, the slope changes gradually around the zero crossing
+    double worst = 0.;
+    const double h = 1e-3;
+    for(double x = 0.; x < 1.; x += h)
+    {
+      const double d2 = N::sine(x + h, 0.8) - 2. * N::sine(x, 0.8) + N::sine(x - h, 0.8);
+      worst = std::max(worst, std::abs(d2));
+    }
+    CHECK(worst < 1e-3);
+  }
+
+  SECTION("saw: one ramp a cycle, bent by the shape")
+  {
+    using N = Nodes::LFO::v3::Node;
+    int drops = 0;
+    for(double x = 0.; x < 1.; x += 0.01)
+      drops += N::saw(x + 0.01, 0.5) < N::saw(x, 0.5);
+    CHECK(drops == 1);
+    CHECK(N::saw(0., 0.5) == Approx(0.).margin(1e-9));
+    CHECK(N::saw(0.25, 0.5) == Approx(0.5));
+    CHECK(N::saw(0.25, 0.2) < 0.5); // bent down
+    CHECK(N::saw(0.25, 0.8) > 0.5); // bent up
+  }
+
+  SECTION("ramp down: the saw the other way")
+  {
+    auto lfo = make(RampDown);
+    int64_t t = 0;
+    const auto v = run(lfo, 100, t);
+    CHECK(*v[0] == Approx(0.).margin(1e-6));
+    CHECK(*v[25] == Approx(-0.5).margin(1e-5));
+    int rises = 0;
+    for(std::size_t i = 1; i < v.size(); i++)
+      rises += *v[i] > *v[i - 1];
+    CHECK(rises == 1); // falling all along, one jump back up
+  }
+
+  SECTION("retrigger: back to the start of the cycle")
+  {
+    auto lfo = make(Sin);
+    int64_t t = 0;
+    run(lfo, 37, t);
+    lfo.inputs.retrigger.value.emplace();
+    lfo.outputs.out.value.reset();
+    lfo(make_flicks_tick(t, t + dt, 64));
+    lfo.inputs.retrigger.value.reset();
+    CHECK(*lfo.outputs.out.value == Approx(0.).margin(1e-6)); // sin(0)
+  }
+
+  SECTION("drift: smooth, bounded, and not a repeating cycle")
+  {
+    auto lfo = make(Drift, 0.3f);
+    int64_t t = 0;
+    const auto v = run(lfo, 400, t);
+    float max_step = 0.f;
+    for(std::size_t i = 1; i < v.size(); i++)
+    {
+      REQUIRE(v[i].has_value());
+      CHECK(*v[i] >= -1.f);
+      CHECK(*v[i] <= 1.f);
+      max_step = std::max(max_step, std::abs(*v[i] - *v[i - 1]));
+    }
+    CHECK(max_step < 0.2f); // no jumps at 10 ms
+    // Cycle 1 and cycle 2 differ: it wanders
+    float diff = 0.f;
+    for(int i = 0; i < 100; i++)
+      diff += std::abs(*v[100 + i] - *v[200 + i]);
+    CHECK(diff > 1.f);
+  }
 }
 
 TEST_CASE("LFO v2: deterministic waveform math (jitter = 0)", "[fx][lfo]")

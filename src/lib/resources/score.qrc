@@ -560,6 +560,30 @@
         <file>icons/wave_noise3_off@2x.png</file>
         <file>icons/wave_noise3_on.png</file>
         <file>icons/wave_noise3_on@2x.png</file>
+        <file>icons/wave_square_changes_off.png</file>
+        <file>icons/wave_square_changes_off@2x.png</file>
+        <file>icons/wave_square_changes_on.png</file>
+        <file>icons/wave_square_changes_on@2x.png</file>
+        <file>icons/wave_sample_and_hold_ticks_off.png</file>
+        <file>icons/wave_sample_and_hold_ticks_off@2x.png</file>
+        <file>icons/wave_sample_and_hold_ticks_on.png</file>
+        <file>icons/wave_sample_and_hold_ticks_on@2x.png</file>
+        <file>icons/wave_drift_off.png</file>
+        <file>icons/wave_drift_off@2x.png</file>
+        <file>icons/wave_drift_on.png</file>
+        <file>icons/wave_drift_on@2x.png</file>
+        <file>icons/wave_sample_and_hold_changes_off.png</file>
+        <file>icons/wave_sample_and_hold_changes_off@2x.png</file>
+        <file>icons/wave_sample_and_hold_changes_on.png</file>
+        <file>icons/wave_sample_and_hold_changes_on@2x.png</file>
+        <file>icons/wave_square_ticks_off.png</file>
+        <file>icons/wave_square_ticks_off@2x.png</file>
+        <file>icons/wave_square_ticks_on.png</file>
+        <file>icons/wave_square_ticks_on@2x.png</file>
+        <file>icons/wave_ramp_down_off.png</file>
+        <file>icons/wave_ramp_down_off@2x.png</file>
+        <file>icons/wave_ramp_down_on.png</file>
+        <file>icons/wave_ramp_down_on@2x.png</file>
         <file>icons/wave_sample_and_hold_off.png</file>
         <file>icons/wave_sample_and_hold_off@2x.png</file>
         <file>icons/wave_sample_and_hold_on.png</file>
@@ -930,6 +954,18 @@
         <file>icons_svg/waves/wave_noise2_on.svg</file>
         <file>icons_svg/waves/wave_noise3_off.svg</file>
         <file>icons_svg/waves/wave_noise3_on.svg</file>
+        <file>icons_svg/waves/wave_square_changes_off.svg</file>
+        <file>icons_svg/waves/wave_square_changes_on.svg</file>
+        <file>icons_svg/waves/wave_sample_and_hold_ticks_off.svg</file>
+        <file>icons_svg/waves/wave_sample_and_hold_ticks_on.svg</file>
+        <file>icons_svg/waves/wave_drift_off.svg</file>
+        <file>icons_svg/waves/wave_drift_on.svg</file>
+        <file>icons_svg/waves/wave_sample_and_hold_changes_off.svg</file>
+        <file>icons_svg/waves/wave_sample_and_hold_changes_on.svg</file>
+        <file>icons_svg/waves/wave_square_ticks_off.svg</file>
+        <file>icons_svg/waves/wave_square_ticks_on.svg</file>
+        <file>icons_svg/waves/wave_ramp_down_off.svg</file>
+        <file>icons_svg/waves/wave_ramp_down_on.svg</file>
         <file>icons_svg/waves/wave_sample_and_hold_off.svg</file>
         <file>icons_svg/waves/wave_sample_and_hold_on.svg</file>
         <file>icons_svg/waves/wave_saw_off.svg</file>
