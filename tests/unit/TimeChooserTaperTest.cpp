@@ -63,3 +63,18 @@ TEST_CASE("time chooser readout: the unit always fits", "[time_chooser]")
     CHECK(text(0.9999f) == QStringLiteral("1.00 s"));
   });
 }
+
+TEST_CASE("time chooser: a number is seconds, free-running", "[time_chooser]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext&) {
+    Process::TimeChooser t{0.f, 5.f, 0.1f, QStringLiteral("Decay"), Id<Process::Port>{0}, nullptr};
+    // What a preset saved when the control was a slider holds
+    t.setValue(0.3f);
+    CHECK(t.value() == ossia::value{ossia::vec2f{0.3f, 0.f}});
+    t.setValue(2);
+    CHECK(t.value() == ossia::value{ossia::vec2f{2.f, 0.f}});
+    // A time chooser's own value is kept, synced included
+    t.setValue(ossia::vec2f{0.25f, 1.f});
+    CHECK(t.value() == ossia::value{ossia::vec2f{0.25f, 1.f}});
+  });
+}

@@ -343,6 +343,11 @@ public:
   auto getMin() const noexcept { return domain().get().convert_min<float>(); }
   auto getMax() const noexcept { return domain().get().convert_max<float>(); }
   void setupExecution(ossia::inlet& inl, QObject* exec_context) const noexcept override;
+
+  //! A number is seconds, free-running -- what the execution side reads it
+  //! as too. Presets and documents from when the control was a slider carry
+  //! one; stored as is it would not be a time chooser's {x, mode} any more.
+  void setValue(const ossia::value& value) override;
   using Process::ControlInlet::ControlInlet;
 };
 

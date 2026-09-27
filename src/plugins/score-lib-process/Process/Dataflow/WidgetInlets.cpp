@@ -572,6 +572,21 @@ TimeChooser::TimeChooser(
 
 TimeChooser::~TimeChooser() { }
 
+void TimeChooser::setValue(const ossia::value& value)
+{
+  switch(value.get_type())
+  {
+    case ossia::val_type::FLOAT:
+    case ossia::val_type::INT:
+    case ossia::val_type::BOOL:
+      ControlInlet::setValue(ossia::vec2f{ossia::convert<float>(value), 0.f});
+      break;
+    default:
+      ControlInlet::setValue(value);
+      break;
+  }
+}
+
 void TimeChooser::setupExecution(ossia::inlet& inl, QObject* exec_context) const noexcept
 {
   auto& port = **safe_cast<ossia::value_inlet*>(&inl);
