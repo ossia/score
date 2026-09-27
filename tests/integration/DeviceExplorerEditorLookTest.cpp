@@ -41,6 +41,8 @@
 #include <QPixmap>
 #include <QPlainTextEdit>
 #include <QSpinBox>
+#include <QLineEdit>
+#include <QAbstractSpinBox>
 #include <QToolButton>
 #include <QTreeView>
 
@@ -1297,5 +1299,101 @@ TEST_CASE("leaving an editor does not confuse the view",
 
       clean("reopen");
     }
+  });
+}
+
+// The fields of the value editors (a list's, ...) are in the text size of the
+// row they edit: fitEditorToCell must not shrink the font to fit the framed
+// field in the row.
+TEST_CASE("a value editor's fields keep the row's text size",
+          "[integration][explorer][look]")
+{
+  score::test::run_in_gui_app([](const score::GUIApplicationContext& ctx) {
+    Tree t{ctx};
+    const int rowText = QFontMetrics{t.view->font()}.height();
+
+    static const char* names[]
+        = {"int",  "float", "text", "prose", "tint",
+           "pos",  "lst",   "flag", "bang",  "blob"};
+    for(int i = 0; i < 10; i++)
+    {
+      if(i == 7 || i == 8)
+        continue;
+      const auto idx = t.valueIndex(i);
+      auto* ed = openEditor(*t.view, idx);
+      INFO(names[i]);
+      REQUIRE(ed != nullptr);
+
+      QList<QWidget*> fields = ed->findChildren<QWidget*>();
+      fields.push_back(ed);
+      for(auto* f : fields)
+      {
+        if(!qobject_cast<QLineEdit*>(f) && !qobject_cast<QAbstractSpinBox*>(f))
+          continue;
+        INFO(f->metaObject()->className() << " " << f->objectName().toStdString());
+        CHECK(QFontMetrics{f->font()}.height() >= rowText);
+      }
+
+      for(int tries = 0; tries < 8 && QApplication::activePopupWidget(); tries++)
+      {
+        QApplication::activePopupWidget()->close();
+        QApplication::processEvents();
+      }
+      t.view->closePersistentEditor(idx);
+      QApplication::processEvents();
+    }
+  });
+}
+
+// A list can be typed as text in its row, not only through its table.
+TEST_CASE("a list is typed as text in its row", "[integration][explorer][look]")
+{
+  score::test::run_in_gui_app([](const score::GUIApplicationContext& ctx) {
+    Tree t{ctx};
+    REQUIRE(t.canFocus());
+
+    const auto idx = t.valueIndex(6); // lst, [1, 2, 3]
+    auto value = [&] {
+      const auto* a = Explorer::DeviceExplorerDelegate::addressAt(idx);
+      REQUIRE(a != nullptr);
+      return a->value;
+    };
+
+    auto* ed = openEditor(*t.view, idx);
+    REQUIRE(ed != nullptr);
+    auto* line = ed->findChild<QLineEdit*>();
+    REQUIRE(line != nullptr);
+    CHECK_FALSE(line->isReadOnly());
+    CHECK(line->text().contains('3'));
+
+    line->setFocus();
+    line->selectAll();
+    score::test::keyClicks(*line, QLatin1String("[4, 5.5, \"x\"]"));
+    t.view->setFocus();
+    QApplication::processEvents();
+    QApplication::processEvents();
+    CHECK(
+        value()
+        == ossia::value{std::vector<ossia::value>{4, 5.5f, std::string{"x"}}});
+    t.view->closePersistentEditor(idx);
+    QApplication::processEvents();
+
+    // Text that is no list is shown as such and not written.
+    ed = openEditor(*t.view, idx);
+    REQUIRE(ed != nullptr);
+    line = ed->findChild<QLineEdit*>();
+    REQUIRE(line != nullptr);
+    const auto okColor = line->palette().color(QPalette::Text);
+    line->setFocus();
+    line->selectAll();
+    score::test::keyClicks(*line, QLatin1String("[1, 2"));
+    QApplication::processEvents();
+    CHECK(line->palette().color(QPalette::Text) != okColor);
+    t.view->setFocus();
+    QApplication::processEvents();
+    QApplication::processEvents();
+    CHECK(
+        value()
+        == ossia::value{std::vector<ossia::value>{4, 5.5f, std::string{"x"}}});
   });
 }

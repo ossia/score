@@ -888,6 +888,11 @@ private:
 //! How many elements a summary spells out before it says how many are left.
 constexpr std::size_t summary_elements = 8;
 
+//! Up to this many elements and characters, a collection is shown and typed
+//! whole as text; past it the field shows its head, and the table edits it.
+constexpr std::size_t editable_text_elements = 256;
+constexpr qsizetype editable_text_size = 4096;
+
 //! How much of one element a summary or a table cell carries.
 constexpr qsizetype element_text_budget = 160;
 
@@ -1485,10 +1490,21 @@ public:
       , m_proto{std::move(elementProto)}
   {
     m_summary.setContentsMargins(0, 0, 0, 0);
-    m_summary.setReadOnly(true);
     m_summary.setPlaceholderText(keyed ? tr("Empty map") : tr("Empty list"));
     this->setFocusProxy(&m_summary);
     m_lay.addWidget(&m_summary, 1);
+    m_okPalette = m_summary.palette();
+
+    // Typed as text, like any other value: the table is for what a line of
+    // text cannot carry.
+    connect(&m_summary, &QLineEdit::textEdited, this, [this](const QString& text) {
+      markEdited();
+      auto v = readAs(text, keyed ? ossia::val_type::MAP : ossia::val_type::LIST);
+      m_textValid = v.has_value();
+      if(v)
+        m_rows = std::move(*v->template target<Container>());
+      setFieldValid(m_summary, m_okPalette, m_textValid);
+    });
 
     // A button of its own and not a QLineEdit action: an action is drawn and
     // clicked by the field, which is a different widget in every table the
@@ -1506,7 +1522,15 @@ public:
     refresh();
   }
 
-  ossia::value getImpl() const override { return m_rows; }
+  // Invalid while the text names no collection: nothing is written back.
+  ossia::value getImpl() const override
+  {
+    if(!m_textValid)
+      return {};
+    return m_rows;
+  }
+
+  bool isTextual() const noexcept override { return !m_summary.isReadOnly(); }
 
   void setImpl(ossia::value t) override
   {
@@ -1522,7 +1546,18 @@ public:
 private:
   void refresh()
   {
-    m_summary.setText(clipText(summary()));
+    m_textValid = true;
+    setFieldValid(m_summary, m_okPalette, true);
+
+    // The whole collection when it is small enough to read and type; a long
+    // one only has its head shown, and is edited in the table.
+    QString full;
+    if(m_rows.size() <= editable_text_elements)
+      full = State::convert::toSingleLine(
+          State::convert::toPrettyString(ossia::value{m_rows}));
+    const bool editable = !full.isEmpty() && full.size() <= editable_text_size;
+    m_summary.setReadOnly(!editable && !m_rows.empty());
+    m_summary.setText(editable ? full : clipText(summary()));
 
     // The head of the collection is what identifies it; a field left scrolled
     // to the end shows the tail of the elision and nothing else.
@@ -1574,8 +1609,10 @@ private:
   QLineEdit m_summary;
   QAction m_open{this};
   QToolButton m_button{this};
+  QPalette m_okPalette;
   Container m_rows;
   ossia::value m_proto;
+  bool m_textValid{true};
 };
 
 using ListValueWidget = CollectionValueWidget<std::vector<ossia::value>>;
@@ -2428,54 +2465,39 @@ bool paintValueWithMarker(
 
 void fitEditorToCell(QWidget& editor, const QRect& cell)
 {
-  // Qt's own editor for a plain string -- the Name column, an extended
-  // attribute -- never passed through make_value_widget, so it still carries
-  // the frame and padding of a dialog field and the type gets shrunk to pay
-  // for them. Same treatment: the cell is the frame.
-  if(auto* le = qobject_cast<QLineEdit*>(&editor); le && le->hasFrame())
-  {
-    le->setFrame(false);
-    le->setContentsMargins(0, 0, 0, 0);
-    le->setTextMargins(2, 0, 2, 0);
-    le->setMinimumSize(0, 0);
-  }
-
-  const int target = cell.height();
-  if(target > 0)
-  {
-    QFont f = editor.font();
-
-    // Six steps is enough to get from a default UI font to the floor; past it
-    // the field is squeezed rather than made unreadable.
-    for(int i = 0; i < 6; i++)
+  // The cell is the frame. A field keeps the text size of the row it is
+  // opened in: frames and padding are dropped to make room, the type is never
+  // shrunk to pay for them. That covers Qt's own editor for a plain string --
+  // the Name column, an extended attribute -- which does not go through
+  // make_value_widget, and the fields nested in a composite editor (a list's
+  // line, a vec's spin boxes).
+  auto unframe = [](QWidget* w) {
+    if(auto* le = qobject_cast<QLineEdit*>(w); le && le->hasFrame())
     {
-      editor.updateGeometry();
-      if(auto* l = editor.layout())
-        l->invalidate();
-      if(editor.sizeHint().height() <= target)
-        break;
-
-      if(f.pointSizeF() > 0.)
-      {
-        if(f.pointSizeF() <= 5.5)
-          break;
-        f.setPointSizeF(f.pointSizeF() - 0.5);
-      }
-      else
-      {
-        if(f.pixelSize() <= 7)
-          break;
-        const int smaller = score::snapToFontGrid(f, f.pixelSize() - 1);
-        if(smaller >= f.pixelSize())
-          break; // A pixel font with no smaller grid step: stop shrinking.
-        f.setPixelSize(smaller);
-      }
-
-      editor.setFont(f);
-      for(auto* child : editor.findChildren<QWidget*>())
-        child->setFont(f);
+      le->setFrame(false);
+      le->setContentsMargins(0, 0, 0, 0);
+      le->setTextMargins(2, 0, 2, 0);
+      le->setMinimumSize(0, 0);
     }
-  }
+    else if(auto* sb = qobject_cast<QAbstractSpinBox*>(w); sb && sb->hasFrame())
+    {
+      sb->setFrame(false);
+      sb->setMinimumSize(0, 0);
+    }
+    else if(auto* cb = qobject_cast<QComboBox*>(w); cb && cb->hasFrame())
+    {
+      cb->setFrame(false);
+      cb->setMinimumSize(0, 0);
+    }
+    else if(auto* tb = qobject_cast<QToolButton*>(w))
+    {
+      tb->setAutoRaise(true);
+      tb->setMinimumSize(0, 0);
+    }
+  };
+  unframe(&editor);
+  for(auto* child : editor.findChildren<QWidget*>())
+    unframe(child);
 
   editor.setGeometry(cell);
 }
