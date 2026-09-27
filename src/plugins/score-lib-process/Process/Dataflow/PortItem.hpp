@@ -95,6 +95,13 @@ public:
   QRectF boundingRect() const override;
   QPainterPath shape() const override;
   bool contains(const QPointF& point) const override;
+  //! For an item inside a parent that clips its children (a nodal slot), Qt
+  //! hit-tests the clip path - which starts from the bounding rect, not the
+  //! shape - instead of the shape, so the port would grab the pointer over its
+  //! whole bounding rect. Tests the shape, cut by the clip.
+  bool collidesWithPath(
+      const QPainterPath& path, Qt::ItemSelectionMode mode = Qt::IntersectsItemShape)
+      const override;
 
   void createCable(PortItem* src, PortItem* snk)
       E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, createCable, src, snk)

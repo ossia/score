@@ -387,6 +387,13 @@ public:
   bool has_propagate{};
 
   QRectF boundingRect() const override { return {0, 0, 10, 10}; }
+  // Drawn over the port, but only an indicator: the pointer goes to the port.
+  QPainterPath shape() const override { return {}; }
+  bool contains(const QPointF&) const override { return false; }
+  bool collidesWithPath(const QPainterPath&, Qt::ItemSelectionMode) const override
+  {
+    return false;
+  }
   void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
       override
   {
@@ -686,6 +693,19 @@ QPainterPath PortItem::shape() const
 bool PortItem::contains(const QPointF& point) const
 {
   return QLineF{portCenter(), point}.length() <= hitRadius;
+}
+
+bool PortItem::collidesWithPath(const QPainterPath& path, Qt::ItemSelectionMode mode) const
+{
+  if(mode != Qt::IntersectsItemShape && mode != Qt::ContainsItemShape)
+    return QGraphicsItem::collidesWithPath(path, mode);
+
+  QPainterPath hit = shape();
+  if(isClipped())
+    hit = hit.intersected(clipPath());
+  if(hit.isEmpty())
+    return false;
+  return mode == Qt::IntersectsItemShape ? path.intersects(hit) : path.contains(hit);
 }
 
 QPointF PortItem::sceneCenter() const noexcept

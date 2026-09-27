@@ -170,3 +170,96 @@ TEST_CASE(
     CHECK(nodeRect2.center().y() == Approx(visible2.center().y()).margin(2.));
   });
 }
+
+#include <score/model/Skin.hpp>
+
+#include <QGraphicsView>
+#include <QMouseEvent>
+
+// The cursor Qt really shows: mouse moves sent to the document's view,
+// approaching a Float node's Out port from below.
+TEST_CASE("The hand cursor shows over a port only, in the document's view", "[integration][nodal][gui][cursor]")
+{
+  score::test::run_in_gui_app([](const score::GUIApplicationContext& app) {
+    auto doc = score::test::new_document(app);
+    REQUIRE(doc);
+    auto& itv = newInterval(*doc);
+    auto proc = dropEffect(*doc, itv, float_key);
+    if(!proc)
+      SKIP("avnd Float not built");
+
+    auto nodal = nodalViewOf(*doc, *proc);
+    REQUIRE(nodal);
+    auto node = nodeOf(*nodal, *proc);
+    REQUIRE(node);
+    Dataflow::PortItem* out{};
+    for(auto item : node->scene()->items())
+      if(auto p = dynamic_cast<Dataflow::PortItem*>(item))
+        if(&p->port() == proc->outlets()[0])
+          out = p;
+    REQUIRE(out);
+
+    auto pr = score::IDocument::try_presenterDelegate<Scenario::ScenarioDocumentPresenter>(*doc);
+    auto& gv = pr->view().view();
+    auto* vp = gv.viewport();
+    for(double z : {1., 2., 4.})
+    {
+      CAPTURE(z);
+      gv.setTransform(QTransform::fromScale(z, z));
+      gv.centerOn(out->sceneCenter());
+      run_events_for(30);
+      const QPoint c = gv.mapFromScene(out->sceneCenter());
+      const auto hand = score::Skin::instance().CursorPointingHand;
+      auto isHand = [&] {
+        const auto cur = vp->cursor();
+        return cur.shape() == hand.shape()
+               && cur.pixmap().cacheKey() == hand.pixmap().cacheKey();
+      };
+      // Every view pixel within 30 px of the port: the hand, and a click on the
+      // port, over the drawn circle only (radius 3 and a 1.5 px pen), and over all
+      // of its inside. The view hit-tests a pixel as its whole square: measured
+      // from the port's exact center to the nearest and farthest points of that
+      // square, not from a pixel center, which would move with the port's
+      // position below the pixel.
+      const double zoom = gv.transform().m11();
+      const QPointF exact = gv.viewportTransform().map(out->sceneCenter());
+      const double drawn = (3. + 0.75 + 0.5) * zoom;
+      int handOutside = 0, grabOutside = 0, missedInside = 0;
+      std::string worst;
+      for(int dy = -30; dy <= 30; dy++)
+        for(int dx = -30; dx <= 30; dx++)
+        {
+          const QPoint p = c + QPoint{dx, dy};
+          QMouseEvent ev{
+              QEvent::MouseMove, QPointF(p), vp->mapToGlobal(QPointF(p)), Qt::NoButton,
+              Qt::NoButton, Qt::NoModifier};
+          QApplication::sendEvent(vp, &ev);
+          auto axis = [](double lo, double v) {
+            const double hi = lo + 1.;
+            const double nearest = v < lo ? lo - v : v > hi ? v - hi : 0.;
+            const double farthest = std::max(std::abs(v - lo), std::abs(v - hi));
+            return std::pair{nearest, farthest};
+          };
+          const auto [nx, fx] = axis(p.x(), exact.x());
+          const auto [ny, fy] = axis(p.y(), exact.y());
+          const double nearest = std::hypot(nx, ny);
+          const double farthest = std::hypot(fx, fy);
+          const bool hand = isHand();
+          const bool grabs = gv.itemAt(p) == out;
+          if(nearest > drawn && hand)
+          {
+            handOutside++;
+            worst = std::to_string(dx) + "," + std::to_string(dy);
+          }
+          if(nearest > drawn && grabs)
+            grabOutside++;
+          if(farthest <= 3. * zoom && (!hand || !grabs))
+            missedInside++;
+        }
+      INFO("zoom " << zoom << ", e.g. hand at " << worst);
+      CHECK(handOutside == 0);
+      CHECK(grabOutside == 0);
+      CHECK(missedInside == 0);
+    }
+  });
+}
