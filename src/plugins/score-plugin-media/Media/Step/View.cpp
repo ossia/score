@@ -15,12 +15,26 @@ W_OBJECT_IMPL(Media::Step::View)
 W_OBJECT_IMPL(Media::Step::Item)
 namespace Media::Step
 {
+//! Over the step that played last: the bar's colour, see-through.
+static QColor playingColor()
+{
+  QColor c = score::Skin::instance().Base4.main.brush.color();
+  c.setAlpha(70);
+  return c;
+}
 
 View::View(const Model& model, QGraphicsItem* parent)
     : Process::LayerView{parent}
     , m_model{model}
 {
   setFlag(QGraphicsItem::ItemClipsToShape);
+  con(model, &Step::Model::execPosition, this, [this](int s) {
+    if(s != m_playing)
+    {
+      m_playing = s;
+      update();
+    }
+  });
 }
 
 View::~View() = default;
@@ -61,6 +75,8 @@ void View::paint_impl(QPainter* p) const
       auto step = steps[idx];
       p->fillRect(QRectF{cur_pos, step * h, (float)bar_w, h - step * h}, br);
       p->drawLine(QPointF{cur_pos, step * h}, QPointF{cur_pos + bar_w, step * h});
+      if(int(idx) == m_playing)
+        p->fillRect(QRectF{cur_pos, 0., (float)bar_w, h}, playingColor());
 
       cur_pos += bar_w;
       i++;
@@ -130,6 +146,14 @@ Item::Item(const Model& m, const Process::Context& ctx, QGraphicsItem* parent)
   setFlag(QGraphicsItem::ItemHasNoContents, false);
   con(m, &Step::Model::stepsChanged, this, [&] { update(); });
   con(m, &Step::Model::stepCountChanged, this, [&] { update(); });
+  con(m, &Step::Model::currentSequenceChanged, this, [&] { update(); });
+  con(m, &Step::Model::execPosition, this, [this](int s) {
+    if(s != m_playing)
+    {
+      m_playing = s;
+      update();
+    }
+  });
 }
 
 Item::~Item() = default;
@@ -152,12 +176,16 @@ void Item::paint(QPainter* p, const QStyleOptionGraphicsItem* option, QWidget* w
   const auto& steps = m_model.steps();
   const auto bar_w = w / steps.size();
 
+  int idx = 0;
   for(auto& step : steps)
   {
     p->fillRect(QRectF{cur_pos, step * h, (float)bar_w, h - step * h}, br);
     p->drawLine(QPointF{cur_pos, step * h}, QPointF{cur_pos + bar_w, step * h});
+    if(idx == m_playing)
+      p->fillRect(QRectF{cur_pos, 0., (float)bar_w, h}, playingColor());
 
     cur_pos += bar_w;
+    idx++;
   }
   p->setRenderHint(QPainter::Antialiasing, false);
 }

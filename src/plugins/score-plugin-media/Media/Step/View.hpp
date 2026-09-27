@@ -41,6 +41,8 @@ private:
 private:
   const Model& m_model;
   double m_barWidth{};
+  //! The step that played last, -1 when stopped.
+  int m_playing{-1};
 };
 
 class Item final : public score::EmptyRectItem
@@ -66,6 +68,7 @@ private:
 private:
   const Model& m_model;
   SingleOngoingCommandDispatcher<Media::ChangeSteps> m_disp;
+  int m_playing{-1};
 };
 
 void updateSteps(
