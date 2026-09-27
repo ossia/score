@@ -81,11 +81,6 @@ AddressEditDialog::AddressEditDialog(
 
   // Value type
   auto typeCb = new State::TypeComboBox{this};
-
-  connect(
-      typeCb, &State::TypeComboBox::changed, this, &AddressEditDialog::updateType,
-      Qt::QueuedConnection);
-
   m_valueTypeCBox = typeCb;
 
   m_layout->addRow(tr("Value type"), m_valueTypeCBox);
@@ -94,7 +89,15 @@ AddressEditDialog::AddressEditDialog(
   m_addressWidget = new WidgetWrapper<AddressSettingsWidget>{this};
   m_layout->addRow(m_addressWidget);
 
+  // The value's widget is built now rather than on the queued signal: the
+  // dialog has its final size when it is shown and placed over its window,
+  // instead of growing downwards from where a smaller one was centered.
   setValueSettings();
+  updateType(typeCb->get());
+
+  connect(
+      typeCb, &State::TypeComboBox::changed, this, &AddressEditDialog::updateType,
+      Qt::QueuedConnection);
 
   // Ok / Cancel
   auto buttonBox = new QDialogButtonBox{

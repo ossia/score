@@ -437,6 +437,10 @@ if(TARGET score_plugin_fx AND TARGET score_plugin_automation)
     GUI
     PLUGINS score_plugin_fx score_plugin_automation score_plugin_engine
             score_plugin_deviceexplorer score_plugin_scenario score_lib_process)
+  score_add_test(test_integration_explorer_dialog_placement
+    SOURCES DeviceExplorerDialogPlacementTest.cpp
+    GUI
+    PLUGINS score_plugin_deviceexplorer score_plugin_protocols score_lib_device)
 endif()
 
 # Writes into a published control while stopped, while playing, and while
