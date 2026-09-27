@@ -15,6 +15,7 @@
 
 #include <Fx/AngleNode.hpp>
 #include <Fx/Arpeggiator.hpp>
+#include <Fx/Arpeggiator_v2.hpp>
 #include <Fx/Arraygen.hpp>
 #include <Fx/Arraymap.hpp>
 #include <Fx/Chord.hpp>
@@ -37,6 +38,7 @@
 #include <Fx/MidiUtil.hpp>
 #include <Fx/PitchToValue.hpp>
 #include <Fx/Quantifier.hpp>
+#include <Fx/Quantifier_v2.hpp>
 #include <Fx/RateLimiter.hpp>
 #include <Fx/RateLimiter_v2.hpp>
 #include <Fx/Smooth.hpp>
@@ -68,6 +70,7 @@ std::vector<score::InterfaceBase*> score_plugin_fx::factories(
   std::vector<score::InterfaceBase*> fx;
   oscr::instantiate_fx<Nodes::Direction>(fx, ctx, key);
   oscr::instantiate_fx<Nodes::Arpeggiator::Node>(fx, ctx, key);
+  oscr::instantiate_fx<Nodes::Arpeggiator::v2::Node>(fx, ctx, key);
   oscr::instantiate_fx<Nodes::Chord::Node>(fx, ctx, key);
   oscr::instantiate_fx<Nodes::ClassicalBeat::Node>(fx, ctx, key);
   oscr::instantiate_fx<Nodes::EmptyValueMapping::Node>(fx, ctx, key);
@@ -85,6 +88,7 @@ std::vector<score::InterfaceBase*> score_plugin_fx::factories(
   oscr::instantiate_fx<Nodes::Metro::Node>(fx, ctx, key);
   oscr::instantiate_fx<Nodes::Metro::v2::Node>(fx, ctx, key);
   oscr::instantiate_fx<Nodes::Quantifier::Node>(fx, ctx, key);
+  oscr::instantiate_fx<Nodes::Quantifier::v2::Node>(fx, ctx, key);
 
   oscr::instantiate_fx<Nodes::MathGenerator::Node>(fx, ctx, key);
   oscr::instantiate_fx<Nodes::MathAudioGenerator::Node>(fx, ctx, key);

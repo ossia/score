@@ -9,6 +9,7 @@ set(HDRS
 
   "${CMAKE_CURRENT_SOURCE_DIR}/Fx/AngleNode.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Fx/Arpeggiator.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Fx/Arpeggiator_v2.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Fx/Arraygen.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Fx/Arraymap.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Fx/Chord.hpp"
@@ -40,6 +41,7 @@ set(HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/Fx/TestNode.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Fx/Types.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Fx/Quantifier.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Fx/Quantifier_v2.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Fx/RateLimiter.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Fx/RateLimiter_v2.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Fx/VelToNote.hpp"

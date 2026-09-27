@@ -11,12 +11,13 @@ namespace Quantifier
 {
 struct Node
 {
-  halp_meta(name, "Midi quantify")
+  halp_meta(name, "Midi quantify (old)")
   halp_meta(c_name, "Quantifier")
   halp_meta(category, "Midi")
   halp_meta(manual_url, "https://ossia.io/score-docs/processes/midi-utilities.html#quantifier")
   halp_meta(author, "ossia score")
   halp_meta(description, "Quantifies a MIDI input")
+  halp_flag(deprecated);
   halp_meta(uuid, "b8e2e5ad-17e4-43de-8d79-660a29d5c4f4")
 
   struct

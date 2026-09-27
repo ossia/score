@@ -55,33 +55,10 @@ struct OctaveMode
   int value{};
 };
 
-struct Node
+//! The arpeggio, shared by the old and the current object: they differ only in
+//! how the rate is chosen.
+struct Engine
 {
-  halp_meta(name, "Arpeggiator")
-  halp_meta(c_name, "Arpeggiator")
-  halp_meta(category, "Midi")
-  halp_meta(author, "ossia score")
-  halp_meta(
-      manual_url,
-      "https://ossia.io/score-docs/processes/midi-utilities.html#arpeggiator")
-  halp_meta(description, "Arpeggiator")
-  halp_meta(uuid, "0b98c7cd-f831-468f-81e3-706d6a97d705")
-
-  // FIXME "note" bus instead of midi bus ; the host handles passing all the non note messages
-  struct
-  {
-    halp::midi_bus<"in", libremidi::message> midi;
-    Arpeggios arpeggios;
-    halp::hslider_i32<"Octave", halp::irange{1, 7, 1}> octave;
-    OctaveMode octave_mode;
-    halp::hslider_i32<"Repeat", halp::irange{1, 8, 1}> repeat;
-    halp::hslider_i32<"Quantification", halp::irange{1, 32, 8}> quantification;
-  } inputs;
-  struct
-  {
-    halp::midi_out_bus<"out", libremidi::message> midi;
-  } outputs;
-
   using byte = unsigned char;
   using chord = ossia::small_vector<std::pair<byte, byte>, 5>;
 
@@ -99,6 +76,15 @@ struct Node
     rnd::pcg r(d);
     return r;
   }()};
+
+  Engine()
+  {
+    // Rebuilding the arpeggio on the audio thread stays within these for any
+    // reasonable chord: 16 held notes, back and forth, 8 repeats, 4 octaves
+    // above or below (2 in both directions).
+    notes.reserve(128);
+    arpeggio.reserve(1024);
+  }
 
   void update()
   {
@@ -149,22 +135,20 @@ struct Node
         }
         return; // Skip normal octavize and repeat for chord mode
       }
-      case 5: // Random - note selection happens in operator()
+      case 5: // Random - note selection happens in process()
         arpeggiate(1);
         break;
     }
 
-    // Apply repeat: duplicate each step N times
+    // Apply repeat: each step N times, expanded in place from the back
     if(previous_repeat > 1)
     {
-      decltype(arpeggio) repeated;
-      repeated.reserve(arpeggio.size() * previous_repeat);
-      for(auto& c : arpeggio)
-      {
-        for(int r = 0; r < previous_repeat; r++)
-          repeated.push_back(c);
-      }
-      arpeggio = std::move(repeated);
+      const std::size_t n = arpeggio.size();
+      const std::size_t rep = previous_repeat;
+      arpeggio.resize(n * rep);
+      for(std::size_t i = n; i-- > 0;)
+        for(std::size_t r = rep; r-- > 0;)
+          arpeggio[i * rep + r] = arpeggio[i];
     }
 
     const std::size_t orig_size = arpeggio.size();
@@ -202,7 +186,7 @@ struct Node
       {
         auto& note = *it;
         int res = note.first + 12 * i;
-        if(res >= 0.f && res <= 127.f)
+        if(res >= 0 && res <= 127)
         {
           note.first = res;
           ++it;
@@ -217,105 +201,127 @@ struct Node
     }
   }
 
-  using tick = halp::tick_musical;
-  void operator()(const halp::tick_musical& tk)
+  template <typename Out>
+  void all_off(Out& out, int date)
   {
-    // Store the current chord in a buffer
-    auto& self = *this;
-    auto& midi = this->inputs.midi;
-    auto& out = this->outputs.midi;
-    const auto& msgs = midi;
-    const int octave = inputs.octave;
-    const int octave_mode = inputs.octave_mode.value;
-    const int repeat = inputs.repeat;
-    const int arpeggio_mode = inputs.arpeggios.value;
-
-    if(msgs.size() > 0)
+    for(int k = 0; k < 128; k++)
     {
-      // Update the "running" notes
-      for(auto& note : msgs)
+      while(in_flight[k] > 0)
       {
-        if(note.get_message_type() == libremidi::message_type::NOTE_ON)
-        {
-          self.notes.insert({note.bytes[1], note.bytes[2]});
-        }
-        else if(note.get_message_type() == libremidi::message_type::NOTE_OFF)
-        {
-          self.notes.erase(note.bytes[1]);
-        }
+        out.note_off(1, k, 0).timestamp = date;
+        in_flight[k]--;
       }
+    }
+  }
+
+  //! `rate` is the grid's: 1 a whole note, 4 a quarter...
+  template <typename In, typename Out>
+  void process(
+      const In& msgs, Out& out, int octave, int octave_mode, int repeat,
+      int arpeggio_mode, const halp::tick_musical& tk, double rate)
+  {
+    // Update the "running" notes. A note-on of velocity 0 is a note-off.
+    for(auto& note : msgs)
+    {
+      const auto type = note.get_message_type();
+      if(type == libremidi::message_type::NOTE_ON && note.bytes[2] != 0)
+        notes.insert({note.bytes[1], note.bytes[2]});
+      else if(
+          type == libremidi::message_type::NOTE_OFF
+          || type == libremidi::message_type::NOTE_ON)
+        notes.erase(note.bytes[1]);
     }
 
     // Update the arpeggio itself
-    const bool mustUpdateArpeggio = msgs.size() > 0 || octave != self.previous_octave
-                                    || octave_mode != self.previous_octave_mode
-                                    || repeat != self.previous_repeat
-                                    || arpeggio_mode != self.previous_arpeggio;
-    self.previous_octave = octave;
-    self.previous_octave_mode = octave_mode;
-    self.previous_repeat = repeat;
-    self.previous_arpeggio = arpeggio_mode;
+    const bool mustUpdateArpeggio = msgs.size() > 0 || octave != previous_octave
+                                    || octave_mode != previous_octave_mode
+                                    || repeat != previous_repeat
+                                    || arpeggio_mode != previous_arpeggio;
+    previous_octave = octave;
+    previous_octave_mode = octave_mode;
+    previous_repeat = repeat;
+    previous_arpeggio = arpeggio_mode;
 
     if(mustUpdateArpeggio)
-    {
-      self.update();
-    }
+      update();
 
-    if(self.arpeggio.empty())
+    if(arpeggio.empty())
     {
-      for(int k = 0; k < 128; k++)
-      {
-        while(self.in_flight[k] > 0)
-        {
-          out.note_off(1, k, 0).timestamp = 0;
-          self.in_flight[k]--;
-        }
-      }
+      all_off(out, 0);
       return;
     }
 
-    if(self.index >= self.arpeggio.size())
-      self.index = 0;
+    if(index >= arpeggio.size())
+      index = 0;
 
     // Play the next note / chord if we're on a quantification marker
-    for(auto [date, q] :
-        tk.get_quantification_date_with_bars(inputs.quantification.value))
+    for(auto [date, q] : tk.get_quantification_date_with_bars(rate))
     {
       if(date >= tk.frames)
         return;
 
       // Finish previous notes
-      for(int k = 0; k < 128; k++)
-      {
-        while(self.in_flight[k] > 0)
-        {
-          out.note_off(1, k, 0).timestamp = date;
-          self.in_flight[k]--;
-        }
-      }
+      all_off(out, date);
 
       // Select the next index: random for Random mode, sequential otherwise
       std::size_t play_index;
       if(arpeggio_mode == 5) // Random
       {
-        std::uniform_int_distribution<std::size_t> dist(0, self.arpeggio.size() - 1);
+        std::uniform_int_distribution<std::size_t> dist(0, arpeggio.size() - 1);
         play_index = dist(rng);
       }
       else
       {
-        play_index = self.index;
-        self.index = (self.index + 1) % self.arpeggio.size();
+        play_index = index;
+        index = (index + 1) % arpeggio.size();
       }
 
       // Start the next note in the chord
-      auto& chord = self.arpeggio[play_index];
-
-      for(auto& note : chord)
+      for(auto& note : arpeggio[play_index])
       {
-        self.in_flight[note.first]++;
+        in_flight[note.first]++;
         out.note_on(1, note.first, note.second).timestamp = date;
       }
     }
+  }
+};
+
+struct Node
+{
+  halp_meta(name, "Arpeggiator (old)")
+  halp_meta(c_name, "Arpeggiator")
+  halp_meta(category, "Midi")
+  halp_meta(author, "ossia score")
+  halp_meta(
+      manual_url,
+      "https://ossia.io/score-docs/processes/midi-utilities.html#arpeggiator")
+  halp_meta(description, "Arpeggiator")
+  halp_flag(deprecated);
+  halp_meta(uuid, "0b98c7cd-f831-468f-81e3-706d6a97d705")
+
+  // FIXME "note" bus instead of midi bus ; the host handles passing all the non note messages
+  struct
+  {
+    halp::midi_bus<"in", libremidi::message> midi;
+    Arpeggios arpeggios;
+    halp::hslider_i32<"Octave", halp::irange{1, 7, 1}> octave;
+    OctaveMode octave_mode;
+    halp::hslider_i32<"Repeat", halp::irange{1, 8, 1}> repeat;
+    halp::hslider_i32<"Quantification", halp::irange{1, 32, 8}> quantification;
+  } inputs;
+  struct
+  {
+    halp::midi_out_bus<"out", libremidi::message> midi;
+  } outputs;
+
+  Engine engine;
+
+  using tick = halp::tick_musical;
+  void operator()(const halp::tick_musical& tk)
+  {
+    engine.process(
+        inputs.midi, outputs.midi, inputs.octave, inputs.octave_mode.value,
+        inputs.repeat, inputs.arpeggios.value, tk, inputs.quantification.value);
   }
 };
 }

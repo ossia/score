@@ -1,7 +1,15 @@
 // Free metronome v2 and Rate Limiter v2: their period / interval is a time
 // chooser, in seconds or synced to a note value.
 
+#include <Fx/Types.hpp>
+#include <halp/audio.hpp>
+#include <halp/callback.hpp>
+#include <halp/controls.hpp>
+#include <halp/meta.hpp>
+#include <halp/midi.hpp>
+#include <Fx/Arpeggiator_v2.hpp>
 #include <Fx/Metro.hpp>
+#include <Fx/Quantifier_v2.hpp>
 #include <Fx/Metro_v2.hpp>
 #include <Fx/RateLimiter_v2.hpp>
 
@@ -124,4 +132,114 @@ TEST_CASE("Rate Limiter v2: at most one value per interval", "[fx][ratelimiter]"
   for(int i = 0; i < 10; i++)
     tick(i * second / 10, (i + 1) * second / 10);
   CHECK(out.size() == 2);
+}
+
+TEST_CASE("Arpeggiator v2: the rate's note value is the grid's", "[fx][arpeggiator]")
+{
+  Nodes::Arpeggiator::v2::Node arp;
+  halp::tick_musical tk{};
+  tk.tempo = 120.;
+  // A synced eighth at 120 BPM, as the binding hands it over: 0.25 s.
+  arp.inputs.rate.value = 0.25f;
+  arp.inputs.rate.sync = true;
+  CHECK(arp.grid_rate(tk) == 8.);
+  // The same length at another tempo is another note value: a sixteenth
+  tk.tempo = 60.;
+  CHECK(arp.grid_rate(tk) == 16.);
+  arp.inputs.rate.value = 0.f;
+  CHECK(arp.grid_rate(tk) == 0.);
+}
+
+namespace
+{
+using QEvents = std::vector<std::tuple<int64_t, int, int>>; // frame, status, pitch
+
+//! 1 kHz, 100-frame ticks; `in` is (frame, pitch, on) at absolute frames.
+QEvents quantify(
+    float grid, float tightness, Nodes::Quantifier::v2::NoteLength len, float duration,
+    std::vector<std::tuple<int64_t, int, bool>> in, int64_t until = 3000)
+{
+  Nodes::Quantifier::v2::Node q;
+  q.prepare({.input_channels = 0, .output_channels = 0, .frames = 100, .rate = 1000.});
+  q.inputs.grid.value = grid;
+  q.inputs.tightness.value = tightness;
+  q.inputs.length.value = len;
+  q.inputs.duration.value = duration;
+  QEvents events;
+  for(int64_t pos = 0; pos < until; pos += 100)
+  {
+    q.inputs.midi.midi_messages.clear();
+    q.outputs.midi.midi_messages.clear();
+    for(auto [at, pitch, on] : in)
+      if(at >= pos && at < pos + 100)
+      {
+        auto m = on ? libremidi::channel_events::note_on(1, pitch, 100)
+                    : libremidi::channel_events::note_off(1, pitch, 0);
+        m.timestamp = at - pos;
+        q.inputs.midi.midi_messages.push_back(m);
+      }
+    halp::tick_flicks tk{};
+    tk.frames = 100;
+    tk.position_in_frames = pos;
+    q(tk);
+    for(auto& m : q.outputs.midi.midi_messages)
+      events.emplace_back(pos + m.timestamp, int(m.get_message_type()), int(m.bytes[1]));
+  }
+  return events;
+}
+int64_t first_frame(const QEvents& e)
+{
+  REQUIRE(!e.empty());
+  return std::get<0>(e.front());
+}
+constexpr int ON = int(libremidi::message_type::NOTE_ON);
+constexpr int OFF = int(libremidi::message_type::NOTE_OFF);
+}
+
+TEST_CASE("Midi quantify v2: the three lengths", "[fx][quantifier]")
+{
+  using enum Nodes::Quantifier::v2::NoteLength;
+  // A 0.5 s grid at 1 kHz: played at 630, starts at 1000
+  // Fixed duration: 250 ms, whatever the note-off does
+  CHECK(
+      quantify(0.5f, 1.f, FixedDuration, 0.25f, {{630, 60, true}, {700, 60, false}})
+      == QEvents{{1000, ON, 60}, {1250, OFF, 60}});
+  // End on grid: on the next 0.4 s point after the start
+  CHECK(
+      quantify(0.5f, 1.f, EndOnGrid, 0.4f, {{630, 60, true}})
+      == QEvents{{1000, ON, 60}, {1200, OFF, 60}});
+  // Until the note-off: held past the start, it ends when released
+  CHECK(
+      quantify(0.5f, 1.f, UntilNoteOff, 0.f, {{630, 60, true}, {1400, 60, false}})
+      == QEvents{{1000, ON, 60}, {1400, OFF, 60}});
+  // No grid: as it comes
+  CHECK(
+      quantify(0.f, 1.f, FixedDuration, 0.25f, {{130, 60, true}})
+      == QEvents{{130, ON, 60}, {380, OFF, 60}});
+}
+
+TEST_CASE("Midi quantify v2: no stuck notes", "[fx][quantifier]")
+{
+  using enum Nodes::Quantifier::v2::NoteLength;
+  // Released before its quantized start: it keeps the length it was played
+  // with, and stops.
+  CHECK(
+      quantify(0.5f, 1.f, UntilNoteOff, 0.f, {{630, 60, true}, {730, 60, false}})
+      == QEvents{{1000, ON, 60}, {1100, OFF, 60}});
+  // The same key twice: the first one ends before the second starts
+  const auto twice
+      = quantify(0.f, 1.f, UntilNoteOff, 0.f, {{100, 60, true}, {300, 60, true}, {500, 60, false}});
+  CHECK(twice == QEvents{{100, ON, 60}, {300, OFF, 60}, {300, ON, 60}, {500, OFF, 60}});
+}
+
+TEST_CASE("Midi quantify v2: tightness lets a note just late through", "[fx][quantifier]")
+{
+  using enum Nodes::Quantifier::v2::NoteLength;
+  // 0.5 s grid: 520 is 20 ms after the point at 500.
+  // Tight: waits for 1000
+  CHECK(first_frame(quantify(0.5f, 1.f, FixedDuration, 0.1f, {{520, 60, true}})) == 1000);
+  // Loose (0.8: up to 50 ms late is on time): now
+  CHECK(first_frame(quantify(0.5f, 0.8f, FixedDuration, 0.1f, {{520, 60, true}})) == 520);
+  // Too late even for that: the next point
+  CHECK(first_frame(quantify(0.5f, 0.8f, FixedDuration, 0.1f, {{600, 60, true}})) == 1000);
 }
