@@ -53,6 +53,16 @@ private:
   double m_value{};
 };
 
+//! The number a control stands for: for a time chooser's {x, mode}, seconds.
+//! The UI has no tempo: a synced value is its length at 120 BPM, which keeps
+//! the proportions between synced values.
+inline double scalarValue(const ossia::value& v)
+{
+  if(auto t = v.target<ossia::vec2f>())
+    return (*t)[1] != 0.f ? (*t)[0] * 2. : (*t)[0]; // a whole note: 2 s
+  return ossia::convert<double>(v);
+}
+
 //! A control's value, normalized over its range
 inline double normalizedValue(const Process::ControlInlet& port, const ossia::value& v)
 {
@@ -60,9 +70,16 @@ inline double normalizedValue(const Process::ControlInlet& port, const ossia::va
   const auto lo = ossia::get_min(dom);
   const auto hi = ossia::get_max(dom);
   if(!lo.valid() || !hi.valid())
-    return std::clamp(ossia::convert<double>(v), 0., 1.);
-  const double l = ossia::convert<double>(lo), h = ossia::convert<double>(hi);
-  return h == l ? 0. : std::clamp((ossia::convert<double>(v) - l) / (h - l), 0., 1.);
+    return std::clamp(scalarValue(v), 0., 1.);
+  const double l = scalarValue(lo), h = scalarValue(hi);
+  // A time chooser's domain is {min, 0} .. {max, 1}: its x is the range
+  if(auto a = lo.target<ossia::vec2f>())
+    if(auto b = hi.target<ossia::vec2f>())
+    {
+      const double tl = (*a)[0], th = (*b)[0];
+      return th == tl ? 0. : std::clamp((scalarValue(v) - tl) / (th - tl), 0., 1.);
+    }
+  return h == l ? 0. : std::clamp((scalarValue(v) - l) / (h - l), 0., 1.);
 }
 
 //! halp::custom_multi_control. Values are normalized; a gesture is one undo step.
@@ -157,6 +174,10 @@ private:
     const auto hi = ossia::get_max(dom);
     if(!lo.valid() || !hi.valid())
       return {0., 1.};
+    // A time chooser's domain is {min, 0} .. {max, 1}
+    if(auto a = lo.target<ossia::vec2f>())
+      if(auto b = hi.target<ossia::vec2f>())
+        return {(*a)[0], (*b)[0]};
     return {ossia::convert<double>(lo), ossia::convert<double>(hi)};
   }
 
@@ -172,6 +193,10 @@ private:
     // Keep the control's own type
     if(port.value().get_type() == ossia::val_type::INT)
       return int(std::lround(v));
+    // A time chooser: dragged on a graph, a length in seconds (a synced
+    // stage becomes free there)
+    if(port.value().get_type() == ossia::val_type::VEC2F)
+      return ossia::vec2f{float(v), 0.f};
     return float(v);
   }
 
