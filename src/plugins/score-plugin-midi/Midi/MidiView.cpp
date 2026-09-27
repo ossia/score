@@ -92,29 +92,42 @@ void View::updateBackground(double h)
     {
       const qreal width = std::max(v->width(), 800) * 2;
 
+      const auto row = [&](int i) {
+        return QRectF{
+            0, rect.height() + note_height * (m_min - i - 1) - 1, width, note_height};
+      };
       {
-        QRectF* white_rects = (QRectF*)alloca((sizeof(QRectF) * visibleCount()));
-        int max_white = 0;
-        const auto draw_bg_white = [&](int i) {
-          white_rects[max_white++] = QRectF{
-              0, rect.height() + note_height * (m_min - i - 1) - 1, width, note_height};
-        };
-        for_white_notes(draw_bg_white);
-        p.setBrush(style().lightBrush);
-        p.drawRects(white_rects, max_white);
+        QRectF* rects = (QRectF*)alloca((sizeof(QRectF) * visibleCount()));
+        int count = 0;
+        for_white_notes([&](int i) { rects[count++] = row(i); });
+        p.setBrush(style().whiteKeyBrush);
+        p.drawRects(rects, count);
+
+        count = 0;
+        for_black_notes([&](int i) { rects[count++] = row(i); });
+        p.setBrush(style().blackKeyBrush);
+        p.drawRects(rects, count);
+        p.setBrush(Qt::NoBrush);
       }
 
       {
+        // The line on top of each row: B's is the octave above it.
         QLineF* lines = (QLineF*)alloca((sizeof(QLineF) * visibleCount()));
-        int max_lines = 0;
+        int semitones = 0;
+        int octaves = visibleCount();
         for(int i = m_min; i <= m_max; i++)
         {
-          const float y = rect.height() + note_height * (m_min - i - 1) - 1;
-          lines[max_lines++] = QLineF{0, y, width, y};
+          const double y = row(i).top();
+          if(i % 12 == 11)
+            lines[--octaves] = QLineF{0, y, width, y};
+          else
+            lines[semitones++] = QLineF{0, y, width, y};
         }
 
-        p.setPen(style().darkPen);
-        p.drawLines(lines, max_lines);
+        p.setPen(style().semitonePen);
+        p.drawLines(lines, semitones);
+        p.setPen(style().octavePen);
+        p.drawLines(lines + octaves, visibleCount() - octaves);
       }
 
       if(note_height > 10)

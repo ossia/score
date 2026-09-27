@@ -30,11 +30,23 @@ struct MidiStyle
     noteSelectedBasePen = QPen{skin.Base2.main.brush, 2};
     noteBasePen = QPen{skin.Base4.darker300.brush, 1};
 
-    lightBrush = skin.Transparent3.main.brush;
+    // The rows are tints over whatever is behind the layer, not fills: the
+    // interval's bar lines in musical mode are drawn behind its processes and
+    // must show through. White keys are lighter and black keys darker than
+    // the ground, whatever the skin, as on a keyboard.
+    whiteKeyBrush = QBrush{QColor{255, 255, 255, 14}};
+    blackKeyBrush = QBrush{QColor{0, 0, 0, 64}};
     darkerBrush = skin.LightGray.main.brush;
 
-    darkPen = QPen{skin.Transparent2.main.brush, 1};
-    darkPen.setCosmetic(true);
+    // Row separations: faint, in the skin's foreground; stronger between B
+    // and C so the octaves read at a glance.
+    QColor fg = skin.Light.main.brush.color();
+    fg.setAlpha(16);
+    semitonePen = QPen{fg, 1};
+    semitonePen.setCosmetic(true);
+    fg.setAlpha(48);
+    octavePen = QPen{fg, 1};
+    octavePen.setCosmetic(true);
 
     selectionPen
         = QPen{skin.Transparent1.main.brush, 2, Qt::DashLine, Qt::SquareCap,
@@ -56,10 +68,12 @@ struct MidiStyle
     }
   }
 
-  QBrush lightBrush;
+  QBrush whiteKeyBrush;
+  QBrush blackKeyBrush;
   QBrush darkerBrush;
   const QBrush transparentBrush{Qt::transparent};
-  QPen darkPen;
+  QPen semitonePen;
+  QPen octavePen;
   QPen selectionPen;
 
   QBrush noteBaseBrush;
