@@ -590,6 +590,11 @@ if(TARGET score_plugin_fx)
     SOURCES FxAudioDspTest.cpp
     PLUGINS score_plugin_fx)
 
+  # Free metronome v2 and Rate Limiter v2: a time chooser for their period.
+  score_add_test(test_unit_fx_timing
+    SOURCES FxTimingTest.cpp
+    PLUGINS score_plugin_fx)
+
   # The value-domain ExprTK processes (Micromap, Expression Value Filter /
   # Generator, Arraymap, Arraygen) driven through GenericMathMapping, with the
   # expressions that actually ship in packages/default/Presets.

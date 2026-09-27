@@ -12,13 +12,14 @@ namespace Metro
 {
 struct Node
 {
-  halp_meta(name, "Free metronome")
+  halp_meta(name, "Free metronome (old)")
   halp_meta(c_name, "Metro")
   halp_meta(category, "Timing/Control")
   halp_meta(author, "ossia score")
   halp_meta(manual_url, "https://ossia.io/score-docs/processes/control-utilities.html#free-metronome")
   halp_meta(description, "Metronome which is not synced to the parent quantization settings")
 
+  halp_flag(deprecated);
   halp_meta(uuid, "50439197-521E-4ED0-A3B7-EDD8DEAEAC93")
 
   struct

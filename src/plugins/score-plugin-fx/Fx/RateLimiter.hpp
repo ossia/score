@@ -20,7 +20,7 @@ namespace Nodes::RateLimiter
 {
 struct Node
 {
-  halp_meta(name, "Rate Limiter")
+  halp_meta(name, "Rate Limiter (old)")
   halp_meta(c_name, "RateLimiter")
   halp_meta(category, "Control/Mappings")
   halp_meta(
@@ -30,6 +30,7 @@ struct Node
       description,
       "Limit and quantize a value stream, or debounce after quiet milliseconds "
       "(debounce ignores quantization)")
+  halp_flag(deprecated);
   halp_meta(uuid, "76cfd504-7c10-4bdb-a1b4-fbe449cc06f0")
 
   enum class Mode

@@ -32,6 +32,7 @@ set(HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/Fx/LFO_v2.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Fx/LFO_v3.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Fx/Metro.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Fx/Metro_v2.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Fx/EmptyMapping.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Fx/Looper.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Fx/Smooth.hpp"
@@ -40,6 +41,7 @@ set(HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/Fx/Types.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Fx/Quantifier.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Fx/RateLimiter.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Fx/RateLimiter_v2.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Fx/VelToNote.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Fx/VelToNoteCore.hpp"
 

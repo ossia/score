@@ -30,6 +30,7 @@
 #include <Fx/MathGenerator.hpp>
 #include <Fx/MathValueFilter.hpp>
 #include <Fx/Metro.hpp>
+#include <Fx/Metro_v2.hpp>
 #include <Fx/MicroMapping.hpp>
 #include <Fx/MidiHiRes.hpp>
 #include <Fx/MidiToArray.hpp>
@@ -37,6 +38,7 @@
 #include <Fx/PitchToValue.hpp>
 #include <Fx/Quantifier.hpp>
 #include <Fx/RateLimiter.hpp>
+#include <Fx/RateLimiter_v2.hpp>
 #include <Fx/Smooth.hpp>
 #include <Fx/Smooth_v2.hpp>
 #include <Fx/VelToNote.hpp>
@@ -81,6 +83,7 @@ std::vector<score::InterfaceBase*> score_plugin_fx::factories(
   oscr::instantiate_fx<Nodes::MidiUtil::Node>(fx, ctx, key);
   oscr::instantiate_fx<Nodes::MidiToArray::Node>(fx, ctx, key);
   oscr::instantiate_fx<Nodes::Metro::Node>(fx, ctx, key);
+  oscr::instantiate_fx<Nodes::Metro::v2::Node>(fx, ctx, key);
   oscr::instantiate_fx<Nodes::Quantifier::Node>(fx, ctx, key);
 
   oscr::instantiate_fx<Nodes::MathGenerator::Node>(fx, ctx, key);
@@ -98,6 +101,7 @@ std::vector<score::InterfaceBase*> score_plugin_fx::factories(
   oscr::instantiate_fx<Nodes::Smooth::v1::Node>(fx, ctx, key);
   oscr::instantiate_fx<Nodes::Smooth::v2::Node>(fx, ctx, key);
   oscr::instantiate_fx<Nodes::RateLimiter::Node>(fx, ctx, key);
+  oscr::instantiate_fx<Nodes::RateLimiter::v2::Node>(fx, ctx, key);
   oscr::instantiate_fx<Nodes::AudioLooper::Node>(fx, ctx, key);
 
 #if defined(SCORE_DEBUG)
