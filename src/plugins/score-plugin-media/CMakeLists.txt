@@ -55,6 +55,7 @@ set(HDRS ${HDRS}
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Step/Inspector.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Step/Model.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Step/Presenter.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Step/StepNode.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Step/View.hpp"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Merger/Commands.hpp"

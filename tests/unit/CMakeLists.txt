@@ -459,6 +459,17 @@ score_add_test(test_unit_midi_message
     PLUGINS score_plugin_midi score_lib_process)
 endif()
 
+if(TARGET score_plugin_media)
+  # The step sequencer: its engine driven directly, and its model.
+  score_add_test(test_unit_step_node
+    SOURCES StepNodeTest.cpp
+    PLUGINS score_plugin_media score_lib_process)
+  score_add_test(test_unit_step_model
+    SOURCES StepModelTest.cpp
+    APP
+    PLUGINS score_plugin_media score_plugin_audio score_lib_process)
+endif()
+
 score_add_test(test_unit_path_generator_handle
   SOURCES PathGeneratorHandleTest.cpp
   APP

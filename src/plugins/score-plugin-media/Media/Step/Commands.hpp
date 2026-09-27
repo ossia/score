@@ -11,25 +11,34 @@
 
 namespace Media
 {
+//! The steps of one sequence: the one shown when the command is made, even if
+//! another is shown by the time it is undone.
 class ChangeSteps final : public score::Command
 {
   SCORE_COMMAND_DECL(Media::CommandFactoryName(), ChangeSteps, "Change steps")
 public:
   ChangeSteps(const Media::Step::Model& model, const ossia::float_vector& cur)
+      : ChangeSteps{model, model.currentSequence(), cur}
+  {
+  }
+
+  ChangeSteps(
+      const Media::Step::Model& model, int sequence, const ossia::float_vector& cur)
       : m_model{model}
-      , m_old{model.steps()}
+      , m_sequence{sequence}
+      , m_old{model.sequences().at(sequence)}
       , m_new{cur}
   {
   }
 
   void undo(const score::DocumentContext& ctx) const override
   {
-    m_model.find(ctx).setSteps(m_old);
+    m_model.find(ctx).setSequenceSteps(m_sequence, m_old);
   }
 
   void redo(const score::DocumentContext& ctx) const override
   {
-    m_model.find(ctx).setSteps(m_new);
+    m_model.find(ctx).setSequenceSteps(m_sequence, m_new);
   }
 
   void update(const Media::Step::Model& model, ossia::float_vector&& cur)
@@ -39,34 +48,64 @@ public:
 
   void serializeImpl(DataStreamInput& s) const override
   {
-    s << m_model << m_old << m_new;
+    s << m_model << m_sequence << m_old << m_new;
   }
 
-  void deserializeImpl(DataStreamOutput& s) override { s >> m_model >> m_old >> m_new; }
+  void deserializeImpl(DataStreamOutput& s) override
+  {
+    s >> m_model >> m_sequence >> m_old >> m_new;
+  }
 
 private:
   Path<Media::Step::Model> m_model;
+  int m_sequence{};
   ossia::float_vector m_old, m_new;
 };
 
-class SetStepCount final : public score::PropertyCommand
+//! The number of steps of the sequence shown.
+class SetStepCount final : public score::Command
 {
   SCORE_COMMAND_DECL(Media::CommandFactoryName(), SetStepCount, "Set step count")
 public:
-  SetStepCount(const Step::Model& path, std::size_t newval)
-      : score::PropertyCommand{std::move(path), "stepCount", QVariant::fromValue(newval)}
+  SetStepCount(const Step::Model& model, std::size_t count)
+      : m_model{model}
+      , m_sequence{model.currentSequence()}
+      , m_old{model.steps()}
+      , m_new{model.steps()}
   {
+    update(model, count);
   }
-};
-class SetStepDuration final : public score::PropertyCommand
-{
-  SCORE_COMMAND_DECL(Media::CommandFactoryName(), SetStepDuration, "Set step duration")
-public:
-  SetStepDuration(const Step::Model& path, std::size_t newval)
-      : score::PropertyCommand{
-          std::move(path), "stepDuration", QVariant::fromValue(newval)}
+
+  void update(const Step::Model&, std::size_t count)
   {
+    m_new = m_old;
+    m_new.resize(std::clamp<std::size_t>(count, 1, Step::Model::maxSteps), 0.5f);
   }
+
+  void undo(const score::DocumentContext& ctx) const override
+  {
+    m_model.find(ctx).setSequenceSteps(m_sequence, m_old);
+  }
+
+  void redo(const score::DocumentContext& ctx) const override
+  {
+    m_model.find(ctx).setSequenceSteps(m_sequence, m_new);
+  }
+
+  void serializeImpl(DataStreamInput& s) const override
+  {
+    s << m_model << m_sequence << m_old << m_new;
+  }
+
+  void deserializeImpl(DataStreamOutput& s) override
+  {
+    s >> m_model >> m_sequence >> m_old >> m_new;
+  }
+
+private:
+  Path<Media::Step::Model> m_model;
+  int m_sequence{};
+  ossia::float_vector m_old, m_new;
 };
 
 class SetMin final : public score::PropertyCommand

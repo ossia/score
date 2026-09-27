@@ -2,7 +2,9 @@
 #include <Process/Focus/FocusDispatcher.hpp>
 #include <Process/LayerPresenter.hpp>
 
-#include <Audio/Settings/Model.hpp>
+#include <Process/Dataflow/Port.hpp>
+
+#include <ossia/network/value/value_conversion.hpp>
 #include <Media/Step/Commands.hpp>
 #include <Media/Step/View.hpp>
 
@@ -37,11 +39,8 @@ public:
 
     con(m, &Step::Model::stepsChanged, this, [&] { m_view->update(); });
     con(m, &Step::Model::stepCountChanged, this, [&] { m_view->update(); });
-    con(m, &Step::Model::stepDurationChanged, this,
-        [&] { on_zoomRatioChanged(m_ratio); });
-
-    auto& audio_settings = context().context.app.settings<Audio::Settings::Model>();
-    con(audio_settings, &Audio::Settings::Model::RateChanged, this,
+    con(m, &Step::Model::currentSequenceChanged, this, [&] { m_view->update(); });
+    con(*m.stepDuration, &Process::ControlInlet::valueChanged, this,
         [&] { on_zoomRatioChanged(m_ratio); });
   }
 
@@ -54,12 +53,13 @@ public:
 
   void on_zoomRatioChanged(ZoomRatio r) override
   {
-    auto samplerate
-        = 0.001 * context().context.app.settings<Audio::Settings::Model>().getRate();
     m_ratio = r;
     auto& m = static_cast<const Step::Model&>(m_process);
-    auto v = TimeVal::fromMsecs(m.stepDuration() / samplerate).toPixels(r);
-    m_view->setBarWidth(v);
+    // {seconds, 0}, or {fraction of a whole note, sync}: drawn at 120 BPM
+    // then, the tempo the layer does not know.
+    const auto d = ossia::convert<ossia::vec2f>(m.stepDuration->value());
+    const double seconds = d[1] != 0.f ? d[0] * 4. * 60. / 120. : d[0];
+    m_view->setBarWidth(TimeVal::fromMsecs(seconds * 1000.).toPixels(r));
   }
 
   void parentGeometryChanged() override { }

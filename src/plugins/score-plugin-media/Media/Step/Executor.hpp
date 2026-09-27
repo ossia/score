@@ -17,6 +17,7 @@ public:
       Media::Step::Model& element, const ::Execution::Context& ctx, QObject* parent);
 
   void recompute();
+  void stop() override;
 
   ~StepComponent();
 

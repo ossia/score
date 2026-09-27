@@ -25,16 +25,13 @@ public:
       : InspectorWidgetDelegate_T{obj, parent}
       , m_dispatcher{doc.dispatcher}
       , m_count{this}
-      , m_dur{this}
       , m_min{this}
       , m_max{this}
   {
     m_min.setRange(-100000, 100000);
     m_max.setRange(-100000, 100000);
-    m_count.setRange(1, 24);
-    m_dur.setRange(1, 1000000);
+    m_count.setRange(1, Model::maxSteps);
     m_count.setValue(obj.stepCount());
-    m_dur.setValue(obj.stepDuration());
     m_min.setValue(obj.min());
     m_max.setValue(obj.max());
 
@@ -42,17 +39,11 @@ public:
 
     con(process(), &Model::stepCountChanged, this,
         [&] { m_count.setValue(obj.stepCount()); });
-    con(process(), &Model::stepDurationChanged, this,
-        [&] { m_dur.setValue(obj.stepDuration()); });
     con(process(), &Model::minChanged, this, [&] { m_min.setValue(obj.min()); });
     con(process(), &Model::maxChanged, this, [&] { m_max.setValue(obj.max()); });
 
     con(m_count, &QSpinBox::editingFinished, this, [&]() {
       m_dispatcher.submit<SetStepCount>(obj, m_count.value());
-      m_dispatcher.commit();
-    });
-    con(m_dur, &QSpinBox::editingFinished, this, [&]() {
-      m_dispatcher.submit<SetStepDuration>(obj, m_dur.value());
       m_dispatcher.commit();
     });
     con(m_min, &QDoubleSpinBox::editingFinished, this, [&]() {
@@ -64,8 +55,10 @@ public:
       m_dispatcher.commit();
     });
 
+    // Of the sequence shown; the others keep theirs.
+    con(process(), &Model::currentSequenceChanged, this,
+        [&] { m_count.setValue(obj.stepCount()); });
     lay->addRow(tr("Count"), &m_count);
-    lay->addRow(tr("Duration (samples)"), &m_dur);
     lay->addRow(tr("Min"), &m_min);
     lay->addRow(tr("Max"), &m_max);
   }
@@ -74,7 +67,6 @@ private:
   OngoingCommandDispatcher& m_dispatcher;
 
   QSpinBox m_count;
-  QSpinBox m_dur;
   QDoubleSpinBox m_min;
   QDoubleSpinBox m_max;
 };
