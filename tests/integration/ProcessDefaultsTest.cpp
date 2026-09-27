@@ -178,30 +178,10 @@ QByteArray retypeInlet(
       in["uuid"] = type;
       if(type == QStringLiteral("feb87e84-e0d2-428f-96ff-a123ac964f59"))
       {
-        auto inlets = o.value("Inlets").toArray();
-        for(auto i = 0; i < inlets.size(); i++)
-        {
-          auto in = inlets[i].toObject();
-          if(in.value("Custom").toString() == port)
-          {
-            in["uuid"] = type;
-            if(type == QStringLiteral("feb87e84-e0d2-428f-96ff-a123ac964f59"))
-            {
-              // A maintained button's value
-              in["Value"] = QJsonObject{{"Bool", false}};
-              in["Init"] = QJsonObject{{"Bool", false}};
-              in["Domain"] = QJsonObject{{"Bool", QJsonValue{}}};
-            }
-            else
-            {
-              in.remove("Value");
-              in.remove("Init");
-              in.remove("Domain");
-            }
-            inlets[i] = in;
-          }
-        }
-        o["Inlets"] = inlets;
+        // A maintained button's value
+        in["Value"] = QJsonObject{{"Bool", false}};
+        in["Init"] = QJsonObject{{"Bool", false}};
+        in["Domain"] = QJsonObject{{"Bool", QJsonValue{}}};
       }
       else if(type == QStringLiteral("769dd38a-bfb3-4dc6-b52a-b6abb7afe2a3"))
       {
@@ -258,5 +238,57 @@ TEST_CASE(
         loaded.document);
     REQUIRE(rdp.cables.size() == 1);
     CHECK(&rdp.cables.begin()->sink().find(loaded) == clear);
+  });
+}
+
+#include <Crousti/Executor.hpp>
+#include <Crousti/ProcessModel.hpp>
+#include <halp/file_port.hpp>
+
+TEST_CASE("the file objects pick their path with a file dialog", "[integration][files]")
+{
+  score::test::run_in_gui_app([](const score::GUIApplicationContext& app) {
+    auto doc = score::test::new_document(app);
+    auto read = score::test::add_process(
+        *doc, QStringLiteral("f82d1b69-c381-4eef-86c3-506d42b3d8e1"), {});
+    auto line = score::test::add_process(
+        *doc, QStringLiteral("0d2bd0c7-392c-45ec-bd70-6be4937f0348"), {});
+    auto write = score::test::add_process(
+        *doc, QStringLiteral("810761ce-52ea-4105-8bb3-598d5692c20f"), {});
+    REQUIRE(read);
+    REQUIRE(line);
+    REQUIRE(write);
+    CHECK(qobject_cast<Process::FileChooser*>(control(*read, QStringLiteral("Path"))));
+    CHECK(qobject_cast<Process::FileChooser*>(control(*line, QStringLiteral("Path"))));
+    // A new file cannot be picked from an open-file dialog: typed.
+    CHECK(qobject_cast<Process::LineEdit*>(control(*write, QStringLiteral("Path"))));
+
+    // A document from when the read path was a line edit keeps its path.
+    control(*read, QStringLiteral("Path"))->setValue(std::string{"/data/in.txt"});
+    const QString readUuid = QStringLiteral("f82d1b69-c381-4eef-86c3-506d42b3d8e1");
+    auto old = retypeInlet(
+        score::test::save_as_json(*doc), readUuid, QStringLiteral("Path"),
+        QStringLiteral("9ae797ea-d94c-4792-acec-9ec1932bae5d")); // LineEdit
+    auto reloaded = reloadedAs(app, old, *read);
+    REQUIRE(reloaded);
+    auto path = control(*reloaded, QStringLiteral("Path"));
+    CHECK(qobject_cast<Process::FileChooser*>(path));
+    CHECK(path->value() == ossia::value{std::string{"/data/in.txt"}});
+  });
+}
+
+TEST_CASE("a write path expands %t and %n, a read path does not", "[integration][files]")
+{
+  score::test::run_in_gui_app([](const score::GUIApplicationContext& app) {
+    auto doc = score::test::new_document(app);
+    auto& ctx = doc->context();
+    const ossia::value in{std::string{"/tmp/score-test-%t-%n.txt"}};
+    auto w = oscr::resolveControlPath<halp::save_file_path<"Path">>(in, ctx);
+    auto r = oscr::resolveControlPath<halp::file_path<"Path">>(in, ctx);
+    const auto ws = w.get<std::string>();
+    CHECK(ws.find("%t") == std::string::npos);
+    CHECK(ws.find("%n") == std::string::npos);
+    CHECK(ws.rfind("/tmp/score-test-", 0) == 0);
+    CHECK(r.get<std::string>() == "/tmp/score-test-%t-%n.txt");
   });
 }

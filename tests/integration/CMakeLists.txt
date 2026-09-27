@@ -405,7 +405,9 @@ if(TARGET score_plugin_fx AND TARGET score_plugin_automation)
   score_add_test(test_integration_process_defaults
     SOURCES ProcessDefaultsTest.cpp
     GUI
-    PLUGINS score_plugin_dataflow score_plugin_scenario score_lib_process)
+    PLUGINS score_plugin_avnd score_plugin_dataflow score_plugin_scenario score_lib_process)
+  target_include_directories(test_integration_process_defaults PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish")
   score_add_test(test_integration_snapshot_automation_bench
     SOURCES SnapshotAutomationBenchTest.cpp
     GUI

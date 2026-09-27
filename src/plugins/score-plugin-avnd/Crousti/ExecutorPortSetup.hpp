@@ -1,4 +1,5 @@
 #pragma once
+#include <AvndProcesses/Utils.hpp>
 #include <Process/Process.hpp>
 
 #include <Crousti/File.hpp>
@@ -33,9 +34,26 @@ struct dynamic_ports_component_data<T>
 // go through score::locateFilePath so that <LIBRARY>:, <PROJECT>: and
 // document-relative paths are resolved before the object reads it.
 template <typename T>
-concept folder_control_port = requires { T::folder; } && requires(T t) {
-  { t.value } -> std::convertible_to<std::string_view>;
-};
+concept folder_control_port = (requires { T::folder; } || requires { T::file; }
+                               || requires { T::placeholders(); })
+                              && requires(T t) {
+                                   { t.value } -> std::convertible_to<std::string_view>;
+                                 };
+
+//! A path to write to (halp::save_file_path): %t and %n are expanded as the
+//! recorders do, then the path is resolved.
+template <typename Field>
+ossia::value resolveControlPath(const ossia::value& v, const score::DocumentContext& ctx)
+{
+  if constexpr(requires { Field::placeholders(); })
+  {
+    if(auto str = v.target<std::string>(); str && !str->empty())
+      return ossia::value{avnd_tools::filter_filename(*str, ctx).toStdString()};
+    return v;
+  }
+  else
+    return resolvePathValue(v, ctx);
+}
 
 template <typename Node, typename Field, std::size_t NPred, std::size_t NField>
 struct con_unvalidated
@@ -461,7 +479,7 @@ struct setup_control_for_exec<Node, Field, N, NField>
     if constexpr(!requires { param.value.reset(); })
     {
       this->node_ptr->from_ossia_value(
-          param, resolvePathValue(inlet->value(), this->ctx.doc), param.value,
+          param, resolveControlPath<Field>(inlet->value(), this->ctx.doc), param.value,
           avnd::field_index<NField>{});
     }
   }
@@ -478,7 +496,7 @@ struct setup_control_for_exec<Node, Field, N, NField>
       // Resolve the path on every change, then run the normal control-update
       // path (from_ossia_value + control_updated_from_ui) via con_unvalidated.
       con_unvalidated<Node, Field, N, NField>{ctx, weak_node, *field}(
-          resolvePathValue(val, ctx.doc));
+          resolveControlPath<Field>(val, ctx.doc));
     });
   }
 };

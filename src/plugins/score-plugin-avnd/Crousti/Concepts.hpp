@@ -293,6 +293,16 @@ make_control_in(avnd::field_index<N>, Id<Process::Port>&& id, QObject* parent)
       return new Process::FolderChooser{"", qname, id, parent};
     }
   }
+  else if constexpr(widg.widget == avnd::widget_type::file)
+  {
+    QString filters;
+    if constexpr(requires { T::filters(); })
+    {
+      constexpr std::string_view f = T::filters();
+      filters = QString::fromUtf8(f.data(), f.size());
+    }
+    return new Process::FileChooser{"", filters, qname, id, parent};
+  }
   else if constexpr(widg.widget == avnd::widget_type::range_slider)
   {
     static constexpr auto c = avnd::get_range<T>();
