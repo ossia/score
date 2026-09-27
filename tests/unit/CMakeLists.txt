@@ -1060,6 +1060,14 @@ if(TARGET score_plugin_avnd AND TARGET score_plugin_engine)
     PLUGINS score_plugin_avnd score_plugin_dataflow score_plugin_engine score_plugin_scenario score_lib_process)
   target_include_directories(test_unit_avnd_adsr_exec PRIVATE
     "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish")
+  # Enumerator, Counter, Value Delay through the binding: port and inspector.
+  score_add_test(test_unit_avnd_utilities_exec
+    SOURCES AvndUtilitiesExecTest.cpp
+    APP
+    PLUGINS score_plugin_avnd score_plugin_dataflow score_plugin_engine score_plugin_scenario score_lib_process)
+  target_include_directories(test_unit_avnd_utilities_exec PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish"
+    "${SCORE_ROOT_SOURCE_DIR}/3rdparty/Gamma")
 endif()
 # AssetTable is pure CPU logic; TextureLoader upload paths run on QRhi's Null
 # backend (score_plugin_gfx links Qt::GuiPrivate PUBLIC, providing qrhi_p.h).

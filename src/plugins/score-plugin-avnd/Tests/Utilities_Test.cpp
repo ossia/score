@@ -283,8 +283,9 @@ TEST_CASE("Value delay: in messages", "[avnd][utilities][delay]")
 
 TEST_CASE("Value delay: in time", "[avnd][utilities][delay]")
 {
-  // Two taps, 10 ms apart
-  DelayRig r{examples::helpers::ValueDelay::Time, 10, 2};
+  // Two taps, 10 ms apart; Length does not matter in this mode
+  DelayRig r{examples::helpers::ValueDelay::Time, 1000, 2};
+  r.d.inputs.time.value = 0.01f;
   r.tick(1.f, 5);         // t = 0: 1
   r.tick(2.f, 10);        // t = 5: 2
   r.tick(3.f, 10);        // t = 15: 3
