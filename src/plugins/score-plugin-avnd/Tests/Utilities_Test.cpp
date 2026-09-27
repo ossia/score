@@ -294,3 +294,20 @@ TEST_CASE("Value delay: in time", "[avnd][utilities][delay]")
   out = r.tick(std::nullopt, 1); // t = 26
   CHECK(out[1] == 2.f);
 }
+
+#include <examples/Advanced/Utilities/ArrayRecombiner.hpp>
+
+TEST_CASE("Array recombiner groups vec2f / vec3f / vec4f too", "[avnd][utilities][array]")
+{
+  ao::ArrayRecombiner r;
+  r.inputs.elements.value = 2;
+  using list = std::vector<ossia::value>;
+  CHECK(r(ossia::vec4f{1.f, 2.f, 3.f, 4.f}) == list{list{1.f, 2.f}, list{3.f, 4.f}});
+  CHECK(r(ossia::vec3f{1.f, 2.f, 3.f}) == list{list{1.f, 2.f}, list{3.f}});
+  CHECK(r(ossia::vec2f{1.f, 2.f}) == list{list{1.f, 2.f}});
+  r.inputs.transpose.value = true;
+  CHECK(r(ossia::vec4f{1.f, 2.f, 3.f, 4.f}) == list{list{1.f, 3.f}, list{2.f, 4.f}});
+  // Lists as before
+  r.inputs.transpose.value = false;
+  CHECK(r(list{1, 2, 3}) == list{list{1, 2}, list{3}});
+}
