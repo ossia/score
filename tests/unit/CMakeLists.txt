@@ -63,6 +63,11 @@ score_add_test(test_unit_filechooser_filters
   APP
   PLUGINS score_lib_process)
 
+# The knob's needle stays inside the dial at every zoom.
+score_add_test(test_unit_knob_geometry
+  SOURCES KnobGeometryTest.cpp
+  APP)
+
 # Graphics-view combo box: drop-down editor and free-value entry.
 score_add_test(test_unit_graphics_combo
   SOURCES GraphicsComboTest.cpp

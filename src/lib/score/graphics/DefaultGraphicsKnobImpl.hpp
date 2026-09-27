@@ -32,7 +32,6 @@ struct DefaultGraphicsKnobImpl
   {
     painter->setRenderHint(QPainter::Antialiasing, true);
 
-    constexpr const double adj = 6.;
     constexpr const double space = 50.;
     constexpr const double start = (270. - space) * 16.;
     constexpr const double totalSpan = (360. - 2. * space) * 16.;
@@ -41,57 +40,67 @@ struct DefaultGraphicsKnobImpl
     QRectF srect = defaultKnobSize;
     if constexpr(requires { self.m_rect; })
       srect = self.m_rect;
-    // Taller than wide: circle in the top square, value below
+    // Taller than wide: dial in the top square, value below
     const double side = std::min(srect.width(), srect.height());
-    const QRectF r = QRectF{0., 0., side, side}.adjusted(adj, adj, -adj, -adj);
-    const double rw = r.width();
 
-    // Draw knob
-    painter->setPen(skin.Emphasis2.main.pen1);
+    // Geometry of the design at the 35 px reference size: the arc's centre
+    // line at a 10.5 px radius, 2 px wide; the tick from the arc's outer
+    // edge (11.5 px) to 4.94 px from the centre, 2 px wide, round ends; the
+    // body filled out to the arc's outer edge, so the arc lies on its rim. A
+    // round cap reaches half the pen width past its endpoint: the endpoints
+    // are pulled in so the ends are at those radii.
+    const double k = side / 35.;
+    const QPointF c{side / 2., side / 2.};
+    const double arcRadius = 10.5 * k;
+    // The arc and the tick share one pen
+    const double arcWidth = std::max(1., 2. * k);
+    const double tickWidth = arcWidth;
+    // Antialiased, a round end still bleeds past its geometric edge by a
+    // fraction of a device pixel more than the arc's own edge does, most at
+    // small zooms: half a device pixel of margin keeps it inside the rim.
+    const QTransform& dt = painter->deviceTransform();
+    const double devicePx
+        = 1. / std::max(1e-6, std::sqrt(std::abs(dt.m11() * dt.m22() - dt.m12() * dt.m21())));
+    const double tickOuter
+        = arcRadius + arcWidth / 2. - tickWidth / 2. - 0.5 * devicePx;
+    const double tickInner = 4.94 * k + tickWidth / 2.;
+    const QRectF r{
+        c.x() - arcRadius, c.y() - arcRadius, 2. * arcRadius, 2. * arcRadius};
+    const double bodyRadius = arcRadius + arcWidth / 2.;
+    const QRectF body{
+        c.x() - bodyRadius, c.y() - bodyRadius, 2. * bodyRadius, 2. * bodyRadius};
+
+    const QColor accent = skin.Base4.main.brush.color();
+
+    // Body
+    painter->setPen(Qt::NoPen);
     painter->setBrush(skin.Emphasis2.main.brush);
-    painter->drawChord(r, start, -totalSpan);
+    painter->drawChord(body, start, -totalSpan);
+    painter->setBrush(Qt::NoBrush);
 
+    // The value; no track around the rest of the course (the body shows it)
     const double valueSpan = -self.m_value * totalSpan;
-    double textDelta = 0.;
-    if(rw >= 30.)
-    {
-      painter->setPen(skin.Base4.main.pen3_solid_round_round);
-      textDelta = -10;
-    }
-    else if(rw >= 20.)
-    {
-      painter->setPen(skin.Base4.main.pen2_solid_round_round);
-      textDelta = -9;
-    }
-    else if(rw >= 10.)
-    {
-      painter->setPen(skin.Base4.main.pen1_5);
-      textDelta = -8;
-    }
-    else if(rw >= 5.)
-    {
-      painter->setPen(skin.Base4.main.pen1);
-      textDelta = -7;
-    }
-    painter->drawArc(r, start, valueSpan);
+    painter->setPen(QPen{accent, arcWidth, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin});
+    if(self.m_value > 0.)
+      painter->drawArc(r, start, valueSpan);
 
-    // Draw knob indicator
-    const double r1 = 0.5 * rw;
-    const double x0 = r.center().x();
-    const double y0 = r.center().y();
+    // Tick, joined to the arc
     const double theta = -0.0174533 * (start + valueSpan) / 16.;
-    const double x1 = r.center().x() + r1 * cos(theta);
-    const double y1 = r.center().y() + r1 * sin(theta);
+    const QPointF dir{std::cos(theta), std::sin(theta)};
+    painter->drawLine(c + tickInner * dir, c + tickOuter * dir);
 
-    painter->drawLine(QPointF{x0, y0}, QPointF{x1, y1});
-
-    painter->setPen(skin.Base4.lighter180.pen1);
+    // Where the execution is, inside the arc
     if(self.m_hasExec)
     {
-      const QRectF er = r.adjusted(1.5, 1.5, -1.5, -1.5);
-      const double valueSpan = -self.m_execValue * totalSpan;
-      painter->drawArc(er, start, valueSpan);
+      painter->setPen(skin.Base4.lighter180.pen1);
+      const double er = arcRadius - arcWidth / 2. - 1.;
+      const QRectF erect{c.x() - er, c.y() - er, 2. * er, 2. * er};
+      painter->drawArc(erect, start, -self.m_execValue * totalSpan);
     }
+
+    const double textDelta = side >= 30. ? -10. : side >= 20. ? -9. : -8.;
+    // The value in the same colour as under a slider.
+    painter->setPen(skin.Base4.lighter180.pen1);
 
     // Draw text
     // Non-item wrappers (multi-slider rows) always show their value
