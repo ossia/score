@@ -182,6 +182,7 @@ TemporalIntervalPresenter::TemporalIntervalPresenter(
     if(s.smallView())
     {
       createSlot(s.index, m_model.smallView()[s.index]);
+      fitNewNodalSlot(m_model.smallView()[s.index]);
     }
   });
 
@@ -496,6 +497,45 @@ void TemporalIntervalPresenter::createSlot(int pos, const Slot& aSlt)
     }
     updatePositions();
   }
+}
+
+void TemporalIntervalPresenter::fitNewNodalSlot(const Slot& slt)
+{
+  // A nodal slot created for a new effect: as tall as the effect's node, once
+  // the node has computed its size (a moment after it is created), instead of
+  // the default slot height. Slots of a loaded document keep their height:
+  // this is only called for slots added while the interval is shown.
+  if(!slt.nodal || slt.processes.size() != 1)
+    return;
+  auto proc = m_model.processes.find(slt.processes.front());
+  if(proc == m_model.processes.end())
+    return;
+
+  // The size the process has now (right for a pasted one), then each size its
+  // node computes (a new process only has a placeholder size, and the node
+  // goes through a few). It stops following once the slot is resized by
+  // something else, e.g. the user.
+  auto fitted = std::make_shared<std::optional<double>>();
+  auto conn = std::make_shared<QMetaObject::Connection>();
+  auto fit = [this, fitted, conn](QSizeF sz) {
+    const auto& sv = m_model.smallView();
+    const auto it = ossia::find_if(sv, [](const Slot& s) { return s.nodal; });
+    if(it == sv.end() || (*fitted && it->height != **fitted))
+    {
+      QObject::disconnect(*conn);
+      return;
+    }
+    if(sz.isEmpty())
+      return;
+    static constexpr double titleHeight = 20.; // NodeItem's title bar
+    static constexpr double margin = 12.;
+    const double h = sz.height() + titleHeight + 2. * margin;
+    const_cast<IntervalModel&>(m_model).setSlotHeight(
+        SlotId{std::size_t(it - sv.begin()), Slot::SmallView}, h);
+    *fitted = it->height;
+  };
+  fit(proc->size());
+  *conn = connect(&*proc, &Process::ProcessModel::sizeChanged, this, fit);
 }
 
 void TemporalIntervalPresenter::createCollapsedSlot(int pos, const Slot& slt)

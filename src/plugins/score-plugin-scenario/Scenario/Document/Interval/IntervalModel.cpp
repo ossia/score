@@ -789,6 +789,17 @@ void IntervalModel::on_addProcess(Process::ProcessModel& p)
   {
     const auto smallNodalSlot
         = ossia::find_if(m_smallView, [](const auto& slt) { return slt.nodal; });
+    const bool anyNodalSlot
+        = smallNodalSlot != m_smallView.end()
+          || ossia::any_of(m_fullView, [](const auto& slt) { return slt.nodal; });
+    if(!anyNodalSlot)
+    {
+      // The first nodal canvas of this interval: a viewport kept from an
+      // earlier one (whose slots were removed since) would show the new node
+      // off-center, or not at all. The canvas centers on its nodes instead.
+      m_nodalCenter.reset();
+      m_nodalScale = 1.;
+    }
     if(smallNodalSlot == m_smallView.end())
     {
       Slot slt;

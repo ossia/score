@@ -71,6 +71,9 @@ NodalIntervalView::NodalIntervalView(
       continue;
     setupNode(new Process::NodeItem{proc, m_context, r, m_container});
   }
+  // No viewport stored (a new canvas): it follows its nodes, see
+  // recenterRelativeToView.
+  m_autoCenter = !m_model.nodalCenter() && m_model.legacyNodalOffset().isNull();
   m_model.processes.added.connect<&NodalIntervalView::on_processAdded>(*this);
   m_model.processes.removing.connect<&NodalIntervalView::on_processRemoving>(*this);
 
@@ -90,7 +93,10 @@ NodalIntervalView::NodalIntervalView(
     connect(item, &score::ZoomItem::zoom, this, &NodalIntervalView::zoomPlus);
     connect(item, &score::ZoomItem::dezoom, this, &NodalIntervalView::zoomMinus);
 
-    connect(item, &score::ZoomItem::recenter, this, &NodalIntervalView::recenter);
+    connect(item, &score::ZoomItem::recenter, this, [this] {
+      m_autoCenter = false;
+      recenter();
+    });
     connect(item, &score::ZoomItem::rescale, this, &NodalIntervalView::rescale);
     connect(
         this, &score::EmptyRectItem::sizeChanged, this,
@@ -207,6 +213,16 @@ void NodalIntervalView::storeCenterFromContainer()
 
 void NodalIntervalView::recenterRelativeToView()
 {
+  if(m_autoCenter)
+  {
+    // A new canvas follows its nodes until it is panned or zoomed: a slot is
+    // laid out as soon as it is created, before the process it was created
+    // for gets its node, and a node computes its size a moment after it is
+    // created.
+    if(!boundingRect().isEmpty() && !m_nodeItems.empty())
+      pickInitialViewport();
+    return;
+  }
   if(auto center = m_model.nodalCenter())
     placeContainer(*center);
   else if(!boundingRect().isEmpty())
@@ -233,6 +249,7 @@ void NodalIntervalView::recenter()
 
 void NodalIntervalView::rescale()
 {
+  m_autoCenter = false;
   // Back to 1:1, around what is currently at the center of the view
   recenterRelativeToView();
   const QPointF center = m_model.nodalCenter().value_or(enclosingRect().center());
@@ -322,24 +339,19 @@ QRectF NodalIntervalView::enclosingRect() const noexcept
 
   for(QGraphicsItem* item : m_nodeItems)
   {
-    const auto pos = item->pos();
-    const auto r = item->boundingRect();
-    if(x0 > pos.x())
-      x0 = pos.x();
-    if(y0 > pos.y())
-      y0 = pos.y();
-    if(x1 < pos.x() + r.width())
-      x1 = pos.x() + r.width();
-    if(y1 < pos.y() + r.height())
-      y1 = pos.y() + r.height();
+    // What the node draws, in canvas coordinates: its bounding rect does not
+    // start at its position (the title bar is above it, the inlets left of it).
+    const auto r = item->mapRectToParent(item->boundingRect());
+    x0 = std::min(x0, r.left());
+    y0 = std::min(y0, r.top());
+    x1 = std::max(x1, r.right());
+    y1 = std::max(y1, r.bottom());
   }
 
-  x0 -= (0.1 * (x1 - x0));
-  y0 -= (0.1 * (x1 - x0));
-  const double w = 1.1 * (x1 - x0);
-  const double h = 1.1 * (y1 - y0);
-
-  return {x0, y0, w, h};
+  // 5 % of margin on each side, so that the center is the nodes' center.
+  const double w = x1 - x0;
+  const double h = y1 - y0;
+  return {x0 - 0.05 * w, y0 - 0.05 * h, 1.1 * w, 1.1 * h};
 }
 
 void NodalIntervalView::dragEnterEvent(QGraphicsSceneDragDropEvent* event)
@@ -409,6 +421,7 @@ void NodalIntervalView::mouseMoveEvent(QGraphicsSceneMouseEvent* e)
 
 void NodalIntervalView::panBy(QPointF delta)
 {
+  m_autoCenter = false;
   m_container->setPos(m_container->pos() + delta);
   storeCenterFromContainer();
 }
@@ -473,6 +486,7 @@ void NodalIntervalView::wheelEvent(QGraphicsSceneWheelEvent* event)
 
 void NodalIntervalView::zoomTo(double newZoomLevel)
 {
+  m_autoCenter = false;
   newZoomLevel = std::clamp(newZoomLevel, -10.0, 5.0);
   if(newZoomLevel == m_zoomLevel)
     return;
@@ -506,6 +520,11 @@ void NodalIntervalView::zoomTo(double newZoomLevel)
 void NodalIntervalView::setupNode(Process::NodeItem* item)
 {
   m_nodeItems.push_back(item);
+  // A canvas with no viewport yet centers on its nodes once they have a size.
+  connect(&item->model(), &Process::ProcessModel::sizeChanged, this, [this] {
+    if(m_autoCenter)
+      recenterRelativeToView();
+  });
   connect(
       item, &Process::NodeItem::dropReceived, this, &NodalIntervalView::on_dropOnNode);
   item->dropOnCableHandler

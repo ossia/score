@@ -881,6 +881,12 @@ score_add_test(test_integration_nodal_viewport
   GUI
   PLUGINS score_plugin_scenario score_lib_process)
 
+# An effect dropped on an interval: centered in its new nodal slot, which fits it.
+score_add_test(test_integration_nodal_slot_placement
+  SOURCES NodalSlotPlacementTest.cpp
+  GUI
+  PLUGINS score_plugin_scenario score_lib_process)
+
 # Frame-step determinism across two processes: the same case rendered to the same
 # frame index in two separate applications must be byte-identical.
 # Skips (77) without the binary or the out-of-repo tests-scene corpus.

@@ -85,6 +85,7 @@ private:
   void setHeaderWidth(const LayerSlotPresenter& slot, double w);
   void setHeaderWidth(const NodalSlotPresenter& slot, double w);
   void createNodalSlot();
+  void fitNewNodalSlot(const Slot& slt);
 
   bool m_handles{true};
 };

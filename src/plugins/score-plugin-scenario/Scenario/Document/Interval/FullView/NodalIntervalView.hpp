@@ -100,6 +100,8 @@ private:
   QPointF m_rubberBandOrigin{};
   QRectF m_rubberBandRect{};
   bool m_rubberBanding{false};
+  //! Centers on the nodes whenever they change size, until panned or zoomed.
+  bool m_autoCenter{false};
 };
 
 }
