@@ -191,14 +191,58 @@ TEST_CASE("piano roll: Up / Down move the selection by a semitone, with Shift an
     CHECK(pitches(*p) == std::vector{67, 71, 75});
     doc->commandStack().redo();
 
-    // A step that would take a note out of the range is refused as a whole:
-    // the chord is not squashed at the edge.
+    // Past the range, the range grows, and one undo takes both back.
     roll.key(Qt::Key_Up, Qt::ShiftModifier);
     CHECK(pitches(*p) == std::vector{67, 71, 75});
+    CHECK(p->range() == std::pair{36, 84});
     roll.key(Qt::Key_Up, Qt::ShiftModifier); // 87 > 84
+    CHECK(pitches(*p) == std::vector{67, 83, 87});
+    CHECK(p->range() == std::pair{36, 87});
+    doc->commandStack().undo();
     CHECK(pitches(*p) == std::vector{67, 71, 75});
-    roll.key(Qt::Key_Up);
-    CHECK(pitches(*p) == std::vector{67, 72, 76});
+    CHECK(p->range() == std::pair{36, 84});
+    doc->commandStack().redo();
+    CHECK(p->range() == std::pair{36, 87});
+
+    // Past MIDI's own range, the step is refused as a whole: the chord is not
+    // squashed at the edge.
+    for(int i = 0; i < 4; i++)
+      roll.key(Qt::Key_Up, Qt::ShiftModifier);
+    CHECK(pitches(*p) == std::vector{67, 119, 123});
+    roll.key(Qt::Key_Up, Qt::ShiftModifier); // 131 > 127
+    CHECK(pitches(*p) == std::vector{67, 119, 123});
+    CHECK(p->range() == std::pair{36, 123});
+  });
+}
+
+TEST_CASE("piano roll: a note dragged past the top of the range grows it", "[midi][pianoroll]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    auto doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    auto* p = newPianoRoll(*doc);
+    p->setRange(48, 72);
+    addNote(*p, 70, 0.1);
+
+    PianoRoll roll{*doc, *p};
+    auto notes = roll.notes();
+    REQUIRE(notes.size() == 1);
+    auto* v = notes.front();
+    const double row = 600. / 25.;
+
+    // Five rows up, which is past 72: the range follows the note.
+    const QPointF grab{2., 2.};
+    roll.mouse(v, QEvent::GraphicsSceneMousePress, grab, grab);
+    const QPointF up = grab - QPointF{0., 5. * row};
+    roll.mouse(v, QEvent::GraphicsSceneMouseMove, up, grab);
+    roll.mouse(v, QEvent::GraphicsSceneMouseMove, up, grab); // again: no runaway
+    roll.mouse(v, QEvent::GraphicsSceneMouseRelease, up, grab);
+    CHECK(pitches(*p) == std::vector{75});
+    CHECK(p->range() == std::pair{48, 75});
+
+    doc->commandStack().undo();
+    CHECK(pitches(*p) == std::vector{70});
+    CHECK(p->range() == std::pair{48, 72});
   });
 }
 

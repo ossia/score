@@ -29,8 +29,12 @@ protected:
   void deserializeImpl(DataStreamOutput& s) override;
 
 private:
+  void updateRange();
+
   Path<ProcessModel> m_model;
   std::vector<std::pair<Id<Note>, NoteData>> m_before, m_after;
+  //! The range grows to show the notes where they are moved.
+  std::pair<int, int> m_rangeBefore{}, m_rangeAfter{};
 };
 
 class ChangeNotesVelocity final : public score::Command

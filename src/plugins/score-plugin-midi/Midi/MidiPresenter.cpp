@@ -208,44 +208,40 @@ void Presenter::on_deselectOtherNotes()
     n->setSelected(false);
 }
 
-void Presenter::on_noteChanged(NoteView& v)
+void Presenter::on_noteChanged(NoteView& v, int semitones)
 {
-  if(!m_origMovePitch)
+  auto notes = selectedNotes();
+  if(ossia::find(notes, v.note.id()) == notes.end())
+    notes = {v.note.id()};
+
+  if(!m_origMovePitches)
   {
-    m_origMovePitch = v.note.pitch();
+    int lo = 127, hi = 0;
+    for(auto& id : notes)
+    {
+      const int p = model().notes.at(id).pitch();
+      lo = std::min(lo, p);
+      hi = std::max(hi, p);
+    }
+    m_origMovePitches = std::pair{lo, hi};
     m_origMoveStart = v.note.start();
   }
 
-  const auto [min, max] = this->model().range();
-  auto newPos = v.pos();
-  auto rect = m_view->boundingRect();
-  auto height = rect.height();
-
-  // Snap to grid : we round y to the closest multiple of 127
-  int note = ossia::clamp(
-      int(max
-          - (qMin(rect.bottom(), qMax(newPos.y(), rect.top())) / height)
-                * this->m_view->visibleCount()),
-      min, max);
-
-  auto notes = selectedNotes();
-  auto it = ossia::find(notes, v.note.id());
-  if(it == notes.end())
-  {
-    notes = {v.note.id()};
-  }
+  // Past the range, the range grows (MoveNotes does it); past MIDI's own, the
+  // selection stops as a block rather than squashing against the edge.
+  const auto [lo, hi] = *m_origMovePitches;
+  semitones = std::clamp(semitones, -lo, 127 - hi);
 
   m_moveDispatcher.submit(
-      model(), notes, note - *m_origMovePitch,
-      newPos.x() / m_view->defaultWidth() - *m_origMoveStart);
+      model(), notes, semitones, v.pos().x() / m_view->defaultWidth() - *m_origMoveStart);
 }
 
-void Presenter::on_noteChangeFinished(NoteView& v)
+void Presenter::on_noteChangeFinished(NoteView& v, int semitones)
 {
-  on_noteChanged(v);
+  on_noteChanged(v, semitones);
   m_moveDispatcher.commit();
 
-  m_origMovePitch = std::nullopt;
+  m_origMovePitches = std::nullopt;
   m_origMoveStart = std::nullopt;
 }
 
@@ -300,13 +296,13 @@ void Presenter::on_transpose(int semitones)
   if(notes.empty() || semitones == 0)
     return;
 
-  // The selection moves as a block: a step that would take one of its notes
-  // out of the range is refused rather than squashing a chord at the edge.
-  const auto [min, max] = model().range();
+  // The selection moves as a block: past the range, the range grows (MoveNotes
+  // does it); a step that would take a note out of MIDI's 0 - 127 is refused
+  // rather than squashing a chord at the edge.
   for(auto& id : notes)
   {
     const int p = model().notes.at(id).pitch() + semitones;
-    if(p < min || p > max)
+    if(p < 0 || p > 127)
       return;
   }
 

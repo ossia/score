@@ -26,6 +26,19 @@ MoveNotes::MoveNotes(
     data.m_start = std::max(data.m_start + t_delta, 0.);
     m_after.push_back(std::make_pair(note.id(), data));
   }
+  m_rangeBefore = model.range();
+  updateRange();
+}
+
+void MoveNotes::updateRange()
+{
+  auto [lo, hi] = m_rangeBefore;
+  for(const auto& [id, data] : m_after)
+  {
+    lo = std::min(lo, int(data.pitch()));
+    hi = std::max(hi, int(data.pitch()));
+  }
+  m_rangeAfter = {lo, hi};
 }
 
 void MoveNotes::undo(const score::DocumentContext& ctx) const
@@ -37,6 +50,8 @@ void MoveNotes::undo(const score::DocumentContext& ctx) const
     n.setStart(note.second.start());
     n.setPitch(note.second.pitch());
   }
+  if(model.range() != m_rangeBefore)
+    model.setRange(m_rangeBefore.first, m_rangeBefore.second);
   model.notesNeedUpdate();
 }
 
@@ -49,6 +64,8 @@ void MoveNotes::redo(const score::DocumentContext& ctx) const
     n.setStart(note.second.start());
     n.setPitch(note.second.pitch());
   }
+  if(model.range() != m_rangeAfter)
+    model.setRange(m_rangeAfter.first, m_rangeAfter.second);
   model.notesNeedUpdate();
 }
 
@@ -60,16 +77,17 @@ void MoveNotes::update(unused_t, unused_t, int note_delta, double t_delta)
     m_after[i].second.setPitch(qBound(0, data.pitch() + note_delta, 127));
     m_after[i].second.setStart(std::max(data.start() + t_delta, 0.));
   }
+  updateRange();
 }
 
 void MoveNotes::serializeImpl(DataStreamInput& s) const
 {
-  s << m_model << m_before << m_after;
+  s << m_model << m_before << m_after << m_rangeBefore << m_rangeAfter;
 }
 
 void MoveNotes::deserializeImpl(DataStreamOutput& s)
 {
-  s >> m_model >> m_before >> m_after;
+  s >> m_model >> m_before >> m_after >> m_rangeBefore >> m_rangeAfter;
 }
 
 ChangeNotesVelocity::ChangeNotesVelocity(

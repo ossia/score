@@ -153,6 +153,18 @@ bool NoteView::canEdit() const
 }
 
 static QPointF noteview_origpoint;
+//! The height of a row when the drag started: the drag's height is counted in
+//! those, so that the range growing under the drag does not change what it
+//! means.
+static double noteview_rowheight = 1.;
+
+//! How many semitones a vertical drag from the press to `event` is.
+static int dragSemitones(const QGraphicsItem& view, QGraphicsSceneMouseEvent* event)
+{
+  const QPointF d = view.mapFromScene(event->scenePos())
+                    - view.mapFromScene(event->buttonDownScenePos(Qt::LeftButton));
+  return qRound(-d.y() / noteview_rowheight);
+}
 void NoteView::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
   const auto mods = QGuiApplication::keyboardModifiers();
@@ -182,6 +194,8 @@ void NoteView::mousePressEvent(QGraphicsSceneMouseEvent* event)
     {
       m_action = Move;
       noteview_origpoint = this->pos();
+      auto& view = *(View*)parentItem();
+      noteview_rowheight = std::max(1e-3, view.height() / view.visibleCount());
     }
   }
   event->accept();
@@ -194,10 +208,12 @@ void NoteView::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
     switch(m_action)
     {
       case Move:
-        this->setPos(closestPos(
-            noteview_origpoint + event->scenePos()
-            - event->buttonDownScenePos(Qt::LeftButton)));
-        m_presenter.on_noteChanged(*this);
+        // The time here; the pitch from the model once the move is applied.
+        this->setX(closestPos(
+                       noteview_origpoint + event->scenePos()
+                       - event->buttonDownScenePos(Qt::LeftButton))
+                       .x());
+        m_presenter.on_noteChanged(*this, dragSemitones(*parentItem(), event));
         break;
       case Scale:
         this->setWidth(std::max(2., event->pos().x()));
@@ -224,12 +240,12 @@ void NoteView::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
     {
       case Move: {
         auto delta = event->scenePos() - event->buttonDownScenePos(Qt::LeftButton);
-        auto p = closestPos(noteview_origpoint + delta);
-        this->setPos(p);
+        this->setX(closestPos(noteview_origpoint + delta).x());
         if(delta != QPointF{})
         {
-          m_presenter.on_noteChanged(*this);
-          m_presenter.on_noteChangeFinished(*this);
+          const int semitones = dragSemitones(*parentItem(), event);
+          m_presenter.on_noteChanged(*this, semitones);
+          m_presenter.on_noteChangeFinished(*this, semitones);
         }
         break;
       }

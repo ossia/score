@@ -43,8 +43,9 @@ public:
 
   void on_deselectOtherNotes();
   void on_duplicate();
-  void on_noteChanged(NoteView& v);
-  void on_noteChangeFinished(NoteView& v);
+  //! A drag of `v` by `semitones`, its time from where the view is.
+  void on_noteChanged(NoteView& v, int semitones);
+  void on_noteChangeFinished(NoteView& v, int semitones);
   void on_noteScaled(const Note& note, double newScale);
   void on_transpose(int semitones);
   void on_requestVelocityChange(const Note& note, double velocityDelta);
@@ -73,7 +74,7 @@ private:
   SingleOngoingCommandDispatcher<MoveNotes> m_moveDispatcher;
   SingleOngoingCommandDispatcher<ChangeNotesVelocity> m_velocityDispatcher;
 
-  std::optional<int> m_origMovePitch{};
+  std::optional<std::pair<int, int>> m_origMovePitches{}; // lowest, highest
   std::optional<double> m_origMoveStart{};
 
   ZoomRatio m_zr{};
