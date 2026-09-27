@@ -37,6 +37,11 @@ endif()
 if(NOT TARGET fastgltf)
   set(FASTGLTF_COMPILE_AS_CPP20 ON CACHE BOOL "" FORCE)
   set(FASTGLTF_ENABLE_INSTALL OFF CACHE BOOL "" FORCE)
+  # Its memory pool is std::pmr, which Apple's libc++ only exports from macOS 14
+  # on: an older deployment target links, then dies in dyld at launch.
+  if(APPLE AND CMAKE_OSX_DEPLOYMENT_TARGET AND CMAKE_OSX_DEPLOYMENT_TARGET VERSION_LESS 14)
+    set(FASTGLTF_DISABLE_CUSTOM_MEMORY_POOL ON CACHE BOOL "" FORCE)
+  endif()
   add_subdirectory("${3RDPARTY_FOLDER}/fastgltf" "${CMAKE_CURRENT_BINARY_DIR}/fastgltf" EXCLUDE_FROM_ALL)
 endif()
 
