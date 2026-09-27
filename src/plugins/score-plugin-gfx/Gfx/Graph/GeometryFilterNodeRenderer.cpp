@@ -51,6 +51,9 @@ void GeometryFilterNodeRenderer::update(
     char* data = node().m_material_data.get();
     res.updateDynamicBuffer(m_materialUBO, 0, m_materialSize, data);
   }
+  // Event inputs fired for this frame only: the material is uploaded every
+  // frame, so the reset reaches the GPU on the next one.
+  (void)const_cast<GeometryFilterNode&>(node()).resetEventPortsAfterFrame();
 }
 
 void GeometryFilterNodeRenderer::release(RenderList& r)

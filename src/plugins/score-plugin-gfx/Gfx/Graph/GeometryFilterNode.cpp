@@ -54,6 +54,7 @@ struct geometry_input_port_vis
   {
     *reinterpret_cast<int*>(data) = 0;
     self.input.push_back(new Port{&self, data, Types::Int, {}});
+    self.m_event_ports.push_back(reinterpret_cast<int*>(data));
     data += 4;
     sz += 4;
   }
@@ -234,5 +235,14 @@ score::gfx::NodeRenderer*
 GeometryFilterNode::createRenderer(RenderList& r) const noexcept
 {
   return new GeometryFilterNodeRenderer{*this};
+}
+}
+
+namespace score::gfx
+{
+void GeometryFilterNode::process(int32_t port, const ossia::value& v)
+{
+  if(!fireEventPort(port, v))
+    ProcessNode::process(port, v);
 }
 }

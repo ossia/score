@@ -39,5 +39,9 @@ public:
   void process(Message&& msg) override;
   // void process(int32_t port, const ossia::geometry_spec& v) override;
   void process(int32_t port, const ossia::transform3d& v) override;
+  //! An event input fires on true and on an impulse (which the generic port
+  //! writer ignores).
+  void process(int32_t port, const ossia::value& v) override;
+  using ProcessNode::process;
 };
 }
