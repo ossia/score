@@ -17,6 +17,7 @@
 #include <Curve/Palette/CommandObjects/CreatePointCommandObject.hpp>
 #include <Curve/Palette/CommandObjects/MovePointCommandObject.hpp>
 #include <Curve/Palette/CommandObjects/SetSegmentParametersCommandObject.hpp>
+#include <Curve/ApplicationPlugin.hpp>
 #include <Curve/Palette/CurveEditionSettings.hpp>
 #include <Curve/Palette/CurvePaletteBaseStates.hpp>
 #include <Curve/Palette/CurvePalette.hpp>
@@ -3688,5 +3689,59 @@ TEST_CASE("The presenter switches to direct drawing and back, and drops all view
     ui.move({0.5, 0.5});
     ui.release({0.5, 0.5});
     CHECK(d.stack().size() == commands);
+  });
+}
+
+TEST_CASE("The curve tool follows the modifiers held, whatever order they come in", "[curve][tools]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    Curve::ApplicationPlugin plug{ctx};
+    auto& s = plug.editionSettings();
+    s.setTool(Curve::Tool::Select);
+    auto key = [&](QEvent::Type t, int k, Qt::KeyboardModifiers mods) {
+      QKeyEvent ev{t, k, mods};
+      if(t == QEvent::KeyPress)
+        plug.on_keyPressEvent(ev);
+      else
+        plug.on_keyReleaseEvent(ev);
+    };
+    using enum Curve::Tool;
+
+    // Shift held, Alt pressed, Shift let go, then Alt: the tool follows what
+    // is held, it is not toggled on each event.
+    key(QEvent::KeyPress, Qt::Key_Shift, Qt::ShiftModifier);
+    CHECK(s.tool() == SetSegment);
+    key(QEvent::KeyPress, Qt::Key_Alt, Qt::ShiftModifier | Qt::AltModifier);
+    CHECK(s.tool() == SetSegment); // Alt then bends every selected segment
+    key(QEvent::KeyRelease, Qt::Key_Shift, Qt::AltModifier);
+    CHECK(s.tool() == CreatePen);
+    key(QEvent::KeyRelease, Qt::Key_Alt, Qt::NoModifier);
+    CHECK(s.tool() == Select);
+
+    // The same key twice, as when one of the events is repeated.
+    key(QEvent::KeyPress, Qt::Key_Alt, Qt::AltModifier);
+    key(QEvent::KeyPress, Qt::Key_Alt, Qt::AltModifier);
+    CHECK(s.tool() == CreatePen);
+    key(QEvent::KeyRelease, Qt::Key_Alt, Qt::NoModifier);
+    CHECK(s.tool() == Select);
+
+    // A modifier's own event without it in modifiers(), as some platforms send.
+    key(QEvent::KeyPress, Qt::Key_Control, Qt::NoModifier);
+    CHECK(s.tool() == Create);
+    key(QEvent::KeyPress, Qt::Key_Shift, Qt::ControlModifier);
+    CHECK(s.tool() == SetSegment);
+    key(QEvent::KeyRelease, Qt::Key_Shift, Qt::ControlModifier | Qt::ShiftModifier);
+    CHECK(s.tool() == Create);
+
+    // A release that went to another window: the next key event says what is
+    // actually held.
+    key(QEvent::KeyPress, Qt::Key_A, Qt::NoModifier);
+    CHECK(s.tool() == Select);
+
+    // Tools the modifiers do not choose are left alone.
+    s.setTool(Disabled);
+    key(QEvent::KeyPress, Qt::Key_Shift, Qt::ShiftModifier);
+    CHECK(s.tool() == Disabled);
+    s.setTool(Select);
   });
 }
