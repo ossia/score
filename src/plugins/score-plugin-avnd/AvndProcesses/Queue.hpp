@@ -48,12 +48,9 @@ struct Queue
         self.buffer.set_capacity(this->value);
       }
     } length;
-    // An impulse, from the button or a message: a maintained button read an
-    // incoming impulse as false and never cleared.
-    struct : halp::impulse_button<"Clear">
-    {
-      void update(Queue& self) { self.buffer.clear(); }
-    } clear;
+    // Held: the queue is cleared and the input dropped. An impulse (a
+    // message, a cable) is a press lasting one tick: it clears once.
+    halp::maintained_button<"Clear"> clear;
     halp::maintained_button<"Lock"> lock;
     halp::enum_t<OutputMode, "Mode"> mode;
     halp::enum_t<OutputData, "Data"> data;
@@ -84,11 +81,18 @@ struct Queue
     bool changed = false;
     if(inputs.input.value)
     {
-      if(!inputs.lock)
+      if(!inputs.lock && !inputs.clear)
+      {
         buffer.push_back(std::move(*inputs.input.value));
         changed = true;
       }
       inputs.input.value.reset();
+    }
+
+    if(inputs.clear && !buffer.empty())
+    {
+      buffer.clear();
+      changed = true;
     }
 
     switch(inputs.mode)

@@ -181,8 +181,7 @@ struct QueueRig
   tick(std::optional<ossia::value> in, bool bang = false, bool clear = false)
   {
     q.inputs.input.value = std::move(in);
-    if(clear)
-      q.inputs.clear.update(q);
+    q.inputs.clear.value = clear;
     if(bang)
       q.inputs.bang.update(q);
     q();
@@ -191,16 +190,19 @@ struct QueueRig
 };
 }
 
-TEST_CASE("Buffer queue: Clear is an impulse", "[avnd][utilities][queue]")
+TEST_CASE("Buffer queue: held Clear empties and blocks the queue", "[avnd][utilities][queue]")
 {
   QueueRig r{avnd_tools::Queue::ManualBang};
   r.q.inputs.data.value = avnd_tools::Queue::WholeBuffer;
   r.tick(ossia::value{1});
   r.tick(ossia::value{2});
-  r.tick(std::nullopt, false, true);
+  r.tick(ossia::value{3}, false, true); // held
+  r.tick(ossia::value{4}, false, true);
+  CHECK(r.q.buffer.empty()); // cleared, and nothing queued while held
+  r.tick(ossia::value{5});
   auto out = r.tick(std::nullopt, true);
   REQUIRE(out);
-  CHECK(out->get<std::vector<ossia::value>>().empty());
+  CHECK(out->get<std::vector<ossia::value>>() == std::vector<ossia::value>{5});
 }
 
 TEST_CASE("Buffer queue: Bang sends in any mode, like Counter's Output", "[avnd][utilities][queue]")

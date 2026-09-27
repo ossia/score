@@ -336,3 +336,51 @@ TEST_CASE("ADSR: Hold set before the transport starts is not an edge", "[avnd][a
     spin(50);
   });
 }
+
+// Hold is a maintained button: true while held. An impulse on it (a cable, a
+// message) is a press lasting one tick.
+TEST_CASE("ADSR: an impulse on Hold is a press for one tick", "[avnd][adsr][execution][button]")
+{
+  with_adsr([](adsr_exec& e) {
+    e.fast();
+    auto* in = static_cast<ossia::value_inlet*>(e.node.root_inputs()[hold_inlet]);
+
+    in->data.write_value(ossia::impulse{}, 0);
+    const float first = e.tick();
+    in->data.clear();
+    CHECK(first > 0.f); // gated during that tick
+    CHECK(!e.object().inputs.hold.value); // and released after it
+
+    // So the envelope goes on to its release, and ends
+    e.run_until_silent();
+    CHECK(e.object().outputs.out.value == 0.f);
+  });
+}
+
+TEST_CASE("ADSR: booleans on Hold still hold, and an impulse does not release it", "[avnd][adsr][execution][button]")
+{
+  with_adsr([](adsr_exec& e) {
+    e.fast();
+    auto* in = static_cast<ossia::value_inlet*>(e.node.root_inputs()[hold_inlet]);
+
+    in->data.write_value(true, 0);
+    e.tick();
+    in->data.clear();
+    CHECK(e.object().inputs.hold.value);
+    e.tick();
+    CHECK(e.object().inputs.hold.value); // still held with no new message
+
+    // An impulse while held: stays held
+    in->data.write_value(ossia::impulse{}, 0);
+    e.tick();
+    in->data.clear();
+    CHECK(e.object().inputs.hold.value);
+    e.tick();
+    CHECK(e.object().inputs.hold.value);
+
+    in->data.write_value(false, 0);
+    e.tick();
+    in->data.clear();
+    CHECK(!e.object().inputs.hold.value);
+  });
+}

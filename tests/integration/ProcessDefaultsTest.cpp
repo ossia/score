@@ -197,7 +197,7 @@ QByteArray retypeInlet(
 }
 
 TEST_CASE(
-    "a buffer queue saved with a held Clear and a Bang value inlet gets the impulses",
+    "a buffer queue saved with an impulse Clear and a Bang value inlet gets the declared kinds",
     "[integration][utilities][queue]")
 {
   score::test::run_in_gui_app([](const score::GUIApplicationContext& app) {
@@ -205,7 +205,7 @@ TEST_CASE(
     auto doc = score::test::new_document(app);
     auto q = score::test::add_process(*doc, queue, {});
     REQUIRE(q);
-    CHECK(qobject_cast<Process::ImpulseButton*>(control(*q, QStringLiteral("Clear"))));
+    CHECK(qobject_cast<Process::Button*>(control(*q, QStringLiteral("Clear"))));
     CHECK(qobject_cast<Process::ImpulseButton*>(control(*q, QStringLiteral("Bang"))));
 
     // A cable into Clear, which the upgrade must keep
@@ -220,14 +220,15 @@ TEST_CASE(
     REQUIRE(control(*q, QStringLiteral("Clear"))->cables().size() == 1);
 
     auto old = score::test::save_as_json(*doc);
+    // Clear as an impulse button, as some documents saved it
     old = retypeInlet(old, queue, QStringLiteral("Clear"),
-                      QStringLiteral("feb87e84-e0d2-428f-96ff-a123ac964f59")); // Button
+                      QStringLiteral("7cd210d3-ebd1-4f71-9de6-cccfb639cbc3")); // ImpulseButton
     old = retypeInlet(old, queue, QStringLiteral("Bang"),
                       QStringLiteral("769dd38a-bfb3-4dc6-b52a-b6abb7afe2a3")); // ValueInlet
     auto reloaded = reloadedAs(app, old, *q);
     REQUIRE(reloaded);
     CHECK(reloaded->inlets().size() == q->inlets().size());
-    CHECK(qobject_cast<Process::ImpulseButton*>(control(*reloaded, QStringLiteral("Clear"))));
+    CHECK(qobject_cast<Process::Button*>(control(*reloaded, QStringLiteral("Clear"))));
     CHECK(qobject_cast<Process::ImpulseButton*>(control(*reloaded, QStringLiteral("Bang"))));
 
     // The cable came through, on both ends
