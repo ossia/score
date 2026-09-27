@@ -1084,6 +1084,11 @@ score_add_test(test_unit_isf_importers
 if(TARGET score_plugin_gfx)
   set(_gfx_scene_src "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-gfx/Gfx/Graph")
 
+score_add_test(test_unit_isf_event_impulse
+    SOURCES IsfEventImpulseTest.cpp
+    PLUGINS score_plugin_gfx
+    LIBS ${QT_PREFIX}::Gui)
+
 score_add_test(test_unit_scene_flatten
     SOURCES
       SceneFlattenTest.cpp

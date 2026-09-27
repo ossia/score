@@ -39,6 +39,10 @@ public:
   static bool hasCameraInput(const isf::descriptor& desc) noexcept;
   int cameraInput() const noexcept { return m_cameraInput; }
   void process(Message&& msg) override;
+  //! An event input fires for one frame on true -- and on an impulse, which
+  //! the generic port writer ignores: a cable or a message could not fire it.
+  void process(int32_t port, const ossia::value& v) override;
+  using ProcessNode::process;
   friend SinglePassISFNode;
   friend RenderedISFNode;
   friend isf_input_port_vis;
@@ -52,7 +56,6 @@ public:
   QString m_vertexS;
   QString m_fragmentS;
   QString m_computeS;
-  std::vector<int*> m_event_ports;
 
   int m_cameraInput{-1};
   int m_materialSize{};
@@ -60,32 +63,5 @@ public:
   // dispatch ports are appended past this: their values are read on the CPU to
   // size the dispatch, and no generated shader declares them.
   int m_materialUBOSize{};
-
-  // Reset all `event` input ports to 0 so they pulse true for exactly one
-  // frame after the upstream producer writes 1. Called at the end of each
-  // frame's update() — AFTER the material UBO has been staged via
-  // updateDynamicBuffer (which captures the value at call time), so
-  // resetting the CPU memory here doesn't affect what the shader reads
-  // this frame, only what would leak into the next frame if we didn't
-  // reset.
-  //
-  // Returns true if any port was actually firing. Callers should then set
-  // their NodeRenderer::materialChanged flag so the next frame re-uploads
-  // the now-zero event value — otherwise the gate-on-materialChanged
-  // upload path would skip the re-upload and leave the stale 1 in the GPU
-  // UBO indefinitely.
-  [[nodiscard]] bool resetEventPortsAfterFrame() noexcept
-  {
-    bool any_fired = false;
-    for(int* p : m_event_ports)
-    {
-      if(p && *p != 0)
-      {
-        *p = 0;
-        any_fired = true;
-      }
-    }
-    return any_fired;
-  }
 };
 }

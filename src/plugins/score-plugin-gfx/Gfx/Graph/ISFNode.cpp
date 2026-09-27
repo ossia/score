@@ -605,3 +605,12 @@ score::gfx::NodeRenderer* ISFNode::createRenderer(RenderList& r) const noexcept
   return nullptr;
 }
 }
+
+namespace score::gfx
+{
+void ISFNode::process(int32_t port, const ossia::value& v)
+{
+  if(!fireEventPort(port, v))
+    ProcessNode::process(port, v);
+}
+}

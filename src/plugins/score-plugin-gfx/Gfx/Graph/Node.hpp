@@ -16,6 +16,8 @@
 #include <score_plugin_gfx_export.h>
 
 #include <boost/version.hpp>
+
+#include <algorithm>
 #include <vector>
 
 namespace score::gfx
@@ -232,6 +234,42 @@ public:
   virtual void process(int32_t port, const FunctionMessage&);
   virtual void process(int32_t port, const ossia::buffer_spec&);
   using Node::process;
+
+  //! Values of the EVENT inputs: 1 for the frame they fire in, else 0.
+  std::vector<int*> m_event_ports;
+
+  //! Resets the event inputs, once the frame's material has been staged.
+  //! Whether any had fired: the material must then be uploaded again, else
+  //! the GPU keeps the 1.
+  [[nodiscard]] bool resetEventPortsAfterFrame() noexcept
+  {
+    bool fired = false;
+    for(int* p : m_event_ports)
+    {
+      if(p && *p != 0)
+      {
+        *p = 0;
+        fired = true;
+      }
+    }
+    return fired;
+  }
+
+protected:
+  //! Fires the event input `port` on an impulse, which the generic port
+  //! writer ignores. False when `v` is no impulse or `port` no event input.
+  bool fireEventPort(int32_t port, const ossia::value& v) noexcept
+  {
+    if(!v.target<ossia::impulse>() || port < 0 || port >= int(this->input.size()))
+      return false;
+    auto* data = static_cast<int*>(this->input[port]->value);
+    if(std::find(m_event_ports.begin(), m_event_ports.end(), data)
+       == m_event_ports.end())
+      return false;
+    *data = 1;
+    this->materialChange();
+    return true;
+  }
 };
 
 /**

@@ -474,3 +474,64 @@ TEST_CASE(
     CHECK(out[2] == Approx(3.0 * (i + 1)).margin(1e-15));
   }
 }
+
+#include <ossia/dataflow/nodes/faust/faust_utils.hpp>
+#include <ossia/dataflow/port.hpp>
+
+namespace
+{
+//! What faust_exec_ui and faust_node_utils need of a node.
+struct ButtonNode
+{
+  ossia::inlets ins;
+  ossia::outlets outs;
+  std::vector<std::pair<ossia::value_port*, FAUSTFLOAT*>> controls;
+  std::vector<std::pair<ossia::value_port*, FAUSTFLOAT*>> displays;
+  ossia::inlets& root_inputs() { return ins; }
+  ossia::outlets& root_outputs() { return outs; }
+  ~ButtonNode()
+  {
+    for(auto* i : ins)
+      delete i;
+    for(auto* o : outs)
+      delete o;
+  }
+};
+}
+
+// A Faust button is 1 while pressed. An impulse (a cable, a message) is a
+// press for the compute of that tick, not ossia::convert<float> -> 0.
+TEST_CASE("Faust: an impulse presses a button for one compute", "[faust][button]")
+{
+  Jit j{R"(process = button("b"), checkbox("c") :> _;)"};
+  REQUIRE(j.ok());
+  ButtonNode node;
+  ossia::nodes::faust_exec_ui<ButtonNode, false> ui{node};
+  j.dsp->buildUserInterface(&ui);
+  REQUIRE(node.controls.size() == 2);
+  auto& [button_port, button_zone] = node.controls[0];
+  auto& [check_port, check_zone] = node.controls[1];
+  CHECK(button_port->is_event);  // a button is an event port
+  CHECK(!check_port->is_event);  // a checkbox is not
+
+  button_port->write_value(ossia::impulse{}, 0);
+  ossia::nodes::faust_node_utils::copy_controls(node);
+  CHECK(*button_zone == 1.f);
+  CHECK(j.gen1(16)[0] == Approx(1.));
+  ossia::nodes::faust_node_utils::release_pressed_buttons(node);
+  CHECK(*button_zone == 0.f);
+  button_port->clear();
+  CHECK(j.gen1(16)[0] == Approx(0.));
+
+  // Held with a real value: stays pressed across computes
+  button_port->write_value(1.f, 0);
+  ossia::nodes::faust_node_utils::copy_controls(node);
+  ossia::nodes::faust_node_utils::release_pressed_buttons(node);
+  CHECK(*button_zone == 1.f);
+  button_port->clear();
+
+  // An impulse on the checkbox is not a press
+  check_port->write_value(ossia::impulse{}, 0);
+  ossia::nodes::faust_node_utils::copy_controls(node);
+  CHECK(*check_zone == 0.f);
+}
