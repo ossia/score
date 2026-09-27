@@ -239,13 +239,15 @@ TEST_CASE("Buffer queue: Bang sends in any mode, like Counter's Output", "[avnd]
 }
 
 #include <examples/Helpers/ValueDelay.hpp>
+#include <ossia/network/value/value_conversion.hpp>
 
 namespace
 {
 struct DelayRig
 {
-  examples::helpers::ValueDelay d;
-  DelayRig(examples::helpers::ValueDelay::Mode mode, int length, int count)
+  using VD = examples::helpers::ValueDelay;
+  VD d;
+  DelayRig(VD::Mode mode, int length, int count)
   {
     d.inputs.mode.value = mode;
     d.inputs.length.value = length;
@@ -253,49 +255,154 @@ struct DelayRig
     d.prepare(halp::setup{.rate = 1000.});
   }
   // One tick of `ms` milliseconds (at 1 kHz, one frame per ms), with an
-  // optional new value on In.
-  std::vector<float> tick(std::optional<float> in, int ms = 1)
+  // optional new value on In. The binding empties In after each tick.
+  std::vector<ossia::value> tick(std::optional<ossia::value> in, int ms = 1)
   {
-    if(in)
-    {
-      d.inputs.in.value = *in;
-      d.inputs.in.update(d);
-    }
+    d.inputs.in.value = std::move(in);
     d(halp::tick{.frames = ms});
+    d.inputs.in.value.reset();
     return d.outputs.a.value;
   }
+  float f(const ossia::value& v) { return ossia::convert<float>(v); }
 };
+using VD = examples::helpers::ValueDelay;
 }
 
 TEST_CASE("Value delay: in messages", "[avnd][utilities][delay]")
 {
   // Two taps, two messages apart
-  DelayRig r{examples::helpers::ValueDelay::Messages, 2, 2};
+  DelayRig r{VD::Messages, 2, 2};
   for(float v : {1.f, 2.f, 3.f, 4.f})
     r.tick(v);
   // Ticks without messages do not move it
   r.tick(std::nullopt, 50);
   auto out = r.tick(5.f);
   REQUIRE(out.size() == 2);
-  CHECK(out[0] == 3.f); // 2 messages ago
-  CHECK(out[1] == 1.f); // 4 messages ago
+  CHECK(out[0] == ossia::value{3.f}); // 2 messages ago
+  CHECK(out[1] == ossia::value{1.f}); // 4 messages ago
 }
 
 TEST_CASE("Value delay: in time", "[avnd][utilities][delay]")
 {
   // Two taps, 10 ms apart; Length does not matter in this mode
-  DelayRig r{examples::helpers::ValueDelay::Time, 1000, 2};
+  DelayRig r{VD::Time, 1000, 2};
   r.d.inputs.time.value = 0.01f;
   r.tick(1.f, 5);         // t = 0: 1
   r.tick(2.f, 10);        // t = 5: 2
   r.tick(3.f, 10);        // t = 15: 3
   auto out = r.tick(std::nullopt, 1); // t = 25
   REQUIRE(out.size() == 2);
-  CHECK(out[0] == 3.f); // at t = 15
-  CHECK(out[1] == 2.f); // at t = 5
+  CHECK(out[0] == ossia::value{3.f}); // at t = 15
+  CHECK(out[1] == ossia::value{2.f}); // at t = 5
   // It follows real time, not the number of ticks
   out = r.tick(std::nullopt, 1); // t = 26
-  CHECK(out[1] == 2.f);
+  CHECK(out[1] == ossia::value{2.f});
+}
+
+TEST_CASE("Value delay: in ticks, Length ticks apart", "[avnd][utilities][delay]")
+{
+  DelayRig r{VD::Ticks, 3, 2};
+  for(int i = 1; i <= 10; i++)
+    r.tick(float(i));
+  // Tick 10 holds 10: tap 0 is 3 ticks ago, tap 1 6 ticks ago
+  auto out = r.tick(11.f);
+  REQUIRE(out.size() == 2);
+  CHECK(out[0] == ossia::value{8.f});
+  CHECK(out[1] == ossia::value{5.f});
+}
+
+TEST_CASE("Value delay: any value", "[avnd][utilities][delay]")
+{
+  DelayRig r{VD::Messages, 1, 2};
+  r.tick(std::string{"a"});
+  r.tick(ossia::vec3f{1.f, 2.f, 3.f});
+  auto out = r.tick(std::vector<ossia::value>{1, std::string{"x"}});
+  REQUIRE(out.size() == 2);
+  CHECK(out[0] == ossia::value{ossia::vec3f{1.f, 2.f, 3.f}});
+  CHECK(out[1] == ossia::value{std::string{"a"}});
+}
+
+TEST_CASE("Value delay: feedback repeats a movement and fades it", "[avnd][utilities][delay]")
+{
+  // One message apart, feedback 0.5: a 1 among 0s comes back halved each
+  // message; a steady value stays what it is.
+  DelayRig r{VD::Messages, 1, 3};
+  r.d.inputs.feedback.value = 0.5f;
+  r.tick(0.f);
+  r.tick(1.f);
+  auto out = r.tick(0.f);
+  CHECK(r.f(out[0]) == Catch::Approx(0.5f)); // what was recorded for 1: (1-0.5)*1 + 0.5*0
+  out = r.tick(0.f);
+  CHECK(r.f(out[0]) == Catch::Approx(0.25f)); // its echo
+  CHECK(r.f(out[1]) == Catch::Approx(0.5f));
+
+  DelayRig steady{VD::Messages, 1, 2};
+  steady.d.inputs.feedback.value = 0.9f;
+  for(int i = 0; i < 20; i++)
+    out = steady.tick(2.f);
+  CHECK(steady.f(out[0]) == Catch::Approx(2.f));
+  CHECK(steady.f(out[1]) == Catch::Approx(2.f));
+}
+
+TEST_CASE("Value delay: freeze loops, clear empties", "[avnd][utilities][delay]")
+{
+  // Ticks, 2 apart: 1 2 3 4, then frozen: the line repeats its last 2 ticks.
+  DelayRig r{VD::Ticks, 2, 1};
+  for(float v : {1.f, 2.f, 3.f, 4.f})
+    r.tick(v);
+  r.d.inputs.freeze.value = true;
+  std::vector<float> seen;
+  for(float v : {10.f, 11.f, 12.f, 13.f})
+    seen.push_back(r.f(r.tick(v)[0]));
+  CHECK(seen == std::vector<float>{3.f, 4.f, 3.f, 4.f});
+
+  // Clear: the line is gone, the taps read what In is now.
+  r.d.inputs.freeze.value = false;
+  r.d.inputs.clear.update(r.d);
+  auto out = r.tick(7.f);
+  CHECK(r.f(out[0]) == 7.f);
+}
+
+TEST_CASE("Value delay: smooth glides between the recorded values", "[avnd][utilities][delay]")
+{
+  DelayRig r{VD::Time, 1, 1};
+  r.d.inputs.time.value = 0.01f; // 10 ms
+  r.d.inputs.smooth.value = true;
+  r.tick(0.f, 10);  // t = 0: 0
+  r.tick(10.f, 10); // t = 10: 10
+  auto out = r.tick(std::nullopt, 5); // t = 20 -> reads t = 10: 10
+  CHECK(r.f(out[0]) == Catch::Approx(10.f));
+
+  DelayRig step{VD::Time, 1, 1};
+  step.d.inputs.time.value = 0.01f;
+  step.tick(0.f, 10);
+  step.tick(10.f, 5); // t = 10: 10
+  out = step.tick(std::nullopt, 1); // t = 15 -> reads t = 5: 0, stepped
+  CHECK(step.f(out[0]) == 0.f);
+
+  r = DelayRig{VD::Time, 1, 1};
+  r.d.inputs.time.value = 0.01f;
+  r.d.inputs.smooth.value = true;
+  r.tick(0.f, 10);
+  r.tick(10.f, 5);
+  out = r.tick(std::nullopt, 1); // reads t = 5: halfway
+  CHECK(r.f(out[0]) == Catch::Approx(5.f));
+}
+
+TEST_CASE("Value delay: the Mix outlet", "[avnd][utilities][delay]")
+{
+  DelayRig r{VD::Messages, 1, 1};
+  r.d.inputs.mix.value = 0.25f;
+  r.tick(0.f);
+  r.tick(8.f);
+  // In is 8, its first echo 0
+  CHECK(r.f(r.d.outputs.mix.value) == Catch::Approx(6.f));
+  // Values that do not mix: In below 0.5, the echo from 0.5
+  r.tick(std::string{"b"});
+  CHECK(r.d.outputs.mix.value == ossia::value{std::string{"b"}});
+  r.d.inputs.mix.value = 1.f;
+  r.tick(std::string{"c"});
+  CHECK(r.d.outputs.mix.value == ossia::value{std::string{"b"}});
 }
 
 #include <examples/Advanced/Utilities/ArrayRecombiner.hpp>

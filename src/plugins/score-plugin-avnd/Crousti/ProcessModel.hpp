@@ -163,6 +163,7 @@ public:
     vis.writeTo(*this);
     check_all_ports();
     upgrade_value_inlets_to_controls();
+    upgrade_controls_to_value_inlets();
     upgrade_changed_control_types();
     init_after_port_creation();
   }
@@ -425,6 +426,48 @@ private:
           new_inlet->setValue(*v);
         // The cables into it: the document's cables point at this id, and the
         // port lists them too.
+        new_inlet->takeCables(std::move(*old_inlet));
+        auto it = ossia::find(m_inlets, old_inlet);
+        SCORE_ASSERT(it != m_inlets.end());
+        *it = new_inlet;
+        delete old_inlet;
+      }
+    });
+  }
+
+  //! The other way: a control that became a plain value port (e.g. Value
+  //! delay's In, a float slider that now takes any value). Rebuilt as the
+  //! declared port with the same id, cables, address and exposed name.
+  void upgrade_controls_to_value_inlets()
+  {
+    avnd::input_introspection<Info>::for_all(
+        [this]<std::size_t Idx, typename P>(avnd::field_reflection<Idx, P>) {
+      if constexpr(
+          avnd::parameter_port<P> && !oscr::ossia_port<P>
+          && !avnd::dynamic_ports_port<P> && !avnd::has_widget<P>
+          && std::is_default_constructible_v<P>)
+      {
+        auto ports = avnd_input_idx_to_model_ports(Idx);
+        if(ports.size() != 1)
+          return;
+        auto old_inlet = qobject_cast<Process::ControlInlet*>(ports[0]);
+        if(!old_inlet)
+          return;
+
+        Process::Inlets fresh;
+        InletInitFunc<Info> make{*this, fresh};
+        make.inlet = old_inlet->id().val();
+        make(P{}, avnd::field_index<Idx>{});
+        auto new_inlet
+            = fresh.size() == 1 ? qobject_cast<Process::ValueInlet*>(fresh[0]) : nullptr;
+        if(!new_inlet)
+        {
+          qDeleteAll(fresh);
+          return;
+        }
+
+        new_inlet->setExposed(old_inlet->exposed());
+        new_inlet->setAddress(old_inlet->address());
         new_inlet->takeCables(std::move(*old_inlet));
         auto it = ossia::find(m_inlets, old_inlet);
         SCORE_ASSERT(it != m_inlets.end());

@@ -305,3 +305,72 @@ TEST_CASE("Enumerator is available as a process", "[integration][utilities]")
     CHECK(control(*e, QStringLiteral("Interval")));
   });
 }
+
+namespace
+{
+// A saved document where Value delay's In is a float slider: its inlet takes
+// the kind, range and value of the Feedback slider.
+QByteArray valueDelayInAsSlider(const QByteArray& json, const QString& proc)
+{
+  return editInlets(json, proc, [](QJsonArray& inlets) {
+    QJsonObject slider;
+    for(auto i : inlets)
+      if(i.toObject().value("Custom").toString() == "Feedback")
+        slider = i.toObject();
+    REQUIRE(!slider.isEmpty());
+    for(auto i = 0; i < inlets.size(); i++)
+    {
+      auto in = inlets[i].toObject();
+      if(in.value("Custom").toString() != "In")
+        continue;
+      for(auto key : {"uuid", "Domain", "Init"})
+        in[key] = slider[key];
+      in["Value"] = QJsonObject{{"Float", 0.5}};
+      inlets[i] = in;
+    }
+  });
+}
+}
+
+TEST_CASE(
+    "a value delay saved with a float slider In loads it as a value inlet",
+    "[integration][utilities][delay]")
+{
+  score::test::run_in_gui_app([](const score::GUIApplicationContext& app) {
+    const QString delay = QStringLiteral("39a7a489-a86b-4eaa-a617-ec2c9d559744");
+    auto doc = score::test::new_document(app);
+    auto d = score::test::add_process(*doc, delay, {});
+    REQUIRE(d);
+    REQUIRE(d->inlets()[0]->name() == "In");
+    CHECK(!qobject_cast<Process::ControlInlet*>(d->inlets()[0]));
+    CHECK(qobject_cast<Process::ValueInlet*>(d->inlets()[0]));
+
+    // A cable into In, which the upgrade must keep
+    auto spigot = score::test::add_process(
+        *doc, QStringLiteral("8b75d69b-5ce4-4360-a066-c4a7f37f3353"), {});
+    REQUIRE(spigot);
+    auto& dp
+        = static_cast<Scenario::ScenarioDocumentModel&>(doc->model().modelDelegate());
+    CommandDispatcher<>{doc->context().commandStack}.submit(new Dataflow::CreateCable{
+        dp, Id<Process::Cable>{4243}, Process::CableType::ImmediateGlutton,
+        *spigot->outlets()[0], *d->inlets()[0]});
+
+    auto old = valueDelayInAsSlider(score::test::save_as_json(*doc), delay);
+    auto reloaded = reloadedAs(app, old, *d);
+    REQUIRE(reloaded);
+    CHECK(reloaded->inlets().size() == d->inlets().size());
+    auto* in = reloaded->inlets()[0];
+    CHECK(in->name() == "In");
+    CHECK(!qobject_cast<Process::ControlInlet*>(in));
+    CHECK(qobject_cast<Process::ValueInlet*>(in));
+    CHECK(in->id() == d->inlets()[0]->id());
+
+    // The cable came through, on both ends
+    REQUIRE(in->cables().size() == 1);
+    auto& loaded = score::IDocument::documentContext(*reloaded);
+    auto& rdp = score::IDocument::modelDelegate<Scenario::ScenarioDocumentModel>(
+        loaded.document);
+    REQUIRE(rdp.cables.size() == 1);
+    CHECK(&rdp.cables.begin()->sink().find(loaded) == in);
+  });
+}

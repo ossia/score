@@ -286,7 +286,7 @@ TEST_CASE("Counter through the binding: Output in Manually mode", "[avnd][counte
 TEST_CASE("Value Delay through the binding: the Time control", "[avnd][value_delay][execution]")
 {
   with<examples::helpers::ValueDelay>(value_delay_uuid, [](auto& e) {
-    REQUIRE(e.proc.inlets().size() == 5);
+    REQUIRE(e.proc.inlets().size() == 10);
     CHECK(e.proc.inlets()[4]->name() == "Time");
     // The inspector's time chooser: {time, mode}, mode 0 is seconds
     e.gui(4, ossia::value{ossia::vec2f{0.25f, 0.f}});
@@ -298,6 +298,37 @@ TEST_CASE("Value Delay through the binding: the Time control", "[avnd][value_del
     e.port(4, ossia::value{2});
     e.tick();
     CHECK(e.object().inputs.time.value == 2.f);
+  });
+}
+
+// Value Delay inlets: In, Length, Count, Mode, Time, Feedback, Mix, Freeze,
+// Clear, Smooth. Outlets: Out, Mix.
+TEST_CASE("Value Delay through the binding: any value, and the Mix outlet", "[avnd][value_delay][execution]")
+{
+  with<examples::helpers::ValueDelay>(value_delay_uuid, [](auto& e) {
+    REQUIRE(inlet_names(e) == "In | Length | Count | Mode | Time | Feedback | Mix | Freeze | Clear | Smooth");
+    e.gui(1, 1); // Length
+    e.gui(2, 1); // Count
+    e.gui(3, 1); // Messages
+    e.gui(6, 0.f); // Mix: In only
+
+    e.port(0, ossia::value{std::string{"a"}});
+    e.tick();
+    e.port(0, ossia::value{ossia::vec3f{1.f, 2.f, 3.f}});
+    auto out = e.tick(0);
+    REQUIRE(out);
+    CHECK(*out == ossia::value{std::vector<ossia::value>{std::string{"a"}}});
+
+    // A tick without message: the vec3 is what In is, on the Mix outlet
+    auto mix = e.tick(1);
+    REQUIRE(mix);
+    CHECK(*mix == ossia::value{ossia::vec3f{1.f, 2.f, 3.f}});
+
+    // Clear from the inspector: the tap reads In
+    e.gui_bang(8);
+    out = e.tick(0);
+    REQUIRE(out);
+    CHECK(*out == ossia::value{std::vector<ossia::value>{ossia::vec3f{1.f, 2.f, 3.f}}});
   });
 }
 
