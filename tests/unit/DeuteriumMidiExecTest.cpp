@@ -179,21 +179,24 @@ TEST_CASE("Deuterium: a note-off releases, unless note-offs are ignored", "[deut
     r.tick();
     CHECK(r.tick() < 0.001); // released
 
+    // Ignored: the note-off does nothing; the envelope goes into its own
+    // release (3 s to -100 dB) after the decay
     r.control(note_off_mode, true);
+    r.control(release, ossia::vec2f{3.f, 0.f});
     r.midi(note_on(1, 60, 100));
     REQUIRE(r.tick() > 0.05);
     r.midi(note_off(1, 60, 0));
     r.tick();
-    CHECK(r.tick() > 0.05); // still playing its sample
-    // ... to its end (2 s)
+    CHECK(r.tick() > 0.05); // still playing
+    // ... until the release fades it: -43 dB, the threshold below, at 1.3 s
     auto& st = *r.plug.context().execState;
     int ticks = 3;
     while(ticks < 1000 && r.tick() > 0.001)
       ticks++;
     const double seconds = double(ticks) * st.bufferSize / st.sampleRate;
     INFO("silent after " << seconds << " s");
-    CHECK(seconds > 1.9);
-    CHECK(seconds < 2.1);
+    CHECK(seconds > 1.1);
+    CHECK(seconds < 1.6);
   });
 }
 
@@ -243,19 +246,23 @@ TEST_CASE("Deuterium: ignored note-offs keep the sample's loop", "[deuterium][ex
     CHECK(seconds > 0.3);
     CHECK(seconds < 1.5);
 
-    // A sustaining sound: the key struck again replaces the note, and the two
-    // do not pile up.
+    // A sustaining envelope still ends: the release follows the decay, and
+    // takes the release time (0.5 s to -100 dB here: -43 dB at 0.22 s),
+    // whenever the note-off came.
     r.control(QStringLiteral("Sustain"), 1.f);
+    r.control(QStringLiteral("Decay"), ossia::vec2f{0.05f, 0.f});
+    r.control(release, ossia::vec2f{0.5f, 0.f});
     r.midi(note_on(1, 60, 100));
-    for(int i = 0; i < 20; i++)
-      r.tick();
-    const double one = r.tick();
-    r.midi(note_on(1, 60, 100));
-    for(int i = 0; i < 20; i++)
-      r.tick();
-    const double again = r.tick();
-    CHECK(one > 0.05);
-    CHECK(again < one * 1.3);
+    r.tick();
+    r.midi(note_off(1, 60, 0));
+    ticks = 1;
+    while(ticks < 1000 && r.tick() > 0.0005)
+      ticks++;
+    const double sustained = double(ticks) * st.bufferSize / st.sampleRate;
+    INFO("sustaining note silent after " << sustained << " s");
+    CHECK(sustained > 0.15);
+    CHECK(sustained < 0.4);
+
   }, 0.1);
 }
 TEST_CASE("SCRATCH loop held", "[deuterium][scratch]")
