@@ -598,15 +598,26 @@ AudioDecoder::decode_synchronous(const QString& path, int rate)
   dec.fileSampleRate = res->fileRate;
   dec.channels = res->channels;
 
+  // The length probed from the container is an estimate, and each resampled
+  // frame reserves its rounded-up size: leave room for both, so that the end
+  // of the file is not dropped, then keep exactly what the file produced.
+  // Zeros past it would play at every turn of a sampler looping the file.
+  std::size_t capacity = res->max_arr_length;
+#if SCORE_HAS_LIBAV
+  if(rate > 0 && res->fileRate > 0 && rate != res->fileRate)
+    capacity = av_rescale_rnd(capacity, rate, res->fileRate, AV_ROUND_UP);
+#endif
+  capacity += capacity / 64 + 4096;
+
   auto hdl = std::make_shared<ossia::audio_data>();
   hdl->data.resize(res->channels);
   for(auto& c : hdl->data)
-  {
-    c.reserve(res->max_arr_length * 1.1);
-    c.resize(res->max_arr_length);
-  }
+    c.resize(capacity);
 
   dec.on_startDecode(path, hdl);
+
+  for(auto& c : hdl->data)
+    c.resize(std::min(c.size(), dec.produced));
 
   return std::make_pair(*std::move(res), std::move(hdl->data));
 }
@@ -646,7 +657,9 @@ void AudioDecoder::decodeFrame(Decoder dec, audio_array& data, AVFrame& frame)
           resampler[i], (uint8_t**)&out_ptr, new_len, (const uint8_t**)&in_ptr,
           frame.nb_samples);
     }
-    decoded += res;
+    // Negative on error
+    if(res > 0)
+      decoded += res;
   }
   else
   {
@@ -659,6 +672,7 @@ void AudioDecoder::decodeFrame(Decoder dec, audio_array& data, AVFrame& frame)
     dec(data, decoded, frame.extended_data, frame.nb_samples);
     decoded += frame.nb_samples;
   }
+  produced = decoded;
 #endif
 }
 
@@ -677,7 +691,9 @@ void AudioDecoder::decodeRemaining(Decoder dec, audio_array& data, AVFrame& fram
       res = swr_convert(
           resampler[i], (uint8_t**)&out_ptr, data[i].size() - decoded, nullptr, 0);
     }
-    decoded += res;
+    // Negative on error
+    if(res > 0)
+      decoded += res;
   }
   else
   {
@@ -695,6 +711,7 @@ void AudioDecoder::decodeRemaining(Decoder dec, audio_array& data, AVFrame& fram
         */
   }
 
+  produced = decoded;
   // TODO it should be zeros, but check to be sure..
   if(decoded < data[0].size())
     decoded = data[0].size();

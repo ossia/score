@@ -225,3 +225,33 @@ TEST_CASE("an unreadable file fails without taking the handle with it")
     }
   });
 }
+
+// A synchronous decode to another rate must give buffers of the resampled
+// length, not the file's own frame count padded with zeros: a looped sample
+// would play that padding as silence at each turn.
+TEST_CASE("a synchronous decode to another rate has the resampled length")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext&) {
+    QTemporaryDir dir;
+    const QString path = dir.filePath("sine48k.wav");
+    make_wav(path, 4800, 1, 48000); // 0.1 s
+
+    auto dec = Media::AudioDecoder::decode_synchronous(path, 44100);
+    REQUIRE(dec);
+    auto& data = dec->second;
+    REQUIRE(data.size() == 1);
+    INFO("frames " << data[0].size());
+    CHECK(std::abs(int64_t(data[0].size()) - 4410) <= 2);
+
+    // No silent tail: the end is still the sine
+    double tail = 0.;
+    for(std::size_t i = data[0].size() - 100; i < data[0].size(); i++)
+      tail = std::max(tail, double(std::abs(data[0][i])));
+    CHECK(tail > 0.1);
+
+    // Same rate: untouched
+    auto same = Media::AudioDecoder::decode_synchronous(path, 48000);
+    REQUIRE(same);
+    CHECK(same->second[0].size() == 4800);
+  });
+}

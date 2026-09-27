@@ -44,15 +44,15 @@ const QString release = QStringLiteral("Release");
 const QString note_off_mode = QStringLiteral("Note off");
 const QString midi_channel = QStringLiteral("MIDI channel");
 
-//! Two seconds of a 440 Hz sine, 16 bit mono at 48 kHz.
-QString writeSine(const QTemporaryDir& dir)
+//! `seconds` of a 440 Hz sine, 16 bit mono at 48 kHz.
+QString writeSine(const QTemporaryDir& dir, double seconds = 2.)
 {
   const QString path = dir.filePath("sine.wav");
   QFile f{path};
   REQUIRE(f.open(QIODevice::WriteOnly));
   QDataStream s{&f};
   s.setByteOrder(QDataStream::LittleEndian);
-  const quint32 rate = 48000, frames = 2 * rate, bytes = frames * 2;
+  const quint32 rate = 48000, frames = quint32(seconds * rate), bytes = frames * 2;
   f.write("RIFF");
   s << quint32(36 + bytes);
   f.write("WAVEfmt ");
@@ -130,11 +130,11 @@ struct rig
 };
 
 template <typename F>
-void with_deuterium(F&& f)
+void with_deuterium(F&& f, double sampleSeconds = 2.)
 {
   score::test::run_in_app([&](const score::GUIApplicationContext& ctx) {
     QTemporaryDir dir;
-    const QString wav = writeSine(dir);
+    const QString wav = writeSine(dir, sampleSeconds);
     auto* doc = score::test::new_document(ctx);
     REQUIRE(doc);
     auto* proc = score::test::add_process(*doc, deuterium_uuid, wav);
@@ -214,4 +214,61 @@ TEST_CASE("Deuterium: the MIDI channel filter", "[deuterium][execution]")
     r.midi(note_on(9, 64, 100));
     CHECK(r.tick() > 0.05);
   });
+}
+
+// Ignore must not make a note a one-shot, which does not loop: a sampled piano
+// is a short attack and a loop, faded out by its envelope. The loop plays on
+// and the envelope ends the note; a new strike of the key releases the last.
+TEST_CASE("Deuterium: ignored note-offs keep the sample's loop", "[deuterium][execution]")
+{
+  with_deuterium([](rig& r) {
+    // A 0.1 s sample looping, fading out over a 1 s decay, like a piano
+    r.control(QStringLiteral("Loop"), 2); // Forward
+    r.control(QStringLiteral("Sustain"), 0.f);
+    r.control(QStringLiteral("Decay"), ossia::vec2f{1.f, 0.f});
+    r.control(note_off_mode, true);
+    auto& st = *r.plug.context().execState;
+
+    r.midi(note_on(1, 60, 100));
+    r.tick();
+    r.midi(note_off(1, 60, 0));
+    int ticks = 1;
+    std::string curve;
+    for(double v; ticks < 1000 && (v = r.tick()) > 0.0005; ticks++)
+      if(ticks % 4 == 0)
+        curve += std::to_string(v) + " ";
+    const double seconds = double(ticks) * st.bufferSize / st.sampleRate;
+    INFO("silent after " << seconds << " s: " << curve << " rate " << st.sampleRate << " buffer " << st.bufferSize);
+    // The 1 s decay reaches -50 dB half way, not at 0.1 s, the end of the sample
+    CHECK(seconds > 0.3);
+    CHECK(seconds < 1.5);
+
+    // A sustaining sound: the key struck again replaces the note, and the two
+    // do not pile up.
+    r.control(QStringLiteral("Sustain"), 1.f);
+    r.midi(note_on(1, 60, 100));
+    for(int i = 0; i < 20; i++)
+      r.tick();
+    const double one = r.tick();
+    r.midi(note_on(1, 60, 100));
+    for(int i = 0; i < 20; i++)
+      r.tick();
+    const double again = r.tick();
+    CHECK(one > 0.05);
+    CHECK(again < one * 1.3);
+  }, 0.1);
+}
+TEST_CASE("SCRATCH loop held", "[deuterium][scratch]")
+{
+  for(int ign : {0, 1})
+  with_deuterium([ign](rig& r) {
+    r.control(QStringLiteral("Loop"), 2);
+    r.control(QStringLiteral("Sustain"), ign == 2 ? 0.f : 1.f);
+    r.control(note_off_mode, bool(ign));
+    auto& st = *r.plug.context().execState;
+    r.midi(note_on(1, 60, 100));
+    int ticks = 1; std::string curve;
+    for(int i = 0; i < 60; i++) { double v = r.tick(); if(i > 30 && i < 45) curve += std::to_string(v) + " "; }
+    WARN("ignore " << ign << " held (sustain 1) silent after " << double(ticks) * st.bufferSize / st.sampleRate << ": " << curve);
+  }, 0.1);
 }
