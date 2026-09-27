@@ -275,6 +275,18 @@ void View::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* ev)
 
 void View::keyPressEvent(QKeyEvent* ev)
 {
+  const int step = (ev->modifiers() & Qt::ShiftModifier) ? 12 : 1;
+  switch(ev->key())
+  {
+    case Qt::Key_Up:
+      transposeRequested(step);
+      break;
+    case Qt::Key_Down:
+      transposeRequested(-step);
+      break;
+    default:
+      break;
+  }
   ev->accept();
 }
 

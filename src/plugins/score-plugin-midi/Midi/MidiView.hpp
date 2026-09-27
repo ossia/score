@@ -28,6 +28,8 @@ public:
 
 public:
   void deleteRequested() W_SIGNAL(deleteRequested);
+  //! Up / Down: a semitone; with Shift, an octave.
+  void transposeRequested(int semitones) W_SIGNAL(transposeRequested, semitones);
 
 private:
   bool canEdit() const;

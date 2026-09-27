@@ -5,6 +5,7 @@
 #include <Process/Layer/LayerContextMenu.hpp>
 
 #include <Midi/Commands/AddNote.hpp>
+#include <Midi/Commands/MoveNotes.hpp>
 #include <Midi/Commands/RemoveNotes.hpp>
 #include <Midi/Commands/ScaleNotes.hpp>
 #include <Midi/MidiDrop.hpp>
@@ -17,6 +18,7 @@
 #include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
 #include <score/document/DocumentContext.hpp>
 #include <score/document/DocumentInterface.hpp>
+#include <score/graphics/GraphicsItem.hpp>
 #include <score/tools/Bind.hpp>
 
 #include <core/document/Document.hpp>
@@ -31,7 +33,9 @@
 
 #include <QAction>
 #include <QApplication>
+#include <QGraphicsView>
 #include <QInputDialog>
+#include <QKeyEvent>
 #include <QMenu>
 
 #include <wobjectimpl.h>
@@ -100,6 +104,8 @@ Presenter::Presenter(
   });
 
   connect(m_view, &View::dropReceived, this, &Presenter::on_drop);
+
+  connect(m_view, &View::transposeRequested, this, &Presenter::on_transpose);
 
   connect(m_view, &View::deleteRequested, this, [&] {
     CommandDispatcher<>{context().context.commandStack}.submit(
@@ -255,6 +261,57 @@ void Presenter::on_noteScaled(const Note& note, double newScale)
   auto dt = newScale - note.duration();
   CommandDispatcher<>{context().context.commandStack}.submit(
       new ScaleNotes{model(), notes, dt});
+}
+
+void Presenter::on_focusChanged()
+{
+  if(m_keyWatched)
+    m_keyWatched->removeEventFilter(this);
+  m_keyWatched = nullptr;
+  if(!focused())
+    return;
+  if(auto v = getView(*m_view))
+  {
+    v->installEventFilter(this);
+    m_keyWatched = v;
+  }
+}
+
+bool Presenter::eventFilter(QObject* watched, QEvent* event)
+{
+  if(event->type() != QEvent::KeyPress || !m_view->isVisible())
+    return false;
+  auto& ev = static_cast<QKeyEvent&>(*event);
+  int dir = 0;
+  if(ev.key() == Qt::Key_Up)
+    dir = 1;
+  else if(ev.key() == Qt::Key_Down)
+    dir = -1;
+  if(dir == 0 || m_selectedNotes.empty())
+    return false;
+  on_transpose(dir * ((ev.modifiers() & Qt::ShiftModifier) ? 12 : 1));
+  ev.accept();
+  return true;
+}
+
+void Presenter::on_transpose(int semitones)
+{
+  auto notes = selectedNotes();
+  if(notes.empty() || semitones == 0)
+    return;
+
+  // The selection moves as a block: a step that would take one of its notes
+  // out of the range is refused rather than squashing a chord at the edge.
+  const auto [min, max] = model().range();
+  for(auto& id : notes)
+  {
+    const int p = model().notes.at(id).pitch() + semitones;
+    if(p < min || p > max)
+      return;
+  }
+
+  CommandDispatcher<>{context().context.commandStack}.submit(
+      new MoveNotes{model(), notes, semitones, 0.});
 }
 
 void Presenter::on_requestVelocityChange(const Note& note, double velocityDelta)

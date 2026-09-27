@@ -1,4 +1,7 @@
 #pragma once
+#include <ossia/detail/hash_map.hpp>
+
+#include <QPointer>
 #include <Process/LayerPresenter.hpp>
 
 #include <Midi/Commands/MoveNotes.hpp>
@@ -33,6 +36,7 @@ public:
   void on_zoomRatioChanged(ZoomRatio) override;
 
   void parentGeometryChanged() override;
+  void on_focusChanged() override;
 
   const Midi::ProcessModel& model() const noexcept;
   const Midi::View& view() const noexcept;
@@ -42,11 +46,18 @@ public:
   void on_noteChanged(NoteView& v);
   void on_noteChangeFinished(NoteView& v);
   void on_noteScaled(const Note& note, double newScale);
+  void on_transpose(int semitones);
   void on_requestVelocityChange(const Note& note, double velocityDelta);
   void on_velocityChangeFinished();
   void on_noteSelectionChanged(NoteView*, bool ok);
 
 private:
+  //! Up / Down reach the layer while it has the focus, whichever item of the
+  //! scene has the keyboard: selecting a note also selects the process, and
+  //! a selected node takes the scene's keyboard focus.
+  bool eventFilter(QObject* watched, QEvent* event) override;
+  QPointer<QObject> m_keyWatched;
+
   void updateNote(NoteView&);
   void on_noteAdded(const Note&);
   void on_noteRemoving(const Note&);
