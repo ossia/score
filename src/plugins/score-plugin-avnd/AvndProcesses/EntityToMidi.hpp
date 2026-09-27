@@ -458,29 +458,35 @@ struct EntityToMidi
           "jump. Raise it for flickery detectors.")
     } lost_grace;
 
-    struct : halp::spinbox_f32<"Min Note", halp::range{0., 2000., 80.}>
+    struct : halp::time_chooser<"Min Note", halp::range{0., 2., 0.08}>
     {
+      //! Documents from when this was a spinbox hold milliseconds.
+      static float upgrade_value(float ms) noexcept { return ms / 1000.f; }
       halp_meta(
           description,
-          "Shortest note the object will ever emit, in ms. An entity that "
+          "Shortest note the object will ever emit. An entity that "
           "blinks out immediately still produces an audible note instead "
           "of an unmusical click.")
     } min_note;
 
-    struct : halp::spinbox_f32<"Max Note", halp::range{0., 60000., 0.}>
+    struct : halp::time_chooser<"Max Note", halp::range{0., 60., 0.}>
     {
+      //! Documents from when this was a spinbox hold milliseconds.
+      static float upgrade_value(float ms) noexcept { return ms / 1000.f; }
       halp_meta(
           description,
-          "Hard ceiling on note length in ms; the note is released even if "
+          "Hard ceiling on note length; the note is released even if "
           "the entity stays. 0 = unlimited (the note lives as long as the "
           "entity).")
     } max_note;
 
-    struct : halp::spinbox_f32<"Trigger Length", halp::range{10., 5000., 200.}>
+    struct : halp::time_chooser<"Trigger Length", halp::range{0.01, 5., 0.2}>
     {
+      //! Documents from when this was a spinbox hold milliseconds.
+      static float upgrade_value(float ms) noexcept { return ms / 1000.f; }
       halp_meta(
           description,
-          "Note duration in Triggered mode, in ms. Ignored in Sustained "
+          "Note duration in Triggered mode. Ignored in Sustained "
           "mode, where the entity itself decides.")
     } trigger_duration;
 
@@ -584,11 +590,13 @@ struct EntityToMidi
       };
     } pitch_tracking;
 
-    struct : halp::spinbox_f32<"Glide", halp::range{0., 2000., 60.}>
+    struct : halp::time_chooser<"Glide", halp::range{0., 2., 0.06}>
     {
+      //! Documents from when this was a spinbox hold milliseconds.
+      static float upgrade_value(float ms) noexcept { return ms / 1000.f; }
       halp_meta(
           description,
-          "Slew time in ms of the pitch bend towards its target. Short = "
+          "Slew time of the pitch bend towards its target. Short = "
           "tight tracking; long = portamento. Per the MPE spec the slew "
           "stops the instant the note is released.")
     } glide;
@@ -832,11 +840,13 @@ struct EntityToMidi
           "Partial values keep the human feel while tightening it.")
     } strength;
 
-    struct : halp::spinbox_f32<"Max Hold", halp::range{0., 2000., 250.}>
+    struct : halp::time_chooser<"Max Hold", halp::range{0., 2., 0.25}>
     {
+      //! Documents from when this was a spinbox hold milliseconds.
+      static float upgrade_value(float ms) noexcept { return ms / 1000.f; }
       halp_meta(
           description,
-          "Longest a note will wait for its grid point, in ms. If the "
+          "Longest a note will wait for its grid point. If the "
           "transport stalls or the beat tracker drops out, the note plays "
           "anyway instead of being stranded forever.")
     } max_hold;
@@ -2156,7 +2166,7 @@ private:
     {
       const int new_note = pitch_to_note(v.pitch_target);
       if(new_note != v.note && can_retrigger(v.id, now)
-         && now - v.on_time >= inputs.min_note.value * 1e-3)
+         && now - v.on_time >= inputs.min_note.value)
       {
         // Bring the fixed-lifetime note-off forward rather than calling
         // schedule_off, which returns early once off_scheduled is set and so
@@ -2284,7 +2294,7 @@ private:
     v->channel = int8_t(c);
     // Triggered notes get a fixed lifetime, scheduled up front.
     v->off_scheduled = true;
-    v->off_raw_t = now + inputs.trigger_duration.value * 1e-3;
+    v->off_raw_t = now + inputs.trigger_duration.value;
     v->off_target_q = -1.;
   }
 
@@ -2325,7 +2335,7 @@ private:
     const bool sustained = inputs.note_model.value == E2MNoteModel::Sustained;
     const double grace = inputs.lost_grace.value * 1e-3;
     const double wd = inputs.watchdog.value * 1e-3;
-    const double maxn = inputs.max_note.value * 1e-3;
+    const double maxn = inputs.max_note.value;
 
     for(auto& v : m_voices)
     {
@@ -2436,8 +2446,8 @@ private:
 
   void emit_pending_notes(double now, double dt, int frames, const halp::tick_musical& tk)
   {
-    const double max_hold = inputs.max_hold.value * 1e-3;
-    const double min_note = inputs.min_note.value * 1e-3;
+    const double max_hold = inputs.max_hold.value;
+    const double min_note = inputs.min_note.value;
 
     for(auto& v : m_voices)
     {
@@ -2654,7 +2664,7 @@ private:
     const float db = inputs.deadband.value;
     const double tau_rise = std::max(inputs.rise.value, 0.f) * 1e-3;
     const double tau_fall = std::max(inputs.fall.value, 0.f) * 1e-3;
-    const double tau_glide = std::max(inputs.glide.value, 0.f) * 1e-3;
+    const double tau_glide = std::max(inputs.glide.value, 0.f);
     const bool cont
         = inputs.pitch_tracking.value == E2MPitchTracking::ContinuousBend && !single;
 

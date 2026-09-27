@@ -580,7 +580,7 @@ TEST_CASE("min note length delays the off of a blink", "[entity_to_midi]")
 {
   Harness h;
   h.p.inputs.lost_grace.value = 0.f;
-  h.p.inputs.min_note.value = 200.f;
+  h.p.inputs.min_note.value = 0.2f;
 
   h.send({rec(1, 0.5f, 0.5f)});
   h.tick();
@@ -632,7 +632,7 @@ TEST_CASE("beat quantisation: transport stall falls back to max hold",
 {
   Harness h;
   h.p.inputs.quant_mode.value = avnd_tools::E2MQuantTargets::Onsets;
-  h.p.inputs.max_hold.value = 250.f;
+  h.p.inputs.max_hold.value = 0.25f;
   h.advance_transport = false; // musical position frozen: grid never arrives
   h.run_ms(20);
 
@@ -647,7 +647,7 @@ TEST_CASE("triggered mode: fixed-length notes, machine-gunning bounded by lockou
 {
   Harness h;
   h.p.inputs.note_model.value = avnd_tools::E2MNoteModel::Triggered;
-  h.p.inputs.trigger_duration.value = 100.f;
+  h.p.inputs.trigger_duration.value = 0.1f;
   h.p.inputs.retrig_lockout.value = 120.f;
   h.p.inputs.pitch_tracking.value = avnd_tools::E2MPitchTracking::Retrigger;
   h.p.inputs.scale.value = avnd_tools::E2MScale::Chromatic;
@@ -674,7 +674,7 @@ TEST_CASE("channel reuse is LRU with a release reserve", "[entity_to_midi]")
 {
   Harness h;
   h.p.inputs.lost_grace.value = 0.f;
-  h.p.inputs.min_note.value = 0.f;
+  h.p.inputs.min_note.value = 0.0f;
 
   h.send({rec(1, 0.5f, 0.5f)});
   h.run_ms(50);
@@ -1191,9 +1191,9 @@ TEST_CASE("triggered + retrigger fires a new note per scale step", "[entity_to_m
   // A realistic percussive lifetime. Strict isolation of the retrigger branch
   // is the next test's job; this one checks the end-to-end behaviour and that
   // nothing is left ringing.
-  h.p.inputs.trigger_duration.value = 150.f;
+  h.p.inputs.trigger_duration.value = 0.15f;
   h.p.inputs.retrig_lockout.value = 20.f;
-  h.p.inputs.min_note.value = 10.f;
+  h.p.inputs.min_note.value = 0.01f;
 
   // Sweep bottom to top of the pitch range over 3 s. Invert Axis is on by
   // default, so y descending walks the pitch upwards; either way it crosses
@@ -1232,9 +1232,9 @@ TEST_CASE("retrigger is what produces the extra notes", "[entity_to_midi]")
     h.p.inputs.note_model.value = avnd_tools::E2MNoteModel::Triggered;
     h.p.inputs.pitch_tracking.value = mode;
     h.p.inputs.scale.value = avnd_tools::E2MScale::Chromatic;
-    h.p.inputs.trigger_duration.value = 10000.f;
+    h.p.inputs.trigger_duration.value = 10.0f;
     h.p.inputs.retrig_lockout.value = 20.f;
-    h.p.inputs.min_note.value = 10.f;
+    h.p.inputs.min_note.value = 0.01f;
     for(int i = 0; i < 180; i++)
     {
       const float t = i / 60.f;
