@@ -55,9 +55,10 @@ struct Node
     }
   }
 
+  //! The first multiple of the period at or after cur_date.
   static constexpr int64_t next_date(int64_t cur_date, int64_t period)
   {
-    return (int64_t)(period * (cur_date / period));
+    return period * ((cur_date + period - 1) / period);
   }
 
   halp::setup setup;

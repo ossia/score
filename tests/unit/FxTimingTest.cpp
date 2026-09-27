@@ -1,6 +1,7 @@
 // Free metronome v2 and Rate Limiter v2: their period / interval is a time
 // chooser, in seconds or synced to a note value.
 
+#include <Fx/Metro.hpp>
 #include <Fx/Metro_v2.hpp>
 #include <Fx/RateLimiter_v2.hpp>
 
@@ -56,6 +57,24 @@ TEST_CASE("Free metronome v2: a tick every period of seconds", "[fx][metro]")
       abs.push_back(pos + t);
   }
   // (the last buffer ends past 48000, the fifth tick)
+  CHECK(abs == std::vector<int64_t>{0, 12000, 24000, 36000, 48000});
+}
+
+TEST_CASE("Free metronome (old): a tick every period too", "[fx][metro]")
+{
+  Nodes::Metro::Node m;
+  m.prepare({.input_channels = 0, .output_channels = 0, .frames = 512, .rate = 48000.});
+  auto ticks = capture(m.outputs.out);
+  m.inputs.frequency.value = 4.f; // Hz
+  m.inputs.quantify.value = false;
+  std::vector<int64_t> abs;
+  for(int64_t pos = 0; pos < 48000; pos += 512)
+  {
+    ticks->clear();
+    m(musical(pos, 512, pos / 24000., (pos + 512) / 24000., 120.));
+    for(auto t : *ticks)
+      abs.push_back(pos + t);
+  }
   CHECK(abs == std::vector<int64_t>{0, 12000, 24000, 36000, 48000});
 }
 
