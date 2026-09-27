@@ -13,6 +13,8 @@
 #include <QAbstractItemView>
 #include <QGraphicsProxyWidget>
 #include <QGraphicsScene>
+#include <QGraphicsView>
+#include <QScrollBar>
 #include <QGraphicsSceneMouseEvent>
 #include <QHideEvent>
 #include <QPainter>
@@ -72,6 +74,41 @@ TEST_CASE("combo box opens a drop-down listing its entries")
     CHECK(editor->itemText(0) == "a");
     CHECK(editor->itemText(2) == "c");
     CHECK(editor->currentIndex() == 1);
+  });
+}
+
+TEST_CASE("a long drop-down fits the view and scrolls, on every platform")
+{
+  // The style's own menu drop-down runs past the bottom of the view, and the
+  // entries there cannot be picked.
+  score::test::run_in_app([](const score::GUIApplicationContext&) {
+    Scene scene;
+    QGraphicsView view{&scene};
+    view.resize(400, 300);
+    view.show();
+
+    QStringList entries;
+    for(int i = 0; i < 500; i++)
+      entries.push_back(QStringLiteral("entry %1").arg(i));
+    score::QGraphicsCombo item{entries, nullptr};
+    scene.addItem(&item);
+
+    rightClick(scene, item);
+    auto* editor = editorIn(scene);
+    REQUIRE(editor != nullptr);
+    CHECK(editor->style()->styleHint(QStyle::SH_ComboBox_Popup, nullptr, editor) == 0);
+    CHECK(editor->maxVisibleItems() < 30);
+    REQUIRE(editor->view() != nullptr);
+    CHECK(
+        editor->view()->verticalScrollBarPolicy() == Qt::ScrollBarAlwaysOn);
+
+    editor->showPopup();
+    qApp->processEvents();
+    CHECK(editor->view()->isVisible());
+    CHECK(editor->view()->window()->height() <= view.viewport()->height());
+    CHECK(editor->view()->verticalScrollBar()->maximum() > 0);
+    editor->hidePopup();
+    qApp->processEvents();
   });
 }
 

@@ -52,7 +52,6 @@ struct PopupDismissWatcher final : QObject
 };
 }
 
-#if defined(__EMSCRIPTEN__)
 //! Asks for the scrolling list drop-down rather than the style's menu one.
 //!
 //! The style answers SH_ComboBox_Popup for a non-editable box, whose list is
@@ -72,7 +71,6 @@ struct ScrollingPopupStyle final : QProxyStyle
     return QProxyStyle::styleHint(hint, opt, w, ret);
   }
 };
-#endif
 
 struct DefaultComboImpl
 {
@@ -337,7 +335,6 @@ void QGraphicsCombo::openEditor(QPointF scenePos)
       w->setInsertPolicy(QComboBox::NoInsert);
     w->setCurrentIndex(item.m_value);
 
-#if defined(__EMSCRIPTEN__)
     {
       auto* popupStyle = new ScrollingPopupStyle;
       popupStyle->setParent(w);
@@ -367,7 +364,6 @@ void QGraphicsCombo::openEditor(QPointF scenePos)
           lv->setUniformItemSizes(true);
       }
     }
-#endif
 
     auto* scene = item.scene();
     auto obj = scene->addWidget(w, Qt::WindowStaysOnTopHint | Qt::FramelessWindowHint);
