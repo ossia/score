@@ -194,6 +194,14 @@ score_add_test(test_unit_color_control_unit
   PLUGINS score_lib_process)
 
 # Kabang / Minibang pitch modulation: pure math, no sampler around it.
+if(TARGET score_addon_deuterium)
+  # Through the real execution node, with the plug-in loaded by the app.
+  score_add_test(test_unit_deuterium_midi_exec
+    SOURCES DeuteriumMidiExecTest.cpp
+    APP
+    PLUGINS score_plugin_engine score_plugin_scenario score_lib_process)
+endif()
+
 if(TARGET score_addon_synthimi)
   score_add_test(test_unit_kabang_pitch_envelope
     SOURCES KabangPitchEnvelopeTest.cpp)
