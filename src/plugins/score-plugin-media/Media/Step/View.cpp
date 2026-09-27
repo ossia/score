@@ -15,12 +15,28 @@ W_OBJECT_IMPL(Media::Step::View)
 W_OBJECT_IMPL(Media::Step::Item)
 namespace Media::Step
 {
-//! Over the step that played last: the bar's colour, see-through.
-static QColor playingColor()
+//! One step, drawn like a box of the pattern sequencer: the bar in the note
+//! colour, the space above it in the rest colour, both lit while the step
+//! plays. The repetitions the layer draws past the end of the sequence are the
+//! darker note colour only.
+static void paintStep(QPainter* p, QRectF r, float step, bool playing, bool repeat)
 {
-  QColor c = score::Skin::instance().Base4.main.brush.color();
-  c.setAlpha(70);
-  return c;
+  auto& skin = score::Skin::instance();
+  const QRectF rest{r.x(), r.y(), r.width(), step * r.height()};
+  const QRectF bar{r.x(), rest.bottom(), r.width(), r.height() - rest.height()};
+  if(!repeat)
+    p->fillRect(rest, playing ? skin.Emphasis2.lighter.brush : skin.Emphasis2.main.brush);
+  p->fillRect(
+      bar, repeat    ? skin.Base4.darker.brush
+           : playing ? skin.Base4.lighter.brush
+                     : skin.Base4.main.brush);
+}
+
+//! Room between two steps, as between the pattern sequencer's boxes.
+static QRectF stepRect(double x, double w, double h)
+{
+  const double gap = w > 4. ? 1. : 0.;
+  return {x, 0., w - gap, h};
 }
 
 View::View(const Model& model, QGraphicsItem* parent)
@@ -49,57 +65,21 @@ void View::paint_impl(QPainter* p) const
 {
   if(m_barWidth > 2.)
   {
-    p->setRenderHint(QPainter::Antialiasing, true);
-
-    // The loop in the "lit" role, the duplicated iterations below it. Below
-    // and not above: lighter() scales the HSV value, so from a role that is
-    // already pale -- Dracula's, Nord's -- both lighter variants clamp to
-    // white and the two become the same colour.
-    auto& skin = score::Skin::instance();
-    QPen pen{skin.Base4.main.brush, 2.};
-    const QBrush& br = skin.Base4.lighter.brush;
-    QPen pen2{skin.Base4.darker300.brush, 2.};
-    const QBrush& br2 = skin.Base4.darker.brush;
-    p->setPen(pen);
-
     const auto h = boundingRect().height();
     const auto w = boundingRect().width();
     const auto bar_w = m_barWidth;
-    auto cur_pos = 0.;
-
     const auto& steps = m_model.steps();
+
+    // The sequence, then its repetitions to the end of the layer.
     std::size_t i = 0;
-    while(cur_pos < w)
+    for(double x = 0.; x < w; x += bar_w, i++)
     {
-      auto idx = i % steps.size();
-      auto step = steps[idx];
-      p->fillRect(QRectF{cur_pos, step * h, (float)bar_w, h - step * h}, br);
-      p->drawLine(QPointF{cur_pos, step * h}, QPointF{cur_pos + bar_w, step * h});
-      if(int(idx) == m_playing)
-        p->fillRect(QRectF{cur_pos, 0., (float)bar_w, h}, playingColor());
-
-      cur_pos += bar_w;
-      i++;
-      if(i == steps.size())
-      {
-        break;
-      }
+      const auto idx = i % steps.size();
+      const bool repeat = i >= steps.size();
+      paintStep(
+          p, stepRect(x, bar_w, h), steps[idx], !repeat && int(idx) == m_playing,
+          repeat);
     }
-
-    // Now draw the echo
-    p->setPen(pen2);
-    while(cur_pos < w)
-    {
-      auto idx = i % steps.size();
-      auto step = steps[idx];
-      p->fillRect(QRectF{cur_pos, step * h, (float)bar_w, h - step * h}, br2);
-      p->drawLine(QPointF{cur_pos, step * h}, QPointF{cur_pos + bar_w, step * h});
-
-      cur_pos += bar_w;
-      i++;
-    }
-
-    p->setRenderHint(QPainter::Antialiasing, false);
   }
   else
   {
@@ -160,34 +140,13 @@ Item::~Item() = default;
 
 void Item::paint(QPainter* p, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
-  p->setRenderHint(QPainter::Antialiasing, true);
-
-  auto& skin = score::Skin::instance();
-  QPen pen{skin.Base4.main.brush, 2.};
-  const QBrush& br = skin.Base4.lighter.brush;
-  QPen pen2{skin.Base4.darker300.brush, 2.};
-  const QBrush& br2 = skin.Base4.darker.brush;
-  p->setPen(pen);
-
   const auto h = boundingRect().height();
   const auto w = boundingRect().width();
-  auto cur_pos = 0.;
-
   const auto& steps = m_model.steps();
   const auto bar_w = w / steps.size();
 
-  int idx = 0;
-  for(auto& step : steps)
-  {
-    p->fillRect(QRectF{cur_pos, step * h, (float)bar_w, h - step * h}, br);
-    p->drawLine(QPointF{cur_pos, step * h}, QPointF{cur_pos + bar_w, step * h});
-    if(idx == m_playing)
-      p->fillRect(QRectF{cur_pos, 0., (float)bar_w, h}, playingColor());
-
-    cur_pos += bar_w;
-    idx++;
-  }
-  p->setRenderHint(QPainter::Antialiasing, false);
+  for(std::size_t i = 0; i < steps.size(); i++)
+    paintStep(p, stepRect(i * bar_w, bar_w, h), steps[i], int(i) == m_playing, false);
 }
 
 void Item::mousePressEvent(QGraphicsSceneMouseEvent* ev)
