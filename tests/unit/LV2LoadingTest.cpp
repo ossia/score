@@ -40,6 +40,9 @@
 #include <catch2/catch_approx.hpp>
 #include <catch2/catch_test_macros.hpp>
 
+#include <cstring>
+#include <functional>
+
 namespace
 {
 constexpr auto gain_uri = "urn:score:test:gain";
@@ -705,6 +708,87 @@ TEST_CASE("lv2_node gives atom ports the buffer size they ask for", "[lv2]")
       run_node(node, st);
       REQUIRE(sent.size() == 1);
       CHECK(sent[0] == 10000u);
+    }
+    QCoreApplication::processEvents();
+  });
+}
+
+// A sequencer following the host transport starts on a change of time:speed
+// from 0. The instance lives from one play to the next, so the transport
+// stopping must be told to it.
+TEST_CASE("lv2_node tells the plug-in the transport stopped and started", "[lv2]")
+{
+  prepare_lv2_test_environment();
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    auto& plug = setupLV2(ctx);
+    fixture_plugin p{plug, "urn:score:test:transport", "Score Test Transport"};
+    LV2::LV2Data data{plug.lv2_host_context, p.effect};
+    REQUIRE(data.time_Position_ports.size() == 1);
+    REQUIRE(data.control_out_ports.size() == 2);
+    ossia::execution_state st;
+    auto speed = [](test_node& n) { return n.voices[0]->fOutControls[0]; };
+    auto starts = [](test_node& n) { return n.voices[0]->fOutControls[1]; };
+
+    {
+      test_node node{data, 48000, {LV2::voice_routing::single, 1}, {}, {}};
+      run_node(node, st);
+      run_node(node, st);
+      CHECK(speed(node) == 1.f);
+      CHECK(starts(node) == 1.f);
+
+      // Stop: what the process does, then the tick it requests.
+      node.all_notes_off();
+      node.mustStop = true;
+      run_node(node, st, false);
+      CHECK(speed(node) == 0.f);
+    }
+    QCoreApplication::processEvents();
+
+    // Play again: the same instance hears it start again.
+    {
+      test_node node{data, 48000, {LV2::voice_routing::single, 1}, {}, {}};
+      run_node(node, st);
+      CHECK(speed(node) == 1.f);
+      CHECK(starts(node) == 2.f);
+    }
+    QCoreApplication::processEvents();
+
+    // A play that ended without a stop tick (a crash, a reload): the first
+    // run still starts from "stopped".
+    {
+      test_node node{data, 48000, {LV2::voice_routing::single, 1}, {}, {}};
+      run_node(node, st);
+      CHECK(starts(node) == 3.f);
+    }
+    QCoreApplication::processEvents();
+  });
+}
+
+// A plug-in without activate() cannot be restarted through it: a play starts
+// on a fresh instance, with the state of the previous one.
+TEST_CASE("lv2_node restarts a plug-in that has no activate()", "[lv2]")
+{
+  prepare_lv2_test_environment();
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    auto& plug = setupLV2(ctx);
+    fixture_plugin p{plug, "urn:score:test:counter", "Score Test Counter"};
+    LV2::LV2Data data{plug.lv2_host_context, p.effect};
+    REQUIRE(data.control_out_ports.size() == 1);
+    ossia::execution_state st;
+
+    {
+      test_node node{data, 48000, {LV2::voice_routing::single, 1}, {}, {}};
+      for(int i = 0; i < 3; i++)
+        run_node(node, st);
+      CHECK(node.voices[0]->fOutControls[0] == 3.f);
+    }
+    QCoreApplication::processEvents();
+    {
+      test_node node{data, 48000, {LV2::voice_routing::single, 1}, {}, {}};
+      run_node(node, st);
+      CHECK(node.voices[0]->fOutControls[0] == 1.f);
+      // The Model follows: it holds the instance that plays.
+      CHECK(p.effect.instance == node.voices[0]->instance);
     }
     QCoreApplication::processEvents();
   });

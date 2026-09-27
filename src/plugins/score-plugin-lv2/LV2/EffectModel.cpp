@@ -1000,6 +1000,16 @@ struct on_start;
 struct on_finish;
 using lv2_node_t = lv2_node<on_start, on_finish>;
 
+//! node_process::stop() only queues all_notes_off() for a run that never
+//! comes. Request one more tick, in which the node tells the plug-in the
+//! transport stopped (as Patternist's process does).
+class lv2_node_process final : public ossia::node_process
+{
+public:
+  using ossia::node_process::node_process;
+  void stop() override;
+};
+
 struct on_start
 {
   std::weak_ptr<LV2EffectComponent> self;
@@ -1091,6 +1101,14 @@ void on_finish::operator()()
   }
 }
 
+void lv2_node_process::stop()
+{
+  ossia::node_process::stop();
+  auto& n = *static_cast<lv2_node_t*>(node.get());
+  n.request(ossia::token_request{});
+  n.mustStop = true;
+}
+
 LV2EffectComponent::LV2EffectComponent(
     LV2::Model& proc, const Execution::Context& ctx, QObject* parent)
     : ProcessComponent_T{proc, ctx, "LV2Component", parent}
@@ -1143,7 +1161,7 @@ void LV2EffectComponent::lazy_init()
   }
 
   this->node = node;
-  m_ossia_process = std::make_shared<ossia::node_process>(node);
+  m_ossia_process = std::make_shared<LV2::lv2_node_process>(node);
 
   // Grow voice pool on main thread (lilv_plugin_instantiate can dlopen / preload samples)
   if(strategy.routing == LV2::voice_routing::per_channel)

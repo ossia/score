@@ -110,6 +110,17 @@ struct lv2_node final : public ossia::graph_node
 
   ossia::float_vector fParamMin, fParamMax, fParamInit;
   std::unique_ptr<uint8_t[]> timePositionBuffer{};
+  //! The same position with a speed of 0: the transport is stopped.
+  std::unique_ptr<uint8_t[]> stoppedPositionBuffer{};
+  //! A plug-in only told "speed 1" again after a stop would not know that it
+  //! stopped: the first run of a play says "stopped" first (the instance
+  //! lives on from the previous play).
+  bool m_sendStopped{true};
+  //! Set by the process when the transport stops: the next (empty) tick tells
+  //! the plug-in, runs it once, and nothing else.
+  bool mustStop{};
+  //! The position buffers hold a position: a run happened.
+  bool m_timeForged{};
 
   // Matches LV2_BUF_SIZE__maxBlockLength advertised in Context.cpp
   std::size_t max_block_size{4096};
@@ -178,6 +189,14 @@ struct lv2_node final : public ossia::graph_node
     voices.reserve(
         routing == voice_routing::per_channel ? kVoicePoolReserve : strat.voice_count);
 
+    // A plug-in without activate() has no way to start over (x42's MIDI
+    // generator keeps playing from where it stopped): a play starts on a
+    // fresh instance, with the state of the previous one. Not while its UI is
+    // open, which talks to the current instance.
+    if(auto* desc = lilv_instance_get_descriptor(data.effect.instance);
+       desc && !desc->activate && !data.effect.ui_instance)
+      renew_primary_instance(sampleRate);
+
     // Voice 0 reuses the Model's primary instance across play->stop->play
     voices.push_back(build_voice(data.effect.instance_holder));
 
@@ -201,7 +220,10 @@ struct lv2_node final : public ossia::graph_node
       lilv_state_free(primary_state);
 
     if(!data.time_Position_ports.empty())
+    {
       timePositionBuffer = std::make_unique<uint8_t[]>(256);
+      stoppedPositionBuffer = std::make_unique<uint8_t[]>(256);
+    }
 
     requested_voices.store(voices.size(), std::memory_order_relaxed);
   }
@@ -237,6 +259,28 @@ struct lv2_node final : public ossia::graph_node
     if(!inst)
       return {};
     return std::make_shared<InstanceHandle>(inst);
+  }
+
+  // [main thread] Replaces the Model's instance by a new one in the same state.
+  void renew_primary_instance(int sampleRate)
+  {
+    auto handle = instantiate_handle(sampleRate);
+    if(!handle)
+      return;
+    if(data.host.global)
+    {
+      if(LilvState* state = lilv_state_new_from_instance(
+             data.effect.plugin.me, data.effect.instance, &data.host.global->map,
+             nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
+             LV2_STATE_IS_PORTABLE, nullptr))
+      {
+        lilv_state_restore(
+            state, handle->instance, nullptr, nullptr, LV2_STATE_IS_PORTABLE, nullptr);
+        lilv_state_free(state);
+      }
+    }
+    data.effect.instance = handle->instance;
+    data.effect.instance_holder = std::move(handle);
   }
 
   // [main thread] null on failure; grower retries next tick
@@ -454,9 +498,17 @@ struct lv2_node final : public ossia::graph_node
 
   void updateTime(const ossia::token_request& tk, ossia::exec_state_facade st)
   {
+    forgeTime(timePositionBuffer.get(), tk, st, tk.speed);
+    forgeTime(stoppedPositionBuffer.get(), tk, st, 0.f);
+    m_timeForged = true;
+  }
+
+  void forgeTime(
+      uint8_t* buffer, const ossia::token_request& tk, ossia::exec_state_facade st,
+      float speed)
+  {
     LV2::HostContext& host = data.host;
     auto& forge = host.forge;
-    uint8_t* buffer = timePositionBuffer.get();
     lv2_atom_forge_set_buffer(&forge, buffer, 256);
     LV2_Atom_Forge_Frame frame;
     lv2_atom_forge_object(&forge, &frame, 0, host.time_Position_id);
@@ -468,7 +520,7 @@ struct lv2_node final : public ossia::graph_node
     lv2_atom_forge_long(&forge, st.sampleRate());
 
     lv2_atom_forge_key(&forge, host.time_speed_id);
-    lv2_atom_forge_float(&forge, tk.speed);
+    lv2_atom_forge_float(&forge, speed);
 
     lv2_atom_forge_key(&forge, host.time_bar_id);
     lv2_atom_forge_long(&forge, tk.musical_start_last_bar / 4.);
@@ -539,6 +591,13 @@ struct lv2_node final : public ossia::graph_node
       auto& lv2_port = v.midi_atom_ins[i];
       Iterator it{lv2_port.buf};
 
+      // The position first: the sequence is in time order, and the events of
+      // this block are at this position.
+      if(ossia::any_of(v.atom_timePosition_midi, [&](const auto& t) {
+           return t.buffer == &lv2_port;
+         }))
+        writeTime(it);
+
       for(const Message& msg : v.message_for_midi_atom_ins[i])
       {
         auto* atom = (LV2_Atom*)msg.body.data();
@@ -557,19 +616,12 @@ struct lv2_node final : public ossia::graph_node
           return stdx::error{};
         });
       }
-
-      if(!v.atom_timePosition_midi.empty())
-      {
-        const LV2_Atom* atom = (const LV2_Atom*)timePositionBuffer.get();
-        it.write(0, 0, atom->type, atom->size, (const uint8_t*)LV2_ATOM_BODY(atom));
-      }
     }
 
     for(auto& [_, buf] : v.atom_timePosition_owned)
     {
       Iterator it{buf->buf};
-      const LV2_Atom* atom = (const LV2_Atom*)timePositionBuffer.get();
-      it.write(0, 0, atom->type, atom->size, (const uint8_t*)LV2_ATOM_BODY(atom));
+      writeTime(it);
     }
 
     const auto control_start
@@ -586,6 +638,22 @@ struct lv2_node final : public ossia::graph_node
     }
 
     (void)atom_in_size;
+  }
+
+  //! The transport position, preceded by a stopped one on the first run of a
+  //! play or when stopping.
+  void writeTime(Iterator& it) noexcept
+  {
+    auto write = [&](const uint8_t* buf) {
+      const LV2_Atom* atom = (const LV2_Atom*)buf;
+      it.write(0, 0, atom->type, atom->size, (const uint8_t*)LV2_ATOM_BODY(atom));
+    };
+    if(!timePositionBuffer || !m_timeForged)
+      return;
+    if(m_sendStopped || mustStop)
+      write(stoppedPositionBuffer.get());
+    if(!mustStop)
+      write(timePositionBuffer.get());
   }
 
   void postProcessVoice(voice& v) noexcept
@@ -659,8 +727,62 @@ struct lv2_node final : public ossia::graph_node
     }
   }
 
+  //! The transport stopped: the plug-in hears it (a position with a speed of
+  //! 0, what all_notes_off queued) in a run of one frame.
+  void stop_voices() noexcept
+  {
+    data.host.current = &data.effect;
+    for(auto& vp : voices)
+    {
+      auto& v = *vp;
+      for(std::size_t i = 0; i < v.midi_atom_ins.size(); i++)
+      {
+        auto& lv2_port = v.midi_atom_ins[i];
+        Iterator it{lv2_port.buf};
+        if(ossia::any_of(v.atom_timePosition_midi, [&](const auto& t) {
+             return t.buffer == &lv2_port;
+           }))
+          writeTime(it);
+        for(const Message& msg : v.message_for_midi_atom_ins[i])
+        {
+          auto* atom = (LV2_Atom*)msg.body.data();
+          it.write(0, 0, atom->type, atom->size, (const uint8_t*)LV2_ATOM_BODY(atom));
+        }
+      }
+      for(auto& [_, buf] : v.atom_timePosition_owned)
+      {
+        Iterator it{buf->buf};
+        writeTime(it);
+      }
+
+      for(std::size_t i = 0; i < v.audio_in_scratch.size(); i++)
+      {
+        auto& scratch = v.audio_in_scratch[i];
+        std::fill(scratch.begin(), scratch.end(), 0.f);
+        lilv_instance_connect_port(v.instance, data.audio_in_ports[i], scratch.data());
+      }
+      for(std::size_t i = 0; i < v.audio_out_scratch.size(); i++)
+        lilv_instance_connect_port(
+            v.instance, data.audio_out_ports[i], v.audio_out_scratch[i].data());
+
+      {
+        worker_routing_scope ws{data.host, v};
+        lilv_instance_run(v.instance, 1);
+      }
+      postProcessVoice(v);
+    }
+  }
+
   void run(const ossia::token_request& tk, ossia::exec_state_facade st) noexcept override
   {
+    // Before the paused check: the tick requested by stop() is empty.
+    if(mustStop)
+    {
+      stop_voices();
+      mustStop = false;
+      m_sendStopped = true;
+      return;
+    }
     if(tk.paused())
       return;
 
@@ -694,6 +816,7 @@ struct lv2_node final : public ossia::graph_node
 
     for(auto& v : voices)
       postProcessVoice(*v);
+    m_sendStopped = false;
   }
 
   struct worker_routing_scope

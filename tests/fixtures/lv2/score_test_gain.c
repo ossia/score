@@ -9,6 +9,8 @@
  *   5  control in  "bypass" toggled default 0        (ignored by run)
  */
 #include <lv2/lv2plug.in/ns/ext/atom/util.h>
+#include <lv2/lv2plug.in/ns/ext/time/time.h>
+#include <lv2/lv2plug.in/ns/ext/urid/urid.h>
 #include <lv2/lv2plug.in/ns/lv2core/lv2.h>
 
 #include <math.h>
@@ -165,6 +167,139 @@ static const LV2_Descriptor descriptor_notify
     = {"urn:score:test:notify", instantiate_notify, connect_port_notify, NULL,
        run_notify,              NULL,               cleanup,             NULL};
 
+/* urn:score:test:transport: reads time:Position objects, as a sequencer
+ * following the host transport does (starting on a change of time:speed
+ * from 0).
+ *
+ * Ports:
+ *   0  atom in     "control"  atom:Sequence, supports time:Position
+ *   1  control out "speed"    the last time:speed received
+ *   2  control out "starts"   how many times the speed went from 0 to non-0
+ */
+typedef struct
+{
+  const LV2_Atom_Sequence* in;
+  float* speed_out;
+  float* starts_out;
+  LV2_URID object, position, speed_key;
+  float speed;
+  float starts;
+} test_transport;
+
+static LV2_Handle instantiate_transport(
+    const LV2_Descriptor* descriptor, double rate, const char* bundle_path,
+    const LV2_Feature* const* features)
+{
+  (void)descriptor;
+  (void)rate;
+  (void)bundle_path;
+  LV2_URID_Map* map = NULL;
+  for(int i = 0; features && features[i]; i++)
+    if(!strcmp(features[i]->URI, LV2_URID__map))
+      map = (LV2_URID_Map*)features[i]->data;
+  if(!map)
+    return NULL;
+  test_transport* self = (test_transport*)calloc(1, sizeof(test_transport));
+  self->object = map->map(map->handle, LV2_ATOM__Object);
+  self->position = map->map(map->handle, LV2_TIME__Position);
+  self->speed_key = map->map(map->handle, LV2_TIME__speed);
+  return self;
+}
+
+static void connect_port_transport(LV2_Handle instance, uint32_t port, void* data)
+{
+  test_transport* self = (test_transport*)instance;
+  if(port == 0)
+    self->in = (const LV2_Atom_Sequence*)data;
+  else if(port == 1)
+    self->speed_out = (float*)data;
+  else if(port == 2)
+    self->starts_out = (float*)data;
+}
+
+static void run_transport(LV2_Handle instance, uint32_t n_samples)
+{
+  (void)n_samples;
+  test_transport* self = (test_transport*)instance;
+  if(self->in)
+  {
+    LV2_ATOM_SEQUENCE_FOREACH(self->in, ev)
+    {
+      if(ev->body.type != self->object)
+        continue;
+      const LV2_Atom_Object* obj = (const LV2_Atom_Object*)&ev->body;
+      if(obj->body.otype != self->position)
+        continue;
+      const LV2_Atom* speed = NULL;
+      lv2_atom_object_get(obj, self->speed_key, &speed, 0);
+      if(!speed || speed->size != sizeof(float))
+        continue;
+      const float s = ((const LV2_Atom_Float*)speed)->body;
+      if(self->speed == 0.f && s != 0.f)
+        self->starts += 1.f;
+      self->speed = s;
+    }
+  }
+  if(self->speed_out)
+    *self->speed_out = self->speed;
+  if(self->starts_out)
+    *self->starts_out = self->starts;
+}
+
+/* activate() leaves the transport state alone, so the instance keeps it
+ * from one play to the next. */
+static void activate_transport(LV2_Handle instance)
+{
+  (void)instance;
+}
+
+static const LV2_Descriptor descriptor_transport
+    = {"urn:score:test:transport", instantiate_transport, connect_port_transport,
+       activate_transport,         run_transport,          NULL,
+       cleanup,                    NULL};
+
+/* urn:score:test:counter: no activate(); counts its runs since it was
+ * instantiated, as a generator keeps its position.
+ *
+ * Ports:
+ *   0  control out "runs"
+ */
+typedef struct
+{
+  float* out;
+  float runs;
+} test_counter;
+
+static LV2_Handle instantiate_counter(
+    const LV2_Descriptor* descriptor, double rate, const char* bundle_path,
+    const LV2_Feature* const* features)
+{
+  (void)descriptor;
+  (void)rate;
+  (void)bundle_path;
+  (void)features;
+  return calloc(1, sizeof(test_counter));
+}
+
+static void connect_port_counter(LV2_Handle instance, uint32_t port, void* data)
+{
+  if(port == 0)
+    ((test_counter*)instance)->out = (float*)data;
+}
+
+static void run_counter(LV2_Handle instance, uint32_t n_samples)
+{
+  (void)n_samples;
+  test_counter* self = (test_counter*)instance;
+  self->runs += 1.f;
+  if(self->out)
+    *self->out = self->runs;
+}
+
+static const LV2_Descriptor descriptor_counter
+    = {"urn:score:test:counter", instantiate_counter, connect_port_counter, NULL,
+       run_counter,              NULL,                cleanup,              NULL};
+
 LV2_SYMBOL_EXPORT const LV2_Descriptor* lv2_descriptor(uint32_t index)
 {
   switch(index)
@@ -175,6 +310,10 @@ LV2_SYMBOL_EXPORT const LV2_Descriptor* lv2_descriptor(uint32_t index)
       return &descriptor2;
     case 2:
       return &descriptor_notify;
+    case 3:
+      return &descriptor_transport;
+    case 4:
+      return &descriptor_counter;
     default:
       return NULL;
   }

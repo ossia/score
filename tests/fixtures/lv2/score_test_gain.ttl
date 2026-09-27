@@ -3,6 +3,8 @@
 @prefix atom: <http://lv2plug.in/ns/ext/atom#> .
 @prefix midi: <http://lv2plug.in/ns/ext/midi#> .
 @prefix rsz:  <http://lv2plug.in/ns/ext/resize-port#> .
+@prefix time: <http://lv2plug.in/ns/ext/time#> .
+@prefix urid: <http://lv2plug.in/ns/ext/urid#> .
 
 <urn:score:test:gain>
     a lv2:Plugin, lv2:AmplifierPlugin ;
@@ -104,4 +106,40 @@
         lv2:symbol "notify" ;
         lv2:name "Notify" ;
         rsz:minimumSize 65536
+    ] .
+
+# Follows the host transport through time:Position.
+<urn:score:test:transport>
+    a lv2:Plugin, lv2:UtilityPlugin ;
+    doap:name "Score Test Transport" ;
+    lv2:requiredFeature urid:map ;
+    lv2:port [
+        a lv2:InputPort, atom:AtomPort ;
+        atom:bufferType atom:Sequence ;
+        atom:supports time:Position ;
+        atom:supports midi:MidiEvent ;
+        lv2:index 0 ;
+        lv2:symbol "control" ;
+        lv2:name "Control"
+    ] , [
+        a lv2:ControlPort, lv2:OutputPort ;
+        lv2:index 1 ;
+        lv2:symbol "speed" ;
+        lv2:name "Speed"
+    ] , [
+        a lv2:ControlPort, lv2:OutputPort ;
+        lv2:index 2 ;
+        lv2:symbol "starts" ;
+        lv2:name "Starts"
+    ] .
+
+# No activate(): counts its runs since it was instantiated.
+<urn:score:test:counter>
+    a lv2:Plugin, lv2:UtilityPlugin ;
+    doap:name "Score Test Counter" ;
+    lv2:port [
+        a lv2:ControlPort, lv2:OutputPort ;
+        lv2:index 0 ;
+        lv2:symbol "runs" ;
+        lv2:name "Runs"
     ] .
