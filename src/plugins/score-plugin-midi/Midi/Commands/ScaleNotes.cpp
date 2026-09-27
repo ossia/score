@@ -11,40 +11,39 @@ namespace Midi
 ScaleNotes::ScaleNotes(
     const ProcessModel& model, const std::vector<Id<Note>>& to_move, double delta)
     : m_model{model}
-    , m_toScale{to_move}
-    , m_delta{delta}
 {
+  m_durations.reserve(to_move.size());
+  for(auto& id : to_move)
+  {
+    const double before = model.notes.at(id).duration();
+    m_durations.push_back({id, {before, std::max(before + delta, 0.001)}});
+  }
 }
 
 void ScaleNotes::undo(const score::DocumentContext& ctx) const
 {
   auto& model = m_model.find(ctx);
-  for(auto& note : m_toScale)
-  {
-    auto& n = model.notes.at(note);
-    n.setDuration(n.duration() - m_delta);
-  }
+  for(auto& [id, d] : m_durations)
+    model.notes.at(id).setDuration(d.first);
+  model.notesNeedUpdate();
 }
 
 void ScaleNotes::redo(const score::DocumentContext& ctx) const
 {
   auto& model = m_model.find(ctx);
-  for(auto& note : m_toScale)
-  {
-    auto& n = model.notes.at(note);
-    n.setDuration(std::max(n.duration() + m_delta, 0.001));
-  }
+  for(auto& [id, d] : m_durations)
+    model.notes.at(id).setDuration(d.second);
   model.notesNeedUpdate();
 }
 
 void ScaleNotes::serializeImpl(DataStreamInput& s) const
 {
-  s << m_model << m_toScale << m_delta;
+  s << m_model << m_durations;
 }
 
 void ScaleNotes::deserializeImpl(DataStreamOutput& s)
 {
-  s >> m_model >> m_toScale >> m_delta;
+  s >> m_model >> m_durations;
 }
 
 RescaleMidi::RescaleMidi(const ProcessModel& model, double delta)

@@ -25,8 +25,9 @@ protected:
 
 private:
   Path<ProcessModel> m_model;
-  std::vector<Id<Note>> m_toScale;
-  double m_delta{};
+  //! Each note's duration before and after: a duration clamped at the
+  //! minimum cannot be undone by subtracting the delta again.
+  std::vector<std::pair<Id<Note>, std::pair<double, double>>> m_durations;
 };
 
 // sclaes the whole process
