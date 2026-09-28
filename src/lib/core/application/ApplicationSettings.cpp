@@ -246,6 +246,8 @@ void setQApplicationMetadata()
   else
     QCoreApplication::setApplicationName("score");
 
+  QGuiApplication::setDesktopFileName("ossia-score");
+
   if(auto env = qEnvironmentVariable("SCORE_CUSTOM_APP_APPLICATION_VERSION");
      !env.isEmpty())
     QCoreApplication::setApplicationVersion(env);
