@@ -348,6 +348,11 @@ public:
   //! as too. Presets and documents from when the control was a slider carry
   //! one; stored as is it would not be a time chooser's {x, mode} any more.
   void setValue(const ossia::value& value) override;
+
+  //! A free value that a straight note is close to (within x1.5) at `tempo`
+  //! becomes that note, synced, as value and as init. For controls created
+  //! where the time is musical. Returns whether it did.
+  bool preferSynced(double tempo = 120.);
   using Process::ControlInlet::ControlInlet;
 };
 

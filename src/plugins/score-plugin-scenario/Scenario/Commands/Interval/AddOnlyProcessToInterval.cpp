@@ -3,6 +3,7 @@
 #include "AddOnlyProcessToInterval.hpp"
 
 #include <Process/Dataflow/Port.hpp>
+#include <Process/Dataflow/WidgetInlets.hpp>
 #include <Process/ProcessFactory.hpp>
 #include <Process/ProcessList.hpp>
 
@@ -82,6 +83,13 @@ Process::ProcessModel& AddOnlyProcessToInterval::redo(
       m_data, m_createdProcessId, ctx, &interval);
 
   proc->setPosition(m_graphpos);
+
+  // Where the time is musical, the time choosers start in note values.
+  if(closestParentWithMusicalMetrics(&interval).parent)
+    for(auto* inlet : proc->inlets())
+      if(auto* t = qobject_cast<Process::TimeChooser*>(inlet))
+        t->preferSynced();
+
   AddProcess(interval, proc);
   return *proc;
 }

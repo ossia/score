@@ -90,3 +90,30 @@ TEST_CASE("time chooser: the footprint of a knob", "[time_chooser]")
     CHECK(t.boundingRect() == k.boundingRect());
   });
 }
+
+TEST_CASE("time chooser: where the time is musical, a note value", "[time_chooser]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext&) {
+    auto make = [](float init) {
+      return std::make_unique<Process::TimeChooser>(
+          0.f, 60.f, init, QStringLiteral("t"), Id<Process::Port>{0}, nullptr);
+    };
+    // 0.5 s at 120 BPM is a quarter note: synced to it, value and init
+    auto quarter = make(0.5f);
+    CHECK(quarter->preferSynced(120.));
+    CHECK(quarter->value() == ossia::value{ossia::vec2f{0.25f, 1.f}});
+    CHECK(quarter->init() == ossia::value{ossia::vec2f{0.25f, 1.f}});
+    // 1 s: a half note
+    auto half = make(1.f);
+    CHECK(half->preferSynced(120.));
+    CHECK(half->value() == ossia::value{ossia::vec2f{0.5f, 1.f}});
+    // A 10 ms attack is nowhere near a note value (1/64 is 31 ms): kept
+    auto attack = make(0.01f);
+    CHECK(!attack->preferSynced(120.));
+    CHECK(attack->value() == ossia::value{ossia::vec2f{0.01f, 0.f}});
+    // Already synced: left alone
+    auto synced = make(0.5f);
+    synced->setValue(ossia::vec2f{0.125f, 1.f});
+    CHECK(!synced->preferSynced(120.));
+  });
+}

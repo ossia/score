@@ -572,6 +572,33 @@ TimeChooser::TimeChooser(
 
 TimeChooser::~TimeChooser() { }
 
+bool TimeChooser::preferSynced(double tempo)
+{
+  const auto v = ossia::convert<ossia::vec2f>(value());
+  if(v[1] != 0.f || !(v[0] > 0.f) || !(tempo > 0.))
+    return false;
+  // Seconds -> a fraction of a whole note, then the closest straight note
+  // from 1/64 to 4 wholes
+  const double whole = v[0] * tempo / 240.;
+  double best = 1.;
+  double best_ratio = 1e9;
+  for(double note = 1. / 64.; note <= 4.; note *= 2.)
+  {
+    const double r = std::max(note / whole, whole / note);
+    if(r < best_ratio)
+    {
+      best_ratio = r;
+      best = note;
+    }
+  }
+  if(best_ratio > 1.5)
+    return false;
+  const ossia::vec2f synced{float(best), 1.f};
+  setValue(synced);
+  setInit(synced);
+  return true;
+}
+
 void TimeChooser::setValue(const ossia::value& value)
 {
   switch(value.get_type())
