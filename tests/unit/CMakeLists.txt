@@ -193,6 +193,12 @@ score_add_test(test_unit_midi_display_window
   APP
   PLUGINS score_plugin_ui score_lib_process)
 
+# Signal display: a fixed range for its rows.
+score_add_test(test_unit_signal_display_range
+  SOURCES SignalDisplayRangeTest.cpp
+  APP
+  PLUGINS score_plugin_ui score_lib_process)
+
 # The comment box: trailing spaces and reflow, both QTextDocument behaviour.
 score_add_test(test_unit_textbox_layout
   SOURCES TextBoxLayoutTest.cpp

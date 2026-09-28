@@ -1,5 +1,8 @@
 #pragma once
 #include <Process/Dataflow/NodeItem.hpp>
+#include <Process/Dataflow/Port.hpp>
+#include <Process/Dataflow/PortFactory.hpp>
+#include <Process/Dataflow/PortItem.hpp>
 
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 
@@ -54,6 +57,10 @@ struct Node
         control
       };
     } port;
+    //! Off: each row spans the lowest to the highest value it received.
+    halp::toggle<"Fixed range"> fixed;
+    halp::spinbox_f32<"Min", halp::range{-1e6, 1e6, 0.}> min;
+    halp::spinbox_f32<"Max", halp::range{-1e6, 1e6, 1.}> max;
   } inputs;
 
   struct
@@ -103,6 +110,16 @@ struct Node
     }
   };
 
+  //! The values at the bottom and at the top of a row which received values
+  //! from seen_min to seen_max. Equal: the row is drawn flat.
+  static std::pair<float, float> row_range(
+      bool fixed, float min, float max, float seen_min, float seen_max) noexcept
+  {
+    if(fixed)
+      return {min, max};
+    return {seen_min, seen_max};
+  }
+
   using tick = halp::tick_flicks;
   void operator()(halp::tick_flicks tk)
   {
@@ -128,6 +145,10 @@ struct Node
 
   public:
     Scenario::IntervalModel* m_interval{};
+    // Absent from processes which have not been reloaded since they were added
+    const Process::ControlInlet* m_fixed{};
+    const Process::ControlInlet* m_min{};
+    const Process::ControlInlet* m_max{};
 
     std::vector<vec_type> m_values;
     vec_type min = {0.};
@@ -174,6 +195,17 @@ struct Node
               break;
           }
         });
+
+        if(process.inlets().size() >= 4)
+        {
+          m_fixed = qobject_cast<Process::ControlInlet*>(process.inlets()[1]);
+          m_min = qobject_cast<Process::ControlInlet*>(process.inlets()[2]);
+          m_max = qobject_cast<Process::ControlInlet*>(process.inlets()[3]);
+          for(auto* c : {m_fixed, m_min, m_max})
+            if(c)
+              connect(
+                  c, &Process::ControlInlet::valueChanged, this, [this] { update(); });
+        }
 
         auto outl = safe_cast<Process::ControlOutlet*>(process.outlets().front());
         connect(
@@ -345,12 +377,20 @@ struct Node
       const auto w = m_defaultWidth;
       const auto h = height() / num_rows;
 
+      const bool fixed = m_fixed && m_min && m_max
+                         && ossia::convert<bool>(m_fixed->value());
+      const float fixed_min = fixed ? ossia::convert<float>(m_min->value()) : 0.f;
+      const float fixed_max = fixed ? ossia::convert<float>(m_max->value()) : 1.f;
+
       for(int row = 0; row < num_rows; ++row)
       {
         const int row_index = row + 1;
 
-        const auto min = this->min[row_index];
-        const auto max = this->max[row_index];
+        const auto [min, max] = Node::row_range(
+            fixed, fixed_min, fixed_max, this->min[row_index], this->max[row_index]);
+        // Values out of a fixed range stay in their row
+        if(fixed)
+          p->setClipRect(QRectF{0., 0., w, h});
         if(min != max)
         {
           draw_row_simple(p, w, h, row_index, [min, max](float v) {
