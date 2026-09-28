@@ -32,6 +32,11 @@ jobs:
       with:
         submodules: 'recursive'
 
+    # The manifest builds the checkout as it is (type: dir): the add-ons must
+    # be in src/addons before, or none of them is in the package.
+    - name: Fetch add-ons
+      run: ./ci/common.deps.sh LINUX
+
     - uses: flatpak/flatpak-github-actions/flatpak-builder@v6
       with:
         bundle: io.ossia.score.${{ matrix.arch }}.flatpak
