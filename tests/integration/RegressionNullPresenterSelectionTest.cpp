@@ -16,6 +16,7 @@
 
 #include <score/selection/Selection.hpp>
 #include <score/selection/SelectionStack.hpp>
+#include <score/model/IdentifiedObject.hpp>
 
 #include <core/document/Document.hpp>
 #include <core/document/DocumentModel.hpp>
@@ -55,5 +56,65 @@ TEST_CASE(
     QApplication::processEvents();
 
     CHECK(stack.currentSelection().empty());
+  });
+}
+
+namespace
+{
+struct SelectableObject : IdentifiedObject<SelectableObject>
+{
+  SelectableObject(int id, QObject* parent)
+      : IdentifiedObject<SelectableObject>{Id<SelectableObject>{id}, "Obj", parent}
+  {
+  }
+};
+}
+
+// Select an object, add a monitor with a script, undo: the object stays
+// selected. Pruning the monitor from the selection stack must keep the empty
+// selection at the bottom of the stack, or currentSelection() becomes empty
+// while the views are told the object is still selected.
+TEST_CASE(
+    "Removing another object keeps the selection", "[integration][regression][selection]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    score::Document* doc = score::test::new_document(ctx);
+    REQUIRE(doc != nullptr);
+    auto& stack = doc->context().selectionStack;
+
+    QObject parent;
+    auto* a = new SelectableObject{1, &parent};
+    auto* b = new SelectableObject{2, &parent};
+    const Selection just_a = Selection::fromList(QList<IdentifiedObjectAbstract*>{a});
+
+    stack.pushNewSelection(just_a);
+    REQUIRE(stack.currentSelection() == just_a);
+
+    SECTION("undoing the creation of another process")
+    {
+      stack.pruneRecursively(b);
+    }
+    SECTION("another object destroyed")
+    {
+      stack.prune(b);
+    }
+
+    CHECK(stack.currentSelection() == just_a);
+    CHECK(stack.canUnselect());
+
+    // And it can be deselected, with the views told what was selected
+    Selection old, now;
+    QObject::connect(
+        &stack, &score::SelectionStack::currentSelectionChanged, &parent,
+        [&](const Selection& o, const Selection& n) {
+      old = o;
+      now = n;
+    });
+    stack.deselect();
+    CHECK(stack.currentSelection().empty());
+    CHECK(old == just_a);
+    CHECK(now.empty());
+
+    delete b;
   });
 }

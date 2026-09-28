@@ -122,9 +122,10 @@ void SelectionStack::push(const Selection& selection)
 
     m_unselectable.push(s);
 
+    // The oldest selection goes; the empty one at the bottom stays.
     if(m_unselectable.size() > 50)
     {
-      m_unselectable.removeFirst();
+      m_unselectable.removeAt(1);
     }
     m_reselectable.clear();
 
@@ -170,6 +171,28 @@ void SelectionStack::deselectObjects(const Selection& toDeselect)
 Selection SelectionStack::currentSelection() const
 {
   return canUnselect() ? m_unselectable.top() : Selection{};
+}
+
+static void
+dropEmptySelections(QStack<Selection>& unselectable, QStack<Selection>& reselectable)
+{
+  // The first one is the empty selection that stays at the bottom:
+  // canUnselect() and currentSelection() count on it.
+  if(!unselectable.empty())
+    unselectable.erase(
+        std::remove_if(
+            unselectable.begin() + 1, unselectable.end(),
+            [](const Selection& s) { return s.empty(); }),
+        unselectable.end());
+
+  reselectable.erase(
+      std::remove_if(
+          reselectable.begin(), reselectable.end(),
+          [](const Selection& s) { return s.empty(); }),
+      reselectable.end());
+
+  if(unselectable.empty() || !unselectable.front().empty())
+    unselectable.push_front(Selection{});
 }
 
 void SelectionStack::prune(IdentifiedObjectAbstract* p)
@@ -220,21 +243,7 @@ void SelectionStack::prune(IdentifiedObjectAbstract* p)
     }
   }
 
-  m_unselectable.erase(
-      std::remove_if(
-          m_unselectable.begin(), m_unselectable.end(),
-          [](const Selection& s) { return s.empty(); }),
-      m_unselectable.end());
-
-  m_reselectable.erase(
-      std::remove_if(
-          m_reselectable.begin(), m_reselectable.end(),
-          [](const Selection& s) { return s.empty(); }),
-      m_reselectable.end());
-
-  if(m_unselectable.size() == 0)
-    m_unselectable.push(Selection{});
-
+  dropEmptySelections(m_unselectable, m_reselectable);
   pruneConnections();
   currentSelectionChanged(m_unselectable.top(), m_unselectable.top());
 }
@@ -319,21 +328,7 @@ void SelectionStack::pruneRecursively(IdentifiedObjectAbstract* p)
     }
   }
 
-  m_unselectable.erase(
-      std::remove_if(
-          m_unselectable.begin(), m_unselectable.end(),
-          [](const Selection& s) { return s.empty(); }),
-      m_unselectable.end());
-
-  m_reselectable.erase(
-      std::remove_if(
-          m_reselectable.begin(), m_reselectable.end(),
-          [](const Selection& s) { return s.empty(); }),
-      m_reselectable.end());
-
-  if(m_unselectable.size() == 0)
-    m_unselectable.push(Selection{});
-
+  dropEmptySelections(m_unselectable, m_reselectable);
   pruneConnections();
   currentSelectionChanged(m_unselectable.top(), m_unselectable.top());
 }
