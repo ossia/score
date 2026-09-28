@@ -7,6 +7,8 @@
 #include <QDateTime>
 #include <QFile>
 
+#include <mutex>
+
 #include <AvndProcesses/AddressTools.hpp>
 #include <AvndProcesses/Utils.hpp>
 #include <csv2/csv2.hpp>
@@ -130,9 +132,13 @@ struct DeviceRecorder : PatternObject
     Pipe,
   };
 
-  // Threaded worker
+  // Threaded worker. The messages run on score's task pool, several threads:
+  // those of one object are serialized by a lock that its recorder and its
+  // player share, so that the file is never reopened from two threads at
+  // once (interleaved headers) nor read while another thread parses it.
   struct recorder_thread
   {
+    std::shared_ptr<std::mutex> lock = std::make_shared<std::mutex>();
     explicit recorder_thread(const score::DocumentContext& context)
         : context{context}
     {
@@ -243,6 +249,7 @@ struct DeviceRecorder : PatternObject
 
   struct player_thread
   {
+    std::shared_ptr<std::mutex> lock;
     explicit player_thread(const score::DocumentContext& context)
         : context{context}
     {
@@ -399,6 +406,9 @@ struct DeviceRecorder : PatternObject
         case ';':
           read<csv2::Reader<csv2::delimiter<';'>>>({data, data + f.size()});
           break;
+        case '|':
+          read<csv2::Reader<csv2::delimiter<'|'>>>({data, data + f.size()});
+          break;
       }
     }
 
@@ -408,10 +418,24 @@ struct DeviceRecorder : PatternObject
       if(!v.empty())
       {
         std::optional<ossia::value> res;
-        if(v.starts_with('"') && v.ends_with('"'))
-          res = State::parseValue(std::string_view(v).substr(1, v.size() - 2));
-        else
-          res = State::parseValue(v);
+        std::string_view text = v;
+        if(v.size() >= 2 && v.starts_with('"') && v.ends_with('"'))
+          text = text.substr(1, text.size() - 2);
+        res = State::parseValue(text);
+        // Text the value parser does not take is a string, as the recorder
+        // writes it: unquoted, or quoted with its quotes doubled.
+        if(!res)
+        {
+          std::string str;
+          str.reserve(text.size());
+          for(std::size_t k = 0; k < text.size(); k++)
+          {
+            str += text[k];
+            if(text[k] == '"' && k + 1 < text.size() && text[k + 1] == '"')
+              k++;
+          }
+          res = ossia::value{std::move(str)};
+        }
 
         if(res)
         {
@@ -678,10 +702,23 @@ struct DeviceRecorder : PatternObject
     {
       ossia::visit([&]<typename M>(M&& msg) {
         if constexpr(requires { *msg; })
+        {
+          std::lock_guard l{*msg->recorder->lock};
           (*std::forward<M>(msg))();
+        }
         else
+        {
+          std::lock_guard l{*msg_lock(msg)};
           std::forward<M>(msg)();
+        }
       }, std::move(mess));
+    }
+    static std::mutex* msg_lock(const auto& msg) noexcept
+    {
+      if constexpr(requires { msg.recorder; })
+        return msg.recorder->lock.get();
+      else
+        return msg.player->lock.get();
     }
   } worker;
 
@@ -701,6 +738,7 @@ struct DeviceRecorder : PatternObject
     SCORE_ASSERT(ossia_document_context);
     record_impl = std::make_shared<recorder_thread>(*ossia_document_context);
     play_impl = std::make_shared<player_thread>(*ossia_document_context);
+    play_impl->lock = record_impl->lock;
     setMode();
     update();
   }

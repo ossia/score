@@ -1559,3 +1559,13 @@ score_add_test(test_unit_audio_protocol_tree
 
 score_add_test(test_unit_vector_domain_scalar
   SOURCES VectorDomainScalarTest.cpp)
+if(TARGET score_plugin_avnd)
+  score_add_test(test_unit_csv_player
+    SOURCES CsvPlayerTest.cpp
+    APP
+    PLUGINS score_plugin_avnd score_lib_process)
+  target_include_directories(test_unit_csv_player PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish"
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-avnd"
+    "${SCORE_ROOT_SOURCE_DIR}/3rdparty/csv2/include")
+endif()
