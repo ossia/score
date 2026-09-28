@@ -955,3 +955,23 @@ TEST_CASE(
     }
   });
 }
+
+// An automation with tween on score:/controls/... starts from the published
+// parameter, after another automation has driven the same control: the
+// parameter must hold what was played into it.
+TEST_CASE(
+    "a published control's parameter holds the value played into it",
+    "[integration][scriptable][tween]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    Fixture f{ctx};
+    Playback play{*f.doc};
+
+    push_from_thread(f.amountParam(), ossia::value{0.9f});
+    CHECK(ossia::convert<float>(f.amountParam().value()) == Catch::Approx(0.9));
+    CHECK(ossia::convert<float>(f.amountParam().fetch_value()) == Catch::Approx(0.9));
+    // Not an edit: the document keeps its value
+    CHECK(ossia::convert<float>(f.amount->value()) == Catch::Approx(0.2));
+    play.stop();
+  });
+}
