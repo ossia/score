@@ -261,7 +261,9 @@ void QGraphicsTimeChooser::cycleMode()
 
 QRectF QGraphicsTimeChooser::boundingRect() const
 {
-  return m_rect;
+  // The same footprint as a knob (QGraphicsKnob: the dial, and 7 below for
+  // its value), so that the two line up in a row whose items are centered.
+  return QRectF{m_rect.x(), m_rect.y(), m_rect.width(), m_rect.height() + 7.};
 }
 
 QString QGraphicsTimeChooser::freeText() const

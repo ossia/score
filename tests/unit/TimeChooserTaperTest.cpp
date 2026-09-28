@@ -6,6 +6,7 @@
 
 #include <halp/mappers.hpp>
 
+#include <score/graphics/widgets/QGraphicsKnob.hpp>
 #include <score/graphics/widgets/QGraphicsTimeChooser.hpp>
 
 #include <score_test/App.hpp>
@@ -76,5 +77,16 @@ TEST_CASE("time chooser: a number is seconds, free-running", "[time_chooser]")
     // A time chooser's own value is kept, synced included
     t.setValue(ossia::vec2f{0.25f, 1.f});
     CHECK(t.value() == ossia::value{ossia::vec2f{0.25f, 1.f}});
+  });
+}
+
+TEST_CASE("time chooser: the footprint of a knob", "[time_chooser]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext&) {
+    // Rows center their items: a shorter time chooser sits lower than the
+    // knobs next to it.
+    score::QGraphicsTimeChooser t{nullptr};
+    score::QGraphicsKnob k{nullptr};
+    CHECK(t.boundingRect() == k.boundingRect());
   });
 }
