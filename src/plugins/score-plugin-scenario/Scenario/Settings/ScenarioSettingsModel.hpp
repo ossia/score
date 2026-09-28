@@ -27,7 +27,7 @@ class SCORE_PLUGIN_SCENARIO_EXPORT Model final : public score::SettingsDelegateM
   QString m_ScriptEditorPreview;
   double m_GraphicZoom{};
   qreal m_SlotHeight{};
-  TimeVal m_DefaultDuration{TimeVal::fromMsecs(30000)};
+  TimeVal m_DefaultDuration{TimeVal::fromMsecs(16000)};
   int m_UpdateRate{60};
   int m_ExecutionRefreshRate{60};
   bool m_SnapshotOnCreate{};

@@ -6,7 +6,7 @@
 // runs the execution for exactly N/60 s, synchronously:
 // - two separate processes grab byte-identical frames;
 // - the value is the automation's at N/60 s (a linear 0 -> 1 ramp over the
-//   root interval's default 15 s).
+//   root interval's default 16 s, eight bars at 120 BPM).
 // A Javascript process whose first tick takes 500 ms does not change the
 // frame count: the grab is frame N-1, with no settling frames added.
 // Stopping and playing again starts the step count over.
@@ -40,7 +40,7 @@ bool ready()
          && QFile::exists(corpusDir() + "/isf-stepped-exec-probe.fs");
 }
 
-constexpr double rootDurationSeconds = 15.;
+constexpr double rootDurationSeconds = 16.;
 constexpr double stepRate = 60.;
 
 struct Grab

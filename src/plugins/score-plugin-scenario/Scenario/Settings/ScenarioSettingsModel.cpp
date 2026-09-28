@@ -45,8 +45,9 @@ SETTINGS_PARAMETER_IMPL(ScriptEditorPreview){
     Process::UIPlacementSettings::toString(
         Process::UIPlacementSettings::defaultScriptEditorPreview)};
 SETTINGS_PARAMETER_IMPL(SlotHeight){QStringLiteral("Skin/slotHeight"), 200};
+// Eight bars of 4/4 at the default 120 BPM
 SETTINGS_PARAMETER_IMPL(DefaultDuration){
-    QStringLiteral("Skin/defaultDuration"), TimeVal::fromMsecs(15000)};
+    QStringLiteral("Skin/defaultDuration"), TimeVal::fromMsecs(16000)};
 SETTINGS_PARAMETER_IMPL(SnapshotOnCreate){
     QStringLiteral("Scenario/SnapshotOnCreate"), false};
 SETTINGS_PARAMETER_IMPL(AutoSequence){QStringLiteral("Scenario/AutoSequence"), false};
@@ -85,8 +86,10 @@ Model::Model(
 {
   score::setupDefaultSettings(set, Parameters::list(), *this);
 
-  if(m_DefaultDuration < TimeVal::fromMsecs(1000))
-    setDefaultDuration(TimeVal::fromMsecs(15000));
+  // A stored 15 s is a legacy default, not a user choice.
+  if(m_DefaultDuration < TimeVal::fromMsecs(1000)
+     || m_DefaultDuration == TimeVal::fromMsecs(15000))
+    setDefaultDuration(TimeVal::fromMsecs(16000));
   if(m_DefaultDuration > TimeVal::fromMsecs(10000000))
     setDefaultDuration(TimeVal::fromMsecs(100000));
   // setDefaultDuration(TimeVal::fromMsecs(100000));
