@@ -37,6 +37,13 @@ public:
   virtual std::vector<State::AddressAccessor> matchingAddresses() { return {}; }
 
   /**
+   * @brief takenOverAddresses The addresses the process starts from the value
+   * they have (e.g. an automation with tween): the state it starts from does
+   * not send them when played.
+   */
+  virtual std::vector<State::AddressAccessor> takenOverAddresses() const { return {}; }
+
+  /**
    * @brief messages The current messages in this point of the process.
    */
   virtual State::MessageList messages() const { return {}; }

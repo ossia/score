@@ -31,6 +31,7 @@ public:
   double point() const;
 
   std::vector<State::AddressAccessor> matchingAddresses() override;
+  std::vector<State::AddressAccessor> takenOverAddresses() const override;
   ::State::MessageList messages() const override;
   ::State::MessageList
   setMessages(const ::State::MessageList&, const Process::MessageNode&) override;

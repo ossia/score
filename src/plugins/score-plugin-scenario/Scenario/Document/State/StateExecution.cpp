@@ -25,7 +25,9 @@ StateComponentBase::StateComponentBase(
     , m_model{&element}
     , m_ev{std::move(ev)}
     , m_node{ossia::make_node<ossia::nodes::state_writer>(
-          *ctx.execState, Engine::score_to_ossia::state(element, *ctx.execState))}
+          *ctx.execState,
+          Engine::score_to_ossia::state(
+              element, *ctx.execState, Engine::score_to_ossia::StatePlay::Execution))}
 {
   OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
   m_ev->add_time_process(std::make_shared<ossia::node_process>(m_node));
@@ -39,7 +41,10 @@ StateComponentBase::StateComponentBase(
     if(auto dl = st.lock())
     {
       in_exec(
-          [n = m_node, x = Engine::score_to_ossia::state(*m_model, *dl), dl]() mutable {
+          [n = m_node,
+           x = Engine::score_to_ossia::state(
+               *m_model, *dl, Engine::score_to_ossia::StatePlay::Execution),
+           dl]() mutable {
         OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Audio);
         n->data = std::move(x);
       });

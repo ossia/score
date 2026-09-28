@@ -28,13 +28,23 @@ namespace Engine
 namespace score_to_ossia
 {
 
+//! When played, a state leaves out the addresses that the processes of the
+//! interval it starts take over (an automation with tween). Played from the
+//! UI, it sends them all.
+enum class StatePlay
+{
+  Execution,
+  FromUI
+};
+
 void state(
     ossia::state& ossia_state, const Scenario::StateModel& score_state,
-    const ossia::execution_state& ctx);
+    const ossia::execution_state& ctx, StatePlay play = StatePlay::FromUI);
 
 SCORE_PLUGIN_SCENARIO_EXPORT
-ossia::state
-state(const Scenario::StateModel& score_state, const ossia::execution_state& ctx);
+ossia::state state(
+    const Scenario::StateModel& score_state, const ossia::execution_state& ctx,
+    StatePlay play = StatePlay::FromUI);
 
 SCORE_PLUGIN_SCENARIO_EXPORT
 void play_state_from_ui(

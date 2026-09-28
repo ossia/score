@@ -5,7 +5,12 @@
 
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 
+#include <Process/Process.hpp>
+#include <Process/State/ProcessStateDataInterface.hpp>
+
+#include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
+#include <Scenario/Process/ScenarioInterface.hpp>
 #include <Scenario/Execution/score2OSSIA.hpp>
 
 #include <LocalTree/ScriptableReference.hpp>
@@ -68,11 +73,44 @@ message(const State::Message& mess, const ossia::execution_state& deviceList)
   return {};
 }
 
+//! What the processes of the interval the state starts take over: an empty
+//! accessor takes the whole address over.
+using TakenOver = score::hash_map<State::Address, std::vector<State::AccessorVector>>;
+
+static TakenOver takenOver(const Scenario::StateModel& score_state)
+{
+  TakenOver res;
+  const auto& next = score_state.nextInterval();
+  auto scenario = dynamic_cast<Scenario::ScenarioInterface*>(score_state.parent());
+  if(!next || !scenario)
+    return res;
+  auto itv = scenario->findInterval(*next);
+  if(!itv)
+    return res;
+  for(const Process::ProcessModel& proc : itv->processes)
+    if(auto st = proc.startStateData())
+      for(auto& a : st->takenOverAddresses())
+        res[a.address].push_back(a.qualifiers.get().accessors);
+  return res;
+}
+
+static bool isTakenOver(const State::AddressAccessor& m, const TakenOver& to)
+{
+  auto it = to.find(m.address);
+  if(it == to.end())
+    return false;
+  const auto& accessors = m.qualifiers.get().accessors;
+  return ossia::any_of(
+      it->second, [&](const auto& a) { return a.empty() || a == accessors; });
+}
+
 void state(
     ossia::state& parent, const Scenario::StateModel& score_state,
-    const ossia::execution_state& dl)
+    const ossia::execution_state& dl, StatePlay play)
 {
   auto& elts = parent;
+  const auto skipped
+      = play == StatePlay::Execution ? takenOver(score_state) : TakenOver{};
   // Resolves addresses of ports that processes with dynamic ports do not have yet
   auto doc = score::IDocument::try_documentFromObject(score_state);
   auto tree = doc ? doc->context().findPlugin<LocalTree::ScriptableTreeBase>() : nullptr;
@@ -93,6 +131,8 @@ void state(
     if(const auto& val = n.value())
     {
       State::Message m{Process::address(n), *val};
+      if(!skipped.empty() && isTakenOver(m.address, skipped))
+        return;
       if(doc && LocalTree::isProcessState(m.address.address, doc->context()))
         add(m);
       else
@@ -103,11 +143,12 @@ void state(
     add(m);
 }
 
-ossia::state
-state(const Scenario::StateModel& score_state, const ossia::execution_state& dl)
+ossia::state state(
+    const Scenario::StateModel& score_state, const ossia::execution_state& dl,
+    StatePlay play)
 {
   ossia::state s;
-  Engine::score_to_ossia::state(s, score_state, dl);
+  Engine::score_to_ossia::state(s, score_state, dl, play);
   return s;
 }
 

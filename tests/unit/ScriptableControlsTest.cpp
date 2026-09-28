@@ -17,6 +17,9 @@
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
+#include <Scenario/Execution/score2OSSIA.hpp>
+#include <ossia/editor/state/state.hpp>
+#include <ossia/editor/state/message.hpp>
 
 #include <Automation/AutomationModel.hpp>
 #include <Automation/Commands/ChangeAddress.hpp>
@@ -956,5 +959,70 @@ TEST_CASE("an automation with tween starts from the control's value")
     settle();
 
     CHECK(tweenStart(*autom) == Catch::Approx(expected));
+  });
+}
+
+// The state that starts an automation with tween does not send the automation's
+// address, even when it holds a value of its own for it: the tween wins.
+// Played from the UI (a click on the state), it sends everything.
+TEST_CASE("a state leaves out the addresses a tweened automation takes over")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    auto doc = score::test::new_document(ctx);
+    const auto& dctx = doc->context();
+    CommandDispatcher<> disp{dctx.commandStack};
+
+    auto proc = score::test::add_process(*doc, smooth_uuid, {});
+    REQUIRE(proc);
+    auto& amount = control_named(*proc, QStringLiteral("Amount"));
+    auto& beta = control_named(*proc, QStringLiteral("Beta (1e only)"));
+    disp.submit<Process::SetProcessScriptable>(*proc, true);
+    const State::AddressAccessor amountAddr{LocalTree::scriptableAddress(amount)};
+    const State::AddressAccessor betaAddr{LocalTree::scriptableAddress(beta)};
+
+    // A cue for both controls, then an interval with an automation on one
+    auto& scenar = base_scenario(*doc);
+    auto& cue = scenar.states.at(scenar.startEvent().states().front());
+    disp.submit<Scenario::Command::AddMessagesToState>(
+        cue, State::MessageList{{amountAddr, 0.1f}, {betaAddr, 0.3f}});
+    auto create = new Scenario::Command::CreateInterval_State_Event_TimeSync{
+        scenar, cue.id(), TimeVal::fromMsecs(2000), 0.5, false};
+    disp.submit(create);
+    auto& itv = scenar.intervals.at(create->createdInterval());
+    auto cmd = new Scenario::Command::AddOnlyProcessToInterval{
+        itv, UuidKey<Process::ProcessModel>::fromString(automation_uuid), {}, QPointF{}};
+    disp.submit(cmd);
+    auto autom = qobject_cast<Automation::ProcessModel*>(&itv.processes.at(cmd->processId()));
+    REQUIRE(autom);
+    disp.submit<Automation::ChangeAddress>(*autom, amountAddr);
+
+    auto& plug = dctx.plugin<Execution::DocumentPlugin>();
+    plug.reload(true, score::test::base_interval(*doc));
+    run_exec(plug);
+    auto& exec = *plug.context().execState;
+
+    auto sent = [&](Engine::score_to_ossia::StatePlay play) {
+      std::vector<std::string> res;
+      auto s = Engine::score_to_ossia::state(cue, exec, play);
+      for(auto& m : s)
+        if(auto msg = m.target<ossia::message>())
+          res.push_back(msg->dest.address().get_node().osc_address());
+      std::sort(res.begin(), res.end());
+      return res;
+    };
+    const std::string betaOsc = betaAddr.address.path.join('/').prepend('/').toStdString();
+
+    SECTION("without tween the cue sends both")
+    {
+      CHECK(sent(Engine::score_to_ossia::StatePlay::Execution).size() == 2);
+    }
+    SECTION("with tween the automation's address is left out")
+    {
+      disp.submit<Automation::SetTween>(*autom, true);
+      CHECK(
+          sent(Engine::score_to_ossia::StatePlay::Execution)
+          == std::vector<std::string>{betaOsc});
+      CHECK(sent(Engine::score_to_ossia::StatePlay::FromUI).size() == 2);
+    }
   });
 }

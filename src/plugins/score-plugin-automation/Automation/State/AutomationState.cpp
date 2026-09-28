@@ -111,6 +111,14 @@ std::vector<State::AddressAccessor> ProcessState::matchingAddresses()
   return {};
 }
 
+std::vector<State::AddressAccessor> ProcessState::takenOverAddresses() const
+{
+  if(m_point == 0. && process().tween()
+     && !process().address().address.device.isEmpty())
+    return {process().address()};
+  return {};
+}
+
 ::State::MessageList ProcessState::messages() const
 {
   if(!process().address().address.device.isEmpty())
