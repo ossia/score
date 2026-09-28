@@ -5,7 +5,11 @@
 #include <Device/Protocol/DeviceInterface.hpp>
 
 #include <Process/ExecutionContext.hpp>
+#include <Process/Dataflow/Cable.hpp>
+#include <Process/Dataflow/Port.hpp>
 #include <Process/ExecutionFunctions.hpp>
+
+#include <LocalTree/ScriptableProcessComponent.hpp>
 
 #include <Curve/CurveConversion.hpp>
 
@@ -101,9 +105,43 @@ Component::Component(
 
 Component::~Component() { }
 
+namespace
+{
+//! "Create automation" on a control makes an automation with no address and a
+//! cable into the control.
+const Process::ControlInlet*
+cabledControl(const ProcessModel& autom, const score::DocumentContext& doc)
+{
+  for(const auto& path : autom.outlet->cables())
+    if(auto cable = path.try_find(doc))
+      if(auto sink = cable->sink().try_find(doc))
+        if(auto ctl = qobject_cast<const Process::ControlInlet*>(sink))
+          return ctl;
+  return nullptr;
+}
+}
+
 void Component::recompute()
 {
   auto dest = Execution::makeDestination(*system().execState, process().address());
+
+  // A tween with no address starts from the control the automation drives:
+  // through its published parameter when it has one, else from its value.
+  QObject::disconnect(m_tweenControl);
+  const Process::ControlInlet* control{};
+  if(!dest && process().tween())
+  {
+    if((control = cabledControl(process(), system().context().doc)))
+    {
+      if(const auto addr = LocalTree::scriptableAddress(*control); addr.isSet())
+        dest = Execution::makeDestination(
+            *system().execState, State::AddressAccessor{addr});
+      if(!dest)
+        m_tweenControl = connect(
+            control, &Process::ControlInlet::valueChanged, this,
+            [this] { recompute(); });
+    }
+  }
 
   std::shared_ptr<ossia::curve_abstract> curve;
   if(dest)
@@ -116,6 +154,9 @@ void Component::recompute()
   else
   {
     curve = on_curveChanged_impl<float>({});
+    if(control)
+      if(auto c = std::dynamic_pointer_cast<ossia::curve<double, float>>(curve))
+        c->set_y0(ossia::convert<float>(control->value()));
   }
 
   if(curve)

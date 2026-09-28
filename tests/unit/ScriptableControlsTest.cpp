@@ -20,6 +20,13 @@
 
 #include <Automation/AutomationModel.hpp>
 #include <Automation/Commands/ChangeAddress.hpp>
+#include <Automation/Commands/SetAutomationMax.hpp>
+#include <Automation/AutomationExecution.hpp>
+#include <Dataflow/Commands/EditConnection.hpp>
+#include <score/model/ComponentUtils.hpp>
+#include <score/tools/IdentifierGeneration.hpp>
+#include <ossia/dataflow/nodes/automation.hpp>
+#include <ossia/editor/curve/curve.hpp>
 #include <Device/Node/DeviceNode.hpp>
 #include <Explorer/Explorer/DeviceExplorerModel.hpp>
 #include <Execution/DocumentPlugin.hpp>
@@ -871,5 +878,83 @@ TEST_CASE("scripts reach published objects by name through Controls and Triggers
     REQUIRE(!v.isError());
     settle();
     REQUIRE(fired == 1);
+  });
+}
+
+namespace
+{
+//! Where the automation's curve starts, as its executor built it.
+double tweenStart(Automation::ProcessModel& autom)
+{
+  auto comp = score::findComponent<Automation::RecreateOnPlay::Component>(
+      autom.components());
+  REQUIRE(comp);
+  auto node = std::dynamic_pointer_cast<ossia::nodes::automation>(comp->node);
+  REQUIRE(node);
+  REQUIRE(node->behavior());
+  auto c = node->behavior().target<std::shared_ptr<ossia::curve_abstract>>();
+  REQUIRE(c);
+  auto curve = std::dynamic_pointer_cast<ossia::curve<double, float>>(*c);
+  REQUIRE(curve);
+  return curve->value_at(0.);
+}
+}
+
+// Tween works for local process controls, e.g. through score:/controls (the
+// local device).
+TEST_CASE("an automation with tween starts from the control's value")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    auto doc = score::test::new_document(ctx);
+    const auto& dctx = doc->context();
+    auto proc = score::test::add_process(*doc, smooth_uuid, {});
+    REQUIRE(proc);
+    auto& ctl = control_named(*proc, QStringLiteral("Amount"));
+    CommandDispatcher<> disp{dctx.commandStack};
+    disp.submit<Process::SetValue>(ctl, 0.6f);
+
+    auto autom = qobject_cast<Automation::ProcessModel*>(
+        score::test::add_process(*doc, automation_uuid, {}));
+    REQUIRE(autom);
+    disp.submit<Automation::SetMin>(*autom, 0.);
+    disp.submit<Automation::SetMax>(*autom, 1.);
+    disp.submit<Automation::SetTween>(*autom, true);
+
+    SECTION("through the control's local address")
+    {
+      disp.submit<Process::SetPortScriptable>(ctl, true);
+      disp.submit<Automation::ChangeAddress>(
+          *autom, State::AddressAccessor{LocalTree::scriptableAddress(ctl)});
+    }
+    auto cable = [&] {
+      auto& model = dctx.model<Scenario::ScenarioDocumentModel>();
+      disp.submit(new Dataflow::CreateCable{
+          model, getStrongId(model.cables), Process::CableType::ImmediateGlutton,
+          *autom->outlet, ctl});
+    };
+    double expected = 0.6;
+    SECTION("through a cable into the control, as \"create automation\" does")
+    {
+      cable();
+    }
+    SECTION("through a cable into a published control")
+    {
+      disp.submit<Process::SetPortScriptable>(ctl, true);
+      cable();
+    }
+    SECTION("without tween, the curve's own start")
+    {
+      disp.submit<Automation::SetTween>(*autom, false);
+      cable();
+      expected = autom->curve().sortedSegments().front()->start().y();
+      REQUIRE(expected != Catch::Approx(0.6));
+    }
+
+    auto& plug = dctx.plugin<Execution::DocumentPlugin>();
+    plug.reload(true, score::test::base_interval(*doc));
+    run_exec(plug);
+    settle();
+
+    CHECK(tweenStart(*autom) == Catch::Approx(expected));
   });
 }

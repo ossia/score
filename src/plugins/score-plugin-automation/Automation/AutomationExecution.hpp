@@ -32,6 +32,10 @@ public:
 private:
   void recompute();
 
+  //! The control a tween with no address starts from: the one the
+  //! automation's cable drives.
+  QMetaObject::Connection m_tweenControl;
+
   std::shared_ptr<ossia::curve_abstract>
   on_curveChanged(ossia::val_type, const std::optional<ossia::destination>&);
 
