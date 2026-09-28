@@ -793,3 +793,110 @@ TEST_CASE("lv2_node restarts a plug-in that has no activate()", "[lv2]")
     QCoreApplication::processEvents();
   });
 }
+
+// A CV output is an outlet, and a control with a minimum but no default nor
+// maximum does not show as nan.
+TEST_CASE("LV2 CV outputs are outlets, missing ranges are filled in", "[lv2]")
+{
+  prepare_lv2_test_environment();
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    auto& plug = setupLV2(ctx);
+    fixture_plugin p{plug, "urn:score:test:envelope", "Score Test Envelope"};
+    LV2::LV2Data data{plug.lv2_host_context, p.effect};
+    REQUIRE(data.cv_ports.size() == 1);
+    REQUIRE(data.cv_out_ports.size() == 1);
+    REQUIRE(data.control_in_ports.size() == 2);
+
+    ossia::float_vector lo, hi, def;
+    data.portRanges(lo, hi, def);
+    CHECK(lo[1] == 0.f);
+    CHECK(hi[1] == 1.f);
+    CHECK(def[1] == 0.f);
+    CHECK(def[3] == 0.5f);
+
+    SECTION("model")
+    {
+      QObject parent;
+      auto* model = new LV2::Model{
+          TimeVal::fromMsecs(1000), "urn:score:test:envelope",
+          Id<Process::ProcessModel>{1}, &parent};
+      REQUIRE(model->plugin);
+      // Gate, Time, Level
+      REQUIRE(model->inlets().size() == 3);
+      CHECK(model->inlets()[0]->name() == "Gate");
+      CHECK(qobject_cast<Process::AudioInlet*>(model->inlets()[0]));
+      REQUIRE(model->outlets().size() == 1);
+      CHECK(model->outlets()[0]->name() == "Envelope Out");
+      CHECK(qobject_cast<Process::AudioOutlet*>(model->outlets()[0]));
+
+      auto* time = dynamic_cast<Process::FloatSlider*>(model->inlets()[1]);
+      REQUIRE(time);
+      CHECK(time->name() == "Time");
+      CHECK(ossia::convert<float>(time->value()) == 0.f);
+      CHECK(time->getMax() == 1.f);
+      // The inlets after the CV output keep the ids they had when it was one
+      CHECK(model->inlets()[1]->id() == Id<Process::Port>{2});
+      CHECK(model->inlets()[2]->id() == Id<Process::Port>{3});
+
+      SECTION("a document saved when the CV output was an inlet")
+      {
+        dynamic_cast<Process::ControlInlet*>(model->inlets()[1])->setValue(0.75f);
+        dynamic_cast<Process::ControlInlet*>(model->inlets()[2])->setValue(0.25f);
+
+        JSONReader reader;
+        reader.readFrom(static_cast<const Process::ProcessModel&>(*model));
+        auto doc = toValue(reader);
+
+        // Put the old "Envelope Out" inlet (id 1) back between Gate and Time
+        REQUIRE(doc.HasMember("Inlets"));
+        auto& inlets = doc["Inlets"];
+        REQUIRE(inlets.Size() == 3);
+        rapidjson::Value old_out{inlets[0], doc.GetAllocator()};
+        old_out["id"].SetInt(1);
+        rapidjson::Value arr{rapidjson::kArrayType};
+        arr.PushBack(rapidjson::Value{inlets[0], doc.GetAllocator()}, doc.GetAllocator());
+        arr.PushBack(old_out, doc.GetAllocator());
+        arr.PushBack(rapidjson::Value{inlets[1], doc.GetAllocator()}, doc.GetAllocator());
+        arr.PushBack(rapidjson::Value{inlets[2], doc.GetAllocator()}, doc.GetAllocator());
+        inlets = arr;
+
+        JSONObject::Deserializer des{doc};
+        auto* loaded = new LV2::Model{des, &parent};
+        REQUIRE(loaded->inlets().size() == 3);
+        CHECK(
+            ossia::convert<float>(
+                dynamic_cast<Process::ControlInlet*>(loaded->inlets()[1])->value())
+            == Catch::Approx(0.75));
+        CHECK(
+            ossia::convert<float>(
+                dynamic_cast<Process::ControlInlet*>(loaded->inlets()[2])->value())
+            == Catch::Approx(0.25));
+      }
+    }
+
+    SECTION("node")
+    {
+      ossia::execution_state st;
+      {
+        test_node node{data, 48000, {LV2::voice_routing::single, 1}, {}, {}};
+        // gate, time, level
+        REQUIRE(node.root_inputs().size() == 3);
+        REQUIRE(node.root_outputs().size() == 1);
+        CHECK(node.voices[0]->fInControls[0] == 0.f);
+
+        auto& gate = node.root_inputs()[0]->cast<ossia::audio_port>();
+        gate.set_channels(1);
+        gate.channel(0).assign(64, 1.);
+        node.root_inputs()[1]->cast<ossia::value_port>().write_value(0.5f, 0);
+        run_node(node, st);
+
+        auto& out = node.root_outputs()[0]->cast<ossia::audio_port>();
+        REQUIRE(out.channels() == 1);
+        REQUIRE(out.channel(0).size() == 64);
+        CHECK(out.channel(0)[0] == Catch::Approx(1.5));
+        CHECK(out.channel(0)[63] == Catch::Approx(1.5));
+      }
+      QCoreApplication::processEvents();
+    }
+  });
+}

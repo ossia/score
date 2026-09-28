@@ -300,6 +300,60 @@ static const LV2_Descriptor descriptor_counter
     = {"urn:score:test:counter", instantiate_counter, connect_port_counter, NULL,
        run_counter,              NULL,                cleanup,              NULL};
 
+/* urn:score:test:envelope
+ *   0  CV in "gate"
+ *   1  control in "time" (minimum only)
+ *   2  CV out "out" = gate + time
+ *   3  control in "level"
+ */
+typedef struct
+{
+  const float* gate;
+  const float* time;
+  float* out;
+} test_envelope;
+
+static LV2_Handle instantiate_envelope(
+    const LV2_Descriptor* descriptor, double rate, const char* bundle_path,
+    const LV2_Feature* const* features)
+{
+  (void)descriptor;
+  (void)rate;
+  (void)bundle_path;
+  (void)features;
+  return calloc(1, sizeof(test_envelope));
+}
+
+static void connect_port_envelope(LV2_Handle instance, uint32_t port, void* data)
+{
+  test_envelope* self = (test_envelope*)instance;
+  switch(port)
+  {
+    case 0:
+      self->gate = (const float*)data;
+      break;
+    case 1:
+      self->time = (const float*)data;
+      break;
+    case 2:
+      self->out = (float*)data;
+      break;
+    default:
+      break;
+  }
+}
+
+static void run_envelope(LV2_Handle instance, uint32_t n_samples)
+{
+  test_envelope* self = (test_envelope*)instance;
+  for(uint32_t i = 0; i < n_samples; i++)
+    self->out[i] = self->gate[i] + *self->time;
+}
+
+static const LV2_Descriptor descriptor_envelope
+    = {"urn:score:test:envelope", instantiate_envelope, connect_port_envelope, NULL,
+       run_envelope,              NULL,                 cleanup,               NULL};
+
 LV2_SYMBOL_EXPORT const LV2_Descriptor* lv2_descriptor(uint32_t index)
 {
   switch(index)
@@ -314,6 +368,8 @@ LV2_SYMBOL_EXPORT const LV2_Descriptor* lv2_descriptor(uint32_t index)
       return &descriptor_transport;
     case 4:
       return &descriptor_counter;
+    case 5:
+      return &descriptor_envelope;
     default:
       return NULL;
   }

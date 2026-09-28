@@ -34,6 +34,7 @@ struct voice
   ossia::float_vector fOutControls;
   ossia::float_vector fOtherControls;
   std::vector<ossia::float_vector> fCVs;
+  std::vector<ossia::float_vector> fCVOuts;
 
   std::vector<ossia::float_vector> audio_in_scratch;
   std::vector<ossia::float_vector> audio_out_scratch;
@@ -175,13 +176,10 @@ struct lv2_node final : public ossia::graph_node
       m_inlets.push_back(new ossia::value_inlet);
     for(std::size_t i = 0; i < control_out_size; i++)
       m_outlets.push_back(new ossia::value_outlet);
+    for(std::size_t i = 0; i < data.cv_out_ports.size(); i++)
+      m_outlets.push_back(new ossia::audio_outlet);
 
-    const auto num_ports = data.effect.plugin.get_num_ports();
-    fParamMin.resize(num_ports);
-    fParamMax.resize(num_ports);
-    fParamInit.resize(num_ports);
-    data.effect.plugin.get_port_ranges_float(
-        fParamMin.data(), fParamMax.data(), fParamInit.data());
+    data.portRanges(fParamMin, fParamMax, fParamInit);
 
     if(!data.effect.instance_holder)
       throw std::runtime_error("Error while creating a LV2 plug-in");
@@ -346,6 +344,9 @@ struct lv2_node final : public ossia::graph_node
     v.fCVs.resize(cv_size);
     for(auto& cv : v.fCVs)
       cv.resize(max_block_size);
+    v.fCVOuts.resize(data.cv_out_ports.size());
+    for(auto& cv : v.fCVOuts)
+      cv.resize(max_block_size);
 
     v.audio_in_scratch.resize(audio_in_size);
     for(auto& a : v.audio_in_scratch)
@@ -431,6 +432,8 @@ struct lv2_node final : public ossia::graph_node
       lilv_instance_connect_port(inst, data.control_out_ports[i], &v.fOutControls[i]);
     for(std::size_t i = 0; i < data.cv_ports.size(); i++)
       lilv_instance_connect_port(inst, data.cv_ports[i], v.fCVs[i].data());
+    for(std::size_t i = 0; i < data.cv_out_ports.size(); i++)
+      lilv_instance_connect_port(inst, data.cv_out_ports[i], v.fCVOuts[i].data());
     for(std::size_t i = 0; i < data.control_other_ports.size(); i++)
       lilv_instance_connect_port(
           inst, data.control_other_ports[i], &v.fOtherControls[i]);
@@ -605,14 +608,18 @@ struct lv2_node final : public ossia::graph_node
         it.write(0, 0, atom->type, atom->size, atom_data);
       }
 
+      // Port timestamps are relative to the buffer, the plug-in's to the tick:
+      // as the VST3 host does, what falls outside it goes to its nearest end.
       auto& conv = v.midi_2to1[i];
       for(const libremidi::ump& msg : ossia_port.messages)
       {
+        const int64_t frame = std::clamp<int64_t>(
+            msg.timestamp - m_span.start, 0,
+            m_span.samples > 0 ? m_span.samples - 1 : 0);
         conv.convert(
-            msg.data, msg.size(), msg.timestamp,
-            [&](unsigned char* midi1, int bytes, int64_t) {
+            msg.data, msg.size(), frame, [&](unsigned char* midi1, int bytes, int64_t) {
           if(bytes > 0)
-            it.write(msg.timestamp, 0, data.host.midi_event_id, bytes, midi1);
+            it.write(frame, 0, data.host.midi_event_id, bytes, midi1);
           return stdx::error{};
         });
       }
@@ -638,6 +645,64 @@ struct lv2_node final : public ossia::graph_node
     }
 
     (void)atom_in_size;
+  }
+
+  //! Where the samples of this tick sit in the port buffers. Those span the
+  //! whole audio buffer, which a tick may cover only part of: a process that
+  //! starts mid-buffer, a loop point.
+  struct buffer_span
+  {
+    int64_t start{};
+    int64_t samples{};
+    int64_t size{};
+  } m_span;
+
+  template <typename Channel>
+  static void readChannel(const Channel& ch, float* dst, const buffer_span& s) noexcept
+  {
+    const int64_t n = std::clamp<int64_t>(int64_t(ch.size()) - s.start, 0, s.samples);
+    for(int64_t j = 0; j < n; j++)
+      dst[j] = float(ch[s.start + j]);
+    std::fill(dst + n, dst + s.samples, 0.f);
+  }
+
+  template <typename Channel>
+  static void writeChannel(Channel& ch, const float* src, const buffer_span& s)
+  {
+    if(int64_t(ch.size()) < s.size)
+      ch.resize(s.size);
+    std::copy_n(src, s.samples, ch.begin() + s.start);
+  }
+
+  //! The CV inputs of voice `voice_idx`: its channel of each CV inlet, or the
+  //! first one.
+  void feedCVInputs(voice& v, std::size_t voice_idx) noexcept
+  {
+    const std::size_t first_cv = data.audio_in_ports.size() > 0 ? 1 : 0;
+    for(std::size_t i = 0; i < v.fCVs.size(); i++)
+    {
+      auto* buf = v.fCVs[i].data();
+      const auto& in = m_inlets[first_cv + i]->template cast<ossia::audio_port>();
+      if(const auto chans = in.channels(); chans > 0)
+        readChannel(in.channel(voice_idx < chans ? voice_idx : 0), buf, m_span);
+      else
+        std::fill_n(buf, m_span.samples, 0.f);
+    }
+  }
+
+  //! The CV outputs of voice 0, after the control outlets.
+  void writeCVOutputs(voice& v) noexcept
+  {
+    const std::size_t first_cv = (data.audio_out_ports.size() > 0 ? 1 : 0)
+                                 + data.midi_out_ports.size()
+                                 + data.atom_out_ports.size()
+                                 + data.control_out_ports.size();
+    for(std::size_t i = 0; i < v.fCVOuts.size(); i++)
+    {
+      auto& out = static_cast<ossia::audio_outlet*>(m_outlets[first_cv + i])->data;
+      out.set_channels(1);
+      writeChannel(out.channel(0), v.fCVOuts[i].data(), m_span);
+    }
   }
 
   //! The transport position, preceded by a stopped one on the first run of a
@@ -707,7 +772,7 @@ struct lv2_node final : public ossia::graph_node
               [&](const uint32_t* ump, int count, int64_t ts) {
             libremidi::ump u;
             std::copy_n(ump, std::min(count, 4), u.data);
-            u.timestamp = ts;
+            u.timestamp = offset + ts;
             ossia_port.messages.push_back(u);
             return stdx::error{};
           });
@@ -718,7 +783,8 @@ struct lv2_node final : public ossia::graph_node
       }
     }
 
-    const auto control_start = (audio_out_size > 0 ? 1 : 0) + midi_out_size;
+    const auto control_start
+        = (audio_out_size > 0 ? 1 : 0) + midi_out_size + data.atom_out_ports.size();
     for(std::size_t i = 0; i < control_out_size; i++)
     {
       auto& out
@@ -790,16 +856,21 @@ struct lv2_node final : public ossia::graph_node
     if(!data.time_Position_ports.empty())
       updateTime(tk, st);
 
+    const auto [tick_start, samples] = st.timings(tk);
+    const bool samples_valid
+        = samples > 0 && std::size_t(samples) <= max_block_size && tick_start >= 0;
+    m_span = {
+        std::max<int64_t>(tick_start, 0), samples_valid ? samples : 0,
+        std::max<int64_t>(st.bufferSize(), tick_start + samples)};
+
     on_start();
     for(std::size_t c = 0; c < voices.size(); ++c)
       preProcessVoice(*voices[c], c);
 
-    const auto [tick_start, samples] = st.timings(tk);
-    const bool samples_valid
-        = samples > 0 && std::size_t(samples) <= max_block_size;
-
     if(samples_valid)
     {
+      for(std::size_t c = 0; c < voices.size(); ++c)
+        feedCVInputs(*voices[c], c);
       switch(routing)
       {
         case voice_routing::single:
@@ -843,14 +914,10 @@ struct lv2_node final : public ossia::graph_node
       for(std::size_t i = 0; i < audio_ins; i++)
       {
         auto& scratch = v.audio_in_scratch[i];
-        std::fill_n(scratch.data(), samples, 0.0f);
         if(in_channels > i)
-        {
-          const auto& ch = audio_in.channel(i);
-          const auto n = std::min<std::size_t>(samples, ch.size());
-          for(std::size_t j = 0; j < n; j++)
-            scratch[j] = float(ch[j]);
-        }
+          readChannel(audio_in.channel(i), scratch.data(), m_span);
+        else
+          std::fill_n(scratch.data(), samples, 0.0f);
         lilv_instance_connect_port(
             v.instance, data.audio_in_ports[i], scratch.data());
       }
@@ -864,18 +931,14 @@ struct lv2_node final : public ossia::graph_node
       worker_routing_scope ws{data.host, v};
       lilv_instance_run(v.instance, samples);
     }
+    writeCVOutputs(v);
 
     if(audio_outs > 0)
     {
       auto& out = static_cast<ossia::audio_outlet*>(m_outlets[0])->data;
       out.set_channels(audio_outs);
       for(std::size_t i = 0; i < audio_outs; i++)
-      {
-        auto& ch = out.channel(i);
-        ch.assign(
-            v.audio_out_scratch[i].begin(),
-            v.audio_out_scratch[i].begin() + samples);
-      }
+        writeChannel(out.channel(i), v.audio_out_scratch[i].data(), m_span);
     }
   }
 
@@ -906,14 +969,10 @@ struct lv2_node final : public ossia::graph_node
       if(audio_in_inlet)
       {
         auto& in_scratch = v.audio_in_scratch[0];
-        std::fill_n(in_scratch.data(), samples, 0.0f);
         if(in_channels > c)
-        {
-          const auto& src = audio_in_inlet->channel(c);
-          const auto n = std::min<std::size_t>(samples, src.size());
-          for(std::size_t j = 0; j < n; j++)
-            in_scratch[j] = float(src[j]);
-        }
+          readChannel(audio_in_inlet->channel(c), in_scratch.data(), m_span);
+        else
+          std::fill_n(in_scratch.data(), samples, 0.0f);
         lilv_instance_connect_port(
             v.instance, data.audio_in_ports[0], in_scratch.data());
       }
@@ -927,8 +986,9 @@ struct lv2_node final : public ossia::graph_node
         lilv_instance_run(v.instance, samples);
       }
 
-      auto& dst = out.channel(c);
-      dst.assign(out_scratch.begin(), out_scratch.begin() + samples);
+      writeChannel(out.channel(c), out_scratch.data(), m_span);
+      if(c == 0)
+        writeCVOutputs(v);
     }
   }
 };

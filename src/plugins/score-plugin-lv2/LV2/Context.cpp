@@ -23,6 +23,8 @@
 #include <lilv/lilv.h>
 #include <lilv/lilvmm.hpp>
 
+#include <algorithm>
+#include <cmath>
 #include <iostream>
 
 uint32_t LV2_Atom_Buffer::chunk_type;
@@ -447,7 +449,10 @@ LV2Data::LV2Data(HostContext& h, EffectContext& ctx)
     }
     else if(port.is_a(host.cv_class))
     {
-      cv_ports.push_back(i);
+      if(port.is_a(host.output_class))
+        cv_out_ports.push_back(i);
+      else
+        cv_ports.push_back(i);
     }
     else if(port.is_a(host.control_class))
     {
@@ -472,6 +477,32 @@ LV2Data::LV2Data(HostContext& h, EffectContext& ctx)
       qDebug() << "LV2: cannot categorize port" << i;
       debug_port();
     }
+  }
+}
+
+void LV2Data::portRanges(
+    ossia::float_vector& min, ossia::float_vector& max,
+    ossia::float_vector& init) const
+{
+  const std::size_t n = effect.plugin.get_num_ports();
+  min.resize(n);
+  max.resize(n);
+  init.resize(n);
+  effect.plugin.get_port_ranges_float(min.data(), max.data(), init.data());
+
+  // Blop's Retriggerable ADSR gives its times a minimum only
+  for(std::size_t i = 0; i < n; i++)
+  {
+    float& lo = min[i];
+    float& hi = max[i];
+    float& def = init[i];
+    const bool has_def = std::isfinite(def);
+    if(!std::isfinite(lo))
+      lo = std::isfinite(hi) ? std::min(0.f, hi - 1.f) : 0.f;
+    if(!std::isfinite(hi) || hi < lo)
+      hi = (has_def && def > lo) ? std::max(lo + 1.f, lo + 2.f * (def - lo))
+                                 : lo + 1.f;
+    def = has_def ? std::clamp(def, lo, hi) : lo;
   }
 }
 }

@@ -143,3 +143,34 @@
         lv2:symbol "runs" ;
         lv2:name "Runs"
     ] .
+
+# CV in and out, and a time with a minimum only (no default, no maximum).
+# out = gate + time.
+<urn:score:test:envelope>
+    a lv2:Plugin, lv2:EnvelopePlugin ;
+    doap:name "Score Test Envelope" ;
+    lv2:port [
+        a lv2:CVPort, lv2:InputPort ;
+        lv2:index 0 ;
+        lv2:symbol "gate" ;
+        lv2:name "Gate"
+    ] , [
+        a lv2:ControlPort, lv2:InputPort ;
+        lv2:index 1 ;
+        lv2:symbol "time" ;
+        lv2:name "Time" ;
+        lv2:minimum 0.0
+    ] , [
+        a lv2:CVPort, lv2:OutputPort ;
+        lv2:index 2 ;
+        lv2:symbol "out" ;
+        lv2:name "Envelope Out"
+    ] , [
+        a lv2:ControlPort, lv2:InputPort ;
+        lv2:index 3 ;
+        lv2:symbol "level" ;
+        lv2:name "Level" ;
+        lv2:default 0.5 ;
+        lv2:minimum 0.0 ;
+        lv2:maximum 1.0
+    ] .

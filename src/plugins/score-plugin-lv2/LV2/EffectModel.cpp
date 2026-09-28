@@ -563,13 +563,7 @@ void Model::readPlugin()
   /*
   const std::size_t other_size = data.control_other_ports.size();
   */
-  const std::size_t num_ports = data.effect.plugin.get_num_ports();
-
-  fParamMin.resize(num_ports);
-  fParamMax.resize(num_ports);
-  fParamInit.resize(num_ports);
-  data.effect.plugin.get_port_ranges_float(
-      fParamMin.data(), fParamMax.data(), fParamInit.data());
+  data.portRanges(fParamMin, fParamMax, fParamInit);
 
   auto old_inlets = score::clearAndDeleteLater(m_inlets);
   auto old_outlets = score::clearAndDeleteLater(m_outlets);
@@ -612,6 +606,9 @@ void Model::readPlugin()
     m_inlets.push_back(
         new Process::AudioInlet{portName(port_id), Id<Process::Port>{in_id++}, this});
   }
+  // Older documents store CV outputs as inlets: their ids stay reserved so
+  // that the inlets after them keep theirs.
+  in_id += data.cv_out_ports.size();
 
   // MIDI
   for(int port_id : data.midi_in_ports)
@@ -645,7 +642,7 @@ void Model::readPlugin()
     m_outlets.push_back(port);
   }
 
-  m_controlInStart = in_id;
+  m_controlInStart = m_inlets.size();
   // CONTROL
   for(int port_id : data.control_in_ports)
   {
@@ -751,6 +748,13 @@ void Model::readPlugin()
     control_out_map.insert({port_id, port});
 
     m_outlets.push_back(port);
+  }
+
+  // After the others: the outlets before them keep their ids
+  for(int port_id : data.cv_out_ports)
+  {
+    m_outlets.push_back(
+        new Process::AudioOutlet{portName(port_id), Id<Process::Port>{out_id++}, this});
   }
 
   auto sr = app_plug.context.settings<Audio::Settings::Model>().getRate();
@@ -888,16 +892,22 @@ static void restoreLV2State(LV2::Model& eff, const QByteArray& str)
 }
 
 template <typename T>
-static void restore_ports(const T& src, const T& dst)
+static void restore_ports(const T& src, const T& dst_ports)
 {
-  for(std::size_t i = 0; i < std::min(src.size(), dst.size()); ++i)
+  // By id: the ids reserved for CV outputs leave gaps in the inlets
+  for(std::size_t i = 0; i < src.size(); ++i)
   {
-    if(src[i]->type() == dst[i]->type())
+    auto it = ossia::find_if(
+        dst_ports, [&](auto* p) { return p->id() == src[i]->id(); });
+    if(it == dst_ports.end())
+      continue;
+    auto* dst = *it;
+    if(src[i]->type() == dst->type())
     {
       // FIXME not efficient at all...
       // ReloadValue: loadData defaults to keeping the current (default) value
       // since 03ef54526; a document reload must restore the saved one.
-      dst[i]->loadData(src[i]->saveData(), Process::PortLoadDataFlags::ReloadValue);
+      dst->loadData(src[i]->saveData(), Process::PortLoadDataFlags::ReloadValue);
     }
     else if(auto* s_in = qobject_cast<Process::ControlInlet*>(src[i]))
     {
@@ -905,7 +915,7 @@ static void restore_ports(const T& src, const T& dst)
       // control used to be a FloatSlider; ports with integer / toggled /
       // enumeration / logarithmic properties now get matching widgets).
       // Keep the document's value instead of resetting to the default.
-      if(auto* d_in = qobject_cast<Process::ControlInlet*>(dst[i]))
+      if(auto* d_in = qobject_cast<Process::ControlInlet*>(dst))
       {
         d_in->setValue(s_in->value());
         d_in->setAddress(s_in->address());
@@ -913,7 +923,7 @@ static void restore_ports(const T& src, const T& dst)
     }
     else if(auto* s_out = qobject_cast<Process::ControlOutlet*>(src[i]))
     {
-      if(auto* d_out = qobject_cast<Process::ControlOutlet*>(dst[i]))
+      if(auto* d_out = qobject_cast<Process::ControlOutlet*>(dst))
       {
         d_out->setValue(s_out->value());
         d_out->setAddress(s_out->address());

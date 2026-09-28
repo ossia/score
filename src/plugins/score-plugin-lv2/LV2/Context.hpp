@@ -32,6 +32,7 @@
 
 #include <ossia/detail/hash_map.hpp>
 #include <ossia/detail/lockfree_queue.hpp>
+#include <ossia/detail/pod_vector.hpp>
 #include <ossia/detail/small_vector.hpp>
 
 #include <boost/bimap.hpp>
@@ -273,7 +274,9 @@ struct SCORE_PLUGIN_LV2_EXPORT LV2Data
   LV2::EffectContext& effect;
   ossia::small_vector<int, 4> audio_in_ports, audio_out_ports;
   ossia::small_vector<int, 8> control_in_ports, control_out_ports, control_other_ports;
-  ossia::small_vector<int, 2> midi_in_ports, midi_out_ports, midi_other_ports, cv_ports;
+  ossia::small_vector<int, 2> midi_in_ports, midi_out_ports, midi_other_ports;
+  //! CV inputs (and audio ports with no direction); CV outputs.
+  ossia::small_vector<int, 2> cv_ports, cv_out_ports;
   ossia::small_vector<int, 2> atom_in_ports, atom_out_ports;
 
   ossia::small_vector<int, 2> time_Position_ports{};
@@ -287,6 +290,13 @@ struct SCORE_PLUGIN_LV2_EXPORT LV2Data
       return std::max(default_size, atom_minimum_sizes[port_index]);
     return default_size;
   }
+
+  //! lv2:minimum, lv2:maximum and lv2:default of each port, by port index.
+  //! What the plug-in leaves out is filled in: minimum 0, maximum one more
+  //! than the minimum (or twice the default above it), default the minimum.
+  void portRanges(
+      ossia::float_vector& min, ossia::float_vector& max,
+      ossia::float_vector& init) const;
 
   //! rsz:minimumSize of each port, by port index; 0 when not given.
   std::vector<uint32_t> atom_minimum_sizes;
