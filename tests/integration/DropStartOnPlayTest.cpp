@@ -10,7 +10,12 @@
 
 #include <Process/ProcessMimeSerialization.hpp>
 
+#include <Dataflow/PortItem.hpp>
+#include <Process/Dataflow/Port.hpp>
+
 #include <Scenario/Application/Drops/ScenarioDropHandler.hpp>
+#include <Scenario/Commands/CommandAPI.hpp>
+#include <Scenario/Commands/Interval/AddProcessToInterval.hpp>
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
@@ -281,6 +286,78 @@ TEST_CASE(
     stack.undo();
     QApplication::processEvents();
     CHECK(scenario.states.size() == states_before);
+    CHECK(triggers(scenario).empty());
+  });
+}
+
+// A port dropped in the scenario makes an automation with the start-on-play
+// trigger a double-click gives, not a "flying" one after nothing that would
+// start it.
+TEST_CASE(
+    "A port dropped in the scenario makes an automation that starts on play",
+    "[integration][scenario][drop][gui]")
+{
+  score::test::run_in_gui_app([](const score::GUIApplicationContext& ctx) {
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+
+    auto& root
+        = static_cast<Scenario::ScenarioDocumentModel&>(doc->model().modelDelegate())
+              .baseInterval();
+    auto& scenario = static_cast<Scenario::ProcessModel&>(*root.processes.begin());
+    auto* pres = ctx.guiApplicationPlugin<Scenario::ScenarioApplicationPlugin>()
+                     .focusedPresenter();
+    REQUIRE(pres);
+
+    // Something with a control to automate: the LFO
+    Process::ProcessModel* lfo{};
+    {
+      Scenario::Command::Macro m{
+          new Scenario::Command::DropProcessInIntervalMacro, doc->context()};
+      lfo = m.createProcessInNewSlot(
+          root, UuidKey<Process::ProcessModel>{"0b1b1816-c33e-4796-a16d-5aab27fe600f"},
+          {}, QPointF{});
+      m.commit();
+    }
+    if(!lfo)
+      SKIP("LFO not built");
+    Process::ControlInlet* ctl{};
+    for(auto* in : lfo->inlets())
+      if(auto c = qobject_cast<Process::ControlInlet*>(in);
+         c && c->type() == Process::PortType::Message)
+      {
+        ctl = c;
+        break;
+      }
+    REQUIRE(ctl);
+
+    Dataflow::AutomatablePortItem item{*ctl, pres->context().context, nullptr};
+    Dataflow::PortItem::clickedPort = &item;
+
+    auto& stack = doc->commandStack();
+    const auto before = intervalIds(scenario);
+    REQUIRE(triggers(scenario).empty());
+
+    holdAlt(false);
+    QMimeData mime;
+    mime.setData(score::mime::port(), {});
+    sendDrop(*pres, {300., 60.}, mime);
+    Dataflow::PortItem::clickedPort = nullptr;
+
+    REQUIRE(scenario.intervals.size() == before.size() + 1);
+    const Scenario::IntervalModel* itv{};
+    for(auto& i : scenario.intervals)
+      if(!ossia::contains(before, i.id()))
+        itv = &i;
+    REQUIRE(itv);
+    CHECK(!itv->processes.empty());
+    auto& sync = Scenario::startTimeSync(*itv, scenario);
+    CHECK(sync.active());
+    CHECK(sync.isStartPoint());
+
+    stack.undo();
+    QApplication::processEvents();
+    CHECK(scenario.intervals.size() == before.size());
     CHECK(triggers(scenario).empty());
   });
 }

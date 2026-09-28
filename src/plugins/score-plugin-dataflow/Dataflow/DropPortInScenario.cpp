@@ -52,8 +52,9 @@ bool DropPortInScenario::drop(
 
     auto& interval = m.createBox(scenar, pt.date, pt.date + t, pt.y);
 
-    if(Scenario::dropStartsOnPlay())
-      Scenario::addStartOnPlayTrigger(m, Scenario::startTimeSync(interval, scenar));
+    // The box is always in the void, not after anything that would start it:
+    // it starts on play, as a double-click's does, Alt or not.
+    Scenario::addStartOnPlayTrigger(m, Scenario::startTimeSync(interval, scenar));
 
     // Create process
     auto ok = port->on_createAutomation(
