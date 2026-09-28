@@ -656,3 +656,29 @@ TEST_CASE("math_expression: shipped Arraygen presets compile and return points",
     CHECK(v.get_type() == ossia::val_type::VEC2F);
   }
 }
+
+// has_variable must find xv in `return [ xv[0], xv[1], xv[] ]`, or an
+// Expression Value Filter given an array takes its scalar path.
+TEST_CASE("math_expression: has_variable finds a vector indexed and sized", "[exprtk][math_expression][has_variable]")
+{
+  std::vector<double> xv{10., 20., 30.};
+  ossia::math_expression e;
+  e.add_vector("xv", xv);
+  e.add_constants();
+  e.register_symbol_table();
+
+  for(const char* txt :
+      {"return [ xv[0], xv[1], xv[] ]", "return [ xv[1], xv[] ]",
+       "var s := xv[]; return [ xv[0], xv[1], s ]"})
+  {
+    INFO(txt);
+    REQUIRE(e.set_expression(txt));
+    CHECK(e.has_variable("xv"));
+    CHECK_FALSE(e.has_variable("x"));
+  }
+
+  REQUIRE(e.set_expression("return [ xv[0], xv[1], xv[] ]"));
+  const auto res = e.result();
+  REQUIRE(res.target<ossia::vec3f>());
+  CHECK(*res.target<ossia::vec3f>() == ossia::vec3f{10.f, 20.f, 3.f});
+}
