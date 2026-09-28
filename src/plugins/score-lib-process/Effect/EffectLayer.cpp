@@ -12,6 +12,7 @@
 #include <Process/Style/Pixmaps.hpp>
 #include <Process/UIPlacement.hpp>
 
+#include <score/selection/SelectionDispatcher.hpp>
 #include <score/application/GUIApplicationContext.hpp>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/document/DocumentContext.hpp>
@@ -115,6 +116,8 @@ QGraphicsItem* makeScriptButton(
     QObject::connect(
         ui_btn, &score::QGraphicsPixmapToggle::toggled, self,
         [=, &effect, &context](bool b) {
+      // The button takes the click the process would have been selected by
+      score::SelectionDispatcher{context.selectionStack}.select(effect);
       Process::setupScriptUI(effect, *fact, context, b);
     });
 

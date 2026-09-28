@@ -360,6 +360,12 @@ score_add_test(test_integration_js_process_ui
   GUI
   PLUGINS score_plugin_scenario score_lib_process score_plugin_js score_plugin_library)
 
+# Clicking a process's script button selects the process.
+score_add_test(test_integration_script_button_select
+  SOURCES ScriptButtonSelectTest.cpp
+  GUI
+  PLUGINS score_plugin_scenario score_lib_process score_plugin_js score_plugin_library)
+
 # JS::ProcessModel::rootPath() must not cache the Library settings in a static:
 # a second application in the same process would read freed settings. Own
 # executable, since a regression aborts.
