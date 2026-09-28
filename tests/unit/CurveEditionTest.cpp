@@ -3787,3 +3787,89 @@ TEST_CASE("The curve tool follows the modifiers held, whatever order they come i
     s.setTool(Select);
   });
 }
+
+namespace
+{
+//! The segment's ends, by the id setPolyline gave it.
+std::pair<QPointF, QPointF> endsOf(const Curve::Model& m, int id)
+{
+  for(const auto& s : m.toCurveData())
+    if(s.id.val() == id)
+      return {s.start, s.end};
+  return {};
+}
+bool near(QPointF a, QPointF b)
+{
+  return std::abs(a.x() - b.x()) < 1e-9 && std::abs(a.y() - b.y()) < 1e-9;
+}
+}
+
+TEST_CASE("Dragging a segment moves it, its neighbours follow", "[curve][edition]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    CurveDoc d{ctx};
+    // Segments 100 to 103
+    d.setPolyline({{0., 0.}, {0.25, 0.5}, {0.5, 0.5}, {0.75, 0.}, {1., 0.}});
+    CurveUi ui{d};
+    EditionSettingsGuard guard{ui.settings()};
+
+    SECTION("one segment")
+    {
+      ui.drag({0.375, 0.5}, {{0.4, 0.6}, {0.425, 0.7}});
+      CHECK(curveError(d.curve()) == "");
+      auto [a, b] = endsOf(d.curve(), 101);
+      CHECK(near(a, {0.3, 0.7}));
+      CHECK(near(b, {0.55, 0.7}));
+      CHECK(near(endsOf(d.curve(), 100).second, {0.3, 0.7}));
+      CHECK(near(endsOf(d.curve(), 102).first, {0.55, 0.7}));
+      // The others stay
+      CHECK(near(endsOf(d.curve(), 100).first, {0., 0.}));
+      CHECK(near(endsOf(d.curve(), 103).second, {1., 0.}));
+
+      d.stack().undo();
+      settle();
+      CHECK(near(endsOf(d.curve(), 101).first, {0.25, 0.5}));
+      CHECK(near(endsOf(d.curve(), 101).second, {0.5, 0.5}));
+    }
+
+    SECTION("stops at the next point and at the top")
+    {
+      ui.drag({0.375, 0.5}, {{0.6, 0.8}, {0.9, 1.5}});
+      CHECK(curveError(d.curve()) == "");
+      // The next point is at x 0.75: a move of 0.25 at most; 1 at the top
+      CHECK(near(endsOf(d.curve(), 101).first, {0.5, 1.}));
+      CHECK(near(endsOf(d.curve(), 101).second, {0.75, 1.}));
+      CHECK(near(endsOf(d.curve(), 102).second, {0.75, 0.}));
+    }
+
+    SECTION("the selected segments")
+    {
+      for(auto& s : d.curve().segments())
+        if(s.id().val() == 100 || s.id().val() == 102)
+          const_cast<Curve::SegmentModel&>(s).selection.set(true);
+
+      ui.drag({0.625, 0.25}, {{0.65, 0.35}, {0.675, 0.45}});
+      CHECK(curveError(d.curve()) == "");
+      // 100 and 102 move; 101 between them too; 103 stretches
+      CHECK(near(endsOf(d.curve(), 100).first, {0.05, 0.2}));
+      CHECK(near(endsOf(d.curve(), 101).first, {0.3, 0.7}));
+      CHECK(near(endsOf(d.curve(), 102).second, {0.8, 0.2}));
+      CHECK(near(endsOf(d.curve(), 103).first, {0.8, 0.2}));
+      CHECK(near(endsOf(d.curve(), 103).second, {1., 0.}));
+
+      // Still selected: the drag can go on
+      int selected = 0;
+      for(auto& s : d.curve().segments())
+        selected += s.selection.get();
+      CHECK(selected == 2);
+    }
+
+    SECTION("a click without a move changes nothing")
+    {
+      const auto before = d.stack().size();
+      ui.press({0.375, 0.5});
+      ui.release({0.375, 0.5});
+      CHECK(d.stack().size() == before);
+    }
+  });
+}

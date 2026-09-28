@@ -1,27 +1,26 @@
 #pragma once
-namespace score
-{
-class CommandStackFacade;
-} // namespace score
-// To simplify :
-// Take the current state of the curve
-// Compute the state we have to be in
-// Make a command that sets a new state for the curve.
+#include "CurveCommandObjectBase.hpp"
 
-// Will move the segment and potentially the start point of the next segment
-// and the end point of the previous segment.
-// Or does the command do this ?
-// How to find the previous - next segments ? They have to be linked...
-// How to prevent overlapping segments ?
-// Can move create new segments ? I'd say no.
+#include <score/model/Identifier.hpp>
+
+#include <ossia/detail/hash_map.hpp>
+
 namespace Curve
 {
-class MoveSegmentCommandObject
+class SegmentModel;
+//! Drags the segment clicked, or all the selected ones when it is one of
+//! them, in time and value. A segment linked to a moved one and not moved
+//! itself stretches to follow; a moved point stops at the others and at the
+//! bounds of the curve.
+class SCORE_PLUGIN_CURVE_EXPORT MoveSegmentCommandObject final
+    : public CommandObjectBase
 {
 public:
-  explicit MoveSegmentCommandObject(const score::CommandStackFacade& stack);
+  MoveSegmentCommandObject(
+      const Model& model, Presenter* presenter, const score::CommandStackFacade& stack);
+  ~MoveSegmentCommandObject();
 
-  void press();
+  void on_press() override;
 
   void move();
 
@@ -30,6 +29,10 @@ public:
   void cancel();
 
 private:
-  // SingleOngoingCommandDispatcher m_dispatcher;
+  bool m_pressed{};
+  bool m_moved{};
+  ossia::hash_set<int32_t> m_movedIds;
+  // How far the moved points can go
+  double m_dxMin{}, m_dxMax{}, m_dyMin{}, m_dyMax{};
 };
 }

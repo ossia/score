@@ -26,6 +26,7 @@ namespace Curve
 SmartTool::SmartTool(Curve::ToolPalette& sm, const score::DocumentContext& context)
     : CurveTool{sm}
     , m_co{sm.model(), &sm.presenter(), context.commandStack}
+    , m_segmentCo{sm.model(), &sm.presenter(), context.commandStack}
 {
   m_state = new Curve::SelectionState{
       context.selectionStack, m_parentSM, m_parentSM.presenter().view(), &localSM()};
@@ -44,11 +45,22 @@ SmartTool::SmartTool(Curve::ToolPalette& sm, const score::DocumentContext& conte
     localSM().addState(m_moveState);
   }
 
+  {
+    m_moveSegmentState = new Curve::OngoingState{m_segmentCo, nullptr};
+    m_moveSegmentState->setObjectName("MoveSegmentState");
+    score::make_transition<ClickOnSegment_Transition>(
+        m_state, m_moveSegmentState, *m_moveSegmentState);
+    m_moveSegmentState->addTransition(m_moveSegmentState, finishedState(), m_state);
+    localSM().addState(m_moveSegmentState);
+  }
+
   localSM().start();
 }
 
 void SmartTool::on_pressed(QPointF scenePoint, Curve::Point curvePoint)
 {
+  m_dragged = false;
+  m_segmentPressed = false;
   mapTopItem(
       scenePoint, itemUnderMouse(scenePoint),
       [&](const PointView* point) {
@@ -58,6 +70,7 @@ void SmartTool::on_pressed(QPointF scenePoint, Curve::Point curvePoint)
       [&](const SegmentView* segment) {
     localSM().postEvent(new ClickOnSegment_Event(curvePoint, segment));
     m_nothingPressed = false;
+    m_segmentPressed = true;
   },
       [&]() {
     localSM().postEvent(new score::Press_Event);
@@ -73,6 +86,7 @@ void SmartTool::on_moved(QPointF scenePoint, Curve::Point curvePoint)
   }
   else
   {
+    m_dragged = true;
     mapTopItem(
         scenePoint, itemUnderMouse(scenePoint),
         [&](const PointView* point) {
@@ -98,11 +112,14 @@ void SmartTool::on_released(QPointF scenePoint, Curve::Point curvePoint)
   mapTopItem(
       scenePoint, itemUnderMouse(scenePoint),
       [&](const PointView* point) {
-    select(point->model(), m_parentSM.model().selectedChildren());
+    if(!(m_dragged && m_segmentPressed))
+      select(point->model(), m_parentSM.model().selectedChildren());
     localSM().postEvent(new ReleaseOnPoint_Event(curvePoint, point));
       },
       [&](const SegmentView* segment) {
-    select(segment->model(), m_parentSM.model().selectedChildren());
+    // After a drag, the segments moved stay selected as they were
+    if(!(m_dragged && m_segmentPressed))
+      select(segment->model(), m_parentSM.model().selectedChildren());
     localSM().postEvent(new ReleaseOnSegment_Event(curvePoint, segment));
   },
       [&]() { localSM().postEvent(new ReleaseOnNothing_Event(curvePoint, nullptr)); });
