@@ -466,6 +466,11 @@ void applyDefaultPalette(QPalette& p)
   p.setBrush(QPalette::Midlight, QColor("#62400a"));
   p.setBrush(QPalette::Light, QColor("#c58014"));
   p.setBrush(QPalette::Mid, QColor("#252930"));
+  // Links in labels ("Explore the documentation", "Update"...): Qt's own
+  // dark blue is unreadable on the dark grounds. The palette's orange instead;
+  // a skin names its own Link / LinkVisited if it wants another.
+  p.setBrush(QPalette::Link, p.color(QPalette::Light));
+  p.setBrush(QPalette::LinkVisited, p.color(QPalette::Light));
 }
 
 void Skin::setupPalette()
@@ -578,7 +583,14 @@ void Skin::loadPalette(const QJsonObject& spec)
   const QJsonObject disabled = spec["disabled"].toObject();
   for(auto& [key, role] : paletteRoles())
   {
-    if(auto c = colour(spec[QLatin1String(key)]))
+    auto c = colour(spec[QLatin1String(key)]);
+    // Settings saved by older versions hold every role, Qt's own blue links
+    // included, which would win over the default ones.
+    if(c && role == QPalette::Link && *c == QColor(0, 0, 255))
+      c = std::nullopt;
+    if(c && role == QPalette::LinkVisited && *c == QColor(255, 0, 255))
+      c = std::nullopt;
+    if(c)
       WidgetPalette.setBrush(QPalette::All, role, *c);
     if(auto c = colour(inactive[QLatin1String(key)]))
       WidgetPalette.setBrush(QPalette::Inactive, role, *c);
@@ -589,9 +601,20 @@ void Skin::loadPalette(const QJsonObject& spec)
 
 QJsonObject Skin::savePalette() const
 {
+  // Only what differs from the built-in palette: loading resets to it first,
+  // and a role saved as it is today would stay when the built-in one changes.
+  QPalette builtin = m_basePalette;
+  score::applyDefaultPalette(builtin);
+  auto same = [&](QPalette::ColorGroup g, QPalette::ColorRole role) {
+    return WidgetPalette.brush(g, role).color() == builtin.brush(g, role).color();
+  };
+
   QJsonObject out, inactive, disabled;
   for(auto& [key, role] : paletteRoles())
   {
+    if(same(QPalette::Active, role) && same(QPalette::Inactive, role)
+       && same(QPalette::Disabled, role))
+      continue;
     auto write = [&](QPalette::ColorGroup g, QJsonObject& dst) {
       const QColor c = WidgetPalette.brush(g, role).color();
       QJsonArray a{c.red(), c.green(), c.blue()};

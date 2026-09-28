@@ -10,8 +10,12 @@
 #include <QDirIterator>
 #include <QFile>
 #include <QJsonDocument>
+#include <QJsonArray>
 #include <QJsonObject>
 #include <QPalette>
+#include <QLabel>
+#include <QImage>
+#include <QPixmap>
 
 #include <catch2/catch_test_macros.hpp>
 
@@ -93,5 +97,99 @@ TEST_CASE("A palette round-trip keeps every group", "[integration][skin]")
     skin.load(saved);
 
     checkSameAs(skin.WidgetPalette, before);
+  });
+}
+
+TEST_CASE("Links are in the palette's orange unless the skin says otherwise", "[integration][skin]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext&) {
+    auto& skin = score::Skin::instance();
+    // The default skin names no link colour: not Qt's dark blue, the orange
+    skin.load(read_skin(":/skin/DefaultSkin.json"));
+    CHECK(skin.WidgetPalette.color(QPalette::Link) == skin.WidgetPalette.color(QPalette::Light));
+    CHECK(skin.WidgetPalette.color(QPalette::LinkVisited) == skin.WidgetPalette.color(QPalette::Light));
+    // One that names its own keeps it
+    skin.load(read_skin(":/skin/SolarizedDarkSkin.json"));
+    CHECK(skin.WidgetPalette.color(QPalette::Link) == QColor(38, 139, 210));
+    skin.load(read_skin(":/skin/DefaultSkin.json"));
+  });
+}
+
+// A rich-text link, such as the library's "Explore the documentation", is not
+// drawn in Qt's dark blue.
+TEST_CASE("A link in a label is drawn in the skin's colour", "[integration][skin]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext&) {
+    auto& skin = score::Skin::instance();
+    skin.load(read_skin(":/skin/DefaultSkin.json"));
+    const QColor link = skin.WidgetPalette.color(QPalette::Link);
+
+    QLabel label;
+    label.setTextFormat(Qt::RichText);
+    label.setText("<a href=\"https://ossia.io\">Explore the documentation</a>");
+    label.resize(label.sizeHint());
+    const QImage img = label.grab().toImage();
+
+    int linkPixels = 0, bluePixels = 0;
+    for(int y = 0; y < img.height(); y++)
+      for(int x = 0; x < img.width(); x++)
+      {
+        const QColor c = img.pixelColor(x, y);
+        if(c.blue() > c.red() + 60)
+          bluePixels++;
+        if(std::abs(c.red() - link.red()) < 40 && std::abs(c.green() - link.green()) < 40
+           && std::abs(c.blue() - link.blue()) < 40)
+          linkPixels++;
+      }
+    INFO("link " << link.name().toStdString());
+    CHECK(bluePixels == 0);
+    CHECK(linkPixels > 10);
+  });
+}
+
+// A skin state saved in the settings may hold every palette role, Qt's own
+// Link / LinkVisited too: those must not override the skin's link colour.
+TEST_CASE("A saved skin state does not freeze Qt's link colours", "[integration][skin]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext&) {
+    auto& skin = score::Skin::instance();
+    skin.load(read_skin(":/skin/DefaultSkin.json"));
+    const QPalette fresh = skin.WidgetPalette;
+
+    SECTION("a state saved before")
+    {
+      QJsonObject state = skin.toJson();
+      QJsonObject pal = state["palette"].toObject();
+      pal["Link"] = QJsonArray{0, 0, 255};
+      pal["LinkVisited"] = QJsonArray{255, 0, 255};
+      state["palette"] = pal;
+      skin.load(state);
+      CHECK(skin.WidgetPalette.color(QPalette::Link) == fresh.color(QPalette::Link));
+      CHECK(
+          skin.WidgetPalette.color(QPalette::LinkVisited)
+          == fresh.color(QPalette::LinkVisited));
+      CHECK(skin.WidgetPalette.color(QPalette::Link) != QColor(0, 0, 255));
+    }
+
+    SECTION("what is saved now")
+    {
+      const QJsonObject state = skin.toJson();
+      const QJsonObject pal = state["palette"].toObject();
+      // Only what differs from the built-in palette
+      CHECK(!pal.contains("Link"));
+      CHECK(!pal.contains("LinkVisited"));
+      skin.load(state);
+      checkSameAs(skin.WidgetPalette, fresh);
+
+      // A role changed by the skin is still saved
+      skin.load(read_skin(":/skin/NordSkin.json"));
+      const QPalette nord = skin.WidgetPalette;
+      const QJsonObject nordState = skin.toJson();
+      CHECK(nordState["palette"].toObject().contains("Link"));
+      skin.load(read_skin(":/skin/DefaultSkin.json"));
+      skin.load(nordState);
+      checkSameAs(skin.WidgetPalette, nord);
+      skin.load(read_skin(":/skin/DefaultSkin.json"));
+    }
   });
 }
