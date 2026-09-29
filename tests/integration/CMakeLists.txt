@@ -463,6 +463,14 @@ if(TARGET score_plugin_fx)
             score_plugin_nodal score_lib_process)
 endif()
 
+# The local device's ports taken by another program: warned about, not fatal.
+score_add_test(test_integration_local_device_ports_taken
+  SOURCES LocalDevicePortsTakenTest.cpp
+  APP
+  PLUGINS score_plugin_engine score_plugin_deviceexplorer score_lib_device)
+set_tests_properties(test_integration_local_device_ports_taken PROPERTIES
+  LABELS "network")
+
 # The remote control's websocket server and the published namespace
 if(TARGET score_plugin_remotecontrol AND TARGET score_plugin_fx)
   score_add_test(test_integration_remotecontrol_scriptable
