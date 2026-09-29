@@ -61,8 +61,8 @@ struct Node
       while(double(k) * step < q0)
         ++k;
       for(double q = double(k) * step; q < q1; q = double(++k) * step)
-        outputs.out(std::min<int64_t>(
-            tk.frames - 1, int64_t((q - q0) / (q1 - q0) * tk.frames)));
+        outputs.out(std::clamp<int64_t>(
+            halp::musical_to_frame(q, q0, q1, tk.frames), 0, tk.frames - 1));
     }
     else
     {

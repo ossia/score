@@ -82,20 +82,21 @@ TEST_CASE("Free metronome v2: every grid point once, at every buffer size", "[fx
           const auto ticks = run_synced_metro(period, tempo, rate, buffer, q_start, 4.);
           const double frames_per_quarter = rate * 60. / tempo;
           // The first grid point at or after the start, and each one after it
-          const auto k0 = int64_t(std::ceil(q_start / period - 1e-9));
+          // The node gets the period as a float control, in seconds: the grid
+          // is k times that rounded period, not k times the exact one.
+          const double step = double(float(period * 60. / tempo)) * tempo / 60.;
+          const auto k0 = int64_t(std::ceil(q_start / step - 1e-9));
           const auto total = int64_t(4. * rate) / buffer * buffer
                              + (int64_t(4. * rate) % buffer ? buffer : 0);
           std::vector<int64_t> expected;
           for(int64_t k = k0;; k++)
           {
-            const double f = (k * period - q_start) * frames_per_quarter;
+            const double f = (k * step - q_start) * frames_per_quarter;
             if(f >= total)
               break;
-            expected.push_back(int64_t(f));
+            expected.push_back(int64_t(std::floor(f + 1e-6)));
           }
-          REQUIRE(ticks.size() == expected.size());
-          for(std::size_t i = 0; i < ticks.size(); i++)
-            CHECK(std::abs(ticks[i] - expected[i]) <= 1);
+          CHECK(ticks == expected);
         }
 }
 

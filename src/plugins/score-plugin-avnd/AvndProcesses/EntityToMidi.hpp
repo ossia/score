@@ -2441,7 +2441,9 @@ private:
       return -1; // transport not advancing
     if(target_q >= b)
       return -1;
-    return int64_t((target_q - a) / (b - a) * std::max(tk.frames, 1));
+    const int64_t frames = std::max(tk.frames, 1);
+    return std::clamp<int64_t>(
+        halp::musical_to_frame(target_q, a, b, frames), 0, frames - 1);
   }
 
   void emit_pending_notes(double now, double dt, int frames, const halp::tick_musical& tk)
