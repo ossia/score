@@ -39,6 +39,11 @@ void ProtocolSettingsWidget::checkForChanges(QTextEdit* w)
   if(auto edit = qobject_cast<QCodeEditor*>(w))
     connect(edit, &QCodeEditor::editingFinished, this, &ProtocolSettingsWidget::changed);
 }
+void ProtocolSettingsWidget::onEditingFinished(QTextEdit* w, std::function<void()> f)
+{
+  if(auto edit = qobject_cast<QCodeEditor*>(w))
+    connect(edit, &QCodeEditor::editingFinished, this, std::move(f));
+}
 void ProtocolSettingsWidget::checkForChanges(QCheckBox* w)
 {
   connect(

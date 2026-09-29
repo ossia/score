@@ -7,6 +7,8 @@
 #include <QDialog>
 #include <QWidget>
 
+#include <functional>
+
 #include <score_lib_device_export.h>
 
 #include <verdigris>
@@ -40,6 +42,11 @@ public:
   void checkForChanges(QSpinBox*);
   void checkForChanges(QTextEdit*);
   void checkForChanges(QCheckBox*);
+
+  //! Calls f when the edit of a code editor ends. QCodeEditor's signals are
+  //! inline: with hidden inline visibility, only this library's copy is the one
+  //! its meta-object knows, so a connect() from another library fails.
+  void onEditingFinished(QTextEdit*, std::function<void()> f);
 };
 
 class SCORE_LIB_DEVICE_EXPORT AddressDialog : public QDialog

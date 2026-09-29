@@ -14,7 +14,6 @@
 #include <score/tools/Debug.hpp>
 #include <score/widgets/TextLabel.hpp>
 
-#include <QCodeEditor>
 #include <QDebug>
 #include <QGridLayout>
 #include <QLabel>
@@ -54,9 +53,7 @@ WSProtocolSettingsWidget::WSProtocolSettingsWidget(QWidget* parent)
   auto validateBtn = new QPushButton{tr("Validate"), this};
   connect(validateBtn, &QPushButton::clicked, this, &WSProtocolSettingsWidget::validate);
 
-  connect(
-      static_cast<QCodeEditor*>(m_codeEdit), &QCodeEditor::editingFinished, this,
-      &WSProtocolSettingsWidget::parseHost);
+  onEditingFinished(m_codeEdit, [this] { parseHost(); });
 
   auto layout = new QGridLayout;
 

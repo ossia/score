@@ -306,6 +306,14 @@ if(TARGET score_plugin_protocols AND TARGET score_plugin_library)
     "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-protocols")
 endif()
 
+# The WebSocket device's settings: the script's host fills the address.
+if(TARGET score_plugin_protocols AND OSSIA_PROTOCOL_WEBSOCKETS)
+  score_add_test(test_unit_ws_protocol_settings_widget
+    APP
+    SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/WSProtocolSettingsWidgetTest.cpp"
+    PLUGINS score_plugin_protocols score_lib_device)
+endif()
+
 # The CAN protocol's device browser entry: the .dbc databases of the user
 # library, plus the default interface against an independent walk of
 # /sys/class/net.
