@@ -78,10 +78,17 @@ endfunction()
 # score process of its own hands the name down to it.
 # TMPDIR alongside the name because the crash-recovery list lives in the temp
 # directory: a child that loses one of the two is still isolated by the other.
+# Port 0 for the local OSC / WebSocket device: the system picks a free one, so
+# no test ever holds 6666 / 9999, the ports of the developer's own session.
+set(SCORE_TEST_LOCAL_PORTS_ENVIRONMENT
+  "SCORE_LOCAL_OSC_PORT=set:0"
+  "SCORE_LOCAL_WS_PORT=set:0"
+  CACHE INTERNAL "no fixed local device ports for test processes")
 set(SCORE_TEST_ENVIRONMENT
   "SCORE_CUSTOM_APP_APPLICATION_NAME=set:score-test"
   "XDG_CONFIG_HOME=set:${SCORE_ROOT_BINARY_DIR}/test-home/config"
   "TMPDIR=set:${SCORE_ROOT_BINARY_DIR}/test-home/tmp"
+  ${SCORE_TEST_LOCAL_PORTS_ENVIRONMENT}
   CACHE INTERNAL "hermetic identity for test processes")
 file(MAKE_DIRECTORY "${SCORE_ROOT_BINARY_DIR}/test-home/config")
 
@@ -90,8 +97,11 @@ file(MAKE_DIRECTORY "${SCORE_ROOT_BINARY_DIR}/test-home/config")
 # file that is not there. Isolate the one thing that reaches the developer
 # instead -- the crash-recovery list lives in the temp directory, and a harness
 # that kills score leaves entries in it.
+# The harnesses that drive score over OSC pick the ports they talk to
+# (tests/integration/common/control-ports.sh).
 set(SCORE_TEST_HARNESS_ENVIRONMENT
   "TMPDIR=set:${SCORE_ROOT_BINARY_DIR}/test-home/tmp"
+  ${SCORE_TEST_LOCAL_PORTS_ENVIRONMENT}
   CACHE INTERNAL "temp isolation for harnesses that spawn score")
 file(MAKE_DIRECTORY "${SCORE_ROOT_BINARY_DIR}/test-home/tmp")
 

@@ -6,7 +6,7 @@
 # Each scenario in tests/integration/live-edit/*.js builds a small ISF scene
 # (Window device + solid-color ISF), which ossia-score autoplays headless on
 # llvmpipe. This script then injects mutations WHILE IT PLAYS by sending
-# `tick()` over OSC (/script s "tick()" on udp/6666) every TICK seconds —
+# `tick()` over OSC (/script s "tick()") every TICK seconds —
 # process add/remove storms, cable storms, undo/redo storms, transport
 # storms — exercising GfxContext::recompute_graph / add_edge / remove_edge,
 # Graph::recreateOutputRenderList and the execution engine's live-edit path.
@@ -17,7 +17,8 @@
 #           non-blank  AND  no TICK-ERROR (mutation actually happened).
 #   Anything else is a FINDING, not flake — investigate the log.
 #
-# Runs under flock /tmp/score-harness.lock (OSC port 6666 is global).
+# Runs under flock /tmp/score-harness.lock: the scenarios save into the fixed
+# /tmp/live-edit (live-edit/common.js).
 # Each run writes LLVM_PROFILE_FILE=$OUT/<name>.profraw; after the sweep,
 # per-scenario function coverage of GfxContext.cpp / Graph.cpp /
 # RenderList.cpp is diffed against the no-mutation `baseline` scenario.
@@ -26,12 +27,12 @@ set -u
 # Derived, not hardcoded.
 SRCROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 DIR="$SRCROOT/tests/integration/live-edit"
+. "$SRCROOT/tests/integration/common/control-ports.sh"
 BIN="${OSSIA_SCORE:-$SRCROOT/build-asan/ossia-score}"
 BINDIR="$(cd "$(dirname "$BIN")" && pwd)"
 GFXSO="$BINDIR/plugins/libscore_plugin_gfx.so"
 GFXSRC="$SRCROOT/src/plugins/score-plugin-gfx/Gfx"
 OUT="${OUT:-/tmp/live-edit}"
-OSC=${SCORE_LOCAL_OSC_PORT:-6666}
 TICK="${TICK:-0.5}"
 BLANK_MEAN="${BLANK_MEAN:-0.002}"
 ASAN="detect_leaks=0:halt_on_error=0:handle_segv=1:detect_odr_violation=0:protect_shadow_gap=0"
@@ -40,6 +41,7 @@ ASAN="detect_leaks=0:halt_on_error=0:handle_segv=1:detect_odr_violation=0:protec
 command -v oscsend >/dev/null || { echo "SKIP: oscsend not found";      exit 77; }
 command -v convert >/dev/null || { echo "SKIP: ImageMagick not found";  exit 77; }
 command -v flock   >/dev/null || { echo "SKIP: flock not found";        exit 77; }
+command -v python3 >/dev/null || { echo "SKIP: python3 not found";      exit 77; }
 command -v timeout >/dev/null || { echo "SKIP: timeout not found";      exit 77; }
 [ -x "$BIN" ]                 || { echo "SKIP: $BIN not built";         exit 77; }
 
@@ -190,6 +192,7 @@ run_scenario() { # name nticks
         "$OUT/$name.profraw" "$log" "${XDG_CONFIG_HOME:-$HOME/.config}/ossia/failsafe.bit"
   (
     flock -w 900 9 || { echo 98 > "$OUT/$name.rc"; exit 0; }
+    pick_control_ports || { echo 97 > "$OUT/$name.rc"; exit 0; }
     pump "$name" "$nticks" >/dev/null 2>&1 &
     local pumppid=$!
     # A REAL X server with xcb, NOT QT_QPA_PLATFORM=offscreen. Qt's offscreen
@@ -205,6 +208,7 @@ run_scenario() { # name nticks
     # QDialog::exec(), which reads as a hang rather than as a dialog.
     env SCORE_AUDIO_BACKEND=dummy SCORE_DISABLE_AUDIOPLUGINS=1 \
         SCORE_SANITIZE_SKIP_CHECKS=1 \
+        SCORE_LOCAL_OSC_PORT="$OSC" SCORE_LOCAL_WS_PORT="$WS" \
         QT_QPA_PLATFORM=xcb \
         LIBGL_ALWAYS_SOFTWARE=1 GALLIUM_DRIVER=llvmpipe \
         ASAN_OPTIONS="$ASAN" LLVM_PROFILE_FILE="$OUT/$name.profraw" \

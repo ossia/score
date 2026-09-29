@@ -1307,7 +1307,7 @@ endif()
 # stable subset (text-render/refs, backend-independent, compare.py profile
 # shared; regenerate with text-render.sh --update-refs -- double-render
 # self-consistency).
-# Self-serializes on /tmp/score-harness.lock; SKIPs (77) without deps.
+# SKIPs (77) without deps.
 if(SCORE_HAS_SHELL_HARNESS)
   add_test(NAME test_text_render
     COMMAND ${_display_wrapper} "${CMAKE_CURRENT_SOURCE_DIR}/text-render/text-render.sh"
@@ -1341,7 +1341,7 @@ endif()
 
 # Offscreen-teardown regression: a full-app offscreen
 # render followed by /stop + /exit must exit 0, not segfault on a freed node.
-# The script serializes itself on /tmp/score-harness.lock (global OSC port).
+# The script serializes itself on /tmp/score-harness.lock (shared output dirs).
 if(SCORE_HAS_SHELL_HARNESS)
   add_test(NAME test_regression_offscreen_teardown
     COMMAND ${_display_wrapper} "${CMAKE_CURRENT_SOURCE_DIR}/offscreen-teardown-regression.sh"
@@ -1378,9 +1378,7 @@ endif()
 
 # End-to-end threedim asset renders against visually-validated goldens
 # (tests/integration/ThreedimRenderTest.cpp). Drives the real ossia-score
-# binary over the OSC control port, so it must never run concurrently with
-# the other OSC harnesses; the in-test QLockFile mirrors their
-# /tmp/score-harness.lock convention and RUN_SERIAL keeps ctest honest.
+# binary over OSC, on ports picked for each launch.
 score_add_test(test_integration_threedim_render
   SOURCES ThreedimRenderTest.cpp
   GUI

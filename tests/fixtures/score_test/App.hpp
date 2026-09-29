@@ -87,6 +87,14 @@ inline void prepare_test_environment(bool headless)
   if(!qEnvironmentVariableIsSet("SCORE_AUDIO_BACKEND"))
     qputenv("SCORE_AUDIO_BACKEND", "dummy");
 
+  // Every document opens the local OSC / WebSocket device, on 6666 / 9999 by
+  // default: the ports of the developer's own session. Port 0 has the system
+  // pick free ones, also for the score processes a test spawns.
+  if(!qEnvironmentVariableIsSet("SCORE_LOCAL_OSC_PORT"))
+    qputenv("SCORE_LOCAL_OSC_PORT", "0");
+  if(!qEnvironmentVariableIsSet("SCORE_LOCAL_WS_PORT"))
+    qputenv("SCORE_LOCAL_WS_PORT", "0");
+
   // Hermetic settings: keep tests from reading or polluting the developer's
   // real score configuration.
   if(!qEnvironmentVariableIsSet("XDG_CONFIG_HOME"))

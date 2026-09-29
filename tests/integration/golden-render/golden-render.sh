@@ -71,16 +71,12 @@
 # scripts all save into /tmp/score-tests-scene). Do NOT wrap this whole script
 # in that lock: it would self-deadlock.
 #
-# Control ports: every score process on the machine opens its local OSC / WS
-# device on 6666 / 9999 (or $SCORE_LOCAL_{OSC,WS}_PORT), in-process test
-# binaries and hand-launched instances included, and none of them take the
-# lock. An app that finds its port taken does not report it: the grabs go to
-# the other process and the case ends as NORENDER at the timeout. Each run
-# therefore gets ports picked free for it alone.
+# Control ports: each app run gets its own (common/control-ports.sh).
 set -u
 
 HERE="$(cd "$(dirname "$0")" && pwd)"
 SRCROOT="$(cd "$HERE/../../.." && pwd)"  # tests/integration/golden-render -> repo root
+. "$HERE/../common/control-ports.sh"
 BIN="${OSSIA_SCORE:-}"
 if [ -z "$BIN" ]; then
   for _b in "$SRCROOT"/build*/ossia-score "$SRCROOT"/../build*/ossia-score; do
@@ -268,13 +264,6 @@ AllowScripting=false
 Enabled=false
 EOF
 
-free_port() { # tcp|udp -> a port nothing is bound to right now
-  python3 -c 'import socket, sys
-s = socket.socket(socket.AF_INET, socket.SOCK_STREAM if sys.argv[1] == "tcp" else socket.SOCK_DGRAM)
-s.bind(("0.0.0.0", 0))
-print(s.getsockname()[1])' "$1"
-}
-
 pixel_mean() { convert "$1" -format '%[fx:mean]' info: 2>/dev/null || echo 0; }
 
 # ---- renderer identity ------------------------------------------------------
@@ -308,8 +297,7 @@ render_one() { # case_name out_png -> 0 ok, 2 no png, 3 wrong backend
   [ -f "$js" ] || { echo "  missing script $js" >&2; return 2; }
   (
     flock -w 300 9 || { echo "  LOCK-TIMEOUT" >&2; exit 4; }
-    OSC=$(free_port udp) && WS=$(free_port tcp) \
-      || { echo "  no free control port" >&2; exit 4; }
+    pick_control_ports || exit 4
     ( for _ in $(seq 1 "$GRABTRIES"); do
         sleep 2
         oscsend 127.0.0.1 $OSC /script s "Score.device('Window').grabTo('$png')" 2>/dev/null

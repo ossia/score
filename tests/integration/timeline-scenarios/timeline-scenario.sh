@@ -12,14 +12,15 @@
 #
 # PASS = exit 0, no ASAN error, every probe within tolerance, means strictly
 # increasing across probes (proves /transport really repositions).
-# Runs under flock /tmp/score-harness.lock (OSC port 6666 is global).
+# Runs under flock /tmp/score-harness.lock: scenario-ramp.js saves into the
+# fixed /tmp/timeline-scenarios.
 set -u
 
 HERE="$(cd "$(dirname "$0")" && pwd)"
 SRCROOT="$(cd "$HERE/../../.." && pwd)"  # tests/integration/timeline-scenarios -> repo root
+. "$HERE/../common/control-ports.sh"
 BIN="${OSSIA_SCORE:-$SRCROOT/build-sanitizers/ossia-score}"
 OUT="${OUT:-/tmp/timeline-scenarios}"
-OSC=${SCORE_LOCAL_OSC_PORT:-6666}
 RAMP_MS=10000
 POSITIONS=(${POSITIONS:-2000 5000 8000})
 # One-directional value band: the grab lands ahead of T by the settle time, so
@@ -56,7 +57,7 @@ else:
 pathlib.Path(dst).write_text(text)
 EOF
 
-send() { oscsend 127.0.0.1 $OSC "$@" 2>/dev/null; }
+send() { oscsend 127.0.0.1 "$OSC" "$@" 2>/dev/null; }
 if [ -z "${DISPLAY:-}" ]; then
   for d in 99 98 97; do
     if command -v Xvfb >/dev/null 2>&1; then Xvfb ":$d" -screen 0 1280x720x24 >/dev/null 2>&1 &
@@ -81,6 +82,7 @@ mean_of() { convert "$1" -alpha off -format '%[fx:mean]' info: 2>/dev/null || ec
 
 (
   flock -w 900 9 || { echo 98 > "$OUT/ramp.rc"; exit 0; }
+  pick_control_ports || { echo 97 > "$OUT/ramp.rc"; exit 0; }
   # Stage with the scenario's own directory injected -- Score.readFile resolves
   # nothing relative to the running script.
   { printf 'var TIMELINE_DIR = "%s";\n' "$HERE"; cat "$HERE/scenario-ramp.js"; } \
@@ -96,6 +98,7 @@ mean_of() { convert "$1" -alpha off -format '%[fx:mean]' info: 2>/dev/null || ec
   env XDG_CONFIG_HOME="$CFG" \
       SCORE_AUDIO_BACKEND=dummy SCORE_DISABLE_AUDIOPLUGINS=1 \
       SCORE_SANITIZE_SKIP_CHECKS=1 QT_QPA_PLATFORM=xcb \
+      SCORE_LOCAL_OSC_PORT="$OSC" SCORE_LOCAL_WS_PORT="$WS" \
       LIBGL_ALWAYS_SOFTWARE=1 GALLIUM_DRIVER=llvmpipe \
       ASAN_OPTIONS="$ASAN" LLVM_PROFILE_FILE="$OUT/ramp.profraw" \
     timeout --foreground 300 "$BIN" --no-restore \

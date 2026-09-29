@@ -16,18 +16,19 @@
 #     window (no platform window is mapped; never touches the user's desktop).
 #   QT_QPA_PLATFORM=offscreen            -> fully headless.
 #   ossia-score --no-gui --no-restore --script build-X.js --wait 1 --autoplay
-#   OSC /script Score.device('Window').grabTo(png)  on udp/6666, then /stop /exit
+#   OSC /script Score.device('Window').grabTo(png), then Score.stop(), /exit
 #
 # Pass criterion = a non-blank PNG was produced. The process often exits with a
 # SIGSEGV from GfxContext teardown *after* the grab has already been written, so
 # the exit code is ignored and the PNG's pixel mean is the verdict.
 set -u
 
+. "$(cd "$(dirname "$0")" && pwd)/common/control-ports.sh"
+
 SCRIPTS="${1:-${SCENE_SCRIPTS_DIR:-$HOME/Documents/ossia/score/packages/csf-examples/csf-testers/tests-scene/scripts}}"
 BIN="${OSSIA_SCORE:-ossia-score}"
 command -v "$BIN" >/dev/null 2>&1 || BIN="./ossia-score"
 OUT_ROOT="${OUT_ROOT:-/tmp/scene-js-sweep}"
-OSC_PORT=${SCORE_LOCAL_OSC_PORT:-6666}
 GRAB_DELAY="${GRAB_DELAY:-6}"     # seconds to let the graph build + render before grabbing
 BLANK_MEAN="${BLANK_MEAN:-0.002}" # pixel mean at/below which a PNG counts as blank
 
@@ -37,30 +38,36 @@ echo "Rendering ${#SCRIPTS_LIST[@]} JS pipelines from $SCRIPTS via $BIN"
 # Backend GL-selecting env, set per pass by sweep_backend.
 BACKEND_ENV=()
 
-# One pipeline through one backend. Runs sequentially (single OSC control port).
+# One pipeline through one backend, under flock /tmp/score-harness.lock: the
+# scene scripts save into /tmp/score-tests-scene.
 run_one() { # js_path out_png
   local js="$1" png="$2"
   rm -f "$png"
   (
-    sleep "$GRAB_DELAY"
-    oscsend 127.0.0.1 "$OSC_PORT" /script s "Score.device('Window').grabTo('$png')"
-    sleep 1.5; oscsend 127.0.0.1 "$OSC_PORT" /stop
-    sleep 0.5; oscsend 127.0.0.1 "$OSC_PORT" /exit s force
-  ) >/dev/null 2>&1 &
-  local grabber=$!
-  # SCORE_FORCE_OFFSCREEN_WINDOW renders to an offscreen surface (never maps a
-  # window / captures the desktop). The GL platform/driver is chosen per backend
-  # by BACKEND_ENV: llvmpipe uses offscreen-EGL software GL; nvidia uses the
-  # xcb/GLX context on :0 (offscreen-EGL there tends to fall back to llvmpipe).
-  # `-u DISPLAY` first: with DISPLAY=:0 in scope, offscreen-EGL + llvmpipe
-  # negotiates a GL 2.0 context (too old for the RHI → everything fails); the
-  # nvidia backend re-sets DISPLAY via BACKEND_ENV for its xcb/GLX context.
-  env -u DISPLAY SCORE_AUDIO_BACKEND=dummy SCORE_DISABLE_AUDIOPLUGINS=1 \
-      SCORE_FORCE_OFFSCREEN_WINDOW=Window \
-      "${BACKEND_ENV[@]}" \
-    timeout --foreground 30 "$BIN" --no-gui --no-restore \
-      --script "$js" --wait 1 --autoplay >/dev/null 2>&1
-  wait "$grabber" 2>/dev/null
+    flock -w 300 9 || exit 4
+    pick_control_ports || exit 4
+    (
+      sleep "$GRAB_DELAY"
+      oscsend 127.0.0.1 "$OSC" /script s "Score.device('Window').grabTo('$png')"
+      sleep 1.5; oscsend 127.0.0.1 "$OSC" /script s "Score.stop()"
+      sleep 0.5; oscsend 127.0.0.1 "$OSC" /exit s force
+    ) >/dev/null 2>&1 &
+    local grabber=$!
+    # SCORE_FORCE_OFFSCREEN_WINDOW renders to an offscreen surface (never maps a
+    # window / captures the desktop). The GL platform/driver is chosen per backend
+    # by BACKEND_ENV: llvmpipe uses offscreen-EGL software GL; nvidia uses the
+    # xcb/GLX context on :0 (offscreen-EGL there tends to fall back to llvmpipe).
+    # `-u DISPLAY` first: with DISPLAY=:0 in scope, offscreen-EGL + llvmpipe
+    # negotiates a GL 2.0 context (too old for the RHI → everything fails); the
+    # nvidia backend re-sets DISPLAY via BACKEND_ENV for its xcb/GLX context.
+    env -u DISPLAY SCORE_AUDIO_BACKEND=dummy SCORE_DISABLE_AUDIOPLUGINS=1 \
+        SCORE_FORCE_OFFSCREEN_WINDOW=Window \
+        SCORE_LOCAL_OSC_PORT="$OSC" SCORE_LOCAL_WS_PORT="$WS" \
+        "${BACKEND_ENV[@]}" \
+      timeout --foreground 30 "$BIN" --no-gui --no-restore \
+        --script "$js" --wait 1 --autoplay >/dev/null 2>&1
+    wait "$grabber" 2>/dev/null
+  ) 9>/tmp/score-harness.lock
 }
 
 verdict() { # png -> prints "PASS <mean>" / "BLANK <mean>" / "NORENDER"

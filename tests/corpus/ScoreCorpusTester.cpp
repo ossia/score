@@ -324,6 +324,12 @@ void prepare_environment()
     qputenv("SCORE_SANITIZE_SKIP_CHECKS", "1");
   if(!qEnvironmentVariableIsSet("SCORE_AUDIO_BACKEND"))
     qputenv("SCORE_AUDIO_BACKEND", "dummy");
+  // Parallel testers each open the local device: ports picked by the system,
+  // never the 6666 / 9999 of the developer's own session.
+  if(!qEnvironmentVariableIsSet("SCORE_LOCAL_OSC_PORT"))
+    qputenv("SCORE_LOCAL_OSC_PORT", "0");
+  if(!qEnvironmentVariableIsSet("SCORE_LOCAL_WS_PORT"))
+    qputenv("SCORE_LOCAL_WS_PORT", "0");
   if(!qEnvironmentVariableIsSet("XDG_CONFIG_HOME"))
   {
     const QString cfg = QDir::tempPath() + "/score-corpus-tests/config."

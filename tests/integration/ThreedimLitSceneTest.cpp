@@ -24,9 +24,7 @@
 // tests/integration/CMakeLists.txt on the test_integration_gfx_nested_interval
 // shape -- the ctest-safe one, where the test SKIPs itself when the binary, the
 // asset or a display is missing rather than being a manual harness. It drives
-// the application over the OSC control port, so it must never run concurrently
-// with the other OSC harnesses: the in-test flock takes /tmp/score-harness.lock
-// and RUN_SERIAL keeps ctest honest.
+// the application over OSC, on ports picked for each run.
 //
 // =============================================================================
 // HARDWARE / BACKENDS
@@ -314,7 +312,8 @@
 #include <QProcess>
 #include <QProcessEnvironment>
 #include <QTemporaryDir>
-#include <QUdpSocket>
+
+#include <score_test/ControlPorts.hpp>
 
 #include <catch2/catch_test_macros.hpp>
 
@@ -324,12 +323,6 @@
 #include <string>
 #include <utility>
 #include <vector>
-
-#if defined(Q_OS_UNIX)
-#include <fcntl.h>
-#include <sys/file.h>
-#include <unistd.h>
-#endif
 
 namespace
 {
@@ -552,21 +545,6 @@ struct Run
   QString rendererLine;
 };
 
-//! One `/script s <code>` datagram to the app's LocalTree device on udp/6666 --
-//! byte-identical to what live-edit-sweep.sh's oscsend produces
-//! (GfxNestedIntervalTest.cpp:208-218).
-void sendScript(QUdpSocket& sock, const QByteArray& code)
-{
-  auto pad4 = [](QByteArray b) {
-    b.append('\0');
-    while(b.size() % 4)
-      b.append('\0');
-    return b;
-  };
-  const QByteArray dgram = pad4("/script") + pad4(",s") + pad4(code);
-  sock.writeDatagram(dgram, QHostAddress::LocalHost, 6666);
-}
-
 Run runPhased(
     const QString& jsPath, const std::vector<std::pair<int, QByteArray>>& phases)
 {
@@ -592,17 +570,11 @@ Run runPhased(
   env.insert("QSG_RHI_BACKEND", qEnvironmentVariable("SCORE_TEST_API", defaultApi));
   env.remove("QT_QPA_PLATFORM");
 
-  Run r;
+  const auto ports = score::test::app::control_ports::pick();
+  REQUIRE(ports);
+  ports.apply(env);
 
-#if defined(Q_OS_UNIX)
-  // OSC port 6666 is machine-global: serialize against live-edit-sweep.sh and
-  // the other harnesses by taking the very same advisory lock.
-  const int lockFd = ::open("/tmp/score-harness.lock", O_CREAT | O_RDWR, 0666);
-  if(lockFd >= 0 && ::flock(lockFd, LOCK_EX) != 0)
-  {
-    // Not fatal; the run just risks stray 6666 traffic.
-  }
-#endif
+  Run r;
 
   QProcess p;
   p.setProcessEnvironment(env);
@@ -631,14 +603,13 @@ Run runPhased(
 
     if(r.sawReady)
     {
-      QUdpSocket sock;
       QElapsedTimer t0;
       t0.start();
       for(const auto& [at_ms, code] : phases)
       {
         while(t0.elapsed() < at_ms && p.state() == QProcess::Running)
           pump(50);
-        sendScript(sock, code);
+        ports.send("/script", code);
       }
     }
 
@@ -655,11 +626,6 @@ Run runPhased(
   for(const auto& line : r.log.split('\n'))
     if(line.contains("qt.rhi.general") && line.contains("RENDERER"))
       r.rendererLine = line.trimmed();
-
-#if defined(Q_OS_UNIX)
-  if(lockFd >= 0)
-    ::close(lockFd); // releases the flock
-#endif
   return r;
 }
 

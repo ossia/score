@@ -78,6 +78,11 @@ inline result run_script(const QString& script, const options& opts = {})
   }
   env.insert("SCORE_AUDIO_BACKEND", "dummy");
   env.insert("SCORE_DISABLE_AUDIOPLUGINS", "1");
+  // Not the 6666 / 9999 of the developer's own session (see App.hpp).
+  if(!env.contains("SCORE_LOCAL_OSC_PORT"))
+    env.insert("SCORE_LOCAL_OSC_PORT", "0");
+  if(!env.contains("SCORE_LOCAL_WS_PORT"))
+    env.insert("SCORE_LOCAL_WS_PORT", "0");
   env.insert("QT_FORCE_STDERR_LOGGING", "1");
   env.insert("QT_ASSUME_STDERR_HAS_CONSOLE", "1");
 

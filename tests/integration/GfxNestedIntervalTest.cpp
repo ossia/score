@@ -91,10 +91,9 @@
 // tests/integration/live-edit-sweep.sh drives its tick() storms: the setup
 // script defines phase functions and leaves the event loop FREE; the C++
 // parent injects `phaseBefore()` / `phaseDuring()` / `phaseAfter()` /
-// `finish()` over OSC (/script s "..." on udp/6666, the LocalTree script
-// node in JS/ApplicationPlugin.cpp -- evaluated in the same console engine as
-// --script, so the script's globals are in scope), taking the same
-// /tmp/score-harness.lock the sweep holds, since port 6666 is global.
+// `finish()` over OSC (/script s "...", the LocalTree script node in
+// JS/ApplicationPlugin.cpp -- evaluated in the same console engine as
+// --script, so the script's globals are in scope), on ports picked for the run.
 //
 // NEGATIVE CONTROL (product-side -- force the full-rebuild flag at t1 and the
 // trace assertion goes red while the colour assertions stay green): insert
@@ -117,7 +116,8 @@
 #include <QProcessEnvironment>
 #include <QTemporaryDir>
 #include <QThread>
-#include <QUdpSocket>
+
+#include <score_test/ControlPorts.hpp>
 
 #include <catch2/catch_test_macros.hpp>
 
@@ -126,12 +126,6 @@
 #include <regex>
 #include <string>
 #include <vector>
-
-#if defined(Q_OS_UNIX)
-#include <fcntl.h>
-#include <sys/file.h>
-#include <unistd.h>
-#endif
 
 namespace
 {
@@ -169,21 +163,6 @@ struct Run
   QString log;
 };
 
-//! One OSC message `/script s <code>` to the app's LocalTree device on
-//! udp/6666 -- byte-identical to what `oscsend 127.0.0.1 6666 /script s ...`
-//! sends in live-edit-sweep.sh.
-void sendScript(QUdpSocket& sock, const QByteArray& code)
-{
-  auto pad4 = [](QByteArray b) {
-    b.append('\0');
-    while(b.size() % 4)
-      b.append('\0');
-    return b;
-  };
-  QByteArray dgram = pad4("/script") + pad4(",s") + pad4(code);
-  sock.writeDatagram(dgram, QHostAddress::LocalHost, 6666);
-}
-
 //! Runs the app on the given setup script, then injects the phase functions
 //! over OSC at the given offsets (ms, measured from the NESTED-READY line the
 //! script prints right after Score.play()). The last injected call must make
@@ -215,17 +194,11 @@ Run runPhased(
   env.insert("QT_FORCE_STDERR_LOGGING", "1");
   env.insert("QT_ASSUME_STDERR_HAS_CONSOLE", "1");
 
-  Run r;
+  const auto ports = score::test::app::control_ports::pick();
+  REQUIRE(ports);
+  ports.apply(env);
 
-#if defined(Q_OS_UNIX)
-  // OSC port 6666 is machine-global: serialize against live-edit-sweep.sh by
-  // taking the very same advisory lock it holds around each scenario.
-  const int lockFd = ::open("/tmp/score-harness.lock", O_CREAT | O_RDWR, 0666);
-  if(lockFd >= 0 && ::flock(lockFd, LOCK_EX) != 0)
-  {
-    // Lock failure is not fatal; the run just risks stray 6666 traffic.
-  }
-#endif
+  Run r;
 
   QProcess p;
   p.setProcessEnvironment(env);
@@ -254,14 +227,13 @@ Run runPhased(
 
     if(r.sawReady)
     {
-      QUdpSocket sock;
       QElapsedTimer t0;
       t0.start();
       for(const auto& [at_ms, code] : phases)
       {
         while(t0.elapsed() < at_ms && p.state() == QProcess::Running)
           pump(50);
-        sendScript(sock, code);
+        ports.send("/script", code);
       }
     }
 
@@ -274,11 +246,6 @@ Run runPhased(
   r.log += QString::fromUtf8(p.readAll());
   r.crashed = p.exitStatus() != QProcess::NormalExit || p.state() != QProcess::NotRunning;
   r.exitCode = p.exitCode();
-
-#if defined(Q_OS_UNIX)
-  if(lockFd >= 0)
-    ::close(lockFd); // releases the flock
-#endif
   return r;
 }
 

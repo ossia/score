@@ -155,8 +155,7 @@
 //     phase functions the parent injects over OSC;
 //   * the phases are injected over OSC rather than busy-waited in one --script,
 //     the way GfxNestedIntervalTest.cpp and live-edit-sweep.sh do it, so the
-//     main-thread event loop stays free between grabs. Port 6666 is
-//     machine-global, hence the /tmp/score-harness.lock flock.
+//     main-thread event loop stays free between grabs.
 //   * Qt.vector3d(x, y, z) in the console engine returns a ZEROED vector
 //     (see ThreedimRenderTest.cpp). Nothing here needs it: the raw-raster
 //     vertex path has no camera at all, which is also why this case uses the
@@ -173,7 +172,8 @@
 #include <QProcessEnvironment>
 #include <QStandardPaths>
 #include <QTemporaryDir>
-#include <QUdpSocket>
+
+#include <score_test/ControlPorts.hpp>
 
 #include <catch2/catch_test_macros.hpp>
 
@@ -182,12 +182,6 @@
 #include <regex>
 #include <string>
 #include <vector>
-
-#if defined(Q_OS_UNIX)
-#include <fcntl.h>
-#include <sys/file.h>
-#include <unistd.h>
-#endif
 
 namespace
 {
@@ -317,22 +311,6 @@ struct Run
   QString log;
 };
 
-//! One OSC `/script s <code>` to the app's LocalTree script node on udp/6666 --
-//! byte-identical to what `oscsend 127.0.0.1 6666 /script s ...` sends in
-//! live-edit-sweep.sh, and evaluated in the same console engine as --script,
-//! so the setup script's `var`s are in scope.
-void sendScript(QUdpSocket& sock, const QByteArray& code)
-{
-  auto pad4 = [](QByteArray b) {
-    b.append('\0');
-    while(b.size() % 4)
-      b.append('\0');
-    return b;
-  };
-  sock.writeDatagram(
-      pad4("/script") + pad4(",s") + pad4(code), QHostAddress::LocalHost, 6666);
-}
-
 Run runPhased(const QString& js, const std::vector<std::pair<int, QByteArray>>& phases)
 {
   auto env = QProcessEnvironment::systemEnvironment();
@@ -363,18 +341,11 @@ Run runPhased(const QString& js, const std::vector<std::pair<int, QByteArray>>& 
   env.insert("QT_FORCE_STDERR_LOGGING", "1");
   env.insert("QT_ASSUME_STDERR_HAS_CONSOLE", "1");
 
-  Run r;
+  const auto ports = score::test::app::control_ports::pick();
+  REQUIRE(ports);
+  ports.apply(env);
 
-#if defined(Q_OS_UNIX)
-  // OSC port 6666 is machine-global: serialize against live-edit-sweep.sh by
-  // taking the very same advisory lock it holds around each scenario, the way
-  // GfxNestedIntervalTest.cpp does.
-  const int lockFd = ::open("/tmp/score-harness.lock", O_CREAT | O_RDWR, 0666);
-  if(lockFd >= 0 && ::flock(lockFd, LOCK_EX) != 0)
-  {
-    // Lock failure is not fatal; the run just risks stray 6666 traffic.
-  }
-#endif
+  Run r;
 
   QProcess p;
   p.setProcessEnvironment(env);
@@ -402,14 +373,13 @@ Run runPhased(const QString& js, const std::vector<std::pair<int, QByteArray>>& 
 
     if(r.sawReady)
     {
-      QUdpSocket sock;
       QElapsedTimer t0;
       t0.start();
       for(const auto& [at_ms, code] : phases)
       {
         while(t0.elapsed() < at_ms && p.state() == QProcess::Running)
           pump(50);
-        sendScript(sock, code);
+        ports.send("/script", code);
       }
     }
 
@@ -423,11 +393,6 @@ Run runPhased(const QString& js, const std::vector<std::pair<int, QByteArray>>& 
   r.crashed
       = p.exitStatus() != QProcess::NormalExit || p.state() != QProcess::NotRunning;
   r.exitCode = p.exitCode();
-
-#if defined(Q_OS_UNIX)
-  if(lockFd >= 0)
-    ::close(lockFd); // releases the flock
-#endif
   return r;
 }
 

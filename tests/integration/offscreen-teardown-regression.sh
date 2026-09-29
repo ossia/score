@@ -13,13 +13,15 @@
 #   tests/integration/offscreen-teardown-regression.sh [build-js] [llvmpipe|nvidia]
 #
 # The whole app run is serialized through /tmp/score-harness.lock because the
-# OSC control port (6666) is global. Exit codes: 0 = pass, 1 = teardown
+# scene scripts save into /tmp/score-tests-scene and this run into a fixed $OUT.
+# Exit codes: 0 = pass, 1 = teardown
 # regression (non-zero app exit), 2 = no render happened (cannot conclude),
 # 77 = missing prerequisites (skip).
 set -u
 
 HERE="$(cd "$(dirname "$0")" && pwd)"
 SRCROOT="$(cd "$HERE/../.." && pwd)"
+. "$HERE/common/control-ports.sh"
 BIN="${SCORE_BIN:-${OSSIA_SCORE:-$SRCROOT/build-sanitizers/ossia-score}}"
 # The scene must come from the tests-scene builder: a live-edit-style scene
 # does not connect to the offscreen device (see the backend note below). The
@@ -59,6 +61,7 @@ fi
 [ -n "${DISPLAY:-}" ] || { echo "SKIP: no X server (offscreen is not a fallback: no GL)"; exit 77; }
 
 command -v oscsend >/dev/null || { echo "SKIP: oscsend not found"; exit 77; }
+command -v python3 >/dev/null || { echo "SKIP: python3 not found"; exit 77; }
 [ -x "$BIN" ] || { echo "SKIP: $BIN not built"; exit 77; }
 [ -f "$JS" ] || { echo "SKIP: script $JS not found"; exit 77; }
 
@@ -96,17 +99,19 @@ esac
 rc=125
 (
   flock -w 240 9 || { echo "LOCK-TIMEOUT on /tmp/score-harness.lock"; exit 4; }
+  pick_control_ports || exit 4
 
   # Helper: poll-grab a frame (ASAN startup time varies), then stop + exit.
   ( for _ in $(seq 1 18); do
       sleep 2
-      oscsend 127.0.0.1 "${SCORE_LOCAL_OSC_PORT:-6666}" /script s "Score.device('Window').grabTo('$PNG')" 2>/dev/null
+      oscsend 127.0.0.1 "$OSC" /script s "Score.device('Window').grabTo('$PNG')" 2>/dev/null
       [ -s "$PNG" ] && break
     done
-    sleep 0.5; oscsend 127.0.0.1 "${SCORE_LOCAL_OSC_PORT:-6666}" /script s "Score.stop()"; sleep 0.5; oscsend 127.0.0.1 "${SCORE_LOCAL_OSC_PORT:-6666}" /exit s force ) \
+    sleep 0.5; oscsend 127.0.0.1 "$OSC" /script s "Score.stop()"; sleep 0.5; oscsend 127.0.0.1 "$OSC" /exit s force ) \
     >/dev/null 2>&1 &
 
-  env "${COMMON[@]}" ASAN_OPTIONS="$ASAN" "${BE[@]}" \
+  env "${COMMON[@]}" SCORE_LOCAL_OSC_PORT="$OSC" SCORE_LOCAL_WS_PORT="$WS" \
+    ASAN_OPTIONS="$ASAN" "${BE[@]}" \
     timeout 90 "$BIN" --no-gui --no-restore --script "$JS" --wait 1 --autoplay \
     >"$LOG" 2>&1
   rc=$?

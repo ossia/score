@@ -42,18 +42,17 @@
 # ---------------------------------------------------------------------------
 #
 # PASS = exit 0, no ASAN error, no JS CASE-ERROR, all assertions green.
-# Self-serializes on flock /tmp/score-harness.lock (OSC port 6666 is global).
 set -u
 
 HERE="$(cd "$(dirname "$0")" && pwd)"
 SRCROOT="$(cd "$HERE/../../.." && pwd)"   # tests/integration/text-render -> repo root
+. "$HERE/../common/control-ports.sh"
 BIN="${OSSIA_SCORE:-$SRCROOT/build-sanitizers/ossia-score}"
 OUT="${OUT:-/tmp/text-render}"
 # One golden per case, shared by every backend; compare.py owns the tolerance.
 REFS="$HERE/refs"
 COMPARE="$HERE/../golden-render/compare.py"
 DIFFDIR="$OUT/diff"
-OSC=${SCORE_LOCAL_OSC_PORT:-6666}
 TIMEOUT="${TIMEOUT:-420}"
 SETTLE="${SETTLE:-1.2}"
 ASAN="detect_leaks=0:halt_on_error=0:handle_segv=1:detect_odr_violation=0:protect_shadow_gap=0"
@@ -149,7 +148,7 @@ sed "s#^var OUT_DIR .*#var OUT_DIR     = \"$OUT\";#" "$HERE/text-cases.js" > "$S
 grep -q "^var OUT_DIR     = \"$OUT\";" "$SCRIPT_JS" \
   || { echo "SKIP: could not point text-cases.js at $OUT"; exit 77; }
 
-send() { oscsend 127.0.0.1 $OSC "$@" 2>/dev/null; }
+send() { oscsend 127.0.0.1 "$OSC" "$@" 2>/dev/null; }
 
 grab() { # png -> 0 iff file written
   local png="$1"
@@ -167,10 +166,11 @@ run_sequence() { # outdir -> writes <outdir>/<case>.png + run.log + run.rc
   rm -f "$dir"/*.png "$dir/run.log" "$dir/run.rc" "$OUT/text-init.score" \
         "${XDG_CONFIG_HOME:-$HOME/.config}/ossia/failsafe.bit"
   (
-    flock -w 900 9 || { echo 98 > "$dir/run.rc"; exit 0; }
+    pick_control_ports || { echo 97 > "$dir/run.rc"; exit 0; }
     env -u DISPLAY XDG_CONFIG_HOME="$CFG" \
         SCORE_AUDIO_BACKEND=dummy SCORE_DISABLE_AUDIOPLUGINS=1 \
         SCORE_FORCE_OFFSCREEN_WINDOW=Window \
+        SCORE_LOCAL_OSC_PORT="$OSC" SCORE_LOCAL_WS_PORT="$WS" \
         DISPLAY="$DISP" QT_QPA_PLATFORM=xcb \
         __GLX_VENDOR_LIBRARY_NAME=mesa LIBGL_ALWAYS_SOFTWARE=1 GALLIUM_DRIVER=llvmpipe \
         QT_LOGGING_RULES='qt.rhi.general=true' QT_FORCE_STDERR_LOGGING=1 \
@@ -201,7 +201,7 @@ run_sequence() { # outdir -> writes <outdir>/<case>.png + run.log + run.rc
     send /stop; sleep 0.5
     send /exit s force
     wait "$APP"; echo $? > "$dir/run.rc"
-  ) 9>/tmp/score-harness.lock
+  )
 }
 
 check_run_health() { # dir -> appends to $FAILS

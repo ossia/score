@@ -4,7 +4,7 @@
 //   eval(Score.readFile(LIVE_EDIT_DIR + "/common.js"));
 // builds a small initial scene, then defines step(n). The scene plays via
 // --autoplay while live-edit-sweep.sh injects `tick()` every ~500ms over
-// OSC (/script on udp/6666). All /script evaluations run in the same
+// OSC (/script on the port it picked). All /script evaluations run in the same
 // persistent console QJSEngine as the initial --script
 // (JS::ApplicationPlugin::m_consoleEngine), so `var` globals persist across
 // sends, which is what makes stateful mutation sequences possible.

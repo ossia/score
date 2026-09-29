@@ -20,15 +20,16 @@
 #      unbounded growth without exact counts under ASAN's noisy allocator)
 #   8. open-fd count stable (last - first <= FD_SLACK)
 #
-# Runs under flock /tmp/score-harness.lock (OSC port 6666 is global).
+# Runs under flock /tmp/score-harness.lock: soak.js saves into the fixed
+# /tmp/gfx-soak.
 set -u
 
 SRCROOT="$(cd "$(dirname "$0")/../../.." && pwd)"  # tests/integration/gfx-soak -> repo root
 BIN="${OSSIA_SCORE:-$SRCROOT/build-sanitizers/ossia-score}"
 SOAK_DIR="$(cd "$(dirname "$0")" && pwd)"
+. "$SOAK_DIR/../common/control-ports.sh"
 JS="$SOAK_DIR/soak.js"
 OUT="${OUT:-/tmp/gfx-soak}"
-OSC=${SCORE_LOCAL_OSC_PORT:-6666}
 N="${1:-250}"
 TICK="${TICK:-0.25}"
 SAMPLE_EVERY="${SAMPLE_EVERY:-20}"
@@ -85,7 +86,7 @@ else:
 pathlib.Path(dst).write_text(text)
 EOF
 
-send() { oscsend 127.0.0.1 $OSC "$@" 2>/dev/null; }
+send() { oscsend 127.0.0.1 "$OSC" "$@" 2>/dev/null; }
 
 sample() { # cycle pid
   local st="/proc/$2/status"
@@ -101,6 +102,7 @@ echo "cycle,rss_kb,fds" > "$OUT/samples.csv"
 
 (
   flock -w 900 9 || { echo 98 > "$OUT/soak.rc"; exit 0; }
+  pick_control_ports || { echo 97 > "$OUT/soak.rc"; exit 0; }
   # Stage with the script's own directory injected: Score.readFile resolves
   # nothing relative to the running script, so soak.js takes its corpus from
   # SOAK_DIR rather than an absolute path.
@@ -113,6 +115,7 @@ echo "cycle,rss_kb,fds" > "$OUT/samples.csv"
   env XDG_CONFIG_HOME="$CFG" \
       SCORE_AUDIO_BACKEND=dummy SCORE_DISABLE_AUDIOPLUGINS=1 \
       SCORE_SANITIZE_SKIP_CHECKS=1 QT_QPA_PLATFORM=xcb \
+      SCORE_LOCAL_OSC_PORT="$OSC" SCORE_LOCAL_WS_PORT="$WS" \
       LIBGL_ALWAYS_SOFTWARE=1 GALLIUM_DRIVER=llvmpipe \
       ASAN_OPTIONS="$ASAN" LLVM_PROFILE_FILE="$OUT/soak.profraw" \
     timeout --foreground 900 "$BIN" --no-restore \

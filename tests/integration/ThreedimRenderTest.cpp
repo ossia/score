@@ -57,6 +57,8 @@
 
 #include "GoldenImage.hpp"
 
+#include <score_test/ControlPorts.hpp>
+
 #include <catch2/catch_test_macros.hpp>
 
 #include <QByteArray>
@@ -64,13 +66,11 @@
 #include <QFile>
 #include <QFileInfo>
 #include <QImage>
-#include <QLockFile>
 #include <QProcess>
 #include <QProcessEnvironment>
 #include <QRegularExpression>
 #include <QTemporaryDir>
 #include <QThread>
-#include <QUdpSocket>
 
 #include <algorithm>
 #include <cmath>
@@ -106,8 +106,6 @@ QString gfxCorpusDir()
   return {};
 #endif
 }
-
-constexpr int kOscPort = 6666;
 
 // ---------------------------------------------------------------- assets
 
@@ -440,43 +438,6 @@ void requireSameDevice(const RenderResult& r, const DeviceIdentity& ref)
   REQUIRE(r.gpu.line == ref.line);
 }
 
-void oscSend(const QString& address, const QString& arg)
-{
-  QByteArray pkt;
-  auto pad = [&](QByteArray b) {
-    b += '\0';
-    while(b.size() % 4)
-      b += '\0';
-    return b;
-  };
-  pkt += pad(address.toUtf8());
-  pkt += pad(QByteArrayLiteral(","
-                               "s"));
-  pkt += pad(arg.toUtf8());
-  QUdpSocket s;
-  s.writeDatagram(pkt, QHostAddress::LocalHost, kOscPort);
-}
-
-void oscSendBare(const QString& address, const QString& sArg = {})
-{
-  if(sArg.isEmpty())
-  {
-    QByteArray pkt;
-    auto pad = [&](QByteArray b) {
-      b += '\0';
-      while(b.size() % 4)
-        b += '\0';
-      return b;
-    };
-    pkt += pad(address.toUtf8());
-    pkt += pad(QByteArrayLiteral(","));
-    QUdpSocket s;
-    s.writeDatagram(pkt, QHostAddress::LocalHost, kOscPort);
-  }
-  else
-    oscSend(address, sArg);
-}
-
 //! Build + play the scene in `js`, wait for the loaders, grab over OSC.
 RenderResult renderScene(const QTemporaryDir& dir, const QString& name,
                          const QString& jsBody, int extraGrabs = 0)
@@ -485,16 +446,6 @@ RenderResult renderScene(const QTemporaryDir& dir, const QString& name,
   if(appBinary().isEmpty() || !QFile::exists(appBinary()))
   {
     r.error = "no ossia-score binary";
-    return r;
-  }
-
-  // The OSC control port is process-global; serialize with every other
-  // harness exactly as scene-js-sweep.sh documents.
-  QLockFile lock("/tmp/score-harness.lock");
-  lock.setStaleLockTime(120000);
-  if(!lock.tryLock(180000))
-  {
-    r.error = "could not take /tmp/score-harness.lock";
     return r;
   }
 
@@ -519,7 +470,15 @@ RenderResult renderScene(const QTemporaryDir& dir, const QString& name,
     f.write("[score_plugin_gfx]\nGraphicsApi=OpenGL\nVSync=false\nSamples=1\nRate=60\n");
   }
 
+  const auto ports = score::test::app::control_ports::pick();
+  if(!ports)
+  {
+    r.error = "no free control port";
+    return r;
+  }
+
   auto env = QProcessEnvironment::systemEnvironment();
+  ports.apply(env);
   env.insert("XDG_CONFIG_HOME", cfg);
   // The app persists a shader/PSO cache under XDG_CACHE_HOME; without
   // isolating it, a product-shader edit can keep rendering the OLD compiled
@@ -551,23 +510,24 @@ RenderResult renderScene(const QTemporaryDir& dir, const QString& name,
 
   // Let the graph build and the async loaders land, then grab (twice: the
   // first grab also warms the readback path), then ask the app to leave.
+  const QByteArray grab
+      = QStringLiteral("Score.device('Window').grabTo('%1')").arg(png).toUtf8();
   QThread::msleep(3000);
-  oscSend("/script",
-          QStringLiteral("Score.device('Window').grabTo('%1')").arg(png));
+  ports.send("/script", grab);
   QThread::msleep(1000);
-  oscSend("/script",
-          QStringLiteral("Score.device('Window').grabTo('%1')").arg(png));
+  ports.send("/script", grab);
   // Extra spaced grabs for time-animated cases whose content roams the frame.
   for(int k = 0; k < extraGrabs; k++)
   {
     QThread::msleep(667);
-    oscSend(
+    ports.send(
         "/script", QStringLiteral("Score.device('Window').grabTo('%1.%2.png')")
                        .arg(png)
-                       .arg(k));
+                       .arg(k)
+                       .toUtf8());
   }
   QThread::msleep(667);
-  oscSend("/exit", "force");
+  ports.send("/exit", "force");
   // Teardown SIGSEGV after the grab is a known, documented nuisance
   // (scene-js-sweep.sh header); the PNG is the verdict, not the exit code.
   if(!p.waitForFinished(30000))
@@ -1132,8 +1092,7 @@ TEST_CASE(
 // across legs rather than assumed. The tolerance is the golden comparator's
 // (meanAbs < 4, fracFar < 0.02).
 //
-// Cost: four app launches, serialized on /tmp/score-harness.lock
-// like every other case in this file.
+// Cost: four app launches.
 TEST_CASE(
     "OBJ, STL, PLY and OFF of one cube render the same picture",
     "[integration][threedim][render][gui]")
