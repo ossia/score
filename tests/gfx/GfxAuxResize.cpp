@@ -44,9 +44,6 @@ TEST_CASE("consumers follow an upstream auxiliary resized at run time", "[gfx][a
       = GENERATE("rr-aux-count", "rr-aux-width", "csf-aux-count-consumer.cs",
                  "csf-aux-count-toplevel.cs");
   CAPTURE(backend_name(api), sameBuffer, consumer);
-  if(const char* why = compute_shader_skip_reason(api))
-    SKIP(why);
-
   const bool raster = consumer.starts_with("rr-");
   const bool width = consumer == "rr-aux-width";
   bool skipped = false;
@@ -110,6 +107,10 @@ TEST_CASE("consumers follow an upstream auxiliary resized at run time", "[gfx][a
   });
   if(skipped)
     SKIP("backend unavailable");
+  // After the app ran: the GL probe needs the GUI application.
+  if(!raster)
+    if(const char* why = compute_shader_skip_reason(api))
+      SKIP(why);
 
   INFO("error=" << err);
   REQUIRE(err.empty());
@@ -144,9 +145,6 @@ TEST_CASE(
   const auto api = GENERATE(from_range(platform_backends()));
   const int offset = GENERATE(16, 256);
   CAPTURE(backend_name(api), offset);
-  if(const char* why = compute_shader_skip_reason(api))
-    SKIP(why);
-
   bool skipped = false;
   std::string err;
   std::array<uint8_t, 4> centre{};
@@ -184,6 +182,8 @@ TEST_CASE(
   });
   if(skipped)
     SKIP("backend unavailable");
+  if(const char* why = compute_shader_skip_reason(api))
+    SKIP(why);
 
   INFO("error=" << err);
   REQUIRE(err.empty());
@@ -207,9 +207,6 @@ TEST_CASE(
   const auto api = GENERATE(from_range(platform_backends()));
   const bool sameBuffer = GENERATE(false, true);
   CAPTURE(backend_name(api), sameBuffer);
-  if(const char* why = compute_shader_skip_reason(api))
-    SKIP(why);
-
   bool skipped = false;
   std::string err;
   std::vector<std::array<uint8_t, 4>> frames;
@@ -251,6 +248,8 @@ TEST_CASE(
   });
   if(skipped)
     SKIP("backend unavailable");
+  if(const char* why = compute_shader_skip_reason(api))
+    SKIP(why);
 
   INFO("error=" << err);
   REQUIRE(err.empty());
