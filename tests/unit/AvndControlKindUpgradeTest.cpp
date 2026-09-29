@@ -44,7 +44,7 @@ const QString lfo_uuid = QStringLiteral("0b1b1816-c33e-4796-a16d-5aab27fe600f");
 using Lfo = Nodes::LFO::v3::Node;
 
 //! LFO v3 as it was saved when its Period was a float slider: the same uuid
-//! and the same ports, but for that one.
+//! and the same ports, but for that one, and without Lock to bars.
 struct OldLfo
 {
   halp_meta(name, "LFO")
@@ -134,7 +134,7 @@ TEST_CASE("A float control that became a time chooser keeps its value", "[avnd][
     {
       auto* loaded = roundtrip(*old, dctx, &doc->model());
       REQUIRE(loaded);
-      REQUIRE(loaded->inlets().size() == old->inlets().size());
+      REQUIRE(loaded->inlets().size() == old->inlets().size() + 1);
 
       auto* chooser = qobject_cast<Process::TimeChooser*>(loaded->inlets()[0]);
       REQUIRE(chooser);
@@ -147,6 +147,13 @@ TEST_CASE("A float control that became a time chooser keeps its value", "[avnd][
       auto* loaded_shape = qobject_cast<Process::ControlInlet*>(loaded->inlets()[1]);
       REQUIRE(loaded_shape);
       CHECK(ossia::convert<float>(loaded_shape->value()) == 0.8f);
+
+      // A synced LFO saved before the lock counts its cycles from the start,
+      // as it did then.
+      auto* lock = qobject_cast<Process::ControlInlet*>(loaded->inlets().back());
+      REQUIRE(lock);
+      CHECK(lock->name() == QStringLiteral("Lock to bars"));
+      CHECK(ossia::convert<bool>(lock->value()) == false);
       delete loaded;
     }
   });

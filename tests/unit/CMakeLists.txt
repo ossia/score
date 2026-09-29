@@ -1585,7 +1585,8 @@ endif()
 
 if(TARGET score_plugin_fx)
   # LFO v3: the same value at a date whatever the buffer size, synced cycles
-  # read off the musical position, drift that runs for hours.
+  # from the start or locked to the bars, the phase knob a whole cycle, drift
+  # that runs for hours.
   score_add_test(test_unit_fx_lfo_phase_continuity
     SOURCES FxLfoPhaseContinuityTest.cpp
     PLUGINS score_plugin_fx)

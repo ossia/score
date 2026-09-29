@@ -47,8 +47,7 @@ struct Node
 
   struct ins
   {
-    //! One cycle: in seconds, or synced to a note value, where the phase
-    //! follows the bars.
+    //! One cycle: in seconds, or synced to a note value.
     halp::time_chooser<"Period", halp::range{0.01, 60., 1.}> period;
     //! 0.5 is the plain waveform. Sine, triangle: where the peak falls (the
     //! share of the cycle spent rising). Square, sample and hold: the share of
@@ -59,9 +58,13 @@ struct Node
     halp::impulse_button<"Retrigger"> retrigger;
     halp::knob_f32<"Ampl.", halp::range{0., 2., 0.5}> ampl;
     halp::knob_f32<"Offset", halp::range{-1., 1., 0.5}> offset;
-    halp::knob_f32<"Jitter", halp::range{0., 1., 0}> jitter;
-    //! Moves the cycle by up to half a period either way.
-    halp::knob_f32<"Phase", halp::range{-1., 1., 0.}> phase;
+    //! In degrees: each tick the phase moves by a random amount within
+    //! +/- this much. 180 is anywhere in the cycle.
+    halp::knob_f32<"Jitter", halp::range{0., 180., 0.}> jitter;
+    //! In degrees: how far into its cycle the waveform starts (at the start of
+    //! playback, on Retrigger, on the bar when locked), a constant offset from
+    //! there on. 0 and 360 are the same phase; values beyond the range wrap.
+    halp::knob_f32<"Phase", halp::range{0., 360., 0.}> phase;
     struct : halp::enum_t<Waveform, "Waveform">
     {
       static constexpr auto pixmaps()
@@ -93,6 +96,10 @@ struct Node
             ":/icons/wave_drift_on.png"};
       }
     } waveform;
+    //! Synced only. Off, the cycles count from where playback started or the
+    //! retrigger was pressed; on, from the start of the timeline (or the
+    //! retrigger), so they fall on the bars wherever playback starts.
+    halp::toggle<"Lock to bars"> lock_to_bars;
   } inputs;
   struct
   {
@@ -107,11 +114,13 @@ struct Node
     } out;
   } outputs;
 
-  //! Free-running: where the cycle is, in [0; 1), and how many whole cycles
-  //! went by (the drift's position, which must not repeat).
+  //! Counted cycles (free-running, or synced and not locked to the bars):
+  //! where the cycle is, in [0; 1), and how many whole cycles went by (the
+  //! drift's position, which must not repeat).
   double phase{};
   int64_t cycles{};
-  //! Synced: the musical position, in quarters, the cycles are counted from.
+  //! Locked to the bars: the musical position, in quarters, the cycles are
+  //! read from.
   double sync_origin{};
   rnd::pcg rd{random_source()};
   uint32_t seed{uint32_t(rd())};
@@ -189,6 +198,7 @@ struct Node
     const double shape = inputs.shape.value;
     const double period = std::max(1e-4, (double)inputs.period.value);
     const bool sync = inputs.period.sync;
+    const bool locked = sync && inputs.lock_to_bars.value;
 
     if(inputs.retrigger)
     {
@@ -199,16 +209,22 @@ struct Node
       last_square = 0;
       seed = uint32_t(rd());
     }
-
-    // Cycles elapsed at the start and at the end of the tick. Synced, they are
-    // read off the musical position: the cycles stay on the bars through
-    // tempo changes, jumps and loops, with no drift from accumulating.
-    double c0{}, c1{};
-    if(sync)
+    else if(sync && !locked && tk.unexpected_bar_change())
     {
-      // The binding hands a synced period over in seconds at the current
-      // tempo: back to quarter notes.
-      const double quarters_per_cycle = period * tk.tempo / 60.;
+      phase = 0.;
+      cycles = 0;
+    }
+
+    // Cycles elapsed at the start and at the end of the tick. Locked to the
+    // bars, they are read off the musical position: the cycles stay on the
+    // bars through tempo changes, jumps and loops, with no drift from
+    // accumulating. Otherwise they accumulate from the start, synced in
+    // quarters. The binding hands a synced period over in seconds at the
+    // current tempo: back to quarter notes.
+    const double quarters_per_cycle = period * tk.tempo / 60.;
+    double c0{}, c1{};
+    if(locked)
+    {
       if(quarters_per_cycle > 0.)
       {
         c0 = (tk.start_position_in_quarters - sync_origin) / quarters_per_cycle;
@@ -218,16 +234,22 @@ struct Node
     else
     {
       c0 = double(cycles) + phase;
-      c1 = c0
-           + double(tk.model_read_duration())
-                 / (period * ossia::flicks_per_second<double>);
+      if(!sync)
+        c1 = c0
+             + double(tk.model_read_duration())
+                   / (period * ossia::flicks_per_second<double>);
+      else if(quarters_per_cycle > 0.)
+        c1 = c0
+             + (tk.end_position_in_quarters - tk.start_position_in_quarters)
+                   / quarters_per_cycle;
+      else
+        c1 = c0;
     }
 
-    // The phase knob moves by up to half a cycle either way.
-    double shift = 0.5 * inputs.phase.value;
+    double shift = inputs.phase.value;
     if(jitter > 0)
-      shift += std::normal_distribution<float>(0., 0.25)(this->rd) * jitter
-               / ossia::two_pi;
+      shift += std::uniform_real_distribution<float>(-jitter, jitter)(this->rd);
+    shift /= 360.;
     c0 += shift;
     c1 += shift;
     const double x = frac(c0);
@@ -296,15 +318,14 @@ struct Node
         break;
     }
 
-    if(!sync)
-    {
-      // Whole cycles move to the counter, so the phase keeps its precision
-      // however long it runs, and in either direction.
-      const double end = phase + (c1 - c0);
-      const double whole = std::floor(end);
-      phase = end - whole;
-      cycles += int64_t(whole);
-    }
+    // Whole cycles move to the counter, so the phase keeps its precision
+    // however long it runs, and in either direction. Locked, the count follows
+    // the position so that unlocking carries on from there; locking snaps the
+    // cycle to the bars.
+    const double end = locked ? c1 - shift : phase + (c1 - c0);
+    const double whole = std::floor(end);
+    phase = end - whole;
+    cycles = locked ? int64_t(whole) : cycles + int64_t(whole);
   }
 
   struct ui
@@ -320,6 +341,7 @@ struct Node
         halp::control<&ins::period> t;
         halp::control<&ins::shape> s;
         halp::control<&ins::retrigger> r;
+        halp::control<&ins::lock_to_bars> l;
       } timing;
       halp::control<&ins::waveform> w;
     } gen;
