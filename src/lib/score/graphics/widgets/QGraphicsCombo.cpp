@@ -261,11 +261,11 @@ void QGraphicsCombo::init()
   m_rect.setWidth(maxW);
 }
 
+static_assert(QGraphicsCombo::stepperWidth == score::Stepper::width);
+
 QRectF QGraphicsCombo::stepperRect() const noexcept
 {
-  const QRectF brect = m_rect.adjusted(1, 1, -1, -1);
-  const double left = std::max(brect.left(), brect.right() - stepperWidth);
-  return QRectF{left, brect.top(), brect.right() - left, brect.height()};
+  return score::Stepper::rect(m_rect.adjusted(1, 1, -1, -1));
 }
 
 bool QGraphicsCombo::stepperVisible() const noexcept
