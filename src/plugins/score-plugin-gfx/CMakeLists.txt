@@ -894,12 +894,12 @@ if(SCORE_TESTING)
     score_plugin_gfx ${QT_PREFIX}::Gui)
 
   # Needs a GL-capable display; prints "no RHI available, skipping" and exits 0
-  # without one. Labelled "gui" like EncoderTester / ReadbackTester below.
+  # without one. Labelled "gui;gpu" like EncoderTester / ReadbackTester below.
   add_test(NAME CaptureAdjustShaderTest COMMAND CaptureAdjustShaderTest)
   set_tests_properties(CaptureAdjustShaderTest PROPERTIES
     WORKING_DIRECTORY "${SCORE_ROOT_BINARY_DIR}"
     ENVIRONMENT "SCORE_AUDIO_BACKEND=dummy;ASAN_OPTIONS=detect_leaks=0:halt_on_error=0"
-    LABELS "gui")
+    LABELS "gui;gpu")
 
   # score_tc, the coordinate seam every decoder samples through. Its identity
   # case is what stands in for a golden render of all 85 sampling sites: a
@@ -920,7 +920,7 @@ if(SCORE_TESTING)
   set_tests_properties(DeinterlaceShaderTest PROPERTIES
     WORKING_DIRECTORY "${SCORE_ROOT_BINARY_DIR}"
     ENVIRONMENT "SCORE_AUDIO_BACKEND=dummy;ASAN_OPTIONS=detect_leaks=0:halt_on_error=0"
-    LABELS "gui")
+    LABELS "gui;gpu")
 
   # The maths, the struct layout and the cross-thread slot: no GPU, no camera,
   # no display.
@@ -969,7 +969,7 @@ if(SCORE_TESTING)
   set_tests_properties(EncoderTester PROPERTIES
     WORKING_DIRECTORY "${SCORE_ROOT_BINARY_DIR}"
     ENVIRONMENT "SCORE_AUDIO_BACKEND=dummy;ASAN_OPTIONS=detect_leaks=0:halt_on_error=0"
-    LABELS "gui")
+    LABELS "gui;gpu")
 endif()
 endif()
 
@@ -995,7 +995,7 @@ if(SCORE_TESTING)
   set_tests_properties(ReadbackTester PROPERTIES
     WORKING_DIRECTORY "${SCORE_ROOT_BINARY_DIR}"
     ENVIRONMENT "SCORE_AUDIO_BACKEND=dummy;ASAN_OPTIONS=detect_leaks=0:halt_on_error=0"
-    LABELS "gui")
+    LABELS "gui;gpu")
 endif()
 endif()
 

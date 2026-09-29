@@ -17,28 +17,22 @@ add_library(test_gfx_engine_glue INTERFACE)
 target_link_libraries(test_gfx_engine_glue INTERFACE
   score_plugin_gfx score_lib_process ${QT_PREFIX}::Gui)
 
-# A GPU reset (device lost, driver watchdog) destroys every context on the
-# machine, so GPU tests running side by side die together. Every GUI test in
-# this directory renders through QRhi: they all hold the "gpu" resource lock,
-# which ctest never grants to two tests at once, so a reset takes down only the
-# test that caused it. Only the tests of this directory take it: a GPU test
-# registered elsewhere must add RESOURCE_LOCK gpu itself to be isolated from
-# these. Labels: "gfx" on every test here, "gpu" on those that need a device.
+# Labels: "gfx" on every test here, "gpu" on the GUI ones, which all render
+# through QRhi (the "gpu" label also serialises them, see ScoreTests.cmake).
 # Deferred to the end of the directory so that registrations appended later are
 # covered too.
-function(_score_gfx_isolate_gpu_tests)
+function(_score_gfx_label_tests)
   get_property(_tests DIRECTORY PROPERTY TESTS)
   foreach(_t IN LISTS _tests)
     get_test_property(${_t} LABELS _labels)
     if("gui" IN_LIST _labels)
-      set_property(TEST ${_t} APPEND PROPERTY RESOURCE_LOCK gpu)
       set_property(TEST ${_t} APPEND PROPERTY LABELS gfx gpu)
     else()
       set_property(TEST ${_t} APPEND PROPERTY LABELS gfx)
     endif()
   endforeach()
 endfunction()
-cmake_language(DEFER CALL _score_gfx_isolate_gpu_tests)
+cmake_language(DEFER CALL _score_gfx_label_tests)
 
 score_add_test(test_gfx_isf
   SOURCES Gfx.cpp

@@ -1659,6 +1659,7 @@ foreach(_t
     test_integration_gpu_javascript
     test_integration_js_quick3d_vulkan
     test_integration_js_texture_source_ui
+    test_integration_texture_preview
     test_integration_pipewire_video_output
     test_integration_js_list_controls
     test_gfx_soak

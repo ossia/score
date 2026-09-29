@@ -155,6 +155,37 @@ function(score_link_plugins_for_static tgt)
   endif()
 endfunction()
 
+# A GPU reset (device lost, driver watchdog) destroys every context on the
+# machine, so GPU tests running side by side die together. Every test labelled
+# "gpu", wherever it is registered (tests/, plug-ins, add-ons, score_add_test
+# or a raw add_test), holds the "gpu" resource lock, which ctest never grants
+# to two tests at once: a reset takes down only the test that caused it, while
+# the other tests keep running in parallel. Deferred to the end of the
+# top-level directory so that it sees every label, including those appended
+# by per-directory deferred calls.
+function(_score_lock_gpu_tests dir)
+  get_property(_tests DIRECTORY "${dir}" PROPERTY TESTS)
+  foreach(_t IN LISTS _tests)
+    get_property(_labels TEST "${_t}" DIRECTORY "${dir}" PROPERTY LABELS)
+    get_property(_locks TEST "${_t}" DIRECTORY "${dir}" PROPERTY RESOURCE_LOCK)
+    if("gpu" IN_LIST _labels AND NOT "gpu" IN_LIST _locks)
+      set_property(TEST "${_t}" DIRECTORY "${dir}" APPEND PROPERTY RESOURCE_LOCK gpu)
+    endif()
+  endforeach()
+  get_property(_subdirs DIRECTORY "${dir}" PROPERTY SUBDIRECTORIES)
+  foreach(_sub IN LISTS _subdirs)
+    _score_lock_gpu_tests("${_sub}")
+  endforeach()
+endfunction()
+
+# TEST ... DIRECTORY needs CMake 3.28.
+if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.28)
+  cmake_language(DEFER DIRECTORY "${SCORE_ROOT_SOURCE_DIR}"
+    CALL _score_lock_gpu_tests "${SCORE_ROOT_SOURCE_DIR}")
+else()
+  message(WARNING "CMake < 3.28: tests labelled gpu will not be serialised")
+endif()
+
 function(score_add_test NAME)
   cmake_parse_arguments(ARG "GUI;APP;STANDALONE;SANDBOXED;NO_CTEST" "" "SOURCES;PLUGINS;LIBS" ${ARGN})
 
