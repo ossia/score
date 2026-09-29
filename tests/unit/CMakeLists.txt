@@ -597,6 +597,21 @@ target_include_directories(test_unit_avnd_midi_humanizer SYSTEM PRIVATE
   "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/include"
   "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/examples")
 
+if(TARGET gamma)
+  score_add_test(test_unit_avnd_compressor_limiter_flanger
+    SOURCES AvndCompressorLimiterFlangerTest.cpp)
+  target_include_directories(test_unit_avnd_compressor_limiter_flanger SYSTEM PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/include"
+    "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/examples")
+  target_link_libraries(test_unit_avnd_compressor_limiter_flanger PRIVATE gamma)
+endif()
+
+score_add_test(test_unit_avnd_utilities_input_guards
+  SOURCES AvndUtilitiesInputGuardsTest.cpp)
+target_include_directories(test_unit_avnd_utilities_input_guards SYSTEM PRIVATE
+  "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/include"
+  "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/examples")
+
 if(TARGET score_plugin_fx)
   score_add_test(test_unit_fx_audio_dsp
     SOURCES FxAudioDspTest.cpp
