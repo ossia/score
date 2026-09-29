@@ -299,7 +299,9 @@ void QGraphicsTimeChooser::paint(
   const double tw = painter->fontMetrics().horizontalAdvance(text);
   const double glyph_w = m_sync ? 7. : 0.;
   // The knob chord's flat bottom sits at y ~= 24.9: start just below it
-  const double chip_w = std::min(m_rect.width(), tw + glyph_w + 8.);
+  // The outline is stroked on the chip's edge, and antialiased: a pixel clear
+  // of the item's sides.
+  const double chip_w = std::min(m_rect.width() - 2., tw + glyph_w + 8.);
   const QRectF chip{
       m_rect.x() + (m_rect.width() - chip_w) / 2., m_rect.y() + 25.5, chip_w, 9.5};
 
@@ -425,7 +427,10 @@ bool QGraphicsTimeChooser::sceneEvent(QEvent* event)
 void QGraphicsTimeChooser::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event)
 {
   if(m_sync)
+  {
     m_value = default_sync_index / double(division_count - 1);
+    m_feel = feelOf(default_sync_index);
+  }
   else
     m_value = secondsToPosition ? ossia::clamp(secondsToPosition(init), 0., 1.)
               : max != min ? ossia::clamp((init - min) / (max - min), 0., 1.)

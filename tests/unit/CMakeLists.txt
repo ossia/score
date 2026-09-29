@@ -1591,3 +1591,9 @@ if(TARGET score_plugin_threedim)
   target_include_directories(test_unit_threedim_animation_robustness SYSTEM PRIVATE
     $<TARGET_PROPERTY:score_plugin_threedim,INCLUDE_DIRECTORIES>)
 endif()
+
+# Double-click on the time chooser: synced back to 1/8 straight, free back to
+# the default through the taper, at both ends of the range.
+score_add_test(test_unit_time_chooser_double_click
+  SOURCES TimeChooserDoubleClickTest.cpp
+  APP)
