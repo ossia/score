@@ -169,7 +169,7 @@ void FaustEffectModel::mapExternalFiles(Process::ExternalFileMap& map)
   // pulling in a whole Faust library tree, so it is only reported.
   if(!m_path.isEmpty())
     map.map(
-        {.path = m_path,
+        {.path = score::relativizeFilePath(m_path, score::IDocument::documentContext(*this)),
          .kind = score::FileKind::Folder,
          .usage = Process::FileUsage::Input,
          .directory = true,
@@ -284,7 +284,7 @@ Process::ScriptChangeResult FaustEffectModel::reload()
   if(QFile f{fx_text}; f.open(QIODevice::ReadOnly))
   {
     QFileInfo fi{f};
-    m_path = score::relativizeFilePath(fi.absolutePath(), ctx);
+    m_path = fi.absolutePath();
     fx_text = f.readAll();
     m_script = fx_text;
     m_declareName = fi.completeBaseName();
@@ -534,17 +534,33 @@ Process::Preset FaustEffectModel::savePreset() const noexcept
 
 }
 
+namespace Faust
+{
+// The import folder is kept resolved in memory, like the patch of a Pd process:
+// the serializers write it relative to wherever the document is being saved,
+// which a <PROJECT>: path kept as is would not follow through a "Save as".
+static QString resolvedImportFolder(const FaustEffectModel& eff, const QString& stored)
+{
+  const QString abs
+      = score::locateFilePath(stored, score::IDocument::documentContext(eff));
+  return QFileInfo{abs}.isDir() ? abs : stored;
+}
+}
+
 template <>
 void DataStreamReader::read(const Faust::FaustEffectModel& eff)
 {
-  m_stream << eff.m_script << eff.m_path;
+  m_stream << eff.m_script
+           << score::relativizeFilePath(eff.m_path, score::IDocument::documentContext(eff));
   readPorts(*this, eff.m_inlets, eff.m_outlets);
 }
 
 template <>
 void DataStreamWriter::write(Faust::FaustEffectModel& eff)
 {
-  m_stream >> eff.m_script >> eff.m_path;
+  QString path;
+  m_stream >> eff.m_script >> path;
+  eff.m_path = Faust::resolvedImportFolder(eff, path);
   eff.reload();
   writePorts(
       *this, components.interfaces<Process::PortFactoryList>(), eff.m_inlets,
@@ -555,7 +571,8 @@ template <>
 void JSONReader::read(const Faust::FaustEffectModel& eff)
 {
   obj["Text"] = eff.script();
-  obj["Path"] = eff.m_path;
+  obj["Path"]
+      = score::relativizeFilePath(eff.m_path, score::IDocument::documentContext(eff));
   readPorts(*this, eff.m_inlets, eff.m_outlets);
 }
 
@@ -564,7 +581,7 @@ void JSONWriter::write(Faust::FaustEffectModel& eff)
 {
   eff.m_script = obj["Text"].toString();
   if(auto path_it = obj.tryGet("Path"))
-    eff.m_path = path_it->toString();
+    eff.m_path = Faust::resolvedImportFolder(eff, path_it->toString());
   eff.reload();
   writePorts(
       *this, components.interfaces<Process::PortFactoryList>(), eff.m_inlets,
