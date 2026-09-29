@@ -193,47 +193,7 @@ void RenderedISFNode::updateInputTexture(const Port& input, QRhiTexture* tex, QR
 void RenderedISFNode::updateInputSamplerFilter(
     const Port& input, const RenderTargetSpecs& spec)
 {
-  int sampler_idx = 0;
-  for(auto* p : node.input)
-  {
-    if(p == &input)
-      break;
-    if(p->type == Types::Image)
-    {
-      sampler_idx++;
-      // A SamplableDepth port pushes TWO samplers (color + depth companion)
-      // in initInputSamplers; advance past both so this matches
-      // updateInputTexture's counting.
-      if((p->flags & Flag::SamplableDepth) == Flag::SamplableDepth)
-        sampler_idx++;
-    }
-  }
-
-  if(sampler_idx < (int)m_inputSamplers.size())
-  {
-    auto* sampler = m_inputSamplers[sampler_idx].sampler;
-    if(sampler->magFilter() == spec.mag_filter
-       && sampler->minFilter() == spec.min_filter
-       && sampler->mipmapMode() == spec.mipmap_mode
-       && sampler->addressU() == spec.address_u
-       && sampler->addressV() == spec.address_v
-       && sampler->addressW() == spec.address_w)
-    {
-      // Nothing to update. The rt_changed path calls this whenever
-      // renderTargetSpecsChanged fires, and filter/address state is often
-      // unchanged (the bump was for size or format). Skipping
-      // sampler->create() avoids destroying and re-allocating the backend
-      // QRhiSampler for no observable reason.
-      return;
-    }
-    sampler->setMagFilter(spec.mag_filter);
-    sampler->setMinFilter(spec.min_filter);
-    sampler->setMipmapMode(spec.mipmap_mode);
-    sampler->setAddressU(spec.address_u);
-    sampler->setAddressV(spec.address_v);
-    sampler->setAddressW(spec.address_w);
-    sampler->create();
-  }
+  score::gfx::updateInputSamplerFilter(m_inputSamplers, node, input, spec);
 }
 
 std::pair<Pass, Pass> RenderedISFNode::createFinalPass(

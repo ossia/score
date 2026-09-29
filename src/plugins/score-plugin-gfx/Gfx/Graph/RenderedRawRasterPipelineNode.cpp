@@ -15,6 +15,7 @@
 #include <score/tools/Debug.hpp>
 
 #include <ossia/detail/algorithms.hpp>
+#include <ossia/detail/hash.hpp>
 #include <ossia/detail/hash_map.hpp>
 #include <ossia/detail/small_vector.hpp>
 #include <ossia/math/math_expression.hpp>
@@ -1174,11 +1175,6 @@ void RenderedRawRasterPipelineNode::initPass(
 
     for(auto& aux : m_auxiliarySSBOs)
     {
-      // If no buffer yet, create a dummy so the descriptor set is valid.
-      // Dummy usage flag matches the aux kind so the created buffer can be
-      // bound as the intended descriptor type. Sized from the shader's
-      // LAYOUT (declared_size) — `aux.size` is 0 here, it is only ever
-      // assigned where a buffer already exists.
       if(!aux.buffer)
         createAuxPlaceholder(rhi, res, aux);
 
@@ -1224,7 +1220,7 @@ void RenderedRawRasterPipelineNode::initPass(
         max_binding, bindingStages, m_modelUBO));
 
     auto bindings = createDefaultBindings(
-        renderer, renderTarget, pubo, m_materialUBO, allSamplers(),
+        renderer, renderTarget, pubo, m_materialUBO, samplers,
         std::span<QRhiShaderResourceBinding>(
             additionalBindings.data(), additionalBindings.size()),
         m_firstSamplerBinding);
@@ -1523,9 +1519,7 @@ void RenderedRawRasterPipelineNode::initMRTPass(
   // runInitialPasses().
   {
     const auto& em = n.descriptor().execution_model;
-    std::string et = em.type;
-    for(auto& c : et)
-      c = (char)std::toupper((unsigned char)c);
+    const std::string et = executionModelType(n.descriptor());
     if(et == "PER_MIP")
       m_executionMode = ExecutionMode::PerMip;
     else if(et == "PER_CUBE_FACE")
@@ -2337,33 +2331,8 @@ void RenderedRawRasterPipelineNode::initMRTPass(
 
     for(auto& aux : m_auxiliarySSBOs)
     {
-      // Dummy usage flag matches the aux kind so the created buffer can be
-      // bound as the intended descriptor type (UBO for uniform_input, SSBO
-      // otherwise). Mirrors the non-MRT path, including the LAYOUT-derived
-      // size.
       if(!aux.buffer)
-      {
-        auto usage = aux.is_uniform ? QRhiBuffer::UniformBuffer
-                                    : QRhiBuffer::StorageBuffer;
-        // Rounded up to 4: RhiClearBuffer's contract (vkCmdFillBuffer) wants a
-        // 4-byte-aligned size.
-        const int64_t dummySize
-            = (std::max<int64_t>(aux.declared_size, aux.is_uniform ? 256 : 16) + 3)
-              & ~int64_t(3);
-        auto* dummy = rhi.newBuffer(bufferTypeFor(usage), usage, dummySize);
-        dummy->setName(aux.is_uniform ? "RRP_ubo_dummy" : "RRP_aux_dummy");
-        if(!dummy->create())
-          qWarning() << "RawRaster: could not create the placeholder buffer for"
-                     << aux.name.c_str();
-        else if(!auxPlaceholderZeroFillDisabled())
-          // Zero-fill: an unwritten placeholder reads back recycled device
-          // memory, and the shader reads it as a sentinel. Same reasoning as
-          // the non-MRT path.
-          RhiClearBuffer::clearBuffer(rhi, res, dummy, 0, (quint32)dummySize);
-        aux.buffer = dummy;
-        aux.size = dummySize;
-        aux.owned = true;
-      }
+        createAuxPlaceholder(rhi, res, aux);
 
       // Persistent ping-pong: <name>_prev (readonly) goes first.
       if(aux.persistent && aux.prev_buffer)
@@ -3056,9 +3025,7 @@ void RenderedRawRasterPipelineNode::initState(
     bool perMip = false;
     bool manual = false;
     {
-      std::string et = n.descriptor().execution_model.type;
-      for(auto& c : et)
-        c = (char)std::toupper((unsigned char)c);
+      const std::string et = executionModelType(n.descriptor());
       perMip = (et == "PER_MIP");
       manual = (et == "MANUAL");
     }

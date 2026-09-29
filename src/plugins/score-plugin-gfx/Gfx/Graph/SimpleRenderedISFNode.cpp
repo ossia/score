@@ -125,44 +125,7 @@ void SimpleRenderedISFNode::updateInputTexture(const Port& input, QRhiTexture* t
 void SimpleRenderedISFNode::updateInputSamplerFilter(
     const Port& input, const RenderTargetSpecs& spec)
 {
-  int sampler_idx = 0;
-  for(auto* p : node.input)
-  {
-    if(p == &input)
-      break;
-    if(p->type == Types::Image)
-    {
-      sampler_idx++;
-      // Mirror updateInputTexture: a SamplableDepth port contributes a second
-      // (depth companion) sampler in initInputSamplers, so skip it too or
-      // every later port's filter edit lands on the wrong QRhiSampler.
-      if((p->flags & Flag::SamplableDepth) == Flag::SamplableDepth)
-        sampler_idx++;
-    }
-  }
-
-  if(sampler_idx < (int)m_inputSamplers.size())
-  {
-    auto* sampler = m_inputSamplers[sampler_idx].sampler;
-    if(sampler->magFilter() == spec.mag_filter
-       && sampler->minFilter() == spec.min_filter
-       && sampler->mipmapMode() == spec.mipmap_mode
-       && sampler->addressU() == spec.address_u
-       && sampler->addressV() == spec.address_v
-       && sampler->addressW() == spec.address_w)
-    {
-      // See RenderedISFNode::updateInputSamplerFilter — skip the
-      // sampler->create() when nothing actually needs updating.
-      return;
-    }
-    sampler->setMagFilter(spec.mag_filter);
-    sampler->setMinFilter(spec.min_filter);
-    sampler->setMipmapMode(spec.mipmap_mode);
-    sampler->setAddressU(spec.address_u);
-    sampler->setAddressV(spec.address_v);
-    sampler->setAddressW(spec.address_w);
-    sampler->create();
-  }
+  score::gfx::updateInputSamplerFilter(m_inputSamplers, node, input, spec);
 }
 
 QRhiTexture* SimpleRenderedISFNode::textureForOutput(const Port& output)
