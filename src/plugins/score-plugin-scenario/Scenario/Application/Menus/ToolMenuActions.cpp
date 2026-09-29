@@ -31,6 +31,7 @@
 #include <QMenu>
 #include <QString>
 #include <QToolBar>
+#include <QWindow>
 #include <QVariant>
 #include <qnamespace.h>
 
