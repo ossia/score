@@ -6,6 +6,18 @@
 
 namespace score::gfx
 {
+//! Which texture of a persistent pass's pair the pass at `readerPass` samples.
+//! The writer renders into textures[frameParity]; the main and alternate pass
+//! sets have parity 0 and 1 and swap every frame. As in VVISF, where each pass
+//! hands its freshly rendered buffer to the passes drawn after it, a reader
+//! after the writer sees this frame and the writer itself and the passes
+//! before it see the previous frame.
+constexpr int
+persistentTextureIndex(int writerPass, int readerPass, int frameParity) noexcept
+{
+  return writerPass < readerPass ? frameParity : 1 - frameParity;
+}
+
 struct RenderedISFNode : score::gfx::NodeRenderer
 {
   explicit RenderedISFNode(const ISFNode& node) noexcept;
@@ -39,8 +51,7 @@ struct RenderedISFNode : score::gfx::NodeRenderer
 private:
   std::pair<Pass, Pass> createPass(
       RenderList& renderer, ossia::small_vector<PassOutput, 1>& m_passSamplers,
-      PassOutput target, const isf::pass& modelPass,
-      bool previousPassIsPersistent);
+      PassOutput target, const isf::pass& modelPass, int passIndex);
 
   std::pair<Pass, Pass> createFinalPass(
       RenderList& renderer, ossia::small_vector<PassOutput, 1>& m_passSamplers,
@@ -60,8 +71,9 @@ private:
     ossia::small_vector<PassOutput, 1> samplers;
   };
 
-  std::vector<Sampler>
-  allSamplers(ossia::small_vector<PassOutput, 1>&, int mainOrAltPass) const noexcept;
+  std::vector<Sampler> allSamplers(
+      ossia::small_vector<PassOutput, 1>&, int readerPass,
+      int frameParity) const noexcept;
 
   ossia::small_vector<std::pair<Edge*, Passes>, 2> m_passes;
 

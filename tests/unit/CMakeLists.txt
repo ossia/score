@@ -1620,6 +1620,15 @@ if(TARGET score_plugin_gfx)
     PLUGINS score_plugin_gfx)
 endif()
 
+# Which frame a pass of a multi-pass ISF shader sees when it samples a
+# persistent pass (RenderedISFNode's texture ping-pong against VVISF). Pure CPU.
+if(TARGET score_plugin_gfx)
+  score_add_test(test_unit_isf_persistent_pass_order
+    SOURCES IsfPersistentPassOrderTest.cpp
+    PLUGINS score_plugin_gfx
+    LIBS ${QT_PREFIX}::Gui)
+endif()
+
 # Script durations out of the range of a TimeVal are refused, not wrapped.
 if(TARGET score_plugin_js)
   score_add_test(test_unit_js_parse_duration_range

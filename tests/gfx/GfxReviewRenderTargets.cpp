@@ -293,19 +293,19 @@ TEST_CASE(
 }
 
 // -----------------------------------------------------------------------------
-// 06. Persistent producers are read with one frame of latency.
+// 06. A later pass reads what the persistent producer rendered in the same
+// frame.
 //
-// A later pass does NOT see the persistent producer's CURRENT frame. The
-// contract the engine documents and implements is: RenderedISFNode.cpp --
-// "Persistent texture means that frame N can access the output of this pass at
-// frame N-1" -- and createPass() builds the ping-pong that makes it so. Frame 1
-// therefore legitimately reads the never-written half of the pair.
-//
-// The contract pinned here: exactly ONE frame of latency, no more. Both directions are asserted, so losing the ping-pong
-// (frame 1 red) and losing the persistence (frame 4 black) are both caught.
+// The semantics are VVISF's (ISFScene::_render): a pass renders into a buffer
+// that replaces its target as soon as it is drawn, so the passes drawn after it
+// in the same frame sample the new content; only the producer itself and the
+// passes before it see the previous frame. Pass 0 writes red, pass 1 shows it:
+// red from frame 1 on. Black on frame 1 is the reader sampling the
+// previous-frame half of the ping-pong; black on a later frame, a lost
+// persistent target.
 // -----------------------------------------------------------------------------
 TEST_CASE(
-    "RenderTargets-06 a later pass reads the persistent producer with one frame of latency",
+    "RenderTargets-06 a later pass reads what the persistent producer rendered in the same frame",
     "[RenderTargets][persistent]")
 {
   const auto be = GENERATE(from_range(platform_backends()));
@@ -323,10 +323,7 @@ TEST_CASE(
   REQUIRE(r.outputs.size() == 1);
   REQUIRE(r.outputs[0].valid());
   CAPTURE(ints(r.outputs[0].center()));
-  if(frames == 1)
-    CHECK(near(r.outputs[0].center(), {0, 0, 0, 255}, 3));
-  else
-    CHECK(near(r.outputs[0].center(), {255, 0, 0, 255}, 3));
+  CHECK(near(r.outputs[0].center(), {255, 0, 0, 255}, 3));
 }
 
 // -----------------------------------------------------------------------------

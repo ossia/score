@@ -101,11 +101,19 @@ PassOutput RenderedISFNode::initPassSampler(
   }
 }
 
-std::vector<Sampler> RenderedISFNode::allSamplers(
-    ossia::small_vector<PassOutput, 1>& m_passSamplers,
-    int mainOrAltPassIndex) const noexcept
+static bool hasPersistentPass(const ossia::small_vector<PassOutput, 1>& passSamplers)
 {
-  SCORE_ASSERT(mainOrAltPassIndex == 0 || mainOrAltPassIndex == 1);
+  return ossia::any_of(passSamplers, [](const PassOutput& out) {
+    auto p = ossia::get_if<PersistSampler>(&out);
+    return p && p->textures[0] != p->textures[1];
+  });
+}
+
+std::vector<Sampler> RenderedISFNode::allSamplers(
+    ossia::small_vector<PassOutput, 1>& passSamplers, int readerPass,
+    int frameParity) const noexcept
+{
+  SCORE_ASSERT(frameParity == 0 || frameParity == 1);
   // Input ports
   std::vector<Sampler> samplers;
   for(int i = 0; i < (int)m_inputSamplers.size(); i++)
@@ -115,14 +123,16 @@ std::vector<Sampler> RenderedISFNode::allSamplers(
   // Audio textures
   samplers.insert(samplers.end(), m_audioSamplers.begin(), m_audioSamplers.end());
 
-  // Pass samplers
-  for(auto& pass : m_passSamplers)
+  // Pass samplers. For a non-persistent pass both textures are the same one.
+  for(int k = 0; k < (int)passSamplers.size(); k++)
   {
-    if(auto p = ossia::get_if<PersistSampler>(&pass))
+    if(auto p = ossia::get_if<PersistSampler>(&passSamplers[k]))
     {
       if(p->sampler)
       {
-        samplers.push_back({p->sampler, p->textures[mainOrAltPassIndex]});
+        samplers.push_back(
+            {p->sampler,
+             p->textures[persistentTextureIndex(k, readerPass, frameParity)]});
       }
     }
   }
@@ -299,15 +309,22 @@ void main ()
     SCORE_ASSERT(last_sampler->textures[0]);
     SCORE_ASSERT(last_sampler->textures[1]);
 
-    Sampler samplers1[1] = {Sampler{last_sampler->sampler, last_sampler->textures[1]}};
+    // The blit comes after every pass: it shows what the persistent last pass
+    // rendered this frame.
+    const int lastPass = (int)m_passSamplers.size() - 1;
+    const int blitPass = lastPass + 1;
+    Sampler samplers1[1] = {Sampler{
+        last_sampler->sampler,
+        last_sampler->textures[persistentTextureIndex(lastPass, blitPass, 0)]}};
     auto pip = score::gfx::buildPipeline(
         renderer, renderer.defaultTriangle(), vertexS, fragmentS, renderTarget, nullptr,
         m_materialUBO, samplers1, blendFor(alpha, composite));
     ret.first = Pass{renderTarget, pip, nullptr};
     ret.second = ret.first;
 
-    // Then we have to use the textures the "main" passes are rendering
-    Sampler samplers2[1] = {Sampler{last_sampler->sampler, last_sampler->textures[0]}};
+    Sampler samplers2[1] = {Sampler{
+        last_sampler->sampler,
+        last_sampler->textures[persistentTextureIndex(lastPass, blitPass, 1)]}};
     ret.second.p.srb = score::gfx::createDefaultBindings(
         renderer, ret.second.renderTarget, nullptr, m_materialUBO, samplers2);
   }
@@ -317,8 +334,7 @@ void main ()
 
 std::pair<Pass, Pass> RenderedISFNode::createPass(
     RenderList& renderer, ossia::small_vector<PassOutput, 1>& passSamplers,
-    PassOutput target, const isf::pass& modelPass,
-    bool previousPassIsPersistent)
+    PassOutput target, const isf::pass& modelPass, int passIndex)
 {
   std::pair<Pass, Pass> ret;
   QRhi& rhi = *renderer.state.rhi;
@@ -374,7 +390,7 @@ std::pair<Pass, Pass> RenderedISFNode::createPass(
     {
       auto [v, s] = score::gfx::makeShaders(
           renderer.state, n.m_vertexS, n.m_fragmentS, n.descriptor().multiview_count);
-      const auto mainSamplers = allSamplers(passSamplers, 1);
+      const auto mainSamplers = allSamplers(passSamplers, passIndex, 0);
       QVarLengthArray<QRhiGraphicsPipeline::TargetBlend, 4> blends;
       if(createdRt)
         blends.push_back(QRhiGraphicsPipeline::TargetBlend{});
@@ -403,58 +419,40 @@ std::pair<Pass, Pass> RenderedISFNode::createPass(
     }
   }
 
-  // If necessary create the alternative pass
+  // The alternate pass: the frame parity 1 half of the ping-pong (allSamplers).
   {
-    if([[maybe_unused]] auto rt = ossia::get_if<TextureRenderTarget>(&target))
+    auto psampler = ossia::get_if<PersistSampler>(&target);
+    if(psampler && psampler->textures[1] != psampler->textures[0])
     {
-      // Non-persistent last pass
-      // assert (!persistent);
-      ret.second = ret.first;
+      // This pass is a persistent pass, thus we need to alternate our render target
+      // as we can't use a texture both as sampler and render target
+      ret.second.processUBO = ret.first.processUBO;
+      ret.second.p = ret.first.p;
+      ret.second.renderTarget = score::gfx::createRenderTarget(
+          renderer.state, psampler->textures[1], renderer.samples(),
+          n.requiresDepth);
+      m_innerPassTargets.push_back(ret.second.renderTarget);
+      // Same null-on-refusal contract as the intermediary pass above.
+      if(ret.second.renderTarget.texture)
+        ret.second.renderTarget.texture->setName(
+            "RenderedISFNode::createPass::ret.second.renderTarget.texture");
+      if(ret.second.renderTarget.renderTarget)
+        ret.second.renderTarget.renderTarget->setName(
+            "RenderedISFNode::createPass::ret.second.renderTarget.renderTarget");
 
-      if(previousPassIsPersistent)
-      {
-        // Then we have to use the textures the "main" passes are rendering to
-        ret.second.p.srb = score::gfx::createDefaultBindings(
-            renderer, ret.second.renderTarget, pubo, m_materialUBO,
-            allSamplers(passSamplers, 0), extras, m_firstSamplerBinding);
-      }
+      ret.second.p.srb = score::gfx::createDefaultBindings(
+          renderer, ret.second.renderTarget, pubo, m_materialUBO,
+          allSamplers(passSamplers, passIndex, 1), extras, m_firstSamplerBinding);
     }
-    else if(auto psampler = ossia::get_if<PersistSampler>(&target))
+    else
     {
-      if(psampler->textures[1] != psampler->textures[0])
-      {
-        // This pass is a persistent pass, thus we need to alternate our render target
-        // as we can't use a texture both as sampler and render target
-        ret.second.processUBO = ret.first.processUBO;
-        ret.second.p = ret.first.p;
-        ret.second.renderTarget = score::gfx::createRenderTarget(
-            renderer.state, psampler->textures[1], renderer.samples(),
-            n.requiresDepth);
-        m_innerPassTargets.push_back(ret.second.renderTarget);
-        // Same null-on-refusal contract as the intermediary pass above.
-        if(ret.second.renderTarget.texture)
-          ret.second.renderTarget.texture->setName(
-              "RenderedISFNode::createPass::ret.second.renderTarget.texture");
-        if(ret.second.renderTarget.renderTarget)
-          ret.second.renderTarget.renderTarget->setName(
-              "RenderedISFNode::createPass::ret.second.renderTarget.renderTarget");
-
-        // We necessarily use the main pass rendered-to samplers
+      // Same render target; the bindings only differ when some pass of the
+      // shader is persistent.
+      ret.second = ret.first;
+      if(hasPersistentPass(passSamplers))
         ret.second.p.srb = score::gfx::createDefaultBindings(
             renderer, ret.second.renderTarget, pubo, m_materialUBO,
-            allSamplers(passSamplers, 0), extras, m_firstSamplerBinding);
-      }
-      else
-      {
-        ret.second = ret.first;
-        if(previousPassIsPersistent)
-        {
-          // Then we have to use the textures the "main" passes are rendering to
-          ret.second.p.srb = score::gfx::createDefaultBindings(
-              renderer, ret.second.renderTarget, pubo, m_materialUBO,
-              allSamplers(passSamplers, 0), extras, m_firstSamplerBinding);
-        }
-      }
+            allSamplers(passSamplers, passIndex, 1), extras, m_firstSamplerBinding);
     }
   }
   return ret;
@@ -516,19 +514,15 @@ void RenderedISFNode::initPasses(
       renderer.state.renderSize);
   bindUpstreamBuffers(renderer, n.input, m_storage);
 
-  bool previousPassIsPersistent = false;
   for(std::size_t i = 0; i < passes.samplers.size(); i++)
   {
     auto& pass = passes.samplers[i];
     const auto [p1, p2]
-        = createPass(renderer, passes.samplers, pass, model_passes[i],
-                     previousPassIsPersistent);
+        = createPass(renderer, passes.samplers, pass, model_passes[i], (int)i);
     if(p1.p.pipeline)
     {
       passes.passes.push_back(p1);
       passes.altPasses.push_back(p2);
-
-      previousPassIsPersistent = model_passes[i].persistent;
     }
     else
     {
@@ -561,7 +555,7 @@ void RenderedISFNode::initPasses(
 
   SCORE_ASSERT(passes.passes.size() == passes.samplers.size());
 
-  if(previousPassIsPersistent)
+  if(model_passes.back().persistent)
   {
     // We have to add a last pass that will blit on the output render target
     const auto [p1, p2] = createFinalPass(renderer, passes.samplers, rt);
