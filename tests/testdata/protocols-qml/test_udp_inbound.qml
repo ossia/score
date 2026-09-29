@@ -8,6 +8,7 @@ Ossia.Mapper
     Transport: { Bind: "0.0.0.0", Port: 9001 },
     onOpen: function(socket) {
       console.log("UDP inbound listening on port 9001");
+      Device.write("/status", "listening");
     },
     onClose: function() { console.log("UDP inbound closed"); },
     onError: function() { console.log("UDP inbound error"); },
@@ -20,6 +21,11 @@ Ossia.Mapper
 
   function createTree() {
     return [
+      {
+        name: "status",
+        type: Ossia.Type.String,
+        value: "idle"
+      },
       {
         name: "last_message",
         type: Ossia.Type.String,

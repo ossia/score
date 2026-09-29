@@ -70,6 +70,15 @@ void value(fixture& f, const QString& name, const QString& path, const QVariant&
   REQUIRE(received);
 }
 
+//! Until the Mapper's server socket is bound. Its tree is published first and
+//! the socket opens on the Mapper thread's next turn, so anything sent as soon
+//! as the tree is there can reach a port nobody listens on yet: the fixture
+//! writes "listening" to /status from onOpen, which runs right after the bind.
+void listening(fixture& f, const QString& name)
+{
+  value(f, name, "/status", QString{"listening"});
+}
+
 QNetworkDatagram receive(fixture& f, QUdpSocket& socket)
 {
   REQUIRE(f.spin([&] { return socket.hasPendingDatagrams(); }));
@@ -179,7 +188,7 @@ TEST_CASE("Mapper UDP inbound converts datagrams to strings", "[mapper][protocol
     substitute(script, port(9001), port(target));
     reservation.close();
     f.createMapper("udp_in", script);
-    ready(f, "udp_in", "/last_message");
+    listening(f, "udp_in");
     const QByteArray payload{"first\0second", 12};
     sendUdp(peer, target, payload);
     value(f, "udp_in", "/last_message", QString::fromUtf8(payload));
@@ -348,7 +357,7 @@ TEST_CASE("Mapper WebSocket server accepts real clients and releases its listene
     substitute(script, port(8080), port(target));
     reservation.close();
     f.createMapper("ws_in", script);
-    ready(f, "ws_in", "/status");
+    listening(f, "ws_in");
     QWebSocket peer;
     peer.open(QUrl{QStringLiteral("ws://127.0.0.1:%1").arg(target)});
     REQUIRE(f.spin([&] { return peer.state() == QAbstractSocket::ConnectedState; }));
@@ -479,6 +488,7 @@ Ossia.Mapper
 {
   property var wsServer: Protocols.inboundWS({
     Transport: { Bind: "127.0.0.1", Port: %1 },
+    onOpen: function(server) { Device.write("/status", "listening"); },
     onClose: function() { Device.write("/status", "closed"); },
     onConnection: function(socket) {
       Device.write("/status", "client_connected");
@@ -517,9 +527,7 @@ TEST_CASE("Mapper WebSocket server exchanges messages with a client and closes i
     REQUIRE(doc);
     fixture f{ctx, *doc};
     f.createMapper("ws_conn", wsConnectionScript(target));
-    // The server is created as a property initializer, before createTree(), so
-    // its onOpen write lands nowhere: wait for the tree itself.
-    ready(f, "ws_conn", "/status");
+    listening(f, "ws_conn");
 
     QStringList text;
     QList<QByteArray> binary;
@@ -623,7 +631,7 @@ TEST_CASE("Mapper WebSocket server survives being closed from a connection callb
     REQUIRE(doc);
     fixture f{ctx, *doc};
     f.createMapper("ws_reentrant", wsReentrantCloseScript(target));
-    ready(f, "ws_reentrant", "/status");
+    listening(f, "ws_reentrant");
 
     QWebSocket peer;
     peer.open(QUrl{QStringLiteral("ws://127.0.0.1:%1").arg(target)});
