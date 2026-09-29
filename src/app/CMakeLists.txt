@@ -166,6 +166,7 @@ endif()
 
 if(SCORE_LINKER_SCRIPT)
   target_link_libraries(${APPNAME} PRIVATE "-Wl,--version-script,${SCORE_LINKER_SCRIPT}")
+  set_property(TARGET ${APPNAME} APPEND PROPERTY LINK_DEPENDS "${SCORE_LINKER_SCRIPT}")
 endif()
 
 if(APPLE)
