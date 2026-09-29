@@ -105,6 +105,7 @@ FileReport runFileOperation(
     entry.kind = ref.kind;
     entry.usage = ref.usage;
     entry.owner = ref.owner;
+    entry.companions = ref.companions;
 
     const QString next = policy(ref, entry);
     report.entries.push_back(std::move(entry));

@@ -6,6 +6,7 @@
 #include <score/document/DocumentContext.hpp>
 #include <score/tools/File.hpp>
 
+#include <QDir>
 #include <QFile>
 #include <QFileInfo>
 #include <QHash>
@@ -44,15 +45,38 @@ struct RangeScan
 RangeScan scanRanges(const score::DocumentContext& ctx, const ProjectTarget& target)
 {
   RangeScan out;
+  QStringList folders;
   runFileOperation(
       ctx,
       [&](const ExternalFileRef& ref, FileEntry&) -> QString {
-    if(!ref.rewritable || ref.directory || ref.usage == FileUsage::Output)
+    if(ref.usage == FileUsage::Output)
       return {};
 
     const QString abs = score::locateFilePath(ref.path, target.sourceRoots);
     if(abs.isEmpty())
       return {};
+
+    // Whatever reads files out of a folder, or names them from its own, is
+    // not repointed at a trimmed file either.
+    if(ref.directory)
+    {
+      folders.push_back(abs);
+      return {};
+    }
+    const QDir dir = QFileInfo{abs}.dir();
+    for(const QString& rel : ref.companions)
+      out.refused.insert(
+          QDir::cleanPath(dir.filePath(rel)),
+          QObject::tr("%1 names it from its own folder").arg(ref.owner));
+
+    // A reader that cannot be repointed would be left on a file trimming
+    // replaces, or on nothing once the original is removed.
+    if(!ref.rewritable)
+    {
+      out.refused.insert(
+          abs, QObject::tr("%1 cannot be pointed at a trimmed file").arg(ref.owner));
+      return {};
+    }
 
     if(!ref.usedRange)
     {
@@ -65,6 +89,11 @@ RangeScan scanRanges(const score::DocumentContext& ctx, const ProjectTarget& tar
     return {};
       },
       /*dryRun=*/true);
+
+  for(const auto& file : out.ranges.keys())
+    for(const QString& folder : folders)
+      if(score::isUnderFolder(file, folder))
+        out.refused.insert(file, QObject::tr("it is inside a folder the document uses"));
 
   // One unbounded reader is enough to disqualify the file for every reader.
   for(const auto& file : out.refused.keys())

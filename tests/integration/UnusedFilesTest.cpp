@@ -340,6 +340,32 @@ TEST_CASE(
   });
 }
 
+TEST_CASE(
+    "The folder a Faust process imports from protects what is inside it",
+    "[integration][unused]")
+{
+  // The folder is reported as a reference score cannot rewrite; it still has
+  // to reach the scan.
+  score::test::run_in_gui_app([](const score::GUIApplicationContext& ctx) {
+    QTemporaryDir projectDir;
+    REQUIRE(projectDir.isValid());
+    const QString project = canonical(projectDir.path());
+
+    write_file(project + "/Data/faust/effect.dsp", "process = _;\n");
+    write_file(project + "/Data/faust/helpers.lib", "gain = *(0.5);\n");
+
+    auto* doc = project_document(ctx, project);
+    if(!add_process(
+           *doc, QStringLiteral("5354c61a-1649-4f59-b952-5c2f1b79c1bd"),
+           project + "/Data/faust/effect.dsp"))
+      SKIP("the Faust plug-in is not in this build");
+
+    const auto scan = Process::analyzeUnusedFiles(doc->context(), {});
+    CHECK_FALSE(lists(scan, "effect.dsp"));
+    CHECK_FALSE(lists(scan, "helpers.lib"));
+  });
+}
+
 TEST_CASE("The reasons to hesitate are spelled out", "[integration][unused]")
 {
   score::test::run_in_gui_app([](const score::GUIApplicationContext& ctx) {

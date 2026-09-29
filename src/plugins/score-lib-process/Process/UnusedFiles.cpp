@@ -73,11 +73,19 @@ UsedFiles usedFiles(const score::DocumentContext& ctx, const ProjectTarget& targ
       return {};
     }
 
-    used.files.insert(abs);
-    // A reference can resolve through a symlink; both spellings count as used
-    // so that neither gets swept away.
-    if(!canonical.isEmpty())
-      used.files.insert(canonical);
+    const auto use = [&](const QString& file) {
+      used.files.insert(file);
+      // A reference can resolve through a symlink; both spellings count as
+      // used so that neither gets swept away.
+      if(const QString c = QFileInfo{file}.canonicalFilePath(); !c.isEmpty())
+        used.files.insert(c);
+    };
+    use(abs);
+
+    // The samples a drumkit names are as used as the drumkit itself.
+    const QDir dir = QFileInfo{abs}.dir();
+    for(const QString& rel : ref.companions)
+      use(QDir::cleanPath(dir.filePath(rel)));
     return {};
       },
       /*dryRun=*/true);

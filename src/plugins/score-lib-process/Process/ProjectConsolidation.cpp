@@ -6,6 +6,7 @@
 
 #include <core/document/Document.hpp>
 
+#include <QDir>
 #include <QFileInfo>
 
 namespace Process
@@ -56,10 +57,32 @@ struct Consolidator
     if(e.sourcePath.isEmpty() || !QFileInfo::exists(e.sourcePath))
       return done(FileAction::Missing);
 
-    const auto placed = placement.place(e.sourcePath, e.kind);
+    const auto placed = placement.place(e.sourcePath, e.kind, ref.companions);
     e.destinationPath = placed.destination;
     e.size = QFileInfo{e.sourcePath}.size();
     e.copyNeeded = !placed.alreadyInProject && !placed.reused;
+
+    // Companions are copied at the same path relative to the file as they had
+    // at the source, which only means something inside its folder.
+    const QDir sourceDir = QFileInfo{e.sourcePath}.dir();
+    int missingCompanions = 0;
+    for(const QString& rel : ref.companions)
+    {
+      if(!placed.alreadyInProject && !score::isContainedRelativePath(rel))
+      {
+        e.copyNeeded = false;
+        return done(
+            FileAction::Failed,
+            QObject::tr("%1 names %2, outside of its folder: they cannot be "
+                        "collected together")
+                .arg(e.sourcePath, rel));
+      }
+
+      if(const QFileInfo c{sourceDir.filePath(rel)}; c.isFile())
+        e.size += c.size();
+      else
+        ++missingCompanions;
+    }
 
     if(e.copyNeeded && !dryRun)
     {
@@ -70,7 +93,23 @@ struct Consolidator
         // destination we failed to create.
         return done(FileAction::Failed, std::move(error));
       }
+
+      const QDir destinationDir = QFileInfo{e.destinationPath}.dir();
+      for(const QString& rel : ref.companions)
+      {
+        const QString from = sourceDir.filePath(rel);
+        if(!QFileInfo{from}.isFile())
+          continue;
+        if(!score::materializeFile(
+               from, destinationDir.filePath(rel), opts.mode, error))
+          return done(FileAction::Failed, std::move(error));
+      }
     }
+
+    if(missingCompanions > 0)
+      e.note = QObject::tr("%1 of the %2 file(s) it names could not be found")
+                   .arg(missingCompanions)
+                   .arg(ref.companions.size());
 
     e.newStoredPath
         = score::relativizeFilePath(e.destinationPath, target.destinationRoots);
@@ -150,7 +189,7 @@ int countProjectRelativeFiles(const score::DocumentContext& ctx)
   runFileOperation(
       ctx,
       [&n](const ExternalFileRef& ref, FileEntry&) {
-    if(score::isProjectRelativePath(ref.path))
+    if(ref.rewritable && score::isProjectRelativePath(ref.path))
       ++n;
     return QString{};
       },
@@ -166,7 +205,7 @@ int reanchorProjectFiles(const score::DocumentContext& ctx)
   const auto report = runFileOperation(
       ctx,
       [&](const ExternalFileRef& ref, FileEntry& e) -> QString {
-    if(!score::isProjectRelativePath(ref.path))
+    if(!ref.rewritable || !score::isProjectRelativePath(ref.path))
       return {};
 
     e.sourcePath = score::locateFilePath(ref.path, roots);

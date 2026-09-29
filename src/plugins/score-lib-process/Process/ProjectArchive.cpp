@@ -5,6 +5,7 @@
 
 #include <core/document/Document.hpp>
 
+#include <QDir>
 #include <QFileInfo>
 #include <QSet>
 
@@ -60,7 +61,17 @@ projectArchiveContents(const score::DocumentContext& ctx, const FileReport& repo
   {
     // Whatever the reference ends up pointing at: a file just collected, or
     // one that was already in the project and only had its path rewritten.
-    add(e.destinationPath.isEmpty() ? e.sourcePath : e.destinationPath);
+    const QString file = e.destinationPath.isEmpty() ? e.sourcePath : e.destinationPath;
+    add(file);
+
+    // And what it cannot work without, from where it now lives.
+    if(!file.isEmpty() && !e.companions.empty())
+    {
+      const QDir dir = QFileInfo{file}.dir();
+      for(const QString& rel : e.companions)
+        if(score::isContainedRelativePath(rel))
+          add(QDir::cleanPath(dir.filePath(rel)));
+    }
   }
 
   return out;

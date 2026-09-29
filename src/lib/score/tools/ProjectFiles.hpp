@@ -5,6 +5,8 @@
 
 #include <score_lib_base_export.h>
 
+#include <vector>
+
 namespace score
 {
 struct DocumentContext;
@@ -41,8 +43,9 @@ QString mediaSubfolder(FileKind k) noexcept;
 //! against the old folder while relativizing against the new one.
 struct SCORE_LIB_BASE_EXPORT PathRoots
 {
-  //! Absolute path of the document *file* (not its folder). May be empty for
-  //! a never-saved document, in which case nothing is project-relative.
+  //! Absolute path of the document *file* (not its folder). Empty, or a bare
+  //! name such as "Untitled.xyz", for a never-saved document: then nothing is
+  //! project-relative.
   QString documentFile;
   //! Absolute path of the user library root. May be empty.
   QString library;
@@ -93,6 +96,11 @@ bool isUnderFolder(const QString& path, const QString& folder) noexcept;
 //! file:// is deliberately not remote -- it still names a local path.
 SCORE_LIB_BASE_EXPORT
 bool isRemoteUrl(const QString& path) noexcept;
+
+//! True when `relative` names something inside the folder it is relative to:
+//! not absolute, and not climbing out of it with "..".
+SCORE_LIB_BASE_EXPORT
+bool isContainedRelativePath(const QString& relative) noexcept;
 
 //! True if the path is one of the tokens score understands as a root.
 SCORE_LIB_BASE_EXPORT
@@ -167,19 +175,35 @@ public:
     bool reused{};
   };
 
-  Placement place(const QString& absoluteSource, FileKind kind);
+  /**
+   * `companions` are files the source names relative to its own folder (a
+   * drumkit's samples). Such a source gets a folder of its own, named after
+   * the one it comes from, where the companions keep their relative paths.
+   * An existing folder is only reused when the source and every companion
+   * found next to it are byte-identical to what it holds.
+   */
+  Placement place(
+      const QString& absoluteSource, FileKind kind,
+      const std::vector<QString>& companions = {});
 
   const QString& projectFolder() const noexcept { return m_root; }
   const ConsolidateOptions& options() const noexcept { return m_opts; }
 
 private:
   QString subfolderFor(const QString& absoluteSource, FileKind kind) const;
+  Placement placeWithCompanions(
+      const QString& canonicalSource, FileKind kind,
+      const std::vector<QString>& companions);
 
   QString m_root;
   QString m_canonicalRoot;
   ConsolidateOptions m_opts;
   QHash<QString, Placement> m_placed;
+  //! Lower-cased destinations taken, files and companion folders alike.
   QSet<QString> m_claimed;
+  //! Lower-cased folders single files were placed in: never handed to a
+  //! source with companions, whose folder must hold nothing else.
+  QSet<QString> m_fileFolders;
 };
 
 //! Create `destination` (and its parent folders) from `source` according to

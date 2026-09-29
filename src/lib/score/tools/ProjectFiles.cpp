@@ -36,6 +36,16 @@ bool isRemoteUrl(const QString& path) noexcept
   return path.left(sep).compare(QStringLiteral("file"), Qt::CaseInsensitive) != 0;
 }
 
+bool isContainedRelativePath(const QString& relative) noexcept
+{
+  if(relative.isEmpty() || QDir::isAbsolutePath(relative))
+    return false;
+
+  const QString clean = QDir::cleanPath(QString{relative}.replace('\\', '/'));
+  return clean != QStringLiteral(".") && clean != QStringLiteral("..")
+         && !clean.startsWith(QStringLiteral("../"));
+}
+
 bool isProjectRelativePath(const QString& path) noexcept
 {
   return path.startsWith(project_prefix);
@@ -136,6 +146,12 @@ QString PathRoots::documentFolder() const noexcept
     if(const auto p = fi.canonicalPath(); !p.isEmpty() && p != QStringLiteral("."))
       return p;
   }
+
+  // A document never saved anywhere is named "Untitled.xyz", without a folder.
+  // Anchoring that to the working directory would make everything below it
+  // project-relative -- and point elsewhere once the document is saved.
+  if(fi.isRelative())
+    return {};
 
   // The document has not been written yet, or is being saved somewhere else:
   // use the lexical parent, resolved if that folder already exists so the
@@ -395,8 +411,9 @@ QString FilePlacement::subfolderFor(const QString& absoluteSource, FileKind kind
   return sub;
 }
 
-FilePlacement::Placement
-FilePlacement::place(const QString& absoluteSource, FileKind kind)
+FilePlacement::Placement FilePlacement::place(
+    const QString& absoluteSource, FileKind kind,
+    const std::vector<QString>& companions)
 {
   const QFileInfo src{absoluteSource};
   QString key = src.canonicalFilePath();
@@ -422,9 +439,13 @@ FilePlacement::place(const QString& absoluteSource, FileKind kind)
     return out;
   }
 
+  if(!companions.empty())
+    return placeWithCompanions(key, kind, companions);
+
   const QString sub = subfolderFor(key, kind);
   const QString dir = sub.isEmpty() ? m_root : m_root + '/' + sub;
   const QString name = sanitizeFileName(src.fileName());
+  m_fileFolders.insert(dir.toLower());
 
   const int dot = name.lastIndexOf('.');
   const QString stem = dot > 0 ? name.left(dot) : name;
@@ -450,6 +471,54 @@ FilePlacement::place(const QString& absoluteSource, FileKind kind)
     out.destination = candidate;
     m_claimed.insert(candidate.toLower());
     m_placed.insert(key, out);
+    return out;
+  }
+}
+
+FilePlacement::Placement FilePlacement::placeWithCompanions(
+    const QString& canonicalSource, FileKind kind,
+    const std::vector<QString>& companions)
+{
+  const QFileInfo src{canonicalSource};
+  const QDir sourceDir = src.dir();
+  const QString name = sanitizeFileName(src.fileName());
+  const QString folder = sanitizeFileName(
+      sourceDir.isRoot() ? src.completeBaseName() : sourceDir.dirName());
+  const QString base
+      = m_opts.useKindSubfolders ? m_root + '/' + mediaSubfolder(kind) : m_root;
+
+  const auto holdsTheSameFiles = [&](const QString& dir) {
+    if(!sameFileContents(canonicalSource, dir + '/' + name))
+      return false;
+    for(const QString& rel : companions)
+    {
+      const QString from = sourceDir.filePath(rel);
+      if(QFileInfo::exists(from) && !sameFileContents(from, dir + '/' + rel))
+        return false;
+    }
+    return true;
+  };
+
+  Placement out;
+  for(int i = 0;; ++i)
+  {
+    const QString dir
+        = base + '/'
+          + (i == 0 ? folder : QString{folder + QStringLiteral(" (%1)").arg(i)});
+    const QString claim = dir.toLower();
+    if(m_claimed.contains(claim) || m_fileFolders.contains(claim))
+      continue;
+
+    if(QFileInfo::exists(dir))
+    {
+      if(!holdsTheSameFiles(dir))
+        continue;
+      out.reused = true;
+    }
+
+    out.destination = dir + '/' + name;
+    m_claimed.insert(claim);
+    m_placed.insert(canonicalSource, out);
     return out;
   }
 }

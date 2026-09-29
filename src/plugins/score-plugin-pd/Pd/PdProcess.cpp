@@ -958,8 +958,13 @@ void ProcessModel::mapExternalFiles(Process::ExternalFileMap& map)
   if(m_script.isEmpty())
     return;
 
+  // setScript() keeps the patch resolved to an absolute path: report it the way
+  // the document stores it, or a <LIBRARY>: patch would be taken for a stray
+  // file and collected, and one already in the project would be re-pointed
+  // (and its ports rebuilt) by every consolidation.
   const QString next = map.map(
-      {.path = m_script,
+      {.path = score::relativizeFilePath(
+           m_script, score::IDocument::documentContext(*this)),
        .kind = score::FileKind::Script,
        .usage = Process::FileUsage::Input,
        .directory = false,

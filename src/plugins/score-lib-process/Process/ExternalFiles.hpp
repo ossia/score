@@ -54,7 +54,20 @@ struct ExternalFileRef
    * set it, so "unsure" always means "leave the file alone".
    */
   std::optional<MediaRange> usedRange;
+
+  /** Files this one names relative to its own folder, and is useless without:
+   * the samples of a Hydrogen drumkit.xml or of a KORG .kmp.
+   *
+   * Paths are relative to the folder of `path`. A reference with companions
+   * is collected together with them into a folder of its own, so that their
+   * layout relative to it -- which is how the file finds them -- survives.
+   */
+  std::vector<QString> companions;
 };
+
+//! Lists the companions of the file a stored path names (see
+//! ExternalFileRef::companions).
+using CompanionFiles = std::function<std::vector<QString>(const QString& storedPath)>;
 
 //! Called for every reference found. Return the path it should be rewritten
 //! to, or an empty string to leave it alone.
@@ -86,13 +99,14 @@ public:
   ExternalFileMap& operator=(const ExternalFileMap&) = delete;
 
   //! Report a reference and ask the mapper what to do with it.
-  //! Returns the replacement path, or {} if it must stay as it is.
+  //! Returns the replacement path, or {} if it must stay as it is -- always {}
+  //! for a reference that is not rewritable, which the mapper still sees.
   QString map(ExternalFileRef ref);
 
   //! A path (or list of paths) held in a control port's value.
   void control(
       Process::ControlInlet& inlet, score::FileKind kind,
-      FileUsage usage = FileUsage::Input);
+      FileUsage usage = FileUsage::Input, const CompanionFiles& companions = {});
 
   //! A folder held in a control port's value.
   void folder(Process::ControlInlet& inlet);

@@ -170,6 +170,15 @@ TEST_CASE("The project folder of an unwritten document", "[unit][projectfiles]")
   const PathRoots none{};
   CHECK(none.documentFolder().isEmpty());
   CHECK(relativizeFilePath(root + "/kick.wav", none) == root + "/kick.wav");
+
+  // A document that was never saved has a name and no folder: not the working
+  // directory, below which every file would otherwise become project-relative.
+  const QString cwd = QDir::currentPath();
+  QDir::setCurrent(root);
+  const PathRoots untitled{.documentFile = "Untitled.abcd"};
+  CHECK(untitled.documentFolder().isEmpty());
+  CHECK(relativizeFilePath(root + "/kick.wav", untitled) == root + "/kick.wav");
+  QDir::setCurrent(cwd);
 }
 
 TEST_CASE(
@@ -384,4 +393,73 @@ TEST_CASE("A stream url is not a file score can locate", "[unit][projectfiles]")
     CHECK_FALSE(score::isRemoteUrl("://nothing"));
     CHECK_FALSE(score::isRemoteUrl("my file://a.mp4"));
   }
+}
+
+TEST_CASE("A file with companions is placed in a folder of its own",
+          "[unit][projectfiles]")
+{
+  QTemporaryDir project, media;
+  REQUIRE(project.isValid());
+  REQUIRE(media.isValid());
+  const QString proj = canonical(project);
+  const QString src = canonical(media);
+
+  const std::vector<QString> samples{"kick.wav", "layers/snare.wav"};
+  for(const QString& kit : {QStringLiteral("/a/Kit"), QStringLiteral("/b/Kit")})
+  {
+    write_file(src + kit + "/drumkit.xml", kit.toUtf8());
+    write_file(src + kit + "/kick.wav", "kick");
+    write_file(src + kit + "/layers/snare.wav", "snare");
+  }
+  write_file(src + "/loose/drumkit.xml", "loose");
+
+  FilePlacement placement{proj};
+  const auto a = placement.place(src + "/a/Kit/drumkit.xml", FileKind::Data, samples);
+  CHECK(a.destination == proj + "/Data/Kit/drumkit.xml");
+  CHECK_FALSE(a.reused);
+
+  // Same folder name, other kit: a folder of its own, never shared.
+  const auto b = placement.place(src + "/b/Kit/drumkit.xml", FileKind::Data, samples);
+  CHECK(b.destination == proj + "/Data/Kit (1)/drumkit.xml");
+
+  // A file without companions still goes flat into the kind folder.
+  CHECK(placement.place(src + "/loose/drumkit.xml", FileKind::Data).destination
+        == proj + "/Data/drumkit.xml");
+
+  SECTION("a folder holding the same files is reused")
+  {
+    write_file(proj + "/Data/Kit/drumkit.xml", "/a/Kit");
+    write_file(proj + "/Data/Kit/kick.wav", "kick");
+    write_file(proj + "/Data/Kit/layers/snare.wav", "snare");
+
+    FilePlacement again{proj};
+    const auto p = again.place(src + "/a/Kit/drumkit.xml", FileKind::Data, samples);
+    CHECK(p.destination == proj + "/Data/Kit/drumkit.xml");
+    CHECK(p.reused);
+
+    // Same drumkit.xml, different sample: not the same kit.
+    write_file(src + "/c/Kit/drumkit.xml", "/a/Kit");
+    write_file(src + "/c/Kit/kick.wav", "other kick");
+    write_file(src + "/c/Kit/layers/snare.wav", "snare");
+    FilePlacement other{proj};
+    const auto q = other.place(src + "/c/Kit/drumkit.xml", FileKind::Data, samples);
+    CHECK(q.destination == proj + "/Data/Kit (1)/drumkit.xml");
+    CHECK_FALSE(q.reused);
+  }
+}
+
+TEST_CASE("Relative paths that stay inside their folder", "[unit][projectfiles]")
+{
+  CHECK(isContainedRelativePath("kick.wav"));
+  CHECK(isContainedRelativePath("layers/snare.wav"));
+  CHECK(isContainedRelativePath("layers/../kick.wav"));
+  CHECK(isContainedRelativePath("layers\\snare.wav"));
+
+  CHECK_FALSE(isContainedRelativePath(""));
+  CHECK_FALSE(isContainedRelativePath("."));
+  CHECK_FALSE(isContainedRelativePath(".."));
+  CHECK_FALSE(isContainedRelativePath("../kick.wav"));
+  CHECK_FALSE(isContainedRelativePath("layers/../../kick.wav"));
+  CHECK_FALSE(isContainedRelativePath("..\\kick.wav"));
+  CHECK_FALSE(isContainedRelativePath("/abs/kick.wav"));
 }

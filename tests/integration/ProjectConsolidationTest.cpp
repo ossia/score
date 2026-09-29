@@ -36,6 +36,7 @@
 
 #include <QDir>
 #include <QFile>
+#include <QSettings>
 #include <QTemporaryDir>
 
 #include <catch2/catch_test_macros.hpp>
@@ -376,5 +377,63 @@ TEST_CASE(
     CHECK(QFileInfo::exists(target + "/Audio/kick.wav"));
     CHECK_FALSE(QFileInfo::exists(project + "/Audio/kick.wav"));
     CHECK(sound->userFilePath() == "<PROJECT>:Audio/kick.wav");
+  });
+}
+
+TEST_CASE(
+    "A PureData patch is consolidated as the document stores it",
+    "[integration][consolidation]")
+{
+  // The patch process keeps its path resolved; the document stores it
+  // <LIBRARY>: or <PROJECT>:-relative, and that is what consolidating has to
+  // judge -- a library patch stays in the library, a project patch stays put
+  // without its process being reloaded.
+  score::test::run_in_gui_app([](const score::GUIApplicationContext& ctx) {
+    QTemporaryDir projectDir, libraryDir;
+    REQUIRE(projectDir.isValid());
+    REQUIRE(libraryDir.isValid());
+    const QString project = QFileInfo{projectDir.path()}.canonicalFilePath();
+    const QString library = QFileInfo{libraryDir.path()}.canonicalFilePath();
+
+    struct LibraryRoot
+    {
+      QVariant previous = QSettings{}.value("Library/RootPath");
+      explicit LibraryRoot(const QString& root)
+      {
+        QSettings{}.setValue("Library/RootPath", root);
+      }
+      ~LibraryRoot() { QSettings{}.setValue("Library/RootPath", previous); }
+    } root{library};
+
+    const QByteArray patch = "#N canvas 0 50 450 300 12;\n";
+    write_file(library + "/patches/noise.pd", patch);
+    write_file(project + "/local.pd", patch);
+
+    score::Document* doc = score::test::new_document(ctx);
+    REQUIRE(doc != nullptr);
+    REQUIRE(ctx.docManager.saveDocumentAs(*doc, project + "/project.score"));
+
+    const auto pd_uuid = QStringLiteral("7b3b18ea-311b-40f9-b04e-60ec1fe05786");
+    if(!add_process(*doc, pd_uuid, "<LIBRARY>:patches/noise.pd"))
+      SKIP("the PureData plug-in is not in this build");
+    REQUIRE(add_process(*doc, pd_uuid, project + "/local.pd"));
+
+    const auto stackBefore = doc->commandStack().currentIndex();
+    const auto report = Process::consolidateProjectFiles(doc->context(), {});
+
+    const auto* fromLibrary = entry_for(report, "noise.pd");
+    REQUIRE(fromLibrary != nullptr);
+    CHECK(fromLibrary->storedPath == "<LIBRARY>:patches/noise.pd");
+    CHECK(fromLibrary->action == Process::FileAction::KeptInLibrary);
+    CHECK_FALSE(QFileInfo::exists(project + "/Scripts/noise.pd"));
+
+    const auto* local = entry_for(report, "local.pd");
+    REQUIRE(local != nullptr);
+    CHECK(local->storedPath == "<PROJECT>:local.pd");
+    CHECK(local->action == Process::FileAction::AlreadyThere);
+
+    // Nothing needed rewriting, so nothing was: rewriting a patch path reloads
+    // the patch and rebuilds the process's ports.
+    CHECK(doc->commandStack().currentIndex() == stackBefore);
   });
 }

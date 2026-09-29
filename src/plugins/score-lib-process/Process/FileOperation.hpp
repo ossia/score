@@ -61,8 +61,11 @@ struct FileEntry
   FileAction action{FileAction::Unchanged};
   //! Human-readable name of the object holding the reference.
   QString owner;
+  //! Files travelling with this one, relative to its folder (see
+  //! ExternalFileRef::companions).
+  std::vector<QString> companions;
 
-  //! Size of the source in bytes, 0 when unknown.
+  //! Size of the source in bytes, companions included; 0 when unknown.
   qint64 size{};
   //! Size of what was written, when it differs from the source (trimming).
   qint64 newSize{};

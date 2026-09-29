@@ -293,3 +293,39 @@ TEST_CASE(
     CHECK(size_of(source) > size_of(entry->destinationPath));
   });
 }
+
+TEST_CASE("A file inside a folder the document uses is left alone", "[integration][trim]")
+{
+  // A Faust process reads anything under its import folder; nothing in the
+  // document names those files, so none of them can be repointed.
+  score::test::run_in_gui_app([](const score::GUIApplicationContext& ctx) {
+    QTemporaryDir projectDir;
+    REQUIRE(projectDir.isValid());
+    const QString project = canonical(projectDir.path());
+
+    const QString shared = project + "/Audio/long.wav";
+    write_wav(shared, file_seconds);
+    write_file(project + "/Audio/effect.dsp", "process = _;\n");
+
+    auto* doc = project_document(ctx, project);
+    auto* sound = qobject_cast<Media::Sound::ProcessModel*>(
+        add_process(*doc, sound_process_uuid, shared));
+    REQUIRE(sound != nullptr);
+    use_region(*sound, 10., 2.);
+
+    if(!add_process(
+           *doc, QStringLiteral("5354c61a-1649-4f59-b952-5c2f1b79c1bd"),
+           project + "/Audio/effect.dsp"))
+      SKIP("the Faust plug-in is not in this build");
+
+    Process::TrimOptions opts;
+    opts.removeOriginal = true;
+    const auto report = Process::trimProjectMedia(doc->context(), opts);
+
+    const auto* entry = entry_for(report, "long.wav");
+    REQUIRE(entry != nullptr);
+    CHECK(entry->action == Process::FileAction::Skipped);
+    CHECK(QFileInfo::exists(shared));
+    CHECK(size_of(shared) > 0);
+  });
+}

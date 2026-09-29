@@ -47,11 +47,14 @@ QString ExternalFileMap::map(ExternalFileRef ref)
   if(ref.kind == score::FileKind::Unknown && !ref.directory)
     ref.kind = score::guessFileKind(ref.path);
 
-  if(!m_mapper || !ref.rewritable)
+  if(!m_mapper)
     return {};
 
+  // Not-rewritable references go through the mapper too: that is how a
+  // plug-in binary or a Faust import folder reaches the reports, and how the
+  // unused-file scan learns not to propose deleting what they cover.
   QString next = m_mapper(ref);
-  if(next == ref.path)
+  if(!ref.rewritable || next == ref.path)
     return {};
   return next;
 }
@@ -78,8 +81,9 @@ void ExternalFileMap::readOnly(const QString& path, score::FileKind kind)
 }
 
 //! Rewrite a single path held in an ossia::value, in place.
-static bool
-mapStringValue(ExternalFileMap& self, ossia::value& v, const ExternalFileRef& proto)
+static bool mapStringValue(
+    ExternalFileMap& self, ossia::value& v, const ExternalFileRef& proto,
+    const CompanionFiles& companions = {})
 {
   auto str = v.target<std::string>();
   if(!str)
@@ -91,6 +95,8 @@ mapStringValue(ExternalFileMap& self, ossia::value& v, const ExternalFileRef& pr
 
   ExternalFileRef ref = proto;
   ref.path = cur;
+  if(companions)
+    ref.companions = companions(cur);
   const QString next = self.map(std::move(ref));
   if(next.isEmpty())
     return false;
@@ -100,7 +106,8 @@ mapStringValue(ExternalFileMap& self, ossia::value& v, const ExternalFileRef& pr
 }
 
 void ExternalFileMap::control(
-    Process::ControlInlet& inlet, score::FileKind kind, FileUsage usage)
+    Process::ControlInlet& inlet, score::FileKind kind, FileUsage usage,
+    const CompanionFiles& companions)
 {
   const ExternalFileRef proto{
       .path = {},
@@ -113,7 +120,7 @@ void ExternalFileMap::control(
   ossia::value v = inlet.value();
   if(v.target<std::string>())
   {
-    if(mapStringValue(*this, v, proto))
+    if(mapStringValue(*this, v, proto, companions))
       addCommand(new Process::SetControlValue{inlet, v});
   }
   else if(auto* list = v.target<std::vector<ossia::value>>())
@@ -121,7 +128,7 @@ void ExternalFileMap::control(
     // Image lists and the like: one control, many paths.
     bool changed = false;
     for(auto& elt : *list)
-      changed |= mapStringValue(*this, elt, proto);
+      changed |= mapStringValue(*this, elt, proto, companions);
 
     if(changed)
       addCommand(new Process::SetControlValue{inlet, v});

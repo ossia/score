@@ -42,6 +42,11 @@ score_add_test(test_unit_file_index
   SOURCES FileIndexTest.cpp
   PLUGINS score_lib_process)
 
+# What the file traversal of the project file operations hands them.
+score_add_test(test_unit_external_file_map
+  SOURCES ExternalFileMapTest.cpp
+  PLUGINS score_lib_process)
+
 # --- regression: per-app interface-list lookup in port deserialization -----
 # Boots two headless apps in one process and round-trips ControlInlet /
 # ControlOutlet through Process::load_inlet / load_outlet in each: a stale

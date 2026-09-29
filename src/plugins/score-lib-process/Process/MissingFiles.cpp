@@ -170,7 +170,7 @@ relinkFiles(const score::DocumentContext& ctx, const QHash<QString, QString>& ch
       ctx,
       [&](const ExternalFileRef& ref, FileEntry& e) -> QString {
     const auto it = chosen.constFind(ref.path);
-    if(it == chosen.constEnd())
+    if(it == chosen.constEnd() || !ref.rewritable)
       return {};
 
     e.sourcePath = score::locateFilePath(ref.path, target.sourceRoots);
