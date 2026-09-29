@@ -157,11 +157,16 @@ score_plugin_js::score_plugin_js()
       [](QQmlEngine*, QJSEngine*) -> QObject* {
           return new JS::EditJsContext();
       });
-  for(const char* ns : {"Controls", "Triggers", "Conditions"})
-    qmlRegisterSingletonType(
-        "Score", 1, 0, ns, [ns = QString::fromLatin1(ns)](QQmlEngine*, QJSEngine* e) {
-      return JS::ScriptableNames::makeSingleton(*e, ns);
-    });
+  // Qt < 6.5 only takes a function pointer for QJSValue singletons: no captures.
+  qmlRegisterSingletonType("Score", 1, 0, "Controls", [](QQmlEngine*, QJSEngine* e) {
+    return JS::ScriptableNames::makeSingleton(*e, QStringLiteral("Controls"));
+  });
+  qmlRegisterSingletonType("Score", 1, 0, "Triggers", [](QQmlEngine*, QJSEngine* e) {
+    return JS::ScriptableNames::makeSingleton(*e, QStringLiteral("Triggers"));
+  });
+  qmlRegisterSingletonType("Score", 1, 0, "Conditions", [](QQmlEngine*, QJSEngine* e) {
+    return JS::ScriptableNames::makeSingleton(*e, QStringLiteral("Conditions"));
+  });
 
   qmlRegisterType<JS::AddressSource>("Score.UI", 1, 0, "AddressSource");
   qmlRegisterType<JS::PortSource>("Score.UI", 1, 0, "PortSource");
