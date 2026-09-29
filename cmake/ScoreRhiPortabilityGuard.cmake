@@ -267,13 +267,19 @@ function(score_check_rhi_portability)
 
   if(_bad)
     list(JOIN _bad "\n" _report)
-    message(FATAL_ERROR
+    if(SCORE_TEST_GUARDS_FATAL)
+      set(_level FATAL_ERROR)
+    else()
+      set(_level WARNING)
+    endif()
+    message(${_level}
       "A test uses a QRhi API newer than the Qt CI builds against (6.4.2).\n"
       "${_report}\n\n"
       "This compiles locally on Qt 6.13 and fails the Coverage job. If a file "
       "genuinely cannot follow the rule, add its tests/-relative path to "
       "SCORE_RHI_GUARD_ALLOWED in cmake/ScoreRhiPortabilityGuard.cmake with the "
       "reason.")
+    return()
   endif()
 
   if(_qt64)

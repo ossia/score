@@ -9,8 +9,7 @@
 #      the case is expected to fail, and an unexpected PASS is reported as a
 #      failure. This is the good one.
 #   2. CMake `set_tests_properties(... WILL_FAIL TRUE)`. Needed when the defect
-#      ABORTS the process, because Catch2 never gets to report anything — see
-#      test_integration_js_rootpath_static.
+#      ABORTS the process, because Catch2 never gets to report anything.
 #   3. A `[finding]` Catch2 tag. Enforces NOTHING. Some of the cases carrying it
 #      are genuinely red, some were fixed and kept the tag, and the tag itself
 #      cannot tell you which.
@@ -29,8 +28,9 @@
 #
 # Configure time rather than a ctest entry, for the same reasons as
 # ScoreTestRegistrationGuard: the one CI job that runs ctest downgrades test
-# failures to a warning while it aborts on a failed configure, and a test that
-# checks the expected-red inventory would itself be an entry in that inventory.
+# failures to a warning while it aborts on a failed configure (fatal under
+# SCORE_TEST_GUARDS_FATAL, on in CI), and a test that checks the expected-red
+# inventory would itself be an entry in that inventory.
 #
 # WHAT IT WRITES: ${CMAKE_BINARY_DIR}/expected-red.txt, one TSV row per entry.
 # That is the file a triage script should read. It is regenerated on every
@@ -276,7 +276,12 @@ function(score_check_expected_red)
 
   if(_problems)
     list(JOIN _problems "\n" _report)
-    message(FATAL_ERROR
+    if(SCORE_TEST_GUARDS_FATAL)
+      set(_level FATAL_ERROR)
+    else()
+      set(_level WARNING)
+    endif()
+    message(${_level}
       "The expected-red inventory and the test tree disagree.\n"
       "${_report}\n\n"
       "Every test that is red on purpose must be declared exactly once in "

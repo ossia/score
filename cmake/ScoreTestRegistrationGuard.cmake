@@ -6,7 +6,9 @@
 # those tests no longer run, and nothing in the build notices, because nothing
 # compares what tests/ registers against what tests/ contains.
 #
-# This does that comparison and stops the configure when they disagree.
+# This does that comparison and stops the configure when they disagree
+# (SCORE_TEST_GUARDS_FATAL, on in CI; a developer build only warns, so that a
+# test being written in a shared tree does not block every other build).
 #
 # Configure time rather than a ctest entry, on purpose:
 #
@@ -37,6 +39,9 @@ set(SCORE_TEST_GUARD_SKIP_DIRS
   jit-min
   # Fixture data, no code.
   testdata
+  # Developer tools run by hand, not tests (e.g. the Bitfocus companion-modules
+  # sweep, which needs the whole module package installed first).
+  tools
 )
 
 # Sources under tests/ that no target compiles, by design.
@@ -75,14 +80,6 @@ set(SCORE_TEST_GUARD_ALLOWED_HARNESSES
   corpus/generate-corpus.sh
   corpus/run-corpus.sh
   corpus/run-hwdec.sh
-  # The companion-modules sweep: runs every module of the package, which has
-  # to be installed first. Long; by hand, per sweep.py.
-  tools/bitfocus/sweep.py
-  tools/bitfocus/scenario.py
-  tools/bitfocus/analyze.py
-  tools/bitfocus/summarize.py
-  tools/bitfocus/catcher.py
-  tools/bitfocus/netns-run.sh
   # The score-document corpus harness. The corpus is the user's own
   # working files, lives outside the repository (SCORE_CORPUS_DIR, default
   # $HOME/ossia/score-corpus) and must never be committed; and a document that
@@ -258,7 +255,12 @@ function(score_check_test_registration)
   list(LENGTH _registered _n_registered)
   if(_orphans)
     list(JOIN _orphans "\n" _report)
-    message(FATAL_ERROR
+    if(SCORE_TEST_GUARDS_FATAL)
+      set(_level FATAL_ERROR)
+    else()
+      set(_level WARNING)
+    endif()
+    message(${_level}
       "The test tree provides more than the suite runs.\n"
       "${_report}\n\n"
       "Each of these exists in tests/ and no ctest entry reaches it, which is "
@@ -266,6 +268,7 @@ function(score_check_test_registration)
       "present. Either register it, or add it to the matching "
       "SCORE_TEST_GUARD_ALLOWED_* list in cmake/ScoreTestRegistrationGuard.cmake "
       "with the reason it is not a test.")
+    return()
   endif()
 
   message(STATUS

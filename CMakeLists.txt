@@ -376,6 +376,17 @@ if(SCORE_TESTING)
   include(ScoreTests)
   add_subdirectory(tests)
 
+  # The test-tree guards below stop a CI configure; a developer build gets a
+  # warning, since another test being written in the same tree must not block it.
+  if(DEFINED ENV{CI})
+    set(_score_guards_fatal ON)
+  else()
+    set(_score_guards_fatal OFF)
+  endif()
+  option(SCORE_TEST_GUARDS_FATAL
+    "Fail the configure when a tests/ guard finds a discrepancy"
+    ${_score_guards_fatal})
+
   # Deliberately here and not in tests/CMakeLists.txt: this compares what the
   # test tree registers against what it contains, and a rework of that tree
   # must not be able to delete its own guard along with the registrations.
