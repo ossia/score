@@ -1626,6 +1626,16 @@ if(TARGET score_plugin_fx)
     PLUGINS score_plugin_fx)
 endif()
 
+# The ALPHA / COMPOSITE / QUEUE / LAYER / TOPOLOGY header keys and auxiliary
+# texture ladders of libisf: malformed headers are refused with invalid_file.
+# Pure CPU: the parser and its GLSL generation.
+if(TARGET score_plugin_gfx)
+  score_add_test(test_unit_isf_header_validation
+    SOURCES IsfHeaderValidationTest.cpp
+    PLUGINS score_plugin_gfx
+    LIBS ${QT_PREFIX}::Gui)
+endif()
+
 # Script durations out of the range of a TimeVal are refused, not wrapped.
 if(TARGET score_plugin_js)
   score_add_test(test_unit_js_parse_duration_range
@@ -1646,6 +1656,37 @@ if(TARGET score_plugin_threedim)
     PLUGINS score_plugin_threedim score_plugin_gfx score_plugin_avnd
     LIBS fastgltf ${QT_PREFIX}::Gui)
   target_include_directories(test_unit_threedim_animation_robustness SYSTEM PRIVATE
+    $<TARGET_PROPERTY:score_plugin_threedim,INCLUDE_DIRECTORIES>)
+endif()
+
+# An exception from an asset parser is a rejected asset, not an exception out
+# of the file port's process(). Same engine sources / libs as
+# test_unit_threedim_asset_loader_failure.
+if(TARGET score_plugin_threedim)
+  score_add_test(test_unit_threedim_asset_parser_exception
+    SOURCES
+      AssetLoaderParserExceptionTest.cpp
+      ${_threedim_hidden}
+    PLUGINS score_plugin_threedim score_plugin_gfx score_plugin_avnd
+    LIBS ${_threedim_test_libs} "${QT_PREFIX}::Gui")
+  target_include_directories(test_unit_threedim_asset_parser_exception SYSTEM PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/3rdparty/vcglib"
+    "${SCORE_ROOT_SOURCE_DIR}/3rdparty/eigen")
+endif()
+
+# The Instancer's bake count is clamped to what its source buffers hold. Runs on
+# QRhi's Null backend; Instancer.cpp is compiled in, as in
+# tests/threedim's test_threedim_instancer_clamp.
+if(TARGET score_plugin_threedim)
+  score_add_test(test_unit_instancer_bake_bounds
+    SOURCES
+      InstancerBakeBoundsTest.cpp
+      "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-threedim/Threedim/Instancer.cpp"
+    PLUGINS score_plugin_gfx
+    LIBS ${QT_PREFIX}::Gui)
+  target_include_directories(test_unit_instancer_bake_bounds SYSTEM PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-threedim"
+    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-threedim"
     $<TARGET_PROPERTY:score_plugin_threedim,INCLUDE_DIRECTORIES>)
 endif()
 
