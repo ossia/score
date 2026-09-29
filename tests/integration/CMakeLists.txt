@@ -1695,6 +1695,20 @@ if(TARGET score AND NOT EMSCRIPTEN)
   score_test_app_libpath(test_integration_js_script_command_undo)
 endif()
 
+# A state played by the execution leaves out the addresses a tween automation
+# of the interval it starts takes over, with many automations too.
+score_add_test(test_integration_state_taken_over
+  SOURCES StateTakenOverTest.cpp
+  APP
+  PLUGINS score_plugin_scenario score_plugin_automation score_plugin_curve score_lib_process)
+
+# Anchors of pasted states move to the copies of what they point into, with
+# many copied objects.
+score_add_test(test_integration_paste_anchors_remap
+  SOURCES PasteAnchorsRemapTest.cpp
+  APP
+  PLUGINS score_plugin_scenario score_lib_process)
+
 # Piano roll: selecting many notes makes one document selection; a transpose
 # growing the range and a resize clamped at the minimum duration undo and
 # replay from their saved form exactly.
