@@ -8,6 +8,7 @@
 
 #include <Process/Dataflow/Cable.hpp>
 #include <Process/Dataflow/Port.hpp>
+#include <Process/Dataflow/PortFactory.hpp>
 #include <Process/Dataflow/WidgetInlets.hpp>
 #include <Process/Process.hpp>
 #include <Process/ProcessList.hpp>
@@ -234,4 +235,120 @@ TEST_CASE("Entity to MIDI: its times were milliseconds", "[avnd][upgrade]")
   CHECK(decltype(In::trigger_duration)::upgrade_value(200.f) == 0.2f);
   CHECK(decltype(In::glide)::upgrade_value(60.f) == 0.06f);
   CHECK(decltype(In::max_hold)::upgrade_value(250.f) == 0.25f);
+}
+
+namespace
+{
+//! A knob with a mapper has a port type of its own, derived from the object and
+//! the field...
+struct MappedKnobSpec
+{
+  halp_meta(name, "Mapped knob to time chooser")
+  halp_meta(c_name, "mapped_knob_to_time_chooser_test")
+  halp_meta(uuid, "6b5f9a1d-8e1c-4b62-8e8f-7d205c3fab24");
+  struct
+  {
+    struct : halp::knob_f32<"Decay", halp::range{0.005, 20., 0.35}>
+    {
+      using mapper = halp::log_mapper<std::ratio<85, 100>>;
+    } decay;
+    halp::knob_f32<"Level", halp::range{0., 2., 1.}> level;
+  } inputs;
+  struct
+  {
+  } outputs;
+  void operator()() { }
+};
+
+//! ...which does not exist any more once it is a time chooser.
+struct TimeChooserSpec
+{
+  halp_meta(name, "Mapped knob to time chooser")
+  halp_meta(c_name, "mapped_knob_to_time_chooser_test")
+  halp_meta(uuid, "6b5f9a1d-8e1c-4b62-8e8f-7d205c3fab24");
+  struct
+  {
+    halp::time_chooser<"Decay", halp::range{0.005, 20., 0.35}> decay;
+    halp::knob_f32<"Level", halp::range{0., 2., 1.}> level;
+  } inputs;
+  struct
+  {
+  } outputs;
+  void operator()() { }
+};
+}
+
+TEST_CASE(
+    "A mapped knob, a port type of its own, that became a time chooser keeps its "
+    "value",
+    "[avnd][upgrade]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    auto& dctx = doc->context();
+
+    oscr::ProcessModel<MappedKnobSpec> old{
+        TimeVal::fromMsecs(1000), Id<Process::ProcessModel>{7779}, dctx, nullptr};
+    auto* decay = qobject_cast<Process::ControlInlet*>(old.inlets()[0]);
+    REQUIRE(decay);
+    // Not one of the generic port types: nothing registers it
+    CHECK(!ctx.interfaces<Process::PortFactoryList>().get(decay->concreteKey()));
+    decay->setValue(3.2f);
+    const State::AddressAccessor address{State::Address{"dev", {"decay"}}};
+    decay->setAddress(address);
+    auto* level = qobject_cast<Process::ControlInlet*>(old.inlets()[1]);
+    REQUIRE(level);
+    level->setValue(1.5f);
+
+    SECTION("JSON")
+    {
+      JSONReader reader;
+      reader.readFrom(static_cast<const Process::ProcessModel&>(old));
+      const auto json = readJson(reader.toByteArray());
+      JSONObject::Deserializer des{json};
+      auto* loaded = new oscr::ProcessModel<TimeChooserSpec>{des, &doc->model()};
+      REQUIRE(loaded->inlets().size() == 2);
+
+      auto* chooser = qobject_cast<Process::TimeChooser*>(loaded->inlets()[0]);
+      REQUIRE(chooser);
+      CHECK(chooser->id() == decay->id());
+      CHECK(chooser->value() == ossia::value{ossia::vec2f{3.2f, 0.f}});
+      CHECK(chooser->address() == address);
+
+      auto* loaded_level = qobject_cast<Process::ControlInlet*>(loaded->inlets()[1]);
+      REQUIRE(loaded_level);
+      CHECK(loaded_level->value() == ossia::value{1.5f});
+      delete loaded;
+    }
+
+    SECTION("Binary")
+    {
+      // The binary format carries no field names: the unknown port is read up
+      // to its Port base and rebuilt as the declared control, at its default.
+      const QByteArray bytes
+          = DataStreamReader::marshall(static_cast<const Process::ProcessModel&>(old));
+      DataStream::Deserializer outer{bytes};
+      QByteArray process;
+      outer.stream() >> process;
+      DataStream::Deserializer des{process};
+      SCORE_DEBUG_CHECK_DELIMITER2(des);
+      UuidKey<Process::ProcessModel> key;
+      TSerializer<DataStream, UuidKey<Process::ProcessModel>>::writeTo(des, key);
+      SCORE_DEBUG_CHECK_DELIMITER2(des);
+      REQUIRE(key == static_cast<const Process::ProcessModel&>(old).concreteKey());
+      auto* loaded = new oscr::ProcessModel<TimeChooserSpec>{des, &doc->model()};
+      REQUIRE(loaded->inlets().size() == 2);
+
+      auto* chooser = qobject_cast<Process::TimeChooser*>(loaded->inlets()[0]);
+      REQUIRE(chooser);
+      CHECK(chooser->id() == decay->id());
+      CHECK(chooser->address() == address);
+
+      auto* loaded_level = qobject_cast<Process::ControlInlet*>(loaded->inlets()[1]);
+      REQUIRE(loaded_level);
+      CHECK(loaded_level->value() == ossia::value{1.5f});
+      delete loaded;
+    }
+  });
 }

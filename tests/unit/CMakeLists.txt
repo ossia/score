@@ -59,6 +59,13 @@ score_add_test(test_unit_port_factory_reuse
   APP
   PLUGINS score_lib_process)
 
+# --- a saved port whose type is not registered loads as a generic port --
+# APP: the known port types of the same list come from score_plugin_dataflow.
+score_add_test(test_unit_unknown_port_type
+  SOURCES UnknownPortTypeTest.cpp
+  APP
+  PLUGINS score_lib_process)
+
 # --- the file-chooser ports round-trip their "Filters" setting -----------
 # APP for the same reason as the test above: the FileChooser factory lives in
 # score_plugin_dataflow and the AudioFileChooser one in score_plugin_media,
