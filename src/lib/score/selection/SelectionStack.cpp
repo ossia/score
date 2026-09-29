@@ -72,6 +72,7 @@ bool SelectionStack::canReselect() const
 
 void SelectionStack::clear()
 {
+  sweepPruned();
   auto old = currentSelection();
 
   m_unselectable.clear();
@@ -84,6 +85,7 @@ void SelectionStack::clear()
 
 void SelectionStack::clearAllButLast()
 {
+  sweepPruned();
   Selection last;
   if(canUnselect())
     last = m_unselectable.top();
@@ -97,6 +99,7 @@ void SelectionStack::clearAllButLast()
 
 void SelectionStack::push(const Selection& selection)
 {
+  sweepPruned();
   if(selection != m_unselectable.top())
   {
     auto old = currentSelection();
@@ -136,6 +139,7 @@ void SelectionStack::push(const Selection& selection)
 
 void SelectionStack::unselect()
 {
+  sweepPruned();
   auto old = currentSelection();
   m_reselectable.push(m_unselectable.pop());
 
@@ -147,6 +151,7 @@ void SelectionStack::unselect()
 
 void SelectionStack::reselect()
 {
+  sweepPruned();
   auto old = currentSelection();
   m_unselectable.push(m_reselectable.pop());
 
@@ -168,9 +173,37 @@ void SelectionStack::deselectObjects(const Selection& toDeselect)
   pushNewSelection(std::move(s));
 }
 
+static bool isPruned(
+    const QPointer<IdentifiedObjectAbstract>& obj,
+    const ossia::hash_set<const IdentifiedObjectAbstract*>& pruned)
+{
+  return obj.isNull() || pruned.contains(obj.data());
+}
+
+static void removePruned(
+    Selection& sel, const ossia::hash_set<const IdentifiedObjectAbstract*>& pruned)
+{
+  sel.erase(
+      std::remove_if(
+          sel.begin(), sel.end(), [&](const auto& obj) { return isPruned(obj, pruned); }),
+      sel.end());
+}
+
 Selection SelectionStack::currentSelection() const
 {
-  return canUnselect() ? m_unselectable.top() : Selection{};
+  if(m_pruned.empty())
+    return canUnselect() ? m_unselectable.top() : Selection{};
+
+  // What the sweep will leave current: the topmost selection that keeps an
+  // object, the empty selections being dropped.
+  for(auto i = m_unselectable.size() - 1; i > 0; --i)
+  {
+    Selection s = m_unselectable[i];
+    removePruned(s, m_pruned);
+    if(!s.empty())
+      return s;
+  }
+  return Selection{};
 }
 
 static void
@@ -197,6 +230,12 @@ dropEmptySelections(QStack<Selection>& unselectable, QStack<Selection>& reselect
 
 void SelectionStack::prune(IdentifiedObjectAbstract* p)
 {
+  if(m_batchDepth > 0)
+  {
+    m_pruned.insert(p);
+    return;
+  }
+
   {
     int n = std::ssize(m_unselectable);
     for(int i = 0; i < n; i++)
@@ -270,6 +309,22 @@ recursiveChildrenList(IdentifiedObjectAbstract* obj)
   rec(obj);
 
   return vec;
+}
+
+void SelectionStack::sweepPruned()
+{
+  if(m_pruned.empty())
+    return;
+
+  for(auto& sel : m_unselectable)
+    removePruned(sel, m_pruned);
+  for(auto& sel : m_reselectable)
+    removePruned(sel, m_pruned);
+  m_pruned.clear();
+
+  dropEmptySelections(m_unselectable, m_reselectable);
+  pruneConnections();
+  currentSelectionChanged(m_unselectable.top(), m_unselectable.top());
 }
 
 void SelectionStack::pruneRecursively(IdentifiedObjectAbstract* p)

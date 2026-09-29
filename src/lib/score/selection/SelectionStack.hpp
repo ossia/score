@@ -58,10 +58,41 @@ public:
   void pruneRecursively(IdentifiedObjectAbstract* p);
   W_INVOKABLE(pruneRecursively)
 
+  /**
+   * While a batch is open, prune() only records the destroyed object.
+   * The stack is swept once when the outermost batch ends, with a single
+   * currentSelectionChanged: destroying k selected objects out of n costs
+   * O(n) instead of O(k * n).
+   *
+   * Inside a batch, the stack may still hold the recorded objects until the
+   * next mutation (push, unselect, ...), which sweeps first;
+   * currentSelection() already leaves them out.
+   */
+  class Batch
+  {
+  public:
+    explicit Batch(SelectionStack& s) noexcept
+        : m_stack{s}
+    {
+      ++m_stack.m_batchDepth;
+    }
+    ~Batch()
+    {
+      if(--m_stack.m_batchDepth == 0)
+        m_stack.sweepPruned();
+    }
+    Batch(const Batch&) = delete;
+    Batch& operator=(const Batch&) = delete;
+
+  private:
+    SelectionStack& m_stack;
+  };
+
 private:
   // Select new objects
   void push(const Selection& s);
   void pruneConnections();
+  void sweepPruned();
 
   // m_unselectable always contains the empty set at the beginning
   QStack<Selection> m_unselectable;
@@ -69,5 +100,9 @@ private:
 
   ossia::hash_map<const IdentifiedObjectAbstract*, QMetaObject::Connection>
       m_connections;
+
+  // Destroyed during the open batch and not swept yet
+  ossia::hash_set<const IdentifiedObjectAbstract*> m_pruned;
+  int m_batchDepth{};
 };
 }

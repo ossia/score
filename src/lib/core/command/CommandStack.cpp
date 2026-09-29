@@ -4,6 +4,7 @@
 #include <score/command/Command.hpp>
 #include <score/command/Validity/ValidityCheckerList.hpp>
 #include <score/document/DocumentContext.hpp>
+#include <score/selection/SelectionStack.hpp>
 
 #include <core/command/CommandStack.hpp>
 #include <core/document/Document.hpp>
@@ -152,6 +153,7 @@ void CommandStack::undoQuiet()
     auto cmd = m_undoable.pop();
     {
       Replaying r{m_replaying};
+      SelectionStack::Batch b{m_ctx.selectionStack};
       cmd->undo(m_ctx);
     }
     m_redoable.push(cmd);
@@ -167,6 +169,7 @@ void CommandStack::redoQuiet()
     auto cmd = m_redoable.pop();
     {
       Replaying r{m_replaying};
+      SelectionStack::Batch b{m_ctx.selectionStack};
       cmd->redo(m_ctx);
     }
 
@@ -179,7 +182,10 @@ void CommandStack::redoQuiet()
 
 void CommandStack::redoAndPush(Command* cmd)
 {
-  cmd->redo(m_ctx);
+  {
+    SelectionStack::Batch b{m_ctx.selectionStack};
+    cmd->redo(m_ctx);
+  }
   push(cmd);
 }
 
@@ -208,7 +214,10 @@ void CommandStack::push(Command* cmd)
 
 void CommandStack::redoAndPushQuiet(Command* cmd)
 {
-  cmd->redo(m_ctx);
+  {
+    SelectionStack::Batch b{m_ctx.selectionStack};
+    cmd->redo(m_ctx);
+  }
   pushQuiet(cmd);
 }
 

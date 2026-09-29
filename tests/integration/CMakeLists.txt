@@ -1743,3 +1743,10 @@ score_add_test(test_integration_piano_roll_replay
   SOURCES PianoRollReplayTest.cpp
   APP
   PLUGINS score_plugin_scenario score_lib_process score_plugin_midi)
+
+# Piano roll: selecting and deleting among 100k notes stays linear, through
+# the document presenter and the command stack.
+score_add_test(test_integration_piano_roll_selection_scale
+  SOURCES PianoRollSelectionScaleTest.cpp
+  GUI
+  PLUGINS score_plugin_scenario score_lib_process score_plugin_midi)

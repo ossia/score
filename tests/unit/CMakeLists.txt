@@ -1722,6 +1722,12 @@ score_add_test(test_unit_selection_stack_bottom
   SOURCES SelectionStackBottomTest.cpp
   PLUGINS score_lib_base)
 
+# Objects destroyed during a command leave the selection stack in one sweep,
+# with the stack the per-object prune gives.
+score_add_test(test_unit_selection_stack_batch
+  SOURCES SelectionStackBatchTest.cpp
+  PLUGINS score_lib_base)
+
 # libisf's raw raster Mode control and CSF geometry TOPOLOGY (parser only).
 if(TARGET score_plugin_gfx)
   score_add_test(test_unit_isf_raw_raster_mode
