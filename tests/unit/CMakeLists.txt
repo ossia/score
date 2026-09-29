@@ -1136,6 +1136,11 @@ score_add_test(test_unit_isf_event_impulse
     PLUGINS score_plugin_gfx
     LIBS ${QT_PREFIX}::Gui)
 
+score_add_test(test_unit_csf_storage_size_port
+    SOURCES CsfStorageSizePortTest.cpp
+    PLUGINS score_plugin_gfx
+    LIBS ${QT_PREFIX}::Gui)
+
 score_add_test(test_unit_scene_flatten
     SOURCES
       SceneFlattenTest.cpp

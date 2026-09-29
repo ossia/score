@@ -3,6 +3,8 @@
 
 #include <ossia/detail/variant.hpp>
 
+#include <string_view>
+
 namespace score::gfx
 {
 // ---------------------------------------------------------------------------
@@ -149,6 +151,24 @@ template <typename F>
 inline void walk_descriptor_inputs(const isf::descriptor& desc, F&& fn)
 {
   walk_descriptor_inputs(desc, port_counts{}, std::forward<F>(fn));
+}
+
+// Input port holding the element count of storage resource `name`'s trailing
+// flexible array: the long_input isf_input_port_vis synthesizes for a written
+// buffer. -1 when there is none, notably for a read_only buffer, whose one
+// inlet is the buffer itself.
+inline int storage_array_size_port(const isf::descriptor& desc, std::string_view name)
+{
+  int port = -1;
+  walk_descriptor_inputs(
+      desc, [&](const isf::input& inp, port_counts cur, port_counts delta) {
+    if(port >= 0 || inp.name != name)
+      return;
+    if(auto* s = ossia::get_if<isf::storage_input>(&inp.data);
+       s && s->access != "read_only" && delta.inlets == 1)
+      port = cur.inlets;
+  });
+  return port;
 }
 
 struct isf_input_size_vis
