@@ -585,6 +585,9 @@ score_add_gfx_test(geometry_buffer_rebind GfxGeometryBufferRebind.cpp)
 score_add_gfx_test(csf_readwrite_state GfxCsfReadWriteState.cpp)
 # State must travel around a Delayed* geometry edge and advance.
 score_add_gfx_test(csf_feedback_loop GfxCsfFeedbackLoop.cpp)
+# A render-list rebuild (output resize) must not leave a CSF consumer binding
+# the geometry buffers its producer freed in release().
+score_add_gfx_test(csf_rebuild_stale_geometry GfxCsfRebuildStaleGeometry.cpp)
 score_add_gfx_test(buffer_adoption_lifetime GfxBufferAdoptionLifetime.cpp)
 score_add_gfx_test(raw_raster_buffer_input GfxRawRasterBufferInput.cpp)
 score_add_gfx_test(raw_raster_aux_count GfxRawRasterAuxCount.cpp)

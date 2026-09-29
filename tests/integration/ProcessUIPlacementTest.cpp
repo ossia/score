@@ -8,6 +8,8 @@
 #include <Process/Process.hpp>
 #include <Process/ProcessList.hpp>
 #include <Process/Script/EditorOverlay.hpp>
+#include <Process/Script/MultiScriptEditor.hpp>
+#include <Process/Script/ScriptEditor.hpp>
 #include <Process/UIPlacement.hpp>
 
 #include <Scenario/Commands/Interval/AddOnlyProcessToInterval.hpp>
@@ -765,6 +767,61 @@ TEST_CASE("Ctrl+Return compiles from the editor", "[integration][ui][placement][
       Process::setupScriptUI(proc, doc->context(), false);
       spin();
     }
+  });
+}
+
+namespace
+{
+QStringList g_connectWarnings;
+void captureConnectWarnings(QtMsgType, const QMessageLogContext&, const QString& msg)
+{
+  if(msg.contains(QStringLiteral("QObject::connect")))
+    g_connectWarnings.push_back(msg);
+}
+
+struct TestScriptDialog final : Process::ScriptDialog
+{
+  using ScriptDialog::ScriptDialog;
+  void on_accepted() override { }
+};
+struct TestMultiScriptDialog final : Process::MultiScriptDialog
+{
+  using MultiScriptDialog::MultiScriptDialog;
+  void on_accepted() override { }
+};
+}
+
+TEST_CASE(
+    "Opening a script editor makes no failing connection",
+    "[integration][ui][placement][gui]")
+{
+  score::test::run_in_gui_app([](const score::GUIApplicationContext& ctx) {
+    DefaultsGuard guard;
+    setDefault(UIPlacementSettings::scriptEditorPreviewKey, "None");
+    setDefault(UIPlacementSettings::scriptEditorKey, "Window");
+    auto* doc = score::test::new_document(ctx);
+    auto& proc = addJs(*doc);
+
+    g_connectWarnings.clear();
+    const auto previous = qInstallMessageHandler(&captureConnectWarnings);
+    Process::setupScriptUI(proc, doc->context(), true);
+    spin();
+    {
+      // The single-program editor of CSF, ISF, VSA, geometry filters, ...
+      TestScriptDialog single{"GLSL", doc->context(), nullptr};
+      // The tabbed one of JS and the render pipeline
+      TestMultiScriptDialog multi{doc->context(), nullptr};
+      multi.addTab(QStringLiteral("Vertex"), QString{}, "GLSL");
+      multi.addTab(QStringLiteral("Fragment"), QString{}, "GLSL");
+    }
+    qInstallMessageHandler(previous);
+
+    CHECK(proc.scriptUI != nullptr);
+    INFO(g_connectWarnings.join('\n').toStdString());
+    CHECK(g_connectWarnings.isEmpty());
+
+    Process::setupScriptUI(proc, doc->context(), false);
+    spin();
   });
 }
 

@@ -33,6 +33,23 @@ namespace score::gfx
 
 namespace
 {
+// Whether the geometry names GPU objects: those belong to the renderer that
+// published it, and do not outlive that renderer's release().
+bool holdsGpuResources(const ossia::geometry_spec& spec) noexcept
+{
+  if(!spec.meshes)
+    return false;
+  for(const auto& mesh : spec.meshes->meshes)
+  {
+    for(const auto& buf : mesh.buffers)
+      if(ossia::get_if<ossia::geometry::gpu_buffer>(&buf.data))
+        return true;
+    if(!mesh.auxiliary_textures.empty())
+      return true;
+  }
+  return false;
+}
+
 std::string_view customAttributeName(
     const isf::geometry_input::attribute_request& req) noexcept
 {
@@ -1226,50 +1243,17 @@ BufferView RenderedCSFNode::createStorageBuffer(
 
 int RenderedCSFNode::getArraySizeFromUI(const QString& bufferName) const
 {
-  // ISFNode automatically creates ports for storage buffers with flexible arrays
-  // Look for the corresponding input in the descriptor and find its port
+  // A read_only buffer has no sizing port: it binds its upstream's buffer, and
+  // the one allocated here is only the placeholder bound while unconnected.
+  const int port = storage_array_size_port(n.m_descriptor, bufferName.toStdString());
+  if(port < 0)
+    return 1024;
 
-  port_indices p;
+  if(port < std::ssize(n.input) && n.input[port]->value)
+    return std::max(1, *static_cast<const int*>(n.input[port]->value));
 
-  int storageSizeInputIndex = -1;
-  const std::string& name = bufferName.toStdString();
-  for(std::size_t i = 0; i < n.m_descriptor.inputs.size(); i++)
-  {
-    const auto& input = n.m_descriptor.inputs[i];
-
-    if(input.name == name)
-    {
-      if(auto* storage = ossia::get_if<isf::storage_input>(&input.data))
-      {
-        // Check if this storage buffer has flexible arrays
-        for(const auto& field : storage->layout)
-        {
-          if(field.type.find("[]") != std::string::npos)
-          {
-            storageSizeInputIndex = p.inlet_i;
-            break;
-          }
-        }
-        break;
-      }
-    }
-
-    ossia::visit(p, input.data);
-  }
-
-  if(storageSizeInputIndex >= 0)
-  {
-    // ISFNode creates ports in order of inputs, plus one extra port for array size if needed
-    if(storageSizeInputIndex < n.input.size() && n.input[storageSizeInputIndex]->value)
-    {
-      int arraySize = *(int*)n.input[storageSizeInputIndex]->value;
-      return std::max(1, arraySize); // Ensure at least 1 element
-    }
-  }
-  
-  // Default array size if not found
-  qWarning() << "RenderedCSFNode: storage size port not resolved (storageSizeInputIndex="
-             << storageSizeInputIndex << "); falling back to 1024.";
+  qWarning() << "RenderedCSFNode: storage size port" << port << "of" << bufferName
+             << "has no value; falling back to 1024.";
   return 1024;
 }
 
@@ -1742,8 +1726,6 @@ void RenderedCSFNode::updateGeometryBindings(
               qWarning() << "CSF geometry: required read_only attribute"
                          << req.name.c_str() << "not found"
                          << "(semantic=" << req.semantic.c_str() << ")";
-            else
-              qDebug() << "  attr" << req.name.c_str() << "not in upstream — creating fallback buffer";
 
             releaseSlot(renderer, ssbo);
             auto* buf = renderer.state.rhi->newBuffer(
@@ -5639,6 +5621,35 @@ void RenderedCSFNode::recreateShaderResourceBindings(RenderList& renderer, QRhiR
 void RenderedCSFNode::release(RenderList& r)
 {
   releaseState(r);
+
+  // A render list rebuild (an output resize) releases every renderer, then
+  // init()s the same objects: the geometry the producers pushed before names
+  // buffers they have just freed, and this node can dispatch before they push
+  // again (a delayed edge renders it ahead of them). They publish their new
+  // buffers on every frame; CPU-side geometry is kept, as its producers may
+  // only push it on a change.
+  bool dropped = false;
+  for(auto it = m_portGeometries.begin(); it != m_portGeometries.end();)
+  {
+    if(holdsGpuResources(it->second))
+    {
+      m_portScenes.erase(it->first);
+      m_wrapCache.erase(it->first);
+      it = m_portGeometries.erase(it);
+      dropped = true;
+    }
+    else
+    {
+      ++it;
+    }
+  }
+  if(holdsGpuResources(geometry))
+    geometry = {};
+  if(dropped)
+  {
+    m_mergeCacheInputs.clear();
+    m_mergeCacheOutput = {};
+  }
 }
 
 void RenderedCSFNode::runRenderPass(

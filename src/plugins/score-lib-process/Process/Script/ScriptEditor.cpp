@@ -8,7 +8,6 @@
 #include <score/tools/FileWatch.hpp>
 #include <score/widgets/SetIcons.hpp>
 
-#include <QCodeEditor>
 #include <QCoreApplication>
 #include <QDialogButtonBox>
 #include <QDir>
@@ -26,11 +25,13 @@
 
 namespace Process
 {
-// Ctrl+Return compiles. The code editor emits livecodeTrigger for it, but
-// only when the modifiers are exactly Control: the numeric keypad's Enter
-// carries KeypadModifier. So the key is also caught here, on the editors
-// themselves, before anything else looks at it. (With the completion popup
-// open the key goes to the popup first and completes instead.)
+// Ctrl+Return compiles. The key is caught here, on the editors themselves,
+// before the code editor sees it, rather than through QCodeEditor's
+// livecodeTrigger: that one skips the numeric keypad's Enter (KeypadModifier),
+// and its inline verdigris signal cannot be connected from this library, which
+// builds with hidden inline visibility and so takes the address of its own copy,
+// unknown to the editor's meta-object. (With the completion popup open the key
+// goes to the popup first and completes instead.)
 class CompileKeyFilter final : public QObject
 {
 public:
@@ -124,8 +125,6 @@ ScriptDialog::ScriptDialog(
   });
   lay->addWidget(bbox);
 
-  auto ce = qobject_cast<QCodeEditor*>(m_textedit);
-  connect(ce, &QCodeEditor::livecodeTrigger, this, &ScriptDialog::on_accepted);
   m_compileFilter = addCompileShortcuts(this, [this] { on_accepted(); });
   connect(bbox, &QDialogButtonBox::accepted, this, &ScriptDialog::on_accepted);
   connect(bbox, &QDialogButtonBox::rejected, this, &QDialog::reject);
@@ -323,8 +322,6 @@ void MultiScriptDialog::addTab(
 {
   auto textedit = createScriptWidget(language);
   textedit->setText(text);
-  auto ce = qobject_cast<QCodeEditor*>(textedit);
-  connect(ce, &QCodeEditor::livecodeTrigger, this, &MultiScriptDialog::on_accepted);
 
   m_tabs->addTab(textedit, name);
   m_editors.push_back({textedit});
