@@ -19,7 +19,9 @@ TEST_CASE("isf::descriptor background_color defaults to transparent", "[isf][vsa
   std::destroy_at(d);
 }
 
-TEST_CASE("a parsed VSA without BACKGROUND_COLOR has a transparent background", "[isf][vsa]")
+TEST_CASE(
+    "a parsed VSA without BACKGROUND_COLOR has a transparent background",
+    "[isf][vsa]")
 {
   const std::string src
       = "/*{\n  \"ISFVSN\": \"2\",\n  \"MODE\": \"VERTEX_SHADER_ART\",\n"

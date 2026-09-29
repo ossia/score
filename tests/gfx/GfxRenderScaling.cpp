@@ -1,23 +1,14 @@
 // What a frame of the scene render costs as the picture grows, with no readback
-// and no output device in the way.
+// and no output device in the way: the cost per megapixel of an 8K and a 4K
+// frame must stay within 3x of a 1080p one (the cost with a full-size GPU copy
+// on top is reported, not asserted). The shape is asserted, not the speed, so a
+// slower machine passes and a renderer degrading superlinearly does not.
 //
-// The PipeWire dma-buf output was spending orders of magnitude more per frame
-// at 8K than its handover -- dequeue, wrap, begin, wait -- accounts for. This
-// case measures the other two candidates and rules both out: drawing an 8K
-// frame is cheap, and copying it from one ordinary texture to another is
-// cheap. What is left is the one operation this case does NOT perform: writing
-// into an EXPORTED image, the dedicated external allocation that carries the
-// dma-buf. That write is slow whatever the memory type and whatever the tiling
-// -- both were measured -- against the ordinary copy above.
-//
-// One animated ISF, one offscreen target, no readback, no device. Every frame
-// is bracketed by beginOffscreenFrame/endOffscreenFrame and endOffscreenFrame
-// waits for the GPU, so the number is the frame's real cost and not the cost of
-// recording it.
-//
-// The last frame IS read back, once, outside the timed loop: a timing harness
-// that draws nothing reports a wonderful number, and this one would have --
-// the readback is here so the case fails instead of lying.
+// One animated ISF, one offscreen target. Every frame is bracketed by
+// beginOffscreenFrame/endOffscreenFrame, which waits for the GPU, so the number
+// is the frame's real cost and not the cost of recording it. The last frame is
+// read back once, outside the timed loop: a harness drawing nothing would
+// report a wonderful number instead of failing.
 
 #include "IsfTestCommon.hpp"
 

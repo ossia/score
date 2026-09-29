@@ -148,7 +148,9 @@
 // pair, syn-camera-array-faces.{vs,fs}; its READ side reuses the existing
 // syn-cube-six-probe.fs viewer unchanged.
 // =============================================================================
-#include <score_test/Gfx.hpp>
+#include "GfxHalpNodes.hpp"
+#include "IsfTestCommon.hpp"
+
 #include <score_test/Document.hpp>
 
 #include <Threedim/CameraArray.hpp>
@@ -184,15 +186,11 @@
 
 using namespace score::test;
 using namespace score::test::gfx;
+using score::test::gfx::isf::corpus;
 using Catch::Approx;
 
 namespace
 {
-QString corpus(const char* f)
-{
-  return QStringLiteral(GFX_TEST_CORPUS_DIR "/") + QString::fromUtf8(f);
-}
-
 // The sink is SQUARE on purpose. packCameraUBO derives the projection aspect
 // from renderSize and only falls back to camera_component::aspect_ratio when
 // renderSize.height() <= 0, so CameraArray's declared
@@ -242,37 +240,6 @@ std::array<uint8_t, 4> predictedColour(int face) noexcept
 // 0.5 lands on 127.5, which rgba8 rounding may take either way, and the value
 // makes two rgba8 round trips (cube face, then the viewer's own output).
 constexpr int kTol = 4;
-
-// --- Crousti glue (cloned from CroustiCpuNodes.cpp) -------------------------
-
-//! Owns the ProcessModels the GfxNodes hold references to. Must outlive the
-//! GfxPipeline, so declare it first at every call site.
-struct HalpProcesses
-{
-  std::vector<std::unique_ptr<Process::ProcessModel>> models;
-  int next = 1;
-
-  template <typename T>
-  std::unique_ptr<score::gfx::Node> make(const score::DocumentContext& ctx)
-  {
-    auto model = std::make_unique<oscr::ProcessModel<T>>(
-        TimeVal::fromMsecs(1000), Id<Process::ProcessModel>{next}, ctx, nullptr);
-    auto* raw = model.get();
-    models.push_back(std::move(model));
-    return std::unique_ptr<score::gfx::Node>{
-        new oscr::GfxNode<T>{*raw, {}, Gfx::exec_controls{}, next++, ctx}};
-  }
-};
-
-//! Deliver control values to a Crousti node, as CroustiCpuNodes.cpp does.
-void setInputs(score::gfx::Node& n, std::vector<ossia::value> vals)
-{
-  score::gfx::Message m;
-  m.node_id = n.nodeId;
-  for(auto& v : vals)
-    m.input.push_back(std::move(v));
-  n.process(std::move(m));
-}
 
 //! Recover the world-space forward direction from a camera's world transform,
 //! the same way the shader recovers it from `view` — see steps (2)-(4) of the

@@ -1,19 +1,27 @@
-// The raw raster Mode control's fourth value, Geometry, draws with the cabled
-// geometry's own topology instead of replacing it, and never warns. A compute
-// shader's output geometry is labelled points unless its RESOURCES entry
-// declares TOPOLOGY, which also replaces what a filter inherits upstream.
+// The raw raster Mode control. A shader that declares no TOPOLOGY draws with
+// its Mode (Triangles, Points, Lines), whatever topology the cabled geometry
+// has; the fourth value, Geometry, draws with the cabled geometry's own
+// topology instead and never warns. A saved Mode of Points or Lines on a
+// triangle mesh draws its corners or loose segments, which an impostor shader
+// discards entirely: the engine says so once, with the value to set. A
+// compute shader's output geometry is labelled points unless its RESOURCES
+// entry declares TOPOLOGY, which also replaces what a filter inherits
+// upstream; Mode is how its consumer says what to draw, so no Mode warns on
+// an undeclared one.
 //
 // The same lopsided triangle (19.3 % of the frame) into raw-raster-basic.fs:
-//   * a CPU mesh labelled triangles or points: Geometry draws the triangle or
-//     its three corners;
-//   * syn-geo-asym-tri.cs (no TOPOLOGY): Geometry draws points;
-//   * syn-geo-asym-tri-triangles.cs (TOPOLOGY triangles): Geometry draws the
-//     triangle, and Points on it warns as on a CPU triangle mesh;
+//   * a CPU mesh labelled triangles or points;
+//   * syn-geo-asym-tri.cs (no TOPOLOGY);
+//   * syn-geo-asym-tri-triangles.cs (TOPOLOGY triangles);
 //   * syn-geo-asym-tri.cs -> syn-filter-topology-triangles.cs: the filter's
 //     declaration beats the points it inherits, on every frame the filter
 //     refreshes its output in place, not only the one that builds it.
-// libisf parses TOPOLOGY, writes it back and rejects an unknown value.
+// Every run goes Mode -> Triangles -> Mode, two pipeline rebuilds that re-read
+// the cabled topology, and a warning must still be logged exactly once.
+// The parser side (Mode labels, TOPOLOGY) is in tests/unit/IsfRawRasterModeTest.
 #include <score_test/Gfx.hpp>
+
+#include "GfxLogCapture.hpp"
 
 #include <Gfx/Graph/Node.hpp>
 #include <Gfx/Graph/NodeRenderer.hpp>
@@ -25,15 +33,11 @@
 #include <catch2/generators/catch_generators.hpp>
 #include <catch2/generators/catch_generators_range.hpp>
 
-#include <QFile>
-#include <QMutex>
-#include <QStringList>
-
-#include <isf.hpp>
-
 #include <algorithm>
 #include <cstring>
 #include <string>
+#include <utility>
+#include <vector>
 
 using namespace score::test::gfx;
 
@@ -46,28 +50,6 @@ constexpr int ModeGeometry = 3;
 QString corpus(const char* file)
 {
   return QStringLiteral(GFX_TEST_CORPUS_DIR) + QStringLiteral("/") + file;
-}
-
-std::string readCorpus(const char* file)
-{
-  QFile f{corpus(file)};
-  if(!f.open(QIODevice::ReadOnly))
-    return {};
-  return f.readAll().toStdString();
-}
-
-QMutex g_logMutex;
-QStringList g_log;
-QtMessageHandler g_prevHandler{};
-
-void captureHandler(QtMsgType t, const QMessageLogContext& ctx, const QString& msg)
-{
-  {
-    QMutexLocker lock{&g_logMutex};
-    g_log.push_back(msg);
-  }
-  if(g_prevHandler)
-    g_prevHandler(t, ctx, msg);
 }
 
 struct LabelledMeshNode final : score::gfx::ProcessNode
@@ -193,17 +175,10 @@ enum class Source
 Outcome run(score::gfx::GraphicsApi api, Source src, int mode)
 {
   Outcome out;
-  {
-    QMutexLocker lock{&g_logMutex};
-    g_log.clear();
-  }
+  std::vector<LogCapture::Message> messages;
   score::test::run_in_gui_app([&](const score::GUIApplicationContext&) {
-    g_prevHandler = qInstallMessageHandler(captureHandler);
-    struct Restore
-    {
-      ~Restore() { qInstallMessageHandler(g_prevHandler); }
-    } restore;
-
+    // Inside the application: its Messages panel installs its own handler.
+    LogCapture log;
     GfxPipeline p;
     int producer = -1;
     int filter = -1;
@@ -260,6 +235,7 @@ Outcome run(score::gfx::GraphicsApi api, Source src, int mode)
     p.render(3);
     setControl(*p.isf(raster), modePort, ossia::value{mode});
     p.render(3);
+    messages = log.messages();
     const auto img = p.readback(sink);
     if(!img.valid())
     {
@@ -287,12 +263,11 @@ Outcome run(score::gfx::GraphicsApi api, Source src, int mode)
     out.litFraction = double(lit) / double(img.width * img.height);
   });
 
-  QMutexLocker lock{&g_logMutex};
-  for(const QString& m : g_log)
-    if(m.contains(QStringLiteral("the Mode control draws")))
+  for(const auto& m : messages)
+    if(m.text.contains(QStringLiteral("the Mode control draws")))
     {
       if(out.modeWarnings++ == 0)
-        out.firstWarning = m;
+        out.firstWarning = m.text;
     }
   return out;
 }
@@ -318,37 +293,6 @@ const char* sourceName(Source s)
       return "csf-filter-declared";
   }
   return "?";
-}
-
-std::string csfWithTopology(const std::string& topology)
-{
-  return R"(/*{
-  "ISFVSN": "2.0",
-  "MODE": "COMPUTE_SHADER",
-  "RESOURCES": [
-    {
-      "NAME": "geo",
-      "TYPE": "geometry",
-      "VERTEX_COUNT": "3",
-      "TOPOLOGY": ")"
-         + topology + R"(",
-      "ATTRIBUTES": [
-        { "NAME": "position", "SEMANTIC": "position", "TYPE": "vec4", "ACCESS": "write_only" }
-      ]
-    }
-  ],
-  "PASSES": [ { "LOCAL_SIZE": [3, 1, 1], "EXECUTION_MODEL": { "TYPE": "PER_VERTEX" } } ]
-}*/
-void main() { }
-)";
-}
-
-const isf::geometry_input* firstGeometry(const isf::descriptor& d)
-{
-  for(const auto& in : d.inputs)
-    if(auto* g = ossia::get_if<isf::geometry_input>(&in.data))
-      return g;
-  return nullptr;
 }
 }
 
@@ -406,51 +350,53 @@ TEST_CASE(
       QStringLiteral("set Mode to Triangles or Geometry")));
 }
 
-TEST_CASE("the raw raster Mode control offers Geometry as value 3", "[gfx][raster]")
+TEST_CASE(
+    "a raw raster Mode that matches the cabled geometry warns nothing",
+    "[gfx][raster][topology]")
 {
-  isf::parser p{
-      readCorpus("raw-raster-basic.vs"), readCorpus("raw-raster-basic.fs"), 450,
-      isf::parser::ShaderType::RawRasterPipeline};
-  const auto& ins = p.data().inputs;
-  const auto it = std::find_if(
-      ins.begin(), ins.end(), [](const isf::input& i) { return i.name == "Mode"; });
-  REQUIRE(it != ins.end());
-  const auto* l = ossia::get_if<isf::long_input>(&it->data);
-  REQUIRE(l);
-  REQUIRE(l->labels.size() == 4);
-  CHECK(l->labels[0] == "Triangles");
-  CHECK(l->labels[1] == "Points");
-  CHECK(l->labels[2] == "Lines");
-  CHECK(l->labels[3] == "Geometry");
-  CHECK(ossia::get<int64_t>(l->values[3]) == 3);
-  CHECK(l->def == 0);
+  const auto api = GENERATE(from_range(platform_backends()));
+  // Points on a triangle mesh is the warning case below.
+  const auto [src, mode] = GENERATE(values<std::pair<Source, int>>(
+      {{Source::MeshTriangles, ModeTriangles},
+       {Source::CsfUndeclared, ModeTriangles},
+       {Source::CsfUndeclared, ModePoints}}));
+  CAPTURE(backend_name(api), sourceName(src), mode);
+  const Outcome o = run(api, src, mode);
+  if(o.skipped)
+    SKIP("backend unavailable");
+  if(isCsf(src))
+    if(const char* why = compute_shader_skip_reason(api))
+      SKIP(why);
+  INFO("error=" << o.error << " lit=" << o.litFraction);
+  REQUIRE(o.error.empty());
+  if(mode == ModeTriangles)
+  {
+    CHECK(o.litFraction > 0.15);
+    CHECK(o.litFraction < 0.25);
+  }
+  else
+  {
+    CHECK(o.litFraction < 0.02);
+  }
+  CHECK(o.modeWarnings == 0);
 }
 
-TEST_CASE("a CSF geometry TOPOLOGY is parsed, written back and validated", "[isf][csf]")
+TEST_CASE(
+    "a raw raster Mode of Points on a triangle mesh warns once",
+    "[gfx][raster][topology]")
 {
-  {
-    isf::parser p{csfWithTopology("Triangle_Strip"), isf::parser::ShaderType::CSF};
-    const auto desc = p.data(); // by value: keep it alive while g points into it
-    const auto* g = firstGeometry(desc);
-    REQUIRE(g);
-    CHECK(g->topology == "triangle_strip");
-    CHECK(p.write_isf().find("\"TOPOLOGY\": \"triangle_strip\"") != std::string::npos);
-  }
-  {
-    const std::string undeclared = [] {
-      auto s = csfWithTopology("points");
-      const auto pos = s.find("      \"TOPOLOGY\": \"points\",\n");
-      s.erase(pos, std::string("      \"TOPOLOGY\": \"points\",\n").size());
-      return s;
-    }();
-    isf::parser p{undeclared, isf::parser::ShaderType::CSF};
-    const auto desc = p.data(); // by value: keep it alive while g points into it
-    const auto* g = firstGeometry(desc);
-    REQUIRE(g);
-    CHECK(g->topology.empty());
-    CHECK(p.write_isf().find("TOPOLOGY") == std::string::npos);
-  }
-  CHECK_THROWS_AS(
-      (isf::parser{csfWithTopology("quads"), isf::parser::ShaderType::CSF}),
-      isf::invalid_file);
+  const auto api = GENERATE(from_range(platform_backends()));
+  CAPTURE(backend_name(api));
+  const Outcome o = run(api, Source::MeshTriangles, ModePoints);
+  if(o.skipped)
+    SKIP("backend unavailable");
+  INFO(
+      "error=" << o.error << " lit=" << o.litFraction
+               << " warning=" << o.firstWarning.toStdString());
+  REQUIRE(o.error.empty());
+  CHECK(o.litFraction < 0.02);
+  CHECK(o.modeWarnings == 1);
+  CHECK(o.firstWarning.contains(QStringLiteral(
+      "the Mode control draws Points but the cabled geometry is Triangles; set "
+      "Mode to Triangles")));
 }

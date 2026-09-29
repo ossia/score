@@ -1696,6 +1696,15 @@ score_add_test(test_unit_time_chooser_double_click
   SOURCES TimeChooserDoubleClickTest.cpp
   APP)
 
+# POLYGON_MODE line falls back to fill, warning once, without NonFillPolygonMode.
+# Its own process: the warning is a process-wide once flag.
+if(TARGET score_plugin_gfx)
+  score_add_test(test_unit_gfx_polygon_mode_fallback
+    SOURCES GfxPolygonModeFallbackTest.cpp
+    PLUGINS score_plugin_gfx score_lib_process
+    LIBS ${QT_PREFIX}::Gui)
+endif()
+
 # Section and strip cell titles follow a skin font change.
 score_add_test(test_unit_graphics_layout_title_font
   SOURCES GraphicsLayoutTitleFontTest.cpp
@@ -1707,11 +1716,48 @@ score_add_test(test_unit_selection_stack_bottom
   SOURCES SelectionStackBottomTest.cpp
   PLUGINS score_lib_base)
 
+# libisf's raw raster Mode control and CSF geometry TOPOLOGY (parser only).
+if(TARGET score_plugin_gfx)
+  score_add_test(test_unit_isf_raw_raster_mode
+    SOURCES IsfRawRasterModeTest.cpp
+    PLUGINS score_plugin_gfx
+    LIBS ${QT_PREFIX}::Gui)
+  target_compile_definitions(test_unit_isf_raw_raster_mode PRIVATE
+    GFX_TEST_CORPUS_DIR="${SCORE_ROOT_SOURCE_DIR}/tests/gfx/corpus")
+endif()
+
+# Storage image declarations: the highest binding in a shader's GLSL, and the
+# QRhi format of a GLSL image format qualifier.
+if(TARGET score_plugin_gfx)
+  score_add_test(test_unit_gfx_storage_image_binding
+    SOURCES GfxStorageImageBindingTest.cpp
+    PLUGINS score_plugin_gfx score_lib_process
+    LIBS ${QT_PREFIX}::Gui)
+endif()
+
+# isf::descriptor's VSA background colour defaults to transparent.
+if(TARGET score_plugin_gfx)
+  score_add_test(test_unit_isf_descriptor_defaults
+    SOURCES IsfDescriptorDefaultsTest.cpp
+    PLUGINS score_plugin_gfx)
+endif()
+
 # A library rescan cancels the scan still running; cancelAll() stops every
 # watch's scan.
 score_add_test(test_unit_recursive_watch_rescan
   SOURCES RecursiveWatchRescanTest.cpp
   PLUGINS score_lib_base)
+
+# LAYER / QUEUE raw raster keys: parsing, generated draw and resolve stages, and
+# the resolve fixtures baked for every backend's language.
+if(TARGET score_plugin_gfx)
+  score_add_test(test_unit_isf_layer_queue
+    SOURCES IsfLayerQueueTest.cpp
+    PLUGINS score_plugin_gfx score_lib_process
+    LIBS ${QT_PREFIX}::Gui)
+  target_compile_definitions(test_unit_isf_layer_queue PRIVATE
+    GFX_TEST_CORPUS_DIR="${SCORE_ROOT_SOURCE_DIR}/tests/gfx/corpus")
+endif()
 
 # Regex patterns edited during playback are compiled by the worker, never on
 # the audio thread, and the latest edit wins.
