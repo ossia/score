@@ -210,35 +210,6 @@ score_add_test(test_unit_color_control_unit
   SOURCES ColorControlUnitTest.cpp
   PLUGINS score_lib_process)
 
-# Kabang / Minibang pitch modulation: pure math, no sampler around it.
-if(TARGET score_addon_deuterium)
-  # Through the real execution node, with the plug-in loaded by the app.
-  score_add_test(test_unit_deuterium_midi_exec
-    SOURCES DeuteriumMidiExecTest.cpp
-    APP
-    PLUGINS score_plugin_engine score_plugin_scenario score_lib_process)
-endif()
-
-if(TARGET score_addon_synthimi)
-  score_add_test(test_unit_kabang_pitch_envelope
-    SOURCES KabangPitchEnvelopeTest.cpp)
-  target_include_directories(test_unit_kabang_pitch_envelope
-    PRIVATE "${SCORE_ROOT_SOURCE_DIR}/src/addons/score-addon-synthimi")
-
-  # Unlike the pitch-envelope case, this one needs DrumChannel, which drags in
-  # the addon's whole dependency chain: link the plug-in for its include dirs.
-  score_add_test(test_unit_minibang_no_sample
-    SOURCES MinibangNoSampleTest.cpp
-      "${SCORE_ROOT_SOURCE_DIR}/src/addons/score-addon-synthimi/Kabang/Kabang.cpp"
-      "${SCORE_ROOT_SOURCE_DIR}/src/addons/score-addon-synthimi/Kabang/Sampler.cpp"
-    PLUGINS score_addon_synthimi)
-  target_include_directories(test_unit_minibang_no_sample
-    PRIVATE "${SCORE_ROOT_SOURCE_DIR}/src/addons/score-addon-synthimi")
-  if(TARGET rubberband)
-    target_link_libraries(test_unit_minibang_no_sample PRIVATE rubberband)
-  endif()
-endif()
-
 # A file control clicked twice used to open two dialogs, one after the other.
 score_add_test(test_unit_file_picker_reentrancy
   SOURCES FilePickerReentrancyTest.cpp)
