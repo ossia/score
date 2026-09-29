@@ -66,6 +66,9 @@ set(SCORE_TEST_GUARD_ALLOWED_HARNESSES
   # separate piece of work, not a regression.
   integration/scene-js-sweep.sh
   integration/video-decoder-sweep.sh
+  # Sourced by the harnesses that drive score over OSC (free control ports for
+  # each launch), not run on its own.
+  integration/common/control-ports.sh
   # The GPU validation matrix. It cannot be a ctest entry: it RUNS ctest, once
   # per (backend, driver) cell, with a different driver-selection environment
   # each time -- and in its default mode it also BUILDS each test before
