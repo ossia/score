@@ -7,6 +7,7 @@
 #include <catch2/catch_test_macros.hpp>
 
 #include <array>
+#include <chrono>
 #include <cmath>
 #include <limits>
 #include <numbers>
@@ -782,4 +783,37 @@ TEST_CASE("MathAudioFilter: shipped presets run on a stereo bus", "[fx][audio][e
       for(int i = 0; i < N; i++)
         CHECK_FALSE(std::isnan(ol[i]));
   }
+}
+
+// A runaway loop stops the buffer at the sample where it ran out of budget:
+// the samples before it keep their output, the rest are silent.
+TEST_CASE("MathAudioFilter: a runaway loop silences the rest of the buffer", "[fx][audio][exprtk][loop]")
+{
+  static constexpr int N = 64;
+  std::array<double, N> in{};
+  std::array<double, N> out{};
+  in.fill(1.);
+  in[10] = 1e12;
+  out.fill(-1.);
+  double* ins[1]{in.data()};
+  double* outs[1]{out.data()};
+
+  filter_harness h;
+  h.wire(ins, outs, 1, 48000., N);
+  h.node.inputs.expr.value
+      = "var i := 0; while(i < x[0]) { i += 1; }; out[0] := i * 0.5;";
+
+  const auto t0 = std::chrono::steady_clock::now();
+  h.run(N);
+  CHECK(std::chrono::steady_clock::now() - t0 < std::chrono::seconds(5));
+
+  for(int i = 0; i < 10; i++)
+    CHECK(out[i] == 0.5);
+  for(int i = 10; i < N; i++)
+    CHECK(out[i] == 0.);
+
+  in[10] = 1.;
+  h.run(N);
+  for(int i = 0; i < N; i++)
+    CHECK(out[i] == 0.5);
 }

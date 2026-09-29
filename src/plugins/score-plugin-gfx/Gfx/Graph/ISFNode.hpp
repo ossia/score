@@ -7,10 +7,18 @@
 
 #include <score_plugin_gfx_export.h>
 
+#include <limits>
 #include <list>
 #include <span>
 namespace score::gfx
 {
+//! A width or height expression can give NaN (sqrt(-1), an interrupted loop)
+//! or a value below one pixel or past int: the default size is kept then.
+inline bool is_texture_dimension(double v) noexcept
+{
+  return v >= 1. && v <= double(std::numeric_limits<int>::max());
+}
+
 struct SinglePassISFNode;
 struct RenderedISFNode;
 struct isf_input_port_vis;

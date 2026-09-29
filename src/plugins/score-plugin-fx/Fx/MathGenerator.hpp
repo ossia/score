@@ -91,10 +91,11 @@ struct Node
     self.b = this->inputs.b;
     self.c = this->inputs.c;
 
-    auto res = self.expr.result();
-    outputs.port(res);
-
-    GenericMathMapping<State>::store_output(self, res);
+    if(auto res = self.expr.result(); res.valid())
+    {
+      outputs.port(res);
+      GenericMathMapping<State>::store_output(self, res);
+    }
 
     self.pa = self.a;
     self.pb = self.b;

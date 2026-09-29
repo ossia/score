@@ -4975,7 +4975,10 @@ int RenderedRawRasterPipelineNode::resolveIntExpression(
   boost::algorithm::replace_all(eval_expr, "$", "var_");
   e.register_symbol_table();
   if(e.set_expression(eval_expr))
-    return std::max(1, (int)e.value());
+    if(const double v = e.value(); is_texture_dimension(v))
+      return int(v);
+    else
+      return 1;
 
   qWarning() << "RawRaster: integer expression failed:"
              << e.error().c_str() << eval_expr.c_str();

@@ -159,6 +159,12 @@ struct Node
 
         // Apply the output
         auto& channels = this->outputs.audio.samples;
+        if(self.expr.interrupted())
+        {
+          for(int j = 0; j < outputs.audio.channels; j++)
+            std::fill(channels[j] + i, channels[j] + tk.frames, 0.);
+          break;
+        }
         for(int j = 0; j < std::min(chans, outputs.audio.channels); j++)
         {
           channels[j][i] = self.cur_out[j];

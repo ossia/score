@@ -20,6 +20,7 @@
 #include <catch2/catch_approx.hpp>
 #include <catch2/catch_test_macros.hpp>
 
+#include <chrono>
 #include <cmath>
 #include <string>
 #include <vector>
@@ -1375,4 +1376,155 @@ TEST_CASE("Expression Audio Generator: an invalid expression leaves the buffer a
   h.run(16);
   for(int i = 0; i < 16; i++)
     CHECK(h.l[i] == 0.);
+}
+
+// ===========================================================================
+// Runaway loops: the evaluation is cut short, the node outputs nothing (or
+// silence) for that tick, and the next tick evaluates normally.
+// ===========================================================================
+
+namespace
+{
+// An interrupted evaluation takes milliseconds; an unbounded one never returns.
+constexpr auto prompt = std::chrono::seconds(5);
+
+template <typename F>
+auto elapsed(F&& f)
+{
+  const auto t0 = std::chrono::steady_clock::now();
+  f();
+  return std::chrono::steady_clock::now() - t0;
+}
+}
+
+TEST_CASE("Micromap: a runaway loop outputs nothing, then recovers", "[fx][exprtk][micromap][loop]")
+{
+  micromap_harness h;
+  h.set("var i := 0; while(i < x) { i += 1; }; i");
+
+  CHECK(elapsed([&] { h.send(1e12f); }) < prompt);
+  CHECK(h.out.values.empty());
+
+  h.send(5.f);
+  CHECK(as_float(h.out.last()) == Approx(5.));
+}
+
+TEST_CASE("Expression Value Filter: a runaway loop outputs nothing, then recovers", "[fx][exprtk][valuefilter][loop]")
+{
+  valuefilter_harness h;
+  h.set("var i := 0; while(i < x) { i += 1; }; return [i, i]");
+
+  CHECK(elapsed([&] { h.send(1e12f); }) < prompt);
+  CHECK(h.out.values.empty());
+
+  h.send(5.f);
+  CHECK(as_vec2(h.out.last()) == ossia::vec2f{5.f, 5.f});
+}
+
+TEST_CASE("Expression Value Filter: a runaway loop on the array path", "[fx][exprtk][valuefilter][array][loop]")
+{
+  valuefilter_harness h;
+  h.set("var i := 0; while(i < xv[0]) { i += 1; }; i + xv[1]");
+
+  CHECK(elapsed([&] { h.send(ossia::vec2f{1e12f, 1.f}); }) < prompt);
+  CHECK(h.out.values.empty());
+
+  h.send(ossia::vec2f{5.f, 1.f});
+  CHECK(as_float(h.out.last()) == Approx(6.));
+}
+
+TEST_CASE("Expression Value Generator: a runaway loop outputs nothing, then recovers", "[fx][exprtk][valuegen][loop]")
+{
+  valuegen_harness h;
+  h.set("var i := 0; while(i < a * 1e12) { i += 1; }; i + 3");
+
+  h.node.inputs.a.value = 1.f;
+  CHECK(elapsed([&] { h.run(); }) < prompt);
+  CHECK(h.out.values.empty());
+
+  h.node.inputs.a.value = 0.f;
+  h.run();
+  CHECK(as_float(h.out.last()) == Approx(3.));
+}
+
+TEST_CASE("Arraymap: a runaway loop in one element outputs nothing", "[fx][exprtk][arraymap][loop]")
+{
+  arraymap_harness h;
+  h.set("var k := 0; while(k < x) { k += 1; }; k");
+
+  // Compiles the 512 element expressions.
+  h.send(ossia::value{std::vector<ossia::value>(512, 0.f)});
+  h.out.clear();
+
+  CHECK(elapsed([&] {
+    h.send(ossia::value{std::vector<ossia::value>(512, 1e12f)});
+  }) < prompt);
+  CHECK(h.out.values.empty());
+
+  h.send(ossia::value{std::vector<ossia::value>{1.f, 2.f, 3.f}});
+  const auto l = as_list(h.out.last());
+  REQUIRE(l.size() == 3);
+  CHECK(as_float(l[2]) == Approx(3.));
+}
+
+// Both paths of the generator: one shared expression re-evaluated per element,
+// and one expression per element when po is used. Every element would run out
+// of its budget: the first one that does ends the tick.
+TEST_CASE("Arraygen: a runaway loop outputs nothing, then recovers", "[fx][exprtk][arraygen][loop]")
+{
+  for(const char* txt :
+      {"var k := 0; while(k < pos * 1e12) { k += 1; }; k + i",
+       "var k := 0; while(k < pos * 1e12) { k += 1; }; k + i + po * 0"})
+  {
+    INFO(txt);
+    arraygen_harness h;
+    h.size(256);
+    h.set(txt);
+    h.run(0, 0.);
+    h.out.clear();
+
+    CHECK(elapsed([&] { h.run(1000, 1.); }) < prompt);
+    CHECK(h.out.values.empty());
+
+    h.run(2000, 0.);
+    const auto l = as_list(h.out.last());
+    REQUIRE(l.size() == 256);
+    CHECK(as_float(l[255]) == Approx(255.));
+  }
+}
+
+TEST_CASE("Expression Audio Generator: a runaway loop outputs silence, then recovers", "[fx][exprtk][audiogen][loop]")
+{
+  audiogen_harness h{512};
+  h.set("var i := 0; while(i < a * 1e12) { i += 1; }; out[0] := 1; out[1] := 1;");
+
+  std::fill(h.l.begin(), h.l.end(), -1.);
+  std::fill(h.r.begin(), h.r.end(), -1.);
+  h.node.inputs.a.value = 1.f;
+  CHECK(elapsed([&] { h.run(512); }) < prompt);
+  for(int i = 0; i < 512; i++)
+  {
+    CHECK(h.l[i] == 0.);
+    CHECK(h.r[i] == 0.);
+  }
+
+  h.node.inputs.a.value = 0.f;
+  h.run(512);
+  for(int i = 0; i < 512; i++)
+    CHECK(h.l[i] == 1.);
+}
+
+// 2048 samples of 1000 iterations each: twice the per-evaluation budget over
+// the buffer, which must not carry from one sample to the next.
+TEST_CASE("Expression Audio Generator: a bounded loop per sample", "[fx][exprtk][audiogen][loop]")
+{
+  audiogen_harness h{2048};
+  h.set("var s := 0; for(var k := 0; k < 1000; k += 1) { s += 1; }; "
+        "out[0] := s; out[1] := t;");
+  h.run(2048);
+  for(int i = 0; i < 2048; i++)
+  {
+    CHECK(h.l[i] == 1000.);
+    CHECK(h.r[i] == (double)i);
+  }
 }

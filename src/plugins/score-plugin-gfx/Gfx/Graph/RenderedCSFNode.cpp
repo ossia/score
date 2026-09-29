@@ -734,21 +734,19 @@ QSize RenderedCSFNode::computeTextureSize(
   {
     boost::algorithm::replace_all(expr, "$", "var_");
     e.register_symbol_table();
-    bool ok = e.set_expression(expr);
-    if(ok)
-      res.setWidth(e.value());
-    else
+    if(!e.set_expression(expr))
       qDebug() << e.error().c_str() << expr.c_str();
+    else if(const double v = e.value(); is_texture_dimension(v))
+      res.setWidth(v);
   }
   if(auto expr = pass.height_expression; !expr.empty())
   {
     boost::algorithm::replace_all(expr, "$", "var_");
     e.register_symbol_table();
-    bool ok = e.set_expression(expr);
-    if(ok)
-      res.setHeight(e.value());
-    else
+    if(!e.set_expression(expr))
       qDebug() << e.error().c_str() << expr.c_str();
+    else if(const double v = e.value(); is_texture_dimension(v))
+      res.setHeight(v);
   }
 
   return res;
@@ -857,7 +855,10 @@ int RenderedCSFNode::resolveCountExpression(
   e.register_symbol_table();
   bool ok = e.set_expression(eval_expr);
   if(ok)
-    return std::max(1, (int)e.value());
+    if(const double v = e.value(); is_texture_dimension(v))
+      return int(v);
+    else
+      return 1;
 
   qDebug() << "resolveCountExpression failed:" << e.error().c_str() << eval_expr.c_str();
   return 0;
@@ -1172,7 +1173,10 @@ int RenderedCSFNode::resolveDispatchExpression(const std::string& expr) const
   e.register_symbol_table();
   bool ok = e.set_expression(eval_expr);
   if(ok)
-    return std::max(1, (int)e.value());
+    if(const double v = e.value(); is_texture_dimension(v))
+      return int(v);
+    else
+      return 1;
 
   qDebug() << "resolveDispatchExpression failed:" << e.error().c_str() << eval_expr.c_str();
   return 1;

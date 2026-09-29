@@ -68,14 +68,17 @@ struct GenericMathMapping
     auto res = self.expr.result();
 
     self.px = self.x;
-    store_output(self, res);
+    if(!res.valid())
+      return;
 
+    store_output(self, res);
     output(res);
   }
 
   //! Evaluate every per-element expression, keeping each one's own feedback
-  //! state, and collect the results.
-  static void exec_polyphonic(State& self, std::vector<ossia::value>& res)
+  //! state, and collect the results. Stops at the first element that has no
+  //! result: each one may have spent a whole loop budget.
+  static bool exec_polyphonic(State& self, std::vector<ossia::value>& res)
   {
     const auto N = self.expressions.size();
     res.resize(N);
@@ -84,6 +87,8 @@ struct GenericMathMapping
     {
       auto& e = self.expressions[i];
       auto r = e.expr.result();
+      if(!r.valid())
+        return false;
 
       if constexpr(requires { e.x; })
         e.px = e.x;
@@ -94,6 +99,7 @@ struct GenericMathMapping
       // a point rather than a scalar (`return [x, y]`).
       res[i] = std::move(r);
     }
+    return true;
   }
 
   static void
@@ -123,7 +129,8 @@ struct GenericMathMapping
     // Save the previous input
     self.pxv.assign(self.xv.begin(), self.xv.end());
 
-    output(std::move(res));
+    if(res.valid())
+      output(std::move(res));
   }
 
   static void run_scalar(
@@ -230,10 +237,8 @@ struct GenericMathMapping
       self.last_value_time = tk.start_in_flicks;
 
       std::vector<ossia::value> res;
-      GenericMathMapping::exec_polyphonic(self, res);
-
-      // Combine
-      output(std::move(res));
+      if(GenericMathMapping::exec_polyphonic(self, res))
+        output(std::move(res));
     }
     else
     {
@@ -252,6 +257,8 @@ struct GenericMathMapping
         auto& e = self.expressions[0];
         e.instance = i;
         res[i] = e.expr.result();
+        if(!res[i].valid())
+          return;
 
         // po isn't used either store_output(e, res);
       }
@@ -347,10 +354,8 @@ struct GenericMathMapping
     }
 
     std::vector<ossia::value> res;
-    GenericMathMapping::exec_polyphonic(self, res);
-
-    // Combine
-    output(std::move(res));
+    if(GenericMathMapping::exec_polyphonic(self, res))
+      output(std::move(res));
   }
 
   static void run_array(

@@ -18,6 +18,7 @@
 #include <catch2/catch_approx.hpp>
 #include <catch2/catch_test_macros.hpp>
 
+#include <chrono>
 #include <cmath>
 #include <string>
 #include <vector>
@@ -681,4 +682,135 @@ TEST_CASE("math_expression: has_variable finds a vector indexed and sized", "[ex
   const auto res = e.result();
   REQUIRE(res.target<ossia::vec3f>());
   CHECK(*res.target<ossia::vec3f>() == ossia::vec3f{10.f, 20.f, 3.f});
+}
+
+// ---------------------------------------------------------------------------
+// Loop runtime check: a runaway loop is cut short instead of hanging the
+// thread that evaluates it, and the next evaluation starts afresh.
+// ---------------------------------------------------------------------------
+
+namespace
+{
+// Generous: an interrupted evaluation takes milliseconds; an unbounded one
+// would not return at all.
+constexpr auto prompt = std::chrono::seconds(5);
+
+template <typename F>
+auto elapsed(F&& f)
+{
+  const auto t0 = std::chrono::steady_clock::now();
+  f();
+  return std::chrono::steady_clock::now() - t0;
+}
+}
+
+TEST_CASE("math_expression: a runaway loop is interrupted", "[exprtk][math_expression][loop]")
+{
+  generator_env env;
+  for(const char* txt : {
+          "var i := 0; while(i >= 0) { i += 1; }; i",
+          "var i := 0; for(var k := 0; k >= 0; k += 1) { i += 1; }; i",
+          "var i := 0; repeat i += 1; until(i < 0); i",
+          "var i := 0; while(true) { i += 1; if(i < 0) break; }; i",
+          "var i := 0; for(var k := 0; k >= 0; k += 1) { i += 1; if(i < 0) continue; }; i",
+          "var i := 0; while(i >= 0) { i += 1; }; return [i, i]",
+      })
+  {
+    INFO(txt);
+    REQUIRE(env.expr.set_expression(txt));
+
+    ossia::value res;
+    CHECK(elapsed([&] { res = env.expr.result(); }) < prompt);
+    CHECK(env.expr.interrupted());
+    CHECK_FALSE(res.valid());
+
+    double v{};
+    CHECK(elapsed([&] { v = env.expr.value(); }) < prompt);
+    CHECK(env.expr.interrupted());
+    CHECK(std::isnan(v));
+  }
+}
+
+// exprtk counts each loop's iterations on its own and restarts the count
+// every time the loop is entered: nested loops must share one budget.
+TEST_CASE("math_expression: nested runaway loops are interrupted", "[exprtk][math_expression][loop]")
+{
+  generator_env env;
+  REQUIRE(env.expr.set_expression(
+      "var s := 0;"
+      "for(var i := 0; i >= 0; i += 1) {"
+      "  for(var j := 0; j >= 0; j += 1) {"
+      "    for(var k := 0; k >= 0; k += 1) { s += 1; }"
+      "  }"
+      "};"
+      "s"));
+  CHECK(elapsed([&] { (void)env.expr.value(); }) < prompt);
+  CHECK(env.expr.interrupted());
+}
+
+// Vector operations run within a single iteration: the iteration count alone
+// does not bound such a loop.
+TEST_CASE("math_expression: a runaway loop over vector operations is interrupted", "[exprtk][math_expression][loop]")
+{
+  std::vector<double> v(65536, 1.);
+  ossia::math_expression e;
+  e.add_vector("v", v);
+  e.add_constants();
+  e.register_symbol_table();
+
+  REQUIRE(e.set_expression("var s := 0; while(s >= 0) { s += sum(v); }; s"));
+  CHECK(elapsed([&] { (void)e.value(); }) < prompt);
+  CHECK(e.interrupted());
+}
+
+TEST_CASE("math_expression: a bounded loop runs to completion", "[exprtk][math_expression][loop]")
+{
+  generator_env env;
+  REQUIRE(env.expr.set_expression(
+      "var s := 0; for(var i := 0; i < 100000; i += 1) { s += i; }; s"));
+  CHECK(env.expr.value() == 4999950000.);
+  CHECK_FALSE(env.expr.interrupted());
+
+  // Two loops whose iterations add up to most of the budget.
+  REQUIRE(env.expr.set_expression(
+      "var s := 0;"
+      "for(var i := 0; i < 400; i += 1) { for(var j := 0; j < 1000; j += 1) { s += 1; } };"
+      "var k := 0; while(k < 400000) { k += 1; };"
+      "s + k"));
+  CHECK(env.expr.value() == 800000.);
+  CHECK_FALSE(env.expr.interrupted());
+}
+
+TEST_CASE("math_expression: the evaluation after an interrupted one works", "[exprtk][math_expression][loop]")
+{
+  generator_env env;
+  REQUIRE(env.expr.set_expression("var i := 0; while(i < a) { i += 1; }; i"));
+
+  env.a = 1e12;
+  CHECK_FALSE(env.expr.result().valid());
+  CHECK(env.expr.interrupted());
+
+  env.a = 1000.;
+  CHECK(as_float(env.expr.result()) == Approx(1000.));
+  CHECK_FALSE(env.expr.interrupted());
+
+  env.a = 1e12;
+  CHECK(std::isnan(env.expr.value()));
+  env.a = 10.;
+  CHECK(env.expr.value() == 10.);
+  CHECK_FALSE(env.expr.interrupted());
+}
+
+// The budget is per evaluation: an expression evaluated many times, like a
+// per-sample audio expression, never runs out of it.
+TEST_CASE("math_expression: the loop budget is per evaluation", "[exprtk][math_expression][loop]")
+{
+  generator_env env;
+  REQUIRE(env.expr.set_expression(
+      "var s := 0; for(var k := 0; k < 1000; k += 1) { s += 1; }; s"));
+  for(int i = 0; i < 2048; i++)
+  {
+    REQUIRE(env.expr.value() == 1000.);
+    REQUIRE_FALSE(env.expr.interrupted());
+  }
 }

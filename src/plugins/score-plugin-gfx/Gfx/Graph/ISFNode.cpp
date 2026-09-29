@@ -544,21 +544,19 @@ QSize ISFNode::computeTextureSize(
   {
     boost::algorithm::replace_all(expr, "$", "var_");
     e.register_symbol_table();
-    bool ok = e.set_expression(expr);
-    if(ok)
-      res.setWidth(e.value());
-    else
+    if(!e.set_expression(expr))
       qDebug() << e.error().c_str() << expr.c_str();
+    else if(const double v = e.value(); is_texture_dimension(v))
+      res.setWidth(v);
   }
   if(auto expr = pass.height_expression; !expr.empty())
   {
     boost::algorithm::replace_all(expr, "$", "var_");
     e.register_symbol_table();
-    bool ok = e.set_expression(expr);
-    if(ok)
-      res.setHeight(e.value());
-    else
+    if(!e.set_expression(expr))
       qDebug() << e.error().c_str() << expr.c_str();
+    else if(const double v = e.value(); is_texture_dimension(v))
+      res.setHeight(v);
   }
 
   return res;

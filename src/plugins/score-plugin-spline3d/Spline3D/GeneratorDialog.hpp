@@ -8,6 +8,8 @@
 #include <QFormLayout>
 #include <QHBoxLayout>
 
+#include <cmath>
+
 #include <Spline3D/Commands.hpp>
 
 namespace Spline3D
@@ -60,15 +62,29 @@ z := sin(7 * pi * t);
     else
     {
       ossia::spline3d_data data;
-      for(t = 0.; t < 1.; t += m_step)
-      {
+      QString error;
+      auto add_point = [&] {
         expr.value();
-        data.points.push_back({x, y, z});
-      }
+        if(expr.interrupted())
+          error = tr("The expression runs for too long (a loop does not end)");
+        else if(!(std::isfinite(x) && std::isfinite(y) && std::isfinite(z)))
+          error = tr("The expression gives an undefined point at t = %1").arg(t);
+        else
+          data.points.push_back({x, y, z});
+        return error.isEmpty();
+      };
+      bool complete = true;
+      for(t = 0.; t < 1. && complete; t += m_step)
+        complete = add_point();
+      if(complete)
       {
         t = 1.;
-        expr.value();
-        data.points.push_back({x, y, z});
+        complete = add_point();
+      }
+      if(!complete)
+      {
+        setError(0, error);
+        return;
       }
 
       CommandDispatcher<>{m_context.commandStack}.submit<ChangeSpline>(
