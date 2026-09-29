@@ -1718,6 +1718,16 @@ score_add_test(test_unit_time_chooser_double_click
   SOURCES TimeChooserDoubleClickTest.cpp
   APP)
 
+# Quick clicks on the time chooser's readout (every second one a double-click)
+# cycle through every mode; right-click types in a free time. Through a view,
+# and on a Metro v2 control for the command / undo path.
+if(TARGET score_plugin_fx)
+  score_add_test(test_unit_time_chooser_readout_click
+    SOURCES TimeChooserReadoutClickTest.cpp
+    APP
+    PLUGINS score_lib_process score_plugin_scenario score_plugin_fx)
+endif()
+
 # POLYGON_MODE line falls back to fill, warning once, without NonFillPolygonMode.
 # Its own process: the warning is a process-wide once flag.
 if(TARGET score_plugin_gfx)

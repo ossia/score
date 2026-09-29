@@ -141,7 +141,7 @@ QGraphicsTimeChooser::QGraphicsTimeChooser(QGraphicsItem* parent)
 {
   auto& skin = score::Skin::instance();
   setCursor(skin.CursorPointingHand);
-  this->setAcceptedMouseButtons(Qt::LeftButton);
+  this->setAcceptedMouseButtons(Qt::LeftButton | Qt::RightButton);
   this->setAcceptHoverEvents(true);
   m_other01 = default_sync_index / double(division_count - 1);
 }
@@ -165,6 +165,18 @@ void QGraphicsTimeChooser::setRect(const QRectF& r)
   prepareGeometryChange();
   m_rect = r;
   update();
+}
+
+double QGraphicsTimeChooser::map(double position) const noexcept
+{
+  return positionToSeconds ? positionToSeconds(position) : min + position * (max - min);
+}
+
+double QGraphicsTimeChooser::unmap(double seconds) const noexcept
+{
+  return secondsToPosition ? ossia::clamp(secondsToPosition(seconds), 0., 1.)
+         : max != min      ? ossia::clamp((seconds - min) / (max - min), 0., 1.)
+                           : 0.;
 }
 
 int QGraphicsTimeChooser::syncIndex() const noexcept
@@ -268,8 +280,7 @@ QRectF QGraphicsTimeChooser::boundingRect() const
 
 QString QGraphicsTimeChooser::freeText() const
 {
-  const double secs
-      = positionToSeconds ? positionToSeconds(m_value) : min + m_value * (max - min);
+  const double secs = map(m_value);
   // A few milliseconds matter in an envelope: 0.4 ms is not "0 ms". Decided on
   // the rounded value: 0.01f is 9.99999977 ms, and "10.0 ms" is too wide for
   // the knob, which would cut the unit off.
@@ -351,15 +362,34 @@ void QGraphicsTimeChooser::hoverLeaveEvent(QGraphicsSceneHoverEvent* event)
   QGraphicsItem::hoverLeaveEvent(event);
 }
 
+bool QGraphicsTimeChooser::onReadout(QPointF pos) const noexcept
+{
+  return pos.y() >= defaultKnobSize.height() - 10.;
+}
+
 void QGraphicsTimeChooser::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
-  // The readout row below the knob cycles: free, straight, dotted, triplet
-  if(event->button() == Qt::LeftButton
-     && event->pos().y() >= defaultKnobSize.height() - 10.)
+  switch(event->button())
   {
-    cycleMode();
-    event->accept();
-    return;
+    case Qt::LeftButton:
+      // The readout row below the knob cycles: free, straight, dotted, triplet
+      if(onReadout(event->pos()))
+      {
+        cycleMode();
+        event->accept();
+        return;
+      }
+      break;
+    case Qt::RightButton:
+      // Typing a time in: seconds only, a note value is picked on the knob
+      if(m_sync)
+      {
+        event->ignore();
+        return;
+      }
+      break;
+    default:
+      break;
   }
   DefaultGraphicsKnobImpl::mousePressEvent(*this, event);
 }
@@ -387,8 +417,10 @@ void QGraphicsTimeChooser::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 
 void QGraphicsTimeChooser::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
-  // Not DefaultGraphicsKnobImpl::mouseReleaseEvent: its right-click spinbox
-  // needs a scalar value() which this widget does not have.
+  // Not DefaultGraphicsKnobImpl::mouseReleaseEvent: the value snaps in sync
+  // mode, and only a drag has an edit to end here -- a click on the readout
+  // or a double-click ended its own, and a second sliderReleased() would be a
+  // second command.
   if(m_grab)
   {
     double v = InfiniteScroller::move(event);
@@ -401,10 +433,21 @@ void QGraphicsTimeChooser::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
       update();
     }
     InfiniteScroller::stop(*this, event);
+    m_grab = false;
+    sliderReleased();
   }
-  m_grab = false;
-  sliderReleased();
+  else if(event->button() == Qt::RightButton && !m_sync)
+  {
+    DefaultGraphicsKnobImpl::contextMenuEvent(*this, event->scenePos());
+  }
   event->accept();
+}
+
+void QGraphicsTimeChooser::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
+{
+  // Free: the right-click types the time in. Synced: whatever is below
+  // handles it, as before.
+  event->setAccepted(!m_sync);
 }
 
 //! QEvent::UngrabMouse: the scene took the implicit grab away and there will be
@@ -426,15 +469,21 @@ bool QGraphicsTimeChooser::sceneEvent(QEvent* event)
 
 void QGraphicsTimeChooser::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event)
 {
+  // Clicking through the modes quickly makes every second click a double-click:
+  // on the readout it is one more click, not a reset.
+  if(event->button() != Qt::LeftButton || onReadout(event->pos()))
+  {
+    mousePressEvent(event);
+    return;
+  }
+
   if(m_sync)
   {
     m_value = default_sync_index / double(division_count - 1);
     m_feel = feelOf(default_sync_index);
   }
   else
-    m_value = secondsToPosition ? ossia::clamp(secondsToPosition(init), 0., 1.)
-              : max != min ? ossia::clamp((init - min) / (max - min), 0., 1.)
-                           : 0.;
+    m_value = unmap(init);
 
   m_grab = true;
   sliderMoved();

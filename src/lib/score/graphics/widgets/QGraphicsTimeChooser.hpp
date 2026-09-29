@@ -18,7 +18,8 @@ namespace score
 // readout below it; dragging the knob changes the value, clicking the
 // readout toggles the mode (with per-mode memory so no value jumps). In
 // sync mode the knob steps through the whole division table: straight,
-// dotted and triplet, from 1/64th to four bars.
+// dotted and triplet, from 1/64th to four bars. A right-click on a free time
+// types it in, in seconds.
 //
 // The value is vec2f{x, sync}: x is a normalized 0..1 position when free
 // (the consumer maps it to seconds), a fraction of a whole note when synced.
@@ -28,6 +29,7 @@ class SCORE_LIB_BASE_EXPORT QGraphicsTimeChooser final
 {
   W_OBJECT(QGraphicsTimeChooser)
   SCORE_GRAPHICS_ITEM_TYPE(230)
+  friend struct DefaultControlImpl;
   friend struct DefaultGraphicsKnobImpl;
 
 public:
@@ -83,8 +85,15 @@ private:
   void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
   bool sceneEvent(QEvent* event) override;
   void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event) override;
+  void contextMenuEvent(QGraphicsSceneContextMenuEvent* event) override;
   void hoverEnterEvent(QGraphicsSceneHoverEvent* event) override;
   void hoverLeaveEvent(QGraphicsSceneHoverEvent* event) override;
+
+  //! Free mode: the seconds of a knob position, and the position of a time
+  //! (what the right-click type-in box shows and sets).
+  double map(double position) const noexcept;
+  double unmap(double seconds) const noexcept;
+  bool onReadout(QPointF pos) const noexcept;
 
   int syncIndex() const noexcept;
   //! Knob position, 0..1, for a {x, sync} pair in the current mode

@@ -245,8 +245,10 @@ struct DefaultGraphicsKnobImpl
 #endif
   }
 
+  //! A value typed in as a real number, map(m_value): a scalar control, or one
+  //! whose value() is more than the number (the time chooser's {time, sync}).
   template <typename T>
-    requires std::is_floating_point_v<std::decay_t<decltype(std::declval<T>().value())>>
+    requires(!std::is_integral_v<std::decay_t<decltype(std::declval<T>().value())>>)
   static void contextMenuEvent(T& self, QPointF pos)
   {
     auto build = [&, self_p = &self, pos] {
