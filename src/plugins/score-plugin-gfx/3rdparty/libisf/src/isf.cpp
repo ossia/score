@@ -930,7 +930,7 @@ static aux_kind aux_entry_kind(const sajson::value& aux_obj)
   if(v.get_type() != sajson::TYPE_STRING)
     return aux_kind::Ssbo;
   std::string t = v.as_string();
-  for(auto& c : t) c = (char)tolower(c);
+  for(auto& c : t) c = (char)tolower((unsigned char)c);
   if(t == "image" || t == "texture" || t == "cubemap" || t == "image_cube"
      || t == "storage_image" || t == "storage_cube"
      || t == "storage_image_array" || t == "storage_3d")
@@ -955,7 +955,7 @@ static void parse_auxiliary_texture(
     else if(fkey == "TYPE" && fval.get_type() == sajson::TYPE_STRING)
     {
       std::string t = fval.as_string();
-      for(auto& c : t) c = (char)tolower(c);
+      for(auto& c : t) c = (char)tolower((unsigned char)c);
       if(t == "cubemap" || t == "image_cube")
         out.is_cubemap = true;
       else if(t == "storage_image")
@@ -3850,7 +3850,7 @@ std::pair<int, descriptor> parser::parse_isf_header(std::string_view source)
   {
     std::string key = root.get_object_key(i).as_string();
     for(char& c : key)
-      c = toupper(c);
+      c = toupper((unsigned char)c);
 
     auto it = root_parse.find(key);
     if(it != root_parse.end())
@@ -4004,7 +4004,7 @@ static std::string isf_glsl_type_prefix(const std::string& format)
   if(format.empty())
     return "";
   std::string fmt = format;
-  for(auto& c : fmt) c = (char)toupper(c);
+  for(auto& c : fmt) c = (char)toupper((unsigned char)c);
   if(fmt.find("UI") != std::string::npos)
     return "u";
   if(fmt.size() >= 2 && fmt.back() == 'I' && fmt[fmt.size() - 2] != 'U')
@@ -4521,7 +4521,7 @@ void parser::parse_isf()
         if(!d.depth_layout.empty())
         {
           std::string dl = d.depth_layout;
-          for(auto& c : dl) c = (char)tolower(c);
+          for(auto& c : dl) c = (char)tolower((unsigned char)c);
           const char* q = nullptr;
           if(dl == "greater")        q = "depth_greater";
           else if(dl == "less")      q = "depth_less";
@@ -5032,7 +5032,7 @@ void parser::parse_raw_raster_pipeline()
     if(!m_desc.depth_layout.empty())
     {
       std::string dl = m_desc.depth_layout;
-      for(auto& c : dl) c = (char)tolower(c);
+      for(auto& c : dl) c = (char)tolower((unsigned char)c);
       const char* q = nullptr;
       if(dl == "greater")        q = "depth_greater";
       else if(dl == "less")      q = "depth_less";
@@ -7236,7 +7236,7 @@ void parser::parse_csf()
       return "";
     // Uppercase copy for matching
     std::string fmt = format;
-    for(auto& c : fmt) c = toupper(c);
+    for(auto& c : fmt) c = toupper((unsigned char)c);
     // Check for unsigned int formats (end with UI or contain UI before digits)
     if(fmt.find("UI") != std::string::npos)
       return "u";
