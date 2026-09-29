@@ -445,6 +445,9 @@ void module_handler::processMessage(std::string_view v)
     }
     else if(auto it = m_httpCallbacks.find(idInt); it != m_httpCallbacks.end())
     {
+      // The callback may issue or cancel requests
+      auto callback = std::move(it->second);
+      m_httpCallbacks.erase(it);
       auto response = payload_json["response"].toObject();
       int status = response["status"].toInt(200);
       QString respBody = response["body"].toString();
@@ -452,8 +455,7 @@ void module_handler::processMessage(std::string_view v)
       auto hObj = response["headers"].toObject();
       for(const auto& k : hObj.keys())
         respHeaders[k] = hObj[k].toString();
-      it->second(status, respHeaders, respBody);
-      m_httpCallbacks.erase(it);
+      callback(status, respHeaders, respBody);
     }
   }
 }
