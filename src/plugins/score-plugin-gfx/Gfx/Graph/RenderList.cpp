@@ -397,6 +397,7 @@ void RenderList::resolveAllInletSpecs(
   // into is resolved before the node's own inlets are.
   for(auto it = nodes.rbegin(); it != nodes.rend(); ++it)
   {
+    auto* node = *it;
     if(node == &output)
       continue;
 
@@ -1453,21 +1454,6 @@ RenderList::Buffers RenderList::acquireMesh(
   // 1. Try to find mesh from the exact same geometry
   const auto& [p, f] = spec;
 
-  auto dump_bufs = [](const char* tag, CustomMesh* m, const MeshBuffers& mb) {
-    if(!::score::gfx::buftrace_enabled())
-      return;
-    QDebug d = qDebug().nospace();
-    d << "[BUFTRACE] " << tag << " mesh=" << (void*)m
-      << " bufs.size=" << (qsizetype)mb.buffers.size() << " [";
-    for(std::size_t i = 0; i < mb.buffers.size(); ++i)
-    {
-      if(i)
-        d << ",";
-      d << (void*)mb.buffers[i].handle;
-    }
-    d << "] indirect=" << (void*)mb.indirectDrawBuffer;
-  };
-
   if(auto it = m_customMeshCache.find(spec); it != m_customMeshCache.end())
   {
     if(auto m = const_cast<CustomMesh*>(safe_cast<const CustomMesh*>(it->second)))
@@ -1478,14 +1464,8 @@ RenderList::Buffers RenderList::acquireMesh(
 
       if(auto cur_idx = p->dirty_index; m->dirtyGeometryIndex != cur_idx)
       {
-        BUFTRACE() << "acquireMesh PATH 1a: dirty_index "
-                   << m->dirtyGeometryIndex << "->" << cur_idx
-                   << " mesh=" << (void*)m
-                   << " spec=" << (void*)p.get();
-        dump_bufs("  before reload", m, mb);
         m->reload(*p, f);
         m->update(rhi, mb, res);
-        dump_bufs("  after reload", m, mb);
         for(auto& mesh: p->meshes) {
           for(auto& buf : mesh.buffers) {
             buf.dirty = false;
@@ -1506,11 +1486,8 @@ RenderList::Buffers RenderList::acquireMesh(
 
         if(dirty)
         {
-          BUFTRACE() << "acquireMesh PATH 1b: buf.dirty mesh=" << (void*)m;
-          dump_bufs("  before reload", m, mb);
           m->reload(*p, f);
           m->update(rhi, mb, res);
-          dump_bufs("  after reload", m, mb);
           for(auto& mesh: p->meshes) {
             for(auto& buf : mesh.buffers) {
               buf.dirty = false;
@@ -1535,13 +1512,8 @@ RenderList::Buffers RenderList::acquireMesh(
         auto& mb = currentbufs;
         auto cur_idx = p->dirty_index;
 
-        BUFTRACE() << "acquireMesh PATH 2 (reuse): mesh=" << (void*)m
-                   << " old_spec=" << (void*)it->first.meshes.get()
-                   << " new_spec=" << (void*)p.get();
-        dump_bufs("  before reload", m, mb);
         m->reload(*p, f);
         m->update(rhi, mb, res);
-        dump_bufs("  after reload", m, mb);
 
         for(auto& mesh: p->meshes) {
           for(auto& buf : mesh.buffers) {
@@ -1567,7 +1539,6 @@ RenderList::Buffers RenderList::acquireMesh(
   }
 
   // 3. Really not found, we allocate a new mesh for good
-  BUFTRACE() << "acquireMesh PATH 3 (fresh): spec=" << (void*)p.get();
   auto m = new CustomMesh{*p, f};
   auto meshbufs = initMeshBuffer(*m, res);
 

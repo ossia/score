@@ -1,6 +1,5 @@
 #include <Gfx/Graph/GpuResourceRegistry.hpp>
 
-#include <Gfx/Graph/CustomMesh.hpp>  // BUFTRACE
 #include <Gfx/Graph/RenderList.hpp>
 #include <Gfx/Graph/RhiClearBuffer.hpp>
 #include <Gfx/Graph/SceneGPUState.hpp>  // MaterialGPU layout
@@ -800,11 +799,6 @@ GpuResourceRegistry::MeshSlab* GpuResourceRegistry::acquireMeshSlab(
     }
     m_vertexSlotsUsed += vertex_count;
   }
-  BUFTRACE() << "[MeshSlab] alloc id=" << qulonglong(stable_id)
-             << " vc=" << vertex_count << " ic=" << index_count
-             << " vSlot=" << slab.vertex_slot.offset
-             << " (used=" << m_vertexSlotsUsed << "/" << m_vertexSlotsCapacity
-             << ")";
 
   if(index_count > 0)
   {
@@ -856,11 +850,6 @@ void GpuResourceRegistry::drainExpiredPendingReleases(
     if(current_frame >= grace
        && it->released_frame + grace <= current_frame)
     {
-      BUFTRACE() << "[MeshSlab] free  id=" << qulonglong(it->stable_id)
-                 << " vSlot=" << it->vertex_slot.offset
-                 << " iSlot=" << it->index_slot.offset
-                 << " released_at=" << it->released_frame
-                 << " current=" << current_frame;
       if(m_vertexAllocator
          && it->vertex_slot.metadata != OffsetAllocator::Allocation::NO_SPACE)
       {

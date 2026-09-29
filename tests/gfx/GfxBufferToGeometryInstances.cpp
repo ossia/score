@@ -51,10 +51,10 @@
 //
 // RELOAD COUNTING: the "CustomMesh::reload" line (CustomMesh.cpp:604) is a
 // plain qDebug behind the BUFTRACE() macro (CustomMesh.hpp:20), gated at
-// runtime only: buftrace_enabled() (CustomMesh.cpp:18) returns true unless
-// the SCORE_BUFTRACE env var is set to a string starting with '0'. Nothing
-// compiles it out in release (no QT_NO_DEBUG_OUTPUT anywhere in the build).
-// The test still forces SCORE_BUFTRACE=1 and re-enables the default Qt
+// runtime only: buftrace_enabled() (CustomMesh.cpp) is opt-in, true only when
+// the SCORE_BUFTRACE env var is set to a string not starting with '0'.
+// Nothing compiles it out in release (no QT_NO_DEBUG_OUTPUT in the build).
+// The test therefore sets SCORE_BUFTRACE=1 and re-enables the default Qt
 // logging category, then captures fd 2 with the dup2 pattern from
 // tests/gfx/GfxEdgeConsumeLatch.cpp and counts occurrences. Unix-only, like
 // the precedent; on other platforms the reload-count checks are skipped
@@ -634,9 +634,8 @@ TEST_CASE(
     "pinned no-op gap)",
     "[gfx][threedim][buffertogeometry][instancing][p1-10]")
 {
-  // The reload observable: force the runtime gate ON (it is on by default --
-  // CustomMesh.cpp:15-22 -- but a CI environment may export SCORE_BUFTRACE=0)
-  // and make sure the default Qt logging category actually emits qDebug.
+  // The reload observable: turn the opt-in runtime gate on, and make sure the
+  // default Qt logging category actually emits qDebug.
   qputenv("SCORE_BUFTRACE", "1");
   QLoggingCategory::setFilterRules(QStringLiteral("default.debug=true"));
 

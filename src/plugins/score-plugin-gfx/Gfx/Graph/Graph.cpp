@@ -1092,12 +1092,6 @@ void Graph::reconcileAllRenderLists()
         if(rn_it != node->renderedNodes.end())
         {
           auto* renderer = rn_it->second;
-          BUFTRACE() << "reconcile: releasing unreachable renderer="
-                     << (void*)renderer
-                     << " node_id=" << node->nodeId
-                     << " (any downstream node still referencing this "
-                        "renderer's buffers via process() caches will see "
-                        "stale pointers → ASan target)";
           // Same contract as removeNodeFromRenderLists: the pending initial
           // batch may name resources releaseState is about to delete.
           rl->flushInitialBatch();

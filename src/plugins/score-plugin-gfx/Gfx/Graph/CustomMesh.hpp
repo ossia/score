@@ -12,12 +12,15 @@
 namespace score::gfx
 {
 
-// [BUFTRACE] — diagnostic logging around QRhiBuffer lifetime during
-// live graph edits (defined in CustomMesh.cpp). Exposed so other TUs
-// (RenderList, ScenePreprocessorNode, RenderedRawRasterPipelineNode) can
-// use BUFTRACE() with the same env-var gating.
+// Opt-in (SCORE_BUFTRACE=1) trace of CustomMesh::reload, the point where a
+// geometry change reaches the GPU vertex / index buffers.
 SCORE_PLUGIN_GFX_EXPORT bool buftrace_enabled();
-#define BUFTRACE() if(::score::gfx::buftrace_enabled()) qDebug().nospace() << "[BUFTRACE] "
+#define BUFTRACE()                        \
+  if(!::score::gfx::buftrace_enabled()) \
+  {                                       \
+  }                                       \
+  else                                    \
+    qDebug().nospace() << "[BUFTRACE] "
 
 
 class CustomMesh : public score::gfx::Mesh

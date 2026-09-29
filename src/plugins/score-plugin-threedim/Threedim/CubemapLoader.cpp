@@ -443,13 +443,6 @@ CubemapLoader::~CubemapLoader()
   // releaseCubemapTexture() null each pointer after deleteLater(), so
   // calling them again is a no-op if the framework already ran
   // release(RenderList&).
-  if(m_cubemapTex || m_equirectTex)
-  {
-    qDebug() << "[BUFTRACE] ~CubemapLoader FALLBACK this=" << (void*)this
-             << " m_cubemapTex=" << (void*)m_cubemapTex
-             << " m_equirectTex=" << (void*)m_equirectTex
-             << " (release(RenderList&) was never called — leaked textures)";
-  }
   releaseEquirectResources();
   releaseCubemapTexture();
 }

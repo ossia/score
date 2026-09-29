@@ -13,13 +13,11 @@
 // TODO: check that rendering e.g. sponza still works
 namespace score::gfx{
 
-// [BUFTRACE] implementation — see CustomMesh.hpp. Turn off at runtime
-// by setting SCORE_BUFTRACE=0.
 bool buftrace_enabled()
 {
   static const bool on = [] {
     const char* v = std::getenv("SCORE_BUFTRACE");
-    return !v || v[0] != '0';
+    return v && v[0] && v[0] != '0';
   }();
   return on;
 }
@@ -231,12 +229,6 @@ void CustomMesh::update_vbo(
       delete fresh;
       return;
     }
-    BUFTRACE() << "update_vbo(cpu) mesh=" << (void*)this
-               << " slot=" << buffer_index
-               << " allocating fresh owned buffer (was "
-               << (slot.handle ? "unowned upstream" : "empty") << ")"
-               << " new=" << (void*)fresh
-               << " size=" << (qint64)vtx_buf.byte_size;
     slot.handle = fresh;
     slot.owned = true;
   }
@@ -271,22 +263,7 @@ void CustomMesh::update_vbo(
     // deleteLater so QRhi's release queue tears it down, and any SRBs rebind
     // through m_id generation tracking on their next setShaderResources.
     if(slot.owned && old_buf)
-    {
-      BUFTRACE() << "update_vbo(gpu) mesh=" << (void*)this
-                 << " slot=" << buffer_index
-                 << " deleteLater old owned=" << (void*)old_buf
-                 << " new=" << (void*)new_buf
-                 << " size=" << (qint64)vtx_buf.byte_size;
       old_buf->deleteLater();
-    }
-    else
-    {
-      BUFTRACE() << "update_vbo(gpu) mesh=" << (void*)this
-                 << " slot=" << buffer_index
-                 << " old(unowned)=" << (void*)old_buf
-                 << " new=" << (void*)new_buf
-                 << " size=" << (qint64)vtx_buf.byte_size;
-    }
   }
   // Replacement entry must carry owned=false: the handle belongs to the
   // upstream gpu_buffer producer. Default-constructed BufferView has
@@ -329,12 +306,6 @@ void CustomMesh::update_index(
           delete fresh;
           return;
         }
-        BUFTRACE() << "update_index(cpu) mesh=" << (void*)this
-                   << " slot=" << buffer_index
-                   << " allocating fresh owned index buffer (was "
-                   << (slot.handle ? "unowned upstream" : "empty") << ")"
-                   << " new=" << (void*)fresh
-                   << " size=" << (qint64)idx_buf_size;
         slot.handle = fresh;
         slot.owned = true;
       }
@@ -371,22 +342,7 @@ void CustomMesh::update_index(
     // Route an owned handle through QRhi's release queue so the wrapper is not
     // dropped on the floor when this slot transitions cpu -> gpu.
     if(slot.owned && old_buf)
-    {
-      BUFTRACE() << "update_index(gpu) mesh=" << (void*)this
-                 << " slot=" << buffer_index
-                 << " deleteLater old owned=" << (void*)old_buf
-                 << " new=" << (void*)new_buf
-                 << " size=" << (qint64)idx_buf.byte_size;
       old_buf->deleteLater();
-    }
-    else
-    {
-      BUFTRACE() << "update_index(gpu) mesh=" << (void*)this
-                 << " slot=" << buffer_index
-                 << " old(unowned)=" << (void*)old_buf
-                 << " new=" << (void*)new_buf
-                 << " size=" << (qint64)idx_buf.byte_size;
-    }
     BufferView bv{};
     bv.handle = new_buf;
     bv.owned = false;
@@ -428,10 +384,6 @@ void CustomMesh::update(
     total_geom_buffers += m.buffers.size();
   if(output_meshbuf.buffers.size() < total_geom_buffers)
   {
-    BUFTRACE() << "CustomMesh::update: growing MeshBuffers from "
-               << (qsizetype)output_meshbuf.buffers.size()
-               << " to " << (qsizetype)total_geom_buffers
-               << " slots (preserving existing handles)";
     output_meshbuf.buffers.resize(
         total_geom_buffers, BufferView{nullptr, 0, 0});
   }

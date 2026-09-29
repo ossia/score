@@ -1373,7 +1373,6 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
       else
         newCap = (need * 5 / 4 + 15) & ~int64_t{15};
     }
-    auto* old = buf;
     if(buf)
       renderer.releaseBuffer(buf);
     buf = renderer.state.rhi->newBuffer(
@@ -1385,12 +1384,6 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
     // wrapper would turn uploadStaticBuffer into a silent no-op and every
     // shader read into zeroes, so surface it loudly.
     const bool ok = buf->create();
-    BUFTRACE() << "ScenePreprocessor::growBuf name=" << name
-               << " old=" << (void*)old
-               << " new=" << (void*)buf
-               << " cap=" << (qint64)cap << "->" << (qint64)newCap
-               << " need=" << (qint64)need
-               << " ok=" << ok;
     if(!ok)
     {
       qWarning() << "ScenePreprocessor::growBuf:" << name
@@ -4379,17 +4372,6 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
       return;
     }
 
-    BUFTRACE() << "ScenePreprocessor::update REBUILD cached_state="
-               << (const void*)m_cachedSceneState
-               << " cached_ver=" << (qint64)m_cachedVersion
-               << " new_state=" << (void*)this->scene.state.get()
-               << " new_ver="
-               << (this->scene.state ? (qint64)this->scene.state->version : (qint64)-1)
-               << " mdi_indices="
-               << (void*)(m_registry ? m_registry->meshStreamBuffer(
-                       GpuResourceRegistry::MeshStream::Indices) : nullptr)
-               << " (downstream shader bindings still reference the "
-                  "pre-rebuild MDI buffers until the next acquireMesh)";
 
     // Walk the scene. flattenScene is O(nodes) — cheap compared to any
     // GPU upload — so we always do it. The expensive work (vertex/index
@@ -5560,16 +5542,6 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
       return;
 
     int port_idx = (int)(it - sink->node->input.begin());
-    BUFTRACE() << "ScenePreprocessor → sink_node=" << sink->node->nodeId
-               << " port=" << port_idx
-               << " mdi_indices="
-               << (void*)(m_registry ? m_registry->meshStreamBuffer(
-                       GpuResourceRegistry::MeshStream::Indices) : nullptr)
-               << " mdi_positions="
-               << (void*)(m_registry ? m_registry->meshStreamBuffer(
-                       GpuResourceRegistry::MeshStream::Positions) : nullptr)
-               << " mdi_drawCmds=" << (void*)m_mdi.indirect_draw_cmds
-               << " mdi_drawCount=" << (quint32)m_mdi.drawCount;
     rn_it->second->process(port_idx, m_outputSpec, edge.source);
   }
 

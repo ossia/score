@@ -55,7 +55,7 @@
 // RenderedCSFNode::createStorageBuffer emits none (only a qWarning on
 // FAILURE), and the no-upstream resize path resizes buffers in place, also
 // silently. SCORE_GFX_TRACE gates only Graph.cpp / ImageNode.cpp / Window.cpp
-// lines; the [BUFTRACE] channel (CustomMesh.cpp, on unless SCORE_BUFTRACE=0)
+// lines; the opt-in [BUFTRACE] channel (CustomMesh.cpp, SCORE_BUFTRACE=1)
 // covers CustomMesh::reload, whose per-change invocation count is not a
 // specified contract (per-renderer, per-edge). The reallocation is validated
 // through its OBSERVABLE contract instead: the G channel is the content of
