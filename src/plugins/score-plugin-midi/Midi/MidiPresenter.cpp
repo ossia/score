@@ -332,14 +332,23 @@ void Presenter::on_velocityChangeFinished()
 void Presenter::on_noteSelectionChanged(NoteView* v, bool ok)
 {
   if(ok)
-    m_selectedNotes.push_back(v);
+    m_selectedNotes.insert(v);
   else
-    ossia::remove_erase(m_selectedNotes, v);
+    m_selectedNotes.erase(v);
 
+  // A rubber band or a select-all changes every note at once: the document
+  // selection is pushed once for all of them.
+  if(!std::exchange(m_selectionPushPending, true))
+    QMetaObject::invokeMethod(
+        this, &Presenter::pushNoteSelection, Qt::QueuedConnection);
+}
+
+void Presenter::pushNoteSelection()
+{
+  m_selectionPushPending = false;
   Selection s;
   for(auto n : m_selectedNotes)
     s.append(&n->note);
-
   context().context.selectionStack.pushNewSelection(s);
 }
 
@@ -365,24 +374,12 @@ void Presenter::on_noteAdded(const Note& n)
 
 void Presenter::on_noteRemoving(const Note& n)
 {
+  auto it = ossia::find_if(m_notes, [&](const auto& other) { return &other->note == &n; });
+  if(it != m_notes.end())
   {
-    auto it = ossia::find_if(
-        m_selectedNotes, [&](const auto& other) { return &other->note == &n; });
-
-    if(it != m_selectedNotes.end())
-    {
-      m_selectedNotes.erase(it);
-    }
-  }
-  {
-    auto it
-        = ossia::find_if(m_notes, [&](const auto& other) { return &other->note == &n; });
-
-    if(it != m_notes.end())
-    {
-      delete *it;
-      m_notes.erase(it);
-    }
+    m_selectedNotes.erase(*it);
+    delete *it;
+    m_notes.erase(it);
   }
 }
 

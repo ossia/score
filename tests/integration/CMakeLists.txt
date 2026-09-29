@@ -1682,3 +1682,11 @@ score_add_test(test_integration_view_mode_switch_zoom
   SOURCES ViewModeSwitchZoomTest.cpp
   GUI
   PLUGINS score_plugin_scenario score_lib_process)
+
+# Piano roll: selecting many notes makes one document selection; a transpose
+# growing the range and a resize clamped at the minimum duration undo and
+# replay from their saved form exactly.
+score_add_test(test_integration_piano_roll_replay
+  SOURCES PianoRollReplayTest.cpp
+  APP
+  PLUGINS score_plugin_scenario score_lib_process score_plugin_midi)

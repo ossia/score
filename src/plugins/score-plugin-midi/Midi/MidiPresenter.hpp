@@ -66,10 +66,12 @@ private:
   void on_drop(const QPointF& pos, const QMimeData&);
 
   std::vector<Id<Note>> selectedNotes() const;
+  void pushNoteSelection();
 
   View* m_view{};
   std::vector<NoteView*> m_notes;
-  std::vector<NoteView*> m_selectedNotes;
+  ossia::hash_set<NoteView*> m_selectedNotes;
+  bool m_selectionPushPending{};
 
   SingleOngoingCommandDispatcher<MoveNotes> m_moveDispatcher;
   SingleOngoingCommandDispatcher<ChangeNotesVelocity> m_velocityDispatcher;
