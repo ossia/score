@@ -16,7 +16,8 @@
 // Failures are reported per shader as one of: parse (not valid ISF), bake (the
 // shader does not compile), gles300 (compiles for desktop but not for the wasm
 // profile), render (the pipeline threw), warning (the backend complained),
-// devicelost, blank (the frame came back one flat colour).
+// devicelost, blank (the frame came back one flat colour), frameindex (a
+// shader that rendered did not see FRAMEINDEX count from the pass's start).
 //
 // The library is not part of the repository, so the test skips when it is
 // absent. Point it somewhere explicitly with SCORE_SHADER_LIBRARY_DIR.

@@ -37,6 +37,7 @@
 #include <catch2/catch_test_macros.hpp>
 
 #include <algorithm>
+#include <array>
 #include <map>
 #include <set>
 
@@ -159,6 +160,7 @@ struct Sweeper
   score::gfx::BackgroundNode output;
   score::gfx::GraphicsApi api;
   QImage image = testcard();
+  std::array<int32_t, frames_per_shader> seenFrameIndex{};
 
   explicit Sweeper(score::gfx::GraphicsApi a)
       : api{a}
@@ -208,17 +210,21 @@ struct Sweeper
 
         graph.createAllRenderLists(api);
 
-        // In order, and the first rendered frame IS frame 0: the counter used to
-        // be incremented before the render, so FRAMEINDEX started at 1 and no
-        // shader that initialises itself on frame 0 ever did.
+        // The renderer owns FRAMEINDEX (advanceFrameIndex): a fresh node shows
+        // 0 on its first frame, and a node whose index is already positive is
+        // one continuing after a rebuild, so it steps before showing. Seeding
+        // once, one below the start, makes the shader see exactly
+        // startFrame, startFrame + 1, ...; writing it every frame would be
+        // stepped again on top.
+        isf->standardUBO.frameIndex = startFrame > 0 ? startFrame - 1 : 0;
         for(int i = 0; i < frames_per_shader; i++)
         {
           const int f = startFrame + i;
-          isf->standardUBO.frameIndex = f;
           isf->standardUBO.time = f / 60.;
           isf->standardUBO.timeDelta = 1. / 60.;
           isf->standardUBO.progress = std::min(1., f / double(mid_start_frame));
           output.render();
+          seenFrameIndex[i] = isf->standardUBO.frameIndex;
         }
       }
       catch(const std::exception& e)
@@ -239,6 +245,30 @@ struct Sweeper
 
     if(!failures.count("render") && isUniform(*output.shared_readback))
       failures["blank"] = "every pixel identical";
+
+    // Only a shader that rendered cleanly is known to have been updated on
+    // every frame; checking the others would blame the harness for them. The
+    // WebGL2 bake is a separate compile and says nothing about this render.
+    const bool rendered = std::none_of(
+        failures.begin(), failures.end(),
+        [](const auto& f) { return f.first != "gles300"; });
+    if(rendered)
+    {
+      for(int i = 0; i < frames_per_shader; i++)
+      {
+        if(seenFrameIndex[i] != startFrame + i)
+        {
+          QStringList seen;
+          for(int v : seenFrameIndex)
+            seen.push_back(QString::number(v));
+          failures["frameindex"] = QStringLiteral("FRAMEINDEX was %1 from start %2")
+                                       .arg(seen.join(','))
+                                       .arg(startFrame)
+                                       .toStdString();
+          break;
+        }
+      }
+    }
 
     teardown(*isf, images);
     return failures;
