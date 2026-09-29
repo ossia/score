@@ -75,15 +75,18 @@ else()
 endif()
 
 # Tests that launch the score binary themselves (QProcess or a script) need the
-# same library path in their environment.
+# same library path in their environment. They are labelled "media" like the
+# other tests that run the real application, which developer machines leave
+# out (ctest -LE "gpu|media|hardware").
 function(score_test_app_libpath)
-  if(_score_libpath_mod)
-    foreach(_t ${ARGN})
-      if(TEST ${_t})
+  foreach(_t ${ARGN})
+    if(TEST ${_t})
+      set_property(TEST ${_t} APPEND PROPERTY LABELS media)
+      if(_score_libpath_mod)
         set_property(TEST ${_t} APPEND PROPERTY ENVIRONMENT_MODIFICATION "${_score_libpath_mod}")
       endif()
-    endforeach()
-  endif()
+    endif()
+  endforeach()
 endfunction()
 
 # SCORE_HAS_SHELL_HARNESS is set once in cmake/ScoreTests.cmake so that
