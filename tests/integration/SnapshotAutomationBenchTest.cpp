@@ -27,6 +27,7 @@
 #include <core/document/Document.hpp>
 
 #include <QElapsedTimer>
+#include <QFile>
 
 #include <score_test/App.hpp>
 #include <score_test/Document.hpp>
@@ -139,5 +140,58 @@ TEST_CASE(
       CHECK(interp < 2000);
       CHECK(resize < 2000);
     }
+  });
+}
+
+// A real document, given by path: it is not in the repository.
+TEST_CASE(
+    "snapshot and resize in a document with fomo automations",
+    "[integration][automation][bench][.local]")
+{
+  const char* path = std::getenv("SCORE_FOMO_REPRO");
+  if(!path)
+    SKIP("SCORE_FOMO_REPRO not set");
+  score::test::run_in_gui_app([&](const score::GUIApplicationContext& app) {
+    QFile f{QString::fromUtf8(path)};
+    REQUIRE(f.open(QIODevice::ReadOnly));
+    auto& delegates = app.interfaces<score::DocumentDelegateList>();
+    score::Document* doc{};
+    timed([&] {
+      doc = app.docManager.loadDocument(
+          app, QStringLiteral("fomo"), f.readAll(), JSONObject::type(), *delegates.begin());
+    });
+    REQUIRE(doc);
+    auto& ctx = doc->context();
+    auto& scenar = score::test::base_scenario(*doc);
+    Process::ProcessModel* fomo{};
+    for(auto& p : score::test::base_interval(*doc).processes)
+      if(p.concreteKey() == UuidKey<Process::ProcessModel>::fromString(fomo_uuid))
+        fomo = &p;
+    REQUIRE(fomo);
+
+    for(auto& st : scenar.states)
+    {
+      const auto ms
+          = timed([&] { Scenario::Command::snapshotProcessInState(st, *fomo, ctx); });
+      if(check_budgets)
+        CHECK(ms < 1000);
+    }
+    if(scenar.intervals.empty())
+      return;
+    auto& itv = *scenar.intervals.begin();
+    auto& ev = scenar.event(scenar.state(itv.endState()).eventId());
+    const auto ms = timed([&] {
+      SingleOngoingCommandDispatcher<Scenario::Command::MoveEventMeta> disp{ctx.commandStack};
+      for(int i = 0; i < 20; i++)
+      {
+        disp.submit(
+            scenar, ev.id(), scenar.timeSync(ev.timeSync()).date() + TimeVal::fromMsecs(20 * i),
+            0.3, ExpandMode::Scale, LockMode::Free);
+        settle();
+      }
+      disp.rollback();
+    });
+    if(check_budgets)
+      CHECK(ms < 2000);
   });
 }
