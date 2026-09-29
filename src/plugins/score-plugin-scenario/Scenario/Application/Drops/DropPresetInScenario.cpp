@@ -63,8 +63,8 @@ bool DropPresetInScenario::drop(
 
   auto& interval = m.createBox(scenar, pt.date, pt.date + t, pt.y);
 
-  if(dropStartsOnPlay())
-    addStartOnPlayTrigger(m, Scenario::startTimeSync(interval, scenar));
+  // The box is always in the void, not after anything that would start it
+  addStartOnPlayTrigger(m, Scenario::startTimeSync(interval, scenar));
 
   auto& procs = pres.context().context.app.interfaces<Process::ProcessFactoryList>();
 

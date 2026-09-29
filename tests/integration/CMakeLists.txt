@@ -1405,7 +1405,8 @@ if(TARGET score_plugin_ui)
 endif()
 
 # Alt while dropping into a scenario gives the created interval a start-on-play
-# trigger, like a double-click, and a single undo removes the whole drop.
+# trigger, like a double-click, and a single undo removes the whole drop; ports
+# and presets, always dropped in the void, get it without Alt.
 score_add_test(test_integration_drop_start_on_play
   SOURCES DropStartOnPlayTest.cpp
   GUI

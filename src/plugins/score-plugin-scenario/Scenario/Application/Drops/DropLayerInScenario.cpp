@@ -74,7 +74,9 @@ bool DropLayerInScenario::drop(
         return true;
       }
     }
-    return pasteProcessesInNewBox(pres.model(), pres.toScenarioPoint(pos), *copy, ctx);
+    // Like a preset from the library, the copy is in a box in the void
+    return pasteProcessesInNewBox(
+        pres.model(), pres.toScenarioPoint(pos), *copy, ctx, true);
   }
   if(!json.HasMember("Path") || !json.HasMember("Duration"))
     return false;

@@ -5,9 +5,17 @@
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <Scenario/Process/ScenarioPresenter.hpp>
 
+#include <Process/Preset.hpp>
+#include <Process/ProcessList.hpp>
+#include <Process/ProcessMimeSerialization.hpp>
+
 #include <score/application/GUIApplicationContext.hpp>
 
 #include <QApplication>
+#include <QFile>
+#include <QFileInfo>
+#include <QMimeData>
+#include <QUrl>
 
 namespace Scenario
 {
@@ -108,12 +116,39 @@ private:
   Id<StateModel> m_createdState;
 };
 
+static std::shared_ptr<Process::Preset>
+droppedPreset(const QMimeData& mime, const Process::ProcessFactoryList& factories)
+{
+  if(mime.hasFormat(score::mime::processpreset()))
+    return Process::Preset::fromJson(factories, mime.data(score::mime::processpreset()));
+
+  for(const QUrl& u : mime.urls())
+    if(QFile f{u.toLocalFile()};
+       QFileInfo{f}.suffix() == "scp" && f.open(QIODevice::ReadOnly))
+      return Process::Preset::fromJson(factories, f.readAll());
+  return {};
+}
+
 bool DropProcessOnState::drop(
     const StateModel& st, const ProcessModel& scenar, const QMimeData& mime,
     const score::DocumentContext& ctx)
 {
   const auto& handlers = ctx.app.interfaces<Process::ProcessDropHandlerList>();
   const auto& factories = ctx.app.interfaces<Process::ProcessFactoryList>();
+
+  if(auto preset = droppedPreset(mime, factories))
+  {
+    const auto t = TimeVal::fromMsecs(5000);
+    DropProcessOnStateHelper dropper(st, scenar, ctx, t);
+    dropper.addProcess(
+        [&](Scenario::Command::Macro& m, const IntervalModel& itv) {
+      return m.loadProcessFromPreset(itv, *preset);
+    }, t);
+    dropper.macro().submit(
+        new Scenario::Command::ChangeElementName{dropper.interval(), preset->name});
+    dropper.commit();
+    return true;
+  }
 
   if(auto res = handlers.getDrop(mime, ctx); !res.empty())
   {

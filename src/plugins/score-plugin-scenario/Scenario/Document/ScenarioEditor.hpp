@@ -34,11 +34,12 @@ void duplicateProcess(
     const IntervalModel& interval, const Process::ProcessModel& proc,
     const score::DocumentContext& ctx);
 
-//! Pastes processes copied by copySelectedProcesses in a new interval at origin
+//! Pastes processes copied by copySelectedProcesses in a new interval at origin;
+//! startsOnPlay gives its start the trigger a double-click gives
 SCORE_PLUGIN_SCENARIO_EXPORT
 bool pasteProcessesInNewBox(
     const Scenario::ProcessModel& sm, Scenario::Point origin, rapidjson::Value& obj,
-    const score::DocumentContext& ctx);
+    const score::DocumentContext& ctx, bool startsOnPlay = false);
 
 class ScenarioEditor final : public score::ObjectEditor
 {

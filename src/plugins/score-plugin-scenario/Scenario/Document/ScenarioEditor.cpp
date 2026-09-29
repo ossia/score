@@ -4,6 +4,7 @@
 #include <Process/Dataflow/Port.hpp>
 
 #include <Scenario/Application/Drops/DropLayerInInterval.hpp>
+#include <Scenario/Application/Drops/ScenarioDropHandler.hpp>
 #include <Scenario/Application/Menus/ScenarioCopy.hpp>
 #include <Scenario/Application/ScenarioActions.hpp>
 #include <Scenario/Commands/CommandAPI.hpp>
@@ -24,6 +25,7 @@
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentView.hpp>
+#include <Scenario/Process/Algorithms/Accessors.hpp>
 #include <Scenario/Process/ScenarioGlobalCommandManager.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <Scenario/Process/ScenarioPresenter.hpp>
@@ -139,7 +141,7 @@ void duplicateProcess(
 
 bool pasteProcessesInNewBox(
     const Scenario::ProcessModel& sm, Scenario::Point origin, rapidjson::Value& obj,
-    const score::DocumentContext& ctx)
+    const score::DocumentContext& ctx, bool startsOnPlay)
 {
   // Create a box
   Scenario::Command::Macro m{new Scenario::Command::AddProcessInNewBoxMacro, ctx};
@@ -175,6 +177,8 @@ bool pasteProcessesInNewBox(
 
   auto& interval
       = m.createBox(sm, origin.date, TimeVal(origin.date.impl + t.impl), origin.y);
+  if(startsOnPlay)
+    addStartOnPlayTrigger(m, Scenario::startTimeSync(interval, sm));
 
   // Load each process into a slot, collecting old→new ID mapping for cable remapping.
   std::vector<std::pair<int32_t, int32_t>> proc_id_map;
