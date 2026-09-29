@@ -219,6 +219,7 @@ struct GfxRenderer<Node_T> final
         *this, *state, m_last_message, parent.last_message, parent.m_ctx);
 
     // Run the processor
+    parent.drainWorker(renderer.dateFromStepClock);
     if_possible(state->runInitialPasses(renderer, commands, res, edge));
     if_possible((*state)());
     parent.clearControlIn(*state);

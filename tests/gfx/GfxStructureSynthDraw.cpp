@@ -1,11 +1,14 @@
-// A Structure Synth program reaches the screen.
+// A Structure Synth program reaches the screen in a render that does not run
+// the event loop between frames, as GfxContext::renderFrames does for an
+// offline render or a grab.
 //
 // The program is a control value and arrives with the node's first message.
-// An offline render (GfxContext::renderFrames) does not run the event loop
-// between frames, so the first program is evaluated when it arrives rather than
-// on a worker thread whose result is applied from the event loop. Here it is
-// `box`, a unit cube drawn by ModelDisplay with its built-in lighting, so the
-// cube's pixels must cover a good part of the target.
+// It is built on a worker thread; the mesh reaches the node at one of its
+// next ticks, not through the event loop. In a render driven by the step
+// clock, the tick waits for the build: the program is drawn in the very frame
+// that carries it, however slow the worker. Here it is `box`, a unit cube drawn
+// by ModelDisplay with its built-in lighting, so the cube's pixels must cover
+// a good part of the target.
 #include <score_test/Gfx.hpp>
 #include "GfxHalpNodes.hpp"
 #include <score_test/Document.hpp>
@@ -21,6 +24,9 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/generators/catch_generators.hpp>
 #include <catch2/generators/catch_generators_range.hpp>
+
+#include <chrono>
+#include <thread>
 
 using namespace score::test;
 using namespace score::test::gfx;
@@ -49,7 +55,7 @@ score::gfx::Message loadedControls(int32_t node_id, const std::string& program)
   return m;
 }
 
-Shot render(score::gfx::GraphicsApi api)
+Shot render(score::gfx::GraphicsApi api, bool stepped)
 {
   Shot s;
   run_in_gui_app([&](const score::GUIApplicationContext& app) {
@@ -87,25 +93,36 @@ Shot render(score::gfx::GraphicsApi api)
       return;
     }
 
+    // As GfxContext::renderFrames sets it for a render under the step clock.
+    if(stepped)
+      for(auto& rl : p.graph().renderLists())
+        if(rl)
+          rl->dateFromStepClock = true;
+
     ss->process(loadedControls(ss->nodeId, "box"));
 
-    // As GfxContext::renderFrames does for an offline render: frames back to
-    // back, the event loop not running in between.
-    p.render(4);
-    const ReadbackImage img = p.readback(sink);
-    if(!img.valid())
+    // Frames with the event loop not running in between, until the worker's
+    // mesh shows up (it takes well under a second); stepped: one frame.
+    for(int frame = 0; frame < (stepped ? 1 : 200) && s.lit == 0; frame++)
     {
-      s.error = "empty readback";
-      return;
-    }
-    for(int y = 0; y < img.height; y++)
-      for(int x = 0; x < img.width; x++)
+      p.render(1);
+      const ReadbackImage img = p.readback(sink);
+      if(!img.valid())
       {
-        const auto px = img.at(x, y);
-        if(px[0] + px[1] + px[2] > 30)
-          s.lit++;
+        s.error = "empty readback";
+        return;
       }
-    s.total = img.width * img.height;
+      for(int y = 0; y < img.height; y++)
+        for(int x = 0; x < img.width; x++)
+        {
+          const auto px = img.at(x, y);
+          if(px[0] + px[1] + px[2] > 30)
+            s.lit++;
+        }
+      s.total = img.width * img.height;
+      if(s.lit == 0)
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    }
   });
   return s;
 }
@@ -116,7 +133,10 @@ TEST_CASE("A Structure Synth program is drawn", "[gfx][threedim][ssynth]")
   const auto api = GENERATE(from_range(platform_backends()));
   CAPTURE(backend_name(api));
 
-  const auto s = render(api);
+  const bool stepped = GENERATE(false, true);
+  CAPTURE(stepped);
+
+  const auto s = render(api, stepped);
   if(s.skipped)
     SKIP("backend unavailable");
   INFO("error=" << s.error);

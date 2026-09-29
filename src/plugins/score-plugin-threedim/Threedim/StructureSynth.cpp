@@ -74,7 +74,15 @@ catch (...)
 
 void StrucSynth::operator()() { }
 
-std::function<void(StrucSynth&)> StrucSynth::worker::work(std::string_view in)
+void StrucSynth::requestBuild()
+{
+  if(inputs.program.value.empty())
+    return;
+  worker.request(inputs.program.value, ++m_request);
+}
+
+std::function<void(StrucSynth&)>
+StrucSynth::worker::work(std::string_view in, uint32_t request)
 {
   if (in.empty())
     return {};
@@ -136,8 +144,10 @@ std::function<void(StrucSynth&)> StrucSynth::worker::work(std::string_view in)
       }
     }
 
-    return [b = std::move(buf), total_vertices, normal_offset](StrucSynth& s) mutable
-    {
+    return [b = std::move(buf), total_vertices, normal_offset,
+            request](StrucSynth& s) mutable {
+      if(request != s.m_request)
+        return;
       std::swap(b, s.m_vertexData);
       s.outputs.geometry.mesh.buffers.main_buffer.elements = s.m_vertexData.data();
       s.outputs.geometry.mesh.buffers.main_buffer.element_count = s.m_vertexData.size();

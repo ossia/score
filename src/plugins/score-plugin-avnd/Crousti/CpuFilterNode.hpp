@@ -310,6 +310,7 @@ struct GfxRenderer<Node_T> final
       parent.processControlIn(
           *this, *state, m_last_message, parent.last_message, parent.m_ctx);
 
+      parent.drainWorker(renderer.dateFromStepClock);
       if_possible((*state)());
 
       // Push to every existing output edge on scene and geometry ports. The upload
@@ -490,6 +491,7 @@ struct GfxRenderer<Node_T> final
         buffer_outs.bindUploads(*state);
 
       // Run the processor
+      parent.drainWorker(renderer.dateFromStepClock);
       if_possible(state->runInitialPasses(renderer, commands, res, edge));
       if_possible((*state)());
       parent.clearControlIn(*state);

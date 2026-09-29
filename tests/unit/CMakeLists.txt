@@ -1773,6 +1773,17 @@ endif()
 
 # Regex patterns edited during playback are compiled by the worker, never on
 # the audio thread, and the latest edit wins.
+# A GPU object's worker results reach it at its tick, without the Qt event
+# loop, and are dropped on the worker once its node is gone.
+if(TARGET score_plugin_avnd AND TARGET score_plugin_gfx)
+  score_add_test(test_unit_avnd_gpu_worker_results
+    SOURCES AvndGpuWorkerResultsTest.cpp
+    PLUGINS score_plugin_avnd score_plugin_gfx)
+  target_include_directories(test_unit_avnd_gpu_worker_results PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-avnd"
+    "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/include")
+endif()
+
 if(TARGET score_plugin_avnd)
   score_add_test(test_unit_avnd_regex_compile_off_audio_thread
     SOURCES AvndRegexCompileOffAudioThreadTest.cpp

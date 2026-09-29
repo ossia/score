@@ -54,6 +54,7 @@
 #include <avnd/concepts/temporality.hpp>
 #include <avnd/concepts/ui.hpp>
 #include <avnd/concepts/worker.hpp>
+#include <Crousti/WorkerBinding.hpp>
 
 #include <QPointer>
 
@@ -97,6 +98,27 @@ struct node_with_worker : safe_node<Node>
     }
 
     safe_node<Node>::run(tk, st);
+  }
+};
+
+//! bind_worker's delivery for an execution node. The node's result queue is
+//! spsc from the main thread to the exec thread: a result goes through the
+//! main thread, where it is queued on the node, and is applied at the
+//! beginning of the node's own tick.
+template <typename Node>
+struct exec_worker_delivery
+{
+  std::weak_ptr<node_with_worker<Node>> node_wp;
+  exec_worker_delivery begin() const noexcept { return *this; }
+
+  template <typename F>
+  void operator()(F&& apply)
+  {
+    ossia::qt::run_async(
+        qApp, [node_wp = std::move(node_wp), apply = std::move(apply)]() mutable {
+      if(std::shared_ptr n = node_wp.lock())
+        n->worker_results.enqueue(std::move(apply));
+    });
   }
 };
 
@@ -875,8 +897,7 @@ public:
       avnd::effect_container<Node>& eff = node_ptr->impl;
 
       // Initialize the thread pool beforehand
-      auto& tq = score::TaskPool::instance();
-      using worker_type = decltype(eff.effect.worker);
+      score::TaskPool::instance();
 
       // An object with a worker is always given the node which delivers the
       // results at the beginning of its tick (exec_node_t).
@@ -884,62 +905,9 @@ public:
           node_ptr, static_cast<node_with_worker<Node>*>(node_ptr.get())};
 
       for(auto& e : eff.effects())
-      {
-        std::weak_ptr eff_ptr = std::shared_ptr<Node>(node_ptr, &e);
-        std::weak_ptr node_wp = self;
-
-        e.worker.request
-            = [&tq, node_wp = std::move(node_wp),
-               eff_ptr = std::move(eff_ptr)]<typename... Args>(Args&&... f) mutable {
-          // request() is invoked in the DSP / processor thread
-          // and just posts the task to the thread pool
-          tq.post([eff_ptr, node_wp, ... ff = std::forward<Args>(f)]() mutable {
-            // This happens in the worker thread
-            // If for some reason the object has already been removed, not much
-            // reason to perform the work
-            if(!eff_ptr.lock())
-              return;
-
-            using type_of_result
-                = decltype(worker_type::work(std::forward<decltype(ff)>(ff)...));
-            if constexpr(std::is_void_v<type_of_result>)
-            {
-              worker_type::work(std::forward<decltype(ff)>(ff)...);
-            }
-            else
-            {
-              // If the worker returns a std::function, it
-              // is to be invoked back in the processor DSP thread
-              auto res = worker_type::work(std::forward<decltype(ff)>(ff)...);
-              if(!res)
-                return;
-
-              // The node's result queue is spsc from the main thread to the
-              // exec thread, we cannot just yeet the result back from the
-              // thread-pool
-              ossia::qt::run_async(
-                  qApp, [eff_ptr = std::move(eff_ptr), node_wp = std::move(node_wp),
-                         res = std::move(res)]() mutable {
-                    // Main thread
-                    std::shared_ptr n = node_wp.lock();
-                    if(!n)
-                      return;
-
-                    n->worker_results.enqueue(
-                        [eff_ptr = std::move(eff_ptr), res = std::move(res)]() mutable {
-                  // DSP / processor thread, at the beginning of the node's own
-                  // tick: the outlets are cleared and the tick's frame indices
-                  // are set, so the result may write to them.
-                  // We need res to be mutable so that the worker can use it to e.g. store
-                  // old data which will be freed back in the main thread
-                  if(auto p = eff_ptr.lock())
-                    res(*p);
-                    });
-                  });
-            }
-          });
-        };
-      }
+        bind_worker(
+            e, std::weak_ptr{std::shared_ptr<Node>(node_ptr, &e)},
+            exec_worker_delivery<Node>{self});
     }
   }
 

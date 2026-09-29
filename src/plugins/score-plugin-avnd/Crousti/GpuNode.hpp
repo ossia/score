@@ -529,6 +529,7 @@ struct CustomGpuRenderer final
       parent.processControlIn(
           *this, *state, m_last_message, parent.last_message, parent.m_ctx);
     }
+    parent.drainWorker(renderer.dateFromStepClock);
   }
 
   void runRenderPass(

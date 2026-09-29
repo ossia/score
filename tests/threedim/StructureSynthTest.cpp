@@ -2,12 +2,13 @@
 // vendored libssynth (Preprocessor -> Tokenizer -> EisenParser -> Builder ->
 // ObjRenderer) and back in through Threedim::ObjFromString.
 //
-// The whole unit is the synchronous seam StrucSynth::worker::work(script):
+// The whole unit is the synchronous seam StrucSynth::worker::work(script, n):
 // a pure static function the host calls on a worker thread; it returns a
-// closure that the processing thread applies to the object. operator()() is
-// empty. So the test drives work() directly and applies the closure inline —
-// no threads, no polling, no GPU, no QApplication (libssynth's ProgressDialog
-// is a no-op stub in Builder.h).
+// closure that the processing thread applies to the object, unless a later
+// program than build n was requested meanwhile. operator()() is empty. So the
+// test drives work() directly and applies the closure inline — no threads,
+// no polling, no GPU, no QApplication (libssynth's ProgressDialog is a no-op
+// stub in Builder.h). The last tests drive the requests the object makes.
 //
 // Geometry contract computed on paper from the shipped sources:
 //  - `box` (PrimitiveRule::apply): unit cube spanning [0,1]^3, 6 quads with
@@ -33,15 +34,18 @@
 #include <cstddef>
 #include <functional>
 #include <limits>
+#include <string>
 #include <string_view>
+#include <vector>
 
 namespace
 {
 using Threedim::StrucSynth;
 
+// Build 0: what a fresh object, which requested nothing, takes.
 std::function<void(StrucSynth&)> generate(std::string_view script)
 {
-  return StrucSynth::worker::work(script);
+  return StrucSynth::worker::work(script, 0);
 }
 
 struct MeshView
@@ -320,4 +324,89 @@ TEST_CASE(
   StrucSynth s;
   fn(s);
   CHECK(s.outputs.geometry.mesh.vertices == 3);
+}
+
+namespace
+{
+struct Request
+{
+  std::string program;
+  uint32_t build{};
+};
+
+// The object's worker, with requests queued until the test runs them.
+struct Requests
+{
+  std::vector<Request> queue;
+  explicit Requests(StrucSynth& s)
+  {
+    s.worker.request = [this](std::string p, uint32_t n) {
+      queue.push_back({std::move(p), n});
+    };
+  }
+  void run(StrucSynth& s, std::size_t i)
+  {
+    if(auto fn = StrucSynth::worker::work(queue.at(i).program, queue.at(i).build))
+      fn(s);
+  }
+};
+
+void setProgram(StrucSynth& s, std::string p)
+{
+  s.inputs.program.value = std::move(p);
+  s.inputs.program.update(s);
+}
+}
+
+TEST_CASE(
+    "StructureSynth: the first program is built on the worker",
+    "[threedim][ssynth][worker]")
+{
+  StrucSynth s;
+  Requests r{s};
+  setProgram(s, "box");
+  CHECK(s.m_vertexData.empty()); // nothing built on the processing thread
+  REQUIRE(r.queue.size() == 1);
+  r.run(s, 0);
+  CHECK(view(s).vertices == 36);
+}
+
+TEST_CASE(
+    "StructureSynth: the mesh of a replaced program is dropped",
+    "[threedim][ssynth][worker]")
+{
+  StrucSynth s;
+  Requests r{s};
+  setProgram(s, "box");
+  setProgram(s, "sphere");
+  REQUIRE(r.queue.size() == 2);
+  r.run(s, 1); // sphere
+  CHECK(view(s).vertices == 570);
+  r.run(s, 0); // box, which finished last
+  CHECK(view(s).vertices == 570);
+
+  // Regenerate asks again for the current program.
+  s.inputs.regen.update(s);
+  REQUIRE(r.queue.size() == 3);
+  CHECK(r.queue[2].program == "sphere");
+  CHECK(r.queue[2].build == 3);
+}
+
+TEST_CASE(
+    "StructureSynth: a program that does not build leaves the mesh",
+    "[threedim][ssynth][worker]")
+{
+  StrucSynth s;
+  Requests r{s};
+  setProgram(s, "box");
+  r.run(s, 0);
+  setProgram(s, "frobnicate");
+  r.run(s, 1);
+  CHECK(view(s).vertices == 36);
+  CHECK(r.queue.size() == 2); // and it is not built again by itself
+
+  // An empty program asks for nothing.
+  setProgram(s, "");
+  CHECK(r.queue.size() == 2);
+  CHECK(view(s).vertices == 36);
 }

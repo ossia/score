@@ -8,7 +8,10 @@
 #include <ossia/detail/mutex.hpp>
 #include <ossia/detail/pod_vector.hpp>
 
-#include <thread>
+#include <cstdint>
+#include <functional>
+#include <string>
+#include <string_view>
 
 namespace Threedim
 {
@@ -27,22 +30,7 @@ public:
     struct : halp::lineedit<"Program", "">
     {
       halp_meta(language, "eisenscript")
-      // Request a computation according to the currently defined program
-      void update(StrucSynth& g)
-      {
-        if(this->value.empty())
-          return;
-
-        if(!g.m_generated)
-        {
-          g.m_generated = true;
-          if(auto apply = decltype(g.worker)::work(this->value))
-            apply(g);
-          return;
-        }
-
-        g.worker.request(this->value);
-      }
+      void update(StrucSynth& g) { g.requestBuild(); }
     } program;
 
     PositionControl position;
@@ -50,7 +38,7 @@ public:
     ScaleControl scale;
     struct : halp::impulse_button<"Regenerate">
     {
-      void update(StrucSynth& g) { g.inputs.program.update(g); }
+      void update(StrucSynth& g) { g.requestBuild(); }
     } regen;
   } inputs;
 
@@ -65,18 +53,22 @@ public:
 
   void operator()();
 
+  // Programs are built on the worker, one at a time (libssynth's random
+  // streams are global). Builds are numbered: the mesh of a program that was
+  // replaced while it built is dropped, and the current mesh stays until the
+  // latest program's arrives. A program that does not build leaves it too.
   struct worker
   {
-    std::function<void(std::string)> request;
+    std::function<void(std::string, uint32_t)> request;
 
-    // Called back in a worker thread
-    // The returned function will be later applied in this object's processing thread
-    static std::function<void(StrucSynth&)> work(std::string_view s);
+    static std::function<void(StrucSynth&)> work(std::string_view s, uint32_t request);
   } worker;
+
+  void requestBuild();
 
   using float_vec = boost::container::vector<float, ossia::pod_allocator<float>>;
   float_vec m_vertexData;
-  bool m_generated{};
+  uint32_t m_request{};
 };
 
 }

@@ -437,6 +437,7 @@ struct GpuComputeRenderer final : ComputeRendererBaseType<Node_T>
     // Apply the controls
     parent.processControlIn(
         *this, *this->state, m_last_message, parent.last_message, parent.m_ctx);
+    parent.drainWorker(renderer.dateFromStepClock);
 
     // Run the compute shader
     {

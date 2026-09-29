@@ -11,6 +11,7 @@
 #include <Crousti/SceneConcepts.hpp>
 #include <Crousti/TextureConversion.hpp>
 #include <Crousti/TextureFormat.hpp>
+#include <Crousti/WorkerBinding.hpp>
 #include <Gfx/GfxExecNode.hpp>
 #include <Gfx/Graph/Node.hpp>
 #include <Gfx/Graph/OutputNode.hpp>
@@ -20,7 +21,9 @@
 #include <score/tools/ThreadPool.hpp>
 
 #include <ossia/detail/hash_map.hpp>
+#include <ossia/detail/lockfree_queue.hpp>
 #include <ossia/detail/small_flat_map.hpp>
+#include <ossia/detail/small_vector.hpp>
 
 #include <ossia-qt/invoke.hpp>
 
@@ -41,47 +44,133 @@
 
 #include <score_plugin_avnd_export.h>
 
+#include <algorithm>
+#include <atomic>
+
 namespace oscr
 {
+//! The results of an object's worker are applied on the render thread, which
+//! is the main thread: from the Qt event loop, or at the object's next tick
+//! (drainWorker), whichever comes first. The tick matters for renders that do
+//! not run the event loop between frames (GfxContext::renderFrames).
+//! The node owns the queue; a result that completes after the node is gone
+//! finds no queue and is dropped, and freed, on the worker thread.
+//! The queue does not keep the order of results pushed by different pool
+//! threads: they are numbered when pushed and applied in that order.
+//! A render driven by the step clock settles the tick: it waits for the jobs
+//! of the node in flight, so that what a frame shows does not depend on how
+//! fast the worker was.
 struct GpuWorker
 {
+  struct WorkerResults
+  {
+    struct Result
+    {
+      uint64_t order{};
+      std::function<void()> apply;
+    };
+    ossia::mpmc_queue<Result> queue;
+    std::atomic<uint64_t> pushed{};
+    std::atomic<int> inflight{};
+
+    void push(std::function<void()> f)
+    {
+      queue.enqueue(Result{pushed.fetch_add(1, std::memory_order_relaxed), std::move(f)});
+    }
+
+    void drain()
+    {
+      ossia::small_vector<Result, 4> batch;
+      Result r;
+      while(queue.try_dequeue(r))
+        batch.push_back(std::move(r));
+      std::ranges::sort(batch, {}, &Result::order);
+      for(auto& res : batch)
+        res.apply();
+    }
+
+    // Waits for the jobs in flight, and for those that the results applied
+    // meanwhile requested.
+    void settle()
+    {
+      for(;;)
+      {
+        for(int n = inflight.load(); n > 0; n = inflight.load())
+          inflight.wait(n);
+        if(queue.size_approx() == 0)
+          return;
+        drain();
+      }
+    }
+  };
+
+  //! bind_worker's delivery: from the pool threads to the queue. A job counts
+  //! as in flight until it has run.
+  struct Delivery
+  {
+    std::weak_ptr<WorkerResults> results;
+
+    struct Job
+    {
+      std::weak_ptr<WorkerResults> results;
+      explicit Job(std::weak_ptr<WorkerResults> r) noexcept
+          : results{std::move(r)}
+      {
+        if(auto p = results.lock())
+          p->inflight.fetch_add(1);
+      }
+      Job(Job&& other) noexcept = default;
+      Job& operator=(Job&&) = delete;
+      ~Job()
+      {
+        if(auto p = results.lock())
+        {
+          p->inflight.fetch_sub(1);
+          p->inflight.notify_all();
+        }
+      }
+
+      template <typename F>
+      void operator()(F&& apply)
+      {
+        auto r = results.lock();
+        if(!r)
+          return;
+        r->push(std::forward<F>(apply));
+        ossia::qt::run_async(QCoreApplication::instance(), [wr = results] {
+          if(auto r = wr.lock())
+            r->drain();
+        });
+      }
+    };
+    Job begin() const noexcept { return Job{results}; }
+  };
+
+  //! Applies the results of the object's worker. `settle`: first wait for the
+  //! jobs in flight (a render driven by the step clock).
+  void drainWorker(bool settle = false) const
+  {
+    if(!m_workerResults)
+      return;
+    if(settle)
+      m_workerResults->settle();
+    else
+      m_workerResults->drain();
+  }
+
   template <typename T>
   void initWorker(this auto& self, std::shared_ptr<T>& state) noexcept
   {
     if constexpr(avnd::has_worker<T>)
     {
-      auto ptr = QPointer{&self};
-      auto& tq = score::TaskPool::instance();
-      using worker_type = decltype(state->worker);
+      if(!self.m_workerResults)
+        self.m_workerResults = std::make_shared<WorkerResults>();
 
-      auto wk_state = std::weak_ptr{state};
-      state->worker.request = [ptr, &tq, wk_state]<typename... Args>(Args&&... f) {
-        using type_of_result = decltype(worker_type::work(std::forward<Args>(f)...));
-        tq.post([... ff = std::forward<Args>(f), wk_state, ptr]() mutable {
-          if constexpr(std::is_void_v<type_of_result>)
-          {
-            worker_type::work(std::forward<decltype(ff)>(ff)...);
-          }
-          else
-          {
-            // If the worker returns a std::function, it
-            // is to be invoked back in the processor DSP thread
-            auto res = worker_type::work(std::forward<decltype(ff)>(ff)...);
-            if(!res || !ptr)
-              return;
-
-            ossia::qt::run_async(
-                QCoreApplication::instance(),
-                [res = std::move(res), wk_state, ptr]() mutable {
-              if(ptr)
-                if(auto state = wk_state.lock())
-                  res(*state);
-                });
-          }
-        });
-      };
+      bind_worker(*state, std::weak_ptr{state}, Delivery{self.m_workerResults});
     }
   }
+
+  mutable std::shared_ptr<WorkerResults> m_workerResults;
 };
 
 #if defined(OSCR_HAS_MMAP_FILE_STORAGE)

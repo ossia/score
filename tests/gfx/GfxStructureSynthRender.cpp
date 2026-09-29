@@ -19,9 +19,9 @@
 //      "something rendered" while proving nothing about the mesh.
 //   2. The empty program draws NOTHING. Coverage exactly 0. This is the
 //      negative control, and it is an assertion rather than a manual experiment
-//      because it is also the contract: StructureSynth.hpp:33 early-returns from
-//      update() on an empty value, so no worker request is ever made and the
-//      geometry output stays empty.
+//      because it is also the contract: StrucSynth::requestBuild
+//      (StructureSynth.cpp:79) returns on an empty value, so no worker request
+//      is ever made and the geometry output stays empty.
 //   3. The script chooses the shape. `sphere` is inscribed in the unit cube
 //      `box` spans, so it must cover strictly LESS of the frame -- and it does
 //      so with 570 corner-vertices against `box`'s 36, the exact counts
@@ -29,18 +29,16 @@
 //      predict the direction. (1) and (2) together are satisfied by a chain
 //      that renders SOME fixed mesh regardless of the script; (3) is not.
 //
-// THE WORKER IS ASYNCHRONOUS and that shapes the fixture. StrucSynth does its
-// parsing in halp's worker: the control's update() calls worker.request(), which
-// oscr::GpuWorker::initWorker (Crousti/GpuUtils.hpp:46-85) posts to
-// score::TaskPool, and the resulting closure comes back through
-// ossia::qt::run_async -- a QUEUED invocation on the main thread. GfxPipeline
-// pumps frames but never spins an event loop, so without settleWorker() below
-// the closure is still sitting in the event queue when the readback is taken and
-// every script renders empty. The worker is also installed by the RENDERER, so
-// the script has to be delivered AFTER create().
+// THE WORKER IS ASYNCHRONOUS and that shapes the fixture. StrucSynth builds
+// its program on halp's worker: the control's update() calls worker.request(),
+// which oscr::GpuWorker::initWorker (Crousti/GpuUtils.hpp) posts to
+// score::TaskPool; the resulting closure is applied on the main thread, from
+// the event loop or at the node's next tick. settleWorker() below gives the
+// build time to finish before the frames that draw it. The worker is also
+// installed by the RENDERER, so the script has to be delivered AFTER create().
 //
 // NEGATIVE CONTROL: drop the
-// `outputs.geometry.dirty_mesh = true` at StructureSynth.cpp:143.
+// `outputs.geometry.dirty_mesh = true` at StructureSynth.cpp:159.
 //
 // Run:
 //   DISPLAY=:0 ctest -R gfx_structure_synth_render
@@ -247,7 +245,7 @@ TEST_CASE(
   CHECK(one.cov > 0.0);
   CHECK(one.cov < 1.0);
 
-  // 2. The empty program draws nothing: StructureSynth.hpp:33 never asks the
+  // 2. The empty program draws nothing: StrucSynth::requestBuild never asks the
   //    worker, so there is no mesh to hand downstream.
   CHECK(none.cov == 0.0);
 
