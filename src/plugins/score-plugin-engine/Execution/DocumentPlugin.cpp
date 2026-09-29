@@ -149,7 +149,26 @@ DocumentPlugin::~DocumentPlugin()
   }
 }
 
-void DocumentPlugin::processEditCommands()
+// An edit command runs arbitrary UI code on behalf of the audio thread: one
+// that fails must not unwind through the event loop (which aborts the
+// application) nor starve the commands queued after it.
+static void runEditCommand(ExecutionCommand& cmd) noexcept
+{
+  try
+  {
+    cmd();
+  }
+  catch(const std::exception& e)
+  {
+    qCritical() << "Execution: an edit command failed:" << e.what();
+  }
+  catch(...)
+  {
+    qCritical() << "Execution: an edit command failed (non-std exception)";
+  }
+}
+
+void DocumentPlugin::ContextData::processEditCommands()
 {
   ExecutionCommand cmd;
   GCCommand gc;
@@ -157,12 +176,17 @@ void DocumentPlugin::processEditCommands()
   bool gc_ok = false;
   do
   {
-    if((ok = m_ctxData->m_editionQueue.try_dequeue(cmd)))
-      cmd();
+    if((ok = m_editionQueue.try_dequeue(cmd)))
+      runEditCommand(cmd);
 
-    if((gc_ok = m_ctxData->m_gcQueue.try_dequeue(gc)))
+    if((gc_ok = m_gcQueue.try_dequeue(gc)))
       gc();
   } while(ok || gc_ok);
+}
+
+void DocumentPlugin::processEditCommands()
+{
+  m_ctxData->processEditCommands();
 }
 
 void DocumentPlugin::on_finished()

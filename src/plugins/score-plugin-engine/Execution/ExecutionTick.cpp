@@ -88,28 +88,13 @@ struct AudioTickHelper
     q.enqueue([ptr] { *ptr = true; });
     m_scenar.reset();
 
-    auto drain = [this] {
-      ExecutionCommand cmd;
-      GCCommand gc;
-      bool ok = false;
-      bool gc_ok = false;
-      do
-      {
-        if((ok = m_context->m_editionQueue.try_dequeue(cmd)))
-          cmd();
-
-        if((gc_ok = m_context->m_gcQueue.try_dequeue(gc)))
-          gc();
-      } while(ok || gc_ok);
-    };
-
     int count = 0;
     {
       while(!*ptr && count < 1000000)
       {
         ++count;
         std::this_thread::yield();
-        drain();
+        m_context->processEditCommands();
       }
     }
     // The wait gave up: take the release command back from the audio thread,
@@ -124,7 +109,7 @@ struct AudioTickHelper
 
     // Once more after seeing *ptr: the release may have left gc(graph, ctx) in
     // the GC queue, a strong reference that would keep the ContextData alive.
-    drain();
+    m_context->processEditCommands();
     m_context.reset();
   }
 

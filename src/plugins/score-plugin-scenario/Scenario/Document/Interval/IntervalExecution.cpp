@@ -460,7 +460,9 @@ void IntervalComponent::onSetup(
 
 void IntervalComponent::graph_slot_callback(bool running, ossia::time_value date)
 {
-  interval().setExecuting(running);
+  OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
+  if(m_interval)
+    m_interval->setExecuting(running);
 }
 
 void IntervalComponent::slot_callback(bool running, ossia::time_value date)

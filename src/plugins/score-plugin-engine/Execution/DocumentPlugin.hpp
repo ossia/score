@@ -65,6 +65,9 @@ public:
   {
     explicit ContextData(const score::DocumentContext& ctx);
 
+    //! Runs the pending edit and GC commands, on the UI thread
+    void processEditCommands();
+
     ExecutionCommandQueue m_execQueue{1024};
     EditionCommandQueue m_editionQueue{1024};
     GCCommandQueue m_gcQueue{1024};

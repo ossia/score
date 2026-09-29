@@ -918,6 +918,14 @@ if(TARGET score_plugin_engine)
     APP
     PLUGINS score_plugin_engine score_plugin_scenario)
 
+  # The callbacks queued by the audio thread for the UI thread: one that throws
+  # does not take the application down, and an interval's callback survives
+  # the interval's removal.
+  score_add_test(test_unit_execution_edit_commands
+    SOURCES ExecutionEditCommandsTest.cpp
+    APP
+    PLUGINS score_plugin_engine score_plugin_scenario)
+
   # A removed device's addresses are dropped out of the execution graph by a
   # queued command, so it runs after that device - and any other removed
   # since - may already be gone. Matching has to be pointer identity against a
