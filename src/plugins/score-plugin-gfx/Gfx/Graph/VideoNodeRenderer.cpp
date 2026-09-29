@@ -267,11 +267,16 @@ void VideoNodeRenderer::update(
     this->m_currentFrameIdx = reader_frame;
   }
 
-  if(m_recomputeScale || m_currentScaleMode != this->node().m_scaleMode)
+  // The scale fits the frame to the target it is drawn into, which a resize of
+  // the output changes without re-initialising this renderer.
+  const QSize renderSize = renderer.renderSize(edge);
+  if(m_recomputeScale || m_currentScaleMode != this->node().m_scaleMode
+     || renderSize != m_scaleRenderSize)
   {
     m_currentScaleMode = this->node().m_scaleMode;
+    m_scaleRenderSize = renderSize;
     auto sz = computeScaleForMeshSizing(
-        m_currentScaleMode, renderer.renderSize(edge),
+        m_currentScaleMode, renderSize,
         QSizeF(m_frameFormat.width, m_frameFormat.height));
     Material mat;
     mat.scale_w = sz.width();

@@ -2,14 +2,16 @@
 // the "extract attribute" example: Plane -> Extract buffer (Position) ->
 // Buffers to geometry -> Model Display, textured by a solid colour.
 //
-// An output resize rebuilds the render list: every renderer is released and
-// initialised again, so each GPU buffer the chain passes along is replaced. The
-// plane must still be drawn afterwards, and the Mode control must still pick
-// the primitive topology.
+// A full rebuild of the render list releases and initialises every renderer
+// again, so each GPU buffer the chain passes along is replaced; an output resize
+// rebuilds only what follows the output size. The plane must still be drawn
+// after either, and the Mode control must still pick the primitive topology.
 #include "GfxHalpNodes.hpp"
 #include "IsfTestCommon.hpp"
 
 #include <score_test/Document.hpp>
+
+#include <Gfx/Graph/RenderList.hpp>
 
 #include <Threedim/BufferToGeometry2.hpp>
 #include <Threedim/GeometryToBuffer.hpp>
@@ -102,10 +104,12 @@ struct Result
 };
 
 // Renders the chain, then runs each step and records the coverage after it.
+// `textureSize`, when valid, gives the texture inlet a size of its own.
 Result run(
     score::gfx::GraphicsApi api,
     const std::vector<std::function<void(GfxPipeline&, int sink, score::gfx::Node&)>>&
-        steps)
+        steps,
+    QSize sinkSize = {96, 96}, QSize textureSize = {})
 {
   Result r;
   run_in_gui_app([&](const score::GUIApplicationContext& app) {
@@ -129,6 +133,9 @@ Result run(
     mdNode->position = {0.f, 0.f, 1.5f};
     mdNode->center = {0.f, 0.f, 0.f};
     mdNode->fov = 60.f;
+    if(textureSize.isValid())
+      mdNode->renderTargetSpecs[0].size
+          = ossia::texture_size{textureSize.width(), textureSize.height()};
     auto* md = mdNode.get();
     const int display = p.addNode(std::move(mdNode));
     if(plane < 0 || ex < 0 || toGeom < 0 || image < 0 || display < 0)
@@ -149,7 +156,7 @@ Result run(
     p.wire(bufOut, bufIn);
     p.wire(geoOut, md->input[1]);
     p.wire(p.imageOut(image, 0), md->input[0]);
-    const int sink = p.addSink({96, 96});
+    const int sink = p.addSink(sinkSize);
     p.wire(p.nodeImageOut(display, 0), p.sinkInput(sink));
     if(!p.create(api))
     {
@@ -177,6 +184,18 @@ auto resize(QSize sz)
 {
   return [sz](GfxPipeline& p, int sink, score::gfx::Node&) { p.resizeSink(sink, sz); };
 }
+// Inside a frame, as the render loop rebuilds a list: what release() hands to
+// deleteLater() outlives the rebuild, so no new resource takes its address.
+auto rebuild()
+{
+  return [](GfxPipeline& p, int, score::gfx::Node&) {
+    for(auto& rl : p.graph().renderLists())
+    {
+      score::gfx::OffscreenFrame frame{*rl->state.rhi};
+      rl->maybeRebuild(true);
+    }
+  };
+}
 auto mode(int m)
 {
   return [m](GfxPipeline&, int, score::gfx::Node& md) { setDrawMode(md, m); };
@@ -184,48 +203,73 @@ auto mode(int m)
 }
 
 TEST_CASE(
-    "a Model Display keeps drawing a GPU-buffer geometry across output resizes",
-    "[gfx][threedim][modeldisplay][resize]")
-{
-  const auto api = GENERATE(from_range(platform_backends()));
-  CAPTURE(backend_name(api));
-
-  const auto r = run(api, {resize({128, 72}), resize({96, 96}), resize({64, 80})});
-  if(r.skipped)
-    SKIP("backend unavailable");
-  INFO("error=" << r.error);
-  REQUIRE(r.error.empty());
-  REQUIRE(r.coverage.size() == 4);
-  INFO(
-      "coverage " << r.coverage[0] << " " << r.coverage[1] << " " << r.coverage[2]
-                  << " " << r.coverage[3]);
-  CHECK(r.coverage[0] > 0.1);
-  CHECK(r.coverage[1] > 0.1);
-  CHECK(r.coverage[2] > 0.1);
-  CHECK(r.coverage[3] > 0.1);
-}
-
-TEST_CASE(
-    "a Model Display's Mode picks the primitive topology after an output resize",
+    "a Model Display keeps drawing a GPU-buffer geometry across rebuilds and resizes",
     "[gfx][threedim][modeldisplay][resize]")
 {
   const auto api = GENERATE(from_range(platform_backends()));
   CAPTURE(backend_name(api));
 
   const auto r = run(
-      api, {resize({128, 72}), mode(Points), mode(Lines), mode(Triangles)});
+      api, {resize({128, 72}), rebuild(), resize({96, 96}), rebuild(), resize({64, 80})});
   if(r.skipped)
     SKIP("backend unavailable");
   INFO("error=" << r.error);
   REQUIRE(r.error.empty());
-  REQUIRE(r.coverage.size() == 5);
+  REQUIRE(r.coverage.size() == 6);
   INFO(
       "coverage " << r.coverage[0] << " " << r.coverage[1] << " " << r.coverage[2]
-                  << " " << r.coverage[3] << " " << r.coverage[4]);
+                  << " " << r.coverage[3] << " " << r.coverage[4] << " "
+                  << r.coverage[5]);
+  for(double c : r.coverage)
+    CHECK(c > 0.1);
+}
+
+TEST_CASE(
+    "a Model Display's Mode picks the primitive topology after a rebuild",
+    "[gfx][threedim][modeldisplay][resize]")
+{
+  const auto api = GENERATE(from_range(platform_backends()));
+  CAPTURE(backend_name(api));
+
+  const auto r = run(
+      api,
+      {resize({128, 72}), rebuild(), mode(Points), mode(Lines), mode(Triangles)});
+  if(r.skipped)
+    SKIP("backend unavailable");
+  INFO("error=" << r.error);
+  REQUIRE(r.error.empty());
+  REQUIRE(r.coverage.size() == 6);
+  INFO(
+      "coverage " << r.coverage[0] << " " << r.coverage[1] << " " << r.coverage[2]
+                  << " " << r.coverage[3] << " " << r.coverage[4] << " "
+                  << r.coverage[5]);
   CHECK(r.coverage[1] > 0.1);
+  CHECK(r.coverage[2] > 0.1);
   // Points and lines light a few pixels of what the triangles fill.
-  CHECK(r.coverage[2] < r.coverage[1] / 4);
-  CHECK(r.coverage[3] < r.coverage[1] / 2);
-  CHECK(r.coverage[3] > r.coverage[2]);
-  CHECK(r.coverage[4] > 0.1);
+  CHECK(r.coverage[3] < r.coverage[2] / 4);
+  CHECK(r.coverage[4] < r.coverage[2] / 2);
+  CHECK(r.coverage[4] > r.coverage[3]);
+  CHECK(r.coverage[5] > 0.1);
+}
+
+TEST_CASE(
+    "a Model Display's projection follows an output resize its texture inlet ignores",
+    "[gfx][threedim][modeldisplay][resize]")
+{
+  const auto api = GENERATE(from_range(platform_backends()));
+  CAPTURE(backend_name(api));
+
+  // The inlet keeps its size, so nothing re-initialises the Model Display. The
+  // plane keeps its height in pixels on a target twice as wide: it covers half
+  // of it, where a projection kept at the old aspect ratio stretches it across.
+  const auto r = run(api, {resize({192, 96})}, {96, 96}, {32, 32});
+  if(r.skipped)
+    SKIP("backend unavailable");
+  INFO("error=" << r.error);
+  REQUIRE(r.error.empty());
+  REQUIRE(r.coverage.size() == 2);
+  INFO("coverage " << r.coverage[0] << " " << r.coverage[1]);
+  CHECK(r.coverage[0] > 0.1);
+  CHECK(r.coverage[1] > 0.4 * r.coverage[0]);
+  CHECK(r.coverage[1] < 0.6 * r.coverage[0]);
 }

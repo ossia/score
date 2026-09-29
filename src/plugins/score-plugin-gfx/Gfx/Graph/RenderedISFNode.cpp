@@ -15,8 +15,8 @@ namespace score::gfx
 
 RenderedISFNode::~RenderedISFNode() { }
 PassOutput RenderedISFNode::initPassSampler(
-    ISFNode& n, const isf::pass& pass, RenderList& renderer, QSize mainTexSize,
-    QRhiResourceUpdateBatch& res)
+    ISFNode& n, const isf::pass& pass, int passIndex, RenderList& renderer,
+    QSize mainTexSize, QRhiResourceUpdateBatch& res)
 {
   QRhi& rhi = *renderer.state.rhi;
 
@@ -60,15 +60,31 @@ PassOutput RenderedISFNode::initPassSampler(
   };
   // In all the other cases we create a custom render target
   const auto fmt = pass_format();
+  const QSize texSize = (pass.width_expression.empty() && pass.height_expression.empty())
+                            ? mainTexSize
+                            : n.computeTextureSize(pass, mainTexSize, m_inputSamplers);
+
+  // The same pass of an edge whose passes were just removed: its textures
+  // carry the pass's history, which a rebuilt pass continues.
+  if(auto kept = ossia::find_if(
+         m_detachedPassOutputs,
+         [&](const DetachedPassOutput& d) {
+    return d.passIndex == passIndex && d.output.textures[0]->format() == fmt
+           && d.output.textures[0]->pixelSize() == texSize
+           && (d.output.textures[0] != d.output.textures[1]) == pass.persistent;
+  });
+     kept != m_detachedPassOutputs.end())
+  {
+    const PersistSampler out = kept->output;
+    m_detachedPassOutputs.erase(kept);
+    return out;
+  }
+
   const auto filter = (pass.nearest_filter) ? QRhiSampler::Nearest : QRhiSampler::Linear;
   auto sampler = rhi.newSampler(
       filter, filter, QRhiSampler::None, QRhiSampler::Mirror, QRhiSampler::Mirror);
   sampler->setName("RenderedISFNode::initPassSamplers::sampler");
   sampler->create();
-
-  const QSize texSize = (pass.width_expression.empty() && pass.height_expression.empty())
-                            ? mainTexSize
-                            : n.computeTextureSize(pass, mainTexSize, m_inputSamplers);
 
   // Upload a zero clear matching the texture format. Qt can convert, so we
   // pick a plausible source: float32 for floating-point formats, uint8 otherwise.
@@ -353,10 +369,18 @@ std::pair<Pass, Pass> RenderedISFNode::createPass(
   const std::span<QRhiShaderResourceBinding> extras{
       extraRhiBindings.data(), (std::size_t)extraRhiBindings.size()};
 
+  // A pass texture kept from a removed edge (initPassSampler) still has the
+  // render target built on it.
+  const auto keptInnerTarget = [this](QRhiTexture* tex) {
+    return ossia::find_if(
+        m_innerPassTargets, [tex](const TextureRenderTarget& rt) { return rt.texture == tex; });
+  };
+
   // Create the main pass
   {
     // Render target for the pass
     bool createdRt{};
+    bool innerTarget{};
     TextureRenderTarget renderTarget;
     if(auto rt = ossia::get_if<TextureRenderTarget>(&target))
     {
@@ -366,24 +390,33 @@ std::pair<Pass, Pass> RenderedISFNode::createPass(
     else if(auto psampler = ossia::get_if<PersistSampler>(&target))
     {
       // Intermediary pass
-      // Depth attachment on the same terms as the node's final target: a
-      // shader that writes gl_FragDepth needs one in every pass it runs in,
-      // or Metal refuses the pipeline.
-      renderTarget = score::gfx::createRenderTarget(
-          renderer.state, psampler->textures[0], renderer.samples(),
-          n.requiresDepth);
-      m_innerPassTargets.push_back(renderTarget);
-      // createRenderTarget returns a default-constructed (null) target when the
-      // backend refuses one -- renderTargetFailed() releases what it made and
-      // hands back {}. That happens when a driver will not give out the
-      // multisample colour buffer, and naming a null texture crashes there.
-      if(renderTarget.texture)
-        renderTarget.texture->setName(
-            "RenderedISFNode::createPass::renderTarget.texture");
-      if(renderTarget.renderTarget)
-        renderTarget.renderTarget->setName(
-            "RenderedISFNode::createPass::renderTarget.renderTarget");
-      createdRt = true;
+      innerTarget = true;
+      if(auto kept = keptInnerTarget(psampler->textures[0]);
+         kept != m_innerPassTargets.end())
+      {
+        renderTarget = *kept;
+      }
+      else
+      {
+        // Depth attachment on the same terms as the node's final target: a
+        // shader that writes gl_FragDepth needs one in every pass it runs in,
+        // or Metal refuses the pipeline.
+        renderTarget = score::gfx::createRenderTarget(
+            renderer.state, psampler->textures[0], renderer.samples(),
+            n.requiresDepth);
+        m_innerPassTargets.push_back(renderTarget);
+        // createRenderTarget returns a default-constructed (null) target when
+        // the backend refuses one -- renderTargetFailed() releases what it made
+        // and hands back {}. That happens when a driver will not give out the
+        // multisample colour buffer, and naming a null texture crashes there.
+        if(renderTarget.texture)
+          renderTarget.texture->setName(
+              "RenderedISFNode::createPass::renderTarget.texture");
+        if(renderTarget.renderTarget)
+          renderTarget.renderTarget->setName(
+              "RenderedISFNode::createPass::renderTarget.renderTarget");
+        createdRt = true;
+      }
     }
 
     try
@@ -392,7 +425,7 @@ std::pair<Pass, Pass> RenderedISFNode::createPass(
           renderer.state, n.m_vertexS, n.m_fragmentS, n.descriptor().multiview_count);
       const auto mainSamplers = allSamplers(passSamplers, passIndex, 0);
       QVarLengthArray<QRhiGraphicsPipeline::TargetBlend, 4> blends;
-      if(createdRt)
+      if(innerTarget)
         blends.push_back(QRhiGraphicsPipeline::TargetBlend{});
       else
         blends = outputBlends(n.descriptor(), renderTarget.colorAttachmentCount());
@@ -428,17 +461,25 @@ std::pair<Pass, Pass> RenderedISFNode::createPass(
       // as we can't use a texture both as sampler and render target
       ret.second.processUBO = ret.first.processUBO;
       ret.second.p = ret.first.p;
-      ret.second.renderTarget = score::gfx::createRenderTarget(
-          renderer.state, psampler->textures[1], renderer.samples(),
-          n.requiresDepth);
-      m_innerPassTargets.push_back(ret.second.renderTarget);
-      // Same null-on-refusal contract as the intermediary pass above.
-      if(ret.second.renderTarget.texture)
-        ret.second.renderTarget.texture->setName(
-            "RenderedISFNode::createPass::ret.second.renderTarget.texture");
-      if(ret.second.renderTarget.renderTarget)
-        ret.second.renderTarget.renderTarget->setName(
-            "RenderedISFNode::createPass::ret.second.renderTarget.renderTarget");
+      if(auto kept = keptInnerTarget(psampler->textures[1]);
+         kept != m_innerPassTargets.end())
+      {
+        ret.second.renderTarget = *kept;
+      }
+      else
+      {
+        ret.second.renderTarget = score::gfx::createRenderTarget(
+            renderer.state, psampler->textures[1], renderer.samples(),
+            n.requiresDepth);
+        m_innerPassTargets.push_back(ret.second.renderTarget);
+        // Same null-on-refusal contract as the intermediary pass above.
+        if(ret.second.renderTarget.texture)
+          ret.second.renderTarget.texture->setName(
+              "RenderedISFNode::createPass::ret.second.renderTarget.texture");
+        if(ret.second.renderTarget.renderTarget)
+          ret.second.renderTarget.renderTarget->setName(
+              "RenderedISFNode::createPass::ret.second.renderTarget.renderTarget");
+      }
 
       ret.second.p.srb = score::gfx::createDefaultBindings(
           renderer, ret.second.renderTarget, pubo, m_materialUBO,
@@ -478,7 +519,8 @@ void RenderedISFNode::initPasses(
     }
     else
     {
-      auto sampler = initPassSampler(n, pass, renderer, mainTexSize, res);
+      auto sampler = initPassSampler(
+          n, pass, int(&pass - model_passes.data()), renderer, mainTexSize, res);
       passes.samplers.push_back(sampler);
     }
   }
@@ -704,12 +746,37 @@ void RenderedISFNode::removeOutputPass(RenderList& renderer, Edge& edge)
 
       if(auto p = ossia::get_if<PersistSampler>(&sampler))
       {
-        delete p->sampler;
+        // The main and alternate sets swap every frame: the one in `passes`
+        // is the one the next frame draws, into textures[0] when unswapped.
+        PersistSampler kept = *p;
+        if(pass.renderTarget.texture == p->textures[1])
+          std::swap(kept.textures[0], kept.textures[1]);
+        m_detachedPassOutputs.push_back({int(i), kept});
       }
     }
 
     m_passes.erase(it);
   }
+}
+
+void RenderedISFNode::releaseDetachedPassOutputs() noexcept
+{
+  for(auto& [passIndex, output] : m_detachedPassOutputs)
+  {
+    delete output.sampler;
+    for(QRhiTexture* tex : output.textures)
+    {
+      if(auto rt = ossia::find_if(
+             m_innerPassTargets,
+             [tex](const TextureRenderTarget& t) { return t.texture == tex; });
+         rt != m_innerPassTargets.end())
+      {
+        rt->release();
+        m_innerPassTargets.erase(rt);
+      }
+    }
+  }
+  m_detachedPassOutputs.clear();
 }
 
 bool RenderedISFNode::hasOutputPassForEdge(Edge& edge) const
@@ -721,6 +788,10 @@ bool RenderedISFNode::hasOutputPassForEdge(Edge& edge) const
 void RenderedISFNode::update(
     RenderList& renderer, QRhiResourceUpdateBatch& res, Edge* edge)
 {
+  // Whatever was to take the removed passes' textures over has been built by
+  // now: the frame is drawing.
+  releaseDetachedPassOutputs();
+
   // Pipeline creation may have legitimately failed and cleaned up.
   if(m_passes.empty())
     return;
@@ -886,6 +957,8 @@ void RenderedISFNode::releaseState(RenderList& r)
 
     m_passes.clear();
   }
+
+  releaseDetachedPassOutputs();
 
   for(auto rt : m_innerPassTargets)
     rt.release();

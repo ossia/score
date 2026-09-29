@@ -61,8 +61,10 @@ private:
       QRhiResourceUpdateBatch& res);
 
   PassOutput initPassSampler(
-      ISFNode& n, const isf::pass& pass, RenderList& renderer, QSize mainTexSize,
-      QRhiResourceUpdateBatch& res);
+      ISFNode& n, const isf::pass& pass, int passIndex, RenderList& renderer,
+      QSize mainTexSize, QRhiResourceUpdateBatch& res);
+
+  void releaseDetachedPassOutputs() noexcept;
 
   struct Passes
   {
@@ -70,6 +72,19 @@ private:
     ossia::small_vector<Pass, 1> altPasses;
     ossia::small_vector<PassOutput, 1> samplers;
   };
+
+  //! The intermediate pass textures of an edge whose passes were removed. A
+  //! persistent pass's history belongs to the node, not to the cable it draws
+  //! into: an edge built in the same frame (the output's targets rebuilt, a
+  //! node inserted after this one) takes them over. Released on the next
+  //! update() otherwise. `output` is ordered so that textures[0] is the one the
+  //! next frame writes.
+  struct DetachedPassOutput
+  {
+    int passIndex{};
+    PersistSampler output;
+  };
+  std::vector<DetachedPassOutput> m_detachedPassOutputs;
 
   std::vector<Sampler> allSamplers(
       ossia::small_vector<PassOutput, 1>&, int readerPass,

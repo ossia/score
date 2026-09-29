@@ -105,13 +105,14 @@ public:
    * which deleteLater()s the old target and installs a fresh one) must
    * override this so that a renderer which cached the target by value at
    * construction can re-adopt the live handles when it is rebuilt
-   * (RenderList::maybeRebuild -> OutputNodeRenderer::init). The default
+   * (RenderList::maybeRebuild or rebuildOutputTargets ->
+   * OutputNodeRenderer::init). The default
    * returns an empty target, meaning "nothing to refresh — keep the value
    * captured at createRenderer() time".
    *
    * Without this, the resize fast-path (resizeSwapchainSizedTargets, which
-   * rebuilds the RenderList in place instead of reconstructing the
-   * renderer) leaves the upstream node's final pass bound to the freed
+   * re-inits the output renderer in place instead of reconstructing it)
+   * leaves the upstream node's final pass bound to the freed
    * render-pass descriptor — a Vulkan use-after-free of the VkRenderPass.
    */
   virtual TextureRenderTarget currentRenderTarget() const noexcept { return {}; }

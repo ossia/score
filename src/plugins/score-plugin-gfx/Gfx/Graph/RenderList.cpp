@@ -924,6 +924,8 @@ void RenderList::release()
   m_requiresDepth = false;
   m_ready = false;
   m_built = false;
+  m_outputTargetsStale = false;
+  m_renderSizeChanged = false;
 }
 
 // Shared across every RenderList, because a QRhiBuffer pointer is unique
@@ -1351,9 +1353,54 @@ bool RenderList::maybeRebuild(bool force)
 
     m_lastSize = outputSize;
     m_built = true;
+    m_outputTargetsStale = false;
+    m_renderSizeChanged = false;
     rebuilt = true;
   }
   return rebuilt;
+}
+
+void RenderList::rebuildOutputTargets(QRhiResourceUpdateBatch& res)
+{
+  m_outputTargetsStale = false;
+
+  auto out_it = output.renderedNodes.find(this);
+  if(out_it == output.renderedNodes.end())
+    return;
+  auto* outRenderer = out_it->second;
+
+  // The output renderer's targets are the ones that follow the output size and
+  // the depth requirement; its init() reads both. Passes drawing into them are
+  // built against their render pass, so they are rebuilt around it. Upstream
+  // renderers keep everything else.
+  //
+  // Drained first for the same reason as maybeRebuild: this runs inside the
+  // frame, and the output renderer's resources may still be referenced by work
+  // in flight.
+  if(state.rhi)
+    state.rhi->finish();
+
+  for(auto* in : output.input)
+    for(auto* edge : in->edges)
+      if(auto src_it = edge->source->node->renderedNodes.find(this);
+         src_it != edge->source->node->renderedNodes.end())
+        src_it->second->removeOutputPass(*this, *edge);
+
+  outRenderer->release(*this);
+  outRenderer->init(*this, res);
+  outRenderer->checkForChanges();
+  outRenderer->materialChanged = true;
+  outRenderer->geometryChanged = true;
+  outRenderer->renderTargetSpecsChanged = false;
+
+  for(auto* in : output.input)
+    for(auto* edge : in->edges)
+      if(auto src_it = edge->source->node->renderedNodes.find(this);
+         src_it != edge->source->node->renderedNodes.end())
+        src_it->second->addOutputPass(*this, *edge, res);
+
+  // update() uploads the output UBO, render size included, when not ready.
+  m_ready = false;
 }
 
 TextureRenderTarget RenderList::renderTargetForOutput(const Edge& edge) const noexcept
@@ -1649,11 +1696,12 @@ bool RenderList::resizeSwapchainSizedTargets(QSize newOutputSize, QSize newRende
   if(newRenderSize == m_lastSize && newOutputSize == state.outputSize)
     return true;
 
-  // m_lastSize deliberately keeps its OLD value so maybeRebuild's
-  // `outputSize != m_lastSize` check fires on the next render frame.
   state.renderSize = newRenderSize;
   state.outputSize = newOutputSize;
-  m_built = false;  // forces maybeRebuild's release+init on next frame
+  if(newRenderSize != m_lastSize)
+    m_renderSizeChanged = true;
+  m_lastSize = newRenderSize;
+  m_outputTargetsStale = true;
 
   return true;
 }
@@ -1846,7 +1894,8 @@ void RenderList::renderImpl(QRhiCommandBuffer& commands, bool force)
 #endif
   m_gpuTimings.tickFrame();
 
-  bool rt_changed = false;
+  // A resized output also moves every inlet whose size follows it.
+  bool rt_changed = m_outputTargetsStale;
   for(auto* renderer : renderers)
   {
     renderer->checkForChanges();
@@ -1905,8 +1954,12 @@ void RenderList::renderImpl(QRhiCommandBuffer& commands, bool force)
     // then intermediate nodes.
 
     // Pass 1: output node
-    if(auto out_it = output.renderedNodes.find(this);
-       out_it != output.renderedNodes.end())
+    if(m_outputTargetsStale)
+    {
+      rebuildOutputTargets(*updateBatch);
+    }
+    else if(auto out_it = output.renderedNodes.find(this);
+            out_it != output.renderedNodes.end())
     {
       auto* outRenderer = out_it->second;
       if(outRenderer->renderTargetSpecsChanged)
@@ -1945,6 +1998,8 @@ void RenderList::renderImpl(QRhiCommandBuffer& commands, bool force)
       if(&renderer->node == &output)
         continue;
       const bool ownSpecsChanged = renderer->renderTargetSpecsChanged;
+      const bool followsRenderSize
+          = m_renderSizeChanged && renderer->followsRenderSize();
 
       // Phase A: scan ports, recreate input RTs whose specs changed,
       // and collect the changed-port set so phase C only re-adds
@@ -2013,7 +2068,9 @@ void RenderList::renderImpl(QRhiCommandBuffer& commands, bool force)
       // persistent AUX, depth/MSAA attachments sized to output, etc.)
       // is stale and needs re-init: without it the input RT is recreated
       // at the new size while the renderer's own internal RTs stay at the
-      // old one. initState wires up samplers against the current
+      // old one. The same holds on a resize of the output for a renderer
+      // allocating at the render size (followsRenderSize), whatever its
+      // inputs. initState wires up samplers against the current
       // m_inputRenderTargets, so no separate updateInputTexture pass is
       // needed.
       //
@@ -2021,7 +2078,7 @@ void RenderList::renderImpl(QRhiCommandBuffer& commands, bool force)
       // was recreated (others kept their existing passes intact in
       // phase A). Done after Phase B so the upstream's addOutputPass
       // sees this renderer's freshly-built per-pass state.
-      if(!changedPorts.empty())
+      if(!changedPorts.empty() || followsRenderSize)
       {
         renderer->releaseState(*this);
         renderer->initState(*this, *updateBatch);
@@ -2059,6 +2116,7 @@ void RenderList::renderImpl(QRhiCommandBuffer& commands, bool force)
 
       renderer->renderTargetSpecsChanged = false;
     }
+    m_renderSizeChanged = false;
   }
   // Check if the viewport has changed
 

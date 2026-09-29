@@ -35,6 +35,7 @@ struct SCORE_PLUGIN_GFX_EXPORT RenderedCSFNode : score::gfx::NodeRenderer
   void
   addInputEdge(RenderList& renderer, Edge& edge, QRhiResourceUpdateBatch& res) override;
   void removeInputEdge(RenderList& renderer, Edge& edge) override;
+  bool followsRenderSize() const noexcept override;
 
   void runInitialPasses(
       RenderList&, QRhiCommandBuffer& commands, QRhiResourceUpdateBatch*& res,

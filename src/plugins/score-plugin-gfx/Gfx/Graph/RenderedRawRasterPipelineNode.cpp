@@ -4640,6 +4640,13 @@ RenderedRawRasterPipelineNode::depthCompare() const noexcept
   return declared ? toCompareOp(*declared) : QRhiGraphicsPipeline::Greater;
 }
 
+bool RenderedRawRasterPipelineNode::followsRenderSize() const noexcept
+{
+  // The storage images are allocated at the render size. The MRT target needs
+  // no re-init: it goes with the last of the output passes.
+  return ossia::any_of(m_storage.images, [](const auto& img) { return img.owned; });
+}
+
 void RenderedRawRasterPipelineNode::process(int32_t port, const ossia::transform3d& v)
 {
   m_modelTransform = v;

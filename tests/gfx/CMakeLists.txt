@@ -585,8 +585,8 @@ score_add_gfx_test(geometry_buffer_rebind GfxGeometryBufferRebind.cpp)
 score_add_gfx_test(csf_readwrite_state GfxCsfReadWriteState.cpp)
 # State must travel around a Delayed* geometry edge and advance.
 score_add_gfx_test(csf_feedback_loop GfxCsfFeedbackLoop.cpp)
-# A render-list rebuild (output resize) must not leave a CSF consumer binding
-# the geometry buffers its producer freed in release().
+# A render-list rebuild must not leave a CSF consumer binding the geometry
+# buffers its producer freed in release().
 score_add_gfx_test(csf_rebuild_stale_geometry GfxCsfRebuildStaleGeometry.cpp)
 score_add_gfx_test(buffer_adoption_lifetime GfxBufferAdoptionLifetime.cpp)
 score_add_gfx_test(raw_raster_buffer_input GfxRawRasterBufferInput.cpp)
@@ -1238,6 +1238,25 @@ score_add_gfx_process_test(renderers_before_passes GfxRenderersBeforePasses.cpp)
 # list, so whatever was already on screen blinked. Drives the real preview
 # widget against the real document GfxContext.
 score_add_gfx_process_test(preview_output_rebuild GfxPreviewOutputRebuild.cpp)
+
+# Inserting a node into a running graph keeps the state of the nodes already
+# rendering (persistent passes, persistent storage buffers).
+score_add_gfx_process_test(insert_keeps_state GfxInsertKeepsState.cpp)
+
+# ... and a resize of the output still rebuilds what follows the output size.
+score_add_gfx_test(resize_follows_render_size GfxResizeFollowsRenderSize.cpp)
+
+# A video's letterbox follows a resize of the output it draws into.
+if(TARGET score_plugin_media)
+  score_add_test(test_gfx_video_scale_follows_resize
+    SOURCES GfxVideoScaleFollowsResize.cpp
+    GUI
+    PLUGINS score_plugin_gfx score_plugin_media score_plugin_scenario
+            score_lib_process
+    LIBS test_gfx_engine_glue avutil)
+  target_compile_definitions(test_gfx_video_scale_follows_resize PRIVATE
+    GFX_TEST_CORPUS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/corpus")
+endif()
 
 # What a frame costs as the target grows, with no readback and no output device
 # in the way. Answers "is the renderer the wall at 8K" -- it is not.

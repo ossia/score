@@ -138,6 +138,7 @@ private:
   bool m_fieldPartnerValid{};
   bool m_sawField{};
   score::gfx::ScaleMode m_currentScaleMode{};
+  QSize m_scaleRenderSize{};
 
   std::shared_ptr<RefcountedFrame> m_currentFrame{};
   int64_t m_currentFrameIdx{-1};

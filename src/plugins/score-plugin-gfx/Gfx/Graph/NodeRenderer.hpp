@@ -113,6 +113,11 @@ public:
   /// after the sink's own frame-start cache snapshot.
   virtual void seedInitialOutputs(RenderList& renderer);
 
+  /// Whether initState() allocates resources at the render size, beyond the
+  /// passes drawing into downstream targets: a resize of the output then
+  /// re-initialises the renderer even though none of its inputs changed.
+  virtual bool followsRenderSize() const noexcept { return false; }
+
   /** @} */
 
   void checkForChanges()

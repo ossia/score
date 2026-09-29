@@ -5211,6 +5211,35 @@ void RenderedCSFNode::releaseState(RenderList& r)
 {
   dropSrbAdoptions();
 
+  // A re-initialisation (a full rebuild of the render list, or a resize of the
+  // output re-initialising this node and its producers) can release the
+  // producers too: the geometry they pushed before names buffers they have just
+  // freed, and this node can dispatch before they push again (a delayed edge
+  // renders it ahead of them). They publish their new buffers on every frame;
+  // CPU-side geometry is kept, as its producers may only push it on a change.
+  bool dropped = false;
+  for(auto it = m_portGeometries.begin(); it != m_portGeometries.end();)
+  {
+    if(holdsGpuResources(it->second))
+    {
+      m_portScenes.erase(it->first);
+      m_wrapCache.erase(it->first);
+      it = m_portGeometries.erase(it);
+      dropped = true;
+    }
+    else
+    {
+      ++it;
+    }
+  }
+  if(holdsGpuResources(geometry))
+    geometry = {};
+  if(dropped)
+  {
+    m_mergeCacheInputs.clear();
+    m_mergeCacheOutput = {};
+  }
+
   if(!m_initialized)
     return;
 
@@ -5621,35 +5650,21 @@ void RenderedCSFNode::recreateShaderResourceBindings(RenderList& renderer, QRhiR
 void RenderedCSFNode::release(RenderList& r)
 {
   releaseState(r);
+}
 
-  // A render list rebuild (an output resize) releases every renderer, then
-  // init()s the same objects: the geometry the producers pushed before names
-  // buffers they have just freed, and this node can dispatch before they push
-  // again (a delayed edge renders it ahead of them). They publish their new
-  // buffers on every frame; CPU-side geometry is kept, as its producers may
-  // only push it on a change.
-  bool dropped = false;
-  for(auto it = m_portGeometries.begin(); it != m_portGeometries.end();)
-  {
-    if(holdsGpuResources(it->second))
-    {
-      m_portScenes.erase(it->first);
-      m_wrapCache.erase(it->first);
-      it = m_portGeometries.erase(it);
-      dropped = true;
-    }
-    else
-    {
-      ++it;
-    }
-  }
-  if(holdsGpuResources(geometry))
-    geometry = {};
-  if(dropped)
-  {
-    m_mergeCacheInputs.clear();
-    m_mergeCacheOutput = {};
-  }
+bool RenderedCSFNode::followsRenderSize() const noexcept
+{
+  // A writable storage image on a geometry input without a WIDTH or HEIGHT is
+  // allocated at the render size, once, by initState. Top-level storage images
+  // are checked against the render size on every frame by
+  // buildComputeSrbBindings.
+  for(const auto& input : n.descriptor().inputs)
+    if(auto* geo = ossia::get_if<isf::geometry_input>(&input.data))
+      for(const auto& atx : geo->auxiliary_textures)
+        if(atx.is_storage && atx.access != "read_only"
+           && (atx.width_expression.empty() || atx.height_expression.empty()))
+          return true;
+  return false;
 }
 
 void RenderedCSFNode::runRenderPass(

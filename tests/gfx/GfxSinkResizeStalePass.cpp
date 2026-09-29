@@ -16,9 +16,10 @@
 //                                 installs fresh ones, then fires onResize.
 //   Graph::initializeOutput's     takes the FAST path
 //     onResize lambda             RenderList::resizeSwapchainSizedTargets: it
-//                                 only records the new sizes and sets
-//                                 m_built = false, deferring the renderers'
-//                                 release()+init() to the NEXT render frame.
+//                                 only records the new sizes and marks the
+//                                 output's targets stale, deferring the output
+//                                 renderer's release()+init() and the passes
+//                                 drawn into it to the NEXT render frame.
 //   -> in that window the output renderer (InvertYRenderer) still holds
 //      m_inputTarget, the snapshot it took before the resize, whose
 //      QRhiRenderPassDescriptor has already been freed. init() is where it
@@ -122,8 +123,8 @@ TEST_CASE(
 
     // Fast-path resize: BackgroundNode::resize() frees the render target and the
     // render-pass descriptor and installs fresh ones;
-    // RenderList::resizeSwapchainSizedTargets only marks the list not-built and
-    // defers the renderers' release()+init() to the next render frame.
+    // RenderList::resizeSwapchainSizedTargets only marks the output's targets
+    // stale and defers their rebuild to the next render frame.
     p.resizeSink(s0, {96, 48});
 
     // NO render() between the resize and the edit — that is the whole point:
@@ -139,9 +140,9 @@ TEST_CASE(
     }
     out.pass_right_after_connect = has_pass(p.isf(a), edge);
 
-    // The next frame runs maybeRebuild, which release()+init()s every renderer:
-    // the output renderer re-adopts the sink's live target and the producer
-    // re-adds its output pass, now against handles that are actually alive.
+    // The next frame rebuilds the output's targets: the output renderer
+    // re-adopts the sink's live target and the producer adds its output pass,
+    // now against handles that are actually alive.
     p.render(3);
     out.pass_after_next_frame = has_pass(p.isf(a), edge);
     out.c = p.readback(s0);

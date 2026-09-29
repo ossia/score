@@ -216,21 +216,19 @@ public:
    * @brief Fast-path for pure viewport resize.
    *
    * Update state.outputSize to @p newOutputSize and state.renderSize to
-   * @p newRenderSize, and mark every renderer's renderTargetSpecsChanged so
-   * the `rt_changed` block in renderInternal does the RT recreation and
-   * sampler rebinding on the next render frame.
+   * @p newRenderSize, and mark the output's targets stale: the next render
+   * frame rebuilds the output renderer and the passes drawing into it, then
+   * the `rt_changed` block recreates the input render targets whose resolved
+   * size follows the output and re-initialises only the renderers reading
+   * them, and those allocating at the render size (followsRenderSize). Every
+   * other renderer keeps its GPU state (feedback textures,
+   * simulation buffers), which a release() + init() of the whole list would
+   * wipe on every resize of the output.
    *
    * The two sizes are distinct: the output node owns the render size (the
    * `/rendersize` override, ScreenNode::setRenderSize), the platform owns
    * the output size (the swapchain). Callers pass both from the
    * RenderState the output node has already updated.
-   *
-   * Skips the full `recreateOutputRenderList` teardown + rebuild
-   * (pipeline compiles, ScenePreprocessor rebuild, mesh slab uploads,
-   * texture array reallocation): the persistent registry and
-   * ScenePreprocessor caches make that work unnecessary for a pure size
-   * change. Cost is O(N renderers), with no GPU drain and no allocation
-   * until the next frame's rt_changed block recreates the RTs.
    *
    * Returns true on success. Returns false, and the caller must fall back
    * to recreateOutputRenderList, when:
@@ -439,23 +437,31 @@ public:
   /**
    * @brief Is this render list currently coherent with its output's GPU objects?
    *
-   * False between the moment something invalidates the list (a fast-path
-   * viewport resize: resizeSwapchainSizedTargets) and the maybeRebuild() that
-   * runs on the next render frame. In that window the output node has ALREADY
-   * destroyed and replaced its QRhiTextureRenderTarget / QRhiRenderPassDescriptor
-   * while the renderers still hold the pre-resize snapshot, so nothing outside
-   * the rebuild may ask a renderer for a render target.
+   * False until the list has been built, and between a forced invalidation and
+   * the maybeRebuild() that runs on the next render frame; nothing outside the
+   * rebuild may ask a renderer for a render target then.
    */
   [[nodiscard]] bool isBuilt() const noexcept { return m_built; }
 
+  /**
+   * @brief Are the output's targets waiting to be rebuilt on the next frame?
+   *
+   * True between an output resize or a change of the depth requirement and the
+   * next render frame. The output node may already have replaced its
+   * QRhiTextureRenderTarget / QRhiRenderPassDescriptor, so a pass drawing into
+   * the output must not be built in that window; the frame builds them all.
+   */
+  [[nodiscard]] bool outputTargetsStale() const noexcept { return m_outputTargetsStale; }
+
   /// Set the "any node requires depth" flag computed from the node graph.
-  /// Either direction invalidates the build: a rise leaves targets allocated
+  /// Either direction makes the output's targets stale: a rise leaves them
   /// without depth, a fall leaves every sink carrying a depth attachment
-  /// nothing reads -- 33 MB per sink at 4K, for the rest of the session.
+  /// nothing reads -- 33 MB per sink at 4K, for the rest of the session. Only
+  /// the output and the passes drawing into it are rebuilt, not the renderers.
   void markRequiresDepth(bool value) noexcept
   {
-    if(value != m_requiresDepth)
-      m_built = false;
+    if(value != m_requiresDepth && m_built)
+      m_outputTargetsStale = true;
     m_requiresDepth = value;
   }
 
@@ -611,6 +617,8 @@ private:
   void removeSelfFeedbackTarget(const Port* port);
   bool ensureSelfFeedbackTarget(const Port& in);
 
+  void rebuildOutputTargets(QRhiResourceUpdateBatch& res);
+
   /**
    * @brief Last size used by this renderer.
    */
@@ -625,6 +633,8 @@ private:
   bool m_requiresDepth{};
   bool m_ready{};
   bool m_built{};
+  bool m_outputTargetsStale{};
+  bool m_renderSizeChanged{};
 };
 
 /**

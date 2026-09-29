@@ -961,6 +961,13 @@ SimpleRenderedISFNode::depthCompare() const noexcept
                              : QRhiGraphicsPipeline::Greater;
 }
 
+bool SimpleRenderedISFNode::followsRenderSize() const noexcept
+{
+  // The storage images are allocated at the render size. The MRT target needs
+  // no re-init: it goes with the last of the output passes.
+  return ossia::any_of(m_storage.images, [](const auto& img) { return img.owned; });
+}
+
 void SimpleRenderedISFNode::runRenderPass(
     RenderList& renderer, QRhiCommandBuffer& cb, Edge& edge)
 {

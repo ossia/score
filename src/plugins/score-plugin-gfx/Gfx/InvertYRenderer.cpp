@@ -25,7 +25,7 @@ void InvertYRenderer::init(
   // constructed: a BackgroundNode viewport resize destroys the old
   // QRhiTextureRenderTarget / QRhiRenderPassDescriptor (deleteLater) and
   // installs fresh ones. When the resize takes the in-place fast path
-  // (RenderList::resizeSwapchainSizedTargets -> maybeRebuild's
+  // (RenderList::resizeSwapchainSizedTargets -> rebuildOutputTargets'
   // release()+init()) this renderer is NOT reconstructed, so the cached
   // m_inputTarget would still reference the freed target/renderpass — and
   // the upstream node's final pass (RenderedISFNode::addOutputPass ->
@@ -33,9 +33,8 @@ void InvertYRenderer::init(
   // against a stale VkRenderPass. That is a Vulkan use-after-free: the
   // driver dereferences the destroyed VkRenderPass in vkCreateGraphicsPipelines
   // (validation reports VK_ERROR_VALIDATION_FAILED_EXT / -1000011001, and the
-  // NVIDIA driver may SIGSEGV outright). Refreshing here — before the upstream
-  // renderers are re-init'd in the same maybeRebuild pass (the output renderer
-  // is first in RenderList::renderers) — rebinds the live handles.
+  // NVIDIA driver may SIGSEGV outright). Refreshing here — before the passes
+  // drawing into this output are rebuilt — rebinds the live handles.
   if(auto* out = dynamic_cast<const score::gfx::OutputNode*>(&this->node))
   {
     auto cur = out->currentRenderTarget();

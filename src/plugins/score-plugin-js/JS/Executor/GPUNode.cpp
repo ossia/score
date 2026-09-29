@@ -336,6 +336,8 @@ void main ()
   {
   }
 
+  bool followsRenderSize() const noexcept override { return true; }
+
   void initState(score::gfx::RenderList& renderer, QRhiResourceUpdateBatch& res) override
   {
     auto& rhi = *renderer.state.rhi;

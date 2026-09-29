@@ -904,6 +904,8 @@ public:
   int m_blend_alpha_dst{0};
   int m_blend_alpha_op{0};
   bool m_blend_enabled{false};
+  // The render size the projection's aspect ratio was computed for.
+  QSize m_projectionSize{};
 
 private:
   ~Renderer() = default;
@@ -1462,8 +1464,11 @@ private:
     auto& n = static_cast<const ModelDisplayNode&>(this->node);
 
     bool mustRecreatePasses = false;
-    if(this->materialChanged)
+    // A resize of the output changes the aspect ratio without re-initialising
+    // this renderer when its texture inlet has a size of its own.
+    if(this->materialChanged || m_projectionSize != renderer.state.renderSize)
     {
+      m_projectionSize = renderer.state.renderSize;
       QMatrix4x4 model{};
       fromGL(n.ubo.model, model);
 

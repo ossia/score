@@ -141,6 +141,7 @@ private:
   QShader m_cachedVertexShader;
   QShader m_cachedFragmentShader;
   score::gfx::ScaleMode m_currentScaleMode{};
+  QSize m_scaleRenderSize{};
 
   int64_t m_lastRequestedFlicks{-1};
   int64_t m_lastDecodedDts{INT64_MIN};

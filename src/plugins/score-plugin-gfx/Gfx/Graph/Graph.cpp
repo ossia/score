@@ -490,11 +490,11 @@ void Graph::initializeOutput(OutputNode* output, GraphicsApi graphicsApi)
     auto onResize = [this, output] {
       // Fast path for a pure viewport resize: skip the full release+createRenderList
       // -- pipeline compiles, ScenePreprocessor rebuild, mesh slab and texture array
-      // re-upload, every preprocessor SSBO from cap=0 -- and instead mark every
-      // renderer's RT specs dirty so renderInternal's surgical rt_changed block
-      // recreates only the swapchain-sized RTs and rebinds downstream samplers. The
-      // persistent GpuResourceRegistry and ScenePreprocessor caches make the heavier
-      // work unnecessary for a size-only change.
+      // re-upload, every preprocessor SSBO from cap=0 -- and instead mark the
+      // output's targets stale so the next frame's rt_changed block rebuilds the
+      // output and only what follows its size. The persistent GpuResourceRegistry
+      // and ScenePreprocessor caches make the heavier work unnecessary for a
+      // size-only change.
       //
       // Returns false when it cannot handle the change (no renderers yet, invalid
       // size); the fallback below covers initial setup and any future format or
@@ -908,16 +908,18 @@ void Graph::createPassForEdgeIfMissing(Edge& edge)
       continue;
 
     // A render list that is pending a rebuild is INCOHERENT with its output's
-    // GPU objects: a fast-path viewport resize (RenderList::
+    // GPU objects, and so are the output's targets while they wait for the next
+    // frame: a fast-path viewport resize (RenderList::
     // resizeSwapchainSizedTargets, reached from BackgroundNode::resize ->
     // onResize) destroys the output's QRhiTextureRenderTarget and its
-    // QRhiRenderPassDescriptor, installs fresh ones, and only marks the list
-    // not-built — the renderers are re-init'd on the NEXT render frame, in
-    // maybeRebuild. Building a pass in that window reads the output renderer's
-    // pre-resize snapshot (e.g. InvertYRenderer::m_inputTarget) and calls
-    // through a freed QRhiRenderPassDescriptor. Nothing is lost by skipping:
-    // maybeRebuild's release() + init() re-adds an output pass for every edge.
-    if(!rl->isBuilt())
+    // QRhiRenderPassDescriptor and installs fresh ones, and the output renderer
+    // is re-init'd on the NEXT render frame. Building a pass into the output in
+    // that window reads the output renderer's pre-resize snapshot (e.g.
+    // InvertYRenderer::m_inputTarget) and calls through a freed
+    // QRhiRenderPassDescriptor. Nothing is lost by skipping: maybeRebuild, or
+    // RenderList::rebuildOutputTargets, adds a pass for every edge concerned.
+    if(!rl->isBuilt()
+       || (edge.sink->node == &rl->output && rl->outputTargetsStale()))
       continue;
 
     // Ensure the sink port has a render target (if needed)

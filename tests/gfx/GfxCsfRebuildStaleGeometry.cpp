@@ -1,15 +1,15 @@
 // A render-list rebuild must not leave a CSF node binding the geometry buffers
 // its upstream published before the rebuild.
 //
-// A resize of the output (a window resized by the window manager when another
-// window opens, a script editor for instance) takes RenderList's fast path: it
-// only marks the list unbuilt, and the next frame's maybeRebuild runs
-// release() + init() on the SAME renderer objects. Every CSF producer frees
-// its geometry buffers in release(); a consumer that kept the upstream
+// A full rebuild of a render list (RenderList::maybeRebuild) runs release() +
+// init() on the SAME renderer objects. Every CSF producer frees its geometry
+// buffers in release(); a consumer that kept the upstream
 // geometry_spec from before the rebuild rebinds those freed handles from its
 // init(), and its compute pass is submitted with them before the producer
 // publishes its new buffers: a use-after-free in setShaderResources, preceded
-// by the "binds buffer ... which was retired" diagnostics.
+// by the "binds buffer ... which was retired" diagnostics. A resize of the
+// output rebuilds only what follows the output size, which here is the raster
+// alone; the chain must survive both.
 //
 // The graph is the reaction-diffusion corpus score's: a hub owning the grid
 // (VERTEX_COUNT expression), diffusion, reaction closing a delayed geometry
@@ -33,6 +33,7 @@ struct RebuildRun
   std::string skip_reason, backend, error;
   int staleBeforeResize = -1;
   int staleAfterResize = -1;
+  int staleAfterRebuild = -1;
   ReadbackImage before, reseeded;
 };
 
@@ -49,6 +50,17 @@ int drawn_pixels(const ReadbackImage& img)
         ++n;
     }
   return n;
+}
+
+// Inside a frame, as the render loop rebuilds a list: what release() hands to
+// deleteLater() outlives the rebuild, so no new resource takes its address.
+void rebuildRenderLists(GfxPipeline& p)
+{
+  for(auto& rl : p.graph().renderLists())
+  {
+    score::gfx::OffscreenFrame frame{*rl->state.rhi};
+    rl->maybeRebuild(true);
+  }
 }
 
 RebuildRun run(score::gfx::GraphicsApi be)
@@ -96,6 +108,12 @@ RebuildRun run(score::gfx::GraphicsApi be)
       p.resizeSink(sink, sz);
       p.render(6);
     }
+    r.staleAfterResize = score::gfx::RenderList::staleBindingCount();
+    for(int i = 0; i < 2; ++i)
+    {
+      rebuildRenderLists(p);
+      p.render(6);
+    }
 
     // The rebuild gives every node new, zeroed buffers, and the hub only seeds
     // them on its first frames: the grid is empty until it is reset. Reseeding
@@ -103,7 +121,7 @@ RebuildRun run(score::gfx::GraphicsApi be)
     setControl(*p.isf(init), 1, ossia::impulse{});
     p.render(8);
     r.reseeded = p.readback(sink);
-    r.staleAfterResize = score::gfx::RenderList::staleBindingCount();
+    r.staleAfterRebuild = score::gfx::RenderList::staleBindingCount();
     if(r.error.empty())
       r.error = p.error();
   });
@@ -133,6 +151,7 @@ TEST_CASE(
   CHECK(s.staleBeforeResize == 0);
 
   CHECK(s.staleAfterResize == 0);
+  CHECK(s.staleAfterRebuild == 0);
   REQUIRE(s.reseeded.valid());
   CHECK(drawn_pixels(s.reseeded) > 10);
 }
