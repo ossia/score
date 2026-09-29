@@ -476,6 +476,17 @@ public:
    * view-independent (asset identity drives layer assignment) so
    * sharing across preprocessors is correct.
    */
+  //! Monotonic counts of the primitive-cloud uploads of the scene
+  //! preprocessors on this render list: rows (raw_splats, cloud_id_lookup and
+  //! the indirect command, re-uploaded together) and cloud_meta. Nothing in the
+  //! engine reads them: they make the cloud path's incremental behaviour
+  //! observable, since an upload into an existing buffer changes no pointer.
+  struct PrimitiveCloudUploads
+  {
+    uint64_t rows{0};
+    uint64_t meta{0};
+  } primitiveCloudUploads;
+
   //! Every channel resolves to the same pool. Which channel a ref belongs to
   //! still decides its colourspace: see textureChannelFlags, which the caller
   //! feeds into findOrCreateBucket.

@@ -8,6 +8,9 @@
 //  - A scene_node with visible == false draws nothing.
 //  - A primitive-cloud bucket's buffers are sized to the primitive count, so
 //    a CSF's .length() over a bucket attribute is the primitive count.
+//  - Moving a primitive cloud re-uploads its cloud_meta only: its rows (a
+//    whole splat file) stay where they are, and the consumer sees the new
+//    model matrix.
 //  - Two preprocessors share the registry's texture pool: when the second one
 //    adds a texture, the first one's layer is kept, and when that grows a
 //    bucket (a new QRhiTexture array) the first one republishes, so its
@@ -20,6 +23,7 @@
 #include "GfxUserLibrary.hpp"
 
 #include <Gfx/Graph/FlattenedSceneFilterNode.hpp>
+#include <Gfx/Graph/GpuResourceRegistry.hpp>
 #include <Gfx/Graph/Node.hpp>
 #include <Gfx/Graph/NodeRenderer.hpp>
 #include <Gfx/Graph/RenderList.hpp>
@@ -36,6 +40,7 @@
 #include <QTemporaryDir>
 
 #include <algorithm>
+#include <cmath>
 #include <array>
 #include <cstring>
 
@@ -159,6 +164,39 @@ void main()
   if (p.x >= imageSize(outputImage).x || p.y >= imageSize(outputImage).y) return;
   float n_len  = float(ISF_READ(geoIn, cloud_id).length());
   IMG_STORE(outputImage, p, vec4(n_len / 255.0, float(sized.values.length() > 0), 0.0, 1.0));
+}
+)";
+
+constexpr const char* kCloudMetaCsf = R"(/*{
+  "ISFVSN": "2.0",
+  "MODE": "COMPUTE_SHADER",
+  "TYPES": [
+    { "NAME": "CloudMeta", "LAYOUT": [
+        { "NAME": "model", "TYPE": "mat4" }, { "NAME": "bounds_min", "TYPE": "vec4" },
+        { "NAME": "bounds_max", "TYPE": "vec4" }, { "NAME": "primitive_offset", "TYPE": "uint" },
+        { "NAME": "primitive_count", "TYPE": "uint" }, { "NAME": "transform_slot", "TYPE": "uint" },
+        { "NAME": "format_param_index", "TYPE": "uint" }, { "NAME": "_pad0", "TYPE": "uvec4" } ] }
+  ],
+  "RESOURCES": [
+    { "NAME": "outputImage", "TYPE": "image", "ACCESS": "write_only", "WIDTH": "64", "HEIGHT": "64" },
+    {
+      "NAME": "geoIn", "TYPE": "geometry",
+      "ATTRIBUTES": [ { "NAME": "cloud_id", "SEMANTIC": "custom", "TYPE": "uint", "ACCESS": "read_only" } ],
+      "AUXILIARY": [
+        { "NAME": "cloud_meta", "ACCESS": "read_only", "LAYOUT": [ { "NAME": "entries", "TYPE": "CloudMeta[]" } ] },
+        { "NAME": "raw_splats", "ACCESS": "read_only", "LAYOUT": [ { "NAME": "values", "TYPE": "float[]" } ] }
+      ]
+    }
+  ],
+  "PASSES": [ { "LOCAL_SIZE": [8, 8, 1], "EXECUTION_MODEL": { "TYPE": "2D_IMAGE", "TARGET": "outputImage" } } ]
+}*/
+void main()
+{
+  ivec2 p = ivec2(gl_GlobalInvocationID.xy);
+  if (p.x >= imageSize(outputImage).x || p.y >= imageSize(outputImage).y) return;
+  uint cid = ISF_READ(geoIn, cloud_id)[0];
+  float tx = cloud_meta.entries[cid].model[3].x;
+  IMG_STORE(outputImage, p, vec4(tx, raw_splats.values[4] / 255.0, 0.0, 1.0));
 }
 )";
 
@@ -524,6 +562,131 @@ TEST_CASE(
   const auto px = r.img.center();
   INFO("cloud_id.length() " << int(px[0]));
   CHECK(int(px[0]) == kRows);
+}
+
+TEST_CASE(
+    "moving a primitive cloud re-uploads its cloud_meta, not its rows",
+    "[gfx][scene][primitivecloud]")
+{
+  const auto api = GENERATE(from_range(platform_backends()));
+  CAPTURE(backend_name(api));
+  QTemporaryDir dir;
+  REQUIRE(dir.isValid());
+  const QString csf = writeText(dir, "scenepp_cloud_meta.cs", kCloudMetaCsf);
+
+  constexpr int kRows = 1000;
+  auto cloud = std::make_shared<ossia::primitive_cloud_component>();
+  {
+    std::vector<float> rows(kRows * 4);
+    for(int i = 0; i < kRows; ++i)
+      rows[i * 4] = float(i + 3); // row 1 starts at float 4: 4.0
+    cloud->raw_data = cpuBuffer(std::move(rows), ossia::buffer_data::usage::storage_buffer);
+  }
+  cloud->row_stride = 16;
+  cloud->primitive_count = kRows;
+  cloud->format_id = "scenepp.moving";
+  cloud->bounds = {{0.f, 0.f, 0.f}, {1.f, 1.f, 1.f}};
+  cloud->stable_id = 0xF1A0061u;
+
+  const auto placed = [&](float x, int64_t version) {
+    ossia::scene_transform t;
+    t.translation[0] = x;
+    auto children = std::make_shared<std::vector<ossia::scene_payload>>();
+    children->push_back(t);
+    children->push_back(ossia::primitive_cloud_component_ptr{cloud});
+    auto n = std::make_shared<ossia::scene_node>();
+    n->id.value = 61;
+    n->children = std::move(children);
+    auto st = stateWith({n});
+    st->version = version;
+    st->dirty_index = version;
+    return st;
+  };
+
+  struct Uploads
+  {
+    uint64_t rows{}, meta{};
+  };
+  const auto uploads = [](GfxPipeline& p) {
+    Uploads u;
+    for(const auto& rl : p.graph().renderLists())
+    {
+      u.rows += rl->registry().primitiveCloudUploads.rows;
+      u.meta += rl->registry().primitiveCloudUploads.meta;
+    }
+    return u;
+  };
+
+  Result before, after;
+  Uploads u0, u1, u2;
+  score::test::run_in_gui_app([&](const score::GUIApplicationContext&) {
+    GfxPipeline p;
+    auto sceneNode = std::make_unique<StaticSceneNode>(placed(0.25f, 1));
+    auto* scene = sceneNode.get();
+    const int hn = p.addNode(std::move(sceneNode));
+    const int flat = p.addNode(std::make_unique<score::gfx::ScenePreprocessorNode>());
+    auto filterNode = std::make_unique<score::gfx::FlattenedSceneFilterNode>();
+    filterNode->m_mode = 12;
+    filterNode->m_match = 0;
+    filterNode->m_match_str = "scenepp.moving";
+    const int filter = p.addNode(std::move(filterNode));
+    const int c = p.addCsf(csf);
+    if(hn < 0 || flat < 0 || filter < 0 || c < 0)
+    {
+      before.err = "chain build failed: " + p.error();
+      return;
+    }
+    p.wire(p.nodeSceneOut(hn, 0), p.nodeSceneIn(flat, 0));
+    p.wire(p.nodeGeometryOut(flat, 0), p.nodeGeometryIn(filter, 0));
+    p.wire(p.nodeGeometryOut(filter, 0), p.geometryIn(c, 0));
+    const int sink = p.addSink({kSize, kSize});
+    p.wire(p.imageOut(c, 0), p.sinkInput(sink));
+    if(!p.create(api))
+    {
+      before.skipped = p.skipped();
+      before.err = before.skipped ? std::string{} : p.error();
+      return;
+    }
+    p.render(5);
+    before.img = p.readback(sink);
+    u0 = uploads(p);
+
+    // The cloud moves, a frame at a time, as when a position is automated.
+    for(int step = 1; step <= 4; ++step)
+    {
+      scene->state = placed(0.25f + 0.125f * step, 1 + step);
+      p.render(2);
+    }
+    u1 = uploads(p);
+    after.img = p.readback(sink);
+    p.render(3);
+    u2 = uploads(p);
+  });
+  if(before.skipped)
+    SKIP("backend unavailable");
+  if(const char* why = compute_shader_skip_reason(api))
+    SKIP(why);
+  REQUIRE(before.err.empty());
+  REQUIRE(before.img.valid());
+  REQUIRE(after.img.valid());
+
+  const auto px0 = before.img.center();
+  const auto px1 = after.img.center();
+  INFO("before " << scene::rgba_string(px0) << " after " << scene::rgba_string(px1));
+  INFO("row uploads " << u0.rows << " -> " << u1.rows << " -> " << u2.rows
+                      << ", meta uploads " << u0.meta << " -> " << u1.meta << " -> "
+                      << u2.meta);
+  // The consumer reads the rows and the current model matrix.
+  CHECK(std::abs(int(px0[0]) - 64) <= 1);  // 0.25
+  CHECK(std::abs(int(px1[0]) - 191) <= 1); // 0.75
+  CHECK(int(px0[1]) == 4);
+  CHECK(int(px1[1]) == 4);
+  // The rows went up once; each move re-uploaded cloud_meta, nothing when still.
+  CHECK(u0.rows >= 1);
+  CHECK(u1.rows == u0.rows);
+  CHECK(u1.meta >= u0.meta + 4);
+  CHECK(u2.rows == u1.rows);
+  CHECK(u2.meta == u1.meta);
 }
 
 TEST_CASE(

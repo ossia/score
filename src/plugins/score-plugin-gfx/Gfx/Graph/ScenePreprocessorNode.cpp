@@ -576,14 +576,26 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
     QRhiBuffer* indirect{};          int64_t indirectCap{};
     uint32_t row_stride{};           // cached from cloud->row_stride
     uint64_t last_seen_frame{};      // for stale-bucket eviction
-    // Per-frame content fingerprint over, per cloud in bucket order,
-    // raw_data identity + content_hash + primitive_count + worldTransform
-    // bytes + transform_slot. A match means the bucket's buffers are already
-    // correct and the CPU concat + upload can be skipped. 0 forces upload.
-    uint64_t content_fingerprint{};
+    // Fingerprint of what raw_splats, cloud_id_lookup and the indirect cmd
+    // hold: per cloud in bucket order, raw_data identity + content version +
+    // primitive_count. 0 forces the upload.
+    uint64_t raw_fingerprint{};
+    // Fingerprint of the cloud_meta contents (world matrices, transform
+    // slots, primitive ranges). A moving cloud only changes this one, so its
+    // rows are not re-uploaded.
+    uint64_t meta_fingerprint{};
+    // Index of the bucket geometry in m_outputSpec.meshes->meshes.
+    std::size_t mesh_index{};
   };
   ossia::flat_map<uint32_t, PrimitiveCloudBucketBuffers> m_primitiveCloudBuckets;
   uint64_t m_primitiveCloudFrame{0};
+
+  struct PrimitiveCloudBucket
+  {
+    ossia::small_vector<const FlatScene::PrimitiveCloudDraw*, 4> draws;
+    uint64_t total_primitives{};
+    uint32_t row_stride{};
+  };
 
   // ─── Unified-MDI per-instance concat buffers ────────────────────────
   // Two arrays sized to K = (Σ regular_cmd_count + Σ instance_group_count),
@@ -749,10 +761,12 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
   std::vector<uint64_t> m_cachedMeshFingerprint;
   // Fingerprint of the primitive_cloud set. Clouds are not covered by
   // m_cachedMeshFingerprint, so they get their own gate on the fast path.
-  // Covers the fields rebuildPrimitiveClouds' per-bucket fingerprint depends
-  // on -- raw_data identity, primitive count, transform -- plus the bucket key
-  // so additions and removals are detected.
+  // Covers what the published bucket geometries depend on -- raw_data
+  // identity and content, primitive count, transform slot -- plus the bucket
+  // key so additions and removals are detected. World matrices are not in it:
+  // a moving cloud stays on the fast path, which only re-uploads cloud_meta.
   uint64_t m_cachedCloudFingerprint{};
+  uint64_t m_cachedCloudTransformFingerprint{};
   std::vector<MaterialExtensionsGPU> m_cachedMaterialExt;
   std::vector<PerDrawGPU> m_cachedPerDraws;
   // Mirror of the per_draw_bounds SSBO for diff-upload on the fast-path
@@ -900,6 +914,7 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
     m_cachedDynamicSlotFingerprint = 0;
     m_cachedMeshFingerprint.clear();
     m_cachedCloudFingerprint = 0;
+    m_cachedCloudTransformFingerprint = 0;
     m_cachedMaterialExt.clear();
     m_cachedPerDraws.clear();
     m_cachedPerDrawBounds.clear();
@@ -1454,6 +1469,153 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
     return it->second;
   }
 
+  // Bucket key of a cloud: hash(format_id), or the cloud's address when
+  // format_id is empty. The hash matches the canonical filter_tag stamp
+  // (ossia::hash_string truncated to 32 bits) so a downstream
+  // FlattenedSceneFilterNode "format_id == match_str" route lines up
+  // byte-for-byte with this bucket key.
+  static uint32_t primitiveCloudBucketKey(
+      const ossia::primitive_cloud_component& cloud) noexcept
+  {
+    if(!cloud.format_id.empty())
+      return (uint32_t)ossia::hash_string(cloud.format_id);
+    return (uint32_t)((uintptr_t)&cloud & 0xffffffffu);
+  }
+
+  static ossia::flat_map<uint32_t, PrimitiveCloudBucket>
+  bucketPrimitiveClouds(const FlatScene& fs)
+  {
+    ossia::flat_map<uint32_t, PrimitiveCloudBucket> buckets;
+    for(const auto& d : fs.primitive_clouds)
+    {
+      if(!d.cloud || d.cloud->primitive_count == 0)
+        continue;
+
+      auto& b = buckets[primitiveCloudBucketKey(*d.cloud)];
+      if(b.draws.empty())
+      {
+        b.row_stride = d.cloud->row_stride;
+      }
+      else if(b.row_stride != d.cloud->row_stride)
+      {
+        // Row-stride mismatch in a same-key bucket: skip the
+        // mismatched cloud rather than corrupt the concat. Indicates
+        // a tagging error in the producer.
+        qWarning() << "ScenePreprocessor::rebuildPrimitiveClouds: "
+                      "row_stride mismatch within bucket"
+                   << QString::fromStdString(d.cloud->format_id)
+                   << " expected" << b.row_stride
+                   << "got" << d.cloud->row_stride;
+        continue;
+      }
+      b.draws.push_back(&d);
+      b.total_primitives += d.cloud->primitive_count;
+    }
+    return buckets;
+  }
+
+  // Packs one CloudMetaGPU per cloud of the bucket, returns the fingerprint of
+  // the packed bytes and the union of the clouds' world AABBs.
+  static uint64_t packCloudMeta(
+      const PrimitiveCloudBucket& b, std::vector<CloudMetaGPU>& out,
+      ossia::aabb& worldBounds)
+  {
+    out.resize(b.draws.size());
+    worldBounds = {};
+    worldBounds.min[0] = worldBounds.min[1] = worldBounds.min[2] = 1.f;
+    worldBounds.max[0] = worldBounds.max[1] = worldBounds.max[2] = -1.f;
+
+    uint32_t prim_offset = 0;
+    for(std::size_t ci = 0; ci < b.draws.size(); ++ci)
+    {
+      const auto* d = b.draws[ci];
+      CloudMetaGPU& gm = out[ci];
+
+      // QMatrix4x4::constData() is column-major, as the shaders expect.
+      std::memcpy(gm.model, d->worldTransform.constData(), sizeof(gm.model));
+
+      // Per-cloud world-space AABB: 8-corner walk of the local bounds through
+      // worldTransform, so format CSFs can frustum-cull individual clouds
+      // inside a bucket. Empty local bounds give an inverted AABB, which a
+      // frustum test in the shader treats as visible.
+      const auto& lb = d->cloud->bounds;
+      if(lb.empty())
+      {
+        gm.bounds_min[0] = gm.bounds_min[1] = gm.bounds_min[2] = 1.f;
+        gm.bounds_max[0] = gm.bounds_max[1] = gm.bounds_max[2] = -1.f;
+      }
+      else
+      {
+        const QMatrix4x4& W = d->worldTransform;
+        float minx = std::numeric_limits<float>::infinity();
+        float miny = minx, minz = minx;
+        float maxx = -minx, maxy = -minx, maxz = -minx;
+        for(int corner = 0; corner < 8; ++corner)
+        {
+          const float x = (corner & 1) ? lb.max[0] : lb.min[0];
+          const float y = (corner & 2) ? lb.max[1] : lb.min[1];
+          const float z = (corner & 4) ? lb.max[2] : lb.min[2];
+          const QVector3D p = W.map(QVector3D(x, y, z));
+          minx = std::min(minx, p.x()); maxx = std::max(maxx, p.x());
+          miny = std::min(miny, p.y()); maxy = std::max(maxy, p.y());
+          minz = std::min(minz, p.z()); maxz = std::max(maxz, p.z());
+          worldBounds.expand(p.x(), p.y(), p.z());
+        }
+        gm.bounds_min[0] = minx; gm.bounds_min[1] = miny; gm.bounds_min[2] = minz;
+        gm.bounds_max[0] = maxx; gm.bounds_max[1] = maxy; gm.bounds_max[2] = maxz;
+      }
+      gm.bounds_min[3] = 0.f;
+      gm.bounds_max[3] = 0.f;
+
+      gm.primitive_offset    = prim_offset;
+      gm.primitive_count     = (uint32_t)d->cloud->primitive_count;
+      gm.transform_slot      = d->transform_slot; // 0xFFFFFFFFu = none
+      gm.format_param_index  = 0; // unused for v1
+      gm._pad[0] = gm._pad[1] = gm._pad[2] = gm._pad[3] = 0;
+      prim_offset += gm.primitive_count;
+    }
+    return ossia::hash_bytes(out.data(), out.size() * sizeof(CloudMetaGPU));
+  }
+
+  static void setGeometryBounds(ossia::geometry& g, const ossia::aabb& worldBounds)
+  {
+    if(worldBounds.empty())
+      return;
+    std::copy_n(worldBounds.min, 3, g.bounds.min);
+    std::copy_n(worldBounds.max, 3, g.bounds.max);
+  }
+
+  // Transform-only change of the cloud set: the published bucket geometries
+  // and their row buffers stay as they are, only cloud_meta is re-uploaded and
+  // the geometries' world bounds follow. Downstream nodes keep the same
+  // mesh_list, so nothing is rebuilt there.
+  void refreshPrimitiveCloudMeta(
+      RenderList& renderer, QRhiResourceUpdateBatch& res, const FlatScene& fs)
+  {
+    const auto buckets = bucketPrimitiveClouds(fs);
+    std::vector<CloudMetaGPU> cmData;
+    ossia::aabb worldBounds;
+    for(const auto& [key, b] : buckets)
+    {
+      // Same skip as rebuildPrimitiveClouds: such a bucket published no geometry.
+      if(b.total_primitives == 0 || b.row_stride == 0)
+        continue;
+      auto it = m_primitiveCloudBuckets.find(key);
+      if(it == m_primitiveCloudBuckets.end() || !it->second.cloud_meta)
+        continue;
+      auto& bb = it->second;
+      const uint64_t fp = packCloudMeta(b, cmData, worldBounds);
+      if(fp == bb.meta_fingerprint)
+        continue;
+      res.uploadStaticBuffer(
+          bb.cloud_meta, 0, cmData.size() * sizeof(CloudMetaGPU), cmData.data());
+      bb.meta_fingerprint = fp;
+      ++renderer.registry().primitiveCloudUploads.meta;
+      if(m_outputSpec.meshes && bb.mesh_index < m_outputSpec.meshes->meshes.size())
+        setGeometryBounds(m_outputSpec.meshes->meshes[bb.mesh_index], worldBounds);
+    }
+  }
+
   // Bucket fs.primitive_clouds by format_id and emit one indirect-draw
   // geometry per bucket, appended to m_outputSpec.meshes after the mesh MDI
   // entry. Per bucket: `raw_splats`, `cloud_meta` and `cloud_id_lookup`
@@ -1475,55 +1637,7 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
       return;
     }
 
-    struct Bucket
-    {
-      uint32_t bucket_key;
-      ossia::small_vector<const FlatScene::PrimitiveCloudDraw*, 4> draws;
-      uint64_t total_primitives{};
-      uint32_t row_stride{};
-      int64_t  raw_splats_bytes{};
-    };
-    ossia::flat_map<uint32_t, Bucket> buckets;
-
-    for(const auto& d : fs.primitive_clouds)
-    {
-      if(!d.cloud || d.cloud->primitive_count == 0)
-        continue;
-      // Bucket by format_id when set, else by the cloud's address. The hash
-      // matches the canonical filter_tag stamp (ossia::hash_string truncated
-      // to 32 bits) so a downstream FlattenedSceneFilterNode "format_id ==
-      // match_str" route lines up byte-for-byte with this bucket key.
-      uint32_t key = 0;
-      if(!d.cloud->format_id.empty())
-      {
-        key = (uint32_t)ossia::hash_string(d.cloud->format_id);
-      }
-      else
-      {
-        key = (uint32_t)((uintptr_t)d.cloud.get() & 0xffffffffu);
-      }
-
-      auto& b = buckets[key];
-      if(b.draws.empty())
-      {
-        b.bucket_key = key;
-        b.row_stride = d.cloud->row_stride;
-      }
-      else if(b.row_stride != d.cloud->row_stride)
-      {
-        // Row-stride mismatch in a same-key bucket: skip the
-        // mismatched cloud rather than corrupt the concat. Indicates
-        // a tagging error in the producer.
-        qWarning() << "ScenePreprocessor::rebuildPrimitiveClouds: "
-                      "row_stride mismatch within bucket"
-                   << QString::fromStdString(d.cloud->format_id)
-                   << " expected" << b.row_stride
-                   << "got" << d.cloud->row_stride;
-        continue;
-      }
-      b.draws.push_back(&d);
-      b.total_primitives += d.cloud->primitive_count;
-    }
+    const auto buckets = bucketPrimitiveClouds(fs);
 
     // Drop buckets whose key did not appear this frame.
     for(auto it = m_primitiveCloudBuckets.begin();
@@ -1571,7 +1685,9 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
     };
 
     bool any_emitted = false;
-    for(auto& [key, b] : buckets)
+    std::vector<CloudMetaGPU> cmData;
+    ossia::aabb worldBounds;
+    for(const auto& [key, b] : buckets)
     {
       if(b.draws.empty() || b.total_primitives == 0 || b.row_stride == 0)
         continue;
@@ -1633,152 +1749,73 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
               "ScenePreprocessor::cloud.indirect");
 #endif
 
-      // Delta-update fingerprint over everything the four GPU buffers depend
-      // on. A match means the buckets are byte-equal to last frame's upload,
-      // so the CPU concat and the four uploadStaticBuffer calls are skipped.
-      // In the steady state the whole bucket loop is O(draws.size()) hashing.
-      uint64_t fp = 0;
-      ossia::hash_combine(fp, (uint64_t)bucketCloudCount);
-      ossia::hash_combine(fp, (uint64_t)b.row_stride);
-      ossia::hash_combine(fp, (uint64_t)b.total_primitives);
+      // Rows, lookup and indirect cmd depend on the clouds' data and ranges
+      // only: a transform change leaves them as they are.
+      uint64_t rawFp = 0;
+      ossia::hash_combine(rawFp, (uint64_t)bucketCloudCount);
+      ossia::hash_combine(rawFp, (uint64_t)b.row_stride);
+      ossia::hash_combine(rawFp, (uint64_t)b.total_primitives);
       for(const auto* d : b.draws)
       {
         const auto* raw = d->cloud->raw_data.get();
-        ossia::hash_combine(fp, (uint64_t)(uintptr_t)raw);
-        // raw_data carries an explicit content_hash for fast
-        // diff-skip when the producer can stamp one (PlyParser
-        // sets it from the storage pointer); fall back to
-        // dirty_index for producers that don't.
+        ossia::hash_combine(rawFp, (uint64_t)(uintptr_t)raw);
+        // content_hash when the producer stamps one (PlyParser does, from the
+        // storage pointer), else dirty_index.
         const uint64_t content_id
             = raw ? (raw->content_hash != 0
                          ? raw->content_hash
                          : (uint64_t)raw->dirty_index)
                   : 0u;
-        ossia::hash_combine(fp, content_id);
-        ossia::hash_combine(fp, (uint64_t)d->cloud->primitive_count);
-        ossia::hash_combine(fp, (uint64_t)d->transform_slot);
-        // worldTransform: 16 floats × 4 = 64 bytes column-major.
-        ossia::hash_combine(
-            fp,
-            ossia::hash_bytes(d->worldTransform.constData(), 64));
+        ossia::hash_combine(rawFp, content_id);
+        ossia::hash_combine(rawFp, (uint64_t)d->cloud->primitive_count);
       }
 
-      // 0 forces the first frame's upload. growBuf may also have just
-      // allocated a fresh VkBuffer, but then total_primitives or row_stride
-      // changed, which the fingerprint covers, so the re-upload branch runs.
-      const bool unchanged = (bb.content_fingerprint != 0)
-                             && (bb.content_fingerprint == fp)
-                             && (bb.raw_splats != nullptr);
-
-      if(!unchanged)
+      // 0 forces the first upload. A buffer growBuf just reallocated comes
+      // with a changed total_primitives or row_stride, so rawFp differs too.
+      if(bb.raw_fingerprint == 0 || bb.raw_fingerprint != rawFp)
       {
-        // ── raw_splats: concatenation of all clouds' raw bytes ────────
-        // Bucket-internal format_id mismatch was rejected above so all
-        // clouds in this bucket share row_stride.
-        std::vector<uint8_t> concat;
-        concat.resize((std::size_t)rawBytes);
-        uint8_t* dst = concat.data();
-        for(const auto* d : b.draws)
+        // raw_splats: the clouds' rows back to back (same row_stride, checked
+        // when bucketing). One CPU cloud is uploaded from its own storage:
+        // the update batch copies it anyway.
+        const auto cpuRows = [&](const FlatScene::PrimitiveCloudDraw& d,
+                                 int64_t bytes) -> const uint8_t* {
+          const auto& br = d.cloud->raw_data;
+          if(!br)
+            return nullptr;
+          // GPU-resident raw_data would need a GPU-to-GPU copy: not supported,
+          // the rows are zeroed.
+          auto* cpu = ossia::get_if<ossia::buffer_data>(&br->resource);
+          return cpu && cpu->data && cpu->byte_size >= bytes
+                     ? static_cast<const uint8_t*>(cpu->data.get())
+                     : nullptr;
+        };
+        const uint8_t* single
+            = b.draws.size() == 1 ? cpuRows(*b.draws[0], rawBytes) : nullptr;
+        if(single)
         {
-          const auto& br = d->cloud->raw_data;
-          if(!br) continue;
-          const int64_t bytes
-              = (int64_t)d->cloud->primitive_count * (int64_t)b.row_stride;
-          if(auto* cpu = ossia::get_if<ossia::buffer_data>(&br->resource))
-          {
-            if(cpu->data && cpu->byte_size >= bytes)
-            {
-              std::memcpy(dst, cpu->data.get(), (std::size_t)bytes);
-            }
-            else
-            {
-              std::memset(dst, 0, (std::size_t)bytes);
-            }
-          }
-          else
-          {
-            // GPU-resident raw_data is not supported yet (it would need a
-            // GPU-to-GPU copyBuffer). Zero-fill so the bucket is at least
-            // well-defined.
-            std::memset(dst, 0, (std::size_t)bytes);
-          }
-          dst += bytes;
+          res.uploadStaticBuffer(bb.raw_splats, 0, rawBytes, single);
         }
-        res.uploadStaticBuffer(bb.raw_splats, 0, rawBytes, concat.data());
+        else
+        {
+          std::vector<uint8_t> concat((std::size_t)rawBytes);
+          uint8_t* dst = concat.data();
+          for(const auto* d : b.draws)
+          {
+            const int64_t bytes
+                = (int64_t)d->cloud->primitive_count * (int64_t)b.row_stride;
+            if(const auto* src = cpuRows(*d, bytes))
+              std::memcpy(dst, src, (std::size_t)bytes);
+            dst += bytes;
+          }
+          res.uploadStaticBuffer(bb.raw_splats, 0, rawBytes, concat.data());
+        }
 
-        // ── cloud_meta + cloud_id_lookup ─────────────────────────────
-        std::vector<CloudMetaGPU> cmData;
-        cmData.resize(bucketCloudCount);
-
-        std::vector<uint32_t> lookup;
-        lookup.resize((std::size_t)b.total_primitives);
-
-        uint32_t prim_offset = 0;
-        uint32_t prim_lookup_pos = 0;
+        // cloud_id_lookup: primitive -> cloud_meta index
+        std::vector<uint32_t> lookup((std::size_t)b.total_primitives);
+        auto it = lookup.begin();
         for(uint32_t ci = 0; ci < bucketCloudCount; ++ci)
-        {
-          const auto* d = b.draws[ci];
-          CloudMetaGPU& gm = cmData[ci];
-
-          // Composed world matrix from the FlattenVisitor walk
-          // (parentWorld). QMatrix4x4 is column-major and we want a
-          // column-major float[16] — its constData() returns column-
-          // major memory directly.
-          const float* m = d->worldTransform.constData();
-          for(int k = 0; k < 16; ++k) gm.model[k] = m[k];
-
-          // Per-cloud world-space AABB: 8-corner walk of the local
-          // bounds through worldTransform. Mirrors the bucket-bounds
-          // loop below, but kept per-cloud so format CSFs can
-          // frustum-cull individual clouds inside a bucket.
-          const auto& lb = d->cloud->bounds;
-          if(lb.empty())
-          {
-            // Sentinel: empty bounds -> produce an inverted AABB so
-            // any frustum test in the shader trivially marks it
-            // visible (consumers can also check for the inversion).
-            gm.bounds_min[0] = gm.bounds_min[1] = gm.bounds_min[2] = 1.f;
-            gm.bounds_max[0] = gm.bounds_max[1] = gm.bounds_max[2] = -1.f;
-          }
-          else
-          {
-            const QMatrix4x4& W = d->worldTransform;
-            float minx = std::numeric_limits<float>::infinity();
-            float miny = minx, minz = minx;
-            float maxx = -minx, maxy = -minx, maxz = -minx;
-            for(int corner = 0; corner < 8; ++corner)
-            {
-              const float x = (corner & 1) ? lb.max[0] : lb.min[0];
-              const float y = (corner & 2) ? lb.max[1] : lb.min[1];
-              const float z = (corner & 4) ? lb.max[2] : lb.min[2];
-              const QVector3D p = W.map(QVector3D(x, y, z));
-              minx = std::min(minx, p.x()); maxx = std::max(maxx, p.x());
-              miny = std::min(miny, p.y()); maxy = std::max(maxy, p.y());
-              minz = std::min(minz, p.z()); maxz = std::max(maxz, p.z());
-            }
-            gm.bounds_min[0] = minx; gm.bounds_min[1] = miny; gm.bounds_min[2] = minz;
-            gm.bounds_max[0] = maxx; gm.bounds_max[1] = maxy; gm.bounds_max[2] = maxz;
-          }
-          gm.bounds_min[3] = 0.f;
-          gm.bounds_max[3] = 0.f;
-
-          gm.primitive_offset    = prim_offset;
-          gm.primitive_count     = (uint32_t)d->cloud->primitive_count;
-          gm.transform_slot      = d->transform_slot; // 0xFFFFFFFFu = none
-          gm.format_param_index  = 0; // unused for v1
-          gm._pad[0] = gm._pad[1] = gm._pad[2] = gm._pad[3] = 0;
-
-          // Fill lookup[prim_offset..prim_offset+count] = ci
-          for(uint32_t p = 0; p < gm.primitive_count; ++p)
-            lookup[prim_lookup_pos + p] = ci;
-          prim_lookup_pos += gm.primitive_count;
-          prim_offset    += gm.primitive_count;
-        }
-
-        res.uploadStaticBuffer(
-            bb.cloud_meta, 0, cmBytes, cmData.data());
-        res.uploadStaticBuffer(
-            bb.cloud_id_lookup, 0, lookupBytes, lookup.data());
+          it = std::fill_n(it, b.draws[ci]->cloud->primitive_count, ci);
+        res.uploadStaticBuffer(bb.cloud_id_lookup, 0, lookupBytes, lookup.data());
 
         // One cmd, vertex_count = one slot per primitive. The bucket geometry
         // is a flat point cloud; the downstream CSF stage reads
@@ -1793,7 +1830,17 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
             /*baseVertex*/    0};
         res.uploadStaticBuffer(bb.indirect, 0, icBytes, &cmd);
 
-        bb.content_fingerprint = fp;
+        bb.raw_fingerprint = rawFp;
+        bb.meta_fingerprint = 0;
+        ++renderer.registry().primitiveCloudUploads.rows;
+      }
+
+      const uint64_t metaFp = packCloudMeta(b, cmData, worldBounds);
+      if(bb.meta_fingerprint == 0 || bb.meta_fingerprint != metaFp)
+      {
+        res.uploadStaticBuffer(bb.cloud_meta, 0, cmBytes, cmData.data());
+        bb.meta_fingerprint = metaFp;
+        ++renderer.registry().primitiveCloudUploads.meta;
       }
 
       // ── Build the bucket geometry ─────────────────────────────────
@@ -1940,38 +1987,10 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
       if(rep && !rep->format_id.empty())
         g.filter_tag = (uint32_t)ossia::hash_string(rep->format_id);
 
-      // Bounds: union of cloud world-space AABBs.
-      ossia::aabb worldBounds{};
-      worldBounds.min[0] = worldBounds.min[1] = worldBounds.min[2] = 1.f;
-      worldBounds.max[0] = worldBounds.max[1] = worldBounds.max[2] = -1.f;
-      for(const auto* d : b.draws)
-      {
-        const auto& lb = d->cloud->bounds;
-        if(lb.empty())
-          continue;
-        // 8 corners of the local AABB transformed to world space.
-        const QMatrix4x4& W = d->worldTransform;
-        for(int corner = 0; corner < 8; ++corner)
-        {
-          const float x = (corner & 1) ? lb.max[0] : lb.min[0];
-          const float y = (corner & 2) ? lb.max[1] : lb.min[1];
-          const float z = (corner & 4) ? lb.max[2] : lb.min[2];
-          // Use QMatrix4x4::map() (inline member, no QtGui operator
-          // export needed). Equivalent to (W * vec4(x,y,z,1)).xyz.
-          const QVector3D p = W.map(QVector3D(x, y, z));
-          worldBounds.expand(p.x(), p.y(), p.z());
-        }
-      }
-      if(!worldBounds.empty())
-      {
-        g.bounds.min[0] = worldBounds.min[0];
-        g.bounds.min[1] = worldBounds.min[1];
-        g.bounds.min[2] = worldBounds.min[2];
-        g.bounds.max[0] = worldBounds.max[0];
-        g.bounds.max[1] = worldBounds.max[1];
-        g.bounds.max[2] = worldBounds.max[2];
-      }
+      // Bounds: union of the clouds' world-space AABBs (packCloudMeta).
+      setGeometryBounds(g, worldBounds);
 
+      bb.mesh_index = m_outputSpec.meshes->meshes.size();
       m_outputSpec.meshes->meshes.push_back(std::move(g));
       any_emitted = true;
     }
@@ -5071,12 +5090,14 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
       }
 
       // Cloud fingerprint: rebuildPrimitiveClouds only runs on the full-rebuild
-      // branch, so any change to the cloud set must mismatch this. Hashes the
-      // same fields the function's per-bucket fingerprint and bucket geometry
-      // depend on -- raw_data identity and content version, primitive_count,
-      // transform_slot, the world matrix, and the format_id-derived bucket key.
-      // Count is mixed first so a pure add or remove is always detected.
+      // branch, so any change to the published bucket geometries must mismatch
+      // this: raw_data identity and content version, primitive_count,
+      // transform_slot and the format_id-derived bucket key. Count is mixed
+      // first so a pure add or remove is always detected. The world matrices
+      // only reach cloud_meta and the bucket bounds: they have their own
+      // fingerprint, which the fast path follows.
       uint64_t freshCloudFingerprint = 0;
+      uint64_t freshCloudTransformFingerprint = 0;
       ossia::hash_combine(
           freshCloudFingerprint, (uint64_t)fs.primitive_clouds.size());
       for(const auto& d : fs.primitive_clouds)
@@ -5106,7 +5127,7 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
         ossia::hash_combine(
             freshCloudFingerprint, (uint64_t)d.transform_slot);
         ossia::hash_combine(
-            freshCloudFingerprint,
+            freshCloudTransformFingerprint,
             ossia::hash_bytes(d.worldTransform.constData(), 64));
       }
 
@@ -5183,7 +5204,7 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
             // Cloud set unchanged: rebuildPrimitiveClouds only
             // runs on the full-rebuild branch and re-appends its bucket
             // geometries onto the freshly rebuilt mesh list, so any cloud
-            // add / remove / move / re-upload must drop us off the fast path.
+            // add / remove / re-upload must drop us off the fast path.
             && (freshCloudFingerprint == m_cachedCloudFingerprint)
             // freshPerDraws / freshMeshFingerprint cover fs.draws only;
             // fs.instances cmds are processed exclusively inside rebuildMDI(),
@@ -5219,6 +5240,11 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
         // bounds still uploads.
         diffUpload(res, m_mdi.per_draw_bounds, m_cachedPerDrawBounds,
                    freshPerDrawBounds);
+        if(freshCloudTransformFingerprint != m_cachedCloudTransformFingerprint)
+        {
+          refreshPrimitiveCloudMeta(renderer, res, fs);
+          m_cachedCloudTransformFingerprint = freshCloudTransformFingerprint;
+        }
       }
       else
       {
@@ -5269,6 +5295,7 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
         m_cachedDynamicSlotFingerprint = computeDynamicSlotFingerprint();
         m_cachedMeshFingerprint = std::move(freshMeshFingerprint);
         m_cachedCloudFingerprint = freshCloudFingerprint;
+        m_cachedCloudTransformFingerprint = freshCloudTransformFingerprint;
         m_cachedLightIndices = std::move(freshLightIndices);
         m_cachedMaterialExt = std::move(freshMaterialExtensions);
         m_cachedMaterialUVTransforms = std::move(freshMaterialUVTransforms);
