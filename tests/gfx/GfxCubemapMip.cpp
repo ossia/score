@@ -73,7 +73,7 @@ struct MippedCube
       for(int face = 0; face < 6; ++face)
         entries.push_back(QRhiTextureUploadEntry{
             face, level,
-            QRhiTextureSubresourceUploadDescription{px.data(), quint32(px.size())}});
+            QRhiTextureSubresourceUploadDescription(px.data(), px.size())});
     }
     QRhiTextureUploadDescription desc;
     desc.setEntries(entries.begin(), entries.end());

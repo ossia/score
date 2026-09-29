@@ -130,7 +130,7 @@ void main() { frag = v_sum; }
 )_"));
 
       std::unique_ptr<QRhiGraphicsPipeline> pipeline(rhi.newGraphicsPipeline());
-      pipelineKnowsRhi = pipeline->rhi() == &rhi;
+      pipelineKnowsRhi = rhiOf(*pipeline) == &rhi;
       pipeline->setShaderStages(
           {{QRhiShaderStage::Vertex, shaders.first},
            {QRhiShaderStage::Fragment, shaders.second}});
@@ -160,6 +160,8 @@ void main() { frag = v_sum; }
   INFO(warnings.join(QStringLiteral("\n")).toStdString());
   CHECK(remapped);
   // The strict path reads the backend from here, having no QRhi of its own.
+  // Before Qt 6.5 a resource cannot name its QRhi, so that path stays quiet.
+#if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
   CHECK(pipelineKnowsRhi);
   if(isD3D11)
   {
@@ -167,6 +169,10 @@ void main() { frag = v_sum; }
     CHECK(warnings.front().contains(QStringLiteral("color1")));
   }
   else
+#else
+  (void)isD3D11;
+  (void)pipelineKnowsRhi;
+#endif
   {
     CHECK(warnings.isEmpty());
   }

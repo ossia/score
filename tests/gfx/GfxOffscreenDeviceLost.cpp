@@ -14,7 +14,7 @@
 #include <catch2/generators/catch_generators.hpp>
 #include <catch2/generators/catch_generators_range.hpp>
 
-#include <QtGui/rhi/qrhi.h>
+#include <QtGui/private/qrhi_p.h>
 
 #include <string>
 #include <vector>

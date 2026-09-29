@@ -13,7 +13,7 @@
 
 #include <Gfx/Graph/RenderList.hpp>
 
-#include <QtGui/private/qrhi_p.h>
+#include "GfxRhiLiveResources.hpp"
 
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/generators/catch_generators.hpp>
@@ -29,18 +29,6 @@ using score::test::gfx::isf::corpus;
 
 namespace
 {
-QHash<QRhiResource*, bool>& live_resources(QRhiImplementation& rhi);
-
-template <QHash<QRhiResource*, bool> QRhiImplementation::* Member>
-struct live_resources_access
-{
-  friend QHash<QRhiResource*, bool>& live_resources(QRhiImplementation& rhi)
-  {
-    return rhi.*Member;
-  }
-};
-template struct live_resources_access<&QRhiImplementation::resources>;
-
 enum class View
 {
   Other,
@@ -98,7 +86,7 @@ const char* view_name(View v)
 
 template <typename Pipeline>
 void check_pipeline(
-    const Pipeline& pip, const QHash<QRhiResource*, bool>& live,
+    const Pipeline& pip, const LiveResources& live,
     std::vector<std::string>& out)
 {
   auto* srb = pip.shaderResourceBindings();
@@ -118,7 +106,7 @@ void check_pipeline(
 
   for(auto it = srb->cbeginBindings(); it != srb->cendBindings(); ++it)
   {
-    const auto* d = QRhiImplementation::shaderResourceBindingData(*it);
+    const auto* d = binding_data(*it);
     if(d->type != QRhiShaderResourceBinding::SampledTexture)
       continue;
     const auto decl = declared.find(d->binding);
@@ -158,7 +146,7 @@ std::vector<std::string> view_mismatches(GfxPipeline& p)
     const auto& live = live_resources(impl);
     for(auto it = live.cbegin(); it != live.cend(); ++it)
     {
-      auto* res = it.key();
+      auto* res = live_resource(it);
       switch(res->resourceType())
       {
         case QRhiResource::GraphicsPipeline:

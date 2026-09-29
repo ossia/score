@@ -29,7 +29,7 @@
 #include <Gfx/Graph/NodeRenderer.hpp>
 #include <Gfx/Graph/RenderList.hpp>
 
-#include <QtGui/private/qrhi_p.h>
+#include "GfxRhiLiveResources.hpp"
 
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/generators/catch_generators.hpp>
@@ -43,18 +43,6 @@ using namespace score::test::gfx;
 
 namespace
 {
-QHash<QRhiResource*, bool>& live_resources(QRhiImplementation& rhi);
-
-template <QHash<QRhiResource*, bool> QRhiImplementation::* Member>
-struct live_resources_access
-{
-  friend QHash<QRhiResource*, bool>& live_resources(QRhiImplementation& rhi)
-  {
-    return rhi.*Member;
-  }
-};
-template struct live_resources_access<&QRhiImplementation::resources>;
-
 QString corpus(const char* file)
 {
   return QStringLiteral(GFX_TEST_CORPUS_DIR) + QStringLiteral("/") + file;

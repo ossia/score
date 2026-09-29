@@ -109,8 +109,8 @@ struct TranslucentGpuTexture
     }
     res.uploadTexture(
         m_tex, QRhiTextureUploadEntry{
-                   0, 0, QRhiTextureSubresourceUploadDescription{
-                             px.data(), quint32(px.size())}});
+                   0, 0, QRhiTextureSubresourceUploadDescription(
+                             px.data(), px.size())});
     outputs.texture.texture.handle = m_tex;
     outputs.texture.texture.width = 4;
     outputs.texture.texture.height = 4;
