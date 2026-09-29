@@ -409,7 +409,7 @@ TEST_CASE("Accumulator through the binding: Output in Manually mode", "[avnd][ac
 TEST_CASE("Buffer queue through the binding: Bang and Clear", "[avnd][queue][execution]")
 {
   with<avnd_tools::Queue>(queue_uuid, [](auto& e) {
-    REQUIRE(inlet_names(e) == "Input | Max length | Clear | Lock | Mode | Data | Bang");
+    REQUIRE(inlet_names(e) == "Input | Max length | Clear | Lock | Mode | Data | Bang | Pop");
     for(int i : {1, 2, 3})
     {
       e.port(0, ossia::value{i});
@@ -436,6 +436,48 @@ TEST_CASE("Buffer queue through the binding: Bang and Clear", "[avnd][queue][exe
       // Only what came after the clear
       CHECK(ossia::convert<std::string>(*v).find('1') == std::string::npos);
     }
+  });
+}
+
+TEST_CASE("Buffer queue through the binding: modes by label and by position", "[avnd][queue][execution]")
+{
+  with<avnd_tools::Queue>(queue_uuid, [](auto& e) {
+    REQUIRE(inlet_names(e) == "Input | Max length | Clear | Lock | Mode | Data | Bang | Pop");
+    e.gui(1, 2); // Max length
+    // Every tick, the default: every tick, input or not
+    e.port(0, ossia::value{1});
+    CHECK(e.tick() == ossia::value{1});
+    CHECK(e.tick() == ossia::value{1});
+
+    e.gui_choice(4, "When full");
+    CHECK_FALSE(e.tick());
+    e.port(0, ossia::value{2});
+    CHECK(e.tick() == ossia::value{1});
+    CHECK(e.tick() == ossia::value{1});
+
+    // A message picks a mode by position: 6 is "On bang"
+    e.port(4, ossia::value{6});
+    CHECK_FALSE(e.tick());
+    e.gui_bang(6);
+    CHECK(e.tick() == ossia::value{1});
+
+    // or by label
+    e.port(4, ossia::value{std::string{"On input"}});
+    CHECK_FALSE(e.tick());
+    e.gui_choice(5, "Newest");
+    e.port(0, ossia::value{3});
+    CHECK(e.tick() == ossia::value{3});
+    CHECK_FALSE(e.tick());
+
+    // 7 is "On bang, pop oldest": each Bang takes the oldest out
+    e.port(4, ossia::value{7});
+    e.gui_choice(5, "Oldest");
+    e.tick();
+    e.gui_bang(6);
+    CHECK(e.tick() == ossia::value{2});
+    e.gui_bang(6);
+    CHECK(e.tick() == ossia::value{3});
+    CHECK(e.object().buffer.empty());
   });
 }
 

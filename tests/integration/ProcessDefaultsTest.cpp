@@ -242,6 +242,50 @@ TEST_CASE(
   });
 }
 
+TEST_CASE(
+    "a buffer queue shows its modes and data by label, and reloads what was chosen",
+    "[integration][utilities][queue]")
+{
+  score::test::run_in_gui_app([](const score::GUIApplicationContext& app) {
+    const QString queue = QStringLiteral("8f68b81e-e5ba-4a10-a888-6581a5d770fe");
+    auto doc = score::test::new_document(app);
+    auto q = score::test::add_process(*doc, queue, {});
+    REQUIRE(q);
+    auto mode = qobject_cast<Process::ComboBox*>(control(*q, QStringLiteral("Mode")));
+    auto data = qobject_cast<Process::ComboBox*>(control(*q, QStringLiteral("Data")));
+    auto pop = control(*q, QStringLiteral("Pop"));
+    REQUIRE(mode);
+    REQUIRE(data);
+    REQUIRE(pop);
+    const auto labels = [](const Process::ComboBox& c) {
+      std::vector<QString> res;
+      for(int i = 0; i < int(c.getValues().size()); i++)
+      {
+        CHECK(c.getValues()[i].second == ossia::value{i});
+        res.push_back(c.getValues()[i].first);
+      }
+      return res;
+    };
+    CHECK(
+        labels(*mode)
+        == std::vector<QString>{
+            "Every tick", "On input", "On change", "When full", "On input, when full",
+            "On change, when full", "On bang", "On bang, pop oldest"});
+    CHECK(labels(*data) == std::vector<QString>{"Oldest", "Newest", "Whole buffer"});
+    CHECK(mode->value() == ossia::value{0});
+    CHECK(data->value() == ossia::value{0});
+
+    mode->setValue(7);
+    data->setValue(2);
+    pop->setValue(true);
+    auto reloaded = reloadedAs(app, score::test::save_as_json(*doc), *q);
+    REQUIRE(reloaded);
+    CHECK(control(*reloaded, QStringLiteral("Mode"))->value() == ossia::value{7});
+    CHECK(control(*reloaded, QStringLiteral("Data"))->value() == ossia::value{2});
+    CHECK(control(*reloaded, QStringLiteral("Pop"))->value() == ossia::value{true});
+  });
+}
+
 #include <Crousti/Executor.hpp>
 #include <Crousti/ProcessModel.hpp>
 #include <halp/file_port.hpp>

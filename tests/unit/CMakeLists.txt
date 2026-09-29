@@ -1771,12 +1771,12 @@ if(TARGET score_plugin_avnd)
     "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/include")
 endif()
 
-# Buffer queue: the output goes out on a change of the queue, not at every tick.
+# Buffer queue: the output of every mode, data choice and Pop setting.
 if(TARGET score_plugin_avnd)
-  score_add_test(test_unit_avnd_buffer_queue_change_only
-    SOURCES AvndBufferQueueChangeOnlyTest.cpp
+  score_add_test(test_unit_avnd_buffer_queue_modes
+    SOURCES AvndBufferQueueModesTest.cpp
     PLUGINS score_plugin_avnd)
-  target_include_directories(test_unit_avnd_buffer_queue_change_only PRIVATE
+  target_include_directories(test_unit_avnd_buffer_queue_modes PRIVATE
     "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-avnd"
     "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/include")
 endif()

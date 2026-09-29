@@ -192,7 +192,7 @@ struct QueueRig
 
 TEST_CASE("Buffer queue: held Clear empties and blocks the queue", "[avnd][utilities][queue]")
 {
-  QueueRig r{avnd_tools::Queue::ManualBang};
+  QueueRig r{avnd_tools::Queue::OnBang};
   r.q.inputs.data.value = avnd_tools::Queue::WholeBuffer;
   r.tick(ossia::value{1});
   r.tick(ossia::value{2});
@@ -213,16 +213,16 @@ TEST_CASE("Buffer queue: Bang sends in any mode, like Counter's Output", "[avnd]
     CHECK_FALSE(r.tick(ossia::value{1}));
     CHECK(r.tick(std::nullopt, true) == ossia::value{1});
   }
-  SECTION("manual: once per bang, not again at every tick")
+  SECTION("on bang: once per bang, not again at every tick")
   {
-    QueueRig r{avnd_tools::Queue::ManualBang};
+    QueueRig r{avnd_tools::Queue::OnBang};
     CHECK_FALSE(r.tick(ossia::value{1}));
     CHECK(r.tick(std::nullopt, true) == ossia::value{1});
     CHECK_FALSE(r.tick(std::nullopt));
   }
-  SECTION("manual pop")
+  SECTION("on bang, pop oldest")
   {
-    QueueRig r{avnd_tools::Queue::ManualPop};
+    QueueRig r{avnd_tools::Queue::OnBangPopOldest};
     r.tick(ossia::value{1});
     r.tick(ossia::value{2});
     CHECK(r.tick(std::nullopt, true) == ossia::value{1});
@@ -230,7 +230,7 @@ TEST_CASE("Buffer queue: Bang sends in any mode, like Counter's Output", "[avnd]
   }
   SECTION("an input is queued once, not at every tick after it")
   {
-    QueueRig r{avnd_tools::Queue::ManualPop, 10};
+    QueueRig r{avnd_tools::Queue::OnBangPopOldest, 10};
     r.tick(ossia::value{1});
     r.tick(std::nullopt);
     r.tick(std::nullopt);
