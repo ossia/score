@@ -1575,3 +1575,19 @@ if(TARGET score_plugin_avnd)
     "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-avnd"
     "${SCORE_ROOT_SOURCE_DIR}/3rdparty/csv2/include")
 endif()
+
+# Animations from untrusted glTF files and inputs: unplayable keyframe data is
+# refused at load, and AnimationPlayer clamps a NaN time. Pure CPU. The
+# loader and player are hidden in the dynamic plugin, so they are compiled in.
+if(TARGET score_plugin_threedim)
+  set(_anim_robust_src "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-threedim/Threedim")
+  score_plugin_hidden_sources(_anim_robust_hidden
+      "${_anim_robust_src}/GltfParser.cpp"
+      "${_anim_robust_src}/AnimationPlayer.cpp")
+  score_add_test(test_unit_threedim_animation_robustness
+    SOURCES ThreedimAnimationRobustnessTest.cpp ${_anim_robust_hidden}
+    PLUGINS score_plugin_threedim score_plugin_gfx score_plugin_avnd
+    LIBS fastgltf ${QT_PREFIX}::Gui)
+  target_include_directories(test_unit_threedim_animation_robustness SYSTEM PRIVATE
+    $<TARGET_PROPERTY:score_plugin_threedim,INCLUDE_DIRECTORIES>)
+endif()

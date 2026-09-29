@@ -44,9 +44,11 @@ findSegment(const std::vector<float>& times, float t) noexcept
   const std::size_t n = times.size();
   if(n == 0)
     return {0, 0.f};
-  if(n == 1 || t <= times.front())
+  // Negated comparisons so that a NaN time (or a NaN last key) clamps instead
+  // of reaching upper_bound, which would then return end().
+  if(n == 1 || !(t > times.front()))
     return {0, 0.f};
-  if(t >= times.back())
+  if(!(t < times.back()))
     return {n - 1, 1.f}; // alpha unused in the lerp when clamped below
 
   // std::upper_bound finds the first key > t → segment is its left neighbour.
