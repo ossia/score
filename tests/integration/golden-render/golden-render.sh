@@ -67,9 +67,16 @@
 #     something to run without an X server, and they assert their renderer too.
 # ---------------------------------------------------------------------------
 #
-# Serialization: each app run holds flock /tmp/score-harness.lock (OSC port
-# 6666 is global). Do NOT wrap this whole script in that lock: it would
-# self-deadlock.
+# Serialization: each app run holds flock /tmp/score-harness.lock (the scene
+# scripts all save into /tmp/score-tests-scene). Do NOT wrap this whole script
+# in that lock: it would self-deadlock.
+#
+# Control ports: every score process on the machine opens its local OSC / WS
+# device on 6666 / 9999 (or $SCORE_LOCAL_{OSC,WS}_PORT), in-process test
+# binaries and hand-launched instances included, and none of them take the
+# lock. An app that finds its port taken does not report it: the grabs go to
+# the other process and the case ends as NORENDER at the timeout. Each run
+# therefore gets ports picked free for it alone.
 set -u
 
 HERE="$(cd "$(dirname "$0")" && pwd)"
@@ -98,7 +105,6 @@ _resolve_scene_scripts() {
 }
 
 SCRIPTS="${SCRIPTS:-$(_resolve_scene_scripts "$SRCROOT" "csf-testers/tests-scene/scripts")}"
-OSC=${SCORE_LOCAL_OSC_PORT:-6666}
 BLANK_MEAN="${BLANK_MEAN:-0.002}"
 TIMEOUT="${TIMEOUT:-90}"
 GRABTRIES="${GRABTRIES:-25}"   # x2s poll for the grab (ASAN startup is slow)
@@ -262,6 +268,13 @@ AllowScripting=false
 Enabled=false
 EOF
 
+free_port() { # tcp|udp -> a port nothing is bound to right now
+  python3 -c 'import socket, sys
+s = socket.socket(socket.AF_INET, socket.SOCK_STREAM if sys.argv[1] == "tcp" else socket.SOCK_DGRAM)
+s.bind(("0.0.0.0", 0))
+print(s.getsockname()[1])' "$1"
+}
+
 pixel_mean() { convert "$1" -format '%[fx:mean]' info: 2>/dev/null || echo 0; }
 
 # ---- renderer identity ------------------------------------------------------
@@ -295,6 +308,8 @@ render_one() { # case_name out_png -> 0 ok, 2 no png, 3 wrong backend
   [ -f "$js" ] || { echo "  missing script $js" >&2; return 2; }
   (
     flock -w 300 9 || { echo "  LOCK-TIMEOUT" >&2; exit 4; }
+    OSC=$(free_port udp) && WS=$(free_port tcp) \
+      || { echo "  no free control port" >&2; exit 4; }
     ( for _ in $(seq 1 "$GRABTRIES"); do
         sleep 2
         oscsend 127.0.0.1 $OSC /script s "Score.device('Window').grabTo('$png')" 2>/dev/null
@@ -305,6 +320,7 @@ render_one() { # case_name out_png -> 0 ok, 2 no png, 3 wrong backend
     env -u DISPLAY XDG_CONFIG_HOME="$CFG" \
         SCORE_AUDIO_BACKEND=dummy SCORE_DISABLE_AUDIOPLUGINS=1 \
         SCORE_FORCE_OFFSCREEN_WINDOW=Window \
+        SCORE_LOCAL_OSC_PORT="$OSC" SCORE_LOCAL_WS_PORT="$WS" \
         QT_LOGGING_RULES='qt.rhi.general=true' QT_FORCE_STDERR_LOGGING=1 \
         ASAN_OPTIONS="$ASAN" LLVM_PROFILE_FILE="$OUT/%p.profraw" \
         $BENV \
