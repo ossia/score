@@ -2,7 +2,6 @@
 #include <score/command/AggregateCommand.hpp>
 #include <score/command/Dispatchers/ICommandDispatcher.hpp>
 #include <score/command/Dispatchers/SendStrategy.hpp>
-#include <score/document/DocumentContext.hpp>
 #include <score/selection/SelectionStack.hpp>
 
 #include <memory>
@@ -41,7 +40,7 @@ public:
   void submit(score::Command* cmd)
   {
     {
-      score::SelectionStack::Batch b{stack().context().selectionStack};
+      score::SelectionStack::Batch b{stack().selectionStack()};
       RedoStrategy_T::redo(stack().context(), *cmd);
     }
     m_aggregateCommand->addCommand(cmd);
@@ -64,7 +63,7 @@ public:
   {
     if(m_aggregateCommand)
     {
-      score::SelectionStack::Batch b{stack().context().selectionStack};
+      score::SelectionStack::Batch b{stack().selectionStack()};
       m_aggregateCommand->undo(stack().context());
       m_aggregateCommand.reset();
     }

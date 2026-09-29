@@ -62,6 +62,12 @@ void OngoingCommandDispatcher::watch(const QObject* obj)
   }
 }
 
+void OngoingCommandDispatcher::redo()
+{
+  score::SelectionStack::Batch b{stack().selectionStack()};
+  m_cmd->redo(stack().context());
+}
+
 //! When the command is finished and can be sent to the undo - redo stack.
 //! For instance on mouse release.
 void OngoingCommandDispatcher::commit()
@@ -84,7 +90,10 @@ void OngoingCommandDispatcher::rollback()
     unwatch(m_watched);
   if(m_cmd)
   {
-    m_cmd->undo(stack().context());
+    {
+      score::SelectionStack::Batch b{stack().selectionStack()};
+      m_cmd->undo(stack().context());
+    }
     stack().enableActions();
   }
   m_cmd.reset();
@@ -224,6 +233,9 @@ Document::~Document()
   // (Else we would have to fine-grain the deletion of the selection stack).
 
   blockAllSignals();
+  // Disconnects the selection from every selected object, so that the model
+  // does not prune it once per object as it is destroyed.
+  m_selectionStack.clear();
   delete m_presenter;
   delete m_view;
   delete m_model;

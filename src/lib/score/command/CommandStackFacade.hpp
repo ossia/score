@@ -5,6 +5,7 @@ namespace score
 {
 class Command;
 class CommandStack;
+class SelectionStack;
 struct DocumentContext;
 
 /**
@@ -25,6 +26,7 @@ public:
   explicit CommandStackFacade(score::CommandStack& stack);
 
   const score::DocumentContext& context() const;
+  score::SelectionStack& selectionStack() const;
 
   void push(score::Command* cmd) const;
   void redoAndPush(score::Command* cmd) const;

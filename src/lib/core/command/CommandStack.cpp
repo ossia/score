@@ -2,6 +2,7 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <score/application/GUIApplicationContext.hpp>
 #include <score/command/Command.hpp>
+#include <score/command/Dispatchers/SendStrategy.hpp>
 #include <score/command/Validity/ValidityCheckerList.hpp>
 #include <score/document/DocumentContext.hpp>
 #include <score/selection/SelectionStack.hpp>
@@ -266,6 +267,11 @@ const DocumentContext& CommandStackFacade::context() const
   return m_stack.context();
 }
 
+SelectionStack& CommandStackFacade::selectionStack() const
+{
+  return m_stack.context().selectionStack;
+}
+
 void CommandStackFacade::push(Command* cmd) const
 {
   m_stack.push(cmd);
@@ -286,4 +292,14 @@ void CommandStackFacade::enableActions() const
   m_stack.enableActions();
 }
 
+}
+
+void SendStrategy::UndoRedo::send(
+    const score::CommandStackFacade& stack, score::Command* other)
+{
+  {
+    score::SelectionStack::Batch b{stack.selectionStack()};
+    other->undo(stack.context());
+  }
+  stack.redoAndPush(other);
 }

@@ -299,6 +299,8 @@ void DocumentManager::forceCloseDocument(
   }
 
   doc.blockAllSignals();
+  // As in ~Document: the model is destroyed below, before the document.
+  doc.selectionStack().clear();
 
   if(m_view)
     m_view->closeDocument(doc.view());

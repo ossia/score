@@ -2,6 +2,7 @@
 #include <score/command/CommandStackFacade.hpp>
 #include <score/command/Dispatchers/ICommandDispatcher.hpp>
 #include <score/command/Dispatchers/SendStrategy.hpp>
+#include <score/selection/SelectionStack.hpp>
 
 #include <memory>
 
@@ -28,13 +29,14 @@ public:
     {
       stack().disableActions();
       m_cmd = std::make_unique<TheCommand>(std::forward<Args>(args)...);
-      m_cmd->redo(stack().context());
     }
     else
     {
       m_cmd->update(std::forward<Args>(args)...);
-      m_cmd->redo(stack().context());
     }
+
+    score::SelectionStack::Batch b{stack().selectionStack()};
+    m_cmd->redo(stack().context());
   }
 
   void commit()
@@ -50,7 +52,10 @@ public:
   {
     if(m_cmd)
     {
-      m_cmd->undo(stack().context());
+      {
+        score::SelectionStack::Batch b{stack().selectionStack()};
+        m_cmd->undo(stack().context());
+      }
       stack().enableActions();
     }
     m_cmd.reset();

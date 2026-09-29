@@ -21,11 +21,8 @@ struct Quiet
 
 struct UndoRedo
 {
-  static void send(const score::CommandStackFacade& stack, score::Command* other)
-  {
-    other->undo(stack.context());
-    stack.redoAndPush(other);
-  }
+  SCORE_LIB_BASE_EXPORT static void
+  send(const score::CommandStackFacade& stack, score::Command* other);
 };
 }
 namespace RedoStrategy

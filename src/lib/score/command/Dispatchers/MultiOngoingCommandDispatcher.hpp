@@ -1,6 +1,7 @@
 #pragma once
 #include <score/command/Dispatchers/ICommandDispatcher.hpp>
 #include <score/command/Dispatchers/SendStrategy.hpp>
+#include <score/selection/SelectionStack.hpp>
 
 // Creates commands on a list and keep updating the latest command
 // up to the next new command.
@@ -45,7 +46,10 @@ public:
   void submit(score::Command* cmd)
   {
     stack().disableActions();
-    cmd->redo(stack().context());
+    {
+      score::SelectionStack::Batch b{stack().selectionStack()};
+      cmd->redo(stack().context());
+    }
     m_cmds.push_back(cmd);
   }
 
@@ -58,6 +62,7 @@ public:
   template <typename TheCommand, typename... Args>
   void submit(Args&&... args)
   {
+    score::SelectionStack::Batch b{stack().selectionStack()};
     if(m_cmds.empty())
     {
       stack().disableActions();
@@ -122,7 +127,10 @@ public:
   template <typename RollbackStrategy = RollbackStrategy::Simple>
   void rollback()
   {
-    RollbackStrategy::rollback(stack().context(), m_cmds);
+    {
+      score::SelectionStack::Batch b{stack().selectionStack()};
+      RollbackStrategy::rollback(stack().context(), m_cmds);
+    }
 
     cleanup();
     m_cmds.clear();

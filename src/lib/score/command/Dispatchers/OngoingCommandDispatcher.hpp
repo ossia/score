@@ -85,13 +85,12 @@ public:
     {
       stack().disableActions();
       m_cmd = std::make_unique<TheCommand>(watched, std::forward<Args>(args)...);
-      m_cmd->redo(stack().context());
     }
     else
     {
       safe_cast<TheCommand*>(m_cmd.get())->update(watched, std::forward<Args>(args)...);
-      m_cmd->redo(stack().context());
     }
+    redo();
   }
 
   //! When the command is finished and can be sent to the undo - redo stack.
@@ -103,6 +102,8 @@ public:
   void rollback_without_undo();
 
 private:
+  void redo();
+
   std::unique_ptr<score::Command> m_cmd;
   const QObject* m_watched{};
 };
