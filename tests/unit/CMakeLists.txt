@@ -1597,3 +1597,14 @@ endif()
 score_add_test(test_unit_time_chooser_double_click
   SOURCES TimeChooserDoubleClickTest.cpp
   APP)
+
+# The %t / %n placeholders of recorder and save-file paths, resolved where the
+# file is written.
+if(TARGET score_plugin_avnd)
+  score_add_test(test_unit_avnd_save_path_placeholders
+    SOURCES AvndSavePathPlaceholdersTest.cpp
+    APP
+    PLUGINS score_plugin_avnd score_plugin_scenario score_lib_process)
+  target_include_directories(test_unit_avnd_save_path_placeholders PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-avnd")
+endif()

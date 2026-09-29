@@ -18,10 +18,11 @@ filter_filename(const std::string& f, const score::DocumentContext& ctx)
   auto t = QDateTime::currentDateTimeUtc().toString();
   t.replace(':', '_');
   filename.replace("%t", t);
-  if(filename.contains("%n")) {
-    filename = score::addUniqueSuffix(filename);
-  }
+  // The first free number where the file will actually be, not relative to
+  // the working directory or with a <PROJECT>: prefix still in it.
   filename = score::locateFilePath(filename, ctx);
+  if(filename.contains("%n"))
+    filename = score::addUniqueSuffix(filename);
   return filename.toUtf8();
 }
 }
