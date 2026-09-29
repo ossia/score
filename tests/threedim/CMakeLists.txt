@@ -142,6 +142,7 @@ score_add_test(test_threedim_extract_compute_srb
   GUI
   PLUGINS score_plugin_gfx score_plugin_scenario score_lib_process)
 threedim_test_includes(test_threedim_extract_compute_srb)
+set_property(TEST test_threedim_extract_compute_srb APPEND PROPERTY LABELS gpu)
 
 score_add_test(test_threedim_camera_release
   SOURCES CameraRelease.cpp "${THREEDIM_DIR}/Camera.cpp"
@@ -209,6 +210,7 @@ score_add_test(test_threedim_cubemap_clamp
   GUI
   PLUGINS score_plugin_gfx score_plugin_scenario score_lib_process)
 threedim_test_includes(test_threedim_cubemap_clamp)
+set_property(TEST test_threedim_cubemap_clamp APPEND PROPERTY LABELS gpu)
 
 # -----------------------------------------------------------------------------
 # ASSET INGESTION + MESH GENERATION. All CPU: parsers, primitive generators and
@@ -458,6 +460,7 @@ score_add_test(test_threedim_geometry_packer_rebind
   GUI
   PLUGINS score_plugin_gfx score_plugin_scenario score_lib_process)
 threedim_test_includes(test_threedim_geometry_packer_rebind)
+set_property(TEST test_threedim_geometry_packer_rebind APPEND PROPERTY LABELS gpu)
 
 # Text to Mesh: glyph coverage under the non-zero rule and newline handling.
 score_add_test(test_threedim_text_to_mesh_triangulation

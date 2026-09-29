@@ -66,25 +66,21 @@ if(NOT DEFINED SCORE_TEST_RUNTIME_LIBDIR)
 endif()
 if(SCORE_TEST_RUNTIME_LIBDIR AND NOT WIN32)
   if(APPLE)
-    set(_score_libpath_var DYLD_LIBRARY_PATH)
+    set(_score_libpath_mod "DYLD_LIBRARY_PATH=path_list_prepend:${SCORE_TEST_RUNTIME_LIBDIR}")
   else()
-    set(_score_libpath_var LD_LIBRARY_PATH)
-  endif()
-  set(_score_libpath_env "${_score_libpath_var}=${SCORE_TEST_RUNTIME_LIBDIR}")
-  if(NOT "$ENV{${_score_libpath_var}}" STREQUAL "")
-    string(APPEND _score_libpath_env ":$ENV{${_score_libpath_var}}")
+    set(_score_libpath_mod "LD_LIBRARY_PATH=path_list_prepend:${SCORE_TEST_RUNTIME_LIBDIR}")
   endif()
 else()
-  set(_score_libpath_env "")
+  set(_score_libpath_mod "")
 endif()
 
 # Tests that launch the score binary themselves (QProcess or a script) need the
 # same library path in their environment.
 function(score_test_app_libpath)
-  if(_score_libpath_env)
+  if(_score_libpath_mod)
     foreach(_t ${ARGN})
       if(TEST ${_t})
-        set_property(TEST ${_t} APPEND PROPERTY ENVIRONMENT "${_score_libpath_env}")
+        set_property(TEST ${_t} APPEND PROPERTY ENVIRONMENT_MODIFICATION "${_score_libpath_mod}")
       endif()
     endforeach()
   endif()
@@ -374,9 +370,8 @@ score_add_test(test_integration_js_rootpath_static
   GUI
   PLUGINS score_plugin_scenario score_lib_process score_plugin_js score_plugin_library)
 
-# Opening a Javascript process UI never emits externalUIVisible(true), so the
-# controls that opened it stay in the closed state. [!shouldfail] with the
-# correct expectation.
+# Opening a Javascript process UI emits externalUIVisible(true), so the
+# controls that opened it show the open state.
 score_add_test(test_integration_js_external_ui_visible
   SOURCES JsExternalUiVisibleTest.cpp
   GUI
@@ -443,6 +438,9 @@ if(TARGET score_plugin_fx AND TARGET score_plugin_automation)
     GUI
     PLUGINS score_plugin_fx score_plugin_automation score_plugin_engine
             score_plugin_deviceexplorer score_plugin_scenario score_lib_process)
+endif()
+
+if(TARGET score_plugin_protocols)
   score_add_test(test_integration_explorer_dialog_placement
     SOURCES DeviceExplorerDialogPlacementTest.cpp
     GUI
@@ -467,6 +465,8 @@ if(TARGET score_plugin_remotecontrol AND TARGET score_plugin_fx)
     PLUGINS score_plugin_remotecontrol score_plugin_fx score_plugin_engine
             score_plugin_scenario score_plugin_deviceexplorer score_lib_process
     LIBS Qt6::WebSockets)
+  set_tests_properties(test_integration_remotecontrol_scriptable PROPERTIES
+    LABELS "gui;network")
 endif()
 
 # Shaders and scripts snapshotted into states: publication and references
@@ -930,7 +930,8 @@ if(SCORE_HAS_SHELL_HARNESS)
     TIMEOUT 600
     RUN_SERIAL TRUE
     LABELS "gui"
-    ENVIRONMENT "OSSIA_SCORE=${SCORE_ROOT_BINARY_DIR}/ossia-score;${_score_libpath_env}")
+    ENVIRONMENT "OSSIA_SCORE=${SCORE_ROOT_BINARY_DIR}/ossia-score")
+  score_test_app_libpath(test_frame_determinism)
 
   # The immediate-cycle error names the Gfx processes of the cycle, not
   # "Gfx::filter_node".
@@ -942,7 +943,8 @@ if(SCORE_HAS_SHELL_HARNESS)
     TIMEOUT 180
     RUN_SERIAL TRUE
     LABELS "gui"
-    ENVIRONMENT "OSSIA_SCORE=${SCORE_ROOT_BINARY_DIR}/ossia-score;${_score_libpath_env}")
+    ENVIRONMENT "OSSIA_SCORE=${SCORE_ROOT_BINARY_DIR}/ossia-score")
+  score_test_app_libpath(test_integration_gfx_cycle_label)
 
   # Golden-image render regression, one ctest per backend class. Each renders the
   # pinned tests-scene corpus through the real binary and compares against the
@@ -975,14 +977,15 @@ if(SCORE_HAS_SHELL_HARNESS)
         SKIP_RETURN_CODE 77
         TIMEOUT 120
         RUN_SERIAL TRUE
-        LABELS "gui;golden-render"
+        LABELS "gui;golden-render;gpu"
         REQUIRED_FILES
           "${CMAKE_CURRENT_SOURCE_DIR}/golden-render/compare.py;${CMAKE_CURRENT_SOURCE_DIR}/golden-render/assert-content.py"
         # OUT puts the run's PNGs -- and, on failure, diff/<case>.{golden,actual,diff}.png
         # -- in the build tree instead of /tmp, so CI can collect them.
         ATTACHED_FILES_ON_FAIL
           "${CMAKE_CURRENT_BINARY_DIR}/golden-artifacts/${_gr_backend}/diff"
-        ENVIRONMENT "OSSIA_SCORE=${SCORE_ROOT_BINARY_DIR}/ossia-score;OUT=${CMAKE_CURRENT_BINARY_DIR}/golden-artifacts/${_gr_backend};${_score_libpath_env}")
+        ENVIRONMENT "OSSIA_SCORE=${SCORE_ROOT_BINARY_DIR}/ossia-score;OUT=${CMAKE_CURRENT_BINARY_DIR}/golden-artifacts/${_gr_backend}")
+      score_test_app_libpath(test_golden_render_${_gr_name}.${_gr_case})
     endforeach()
   endforeach()
 endif()
@@ -1214,8 +1217,9 @@ if(SCORE_HAS_SHELL_HARNESS)
       # Timeout.
       TIMEOUT 240
       RUN_SERIAL TRUE
-      LABELS "live-edit"
-      ENVIRONMENT "OSSIA_SCORE=${SCORE_ROOT_BINARY_DIR}/ossia-score;${_score_libpath_env}")
+      LABELS "live-edit;gpu"
+      ENVIRONMENT "OSSIA_SCORE=${SCORE_ROOT_BINARY_DIR}/ossia-score")
+    score_test_app_libpath(test_live_edit.${_le_scen})
   endforeach()
 endif()
 
@@ -1250,7 +1254,8 @@ if(SCORE_HAS_SHELL_HARNESS)
     SKIP_RETURN_CODE 77
     TIMEOUT 1200
     RUN_SERIAL TRUE
-    ENVIRONMENT "OSSIA_SCORE=${SCORE_ROOT_BINARY_DIR}/ossia-score;${_score_libpath_env}")
+    ENVIRONMENT "OSSIA_SCORE=${SCORE_ROOT_BINARY_DIR}/ossia-score")
+  score_test_app_libpath(test_gfx_soak)
 endif()
 
 
@@ -1267,7 +1272,8 @@ if(SCORE_HAS_SHELL_HARNESS)
     SKIP_RETURN_CODE 77
     TIMEOUT 600
     RUN_SERIAL TRUE
-    ENVIRONMENT "OSSIA_SCORE=${SCORE_ROOT_BINARY_DIR}/ossia-score;${_score_libpath_env}")
+    ENVIRONMENT "OSSIA_SCORE=${SCORE_ROOT_BINARY_DIR}/ossia-score")
+  score_test_app_libpath(test_timeline_scenario_ramp)
 endif()
 
 
@@ -1300,7 +1306,8 @@ if(SCORE_HAS_SHELL_HARNESS)
       "${CMAKE_CURRENT_SOURCE_DIR}/text-render/analyze.py;${CMAKE_CURRENT_SOURCE_DIR}/golden-render/compare.py"
     ATTACHED_FILES_ON_FAIL
       "${CMAKE_CURRENT_BINARY_DIR}/golden-artifacts/text-render/diff"
-    ENVIRONMENT "OSSIA_SCORE=${SCORE_ROOT_BINARY_DIR}/ossia-score;OUT=${CMAKE_CURRENT_BINARY_DIR}/golden-artifacts/text-render;${_score_libpath_env}")
+    ENVIRONMENT "OSSIA_SCORE=${SCORE_ROOT_BINARY_DIR}/ossia-score;OUT=${CMAKE_CURRENT_BINARY_DIR}/golden-artifacts/text-render")
+  score_test_app_libpath(test_text_render)
 endif()
 
 # Headless end of playback: a 3 s document played with --no-gui --autoplay must
@@ -1314,7 +1321,8 @@ if(SCORE_HAS_SHELL_HARNESS)
     TIMEOUT 300
     RUN_SERIAL TRUE
     REQUIRED_FILES "${CMAKE_CURRENT_SOURCE_DIR}/headless-end/headless-end.js"
-    ENVIRONMENT "OSSIA_SCORE=${SCORE_ROOT_BINARY_DIR}/ossia-score;OUT=${CMAKE_CURRENT_BINARY_DIR}/headless-end;${_score_libpath_env}")
+    ENVIRONMENT "OSSIA_SCORE=${SCORE_ROOT_BINARY_DIR}/ossia-score;OUT=${CMAKE_CURRENT_BINARY_DIR}/headless-end")
+  score_test_app_libpath(test_headless_end)
 endif()
 
 # Offscreen-teardown regression: a full-app offscreen
@@ -1507,7 +1515,7 @@ if(TARGET score_plugin_threedim AND TARGET score_plugin_media AND TARGET score_p
       "${_albb_src}/PrimitiveCloud/FormatOverride.cpp")
   score_add_test(test_integration_asset_loader_binary_bytes
     SOURCES AssetLoaderBinaryBytes.cpp ${_albb_hidden}
-    GUI
+    APP
     PLUGINS score_plugin_scenario score_plugin_media score_plugin_avnd
             score_plugin_threedim score_plugin_gfx score_lib_process
     LIBS ${_albb_libs} "${QT_PREFIX}::Gui")
@@ -1522,7 +1530,8 @@ if(TARGET score AND NOT EMSCRIPTEN)
   score_add_test(test_integration_js_setvalue_port_kinds
     SOURCES JsSetValuePortKindsTest.cpp)
   target_compile_definitions(test_integration_js_setvalue_port_kinds PRIVATE
-    "SCORE_APP_BINARY=\"$<TARGET_FILE:score>\"")
+    "SCORE_APP_BINARY=\"$<TARGET_FILE:score>\""
+    "GFX_TEST_CORPUS_DIR=\"${CMAKE_CURRENT_SOURCE_DIR}/../gfx/corpus\"")
   set_tests_properties(test_integration_js_setvalue_port_kinds PROPERTIES
     TIMEOUT 900 RUN_SERIAL TRUE)
 endif()
@@ -1549,7 +1558,7 @@ endif()
 if(TARGET score_plugin_media AND TARGET score_plugin_avnd)
   score_add_test(test_integration_avnd_text_file_port_size
     SOURCES AvndTextFilePortSize.cpp
-    GUI
+    APP
     PLUGINS score_plugin_scenario score_plugin_media score_plugin_avnd score_lib_process)
 endif()
 
@@ -1635,10 +1644,50 @@ score_test_app_libpath(
   test_integration_threedim_render
   test_regression_offscreen_teardown
   test_integration_js_setvalue_port_kinds
+  test_integration_scriptable_script
   test_integration_gfx_step_clock
   test_integration_gfx_grab_slow_start
   test_integration_js_list_controls
   test_integration_gfx_stepped_execution)
+
+# Tests that render through QRhi on a real device: "ctest -LE gpu" leaves them
+# out on machines that must not create GPU contexts.
+foreach(_t
+    test_integration_gfx_step_clock
+    test_integration_gfx_stepped_execution
+    test_integration_gfx_grab_slow_start
+    test_integration_gpu_javascript
+    test_integration_js_quick3d_vulkan
+    test_integration_js_texture_source_ui
+    test_integration_pipewire_video_output
+    test_integration_js_list_controls
+    test_gfx_soak
+    test_regression_offscreen_teardown
+    test_frame_determinism
+    test_text_render
+    test_timeline_scenario_ramp
+    test_integration_frame_determinism
+    test_integration_gfx_nested_interval
+    test_integration_gfx_light_live
+    test_integration_threedim_lit_scene
+    test_integration_gfx_video_on_geometry
+    test_integration_threedim_render
+    test_integration_encoder_matrix
+    test_integration_texture_source_lifecycle
+    test_integration_avnd_worker_lifecycle
+    test_integration_shader_sweep_isf
+    test_integration_shader_sweep_vsa
+    test_integration_shader_sweep_csf
+    test_integration_shader_sweep_raster
+    test_integration_shader_sweep_csfgeometry
+    test_integration_shader_sweep_wired
+    test_integration_shader_sweep_scene
+    test_integration_object_render_sweep
+    test_integration_object_csf_sweep)
+  if(TEST ${_t})
+    set_property(TEST ${_t} APPEND PROPERTY LABELS gpu)
+  endif()
+endforeach()
 
 # The app exports symbols for the JIT and Faust but not its static LLVM: a
 # system libLLVM loaded by Mesa would bind to it and crash at exit.
