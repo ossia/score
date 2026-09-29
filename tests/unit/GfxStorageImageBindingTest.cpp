@@ -27,7 +27,9 @@ TEST_CASE(
   CHECK(imageFormatFromQualifier("rgba8") == QRhiTexture::RGBA8);
   CHECK(imageFormatFromQualifier("R32F") == QRhiTexture::R32F);
   CHECK(imageFormatFromQualifier("rgba16f") == QRhiTexture::RGBA16F);
+#if QT_VERSION >= QT_VERSION_CHECK(6, 10, 0)
   CHECK(imageFormatFromQualifier("r32ui") == QRhiTexture::R32UI);
   CHECK(imageFormatFromQualifier("r32i") == QRhiTexture::R32SI);
   CHECK(imageFormatFromQualifier("rgba32ui") == QRhiTexture::RGBA32UI);
+#endif
 }

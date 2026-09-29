@@ -20,6 +20,7 @@
 #include <catch2/generators/catch_generators_range.hpp>
 
 #include <array>
+#include <vector>
 
 using namespace score::test::gfx;
 
@@ -47,12 +48,15 @@ TEST_CASE(
     QRhiTexture::Format expected;
     QRhiTexture::Flags shape;
   };
-  const std::array<Case, 4> cases{{
+  // Integer formats exist from Qt 6.10.
+  const std::vector<Case> cases{
+#if QT_VERSION >= QT_VERSION_CHECK(6, 10, 0)
       {"r32ui", 3, false, false, QRhiTexture::R32UI, QRhiTexture::ThreeDimensional},
       {"r32i", 2, true, false, QRhiTexture::R32SI, QRhiTexture::TextureArray},
+#endif
       {"rgba16f", 2, false, true, QRhiTexture::RGBA16F, QRhiTexture::CubeMap},
       {"rgba8", 2, false, false, QRhiTexture::RGBA8, {}},
-  }};
+  };
 
   bool skipped = false;
   std::vector<std::string> failures;
