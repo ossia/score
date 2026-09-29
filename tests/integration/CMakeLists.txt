@@ -1443,7 +1443,7 @@ if(SCORE_HAS_SHELL_HARNESS AND TARGET PipewirePublish)
     SKIP_RETURN_CODE 77
     TIMEOUT 900
     RUN_SERIAL TRUE
-    LABELS "gui;pipewire"
+    LABELS "gui;pipewire;media"
     ENVIRONMENT "SCORE_BUILD=${SCORE_ROOT_BINARY_DIR}")
 endif()
 
