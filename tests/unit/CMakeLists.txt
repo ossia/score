@@ -1597,6 +1597,20 @@ if(UNIX AND NOT EMSCRIPTEN AND TARGET score_plugin_protocols)
     "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-protocols")
 endif()
 
+if(TARGET score_plugin_fx)
+  # LFO v3: the same value at a date whatever the buffer size, synced cycles
+  # read off the musical position, drift that runs for hours.
+  score_add_test(test_unit_fx_lfo_phase_continuity
+    SOURCES FxLfoPhaseContinuityTest.cpp
+    PLUGINS score_plugin_fx)
+
+  # Metronome, quantizer, rate limiter and arpeggiator grids at every buffer
+  # size, tempo and sample rate.
+  score_add_test(test_unit_fx_grid_timing
+    SOURCES FxGridTimingTest.cpp
+    PLUGINS score_plugin_fx)
+endif()
+
 # Script durations out of the range of a TimeVal are refused, not wrapped.
 if(TARGET score_plugin_js)
   score_add_test(test_unit_js_parse_duration_range
@@ -1636,6 +1650,19 @@ score_add_test(test_unit_value_display_light
   APP
   PLUGINS score_plugin_ui score_plugin_scenario score_lib_process)
 
+# An avendish control saved as another kind of control (a float slider that
+# became a time chooser): value, address and cables survive the load, in JSON
+# and in the binary format.
+if(TARGET score_plugin_avnd AND TARGET score_plugin_fx AND TARGET score_plugin_engine)
+  score_add_test(test_unit_avnd_control_kind_upgrade
+    SOURCES AvndControlKindUpgradeTest.cpp
+    APP
+    PLUGINS score_plugin_avnd score_plugin_fx score_plugin_dataflow score_plugin_engine score_plugin_scenario score_lib_process)
+  target_include_directories(test_unit_avnd_control_kind_upgrade PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish"
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-avnd")
+endif()
+
 # Double-click on the time chooser: synced back to 1/8 straight, free back to
 # the default through the taper, at both ends of the range.
 score_add_test(test_unit_time_chooser_double_click
@@ -1659,6 +1686,27 @@ score_add_test(test_unit_recursive_watch_rescan
   SOURCES RecursiveWatchRescanTest.cpp
   PLUGINS score_lib_base)
 
+# Regex patterns edited during playback are compiled by the worker, never on
+# the audio thread, and the latest edit wins.
+if(TARGET score_plugin_avnd)
+  score_add_test(test_unit_avnd_regex_compile_off_audio_thread
+    SOURCES AvndRegexCompileOffAudioThreadTest.cpp
+    PLUGINS score_plugin_avnd)
+  target_include_directories(test_unit_avnd_regex_compile_off_audio_thread PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-avnd"
+    "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/include")
+endif()
+
+# Buffer queue: the output goes out on a change of the queue, not at every tick.
+if(TARGET score_plugin_avnd)
+  score_add_test(test_unit_avnd_buffer_queue_change_only
+    SOURCES AvndBufferQueueChangeOnlyTest.cpp
+    PLUGINS score_plugin_avnd)
+  target_include_directories(test_unit_avnd_buffer_queue_change_only PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-avnd"
+    "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/include")
+endif()
+
 # The %t / %n placeholders of recorder and save-file paths, resolved where the
 # file is written.
 if(TARGET score_plugin_avnd)
@@ -1668,4 +1716,22 @@ if(TARGET score_plugin_avnd)
     PLUGINS score_plugin_avnd score_plugin_scenario score_lib_process)
   target_include_directories(test_unit_avnd_save_path_placeholders PRIVATE
     "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-avnd")
+endif()
+
+# LV2 plug-ins run for part of the audio buffer read and write at the tick's
+# frames: CV and audio, a tick starting mid-buffer, a buffer split in two.
+if(TARGET score_plugin_lv2)
+  score_add_test(test_unit_lv2_tick_offset
+    SOURCES LV2TickOffsetTest.cpp
+    APP
+    PLUGINS score_plugin_lv2 score_lib_process
+    LIBS Lilv)
+  add_dependencies(test_unit_lv2_tick_offset score_test_gain_lv2)
+  target_compile_definitions(test_unit_lv2_tick_offset PRIVATE
+    SCORE_TEST_LV2_BUNDLE="${SCORE_ROOT_BINARY_DIR}/tests/lv2/score-test-gain.lv2")
+  target_include_directories(test_unit_lv2_tick_offset PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-lv2"
+    "${LV2_PATH}"
+    $<TARGET_PROPERTY:Suil,INTERFACE_INCLUDE_DIRECTORIES>
+    "${OSSIA_3RDPARTY_FOLDER}/readerwriterqueue")
 endif()
