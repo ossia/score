@@ -29,6 +29,9 @@
 #include <fcntl.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
+#if defined(__linux__)
+#include <sys/prctl.h>
+#endif
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
@@ -78,11 +81,21 @@ public:
       raw.push_back(const_cast<char*>(a.c_str()));
     raw.push_back(nullptr);
 
+#if defined(__linux__)
+    const pid_t parent = ::getpid();
+#endif
     const pid_t pid = ::fork();
     REQUIRE(pid >= 0);
     if(pid == 0)
     {
       ::setsid();
+#if defined(__linux__)
+      // setsid() puts the peer out of reach of ctest's process-group kill: a
+      // test killed on timeout would leave it serving forever.
+      ::prctl(PR_SET_PDEATHSIG, SIGKILL);
+      if(::getppid() != parent)
+        ::_exit(127);
+#endif
       const int devnull = ::open("/dev/null", O_RDWR);
       if(devnull >= 0)
       {
