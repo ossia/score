@@ -1576,6 +1576,12 @@ if(TARGET score_plugin_avnd)
     "${SCORE_ROOT_SOURCE_DIR}/3rdparty/csv2/include")
 endif()
 
+# Knob-like controls paint inside their bounding rect at every size and
+# device pixel ratio; a hidden [.knob_paint_bench] case prints paint() costs.
+score_add_test(test_unit_graphics_knob_paint
+  SOURCES GraphicsKnobPaintTest.cpp
+  APP)
+
 # Animations from untrusted glTF files and inputs: unplayable keyframe data is
 # refused at load, and AnimationPlayer clamps a NaN time. Pure CPU. The
 # loader and player are hidden in the dynamic plugin, so they are compiled in.
@@ -1592,11 +1598,35 @@ if(TARGET score_plugin_threedim)
     $<TARGET_PROPERTY:score_plugin_threedim,INCLUDE_DIRECTORIES>)
 endif()
 
+# Value display: the arrival light's timer is quiet while values stream and
+# stops once the light is out.
+score_add_test(test_unit_value_display_light
+  SOURCES ValueDisplayLightTest.cpp
+  APP
+  PLUGINS score_plugin_ui score_plugin_scenario score_lib_process)
+
 # Double-click on the time chooser: synced back to 1/8 straight, free back to
 # the default through the taper, at both ends of the range.
 score_add_test(test_unit_time_chooser_double_click
   SOURCES TimeChooserDoubleClickTest.cpp
   APP)
+
+# Section and strip cell titles follow a skin font change.
+score_add_test(test_unit_graphics_layout_title_font
+  SOURCES GraphicsLayoutTitleFontTest.cpp
+  APP)
+
+# The selection stack keeps its empty bottom selection through the capped
+# history and object pruning.
+score_add_test(test_unit_selection_stack_bottom
+  SOURCES SelectionStackBottomTest.cpp
+  PLUGINS score_lib_base)
+
+# A library rescan cancels the scan still running; cancelAll() stops every
+# watch's scan.
+score_add_test(test_unit_recursive_watch_rescan
+  SOURCES RecursiveWatchRescanTest.cpp
+  PLUGINS score_lib_base)
 
 # The %t / %n placeholders of recorder and save-file paths, resolved where the
 # file is written.
