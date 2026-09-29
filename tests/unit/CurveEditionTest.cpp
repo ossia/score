@@ -2679,6 +2679,17 @@ TEST_CASE("Curvature is set on the clicked segment, or on all the selected ones"
     CHECK(gammaOf(curve, sorted[1]->id().val()) != Approx(1.));
     CHECK(gammaOf(curve, sorted[2]->id().val()) != Approx(1.));
 
+    // Cancelled: back to where it was.
+    const double before = gammaOf(curve, sorted[2]->id().val());
+    state.clickedSegmentId = sorted[2]->id();
+    co.press();
+    state.currentPoint = {0.4, 0.9};
+    co.move();
+    REQUIRE(gammaOf(curve, sorted[2]->id().val()) != Approx(before));
+    co.cancel();
+    settle();
+    CHECK(gammaOf(curve, sorted[2]->id().val()) == Approx(before));
+
     // The clicked segment is gone before the move.
     state.clickedSegmentId = Id<Curve::SegmentModel>{12345};
     const auto commands = d.stack().size();

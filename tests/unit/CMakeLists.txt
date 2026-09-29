@@ -914,6 +914,13 @@ if(TARGET score_plugin_engine)
   score_add_test(test_unit_device_address_cleanup
     SOURCES DeviceAddressCleanupTest.cpp
     PLUGINS score_plugin_engine)
+
+  # The base scenario is released after the audio thread's cleanup of its time
+  # syncs, never concurrently with it.
+  score_add_test(test_unit_base_scenario_cleanup
+    SOURCES BaseScenarioCleanupTest.cpp
+    GUI
+    PLUGINS score_plugin_engine score_plugin_scenario score_lib_process)
 endif()
 # The addresses a port's combo box lists: which devices are walked (their
 # declared node kinds) and which nodes qualify for each port type / direction.
@@ -1058,13 +1065,6 @@ endif()
 # every model port to its exec port, cables are re-made, and values set on
 # ports that appeared reach the object. Pulls in the avendish binding headers
 # and two example objects.
-# The base scenario is released after the audio thread's cleanup of its time
-# syncs, never concurrently with it.
-score_add_test(test_unit_base_scenario_cleanup
-  SOURCES BaseScenarioCleanupTest.cpp
-  GUI
-  PLUGINS score_plugin_engine score_plugin_scenario score_lib_process)
-
 if(TARGET score_plugin_avnd AND TARGET score_plugin_engine)
   score_add_test(test_unit_avnd_dynamic_ports_exec
     SOURCES AvndDynamicPortsExecTest.cpp
