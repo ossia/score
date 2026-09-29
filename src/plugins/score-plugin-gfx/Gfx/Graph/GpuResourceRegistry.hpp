@@ -389,6 +389,13 @@ public:
     // still hold the replaced QRhiTexture*.
     uint64_t generation{0};
 
+    // Monotonic counts of pool rebuilds and of layer uploads into bucket
+    // arrays, re-uploads after a reallocation included. Nothing in the engine
+    // reads them: they make the pool's incremental behaviour observable,
+    // since an upload into an existing array changes no pointer.
+    uint64_t rebuilds{0};
+    uint64_t layerUploads{0};
+
     // The static sources each preprocessor's scene references, keyed by that
     // preprocessor. A rebuild keeps the layers the other preprocessors claim
     // instead of freeing every source its own scene lacks.

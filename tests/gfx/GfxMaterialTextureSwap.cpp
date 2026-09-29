@@ -483,6 +483,8 @@ struct ChannelSnap
   std::vector<int> bucketLayers;          // per bucket: layer count
   std::vector<QRhiTexture::Flags> bucketFlags; // per bucket: array flags
   std::vector<QRhiTexture*> dyn;          // dynamic slot -> texture
+  uint64_t rebuilds = 0;                  // pool rebuilds so far
+  uint64_t layerUploads = 0;              // layers uploaded into the pool so far
 };
 
 void takeSnap(score::gfx::RenderList& r, ChannelSnap& out)
@@ -501,6 +503,8 @@ void takeSnap(score::gfx::RenderList& r, ChannelSnap& out)
     s.bucketFlags.push_back(b.array ? b.array->flags() : QRhiTexture::Flags{});
   }
   s.dyn = ch.dynamicTextures;
+  s.rebuilds = ch.rebuilds;
+  s.layerUploads = ch.layerUploads;
   out = std::move(s);
 }
 
@@ -1363,13 +1367,13 @@ TEST_CASE(
 }
 
 // =============================================================================
-// Case 12 -- a materials change that brings no new texture keeps the array.
+// Case 12 -- a materials change that brings no new texture uploads nothing.
 // Phase 2 adds an untextured material with a new identity -- what a text or
 // procedural producer does -- so the materials fingerprint changes and the
-// pool is rebuilt; both textures are still there, so the rebuild keeps their
-// layers and leaves the array alone.
+// pool is rebuilt once; both textures are still there, so the rebuild keeps
+// their layers, uploads none, and leaves the array alone.
 TEST_CASE(
-    "a materials change with no new texture keeps the pool array and its layers",
+    "a materials change with no new texture re-uploads nothing",
     "[gfx][scene][material][texture-array]")
 {
   const auto api = GENERATE(from_range(platform_backends()));
@@ -1389,6 +1393,8 @@ TEST_CASE(
   REQUIRE(r.valid2);
   REQUIRE(!r.snap1.bucketArrays.empty());
   REQUIRE(!r.snap2.bucketArrays.empty());
+  CHECK(r.snap2.rebuilds - r.snap1.rebuilds == 1);
+  CHECK(r.snap2.layerUploads - r.snap1.layerUploads == 0);
   CHECK(r.snap2.bucketLayers[0] == 2);
   CHECK(r.snap2.bucketArrays[0] == r.snap1.bucketArrays[0]);
   CHECK(near(r.mid2, kBlue, kTol));
@@ -1396,8 +1402,8 @@ TEST_CASE(
 
 // =============================================================================
 // Case 13 -- a removed texture's layer is reused. Phase 2 drops the
-// first texture and adds a new one: the new one takes the freed layer 0
-// without reallocating the array, and is what layer 0 shows.
+// first texture and adds a new one: the new one takes the freed layer 0,
+// uploading one image and reallocating nothing, and is what layer 0 shows.
 TEST_CASE(
     "a new texture reuses a removed texture's layer",
     "[gfx][scene][material][texture-array]")
@@ -1418,6 +1424,8 @@ TEST_CASE(
   REQUIRE(r.valid2);
   REQUIRE(!r.snap1.bucketArrays.empty());
   REQUIRE(!r.snap2.bucketArrays.empty());
+  CHECK(r.snap2.rebuilds - r.snap1.rebuilds == 1);
+  CHECK(r.snap2.layerUploads - r.snap1.layerUploads == 1);
   CHECK(r.snap2.bucketLayers[0] == 2);
   CHECK(r.snap2.bucketArrays[0] == r.snap1.bucketArrays[0]);
   CHECK(near(r.mid2, kYellow, kTol));

@@ -992,6 +992,7 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
         QRhiTextureUploadEntry entry(0, 0, sub);
         res.uploadTexture(
             b.array, QRhiTextureUploadDescription({entry}));
+        ++bc.layerUploads;
         b.mipsDirty = true;
       }
       else
@@ -3799,6 +3800,7 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
       return false;
     auto& rhi = *renderer.state.rhi;
     auto& channel = m_registry->texturePool();
+    ++channel.rebuilds;
 
     // Ensure bucket 0 exists for init-time / shader-binding stability.
     // If no material landed in it, ensurePrimary() with default size
@@ -3916,6 +3918,7 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
       QRhiTextureUploadEntry entry(pu.layer_idx, 0, sub);
       res.uploadTexture(
           b.array, QRhiTextureUploadDescription({entry}));
+      ++channel.layerUploads;
     }
 
     // Fallback for empty buckets (no real uploads): drop a neutral
@@ -3936,6 +3939,7 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
       QRhiTextureUploadEntry entry(0, 0, sub);
       res.uploadTexture(
           b.array, QRhiTextureUploadDescription({entry}));
+      ++channel.layerUploads;
     }
 
     // `arrayReallocated` is the rebuildChannel return value: when any
