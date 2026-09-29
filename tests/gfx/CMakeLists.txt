@@ -639,6 +639,29 @@ if(TARGET score_plugin_threedim AND TARGET score_plugin_avnd)
     HEADERS_FROM score_plugin_threedim)
 endif()
 
+if(TARGET score_plugin_threedim AND TARGET score_plugin_avnd)
+  score_add_gfx_plugin_test(voxel_mesh_facing
+    SOURCES GfxVoxelMeshFacing.cpp
+    HIDDEN
+      "${_threedim}/Vox.cpp"
+      "${_threedim}/VoxelLoader.cpp"
+    PLUGINS score_plugin_avnd
+    HEADERS_FROM score_plugin_threedim
+    LIBS opengametools)
+endif()
+
+if(TARGET score_plugin_threedim AND TARGET score_plugin_avnd)
+  score_add_gfx_plugin_test(model_display_gpu_geometry
+    SOURCES GfxModelDisplayGpuGeometry.cpp
+    HIDDEN
+      "${_threedim}/Primitive.cpp"
+      "${_threedim}/GeometryToBuffer.cpp"
+      "${_threedim}/BufferToGeometry2.cpp"
+      "${_threedim}/ModelDisplay/ModelDisplayNode.cpp"
+    PLUGINS score_plugin_avnd
+    HEADERS_FROM score_plugin_threedim)
+endif()
+
 if(TARGET score_plugin_avnd)
   score_add_gfx_plugin_test(gpu_texture_output_blit
     SOURCES GfxGpuTextureOutputBlit.cpp

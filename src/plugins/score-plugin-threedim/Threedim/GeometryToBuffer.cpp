@@ -168,7 +168,7 @@ void ExtractBuffer::update(
 
   if(attributeChanged || padChanged)
   {
-    release(renderer);
+    releaseStrategy();
     init(renderer, res);
     return;
   }
@@ -222,7 +222,7 @@ void ExtractBuffer::update(
     if((needsIndexed && !isIndexed) || (needsDirect && !isDirect)
        || (needsCompute && !isCompute))
     {
-      release(renderer);
+      releaseStrategy();
       init(renderer, res);
       return;
     }
@@ -241,7 +241,7 @@ void ExtractBuffer::update(
     auto* strategy = std::get_if<DirectBufferReferenceStrategy>(&m_strategy);
     if(!strategy)
     {
-      release(renderer);
+      releaseStrategy();
       init(renderer, res);
       return;
     }
@@ -273,7 +273,7 @@ void ExtractBuffer::update(
     auto* strategy = std::get_if<DirectBufferReferenceStrategy>(&m_strategy);
     if(!strategy)
     {
-      release(renderer);
+      releaseStrategy();
       init(renderer, res);
       return;
     }
@@ -300,7 +300,7 @@ void ExtractBuffer::update(
   updateOutput();
 }
 
-void ExtractBuffer::release(score::gfx::RenderList& renderer)
+void ExtractBuffer::releaseStrategy()
 {
   std::visit([](auto& strategy) {
     using T = std::decay_t<decltype(strategy)>;
@@ -311,7 +311,20 @@ void ExtractBuffer::release(score::gfx::RenderList& renderer)
   }, m_strategy);
 
   m_strategy = std::monostate{};
-  //  outputs.buffer.value = {};
+}
+
+void ExtractBuffer::release(score::gfx::RenderList& renderer)
+{
+  releaseStrategy();
+
+  // Every buffer behind these handles belongs to the render list being
+  // released. The input handles come back once the next list has uploaded its
+  // own buffers, and init() runs before that: left in place, it would build on
+  // freed buffers and publish one of them, which downstream nodes keep as long
+  // as the handle looks unchanged.
+  for(auto& buf : inputs.geometry.mesh.buffers)
+    buf.handle = nullptr;
+  outputs.buffer.buffer = {};
 }
 
 void ExtractBuffer::runInitialPasses(

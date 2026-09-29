@@ -84,6 +84,7 @@ public:
 private:
   [[nodiscard]] static halp::attribute_semantic
   toAttributeLocation(Attribute attr) noexcept;
+  void releaseStrategy();
   void updateOutput();
 
   ExtractionStrategyVariant m_strategy;

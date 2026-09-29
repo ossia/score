@@ -59,9 +59,10 @@ void VoxelLoader::rebuild_geometry()
     }
     else
     {
+      // ogt_voxel_meshify winds every face counter-clockwise seen from outside.
       geom.topology = halp::primitive_topology::triangles;
       geom.cull_mode = halp::cull_mode::back;
-      geom.front_face = halp::front_face::clockwise;
+      geom.front_face = halp::front_face::counter_clockwise;
     }
     geom.index = {};
     geom.vertices = m.vertices;
