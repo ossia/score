@@ -102,8 +102,7 @@ TEST_CASE(
   });
   qunsetenv("SCORE_FORCE_OFFSCREEN_WINDOW");
 
-  if(!connected)
-    SKIP("no offscreen window device could be created on this machine");
+  REQUIRE(connected);
   CHECK(disconnectWarnings == 1);
   CHECK(deleteWarnings == 1);
   CHECK_FALSE(written);
