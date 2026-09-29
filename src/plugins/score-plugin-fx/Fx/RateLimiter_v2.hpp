@@ -45,9 +45,8 @@ struct Node
     {
       halp_meta(
           description,
-          "Minimum interval between two values, the latest one held until it "
-          "is over (synced: at most one per note value, on the grid), or quiet "
-          "time before a debounced value")
+          "Minimum interval between two values (synced: at most one per note "
+          "value, on the grid), or quiet time before a debounced value")
     } interval;
     struct : halp::enum_t<Mode, "Mode">
     {
@@ -57,6 +56,14 @@ struct Node
           self.reset();
       }
     } mode;
+    struct : halp::toggle<"Send latest", halp::default_on_toggle>
+    {
+      halp_meta(
+          description,
+          "When limiting, hold the latest value that comes too early and send "
+          "it when the interval is over (synced: on the next grid point); off, "
+          "drop it (synced: the first value of each grid step goes through)")
+    } latest;
   } inputs;
   struct
   {
@@ -70,12 +77,14 @@ struct Node
   ossia::exec_state_facade ossia_state;
 
   static constexpr double flicks_per_s = 705'600'000.;
-  //! Limit: when the last value went out; debounce: when the pending one is due.
+  //! Free limit: when the last value went out.
   std::optional<long double> last_sent;
   std::optional<ossia::value> pending;
   long double deadline{};
   std::optional<int64_t> previous_end;
   Mode previous_mode{Mode::Limit};
+  //! Synced, not sending the latest: a value went out since the last grid point.
+  bool sent_in_step{};
   ossia::small_vector<const ossia::timed_value*, 16> ordered_events;
 
   void reset() noexcept
@@ -83,6 +92,7 @@ struct Node
     pending.reset();
     previous_end.reset();
     last_sent.reset();
+    sent_in_step = false;
     previous_mode = inputs.mode.value;
   }
 
@@ -148,8 +158,17 @@ struct Node
     {
       return;
     }
+    else if(!inputs.latest.value)
+    {
+      pending.reset();
+      if(inputs.interval.sync)
+        drop_on_grid(t, start, frames);
+      else
+        limit(t, start, frames);
+    }
     else if(inputs.interval.sync)
     {
+      sent_in_step = false;
       limit_on_grid(t, start, frames);
     }
     else
@@ -160,12 +179,15 @@ struct Node
 
   //! At most one value per interval of model time. A value that comes too
   //! early is held, the latest one winning, and goes out when the interval is
-  //! over: the last value of a burst is never lost.
+  //! over: the last value of a burst is never lost. Without "Send latest" it
+  //! is dropped instead.
   void limit(const tick& t, int64_t start, int64_t frames)
   {
     const long double begin = t.prev_date.impl;
     const long double duration = static_cast<long double>(t.date.impl) - begin;
     const long double delay = std::max(0.f, inputs.interval.value) * flicks_per_s;
+    // The interval, a float, may land a hair past the sample it means.
+    const long double slack = duration > 0. ? 1e-3L * duration / frames : 0.L;
 
     // The held value, if its time has come by `date`
     const auto flush = [&](long double date) {
@@ -174,10 +196,9 @@ struct Node
       const long double due = *last_sent + delay;
       if(due > date)
         return;
-      // The first sample at or after the date; the interval, a float, may
-      // land a hair past the sample it means.
+      // The first sample at or after the date
       const auto frame
-          = std::max(0.L, std::ceil((due - begin) * frames / duration - 1e-3L));
+          = std::max(0.L, std::ceil((due - slack - begin) * frames / duration));
       if(frame >= frames)
         return;
       outputs.out(static_cast<int64_t>(frame), std::move(*pending));
@@ -189,13 +210,13 @@ struct Node
       const long double date
           = duration > 0. ? begin + (v.timestamp - start) * duration / frames : begin;
       flush(date);
-      if(!last_sent || date >= *last_sent + delay)
+      if(!last_sent || date + slack >= *last_sent + delay)
       {
         pending.reset();
         last_sent = date;
         outputs.out(v.timestamp - start, v.value);
       }
-      else
+      else if(inputs.latest.value)
       {
         pending = v.value;
       }
@@ -203,16 +224,21 @@ struct Node
     flush(t.date.impl);
   }
 
-  //! Synced, the interval is a note value: the latest value goes out on each
-  //! point of that grid.
-  void limit_on_grid(const tick& t, int64_t start, int64_t frames)
+  //! Synced, the interval is a note value: the points of that grid in the tick.
+  ossia::quantification_points grid(const tick& t) const noexcept
   {
     const double seconds = std::max(0.f, inputs.interval.value);
     // The rate of the musical grid (1 a whole note, 4 a quarter...) for the
     // length of the interval at this tempo.
     const double rate = (seconds > 0. && t.tempo > 0.) ? 240. / (seconds * t.tempo) : 0.;
-    const auto points = t.forward() ? t.get_quantification_dates(rate)
-                                    : ossia::quantification_points{};
+    return t.forward() ? t.get_quantification_dates(rate)
+                       : ossia::quantification_points{};
+  }
+
+  //! The latest value goes out on each grid point.
+  void limit_on_grid(const tick& t, int64_t start, int64_t frames)
+  {
+    const auto points = grid(t);
     auto point = points.begin();
     const auto emit_until = [&](int64_t frame) {
       for(; point != points.end(); ++point)
@@ -234,6 +260,30 @@ struct Node
       pending = v.value;
     });
     emit_until(frames);
+  }
+
+  //! Synced without "Send latest": the first value after each grid point goes
+  //! out when it comes, the rest until the next point are dropped. A value on
+  //! a grid point belongs to the step that point opens.
+  void drop_on_grid(const tick& t, int64_t start, int64_t frames)
+  {
+    const auto points = grid(t);
+    auto point = points.begin();
+    for_each_event(start, frames, [&](const ossia::timed_value& v) {
+      const int64_t frame = v.timestamp - start;
+      for(; point != points.end()
+            && t.physical_position(point->position, ossia_state.modelToSamples())
+                   <= frame;
+          ++point)
+        sent_in_step = false;
+      if(!sent_in_step)
+      {
+        sent_in_step = true;
+        outputs.out(frame, v.value);
+      }
+    });
+    if(point != points.end())
+      sent_in_step = false;
   }
 
   void debounce(const tick& t, int64_t start, int64_t frames)
@@ -282,6 +332,7 @@ struct Node
     halp_meta(background, halp::colors::background_mid)
     halp::control<&ins::interval> t;
     halp::control<&ins::mode> mode;
+    halp::control<&ins::latest> latest;
   };
 };
 }

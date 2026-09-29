@@ -2,8 +2,9 @@
 // tempo and sample rate: Free metronome v2 fires each grid point exactly once
 // and on its sample, Midi quantify v2 stays on the beats when synced wherever
 // playback started, Rate Limiter v2 never loses the last value of a burst and
-// sends the latest one on its grid, the arpeggiator takes a note-on of
-// velocity 0 as a note-off and expands its repeats in place.
+// sends the latest one on its grid (or, without "Send latest", drops what comes
+// within the interval), the arpeggiator takes a note-on of velocity 0 as a
+// note-off and expands its repeats in place.
 
 #include <Fx/Arpeggiator_v2.hpp>
 #include <Fx/Metro_v2.hpp>
@@ -369,4 +370,131 @@ TEST_CASE("Arpeggiator: repeats and octaves, in order", "[fx][arpeggiator]")
       pitches
       == std::vector<int>{60, 60, 60, 64, 64, 64, 67, 67, 67,
                           72, 72, 72, 76, 76, 76, 79, 79, 79});
+}
+
+template <>
+struct Catch::StringMaker<std::pair<int64_t, float>>
+{
+  static std::string convert(const std::pair<int64_t, float>& p)
+  {
+    return "{" + std::to_string(p.first) + ", " + std::to_string(p.second) + "}";
+  }
+};
+
+namespace
+{
+using Sent = std::vector<std::pair<int64_t, float>>; // absolute frame, value
+
+//! Feeds `sent` through `buffer`-frame ticks up to `until` frames, at 120 BPM
+//! from quarter `q_start`.
+Sent run_limiter(
+    bool latest, bool sync, float interval, int64_t buffer, const Sent& sent,
+    int64_t until, double q_start = 0.)
+{
+  Limiter l{buffer};
+  l.rl.inputs.interval.value = interval;
+  l.rl.inputs.interval.sync = sync;
+  l.rl.inputs.latest.value = latest;
+  const double quarters_per_frame = 1. / 500.;
+  for(int64_t t = 0; t * buffer < until; t++)
+  {
+    std::vector<std::pair<int64_t, float>> in_tick;
+    for(auto [f, v] : sent)
+      if(f >= t * buffer && f < (t + 1) * buffer)
+        in_tick.emplace_back(f - t * buffer, v);
+    l.tick(
+        in_tick, q_start + t * buffer * quarters_per_frame,
+        q_start + (t + 1) * buffer * quarters_per_frame);
+  }
+  return l.out;
+}
+
+}
+
+TEST_CASE("Rate Limiter v2: Send latest is on by default", "[fx][ratelimiter]")
+{
+  Nodes::RateLimiter::v2::Node rl;
+  CHECK(rl.inputs.latest.value);
+}
+
+TEST_CASE("Rate Limiter v2: free interval, latest held or dropped", "[fx][ratelimiter]")
+{
+  // 100 ms interval at 1 kHz
+  const Sent sent{{0, 1.f}, {30, 2.f}, {60, 3.f}, {120, 4.f}, {150, 5.f}, {230, 6.f}};
+  for(int64_t buffer : {1, 16, 64, 100, 512})
+  {
+    INFO("buffer " << buffer);
+    // Held: the latest early value goes out when the interval is over
+    CHECK(
+        run_limiter(true, false, 0.1f, buffer, sent, 1024)
+        == Sent{{0, 1.f}, {100, 3.f}, {200, 5.f}, {300, 6.f}});
+    // Dropped: a value passes only once the interval since the last one is over
+    CHECK(
+        run_limiter(false, false, 0.1f, buffer, sent, 1024)
+        == Sent{{0, 1.f}, {120, 4.f}, {230, 6.f}});
+  }
+}
+
+TEST_CASE("Rate Limiter v2: a value exactly one interval later goes through", "[fx][ratelimiter]")
+{
+  // 0.1f is a hair above 100 ms: a source at the same rate must still pass
+  // every value.
+  const Sent sent{{0, 1.f}, {100, 2.f}, {200, 3.f}, {300, 4.f}};
+  for(int64_t buffer : {1, 64, 100, 512})
+  {
+    INFO("buffer " << buffer);
+    CHECK(run_limiter(false, false, 0.1f, buffer, sent, 1024) == sent);
+    CHECK(run_limiter(true, false, 0.1f, buffer, sent, 1024) == sent);
+  }
+}
+
+TEST_CASE("Rate Limiter v2: synced interval, latest held or dropped", "[fx][ratelimiter]")
+{
+  // 120 BPM at 1 kHz: an eighth note is 250 frames, handed over as 0.25 s.
+  const Sent sent{{10, 1.f}, {20, 2.f}, {240, 3.f}, {260, 4.f}, {400, 5.f}, {510, 6.f}};
+  // A value on the grid point at 250
+  const Sent on_point{{10, 1.f}, {20, 2.f}, {250, 3.f}, {260, 4.f}, {400, 5.f}, {510, 6.f}};
+  for(int64_t buffer : {1, 7, 64, 100, 333})
+  {
+    INFO("buffer " << buffer);
+    // Held: the latest value of each step goes out on the next grid point
+    const auto held = run_limiter(true, true, 0.25f, buffer, sent, 1000);
+    CAPTURE(held);
+    CHECK(held == Sent{{250, 3.f}, {500, 5.f}, {750, 6.f}});
+    // Dropped: the first value of each step goes out when it comes
+    CHECK(
+        run_limiter(false, true, 0.25f, buffer, sent, 1000)
+        == Sent{{10, 1.f}, {260, 4.f}, {510, 6.f}});
+    CHECK(
+        run_limiter(false, true, 0.25f, buffer, on_point, 1000)
+        == Sent{{10, 1.f}, {250, 3.f}, {510, 6.f}});
+  }
+}
+
+TEST_CASE("Rate Limiter v2: synced steps follow the bar, not the start", "[fx][ratelimiter]")
+{
+  // Playback from quarter 0.3: eighth-note points at frames 100, 350, 600.
+  const Sent sent{{0, 1.f}, {50, 2.f}, {120, 3.f}, {340, 4.f}, {360, 5.f}};
+  for(int64_t buffer : {1, 64, 333})
+  {
+    INFO("buffer " << buffer);
+    const auto held = run_limiter(true, true, 0.25f, buffer, sent, 1000, 0.3);
+    CAPTURE(held);
+    CHECK(held == Sent{{100, 2.f}, {350, 4.f}, {600, 5.f}});
+    CHECK(
+        run_limiter(false, true, 0.25f, buffer, sent, 1000, 0.3)
+        == Sent{{0, 1.f}, {120, 3.f}, {360, 5.f}});
+  }
+}
+
+TEST_CASE("Rate Limiter v2: turning Send latest off drops the held value", "[fx][ratelimiter]")
+{
+  Limiter l{50};
+  l.rl.inputs.interval.value = 0.1f;
+  l.rl.inputs.interval.sync = false;
+  l.tick({{0, 1.f}, {30, 2.f}});
+  l.rl.inputs.latest.value = false;
+  for(int i = 0; i < 5; i++)
+    l.tick({});
+  CHECK(l.out == Sent{{0, 1.f}});
 }
