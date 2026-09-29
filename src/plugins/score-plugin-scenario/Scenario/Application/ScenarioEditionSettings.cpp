@@ -39,7 +39,7 @@ void Scenario::EditionSettings::setTool(Scenario::Tool tool)
 
     if(!isCreationTool(m_tool))
     {
-      setLockMode(LockMode::Free);
+      setLockMode(heldLockMode());
     }
 
     m_tool = tool;
@@ -63,7 +63,7 @@ void Scenario::EditionSettings::setExecution(bool ex)
 void Scenario::EditionSettings::setDefault()
 {
   setTool(Scenario::Tool::Select);
-  setLockMode(LockMode::Free);
+  setLockMode(heldLockMode());
 }
 
 void Scenario::EditionSettings::restoreTool()
@@ -71,8 +71,14 @@ void Scenario::EditionSettings::restoreTool()
   setTool(Scenario::Tool{m_previousTool});
   if(!isCreationTool(m_tool))
   {
-    setLockMode(LockMode::Free);
+    setLockMode(heldLockMode());
   }
+}
+
+void Scenario::EditionSettings::setLockHeld(bool held)
+{
+  m_lockHeld = held;
+  setLockMode(heldLockMode());
 }
 
 LockMode Scenario::EditionSettings::lockMode() const

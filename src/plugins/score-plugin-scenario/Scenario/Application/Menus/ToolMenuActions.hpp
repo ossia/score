@@ -30,8 +30,11 @@ public:
   void setDocument(score::Document* doc);
 
 private:
-  void keyPressed(int key);
   void keyReleased(int key);
+
+  //! Lock (Shift) and scale (Ctrl) are what the modifiers held say
+  void followModifiers(Qt::KeyboardModifiers mods);
+  bool eventFilter(QObject* watched, QEvent* event) override;
 
   void setExpandMode(ExpandMode mode);
 

@@ -24,7 +24,9 @@
 
 #include <QAction>
 #include <QActionGroup>
+#include <QGuiApplication>
 #include <QHBoxLayout>
+#include <QKeyEvent>
 #include <QMainWindow>
 #include <QMenu>
 #include <QString>
@@ -183,11 +185,24 @@ ToolMenuActions::ToolMenuActions(ScenarioApplicationPlugin* parent)
   }
 
   connect(
-      parent, &ScenarioApplicationPlugin::keyPressed, this,
-      &ToolMenuActions::keyPressed);
-  connect(
       parent, &ScenarioApplicationPlugin::keyReleased, this,
       &ToolMenuActions::keyReleased);
+
+  // Every key event of the application is looked at, whichever widget or item
+  // has the focus, and the state is read again when the application or the
+  // window changes: a Shift or Ctrl release that the scenario does not get
+  // (focus in another item or widget, in another window) leaves no lock or
+  // scale behind.
+  if(auto app = qobject_cast<QGuiApplication*>(QCoreApplication::instance()))
+  {
+    app->installEventFilter(this);
+    connect(app, &QGuiApplication::applicationStateChanged, this, [this] {
+      followModifiers(QGuiApplication::queryKeyboardModifiers());
+    });
+    connect(app, &QGuiApplication::focusWindowChanged, this, [this] {
+      followModifiers(QGuiApplication::queryKeyboardModifiers());
+    });
+  }
 
   con(parent->editionSettings(), &Scenario::EditionSettings::toolChanged, this,
       [this](Scenario::Tool t) {
@@ -320,21 +335,46 @@ void ToolMenuActions::setDocument(score::Document* doc)
   m_keepAction->setEnabled(tree->hasPlayedValues());
 }
 
-void ToolMenuActions::keyPressed(int key)
-{
-  if(key == Qt::Key_Shift)
-    m_lockAction->setChecked(true);
-  else if(key == Qt::Key_Control)
-    m_scaleAction->setChecked(true);
-}
-
 void ToolMenuActions::keyReleased(int key)
 {
-  if(key == Qt::Key_Shift)
-    m_lockAction->setChecked(false);
-  else if(key == Qt::Key_Control)
-    m_scaleAction->setChecked(false);
   m_selecttool->trigger();
+}
+
+void ToolMenuActions::followModifiers(Qt::KeyboardModifiers mods)
+{
+  m_parent->editionSettings().setLockHeld(mods & Qt::ShiftModifier);
+  m_scaleAction->setChecked(mods & Qt::ControlModifier);
+}
+
+bool ToolMenuActions::eventFilter(QObject* watched, QEvent* event)
+{
+  const auto type = event->type();
+  if(type == QEvent::KeyPress || type == QEvent::KeyRelease)
+  {
+    // Only the modifiers' own keys: a lock or scale set from the toolbar stays
+    // until Shift or Ctrl is used. Whether such an event counts its own key in
+    // modifiers() depends on the platform: the key says which one changed.
+    const auto& ev = static_cast<const QKeyEvent&>(*event);
+    Qt::KeyboardModifier changed{};
+    switch(ev.key())
+    {
+      case Qt::Key_Shift:
+        changed = Qt::ShiftModifier;
+        break;
+      case Qt::Key_Control:
+        changed = Qt::ControlModifier;
+        break;
+      default:
+        break;
+    }
+    if(changed != Qt::NoModifier && !ev.isAutoRepeat())
+    {
+      auto mods = ev.modifiers();
+      mods.setFlag(changed, type == QEvent::KeyPress);
+      followModifiers(mods);
+    }
+  }
+  return QObject::eventFilter(watched, event);
 }
 
 void ToolMenuActions::setExpandMode(ExpandMode mode)

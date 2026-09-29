@@ -18,8 +18,14 @@ class SCORE_PLUGIN_SCENARIO_EXPORT EditionSettings final : public QObject
   Scenario::Tool m_tool{Scenario::Tool::Select};
   Scenario::Tool m_previousTool{Scenario::Tool::Select};
   LockMode m_lockMode{};
+  bool m_lockHeld{false};
   bool m_execution{false};
   bool m_recordPlayback{false};
+
+  LockMode heldLockMode() const noexcept
+  {
+    return m_lockHeld ? LockMode::Constrained : LockMode::Free;
+  }
 
 public:
   ExpandMode expandMode() const;
@@ -37,6 +43,10 @@ public:
   //! Keep in the document the values playback writes into published controls
   bool recordPlayback() const noexcept { return m_recordPlayback; }
   void setRecordPlayback(bool b);
+
+  //! Whether the lock key (Shift) is held: the lock follows it, and the resets
+  //! of the lock (tool changes, setDefault) go back to it instead of Free
+  void setLockHeld(bool held);
 
 public:
   void setLockMode(LockMode lockMode);
