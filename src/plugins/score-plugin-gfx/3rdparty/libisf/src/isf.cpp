@@ -2153,6 +2153,25 @@ static bool get_str(const sajson::value& v, std::string& out)
   return false;
 }
 
+// A pass WIDTH / HEIGHT: an expression string, or a number kept as its literal.
+static void get_size_expression(const sajson::value& v, std::string& out)
+{
+  switch(v.get_type())
+  {
+    case sajson::TYPE_STRING:
+      out = v.as_string();
+      break;
+    case sajson::TYPE_DOUBLE:
+      out = std::to_string(v.get_double_value());
+      break;
+    case sajson::TYPE_INTEGER:
+      out = std::to_string(v.get_integer_value());
+      break;
+    default:
+      break;
+  }
+}
+
 static void parse_blend_attachment(const sajson::value& v, blend_attachment& out)
 {
   if(v.get_type() != sajson::TYPE_OBJECT)
@@ -3316,44 +3335,12 @@ static const ossia::string_map<root_fun>& root_parse{[] {
 
             if(auto width_k = obj.find_object_key_insensitive(sajson::literal("WIDTH"));
                width_k != obj.get_length())
-            {
-              auto t = obj.get_object_value(width_k).get_type();
-              if(t == sajson::TYPE_STRING)
-              {
-                p.width_expression = obj.get_object_value(width_k).as_string();
-              }
-              else if(t == sajson::TYPE_DOUBLE)
-              {
-                p.width_expression
-                    = std::to_string(obj.get_object_value(width_k).get_double_value());
-              }
-              else if(t == sajson::TYPE_INTEGER)
-              {
-                p.width_expression
-                    = std::to_string(obj.get_object_value(width_k).get_integer_value());
-              }
-            }
+              get_size_expression(obj.get_object_value(width_k), p.width_expression);
 
             if(auto height_k
                = obj.find_object_key_insensitive(sajson::literal("HEIGHT"));
                height_k != obj.get_length())
-            {
-              auto t = obj.get_object_value(height_k).get_type();
-              if(t == sajson::TYPE_STRING)
-              {
-                p.height_expression = obj.get_object_value(height_k).as_string();
-              }
-              else if(t == sajson::TYPE_DOUBLE)
-              {
-                p.height_expression
-                    = std::to_string(obj.get_object_value(height_k).get_double_value());
-              }
-              else if(t == sajson::TYPE_INTEGER)
-              {
-                p.height_expression
-                    = std::to_string(obj.get_object_value(height_k).get_integer_value());
-              }
-            }
+              get_size_expression(obj.get_object_value(height_k), p.height_expression);
 
             // LAYER: render to a specific layer of a texture-array output.
             if(auto layer_k
@@ -3817,6 +3804,70 @@ struct create_val_visitor_450
   return_type operator()(const geometry_input&) { return {"buffer", true}; }
 };
 
+// ISF v1 declares persistence at the top level: "PERSISTENT_BUFFERS" is an
+// array of buffer names, or an object mapping each name to
+// { "WIDTH", "HEIGHT", "FLOAT" }. A pass renders into a buffer by naming it as
+// its TARGET, so the v2 equivalent is PERSISTENT: true on those passes, with
+// the buffer's size and format where the pass does not set its own.
+static void upgrade_v1_persistent_buffers(descriptor& d, const sajson::value& v)
+{
+  const auto apply = [&](const std::string& name, const sajson::value* buffer) {
+    bool targeted = false;
+    for(pass& p : d.passes)
+    {
+      if(p.target != name)
+        continue;
+      targeted = true;
+      p.persistent = true;
+      if(!buffer)
+        continue;
+      if(p.width_expression.empty())
+        if(auto k = buffer->find_object_key_insensitive(sajson::literal("WIDTH"));
+           k != buffer->get_length())
+          get_size_expression(buffer->get_object_value(k), p.width_expression);
+      if(p.height_expression.empty())
+        if(auto k = buffer->find_object_key_insensitive(sajson::literal("HEIGHT"));
+           k != buffer->get_length())
+          get_size_expression(buffer->get_object_value(k), p.height_expression);
+      if(auto k = buffer->find_object_key_insensitive(sajson::literal("FLOAT"));
+         k != buffer->get_length())
+      {
+        const auto f = buffer->get_object_value(k);
+        p.float_storage |= f.get_type() == sajson::TYPE_TRUE
+                           || (f.get_type() == sajson::TYPE_INTEGER
+                               && f.get_integer_value() != 0)
+                           || (f.get_type() == sajson::TYPE_DOUBLE
+                               && f.get_double_value() != 0.);
+      }
+    }
+    if(!targeted)
+      fprintf(
+          stderr,
+          "[isf] PERSISTENT_BUFFERS: \"%s\" is the TARGET of no pass, ignored\n",
+          name.c_str());
+  };
+
+  if(v.get_type() == sajson::TYPE_ARRAY)
+  {
+    for(std::size_t i = 0, n = v.get_length(); i < n; i++)
+    {
+      std::string name;
+      if(get_str(v.get_array_element(i), name) && !name.empty())
+        apply(name, nullptr);
+    }
+  }
+  else if(v.get_type() == sajson::TYPE_OBJECT)
+  {
+    for(std::size_t i = 0, n = v.get_length(); i < n; i++)
+    {
+      const auto buffer = v.get_object_value(i);
+      apply(
+          v.get_object_key(i).as_string(),
+          buffer.get_type() == sajson::TYPE_OBJECT ? &buffer : nullptr);
+    }
+  }
+}
+
 std::pair<int, descriptor> parser::parse_isf_header(std::string_view source)
 {
   using namespace std::literals;
@@ -3858,6 +3909,11 @@ std::pair<int, descriptor> parser::parse_isf_header(std::string_view source)
       (it->second)(d, root.get_object_value(i));
     }
   }
+
+  // After the loop: PASSES may come after PERSISTENT_BUFFERS in the object.
+  if(auto k = root.find_object_key_insensitive(sajson::literal("PERSISTENT_BUFFERS"));
+     k != root.get_length())
+    upgrade_v1_persistent_buffers(d, root.get_object_value(k));
 
   if(d.layer.enabled()
      && source.find("\"RAW_RASTER_PIPELINE\"") == std::string_view::npos)

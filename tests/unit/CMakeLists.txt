@@ -1613,6 +1613,13 @@ if(TARGET score_plugin_gfx)
     LIBS ${QT_PREFIX}::Gui)
 endif()
 
+# ISF v1 PERSISTENT_BUFFERS parses into v2 persistent passes. Pure CPU.
+if(TARGET score_plugin_gfx)
+  score_add_test(test_unit_isf_persistent_buffers
+    SOURCES IsfPersistentBuffersTest.cpp
+    PLUGINS score_plugin_gfx)
+endif()
+
 # Script durations out of the range of a TimeVal are refused, not wrapped.
 if(TARGET score_plugin_js)
   score_add_test(test_unit_js_parse_duration_range
