@@ -1582,6 +1582,28 @@ score_add_test(test_unit_graphics_knob_paint
   SOURCES GraphicsKnobPaintTest.cpp
   APP)
 
+# The Bitfocus host's IPC framing and non-blocking writes, against a shell
+# script standing in for the companion module.
+if(UNIX AND NOT EMSCRIPTEN AND TARGET score_plugin_protocols)
+  set(BITFOCUS_SRC_DIR
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-protocols/Protocols/Bitfocus")
+  score_add_test(test_unit_bitfocus_framing
+    SOURCES
+      BitfocusFramingTest.cpp
+      "${BITFOCUS_SRC_DIR}/BitfocusContext.cpp"
+      "${BITFOCUS_SRC_DIR}/BitfocusContext.unix.cpp"
+    LIBS ossia ${QT_PREFIX}::Network)
+  target_include_directories(test_unit_bitfocus_framing PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-protocols")
+endif()
+
+# Script durations out of the range of a TimeVal are refused, not wrapped.
+if(TARGET score_plugin_js)
+  score_add_test(test_unit_js_parse_duration_range
+    SOURCES JsParseDurationRangeTest.cpp
+    PLUGINS score_plugin_js)
+endif()
+
 # Animations from untrusted glTF files and inputs: unplayable keyframe data is
 # refused at load, and AnimationPlayer clamps a NaN time. Pure CPU. The
 # loader and player are hidden in the dynamic plugin, so they are compiled in.
@@ -1596,6 +1618,15 @@ if(TARGET score_plugin_threedim)
     LIBS fastgltf ${QT_PREFIX}::Gui)
   target_include_directories(test_unit_threedim_animation_robustness SYSTEM PRIVATE
     $<TARGET_PROPERTY:score_plugin_threedim,INCLUDE_DIRECTORIES>)
+endif()
+
+# decode_synchronous() returns exactly the frames of the file, resampled or not:
+# no end cut off, no zeros appended.
+if(TARGET score_plugin_media)
+  score_add_test(test_unit_audio_decode_synchronous_length
+    SOURCES AudioDecodeSynchronousLengthTest.cpp
+    APP
+    PLUGINS score_plugin_media score_lib_process)
 endif()
 
 # Value display: the arrival light's timer is quiet while values stream and

@@ -1683,6 +1683,18 @@ score_add_test(test_integration_view_mode_switch_zoom
   GUI
   PLUGINS score_plugin_scenario score_lib_process)
 
+# Score.pushCommand(): script edits replayed exactly by their handler on undo
+# and redo, whatever the JSON type of their payloads.
+if(TARGET score AND NOT EMSCRIPTEN)
+  score_add_test(test_integration_js_script_command_undo
+    SOURCES JsScriptCommandUndoTest.cpp)
+  target_compile_definitions(test_integration_js_script_command_undo PRIVATE
+    "SCORE_APP_BINARY=\"$<TARGET_FILE:score>\"")
+  set_tests_properties(test_integration_js_script_command_undo PROPERTIES
+    TIMEOUT 900 RUN_SERIAL TRUE)
+  score_test_app_libpath(test_integration_js_script_command_undo)
+endif()
+
 # Piano roll: selecting many notes makes one document selection; a transpose
 # growing the range and a resize clamped at the minimum duration undo and
 # replay from their saved form exactly.
