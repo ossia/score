@@ -32,6 +32,14 @@ View::View(QGraphicsItem* parent)
   this->setFlag(QGraphicsItem::ItemClipsToShape, true);
 
   m_fragmentCache.reserve(20);
+
+  // The rows are rasterised once into m_bgCache. MidiStyle must have reloaded
+  // before this runs: building it first puts its own connection ahead.
+  style();
+  connect(&score::Skin::instance(), &score::Skin::changed, this, [this] {
+    updateBackground(height());
+    update();
+  });
 }
 
 View::~View() { }

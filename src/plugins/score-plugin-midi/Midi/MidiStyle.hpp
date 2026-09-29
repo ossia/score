@@ -5,6 +5,8 @@
 #include <QGuiApplication>
 #include <QPen>
 
+#include <utility>
+
 namespace Midi
 {
 struct MidiStyle
@@ -33,9 +35,16 @@ struct MidiStyle
     // The rows are tints over whatever is behind the layer, not fills: the
     // interval's bar lines in musical mode are drawn behind its processes and
     // must show through. White keys are lighter and black keys darker than
-    // the ground, whatever the skin, as on a keyboard.
-    whiteKeyBrush = QBrush{QColor{255, 255, 255, 14}};
-    blackKeyBrush = QBrush{QColor{0, 0, 0, 64}};
+    // the ground, as on a keyboard: light skins swap Light and Dark (Light is
+    // the foreground), so the two are ordered by lightness.
+    QColor lighter = skin.Light.main.brush.color();
+    QColor darker = skin.Dark.main.brush.color();
+    if(lighter.lightness() < darker.lightness())
+      std::swap(lighter, darker);
+    lighter.setAlpha(14);
+    darker.setAlpha(64);
+    whiteKeyBrush = QBrush{lighter};
+    blackKeyBrush = QBrush{darker};
     darkerBrush = skin.LightGray.main.brush;
 
     // Row separations: faint, in the skin's foreground; stronger between B

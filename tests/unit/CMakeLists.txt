@@ -436,7 +436,6 @@ score_add_test(test_unit_spline_values
 
 # --- P3R2: score-plugin-midi + score-plugin-dataflow value tests -----------
 if(TARGET score_plugin_midi)
-  set(_midi_src "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-midi")
 score_add_test(test_unit_midi_message
     SOURCES
       MidiMessageTest.cpp
@@ -451,6 +450,12 @@ score_add_test(test_unit_midi_message
 
   score_add_test(test_unit_patternist_port
     SOURCES PatternistPortTest.cpp
+    APP
+    PLUGINS score_plugin_midi score_lib_process)
+
+  # Piano roll rows: skin tints, and the cached rows redrawn on a skin change.
+  score_add_test(test_unit_midi_row_tints
+    SOURCES MidiRowTintsTest.cpp
     APP
     PLUGINS score_plugin_midi score_lib_process)
 endif()

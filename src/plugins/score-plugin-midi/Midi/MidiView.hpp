@@ -11,7 +11,7 @@
 namespace Midi
 {
 class NoteView;
-class View final : public Process::LayerView
+class SCORE_PLUGIN_MIDI_EXPORT View final : public Process::LayerView
 {
   W_OBJECT(View)
 public:
