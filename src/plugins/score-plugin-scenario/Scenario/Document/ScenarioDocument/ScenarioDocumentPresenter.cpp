@@ -66,6 +66,7 @@
 #include <core/view/CentralViewStack.hpp>
 #include <core/view/Window.hpp>
 
+#include <ossia/detail/hash_map.hpp>
 #include <ossia/detail/math.hpp>
 
 #include <ossia-qt/invoke.hpp>
@@ -1355,10 +1356,16 @@ void ScenarioDocumentPresenter::setNewSelection(const Selection& old, const Sele
     }
   };
 
+  ossia::hash_set<const QObject*> kept;
+  if(!old.empty())
+  {
+    kept.reserve(s.size());
+    for(const auto& e : s)
+      kept.insert(e.data());
+  }
   for(auto& e : old)
   {
-    const auto it = ossia::find(s, e);
-    if(it == s.end())
+    if(!kept.contains(e.data()))
     {
       if(auto proc = qobject_cast<Process::ProcessModel*>(e))
       {

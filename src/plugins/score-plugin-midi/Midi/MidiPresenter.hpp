@@ -69,7 +69,7 @@ private:
   void pushNoteSelection();
 
   View* m_view{};
-  std::vector<NoteView*> m_notes;
+  ossia::hash_map<const Note*, NoteView*> m_notes;
   ossia::hash_set<NoteView*> m_selectedNotes;
   bool m_selectionPushPending{};
 

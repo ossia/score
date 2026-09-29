@@ -11,6 +11,7 @@
 
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/document/DocumentContext.hpp>
+#include <score/selection/SelectionStack.hpp>
 
 #include <QGraphicsScene>
 #include <QGraphicsView>
@@ -125,6 +126,10 @@ bool NoteEditor::remove(const Selection& s, const score::DocumentContext& ctx)
     if(!noteIdList.empty())
     {
       auto parent = qobject_cast<const Midi::ProcessModel*>(s.begin()->data()->parent());
+      // The selection history holds the notes: each deleted note would prune
+      // it and announce the whole selection again, O(notes^2) for a large
+      // selection. As a scenario removal does, the history goes first.
+      ctx.selectionStack.clear();
       CommandDispatcher<>{ctx.commandStack}.submit<Midi::RemoveNotes>(
           *parent, noteIdList);
       return true;

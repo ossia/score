@@ -27,9 +27,7 @@
 #include <ossia/detail/algorithms.hpp>
 #include <ossia/detail/math.hpp>
 
-#include <boost/range/adaptor/filtered.hpp>
 #include <boost/range/adaptor/transformed.hpp>
-#include <boost/range/algorithm/copy.hpp>
 
 #include <QAction>
 #include <QApplication>
@@ -59,17 +57,17 @@ Presenter::Presenter(
   con(
       model, &ProcessModel::durationChanged, this,
       [&] {
-    for(auto note : m_notes)
+    for(auto [_, note] : m_notes)
       updateNote(*note);
       },
       Qt::QueuedConnection);
   con(model, &ProcessModel::notesNeedUpdate, this, [&] {
-    for(auto note : m_notes)
+    for(auto [_, note] : m_notes)
       updateNote(*note);
   });
 
   con(model, &ProcessModel::notesChanged, this, [&] {
-    for(auto note : m_notes)
+    for(auto [_, note] : m_notes)
     {
       delete note;
     }
@@ -85,7 +83,7 @@ Presenter::Presenter(
 
   con(model, &ProcessModel::rangeChanged, this, [this](int min, int max) {
     m_view->setRange(min, max);
-    for(auto note : m_notes)
+    for(auto [_, note] : m_notes)
       updateNote(*note);
   });
   m_view->setRange(model.range().first, model.range().second);
@@ -99,7 +97,7 @@ Presenter::Presenter(
   });
 
   connect(m_view, &View::pressed, this, [&] {
-    for(NoteView* n : m_notes)
+    for(auto [_, n] : m_notes)
       n->setSelected(false);
   });
 
@@ -161,14 +159,14 @@ void Presenter::setWidth(qreal val, qreal defaultWidth)
 {
   m_view->setWidth(val);
   m_view->setDefaultWidth(defaultWidth);
-  for(auto note : m_notes)
+  for(auto [_, note] : m_notes)
     updateNote(*note);
 }
 
 void Presenter::setHeight(qreal val)
 {
   m_view->setHeight(val);
-  for(auto note : m_notes)
+  for(auto [_, note] : m_notes)
     updateNote(*note);
 }
 
@@ -186,7 +184,7 @@ void Presenter::on_zoomRatioChanged(ZoomRatio zr)
 {
   m_zr = zr;
   m_view->setDefaultWidth(model().duration().toPixels(m_zr));
-  for(auto note : m_notes)
+  for(auto [_, note] : m_notes)
     updateNote(*note);
 }
 
@@ -204,7 +202,7 @@ const Midi::View& Presenter::view() const noexcept
 
 void Presenter::on_deselectOtherNotes()
 {
-  for(NoteView* n : m_notes)
+  for(auto [_, n] : m_notes)
     n->setSelected(false);
 }
 
@@ -346,10 +344,13 @@ void Presenter::on_noteSelectionChanged(NoteView* v, bool ok)
 void Presenter::pushNoteSelection()
 {
   m_selectionPushPending = false;
-  Selection s;
-  for(auto n : m_selectedNotes)
-    s.append(&n->note);
-  context().context.selectionStack.pushNewSelection(s);
+  // m_selectedNotes holds each note once: the range constructor skips the
+  // linear duplicate check of Selection::append.
+  const auto notes = m_selectedNotes | boost::adaptors::transformed([](NoteView* v) {
+    return static_cast<IdentifiedObjectAbstract*>(const_cast<Note*>(&v->note));
+  });
+  context().context.selectionStack.pushNewSelection(
+      Selection(notes.begin(), notes.end()));
 }
 
 void Presenter::updateNote(NoteView& v)
@@ -369,16 +370,15 @@ void Presenter::on_noteAdded(const Note& n)
 {
   auto v = new NoteView{n, *this, m_view};
   updateNote(*v);
-  m_notes.push_back(v);
+  m_notes.emplace(&n, v);
 }
 
 void Presenter::on_noteRemoving(const Note& n)
 {
-  auto it = ossia::find_if(m_notes, [&](const auto& other) { return &other->note == &n; });
-  if(it != m_notes.end())
+  if(auto it = m_notes.find(&n); it != m_notes.end())
   {
-    m_selectedNotes.erase(*it);
-    delete *it;
+    m_selectedNotes.erase(it->second);
+    delete it->second;
     m_notes.erase(it);
   }
 }
@@ -386,7 +386,7 @@ void Presenter::on_noteRemoving(const Note& n)
 void Presenter::on_notesReplaced()
 {
   m_selectedNotes.clear();
-  for(auto& n : m_notes)
+  for(auto [_, n] : m_notes)
     delete n;
   m_notes.clear();
 
@@ -422,13 +422,10 @@ void Presenter::on_drop(const QPointF& pos, const QMimeData& md)
 
 std::vector<Id<Note>> Presenter::selectedNotes() const
 {
-  using namespace boost::adaptors;
-
   std::vector<Id<Note>> res;
-  boost::copy(
-      m_notes | filtered([](NoteView* v) { return v->isSelected(); })
-          | transformed([](NoteView* v) { return v->note.id(); }),
-      std::back_inserter(res));
+  res.reserve(m_selectedNotes.size());
+  for(NoteView* v : m_selectedNotes)
+    res.push_back(v->note.id());
   return res;
 }
 }

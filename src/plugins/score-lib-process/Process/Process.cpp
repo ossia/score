@@ -21,6 +21,7 @@
 
 #include <ossia/detail/algorithms.hpp>
 #include <ossia/detail/disable_fpe.hpp>
+#include <ossia/detail/hash_map.hpp>
 #include <ossia/network/base/device.hpp>
 #include <ossia/network/base/node.hpp>
 
@@ -206,12 +207,13 @@ Selection ProcessModel::selectedChildren() const noexcept
 
 void ProcessModel::setSelection(const Selection& s) const noexcept
 {
-  // OPTIMIZEME
-  auto cld = this->findChildren<Selectable*>();
-  for(Selectable* child : cld)
-  {
-    child->set(s.contains(child->parent()));
-  }
+  ossia::hash_set<const QObject*> selected;
+  selected.reserve(s.size());
+  for(const auto& obj : s)
+    selected.insert(obj.data());
+
+  for(Selectable* child : this->findChildren<Selectable*>())
+    child->set(selected.contains(child->parent()));
 }
 
 Process::Inlet* ProcessModel::inlet(const Id<Process::Port>& p) const noexcept
