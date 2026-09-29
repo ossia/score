@@ -356,7 +356,7 @@ if(LINUX AND TARGET score_plugin_protocols AND TARGET score_plugin_js)
     "SCORE_TEST_QML_PROTOCOL_DIR=\"${SCORE_ROOT_SOURCE_DIR}/tests/testdata/protocols-qml\"")
 endif()
 
-# --- core data model (score-lib-state / score-lib-process, P3R2) -----------
+# --- core data model (score-lib-state / score-lib-process) -----------------
 score_add_test(test_unit_state_serialization
   SOURCES StateSerializationTest.cpp
   PLUGINS score_lib_state)
@@ -434,7 +434,7 @@ score_add_test(test_unit_spline_values
   SOURCES SplineValueTest.cpp
   PLUGINS score_plugin_spline)
 
-# --- P3R2: score-plugin-midi + score-plugin-dataflow value tests -----------
+# --- score-plugin-midi + score-plugin-dataflow value tests -----------------
 if(TARGET score_plugin_midi)
 score_add_test(test_unit_midi_message
     SOURCES
@@ -554,7 +554,7 @@ score_add_test(test_unit_quantification_parity
 target_include_directories(test_unit_quantification_parity SYSTEM PRIVATE
   "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/include")
 
-# --- P3R3: audio DSP value-asserting tests ---------------------------------
+# --- audio DSP value-asserting tests ---------------------------------------
 score_add_test(test_unit_avnd_audio_effects
   SOURCES AvndAudioEffectsTest.cpp)
 target_include_directories(test_unit_avnd_audio_effects SYSTEM PRIVATE
