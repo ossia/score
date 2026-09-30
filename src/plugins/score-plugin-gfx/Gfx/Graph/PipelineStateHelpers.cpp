@@ -440,7 +440,7 @@ bool stateAffectsPipeline(const isf::pipeline_state& s) noexcept
 }
 
 void applyPipelineState(
-    QRhiGraphicsPipeline& pip,
+    const QRhi& rhi, QRhiGraphicsPipeline& pip,
     const isf::pipeline_state& state,
     int colorAttachmentCount,
     bool depthAttachmentAvailable,
@@ -491,10 +491,9 @@ void applyPipelineState(
 
   if(state.polygon_mode.has_value())
   {
-    const QRhi* rhi = rhiOf(pip);
     pip.setPolygonMode(supportedPolygonMode(
         toPolygonMode(*state.polygon_mode),
-        !rhi || rhi->isFeatureSupported(QRhi::NonFillPolygonMode)));
+        rhi.isFeatureSupported(QRhi::NonFillPolygonMode)));
   }
 
   if(state.line_width.has_value())

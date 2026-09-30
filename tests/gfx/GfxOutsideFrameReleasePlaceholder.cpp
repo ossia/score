@@ -119,7 +119,7 @@ struct OrphanRenderer final : score::gfx::NodeRenderer
     res.uploadStaticBuffer(buf, 0, 64, zero.data());
     score::gfx::RenderList::adoptBuffer(buf);
     renderer.releaseBuffer(buf);
-    score::gfx::RenderList::dropAdoptedBuffer(buf);
+    score::gfx::RenderList::dropAdoptedBuffer(*renderer.state.rhi, buf);
     m_initialized = true;
   }
   void update(score::gfx::RenderList&, QRhiResourceUpdateBatch&, score::gfx::Edge*) override { }

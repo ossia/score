@@ -165,7 +165,7 @@ bool stateAffectsPipeline(const isf::pipeline_state&) noexcept;
 // silently lose unrelated defaults.
 SCORE_PLUGIN_GFX_EXPORT
 void applyPipelineState(
-    QRhiGraphicsPipeline& pip,
+    const QRhi& rhi, QRhiGraphicsPipeline& pip,
     const isf::pipeline_state& state,
     int colorAttachmentCount,
     bool depthAttachmentAvailable,

@@ -32,17 +32,6 @@ class VertexFallbackPool;
 struct Edge;
 class RenderList;
 
-//! The QRhi that created a resource; null where Qt (before 6.5) cannot tell.
-inline QRhi* rhiOf(const QRhiResource& res) noexcept
-{
-#if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
-  return res.rhi();
-#else
-  Q_UNUSED(res);
-  return nullptr;
-#endif
-}
-
 /**
  * @brief RAII bracket for QRhi::beginOffscreenFrame / endOffscreenFrame.
  *
@@ -676,7 +665,8 @@ inline QRhiBuffer::Type bufferTypeFor(
 SCORE_PLUGIN_GFX_EXPORT
 bool remapPipelineVertexInputs(
     QRhiGraphicsPipeline& pip, const QShader& vertexShader,
-    const ossia::geometry& geom, FallbackBindingPlan* outPlan = nullptr);
+    const ossia::geometry& geom, FallbackBindingPlan* outPlan = nullptr,
+    QRhi* rhi = nullptr);
 
 // FallbackBindingPlan lives in its own header so both Utils.hpp and
 // CustomMesh.hpp can depend on it without creating an include cycle

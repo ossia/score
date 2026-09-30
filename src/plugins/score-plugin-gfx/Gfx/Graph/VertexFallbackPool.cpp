@@ -75,7 +75,7 @@ bool VertexFallbackPool::grow(
       rec.entry.buffer->setSize((quint32)stride * (quint32)prev_instances);
       if(prev_instances == 0 || !rec.entry.buffer->create())
       {
-        score::gfx::RenderList::releaseResource(rec.entry.buffer);
+        score::gfx::RenderList::releaseResource(rhi, rec.entry.buffer);
         rec.entry.buffer = nullptr;
         rec.entry.instances = 0;
         return false;

@@ -444,17 +444,17 @@ static void releaseSlot(score::gfx::RenderList& renderer, Slot& slot) noexcept
   if(slot.owned)
     renderer.releaseBuffer(slot.buffer);
   else
-    score::gfx::RenderList::dropAdoptedBuffer(slot.buffer);
+    score::gfx::RenderList::dropAdoptedBuffer(*renderer.state.rhi, slot.buffer);
   slot.buffer = nullptr;
   if constexpr(requires { slot.offset; })
     slot.offset = 0;
 }
 
 template <typename Slot>
-static void dropRestoreSource(Slot& slot) noexcept
+static void dropRestoreSource(score::gfx::RenderList& renderer, Slot& slot) noexcept
 {
   if(slot.restore_source)
-    score::gfx::RenderList::dropAdoptedBuffer(slot.restore_source);
+    score::gfx::RenderList::dropAdoptedBuffer(*renderer.state.rhi, slot.restore_source);
   slot.restore_source = nullptr;
   slot.restore_offset = 0;
   slot.restore_size = 0;
@@ -462,11 +462,12 @@ static void dropRestoreSource(Slot& slot) noexcept
 
 template <typename Slot>
 static void setRestoreSource(
-    Slot& slot, QRhiBuffer* src, int64_t offset, int64_t size) noexcept
+    score::gfx::RenderList& renderer, Slot& slot, QRhiBuffer* src, int64_t offset,
+    int64_t size) noexcept
 {
   if(slot.restore_source != src)
   {
-    dropRestoreSource(slot);
+    dropRestoreSource(renderer, slot);
     score::gfx::RenderList::adoptBuffer(src);
     slot.restore_source = src;
   }
@@ -1848,7 +1849,8 @@ void RenderedCSFNode::updateGeometryBindings(
                 }
               }
               setRestoreSource(
-                  ssbo, rhi_buf, region_offset, std::min(region_size, owned_size));
+                  renderer, ssbo, rhi_buf, region_offset,
+                  std::min(region_size, owned_size));
               ssbo.lastUploadSrc = nullptr;
               continue;
             }
@@ -2059,7 +2061,8 @@ void RenderedCSFNode::updateGeometryBindings(
                     aux.size = published;
                     aux.owned = true;
                   }
-                  setRestoreSource(aux, rhi_buf, geo_aux->byte_offset, published);
+                  setRestoreSource(
+                      renderer, aux, rhi_buf, geo_aux->byte_offset, published);
                   continue;
                 }
                 adoptIntoSlot(renderer, aux, rhi_buf, published);
@@ -2327,10 +2330,10 @@ void RenderedCSFNode::updateGeometryBindings(
   {
     for(auto& ssbo : binding.attribute_ssbos)
       if(!ssbo.restore_seen)
-        dropRestoreSource(ssbo);
+        dropRestoreSource(renderer, ssbo);
     for(auto& aux : binding.auxiliary_ssbos)
       if(!aux.restore_seen)
-        dropRestoreSource(aux);
+        dropRestoreSource(renderer, aux);
   }
 }
 
@@ -3855,13 +3858,14 @@ void RenderedCSFNode::createComputePipeline(RenderList& renderer)
   }
 }
 
-void RenderedCSFNode::dropSrbAdoptions()
+void RenderedCSFNode::dropSrbAdoptions(RenderList& renderer)
 {
+  QRhi& rhi = *renderer.state.rhi;
   for(auto* b : m_srbAdoptedBuffers)
-    score::gfx::RenderList::dropAdoptedBuffer(b);
+    score::gfx::RenderList::dropAdoptedBuffer(rhi, b);
   m_srbAdoptedBuffers.clear();
   for(auto* b : m_srbPreviousAdoptions)
-    score::gfx::RenderList::dropAdoptedBuffer(b);
+    score::gfx::RenderList::dropAdoptedBuffer(rhi, b);
   m_srbPreviousAdoptions.clear();
 }
 
@@ -4639,7 +4643,7 @@ void RenderedCSFNode::buildComputeSrbBindings(
   }
 
   for(auto* b : m_srbPreviousAdoptions)
-    score::gfx::RenderList::dropAdoptedBuffer(b);
+    score::gfx::RenderList::dropAdoptedBuffer(rhi, b);
   m_srbPreviousAdoptions.clear();
 }
 
@@ -5209,7 +5213,7 @@ bool RenderedCSFNode::hasOutputPassForEdge(Edge& edge) const
 
 void RenderedCSFNode::releaseState(RenderList& r)
 {
-  dropSrbAdoptions();
+  dropSrbAdoptions(r);
 
   // A re-initialisation (a full rebuild of the render list, or a resize of the
   // output re-initialising this node and its producers) can release the
@@ -5285,7 +5289,7 @@ void RenderedCSFNode::releaseState(RenderList& r)
       }
       ssbo.read_buffer_is_snapshot = false;
       releaseSlot(r, ssbo);
-      dropRestoreSource(ssbo);
+      dropRestoreSource(r, ssbo);
       delete ssbo.scatterStaging;
       ssbo.scatterStaging = nullptr;
       delete ssbo.scatterOp.srb;
@@ -5296,7 +5300,7 @@ void RenderedCSFNode::releaseState(RenderList& r)
     for(auto& aux : binding.auxiliary_ssbos)
     {
       releaseSlot(r, aux);
-      dropRestoreSource(aux);
+      dropRestoreSource(r, aux);
     }
     for(auto& at : binding.auxiliary_textures)
     {

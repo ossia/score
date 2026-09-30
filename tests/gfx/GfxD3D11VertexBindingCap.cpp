@@ -1,8 +1,7 @@
 // Qt's D3D11 backend records at most 8 vertex buffer bindings and drops the
 // rest, so a pipeline needing more reads zeroes on the tail. The resolver
 // warns about it, naming the inputs that fall off -- on D3D11 only, and on
-// the strict overload too, which is what buildPipeline uses and which carries
-// no QRhi of its own.
+// the strict overload too, which is what buildPipeline uses.
 //
 // Nine streams, each read by the shader, go through the strict overload on
 // every available backend. The warning must fire exactly when the backend is
@@ -108,7 +107,6 @@ TEST_CASE(
   bool ran = false;
   bool isD3D11 = false;
   bool remapped = false;
-  bool pipelineKnowsRhi = false;
   QStringList warnings;
   score::test::run_in_gui_app([&](const score::GUIApplicationContext&) {
     auto state = createRenderState(api, QSize(16, 16), nullptr);
@@ -130,7 +128,6 @@ void main() { frag = v_sum; }
 )_"));
 
       std::unique_ptr<QRhiGraphicsPipeline> pipeline(rhi.newGraphicsPipeline());
-      pipelineKnowsRhi = rhiOf(*pipeline) == &rhi;
       pipeline->setShaderStages(
           {{QRhiShaderStage::Vertex, shaders.first},
            {QRhiShaderStage::Fragment, shaders.second}});
@@ -146,7 +143,8 @@ void main() { frag = v_sum; }
       }
       FallbackBindingPlan plan;
       LogCapture log;
-      remapped = remapPipelineVertexInputs(*pipeline, shaders.first, geom, &plan);
+      remapped = remapPipelineVertexInputs(
+          *pipeline, shaders.first, geom, &plan, &rhi);
       for(const auto& m : log.messages())
         if(m.text.contains(QStringLiteral("D3D11 backend records only 8")))
           warnings << m.text;
@@ -159,20 +157,12 @@ void main() { frag = v_sum; }
     SKIP(std::string{backend_name(api)} + " unavailable");
   INFO(warnings.join(QStringLiteral("\n")).toStdString());
   CHECK(remapped);
-  // The strict path reads the backend from here, having no QRhi of its own.
-  // Before Qt 6.5 a resource cannot name its QRhi, so that path stays quiet.
-#if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
-  CHECK(pipelineKnowsRhi);
   if(isD3D11)
   {
     REQUIRE(warnings.size() == 1);
     CHECK(warnings.front().contains(QStringLiteral("color1")));
   }
   else
-#else
-  (void)isD3D11;
-  (void)pipelineKnowsRhi;
-#endif
   {
     CHECK(warnings.isEmpty());
   }

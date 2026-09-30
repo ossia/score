@@ -1292,7 +1292,7 @@ void RenderedRawRasterPipelineNode::initPass(
             || (renderTarget.depthRenderBuffer != nullptr)
             || (renderTarget.msDepthTexture != nullptr);
       applyPipelineState(
-          *ps, desc.default_state, renderTarget.colorAttachmentCount(),
+          rhi, *ps, desc.default_state, renderTarget.colorAttachmentCount(),
           depthAvailable, /*wantsDepthByDefault=*/true);
     }
     else
@@ -2450,7 +2450,7 @@ void RenderedRawRasterPipelineNode::initMRTPass(
             || (m_mrtRenderTarget.depthRenderBuffer != nullptr)
             || (m_mrtRenderTarget.msDepthTexture != nullptr);
       applyPipelineState(
-          *ps, desc.default_state, pipelineColorCount,
+          rhi, *ps, desc.default_state, pipelineColorCount,
           depthAvailable, /*wantsDepthByDefault=*/true);
     }
     else
@@ -3199,7 +3199,7 @@ void RenderedRawRasterPipelineNode::releaseState(RenderList& r)
     if(aux.owned && aux.buffer)
       aux.buffer->deleteLater();
     else if(aux.buffer)
-      RenderList::dropAdoptedBuffer(aux.buffer);
+      RenderList::dropAdoptedBuffer(*r.state.rhi, aux.buffer);
     if(aux.owned && aux.prev_buffer)
       aux.prev_buffer->deleteLater();
   }
@@ -3723,7 +3723,7 @@ void RenderedRawRasterPipelineNode::update(
                   if(aux.owned && aux.buffer)
                     aux.buffer->deleteLater();
                   else if(aux.buffer)
-                    RenderList::dropAdoptedBuffer(aux.buffer);
+                    RenderList::dropAdoptedBuffer(*renderer.state.rhi, aux.buffer);
                   // Borrowed: a reference in RenderList's adoption registry,
                   // so the producer's release defers to the drop above.
                   RenderList::adoptBuffer(new_buf);
@@ -3753,7 +3753,7 @@ void RenderedRawRasterPipelineNode::update(
                 if(aux.owned && aux.buffer)
                   renderer.releaseBuffer(aux.buffer);
                 else if(aux.buffer)
-                  RenderList::dropAdoptedBuffer(aux.buffer);
+                  RenderList::dropAdoptedBuffer(rhi, aux.buffer);
 
                 auto* buf = rhi.newBuffer(
                     QRhiBuffer::Immutable, QRhiBuffer::StorageBuffer, sz);

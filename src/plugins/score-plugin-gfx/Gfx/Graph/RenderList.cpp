@@ -928,10 +928,9 @@ void RenderList::release()
   m_renderSizeChanged = false;
 }
 
-// Shared across every RenderList, because a QRhiBuffer pointer is unique
-// process-wide and the producer that retires one is routinely on a different
-// render list from the consumer that still binds it. A per-list set makes the
-// check blind to exactly the cross-list case.
+// Process-wide tables keyed by the buffer pointer, which is unique across
+// every QRhi. A producer and the consumers that adopt its buffers are
+// renderers of the same render list (one per output, one QRhi each).
 //
 // Two tables, one lock:
 //
@@ -1050,7 +1049,7 @@ void RenderList::adoptBuffer(QRhiBuffer* buf)
   entry.refs++;
 }
 
-void RenderList::dropAdoptedBuffer(QRhiBuffer* buf)
+void RenderList::dropAdoptedBuffer(QRhi& rhi, QRhiBuffer* buf)
 {
   if(!buf)
     return;
@@ -1068,7 +1067,7 @@ void RenderList::dropAdoptedBuffer(QRhiBuffer* buf)
       recordRetirement(buf);
   }
   if(free)
-    releaseResource(buf);
+    releaseResource(rhi, buf);
 }
 
 int RenderList::adoptedBufferCount() noexcept
@@ -1120,9 +1119,7 @@ void RenderList::releaseBuffer(QRhiBuffer* buf)
   // by pending uploadStaticBuffer operations in the current frame's batch.
   // deleteLater() defers destruction to the next beginFrame(), ensuring
   // the GPU handle stays valid for all queued operations this frame.
-  // Before Qt 6.5 the buffer cannot name its QRhi: it was created on ours.
-  QRhi* rhi = rhiOf(*buf);
-  releaseResourceOn(rhi ? rhi : state.rhi, buf);
+  releaseResourceOn(state.rhi, buf);
 }
 
 namespace
@@ -1195,11 +1192,14 @@ void releaseResourceOn(QRhi* rhi, QRhiResource* res)
 }
 }
 
-void RenderList::releaseResource(QRhiResource* res)
+void RenderList::releaseResource(QRhi& rhi, QRhiResource* res)
 {
   if(!res)
     return;
-  releaseResourceOn(rhiOf(*res), res);
+#if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
+  SCORE_ASSERT(res->rhi() == &rhi);
+#endif
+  releaseResourceOn(&rhi, res);
 }
 
 void RenderList::retireResourcesReleasedOutsideFrame() noexcept

@@ -737,30 +737,30 @@ namespace
 // of is dropped only if it was adopted: a drop the entry never took would
 // release another consumer's reference.
 template <typename Entry>
-void letGoOf(Entry& e)
+void letGoOf(QRhi& rhi, Entry& e)
 {
   if(e.owned && e.buffer)
-    RenderList::releaseResource(e.buffer);
+    RenderList::releaseResource(rhi, e.buffer);
   else if(e.adopted)
-    RenderList::dropAdoptedBuffer(e.buffer);
+    RenderList::dropAdoptedBuffer(rhi, e.buffer);
   e.adopted = false;
   e.owned = false;
   e.from_port = false;
 }
 
 template <typename Entry>
-void borrow(Entry& e, QRhiBuffer* buf)
+void borrow(QRhi& rhi, Entry& e, QRhiBuffer* buf)
 {
-  letGoOf(e);
+  letGoOf(rhi, e);
   RenderList::adoptBuffer(buf);
   e.buffer = buf;
   e.adopted = true;
 }
 
 template <typename Entry>
-void bindSentinel(Entry& e, QRhiBuffer* sentinel)
+void bindSentinel(QRhi& rhi, Entry& e, QRhiBuffer* sentinel)
 {
-  letGoOf(e);
+  letGoOf(rhi, e);
   e.buffer = sentinel;
 }
 
@@ -805,7 +805,7 @@ void GraphicsStorageResources::release(RenderList& renderer)
       renderer.releaseBuffer(s.prev);
     }
     else if(s.adopted)
-      RenderList::dropAdoptedBuffer(s.buffer);
+      RenderList::dropAdoptedBuffer(*renderer.state.rhi, s.buffer);
     s.adopted = false;
     s.buffer = nullptr;
     s.prev = nullptr;
@@ -829,7 +829,7 @@ void GraphicsStorageResources::release(RenderList& renderer)
     if(u.owned && u.buffer)
       u.buffer->deleteLater();
     else if(u.adopted)
-      RenderList::dropAdoptedBuffer(u.buffer);
+      RenderList::dropAdoptedBuffer(*renderer.state.rhi, u.buffer);
     u.adopted = false;
     u.buffer = nullptr;
   }
@@ -857,6 +857,8 @@ void bindUpstreamBuffers(
     GraphicsStorageResources& store,
     QRhiShaderResourceBindings* srb)
 {
+  QRhi& rhi = *renderer.state.rhi;
+
   // Upstream renderers (halp-based nodes like ExtractBuffer2, RenderedCSFNode,
   // ScenePreprocessorNode aux extractors, ...) publish their output buffer via
   // the virtual NodeRenderer::bufferForOutput() — never by writing
@@ -907,7 +909,7 @@ void bindUpstreamBuffers(
 
       if(!e.owned || e.access == "read_only")
       {
-        borrow(e, buf);
+        borrow(rhi, e, buf);
         e.from_port = true;
         e.size = view.byte_size;
         if(srb && e.binding >= 0)
@@ -938,7 +940,7 @@ void bindUpstreamBuffers(
       // state wrong for the frames that follow.
       if(e.buffer != store.sentinelBuffer)
       {
-        bindSentinel(e, store.sentinelBuffer);
+        bindSentinel(rhi, e, store.sentinelBuffer);
         if(srb && e.binding >= 0)
           replaceBuffer(*srb, e.binding, store.sentinelBuffer);
       }
@@ -990,7 +992,7 @@ void bindUpstreamBuffers(
     {
       // An upstream is now providing a different buffer than what's currently
       // bound. Drop any placeholder we owned and retarget the binding.
-      borrow(e, found);
+      borrow(rhi, e, found);
       e.from_port = true;
 
       if(srb && e.binding >= 0)
@@ -1015,7 +1017,7 @@ void bindUpstreamBuffers(
       // Geometry restores them immediately after this function returns.
       if(e.buffer != store.sentinelUniformBuffer)
       {
-        bindSentinel(e, store.sentinelUniformBuffer);
+        bindSentinel(rhi, e, store.sentinelUniformBuffer);
         if(srb && e.binding >= 0)
         {
           replaceBuffer(*srb, e.binding, store.sentinelUniformBuffer);
@@ -1180,12 +1182,12 @@ void bindUpstreamBuffersFromGeometry(
       continue;
     if(resolved.owned)
     {
-      letGoOf(e);
+      letGoOf(rhi, e);
       e.buffer = resolved.handle;
       e.owned = true;
     }
     else
-      borrow(e, resolved.handle);
+      borrow(rhi, e, resolved.handle);
     e.size = resolved.byte_size;
     if(srb)
       replaceBuffer(*srb, e.binding, e.buffer);
@@ -1200,12 +1202,12 @@ void bindUpstreamBuffersFromGeometry(
       continue;
     if(resolved.owned)
     {
-      letGoOf(e);
+      letGoOf(rhi, e);
       e.buffer = resolved.handle;
       e.owned = true;
     }
     else
-      borrow(e, resolved.handle);
+      borrow(rhi, e, resolved.handle);
     if(srb)
       replaceBuffer(*srb, e.binding, e.buffer);
   }

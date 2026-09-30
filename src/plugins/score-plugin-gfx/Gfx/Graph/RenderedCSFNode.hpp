@@ -81,7 +81,7 @@ private:
   std::vector<QRhiBuffer*> m_srbPreviousAdoptions;
 
   /// Drop every adoption taken by buildComputeSrbBindings. Idempotent.
-  void dropSrbAdoptions();
+  void dropSrbAdoptions(RenderList& renderer);
   /// Adopt `buf` for the SRB being built, reusing the previous build's.
   void adoptForSrb(QRhiBuffer* buf);
 

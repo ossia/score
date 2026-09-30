@@ -867,9 +867,8 @@ bool remapVertexInputs(
   // bindings"): past that it warns and DROPS the tail, so the attributes
   // on those bindings read zero and the draw is quietly wrong. D3D11
   // itself allows 32; the cap is Qt's. Nothing here can raise it, so say
-  // which shader wanted what, once per pipeline build. The strict path has no
-  // `rhi` of its own; the pipeline knows which one it belongs to.
-  const QRhi* backendRhi = rhi ? rhi : rhiOf(pip);
+  // which shader wanted what, once per pipeline build.
+  const QRhi* backendRhi = rhi;
   if(backendRhi && backendRhi->backend() == QRhi::D3D11 && bindings.size() > 8)
   {
     // Name the attributes that land past binding 7, not merely the shader's
@@ -901,11 +900,11 @@ bool remapVertexInputs(
 
 bool remapPipelineVertexInputs(
     QRhiGraphicsPipeline& pip, const QShader& vertexShader,
-    const ossia::geometry& geom, FallbackBindingPlan* outPlan)
+    const ossia::geometry& geom, FallbackBindingPlan* outPlan, QRhi* rhi)
 {
   FallbackBindingPlan scratch;
   return remapVertexInputs(
-      pip, vertexShader, geom, nullptr, nullptr, nullptr, nullptr,
+      pip, vertexShader, geom, nullptr, rhi, nullptr, nullptr,
       outPlan ? *outPlan : scratch);
 }
 
@@ -1029,7 +1028,7 @@ static Pipeline buildPipelineImpl(
   // so that locations are determined by the shader, not by the geometry producer.
   if(auto* geom = mesh.semanticGeometry())
   {
-    if(!remapPipelineVertexInputs(*ps, vertexS, *geom, &ret.plan))
+    if(!remapPipelineVertexInputs(*ps, vertexS, *geom, &ret.plan, &rhi))
     {
       qDebug() << "Warning! Shader requires attributes not present in mesh";
       delete ps;
@@ -1273,7 +1272,7 @@ Pipeline buildPipelineWithState(
   // stencil, polygon mode, line width. Only fields explicitly set in `state`
   // override the seeded defaults above + mesh.preparePipeline()'s setup.
   applyPipelineState(
-      *ps, state, rt.colorAttachmentCount(), depthAvailable, wantsDepthByDefault);
+      rhi, *ps, state, rt.colorAttachmentCount(), depthAvailable, wantsDepthByDefault);
 
   // The ISF vertex epilogue mirrors Y under QSHADER_SPIRV / QSHADER_HLSL /
   // QSHADER_MSL, i.e. on Vulkan, D3D11/12 and Metal -- every backend except
@@ -1302,7 +1301,7 @@ Pipeline buildPipelineWithState(
   // Semantic vertex input remapping (same as buildPipeline()).
   if(auto* geom = mesh.semanticGeometry())
   {
-    if(!remapPipelineVertexInputs(*ps, vertexS, *geom, &ret.plan))
+    if(!remapPipelineVertexInputs(*ps, vertexS, *geom, &ret.plan, &rhi))
     {
       qDebug() << "Warning! Shader requires attributes not present in mesh";
       delete ps;
