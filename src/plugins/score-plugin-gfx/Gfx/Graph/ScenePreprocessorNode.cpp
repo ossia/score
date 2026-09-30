@@ -744,6 +744,10 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
   // on whatever unrelated buffer happened to grow in the same frame.
   uint64_t m_cachedDynamicSlotFingerprint{};
 
+  // Value computeSceneTextureFingerprint() returned at the last full rebuild:
+  // the environment and shadow textures the published geometry names.
+  uint64_t m_cachedSceneTextureFingerprint{};
+
   // -- Granular invalidation state ------------------------------------------
   //
   // CPU mirrors of what is currently on the GPU for each small SSBO, plus a
@@ -912,6 +916,7 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
     m_cachedVersion = -1;
     m_cachedMaterialsFingerprint.clear();
     m_cachedDynamicSlotFingerprint = 0;
+    m_cachedSceneTextureFingerprint = 0;
     m_cachedMeshFingerprint.clear();
     m_cachedCloudFingerprint = 0;
     m_cachedCloudTransformFingerprint = 0;
@@ -4183,44 +4188,47 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
         }
       }
     }
-    if(this->scene.state)
-    {
-      // Scene-wide environment textures published under well-known aux names on
-      // the existing scene cable; consumer shaders declare matching INPUTS and
-      // the aux resolver picks them up.
-      const auto& env = this->scene.state->environment;
-      if(auto* skybox = static_cast<QRhiTexture*>(
-             env.skybox_texture.native_handle))
-      {
-        g.auxiliary_textures.push_back(
-            {.name = "skybox", .native_handle = skybox});
-      }
-      if(auto* t = static_cast<QRhiTexture*>(env.irradiance_map.native_handle))
-      {
-        g.auxiliary_textures.push_back(
-            {.name = "irradiance_map", .native_handle = t});
-      }
-      if(auto* t = static_cast<QRhiTexture*>(env.prefiltered_map.native_handle))
-      {
-        g.auxiliary_textures.push_back(
-            {.name = "prefiltered_map", .native_handle = t});
-      }
-      if(auto* t = static_cast<QRhiTexture*>(env.brdf_lut.native_handle))
-      {
-        g.auxiliary_textures.push_back(
-            {.name = "brdf_lut", .native_handle = t});
-      }
-      // Shadow-map array lives off scene_state (not environment) since
-      // it's tied to the shadow_cascades_info authored by
-      // ShadowCascadeSetup.
-      if(auto* t = static_cast<QRhiTexture*>(
-             this->scene.state->shadow_cascades.shadow_map_array
-                 .native_handle))
-      {
-        g.auxiliary_textures.push_back(
-            {.name = "shadow_map_array", .native_handle = t});
-      }
-    }
+    forEachSceneTexture([&](const char* name, QRhiTexture* t) {
+      if(t)
+        g.auxiliary_textures.push_back({.name = name, .native_handle = t});
+    });
+  }
+
+  // Scene-wide textures published under well-known aux names on the existing
+  // scene cable; consumer shaders declare matching INPUTS and the aux resolver
+  // picks them up. Every slot is visited in a fixed order, null or not. The
+  // shadow-map array lives off scene_state rather than the environment since
+  // it is tied to the shadow_cascades_info authored by ShadowCascadeSetup.
+  template <typename F>
+  void forEachSceneTexture(F&& f) const
+  {
+    if(!this->scene.state)
+      return;
+    const auto& env = this->scene.state->environment;
+    const std::pair<const char*, void*> textures[]{
+        {"skybox", env.skybox_texture.native_handle},
+        {"irradiance_map", env.irradiance_map.native_handle},
+        {"prefiltered_map", env.prefiltered_map.native_handle},
+        {"brdf_lut", env.brdf_lut.native_handle},
+        {"shadow_map_array",
+         this->scene.state->shadow_cascades.shadow_map_array.native_handle}};
+    for(const auto& [name, handle] : textures)
+      f(name, static_cast<QRhiTexture*>(handle));
+  }
+
+  // Fingerprint of the textures forEachSceneTexture publishes. Their producers
+  // replace them without touching the meshes (a Cubemap Loader resolution
+  // change reallocates its cube), and the published geometry names them by
+  // pointer, so a change has to republish the geometry on its own account.
+  // Keyed on globalResourceId for the pointer-recycling reason given at
+  // computeDynamicSlotFingerprint.
+  uint64_t computeSceneTextureFingerprint() const noexcept
+  {
+    uint64_t fp = 0;
+    forEachSceneTexture([&](const char*, QRhiTexture* t) {
+      ossia::hash_combine(fp, t ? (uint64_t)t->globalResourceId() : 0ull);
+    });
+    return fp;
   }
 
   // Material-texture arrays and the skybox ride on the Geometry output as
@@ -5185,6 +5193,8 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
         }
       }
 
+      const uint64_t freshSceneTextureFingerprint
+          = computeSceneTextureFingerprint();
       const bool meshesUnchanged
           = (freshMeshFingerprint == m_cachedMeshFingerprint)
             && m_outputSpec.meshes
@@ -5201,6 +5211,10 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
             // republishes that vector, so a reroute has to leave the fast
             // path on its own account.
             && !dynamicSlotsChanged
+            // An environment or shadow texture was replaced: the published
+            // "skybox" / "irradiance_map" / ... auxiliary_textures name the
+            // old QRhiTexture*, which its producer has released.
+            && freshSceneTextureFingerprint == m_cachedSceneTextureFingerprint
             // Cloud set unchanged: rebuildPrimitiveClouds only
             // runs on the full-rebuild branch and re-appends its bucket
             // geometries onto the freshly rebuilt mesh list, so any cloud
@@ -5293,6 +5307,7 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
         // were just built from is the post-sweep one. Seeding the pre-sweep
         // value would report a phantom change on the next frame.
         m_cachedDynamicSlotFingerprint = computeDynamicSlotFingerprint();
+        m_cachedSceneTextureFingerprint = freshSceneTextureFingerprint;
         m_cachedMeshFingerprint = std::move(freshMeshFingerprint);
         m_cachedCloudFingerprint = freshCloudFingerprint;
         m_cachedCloudTransformFingerprint = freshCloudTransformFingerprint;

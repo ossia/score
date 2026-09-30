@@ -60,7 +60,12 @@ private:
   // binding's texture pointer from the current geometry's aux textures,
   // and returns true if at least one sampler's texture pointer changed
   // (caller will flag mustRecreatePasses).
-  bool rebindAuxTextures();
+  bool rebindAuxTextures(RenderList& renderer);
+
+  // What the input port behind m_inputSamplers[sampler_idx] provides without
+  // any geometry override: its upstream or render-target texture, else the
+  // port's empty placeholder.
+  QRhiTexture* portTexture(RenderList& renderer, int sampler_idx) const;
 
   void initPass(
       const TextureRenderTarget& rt, RenderList& renderer,
@@ -186,6 +191,9 @@ private:
   {
     int sampler_idx{-1}; // index into m_inputSamplers
     std::string name;    // INPUT name, matched against auxiliary_texture::name
+    // The geometry texture last written into the slot, null when the slot is
+    // the port's own.
+    QRhiTexture* applied{};
   };
   std::vector<AuxTextureBinding> m_auxTextureBindings;
 

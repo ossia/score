@@ -3699,7 +3699,7 @@ void RenderedRawRasterPipelineNode::update(
     // republishes the geometry with a new QRhiTexture*; picking that up
     // here keeps the SRB bound to the live array instead of the deleted
     // one. A sampler change forces pass recreation so the SRB rebinds.
-    if(rebindAuxTextures())
+    if(rebindAuxTextures(renderer))
       mustRecreatePasses = true;
 
     // Re-match auxiliary SSBOs from updated geometry
@@ -3851,7 +3851,7 @@ void RenderedRawRasterPipelineNode::update(
       // the slot's cached texture matches the upstream's current one. On true,
       // hot-patch the existing SRBs with replaceTexture instead of another
       // mustRecreatePasses cycle: the pipeline layout is unchanged.
-      if(rebindAuxTextures())
+      if(rebindAuxTextures(renderer))
       {
         // The replaceTexture match key must be the sampler actually in the SRB
         // binding. allSamplers() substitutes m_inputSamplerOverrides[i] when
@@ -4023,7 +4023,7 @@ void RenderedRawRasterPipelineNode::release(RenderList& r)
   releaseState(r);
 }
 
-void RenderedRawRasterPipelineNode::bindAuxTexturesInit(RenderList& /*renderer*/)
+void RenderedRawRasterPipelineNode::bindAuxTexturesInit(RenderList& renderer)
 {
   m_auxTextureBindings.clear();
   const auto& desc = n.descriptor();
@@ -4041,31 +4041,90 @@ void RenderedRawRasterPipelineNode::bindAuxTexturesInit(RenderList& /*renderer*/
   // Seed initial texture pointers from whatever geometry was already
   // published at init() time (typically none — the real lookup happens
   // on the first update()'s geometryChanged branch).
-  rebindAuxTextures();
+  rebindAuxTextures(renderer);
 }
 
-bool RenderedRawRasterPipelineNode::rebindAuxTextures()
+QRhiTexture*
+RenderedRawRasterPipelineNode::portTexture(RenderList& renderer, int sampler_idx) const
+{
+  // Same sampler numbering as updateInputTexture, same texture choice as
+  // initInputSamplers.
+  int idx = 0;
+  for(auto* p : node.input)
+  {
+    if(p->type != Types::Image)
+      continue;
+    if(idx == sampler_idx)
+    {
+      QRhiTexture* tex = nullptr;
+      if((p->flags & Flag::GrabsFromSource) == Flag::GrabsFromSource)
+      {
+        for(auto* edge : p->edges)
+        {
+          auto it = edge->source->node->renderedNodes.find(&renderer);
+          if(it != edge->source->node->renderedNodes.end())
+          {
+            tex = it->second->textureForOutput(*edge->source);
+            break;
+          }
+        }
+      }
+      else
+      {
+        tex = renderer.renderTargetForInputPort(*p).texture;
+      }
+      return tex ? tex : &renderer.emptyTextureFor(*p);
+    }
+    idx++;
+    if((p->flags & Flag::SamplableDepth) == Flag::SamplableDepth)
+      idx++;
+  }
+  return &renderer.emptyTexture();
+}
+
+bool RenderedRawRasterPipelineNode::rebindAuxTextures(RenderList& renderer)
 {
   bool changed = false;
-  if(!geometry.meshes || geometry.meshes->meshes.empty())
-    return changed;
-  const auto& mesh = geometry.meshes->meshes[0];
+  const ossia::geometry* mesh
+      = geometry.meshes && !geometry.meshes->meshes.empty()
+            ? &geometry.meshes->meshes[0]
+            : nullptr;
 
   // Path A: texture overrides on input-port-backed samplers -- an INPUTS image
   // whose name matches a geometry aux texture gets its sampler's texture
   // swapped. When the geometry also publishes a sampler_handle, swap that too:
   // that is how ScenePreprocessor's per-bucket samplers take effect.
-  for(const auto& b : m_auxTextureBindings)
+  for(auto& b : m_auxTextureBindings)
   {
     if(b.sampler_idx < 0 || b.sampler_idx >= (int)m_inputSamplers.size())
       continue;
-    const auto* aux = mesh.find_auxiliary_texture(b.name);
-    if(!aux)
-      continue;
-    auto* tex = static_cast<QRhiTexture*>(aux->native_handle);
-    if(!tex)
-      continue;
+    const auto* aux = mesh ? mesh->find_auxiliary_texture(b.name) : nullptr;
+    auto* tex = aux ? static_cast<QRhiTexture*>(aux->native_handle) : nullptr;
     auto& slot = m_inputSamplers[b.sampler_idx];
+    if(!tex)
+    {
+      // The geometry no longer publishes it, and its producer may already have
+      // released it (a disconnected Cubemap Loader): hand the slot back to the
+      // port, unless updateInputTexture already has, and drop the override
+      // sampler that came with it.
+      if(b.applied)
+      {
+        if(slot.texture == b.applied)
+        {
+          slot.texture = portTexture(renderer, b.sampler_idx);
+          changed = true;
+        }
+        b.applied = nullptr;
+        if(b.sampler_idx < (int)m_inputSamplerOverrides.size()
+           && m_inputSamplerOverrides[b.sampler_idx])
+        {
+          m_inputSamplerOverrides[b.sampler_idx] = nullptr;
+          changed = true;
+        }
+      }
+      continue;
+    }
+    b.applied = tex;
     if(slot.texture != tex)
     {
       slot.texture = tex;
@@ -4091,10 +4150,12 @@ bool RenderedRawRasterPipelineNode::rebindAuxTextures()
   // to the shape-matched placeholder when nothing matches so we never
   // keep a stale upstream handle (protects against UAFs when a producer
   // disconnects or frees its texture).
+  if(!mesh)
+    return changed;
   bool auxTexChanged = false;
   for(auto& ats : m_auxTextureSamplers)
   {
-    const auto* aux = mesh.find_auxiliary_texture(ats.name);
+    const auto* aux = mesh->find_auxiliary_texture(ats.name);
     if(!ats.is_storage && ats.sampler && !ats.declares_compare)
     {
       auto* smp = aux ? static_cast<QRhiSampler*>(aux->sampler_handle) : nullptr;

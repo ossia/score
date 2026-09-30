@@ -1877,6 +1877,15 @@ if(TARGET score_plugin_threedim AND TARGET score_plugin_avnd)
       "${_threedim}/CubemapLoader.cpp"
     PLUGINS score_plugin_avnd
     HEADERS_FROM score_plugin_threedim)
+
+  # A Cubemap Loader resolution change replaces its cube: a raw raster fed
+  # through the Scene Preprocessor or a cable, and an ISF, sample the new one.
+  score_add_gfx_plugin_test(cubemap_loader_resize
+    SOURCES GfxCubemapLoaderResize.cpp
+    HIDDEN
+      "${_threedim}/CubemapLoader.cpp"
+    PLUGINS score_plugin_avnd
+    HEADERS_FROM score_plugin_threedim)
 endif()
 
 # A raw raster with two outgoing edges patches the geometry-matched uniform and
