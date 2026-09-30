@@ -1105,39 +1105,36 @@ private:
     }
     else if (!has_texcoord && !has_normals)
     {
-      if(has_colors)
+      switch(n.texture_projection)
       {
-        // Geometry has vertex colors but no texcoord/normals - use color shader
-        defaultPassesInit(
-            renderer, mesh, shaders.colorVS, shaders.colorFS, additional_bindings);
-      }
-      else
-      {
-        switch(n.texture_projection)
-        {
-          default:
-          case 0:
-          case 1:
-          case 2:
-          case 3:
-          case 6:
-          case 4: // Needs just position
+        case 4: // Needs just position
+          defaultPassesInit(
+              renderer,
+              mesh,
+              shaders.viewspaceVS,
+              shaders.viewspaceFS,
+              additional_bindings);
+          break;
+        case 5: // Needs just position
+          defaultPassesInit(
+              renderer,
+              mesh,
+              shaders.barycentricVS,
+              shaders.barycentricFS,
+              additional_bindings);
+          break;
+        default: // Needs texture coordinates or normals this mesh lacks
+          if(has_colors)
+            defaultPassesInit(
+                renderer, mesh, shaders.colorVS, shaders.colorFS, additional_bindings);
+          else
             defaultPassesInit(
                 renderer,
                 mesh,
                 shaders.viewspaceVS,
                 shaders.viewspaceFS,
                 additional_bindings);
-            break;
-          case 5: // Needs just position
-            defaultPassesInit(
-                renderer,
-                mesh,
-                shaders.barycentricVS,
-                shaders.barycentricFS,
-                additional_bindings);
-            break;
-        }
+          break;
       }
     }
   }
