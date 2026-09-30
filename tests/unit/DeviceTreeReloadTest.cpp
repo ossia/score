@@ -373,6 +373,86 @@ TEST_CASE("An exploration that yields nothing never replaces the tree", "[device
   });
 }
 
+// ---- Disconnected devices ---------------------------------------------------
+//
+// A device without an ossia device (disconnected, or its document not the
+// current one) has nothing to explore. The devices whose refresh() only reads
+// their own tree (gfx outputs, audio) used to dereference the missing device.
+
+TEST_CASE("Refreshing a disconnected device is safe", "[deviceexplorer][reload]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    Fixture f{ctx};
+    g_opts.snapshotOnly = true;
+
+    f.addDevice(fakeSettings("win", {"size"}));
+    auto dev = f.device("win");
+    REQUIRE(dev);
+    REQUIRE(f.tree("win") == Names{"size"});
+
+    dev->disconnect();
+    REQUIRE(!dev->getDevice());
+
+    const auto node = dev->refresh();
+    CHECK(!node.hasChildren());
+    CHECK(node.get<Device::DeviceSettings>().name == QStringLiteral("win"));
+
+    CHECK(!f.plug->refreshDeviceTree(*dev));
+    CHECK(f.tree("win") == Names{"size"});
+  });
+}
+
+TEST_CASE(
+    "A device edited just before its document loses focus is explored once back",
+    "[deviceexplorer][reload]")
+{
+  // A crash restore replays a device edit, which queues the exploration; the
+  // documents restored next take the focus, which disconnects this one's
+  // devices before the exploration runs.
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    Fixture f{ctx};
+    g_opts.snapshotOnly = true;
+
+    f.addDevice(fakeSettings("win", {"size"}));
+    f.editDevice("win", fakeSettings("win", {"size", "fps"}));
+    // What switching the current document does to the previous one
+    f.plug->setConnection(false);
+    REQUIRE(!f.device("win")->getDevice());
+
+    const int refreshes = g_opts.refreshCount;
+    spin(20);
+    CHECK(g_opts.refreshCount == refreshes);
+    CHECK(f.tree("win") == Names{"size"});
+
+    // Current again: connected, and explored
+    f.plug->setConnection(true);
+    spin(20);
+    REQUIRE(f.device("win")->getDevice());
+    CHECK(f.tree("win") == Names{"fps", "size"});
+  });
+}
+
+TEST_CASE(
+    "Closing a document before a device edit is explored is safe",
+    "[deviceexplorer][reload]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    Fixture f{ctx};
+    g_opts.snapshotOnly = true;
+
+    f.addDevice(fakeSettings("win", {"size"}));
+    f.editDevice("win", fakeSettings("win", {"size", "fps"}));
+
+    // Disconnects every device, then runs the event loop with the document
+    // still there
+    const int refreshes = g_opts.refreshCount;
+    ctx.docManager.forceCloseDocument(ctx, *f.doc);
+    spin(20);
+    CHECK(g_opts.refreshCount == refreshes);
+    CHECK(ctx.docManager.documents().empty());
+  });
+}
+
 // ---- Listening --------------------------------------------------------------
 //
 // What the explorer asked to listen to must stay listened to across everything

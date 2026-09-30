@@ -34,6 +34,8 @@ public:
 
   ossia::net::device_base* getDevice() const override { return &m_dev; }
   ossia::oscquery::oscquery_server_protocol* oscqProto() { return m_oscqProto; }
+  //! Whether this device listens on either port.
+  bool listensOn(int oscPort, int wsPort) const noexcept;
 
 private:
   void disconnect() override;

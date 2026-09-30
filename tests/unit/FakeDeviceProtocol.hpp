@@ -44,6 +44,9 @@ struct FakeOptions
   //! The device connects from the event loop rather than right away, like the
   //! protocols which resolve their host in a thread.
   bool deferConnect{false};
+  //! refresh() is simple_refresh() alone, connected or not, like the gfx
+  //! outputs and the audio device.
+  bool snapshotOnly{false};
 
   int refreshCount{};
   int connectCount{};
@@ -116,6 +119,8 @@ public:
   Device::Node refresh() override
   {
     g_opts.refreshCount++;
+    if(g_opts.snapshotOnly)
+      return simple_refresh();
     if(!connected())
       return Device::Node{settings(), nullptr};
 

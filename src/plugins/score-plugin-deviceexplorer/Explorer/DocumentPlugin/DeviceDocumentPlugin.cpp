@@ -276,7 +276,8 @@ Device::Node DeviceDocumentPlugin::createDeviceFromNode(const Device::Node& node
 
 bool DeviceDocumentPlugin::refreshDeviceTree(Device::DeviceInterface& dev)
 {
-  if(!dev.capabilities().canRefreshTree)
+  // A disconnected device has no tree to explore, often no ossia device at all.
+  if(!dev.capabilities().canRefreshTree || !dev.connected())
     return false;
 
   auto refreshed = dev.refresh();
@@ -333,11 +334,18 @@ void DeviceDocumentPlugin::refreshDeviceTreeOnReconnect(Device::DeviceInterface&
     QMetaObject::invokeMethod(
         this,
         [this, ptr] {
-      if(ptr)
-        m_queuedTreeRefresh.erase(ptr.data());
+      if(!ptr)
+        return;
+      m_queuedTreeRefresh.erase(ptr.data());
       // The device may have been removed in the meantime
-      if(ptr && m_list.findDevice(ptr->settings().name) == ptr.data())
+      if(m_list.findDevice(ptr->settings().name) != ptr.data())
+        return;
+      // ... or disconnected (its document lost focus, or is closing): explore
+      // it once it is back.
+      if(ptr->connected())
         refreshDeviceTree(*ptr);
+      else
+        refreshDeviceTreeOnReconnect(*ptr);
         },
         Qt::QueuedConnection);
       });

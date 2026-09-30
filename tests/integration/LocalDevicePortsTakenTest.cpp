@@ -1,5 +1,7 @@
 // The local device's OSC / WebSocket ports already taken by another program:
-// score says so, names the port and how to change it, and keeps running.
+// score says so, names the port and how to change it, and keeps running. Taken
+// by another document of the same score (several open, a reload, a crash
+// restore), they are not worth a word.
 
 #include <Device/Protocol/DeviceInterface.hpp>
 #include <Explorer/DeviceList.hpp>
@@ -68,6 +70,34 @@ void recordWarnings(QtMsgType type, const QMessageLogContext& ctx, const QString
     g_warnings << msg;
   g_previous(type, ctx, msg);
 }
+
+//! Closes the warning boxes as they show up, and keeps their text.
+struct box_closer
+{
+  QStringList boxes;
+  QTimer timer;
+  box_closer()
+  {
+    QObject::connect(&timer, &QTimer::timeout, [this] {
+      for(auto w : QApplication::topLevelWidgets())
+        if(auto box = qobject_cast<QMessageBox*>(w); box && box->isVisible())
+        {
+          boxes << box->text();
+          box->done(QMessageBox::Ok);
+        }
+    });
+    timer.start(10);
+  }
+};
+
+//! Ports nothing listens on right now.
+std::pair<int, int> freePorts()
+{
+  asio::io_context io;
+  asio::ip::udp::socket udp{io, asio::ip::udp::endpoint{asio::ip::udp::v4(), 0}};
+  asio::ip::tcp::acceptor tcp{io, asio::ip::tcp::endpoint{asio::ip::tcp::v4(), 0}};
+  return {udp.local_endpoint().port(), tcp.local_endpoint().port()};
+}
 }
 
 TEST_CASE(
@@ -87,16 +117,8 @@ TEST_CASE(
     g_warnings.clear();
     g_previous = qInstallMessageHandler(recordWarnings);
 
-    QStringList boxes;
-    QTimer closer;
-    QObject::connect(&closer, &QTimer::timeout, [&] {
-      if(auto box = qobject_cast<QMessageBox*>(QApplication::activeModalWidget()))
-      {
-        boxes << box->text();
-        box->done(QMessageBox::Ok);
-      }
-    });
-    closer.start(10);
+    box_closer closer;
+    auto& boxes = closer.boxes;
 
     // Opening a document: the WebSocket port is taken, nothing is exposed.
     auto doc = score::test::new_document(ctx);
@@ -131,7 +153,55 @@ TEST_CASE(
     CHECK(score::test::new_document(ctx));
     CHECK(ctx.docManager.documents().size() == 2);
 
-    closer.stop();
+    qInstallMessageHandler(g_previous);
+  });
+}
+
+TEST_CASE(
+    "ports held by another open document are not reported as taken",
+    "[integration][localtree][network]")
+{
+  const auto [osc, ws] = freePorts();
+  scoped_env osc_env{"SCORE_LOCAL_OSC_PORT", QByteArray::number(osc)};
+  scoped_env ws_env{"SCORE_LOCAL_WS_PORT", QByteArray::number(ws)};
+
+  score::test::run_in_app([&](const score::GUIApplicationContext& ctx) {
+    g_warnings.clear();
+    g_previous = qInstallMessageHandler(recordWarnings);
+    box_closer closer;
+
+    auto first = score::test::new_document(ctx);
+    REQUIRE(first);
+
+    // A second document, as File > New or a crash restore of several
+    // documents opens: its local device finds the ports held by the first one.
+    auto second = score::test::new_document(ctx);
+    REQUIRE(second);
+    CHECK(ctx.docManager.documents().size() == 2);
+
+    // Its settings applied again: the device edited to the same ports.
+    auto local
+        = second->context().plugin<Explorer::DeviceDocumentPlugin>().list().localDevice();
+    REQUIRE(local);
+    local->updateSettings(local->settings());
+
+    // The first document loaded again while it is open (the second one, still
+    // untouched, makes way for it).
+    auto third = score::test::reload_via_bytes(ctx, *first);
+    REQUIRE(third);
+    CHECK(ctx.docManager.documents().size() == 2);
+
+    score::test::run_events_for(100);
+    CHECK(closer.boxes.isEmpty());
+    CHECK(g_warnings.isEmpty());
+
+    // All closed, one opened again: the ports are free, nothing to say either.
+    score::test::close_all_documents(ctx);
+    REQUIRE(score::test::new_document(ctx));
+    score::test::run_events_for(100);
+    CHECK(closer.boxes.isEmpty());
+    CHECK(g_warnings.isEmpty());
+
     qInstallMessageHandler(g_previous);
   });
 }

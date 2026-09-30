@@ -671,8 +671,12 @@ Device::Node DeviceInterface::simple_refresh()
 {
   Device::Node score_device{settings(), nullptr};
 
+  auto dev = getDevice();
+  if(!dev)
+    return score_device;
+
   // Recurse on the children
-  const auto& ossia_children = getDevice()->get_root_node().children();
+  const auto& ossia_children = dev->get_root_node().children();
   score_device.reserve(ossia_children.size());
   for(const auto& node : ossia_children)
   {
@@ -680,7 +684,7 @@ Device::Node DeviceInterface::simple_refresh()
   }
 
   score_device.get<Device::DeviceSettings>().name
-      = QString::fromStdString(getDevice()->get_name());
+      = QString::fromStdString(dev->get_name());
 
   return score_device;
 }

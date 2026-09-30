@@ -8,12 +8,13 @@
 
 #include <score/application/ApplicationContext.hpp>
 #include <score/document/DocumentContext.hpp>
-#include <score/widgets/MessageBox.hpp>
+#include <score/widgets/Pixmap.hpp>
 #if defined(OSSIA_PROTOCOL_OSCQUERY)
 #include <ossia/network/oscquery/oscquery_server.hpp>
 #endif
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 
+#include <ossia/detail/algorithms.hpp>
 #include <ossia/network/base/device.hpp>
 #include <ossia/network/context.hpp>
 #include <ossia/network/local/local.hpp>
@@ -25,12 +26,26 @@
 
 #include <QApplication>
 #include <QDebug>
+#include <QMessageBox>
 #include <QTimer>
 
 #include <ossia-config.hpp>
 
+#include <vector>
+
 namespace Protocols
 {
+namespace
+{
+//! One per open document, all wanting the same ports: only the first one
+//! listens on them.
+std::vector<const LocalDevice*>& localDevices()
+{
+  static std::vector<const LocalDevice*> devices;
+  return devices;
+}
+}
+
 LocalDevice::LocalDevice(
     ossia::net::device_base& dev, const score::DocumentContext& ctx,
     const Device::DeviceSettings& settings)
@@ -52,9 +67,32 @@ LocalDevice::LocalDevice(
   // FIXME instead make the logging a property and bind to it.
 
   enableCallbacks();
+
+  localDevices().push_back(this);
 }
 
-LocalDevice::~LocalDevice() { }
+LocalDevice::~LocalDevice()
+{
+  ossia::remove_one(localDevices(), this);
+}
+
+bool LocalDevice::listensOn(int oscPort, int wsPort) const noexcept
+{
+#if defined(OSSIA_PROTOCOL_OSCQUERY) && !defined(__EMSCRIPTEN__)
+  return m_oscqProto
+         && (m_oscqProto->get_osc_port() == oscPort
+             || m_oscqProto->get_ws_port() == wsPort);
+#else
+  return false;
+#endif
+}
+
+static bool heldByAnotherDocument(const LocalDevice& self, int oscPort, int wsPort)
+{
+  return ossia::any_of(localDevices(), [&](const LocalDevice* dev) {
+    return dev != &self && dev->listensOn(oscPort, wsPort);
+  });
+}
 
 static void
 exposeZeroconf(std::string name, LocalSpecificSettings set, QPointer<LocalDevice> self)
@@ -103,8 +141,10 @@ exposeZeroconf(std::string name, LocalSpecificSettings set, QPointer<LocalDevice
   });
 }
 
-//! Shown after the document is built: a modal dialog in the middle of its
-//! construction would run the event loop on a half-made document.
+//! Shown once the document is built, and without a nested event loop: a modal
+//! exec() would run the queued work of this and other documents (command
+//! replays of a restore, device reconnections, document switches, closing)
+//! underneath it.
 static void warnPortsUnavailable(const QString& problem)
 {
   const QString text
@@ -115,7 +155,13 @@ static void warnPortsUnavailable(const QString& problem)
   qWarning().noquote() << text;
   if(score::AppContext().applicationSettings.gui)
     QTimer::singleShot(0, qApp, [text] {
-      score::warning(QApplication::activeWindow(), QObject::tr("Local device"), text);
+      auto box = new QMessageBox{
+          QMessageBox::Warning, QObject::tr("Local device"), text, QMessageBox::Ok,
+          QApplication::activeWindow()};
+      box->setIconPixmap(score::get_pixmap(QStringLiteral(":/icons/message_warning.png")));
+      box->setAttribute(Qt::WA_DeleteOnClose);
+      box->setWindowModality(Qt::NonModal);
+      box->show();
     });
 }
 
@@ -156,6 +202,13 @@ void LocalDevice::init()
 
   if(!m_oscqProto)
   {
+    // What failed is listening on the WebSocket port.
+    if(heldByAnotherDocument(*this, -1, set.wsPort))
+    {
+      qDebug() << "Local device: ports" << set.oscPort << set.wsPort
+               << "are used by another open document";
+      return;
+    }
     warnPortsUnavailable(
         QObject::tr("score could not listen on OSC port %1 and WebSocket port %2 (%3): "
                     "it cannot be controlled over OSC or OSCQuery.")
@@ -166,7 +219,8 @@ void LocalDevice::init()
   }
 
   // A taken UDP port does not fail: the OSC server takes the next free one.
-  if(const int osc = m_oscqProto->get_osc_port(); osc != set.oscPort)
+  if(const int osc = m_oscqProto->get_osc_port();
+     osc != set.oscPort && !heldByAnotherDocument(*this, set.oscPort, -1))
     warnPortsUnavailable(
         QObject::tr("score could not listen on OSC port %1, which another program "
                     "uses, and listens on port %2 instead.")
