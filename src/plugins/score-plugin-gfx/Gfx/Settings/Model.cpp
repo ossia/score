@@ -137,6 +137,8 @@ static void update_qtquick_graphics_api(const score::gfx::GraphicsApi& api)
   {
     case OpenGL:
       QQuickWindow::setGraphicsApi(QSGRendererInterface::OpenGL);
+      // The backend does not decide desktop GL vs GLES: the default format does.
+      score::pinDefaultOpenGLFormat();
       break;
     case Vulkan:
       QQuickWindow::setGraphicsApi(QSGRendererInterface::Vulkan);

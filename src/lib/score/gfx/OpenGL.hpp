@@ -41,4 +41,7 @@ public:
 
   void setupFormat(QSurfaceFormat& fmt);
 };
+
+// Unpinned, EGL hands back GLES and score's baked desktop GLSL matches nothing.
+SCORE_LIB_BASE_EXPORT void pinDefaultOpenGLFormat() noexcept;
 }
