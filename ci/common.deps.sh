@@ -171,17 +171,18 @@ clone_addon https://github.com/ossia/score-addon-deuterium
 
 if [[ "$CI_PLATFORM" != "WASM" ]];
 then
-  clone_addon          https://github.com/ossia/score-addon-ble
-  clone_addon  https://github.com/ossia/score-addon-contextfree
-  clone_addon         https://github.com/ossia/score-addon-hdf5
-  clone_addon          https://github.com/ossia/score-addon-led
-  clone_addon          https://github.com/ossia/score-addon-lavfi
-  clone_addon          https://github.com/ossia/score-addon-lsl
-  clone_addon          https://github.com/ossia/score-addon-ndi
-  clone_addon      https://github.com/ossia/score-addon-openzen
-  clone_addon     https://github.com/ossia/score-addon-spatgris
-  clone_addon    https://github.com/ossia/score-addon-ultraleap
-  clone_addon      https://github.com/ossia/score-addon-sysinfo
+  clone_addon https://github.com/ossia/score-addon-ble
+  clone_addon https://github.com/ossia/score-addon-contextfree
+  clone_addon https://github.com/ossia/score-addon-hdf5
+  clone_addon https://github.com/ossia/score-addon-led
+  clone_addon https://github.com/ossia/score-addon-lavfi
+  clone_addon https://github.com/ossia/score-addon-lsl
+  clone_addon https://github.com/ossia/score-addon-ndi
+  clone_addon https://github.com/ossia/score-addon-openzen
+  clone_addon https://github.com/ossia/score-addon-spatgris
+  clone_addon https://github.com/ossia/score-addon-ultraleap
+  clone_addon https://github.com/ossia/score-addon-sysinfo
+  clone_addon https://github.com/ossia/score-addon-trackingprotocols
   clone_addon https://github.com/ossia/score-addon-videoio
   clone_addon https://github.com/sat-mtl/carto-tcp-avendish.git update-avendish-packaging
   NO_SUBMODULES=1 clone_addon https://github.com/ossia/score-addon-orbbec
