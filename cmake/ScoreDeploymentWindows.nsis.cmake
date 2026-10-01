@@ -33,9 +33,12 @@ set(CPACK_NSIS_EXTRA_PREINSTALL_COMMANDS
     "!include ${CMAKE_CURRENT_LIST_DIR}\\\\Deployment\\\\Windows\\\\FileAssociation.nsh"
 )
 
+# The description passed to these macros is the ProgID: registration and
+# unregistration have to spell it identically or the key is orphaned.
 set(CPACK_NSIS_EXTRA_INSTALL_COMMANDS "
-\\\${registerExtension} '\\\$INSTDIR\\\\score.exe' '.scorejson' 'score file'
-\\\${registerExtension} '\\\$INSTDIR\\\\score.exe' '.score' 'score file'
+\\\${registerExtension} '\\\$INSTDIR\\\\score.exe' '.score' 'ossia score document'
+\\\${registerExtension} '\\\$INSTDIR\\\\score.exe' '.scorejson' 'ossia score document'
+\\\${registerExtension} '\\\$INSTDIR\\\\score.exe' '.scorebin' 'ossia score document'
 
 SetOutPath '\\\$INSTDIR'
 CreateShortcut '\\\$DESKTOP\\\\score.lnk' '\\\$INSTDIR\\\\score.exe' '' '\\\$INSTDIR\\\\score.ico'
@@ -47,6 +50,8 @@ WriteRegStr HKEY_LOCAL_MACHINE 'SOFTWARE\\\\Microsoft\\\\Windows\\\\CurrentVersi
 set(CPACK_NSIS_EXTRA_UNINSTALL_COMMANDS "
 Delete '$DESKTOP\\\\score.lnk'
 DeleteRegKey HKLM 'Software\\\\Microsoft\\\\Windows\\\\CurrentVersion\\\\App Paths\\\\score.exe'
-\\\${unregisterExtension} '.scorejson' 'score score'
-\\\${unregisterExtension} '.score' 'score score'
+\\\${unregisterExtension} '.score' 'ossia score document'
+\\\${unregisterExtension} '.scorejson' 'ossia score document'
+\\\${unregisterExtension} '.scorebin' 'ossia score document'
+DeleteRegKey HKCR 'score file'
 ")
