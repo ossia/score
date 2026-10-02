@@ -59,6 +59,7 @@ static ::Video::DecoderConfiguration videoDecoderConfiguration() noexcept
   ::Video::DecoderConfiguration conf;
   auto& set = score::AppContext().settings<Gfx::Settings::Model>();
   conf.decoder = "";
+  conf.threads = set.getDecodingThreads();
   conf.graphicsApi = static_cast<int>(set.graphicsApiEnum());
   if(auto hw = set.getHardwareDecode(); !hw.isEmpty() && hw != decoders.None)
   {

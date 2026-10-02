@@ -90,6 +90,7 @@ set(HDRS ${HDRS}
     "${CMAKE_CURRENT_SOURCE_DIR}/Video/WebCameraInput.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Video/LibavStreamInput.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Video/GStreamerCompatibility.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Video/DecoderThreading.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Video/GpuFormats.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Video/Thumbnailer.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Video/FrameQueue.hpp"
