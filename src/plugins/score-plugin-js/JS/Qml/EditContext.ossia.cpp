@@ -56,6 +56,19 @@ void EditJsContext::play()
     plug->execution().request_play_global(true);
 }
 
+void EditJsContext::playFromHere(double ms)
+{
+  if(!std::isfinite(ms) || ms < 0.)
+  {
+    qWarning() << "Score.playFromHere: not a finite, positive number of milliseconds";
+    return;
+  }
+  auto plug
+      = score::GUIAppContext().findGuiApplicationPlugin<Engine::ApplicationPlugin>();
+  if(plug)
+    plug->execution().request_play_from_here(TimeVal::fromMsecs(ms));
+}
+
 void EditJsContext::pause()
 {
   auto plug
@@ -71,18 +84,18 @@ void EditJsContext::resume()
 
 void EditJsContext::play(QObject* obj)
 {
-  auto plug = score::GUIAppContext()
-                  .findGuiApplicationPlugin<Scenario::ScenarioApplicationPlugin>();
-  if(!plug)
-    return;
-
   if(auto itv = qobject_cast<Scenario::IntervalModel*>(obj))
   {
-    plug->execution().playInterval(itv);
+    // What the interval's play button ends in, also without a GUI
+    if(auto engine = score::GUIAppContext()
+                         .findGuiApplicationPlugin<Engine::ApplicationPlugin>())
+      engine->execution().request_play_interval(*itv);
   }
   else if(auto state = qobject_cast<Scenario::StateModel*>(obj))
   {
-    plug->execution().playState(&Scenario::parentScenario(*state), state->id());
+    if(auto plug = score::GUIAppContext()
+                       .findGuiApplicationPlugin<Scenario::ScenarioApplicationPlugin>())
+      plug->execution().playState(&Scenario::parentScenario(*state), state->id());
   }
 }
 
@@ -92,6 +105,16 @@ void EditJsContext::stop()
       = score::GUIAppContext().findGuiApplicationPlugin<Engine::ApplicationPlugin>();
   if(plug)
     plug->execution().request_stop();
+}
+
+void EditJsContext::stop(QObject* obj)
+{
+  auto plug
+      = score::GUIAppContext().findGuiApplicationPlugin<Engine::ApplicationPlugin>();
+  if(!plug)
+    return;
+  if(auto itv = qobject_cast<Scenario::IntervalModel*>(obj))
+    plug->execution().request_stop_interval(*itv);
 }
 
 void EditJsContext::reinitialize()

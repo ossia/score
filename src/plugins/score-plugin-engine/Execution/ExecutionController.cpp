@@ -308,6 +308,11 @@ void ExecutionController::on_play_local(bool b, ::TimeVal t)
       on_pause();
     }
   }
+  else if(auto scenar = currentScenarioModel(); scenar && b)
+  {
+    // Without a view, the score itself, still from the date asked for
+    play_interval(scenar->baseInterval(), {}, t);
+  }
   else
   {
     on_play_global(b);
@@ -445,9 +450,14 @@ void ExecutionController::request_play_from_here(TimeVal t)
   {
     on_play_local(true, t);
 
+    // Puts the transport buttons in the playing state. There are none, nor
+    // any action, without a GUI.
     // FIXME this ends up calling play_interval again...
-    auto act = this->context.actions.action<Actions::Play>().action();
-    act->trigger();
+    if(this->context.applicationSettings.gui)
+    {
+      auto act = this->context.actions.action<Actions::Play>().action();
+      act->trigger();
+    }
   }
 }
 
@@ -462,8 +472,11 @@ void ExecutionController::request_begin_scrub(TimeVal t)
     on_play_local(true, t);
 
     // FIXME this ends up calling play_interval again...
-    auto act = this->context.actions.action<Actions::Play>().action();
-    act->trigger();
+    if(this->context.applicationSettings.gui)
+    {
+      auto act = this->context.actions.action<Actions::Play>().action();
+      act->trigger();
+    }
   }
 }
 

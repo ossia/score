@@ -528,6 +528,11 @@ public:
   void play(QObject* obj);
   W_SLOT(play, (QObject*))
 
+  //! As "Play from here" on the time ruler: from the date in milliseconds,
+  //! or there while already playing.
+  void playFromHere(double ms);
+  W_SLOT(playFromHere)
+
   void pause();
   W_SLOT(pause, ())
 
@@ -535,7 +540,11 @@ public:
   W_SLOT(resume, ())
 
   void stop();
-  W_SLOT(stop)
+  W_SLOT(stop, ())
+
+  //! As the stop button of an interval: the rest of the score keeps playing.
+  void stop(QObject* obj);
+  W_SLOT(stop, (QObject*))
 
   void reinitialize();
   W_SLOT(reinitialize)
