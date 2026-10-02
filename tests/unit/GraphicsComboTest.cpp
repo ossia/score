@@ -5,12 +5,14 @@
 #include <score/graphics/layouts/GraphicsTabLayout.hpp>
 #include <score/graphics/widgets/QGraphicsCombo.hpp>
 #include <score/graphics/widgets/QGraphicsEnum.hpp>
+#include <score/widgets/ApplicationStyle.hpp>
 #include <score/widgets/ComboBox.hpp>
 
 #include <score_test/App.hpp>
 #include <score_test/Keyboard.hpp>
 
 #include <QAbstractItemView>
+#include <QComboBox>
 #include <QGraphicsProxyWidget>
 #include <QGraphicsScene>
 #include <QGraphicsView>
@@ -18,9 +20,11 @@
 #include <QGraphicsSceneMouseEvent>
 #include <QHideEvent>
 #include <QPainter>
+#include <QStyleOption>
 #include <QStyleOptionGraphicsItem>
 
 #include <catch2/catch_all.hpp>
+#include <phantom/phantomstyle.h>
 
 namespace
 {
@@ -44,6 +48,13 @@ void rightClick(Scene& scene, score::QGraphicsCombo& item)
 
   // The editor is built from the event loop so that it outlives the click.
   qApp->processEvents();
+}
+
+//! The style the application runs with: the drop-down kind is its answer.
+void useApplicationStyle()
+{
+  if(!dynamic_cast<score::ApplicationStyle*>(qApp->style()))
+    qApp->setStyle(new score::ApplicationStyle{new PhantomStyle});
 }
 
 score::ComboBoxWithEnter* editorIn(Scene& scene)
@@ -82,6 +93,7 @@ TEST_CASE("a long drop-down fits the view and scrolls, on every platform")
   // The style's own menu drop-down runs past the bottom of the view, and the
   // entries there cannot be picked.
   score::test::run_in_app([](const score::GUIApplicationContext&) {
+    useApplicationStyle();
     Scene scene;
     QGraphicsView view{&scene};
     view.resize(400, 300);
@@ -96,7 +108,16 @@ TEST_CASE("a long drop-down fits the view and scrolls, on every platform")
     rightClick(scene, item);
     auto* editor = editorIn(scene);
     REQUIRE(editor != nullptr);
-    CHECK(editor->style()->styleHint(QStyle::SH_ComboBox_Popup, nullptr, editor) == 0);
+    CHECK(editor->style() == qApp->style());
+    QStyleOptionComboBox opt;
+    opt.initFrom(editor);
+    opt.editable = false;
+    CHECK(editor->style()->styleHint(QStyle::SH_ComboBox_Popup, &opt, editor) == 0);
+    // The list drop-down draws its entries as list rows, not as menu items.
+    REQUIRE(editor->itemDelegate() != nullptr);
+    CHECK(
+        QByteArray{editor->itemDelegate()->metaObject()->className()}
+        == "QComboBoxDelegate");
     CHECK(editor->maxVisibleItems() < 30);
     REQUIRE(editor->view() != nullptr);
     CHECK(
@@ -109,6 +130,19 @@ TEST_CASE("a long drop-down fits the view and scrolls, on every platform")
     CHECK(editor->view()->verticalScrollBar()->maximum() > 0);
     editor->hidePopup();
     qApp->processEvents();
+  });
+}
+
+TEST_CASE("a combo box outside of a scene keeps the style's menu drop-down")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext&) {
+    useApplicationStyle();
+    QComboBox box;
+    box.addItems({"a", "b", "c"});
+    QStyleOptionComboBox opt;
+    opt.initFrom(&box);
+    opt.editable = false;
+    CHECK(box.style()->styleHint(QStyle::SH_ComboBox_Popup, &opt, &box) == 1);
   });
 }
 

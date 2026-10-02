@@ -18,7 +18,6 @@
 #include <QListView>
 #include <QPainter>
 #include <QPointer>
-#include <QProxyStyle>
 #include <QScreen>
 #include <QTimer>
 
@@ -51,26 +50,6 @@ struct PopupDismissWatcher final : QObject
   }
 };
 }
-
-//! Asks for the scrolling list drop-down rather than the style's menu one.
-//!
-//! The style answers SH_ComboBox_Popup for a non-editable box, whose list is
-//! then a QMenu: it wraps into columns once taller than the screen. A combo box
-//! in the scene is a QGraphicsProxyWidget and its menu is laid out in the scene,
-//! where there is no screen to measure against. The list drop-down bounds
-//! itself to maxVisibleItems and scrolls.
-struct ScrollingPopupStyle final : QProxyStyle
-{
-  using QProxyStyle::QProxyStyle;
-  int styleHint(
-      StyleHint hint, const QStyleOption* opt, const QWidget* w,
-      QStyleHintReturn* ret) const override
-  {
-    if(hint == SH_ComboBox_Popup)
-      return 0;
-    return QProxyStyle::styleHint(hint, opt, w, ret);
-  }
-};
 
 struct DefaultComboImpl
 {
@@ -336,9 +315,6 @@ void QGraphicsCombo::openEditor(QPointF scenePos)
     w->setCurrentIndex(item.m_value);
 
     {
-      auto* popupStyle = new ScrollingPopupStyle;
-      popupStyle->setParent(w);
-      w->setStyle(popupStyle);
       // Bound the list to what the view can show.
       auto* sc = item.scene();
       const auto* view
@@ -369,6 +345,14 @@ void QGraphicsCombo::openEditor(QPointF scenePos)
     auto obj = scene->addWidget(w, Qt::WindowStaysOnTopHint | Qt::FramelessWindowHint);
     obj->setPos(scenePos);
     item.m_editor = obj;
+
+    // The style asks for the list drop-down rather than its menu one once the
+    // box is in a scene, but the box picked its item delegate when it was
+    // built, outside of it: a style change makes it pick again.
+    {
+      QEvent styleChange{QEvent::StyleChange};
+      QApplication::sendEvent(w, &styleChange);
+    }
 
 #if defined(__EMSCRIPTEN__)
     w->setFocus();
