@@ -139,6 +139,7 @@ std::vector<LicenseInfo> thirdPartyLicenses()
   map["sh4lt"] = License{"https://gitlab.com/sh4lt/sh4lt", sh4lt_LICENSE};
 #if defined(_WIN32)
   map["Spout"] = License{"https://spout.zeal.co/", spout_LICENSE};
+  map["ASIO"] = License{"https://steinberg.net", asio_LICENSE};
 #endif
 
 #if defined(__APPLE__)
@@ -186,10 +187,6 @@ std::vector<LicenseInfo> thirdPartyLicenses()
   map["VST"] = License{
       "https://steinberg.net",
       "VST is a trademark of Steinberg Media Technologies GmbH, registered in "
-      "Europe and other countries."};
-  map["ASIO"] = License{
-      "https://steinberg.net",
-      "ASIO is a trademark of Steinberg Media Technologies GmbH, registered in "
       "Europe and other countries."};
   map["NewTek NDI headers"] = License{
       "https://ndi.tv",
