@@ -83,6 +83,7 @@ score_add_test(test_unit_knob_geometry
 # Graphics-view combo box: drop-down editor and free-value entry.
 score_add_test(test_unit_graphics_combo
   SOURCES GraphicsComboTest.cpp
+  LIBS phantomstyle
   APP)
 
 score_add_test(test_unit_graphics_int_spinbox_stepper
