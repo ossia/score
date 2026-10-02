@@ -25,6 +25,8 @@
 
 #include <Video/VideoDecoder.hpp>
 
+#include <ossia/detail/libav.hpp>
+
 extern "C" {
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
@@ -33,6 +35,7 @@ extern "C" {
 
 #include <catch2/catch_test_macros.hpp>
 
+#include <algorithm>
 #include <chrono>
 #include <cstdio>
 #include <filesystem>
@@ -501,6 +504,84 @@ TEST_CASE(
 
   std::error_code ec;
   fs::remove(path, ec);
+}
+
+TEST_CASE(
+    "closing an image sequence, whose demuxer does its own I/O, does not crash",
+    "[video][decoder]")
+{
+  namespace fs = std::filesystem;
+  // image2 is AVFMT_NOFILE: it opens each picture itself and leaves the
+  // format context's pb null, which every teardown must cope with.
+  const auto dir = fs::temp_directory_path() / "score_videodecoder_sequence";
+  fs::create_directories(dir);
+
+  {
+    const AVCodec* codec = avcodec_find_encoder(AV_CODEC_ID_PNG);
+    REQUIRE(codec);
+    AVCodecContext* enc = avcodec_alloc_context3(codec);
+    enc->width = W;
+    enc->height = H;
+    enc->pix_fmt = AV_PIX_FMT_RGB24;
+    enc->time_base = {1, 25};
+    REQUIRE(avcodec_open2(enc, codec, nullptr) == 0);
+
+    AVFrame* frame = av_frame_alloc();
+    frame->format = enc->pix_fmt;
+    frame->width = W;
+    frame->height = H;
+    REQUIRE(av_frame_get_buffer(frame, 0) == 0);
+    AVPacket* pkt = av_packet_alloc();
+    for(int i = 0; i < 3; i++)
+    {
+      for(int y = 0; y < H; y++)
+        std::fill_n(frame->data[0] + y * frame->linesize[0], W * 3, uint8_t(i * 80));
+      frame->pts = i;
+      REQUIRE(avcodec_send_frame(enc, frame) == 0);
+      REQUIRE(avcodec_receive_packet(enc, pkt) == 0);
+      char name[32];
+      std::snprintf(name, sizeof(name), "img%03d.png", i);
+      FILE* f = std::fopen((dir / name).string().c_str(), "wb");
+      REQUIRE(f);
+      std::fwrite(pkt->data, 1, pkt->size, f);
+      std::fclose(f);
+      av_packet_unref(pkt);
+    }
+    av_packet_free(&pkt);
+    av_frame_free(&frame);
+    avcodec_free_context(&enc);
+  }
+
+  const auto pattern = (dir / "img%03d.png").string();
+  {
+    AVFormatContext* probe{};
+    REQUIRE(avformat_open_input(&probe, pattern.c_str(), nullptr, nullptr) == 0);
+    CHECK(probe->pb == nullptr);
+    avformat_close_input(&probe);
+  }
+
+  SECTION("seeked, as the thumbnailer does")
+  {
+    AVFormatContext* fmt{};
+    REQUIRE(avformat_open_input(&fmt, pattern.c_str(), nullptr, nullptr) == 0);
+    REQUIRE(avformat_find_stream_info(fmt, nullptr) >= 0);
+    CHECK(ossia::seek_to_flick(
+        fmt, nullptr, fmt->streams[0], 0, AVSEEK_FLAG_BACKWARD | ossia::OSSIA_LIBAV_SEEK_ROUGH));
+    avformat_close_input(&fmt);
+  }
+  SECTION("opened only, as Gfx::Video::Model::setPath does")
+  {
+    Video::VideoDecoder dec{Video::DecoderConfiguration{}};
+    CHECK(dec.open(pattern));
+  }
+  SECTION("loaded, with its buffering thread running")
+  {
+    Video::VideoDecoder dec{Video::DecoderConfiguration{}};
+    CHECK(dec.load(pattern));
+  }
+
+  std::error_code ec;
+  fs::remove_all(dir, ec);
 }
 
 #else
