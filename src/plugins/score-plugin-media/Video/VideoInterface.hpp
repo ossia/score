@@ -71,6 +71,10 @@ struct SCORE_PLUGIN_MEDIA_EXPORT VideoMetadata : ImageFormat
 {
   std::string filePath;
   AVCodecID codec_id = AV_CODEC_ID_NONE;
+  FrameAccess frame_access = FrameAccess::Unknown;
+  //! Longest run of non-keyframes between keyframes; -1 when unknown. For a
+  //! long GOP read off packets rather than an index, a lower bound.
+  int max_keyframe_gap{-1};
   double fps{};
   bool realTime{};
   double flicks_per_dts{};

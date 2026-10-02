@@ -52,21 +52,11 @@ static bool isRawGPUCodec(const Video::VideoMetadata& metadata)
   return metadata.codec_id == AV_CODEC_ID_HAP || metadata.codec_id == AV_CODEC_ID_DXV;
 }
 
-// Returns true for intra-only codecs that require CPU decoding
-// (ProRes, MJPEG, DNxHD, etc.) but are small enough to decode
-// in the render loop without stuttering.
-static bool isLightIntraCodec(const Video::VideoMetadata& metadata)
+// Returns true for sources whose every frame is a keyframe (ProRes, DNxHD,
+// AVC-Intra, image sequences...): any frame costs one decode.
+static bool isEveryFrameSource(const Video::VideoMetadata& metadata)
 {
-  if(metadata.codec_id == AV_CODEC_ID_NONE)
-    return false;
-
-  auto desc = avcodec_descriptor_get(metadata.codec_id);
-  if(!desc || !(desc->props & AV_CODEC_PROP_INTRA_ONLY))
-    return false;
-
-  // Above 1080p, CPU-decoded intra-only codecs are too heavy for the render loop
-  static constexpr int max_pixels = 1920 * 1080;
-  return (int64_t)metadata.width * metadata.height <= max_pixels;
+  return metadata.frame_access == Video::FrameAccess::EveryFrame;
 }
 
 score::gfx::NodeRenderer* VideoNode::createRenderer(RenderList& r) const noexcept
@@ -82,7 +72,7 @@ score::gfx::NodeRenderer* VideoNode::createRenderer(RenderList& r) const noexcep
           const_cast<VideoFrameShare&>(static_cast<const VideoFrameShare&>(reader))};
     case PlaybackMode::AutoPlayback:
     default:
-      if(isRawGPUCodec(decoder) || isLightIntraCodec(decoder))
+      if(isRawGPUCodec(decoder) || isEveryFrameSource(decoder))
         return new DirectVideoNodeRenderer{*this, decoder};
       return new VideoNodeRenderer{
           *this,

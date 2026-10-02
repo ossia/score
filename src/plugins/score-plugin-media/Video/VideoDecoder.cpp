@@ -1,6 +1,7 @@
 #include "VideoDecoder.hpp"
 
 #include <Media/Libav.hpp>
+#include <Video/FrameAccess.hpp>
 #include <Video/GpuFormats.hpp>
 
 #include <score/tools/Debug.hpp>
@@ -1015,8 +1016,16 @@ bool VideoDecoder::open_stream() noexcept
     }
   }
 
-  if(!res)
+  if(res && m_avstream)
   {
+    const auto probe = classifyFrameAccess(*m_formatContext, *m_avstream);
+    frame_access = probe.access;
+    max_keyframe_gap = probe.max_gap;
+  }
+  else
+  {
+    frame_access = FrameAccess::Unknown;
+    max_keyframe_gap = -1;
     close_video();
   }
   return res;
