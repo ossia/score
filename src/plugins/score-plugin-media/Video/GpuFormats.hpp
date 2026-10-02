@@ -123,6 +123,7 @@ inline constexpr bool formatNeedsDecoding(AVPixelFormat fmt) noexcept
     case AV_PIX_FMT_BGR24:
     case AV_PIX_FMT_RGB48LE:
     case AV_PIX_FMT_BGR48LE:
+    case AV_PIX_FMT_XYZ12LE:
     case AV_PIX_FMT_NV12:
     case AV_PIX_FMT_NV21:
     case AV_PIX_FMT_NV16:

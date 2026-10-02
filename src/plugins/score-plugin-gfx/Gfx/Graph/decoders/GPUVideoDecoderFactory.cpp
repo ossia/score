@@ -13,6 +13,7 @@
 #include <Gfx/Graph/decoders/P410.hpp>
 #include <Gfx/Graph/decoders/RGBA.hpp>
 #include <Gfx/Graph/decoders/VUYA.hpp>
+#include <Gfx/Graph/decoders/XYZ12.hpp>
 #include <Gfx/Graph/decoders/Y210.hpp>
 #include <Gfx/Graph/decoders/YUV420.hpp>
 #include <Gfx/Graph/decoders/YUV420P10.hpp>
@@ -137,6 +138,10 @@ std::unique_ptr<GPUVideoDecoder> createGPUVideoDecoder(
     case AV_PIX_FMT_BGR48LE:
       return std::make_unique<RGB48Decoder>(
           format, "processed.rgb = tex.bgr; processed.a = 1.0; " + f);
+
+    // DCDM X'Y'Z' (JPEG 2000 DCP)
+    case AV_PIX_FMT_XYZ12LE:
+      return std::make_unique<XYZ12Decoder>(format, f);
 
     // RGBA
     case AV_PIX_FMT_RGB0:
