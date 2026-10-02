@@ -825,8 +825,6 @@ void DirectVideoNodeRenderer::closeFile()
 
   if(m_formatContext)
   {
-    avio_flush(m_formatContext->pb);
-    avformat_flush(m_formatContext);
     avformat_close_input(&m_formatContext);
     m_formatContext = nullptr;
   }

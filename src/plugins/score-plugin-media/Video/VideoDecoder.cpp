@@ -563,8 +563,6 @@ void VideoDecoder::close_file() noexcept
   // Clear the fmt context
   if(m_formatContext)
   {
-    avio_flush(m_formatContext->pb);
-    avformat_flush(m_formatContext);
     // avformat_close_input() already frees the context and sets it to nullptr;
     // do NOT also call avformat_free_context() on it (double free).
     avformat_close_input(&m_formatContext);
