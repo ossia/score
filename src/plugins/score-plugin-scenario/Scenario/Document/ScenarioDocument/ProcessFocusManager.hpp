@@ -4,6 +4,8 @@
 #include <QObject>
 #include <QPointer>
 
+#include <cstdint>
+
 #include <score_plugin_scenario_export.h>
 
 #include <verdigris>
@@ -47,6 +49,17 @@ public:
 
   void focusNothing();
 
+  //! To be called on every change of selection.
+  void selectionChanged() noexcept { ++m_selectionGeneration; }
+
+  //! Has the selection changed since the focus last did? Clicking some items
+  //! changes only one of the two: the more recent tells what the user is
+  //! working on.
+  bool selectionNewerThanFocus() const noexcept
+  {
+    return m_selectionGeneration != m_focusGeneration;
+  }
+
 public:
   void sig_focusedPresenter(LayerPresenter* arg_1) W_SIGNAL(sig_focusedPresenter, arg_1);
   void sig_defocusedPresenter(LayerPresenter* arg_1)
@@ -69,5 +82,8 @@ private:
   QPointer<LayerPresenter> m_currentPresenter{};
 
   QMetaObject::Connection m_deathConnection{};
+
+  uint64_t m_selectionGeneration{};
+  uint64_t m_focusGeneration{};
 };
 }

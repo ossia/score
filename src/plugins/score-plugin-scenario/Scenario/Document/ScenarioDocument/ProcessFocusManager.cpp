@@ -58,6 +58,7 @@ void ProcessFocusManager::focus(QPointer<Process::LayerPresenter> p)
   }
 
   m_currentPresenter = p;
+  m_focusGeneration = m_selectionGeneration;
 
   if(m_currentPresenter)
   {
@@ -97,6 +98,7 @@ void ProcessFocusManager::focusNothing()
 
   m_currentModel = nullptr;
   m_currentPresenter = nullptr;
+  m_focusGeneration = m_selectionGeneration;
 
   m_mgr.set(nullptr);
 }

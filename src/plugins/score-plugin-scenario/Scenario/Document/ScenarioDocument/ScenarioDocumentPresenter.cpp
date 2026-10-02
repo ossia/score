@@ -1337,6 +1337,7 @@ void ScenarioDocumentPresenter::goUpALevel()
 
 void ScenarioDocumentPresenter::setNewSelection(const Selection& old, const Selection& s)
 {
+  m_focusManager.selectionChanged();
   auto process = m_focusManager.focusedModel();
   auto clearProcessSelection = [this](Process::ProcessModel* process) {
     if(process)
