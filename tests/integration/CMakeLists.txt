@@ -1639,6 +1639,15 @@ score_add_test(test_integration_record_while_playing
   GUI
   PLUGINS score_plugin_engine score_plugin_scenario score_lib_process)
 
+# Triggers and conditions on an absent or disconnected device do not hold.
+if(TARGET score AND NOT EMSCRIPTEN)
+  score_add_test(test_integration_missing_device_trigger
+    SOURCES MissingDeviceTriggerTest.cpp
+    LIBS ${QT_PREFIX}::Network)
+  target_compile_definitions(test_integration_missing_device_trigger PRIVATE
+    "SCORE_APP_BINARY=\"$<TARGET_FILE:score>\"")
+endif()
+
 # Stepped execution clock: renderFrames runs the execution for exactly one
 # step per frame, so an automation-driven frame is reproducible and a slow
 # first tick adds no settling frames.

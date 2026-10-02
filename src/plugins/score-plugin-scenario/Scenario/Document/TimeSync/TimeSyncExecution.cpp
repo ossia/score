@@ -83,11 +83,16 @@ ossia::expression_ptr TimeSyncComponent::makeTrigger() const
       }
       catch(std::exception& e)
       {
+        // An address that is not there (absent or disconnected device) can
+        // never be true: the sync waits for its maximum or for a manual
+        // trigger, as with any trigger that does not hold.
         ossia::logger().error(e.what());
+        return ossia::expressions::make_expression_false();
       }
     }
   }
 
+  // No trigger: the sync happens as soon as it can.
   return ossia::expressions::make_expression_true();
 }
 

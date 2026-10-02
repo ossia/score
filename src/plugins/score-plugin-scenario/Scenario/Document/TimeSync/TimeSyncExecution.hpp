@@ -36,8 +36,11 @@ public:
   std::shared_ptr<ossia::time_sync> OSSIATimeSync() const;
   const Scenario::TimeSyncModel& scoreTimeSync() const;
 
-private:
+  //! Builds the trigger again and swaps it in from the execution queue,
+  //! e.g. once a device it refers to came or went.
   void updateTrigger();
+
+private:
   void updateTriggerTime();
   void on_GUITrigger();
   std::shared_ptr<ossia::time_sync> m_ossia_node;

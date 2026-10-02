@@ -253,6 +253,48 @@ void EditJsContext::removeDevice(QString name)
   submit(*m, cmd);
 }
 
+void EditJsContext::disconnectDevice(QString name)
+{
+  auto doc = ctx();
+  if(!doc)
+    return;
+  auto& plug = doc->plugin<Explorer::DeviceDocumentPlugin>();
+  if(auto dev = plug.list().findDevice(name))
+    dev->disconnect();
+}
+
+void EditJsContext::reconnectDevice(QString name)
+{
+  auto doc = ctx();
+  if(!doc)
+    return;
+  auto& plug = doc->plugin<Explorer::DeviceDocumentPlugin>();
+  auto dev = plug.list().findDevice(name);
+  if(!dev)
+    return;
+
+  for(auto& node : plug.explorer().rootNode().children())
+  {
+    if(node.is<Device::DeviceSettings>() && node.displayName() == name)
+    {
+      // The new ossia device is empty: give it back the explorer's nodes.
+      auto con_handle = std::make_shared<QMetaObject::Connection>();
+      *con_handle = QObject::connect(
+          dev, &Device::DeviceInterface::deviceChanged, dev,
+          [dev, con_handle, node](auto, auto newd) {
+        if(newd)
+        {
+          dev->recreate(node);
+          dev->restoreListening();
+          QObject::disconnect(*con_handle);
+        }
+      });
+      dev->reconnect();
+      return;
+    }
+  }
+}
+
 void EditJsContext::createOSCDevice(QString name, QString ip, int i, int o)
 {
   auto doc = ctx();

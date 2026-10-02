@@ -98,6 +98,14 @@ public:
   void removeDevice(QString name);
   W_SLOT(removeDevice)
 
+  //! As the device explorer's Disconnect / Reconnect: the device stays in the
+  //! tree, its connection goes and comes back. Unlike the explorer, also while
+  //! playing, as when a device drops by itself.
+  void disconnectDevice(QString name);
+  W_SLOT(disconnectDevice)
+  void reconnectDevice(QString name);
+  W_SLOT(reconnectDevice)
+
   void createQMLWebSocketDevice(QString name, QString text);
   W_SLOT(createQMLWebSocketDevice)
 

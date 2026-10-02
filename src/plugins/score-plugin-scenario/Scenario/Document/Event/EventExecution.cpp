@@ -27,10 +27,16 @@ EventComponent::EventComponent(
     : Execution::Component{ctx, "Executor::Event", nullptr}
     , m_score_event{&element}
 {
-  con(element, &Scenario::EventModel::conditionChanged, this, [this](const auto& expr) {
-    auto exp_ptr = std::make_shared<ossia::expression_ptr>(this->makeExpression());
-    in_exec([e = m_ossia_event, exp_ptr] { e->set_expression(std::move(*exp_ptr)); });
-  });
+  con(element, &Scenario::EventModel::conditionChanged, this,
+      [this](const auto&) { updateCondition(); });
+}
+
+void EventComponent::updateCondition()
+{
+  if(!m_ossia_event)
+    return;
+  auto exp_ptr = std::make_shared<ossia::expression_ptr>(this->makeExpression());
+  in_exec([e = m_ossia_event, exp_ptr] { e->set_expression(std::move(*exp_ptr)); });
 }
 
 void EventComponent::cleanup(const std::shared_ptr<EventComponent>& self)
@@ -56,7 +62,9 @@ ossia::expression_ptr EventComponent::makeExpression() const
     }
     catch(std::exception& e)
     {
+      // A condition on an address that is not there does not hold.
       ossia::logger().error(e.what());
+      return ossia::expressions::make_expression_false();
     }
   }
   return ossia::expressions::make_expression_true();

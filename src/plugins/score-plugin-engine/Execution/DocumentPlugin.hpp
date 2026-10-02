@@ -120,10 +120,14 @@ public:
 
 private:
   void on_deviceAdded(Device::DeviceInterface* device);
+  void onDeviceChanged(ossia::net::device_base* old_dev, ossia::net::device_base* new_dev);
   void on_finished();
   void timerEvent(QTimerEvent* event) override;
-  void registerDevice(ossia::net::device_base*);
-  void unregisterDevice(ossia::net::device_base*);
+  bool registerDevice(ossia::net::device_base*);
+  bool unregisterDevice(ossia::net::device_base*);
+  void updateDeviceExpressions();
+  void requestExpressionUpdate();
+  void waitForExecutionQueue();
   void makeGraph();
   void initExecState();
   void recreateBase();
@@ -134,5 +138,6 @@ private:
   std::vector<ExecutionAction*> m_actions;
 
   int m_tid{};
+  bool m_expressionUpdatePending{};
 };
 }

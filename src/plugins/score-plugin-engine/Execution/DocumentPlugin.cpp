@@ -8,9 +8,13 @@
 
 #include <Scenario/Application/ScenarioActions.hpp>
 #include <Scenario/Document/BaseScenario/BaseScenario.hpp>
+#include <Scenario/Document/Event/EventExecution.hpp>
+#include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/Interval/IntervalExecution.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Scenario/Document/State/StateExecution.hpp>
+#include <Scenario/Document/TimeSync/TimeSyncExecution.hpp>
+#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <Scenario/Execution/score2OSSIA.hpp>
 
 #include <Audio/AudioApplicationPlugin.hpp>
@@ -44,6 +48,11 @@
 #include <ossia/network/common/path.hpp>
 
 #include <QCoreApplication>
+#include <QElapsedTimer>
+#include <QTimer>
+
+#include <atomic>
+#include <thread>
 
 #include <wobjectimpl.h>
 W_REGISTER_ARGTYPE(ossia::bench_map)
@@ -90,7 +99,7 @@ DocumentPlugin::DocumentPlugin(const score::DocumentContext& ctx, QObject* paren
       &DocumentPlugin::on_deviceAdded);
   con(devs.list(), &Device::DeviceList::deviceRemoved, this, [this](auto* dev) {
     if(auto d = dev->getDevice())
-      unregisterDevice(d);
+      onDeviceChanged(d, nullptr);
   });
 
   connect(
@@ -231,25 +240,29 @@ void DocumentPlugin::timerEvent(QTimerEvent* event)
   processEditCommands();
 }
 
-void DocumentPlugin::registerDevice(ossia::net::device_base* d)
+bool DocumentPlugin::registerDevice(ossia::net::device_base* d)
 {
   if(!d)
-    return;
+    return false;
   if(m_ctxData->execState)
   {
     if(ossia::contains(m_ctxData->execState->edit_devices(), d))
-      return;
+      return false;
     m_ctxData->execState->register_device(d);
 
     if(m_base && m_base->active())
       d->get_protocol().start_execution();
+    return true;
   }
+  return false;
 }
 
-void DocumentPlugin::unregisterDevice(ossia::net::device_base* d)
+bool DocumentPlugin::unregisterDevice(ossia::net::device_base* d)
 {
   if(!m_ctxData->execState)
-    return;
+    return false;
+  if(!ossia::contains(m_ctxData->execState->edit_devices(), d))
+    return false;
 
   m_ctxData->execState->unregister_device(d);
 
@@ -265,6 +278,43 @@ void DocumentPlugin::unregisterDevice(ossia::net::device_base* d)
     if(auto g = wg.lock())
       clearAddresses(g->get_nodes(), owned);
   });
+  return true;
+}
+
+void DocumentPlugin::updateDeviceExpressions()
+{
+  if(!m_base)
+    return;
+
+  auto& model = score::DocumentPlugin::context().document.model();
+  for(auto ts : model.findChildren<Scenario::TimeSyncModel*>())
+    if(auto c = score::findComponent<TimeSyncComponent>(ts->components()))
+      if(c->OSSIATimeSync())
+        c->updateTrigger();
+  for(auto ev : model.findChildren<Scenario::EventModel*>())
+    if(auto c = score::findComponent<EventComponent>(ev->components()))
+      c->updateCondition();
+}
+
+void DocumentPlugin::waitForExecutionQueue()
+{
+  if(!m_base || !m_base->active())
+    return;
+
+  auto done = std::make_shared<std::atomic_bool>(false);
+  m_ctxData->context.executionQueue.enqueue([done] { *done = true; });
+
+  // The execution thread drains its queue on every tick. Nothing is waited on
+  // from the audio thread, so this cannot hold it up.
+  QElapsedTimer t;
+  t.start();
+  while(!*done && t.elapsed() < 1000)
+  {
+    std::this_thread::yield();
+    processEditCommands();
+  }
+  if(!*done)
+    qDebug() << "Device removal: the execution thread did not answer in time";
 }
 
 void DocumentPlugin::makeGraph()
@@ -534,17 +584,58 @@ void DocumentPlugin::slot_bench(ossia::bench_map b, int64_t ns)
 
 void DocumentPlugin::on_deviceAdded(Device::DeviceInterface* dev)
 {
+  // Also for a device that is not connected yet: it gets its ossia device
+  // through deviceChanged when it connects.
+  connect(
+      dev, &Device::DeviceInterface::deviceChanged, this,
+      &DocumentPlugin::onDeviceChanged);
+  // Most devices destroy their nodes before they say the device changed.
+  connect(
+      dev, &Device::DeviceInterface::deviceClearing, this,
+      [this](ossia::net::device_base* d) { onDeviceChanged(d, nullptr); });
+  // A device that comes back gets its nodes after it says it changed, and some
+  // only learn their namespace later on.
+  connect(
+      dev, &Device::DeviceInterface::pathAdded, this,
+      &DocumentPlugin::requestExpressionUpdate);
+  connect(
+      dev, &Device::DeviceInterface::namespaceUpdated, this,
+      &DocumentPlugin::requestExpressionUpdate);
   if(auto d = dev->getDevice())
+    onDeviceChanged(nullptr, d);
+}
+
+void DocumentPlugin::requestExpressionUpdate()
+{
+  if(!m_base || m_expressionUpdatePending)
+    return;
+  m_expressionUpdatePending = true;
+  QTimer::singleShot(0, this, [this] {
+    m_expressionUpdatePending = false;
+    updateDeviceExpressions();
+  });
+}
+
+void DocumentPlugin::onDeviceChanged(
+    ossia::net::device_base* old_dev, ossia::net::device_base* new_dev)
+{
+  const bool removed = old_dev && unregisterDevice(old_dev);
+  const bool added = new_dev && registerDevice(new_dev);
+
+  // Triggers and conditions resolve their addresses once: those on this
+  // device are false while it is gone, and work again when it comes back.
+  if(removed)
   {
-    connect(
-        dev, &Device::DeviceInterface::deviceChanged, this,
-        [this](ossia::net::device_base* old_dev, ossia::net::device_base* new_dev) {
-      if(old_dev)
-        unregisterDevice(old_dev);
-      if(new_dev)
-        registerDevice(new_dev);
-        });
-    registerDevice(d);
+    updateDeviceExpressions();
+
+    // The old device's nodes go away as soon as this returns: the ports and
+    // expressions that point into them have to be let go of on the execution
+    // thread first.
+    waitForExecutionQueue();
+  }
+  else if(added)
+  {
+    requestExpressionUpdate();
   }
 }
 }
