@@ -40,6 +40,8 @@
 #include <Transport/DocumentPlugin.hpp>
 #include <Transport/TransportInterface.hpp>
 
+W_OBJECT_IMPL(Execution::ExecutionController)
+
 /**
  * Execution state-machine explanation:
  *
@@ -594,6 +596,8 @@ void ExecutionController::play_interval(
 
   if(auto transport_plug = ctx.findPlugin<Transport::DocumentPlugin>())
     transport_plug->play();
+
+  playStarted();
 }
 
 void ExecutionController::stop_interval(Scenario::IntervalModel& cst)
@@ -638,7 +642,10 @@ TimeVal ExecutionController::execution_time() const
 
 void ExecutionController::on_record(::TimeVal t)
 {
-  SCORE_ASSERT(!m_playing);
+  // Playback started while the recording was waiting for its first message:
+  // the recording runs along with it.
+  if(m_playing)
+    return;
 
   // TODO have a on_exit handler to properly stop the scenario.
   if(auto scenar = currentScenarioModel())

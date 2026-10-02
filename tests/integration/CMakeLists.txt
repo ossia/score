@@ -1633,6 +1633,12 @@ if(TARGET score AND NOT EMSCRIPTEN)
     TIMEOUT 900 RUN_SERIAL TRUE)
 endif()
 
+# The first recorded message while playing leaves the playback running.
+score_add_test(test_integration_record_while_playing
+  SOURCES RecordWhilePlayingTest.cpp
+  GUI
+  PLUGINS score_plugin_engine score_plugin_scenario score_lib_process)
+
 # Stepped execution clock: renderFrames runs the execution for exactly one
 # step per frame, so an automation-driven frame is reproducible and a slow
 # first tick adds no settling frames.
