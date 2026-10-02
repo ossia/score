@@ -19,7 +19,7 @@ enum ScaleMode
  */
 enum PlaybackMode
 {
-  AutoPlayback, // Intra-only codecs use Direct, others use FrameQueue
+  AutoPlayback, // Sources whose every frame is a keyframe use Direct, others FrameQueue
   Direct,       // Always use DirectVideoNodeRenderer (seek per frame)
   FrameQueue    // Always use VideoNodeRenderer (frame queue)
 };

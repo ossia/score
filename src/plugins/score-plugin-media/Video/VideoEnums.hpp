@@ -37,6 +37,17 @@ enum class Deinterlace
   Bob     ///< half the vertical resolution, no combing, smooth at field rate
 };
 
+/// How cheaply an arbitrary frame of a source can be reached. A property of
+/// the stream's keyframe layout, not of the machine decoding it.
+enum class FrameAccess : unsigned char
+{
+  Unknown,    ///< not classified
+  EveryFrame, ///< every frame is a keyframe: any frame costs one decode
+  ShortGop,   ///< keyframes at most a few frames apart: a bounded replay
+  LongGop,    ///< sparse keyframes, or none after the first
+  Sequential  ///< the source cannot seek (pipes, live streams)
+};
+
 enum Tonemap
 {
   Clamp,

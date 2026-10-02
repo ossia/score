@@ -466,6 +466,10 @@ TEST_CASE(
   {
     Video::VideoDecoder dec{Video::DecoderConfiguration{}};
     REQUIRE(dec.load(path));
+    // A keyframe every 10 frames: the classification the renderer choice
+    // reads, made before the buffering thread consumed any packet.
+    CHECK(dec.frame_access == Video::FrameAccess::ShortGop);
+    CHECK(dec.max_keyframe_gap == 9);
 
     using namespace std::chrono;
     using namespace std::chrono_literals;
@@ -573,6 +577,7 @@ TEST_CASE(
   {
     Video::VideoDecoder dec{Video::DecoderConfiguration{}};
     CHECK(dec.open(pattern));
+    CHECK(dec.frame_access == Video::FrameAccess::EveryFrame);
   }
   SECTION("loaded, with its buffering thread running")
   {

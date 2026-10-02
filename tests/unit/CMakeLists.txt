@@ -1029,6 +1029,14 @@ if(TARGET score_plugin_media)
     PLUGINS score_plugin_media
     LIBS avutil avcodec)
 
+  # Video::classifyFrameAccess(): every frame a keyframe, short GOP, long GOP,
+  # from the descriptor, a complete container index or the packet probe, over
+  # clips encoded in-process into mp4, mpegts, matroska and image sequences.
+  score_add_test(test_unit_frame_access
+    SOURCES FrameAccessTest.cpp
+    PLUGINS score_plugin_media
+    LIBS avutil avcodec avformat)
+
   # Video::initFrameFromRawData(): the plane layout every stride-less input
   # (GStreamer appsink, Sh4lt, Shmdata, Kinect2) applies to a flat pixel buffer.
   # libav is the oracle -- av_image_get_linesize for the minimum row width,
