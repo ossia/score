@@ -81,7 +81,7 @@ public:
   QPointer<score::ArrowDialog> currentPopup{};
 
   IntervalDurations* currentTimebar{};
-  IntervalView* currentView{};
+  QPointer<IntervalView> currentView{};
 
   score::BackgroundRenderer* currentBackground{};
   bool timebarPlaying{};
