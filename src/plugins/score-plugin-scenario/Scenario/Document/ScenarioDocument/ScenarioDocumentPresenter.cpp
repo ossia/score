@@ -598,20 +598,10 @@ void ScenarioDocumentPresenter::setLargeView()
 
 void ScenarioDocumentPresenter::startTimeBar()
 {
-  bool visible = context().app.settings<Scenario::Settings::Model>().getTimeBar();
-  auto itv_display = ossia::get_if<CentralIntervalDisplay>(&m_centralDisplay);
-  visible &= bool(itv_display);
-  IntervalPresenter* itv_pres{};
-  if(itv_display)
-  {
-    itv_pres = itv_display->presenter.intervalPresenter();
-    visible &= bool(itv_pres);
-  }
-
-  view().view().currentTimebar = &displayedInterval().duration;
-  view().view().currentView = itv_pres ? itv_pres->view() : nullptr;
-  view().view().timebarPlaying = true;
-  view().view().timebarVisible = visible;
+  auto& gv = view().view();
+  gv.currentTimebar = &displayedInterval().duration;
+  gv.timebarPlaying = true;
+  updateTimeBar();
 
   view().updateBackgroundMode();
 }
@@ -1133,8 +1123,11 @@ void ScenarioDocumentPresenter::updateTimeBar()
 {
   auto& set = m_context.app.settings<Settings::Model>();
   auto& gv = view().view();
-  const bool nodal = ossia::get_if<CentralNodalDisplay>(&this->m_centralDisplay);
-  gv.timebarVisible = gv.timebarPlaying && set.getTimeBar() && !nodal
+  // The interval view is rebuilt with every change of mode or of displayed
+  // interval: the bar is drawn over the one shown now.
+  auto* itv_pres = displayedIntervalPresenter();
+  gv.currentView = itv_pres ? itv_pres->view() : nullptr;
+  gv.timebarVisible = gv.timebarPlaying && set.getTimeBar() && gv.currentView
                       && (&displayedInterval().duration == gv.currentTimebar);
 }
 
