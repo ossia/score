@@ -35,6 +35,10 @@ public:
       ossia::time_event::offset_behavior b);
 
   std::shared_ptr<ossia::time_event> OSSIAEvent() const;
+
+  //! Builds the condition again and swaps it in from the execution queue,
+  //! e.g. once a device it refers to came or went.
+  void updateCondition();
   const Scenario::EventModel* scoreEvent() const { return m_score_event; }
 
 public:
