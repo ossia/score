@@ -20,6 +20,7 @@
 #include <Gfx/Graph/decoders/P210.hpp>
 #include <Gfx/Graph/decoders/P410.hpp>
 #include <Gfx/Graph/decoders/RGBA.hpp>
+#include <Gfx/Graph/decoders/XYZ12.hpp>
 #include <Gfx/Graph/decoders/YUV420.hpp>
 #include <Gfx/Graph/decoders/YUV420P10.hpp>
 #include <Gfx/Graph/decoders/YUV420P12.hpp>
@@ -33,6 +34,7 @@
 #include <Gfx/Graph/decoders/YUVA420.hpp>
 #include <Gfx/Graph/decoders/YUVA444.hpp>
 #include <Gfx/Graph/decoders/YUYV422.hpp>
+#include <Video/GpuFormats.hpp>
 
 #include <catch2/catch_test_macros.hpp>
 
@@ -194,6 +196,13 @@ TEST_CASE("Packed RGB decoder parameterisation", "[gfx][video][decoderfactory]")
 
     CHECK(as<RGBA64Decoder>(make(AV_PIX_FMT_RGBA64LE)));
     CHECK(as<RGBA64Decoder>(make(AV_PIX_FMT_BGRA64LE)));
+  }
+
+  SECTION("DCP X'Y'Z' has its own decoder and skips swscale")
+  {
+    // RGB48's layout, but the colour pipeline is SMPTE 428's, not RGB.
+    CHECK(as<XYZ12Decoder>(make(AV_PIX_FMT_XYZ12LE)));
+    CHECK_FALSE(Video::formatNeedsDecoding(AV_PIX_FMT_XYZ12LE));
   }
 }
 
