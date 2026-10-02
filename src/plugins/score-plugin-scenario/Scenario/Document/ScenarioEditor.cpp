@@ -43,6 +43,8 @@
 #include <QGraphicsScene>
 #include <QGraphicsView>
 
+#include <algorithm>
+
 namespace Scenario
 {
 
@@ -232,7 +234,7 @@ static bool pasteInScenario(
 
   // TODO this is a bit lazy.. find a better positioning algorithm
   if(!sv.contains(*sv_pt))
-    sv_pt = sv.mapToScene(sv.boundingRect().center());
+    sv_pt = sv.boundingRect().center();
 
   // Read the copy json. TODO: give it a better mime type
   auto origin = pres.toScenarioPoint(*sv_pt);
@@ -350,6 +352,46 @@ static bool pasteInCurrentInterval(
   return pasteInInterval(itv, item_pt, mime, ctx);
 }
 
+namespace
+{
+enum class PasteKind
+{
+  None,
+  //! Processes and the cables between them: go in an interval, or in a new
+  //! box of a scenario.
+  Processes,
+  //! Intervals, states, events, syncs: only go in a scenario.
+  Elements
+};
+
+PasteKind pasteKind(const QMimeData& mime)
+{
+  auto obj = readJson(mime.data("text/plain"));
+  if(!obj.IsObject() || obj.MemberCount() == 0)
+    return PasteKind::None;
+  if(obj.HasMember("TimeNodes"))
+    return PasteKind::Elements;
+  if(obj.HasMember("Processes") && obj.HasMember("Cables"))
+    return PasteKind::Processes;
+  return PasteKind::None;
+}
+
+//! Where in a scenario to put what is pasted next to one of its children.
+Scenario::Point pointNextTo(const Scenario::ProcessModel& sc, const QObject* child)
+{
+  if(auto itv = qobject_cast<const IntervalModel*>(child))
+    return {itv->date(), std::min(itv->heightPercentage() + 0.05, 0.95)};
+  if(auto st = qobject_cast<const StateModel*>(child))
+  {
+    auto& ev = Scenario::parentEvent(*st, sc);
+    return {ev.date(), std::min(st->heightPercentage() + 0.05, 0.95)};
+  }
+  if(auto ev = qobject_cast<const EventModel*>(child))
+    return {ev->date(), 0.1};
+  return {TimeVal::zero(), 0.1};
+}
+}
+
 bool ScenarioEditor::paste(
     QPoint pos, QObject* focusedObject, const QMimeData& mime,
     const score::DocumentContext& ctx)
@@ -358,55 +400,74 @@ bool ScenarioEditor::paste(
       = score::IDocument::presenterDelegate<ScenarioDocumentPresenter>(ctx.document);
   if(!pres)
     return false;
-  auto& itv = pres->displayedInterval();
+  auto& displayed = pres->displayedInterval();
 
-  // First check if we have explicitly selected a target objcet
+  const auto kind = pasteKind(mime);
+  if(kind == PasteKind::None)
+    return false;
+
+  // Start from what the user worked on last: the selection or the focus.
+  // Clicking some items only changes one of the two.
+  auto focusedLayer = qobject_cast<Process::LayerPresenter*>(focusedObject);
+  QObject* focused
+      = focusedLayer ? const_cast<Process::ProcessModel*>(&focusedLayer->model())
+                     : nullptr;
+  QObject* selected{};
   if(auto sel = ctx.selectionStack.currentSelection(); sel.size() == 1)
+    selected = sel.at(0);
+
+  QObject* start = focused;
+  if(!start)
+    start = selected;
+  else if(selected && selected != start)
   {
-    if(auto obj = qobject_cast<IntervalModel*>(sel.at(0)))
+    auto focusManager = Process::ProcessFocusManager::get(ctx);
+    if(focusManager && focusManager->selectionNewerThanFocus())
+      start = selected;
+  }
+
+  // The first object up from there that can take what was copied; anything
+  // else gets it as a sibling.
+  QObject* child{};
+  for(QObject* obj = start; obj; child = obj, obj = obj->parent())
+  {
+    if(auto sc = qobject_cast<Scenario::ProcessModel*>(obj))
     {
-      if(obj == &itv)
+      // A scenario takes processes in a new box where the pointer is, hence
+      // only through its view: one that is not shown gets them next to it.
+      auto scenarioPres = qobject_cast<ScenarioPresenter*>(focusedObject);
+      const bool shown = scenarioPres && &scenarioPres->model() == sc;
+      if(kind == PasteKind::Elements || shown)
       {
+        if(shown && obj == start)
+          return pasteInScenario(pos, *scenarioPres, mime, ctx);
+
+        auto json = readJson(mime.data("text/plain"));
+        const auto origin = pointNextTo(*sc, child);
+        if(kind == PasteKind::Elements)
+        {
+          CommandDispatcher<>{ctx.commandStack}.submit(
+              new Command::ScenarioPasteElements(*sc, json, origin));
+          return true;
+        }
+        return pasteProcessesInNewBox(*sc, origin, json, ctx);
+      }
+    }
+    else if(auto itv = qobject_cast<IntervalModel*>(obj); itv && kind == PasteKind::Processes)
+    {
+      if(itv == &displayed)
         return pasteInCurrentInterval(pos, mime, ctx);
-      }
-      else
-      {
-        return pasteInInterval(*obj, newProcessPosition(*obj), mime, ctx);
-      }
+      return pasteInInterval(*itv, newProcessPosition(*itv), mime, ctx);
     }
-    else if(qobject_cast<StateModel*>(sel.at(0)))
+    else if(qobject_cast<ScenarioDocumentModel*>(obj))
     {
-      // Try to paste messages in state? Should be done elsewhere..
-    }
-    else if(qobject_cast<Scenario::ProcessModel*>(sel.at(0)))
-    {
-      // Do nothing, handled below as we really need the position in the view
-      // FIXME if we're in nodal view and pasting just a process and
-      // not clicking in the scenario then it would be better to paste
-      // next to the scenario
-    }
-    else if(auto obj = qobject_cast<Process::ProcessModel*>(sel.at(0)))
-    {
-      if(auto closest_itv = Scenario::closestParentInterval(obj))
-      {
-        if(closest_itv == &itv)
-          return pasteInCurrentInterval(pos, mime, ctx);
-        else
-          return pasteInInterval(
-              *closest_itv, newProcessPosition(*closest_itv), mime, ctx);
-      }
+      break;
     }
   }
 
-  // Check if we are focusing a scenario in which to paste
-  if(auto pres = qobject_cast<ScenarioPresenter*>(focusedObject))
-  {
-    return pasteInScenario(pos, *pres, mime, ctx);
-  }
-  else
-  {
+  if(kind == PasteKind::Processes)
     return pasteInCurrentInterval(pos, mime, ctx);
-  }
+  return false;
 }
 
 bool ScenarioEditor::remove(const Selection& s, const score::DocumentContext& ctx)

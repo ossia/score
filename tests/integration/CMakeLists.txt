@@ -1648,6 +1648,13 @@ if(TARGET score AND NOT EMSCRIPTEN)
     "SCORE_APP_BINARY=\"$<TARGET_FILE:score>\"")
 endif()
 
+# A nodal round trip while the play bar is shown; where a paste goes when a
+# nested process has the focus or the selection.
+score_add_test(test_integration_nested_focus
+  SOURCES NestedFocusTest.cpp
+  GUI
+  PLUGINS score_plugin_scenario score_lib_process score_plugin_automation)
+
 # Stepped execution clock: renderFrames runs the execution for exactly one
 # step per frame, so an automation-driven frame is reproducible and a slow
 # first tick adds no settling frames.
