@@ -102,32 +102,17 @@ int LibAVDecoder::init_codec_context(
 
   // m_codecContext->flags |= AV_CODEC_FLAG_LOW_DELAY;
   // m_codecContext->flags2 |= AV_CODEC_FLAG2_FAST;
+  const auto threading = chooseDecoderThreading(
+      *codec, stream->codecpar, m_conf.useCase, m_conf.threads, hw_dev_ctx != nullptr);
 #if LIBAVUTIL_VERSION_MAJOR >= 57
   if(hw_dev_ctx)
   {
     m_codecContext->hw_device_ctx = hw_dev_ctx;
     m_codecContext->opaque = (void*)this;
     m_codecContext->get_format = get_format_for_codeccontext;
-    m_codecContext->thread_count = 1;
-    m_codecContext->thread_type = FF_THREAD_SLICE;
   }
-  else
 #endif
-  {
-#if defined(__EMSCRIPTEN__)
-    // Force single-threaded video decoding on wasm. With the default (threads=0,
-    // i.e. ffmpeg auto = CPU-count frame threads), avcodec_open2 sets up a
-    // multithreaded decoder whose teardown (avcodec_flush_buffers /
-    // avcodec_free_context) crashes on the emscripten pthread runtime -- even
-    // when no frame was ever decoded.
-    m_codecContext->thread_count = 1;
-    m_codecContext->thread_type = 0;
-#else
-    m_codecContext->thread_count = m_conf.threads;
-    if(m_conf.threads > 0)
-      m_codecContext->thread_type = FF_THREAD_SLICE;
-#endif
-  }
+  applyDecoderThreading(*m_codecContext, threading);
 
   SCORE_ASSERT(setup);
   setup(*m_codecContext);
@@ -137,6 +122,11 @@ int LibAVDecoder::init_codec_context(
   {
     qDebug() << "avcodec_open2: " << av_to_string(err);
     avcodec_free_context(&m_codecContext);
+  }
+  else
+  {
+    qDebug().noquote() << "Video decoder:"
+                       << describeDecoderThreading(*m_codecContext, threading).c_str();
   }
   return err;
 }

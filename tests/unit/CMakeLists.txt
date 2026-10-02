@@ -1022,6 +1022,13 @@ if(TARGET score_plugin_media)
     PLUGINS score_plugin_media
     LIBS avutil avcodec avformat)
 
+  # Video::chooseDecoderThreading(): frame vs slice threads vs the codec's own
+  # pool, per consumer, checked against the linked libavcodec's real decoders.
+  score_add_test(test_unit_decoder_threading
+    SOURCES DecoderThreadingTest.cpp
+    PLUGINS score_plugin_media
+    LIBS avutil avcodec)
+
   # Video::initFrameFromRawData(): the plane layout every stride-less input
   # (GStreamer appsink, Sh4lt, Shmdata, Kinect2) applies to a flat pixel buffer.
   # libav is the oracle -- av_image_get_linesize for the minimum row width,

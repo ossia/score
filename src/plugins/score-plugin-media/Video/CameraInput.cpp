@@ -66,6 +66,7 @@ bool CameraInput::load(
   this->m_requestedCodec = (AVCodecID)codec;
   this->m_requestedPixfmt = (AVPixelFormat)pixelfmt;
   this->m_conf.ignorePTS = realTime;
+  this->m_conf.useCase = DecodeUseCase::Live;
 
   auto ifmt = av_find_input_format(m_inputKind.c_str());
   return (bool)ifmt;

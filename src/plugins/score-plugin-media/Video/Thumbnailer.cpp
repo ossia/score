@@ -1,6 +1,7 @@
 #include <Media/Libav.hpp>
 #if SCORE_HAS_LIBAV
 
+#include <Video/DecoderThreading.hpp>
 #include <Video/Thumbnailer.hpp>
 #include <Video/VideoDecoder.hpp>
 
@@ -112,6 +113,9 @@ VideoThumbnailer::VideoThumbnailer(QString path)
 
       m_codecContext->pkt_timebase = stream->time_base;
       m_codecContext->codec_id = m_codec->id;
+      applyDecoderThreading(
+          *m_codecContext,
+          chooseDecoderThreading(*m_codec, stream->codecpar, DecodeUseCase::Thumbnail));
       int err = avcodec_open2(m_codecContext, m_codec, nullptr);
       res = !(err < 0);
       if(!res)

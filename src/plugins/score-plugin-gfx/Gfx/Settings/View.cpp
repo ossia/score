@@ -27,8 +27,22 @@ View::View()
   SETTINGS_UI_COMBOBOX_SETUP(
       "Hardware Video Decoding", HardwareDecode, HardwareVideoDecoder{});
 
-  static constexpr int t_values[]{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16};
-  SETTINGS_UI_NUM_COMBOBOX_SETUP("Decoding threads", DecodingThreads, t_values);
+  {
+    // "Auto" (0) lets the decoder pick a pool per codec; a number only sizes
+    // it, the threading model stays the decoder's choice.
+    m_DecodingThreads = new QComboBox{m_widg};
+    m_DecodingThreads->addItem(tr("Auto"), 0);
+    static constexpr int t_values[]{1, 2, 4, 6, 8, 12, 16, 24, 32, 48, 64};
+    for(int v : t_values)
+      m_DecodingThreads->addItem(QString::number(v), v);
+    m_DecodingThreads->setToolTip(
+        tr("Threads per software video decoder. Auto picks frame or slice threads "
+           "and their count per codec."));
+    lay->addRow(tr("Decoding threads"), m_DecodingThreads);
+    connect(
+        m_DecodingThreads, SignalUtils::QComboBox_currentIndexChanged_int(), this,
+        [this](int i) { DecodingThreadsChanged(m_DecodingThreads->itemData(i).toInt()); });
+  }
 
   static constexpr int aa_values[]{1, 2, 4, 8, 16};
   SETTINGS_UI_NUM_COMBOBOX_SETUP("Multisampling AA", Samples, aa_values);

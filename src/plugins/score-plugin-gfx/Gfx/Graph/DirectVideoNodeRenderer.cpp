@@ -16,6 +16,7 @@
 #include <Gfx/Graph/decoders/HWVideoToolbox.hpp>
 #include <Gfx/Graph/decoders/HWVulkanShared.hpp>
 
+#include <Video/DecoderThreading.hpp>
 #include <Video/GpuFormats.hpp>
 
 #include <score/tools/Debug.hpp>
@@ -658,19 +659,12 @@ bool DirectVideoNodeRenderer::openFile(score::gfx::GraphicsApi api, QRhi* rhi)
   m_codecContext = avcodec_alloc_context3(codec);
   avcodec_parameters_to_context(m_codecContext, codecPar);
   m_codecContext->pkt_timebase = m_avstream->time_base;
-  // Slice threading only: parallel decode without frame threading's pipeline
-  // delay, so scrubbing stays frame-exact. Codecs without slice support stay
-  // single-threaded: their wrappers (libdav1d...) would silently use frame
-  // threading, whose delay makes every read look non-sequential here.
-  if(codec->capabilities & AV_CODEC_CAP_SLICE_THREADS)
-  {
-    m_codecContext->thread_count = 0;
-    m_codecContext->thread_type = FF_THREAD_SLICE;
-  }
-  else
-  {
-    m_codecContext->thread_count = 1;
-  }
+  // No frame delay allowed: frame threading's pipeline makes every read look
+  // non-sequential here.
+  const auto threading = ::Video::chooseDecoderThreading(
+      *codec, codecPar, ::Video::DecodeUseCase::FrameExact,
+      score::AppContext().settings<Gfx::Settings::Model>().getDecodingThreads());
+  ::Video::applyDecoderThreading(*m_codecContext, threading);
 
   // Try hardware-accelerated decoding
   bool hw_ok = false;
@@ -764,15 +758,7 @@ bool DirectVideoNodeRenderer::openFile(score::gfx::GraphicsApi api, QRhi* rhi)
       m_codecContext = avcodec_alloc_context3(codec);
       avcodec_parameters_to_context(m_codecContext, codecPar);
       m_codecContext->pkt_timebase = m_avstream->time_base;
-      if(codec->capabilities & AV_CODEC_CAP_SLICE_THREADS)
-      {
-        m_codecContext->thread_count = 0;
-        m_codecContext->thread_type = FF_THREAD_SLICE;
-      }
-      else
-      {
-        m_codecContext->thread_count = 1;
-      }
+      ::Video::applyDecoderThreading(*m_codecContext, threading);
     }
 
     int err = avcodec_open2(m_codecContext, codec, nullptr);
@@ -782,6 +768,9 @@ bool DirectVideoNodeRenderer::openFile(score::gfx::GraphicsApi api, QRhi* rhi)
       closeFile();
       return false;
     }
+    qDebug().noquote()
+        << "DirectVideoNodeRenderer:"
+        << ::Video::describeDecoderThreading(*m_codecContext, threading).c_str();
   }
 
   // Update timing from codec context

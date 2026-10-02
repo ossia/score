@@ -119,6 +119,7 @@ bool LibavStreamInput::load(const std::string& url) noexcept
   m_url = url;
   m_options.clear();
   m_conf.ignorePTS = true;
+  m_conf.useCase = DecodeUseCase::Live;
   return !url.empty();
 }
 
@@ -130,6 +131,7 @@ bool LibavStreamInput::load(
   m_url = url;
   m_options = options;
   m_conf.ignorePTS = true;
+  m_conf.useCase = DecodeUseCase::Live;
   return !url.empty();
 }
 

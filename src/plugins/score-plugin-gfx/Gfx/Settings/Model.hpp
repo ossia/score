@@ -43,7 +43,7 @@ class SCORE_PLUGIN_GFX_EXPORT Model : public score::SettingsDelegateModel
 
   QString m_GraphicsApi{};
   QString m_HardwareDecode{};
-  int m_DecodingThreads{1};
+  int m_DecodingThreads{};
   double m_Rate{};
   int m_Samples{1};
   bool m_VSync{};
