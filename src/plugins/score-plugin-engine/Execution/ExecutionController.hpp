@@ -5,6 +5,8 @@
 
 #include <score_plugin_engine_export.h>
 
+#include <verdigris>
+
 #include <functional>
 #include <memory>
 namespace Scenario
@@ -29,9 +31,13 @@ using exec_setup_fun
     = std::function<void(const Execution::Context&, Execution::BaseScenarioElement&)>;
 class SCORE_PLUGIN_ENGINE_EXPORT ExecutionController : public QObject
 {
+  W_OBJECT(ExecutionController)
 public:
   explicit ExecutionController(const score::GUIApplicationContext& ctx);
   ~ExecutionController();
+
+  //! Playback has just started, whatever asked for it.
+  void playStarted() E_SIGNAL(SCORE_PLUGIN_ENGINE_EXPORT, playStarted)
 
   TransportInterface& transport() const noexcept;
   void init_transport();

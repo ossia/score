@@ -18,8 +18,11 @@ struct ParameterPolicy
 {
   void operator()(const RecordData& proc, const TimeVal& msecs, double msec, float val)
   {
-    auto last = proc.segment.points().rbegin();
-    proc.segment.addPoint(msec - 1, last->second);
+    // An address whose first value comes after the recording started has
+    // nothing to hold yet.
+    const auto& points = proc.segment.points();
+    if(!points.empty())
+      proc.segment.addPoint(msec - 1, points.rbegin()->second);
     proc.segment.addPoint(msec, val);
     static_cast<Automation::ProcessModel*>(proc.curveModel.parent())->setDuration(msecs);
   }

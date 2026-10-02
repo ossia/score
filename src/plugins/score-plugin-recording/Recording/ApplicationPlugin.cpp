@@ -49,6 +49,14 @@ ApplicationPlugin::ApplicationPlugin(const score::GUIApplicationContext& ctx)
 
   m_ossiaplug = &ctx.guiApplicationPlugin<Engine::ApplicationPlugin>();
 
+  // A recording waiting for its first message starts with the playback.
+  connect(
+      &m_ossiaplug->execution(), &Execution::ExecutionController::playStarted, this,
+      [this] {
+    if(m_currentContext && !m_currentContext->started())
+      m_currentContext->start();
+  });
+
   if(ctx.applicationSettings.gui)
   {
     auto& stop_action = ctx.actions.action<Actions::Stop>();
