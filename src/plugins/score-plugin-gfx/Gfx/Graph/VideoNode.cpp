@@ -11,6 +11,8 @@
 
 #include <QGuiApplication>
 
+#include <cmath>
+
 extern "C" {
 #include <libavcodec/avcodec.h>
 }
@@ -94,6 +96,17 @@ void VideoNode::seeked()
 
 void VideoNode::process(Message&& msg)
 {
+  // The rate time moves at, for update() to carry it on between messages:
+  // backwards when playing backwards, faster or slower with the speed. A
+  // jump (transport, loop) is not a rate: the previous one is kept.
+  if(m_timer.isValid())
+  {
+    const double wall = m_timer.nsecsElapsed() / 1e9;
+    const double moved = double(msg.token.date.impl - m_lastToken.date.impl)
+                         / ossia::flicks_per_second<double>;
+    if(wall > 1e-4 && std::abs(moved) < 0.5)
+      m_rate = moved / wall;
+  }
   m_lastToken = msg.token;
 
   m_timer.start();
@@ -109,7 +122,7 @@ void VideoNode::update()
 
   ProcessNode::process(m_lastToken);
   auto elapsed = m_timer.nsecsElapsed() / 1e9;
-  this->standardUBO.time += elapsed;
+  this->standardUBO.time += m_rate * elapsed;
 
   reader.readNextFrame(*this);
 }
@@ -283,7 +296,25 @@ void VideoFrameReader::readNextFrame(VideoNode& node)
       m_lastPlaybackTime = nodem.standardUBO.time;
       m_lastFrameTime = (decoder.flicks_per_dts * double(frame->pts - decoder.start_pts))
                         / ossia::flicks_per_second<double>;
+      m_earliestFrameTime = std::min(m_earliestFrameTime, m_lastFrameTime);
       m_timer.restart();
+    }
+  }
+
+  // Playing backwards, or scrubbing back: the time is before the frame on
+  // screen, and the queue only decodes forward. Ask for a seek there, one at
+  // a time: a new one once the decoder has done the last (seek_generation).
+  // Not before the earliest frame: a video starting after its container
+  // shows it from time 0, and nothing comes before it.
+  if(m_showing && node.standardUBO.time < m_lastFrameTime - 1e-6
+     && m_lastFrameTime > m_earliestFrameTime)
+  {
+    const int generation = decoder.seek_generation.load(std::memory_order_acquire);
+    if(generation != m_backwardSeekGeneration)
+    {
+      m_backwardSeekGeneration = generation;
+      decoder.seek(int64_t(
+          std::max(0., double(node.standardUBO.time)) * ossia::flicks_per_second<double>));
     }
   }
 

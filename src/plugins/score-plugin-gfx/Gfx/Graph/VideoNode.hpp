@@ -8,6 +8,7 @@ extern "C" {
 #include <ossia/detail/mutex.hpp>
 
 #include <atomic>
+#include <limits>
 
 namespace Video
 {
@@ -71,6 +72,10 @@ private:
   double m_lastPlaybackTime{-1.};
   bool m_readFrame{};
   bool m_showing{};
+  //! The seek generation a backward seek was last asked at: none other is
+  //! asked until the decoder has done it.
+  int m_backwardSeekGeneration{-1};
+  double m_earliestFrameTime{std::numeric_limits<double>::infinity()};
 };
 
 class SCORE_PLUGIN_GFX_EXPORT VideoNodeBase : public ProcessNode
@@ -126,6 +131,8 @@ private:
   std::optional<double> m_nativeTempo;
   Timings m_lastToken{};
   QElapsedTimer m_timer;
+  //! Playback seconds per wall-clock second, between the last two messages.
+  double m_rate{1.};
   std::atomic_bool m_pause{};
 };
 }
