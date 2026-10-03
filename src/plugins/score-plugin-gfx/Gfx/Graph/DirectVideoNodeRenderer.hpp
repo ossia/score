@@ -90,7 +90,13 @@ private:
   int64_t ptsToFlicks(int64_t pts) const noexcept;
   int64_t flicksToPts(int64_t flicks) const noexcept;
   bool isSequentialRead(int64_t flicks) const;
+  //! The next packet of the video stream.
+  bool readVideoPacket(AVPacket* into);
   bool readNextPacketRaw();
+  bool peekNextPacketRaw();
+  //! The next frame, or packet for the GPU-direct codecs, and read-ahead.
+  bool readNext();
+  bool peekNext();
   //! The next frame in display order: the one read ahead, else a new one.
   bool readNextPacketAVCodec();
   //! Decodes the next frame into `into`, with its display timestamp and
@@ -127,6 +133,10 @@ private:
   //! One frame in the stream's time base, for frames that do not carry a
   //! duration.
   int64_t m_framePts{1};
+  //! The demuxer declares no timestamps (raw elementary streams): frames are
+  //! numbered, and seeking restarts from the beginning.
+  bool m_noTimestamps{};
+  int64_t m_nextMissingPts{};
   bool m_useAVCodec{true};
 
   // Own LibAV context
@@ -169,6 +179,13 @@ private:
   int64_t m_peekedDts{};
   int64_t m_peekedDuration{};
   bool m_hasPeekedFrame{};
+  AVPacket* m_peekedPacket{};
+  bool m_hasPeekedPacket{};
+  //! The largest pts - dts seen: how far the demuxer's seek key is ahead.
+  int64_t m_ptsLead{};
+  //! Without timestamps: the keyframes read so far, as (frame, byte position).
+  std::vector<std::pair<int64_t, int64_t>> m_keyframes;
+  int64_t m_packetNumber{};
   bool m_recomputeScale{true};
 };
 

@@ -16,6 +16,9 @@
 #include <Gfx/Graph/decoders/HWVulkanShared.hpp>
 
 #include <Video/DecoderThreading.hpp>
+#include <Video/PlaybackTime.hpp>
+
+#include <climits>
 #include <Video/GpuFormats.hpp>
 
 #include <score/tools/Debug.hpp>
@@ -587,11 +590,10 @@ bool DirectVideoNodeRenderer::openFile(score::gfx::GraphicsApi api, QRhi* rhi)
   auto codecPar = m_avstream->codecpar;
 
   m_timeBase = m_avstream->time_base;
-  // Frames before 0 are dropped by the frame queue too: time 0 shows the
-  // first frame at or after the start, which need not be 0 (MPEG-TS).
-  m_startPts = m_avstream->start_time != AV_NOPTS_VALUE
-                   ? std::max<int64_t>(m_avstream->start_time, 0)
-                   : 0;
+  // The same time 0 as the frame queue's: see playbackStartPts.
+  m_startPts = ::Video::playbackStartPts(*m_formatContext, *m_avstream);
+  m_nextMissingPts = m_startPts;
+  m_noTimestamps = m_formatContext->iformat->flags & AVFMT_NOTIMESTAMPS;
   {
     const AVRational rate = m_avstream->avg_frame_rate.num > 0
                                 ? m_avstream->avg_frame_rate
@@ -815,6 +817,11 @@ void DirectVideoNodeRenderer::closeFile()
 
   av_frame_free(&m_peekedFrame);
   m_hasPeekedFrame = false;
+  av_packet_free(&m_peekedPacket);
+  m_hasPeekedPacket = false;
+  m_keyframes.clear();
+  m_packetNumber = 0;
+  m_ptsLead = 0;
 
   if(m_decodedFrame)
   {
@@ -871,44 +878,105 @@ bool DirectVideoNodeRenderer::isSequentialRead(int64_t flicks) const
   return delta >= 0 && delta <= frameDurationFlicks * 2 + frameDurationFlicks / 4;
 }
 
+bool DirectVideoNodeRenderer::readVideoPacket(AVPacket* into)
+{
+  while(av_read_frame(m_formatContext, into) >= 0)
+  {
+    if(into->stream_index != m_avstream->index)
+    {
+      av_packet_unref(into);
+      continue;
+    }
+    // How far the demuxer's seek key (dts) runs ahead of display time: a
+    // seek for a time asks for that much earlier.
+    if(into->pts != AV_NOPTS_VALUE && into->dts != AV_NOPTS_VALUE)
+      m_ptsLead = std::max(m_ptsLead, into->pts - into->dts);
+    // Without timestamps, where each keyframe is: the next seek to it or
+    // after it starts there rather than from the beginning.
+    if(m_noTimestamps)
+    {
+      if((into->flags & AV_PKT_FLAG_KEY) && into->pos >= 0
+         && (m_keyframes.empty() || m_keyframes.back().first < m_packetNumber))
+        m_keyframes.emplace_back(m_packetNumber, into->pos);
+      m_packetNumber++;
+    }
+    return true;
+  }
+  return false;
+}
+
+static int64_t packetTimestamp(const AVPacket& p) noexcept
+{
+  return p.pts != AV_NOPTS_VALUE ? p.pts : p.dts;
+}
+
 bool DirectVideoNodeRenderer::readNextPacketRaw()
 {
-  auto packet = av_packet_alloc();
+  AVPacket* packet = av_packet_alloc();
   bool found = false;
-  int attempts = 0;
-
-  while(av_read_frame(m_formatContext, packet) >= 0 && attempts < 10)
+  if(m_hasPeekedPacket)
   {
-    attempts++;
-    if(packet->stream_index == m_avstream->index)
-    {
-      auto cp = m_avstream->codecpar;
-      if(!m_decodedFrame)
-        m_decodedFrame = av_frame_alloc();
+    av_packet_move_ref(packet, m_peekedPacket);
+    m_hasPeekedPacket = false;
+    found = true;
+  }
+  else
+  {
+    found = readVideoPacket(packet);
+  }
 
-      if(m_decodedFrame->buf[0])
-        av_buffer_unref(&m_decodedFrame->buf[0]);
+  if(found)
+  {
+    auto cp = m_avstream->codecpar;
+    if(!m_decodedFrame)
+      m_decodedFrame = av_frame_alloc();
 
-      m_decodedFrame->buf[0] = av_buffer_ref(packet->buf);
-      m_decodedFrame->width = cp->width;
-      m_decodedFrame->height = cp->height;
-      m_decodedFrame->format = cp->codec_tag;
-      m_decodedFrame->data[0] = packet->data;
-      m_decodedFrame->linesize[0] = packet->size;
-      m_decodedFrame->pts = packet->pts;
-      m_decodedFrame->pkt_dts = packet->dts;
+    if(m_decodedFrame->buf[0])
+      av_buffer_unref(&m_decodedFrame->buf[0]);
 
-      m_lastDecodedDts = packet->dts != AV_NOPTS_VALUE ? packet->dts : packet->pts;
-      m_lastDecodedDuration = packet->duration;
-      found = true;
-      av_packet_unref(packet);
-      break;
-    }
-    av_packet_unref(packet);
+    m_decodedFrame->buf[0] = av_buffer_ref(packet->buf);
+    m_decodedFrame->width = cp->width;
+    m_decodedFrame->height = cp->height;
+    m_decodedFrame->format = cp->codec_tag;
+    m_decodedFrame->data[0] = packet->data;
+    m_decodedFrame->linesize[0] = packet->size;
+    m_decodedFrame->pts = packet->pts;
+    m_decodedFrame->pkt_dts = packet->dts;
+
+    // The display timestamp, as for decoded frames: containers with
+    // composition offsets (MOV, Matroska) have dts before it.
+    m_lastDecodedDts = packetTimestamp(*packet);
+    m_lastDecodedDuration = packet->duration;
   }
 
   av_packet_free(&packet);
   return found;
+}
+
+bool DirectVideoNodeRenderer::peekNextPacketRaw()
+{
+  if(m_hasPeekedPacket)
+    return true;
+  if(!m_peekedPacket)
+    m_peekedPacket = av_packet_alloc();
+  av_packet_unref(m_peekedPacket);
+  m_hasPeekedPacket = readVideoPacket(m_peekedPacket);
+  if(m_hasPeekedPacket)
+  {
+    m_peekedDts = packetTimestamp(*m_peekedPacket);
+    m_peekedDuration = m_peekedPacket->duration;
+  }
+  return m_hasPeekedPacket;
+}
+
+bool DirectVideoNodeRenderer::readNext()
+{
+  return m_useAVCodec ? readNextPacketAVCodec() : readNextPacketRaw();
+}
+
+bool DirectVideoNodeRenderer::peekNext()
+{
+  return m_useAVCodec ? peekNextFrame() : peekNextPacketRaw();
 }
 
 static int64_t displayTimestamp(const AVFrame& f) noexcept
@@ -931,14 +999,8 @@ bool DirectVideoNodeRenderer::decodeNextFrame(
   bool found = false;
   int attempts = 0;
 
-  while(av_read_frame(m_formatContext, packet) >= 0 && attempts < 64)
+  while(attempts < 64 && readVideoPacket(packet))
   {
-    if(packet->stream_index != m_avstream->index)
-    {
-      av_packet_unref(packet);
-      continue;
-    }
-
     attempts++;
     int ret = avcodec_send_packet(m_codecContext, packet);
     av_packet_unref(packet);
@@ -971,8 +1033,13 @@ bool DirectVideoNodeRenderer::decodeNextFrame(
 
   if(found)
   {
-    ts = displayTimestamp(*into);
-    duration = frameDuration(*into);
+    // Frames without a timestamp are numbered from the previous one, one
+    // frame at the stream's rate, as VideoDecoder numbers them.
+    ts = m_noTimestamps ? AV_NOPTS_VALUE : displayTimestamp(*into);
+    duration = m_noTimestamps ? 0 : frameDuration(*into);
+    if(ts == AV_NOPTS_VALUE)
+      ts = m_nextMissingPts;
+    m_nextMissingPts = ts + (duration > 0 ? duration : m_framePts);
   }
   av_packet_free(&packet);
   return found;
@@ -1008,6 +1075,9 @@ void DirectVideoNodeRenderer::dropPeekedFrame() noexcept
   if(m_peekedFrame)
     av_frame_unref(m_peekedFrame);
   m_hasPeekedFrame = false;
+  if(m_peekedPacket)
+    av_packet_unref(m_peekedPacket);
+  m_hasPeekedPacket = false;
 }
 
 bool DirectVideoNodeRenderer::seekAndDecode(int64_t flicks)
@@ -1021,57 +1091,81 @@ bool DirectVideoNodeRenderer::seekAndDecode(int64_t flicks)
   // For sequential forward playback, skip the expensive seek
   const bool sequential = isSequentialRead(flicks);
 
-  if(!m_useAVCodec)
-  {
-    // Raw GPU-compressed path (HAP, DXV)
-    if(!sequential && !seekTo(flicksToPts(flicks)))
-      return false;
-    return readNextPacketRaw();
-  }
-
-  // AVCodec path (ProRes, MJPEG, DNxHD, H.264, HEVC, etc.)
-  if(!m_codecContext || !m_decodedFrame)
+  // HAP / DXV packets go to the GPU as they are: the same walk, with packets
+  // read ahead where decoded paths read frames ahead.
+  if(m_useAVCodec && !m_codecContext)
     return false;
 
   const int64_t target = flicksToPts(flicks);
   // Moving forward, the frame on screen may still be the one: only the next
   // frame's start says so.
   if(sequential && target >= m_lastDecodedDts
-     && (holdsTime(flicks) || !peekNextFrame() || m_peekedDts == AV_NOPTS_VALUE
+     && (holdsTime(flicks) || !peekNext() || m_peekedDts == AV_NOPTS_VALUE
          || m_peekedDts > target))
     return true;
 
-  if(!sequential)
+  // The frame on screen is the target's: well inside its span, or before it
+  // (nothing earlier came out). Near or past its stated end, which
+  // containers round (66 ms frames 66.7 ms apart), the next frame's start
+  // decides; a frame read ahead is kept for the next read.
+  auto settled = [&] {
+    if(m_lastDecodedDts == AV_NOPTS_VALUE)
+      return true;
+    const int64_t duration
+        = m_lastDecodedDuration > 0 ? m_lastDecodedDuration : m_framePts;
+    if(target < m_lastDecodedDts + duration - duration / 4)
+      return true;
+    return !peekNext() || m_peekedDts == AV_NOPTS_VALUE || m_peekedDts > target;
+  };
+
+  bool ok = false;
+  if(sequential)
   {
-    av_frame_unref(m_decodedFrame);
+    if(!readNext())
+      return false;
+    ok = true;
+  }
+  else
+  {
+    if(m_decodedFrame)
+      av_frame_unref(m_decodedFrame);
     if(!seekTo(target))
       return false;
+    // seekTo asks for the target minus the pts - dts lead measured so far;
+    // before any packet was read (or if a later one leads further), a demuxer
+    // seeking on dts (MPEG-TS, MPEG-PS) can still land on a frame that shows
+    // after the target: back off until the first frame is not later.
+    int64_t back = 0;
+    for(int attempt = 0;; attempt++)
+    {
+      if(!readNext())
+        return false;
+      ok = true;
+      // A seek to the very first frame's time can land after it too: backing
+      // off goes below the start as well, down to the beginning.
+      // A video starting after its container (audio first) legitimately
+      // shows its first frame after any earlier target.
+      if(attempt >= 6 || m_noTimestamps || m_lastDecodedDts == AV_NOPTS_VALUE
+         || m_lastDecodedDts <= std::max(target, m_avstream->start_time)
+         || target - back <= 0)
+        break;
+      back = back ? back * 2 : 2 * m_framePts;
+      if(!seekTo(std::max<int64_t>(0, target - back)))
+        break;
+    }
   }
 
   // Decode until the requested time is reached. After a backward seek this
   // replays the GOP up to the target; stopping at the keyframe instead would
   // both show the wrong frame and leave m_lastDecodedDts at the keyframe,
-  // making every subsequent read look non-sequential (a seek per frame).
-  // The frame shown is the one whose span holds the target, compared in the
-  // stream's own time base: a time on a frame's start shows that frame.
-  bool ok = false;
-  for(int guard = sequential ? 4 : 4096; guard-- > 0;)
+  // making every subsequent read look non-sequential (a seek per frame). A
+  // stream without timestamps is walked from the last keyframe seen before
+  // the target, however far.
+  for(int guard = sequential ? 4 : m_noTimestamps ? INT_MAX : 4096;
+      guard-- > 0 && !settled();)
   {
-    if(!readNextPacketAVCodec())
+    if(!readNext())
       return ok; // EOF / error: keep the last frame that did decode
-    ok = true;
-    if(m_lastDecodedDts == AV_NOPTS_VALUE)
-      break;
-    // Well inside this frame's span, or before it: nothing earlier came out.
-    const int64_t duration
-        = m_lastDecodedDuration > 0 ? m_lastDecodedDuration : m_framePts;
-    if(target < m_lastDecodedDts + duration - duration / 4)
-      break;
-    // Near or past its stated end, which containers round (66 ms frames
-    // 66.7 ms apart): the next frame's start decides. A frame read ahead
-    // is kept for the next read.
-    if(!peekNextFrame() || m_peekedDts == AV_NOPTS_VALUE || m_peekedDts > target)
-      break;
   }
   return ok;
 }
@@ -1083,14 +1177,10 @@ bool DirectVideoNodeRenderer::holdsTime(int64_t flicks) const noexcept
   const int64_t pts = flicksToPts(flicks);
   if(pts < m_lastDecodedDts)
     return false;
-  if(m_hasPeekedFrame && m_peekedDts != AV_NOPTS_VALUE)
+  if((m_hasPeekedFrame || m_hasPeekedPacket) && m_peekedDts != AV_NOPTS_VALUE)
     return pts < m_peekedDts;
   const int64_t duration
       = m_lastDecodedDuration > 0 ? m_lastDecodedDuration : m_framePts;
-  // Packets forwarded to the GPU are not read ahead: their stated span is
-  // all there is.
-  if(!m_useAVCodec)
-    return pts < m_lastDecodedDts + duration;
   // Stated durations are rounded: the last quarter is left to the next
   // frame's start, which seekAndDecode reads ahead for.
   return pts < m_lastDecodedDts + duration - duration / 4;
@@ -1103,30 +1193,43 @@ bool DirectVideoNodeRenderer::seekTo(int64_t pts)
   // all-intra file is the next frame.
   dropPeekedFrame();
   const int index = m_avstream->index;
-  if(avformat_seek_file(m_formatContext, index, INT64_MIN, pts, pts, 0) < 0
-     && av_seek_frame(m_formatContext, index, pts, AVSEEK_FLAG_BACKWARD) < 0)
-    return false;
+  if(m_noTimestamps)
+  {
+    // No time can be sought: from the last keyframe seen at or before the
+    // frame, or else from the start, numbering the frames from there.
+    const int64_t frame = m_framePts > 0 ? (pts - m_startPts) / m_framePts : 0;
+    std::pair<int64_t, int64_t> from{0, 0};
+    for(const auto& k : m_keyframes)
+      if(k.first <= frame)
+        from = k;
+    if(av_seek_frame(m_formatContext, index, from.second, AVSEEK_FLAG_BYTE) < 0)
+      return false;
+    m_packetNumber = from.first;
+    m_nextMissingPts = m_startPts + from.first * m_framePts;
+  }
+  else
+  {
+    // The demuxer seeks on dts, which runs m_ptsLead ahead of display time
+    // (reorder and mux delay, measured on the packets read so far).
+    const int64_t key = pts - m_ptsLead;
+    if(avformat_seek_file(m_formatContext, index, INT64_MIN, key, key, 0) < 0
+       && av_seek_frame(m_formatContext, index, key, AVSEEK_FLAG_BACKWARD) < 0)
+      return false;
+  }
   if(m_codecContext)
     avcodec_flush_buffers(m_codecContext);
   return true;
 }
 
-static constexpr AVRational flicks_time_base{
-    1, int(ossia::flicks_per_second<int64_t>)};
 
 int64_t DirectVideoNodeRenderer::ptsToFlicks(int64_t pts) const noexcept
 {
-  return av_rescale_q(pts - m_startPts, m_timeBase, flicks_time_base);
+  return ::Video::ptsToFlicks(pts, m_timeBase, m_startPts);
 }
 
 int64_t DirectVideoNodeRenderer::flicksToPts(int64_t flicks) const noexcept
 {
-  // To the nearest tick: a time computed from a frame's start, in floating
-  // point, lands a fraction of a tick away from it on either side.
-  return av_rescale_q_rnd(
-             flicks, flicks_time_base, m_timeBase,
-             AVRounding(AV_ROUND_NEAR_INF | AV_ROUND_PASS_MINMAX))
-         + m_startPts;
+  return ::Video::flicksToPts(flicks, m_timeBase, m_startPts);
 }
 
 // ============================================================
