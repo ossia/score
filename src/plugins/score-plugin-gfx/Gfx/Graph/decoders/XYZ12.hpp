@@ -49,7 +49,8 @@ void main ()
   vec2 tc = score_tc(v_texcoord);
   int x = int(floor(tc.x * mat.texSz.x) * 3.);
   int y = int(tc.y * mat.texSz.y);
-  const float s = )_" SCORE_GFX_MSB_ALIGNED_SCALE R"_(;
+  // 12 bits at the top of the word: full scale is 4095 << 4 = 65520.
+  const float s = 65535.0 / 65520.0;
   float X = texelFetch(y_tex, ivec2(x + 0, y), 0).r * s;
   float Y = texelFetch(y_tex, ivec2(x + 1, y), 0).r * s;
   float Z = texelFetch(y_tex, ivec2(x + 2, y), 0).r * s;
