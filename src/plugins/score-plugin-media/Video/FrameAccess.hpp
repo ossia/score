@@ -23,7 +23,7 @@ extern "C" {
  *  - a container index covering every frame (MP4, MOV) gives the layout for
  *    free;
  *  - otherwise the first packets are demuxed, not decoded, and their keyframe
- *    flags read. Matroska indexes only some keyframes, MPEG-TS and MXF expose
+ *    flags read, through a second context on the same file. Matroska indexes only some keyframes, MPEG-TS and MXF expose
  *    no index at all.
  */
 namespace Video
@@ -89,12 +89,29 @@ inline FrameAccessProbe fromIndex(const AVStream& st) noexcept
 #endif
 }
 
-//! Reads keyframe flags off the first packets, then rewinds to the start.
-inline FrameAccessProbe fromPackets(AVFormatContext& fmt, AVStream& st) noexcept
+//! Reads keyframe flags off the first packets of the first video stream,
+//! through a context of its own: whatever the demuxer, the caller's context
+//! is left where it was. Some cannot be rewound at all -- a time seek fails
+//! on a stream without timestamps and leaves the demuxer at its end, and
+//! some demuxers do not seek by bytes either.
+inline FrameAccessProbe fromPackets(const char* url) noexcept
 {
+  AVFormatContext* fmt{};
+  if(!url || avformat_open_input(&fmt, url, nullptr, nullptr) != 0)
+    return {};
   AVPacket* pkt = av_packet_alloc();
   if(!pkt)
+  {
+    avformat_close_input(&fmt);
     return {};
+  }
+
+  // Demuxers that create their streams while reading (MPEG-TS) have none yet:
+  // the first video stream a packet belongs to is then the one.
+  int video = -1;
+  for(unsigned i = 0; i < fmt->nb_streams && video < 0; i++)
+    if(fmt->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_VIDEO)
+      video = int(i);
 
   // All-intra is settled once more consecutive keyframes than any short GOP
   // went by; a short GOP needs its second keyframe; a long one is settled
@@ -102,9 +119,13 @@ inline FrameAccessProbe fromPackets(AVFormatContext& fmt, AVStream& st) noexcept
   constexpr int max_packets = 2 * (max_short_gop + 1);
   int seen = 0, keys = 0, gap = 0, maxGap = 0;
   bool timed = false;
-  while(seen < max_packets && av_read_frame(&fmt, pkt) >= 0)
+  while(seen < max_packets && av_read_frame(fmt, pkt) >= 0)
   {
-    if(pkt->stream_index == st.index)
+    if(video < 0 && pkt->stream_index < int(fmt->nb_streams)
+       && fmt->streams[pkt->stream_index]->codecpar->codec_type == AVMEDIA_TYPE_VIDEO)
+      video = pkt->stream_index;
+
+    if(pkt->stream_index == video)
     {
       seen++;
       timed |= pkt->pts != AV_NOPTS_VALUE || pkt->dts != AV_NOPTS_VALUE;
@@ -128,13 +149,7 @@ inline FrameAccessProbe fromPackets(AVFormatContext& fmt, AVStream& st) noexcept
       break;
   }
   av_packet_free(&pkt);
-
-  // A stream without timestamps cannot be sought by time, and a failed
-  // attempt leaves the demuxer at its end: rewind by bytes instead.
-  const int64_t start = st.start_time != AV_NOPTS_VALUE ? st.start_time : 0;
-  if(!timed || (av_seek_frame(&fmt, st.index, start, AVSEEK_FLAG_BACKWARD) < 0
-                && avformat_seek_file(&fmt, -1, INT64_MIN, 0, INT64_MAX, 0) < 0))
-    av_seek_frame(&fmt, st.index, 0, AVSEEK_FLAG_BYTE);
+  avformat_close_input(&fmt);
 
   if(seen == 0)
     return {};
@@ -150,10 +165,11 @@ inline FrameAccessProbe fromPackets(AVFormatContext& fmt, AVStream& st) noexcept
 }
 
 /**
- * Must run before any packet of the stream is consumed: the packet probe
- * rewinds to the stream's start, not to where reading was.
+ * @param url what `fmt` was opened from: the packet probe, when needed, reads
+ *        through a context of its own, so `fmt` is not moved.
  */
-inline FrameAccessProbe classifyFrameAccess(AVFormatContext& fmt, AVStream& st) noexcept
+inline FrameAccessProbe
+classifyFrameAccess(AVFormatContext& fmt, AVStream& st, const char* url) noexcept
 {
   using namespace keyframe_probe;
   if(!canSeek(fmt))
@@ -162,7 +178,7 @@ inline FrameAccessProbe classifyFrameAccess(AVFormatContext& fmt, AVStream& st) 
   // Without a start time the stream may carry no timestamps at all, which
   // only its packets tell.
   if(st.start_time == AV_NOPTS_VALUE)
-    return fromPackets(fmt, st);
+    return fromPackets(url);
 
   if(auto desc = avcodec_descriptor_get(st.codecpar->codec_id);
      desc && (desc->props & AV_CODEC_PROP_INTRA_ONLY))
@@ -171,7 +187,7 @@ inline FrameAccessProbe classifyFrameAccess(AVFormatContext& fmt, AVStream& st) 
   if(auto p = fromIndex(st); p.access != FrameAccess::Unknown)
     return p;
 
-  return fromPackets(fmt, st);
+  return fromPackets(url);
 }
 }
 #endif

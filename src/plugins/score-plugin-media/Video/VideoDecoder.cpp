@@ -1060,7 +1060,8 @@ bool VideoDecoder::open_stream() noexcept
 
   if(res && m_avstream)
   {
-    const auto probe = classifyFrameAccess(*m_formatContext, *m_avstream);
+    const auto probe
+        = classifyFrameAccess(*m_formatContext, *m_avstream, m_inputFile.c_str());
     frame_access = probe.access;
     max_keyframe_gap = probe.max_gap;
   }
