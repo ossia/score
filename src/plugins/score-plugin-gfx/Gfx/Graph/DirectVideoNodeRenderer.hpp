@@ -16,6 +16,7 @@ struct AVPacket;
 struct AVBufferRef;
 struct SwsContext;
 #include <libavutil/pixfmt.h>
+#include <libavutil/rational.h>
 }
 
 namespace Video
@@ -79,9 +80,24 @@ private:
   bool openFile(score::gfx::GraphicsApi api, QRhi* rhi = nullptr);
   void closeFile();
   bool seekAndDecode(int64_t flicks);
+  //! Whether the frame on screen is the one for this playback time, as far as
+  //! is known without decoding: update() decodes only when it is not.
+  bool holdsTime(int64_t flicks) const noexcept;
+  //! Seeks to the keyframe at or before `pts`, in the stream's time base.
+  bool seekTo(int64_t pts);
+  //! Playback time of a timestamp, and back: time 0 is the stream's start.
+  int64_t ptsToFlicks(int64_t pts) const noexcept;
+  int64_t flicksToPts(int64_t flicks) const noexcept;
   bool isSequentialRead(int64_t flicks) const;
   bool readNextPacketRaw();
+  //! The next frame in display order: the one read ahead, else a new one.
   bool readNextPacketAVCodec();
+  //! Decodes the next frame into `into`, with its display timestamp and
+  //! duration.
+  bool decodeNextFrame(AVFrame* into, int64_t& ts, int64_t& duration);
+  //! Reads the next frame ahead and keeps it for readNextPacketAVCodec.
+  bool peekNextFrame();
+  void dropPeekedFrame() noexcept;
 
   void createGpuDecoder(QRhi& rhi);
   score::gfx::PixelFormatInfo hwPixelFormatInfo() const;
@@ -104,6 +120,12 @@ private:
   double m_fps{};
   double m_flicks_per_dts{};
   double m_dts_per_flicks{};
+  AVRational m_timeBase{0, 1};
+  //! The timestamp shown at playback time 0.
+  int64_t m_startPts{};
+  //! One frame in the stream's time base, for frames that do not carry a
+  //! duration.
+  int64_t m_framePts{1};
   bool m_useAVCodec{true};
 
   // Own LibAV context
@@ -145,6 +167,11 @@ private:
 
   int64_t m_lastRequestedFlicks{-1};
   int64_t m_lastDecodedDts{INT64_MIN};
+  int64_t m_lastDecodedDuration{};
+  AVFrame* m_peekedFrame{};
+  int64_t m_peekedDts{};
+  int64_t m_peekedDuration{};
+  bool m_hasPeekedFrame{};
   bool m_recomputeScale{true};
 };
 
