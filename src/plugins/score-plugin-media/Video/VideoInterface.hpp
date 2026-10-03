@@ -7,6 +7,7 @@
 extern "C" {
 #include <libavcodec/codec_id.h>
 #include <libavutil/pixfmt.h>
+#include <libavutil/rational.h>
 #include <libavcodec/version.h>
 #if LIBAVCODEC_VERSION_INT >= AV_VERSION_INT(61, 3, 100)
 #if __has_include(<libavutil/mastering_display_metadata.h>)
@@ -17,6 +18,7 @@ struct AVFrame;
 struct AVCodecContext;
 struct AVPacket;
 }
+#include <atomic>
 #include <memory>
 #include <string>
 
@@ -79,6 +81,10 @@ struct SCORE_PLUGIN_MEDIA_EXPORT VideoMetadata : ImageFormat
   bool realTime{};
   double flicks_per_dts{};
   double dts_per_flicks{};
+  //! The timestamp shown at playback time 0: see playbackStartPts.
+  int64_t start_pts{};
+  //! The video stream's time base, which pts are counted in.
+  AVRational time_base{0, 1};
 };
 
 struct SCORE_PLUGIN_MEDIA_EXPORT VideoInterface : VideoMetadata
@@ -86,6 +92,9 @@ struct SCORE_PLUGIN_MEDIA_EXPORT VideoInterface : VideoMetadata
   virtual ~VideoInterface();
   virtual AVFrame* dequeue_frame() noexcept = 0;
   virtual void release_frame(AVFrame* frame) noexcept = 0;
+  //! The generation (frameGeneration) of the last seek done: a frame of an
+  //! earlier one is from before it, and is not to be shown.
+  std::atomic_int seek_generation{};
 };
 
 struct SCORE_PLUGIN_MEDIA_EXPORT ReadFrame

@@ -26,7 +26,7 @@ struct RefcountedFrame
   std::atomic_int use_count{};
 };
 
-struct VideoFrameShare
+struct SCORE_PLUGIN_GFX_EXPORT VideoFrameShare
 {
   VideoFrameShare();
   ~VideoFrameShare();
@@ -47,14 +47,17 @@ struct VideoFrameShare
   std::vector<std::shared_ptr<RefcountedFrame>> m_framesInFlight;
 };
 
-struct VideoFrameReader : VideoFrameShare
+struct SCORE_PLUGIN_GFX_EXPORT VideoFrameReader : VideoFrameShare
 {
   VideoFrameReader();
   ~VideoFrameReader();
 
+  /// The frame for the node's current time, if a new one is due.
+  /// @param showing whether a frame is on screen: until one is, the first
+  ///        frame shows even before its time, as in DirectVideoNodeRenderer.
   static AVFrame* nextFrame(
       const VideoNode& node, Video::VideoInterface& decoder,
-      std::vector<AVFrame*>& framesToFree, AVFrame*& nextFrame);
+      std::vector<AVFrame*>& framesToFree, AVFrame*& nextFrame, bool showing);
 
   bool mustReadVideoFrame(const VideoNode& node);
   void readNextFrame(VideoNode& node);
@@ -67,6 +70,7 @@ private:
   double m_lastFrameTime{};
   double m_lastPlaybackTime{-1.};
   bool m_readFrame{};
+  bool m_showing{};
 };
 
 class SCORE_PLUGIN_GFX_EXPORT VideoNodeBase : public ProcessNode

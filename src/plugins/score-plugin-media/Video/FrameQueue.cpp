@@ -117,6 +117,8 @@ void FrameQueue::enqueue_decoding_error(AVFrame* f)
 
 void FrameQueue::enqueue(AVFrame* f)
 {
+  if(f)
+    f->opaque = reinterpret_cast<void*>(intptr_t(m_generation.load()));
   available.enqueue(f);
 }
 
