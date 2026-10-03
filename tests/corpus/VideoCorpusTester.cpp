@@ -929,7 +929,13 @@ int run_direct_renderer(const std::string& path)
   }
 
   const auto& frames = ref.frames;
-  const int64_t first_pts = frames.front().pts;
+  // Playback time 0 is the stream's start, or 0 when it starts before: frames
+  // before 0 are dropped. Frames that fail to decode at the start (damaged
+  // files) leave the first decoded one later than that.
+  const int64_t stream_start = dec->m_avstream->start_time;
+  const int64_t first_pts = stream_start != AV_NOPTS_VALUE
+                                ? std::max<int64_t>(stream_start, 0)
+                                : frames.front().pts;
   const double flicks_per_dts = r.m_flicks_per_dts;
   auto request = [&](size_t i, bool absolute) {
     const int64_t pts = frames[i].pts - (absolute ? 0 : first_pts);
@@ -973,14 +979,10 @@ int run_direct_renderer(const std::string& path)
     return -1;
   };
 
-  // update() keeps the frame it has when the time is within one frame of
-  // it, and decodes otherwise.
-  const double fps = r.m_fps > 0. ? r.m_fps : 24.;
-  const auto frame_flicks = int64_t(ossia::flicks_per_second<double> / fps);
+  // update() keeps the frame it has while it holds the time, and decodes
+  // otherwise.
   auto shows = [&](int64_t flicks) {
-    if(r.m_lastDecodedDts != INT64_MIN && direct_frame(r).ok
-       && std::abs(flicks - int64_t(double(r.m_lastDecodedDts) * flicks_per_dts))
-              < frame_flicks)
+    if(direct_frame(r).ok && r.holdsTime(flicks))
       return true;
     return r.seekAndDecode(flicks);
   };
