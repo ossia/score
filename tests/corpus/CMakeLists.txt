@@ -9,6 +9,12 @@ if(TARGET score_plugin_media)
     score_plugin_media
     avcodec avformat avutil swscale
     ${QT_PREFIX}::Core)
+  # --direct-renderer drives DirectVideoNodeRenderer's decoder, which lives in
+  # the gfx plug-in; the other modes need the media plug-in only.
+  if(TARGET score_plugin_gfx)
+    target_link_libraries(score_video_corpus_tester PRIVATE score_plugin_gfx)
+    target_compile_definitions(score_video_corpus_tester PRIVATE SCORE_CORPUS_HAS_GFX=1)
+  endif()
   setup_score_common_exe_features(score_video_corpus_tester)
   # Both testers are raw add_executable rather than score_add_test, so they miss
   # the enable_minimal_qt_plugins() that ScoreTests.cmake:157 gives every other

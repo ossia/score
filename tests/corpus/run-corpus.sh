@@ -2,7 +2,10 @@
 # Sweep a directory of media files through score_video_corpus_tester, one
 # process per file per mode, so crashes and hangs become report lines.
 #
-#   run-corpus.sh <corpus-dir> <out-dir> [jobs] [tester-path]
+#   run-corpus.sh <corpus-dir|file-list> <out-dir> [jobs] [tester-path]
+#
+# A file list holds one path per line, relative to the current directory or
+# absolute: for sweeping only the files a probe found to be video.
 #
 # Produces in <out-dir>:
 #   results.jsonl   one verdict per file+mode (tester JSON, or a synthesized
@@ -24,18 +27,23 @@ rm -f "$OUT"/shards/* "$OUT"/errs/* "$OUT/results.jsonl" "$OUT/summary.txt"
 export ASAN_OPTIONS="${ASAN_OPTIONS:-abort_on_error=1:detect_leaks=0}"
 export UBSAN_OPTIONS="${UBSAN_OPTIONS:-print_stacktrace=1}"
 
-export TESTER OUT
+# MODES picks the modes to run, by default all of them.
+MODES="${MODES:-direct playback seek direct_renderer}"
+
+export TESTER OUT MODES
 
 run_one() {
   local f="$1"
   local key; key=$(echo "$f" | md5sum | cut -d' ' -f1)
   local shard="$OUT/shards/$key"
   local mode flag tmo out ec
-  for mode in direct playback seek; do
+  for mode in $MODES; do
     case $mode in
-      direct)   flag="";              tmo=200 ;;
-      playback) flag="--playback";    tmo=160 ;;
-      seek)     flag="--seek-stress"; tmo=160 ;;
+      direct)          flag="";                  tmo=200 ;;
+      playback)        flag="--playback";        tmo=160 ;;
+      seek)            flag="--seek-stress";     tmo=160 ;;
+      direct_renderer) flag="--direct-renderer"; tmo=200 ;;
+      *) echo "unknown mode: $mode" >&2; return ;;
     esac
     local errf="$OUT/errs/$key.$mode"
     # shellcheck disable=SC2086
@@ -58,10 +66,13 @@ run_one() {
 }
 export -f run_one
 
-find "$CORPUS" -type f \
-    ! -name '*.log' ! -name '*.txt' ! -name '*.md' ! -name '*.py' \
-    ! -name '*.sh' ! -name '*.xml' ! -name '*.cue' \
-  | sort | xargs -r -P "$JOBS" -I{} bash -c 'run_one "$@"' _ {}
+if [ -f "$CORPUS" ]; then
+  cat "$CORPUS"
+else
+  find "$CORPUS" -type f \
+      ! -name '*.log' ! -name '*.txt' ! -name '*.md' ! -name '*.py' \
+      ! -name '*.sh' ! -name '*.xml' ! -name '*.cue' | sort
+fi | xargs -r -d '\n' -P "$JOBS" -I{} bash -c 'run_one "$@"' _ {}
 
 cat "$OUT"/shards/* > "$OUT/results.jsonl" 2>/dev/null || true
 rm -rf "$OUT/shards"
