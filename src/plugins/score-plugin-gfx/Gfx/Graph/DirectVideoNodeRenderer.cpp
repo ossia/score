@@ -3,7 +3,6 @@
 #include <Gfx/Graph/VulkanVideoDevice.hpp>
 #include <Gfx/Settings/Model.hpp>
 
-#include <score/application/ApplicationContext.hpp>
 #include <Gfx/Graph/decoders/GPUVideoDecoder.hpp>
 #include <Gfx/Graph/decoders/GPUVideoDecoderFactory.hpp>
 #include <Gfx/Graph/decoders/HWTransfer.hpp>
@@ -663,7 +662,7 @@ bool DirectVideoNodeRenderer::openFile(score::gfx::GraphicsApi api, QRhi* rhi)
   // non-sequential here.
   const auto threading = ::Video::chooseDecoderThreading(
       *codec, codecPar, ::Video::DecodeUseCase::FrameExact,
-      score::AppContext().settings<Gfx::Settings::Model>().getDecodingThreads());
+      node().m_decodingThreads);
   ::Video::applyDecoderThreading(*m_codecContext, threading);
 
   // Try hardware-accelerated decoding
@@ -675,10 +674,8 @@ bool DirectVideoNodeRenderer::openFile(score::gfx::GraphicsApi api, QRhi* rhi)
     const char* apiName = (api >= 0 && api <= 5) ? apiNames[api] : "Unknown";
     uint32_t vendorId = rhi ? rhi->driverInfo().vendorId : 0;
 
-    // Read the user's HW decode setting
     static const Gfx::Settings::HardwareVideoDecoder decoders;
-    auto& set = score::AppContext().settings<Gfx::Settings::Model>();
-    const auto hwSetting = set.getHardwareDecode();
+    const auto& hwSetting = node().m_hardwareDecode;
 
     if(hwSetting.isEmpty() || hwSetting == decoders.None)
     {

@@ -6,9 +6,11 @@
 #include <Gfx/GfxContext.hpp>
 #include <Gfx/GfxExecNode.hpp>
 #include <Gfx/Graph/VideoNode.hpp>
+#include <Gfx/Settings/Model.hpp>
 #include <Gfx/TexturePort.hpp>
 #include <Gfx/Video/Process.hpp>
 
+#include <score/application/ApplicationContext.hpp>
 #include <score/document/DocumentContext.hpp>
 #include <score/tools/Bind.hpp>
 
@@ -16,6 +18,15 @@
 
 namespace Gfx::Video
 {
+static std::unique_ptr<score::gfx::VideoNode> makeVideoNode(
+    const std::shared_ptr<video_decoder>& dec, std::optional<double> tempo)
+{
+  auto n = std::make_unique<score::gfx::VideoNode>(dec, tempo);
+  auto& set = score::AppContext().settings<Gfx::Settings::Model>();
+  n->setDecodingSettings(set.getHardwareDecode(), set.getDecodingThreads());
+  return n;
+}
+
 class video_node final : public gfx_exec_node
 {
 public:
@@ -25,7 +36,7 @@ public:
       : gfx_exec_node{ctx}
       , m_decoder{dec}
   {
-    auto n = std::make_unique<score::gfx::VideoNode>(m_decoder, tempo);
+    auto n = makeVideoNode(m_decoder, tempo);
     impl = n.get();
     id = exec_context->ui->register_node(std::move(n));
     //    m_decoder->seek(0);
@@ -49,7 +60,7 @@ public:
     {
       m_decoder->seek(m_last_flicks.impl);
 
-      auto n = std::make_unique<score::gfx::VideoNode>(m_decoder, tempo);
+      auto n = makeVideoNode(m_decoder, tempo);
       impl = n.get();
       id = exec_context->ui->register_node(std::move(n));
     }

@@ -35,6 +35,12 @@ void VideoNodeBase::setTonemap(::Video::Tonemap s)
   m_tonemap = s;
 }
 
+void VideoNodeBase::setDecodingSettings(QString hardwareDecode, int threads)
+{
+  m_hardwareDecode = std::move(hardwareDecode);
+  m_decodingThreads = threads;
+}
+
 VideoNode::VideoNode(
     std::shared_ptr<Video::VideoInterface> dec, std::optional<double> nativeTempo)
     : m_nativeTempo{nativeTempo}

@@ -76,6 +76,7 @@ public:
   void setPlaybackMode(score::gfx::PlaybackMode s);
   void setOutputFormat(::Video::OutputFormat s);
   void setTonemap(::Video::Tonemap s);
+  void setDecodingSettings(QString hardwareDecode, int threads);
 
   friend VideoNodeRenderer;
   friend DirectVideoNodeRenderer;
@@ -86,6 +87,10 @@ protected:
   score::gfx::PlaybackMode m_playbackMode{};
   ::Video::OutputFormat m_outputFormat{};
   ::Video::Tonemap m_tonemap{};
+  //! The "Hardware Video Decoding" and "Decoding threads" settings, for the
+  //! renderers that open their own decoder. Empty means no hardware decoding.
+  QString m_hardwareDecode;
+  int m_decodingThreads{};
 };
 
 /**
