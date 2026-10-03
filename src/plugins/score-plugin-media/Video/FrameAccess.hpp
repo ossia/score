@@ -17,9 +17,10 @@ extern "C" {
  * Scrubbing to a frame means decoding from the keyframe before it, so the
  * longest run of non-keyframes bounds the cost of any seek, on every machine.
  *
- * The codec alone does not say: AV_CODEC_PROP_INTRA_ONLY is set for ProRes,
- * DNxHD, JPEG 2000..., but not for CineForm, PNG or FFV1, nor for all-intra
- * H.264 / HEVC / MPEG-2 (AVC-Intra, XAVC-I, IMX). So the stream is read:
+ * A demuxer that declares no timestamps settles it, and so does a codec with
+ * AV_CODEC_PROP_INTRA_ONLY (ProRes, DNxHD, JPEG 2000...): nothing is read.
+ * The flag is not set for CineForm, PNG or FFV1, nor for all-intra H.264 /
+ * HEVC / MPEG-2 (AVC-Intra, XAVC-I, IMX). For those the stream is read:
  *  - a container index covering every frame (MP4, MOV) gives the layout for
  *    free;
  *  - otherwise the first packets are demuxed, not decoded, and their keyframe
@@ -175,10 +176,10 @@ classifyFrameAccess(AVFormatContext& fmt, AVStream& st, const char* url) noexcep
   if(!canSeek(fmt))
     return {FrameAccess::Sequential, -1};
 
-  // Without a start time the stream may carry no timestamps at all, which
-  // only its packets tell.
-  if(st.start_time == AV_NOPTS_VALUE)
-    return fromPackets(url);
+  // Raw elementary streams (H.264, HEVC, VVC, MJPEG, Dirac...) carry no
+  // timestamps, which their demuxers declare: no time can be sought.
+  if(fmt.iformat && (fmt.iformat->flags & AVFMT_NOTIMESTAMPS))
+    return {FrameAccess::Sequential, -1};
 
   if(auto desc = avcodec_descriptor_get(st.codecpar->codec_id);
      desc && (desc->props & AV_CODEC_PROP_INTRA_ONLY))
