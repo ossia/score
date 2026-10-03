@@ -1,5 +1,6 @@
 #include <Gfx/Graph/decoders/GPUVideoDecoderFactory.hpp>
 
+#include <Gfx/Graph/decoders/Bayer.hpp>
 #include <Gfx/Graph/decoders/DRMPrime.hpp>
 #include <Gfx/Graph/decoders/DXV.hpp>
 #include <Gfx/Graph/decoders/HAP.hpp>
@@ -11,6 +12,9 @@
 #include <Gfx/Graph/decoders/P210.hpp>
 #include <Gfx/Graph/decoders/PA16.hpp>
 #include <Gfx/Graph/decoders/P410.hpp>
+#include <Gfx/Graph/decoders/PAL8.hpp>
+#include <Gfx/Graph/decoders/PackedBitfield.hpp>
+#include <Gfx/Graph/decoders/PlanarYUV.hpp>
 #include <Gfx/Graph/decoders/RGBA.hpp>
 #include <Gfx/Graph/decoders/VUYA.hpp>
 #include <Gfx/Graph/decoders/XYZ12.hpp>
@@ -255,6 +259,109 @@ std::unique_ptr<GPUVideoDecoder> createGPUVideoDecoder(
     case AV_PIX_FMT_DRM_PRIME:
       return std::make_unique<DRMPrimeDecoder>(format);
 #endif
+
+    // Planar YUV without a dedicated decoder
+    case AV_PIX_FMT_YUV410P:
+      return std::make_unique<PlanarYUVDecoder>(
+          format, PlanarYUVLayout{.log2ChromaW = 2, .log2ChromaH = 2}, f);
+    case AV_PIX_FMT_YUV411P:
+      return std::make_unique<PlanarYUVDecoder>(
+          format, PlanarYUVLayout{.log2ChromaW = 2, .log2ChromaH = 0}, f);
+    case AV_PIX_FMT_YUVA422P:
+      return std::make_unique<PlanarYUVDecoder>(
+          format, PlanarYUVLayout{.log2ChromaW = 1, .log2ChromaH = 0, .alpha = true}, f);
+    case AV_PIX_FMT_YUV420P16LE:
+      return std::make_unique<PlanarYUVDecoder>(
+          format,
+          PlanarYUVLayout{
+              .log2ChromaW = 1, .log2ChromaH = 1, .bytesPerSample = 2,
+              .scale = SCORE_GFX_MSB_ALIGNED_SCALE},
+          f);
+    case AV_PIX_FMT_YUV422P16LE:
+      return std::make_unique<PlanarYUVDecoder>(
+          format,
+          PlanarYUVLayout{
+              .log2ChromaW = 1, .log2ChromaH = 0, .bytesPerSample = 2,
+              .scale = SCORE_GFX_MSB_ALIGNED_SCALE},
+          f);
+    case AV_PIX_FMT_YUVA422P16LE:
+      return std::make_unique<PlanarYUVDecoder>(
+          format,
+          PlanarYUVLayout{
+              .log2ChromaW = 1, .log2ChromaH = 0, .bytesPerSample = 2,
+              .scale = SCORE_GFX_MSB_ALIGNED_SCALE, .alpha = true},
+          f);
+
+    // Palettized
+    case AV_PIX_FMT_PAL8:
+      return std::make_unique<PAL8Decoder>(format, f);
+
+    // Packed RGB in bit fields. The X bit of the 5-5-5 formats is padding.
+    case AV_PIX_FMT_RGB555LE:
+    case AV_PIX_FMT_RGB555BE:
+      return std::make_unique<PackedDecoder>(
+          QRhiTexture::RG8, 2, format,
+          packedBitfieldFilter(
+              {.containerBytes = 2, .bigEndian = format.pixel_format == AV_PIX_FMT_RGB555BE,
+               .r = {10, 5}, .g = {5, 5}, .b = {0, 5}, .a = {0, 0}})
+              + f,
+          /*invertY=*/false, /*nearest=*/true);
+    case AV_PIX_FMT_BGR555LE:
+      return std::make_unique<PackedDecoder>(
+          QRhiTexture::RG8, 2, format,
+          packedBitfieldFilter(
+              {.containerBytes = 2, .bigEndian = false,
+               .r = {0, 5}, .g = {5, 5}, .b = {10, 5}, .a = {0, 0}})
+              + f,
+          /*invertY=*/false, /*nearest=*/true);
+    case AV_PIX_FMT_RGB565LE:
+    case AV_PIX_FMT_RGB565BE:
+      return std::make_unique<PackedDecoder>(
+          QRhiTexture::RG8, 2, format,
+          packedBitfieldFilter(
+              {.containerBytes = 2, .bigEndian = format.pixel_format == AV_PIX_FMT_RGB565BE,
+               .r = {11, 5}, .g = {5, 6}, .b = {0, 5}, .a = {0, 0}})
+              + f,
+          /*invertY=*/false, /*nearest=*/true);
+    case AV_PIX_FMT_BGR8: // (msb) 2B 3G 3R (lsb)
+      return std::make_unique<PackedDecoder>(
+          QRhiTexture::R8, 1, format,
+          packedBitfieldFilter(
+              {.containerBytes = 1, .bigEndian = false,
+               .r = {0, 3}, .g = {3, 3}, .b = {6, 2}, .a = {0, 0}})
+              + f,
+          /*invertY=*/false, /*nearest=*/true);
+    case AV_PIX_FMT_0RGB: // memory [X, R, G, B]
+      return std::make_unique<PackedDecoder>(
+          QRhiTexture::RGBA8, 4, format, "processed.rgba = vec4(tex.gba, 1.0); " + f);
+
+    // Raw sensor mosaics (CineForm RAW, Magic Lantern MLV, Phantom Cine). The
+    // 16-bit ones fill their lane: CineForm's 12 bits sit at the top, MLV's
+    // span it.
+    case AV_PIX_FMT_BAYER_RGGB8:
+    case AV_PIX_FMT_BAYER_BGGR8:
+    case AV_PIX_FMT_BAYER_GRBG8:
+    case AV_PIX_FMT_BAYER_GBRG8:
+    case AV_PIX_FMT_BAYER_RGGB16LE:
+    case AV_PIX_FMT_BAYER_BGGR16LE:
+    case AV_PIX_FMT_BAYER_GRBG16LE:
+    case AV_PIX_FMT_BAYER_GBRG16LE: {
+      using Phase = BayerDecoder::Phase;
+      const auto p = format.pixel_format;
+      const bool wide = p == AV_PIX_FMT_BAYER_RGGB16LE || p == AV_PIX_FMT_BAYER_BGGR16LE
+                        || p == AV_PIX_FMT_BAYER_GRBG16LE
+                        || p == AV_PIX_FMT_BAYER_GBRG16LE;
+      const Phase phase
+          = (p == AV_PIX_FMT_BAYER_RGGB8 || p == AV_PIX_FMT_BAYER_RGGB16LE) ? Phase::RGGB
+            : (p == AV_PIX_FMT_BAYER_BGGR8 || p == AV_PIX_FMT_BAYER_BGGR16LE)
+                ? Phase::BGGR
+            : (p == AV_PIX_FMT_BAYER_GRBG8 || p == AV_PIX_FMT_BAYER_GRBG16LE)
+                ? Phase::GRBG
+                : Phase::GBRG;
+      return std::make_unique<BayerDecoder>(
+          wide ? QRhiTexture::R16 : QRhiTexture::R8, wide ? 2 : 1, format, phase, 1.0,
+          BayerDecoder::Source::File, f);
+    }
 
     // Grey
     case AV_PIX_FMT_GRAY8:

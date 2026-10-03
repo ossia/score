@@ -19,6 +19,9 @@
 #include <Gfx/Graph/decoders/P016.hpp>
 #include <Gfx/Graph/decoders/P210.hpp>
 #include <Gfx/Graph/decoders/P410.hpp>
+#include <Gfx/Graph/decoders/PAL8.hpp>
+#include <Gfx/Graph/decoders/PlanarYUV.hpp>
+#include <Gfx/Graph/decoders/Bayer.hpp>
 #include <Gfx/Graph/decoders/RGBA.hpp>
 #include <Gfx/Graph/decoders/XYZ12.hpp>
 #include <Gfx/Graph/decoders/YUV420.hpp>
@@ -204,6 +207,59 @@ TEST_CASE("Packed RGB decoder parameterisation", "[gfx][video][decoderfactory]")
     CHECK(as<XYZ12Decoder>(make(AV_PIX_FMT_XYZ12LE)));
     CHECK_FALSE(Video::formatNeedsDecoding(AV_PIX_FMT_XYZ12LE));
   }
+}
+
+TEST_CASE(
+    "Formats of real files that skip swscale", "[gfx][video][decoderfactory]")
+{
+  // Each occurs in files outside format test suites: GIF and 90s codecs
+  // (PAL8, the 5-5-5 / 5-6-5 / 3-3-2 RGBs), Indeo and DV NTSC (4:1:0, 4:1:1),
+  // Canopus and Pixlet (16-bit and alpha 4:2:2), raw cameras (Bayer).
+  for(auto f :
+      {AV_PIX_FMT_YUV410P, AV_PIX_FMT_YUV411P, AV_PIX_FMT_YUVA422P,
+       AV_PIX_FMT_YUV420P16LE, AV_PIX_FMT_YUV422P16LE, AV_PIX_FMT_YUVA422P16LE})
+  {
+    INFO(av_get_pix_fmt_name(f));
+    const auto owner = make(f);
+    auto dec = as<PlanarYUVDecoder>(owner);
+    REQUIRE(dec);
+    const auto* d = av_pix_fmt_desc_get(f);
+    CHECK(dec->layout.log2ChromaW == d->log2_chroma_w);
+    CHECK(dec->layout.log2ChromaH == d->log2_chroma_h);
+    CHECK(dec->layout.bytesPerSample == (d->comp[0].depth > 8 ? 2 : 1));
+    CHECK(dec->layout.alpha == bool(d->flags & AV_PIX_FMT_FLAG_ALPHA));
+    CHECK_FALSE(Video::formatNeedsDecoding(f));
+  }
+
+  CHECK(as<PAL8Decoder>(make(AV_PIX_FMT_PAL8)));
+
+  for(auto f :
+      {AV_PIX_FMT_RGB555LE, AV_PIX_FMT_RGB555BE, AV_PIX_FMT_BGR555LE,
+       AV_PIX_FMT_RGB565LE, AV_PIX_FMT_RGB565BE, AV_PIX_FMT_BGR8, AV_PIX_FMT_0RGB})
+  {
+    INFO(av_get_pix_fmt_name(f));
+    const auto owner = make(f);
+    auto dec = as<PackedDecoder>(owner);
+    REQUIRE(dec);
+    CHECK(dec->bytes_per_pixel == av_get_padded_bits_per_pixel(av_pix_fmt_desc_get(f)) / 8);
+  }
+
+  for(auto f :
+      {AV_PIX_FMT_BAYER_RGGB8, AV_PIX_FMT_BAYER_GBRG8, AV_PIX_FMT_BAYER_RGGB16LE,
+       AV_PIX_FMT_BAYER_GBRG16LE})
+  {
+    INFO(av_get_pix_fmt_name(f));
+    const auto owner = make(f);
+    auto dec = as<BayerDecoder>(owner);
+    REQUIRE(dec);
+    // Played by the video renderers, whose material block has no sensor
+    // corrections.
+    CHECK(dec->source == BayerDecoder::Source::File);
+  }
+  CHECK(as<BayerDecoder>(make(AV_PIX_FMT_BAYER_RGGB8))->phase
+        == BayerDecoder::Phase::RGGB);
+  CHECK(as<BayerDecoder>(make(AV_PIX_FMT_BAYER_GBRG16LE))->phase
+        == BayerDecoder::Phase::GBRG);
 }
 
 TEST_CASE("Planar RGB decoder parameterisation", "[gfx][video][decoderfactory]")

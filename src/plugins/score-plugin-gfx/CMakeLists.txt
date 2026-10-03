@@ -392,6 +392,8 @@ set(HDRS
     Gfx/Graph/decoders/YUVA444.hpp
     Gfx/Graph/decoders/YUYV422.hpp
     Gfx/Graph/decoders/XYZ12.hpp
+    Gfx/Graph/decoders/PAL8.hpp
+    Gfx/Graph/decoders/PlanarYUV.hpp
 
     Gfx/Settings/Model.hpp
     Gfx/Settings/Presenter.hpp
