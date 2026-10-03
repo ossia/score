@@ -28,7 +28,7 @@ export ASAN_OPTIONS="${ASAN_OPTIONS:-abort_on_error=1:detect_leaks=0}"
 export UBSAN_OPTIONS="${UBSAN_OPTIONS:-print_stacktrace=1}"
 
 # MODES picks the modes to run, by default all of them.
-MODES="${MODES:-direct playback seek direct_renderer}"
+MODES="${MODES:-direct playback seek direct_renderer queue_timing}"
 
 export TESTER OUT MODES
 
@@ -43,6 +43,7 @@ run_one() {
       playback)        flag="--playback";        tmo=160 ;;
       seek)            flag="--seek-stress";     tmo=160 ;;
       direct_renderer) flag="--direct-renderer"; tmo=200 ;;
+      queue_timing)    flag="--queue-timing";    tmo=200 ;;
       *) echo "unknown mode: $mode" >&2; return ;;
     esac
     local errf="$OUT/errs/$key.$mode"
