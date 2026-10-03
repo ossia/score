@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <cstddef>
 
 namespace score::gfx
 {
@@ -94,12 +95,23 @@ struct OutputUBO
 
 /**
  * @brief UBO shared across all video objects.
+ *
+ * Field for field the `material_t` block of SCORE_GFX_VIDEO_UNIFORMS, which
+ * every video decoder's shaders declare: std140 puts its vec4 at offset 16. A
+ * buffer that stops short of it has the shaders read past its end, and what
+ * score_tc takes as the deinterlace mode is then whatever lies there.
  */
 struct VideoMaterialUBO
 {
   float scale[2]{1.f, 1.f};
   float textureSize[2]{1.f, 1.f};
+  //! (parity of the newest field, deinterlace mode, unused, unused): see
+  //! videoFieldMode. Zero is progressive.
+  float field[4]{};
 };
 
 #pragma pack(pop)
+
+static_assert(sizeof(VideoMaterialUBO) == 32);
+static_assert(offsetof(VideoMaterialUBO, field) == 16);
 }

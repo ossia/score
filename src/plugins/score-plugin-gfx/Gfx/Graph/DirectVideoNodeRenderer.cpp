@@ -1527,10 +1527,14 @@ void DirectVideoNodeRenderer::update(
         m_currentScaleMode, renderSize,
         QSizeF(m_frameFormat.width, m_frameFormat.height));
     Material mat;
-    mat.scale_w = sz.width();
-    mat.scale_h = sz.height();
-    mat.tex_w = m_frameFormat.width;
-    mat.tex_h = m_frameFormat.height;
+    mat.scale[0] = sz.width();
+    mat.scale[1] = sz.height();
+    mat.textureSize[0] = m_frameFormat.width;
+    mat.textureSize[1] = m_frameFormat.height;
+    // Frames come whole from the file: no field of theirs has a partner to
+    // weave with apart from what they hold.
+    mat.field[1] = videoFieldMode(
+        m_frameFormat.interlacing, m_frameFormat.deinterlace, /*partnerValid=*/false);
 
     res.updateDynamicBuffer(m_materialUBO, 0, sizeof(Material), &mat);
     m_recomputeScale = false;

@@ -1,6 +1,7 @@
 #pragma once
 #include <Gfx/Graph/NodeRenderer.hpp>
 #include <Gfx/Graph/VideoNode.hpp>
+#include <Gfx/Graph/decoders/GPUVideoDecoder.hpp>
 #include <Video/VideoInterface.hpp>
 
 #include <vector>
@@ -153,11 +154,7 @@ private:
   QRhiBuffer* m_processUBO{};
   QRhiBuffer* m_materialUBO{};
 
-  struct Material
-  {
-    float scale_w{}, scale_h{};
-    float tex_w{}, tex_h{};
-  };
+  using Material = VideoMaterialUBO;
 
   std::unique_ptr<GPUVideoDecoder> m_gpu;
   QShader m_cachedVertexShader;

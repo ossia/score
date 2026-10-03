@@ -1,6 +1,7 @@
 #pragma once
 #include <Gfx/Graph/NodeRenderer.hpp>
 #include <Gfx/Graph/VideoNode.hpp>
+#include <Gfx/Graph/decoders/GPUVideoDecoder.hpp>
 #include <Video/VideoInterface.hpp>
 
 namespace score::gfx
@@ -45,25 +46,6 @@ inline bool videoDecoderNeedsRebuild(
          || src.interlacing != built.interlacing;
 }
 
-/**
- * @brief Which mode score_tc should run, as a uniform value.
- *
- * 0 progressive, 1 weave, 2 bob. Weave needs the OTHER half of the stacked
- * texture to hold this field's partner; when it does not -- a dropped field, or
- * the very first field after a connection -- weaving would pair two fields of
- * the same parity and tear. Falling back to bob for that one frame costs half
- * the vertical resolution on that frame and nothing else.
- */
-inline float videoFieldMode(
-    Video::Interlacing interlacing, Video::Deinterlace deinterlace,
-    bool partnerValid) noexcept
-{
-  if(interlacing != Video::Interlacing::Fields)
-    return 0.f;
-  if(deinterlace == Video::Deinterlace::Bob || !partnerValid)
-    return 2.f;
-  return 1.f;
-}
 
 class VideoNodeRenderer : public NodeRenderer
 {
@@ -113,16 +95,7 @@ private:
   QRhiBuffer* m_processUBO{};
   QRhiBuffer* m_materialUBO{};
 
-  struct Material
-  {
-    float scale_w{}, scale_h{};
-    float tex_w{}, tex_h{};
-    // (parity of the newest field, deinterlace mode, unused, unused).
-    // std140 puts a vec4 at offset 16, which is where these land. Mirrors
-    // material_t in SCORE_GFX_VIDEO_UNIFORMS: change one and change the other,
-    // or the shader reads the wrong words and nothing says so.
-    float field_parity{}, field_mode{}, field_pad0{}, field_pad1{};
-  };
+  using Material = VideoMaterialUBO;
 
   std::unique_ptr<GPUVideoDecoder> m_gpu;
   std::pair<QShader, QShader> m_shaders;
