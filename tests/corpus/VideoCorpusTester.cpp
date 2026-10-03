@@ -415,8 +415,30 @@ Reference reference_decode(
   AVPacket* pkt = av_packet_alloc();
   AVFrame* f = av_frame_alloc();
 
+  // receiveVideoFrame's numbering of frames without a timestamp: the
+  // best-effort one, else the previous frame's plus one frame at the rate.
+  int64_t missing_next = 0, missing_step = 1;
+  {
+    const AVRational rate
+        = st->avg_frame_rate.num > 0 ? st->avg_frame_rate : st->r_frame_rate;
+    if(rate.num > 0 && rate.den > 0)
+      missing_step = std::max<int64_t>(1, av_rescale_q(1, av_inv_q(rate), st->time_base));
+  }
+
   auto take_frame = [&](AVFrame* frame) {
     ref.raw_frames++;
+    if(frame->pts == AV_NOPTS_VALUE)
+      frame->pts = frame->best_effort_timestamp;
+    int64_t duration = missing_step;
+    if(frame->pts == AV_NOPTS_VALUE)
+      frame->pts = missing_next;
+    else
+#if(LIBAVUTIL_VERSION_MAJOR < 58)
+      duration = frame->pkt_duration > 0 ? frame->pkt_duration : missing_step;
+#else
+      duration = frame->duration > 0 ? frame->duration : missing_step;
+#endif
+    missing_next = frame->pts + duration;
     if(!ignore_pts && frame->pts < 0) // receiveVideoFrame's policy
       return;
     if(int64_t(ref.frames.size()) >= max_frames)
@@ -842,6 +864,15 @@ int run_direct_renderer(const std::string& path)
   {
     auto ref = reference_decode(path, deadline, -1, false, false);
     v.status = ref.opened && !ref.frames.empty() ? "SCORE_CANT_OPEN" : "SKIP";
+    emit(mode, path, v);
+    return 0;
+  }
+
+  if(dec->frame_access == Video::FrameAccess::Sequential)
+  {
+    v.status = "NOT_APPLICABLE";
+    v.extra = "\"frame_access\":\"Sequential\"";
+    note_append(v.note, "no time can be sought; Auto plays it from the frame queue");
     emit(mode, path, v);
     return 0;
   }

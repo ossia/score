@@ -45,7 +45,7 @@ enum class FrameAccess : unsigned char
   EveryFrame, ///< every frame is a keyframe: any frame costs one decode
   ShortGop,   ///< keyframes at most a few frames apart: a bounded replay
   LongGop,    ///< sparse keyframes, or none after the first
-  Sequential  ///< the source cannot seek (pipes, live streams)
+  Sequential  ///< no time can be sought: pipes, live streams, raw elementary streams
 };
 
 enum Tonemap

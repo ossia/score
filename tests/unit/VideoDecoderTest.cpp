@@ -511,6 +511,66 @@ TEST_CASE(
 }
 
 TEST_CASE(
+    "a raw elementary stream plays every frame, numbered at its frame rate",
+    "[video][decoder]")
+{
+  namespace fs = std::filesystem;
+  constexpr int N = 30;
+  // Raw H.264 has no container and so no timestamps. Frames without one are
+  // numbered from the previous one, one frame at the stream's rate, instead
+  // of being dropped as negative.
+  const auto path = (fs::temp_directory_path() / "score_videodecoder_raw.264").string();
+  if(!avcodec_find_encoder(AV_CODEC_ID_H264))
+    SKIP("no H.264 encoder in this libavcodec");
+  {
+    Packets p;
+    AVCodecContext* enc{};
+    encode({.codec = AV_CODEC_ID_H264, .frames = N, .gop_size = 1}, p, &enc);
+    FILE* out = std::fopen(path.c_str(), "wb");
+    REQUIRE(out);
+    for(auto* pkt : p.pkts)
+      std::fwrite(pkt->data, 1, pkt->size, out);
+    std::fclose(out);
+    avcodec_free_context(&enc);
+  }
+
+  Video::VideoDecoder dec{Video::DecoderConfiguration{}};
+  REQUIRE(dec.load(path));
+  CHECK(dec.frame_access == Video::FrameAccess::Sequential);
+
+  using namespace std::chrono;
+  using namespace std::chrono_literals;
+  std::vector<int64_t> pts;
+  const auto deadline = steady_clock::now() + 30s;
+  int idle_after_finish = 0;
+  while(steady_clock::now() < deadline)
+  {
+    if(AVFrame* f = dec.dequeue_frame())
+    {
+      pts.push_back(f->pts);
+      dec.release_frame(f);
+      idle_after_finish = 0;
+    }
+    else
+    {
+      if(dec.m_finished && ++idle_after_finish > 100)
+        break;
+      std::this_thread::sleep_for(1ms);
+    }
+  }
+
+  REQUIRE(pts.size() == N);
+  const int64_t step = pts[1] - pts[0];
+  CHECK(pts[0] == 0);
+  CHECK(step > 0);
+  for(size_t i = 1; i < pts.size(); i++)
+    CHECK(pts[i] - pts[i - 1] == step);
+
+  std::error_code ec;
+  fs::remove(path, ec);
+}
+
+TEST_CASE(
     "closing an image sequence, whose demuxer does its own I/O, does not crash",
     "[video][decoder]")
 {

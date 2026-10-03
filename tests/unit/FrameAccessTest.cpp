@@ -106,6 +106,49 @@ void writeClip(const std::string& path, const char* muxer, int frames, int gop)
   avcodec_free_context(&enc);
 }
 
+// Encodes `frames` H.264 pictures, all keyframes, as a raw Annex B elementary
+// stream: no container, so no timestamps. False when libavcodec has no H.264
+// encoder.
+bool writeRawH264(const std::string& path, int frames)
+{
+  const AVCodec* codec = avcodec_find_encoder(AV_CODEC_ID_H264);
+  if(!codec)
+    return false;
+  AVCodecContext* enc = avcodec_alloc_context3(codec);
+  enc->width = W;
+  enc->height = H;
+  enc->pix_fmt = AV_PIX_FMT_YUV420P;
+  enc->time_base = {1, 25};
+  enc->framerate = {25, 1};
+  enc->gop_size = 1;
+  enc->max_b_frames = 0;
+  REQUIRE(avcodec_open2(enc, codec, nullptr) == 0);
+
+  FILE* out = std::fopen(path.c_str(), "wb");
+  REQUIRE(out);
+  AVPacket* pkt = av_packet_alloc();
+  auto drain = [&] {
+    while(avcodec_receive_packet(enc, pkt) == 0)
+    {
+      std::fwrite(pkt->data, 1, pkt->size, out);
+      av_packet_unref(pkt);
+    }
+  };
+  for(int i = 0; i < frames; i++)
+  {
+    AVFrame* frame = testFrame(enc->pix_fmt, i);
+    REQUIRE(avcodec_send_frame(enc, frame) == 0);
+    av_frame_free(&frame);
+    drain();
+  }
+  avcodec_send_frame(enc, nullptr);
+  drain();
+  std::fclose(out);
+  av_packet_free(&pkt);
+  avcodec_free_context(&enc);
+  return true;
+}
+
 // Writes `frames` PNG files img000.png... into `dir`.
 void writePngSequence(const fs::path& dir, int frames)
 {
@@ -247,6 +290,41 @@ TEST_CASE("An image sequence is reached frame by frame", "[video][frameaccess]")
   CHECK(probe.access == FrameAccess::EveryFrame);
   CHECK(probe.max_gap == 0);
   f.requireAtStart();
+}
+
+TEST_CASE(
+    "A raw elementary stream cannot be sought by time", "[video][frameaccess]")
+{
+  // Raw H.264 carries no timestamps, every frame being a keyframe or not: no
+  // time maps to a frame. Probing it reads packets, which a time seek cannot
+  // undo -- a failed one leaves the demuxer at its end -- so the probe must
+  // still hand the stream back at its first packet.
+  TempDir dir{"score_frame_access_raw"};
+  const auto path = (dir.path / "raw.264").string();
+  if(!writeRawH264(path, 40))
+    SKIP("no H.264 encoder in this libavcodec");
+
+  Opened f{path};
+  REQUIRE(f.st->start_time == AV_NOPTS_VALUE);
+  const auto probe = Video::classifyFrameAccess(*f.fmt, *f.st);
+  CHECK(probe.access == FrameAccess::Sequential);
+
+  AVPacket* pkt = av_packet_alloc();
+  int packets = 0;
+  bool first_is_key = false;
+  while(av_read_frame(f.fmt, pkt) >= 0)
+  {
+    if(pkt->stream_index == f.st->index)
+    {
+      if(packets == 0)
+        first_is_key = pkt->flags & AV_PKT_FLAG_KEY;
+      packets++;
+    }
+    av_packet_unref(pkt);
+  }
+  av_packet_free(&pkt);
+  CHECK(first_is_key);
+  CHECK(packets == 40);
 }
 
 #else
