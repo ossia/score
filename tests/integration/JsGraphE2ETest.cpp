@@ -5,6 +5,8 @@
 //   file -> filter -> output    the decode path, wired from script. The clip is
 //                               lossless RGBA written by this test, so "score
 //                               decoded it correctly" is an equality, not a PSNR.
+//   paused at speed 0           the interval stops advancing: the window keeps
+//                               the frame it was at, not black.
 //   fan-out to two outputs      one source, two independent window devices. The
 //                               failures this catches are a second output that
 //                               renders black, and both outputs sharing one
@@ -310,6 +312,72 @@ TEST_CASE(
   REQUIRE(v.checked >= 5);
   REQUIRE(v.exact == v.checked);
   REQUIRE(v.idx.back() > v.idx.front());
+}
+
+TEST_CASE(
+    "a video whose interval is brought to speed 0 keeps showing its frame",
+    "[integration][gfx][js][media]")
+{
+  requireEnvironment();
+  QTemporaryDir dir;
+  REQUIRE(dir.isValid());
+  keepArtifacts(dir);
+  const QString clip = dir.filePath("pattern.nut");
+  INFO("ffmpeg must be able to mux rawvideo into NUT");
+  REQUIRE(writeClip(dir.filePath("frames.rgba"), clip));
+
+  constexpr int kGrabs = 6;
+  const QString stem = dir.filePath("grab");
+  QString src;
+  src += QStringLiteral("var UUID_VIDEO = \"%1\";\n").arg(kUuidVideo);
+  src += QStringLiteral("var UUID_ISF = \"%1\";\n").arg(kUuidIsf);
+  src += QStringLiteral("var UUID_WINDOW = \"%1\";\n").arg(kUuidWindow);
+  src += "Score.createDevice(\"Window\", UUID_WINDOW, {});\n";
+  src += "var s = Score.find(\"Scenario.1\"); if (s) Score.remove(s);\n";
+  src += "var root = Score.rootInterval();\n";
+  src += "var vid = Score.createProcess(root, UUID_VIDEO, \"" + clip + "\");\n";
+  src += "if (!vid) { console.log(\"SCENE-ERROR: no video process\"); Qt.exit(9); }\n";
+  src += "vid.scaleMode = 3;\n";
+  src += "vid.playbackMode = 2;\n";
+  src += "var flt = Score.createProcess(root, UUID_ISF, \"" + corpusDir()
+         + "/isf-passthrough-plain.fs\");\n";
+  src += "if (!flt) { console.log(\"SCENE-ERROR: no filter\"); Qt.exit(10); }\n";
+  src += "var c = Score.createCable(Score.outlet(vid, 0), Score.inlet(flt, 0));\n";
+  src += "if (!c) { console.log(\"SCENE-ERROR: no cable\"); Qt.exit(11); }\n";
+  src += "Score.setAddress(Score.outlet(flt, 0), \"Window:/\");\n";
+  src += "var dev = Score.device(\"Window\");\n";
+  src += "if (!dev) { console.log(\"SCENE-ERROR: no window device\"); Qt.exit(12); }\n";
+  // The script holds the GUI thread, so nothing renders but what it asks for:
+  // render all along, as a session does, so that the reader keeps up with the
+  // clip and is not still catching up from frame 0 once paused.
+  src += "function settle() { for (var k = 0; k < 20; k++) { var t0 = Date.now(); "
+         "while (Date.now() - t0 < 20) {} dev.renderFrames(1); } }\n";
+  src += "Score.play(); settle(); settle(); settle();\n";
+  src += "Score.setIntervalSpeed(root, 0);\n";
+  // Lets the speed reach the execution and the last moving frame drain.
+  src += "settle();\n";
+  src += QStringLiteral("for (var i = 0; i < %1; i++) {\n").arg(kGrabs);
+  src += "  settle();\n";
+  src += "  dev.grabFrame(2, \"" + stem + "\" + i + \".png\");\n";
+  src += "}\n";
+  src += "console.log(\"SCENE-OK\");\n";
+  src += "Qt.exit(0);\n";
+
+  auto r = runScript(writeScript(dir, "paused.js", src));
+  INFO(r.log.toStdString());
+  CHECK_FALSE(r.crashed);
+  CHECK(r.exitCode == 0);
+  REQUIRE(r.log.contains("SCENE-OK"));
+
+  const auto files = existing(stem, kGrabs);
+  REQUIRE(files.size() == kGrabs);
+  const auto v = verify(files);
+  INFO(v.detail.toStdString());
+  // Every grab is a picture of the clip, not black, and the same one.
+  REQUIRE(v.first == 0);
+  REQUIRE(v.exact == v.checked);
+  REQUIRE(v.checked == kGrabs);
+  REQUIRE(v.idx.front() == v.idx.back());
 }
 
 TEST_CASE(
