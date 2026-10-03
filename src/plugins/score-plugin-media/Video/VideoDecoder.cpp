@@ -3,6 +3,7 @@
 #include <Media/Libav.hpp>
 #include <Video/FrameAccess.hpp>
 #include <Video/GpuFormats.hpp>
+#include <Video/PlaybackTime.hpp>
 
 #include <score/tools/Debug.hpp>
 
@@ -382,7 +383,14 @@ ReadFrame receiveVideoFrame(
         // rate.
         int64_t duration = missing->step;
         if(frame->pts == AV_NOPTS_VALUE)
+        {
           frame->pts = missing->next;
+#if(LIBAVUTIL_VERSION_MAJOR < 58)
+          frame->pkt_duration = duration;
+#else
+          frame->duration = duration;
+#endif
+        }
         else
 #if(LIBAVUTIL_VERSION_MAJOR < 58)
           duration = frame->pkt_duration > 0 ? frame->pkt_duration : missing->step;
@@ -512,7 +520,7 @@ AVFrame* VideoDecoder::dequeue_frame() noexcept
   auto f = m_frames.discard_and_dequeue_one();
   if(f)
   {
-    m_last_dequeued_dts = f->pkt_dts;
+    m_last_dequeued_pts = f->pts;
   }
   m_condVar.notify_one();
   return f;
@@ -632,6 +640,8 @@ do_read_frame:
     if(packet.stream_index == m_avstream->index)
     {
       SCORE_ASSERT(m_codecContext);
+      if(packet.pts != AV_NOPTS_VALUE && packet.dts != AV_NOPTS_VALUE)
+        m_ptsLead = std::max(m_ptsLead, packet.pts - packet.dts);
 
       //av_packet_rescale_ts(
       //     &packet, this->m_avstream->time_base, this->m_codecContext->pkt_timebase);
@@ -698,79 +708,45 @@ int seek_to_frame(AVFormatContext* format, AVStream* stream, int frameIndex)
 }
 */
 
-static int64_t to_av_time_base(AVRational tb, int64_t dts)
-{
-  constexpr auto av_tb = AVRational{1, AV_TIME_BASE};
-  return av_rescale_q(dts, tb, av_tb);
-}
-
 bool VideoDecoder::seek_impl(int64_t flicks) noexcept
 {
   if(m_avstream->index >= int(m_formatContext->nb_streams))
     return false;
 
-  // Seeking with stream == -1 means that it is done AV_TIME_BASE
+  // `flicks` is playback time; the stream's timestamps start at start_pts.
+  const AVRational stream_tb = m_avstream->time_base;
+  const int64_t target = flicksToPts(flicks, stream_tb, start_pts);
+  const int64_t absolute_flicks
+      = flicks + av_rescale_q(start_pts, stream_tb, flicks_time_base);
+
   constexpr auto av_tb = AVRational{1, AV_TIME_BASE};
-  constexpr auto av_dts_per_flicks
-      = (av_tb.den / (av_tb.num * ossia::flicks_per_second<double>));
 
-  const int64_t dts = flicks * av_dts_per_flicks;
+  // No seek for a target less than 0.2 s ahead of the last frame taken: the
+  // frames already queued reach it. Behind it they never would.
+  const int64_t last = m_last_dequeued_pts;
+  if(last != AV_NOPTS_VALUE && flicks != 0 && target >= last
+     && av_rescale_q(target - last, stream_tb, av_tb) <= (av_tb.den / 5) / av_tb.num)
+    return false;
 
-  const auto codec_tb
-      = m_codecContext ? m_codecContext->pkt_timebase : m_avstream->time_base;
-
-  // Don't seek if we're less than 0.2 second close to the request
-  // unit of the timestamps in seconds: stream->time_base.num / stream->time_base.den
-
-  // qDebug() << "Codec pkt_timebase: " << m_codecContext->pkt_timebase.num
-  //          << m_codecContext->pkt_timebase.den;
-  // qDebug() << "Codec timebase: " << m_codecContext->time_base.num
-  //          << m_codecContext->time_base.den;
-  // qDebug() << "Stream timebase: " << stream->time_base.num << stream->time_base.den;
-  // qDebug() << "AV timebase: " << av_tb.num << av_tb.den;
-  const auto last_av_dts = to_av_time_base(codec_tb, m_last_dequeued_dts);
-  const int64_t min_dts_delta = (0.2 * av_tb.den) / av_tb.num;
-  // qDebug() << AV_TIME_BASE << min_dts_delta << dts << last_av_dts << dts - last_av_dts
-  //          << (std::abs(dts - last_av_dts) <= min_dts_delta);
-  if(last_av_dts > INT64_MIN && std::abs(dts - last_av_dts) <= min_dts_delta)
-  {
-    // Let's always ensure that we seek to zero when asked no matter what
-    if(dts != 0)
+  // A stream without timestamps cannot be sought by time: it is restarted,
+  // by bytes, and numbered from its beginning; the frames before the target
+  // are skipped below, as DirectVideoNodeRenderer walks them.
+  const bool no_timestamps = m_formatContext->iformat->flags & AVFMT_NOTIMESTAMPS;
+  auto seek_to = [&](int64_t abs_flicks) {
+    if(no_timestamps
+       || !ossia::seek_to_flick(m_formatContext, m_codecContext, m_avstream, abs_flicks))
     {
-      return false;
+      if(av_seek_frame(m_formatContext, m_avstream->index, 0, AVSEEK_FLAG_BYTE) < 0)
+        return false;
+      if(m_codecContext)
+        avcodec_flush_buffers(m_codecContext);
+      m_missingTimestamps.next = start_pts;
     }
-  }
+    return true;
+  };
 
-  // TODO - maybe we should also store the "last dequeued dts" from the
-  // decoder side - this way no need to seek if we are in the interval
-  // const bool seek_forward = dts >= this->m_last_dequeued_dts;
-  // #if LIBAVFORMAT_VERSION_MAJOR >= 59
-  //   const int64_t start = 0;
-  // #else
-  //   const int64_t start = m_avstream->first_dts;
-  // #endif
-
-  if(!ossia::seek_to_flick(m_formatContext, m_codecContext, m_avstream, flicks))
-  {
-    // A stream without timestamps cannot be sought by time, but it can be
-    // restarted, as looping does: by bytes, from its beginning.
-    if(flicks != 0 || av_seek_frame(m_formatContext, m_avstream->index, 0, AVSEEK_FLAG_BYTE) < 0)
-    {
-      qDebug() << "Failed to seek for time ";
-      return false;
-    }
-    if(m_codecContext)
-      avcodec_flush_buffers(m_codecContext);
-  }
-  // A stream without timestamps resumes its numbering at the time sought.
-  m_missingTimestamps.next = av_rescale_q(
-      flicks, AVRational{1, int(ossia::flicks_per_second<int64_t>)},
-      m_avstream->time_base);
-
-  ReadFrame r;
-  do
-  {
-    // First flush the buffer or smth
+  auto read_first = [&] {
+    ReadFrame r;
     do
     {
       if(r.frame)
@@ -784,26 +760,51 @@ bool VideoDecoder::seek_impl(int64_t flicks) noexcept
       av_packet_unref(pkt);
       av_packet_free(&pkt);
     } while(r.error == AVERROR(EAGAIN));
+    return r;
+  };
 
-    if(r.error == AVERROR_EOF || !r.frame)
-    {
+  // Every frame enqueued from here on is after the seek; the reader drops
+  // the ones before, held back or still queued.
+  const int generation = m_frames.start_generation();
+  const int64_t lead_flicks = av_rescale_q(m_ptsLead, stream_tb, flicks_time_base);
+  if(!seek_to(absolute_flicks - lead_flicks))
+  {
+    qDebug() << "Failed to seek for time ";
+    seek_generation.store(generation, std::memory_order_release);
+    return false;
+  }
+
+  // The seek asks for the target minus the pts - dts lead measured so far.
+  // Before any packet was read, a demuxer seeking on dts (MPEG-TS, MPEG-PS)
+  // can still land on a frame that shows after the target: back off until
+  // the first frame is not later. Frames queued by an attempt that landed
+  // too late belong to this seek's generation but come before the frame
+  // marked below, which the consumer discards up to.
+  // A video starting after its container (audio first) legitimately shows
+  // its first frame after any earlier target.
+  const int64_t landing = m_avstream->start_time != AV_NOPTS_VALUE
+                              ? std::max(target, m_avstream->start_time)
+                              : target;
+  ReadFrame r = read_first();
+  int64_t back = 0;
+  for(int attempt = 0; attempt < 6 && r.frame && r.frame->pts != AV_NOPTS_VALUE
+                       && r.frame->pts > landing && absolute_flicks - back > 0;
+      attempt++)
+  {
+    SCORE_LIBAV_FRAME_DEALLOC_CHECK(r.frame);
+    av_frame_free(&r.frame);
+    back = back ? back * 2
+                : 2 * av_rescale_q(m_missingTimestamps.step, stream_tb, flicks_time_base);
+    if(!seek_to(std::max<int64_t>(0, absolute_flicks - lead_flicks - back)))
       break;
-    }
-
-    /*
-    // Rescale the packet's dts into AV_TIME_BASE
-    auto max_dts = r.frame->pkt_dts + r.frame->duration;
-    auto max_av_dts = to_av_time_base(codec_tb, max_dts);
-    //av_rescale_q(max_dts, stream->time_base, tb);
-    // we're starting to see correct frames, try to get close to the dts we want.
-    while(max_av_dts < dts)
-    {
-      r = read_one_frame(AVFramePointer{r.frame}, pkt);
-      if(r.error == AVERROR_EOF || !r.frame)
-        break;
-    }
-    */
-  } while(0);
+    r = read_first();
+  }
+  while(no_timestamps && r.frame && r.frame->pts + m_missingTimestamps.step <= target)
+  {
+    SCORE_LIBAV_FRAME_DEALLOC_CHECK(r.frame);
+    av_frame_free(&r.frame);
+    r = read_first();
+  }
 
   if(r.frame)
   {
@@ -825,6 +826,7 @@ bool VideoDecoder::seek_impl(int64_t flicks) noexcept
   }
 
   m_finished = false;
+  seek_generation.store(generation, std::memory_order_release);
 
   return true;
 }
@@ -887,7 +889,10 @@ bool VideoDecoder::open_stream() noexcept
       const AVRational rate = m_avstream->avg_frame_rate.num > 0
                                   ? m_avstream->avg_frame_rate
                                   : m_avstream->r_frame_rate;
+      start_pts = playbackStartPts(*m_formatContext, *m_avstream);
+      time_base = tb;
       m_missingTimestamps = {};
+      m_missingTimestamps.next = start_pts;
       if(rate.num > 0 && rate.den > 0)
         m_missingTimestamps.step
             = std::max<int64_t>(1, av_rescale_q(1, av_inv_q(rate), tb));

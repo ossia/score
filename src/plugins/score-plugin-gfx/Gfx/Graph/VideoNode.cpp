@@ -3,6 +3,7 @@
 #include <Gfx/Graph/VideoNodeRenderer.hpp>
 #include <Video/ExternalInput.hpp>
 #include <Video/FrameQueue.hpp>
+#include <Video/PlaybackTime.hpp>
 
 #include <score/tools/Debug.hpp>
 
@@ -268,18 +269,20 @@ void VideoFrameReader::readNextFrame(VideoNode& node)
 {
   auto& decoder = *m_decoder;
 
+
   if(mustReadVideoFrame(node))
   {
     // Video files which require more precise timing handling
-    if(auto frame
-       = VideoFrameReader::nextFrame(node, decoder, m_framesToFree, m_nextFrame))
+    if(auto frame = VideoFrameReader::nextFrame(
+           node, decoder, m_framesToFree, m_nextFrame, m_showing))
     {
       updateCurrentFrame(frame);
+      m_showing = true;
 
       auto& nodem = const_cast<VideoNode&>(node);
       m_lastPlaybackTime = nodem.standardUBO.time;
-      m_lastFrameTime
-          = (decoder.flicks_per_dts * frame->pts) / ossia::flicks_per_second<double>;
+      m_lastFrameTime = (decoder.flicks_per_dts * double(frame->pts - decoder.start_pts))
+                        / ossia::flicks_per_second<double>;
       m_timer.restart();
     }
   }
@@ -332,41 +335,69 @@ bool VideoFrameReader::mustReadVideoFrame(const VideoNode& node)
 
 AVFrame* VideoFrameReader::nextFrame(
     const VideoNode& node, Video::VideoInterface& decoder,
-    std::vector<AVFrame*>& m_framesToFree, AVFrame*& m_nextFrame)
+    std::vector<AVFrame*>& m_framesToFree, AVFrame*& m_nextFrame, bool showing)
 {
   auto& nodem = const_cast<VideoNode&>(node);
 
-  //double expected_frame = nodem.standardUBO.time / decoder.fps;
   double fps = decoder.fps > 0. ? decoder.fps : 24.;
 
   double current_flicks = nodem.standardUBO.time * ossia::flicks_per_second<double>;
   double flicks_per_frame = ossia::flicks_per_second<double> / fps;
 
+  // Where the frame is, in its own spans: in [0, 1) it is the frame for this
+  // time, as in DirectVideoNodeRenderer, which maps time the same way
+  // (Video::flicksToPts from playbackStartPts) and compares the same way, in
+  // the stream's ticks: a time on a frame's start shows that frame. Below 0
+  // its time has not come, from 1 on it is past.
+  const double frame_ticks = flicks_per_frame / decoder.flicks_per_dts;
+  const int64_t now = decoder.time_base.num > 0
+                          ? Video::flicksToPts(
+                              int64_t(current_flicks), decoder.time_base, decoder.start_pts)
+                          : int64_t(current_flicks / decoder.flicks_per_dts)
+                                + decoder.start_pts;
+  auto drift = [&](const AVFrame* frame) {
+#if(LIBAVUTIL_VERSION_MAJOR < 58)
+    const int64_t duration = frame->pkt_duration;
+#else
+    const int64_t duration = frame->duration;
+#endif
+    const double span = duration > 0 ? double(duration) : frame_ticks;
+    const int64_t delta = now - frame->pts;
+    if(delta >= 0 && double(delta) < span)
+      return delta / span; // in [0, 1), not rounded up to 1 by the division
+    return double(delta) / (span > 0. ? span : 1.);
+  };
+
   ossia::small_vector<AVFrame*, 8> prev{};
 
+  // A frame decoded before the last seek is not shown, held back or queued:
+  // its time is from before the seek (Video::frameGeneration).
+  const int generation = decoder.seek_generation.load(std::memory_order_acquire);
+  auto stale = [&](const AVFrame* frame) {
+    return Video::frameGeneration(*frame) < generation;
+  };
+  if(m_nextFrame && stale(m_nextFrame))
+    m_framesToFree.push_back(std::exchange(m_nextFrame, nullptr));
+
+  // A frame whose time has not come is held back and the current one kept;
+  // one whose time is past is skipped. Seeks are not guessed from how far a
+  // frame is: the generation says.
   if(auto frame = m_nextFrame)
   {
-    auto drift_in_frames
-        = (current_flicks - decoder.flicks_per_dts * frame->pts) / flicks_per_frame;
-
-    if(abs(drift_in_frames) <= 1.)
+    const auto d = drift(frame);
+    if((d >= 0. && d < 1.) || (!showing && d < 0.))
     {
-      // we can finally show this frame
+      // we can finally show this frame; or it is the first one, which shows
+      // until its time comes as the direct renderer shows it
       m_nextFrame = nullptr;
       return frame;
     }
-    else if(abs(drift_in_frames) > 5.)
-    {
-      // we likely seeked, move on to the dequeue
-      prev.push_back(frame);
-      m_nextFrame = nullptr;
-    }
-    else if(drift_in_frames < -1.)
+    else if(d < 0.)
     {
       // we early, keep showing the current frame (e.g. do nothing)
       return nullptr;
     }
-    else if(drift_in_frames > 1.)
+    else
     {
       // we late, move on to the dequeue
       prev.push_back(frame);
@@ -376,42 +407,32 @@ AVFrame* VideoFrameReader::nextFrame(
 
   while(auto frame = decoder.dequeue_frame())
   {
-    auto drift_in_frames
-        = (current_flicks - decoder.flicks_per_dts * frame->pts) / flicks_per_frame;
+    if(stale(frame))
+    {
+      m_framesToFree.push_back(frame);
+      continue;
+    }
+    const auto d = drift(frame);
 
-    if(abs(drift_in_frames) <= 1.)
+    if((d >= 0. && d < 1.) || (!showing && prev.empty() && d < 0.))
     {
       m_framesToFree.insert(m_framesToFree.end(), prev.begin(), prev.end());
       return frame;
     }
-    else if(abs(drift_in_frames) > 5.)
+    else if(d < 0.)
     {
-      // we likely seeked, dequeue
-      prev.push_back(frame);
-      if(prev.size() >= 8)
-        break;
-
-      continue;
-    }
-    else if(drift_in_frames < -1.)
-    {
-      //current_time < frame_time: we are in advance by more than one frame, keep showing the current frame
+      //current_time < frame_time: its time has not come, keep showing the current frame
       m_nextFrame = frame;
       m_framesToFree.insert(m_framesToFree.end(), prev.begin(), prev.end());
       return nullptr;
     }
-    else if(drift_in_frames > 1.)
+    else
     {
-      //current_time > frame_time: we are late by more than one frame, fetch new frames
+      //current_time is past this frame: fetch new frames
       prev.push_back(frame);
       if(prev.size() >= 8)
         break;
-
-      continue;
     }
-
-    m_framesToFree.insert(m_framesToFree.end(), prev.begin(), prev.end());
-    return frame;
   }
 
   switch(prev.size())

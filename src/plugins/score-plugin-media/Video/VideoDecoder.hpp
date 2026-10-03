@@ -61,7 +61,8 @@ private:
   int64_t m_duration{}; // in flicks
 
   std::atomic_int64_t m_seekTo = -1;
-  std::atomic_int64_t m_last_dequeued_dts = 0;
+  //! The display timestamp of the frame the consumer last took.
+  std::atomic_int64_t m_last_dequeued_pts = AV_NOPTS_VALUE;
   std::atomic_int64_t m_dequeued = 0;
 
   std::atomic_bool m_running{};

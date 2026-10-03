@@ -2,6 +2,7 @@
 #if SCORE_HAS_LIBAV
 
 #include <Video/DecoderThreading.hpp>
+#include <Video/PlaybackTime.hpp>
 #include <Video/Thumbnailer.hpp>
 #include <Video/VideoDecoder.hpp>
 
@@ -80,6 +81,7 @@ VideoThumbnailer::VideoThumbnailer(QString path)
     const AVRational tb = m_formatContext->streams[m_stream]->time_base;
     dts_per_flicks = (tb.den / (tb.num * ossia::flicks_per_second<double>));
     flicks_per_dts = (tb.num * ossia::flicks_per_second<double>) / tb.den;
+    start_pts = playbackStartPts(*m_formatContext, *stream);
 
     m_codec = avcodec_find_decoder(stream->codecpar->codec_id);
 
@@ -238,9 +240,16 @@ QImage VideoThumbnailer::process(int64_t flicks)
   {
     // Always seek backward to the nearest keyframe before the target.
     // Forward-only seeking fails when there is no keyframe at the exact target.
+    // The thumbnail of a time is the frame playback shows then.
+    const AVStream* stream = m_formatContext->streams[m_stream];
+    const int64_t absolute_flicks
+        = flicks
+          + av_rescale_q(
+              start_pts, stream->time_base,
+              AVRational{1, int(ossia::flicks_per_second<int64_t>)});
     if(!ossia::seek_to_flick(
-           m_formatContext, m_codecContext, m_formatContext->streams[m_stream], flicks,
-           AVSEEK_FLAG_BACKWARD | ossia::OSSIA_LIBAV_SEEK_ROUGH))
+           m_formatContext, m_codecContext, m_formatContext->streams[m_stream],
+           absolute_flicks, AVSEEK_FLAG_BACKWARD | ossia::OSSIA_LIBAV_SEEK_ROUGH))
     {
       return {};
     }

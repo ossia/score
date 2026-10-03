@@ -71,6 +71,10 @@ public:
 
   void set_discard_frame(AVFrame*);
   void release(AVFrame* frame) noexcept;
+
+  //! Frames enqueued from now on belong to a new seek. Each frame carries the
+  //! generation it was enqueued in (frameGeneration).
+  int start_generation() noexcept { return ++m_generation; }
   void drain();
 
   std::size_t size() const noexcept { return available.size_approx(); }
@@ -81,7 +85,14 @@ private:
 
   std::vector<AVFrame*> m_decodeThreadFrameBuffer;
   std::atomic<AVFrame*> m_discardUntil{};
+  std::atomic_int m_generation{};
 };
+
+//! The seek generation a frame was enqueued in (FrameQueue::start_generation).
+inline int frameGeneration(const AVFrame& f) noexcept
+{
+  return int(reinterpret_cast<intptr_t>(f.opaque));
+}
 
 SCORE_PLUGIN_MEDIA_EXPORT
 uint8_t* initFrameBuffer(AVFrame& frame, std::size_t bytes);
