@@ -92,6 +92,10 @@ struct SCORE_PLUGIN_MEDIA_EXPORT VideoInterface : VideoMetadata
   virtual ~VideoInterface();
   virtual AVFrame* dequeue_frame() noexcept = 0;
   virtual void release_frame(AVFrame* frame) noexcept = 0;
+  //! Asks for the frames from this playback time on; a source that cannot
+  //! seek ignores it.
+  virtual void seek(int64_t flicks) { }
+
   //! The generation (frameGeneration) of the last seek done: a frame of an
   //! earlier one is from before it, and is not to be shown.
   std::atomic_int seek_generation{};
