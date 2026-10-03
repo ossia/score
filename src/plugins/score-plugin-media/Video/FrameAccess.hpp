@@ -101,11 +101,13 @@ inline FrameAccessProbe fromPackets(AVFormatContext& fmt, AVStream& st) noexcept
   // as soon as a run exceeds the short limit.
   constexpr int max_packets = 2 * (max_short_gop + 1);
   int seen = 0, keys = 0, gap = 0, maxGap = 0;
+  bool timed = false;
   while(seen < max_packets && av_read_frame(&fmt, pkt) >= 0)
   {
     if(pkt->stream_index == st.index)
     {
       seen++;
+      timed |= pkt->pts != AV_NOPTS_VALUE || pkt->dts != AV_NOPTS_VALUE;
       if(pkt->flags & AV_PKT_FLAG_KEY)
       {
         if(keys > 0)
@@ -127,14 +129,20 @@ inline FrameAccessProbe fromPackets(AVFormatContext& fmt, AVStream& st) noexcept
   }
   av_packet_free(&pkt);
 
+  // A stream without timestamps cannot be sought by time, and a failed
+  // attempt leaves the demuxer at its end: rewind by bytes instead.
   const int64_t start = st.start_time != AV_NOPTS_VALUE ? st.start_time : 0;
-  if(av_seek_frame(&fmt, st.index, start, AVSEEK_FLAG_BACKWARD) < 0)
-    avformat_seek_file(&fmt, -1, INT64_MIN, 0, INT64_MAX, 0);
+  if(!timed || (av_seek_frame(&fmt, st.index, start, AVSEEK_FLAG_BACKWARD) < 0
+                && avformat_seek_file(&fmt, -1, INT64_MIN, 0, INT64_MAX, 0) < 0))
+    av_seek_frame(&fmt, st.index, 0, AVSEEK_FLAG_BYTE);
 
   if(seen == 0)
     return {};
   // The run still open when reading stopped is at least that long.
   maxGap = std::max(maxGap, gap);
+  // Raw elementary streams carry no timestamps: no time can be sought.
+  if(!timed)
+    return {FrameAccess::Sequential, maxGap};
   if(keys == 0)
     return {FrameAccess::LongGop, maxGap};
   return {fromGap(maxGap), maxGap};
@@ -150,6 +158,11 @@ inline FrameAccessProbe classifyFrameAccess(AVFormatContext& fmt, AVStream& st) 
   using namespace keyframe_probe;
   if(!canSeek(fmt))
     return {FrameAccess::Sequential, -1};
+
+  // Without a start time the stream may carry no timestamps at all, which
+  // only its packets tell.
+  if(st.start_time == AV_NOPTS_VALUE)
+    return fromPackets(fmt, st);
 
   if(auto desc = avcodec_descriptor_get(st.codecpar->codec_id);
      desc && (desc->props & AV_CODEC_PROP_INTRA_ONLY))

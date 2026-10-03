@@ -15,6 +15,7 @@
 #include <QElapsedTimer>
 #include <QTimer>
 
+#include <algorithm>
 #include <cstdlib>
 #include <functional>
 #include <iostream>
@@ -227,7 +228,8 @@ ReadFrame LibAVDecoder::enqueue_frame(const AVPacket* pkt) noexcept
   {
     auto frame = m_frames.newFrame();
     auto read
-        = receiveVideoFrame(m_codecContext, frame.get(), this->m_conf.ignorePTS);
+        = receiveVideoFrame(
+            m_codecContext, frame.get(), this->m_conf.ignorePTS, &m_missingTimestamps);
     if(read.error == AVERROR_EOF)
       m_finished = true;
 
@@ -358,7 +360,8 @@ void LibAVDecoder::load_packet_in_frame(const AVPacket& packet, AVFrame& frame)
 }
 
 ReadFrame receiveVideoFrame(
-    AVCodecContext* codecContext, AVFrame* frame, bool ignorePts)
+    AVCodecContext* codecContext, AVFrame* frame, bool ignorePts,
+    MissingTimestamps* missing)
 {
   if(codecContext && frame)
   {
@@ -370,6 +373,25 @@ ReadFrame receiveVideoFrame(
     }
     else
     {
+      if(missing)
+      {
+        if(frame->pts == AV_NOPTS_VALUE)
+          frame->pts = frame->best_effort_timestamp;
+        // Without timestamps the demuxer's durations are guesses too: raw
+        // H.264 ones fall to 1 tick after a byte seek. Number by the frame
+        // rate.
+        int64_t duration = missing->step;
+        if(frame->pts == AV_NOPTS_VALUE)
+          frame->pts = missing->next;
+        else
+#if(LIBAVUTIL_VERSION_MAJOR < 58)
+          duration = frame->pkt_duration > 0 ? frame->pkt_duration : missing->step;
+#else
+          duration = frame->duration > 0 ? frame->duration : missing->step;
+#endif
+        missing->next = frame->pts + duration;
+      }
+
       if(ignorePts || frame->pts >= 0)
       {
 #if LIBAVUTIL_VERSION_MAJOR >= 57
@@ -730,9 +752,20 @@ bool VideoDecoder::seek_impl(int64_t flicks) noexcept
 
   if(!ossia::seek_to_flick(m_formatContext, m_codecContext, m_avstream, flicks))
   {
-    qDebug() << "Failed to seek for time ";
-    return false;
+    // A stream without timestamps cannot be sought by time, but it can be
+    // restarted, as looping does: by bytes, from its beginning.
+    if(flicks != 0 || av_seek_frame(m_formatContext, m_avstream->index, 0, AVSEEK_FLAG_BYTE) < 0)
+    {
+      qDebug() << "Failed to seek for time ";
+      return false;
+    }
+    if(m_codecContext)
+      avcodec_flush_buffers(m_codecContext);
   }
+  // A stream without timestamps resumes its numbering at the time sought.
+  m_missingTimestamps.next = av_rescale_q(
+      flicks, AVRational{1, int(ossia::flicks_per_second<int64_t>)},
+      m_avstream->time_base);
 
   ReadFrame r;
   do
@@ -850,6 +883,15 @@ bool VideoDecoder::open_stream() noexcept
   {
     m_avstream = m_formatContext->streams[stream];
     const AVRational tb = m_avstream->time_base;
+    {
+      const AVRational rate = m_avstream->avg_frame_rate.num > 0
+                                  ? m_avstream->avg_frame_rate
+                                  : m_avstream->r_frame_rate;
+      m_missingTimestamps = {};
+      if(rate.num > 0 && rate.den > 0)
+        m_missingTimestamps.step
+            = std::max<int64_t>(1, av_rescale_q(1, av_inv_q(rate), tb));
+    }
     dts_per_flicks = (tb.den / (tb.num * ossia::flicks_per_second<double>));
     flicks_per_dts = (tb.num * ossia::flicks_per_second<double>) / tb.den;
 

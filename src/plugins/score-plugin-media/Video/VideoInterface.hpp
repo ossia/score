@@ -100,7 +100,23 @@ struct SCORE_PLUGIN_MEDIA_EXPORT FreeAVFrame
 
 using AVFramePointer = std::unique_ptr<AVFrame, FreeAVFrame>;
 
+//! Timestamps for the frames of streams that carry none (raw H.264 / HEVC /
+//! VVC elementary streams): each such frame gets the previous frame's
+//! timestamp plus one frame at the stream's rate, starting from `next`.
+struct MissingTimestamps
+{
+  int64_t next{};
+  //! One frame in the stream's time base, for frames whose duration is unknown.
+  int64_t step{1};
+};
+
+/**
+ * Frames with a negative timestamp are dropped unless ignorePts is set.
+ * With `missing`, a frame without a timestamp takes its best-effort one, or
+ * else the one `missing` numbers it with, instead of being dropped.
+ */
 ReadFrame receiveVideoFrame(
-    AVCodecContext* codecContext, AVFrame* frame, bool ignorePts);
+    AVCodecContext* codecContext, AVFrame* frame, bool ignorePts,
+    MissingTimestamps* missing = nullptr);
 }
 #endif

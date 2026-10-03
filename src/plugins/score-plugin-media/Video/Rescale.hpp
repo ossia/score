@@ -84,6 +84,7 @@ struct SCORE_PLUGIN_MEDIA_EXPORT LibAVDecoder
 
   FrameQueue m_frames;
   Rescale m_rescale;
+  MissingTimestamps m_missingTimestamps;
   //! Set by the decoding thread, polled by the owner waiting for the end.
   std::atomic_bool m_finished{};
 };
