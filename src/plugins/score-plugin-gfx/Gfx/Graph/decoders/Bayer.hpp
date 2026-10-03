@@ -49,10 +49,7 @@ struct BayerDecoder : GPUVideoDecoder
   };
 
   // %1 = user filter, %2/%3 = red-site offset, %4 = sample scale
-  static const constexpr auto frag = R"_(#version 450
-
-)_" SCORE_GFX_CAPTURE_UNIFORMS SCORE_GFX_CAPTURE_ADJUST_FN R"_(
-
+#define SCORE_GFX_BAYER_DEMOSAIC R"_(
 layout(binding=3) uniform sampler2D u_tex;
 
 layout(location = 0) in vec2 v_texcoord;
@@ -103,16 +100,41 @@ void main() {
 
   fragColor = processTexture(vec4(adjustCapture(rgb * %4), 1.0));
 }
-)_";
+)_"
+
+  /// Capture inputs: the long material block, with the sensor corrections.
+  static const constexpr auto frag = R"_(#version 450
+
+)_" SCORE_GFX_CAPTURE_UNIFORMS SCORE_GFX_CAPTURE_ADJUST_FN SCORE_GFX_BAYER_DEMOSAIC;
+
+  /// Raw files (CineForm RAW, Magic Lantern, Phantom Cine) played as video:
+  /// the video renderers' material block, which has no corrections.
+  static const constexpr auto fileFrag = R"_(#version 450
+
+)_" SCORE_GFX_VIDEO_UNIFORMS R"_(
+vec3 adjustCapture(vec3 c) { return c; }
+)_" SCORE_GFX_BAYER_DEMOSAIC;
+#undef SCORE_GFX_BAYER_DEMOSAIC
+
+  /// Which renderer draws it, which sets the material block the shaders
+  /// declare: a block that does not match the renderer's buffer reads past it.
+  enum class Source
+  {
+    Capture,
+    File
+  };
 
   BayerDecoder(
       QRhiTexture::Format fmt, int bytesPerSample, Video::ImageFormat& d,
-      Phase phase, double sampleScale = 1.0)
+      Phase phase, double sampleScale = 1.0, Source source = Source::Capture,
+      QString f = "")
       : format{fmt}
       , bytesPerSample{bytesPerSample}
       , decoder{d}
       , phase{phase}
       , sampleScale{sampleScale}
+      , source{source}
+      , filter{std::move(f)}
   {
   }
 
@@ -121,6 +143,8 @@ void main() {
   Video::ImageFormat& decoder;
   Phase phase{};
   double sampleScale{1.0};
+  Source source{Source::Capture};
+  QString filter;
 
   std::pair<QShader, QShader> init(RenderList& r) override
   {
@@ -160,10 +184,11 @@ void main() {
       case Phase::BGGR: px = 1; py = 1; break;
     }
 
+    const bool file = source == Source::File;
     return score::gfx::makeShaders(
-        r.state, score::gfx::captureVertexShader,
-        QString(frag)
-            .arg("")
+        r.state, file ? vertexShader() : QString(score::gfx::captureVertexShader),
+        QString(file ? fileFrag : frag)
+            .arg(filter)
             .arg(px)
             .arg(py)
             .arg(QString::number(sampleScale, 'f', 6)));

@@ -72,6 +72,7 @@ extern "C" {
 #include <libavutil/pixfmt.h>
 }
 
+#include <cmath>
 #include <cstdint>
 #include <cstdlib>
 #include <cstring>
@@ -280,6 +281,100 @@ Planes packYuva444p12(F yAt, int cb, int cr)
       put16le(p.data[1], uint16_t(cb * 16));
       put16le(p.data[2], uint16_t(cr * 16));
       put16le(p.data[3], uint16_t(4095));
+    }
+  return p;
+}
+
+// Planar YUV, chroma subsampled by (sx, sy), 8- or 16-bit, with an optional
+// alpha plane. 16-bit samples hold the 8-bit code in their top byte, the same
+// framing rule as the MSB-aligned family above.
+template <typename F>
+Planes packPlanarYuv(F yAt, int cb, int cr, int sx, int sy, int bytes, bool alpha)
+{
+  Planes p;
+  p.count = alpha ? 4 : 3;
+  auto put = [&](std::vector<uint8_t>& v, int code) {
+    if(bytes == 2)
+      put16le(v, uint16_t(code << 8));
+    else
+      v.push_back(uint8_t(code));
+  };
+  p.linesize[0] = W * bytes;
+  p.linesize[1] = p.linesize[2] = (W / sx) * bytes;
+  for(int y = 0; y < H; y++)
+    for(int x = 0; x < W; x++)
+      put(p.data[0], yAt(x));
+  for(int y = 0; y < H / sy; y++)
+    for(int x = 0; x < W / sx; x++)
+    {
+      put(p.data[1], cb);
+      put(p.data[2], cr);
+    }
+  if(alpha)
+  {
+    p.linesize[3] = W * bytes;
+    for(int i = 0; i < W * H; i++)
+    {
+      if(bytes == 2)
+        put16le(p.data[3], 0xFFFF);
+      else
+        p.data[3].push_back(255);
+    }
+  }
+  return p;
+}
+
+// PAL8: an index plane and the 256-entry palette of native-endian 0xAARRGGBB
+// words. Every entry but the indexed one is a decoy.
+Planes packPal8(int index, int r, int g, int b)
+{
+  Planes p;
+  p.count = 2;
+  p.linesize[0] = W;
+  p.data[0].assign(W * H, uint8_t(index));
+  p.linesize[1] = 256 * 4;
+  for(int i = 0; i < 256; i++)
+  {
+    const uint32_t argb = i == index
+                              ? 0xFF000000u | (uint32_t(r) << 16) | (uint32_t(g) << 8) | b
+                              : 0xFF000000u | (uint32_t(255 - i) << 16) | uint32_t(i);
+    put32le(p.data[1], argb);
+  }
+  return p;
+}
+
+// One packed word per pixel, `bytes` wide, little- or big-endian.
+Planes packWord(uint32_t word, int bytes, bool bigEndian)
+{
+  Planes p;
+  p.count = 1;
+  p.linesize[0] = W * bytes;
+  for(int i = 0; i < W * H; i++)
+    for(int k = 0; k < bytes; k++)
+    {
+      const int shift = bigEndian ? 8 * (bytes - 1 - k) : 8 * k;
+      p.data[0].push_back(uint8_t((word >> shift) & 0xFF));
+    }
+  return p;
+}
+
+// A Bayer mosaic of one flat colour: every site holds its own channel. The
+// bilinear demosaic of a flat field is that colour again, exactly. `phase` is
+// the colour of the (0,0) 2x2 cell, row by row, e.g. "RGGB".
+Planes packBayer(const char* phase, int r, int g, int b, int bytes)
+{
+  Planes p;
+  p.count = 1;
+  p.linesize[0] = W * bytes;
+  for(int y = 0; y < H; y++)
+    for(int x = 0; x < W; x++)
+    {
+      const char site = phase[(y & 1) * 2 + (x & 1)];
+      const int code = site == 'R' ? r : site == 'B' ? b : g;
+      if(bytes == 2)
+        put16le(p.data[0], uint16_t(code * 257));
+      else
+        p.data[0].push_back(uint8_t(code));
     }
   return p;
 }
@@ -679,6 +774,167 @@ TEST_CASE(
   check_ramp(api, "y210le", AV_PIX_FMT_Y210LE, packY210(rampLumaAt, 128, 128));
 }
 #endif
+
+TEST_CASE(
+    "PlanarYUVDecoder: every subsampling, depth and alpha to the right colour",
+    "[gfx][video][decoder][pixels]")
+{
+  const auto api = GENERATE(from_range(platform_backends()));
+  struct Case
+  {
+    const char* name;
+    AVPixelFormat fmt;
+    int sx, sy, bytes;
+    bool alpha;
+  };
+  const Case cases[]{
+      {"yuv410p", AV_PIX_FMT_YUV410P, 4, 4, 1, false},
+      {"yuv411p", AV_PIX_FMT_YUV411P, 4, 1, 1, false},
+      {"yuva422p", AV_PIX_FMT_YUVA422P, 2, 1, 1, true},
+      {"yuv420p16le", AV_PIX_FMT_YUV420P16LE, 2, 2, 2, false},
+      {"yuv422p16le", AV_PIX_FMT_YUV422P16LE, 2, 1, 2, false},
+      {"yuva422p16le", AV_PIX_FMT_YUVA422P16LE, 2, 1, 2, true},
+  };
+  for(const auto& k : cases)
+  {
+    for(const auto& c : kColors)
+    {
+      const auto out = render_camera(
+          api, k.fmt,
+          packPlanarYuv([&](int) { return c.y; }, c.cb, c.cr, k.sx, k.sy, k.bytes, k.alpha));
+      INFO("backend " << out.backend);
+      if(out.skipped)
+        SKIP(out.skip_reason);
+      REQUIRE(out.error.empty());
+      check_color(out.img, c, k.name);
+    }
+    // The chroma planes are a quarter or half as wide: an addressing error
+    // there shifts the luma bands.
+    check_ramp(
+        api, k.name, k.fmt,
+        packPlanarYuv(rampLumaAt, 128, 128, k.sx, k.sy, k.bytes, k.alpha));
+  }
+}
+
+TEST_CASE(
+    "PAL8Decoder looks every pixel up in the frame's palette",
+    "[gfx][video][decoder][pixels]")
+{
+  const auto api = GENERATE(from_range(platform_backends()));
+  for(int index : {0, 7, 200, 255})
+  {
+    const auto out = render_camera(
+        api, AV_PIX_FMT_PAL8, packPal8(index, 64, 160, 200), AVCOL_SPC_RGB);
+    INFO("backend " << out.backend << " index " << index);
+    if(out.skipped)
+      SKIP(out.skip_reason);
+    REQUIRE(out.error.empty());
+    REQUIRE(out.img.valid());
+    const auto px = out.img.at(W / 2, H / 2);
+    INFO("got (" << int(px[0]) << "," << int(px[1]) << "," << int(px[2]) << ")");
+    CHECK(int(px[0]) == 64);
+    CHECK(int(px[1]) == 160);
+    CHECK(int(px[2]) == 200);
+  }
+}
+
+TEST_CASE(
+    "Bit-field RGB formats put each field in its channel",
+    "[gfx][video][decoder][pixels]")
+{
+  // The expected value of an n-bit field v is round(v * 255 / (2^n - 1)):
+  // a field at its maximum must read 255, not 248 or 252.
+  const auto api = GENERATE(from_range(platform_backends()));
+  auto expand = [](int v, int bits) {
+    return int(std::lround(v * 255.0 / ((1 << bits) - 1)));
+  };
+  struct Case
+  {
+    const char* name;
+    AVPixelFormat fmt;
+    uint32_t word;
+    int bytes;
+    bool bigEndian;
+    int r, g, b;
+  };
+  const Case cases[]{
+      // (msb) X 5R 5G 5B (lsb)
+      {"rgb555le", AV_PIX_FMT_RGB555LE, (31u << 10) | (4u << 5) | 16u, 2, false,
+       expand(31, 5), expand(4, 5), expand(16, 5)},
+      {"rgb555be", AV_PIX_FMT_RGB555BE, (31u << 10) | (4u << 5) | 16u, 2, true,
+       expand(31, 5), expand(4, 5), expand(16, 5)},
+      // (msb) X 5B 5G 5R (lsb)
+      {"bgr555le", AV_PIX_FMT_BGR555LE, (16u << 10) | (4u << 5) | 31u, 2, false,
+       expand(31, 5), expand(4, 5), expand(16, 5)},
+      // (msb) 5R 6G 5B (lsb)
+      {"rgb565le", AV_PIX_FMT_RGB565LE, (9u << 11) | (63u << 5) | 2u, 2, false,
+       expand(9, 5), expand(63, 6), expand(2, 5)},
+      {"rgb565be", AV_PIX_FMT_RGB565BE, (9u << 11) | (63u << 5) | 2u, 2, true,
+       expand(9, 5), expand(63, 6), expand(2, 5)},
+      // (msb) 2B 3G 3R (lsb)
+      {"bgr8", AV_PIX_FMT_BGR8, (1u << 6) | (4u << 3) | 7u, 1, false, expand(7, 3),
+       expand(4, 3), expand(1, 2)},
+      // memory X, R, G, B
+      {"0rgb", AV_PIX_FMT_0RGB, (200u << 24) | (160u << 16) | (64u << 8), 4, false, 64,
+       160, 200},
+  };
+  for(const auto& k : cases)
+  {
+    const auto out = render_camera(
+        api, k.fmt, packWord(k.word, k.bytes, k.bigEndian), AVCOL_SPC_RGB);
+    INFO("backend " << out.backend << " format " << k.name);
+    if(out.skipped)
+      SKIP(out.skip_reason);
+    REQUIRE(out.error.empty());
+    REQUIRE(out.img.valid());
+    const auto px = out.img.at(W / 2, H / 2);
+    INFO(
+        "got (" << int(px[0]) << "," << int(px[1]) << "," << int(px[2]) << ") want ("
+                << k.r << "," << k.g << "," << k.b << ")");
+    CHECK(int(px[0]) == k.r);
+    CHECK(int(px[1]) == k.g);
+    CHECK(int(px[2]) == k.b);
+  }
+}
+
+TEST_CASE(
+    "Bayer files demosaic through the video renderer's material block",
+    "[gfx][video][decoder][pixels]")
+{
+  // The capture demosaicer declares the capture material block -- black
+  // level, white balance -- which the video renderer's buffer does not hold:
+  // read past it, white balance comes back 0 and the picture black. The file
+  // variant declares the video block instead.
+  const auto api = GENERATE(from_range(platform_backends()));
+  struct Case
+  {
+    const char* name;
+    AVPixelFormat fmt;
+    const char* phase;
+    int bytes;
+  };
+  const Case cases[]{
+      {"bayer_rggb8", AV_PIX_FMT_BAYER_RGGB8, "RGGB", 1},
+      {"bayer_gbrg8", AV_PIX_FMT_BAYER_GBRG8, "GBRG", 1},
+      {"bayer_rggb16le", AV_PIX_FMT_BAYER_RGGB16LE, "RGGB", 2},
+      {"bayer_bggr16le", AV_PIX_FMT_BAYER_BGGR16LE, "BGGR", 2},
+  };
+  for(const auto& k : cases)
+  {
+    const auto out = render_camera(
+        api, k.fmt, packBayer(k.phase, 200, 100, 50, k.bytes), AVCOL_SPC_RGB);
+    INFO("backend " << out.backend << " format " << k.name);
+    if(out.skipped)
+      SKIP(out.skip_reason);
+    REQUIRE(out.error.empty());
+    REQUIRE(out.img.valid());
+    const auto px = out.img.at(W / 2, H / 2);
+    INFO("got (" << int(px[0]) << "," << int(px[1]) << "," << int(px[2]) << ")");
+    CHECK(int(px[0]) == 200);
+    CHECK(int(px[1]) == 100);
+    CHECK(int(px[2]) == 50);
+  }
+}
 
 TEST_CASE(
     "An unusable pixel format degrades instead of crashing",

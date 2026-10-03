@@ -204,6 +204,29 @@ inline constexpr bool formatNeedsDecoding(AVPixelFormat fmt) noexcept
 
     case AV_PIX_FMT_GRAY8:
     case AV_PIX_FMT_GRAY16:
+
+    case AV_PIX_FMT_YUV410P:
+    case AV_PIX_FMT_YUV411P:
+    case AV_PIX_FMT_YUVA422P:
+    case AV_PIX_FMT_YUV420P16LE:
+    case AV_PIX_FMT_YUV422P16LE:
+    case AV_PIX_FMT_YUVA422P16LE:
+    case AV_PIX_FMT_PAL8:
+    case AV_PIX_FMT_RGB555LE:
+    case AV_PIX_FMT_RGB555BE:
+    case AV_PIX_FMT_BGR555LE:
+    case AV_PIX_FMT_RGB565LE:
+    case AV_PIX_FMT_RGB565BE:
+    case AV_PIX_FMT_BGR8:
+    case AV_PIX_FMT_0RGB:
+    case AV_PIX_FMT_BAYER_RGGB8:
+    case AV_PIX_FMT_BAYER_BGGR8:
+    case AV_PIX_FMT_BAYER_GRBG8:
+    case AV_PIX_FMT_BAYER_GBRG8:
+    case AV_PIX_FMT_BAYER_RGGB16LE:
+    case AV_PIX_FMT_BAYER_BGGR16LE:
+    case AV_PIX_FMT_BAYER_GRBG16LE:
+    case AV_PIX_FMT_BAYER_GBRG16LE:
       return false;
 
     // Other formats get rgb'd
