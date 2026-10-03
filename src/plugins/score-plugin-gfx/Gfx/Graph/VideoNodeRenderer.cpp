@@ -279,12 +279,12 @@ void VideoNodeRenderer::update(
         m_currentScaleMode, renderSize,
         QSizeF(m_frameFormat.width, m_frameFormat.height));
     Material mat;
-    mat.scale_w = sz.width();
-    mat.scale_h = sz.height();
-    mat.tex_w = this->m_frameFormat.width;
-    mat.tex_h = this->m_frameFormat.height;
-    mat.field_parity = m_fieldParity;
-    mat.field_mode = videoFieldMode(
+    mat.scale[0] = sz.width();
+    mat.scale[1] = sz.height();
+    mat.textureSize[0] = this->m_frameFormat.width;
+    mat.textureSize[1] = this->m_frameFormat.height;
+    mat.field[0] = m_fieldParity;
+    mat.field[1] = videoFieldMode(
         m_frameFormat.interlacing, m_frameFormat.deinterlace, m_fieldPartnerValid);
 
     res.updateDynamicBuffer(m_materialUBO, 0, sizeof(Material), &mat);

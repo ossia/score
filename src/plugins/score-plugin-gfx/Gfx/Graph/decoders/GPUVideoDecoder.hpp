@@ -5,6 +5,8 @@
 #include <Gfx/Graph/RenderState.hpp>
 #include <Video/VideoInterface.hpp>
 
+#include <cstddef>
+
 extern "C" {
 #include <libavutil/frame.h>
 #include <libavutil/pixdesc.h>
@@ -69,6 +71,28 @@ SCORE_GFX_VIDEO_SAMPLE_TRANSFORM
 
 namespace score::gfx
 {
+
+
+/**
+ * @brief Which mode score_tc should run, as a uniform value.
+ *
+ * 0 progressive, 1 weave, 2 bob. Weave needs the OTHER half of the stacked
+ * texture to hold this field's partner; when it does not -- a dropped field, or
+ * the very first field after a connection -- weaving would pair two fields of
+ * the same parity and tear. Falling back to bob for that one frame costs half
+ * the vertical resolution on that frame and nothing else.
+ */
+inline float videoFieldMode(
+    Video::Interlacing interlacing, Video::Deinterlace deinterlace,
+    bool partnerValid) noexcept
+{
+  if(interlacing != Video::Interlacing::Fields)
+    return 0.f;
+  if(deinterlace == Video::Deinterlace::Bob || !partnerValid)
+    return 2.f;
+  return 1.f;
+}
+
 
 /// Describes the pixel layout properties relevant for GPU decoding.
 /// Extracted from AVPixFmtDescriptor / codec parameters.
