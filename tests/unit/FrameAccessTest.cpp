@@ -21,6 +21,8 @@ extern "C" {
 
 #include <catch2/catch_test_macros.hpp>
 
+#include <atomic>
+#include <chrono>
 #include <cstdio>
 #include <filesystem>
 #include <string>
@@ -30,6 +32,16 @@ using Video::FrameAccess;
 namespace
 {
 namespace fs = std::filesystem;
+
+// A path in the temp directory no other run uses: test jobs run in parallel.
+inline std::filesystem::path uniqueTempPath(const std::string& name)
+{
+  static std::atomic_int counter{};
+  return std::filesystem::temp_directory_path()
+         / (name + "_"
+            + std::to_string(std::chrono::steady_clock::now().time_since_epoch().count())
+            + "_" + std::to_string(counter++));
+}
 
 constexpr int W = 64;
 constexpr int H = 48;
@@ -224,7 +236,7 @@ struct TempDir
 {
   fs::path path;
   explicit TempDir(const char* name)
-      : path{fs::temp_directory_path() / name}
+      : path{uniqueTempPath(name)}
   {
     fs::create_directories(path);
   }
