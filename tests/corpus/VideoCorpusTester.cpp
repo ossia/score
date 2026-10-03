@@ -31,6 +31,7 @@
 #if SCORE_HAS_LIBAV
 
 #include <Video/GpuFormats.hpp>
+#include <Video/PlaybackTime.hpp>
 #include <Video/VideoDecoder.hpp>
 
 #if SCORE_CORPUS_HAS_GFX
@@ -62,11 +63,13 @@ extern "C" {
 #include <algorithm>
 #include <atomic>
 #include <chrono>
+#include <cmath>
 #include <cinttypes>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <memory>
+#include <optional>
 #include <random>
 #include <string>
 #include <thread>
@@ -805,6 +808,42 @@ int run_direct(const std::string& path)
   return 0;
 }
 
+// Whether plain libavcodec gets at least one frame out of the file: a decode
+// that produced none is a failure only then.
+bool libav_decodes_a_frame(const std::string& path)
+{
+  AVFormatContext* fmt{};
+  if(avformat_open_input(&fmt, path.c_str(), nullptr, nullptr) != 0)
+    return false;
+  bool got = false;
+  if(avformat_find_stream_info(fmt, nullptr) >= 0)
+  {
+    const int s = av_find_best_stream(fmt, AVMEDIA_TYPE_VIDEO, -1, -1, nullptr, 0);
+    const AVCodec* codec
+        = s >= 0 ? avcodec_find_decoder(fmt->streams[s]->codecpar->codec_id) : nullptr;
+    AVCodecContext* ctx = codec ? avcodec_alloc_context3(codec) : nullptr;
+    if(ctx && avcodec_parameters_to_context(ctx, fmt->streams[s]->codecpar) >= 0
+       && avcodec_open2(ctx, codec, nullptr) == 0)
+    {
+      AVPacket* pkt = av_packet_alloc();
+      AVFrame* f = av_frame_alloc();
+      for(int n = 0; !got && n < 256 && av_read_frame(fmt, pkt) >= 0; n++)
+      {
+        if(pkt->stream_index == s && avcodec_send_packet(ctx, pkt) >= 0)
+          got = avcodec_receive_frame(ctx, f) == 0;
+        av_packet_unref(pkt);
+      }
+      if(!got && avcodec_send_packet(ctx, nullptr) >= 0)
+        got = avcodec_receive_frame(ctx, f) == 0;
+      av_frame_free(&f);
+      av_packet_free(&pkt);
+    }
+    avcodec_free_context(&ctx);
+  }
+  avformat_close_input(&fmt);
+  return got;
+}
+
 #if SCORE_CORPUS_HAS_GFX
 // ---------------------------------------------------------------------------
 // The direct renderer: DirectVideoNodeRenderer's own decoder, which Auto
@@ -848,7 +887,10 @@ DirectFrame direct_frame(const score::gfx::DirectVideoNodeRenderer& r)
   // hashes packets.
   if(!r.m_useAVCodec)
     return {true, f->pts, uint32_t(av_adler32_update(1, f->data[0], f->linesize[0]))};
-  return {true, f->pts, hash_frame_pixels(f)};
+  // The timestamp the renderer places the frame at: its best-effort one, or
+  // the number it gave a frame without any. A dts-only file (AVI) has none in
+  // pts.
+  return {true, r.m_lastDecodedDts, hash_frame_pixels(f)};
 }
 
 int run_direct_renderer(const std::string& path)
@@ -868,7 +910,10 @@ int run_direct_renderer(const std::string& path)
     return 0;
   }
 
-  if(dec->frame_access == Video::FrameAccess::Sequential)
+  // VIDEO_TESTER_FORCE_DIRECT checks them anyway, as a user forcing Direct
+  // playback on one would play them.
+  if(dec->frame_access == Video::FrameAccess::Sequential
+     && !getenv("VIDEO_TESTER_FORCE_DIRECT"))
   {
     v.status = "NOT_APPLICABLE";
     v.extra = "\"frame_access\":\"Sequential\"";
@@ -932,10 +977,18 @@ int run_direct_renderer(const std::string& path)
   // Playback time 0 is the stream's start, or 0 when it starts before: frames
   // before 0 are dropped. Frames that fail to decode at the start (damaged
   // files) leave the first decoded one later than that.
-  const int64_t stream_start = dec->m_avstream->start_time;
-  const int64_t first_pts = stream_start != AV_NOPTS_VALUE
-                                ? std::max<int64_t>(stream_start, 0)
-                                : frames.front().pts;
+  // Playback time 0: the container's start (playbackStartPts), which the
+  // frame queue maps time from. The direct renderer must take the same.
+  const int64_t first_pts = dec->start_pts;
+  if(r.m_startPts != dec->start_pts)
+  {
+    note_append(
+        v.note, "time 0 is pts " + std::to_string(r.m_startPts)
+                    + " for the direct renderer, " + std::to_string(dec->start_pts)
+                    + " for the frame queue");
+    v.status = "START_MISMATCH";
+    return finish();
+  }
   const double flicks_per_dts = r.m_flicks_per_dts;
   auto request = [&](size_t i, bool absolute) {
     const int64_t pts = frames[i].pts - (absolute ? 0 : first_pts);
@@ -1039,31 +1092,6 @@ int run_direct_renderer(const std::string& path)
   }
   v.score_frames = sequential.count;
 
-  // A stream that does not start at 0 is shown with that offset if the
-  // renderer maps the playback time to the stream's absolute timestamps.
-  if(failure && first_pts != 0)
-  {
-    r.closeFile();
-    r.m_lastDecodedDts = INT64_MIN;
-    r.m_useAVCodec = true;
-    if(r.openFile(score::gfx::GraphicsApi::Null, nullptr))
-    {
-      Timing absolute;
-      bool all = true;
-      std::string saved = v.note;
-      for(size_t i = 0; i < std::min<size_t>(n, 10) && all; i++)
-        all = !check(i, true, absolute);
-      v.note = saved;
-      if(all)
-      {
-        note_append(
-            v.note, "playback time maps to absolute pts; the stream starts at pts "
-                        + std::to_string(first_pts));
-        failure = "START_OFFSET";
-      }
-    }
-  }
-
   // At random, as scrubbing asks. Long GOPs replay from their keyframe on
   // every seek: fewer of them keep the run bounded.
   Timing scrub;
@@ -1087,12 +1115,39 @@ int run_direct_renderer(const std::string& path)
       }
     }
   }
+  // Backwards, as score plays when its speed is negative: halfway into each
+  // frame, last first, as update() asks.
+  Timing reverse;
+  if(!failure)
+  {
+    const size_t last = std::min(frames.size(), max_sequential) - 1;
+    for(size_t k = 0; k < 30 && k <= last && clk::now() < deadline; k++)
+    {
+      const size_t i = last - k;
+      const auto t = clk::now();
+      const bool decoded = shows(request_mid(i));
+      reverse.add(clk::now() - t);
+      const auto got = direct_frame(r);
+      if(!decoded || !got.ok || got.pts != frames[i].pts || got.hash != frames[i].hash)
+      {
+        const auto j = got.ok ? find_ref(got) : -1;
+        note_append(
+            v.note, "backwards: frame " + std::to_string(i) + " asked, "
+                        + (j >= 0 ? "frame " + std::to_string(j) : std::string("none"))
+                        + " shown");
+        failure = "REVERSE_WRONG_FRAME";
+        v.status = failure;
+        v.first_mismatch = int64_t(i);
+        break;
+      }
+    }
+  }
   if(failure && v.status.empty())
     v.status = failure;
   if(!failure)
     v.status = "OK";
 
-  extra += sequential.json("seq") + scrub.json("scrub");
+  extra += sequential.json("seq") + scrub.json("scrub") + reverse.json("reverse");
   if(dec->fps > 0)
   {
     char buf[96];
@@ -1106,6 +1161,202 @@ int run_direct_renderer(const std::string& path)
   if(clk::now() >= deadline)
     note_append(v.note, "time budget reached");
   return finish();
+}
+
+// ---------------------------------------------------------------------------
+// The frame queue's timing: VideoDecoder decoding ahead on its thread, and
+// VideoFrameReader::nextFrame picking the frame for the node's time, as
+// VideoNode::update does. Played two ticks per frame, then seeked at random.
+// At every tick the frame on screen must be the one the direct-renderer check
+// expects for that time: the last frame starting at or before it, from the
+// same time 0 (playbackStartPts). Both renderers measured against one rule is
+// what makes them agree.
+// ---------------------------------------------------------------------------
+
+int run_queue_timing(const std::string& path)
+{
+  constexpr const char* mode = "queue_timing";
+  constexpr int max_ticks = 600;
+  const auto deadline = clk::now() + playback_budget;
+  Verdict v;
+
+  auto dec = std::make_shared<Video::VideoDecoder>(Video::DecoderConfiguration{});
+  if(!dec->load(path))
+  {
+    v.status = "SKIP";
+    emit(mode, path, v);
+    return 0;
+  }
+  const bool raw = !dec->m_conf.useAVCodec;
+  auto ref = reference_decode(path, deadline, int(raw));
+  v.ref_frames = ref.opened ? int64_t(ref.frames.size()) : -1;
+  v.native_format = ref.native_format;
+  if(!ref.opened || ref.frames.empty())
+  {
+    v.status = "SKIP";
+    emit(mode, path, v);
+    return 0;
+  }
+  const auto& frames = ref.frames;
+  if(dec->frame_access == Video::FrameAccess::Sequential)
+    note_append(v.note, "no timestamps: frames numbered at the frame rate");
+
+  const double fps = dec->fps > 0. ? dec->fps : 24.;
+  auto seconds_of = [&](int64_t pts) {
+    return dec->flicks_per_dts * double(pts - dec->start_pts)
+           / ossia::flicks_per_second<double>;
+  };
+  // The reference frame for a time: the last one starting at or before it,
+  // the first one before any. The time is taken to the stream's nearest tick,
+  // as both renderers take it.
+  auto expected_at = [&](double t) {
+    const int64_t now = Video::flicksToPts(
+        int64_t(t * ossia::flicks_per_second<double>), dec->time_base, dec->start_pts);
+    size_t best = 0;
+    for(size_t i = 0; i < frames.size(); i++)
+      if(frames[i].pts <= now)
+        best = i;
+    return best;
+  };
+  auto signature = [&](const AVFrame* f) -> FrameSig {
+    if(raw)
+      return {f->pts, uint32_t(av_adler32_update(1, f->data[0], f->linesize[0]))};
+    return {f->pts, hash_frame_pixels(f)};
+  };
+
+  // The node's own reader, as VideoNode::update drives it: readNextFrame at
+  // the node's time, then the frame it put on screen.
+  score::gfx::VideoNode node{dec, std::nullopt};
+  std::optional<FrameSig> shown;
+  bool showing = false;
+  // One tick at time t: the queue is given time to decode what is due, as a
+  // real playback gives it a frame interval.
+  auto tick = [&](double t) {
+    node.standardUBO.time = t;
+    for(int wait = 0; wait < 2000 && dec->m_frames.size() == 0 && !dec->m_finished
+                      && clk::now() < deadline;
+        wait++)
+      std::this_thread::sleep_for(std::chrono::microseconds(500));
+    node.reader.readNextFrame(node);
+    std::lock_guard lock{node.reader.m_frameLock};
+    if(auto& cur = node.reader.m_currentFrame; cur && cur->frame)
+    {
+      shown = signature(cur->frame);
+      showing = true;
+    }
+  };
+
+  int checked = 0, bad = 0;
+  std::string first_bad;
+  auto check = [&](double t, const char* phase) {
+    if(!shown)
+      return;
+    checked++;
+    const auto want = frames[expected_at(t)];
+    const auto got = *shown;
+    if(got.pts == want.pts && got.hash == want.hash)
+      return;
+    if(bad++ == 0)
+    {
+      size_t j = frames.size();
+      for(size_t i = 0; i < frames.size(); i++)
+        if(frames[i].pts == got.pts && frames[i].hash == got.hash)
+          j = i;
+      first_bad = std::string(phase) + " t=" + std::to_string(t) + ": frame "
+                  + std::to_string(expected_at(t)) + " expected, "
+                  + (j < frames.size() ? "frame " + std::to_string(j)
+                                       : "pts " + std::to_string(got.pts))
+                  + " shown";
+    }
+  };
+
+  // In order. A frame is checked from its second tick: the first tick of a
+  // frame is where a queue that has not decoded it yet legitimately lags.
+  const double step = 0.5 / fps;
+  const double end = std::min(
+      seconds_of(frames.back().pts), (max_ticks / 2) / fps);
+  const bool dump = getenv("VIDEO_TESTER_DUMP");
+  for(double t = 0.; t <= end && clk::now() < deadline; t += step)
+  {
+    tick(t);
+    tick(t);
+    check(t, "playing");
+    if(dump)
+      std::fprintf(
+          stderr, "t=%.4f expected %zu (pts %" PRId64 ") shown pts %" PRId64
+                  " dur %" PRId64 " pending %" PRId64 " queued %zu\n",
+          t, expected_at(t), frames[expected_at(t)].pts, shown ? shown->pts : int64_t(-1),
+          int64_t(-1), int64_t(-1),
+          size_t(dec->m_frames.size()));
+  }
+  const int bad_playing = bad;
+
+  // Seeks: the queue gets a few ticks at the new time to show it.
+  std::mt19937 rng{1234};
+  std::uniform_int_distribution<size_t> pick{0, frames.size() - 1};
+  for(int k = 0; k < 10 && clk::now() < deadline; k++)
+  {
+    const size_t i = pick(rng);
+    const double t = std::max(0., seconds_of(frames[i].pts)) + 0.25 / fps;
+    dec->seek(int64_t(t * ossia::flicks_per_second<double>));
+    // The seek happens on the decoder's thread: real playback keeps ticking
+    // meanwhile, a frame interval apart. Up to a second of those.
+    const auto want = frames[expected_at(t)];
+    for(int n = 0; n < int(fps) + 1; n++)
+    {
+      tick(t);
+      if(dump)
+        std::fprintf(
+            stderr, "seek t=%.4f want pts %" PRId64 " shown %" PRId64
+                    " queued %zu finished %d gen %d\n",
+            t, want.pts, shown ? shown->pts : int64_t(-1), size_t(dec->m_frames.size()),
+            int(dec->m_finished), dec->seek_generation.load());
+      if(shown && shown->pts == want.pts)
+        break;
+      std::this_thread::sleep_for(std::chrono::microseconds(int64_t(1e6 / fps)));
+    }
+    check(t, "seek");
+  }
+
+  const int bad_seeking = bad - bad_playing;
+
+  // Backwards, as score plays when its speed is negative: halfway into each
+  // frame, last first. Each step back is a seek the reader asks the decoder
+  // for: it gets a frame interval of ticks, up to a second, to show it.
+  {
+    const size_t last = std::min<size_t>(frames.size(), size_t(max_ticks / 2)) - 1;
+    for(size_t k = 0; k < 30 && k <= last && clk::now() < deadline; k++)
+    {
+      const size_t i = last - k;
+      const int64_t next
+          = i + 1 < frames.size() ? frames[i + 1].pts : frames[i].pts + 1;
+      const double t = seconds_of((frames[i].pts + next) / 2);
+      for(int n = 0; n < int(fps) + 1; n++)
+      {
+        tick(t);
+        if(shown && shown->pts == frames[i].pts)
+          break;
+        std::this_thread::sleep_for(std::chrono::microseconds(int64_t(1e6 / fps)));
+      }
+      check(t, "backwards");
+    }
+  }
+  const int bad_reverse = bad - bad_playing - bad_seeking;
+
+  v.score_frames = checked;
+  v.status = !showing      ? (libav_decodes_a_frame(path) ? "NO_FRAMES" : "SKIP")
+             : bad == 0     ? "OK"
+             : bad_playing ? "TIMING_MISMATCH"
+             : bad_seeking ? "SCRUB_TIMING_MISMATCH"
+                            : "REVERSE_TIMING_MISMATCH";
+  if(bad)
+    note_append(
+        v.note, std::to_string(bad) + "/" + std::to_string(checked) + " ticks wrong; "
+                    + first_bad);
+  if(clk::now() >= deadline)
+    note_append(v.note, "time budget reached");
+  emit(mode, path, v);
+  return 0;
 }
 #endif
 
@@ -1386,6 +1637,8 @@ int run_playback(const std::string& path, bool seek_stress)
   v.score_frames = frames;
   if(clk::now() >= deadline && !(dec.m_finished))
     v.status = "TIMEOUT_INTERNAL";
+  else if(frames == 0 && libav_decodes_a_frame(path))
+    v.status = "NO_FRAMES";
   else
     v.status = "OK";
   if(seek_stress && next_seek < std::size(seek_points) && duration > 0)
@@ -1400,7 +1653,8 @@ int run_playback(const std::string& path, bool seek_stress)
 
 int main(int argc, char** argv)
 {
-  bool playback = false, seek_stress = false, direct_renderer = false;
+  bool playback = false, seek_stress = false, direct_renderer = false,
+       queue_timing = false;
   std::string file, hwaccel;
   for(int i = 1; i < argc; i++)
   {
@@ -1411,6 +1665,8 @@ int main(int argc, char** argv)
       seek_stress = true;
     else if(a == "--direct-renderer")
       direct_renderer = true;
+    else if(a == "--queue-timing")
+      queue_timing = true;
     else if(a == "--hwaccel" && i + 1 < argc)
       hwaccel = argv[++i];
     else
@@ -1420,7 +1676,8 @@ int main(int argc, char** argv)
   {
     std::fprintf(
         stderr,
-        "usage: %s [--playback|--seek-stress|--direct-renderer|--hwaccel <name>] "
+        "usage: %s [--playback|--seek-stress|--direct-renderer|--queue-timing|"
+        "--hwaccel <name>] "
         "<file>\n",
         argv[0]);
     return 2;
@@ -1439,10 +1696,10 @@ int main(int argc, char** argv)
     std::fprintf(stderr, "unknown hwaccel: %s\n", hwaccel.c_str());
     return 2;
   }
-  if(direct_renderer)
+  if(direct_renderer || queue_timing)
   {
 #if SCORE_CORPUS_HAS_GFX
-    return run_direct_renderer(file);
+    return queue_timing ? run_queue_timing(file) : run_direct_renderer(file);
 #else
     std::fprintf(stderr, "built without score-plugin-gfx: no --direct-renderer\n");
     return 2;
