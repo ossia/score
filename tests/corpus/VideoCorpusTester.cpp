@@ -33,6 +33,23 @@
 #include <Video/GpuFormats.hpp>
 #include <Video/VideoDecoder.hpp>
 
+#if SCORE_CORPUS_HAS_GFX
+// Everything DirectVideoNodeRenderer.hpp includes comes first, so that only
+// its own declarations see private turned public.
+#include <Gfx/Graph/NodeRenderer.hpp>
+#include <Gfx/Graph/RenderState.hpp>
+#include <Gfx/Graph/VideoNode.hpp>
+#include <Video/VideoInterface.hpp>
+
+#include <vector>
+extern "C" {
+#include <libavutil/pixfmt.h>
+}
+#define private public
+#include <Gfx/Graph/DirectVideoNodeRenderer.hpp>
+#undef private
+#endif
+
 extern "C" {
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
@@ -49,6 +66,8 @@ extern "C" {
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <memory>
+#include <random>
 #include <string>
 #include <thread>
 #include <vector>
@@ -132,6 +151,8 @@ struct Verdict
   std::string requested; // accel asked for on the command line
   std::string engaged;   // what actually decoded: device type / codec / "sw"
   std::string out_format; // pixel format score's frames arrived in
+  // Further fields, already JSON ("\"key\":value,..."), emitted as they are.
+  std::string extra;
 };
 
 std::string json_escape(const std::string& s)
@@ -159,6 +180,8 @@ void emit(const char* mode, const std::string& file, const Verdict& v)
     hw = ",\"requested\":\"" + json_escape(v.requested) + "\",\"engaged\":\""
          + json_escape(v.engaged) + "\",\"out_format\":\"" + json_escape(v.out_format)
          + "\"";
+  if(!v.extra.empty())
+    hw += "," + v.extra;
   std::printf(
       "{\"mode\":\"%s\",\"file\":\"%s\",\"status\":\"%s\",\"score_frames\":%" PRId64
       ",\"ref_frames\":%" PRId64 ",\"ref_raw_frames\":%" PRId64
@@ -287,9 +310,11 @@ bool is_raw_gpu_codec(AVCodecID id)
 // ignore_pts mirrors DecoderConfiguration::ignorePTS on the reference side:
 // hw validation uses it so that raw elementary streams (conformance suites,
 // whose frames all have no pts) still compare decoder against decoder.
+// rescale = false compares native frames whatever their format, as the
+// direct renderer hands every decoded frame to a GPU decoder.
 Reference reference_decode(
     const std::string& path, clk::time_point deadline, int raw_mode,
-    bool ignore_pts = false)
+    bool ignore_pts = false, bool rescale = true)
 {
   Reference ref;
 
@@ -382,7 +407,7 @@ Reference reference_decode(
   // score converts formats without a GPU decoder to RGBA at the stream's
   // declared size, with SWS_FAST_BILINEAR (Video/Rescale.cpp).
   const bool needs_rescale
-      = Video::formatNeedsDecoding((AVPixelFormat)par->format);
+      = rescale && Video::formatNeedsDecoding((AVPixelFormat)par->format);
   SwsContext* sws{};
   AVPixelFormat sws_src_fmt = AV_PIX_FMT_NONE;
   AVFrame* rgb = nullptr;
@@ -758,6 +783,287 @@ int run_direct(const std::string& path)
   return 0;
 }
 
+#if SCORE_CORPUS_HAS_GFX
+// ---------------------------------------------------------------------------
+// The direct renderer: DirectVideoNodeRenderer's own decoder, which Auto
+// playback uses for every source whose frames are all keyframes. Driven the
+// way its update() drives it -- a time since the start of playback in, the
+// frame showing at that time out -- first in order, then at random times,
+// which is scrubbing. Each answer must be the reference's frame for that
+// time, by pts and by pixels.
+// ---------------------------------------------------------------------------
+
+const char* frame_access_name(Video::FrameAccess a)
+{
+  switch(a)
+  {
+    case Video::FrameAccess::EveryFrame:
+      return "EveryFrame";
+    case Video::FrameAccess::ShortGop:
+      return "ShortGop";
+    case Video::FrameAccess::LongGop:
+      return "LongGop";
+    case Video::FrameAccess::Sequential:
+      return "Sequential";
+    default:
+      return "Unknown";
+  }
+}
+
+struct DirectFrame
+{
+  bool ok = false;
+  int64_t pts = 0;
+  uint32_t hash = 0;
+};
+
+DirectFrame direct_frame(const score::gfx::DirectVideoNodeRenderer& r)
+{
+  const AVFrame* f = r.m_decodedFrame;
+  if(!f || !f->data[0])
+    return {};
+  // HAP / DXV: the frame carries the demuxed packet, hashed as the reference
+  // hashes packets.
+  if(!r.m_useAVCodec)
+    return {true, f->pts, uint32_t(av_adler32_update(1, f->data[0], f->linesize[0]))};
+  return {true, f->pts, hash_frame_pixels(f)};
+}
+
+int run_direct_renderer(const std::string& path)
+{
+  constexpr const char* mode = "direct_renderer";
+  constexpr size_t max_sequential = 300;
+  const auto t0 = clk::now();
+  const auto deadline = t0 + direct_budget;
+  Verdict v;
+
+  auto dec = std::make_shared<Video::VideoDecoder>(Video::DecoderConfiguration{});
+  if(!dec->open(path))
+  {
+    auto ref = reference_decode(path, deadline, -1, false, false);
+    v.status = ref.opened && !ref.frames.empty() ? "SCORE_CANT_OPEN" : "SKIP";
+    emit(mode, path, v);
+    return 0;
+  }
+
+  score::gfx::VideoNode node{dec, std::nullopt};
+  score::gfx::DirectVideoNodeRenderer r{node, *dec};
+  if(!r.openFile(score::gfx::GraphicsApi::Null, nullptr))
+  {
+    v.status = "RENDERER_CANT_OPEN";
+    emit(mode, path, v);
+    return 0;
+  }
+
+  auto ref = reference_decode(path, deadline, int(!r.m_useAVCodec), false, false);
+  v.ref_frames = ref.opened ? int64_t(ref.frames.size()) : -1;
+  v.ref_raw_frames = ref.opened ? ref.raw_frames : -1;
+  v.native_format = ref.native_format;
+  v.note = ref.note;
+
+  std::string extra = std::string("\"frame_access\":\"")
+                      + frame_access_name(dec->frame_access) + "\",\"max_keyframe_gap\":"
+                      + std::to_string(dec->max_keyframe_gap);
+  if(const AVCodecContext* c = r.m_codecContext)
+  {
+    const char* model = c->active_thread_type == FF_THREAD_FRAME   ? "frame"
+                        : c->active_thread_type == FF_THREAD_SLICE ? "slice"
+                                                                   : "none";
+    extra += std::string(",\"threading\":\"") + model + "\",\"thread_count\":"
+             + std::to_string(c->thread_count);
+  }
+  else
+  {
+    extra += ",\"threading\":\"gpu-direct\"";
+  }
+
+  auto finish = [&] {
+    v.extra = extra;
+    if(int n = g_av_diagnostics.load(std::memory_order_relaxed))
+      note_append(v.note, "libav diagnostics: " + std::to_string(n));
+    emit(mode, path, v);
+    return 0;
+  };
+
+  if(!ref.opened || ref.frames.empty())
+  {
+    v.status = "SKIP";
+    return finish();
+  }
+  if(ref.frames.front().pts == AV_NOPTS_VALUE)
+  {
+    v.status = "NOT_APPLICABLE";
+    note_append(v.note, "no timestamps: the renderer cannot map a time to a frame");
+    return finish();
+  }
+
+  const auto& frames = ref.frames;
+  const int64_t first_pts = frames.front().pts;
+  const double flicks_per_dts = r.m_flicks_per_dts;
+  auto request = [&](size_t i, bool absolute) {
+    const int64_t pts = frames[i].pts - (absolute ? 0 : first_pts);
+    return int64_t(double(pts) * flicks_per_dts);
+  };
+  // Halfway into frame i: what playback asks between two frame starts.
+  auto request_mid = [&](size_t i) {
+    const int64_t next = i + 1 < frames.size() && frames[i + 1].pts > frames[i].pts
+                             ? frames[i + 1].pts
+                             : frames[i].pts + 1;
+    const int64_t pts = (frames[i].pts + next) / 2 - first_pts;
+    return int64_t(double(pts) * flicks_per_dts);
+  };
+
+  struct Timing
+  {
+    double total_ms = 0., max_ms = 0.;
+    int count = 0;
+    void add(clk::duration d)
+    {
+      const double ms = std::chrono::duration<double, std::milli>(d).count();
+      total_ms += ms;
+      max_ms = std::max(max_ms, ms);
+      count++;
+    }
+    std::string json(const char* key) const
+    {
+      char buf[128];
+      std::snprintf(
+          buf, sizeof(buf), ",\"%s_ms_avg\":%.2f,\"%s_ms_max\":%.2f,\"%s_checked\":%d",
+          key, count ? total_ms / count : 0., key, max_ms, key, count);
+      return buf;
+    }
+  };
+
+  // The reference frame a decoded one is, if any: identifies a wrong frame.
+  auto find_ref = [&](const DirectFrame& got) -> int64_t {
+    for(size_t j = 0; j < frames.size(); j++)
+      if(frames[j].pts == got.pts && frames[j].hash == got.hash)
+        return int64_t(j);
+    return -1;
+  };
+
+  // Returns the failing status, or nullptr when frame i came out.
+  auto check = [&](size_t i, bool absolute, Timing& timing) -> const char* {
+    const auto t = clk::now();
+    const bool decoded = r.seekAndDecode(request(i, absolute));
+    timing.add(clk::now() - t);
+    const auto got = direct_frame(r);
+    if(!decoded || !got.ok)
+      return "NO_FRAME";
+    if(got.pts == frames[i].pts && got.hash == frames[i].hash)
+      return nullptr;
+    if(const auto j = find_ref(got); j >= 0)
+    {
+      note_append(
+          v.note, "frame " + std::to_string(i) + " asked, frame " + std::to_string(j)
+                      + " shown");
+      // Asked again from a fresh seek, halfway into the frame: when that
+      // gives it, only a time exactly on the frame's start is missed.
+      r.m_lastDecodedDts = INT64_MIN;
+      const bool again = r.seekAndDecode(request_mid(i));
+      const auto mid = direct_frame(r);
+      r.m_lastDecodedDts = INT64_MIN;
+      if(again && mid.ok && mid.pts == frames[i].pts && mid.hash == frames[i].hash)
+      {
+        note_append(v.note, "shown when asked halfway into the frame");
+        return "BOUNDARY";
+      }
+      return "WRONG_FRAME";
+    }
+    if(got.pts == frames[i].pts)
+      return g_av_diagnostics.load(std::memory_order_relaxed) > 0
+                 ? "PIXEL_MISMATCH_DAMAGED"
+                 : "PIXEL_MISMATCH";
+    note_append(
+        v.note, "frame " + std::to_string(i) + " asked, pts " + std::to_string(got.pts)
+                    + " shown, which the reference does not have");
+    return "PTS_MISMATCH";
+  };
+
+  // In order, as playback asks.
+  Timing sequential;
+  const size_t n = std::min(frames.size(), max_sequential);
+  const char* failure = nullptr;
+  for(size_t i = 0; i < n && clk::now() < deadline; i++)
+  {
+    if((failure = check(i, false, sequential)))
+    {
+      v.first_mismatch = int64_t(i);
+      break;
+    }
+  }
+  v.score_frames = sequential.count;
+
+  // A stream that does not start at 0 is shown with that offset if the
+  // renderer maps the playback time to the stream's absolute timestamps.
+  if(failure && first_pts != 0)
+  {
+    r.closeFile();
+    r.m_lastDecodedDts = INT64_MIN;
+    r.m_useAVCodec = true;
+    if(r.openFile(score::gfx::GraphicsApi::Null, nullptr))
+    {
+      Timing absolute;
+      bool all = true;
+      std::string saved = v.note;
+      for(size_t i = 0; i < std::min<size_t>(n, 10) && all; i++)
+        all = !check(i, true, absolute);
+      v.note = saved;
+      if(all)
+      {
+        note_append(
+            v.note, "playback time maps to absolute pts; the stream starts at pts "
+                        + std::to_string(first_pts));
+        failure = "START_OFFSET";
+      }
+    }
+  }
+
+  // At random, as scrubbing asks. Long GOPs replay from their keyframe on
+  // every seek: fewer of them keep the run bounded.
+  Timing scrub;
+  if(!failure)
+  {
+    const bool cheap = !r.m_useAVCodec
+                       || dec->frame_access == Video::FrameAccess::EveryFrame
+                       || dec->frame_access == Video::FrameAccess::ShortGop;
+    const int seeks = std::min<int>(int(frames.size()), cheap ? 40 : 10);
+    std::mt19937 rng{1234};
+    std::uniform_int_distribution<size_t> pick{0, frames.size() - 1};
+    for(int k = 0; k < seeks && clk::now() < deadline; k++)
+    {
+      const size_t i = pick(rng);
+      if(const char* f = check(i, false, scrub))
+      {
+        failure = f;
+        v.status = std::string("SCRUB_") + f;
+        v.first_mismatch = int64_t(i);
+        break;
+      }
+    }
+  }
+  if(failure && v.status.empty())
+    v.status = failure;
+  if(!failure)
+    v.status = "OK";
+
+  extra += sequential.json("seq") + scrub.json("scrub");
+  if(dec->fps > 0)
+  {
+    char buf[96];
+    std::snprintf(
+        buf, sizeof(buf), ",\"fps\":%.3f,\"realtime\":%s", dec->fps,
+        sequential.count && sequential.total_ms / sequential.count < 1000. / dec->fps
+            ? "true"
+            : "false");
+    extra += buf;
+  }
+  if(clk::now() >= deadline)
+    note_append(v.note, "time budget reached");
+  return finish();
+}
+#endif
+
 // ---------------------------------------------------------------------------
 // Hardware decoding: same oracle, decoding through score's hwdec path.
 // ---------------------------------------------------------------------------
@@ -1049,7 +1355,7 @@ int run_playback(const std::string& path, bool seek_stress)
 
 int main(int argc, char** argv)
 {
-  bool playback = false, seek_stress = false;
+  bool playback = false, seek_stress = false, direct_renderer = false;
   std::string file, hwaccel;
   for(int i = 1; i < argc; i++)
   {
@@ -1058,6 +1364,8 @@ int main(int argc, char** argv)
       playback = true;
     else if(a == "--seek-stress")
       seek_stress = true;
+    else if(a == "--direct-renderer")
+      direct_renderer = true;
     else if(a == "--hwaccel" && i + 1 < argc)
       hwaccel = argv[++i];
     else
@@ -1066,7 +1374,9 @@ int main(int argc, char** argv)
   if(file.empty())
   {
     std::fprintf(
-        stderr, "usage: %s [--playback|--seek-stress|--hwaccel <name>] <file>\n",
+        stderr,
+        "usage: %s [--playback|--seek-stress|--direct-renderer|--hwaccel <name>] "
+        "<file>\n",
         argv[0]);
     return 2;
   }
@@ -1083,6 +1393,15 @@ int main(int argc, char** argv)
         return run_hw(file, hwaccel, a.fmt);
     std::fprintf(stderr, "unknown hwaccel: %s\n", hwaccel.c_str());
     return 2;
+  }
+  if(direct_renderer)
+  {
+#if SCORE_CORPUS_HAS_GFX
+    return run_direct_renderer(file);
+#else
+    std::fprintf(stderr, "built without score-plugin-gfx: no --direct-renderer\n");
+    return 2;
+#endif
   }
   if(playback || seek_stress)
     return run_playback(file, seek_stress);
