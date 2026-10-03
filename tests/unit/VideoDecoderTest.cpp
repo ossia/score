@@ -36,6 +36,7 @@ extern "C" {
 #include <catch2/catch_test_macros.hpp>
 
 #include <algorithm>
+#include <atomic>
 #include <chrono>
 #include <cstdio>
 #include <filesystem>
@@ -45,6 +46,16 @@ extern "C" {
 
 namespace
 {
+// A path in the temp directory no other run uses: test jobs run in parallel.
+inline std::filesystem::path uniqueTempPath(const std::string& name)
+{
+  static std::atomic_int counter{};
+  return std::filesystem::temp_directory_path()
+         / (name + "_"
+            + std::to_string(std::chrono::steady_clock::now().time_since_epoch().count())
+            + "_" + std::to_string(counter++));
+}
+
 struct Packets
 {
   std::vector<AVPacket*> pkts;
@@ -354,7 +365,7 @@ TEST_CASE(
   // frames of the clip only exist in the decoder's reorder buffer and reach
   // the queue through the EOF flush path.
   const auto path
-      = (fs::temp_directory_path() / "score_videodecoder_test.mp4").string();
+      = (uniqueTempPath("score_videodecoder_test") += ".mp4").string();
 
   {
     Packets p;
@@ -519,7 +530,7 @@ TEST_CASE(
   // Raw H.264 has no container and so no timestamps. Frames without one are
   // numbered from the previous one, one frame at the stream's rate, instead
   // of being dropped as negative.
-  const auto path = (fs::temp_directory_path() / "score_videodecoder_raw.264").string();
+  const auto path = (uniqueTempPath("score_videodecoder_raw") += ".264").string();
   if(!avcodec_find_encoder(AV_CODEC_ID_H264))
     SKIP("no H.264 encoder in this libavcodec");
   {
@@ -577,7 +588,7 @@ TEST_CASE(
   namespace fs = std::filesystem;
   // image2 is AVFMT_NOFILE: it opens each picture itself and leaves the
   // format context's pb null, which every teardown must cope with.
-  const auto dir = fs::temp_directory_path() / "score_videodecoder_sequence";
+  const auto dir = uniqueTempPath("score_videodecoder_sequence");
   fs::create_directories(dir);
 
   {
