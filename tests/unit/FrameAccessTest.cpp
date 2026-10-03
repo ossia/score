@@ -183,9 +183,11 @@ void writePngSequence(const fs::path& dir, int frames)
 
 struct Opened
 {
+  std::string url;
   AVFormatContext* fmt{};
   AVStream* st{};
   explicit Opened(const std::string& path)
+      : url{path}
   {
     REQUIRE(avformat_open_input(&fmt, path.c_str(), nullptr, nullptr) == 0);
     REQUIRE(avformat_find_stream_info(fmt, nullptr) >= 0);
@@ -269,7 +271,7 @@ TEST_CASE("The keyframe layout classifies a stream", "[video][frameaccess]")
 
     INFO(row.muxer << ", keyframe every " << row.gop);
     Opened f{path};
-    const auto probe = Video::classifyFrameAccess(*f.fmt, *f.st);
+    const auto probe = Video::classifyFrameAccess(*f.fmt, *f.st, f.url.c_str());
     CHECK(probe.access == row.access);
     CHECK(probe.max_gap >= row.min_gap);
     CHECK(probe.max_gap <= row.max_gap);
@@ -286,7 +288,7 @@ TEST_CASE("An image sequence is reached frame by frame", "[video][frameaccess]")
 
   Opened f{(dir.path / "img%03d.png").string()};
   REQUIRE(f.fmt->pb == nullptr);
-  const auto probe = Video::classifyFrameAccess(*f.fmt, *f.st);
+  const auto probe = Video::classifyFrameAccess(*f.fmt, *f.st, f.url.c_str());
   CHECK(probe.access == FrameAccess::EveryFrame);
   CHECK(probe.max_gap == 0);
   f.requireAtStart();
@@ -296,9 +298,9 @@ TEST_CASE(
     "A raw elementary stream cannot be sought by time", "[video][frameaccess]")
 {
   // Raw H.264 carries no timestamps, every frame being a keyframe or not: no
-  // time maps to a frame. Probing it reads packets, which a time seek cannot
-  // undo -- a failed one leaves the demuxer at its end -- so the probe must
-  // still hand the stream back at its first packet.
+  // time maps to a frame. Its packets cannot be read and then sought back --
+  // a failed time seek leaves the demuxer at its end -- so the probe must
+  // leave the caller's context at its first packet.
   TempDir dir{"score_frame_access_raw"};
   const auto path = (dir.path / "raw.264").string();
   if(!writeRawH264(path, 40))
@@ -306,7 +308,7 @@ TEST_CASE(
 
   Opened f{path};
   REQUIRE(f.st->start_time == AV_NOPTS_VALUE);
-  const auto probe = Video::classifyFrameAccess(*f.fmt, *f.st);
+  const auto probe = Video::classifyFrameAccess(*f.fmt, *f.st, f.url.c_str());
   CHECK(probe.access == FrameAccess::Sequential);
 
   AVPacket* pkt = av_packet_alloc();
