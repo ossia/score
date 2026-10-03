@@ -942,10 +942,22 @@ int run_direct_renderer(const std::string& path)
     return -1;
   };
 
+  // update() keeps the frame it has when the time is within one frame of
+  // it, and decodes otherwise.
+  const double fps = r.m_fps > 0. ? r.m_fps : 24.;
+  const auto frame_flicks = int64_t(ossia::flicks_per_second<double> / fps);
+  auto shows = [&](int64_t flicks) {
+    if(r.m_lastDecodedDts != INT64_MIN && direct_frame(r).ok
+       && std::abs(flicks - int64_t(double(r.m_lastDecodedDts) * flicks_per_dts))
+              < frame_flicks)
+      return true;
+    return r.seekAndDecode(flicks);
+  };
+
   // Returns the failing status, or nullptr when frame i came out.
   auto check = [&](size_t i, bool absolute, Timing& timing) -> const char* {
     const auto t = clk::now();
-    const bool decoded = r.seekAndDecode(request(i, absolute));
+    const bool decoded = shows(request(i, absolute));
     timing.add(clk::now() - t);
     const auto got = direct_frame(r);
     if(!decoded || !got.ok)
