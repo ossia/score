@@ -398,7 +398,14 @@ void NodalIntervalView::mousePressEvent(QGraphicsSceneMouseEvent* e)
     }
     else
     {
-      this->m_context.selectionStack.deselect();
+      // A nodal slot is part of its interval: clicking its background selects
+      // the interval, as clicking the interval does, so that what is pasted
+      // next goes in it. The central canvas shows the displayed interval,
+      // which gets the paste with nothing selected.
+      if(m_itemsToShow == OnlyEffects)
+        score::SelectionDispatcher{this->m_context.selectionStack}.select(m_model);
+      else
+        this->m_context.selectionStack.deselect();
       auto focus = Process::ProcessFocusManager::get(this->m_context);
       if(focus)
         focus->focusNothing();

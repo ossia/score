@@ -14,6 +14,7 @@
 #include <ossia/detail/json.hpp>
 
 #include <QPointF>
+#include <QRectF>
 
 struct DataStreamInput;
 struct DataStreamOutput;
@@ -27,6 +28,10 @@ class IntervalModel;
 
 namespace Command
 {
+//! The rect the copied processes cover on their nodal canvas.
+SCORE_PLUGIN_SCENARIO_EXPORT
+QRectF copiedProcessesRect(const rapidjson::Value::Array& sourceProcesses);
+
 class SCORE_PLUGIN_SCENARIO_EXPORT PasteProcessesInInterval final : public score::Command
 {
   SCORE_COMMAND_DECL(
