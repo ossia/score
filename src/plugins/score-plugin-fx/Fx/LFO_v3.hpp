@@ -330,7 +330,16 @@ struct Node
 
   struct ui
   {
+    // Three columns of the same height: the waveforms, the knobs two rows
+    // deep, the toggles.
     halp_meta(layout, halp::layouts::hbox)
+    struct
+    {
+      halp_meta(layout, halp::layouts::vbox)
+      halp_meta(background, halp::colors::background_mid)
+      halp::control<&ins::waveform> w;
+    } shape;
+
     struct
     {
       halp_meta(layout, halp::layouts::vbox)
@@ -340,26 +349,24 @@ struct Node
         halp_meta(layout, halp::layouts::hbox)
         halp::control<&ins::period> t;
         halp::control<&ins::shape> s;
-        halp::control<&ins::retrigger> r;
-        halp::control<&ins::lock_to_bars> l;
-      } timing;
-      halp::control<&ins::waveform> w;
-    } gen;
+        halp::control<&ins::ampl> a;
+      } top;
+      struct
+      {
+        halp_meta(layout, halp::layouts::hbox)
+        halp::control<&ins::offset> o;
+        halp::control<&ins::jitter> j;
+        halp::control<&ins::phase> p;
+      } bottom;
+    } knobs;
 
     struct
     {
       halp_meta(layout, halp::layouts::vbox)
       halp_meta(background, halp::colors::background_mid)
-      halp::control<&ins::ampl> a;
-      halp::control<&ins::offset> o;
-    } ampl;
-    struct
-    {
-      halp_meta(layout, halp::layouts::vbox)
-      halp_meta(background, halp::colors::background_mid)
-      halp::control<&ins::jitter> j;
-      halp::control<&ins::phase> p;
-    } modulation;
+      halp::control<&ins::retrigger> r;
+      halp::control<&ins::lock_to_bars> l;
+    } toggles;
   };
 };
 }
