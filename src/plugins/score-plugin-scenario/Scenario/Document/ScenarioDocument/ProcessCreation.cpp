@@ -145,6 +145,15 @@ bool canInsertProcessInCable(
   if(source->parent() == &proc || sink->parent() == &proc)
     return false;
 
+  // A node already wired somewhere would have to be cut from it, or end up in
+  // two chains at once: only a free one goes in a cable.
+  for(auto* port : proc.inlets())
+    if(!port->cables().empty())
+      return false;
+  for(auto* port : proc.outlets())
+    if(!port->cables().empty())
+      return false;
+
   const auto type = source->type();
   return firstInletOfType(proc, type) || firstOutletOfType(proc, type);
 }
