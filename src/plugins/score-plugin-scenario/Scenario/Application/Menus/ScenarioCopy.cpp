@@ -2,6 +2,8 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "ScenarioCopy.hpp"
 
+#include <Dataflow/Commands/CableHelpers.hpp>
+
 #include <Process/Dataflow/Cable.hpp>
 #include <Process/Dataflow/CableCopy.hpp>
 
@@ -328,7 +330,11 @@ void CopiedCables::undo(const score::DocumentContext& ctx) const
       = score::IDocument::modelDelegate<ScenarioDocumentModel>(ctx.document);
   for(const auto& [cable_id, cable_data] : cables)
   {
-    auto& c = model.cables.at(cable_id);
+    // Not there if it was not valid to paste
+    auto it = model.cables.find(cable_id);
+    if(it == model.cables.end())
+      continue;
+    auto& c = *it;
     c.source().find(ctx).removeCable(c);
     c.sink().find(ctx).removeCable(c);
     model.cables.remove(cable_id);
@@ -341,6 +347,8 @@ void CopiedCables::redo(const score::DocumentContext& ctx) const
       = score::IDocument::modelDelegate<ScenarioDocumentModel>(ctx.document);
   for(const auto& [cable_id, dat] : cables)
   {
+    if(!Dataflow::isValidCable(dat, ctx))
+      continue;
     auto c = new Process::Cable{cable_id, dat, &model};
 
     Path<Scenario::ScenarioDocumentModel> model_path{model};
