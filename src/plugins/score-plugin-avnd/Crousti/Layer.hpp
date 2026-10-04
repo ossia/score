@@ -61,6 +61,9 @@ struct RootItem
 {
   using RootLayout::RootLayout;
   typename Info::ui ui;
+  //! Owns the connections of one build of the UI: deleted when the UI is
+  //! rebuilt, so that nothing still updates the widgets of the previous one.
+  QObject* uiConnections{};
 };
 
 template <typename Item>
@@ -298,6 +301,8 @@ struct LayoutBuilder final : Process::LayoutBuilderBase
   outputs_type temp_outputs{};
 
   typename Info::ui* rootUi{};
+  //! What the connections to the widgets of this build live as long as.
+  QObject* connections{};
 
   //! Depth in titled tables: controls there hide their labels
   int tableDepth{};
@@ -334,10 +339,13 @@ struct LayoutBuilder final : Process::LayoutBuilderBase
     {
       using avnd_port_type = pmf_member_type_t<decltype(item.model)>;
       SetGUIValue<avnd_port_type>{doc}(port->value(), item.value);
+      // Not bound to the root item: it survives a rebuild of the UI (a preset
+      // reloading the ports), the widgets the lambda updates do not.
+      QObject* const lifetime = connections ? connections : &context;
       if constexpr(requires { rootUi->on_control_update(); })
       {
         QObject::connect(
-            port, &Port_T::valueChanged, &context,
+            port, &Port_T::valueChanged, lifetime,
             [rui = rootUi, layout = this->layout, &item,
              &ctx = static_cast<const score::DocumentContext&>(this->doc)](
                 const ossia::value& v) {
@@ -350,7 +358,7 @@ struct LayoutBuilder final : Process::LayoutBuilderBase
       else
       {
         QObject::connect(
-            port, &Port_T::valueChanged, &context,
+            port, &Port_T::valueChanged, lifetime,
             [layout = this->layout, &item,
              &ctx = static_cast<const score::DocumentContext&>(this->doc)](
                 const ossia::value& v) {
@@ -1159,12 +1167,15 @@ private:
     auto rootItem = makeItemImpl(const_cast<ProcessModel<Info>&>(process), parent);
 
     auto recreate = [parent, &proc, &ctx, rootItem] {
+      delete rootItem->uiConnections;
+      rootItem->uiConnections = new QObject{rootItem};
       LayoutBuilder<Info> b{
           *rootItem,     proc,
           ctx,           ctx.app.interfaces<Process::PortFactoryList>(),
           proc.inlets(), proc.outlets(),
       };
       b.rootUi = &rootItem->ui;
+      b.connections = rootItem->uiConnections;
       b.layout = parent;
       // avnd UIs declare their own spacing
       b.marginOnNestedLayouts = false;
@@ -1178,22 +1189,20 @@ private:
       if_possible(b.rootUi->on_control_update());
     };
 
-    QObject::connect(&proc, &Process::ProcessModel::inletsChanged, rootItem, [=]() {
+    // The connections go before the widgets they update: a widget losing focus
+    // while it is deleted still emits what it edited.
+    auto rebuild = [rootItem, recreate] {
+      delete rootItem->uiConnections;
+      rootItem->uiConnections = nullptr;
       auto cld = rootItem->childItems();
       for(auto item : cld)
       {
         delete item;
       }
       recreate();
-    });
-    QObject::connect(&proc, &Process::ProcessModel::outletsChanged, rootItem, [=]() {
-      auto cld = rootItem->childItems();
-      for(auto item : cld)
-      {
-        delete item;
-      }
-      recreate();
-    });
+    };
+    QObject::connect(&proc, &Process::ProcessModel::inletsChanged, rootItem, rebuild);
+    QObject::connect(&proc, &Process::ProcessModel::outletsChanged, rootItem, rebuild);
 
     recreate();
     return rootItem;
