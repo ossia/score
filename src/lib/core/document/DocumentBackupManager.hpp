@@ -67,5 +67,7 @@ private:
 #endif
   QTemporaryFile m_modelFile;
   CommandBackupFile* m_commandFile{};
+  //! The document's file name when its model was backed up.
+  QString m_modelFileName;
 };
 }

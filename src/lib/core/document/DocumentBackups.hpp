@@ -17,6 +17,9 @@ struct RestorableDocument
   QString commandsPath;
   QByteArray doc;
   QByteArray commands;
+  //! The file name the document had when `doc` was backed up; empty for a
+  //! backup that did not record it.
+  QString modelFileName;
 };
 
 /**

@@ -1655,6 +1655,11 @@ score_add_test(test_integration_nested_focus
   GUI
   PLUGINS score_plugin_scenario score_lib_process score_plugin_automation)
 
+score_add_test(test_integration_crash_restore
+  SOURCES CrashRestoreTest.cpp
+  GUI
+  PLUGINS score_plugin_scenario score_lib_process)
+
 # Play from here while playing, and an interval's play button after it.
 if(TARGET score AND NOT EMSCRIPTEN)
   score_add_test(test_integration_play_from_here
