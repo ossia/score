@@ -36,6 +36,7 @@
 #include <examples/Advanced/Utilities/ArrayBest.hpp>
 #include <examples/Advanced/Utilities/ArrayRecombiner.hpp>
 #include <examples/Advanced/Utilities/Spigot.hpp>
+#include <examples/Advanced/Synth/Wavecycle.hpp>
 #include <AvndProcesses/Queue.hpp>
 #include <score_test/App.hpp>
 #include <score_test/Document.hpp>
@@ -113,7 +114,7 @@ struct exec
     (*in)->write_value(v, 0);
   }
 
-  //! Runs one tick; returns the last value of outlet `o`, if any.
+  //! Runs one tick; returns the last value of outlet `o`, if any (none for -1).
   std::optional<ossia::value> tick(int o = 0, int frames = 64)
   {
     // Dates are in flicks: a tick of 0 samples does not run the object
@@ -137,10 +138,13 @@ struct exec
         vi->clear();
 
     std::optional<ossia::value> res;
-    auto* out = node.root_outputs()[o]->template target<ossia::value_port>();
-    REQUIRE(out);
-    if(!out->get_data().empty())
-      res = out->get_data().back().value;
+    if(o >= 0)
+    {
+      auto* out = node.root_outputs()[o]->template target<ossia::value_port>();
+      REQUIRE(out);
+      if(!out->get_data().empty())
+        res = out->get_data().back().value;
+    }
     for(auto* outlet : node.root_outputs())
       if(auto* vo = outlet->template target<ossia::value_port>())
         vo->clear();
@@ -181,6 +185,7 @@ const QString spigot_uuid = QStringLiteral("8b75d69b-5ce4-4360-a066-c4a7f37f3353
 const QString array_best_uuid = QStringLiteral("9e793245-72a1-4aa2-a813-5f5836cf1637");
 const QString recombiner_uuid = QStringLiteral("8a833254-04ef-42f0-bd39-a8a3b8ce94c3");
 const QString accumulator_uuid = QStringLiteral("5c5b37b5-da06-432a-bc51-81657b6d59e1");
+const QString wavecycle_uuid = QStringLiteral("494bd8a3-e973-4fb0-b84b-b4ed3c0068a1");
 const QString queue_uuid = QStringLiteral("8f68b81e-e5ba-4a10-a888-6581a5d770fe");
 
 //! "A | B | C": the names of the inlets, to check the indices used.
@@ -502,5 +507,28 @@ TEST_CASE("Impulse buttons are not pressed by starting the execution", "[avnd][i
   });
   with<avnd_tools::Queue>(queue_uuid, [](auto& e) {
     CHECK_FALSE(e.object().banged);
+  });
+}
+
+// Wavecycle inlets: Curve, Frequency
+TEST_CASE("Wavecycle through the binding: a list or vec on the frequency is a chord", "[avnd][wavecycle][execution]")
+{
+  with<ao::Wavecycle>(wavecycle_uuid, [](auto& e) {
+    INFO(inlet_names(e));
+    auto& freq = e.object().inputs.frequency;
+    e.port(1, ossia::vec3f{220.f, 330.f, 440.f});
+    e.tick(-1);
+    CHECK(freq.list == std::vector<float>{220.f, 330.f, 440.f});
+    CHECK(freq.value == 220.f);
+
+    e.port(1, ossia::value{std::vector<ossia::value>{100, 200.f}});
+    e.tick(-1);
+    CHECK(freq.list == std::vector<float>{100.f, 200.f});
+
+    // The spinbox: back to one voice
+    e.gui(1, 500.f);
+    e.tick(-1);
+    CHECK(freq.list == std::vector<float>{500.f});
+    CHECK(freq.value == 500.f);
   });
 }

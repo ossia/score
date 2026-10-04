@@ -588,6 +588,12 @@ target_include_directories(test_unit_avnd_midi_envelope SYSTEM PRIVATE
   "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/include"
   "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/examples")
 
+score_add_test(test_unit_avnd_wavecycle
+  SOURCES AvndWavecycleTest.cpp)
+target_include_directories(test_unit_avnd_wavecycle SYSTEM PRIVATE
+  "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/include"
+  "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/examples")
+
 score_add_test(test_unit_avnd_midi_humanizer
   SOURCES AvndMidiHumanizerTest.cpp)
 target_include_directories(test_unit_avnd_midi_humanizer SYSTEM PRIVATE
