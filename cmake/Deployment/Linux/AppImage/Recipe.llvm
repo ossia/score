@@ -59,7 +59,8 @@ cninja \
 # https://github.com/llvm/llvm-project/issues/145745
 
 
-if [[ "$TOOLCHAIN" =~ ".*debug.*" ]]; then
+# Debug toolchains keep their symbols.
+if [[ "$TOOLCHAIN" == *debug* ]]; then
   cmake --install . --component OssiaScore
 else
   cmake --install . --strip --component OssiaScore
