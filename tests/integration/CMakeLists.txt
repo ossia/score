@@ -409,6 +409,14 @@ score_add_test(test_integration_nodal_controls
   GUI
   PLUGINS score_plugin_scenario score_lib_process)
 
+# An interval's nodal slot goes with its last node.
+if(TARGET score_plugin_fx)
+  score_add_test(test_integration_interval_nodal_slot
+    SOURCES IntervalNodalSlotTest.cpp
+    GUI
+    PLUGINS score_plugin_fx score_plugin_scenario score_lib_process)
+endif()
+
 # References to published objects, through the widgets, the panel, the
 # selection and a running Javascript process.
 if(TARGET score_plugin_fx)
