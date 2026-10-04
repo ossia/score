@@ -8,6 +8,7 @@
 #include <halp/controls.hpp>
 #include <halp/meta.hpp>
 #include <halp/string_list.hpp>
+#include <ossia/detail/json.hpp>
 #include <rapidjson/document.h>
 
 #include <cmath>
