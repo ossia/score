@@ -51,6 +51,11 @@ public:
   void playAtDate(const TimeVal& arg_1)
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, playAtDate, arg_1)
 
+  //! "Play from here", at a date of the given interval rather than of the
+  //! score: what a view of that interval points at.
+  void playIntervalAtDate(IntervalModel* arg_1, const TimeVal& arg_2)
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, playIntervalAtDate, arg_1, arg_2)
+
   void transport(const TimeVal& arg_1)
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, transport, arg_1)
 

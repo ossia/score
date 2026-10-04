@@ -87,6 +87,30 @@ ScenarioComponentBase::~ScenarioComponentBase()
   OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
 }
 
+void ScenarioComponentBase::playIntervalFrom(
+    const Scenario::IntervalModel& itv, TimeVal t)
+{
+  OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
+  auto comp = this->m_ossia_intervals.find(itv.id());
+  if(comp == this->m_ossia_intervals.end())
+    return;
+
+  auto proc = std::dynamic_pointer_cast<ossia::scenario>(m_ossia_process);
+  auto ossia_c = comp->second->OSSIAInterval();
+  if(!proc || !ossia_c)
+    return;
+
+  in_exec([proc, ossia_c, time = m_ctx.time(t)] {
+    OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Audio);
+    if(ossia_c->running())
+      ossia_c->transport(time);
+    else
+      proc->request_start_interval(*ossia_c, 0., time);
+  });
+
+  startIntervalExecution(itv.id());
+}
+
 void ScenarioComponentBase::playInterval(const Scenario::IntervalModel& itv)
 {
   OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);

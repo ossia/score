@@ -3,6 +3,8 @@
 #include <score/actions/Menu.hpp>
 #include <score/selection/Selection.hpp>
 
+#include <QPointer>
+
 class QAction;
 class QMenu;
 namespace Process
@@ -13,6 +15,7 @@ class LayerContextMenuManager;
 namespace Scenario
 {
 class ScenarioApplicationPlugin;
+class IntervalModel;
 class ScenarioPresenter;
 }
 namespace Engine
@@ -42,5 +45,8 @@ private:
   QAction* m_playIntervals{};
 
   QAction* m_playFromHere{};
+  //! The interval whose date the play from here action holds: the one of the
+  //! scenario clicked in.
+  QPointer<Scenario::IntervalModel> m_playFromHereInterval;
 };
 }

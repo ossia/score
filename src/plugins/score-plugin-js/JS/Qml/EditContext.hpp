@@ -533,6 +533,11 @@ public:
   void playFromHere(double ms);
   W_SLOT(playFromHere)
 
+  //! Play from here at `ms` into `interval`, as from a view of it: while the
+  //! score plays, that interval alone goes there.
+  void playIntervalFromHere(QObject* interval, double ms);
+  W_SLOT(playIntervalFromHere)
+
   void pause();
   W_SLOT(pause, ())
 
