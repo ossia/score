@@ -9,6 +9,7 @@
 #include <fastgltf/tools.hpp>
 #include <fastgltf/types.hpp>
 
+#include <QFile>
 #include <QMatrix3x3>
 #include <QQuaternion>
 #include <QString>
@@ -104,6 +105,65 @@ static ossia::scene_transform to_transform(const fastgltf::Node& n)
   return t;
 }
 
+// Where an image URI of the asset points to, or an empty path when it leaves
+// the asset's folder. URIs come from the asset file: "../" chains, absolute
+// paths or symlinks would let a shared scene read arbitrary local files.
+// weakly_canonical resolves symlinks; an empty base dir (bare-filename load)
+// can't be contained, so it is rejected.
+static std::filesystem::path
+containedImagePath(const std::filesystem::path& dir, std::string_view uri)
+{
+  std::error_code ec;
+  const auto base = std::filesystem::weakly_canonical(dir, ec);
+  if(ec || base.empty())
+    return {};
+  auto p = std::filesystem::weakly_canonical(dir / std::filesystem::path(uri), ec);
+  if(ec)
+    return {};
+  auto [bEnd, pIt] = std::mismatch(base.begin(), base.end(), p.begin(), p.end());
+  if(bEnd != base.end())
+    return {};
+  return p;
+}
+
+// Reads the external images in memory, as fastgltf's LoadExternalImages would,
+// except that a missing or unreadable image only loses its texture instead of
+// the whole asset: models are often shared without all of their textures.
+static void loadExternalImages(fastgltf::Asset& asset, const std::filesystem::path& dir)
+{
+  int missing = 0;
+  QString example;
+  for(auto& img : asset.images)
+  {
+    auto* uri = std::get_if<fastgltf::sources::URI>(&img.data);
+    if(!uri)
+      continue;
+
+    // A remote URI, a drive letter taken for a scheme or an empty file have
+    // no image to give either.
+    const auto path = uri->uri.isLocalPath() ? containedImagePath(dir, uri->uri.path())
+                                             : std::filesystem::path{};
+    QFile f{path.empty() ? QString{} : QString::fromStdString(path.string())};
+    const QByteArray bytes = (path.empty() || !f.open(QIODevice::ReadOnly))
+                                 ? QByteArray{}
+                                 : f.readAll();
+    if(bytes.isEmpty())
+    {
+      if(missing++ == 0)
+        example = QString::fromUtf8(uri->uri.path().data(), int(uri->uri.path().size()));
+      continue;
+    }
+    fastgltf::sources::Array arr{
+        fastgltf::StaticVector<std::byte>(std::size_t(bytes.size())), uri->mimeType};
+    std::memcpy(arr.bytes.data(), bytes.data(), std::size_t(bytes.size()));
+    img.data = std::move(arr);
+  }
+  if(missing > 0)
+    qWarning() << "GltfParser:" << missing << "of" << asset.images.size()
+               << "images not found next to" << QString::fromStdString(dir.string())
+               << "(e.g." << example << "), their textures are left out";
+}
+
 // Translate a glTF Material into material_component (factors + base color
 // texture path). `dir` is the glTF file's parent directory — external
 // image URIs are relative to it.
@@ -153,24 +213,10 @@ static std::shared_ptr<ossia::material_component> to_material(
           using T = std::decay_t<decltype(data)>;
           if constexpr(std::is_same_v<T, fastgltf::sources::URI>)
           {
-            // Relative URI → join with the glTF file's parent dir.
-            // Contain the result inside that dir: URIs come from the
-            // asset file, and "../" chains, absolute paths or symlinks
-            // would let a shared scene read arbitrary local files.
-            // weakly_canonical resolves symlinks; an empty base dir
-            // (bare-filename load) can't be contained, so reject.
-            std::error_code ec;
-            const auto base = std::filesystem::weakly_canonical(dir, ec);
-            if(ec || base.empty())
-              return;
-            const auto p = std::filesystem::weakly_canonical(
-                dir / std::filesystem::path(std::string_view(data.uri.path())),
-                ec);
-            if(ec)
-              return;
-            auto [bEnd, pIt] = std::mismatch(
-                base.begin(), base.end(), p.begin(), p.end());
-            if(bEnd == base.end())
+            // An image loadExternalImages could not read: relative to the
+            // glTF file's parent dir, decoded on demand if it shows up.
+            const auto p = containedImagePath(dir, data.uri.path());
+            if(!p.empty())
               src->file_path = p.string();
           }
           else if constexpr(std::is_same_v<T, fastgltf::sources::Array>)
@@ -1123,7 +1169,6 @@ std::function<void(GltfParser&)> GltfParser::ins::gltf_t::process(file_type tv)
       = fastgltf::Options::DontRequireValidAssetMember
         | fastgltf::Options::AllowDouble
         | fastgltf::Options::LoadExternalBuffers
-        | fastgltf::Options::LoadExternalImages
         | fastgltf::Options::GenerateMeshIndices
         | fastgltf::Options::DecomposeNodeMatrices;
 
@@ -1134,8 +1179,13 @@ std::function<void(GltfParser&)> GltfParser::ins::gltf_t::process(file_type tv)
   auto assetE = parser.loadGltf(
       gltfFile.get(), path.parent_path(), gltfOptions);
   if(assetE.error() != fastgltf::Error::None)
+  {
+    qWarning() << "GltfParser:" << path.string().c_str() << ":"
+               << fastgltf::getErrorMessage(assetE.error()).data();
     return {};
+  }
   fastgltf::Asset asset = std::move(assetE.get());
+  loadExternalImages(asset, path.parent_path());
 
   // The extraction below indexes accessors / meshes / skins straight from
   // file-provided indices. fastgltf::validate() bounds-checks most of the

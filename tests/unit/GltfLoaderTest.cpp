@@ -57,6 +57,7 @@
 
 #include <ossia/dataflow/geometry_port.hpp>
 
+#include <QImage>
 #include <QTemporaryDir>
 
 #include <score_test/ForkProbe.hpp>
@@ -738,3 +739,81 @@ TEST_CASE(
     CHECK_FALSE(load_gltf(doc2.string()));
   }
 }
+
+TEST_CASE(
+    "a glTF whose external images are partly missing loads without them",
+    "[threedim][gltf][images]")
+{
+  // Models are shared without all of their textures (sponza.glb copied
+  // without its 68 .png): the geometry and the textures that are there still
+  // load, only the missing ones are left out.
+  QTemporaryDir tdir;
+  REQUIRE(tdir.isValid());
+  const fs::path root = fs::path(tdir.path().toStdString());
+
+  std::string bin;
+  for(float f : {0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f, 1.f, 0.f})
+    put(bin, f);
+  {
+    std::ofstream f(root / "tri.bin", std::ios::binary);
+    f.write(bin.data(), std::streamsize(bin.size()));
+  }
+  QImage present(2, 2, QImage::Format_RGBA8888);
+  present.fill(Qt::yellow);
+  REQUIRE(present.save(QString::fromStdString((root / "present.png").string())));
+  {
+    std::ofstream f(root / "empty.png", std::ios::binary);
+  }
+
+  // clang-format off
+  const std::string json = R"({
+"asset":{"version":"2.0"},
+"scene":0,
+"scenes":[{"nodes":[0]}],
+"nodes":[{"mesh":0}],
+"meshes":[{"primitives":[{"attributes":{"POSITION":0},"material":0}]}],
+"materials":[
+ {"pbrMetallicRoughness":{"baseColorTexture":{"index":0}}},
+ {"pbrMetallicRoughness":{"baseColorTexture":{"index":1}}},
+ {"pbrMetallicRoughness":{"baseColorTexture":{"index":2}}},
+ {"pbrMetallicRoughness":{"baseColorTexture":{"index":3}}}],
+"textures":[{"source":0},{"source":1},{"source":2},{"source":3}],
+"images":[{"uri":"present.png"},{"uri":"missing.png"},{"uri":"empty.png"},{"uri":"http://example.invalid/far.png"}],
+"buffers":[{"byteLength":36,"uri":"tri.bin"}],
+"bufferViews":[{"buffer":0,"byteOffset":0,"byteLength":36,"target":34962}],
+"accessors":[
+ {"bufferView":0,"componentType":5126,"count":3,"type":"VEC3","min":[0,0,0],"max":[1,1,0]}]
+})";
+  // clang-format on
+  const fs::path doc = root / "model.gltf";
+  {
+    std::ofstream f(doc, std::ios::binary);
+    f.write(json.data(), std::streamsize(json.size()));
+  }
+
+  auto parser = load_gltf(doc.string());
+  REQUIRE(parser);
+  REQUIRE(parser->m_raw_state);
+  REQUIRE(find_first_mesh(*parser->m_raw_state));
+  REQUIRE(parser->m_raw_state->materials);
+  const auto& mats = *parser->m_raw_state->materials;
+  REQUIRE(mats.size() == 4);
+
+  // The image that is there is read in memory, as the whole file was.
+  const auto& found = mats[0]->base_color_texture.source;
+  REQUIRE(found);
+  REQUIRE(found->embedded_data);
+  const QByteArray bytes(
+      reinterpret_cast<const char*>(found->embedded_data->data()),
+      qsizetype(found->embedded_data->size()));
+  CHECK(QImage::fromData(bytes).size() == QSize(2, 2));
+
+  // The missing one has nothing to decode; neither have an empty file and a
+  // remote one.
+  for(int i : {1, 2, 3})
+  {
+    const auto& lost = mats[i]->base_color_texture.source;
+    CHECK((!lost || !lost->embedded_data || lost->embedded_data->empty()));
+  }
+}
+
