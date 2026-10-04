@@ -779,3 +779,70 @@ TEST_CASE(
   CHECK(red(a1));
   CHECK(blue(b1));
 }
+
+TEST_CASE(
+    "a scene parsed again from the same file keeps its textures",
+    "[gfx][scene][material][texture]")
+{
+  // An asset loaded again (the same file chosen again, or redo of a file
+  // change) brings fresh material objects carrying the stable ids of the ones
+  // they replace. They get fresh Material arena slots, which must be filled
+  // although the materials list looks unchanged.
+  const auto api = GENERATE(from_range(platform_backends()));
+  CAPTURE(backend_name(api));
+  const QString kFullFrag = QStringLiteral("presets/rasterizers/classic_pbr_full.frag");
+  const QString presetDir = library::dir_of(kFullFrag);
+  if(presetDir.isEmpty())
+    SKIP(library::skip_reason(kFullFrag));
+  const QDir presets(presetDir);
+  const QString vs = presets.filePath(QStringLiteral("classic_pbr_full.vert"));
+  const QString fs = presets.filePath(QStringLiteral("classic_pbr_full.frag"));
+
+  Result before, after;
+  score::test::run_in_gui_app([&](const score::GUIApplicationContext& ctx) {
+    const library::RootGuard libraryRoot{ctx};
+
+    GfxPipeline p;
+    auto node = std::make_unique<StaticSceneNode>(
+        texturedQuad(solidTextured(Qt::yellow, 0xD0C0001u), 0xD0C0002u, 1));
+    auto* scene = node.get();
+    const int h = p.addNode(std::move(node));
+    const int flat = p.addNode(std::make_unique<score::gfx::ScenePreprocessorNode>());
+    const int raster = p.addRaster(vs, fs);
+    if(h < 0 || flat < 0 || raster < 0)
+    {
+      before.err = "chain build failed: " + p.error();
+      return;
+    }
+    p.wire(p.nodeSceneOut(h, 0), p.nodeSceneIn(flat, 0));
+    p.wire(p.nodeGeometryOut(flat, 0), p.geometryIn(raster, 0));
+    const int sink = p.addSink({kSize, kSize});
+    p.wire(p.imageOut(raster, 0), p.sinkInput(sink));
+    if(!p.create(api))
+    {
+      before.skipped = p.skipped();
+      before.err = before.skipped ? std::string{} : p.error();
+      return;
+    }
+    p.render(4);
+    before.img = p.readback(sink);
+
+    // The same file parsed again: equal ids, new objects.
+    scene->state
+        = texturedQuad(solidTextured(Qt::yellow, 0xD0C0001u), 0xD0C0002u, 2);
+    p.render(6);
+    after.img = p.readback(sink);
+  });
+  if(before.skipped)
+    SKIP("backend unavailable");
+  REQUIRE(before.err.empty());
+  REQUIRE(before.img.valid());
+  REQUIRE(after.img.valid());
+
+  const auto c0 = before.img.at(kSize / 2, kSize / 2);
+  const auto c1 = after.img.at(kSize / 2, kSize / 2);
+  INFO("before " << scene::rgba_string(c0) << " after " << scene::rgba_string(c1));
+  const auto yellow = [](auto c) { return c[0] > 200 && c[1] > 200 && c[2] < 50; };
+  CHECK(yellow(c0));
+  CHECK(yellow(c1));
+}

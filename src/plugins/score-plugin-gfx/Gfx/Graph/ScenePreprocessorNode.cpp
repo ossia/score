@@ -4430,6 +4430,10 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
       // cheap cache hit for scenes that don't change. When a material
       // disappears (removed from scene_state.materials), its slot is
       // reclaimed by the garbage-collection pass below.
+      // A material seen for the first time has an empty slot, even when it
+      // carries the stable_id of one it replaces (the same file parsed
+      // again): the materials then count as changed, see sameMaterialsContent.
+      bool loaderSlotsAdded = false;
       if(this->scene.state && m_registry)
       {
         const std::vector<ossia::material_component_ptr> empty_mats;
@@ -4455,6 +4459,7 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
               = m_loaderMaterialSlots.emplace(mat, GpuResourceRegistry::Slot{});
           if(inserted)
           {
+            loaderSlotsAdded = true;
             it->second = m_registry->allocate(
                 GpuResourceRegistry::Arena::Material, sizeof(MaterialGPU));
             // No upload here — textureRefs aren't resolved yet. The
@@ -4534,7 +4539,7 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
         }
       }
       const bool sameMaterialsContent
-          = (fingerprint == m_cachedMaterialsFingerprint);
+          = (fingerprint == m_cachedMaterialsFingerprint) && !loaderSlotsAdded;
 
       bool channelReallocated = false;
       if(m_registry)
