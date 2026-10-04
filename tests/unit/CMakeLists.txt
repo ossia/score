@@ -625,6 +625,11 @@ if(TARGET score_plugin_fx)
     SOURCES FxTimingTest.cpp
     PLUGINS score_plugin_fx)
 
+  # Midi scale: every note it starts, it stops, on its own channel.
+  score_add_test(test_unit_fx_midi_scale
+    SOURCES FxMidiScaleTest.cpp
+    PLUGINS score_plugin_fx)
+
   # The value-domain ExprTK processes (Micromap, Expression Value Filter /
   # Generator, Arraymap, Arraygen) driven through GenericMathMapping, with the
   # expressions that actually ship in packages/default/Presets.

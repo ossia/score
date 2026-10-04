@@ -1,9 +1,16 @@
 #pragma once
 #include <Fx/Types.hpp>
 
+#include <ossia/detail/flat_map.hpp>
+#include <ossia/detail/math.hpp>
+
 #include <halp/controls.hpp>
 #include <halp/meta.hpp>
 #include <halp/midi.hpp>
+
+#include <array>
+#include <optional>
+#include <vector>
 
 namespace Nodes::MidiUtil
 {
@@ -160,46 +167,19 @@ static constexpr std::array<scales_array, scale_type::SCALES_MAX - 1> scales{
 /* { scale::VI,          */ make_scale({1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0}) /* } */,
 /* { scale::VII,         */ make_scale({0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1}) /* } */};
 // clang-format on
+//! The note of the scale closest to `i`, searching upwards first; none when
+//! the scale has no note at all.
 static std::optional<std::size_t> find_closest_index(const scale_array& arr, std::size_t i)
 {
-  if(arr[i] == 1)
-    return i;
-
-  switch(i)
+  const int n = int(arr.size());
+  const int note = int(i);
+  for(int r = 0; r < n; r++)
   {
-    case 0:
-      while(i != 12)
-      {
-        i++;
-        if(arr[i] == 1)
-          return i;
-      }
-      break;
-
-    case 12:
-      while(i != 0)
-      {
-        i--;
-        if(arr[i] == 1)
-          return i;
-      }
-      break;
-
-    default: {
-      std::size_t r = 0;
-      while((i - r) != 0 && (i + r) != 12)
-      {
-        if(arr[i + r] == 1)
-          return i + r;
-        else if(arr[i - r] == 1)
-          return i - r;
-        r++;
-      }
-
-      break;
-    }
+    if(note + r < n && arr[note + r])
+      return note + r;
+    if(note - r >= 0 && arr[note - r])
+      return note - r;
   }
-
   return std::nullopt;
 }
 
@@ -231,96 +211,134 @@ struct Node
     uint8_t vel{};
     uint8_t chan{};
   };
-  ossia::flat_map<uint8_t, Note> map;
+  //! The keys held at the input, by channel and pitch, and the note each plays.
+  ossia::flat_map<uint16_t, Note> map;
+  //! How many held keys play each output note, by channel and pitch: two keys
+  //! can land on the same note of the scale, which must stop with the last one.
+  std::array<std::array<uint8_t, 128>, 17> playing{};
   std::string scale{};
   int base{};
   int transpose{};
 
+  static uint16_t key(int chan, int pitch) noexcept { return uint16_t(chan * 128 + pitch); }
+
+  //! Room for every key of every channel: the map never grows on the audio thread.
+  Node() { map.reserve(16 * 128); }
+
+  static std::optional<uint8_t>
+  map_note(const scale_array& scale, int pitch, int transp) noexcept
+  {
+    if(auto index = find_closest_index(scale, pitch))
+      return (uint8_t)ossia::clamp(int(*index) + transp, 0, 127);
+    return std::nullopt;
+  }
+
+  void start(int chan, int pitch, int vel, int64_t ts)
+  {
+    if(playing[chan][pitch]++ == 0)
+      outputs.midi.note_on(chan, pitch, vel).timestamp = ts;
+  }
+
+  void stop(int chan, int pitch, int vel, int64_t ts)
+  {
+    auto& count = playing[chan][pitch];
+    if(count == 0)
+      return;
+    if(--count == 0)
+      outputs.midi.note_off(chan, pitch, vel).timestamp = ts;
+  }
+
   void exec(const scale_array& scale, int transp)
   {
-    auto& midi_in = inputs.midi;
-    auto& midi_out = outputs.midi;
-    for(const auto& msg : midi_in)
+    for(const auto& msg : inputs.midi)
     {
-      switch(msg.get_message_type())
+      const auto type = msg.get_message_type();
+      const bool is_note
+          = type == libremidi::message_type::NOTE_ON
+            || type == libremidi::message_type::NOTE_OFF;
+      if(!is_note || msg.size() < 3)
       {
-        case libremidi::message_type::NOTE_ON: {
-          if(msg.bytes[1] >= 128)
-            continue;
+        if(type == libremidi::message_type::CONTROL_CHANGE && msg.size() >= 3
+           && (msg.bytes[1] == 120 || msg.bytes[1] == 123))
+          release_channel(msg.get_channel());
+        outputs.midi.push_back(msg);
+        continue;
+      }
 
-          // map to scale
-          if(auto index = find_closest_index(scale, msg.bytes[1]))
-          {
-            // transpose
-            auto res = msg;
-            res.bytes[1] = (uint8_t)ossia::clamp(int(*index + transp), 0, 127);
-            Note note{
-                (uint8_t)res.bytes[1], (uint8_t)res.bytes[2],
-                (uint8_t)res.get_channel()};
-            auto it = this->map.find(msg.bytes[1]);
-            if(it != this->map.end())
-            {
-              midi_out.note_off(res.get_channel(), it->second.pitch, res.bytes[2])
-                  .timestamp
-                  = 0;
-              midi_out.push_back(res);
-              midi_out.back().timestamp = 1; // FIXME does not work if last sample
-              const_cast<Note&>(it->second) = note;
-            }
-            else
-            {
-              midi_out.push_back(res);
-              midi_out.back().timestamp = 0;
-              this->map.insert(std::make_pair((uint8_t)msg.bytes[1], note));
-            }
-          }
-          break;
-        }
-        case libremidi::message_type::NOTE_OFF: {
-          if(msg.bytes[1] >= 128)
-            continue;
+      const int chan = msg.get_channel();
+      const int pitch = msg.bytes[1] & 0x7F;
+      const int vel = msg.bytes[2] & 0x7F;
+      const auto ts = msg.timestamp;
+      const auto k = key(chan, pitch);
 
-          auto it = this->map.find(msg.bytes[1]);
-          if(it != this->map.end())
-          {
-            midi_out.note_off(msg.get_channel(), it->second.pitch, msg.bytes[2])
-                .timestamp
-                = 0;
-            this->map.erase(it);
-          }
-          break;
+      // A key already held: what it played stops, whether it is pressed again
+      // or released. A note on with velocity 0 is a release.
+      if(auto it = map.find(k); it != map.end())
+      {
+        stop(it->second.chan, it->second.pitch, vel, ts);
+        map.erase(it);
+      }
+
+      if(type == libremidi::message_type::NOTE_ON && vel > 0)
+      {
+        if(auto out = map_note(scale, pitch, transp))
+        {
+          start(chan, *out, vel, ts);
+          map.insert({k, Note{*out, (uint8_t)vel, (uint8_t)chan}});
         }
-        default:
-          midi_out.push_back(msg);
-          break;
       }
     }
   }
 
+  //! The scale, its base or the transposition changed: the held keys move to
+  //! their new notes.
   void update(const scale_array& scale, int transp)
   {
-    auto& midi_out = outputs.midi;
-    for(auto& notes : this->map)
+    for(auto it = map.begin(); it != map.end();)
     {
-      Note& note = const_cast<Note&>(notes.second);
-      if(auto index = find_closest_index(scale, notes.first))
+      Note& note = it->second;
+      const auto out = map_note(scale, it->first % 128, transp);
+      if(out && *out == note.pitch)
       {
-        if((*index + transp) != note.pitch)
-        {
-          midi_out.note_off(note.chan, note.pitch, note.vel).timestamp = 0;
-          note.pitch = *index + transp;
-          midi_out.note_on(note.chan, note.pitch, note.vel);
-          midi_out.back().timestamp = 1; // FIXME does not work if last sample
-        }
+        ++it;
+        continue;
+      }
+
+      stop(note.chan, note.pitch, 0, 0);
+      if(out)
+      {
+        start(note.chan, *out, note.vel, 0);
+        note.pitch = *out;
+        ++it;
+      }
+      else
+      {
+        it = map.erase(it);
       }
     }
+  }
+
+  //! All notes off or all sound off on a channel: the synth drops what it
+  //! plays, so the keys held on that channel are forgotten too, or a later
+  //! scale change would start their notes again.
+  void release_channel(int chan)
+  {
+    for(auto it = map.begin(); it != map.end();)
+    {
+      if(it->second.chan == chan)
+        it = map.erase(it);
+      else
+        ++it;
+    }
+    playing[chan] = {};
   }
 
   using tick = halp::tick_flicks;
   void operator()(const tick& tk)
   {
     const auto& new_scale = inputs.sc.value;
-    const int new_base = inputs.base.value;
+    // A base of 12 is the same scale one octave up.
+    const int new_base = ((inputs.base.value % 12) + 12) % 12;
     const int new_transpose = inputs.transp.value;
     std::string_view scale{new_scale.data(), new_scale.size()};
 
@@ -334,12 +352,11 @@ struct Node
       else
       {
         scale_array arr{{}};
-        for(int oct = 0; oct < 10; oct++)
+        const auto degrees = ossia::min(std::ssize(scale), std::ptrdiff_t(12));
+        for(std::size_t note = 0; note < arr.size(); note++)
         {
-          for(int i = 0; i < ossia::min(std::ssize(scale), 12); i++)
-          {
-            arr[oct * 12 + i] = (scale[i] == '1');
-          }
+          const auto degree = std::ptrdiff_t(note % 12);
+          arr[note] = degree < degrees && scale[degree] == '1';
         }
         f(arr, new_transpose);
       }
