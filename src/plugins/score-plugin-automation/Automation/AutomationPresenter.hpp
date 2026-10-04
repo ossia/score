@@ -14,6 +14,8 @@
 #include <Automation/AutomationView.hpp>
 #include <Automation/Commands/ChangeAddress.hpp>
 
+#include <score/application/GUIApplicationContext.hpp>
+
 #include <verdigris>
 
 namespace Automation
