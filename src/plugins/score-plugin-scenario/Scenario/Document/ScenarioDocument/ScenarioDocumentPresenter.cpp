@@ -1081,7 +1081,9 @@ void ScenarioDocumentPresenter::on_requestTransport(QPointF pt)
 {
   auto& exec_ctx
       = m_context.app.guiApplicationPlugin<ScenarioApplicationPlugin>().execution();
-  exec_ctx.playAtDate(timeRulerClickTime(pt));
+  // The ruler counts in the interval shown.
+  exec_ctx.playIntervalAtDate(
+      const_cast<IntervalModel*>(&displayedInterval()), timeRulerClickTime(pt));
 }
 
 void ScenarioDocumentPresenter::on_timeRulerScrubPressEvent(QPointF, QPointF pt)

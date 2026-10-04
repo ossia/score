@@ -121,3 +121,60 @@ after(1100, function() { console.log("B=" + b()); Score.stop(); Qt.exit(0); });
   CHECK(values[0] > 0.5);
   CHECK(values[1] < 0.3);
 }
+
+TEST_CASE(
+    "play from here in an interval while the score plays moves that interval only",
+    "[execution][transport]")
+{
+  if(!app::binary_available())
+    SKIP("no application binary");
+
+  // Half a second into A, B has not started: play from 1.5 s into B starts it
+  // there. Then, B playing, 2.4 s into it moves it there.
+  const auto values = run(QStringLiteral(R"JS(
+Score.play();
+after(500, function() { Score.playIntervalFromHere(B, 1500); });
+after(800, function() { console.log("B=" + b()); });
+after(900, function() { Score.playIntervalFromHere(B, 2400); });
+after(1100, function() { console.log("B=" + b()); Score.stop(); Qt.exit(0); });
+)JS"));
+  REQUIRE(values.size() == 2);
+  // 1.5 s + 0.3 s of 3 s; then 2.4 s + 0.2 s.
+  CHECK(values[0] > 0.5);
+  CHECK(values[0] < 0.75);
+  CHECK(values[1] > 0.8);
+}
+
+TEST_CASE(
+    "play from here in an interval while stopped plays that interval from there",
+    "[execution][transport]")
+{
+  if(!app::binary_available())
+    SKIP("no application binary");
+
+  const auto values = run(QStringLiteral(R"JS(
+Score.playIntervalFromHere(B, 1500);
+after(300, function() { console.log("B=" + b()); Score.stop(); Qt.exit(0); });
+)JS"));
+  REQUIRE(values.size() == 1);
+  CHECK(values[0] > 0.5);
+  CHECK(values[0] < 0.75);
+}
+
+TEST_CASE(
+    "play from here past the end of an interval starts it on its last instant",
+    "[execution][transport]")
+{
+  if(!app::binary_available())
+    SKIP("no application binary");
+
+  // B lasts 3 s and its ruler extends past that: a date beyond its end starts
+  // it on its last instant, playing (its maximum is infinite) rather than
+  // stopped at once.
+  const auto values = run(QStringLiteral(R"JS(
+Score.playIntervalFromHere(B, 4500);
+after(300, function() { console.log("B=" + b()); Score.stop(); Qt.exit(0); });
+)JS"));
+  REQUIRE(values.size() == 1);
+  CHECK(values[0] > 0.95);
+}

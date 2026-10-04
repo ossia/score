@@ -62,6 +62,9 @@ public:
 
   // User requests playback to the transport interface from the GUI
   void request_play_from_here(TimeVal t);
+  //! Play from here at a date of `itv`: while the score plays, that interval
+  //! alone goes there; else it plays from there.
+  void request_play_from_here(Scenario::IntervalModel& itv, TimeVal t);
   void request_play_global(bool);
   void request_play_local(bool);
   void request_play_interval(

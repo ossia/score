@@ -69,6 +69,21 @@ void EditJsContext::playFromHere(double ms)
     plug->execution().request_play_from_here(TimeVal::fromMsecs(ms));
 }
 
+void EditJsContext::playIntervalFromHere(QObject* interval, double ms)
+{
+  auto itv = qobject_cast<Scenario::IntervalModel*>(interval);
+  if(!itv || !std::isfinite(ms) || ms < 0.)
+  {
+    qWarning() << "Score.playIntervalFromHere: needs an interval and a finite, "
+                  "positive number of milliseconds";
+    return;
+  }
+  auto plug
+      = score::GUIAppContext().findGuiApplicationPlugin<Engine::ApplicationPlugin>();
+  if(plug)
+    plug->execution().request_play_from_here(*itv, TimeVal::fromMsecs(ms));
+}
+
 void EditJsContext::pause()
 {
   auto plug

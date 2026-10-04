@@ -178,7 +178,9 @@ void ScrubHandler::on_pressed(
     m_speedChanged = false;
     m_maxSpeed = m_previousSpeed;
 
-    exec.playAtDate(global_time);
+    // The time counts in the interval shown.
+    exec.playIntervalAtDate(
+        const_cast<IntervalModel*>(&root_itv->model()), global_time);
   }
 }
 
@@ -272,7 +274,8 @@ void ScrubHandler::on_released(
       const auto current_playback_pos
           = durations.playPercentage() * durations.guiDuration().msec();
       if(std::abs(global_time.msec() - current_playback_pos) > 10)
-        exec.playAtDate(global_time);
+        exec.playIntervalAtDate(
+            const_cast<IntervalModel*>(&root_itv->model()), global_time);
     }
   }
 }

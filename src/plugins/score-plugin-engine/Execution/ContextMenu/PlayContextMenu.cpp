@@ -16,6 +16,7 @@
 
 #include <Engine/ApplicationPlugin.hpp>
 #include <Execution/ContextMenu/PlayFromIntervalInScenario.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Execution/DocumentPlugin.hpp>
 
 #include <score/tools/ObjectMatches.hpp>
@@ -218,7 +219,11 @@ PlayContextMenu::PlayContextMenu(
   auto& exec_ctx = m_ctx.guiApplicationPlugin<ScenarioApplicationPlugin>().execution();
   m_playFromHere = new QAction{tr("Play from here"), this};
   connect(m_playFromHere, &QAction::triggered, this, [&]() {
-    exec_ctx.playAtDate(m_playFromHere->data().value<::TimeVal>());
+    const auto t = m_playFromHere->data().value<::TimeVal>();
+    if(m_playFromHereInterval)
+      exec_ctx.playIntervalAtDate(m_playFromHereInterval, t);
+    else
+      exec_ctx.playAtDate(t);
   });
 }
 
@@ -267,6 +272,8 @@ void PlayContextMenu::setupContextMenu(Process::LayerContextMenuManager& ctxm)
     auto scenPoint = Scenario::ConvertToScenarioPoint(
         scenept, pres.zoomRatio(), pres.view().height());
     m_playFromHere->setData(QVariant::fromValue(scenPoint.date));
+    // The date is in the clicked scenario, which may be nested.
+    m_playFromHereInterval = Scenario::closestParentInterval(&pres.model());
     menu.addAction(m_playFromHere);
 
     auto sel = ctx.context.selectionStack.currentSelection();

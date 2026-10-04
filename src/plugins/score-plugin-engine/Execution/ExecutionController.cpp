@@ -10,10 +10,12 @@
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
 #include <Scenario/Document/BaseScenario/BaseScenario.hpp>
 #include <Scenario/Document/Interval/IntervalExecution.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
 #include <Scenario/Execution/score2OSSIA.hpp>
 #include <Scenario/Process/ScenarioExecution.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
 
 #include <Audio/AudioApplicationPlugin.hpp>
 #include <Audio/Settings/Model.hpp>
@@ -144,7 +146,13 @@ ExecutionController::ExecutionController(const score::GUIApplicationContext& ctx
 
     connect(
         &m_scenario.execution(), &Scenario::ScenarioExecution::playAtDate, this,
-        &ExecutionController::request_play_from_here);
+        qOverload<TimeVal>(&ExecutionController::request_play_from_here));
+    connect(
+        &m_scenario.execution(), &Scenario::ScenarioExecution::playIntervalAtDate,
+        this, [this](Scenario::IntervalModel* itv, const TimeVal& t) {
+      if(itv)
+        request_play_from_here(*itv, t);
+    });
     connect(
         &m_scenario.execution(), &Scenario::ScenarioExecution::beginScrub, this,
         &ExecutionController::request_begin_scrub);
@@ -459,6 +467,54 @@ void ExecutionController::request_play_from_here(TimeVal t)
       act->trigger();
     }
   }
+}
+
+void ExecutionController::request_play_from_here(
+    Scenario::IntervalModel& itv, TimeVal t)
+{
+  auto model = currentScenarioModel();
+  const Scenario::IntervalModel* root = model ? &model->baseInterval() : nullptr;
+  if(&itv == root)
+    return request_play_from_here(t);
+
+  if(!m_clock)
+  {
+    // Nothing plays: that interval, from there.
+    request_play_interval(itv, {}, t);
+    return;
+  }
+
+  // What the clock plays, which a transport moves.
+  const Scenario::IntervalModel* played
+      = m_clock->scenario ? &m_clock->scenario->baseInterval().scoreInterval() : root;
+  if(&itv == played)
+  {
+    m_transport->requestTransport(t);
+    return;
+  }
+
+  // Inside a score that plays: that interval alone, if what holds it runs.
+  if(auto scenar = qobject_cast<Scenario::ProcessModel*>(itv.parent()))
+  {
+    auto parent = qobject_cast<Scenario::IntervalModel*>(scenar->parent());
+    auto comp = score::findComponent<Execution::ScenarioComponentBase>(scenar->components());
+    if(parent && parent->executing() && comp)
+    {
+      comp->playIntervalFrom(itv, t);
+      return;
+    }
+  }
+
+  // Not reached yet: the whole of what plays, to where that date is in it.
+  TimeVal date = t;
+  const Scenario::IntervalModel* cur = &itv;
+  while(cur && cur != played)
+  {
+    date += cur->date();
+    cur = Scenario::closestParentInterval(cur->parent());
+  }
+  if(cur)
+    m_transport->requestTransport(date);
 }
 
 void ExecutionController::request_begin_scrub(TimeVal t)
