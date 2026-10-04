@@ -1178,7 +1178,8 @@ void NodeItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
     // single gesture and must undo as one.
     if(dropOnCableHandler && nodeItemInteraction == Interaction::Move)
     {
-      if(auto cbl = cableUnder(*this, m_contentRect))
+      if(auto cbl = cableUnder(*this, m_contentRect);
+         cbl && (!canDropOnCableHandler || canDropOnCableHandler(m_model, *cbl)))
       {
         score::Dispatcher_T<MultiOngoingCommandDispatcher> disp{m_dispatcher};
         dropOnCableHandler(m_model, *cbl, disp);
