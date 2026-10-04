@@ -1,5 +1,6 @@
 #include "MidiDeviceMap.hpp"
 
+#include <ossia/detail/json.hpp>
 #include <rapidjson/document.h>
 #include <rapidjson/reader.h>
 
