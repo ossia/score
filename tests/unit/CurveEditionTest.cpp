@@ -3884,3 +3884,31 @@ TEST_CASE("Dragging a segment moves it, its neighbours follow", "[curve][edition
     }
   });
 }
+
+TEST_CASE("A dragged point lands where the presenter's magnetism puts it", "[curve][edition]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    CurveDoc d{ctx};
+    d.setPolyline({{0., 0.}, {0.5, 1.}, {1., 0.}});
+    CurveUi ui{d};
+    // A grid of quarters, as an automation gets from the timeline.
+    ui.presenter->setMagnetism([](double x) { return std::round(x * 4.) / 4.; });
+
+    const Curve::PointModel* pt = pointAt(d.curve(), {0.5, 1.});
+    REQUIRE(pt);
+    Curve::StateBase state;
+    Curve::MovePointCommandObject co{
+        d.curve(), ui.presenter.get(), d.context().commandStack};
+    co.setCurveState(&state);
+    state.clickedPointId = {pt->previous(), pt->following()};
+    state.currentPoint = pt->pos();
+    co.press();
+    state.currentPoint = {0.7, 0.3};
+    co.move();
+    co.release();
+    settle();
+
+    CHECK(pointAt(d.curve(), {0.75, 0.3}));
+    CHECK(curveError(d.curve()).empty());
+  });
+}
