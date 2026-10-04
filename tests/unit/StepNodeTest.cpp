@@ -175,3 +175,54 @@ TEST_CASE("step sequencer: rewinding walks the steps backwards", "[step]")
   CHECK(f.values(3 * second, 0) == std::vector<float>{3.f, 2.f, 1.f});
   CHECK(f.values(0, 2 * second) == std::vector<float>{1.f, 2.f});
 }
+
+namespace
+{
+//! A tick of a process that starts `m0` quarter notes into the score, at 120
+//! bpm in 4/4: a quarter is half a second.
+std::vector<float> realtime_values(fixture& f, int64_t prev, int64_t date, double m0)
+{
+  auto& port = *f.node.out.target<ossia::value_port>();
+  port.get_data().clear();
+
+  ossia::exec_state_facade fac{&f.st};
+  ossia::token_request tk{
+      ossia::time_value{prev},
+      ossia::time_value{date},
+      ossia::time_value{1'000'000'000'000},
+      ossia::time_value{0},
+      1.,
+      ossia::time_signature{4, 4},
+      120.};
+  const auto quarters = [](int64_t t) { return 2. * t / double(second); };
+  tk.musical_start_position = m0 + quarters(prev);
+  tk.musical_end_position = m0 + quarters(date);
+  tk.musical_start_last_bar = std::floor(tk.musical_start_position / 4.) * 4.;
+  tk.musical_end_last_bar = std::floor(tk.musical_end_position / 4.) * 4.;
+  static_cast<ossia::graph_node&>(f.node).run(tk, fac);
+
+  std::vector<float> res;
+  for(auto& v : port.get_data())
+    res.push_back(ossia::convert<float>(v.value));
+  return res;
+}
+}
+
+TEST_CASE("step sequencer: synced steps count from the start of the process", "[step]")
+{
+  fixture f;
+  f.node.synced = true;
+  f.node.step_duration = 0.5; // a half note: a second at 120 bpm
+
+  // The process starts on the second beat of the second bar, off the
+  // half-note grid of the bars: its first step still plays as it starts.
+  const double m0 = 5.;
+  CHECK(realtime_values(f, 0, second / 4, m0) == std::vector<float>{1.f});
+  CHECK(realtime_values(f, second / 4, second, m0).empty());
+  CHECK(realtime_values(f, second, second + second / 4, m0) == std::vector<float>{2.f});
+
+  // The transport moves it to 2.5 s: the steps of 0, 1 and 2 s are past, the
+  // fourth plays at 3 s.
+  CHECK(realtime_values(f, 5 * second / 2, 11 * second / 4, m0).empty());
+  CHECK(realtime_values(f, 11 * second / 4, 13 * second / 4, m0) == std::vector<float>{4.f});
+}
