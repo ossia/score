@@ -45,7 +45,8 @@ bool score::DocumentBackups::canRestoreDocuments()
 
 static void loadRestorableDocumentData(
     const QString& data_filename, const QString& save_filename,
-    const QString& command_filename, std::vector<score::RestorableDocument>& arr)
+    const QString& command_filename, const QString& model_filename,
+    std::vector<score::RestorableDocument>& arr)
 {
   QFile data_file{data_filename};
   QFile command_file{command_filename};
@@ -61,7 +62,7 @@ static void loadRestorableDocumentData(
     {
       arr.push_back(
           {save_filename, data_filename, command_filename, data_file.readAll(),
-           command_file.readAll()});
+           command_file.readAll(), model_filename});
     }
     else
     {
@@ -75,7 +76,8 @@ static void loadRestorableDocumentData(
         it->docPath = data_filename;
         it->commandsPath = command_filename;
         it->doc = data_file.readAll();
-        it->commandsPath = command_file.readAll();
+        it->commands = command_file.readAll();
+        it->modelFileName = model_filename;
       }
     }
   }
@@ -91,7 +93,7 @@ std::vector<score::RestorableDocument> score::DocumentBackups::restorableDocumen
   for(auto it = existing.cbegin(); it != existing.cend(); ++it)
   {
     const auto entry = it.value().toStringList();
-    if(entry.size() != 2)
+    if(entry.size() < 2)
       continue;
 
     const auto doc = s.value(it.key()).toByteArray();
@@ -99,7 +101,9 @@ std::vector<score::RestorableDocument> score::DocumentBackups::restorableDocumen
     if(doc.isEmpty())
       continue;
 
-    arr.push_back({entry[0], it.key(), entry[1], doc, commands});
+    arr.push_back(
+        {entry[0], it.key(), entry[1], doc, commands,
+         entry.size() > 2 ? entry[2] : QString{}});
   }
 #else
   QSettings s{score::OpenDocumentsFile::path(), QSettings::IniFormat};
@@ -112,8 +116,18 @@ std::vector<score::RestorableDocument> score::DocumentBackups::restorableDocumen
     if(file1.isEmpty())
       continue;
 
-    auto res = existing_files[file1].value<QPair<QString, QString>>();
-    loadRestorableDocumentData(file1, res.first, res.second, arr);
+    // A backup records the name the document was saved under, its command
+    // file, and the name it had when its model was backed up. Older ones hold
+    // the first two as a pair.
+    const auto& v = existing_files[file1];
+    if(const auto entry = v.toStringList(); entry.size() >= 2)
+      loadRestorableDocumentData(
+          file1, entry[0], entry[1], entry.size() > 2 ? entry[2] : QString{}, arr);
+    else if(v.canConvert<QPair<QString, QString>>())
+    {
+      const auto res = v.value<QPair<QString, QString>>();
+      loadRestorableDocumentData(file1, res.first, res.second, {}, arr);
+    }
   }
 #endif
   return arr;

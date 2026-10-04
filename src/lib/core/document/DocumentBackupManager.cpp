@@ -34,6 +34,7 @@ DocumentBackupManager::DocumentBackupManager(
     const QByteArray& data, score::Document& doc)
     : QObject{&doc}
     , m_doc{doc}
+    , m_modelFileName{doc.metadata().fileName()}
 {
   storeModelData(data);
 
@@ -44,6 +45,7 @@ DocumentBackupManager::DocumentBackupManager(
     const score::RestorableDocument& prev, Document& doc)
     : QObject{&doc}
     , m_doc{doc}
+    , m_modelFileName{prev.modelFileName}
 {
   storeModelData(prev.doc);
 
@@ -96,15 +98,16 @@ void DocumentBackupManager::updateBackupData()
 #if defined(__EMSCRIPTEN__)
   QSettings s;
   auto existing = s.value("score-backup/docs").toMap();
-  existing[m_key] = QStringList{m_doc.metadata().fileName(), crashCommandFile().fileName()};
+  existing[m_key] = QStringList{
+      m_doc.metadata().fileName(), crashCommandFile().fileName(), m_modelFileName};
   s.setValue("score-backup/docs", existing);
 #else
   // Save the initial state of the document
   QSettings s{OpenDocumentsFile::path(), QSettings::IniFormat};
 
   auto existing_files = s.value("score/docs").toMap();
-  existing_files[crashDataFile().fileName()] = QVariant::fromValue(
-      qMakePair(m_doc.metadata().fileName(), crashCommandFile().fileName()));
+  existing_files[crashDataFile().fileName()] = QStringList{
+      m_doc.metadata().fileName(), crashCommandFile().fileName(), m_modelFileName};
   s.setValue("score/docs", existing_files);
 #endif
 }
