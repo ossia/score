@@ -158,6 +158,10 @@ void MovePointCommandObject::move()
   if(!m_pressed)
     return;
 
+  // Magnetism first: the locking that follows keeps the point between its
+  // neighbours wherever the snap put it.
+  if(m_presenter)
+    m_state->currentPoint.setX(m_presenter->magnetic(m_state->currentPoint.x()));
   handleLocking();
 
   const auto cur = m_state->currentPoint;

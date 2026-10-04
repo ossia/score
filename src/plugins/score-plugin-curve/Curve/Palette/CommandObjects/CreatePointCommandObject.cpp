@@ -64,6 +64,10 @@ void CreatePointCommandObject::on_press()
 void CreatePointCommandObject::move()
 {
   // Locking between bounds
+  // Magnetism first: the locking that follows keeps the point between its
+  // neighbours wherever the snap put it.
+  if(m_presenter)
+    m_state->currentPoint.setX(m_presenter->magnetic(m_state->currentPoint.x()));
   handleLocking();
   if(!ossia::safe_isfinite(m_state->currentPoint.x())
      || !ossia::safe_isfinite(m_state->currentPoint.y()))

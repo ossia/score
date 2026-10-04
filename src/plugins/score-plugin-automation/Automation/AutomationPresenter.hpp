@@ -6,6 +6,8 @@
 #include <Process/ProcessContext.hpp>
 #include <Process/ProcessMimeSerialization.hpp>
 
+#include <Magnetism/MagnetismAdjuster.hpp>
+
 #include <Curve/Process/CurveProcessPresenter.hpp>
 
 #include <Automation/AutomationModel.hpp>
@@ -33,6 +35,21 @@ public:
     on_tweenChanges(layer.tween());
     con(layer.curve(), &Curve::Model::curveReset, this,
         [&] { on_tweenChanges(layer.tween()); });
+
+    // Points snap to what the timeline snaps to: the grid, the other
+    // processes' points. Asked for the curve rather than the automation, so
+    // that the automation's own points, the dragged one among them, do not
+    // attract it.
+    auto& magnetism = (Process::MagnetismAdjuster&)
+                          context.app.interfaces<Process::MagnetismAdjuster>();
+    m_curve.setMagnetism([&layer, &magnetism](double x) {
+      const TimeVal dur = layer.duration();
+      if(dur.impl <= 0)
+        return x;
+      const auto info = magnetism.getPosition(
+          &layer.curve(), TimeVal{int64_t(x * double(dur.impl))});
+      return double(info.time.impl) / double(dur.impl);
+    });
   }
 
 private:

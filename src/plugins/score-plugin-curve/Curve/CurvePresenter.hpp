@@ -15,6 +15,8 @@
 #include <QPoint>
 #include <QRect>
 
+#include <functional>
+
 #include <score_plugin_curve_export.h>
 
 #include <verdigris>
@@ -76,6 +78,14 @@ public:
 
   QRectF rect() const noexcept { return m_localRect; }
 
+  //! Where a point dragged to `x` lands. Set by the processes whose x is time,
+  //! to follow the timeline's magnetism; x itself when unset.
+  void setMagnetism(std::function<double(double)> f) noexcept
+  {
+    m_magnetism = std::move(f);
+  }
+  double magnetic(double x) const { return m_magnetism ? m_magnetism(x) : x; }
+
 public:
   void contextMenuRequested(const QPoint& arg_1, const QPointF& arg_2)
       E_SIGNAL(SCORE_PLUGIN_CURVE_EXPORT, contextMenuRequested, arg_1, arg_2)
@@ -104,6 +114,7 @@ private:
 
   const SegmentList& m_curveSegments;
   QRectF m_localRect;
+  std::function<double(double)> m_magnetism;
 
   const Model& m_model;
   graphics_item_ptr<View> m_view;
