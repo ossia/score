@@ -532,3 +532,69 @@ TEST_CASE("Wavecycle through the binding: a list or vec on the frequency is a ch
     CHECK(freq.value == 500.f);
   });
 }
+
+TEST_CASE("Wavecycle through the binding: a new one plays its default frequency", "[avnd][wavecycle][execution]")
+{
+  with<ao::Wavecycle>(wavecycle_uuid, [](auto& e) {
+    auto& freq = e.object().inputs.frequency;
+    auto& ctl = e.control(1);
+    INFO("model value " << ossia::value_to_pretty_string(ctl.value()) << " init "
+                        << ossia::value_to_pretty_string(ctl.init()));
+    CHECK(ctl.value() == ossia::value{220.f});
+    e.tick(-1);
+    INFO("value " << freq.value << " list size " << freq.list.size()
+                  << (freq.list.empty() ? "" : " list[0] " + std::to_string(freq.list[0])));
+    CHECK(freq.value == 220.f);
+    CHECK((freq.list.empty() || freq.list == std::vector<float>{220.f}));
+
+    // And it is heard: a curve to play, and samples that are not all zero.
+    INFO("curve segments " << e.object().inputs.curve.value.size());
+    CHECK(!e.object().inputs.curve.value.empty());
+    double energy = 0.;
+    for(int k = 0; k < 20; k++)
+    {
+      e.tick(-1, 64);
+      auto* out = e.node.root_outputs()[0]->template target<ossia::audio_port>();
+      REQUIRE(out);
+      for(const auto& channel : out->get())
+        for(double sample : channel)
+          energy += std::abs(sample);
+    }
+    INFO("output energy " << energy);
+    CHECK(energy > 0.);
+  });
+}
+
+TEST_CASE("Wavecycle through the binding: one created while playing plays its default frequency", "[avnd][wavecycle][execution]")
+{
+  score::test::run_in_app([&](const score::GUIApplicationContext& ctx) {
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    auto& plug = doc->context().plugin<Execution::DocumentPlugin>();
+    plug.reload(true, score::test::base_interval(*doc));
+    run_exec(plug);
+    REQUIRE(plug.baseScenario());
+
+    auto* proc = score::test::add_process(*doc, wavecycle_uuid, {});
+    if(!proc)
+      SKIP("not built");
+    run_exec(plug);
+    QApplication::processEvents();
+    run_exec(plug);
+
+    auto& procs = plug.baseScenario()->baseInterval().processes();
+    auto it = procs.find(proc->id());
+    REQUIRE(it != procs.end());
+    REQUIRE(it->second->node);
+    auto comp = it->second;
+    exec<ao::Wavecycle> e{
+        *proc, plug, comp, static_cast<oscr::safe_node<ao::Wavecycle>&>(*comp->node)};
+    auto& freq = e.object().inputs.frequency;
+    e.tick(-1);
+    INFO("value " << freq.value << " list size " << freq.list.size()
+                  << (freq.list.empty() ? "" : " list[0] " + std::to_string(freq.list[0])));
+    CHECK(freq.value == 220.f);
+    CHECK((freq.list.empty() || freq.list == std::vector<float>{220.f}));
+    QApplication::processEvents();
+  });
+}
