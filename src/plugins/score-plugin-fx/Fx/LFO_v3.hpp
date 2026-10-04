@@ -330,39 +330,43 @@ struct Node
 
   struct ui
   {
-    // Three columns of the same height: the waveforms, the knobs two rows
-    // deep, the toggles.
-    halp_meta(layout, halp::layouts::hbox)
+    // The waveforms beside the knobs, related ones above each other; the
+    // toggles on a strip under both, so that the node stays narrow.
+    halp_meta(layout, halp::layouts::vbox)
     struct
     {
-      halp_meta(layout, halp::layouts::vbox)
-      halp_meta(background, halp::colors::background_mid)
-      halp::control<&ins::waveform> w;
-    } shape;
+      halp_meta(layout, halp::layouts::hbox)
+      struct
+      {
+        halp_meta(layout, halp::layouts::vbox)
+        halp_meta(background, halp::colors::background_mid)
+        halp::control<&ins::waveform> w;
+      } shape;
+
+      struct
+      {
+        halp_meta(layout, halp::layouts::vbox)
+        halp_meta(background, halp::colors::background_mid)
+        struct
+        {
+          halp_meta(layout, halp::layouts::hbox)
+          halp::control<&ins::period> t;
+          halp::control<&ins::ampl> a;
+          halp::control<&ins::shape> s;
+        } top;
+        struct
+        {
+          halp_meta(layout, halp::layouts::hbox)
+          halp::control<&ins::phase> p;
+          halp::control<&ins::offset> o;
+          halp::control<&ins::jitter> j;
+        } bottom;
+      } knobs;
+    } main;
 
     struct
     {
-      halp_meta(layout, halp::layouts::vbox)
-      halp_meta(background, halp::colors::background_mid)
-      struct
-      {
-        halp_meta(layout, halp::layouts::hbox)
-        halp::control<&ins::period> t;
-        halp::control<&ins::shape> s;
-        halp::control<&ins::ampl> a;
-      } top;
-      struct
-      {
-        halp_meta(layout, halp::layouts::hbox)
-        halp::control<&ins::offset> o;
-        halp::control<&ins::jitter> j;
-        halp::control<&ins::phase> p;
-      } bottom;
-    } knobs;
-
-    struct
-    {
-      halp_meta(layout, halp::layouts::vbox)
+      halp_meta(layout, halp::layouts::hbox)
       halp_meta(background, halp::colors::background_mid)
       halp::control<&ins::retrigger> r;
       halp::control<&ins::lock_to_bars> l;
