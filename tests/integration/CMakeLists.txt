@@ -409,6 +409,14 @@ score_add_test(test_integration_nodal_controls
   GUI
   PLUGINS score_plugin_scenario score_lib_process)
 
+# A cable never lands on a port of another type.
+if(TARGET score_plugin_fx)
+  score_add_test(test_integration_invalid_cable
+    SOURCES InvalidCableTest.cpp
+    APP
+    PLUGINS score_plugin_fx score_plugin_scenario score_lib_process)
+endif()
+
 # A node dropped on a cable goes in it only if it has no cable yet.
 if(TARGET score_plugin_fx)
   score_add_test(test_integration_node_drop_on_cable

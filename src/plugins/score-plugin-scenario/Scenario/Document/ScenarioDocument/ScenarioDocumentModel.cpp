@@ -3,6 +3,8 @@
 
 #include "ScenarioDocumentModel.hpp"
 
+#include <Dataflow/Commands/CableHelpers.hpp>
+
 #include <Scenario/Commands/Interval/AddOnlyProcessToInterval.hpp>
 #include <Scenario/Document/BaseScenario/BaseScenario.hpp>
 #include <Scenario/Document/Tempo/TempoProcess.hpp>
@@ -95,7 +97,16 @@ void ScenarioDocumentModel::finishLoading()
     auto cbl = new Process::Cable{DataStream::Deserializer{bytearray}, this};
     auto src = cbl->source().try_find(m_context);
     auto snk = cbl->sink().try_find(m_context);
-    if(src && snk )
+    // A document saved with a cable on a port of another type: it is dropped
+    // rather than loaded into the execution.
+    if(src && snk && !Dataflow::isValidCable(
+                                 Process::CableData{cbl->type(), cbl->source(), cbl->sink()},
+                                 m_context))
+    {
+      qWarning() << "Dropping cable" << cbl->id() << "between ports of different types";
+      delete cbl;
+    }
+    else if(src && snk)
     {
       if(auto it = cables.find(cbl->id()); it != cables.end())
       {
@@ -133,7 +144,14 @@ void ScenarioDocumentModel::finishLoading()
       auto cbl = new Process::Cable{JSONObject::Deserializer{json}, this};
       auto src = cbl->source().try_find(m_context);
       auto snk = cbl->sink().try_find(m_context);
-      if(src && snk && (cables.find(cbl->id()) == cables.end()))
+      if(src && snk && !Dataflow::isValidCable(
+                                 Process::CableData{cbl->type(), cbl->source(), cbl->sink()},
+                                 m_context))
+      {
+        qWarning() << "Dropping cable" << cbl->id() << "between ports of different types";
+        delete cbl;
+      }
+      else if(src && snk && (cables.find(cbl->id()) == cables.end()))
       {
         src->addCable(*cbl);
         snk->addCable(*cbl);

@@ -2,6 +2,8 @@
 
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 
+#include <Process/Dataflow/Port.hpp>
+
 #include <score/document/DocumentContext.hpp>
 #include <score/model/IdentifierDebug.hpp>
 
@@ -167,6 +169,28 @@ void removeCables(const SerializedCables& cables, const score::DocumentContext& 
   }
 }
 
+bool isValidCable(const Process::CableData& cable, const score::DocumentContext& ctx)
+{
+  auto src = qobject_cast<Process::Outlet*>(cable.source.try_find(ctx));
+  auto snk = qobject_cast<Process::Inlet*>(cable.sink.try_find(ctx));
+  return src && snk && src->type() == snk->type();
+}
+
+void detachInvalidCable(
+    const Id<Process::Cable>& id, const Process::CableData& cable,
+    const score::DocumentContext& ctx)
+{
+  qWarning() << "Dropping a cable between ports that no longer match:"
+             << cable.source.unsafePath().toString() << "->"
+             << cable.sink.unsafePath().toString();
+  auto& doc = score::IDocument::get<Scenario::ScenarioDocumentModel>(ctx.document);
+  const auto path = Path<Scenario::ScenarioDocumentModel>{doc}.extend(id);
+  if(auto src = cable.source.try_find(ctx))
+    src->removeCable(path);
+  if(auto snk = cable.sink.try_find(ctx))
+    snk->removeCable(path);
+}
+
 ossia::small_vector<Process::Cable*, 4>
 restoreCables(const SerializedCables& cables, const score::DocumentContext& ctx)
 {
@@ -176,6 +200,11 @@ restoreCables(const SerializedCables& cables, const score::DocumentContext& ctx)
 
   for(const auto& [id, data] : cables)
   {
+    if(!isValidCable(data, ctx))
+    {
+      detachInvalidCable(id, data, ctx);
+      continue;
+    }
     if(doc.cables.find(id) == doc.cables.end())
     {
       auto c = new Process::Cable{id, data, &doc};
@@ -236,6 +265,11 @@ ossia::small_vector<Process::Cable*, 4> restoreCablesWithoutTouchingPorts(
 
   for(const auto& [id, data] : cables)
   {
+    if(!isValidCable(data, ctx))
+    {
+      detachInvalidCable(id, data, ctx);
+      continue;
+    }
     if(doc.cables.find(id) == doc.cables.end())
     {
       auto c = new Process::Cable{id, data, &doc};
@@ -295,6 +329,11 @@ static ossia::small_vector<Process::Cable*, 4> restoreCables(
 
     SCORE_ASSERT(it != cables.end());
     SCORE_ASSERT(doc.cables.find(it->first) == doc.cables.end());
+    if(!isValidCable(it->second, ctx))
+    {
+      detachInvalidCable(it->first, it->second, ctx);
+      continue;
+    }
     {
       auto c = new Process::Cable{it->first, it->second, &doc};
       doc.cables.add_quiet(c);
@@ -320,6 +359,11 @@ static ossia::small_vector<Process::Cable*, 4> restoreCables(
 
     SCORE_ASSERT(it != cables.end());
     SCORE_ASSERT(doc.cables.find(it->first) == doc.cables.end());
+    if(!isValidCable(it->second, ctx))
+    {
+      detachInvalidCable(it->first, it->second, ctx);
+      continue;
+    }
     {
       auto c = new Process::Cable{it->first, it->second, &doc};
       doc.cables.add_quiet(c);

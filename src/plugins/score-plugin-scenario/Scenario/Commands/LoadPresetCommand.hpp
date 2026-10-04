@@ -12,6 +12,8 @@
 
 #include <score/model/path/PathSerialization.hpp>
 
+#include <ossia/detail/algorithms.hpp>
+
 #include <score_plugin_scenario_export.h>
 
 namespace Scenario::Command
@@ -174,7 +176,12 @@ public:
     // A preset holding another script rebuilds the ports of the process
     const bool otherScript
         = !newval.key.effect.isEmpty() && newval.key.effect != obj.effect();
-    if((obj.flags() & Process::ProcessFlags::DynamicPorts) || otherScript)
+    // With cables, the ports the preset brings decide which of them still fit:
+    // only the backup checks them, rather than leaving one on a port that
+    // changed type.
+    const bool wired = ossia::any_of(obj.inlets(), [](auto* p) { return !p->cables().empty(); })
+                       || ossia::any_of(obj.outlets(), [](auto* p) { return !p->cables().empty(); });
+    if((obj.flags() & Process::ProcessFlags::DynamicPorts) || otherScript || wired)
       return new LoadPresetWithCablesBackup{obj, std::move(newval), ctx};
     else
       return new LoadPreset{obj, std::move(newval)};
