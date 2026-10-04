@@ -376,6 +376,22 @@ PasteKind pasteKind(const QMimeData& mime)
   return PasteKind::None;
 }
 
+//! Where to center processes pasted in an interval with no pointer in it: on
+//! the first row of its nodal canvas, past the nodes already there, so that
+//! they show even in a small slot.
+QPointF pastePositionInInterval(const IntervalModel& itv, const QMimeData& mime)
+{
+  QSizeF size{75., 42.};
+  auto obj = readJson(mime.data("text/plain"));
+  if(obj.IsObject())
+    if(auto it = obj.FindMember("Processes");
+       it != obj.MemberEnd() && it->value.IsArray() && !it->value.Empty())
+      size = Command::copiedProcessesRect(it->value.GetArray()).size();
+
+  const QPointF topLeft = freeProcessPosition(itv, QPointF{40., 40.}, size);
+  return topLeft + QPointF{size.width() / 2., size.height() / 2.};
+}
+
 //! Where in a scenario to put what is pasted next to one of its children.
 Scenario::Point pointNextTo(const Scenario::ProcessModel& sc, const QObject* child)
 {
@@ -457,7 +473,7 @@ bool ScenarioEditor::paste(
     {
       if(itv == &displayed)
         return pasteInCurrentInterval(pos, mime, ctx);
-      return pasteInInterval(*itv, newProcessPosition(*itv), mime, ctx);
+      return pasteInInterval(*itv, pastePositionInInterval(*itv, mime), mime, ctx);
     }
     else if(qobject_cast<ScenarioDocumentModel*>(obj))
     {

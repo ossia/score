@@ -6,7 +6,8 @@
 //   it was drawn over before was destroyed with the view mode change.
 // - A paste goes in the object the user worked on last, focused or selected:
 //   in it if it can take what was copied, else in the first parent that can.
-//   Processes go in an interval, scenario elements in a scenario.
+//   Processes go in an interval, scenario elements in a scenario. Clicking the
+//   background of an interval's nodal slot makes it that interval.
 
 #include <score_test/App.hpp>
 #include <score_test/Document.hpp>
@@ -20,6 +21,7 @@
 
 #include <Scenario/Commands/CommandAPI.hpp>
 #include <Scenario/Commands/Interval/AddProcessToInterval.hpp>
+#include <Scenario/Document/Interval/FullView/NodalIntervalView.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/Interval/IntervalPresenter.hpp>
 #include <Scenario/Document/ScenarioDocument/ProcessFocusManager.hpp>
@@ -38,6 +40,7 @@
 #include <QApplication>
 #include <QGraphicsRectItem>
 #include <QGraphicsScene>
+#include <QGraphicsSceneMouseEvent>
 #include <QImage>
 #include <QMimeData>
 #include <QPainter>
@@ -327,5 +330,46 @@ TEST_CASE(
 
     CHECK(processCount(n.base) == 2);
     CHECK(processCount(*n.b1) == 1);
+  });
+}
+
+TEST_CASE(
+    "a process pasted after clicking an interval's nodal slot goes in that interval",
+    "[integration][scenario][paste][gui]")
+{
+  score::test::run_in_gui_app([](const score::GUIApplicationContext& ctx) {
+    auto doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    Nested n{*doc};
+
+    // The nodal slot of b1, as its interval presenter makes it.
+    Process::DataflowManager dfm;
+    FocusDispatcher fd;
+    Process::Context pctx{doc->context(), dfm, fd};
+    QGraphicsScene scene;
+    auto* slot = new Scenario::NodalIntervalView{
+        Scenario::NodalIntervalView::OnlyEffects, *n.b1, pctx, nullptr};
+    slot->setRect({0., 0., 800., 200.});
+    scene.addItem(slot);
+
+    auto mime = copy(*doc, n.a3);
+    {
+      QGraphicsSceneMouseEvent press{QEvent::GraphicsSceneMousePress};
+      press.setButton(Qt::LeftButton);
+      press.setButtons(Qt::LeftButton);
+      press.setPos({700., 150.});
+      press.setScenePos({700., 150.});
+      scene.sendEvent(slot, &press);
+    }
+    REQUIRE(paste(*doc, *mime));
+    Nested::settle();
+
+    CHECK(processCount(*n.b1) == 2);
+    CHECK(processCount(n.base) == 1);
+    CHECK(processCount(*n.b3) == 1);
+
+    scene.removeItem(slot);
+    delete slot;
+    focus(*doc, nullptr);
   });
 }
