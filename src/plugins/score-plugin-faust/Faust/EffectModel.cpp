@@ -299,6 +299,10 @@ Process::ScriptChangeResult FaustEffectModel::reload()
       "x86_64-pc-windows-msvc"
 #elif defined(__EMSCRIPTEN__)
       "wasm32-unknown-unknown-wasm"
+#elif defined(__APPLE__)
+      // The host's triple: code generated for any other aarch64 OS uses x18,
+      // which macOS reserves and clobbers.
+      ""
 #elif defined(__aarch64__)
       "aarch64-none-linux-gnueabi"
 #elif defined(__arm__)
