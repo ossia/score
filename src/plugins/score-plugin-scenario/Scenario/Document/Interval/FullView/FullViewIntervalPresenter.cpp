@@ -730,7 +730,14 @@ Process::MagneticInfo FullViewIntervalPresenter::magneticPosition(
     else
       o = o->parent();
   } while(!cur_model && o);
-  auto [model, lastFound, timeDelta] = closestParentWithMusicalMetrics(&m_model);
+  // The grid is in the reference of the interval with the time signatures;
+  // t counts from the start of the object's own interval, which need not be
+  // the one shown (an automation in a box of the score shown).
+  const auto shown = closestParentWithMusicalMetrics(&m_model);
+  auto own = cur_model ? closestParentWithMusicalMetrics(cur_model) : shown;
+  if(own.parent != shown.parent)
+    own = shown;
+  auto [model, lastFound, timeDelta] = own;
 
   if(!o || !model)
     return {scenarioT, snapToScenario};
@@ -752,7 +759,9 @@ Process::MagneticInfo FullViewIntervalPresenter::magneticPosition(
   {
     return {closestBar - timeDelta, snapToScenario};
   }
-  else if(std::abs(closestBar.impl - t.impl) < std::abs(scenarioT.impl - t.impl))
+  else if(
+      std::abs((closestBar - timeDelta).impl - t.impl)
+      < std::abs(scenarioT.impl - t.impl))
   {
     return {closestBar - timeDelta, false};
   }
@@ -791,6 +800,16 @@ void FullViewIntervalPresenter::updateTimeBars()
     return;
 
   auto [model, lastFound, timeDelta] = closestParentWithMusicalMetrics(&m_model);
+
+  if(model != m_metricsModel)
+  {
+    QObject::disconnect(m_metricsConnection);
+    m_metricsModel = model;
+    if(model && model != &m_model)
+      m_metricsConnection = connect(
+          model, &IntervalModel::timeSignaturesChanged, this,
+          [this] { updateTimeBars(); }, Qt::QueuedConnection);
+  }
 
   this->m_timebars->timebar->setModel(model, timeDelta);
   this->m_timebars->timebar->setZoomRatio(m_zoomRatio);

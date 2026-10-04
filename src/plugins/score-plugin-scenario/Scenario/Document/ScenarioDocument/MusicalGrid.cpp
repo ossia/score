@@ -201,7 +201,10 @@ void computeAll(
   auto addNewMain = [&](double new_bar_x_pos, TimeVal prev_t, TimeVal cur_t) {
     //qDebug() << " !!! adding main bar" << new_bar_x_pos;
     bars.positions.push_back(QLineF(new_bar_x_pos, y0, new_bar_x_pos, y1));
-    grid.mainPositions.push_back({new_bar_x_pos, timeToMetrics(grid, cur_t), increment});
+    // Lines are drawn in the interval shown, bars counted in the one that
+    // holds the time signatures.
+    grid.mainPositions.push_back(
+        {new_bar_x_pos, timeToMetrics(grid, cur_t + timeDelta), increment});
     magneticTimings.push_back(cur_t + timeDelta);
 
     if(increment.bars != 1)
@@ -400,8 +403,10 @@ void MusicalGrid::compute(
   ossia::remove_duplicates(timebars.magneticTimings);
   //, [] (auto t1, auto t2) { return t1 < t2});
 
+  // To the ruler, whose 0 is the leftmost pixel shown. The positions are in
+  // the interval shown; x0_time is in the one with the time signatures.
   for(auto& [v, _1, _2] : mainPositions)
-    v -= x0_time.toPixels(zoom) + 100;
+    v -= (x0_time - timeDelta).toPixels(zoom) + 100;
   // for (auto& [v, _1, _2] : subPositions)
   //   v -= x0_time.toPixels(zoom) + 100;
   /*

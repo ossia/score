@@ -479,7 +479,7 @@ void TimeSignatureItem::updateStartMarker()
   const TimeVal st = m_model->startMarker();
   if(m_start && st != TimeVal::zero())
   {
-    m_start->setPos(st.toPixels(m_ratio), 12.);
+    m_start->setPos((st - m_timeDelta).toPixels(m_ratio), 12.);
   }
   else if(m_start && st == TimeVal::zero())
   {
@@ -490,7 +490,7 @@ void TimeSignatureItem::updateStartMarker()
   {
     if(!m_start)
       m_start = new StartMarker{this};
-    m_start->setPos(st.toPixels(m_ratio), 12.);
+    m_start->setPos((st - m_timeDelta).toPixels(m_ratio), 12.);
   }
 }
 
@@ -561,7 +561,7 @@ void TimeSignatureItem::moveHandle(
   // TODO what if we pass on top of another :|
 
   // Find leftmost signature
-  const auto msecs = TimeVal::fromPixels(x, m_ratio);
+  const auto msecs = TimeVal::fromPixels(x, m_ratio) + m_timeDelta;
 
   const auto [new_time, showSnap] = m_magnetic.getPosition(m_model, msecs);
 
@@ -579,7 +579,7 @@ void TimeSignatureItem::moveHandle(
   signatures[new_time] = m_origSig;
 
   // Set new position for the handle
-  handle.setX(new_time.toPixels(m_ratio));
+  handle.setX((new_time - m_timeDelta).toPixels(m_ratio));
   handle.setSignature(new_time, handle.signature());
 
   m_itv.context().dispatcher.submit<Scenario::Command::SetTimeSignatures>(
@@ -612,7 +612,9 @@ void TimeSignatureItem::requestNewHandle(QPointF pos)
 {
   assert(m_model);
   auto signatures = m_model->timeSignatureMap();
-  signatures[TimeVal::fromPixels(pos.x(), m_ratio)] = ossia::time_signature{4, 4};
+  // The signatures count in m_model, this item in the interval shown.
+  signatures[TimeVal::fromPixels(pos.x(), m_ratio) + m_timeDelta]
+      = ossia::time_signature{4, 4};
   CommandDispatcher<> disp{m_itv.context().commandStack};
   disp.submit<Scenario::Command::SetTimeSignatures>(*m_model, signatures);
 }
@@ -621,7 +623,7 @@ void TimeSignatureItem::setStartMarker(QPointF pos)
 {
   assert(m_model);
   ((IntervalModel*)m_model)
-      ->setStartMarker(TimeVal::fromPixels(pos.x(), m_itv.zoomRatio()));
+      ->setStartMarker(TimeVal::fromPixels(pos.x(), m_itv.zoomRatio()) + m_timeDelta);
 }
 
 void TimeSignatureItem::removeStartMarker()

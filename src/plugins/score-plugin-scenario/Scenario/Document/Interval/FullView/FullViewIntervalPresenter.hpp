@@ -94,6 +94,10 @@ private:
   Timebars* m_timebars{};
 
   MusicalGrid* m_grid{};
+  //! The interval whose time signatures the grid shows, when it is a parent
+  //! of the one shown: its changes redraw the grid too.
+  const IntervalModel* m_metricsModel{};
+  QMetaObject::Connection m_metricsConnection;
 
   const Scenario::Settings::Model& m_settings;
 };
