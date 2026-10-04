@@ -21,6 +21,7 @@
 #endif
 
 #include <iostream>
+#include <stdexcept>
 #include <string>
 #include <vector>
 #include <version>
@@ -170,6 +171,15 @@ inline located_sdk locateSDKWithFallback()
 
     if(!dir.cd("include") || !dir.cd("c++"))
     {
+#if defined(SCORE_DEPLOYMENT_BUILD)
+      // A released score is built with the SDK's compiler and standard
+      // library: code compiled against the system's headers would not match
+      // the process it is loaded in.
+      qDebug() << "JIT: no score SDK in" << QString::fromStdString(ret.path);
+      ret.path.clear();
+      ret.sdk_kind = located_sdk::none;
+      return ret;
+#endif
       qDebug() << "Unable to locate standard headers, fallback to /usr";
       ret.path = "/usr";
       dir.setPath("/usr");
@@ -860,6 +870,15 @@ static inline auto getPotentialTriples()
 static inline void populateIncludeDirs(std::vector<std::string>& args)
 {
   auto sdk_location = locateSDKWithFallback();
+  if(sdk_location.sdk_kind == located_sdk::none)
+  {
+    auto& lib = score::AppContext().settings<Library::Settings::Model>();
+    throw std::runtime_error(
+        QStringLiteral("The score SDK is not installed: C++ cannot be compiled. "
+                       "Install it from the package manager, in %1/%2.")
+            .arg(lib.getSDKPath(), QStringLiteral(SCORE_TAG_NO_V))
+            .toStdString());
+  }
   auto& sdk = sdk_location.path;
   auto qsdk = QString::fromStdString(sdk);
 
