@@ -136,8 +136,12 @@ TEST_CASE("Absolute paths become project- or library-relative", "[unit][projectf
       relativizeFilePath(lib + "/Samples/snare.wav", roots)
       == "<LIBRARY>:Samples/snare.wav");
 
-  // Outside both roots: left alone.
+  // Outside both roots: left alone, as chosen, symlinks included.
   CHECK(relativizeFilePath(out + "/hat.wav", roots) == out + "/hat.wav");
+#if !defined(_WIN32)
+  REQUIRE(QFile::link(out, out + "-link"));
+  CHECK(relativizeFilePath(out + "-link/hat.wav", roots) == out + "-link/hat.wav");
+#endif
 
   // Already relative or already prefixed: idempotent.
   CHECK(relativizeFilePath("<PROJECT>:Audio/kick.wav", roots) == "<PROJECT>:Audio/kick.wav");

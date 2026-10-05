@@ -1,6 +1,9 @@
 #include <Process/Dataflow/WidgetInlets.hpp>
 
+#include <score/document/DocumentContext.hpp>
+#include <score/document/DocumentInterface.hpp>
 #include <score/plugins/SerializableHelpers.hpp>
+#include <score/tools/FilePath.hpp>
 #include <score/tools/FileWatch.hpp>
 
 #include <ossia/dataflow/port.hpp>
@@ -16,6 +19,8 @@
 
 #include <cmath>
 #include <optional>
+
+#include <core/document/Document.hpp>
 
 #include <wobjectimpl.h>
 
@@ -1514,11 +1519,47 @@ JSONWriter::write(Process::ProgramEdit& p)
 {
 }
 
+
+namespace
+{
+// The path a file or folder control saves: under the document's folder or the
+// user library it becomes a <PROJECT>: / <LIBRARY>: one, so that the document
+// still finds it once moved or opened on another machine.
+ossia::value storedPathValue(const Process::ControlInlet& p)
+{
+  const auto* str = p.value().target<std::string>();
+  if(!str || str->empty())
+    return p.value();
+
+  const auto path = QString::fromStdString(*str);
+  const auto stored = [&] {
+    if(auto* doc = score::IDocument::try_documentFromObject(p))
+      return score::relativizeFilePath(path, doc->context());
+    return score::relativizeFilePath(path);
+  }();
+  return stored.toStdString();
+}
+
+void readPathControl(DataStreamReader& s, const Process::ControlInlet& p)
+{
+  s.readFrom(storedPathValue(p));
+  s.readFrom(p.init());
+  s.readFrom(p.domain());
+}
+
+void readPathControl(JSONReader& s, const Process::ControlInlet& p)
+{
+  s.obj[s.strings.Value] = storedPathValue(p);
+  s.obj[s.strings.Init] = p.init();
+  s.obj[s.strings.Domain] = p.domain();
+}
+}
+
 template <>
 SCORE_LIB_PROCESS_EXPORT void
 DataStreamReader::read(const Process::FileChooser& p)
 {
-  read((const Process::ControlInlet&)p);
+  readPathControl(*this, p);
   m_stream << p.filters();
 }
 template <>
@@ -1533,7 +1574,7 @@ template <>
 SCORE_LIB_PROCESS_EXPORT void
 JSONReader::read(const Process::FileChooser& p)
 {
-  read((const Process::ControlInlet&)p);
+  readPathControl(*this, p);
   obj["Filters"] = p.filters();
 }
 template <>
@@ -1554,7 +1595,7 @@ template <>
 SCORE_LIB_PROCESS_EXPORT void
 DataStreamReader::read(const Process::FolderChooser& p)
 {
-  read((const Process::ControlInlet&)p);
+  readPathControl(*this, p);
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
@@ -1565,7 +1606,7 @@ template <>
 SCORE_LIB_PROCESS_EXPORT void
 JSONReader::read(const Process::FolderChooser& p)
 {
-  read((const Process::ControlInlet&)p);
+  readPathControl(*this, p);
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
@@ -1577,7 +1618,7 @@ template <>
 SCORE_LIB_PROCESS_EXPORT void
 DataStreamReader::read(const Process::AudioFileChooser& p)
 {
-  read((const Process::ControlInlet&)p);
+  readPathControl(*this, p);
   m_stream << p.filters();
 }
 template <>
@@ -1592,7 +1633,7 @@ template <>
 SCORE_LIB_PROCESS_EXPORT void
 JSONReader::read(const Process::AudioFileChooser& p)
 {
-  read((const Process::ControlInlet&)p);
+  readPathControl(*this, p);
   obj["Filters"] = p.filters();
 }
 template <>
@@ -1610,7 +1651,7 @@ JSONWriter::write(Process::AudioFileChooser& p)
 template <>
 SCORE_LIB_PROCESS_EXPORT void DataStreamReader::read(const Process::VideoFileChooser& p)
 {
-  read((const Process::ControlInlet&)p);
+  readPathControl(*this, p);
   m_stream << p.filters();
 }
 template <>
@@ -1623,7 +1664,7 @@ SCORE_LIB_PROCESS_EXPORT void DataStreamWriter::write(Process::VideoFileChooser&
 template <>
 SCORE_LIB_PROCESS_EXPORT void JSONReader::read(const Process::VideoFileChooser& p)
 {
-  read((const Process::ControlInlet&)p);
+  readPathControl(*this, p);
   obj["Filters"] = p.filters();
 }
 template <>
