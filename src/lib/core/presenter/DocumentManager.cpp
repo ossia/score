@@ -52,6 +52,7 @@
 #include <QSaveFile>
 #include <QSettings>
 #include <QStandardPaths>
+#include <QTemporaryDir>
 #include <QStringList>
 
 #include <wobjectimpl.h>
@@ -696,7 +697,17 @@ public:
         = new QDialogButtonBox{QDialogButtonBox::Ok | QDialogButtonBox::Cancel, this};
     buttons->button(QDialogButtonBox::Ok)->setText(tr("Create and open"));
     buttons->button(QDialogButtonBox::Ok)->setDefault(true);
+    auto temporary = buttons->addButton(
+        tr("Open in a temporary folder"), QDialogButtonBox::ActionRole);
+    temporary->setToolTip(
+        tr("Extracts into a new folder of the system's temporary directory, which "
+           "the system may clear: use Save As to keep the project."));
     lay->addWidget(buttons);
+
+    connect(temporary, &QPushButton::clicked, this, [this] {
+      m_temporary = true;
+      accept();
+    });
 
     connect(browse, &QPushButton::clicked, this, [this] {
       const QString dir = QFileDialog::getExistingDirectory(
@@ -716,9 +727,11 @@ public:
   }
 
   QString folder() const { return QDir::cleanPath(m_folder->text().trimmed()); }
+  bool temporary() const noexcept { return m_temporary; }
 
 private:
   QLineEdit* m_folder{};
+  bool m_temporary{};
 };
 }
 
@@ -748,7 +761,20 @@ Document* DocumentManager::openArchive(
   if(dialog.exec() != QDialog::Accepted)
     return nullptr;
 
-  const QString folder = dialog.folder();
+  QString folder = dialog.folder();
+  if(dialog.temporary())
+  {
+    QTemporaryDir tmp{QDir::tempPath() + "/score-" + baseName + "-XXXXXX"};
+    tmp.setAutoRemove(false);
+    if(!tmp.isValid())
+    {
+      QMessageBox::warning(
+          m_view, tr("Extraction failed"),
+          tr("Could not create a temporary folder: %1").arg(tmp.errorString()));
+      return nullptr;
+    }
+    folder = tmp.path();
+  }
   const QString scorePath = QDir{folder}.filePath(summary->scoreFile);
 
   // The folder may already hold this very project: offer to just open it
@@ -805,8 +831,11 @@ Document* DocumentManager::openArchive(
     return nullptr;
   }
 
-  QSettings s;
-  s.setValue("score/last_open_doc", folder);
+  if(!dialog.temporary())
+  {
+    QSettings s;
+    s.setValue("score/last_open_doc", folder);
+  }
   return loadFile(ctx, scorePath);
 }
 
