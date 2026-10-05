@@ -17,7 +17,7 @@
 #include <QDir>
 #include <QFileInfo>
 #include <QFontMetrics>
-#include <QGridLayout>
+#include <QLayout>
 #include <QHBoxLayout>
 #include <QKeyEvent>
 #include <QLabel>
@@ -880,6 +880,91 @@ private:
  * information (name, author, thumbnail) is read in the background with
  * ProjectInfo::peek() and shown on hover or on the example cards.
  */
+//! Lays out fixed-size cards left to right, wrapping to as many columns as the
+//! width allows.
+class CardFlowLayout final : public QLayout
+{
+public:
+  explicit CardFlowLayout(QWidget* parent, int spacing)
+      : QLayout{parent}
+      , m_spacing{spacing}
+  {
+    setContentsMargins(0, 0, 0, 0);
+  }
+  ~CardFlowLayout() override
+  {
+    while(auto item = takeAt(0))
+      delete item;
+  }
+
+  void addItem(QLayoutItem* item) override { m_items.push_back(item); }
+  int count() const override { return int(m_items.size()); }
+  QLayoutItem* itemAt(int i) const override
+  {
+    return i >= 0 && i < count() ? m_items[i] : nullptr;
+  }
+  QLayoutItem* takeAt(int i) override
+  {
+    if(i < 0 || i >= count())
+      return nullptr;
+    auto item = m_items[i];
+    m_items.erase(m_items.begin() + i);
+    return item;
+  }
+
+  Qt::Orientations expandingDirections() const override { return {}; }
+  bool hasHeightForWidth() const override { return true; }
+  int heightForWidth(int width) const override
+  {
+    return arrange(QRect{0, 0, width, 0}, false);
+  }
+  void setGeometry(const QRect& rect) override
+  {
+    QLayout::setGeometry(rect);
+    arrange(rect, true);
+  }
+  QSize sizeHint() const override { return minimumSize(); }
+  QSize minimumSize() const override
+  {
+    QSize size;
+    for(auto* item : m_items)
+      size = size.expandedTo(item->minimumSize());
+    const auto m = contentsMargins();
+    return size + QSize{m.left() + m.right(), m.top() + m.bottom()};
+  }
+
+private:
+  //! Places the items in `rect` when `apply`; returns the height they take.
+  int arrange(const QRect& rect, bool apply) const
+  {
+    const auto m = contentsMargins();
+    const QRect area = rect.adjusted(m.left(), m.top(), -m.right(), -m.bottom());
+    int x = area.x();
+    int y = area.y();
+    int rowHeight = 0;
+    for(auto* item : m_items)
+    {
+      if(item->isEmpty())
+        continue;
+      const QSize size = item->sizeHint();
+      if(x > area.x() && x + size.width() > area.x() + area.width())
+      {
+        x = area.x();
+        y += rowHeight + m_spacing;
+        rowHeight = 0;
+      }
+      if(apply)
+        item->setGeometry(QRect{QPoint{x, y}, size});
+      x += size.width() + m_spacing;
+      rowHeight = std::max(rowHeight, size.height());
+    }
+    return y + rowHeight - rect.y() + m.bottom();
+  }
+
+  std::vector<QLayoutItem*> m_items;
+  int m_spacing{};
+};
+
 class StartScreen : public QWidget
 {
   W_OBJECT(StartScreen)
@@ -1662,13 +1747,8 @@ QWidget* StartScreen::makeCardGrid(
 {
   auto holder = new QWidget{parent};
   holder->setAutoFillBackground(false);
-  auto grid = new QGridLayout{holder};
-  grid->setContentsMargins(0, 0, 0, 0);
-  grid->setHorizontalSpacing(14);
-  grid->setVerticalSpacing(14);
+  auto grid = new CardFlowLayout{holder, 14};
 
-  static constexpr int columns = 3;
-  int i = 0;
   for(const auto& doc : docs)
   {
     auto card = new ExampleCard{m_itemFont, m_smallFont, doc.name, {},
@@ -1694,11 +1774,9 @@ QWidget* StartScreen::makeCardGrid(
       requestInfo(doc.path);
     }
 
-    grid->addWidget(card, i / columns, i % columns, Qt::AlignLeft | Qt::AlignTop);
+    grid->addWidget(card);
     m_cards.push_back(card);
-    i++;
   }
-  grid->setColumnStretch(columns, 1);
   return holder;
 }
 
@@ -1730,13 +1808,9 @@ QWidget* StartScreen::createCardsPage(
 
     auto container = new QWidget;
     container->setAutoFillBackground(false);
-    auto grid = new QGridLayout{container};
+    auto grid = new CardFlowLayout{container, 14};
     grid->setContentsMargins(0, 4, 8, 4);
-    grid->setHorizontalSpacing(14);
-    grid->setVerticalSpacing(14);
 
-    static constexpr int columns = 3;
-    int i = 0;
     for(const auto& doc : docs)
     {
       const QString subtitle = !doc.category.isEmpty()   ? doc.category
@@ -1745,13 +1819,10 @@ QWidget* StartScreen::createCardsPage(
       auto card = new ExampleCard{m_itemFont, m_smallFont, doc.name,
                                   subtitle,   doc.path,    container};
       card->onActivated = onActivated;
-      grid->addWidget(card, i / columns, i % columns, Qt::AlignLeft | Qt::AlignTop);
+      grid->addWidget(card);
       m_cards.push_back(card);
       requestInfo(doc.path);
-      i++;
     }
-    grid->setColumnStretch(columns, 1);
-    grid->setRowStretch((i + columns - 1) / columns, 1);
 
     scroll->setWidget(container);
     lay->addWidget(scroll, 1);
