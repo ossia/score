@@ -295,6 +295,7 @@ void GpuResourceRegistry::destroy(RenderList& renderer)
     ++ch.generation;
     ch.dynamicSlotMap.clear();
     ch.dynamicTextures.clear();
+    ch.dynamicTextureIds.clear();
     ch.dynamicSlotLastUse.clear();
     ch.dynamicSlotCounter = 0;
   }
@@ -366,6 +367,7 @@ void GpuResourceRegistry::destroyOwned()
     ++ch.generation;
     ch.dynamicSlotMap.clear();
     ch.dynamicTextures.clear();
+    ch.dynamicTextureIds.clear();
     ch.dynamicSlotLastUse.clear();
     ch.dynamicSlotCounter = 0;
   }
@@ -427,6 +429,7 @@ void GpuResourceRegistry::destroy()
     ++ch.generation;
     ch.dynamicSlotMap.clear();
     ch.dynamicTextures.clear();
+    ch.dynamicTextureIds.clear();
     ch.dynamicSlotLastUse.clear();
     ch.dynamicSlotCounter = 0;
   }
@@ -528,6 +531,7 @@ int GpuResourceRegistry::resolveDynamicSlot(
       ch.dynamicSlotMap[key] = s;
       ch.dynamicTextures[s] = tex;
       ch.dynamicSlotLastUse[s] = now;
+      ch.dynamicTextureIds[s] = key;
       return s;
     }
   }
@@ -539,6 +543,7 @@ int GpuResourceRegistry::resolveDynamicSlot(
     ch.dynamicSlotMap[key] = slot;
     ch.dynamicTextures.push_back(tex);
     ch.dynamicSlotLastUse.push_back(now);
+    ch.dynamicTextureIds.push_back(key);
     return slot;
   }
 
@@ -571,7 +576,34 @@ int GpuResourceRegistry::resolveDynamicSlot(
   ch.dynamicSlotMap[key] = victim;
   ch.dynamicTextures[victim] = tex;
   ch.dynamicSlotLastUse[victim] = now;
+  ch.dynamicTextureIds[victim] = key;
   return victim;
+}
+
+static void clearDynamicSlot(
+    GpuResourceRegistry::TextureChannelState& ch, int s) noexcept
+{
+  ch.dynamicTextures[s] = nullptr;
+  ch.dynamicTextureIds[s] = 0;
+  ch.dynamicSlotLastUse[s] = 0;
+  for(auto it = ch.dynamicSlotMap.begin(); it != ch.dynamicSlotMap.end(); ++it)
+  {
+    if(it->second == s)
+    {
+      ch.dynamicSlotMap.erase(it);
+      break;
+    }
+  }
+}
+
+void GpuResourceRegistry::forgetDynamicTexture(const QRhiTexture* tex) noexcept
+{
+  if(!tex)
+    return;
+  auto& ch = m_texturePool;
+  for(int s = 0; s < (int)ch.dynamicTextures.size(); ++s)
+    if(ch.dynamicTextures[s] == tex)
+      clearDynamicSlot(ch, s);
 }
 
 void GpuResourceRegistry::sweepStaleDynamicTextureSlots() noexcept
@@ -599,17 +631,7 @@ void GpuResourceRegistry::sweepStaleDynamicTextureSlots() noexcept
         // Orphaned: drop the raw pointer and its id→slot mapping. The slot
         // index stays valid (nulled) so resolveDynamicSlot can reuse it and
         // material SSBO refs computed elsewhere stay index-stable this frame.
-        ch.dynamicTextures[s] = nullptr;
-        ch.dynamicSlotLastUse[s] = 0;
-        for(auto it = ch.dynamicSlotMap.begin(); it != ch.dynamicSlotMap.end();
-            ++it)
-        {
-          if(it->second == s)
-          {
-            ch.dynamicSlotMap.erase(it);
-            break;
-          }
-        }
+        clearDynamicSlot(ch, s);
       }
     }
     // Capture the current counter so the next sweep clears whatever isn't

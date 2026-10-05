@@ -744,6 +744,12 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
   // on whatever unrelated buffer happened to grow in the same frame.
   uint64_t m_cachedDynamicSlotFingerprint{};
 
+  // The dynamic slots this scene's materials resolved in the current update,
+  // one bit per slot index. Only these are published: a slot nobody resolved
+  // this frame may hold a texture its producer has freed since, as the
+  // registry has no way to know.
+  uint64_t m_claimedDynamicSlots{};
+
   // Value computeSceneTextureFingerprint() returned at the last full rebuild:
   // the environment and shadow textures the published geometry names.
   uint64_t m_cachedSceneTextureFingerprint{};
@@ -916,6 +922,7 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
     m_cachedVersion = -1;
     m_cachedMaterialsFingerprint.clear();
     m_cachedDynamicSlotFingerprint = 0;
+    m_claimedDynamicSlots = 0;
     m_cachedSceneTextureFingerprint = 0;
     m_cachedMeshFingerprint.clear();
     m_cachedCloudFingerprint = 0;
@@ -3467,13 +3474,14 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
     uint64_t fp = 0;
     if(!m_registry)
       return fp;
+    ossia::hash_combine(fp, m_claimedDynamicSlots);
     for(int i = 0; i < ChannelCount; ++i)
     {
-      const auto& dyn
-          = texChannel(static_cast<MaterialChannel>(i)).dynamicTextures;
-      ossia::hash_combine(fp, (uint64_t)dyn.size());
-      for(auto* t : dyn)
-        ossia::hash_combine(fp, t ? (uint64_t)t->globalResourceId() : 0ull);
+      const auto& ids
+          = texChannel(static_cast<MaterialChannel>(i)).dynamicTextureIds;
+      ossia::hash_combine(fp, (uint64_t)ids.size());
+      for(auto id : ids)
+        ossia::hash_combine(fp, (uint64_t)id);
     }
     return fp;
   }
@@ -3537,7 +3545,10 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
         return;
       if(!tref.texture.valid())
         return;
-      m_registry->resolveDynamicSlot(toTexChannel(ch), tref.texture.native_handle);
+      const int slot
+          = m_registry->resolveDynamicSlot(toTexChannel(ch), tref.texture.native_handle);
+      if(slot >= 0 && slot < 64)
+        m_claimedDynamicSlots |= (1ull << slot);
     };
 
     for(const auto& m : *this->scene.state->materials)
@@ -4145,6 +4156,8 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
       const auto& dyn = pool.dynamicTextures;
       for(int s = 0; s < (int)dyn.size(); ++s)
       {
+        if(s >= 64 || !(m_claimedDynamicSlots & (1ull << s)))
+          continue;
         if(auto* tex = dyn[s])
         {
           g.auxiliary_textures.push_back(
@@ -4547,6 +4560,7 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
         // Dynamic slots refresh every frame whatever sameMaterialsContent
         // says: a runtime handle can swap without the outer material pointer
         // changing.
+        m_claimedDynamicSlots = 0;
         for(int i = 0; i < ChannelCount; ++i)
           rebuildDynamicSlots(static_cast<MaterialChannel>(i));
 

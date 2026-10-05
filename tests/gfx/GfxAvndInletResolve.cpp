@@ -825,3 +825,101 @@ TEST_CASE(
     CHECK(seen.transform[14] == 3.f);
   }
 }
+
+TEST_CASE(
+    "PBR Mesh's image input recreated at another size leaves no dynamic slot",
+    "[gfx][avnd][dynamic-slot]")
+{
+  // PBR Mesh forwards the texture of its image input as a dynamic slot of the
+  // registry. That texture is the input's render target, which the mesh's own
+  // renderer creates and frees: a new size for the input must take the slot
+  // with it, or the scene publishes a freed texture.
+  const auto api = GENERATE(from_range(platform_backends()));
+  CAPTURE(backend_name(api));
+
+  bool skipped = false;
+  std::string err;
+  bool registered = false, staleHeld = true, stalePublished = true, fresh = false;
+  run_in_gui_app([&](const score::GUIApplicationContext& app) {
+    auto* doc = new_document(app);
+    if(!doc)
+    {
+      err = "no document";
+      return;
+    }
+    const auto& ctx = doc->context();
+    HalpProcesses procs;
+    GfxPipeline p;
+    const int tex = p.addIsf(corpus("isf-solid-color.fs"));
+    const int cube = p.addNode(procs.make<Threedim::Cube>(ctx));
+    const int mesh = p.addNode(procs.make<Threedim::PBRMesh>(ctx));
+    const int flat = p.addNode(std::make_unique<score::gfx::ScenePreprocessorNode>());
+    const int raster
+        = p.addRaster(corpus("rr-sinkdepth-greater.vs"), corpus("rr-sinkdepth-greater.fs"));
+    score::gfx::Port* texIn = nth_image_input(*p.node(mesh), 0);
+    if(tex < 0 || raster < 0 || !texIn || !p.error().empty())
+    {
+      err = "build failed: " + p.error();
+      return;
+    }
+    p.wire(p.imageOut(tex), texIn);
+    p.wire(p.nodeGeometryOut(cube, 0), nth_geometry_input(*p.node(mesh), 0));
+    p.wire(p.nodeSceneOut(mesh, 0), p.nodeSceneIn(flat, 0));
+    p.wire(p.nodeGeometryOut(flat, 0), p.geometryIn(raster, 0));
+    const int sink = p.addSink({32, 32});
+    p.wire(p.imageOut(raster, 0), p.sinkInput(sink));
+    if(!p.create(api))
+    {
+      skipped = p.skipped();
+      err = skipped ? std::string{} : p.error();
+      return;
+    }
+    p.render(3);
+
+    auto* rl = p.sink(sink)->renderer();
+    auto& pool = rl->registry().texturePool();
+    const auto holds = [&](const QRhiTexture* t) {
+      return std::find(pool.dynamicTextures.begin(), pool.dynamicTextures.end(), t)
+             != pool.dynamicTextures.end();
+    };
+    const auto published = [&](const void* t) {
+      auto it = p.isf(raster)->renderedNodes.find(rl);
+      if(it == p.isf(raster)->renderedNodes.end())
+        return false;
+      auto& meshes = it->second->geometry.meshes;
+      if(!meshes || meshes->meshes.empty())
+        return false;
+      for(const auto& aux : meshes->meshes[0].auxiliary_textures)
+        if(aux.native_handle == t)
+          return true;
+      return false;
+    };
+    const auto inputTexture = [&]() -> QRhiTexture* {
+      auto it = p.node(mesh)->renderedNodes.find(rl);
+      if(it == p.node(mesh)->renderedNodes.end())
+        return nullptr;
+      return it->second->renderTargetForInput(*texIn).texture;
+    };
+
+    auto* first = inputTexture();
+    registered = first && holds(first) && published(first);
+
+    ossia::render_target_spec spec;
+    spec.size = ossia::texture_size{23, 17};
+    setRenderTargetSpec(*p.node(mesh), first_image_input(*p.node(mesh)), spec);
+    p.render(3);
+
+    staleHeld = holds(first);
+    stalePublished = published(first);
+    auto* second = inputTexture();
+    fresh = second && second != first && holds(second) && published(second);
+  });
+  if(skipped)
+    SKIP("backend unavailable");
+  INFO("error=" << err);
+  REQUIRE(err.empty());
+  REQUIRE(registered);
+  CHECK_FALSE(staleHeld);
+  CHECK_FALSE(stalePublished);
+  CHECK(fresh);
+}

@@ -534,6 +534,10 @@ struct MatSwapNode final : score::gfx::ProcessNode
   std::atomic<int> appliedPhase{0};
   mutable QRhiTexture* texA{};
   mutable QRhiTexture* texB{};
+  // Phase 2 frees texA as a producer frees the texture it replaces; `freed`
+  // keeps its value to compare against, never dereferenced.
+  bool freePrevious{};
+  mutable QRhiTexture* freed{};
 
   // StaticGrow: states are pure CPU data; the test swaps the pending state
   // directly between render() calls (single-threaded offscreen fixture).
@@ -612,6 +616,12 @@ struct MatSwapRenderer final : score::gfx::NodeRenderer
       // convert a routing bug into a UAF and muddy the verdict.
       self.texB = makeFilledTexture(
           rhi, res, QColor(0, 255, 0, 255), "texB_green");
+      if(self.freePrevious && self.texA)
+      {
+        self.freed = self.texA;
+        self.texA->deleteLater();
+        self.texA = nullptr;
+      }
       m_scene.state = makeState(
           self.roots, {makeDynMaterial(self.texB, 0xA1)}, /*version=*/2);
     }
@@ -725,9 +735,11 @@ struct DynOutcome
   bool valid1 = false, valid2 = false;
   std::array<uint8_t, 4> q0p1{}, q1p1{}, q0p2{}, q1p2{};
   bool framesDiffer = false;
+  // The textures the raster node's geometry names after phase 2, by value.
+  std::vector<const void*> publishedAfterSwap;
 };
 
-DynOutcome run_dynamic_swap(score::gfx::GraphicsApi api)
+DynOutcome run_dynamic_swap(score::gfx::GraphicsApi api, bool freePrevious = false)
 {
   DynOutcome out;
   score::test::run_in_gui_app([&](const score::GUIApplicationContext&) {
@@ -748,6 +760,7 @@ DynOutcome run_dynamic_swap(score::gfx::GraphicsApi api)
     GfxPipeline p;
     auto harness_uptr = std::make_unique<MatSwapNode>();
     harness_uptr->mode = MatSwapNode::Mode::DynamicSwap;
+    harness_uptr->freePrevious = freePrevious;
     auto* harness = harness_uptr.get();
 
     const int hn = p.addNode(std::move(harness_uptr));
@@ -801,7 +814,7 @@ DynOutcome run_dynamic_swap(score::gfx::GraphicsApi api)
     p.render(6);
     out.appliedPhase = harness->appliedPhase.load();
     out.snap2 = harness->snap;
-    out.texA = harness->texA;
+    out.texA = freePrevious ? harness->freed : harness->texA;
     out.texB = harness->texB;
     const auto img2 = p.readback(sink);
     out.valid2 = img2.width == kSize && img2.height == kSize
@@ -812,6 +825,13 @@ DynOutcome run_dynamic_swap(score::gfx::GraphicsApi api)
       out.q1p2 = probe(img2, kQ1x);
     }
     out.framesDiffer = img1.bytes != img2.bytes;
+
+    if(auto* rl = p.sink(sink)->renderer())
+      if(auto it = p.isf(raster)->renderedNodes.find(rl);
+         it != p.isf(raster)->renderedNodes.end())
+        if(auto& meshes = it->second->geometry.meshes; meshes && !meshes->meshes.empty())
+          for(const auto& aux : meshes->meshes[0].auxiliary_textures)
+            out.publishedAfterSwap.push_back(aux.native_handle);
   });
   return out;
 }
@@ -1006,6 +1026,36 @@ TEST_CASE(
   REQUIRE(!r.snap1.bucketArrays.empty());
   CHECK(r.snap2.bucketArrays == r.snap1.bucketArrays);
   CHECK(r.snap2.bucketLayers == r.snap1.bucketLayers);
+}
+
+// A producer that swaps its texture frees the one it replaces: the registry
+// has no way to know, so the scene publishes only the slots its materials
+// resolved this very frame, and the raster node never binds the freed one.
+TEST_CASE(
+    "a dynamic texture its producer freed is not published to the raster node",
+    "[gfx][scene][material][dynamic-slot]")
+{
+  const auto api = GENERATE(from_range(platform_backends()));
+  CAPTURE(backend_name(api));
+
+  const auto r = run_dynamic_swap(api, true);
+  if(r.skipped)
+    SKIP(r.backend + ": " + r.skip_reason);
+
+  INFO("backend=" << r.backend << " error=" << r.error);
+  REQUIRE(r.error.empty());
+  REQUIRE(r.appliedPhase == 2);
+  REQUIRE(r.valid2);
+  REQUIRE(r.texA != nullptr);
+  REQUIRE(r.texB != nullptr);
+  REQUIRE(!r.publishedAfterSwap.empty());
+
+  CHECK(std::find(r.publishedAfterSwap.begin(), r.publishedAfterSwap.end(), r.texA)
+        == r.publishedAfterSwap.end());
+  CHECK(std::find(r.publishedAfterSwap.begin(), r.publishedAfterSwap.end(), r.texB)
+        != r.publishedAfterSwap.end());
+  INFO("phase2 q1=" << rgba(r.q1p2));
+  CHECK(near(r.q1p2, kGreen, kTol));
 }
 
 // =============================================================================

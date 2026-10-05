@@ -785,7 +785,7 @@ void Graph::removeNodeFromRenderLists(Node* node)
     // name (e.g. a material UBO whose upload was queued by initState in this
     // same inter-frame window); submit it first.
     rl->flushInitialBatch();
-    renderer->releaseState(*rl);
+    rl->releaseRendererState(*renderer);
     delete renderer;
 
     ossia::remove_erase(rl->renderers, renderer);
@@ -1097,7 +1097,7 @@ void Graph::reconcileAllRenderLists()
           // Same contract as removeNodeFromRenderLists: the pending initial
           // batch may name resources releaseState is about to delete.
           rl->flushInitialBatch();
-          renderer->releaseState(*rl);
+          rl->releaseRendererState(*renderer);
           delete renderer;
           node->renderedNodes.erase(rn_it);
           node->renderedNodesChanged();
