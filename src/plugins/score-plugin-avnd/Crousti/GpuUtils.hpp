@@ -1621,11 +1621,11 @@ struct texture_inputs_storage<T>
     return false;
   }
 
-  void releaseTarget(const score::gfx::Port* port)
+  void releaseTarget(score::gfx::RenderList& renderer, const score::gfx::Port* port)
   {
     if(auto it = m_rts.find(port); it != m_rts.end())
     {
-      it->second.release();
+      renderer.releaseOwnedTarget(it->second);
       m_rts.erase(it);
     }
   }
@@ -1712,7 +1712,7 @@ struct texture_inputs_storage<T>
           if(src)
           {
             if(rt_it != m_rts.end() && !composited(renderer, *port))
-              releaseTarget(port);
+              releaseTarget(renderer, port);
           }
           else if(!port->edges.empty() && rt_it != m_rts.end())
           {

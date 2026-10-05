@@ -498,12 +498,33 @@ static bool isSelfFed(const Port& p) noexcept
   return false;
 }
 
+void RenderList::releaseOwnedTarget(TextureRenderTarget& rt)
+{
+  if(m_registry)
+    m_registry->forgetDynamicTexture(rt.texture);
+  rt.release();
+}
+
+void RenderList::releaseRendererState(NodeRenderer& r)
+{
+  if(m_registry)
+  {
+    for(auto* in : r.node.input)
+      if(auto* tex = r.renderTargetForInput(*in).texture)
+        m_registry->forgetDynamicTexture(tex);
+    for(auto* out : r.node.output)
+      if(auto* tex = r.textureForOutput(*out))
+        m_registry->forgetDynamicTexture(tex);
+  }
+  r.releaseState(*this);
+}
+
 void RenderList::removeSelfFeedbackTarget(const Port* port)
 {
   auto it = m_selfFeedbackTargets.find(port);
   if(it != m_selfFeedbackTargets.end())
   {
-    it->second.back.release();
+    releaseOwnedTarget(it->second.back);
     m_selfFeedbackTargets.erase(it);
   }
 }
@@ -765,7 +786,7 @@ void RenderList::updateSelfFeedbackTargets(QRhiResourceUpdateBatch& res)
                       && front->second.texture->sampleCount() == back->sampleCount();
     if(!keep)
     {
-      it->second.back.release();
+      releaseOwnedTarget(it->second.back);
       it = m_selfFeedbackTargets.erase(it);
       continue;
     }
@@ -818,7 +839,7 @@ void RenderList::removeInputRenderTarget(const Port* port)
   auto it = m_inputRenderTargets.find(port);
   if(it != m_inputRenderTargets.end())
   {
-    it->second.release();
+    releaseOwnedTarget(it->second);
     m_inputRenderTargets.erase(it);
   }
 }
@@ -840,13 +861,13 @@ void RenderList::release()
 
   for(auto& [port, rt] : m_inputRenderTargets)
   {
-    rt.release();
+    releaseOwnedTarget(rt);
   }
   m_inputRenderTargets.clear();
 
   for(auto& [port, fb] : m_selfFeedbackTargets)
   {
-    fb.back.release();
+    releaseOwnedTarget(fb.back);
   }
   m_selfFeedbackTargets.clear();
 
@@ -1965,7 +1986,7 @@ void RenderList::renderImpl(QRhiCommandBuffer& commands, bool force)
       if(outRenderer->renderTargetSpecsChanged)
       {
         // Output renderer owns its RT — re-init it.
-        outRenderer->releaseState(*this);
+        releaseRendererState(*outRenderer);
         outRenderer->initState(*this, *updateBatch);
         outRenderer->checkForChanges();
         outRenderer->materialChanged = true;
@@ -2050,7 +2071,7 @@ void RenderList::renderImpl(QRhiCommandBuffer& commands, bool force)
 
             // Recreate the render target
             removeSelfFeedbackTarget(in);
-            oldIt->second.release();
+            releaseOwnedTarget(oldIt->second);
             bool wantsDepth = requiresDepth(*in);
             bool wantsSamplableDepth
                 = (in->flags & Flag::SamplableDepth) == Flag::SamplableDepth;
@@ -2080,7 +2101,7 @@ void RenderList::renderImpl(QRhiCommandBuffer& commands, bool force)
       // sees this renderer's freshly-built per-pass state.
       if(!changedPorts.empty() || followsRenderSize)
       {
-        renderer->releaseState(*this);
+        releaseRendererState(*renderer);
         renderer->initState(*this, *updateBatch);
         renderer->checkForChanges();
         renderer->materialChanged = true;

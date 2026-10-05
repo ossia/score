@@ -411,6 +411,10 @@ public:
     // access, so the evicted slot is the one no live material references.
     ossia::flat_map<quint64, int> dynamicSlotMap;
     std::vector<QRhiTexture*>     dynamicTextures;       // slot idx → texture
+    // slot idx → globalResourceId of dynamicTextures[idx], read while it was
+    // live: what changed in the table can be told without touching a texture
+    // its producer may have freed since.
+    std::vector<quint64>          dynamicTextureIds;
     std::vector<uint64_t>         dynamicSlotLastUse;    // slot idx → access counter at last lookup
     uint64_t                      dynamicSlotCounter{0}; // monotonic, bumped on each resolve
     // Value of dynamicSlotCounter at the previous sweepStaleDynamicTextureSlots()
@@ -664,6 +668,12 @@ public:
   /// sweepMeshSlabs satisfies that, since ScenePreprocessor::update() runs
   /// rebuildChannel before rebuildMDI().
   void sweepStaleDynamicTextureSlots() noexcept;
+
+  /// Drop every dynamic slot holding @p tex, which its owner is about to free.
+  /// Compares pointers only. The slot is nulled, so the dynamic-slot table
+  /// changes and every consumer republishes and rebinds before its next draw
+  /// instead of binding the freed texture.
+  void forgetDynamicTexture(const QRhiTexture* tex) noexcept;
 
   /// Free pending-release slabs whose released_frame + grace <= current_frame.
   /// Called by sweepMeshSlabs and by acquireMeshSlab before its fresh allocate, so

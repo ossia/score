@@ -11,6 +11,7 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/generators/catch_generators.hpp>
 #include <catch2/generators/catch_generators_range.hpp>
+#include <algorithm>
 #include <cstring>
 #include <string>
 using namespace score::test::gfx;
@@ -111,6 +112,58 @@ TEST_CASE(
   if(result.skip) SKIP(result.reason);
   REQUIRE(result.error.empty()); REQUIRE(allocated); CHECK_FALSE(retained);
   CHECK(survived);
+}
+
+TEST_CASE(
+    "GraphLifecycle-2c a freed input render target leaves no dynamic material slot",
+    "[GraphLifecycle][retention][dynamic-slot]")
+{
+  // A PBR material forwards the texture on its image input as a dynamic slot
+  // of the registry, which outlives the render list. Whatever frees that
+  // texture -- a new size for the input, its node leaving the output's reach --
+  // the slot has to go with it: the scene publishes every non-null slot and
+  // the pipeline binds them all.
+  const auto api = GENERATE(from_range(platform_backends()));
+  Result result;
+  bool registeredResize{}, staleAfterResize{}, registeredRemoval{}, staleAfterRemoval{};
+  score::test::run_in_gui_app([&](const score::GUIApplicationContext&) {
+    GfxPipeline p;
+    int a=p.addIsf(corpus("isf-solid-color.fs"));
+    int b=p.addIsf(corpus("isf-passthrough-plain.fs"));
+    int c=p.addIsf(corpus("isf-solid-color.fs"));
+    int s=p.addSink({64,64});
+    p.wire(p.imageOut(a),p.imageIn(b)); p.wire(p.imageOut(b),p.sinkInput(s));
+    p.wire(p.imageOut(c),p.sinkInput(s));
+    if(!create(p,api,result)) return;
+    p.render(2);
+    auto* rl=p.sink(s)->renderer(); auto* port=p.imageIn(b);
+    auto& pool=rl->registry().texturePool();
+    const auto holds=[&](const QRhiTexture* t) {
+      return std::find(pool.dynamicTextures.begin(), pool.dynamicTextures.end(), t)
+             != pool.dynamicTextures.end();
+    };
+    const auto Ch=score::gfx::GpuResourceRegistry::TextureChannel::BaseColor;
+
+    // The input target is recreated at a new size.
+    auto* first=rl->renderTargetForInputPort(*port).texture;
+    registeredResize=rl->registry().resolveDynamicSlot(Ch,first)>=0 && holds(first);
+    ossia::render_target_spec spec; spec.size=ossia::texture_size{23,17};
+    setRenderTargetSpec(*p.isf(b),first_image_input(*p.isf(b)),spec);
+    p.render(2);
+    staleAfterResize=holds(first);
+
+    // The node no longer reaches the output.
+    auto* second=rl->renderTargetForInputPort(*port).texture;
+    registeredRemoval=second && second!=first
+                      && rl->registry().resolveDynamicSlot(Ch,second)>=0 && holds(second);
+    p.removeEdgeIncremental(p.imageOut(b),p.sinkInput(s));
+    staleAfterRemoval=holds(second);
+    p.render(2);
+  });
+  if(result.skip) SKIP(result.reason);
+  REQUIRE(result.error.empty());
+  REQUIRE(registeredResize); CHECK_FALSE(staleAfterResize);
+  REQUIRE(registeredRemoval); CHECK_FALSE(staleAfterRemoval);
 }
 
 TEST_CASE(
