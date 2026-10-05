@@ -52,4 +52,6 @@ TEST_CASE("An enum control follows its string parameter", "[avnd][port][enum]")
   CHECK(received(std::string{"Overdub"}) == Mode::Overdub);
   CHECK(received(std::string{"1"}) == Mode::Record);
   CHECK(received(2) == Mode::Overdub);
+  CHECK(received(2.f) == Mode::Overdub);
+  CHECK(received(2.6f) == Mode::Overdub);
 }
