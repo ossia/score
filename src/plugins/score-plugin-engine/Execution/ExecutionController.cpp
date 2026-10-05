@@ -42,6 +42,7 @@
 #include <Transport/DocumentPlugin.hpp>
 #include <Transport/TransportInterface.hpp>
 
+#include <wobjectimpl.h>
 W_OBJECT_IMPL(Execution::ExecutionController)
 
 /**
