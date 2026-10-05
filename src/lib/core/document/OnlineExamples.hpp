@@ -54,7 +54,7 @@ public:
   //! Calls @p done with the local path, or an empty string on failure.
   void install(const OnlineExample& ex, std::function<void(QString)> done);
 
-  void updated() W_SIGNAL(updated)
+  void updated() E_SIGNAL(SCORE_LIB_BASE_EXPORT, updated)
 
 private:
   void refresh(bool conditional);
