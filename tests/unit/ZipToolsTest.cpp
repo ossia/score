@@ -102,6 +102,14 @@ TEST_CASE(
           ->scoreFile
       == "other.score");
   CHECK(
+      score::summarizeZipArchive(
+          fx.archive(
+              "mac.zip", {{a, "__MACOSX/mac/._mac.score"},
+                          {a, "mac/._mac.score"},
+                          {a, "mac/mac.score"}}))
+          ->scoreFile
+      == "mac/mac.score");
+  CHECK(
       score::summarizeZipArchive(fx.archive("none.zip", {{a, "readme.txt"}}))
       == std::nullopt);
   CHECK(score::summarizeZipArchive(a) == std::nullopt); // not a zip at all
