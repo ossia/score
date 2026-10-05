@@ -1020,7 +1020,8 @@ private:
   QWidget* createHomePage(const QPointer<QRecentFilesMenu>& recentFiles);
   QWidget* createTemplatesPage();
   QWidget* createAboutPage();
-  QWidget* createExamplesPage();
+  //! The examples installed locally, or those of the documentation site.
+  QWidget* createExamplesPage(bool online);
   //! A scrollable grid of thumbnail cards, one per document
   QWidget* createCardsPage(
       const QString& title, const QString& hint, const QString& emptyHint,
@@ -1039,6 +1040,7 @@ private:
   std::vector<ExampleEntry> gatherExamples() const;
   void openOnlineExample(const OnlineExample& ex);
   void refreshExamplesPage();
+  void refreshExamplesPage(int index, bool online);
   void requestThumbnail(const OnlineExample& ex, ExampleCard* card);
 
   int addPage(const QString& name, const QString& icon, QWidget* page);
@@ -1096,6 +1098,7 @@ private:
   InteractiveLabel* m_joinLabel{};
   int m_templatesPage{};
   int m_examplesPage{};
+  int m_onlineExamplesPage{};
   OnlineExamples m_online;
   ThumbnailPopup* m_preview{};
 
@@ -1170,8 +1173,11 @@ StartScreen::StartScreen(const QPointer<QRecentFilesMenu>& recentFiles, QWidget*
   addPage(tr("Home"), "home", createHomePage(recentFiles));
   m_templatesPage
       = addPage(tr("Templates"), "new_file", [this] { return createTemplatesPage(); });
-  m_examplesPage
-      = addPage(tr("Examples"), "load_examples", [this] { return createExamplesPage(); });
+  m_examplesPage = addPage(
+      tr("Examples"), "load_examples", [this] { return createExamplesPage(false); });
+  m_onlineExamplesPage = addPage(
+      tr("Online examples"), "net_session",
+      [this] { return createExamplesPage(true); });
 
   m_online.loadCache();
   connect(&m_online, &OnlineExamples::updated, this, [this] {
@@ -1577,16 +1583,25 @@ QWidget* StartScreen::createAboutPage()
   return page;
 }
 
-QWidget* StartScreen::createExamplesPage()
+QWidget* StartScreen::createExamplesPage(bool online)
 {
-  const auto docs = gatherExamples();
+  std::vector<ExampleEntry> docs;
+  for(auto& doc : gatherExamples())
+    if((doc.online != nullptr) == online)
+      docs.push_back(std::move(doc));
+
+  const QString title = online ? tr("Online examples") : tr("Example scores");
   if(docs.empty())
   {
     return createCardsPage(
-        tr("Example scores"), {},
-        tr("No example scores are installed yet. Examples are .score files in the "
-           "Examples folder of your user library (%1) or of an installed package.")
-            .arg(QDir::toNativeSeparators(libraryRootPath())),
+        title, {},
+        online
+            ? tr("The examples of the documentation site show here once their list "
+                 "has been downloaded. Check your internet connection.")
+            : tr("No example scores are installed yet. Examples are .score files in "
+                 "the Examples folder of your user library (%1) or of an installed "
+                 "package.")
+                  .arg(QDir::toNativeSeparators(libraryRootPath())),
         {}, {},
         {tr("More examples online"),
          "https://ossia.io/score-docs/examples",
@@ -1598,9 +1613,12 @@ QWidget* StartScreen::createExamplesPage()
   auto lay = new QVBoxLayout{page};
   lay->setContentsMargins(28, 24, 28, 16);
   lay->setSpacing(8);
-  lay->addWidget(makeSectionTitle(tr("Example scores"), page));
-  lay->addWidget(
-      makeHint(tr("Each example opens as a new, untitled score."), page));
+  lay->addWidget(makeSectionTitle(title, page));
+  lay->addWidget(makeHint(
+      online ? tr("Each example is downloaded into your library the first time it "
+                  "is opened, then opens as a new, untitled score.")
+             : tr("Each example opens as a new, untitled score."),
+      page));
 
   auto scroll = new QScrollArea{page};
   scroll->setFrameShape(QFrame::NoFrame);
@@ -1732,14 +1750,21 @@ void StartScreen::requestThumbnail(const OnlineExample& ex, ExampleCard* card)
 
 void StartScreen::refreshExamplesPage()
 {
+  // An online example that got installed moves to the local page.
+  refreshExamplesPage(m_examplesPage, false);
+  refreshExamplesPage(m_onlineExamplesPage, true);
+}
+
+void StartScreen::refreshExamplesPage(int index, bool online)
+{
   // Not yet built: it will use the new list when it first opens.
-  if(m_examplesPage <= 0 || m_pageFactories[m_examplesPage])
+  if(index <= 0 || m_pageFactories[index])
     return;
 
-  auto host = m_pages->widget(m_examplesPage);
-  m_cards.clear();
+  auto host = m_pages->widget(index);
+  std::erase_if(m_cards, [host](auto* card) { return host->isAncestorOf(card); });
   qDeleteAll(host->findChildren<QWidget*>(Qt::FindDirectChildrenOnly));
-  host->layout()->addWidget(createExamplesPage());
+  host->layout()->addWidget(createExamplesPage(online));
 }
 
 QWidget* StartScreen::makeCardGrid(
