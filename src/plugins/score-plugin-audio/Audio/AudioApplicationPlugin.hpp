@@ -9,6 +9,10 @@ namespace ossia
 {
 class audio_engine;
 }
+namespace score
+{
+struct VolumeSlider;
+}
 
 namespace Audio
 {
@@ -31,7 +35,11 @@ private:
   void start_engine();
   void rebind_engine(score::Document& doc);
 
+  //! Shows the master volume of the document's audio device (/out/main).
+  void showVolume(score::Document& doc);
+
   QAction* m_audioEngineAct{};
+  score::VolumeSlider* m_volume{};
 
   bool m_updating_audio = false;
   void initialize() override;

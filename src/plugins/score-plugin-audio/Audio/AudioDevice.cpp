@@ -61,7 +61,13 @@ void AudioDevice::addAddress(const Device::FullAddressSettings& settings)
     // Create the node. It is added into the device.
     auto node = Device::createNodeFromPath(settings.address.path, *dev);
     if(node)
+    {
       setupNode(*node, settings.extendedAttributes);
+      // A loaded document's value, e.g. its master volume on /out/main.
+      if(settings.value.valid())
+        if(auto p = node->get_parameter())
+          p->set_value(settings.value);
+    }
   }
 }
 
@@ -126,6 +132,17 @@ bool AudioDevice::reconnect()
   if(engine)
     engine->set_tick({});
 
+  // The tree is built anew: what its parameters hold now (a gain set since the
+  // document was opened, the master volume...) goes over to the new one.
+  std::vector<std::pair<std::string, ossia::value>> values;
+  if(old_dev)
+  {
+    ossia::net::iterate_all_children(
+        &old_dev->get_root_node(), [&](ossia::net::parameter_base& p) {
+      values.emplace_back(p.get_node().osc_address(), p.value());
+    });
+  }
+
   disconnect();
 
   try
@@ -141,7 +158,8 @@ bool AudioDevice::reconnect()
     // Recreate the custom addresses that were lost in disconnect()
     for(auto& [k, v] : this->m_customAddresses)
     {
-      if(auto node = Device::findNodeFromPath(k, *m_dev))
+      auto node = Device::findNodeFromPath(k, *m_dev);
+      if(node)
       {
         setupNode(*node, v.extendedAttributes);
       }
@@ -155,7 +173,18 @@ bool AudioDevice::reconnect()
         if(node)
           setupNode(*node, v.extendedAttributes);
       }
+
+      // The value the document saved, e.g. its master volume on /out/main.
+      if(node && v.value.valid())
+        if(auto p = node->get_parameter())
+          p->set_value(v.value);
     }
+
+    for(const auto& [address, value] : values)
+      if(auto node = ossia::net::find_node(m_dev->get_root_node(), address))
+        if(auto p = node->get_parameter())
+          p->set_value(value);
+
     setLogging_impl(Device::get_cur_logging(isLogging()));
   }
   catch(std::exception& e)

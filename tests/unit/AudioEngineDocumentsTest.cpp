@@ -25,6 +25,12 @@
 #include <core/presenter/DocumentManager.hpp>
 
 #include <ossia/audio/audio_engine.hpp>
+#include <ossia/network/base/device.hpp>
+#include <ossia/network/base/node_functions.hpp>
+#include <ossia/network/base/parameter.hpp>
+#include <ossia/network/value/format_value.hpp>
+
+#include <Device/Node/DeviceNode.hpp>
 
 #include <QApplication>
 
@@ -148,5 +154,57 @@ TEST_CASE("Changing the audio settings restarts the engine", "[audio][documents]
     REQUIRE(audio.audio);
     CHECK(audio.audio != engine);
     CHECK(audioDeviceConnected(*a));
+  });
+}
+
+namespace
+{
+ossia::net::parameter_base* masterParameter(score::Document& doc)
+{
+  auto dev = doc.context().plugin<Explorer::DeviceDocumentPlugin>().list().audioDevice();
+  if(!dev || !dev->getDevice())
+    return nullptr;
+  auto node = ossia::net::find_node(dev->getDevice()->get_root_node(), "/out/main");
+  return node ? node->get_parameter() : nullptr;
+}
+}
+
+TEST_CASE("A saved master volume reaches the engine, and stays", "[audio][documents][volume]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    auto doc = score::test::new_document(ctx);
+    spin();
+    REQUIRE(audioDeviceConnected(*doc));
+    auto* dev = doc->context().plugin<Explorer::DeviceDocumentPlugin>().list().audioDevice();
+    REQUIRE(dev);
+
+    // What loading a document does with the /out/main node it saved.
+    Device::FullAddressSettings saved;
+    saved.address = State::Address{dev->settings().name, {"out", "main"}};
+    saved.value = 0.25f;
+    dev->addAddress(saved);
+    auto* p = masterParameter(*doc);
+    REQUIRE(p);
+    CHECK(ossia::convert<float>(p->value()) == Catch::Approx(0.25f));
+
+    // The engine rebinds the device (document switch, audio restart): a new
+    // tree, with the same volume.
+    p->push_value(0.5f);
+    dev->reconnect();
+    spin();
+    auto* q = masterParameter(*doc);
+    REQUIRE(q);
+    CHECK(ossia::convert<float>(q->value()) == Catch::Approx(0.5f));
+
+    // A document being loaded: the address is added before the device has a
+    // tree, and the first binding builds that tree with the saved value.
+    dev->disconnect();
+    saved.value = 0.75f;
+    dev->addAddress(saved);
+    dev->reconnect();
+    spin();
+    auto* r = masterParameter(*doc);
+    REQUIRE(r);
+    CHECK(ossia::convert<float>(r->value()) == Catch::Approx(0.75f));
   });
 }
