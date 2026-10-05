@@ -540,6 +540,12 @@ score_add_test(test_integration_scenario_create
   GUI
   PLUGINS score_plugin_scenario score_lib_process)
 
+# A scenario's time syncs attract points dragged in a sibling process.
+score_add_test(test_integration_scenario_magnetism
+  SOURCES ScenarioMagnetismTest.cpp
+  GUI
+  PLUGINS score_plugin_scenario score_lib_process)
+
 # States are the handles one grabs: a press on one reaches it even when the
 # interval below shows its rack or is selected; and a double-click in the
 # scenario leaves the state it creates selected.

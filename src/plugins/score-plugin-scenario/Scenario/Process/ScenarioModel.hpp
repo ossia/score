@@ -184,6 +184,11 @@ private:
 
   TimeVal contentDuration() const noexcept override;
 
+  //! The closest of its time syncs, where its states are: what is dragged
+  //! in a sibling process snaps to them.
+  std::optional<Process::MagneticInfo>
+  magneticPosition(const QObject* o, const TimeVal t) const noexcept override;
+
   template <typename Fun>
   void apply(Fun fun) const
   {

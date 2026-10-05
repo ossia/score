@@ -653,15 +653,32 @@ Process::MagneticInfo FullViewIntervalPresenter::magneticPosition(
     return false;
   };
 
-  // 2. In the processes around
+  // t counts from the start of the moved object's own interval: an element of a
+  // scenario is dated in the interval holding that scenario, a point of an
+  // automation in the interval holding the automation.
+  const IntervalModel* ownItv = o ? Scenario::closestParentInterval(o) : nullptr;
+
+  // 2. In the processes around: those of the interval shown. Their dates count
+  // from its start; the moved object's from the start of its own interval,
+  // which is the shown one or a box of a scenario in it.
   if(!foundMagnetism)
   {
-    for(auto& proc : this->model().processes)
+    std::optional<TimeVal> shift;
+    if(!ownItv || ownItv == &this->model())
+      shift = TimeVal::zero();
+    else if(auto scenar = qobject_cast<Scenario::ProcessModel*>(ownItv->parent());
+            scenar && scenar->parent() == &this->model())
+      shift = ownItv->date();
+
+    if(shift)
     {
-      if(!is_parent(&proc, o))
+      for(auto& proc : this->model().processes)
       {
-        if(auto pos = proc.magneticPosition(o, t))
+        if(&proc == o || is_parent(&proc, o))
+          continue;
+        if(auto pos = proc.magneticPosition(o, t + *shift))
         {
+          pos->time -= *shift;
           if(std::abs(pos->time.impl - t.impl)
              < std::abs(closestTimeSyncT.impl - t.impl))
             closestTimeSyncT = pos->time;
@@ -685,20 +702,27 @@ Process::MagneticInfo FullViewIntervalPresenter::magneticPosition(
     auto parentScenar = Scenario::closestParentScenario(o);
     if(parentScenar)
     {
+      // Where t starts, in the scenario's reference: at the moved object's
+      // interval when it is one of this scenario's, else at the scenario's
+      // start.
+      const TimeVal origin = (ownItv && ownItv->parent() == parentScenar)
+                                 ? ownItv->date()
+                                 : TimeVal::zero();
       for(auto& itv : parentScenar->intervals)
       {
+        // t + shift counts from the start of itv.
+        const TimeVal shift = origin - itv.date();
         for(auto& proc : itv.processes)
         {
-          if(!is_parent(&proc, o))
+          if(&proc == o || is_parent(&proc, o))
+            continue;
+          if(auto pos = proc.magneticPosition(o, t + shift))
           {
-            if(auto pos = proc.magneticPosition(o, t))
-            {
-              pos->time += itv.date();
+            pos->time -= shift;
 
-              if(std::abs(pos->time.impl - t.impl)
-                 < std::abs(closestTimeSyncT.impl - t.impl))
-                closestTimeSyncT = pos->time;
-            }
+            if(std::abs(pos->time.impl - t.impl)
+               < std::abs(closestTimeSyncT.impl - t.impl))
+              closestTimeSyncT = pos->time;
           }
         }
       }
