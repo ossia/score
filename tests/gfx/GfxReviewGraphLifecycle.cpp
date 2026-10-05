@@ -84,6 +84,36 @@ TEST_CASE(
 }
 
 TEST_CASE(
+    "GraphLifecycle-2b input render targets of a node left unreachable are reclaimed",
+    "[GraphLifecycle][retention]")
+{
+  // The node stays in the graph, only its path to the output goes: what a
+  // stop does to every node of a score while the render list lives on.
+  const auto api = GENERATE(from_range(platform_backends()));
+  Result result; bool allocated{}, retained{}, survived{};
+  score::test::run_in_gui_app([&](const score::GUIApplicationContext&) {
+    GfxPipeline p;
+    int a=p.addIsf(corpus("isf-solid-color.fs"));
+    int b=p.addIsf(corpus("isf-passthrough-plain.fs"));
+    int c=p.addIsf(corpus("isf-solid-color.fs"));
+    int s=p.addSink({64,64});
+    p.wire(p.imageOut(a),p.imageIn(b)); p.wire(p.imageOut(b),p.sinkInput(s));
+    p.wire(p.imageOut(c),p.sinkInput(s));
+    if(!create(p,api,result)) return;
+    p.render(2);
+    auto* rl=p.sink(s)->renderer(); auto* port=p.imageIn(b);
+    allocated=rl->renderTargetForInputPort(*port).texture!=nullptr;
+    p.removeEdgeIncremental(p.imageOut(b),p.sinkInput(s));
+    retained=rl->renderTargetForInputPort(*port).texture!=nullptr;
+    p.render(2);
+    survived=p.readback(s).valid();
+  });
+  if(result.skip) SKIP(result.reason);
+  REQUIRE(result.error.empty()); REQUIRE(allocated); CHECK_FALSE(retained);
+  CHECK(survived);
+}
+
+TEST_CASE(
     "GraphLifecycle-3 rebuild commits persistent registry initialization",
     "[GraphLifecycle][registry]")
 {
