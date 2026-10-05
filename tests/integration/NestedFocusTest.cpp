@@ -1,13 +1,7 @@
-// What the document does with something nested in the score: a sub-interval
-// shown in the nodal view, a process in a sub-scenario.
-//
-// - Going into a sub-interval shown in the nodal view and back, while the
-//   play bar is shown, draws the bar over the interval view shown now: the one
-//   it was drawn over before was destroyed with the view mode change.
-// - A paste goes in the object the user worked on last, focused or selected:
-//   in it if it can take what was copied, else in the first parent that can.
-//   Processes go in an interval, scenario elements in a scenario. Clicking the
-//   background of an interval's nodal slot makes it that interval.
+// Entering and leaving a sub-interval in the nodal view keeps the play bar on
+// the interval view currently shown. A paste goes in the last focused or
+// selected object if it can take what was copied, else in its first parent
+// that can.
 
 #include <score_test/App.hpp>
 #include <score_test/Document.hpp>

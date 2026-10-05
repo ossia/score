@@ -1,7 +1,6 @@
-// A recording armed with "play while recording" asks the execution to start
-// playing when its first message comes. Playback may have been started by
-// then, by the play button, a transport, a script: the recording then runs
-// along with it, and is told when playback starts.
+// A recording armed with "play while recording" whose first message comes
+// while playback already runs keeps that playback running, and is told that
+// playback started.
 
 #include <score_test/App.hpp>
 #include <score_test/Document.hpp>

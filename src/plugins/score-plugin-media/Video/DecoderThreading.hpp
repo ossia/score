@@ -19,19 +19,14 @@ extern "C" {
  * @file DecoderThreading.hpp
  * @brief Which of libavcodec's threading models a decoder runs, and how wide.
  *
- * Frame threading decodes one frame per thread. It works whatever the encoder
- * did, but holds back one frame per thread before the first output, and every
- * thread keeps its own frame and decoding state alive.
- * Slice threading splits one frame across threads. It adds no delay, but only
- * scales with the independent units (slices, tiles, rows) the bitstream holds:
- * a single-tile JPEG 2000 DCP decodes at 1/6 of its frame-threaded speed,
- * while ProRes, cut into hundreds of slices, is 1.7x faster than with frame
- * threads.
+ * Frame threading works for any stream but delays output by one frame per
+ * thread and keeps a frame per thread alive. Slice threading adds no delay but
+ * only scales with the slices / tiles / rows of the bitstream (single-tile
+ * JPEG 2000: 6x slower than frame threads; ProRes: 1.7x faster).
  *
- * libavcodec reports which models a decoder supports, but not how many slices
- * a given stream carries. The choice is therefore made from the capabilities,
- * from what the caller can tolerate (DecodeUseCase), and from a short list of
- * formats whose bitstream mandates many slices per frame.
+ * libavcodec does not report how many slices a stream carries, so the choice
+ * uses the decoder's capabilities, the DecodeUseCase, and a list of formats
+ * whose bitstream mandates many slices per frame.
  */
 namespace Video
 {
@@ -69,11 +64,10 @@ inline constexpr int max_slice_threads = 64;
 //! Upper bound for the decoded frames frame threading keeps in flight.
 inline constexpr int64_t frame_memory_budget = int64_t(1) << 30;
 
-//! Formats whose bitstream itself mandates many independent units per frame,
-//! so that slice threads match or beat frame threads at no delay. Only formats
-//! whose decoder offers both models need to be listed: for the others there
-//! is no choice to make. Keyed by decoder name, which is stable across
-//! libavcodec versions where some codec ids are not.
+//! Formats whose bitstream mandates many independent units per frame, so that
+//! slice threads match or beat frame threads at no delay. Keyed by decoder
+//! name, which is stable across libavcodec versions where some codec ids are
+//! not.
 inline bool sliceRich(const AVCodec& codec) noexcept
 {
   static constexpr std::string_view names[]{

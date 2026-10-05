@@ -61,8 +61,8 @@ SCORE_PLUGIN_SCENARIO_EXPORT
 void applyOutletRouting(
     Command::Macro& m, const Process::Outlet& to, const OutletRouting& routing);
 
-//! Whether a node may be dropped on `cbl`: it has no cable yet, and
-//! insertProcessInCable would connect something of it.
+//! Whether `proc` can be dropped on `cbl`: it has no cables yet and
+//! insertProcessInCable would connect at least one of its ports.
 SCORE_PLUGIN_SCENARIO_EXPORT
 bool canInsertProcessInCable(
     const Process::Context& ctx, const Process::ProcessModel& proc,

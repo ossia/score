@@ -1522,9 +1522,8 @@ JSONWriter::write(Process::ProgramEdit& p)
 
 namespace
 {
-// The path a file or folder control saves: under the document's folder or the
-// user library it becomes a <PROJECT>: / <LIBRARY>: one, so that the document
-// still finds it once moved or opened on another machine.
+// Paths under the document's folder or the user library are saved as
+// <PROJECT>: / <LIBRARY>: paths, so that they survive the document moving.
 ossia::value storedPathValue(const Process::ControlInlet& p)
 {
   const auto* str = p.value().target<std::string>();

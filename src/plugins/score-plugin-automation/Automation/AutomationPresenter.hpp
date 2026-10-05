@@ -38,10 +38,8 @@ public:
     con(layer.curve(), &Curve::Model::curveReset, this,
         [&] { on_tweenChanges(layer.tween()); });
 
-    // Points snap to what the timeline snaps to: the grid, the other
-    // processes' points. Asked for the curve rather than the automation, so
-    // that the automation's own points, the dragged one among them, do not
-    // attract it.
+    // Queried with the curve rather than the automation, so that the
+    // automation's own points, including the dragged one, do not attract it.
     auto& magnetism = (Process::MagnetismAdjuster&)
                           context.app.interfaces<Process::MagnetismAdjuster>();
     m_curve.setMagnetism([&layer, &magnetism](double x) {

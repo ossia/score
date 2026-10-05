@@ -1,12 +1,6 @@
-// Video::classifyFrameAccess(): what reaching an arbitrary frame of a stream
-// costs, read off its keyframe layout.
-//
-// Clips are encoded in-process with codecs and muxers every libavcodec build
-// has (mpeg4, png; mp4, mpegts, matroska), so that each source of the answer
-// is exercised: the descriptor's intra-only flag, a complete container index
-// (mp4), and the packet probe (mpegts, whose demuxer has no index; matroska,
-// whose index lists only some keyframes; image sequences, whose demuxer does
-// its own I/O).
+// Video::classifyFrameAccess() on clips encoded in-process, one per source of
+// the answer: the intra-only flag, a complete index (mp4), and the packet probe
+// (mpegts: no index; matroska: partial index; image sequences: no pb).
 
 #include <Media/Libav.hpp>
 

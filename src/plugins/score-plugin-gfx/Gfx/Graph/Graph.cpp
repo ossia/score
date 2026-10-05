@@ -1105,11 +1105,9 @@ void Graph::reconcileAllRenderLists()
       }
     }
 
-    // The centralized input render targets of the nodes that just left: they
-    // are keyed on the port, not on the renderer, so deleting the renderer
-    // leaves them allocated for as long as the render list lives -- across
-    // every stop and play of a document. Matched by key only: a node may
-    // already have left the graph, and its ports with it.
+    // Free the input render targets of the nodes that left: they are keyed on
+    // the port, not the renderer, so deleting the renderer does not free them.
+    // Matched by key only: the node and its ports may already be destroyed.
     {
       ossia::flat_set<const Port*> reachableInputs;
       for(auto* node : rl->nodes)
@@ -1121,10 +1119,9 @@ void Graph::reconcileAllRenderLists()
           stale.insert(port);
       if(!stale.empty())
       {
-        // A source still reachable keeps a pass drawing into the target: it
-        // would draw into the one created when the node comes back, with a
-        // pipeline built for the one freed here. The stale ports may be gone
-        // with their node; the edges of the live sources name the ones left.
+        // Live sources keep passes drawing into these targets, with pipelines
+        // built for them: remove the passes too. The stale ports may dangle, so
+        // they are reached through the live sources' edges.
         for(auto* node : rl->nodes)
         {
           auto rn_it = node->renderedNodes.find(rl.get());

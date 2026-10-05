@@ -891,8 +891,8 @@ bool DirectVideoNodeRenderer::readVideoPacket(AVPacket* into)
     // seek for a time asks for that much earlier.
     if(into->pts != AV_NOPTS_VALUE && into->dts != AV_NOPTS_VALUE)
       m_ptsLead = std::max(m_ptsLead, into->pts - into->dts);
-    // Without timestamps, where each keyframe is: the next seek to it or
-    // after it starts there rather than from the beginning.
+    // Without timestamps, keyframe positions let seekTo restart from the
+    // nearest one rather than from the beginning.
     if(m_noTimestamps)
     {
       if((into->flags & AV_PKT_FLAG_KEY) && into->pos >= 0
@@ -981,9 +981,8 @@ bool DirectVideoNodeRenderer::peekNext()
 
 static int64_t displayTimestamp(const AVFrame& f) noexcept
 {
-  // cuvid & co hand out frames with pkt_dts == AV_NOPTS_VALUE, which made
-  // isSequentialRead() refuse every frame and re-seek per render. Prefer
-  // the display timestamp — it is also what isSequentialRead compares to.
+  // cuvid & co hand out frames with pkt_dts == AV_NOPTS_VALUE. The display
+  // timestamp is also what isSequentialRead compares to.
   int64_t ts = f.best_effort_timestamp;
   if(ts == AV_NOPTS_VALUE)
     ts = f.pts;
@@ -1091,8 +1090,8 @@ bool DirectVideoNodeRenderer::seekAndDecode(int64_t flicks)
   // For sequential forward playback, skip the expensive seek
   const bool sequential = isSequentialRead(flicks);
 
-  // HAP / DXV packets go to the GPU as they are: the same walk, with packets
-  // read ahead where decoded paths read frames ahead.
+  // HAP / DXV packets go to the GPU undecoded: same walk, reading packets
+  // ahead instead of frames.
   if(m_useAVCodec && !m_codecContext)
     return false;
 
@@ -1104,10 +1103,9 @@ bool DirectVideoNodeRenderer::seekAndDecode(int64_t flicks)
          || m_peekedDts > target))
     return true;
 
-  // The frame on screen is the target's: well inside its span, or before it
-  // (nothing earlier came out). Near or past its stated end, which
-  // containers round (66 ms frames 66.7 ms apart), the next frame's start
-  // decides; a frame read ahead is kept for the next read.
+  // Whether the frame on screen is the target's. Near or past its stated end,
+  // which containers round (66 ms frames 66.7 ms apart), the next frame's
+  // start decides; a frame read ahead is kept for the next read.
   auto settled = [&] {
     if(m_lastDecodedDts == AV_NOPTS_VALUE)
       return true;
@@ -1131,20 +1129,18 @@ bool DirectVideoNodeRenderer::seekAndDecode(int64_t flicks)
       av_frame_unref(m_decodedFrame);
     if(!seekTo(target))
       return false;
-    // seekTo asks for the target minus the pts - dts lead measured so far;
-    // before any packet was read (or if a later one leads further), a demuxer
-    // seeking on dts (MPEG-TS, MPEG-PS) can still land on a frame that shows
-    // after the target: back off until the first frame is not later.
+    // The pts - dts lead seekTo compensates may not be fully known yet: a
+    // demuxer seeking on dts (MPEG-TS, MPEG-PS) can land on a frame shown
+    // after the target. Back off until the first frame is not later.
     int64_t back = 0;
     for(int attempt = 0;; attempt++)
     {
       if(!readNext())
         return false;
       ok = true;
-      // A seek to the very first frame's time can land after it too: backing
-      // off goes below the start as well, down to the beginning.
-      // A video starting after its container (audio first) legitimately
-      // shows its first frame after any earlier target.
+      // Backing off may go below the stream start, down to 0. A video
+      // starting after its container (audio first) legitimately shows its
+      // first frame after an earlier target.
       if(attempt >= 6 || m_noTimestamps || m_lastDecodedDts == AV_NOPTS_VALUE
          || m_lastDecodedDts <= std::max(target, m_avstream->start_time)
          || target - back <= 0)
@@ -1634,8 +1630,7 @@ void DirectVideoNodeRenderer::update(
     mat.scale[1] = sz.height();
     mat.textureSize[0] = m_frameFormat.width;
     mat.textureSize[1] = m_frameFormat.height;
-    // Frames come whole from the file: no field of theirs has a partner to
-    // weave with apart from what they hold.
+    // Frames are decoded whole: no separately delivered partner field.
     mat.field[1] = videoFieldMode(
         m_frameFormat.interlacing, m_frameFormat.deinterlace, /*partnerValid=*/false);
 

@@ -330,8 +330,7 @@ struct Node
 
   struct ui
   {
-    // The waveforms beside the knobs, related ones above each other; the
-    // toggles on a strip under both, so that the node stays narrow.
+    // Toggles go on a strip underneath so that the node stays narrow.
     halp_meta(layout, halp::layouts::vbox)
     struct
     {

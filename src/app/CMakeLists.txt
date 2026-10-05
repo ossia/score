@@ -107,9 +107,8 @@ if(TARGET score_plugin_jit OR TARGET score_plugin_faust)
   set_target_properties(${APPNAME} PROPERTIES ENABLE_EXPORTS 1)
 endif()
 
-# Every thread created with the default stack size, libossia's included,
-# gets the executable's stack reserve: 16 MB, as libossia's threads have on
-# the other platforms.
+# On Windows, threads created with the default stack size get the
+# executable's stack reserve: 16 MB, as libossia's threads have elsewhere.
 if(MINGW OR MSYS)
   target_link_libraries(${APPNAME} PUBLIC -Wl,--stack,16777216)
 elseif(MSVC)

@@ -279,7 +279,7 @@ QString relativizeFilePath(const QString& filename, const PathRoots& roots) noex
   if(isUnderFolder(path, roots.library))
     return strip(roots.library, library_prefix);
 
-  // Under no root: kept as chosen, symlinks included.
+  // Under no root: returned as given, symlinks unresolved.
   return filename;
 }
 

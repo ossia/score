@@ -1,13 +1,6 @@
-// Driven through a real --script run of the application.
-//
-// A scenario of three intervals, A then B then C; B and C wait for a trigger
-// that never holds. An automation in B writes sink:/b, from 0 at its
-// beginning to 1 at its default end, which the script reads back.
-//
-// - Play from here inside C, then, without stopping, from inside A: B plays
-//   when A ends.
-// - Play from here inside B, then its stop and play buttons: B plays again
-//   from its beginning, not from where play from here put it.
+// Play from here while playing, and an interval's play button afterwards.
+// The scenario is A, B, C in sequence, B and C waiting on a trigger that never
+// holds; an automation in B writes sink:/b from 0 to 1, read back by --script.
 
 #include <QByteArray>
 #include <QRegularExpression>

@@ -318,7 +318,6 @@ void ExecutionController::on_play_local(bool b, ::TimeVal t)
   }
   else if(auto scenar = currentScenarioModel(); scenar && b)
   {
-    // Without a view, the score itself, still from the date asked for
     play_interval(scenar->baseInterval(), {}, t);
   }
   else
@@ -458,8 +457,7 @@ void ExecutionController::request_play_from_here(TimeVal t)
   {
     on_play_local(true, t);
 
-    // Puts the transport buttons in the playing state. There are none, nor
-    // any action, without a GUI.
+    // Syncs the transport buttons; actions only exist with a GUI.
     // FIXME this ends up calling play_interval again...
     if(this->context.applicationSettings.gui)
     {
@@ -479,12 +477,11 @@ void ExecutionController::request_play_from_here(
 
   if(!m_clock)
   {
-    // Nothing plays: that interval, from there.
     request_play_interval(itv, {}, t);
     return;
   }
 
-  // What the clock plays, which a transport moves.
+  // The interval the clock plays; transport dates are relative to it.
   const Scenario::IntervalModel* played
       = m_clock->scenario ? &m_clock->scenario->baseInterval().scoreInterval() : root;
   if(&itv == played)
@@ -493,7 +490,7 @@ void ExecutionController::request_play_from_here(
     return;
   }
 
-  // Inside a score that plays: that interval alone, if what holds it runs.
+  // The parent interval is running: restart only this interval at t.
   if(auto scenar = qobject_cast<Scenario::ProcessModel*>(itv.parent()))
   {
     auto parent = qobject_cast<Scenario::IntervalModel*>(scenar->parent());
@@ -505,7 +502,7 @@ void ExecutionController::request_play_from_here(
     }
   }
 
-  // Not reached yet: the whole of what plays, to where that date is in it.
+  // Otherwise transport the played interval to t, expressed in its time base.
   TimeVal date = t;
   const Scenario::IntervalModel* cur = &itv;
   while(cur && cur != played)
@@ -711,8 +708,7 @@ TimeVal ExecutionController::execution_time() const
 
 void ExecutionController::on_record(::TimeVal t)
 {
-  // Playback started while the recording was waiting for its first message:
-  // the recording runs along with it.
+  // Playback can start while a recording waits for its first message.
   if(m_playing)
     return;
 

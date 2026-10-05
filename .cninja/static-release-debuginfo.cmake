@@ -1,11 +1,10 @@
 # static-release.cmake with every rule kept but the optimization: -O0 and full
 # debug info, to reproduce under a debugger what only a release build does.
 #
-# The build type stays Release: NDEBUG, no SCORE_DEBUG, and no
-# score_optimize_in_debug_mode, which compiles some targets with -Ofast and
-# -march=native in Debug. -ffast-math stays too, as -Ofast implies it: it is
-# more than an optimization (__FAST_MATH__ in headers, crtfastmath.o setting
-# flush-to-zero for the whole process).
+# The build type stays Release: NDEBUG, no SCORE_DEBUG, and none of the
+# -Ofast -march=native that score_optimize_in_debug_mode applies in Debug.
+# -ffast-math stays: it changes semantics, not only speed (__FAST_MATH__ in
+# headers, crtfastmath.o enabling flush-to-zero for the whole process).
 cninja_require(compiler=clang)
 cninja_require(lld)
 cninja_require(score-warnings)

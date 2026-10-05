@@ -352,14 +352,12 @@ public:
    */
   GpuResourceRegistry& registry() noexcept { return *m_registry; }
 
-  //! Releases a renderer's state. The textures it owns on its ports may be
-  //! published as a material's dynamic textures: the registry forgets them
-  //! first.
+  //! Releases a renderer's state, first making the registry forget its port
+  //! textures, which may be published as dynamic textures.
   void releaseRendererState(NodeRenderer& r);
 
-  //! Frees a render target of this list or of one of its renderers. Its
-  //! texture may be published as a material's dynamic texture: the registry
-  //! forgets it first.
+  //! Frees a render target of this list or of one of its renderers, first
+  //! making the registry forget its texture.
   void releaseOwnedTarget(TextureRenderTarget& rt);
   const GpuResourceRegistry& registry() const noexcept { return *m_registry; }
 

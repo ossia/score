@@ -145,8 +145,8 @@ bool canInsertProcessInCable(
   if(source->parent() == &proc || sink->parent() == &proc)
     return false;
 
-  // A node already wired somewhere would have to be cut from it, or end up in
-  // two chains at once: only a free one goes in a cable.
+  // Only an unwired node can be inserted in a cable; a wired one would end up
+  // in two chains.
   for(auto* port : proc.inlets())
     if(!port->cables().empty())
       return false;

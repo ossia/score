@@ -36,7 +36,6 @@ public:
   explicit ExecutionController(const score::GUIApplicationContext& ctx);
   ~ExecutionController();
 
-  //! Playback has just started, whatever asked for it.
   void playStarted() E_SIGNAL(SCORE_PLUGIN_ENGINE_EXPORT, playStarted)
 
   TransportInterface& transport() const noexcept;
@@ -62,8 +61,7 @@ public:
 
   // User requests playback to the transport interface from the GUI
   void request_play_from_here(TimeVal t);
-  //! Play from here at a date of `itv`: while the score plays, that interval
-  //! alone goes there; else it plays from there.
+  //! `t` is relative to `itv`. While the score plays, only `itv` jumps to `t`.
   void request_play_from_here(Scenario::IntervalModel& itv, TimeVal t);
   void request_play_global(bool);
   void request_play_local(bool);

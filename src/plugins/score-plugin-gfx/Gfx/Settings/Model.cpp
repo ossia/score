@@ -47,8 +47,6 @@ SETTINGS_PARAMETER_IMPL(HardwareDecode){
 SETTINGS_PARAMETER_IMPL(Rate){QStringLiteral("score_plugin_gfx/Rate"), 60.0};
 SETTINGS_PARAMETER_IMPL(Samples){QStringLiteral("score_plugin_gfx/Samples"), 1};
 // 0 is automatic: Video::chooseDecoderThreading sizes the pool per codec.
-// A new key, so that the value stored while nothing read it does not take
-// effect now.
 SETTINGS_PARAMETER_IMPL(DecodingThreads){
     QStringLiteral("score_plugin_gfx/VideoDecodingThreads"), 0};
 SETTINGS_PARAMETER_IMPL(VSync){QStringLiteral("score_plugin_gfx/VSync"), true};

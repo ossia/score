@@ -304,8 +304,8 @@ void DocumentPlugin::waitForExecutionQueue()
   auto done = std::make_shared<std::atomic_bool>(false);
   m_ctxData->context.executionQueue.enqueue([done] { *done = true; });
 
-  // The execution thread drains its queue on every tick. Nothing is waited on
-  // from the audio thread, so this cannot hold it up.
+  // The execution thread drains its queue every tick; the audio thread never
+  // waits on this.
   QElapsedTimer t;
   t.start();
   while(!*done && t.elapsed() < 1000)
@@ -584,8 +584,8 @@ void DocumentPlugin::slot_bench(ossia::bench_map b, int64_t ns)
 
 void DocumentPlugin::on_deviceAdded(Device::DeviceInterface* dev)
 {
-  // Also for a device that is not connected yet: it gets its ossia device
-  // through deviceChanged when it connects.
+  // Also for an unconnected device: its ossia device arrives later through
+  // deviceChanged.
   connect(
       dev, &Device::DeviceInterface::deviceChanged, this,
       &DocumentPlugin::onDeviceChanged);
@@ -628,9 +628,8 @@ void DocumentPlugin::onDeviceChanged(
   {
     updateDeviceExpressions();
 
-    // The old device's nodes go away as soon as this returns: the ports and
-    // expressions that point into them have to be let go of on the execution
-    // thread first.
+    // The old device's nodes are destroyed when this returns: the execution
+    // thread must release the ports and expressions pointing into them first.
     waitForExecutionQueue();
   }
   else if(added)

@@ -89,8 +89,8 @@ public:
   const auto& timeSyncs() const { return m_ossia_timesyncs; }
 
   void playInterval(const Scenario::IntervalModel& itv);
-  //! Play from here in `itv` while the score plays: moves it to `t`, or starts
-  //! it there at once if it is not running.
+  //! While the score plays: moves `itv` to `t`, starting it at once if it is
+  //! not running.
   void playIntervalFrom(const Scenario::IntervalModel& itv, TimeVal t);
   void stopInterval(const Scenario::IntervalModel& itv);
 

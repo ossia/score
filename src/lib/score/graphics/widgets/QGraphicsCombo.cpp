@@ -346,9 +346,9 @@ void QGraphicsCombo::openEditor(QPointF scenePos)
     obj->setPos(scenePos);
     item.m_editor = obj;
 
-    // The style asks for the list drop-down rather than its menu one once the
-    // box is in a scene, but the box picked its item delegate when it was
-    // built, outside of it: a style change makes it pick again.
+    // QComboBox picks its item delegate (menu or list popup) from the style
+    // when built, outside the scene, where the style asks for the list one: a
+    // StyleChange event makes it pick again.
     {
       QEvent styleChange{QEvent::StyleChange};
       QApplication::sendEvent(w, &styleChange);

@@ -612,7 +612,7 @@ void TimeSignatureItem::requestNewHandle(QPointF pos)
 {
   assert(m_model);
   auto signatures = m_model->timeSignatureMap();
-  // The signatures count in m_model, this item in the interval shown.
+  // Signatures are in m_model's time base, offset by m_timeDelta from this item.
   signatures[TimeVal::fromPixels(pos.x(), m_ratio) + m_timeDelta]
       = ossia::time_signature{4, 4};
   CommandDispatcher<> disp{m_itv.context().commandStack};

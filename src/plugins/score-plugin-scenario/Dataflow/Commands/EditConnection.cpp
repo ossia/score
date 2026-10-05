@@ -261,7 +261,7 @@ void CreateCable::redo(const score::DocumentContext& ctx) const
   auto& model = m_model.find(ctx);
   if(model.cables.find(m_cable) != model.cables.end())
     return;
-  // Replayed after the ports changed under it: nothing to connect any more.
+  // The ports may have changed since this command was recorded.
   if(!isValidCable(m_dat, ctx))
     return;
 

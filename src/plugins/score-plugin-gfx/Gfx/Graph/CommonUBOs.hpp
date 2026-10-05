@@ -96,10 +96,9 @@ struct OutputUBO
 /**
  * @brief UBO shared across all video objects.
  *
- * Field for field the `material_t` block of SCORE_GFX_VIDEO_UNIFORMS, which
- * every video decoder's shaders declare: std140 puts its vec4 at offset 16. A
- * buffer that stops short of it has the shaders read past its end, and what
- * score_tc takes as the deinterlace mode is then whatever lies there.
+ * Must match the `material_t` block of SCORE_GFX_VIDEO_UNIFORMS field for
+ * field (std140 puts its vec4 at offset 16): a shorter buffer makes the
+ * shaders read past its end.
  */
 struct VideoMaterialUBO
 {

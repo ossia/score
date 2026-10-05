@@ -240,7 +240,7 @@ QImage VideoThumbnailer::process(int64_t flicks)
   {
     // Always seek backward to the nearest keyframe before the target.
     // Forward-only seeking fails when there is no keyframe at the exact target.
-    // The thumbnail of a time is the frame playback shows then.
+    // Same time-to-frame mapping as playback: time 0 is start_pts.
     const AVStream* stream = m_formatContext->streams[m_stream];
     const int64_t absolute_flicks
         = flicks

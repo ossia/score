@@ -62,7 +62,7 @@ ossia::expression_ptr EventComponent::makeExpression() const
     }
     catch(std::exception& e)
     {
-      // A condition on an address that is not there does not hold.
+      // A condition on a missing address is false.
       ossia::logger().error(e.what());
       return ossia::expressions::make_expression_false();
     }

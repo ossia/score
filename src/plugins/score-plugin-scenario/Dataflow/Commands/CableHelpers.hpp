@@ -45,15 +45,13 @@ SCORE_PLUGIN_SCENARIO_EXPORT
 SerializedCables serializedCablesFromCableJson(
     const ObjectPath& old_path, const rapidjson::Document::Array& arr);
 
-//! Whether a cable can exist in the document as it is now: from an outlet to an
-//! inlet, both found, of the same type. A process whose ports changed since the
-//! cable was saved -- a script edited, a preset loaded -- can leave it on a port
-//! of another type, which breaks the execution afterwards: such a cable is
-//! dropped rather than restored.
+//! Whether both ends exist, go from an outlet to an inlet and have the same type.
+//! Ports can change under a saved cable (edited script, loaded preset); a cable
+//! between mismatched ports breaks execution, so it is dropped instead.
 SCORE_PLUGIN_SCENARIO_EXPORT
 bool isValidCable(const Process::CableData& cable, const score::DocumentContext& ctx);
 
-//! Takes a cable that is not restored off the ports that still list it.
+//! Removes a cable that is not restored from the ports that still reference it.
 SCORE_PLUGIN_SCENARIO_EXPORT
 void detachInvalidCable(
     const Id<Process::Cable>& id, const Process::CableData& cable,

@@ -98,7 +98,7 @@ TEST_CASE("Wavecycle: a frequency change bends the pitch without a jump", "[avnd
 TEST_CASE("Wavecycle: plays the frequency asked, not a whole number of samples", "[avnd][wavecycle]")
 {
   driver d;
-  // 48000 / 1100 = 43.6 samples per cycle: truncated to 43, it played 1116 Hz.
+  // 48000 / 1100 = 43.6 samples per cycle: truncating it to 43 gives 1116 Hz.
   d.send(1100.f);
   d.render(4800);
   CHECK(measured_frequency(d.render(48000)) == Approx(1100.).epsilon(0.002));

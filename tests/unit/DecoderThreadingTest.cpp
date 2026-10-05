@@ -1,9 +1,5 @@
-// Video::chooseDecoderThreading(): which libavcodec threading model each
-// decoder runs with, for each kind of consumer.
-//
-// The decisions are pure functions of the AVCodec, its stream parameters and
-// the use case, so they are checked against the real decoders of the linked
-// libavcodec. A decoder missing from the build is skipped, not failed.
+// Video::chooseDecoderThreading() against the real decoders of the linked
+// libavcodec; a decoder missing from the build is skipped, not failed.
 
 #include <Media/Libav.hpp>
 

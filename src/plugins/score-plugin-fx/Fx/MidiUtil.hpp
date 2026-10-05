@@ -167,8 +167,7 @@ static constexpr std::array<scales_array, scale_type::SCALES_MAX - 1> scales{
 /* { scale::VI,          */ make_scale({1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0}) /* } */,
 /* { scale::VII,         */ make_scale({0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1}) /* } */};
 // clang-format on
-//! The note of the scale closest to `i`, searching upwards first; none when
-//! the scale has no note at all.
+//! The scale note closest to `i`, searching upwards first; none for an empty scale.
 static std::optional<std::size_t> find_closest_index(const scale_array& arr, std::size_t i)
 {
   const int n = int(arr.size());
@@ -211,10 +210,10 @@ struct Node
     uint8_t vel{};
     uint8_t chan{};
   };
-  //! The keys held at the input, by channel and pitch, and the note each plays.
+  //! Held input keys (see key()) and the output note each plays.
   ossia::flat_map<uint16_t, Note> map;
-  //! How many held keys play each output note, by channel and pitch: two keys
-  //! can land on the same note of the scale, which must stop with the last one.
+  //! Held keys per output note: two keys can map to the same scale note, which
+  //! must only stop with the last one.
   std::array<std::array<uint8_t, 128>, 17> playing{};
   std::string scale{};
   int base{};
@@ -222,7 +221,7 @@ struct Node
 
   static uint16_t key(int chan, int pitch) noexcept { return uint16_t(chan * 128 + pitch); }
 
-  //! Room for every key of every channel: the map never grows on the audio thread.
+  //! The map never allocates on the audio thread.
   Node() { map.reserve(16 * 128); }
 
   static std::optional<uint8_t>
@@ -271,8 +270,8 @@ struct Node
       const auto ts = msg.timestamp;
       const auto k = key(chan, pitch);
 
-      // A key already held: what it played stops, whether it is pressed again
-      // or released. A note on with velocity 0 is a release.
+      // A held key stops its note on re-press or release (note on with
+      // velocity 0 is a release).
       if(auto it = map.find(k); it != map.end())
       {
         stop(it->second.chan, it->second.pitch, vel, ts);
@@ -290,8 +289,7 @@ struct Node
     }
   }
 
-  //! The scale, its base or the transposition changed: the held keys move to
-  //! their new notes.
+  //! Moves the held keys to their notes in the new scale / transposition.
   void update(const scale_array& scale, int transp)
   {
     for(auto it = map.begin(); it != map.end();)
@@ -318,9 +316,8 @@ struct Node
     }
   }
 
-  //! All notes off or all sound off on a channel: the synth drops what it
-  //! plays, so the keys held on that channel are forgotten too, or a later
-  //! scale change would start their notes again.
+  //! On all notes / sound off: forget the channel's held keys, or a later
+  //! scale change would restart their notes.
   void release_channel(int chan)
   {
     for(auto it = map.begin(); it != map.end();)

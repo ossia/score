@@ -158,8 +158,7 @@ void MovePointCommandObject::move()
   if(!m_pressed)
     return;
 
-  // Magnetism first: the locking that follows keeps the point between its
-  // neighbours wherever the snap put it.
+  // Snap before locking, so that the point stays between its neighbours.
   if(m_presenter)
     m_state->currentPoint.setX(m_presenter->magnetic(m_state->currentPoint.x()));
   handleLocking();

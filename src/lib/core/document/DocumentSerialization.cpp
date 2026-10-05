@@ -196,10 +196,9 @@ Document::Document(
 {
   restoreModel(data.doc, factory);
 
-  // The backup's model is the document as it was opened or created: what
-  // follows the file name, like the root interval's name, still has the name
-  // of then -- an "Untitled" since saved under another one. A document that
-  // kept its name keeps what its model holds, like a root interval renamed.
+  // The backed-up model holds names derived from the file name it had then
+  // (e.g. the root interval of an "Untitled" document saved since): refresh
+  // them, unless the file name is unchanged and they may have been renamed.
   if(data.modelFileName.isEmpty() || data.modelFileName != data.filePath)
     m_metadata.fileNameChanged(m_metadata.fileName());
 

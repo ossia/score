@@ -61,8 +61,8 @@ struct RootItem
 {
   using RootLayout::RootLayout;
   typename Info::ui ui;
-  //! Owns the connections of one build of the UI: deleted when the UI is
-  //! rebuilt, so that nothing still updates the widgets of the previous one.
+  //! Context object of the connections to the current UI build's widgets;
+  //! deleted on rebuild.
   QObject* uiConnections{};
 };
 
@@ -301,7 +301,7 @@ struct LayoutBuilder final : Process::LayoutBuilderBase
   outputs_type temp_outputs{};
 
   typename Info::ui* rootUi{};
-  //! What the connections to the widgets of this build live as long as.
+  //! Context object of the connections to this build's widgets.
   QObject* connections{};
 
   //! Depth in titled tables: controls there hide their labels
@@ -339,8 +339,8 @@ struct LayoutBuilder final : Process::LayoutBuilderBase
     {
       using avnd_port_type = pmf_member_type_t<decltype(item.model)>;
       SetGUIValue<avnd_port_type>{doc}(port->value(), item.value);
-      // Not bound to the root item: it survives a rebuild of the UI (a preset
-      // reloading the ports), the widgets the lambda updates do not.
+      // The context outlives a UI rebuild (e.g. a preset reloading the
+      // ports); the widgets the lambda updates do not.
       QObject* const lifetime = connections ? connections : &context;
       if constexpr(requires { rootUi->on_control_update(); })
       {
@@ -1189,8 +1189,8 @@ private:
       if_possible(b.rootUi->on_control_update());
     };
 
-    // The connections go before the widgets they update: a widget losing focus
-    // while it is deleted still emits what it edited.
+    // Delete the connections before the widgets: a widget losing focus while
+    // being deleted still emits its edit.
     auto rebuild = [rootItem, recreate] {
       delete rootItem->uiConnections;
       rootItem->uiConnections = nullptr;
