@@ -841,6 +841,7 @@ struct LayoutBuilder final : Process::LayoutBuilderBase
             return i;
         return page;
       };
+      // A root tab layout outlives a UI rebuild: its connections go with the build
       auto& model = static_cast<const ProcessModel<Info>&>(this->proc);
       for(auto* base : model.avnd_input_idx_to_model_ports(index))
       {
@@ -851,7 +852,9 @@ struct LayoutBuilder final : Process::LayoutBuilderBase
               tabs->setCurrentIndex(to_page(i));
           };
           select(port->value());
-          QObject::connect(port, &Process::ControlInlet::valueChanged, tabs, select);
+          QObject::connect(
+              port, &Process::ControlInlet::valueChanged,
+              connections ? connections : static_cast<QObject*>(tabs), select);
           if constexpr(!avnd::tag_hide_tabs<Item>)
             tabs->onCurrentIndexChanged
                 = [port, to_value_index, &doc = this->doc](int i) {
@@ -869,7 +872,9 @@ struct LayoutBuilder final : Process::LayoutBuilderBase
               tabs->setCurrentIndex(to_page(i));
           };
           select(port->value());
-          QObject::connect(port, &Process::ControlInlet::valueChanged, tabs, select);
+          QObject::connect(
+              port, &Process::ControlInlet::valueChanged,
+              connections ? connections : static_cast<QObject*>(tabs), select);
           if constexpr(!avnd::tag_hide_tabs<Item>)
             tabs->onCurrentIndexChanged
                 = [port, to_value_index, &doc = this->doc](int i) {
