@@ -734,7 +734,8 @@ public:
     update();
   }
 
-  std::function<void(const QString&)> onActivated;
+  //! `direct`: Ctrl (Cmd on macOS) was held, the file is opened itself.
+  std::function<void(const QString& path, bool direct)> onActivated;
 
 protected:
   void paintEvent(QPaintEvent*) override
@@ -841,7 +842,7 @@ protected:
         = m_pressed && e->button() == Qt::LeftButton && rect().contains(e->pos());
     m_pressed = false;
     if(activate && onActivated)
-      onActivated(m_path);
+      onActivated(m_path, e->modifiers() & Qt::ControlModifier);
   }
 
 private:
@@ -1038,7 +1039,8 @@ private:
 
   QWidget* makeCardGrid(const std::vector<ExampleEntry>& docs, QWidget* parent);
   std::vector<ExampleEntry> gatherExamples() const;
-  void openOnlineExample(const OnlineExample& ex);
+  //! `direct` opens the file itself rather than an untitled copy of it.
+  void openOnlineExample(const OnlineExample& ex, bool direct);
   void refreshExamplesPage();
   void refreshExamplesPage(int index, bool online);
   void requestThumbnail(const OnlineExample& ex, ExampleCard* card);
@@ -1071,8 +1073,10 @@ private:
   }
 
   //! Opens an example as a new document, and its web page if it has one.
-  void openExample(const QString& path);
+  void openExample(const QString& path, bool direct);
   void requestInfo(const QString& path);
+  //! Same, for a card: what is already known about the file goes on it now.
+  void requestInfo(const QString& path, ExampleCard& card);
   void onInfoLoaded(const QString& path, const std::optional<ProjectInfo::Info>& info);
   void showPreview(InteractiveLabel* label);
 
@@ -1616,8 +1620,10 @@ QWidget* StartScreen::createExamplesPage(bool online)
   lay->addWidget(makeSectionTitle(title, page));
   lay->addWidget(makeHint(
       online ? tr("Each example is downloaded into your library the first time it "
-                  "is opened, then opens as a new, untitled score.")
-             : tr("Each example opens as a new, untitled score."),
+                  "is opened, then opens as a new, untitled score. Ctrl-click opens "
+                  "the example file itself.")
+             : tr("Each example opens as a new, untitled score. Ctrl-click opens the "
+                  "example file itself."),
       page));
 
   auto scroll = new QScrollArea{page};
@@ -1711,7 +1717,7 @@ std::vector<StartScreen::ExampleEntry> StartScreen::gatherExamples() const
   return out;
 }
 
-void StartScreen::openOnlineExample(const OnlineExample& ex)
+void StartScreen::openOnlineExample(const OnlineExample& ex, bool direct)
 {
   if(m_actionTaken)
     return;
@@ -1722,7 +1728,7 @@ void StartScreen::openOnlineExample(const OnlineExample& ex)
       QDesktopServices::openUrl(url);
   }
 
-  m_online.install(ex, [this](QString path) {
+  m_online.install(ex, [this, direct](QString path) {
     if(path.isEmpty())
     {
       score::warning(
@@ -1731,7 +1737,7 @@ void StartScreen::openOnlineExample(const OnlineExample& ex)
              "try again."));
       return;
     }
-    choose([&] { openTemplate(path); });
+    choose([&] { direct ? openFile(path) : openTemplate(path); });
   });
 }
 
@@ -1790,13 +1796,15 @@ QWidget* StartScreen::makeCardGrid(
       if(!online->image.isEmpty())
         requestThumbnail(*online, card);
 
-      card->onActivated
-          = [this, ex = *online](const QString&) { openOnlineExample(ex); };
+      card->onActivated = [this, ex = *online](const QString&, bool direct) {
+        openOnlineExample(ex, direct);
+      };
     }
     else
     {
-      card->onActivated = [this](const QString& path) { openExample(path); };
-      requestInfo(doc.path);
+      card->onActivated
+          = [this](const QString& path, bool direct) { openExample(path, direct); };
+      requestInfo(doc.path, *card);
     }
 
     grid->addWidget(card);
@@ -1843,10 +1851,10 @@ QWidget* StartScreen::createCardsPage(
                                                          : doc.source;
       auto card = new ExampleCard{m_itemFont, m_smallFont, doc.name,
                                   subtitle,   doc.path,    container};
-      card->onActivated = onActivated;
+      card->onActivated = [onActivated](const QString& path, bool) { onActivated(path); };
       grid->addWidget(card);
       m_cards.push_back(card);
-      requestInfo(doc.path);
+      requestInfo(doc.path, *card);
     }
 
     scroll->setWidget(container);
@@ -1877,7 +1885,7 @@ StartScreen::createLinksPage(const QString& title, const std::vector<Link>& link
   return page;
 }
 
-void StartScreen::openExample(const QString& path)
+void StartScreen::openExample(const QString& path, bool direct)
 {
   if(m_actionTaken)
     return;
@@ -1896,7 +1904,7 @@ void StartScreen::openExample(const QString& path)
       QDesktopServices::openUrl(url);
   }
 
-  choose([&] { openTemplate(path); });
+  choose([&] { direct ? openFile(path) : openTemplate(path); });
 }
 
 void StartScreen::requestInfo(const QString& path)
@@ -1914,6 +1922,17 @@ void StartScreen::requestInfo(const QString& path)
         self->onInfoLoaded(path, info);
     }, Qt::QueuedConnection);
   });
+}
+
+void StartScreen::requestInfo(const QString& path, ExampleCard& card)
+{
+  if(auto it = m_infos.find(path); it != m_infos.end())
+  {
+    if(it->second)
+      card.setInfo(*it->second);
+    return;
+  }
+  requestInfo(path);
 }
 
 void StartScreen::onInfoLoaded(
