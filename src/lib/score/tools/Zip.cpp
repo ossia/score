@@ -160,6 +160,10 @@ std::optional<ZipArchiveSummary> summarizeZipArchive(const QString& archive)
     const QString name = memberName(st);
     if(!isScoreFileName(name) || !isSafeZipMemberName(name))
       continue;
+    // macOS archivers add a resource fork per file, under __MACOSX/ and as "._name"
+    if(name.startsWith(QStringLiteral("__MACOSX/"))
+       || QFileInfo{name}.fileName().startsWith(QStringLiteral("._")))
+      continue;
 
     const int depth = name.count('/');
     if(depth > 1) // root or one folder down only

@@ -6,10 +6,10 @@
 // documentation (ossia.io/score-docs) and the app (ossia.io/score-web) share an
 // origin, every documentation link is expressible as an origin-relative path.
 //
-// The target may be a bare document, or a zip archive holding one document at
-// its root next to the media it uses: score resolves "<PROJECT>:<file>" media
-// references against the directory the document sits in, so extracting the
-// archive into a directory of its own makes those references resolve.
+// The target may be a bare document, or a zip archive holding a document, at
+// its root or in a folder, next to the media it uses: score resolves
+// "<PROJECT>:<file>" media references against the directory the document sits
+// in, so extracting the archive into a directory of its own makes them resolve.
 //
 // Everything is written into MEMFS during preRun -- i.e. before main() runs --
 // and the document path is passed as argv[1], so that it goes through score's
@@ -144,7 +144,7 @@ async function scoreZipExtract(bytes, dir) {
   let extracted = 0;
   for (const entry of scoreZipCentralDirectory(bytes)) {
     const name = scoreZipSafeName(entry.rawName);
-    if (!name)
+    if (!name || scoreZipIsResourceFork(name))
       continue;
 
     extracted += entry.uncompressedSize;
@@ -170,24 +170,33 @@ async function scoreZipExtract(bytes, dir) {
   return files;
 }
 
-// Exactly one document at the root of the archive is the expected shape: it is
-// what identifies the project, and score resolves media relative to it.
-function scoreZipRootDocument(files, dir) {
-  const roots = files
-    .map(f => f.path)
-    .filter(p => p.startsWith(dir + '/')
-                 && !p.slice(dir.length + 1).includes('/')
-                 && SCORE_DOCUMENT_RE.test(p));
+// macOS archivers add a resource fork per file, under __MACOSX/ and as "._name".
+function scoreZipIsResourceFork(name) {
+  return name.startsWith('__MACOSX/') || name.split('/').pop().startsWith('._');
+}
 
-  if (roots.length === 0)
-    throw new Error('the archive contains no score document at its root.');
-  if (roots.length > 1) {
-    const names = roots.map(p => p.slice(dir.length + 1)).join(', ');
-    throw new Error(
-      `the archive contains ${roots.length} score documents at its root (${names}); `
-      + `it must contain exactly one.`);
+// The document is at the root of the archive or in one folder of it
+// ("timeflo.zip" holding "timeflo/timeflo.score"), as for the desktop app: the
+// shallowest one, then the one named like the archive. score resolves media
+// relative to the document, so the folder layout around it is kept.
+function scoreZipDocument(files, dir, archiveBase) {
+  const wanted = archiveBase.replace(/\.zip$/i, '').toLowerCase();
+  let best = null;
+  for (const f of files) {
+    const rel = f.path.slice(dir.length + 1);
+    if (!SCORE_DOCUMENT_RE.test(rel) || scoreZipIsResourceFork(rel))
+      continue;
+    const depth = rel.split('/').length - 1;
+    if (depth > 1)
+      continue;
+    const stem = rel.split('/').pop().replace(SCORE_DOCUMENT_RE, '').toLowerCase();
+    const rank = [depth, stem === wanted ? 0 : 1];
+    if (!best || rank[0] < best.rank[0] || (rank[0] === best.rank[0] && rank[1] < best.rank[1]))
+      best = {path: f.path, rank};
   }
-  return roots[0];
+  if (!best)
+    throw new Error('the archive contains no score document at its root or in a folder of it.');
+  return best.path;
 }
 
 // Returns {path, files} -- the document to open and everything to write into
@@ -218,7 +227,7 @@ async function scoreOpenUrlFetch(location) {
   if (scoreOpenUrlIsZip(bytes)) {
     const dir = `${SCORE_IMPORTS_DIR}/${base.replace(/\.zip$/i, '') || 'project'}`;
     const files = await scoreZipExtract(bytes, dir);
-    return {path: scoreZipRootDocument(files, dir), files};
+    return {path: scoreZipDocument(files, dir, base), files};
   }
 
   // The magic is authoritative, so say so rather than handing score a zip.
