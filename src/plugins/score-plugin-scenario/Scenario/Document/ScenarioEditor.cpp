@@ -357,8 +357,8 @@ namespace
 enum class PasteKind
 {
   None,
-  //! Processes and the cables between them: go in an interval, or in a new
-  //! box of a scenario.
+  //! Processes and the cables between them: go in an interval or in a new
+  //! scenario box.
   Processes,
   //! Intervals, states, events, syncs: only go in a scenario.
   Elements
@@ -376,9 +376,9 @@ PasteKind pasteKind(const QMimeData& mime)
   return PasteKind::None;
 }
 
-//! Where to center processes pasted in an interval with no pointer in it: on
-//! the first row of its nodal canvas, past the nodes already there, so that
-//! they show even in a small slot.
+//! Center for processes pasted in an interval without a pointer position: the
+//! first row of its nodal canvas, after the existing nodes, so they are visible
+//! even in a small slot.
 QPointF pastePositionInInterval(const IntervalModel& itv, const QMimeData& mime)
 {
   QSizeF size{75., 42.};
@@ -422,8 +422,7 @@ bool ScenarioEditor::paste(
   if(kind == PasteKind::None)
     return false;
 
-  // Start from what the user worked on last: the selection or the focus.
-  // Clicking some items only changes one of the two.
+  // Start from whichever of the selection and the focus changed last.
   auto focusedLayer = qobject_cast<Process::LayerPresenter*>(focusedObject);
   QObject* focused
       = focusedLayer ? const_cast<Process::ProcessModel*>(&focusedLayer->model())
@@ -442,15 +441,15 @@ bool ScenarioEditor::paste(
       start = selected;
   }
 
-  // The first object up from there that can take what was copied; anything
-  // else gets it as a sibling.
+  // The first ancestor that can take what was copied receives it, next to the
+  // child it was reached from.
   QObject* child{};
   for(QObject* obj = start; obj; child = obj, obj = obj->parent())
   {
     if(auto sc = qobject_cast<Scenario::ProcessModel*>(obj))
     {
-      // A scenario takes processes in a new box where the pointer is, hence
-      // only through its view: one that is not shown gets them next to it.
+      // Processes go in a new box at the pointer, which needs the scenario's
+      // view; a scenario that is not shown gets them next to the child.
       auto scenarioPres = qobject_cast<ScenarioPresenter*>(focusedObject);
       const bool shown = scenarioPres && &scenarioPres->model() == sc;
       if(kind == PasteKind::Elements || shown)

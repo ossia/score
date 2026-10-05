@@ -191,8 +191,6 @@ void CableItem::setPen(QPainter& painter, const Process::Style& style)
       if(m_dropping)
       {
         [[unlikely]];
-        // A cable about to change: in the emphasis colour, thicker than any
-        // other, so that it cannot be missed.
         painter.setPen(style.skin.Base4.main.pen3_solid_round_round);
       }
       else

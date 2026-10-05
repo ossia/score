@@ -178,7 +178,7 @@ void ScrubHandler::on_pressed(
     m_speedChanged = false;
     m_maxSpeed = m_previousSpeed;
 
-    // The time counts in the interval shown.
+    // global_time is relative to the displayed interval.
     exec.playIntervalAtDate(
         const_cast<IntervalModel*>(&root_itv->model()), global_time);
   }

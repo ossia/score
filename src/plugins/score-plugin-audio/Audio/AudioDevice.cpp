@@ -63,7 +63,7 @@ void AudioDevice::addAddress(const Device::FullAddressSettings& settings)
     if(node)
     {
       setupNode(*node, settings.extendedAttributes);
-      // A loaded document's value, e.g. its master volume on /out/main.
+      // The value saved in the document, e.g. the master volume.
       if(settings.value.valid())
         if(auto p = node->get_parameter())
           p->set_value(settings.value);
@@ -132,8 +132,7 @@ bool AudioDevice::reconnect()
   if(engine)
     engine->set_tick({});
 
-  // The tree is built anew: what its parameters hold now (a gain set since the
-  // document was opened, the master volume...) goes over to the new one.
+  // The tree is rebuilt: carry the current parameter values over to it.
   std::vector<std::pair<std::string, ossia::value>> values;
   if(old_dev)
   {
@@ -174,7 +173,7 @@ bool AudioDevice::reconnect()
           setupNode(*node, v.extendedAttributes);
       }
 
-      // The value the document saved, e.g. its master volume on /out/main.
+      // The value saved in the document, e.g. the master volume.
       if(node && v.value.valid())
         if(auto p = node->get_parameter())
           p->set_value(v.value);

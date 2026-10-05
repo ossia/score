@@ -1081,7 +1081,7 @@ void ScenarioDocumentPresenter::on_requestTransport(QPointF pt)
 {
   auto& exec_ctx
       = m_context.app.guiApplicationPlugin<ScenarioApplicationPlugin>().execution();
-  // The ruler counts in the interval shown.
+  // The ruler date is relative to the displayed interval.
   exec_ctx.playIntervalAtDate(
       const_cast<IntervalModel*>(&displayedInterval()), timeRulerClickTime(pt));
 }
@@ -1125,8 +1125,8 @@ void ScenarioDocumentPresenter::updateTimeBar()
 {
   auto& set = m_context.app.settings<Settings::Model>();
   auto& gv = view().view();
-  // The interval view is rebuilt with every change of mode or of displayed
-  // interval: the bar is drawn over the one shown now.
+  // The interval view is recreated whenever the mode or the displayed interval
+  // changes.
   auto* itv_pres = displayedIntervalPresenter();
   gv.currentView = itv_pres ? itv_pres->view() : nullptr;
   gv.timebarVisible = gv.timebarPlaying && set.getTimeBar() && gv.currentView

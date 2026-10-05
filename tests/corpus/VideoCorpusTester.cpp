@@ -846,12 +846,9 @@ bool libav_decodes_a_frame(const std::string& path)
 
 #if SCORE_CORPUS_HAS_GFX
 // ---------------------------------------------------------------------------
-// The direct renderer: DirectVideoNodeRenderer's own decoder, which Auto
-// playback uses for every source whose frames are all keyframes. Driven the
-// way its update() drives it -- a time since the start of playback in, the
-// frame showing at that time out -- first in order, then at random times,
-// which is scrubbing. Each answer must be the reference's frame for that
-// time, by pts and by pixels.
+// The direct renderer's decoder, driven as its update() drives it: in order,
+// then at random times, then backwards. Each frame must match the reference's
+// frame for that time, by pts and by pixels.
 // ---------------------------------------------------------------------------
 
 const char* frame_access_name(Video::FrameAccess a)
@@ -974,9 +971,6 @@ int run_direct_renderer(const std::string& path)
   }
 
   const auto& frames = ref.frames;
-  // Playback time 0 is the stream's start, or 0 when it starts before: frames
-  // before 0 are dropped. Frames that fail to decode at the start (damaged
-  // files) leave the first decoded one later than that.
   // Playback time 0: the container's start (playbackStartPts), which the
   // frame queue maps time from. The direct renderer must take the same.
   const int64_t first_pts = dec->start_pts;
@@ -1164,13 +1158,9 @@ int run_direct_renderer(const std::string& path)
 }
 
 // ---------------------------------------------------------------------------
-// The frame queue's timing: VideoDecoder decoding ahead on its thread, and
-// VideoFrameReader::nextFrame picking the frame for the node's time, as
-// VideoNode::update does. Played two ticks per frame, then seeked at random.
-// At every tick the frame on screen must be the one the direct-renderer check
-// expects for that time: the last frame starting at or before it, from the
-// same time 0 (playbackStartPts). Both renderers measured against one rule is
-// what makes them agree.
+// The frame queue, driven as VideoNode::update drives it. At every tick the
+// frame on screen must be the last one starting at or before the time, from
+// playbackStartPts: the same rule as the direct renderer check.
 // ---------------------------------------------------------------------------
 
 int run_queue_timing(const std::string& path)

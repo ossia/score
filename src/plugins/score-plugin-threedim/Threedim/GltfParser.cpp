@@ -106,10 +106,9 @@ static ossia::scene_transform to_transform(const fastgltf::Node& n)
 }
 
 // Where an image URI of the asset points to, or an empty path when it leaves
-// the asset's folder. URIs come from the asset file: "../" chains, absolute
-// paths or symlinks would let a shared scene read arbitrary local files.
-// weakly_canonical resolves symlinks; an empty base dir (bare-filename load)
-// can't be contained, so it is rejected.
+// the asset's folder: "../" chains, absolute paths or symlinks would let a
+// shared scene read arbitrary local files. An empty base dir (bare-filename
+// load) can't be contained, so it is rejected.
 static std::filesystem::path
 containedImagePath(const std::filesystem::path& dir, std::string_view uri)
 {
@@ -213,8 +212,8 @@ static std::shared_ptr<ossia::material_component> to_material(
           using T = std::decay_t<decltype(data)>;
           if constexpr(std::is_same_v<T, fastgltf::sources::URI>)
           {
-            // An image loadExternalImages could not read: relative to the
-            // glTF file's parent dir, decoded on demand if it shows up.
+            // An image loadExternalImages could not read: decoded on demand
+            // if it shows up.
             const auto p = containedImagePath(dir, data.uri.path());
             if(!p.empty())
               src->file_path = p.string();

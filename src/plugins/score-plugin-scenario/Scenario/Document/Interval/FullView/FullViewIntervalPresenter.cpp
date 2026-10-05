@@ -653,14 +653,12 @@ Process::MagneticInfo FullViewIntervalPresenter::magneticPosition(
     return false;
   };
 
-  // t counts from the start of the moved object's own interval: an element of a
-  // scenario is dated in the interval holding that scenario, a point of an
-  // automation in the interval holding the automation.
+  // t is relative to the start of the moved object's closest parent interval,
+  // i.e. the one holding its scenario or automation.
   const IntervalModel* ownItv = o ? Scenario::closestParentInterval(o) : nullptr;
 
-  // 2. In the processes around: those of the interval shown. Their dates count
-  // from its start; the moved object's from the start of its own interval,
-  // which is the shown one or a box of a scenario in it.
+  // 2. In the processes of the interval shown, when the moved object's interval
+  // is that one or a box of a scenario directly in it.
   if(!foundMagnetism)
   {
     std::optional<TimeVal> shift;
@@ -702,9 +700,7 @@ Process::MagneticInfo FullViewIntervalPresenter::magneticPosition(
     auto parentScenar = Scenario::closestParentScenario(o);
     if(parentScenar)
     {
-      // Where t starts, in the scenario's reference: at the moved object's
-      // interval when it is one of this scenario's, else at the scenario's
-      // start.
+      // Origin of t in the scenario's time base.
       const TimeVal origin = (ownItv && ownItv->parent() == parentScenar)
                                  ? ownItv->date()
                                  : TimeVal::zero();
@@ -754,9 +750,8 @@ Process::MagneticInfo FullViewIntervalPresenter::magneticPosition(
     else
       o = o->parent();
   } while(!cur_model && o);
-  // The grid is in the reference of the interval with the time signatures;
-  // t counts from the start of the object's own interval, which need not be
-  // the one shown (an automation in a box of the score shown).
+  // The grid is in the time base of the interval holding the signatures; t is
+  // relative to the object's own interval, which may be nested in the shown one.
   const auto shown = closestParentWithMusicalMetrics(&m_model);
   auto own = cur_model ? closestParentWithMusicalMetrics(cur_model) : shown;
   if(own.parent != shown.parent)

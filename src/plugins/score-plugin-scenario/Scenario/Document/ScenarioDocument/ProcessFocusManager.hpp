@@ -52,9 +52,8 @@ public:
   //! To be called on every change of selection.
   void selectionChanged() noexcept { ++m_selectionGeneration; }
 
-  //! Has the selection changed since the focus last did? Clicking some items
-  //! changes only one of the two: the more recent tells what the user is
-  //! working on.
+  //! Whether the selection changed more recently than the focus. Clicking some
+  //! items changes only one of the two.
   bool selectionNewerThanFocus() const noexcept
   {
     return m_selectionGeneration != m_focusGeneration;

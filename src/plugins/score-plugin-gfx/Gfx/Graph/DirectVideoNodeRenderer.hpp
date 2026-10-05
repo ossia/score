@@ -90,7 +90,6 @@ private:
   int64_t ptsToFlicks(int64_t pts) const noexcept;
   int64_t flicksToPts(int64_t flicks) const noexcept;
   bool isSequentialRead(int64_t flicks) const;
-  //! The next packet of the video stream.
   bool readVideoPacket(AVPacket* into);
   bool readNextPacketRaw();
   bool peekNextPacketRaw();
@@ -134,7 +133,7 @@ private:
   //! duration.
   int64_t m_framePts{1};
   //! The demuxer declares no timestamps (raw elementary streams): frames are
-  //! numbered, and seeking restarts from the beginning.
+  //! numbered, and seeks restart from the last known keyframe.
   bool m_noTimestamps{};
   int64_t m_nextMissingPts{};
   bool m_useAVCodec{true};

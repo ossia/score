@@ -126,7 +126,7 @@ void ApplicationPlugin::showVolume(score::Document& doc)
   if(!node || !node->get_parameter())
     return;
 
-  // Shown, not sent: the gain is already what the slider would push.
+  // Display only: the gain already has this value.
   QSignalBlocker block{m_volume};
   m_volume->setValue(ossia::convert<double>(node->get_parameter()->value()));
   m_volume->update();

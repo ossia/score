@@ -330,7 +330,7 @@ void CopiedCables::undo(const score::DocumentContext& ctx) const
       = score::IDocument::modelDelegate<ScenarioDocumentModel>(ctx.document);
   for(const auto& [cable_id, cable_data] : cables)
   {
-    // Not there if it was not valid to paste
+    // Invalid cables are not pasted.
     auto it = model.cables.find(cable_id);
     if(it == model.cables.end())
       continue;

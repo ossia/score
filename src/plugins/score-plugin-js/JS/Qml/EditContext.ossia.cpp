@@ -101,7 +101,7 @@ void EditJsContext::play(QObject* obj)
 {
   if(auto itv = qobject_cast<Scenario::IntervalModel*>(obj))
   {
-    // What the interval's play button ends in, also without a GUI
+    // Same path as the interval's play button; works without a GUI.
     if(auto engine = score::GUIAppContext()
                          .findGuiApplicationPlugin<Engine::ApplicationPlugin>())
       engine->execution().request_play_interval(*itv);

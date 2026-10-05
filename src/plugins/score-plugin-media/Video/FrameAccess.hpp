@@ -17,15 +17,11 @@ extern "C" {
  * Scrubbing to a frame means decoding from the keyframe before it, so the
  * longest run of non-keyframes bounds the cost of any seek, on every machine.
  *
- * A demuxer that declares no timestamps settles it, and so does a codec with
- * AV_CODEC_PROP_INTRA_ONLY (ProRes, DNxHD, JPEG 2000...): nothing is read.
- * The flag is not set for CineForm, PNG or FFV1, nor for all-intra H.264 /
- * HEVC / MPEG-2 (AVC-Intra, XAVC-I, IMX). For those the stream is read:
- *  - a container index covering every frame (MP4, MOV) gives the layout for
- *    free;
- *  - otherwise the first packets are demuxed, not decoded, and their keyframe
- *    flags read, through a second context on the same file. Matroska indexes only some keyframes, MPEG-TS and MXF expose
- *    no index at all.
+ * AV_CODEC_PROP_INTRA_ONLY is not set for CineForm, PNG, FFV1 or all-intra
+ * H.264 / HEVC / MPEG-2 (AVC-Intra, XAVC-I, IMX), so the stream itself is
+ * read: a container index covering every frame (MP4, MOV) when there is one,
+ * else the keyframe flags of the first demuxed packets. Matroska indexes only
+ * some keyframes; MPEG-TS and MXF have no index.
  */
 namespace Video
 {
@@ -91,10 +87,8 @@ inline FrameAccessProbe fromIndex(const AVStream& st) noexcept
 }
 
 //! Reads keyframe flags off the first packets of the first video stream,
-//! through a context of its own: whatever the demuxer, the caller's context
-//! is left where it was. Some cannot be rewound at all -- a time seek fails
-//! on a stream without timestamps and leaves the demuxer at its end, and
-//! some demuxers do not seek by bytes either.
+//! through a context of its own: some demuxers cannot be rewound afterwards
+//! (no timestamps to seek on, no byte seeking either).
 inline FrameAccessProbe fromPackets(const char* url) noexcept
 {
   AVFormatContext* fmt{};
@@ -166,8 +160,8 @@ inline FrameAccessProbe fromPackets(const char* url) noexcept
 }
 
 /**
- * @param url what `fmt` was opened from: the packet probe, when needed, reads
- *        through a context of its own, so `fmt` is not moved.
+ * @param url what `fmt` was opened from; the packet probe opens it again so
+ *        that `fmt` is not moved.
  */
 inline FrameAccessProbe
 classifyFrameAccess(AVFormatContext& fmt, AVStream& st, const char* url) noexcept

@@ -116,9 +116,8 @@ std::vector<score::RestorableDocument> score::DocumentBackups::restorableDocumen
     if(file1.isEmpty())
       continue;
 
-    // A backup records the name the document was saved under, its command
-    // file, and the name it had when its model was backed up. Older ones hold
-    // the first two as a pair.
+    // Entry: (saved file name, command file, file name when the model was
+    // backed up). Older backups hold only the first two, as a QPair.
     const auto& v = existing_files[file1];
     if(const auto entry = v.toStringList(); entry.size() >= 2)
       loadRestorableDocumentData(

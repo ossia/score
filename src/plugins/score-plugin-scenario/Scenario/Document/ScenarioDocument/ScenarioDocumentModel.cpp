@@ -97,8 +97,7 @@ void ScenarioDocumentModel::finishLoading()
     auto cbl = new Process::Cable{DataStream::Deserializer{bytearray}, this};
     auto src = cbl->source().try_find(m_context);
     auto snk = cbl->sink().try_find(m_context);
-    // A document saved with a cable on a port of another type: it is dropped
-    // rather than loaded into the execution.
+    // Cables between ports of mismatched types are dropped, not loaded.
     if(src && snk && !Dataflow::isValidCable(
                                  Process::CableData{cbl->type(), cbl->source(), cbl->sink()},
                                  m_context))

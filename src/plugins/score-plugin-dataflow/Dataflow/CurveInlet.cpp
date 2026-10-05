@@ -237,9 +237,8 @@ void CurveInlet::init()
   connect(
       this, &Process::ControlInlet::valueChanged, this, &CurveInlet::on_valueChange);
 
-  // The execution only sees the value: a curve it does not hold yet (the
-  // default one of a new port, or one loaded from a document saved with an
-  // empty value) would be played as no curve at all.
+  // The execution only sees the value: fill it from the curve when empty
+  // (a new port, or a document saved with an empty value).
   const auto* segments = value().target<std::vector<ossia::value>>();
   if((!segments || segments->empty()) && !m_curve->segments().empty())
     on_curveChange();

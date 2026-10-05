@@ -301,11 +301,10 @@ void VideoFrameReader::readNextFrame(VideoNode& node)
     }
   }
 
-  // Playing backwards, or scrubbing back: the time is before the frame on
-  // screen, and the queue only decodes forward. Ask for a seek there, one at
-  // a time: a new one once the decoder has done the last (seek_generation).
-  // Not before the earliest frame: a video starting after its container
-  // shows it from time 0, and nothing comes before it.
+  // Going backwards: the queue only decodes forward, so seek, one request at
+  // a time (a new one once seek_generation shows the last was done). Not
+  // before the earliest frame: a video starting after its container shows it
+  // from time 0.
   if(m_showing && node.standardUBO.time < m_lastFrameTime - 1e-6
      && m_lastFrameTime > m_earliestFrameTime)
   {
@@ -375,11 +374,9 @@ AVFrame* VideoFrameReader::nextFrame(
   double current_flicks = nodem.standardUBO.time * ossia::flicks_per_second<double>;
   double flicks_per_frame = ossia::flicks_per_second<double> / fps;
 
-  // Where the frame is, in its own spans: in [0, 1) it is the frame for this
-  // time, as in DirectVideoNodeRenderer, which maps time the same way
-  // (Video::flicksToPts from playbackStartPts) and compares the same way, in
-  // the stream's ticks: a time on a frame's start shows that frame. Below 0
-  // its time has not come, from 1 on it is past.
+  // The current time relative to a frame, in units of its span: [0, 1) is
+  // due, < 0 not yet, >= 1 past. Same mapping and comparison, in stream ticks,
+  // as DirectVideoNodeRenderer.
   const double frame_ticks = flicks_per_frame / decoder.flicks_per_dts;
   const int64_t now = decoder.time_base.num > 0
                           ? Video::flicksToPts(
@@ -401,8 +398,7 @@ AVFrame* VideoFrameReader::nextFrame(
 
   ossia::small_vector<AVFrame*, 8> prev{};
 
-  // A frame decoded before the last seek is not shown, held back or queued:
-  // its time is from before the seek (Video::frameGeneration).
+  // Frames decoded before the last seek are dropped (Video::frameGeneration).
   const int generation = decoder.seek_generation.load(std::memory_order_acquire);
   auto stale = [&](const AVFrame* frame) {
     return Video::frameGeneration(*frame) < generation;
@@ -411,15 +407,14 @@ AVFrame* VideoFrameReader::nextFrame(
     m_framesToFree.push_back(std::exchange(m_nextFrame, nullptr));
 
   // A frame whose time has not come is held back and the current one kept;
-  // one whose time is past is skipped. Seeks are not guessed from how far a
-  // frame is: the generation says.
+  // one whose time is past is skipped.
   if(auto frame = m_nextFrame)
   {
     const auto d = drift(frame);
     if((d >= 0. && d < 1.) || (!showing && d < 0.))
     {
-      // we can finally show this frame; or it is the first one, which shows
-      // until its time comes as the direct renderer shows it
+      // we can finally show this frame; or it is the first one, shown early
+      // as the direct renderer does
       m_nextFrame = nullptr;
       return frame;
     }

@@ -854,10 +854,8 @@ void IntervalModel::on_removingProcess(const Process::ProcessModel& p)
     }
   }
 
-  // The nodal slots show every time-independent process of the interval and
-  // go with the last one. Decided on the processes that remain rather than on
-  // the slot's own list, which a process whose flags changed since it was
-  // added -- a script edited -- leaves out of date.
+  // The nodal slots go away with the last time-independent process. The slot's
+  // own list can be stale: a process's flags can change after it was added.
   const bool nodesRemain = ossia::any_of(processes, [&](const auto& proc) {
     return &proc != &p && (proc.flags() & Process::ProcessFlags::TimeIndependent);
   });

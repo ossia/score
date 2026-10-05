@@ -78,8 +78,8 @@ public:
 
   QRectF rect() const noexcept { return m_localRect; }
 
-  //! Where a point dragged to `x` lands. Set by the processes whose x is time,
-  //! to follow the timeline's magnetism; x itself when unset.
+  //! Where a point dragged to `x` lands, e.g. following the timeline's
+  //! magnetism for processes whose x is time. Identity when unset.
   void setMagnetism(std::function<double(double)> f) noexcept
   {
     m_magnetism = std::move(f);

@@ -1,10 +1,6 @@
-// Driven through a real --script run of the application.
-//
-// A trigger or a condition on an address whose device is absent, or present
-// but not connected, does not hold: the trigger waits for its maximum or for a
-// manual trigger, the condition keeps its branch from running. A one-second
-// interval ends on the trigger; its end state writes sink:/fired, which the
-// script reads back once the trigger would have fired.
+// A trigger or condition on an address whose device is absent or not
+// connected does not hold. Each case runs the application with --script, which
+// reads back sink:/fired, written by the state the trigger ends on.
 
 #include <QByteArray>
 #include <QTemporaryDir>

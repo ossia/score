@@ -15,20 +15,16 @@ extern "C" {
  * @file PlaybackTime.hpp
  * @brief Which timestamp a video shows at playback time 0.
  *
- * Every renderer and the thumbnailer map playback time to stream timestamps
- * through this one definition, so that they agree on which frame a time
- * shows.
+ * Every renderer and the thumbnailer go through this, so that they agree on
+ * which frame a time shows.
  *
- * Time 0 is the container's start: the earliest timestamp of any of its
- * streams, as players rebase it (mpv's rebase-start-time, ffplay). An MPEG-TS
- * starts wherever its broadcast clock was (hours, here and there): without the
- * rebase its first frame would wait that long. Taking the container's start
- * rather than the video stream's keeps an offset the file means between its
- * streams: a video starting half a second after its audio still does.
+ * Time 0 is the container's start, the earliest timestamp of any stream, as
+ * mpv and ffplay rebase it: an MPEG-TS can start hours into its broadcast
+ * clock. Using the container's start rather than the video stream's keeps the
+ * offset between streams (a video starting after its audio).
  *
- * Never before 0: a start below it is codec delay or an edit list's priming
- * (MP4, MOV), whose frames are not meant to be seen and are dropped as
- * negative.
+ * Never before 0: a negative start is codec delay or edit-list priming (MP4,
+ * MOV), whose frames are dropped.
  */
 namespace Video
 {

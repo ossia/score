@@ -272,7 +272,6 @@ void PlayContextMenu::setupContextMenu(Process::LayerContextMenuManager& ctxm)
     auto scenPoint = Scenario::ConvertToScenarioPoint(
         scenept, pres.zoomRatio(), pres.view().height());
     m_playFromHere->setData(QVariant::fromValue(scenPoint.date));
-    // The date is in the clicked scenario, which may be nested.
     m_playFromHereInterval = Scenario::closestParentInterval(&pres.model());
     menu.addAction(m_playFromHere);
 

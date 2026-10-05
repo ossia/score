@@ -378,9 +378,8 @@ ReadFrame receiveVideoFrame(
       {
         if(frame->pts == AV_NOPTS_VALUE)
           frame->pts = frame->best_effort_timestamp;
-        // Without timestamps the demuxer's durations are guesses too: raw
-        // H.264 ones fall to 1 tick after a byte seek. Number by the frame
-        // rate.
+        // Without timestamps the demuxer's durations are unreliable too (raw
+        // H.264 gives 1 tick after a byte seek): number by the frame rate.
         int64_t duration = missing->step;
         if(frame->pts == AV_NOPTS_VALUE)
         {
@@ -728,9 +727,9 @@ bool VideoDecoder::seek_impl(int64_t flicks) noexcept
      && av_rescale_q(target - last, stream_tb, av_tb) <= (av_tb.den / 5) / av_tb.num)
     return false;
 
-  // A stream without timestamps cannot be sought by time: it is restarted,
-  // by bytes, and numbered from its beginning; the frames before the target
-  // are skipped below, as DirectVideoNodeRenderer walks them.
+  // A stream without timestamps cannot be sought by time: it is restarted by
+  // bytes, numbered from its beginning, and the frames before the target are
+  // skipped below.
   const bool no_timestamps = m_formatContext->iformat->flags & AVFMT_NOTIMESTAMPS;
   auto seek_to = [&](int64_t abs_flicks) {
     if(no_timestamps
@@ -774,14 +773,11 @@ bool VideoDecoder::seek_impl(int64_t flicks) noexcept
     return false;
   }
 
-  // The seek asks for the target minus the pts - dts lead measured so far.
-  // Before any packet was read, a demuxer seeking on dts (MPEG-TS, MPEG-PS)
-  // can still land on a frame that shows after the target: back off until
-  // the first frame is not later. Frames queued by an attempt that landed
-  // too late belong to this seek's generation but come before the frame
-  // marked below, which the consumer discards up to.
-  // A video starting after its container (audio first) legitimately shows
-  // its first frame after any earlier target.
+  // A demuxer seeking on dts (MPEG-TS, MPEG-PS) can land on a frame shown
+  // after the target while m_ptsLead is not yet known: back off until the
+  // first frame is not later. A video starting after its container
+  // legitimately shows its first frame after an earlier target. Frames queued
+  // by a retry are discarded by the consumer up to the frame marked below.
   const int64_t landing = m_avstream->start_time != AV_NOPTS_VALUE
                               ? std::max(target, m_avstream->start_time)
                               : target;

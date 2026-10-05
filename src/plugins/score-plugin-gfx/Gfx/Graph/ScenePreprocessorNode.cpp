@@ -745,9 +745,8 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
   uint64_t m_cachedDynamicSlotFingerprint{};
 
   // The dynamic slots this scene's materials resolved in the current update,
-  // one bit per slot index. Only these are published: a slot nobody resolved
-  // this frame may hold a texture its producer has freed since, as the
-  // registry has no way to know.
+  // one bit per slot index. Only these are published: another slot may hold
+  // a texture its producer has freed, which the registry cannot know.
   uint64_t m_claimedDynamicSlots{};
 
   // Value computeSceneTextureFingerprint() returned at the last full rebuild:
@@ -4443,9 +4442,9 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
       // cheap cache hit for scenes that don't change. When a material
       // disappears (removed from scene_state.materials), its slot is
       // reclaimed by the garbage-collection pass below.
-      // A material seen for the first time has an empty slot, even when it
-      // carries the stable_id of one it replaces (the same file parsed
-      // again): the materials then count as changed, see sameMaterialsContent.
+      // A newly seen material has an empty slot even when it carries the
+      // stable_id of one it replaces (the same file parsed again): the
+      // materials then count as changed.
       bool loaderSlotsAdded = false;
       if(this->scene.state && m_registry)
       {

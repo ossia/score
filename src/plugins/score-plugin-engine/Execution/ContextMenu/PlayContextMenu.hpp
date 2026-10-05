@@ -45,8 +45,7 @@ private:
   QAction* m_playIntervals{};
 
   QAction* m_playFromHere{};
-  //! The interval whose date the play from here action holds: the one of the
-  //! scenario clicked in.
+  //! The interval the play-from-here date is relative to (scenarios may be nested).
   QPointer<Scenario::IntervalModel> m_playFromHereInterval;
 };
 }

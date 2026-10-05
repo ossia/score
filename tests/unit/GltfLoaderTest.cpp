@@ -744,9 +744,8 @@ TEST_CASE(
     "a glTF whose external images are partly missing loads without them",
     "[threedim][gltf][images]")
 {
-  // Models are shared without all of their textures (sponza.glb copied
-  // without its 68 .png): the geometry and the textures that are there still
-  // load, only the missing ones are left out.
+  // A model with some of its textures missing still loads its geometry and
+  // the textures that are there.
   QTemporaryDir tdir;
   REQUIRE(tdir.isValid());
   const fs::path root = fs::path(tdir.path().toStdString());
