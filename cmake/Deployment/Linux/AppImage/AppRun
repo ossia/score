@@ -35,6 +35,12 @@ fi
 
 export LD_LIBRARY_PATH="${APPIMAGE_LIBRARY_PATH}:${APPDIR}/usr/lib:${LD_LIBRARY_PATH}"
 
+# The fontconfig linked into ossia-score reads the host's /etc/fonts/fonts.conf;
+# a host without one gets the usual font directories from the bundled file.
+if [[ ! -f /etc/fonts/fonts.conf && -z "${FONTCONFIG_FILE-}" && -z "${FONTCONFIG_PATH-}" ]]; then
+    export FONTCONFIG_FILE="${APPDIR}/usr/share/ossia-score/fontconfig/fonts.conf"
+fi
+
 "${APPDIR}/usr/bin/linuxcheck" "${APPDIR}/usr/bin/ossia-score" "$@"
 
 APP_SUFFIX=""

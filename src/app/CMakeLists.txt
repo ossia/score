@@ -169,6 +169,16 @@ if(SCORE_LINKER_SCRIPT)
   set_property(TARGET ${APPNAME} APPEND PROPERTY LINK_DEPENDS "${SCORE_LINKER_SCRIPT}")
 endif()
 
+if(UNIX AND NOT APPLE AND NOT EMSCRIPTEN AND NOT ANDROID
+   AND (TARGET score_plugin_jit OR TARGET score_plugin_faust))
+  # The SDK's Qt links fontconfig, freetype, harfbuzz and expat statically.
+  # Exported, those copies would interpose the host's: a libfreetype.so loaded
+  # later (GL driver, GTK dialog, plug-in) would run with our symbols mixed
+  # into its own. No-op when the archives are not part of the link.
+  target_link_options(${APPNAME} PRIVATE
+    "LINKER:--exclude-libs,libfontconfig.a:libfreetype.a:libharfbuzz.a:libexpat.a")
+endif()
+
 if(APPLE)
     find_library(CFLIB CoreFoundation)
     find_library(FLIB Foundation)
