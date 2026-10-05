@@ -913,6 +913,7 @@ public:
 
 protected:
   void paintEvent(QPaintEvent* event) override;
+  bool eventFilter(QObject* watched, QEvent* event) override;
   void keyPressEvent(QKeyEvent* event) override;
   void closeEvent(QCloseEvent* event) override;
   void showEvent(QShowEvent* event) override;
@@ -1024,10 +1025,14 @@ StartScreen::StartScreen(const QPointer<QRecentFilesMenu>& recentFiles, QWidget*
 {
   auto& skin = score::Skin::instance();
   setCursor(skin.CursorPointer);
-  setWindowFlags(Qt::Dialog | Qt::FramelessWindowHint);
-  setWindowModality(Qt::ApplicationModal);
   setFocusPolicy(Qt::StrongFocus);
-  setFixedSize(Width, Height);
+  setMinimumSize(Width, Height);
+  // Covers the whole main window, and follows its size.
+  if(parent)
+  {
+    parent->installEventFilter(this);
+    setGeometry(parent->rect());
+  }
 
   {
     QSettings s;
@@ -1864,7 +1869,7 @@ void StartScreen::reopen()
   m_actionTaken = false;
   show();
   raise();
-  activateWindow();
+  setFocus();
 }
 
 void StartScreen::checkForNewVersion()
@@ -1914,16 +1919,21 @@ void StartScreen::paintEvent(QPaintEvent* event)
   painter.setRenderHint(QPainter::TextAntialiasing, true);
   painter.setRenderHint(QPainter::SmoothPixmapTransform, true);
 
-  // The splash artwork covers the whole window: logo and tagline in the
-  // header, decorations behind the navigation column.
-  painter.fillRect(rect(), Qt::black);
+  // The splash artwork: logo and tagline in the header, decorations behind the
+  // navigation column. It keeps the scale it has at the minimum size, anchored
+  // top-left, so that the header lines up with HeaderHeight at any window size;
+  // past its edges, the gradient its own edges fade into.
+  {
+    QLinearGradient fade{QPointF{0, 0}, QPointF{0, qreal(Height)}};
+    fade.setColorAt(0, Qt::black);
+    fade.setColorAt(1, QColor{16, 20, 23});
+    painter.fillRect(rect(), fade);
+  }
   qreal scale = 1.;
   if(!m_background.isNull())
   {
-    // Scaled uniformly to cover the window, anchored top-left so that the logo
-    // and tagline keep their place; the overflow is cropped at the bottom.
     const QSizeF logical = m_background.deviceIndependentSize();
-    scale = std::max(width() / logical.width(), height() / logical.height());
+    scale = std::max(Width / logical.width(), Height / logical.height());
     painter.drawPixmap(
         QRectF{QPointF{}, logical * scale}, m_background, m_background.rect());
   }
@@ -1943,29 +1953,29 @@ void StartScreen::paintEvent(QPaintEvent* event)
 
   // Dim the artwork behind the navigation so that its text stays readable
   painter.fillRect(
-      QRect{0, HeaderHeight, NavWidth, Height - HeaderHeight}, QColor{0, 0, 0, 120});
+      QRect{0, HeaderHeight, NavWidth, height() - HeaderHeight}, QColor{0, 0, 0, 120});
 
   // Page panel. The selected navigation item paints itself with the panel
   // color so that it visually connects to the page.
   painter.fillRect(
-      QRect{NavWidth, HeaderHeight, Width - NavWidth, Height - HeaderHeight},
+      QRect{NavWidth, HeaderHeight, width() - NavWidth, height() - HeaderHeight},
       StartScreenColors::Panel);
 }
 
 void StartScreen::showEvent(QShowEvent* event)
 {
   QWidget::showEvent(event);
+  if(auto* p = parentWidget())
+    setGeometry(p->rect());
+  raise();
+  setFocus();
+}
 
-  // No window manager in the browser, and none places a frameless dialog.
-  // At startup the main window is not mapped yet and its geometry is still the
-  // requested one: only the screen it belongs to can be trusted.
-  auto* main = score::GUIAppContext().mainWindow;
-  const QScreen* scr = main ? main->screen() : screen();
-  if(!scr)
-    scr = QGuiApplication::primaryScreen();
-
-  if(scr)
-    move(scr->availableGeometry().center() - QPoint{width() / 2, height() / 2});
+bool StartScreen::eventFilter(QObject* watched, QEvent* event)
+{
+  if(watched == parentWidget() && event->type() == QEvent::Resize)
+    setGeometry(parentWidget()->rect());
+  return QWidget::eventFilter(watched, event);
 }
 
 void StartScreen::keyPressEvent(QKeyEvent* event)
