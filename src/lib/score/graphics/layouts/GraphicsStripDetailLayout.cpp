@@ -196,17 +196,40 @@ void GraphicsStripCell::paint(
 
 GraphicsStripDetailLayout::GraphicsStripDetailLayout(QGraphicsItem* parent)
     : GraphicsLayout{parent}
-    , m_strip{new GraphicsHBoxLayout{this}}
 {
-  m_strip->setSpacing(4.);
+  strip();
 }
 
 GraphicsStripDetailLayout::~GraphicsStripDetailLayout() { }
 
+// A UI rebuilt in place deletes every child of its root layout, the strip
+// included, before building the pages and cells again.
+GraphicsLayout& GraphicsStripDetailLayout::strip()
+{
+  if(!m_strip)
+  {
+    m_strip = new GraphicsHBoxLayout{this};
+    m_strip->setSpacing(4.);
+    m_strip->setVisible(m_stripVisible);
+  }
+  return *m_strip;
+}
+
+QVariant
+GraphicsStripDetailLayout::itemChange(GraphicsItemChange change, const QVariant& value)
+{
+  if(change == ItemChildRemovedChange && value.value<QGraphicsItem*>() == m_strip)
+  {
+    m_strip = nullptr;
+    m_cells.clear();
+  }
+  return GraphicsLayout::itemChange(change, value);
+}
+
 void GraphicsStripDetailLayout::addCell(GraphicsStripCell* cell)
 {
   const int index = std::ssize(m_cells);
-  cell->setParentItem(m_strip);
+  cell->setParentItem(&strip());
   cell->onClicked = [this, index] {
     setCurrentIndex(index);
     if(onCurrentIndexChanged)
@@ -239,16 +262,17 @@ void GraphicsStripDetailLayout::setCurrentIndex(int index)
 void GraphicsStripDetailLayout::setStripVisible(bool visible)
 {
   m_stripVisible = visible;
-  m_strip->setVisible(visible);
+  strip().setVisible(visible);
 }
 
 void GraphicsStripDetailLayout::layout()
 {
+  auto& cells = strip();
   const auto p = pages();
   updateChildrenRects(childItems());
 
-  m_strip->setPos(m_padding, m_padding);
-  const QRectF sr = m_stripVisible ? m_strip->boundingRect() : QRectF{};
+  cells.setPos(m_padding, m_padding);
+  const QRectF sr = m_stripVisible ? cells.boundingRect() : QRectF{};
   const double pages_y = m_stripVisible ? m_padding + sr.height() + spacing() : m_padding;
 
   double w = sr.width();
