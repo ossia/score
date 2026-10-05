@@ -567,11 +567,19 @@ void Application::initDocuments()
 void Application::createStartScreen()
 {
   SCORE_ASSERT(!m_startScreen);
-  // Parented for the transient-parent hint; Qt::Dialog keeps it a window.
+  // A child of the main window that covers it entirely.
   m_startScreen
       = new score::StartScreen{this->context().docManager.recentFiles(), m_view};
 
   auto& ctx = m_presenter->applicationContext();
+  // The main window's shortcuts stay active under the start screen: a document
+  // opened through them replaces it.
+  connect(
+      &m_presenter->documentManager(), &score::DocumentManager::documentChanged, this,
+      [this](score::Document* doc) {
+    if(doc && m_startScreen && m_startScreen->isVisible())
+      m_startScreen->dismiss();
+  });
   connect(m_startScreen, &score::StartScreen::openNewDocument, this, [this]() {
     m_startScreen->close();
     openNewDocument();
