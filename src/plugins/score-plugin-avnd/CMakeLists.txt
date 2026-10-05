@@ -1378,6 +1378,8 @@ addAvndTest(port_unit_Test
              "${CMAKE_CURRENT_SOURCE_DIR}/Tests/port_unit_Test.cpp")
 addAvndTest(control_domain_Test
              "${CMAKE_CURRENT_SOURCE_DIR}/Tests/control_domain_Test.cpp")
+addAvndTest(enum_port_Test
+             "${CMAKE_CURRENT_SOURCE_DIR}/Tests/enum_port_Test.cpp")
 addAvndTest(utilities_Test
              "${CMAKE_CURRENT_SOURCE_DIR}/Tests/Utilities_Test.cpp")
 target_include_directories(Avnd_utilities_Test PRIVATE "${AVND_FOLDER}" "${CMAKE_CURRENT_SOURCE_DIR}")
