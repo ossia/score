@@ -23,6 +23,7 @@
 
 #include <score/tools/Debug.hpp>
 
+#include <ossia/detail/algorithms.hpp>
 #include <ossia/detail/flicks.hpp>
 #include <ossia/detail/libav.hpp>
 

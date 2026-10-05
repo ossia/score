@@ -18,7 +18,7 @@
 #include <vector>
 
 extern "C" {
-struct AVFrame;
+#include <libavutil/frame.h>
 }
 namespace Video
 {
