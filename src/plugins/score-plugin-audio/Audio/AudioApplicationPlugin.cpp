@@ -1,5 +1,7 @@
 #include "AudioApplicationPlugin.hpp"
 
+#include <QSignalBlocker>
+
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 
 #include <Scenario/Application/ScenarioActions.hpp>
@@ -107,6 +109,27 @@ void ApplicationPlugin::rebind_engine(score::Document& doc)
     dev->reconnect();
   if(audio)
     audio->set_tick(Audio::makePauseTick(this->context));
+  showVolume(doc);
+}
+
+void ApplicationPlugin::showVolume(score::Document& doc)
+{
+  if(!m_volume)
+    return;
+  auto dev = (Dataflow::AudioDevice*)doc.context()
+                 .plugin<Explorer::DeviceDocumentPlugin>()
+                 .list()
+                 .audioDevice();
+  if(!dev || !dev->getDevice())
+    return;
+  auto node = ossia::net::find_node(dev->getDevice()->get_root_node(), "/out/main");
+  if(!node || !node->get_parameter())
+    return;
+
+  // Shown, not sent: the gain is already what the slider would push.
+  QSignalBlocker block{m_volume};
+  m_volume->setValue(ossia::convert<double>(node->get_parameter()->value()));
+  m_volume->update();
 }
 
 void ApplicationPlugin::timerEvent(QTimerEvent*)
@@ -150,6 +173,7 @@ score::GUIElements ApplicationPlugin::makeGUIElements()
   {
     auto bar = new QToolBar(tr("Volume"));
     auto sl = new score::VolumeSlider{bar};
+    m_volume = sl;
     // Pinned, or the toolbar stretches it across whatever room is left.
     score::onSkinChange(sl, [sl] {
       sl->setFixedSize(score::scaledPixels(100), sl->skinExtent());
@@ -346,6 +370,8 @@ void ApplicationPlugin::start_engine()
     {
       audio->set_tick(Audio::makePauseTick(this->context));
     }
+    if(auto doc = this->currentDocument())
+      showVolume(*doc);
   }
 }
 
