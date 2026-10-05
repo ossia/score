@@ -279,7 +279,8 @@ QString relativizeFilePath(const QString& filename, const PathRoots& roots) noex
   if(isUnderFolder(path, roots.library))
     return strip(roots.library, library_prefix);
 
-  return path;
+  // Under no root: kept as chosen, symlinks included.
+  return filename;
 }
 
 QString sanitizeFileName(const QString& name) noexcept
