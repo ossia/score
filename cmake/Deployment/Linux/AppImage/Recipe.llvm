@@ -98,6 +98,8 @@ cp "$APP_DIR/usr/share/pixmaps/ossia-score.png" "$APP_DIR/"
   mkdir -p ./usr/bin/lib/fonts
   cp -rf $SOURCE_DIR/src/lib/resources/fonts/*.otf ./usr/bin/lib/fonts/ 2>/dev/null || true
   cp -rf $SOURCE_DIR/src/lib/resources/fonts/*.ttf ./usr/bin/lib/fonts/
+  mkdir -p ./usr/share/ossia-score/fontconfig
+  cp $SOURCE_DIR/cmake/Deployment/Linux/AppImage/fonts.conf ./usr/share/ossia-score/fontconfig/
 
   ldd usr/bin/ossia-score | grep "=>" | awk '{print $3}' | grep so |  xargs -I '{}' cp -v '{}' ./usr/lib || true
 
