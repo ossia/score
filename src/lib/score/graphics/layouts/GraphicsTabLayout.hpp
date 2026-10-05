@@ -23,6 +23,8 @@ public:
   void layout() override;
 
 private:
+  QVariant itemChange(GraphicsItemChange change, const QVariant& value) override;
+
   int m_currentIndex{};
   bool m_showTabBar{true};
   QGraphicsEnum* m_tabBar{};

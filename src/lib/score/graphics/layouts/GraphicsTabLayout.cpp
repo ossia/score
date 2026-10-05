@@ -25,6 +25,20 @@ void GraphicsTabLayout::setCurrentIndex(int index)
     m_tabBar->setValue(index);
 }
 
+// A UI rebuilt in place deletes every child of its root layout, the tab bar
+// included, before building the pages again.
+QVariant GraphicsTabLayout::itemChange(GraphicsItemChange change, const QVariant& value)
+{
+  if(change == ItemChildRemovedChange)
+  {
+    auto child = value.value<QGraphicsItem*>();
+    if(child == m_tabBar)
+      m_tabBar = nullptr;
+    std::erase(m_pages, child);
+  }
+  return GraphicsLayout::itemChange(change, value);
+}
+
 void GraphicsTabLayout::layout()
 {
   auto items = this->childItems();

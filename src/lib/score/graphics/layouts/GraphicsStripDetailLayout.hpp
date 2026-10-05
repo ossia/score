@@ -57,7 +57,7 @@ public:
   explicit GraphicsStripDetailLayout(QGraphicsItem* parent);
   ~GraphicsStripDetailLayout();
 
-  GraphicsLayout& strip() const noexcept { return *m_strip; }
+  GraphicsLayout& strip();
   void addCell(GraphicsStripCell* cell);
 
   int currentIndex() const noexcept { return m_currentIndex; }
@@ -70,6 +70,7 @@ public:
   void layout() override;
 
 private:
+  QVariant itemChange(GraphicsItemChange change, const QVariant& value) override;
   std::vector<QGraphicsItem*> pages() const;
 
   GraphicsHBoxLayout* m_strip{};

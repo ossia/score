@@ -24,6 +24,7 @@
 #include <Process/ProcessContext.hpp>
 #include <Process/ProcessList.hpp>
 
+#include <Scenario/Commands/LoadPresetCommand.hpp>
 #include <Scenario/Commands/SetControllerControlValue.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
@@ -32,6 +33,8 @@
 
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/document/DocumentInterface.hpp>
+#include <score/graphics/layouts/GraphicsTabLayout.hpp>
+#include <score/graphics/widgets/QGraphicsEnum.hpp>
 #include <score/graphics/widgets/QGraphicsSpinbox.hpp>
 #include <score/model/EntitySerialization.hpp>
 #include <score/plugins/SerializableHelpers.hpp>
@@ -852,5 +855,79 @@ TEST_CASE("Undoing a preset load puts the cables back at both ends", "[avnd][dyn
     CHECK(a->inlets()[5]->cables().size() == 1);
     // The other end had been emptied by the load and was not reloaded
     CHECK(b->outlets()[0]->cables().size() == 1);
+  });
+}
+
+TEST_CASE("Loading a preset rebuilds a tabbed UI in place", "[avnd][preset][ui]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    auto& dctx = doc->context();
+
+    // Its UI root is a tab layout
+    const QString beat_tracker_uuid = QStringLiteral("8c8c1855-b96f-4231-b40a-453468e7f9ec");
+    auto* proc = score::test::add_process(*doc, beat_tracker_uuid, {});
+    auto* source = score::test::add_process(*doc, beat_tracker_uuid, {});
+    if(!proc || !source)
+      SKIP("Beat Tracker is not built");
+    // A wired process gets the command that backs the cables up, which
+    // announces inletsChanged() whatever the preset holds and so rebuilds the
+    // UI, as in an example where the process is connected.
+    const Process::Outlet* from{};
+    const Process::Inlet* to{};
+    for(auto* o : source->outlets())
+      for(auto* i : proc->inlets())
+        if(!from && o->type() == i->type())
+        {
+          from = o;
+          to = i;
+        }
+    REQUIRE(from);
+    makeCable(*doc, 1, *from, *to);
+
+    Process::DataflowManager dfm;
+    FocusDispatcher fd;
+    Process::Context pctx{dctx, dfm, fd};
+    QGraphicsScene scene;
+    auto* root = new QGraphicsRectItem{QRectF{0., 0., 1000., 1000.}};
+    scene.addItem(root);
+
+    auto* factory = ctx.interfaces<Process::LayerFactoryList>().findDefaultFactory(*proc);
+    REQUIRE(factory);
+    auto* item = factory->makeItem(*proc, pctx, root);
+    REQUIRE(item);
+    auto* tabs = dynamic_cast<score::GraphicsTabLayout*>(item);
+    REQUIRE(tabs);
+
+    auto tabBars = [&] {
+      int n = 0;
+      for(auto* c : item->childItems())
+        if(dynamic_cast<score::QGraphicsEnum*>(c))
+          n++;
+      return n;
+    };
+    REQUIRE(tabBars() == 1);
+
+    // Twice, as a second load used to crash too
+    const Process::Preset preset = proc->savePreset();
+    auto& presets = ctx.interfaces<Process::LoadPresetCommandFactoryList>();
+    for(int i = 0; i < 2; i++)
+    {
+      auto* cmd = presets.make(&Process::LoadPresetCommandFactory::make, *proc, preset, dctx);
+      REQUIRE(dynamic_cast<Scenario::Command::LoadPresetWithCablesBackup*>(cmd));
+      CommandDispatcher<>{dctx.commandStack}.submit(cmd);
+      spin();
+      CHECK(tabBars() == 1);
+    }
+    doc->commandStack().undo();
+    spin();
+    CHECK(tabBars() == 1);
+
+    tabs->setCurrentIndex(1);
+    tabs->setCurrentIndex(0);
+
+    scene.removeItem(root);
+    delete root;
   });
 }

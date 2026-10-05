@@ -1802,6 +1802,12 @@ score_add_test(test_unit_graphics_layout_title_font
   SOURCES GraphicsLayoutTitleFontTest.cpp
   APP)
 
+# Tab and strip / detail layouts rebuilt in place, as an avnd UI is when its
+# ports change.
+score_add_test(test_unit_graphics_layout_rebuild
+  SOURCES GraphicsLayoutRebuildTest.cpp
+  APP)
+
 # The selection stack keeps its empty bottom selection through the capped
 # history and object pruning.
 score_add_test(test_unit_selection_stack_bottom
