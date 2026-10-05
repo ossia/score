@@ -248,6 +248,28 @@ const QVector<Id<IntervalModel>> intervalsBeforeTimeSync(
   return cstrs;
 }
 
+std::optional<Process::MagneticInfo>
+ProcessModel::magneticPosition(const QObject* o, const TimeVal t) const noexcept
+{
+  // The tools moving or creating this scenario's own elements ask with the
+  // scenario as the moved object: its syncs are what moves, not a target.
+  if(o == this)
+    return {};
+
+  std::optional<TimeVal> closest;
+  for(const TimeSyncModel& ts : timeSyncs)
+  {
+    if(&ts == o)
+      continue;
+    const TimeVal d = ts.date();
+    if(!closest || std::abs(d.impl - t.impl) < std::abs(closest->impl - t.impl))
+      closest = d;
+  }
+  if(!closest)
+    return {};
+  return Process::MagneticInfo{*closest, true};
+}
+
 TimeVal ProcessModel::contentDuration() const noexcept
 {
   TimeVal max_tn_pos = TimeVal::zero();
