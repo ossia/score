@@ -999,6 +999,7 @@ private:
   QFont m_versionFont;
 
   QPixmap m_background;
+  QPixmap m_logo;
 
   QStackedWidget* m_pages{};
   std::vector<InteractiveLabel*> m_navItems;
@@ -1063,7 +1064,8 @@ StartScreen::StartScreen(const QPointer<QRecentFilesMenu>& recentFiles, QWidget*
   m_versionFont.setHintingPreference(QFont::HintingPreference::PreferFullHinting);
   m_versionFont.setStyleStrategy(QFont::PreferAntialias);
 
-  m_background = score::get_pixmap(":/startscreen/startscreensplash.png");
+  m_background = score::get_pixmap(":/startscreen/startscreen-background.png");
+  m_logo = score::get_pixmap(":/startscreen/startscreen-logo.png");
 
   auto mainLayout = new QVBoxLayout{this};
   mainLayout->setContentsMargins(0, 0, 0, 0);
@@ -1919,23 +1921,38 @@ void StartScreen::paintEvent(QPaintEvent* event)
   painter.setRenderHint(QPainter::TextAntialiasing, true);
   painter.setRenderHint(QPainter::SmoothPixmapTransform, true);
 
-  // The splash artwork: logo and tagline in the header, decorations behind the
-  // navigation column. It keeps the scale it has at the minimum size, anchored
-  // top-left, so that the header lines up with HeaderHeight at any window size;
-  // past its edges, the gradient its own edges fade into.
-  {
-    QLinearGradient fade{QPointF{0, 0}, QPointF{0, qreal(Height)}};
-    fade.setColorAt(0, Qt::black);
-    fade.setColorAt(1, QColor{16, 20, 23});
-    painter.fillRect(rect(), fade);
-  }
-  qreal scale = 1.;
+  // The decorations cover the window, anchored bottom-left where they gather;
+  // the overflow is cropped at the top or the right.
+  painter.fillRect(rect(), Qt::black);
   if(!m_background.isNull())
   {
     const QSizeF logical = m_background.deviceIndependentSize();
-    scale = std::max(Width / logical.width(), Height / logical.height());
+    const qreal cover
+        = std::max(width() / logical.width(), height() / logical.height());
+    const QSizeF size = logical * cover;
     painter.drawPixmap(
-        QRectF{QPointF{}, logical * scale}, m_background, m_background.rect());
+        QRectF{QPointF{0, height() - size.height()}, size}, m_background,
+        m_background.rect());
+  }
+
+  // Scaled up, the decorations reach into the header: fade them out behind the
+  // logo, the tagline and the version.
+  {
+    QLinearGradient fade{QPointF{0, 0}, QPointF{0, qreal(HeaderHeight)}};
+    fade.setColorAt(0, QColor{0, 0, 0, 255});
+    fade.setColorAt(0.92, QColor{0, 0, 0, 255});
+    fade.setColorAt(1, QColor{0, 0, 0, 0});
+    painter.fillRect(QRect{0, 0, width(), HeaderHeight}, fade);
+  }
+
+  // The logo and tagline keep the scale they have at the minimum size, so that
+  // they line up with HeaderHeight.
+  qreal scale = 1.;
+  if(!m_logo.isNull())
+  {
+    const QSizeF logical = m_logo.deviceIndependentSize();
+    scale = std::max(Width / logical.width(), Height / logical.height());
+    painter.drawPixmap(QRectF{QPointF{}, logical * scale}, m_logo, m_logo.rect());
   }
 
   // The version sits under the tagline, which is part of the artwork

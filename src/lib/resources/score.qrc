@@ -502,8 +502,10 @@
         <file>icons/port_address_unit.png</file>
         <file>icons/port_address_unit@2x.png</file>
         <file>icons/trigger_sprite@2x.png</file>
-        <file>startscreen/startscreensplash.png</file>
-        <file>startscreen/startscreensplash@2x.png</file>
+        <file>startscreen/startscreen-background.png</file>
+        <file>startscreen/startscreen-background@2x.png</file>
+        <file>startscreen/startscreen-logo.png</file>
+        <file>startscreen/startscreen-logo@2x.png</file>
         <file>icons/cursor_magnifier.png</file>
         <file>icons/cursor_magnifier@2x.png</file>
         <file>icons/cursor_move.png</file>
