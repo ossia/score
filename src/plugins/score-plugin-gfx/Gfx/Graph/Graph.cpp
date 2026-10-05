@@ -1105,6 +1105,41 @@ void Graph::reconcileAllRenderLists()
       }
     }
 
+    // The centralized input render targets of the nodes that just left: they
+    // are keyed on the port, not on the renderer, so deleting the renderer
+    // leaves them allocated for as long as the render list lives -- across
+    // every stop and play of a document. Matched by key only: a node may
+    // already have left the graph, and its ports with it.
+    {
+      ossia::flat_set<const Port*> reachableInputs;
+      for(auto* node : rl->nodes)
+        for(auto* in : node->input)
+          reachableInputs.insert(in);
+      ossia::flat_set<const Port*> stale;
+      for(auto& [port, rt] : rl->m_inputRenderTargets)
+        if(!reachableInputs.contains(port))
+          stale.insert(port);
+      if(!stale.empty())
+      {
+        // A source still reachable keeps a pass drawing into the target: it
+        // would draw into the one created when the node comes back, with a
+        // pipeline built for the one freed here. The stale ports may be gone
+        // with their node; the edges of the live sources name the ones left.
+        for(auto* node : rl->nodes)
+        {
+          auto rn_it = node->renderedNodes.find(rl.get());
+          if(rn_it == node->renderedNodes.end())
+            continue;
+          for(auto* out : node->output)
+            for(auto* edge : out->edges)
+              if(edge->sink && stale.contains(edge->sink))
+                rn_it->second->removeOutputPass(*rl, *edge);
+        }
+        for(auto* port : stale)
+          rl->removeInputRenderTarget(port);
+      }
+    }
+
     // 4. Ensure render targets exist for all input ports BEFORE creating
     //    renderers. initState() → initInputSamplers() looks up the RT
     //    texture — if the RT doesn't exist yet, the sampler gets emptyTexture
