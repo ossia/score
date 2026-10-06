@@ -808,6 +808,7 @@ endif()
 # dependencies; the header is written once all of src/ is configured.
 set(_t "${3RDPARTY_FOLDER}")
 set(_l "${OSSIA_3RDPARTY_FOLDER}")
+set(_r "${CMAKE_CURRENT_SOURCE_DIR}/resources/licenses")
 score_register_license(score URL "https://ossia.io" FILES "${CMAKE_SOURCE_DIR}/LICENSE.txt")
 score_register_license(libossia URL "https://ossia.io" FILES "${CMAKE_SOURCE_DIR}/3rdparty/libossia/LICENSE")
 set(_qt_attributions "")
@@ -917,7 +918,48 @@ endif()
 score_register_license(SDL URL "https://libsdl.org" HEADER "zlib License")
 score_register_license(libJACK URL "https://jackaudio.org" HEADER "GNU Lesser General Public License")
 score_register_license(Phidgets URL "https://www.phidgets.com/docs/Software_License" HEADER "Phidget22 library: see the Phidgets software license")
-score_register_license(FFMPEG URL "https://ffmpeg.org" HEADER "GNU General Public License v3")
+# The SDK configures FFmpeg with --enable-gpl --enable-version3.
+score_register_license(FFMPEG URL "https://ffmpeg.org" HEADER "GNU General Public License v3"
+  FILES "${_r}/FFmpeg-LICENSE.md" "${_r}/FFmpeg-COPYING.GPLv3")
+score_register_license(jthread URL "https://github.com/StirlingLabs/jthread"
+  HEADER "Nicolai Josuttis and Lewis Baker" FILES "${_r}/jthread-CC-BY-4.0.txt")
+
+# Fonts embedded through resources/fonts.qrc and score.qrc
+score_register_license("Courier Prime" URL "https://github.com/quoteunquoteapps/CourierPrime"
+  HEADER "Copyright 2015 The Courier Prime Project Authors" FILES "${_r}/OFL-1.1.txt")
+score_register_license("Ubuntu font family" URL "https://design.ubuntu.com/font"
+  HEADER "Copyright 2011 Canonical Ltd." FILES "${_r}/UFL-1.0.txt")
+score_register_license("IBM Plex" URL "https://github.com/IBM/plex"
+  HEADER "Copyright 2017-2019 IBM Corp." FILES "${_r}/OFL-1.1.txt")
+score_register_license(Cozette URL "https://github.com/the-moonwitch/Cozette"
+  HEADER "(c) 2020-2025 Ines <ines@moonwit.ch>" FILES "${_r}/Cozette-MIT.txt")
+score_register_license(boxxy
+  HEADER "Copyright (c) 2008, ARK\n\nLicense to copy and distribute for both commercial and non-commercial use is herby granted, provided this notice is preserved.")
+score_register_license(uushi URL "https://github.com/phallus/fonts" HEADER "GNU General Public License v3")
+score_register_license(progsole URL "https://github.com/bluescan/proggyfonts"
+  HEADER "ProggyTiny, modified by TheMuffenMan" FILES "${_r}/ProggyFonts-MIT.txt")
+score_register_license(scientifica URL "https://github.com/oppiliappan/scientifica"
+  HEADER "Copyright (c) 2016, romeovs" FILES "${_r}/scientifica-OFL-1.1.txt")
+score_register_license("Departure Mono" URL "https://departuremono.com"
+  HEADER "Copyright 2022-2024 Helena Zhang" FILES "${_r}/OFL-1.1.txt")
+score_register_license(Galmuri URL "https://github.com/quiple/galmuri"
+  HEADER "Copyright (c) 2019-2025 Lee Minseo (quiple@quiple.dev)" FILES "${_r}/OFL-1.1.txt")
+score_register_license("Ark Pixel" URL "https://github.com/TakWolf/ark-pixel-font"
+  HEADER "Copyright (c) 2021, TakWolf (https://takwolf.com)" FILES "${_r}/OFL-1.1.txt")
+score_register_license("JetBrains Mono" URL "https://github.com/JetBrains/JetBrainsMono"
+  HEADER "Copyright 2020 The JetBrains Mono Project Authors" FILES "${_r}/OFL-1.1.txt")
+score_register_license("Source Code Pro" URL "https://github.com/adobe-fonts/source-code-pro"
+  HEADER "Copyright 2023 Adobe (http://www.adobe.com/), with Reserved Font Name 'Source'" FILES "${_r}/OFL-1.1.txt")
+score_register_license(Catamaran URL "https://github.com/VanillaandCream/Catamaran-Tamil"
+  HEADER "Copyright 2020 The Catamaran Project Authors" FILES "${_r}/OFL-1.1.txt")
+score_register_license(Montserrat URL "https://github.com/JulietaUla/Montserrat"
+  HEADER "Copyright 2011 The Montserrat Project Authors" FILES "${_r}/OFL-1.1.txt")
+score_register_license("DM Sans" URL "https://github.com/googlefonts/dm-fonts"
+  HEADER "Copyright 2014 The DM Sans Project Authors" FILES "${_r}/OFL-1.1.txt")
+score_register_license(Roboto URL "https://github.com/googlefonts/roboto-classic"
+  HEADER "Copyright 2011 The Roboto Project Authors" FILES "${_r}/OFL-1.1.txt")
+score_register_license("Phosphor Icons" URL "https://phosphoricons.com" FILES "${_r}/Phosphor-MIT.txt")
+
 score_register_license(libusb URL "https://libusb.info/" HEADER "GNU Lesser General Public License v2.1 or any later version")
 score_register_license(VST URL "https://steinberg.net"
   HEADER "VST is a trademark of Steinberg Media Technologies GmbH, registered in Europe and other countries.")
