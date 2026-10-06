@@ -422,7 +422,11 @@ QRectF NodeItem::contentRect() const noexcept
 
 void NodeItem::updateContentRect()
 {
-  m_contentRect = contentRect().adjusted(-2., -2., 2., 2.);
+  const QRectF r = contentRect().adjusted(-2., -2., 2., 2.);
+  if(r == m_contentRect)
+    return;
+  m_contentRect = r;
+  geometryChanged();
 }
 
 QRectF NodeItem::boundingRect() const

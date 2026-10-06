@@ -5,6 +5,7 @@
 
 #include <score/graphics/RectItem.hpp>
 
+#include <QPointer>
 #include <QRectF>
 
 #include <score_plugin_scenario_export.h>
@@ -65,6 +66,8 @@ public:
 
 private:
   void setupNode(Process::NodeItem* item);
+  //! Shows all the nodes when `item` is outside of the visible part.
+  void showNode(const Process::NodeItem& item);
   //! Rebuilds the rubber band's pen and brush from the current skin.
   void updateSelectionRectStyle();
   void on_processAdded(const Process::ProcessModel& proc);
@@ -111,6 +114,9 @@ private:
   //! does anything in the view: a new node settles on its size on its own,
   //! but a node or slot the user resizes must stay under the cursor.
   bool m_autoCenter{false};
+  //! The node last added while the canvas was pinned: kept in view while its
+  //! content is laid out, until the user does anything in the view.
+  QPointer<Process::NodeItem> m_nodeToShow;
 };
 
 }

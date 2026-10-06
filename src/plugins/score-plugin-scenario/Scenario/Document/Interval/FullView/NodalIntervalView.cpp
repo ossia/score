@@ -96,6 +96,7 @@ NodalIntervalView::NodalIntervalView(
 
     connect(item, &score::ZoomItem::recenter, this, [this] {
       m_autoCenter = false;
+  m_nodeToShow = nullptr;
       recenter();
     });
     connect(item, &score::ZoomItem::rescale, this, &NodalIntervalView::rescale);
@@ -270,6 +271,7 @@ void NodalIntervalView::recenter()
 void NodalIntervalView::rescale()
 {
   m_autoCenter = false;
+  m_nodeToShow = nullptr;
   // Back to 1:1, around what is currently at the center of the view
   recenterRelativeToView();
   const QPointF center = m_model.nodalCenter().value_or(enclosingRect().center());
@@ -323,8 +325,24 @@ void NodalIntervalView::on_processAdded(const Process::ProcessModel& proc)
     }
   }
 
-  setupNode(new Process::NodeItem{
-      proc, m_context, m_model.duration.defaultDuration(), m_container});
+  auto item = new Process::NodeItem{
+      proc, m_context, m_model.duration.defaultDuration(), m_container};
+  setupNode(item);
+
+  // A canvas still following its nodes (m_autoCenter) recenters by itself
+  if(!m_autoCenter)
+  {
+    m_nodeToShow = item;
+    showNode(*item);
+  }
+}
+
+void NodalIntervalView::showNode(const Process::NodeItem& item)
+{
+  // As the zoom's center button does: all the nodes fit
+  const QRectF visible = visibleRect();
+  if(!visible.isEmpty() && !visible.contains(mapRectFromScene(item.sceneBoundingRect())))
+    recenter();
 }
 
 void NodalIntervalView::on_processRemoving(const Process::ProcessModel& model)
@@ -447,6 +465,7 @@ void NodalIntervalView::mouseMoveEvent(QGraphicsSceneMouseEvent* e)
 void NodalIntervalView::panBy(QPointF delta)
 {
   m_autoCenter = false;
+  m_nodeToShow = nullptr;
   m_container->setPos(m_container->pos() + delta);
   storeCenterFromContainer();
 }
@@ -512,6 +531,7 @@ void NodalIntervalView::wheelEvent(QGraphicsSceneWheelEvent* event)
 void NodalIntervalView::zoomTo(double newZoomLevel)
 {
   m_autoCenter = false;
+  m_nodeToShow = nullptr;
   newZoomLevel = std::clamp(newZoomLevel, -10.0, 5.0);
   if(newZoomLevel == m_zoomLevel)
     return;
@@ -549,6 +569,10 @@ void NodalIntervalView::setupNode(Process::NodeItem* item)
   connect(&item->model(), &Process::ProcessModel::sizeChanged, this, [this] {
     if(m_autoCenter)
       recenterRelativeToView();
+  });
+  connect(item, &Process::NodeItem::geometryChanged, this, [this, item] {
+    if(m_nodeToShow == item)
+      showNode(*item);
   });
   connect(
       item, &Process::NodeItem::dropReceived, this, &NodalIntervalView::on_dropOnNode);

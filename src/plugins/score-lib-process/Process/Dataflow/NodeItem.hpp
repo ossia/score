@@ -64,6 +64,10 @@ public:
   void dropReceived(const QPointF& pos, const QMimeData& arg_2)
       E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, dropReceived, pos, arg_2)
 
+  //! The node's bounding rect changed: the content is laid out in steps after
+  //! the node is created, without the model's size always following.
+  void geometryChanged() E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, geometryChanged)
+
   void resetDrop()
   {
     m_dropping = false;
