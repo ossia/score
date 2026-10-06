@@ -72,25 +72,21 @@ EffectProcessFactory_T<Faust::FaustEffectModel>::descriptor(QString txt) const n
   else
     d.prettyName = "Faust effect";
 
-  if(!desc.author.isEmpty())
-    d.author = desc.author;
-  else if(!desc.copyright.isEmpty())
-    d.author = desc.copyright;
-  else
-    d.author = "Faust DSP author";
+  // Only a declared author is one: the copyright holder can be someone else,
+  // so it stays a notice next to the license.
+  d.author = desc.author;
 
+  QStringList lines;
   if(!desc.description.isEmpty())
-    d.description = desc.description;
+    lines.push_back(desc.description);
   if(!desc.version.isEmpty())
-  {
-    d.description += "\n";
-    d.description += desc.version;
-  }
+    lines.push_back(QStringLiteral("Version: ") + desc.version);
   if(!desc.license.isEmpty())
-  {
-    d.description += "\n";
-    d.description += desc.license;
-  }
+    lines.push_back(QStringLiteral("License: ") + desc.license);
+  if(!desc.copyright.isEmpty())
+    lines.push_back(QStringLiteral("Copyright: ") + desc.copyright);
+  d.description = lines.join('\n');
+
   if(!desc.reference.isEmpty())
     d.documentationLink = desc.reference;
   else

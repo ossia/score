@@ -566,6 +566,18 @@ else()
   endif()
 endif()
 
+# A Faust DSP's library entry: declared author, copyright and license.
+if(TARGET score_plugin_faust)
+  score_add_test(test_unit_faust_credits
+    SOURCES FaustCreditsTest.cpp
+    APP
+    PLUGINS score_plugin_faust)
+  target_include_directories(test_unit_faust_credits PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-faust")
+  target_include_directories(test_unit_faust_credits SYSTEM PRIVATE
+    ${FAUST_INCLUDE_DIR})
+endif()
+
 # --- cross-implementation quantification grid parity ------------------------
 # ossia::token_request vs halp::tick_musical: a native node and an avendish
 # plug-in on the same score must snap to the same samples.
@@ -1011,6 +1023,7 @@ endif()
 if(TARGET score_plugin_gfx)
   score_add_test(test_unit_shader_credits
     SOURCES ShaderCreditsTest.cpp
+    APP
     PLUGINS score_plugin_gfx)
 endif()
 
