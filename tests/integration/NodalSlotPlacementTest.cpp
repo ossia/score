@@ -385,3 +385,76 @@ TEST_CASE("Dragging a port's label starts a cable from the port", "[integration]
     CHECK(Dataflow::PortItem::clickedPort == nullptr);
   });
 }
+
+#include <score/model/ObjectEditor.hpp>
+#include <score/selection/SelectionStack.hpp>
+
+#include <QMimeData>
+
+TEST_CASE(
+    "A process pasted in an interval's nodal slot lands under the pointer, else in its middle",
+    "[integration][nodal][gui][paste]")
+{
+  score::test::run_in_gui_app([](const score::GUIApplicationContext& app) {
+    auto doc = score::test::new_document(app);
+    REQUIRE(doc);
+    auto& ctx = doc->context();
+    auto& itv = newInterval(*doc);
+    auto proc = dropEffect(*doc, itv, effect_key);
+    if(!proc)
+      SKIP("avnd Counter not built");
+    auto nodal = nodalViewOf(*doc, *proc);
+    REQUIRE(nodal);
+
+    ctx.selectionStack.pushNewSelection(Selection{proc});
+    JSONReader r;
+    bool copied = false;
+    for(auto& iface : app.interfaces<score::ObjectEditorList>())
+      if((copied = iface.copy(r, ctx.selectionStack.currentSelection(), ctx)))
+        break;
+    REQUIRE(copied);
+    QMimeData mime;
+    mime.setData("text/plain", QByteArray{r.buffer.GetString(), (int)r.buffer.GetSize()});
+
+    auto pres
+        = score::IDocument::try_presenterDelegate<Scenario::ScenarioDocumentPresenter>(*doc);
+    auto& gv = pres->view().view();
+
+    // Pastes with the interval selected and the pointer at `global`; returns
+    // where the center of the pasted node is, in the slot's canvas.
+    auto pasteAt = [&](QPoint global) -> QPointF {
+      std::vector<const Process::ProcessModel*> before;
+      for(auto& p : itv.processes)
+        before.push_back(&p);
+      ctx.selectionStack.pushNewSelection(Selection{&itv});
+      bool pasted = false;
+      for(auto& iface : app.interfaces<score::ObjectEditorList>())
+        if((pasted = iface.paste(global, nullptr, mime, ctx)))
+          break;
+      REQUIRE(pasted);
+      run_events_for(100);
+      for(auto& p : itv.processes)
+        if(std::find(before.begin(), before.end(), &p) == before.end())
+          return p.position() + QPointF{p.size().width() / 2., p.size().height() / 2.};
+      FAIL("nothing pasted in the interval");
+      return {};
+    };
+
+    const QRectF visible = visibleSlot(*doc, *nodal);
+    REQUIRE(!visible.isEmpty());
+
+    // Over the slot, away from its middle
+    const QPointF target = visible.center() + QPointF{visible.width() / 4., 0.};
+    const QPoint global = gv.viewport()->mapToGlobal(gv.mapFromScene(target));
+    const QPointF under = nodal->nodeContainer().mapFromScene(target);
+    const QPointF got = pasteAt(global);
+    CHECK(got.x() == Approx(under.x()).margin(2.));
+    CHECK(got.y() == Approx(under.y()).margin(2.));
+
+    // Pointer elsewhere: the middle of what the slot shows
+    const QPointF middle = nodal->nodeContainer().mapFromScene(visible.center());
+    const QPointF got2 = pasteAt(QPoint{-100000, -100000});
+    CHECK(got2.x() == Approx(middle.x()).margin(2.));
+    CHECK(got2.y() == Approx(middle.y()).margin(2.));
+  });
+}
