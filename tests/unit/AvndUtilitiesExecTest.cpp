@@ -628,3 +628,44 @@ TEST_CASE("Wavecycle through the binding: one created while playing plays its de
     QApplication::processEvents();
   });
 }
+
+#include <Scenario/Commands/Interval/RemoveProcessFromInterval.hpp>
+#include <score/command/Dispatchers/CommandDispatcher.hpp>
+
+TEST_CASE("A port renamed just before its process is removed leaves the old node alone", "[execution][ports]")
+{
+  // The rename rebinds the port's address through a queued connection: it runs
+  // after the process, its node and the node's inlets are gone.
+  score::test::run_in_app([&](const score::GUIApplicationContext& ctx) {
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    auto* proc = score::test::add_process(*doc, spigot_uuid, {});
+    if(!proc)
+      SKIP("not built");
+    auto& plug = doc->context().plugin<Execution::DocumentPlugin>();
+    auto& itv = score::test::base_interval(*doc);
+    plug.reload(true, itv);
+    run_exec(plug);
+    // Published: the port's address is its score:/controls parameter
+    auto* port = proc->inlets()[1];
+    port->setScriptable(true);
+    for(int i = 0; i < 3; i++)
+    {
+      QApplication::processEvents();
+      run_exec(plug);
+    }
+
+    const auto id = proc->id();
+    port->setExposed(QStringLiteral("renamed"));
+    CommandDispatcher<>{doc->context().commandStack}.submit(
+        new Scenario::Command::RemoveProcessFromInterval{itv, id});
+    for(int i = 0; i < 3; i++)
+    {
+      run_exec(plug);
+      QApplication::processEvents();
+      QCoreApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+    }
+    run_exec(plug);
+    CHECK(itv.processes.find(id) == itv.processes.end());
+  });
+}
