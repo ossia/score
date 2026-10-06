@@ -25,6 +25,9 @@ if(NOT ((TARGET libpd_static) OR (TARGET libpd)))
   return()
 endif()
 
+score_register_license(libpd URL "https://github.com/libpd/libpd" FILES "${3RDPARTY_FOLDER}/libpd/LICENSE.txt")
+score_register_license("Pure Data" URL "http://msp.ucsd.edu/software.html" FILES "${3RDPARTY_FOLDER}/libpd/pure-data/LICENSE.txt")
+
 score_common_setup()
 
 # Packages

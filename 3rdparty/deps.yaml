@@ -218,7 +218,7 @@ deps:
     upstream: "(Munts Technologies)"
 
   - name: mikktspace
-    upstream: "(Morten S. Mikkelsen, public domain)"
+    upstream: "(Morten S. Mikkelsen, zlib-style license)"
 
   - name: tiny_obj_loader
     upstream: tinyobjloader/tinyobjloader

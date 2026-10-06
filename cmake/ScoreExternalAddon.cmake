@@ -5,6 +5,12 @@ endif()
 enable_language(C)
 enable_language(CXX)
 
+# The About dialog's license list only exists in a build of score itself.
+if(NOT COMMAND score_register_license)
+  function(score_register_license)
+  endfunction()
+endif()
+
 if(NOT EXISTS "${SCORE_SOURCE_DIR}")
   if(NOT EXISTS "${SCORE_SDK}")
     message(FATAL_ERROR "Please set SCORE_SOURCE_DIR to score's root source folder (/home/foo/score) or SCORE_SDK to the SDK folder")

@@ -116,3 +116,5 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
 
 setup_score_plugin(${PROJECT_NAME})
 
+score_register_license(PSIMPL URL "http://psimpl.sf.net" NOTICES "${CMAKE_CURRENT_SOURCE_DIR}/Curve/Segment/PointArray/psimpl.h")
+

@@ -91,6 +91,7 @@ endif()
 
 if(TARGET snmalloc)
   target_link_libraries(${APPNAME} PUBLIC snmalloc)
+  score_register_license(snmalloc URL "https://github.com/microsoft/snmalloc" FILES "${3RDPARTY_FOLDER}/snmalloc/LICENSE")
   if(NOT WIN32)
   #  target_link_libraries(${APPNAME} PUBLIC snmallocshim-static)
   endif()

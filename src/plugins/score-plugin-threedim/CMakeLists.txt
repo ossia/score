@@ -277,6 +277,20 @@ setup_score_plugin(score_plugin_threedim)
 
 score_generate_command_list_file(score_plugin_threedim "Threedim/RenderPipeline/Process.hpp") 
 
+set(_t "${3RDPARTY_FOLDER}")
+score_register_license(fastgltf URL "https://github.com/spnda/fastgltf" FILES "${_t}/fastgltf/LICENSE.md")
+score_register_license(simdjson URL "https://github.com/simdjson/simdjson" FILES "${_t}/simdjson/LICENSE")
+score_register_license(spz URL "https://github.com/nianticlabs/spz" FILES "${_t}/spz/LICENSE")
+score_register_license(zstd URL "https://github.com/facebook/zstd" FILES "${_t}/zstd/LICENSE")
+score_register_license(ufbx URL "https://github.com/ufbx/ufbx" FILES "${_t}/ufbx/LICENSE")
+score_register_license(miniply URL "https://github.com/vilya/miniply" FILES "${_t}/miniply/LICENSE.md")
+score_register_license(mikktspace URL "https://github.com/mmikk/MikkTSpace" NOTICES "${_t}/mikktspace/mikktspace.h")
+score_register_license(opengametools URL "https://github.com/jpaver/opengametools" FILES "${_t}/opengametools/LICENSE.md")
+score_register_license(tinyobjloader URL "https://github.com/tinyobjloader/tinyobjloader" NOTICES "${_t}/tiny_obj_loader.h")
+score_register_license(vcglib URL "https://github.com/cnr-isti-vclab/vcglib" FILES "${_t}/vcglib/LICENSE.txt")
+score_register_license(libssynth URL "https://github.com/jcelerier/libssynth"
+  FILES "${_t}/libssynth/LICENSE.README" "${_t}/libssynth/LICENSE.LGPL" "${_t}/libssynth/LICENSE.GPL3")
+
 # ufbx.c is compiled straight into this plug-in, so it needs its header path
 # here. libssynth / vcglib / miniply / mikktspace / opengametools come in as
 # targets from their own .cmake files and carry their own include dirs.

@@ -312,6 +312,7 @@ set(SCORE_BUNDLEUTILITIES_LIB_LIST CACHE INTERNAL "List of .dylibs to add to mac
 set(SCORE_BUNDLEUTILITIES_PLUGIN_LIST CACHE INTERNAL "List of plugins to add to macOS bundle")
 
 include(ScoreFunctions)
+include(GenerateLicense)
 include(ScoreAvndHelper)
 include(ScoreConfiguration)
 
@@ -357,6 +358,7 @@ if(SCORE_TESTING)
 endif()
 
 add_subdirectory(src)
+score_generate_licenses("${CMAKE_BINARY_DIR}/score_licenses.hpp")
 
 # Static builds: complete application-based tester links with the full plugin
 # list after add_subdirectory(src) has populated SCORE_PLUGINS_LIST.

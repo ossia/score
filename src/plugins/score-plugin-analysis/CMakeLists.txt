@@ -43,4 +43,6 @@ if(OSSIA_ENABLE_KFR AND TARGET kfr)
 endif()
 setup_score_plugin(score_plugin_analysis)
 
+score_register_license(Gist URL "https://github.com/adamstark/Gist" FILES "${3RDPARTY_FOLDER}/Gist/LICENSE.txt")
+
 

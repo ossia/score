@@ -373,6 +373,10 @@ endif()
 
 setup_score_plugin(score_plugin_avnd)
 
+score_register_license(Avendish URL "https://github.com/celtera/avendish" FILES "${AVND_FOLDER}/LICENSE")
+score_register_license(csv2 URL "https://github.com/p-ranav/csv2" NOTICES "${3RDPARTY_FOLDER}/csv2/include/csv2/csv2.hpp")
+score_register_license(Alphanum NOTICES "${CMAKE_CURRENT_SOURCE_DIR}/AvndProcesses/Alphanum.hpp")
+
 if(SCORE_PCH)
 if(NOT TARGET avnd_source_parser)
 set(SCORE_AVND_PCH_HEADERS
