@@ -56,6 +56,11 @@ public:
   QRectF enclosingRect() const noexcept;
 
   QGraphicsItem& nodeContainer() const noexcept { return *m_container; }
+  const IntervalModel& model() const noexcept { return m_model; }
+
+  //! Where to put what is pasted, in nodeContainer() coordinates: at `scenePos`
+  //! when it is over the visible part of this item, else in the middle of it.
+  QPointF pastePosition(QPointF scenePos) const;
   int type() const override { return ItemType::Type::NodalIntervalView; }
 
 private:
@@ -67,6 +72,8 @@ private:
   void on_zoomRatioChanged(ZoomRatio ratio);
   void on_dropOnNode(const QPointF& pt, const QMimeData& mime);
 
+  //! Part of this item shown in its view, in its coordinates; empty if none.
+  QRectF visibleRect() const;
   //! Center of the visible part of this item, in its coordinates.
   QPointF viewportCenter() const;
   //! Chooses and stores the model's nodal center (and scale) the first time

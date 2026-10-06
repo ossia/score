@@ -315,12 +315,7 @@ static bool pasteInCurrentInterval(
     QPointF& p;
     QPointF operator()(const NodalIntervalView& nodal) const
     {
-      auto pt = nodal.nodeContainer().mapFromScene(p);
-      // TODO clamp to the visible rect... it isn't boundingRect().
-      // QRectF nodalRect = nodal.boundingRect();
-      // if(!nodalRect.contains(pt))
-      //   return QPointF{};
-      return pt;
+      return nodal.pastePosition(p);
     }
 
     QPointF operator()(const CentralIntervalDisplay& disp) const
@@ -390,6 +385,19 @@ QPointF pastePositionInInterval(const IntervalModel& itv, const QMimeData& mime)
 
   const QPointF topLeft = freeProcessPosition(itv, QPointF{40., 40.}, size);
   return topLeft + QPointF{size.width() / 2., size.height() / 2.};
+}
+
+//! The nodal canvas that shows `itv` in `view`, if one is visible: a child
+//! interval's slot in the small view.
+const NodalIntervalView*
+shownNodalView(const QGraphicsView& view, const IntervalModel& itv)
+{
+  for(QGraphicsItem* item : view.scene()->items())
+    if(item->type() == ItemType::Type::NodalIntervalView && item->isVisible())
+      if(auto nodal = static_cast<const NodalIntervalView*>(item);
+         &nodal->model() == &itv)
+        return nodal;
+  return nullptr;
 }
 
 //! Where in a scenario to put what is pasted next to one of its children.
@@ -472,6 +480,11 @@ bool ScenarioEditor::paste(
     {
       if(itv == &displayed)
         return pasteInCurrentInterval(pos, mime, ctx);
+      const auto& view = pres->view().view();
+      if(auto nodal = shownNodalView(view, *itv))
+        return pasteInInterval(
+            *itv, nodal->pastePosition(view.mapToScene(view.mapFromGlobal(pos))), mime,
+            ctx);
       return pasteInInterval(*itv, pastePositionInInterval(*itv, mime), mime, ctx);
     }
     else if(qobject_cast<ScenarioDocumentModel*>(obj))
