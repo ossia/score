@@ -14,7 +14,7 @@ struct Node
 {
   halp_meta(name, "Envelope")
   halp_meta(c_name, "Envelope")
-  halp_meta(category, "Audio")
+  halp_meta(category, "Analysis/Envelope")
   halp_meta(author, "ossia score")
   halp_meta(manual_url, "https://ossia.io/score-docs/processes/analysis.html#envelope")
   halp_meta(description, "Converts an audio signal into RMS and peak values")

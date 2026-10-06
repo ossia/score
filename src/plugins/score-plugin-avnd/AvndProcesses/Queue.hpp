@@ -18,7 +18,7 @@ struct Queue
 {
   halp_meta(name, "Buffer queue")
   halp_meta(author, "ossia team")
-  halp_meta(category, "Control/Data processing")
+  halp_meta(category, "Control/Data Processing")
   halp_meta(description, "Queue input messages and output them as a buffer")
   halp_meta(c_name, "avnd_buffer_queue")
   halp_meta(uuid, "8f68b81e-e5ba-4a10-a888-6581a5d770fe")

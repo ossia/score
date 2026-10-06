@@ -16,7 +16,7 @@ struct Table1D
 {
   halp_meta(name, "Table (1D)")
   halp_meta(author, "ossia team")
-  halp_meta(category, "Control/Data processing")
+  halp_meta(category, "Control/Data Processing")
   halp_meta(description, "Store arbitrary data in a 1-dimensional table")
   halp_meta(c_name, "avnd_table_1d")
   halp_meta(uuid, "a7b3c1d2-4e5f-6789-abcd-ef0123456781")

@@ -212,7 +212,7 @@ struct Node
   halp_meta(category, "Control/Impro")
   halp_meta(manual_url, "")
   halp_meta(author, "Shlomo Dubnov, Ge Wang, Éric Meaux, Jean-Michaël Celerier")
-  halp_meta(description, "Factor Oracle algorithm .") // TODO cite
+  halp_meta(description, "Learn a sequence of input values and generate recombined variations of it with the Factor Oracle algorithm.") // TODO cite
   halp_meta(uuid, "d90284c0-4196-47e0-802d-7e07342029ec")
 
   struct

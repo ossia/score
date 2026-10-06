@@ -25,7 +25,7 @@ struct PatternSweeper : PatternObject
 {
   halp_meta(name, "Sweeper")
   halp_meta(author, "ossia team")
-  halp_meta(category, "Control/Data processing")
+  halp_meta(category, "Control/Data Processing")
   halp_meta(description, "Sweep a message to all nodes matching a pattern")
   halp_meta(c_name, "avnd_pattern_sweep")
   halp_meta(uuid, "55f4fe13-f71b-4c20-ac32-74668e82664c")

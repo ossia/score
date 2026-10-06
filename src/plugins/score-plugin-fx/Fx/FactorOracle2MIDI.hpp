@@ -316,7 +316,7 @@ struct Node
   halp_meta(category, "Control/Impro")
   halp_meta(manual_url, "")
   halp_meta(author, "Maria Paula Carrero Rivas")
-  halp_meta(description, "Factor Oracle algorithm .") // TODO cite
+  halp_meta(description, "Learn a sequence of MIDI notes and generate recombined variations of it with the Factor Oracle algorithm.") // TODO cite
   halp_meta(uuid, "C87B5326-56C2-4489-8E08-AA9E1EF27359");
 
   static const constexpr auto controls = tuplet::make_tuple(Control::IntSlider{"Sequence length", 1, 64, 8});

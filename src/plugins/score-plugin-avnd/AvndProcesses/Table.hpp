@@ -362,7 +362,7 @@ struct Table
 {
   halp_meta(name, "Table")
   halp_meta(author, "ossia team")
-  halp_meta(category, "Control/Data processing")
+  halp_meta(category, "Control/Data Processing")
   halp_meta(description, "Store arbitrary data in an N-dimensional table (1-16D)")
   halp_meta(c_name, "avnd_table_nd")
   halp_meta(uuid, "98418d3a-58c3-4d1f-b716-83c0988174c3")
