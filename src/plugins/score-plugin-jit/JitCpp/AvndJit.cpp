@@ -452,10 +452,12 @@ struct Node
   {
     struct
     {
+      static consteval auto name() { return "A"; }
       float value;
     } a;
     struct
     {
+      static consteval auto name() { return "B"; }
       float value;
     } b;
   } inputs;
@@ -464,6 +466,7 @@ struct Node
   {
     struct
     {
+      static consteval auto name() { return "Sum"; }
       float value;
     } out;
   } outputs;
