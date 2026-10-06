@@ -26,6 +26,7 @@ public:
   halp_meta(name, "Text to Texture")
   halp_meta(category, "Visuals/3D/Text")
   halp_meta(c_name, "text_to_texture")
+  halp_meta(description, "Render text with configurable font, color and canvas dimensions into an RGBA texture.")
   halp_meta(authors, "ossia team")
   halp_meta(
       manual_url,

@@ -48,6 +48,7 @@ public:
   halp_meta(name, "Material Override")
   halp_meta(category, "Visuals/3D/Scene")
   halp_meta(c_name, "material_override")
+  halp_meta(description, "Override selected scene materials with live textures and PBR factor values.")
   halp_meta(authors, "ossia team")
   halp_meta(
       manual_url,

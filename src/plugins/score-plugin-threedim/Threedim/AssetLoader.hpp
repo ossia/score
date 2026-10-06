@@ -77,6 +77,7 @@ public:
   halp_meta(name, "Asset Loader")
   halp_meta(category, "Visuals/3D")
   halp_meta(c_name, "asset_loader")
+  halp_meta(description, "Load a 3D asset with its scene hierarchy, geometry and available materials and animations.")
   halp_meta(authors, "ossia team, ufbx / fastgltf / tinyobj / miniply / vcglib")
   halp_meta(
       manual_url,

@@ -41,6 +41,7 @@ public:
   halp_meta(name, "Scene Group")
   halp_meta(category, "Visuals/3D/Scene")
   halp_meta(c_name, "scene_group")
+  halp_meta(description, "Group up to four scenes beneath a named parent with its own transform.")
   halp_meta(authors, "ossia team")
   halp_meta(
       manual_url,

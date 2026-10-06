@@ -66,6 +66,7 @@ public:
   halp_meta(name, "Camera")
   halp_meta(c_name, "camera_avnd")
   halp_meta(category, "Visuals/3D/Scene")
+  halp_meta(description, "Create a scene camera with eye, target, field-of-view and clipping controls.")
   halp_meta(authors, "ossia team")
   halp_meta(uuid, "4c91b5e2-8d76-4ab3-9f14-6e0d8b3a2c57")
 

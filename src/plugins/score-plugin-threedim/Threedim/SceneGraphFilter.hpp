@@ -33,6 +33,7 @@ public:
   halp_meta(name, "Scene Graph Filter")
   halp_meta(category, "Visuals/3D/Scene")
   halp_meta(c_name, "scene_graph_filter")
+  halp_meta(description, "Prune scene nodes and subtrees using selectable path, name and metadata predicates.")
   halp_meta(authors, "ossia team")
   halp_meta(
       manual_url,

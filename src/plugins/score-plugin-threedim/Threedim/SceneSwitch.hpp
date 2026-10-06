@@ -28,6 +28,7 @@ public:
   halp_meta(name, "Scene Switch")
   halp_meta(category, "Visuals/3D/Scene")
   halp_meta(c_name, "scene_switch")
+  halp_meta(description, "Select one of four scene inputs by index without blending their contents.")
   halp_meta(authors, "ossia team")
   halp_meta(
       manual_url,

@@ -41,6 +41,7 @@ public:
   halp_meta(manual_url, "https://ossia.io/score-docs/processes/meshes.html#primitive")
   halp_meta(name, "Plane")
   halp_meta(c_name, "3d_plane")
+  halp_meta(description, "Generate a subdivided plane mesh with position, rotation and scale controls.")
   halp_meta(uuid, "1e923d52-3494-49e8-8698-b001405000da")
 
   struct
@@ -81,6 +82,7 @@ struct Cube : Primitive
 public:
   halp_meta(name, "Cube")
   halp_meta(c_name, "3d_cube")
+  halp_meta(description, "Generate a cube mesh with position, rotation and scale controls.")
   halp_meta(uuid, "cf8a328a-1ba6-47f8-929f-2168bdec90b0")
 
   struct
@@ -100,6 +102,7 @@ struct Sphere : Primitive
 public:
   halp_meta(name, "Sphere")
   halp_meta(c_name, "3d_sphere")
+  halp_meta(description, "Generate a sphere mesh with position, rotation and scale controls.")
   halp_meta(uuid, "fc0df335-d0e9-4ebf-b438-6ba334741c1a")
 
   struct
@@ -123,6 +126,7 @@ struct Icosahedron : Primitive
 {
   halp_meta(name, "Icosahedron")
   halp_meta(c_name, "3d_ico")
+  halp_meta(description, "Generate an icosahedron mesh with position, rotation and scale controls.")
   halp_meta(uuid, "3ea9f69f-1a0e-49c2-ad16-a88e9ca628a7")
 
   struct
@@ -141,6 +145,7 @@ struct Cone : Primitive
 {
   halp_meta(name, "Cone")
   halp_meta(c_name, "3d_cone")
+  halp_meta(description, "Generate a cone mesh with position, rotation and scale controls.")
   halp_meta(uuid, "8a5718c4-07f0-476b-b720-1c99e5a379a5")
 
   struct
@@ -179,6 +184,7 @@ struct Cylinder : Primitive
 {
   halp_meta(name, "Cylinder")
   halp_meta(c_name, "3d_cylinder")
+  halp_meta(description, "Generate a cylinder mesh with position, rotation and scale controls.")
   halp_meta(uuid, "5992830e-80fe-4461-b357-2c9b5c5e48ae")
 
   struct
@@ -207,6 +213,7 @@ struct Torus : Primitive
 {
   halp_meta(name, "Torus")
   halp_meta(c_name, "3d_torus")
+  halp_meta(description, "Generate a torus mesh with position, rotation and scale controls.")
   halp_meta(uuid, "85c5983c-3f4f-4bfe-b8cf-fccdf6ec5faf")
 
   struct

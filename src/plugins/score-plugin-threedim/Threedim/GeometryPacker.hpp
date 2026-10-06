@@ -596,6 +596,7 @@ public:
   halp_meta(name, "Repack attributes")
   halp_meta(category, "Visuals/Utilities")
   halp_meta(c_name, "pack_geometry")
+  halp_meta(description, "Repack selected geometry attributes into a GPU buffer and report its vertex stride.")
   halp_meta(manual_url, "https://ossia.io/score-docs/processes/repack-attributes.html")
   halp_meta(uuid, "7d7d5973-4aa9-4bfe-9249-8b892d92e0db")
 

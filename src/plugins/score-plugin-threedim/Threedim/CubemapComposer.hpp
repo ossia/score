@@ -23,6 +23,7 @@ public:
   halp_meta(name, "Cubemap Composer")
   halp_meta(category, "Visuals/3D")
   halp_meta(c_name, "cubemap_composer")
+  halp_meta(description, "Combine six face textures into a cubemap and scene skybox contribution.")
   halp_meta(
       manual_url,
       "https://ossia.io/score-docs/processes/cubemap-composer.html")

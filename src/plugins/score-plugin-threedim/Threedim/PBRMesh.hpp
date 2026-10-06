@@ -50,6 +50,7 @@ public:
   halp_meta(name, "PBR Mesh")
   halp_meta(category, "Visuals/3D/Scene")
   halp_meta(c_name, "pbr_mesh")
+  halp_meta(description, "Wrap GPU geometry in a 3D scene with a transform and configurable PBR material.")
   halp_meta(authors, "ossia team")
   halp_meta(
       manual_url, "https://ossia.io/score-docs/processes/pbr-mesh.html")

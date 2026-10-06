@@ -51,6 +51,7 @@ public:
   halp_meta(name, "Instancer")
   halp_meta(category, "Visuals/3D/Scene")
   halp_meta(c_name, "instancer")
+  halp_meta(description, "Create GPU instances of a scene mesh using per-instance transforms, colors and custom data.")
   halp_meta(authors, "ossia team")
   halp_meta(
       manual_url,

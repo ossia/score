@@ -44,6 +44,7 @@ public:
   halp_meta(name, "Text to Mesh")
   halp_meta(category, "Visuals/3D/Text")
   halp_meta(c_name, "text_to_mesh")
+  halp_meta(description, "Triangulate text outlines into flat mesh geometry in a 3D scene.")
   halp_meta(authors, "ossia team")
   halp_meta(
       manual_url,

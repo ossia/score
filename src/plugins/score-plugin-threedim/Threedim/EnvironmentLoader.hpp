@@ -43,6 +43,7 @@ public:
   halp_meta(name, "Environment")
   halp_meta(c_name, "environment_loader")
   halp_meta(category, "Visuals/3D")
+  halp_meta(description, "Set a scene's ambient light, exposure, gamma and fog parameters.")
   halp_meta(authors, "ossia team")
   halp_meta(uuid, "d3f5a8c1-8b47-4e91-9c2d-6f1a9b5e3c82")
 

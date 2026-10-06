@@ -35,6 +35,7 @@ public:
   halp_meta(name, "Animation Player")
   halp_meta(category, "Visuals/3D/Scene")
   halp_meta(c_name, "animation_player")
+  halp_meta(description, "Sample scene animation channels at a chosen time to update animated transforms.")
   halp_meta(authors, "ossia team")
   halp_meta(
       manual_url,

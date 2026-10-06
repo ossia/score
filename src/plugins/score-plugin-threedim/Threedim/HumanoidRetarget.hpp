@@ -67,6 +67,7 @@ public:
   halp_meta(name, "Humanoid Retarget")
   halp_meta(category, "Visuals/3D/Scene")
   halp_meta(c_name, "humanoid_retarget")
+  halp_meta(description, "Transfer a humanoid pose stream to a calibrated character skeleton with optional root motion.")
   halp_meta(authors, "ossia team")
   halp_meta(
       manual_url,

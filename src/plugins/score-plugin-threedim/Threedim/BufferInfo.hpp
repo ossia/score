@@ -23,6 +23,7 @@ public:
   halp_meta(name, "Buffer Info")
   halp_meta(category, "Visuals/Utilities")
   halp_meta(c_name, "buffer_info")
+  halp_meta(description, "Report a GPU buffer's handle, byte size, offset and change state as values and readable text.")
   halp_meta(manual_url, "https://ossia.io/score-docs/processes/buffer-info.html")
   halp_meta(uuid, "f1a3d6c8-2b4e-4c5d-8a9f-1e2d3c4b5a60")
 

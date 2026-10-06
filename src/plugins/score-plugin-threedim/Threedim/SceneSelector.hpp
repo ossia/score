@@ -34,6 +34,7 @@ public:
   halp_meta(name, "Scene Selector")
   halp_meta(category, "Visuals/3D/Scene")
   halp_meta(c_name, "scene_selector")
+  halp_meta(description, "Extract matching scene subtrees with optional transform rebasing.")
   halp_meta(authors, "ossia team")
   halp_meta(
       manual_url,

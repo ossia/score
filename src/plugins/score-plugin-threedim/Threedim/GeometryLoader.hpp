@@ -27,6 +27,7 @@ public:
   halp_meta(name, "Geometry Loader")
   halp_meta(category, "Visuals/Meshes")
   halp_meta(c_name, "geometry_loader")
+  halp_meta(description, "Load OBJ, PLY, STL or OFF geometry without scene hierarchy or materials.")
   halp_meta(
       authors,
       "Jean-Michaël Celerier, TinyOBJ authors, miniPLY authors, vcglib authors, Eigen authors")

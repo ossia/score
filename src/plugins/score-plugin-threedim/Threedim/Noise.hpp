@@ -59,6 +59,7 @@ struct Noise
   halp_meta(c_name, "mesh_noise")
   halp_meta(uuid, "4f493663-3739-43df-94b5-20a31c4dc8aa")
   halp_meta(category, "Visuals/Meshes/Modifiers")
+  halp_meta(description, "Deform mesh vertices with independently controlled noise on each axis.")
   halp_meta(manual_url, "https://ossia.io/score-docs/processes/meshes.html#noise")
   halp_meta(author, "Jean-Michaël Celerier")
 

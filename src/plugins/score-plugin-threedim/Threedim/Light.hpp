@@ -46,6 +46,7 @@ public:
   halp_meta(name, "Light")
   halp_meta(category, "Visuals/3D/Scene")
   halp_meta(c_name, "light")
+  halp_meta(description, "Add a configurable light and transform to a 3D scene.")
   halp_meta(authors, "ossia team")
   halp_meta(
       manual_url,

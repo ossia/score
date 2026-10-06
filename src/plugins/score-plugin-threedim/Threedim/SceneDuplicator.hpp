@@ -36,6 +36,7 @@ public:
   halp_meta(name, "Scene Duplicator")
   halp_meta(category, "Visuals/3D/Scene")
   halp_meta(c_name, "scene_duplicator")
+  halp_meta(description, "Clone a scene hierarchy into a grid, ring or line of independently transformed copies.")
   halp_meta(authors, "ossia team")
   halp_meta(
       manual_url,

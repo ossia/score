@@ -36,6 +36,7 @@ public:
   halp_meta(name, "Inject Buffer")
   halp_meta(category, "Visuals/3D/Scene")
   halp_meta(c_name, "inject_buffer")
+  halp_meta(description, "Attach a live GPU buffer to a scene under a named auxiliary binding.")
   halp_meta(authors, "ossia team")
   halp_meta(
       manual_url,
