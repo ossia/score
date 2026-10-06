@@ -34,6 +34,7 @@ public:
   halp_meta(name, "Scene Inspector")
   halp_meta(category, "Visuals/3D/Scene")
   halp_meta(c_name, "scene_inspector")
+  halp_meta(description, "List scene paths, names and hierarchy and report geometry and component counts.")
   halp_meta(authors, "ossia team")
   halp_meta(
       manual_url,

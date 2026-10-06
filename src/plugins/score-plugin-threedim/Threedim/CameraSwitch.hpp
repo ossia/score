@@ -39,6 +39,7 @@ public:
   halp_meta(name, "Camera Switch")
   halp_meta(category, "Visuals/3D/Scene")
   halp_meta(c_name, "camera_switch")
+  halp_meta(description, "Select or blend up to four scene cameras, including their transforms and projection parameters.")
   halp_meta(authors, "ossia team")
   halp_meta(
       manual_url,

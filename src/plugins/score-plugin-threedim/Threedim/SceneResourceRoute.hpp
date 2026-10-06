@@ -43,6 +43,7 @@ public:
   halp_meta(name, "Scene Resource Route")
   halp_meta(category, "Visuals/3D/Scene")
   halp_meta(c_name, "scene_resource_route")
+  halp_meta(description, "Route a GPU texture into a selected scene environment or shadow resource field.")
   halp_meta(authors, "ossia team")
   halp_meta(
       manual_url,

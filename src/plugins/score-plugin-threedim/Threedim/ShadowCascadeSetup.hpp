@@ -30,6 +30,7 @@ public:
   halp_meta(name, "Shadow Cascade Setup")
   halp_meta(category, "Visuals/3D/Scene")
   halp_meta(c_name, "shadow_cascade_setup")
+  halp_meta(description, "Calculate directional-light shadow cascades from the active camera frustum.")
   halp_meta(authors, "ossia team")
   halp_meta(
       manual_url,

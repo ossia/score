@@ -44,6 +44,7 @@ public:
   halp_meta(name, "Inverse Kinematics (2-bone)")
   halp_meta(category, "Visuals/3D/Scene")
   halp_meta(c_name, "inverse_kinematics")
+  halp_meta(description, "Solve a two-bone skeleton chain toward a target using a pole vector to control the bend.")
   halp_meta(authors, "ossia team")
   halp_meta(
       manual_url,

@@ -16,6 +16,7 @@ public:
   halp_meta(name, "Geometry Info")
   halp_meta(category, "Visuals/Utilities")
   halp_meta(c_name, "geometry_info")
+  halp_meta(description, "Inspect a geometry's buffers, attributes and drawing metadata.")
   halp_meta(manual_url, "https://ossia.io/score-docs/processes/geometry-info.html")
   halp_meta(uuid, "c4deb797-8d5f-4ffb-b25b-b541f5c54099")
 

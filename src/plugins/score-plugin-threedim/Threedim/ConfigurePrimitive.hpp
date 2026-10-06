@@ -32,6 +32,7 @@ public:
   halp_meta(name, "Configure Primitive")
   halp_meta(category, "Visuals/3D/Scene")
   halp_meta(c_name, "configure_primitive")
+  halp_meta(description, "Set active and visible flags on scene nodes selected by path patterns.")
   halp_meta(authors, "ossia team")
   halp_meta(
       manual_url,

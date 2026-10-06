@@ -45,6 +45,7 @@ public:
   halp_meta(name, "Camera Array")
   halp_meta(c_name, "camera_array_avnd")
   halp_meta(category, "Visuals/3D/Scene")
+  halp_meta(description, "Create six cameras oriented along cubemap faces for multiview rendering.")
   halp_meta(authors, "ossia team")
   halp_meta(uuid, "7a3e8d2f-1b94-4c6a-b7f5-8e2d0c1a4b93")
 

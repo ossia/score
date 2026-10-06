@@ -20,6 +20,7 @@ public:
   halp_meta(name, "Buffers to geometry")
   halp_meta(category, "Visuals/Utilities")
   halp_meta(c_name, "buffers_to_geometry_v2")
+  halp_meta(description, "Assemble GPU buffers into drawable geometry with configurable vertex attributes and indices.")
   halp_meta(manual_url, "https://ossia.io/score-docs/processes/buffers-to-geometry.html")
   halp_meta(uuid, "a7c3e1f0-8b2d-4a6e-9f1c-5d3e7b8a0c2f")
 

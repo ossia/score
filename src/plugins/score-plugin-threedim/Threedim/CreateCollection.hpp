@@ -32,6 +32,7 @@ public:
   halp_meta(name, "Create Collection")
   halp_meta(category, "Visuals/3D/Scene")
   halp_meta(c_name, "create_collection")
+  halp_meta(description, "Attach a named collection of scene paths and tags to a scene.")
   halp_meta(authors, "ossia team")
   halp_meta(
       manual_url,

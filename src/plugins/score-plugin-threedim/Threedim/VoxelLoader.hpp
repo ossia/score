@@ -17,6 +17,7 @@ public:
   halp_meta(name, "Voxel loader")
   halp_meta(category, "Visuals/Meshes")
   halp_meta(c_name, "voxel_loader")
+  halp_meta(description, "Load a VOX voxel file as a point cloud or a simple or greedy mesh.")
   halp_meta(authors, "Jean-Michaël Celerier, opengametools authors")
   halp_meta(manual_url, "")
   halp_meta(uuid, "a7c3e1b4-9f2d-4e8a-b6c5-1d3f7e9a2b4c")

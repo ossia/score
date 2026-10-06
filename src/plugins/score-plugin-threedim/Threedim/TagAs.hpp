@@ -34,6 +34,7 @@ public:
   halp_meta(name, "Tag As Format")
   halp_meta(category, "Visuals/3D/Scene")
   halp_meta(c_name, "tag_as_format")
+  halp_meta(description, "Assign a format identifier to primitive-cloud components in a scene.")
   halp_meta(authors, "ossia team")
   halp_meta(
       manual_url,

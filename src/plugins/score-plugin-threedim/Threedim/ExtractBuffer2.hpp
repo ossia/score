@@ -39,6 +39,7 @@ public:
   halp_meta(name, "Extract buffer (by name)")
   halp_meta(category, "Visuals/Utilities")
   halp_meta(c_name, "extract_buffer_by_name")
+  halp_meta(description, "Extract a named vertex attribute, raw buffer or auxiliary buffer from geometry.")
   halp_meta(
       manual_url, "https://ossia.io/score-docs/processes/extract-buffer.html")
   halp_meta(uuid, "3c9d6c2b-1f04-4f7d-9bc2-a4b1d7c8e5f0")

@@ -25,6 +25,7 @@ public:
   halp_meta(name, "Texture Info")
   halp_meta(category, "Visuals/Utilities")
   halp_meta(c_name, "texture_info")
+  halp_meta(description, "Report a GPU texture's dimensions, format and native handle as values and readable text.")
   halp_meta(manual_url, "https://ossia.io/score-docs/processes/texture-info.html")
   halp_meta(uuid, "5bd9c8e2-7f1a-4e3b-9c0d-2a4b6f8e1d72")
 

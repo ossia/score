@@ -46,6 +46,7 @@ public:
   halp_meta(name, "Extract Scene Buffer")
   halp_meta(category, "Visuals/3D/Scene")
   halp_meta(c_name, "extract_scene_buffer")
+  halp_meta(description, "Expose a scene environment, camera or material GPU buffer without flattening the scene.")
   halp_meta(authors, "ossia team")
   halp_meta(
       manual_url,

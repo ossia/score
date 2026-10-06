@@ -33,6 +33,7 @@ public:
   halp_meta(name, "Transform 3D")
   halp_meta(c_name, "transform3d_avnd")
   halp_meta(category, "Visuals/3D/Scene")
+  halp_meta(description, "Apply a parent position, rotation and scale transform to a scene.")
   halp_meta(authors, "ossia team")
   halp_meta(uuid, "7a9f2b41-4d58-4e93-b7c2-0f5d3e8a6b1c")
 

@@ -22,6 +22,7 @@ public:
   halp_meta(name, "Structure Synth")
   halp_meta(category, "Visuals/Meshes")
   halp_meta(c_name, "structure_synth")
+  halp_meta(description, "Generate procedural mesh geometry from an EisenScript program.")
   halp_meta(manual_url, "https://ossia.io/score-docs/processes/structure-synth.html")
   halp_meta(uuid, "bb8f3d77-4cfd-44ce-9c43-b64c54a748ab")
 

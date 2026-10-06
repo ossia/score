@@ -36,6 +36,7 @@ public:
   halp_meta(name, "Extract texture (by name)")
   halp_meta(category, "Visuals/Utilities")
   halp_meta(c_name, "extract_texture_by_name")
+  halp_meta(description, "Extract a named auxiliary texture from geometry as a standalone GPU texture.")
   halp_meta(authors, "ossia team")
   halp_meta(
       manual_url, "https://ossia.io/score-docs/processes/extract-texture.html")

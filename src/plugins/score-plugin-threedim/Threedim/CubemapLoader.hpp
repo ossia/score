@@ -36,6 +36,7 @@ public:
   halp_meta(name, "Cubemap Loader")
   halp_meta(category, "Visuals/3D")
   halp_meta(c_name, "cubemap_loader")
+  halp_meta(description, "Load an environment image into a cubemap and scene skybox contribution.")
   halp_meta(
       manual_url,
       "https://ossia.io/score-docs/processes/cubemap-loader.html")
