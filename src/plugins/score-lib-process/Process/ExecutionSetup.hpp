@@ -139,6 +139,9 @@ private:
       const std::shared_ptr<ossia::graph_node>& node, Impl&&);
 
   void follow_published();
+  //! Sets the address of a registered port again, on the ossia port it is
+  //! registered with now; nothing for a port that is no longer registered.
+  void rebind(QObject* port);
   bool m_followsPublished{};
 
   template <typename Port_T, typename OssiaPort_T, typename Impl>
