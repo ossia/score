@@ -810,7 +810,14 @@ set(_t "${3RDPARTY_FOLDER}")
 set(_l "${OSSIA_3RDPARTY_FOLDER}")
 score_register_license(score URL "https://ossia.io" FILES "${CMAKE_SOURCE_DIR}/LICENSE.txt")
 score_register_license(libossia URL "https://ossia.io" FILES "${CMAKE_SOURCE_DIR}/3rdparty/libossia/LICENSE")
-score_register_license(Qt URL "https://www.qt.io" HEADER "GNU General Public License v3")
+set(_qt_attributions "")
+score_qt_sbom_attributions("${QT6_INSTALL_PREFIX}/${QT6_INSTALL_ARCHDATA}/sbom"
+  "${CMAKE_CURRENT_BINARY_DIR}/qt-third-party.txt" _qt_sbom)
+if(_qt_sbom)
+  set(_qt_attributions "${CMAKE_CURRENT_BINARY_DIR}/qt-third-party.txt")
+endif()
+score_register_license(Qt URL "https://www.qt.io" HEADER "GNU General Public License v3"
+  FILES ${_qt_attributions})
 # A system Boost installs no license file.
 file(GLOB _boost_license "${_l}/boost_1_*/LICENSE_1_0.txt")
 if(_boost_license)
