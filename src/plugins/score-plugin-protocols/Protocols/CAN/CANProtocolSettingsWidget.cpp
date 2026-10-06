@@ -50,15 +50,9 @@ CANProtocolSettingsWidget::CANProtocolSettingsWidget(QWidget* parent)
   // valid setting and only fails at connection time. An empty field plus the
   // warning below says what is actually going on.
   m_noInterface = new QLabel{
-      tr("No CAN interface found on this machine.\n"
-         "Plug an adapter in and bring it up, e.g.:\n"
-         "  sudo ip link set can0 up type can bitrate 1000000\n"
-         "or create a virtual bus for testing:\n"
-         "  sudo modprobe vcan\n"
-         "  sudo ip link add dev vcan0 type vcan && sudo ip link set up vcan0"),
+      tr("No CAN interface found. Connect and configure a SocketCAN adapter."),
       this};
   m_noInterface->setWordWrap(true);
-  m_noInterface->setTextInteractionFlags(Qt::TextSelectableByMouse);
   m_noInterface->setVisible(m_interface->count() == 0);
 
   m_dbcPath = new QLineEdit{this};
@@ -106,30 +100,20 @@ CANProtocolSettingsWidget::CANProtocolSettingsWidget(QWidget* parent)
   layout->addRow(tr("Interface"), m_interface);
   layout->addRow(QString{}, m_noInterface);
   score::setHelp(
-      m_interface, tr("The SocketCAN network interface, e.g. can0 or vcan0.\n"
-                      "Bring it up first, e.g.:\n"
-                      "  sudo ip link set can0 up type can bitrate 1000000"));
+      m_interface, tr("A configured SocketCAN interface, e.g. can0 or vcan0"));
 
   layout->addRow(tr("DBC file"), dbcLayout);
   layout->addRow(tr("Node id offset"), m_nodeIdOffset);
   score::setHelp(
       m_nodeIdOffset,
-      tr("Added to every message id of the database.\n"
-         "A DBC usually describes one device at one node id: a sensor whose file "
-         "is written for CANopen node 1 (0x181, 0x281...) is reached at node 2 "
-         "with an offset of 1.\n"
-         "This lets one file serve a whole chain of devices on one bus, one "
-         "score device per sensor."));
+      tr("Added to each database message id; ids that would leave the valid "
+         "range are unchanged."));
 
   layout->addRow(tr("32-bit ints are floats"), m_float32Override);
   score::setHelp(
       m_float32Override,
-      tr("Decode every 32-bit integer signal as an IEEE 754 float instead.\n\n"
-         "Leave this off unless the database is known to be wrong. It exists "
-         "because some vendor files declare a float payload as a scaled integer "
-         "and omit the SIG_VALTYPE_ record that would say otherwise; decoding "
-         "such a file as written yields garbage.\n"
-         "Signals with an explicit float or double type are never affected."));
+      tr("Decode 32-bit integer signals as IEEE 754 floats. Only for databases "
+         "that declare float signals as integers."));
 
   layout->addRow(tr("CAN FD"), m_fd);
   score::setHelp(
@@ -138,9 +122,7 @@ CANProtocolSettingsWidget::CANProtocolSettingsWidget(QWidget* parent)
   layout->addRow(tr("Filter to database"), m_filterToDatabase);
   score::setHelp(
       m_filterToDatabase,
-      tr("Ask the kernel to drop frames whose id is not in the database.\n"
-         "Filters are per socket, so several devices may share one bus without "
-         "paying for each other's traffic."));
+      tr("Receive only the message ids listed in the database."));
 
   layout->addRow(QString{}, m_summary);
 

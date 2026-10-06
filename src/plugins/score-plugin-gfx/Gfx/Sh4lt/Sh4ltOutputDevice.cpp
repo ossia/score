@@ -17,7 +17,6 @@
 #include <ossia/network/base/protocol.hpp>
 
 #include <QFormLayout>
-#include <QLabel>
 #include <QLineEdit>
 #include <QOffscreenSurface>
 #include <QSpinBox>
@@ -359,12 +358,6 @@ Sh4ltOutputSettingsWidget::Sh4ltOutputSettingsWidget(QWidget* parent)
   m_deviceNameEdit->setText("Sh4lt Out");
   setPathLabel(tr("Sh4lt label"));
 
-  auto helpLabel
-      = new QLabel{tr("To test, use the following command: \n"
-                      "$ gst-launch-1.0 sh4ltsrc label=<THE LABEL> ! "
-                      "videoconvert ! xvimagesink")};
-  helpLabel->setTextInteractionFlags(Qt::TextInteractionFlag::TextSelectableByMouse);
-  m_layout->addRow(helpLabel);
 
   setSettings(Sh4ltOutputProtocolFactory{}.defaultSettings());
 }

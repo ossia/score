@@ -34,8 +34,7 @@ JoystickProtocolSettingsWidget::JoystickProtocolSettingsWidget(QWidget* parent)
   m_gamepad = new QCheckBox{this};
   m_gamepad->setChecked(false);
   score::setHelp(
-      m_gamepad, tr("Try to leverage the SDL Gamepad API. This gives access to rumble, "
-                    "accelerometers, etc."));
+      m_gamepad, tr("Use the SDL gamepad API, which also exposes rumble and motion sensors"));
 
   auto layout = new QFormLayout;
   layout->addRow(tr("Name"), m_deviceNameEdit);
@@ -43,9 +42,8 @@ JoystickProtocolSettingsWidget::JoystickProtocolSettingsWidget(QWidget* parent)
 
 #if defined(__EMSCRIPTEN__)
   auto hint = new QLabel{
-      tr("Web browsers only reveal a joystick once a button has been pressed or "
-         "an axis moved on it. If the list of devices is empty, use the joystick "
-         "once and it will show up."),
+      tr("Press a button or move an axis to make the joystick visible to the "
+         "browser."),
       this};
   hint->setWordWrap(true);
   layout->addRow(hint);

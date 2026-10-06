@@ -737,9 +737,7 @@ void MCUSettingsWidget::addChosenDevice(
   item->setFlags(item->flags() | Qt::ItemIsUserCheckable);
   item->setCheckState(2, level ? Qt::Checked : Qt::Unchecked);
   item->setToolTip(
-      2, tr("Put this device's controls under a level of their own, named "
-            "after the description.\nSeveral devices on one port each need "
-            "one; a single device usually does not."));
+      2, tr("Group this device's controls under its name."));
   m_listEmptied = false;
 }
 
@@ -933,14 +931,10 @@ void MCUSettingsWidget::updateDeviceMapSummary()
 
   if(const auto expanded = MIDIDevices::genericChannel(identity))
   {
-    auto text = tr("One MIDI channel, addressed as itself: note on and off, "
-                   "control change, program change and pitch bend.");
+    auto text = tr("One MIDI channel: notes, control changes, program changes and "
+                   "pitch bend.");
     if(*expanded)
-      text += tr("\n\nWith a node of its own for each of the 128 notes, controls "
-                 "and programs, beside the nodes that carry the number as half "
-                 "of their value.");
-    text += tr("\n\nNothing here says what the device does with them: that is "
-               "what a device map is for.");
+      text += " " + tr("Each note, control and program also has a node of its own.");
     m_summary->setText(text);
     return;
   }
@@ -949,9 +943,8 @@ void MCUSettingsWidget::updateDeviceMapSummary()
   {
     if(db.devices().empty())
       m_summary->setText(
-          tr("No device map found. Install the \"MIDI device maps\" package from "
-             "the package manager to get the control maps of several hundred "
-             "controllers and instruments."));
+          tr("No device map found. Install \"MIDI device maps\" in the package "
+             "manager."));
     else
       m_summary->clear();
     return;

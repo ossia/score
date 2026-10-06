@@ -25,16 +25,14 @@ public:
     m_remotePort->setRange(0, 65535);
     m_remotePort->setValue(9996);
     score::setHelp(m_remotePort, 
-        tr("This is where the other software listens from incoming messages. Score will "
-           "send packets to this port."));
+        tr("Port the other software listens on: score sends to it."));
     proto.checkForChanges(m_remotePort);
 
     m_localPort = new QSpinBox(this);
     m_localPort->setRange(0, 65535);
     m_localPort->setValue(9997);
     score::setHelp(m_localPort, 
-        tr("This is where the other software sends feedback messages to. Score will "
-           "listen for incoming OSC messages on this port."));
+        tr("Port score listens on for messages from the other software."));
     proto.checkForChanges(m_localPort);
 
     m_broadcast = new QCheckBox{this};
@@ -43,10 +41,6 @@ public:
 
     m_host = new QLineEdit(this);
     m_host->setText("127.0.0.1");
-    score::setHelp(m_host, 
-        tr("This is the IP address of the computer the OSC-compatible software is "
-           "located on. You can use 127.0.0.1 if the software runs on the same machine "
-           "than score."));
 
     layout->addRow(tr("Device listening port"), m_remotePort);
     layout->addRow(tr("Broadcast"), m_broadcast);

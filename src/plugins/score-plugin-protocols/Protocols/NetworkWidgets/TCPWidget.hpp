@@ -26,16 +26,10 @@ public:
     m_remotePort = new QSpinBox(this);
     m_remotePort->setRange(0, 65535);
     m_remotePort->setValue(9996);
-    score::setHelp(m_remotePort, 
-        tr("This is the communication port used for the TCP connection."));
     proto.checkForChanges(m_remotePort);
 
     m_host = new QLineEdit(this);
     m_host->setText("127.0.0.1");
-    score::setHelp(m_host, 
-        tr("This is the IP address of the computer the OSC-compatible software is "
-           "located on. You can use 127.0.0.1 if the software runs on the same machine "
-           "than score."));
 
     layout->addRow(tr("Port"), m_remotePort);
     layout->addRow(tr("Host"), m_host);
@@ -72,16 +66,10 @@ public:
     m_remotePort = new QSpinBox(this);
     m_remotePort->setRange(0, 65535);
     m_remotePort->setValue(9996);
-    score::setHelp(m_remotePort, 
-        tr("This is the communication port used for the TCP connection."));
     proto.checkForChanges(m_remotePort);
 
     m_host = new QLineEdit(this);
     m_host->setText("127.0.0.1");
-    score::setHelp(m_host, 
-        tr("This is the IP address of the computer the OSC-compatible software is "
-           "located on. You can use 127.0.0.1 if the software runs on the same machine "
-           "than score."));
 
     m_framing = new QComboBox{this};
     m_framing->addItems({"Size prefixing", "SLIP", "COBS"});

@@ -1488,10 +1488,8 @@ PipeWireSettingsWidget::PipeWireSettingsWidget(QWidget* parent)
   m_dmabufEdit = new QCheckBox(tr("Zero-copy DMA-BUF"), this);
   m_dmabufEdit->setChecked(true);
   m_dmabufEdit->setToolTip(
-      tr("Offer DRM format modifiers, so a producer that can hand over a "
-         "DMA-BUF does instead of copying through shared memory. The producer "
-         "decides: shared memory stays on offer either way, and turning this "
-         "off is what to do when a modifier mismatch needs ruling out."));
+      tr("Accept DMA-BUF frames from the producer. Turn off to rule out format "
+         "modifier mismatches."));
 
   auto* layout = new QFormLayout;
   layout->addRow(tr("PipeWire Node:"), m_nodeEdit);
