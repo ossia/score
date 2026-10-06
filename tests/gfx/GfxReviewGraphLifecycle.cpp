@@ -167,6 +167,96 @@ TEST_CASE(
 }
 
 TEST_CASE(
+    "GraphLifecycle-2d an input target gains depth when a source needing it arrives",
+    "[GraphLifecycle][retention][depth]")
+{
+  // The target of an input is made with the depth its sources need when it is
+  // made. A source that tests depth, wired in later, must not draw into a
+  // target left without a depth attachment: it would draw without a depth
+  // test, the last mesh drawn covering everything else.
+  const auto api = GENERATE(from_range(platform_backends()));
+  Result result;
+  bool depthBefore{true}, depthAfter{}, requiresAfter{};
+  ReadbackImage image;
+  score::test::run_in_gui_app([&](const score::GUIApplicationContext&) {
+    GfxPipeline p;
+    int a=p.addIsf(corpus("isf-solid-color.fs"));
+    int b=p.addIsf(corpus("isf-passthrough-plain.fs"));
+    int s=p.addSink({64,64});
+    p.wire(p.imageOut(a),p.imageIn(b)); p.wire(p.imageOut(b),p.sinkInput(s));
+    if(!create(p,api,result)) return;
+    p.render(2);
+    auto* rl=p.sink(s)->renderer(); auto* port=p.imageIn(b);
+    const auto hasDepth=[&] {
+      auto rt=rl->renderTargetForInputPort(*port);
+      return rt.depthTexture || rt.depthRenderBuffer || rt.msDepthTexture;
+    };
+    depthBefore=hasDepth();
+
+    int d=p.addIsf(corpus("isf-solid-writes-depth.fs"));
+    p.addEdgeIncremental(p.imageOut(d),p.imageIn(b));
+    p.render(2);
+    requiresAfter=rl->requiresDepth(*port);
+    depthAfter=hasDepth();
+    image=p.readback(s);
+  });
+  if(result.skip) SKIP(result.reason);
+  REQUIRE(result.error.empty()); REQUIRE(image.valid());
+  REQUIRE_FALSE(depthBefore);
+  REQUIRE(requiresAfter);
+  CHECK(depthAfter);
+  // b samples the target made anew, which a and d both draw into: a's magenta
+  // where d discards, and on the other half whichever of the two the depth
+  // test keeps.
+  const auto left=image.at(image.width/4,image.height/2);
+  const auto right=image.at(3*image.width/4,image.height/2);
+  INFO("left=" << int(left[0]) << ',' << int(left[1]) << ',' << int(left[2])
+       << " right=" << int(right[0]) << ',' << int(right[1]) << ',' << int(right[2]));
+  CHECK(left[0] > 200); CHECK(left[1] < 50); CHECK(left[2] > 200);
+  CHECK(right[2] > 200); CHECK(right[1] < 50);
+}
+
+TEST_CASE(
+    "GraphLifecycle-2e two edits between frames, the second gives an input target depth",
+    "[GraphLifecycle][retention][depth]")
+{
+  // The first edit's passes are made with a resource batch that waits for the
+  // next frame. The second edit removes those passes and the target they draw
+  // into to make the target again with depth: what the batch names must be
+  // uploaded before it goes.
+  const auto api = GENERATE(from_range(platform_backends()));
+  Result result;
+  bool depthAfter{};
+  ReadbackImage image;
+  score::test::run_in_gui_app([&](const score::GUIApplicationContext&) {
+    GfxPipeline p;
+    int a=p.addIsf(corpus("isf-solid-color.fs"));
+    int b=p.addIsf(corpus("isf-passthrough-plain.fs"));
+    int s=p.addSink({64,64});
+    p.wire(p.imageOut(a),p.imageIn(b)); p.wire(p.imageOut(b),p.sinkInput(s));
+    if(!create(p,api,result)) return;
+    p.render(2);
+
+    int c=p.addIsf(corpus("isf-solid-color.fs"));
+    p.addEdgeIncremental(p.imageOut(c),p.imageIn(b));
+    int d=p.addIsf(corpus("isf-solid-writes-depth.fs"));
+    p.addEdgeIncremental(p.imageOut(d),p.imageIn(b));
+    p.render(3);
+
+    auto* rl=p.sink(s)->renderer();
+    auto rt=rl->renderTargetForInputPort(*p.imageIn(b));
+    depthAfter=rt.depthTexture || rt.depthRenderBuffer || rt.msDepthTexture;
+    image=p.readback(s);
+  });
+  if(result.skip) SKIP(result.reason);
+  REQUIRE(result.error.empty()); REQUIRE(image.valid());
+  CHECK(depthAfter);
+  const auto left=image.at(image.width/4,image.height/2);
+  INFO("left=" << int(left[0]) << ',' << int(left[1]) << ',' << int(left[2]));
+  CHECK(left[0] > 200); CHECK(left[1] < 50); CHECK(left[2] > 200);
+}
+
+TEST_CASE(
     "GraphLifecycle-3 rebuild commits persistent registry initialization",
     "[GraphLifecycle][registry]")
 {
