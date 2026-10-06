@@ -1804,6 +1804,15 @@ score_add_test(test_unit_graphics_layout_title_font
 
 # Tab and strip / detail layouts rebuilt in place, as an avnd UI is when its
 # ports change.
+# A shader process whose program changes and is undone during execution: the
+# address rebinds of its ports must not reach the inlets the change replaced.
+if(TARGET score_plugin_gfx)
+  score_add_test(test_unit_gfx_shader_change_exec
+    SOURCES GfxShaderChangeExecTest.cpp
+    APP
+    PLUGINS score_plugin_gfx score_plugin_engine score_plugin_scenario score_lib_process)
+endif()
+
 score_add_test(test_unit_graphics_layout_rebuild
   SOURCES GraphicsLayoutRebuildTest.cpp
   APP)
