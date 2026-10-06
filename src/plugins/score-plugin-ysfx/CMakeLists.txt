@@ -33,6 +33,7 @@ set(HDRS
 )
 set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/YSFX/ProcessModel.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/YSFX/ProcessFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/YSFX/ProcessModelSerialization.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/YSFX/Executor/Component.cpp"
