@@ -530,6 +530,18 @@ avnd_make_score(
   NAMESPACE ao
 )
 avnd_make_score(
+  SOURCES "${AVND_FOLDER}/examples/Advanced/Utilities/ControlToCV.hpp"
+  TARGET control_to_cv
+  MAIN_CLASS ControlToCV
+  NAMESPACE ao
+)
+avnd_make_score(
+  SOURCES "${AVND_FOLDER}/examples/Advanced/Display/ColorDisplay.hpp"
+  TARGET color_display
+  MAIN_CLASS ColorDisplay
+  NAMESPACE dspl
+)
+avnd_make_score(
   SOURCES "${AVND_FOLDER}/examples/Advanced/Audio/Dynamics.hpp"
   TARGET compressor
   MAIN_CLASS Compressor
