@@ -106,6 +106,7 @@ struct MIDISyncOut
   halp_meta(manual_url, "https://ossia.io/score-docs/processes/midi-sync.html")
   halp_meta(uuid, "aa7c1ae5-495e-436e-a079-e3f1a19861bb")
   halp_meta(category, "Timing/Midi")
+  halp_meta(description, "Send MIDI Clock, transport messages and MIDI Time Code synchronized to score playback.")
   halp_flag(process_exec);
 
   ossia::exec_state_facade ossia_state;

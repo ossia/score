@@ -17,7 +17,7 @@ struct Teleplot : PatternObject
   halp_meta(name, "Teleplot")
   halp_meta(author, "ossia team")
   halp_meta(category, "Monitoring")
-  halp_meta(description, "Forwards a set of device explorer messages to ")
+  halp_meta(description, "Forward matching device-explorer parameter updates to Teleplot over UDP.")
   halp_meta(c_name, "avnd_teleplot")
   halp_meta(manual_url, "https://ossia.io/score-docs/processes/teleplot.html")
   halp_meta(uuid, "e1d5b9a0-4df9-4281-87a6-9f427dfb6e31")
