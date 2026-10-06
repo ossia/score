@@ -618,6 +618,9 @@ score_register_license(glsl-parser URL "https://github.com/graphitemaster/glsl-p
 score_register_license(dxv NOTICES "${3RDPARTY_FOLDER}/dxv/dxv.c")
 score_register_license(OffsetAllocator URL "https://github.com/sebbbi/OffsetAllocator" FILES "${3RDPARTY_FOLDER}/OffsetAllocator/LICENSE")
 score_register_license("NVIDIA DVP shim" NOTICES "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/nv-dvp-bridge/dvpapi_shim.h")
+set(_r "${CMAKE_CURRENT_SOURCE_DIR}/Gfx/Graph/decoders/licenses")
+score_register_license("Tone mapping operators" FILES
+  "${_r}/Tonemap-PBR-Neutral-Apache-2.0.txt" "${_r}/Tonemap-ACES-BakingLab-MIT.txt" "${_r}/Tonemap-AgX-MIT.txt")
 
 target_include_directories(${PROJECT_NAME}
   PUBLIC

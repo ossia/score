@@ -64,6 +64,9 @@ setup_score_plugin(${PROJECT_NAME})
 
 score_register_license(Faust URL "https://faust.grame.fr" HEADER "GNU General Public License")
 score_register_license(Guitarix URL "https://guitarix.org" FILES "${3RDPARTY_FOLDER}/Guitarix/COPYING")
+# instrument.h, modalBar.h and phonemes.h state "licence: STK-4.3".
+score_register_license("Faust-STK tables" URL "https://ccrma.stanford.edu/software/stk/"
+  HEADER "Romain Michon, 2011" FILES "${3RDPARTY_FOLDER}/STK/LICENSE-STK-4.3.txt")
 
 
 score_use_system(use_sys Faust)
