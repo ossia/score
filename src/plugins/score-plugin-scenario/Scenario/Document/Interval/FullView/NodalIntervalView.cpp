@@ -176,17 +176,28 @@ void NodalIntervalView::zoomMinus()
   zoomTo(newLevel);
 }
 
-QPointF NodalIntervalView::viewportCenter() const
+QRectF NodalIntervalView::visibleRect() const
 {
   const auto parentRect = boundingRect();
   auto v = getView(*this);
   if(!v)
-    return parentRect.center();
+    return parentRect;
 
   const auto viewTopLeft = mapFromScene(v->mapToScene(0, 0));
   const auto viewBottomRight = mapFromScene(v->mapToScene(v->width(), v->height()));
-  const auto visibleRect = QRectF{viewTopLeft, viewBottomRight}.intersected(parentRect);
-  return visibleRect.isEmpty() ? parentRect.center() : visibleRect.center();
+  return QRectF{viewTopLeft, viewBottomRight}.intersected(parentRect);
+}
+
+QPointF NodalIntervalView::viewportCenter() const
+{
+  const auto visible = visibleRect();
+  return visible.isEmpty() ? boundingRect().center() : visible.center();
+}
+
+QPointF NodalIntervalView::pastePosition(QPointF scenePos) const
+{
+  const QPointF p = mapFromScene(scenePos);
+  return m_container->mapFromParent(visibleRect().contains(p) ? p : viewportCenter());
 }
 
 void NodalIntervalView::pickInitialViewport()
