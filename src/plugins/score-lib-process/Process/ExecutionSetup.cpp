@@ -216,10 +216,12 @@ void SetupContext::bind_address(
     QObject::disconnect(con);
   cons.clear();
 
-  auto rebind = [this, ossia_port, port = QPointer<Process::Port>{&proc_port}] {
+  // The ossia port is looked up when this runs: a queued call can arrive after
+  // a program change has replaced the one the port was bound with.
+  auto rebind = [this, port = QPointer<Process::Port>{&proc_port}] {
     OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
     if(port)
-      set_destination(effectiveAddress(*port), ossia_port);
+      this->rebind(port.data());
   };
   cons.push_back(connect(&proc_port, &Process::Port::addressChanged, this, rebind));
   // Queued: the namespace updates the published address on these signals too
@@ -815,20 +817,24 @@ void SetupContext::follow_published()
   if(auto tree = context.doc.findPlugin<LocalTree::ScriptableTreeBase>())
     connect(tree, &LocalTree::ScriptableTreeBase::published, this, [this](QObject* object) {
       QTimer::singleShot(0, this, [this, object = QPointer<QObject>{object}] {
-        if(!object)
-          return;
-        if(auto in = qobject_cast<Process::Inlet*>(object.data()))
-        {
-          if(auto it = inlets.find(in); it != inlets.end())
-            set_destination(effectiveAddress(*in), it->second.second);
-        }
-        else if(auto out = qobject_cast<Process::Outlet*>(object.data()))
-        {
-          if(auto it = outlets.find(out); it != outlets.end())
-            set_destination(effectiveAddress(*out), it->second.second);
-        }
+        if(object)
+          rebind(object.data());
       });
     });
+}
+
+void SetupContext::rebind(QObject* port)
+{
+  if(auto in = qobject_cast<Process::Inlet*>(port))
+  {
+    if(auto it = inlets.find(in); it != inlets.end())
+      set_destination(effectiveAddress(*in), it->second.second);
+  }
+  else if(auto out = qobject_cast<Process::Outlet*>(port))
+  {
+    if(auto it = outlets.find(out); it != outlets.end())
+      set_destination(effectiveAddress(*out), it->second.second);
+  }
 }
 
 SetupContext::~SetupContext() { }
