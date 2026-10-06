@@ -309,7 +309,7 @@ struct Node
   halp_meta(category, "Control/Impro")
   halp_meta(manual_url, "")
   halp_meta(author, "Maria Paula Carrero Rivas")
-  halp_meta(description, "Factor Oracle algorithm .") // TODO cite
+  halp_meta(description, "Learn a sequence of input values and generate recombined variations of it with the Factor Oracle algorithm.") // TODO cite
   halp_meta(uuid, "66F1C352-C48F-40A2-9283-35C2CB376258")
 
   struct

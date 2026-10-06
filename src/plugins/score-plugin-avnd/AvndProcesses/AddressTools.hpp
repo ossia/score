@@ -131,7 +131,7 @@ struct PatternUnfolder : PatternObject
 {
   halp_meta(name, "Pattern applier")
   halp_meta(author, "ossia team")
-  halp_meta(category, "Control/Data processing")
+  halp_meta(category, "Control/Data Processing")
   halp_meta(description, "Send a message to all nodes matching a pattern")
   halp_meta(c_name, "avnd_pattern_apply")
   halp_meta(uuid, "44a55ee1-c2c9-43d5-a655-8eaedaff394c")

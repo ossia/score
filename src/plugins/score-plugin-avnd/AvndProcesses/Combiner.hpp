@@ -8,7 +8,7 @@ struct PatternCombiner : PatternObject
 {
   halp_meta(name, "Pattern combiner")
   halp_meta(author, "ossia team")
-  halp_meta(category, "Control/Data processing")
+  halp_meta(category, "Control/Data Processing")
   halp_meta(description, "Apply an operation to all inputs matching a pattern")
   halp_meta(c_name, "avnd_pattern_combine")
   halp_meta(uuid, "18efe965-9acc-4703-9af3-3cef658b301a")

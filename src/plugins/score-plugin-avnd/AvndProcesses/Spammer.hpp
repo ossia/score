@@ -10,7 +10,7 @@ struct Spammer : PatternObject
 {
   halp_meta(name, "Spammer")
   halp_meta(author, "ossia team")
-  halp_meta(category, "Control/Data processing")
+  halp_meta(category, "Control/Data Processing")
   halp_meta(description, "Send a message at a given frequency")
   halp_meta(c_name, "avnd_pattern_spam")
   halp_meta(manual_url, "https://ossia.io/score-docs/processes/spammer.html")

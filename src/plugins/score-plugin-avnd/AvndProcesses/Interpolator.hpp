@@ -17,7 +17,7 @@ struct Interpolator
   halp_meta(name, "Interpolator")
   halp_meta(c_name, "avnd_interpolator")
   halp_meta(author, "ossia team")
-  halp_meta(category, "Control/Data processing")
+  halp_meta(category, "Control/Data Processing")
   halp_meta(
       description, "Linear interpolation of multiple values using weight coefficients")
   halp_meta(uuid, "f47ac10b-58cc-4372-a567-0e02b2c3d479")

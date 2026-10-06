@@ -16,7 +16,7 @@ struct Table2D
 {
   halp_meta(name, "Table (2D)")
   halp_meta(author, "ossia team")
-  halp_meta(category, "Control/Data processing")
+  halp_meta(category, "Control/Data Processing")
   halp_meta(description, "Store arbitrary data in a 2-dimensional table")
   halp_meta(c_name, "avnd_table_2d")
   halp_meta(uuid, "b8c4d2e3-5f60-7890-bcde-f01234567892")

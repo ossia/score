@@ -8,7 +8,7 @@ struct Node
 {
   halp_meta(name, "Test FX")
   halp_meta(c_name, "TestFX")
-  halp_meta(category, "Debug")
+  halp_meta(category, "Tests/Controls")
   halp_meta(author, "ossia score")
   halp_meta(manual_url, "")
   halp_meta(description, "Shows all the available widgets")
