@@ -458,3 +458,41 @@ TEST_CASE(
     CHECK(got2.y() == Approx(middle.y()).margin(2.));
   });
 }
+
+TEST_CASE(
+    "A node added outside of what an interval's nodal slot shows brings everything into view",
+    "[integration][nodal][gui]")
+{
+  score::test::run_in_gui_app([](const score::GUIApplicationContext& app) {
+    auto doc = score::test::new_document(app);
+    REQUIRE(doc);
+    auto& itv = newInterval(*doc);
+    auto first = dropEffect(*doc, itv, effect_key);
+    if(!first)
+      SKIP("avnd Counter not built");
+    auto nodal = nodalViewOf(*doc, *first);
+    REQUIRE(nodal);
+    // The 1:1 button: the canvas no longer follows its nodes by itself
+    nodal->rescale();
+    run_events_for(100);
+
+    Scenario::Command::Macro m{
+        new Scenario::Command::DropProcessInIntervalMacro, doc->context()};
+    auto second = m.createProcess(itv, effect_key, {}, QPointF{4000., 3000.});
+    REQUIRE(second);
+    m.commit();
+    run_events_for(300);
+
+    auto n1 = nodeOf(*nodal, *first);
+    auto n2 = nodeOf(*nodal, *second);
+    REQUIRE(n1);
+    REQUIRE(n2);
+    const QRectF visible = visibleSlot(*doc, *nodal);
+    INFO("visible " << visible.x() << "," << visible.y() << " " << visible.width() << "x"
+                    << visible.height());
+    INFO("second " << n2->sceneBoundingRect().x() << "," << n2->sceneBoundingRect().y());
+    CHECK(visible.contains(n2->sceneBoundingRect()));
+    CHECK(visible.contains(n1->sceneBoundingRect()));
+    CHECK(nodal->nodeContainer().scale() < 1.);
+  });
+}
