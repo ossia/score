@@ -364,6 +364,36 @@ TEST_CASE("Spigot through the binding: Enabled from the inspector and from a cab
   });
 }
 
+TEST_CASE("Spigot through the binding: a bang on Enabled opens it for that tick", "[avnd][spigot][execution]")
+{
+  with<ao::Spigot>(spigot_uuid, [](auto& e) {
+    // A Bang: one impulse
+    e.port(1, bang);
+    e.port(0, ossia::value{1.f});
+    CHECK(e.tick() == ossia::value{1.f});
+    e.port(0, ossia::value{2.f});
+    CHECK_FALSE(e.tick());
+
+    // A held Button: an impulse at every tick
+    for(float v : {3.f, 4.f, 5.f})
+    {
+      e.port(1, bang);
+      e.port(0, ossia::value{v});
+      CHECK(e.tick() == ossia::value{v});
+    }
+    e.port(0, ossia::value{6.f});
+    CHECK_FALSE(e.tick());
+
+    // Already enabled: a bang leaves it enabled
+    e.gui(1, ossia::value{true});
+    e.port(1, bang);
+    e.port(0, ossia::value{7.f});
+    CHECK(e.tick() == ossia::value{7.f});
+    e.port(0, ossia::value{8.f});
+    CHECK(e.tick() == ossia::value{8.f});
+  });
+}
+
 TEST_CASE("Array recombiner through the binding: lists and vectors", "[avnd][recombiner][execution]")
 {
   with<ao::ArrayRecombiner>(recombiner_uuid, [](auto& e) {
