@@ -29,6 +29,10 @@ struct ISFHelpers
     if(path.isEmpty())
       return base;
 
+    // The static author is the one of the process, not of the shader file:
+    // a file that credits nobody has no known author.
+    base.author.clear();
+
     QFile f{path};
     if(!f.open(QIODevice::ReadOnly))
       return base;

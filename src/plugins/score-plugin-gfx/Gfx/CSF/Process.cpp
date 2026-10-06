@@ -6,6 +6,7 @@
 
 #include <Gfx/Graph/Node.hpp>
 #include <Gfx/Graph/ShaderCache.hpp>
+#include <Gfx/ISFProcess.hpp>
 #include <Gfx/ShaderProgram.hpp>
 #include <Gfx/TexturePort.hpp>
 
@@ -647,9 +648,9 @@ void Model::setupCSF(const isf::descriptor& desc)
   }
 }
 
-Process::Descriptor ProcessFactory::descriptor(QString) const noexcept
+Process::Descriptor ProcessFactory::descriptor(QString path) const noexcept
 {
-  return Metadata<Process::Descriptor_k, Model>::get();
+  return ISFHelpers::descriptorFromISFFile<Model>(path);
 }
 
 }

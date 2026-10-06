@@ -1007,6 +1007,13 @@ if(TARGET score_plugin_gfx AND TARGET score_plugin_media)
     PLUGINS score_plugin_gfx)
 endif()
 
+# The library credits a shader file to its own CREDIT, not to the process.
+if(TARGET score_plugin_gfx)
+  score_add_test(test_unit_shader_credits
+    SOURCES ShaderCreditsTest.cpp
+    PLUGINS score_plugin_gfx)
+endif()
+
 # Which window or screen a capture device opens from its stored id and title.
 if(TARGET score_plugin_gfx)
   score_add_test(test_unit_window_capture_resolve

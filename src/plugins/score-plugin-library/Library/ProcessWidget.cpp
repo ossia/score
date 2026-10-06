@@ -79,6 +79,8 @@ public:
 
         if(!desc.author.isEmpty())
           m_author.setText(tr("Provided by ") + desc.author);
+        else
+          m_author.setText(tr("Author unknown"));
 
         if(!desc.description.isEmpty())
           m_description.setText(desc.description);
