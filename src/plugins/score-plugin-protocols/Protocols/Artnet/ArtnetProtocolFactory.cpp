@@ -22,7 +22,7 @@ namespace Protocols
 
 QString ArtnetProtocolFactory::prettyName() const noexcept
 {
-  return QObject::tr("Artnet");
+  return QObject::tr("DMX");
 }
 
 QUrl ArtnetProtocolFactory::manual() const noexcept
@@ -47,7 +47,7 @@ const Device::DeviceSettings& ArtnetProtocolFactory::defaultSettings() const noe
   static const Device::DeviceSettings& settings = [&]() {
     Device::DeviceSettings s;
     s.protocol = concreteKey();
-    s.name = "Artnet";
+    s.name = "DMX";
     ArtnetSpecificSettings settings;
     s.deviceSpecificSettings = QVariant::fromValue(settings);
     return s;

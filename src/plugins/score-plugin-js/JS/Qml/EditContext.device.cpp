@@ -117,7 +117,7 @@ GlobalDeviceEnumerator* EditJsContext::enumerateDevices()
   return e;
 }
 
-//! `protocol` is either a protocol's user-visible name ("OSC", "Artnet",
+//! `protocol` is either a protocol's user-visible name ("OSC", "DMX",
 //! "Camera") or its factory UUID; only that protocol's enumerators run.
 GlobalDeviceEnumerator* EditJsContext::enumerateDevices(const QString& protocol)
 {

@@ -101,7 +101,7 @@ ArtnetProtocolSettingsWidget::ArtnetProtocolSettingsWidget(QWidget* parent)
     : Device::ProtocolSettingsWidget(parent)
 {
   m_deviceNameEdit = new State::AddressFragmentLineEdit{this};
-  m_deviceNameEdit->setText("Artnet");
+  m_deviceNameEdit->setText("DMX");
   checkForChanges(m_deviceNameEdit);
 
   m_host = new QComboBox{this};
