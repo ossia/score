@@ -47,8 +47,7 @@ BitfocusProtocolSettingsWidget::BitfocusProtocolSettingsWidget(QWidget* parent)
   m_rootLayout = new score::MarginLess<QFormLayout>{this};
   m_rootLayout->addRow(tr("Name"), m_deviceNameEdit);
   m_rootLayout->addRow(new QLabel{
-      tr("To add support for Bitfocus Companion modules:\n - Go to Settings > "
-         "Package Manager\n - Install the \"Bitfocus Companion Modules\" package.")});
+      tr("Install \"Bitfocus Companion Modules\" in Settings > Package Manager.")});
   m_hasInitLabel = true;
   m_rootLayout->setFieldGrowthPolicy(QFormLayout::ExpandingFieldsGrow);
 

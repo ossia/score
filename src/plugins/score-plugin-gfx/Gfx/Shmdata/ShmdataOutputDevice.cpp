@@ -17,7 +17,6 @@
 #include <ossia/network/base/protocol.hpp>
 
 #include <QFormLayout>
-#include <QLabel>
 #include <QLineEdit>
 #include <QOffscreenSurface>
 #include <QSpinBox>
@@ -339,12 +338,6 @@ ShmdataOutputSettingsWidget::ShmdataOutputSettingsWidget(QWidget* parent)
   m_deviceNameEdit->setText("Shmdata Out");
   setPathLabel(tr("Shmdata path"));
 
-  auto helpLabel
-      = new QLabel{tr("To test, use the following command: \n"
-                      "$ gst-launch-1.0 shmdatasrc socket-path=<THE PATH> ! "
-                      "videoconvert ! xvimagesink")};
-  helpLabel->setTextInteractionFlags(Qt::TextInteractionFlag::TextSelectableByMouse);
-  m_layout->addRow(helpLabel);
 
   setSettings(ShmdataOutputProtocolFactory{}.defaultSettings());
 }

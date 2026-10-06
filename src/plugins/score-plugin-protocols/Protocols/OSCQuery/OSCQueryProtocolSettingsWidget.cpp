@@ -43,17 +43,13 @@ OSCQueryProtocolSettingsWidget::OSCQueryProtocolSettingsWidget(QWidget* parent)
   m_localPort->setValue(0);
   score::setHelp(
       m_localPort,
-      tr("Choose an explicit port for OSC listening, useful for getting automatic "
-         "feedback from an external software. If 0, a random port will be chosen."));
+      tr("Port score listens on for OSC feedback. 0 picks a random port."));
   checkForChanges(m_localPort);
 
   m_dense = new QCheckBox("Dense message packing", this);
   m_dense->setChecked(false);
   m_dense->setEnabled(false);
-  score::setHelp(
-      m_localPort,
-      tr("Indicated whether the remote API supports dense packing of values ; useful "
-         "mainly for low-power embedded devices."));
+  score::setHelp(m_dense, tr("Whether the remote API supports dense packing of values"));
 
   QFormLayout* layout = new QFormLayout;
 
@@ -63,13 +59,6 @@ OSCQueryProtocolSettingsWidget::OSCQueryProtocolSettingsWidget(QWidget* parent)
   layout->addRow(tr("Rate"), m_rate);
   layout->addRow(new QLabel("Supported extensions: "));
   layout->addRow(m_dense);
-
-  layout->addRow(
-      "",
-      new QLabel(
-          "Host examples:\n   ws://127.0.0.1:5678\n   http://my.oscquery.host\n\nLeave "
-          "Local Port at 0 unless you need to\naccomodate non-OSCQuery-compliant "
-          "software."));
 
   setLayout(layout);
 

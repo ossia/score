@@ -2411,13 +2411,8 @@ public:
 
     m_dmabufEdit = new QCheckBox(tr("Zero-copy DMA-BUF"), this);
     m_dmabufEdit->setToolTip(
-        tr("Allocate exportable images and publish them as DMA-BUF "
-           "buffers to pipewire. The backend is selected automatically "
-           "from the live QRhi:\n"
-           " - Vulkan: VkImage with VK_EXT_image_drm_format_modifier + "
-           "VK_EXTERNAL_MEMORY_HANDLE_TYPE_DMA_BUF_BIT_EXT.\n"
-           " - OpenGL (EGL): GBM buffer object + EGL DMA-BUF import.\n"
-           "Falls back to CPU readback when neither path is usable."));
+        tr("Publish frames as DMA-BUF. Falls back to CPU readback when DMA-BUF "
+           "is unavailable."));
     m_layout->addRow(QString(), m_dmabufEdit);
 
     setSettings(OutputFactory{}.defaultSettings());

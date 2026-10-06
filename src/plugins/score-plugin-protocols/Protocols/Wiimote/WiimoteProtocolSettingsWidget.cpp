@@ -26,7 +26,7 @@ WiimoteProtocolSettingsWidget::WiimoteProtocolSettingsWidget(QWidget* parent)
 
   auto layout = new QFormLayout;
   layout->addRow(tr("Name"), m_deviceNameEdit);
-  layout->addRow(new QLabel(tr("Be sure to enable discoverable mode !")));
+  layout->addRow(new QLabel(tr("Enable discoverable mode on the Wii Remote.")));
 
   setLayout(layout);
 }

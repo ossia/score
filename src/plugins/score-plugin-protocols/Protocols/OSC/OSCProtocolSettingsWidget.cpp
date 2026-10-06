@@ -83,7 +83,7 @@ OSCProtocolSettingsWidget::OSCProtocolSettingsWidget(QWidget* parent)
 
   m_bonjour = new QCheckBox{this};
   score::setHelp(m_bonjour, 
-      tr("If checked, the OSC device will expose itself over Bonjour with _osc._udp"));
+      tr("Advertise the device over Bonjour as _osc._udp"));
 
   m_transport = new QComboBox{this};
   m_transport->addItems(
