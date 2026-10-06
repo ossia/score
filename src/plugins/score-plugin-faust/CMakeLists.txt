@@ -62,6 +62,9 @@ target_include_directories(${PROJECT_NAME} PRIVATE ${FAUST_INCLUDE_DIR})
 
 setup_score_plugin(${PROJECT_NAME})
 
+score_register_license(Faust URL "https://faust.grame.fr" HEADER "GNU General Public License")
+score_register_license(Guitarix URL "https://guitarix.org" FILES "${3RDPARTY_FOLDER}/Guitarix/COPYING")
+
 
 score_use_system(use_sys Faust)
 if(NOT use_sys)

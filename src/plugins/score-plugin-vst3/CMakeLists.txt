@@ -13,6 +13,12 @@ endif()
 
 include("${3RDPARTY_FOLDER}/vst3.cmake")
 
+score_register_license("VST3 SDK" URL "https://github.com/steinbergmedia/vst3sdk"
+  FILES "${3RDPARTY_FOLDER}/vst3/LICENSE.txt"
+        "${3RDPARTY_FOLDER}/vst3/base/LICENSE.txt"
+        "${3RDPARTY_FOLDER}/vst3/pluginterfaces/LICENSE.txt"
+        "${3RDPARTY_FOLDER}/vst3/public.sdk/LICENSE.txt")
+
 # Source files
 set(HDRS
   Vst3/ApplicationPlugin.hpp

@@ -54,26 +54,173 @@ function(BIN2H)
   string(MAKE_C_IDENTIFIER "${BIN2H_VARIABLE_NAME}" BIN2H_VARIABLE_NAME)
 
   # declares byte array and the length variables
-  set(arrayDefinition "const unsigned char ${BIN2H_VARIABLE_NAME}[] = { ${arrayValues} }\;")
-  set(arraySizeDefinition "const size_t ${BIN2H_VARIABLE_NAME}_SIZE = ${arraySize}\;")
+  set(arrayDefinition "static const unsigned char ${BIN2H_VARIABLE_NAME}[] = { ${arrayValues} };")
+  set(arraySizeDefinition "static const std::size_t ${BIN2H_VARIABLE_NAME}_SIZE = ${arraySize};")
 
   set(declarations "${arrayDefinition}\n\n${arraySizeDefinition}\n\n")
 
   set("${BIN2H_HEADER_FILE}" "${${BIN2H_HEADER_FILE}}\n${declarations}" PARENT_SCOPE)
 endfunction()
 
-macro(AddLicenseFile _text _name _file)
-  if(EXISTS "${_file}")
-    bin2h(
-      SOURCE_FILE "${_file}"
-      HEADER_FILE "${_text}"
-      VARIABLE_NAME "${_name}_LICENSE"
-      APPEND
-      NULL_TERMINATE)
-  else()
-    set(arrayDefinition "const unsigned char ${_name}_LICENSE[] = { 0 }\;")
-    set(arraySizeDefinition "const size_t ${_name}_LICENSE_SIZE = 0\;")
-    set(declarations "${arrayDefinition}\n\n${arraySizeDefinition}\n\n")
-    set("${_text}" "${${_text}}\n${declarations}")
+# score_register_license(<name> [URL <url>] [HEADER <text>]
+#                         [FILES <file>...] [NOTICES <source file>...])
+# Adds a component to the About dialog's license list. FILES are embedded
+# whole; NOTICES embed only the first comment block of a source file that
+# carries a copyright or license statement, for vendored code whose notice
+# lives in its header. Call it where the component is actually built, so the
+# list follows the configuration. The first registration of a name wins.
+function(score_register_license _name)
+  cmake_parse_arguments(_lic "" "URL;HEADER" "FILES;NOTICES" ${ARGN})
+  string(MAKE_C_IDENTIFIER "${_name}" _id)
+  get_property(_known GLOBAL PROPERTY SCORE_LICENSE_IDS)
+  if("${_id}" IN_LIST _known)
+    return()
   endif()
-endmacro()
+
+  foreach(_f IN LISTS _lic_FILES _lic_NOTICES)
+    if(NOT EXISTS "${_f}")
+      message(WARNING "License of ${_name}: ${_f} does not exist")
+    endif()
+  endforeach()
+
+  set_property(GLOBAL APPEND PROPERTY SCORE_LICENSE_IDS "${_id}")
+  set_property(GLOBAL PROPERTY SCORE_LICENSE_${_id}_NAME "${_name}")
+  set_property(GLOBAL PROPERTY SCORE_LICENSE_${_id}_URL "${_lic_URL}")
+  set_property(GLOBAL PROPERTY SCORE_LICENSE_${_id}_HEADER "${_lic_HEADER}")
+  set_property(GLOBAL PROPERTY SCORE_LICENSE_${_id}_FILES "${_lic_FILES}")
+  set_property(GLOBAL PROPERTY SCORE_LICENSE_${_id}_NOTICES "${_lic_NOTICES}")
+endfunction()
+
+# First /* */ or // comment block of a file mentioning a copyright, a license
+# or a permission, without its comment markers.
+function(_score_license_notice _file _out)
+  file(READ "${_file}" _src LIMIT 131072)
+  string(REPLACE "\r" "" _src "${_src}")
+  set(_res "")
+  while(TRUE)
+    string(FIND "${_src}" "/*" _c)
+    string(FIND "${_src}" "//" _l)
+    if(_c EQUAL -1 AND _l EQUAL -1)
+      break()
+    endif()
+    if(_l EQUAL -1 OR (NOT _c EQUAL -1 AND _c LESS _l))
+      string(SUBSTRING "${_src}" ${_c} -1 _src)
+      string(FIND "${_src}" "*/" _e)
+      if(_e EQUAL -1)
+        break()
+      endif()
+      math(EXPR _e "${_e} + 2")
+      string(SUBSTRING "${_src}" 0 ${_e} _block)
+      string(SUBSTRING "${_src}" ${_e} -1 _src)
+    else()
+      # A run of lines that all start with //
+      string(SUBSTRING "${_src}" ${_l} -1 _src)
+      set(_block "")
+      while(_src MATCHES "^[ \t]*//")
+        string(FIND "${_src}" "\n" _e)
+        if(_e EQUAL -1)
+          string(APPEND _block "${_src}")
+          set(_src "")
+          break()
+        endif()
+        math(EXPR _e "${_e} + 1")
+        string(SUBSTRING "${_src}" 0 ${_e} _line)
+        string(APPEND _block "${_line}")
+        string(SUBSTRING "${_src}" ${_e} -1 _src)
+      endwhile()
+    endif()
+    if(_block MATCHES "[Cc]opyright|COPYRIGHT|[Ll]icen[cs]e|LICEN[CS]E|[Pp]ermission")
+      set(_res "${_block}")
+      break()
+    endif()
+  endwhile()
+
+  string(REGEX REPLACE "^/\\*+!?" "" _res "${_res}")
+  string(REGEX REPLACE "\\*+/[ \t]*$" "" _res "${_res}")
+  string(REGEX REPLACE "(^|\n)[ \t]*(//+|\\*+)[ \t]?" "\\1" _res "${_res}")
+  # Boxed comments: trailing * at the end of each line
+  string(REGEX REPLACE "[ \t]+\\*+[ \t]*(\n|$)" "\\1" _res "${_res}")
+  string(STRIP "${_res}" _res)
+  set(${_out} "${_res}" PARENT_SCOPE)
+endfunction()
+
+function(_score_c_string _in _out)
+  string(REPLACE "\\" "\\\\" _s "${_in}")
+  string(REPLACE "\"" "\\\"" _s "${_s}")
+  string(REPLACE "\n" "\\n" _s "${_s}")
+  set(${_out} "\"${_s}\"" PARENT_SCOPE)
+endfunction()
+
+# Writes the header read by Licenses.cpp, once every component is registered.
+function(score_generate_licenses _header)
+  get_property(_ids GLOBAL PROPERTY SCORE_LICENSE_IDS)
+  set(_dir "${CMAKE_BINARY_DIR}/licenses")
+  file(MAKE_DIRECTORY "${_dir}")
+
+  set(_arrays "")
+  set(_entries "")
+  foreach(_id IN LISTS _ids)
+    get_property(_name GLOBAL PROPERTY SCORE_LICENSE_${_id}_NAME)
+    get_property(_url GLOBAL PROPERTY SCORE_LICENSE_${_id}_URL)
+    get_property(_head GLOBAL PROPERTY SCORE_LICENSE_${_id}_HEADER)
+    get_property(_files GLOBAL PROPERTY SCORE_LICENSE_${_id}_FILES)
+    get_property(_notices GLOBAL PROPERTY SCORE_LICENSE_${_id}_NOTICES)
+
+    set(_text "")
+    foreach(_f IN LISTS _files)
+      if(EXISTS "${_f}")
+        file(READ "${_f}" _content)
+        if(NOT _text STREQUAL "")
+          string(APPEND _text "\n\n----------------------------------------\n\n")
+        endif()
+        string(APPEND _text "${_content}")
+      endif()
+    endforeach()
+    foreach(_f IN LISTS _notices)
+      if(EXISTS "${_f}")
+        _score_license_notice("${_f}" _content)
+        if(_content STREQUAL "")
+          message(WARNING "License of ${_name}: no notice found in ${_f}")
+          continue()
+        endif()
+        if(NOT _text STREQUAL "")
+          string(APPEND _text "\n\n----------------------------------------\n\n")
+        endif()
+        string(APPEND _text "${_content}\n")
+      endif()
+    endforeach()
+
+    if(_text STREQUAL "" AND _head STREQUAL "")
+      message(WARNING "License of ${_name}: neither a license text nor a header")
+      continue()
+    endif()
+
+    if(_text STREQUAL "")
+      string(APPEND _arrays "\nstatic const unsigned char score_license_${_id}[] = { 0 };\n\nstatic const std::size_t score_license_${_id}_SIZE = 0;\n\n")
+    else()
+      file(WRITE "${_dir}/${_id}.txt" "${_text}")
+      bin2h(
+        SOURCE_FILE "${_dir}/${_id}.txt"
+        HEADER_FILE _arrays
+        VARIABLE_NAME "score_license_${_id}"
+        APPEND
+        NULL_TERMINATE)
+    endif()
+
+    _score_c_string("${_name}" _cname)
+    _score_c_string("${_url}" _curl)
+    _score_c_string("${_head}" _chead)
+    string(APPEND _entries "  {${_cname}, ${_curl}, ${_chead}, score_license_${_id}, score_license_${_id}_SIZE},\n")
+  endforeach()
+
+  set(_content "#pragma once\n#include <cstddef>\n${_arrays}\n")
+  string(APPEND _content "struct score_license_entry\n{\n  const char* name;\n  const char* url;\n  const char* header;\n  const unsigned char* text;\n  std::size_t text_size;\n};\n\n")
+  string(APPEND _content "static const score_license_entry score_license_entries[] = {\n${_entries}};\n")
+  set(_existing "")
+  if(EXISTS "${_header}")
+    file(READ "${_header}" _existing)
+  endif()
+  if(NOT _existing STREQUAL _content)
+    file(WRITE "${_header}" "${_content}")
+  endif()
+endfunction()

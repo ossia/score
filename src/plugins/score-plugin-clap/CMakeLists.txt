@@ -82,3 +82,5 @@ else()
 endif()
 
 setup_score_plugin(${PROJECT_NAME})
+
+score_register_license(CLAP URL "https://github.com/free-audio/clap" FILES "${3RDPARTY_FOLDER}/clap/LICENSE")

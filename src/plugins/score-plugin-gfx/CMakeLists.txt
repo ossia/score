@@ -46,6 +46,7 @@ endif()
 if(APPLE)
 enable_language(OBJC)
 enable_language(OBJCXX)
+score_register_license(Syphon URL "http://syphon.v002.info/" FILES "${3RDPARTY_FOLDER}/Syphon-Framework/License.txt")
 set(SYPHON_SRCS
     Gfx/Syphon/SyphonInput.hpp
     Gfx/Syphon/SyphonInput.mm
@@ -611,6 +612,13 @@ add_library(${PROJECT_NAME} ${SRCS} ${HDRS}
 # Code generation
 score_generate_command_list_file(${PROJECT_NAME} "${HDRS}")
 
+score_register_license(libisf URL "https://github.com/jcelerier/libisf" FILES "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/libisf/LICENSE")
+score_register_license(sajson URL "https://github.com/chadaustin/sajson" NOTICES "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/libisf/src/sajson.h")
+score_register_license(glsl-parser URL "https://github.com/graphitemaster/glsl-parser" FILES "${3RDPARTY_FOLDER}/glsl-parser/LICENSE")
+score_register_license(dxv NOTICES "${3RDPARTY_FOLDER}/dxv/dxv.c")
+score_register_license(OffsetAllocator URL "https://github.com/sebbbi/OffsetAllocator" FILES "${3RDPARTY_FOLDER}/OffsetAllocator/LICENSE")
+score_register_license("NVIDIA DVP shim" NOTICES "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/nv-dvp-bridge/dvpapi_shim.h")
+
 target_include_directories(${PROJECT_NAME}
   PUBLIC
     3rdparty/libisf/src
@@ -743,6 +751,9 @@ if(SCORE_HAS_SPOUT)
   target_link_libraries(${PROJECT_NAME} PRIVATE Spout d3d11)
   target_compile_definitions(${PROJECT_NAME} PRIVATE HAS_SPOUT)
   score_declare_feature(spout)
+  score_register_license(Spout URL "https://spout.zeal.co/" FILES "${3RDPARTY_FOLDER}/Spout/LICENSE")
+  score_register_license(D3D12MemoryAllocator URL "https://github.com/GPUOpen-LibrariesAndSDKs/D3D12MemoryAllocator"
+    NOTICES "${3RDPARTY_FOLDER}/D3D12MemoryAllocator/D3D12MemAlloc.h")
 endif()
 
 if(WIN32)

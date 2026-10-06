@@ -62,3 +62,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE
 )
 
 setup_score_plugin(${PROJECT_NAME})
+
+score_register_license(lv2_atom_helpers NOTICES "${CMAKE_CURRENT_SOURCE_DIR}/LV2/lv2_atom_helpers.hpp")
+score_register_license(Lilv URL "https://drobilla.net/software/lilv" HEADER "ISC License")
+score_register_license(Suil URL "https://drobilla.net/software/suil" HEADER "ISC License")
