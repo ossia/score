@@ -578,6 +578,16 @@ if(TARGET score_plugin_faust)
     ${FAUST_INCLUDE_DIR})
 endif()
 
+# A JSFX's library entry: the desc, author, tags and notices of its header.
+if(TARGET score_plugin_ysfx)
+  score_add_test(test_unit_ysfx_credits
+    SOURCES YsfxCreditsTest.cpp
+    APP
+    PLUGINS score_plugin_ysfx)
+  target_include_directories(test_unit_ysfx_credits PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-ysfx")
+endif()
+
 # --- cross-implementation quantification grid parity ------------------------
 # ossia::token_request vs halp::tick_musical: a native node and an avendish
 # plug-in on the same score must snap to the same samples.

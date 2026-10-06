@@ -15,7 +15,10 @@ struct LanguageSpec
   static constexpr const char* language = "EEL2";
 };
 
-using ProcessFactory = Process::ProcessFactory_T<YSFX::ProcessModel>;
+struct ProcessFactory final : Process::ProcessFactory_T<YSFX::ProcessModel>
+{
+  Process::Descriptor descriptor(QString path) const noexcept override;
+};
 struct LayerFactory : Process::EffectLayerFactory_Base
 {
   using Model_T = YSFX::ProcessModel;
