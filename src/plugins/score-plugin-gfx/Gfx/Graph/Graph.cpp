@@ -892,6 +892,8 @@ void Graph::onEdgeRemoved(
 void Graph::createPassForEdgeIfMissing(Edge& edge)
 {
   Node* source = edge.source->node;
+  // Other feeds of a sink whose target is recreated below
+  std::vector<Edge*> rerouted;
 
   for(auto& rl : m_renderers)
   {
@@ -961,6 +963,45 @@ void Graph::createPassForEdgeIfMissing(Edge& edge)
             wantsDepth || wantsSamplableDepth, wantsSamplableDepth, texFlags);
         rl->m_inputRenderTargets[sink] = std::move(rt);
       }
+      else if(rl->requiresDepth(*sink))
+      {
+        // A target made while no source of the port needed depth -- e.g. by a
+        // reconcile that ran after the previous feed went and before this edge
+        // came -- has no depth attachment: a depth-testing source would draw
+        // into it without a depth test.
+        auto& rt = rl->m_inputRenderTargets[sink];
+        if(rt.texture && !rt.depthTexture && !rt.depthRenderBuffer && !rt.msDepthTexture)
+        {
+          // The passes and the target released below may be named by a batch
+          // still pending from an earlier edit in this same inter-frame window
+          rl->flushInitialBatch();
+
+          // The passes drawing into the old target go with it
+          for(auto* other : sink->edges)
+          {
+            auto it = other->source->node->renderedNodes.find(rl.get());
+            if(it != other->source->node->renderedNodes.end()
+               && it->second->hasOutputPassForEdge(*other))
+            {
+              it->second->removeOutputPass(*rl, *other);
+              if(other != &edge)
+                rerouted.push_back(other);
+            }
+          }
+
+          const auto format = rt.texture->format();
+          const auto size = rt.texture->pixelSize();
+          const auto texFlags
+              = rt.texture->flags()
+                & (QRhiTexture::MipMapped | QRhiTexture::UsedWithGenerateMips);
+          const bool samplable
+              = (sink->flags & Flag::SamplableDepth) == Flag::SamplableDepth;
+          rl->removeSelfFeedbackTarget(sink);
+          rl->releaseOwnedTarget(rt);
+          rt = createRenderTarget(
+              rl->state, format, size, rl->samples(), true, samplable, texFlags);
+        }
+      }
       rl->ensureSelfFeedbackTarget(*sink);
     }
 
@@ -991,6 +1032,9 @@ void Graph::createPassForEdgeIfMissing(Edge& edge)
       rl->setInitialBatch(batch);
     }
   }
+
+  for(Edge* other : rerouted)
+    createPassForEdgeIfMissing(*other);
 }
 
 void Graph::createAllMissingPasses()
