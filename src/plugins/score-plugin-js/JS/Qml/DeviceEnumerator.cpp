@@ -29,7 +29,7 @@ namespace JS
 GlobalDeviceEnumerator::GlobalDeviceEnumerator() { }
 
 //! A protocol filter is either the name the device dialog shows -- "OSC",
-//! "Artnet", "Camera" -- matched case-insensitively, or the protocol
+//! "DMX", "Camera" -- matched case-insensitively, or the protocol
 //! factory's UUID.
 static bool matchesFilter(const QString& filter, const Device::ProtocolFactory& p)
 {
