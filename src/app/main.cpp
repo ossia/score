@@ -225,8 +225,46 @@ static void setup_gpu()
          .count()
      > 0)
   {
+    // Point GLX at the NVIDIA vendor library -- but only if that library can
+    // actually hand out a context.
+    //
+    // This variable is not advice, it is binding: libglvnd dispatches every
+    // GLX call to the vendor it names and has no fallback. If the kernel module
+    // and the user-space driver are different releases -- the state a driver
+    // upgrade leaves behind until the machine is rebooted -- then
+    // X_GLXCreateNewContext answers BadValue for every request, and score's own
+    // failure chain follows: the capability probe in score::GLCapabilities gets
+    // no context and keeps the format it asked for (reported as "2 0 110"),
+    // QRhiGles2 then fails to create its temporary context, QRhi::create
+    // returns null, and the Null backend draws nothing. Mesa on the integrated
+    // GPU was there the whole time and would have worked; setting this took it
+    // away. The failure is invisible when QT_XCB_GL_INTEGRATION is xcb_egl
+    // (score's own default when no platform is given), because EGL does not go
+    // through libglvnd's GLX dispatch -- so it only bites a user who asks for
+    // GLX, or who sets QT_QPA_PLATFORM=xcb themselves and lets Qt prefer it.
     if(!qEnvironmentVariableIsSet("__GLX_VENDOR_LIBRARY_NAME"))
-      qputenv("__GLX_VENDOR_LIBRARY_NAME", "nvidia");
+    {
+      switch(score::nvidiaGlxVendorState())
+      {
+        case score::NvidiaGlxVendorState::Consistent:
+        case score::NvidiaGlxVendorState::Unknown:
+          qputenv("__GLX_VENDOR_LIBRARY_NAME", "nvidia");
+          break;
+        case score::NvidiaGlxVendorState::VersionMismatch:
+          qWarning() << "score: the NVIDIA kernel module and its user-space "
+                        "driver are different releases, so GLX through it "
+                        "cannot create a context. Leaving GLX to the default "
+                        "vendor; reboot to use the NVIDIA GPU.";
+          break;
+        case score::NvidiaGlxVendorState::NotInstalled:
+          qWarning() << "score: an NVIDIA kernel module is loaded but no "
+                        "libGLX_nvidia is installed. Leaving GLX to the "
+                        "default vendor.";
+          break;
+        case score::NvidiaGlxVendorState::NoDriver:
+          break;
+      }
+    }
 
     if(has_non_nvidia_gpu())
     {

@@ -1847,6 +1847,14 @@ score_add_test(test_unit_graphics_layout_rebuild
   SOURCES GraphicsLayoutRebuildTest.cpp
   APP)
 
+# GLX must not be handed to an NVIDIA vendor library whose kernel module and
+# user-space driver are different releases: libglvnd has no fallback, so every
+# GLX context creation fails and score lands on the Null backend.
+score_add_test(test_unit_nvidia_glx_vendor
+  SOURCES NvidiaGlxVendorTest.cpp
+  PLUGINS score_lib_base
+  LIBS ${QT_PREFIX}::Gui)
+
 # The selection stack keeps its empty bottom selection through the capped
 # history and object pruning.
 score_add_test(test_unit_selection_stack_bottom
