@@ -2808,6 +2808,7 @@ void RenderedRawRasterPipelineNode::initState(
       {
         ats.sampler = score::gfx::makeSampler(rhi, atx.sampler);
         ats.declares_compare = score::gfx::declaresCompare(atx.sampler);
+        ats.mips_follow_texture = atx.sampler.mipmap_mode.empty();
         ats.sampler->setName(
             ("RRP_aux_tex_sampler::" + atx.name).c_str());
       }
@@ -4172,6 +4173,8 @@ bool RenderedRawRasterPipelineNode::rebindAuxTextures(RenderList& renderer)
     if(!tex || tex == ats.texture)
       continue;
     ats.texture = tex;
+    if(ats.sampler && ats.mips_follow_texture)
+      score::gfx::followTextureMips(*ats.sampler, *tex);
     auxTexChanged = true;
   }
   if(auxTexChanged)

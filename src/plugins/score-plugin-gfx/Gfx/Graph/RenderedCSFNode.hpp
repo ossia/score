@@ -265,6 +265,7 @@ private:
     {
       QRhiSampler* sampler{};   // null for storage-image entries
       QRhiTexture* texture{};   // current bound handle (placeholder or upstream)
+      bool mips_follow_texture{false}; // MIPMAP_MODE left out: see followTextureMips
       QRhiTexture* placeholder{}; // shape-matched empty from RenderList
       std::string name;
       int binding{-1};          // assigned at SRB build

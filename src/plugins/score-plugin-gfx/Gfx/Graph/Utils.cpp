@@ -2393,6 +2393,18 @@ QRhiSampler* makeSampler(QRhi& rhi, const isf::sampler_config& cfg)
   return s;
 }
 
+bool followTextureMips(QRhiSampler& sampler, const QRhiTexture& texture)
+{
+  const auto mode = texture.flags().testFlag(QRhiTexture::MipMapped)
+                        ? QRhiSampler::Linear
+                        : QRhiSampler::None;
+  if(sampler.mipmapMode() == mode)
+    return false;
+  sampler.setMipmapMode(mode);
+  sampler.create();
+  return true;
+}
+
 int storageImageUnitLimit(QRhi& rhi)
 {
   if(rhi.backend() != QRhi::OpenGLES2)

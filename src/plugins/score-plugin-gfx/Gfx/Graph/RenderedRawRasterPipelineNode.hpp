@@ -242,6 +242,9 @@ private:
     // which is the shader's own intent rather than the texture's.
     QRhiSampler* sampler_override{};
     bool declares_compare{false};
+    // MIPMAP_MODE left out of the declaration: `sampler` follows the bound
+    // texture's mips (followTextureMips).
+    bool mips_follow_texture{false};
     QRhiSampler* boundSampler() const noexcept
     {
       return sampler_override ? sampler_override : sampler;

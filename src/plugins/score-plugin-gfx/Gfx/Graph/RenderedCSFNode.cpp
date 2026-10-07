@@ -2128,6 +2128,8 @@ void RenderedCSFNode::updateGeometryBindings(
             : nullptr;
         if(!tex)
           tex = at.placeholder;
+        if(tex && tex != at.texture && at.sampler && at.mips_follow_texture)
+          score::gfx::followTextureMips(*at.sampler, *tex);
         at.texture = tex;
       }
 
@@ -5009,6 +5011,7 @@ void RenderedCSFNode::initState(RenderList& renderer, QRhiResourceUpdateBatch& r
           at.sampler = score::gfx::makeSampler(rhi, atx.sampler);
           at.sampler->setName(
               QByteArray("CSF_AuxTex_sampler::") + atx.name.c_str());
+          at.mips_follow_texture = atx.sampler.mipmap_mode.empty();
         }
 
         if(atx.is_cubemap)

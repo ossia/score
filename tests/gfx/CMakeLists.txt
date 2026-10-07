@@ -1509,6 +1509,11 @@ endif()
 score_add_gfx_test(scene_preprocessor_regressions GfxScenePreprocessorRegressions.cpp)
 score_gfx_test_offset_allocator(test_gfx_scene_preprocessor_regressions)
 
+# An AUXILIARY texture declared without MIPMAP_MODE samples the bound
+# texture's mips: textureLod on the scene's prefiltered_map reaches level N.
+score_add_gfx_test(aux_texture_mips GfxAuxTextureMips.cpp)
+score_gfx_test_offset_allocator(test_gfx_aux_texture_mips)
+
 # The Splat renderer (GaussianSplatNode) joining a render list through the
 # incremental reconcile path (initState + addOutputPass, no init) must not
 # crash and must draw its splat.
