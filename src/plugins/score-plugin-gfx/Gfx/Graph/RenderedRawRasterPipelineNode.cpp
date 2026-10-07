@@ -877,7 +877,8 @@ static QVarLengthArray<QRhiGraphicsPipeline::TargetBlend, 4> rasterSeedBlends(
 // which faces a given FrontFace culls. ModelDisplayNode compensates the same
 // mirror the same way; without it a culled model shows its far faces through
 // its near ones, which reads as an inverted depth test rather than as a winding
-// bug.
+// bug. Swapped under CULL_MODE none too: FrontFace also decides gl_FrontFacing,
+// which a two-sided material reads to flip its normal.
 static void compensateEpilogueMirror(
     QRhiGraphicsPipeline& ps, score::gfx::GraphicsApi api, const isf::descriptor& desc)
 {
@@ -895,7 +896,7 @@ static void compensateEpilogueMirror(
     default:
       break;
   }
-  if(mirrored && ps.cullMode() != QRhiGraphicsPipeline::None)
+  if(mirrored)
     ps.setFrontFace(
         ps.frontFace() == QRhiGraphicsPipeline::CCW ? QRhiGraphicsPipeline::CW
                                                     : QRhiGraphicsPipeline::CCW);
