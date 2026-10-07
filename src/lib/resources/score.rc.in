@@ -1,4 +1,9 @@
-IDI_ICON1 ICON "score.ico"
+// An integer id, not a name. Windows picks the first RT_GROUP_ICON in the
+// resource directory, where named entries sort ahead of numbered ones. A custom
+// app built by tools/create-app.sh has rcedit write its icon as group 0, so a
+// named group here would keep winning and the app would show score's icon in
+// Explorer -- which is exactly what Spatial Protocol Mapper shipped with.
+1 ICON "score.ico"
 
 1 VERSIONINFO
 FILEVERSION	${SCORE_VERSION_RC}
