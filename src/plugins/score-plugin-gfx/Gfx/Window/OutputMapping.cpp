@@ -667,9 +667,12 @@ void OutputMappingCanvas::addOutput()
     if(dynamic_cast<OutputMappingItem*>(item))
       count++;
 
-  // Place new output at a default position
-  double x = (count * 30) % (int)(canvasWidth() - 100);
-  double y = (count * 30) % (int)(canvasHeight() - 75);
+  // Place new output at a default position. The ranges are 0 or negative
+  // on a canvas smaller than the 100x75 item, where % would divide by zero.
+  const int xRange = int(canvasWidth() - 100);
+  const int yRange = int(canvasHeight() - 75);
+  const double x = xRange > 0 ? (count * 30) % xRange : 0;
+  const double y = yRange > 0 ? (count * 30) % yRange : 0;
   auto* item = new OutputMappingItem(count, QRectF(x, y, 100, 75), this);
   setupItemCallbacks(item);
   m_scene.addItem(item);
