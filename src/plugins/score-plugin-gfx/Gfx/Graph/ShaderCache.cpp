@@ -51,8 +51,8 @@ namespace score::gfx
 // rewrite, so both ask the same function.
 
 // Replace every gl_ViewIndex reference with the PASSINDEX uniform. Both the
-// `#define VIEW_INDEX gl_ViewIndex` and the wrapper main's
-// `isf_ViewIndexVarying = gl_ViewIndex;` are plain occurrences of the same
+// `#define VIEW_INDEX int(uint(gl_ViewIndex))` and the wrapper main's
+// `isf_ViewIndexVarying = uint(gl_ViewIndex);` are plain occurrences of the same
 // token, so one substitution covers the macro, the wrapper, and any shader
 // that spelled the built-in out itself. The GL_EXT_multiview require goes too:
 // nothing references the extension afterwards.
