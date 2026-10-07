@@ -94,6 +94,32 @@ void TextureSourceRenderer::synchronize(QQuickRhiItem* rhiItem)
   item = new_item;
   m_nextSource = item->m_source;
   m_needsRebuild |= (m_nextSource != m_source);
+
+  // The item's colour buffer has two consumers with different conventions.
+  //
+  //  * Qt Quick 3D's Texture.sourceItem samples it RAW: QQuickRhiItem is a
+  //    QSGTextureProvider, so QQuick3DTexture hands the texture to the material
+  //    with no per-backend correction. score::gfx::PreviewNode therefore writes
+  //    one row order everywhere -- see previewFirstRowIsPictureBottom().
+  //  * This item drawn as a 2D quad. QQuickRhiItem::updatePaintNode assumes the
+  //    texture follows the BACKEND's framebuffer order and picks
+  //    MirrorVertically / NoTransform from QRhi::isYUpInFramebuffer(). Where
+  //    PreviewNode's order and the backend's disagree, that guess is wrong by a
+  //    vertical flip, and `mirrorVertically` is exactly the knob that undoes it
+  //    (it "has no effect on the contents of the offscreen colour buffer", so
+  //    the Quick3D consumer above is untouched by it).
+  //
+  // Here rather than on the item: synchronize() runs with the GUI thread
+  // blocked, rhi() is valid, and updatePaintNode reads mirrorVertically
+  // immediately after the sync that calls us -- so the value lands in the same
+  // frame. Qt itself emits item signals from this same point
+  // (QQuickRhiItemNode::sync -> effectiveColorBufferSizeChanged).
+  if(auto* r = rhi())
+  {
+    const bool backendIsBottomUp = r->isYUpInFramebuffer();
+    const bool previewIsBottomUp = score::gfx::previewFirstRowIsPictureBottom(*r);
+    new_item->setMirrorVertically(previewIsBottomUp != backendIsBottomUp);
+  }
 }
 
 void TextureSourceRenderer::rebuild()
