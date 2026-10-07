@@ -2248,6 +2248,7 @@ static void parse_pipeline_state(const sajson::value& v, pipeline_state& out)
       else if(get_str(val, s)) out.instance_count_expression = s;
     }
     else if(k == "TOPOLOGY")                { if(get_str(val, s))  out.topology = s; }
+    else if(k == "COLOR_WRITE")             { if(get_str(val, s))  out.color_write = s; }
     else if(k == "BLEND")
     {
       // Shortcut: "BLEND": true/false turns on the default alpha-blend.

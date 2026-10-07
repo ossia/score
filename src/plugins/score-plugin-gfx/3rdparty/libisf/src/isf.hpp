@@ -744,6 +744,11 @@ struct pipeline_state
   // "lines", "line_strip", "points".
   std::optional<std::string> topology;
 
+  // Colour write mask of every attachment ("rgba", "rgb", "r", "none", ...),
+  // whatever blend applies. BLEND / BLEND_PER_ATTACHMENT entries can also carry
+  // their own COLOR_WRITE; this one wins over them.
+  std::optional<std::string> color_write;
+
   // Blending: either a single state applied to all color attachments, or a
   // per-attachment vector. If both are present the per-attachment wins.
   std::optional<blend_attachment> blend_all;
