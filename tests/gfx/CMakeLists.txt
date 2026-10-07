@@ -1541,6 +1541,9 @@ score_add_gfx_test(raster_color_write GfxRasterColorWrite.cpp)
 # and the others are reported.
 score_add_gfx_test(csf_geometry_multi_cable GfxCsfGeometryMultiCable.cpp)
 
+# A CSF processes every mesh of a multi-mesh geometry, one output mesh each.
+score_add_gfx_test(csf_every_mesh GfxCsfEveryMesh.cpp)
+
 # A CSF reads tightly packed and interleaved attributes, CPU or GPU, at their
 # own stride.
 score_add_gfx_test(csf_packed_attribute GfxCsfPackedAttribute.cpp)
