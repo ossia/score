@@ -41,6 +41,8 @@
 #include <score/application/GUIApplicationContext.hpp>
 #include <score/model/EntityMap.hpp>
 
+#include <ossia/dataflow/texture_port.hpp>
+
 #include <ossia-qt/js_utilities.hpp>
 
 #include <QDebug>
@@ -69,10 +71,52 @@ static void registerRenderSizeConverter()
   });
 }
 
+// A texture inlet's format is a std::optional<ossia::texture_format>, which
+// a script value cannot reach by itself: `port.textureFormat = 7` (or
+// "RGBA16F") is converted here. A negative number, an empty string or "Auto"
+// clears it.
+static std::optional<ossia::texture_format> textureFormatFromInt(int v)
+{
+  if(v < 0 || v > ossia::texture_format::D32F)
+    return std::nullopt;
+  return ossia::texture_format(v);
+}
+
+static std::optional<ossia::texture_format> textureFormatFromName(const QString& name)
+{
+  using enum ossia::texture_format;
+  static constexpr std::pair<const char*, ossia::texture_format> names[]{
+      {"RGBA8", RGBA8},     {"BGRA8", BGRA8},     {"R8", R8},
+      {"RG8", RG8},         {"R16", R16},         {"RG16", RG16},
+      {"RED_OR_ALPHA8", RED_OR_ALPHA8},           {"RGBA16F", RGBA16F},
+      {"RGBA32F", RGBA32F}, {"R16F", R16F},       {"R32F", R32F},
+      {"RGB10A2", RGB10A2}, {"D16", D16},         {"D24", D24},
+      {"D24S8", D24S8},     {"D32F", D32F}};
+  for(const auto& [n, fmt] : names)
+    if(name.compare(QLatin1String(n), Qt::CaseInsensitive) == 0)
+      return fmt;
+  if(!name.isEmpty() && name.compare(QLatin1String("Auto"), Qt::CaseInsensitive) != 0)
+    qWarning() << "Score: unknown texture format" << name;
+  return std::nullopt;
+}
+
+template <typename From, typename F>
+static void registerTextureFormatConverter(F f)
+{
+  using To = std::optional<ossia::texture_format>;
+  if(QMetaType::hasRegisteredConverterFunction<From, To>())
+    return;
+  QMetaType::registerConverter<From, To>(f);
+}
+
 EditJsContext::EditJsContext()
 {
   registerRenderSizeConverter<QSize>();
   registerRenderSizeConverter<QSizeF>();
+  registerTextureFormatConverter<int>(textureFormatFromInt);
+  registerTextureFormatConverter<double>(
+      [](double v) { return textureFormatFromInt(int(v)); });
+  registerTextureFormatConverter<QString>(textureFormatFromName);
 }
 
 EditJsContext::~EditJsContext() { }
