@@ -1511,12 +1511,11 @@ void RenderedCSFNode::updateGeometryBindings(
       auto& binding = m_geometryBindings[pre_idx];
       if(binding.input_port_index >= 0 && !binding.has_vertex_count_spec)
       {
-        if(auto* geo = findGeometryByPort(binding.input_port_index);
-           geo && geo->meshes && !geo->meshes->meshes.empty())
+        if(auto* mesh = upstreamMesh(binding.input_port_index))
         {
-          binding.vertex_count = geo->meshes->meshes[0].vertices;
-          if(geo->meshes->meshes[0].instances > 0)
-            binding.instance_count = geo->meshes->meshes[0].instances;
+          binding.vertex_count = mesh->vertices;
+          if(mesh->instances > 0)
+            binding.instance_count = mesh->instances;
         }
       }
       pre_idx++;
@@ -1553,11 +1552,10 @@ void RenderedCSFNode::updateGeometryBindings(
     const ossia::geometry* upstream_mesh = nullptr;
     if(binding.input_port_index >= 0)
     {
-      if(auto* geo = findGeometryByPort(binding.input_port_index);
-         geo && geo->meshes && !geo->meshes->meshes.empty())
+      if(auto* mesh = upstreamMesh(binding.input_port_index))
       {
         binding_has_upstream = true;
-        upstream_mesh = &geo->meshes->meshes[0];
+        upstream_mesh = mesh;
       }
     }
 
@@ -2485,13 +2483,7 @@ void RenderedCSFNode::pushOutputGeometry(RenderList& renderer, QRhiResourceUpdat
     // Determine upstream geometry for this binding
     const ossia::geometry* binding_upstream = nullptr;
     if(binding.input_port_index >= 0)
-    {
-      if(auto* geo = findGeometryByPort(binding.input_port_index);
-         geo && geo->meshes && !geo->meshes->meshes.empty())
-      {
-        binding_upstream = &geo->meshes->meshes[0];
-      }
-    }
+      binding_upstream = upstreamMesh(binding.input_port_index);
 
     // Count upstream pass-through attributes for structural change detection
     int upstream_attr_count = 0;
@@ -2523,6 +2515,34 @@ void RenderedCSFNode::pushOutputGeometry(RenderList& renderer, QRhiResourceUpdat
     const int upstream_aux_count
         = binding_upstream ? (int)binding_upstream->auxiliary.size() : 0;
 
+    // The further meshes' own outputs, or the upstream meshes forwarded as is.
+    // They were pushed before this one, so their structure is known here.
+    const auto furtherMesh = [&](std::size_t layer) -> std::pair<const ossia::mesh_list*, const ossia::geometry*> {
+      if(m_meshIndex != 0 || binding.outlet_index < 0 || layer >= m_meshLayers.size())
+        return {};
+      const auto& l = m_meshLayers[layer];
+      if(l.passthrough)
+      {
+        auto* spec = findGeometryByPort(binding.input_port_index);
+        if(spec && spec->meshes && (int)spec->meshes->meshes.size() > l.meshIndex)
+          return {spec->meshes.get(), &spec->meshes->meshes[l.meshIndex]};
+        return {};
+      }
+      if(geo_binding_idx < (int)l.bindings.size())
+        if(const auto& out = l.bindings[geo_binding_idx].outputGeometry.meshes;
+           out && !out->meshes.empty())
+          return {out.get(), &out->meshes[0]};
+      return {};
+    };
+    const int mesh_count = m_meshIndex == 0 && binding.outlet_index >= 0
+                               ? 1 + (int)m_meshLayers.size()
+                               : 1;
+    bool further_structure_changed = false;
+    for(std::size_t k = 0; k + 1 < (std::size_t)mesh_count; k++)
+      if(k >= binding.mesh_seen.size()
+         || furtherMesh(k).first != binding.mesh_seen[k].first)
+        further_structure_changed = true;
+
     // Detect structural changes that require rebuilding the geometry from scratch
     const int cur_attr_count = (int)geo_input->attributes.size();
     bool structure_changed =
@@ -2531,7 +2551,8 @@ void RenderedCSFNode::pushOutputGeometry(RenderList& renderer, QRhiResourceUpdat
         || binding.prev_instance_count != binding.instance_count
         || binding.prev_attribute_count != cur_attr_count
         || binding.prev_upstream_attr_count != upstream_attr_count
-        || binding.prev_upstream_aux_count != upstream_aux_count;
+        || binding.prev_upstream_aux_count != upstream_aux_count
+        || binding.prev_mesh_count != mesh_count || further_structure_changed;
 
     if(structure_changed)
     {
@@ -2842,7 +2863,8 @@ void RenderedCSFNode::pushOutputGeometry(RenderList& renderer, QRhiResourceUpdat
           if(!found_geo)
             continue;
 
-          const auto& src_mesh = geo_spec.meshes->meshes[0];
+          const auto& src_mesh = geo_spec.meshes->meshes[std::min<std::size_t>(
+              m_meshIndex, geo_spec.meshes->meshes.size() - 1)];
           if(auto* src_aux = src_mesh.find_auxiliary(src_aux_name))
           {
             if(src_aux->buffer >= 0 && src_aux->buffer < (int)src_mesh.buffers.size())
@@ -2932,7 +2954,8 @@ void RenderedCSFNode::pushOutputGeometry(RenderList& renderer, QRhiResourceUpdat
           if(!found_geo)
             continue;
 
-          const auto& src_mesh = geo_spec.meshes->meshes[0];
+          const auto& src_mesh = geo_spec.meshes->meshes[std::min<std::size_t>(
+              m_meshIndex, geo_spec.meshes->meshes.size() - 1)];
           // Find the source attribute by name
           for(const auto& in_attr : src_mesh.attributes)
           {
@@ -3096,6 +3119,8 @@ void RenderedCSFNode::pushOutputGeometry(RenderList& renderer, QRhiResourceUpdat
       binding.prev_attribute_count = cur_attr_count;
       binding.prev_upstream_attr_count = upstream_attr_count;
       binding.prev_upstream_aux_count = upstream_aux_count;
+      binding.prev_mesh_count = mesh_count;
+      binding.mesh_seen.clear();
     }
     else
     {
@@ -3415,9 +3440,33 @@ void RenderedCSFNode::pushOutputGeometry(RenderList& renderer, QRhiResourceUpdat
       }
     }
 
-    // Push to downstream
+    // One output mesh per input mesh.
+    if(mesh_count > 1)
+    {
+      auto& list = *binding.outputGeometry.meshes;
+      list.meshes.resize(mesh_count);
+      binding.mesh_seen.resize(mesh_count - 1);
+      bool changed = false;
+      for(std::size_t k = 0; k + 1 < (std::size_t)mesh_count; k++)
+      {
+        const auto [src_list, src] = furtherMesh(k);
+        if(!src)
+          continue;
+        const std::pair seen{src_list, src_list->dirty_index};
+        if(binding.mesh_seen[k] != seen)
+        {
+          list.meshes[k + 1] = *src;
+          binding.mesh_seen[k] = seen;
+          changed = true;
+        }
+      }
+      if(changed && !structure_changed)
+        list.dirty_index++;
+    }
+
+    // Push to downstream; the further meshes are pushed with the first.
     const auto& outlets = n.output;
-    const int outlet_idx = binding.outlet_index;
+    const int outlet_idx = m_meshIndex == 0 ? binding.outlet_index : -1;
     if(outlet_idx >= 0 && outlet_idx < (int)outlets.size())
     {
       auto* out_port = outlets[outlet_idx];
@@ -5370,6 +5419,11 @@ void RenderedCSFNode::releaseState(RenderList& r)
   if(!m_initialized)
     return;
 
+  for(auto& layer : m_meshLayers)
+    releaseMeshLayer(r, layer);
+  m_meshLayers.clear();
+  m_meshIndex = 0;
+
   for(auto& [edge, pass] : m_graphicsPasses)
   {
     pass.pipeline.release();
@@ -5625,6 +5679,8 @@ void RenderedCSFNode::update(
   // Recreate SRBs once after all buffer mutations are finalized.
   // This prevents building intermediate SRBs with stale/dangling pointers.
   recreateShaderResourceBindings(renderer, res);
+  if(!m_geometryBindings.empty())
+    updateMeshLayers(renderer, res);
 
   // Update uniform buffer with current input values
   if(m_materialUBO && n.m_material_data)
@@ -5822,28 +5878,204 @@ void RenderedCSFNode::runRenderPass(
 }
 
 
-void RenderedCSFNode::runInitialPasses(
-    RenderList& renderer, QRhiCommandBuffer& commands, QRhiResourceUpdateBatch*& res,
-    Edge& edge)
+const ossia::geometry* RenderedCSFNode::upstreamMesh(int port) const noexcept
 {
-  // Dispatch the compute passes and perform the ping-pong swaps once per frame
-  // even when several downstream sinks trigger us: RenderList calls
-  // runInitialPasses() once per incoming edge, so a CSF feeding N sinks would
-  // otherwise advance its simulation N times. Keyed on the monotonic frame
-  // counter; `res` is left untouched for the remaining nodes. Reset in release().
-  if(m_lastRunFrame == renderer.frame)
-    return;
-  m_lastRunFrame = renderer.frame;
+  if(port < 0)
+    return nullptr;
+  auto* geo = findGeometryByPort(port);
+  if(!geo || !geo->meshes || geo->meshes->meshes.empty())
+    return nullptr;
+  const auto& meshes = geo->meshes->meshes;
+  return &meshes[std::min<std::size_t>(m_meshIndex, meshes.size() - 1)];
+}
 
+RenderedCSFNode::MeshLayerScope::MeshLayerScope(RenderedCSFNode& s, MeshLayer& l) noexcept
+    : self{s}
+    , layer{l}
+{
+  self.swapMeshLayer(layer);
+}
 
-  // Debug marker for capture-tool readability.
-  commands.debugMarkBegin(QByteArrayLiteral("CSF"));
-  struct MarkEnd
+RenderedCSFNode::MeshLayerScope::~MeshLayerScope()
+{
+  self.swapMeshLayer(layer);
+}
+
+void RenderedCSFNode::swapMeshLayer(MeshLayer& layer) noexcept
+{
+  std::swap(m_geometryBindings, layer.bindings);
+  for(std::size_t i = 0; i < layer.passes.size() && i < m_computePasses.size(); i++)
   {
-    QRhiCommandBuffer* c;
-    ~MarkEnd() { c->debugMarkEnd(); }
-  } _me{&commands};
+    auto& mine = m_computePasses[i].second;
+    auto& theirs = layer.passes[i];
+    std::swap(mine.srb, theirs.srb);
+    std::swap(mine.processUBO, theirs.processUBO);
+    std::swap(mine.srbBindingsHash, theirs.srbBindingsHash);
+  }
+  std::swap(m_auxSizeUnresolved, layer.auxSizeUnresolved);
+  std::swap(m_meshIndex, layer.meshIndex);
+}
 
+// Every mesh of the input geometry runs the passes, one dispatch per mesh over
+// its own buffers, so length() and $VERTEX_COUNT are the mesh's own and its
+// index, auxiliaries and textures stay with it. State shared between the
+// meshes would be overwritten by each of them in turn: generators, feedback
+// loops, indirect commands and writable storage keep reading the first mesh.
+int RenderedCSFNode::processedMeshCount() const
+{
+  for(const auto& sb : m_storageBuffers)
+    if(sb.access != "read_only")
+      return 1;
+  for(const auto& si : m_storageImages)
+    if(si.access != "read_only")
+      return 1;
+
+  const GeometryBinding* primary = nullptr;
+  for(const auto& b : m_geometryBindings)
+  {
+    if(b.has_vertex_count_spec || b.has_instance_count_spec || b.uses_indirect_draw
+       || b.is_feedback_receiver)
+      return 1;
+    for(const auto& at : b.auxiliary_textures)
+      if(at.owned)
+        return 1;
+    if(!primary && b.input_port_index >= 0 && b.outlet_index >= 0)
+      primary = &b;
+  }
+  if(!primary)
+    return 1;
+  auto* geo = findGeometryByPort(primary->input_port_index);
+  if(!geo || !geo->meshes)
+    return 1;
+  return std::max<int>(1, (int)geo->meshes->meshes.size());
+}
+
+void RenderedCSFNode::updateMeshLayers(RenderList& renderer, QRhiResourceUpdateBatch& res)
+{
+  const int count = processedMeshCount();
+  while((int)m_meshLayers.size() > count - 1)
+  {
+    releaseMeshLayer(renderer, m_meshLayers.back());
+    m_meshLayers.pop_back();
+  }
+  while((int)m_meshLayers.size() < count - 1)
+  {
+    MeshLayer layer;
+    layer.meshIndex = (int)m_meshLayers.size() + 1;
+    for(const auto& b : m_geometryBindings)
+    {
+      auto& c = layer.bindings.emplace_back();
+      for(const auto& a : b.attribute_ssbos)
+      {
+        auto& x = c.attribute_ssbos.emplace_back();
+        x.name = a.name;
+        x.access = a.access;
+        x.per_instance = a.per_instance;
+      }
+      for(const auto& a : b.auxiliary_ssbos)
+      {
+        auto& x = c.auxiliary_ssbos.emplace_back();
+        x.name = a.name;
+        x.access = a.access;
+        x.is_uniform = a.is_uniform;
+        x.layout = a.layout;
+        x.size_expr = a.size_expr;
+      }
+      // Sampled or read-only: the samplers stay the first mesh's.
+      c.auxiliary_textures = b.auxiliary_textures;
+      c.input_name = b.input_name;
+      c.input_port_index = b.input_port_index;
+      c.outlet_index = b.outlet_index;
+      c.has_output = b.has_output;
+    }
+    for(auto& [e, pass] : m_computePasses)
+    {
+      ComputePass p{.pipeline = pass.pipeline};
+      p.processUBO = renderer.state.rhi->newBuffer(
+          QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, sizeof(ProcessUBO));
+      p.processUBO->setName("RenderedCSFNode::mesh::processUBO");
+      if(!p.processUBO->create())
+      {
+        delete p.processUBO;
+        p.processUBO = nullptr;
+      }
+      layer.passes.push_back(p);
+    }
+    m_meshLayers.push_back(std::move(layer));
+  }
+  if(m_meshLayers.empty())
+    return;
+
+  for(auto& layer : m_meshLayers)
+  {
+    MeshLayerScope scope{*this, layer};
+    layer.passthrough = false;
+    int idx = 0;
+    for(const auto& input : n.m_descriptor.inputs)
+    {
+      auto* geo_input = ossia::get_if<isf::geometry_input>(&input.data);
+      if(!geo_input || idx >= (int)m_geometryBindings.size())
+        continue;
+      if(auto* mesh = upstreamMesh(m_geometryBindings[idx++].input_port_index))
+        for(const auto& req : geo_input->attributes)
+          if(req.required && (req.access == "read_only" || req.access == "read_write")
+             && !score::gfx::findGeometryAttribute(*mesh, req.name, req.semantic))
+            layer.passthrough = true;
+    }
+    if(layer.passthrough)
+      continue;
+    updateGeometryBindings(renderer, res);
+    recreateShaderResourceBindings(renderer, res);
+  }
+  if(!m_computePasses.empty() && m_computePasses[0].second.srb)
+    m_computePipeline->setShaderResourceBindings(m_computePasses[0].second.srb);
+}
+
+void RenderedCSFNode::releaseMeshLayer(RenderList& r, MeshLayer& layer)
+{
+  for(auto& binding : layer.bindings)
+  {
+    for(auto& ssbo : binding.attribute_ssbos)
+    {
+      if(ssbo.read_buffer)
+        r.releaseBuffer(ssbo.read_buffer);
+      ssbo.read_buffer = nullptr;
+      releaseSlot(r, ssbo);
+      dropRestoreSource(r, ssbo);
+      dropScatterSource(r, ssbo);
+      delete ssbo.scatterStaging;
+      ssbo.scatterStaging = nullptr;
+      delete ssbo.scatterOp.srb;
+      ssbo.scatterOp.srb = nullptr;
+      delete ssbo.scatterOp.paramsUBO;
+      ssbo.scatterOp.paramsUBO = nullptr;
+    }
+    for(auto& aux : binding.auxiliary_ssbos)
+    {
+      if(aux.read_buffer)
+        r.releaseBuffer(aux.read_buffer);
+      aux.read_buffer = nullptr;
+      releaseSlot(r, aux);
+      dropRestoreSource(r, aux);
+    }
+    for(auto* buf : binding.copyFromBuffers)
+      r.releaseBuffer(buf);
+    binding.copyFromBuffers.clear();
+  }
+  layer.bindings.clear();
+  for(auto& pass : layer.passes)
+  {
+    delete pass.srb;
+    if(pass.processUBO)
+      pass.processUBO->deleteLater();
+  }
+  layer.passes.clear();
+}
+
+void RenderedCSFNode::runGeometryPasses(
+    RenderList& renderer, QRhiCommandBuffer& commands, QRhiResourceUpdateBatch*& res,
+    Edge& edge, bool firstMesh)
+{
   // Dispatch pending GPU scatter operations (format conversion) before user passes.
   // These convert raw CPU data (e.g. float3) uploaded to staging SSBOs into the
   // format expected by the CSF shader (e.g. vec4), entirely on the GPU.
@@ -5855,6 +6087,9 @@ void RenderedCSFNode::runInitialPasses(
         if(ssbo.scatterPending)
         {
           anyScatter = true;
+          // The previous mesh's passes consumed the batch.
+          if(!res)
+            res = renderer.state.rhi->nextResourceUpdateBatch();
           if(res)
             m_gpuScatter.updateParams(*res, ssbo.scatterOp, ssbo.scatterParams);
         }
@@ -5960,7 +6195,7 @@ void RenderedCSFNode::runInitialPasses(
   }
 
 
-  if(!m_selfFeedbackInputs.empty() || !m_storageImages.empty())
+  if(firstMesh && (!m_selfFeedbackInputs.empty() || !m_storageImages.empty()))
   {
     if(!res)
       res = renderer.state.rhi->nextResourceUpdateBatch();
@@ -6405,6 +6640,38 @@ void RenderedCSFNode::runInitialPasses(
 
     commands.endComputePass();
   }
+}
+
+void RenderedCSFNode::runInitialPasses(
+    RenderList& renderer, QRhiCommandBuffer& commands, QRhiResourceUpdateBatch*& res,
+    Edge& edge)
+{
+  // Dispatch the compute passes and perform the ping-pong swaps once per frame
+  // even when several downstream sinks trigger us: RenderList calls
+  // runInitialPasses() once per incoming edge, so a CSF feeding N sinks would
+  // otherwise advance its simulation N times. Keyed on the monotonic frame
+  // counter; `res` is left untouched for the remaining nodes. Reset in release().
+  if(m_lastRunFrame == renderer.frame)
+    return;
+  m_lastRunFrame = renderer.frame;
+
+
+  // Debug marker for capture-tool readability.
+  commands.debugMarkBegin(QByteArrayLiteral("CSF"));
+  struct MarkEnd
+  {
+    QRhiCommandBuffer* c;
+    ~MarkEnd() { c->debugMarkEnd(); }
+  } _me{&commands};
+
+  runGeometryPasses(renderer, commands, res, edge, true);
+  for(auto& layer : m_meshLayers)
+  {
+    if(layer.passthrough)
+      continue;
+    MeshLayerScope scope{*this, layer};
+    runGeometryPasses(renderer, commands, res, edge, false);
+  }
 
   for(auto& fb : m_selfFeedbackInputs)
     if(fb.snapshot)
@@ -6415,6 +6682,13 @@ void RenderedCSFNode::runInitialPasses(
   {
     if(!res)
       res = renderer.state.rhi->nextResourceUpdateBatch();
+    for(auto& layer : m_meshLayers)
+    {
+      if(layer.passthrough)
+        continue;
+      MeshLayerScope scope{*this, layer};
+      pushOutputGeometry(renderer, *res, edge);
+    }
     pushOutputGeometry(renderer, *res, edge);
   }
 

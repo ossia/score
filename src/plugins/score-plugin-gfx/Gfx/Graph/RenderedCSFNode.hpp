@@ -318,6 +318,10 @@ private:
     int prev_attribute_count{-1};
     int prev_upstream_attr_count{-1};
     int prev_upstream_aux_count{-1};
+    int prev_mesh_count{-1};
+    //! Per further mesh: the mesh list its output mesh was copied from, and
+    //! that list's dirty_index at the time.
+    std::vector<std::pair<const ossia::mesh_list*, int64_t>> mesh_seen;
 
     struct OutputSlots
     {
@@ -341,6 +345,38 @@ private:
     bool uses_indirect_count{false};
   };
   std::vector<GeometryBinding> m_geometryBindings;
+
+  // The meshes after the first of a multi-mesh upstream. Each one runs the
+  // passes over its own geometry bindings and SRBs, which are swapped in
+  // place of the first mesh's while it is updated, dispatched and pushed.
+  struct MeshLayer
+  {
+    std::vector<GeometryBinding> bindings;
+    std::vector<ComputePass> passes;
+    int meshIndex{};
+    bool auxSizeUnresolved{false};
+    //! The mesh lacks a required attribute: it is forwarded as is.
+    bool passthrough{false};
+  };
+  std::vector<MeshLayer> m_meshLayers;
+  //! Mesh of each upstream geometry the bindings currently read.
+  int m_meshIndex{0};
+
+  struct MeshLayerScope
+  {
+    RenderedCSFNode& self;
+    MeshLayer& layer;
+    MeshLayerScope(RenderedCSFNode& s, MeshLayer& l) noexcept;
+    ~MeshLayerScope();
+  };
+  void swapMeshLayer(MeshLayer& layer) noexcept;
+  int processedMeshCount() const;
+  void updateMeshLayers(RenderList& renderer, QRhiResourceUpdateBatch& res);
+  void releaseMeshLayer(RenderList& renderer, MeshLayer& layer);
+  const ossia::geometry* upstreamMesh(int port) const noexcept;
+  void runGeometryPasses(
+      RenderList& renderer, QRhiCommandBuffer& commands, QRhiResourceUpdateBatch*& res,
+      Edge& edge, bool firstMesh);
 
   // One-time "CSF indirect dispatch: gpu|cpu-fallback" log guard (per node
   // instance, so per test session); see the dispatch site.
