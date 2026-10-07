@@ -61,12 +61,92 @@
     <key>CFBundleDocumentTypes</key>
     <array>
         <dict>
+            <key>CFBundleTypeName</key>
+            <string>ossia score document</string>
             <key>CFBundleTypeExtensions</key>
             <array>
                 <string>score</string>
+                <string>scorejson</string>
             </array>
+            <key>LSItemContentTypes</key>
+            <array>
+                <string>io.ossia.score.document</string>
+            </array>
+            <key>CFBundleTypeIconFile</key>
+            <string>${MACOSX_BUNDLE_ICON_FILE}</string>
             <key>CFBundleTypeRole</key>
             <string>Editor</string>
+            <key>LSHandlerRank</key>
+            <string>Owner</string>
+        </dict>
+        <dict>
+            <key>CFBundleTypeName</key>
+            <string>ossia score document (legacy binary)</string>
+            <key>CFBundleTypeExtensions</key>
+            <array>
+                <string>scorebin</string>
+            </array>
+            <key>LSItemContentTypes</key>
+            <array>
+                <string>io.ossia.score.document.binary</string>
+            </array>
+            <key>CFBundleTypeIconFile</key>
+            <string>${MACOSX_BUNDLE_ICON_FILE}</string>
+            <key>CFBundleTypeRole</key>
+            <string>Editor</string>
+            <key>LSHandlerRank</key>
+            <string>Owner</string>
+        </dict>
+    </array>
+
+    <key>UTExportedTypeDeclarations</key>
+    <array>
+        <dict>
+            <key>UTTypeIdentifier</key>
+            <string>io.ossia.score.document</string>
+            <key>UTTypeDescription</key>
+            <string>ossia score document</string>
+            <key>UTTypeIconFile</key>
+            <string>${MACOSX_BUNDLE_ICON_FILE}</string>
+            <key>UTTypeConformsTo</key>
+            <array>
+                <string>public.json</string>
+            </array>
+            <key>UTTypeTagSpecification</key>
+            <dict>
+                <key>public.filename-extension</key>
+                <array>
+                    <string>score</string>
+                    <string>scorejson</string>
+                </array>
+                <key>public.mime-type</key>
+                <array>
+                    <string>application/x-ossia-score</string>
+                </array>
+            </dict>
+        </dict>
+        <dict>
+            <key>UTTypeIdentifier</key>
+            <string>io.ossia.score.document.binary</string>
+            <key>UTTypeDescription</key>
+            <string>ossia score document (legacy binary)</string>
+            <key>UTTypeIconFile</key>
+            <string>${MACOSX_BUNDLE_ICON_FILE}</string>
+            <key>UTTypeConformsTo</key>
+            <array>
+                <string>public.data</string>
+            </array>
+            <key>UTTypeTagSpecification</key>
+            <dict>
+                <key>public.filename-extension</key>
+                <array>
+                    <string>scorebin</string>
+                </array>
+                <key>public.mime-type</key>
+                <array>
+                    <string>application/x-ossia-score-binary</string>
+                </array>
+            </dict>
         </dict>
     </array>
 </dict>
