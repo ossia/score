@@ -1703,6 +1703,19 @@ if(TARGET score AND NOT EMSCRIPTEN)
     "SCORE_APP_BINARY=\"$<TARGET_FILE:score>\"")
 endif()
 
+# Typing into a QML editor bound with Score.UI.PortSource while the executor
+# republishes the port: real key events, real QtQuick focus. GUI, because
+# QtQuick's focus chain needs the real platform rather than offscreen.
+if(TARGET ${QT_PREFIX}::Quick AND TARGET score_plugin_js)
+  score_add_test(test_integration_portsource_editing
+    SOURCES PortSourceEditingTest.cpp
+    GUI
+    PLUGINS score_plugin_js score_lib_process
+    LIBS ${QT_PREFIX}::Qml ${QT_PREFIX}::Quick)
+  set_tests_properties(test_integration_portsource_editing PROPERTIES
+    TIMEOUT 120 LABELS "integration;js;gui")
+endif()
+
 # A nodal round trip while the play bar is shown; where a paste goes when a
 # nested process has the focus or the selection.
 score_add_test(test_integration_nested_focus
