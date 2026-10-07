@@ -927,9 +927,9 @@ static bool auxPlaceholderZeroFillDisabled() noexcept
 //
 // The `camera` block is the exception: a shader reads it as a transform, and an
 // all-zero viewProjection collapses every vertex to the origin, so it is seeded
-// with identities.
+// with identities, and with the render size shaders divide gl_FragCoord by.
 void RenderedRawRasterPipelineNode::createAuxPlaceholder(
-    QRhi& rhi, QRhiResourceUpdateBatch& res, AuxiliarySSBO& aux)
+    QRhi& rhi, QRhiResourceUpdateBatch& res, AuxiliarySSBO& aux, QSize renderSize)
 {
   const auto usage = aux.is_uniform ? QRhiBuffer::UniformBuffer : QRhiBuffer::StorageBuffer;
   const int64_t size
@@ -962,6 +962,11 @@ void RenderedRawRasterPipelineNode::createAuxPlaceholder(
         c.projection[i * 5] = 1.f;
         c.viewProjection[i * 5] = 1.f;
       }
+    for(auto& c : seed)
+    {
+      c.renderSize[0] = float(renderSize.width());
+      c.renderSize[1] = float(renderSize.height());
+    }
     res.updateDynamicBuffer(dummy, 0, slots * (int)sizeof(CameraUBOData), seed.data());
   }
 }
@@ -1176,7 +1181,7 @@ void RenderedRawRasterPipelineNode::initPass(
     for(auto& aux : m_auxiliarySSBOs)
     {
       if(!aux.buffer)
-        createAuxPlaceholder(rhi, res, aux);
+        createAuxPlaceholder(rhi, res, aux, renderer.state.renderSize);
 
       // Persistent ping-pong pair: emit the read-only <name>_prev binding
       // FIRST (binding N), then the writable <name> binding (binding N+1).
@@ -2332,7 +2337,7 @@ void RenderedRawRasterPipelineNode::initMRTPass(
     for(auto& aux : m_auxiliarySSBOs)
     {
       if(!aux.buffer)
-        createAuxPlaceholder(rhi, res, aux);
+        createAuxPlaceholder(rhi, res, aux, renderer.state.renderSize);
 
       // Persistent ping-pong: <name>_prev (readonly) goes first.
       if(aux.persistent && aux.prev_buffer)
