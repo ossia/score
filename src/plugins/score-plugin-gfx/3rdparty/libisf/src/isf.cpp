@@ -2237,8 +2237,16 @@ static void parse_pipeline_state(const sajson::value& v, pipeline_state& out)
     else if(k == "FRONT_FACE")              { if(get_str(val, s))  out.front_face = s; }
     else if(k == "POLYGON_MODE")            { if(get_str(val, s))  out.polygon_mode = s; }
     else if(k == "LINE_WIDTH")              { if(get_float(val, f)) out.line_width = f; }
-    else if(k == "VERTEX_COUNT")            { if(get_uint(val, u)) out.vertex_count = u; }
-    else if(k == "INSTANCE_COUNT")          { if(get_uint(val, u)) out.instance_count = u; }
+    else if(k == "VERTEX_COUNT")
+    {
+      if(get_uint(val, u)) out.vertex_count = u;
+      else if(get_str(val, s)) out.vertex_count_expression = s;
+    }
+    else if(k == "INSTANCE_COUNT")
+    {
+      if(get_uint(val, u)) out.instance_count = u;
+      else if(get_str(val, s)) out.instance_count_expression = s;
+    }
     else if(k == "TOPOLOGY")                { if(get_str(val, s))  out.topology = s; }
     else if(k == "BLEND")
     {

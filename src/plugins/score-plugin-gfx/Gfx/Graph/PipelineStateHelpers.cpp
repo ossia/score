@@ -390,6 +390,8 @@ isf::pipeline_state mergeState(isf::pipeline_state base, const isf::pipeline_sta
   if(over.line_width.has_value())             base.line_width = over.line_width;
   if(over.vertex_count.has_value())           base.vertex_count = over.vertex_count;
   if(over.instance_count.has_value())         base.instance_count = over.instance_count;
+  if(!over.vertex_count_expression.empty())   base.vertex_count_expression = over.vertex_count_expression;
+  if(!over.instance_count_expression.empty()) base.instance_count_expression = over.instance_count_expression;
   if(over.topology.has_value())               base.topology = over.topology;
   if(over.blend_all.has_value())              base.blend_all = over.blend_all;
   if(!over.blend_per_attachment.empty())      base.blend_per_attachment = over.blend_per_attachment;

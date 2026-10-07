@@ -93,6 +93,11 @@ private:
   // guards for fullscreen passes, VSA-style draws and IBL precompute shaders.
   bool isProceduralDraw() const noexcept;
 
+  // PIPELINE_STATE.VERTEX_COUNT / INSTANCE_COUNT, literal or evaluated this
+  // frame through resolveIntExpression; nullopt when undeclared.
+  std::optional<uint32_t> declaredVertexCount() const;
+  std::optional<uint32_t> declaredInstanceCount() const;
+
   // Evaluate an integer-valued expression against the same variable
   // surface as resolveManualInvocationCount ($WIDTH_<inp> / $HEIGHT /
   // scalar inputs). Used for OUTPUTS.WIDTH / HEIGHT.
