@@ -731,8 +731,14 @@ struct pipeline_state
   // that rely purely on gl_VertexIndex should declare an empty
   // `VERTEX_INPUTS: []` so the pipeline is built with no vertex
   // bindings and the draw count is used verbatim.
+  //
+  // Either count may instead be a string expression ("$count * 3",
+  // "$COUNT_particles"), evaluated every frame against the raw raster's
+  // expression surface; the literal field stays unset then.
   std::optional<uint32_t> vertex_count;
   std::optional<uint32_t> instance_count;
+  std::string vertex_count_expression;
+  std::string instance_count_expression;
   // Topology override. When unset, the incoming geometry's topology is
   // used. Values: "triangles", "triangle_strip", "triangle_fan",
   // "lines", "line_strip", "points".

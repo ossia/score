@@ -3989,8 +3989,8 @@ void RenderedRawRasterPipelineNode::update(
     if(anyFallback)
     {
       uint32_t instances = 1;
-      if(const auto& ds = n.descriptor().default_state; ds.instance_count)
-        instances = std::max(instances, (uint32_t)*ds.instance_count);
+      if(const auto ic = declaredInstanceCount())
+        instances = std::max(instances, *ic);
       if(geometry.meshes)
       {
         for(const auto& mesh : geometry.meshes->meshes)
@@ -4735,11 +4735,10 @@ void RenderedRawRasterPipelineNode::drawWithPerMeshAuxRebind(
   // VERTEX_INPUTS: [], which builds the pipeline with no vertex bindings and
   // uses VERTEX_COUNT verbatim.
   {
-    const auto& ds = n.descriptor().default_state;
-    if(ds.vertex_count.has_value())
+    if(const auto declared = declaredVertexCount())
     {
-      uint32_t vcount = *ds.vertex_count;
-      const uint32_t icount = ds.instance_count.value_or(1u);
+      uint32_t vcount = *declared;
+      const uint32_t icount = declaredInstanceCount().value_or(1u);
 
       const auto& drawn
           = m_primitiveGeometry.meshes ? m_primitiveGeometry : this->geometry;
@@ -4833,8 +4832,29 @@ bool RenderedRawRasterPipelineNode::isProceduralDraw() const noexcept
 {
   const auto& desc = n.descriptor();
   return desc.vertex_inputs.empty()
-         && desc.default_state.vertex_count.has_value()
-         && *desc.default_state.vertex_count > 0;
+         && ((desc.default_state.vertex_count.has_value()
+              && *desc.default_state.vertex_count > 0)
+             || !desc.default_state.vertex_count_expression.empty());
+}
+
+std::optional<uint32_t> RenderedRawRasterPipelineNode::declaredVertexCount() const
+{
+  const auto& ds = n.descriptor().default_state;
+  if(ds.vertex_count)
+    return ds.vertex_count;
+  if(!ds.vertex_count_expression.empty())
+    return (uint32_t)std::max(0, resolveIntExpression(ds.vertex_count_expression, 0));
+  return std::nullopt;
+}
+
+std::optional<uint32_t> RenderedRawRasterPipelineNode::declaredInstanceCount() const
+{
+  const auto& ds = n.descriptor().default_state;
+  if(ds.instance_count)
+    return ds.instance_count;
+  if(!ds.instance_count_expression.empty())
+    return (uint32_t)std::max(0, resolveIntExpression(ds.instance_count_expression, 0));
+  return std::nullopt;
 }
 
 // Generic integer-expression evaluator, shared by EXECUTION_MODEL=MANUAL
