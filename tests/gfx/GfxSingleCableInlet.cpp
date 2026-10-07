@@ -14,6 +14,10 @@
 // (renderTargetForInputPort). Fed by a node that renders into its consumer (a
 // simple ISF) it gets one, holding the upstream's colour (magenta), and
 // releases it again when the cable swaps back.
+//
+// A node producing a CPU texture (Array to texture, Text to Texture) publishes
+// the texture it uploads: Texture Info measures it and Texture to buffer copies
+// its texels, instead of an inlet render target of the default size.
 #include <score_test/Gfx.hpp>
 #include "GfxHalpNodes.hpp"
 #include <score_test/Document.hpp>
@@ -317,6 +321,139 @@ void checkFallback(const Info& s)
   CHECK(s.centre[2] > 200);
 }
 
+// A CPU texture producer: 16x16 RGBA32F whose float k is k.
+struct CpuTextureSource
+{
+  halp_meta(name, "CPU texture source")
+  halp_meta(c_name, "test_cpu_texture_source")
+  halp_meta(category, "Test")
+  halp_meta(uuid, "0d6f2a43-5a5e-4c1d-9c55-3f2f0b8e7a61")
+
+  struct
+  {
+  } inputs;
+  struct
+  {
+    halp::texture_output<"Output", halp::custom_texture> main;
+  } outputs;
+
+  static constexpr int size = 16;
+  void operator()()
+  {
+    if(outputs.main.texture.bytes)
+      return;
+    outputs.main.texture.request_format = halp::custom_texture::RGBA32F;
+    outputs.main.create(size, size);
+    auto* f = reinterpret_cast<float*>(outputs.main.texture.bytes);
+    for(int k = 0; k < size * size * 4; ++k)
+      f[k] = float(k);
+    outputs.main.upload();
+  }
+};
+
+struct CpuSourceRun
+{
+  bool skipped{};
+  std::string error;
+  int width{}, height{};
+  std::string format;
+  bool readsUpstream{};
+  int64_t bufferBytes{};
+  std::vector<float> texels;
+};
+
+// CpuTextureSource -> Texture Info, or -> Texture to buffer -> Buffer Info.
+// An inlet spec gives Texture to buffer a render target of its own.
+CpuSourceRun runCpuSource(
+    score::gfx::GraphicsApi api, bool toBuffer,
+    std::optional<ossia::render_target_spec> spec = std::nullopt)
+{
+  CpuSourceRun out;
+  run_in_gui_app([&](const score::GUIApplicationContext& app) {
+    auto* doc = new_document(app);
+    if(!doc)
+    {
+      out.error = "no document";
+      return;
+    }
+    const auto& ctx = doc->context();
+    HalpProcesses procs;
+    GfxPipeline p;
+
+    const int src = p.addNode(procs.make<CpuTextureSource>(ctx));
+    score::gfx::Node* consumerNode{};
+    score::gfx::OutputNode* output{};
+    int consumer = -1;
+    if(toBuffer)
+    {
+      auto t2b = procs.make<Threedim::TextureToBuffer>(ctx);
+      consumerNode = t2b.get();
+      consumer = p.addNode(std::move(t2b));
+      if(spec)
+        p.node(consumer)->process(0, *spec);
+      auto bi = procs.make<Threedim::BufferInfo>(ctx);
+      output = static_cast<score::gfx::OutputNode*>(bi.get());
+      const int info = p.addNode(std::move(bi));
+      p.wire(
+          p.nodeBufferOut(consumer, 0),
+          firstInput(*p.node(info), score::gfx::Types::Buffer));
+    }
+    else
+    {
+      auto ti = procs.make<Threedim::TextureInfo>(ctx);
+      consumerNode = ti.get();
+      output = static_cast<score::gfx::OutputNode*>(ti.get());
+      consumer = p.addNode(std::move(ti));
+    }
+    auto* in = firstInput(*p.node(consumer), score::gfx::Types::Image);
+    REQUIRE(in);
+    p.wire(p.nodeImageOut(src, 0), in);
+
+    if(!p.create(api))
+    {
+      out.skipped = p.skipped();
+      out.error = out.skipped ? std::string{} : p.error();
+      return;
+    }
+    for(int f = 0; f < 6; ++f)
+    {
+      p.render(1);
+      output->render();
+    }
+
+    REQUIRE(!consumerNode->renderedNodes.empty());
+    auto* upstream = p.node(src)->renderedNodes.begin()->second;
+    auto* upTex = upstream->textureForOutput(*p.nodeImageOut(src, 0));
+    if(toBuffer)
+    {
+      auto* rn = dynamic_cast<oscr::GfxRenderer<Threedim::TextureToBuffer>*>(
+          consumerNode->renderedNodes.begin()->second);
+      REQUIRE(rn);
+      const auto& t = rn->state->inputs.texture.texture;
+      out.width = t.width;
+      out.height = t.height;
+      out.bufferBytes = rn->state->outputs.buffer.buffer.byte_size;
+      if(t.bytes && t.format == halp::custom_variable_texture::RGBA32F)
+      {
+        const auto* f = reinterpret_cast<const float*>(t.bytes);
+        out.texels.assign(f, f + t.bytesize() / sizeof(float));
+      }
+    }
+    else
+    {
+      auto* rn = dynamic_cast<oscr::GfxRenderer<Threedim::TextureInfo>*>(
+          consumerNode->renderedNodes.begin()->second);
+      REQUIRE(rn);
+      out.width = rn->state->outputs.width.value;
+      out.height = rn->state->outputs.height.value;
+      out.format = rn->state->outputs.format.value;
+      out.readsUpstream
+          = upTex && rn->state->inputs.texture.texture.handle == upTex;
+    }
+  });
+  return out;
+}
+
 bool firstInletSingleCable(const Process::ProcessModel& m)
 {
   return !m.inlets().empty() && m.inlets().front()->singleCable;
@@ -519,4 +656,22 @@ TEST_CASE(
     INFO("step 2");
     checkDirect(r.steps[2]);
   }
+}
+
+TEST_CASE(
+    "Texture Info measures the texture a CPU texture producer uploads",
+    "[gfx][avnd][texture][single-cable]")
+{
+  const auto api = GENERATE(from_range(platform_backends()));
+  CAPTURE(backend_name(api));
+
+  const CpuSourceRun r = runCpuSource(api, false);
+  if(r.skipped)
+    SKIP("backend unavailable");
+  INFO("error=" << r.error << " " << r.width << "x" << r.height << " " << r.format);
+  REQUIRE(r.error.empty());
+  CHECK(r.width == CpuTextureSource::size);
+  CHECK(r.height == CpuTextureSource::size);
+  CHECK(r.format == "RGBA32F");
+  CHECK(r.readsUpstream);
 }
