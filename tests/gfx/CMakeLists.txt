@@ -1522,6 +1522,10 @@ endif()
 score_add_gfx_test(scene_preprocessor_regressions GfxScenePreprocessorRegressions.cpp)
 score_gfx_test_offset_allocator(test_gfx_scene_preprocessor_regressions)
 
+# A raw raster OUTPUTS.WIDTH / HEIGHT expression reading an input sizes the
+# target and follows the input, in 2D and cube outputs.
+score_add_gfx_test(raster_output_size_expression GfxRasterOutputSizeExpression.cpp)
+
 # The camera placeholder a raw raster binds before a scene feeds it carries
 # the render size rather than zero.
 score_add_gfx_test(camera_placeholder_render_size GfxCameraPlaceholderRenderSize.cpp)
