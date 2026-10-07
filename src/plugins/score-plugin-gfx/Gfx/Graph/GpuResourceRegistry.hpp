@@ -63,7 +63,7 @@ public:
     RawCamera,        // RawCameraData      — 64 B per slot, UBO
     RawLight,         // RawLightData       — 64 B per slot, SSBO
     RawTransform,     // RawLocalTransform  — 64 B per slot, SSBO
-    Material,         // MaterialGPU        — 64 B per slot, SSBO
+    Material,         // MaterialGPU        — 80 B per slot, SSBO
     Env,              // EnvParamsUBO       — 64 B per slot, UBO
 
     // Cooked outputs (camera UBOs, composed world matrices, per-draw structs,
