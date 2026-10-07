@@ -537,6 +537,39 @@ void NodeRenderer::runInitialPasses(
 void NodeRenderer::runRenderPass(RenderList&, QRhiCommandBuffer& commands, Edge& edge) {
 }
 
+auto NodeRenderer::portScenesInEdgeOrder() const
+    -> ossia::small_vector<
+        const std::pair<std::pair<int32_t, const void*>, ossia::scene_spec>*, 4>
+{
+  using entry = std::pair<std::pair<int32_t, const void*>, ossia::scene_spec>;
+  ossia::small_vector<std::pair<std::pair<int32_t, std::size_t>, const entry*>, 4> ranked;
+  for(const auto& kv : m_portScenes)
+  {
+    const auto [port, source] = kv.first;
+    // A delivery without a source key (legacy single-slot callers) sorts
+    // first; one whose edge is already gone sorts last.
+    std::size_t rank = 0;
+    if(source && port >= 0 && std::size_t(port) < node.input.size())
+    {
+      const auto& edges = node.input[port]->edges;
+      const auto it = std::find_if(edges.begin(), edges.end(), [src = source](const Edge* e) {
+        return e->source == src;
+      });
+      rank = 1 + std::size_t(std::distance(edges.begin(), it));
+    }
+    ranked.push_back({{port, rank}, &kv});
+  }
+  std::stable_sort(ranked.begin(), ranked.end(), [](const auto& a, const auto& b) {
+    return a.first < b.first;
+  });
+
+  ossia::small_vector<const entry*, 4> ret;
+  ret.reserve(ranked.size());
+  for(const auto& r : ranked)
+    ret.push_back(r.second);
+  return ret;
+}
+
 // Rebuild `this->scene` as the merge of every m_portScenes entry,
 // memoized on the set of input scene_state pointers. When unchanged, the
 // previous merged scene_spec (and its scene_state shared_ptr) is reused
@@ -547,9 +580,9 @@ void NodeRenderer::rebuildMergedScene()
 {
   ossia::small_vector<MergeCacheKey, 4> sig;
   ossia::small_vector<const ossia::scene_spec*, 4> valid;
-  for(auto& kv : m_portScenes)
+  for(const auto* kv : portScenesInEdgeOrder())
   {
-    const auto& s = kv.second;
+    const auto& s = kv->second;
     // No `!s.state->empty()` filter here: env-only producers
     // (EnvironmentLoader, CubemapLoader, …) have an empty roots vector
     // but still contribute environment fields, and dropping them here

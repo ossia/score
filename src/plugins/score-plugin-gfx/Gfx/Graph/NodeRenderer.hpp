@@ -171,15 +171,23 @@ public:
   template <typename F>
   void forEachSceneOnPort(int32_t port, F&& fn) const
   {
-    for(const auto& [k, v] : m_portScenes)
-      if(k.first == port && v.state)
-        fn(v);
+    for(const auto* kv : portScenesInEdgeOrder())
+      if(kv->first.first == port && kv->second.state)
+        fn(kv->second);
   }
 
 private:
   /// Recompute `this->scene` from the current per-port inputs, reusing the
   /// memoized merge when the set of input scene_state pointers is unchanged.
   void rebuildMergedScene();
+
+  /// The m_portScenes entries in the order each input port keeps its edges:
+  /// by source node id, then output index (see Edge::Edge). The map itself
+  /// is sorted by the source Port's address, which changes from run to run,
+  /// and merge_scenes is order-sensitive: the first input carrying an
+  /// active camera wins.
+  ossia::small_vector<const std::pair<std::pair<int32_t, const void*>, ossia::scene_spec>*, 4>
+  portScenesInEdgeOrder() const;
 
 public:
 
