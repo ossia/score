@@ -180,7 +180,8 @@ score_add_test(test_threedim_transform3d
 threedim_test_includes(test_threedim_transform3d)
 
 # ShadowCascadeSetup's cascade math: split scheme, findActiveCamera id
-# filtering, the reverse-Z NDC flip and the zPad direction.
+# filtering, the reverse-Z NDC flip, the zPad direction, the shadow-casting
+# light choice and the no-camera fallback volume.
 score_add_test(test_threedim_shadow_cascades
   SOURCES ShadowCascades.cpp "${THREEDIM_DIR}/ShadowCascadeSetup.cpp"
   LIBS ${QT_PREFIX}::Gui)
