@@ -662,6 +662,8 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
     Normals,
     Texcoords,
     Tangents,
+    Colors,
+    Texcoords1,
     Indices
   };
   struct PendingGpuCopy
@@ -2240,7 +2242,7 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
       auto col = extractCpuAttribute<16>(*mesh, ossia::attribute_semantic::color0);
       auto tan = extractCpuAttribute<16>(*mesh, ossia::attribute_semantic::tangent);
 
-      GpuAttrView gpu_pos, gpu_nrm, gpu_uv, gpu_tan;
+      GpuAttrView gpu_pos, gpu_nrm, gpu_uv, gpu_tan, gpu_col, gpu_uv1;
       if(pos.empty())
         gpu_pos = extractGpuAttribute(*mesh, ossia::attribute_semantic::position);
       if(nrm.empty())
@@ -2249,6 +2251,21 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
         gpu_uv = extractGpuAttribute(*mesh, ossia::attribute_semantic::texcoord0);
       if(tan.empty())
         gpu_tan = extractGpuAttribute(*mesh, ossia::attribute_semantic::tangent);
+      if(uv1.empty())
+        gpu_uv1 = extractGpuAttribute(*mesh, ossia::attribute_semantic::texcoord1);
+      if(col.empty())
+      {
+        // Only float colours can be copied as-is into the float4 stream; a
+        // float3 one leaves the alpha of the (1,1,1,1) fallback in place.
+        const auto* a = mesh->find(ossia::attribute_semantic::color0);
+        using F = ossia::geometry::attribute;
+        if(a && (a->format == F::float4 || a->format == F::float3))
+        {
+          gpu_col = extractGpuAttribute(*mesh, ossia::attribute_semantic::color0);
+          if(gpu_col.byte_stride == 0 && a->format == F::float3)
+            gpu_col.byte_stride = 12;
+        }
+      }
 
       if(pos.empty() && !gpu_pos.buf)
       {
@@ -2375,7 +2392,8 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
               scratch.data(), (uint32_t)scratch.size());
         }
 
-        // ── Colors ── vec4; (1,1,1,1) fallback.
+        // ── Colors ── vec4; (1,1,1,1) fallback, which a GPU copy then
+        // overwrites.
         if(!col.empty())
         {
           m_registry->uploadMeshStream(
@@ -2391,14 +2409,24 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
           m_registry->uploadMeshStream(
               res, *slab, Stream::Colors,
               scratch.data(), (uint32_t)scratch.size());
+          if(gpu_col.buf)
+            queueSlabCopy(
+                MdiAttr::Colors, gpu_col, 16, vc,
+                m_registry->meshSlabOffsetBytes(*slab, Stream::Colors));
         }
 
         // ── Texcoords1 ── vec2; zero fallback.
+        const uint32_t uv1Off
+            = m_registry->meshSlabOffsetBytes(*slab, Stream::Texcoords1);
         if(!uv1.empty())
         {
           m_registry->uploadMeshStream(
               res, *slab, Stream::Texcoords1,
               uv1.data(), (uint32_t)uv1.size());
+        }
+        else if(gpu_uv1.buf)
+        {
+          queueSlabCopy(MdiAttr::Texcoords1, gpu_uv1, 8, vc, uv1Off);
         }
         else
         {
@@ -2431,6 +2459,8 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
         requeue(MdiAttr::Normals, Stream::Normals, gpu_nrm, 16);
         requeue(MdiAttr::Texcoords, Stream::Texcoords, gpu_uv, 8);
         requeue(MdiAttr::Tangents, Stream::Tangents, gpu_tan, 16);
+        requeue(MdiAttr::Colors, Stream::Colors, gpu_col, 16);
+        requeue(MdiAttr::Texcoords1, Stream::Texcoords1, gpu_uv1, 8);
       }
 
       // Indices are copied with drawIndexCount, not the vertex count. A uint16
@@ -5153,7 +5183,7 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
       // unchanged mesh_primitive address must force a full rebuild rather than
       // let the queue copy from a freed buffer.
       std::vector<uint64_t> freshMeshFingerprint;
-      freshMeshFingerprint.reserve(fs.draws.size() * 6);
+      freshMeshFingerprint.reserve(fs.draws.size() * 8);
       for(const auto& dc : fs.draws)
       {
         if(dc.mesh && dc.mesh->vertices > 0 && dc.stable_id)
@@ -5175,6 +5205,10 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
               bufId(ossia::attribute_semantic::texcoord0));
           freshMeshFingerprint.push_back(
               bufId(ossia::attribute_semantic::tangent));
+          freshMeshFingerprint.push_back(
+              bufId(ossia::attribute_semantic::color0));
+          freshMeshFingerprint.push_back(
+              bufId(ossia::attribute_semantic::texcoord1));
           freshMeshFingerprint.push_back(reinterpret_cast<uintptr_t>(
               extractGpuIndices(*dc.mesh, true).buf));
         }
@@ -5495,6 +5529,8 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
       case MdiAttr::Normals:   return m_registry->meshStreamBuffer(Stream::Normals);
       case MdiAttr::Texcoords: return m_registry->meshStreamBuffer(Stream::Texcoords);
       case MdiAttr::Tangents:  return m_registry->meshStreamBuffer(Stream::Tangents);
+      case MdiAttr::Colors:    return m_registry->meshStreamBuffer(Stream::Colors);
+      case MdiAttr::Texcoords1: return m_registry->meshStreamBuffer(Stream::Texcoords1);
       case MdiAttr::Indices:   return m_registry->meshStreamBuffer(Stream::Indices);
     }
     return nullptr;
