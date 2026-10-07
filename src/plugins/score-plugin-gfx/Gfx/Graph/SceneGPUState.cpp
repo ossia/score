@@ -228,7 +228,11 @@ primitiveToGeometry(const ossia::mesh_primitive& prim)
   if(index_buffer_idx >= 0)
   {
     out->index.buffer = index_buffer_idx;
-    out->index.byte_offset = 0;
+    // A GPU index buffer may start inside its buffer: PBR Mesh carries the
+    // upstream geometry's index byte offset there.
+    const auto* gpu
+        = ossia::get_if<ossia::gpu_buffer_handle>(&prim.index_buffer->resource);
+    out->index.byte_offset = gpu ? gpu->byte_offset : 0;
     out->index.format = (prim.index_type == ossia::index_format::uint16)
         ? decltype(out->index)::uint16
         : decltype(out->index)::uint32;
