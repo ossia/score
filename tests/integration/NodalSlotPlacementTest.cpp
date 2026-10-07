@@ -496,3 +496,36 @@ TEST_CASE(
     CHECK(nodal->nodeContainer().scale() < 1.);
   });
 }
+
+TEST_CASE(
+    "A node dropped in an interval's nodal slot near its edge leaves the view alone",
+    "[integration][nodal][gui]")
+{
+  score::test::run_in_gui_app([](const score::GUIApplicationContext& app) {
+    auto doc = score::test::new_document(app);
+    REQUIRE(doc);
+    auto& itv = newInterval(*doc);
+    auto first = dropEffect(*doc, itv, effect_key);
+    if(!first)
+      SKIP("avnd Counter not built");
+    auto nodal = nodalViewOf(*doc, *first);
+    REQUIRE(nodal);
+    nodal->rescale();
+    run_events_for(100);
+    const auto scaleBefore = nodal->nodeContainer().scale();
+    const auto posBefore = nodal->nodeContainer().pos();
+
+    // Dropped just inside the visible corner: the node itself sticks out
+    const QRectF visible = visibleSlot(*doc, *nodal);
+    const QPointF dropAt = nodal->mapFromScene(visible.bottomRight() - QPointF{10., 10.});
+    QMimeData mime;
+    Mime<Process::ProcessData>::Serializer{mime}.serialize(
+        Process::ProcessData{effect_key, {}, {}});
+    nodal->on_drop(dropAt, &mime);
+    run_events_for(300);
+
+    REQUIRE(itv.processes.size() == 2);
+    CHECK(nodal->nodeContainer().scale() == Approx(scaleBefore));
+    CHECK(nodal->nodeContainer().pos() == posBefore);
+  });
+}
