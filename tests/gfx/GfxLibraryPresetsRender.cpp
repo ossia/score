@@ -12,6 +12,7 @@
 //    shadow-casting light with no cascades wired leaves it unshadowed.
 //  * A normal map, and classic_pbr's clear coat normal map, are scaled by the
 //    material's normal scale.
+//  * In the Points Mode each tier draws its vertices point_size pixels wide.
 //  * classic_pbr_openpbr's default bsdf_intensity_scale, with the eight
 //    OpenPBR lookup tables wired, gives a directional light the same direct
 //    contribution classic_pbr gives it.
@@ -106,6 +107,8 @@ struct SceneOpts
   std::optional<float> normalScale;
   // A clear coat whose normal map tilts the same way, with this scale.
   std::optional<float> coatNormalScale;
+  // Drawn in the Points Mode, with this point_size.
+  std::optional<float> pointSize;
 };
 
 ossia::material_component_ptr makeMaterial(const SceneOpts& o)
@@ -493,6 +496,7 @@ struct Probe
   bool skipped = false;
   std::string err;
   std::array<uint8_t, 4> center{};
+  int lit = 0; // pixels brighter than 8 in any colour channel
 };
 
 Probe renderScene(
@@ -540,6 +544,14 @@ Probe renderScene(
       return;
     }
     applyZeroDefaults(*p.isf(raster));
+    if(opts.pointSize)
+    {
+      constexpr int modePoints = 1;
+      setControl(
+          *p.isf(raster), nth_control_input(*p.isf(raster), 0),
+          ossia::value{modePoints});
+      setFloat(*p.isf(raster), "point_size", *opts.pointSize);
+    }
     p.render(5);
     const auto img = p.readback(sink);
     if(!img.valid())
@@ -548,6 +560,13 @@ Probe renderScene(
       return;
     }
     out.center = img.at(kSize / 2, kSize / 2);
+    for(int y = 0; y < img.height; ++y)
+      for(int x = 0; x < img.width; ++x)
+      {
+        const auto c = img.at(x, y);
+        if(std::max({c[0], c[1], c[2]}) > 8)
+          ++out.lit;
+      }
   });
   return out;
 }
@@ -725,6 +744,37 @@ TEST_CASE(
   // Light and view face the quad: the coat's highlight is at its peak with
   // the coat normal on the face normal, and far off it 53 degrees away.
   CHECK(int(z.center[0]) - int(a.center[0]) > 10);
+}
+
+TEST_CASE(
+    "Each shading tier draws points of its point_size in the Points Mode",
+    "[gfx][presets][points]")
+{
+  const auto api = GENERATE(from_range(platform_backends()));
+  const std::string tier
+      = GENERATE(as<std::string>{}, "unlit", "blinn_phong", "pbr_fast", "classic_pbr");
+  CAPTURE(backend_name(api), tier);
+  if(!haveRasterPresets())
+    SKIP(noRasterPresets());
+
+  SceneOpts one;
+  one.light = true;
+  one.intensity = 3.f;
+  one.pointSize = 1.f;
+  SceneOpts six = one;
+  six.pointSize = 6.f;
+  const auto a = renderTier(api, tier, one);
+  if(a.skipped)
+    SKIP("backend unavailable");
+  const auto b = renderTier(api, tier, six);
+  INFO("lit pixels: size 1 " << a.lit << ", size 6 " << b.lit);
+  REQUIRE(a.err.empty());
+  REQUIRE(b.err.empty());
+  // The quad's six vertices land on its four corners, inside the frame.
+  CHECK(a.lit >= 1);
+  CHECK(a.lit <= 4);
+  CHECK(b.lit >= 4 * 30);
+  CHECK(b.lit <= 4 * 36);
 }
 
 TEST_CASE(
