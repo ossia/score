@@ -1,5 +1,7 @@
 #include "SceneSelector.hpp"
 
+#include <Threedim/SceneGlob.hpp>
+
 #include <algorithm>
 
 namespace Threedim
@@ -7,54 +9,6 @@ namespace Threedim
 
 namespace
 {
-
-bool selector_glob_match(std::string_view pattern, std::string_view text) noexcept
-{
-  std::size_t pi = 0, ti = 0;
-  std::size_t star_pi = std::string_view::npos;
-  std::size_t star_ti = 0;
-  bool star_double = false;
-  while(ti < text.size())
-  {
-    if(pi < pattern.size())
-    {
-      char pc = pattern[pi];
-      if(pc == '*')
-      {
-        star_double = (pi + 1 < pattern.size() && pattern[pi + 1] == '*');
-        pi += star_double ? 2 : 1;
-        star_pi = pi;
-        star_ti = ti;
-        continue;
-      }
-      if(pc == '?' && text[ti] != '/')
-      {
-        ++pi;
-        ++ti;
-        continue;
-      }
-      if(pc == text[ti])
-      {
-        ++pi;
-        ++ti;
-        continue;
-      }
-    }
-    if(star_pi != std::string_view::npos)
-    {
-      if(!star_double && text[star_ti] == '/')
-        return false;
-      pi = star_pi;
-      ++star_ti;
-      ti = star_ti;
-      continue;
-    }
-    return false;
-  }
-  while(pi < pattern.size() && pattern[pi] == '*')
-    ++pi;
-  return pi == pattern.size();
-}
 
 // DFS until the first match. Accumulates the found-node plus a hint
 // whether the found node itself is the root of the subtree (so we
@@ -64,7 +18,7 @@ ossia::scene_node_ptr selector_findByPath(
 {
   if(!n)
     return nullptr;
-  if(selector_glob_match(pat, path))
+  if(scene_glob_match(pat, path))
     return n;
   if(!n->has_children())
     return nullptr;

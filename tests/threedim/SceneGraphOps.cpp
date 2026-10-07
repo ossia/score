@@ -1,5 +1,6 @@
 // Behavioural coverage for the pure scene_state -> scene_state family:
-// SceneSwitch, CameraSwitch, SceneGroup, SceneSelector, SceneDuplicator, TagAs.
+// SceneSwitch, CameraSwitch, SceneGroup, SceneSelector, SceneDuplicator, TagAs,
+// ConfigurePrimitive.
 //
 // All of these are GPU-free: their init/update/release take a RenderList but
 // the algebra lives entirely in rebuild()/operator()(). Nothing here touches
@@ -8,6 +9,7 @@
 // relies on.
 
 #include <Threedim/CameraSwitch.hpp>
+#include <Threedim/ConfigurePrimitive.hpp>
 #include <Threedim/SceneDuplicator.hpp>
 #include <Threedim/SceneGroup.hpp>
 #include <Threedim/SceneSelector.hpp>
@@ -562,6 +564,14 @@ TEST_CASE("SceneSelector ByPath matches globs against the /root/child path",
     REQUIRE(n.outputs.scene_out.scene.state->roots->size() == 1);
     CHECK((*n.outputs.scene_out.scene.state->roots)[0].get() == root.get());
   }
+
+  SECTION("** spans the segments before a segment starting with *")
+  {
+    n.inputs.path.value = "**/*ead";
+    n();
+    REQUIRE(n.outputs.scene_out.scene.state->roots->size() == 1);
+    CHECK((*n.outputs.scene_out.scene.state->roots)[0].get() == leaf.get());
+  }
 }
 
 TEST_CASE("SceneSelector ZeroOut drops the subtree's leading transform",
@@ -841,4 +851,43 @@ TEST_CASE("TagAs re-runs when the upstream state pointer changes",
   n();
   CHECK(n.outputs.scene_out.scene.state != out_a);
   CHECK(n.outputs.scene_out.dirty == 0xFF);
+}
+
+// ========================================================= ConfigurePrimitive
+
+TEST_CASE("ConfigurePrimitive matches a ** glob whose last segment starts with *",
+          "[threedim][scene][configure]")
+{
+  // The node layout of a glTF scene: an unnamed root, so paths start with
+  // "//", and a nested node.
+  auto top = make_node("Pawn_Top_B1", 4);
+  auto pawnB = make_node("Pawn_Body_B1", 3, {ossia::scene_node_ptr{top}});
+  auto castleW = make_node("Castle_W1", 5);
+  auto kingB = make_node("King_B", 1);
+  auto kingW = make_node("King_W", 2);
+  auto root = make_node(
+      "", 0,
+      {ossia::scene_node_ptr{kingB}, ossia::scene_node_ptr{kingW},
+       ossia::scene_node_ptr{pawnB}, ossia::scene_node_ptr{castleW}});
+
+  Threedim::ConfigurePrimitive n;
+  n.inputs.scene_in.scene.state = make_state({root});
+  n.inputs.mode.value = Threedim::ConfigurePrimitive::SetInvisible;
+  n.inputs.paths.value = {"**/*_B*"};
+  n();
+
+  const auto& st = n.outputs.scene_out.scene.state;
+  REQUIRE(st);
+  REQUIRE(st->roots->size() == 1);
+  std::vector<std::string> hidden;
+  auto walk = [&](auto& self, const ossia::scene_node& node) -> void {
+    if(!node.visible)
+      hidden.push_back(node.name);
+    if(node.children)
+      for(const auto& c : *node.children)
+        if(auto* sub = ossia::get_if<ossia::scene_node_ptr>(&c); sub && *sub)
+          self(self, **sub);
+  };
+  walk(walk, *(*st->roots)[0]);
+  CHECK(hidden == std::vector<std::string>{"King_B", "Pawn_Body_B1", "Pawn_Top_B1"});
 }

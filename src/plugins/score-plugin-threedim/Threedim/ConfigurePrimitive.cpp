@@ -1,5 +1,7 @@
 #include "ConfigurePrimitive.hpp"
 
+#include <Threedim/SceneGlob.hpp>
+
 #include <algorithm>
 
 namespace Threedim
@@ -8,61 +10,11 @@ namespace Threedim
 namespace
 {
 
-// Minimal glob matcher, duplicated from SceneGraphFilter.cpp.
-bool configure_glob_match(std::string_view pattern, std::string_view text) noexcept
-{
-  std::size_t pi = 0, ti = 0;
-  std::size_t star_pi = std::string_view::npos;
-  std::size_t star_ti = 0;
-  bool star_double = false;
-
-  while(ti < text.size())
-  {
-    if(pi < pattern.size())
-    {
-      char pc = pattern[pi];
-      if(pc == '*')
-      {
-        star_double = (pi + 1 < pattern.size() && pattern[pi + 1] == '*');
-        pi += star_double ? 2 : 1;
-        star_pi = pi;
-        star_ti = ti;
-        continue;
-      }
-      if(pc == '?' && text[ti] != '/')
-      {
-        ++pi;
-        ++ti;
-        continue;
-      }
-      if(pc == text[ti])
-      {
-        ++pi;
-        ++ti;
-        continue;
-      }
-    }
-    if(star_pi != std::string_view::npos)
-    {
-      if(!star_double && text[star_ti] == '/')
-        return false;
-      pi = star_pi;
-      ++star_ti;
-      ti = star_ti;
-      continue;
-    }
-    return false;
-  }
-  while(pi < pattern.size() && pattern[pi] == '*')
-    ++pi;
-  return pi == pattern.size();
-}
-
 bool configure_any_match(
     const std::vector<std::string>& pats, std::string_view text) noexcept
 {
   for(const auto& p : pats)
-    if(configure_glob_match(p, text))
+    if(scene_glob_match(p, text))
       return true;
   return false;
 }
