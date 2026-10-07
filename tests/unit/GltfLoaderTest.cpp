@@ -816,3 +816,74 @@ TEST_CASE(
   }
 }
 
+
+TEST_CASE(
+    "a glTF material keeps its normal scale and occlusion strength",
+    "[threedim][gltf][material]")
+{
+  // normalTexture.scale, occlusionTexture.strength and the clearcoat
+  // extension's clearcoatNormalTexture.scale reach the material_component.
+  // The second material declares none of them and keeps the spec defaults.
+  QTemporaryDir tdir;
+  REQUIRE(tdir.isValid());
+  const fs::path root = fs::path(tdir.path().toStdString());
+
+  std::string bin;
+  for(float f : {0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f, 1.f, 0.f})
+    put(bin, f);
+  {
+    std::ofstream f(root / "tri.bin", std::ios::binary);
+    f.write(bin.data(), std::streamsize(bin.size()));
+  }
+  QImage img(2, 2, QImage::Format_RGBA8888);
+  img.fill(QColor(128, 128, 255));
+  REQUIRE(img.save(QString::fromStdString((root / "n.png").string())));
+
+  // clang-format off
+  const std::string json = R"({
+"asset":{"version":"2.0"},
+"extensionsUsed":["KHR_materials_clearcoat"],
+"scene":0,
+"scenes":[{"nodes":[0]}],
+"nodes":[{"mesh":0}],
+"meshes":[{"primitives":[{"attributes":{"POSITION":0},"material":0}]}],
+"materials":[
+ {"normalTexture":{"index":0,"scale":0.625},
+  "occlusionTexture":{"index":0,"strength":0.25},
+  "extensions":{"KHR_materials_clearcoat":{"clearcoatFactor":1.0,
+    "clearcoatNormalTexture":{"index":0,"scale":0.375}}}},
+ {"normalTexture":{"index":0},
+  "occlusionTexture":{"index":0},
+  "extensions":{"KHR_materials_clearcoat":{"clearcoatFactor":1.0,
+    "clearcoatNormalTexture":{"index":0}}}}],
+"textures":[{"source":0}],
+"images":[{"uri":"n.png"}],
+"buffers":[{"byteLength":36,"uri":"tri.bin"}],
+"bufferViews":[{"buffer":0,"byteOffset":0,"byteLength":36,"target":34962}],
+"accessors":[
+ {"bufferView":0,"componentType":5126,"count":3,"type":"VEC3","min":[0,0,0],"max":[1,1,0]}]
+})";
+  // clang-format on
+  const fs::path doc = root / "model.gltf";
+  {
+    std::ofstream f(doc, std::ios::binary);
+    f.write(json.data(), std::streamsize(json.size()));
+  }
+
+  auto parser = load_gltf(doc.string());
+  REQUIRE(parser);
+  REQUIRE(parser->m_raw_state);
+  REQUIRE(parser->m_raw_state->materials);
+  const auto& mats = *parser->m_raw_state->materials;
+  REQUIRE(mats.size() == 2);
+
+  CHECK(mats[0]->normal_texture.valid());
+  CHECK(mats[0]->normal_scale == 0.625f);
+  CHECK(mats[0]->occlusion_strength == 0.25f);
+  CHECK(mats[0]->clearcoat.normal_texture.valid());
+  CHECK(mats[0]->clearcoat.normal_scale == 0.375f);
+
+  CHECK(mats[1]->normal_scale == 1.f);
+  CHECK(mats[1]->occlusion_strength == 1.f);
+  CHECK(mats[1]->clearcoat.normal_scale == 1.f);
+}
