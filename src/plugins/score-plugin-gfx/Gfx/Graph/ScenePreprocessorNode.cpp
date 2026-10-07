@@ -742,6 +742,10 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
   // drop before it is ever submitted.
   bool m_defaultMaterialUploaded{false};
 
+  // A mesh with uint16 GPU indices was skipped on a backend that cannot copy
+  // them (copiesGpuIndices); warned once.
+  bool m_warnedUint16GpuIndices{false};
+
   // Texture pool generation this preprocessor last published against. The
   // pool is shared, so another preprocessor growing a bucket replaces arrays
   // this one's consumers still bind.
@@ -1406,8 +1410,8 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
   // offset of the first index and the index size (2 or 4) as the stride. Empty
   // when the indices are CPU-resident or missing, or would read past the
   // buffer. The arena holds uint32 indices, so uint16 ones are widened by
-  // copying each into the low half of a zeroed slot; Metal on macOS only blits
-  // 4-byte-aligned ranges, hence allowUint16.
+  // copying each into the low half of a zeroed slot; see copiesGpuIndices for
+  // allowUint16.
   static GpuAttrView
   extractGpuIndices(const ossia::geometry& g, bool allowUint16)
   {
@@ -1435,7 +1439,7 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
 
   static bool allowUint16GpuIndices(const QRhi& rhi) noexcept
   {
-    return rhi.backend() != QRhi::Metal;
+    return copiesGpuIndices(rhi.backend(), ossia::index_format::uint16);
   }
 
   // Mesh-deterministic subset of emitDraw's skip predicate: a draw is dropped
@@ -2332,9 +2336,22 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
         idx = extractCpuIndices(*mesh);
         if(idx.empty())
         {
-          gpu_idx = extractGpuIndices(*mesh, allowUint16GpuIndices(rhi));
+          const bool allowUint16 = allowUint16GpuIndices(rhi);
+          gpu_idx = extractGpuIndices(*mesh, allowUint16);
           if(!gpu_idx.buf)
+          {
+            if(!allowUint16 && !m_warnedUint16GpuIndices
+               && extractGpuIndices(*mesh, true).buf)
+            {
+              m_warnedUint16GpuIndices = true;
+              qWarning() << "Scene Preprocessor: a mesh whose 16-bit indices are in "
+                            "a GPU buffer is not drawn on"
+                         << rhi.backendName()
+                         << "(only 4-byte-aligned buffer copies); give it 32-bit "
+                            "indices";
+            }
             return kCmdSkipped;
+          }
         }
       }
       else
@@ -5856,6 +5873,11 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
   // dropped in releaseState; nothing is keyed by output edge.
   void removeOutputPass(RenderList&, Edge&) override { }
 };
+
+bool copiesGpuIndices(QRhi::Implementation backend, ossia::index_format format) noexcept
+{
+  return format != ossia::index_format::uint16 || backend != QRhi::Metal;
+}
 
 ScenePreprocessorNode::ScenePreprocessorNode()
 {

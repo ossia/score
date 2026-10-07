@@ -278,3 +278,20 @@ TEST_CASE(
   CHECK(bottomRight[1] < 40);
   CHECK(insideLater[1] > 215);
 }
+
+TEST_CASE(
+    "the Scene Preprocessor copies 16-bit GPU indices everywhere but on Metal",
+    "[gfx][scene][index]")
+{
+  using score::gfx::copiesGpuIndices;
+  for(auto api : {QRhi::Vulkan, QRhi::OpenGLES2, QRhi::D3D11, QRhi::D3D12, QRhi::Null})
+  {
+    CAPTURE(int(api));
+    CHECK(copiesGpuIndices(api, ossia::index_format::uint16));
+    CHECK(copiesGpuIndices(api, ossia::index_format::uint32));
+  }
+  // Metal on macOS only blits 4-byte-aligned ranges, and a uint16 index is
+  // copied into each uint32 slot two bytes at a time.
+  CHECK(!copiesGpuIndices(QRhi::Metal, ossia::index_format::uint16));
+  CHECK(copiesGpuIndices(QRhi::Metal, ossia::index_format::uint32));
+}
