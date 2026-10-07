@@ -1500,6 +1500,18 @@ void RenderedCSFNode::updateGeometryBindings(
 
     auto& binding = m_geometryBindings[geo_binding_idx];
 
+    // A compute shader reads one geometry per input: with several cables, the
+    // first stored one is read and the others are dropped.
+    if(binding.input_port_index >= 0 && binding.input_port_index < (int)n.input.size())
+    {
+      const auto cables = n.input[binding.input_port_index]->edges.size();
+      if(cables > 1 && !std::exchange(binding.warned_multiple_cables, true))
+        qWarning() << "CSF: geometry input" << QString::fromStdString(input.name) << "has"
+                   << cables << "cables; only one geometry is read";
+      else if(cables <= 1)
+        binding.warned_multiple_cables = false;
+    }
+
     // Per-binding upstream lookup: use this binding's port index
     bool binding_has_upstream = false;
     const ossia::geometry* upstream_mesh = nullptr;
