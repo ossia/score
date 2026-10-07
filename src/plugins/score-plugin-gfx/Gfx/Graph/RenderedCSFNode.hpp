@@ -225,6 +225,9 @@ private:
 
       // GPU scatter state (used when format conversion is needed)
       QRhiBuffer* scatterStaging{};      // Staging SSBO for raw CPU data
+      //! Upstream GPU buffer repacked into this slot every frame, borrowed.
+      QRhiBuffer* scatter_source{};
+      bool scatter_seen{false};
       int64_t scatterStagingSize{};
       GPUBufferScatter::PreparedOp scatterOp;
       GPUBufferScatter::Params scatterParams;

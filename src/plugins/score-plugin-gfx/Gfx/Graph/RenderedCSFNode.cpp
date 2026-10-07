@@ -491,6 +491,39 @@ static void adoptIntoSlot(
   slot.owned = false;
 }
 
+template <typename Slot>
+static void dropScatterSource(score::gfx::RenderList& renderer, Slot& slot) noexcept
+{
+  if(slot.scatter_source)
+    score::gfx::RenderList::dropAdoptedBuffer(*renderer.state.rhi, slot.scatter_source);
+  slot.scatter_source = nullptr;
+}
+
+template <typename Slot>
+static void setScatterSource(
+    score::gfx::RenderList& renderer, Slot& slot, QRhiBuffer* src) noexcept
+{
+  if(slot.scatter_source != src)
+  {
+    dropScatterSource(renderer, slot);
+    score::gfx::RenderList::adoptBuffer(src);
+    slot.scatter_source = src;
+  }
+  slot.scatter_seen = true;
+}
+
+static bool isFloatAttribute(const ossia::geometry::attribute& a) noexcept
+{
+  using F = ossia::geometry::attribute;
+  return a.format == F::float1 || a.format == F::float2 || a.format == F::float3
+         || a.format == F::float4;
+}
+
+static bool isFloatType(std::string_view type) noexcept
+{
+  return type == "float" || type == "vec2" || type == "vec3" || type == "vec4";
+}
+
 void RenderedCSFNode::bindInputSampler(std::size_t samplerIndex, QRhiTexture* t)
 {
   if(samplerIndex >= m_inputSamplers.size())
@@ -1456,7 +1489,10 @@ void RenderedCSFNode::updateGeometryBindings(
   for(auto& binding : m_geometryBindings)
   {
     for(auto& ssbo : binding.attribute_ssbos)
+    {
       ssbo.restore_seen = false;
+      ssbo.scatter_seen = false;
+    }
     for(auto& aux : binding.auxiliary_ssbos)
       aux.restore_seen = false;
   }
@@ -1793,7 +1829,74 @@ void RenderedCSFNode::updateGeometryBindings(
         if(auto* gpu = ossia::get_if<ossia::geometry::gpu_buffer>(&geo_buf.data))
         {
           const int elem_size = glslTypeSizeBytes(req.type, n.m_descriptor);
-          if(is_soa && gpu->handle
+          // Float data whose elements are not csf_elem_stride apart (a tightly
+          // packed float3, an interleaved buffer) is repacked on the GPU.
+          const int src_stride = stride != 0 ? stride : attr_size;
+          const int64_t src_offset = input_byte_offset + geo_attr->byte_offset;
+          const bool repack = src_stride != (int)csf_elem_stride
+                              && isFloatAttribute(*geo_attr) && isFloatType(req.type);
+          if(repack && gpu->handle && m_gpuScatterAvailable && src_stride % 4 == 0
+             && src_offset % 4 == 0
+             && (static_cast<QRhiBuffer*>(gpu->handle)->usage() & QRhiBuffer::StorageBuffer))
+          {
+            if(binding.is_feedback_receiver && req.access == "read_write")
+              continue;
+
+            auto* rhi_buf = static_cast<QRhiBuffer*>(gpu->handle);
+            const int data_count = ssbo.per_instance ? mesh.instances : mesh.vertices;
+            const int count = (binding.has_vertex_count_spec || binding.has_instance_count_spec)
+                                  ? (ssbo.per_instance ? binding.instance_count
+                                                       : binding.vertex_count)
+                                  : data_count;
+            const int64_t available
+                = gpu->byte_size >= src_offset + attr_size
+                      ? (gpu->byte_size - src_offset - attr_size) / src_stride + 1
+                      : 0;
+            const int64_t needed = csf_elem_stride * std::max(count, 1);
+            if(!ssbo.owned || !ssbo.buffer || ssbo.size != needed)
+            {
+              releaseSlot(renderer, ssbo);
+              auto* buf = renderer.state.rhi->newBuffer(
+                  QRhiBuffer::Static,
+                  QRhiBuffer::StorageBuffer | QRhiBuffer::VertexBuffer, needed);
+              buf->setName(QByteArray("CSF_GeomRepack_") + req.name.c_str());
+              if(!buf->create())
+              {
+                delete buf;
+                ssbo.owned = true;
+                continue;
+              }
+              RhiClearBuffer::clearBuffer(*renderer.state.rhi, res, buf, 0, (quint32)needed);
+              ssbo.buffer = buf;
+              ssbo.size = needed;
+              ssbo.owned = true;
+              if(ssbo.read_buffer)
+              {
+                ssbo.read_buffer = regrowBuffer(renderer, ssbo.read_buffer, needed);
+                RhiClearBuffer::clearBuffer(
+                    *renderer.state.rhi, res, ssbo.read_buffer, 0, (quint32)needed);
+              }
+            }
+
+            // Every frame, like the copy a read_write attribute works on.
+            setScatterSource(renderer, ssbo, rhi_buf);
+            ssbo.scatterParams = GPUBufferScatter::Params{
+                .staging = rhi_buf,
+                .output = ssbo.buffer,
+                .element_count = (uint32_t)std::min<int64_t>(count, available),
+                .src_components = (uint32_t)(attr_size / sizeof(float)),
+                .dst_components = (uint32_t)(elem_size / sizeof(float)),
+                .src_stride_floats = (uint32_t)(src_stride / sizeof(float)),
+                .src_offset_floats = (uint32_t)(src_offset / sizeof(float)),
+                .dst_stride_floats = (uint32_t)(csf_elem_stride / sizeof(float)),
+            };
+            if(!ssbo.scatterOp.srb)
+              ssbo.scatterOp = m_gpuScatter.prepare(*renderer.state.rhi, ssbo.scatterParams);
+            ssbo.scatterPending = true;
+            ssbo.lastUploadSrc = nullptr;
+            continue;
+          }
+          if(!repack && is_soa && gpu->handle
              && (attr_size == elem_size || stride == (int)csf_elem_stride))
           {
             // SoA GPU buffer with matching element size: bind directly (zero-copy)
@@ -1880,10 +1983,10 @@ void RenderedCSFNode::updateGeometryBindings(
             ssbo.offset = region_offset;
             continue;
           }
-          // AoS GPU buffer or format mismatch (e.g. float3→vec4): would need
-          // scatter compute pass — not yet supported. Fall through to create
-          // a fallback buffer instead of silently binding misaligned data.
-          qWarning() << "CSF geometry: GPU buffer scatter not yet implemented for"
+          // A non-float format at another stride, or a source the repack
+          // cannot read (not a storage buffer, unaligned, no compute): not
+          // bound rather than bound misaligned.
+          qWarning() << "CSF geometry: cannot repack the GPU attribute"
                       << req.name.c_str()
                       << "(upstream_size=" << attr_size << "shader_size=" << elem_size
                       << "stride=" << stride << ")";
@@ -1977,9 +2080,9 @@ void RenderedCSFNode::updateGeometryBindings(
             const int64_t upload_size = std::min(staging_needed, cpu->byte_size);
             res.uploadStaticBuffer(ssbo.scatterStaging, 0, upload_size, src);
 
-            // The scatter compute lays out destination elements at
-            // dst_components * sizeof(float) per slot: for vec3 in std430 that is 12 bytes
-            // of data inside the 16-byte stride, and the padding keeps its zero value.
+            // The scatter compute lays out destination elements elem_stride
+            // apart: for vec3 in std430 that is 12 bytes of data inside the
+            // 16-byte stride.
             ssbo.scatterParams = GPUBufferScatter::Params{
                 .staging = ssbo.scatterStaging,
                 .output = ssbo.buffer,
@@ -1988,6 +2091,7 @@ void RenderedCSFNode::updateGeometryBindings(
                 .dst_components = (uint32_t)(elem_size / sizeof(float)),
                 .src_stride_floats = (uint32_t)(stride / sizeof(float)),
                 .src_offset_floats = (uint32_t)(base_offset / sizeof(float)),
+                .dst_stride_floats = (uint32_t)(elem_stride / sizeof(float)),
             };
 
             if(!ssbo.scatterOp.srb)
@@ -2343,8 +2447,12 @@ void RenderedCSFNode::updateGeometryBindings(
   for(auto& binding : m_geometryBindings)
   {
     for(auto& ssbo : binding.attribute_ssbos)
+    {
       if(!ssbo.restore_seen)
         dropRestoreSource(renderer, ssbo);
+      if(!ssbo.scatter_seen)
+        dropScatterSource(renderer, ssbo);
+    }
     for(auto& aux : binding.auxiliary_ssbos)
       if(!aux.restore_seen)
         dropRestoreSource(renderer, aux);
@@ -5305,6 +5413,7 @@ void RenderedCSFNode::releaseState(RenderList& r)
       ssbo.read_buffer_is_snapshot = false;
       releaseSlot(r, ssbo);
       dropRestoreSource(r, ssbo);
+      dropScatterSource(r, ssbo);
       delete ssbo.scatterStaging;
       ssbo.scatterStaging = nullptr;
       delete ssbo.scatterOp.srb;

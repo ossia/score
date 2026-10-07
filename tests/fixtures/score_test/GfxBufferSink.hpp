@@ -164,6 +164,18 @@ public:
     // in wiring order, named "storage:<source-output-port-index>".
     std::deque<NamedReadback> storage;
 
+    // From geometry edges, every mesh of the list in order: its counts, each
+    // attribute read from where the mesh publishes it (input and attribute
+    // byte offsets applied), and its index buffer under the name "index"
+    // (copied as-is when it is a CPU buffer).
+    struct MeshReadback
+    {
+      int vertices{0};
+      int indices{0};
+      std::deque<NamedReadback> attributes;
+    };
+    std::deque<MeshReadback> meshes;
+
     int vertices{0};
     int instances{0};
 
@@ -237,6 +249,7 @@ public:
         harvest->attributes.clear();
         harvest->auxiliaries.clear();
         harvest->storage.clear();
+        harvest->meshes.clear();
         harvest->geometry_seen = false;
       }
     }
@@ -437,6 +450,7 @@ public:
     m_harvest->attributes.clear();
     m_harvest->auxiliaries.clear();
     m_harvest->storage.clear();
+    m_harvest->meshes.clear();
     m_harvest->geometry_seen = false;
 
     // --- Geometry: the spec the CSF pushed this frame (base-class per-port
@@ -499,6 +513,45 @@ public:
         if(qb && aux.byte_size > 0)
           ensureBatch()->readBackBuffer(
               qb, quint32(aux.byte_offset), quint32(aux.byte_size), &slot.rb);
+      }
+
+      for(const ossia::geometry& m : spec->meshes->meshes)
+      {
+        auto& mr = m_harvest->meshes.emplace_back();
+        mr.vertices = m.vertices;
+        mr.indices = m.indices;
+        const auto read = [&](std::string name, int buf, int64_t offset) {
+          auto& slot = mr.attributes.emplace_back();
+          slot.name = std::move(name);
+          if(buf < 0 || buf >= int(m.buffers.size()))
+            return;
+          const auto& data = m.buffers[buf].data;
+          if(auto* gpu = ossia::get_if<ossia::geometry::gpu_buffer>(&data))
+          {
+            if(gpu->handle && gpu->byte_size > offset)
+              ensureBatch()->readBackBuffer(
+                  static_cast<QRhiBuffer*>(gpu->handle), quint32(offset),
+                  quint32(gpu->byte_size - offset), &slot.rb);
+          }
+          else if(auto* cpu = ossia::get_if<ossia::geometry::cpu_buffer>(&data))
+          {
+            if(cpu->raw_data && cpu->byte_size > offset)
+              slot.rb.data = QByteArray(
+                  static_cast<const char*>(cpu->raw_data.get()) + offset,
+                  qsizetype(cpu->byte_size - offset));
+          }
+        };
+        for(const ossia::geometry::attribute& attr : m.attributes)
+        {
+          if(attr.binding < 0 || attr.binding >= int(m.input.size()))
+            continue;
+          const auto& in = m.input[attr.binding];
+          read(
+              std::string(ossia::geometry::display_name(attr)), in.buffer,
+              in.byte_offset + attr.byte_offset);
+        }
+        if(m.index.buffer >= 0)
+          read("index", m.index.buffer, m.index.byte_offset);
       }
     }
 

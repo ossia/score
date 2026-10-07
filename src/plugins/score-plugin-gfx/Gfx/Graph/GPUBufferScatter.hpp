@@ -35,6 +35,7 @@ public:
     uint32_t dst_components{}; // Floats per destination element (1-4)
     uint32_t src_stride_floats{}; // Stride between source elements (in floats, >= src_components)
     uint32_t src_offset_floats{}; // Starting offset in source buffer (in floats)
+    uint32_t dst_stride_floats{}; // Stride between destination elements (in floats, 0 = dst_components)
   };
 
   bool init(RenderState& state);
