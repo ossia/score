@@ -277,6 +277,12 @@ score_add_test(test_threedim_pcl_to_geometry
   LIBS ${QT_PREFIX}::Gui)
 threedim_test_includes(test_threedim_pcl_to_geometry)
 
+# MaterialOverride through flattenScene: the draws resolve to the clones.
+score_add_test(test_threedim_material_override_draws
+  SOURCES MaterialOverrideDraws.cpp "${THREEDIM_DIR}/MaterialOverride.cpp"
+  PLUGINS score_plugin_gfx)
+threedim_test_includes(test_threedim_material_override_draws)
+
 # InverseKinematics (2-bone analytic solver). Entirely header-inline — pure
 # scene_state / QQuaternion math, no engine .cpp and no GPU; Qt Gui supplies
 # QQuaternion/QVector3D/QMatrix4x4 (same shape as test_threedim_camera_array_faces).
