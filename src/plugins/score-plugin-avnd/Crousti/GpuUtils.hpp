@@ -1435,8 +1435,11 @@ createOutputTexture(score::gfx::RenderList& renderer, const Tex& texture_spec, Q
   QRhiTexture* texture = &renderer.emptyTexture();
   if(size.width() > 0 && size.height() > 0)
   {
+    // Published through textureForOutput: a CPU texture inlet downstream
+    // (Texture to buffer) reads it back.
     texture = rhi.newTexture(
-        gpp::qrhi::textureFormat(texture_spec), size, 1, QRhiTexture::Flag{});
+        gpp::qrhi::textureFormat(texture_spec), size, 1,
+        QRhiTexture::UsedAsTransferSource);
 
     texture->create();
   }
@@ -1962,7 +1965,7 @@ static QRhiTexture* updateTexture(auto& self, score::gfx::RenderList& renderer, 
     QRhiTexture* oldtex = texture;
     QRhiTexture* newtex = renderer.state.rhi->newTexture(
         gpp::qrhi::textureFormat(cpu_tex), QSize{cpu_tex.width, cpu_tex.height}, 1,
-        QRhiTexture::Flag{});
+        QRhiTexture::UsedAsTransferSource);
     newtex->create();
     for(auto& [edge, pass] : self.m_p)
       if(pass.p.srb)
