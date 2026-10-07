@@ -97,14 +97,8 @@ public:
     // original factor from the loader passes through.
     struct : halp::toggle<"Use base color">
     { void update(MaterialOverride& n) { n.rebuild(); } } use_base_color;
-    struct : halp::hslider_f32<"R", halp::range{0., 1., 1.}>
-    { void update(MaterialOverride& n) { n.rebuild(); } } base_r;
-    struct : halp::hslider_f32<"G", halp::range{0., 1., 1.}>
-    { void update(MaterialOverride& n) { n.rebuild(); } } base_g;
-    struct : halp::hslider_f32<"B", halp::range{0., 1., 1.}>
-    { void update(MaterialOverride& n) { n.rebuild(); } } base_b;
-    struct : halp::hslider_f32<"A", halp::range{0., 1., 1.}>
-    { void update(MaterialOverride& n) { n.rebuild(); } } base_a;
+    struct : halp::color_chooser<"Color">
+    { void update(MaterialOverride& n) { n.rebuild(); } } base_color;
 
     struct : halp::toggle<"Use metallic">
     { void update(MaterialOverride& n) { n.rebuild(); } } use_metallic;
@@ -118,13 +112,11 @@ public:
 
     struct : halp::toggle<"Use emissive">
     { void update(MaterialOverride& n) { n.rebuild(); } } use_emissive;
-    struct : halp::hslider_f32<"Emissive R", halp::range{0., 10., 0.}>
-    { void update(MaterialOverride& n) { n.rebuild(); } } em_r;
-    struct : halp::hslider_f32<"Emissive G", halp::range{0., 10., 0.}>
-    { void update(MaterialOverride& n) { n.rebuild(); } } em_g;
-    struct : halp::hslider_f32<"Emissive B", halp::range{0., 10., 0.}>
-    { void update(MaterialOverride& n) { n.rebuild(); } } em_b;
-    struct : halp::hslider_f32<"Emissive strength", halp::range{0., 10., 1.}>
+    // Emissive colour (alpha unused) times strength; strength goes above 1
+    // for HDR emission.
+    struct : halp::color_chooser<"Emissive", halp::color_init{.init = {0., 0., 0., 1.}}>
+    { void update(MaterialOverride& n) { n.rebuild(); } } emissive;
+    struct : halp::hslider_f32<"Emissive strength", halp::range{0., 100., 1.}>
     { void update(MaterialOverride& n) { n.rebuild(); } } em_strength;
   } inputs;
 

@@ -88,7 +88,7 @@ TEST_CASE("Material Override changes the material the draws use",
   Threedim::MaterialOverride n;
   n.inputs.scene_in.scene.state = in;
   n.inputs.use_base_color.value = true;
-  n.inputs.base_r.value = 0.9f;
+  n.inputs.base_color.value.r = 0.9f;
 
   SECTION("All mode: every draw takes the override")
   {
@@ -128,7 +128,7 @@ TEST_CASE("Material Override changes the material the draws use",
     const auto mesh_of = [](const ossia::scene_state& s) {
       return ossia::get<ossia::mesh_component_ptr>((*(*s.roots)[0]->children)[0]);
     };
-    n.inputs.base_r.value = 0.5f;
+    n.inputs.base_color.value.r = 0.5f;
     n.rebuild();
     n();
     const auto second = n.outputs.scene_out.scene.state;

@@ -194,10 +194,10 @@ void MaterialOverride::rebuild()
   }
 
   const float cur_base[4]{
-      inputs.base_r.value, inputs.base_g.value,
-      inputs.base_b.value, inputs.base_a.value};
+      inputs.base_color.value.r, inputs.base_color.value.g,
+      inputs.base_color.value.b, inputs.base_color.value.a};
   const float cur_em[4]{
-      inputs.em_r.value, inputs.em_g.value, inputs.em_b.value,
+      inputs.emissive.value.r, inputs.emissive.value.g, inputs.emissive.value.b,
       inputs.em_strength.value};
 
   m_cached_in_state = in_state;
