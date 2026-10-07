@@ -190,7 +190,25 @@ fi
 
 chmod +x AppRun
 
-# Update desktop file
+# Drop the base app's identity. The AppDir we just unpacked is ossia score's, so
+# it carries score's own .desktop file, its icon and its freedesktop entries under
+# usr/share. Desktop environments that integrate an AppImage read those: leaving
+# them beside the branded ones puts "ossia score", with score's icon, in the
+# launcher next to -- or instead of -- the app. We're in squashfs-root here.
+shopt -s nullglob
+for desktop in *.desktop; do
+  [[ "$desktop" == "${APP_NAME_SAFE}.desktop" ]] && continue
+  base="${desktop%.desktop}"
+  echo "  dropping base app entry: $desktop"
+  rm -f "$desktop" "$base".png "$base".svg "$base".xpm
+  rm -f "usr/share/applications/$desktop"
+  rm -f "usr/share/metainfo/$base".appdata.xml "usr/share/metainfo/$base".metainfo.xml
+  rm -f "usr/share/pixmaps/$base".png "usr/share/pixmaps/$base".svg
+  rm -f usr/share/icons/*/*/apps/"$base".png usr/share/icons/*/*/apps/"$base".svg
+done
+shopt -u nullglob
+
+# Write the desktop file
 cat > "${APP_NAME_SAFE}.desktop" << DESKTOP_EOF
 [Desktop Entry]
 Type=Application
@@ -199,17 +217,17 @@ Comment=${APP_DESCRIPTION}
 Exec=app-bin
 Terminal=false
 Categories=AudioVideo;
-DESKTOP_EOF
-
-# Update icons
-if [[ -f "${APP_ICON_PNG}" ]]; then
-  # We're in $WORK_DIR eg squashfs-root
-  cp "${APP_ICON_PNG}" "${APP_NAME_SAFE}.png"
-  cp "${APP_ICON_PNG}" ".DirIcon"
-
-  cat >> "${APP_NAME_SAFE}.desktop" << DESKTOP_EOF
 Icon=${APP_NAME_SAFE}
 DESKTOP_EOF
+
+# Update icons. create-app.sh has already checked the file is there, unless the
+# caller set SCORE_ALLOW_DEFAULT_ICON=1 -- then the AppImage gets no icon at all,
+# which is at least honest about not having one.
+if [[ -f "${APP_ICON_PNG}" ]]; then
+  cp "${APP_ICON_PNG}" "${APP_NAME_SAFE}.png"
+  cp "${APP_ICON_PNG}" ".DirIcon"
+else
+  echo "Warning: no --app-png, the AppImage ships without an icon"
 fi
 
 # Download appimagetool if needed

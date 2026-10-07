@@ -75,6 +75,7 @@ fi
 # Remove NSIS-specific directories that we don't need
 echo "Cleaning up NSIS metadata..."
 rm -rf score-extracted/'$PLUGINSDIR' score-extracted/'$_OUTDIR' score-extracted/'$TEMP' 2>/dev/null || true
+rm -f score-extracted/'[NSIS].nsi' 2>/dev/null || true
 
 # Find the main installation directory (usually contains score.exe)
 INSTALL_DIR="score-extracted"
@@ -90,6 +91,21 @@ if [[ ! -f "$INSTALL_DIR/score.exe" ]]; then
 fi
 
 cd "$INSTALL_DIR"
+
+# Two files in the installer payload exist only because the installer exists, and
+# we ship a zip:
+#  - Uninstall.exe is NSIS's uninstaller stub, a real entry in the installer.
+#    Whether 7-Zip surfaces it depends on its version: 23 and 25 give up on the
+#    script ("NSIS-3 Unicode BadCmd=13") and skip it, 26 reads it and extracts
+#    it, so it turns up in packages built where 7-Zip is current and not in ones
+#    built next to it. Nothing installed anything here, so it has nothing to undo.
+#  - score.ico is installed by cmake/ScoreDeploymentWindows.cmake purely so the
+#    NSIS script can point the Start menu and desktop shortcuts at it. A zip
+#    creates no shortcuts, and the app's own icon is compiled into the launcher
+#    and app-bin.exe below, so this is 48 kB of ossia score branding in a
+#    differently-branded package.
+echo "Dropping installer-only files..."
+rm -f Uninstall.exe uninstall.exe score.ico
 
 # Copy QML files
 echo "Adding custom QML files..."
@@ -210,9 +226,16 @@ RCEDIT_FLAGS=(
   --set-version-string "ProductVersion" "${APP_VERSION}"
 )
 
+# create-app.sh has already checked --app-ico is a file, unless the caller set
+# SCORE_ALLOW_DEFAULT_ICON=1. Skipping this used to be silent, and it is the one
+# step that brands the executables: without it the launcher has no icon resource
+# at all and app-bin.exe keeps the icon score was built with, so the app shows up
+# as ossia score in the taskbar.
 if [[ -f "${APP_ICON_ICO}" ]]; then
   "$WORK_DIR/rcedit.exe" "${APP_NAME}.exe" "${RCEDIT_FLAGS[@]}"
   "$WORK_DIR/rcedit.exe" "app-bin.exe" "${RCEDIT_FLAGS[@]}"
+else
+  echo "Warning: no --app-ico, ${APP_NAME}.exe and app-bin.exe keep ossia score's icon"
 fi
 
 # Go back to work directory

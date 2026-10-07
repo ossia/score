@@ -260,10 +260,20 @@ if [[ -f "$BUNDLE_CONTENTS/Info.plist" ]]; then
     /usr/libexec/PlistBuddy -c "Set :NSHumanReadableCopyright ${APP_COPYRIGHT}" "$BUNDLE_CONTENTS/Info.plist" 2>/dev/null || true
     /usr/libexec/PlistBuddy -c "Delete :CFBundleDocumentTypes" "$BUNDLE_CONTENTS/Info.plist" 2>/dev/null || true
 
+    # create-app.sh has already checked --app-icns is a file, unless the caller
+    # set SCORE_ALLOW_DEFAULT_ICON=1. Without it CFBundleIconFile keeps pointing
+    # at score.icns and the app shows score's icon in the Dock.
     if [[ -f "${APP_ICON_ICNS}" ]]; then
       ICNS_FILE_NAME="$(basename "${APP_ICON_ICNS}")"
-      cp "${APP_ICON_ICNS}" "$BUNDLE_CONTENTS/Resources/${ICNS_FILE_NAME}"
+      cp "${APP_ICON_ICNS}" "$BUNDLE_RESOURCES/${ICNS_FILE_NAME}"
       /usr/libexec/PlistBuddy -c "Set :CFBundleIconFile ${ICNS_FILE_NAME}" "$BUNDLE_CONTENTS/Info.plist" 2>/dev/null || true
+      # The bundle we rebranded is ossia score's, so score.icns came with it. It
+      # is nothing but score branding once CFBundleIconFile points elsewhere.
+      if [[ "${ICNS_FILE_NAME}" != "score.icns" ]]; then
+        rm -f "$BUNDLE_RESOURCES/score.icns"
+      fi
+    else
+      echo "Warning: no --app-icns, the bundle keeps ossia score's icon"
     fi
     sed -i '' "s/ossia score/${APP_NAME}/g" "$BUNDLE_CONTENTS/Info.plist"
 fi
