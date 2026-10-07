@@ -1,72 +1,27 @@
-// =============================================================================
-// A PreviewNode's host texture must have the SAME row order on every backend.
+// A PreviewNode's host texture must have the same row order on every backend.
 //
-// WHY THIS IS NOT THE SAME QUESTION AS "is the preview upside down".
+// It renders into a texture it does not own -- a QQuickRhiItem's colour buffer --
+// and that texture has two consumers Qt treats differently:
+//   * the 2D item picks its UV transform from isYUpInFramebuffer()
+//     (qquickrhiitem.cpp), so it normalises whatever row order it is given;
+//   * Qt Quick 3D's Texture.sourceItem takes the texture-provider branch
+//     (qquick3dtexture.cpp), with no QSGLayer and no blit, so the raw texture
+//     reaches the material.
+// Hence the 3D consumer needs one fixed row order and nothing downstream will
+// correct it, while the 2D consumer cannot reveal a mismatch.
 //
-// score::gfx::PreviewNode renders into a texture it does not own: the colour
-// buffer of a QQuickRhiItem (JS::TextureSource). That texture has TWO
-// consumers, and Qt treats them differently:
+// Three spaces appear below and must not be conflated:
+//   * ISF author space  -- isf_FragNormCoord, origin bottom-left, an output
+//     position; isf-gradient-y.fs writes green = y, so green is 1.0 at the top.
+//   * delivered-image space -- a BackgroundNode readback, origin top-left,
+//     normalised by InvertYRenderer. Used here only as a negative control.
+//   * texture memory -- the raw QRhi readback, normalised by nothing. Row 0 is
+//     what a sampler reaches at v = 0 on every backend. This is the space
+//     Quick3D samples in and the only one the assertion is meaningful in.
 //
-//  * The 2D item. QQuickRhiItem::updatePaintNode puts the texture on a
-//    QSGSimpleTextureNode and picks the UV transform from the BACKEND:
-//
-//        if (window()->rhi()->isYUpInFramebuffer())   // OpenGL
-//            setTextureCoordinatesTransform(MirrorVertically);
-//        else                                          // Vulkan/Metal/D3D
-//            setTextureCoordinatesTransform(NoTransform);
-//
-//    (qtdeclarative/src/quick/items/qquickrhiitem.cpp). So the 2D path
-//    *expects* backend-native row order and normalises it on the way to the
-//    screen. Whatever PreviewNode does, the 2D preview looks the same
-//    everywhere -- which is why this bug hid for so long.
-//
-//  * Qt Quick 3D's `Texture.sourceItem`. QQuickRhiItem is a
-//    QSGTextureProvider (QQuickRhiItem::isTextureProvider() returns true), so
-//    QQuick3DTexture::updateSpatialNode takes the FIRST branch of its
-//    sourceItem handling:
-//
-//        if (QSGTextureProvider *provider = m_sourceItem->textureProvider(); ...)
-//            imageNode->m_qsgTexture = provider->texture();
-//
-//    (qtquick3d/src/quick3d/qquick3dtexture.cpp). No QSGLayer, no blit, no
-//    `isYUpInFramebuffer` branch: the raw texture goes to the 3D material,
-//    which then applies one fixed implicit V flip
-//    (QQuick3DTexture::effectiveFlipV: `if (m_sourceItem) return !m_flipV;`).
-//    That flip is calibrated for a QSGLayer texture, and QSGRhiLayer IS
-//    backend-neutral -- its `grab()` branches on isYUpInFramebuffer() to
-//    produce one row order, which is why QSGRhiLayer::normalizedTextureSubRect()
-//    depends only on mirrorVertical and not on the backend at all
-//    (qtdeclarative/src/quick/scenegraph/qsgrhilayer.cpp).
-//
-// So the 3D consumer requires ONE row order from PreviewNode on every backend,
-// and nothing downstream will fix it up. The 2D consumer is insensitive to
-// which one it is, as long as the item's `mirrorVertically` matches.
-//
-// WHICH COORDINATE SPACE EACH NUMBER IS IN. Three different spaces appear here
-// and conflating them is what made three earlier attempts at this bug wrong:
-//
-//   * ISF author space: `isf_FragNormCoord`, origin BOTTOM-left, built in the
-//     vertex shader from clip space *before* isf_vertShaderFinish()'s Y
-//     negation. isf-gradient-y.fs writes green = isf_FragNormCoord.y, so green
-//     is 1.0 at the top of the picture and 0.0 at the bottom. This is an OUTPUT
-//     POSITION, not a sampling coordinate.
-//   * Delivered-image space: what a BackgroundNode sink reads back. Origin
-//     TOP-left, because InvertYRenderer normalises it. Reference: green must be
-//     high at row 0 on every backend. This test measures that too, as a
-//     negative control -- a chain that is broken upstream would otherwise make
-//     the preview numbers meaningless.
-//   * Texture memory / sampling space: the raw QRhi readback of the preview's
-//     host texture, which is NOT normalised by anything. Row 0 here is the row
-//     a sampler reaches at v = 0, on every backend (QRhiGles2 does not flip its
-//     glReadPixels result). This is exactly the space Quick3D samples in, and
-//     the only space in which the assertion below means anything.
-//
-// THE ASSERTION. Not an RMSE, not a correlation: the sign of the green
-// difference between the first and last row of the raw preview texture. That is
-// the geometry itself, measured in the consumer's space, and it must agree
-// across backends. Means are reported as well, because an all-black run scores
-// a plausible difference of zero and must not read as "consistent".
-// =============================================================================
+// The assertion is the sign of the green difference between first and last row,
+// not an RMSE: that is the geometry itself. Means are reported too, since an
+// all-black run scores a difference of zero and must not read as consistent.
 #include <score_test/App.hpp>
 #include <score_test/Document.hpp>
 #include <score_test/Gfx.hpp>

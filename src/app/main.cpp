@@ -225,23 +225,11 @@ static void setup_gpu()
          .count()
      > 0)
   {
-    // Point GLX at the NVIDIA vendor library -- but only if that library can
-    // actually hand out a context.
-    //
-    // This variable is not advice, it is binding: libglvnd dispatches every
-    // GLX call to the vendor it names and has no fallback. If the kernel module
-    // and the user-space driver are different releases -- the state a driver
-    // upgrade leaves behind until the machine is rebooted -- then
-    // X_GLXCreateNewContext answers BadValue for every request, and score's own
-    // failure chain follows: the capability probe in score::GLCapabilities gets
-    // no context and keeps the format it asked for (reported as "2 0 110"),
-    // QRhiGles2 then fails to create its temporary context, QRhi::create
-    // returns null, and the Null backend draws nothing. Mesa on the integrated
-    // GPU was there the whole time and would have worked; setting this took it
-    // away. The failure is invisible when QT_XCB_GL_INTEGRATION is xcb_egl
-    // (score's own default when no platform is given), because EGL does not go
-    // through libglvnd's GLX dispatch -- so it only bites a user who asks for
-    // GLX, or who sets QT_QPA_PLATFORM=xcb themselves and lets Qt prefer it.
+    // libglvnd dispatches every GLX call to the vendor named here and has no
+    // fallback, so when the kernel module and user-space driver releases differ
+    // -- what a driver upgrade leaves until reboot -- every context creation
+    // returns BadValue and QRhi ends up on the Null backend. Only bites GLX;
+    // EGL does not go through libglvnd's dispatch.
     if(!qEnvironmentVariableIsSet("__GLX_VENDOR_LIBRARY_NAME"))
     {
       switch(score::nvidiaGlxVendorState())

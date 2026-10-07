@@ -1,52 +1,25 @@
 #pragma once
 
-// Writing a port's or an address's value back into the QML property that is
-// bound to it, without taking an edit away from the user.
+// Writes a port's value back into the QML property bound to it, without taking
+// an edit away from the user.
 //
-// PortSource and AddressSource are two-way: the bound property drives the port
-// (or the device address), and the port drives the property back. The property
-// is very often the `text` of a TextField the user types into, and writing to
-// it unconditionally is destructive in two different ways.
+// Two guards, covering different ground:
+//  * equality -- the value is usually the echo of the UI's own write, and
+//    rewriting it resets an editor's cursor and selection and re-runs its
+//    bindings;
+//  * focus -- while the score plays, avnd republishes every control input of a
+//    process whenever any one changed (avendish binding/ossia/node.hpp ->
+//    Crousti/ExecutorUpdateControlValueInUi.hpp), so the snapshot lags a
+//    keystroke that has not reached the executor. Equality cannot catch that,
+//    because the stale value genuinely differs from what the editor shows.
 //
-//  * The value coming back is frequently the one the property already holds --
-//    the echo of the UI's own write. Writing it again is not a no-op for an
-//    editor: it resets the cursor and the selection, and re-runs every binding
-//    and onXChanged handler attached to the property.
+// A value suppressed by the focus guard is dropped, not replayed on focus-out:
+// by then it is older than the user's edit, and the port already holds what was
+// typed. Unfocused editors still follow their port, which is what makes an OSC
+// or score-side write visible.
 //
-//  * While the score plays, avnd republishes a snapshot of *every* control
-//    input of a process as soon as any one of them changed: finish_run()
-//    enqueues make_controls_in_tuple() whenever inputs_set.any()
-//    (3rdparty/avendish, binding/ossia/node.hpp), and the UI side pushes the
-//    whole tuple back through ControlInlet::setExecutionValue()
-//    (score-plugin-avnd, Crousti/ExecutorUpdateControlValueInUi.hpp). That
-//    snapshot is the executor's state, so it is one tick behind the keystroke
-//    that has not reached the executor yet. Writing it back replaces what the
-//    user sees with the pre-keystroke text: type one character into a playing
-//    document and it disappears.
-//
-// The second case is the one an equality test cannot catch, precisely because
-// the lagging snapshot differs from what the editor shows. What tells a stale
-// echo of the user's own typing from a genuine external write is the keyboard
-// focus: while the bound item has the active focus, its contents belong to the
-// user. So both tests are needed, and they cover different ground:
-//
-//  * the equality test suppresses the writes that would change nothing but
-//    still disturb the editor -- including on an item nobody is focused on;
-//  * the focus test suppresses the writes that would change what the user is
-//    in the middle of typing.
-//
-// Everything else still lands: an editor the user is not typing into follows
-// its port, which is what makes an OSC or score-side write show up in the UI.
-// A value suppressed because the item was focused is dropped rather than
-// replayed on focus-out: by then it is older than the user's own edit, and
-// applying it would clobber the very text this guard exists to protect. The
-// port already holds what the user typed -- every keystroke is pushed to it by
-// the notify-signal handler.
-//
-// score's own comment box arrives at the same place by construction: its
-// Process::ControlInlet::executionValueChanged handler only calls update(), and
-// the editor's document is only ever rewritten from the *model* value, with an
-// equality test (src/plugins/score-plugin-ui/Ui/TextBox.hpp).
+// Ui/TextBox.hpp reaches the same place by construction: it only ever rewrites
+// from the model value, with an equality test.
 
 #include <QMetaType>
 #include <QObject>

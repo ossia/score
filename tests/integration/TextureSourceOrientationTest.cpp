@@ -1,48 +1,14 @@
-// A TextureSource shown as a 2D item must still come out upright after
-// PreviewNode was made to write one row order on every backend.
+// A TextureSource shown as a 2D item must come out upright now that PreviewNode
+// writes one row order on every backend.
 //
-// WHAT IS BEING ASSERTED, AND WHY NOT IN PIXELS. The item's colour buffer has
-// two consumers and only one of them can be fixed up downstream:
-//
-//  * Qt Quick 3D's Texture.sourceItem samples it RAW -- QQuickRhiItem is a
-//    QSGTextureProvider, so QQuick3DTexture hands the texture straight to the
-//    material. tests/gfx/GfxPreviewSourceItemOrientation.cpp measures that
-//    texture and pins its row order to OpenGL's on every backend.
-//  * This item drawn as a 2D quad. QQuickRhiItem::updatePaintNode assumes the
-//    texture follows the BACKEND's framebuffer order:
-//
-//        if (window()->rhi()->isYUpInFramebuffer())   // OpenGL
-//            setTextureCoordinatesTransform(mirrorVertically ? NoTransform
-//                                                            : MirrorVertically);
-//        else                                          // Vulkan / Metal / D3D
-//            setTextureCoordinatesTransform(mirrorVertically ? MirrorVertically
-//                                                            : NoTransform);
-//
-//    so wherever PreviewNode's order and the backend's disagree, the item has to
-//    set `mirrorVertically` to re-flip. TextureSourceRenderer::synchronize does
-//    that.
-//
-// The thing to check is therefore the transform the item's scene-graph node ends
-// up with, and that is readable directly: the node is both the texture provider
-// and a QSGSimpleTextureNode. Reading it instead of grabbing pixels is
-// deliberate -- it holds on a box where the window grab comes back blank (which
-// is the case for the pre-existing TexturePreviewTest here), it cannot be
-// satisfied by a frame that never drew, and MirrorVertically on a texture whose
-// first row is the picture's bottom IS the statement "displayed upright".
-//
-// ONE BACKEND PER PROCESS: QSGRhiSupport latches QSG_RHI_BACKEND the first time
-// it is asked, so the backend cannot be a GENERATE; there is one ctest entry per
-// backend over this binary. The window is driven through QQuickRenderControl
-// into a texture, never shown and never presented, which is what lets Vulkan run
-// on Xvfb -- it has no DRI3 and a Vulkan QQuickWindow there qFatal()s on present
-// (see the note on test_integration_process_ui_placement). It also gives the
-// window a PERSISTENT QRhi, which plain QQuickWindow::grabWindow() on an
-// invisible window does not: that path builds a throwaway QRhi inside
-// QSGRhiSupport::grabOffscreen and leaves QQuickWindow::rhi() null.
-//
-// The item is built through QML rather than constructed directly: JS::TextureSource
-// has hidden visibility in score_plugin_js, and `import Score.UI` is how a real
-// custom UI reaches it anyway.
+// Asserted on the scene-graph node's textureCoordinatesTransform() rather than
+// in pixels: updatePaintNode picks that transform from isYUpInFramebuffer(),
+// assuming the backend's own order, so where PreviewNode disagrees the item
+// must set mirrorVertically to compensate. The composed result is what this
+// checks. (Pixels are not usable here -- the pre-existing
+// test_integration_texture_preview reads an all-black grab on this machine with
+// unmodified code. The raw texture itself is covered by
+// tests/gfx/GfxPreviewSourceItemOrientation.cpp.)
 #include <QElapsedTimer>
 #include <QImage>
 #include <QQmlComponent>

@@ -14,42 +14,33 @@ namespace score
 //! Whether the NVIDIA GLX vendor library can be asked to provide GL.
 enum class NvidiaGlxVendorState
 {
-  //! No NVIDIA kernel module: there is nothing to offload to.
+  //! No NVIDIA kernel module.
   NoDriver,
-  //! The kernel module is loaded but no NVIDIA GLX vendor library is present.
+  //! Kernel module loaded, no GLX vendor library.
   NotInstalled,
-  //! Kernel module and user-space library are different driver releases. Every
-  //! GLX context creation then fails -- X_GLXCreateNewContext comes back
-  //! BadValue -- which is the state a driver upgrade leaves behind until the
-  //! machine is rebooted.
+  //! Different releases: every GLX context creation fails with BadValue. What a
+  //! driver upgrade leaves behind until reboot.
   VersionMismatch,
-  //! Both halves report the same release.
+  //! Both halves agree.
   Consistent,
-  //! Present, but their versions could not be read. Treated as usable: the
-  //! probe must not take a working machine's GPU away because a distribution
-  //! names its libraries unusually.
+  //! Versions unreadable. Treated as usable, so an unusual library layout does
+  //! not cost a working machine its GPU.
   Unknown
 };
 
-//! Driver release in the contents of /proc/driver/nvidia/version, e.g.
-//! "610.57.04". Empty when there is none to find.
-//!
-//! The line differs between the proprietary and open modules --
-//!   "NVRM version: NVIDIA UNIX x86_64 Kernel Module  550.54.14  Thu Feb 22 ..."
-//!   "NVRM version: NVIDIA UNIX Open Kernel Module for x86_64  610.57.04  ..."
-//! -- so this takes the first dotted number on the NVRM line rather than a
-//! fixed field position.
+//! Driver release in /proc/driver/nvidia/version, e.g. "610.57.04"; empty if
+//! absent. Takes the first dotted number on the NVRM line, since the field
+//! position differs between the proprietary and open modules.
 SCORE_LIB_BASE_EXPORT QString
 nvidiaKernelDriverVersion(const QString& procVersionText) noexcept;
 
-//! Driver release in the name of a GLX vendor library, e.g.
-//! "/usr/lib/libGLX_nvidia.so.615.71.09" -> "615.71.09". Empty when the path
-//! carries no version (a bare ".so.0" symlink that could not be resolved).
+//! Driver release from a GLX vendor library name, e.g.
+//! "libGLX_nvidia.so.615.71.09" -> "615.71.09". Empty for a bare ".so.0".
 SCORE_LIB_BASE_EXPORT QString
 nvidiaGlxLibraryVersion(const QString& libraryPath) noexcept;
 
-//! The decision, as a pure function of the two version strings, so it can be
-//! exercised without an NVIDIA card. Empty `kernelVersion` means no driver.
+//! Pure function of the two versions, so it is testable without an NVIDIA card.
+//! Empty @p kernelVersion means no driver.
 SCORE_LIB_BASE_EXPORT NvidiaGlxVendorState nvidiaGlxVendorState(
     const QString& kernelVersion, const QString& libraryVersion) noexcept;
 
