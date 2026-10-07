@@ -785,6 +785,14 @@ QRhiSampler* makeSampler(QRhi& rhi, const isf::sampler_config& cfg);
 //! when the texture's publisher offers a sampler of its own.
 SCORE_PLUGIN_GFX_EXPORT
 bool declaresCompare(const isf::sampler_config& cfg) noexcept;
+
+//! Mipmap mode for a declaration that leaves MIPMAP_MODE out: the texture's
+//! mip chain is read when it has one, so textureLod on a prefiltered cube
+//! reaches its rougher levels. Single-level textures keep None, since GL treats
+//! a mip-filtered sampler on one as incomplete. Re-creates `sampler` in place
+//! when its mode differs; returns true then.
+SCORE_PLUGIN_GFX_EXPORT
+bool followTextureMips(QRhiSampler& sampler, const QRhiTexture& texture);
 } // namespace score::gfx
 
 namespace isf
