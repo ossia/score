@@ -661,7 +661,8 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
     Positions,
     Normals,
     Texcoords,
-    Tangents
+    Tangents,
+    Indices
   };
   struct PendingGpuCopy
   {
@@ -1346,14 +1347,51 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
     return out;
   }
 
+  // GPU-backed counterpart of extractCpuIndices: the index buffer, the byte
+  // offset of the first index and the index size (2 or 4) as the stride. Empty
+  // when the indices are CPU-resident or missing, or would read past the
+  // buffer. The arena holds uint32 indices, so uint16 ones are widened by
+  // copying each into the low half of a zeroed slot; Metal on macOS only blits
+  // 4-byte-aligned ranges, hence allowUint16.
+  static GpuAttrView
+  extractGpuIndices(const ossia::geometry& g, bool allowUint16)
+  {
+    if(g.indices <= 0 || g.index.buffer < 0
+       || g.index.buffer >= (int)g.buffers.size())
+      return {};
+    const auto* gpu = ossia::get_if<ossia::geometry::gpu_buffer>(
+        &g.buffers[g.index.buffer].data);
+    if(!gpu || !gpu->handle)
+      return {};
+    const bool u16 = g.index.format == decltype(g.index)::uint16;
+    if(u16 && !allowUint16)
+      return {};
+    const int idxBytes = u16 ? 2 : 4;
+    const int64_t end
+        = (int64_t)g.index.byte_offset + (int64_t)g.indices * idxBytes;
+    if(g.index.byte_offset < 0 || (gpu->byte_size > 0 && end > gpu->byte_size))
+      return {};
+    GpuAttrView v;
+    v.buf = static_cast<QRhiBuffer*>(gpu->handle);
+    v.src_offset = (int)g.index.byte_offset;
+    v.byte_stride = idxBytes;
+    return v;
+  }
+
+  static bool allowUint16GpuIndices(const QRhi& rhi) noexcept
+  {
+    return rhi.backend() != QRhi::Metal;
+  }
+
   // Mesh-deterministic subset of emitDraw's skip predicate: a draw is dropped
-  // when the mesh has no usable positions, or has indices that are GPU-backed.
+  // when the mesh has no usable positions, or has indices that can be neither
+  // read on the CPU nor copied on the GPU.
   // Both depend only on the mesh's buffers, which are invariant while the mesh
   // fingerprint matches, so the fast path can replicate them to keep its
   // freshPerDraws mirror in lock-step with what emitDraw packed. The other
   // emitDraw skips are handled at the call site or cannot occur once a slab is
   // resident.
-  static bool meshEmitsDraw(const ossia::geometry& mesh)
+  static bool meshEmitsDraw(const ossia::geometry& mesh, bool allowUint16)
   {
     const bool hasCpuPos
         = !extractCpuAttribute<12>(mesh, ossia::attribute_semantic::position)
@@ -1365,8 +1403,9 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
       if(!gpu_pos.buf)
         return false; // no positions → emitDraw skips
     }
-    if(mesh.indices > 0 && extractCpuIndices(mesh).empty())
-      return false; // GPU-backed indices unsupported → emitDraw skips
+    if(mesh.indices > 0 && extractCpuIndices(mesh).empty()
+       && !extractGpuIndices(mesh, allowUint16).buf)
+      return false; // no usable indices → emitDraw skips
     return true;
   }
 
@@ -2217,12 +2256,15 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
       }
 
       std::vector<uint32_t> idx;
+      GpuAttrView gpu_idx;
       if(mesh->indices > 0)
       {
         idx = extractCpuIndices(*mesh);
         if(idx.empty())
         {
-          return kCmdSkipped; // GPU-backed indices not yet supported.
+          gpu_idx = extractGpuIndices(*mesh, allowUint16GpuIndices(rhi));
+          if(!gpu_idx.buf)
+            return kCmdSkipped;
         }
       }
       else
@@ -2232,7 +2274,8 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
           idx[v] = (uint32_t)v;
       }
 
-      const uint32_t drawIndexCount = (uint32_t)idx.size();
+      const uint32_t drawIndexCount
+          = gpu_idx.buf ? (uint32_t)mesh->indices : (uint32_t)idx.size();
       const int vc = mesh->vertices;
 
       auto* slab = m_registry->acquireMeshSlab(
@@ -2366,9 +2409,10 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
         }
 
         // ── Indices ──
-        m_registry->uploadMeshStream(
-            res, *slab, Stream::Indices,
-            idx.data(), (uint32_t)(idx.size() * 4));
+        if(!gpu_idx.buf)
+          m_registry->uploadMeshStream(
+              res, *slab, Stream::Indices,
+              idx.data(), (uint32_t)(idx.size() * 4));
       }
       else
       {
@@ -2387,6 +2431,23 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
         requeue(MdiAttr::Normals, Stream::Normals, gpu_nrm, 16);
         requeue(MdiAttr::Texcoords, Stream::Texcoords, gpu_uv, 8);
         requeue(MdiAttr::Tangents, Stream::Tangents, gpu_tan, 16);
+      }
+
+      // Indices are copied with drawIndexCount, not the vertex count. A uint16
+      // source only writes the low half of each uint32 slot, so the slot is
+      // zeroed first, on a reused slab too since it may hold a CPU index.
+      if(gpu_idx.buf)
+      {
+        if(gpu_idx.byte_stride == 2)
+        {
+          scratch.assign(std::size_t(drawIndexCount) * 4, std::byte{});
+          m_registry->uploadMeshStream(
+              res, *slab, Stream::Indices,
+              scratch.data(), (uint32_t)scratch.size());
+        }
+        queueSlabCopy(
+            MdiAttr::Indices, gpu_idx, 4, (int)drawIndexCount,
+            m_registry->meshSlabOffsetBytes(*slab, Stream::Indices));
       }
 
       if(m_skinStream && (slab->freshly_allocated || skinStreamCreated))
@@ -5045,14 +5106,15 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
       for(const auto& dc : fs.draws)
       {
         // Mirror emitDraw's skip predicate exactly: a draw with
-        // no usable positions, or with GPU-backed indices, is dropped by
+        // no usable positions, or with unusable indices, is dropped by
         // rebuildMDI and therefore occupies NO per_draws slot. Filtering the
         // fast-path mirror only by `vertices > 0` would keep such draws and
         // shift every following slot, so diffUpload would write a draw's
         // model matrix into its neighbour's GPU slot.
         if(!dc.mesh || dc.mesh->vertices <= 0 || !m_registry)
           continue;
-        if(!meshEmitsDraw(*dc.mesh))
+        if(!meshEmitsDraw(
+               *dc.mesh, allowUint16GpuIndices(*renderer.state.rhi)))
           continue;
         PerDrawGPU pd{};
         writeMat4(pd.model, dc.worldTransform);
@@ -5091,7 +5153,7 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
       // unchanged mesh_primitive address must force a full rebuild rather than
       // let the queue copy from a freed buffer.
       std::vector<uint64_t> freshMeshFingerprint;
-      freshMeshFingerprint.reserve(fs.draws.size() * 5);
+      freshMeshFingerprint.reserve(fs.draws.size() * 6);
       for(const auto& dc : fs.draws)
       {
         if(dc.mesh && dc.mesh->vertices > 0 && dc.stable_id)
@@ -5113,6 +5175,8 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
               bufId(ossia::attribute_semantic::texcoord0));
           freshMeshFingerprint.push_back(
               bufId(ossia::attribute_semantic::tangent));
+          freshMeshFingerprint.push_back(reinterpret_cast<uintptr_t>(
+              extractGpuIndices(*dc.mesh, true).buf));
         }
       }
 
@@ -5431,6 +5495,7 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
       case MdiAttr::Normals:   return m_registry->meshStreamBuffer(Stream::Normals);
       case MdiAttr::Texcoords: return m_registry->meshStreamBuffer(Stream::Texcoords);
       case MdiAttr::Tangents:  return m_registry->meshStreamBuffer(Stream::Tangents);
+      case MdiAttr::Indices:   return m_registry->meshStreamBuffer(Stream::Indices);
     }
     return nullptr;
   }
