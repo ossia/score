@@ -117,6 +117,9 @@ private:
   //! The node last added while the canvas was pinned: kept in view while its
   //! content is laid out, until the user does anything in the view.
   QPointer<Process::NodeItem> m_nodeToShow;
+  //! A drop in this view puts the node where the user dropped it: the view
+  //! must not move to show it.
+  bool m_dropping{false};
 };
 
 }
