@@ -4356,7 +4356,9 @@ static std::string isf_emit_multiview_extension(int view_count)
 {
   std::string out;
   out += "#extension GL_EXT_multiview : require\n";
-  out += "#define VIEW_INDEX gl_ViewIndex\n";
+  // On OpenGL gl_ViewIndex bakes to GL_OVR_multiview's uint gl_ViewID_OVR; the
+  // uint() bitcast survives SPIRV-Cross and makes the int() a real conversion.
+  out += "#define VIEW_INDEX int(uint(gl_ViewIndex))\n";
   out += "#define NUM_VIEWS ";
   out += std::to_string(view_count);
   out += "\n";
@@ -4961,7 +4963,11 @@ void parser::parse_raw_raster_pipeline()
   // GL_OVR_multiview2". The vertex stage therefore forwards the view index
   // through an injected flat varying (written by a wrapper main emitted at
   // the end of this function), and the fragment's VIEW_INDEX macro reads
-  // that varying — portable across every backend.
+  // that varying — portable across every backend. The OpenGL bake reads
+  // gl_ViewIndex as GL_OVR_multiview's uint gl_ViewID_OVR, which GLSL does not
+  // convert to int implicitly: the varying is a uint written through an
+  // explicit uint(), a bitcast SPIRV-Cross keeps as a cast, and VIEW_INDEX
+  // converts back to int in both stages.
   const bool mv_fragment_plumbing = m_desc.multiview_count >= 2;
   if(mv_fragment_plumbing)
   {
@@ -4985,17 +4991,17 @@ void parser::parse_raw_raster_pipeline()
       mv_varying_location = std::max(mv_varying_location, attr.location + 1);
 
     const auto nv = std::to_string(m_desc.multiview_count);
-    m_vertex += "#define VIEW_INDEX gl_ViewIndex\n";
+    m_vertex += "#define VIEW_INDEX int(uint(gl_ViewIndex))\n";
     m_vertex += "#define NUM_VIEWS " + nv + "\n";
     m_vertex += fmt::format(
-        "layout(location = {}) flat out int isf_ViewIndexVarying;\n",
+        "layout(location = {}) flat out uint isf_ViewIndexVarying;\n",
         mv_varying_location);
 
     m_fragment += "#define NUM_VIEWS " + nv + "\n";
     m_fragment += fmt::format(
-        "layout(location = {}) flat in int isf_ViewIndexVarying;\n",
+        "layout(location = {}) flat in uint isf_ViewIndexVarying;\n",
         mv_varying_location);
-    m_fragment += "#define VIEW_INDEX isf_ViewIndexVarying\n";
+    m_fragment += "#define VIEW_INDEX int(isf_ViewIndexVarying)\n";
   }
 
   if(m_desc.primitive_data)
@@ -5509,7 +5515,7 @@ void parser::parse_raw_raster_pipeline()
 
   m_vertex += "void isf_vertShaderInit()\n{\n";
   if(mv_fragment_plumbing)
-    m_vertex += "  isf_ViewIndexVarying = gl_ViewIndex;\n";
+    m_vertex += "  isf_ViewIndexVarying = uint(gl_ViewIndex);\n";
   m_vertex += "}\n";
   m_vertex += "void isf_vertShaderFinish()\n{\n";
   if(renders_cube_faces(m_desc))
