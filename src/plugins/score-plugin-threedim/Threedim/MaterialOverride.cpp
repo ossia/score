@@ -265,6 +265,11 @@ void MaterialOverride::rebuild()
       cloned = std::make_shared<ossia::material_component>(*src_mat);
       m_clone_cache.emplace(src_mat.get(), cloned);
     }
+    // A producer-authored source (PBR Mesh) carries its own Material arena
+    // slot, which the preprocessor reads as-is and the producer rewrites from
+    // its controls every frame. The clone must not share it, so that the
+    // preprocessor gives it a slot of its own, packed from these fields.
+    cloned->raw_slot = {};
 
     if(cur_tex[0])
       applyTextureOverride(cloned->base_color_texture, inputs.base_color_tex.texture);

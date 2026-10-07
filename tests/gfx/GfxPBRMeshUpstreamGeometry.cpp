@@ -20,6 +20,8 @@
 //   preprocessor's scene auxiliaries; here an all-red scene_materials. The
 //   quad must take PBR Mesh's own green material from the next
 //   preprocessor's scene_materials, not the forwarded one.
+// - a Material Override after PBR Mesh: the quad takes the override's blue,
+//   not the green PBR Mesh keeps writing into its own Material arena slot.
 #include <score_test/Gfx.hpp>
 
 #include "GfxSceneSource.hpp"
@@ -32,6 +34,7 @@
 
 #include <ossia/dataflow/geometry_port.hpp>
 
+#include <Threedim/MaterialOverride.hpp>
 #include <Threedim/PBRMesh.hpp>
 
 #include <QColor>
@@ -65,6 +68,8 @@ struct PBRMeshHarness final : score::gfx::ProcessNode
   // The geometry also carries a scene_materials auxiliary, as the output of
   // another Scene Preprocessor does.
   bool preprocessed{false};
+  // A Material Override overrides the base colour downstream of PBR Mesh.
+  bool overridden{false};
   // Written on the render thread; read after the render on the test thread.
   mutable ossia::scene_spec published;
 
@@ -81,6 +86,7 @@ struct PBRMeshHarnessRenderer final : score::test::gfx::scene::SourceRenderer
 {
   const PBRMeshHarness& self;
   Threedim::PBRMesh pbr;
+  Threedim::MaterialOverride mo;
   QRhiBuffer* m_pos{};
   QRhiBuffer* m_aux{};
   QRhiTexture* m_tex{};
@@ -172,6 +178,14 @@ struct PBRMeshHarnessRenderer final : score::test::gfx::scene::SourceRenderer
     pbr();
     pbr.update(r, res, e);
     m_scene = pbr.outputs.scene_out.scene;
+    if(self.overridden)
+    {
+      mo.inputs.scene_in.scene = m_scene;
+      mo.inputs.use_base_color.value = true;
+      mo.inputs.base_color.value = {0.f, 0.f, 1.f, 1.f};
+      mo();
+      m_scene = mo.outputs.scene_out.scene;
+    }
     self.published = m_scene;
   }
 
@@ -204,7 +218,7 @@ struct Result
 
 Result render(
     score::gfx::GraphicsApi api, const char* vs, const char* fs, const float* upstream,
-    float scale, bool preprocessed = false)
+    float scale, bool preprocessed = false, bool overridden = false)
 {
   Result res;
   score::test::run_in_gui_app([&](const score::GUIApplicationContext&) {
@@ -213,6 +227,7 @@ Result render(
     std::copy_n(upstream, 16, node->upstream);
     node->scale = scale;
     node->preprocessed = preprocessed;
+    node->overridden = overridden;
     auto* harness = node.get();
     const int hn = p.addNode(std::move(node));
     const int flat
@@ -369,4 +384,27 @@ TEST_CASE(
   INFO("centre rgba=" << score::test::gfx::scene::rgba_string(c));
   CHECK(c[0] < 40);
   CHECK(c[1] > 215);
+}
+
+TEST_CASE(
+    "a Material Override after PBR Mesh changes the colour the quad is drawn "
+    "with",
+    "[gfx][scene][pbrmesh]")
+{
+  const auto api = GENERATE(from_range(platform_backends()));
+  CAPTURE(backend_name(api));
+
+  // PBR Mesh's own material is green; the override's base colour is blue.
+  const auto r = render(
+      api, "syn-scene-pbrmesh-material.vs", "syn-scene-pbrmesh-material.fs",
+      kIdentity, 1.f, false, true);
+  if(r.skipped)
+    SKIP("backend unavailable");
+  INFO("error=" << r.err);
+  REQUIRE(r.err.empty());
+
+  const auto c = r.img.at(kSize / 2, kSize / 2);
+  INFO("centre rgba=" << score::test::gfx::scene::rgba_string(c));
+  CHECK(c[1] < 40);
+  CHECK(c[2] > 215);
 }
