@@ -428,6 +428,80 @@ TEST_CASE("flattenScene: a scene_state camera is deduped against the tree walk",
   CHECK(origin(out.cameras[0].worldTransform).z() == Approx(6.f));
 }
 
+TEST_CASE(
+    "flattenScene: blended draws are sorted from the centre of the views",
+    "[scene][flatten][blend]")
+{
+  // The scene's cameras are the views of one indirect batch (MULTIVIEW,
+  // PER_CUBE_FACE index camera.data[i]), which has one order for all of
+  // them: the blended draws go back to front from the cameras' centre. A
+  // selected camera (Camera Switch) is the only view, and the order is its.
+  auto blend = std::make_shared<ossia::material_component>();
+  blend->alpha = ossia::alpha_mode::blend;
+  const auto blended = [&](uint64_t id, float x, float z) {
+    auto prim = makeTriangle(id);
+    prim.material = blend;
+    return makeNode(
+        id, {ossia::scene_payload{translation(x, 0.f, z)},
+             ossia::scene_payload{ossia::mesh_component_ptr{makeMesh(std::move(prim))}}});
+  };
+  const auto camera = [&](uint64_t id, float x, float z, float yawDeg) {
+    auto t = translation(x, 0.f, z);
+    const float h = yawDeg * float(M_PI) / 360.f;
+    t.rotation[1] = std::sin(h);
+    t.rotation[3] = std::cos(h);
+    return makeNode(
+        id, {ossia::scene_payload{t},
+             ossia::scene_payload{ossia::camera_component_ptr{makeCamera(0.1f, 100.f)}}});
+  };
+  const auto order = [](const FlatScene& fs) {
+    std::vector<uint64_t> ids;
+    for(const auto& dc : fs.draws)
+      ids.push_back(dc.stable_id);
+    return ids;
+  };
+
+  // A is 3 from the left eye and 3.6 from the centre; B 4.5 and 3.4.
+  const auto a = blended(0xA, -2.f, -3.f);
+  const auto b = blended(0xB, 1.2f, -3.2f);
+
+  SECTION("two eyes: the order from their midpoint")
+  {
+    auto root = makeNode(
+        1, {ossia::scene_payload{camera(10, -2.f, 0.f, 0.f)},
+            ossia::scene_payload{camera(20, 2.f, 0.f, 0.f)},
+            ossia::scene_payload{a}, ossia::scene_payload{b}});
+    FlatScene out;
+    flattenScene(specOf({root}), out, 1.f);
+    CHECK(order(out) == std::vector<uint64_t>{0xA, 0xB});
+  }
+
+  SECTION("a selected camera: the order from it")
+  {
+    auto root = makeNode(
+        1, {ossia::scene_payload{camera(10, -2.f, 0.f, 0.f)},
+            ossia::scene_payload{camera(20, 2.f, 0.f, 0.f)},
+            ossia::scene_payload{a}, ossia::scene_payload{b}});
+    FlatScene out;
+    flattenScene(specOf({root}, {}, {}, ossia::scene_node_id{10}), out, 1.f);
+    CHECK(order(out) == std::vector<uint64_t>{0xB, 0xA});
+  }
+
+  SECTION("a cube capture: the order from the capture point, for every face")
+  {
+    // Six faces at (-2, 0, 0), as Camera Array lays them out (it selects its
+    // first camera): distance does not depend on the view direction.
+    payloads kids;
+    for(int f = 0; f < 6; ++f)
+      kids.push_back(ossia::scene_payload{camera(10 + f, -2.f, 0.f, 60.f * f)});
+    kids.push_back(ossia::scene_payload{a});
+    kids.push_back(ossia::scene_payload{b});
+    FlatScene out;
+    flattenScene(specOf({makeNode(1, std::move(kids))}, {}, {}, ossia::scene_node_id{10}), out, 1.f);
+    CHECK(order(out) == std::vector<uint64_t>{0xB, 0xA});
+  }
+}
+
 TEST_CASE("flattenScene: light arena slots keep the producer-less sentinel", "[scene][flatten][issue171]")
 {
   auto withSlot = makeLight(5u, true);

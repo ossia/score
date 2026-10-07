@@ -1043,6 +1043,7 @@ void flattenScene(
   // Resolve active camera: match scene_state.active_camera_id against the
   // collected camera entries; fall back to the first camera if the id is
   // unset or not found.
+  bool cameraSelected = false;
   if(!out.cameras.empty())
   {
     out.activeCameraIndex = 0;
@@ -1053,6 +1054,7 @@ void flattenScene(
         if(out.cameras[i].node_id == scene.state->active_camera_id)
         {
           out.activeCameraIndex = (int)i;
+          cameraSelected = true;
           break;
         }
       }
@@ -1089,7 +1091,22 @@ void flattenScene(
     out.hasCamera = false;
   }
 
-  sortBlendedDraws(out.draws, out.cameraPosition);
+  // Every camera of the scene is a view of the one indirect batch (MULTIVIEW
+  // and PER_CUBE_FACE presets index camera.data[i]), and the batch has one
+  // order for all of them: back to front from the cameras' centre, which is
+  // never farther from a view than half their spread. A Camera Array's faces
+  // share their position, and distance does not depend on the view direction,
+  // so the order is exact for each face. A selected camera (Camera Switch,
+  // Camera Array) is taken as the view.
+  QVector3D sortEye = out.cameraPosition;
+  if(!cameraSelected && out.cameras.size() > 1)
+  {
+    sortEye = {};
+    for(const auto& e : out.cameras)
+      sortEye += e.worldTransform.column(3).toVector3D();
+    sortEye /= float(out.cameras.size());
+  }
+  sortBlendedDraws(out.draws, sortEye);
 }
 
 }
