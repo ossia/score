@@ -313,6 +313,9 @@ score_add_gfx_test(review_render_targets GfxReviewRenderTargets.cpp)
 score_add_gfx_test(review_scene_fallback GfxReviewSceneFallback.cpp)
 score_add_gfx_test(interior_orphan_binding GfxInteriorOrphanBinding.cpp)
 score_add_gfx_test(d3d11_vertex_binding_cap GfxD3D11VertexBindingCap.cpp)
+# A vertex shader with no inputs keeps none of the geometry's vertex bindings
+# (Metal's 31-slot buffer table overflowed with them).
+score_add_gfx_test(procedural_vertex_bindings GfxProceduralVertexBindings.cpp)
 # One resolver behind both entry points: it clears the caller's plan on entry,
 # and the strict and fallback-aware calls agree on layout and plan.
 score_add_gfx_test(unified_binding_resolver GfxUnifiedBindingResolver.cpp)

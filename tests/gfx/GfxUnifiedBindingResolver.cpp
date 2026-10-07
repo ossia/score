@@ -149,7 +149,7 @@ void main() { frag = vec4(1.0); }
       const bool remapped1
           = remapPipelineVertexInputs(*pip1, shaders.first, geom, &plan1);
 
-      // 2. Same, through the early return an input-less vertex stage takes.
+      // 2. Same, for an input-less vertex stage.
       auto pip2 = newPipeline();
       auto plan2 = stalePlan();
       const bool remapped2
@@ -184,8 +184,10 @@ void main() { frag = vec4(1.0); }
 
       CHECK(remapped2);
       CHECK(plan2.slots.empty());
+      // No stream is read: compacted to nothing, and none left in the layout.
       CHECK(plan2.mesh_bindings.empty());
-      CHECK(!plan2.compacted);
+      CHECK(plan2.compacted);
+      CHECK(bindingCount(pip2->vertexInputLayout()) == 0);
 
       CHECK(remapped3);
       CHECK(bindingCount(pip3->vertexInputLayout()) == 2);
