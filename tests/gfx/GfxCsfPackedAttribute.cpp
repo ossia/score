@@ -6,6 +6,10 @@
 // Five distinct points go through a CSF that writes
 // position + (100, 200, 300) + 1000 * color; the colour is absent (zero) in the
 // XYZ layouts. A vec4 declaration widens float3 with w = 1.
+//
+// A GPU attribute the repack cannot convert (bytes, at a stride that is not
+// the std430 one) reads as zeros, one per vertex: neither misaligned bytes nor
+// a buffer of another length.
 #include "GfxMeshListSource.hpp"
 #include "IsfTestCommon.hpp"
 
@@ -113,9 +117,9 @@ struct Result
   std::vector<float> values;
 };
 
-Result
-run(score::gfx::GraphicsApi api, const Layout& l, bool gpu, const std::string& type,
-    bool readOnly)
+Result runShader(
+    score::gfx::GraphicsApi api, const SourceMesh& mesh, bool gpu, const QByteArray& code,
+    const char* output)
 {
   Result r;
   QTemporaryDir dir;
@@ -127,12 +131,12 @@ run(score::gfx::GraphicsApi api, const Layout& l, bool gpu, const std::string& t
       r.error = "cannot write the shader";
       return r;
     }
-    f.write(shader(type, readOnly));
+    f.write(code);
   }
   run_in_gui_app([&](const score::GUIApplicationContext&) {
     GfxPipeline p;
     const int src = p.addNode(
-        std::make_unique<MeshListSourceNode>(std::vector<SourceMesh>{source(l)}, gpu));
+        std::make_unique<MeshListSourceNode>(std::vector<SourceMesh>{mesh}, gpu));
     const int csf = p.addCsf(cs);
     auto sink = attach_buffer_sink(p);
     if(src < 0 || csf < 0 || !sink.node)
@@ -156,11 +160,42 @@ run(score::gfx::GraphicsApi api, const Layout& l, bool gpu, const std::string& t
       return;
     }
     for(const auto& a : meshes.front().attributes)
-      if(a.name == (readOnly ? "moved" : "position"))
+      if(a.name == output)
         r.values = as_floats(a.rb.data);
   });
   return r;
 }
+
+Result
+run(score::gfx::GraphicsApi api, const Layout& l, bool gpu, const std::string& type,
+    bool readOnly)
+{
+  return runShader(
+      api, source(l), gpu, shader(type, readOnly), readOnly ? "moved" : "position");
+}
+
+// Writes, for each vertex, the length of the colour array it sees and the sum
+// of its components.
+const QByteArray kColorProbe = R"(/*{
+  "ISFVSN": "2.0",
+  "MODE": "COMPUTE_SHADER",
+  "RESOURCES": [
+    { "NAME": "geo", "TYPE": "geometry",
+      "ATTRIBUTES": [
+        { "NAME": "position", "SEMANTIC": "position", "TYPE": "vec4", "ACCESS": "read_write" },
+        { "NAME": "color", "SEMANTIC": "color", "TYPE": "vec4", "ACCESS": "read_only", "REQUIRED": false } ] }
+  ],
+  "PASSES": [ { "LOCAL_SIZE": [64, 1, 1], "EXECUTION_MODEL": { "TYPE": "PER_VERTEX" } } ]
+}*/
+void main()
+{
+  uint i = gl_GlobalInvocationID.x;
+  if(i >= uint(ISF_READ(geo, position).length())) return;
+  uint n = uint(ISF_READ(geo, color).length());
+  vec4 c = i < n ? ISF_READ(geo, color)[i] : vec4(-1.0);
+  ISF_WRITE(geo, position)[i] = vec4(float(n), c.x + c.y + c.z + c.w, 0.0, 1.0);
+}
+)";
 }
 
 TEST_CASE(
@@ -197,5 +232,45 @@ TEST_CASE(
     }
     if(type == "vec4")
       CHECK(r.values[i * 4 + 3] == 1.f);
+  }
+}
+
+TEST_CASE(
+    "a GPU attribute the CSF cannot repack reads as zeros, one per vertex",
+    "[gfx][csf][geometry]")
+{
+  const auto api = GENERATE(from_range(platform_backends()));
+  CAPTURE(backend_name(api));
+
+  // position float3, then a byte colour, 20 bytes per vertex: not the 16-byte
+  // std430 stride of the vec4 the shader declares, and not float data.
+  SourceMesh m;
+  m.vertices = kPoints;
+  m.stride = 20;
+  for(int i = 0; i < kPoints; i++)
+  {
+    for(int a = 0; a < 3; a++)
+      m.data.push_back(pos(i, a));
+    m.data.push_back(1.f); // the colour's bytes: 00 00 80 3f
+    m.data.push_back(0.f);
+  }
+  m.attributes.push_back(
+      {ossia::attribute_semantic::position, ossia::geometry::attribute::float3, 0});
+  m.attributes.push_back(
+      {ossia::attribute_semantic::color0, ossia::geometry::attribute::unormbyte4, 12});
+
+  const auto r = runShader(api, m, true, kColorProbe, "position");
+  if(r.skipped)
+    SKIP("backend unavailable");
+  if(const char* why = compute_shader_skip_reason(api))
+    SKIP(why);
+  INFO("error=" << r.error);
+  REQUIRE(r.error.empty());
+  REQUIRE(r.values.size() >= std::size_t(kPoints * 4));
+  for(int i = 0; i < kPoints; i++)
+  {
+    CAPTURE(i);
+    CHECK(r.values[i * 4 + 0] == float(kPoints));
+    CHECK(r.values[i * 4 + 1] == 0.f);
   }
 }
