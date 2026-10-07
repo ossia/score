@@ -712,11 +712,12 @@ if(TARGET score_plugin_threedim AND TARGET score_plugin_avnd)
 endif()
 
 # PBR Mesh keeps the auxiliaries and the transform of the geometry wired into
-# it, through the real Scene Preprocessor and a raw raster.
+# it, through the real Scene Preprocessor and a raw raster; a Material
+# Override after it changes its material.
 if(TARGET score_plugin_threedim)
   score_add_gfx_plugin_test(pbr_mesh_upstream_geometry
     SOURCES GfxPBRMeshUpstreamGeometry.cpp
-    HIDDEN "${_threedim}/PBRMesh.cpp"
+    HIDDEN "${_threedim}/PBRMesh.cpp" "${_threedim}/MaterialOverride.cpp"
     PLUGINS score_plugin_threedim)
 endif()
 
