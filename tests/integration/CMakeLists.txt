@@ -1524,6 +1524,18 @@ score_add_test(test_integration_js_enumerate_protocols
 set_tests_properties(test_integration_js_enumerate_protocols PROPERTIES
   TIMEOUT 120 LABELS "integration;device")
 
+# The same contract through the declarative API, where QML and not the author
+# picks the order the properties are written in. One probe protocol blocks for
+# seconds, standing in for the Windows COM/RPC wait, so entering a protocol the
+# enumerator was not asked for shows up in the wall clock.
+score_add_test(test_integration_js_qml_enumerator_order
+  SOURCES JsQmlEnumeratorOrderTest.cpp
+  GUI
+  PLUGINS score_plugin_js score_plugin_deviceexplorer score_lib_device
+  LIBS ${QT_PREFIX}::Qml)
+set_tests_properties(test_integration_js_qml_enumerator_order PROPERTIES
+  TIMEOUT 120 LABELS "integration;device")
+
 # The spatialization device's source offset, read off a loopback UDP socket:
 # what SpatGRIS / ADM-OSC / SPAT actually put in the packet. Only the protocol
 # headers are needed, so this links no plug-in.

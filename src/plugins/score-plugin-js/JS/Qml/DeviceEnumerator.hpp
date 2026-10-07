@@ -8,6 +8,7 @@
 #include <ossia-qt/value_metatypes.hpp>
 
 #include <QQmlListProperty>
+#include <QQmlParserStatus>
 #include <QStringList>
 
 #include <nano_observer.hpp>
@@ -58,14 +59,26 @@ public:
   W_PROPERTY(Device::ProtocolFactory*, protocol MEMBER protocol)
 };
 
-class GlobalDeviceEnumerator : public QObject
+//! QML writes `enumerate` and the filter in an order the author cannot choose:
+//! literals before script bindings, and two literals in reverse source order
+//! (qqmlirbuilder.cpp, QmlIR::Object::appendBinding prepends). Enumerating
+//! unfiltered is expensive and on Windows deadlocks, so the walk waits for
+//! componentComplete(), after finalize() has converged every binding. Only QML
+//! object creation defers; Score.enumerateDevices() still walks on the write.
+class GlobalDeviceEnumerator
+    : public QObject
+    , public QQmlParserStatus
 {
   W_OBJECT(GlobalDeviceEnumerator)
+  W_INTERFACE(QQmlParserStatus)
 
 public:
   explicit GlobalDeviceEnumerator();
   //  explicit GlobalDeviceEnumerator(const QString& uuid);
   ~GlobalDeviceEnumerator();
+
+  void classBegin() override;
+  void componentComplete() override;
 
   void setContext(const score::DocumentContext* doc);
   W_SLOT(setContext)
@@ -99,6 +112,8 @@ public:
                        deviceTypesChanged)
 
 private:
+  //! reprocess(), unless QML is still building us
+  void requestReprocess();
   void reprocess();
   void clearEnumerators();
   DeviceIdentifier* identifierFor(
@@ -130,6 +145,10 @@ private:
   //! for its enumerators.
   QStringList m_deviceTypes;
   bool m_enumerate{};
+
+  //! Between classBegin() and componentComplete(); never set for a C++- or
+  //! script-created enumerator, which sees no classBegin().
+  bool m_qmlCreating{};
 };
 
 class DeviceListener
