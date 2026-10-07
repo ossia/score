@@ -1534,6 +1534,9 @@ score_add_gfx_test(raster_draw_count_expression GfxRasterDrawCountExpression.cpp
 # which $COUNT_<name> reports.
 score_add_gfx_test(raw_raster_aux_size_expression GfxRawRasterAuxSizeExpression.cpp)
 
+# A top-level PIPELINE_STATE.COLOR_WRITE masks a raw raster's colour writes.
+score_add_gfx_test(raster_color_write GfxRasterColorWrite.cpp)
+
 # The camera placeholder a raw raster binds before a scene feeds it carries
 # the render size rather than zero.
 score_add_gfx_test(camera_placeholder_render_size GfxCameraPlaceholderRenderSize.cpp)
