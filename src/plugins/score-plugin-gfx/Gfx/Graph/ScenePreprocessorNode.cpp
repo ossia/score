@@ -3152,9 +3152,10 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
     g.buffers.push_back(wrapGpu(m_mdi.per_draws,          pdBytes));
     g.buffers.push_back(wrapGpu(m_mdi.indirect_draw_cmds, icBytes));
     g.buffers.push_back(wrapGpu(m_sceneCountsBuffer, sizeof(SceneCountsUBO)));
-    // Only bind the ACTIVE camera slot (first 240 bytes) — shaders declare
-    // `uniform camera_t camera` as a single entry, not an array. Slot 0 is
-    // guaranteed to be the active camera by packAndUploadCameras.
+    // The wrappers name one CameraUBOData; the `camera` / `camera_prev`
+    // auxiliaries below carry the extent of every packed camera
+    // (cameraAuxByteSize), which consumers bind, so a multiview shader can index
+    // camera.data[VIEW_INDEX]. Slot 0 is the active camera (packAndUploadCameras).
     g.buffers.push_back(wrapGpu(m_camerasBuffer, sizeof(CameraUBOData)));
     g.buffers.push_back(wrapGpu(m_camerasPrevBuffer, sizeof(CameraUBOData)));
     // Env UBO: the preprocessor-owned buffer. merge_scenes composes the

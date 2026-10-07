@@ -55,8 +55,8 @@ struct MeshUBO
 
 // Packed 32-bit texture reference stored in MaterialGPU::textureRefs[]:
 //   bits 31..30 : source (0 = NONE, 1 = STATIC pool, 2 = DYNAMIC pool)
-//   bits 29..24 : bucket index within the selected pool
-//   bits 23.. 0 : layer index within the bucket's texture array
+//   bits 29..23 : bucket index within the selected pool
+//   bits 22.. 0 : layer index within the bucket's texture array
 //
 // 0xFFFFFFFF is the "no texture" sentinel: the shader falls back to the
 // constant baseColor factor, metallic_factor, and so on.
@@ -64,7 +64,7 @@ inline constexpr uint32_t tex_ref_none() { return 0xFFFFFFFFu; }
 inline constexpr uint32_t tex_ref_static(uint32_t bucket, uint32_t layer)
 {
   // Packed layout: source:2 | bucket:7 | layer:23. The 7-bit bucket field gives
-  // headroom for 128 buckets against a runtime cap of kMaxBuckets = 16 in
+  // headroom for 128 buckets against a runtime cap of kMaxBuckets = 8 in
   // GpuResourceRegistry.hpp; raising the cap only needs larger shader sampler
   // arrays, not a new encoding. Shader-side decode is `(ref >> 23) & 0x7Fu` for
   // the bucket and `ref & 0x007FFFFFu` for the layer.
