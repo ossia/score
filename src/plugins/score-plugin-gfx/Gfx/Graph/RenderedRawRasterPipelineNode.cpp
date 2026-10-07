@@ -2731,7 +2731,7 @@ void RenderedRawRasterPipelineNode::initState(
     // Compute the byte size required by a LAYOUT. Used when we need to
     // own the buffer (persistent aux). Flexible array members use `size`
     // as the element count (falls back to 1 if unspecified).
-    auto aux_owned_size = [](const isf::geometry_input::auxiliary_request& aux) -> int64_t {
+    auto aux_owned_size = [this](const isf::geometry_input::auxiliary_request& aux) -> int64_t {
       int64_t total = 0;
       int64_t arr_elem_bytes = 0;
       for(const auto& f : aux.layout)
@@ -2759,13 +2759,8 @@ void RenderedRawRasterPipelineNode::initState(
       int64_t count = 1;
       if(!aux.size.empty())
       {
-        try { count = std::max<int64_t>(1, std::stoll(aux.size)); }
-        catch(const std::exception& e) {
-          count = 1024; // TODO: evaluate $USER when we add it
-          qWarning() << "RenderedRawRasterPipelineNode: aux SSBO size"
-                     << aux.size.c_str() << "could not be parsed (" << e.what()
-                     << "); falling back to 1024.";
-        }
+        // A SIZE naming no input, or failing to parse, keeps 1024 elements.
+        count = resolveIntExpression(aux.size, 1024);
       }
       else if(arr_elem_bytes > 0)
       {
@@ -2915,14 +2910,7 @@ void RenderedRawRasterPipelineNode::initState(
       int64_t count = 0;
       if(!aux.is_uniform && !aux.size.empty())
       {
-        try
-        {
-          count = std::max<int64_t>(1, std::stoll(aux.size));
-        }
-        catch(const std::exception&)
-        {
-          count = 1024; // TODO: evaluate $USER when we add it
-        }
+        count = resolveIntExpression(aux.size, 1024);
       }
       return aux.is_uniform
                  ? score::gfx::calculateUniformBlockSize(aux.layout, (int)count, desc)

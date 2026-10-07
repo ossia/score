@@ -1530,6 +1530,10 @@ score_add_gfx_test(raster_output_size_expression GfxRasterOutputSizeExpression.c
 # are evaluated per frame: a procedural draw follows the input.
 score_add_gfx_test(raster_draw_count_expression GfxRasterDrawCountExpression.cpp)
 
+# An unbound raw raster AUXILIARY sized by an input expression has that size,
+# which $COUNT_<name> reports.
+score_add_gfx_test(raw_raster_aux_size_expression GfxRawRasterAuxSizeExpression.cpp)
+
 # The camera placeholder a raw raster binds before a scene feeds it carries
 # the render size rather than zero.
 score_add_gfx_test(camera_placeholder_render_size GfxCameraPlaceholderRenderSize.cpp)
