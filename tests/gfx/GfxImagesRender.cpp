@@ -19,6 +19,8 @@
 
 #include <Gfx/Graph/ImageNode.hpp>
 
+#include <QFile>
+
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/generators/catch_generators.hpp>
 #include <catch2/generators/catch_generators_range.hpp>
@@ -369,6 +371,82 @@ TEST_CASE("Opacity and tile-mode changes keep the image visible", "[gfx][images]
       p.node(img)->process(std::move(m));
       p.render(3);
       CHECK(is_color(p.readback(sink).center(), Colors::red));
+    }
+  });
+}
+
+// An ISF input declared STATIC samples the producer's own texture instead of
+// having the image drawn into a render target of its own. Images now publishes
+// the current image for it; it read black before. The image is red over blue,
+// sized like the sink, and the STATIC read must match the drawn one, which pins
+// orientation too -- except on OpenGL, where a render target is stored bottom
+// row first and an uploaded image top row first, and a STATIC input reads the
+// upload as it is: there the halves only have to be both present.
+TEST_CASE("A STATIC image input fed by Images reads the image", "[gfx][images][render][gui]")
+{
+  const auto backend = GENERATE(from_range(platform_backends()));
+  run_in_gui_app([backend](const score::GUIApplicationContext& ctx) {
+    score::Document* doc = new_document(ctx);
+    REQUIRE(doc);
+    const QString dir = gfxproc::scratch_dir("images-render-static");
+    QImage img{QSize{64, 64}, QImage::Format_ARGB32};
+    img.fill(Colors::blue);
+    for(int y = 0; y < 32; y++)
+      for(int x = 0; x < 64; x++)
+        img.setPixel(x, y, Colors::red);
+    const QString png = dir + "/red-over-blue.png";
+    REQUIRE(img.save(png, "PNG"));
+
+    const auto shader = [&](const char* name, bool is_static) {
+      const QString path = dir + "/" + name;
+      QFile f(path);
+      REQUIRE(f.open(QIODevice::WriteOnly | QIODevice::Truncate));
+      f.write(QByteArray(R"(/*{
+  "ISFVSN": "2.0",
+  "INPUTS": [ { "NAME": "tex", "TYPE": "image")")
+              + (is_static ? R"(, "STATIC": true)" : "") + R"( } ]
+}*/
+void main() { gl_FragColor = IMG_NORM_PIXEL(tex, isf_FragNormCoord); }
+)");
+      return path;
+    };
+
+    GfxPipeline p;
+    const int images = p.addNode(std::make_unique<score::gfx::ImagesNode>(doc->context()));
+    const int drawn = p.addIsf(shader("drawn.fs", false));
+    const int grabbed = p.addIsf(shader("static.fs", true));
+    REQUIRE(drawn >= 0);
+    REQUIRE(grabbed >= 0);
+    const int drawnSink = p.addSink({64, 64});
+    const int grabbedSink = p.addSink({64, 64});
+    p.wire(p.nodeImageOut(images), p.imageIn(drawn, 0));
+    p.wire(p.nodeImageOut(images), p.imageIn(grabbed, 0));
+    p.wire(p.imageOut(drawn, 0), p.sinkInput(drawnSink));
+    p.wire(p.imageOut(grabbed, 0), p.sinkInput(grabbedSink));
+    p.node(images)->process(initial_controls(p.node(images)->nodeId, paths_value({png})));
+
+    if(!p.create(backend))
+    {
+      WARN(p.backend() << ": " << p.skipReason());
+      return;
+    }
+    REQUIRE(p.error().empty());
+    p.render(4);
+
+    const auto ref = p.readback(drawnSink);
+    const auto got = p.readback(grabbedSink);
+    REQUIRE(ref.valid());
+    REQUIRE(got.valid());
+    const bool flipped = backend == score::gfx::GraphicsApi::OpenGL;
+    for(int y : {16, 48})
+    {
+      const auto r = ref.at(32, y);
+      const auto g = got.at(32, flipped ? 63 - y : y);
+      INFO(
+          "y=" << y << " drawn " << (int)r[0] << "," << (int)r[1] << "," << (int)r[2]
+               << " static " << (int)g[0] << "," << (int)g[1] << "," << (int)g[2]);
+      CHECK((is_color(r, Colors::red) || is_color(r, Colors::blue)));
+      CHECK(near(g, r, 8));
     }
   });
 }

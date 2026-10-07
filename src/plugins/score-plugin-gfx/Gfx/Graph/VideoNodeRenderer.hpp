@@ -46,6 +46,43 @@ inline bool videoDecoderNeedsRebuild(
          || src.interlacing != built.interlacing;
 }
 
+/**
+ * @brief The decoded frame, converted to RGBA into a texture of the renderer's
+ * own.
+ *
+ * A video renderer otherwise only ever draws its conversion into its
+ * consumers' render targets, which an input sampling the producer's texture
+ * (STATIC, see outputGrabbedBySink) does not have. Sized like the frame, RGBA8
+ * for SDR output and RGBA16F for the HDR and linear ones.
+ */
+class VideoOwnTexture
+{
+public:
+  QRhiTexture* texture() const noexcept { return m_rt.texture; }
+
+  //! (Re)allocates the target and pipeline when `output` has such an input,
+  //! frees them when it no longer has, and uploads `material`.
+  void update(
+      RenderList& renderer, QRhiResourceUpdateBatch& res, const Port& output,
+      const Video::ImageFormat& format, const VideoMaterialUBO& material,
+      const QShader& vertex, const QShader& fragment, QRhiBuffer* processUBO,
+      std::span<const Sampler> samplers);
+
+  //! Draws the frame into the texture, once per frame.
+  void render(
+      RenderList& renderer, QRhiCommandBuffer& cb, QRhiResourceUpdateBatch*& res,
+      const MeshBuffers& mesh);
+
+  //! The decoder's samplers were rebuilt.
+  void releasePipeline();
+  void release();
+
+private:
+  TextureRenderTarget m_rt;
+  Pipeline m_pipeline;
+  QRhiBuffer* m_material{};
+  int64_t m_renderedFrame{-1};
+};
 
 class VideoNodeRenderer : public NodeRenderer
 {
@@ -70,6 +107,10 @@ public:
   void runRenderPass(RenderList&, QRhiCommandBuffer& commands, Edge& edge) override;
 
   void update(RenderList& renderer, QRhiResourceUpdateBatch& res, Edge* edge) override;
+  void runInitialPasses(
+      RenderList&, QRhiCommandBuffer& commands, QRhiResourceUpdateBatch*& res,
+      Edge& edge) override;
+  QRhiTexture* textureForOutput(const Port& output) override;
   void release(RenderList& r) override;
 
   void initState(RenderList& renderer, QRhiResourceUpdateBatch& res) override;
@@ -116,6 +157,7 @@ private:
   std::shared_ptr<RefcountedFrame> m_currentFrame{};
   int64_t m_currentFrameIdx{-1};
   bool m_recomputeScale{};
+  VideoOwnTexture m_ownTexture;
 };
 
 }

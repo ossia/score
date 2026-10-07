@@ -21,6 +21,81 @@ extern "C"
 namespace score::gfx
 {
 
+void VideoOwnTexture::update(
+    RenderList& renderer, QRhiResourceUpdateBatch& res, const Port& output,
+    const Video::ImageFormat& format, const VideoMaterialUBO& material,
+    const QShader& vertex, const QShader& fragment, QRhiBuffer* processUBO,
+    std::span<const Sampler> samplers)
+{
+  const QSize size{format.width, format.height};
+  if(!outputGrabbedBySink(output) || size.isEmpty() || !vertex.isValid()
+     || !fragment.isValid())
+  {
+    release();
+    return;
+  }
+
+  const auto fmt = format.output_format == ::Video::OutputFormat::SDR
+                       ? QRhiTexture::RGBA8
+                       : QRhiTexture::RGBA16F;
+  if(m_rt.texture
+     && (m_rt.texture->pixelSize() != size || m_rt.texture->format() != fmt))
+    release();
+
+  auto& rhi = *renderer.state.rhi;
+  if(!m_rt.texture)
+  {
+    m_rt = createRenderTarget(renderer.state, fmt, size, 1, false);
+    m_rt.texture->setName("VideoOwnTexture::texture");
+  }
+  if(!m_material)
+  {
+    m_material = rhi.newBuffer(
+        QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, sizeof(VideoMaterialUBO));
+    m_material->setName("VideoOwnTexture::material");
+    m_material->create();
+  }
+  if(!m_pipeline.pipeline)
+    m_pipeline = buildPipeline(
+        renderer, renderer.defaultQuad(), vertex, fragment, m_rt, processUBO,
+        m_material, samplers);
+
+  res.updateDynamicBuffer(m_material, 0, sizeof(VideoMaterialUBO), &material);
+}
+
+void VideoOwnTexture::render(
+    RenderList& renderer, QRhiCommandBuffer& cb, QRhiResourceUpdateBatch*& res,
+    const MeshBuffers& mesh)
+{
+  if(!m_pipeline.pipeline || m_renderedFrame == renderer.frame)
+    return;
+  m_renderedFrame = renderer.frame;
+
+  const QSize size = m_rt.texture->pixelSize();
+  cb.beginPass(m_rt.renderTarget, Qt::transparent, {0.0f, 0}, res);
+  res = nullptr;
+  cb.setGraphicsPipeline(m_pipeline.pipeline);
+  cb.setShaderResources(m_pipeline.srb);
+  cb.setViewport(QRhiViewport(0, 0, size.width(), size.height()));
+  renderer.defaultQuad().draw(mesh, cb);
+  cb.endPass();
+}
+
+void VideoOwnTexture::releasePipeline()
+{
+  m_pipeline.release();
+}
+
+void VideoOwnTexture::release()
+{
+  m_pipeline.release();
+  m_rt.release();
+  if(m_material)
+    m_material->deleteLater();
+  m_material = nullptr;
+  m_renderedFrame = -1;
+}
+
 VideoNodeRenderer::VideoNodeRenderer(
     const VideoNodeBase& node, VideoFrameShare& frames) noexcept
     : NodeRenderer{node}
@@ -76,6 +151,7 @@ void VideoNodeRenderer::setupGpuDecoder(RenderList& r)
   }
 
   m_shaders = {};
+  m_ownTexture.releasePipeline();
 
   createGpuDecoder();
 
@@ -208,6 +284,7 @@ void VideoNodeRenderer::releaseState(RenderList& r)
   for(auto& p : m_p)
     p.second.release();
   m_p.clear();
+  m_ownTexture.release();
 
   m_meshBuffer = {};
   m_shaders = {};
@@ -290,6 +367,32 @@ void VideoNodeRenderer::update(
     res.updateDynamicBuffer(m_materialUBO, 0, sizeof(Material), &mat);
     m_recomputeScale = false;
   }
+
+  if(m_gpu)
+  {
+    Material own;
+    own.textureSize[0] = m_frameFormat.width;
+    own.textureSize[1] = m_frameFormat.height;
+    own.field[0] = m_fieldParity;
+    own.field[1] = videoFieldMode(
+        m_frameFormat.interlacing, m_frameFormat.deinterlace, m_fieldPartnerValid);
+    m_ownTexture.update(
+        renderer, res, *this->node().output[0], m_frameFormat, own, m_shaders.first,
+        m_shaders.second, m_processUBO, m_gpu->samplers);
+  }
+}
+
+void VideoNodeRenderer::runInitialPasses(
+    RenderList& renderer, QRhiCommandBuffer& cb, QRhiResourceUpdateBatch*& res,
+    Edge& edge)
+{
+  if(m_gpu && m_gpu->hasFrame)
+    m_ownTexture.render(renderer, cb, res, m_meshBuffer);
+}
+
+QRhiTexture* VideoNodeRenderer::textureForOutput(const Port& output)
+{
+  return m_ownTexture.texture();
 }
 
 void VideoNodeRenderer::displayFrame(
