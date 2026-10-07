@@ -673,6 +673,50 @@ TEST_CASE(
   }
 }
 
+#if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(59, 55, 100)
+TEST_CASE(
+    "Half-float planar RGB unpacks to the right colour",
+    "[gfx][video][decoder][pixels]")
+{
+  // gbrpf16le / gbrapf16le: what libavcodec decodes a half-float EXR to. One
+  // IEEE half per sample, planes in G, B, R(, A) order. 0.25 / 0.5 / 0.75 are
+  // exact halves; on an RGBA8 target they land within a rounding step of
+  // 64 / 128 / 191.
+  constexpr uint16_t kQuarter = 0x3400, kHalf = 0x3800, kThreeQuarters = 0x3A00,
+                     kOne = 0x3C00;
+  const auto pack = [](bool alpha) {
+    Planes p;
+    p.count = alpha ? 4 : 3;
+    const uint16_t values[4]{kHalf, kThreeQuarters, kQuarter, kOne};
+    for(int k = 0; k < p.count; k++)
+    {
+      p.linesize[k] = W * 2;
+      for(int i = 0; i < W * H; i++)
+        put16le(p.data[k], values[k]);
+    }
+    return p;
+  };
+
+  const auto api = GENERATE(from_range(platform_backends()));
+  for(const bool alpha : {false, true})
+  {
+    const auto fmt = alpha ? AV_PIX_FMT_GBRAPF16LE : AV_PIX_FMT_GBRPF16LE;
+    const auto out
+        = render_camera(api, fmt, pack(alpha), AVCOL_SPC_RGB, AVCOL_RANGE_JPEG);
+    INFO("backend " << out.backend << " " << av_get_pix_fmt_name(fmt));
+    if(out.skipped)
+      SKIP(out.skip_reason);
+    REQUIRE(out.error.empty());
+    REQUIRE(out.img.valid());
+    const auto px = out.img.at(W / 2, H / 2);
+    INFO("got (" << int(px[0]) << "," << int(px[1]) << "," << int(px[2]) << ")");
+    CHECK(std::abs(int(px[0]) - 64) <= 1);
+    CHECK(std::abs(int(px[1]) - 128) <= 1);
+    CHECK(std::abs(int(px[2]) - 191) <= 1);
+  }
+}
+#endif
+
 TEST_CASE("YUVA444P12Decoder unpacks four 12-bit planes", "[gfx][video][decoder][pixels]")
 {
   const auto api = GENERATE(from_range(platform_backends()));

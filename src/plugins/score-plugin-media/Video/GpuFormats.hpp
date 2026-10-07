@@ -198,6 +198,11 @@ inline constexpr bool formatNeedsDecoding(AVPixelFormat fmt) noexcept
 #endif
 #endif
 
+#if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(59, 55, 100)
+    case AV_PIX_FMT_GBRPF16LE:
+    case AV_PIX_FMT_GBRAPF16LE:
+#endif
+
 #if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(60, 8, 100)
     case AV_PIX_FMT_GRAYF16:
 #endif
