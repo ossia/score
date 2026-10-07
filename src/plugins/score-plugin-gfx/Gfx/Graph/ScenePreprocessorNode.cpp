@@ -63,7 +63,7 @@ static_assert(sizeof(PerDrawBoundsGPU) == 32,
 
 // RawLightData of a loader light, in the encoding the Light process writes:
 // local -Z is the light's direction, area lights collapse to point and dome
-// to directional. No shadow map is fitted for these lights, so shadows are off.
+// to directional. Shadows follow the light's own flag, as Cast shadow does.
 inline RawLightData
 rawLightData(const ossia::light_component& lc, uint32_t transform_slot) noexcept
 {
@@ -89,7 +89,7 @@ rawLightData(const ossia::light_component& lc, uint32_t transform_slot) noexcept
   raw.range_cone[1] = std::cos(lc.inner_cone_angle);
   raw.range_cone[2] = std::cos(lc.outer_cone_angle);
   raw.range_cone[3] = lc.shadow.bias;
-  raw.shadow_enabled = 0u;
+  raw.shadow_enabled = lc.shadow.enabled ? 1u : 0u;
   raw.decay_mode = uint32_t(lc.decay);
   raw.transform_slot = transform_slot;
   raw.normal_bias = lc.shadow.normal_bias;
@@ -5611,7 +5611,8 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
         }
         // The light the cascades belong to, as recorded by Shadow Cascade
         // Setup. When its input had no directional light with a RawLight
-        // slot, they go to the first directional light with Cast shadow on.
+        // slot, they go to the first directional light with Cast shadow on;
+        // a loader light (glTF, FBX) has the slot this preprocessor gave it.
         if(m_registry
            && m_registry->isLiveIn(src.light_slot, GpuResourceRegistry::Arena::RawLight))
         {
@@ -5627,12 +5628,20 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
               if(auto* lc = ossia::get_if<ossia::light_component_ptr>(&p))
               {
                 if(*lc && (*lc)->type == ossia::light_type::directional
-                   && (*lc)->shadow.enabled
-                   && m_registry->isLiveIn(
-                       (*lc)->raw_slot, GpuResourceRegistry::Arena::RawLight))
+                   && (*lc)->shadow.enabled)
                 {
-                  sh.light_slot = (*lc)->raw_slot.internal_index;
-                  return true;
+                  if(m_registry->isLiveIn(
+                         (*lc)->raw_slot, GpuResourceRegistry::Arena::RawLight))
+                  {
+                    sh.light_slot = (*lc)->raw_slot.internal_index;
+                    return true;
+                  }
+                  auto it = m_loaderLightSlots.find(lc->get());
+                  if(it != m_loaderLightSlots.end() && it->second.light.valid())
+                  {
+                    sh.light_slot = it->second.light.slot_index;
+                    return true;
+                  }
                 }
               }
               else if(auto* sub = ossia::get_if<ossia::scene_node_ptr>(&p))
