@@ -1509,9 +1509,9 @@ endif()
 # warned about; a Delayed self-cable carries state.
 score_add_gfx_test(feedback_cycle GfxFeedbackCycle.cpp)
 
-# Library preset fixes (blinn_phong lights, classic_pbr_textured fallback,
-# classic_pbr_shadowed, openpbr light scale, cubemap_orbit orientation, compute
-# preset workgroup sizes and Game of Life).
+# Library preset fixes (blinn_phong lights, the shading tiers' texture
+# fallback and unwired shadows, openpbr light scale, cubemap_orbit
+# orientation, compute preset workgroup sizes and Game of Life).
 score_add_gfx_test(library_presets_render GfxLibraryPresetsRender.cpp)
 score_gfx_test_offset_allocator(test_gfx_library_presets_render)
 if(EXISTS "${SCORE_ROOT_SOURCE_DIR}/src/addons/score-addon-academy/3rdparty/OpenPBR-BSDF/openpbr_data_constants.h")

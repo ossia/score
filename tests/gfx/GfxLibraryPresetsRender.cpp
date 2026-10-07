@@ -5,12 +5,14 @@
 // back:
 //  * blinn_phong reads scene_lights in the current RawLight layout: a
 //    directional light facing the quad brightens it.
-//  * classic_pbr_textured draws a textured material's own texture with its
-//    array input left unwired, and an untextured one in its base colour.
-//  * classic_pbr_shadowed shades a lit quad instead of drawing it black.
+//  * Each shading tier (unlit, blinn_phong, pbr_fast, classic_pbr) draws a
+//    textured material's own texture with its array input left unwired, and
+//    an untextured one in its base colour.
+//  * The lit tiers shade a lit quad instead of drawing it black, and a
+//    shadow-casting light with no cascades wired leaves it unshadowed.
 //  * classic_pbr_openpbr's default bsdf_intensity_scale, with the eight
 //    OpenPBR lookup tables wired, gives a directional light the same direct
-//    contribution classic_pbr_full gives it.
+//    contribution classic_pbr gives it.
 //  * cubemap_orbit.fs shows +Y at the top of the view, as cubemap_view.fs.
 //  * The stock compute presets use a workgroup of at most 256 invocations,
 //    and Game of Life seeds a board and advances it by exact Conway
@@ -37,6 +39,7 @@
 #include <algorithm>
 #include <array>
 #include <cstdint>
+#include <numbers>
 
 #if defined(LIBRARY_PRESETS_OPENPBR_BSDF)
 namespace openpbr_luts
@@ -530,12 +533,20 @@ Probe renderScene(
 
 bool haveRasterPresets()
 {
-  return !preset("classic_pbr_full.frag").isEmpty();
+  return !preset("classic_pbr.frag").isEmpty();
 }
 
 std::string noRasterPresets()
 {
-  return library::skip_reason(kRasterizers + QStringLiteral("classic_pbr_full.frag"));
+  return library::skip_reason(kRasterizers + QStringLiteral("classic_pbr.frag"));
+}
+
+Probe renderTier(
+    score::gfx::GraphicsApi api, const std::string& tier, SceneOpts opts,
+    bool openpbrLuts = false)
+{
+  return renderScene(
+      api, (tier + ".vert").c_str(), (tier + ".frag").c_str(), opts, openpbrLuts);
 }
 }
 
@@ -556,36 +567,41 @@ TEST_CASE("blinn_phong is lit by a scene light", "[gfx][presets]")
   INFO("unlit " << rgba_string(a.center) << " lit " << rgba_string(b.center));
   REQUIRE(a.err.empty());
   REQUIRE(b.err.empty());
-  // Ambient 0.05 without a light; diffuse 0.8 x N.L = 1 on top with one.
-  CHECK(a.center[0] < 40);
-  CHECK(b.center[0] > 150);
+  // No environment, so no ambient without a light. With one, the normalised
+  // Lambert lobe: 0.5 base colour / pi x N.L = 1, plus a negligible specular.
+  CHECK(a.center[0] < 8);
+  CHECK(std::abs(int(b.center[0]) - int(255 * 0.5 / std::numbers::pi)) <= 8);
 }
 
 TEST_CASE(
-    "classic_pbr_textured draws the material's own colour without a wired array",
+    "Each shading tier draws the material's own colour without a wired array",
     "[gfx][presets]")
 {
   const auto api = GENERATE(from_range(platform_backends()));
-  CAPTURE(backend_name(api));
+  const std::string tier
+      = GENERATE(as<std::string>{}, "unlit", "blinn_phong", "pbr_fast", "classic_pbr");
+  CAPTURE(backend_name(api), tier);
   if(!haveRasterPresets())
     SKIP(noRasterPresets());
 
   SceneOpts textured;
   textured.base = {1.f, 1.f, 1.f, 1.f};
   textured.redTexture = true;
-  SceneOpts plain;
+  textured.light = true;
+  textured.intensity = 3.f;
+  SceneOpts plain = textured;
   plain.base = {0.f, 1.f, 0.f, 1.f};
-  const auto t = renderScene(
-      api, "classic_pbr_textured.vert", "classic_pbr_textured.frag", textured);
+  plain.redTexture = false;
+  const auto t = renderTier(api, tier, textured);
   if(t.skipped)
     SKIP("backend unavailable");
-  const auto g = renderScene(
-      api, "classic_pbr_textured.vert", "classic_pbr_textured.frag", plain);
+  const auto g = renderTier(api, tier, plain);
   INFO("textured " << rgba_string(t.center) << " plain " << rgba_string(g.center));
   REQUIRE(t.err.empty());
   REQUIRE(g.err.empty());
-  // No light: ambient 0.04 + the fake environment term, both proportional to
-  // the base colour, so only its hue is asserted, and full coverage.
+  // The lit tiers scale the base colour by their diffuse lobe (the scene has
+  // no environment, hence no ambient term); unlit ignores the light. Only the
+  // hue is asserted, and full coverage.
   CHECK(t.center[0] > 8);
   CHECK(t.center[0] > 3 * std::max<int>(t.center[1], t.center[2]));
   CHECK(t.center[3] == 255);
@@ -594,41 +610,42 @@ TEST_CASE(
   CHECK(g.center[3] == 255);
 }
 
-TEST_CASE("classic_pbr_shadowed shades a lit quad", "[gfx][presets]")
+TEST_CASE(
+    "The lit tiers shade a lit quad, unshadowed without cascades", "[gfx][presets]")
 {
   const auto api = GENERATE(from_range(platform_backends()));
-  CAPTURE(backend_name(api));
+  const std::string tier
+      = GENERATE(as<std::string>{}, "blinn_phong", "pbr_fast", "classic_pbr");
+  CAPTURE(backend_name(api), tier);
   if(!haveRasterPresets())
     SKIP(noRasterPresets());
 
   SceneOpts lit;
   lit.light = true;
   lit.intensity = 3.f;
-  const auto s
-      = renderScene(api, "classic_pbr_shadowed.vert", "classic_pbr_shadowed.frag", lit);
+  const auto s = renderTier(api, tier, lit);
   if(s.skipped)
     SKIP("backend unavailable");
-  const auto f = renderScene(api, "classic_pbr_full.vert", "classic_pbr_full.frag", lit);
+  const auto f = renderTier(api, "classic_pbr", lit);
   SceneOpts casting = lit;
   casting.castShadow = true;
-  const auto c = renderScene(
-      api, "classic_pbr_shadowed.vert", "classic_pbr_shadowed.frag", casting);
+  const auto c = renderTier(api, tier, casting);
   INFO(
-      "shadowed " << rgba_string(s.center) << " casting, no cascades "
-                  << rgba_string(c.center) << " full " << rgba_string(f.center));
+      "lit " << rgba_string(s.center) << " casting, no cascades "
+             << rgba_string(c.center) << " classic_pbr " << rgba_string(f.center));
   REQUIRE(s.err.empty());
   REQUIRE(c.err.empty());
   REQUIRE(f.err.empty());
   CHECK(s.center[0] > 100);
-  // Same direct lighting, different ambient and environment terms: the two
-  // presets agree to a quarter of the range, not exactly.
+  // Same direct lighting, different BRDFs and ambient terms: the tiers agree
+  // with classic_pbr to a quarter of the range, not exactly.
   CHECK(std::abs(int(s.center[0]) - int(f.center[0])) < 64);
   // A shadow-casting light with no cascades wired is unshadowed.
   CHECK(std::abs(int(c.center[0]) - int(s.center[0])) <= 2);
 }
 
 TEST_CASE(
-    "classic_pbr_openpbr's default light scale matches classic_pbr_full",
+    "classic_pbr_openpbr's default light scale matches classic_pbr",
     "[gfx][presets]")
 {
   const auto api = GENERATE(from_range(platform_backends()));
@@ -652,10 +669,8 @@ TEST_CASE(
     SKIP("backend unavailable");
   const auto o1 = renderScene(
       api, "classic_pbr_openpbr.vert", "classic_pbr_openpbr.frag", lit, true);
-  const auto f0
-      = renderScene(api, "classic_pbr_full.vert", "classic_pbr_full.frag", dark);
-  const auto f1
-      = renderScene(api, "classic_pbr_full.vert", "classic_pbr_full.frag", lit);
+  const auto f0 = renderTier(api, "classic_pbr", dark);
+  const auto f1 = renderTier(api, "classic_pbr", lit);
   INFO(
       "openpbr " << rgba_string(o0.center) << " -> " << rgba_string(o1.center)
                  << " | full " << rgba_string(f0.center) << " -> "
@@ -668,7 +683,7 @@ TEST_CASE(
   const int dOpen = int(o1.center[0]) - int(o0.center[0]);
   const int dFull = int(f1.center[0]) - int(f0.center[0]);
   // The light's own contribution on a 0.5 grey diffuse quad is ~0.15 through
-  // classic_pbr_full. OpenPBR's energy-conserving diffuse differs from the
+  // classic_pbr. OpenPBR's energy-conserving diffuse differs from the
   // Lambert lobe by a few percent; the bounds catch a scale that is off by a
   // constant factor, as a wrong default bsdf_intensity_scale would be.
   CHECK(dFull > 20);
