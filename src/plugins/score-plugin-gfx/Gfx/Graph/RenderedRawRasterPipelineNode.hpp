@@ -82,6 +82,10 @@ private:
   // expressions. Returns >= 1; unparseable expressions degrade to 1.
   int resolveManualInvocationCount() const;
   bool outputSizeReadsBufferSizes() const noexcept;
+  //! The size OUTPUTS.WIDTH / HEIGHT declare, invalid when none does.
+  QSize declaredOutputSize() const;
+  //! declaredOutputSize() when the MRT targets were last allocated.
+  QSize m_declaredOutputSize;
 
   // True when the shader renders procedurally: no VERTEX_INPUTS, driven by
   // gl_VertexIndex, with PIPELINE_STATE.VERTEX_COUNT set. m_mesh stays null and
@@ -91,7 +95,7 @@ private:
 
   // Evaluate an integer-valued expression against the same variable
   // surface as resolveManualInvocationCount ($WIDTH_<inp> / $HEIGHT /
-  // scalar inputs). Used for OUTPUTS.WIDTH / HEIGHT at init time.
+  // scalar inputs). Used for OUTPUTS.WIDTH / HEIGHT.
   // Returns `fallback` when the expression is empty, >=1 otherwise.
   int resolveIntExpression(const std::string& expr, int fallback) const;
 

@@ -1480,25 +1480,9 @@ void RenderedRawRasterPipelineNode::initMRTPass(
   // every attachment ends up at the size of the first explicitly sized OUTPUT.
   // Unsized outputs inherit it; differing explicit sizes are a shader-author
   // error and are not diagnosed here.
-  QSize sz = renderer.state.renderSize;
-  // First non-zero explicit WIDTH/HEIGHT wins. Depth outputs participate
-  // too: shadow_cascades.frag (depth-only, no colour outputs at all)
-  // declares the shadow-map resolution on its depth output, and we want
-  // that to drive the RT size rather than falling through to renderSize.
-  for(const auto& out : outputs)
-  {
-    int w = out.width_expression.empty()
-                ? out.width
-                : resolveIntExpression(out.width_expression, 0);
-    int h = out.height_expression.empty()
-                ? out.height
-                : resolveIntExpression(out.height_expression, 0);
-    if(w > 0 && h > 0)
-    {
-      sz = QSize(w, h);
-      break;
-    }
-  }
+  m_declaredOutputSize = declaredOutputSize();
+  QSize sz = m_declaredOutputSize.isValid() ? m_declaredOutputSize
+                                            : renderer.state.renderSize;
 
   // A cube face is square, and every attachment of the pass follows it: the
   // depth attachment, and any other colour output, at the non-square render
@@ -3000,8 +2984,12 @@ void RenderedRawRasterPipelineNode::initState(
     bool hasLayered = false;
     bool hasCubemap = false;
     bool hasColorOverride = false;
+    bool hasExplicitSize = false;
     for(const auto& out : outputs)
     {
+      if(out.width > 0 || out.height > 0 || !out.width_expression.empty()
+         || !out.height_expression.empty())
+        hasExplicitSize = true;
       if(out.type == "depth")
         hasDepth = true;
       else
@@ -3036,7 +3024,7 @@ void RenderedRawRasterPipelineNode::initState(
       manual = (et == "MANUAL");
     }
     m_hasMRT = colorCount > 1 || hasDepth || hasLayered || hasCubemap
-               || hasColorOverride || perMip || manual
+               || hasColorOverride || hasExplicitSize || perMip || manual
                || n.descriptor().multiview_count >= 2;
   }
 
@@ -3796,6 +3784,10 @@ void RenderedRawRasterPipelineNode::update(
     mustRecreatePasses = true;
   }
   if(std::exchange(m_auxSamplerChanged, false))
+    mustRecreatePasses = true;
+  // OUTPUTS.WIDTH / HEIGHT may read inputs: the target follows them.
+  if(m_hasMRT && m_declaredOutputSize.isValid()
+     && declaredOutputSize() != m_declaredOutputSize)
     mustRecreatePasses = true;
 
   if(mustRecreatePasses)
@@ -4924,44 +4916,31 @@ int RenderedRawRasterPipelineNode::resolveIntExpression(
 
   // Walk the descriptor's image-style inputs in declared order so the
   // first one supplies the unsuffixed $WIDTH / $HEIGHT family, matching
-  // CSF's `registerCommonExpressionVariables` semantics.
+  // CSF's `registerCommonExpressionVariables` semantics. Scalar inputs mirror
+  // the $<inputName> surface from their live port values. Ports and sampler
+  // slots are not one per input: port 0 is the Geometry input, and an input
+  // may own none or several, so both come from the canonical walker.
   bool first_image = true;
-  int sampler_idx = 0;
-  for(const auto& inp : n.descriptor().inputs)
-  {
+  walk_descriptor_inputs(
+      n.descriptor(), port_counts{1, 0, 0},
+      [&](const isf::input& inp, const port_counts& cur, const port_counts&) {
     if(ossia::get_if<isf::texture_input>(&inp.data)
        || ossia::get_if<isf::image_input>(&inp.data))
     {
       QRhiTexture* t = nullptr;
-      if(sampler_idx < (int)m_inputSamplers.size())
-        t = m_inputSamplers[sampler_idx].texture;
+      if(cur.samplers < (int)m_inputSamplers.size())
+        t = m_inputSamplers[cur.samplers].texture;
       register_size(inp.name, t, first_image);
-      ++sampler_idx;
+      return;
     }
-  }
-
-  // Scalar ports — mirror the $<inputName> surface. Walking node.input in
-  // parallel with descriptor.inputs lets us pull live values without
-  // reimplementing the port-dispatch plumbing.
-  int port_idx = 0;
-  for(const auto& inp : n.descriptor().inputs)
-  {
-    auto port = (port_idx < (int)n.input.size()) ? n.input[port_idx]
-                                                 : nullptr;
+    auto port = cur.inlets < (int)n.input.size() ? n.input[cur.inlets] : nullptr;
+    if(!port || !port->value)
+      return;
     if(ossia::get_if<isf::float_input>(&inp.data))
-    {
-      if(port && port->value)
-        e.add_constant(
-            "var_" + inp.name, data.emplace_back(*(float*)port->value));
-    }
+      e.add_constant("var_" + inp.name, data.emplace_back(*(float*)port->value));
     else if(ossia::get_if<isf::long_input>(&inp.data))
-    {
-      if(port && port->value)
-        e.add_constant(
-            "var_" + inp.name, data.emplace_back(*(int*)port->value));
-    }
-    ++port_idx;
-  }
+      e.add_constant("var_" + inp.name, data.emplace_back(*(int*)port->value));
+  });
 
   // Register $COUNT_<bufferName> / $BYTESIZE_<bufferName> for every SSBO and UBO
   // the pipeline binds. Same semantics as CSF: COUNT is the flexible array's
@@ -5243,6 +5222,26 @@ const ossia::geometry_spec& RenderedRawRasterPipelineNode::drawGeometry()
         cpu ? (const void*)cpu->raw_data.get() : nullptr, cpu ? cpu->byte_size : 0);
   }
   return m_primitiveGeometry;
+}
+
+QSize RenderedRawRasterPipelineNode::declaredOutputSize() const
+{
+  // First non-zero explicit WIDTH/HEIGHT wins. Depth outputs participate
+  // too: shadow_cascades.frag (depth-only, no colour outputs at all)
+  // declares the shadow-map resolution on its depth output, and we want
+  // that to drive the RT size rather than falling through to renderSize.
+  for(const auto& out : n.descriptor().outputs)
+  {
+    const int w = out.width_expression.empty()
+                      ? out.width
+                      : resolveIntExpression(out.width_expression, 0);
+    const int h = out.height_expression.empty()
+                      ? out.height
+                      : resolveIntExpression(out.height_expression, 0);
+    if(w > 0 && h > 0)
+      return QSize(w, h);
+  }
+  return {};
 }
 
 bool RenderedRawRasterPipelineNode::outputSizeReadsBufferSizes() const noexcept
