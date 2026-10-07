@@ -164,6 +164,7 @@ threedim_test_includes(test_threedim_camera_release)
 # arena slots stay invalid and no GPU is touched.
 score_add_test(test_threedim_scene_graph_ops
   SOURCES SceneGraphOps.cpp
+    "${THREEDIM_DIR}/ConfigurePrimitive.cpp"
     "${THREEDIM_DIR}/SceneGroup.cpp"
     "${THREEDIM_DIR}/SceneSelector.cpp"
     "${THREEDIM_DIR}/SceneDuplicator.cpp"

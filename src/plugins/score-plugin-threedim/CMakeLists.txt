@@ -162,6 +162,7 @@ add_library(
   Threedim/MergeGeometries/Process.hpp
   Threedim/MergeGeometries/Process.cpp
 
+  Threedim/SceneGlob.hpp
   Threedim/SceneGraphFilter.hpp
   Threedim/SceneGraphFilter.cpp
   Threedim/SceneSwitch.hpp

@@ -1,5 +1,7 @@
 #include "SceneGraphFilter.hpp"
 
+#include <Threedim/SceneGlob.hpp>
+
 #include <ossia/network/value/value.hpp>
 
 #include <fmt/format.h>
@@ -12,80 +14,12 @@ namespace Threedim
 namespace
 {
 
-// ───── Glob matching ─────────────────────────────────────────────────
-// Minimal glob: `*` matches anything except `/`, `**` matches across
-// slashes, `?` matches a single non-slash character, everything else
-// is literal. Good enough for path-style filters; `std::regex` is the
-// fallback if users want full regex later.
-bool glob_match(std::string_view pattern, std::string_view text) noexcept
-{
-  std::size_t pi = 0, ti = 0;
-  std::size_t star_pi = std::string_view::npos;
-  std::size_t star_ti = 0;
-  bool star_double = false;
-
-  while(ti < text.size())
-  {
-    if(pi < pattern.size())
-    {
-      char pc = pattern[pi];
-      if(pc == '*')
-      {
-        // Detect `**` for slash-crossing wildcard.
-        star_double = (pi + 1 < pattern.size() && pattern[pi + 1] == '*');
-        if(star_double)
-          pi += 2;
-        else
-          pi += 1;
-        star_pi = pi;
-        star_ti = ti;
-        continue;
-      }
-      if(pc == '?')
-      {
-        if(text[ti] == '/')
-        {
-          // `?` can't cross slashes; bail to backtrack below.
-        }
-        else
-        {
-          ++pi;
-          ++ti;
-          continue;
-        }
-      }
-      else if(pc == text[ti])
-      {
-        ++pi;
-        ++ti;
-        continue;
-      }
-    }
-    // Mismatch — backtrack to last star.
-    if(star_pi != std::string_view::npos)
-    {
-      // `*` can't eat a slash; `**` can.
-      if(!star_double && text[star_ti] == '/')
-        return false;
-      pi = star_pi;
-      ++star_ti;
-      ti = star_ti;
-      continue;
-    }
-    return false;
-  }
-  // Consume trailing stars.
-  while(pi < pattern.size() && pattern[pi] == '*')
-    ++pi;
-  return pi == pattern.size();
-}
-
 // Return true if any pattern in `patterns` matches `text`.
 bool any_match(
     const std::vector<std::string>& patterns, std::string_view text) noexcept
 {
   for(const auto& pat : patterns)
-    if(glob_match(pat, text))
+    if(scene_glob_match(pat, text))
       return true;
   return false;
 }
