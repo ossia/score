@@ -66,7 +66,8 @@ public:
     // directional light in the scene with Cast shadow on (or the first
     // directional light if none casts), but some pipelines (e.g. a single
     // orbiting light without a Light node) benefit from setting this
-    // directly.
+    // directly. The cascades still belong to that light: only their
+    // direction changes.
     struct : halp::xyz_spinboxes_f32<"Light direction", halp::range{-1., 1., 0.}>
     { void update(ShadowCascadeSetup& n) { n.rebuild(); } } light_direction;
   } inputs;

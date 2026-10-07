@@ -719,6 +719,20 @@ if(TARGET score_plugin_threedim AND TARGET score_plugin_avnd)
     HEADERS_FROM score_plugin_threedim)
 endif()
 
+# shadow_cascades.light_slot names the light Shadow Cascade Setup fitted the
+# cascades to, with or without its direction override.
+if(TARGET score_plugin_threedim AND TARGET score_plugin_avnd)
+  score_add_gfx_plugin_test(shadow_cascade_light_slot
+    SOURCES GfxShadowCascadeLightSlot.cpp
+    HIDDEN
+      "${_threedim}/Primitive.cpp"
+      "${_threedim}/Camera.cpp"
+      "${_threedim}/Light.cpp"
+      "${_threedim}/ShadowCascadeSetup.cpp"
+    PLUGINS score_plugin_avnd
+    HEADERS_FROM score_plugin_threedim)
+endif()
+
 # Switching the active camera mid-render moves the image (the drawn
 # colour identifies WHICH camera is active), and switching back reproduces
 # the first frame byte-for-byte with zero texture-channel reallocation. CPU

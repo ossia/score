@@ -396,6 +396,8 @@ struct WorldTransformMat4
 //   cascade_split_distances[8] view-space far-plane Z of cascade k; slots
 //                              >= cascade_count read as 0
 //   cascade_count              how many entries are live (0..8)
+//   light_slot                 RawLight arena slot of the light the cascades
+//                              belong to, 0xFFFFFFFF for none
 struct ShadowCascadesUBO
 {
   float light_view_proj[8][16]{};
@@ -403,7 +405,7 @@ struct ShadowCascadesUBO
   // std140: two consecutive vec4 rows (32 B total).
   float cascade_split_distances[8]{};
   uint32_t cascade_count{0};
-  uint32_t _pad0{};
+  uint32_t light_slot{0xFFFFFFFFu};
   uint32_t _pad1{};
   uint32_t _pad2{};
 };
