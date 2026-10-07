@@ -306,6 +306,11 @@ score_add_test(test_threedim_material_override
   SOURCES MaterialOverrideTest.cpp "${THREEDIM_DIR}/MaterialOverride.cpp")
 threedim_test_includes(test_threedim_material_override)
 
+# Material Override takes its base and emissive colours from colour controls.
+score_add_test(test_threedim_material_override_color
+  SOURCES MaterialOverrideColor.cpp "${THREEDIM_DIR}/MaterialOverride.cpp")
+threedim_test_includes(test_threedim_material_override_color)
+
 # SceneGraphFilter: the scene_state -> scene_state culling predicate walker.
 # Pure CPU — the whole unit is rebuild()/operator()(); no GPU, no Qt.
 score_add_test(test_threedim_scene_graph_filter

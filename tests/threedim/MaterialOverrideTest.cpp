@@ -101,16 +101,11 @@ TEST_CASE("All mode overrides exactly the toggled factors on every material",
   Threedim::MaterialOverride n;
   n.inputs.scene_in.scene.state = raw;
   n.inputs.use_base_color.value = true;
-  n.inputs.base_r.value = 0.2f;
-  n.inputs.base_g.value = 0.4f;
-  n.inputs.base_b.value = 0.6f;
-  n.inputs.base_a.value = 0.8f;
+  n.inputs.base_color.value = {0.2f, 0.4f, 0.6f, 0.8f};
   n.inputs.use_roughness.value = true;
   n.inputs.roughness.value = 0.25f;
   n.inputs.use_emissive.value = true;
-  n.inputs.em_r.value = 1.f;
-  n.inputs.em_g.value = 2.f;
-  n.inputs.em_b.value = 3.f;
+  n.inputs.emissive.value = {1.f, 2.f, 3.f, 1.f};
   n.inputs.em_strength.value = 0.5f;
   // use_metallic stays off: metallic must survive from the loader.
 
@@ -240,7 +235,7 @@ TEST_CASE("a configured override neither rebuilds nor re-bumps on idle ticks",
   Threedim::MaterialOverride n;
   n.inputs.scene_in.scene.state = raw;
   n.inputs.use_base_color.value = true;
-  n.inputs.base_r.value = 0.5f;
+  n.inputs.base_color.value.r = 0.5f;
 
   n();
   const auto first = n.outputs.scene_out.scene.state;
