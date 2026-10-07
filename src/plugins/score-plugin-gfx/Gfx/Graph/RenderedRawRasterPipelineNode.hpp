@@ -158,8 +158,8 @@ private:
     int64_t declared_size{};
   };
   std::vector<AuxiliarySSBO> m_auxiliarySSBOs;
-  static void
-  createAuxPlaceholder(QRhi& rhi, QRhiResourceUpdateBatch& res, AuxiliarySSBO& aux);
+  static void createAuxPlaceholder(
+      QRhi& rhi, QRhiResourceUpdateBatch& res, AuxiliarySSBO& aux, QSize renderSize);
 
   // The `camera` block's buffer while a Camera is wired to the node's camera
   // input (ISFNode::cameraInput): packed from that scene's cameras and bound in

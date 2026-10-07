@@ -1509,6 +1509,10 @@ endif()
 score_add_gfx_test(scene_preprocessor_regressions GfxScenePreprocessorRegressions.cpp)
 score_gfx_test_offset_allocator(test_gfx_scene_preprocessor_regressions)
 
+# The camera placeholder a raw raster binds before a scene feeds it carries
+# the render size rather than zero.
+score_add_gfx_test(camera_placeholder_render_size GfxCameraPlaceholderRenderSize.cpp)
+
 # An AUXILIARY texture declared without MIPMAP_MODE samples the bound
 # texture's mips: textureLod on the scene's prefiltered_map reaches level N.
 score_add_gfx_test(aux_texture_mips GfxAuxTextureMips.cpp)
