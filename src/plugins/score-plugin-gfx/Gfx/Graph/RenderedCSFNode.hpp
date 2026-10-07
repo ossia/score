@@ -298,6 +298,7 @@ private:
     uint64_t closesCycleGeneration{~uint64_t{0}};
     bool has_output{false};     // true if any attribute is writable
     bool has_vertex_count_spec{false};   // true if vertex_count expression is set
+    bool warned_multiple_cables{false};  // several cables on the input, reported once
     bool has_instance_count_spec{false}; // true if instance_count expression is set
     bool is_feedback_receiver{false};    // true = uses ping-pong double buffering for read_write attrs
     bool pending_initial_copy{false};    // first frame after read_buffer allocated: use same-buffer mode, then copy buffer→read_buffer
