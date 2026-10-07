@@ -28,6 +28,27 @@ namespace JS
 
 GlobalDeviceEnumerator::GlobalDeviceEnumerator() { }
 
+void GlobalDeviceEnumerator::classBegin()
+{
+  m_qmlCreating = true;
+}
+
+void GlobalDeviceEnumerator::componentComplete()
+{
+  m_qmlCreating = false;
+  reprocess();
+}
+
+void GlobalDeviceEnumerator::requestReprocess()
+{
+  // Half-written object: the filter may not have landed, and an empty one
+  // means "every protocol". componentComplete() does the walk.
+  if(m_qmlCreating)
+    return;
+
+  QMetaObject::invokeMethod(this, &GlobalDeviceEnumerator::reprocess);
+}
+
 //! A protocol filter is either the name the device dialog shows -- "OSC",
 //! "DMX", "Camera" -- matched case-insensitively, or the protocol
 //! factory's UUID.
@@ -91,7 +112,7 @@ void GlobalDeviceEnumerator::setDeviceTypes(const QStringList& types)
 
   deviceTypeChanged(deviceType());
   deviceTypesChanged(m_deviceTypes);
-  reprocess();
+  requestReprocess();
 }
 
 GlobalDeviceEnumerator::~GlobalDeviceEnumerator()
@@ -103,7 +124,7 @@ GlobalDeviceEnumerator::~GlobalDeviceEnumerator()
 void GlobalDeviceEnumerator::setContext(const score::DocumentContext* doc)
 {
   this->doc = doc;
-  reprocess();
+  requestReprocess();
 }
 
 QQmlListProperty<DeviceIdentifier> GlobalDeviceEnumerator::devices()
@@ -134,7 +155,7 @@ void GlobalDeviceEnumerator::setEnumerate(bool b)
   m_enumerate = b;
   enumerateChanged(b);
 
-  QMetaObject::invokeMethod(this, &GlobalDeviceEnumerator::reprocess);
+  requestReprocess();
 }
 
 void GlobalDeviceEnumerator::clearEnumerators()
