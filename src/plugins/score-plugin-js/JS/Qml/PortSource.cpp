@@ -4,6 +4,7 @@
 #include <Process/Process.hpp>
 
 #include <JS/Qml/EditContext.hpp>
+#include <JS/Qml/ValueWriteBack.hpp>
 
 #include <score/application/GUIApplicationContext.hpp>
 #include <score/plugins/documentdelegate/DocumentDelegateModel.hpp>
@@ -121,9 +122,11 @@ void PortSource::rebuild()
   connect(
       m_inlet, &Process::ControlInlet::executionValueChanged, this,
       [this](const ossia::value& v) {
+    // The executor's snapshot must not replace what the user is typing: see
+    // JS/Qml/ValueWriteBack.hpp for why an equality test alone cannot do it.
     auto vv = v.apply(ossia::qt::ossia_to_qvariant{});
     m_writingValue = true;
-    m_targetProperty.write(vv);
+    writeBackUnlessEditing(m_targetProperty, vv);
     m_writingValue = false;
   });
 }

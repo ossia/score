@@ -1,6 +1,7 @@
 #include "AddressItem.hpp"
 
 #include <JS/Qml/DeviceContext.hpp>
+#include <JS/Qml/ValueWriteBack.hpp>
 
 #include <ossia/network/base/device.hpp>
 #include <ossia/network/base/node.hpp>
@@ -108,9 +109,12 @@ void AddressSource::on_newUIValue()
 
 void AddressSource::on_newNetworkValue(const ossia::value& v)
 {
+  // Same guard as PortSource: a device that echoes the value back, or a peer
+  // that writes while the user is typing, must not take the edit away from
+  // them. See JS/Qml/ValueWriteBack.hpp.
   auto vv = v.apply(ossia::qt::ossia_to_qvariant{});
   m_writingValue = true;
-  m_targetProperty.write(vv);
+  writeBackUnlessEditing(m_targetProperty, vv);
   m_writingValue = false;
 }
 
