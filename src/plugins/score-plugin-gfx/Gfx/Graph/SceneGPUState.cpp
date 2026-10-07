@@ -819,6 +819,46 @@ static SkeletonGPU packSkeleton(const ossia::skeleton_component& sk)
   return sg;
 }
 
+// Alpha-blended draws go after the opaque and masked ones, back to front from
+// the camera, so that in the single indirect batch the presets draw with depth
+// test and write on, each blended surface composites over what is behind it.
+// Opaque and masked draws keep their walk order. The distance is to the centre
+// of the draw's world-space bounds (its origin when it has none): intersecting
+// or nested blended surfaces, or the faces of one blended mesh, can still come
+// out in the wrong order.
+static void sortBlendedDraws(std::vector<DrawCall>& draws, QVector3D eye)
+{
+  const auto blended = [](const DrawCall& dc) {
+    return dc.material && dc.material->alpha == ossia::alpha_mode::blend;
+  };
+  const auto first = std::stable_partition(
+      draws.begin(), draws.end(), [&](const DrawCall& dc) { return !blended(dc); });
+  if(std::distance(first, draws.end()) < 2)
+    return;
+
+  const auto distance = [&](const DrawCall& dc) {
+    const auto& b = dc.local_bounds;
+    const QVector3D centre
+        = b.empty() ? QVector3D{}
+                    : QVector3D{
+                          0.5f * (b.min[0] + b.max[0]), 0.5f * (b.min[1] + b.max[1]),
+                          0.5f * (b.min[2] + b.max[2])};
+    return (dc.worldTransform.map(centre) - eye).lengthSquared();
+  };
+  std::vector<std::pair<float, std::size_t>> order;
+  order.reserve(std::size_t(std::distance(first, draws.end())));
+  for(auto it = first; it != draws.end(); ++it)
+    order.emplace_back(distance(*it), std::size_t(it - draws.begin()));
+  std::stable_sort(order.begin(), order.end(), [](const auto& a, const auto& b) {
+    return a.first > b.first;
+  });
+  std::vector<DrawCall> sorted;
+  sorted.reserve(order.size());
+  for(const auto& [d, i] : order)
+    sorted.push_back(std::move(draws[i]));
+  std::move(sorted.begin(), sorted.end(), first);
+}
+
 void flattenScene(
     const ossia::scene_spec& scene, FlatScene& out, float aspectRatio,
     const GpuResourceRegistry* registry)
@@ -1048,6 +1088,8 @@ void flattenScene(
     out.cameraFar = 1000.f;
     out.hasCamera = false;
   }
+
+  sortBlendedDraws(out.draws, out.cameraPosition);
 }
 
 }
