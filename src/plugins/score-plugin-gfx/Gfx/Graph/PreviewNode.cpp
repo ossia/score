@@ -175,6 +175,25 @@ public:
   void release(score::gfx::RenderList&) override { }
 };
 
+// Renders the graph into an intermediate texture and blits that into the host
+// texture, which turns the picture over on the way.
+//
+// WHERE THE FLIP COMES FROM, per backend. The blit uses the default full-screen
+// triangle, whose vertex shader is `gl_Position = clipSpaceCorrMatrix *
+// vec4(position, 0, 1)` with `v_texcoord = texcoord` and `texcoord.y =
+// (position.y + 1) / 2`. Pair that with where NDC -Y lands in memory and the
+// sampling below is an identity in texture coordinates but a Y flip in memory
+// on every backend except OpenGL:
+//
+//     backend | clipSpaceCorrMatrix Y | NDC Y | first memory row is at
+//     OpenGL  |         +1            |  up   | y_clip = -1  ->  v = 0  (identity)
+//     Vulkan  |         -1            | down  | y_clip = -1  ->  v = 1  (flip)
+//     Metal   |         +1            |  up   | y_clip = +1  ->  v = 1  (flip)
+//     D3D     |         +1            |  up   | y_clip = +1  ->  v = 1  (flip)
+//
+// So the fragment shader samples v straight: the flip is in the geometry, not in
+// the sampling, and writing `1. - v` here for Vulkan would cancel it exactly --
+// which is measurably indistinguishable from not using this renderer at all.
 class PreviewRendererInvertY final : public score::gfx::OutputNodeRenderer
 {
   score::gfx::TextureRenderTarget m_inputTarget;
@@ -213,9 +232,11 @@ public:
     const auto& mesh = renderer.defaultTriangle();
     m_mesh = renderer.initMeshBuffer(mesh, res);
 
-    // Note that unlike the "InvertYRenderer", here we leverage the
-    // coordinate inversion inherent to metal rendering (e.g. y direction is
-    // different in viewport vs texture, thus displaying a texture "inverts" it)
+    // Identity sampling, deliberately: the per-backend table above this class
+    // explains why that is already a memory-space Y flip here, and why a
+    // `1. - v` under QSHADER_SPIRV would undo precisely the inversion it looks
+    // like it is adding. Unlike Gfx/InvertYRenderer.cpp, which targets a
+    // top-down video buffer and so has to spell the flip out in the shader.
     static const constexpr auto gl_filter = R"_(#version 450
     layout(location = 0) in vec2 v_texcoord;
     layout(location = 0) out vec4 fragColor;
@@ -281,6 +302,26 @@ public:
   }
 };
 
+bool previewFirstRowIsPictureBottom(QRhi& rhi) noexcept
+{
+  // Must stay in step with createRenderer below: true exactly for the backends
+  // whose host texture ends up in OpenGL's row order.
+  switch(rhi.backend())
+  {
+    case QRhi::OpenGLES2:
+      // Pass-through, and OpenGL's framebuffer origin is already at the bottom.
+      return true;
+    case QRhi::Vulkan:
+      // Pass-through would leave the picture's top at the first row; the blit
+      // puts it back the OpenGL way.
+      return true;
+    default:
+      // Metal and D3D keep the renderer they have always had. Whether the
+      // result is OpenGL's order there is NOT established -- see createRenderer.
+      return false;
+  }
+}
+
 score::gfx::OutputNodeRenderer*
 PreviewNode::createRenderer(score::gfx::RenderList& r) const noexcept
 {
@@ -292,14 +333,37 @@ PreviewNode::createRenderer(score::gfx::RenderList& r) const noexcept
   {
     default:
     case score::gfx::GraphicsApi::OpenGL:
-    case score::gfx::GraphicsApi::Vulkan:
+      // Nothing to correct: the graph's last pass draws straight into the
+      // item's render target, and OpenGL's framebuffer order already puts the
+      // picture's bottom in the texture's first row.
       return new score::gfx::PreviewRenderer{*this, rt};
-      break;
+
+    case score::gfx::GraphicsApi::Vulkan:
+      // Vulkan is the one backend where clipSpaceCorrMatrix negates Y, so a
+      // shader's output position lands in memory the other way up than it does
+      // on OpenGL. Every other sink in score has a stage that absorbs that:
+      // InvertYRenderer spells out `1. - v` for a readback target, and
+      // ScaledRenderer does the same for a swapchain ("only Vulkan needs the
+      // correction, because only there did clipSpaceCorrMatrix already flip
+      // clip space"). A preview had none, so it handed Qt Quick 3D a texture
+      // mirrored against the one OpenGL hands it -- for a fisheye source, an
+      // azimuth mirror in the projected dome. The blit is that missing stage.
+      return new score::gfx::PreviewRendererInvertY{*this, rt};
+
     case score::gfx::GraphicsApi::Metal:
     case score::gfx::GraphicsApi::D3D11:
     case score::gfx::GraphicsApi::D3D12:
+      // UNCHANGED, and not because it is known to be right. Neither backend can
+      // be created on Linux, so there is no measurement of what row order they
+      // end up with; the table above PreviewRendererInvertY predicts that this
+      // blit also flips there, which -- combined with score's ISF vertex stage
+      // negating Y for MSL and HLSL as well -- would leave Metal and D3D in the
+      // backend's own order rather than OpenGL's, i.e. still wrong for the
+      // Quick3D consumer and right for the 2D one. Settling that needs a run of
+      // tests/gfx/GfxPreviewSourceItemOrientation.cpp on Apple or Windows
+      // hardware, and until then this change does not touch them: the 2D
+      // preview there keeps working exactly as it does today.
       return new score::gfx::PreviewRendererInvertY{*this, rt};
-      break;
   }
   return nullptr;
 }
