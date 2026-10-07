@@ -21,6 +21,14 @@ score_add_test(test_unit_recursive_watch_cancel
   SOURCES RecursiveWatchCancelTest.cpp
   PLUGINS score_lib_base)
 
+# A FileWatch's poll timer stays on the thread that armed it, so ~FileWatch
+# can kill it. Armed on one thread and destroyed from another, the timer was
+# left registered in a pool thread's dispatcher pointing at freed memory --
+# an access violation on exit (0xC0000005 on Windows).
+score_add_test(test_unit_file_watch_thread_affinity
+  SOURCES FileWatchThreadAffinityTest.cpp
+  PLUGINS score_lib_base)
+
 # --- project consolidation primitives (score_lib_base) ---------------------
 # Path math against explicit roots, file-name sanitizing, destination
 # placement. No document, no app: this is the layer everything else builds on.
