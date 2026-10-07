@@ -44,6 +44,7 @@ set(HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/QmlProcess.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/TextureSource.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/Utils.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/ValueWriteBack.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/ViewContext.hpp"
 
   "${CMAKE_CURRENT_SOURCE_DIR}/JS/ApplicationPlugin.hpp"

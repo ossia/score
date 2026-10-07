@@ -8,9 +8,18 @@
 #include <QKeyEvent>
 #include <QString>
 #include <QWidget>
+#include <QWindow>
 
 namespace score::test
 {
+
+//! Qt::Key_A .. Qt::Key_Z and Qt::Key_0 .. Qt::Key_9 are the upper-cased code
+//! points; anything else keeps its own, which is what the editors that only
+//! look at text() need.
+inline Qt::Key keyOf(QChar c) noexcept
+{
+  return static_cast<Qt::Key>(c.toUpper().unicode());
+}
 
 inline void keyEvent(
     QWidget& widget, QEvent::Type type, Qt::Key key, Qt::KeyboardModifiers mods,
@@ -34,13 +43,33 @@ inline void keyClicks(
     QWidget& widget, const QString& text, Qt::KeyboardModifiers mods = Qt::NoModifier)
 {
   for(const QChar c : text)
-  {
-    // Qt::Key_A .. Qt::Key_Z and Qt::Key_0 .. Qt::Key_9 are the upper-cased
-    // code points; anything else keeps its own, which is what the widgets that
-    // only look at text() need.
-    const auto key = static_cast<Qt::Key>(c.toUpper().unicode());
-    keyClick(widget, key, mods, QString{c});
-  }
+    keyClick(widget, keyOf(c), mods, QString{c});
+}
+
+/**
+ * @brief Press and release a single key on \p window.
+ *
+ * The QWindow overload, for the QtQuick side: a QQuickWindow routes a key
+ * event to its active focus item, so this is the only way to type into a QML
+ * editor the way the platform does. Sending the event to the item itself
+ * bypasses that routing.
+ */
+inline void keyClick(
+    QWindow& window, Qt::Key key, Qt::KeyboardModifiers mods = Qt::NoModifier,
+    const QString& text = {})
+{
+  QKeyEvent press{QEvent::KeyPress, key, mods, text};
+  QCoreApplication::sendEvent(&window, &press);
+  QKeyEvent release{QEvent::KeyRelease, key, mods, text};
+  QCoreApplication::sendEvent(&window, &release);
+}
+
+//! Type \p text on \p window, one character at a time.
+inline void keyClicks(
+    QWindow& window, const QString& text, Qt::KeyboardModifiers mods = Qt::NoModifier)
+{
+  for(const QChar c : text)
+    keyClick(window, keyOf(c), mods, QString{c});
 }
 
 }
