@@ -9,30 +9,14 @@ namespace score::gfx
 /**
  * @brief Row order PreviewNode writes into its host texture.
  *
- * `true` when the texture's FIRST row -- the row a sampler reaches at v = 0, and
- * row 0 of a QRhi readback -- is the BOTTOM of the picture, which is OpenGL's
- * framebuffer order.
+ * `true` when the first row -- what a sampler reaches at v = 0 -- is the bottom
+ * of the picture, i.e. OpenGL's framebuffer order. Always OpenGL's, because
+ * Quick3D's Texture.sourceItem takes the texture-provider branch and samples
+ * the texture raw, so it cannot be corrected downstream and every existing
+ * document was authored against that order.
  *
- * Two places have to agree on this and they are not next to each other:
- *
- *  * PreviewNode::createRenderer, which decides whether the graph draws
- *    straight into the host render target or through a Y-flipping blit;
- *  * the host item, which displays the same texture as a 2D quad.
- *    QQuickRhiItem::updatePaintNode picks its UV transform from
- *    QRhi::isYUpInFramebuffer(), i.e. it assumes the texture follows the
- *    BACKEND's order, so wherever this function disagrees with
- *    isYUpInFramebuffer() the item must set `mirrorVertically` to re-flip.
- *
- * The consumer that cannot be fixed up downstream is Qt Quick 3D's
- * `Texture.sourceItem`: QQuickRhiItem is a QSGTextureProvider, so Quick3D takes
- * the provider branch of QQuick3DTexture::updateSpatialNode and hands the raw
- * texture to the material with no per-backend correction at all (and with a
- * CustomMaterial, not even Quick3D's own implicit V flip). It therefore needs
- * ONE row order on every backend. That order is OpenGL's, because that is what
- * every existing document was authored against.
- *
- * Declared here rather than inferred at each call site so that a backend moving
- * between the two renderers changes one statement, not two.
+ * createRenderer and the host item (which sets `mirrorVertically` where this
+ * disagrees with isYUpInFramebuffer()) must agree, hence one statement here.
  */
 SCORE_PLUGIN_GFX_EXPORT bool previewFirstRowIsPictureBottom(QRhi& rhi) noexcept;
 
