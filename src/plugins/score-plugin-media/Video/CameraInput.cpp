@@ -104,6 +104,12 @@ bool CameraInput::start() noexcept
   if(auto codec_name = avcodec_get_name(this->m_requestedCodec))
     av_dict_set(&options, "input_format", codec_name, 0);
 
+  // "input_format" is v4l2's own option name. dshow has no codec option at all --
+  // it reads the forced codec off the format context -- so a compressed mode
+  // selected on Windows was dropped and the demuxer took whichever format matched
+  // the size and framerate first, usually raw YUY2.
+  m_formatContext->video_codec_id = this->m_requestedCodec;
+
   if(m_requestedPixfmt != -1)
   {
     if(auto name = av_get_pix_fmt_name(m_requestedPixfmt))
