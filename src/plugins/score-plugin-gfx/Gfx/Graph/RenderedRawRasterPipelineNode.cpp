@@ -22,6 +22,7 @@
 
 #include <boost/algorithm/string/replace.hpp>
 
+#include <algorithm>
 #include <atomic>
 #include <cctype>
 #include <chrono>
@@ -3067,6 +3068,7 @@ void RenderedRawRasterPipelineNode::removeOutputPass(RenderList& renderer, Edge&
   auto it = ossia::find_if(m_passes, [&](auto& p) { return p.first == &edge; });
   if(it != m_passes.end())
   {
+    releaseBlendPassPipeline(it->second.p.pipeline);
     it->second.p.release();
     if(it->second.processUBO)
       it->second.processUBO->deleteLater();
@@ -3098,6 +3100,7 @@ void RenderedRawRasterPipelineNode::removeOutputPass(RenderList& renderer, Edge&
       auto mrtIt = ossia::find_if(m_passes, [](auto& p) { return p.first == nullptr; });
       if(mrtIt != m_passes.end())
       {
+        releaseBlendPassPipeline(mrtIt->second.p.pipeline);
         mrtIt->second.p.release();
         if(mrtIt->second.processUBO)
           mrtIt->second.processUBO->deleteLater();
@@ -3135,6 +3138,7 @@ void RenderedRawRasterPipelineNode::releaseState(RenderList& r)
 
     for(auto& [edge, pass] : m_passes)
     {
+      releaseBlendPassPipeline(pass.p.pipeline);
       pass.p.release();
 
       if(pass.processUBO)
@@ -3783,6 +3787,7 @@ void RenderedRawRasterPipelineNode::update(
   {
     for(auto& pass : m_passes)
     {
+      releaseBlendPassPipeline(pass.second.p.pipeline);
       pass.second.p.release();
       if(pass.second.processUBO)
         pass.second.processUBO->deleteLater();
@@ -4476,16 +4481,16 @@ void RenderedRawRasterPipelineNode::runInitialPasses(
         rtForPass, Qt::transparent,
         {depthClearForCompare(this->depthCompare()), 0}, invBatch);
 
+    const QRhiViewport passViewport(0, 0, viewportSize.width(), viewportSize.height());
     cb.setGraphicsPipeline(pass.p.pipeline);
-    cb.setViewport(
-        QRhiViewport(0, 0, viewportSize.width(), viewportSize.height()));
+    cb.setViewport(passViewport);
 
     // drawWithPerMeshAuxRebind sets shader resources and issues the
     // draw call (or the per-sub-mesh loop for multi-mesh inputs).
     // Pass the per-invocation SRB so each draw reads its own UBO.
     // Forward the pass's fallback-binding plan so "REQUIRED: false"
     // VERTEX_INPUTS get their identity buffers bound.
-    drawWithPerMeshAuxRebind(*invSRB, cb, pass.p.plan);
+    drawWithPerMeshAuxRebind(*pass.p.pipeline, passViewport, *invSRB, cb, pass.p.plan);
 
     cb.endPass();
   }
@@ -4653,7 +4658,7 @@ void RenderedRawRasterPipelineNode::runRenderPass(
         fullScreen(t.clearTargets);
       cb.setGraphicsPipeline(pipeline);
       cb.setViewport(viewport);
-      drawWithPerMeshAuxRebind(*srb, cb, pass.p.plan);
+      drawWithPerMeshAuxRebind(*pipeline, viewport, *srb, cb, pass.p.plan);
       cb.endPass();
 
       if(t.readDepthTarget)
@@ -4674,11 +4679,12 @@ void RenderedRawRasterPipelineNode::runRenderPass(
     }
 
     {
+      const QRhiViewport viewport(
+          0, 0, texture->pixelSize().width(), texture->pixelSize().height());
       cb.setGraphicsPipeline(pipeline);
-      cb.setViewport(QRhiViewport(
-          0, 0, texture->pixelSize().width(), texture->pixelSize().height()));
+      cb.setViewport(viewport);
 
-      drawWithPerMeshAuxRebind(*srb, cb, pass.p.plan);
+      drawWithPerMeshAuxRebind(*pipeline, viewport, *srb, cb, pass.p.plan);
     }
   }
 }
@@ -4702,7 +4708,70 @@ void RenderedRawRasterPipelineNode::process(int32_t port, const ossia::transform
   m_modelTransform = v;
 }
 
+QRhiGraphicsPipeline*
+RenderedRawRasterPipelineNode::blendPassPipeline(QRhiGraphicsPipeline& pipeline)
+{
+  if(auto it = m_blendPassPipelines.find(&pipeline); it != m_blendPassPipelines.end())
+    return it->second;
+
+  // Shadow casters and depth pre-passes do not blend: their blended draws
+  // keep writing depth.
+  const bool blends = std::any_of(
+      pipeline.cbeginTargetBlends(), pipeline.cendTargetBlends(),
+      [](const QRhiGraphicsPipeline::TargetBlend& b) { return b.enable; });
+  QRhiGraphicsPipeline* ps{};
+  if(blends && pipeline.hasDepthTest() && pipeline.hasDepthWrite())
+  {
+    ps = pipeline.rhi()->newGraphicsPipeline();
+    ps->setName("RenderedRawRasterPipelineNode::blendPass");
+    ps->setFlags(pipeline.flags());
+    ps->setTopology(pipeline.topology());
+    ps->setCullMode(pipeline.cullMode());
+    ps->setFrontFace(pipeline.frontFace());
+    ps->setTargetBlends(pipeline.cbeginTargetBlends(), pipeline.cendTargetBlends());
+    ps->setDepthTest(true);
+    ps->setDepthWrite(false);
+    ps->setDepthClamp(pipeline.hasDepthClamp());
+    ps->setDepthOp(pipeline.depthOp());
+    ps->setStencilTest(pipeline.hasStencilTest());
+    ps->setStencilFront(pipeline.stencilFront());
+    ps->setStencilBack(pipeline.stencilBack());
+    ps->setStencilReadMask(pipeline.stencilReadMask());
+    ps->setStencilWriteMask(pipeline.stencilWriteMask());
+    ps->setSampleCount(pipeline.sampleCount());
+    ps->setLineWidth(pipeline.lineWidth());
+    ps->setDepthBias(pipeline.depthBias());
+    ps->setSlopeScaledDepthBias(pipeline.slopeScaledDepthBias());
+    ps->setPatchControlPointCount(pipeline.patchControlPointCount());
+    ps->setPolygonMode(pipeline.polygonMode());
+    ps->setMultiViewCount(pipeline.multiViewCount());
+    ps->setShaderStages(pipeline.cbeginShaderStages(), pipeline.cendShaderStages());
+    ps->setVertexInputLayout(pipeline.vertexInputLayout());
+    ps->setShaderResourceBindings(pipeline.shaderResourceBindings());
+    ps->setRenderPassDescriptor(pipeline.renderPassDescriptor());
+    if(!ps->create())
+    {
+      delete ps;
+      ps = nullptr;
+    }
+  }
+  m_blendPassPipelines[&pipeline] = ps;
+  return ps;
+}
+
+void RenderedRawRasterPipelineNode::releaseBlendPassPipeline(
+    QRhiGraphicsPipeline* pipeline)
+{
+  if(auto it = m_blendPassPipelines.find(pipeline); it != m_blendPassPipelines.end())
+  {
+    if(it->second)
+      it->second->deleteLater();
+    m_blendPassPipelines.erase(it);
+  }
+}
+
 void RenderedRawRasterPipelineNode::drawWithPerMeshAuxRebind(
+    QRhiGraphicsPipeline& pipeline, const QRhiViewport& viewport,
     QRhiShaderResourceBindings& srb, QRhiCommandBuffer& cb,
     const FallbackBindingPlan& plan)
 {
@@ -4792,9 +4861,25 @@ void RenderedRawRasterPipelineNode::drawWithPerMeshAuxRebind(
 
   // Single-mesh draw. ScenePreprocessor unified-MDI emits one sub-mesh
   // covering every regular cmd + every instance group; the indirect cmd
-  // list fans out across them. Per-pass pipeline swapping (alpha-blend
-  // etc.) is NOT handled here — that's the job of a dedicated
-  // downstream node configured by the user as a separate render pass.
+  // list fans out across them. Its alpha-blended draws are drawn after
+  // every other one, without depth write, when the pipeline blends.
+  if(auto* cm = dynamic_cast<const CustomMesh*>(m_mesh))
+  {
+    if(const auto blended = cm->blendCommandRange())
+    {
+      if(auto* blendPass = blendPassPipeline(pipeline))
+      {
+        cm->drawSingleMesh(0, 0, m_meshbufs, cb, plan, {0, blended->first});
+        cm->drawSingleMesh(
+            0, 0, m_meshbufs, cb, plan, {blended->first + blended->count});
+        cb.setGraphicsPipeline(blendPass);
+        cb.setViewport(viewport);
+        cb.setShaderResources(&srb);
+        cm->drawSingleMesh(0, 0, m_meshbufs, cb, plan, *blended);
+        return;
+      }
+    }
+  }
   if(m_mesh)
   {
     // Plan-aware draw: the pipeline was built for a compacted binding

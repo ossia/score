@@ -123,7 +123,8 @@ bool isScenePreprocessorAux(std::string_view name) noexcept
 {
   static constexpr std::string_view fixed[]{
       "per_draws",          "per_draw_bounds",     "indirect_draw_cmds",
-      "scene_counts",       "scene_materials",     "scene_materials_ext",
+      "_blend_draw_cmds",   "scene_counts",        "scene_materials",
+      "scene_materials_ext",
       "scene_material_uv_xforms", "scene_material_wrap", "scene_lights",
       "scene_light_indices", "world_transforms",   "world_transforms_prev",
       "joint_matrices",     "camera",              "camera_prev",

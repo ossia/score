@@ -114,9 +114,22 @@ private:
   // them and re-points the SRB bindings before each draw; single-sub-mesh and MDI
   // geometries delegate to the mesh's own draw(). The SRB is left on the last
   // sub-mesh's bindings, and the next runRenderPass rebinds from scratch.
+  //
+  // `pipeline` and `viewport` are the bound ones: when the ScenePreprocessor
+  // marks alpha-blended draws and `pipeline` blends and writes depth, those
+  // draws go last through blendPassPipeline(pipeline), which leaves the
+  // command buffer on that pipeline.
   void drawWithPerMeshAuxRebind(
+      QRhiGraphicsPipeline& pipeline, const QRhiViewport& viewport,
       QRhiShaderResourceBindings& srb, QRhiCommandBuffer& cb,
       const FallbackBindingPlan& plan = {});
+
+  // `pipeline` without depth write, for the alpha-blended draws; created on
+  // first use, null when `pipeline` does not both blend and write depth.
+  QRhiGraphicsPipeline* blendPassPipeline(QRhiGraphicsPipeline& pipeline);
+  void releaseBlendPassPipeline(QRhiGraphicsPipeline* pipeline);
+  ossia::small_flat_map<QRhiGraphicsPipeline*, QRhiGraphicsPipeline*, 2>
+      m_blendPassPipelines;
 
   std::vector<Sampler> allSamplers() const noexcept;
 

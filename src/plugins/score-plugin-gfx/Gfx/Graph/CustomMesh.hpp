@@ -7,6 +7,7 @@
 #include <QDebug>
 #include <QtGui/private/qrhi_p.h>
 
+#include <optional>
 #include <span>
 
 namespace score::gfx
@@ -22,6 +23,13 @@ SCORE_PLUGIN_GFX_EXPORT bool buftrace_enabled();
   else                                    \
     qDebug().nospace() << "[BUFTRACE] "
 
+//! The commands [first, first + count) of an indirect draw's command list,
+//! clamped to it.
+struct DrawCommandRange
+{
+  uint32_t first{0};
+  uint32_t count{0xFFFFFFFFu};
+};
 
 class CustomMesh : public score::gfx::Mesh
 {
@@ -112,10 +120,18 @@ public:
   // bindings, so their indices are always contiguous after them. An
   // un-compacted plan means "bind every geometry input in order", which
   // is what the pipeline builders that do not emit a plan expect.
+  //
+  // `range` restricts an indirect draw to some of its commands.
+  using CommandRange = DrawCommandRange;
   bool drawSingleMesh(
       std::size_t mesh_index, std::size_t buffer_offset,
       const MeshBuffers& bufs, QRhiCommandBuffer& cb,
-      const FallbackBindingPlan& plan = {}) const noexcept;
+      const FallbackBindingPlan& plan = {},
+      CommandRange range = {}) const noexcept;
+
+  //! The commands of the alpha-blended draws in a single-mesh indirect draw,
+  //! from the ScenePreprocessor's _blend_draw_cmds auxiliary; empty without.
+  std::optional<CommandRange> blendCommandRange() const noexcept;
 
   //! True when sub-mesh i shares meshes[0]'s vertex layout — the only
   //! layout the pipeline was built for; mismatching sub-meshes are

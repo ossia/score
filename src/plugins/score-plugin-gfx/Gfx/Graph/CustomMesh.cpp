@@ -612,9 +612,21 @@ void CustomMesh::reload(const ossia::mesh_list &ml, const ossia::geometry_filter
   frontFace = (QRhiGraphicsPipeline::FrontFace)g.front_face;
 }
 
+std::optional<CustomMesh::CommandRange> CustomMesh::blendCommandRange() const noexcept
+{
+  if(geom.meshes.size() != 1)
+    return std::nullopt;
+  const auto* aux = geom.meshes[0].find_auxiliary("_blend_draw_cmds");
+  constexpr int64_t stride = 5 * sizeof(uint32_t);
+  if(!aux || aux->byte_size < stride)
+    return std::nullopt;
+  return CommandRange{uint32_t(aux->byte_offset / stride), uint32_t(aux->byte_size / stride)};
+}
+
 bool CustomMesh::drawSingleMesh(
     std::size_t mesh_index, std::size_t base, const MeshBuffers& bufs,
-    QRhiCommandBuffer& cb, const FallbackBindingPlan& plan) const noexcept
+    QRhiCommandBuffer& cb, const FallbackBindingPlan& plan,
+    CommandRange range) const noexcept
 {
   if(mesh_index >= geom.meshes.size())
     return false;
@@ -708,13 +720,19 @@ bool CustomMesh::drawSingleMesh(
   // Only meaningful for single-sub-mesh MDI-mode geometries.
   if(bufs.useIndirectDraw && effIndirectBuf)
   {
+    const bool ranged = range.first != 0 || range.count != 0xFFFFFFFFu;
+    const quint32 cmdFirst = std::min<quint32>(range.first, effIndirectCount);
+    const quint32 cmdCount
+        = std::min<quint32>(range.count, effIndirectCount - cmdFirst);
+    if(ranged && cmdCount == 0)
+      return false;
     // Fallback ladder — same rung order and producer contract as
     // BasicMesh::draw; see the RenderState::Caps declaration. The count
     // buffer is scoped to the single-mesh MDI path exactly like the
     // indirect buffer itself (picked up from mesh[0]), so it pairs with
     // bufs.indirectDrawBuffer; a per-mesh override buffer keeps the plain
     // rungs.
-    if(bufs.gpuIndirectCountSupported && bufs.indirectCountBuffer
+    if(!ranged && bufs.gpuIndirectCountSupported && bufs.indirectCountBuffer
        && bufs.gpuIndirectSupported && effIndirectBuf == bufs.indirectDrawBuffer)
     {
       if(score::gfx::drawIndirectCountCompat(
@@ -728,11 +746,11 @@ bool CustomMesh::drawSingleMesh(
 #if QT_VERSION >= QT_VERSION_CHECK(6, 12, 0)
     if(bufs.gpuIndirectSupported)
     {
-      if(!bufs.gpuIndirectMultiSupported && effIndirectCount > 1)
+      if(!bufs.gpuIndirectMultiSupported && cmdCount > 1)
       {
         // Single-indirect rung: one drawCount=1 call per command slot (see
         // BasicMesh::draw for why the loop lives here and not in Qt).
-        for(quint32 i = 0; i < effIndirectCount; i++)
+        for(quint32 i = cmdFirst; i < cmdFirst + cmdCount; i++)
         {
           const quint32 off
               = bufs.indirectDrawOffset + i * bufs.indirectDrawStride;
@@ -745,14 +763,14 @@ bool CustomMesh::drawSingleMesh(
         }
         return true;
       }
+      const quint32 firstOff
+          = bufs.indirectDrawOffset + cmdFirst * bufs.indirectDrawStride;
       if(bufs.indirectDrawIndexed)
         cb.drawIndexedIndirect(
-            effIndirectBuf, bufs.indirectDrawOffset,
-            effIndirectCount, bufs.indirectDrawStride);
+            effIndirectBuf, firstOff, cmdCount, bufs.indirectDrawStride);
       else
         cb.drawIndirect(
-            effIndirectBuf, bufs.indirectDrawOffset,
-            effIndirectCount, bufs.indirectDrawStride);
+            effIndirectBuf, firstOff, cmdCount, bufs.indirectDrawStride);
       return true;
     }
 #endif
@@ -791,8 +809,12 @@ bool CustomMesh::drawSingleMesh(
       bool rebound = false;
 
       int skipped = 0;
-      for(const auto& cmd : *effCpuCmds)
+      const std::size_t cpuFirst = std::min<std::size_t>(range.first, effCpuCmds->size());
+      const std::size_t cpuEnd
+          = cpuFirst + std::min<std::size_t>(range.count, effCpuCmds->size() - cpuFirst);
+      for(std::size_t c = cpuFirst; c < cpuEnd; ++c)
       {
+        const auto& cmd = (*effCpuCmds)[c];
         if(!drawCommandPaints(cmd))
         {
           ++skipped; // dead slot; see drawCommandPaints

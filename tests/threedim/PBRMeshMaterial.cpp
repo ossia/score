@@ -62,3 +62,32 @@ TEST_CASE(
     CHECK(mat2.emissive_factor[1] * mat2.emissive_strength == Approx(0.f));
   }
 }
+
+TEST_CASE(
+    "PBR Mesh forwards the geometry's auxiliaries but not a Scene Preprocessor's",
+    "[threedim][pbrmesh]")
+{
+  Threedim::PBRMesh node;
+
+  int positions = 0, aux = 0, cmds = 0;
+  auto& mesh = node.inputs.geometry_in.mesh;
+  mesh.buffers.push_back({.handle = &positions, .byte_size = 3 * 12});
+  mesh.buffers.push_back({.handle = &aux, .byte_size = 64});
+  mesh.buffers.push_back({.handle = &cmds, .byte_size = 5 * 20});
+  mesh.vertices = 3;
+  mesh.auxiliary.push_back({.name = "particles", .buffer = 1, .byte_offset = 0, .byte_size = 64});
+  // What a preprocessor publishes for its own scene, at offset 0 when its
+  // first draw is blended: the next preprocessor's own entry must not be
+  // replaced by it.
+  mesh.auxiliary.push_back(
+      {.name = "_blend_draw_cmds", .buffer = 2, .byte_offset = 0, .byte_size = 2 * 20});
+  mesh.auxiliary.push_back(
+      {.name = "indirect_draw_cmds", .buffer = 2, .byte_offset = 0, .byte_size = 5 * 20});
+  node();
+
+  const auto st = node.outputs.scene_out.scene.state;
+  REQUIRE(st);
+  REQUIRE(st->inject_buffers.size() == 1);
+  CHECK(st->inject_buffers[0].name == "particles");
+  CHECK(st->inject_buffers[0].native_handle == &aux);
+}
