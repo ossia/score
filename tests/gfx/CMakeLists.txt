@@ -679,6 +679,21 @@ if(TARGET score_plugin_threedim AND TARGET score_plugin_avnd)
     LIBS fastgltf)
 endif()
 
+# A glTF light casts the cascade shadows of Shadow Cascade Setup, through the
+# gallery's two-preprocessor shadow chain.
+if(TARGET score_plugin_threedim AND TARGET score_plugin_avnd)
+  score_add_gfx_plugin_test(gltf_light_shadows
+    SOURCES GfxGltfLightShadows.cpp
+    HIDDEN
+      "${_threedim}/GltfParser.cpp"
+      "${_threedim}/Camera.cpp"
+      "${_threedim}/ShadowCascadeSetup.cpp"
+      "${_threedim}/SceneResourceRoute.cpp"
+    PLUGINS score_plugin_avnd
+    HEADERS_FROM score_plugin_threedim
+    LIBS fastgltf)
+endif()
+
 if(TARGET score_plugin_avnd)
   score_add_gfx_plugin_test(gpu_texture_output_blit
     SOURCES GfxGpuTextureOutputBlit.cpp

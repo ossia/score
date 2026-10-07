@@ -506,6 +506,9 @@ static std::shared_ptr<ossia::light_component> to_light(const fastgltf::Light& l
   lc->inner_cone_angle = float(l.innerConeAngle.value_or(0.f));
   lc->outer_cone_angle = float(l.outerConeAngle.value_or(float(M_PI) / 4.f));
   lc->decay = ossia::light_decay::quadratic;
+  // KHR_lights_punctual has no shadow flag: a glTF light casts, like a Light
+  // with Cast shadow on, wherever a shadow pass is wired.
+  lc->shadow.enabled = true;
   return lc;
 }
 
