@@ -1541,6 +1541,10 @@ score_add_gfx_test(raster_color_write GfxRasterColorWrite.cpp)
 # and the others are reported.
 score_add_gfx_test(csf_geometry_multi_cable GfxCsfGeometryMultiCable.cpp)
 
+# A CSF reads tightly packed and interleaved attributes, CPU or GPU, at their
+# own stride.
+score_add_gfx_test(csf_packed_attribute GfxCsfPackedAttribute.cpp)
+
 # The camera placeholder a raw raster binds before a scene feeds it carries
 # the render size rather than zero.
 score_add_gfx_test(camera_placeholder_render_size GfxCameraPlaceholderRenderSize.cpp)
