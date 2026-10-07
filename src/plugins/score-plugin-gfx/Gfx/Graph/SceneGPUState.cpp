@@ -357,6 +357,7 @@ MaterialExtensionsGPU packMaterialExtensions(const ossia::material_component& mc
   gpu.coat[1] = mc.clearcoat.roughness_factor;
   gpu.coat[2] = 1.5f;      // coat_ior default (glTF doesn't expose a per-coat IOR)
   gpu.coat[3] = 0.f;       // coat_darkening
+  gpu.coat_anisotropy[3] = mc.clearcoat.normal_scale;
   // Base-layer IOR — glTF's KHR_materials_ior applies here.
   // No OpenPBR field for base IOR directly; we use it in the specular lobe.
 

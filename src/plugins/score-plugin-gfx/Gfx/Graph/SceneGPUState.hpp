@@ -213,8 +213,9 @@ struct MaterialExtensionsGPU
   // --- Coat / clearcoat (KHR_materials_clearcoat) ---------------------
   // x = coat_weight, y = coat_roughness, z = coat_ior, w = coat_darkening
   float coat[4]{0.f, 0.f, 1.5f, 0.f};
-  // x = roughness_anisotropy, y = rotation_cos, z = rotation_sin, w = _pad
-  float coat_anisotropy[4]{0.f, 1.f, 0.f, 0.f};
+  // x = roughness_anisotropy, y = rotation_cos, z = rotation_sin,
+  // w = clearcoatNormalTexture.scale
+  float coat_anisotropy[4]{0.f, 1.f, 0.f, 1.f};
 
   // --- Fuzz / sheen (KHR_materials_sheen) -----------------------------
   // xyz = color, w = roughness

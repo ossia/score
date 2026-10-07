@@ -353,9 +353,15 @@ static std::shared_ptr<ossia::material_component> to_material(
   if(m.pbrData.metallicRoughnessTexture)
     fill_tex(mc->metallic_roughness_texture, *m.pbrData.metallicRoughnessTexture);
   if(m.normalTexture)
+  {
     fill_tex(mc->normal_texture, *m.normalTexture);
+    mc->normal_scale = float(m.normalTexture->scale);
+  }
   if(m.occlusionTexture)
+  {
     fill_tex(mc->occlusion_texture, *m.occlusionTexture);
+    mc->occlusion_strength = float(m.occlusionTexture->strength);
+  }
   if(m.emissiveTexture)
     fill_tex(mc->emissive_texture, *m.emissiveTexture);
 
@@ -384,8 +390,12 @@ static std::shared_ptr<ossia::material_component> to_material(
           mc->clearcoat.roughness_texture,
           *m.clearcoat->clearcoatRoughnessTexture);
     if(m.clearcoat->clearcoatNormalTexture)
+    {
       fill_tex(
           mc->clearcoat.normal_texture, *m.clearcoat->clearcoatNormalTexture);
+      mc->clearcoat.normal_scale
+          = float(m.clearcoat->clearcoatNormalTexture->scale);
+    }
   }
 
   // KHR_materials_sheen — fabric / velvet / brushed surfaces.

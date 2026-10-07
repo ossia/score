@@ -127,6 +127,7 @@ static_assert(sizeof(MaterialGPU) == 80, "MaterialGPU layout must match shader")
 // Per-material per-channel UV transforms (KHR_texture_transform): 5 channels
 // x (offset.xy + scale.xy) + rotations packed in 2 vec4 = 7 vec4 = 112 B.
 // Channels match MaterialChannel: 0=BC, 1=MR, 2=Normal, 3=Em, 4=Occlusion.
+// rotations1.y carries the normal map's normalTexture.scale.
 struct MaterialUVTransformGPU
 {
   float bc_offset_scale[4]{0.f, 0.f, 1.f, 1.f};      // ox, oy, sx, sy
@@ -135,7 +136,7 @@ struct MaterialUVTransformGPU
   float em_offset_scale[4]{0.f, 0.f, 1.f, 1.f};
   float occ_offset_scale[4]{0.f, 0.f, 1.f, 1.f};
   float rotations0[4]{0.f, 0.f, 0.f, 0.f};           // bc, mr, nrm, em (radians)
-  float rotations1[4]{0.f, 0.f, 0.f, 0.f};           // occ, _pad×3
+  float rotations1[4]{0.f, 1.f, 0.f, 0.f};           // occ, normal scale, _pad×2
 };
 static_assert(sizeof(MaterialUVTransformGPU) == 112,
               "MaterialUVTransformGPU layout must match shader (7 × vec4)");
@@ -5436,6 +5437,7 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
           pack_xform(g.normal_offset_scale, &g.rotations0[2], mats[i]->normal_texture);
           pack_xform(g.em_offset_scale,     &g.rotations0[3], mats[i]->emissive_texture);
           pack_xform(g.occ_offset_scale,    &g.rotations1[0], mats[i]->occlusion_texture);
+          g.rotations1[1] = mats[i]->normal_scale;
 
           auto& w = freshMaterialWraps[slot];
           const auto& m = *mats[i];

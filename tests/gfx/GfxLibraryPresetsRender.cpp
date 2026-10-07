@@ -10,6 +10,8 @@
 //    an untextured one in its base colour.
 //  * The lit tiers shade a lit quad instead of drawing it black, and a
 //    shadow-casting light with no cascades wired leaves it unshadowed.
+//  * A normal map, and classic_pbr's clear coat normal map, are scaled by the
+//    material's normal scale.
 //  * classic_pbr_openpbr's default bsdf_intensity_scale, with the eight
 //    OpenPBR lookup tables wired, gives a directional light the same direct
 //    contribution classic_pbr gives it.
@@ -40,6 +42,7 @@
 #include <array>
 #include <cstdint>
 #include <numbers>
+#include <optional>
 
 #if defined(LIBRARY_PRESETS_OPENPBR_BSDF)
 namespace openpbr_luts
@@ -99,6 +102,10 @@ struct SceneOpts
   bool light = false;
   float intensity = 1.f;
   bool castShadow = false;
+  // A normal map tilting the normal 53 degrees off the face, with this scale.
+  std::optional<float> normalScale;
+  // A clear coat whose normal map tilts the same way, with this scale.
+  std::optional<float> coatNormalScale;
 };
 
 ossia::material_component_ptr makeMaterial(const SceneOpts& o)
@@ -110,6 +117,20 @@ ossia::material_component_ptr makeMaterial(const SceneOpts& o)
   m->roughness_factor = 1.f;
   if(o.redTexture)
     m->base_color_texture.source = solidPng(QColor(255, 0, 0, 255));
+  // Tangent-space (0.8, 0, 0.6).
+  const QColor tilted(230, 128, 204, 255);
+  if(o.normalScale)
+  {
+    m->normal_texture.source = solidPng(tilted);
+    m->normal_scale = *o.normalScale;
+  }
+  if(o.coatNormalScale)
+  {
+    m->clearcoat.factor = 1.f;
+    m->clearcoat.roughness_factor = 0.5f;
+    m->clearcoat.normal_texture.source = solidPng(tilted);
+    m->clearcoat.normal_scale = *o.coatNormalScale;
+  }
   return m;
 }
 
@@ -642,6 +663,68 @@ TEST_CASE(
   CHECK(std::abs(int(s.center[0]) - int(f.center[0])) < 64);
   // A shadow-casting light with no cascades wired is unshadowed.
   CHECK(std::abs(int(c.center[0]) - int(s.center[0])) <= 2);
+}
+
+TEST_CASE(
+    "The lit tiers scale a normal map by the material's normal scale",
+    "[gfx][presets][material]")
+{
+  const auto api = GENERATE(from_range(platform_backends()));
+  const std::string tier
+      = GENERATE(as<std::string>{}, "blinn_phong", "pbr_fast", "classic_pbr");
+  CAPTURE(backend_name(api), tier);
+  if(!haveRasterPresets())
+    SKIP(noRasterPresets());
+
+  SceneOpts flat;
+  flat.light = true;
+  flat.intensity = 3.f;
+  SceneOpts full = flat;
+  full.normalScale = 1.f;
+  SceneOpts none = flat;
+  none.normalScale = 0.f;
+  const auto f = renderTier(api, tier, flat);
+  if(f.skipped)
+    SKIP("backend unavailable");
+  const auto a = renderTier(api, tier, full);
+  const auto z = renderTier(api, tier, none);
+  INFO(
+      "no map " << rgba_string(f.center) << " scale 1 " << rgba_string(a.center)
+                << " scale 0 " << rgba_string(z.center));
+  REQUIRE(f.err.empty());
+  REQUIRE(a.err.empty());
+  REQUIRE(z.err.empty());
+  // The light faces the quad: the tilted normal takes N.L from 1 to 0.6, and
+  // a scale of 0 flattens it back to the face normal.
+  CHECK(int(f.center[0]) - int(a.center[0]) > 20);
+  CHECK(std::abs(int(z.center[0]) - int(f.center[0])) <= 2);
+}
+
+TEST_CASE(
+    "classic_pbr scales the clear coat normal map by its normal scale",
+    "[gfx][presets][material]")
+{
+  const auto api = GENERATE(from_range(platform_backends()));
+  CAPTURE(backend_name(api));
+  if(!haveRasterPresets())
+    SKIP(noRasterPresets());
+
+  SceneOpts full;
+  full.light = true;
+  full.intensity = 3.f;
+  full.coatNormalScale = 1.f;
+  SceneOpts none = full;
+  none.coatNormalScale = 0.f;
+  const auto a = renderTier(api, "classic_pbr", full);
+  if(a.skipped)
+    SKIP("backend unavailable");
+  const auto z = renderTier(api, "classic_pbr", none);
+  INFO("scale 1 " << rgba_string(a.center) << " scale 0 " << rgba_string(z.center));
+  REQUIRE(a.err.empty());
+  REQUIRE(z.err.empty());
+  // Light and view face the quad: the coat's highlight is at its peak with
+  // the coat normal on the face normal, and far off it 53 degrees away.
+  CHECK(int(z.center[0]) - int(a.center[0]) > 10);
 }
 
 TEST_CASE(
