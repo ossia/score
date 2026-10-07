@@ -501,6 +501,18 @@ threedim_test_includes(test_threedim_gltf_animation)
 target_compile_definitions(test_threedim_gltf_animation PRIVATE
   THREEDIM_TEST_DIR="${CMAKE_CURRENT_SOURCE_DIR}")
 
+# A glTF skin keeps its joint hierarchy and rest pose, animated or not.
+score_plugin_hidden_sources(_gltf_skin_hidden
+    "${THREEDIM_DIR}/GltfParser.cpp"
+    "${THREEDIM_DIR}/AnimationPlayer.cpp")
+score_add_test(test_threedim_gltf_skin_hierarchy
+  SOURCES GltfSkinHierarchy.cpp ${_gltf_skin_hidden}
+  PLUGINS score_plugin_threedim score_plugin_gfx score_plugin_avnd
+  LIBS fastgltf ${QT_PREFIX}::Gui)
+threedim_test_includes(test_threedim_gltf_skin_hierarchy)
+target_compile_definitions(test_threedim_gltf_skin_hierarchy PRIVATE
+  THREEDIM_TEST_DIR="${CMAKE_CURRENT_SOURCE_DIR}")
+
 # Nodes that instance one glTF mesh share its mesh_primitive stable_id, so the
 # scene preprocessor keeps one GPU copy of it.
 score_plugin_hidden_sources(_gltf_shared_mesh_hidden
