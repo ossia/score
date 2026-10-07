@@ -27,6 +27,7 @@
 #include <QGraphicsSceneDragDropEvent>
 #include <QGraphicsView>
 #include <QPainter>
+#include <QScopedValueRollback>
 #include <QTimer>
 
 #include <wobjectimpl.h>
@@ -288,6 +289,7 @@ NodalIntervalView::~NodalIntervalView()
 
 void NodalIntervalView::on_drop(QPointF pos, const QMimeData* data)
 {
+  QScopedValueRollback dropping{m_dropping, true};
   const bool ok = m_context.app.interfaces<Scenario::IntervalDropHandlerList>().drop(
       m_context, m_model, m_container->mapFromParent(pos), *data);
   if(ok)
@@ -330,7 +332,7 @@ void NodalIntervalView::on_processAdded(const Process::ProcessModel& proc)
   setupNode(item);
 
   // A canvas still following its nodes (m_autoCenter) recenters by itself
-  if(!m_autoCenter)
+  if(!m_autoCenter && !m_dropping)
   {
     m_nodeToShow = item;
     showNode(*item);
@@ -580,6 +582,7 @@ void NodalIntervalView::setupNode(Process::NodeItem* item)
       = [this](
             const Process::ProcessModel& proc, const Process::Cable& cbl,
             score::Dispatcher& disp) {
+    QScopedValueRollback dropping{m_dropping, true};
     auto& doc = score::IDocument::modelDelegate<Scenario::ScenarioDocumentModel>(
         m_context.document);
     Scenario::insertProcessInCable(disp, m_context, doc, proc, cbl);
@@ -596,6 +599,7 @@ void NodalIntervalView::on_dropOnNode(const QPointF& pos, const QMimeData& mime)
   if(!item)
     return;
 
+  QScopedValueRollback dropping{m_dropping, true};
   auto& doc = score::IDocument::modelDelegate<Scenario::ScenarioDocumentModel>(
       m_context.document);
   auto drop = new Scenario::DropOnNode{*item, doc, m_context};
