@@ -493,9 +493,22 @@ struct FlatScene
 {
   std::vector<DrawCall> draws;
   // RawLight arena slot index per light the walk encountered.
-  // 0xFFFFFFFF for producer-less lights (filtered out when building
-  // scene_light_indices, the shader-facing compact indices list).
+  // 0xFFFFFFFF for producer-less lights until the ScenePreprocessor gives
+  // them a slot (see loaderLights); still 0xFFFFFFFF entries are filtered
+  // out when building scene_light_indices, the shader-facing compact list.
   std::vector<uint32_t> lightArenaSlots;
+
+  // Lights without a RawLight slot of their own, e.g. glTF
+  // KHR_lights_punctual or FBX lights: the ScenePreprocessor writes their
+  // RawLightData and world matrix into slots it owns on their behalf, and
+  // patches lightArenaSlots[index].
+  struct LoaderLight
+  {
+    ossia::light_component_ptr light;
+    QMatrix4x4 worldTransform;
+    std::size_t index{};
+  };
+  std::vector<LoaderLight> loaderLights;
   std::vector<MaterialGPU> materials;
   // Parallel to `materials`: same size, same indexing, zeroed to the OpenPBR spec
   // defaults for materials that set no extension fields. Consumer shaders either
@@ -576,6 +589,7 @@ struct FlatScene
   {
     draws.clear();
     lightArenaSlots.clear();
+    loaderLights.clear();
     materials.clear();
     material_extensions.clear();
     skins.clear();
