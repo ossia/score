@@ -43,6 +43,19 @@ void EnvironmentLoader::rebuild()
   env.fog.color[2] = inputs.fog_color.value.z;
   env.fog.start = inputs.fog_start.value;
   env.fog.end = inputs.fog_end.value;
+  env.fog.density = inputs.fog_density.value;
+  switch(inputs.fog_mode.value)
+  {
+    case FogLinear:
+      env.fog.mode = decltype(env.fog)::type::linear;
+      break;
+    case FogExponential:
+      env.fog.mode = decltype(env.fog)::type::exponential;
+      break;
+    case FogExponentialSquared:
+      env.fog.mode = decltype(env.fog)::type::exponential_squared;
+      break;
+  }
 
   env.params_set = ossia::scene_environment::params_ambient
                    | ossia::scene_environment::params_exposure_gamma

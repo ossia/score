@@ -187,6 +187,12 @@ score_add_test(test_threedim_shadow_cascades
   LIBS ${QT_PREFIX}::Gui)
 threedim_test_includes(test_threedim_shadow_cascades)
 
+# EnvironmentLoader's fog mode and density controls reach scene_environment.
+score_add_test(test_threedim_environment_fog
+  SOURCES EnvironmentFog.cpp "${THREEDIM_DIR}/EnvironmentLoader.cpp"
+  PLUGINS score_plugin_gfx)
+threedim_test_includes(test_threedim_environment_fog)
+
 # EXPECTED RED. Contracts the engine does not satisfy yet (issue #163's
 # one-entry `camera` aux; CameraSwitch's Blend accumulating onto default-
 # constructed components). Isolated so an open defect does not mask the

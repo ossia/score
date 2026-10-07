@@ -47,6 +47,13 @@ public:
   halp_meta(authors, "ossia team")
   halp_meta(uuid, "d3f5a8c1-8b47-4e91-9c2d-6f1a9b5e3c82")
 
+  enum FogMode
+  {
+    FogLinear,
+    FogExponential,
+    FogExponentialSquared
+  };
+
   struct ins
   {
     // Port-driven rebuild: each control's update() callback fires only
@@ -93,6 +100,21 @@ public:
     // derivation from the RenderList swap chain.
     struct : halp::xy_spinboxes_i32<"Render target size", halp::range{0, 16384, 0}>
     { void update(EnvironmentLoader& n) { n.rebuild(); } } render_target_size;
+
+    // Linear fog ramps from Fog Start to Fog End. The exponential modes
+    // start at Fog Start and use Fog Density per unit of distance:
+    // 1 - exp(-d * density) and 1 - exp(-(d * density)^2).
+    struct : halp::combobox_t<"Fog Mode", FogMode>
+    {
+      struct range
+      {
+        std::string_view values[3]{"Linear", "Exponential", "Exponential squared"};
+        int init{0};
+      };
+      void update(EnvironmentLoader& n) { n.rebuild(); }
+    } fog_mode;
+    struct : halp::hslider_f32<"Fog Density", halp::range{0., 1., 0.01}>
+    { void update(EnvironmentLoader& n) { n.rebuild(); } } fog_density;
   } inputs;
 
   struct outs
