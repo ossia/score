@@ -103,6 +103,23 @@ QByteArray oscFloat(const QByteArray& address, const QByteArray& bits)
   return bytes;
 }
 
+// An OSC message is an address string then a type tag string, each
+// NUL-terminated and padded to a multiple of four bytes. Read by hand, so what
+// the tags are compared against owes nothing to libossia's own decoder.
+QByteArray oscTypeTags(const QByteArray& datagram)
+{
+  const auto padded = [](qsizetype length) { return (length + 4) & ~qsizetype(3); };
+  const auto cstring = [&](qsizetype at) {
+    const auto end = datagram.indexOf('\0', at);
+    return end < 0 ? QByteArray{} : datagram.mid(at, end - at);
+  };
+
+  const auto address = cstring(0);
+  if(address.isEmpty())
+    return {};
+  return cstring(padded(address.size()));
+}
+
 #if defined(Q_OS_UNIX)
 struct unix_datagram
 {
@@ -299,6 +316,74 @@ TEST_CASE("Mapper OSC UDP encodes and parses independent wire packets", "[mapper
     sendUdp(peer, target, QByteArray::fromHex("2f706565722f696e740000002c6900000000002a"));
     value(f, "osc_udp", "/last_address", QString{"/peer/int"});
     value(f, "osc_udp", "/last_value", 42.0);
+  });
+}
+
+TEST_CASE("Mapper OSC type tags put the types the receiver's grammar wants on the wire",
+          "[mapper][protocols][osc]")
+{
+  score::test::run_in_app([&](const auto& ctx) {
+    QUdpSocket peer;
+    bindUdp(peer);
+    auto doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    fixture f{ctx, *doc};
+    auto script = f.script("test_osc_typetags.qml");
+    substitute(script, port(7100), port(peer.localPort()));
+    f.createMapper("osc_tags", script);
+    ready(f, "osc_tags", "/spat");
+
+    // SpatGRIS's /spat/serv: "deg", an int source index, then five floats. The
+    // coordinates -90, 0 and 1 are integral and still go out as floats -- the
+    // tags come from the grammar, not from the values, which is the whole
+    // point: a packet whose shape changed with the data would reach a fixed
+    // parser correctly only by luck.
+    f.push("osc_tags", "/spat", 1);
+    const auto spat = receive(f, peer).data();
+    CHECK(oscTypeTags(spat) == ",sifffff");
+    CHECK(spat
+          == QByteArray::fromHex("2f737061742f736572760000"   // "/spat/serv" + pad
+                                 "2c7369666666666600000000"   // ",sifffff" + pad
+                                 "64656700"                   // "deg"
+                                 "00000001"                   // int32 1
+                                 "c2b40000"                   // float -90
+                                 "00000000"                   // float 0
+                                 "3f800000"                   // float 1
+                                 "3ecccccd"                   // float 0.4
+                                 "3f19999a"));                // float 0.6
+
+    // No tag string: unchanged, every number a float. This is what pins the
+    // default behaviour of every script already out there.
+    f.push("osc_tags", "/untyped", 7);
+    const auto untyped = receive(f, peer).data();
+    CHECK(oscTypeTags(untyped) == ",f");
+    CHECK(untyped
+          == QByteArray::fromHex("2f746573742f756e7479706564000000"   // "/test/untyped"
+                                 "2c660000"                          // ",f"
+                                 "40e00000"));                       // float 7
+
+    // One argument per tag that carries a payload, and the two that do not.
+    f.push("osc_tags", "/all", 1);
+    const auto all = receive(f, peer).data();
+    CHECK(oscTypeTags(all) == ",ifsTF");
+    CHECK(all
+          == QByteArray::fromHex("2f746573742f616c6c000000"   // "/test/all" + pad
+                                 "2c69667354460000"           // ",ifsTF" + pad
+                                 "00000001"                   // int32 1
+                                 "40200000"                   // float 2.5
+                                 "68690000"));                // "hi"
+
+    // A tag string shorter than the argument list: the rest is converted the
+    // untyped way instead of being dropped.
+    f.push("osc_tags", "/partial", 1);
+    const auto partial = receive(f, peer).data();
+    CHECK(oscTypeTags(partial) == ",if");
+    CHECK(partial
+          == QByteArray::fromHex("2f746573742f7061727469616c000000"   // "/test/partial"
+                                 "2c696600"                          // ",if"
+                                 "00000003"                          // int32 3
+                                 "40800000"));                       // float 4
+    f.removeMapper("osc_tags");
   });
 }
 
