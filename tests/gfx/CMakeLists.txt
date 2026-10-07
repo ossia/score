@@ -606,6 +606,9 @@ score_add_gfx_test(scene_filter_nodes SceneFilterNodes.cpp)
 # times (pointer identity), a bump re-merges exactly once, one contributor
 # short-circuits to a pointer copy, an env-only rootless producer is kept.
 score_add_gfx_test(scene_merge_memo SceneMergeMemo.cpp)
+# Scenes on one port merge in edge order (source node id), not in source Port
+# address order: the first active camera wins.
+score_add_gfx_test(scene_merge_edge_order SceneMergeEdgeOrder.cpp)
 # The unified-MDI geometry published nine vertex bindings, one past
 # QD3D11CommandBuffer::MAX_VERTEX_BUFFER_BINDING_COUNT, so a shader reading
 # every stream lost its ninth on D3D11 without an error. translation and
