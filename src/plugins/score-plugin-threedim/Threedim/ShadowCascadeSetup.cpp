@@ -104,7 +104,8 @@ QMatrix4x4 cascadeLightVP(
 // shadow is off are skipped. Returns false when no such light is found.
 bool findDirectionalLight(
     const ossia::scene_node& n, const QMatrix4x4& parentWorld,
-    bool castingOnly, QVector3D& outDir) noexcept
+    bool castingOnly, QVector3D& outDir,
+    const ossia::light_component*& outLight) noexcept
 {
   QMatrix4x4 local;
   if(n.children)
@@ -140,12 +141,13 @@ bool findDirectionalLight(
           if(nZ.lengthSquared() > 1e-5f)
           {
             outDir = nZ.normalized();
+            outLight = lc->get();
             return true;
           }
         }
       }
       if(auto* sub = ossia::get_if<ossia::scene_node_ptr>(&p))
-        if(*sub && findDirectionalLight(**sub, world, castingOnly, outDir))
+        if(*sub && findDirectionalLight(**sub, world, castingOnly, outDir, outLight))
           return true;
     }
   }
@@ -244,34 +246,27 @@ void ShadowCascadeSetup::rebuild()
   const float farZ = std::min(inputs.camera_far.value, inputs.shadow_distance.value);
   const float lambda = std::clamp(inputs.lambda.value, 0.f, 1.f);
 
-  // Scene-derived light direction if the control is left at (0,0,0):
-  // the first directional light with Cast shadow on, else the first
-  // directional light at all (Cast shadow defaults to off on the Light
-  // node, so scenes that never touched it still get their light).
-  QVector3D lightDir(cur_dir[0], cur_dir[1], cur_dir[2]);
-  if(lightDir.lengthSquared() < 1e-6f)
+  // The light the cascades belong to: the first directional light with
+  // Cast shadow on, else the first directional light at all (Cast shadow
+  // defaults to off on the Light node, so scenes that never touched it
+  // still get their light). Its direction is used unless the control is
+  // set; with the override the cascades still belong to that light.
+  const ossia::light_component* owner{};
+  QVector3D sceneDir(-0.4f, -0.8f, -0.6f);
+  if(in_state->roots)
   {
-    lightDir = QVector3D(-0.4f, -0.8f, -0.6f);
-    if(in_state->roots)
+    for(bool castingOnly : {true, false})
     {
-      bool found_light = false;
-      for(bool castingOnly : {true, false})
-      {
-        for(const auto& r : *in_state->roots)
-        {
-          QVector3D found;
-          if(r && findDirectionalLight(*r, QMatrix4x4{}, castingOnly, found))
-          {
-            lightDir = found;
-            found_light = true;
-            break;
-          }
-        }
-        if(found_light)
+      for(const auto& r : *in_state->roots)
+        if(r && findDirectionalLight(*r, QMatrix4x4{}, castingOnly, sceneDir, owner))
           break;
-      }
+      if(owner)
+        break;
     }
   }
+  QVector3D lightDir(cur_dir[0], cur_dir[1], cur_dir[2]);
+  if(lightDir.lengthSquared() < 1e-6f)
+    lightDir = sceneDir;
   lightDir.normalize();
 
   // Find the active camera's view_projection by walking the scene tree
@@ -329,6 +324,8 @@ void ShadowCascadeSetup::rebuild()
   info.light_direction[0] = lightDir.x();
   info.light_direction[1] = lightDir.y();
   info.light_direction[2] = lightDir.z();
+  if(owner)
+    info.light_slot = owner->raw_slot;
 
   info.split_view_depths[0] = nearZ;
   for(int i = 1; i < count; ++i)

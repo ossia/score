@@ -66,12 +66,15 @@ ossia::scene_node_ptr camera_node(
 }
 
 //! A directional light whose local -Z, rotated by `q`, is the world direction.
-ossia::scene_node_ptr
-light_node(uint64_t id, const QQuaternion& q, bool cast_shadow = true)
+//! `slot` stands for the RawLight arena slot the Light node stamps.
+ossia::scene_node_ptr light_node(
+    uint64_t id, const QQuaternion& q, bool cast_shadow = true, uint32_t slot = 0)
 {
   auto light = std::make_shared<ossia::light_component>();
   light->type = ossia::light_type::directional;
   light->shadow.enabled = cast_shadow;
+  light->raw_slot.size = 64;
+  light->raw_slot.internal_index = slot;
 
   ossia::scene_transform t;
   t.rotation[0] = q.x();
@@ -413,6 +416,40 @@ TEST_CASE("ShadowCascadeSetup: the scene light is the first one casting shadows"
     CHECK(i.light_direction[0] == Approx(1.f).margin(1e-4));
     CHECK(i.light_direction[1] == Approx(0.f).margin(1e-4));
     CHECK(i.light_direction[2] == Approx(0.f).margin(1e-4));
+  }
+}
+
+TEST_CASE("ShadowCascadeSetup: the cascades record the light they belong to",
+          "[threedim][shadow]")
+{
+  Threedim::ShadowCascadeSetup n;
+  const auto toX = QQuaternion::rotationTo(QVector3D(0, 0, -1), QVector3D(1, 0, 0));
+  const auto toY = QQuaternion::rotationTo(QVector3D(0, 0, -1), QVector3D(0, -1, 0));
+  n.inputs.scene_in.scene.state = make_state(
+      {camera_node(1, 0.f), light_node(2, toX, false, 5), light_node(3, toY, true, 7)});
+
+  SECTION("the first light casting shadows")
+  {
+    n.inputs.light_direction.value = {0.f, 0.f, 0.f};
+    const auto& i = run(n);
+    CHECK(i.light_slot.size == 64u);
+    CHECK(i.light_slot.internal_index == 7u);
+  }
+
+  SECTION("the same light when the direction control overrides its direction")
+  {
+    n.inputs.light_direction.value = {-0.5f, -1.f, -0.4f};
+    const auto& i = run(n);
+    CHECK(i.light_direction[1] < -0.8f);
+    CHECK(i.light_slot.size == 64u);
+    CHECK(i.light_slot.internal_index == 7u);
+  }
+
+  SECTION("no light, no slot")
+  {
+    n.inputs.scene_in.scene.state = make_state({camera_node(1, 0.f)});
+    n.inputs.light_direction.value = {0.f, -1.f, 0.f};
+    CHECK(run(n).light_slot.size == 0u);
   }
 }
 

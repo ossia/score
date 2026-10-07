@@ -5492,6 +5492,44 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
                     ? src.split_view_depths[k + 1]
                     : 0.f;
         }
+        // The light the cascades belong to, as recorded by Shadow Cascade
+        // Setup. When its input had no directional light with a RawLight
+        // slot, they go to the first directional light with Cast shadow on.
+        if(m_registry
+           && m_registry->isLiveIn(src.light_slot, GpuResourceRegistry::Arena::RawLight))
+        {
+          sh.light_slot = src.light_slot.internal_index;
+        }
+        else if(m_registry && sh.cascade_count > 0 && this->scene.state->roots)
+        {
+          auto find = [&](auto& self, const ossia::scene_node& n) -> bool {
+            if(!n.children)
+              return false;
+            for(const auto& p : *n.children)
+            {
+              if(auto* lc = ossia::get_if<ossia::light_component_ptr>(&p))
+              {
+                if(*lc && (*lc)->type == ossia::light_type::directional
+                   && (*lc)->shadow.enabled
+                   && m_registry->isLiveIn(
+                       (*lc)->raw_slot, GpuResourceRegistry::Arena::RawLight))
+                {
+                  sh.light_slot = (*lc)->raw_slot.internal_index;
+                  return true;
+                }
+              }
+              else if(auto* sub = ossia::get_if<ossia::scene_node_ptr>(&p))
+              {
+                if(*sub && self(self, **sub))
+                  return true;
+              }
+            }
+            return false;
+          };
+          for(const auto& r : *this->scene.state->roots)
+            if(r && find(find, *r))
+              break;
+        }
       }
       if(!m_shadowCascadesSeeded
          || std::memcmp(&sh, &m_cachedShadowCascades,
