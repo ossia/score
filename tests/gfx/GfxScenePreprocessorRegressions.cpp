@@ -121,6 +121,21 @@ void main()
 }
 )";
 
+// Scales the ambient term so that the 0.03 grey once used as the default
+// saturates the readback.
+constexpr const char* kEnvAmbientScaledFrag = "/*{" SCENE_RASTER_HEADER R"(
+  "INPUTS": [
+    { "NAME": "env", "TYPE": "uniform", "VISIBILITY": "fragment",
+      "LAYOUT": [ { "NAME": "ambient", "TYPE": "vec4" }, { "NAME": "fog_color_density", "TYPE": "vec4" },
+                  { "NAME": "fog_range", "TYPE": "vec4" }, { "NAME": "exposure_gamma", "TYPE": "vec4" } ] }
+  ]
+}*/
+void main()
+{
+  isf_FragColor = vec4(env.ambient.rgb * env.ambient.w * 100.0, 1.0);
+}
+)";
+
 constexpr const char* kSolidFrag = "/*{" SCENE_RASTER_HEADER R"(
   "INPUTS": []
 }*/
@@ -442,6 +457,50 @@ TEST_CASE(
   CHECK(left[2] < 50);
   CHECK(right[0] < 50);
   CHECK(right[2] > 200);
+}
+
+TEST_CASE(
+    "a scene without an environment has no ambient light",
+    "[gfx][scene][environment]")
+{
+  const auto api = GENERATE(from_range(platform_backends()));
+  CAPTURE(backend_name(api));
+  QTemporaryDir dir;
+  REQUIRE(dir.isValid());
+  const QString vs = writeText(dir, "scenepp.vert", kVert);
+  const QString fs = writeText(dir, "scenepp_env_scaled.frag", kEnvAmbientScaledFrag);
+
+  Result r;
+  score::test::run_in_gui_app([&](const score::GUIApplicationContext&) {
+    GfxPipeline p;
+    const int raster
+        = sceneChain(p, stateWith({nodeWith(quad(-1, 1, 0xF1A0021u), 21)}), vs, fs);
+    if(raster < 0)
+    {
+      r.err = "chain build failed: " + p.error();
+      return;
+    }
+    const int sink = p.addSink({kSize, kSize});
+    p.wire(p.imageOut(raster, 0), p.sinkInput(sink));
+    if(!p.create(api))
+    {
+      r.skipped = p.skipped();
+      r.err = r.skipped ? std::string{} : p.error();
+      return;
+    }
+    p.render(5);
+    r.img = p.readback(sink);
+  });
+  if(r.skipped)
+    SKIP("backend unavailable");
+  REQUIRE(r.err.empty());
+  REQUIRE(r.img.valid());
+  const auto c = r.img.center();
+  INFO("center " << scene::rgba_string(c));
+  CHECK(int(c[0]) == 0);
+  CHECK(int(c[1]) == 0);
+  CHECK(int(c[2]) == 0);
+  CHECK(int(c[3]) == 255);
 }
 
 TEST_CASE("a scene node with visible == false is not drawn", "[gfx][scene][visibility]")

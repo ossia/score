@@ -364,7 +364,7 @@ struct RawLocalTransform
 // on the other end.
 struct EnvParamsUBO
 {
-  float ambient[4]{0.03f, 0.03f, 0.03f, 1.f};        // xyz = color, w = intensity
+  float ambient[4]{0.f, 0.f, 0.f, 1.f};              // xyz = color, w = intensity
   float fog_color_density[4]{0.8f, 0.8f, 0.8f, 0.f}; // xyz = color, w = density
   float fog_range[4]{10.f, 100.f, 0.f, 0.f};         // x = start, y = end,
                                                       // z = mode, w = enabled (0/1)
