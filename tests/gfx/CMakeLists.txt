@@ -694,6 +694,15 @@ if(TARGET score_plugin_threedim AND TARGET score_plugin_avnd)
     PLUGINS score_plugin_avnd score_plugin_threedim)
 endif()
 
+# PBR Mesh keeps the auxiliaries and the transform of the geometry wired into
+# it, through the real Scene Preprocessor and a raw raster.
+if(TARGET score_plugin_threedim)
+  score_add_gfx_plugin_test(pbr_mesh_upstream_geometry
+    SOURCES GfxPBRMeshUpstreamGeometry.cpp
+    HIDDEN "${_threedim}/PBRMesh.cpp"
+    PLUGINS score_plugin_threedim)
+endif()
+
 # EnvironmentLoader's render_target_size override reaches the camera
 # pass (packCameraUBO's renderSize/aspect), scoped to exactly that -- the
 # physical RT extent must NOT change. CPU producer/merge + camera-math halves

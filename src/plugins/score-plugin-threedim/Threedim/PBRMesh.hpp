@@ -13,6 +13,7 @@
 
 #include <cstdint>
 #include <memory>
+#include <vector>
 
 class QRhiResourceUpdateBatch;
 
@@ -35,10 +36,18 @@ namespace Threedim
 //
 // The node emits a single scene_node at the root holding:
 //   - a scene_transform built from the TRS controls
+//   - the transform of the input geometry, applied before the TRS controls
 //   - a mesh_component wrapping the GPU geometry into one mesh_primitive
 //   - a direct material_component_ptr, also published into the scene's
 //     material list: one material_component carrying the factor controls
 //     plus any wired-in runtime textures
+//
+// The input geometry's auxiliary buffers and textures are published on the
+// scene as named injections, so a raster after the Scene Preprocessor binds
+// them by name as it would on the geometry itself. The ones a Scene
+// Preprocessor publishes for its own scene (per_draws, scene_materials, ...)
+// are left out: fed another preprocessor's output, they would replace the
+// next preprocessor's.
 //
 // Texture inputs route through the Dynamic Texture pathway in
 // ScenePreprocessor: non-null handles become `*Dyn<slot>` auxiliary-texture
@@ -130,6 +139,8 @@ public:
   int64_t m_cached_indices{-1};
   void* m_cached_tex[4]{};
   float m_cached_factors[10]{};
+  float m_cached_upstream[16]{};
+  std::vector<void*> m_cached_aux;
   int64_t m_version_counter{0};
 
   // Stable ids minted once on first rebuild and reused across every
@@ -138,6 +149,7 @@ public:
   uint64_t m_material_stable_id{};
   uint64_t m_primitive_stable_id{};
   uint64_t m_xform_stable_id{};
+  uint64_t m_upstream_xform_stable_id{};
 
   // Slots: one in the Material arena, one in RawTransform for the
   // emitted scene_transform. Allocated in init(), written in update(),
