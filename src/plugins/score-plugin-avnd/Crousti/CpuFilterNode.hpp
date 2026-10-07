@@ -149,7 +149,7 @@ struct GfxRenderer<Node_T> final
 
   QRhiTexture* textureForOutput(const score::gfx::Port& output) override
   {
-    if constexpr(avnd::gpu_texture_output_introspection<Node_T>::size > 0)
+    if constexpr(avnd::texture_output_introspection<Node_T>::size > 0)
     {
       // Find which output port index this is
       const auto& outputs = this->node().output;
@@ -165,9 +165,25 @@ struct GfxRenderer<Node_T> final
       if(port_idx < 0)
         return nullptr;
 
-      // Walk gpu_texture outputs; for_all_n2 gives us both the
+      // Walk the texture outputs; for_all_n2 gives us both the
       // predicate index and the struct field index (== port index)
       QRhiTexture* result = nullptr;
+      // A CPU outlet publishes the texture its image is uploaded to, held by
+      // its sampler (m_samplers[PredIdx], see texture_outputs_storage), once
+      // that texture has the image's size: before the first upload it is the
+      // render list's empty texture.
+      avnd::cpu_texture_output_introspection<Node_T>::for_all_n2(
+          avnd::get_outputs<Node_T>(*state),
+          [&]<std::size_t PredIdx, std::size_t FieldIdx>(
+              auto& field, avnd::predicate_index<PredIdx>,
+              avnd::field_index<FieldIdx>) {
+        if(static_cast<int>(FieldIdx) != port_idx || PredIdx >= this->m_samplers.size())
+          return;
+        auto* tex = this->m_samplers[PredIdx].texture;
+        const QSize sz{field.texture.width, field.texture.height};
+        if(tex && !sz.isEmpty() && tex->pixelSize() == sz)
+          result = tex;
+      });
       avnd::gpu_texture_output_introspection<Node_T>::for_all_n2(
           avnd::get_outputs<Node_T>(*state),
           [&]<std::size_t PredIdx, std::size_t FieldIdx>(
