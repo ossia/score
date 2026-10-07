@@ -280,6 +280,24 @@ TEST_CASE("OutputMappingCanvas add and remove", "[gfx][window][mappingcanvas]")
   });
 }
 
+TEST_CASE("OutputMappingCanvas adds outputs to a canvas no taller than one", "[gfx][window][mappingcanvas]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext&) {
+    Gfx::OutputMappingCanvas canvas;
+    // 16:3 makes the canvas 400x75: exactly one output high
+    canvas.updateAspectRatio(3840, 720);
+    REQUIRE(canvas.canvasHeight() == Approx(75.0));
+
+    canvas.addOutput();
+    canvas.addOutput();
+
+    auto items = itemsOf<Gfx::OutputMappingItem>(*canvas.scene());
+    REQUIRE(items.size() == 2);
+    for(auto* item : items)
+      CHECK(item->pos().y() + item->rect().y() == Approx(0.0));
+  });
+}
+
 TEST_CASE("OutputMappingCanvas snapping and clamping", "[gfx][window][mappingcanvas]")
 {
   score::test::run_in_app([](const score::GUIApplicationContext&) {
