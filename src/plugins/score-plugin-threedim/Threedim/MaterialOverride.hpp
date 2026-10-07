@@ -162,6 +162,16 @@ public:
       std::shared_ptr<ossia::material_component>>
       m_clone_cache;
 
+  // Primitives reference their material by pointer, so the clones only
+  // take effect once the meshes using a targeted material are copied with
+  // the clone swapped in. Keyed by source mesh; the value keeps the source
+  // alive (no address reuse) next to its copy, which is reused across
+  // rebuilds while it still points at the right clones.
+  ossia::hash_map<
+      const ossia::mesh_component*,
+      std::pair<ossia::mesh_component_ptr, ossia::mesh_component_ptr>>
+      m_mesh_cache;
+
   // Identity cache: (input-scene pointer, input version, control values,
   // texture handles). If all match, we reuse m_cached_out without
   // rebuilding the materials list.

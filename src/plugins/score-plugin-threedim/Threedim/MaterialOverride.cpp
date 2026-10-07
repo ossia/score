@@ -1,6 +1,7 @@
 #include "MaterialOverride.hpp"
 
 #include <algorithm>
+#include <optional>
 
 namespace Threedim
 {
@@ -33,6 +34,130 @@ bool shouldOverride(int idx, int mode, int override_index) noexcept
   }
 }
 
+// Rewrites the scene tree so that every primitive (and standalone
+// material payload) referencing a targeted material points at its clone.
+// Subtrees without such a reference are returned as-is, by identity.
+struct MaterialTreeRewriter
+{
+  using material_map = ossia::hash_map<
+      const ossia::material_component*, ossia::material_component_ptr>;
+  using mesh_cache = decltype(MaterialOverride::m_mesh_cache);
+
+  const material_map& clones;
+  mesh_cache& meshes;
+  ossia::hash_set<const ossia::mesh_component*>& seen_meshes;
+  ossia::hash_map<const ossia::scene_node*, ossia::scene_node_ptr> nodes{};
+
+  ossia::material_component_ptr
+  material(const ossia::material_component_ptr& m) const noexcept
+  {
+    if(!m)
+      return m;
+    auto it = clones.find(m.get());
+    return it != clones.end() ? it->second : m;
+  }
+
+  // True when `dst` holds the clones of `src`'s materials, slot for slot.
+  bool swapped(const ossia::mesh_component& src, const ossia::mesh_component& dst)
+      const noexcept
+  {
+    if(src.primitives.size() != dst.primitives.size())
+      return false;
+    for(std::size_t i = 0; i < src.primitives.size(); ++i)
+    {
+      const auto& sp = src.primitives[i];
+      const auto& dp = dst.primitives[i];
+      if(material(sp.material) != dp.material
+         || sp.material_variants.size() != dp.material_variants.size())
+        return false;
+      for(std::size_t v = 0; v < sp.material_variants.size(); ++v)
+        if(material(sp.material_variants[v]) != dp.material_variants[v])
+          return false;
+    }
+    return true;
+  }
+
+  ossia::mesh_component_ptr mesh(const ossia::mesh_component_ptr& src)
+  {
+    if(!src || swapped(*src, *src))
+      return src;
+    seen_meshes.insert(src.get());
+    if(auto it = meshes.find(src.get()); it != meshes.end())
+      if(swapped(*src, *it->second.second))
+        return it->second.second;
+
+    auto copy = std::make_shared<ossia::mesh_component>(*src);
+    for(auto& prim : copy->primitives)
+    {
+      prim.material = material(prim.material);
+      for(auto& v : prim.material_variants)
+        v = material(v);
+    }
+    meshes[src.get()] = {src, copy};
+    return copy;
+  }
+
+  ossia::scene_node_ptr node(const ossia::scene_node_ptr& src)
+  {
+    if(!src || !src->children)
+      return src;
+    if(auto it = nodes.find(src.get()); it != nodes.end())
+      return it->second;
+
+    std::shared_ptr<std::vector<ossia::scene_payload>> kids;
+    const auto& children = *src->children;
+    for(std::size_t i = 0; i < children.size(); ++i)
+    {
+      const auto& p = children[i];
+      std::optional<ossia::scene_payload> replaced;
+      if(auto* n = ossia::get_if<ossia::scene_node_ptr>(&p))
+      {
+        if(auto r = node(*n); r != *n)
+          replaced = std::move(r);
+      }
+      else if(auto* m = ossia::get_if<ossia::mesh_component_ptr>(&p))
+      {
+        if(auto r = mesh(*m); r != *m)
+          replaced = std::move(r);
+      }
+      else if(auto* ic = ossia::get_if<ossia::instance_component_ptr>(&p))
+      {
+        if(*ic)
+        {
+          if(auto r = mesh((*ic)->prototype); r != (*ic)->prototype)
+          {
+            auto inst = std::make_shared<ossia::instance_component>(**ic);
+            inst->prototype = std::move(r);
+            replaced = ossia::instance_component_ptr(std::move(inst));
+          }
+        }
+      }
+      else if(auto* mat = ossia::get_if<ossia::material_component_ptr>(&p))
+      {
+        if(auto r = material(*mat); r != *mat)
+          replaced = std::move(r);
+      }
+
+      if(replaced)
+      {
+        if(!kids)
+          kids = std::make_shared<std::vector<ossia::scene_payload>>(children);
+        (*kids)[i] = std::move(*replaced);
+      }
+    }
+
+    ossia::scene_node_ptr res = src;
+    if(kids)
+    {
+      auto copy = std::make_shared<ossia::scene_node>(*src);
+      copy->children = std::move(kids);
+      res = std::move(copy);
+    }
+    nodes[src.get()] = res;
+    return res;
+  }
+};
+
 } // namespace
 
 void MaterialOverride::rebuild()
@@ -64,6 +189,7 @@ void MaterialOverride::rebuild()
     std::copy(cur_tex, cur_tex + 4, m_cached_tex);
     m_cached_out = in.state;
     m_pending_dirty = 0xFF;
+    m_mesh_cache.clear();
     return;
   }
 
@@ -103,6 +229,7 @@ void MaterialOverride::rebuild()
   // entries from m_clone_cache (freed when upstream shrinks or swaps).
   ossia::hash_set<const ossia::material_component*> seen_src;
   seen_src.reserve(src_mats.size());
+  MaterialTreeRewriter::material_map clones;
 
   for(std::size_t i = 0; i < src_mats.size(); ++i)
   {
@@ -168,6 +295,7 @@ void MaterialOverride::rebuild()
       cloned->emissive_strength = cur_em[3];
     }
 
+    clones[src_mat.get()] = cloned;
     new_mats->push_back(cloned);
   }
 
@@ -183,11 +311,38 @@ void MaterialOverride::rebuild()
   // Forward every shared scene_state field (roots / cameras / animations /
   // skeletons / environment / collections / variants / time / statistics /
   // aux injections) by copying the upstream state wholesale — the vectors
-  // are shared_ptrs so this is shallow — then swap only the materials.
+  // are shared_ptrs so this is shallow — then swap the materials, and the
+  // roots when a mesh in the tree uses a targeted material.
   // Cherry-picking fields here silently loses data on every pass, which
   // tests/threedim/Transform3DCompose.cpp pins for wrapSceneWithTransform.
   auto state = std::make_shared<ossia::scene_state>(*in_state);
   state->materials = std::move(new_mats);
+
+  ossia::hash_set<const ossia::mesh_component*> seen_meshes;
+  if(in_state->roots)
+  {
+    MaterialTreeRewriter rw{clones, m_mesh_cache, seen_meshes};
+    std::shared_ptr<std::vector<ossia::scene_node_ptr>> roots;
+    const auto& src_roots = *in_state->roots;
+    for(std::size_t i = 0; i < src_roots.size(); ++i)
+    {
+      auto r = rw.node(src_roots[i]);
+      if(r == src_roots[i])
+        continue;
+      if(!roots)
+        roots = std::make_shared<std::vector<ossia::scene_node_ptr>>(src_roots);
+      (*roots)[i] = std::move(r);
+    }
+    if(roots)
+      state->roots = std::move(roots);
+  }
+  for(auto it = m_mesh_cache.begin(); it != m_mesh_cache.end();)
+  {
+    if(seen_meshes.find(it->first) == seen_meshes.end())
+      it = m_mesh_cache.erase(it);
+    else
+      ++it;
+  }
   state->version = ++m_version_counter;
   state->dirty_index = m_version_counter;
 
