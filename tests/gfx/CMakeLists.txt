@@ -1258,6 +1258,19 @@ if(TARGET score_plugin_media)
     GFX_TEST_CORPUS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/corpus")
 endif()
 
+# A STATIC image input fed by a video reads the frame, converted into a texture
+# the video renderer owns, rather than black.
+if(TARGET score_plugin_media)
+  score_add_test(test_gfx_video_static_input
+    SOURCES GfxVideoStaticInput.cpp
+    GUI
+    PLUGINS score_plugin_gfx score_plugin_media score_plugin_scenario
+            score_lib_process
+    LIBS test_gfx_engine_glue avutil)
+  target_compile_definitions(test_gfx_video_static_input PRIVATE
+    GFX_TEST_CORPUS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/corpus")
+endif()
+
 # What a frame costs as the target grows, with no readback and no output device
 # in the way. Answers "is the renderer the wall at 8K" -- it is not.
 score_add_test(test_gfx_render_scaling

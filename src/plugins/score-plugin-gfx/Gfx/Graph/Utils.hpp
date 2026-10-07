@@ -243,6 +243,18 @@ struct SCORE_PLUGIN_GFX_EXPORT Edge
   static inline std::atomic<uint64_t> generation{0};
 };
 
+//! Whether an input cabled to `output` samples the producer's own texture
+//! (GrabsFromSource: a STATIC image, a cubemap, a volume) instead of having it
+//! drawn into a render target. Producers that only draw into their consumers'
+//! targets publish a texture of their own for those.
+inline bool outputGrabbedBySink(const Port& output) noexcept
+{
+  for(const Edge* e : output.edges)
+    if(e && e->sink && (e->sink->flags & Flag::GrabsFromSource) == Flag::GrabsFromSource)
+      return true;
+  return false;
+}
+
 /**
  * @brief Useful abstraction for storing a graphics pipeline and associated resource bindings.
  */

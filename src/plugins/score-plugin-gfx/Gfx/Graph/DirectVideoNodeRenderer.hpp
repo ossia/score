@@ -1,6 +1,7 @@
 #pragma once
 #include <Gfx/Graph/NodeRenderer.hpp>
 #include <Gfx/Graph/VideoNode.hpp>
+#include <Gfx/Graph/VideoNodeRenderer.hpp>
 #include <Gfx/Graph/decoders/GPUVideoDecoder.hpp>
 #include <Video/VideoInterface.hpp>
 
@@ -63,6 +64,10 @@ public:
   void init(RenderList& renderer, QRhiResourceUpdateBatch& res) override;
   void runRenderPass(RenderList&, QRhiCommandBuffer& commands, Edge& edge) override;
   void update(RenderList& renderer, QRhiResourceUpdateBatch& res, Edge* edge) override;
+  void runInitialPasses(
+      RenderList&, QRhiCommandBuffer& commands, QRhiResourceUpdateBatch*& res,
+      Edge& edge) override;
+  QRhiTexture* textureForOutput(const Port& output) override;
   void release(RenderList& r) override;
 
   void initState(RenderList& renderer, QRhiResourceUpdateBatch& res) override;
@@ -186,6 +191,7 @@ private:
   std::vector<std::pair<int64_t, int64_t>> m_keyframes;
   int64_t m_packetNumber{};
   bool m_recomputeScale{true};
+  VideoOwnTexture m_ownTexture;
 };
 
 }
