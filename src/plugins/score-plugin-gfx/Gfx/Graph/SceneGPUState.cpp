@@ -547,14 +547,18 @@ struct FlattenVisitor
       if(*light && seenLights.insert(light->get()).second)
       {
         // Arena slot index for shader-side arena-direct light reads.
-        // 0xFFFFFFFF is the sentinel for producer-less lights (e.g.
-        // FBX/glTF-embedded lights that don't own a RawLight slot
-        // yet); those are filtered out when building
-        // scene_light_indices.
-        out.lightArenaSlots.push_back(
-            stamped((*light)->raw_slot, GpuResourceRegistry::Arena::RawLight)
-                ? (*light)->raw_slot.internal_index
-                : 0xFFFFFFFFu);
+        // Producer-less lights (FBX/glTF-embedded) get the 0xFFFFFFFF
+        // sentinel here and are recorded with their world transform, for
+        // the preprocessor to give them a slot.
+        if(stamped((*light)->raw_slot, GpuResourceRegistry::Arena::RawLight))
+        {
+          out.lightArenaSlots.push_back((*light)->raw_slot.internal_index);
+        }
+        else
+        {
+          out.loaderLights.push_back({*light, parentWorld, out.lightArenaSlots.size()});
+          out.lightArenaSlots.push_back(0xFFFFFFFFu);
+        }
       }
     }
     else if(auto* camera = ossia::get_if<ossia::camera_component_ptr>(&payload))

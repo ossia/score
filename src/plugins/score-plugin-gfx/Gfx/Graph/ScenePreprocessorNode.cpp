@@ -61,6 +61,41 @@ struct PerDrawBoundsGPU
 static_assert(sizeof(PerDrawBoundsGPU) == 32,
               "PerDrawBoundsGPU layout must match shader (2 × vec4)");
 
+// RawLightData of a loader light, in the encoding the Light process writes:
+// local -Z is the light's direction, area lights collapse to point and dome
+// to directional. No shadow map is fitted for these lights, so shadows are off.
+inline RawLightData
+rawLightData(const ossia::light_component& lc, uint32_t transform_slot) noexcept
+{
+  RawLightData raw{};
+  raw.color[0] = lc.color[0];
+  raw.color[1] = lc.color[1];
+  raw.color[2] = lc.color[2];
+  raw.color[3] = lc.intensity;
+  switch(lc.type)
+  {
+    case ossia::light_type::directional:
+    case ossia::light_type::dome:
+      raw.local_direction[3] = 0.f;
+      break;
+    case ossia::light_type::spot:
+      raw.local_direction[3] = 2.f;
+      break;
+    default:
+      raw.local_direction[3] = 1.f;
+      break;
+  }
+  raw.range_cone[0] = lc.range;
+  raw.range_cone[1] = std::cos(lc.inner_cone_angle);
+  raw.range_cone[2] = std::cos(lc.outer_cone_angle);
+  raw.range_cone[3] = lc.shadow.bias;
+  raw.shadow_enabled = 0u;
+  raw.decay_mode = uint32_t(lc.decay);
+  raw.transform_slot = transform_slot;
+  raw.normal_bias = lc.shadow.normal_bias;
+  return raw;
+}
+
 // Pack an ossia::aabb into PerDrawBoundsGPU. Empty (inverted) input means
 // the source mesh didn't compute bounds — emit a ±FLT_MAX "infinite" box
 // so culling shaders never cull the draw. This keeps sources that can't
@@ -795,6 +830,18 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
       const ossia::material_component*, GpuResourceRegistry::Slot>
       m_loaderMaterialSlots;
 
+  // Arena slots this preprocessor allocated for loader lights, i.e. lights
+  // without a RawLight slot of their own (glTF, FBX): a RawLight slot holding
+  // their RawLightData and a RawTransform slot naming their world matrix in
+  // world_transforms. Freed at release, as m_loaderMaterialSlots.
+  struct LoaderLightSlots
+  {
+    GpuResourceRegistry::Slot light;
+    GpuResourceRegistry::Slot transform;
+  };
+  ossia::hash_map<const ossia::light_component*, LoaderLightSlots>
+      m_loaderLightSlots;
+
   // Accumulator sizes from the last full rebuildMDI, used to pre-reserve the
   // temporary vector capacity. Grow-only. Vertex/index stream sizes are the
   // arena OffsetAllocator's business; m_lastDrawCount pre-reserves
@@ -906,6 +953,11 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
       for(auto& [mat, slot] : m_loaderMaterialSlots)
         if(slot.valid())
           m_registry->free(slot);
+      for(auto& [light, slots] : m_loaderLightSlots)
+      {
+        m_registry->free(slots.light);
+        m_registry->free(slots.transform);
+      }
       // Release the slabs keyed by the ids minted in resolvePrototypeStableId
       // before dropping m_protoStableIds: mints are globally unique, so the
       // next renderer misses the cache and allocates fresh slabs while these
@@ -916,6 +968,7 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
           m_registry->releaseMeshSlab(id, current_frame);
     }
     m_loaderMaterialSlots.clear();
+    m_loaderLightSlots.clear();
     m_envSlotSeeded = false;
     m_seenPoolGeneration = ~0ull;
     m_protoStableIds.clear();
@@ -4600,6 +4653,53 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
             if(it->second.valid())
               m_registry->free(it->second);
             it = m_loaderMaterialSlots.erase(it);
+          }
+          else
+          {
+            ++it;
+          }
+        }
+      }
+
+      // Loader lights: the preprocessor acts as their producer, as for loader
+      // materials. Their RawLightData and world matrix are written on every
+      // rebuild, since the matrix follows the transforms above them.
+      if(m_registry)
+      {
+        ossia::hash_set<const ossia::light_component*> seen;
+        seen.reserve(fs.loaderLights.size());
+        for(const auto& ll : fs.loaderLights)
+        {
+          seen.insert(ll.light.get());
+          auto& slots = m_loaderLightSlots[ll.light.get()];
+          if(!slots.light.valid())
+            slots.light = m_registry->allocate(
+                GpuResourceRegistry::Arena::RawLight, sizeof(RawLightData));
+          if(!slots.transform.valid())
+          {
+            slots.transform = m_registry->allocate(
+                GpuResourceRegistry::Arena::RawTransform, sizeof(RawLocalTransform));
+            if(slots.transform.valid())
+            {
+              RawLocalTransform seed{};
+              m_registry->updateSlot(res, slots.transform, &seed, sizeof(seed));
+            }
+          }
+          if(!slots.light.valid() || !slots.transform.valid())
+            continue;
+
+          const auto raw = rawLightData(*ll.light, slots.transform.slot_index);
+          m_registry->updateSlot(res, slots.light, &raw, sizeof(raw));
+          fs.worldTransforms.push_back({ll.worldTransform, slots.transform.slot_index});
+          fs.lightArenaSlots[ll.index] = slots.light.slot_index;
+        }
+        for(auto it = m_loaderLightSlots.begin(); it != m_loaderLightSlots.end();)
+        {
+          if(seen.find(it->first) == seen.end())
+          {
+            m_registry->free(it->second.light);
+            m_registry->free(it->second.transform);
+            it = m_loaderLightSlots.erase(it);
           }
           else
           {

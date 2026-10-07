@@ -668,6 +668,17 @@ if(TARGET score_plugin_threedim AND TARGET score_plugin_avnd)
     HEADERS_FROM score_plugin_threedim)
 endif()
 
+# KHR_lights_punctual lights inside a glTF reach the scene_lights a preset reads.
+if(TARGET score_plugin_threedim AND TARGET score_plugin_avnd)
+  score_add_gfx_plugin_test(gltf_punctual_lights
+    SOURCES GfxGltfPunctualLights.cpp
+    HIDDEN
+      "${_threedim}/GltfParser.cpp"
+    PLUGINS score_plugin_avnd
+    HEADERS_FROM score_plugin_threedim
+    LIBS fastgltf)
+endif()
+
 if(TARGET score_plugin_avnd)
   score_add_gfx_plugin_test(gpu_texture_output_blit
     SOURCES GfxGpuTextureOutputBlit.cpp
