@@ -19,6 +19,9 @@
 //  - A scene without an environment has no ambient light.
 //  - Alpha-blended draws are drawn after the opaque ones, back to front, so
 //    they composite over what is behind them.
+//  - A blending raster draws the alpha-blended draws without depth write, so
+//    intersecting blended surfaces show through each other; one that does not
+//    blend, such as a shadow caster, keeps writing depth for them.
 
 #include <score_test/Gfx.hpp>
 
@@ -654,6 +657,128 @@ TEST_CASE(
   CHECK(std::abs(int(right[0]) - 128) < 10);
   CHECK(std::abs(int(right[1]) - 64) < 10);
   CHECK(int(right[2]) < 10);
+}
+
+TEST_CASE(
+    "intersecting alpha-blended draws show through each other",
+    "[gfx][scene][blend]")
+{
+  const auto api = GENERATE(from_range(platform_backends()));
+  CAPTURE(backend_name(api));
+  QTemporaryDir dir;
+  REQUIRE(dir.isValid());
+  const QString vs = writeText(dir, "scenepp_depth.vert", kDepthVert);
+  const QString blendFs = writeText(dir, "scenepp_blend.frag", kBlendFrag);
+  QByteArray noBlend{kBlendFrag};
+  noBlend.replace("\"ENABLE\": true", "\"ENABLE\": false");
+  const QString opaqueFs = writeText(dir, "scenepp_noblend.frag", noBlend.constData());
+
+  // Full-height quad from (-1, z0) to (1, z1), the vertex shader writing z as
+  // reverse-Z depth (larger is nearer).
+  auto mats = std::make_shared<std::vector<ossia::material_component_ptr>>();
+  const auto slanted = [&](float z0, float z1, float y0, float y1, uint64_t id,
+                           std::array<float, 4> color, bool blend) {
+    auto pos = cpuBuffer(
+        {-1, y0, z0, 1, y0, z1, 1, y1, z1, -1, y0, z0, 1, y1, z1, -1, y1, z0},
+        ossia::buffer_data::usage::vertex_buffer);
+    auto mat = std::make_shared<ossia::material_component>();
+    mat->stable_id = id + 0x100u;
+    mat->unlit = true;
+    std::copy(color.begin(), color.end(), mat->base_color_factor);
+    mat->alpha = blend ? ossia::alpha_mode::blend : ossia::alpha_mode::opaque_;
+    mats->push_back(mat);
+    ossia::mesh_primitive prim;
+    prim.vertex_buffers = {pos};
+    ossia::vertex_attribute p;
+    p.semantic = ossia::attribute_semantic::position;
+    p.format = ossia::vertex_format::float3;
+    p.buffer_index = 0;
+    p.byte_stride = 12;
+    prim.attributes.push_back(p);
+    prim.topology = ossia::primitive_topology::triangles;
+    prim.vertex_count = 6;
+    prim.stable_id = id;
+    prim.bounds = {{-1.f, y0, std::min(z0, z1)}, {1.f, y1, std::max(z0, z1)}};
+    prim.material = mat;
+    auto mesh = std::make_shared<ossia::mesh_component>();
+    mesh->primitives.push_back(std::move(prim));
+    mesh->bounds = mesh->primitives[0].bounds;
+    mesh->dirty_index = 1;
+    return nodeWith(ossia::mesh_component_ptr(std::move(mesh)), id);
+  };
+
+  // 50% red rises from z = 0.2 on the left to 0.6 on the right, 50% green
+  // falls from 0.6 to 0.2: they cross at x = 0 and their bounds have the same
+  // centre, so they keep this order. On the right the red one is nearer and
+  // drawn first; with depth write on, it hides the green one. An opaque blue
+  // band in front over y > 0.5 still hides both.
+  auto st = stateWith(
+      {slanted(0.2f, 0.6f, -1.f, 1.f, 0xB1E0001u, {1, 0, 0, 0.5f}, true),
+       slanted(0.6f, 0.2f, -1.f, 1.f, 0xB1E0002u, {0, 1, 0, 0.5f}, true),
+       slanted(0.9f, 0.9f, 0.5f, 1.f, 0xB1E0003u, {0, 0, 1, 1}, false)});
+  st->materials = mats;
+
+  const auto render = [&](const QString& fs) {
+    Result r;
+    score::test::run_in_gui_app([&](const score::GUIApplicationContext&) {
+      GfxPipeline p;
+      const int raster = sceneChain(p, st, vs, fs);
+      if(raster < 0)
+      {
+        r.err = "chain build failed: " + p.error();
+        return;
+      }
+      const int sink = p.addSink({kSize, kSize});
+      p.wire(p.imageOut(raster, 0), p.sinkInput(sink));
+      if(!p.create(api))
+      {
+        r.skipped = p.skipped();
+        r.err = r.skipped ? std::string{} : p.error();
+        return;
+      }
+      p.render(5);
+      r.img = p.readback(sink);
+    });
+    return r;
+  };
+
+  const Result blended = render(blendFs);
+  if(blended.skipped)
+    SKIP("backend unavailable");
+  REQUIRE(blended.err.empty());
+  REQUIRE(blended.img.valid());
+  {
+    // The image's top row is y = +1 on every backend (the sink's readback is
+    // normalised).
+    const auto left = blended.img.at(kSize / 4, kSize / 2 + kSize / 8);
+    const auto right = blended.img.at(3 * kSize / 4, kSize / 2 + kSize / 8);
+    const auto band = blended.img.at(3 * kSize / 4, kSize / 16);
+    INFO(
+        "left " << scene::rgba_string(left) << " right " << scene::rgba_string(right)
+                << " band " << scene::rgba_string(band));
+    // Green over red over the black clear on both sides: (0.25, 0.5, 0).
+    for(const auto& c : {left, right})
+    {
+      CHECK(std::abs(int(c[0]) - 64) < 10);
+      CHECK(std::abs(int(c[1]) - 128) < 10);
+      CHECK(int(c[2]) < 10);
+    }
+    CHECK(int(band[0]) < 10);
+    CHECK(int(band[1]) < 10);
+    CHECK(int(band[2]) > 245);
+  }
+
+  // Without blending the raster keeps depth write for every draw: on the
+  // right the nearer red quad, drawn first, hides the green one.
+  const Result opaque = render(opaqueFs);
+  REQUIRE(opaque.err.empty());
+  REQUIRE(opaque.img.valid());
+  {
+    const auto right = opaque.img.at(3 * kSize / 4, kSize / 2 + kSize / 8);
+    INFO("right " << scene::rgba_string(right));
+    CHECK(int(right[0]) > 245);
+    CHECK(int(right[1]) < 10);
+  }
 }
 
 TEST_CASE("a scene node with visible == false is not drawn", "[gfx][scene][visibility]")

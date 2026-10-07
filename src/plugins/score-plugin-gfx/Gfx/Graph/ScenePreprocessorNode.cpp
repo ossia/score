@@ -574,6 +574,9 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
     uint32_t totalVertices{};
     uint32_t totalIndices{};
     uint32_t drawCount{};
+    // The alpha-blended draws' cmds in indirect_draw_cmds.
+    uint32_t blendCmdFirst{};
+    uint32_t blendCmdCount{};
   };
   MDIState m_mdi;
 
@@ -2598,14 +2601,28 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
       return cmd_index;
     };
 
+    // flattenScene puts the alpha-blended draws last, so their cmds are one
+    // run, published as _blend_draw_cmds for rasters to draw in a pass of
+    // their own.
+    uint32_t blendCmdFirst = kCmdSkipped;
+    uint32_t blendCmdEnd = 0;
     for(std::size_t i = 0; i < fs.draws.size(); ++i)
     {
       const auto& dc = fs.draws[i];
-      emitDraw(
+      const uint32_t cmd = emitDraw(
           dc.mesh, dc.stable_id, dc.worldTransform, dc.material.get(),
           dc.materialIndex, dc.transform_slot, dc.skinIndex, dc.local_bounds,
           /*instanceCount=*/1u);
+      if(cmd != kCmdSkipped && dc.material
+         && dc.material->alpha == ossia::alpha_mode::blend)
+      {
+        blendCmdFirst = std::min(blendCmdFirst, cmd);
+        blendCmdEnd = cmd + 1;
+      }
     }
+    m_mdi.blendCmdFirst = blendCmdFirst == kCmdSkipped ? 0 : blendCmdFirst;
+    m_mdi.blendCmdCount
+        = blendCmdFirst == kCmdSkipped ? 0 : blendCmdEnd - blendCmdFirst;
 
     // Number of per_draws entries that the fs.draws loop actually emitted
     // (i.e. after emitDraw's skip predicate). The fast path's diff-upload
@@ -3379,6 +3396,17 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
     g.auxiliary.push_back({
         .name = "indirect_draw_cmds", .buffer = baseBuf + 4,
         .byte_offset = 0, .byte_size = icBytes});
+    // The range of indirect_draw_cmds holding the alpha-blended draws. A
+    // raster that blends and writes depth draws them last, without depth
+    // write, so blended surfaces that intersect or nest show through each
+    // other.
+    if(m_mdi.blendCmdCount > 0)
+    {
+      g.auxiliary.push_back({
+          .name = "_blend_draw_cmds", .buffer = baseBuf + 4,
+          .byte_offset = (int64_t)m_mdi.blendCmdFirst * (int64_t)sizeof(Acc::IndirectCmd),
+          .byte_size = (int64_t)m_mdi.blendCmdCount * (int64_t)sizeof(Acc::IndirectCmd)});
+    }
     g.auxiliary.push_back({
         .name = "scene_counts", .buffer = baseBuf + 5,
         .byte_offset = 0, .byte_size = (int64_t)sizeof(SceneCountsUBO)});
