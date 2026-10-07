@@ -127,6 +127,13 @@ score_add_test(test_threedim_instancer_stale
   PLUGINS score_plugin_gfx)
 threedim_test_includes(test_threedim_instancer_stale)
 
+# PBR Mesh publishes its material factors from the colour controls (base
+# RGBA, emissive colour x strength). Pure logic — no GPU.
+score_add_test(test_threedim_pbr_mesh_material
+  SOURCES PBRMeshMaterial.cpp "${THREEDIM_DIR}/PBRMesh.cpp"
+  PLUGINS score_plugin_gfx)
+threedim_test_includes(test_threedim_pbr_mesh_material)
+
 score_add_test(test_threedim_extract_index
   SOURCES ExtractIndex.cpp "${THREEDIM_DIR}/ExtractBuffer2.cpp"
   PLUGINS score_plugin_gfx)

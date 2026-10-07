@@ -110,10 +110,11 @@ void PBRMesh::operator()()
   // Identity-caching fast path: skip the rebuild when the input
   // geometry buffers / counts / textures / factors are all unchanged.
   const float cur_factors[10]{
-      inputs.base_r.value, inputs.base_g.value, inputs.base_b.value,
-      inputs.base_a.value, inputs.metallic.value, inputs.roughness.value,
-      inputs.em_r.value, inputs.em_g.value, inputs.em_b.value,
-      inputs.em_strength.value};
+      inputs.base_color.value.r, inputs.base_color.value.g,
+      inputs.base_color.value.b, inputs.base_color.value.a,
+      inputs.metallic.value, inputs.roughness.value,
+      inputs.emissive.value.r, inputs.emissive.value.g,
+      inputs.emissive.value.b, inputs.em_strength.value};
   void* cur_tex[4]{
       texture2DHandle(inputs.base_color_tex.texture),
       texture2DHandle(inputs.metal_rough_tex.texture),
@@ -357,17 +358,17 @@ void PBRMesh::update(
     return;
 
   score::gfx::MaterialGPU gpu{};
-  gpu.baseColor[0] = inputs.base_r.value;
-  gpu.baseColor[1] = inputs.base_g.value;
-  gpu.baseColor[2] = inputs.base_b.value;
-  gpu.baseColor[3] = inputs.base_a.value;
+  gpu.baseColor[0] = inputs.base_color.value.r;
+  gpu.baseColor[1] = inputs.base_color.value.g;
+  gpu.baseColor[2] = inputs.base_color.value.b;
+  gpu.baseColor[3] = inputs.base_color.value.a;
   gpu.metallicRoughnessOcclusionUnlit[0] = inputs.metallic.value;
   gpu.metallicRoughnessOcclusionUnlit[1] = inputs.roughness.value;
   gpu.metallicRoughnessOcclusionUnlit[2] = 1.f;
   gpu.metallicRoughnessOcclusionUnlit[3] = 0.f;
-  gpu.emissive_strength[0] = inputs.em_r.value;
-  gpu.emissive_strength[1] = inputs.em_g.value;
-  gpu.emissive_strength[2] = inputs.em_b.value;
+  gpu.emissive_strength[0] = inputs.emissive.value.r;
+  gpu.emissive_strength[1] = inputs.emissive.value.g;
+  gpu.emissive_strength[2] = inputs.emissive.value.b;
   gpu.emissive_strength[3] = inputs.em_strength.value;
 
   using Ch = score::gfx::GpuResourceRegistry::TextureChannel;
