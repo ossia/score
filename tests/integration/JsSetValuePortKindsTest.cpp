@@ -7,6 +7,8 @@
 //   array input of Array to texture) cannot store anything, and warns.
 // - `port.renderSize = Qt.size(w, h)` on a texture inlet converts the QSizeF
 //   to the port's std::optional<QSize>.
+// - `port.textureFormat = 7` or `= "RGBA16F"` on a texture inlet converts to
+//   the port's std::optional<ossia::texture_format>; "Auto" clears it.
 //
 // A subprocess test: what is under test is the effect on a live document of a
 // real --script run.
@@ -176,4 +178,62 @@ Qt.exit(0);
   CHECK(QRegularExpression{R"("RenderSize"\s*:\s*\[\s*320\s*,\s*240\s*\])"}
             .match(QString::fromUtf8(json))
             .hasMatch());
+}
+
+TEST_CASE("A texture inlet's format is writable from a script", "[integration][js][scripting]")
+{
+  if(!app::binary_available())
+    SKIP("the score application binary was not built");
+
+  const QString shader = QStringLiteral(GFX_TEST_CORPUS_DIR "/isf-image-passthrough.fs");
+  REQUIRE(QFile::exists(shader));
+
+  QTemporaryDir dir;
+  REQUIRE(dir.isValid());
+  const QString saved = dir.filePath("format.score");
+
+  auto r = app::run_script(app::write_file(
+      dir, "format.js",
+      QByteArray(prelude) + "var OUT = " + app::js_string(saved).toUtf8()
+          + ";\nvar SHADER = " + app::js_string(shader).toUtf8() + ";\n"
+          + R"JS(
+function inlet() {
+  var isf = Score.createProcess(root, "ISF Shader", SHADER);
+  if(!isf) { console.log("NO-SHADER"); Qt.exit(0); }
+  var p = Score.inlet(isf, "inputImage");
+  if(!p) { console.log("NO-SHADER"); Qt.exit(0); }
+  return p;
+}
+function setFormat(label, p, v) {
+  try { p.textureFormat = v; console.log("[T] " + label + " set"); }
+  catch(e) { console.log("[T] " + label + " error " + e); }
+}
+setFormat("number", inlet(), 7);
+setFormat("name", inlet(), "RGBA32F");
+var cleared = inlet();
+setFormat("before-auto", cleared, 7);
+setFormat("auto", cleared, "Auto");
+Score.saveAs(OUT);
+console.log("SAVED");
+Qt.exit(0);
+)JS"));
+  INFO(r.output.toStdString());
+  CHECK_FALSE(r.crashed);
+  CHECK(r.exit_code == 0);
+  REQUIRE_FALSE(r.output.contains("NO-SHADER"));
+  CHECK(r.output.contains("[T] number set"));
+  CHECK(r.output.contains("[T] name set"));
+  CHECK(r.output.contains("[T] auto set"));
+  REQUIRE(r.output.contains("SAVED"));
+
+  QFile f{saved};
+  REQUIRE(f.open(QIODevice::ReadOnly));
+  const QString json = QString::fromUtf8(f.readAll());
+  const auto count = [&](const char* re) {
+    return json.count(QRegularExpression{QString::fromLatin1(re)});
+  };
+  // RGBA16F = 7 and RGBA32F = 8 in ossia::texture_format.
+  CHECK(count(R"("Format"\s*:\s*7\s*,\s*"FormatSet"\s*:\s*true)") == 1);
+  CHECK(count(R"("Format"\s*:\s*8\s*,\s*"FormatSet"\s*:\s*true)") == 1);
+  CHECK(count(R"("FormatSet"\s*:\s*false)") == 1);
 }
