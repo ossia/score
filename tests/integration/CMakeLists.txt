@@ -315,6 +315,31 @@ if("SCORE_HAS_GPU_JS" IN_LIST _js_definitions)
     GUI
     PLUGINS score_plugin_scenario score_lib_process score_plugin_js
             score_plugin_gfx score_plugin_engine)
+  # The 2D half of the preview row-order contract (the 3D half is
+  # tests/gfx/GfxPreviewSourceItemOrientation.cpp). QSGRhiSupport latches
+  # QSG_RHI_BACKEND once per process, so the backend cannot be a GENERATE:
+  # one ctest entry per backend over the same binary. Unlike
+  # test_integration_process_ui_placement this one never shows its window --
+  # QQuickWindow::grabWindow() renders an invisible window offscreen -- so
+  # Vulkan is fine on Xvfb, which has no DRI3 and could not present.
+  score_add_test(test_integration_texture_source_orientation_gl
+    SOURCES TextureSourceOrientationTest.cpp
+    GUI
+    PLUGINS score_plugin_scenario score_lib_process score_plugin_js
+            score_plugin_gfx score_plugin_engine)
+  set_property(TEST test_integration_texture_source_orientation_gl APPEND PROPERTY
+    ENVIRONMENT_MODIFICATION "QSG_RHI_BACKEND=set:opengl")
+  score_test_display_wrapper(_texture_orientation_display_wrapper)
+  add_test(NAME test_integration_texture_source_orientation_vk
+    COMMAND ${_texture_orientation_display_wrapper}
+            "$<TARGET_FILE:test_integration_texture_source_orientation_gl>")
+  set_property(TEST test_integration_texture_source_orientation_vk APPEND PROPERTY
+    ENVIRONMENT_MODIFICATION ${SCORE_TEST_ENVIRONMENT} "QSG_RHI_BACKEND=set:vulkan")
+  set_tests_properties(test_integration_texture_source_orientation_vk PROPERTIES
+    WORKING_DIRECTORY "${SCORE_ROOT_BINARY_DIR}"
+    ENVIRONMENT "SCORE_AUDIO_BACKEND=dummy;SCORE_DISABLE_AUDIOPLUGINS=1"
+    LABELS "gui"
+    SKIP_RETURN_CODE 4)
 endif()
 
 # Sweeps every Javascript preset in the user library through the real QML

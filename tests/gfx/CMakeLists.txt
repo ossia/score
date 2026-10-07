@@ -1925,6 +1925,12 @@ score_add_gfx_test(input_sampler_port_map GfxInputSamplerPortMap.cpp)
 # renderFrames leaves it alone, so its render list runs once per frame.
 score_add_gfx_test(preview_host_driven GfxPreviewHostDriven.cpp)
 
+# The host texture a PreviewNode renders into has two consumers with different
+# conventions -- the 2D QQuickRhiItem node, which normalises per backend, and
+# Qt Quick 3D's Texture.sourceItem, which does not. Its row order in sampling
+# space must therefore be the same on every backend.
+score_add_gfx_test(preview_source_item_orientation GfxPreviewSourceItemOrientation.cpp)
+
 # POLYGON_MODE line draws a wireframe where QRhi reports NonFillPolygonMode
 # and falls back to fill, warning once, where it does not.
 score_add_gfx_test(polygon_mode GfxPolygonMode.cpp)
