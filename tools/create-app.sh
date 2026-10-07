@@ -64,11 +64,14 @@ Optional:
     --app-description   Set the app description (one line max)
     --app-domain        Set the app domain (e.g. ossia.io)
     --app-environment   Set a file containing environment variables to set
-    --app-icns          Set the app icon (icns format, macOS)
-    --app-ico           Set the app icon (ico format, Windows)
+    --app-icns          Set the app icon (icns format, macOS). Required when
+                        building for macOS, unless SCORE_ALLOW_DEFAULT_ICON=1.
+    --app-ico           Set the app icon (ico format, Windows). Required when
+                        building for Windows, unless SCORE_ALLOW_DEFAULT_ICON=1.
     --app-identifier    Set the app identifier (e.g. io.ossia.score)
     --app-organization  Set the app organization (e.g. ossia)
-    --app-png           Set the app icon (png format, Linux)
+    --app-png           Set the app icon (png format, Linux). Required when
+                        building for Linux, unless SCORE_ALLOW_DEFAULT_ICON=1.
     --app-qrc           Optional qrc resource file
     --app-version       Set the app version (e.g. 1.0-rc3)
     --help              Show this help message
@@ -292,6 +295,43 @@ if [[ ${#PLATFORMS[@]} -eq 0 ]]; then
     esac
 fi
 
+# Check the icon for every platform we are about to build, before doing any work.
+# A missing icon used to be silently ignored: the branded app then kept whatever
+# the base ossia score package carried, so it shipped with score's icon and
+# score's name in the launcher. That is never what the caller meant, and it is
+# invisible until someone looks at a taskbar, so refuse to build instead.
+icon_for_platform() {
+    case "$1" in
+        linux-*)           echo "--app-png|$APP_ICON_PNG"  ;;
+        macos-*)           echo "--app-icns|$APP_ICON_ICNS" ;;
+        windows|windows-*) echo "--app-ico|$APP_ICON_ICO"  ;;
+        *)                 echo ""                          ;;  # wasm has no icon
+    esac
+}
+
+icon_errors=0
+for platform in "${PLATFORMS[@]}"; do
+    spec="$(icon_for_platform "$platform")"
+    [[ -z "$spec" ]] && continue
+    flag="${spec%%|*}"
+    path="${spec#*|}"
+    if [[ -z "$path" ]]; then
+        echo "Error: $platform needs an icon: pass $flag <file>" >&2
+        icon_errors=1
+    elif [[ ! -f "$path" ]]; then
+        echo "Error: $flag: not a file: $path" >&2
+        icon_errors=1
+    fi
+done
+if [[ "$icon_errors" != 0 ]]; then
+    if [[ "${SCORE_ALLOW_DEFAULT_ICON:-0}" = 1 ]]; then
+        echo "Warning: SCORE_ALLOW_DEFAULT_ICON=1, the app will carry ossia score's icon" >&2
+    else
+        echo "Set SCORE_ALLOW_DEFAULT_ICON=1 to build anyway, with score's icon." >&2
+        exit 1
+    fi
+fi
+
 # Create output directory
 mkdir -p "$OUTPUT_DIR"
 OUTPUT_DIR="$(cd "$OUTPUT_DIR" && pwd)"
@@ -313,6 +353,9 @@ else
 fi
 echo "Output Dir:     $OUTPUT_DIR"
 echo "Platforms:      ${PLATFORMS[*]}"
+echo "Icon (ico):     ${APP_ICON_ICO:-(none)}"
+echo "Icon (icns):    ${APP_ICON_ICNS:-(none)}"
+echo "Icon (png):     ${APP_ICON_PNG:-(none)}"
 echo "========================================="
 echo
 
