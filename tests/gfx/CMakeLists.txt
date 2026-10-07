@@ -1545,6 +1545,10 @@ score_add_gfx_test(csf_geometry_multi_cable GfxCsfGeometryMultiCable.cpp)
 # the render size rather than zero.
 score_add_gfx_test(camera_placeholder_render_size GfxCameraPlaceholderRenderSize.cpp)
 
+# gl_FrontFacing under CULL_MODE none follows the front-face swap that
+# compensates the epilogue's Y mirror, in 2D and PER_CUBE_FACE targets.
+score_add_gfx_test(front_facing_cull_none GfxFrontFacingCullNone.cpp)
+
 # An AUXILIARY texture declared without MIPMAP_MODE samples the bound
 # texture's mips: textureLod on the scene's prefiltered_map reaches level N.
 score_add_gfx_test(aux_texture_mips GfxAuxTextureMips.cpp)
