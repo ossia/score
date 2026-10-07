@@ -77,16 +77,14 @@ public:
     // PBR factors — used as-is by the material (no per-factor toggle:
     // defaults here match glTF defaults, so "untouched" controls produce
     // a reasonable neutral material).
-    halp::hslider_f32<"Color R", halp::range{0., 1., 1.}> base_r;
-    halp::hslider_f32<"Color G", halp::range{0., 1., 1.}> base_g;
-    halp::hslider_f32<"Color B", halp::range{0., 1., 1.}> base_b;
-    halp::hslider_f32<"Color A", halp::range{0., 1., 1.}> base_a;
+    halp::color_chooser<"Color"> base_color;
     halp::hslider_f32<"Metallic", halp::range{0., 1., 0.}> metallic;
     halp::hslider_f32<"Roughness", halp::range{0., 1., 0.5}> roughness;
-    halp::hslider_f32<"Emissive R", halp::range{0., 10., 0.}> em_r;
-    halp::hslider_f32<"Emissive G", halp::range{0., 10., 0.}> em_g;
-    halp::hslider_f32<"Emissive B", halp::range{0., 10., 0.}> em_b;
-    halp::hslider_f32<"Emissive strength", halp::range{0., 10., 1.}> em_strength;
+    // Emissive colour (alpha unused) times strength; strength goes above 1
+    // for HDR emission.
+    halp::color_chooser<"Emissive", halp::color_init{.init = {0., 0., 0., 1.}}>
+        emissive;
+    halp::hslider_f32<"Emissive strength", halp::range{0., 100., 1.}> em_strength;
 
     // Root-node placement. Same TRS controls as Transform3D / Instancer
     // so the node stands alone without a separate transform upstream.
