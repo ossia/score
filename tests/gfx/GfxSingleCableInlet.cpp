@@ -675,3 +675,48 @@ TEST_CASE(
   CHECK(r.format == "RGBA32F");
   CHECK(r.readsUpstream);
 }
+
+TEST_CASE(
+    "Texture to buffer copies the texels a CPU texture producer uploads",
+    "[gfx][avnd][texture]")
+{
+  const auto api = GENERATE(from_range(platform_backends()));
+  CAPTURE(backend_name(api));
+
+  const CpuSourceRun r = runCpuSource(api, true);
+  if(r.skipped)
+    SKIP("backend unavailable");
+  INFO(
+      "error=" << r.error << " " << r.width << "x" << r.height << " buffer "
+               << r.bufferBytes << " B");
+  REQUIRE(r.error.empty());
+  constexpr int n = CpuTextureSource::size;
+  CHECK(r.width == n);
+  CHECK(r.height == n);
+  // 16 x 16 RGBA32F texels.
+  CHECK(r.bufferBytes == n * n * 16);
+  REQUIRE(r.texels.size() == std::size_t(n * n * 4));
+  for(int k = 0; k < n * n * 4; ++k)
+  {
+    INFO("float " << k);
+    CHECK(r.texels[k] == float(k));
+  }
+
+  // Composited into a render target of the same size and format instead, the
+  // texels come back in the same order.
+  ossia::render_target_spec spec;
+  spec.size = ossia::texture_size{n, n};
+  spec.format = ossia::texture_format::RGBA32F;
+  spec.format_set = true;
+  spec.mag_filter = ossia::texture_filter::NEAREST;
+  spec.min_filter = ossia::texture_filter::NEAREST;
+  const CpuSourceRun rt = runCpuSource(api, true, spec);
+  INFO("render target: error=" << rt.error << " buffer " << rt.bufferBytes << " B");
+  REQUIRE(rt.error.empty());
+  REQUIRE(rt.texels.size() == std::size_t(n * n * 4));
+  for(int k = 0; k < n * n * 4; ++k)
+  {
+    INFO("float " << k);
+    CHECK(rt.texels[k] == float(k));
+  }
+}
