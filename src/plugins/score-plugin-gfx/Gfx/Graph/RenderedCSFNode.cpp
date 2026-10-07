@@ -1982,13 +1982,42 @@ void RenderedCSFNode::updateGeometryBindings(
             continue;
           }
           // A non-float format at another stride, or a source the repack
-          // cannot read (not a storage buffer, unaligned, no compute): not
-          // bound rather than bound misaligned.
+          // cannot read (not a storage buffer, unaligned, no compute): read as
+          // zeros, one per element, rather than bound misaligned.
           qWarning() << "CSF geometry: cannot repack the GPU attribute"
                       << req.name.c_str()
                       << "(upstream_size=" << attr_size << "shader_size=" << elem_size
                       << "stride=" << stride << ")";
-          // Don't continue — fall through to create a fallback buffer below
+          const int fallback_count = ssbo.per_instance ? std::max(1, mesh.instances)
+                                                       : std::max(1, mesh.vertices);
+          const int64_t needed = csf_elem_stride * fallback_count;
+          if(!ssbo.owned || !ssbo.buffer || ssbo.size != needed)
+          {
+            releaseSlot(renderer, ssbo);
+            auto* buf = renderer.state.rhi->newBuffer(
+                QRhiBuffer::Static,
+                QRhiBuffer::StorageBuffer | QRhiBuffer::VertexBuffer, needed);
+            buf->setName(QByteArray("CSF_GeomFallback_") + req.name.c_str());
+            if(!buf->create())
+            {
+              delete buf;
+              ssbo.owned = true;
+              continue;
+            }
+            RhiClearBuffer::clearBuffer(*renderer.state.rhi, res, buf, 0, (quint32)needed);
+            ssbo.buffer = buf;
+            ssbo.size = needed;
+            ssbo.owned = true;
+            if(ssbo.read_buffer)
+            {
+              ssbo.read_buffer = regrowBuffer(renderer, ssbo.read_buffer, needed);
+              RhiClearBuffer::clearBuffer(
+                  *renderer.state.rhi, res, ssbo.read_buffer, 0, (quint32)needed);
+            }
+          }
+          ssbo.offset = 0;
+          ssbo.lastUploadSrc = nullptr;
+          continue;
         }
 
         if(auto* cpu = ossia::get_if<ossia::geometry::cpu_buffer>(&geo_buf.data))
