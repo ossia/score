@@ -18,19 +18,17 @@ enum class NvidiaGlxVendorState
   NoDriver,
   //! Kernel module loaded, no GLX vendor library.
   NotInstalled,
-  //! Different releases: every GLX context creation fails with BadValue. What a
-  //! driver upgrade leaves behind until reboot.
+  //! Different releases: every GLX context creation fails with BadValue.
   VersionMismatch,
   //! Both halves agree.
   Consistent,
-  //! Versions unreadable. Treated as usable, so an unusual library layout does
-  //! not cost a working machine its GPU.
+  //! Versions unreadable; treated as usable.
   Unknown
 };
 
-//! Driver release in /proc/driver/nvidia/version, e.g. "610.57.04"; empty if
-//! absent. Takes the first dotted number on the NVRM line, since the field
-//! position differs between the proprietary and open modules.
+//! Driver release from /proc/driver/nvidia/version, empty if absent. Takes the
+//! first dotted number on the NVRM line: the field position differs between the
+//! proprietary and open modules.
 SCORE_LIB_BASE_EXPORT QString
 nvidiaKernelDriverVersion(const QString& procVersionText) noexcept;
 

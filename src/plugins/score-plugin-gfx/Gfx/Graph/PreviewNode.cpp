@@ -37,10 +37,8 @@ std::shared_ptr<RenderState> importRenderState(QSize sz, QRhi* rhi)
   }
   state.version = Gfx::Settings::shaderVersionForAPI(state.api);
   state.rhi = rhi;
-  // The host widget owns this rhi, so we can't follow the global samples
-  // setting here — but we should at least query what the rhi actually
-  // supports rather than assuming 1. Final RT sample count is set by the
-  // host via setSampleCount on its own swap chain.
+  // Host-owned rhi: the global samples setting does not apply, and the host sets
+  // the final count on its own swap chain.
   state.samples = rhi->supportedSampleCounts().value(0, 1);
   state.renderSize = sz;
   state.outputSize = sz;
@@ -122,20 +120,10 @@ void PreviewNode::createOutput(score::gfx::OutputConfiguration conf)
 
 void PreviewNode::destroyOutput()
 {
-  // Persist-across-rebuild contract: registry survives RL teardown,
-  // so its QRhi resources must be released here (BEFORE we drop our
-  // RenderState reference) while the host-owned QRhi is still alive.
-  // The host (Qt widget) is responsible for outliving us, but we tear
-  // down our own resources first to keep the contract symmetric with
-  // ScreenNode / BackgroundNode / MultiWindowNode.
+  // The registry outlives the RenderList, so release its QRhi resources before
+  // dropping our RenderState, while the host-owned QRhi is still alive.
   releaseRegistry();
 
-  // Host owns the underlying QRhi and the m_renderTarget / m_texture aliases
-  // — we don't free those. The shared_ptr<RenderState> is the only piece
-  // PreviewNode actually owns; reset it so a createOutput → destroyOutput →
-  // createOutput cycle drops the prior state instead of relying on
-  // make_shared assignment to release the previous holder. Matches the
-  // unified sink contract every other OutputNode subclass observes.
   m_renderState.reset();
 }
 
@@ -175,17 +163,10 @@ public:
   void release(score::gfx::RenderList&) override { }
 };
 
-// Blits the graph into the host texture. The blit's geometry is what flips the
-// picture; the sampling below is an identity. Per backend, where the first
-// memory row lands:
-//
-//     backend | clipSpaceCorrMatrix Y | NDC Y | first row
-//     OpenGL  |          +1           |  up   | v = 0  (identity)
-//     Vulkan  |          -1           | down  | v = 1  (flip)
-//     Metal   |          +1           |  up   | v = 1  (flip)
-//     D3D     |          +1           |  up   | v = 1  (flip)
-//
-// So `1. - v` here for Vulkan would cancel the geometry flip exactly.
+// Blits the graph into the host texture. The flip lives in the blit's geometry,
+// not in the sampling: with clipSpaceCorrMatrix negating Y under Vulkan, the
+// identity fragment shader below already lands the first memory row on the
+// picture's bottom. A `1. - v` here would cancel it.
 class PreviewRendererInvertY final : public score::gfx::OutputNodeRenderer
 {
   score::gfx::TextureRenderTarget m_inputTarget;
@@ -224,7 +205,6 @@ public:
     const auto& mesh = renderer.defaultTriangle();
     m_mesh = renderer.initMeshBuffer(mesh, res);
 
-    // Identity sampling: the flip is in the geometry, per the table above.
     static const constexpr auto gl_filter = R"_(#version 450
     layout(location = 0) in vec2 v_texcoord;
     layout(location = 0) out vec4 fragColor;
@@ -239,7 +219,6 @@ public:
     std::tie(m_vertexS, m_fragmentS)
         = score::gfx::makeShaders(renderer.state, mesh.defaultVertexShader(), gl_filter);
 
-    // Put the input texture, where all the input nodes are rendering, in a sampler.
     {
       auto sampler = renderer.state.rhi->newSampler(
           QRhiSampler::Linear, QRhiSampler::Linear, QRhiSampler::None,
@@ -290,18 +269,12 @@ public:
   }
 };
 
+// True where the host texture ends up in OpenGL's row order: isYUpInFramebuffer()
+// covers OpenGL, Vulkan gets there via the blit in createRenderer. Metal and D3D
+// are unmeasured and reported conservatively.
 bool previewFirstRowIsPictureBottom(QRhi& rhi) noexcept
 {
-  // Must stay in step with createRenderer.
-  switch(rhi.backend())
-  {
-    case QRhi::OpenGLES2:
-    case QRhi::Vulkan:
-      return true;
-    default:
-      // Metal and D3D are unverified -- see createRenderer.
-      return false;
-  }
+  return rhi.isYUpInFramebuffer() || rhi.backend() == QRhi::Vulkan;
 }
 
 score::gfx::OutputNodeRenderer*
@@ -315,28 +288,17 @@ PreviewNode::createRenderer(score::gfx::RenderList& r) const noexcept
   {
     default:
     case score::gfx::GraphicsApi::OpenGL:
-      // Pass-through: OpenGL's framebuffer order is already the target order.
+      // Already in the target row order.
       return new score::gfx::PreviewRenderer{*this, rt};
 
     case score::gfx::GraphicsApi::Vulkan:
-      // The one backend whose clipSpaceCorrMatrix negates Y, so a pass-through
-      // leaves the texture mirrored against OpenGL's. Every other sink absorbs
-      // that (InvertYRenderer, ScaledRenderer); a preview had no such stage.
       return new score::gfx::PreviewRendererInvertY{*this, rt};
 
     case score::gfx::GraphicsApi::Metal:
     case score::gfx::GraphicsApi::D3D11:
     case score::gfx::GraphicsApi::D3D12:
-      // UNCHANGED, and not because it is known to be right. Neither backend can
-      // be created on Linux, so there is no measurement of what row order they
-      // end up with; the table above PreviewRendererInvertY predicts that this
-      // blit also flips there, which -- combined with score's ISF vertex stage
-      // negating Y for MSL and HLSL as well -- would leave Metal and D3D in the
-      // backend's own order rather than OpenGL's, i.e. still wrong for the
-      // Quick3D consumer and right for the 2D one. Settling that needs a run of
-      // tests/gfx/GfxPreviewSourceItemOrientation.cpp on Apple or Windows
-      // hardware, and until then this change does not touch them: the 2D
-      // preview there keeps working exactly as it does today.
+      // Unchanged, and unmeasured: neither can be created on Linux. Settling it
+      // needs tests/gfx/GfxPreviewSourceItemOrientation.cpp on Apple or Windows.
       return new score::gfx::PreviewRendererInvertY{*this, rt};
   }
   return nullptr;
