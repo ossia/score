@@ -27,7 +27,14 @@
 #include <QVulkanInstance>
 #endif
 
-#include <rhi/qrhi.h>
+#include <QtGui/private/qrhi_p.h>
+#if QT_CONFIG(vulkan)
+#if QT_VERSION >= QT_VERSION_CHECK(6, 6, 0)
+#include <rhi/qrhi_platform.h>
+#else
+#include <QtGui/private/qrhivulkan_p.h>
+#endif
+#endif
 
 #include <catch2/catch_test_macros.hpp>
 #include <score_test/App.hpp>
