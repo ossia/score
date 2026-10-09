@@ -1,5 +1,7 @@
 #pragma once
 
+#include <score_plugin_js_export.h>
+
 #include <QMetaProperty>
 #include <QPointer>
 #include <QQuickItem>
@@ -18,7 +20,7 @@ class QQmlEngine;
 namespace JS
 {
 // Hosts trusted generated QML in an independent engine on this item's thread.
-class ImportedUi : public QQuickItem
+class SCORE_PLUGIN_JS_EXPORT ImportedUi : public QQuickItem
 {
   Q_OBJECT
   Q_PROPERTY(QUrl source READ source WRITE setSource NOTIFY sourceChanged)

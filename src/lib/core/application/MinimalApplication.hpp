@@ -50,6 +50,7 @@ public:
       : QObject{nullptr}
       , m_app{new QApplication{argc, argv}}
   {
+    score::loadApplicationResources();
 #if defined(SCORE_STATIC_PLUGINS)
     score_init_static_plugins();
 #endif
@@ -115,6 +116,7 @@ public:
       : QObject{nullptr}
       , m_app{new QApplication{argc, argv}}
   {
+    score::loadApplicationResources();
     m_show = show;
 #if defined(SCORE_STATIC_PLUGINS)
     score_init_static_plugins();

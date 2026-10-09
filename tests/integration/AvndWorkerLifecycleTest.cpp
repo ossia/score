@@ -80,7 +80,9 @@
 #include <halp/texture.hpp>
 #include <score_test/Gfx.hpp>
 #endif
+#if defined(__GLIBC__)
 #include <malloc.h>
+#endif
 
 #include <atomic>
 #include <chrono>
@@ -365,7 +367,7 @@ worker_probe g_worker;
 
 //! The value the closure reads out of the object. A closure that lands on a
 //! destroyed object would read poisoned or reused heap instead (the test turns
-//! on glibc's M_PERTURB for that).
+//! on glibc's M_PERTURB for that where available).
 constexpr unsigned probe_magic = 0xC0FFEE42u;
 
 struct WorkerObject
@@ -870,7 +872,9 @@ TEST_CASE(
   // glibc: fill freed blocks (and fresh allocations) with a poison byte, so a
   // closure that landed on a destroyed object would read poison rather than the
   // value that happened to still be there.
+#if defined(__GLIBC__)
   mallopt(M_PERTURB, 0x5A);
+#endif
 
   score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
     auto* doc = score::test::new_document(ctx);
@@ -926,7 +930,9 @@ TEST_CASE(
     CHECK(destroyed_in_flight == cycles);
   });
 
+#if defined(__GLIBC__)
   mallopt(M_PERTURB, 0);
+#endif
 }
 
 TEST_CASE(
@@ -1005,7 +1011,9 @@ TEST_CASE(
     "dropped",
     "[avnd][worker][teardown]")
 {
+#if defined(__GLIBC__)
   mallopt(M_PERTURB, 0x5A);
+#endif
 
   score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
     auto* doc = score::test::new_document(ctx);
@@ -1041,7 +1049,9 @@ TEST_CASE(
     }
   });
 
+#if defined(__GLIBC__)
   mallopt(M_PERTURB, 0);
+#endif
 }
 
 TEST_CASE(
