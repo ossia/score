@@ -643,6 +643,13 @@ if(TARGET score_plugin_threedim AND TARGET score_plugin_avnd)
       "${_threedim}/ModelDisplay/ModelDisplayNode.cpp"
     PLUGINS score_plugin_avnd
     HEADERS_FROM score_plugin_threedim)
+  score_add_gfx_plugin_test(model_display_unwired_texture
+    SOURCES GfxModelDisplayUnwiredTexture.cpp
+    HIDDEN
+      "${_threedim}/Primitive.cpp"
+      "${_threedim}/ModelDisplay/ModelDisplayNode.cpp"
+    PLUGINS score_plugin_avnd
+    HEADERS_FROM score_plugin_threedim)
 endif()
 
 if(TARGET score_plugin_threedim AND TARGET score_plugin_avnd)

@@ -160,6 +160,10 @@ void RenderList::init()
   m_emptyTextureArray->setName("RenderList::m_emptyTextureArray");
   SCORE_ASSERT(m_emptyTextureArray->create());
 
+  m_whiteTexture = rhi.newTexture(QRhiTexture::RGBA8, QSize{1, 1}, 1, emptyFlags);
+  m_whiteTexture->setName("RenderList::m_whiteTexture");
+  SCORE_ASSERT(m_whiteTexture->create());
+
   // Allocate the initial resource-update batch before the registry init would, so
   // the empty-texture zero-fills queue into the same batch. Vulkan does not
   // zero-initialise new VkImage memory, and a consumer with no upstream producer
@@ -197,6 +201,13 @@ void RenderList::init()
         entries.append(QRhiTextureUploadEntry(face, 0, src));
       cubeDesc.setEntries(entries.cbegin(), entries.cend());
       m_initialBatch->uploadTexture(m_emptyTextureCube, cubeDesc);
+    }
+    {
+      static const std::array<char, 4> whitePixel{
+          char(0xff), char(0xff), char(0xff), char(0xff)};
+      QRhiTextureSubresourceUploadDescription white(whitePixel.data(), 4);
+      white.setSourceSize(QSize{1, 1});
+      m_initialBatch->uploadTexture(m_whiteTexture, {QRhiTextureUploadEntry(0, 0, white)});
     }
   }
 
@@ -916,6 +927,9 @@ void RenderList::release()
 
   delete m_emptyTextureArray;
   m_emptyTextureArray = nullptr;
+
+  delete m_whiteTexture;
+  m_whiteTexture = nullptr;
 
   // Persist-across-rebuild contract: do NOT destroy the registry here.
   // It is owned by the OutputNode and survives RL rebuild — the next

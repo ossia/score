@@ -1365,9 +1365,19 @@ private:
     sampler->setName("ModelDisplayNode::init::sampler");
     SCORE_ASSERT(sampler->create());
 
-    auto inputRT = renderer.renderTargetForInputPort(*this->node.input[0]);
-    auto* texture = inputRT.texture ? inputRT.texture : &renderer.emptyTexture();
-    m_samplers.push_back({sampler, texture});
+    m_samplers.push_back({sampler, inputTexture(renderer)});
+  }
+
+  // With no cable, the texture inlet's render target is never drawn into and
+  // reads black, which hides the mesh in every projection mode: sample white
+  // instead, so an untextured model shows its shape.
+  QRhiTexture* inputTexture(RenderList& renderer) const noexcept
+  {
+    auto& in = *this->node.input[0];
+    if(in.edges.empty())
+      return &renderer.whiteTexture();
+    auto inputRT = renderer.renderTargetForInputPort(in);
+    return inputRT.texture ? inputRT.texture : &renderer.emptyTexture();
   }
 
   void initState(RenderList& renderer, QRhiResourceUpdateBatch& res) override
@@ -1459,6 +1469,12 @@ private:
   void update(RenderList& renderer, QRhiResourceUpdateBatch& res, Edge* edge) override
   {
     auto& n = static_cast<const ModelDisplayNode&>(this->node);
+
+    // A cable added or removed on the texture inlet does not always
+    // re-initialise this renderer.
+    if(!m_samplers.empty())
+      if(auto* tex = inputTexture(renderer); m_samplers[0].texture != tex)
+        GenericNodeRenderer::updateInputTexture(*n.input[0], tex);
 
     bool mustRecreatePasses = false;
     // A resize of the output changes the aspect ratio without re-initialising

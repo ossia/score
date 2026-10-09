@@ -312,6 +312,12 @@ public:
   QRhiTexture& emptyTextureArray() const noexcept { return *m_emptyTextureArray; }
 
   /**
+   * @brief Opaque white 2D texture, for an input whose missing texture must
+   * not hide what it is applied to
+   */
+  QRhiTexture& whiteTexture() const noexcept { return *m_whiteTexture; }
+
+  /**
    * @brief Empty texture of the view type an image input port samples
    */
   QRhiTexture& emptyTextureFor(const Port& in) const noexcept;
@@ -581,6 +587,7 @@ private:
   QRhiTexture* m_emptyTexture3D{};
   QRhiTexture* m_emptyTextureCube{};
   QRhiTexture* m_emptyTextureArray{};
+  QRhiTexture* m_whiteTexture{};
 
   /**
    * @brief Cache of vertex buffers.
