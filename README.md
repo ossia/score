@@ -42,6 +42,15 @@ ossia score uses [CppDepend](https://www.cppdepend.com/) to ensure consistent co
 
 In order to build score, follow the [documentation](https://ossia.io/score-docs/development/build-from-source.html).
 
+Enable `SCORE_TESTING` to build the test suite. On Windows with MSYS2 CLANG64,
+configure, build, and run `ctest` from the CLANG64 shell so the compiler and
+runtime DLLs come from the same environment. Static debug builds of the full
+suite generate large per-test executables and PDBs; allow sufficient disk space
+and limit concurrent links, for example with `cmake --build <build-dir> --parallel 4`.
+Tests that create an application must use `score_add_test(... APP)` or `GUI`:
+these link the complete static plug-in list after add-on discovery, and the
+application fixtures initialize the same bundled resources as the main program.
+
 ## Packaging status
 
 [![Packaging status](https://repology.org/badge/vertical-allrepos/ossia-score.svg?columns=3&header=ossia-score)](https://repology.org/project/ossia-score/versions)

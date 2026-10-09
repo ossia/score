@@ -3809,7 +3809,7 @@ std::pair<QPointF, QPointF> endsOf(const Curve::Model& m, int id)
       return {s.start, s.end};
   return {};
 }
-bool near(QPointF a, QPointF b)
+bool pointsClose(QPointF a, QPointF b)
 {
   return std::abs(a.x() - b.x()) < 1e-9 && std::abs(a.y() - b.y()) < 1e-9;
 }
@@ -3829,18 +3829,18 @@ TEST_CASE("Dragging a segment moves it, its neighbours follow", "[curve][edition
       ui.drag({0.375, 0.5}, {{0.4, 0.6}, {0.425, 0.7}});
       CHECK(curveError(d.curve()) == "");
       auto [a, b] = endsOf(d.curve(), 101);
-      CHECK(near(a, {0.3, 0.7}));
-      CHECK(near(b, {0.55, 0.7}));
-      CHECK(near(endsOf(d.curve(), 100).second, {0.3, 0.7}));
-      CHECK(near(endsOf(d.curve(), 102).first, {0.55, 0.7}));
+      CHECK(pointsClose(a, {0.3, 0.7}));
+      CHECK(pointsClose(b, {0.55, 0.7}));
+      CHECK(pointsClose(endsOf(d.curve(), 100).second, {0.3, 0.7}));
+      CHECK(pointsClose(endsOf(d.curve(), 102).first, {0.55, 0.7}));
       // The others stay
-      CHECK(near(endsOf(d.curve(), 100).first, {0., 0.}));
-      CHECK(near(endsOf(d.curve(), 103).second, {1., 0.}));
+      CHECK(pointsClose(endsOf(d.curve(), 100).first, {0., 0.}));
+      CHECK(pointsClose(endsOf(d.curve(), 103).second, {1., 0.}));
 
       d.stack().undo();
       settle();
-      CHECK(near(endsOf(d.curve(), 101).first, {0.25, 0.5}));
-      CHECK(near(endsOf(d.curve(), 101).second, {0.5, 0.5}));
+      CHECK(pointsClose(endsOf(d.curve(), 101).first, {0.25, 0.5}));
+      CHECK(pointsClose(endsOf(d.curve(), 101).second, {0.5, 0.5}));
     }
 
     SECTION("stops at the next point and at the top")
@@ -3848,9 +3848,9 @@ TEST_CASE("Dragging a segment moves it, its neighbours follow", "[curve][edition
       ui.drag({0.375, 0.5}, {{0.6, 0.8}, {0.9, 1.5}});
       CHECK(curveError(d.curve()) == "");
       // The next point is at x 0.75: a move of 0.25 at most; 1 at the top
-      CHECK(near(endsOf(d.curve(), 101).first, {0.5, 1.}));
-      CHECK(near(endsOf(d.curve(), 101).second, {0.75, 1.}));
-      CHECK(near(endsOf(d.curve(), 102).second, {0.75, 0.}));
+      CHECK(pointsClose(endsOf(d.curve(), 101).first, {0.5, 1.}));
+      CHECK(pointsClose(endsOf(d.curve(), 101).second, {0.75, 1.}));
+      CHECK(pointsClose(endsOf(d.curve(), 102).second, {0.75, 0.}));
     }
 
     SECTION("the selected segments")
@@ -3862,11 +3862,11 @@ TEST_CASE("Dragging a segment moves it, its neighbours follow", "[curve][edition
       ui.drag({0.625, 0.25}, {{0.65, 0.35}, {0.675, 0.45}});
       CHECK(curveError(d.curve()) == "");
       // 100 and 102 move; 101 between them too; 103 stretches
-      CHECK(near(endsOf(d.curve(), 100).first, {0.05, 0.2}));
-      CHECK(near(endsOf(d.curve(), 101).first, {0.3, 0.7}));
-      CHECK(near(endsOf(d.curve(), 102).second, {0.8, 0.2}));
-      CHECK(near(endsOf(d.curve(), 103).first, {0.8, 0.2}));
-      CHECK(near(endsOf(d.curve(), 103).second, {1., 0.}));
+      CHECK(pointsClose(endsOf(d.curve(), 100).first, {0.05, 0.2}));
+      CHECK(pointsClose(endsOf(d.curve(), 101).first, {0.3, 0.7}));
+      CHECK(pointsClose(endsOf(d.curve(), 102).second, {0.8, 0.2}));
+      CHECK(pointsClose(endsOf(d.curve(), 103).first, {0.8, 0.2}));
+      CHECK(pointsClose(endsOf(d.curve(), 103).second, {1., 0.}));
 
       // Still selected: the drag can go on
       int selected = 0;

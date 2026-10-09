@@ -33,6 +33,7 @@
 #include <QJsonArray>
 #include <QPalette>
 #include <QJsonObject>
+#include <QPointer>
 #include <QTimer>
 
 #include <algorithm>
@@ -191,10 +192,8 @@ void setSnappedPixelSize(QFont& f, int px) noexcept
 
 void registerApplicationFonts()
 {
-  // Keyed on the instance, not a flag: the font database is per
-  // QGuiApplication, so a test that builds a second one needs registering
-  // again.
-  static QCoreApplication* registeredFor = nullptr;
+  // A QPointer, not a raw one: the next QApplication may reuse the address.
+  static QPointer<QCoreApplication> registeredFor;
   if(!qApp || registeredFor == qApp)
     return;
   registeredFor = qApp;
