@@ -14,7 +14,7 @@ concurrency:
 jobs:
   ubuntu:
     name: Ubuntu
-    runs-on: [self-hosted, linux, x64, sat-builder]
+    runs-on: ubuntu-latest
 
     strategy:
       fail-fast: false
