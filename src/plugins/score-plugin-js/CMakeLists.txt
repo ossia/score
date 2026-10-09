@@ -129,7 +129,8 @@ if(TARGET "${QT_PREFIX}::Quick")
     target_sources(${PROJECT_NAME} PRIVATE
       JS/Qml/ImportedUi.hpp JS/Qml/ImportedUi.cpp)
     target_compile_definitions(${PROJECT_NAME} PRIVATE SCORE_HAS_IMPORTED_UI)
-    if(TARGET score_plugin_gfx AND ${Qt6_VERSION} VERSION_GREATER_EQUAL 6.5.0)
+    # QQuickRhiItem (JS/Qml/QmlRhiObjects.hpp) is Qt 6.7+.
+    if(TARGET score_plugin_gfx AND ${Qt6_VERSION} VERSION_GREATER_EQUAL 6.7.0)
       target_link_libraries(${PROJECT_NAME} PUBLIC ${QT_PREFIX}::QuickPrivate score_plugin_gfx)
       # PUBLIC: the flag gates class definitions in JS/Qml/QmlObjects.hpp, so
       # anything including that header has to agree with the plugin about it.
