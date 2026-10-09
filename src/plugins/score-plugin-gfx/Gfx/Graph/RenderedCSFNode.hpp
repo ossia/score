@@ -160,6 +160,10 @@ private:
     std::vector<isf::storage_input::layout_field> layout; // For size calculation
     bool owned{true}; // false when buffer comes from geometry auxiliary
     std::string buffer_usage; // "", "indirect_draw", "indirect_draw_indexed", "dispatch_args"
+    //! PERSISTENT: `prev` is bound as `<name>_prev` and receives a copy of
+    //! the buffer before each frame's passes.
+    bool persistent{false};
+    QRhiBuffer* prev{};
   };
   //! A writable geometry auxiliary's SIZE did not resolve this frame: the
   //! passes are skipped rather than dispatched over an undersized buffer.
