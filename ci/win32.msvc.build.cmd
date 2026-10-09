@@ -12,6 +12,8 @@ cmake %SCORE_DIR% ^
   -DCMAKE_UNITY_BUILD=1 ^
   -DCMAKE_EXPORT_COMPILE_COMMANDS=1 ^
   -DSCORE_DEPLOYMENT_BUILD=1
+if errorlevel 1 exit /b 1
 
 cmake --build . --config Release
+if errorlevel 1 exit /b 1
 cmake --build . --config Release --target INSTALL
