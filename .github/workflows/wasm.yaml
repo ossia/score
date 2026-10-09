@@ -14,19 +14,18 @@ concurrency:
 jobs:
   wasm:
     name: WebAssembly
-    # Match the wasm SDK's Ubuntu release for the prebuilt Qt host tools' ICU.
-    runs-on: ubuntu-24.04
+    # Build on the same image the wasm SDK is built on (ubuntu-24.04), so the
+    # prebuilt qt6-host tools find a matching system ICU. The old archlinux
+    # container shipped a too-new ICU (78) for the SDK's host tools (needs 74/76).
+    runs-on: [self-hosted, linux, x64, sat-builder]
+    container:
+      image: ubuntu:24.04
 
     steps:
-      - name: Prepare runner
+      - name: Install git
         run: |
-          sudo apt-get update -qq
-          sudo apt-get install -y -qq git ca-certificates zip
-          # Full wasm LTO needs more memory than the hosted runner provides.
-          sudo fallocate -l 16G /mnt/score-wasm.swap
-          sudo chmod 600 /mnt/score-wasm.swap
-          sudo mkswap /mnt/score-wasm.swap
-          sudo swapon /mnt/score-wasm.swap
+          apt-get update -qq
+          apt-get install -y -qq git ca-certificates zip
 
       - name: Checkout code
         uses: actions/checkout@v6
@@ -61,6 +60,8 @@ jobs:
       # other platforms. This is what tools/create-app-wasm.sh downloads for
       # `--platform wasm --release <tag>` (custom web apps).
       - name: Package release bundle
+        # This job runs in a container, where the default shell is sh, not bash.
+        # The script below uses [[ ]], which sh does not have.
         shell: bash
         run: |
           export GITTAGNOV=$(echo "$GITHUB_REF" | sed "s/.*\///;s/^v//")

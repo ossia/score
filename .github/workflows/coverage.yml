@@ -13,7 +13,7 @@ concurrency:
 jobs:
   coverage:
     name: Coverage (Coveralls)
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, x64, sat-builder]
     container:
       image: ubuntu:noble
 
