@@ -4731,7 +4731,6 @@ RenderedRawRasterPipelineNode::blendPassPipeline(QRhiGraphicsPipeline& pipeline)
     ps->setTargetBlends(pipeline.cbeginTargetBlends(), pipeline.cendTargetBlends());
     ps->setDepthTest(true);
     ps->setDepthWrite(false);
-    ps->setDepthClamp(pipeline.hasDepthClamp());
     ps->setDepthOp(pipeline.depthOp());
     ps->setStencilTest(pipeline.hasStencilTest());
     ps->setStencilFront(pipeline.stencilFront());
@@ -4744,7 +4743,9 @@ RenderedRawRasterPipelineNode::blendPassPipeline(QRhiGraphicsPipeline& pipeline)
     ps->setSlopeScaledDepthBias(pipeline.slopeScaledDepthBias());
     ps->setPatchControlPointCount(pipeline.patchControlPointCount());
     ps->setPolygonMode(pipeline.polygonMode());
+#if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
     ps->setMultiViewCount(pipeline.multiViewCount());
+#endif
     ps->setShaderStages(pipeline.cbeginShaderStages(), pipeline.cendShaderStages());
     ps->setVertexInputLayout(pipeline.vertexInputLayout());
     ps->setShaderResourceBindings(pipeline.shaderResourceBindings());
