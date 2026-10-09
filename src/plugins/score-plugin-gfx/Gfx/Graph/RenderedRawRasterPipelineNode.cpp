@@ -3335,6 +3335,7 @@ void RenderedRawRasterPipelineNode::removeInputEdge(RenderList& renderer, Edge& 
 void RenderedRawRasterPipelineNode::init(
     RenderList& renderer, QRhiResourceUpdateBatch& res)
 {
+  m_blendPassRhi = renderer.state.rhi;
   initState(renderer, res);
 
   // Procedural shaders (gl_VertexIndex + VERTEX_COUNT) don't need an
@@ -4720,9 +4721,9 @@ RenderedRawRasterPipelineNode::blendPassPipeline(QRhiGraphicsPipeline& pipeline)
       pipeline.cbeginTargetBlends(), pipeline.cendTargetBlends(),
       [](const QRhiGraphicsPipeline::TargetBlend& b) { return b.enable; });
   QRhiGraphicsPipeline* ps{};
-  if(blends && pipeline.hasDepthTest() && pipeline.hasDepthWrite())
+  if(blends && m_blendPassRhi && pipeline.hasDepthTest() && pipeline.hasDepthWrite())
   {
-    ps = pipeline.rhi()->newGraphicsPipeline();
+    ps = m_blendPassRhi->newGraphicsPipeline();
     ps->setName("RenderedRawRasterPipelineNode::blendPass");
     ps->setFlags(pipeline.flags());
     ps->setTopology(pipeline.topology());
