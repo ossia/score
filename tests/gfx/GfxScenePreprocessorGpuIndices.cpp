@@ -284,7 +284,12 @@ TEST_CASE(
     "[gfx][scene][index]")
 {
   using score::gfx::copiesGpuIndices;
-  for(auto api : {QRhi::Vulkan, QRhi::OpenGLES2, QRhi::D3D11, QRhi::D3D12, QRhi::Null})
+  std::vector<QRhi::Implementation> apis{
+      QRhi::Vulkan, QRhi::OpenGLES2, QRhi::D3D11, QRhi::Null};
+#if QT_VERSION >= QT_VERSION_CHECK(6, 6, 0)
+  apis.push_back(QRhi::D3D12);
+#endif
+  for(auto api : apis)
   {
     CAPTURE(int(api));
     CHECK(copiesGpuIndices(api, ossia::index_format::uint16));
