@@ -27,8 +27,6 @@ TEST_CASE(
 {
   const auto backend = GENERATE(from_range(platform_backends()));
   CAPTURE(backend_name(backend));
-  if(const char* why = compute_shader_skip_reason(backend))
-    SKIP(std::string{backend_name(backend)} + ": " + why);
 
   Shots s;
   score::test::run_in_gui_app([&](const score::GUIApplicationContext&) {
@@ -58,6 +56,9 @@ TEST_CASE(
   });
   if(s.skipped)
     SKIP(s.backend + ": " + s.skip_reason);
+  // Asked after the run: it opens a GL surface, which needs the application.
+  if(const char* why = compute_shader_skip_reason(backend))
+    SKIP(std::string{backend_name(backend)} + ": " + why);
   CAPTURE(s.backend);
   REQUIRE(s.error.empty());
   REQUIRE(s.images.size() == 2);
