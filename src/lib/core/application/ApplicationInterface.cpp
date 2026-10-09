@@ -6,6 +6,7 @@
 #include <score/graphics/BackgroundRenderer.hpp>
 #include <score/model/ComponentSerialization.hpp>
 #include <score/model/ObjectEditor.hpp>
+#include <score/model/Skin.hpp>
 #include <score/plugins/ProjectSettings/ProjectSettingsFactory.hpp>
 #include <core/document/ProjectInfo.hpp>
 #include <score/plugins/documentdelegate/DocumentDelegateFactory.hpp>
@@ -24,16 +25,51 @@
 #include <core/undo/UndoApplicationPlugin.hpp>
 #include <core/view/Window.hpp>
 
+#include <QFile>
 #include <QGuiApplication>
 #include <QModelIndex>
+#include <QResource>
 
 #if defined(__EMSCRIPTEN__)
 #include <QMainWindow>
 
 #include <qpa/qwindowsysteminterface.h>
 #endif
+
+static void loadResources()
+{
+// Note: Q_INIT_RESOURCE must be invoked outside of any namespace
+#if defined(SCORE_STATIC_PLUGINS)
+  Q_INIT_RESOURCE(score);
+  Q_INIT_RESOURCE(qtconf);
+  Q_INIT_RESOURCE(qcodeeditor_resources);
+#if defined(__APPLE__)
+  Q_INIT_RESOURCE(fonts_macos);
+#else
+  Q_INIT_RESOURCE(fonts);
+#endif
+#endif
+
+  if(QString file = QCoreApplication::applicationDirPath() + "/resources.rcc";
+     QFile::exists(file))
+  {
+    QResource::registerResource(file);
+  }
+}
+
 namespace score
 {
+void loadApplicationResources()
+{
+  // Resources are process-wide; fonts belong to each QApplication lifetime.
+  static const bool resourcesLoaded = [] {
+    loadResources();
+    return true;
+  }();
+  (void)resourcesLoaded;
+  registerApplicationFonts();
+}
+
 ApplicationInterface* ApplicationInterface::m_instance;
 ApplicationInterface::~ApplicationInterface() = default;
 

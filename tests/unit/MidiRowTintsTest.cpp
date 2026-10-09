@@ -39,7 +39,7 @@ QColor over(const QColor& tint, const QColor& ground)
   return img.pixelColor(0, 0);
 }
 
-bool near(const QColor& a, const QColor& b, int delta)
+bool colorsClose(const QColor& a, const QColor& b, int delta)
 {
   return std::abs(a.red() - b.red()) <= delta
          && std::abs(a.green() - b.green()) <= delta
@@ -68,13 +68,13 @@ TEST_CASE("Piano roll rows follow the skin", "[midi][skin]")
     {
       skin.load(readSkin(":/skin/DefaultSkin.json"));
 
-      CHECK(near(whiteRow(), QColor(255, 255, 255, 14), 1));
-      CHECK(near(blackRow(), QColor(0, 0, 0, 64), 1));
+      CHECK(colorsClose(whiteRow(), QColor(255, 255, 255, 14), 1));
+      CHECK(colorsClose(blackRow(), QColor(0, 0, 0, 64), 1));
 
       // As rendered over the scene ground.
       const QColor ground = skin.Background1.color();
-      CHECK(near(over(whiteRow(), ground), QColor(43, 43, 44), 1));
-      CHECK(near(over(blackRow(), ground), QColor(23, 23, 24), 1));
+      CHECK(colorsClose(over(whiteRow(), ground), QColor(43, 43, 44), 1));
+      CHECK(colorsClose(over(blackRow(), ground), QColor(23, 23, 24), 1));
     }
 
     // Another skin retints them.
@@ -127,14 +127,14 @@ TEST_CASE("Piano roll rows follow the skin", "[midi][skin]")
       };
 
       const QImage before = render();
-      CHECK(near(before.pixelColor(150, 104), over(QColor(0, 0, 0, 64), ground), 1));
-      CHECK(near(
+      CHECK(colorsClose(before.pixelColor(150, 104), over(QColor(0, 0, 0, 64), ground), 1));
+      CHECK(colorsClose(
           before.pixelColor(150, 114), over(QColor(255, 255, 255, 14), ground), 1));
 
       skin.load(readSkin(":/skin/DraculaSkin.json"));
       const QImage after = render();
-      CHECK(near(after.pixelColor(150, 104), over(QColor(25, 26, 33, 64), ground), 1));
-      CHECK(near(
+      CHECK(colorsClose(after.pixelColor(150, 104), over(QColor(25, 26, 33, 64), ground), 1));
+      CHECK(colorsClose(
           after.pixelColor(150, 114), over(QColor(248, 248, 242, 14), ground), 1));
 
       delete roll;

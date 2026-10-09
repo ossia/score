@@ -151,7 +151,7 @@ Gfx::TextureOutlet& textureOutlet(JS::ProcessModel& process)
   return *output;
 }
 
-bool near(const QColor& actual, const QColor& expected)
+bool colorsClose(const QColor& actual, const QColor& expected)
 {
   constexpr int tolerance = 24;
   return std::abs(actual.red() - expected.red()) <= tolerance
@@ -167,8 +167,8 @@ bool hasHalves(const QImage& image, const QColor& left, const QColor& right)
   {
     for(int x : {1, 2, 3})
     {
-      if(!near(image.pixelColor(image.width() * x / 8, image.height() * y / 4), left)
-         || !near(
+      if(!colorsClose(image.pixelColor(image.width() * x / 8, image.height() * y / 4), left)
+         || !colorsClose(
              image.pixelColor(image.width() * (x + 4) / 8, image.height() * y / 4),
              right))
         return false;

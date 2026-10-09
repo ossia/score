@@ -250,13 +250,9 @@ score_add_test(test_unit_graphics_typein
 if(TARGET Qt6::Quick AND TARGET score_plugin_js)
   score_add_test(test_unit_imported_ui
     SOURCES ImportedUiTest.cpp
-      "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-js/JS/Qml/ImportedUi.cpp"
-      "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-js/JS/Qml/ImportedUi.hpp"
-    APP)
-  set_target_properties(test_unit_imported_ui PROPERTIES AUTOMOC ON)
-  target_include_directories(test_unit_imported_ui PRIVATE
-    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-js")
-  target_link_libraries(test_unit_imported_ui PRIVATE Qt6::Quick)
+    APP
+    PLUGINS score_plugin_js
+    LIBS Qt6::Quick)
 
   score_add_test(test_unit_js_image
     SOURCES JsImageTest.cpp
