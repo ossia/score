@@ -183,7 +183,7 @@ then
   clone_addon https://github.com/ossia/score-addon-ultraleap
   clone_addon https://github.com/ossia/score-addon-sysinfo
   clone_addon https://github.com/ossia/score-addon-trackingprotocols
-  clone_addon https://github.com/ossia/score-addon-videoio 34d4cd5046e3493067b691d3f23a9e8c90668396
+  clone_addon https://github.com/ossia/score-addon-videoio a83fc58b6a7b05e15497c540fa8f75f57ee4dd63
   clone_addon https://github.com/sat-mtl/carto-tcp-avendish.git update-avendish-packaging
   NO_SUBMODULES=1 clone_addon https://github.com/ossia/score-addon-orbbec
 fi
