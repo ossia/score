@@ -94,7 +94,7 @@
 	branch = fix/degenerate-cone-and-off-bounds
 [submodule "3rdparty/eigen"]
 	path = 3rdparty/eigen
-	url = https://gitlab.com/libeigen/eigen
+	url = https://github.com/eigen-mirror/eigen.git
 [submodule "3rdparty/miniply"]
 	path = 3rdparty/miniply
 	url = https://github.com/vilya/miniply
