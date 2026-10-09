@@ -22,6 +22,7 @@
 
 #include <boost/algorithm/string/replace.hpp>
 
+#include <algorithm>
 #include <atomic>
 #include <cctype>
 #include <chrono>
@@ -877,7 +878,8 @@ static QVarLengthArray<QRhiGraphicsPipeline::TargetBlend, 4> rasterSeedBlends(
 // which faces a given FrontFace culls. ModelDisplayNode compensates the same
 // mirror the same way; without it a culled model shows its far faces through
 // its near ones, which reads as an inverted depth test rather than as a winding
-// bug.
+// bug. Swapped under CULL_MODE none too: FrontFace also decides gl_FrontFacing,
+// which a two-sided material reads to flip its normal.
 static void compensateEpilogueMirror(
     QRhiGraphicsPipeline& ps, score::gfx::GraphicsApi api, const isf::descriptor& desc)
 {
@@ -895,7 +897,7 @@ static void compensateEpilogueMirror(
     default:
       break;
   }
-  if(mirrored && ps.cullMode() != QRhiGraphicsPipeline::None)
+  if(mirrored)
     ps.setFrontFace(
         ps.frontFace() == QRhiGraphicsPipeline::CCW ? QRhiGraphicsPipeline::CW
                                                     : QRhiGraphicsPipeline::CCW);
@@ -927,9 +929,9 @@ static bool auxPlaceholderZeroFillDisabled() noexcept
 //
 // The `camera` block is the exception: a shader reads it as a transform, and an
 // all-zero viewProjection collapses every vertex to the origin, so it is seeded
-// with identities.
+// with identities, and with the render size shaders divide gl_FragCoord by.
 void RenderedRawRasterPipelineNode::createAuxPlaceholder(
-    QRhi& rhi, QRhiResourceUpdateBatch& res, AuxiliarySSBO& aux)
+    QRhi& rhi, QRhiResourceUpdateBatch& res, AuxiliarySSBO& aux, QSize renderSize)
 {
   const auto usage = aux.is_uniform ? QRhiBuffer::UniformBuffer : QRhiBuffer::StorageBuffer;
   const int64_t size
@@ -962,6 +964,11 @@ void RenderedRawRasterPipelineNode::createAuxPlaceholder(
         c.projection[i * 5] = 1.f;
         c.viewProjection[i * 5] = 1.f;
       }
+    for(auto& c : seed)
+    {
+      c.renderSize[0] = float(renderSize.width());
+      c.renderSize[1] = float(renderSize.height());
+    }
     res.updateDynamicBuffer(dummy, 0, slots * (int)sizeof(CameraUBOData), seed.data());
   }
 }
@@ -1176,7 +1183,7 @@ void RenderedRawRasterPipelineNode::initPass(
     for(auto& aux : m_auxiliarySSBOs)
     {
       if(!aux.buffer)
-        createAuxPlaceholder(rhi, res, aux);
+        createAuxPlaceholder(rhi, res, aux, renderer.state.renderSize);
 
       // Persistent ping-pong pair: emit the read-only <name>_prev binding
       // FIRST (binding N), then the writable <name> binding (binding N+1).
@@ -1475,25 +1482,9 @@ void RenderedRawRasterPipelineNode::initMRTPass(
   // every attachment ends up at the size of the first explicitly sized OUTPUT.
   // Unsized outputs inherit it; differing explicit sizes are a shader-author
   // error and are not diagnosed here.
-  QSize sz = renderer.state.renderSize;
-  // First non-zero explicit WIDTH/HEIGHT wins. Depth outputs participate
-  // too: shadow_cascades.frag (depth-only, no colour outputs at all)
-  // declares the shadow-map resolution on its depth output, and we want
-  // that to drive the RT size rather than falling through to renderSize.
-  for(const auto& out : outputs)
-  {
-    int w = out.width_expression.empty()
-                ? out.width
-                : resolveIntExpression(out.width_expression, 0);
-    int h = out.height_expression.empty()
-                ? out.height
-                : resolveIntExpression(out.height_expression, 0);
-    if(w > 0 && h > 0)
-    {
-      sz = QSize(w, h);
-      break;
-    }
-  }
+  m_declaredOutputSize = declaredOutputSize();
+  QSize sz = m_declaredOutputSize.isValid() ? m_declaredOutputSize
+                                            : renderer.state.renderSize;
 
   // A cube face is square, and every attachment of the pass follows it: the
   // depth attachment, and any other colour output, at the non-square render
@@ -2332,7 +2323,7 @@ void RenderedRawRasterPipelineNode::initMRTPass(
     for(auto& aux : m_auxiliarySSBOs)
     {
       if(!aux.buffer)
-        createAuxPlaceholder(rhi, res, aux);
+        createAuxPlaceholder(rhi, res, aux, renderer.state.renderSize);
 
       // Persistent ping-pong: <name>_prev (readonly) goes first.
       if(aux.persistent && aux.prev_buffer)
@@ -2742,7 +2733,7 @@ void RenderedRawRasterPipelineNode::initState(
     // Compute the byte size required by a LAYOUT. Used when we need to
     // own the buffer (persistent aux). Flexible array members use `size`
     // as the element count (falls back to 1 if unspecified).
-    auto aux_owned_size = [](const isf::geometry_input::auxiliary_request& aux) -> int64_t {
+    auto aux_owned_size = [this](const isf::geometry_input::auxiliary_request& aux) -> int64_t {
       int64_t total = 0;
       int64_t arr_elem_bytes = 0;
       for(const auto& f : aux.layout)
@@ -2770,13 +2761,8 @@ void RenderedRawRasterPipelineNode::initState(
       int64_t count = 1;
       if(!aux.size.empty())
       {
-        try { count = std::max<int64_t>(1, std::stoll(aux.size)); }
-        catch(const std::exception& e) {
-          count = 1024; // TODO: evaluate $USER when we add it
-          qWarning() << "RenderedRawRasterPipelineNode: aux SSBO size"
-                     << aux.size.c_str() << "could not be parsed (" << e.what()
-                     << "); falling back to 1024.";
-        }
+        // A SIZE naming no input, or failing to parse, keeps 1024 elements.
+        count = resolveIntExpression(aux.size, 1024);
       }
       else if(arr_elem_bytes > 0)
       {
@@ -2808,6 +2794,7 @@ void RenderedRawRasterPipelineNode::initState(
       {
         ats.sampler = score::gfx::makeSampler(rhi, atx.sampler);
         ats.declares_compare = score::gfx::declaresCompare(atx.sampler);
+        ats.mips_follow_texture = atx.sampler.mipmap_mode.empty();
         ats.sampler->setName(
             ("RRP_aux_tex_sampler::" + atx.name).c_str());
       }
@@ -2925,14 +2912,7 @@ void RenderedRawRasterPipelineNode::initState(
       int64_t count = 0;
       if(!aux.is_uniform && !aux.size.empty())
       {
-        try
-        {
-          count = std::max<int64_t>(1, std::stoll(aux.size));
-        }
-        catch(const std::exception&)
-        {
-          count = 1024; // TODO: evaluate $USER when we add it
-        }
+        count = resolveIntExpression(aux.size, 1024);
       }
       return aux.is_uniform
                  ? score::gfx::calculateUniformBlockSize(aux.layout, (int)count, desc)
@@ -2994,8 +2974,12 @@ void RenderedRawRasterPipelineNode::initState(
     bool hasLayered = false;
     bool hasCubemap = false;
     bool hasColorOverride = false;
+    bool hasExplicitSize = false;
     for(const auto& out : outputs)
     {
+      if(out.width > 0 || out.height > 0 || !out.width_expression.empty()
+         || !out.height_expression.empty())
+        hasExplicitSize = true;
       if(out.type == "depth")
         hasDepth = true;
       else
@@ -3030,7 +3014,7 @@ void RenderedRawRasterPipelineNode::initState(
       manual = (et == "MANUAL");
     }
     m_hasMRT = colorCount > 1 || hasDepth || hasLayered || hasCubemap
-               || hasColorOverride || perMip || manual
+               || hasColorOverride || hasExplicitSize || perMip || manual
                || n.descriptor().multiview_count >= 2;
   }
 
@@ -3084,6 +3068,7 @@ void RenderedRawRasterPipelineNode::removeOutputPass(RenderList& renderer, Edge&
   auto it = ossia::find_if(m_passes, [&](auto& p) { return p.first == &edge; });
   if(it != m_passes.end())
   {
+    releaseBlendPassPipeline(it->second.p.pipeline);
     it->second.p.release();
     if(it->second.processUBO)
       it->second.processUBO->deleteLater();
@@ -3115,6 +3100,7 @@ void RenderedRawRasterPipelineNode::removeOutputPass(RenderList& renderer, Edge&
       auto mrtIt = ossia::find_if(m_passes, [](auto& p) { return p.first == nullptr; });
       if(mrtIt != m_passes.end())
       {
+        releaseBlendPassPipeline(mrtIt->second.p.pipeline);
         mrtIt->second.p.release();
         if(mrtIt->second.processUBO)
           mrtIt->second.processUBO->deleteLater();
@@ -3152,6 +3138,7 @@ void RenderedRawRasterPipelineNode::releaseState(RenderList& r)
 
     for(auto& [edge, pass] : m_passes)
     {
+      releaseBlendPassPipeline(pass.p.pipeline);
       pass.p.release();
 
       if(pass.processUBO)
@@ -3348,6 +3335,7 @@ void RenderedRawRasterPipelineNode::removeInputEdge(RenderList& renderer, Edge& 
 void RenderedRawRasterPipelineNode::init(
     RenderList& renderer, QRhiResourceUpdateBatch& res)
 {
+  m_blendPassRhi = renderer.state.rhi;
   initState(renderer, res);
 
   // Procedural shaders (gl_VertexIndex + VERTEX_COUNT) don't need an
@@ -3791,11 +3779,16 @@ void RenderedRawRasterPipelineNode::update(
   }
   if(std::exchange(m_auxSamplerChanged, false))
     mustRecreatePasses = true;
+  // OUTPUTS.WIDTH / HEIGHT may read inputs: the target follows them.
+  if(m_hasMRT && m_declaredOutputSize.isValid()
+     && declaredOutputSize() != m_declaredOutputSize)
+    mustRecreatePasses = true;
 
   if(mustRecreatePasses)
   {
     for(auto& pass : m_passes)
     {
+      releaseBlendPassPipeline(pass.second.p.pipeline);
       pass.second.p.release();
       if(pass.second.processUBO)
         pass.second.processUBO->deleteLater();
@@ -3991,8 +3984,8 @@ void RenderedRawRasterPipelineNode::update(
     if(anyFallback)
     {
       uint32_t instances = 1;
-      if(const auto& ds = n.descriptor().default_state; ds.instance_count)
-        instances = std::max(instances, (uint32_t)*ds.instance_count);
+      if(const auto ic = declaredInstanceCount())
+        instances = std::max(instances, *ic);
       if(geometry.meshes)
       {
         for(const auto& mesh : geometry.meshes->meshes)
@@ -4172,6 +4165,8 @@ bool RenderedRawRasterPipelineNode::rebindAuxTextures(RenderList& renderer)
     if(!tex || tex == ats.texture)
       continue;
     ats.texture = tex;
+    if(ats.sampler && ats.mips_follow_texture)
+      score::gfx::followTextureMips(*ats.sampler, *tex);
     auxTexChanged = true;
   }
   if(auxTexChanged)
@@ -4487,16 +4482,16 @@ void RenderedRawRasterPipelineNode::runInitialPasses(
         rtForPass, Qt::transparent,
         {depthClearForCompare(this->depthCompare()), 0}, invBatch);
 
+    const QRhiViewport passViewport(0, 0, viewportSize.width(), viewportSize.height());
     cb.setGraphicsPipeline(pass.p.pipeline);
-    cb.setViewport(
-        QRhiViewport(0, 0, viewportSize.width(), viewportSize.height()));
+    cb.setViewport(passViewport);
 
     // drawWithPerMeshAuxRebind sets shader resources and issues the
     // draw call (or the per-sub-mesh loop for multi-mesh inputs).
     // Pass the per-invocation SRB so each draw reads its own UBO.
     // Forward the pass's fallback-binding plan so "REQUIRED: false"
     // VERTEX_INPUTS get their identity buffers bound.
-    drawWithPerMeshAuxRebind(*invSRB, cb, pass.p.plan);
+    drawWithPerMeshAuxRebind(*pass.p.pipeline, passViewport, *invSRB, cb, pass.p.plan);
 
     cb.endPass();
   }
@@ -4664,7 +4659,7 @@ void RenderedRawRasterPipelineNode::runRenderPass(
         fullScreen(t.clearTargets);
       cb.setGraphicsPipeline(pipeline);
       cb.setViewport(viewport);
-      drawWithPerMeshAuxRebind(*srb, cb, pass.p.plan);
+      drawWithPerMeshAuxRebind(*pipeline, viewport, *srb, cb, pass.p.plan);
       cb.endPass();
 
       if(t.readDepthTarget)
@@ -4685,11 +4680,12 @@ void RenderedRawRasterPipelineNode::runRenderPass(
     }
 
     {
+      const QRhiViewport viewport(
+          0, 0, texture->pixelSize().width(), texture->pixelSize().height());
       cb.setGraphicsPipeline(pipeline);
-      cb.setViewport(QRhiViewport(
-          0, 0, texture->pixelSize().width(), texture->pixelSize().height()));
+      cb.setViewport(viewport);
 
-      drawWithPerMeshAuxRebind(*srb, cb, pass.p.plan);
+      drawWithPerMeshAuxRebind(*pipeline, viewport, *srb, cb, pass.p.plan);
     }
   }
 }
@@ -4713,7 +4709,71 @@ void RenderedRawRasterPipelineNode::process(int32_t port, const ossia::transform
   m_modelTransform = v;
 }
 
+QRhiGraphicsPipeline*
+RenderedRawRasterPipelineNode::blendPassPipeline(QRhiGraphicsPipeline& pipeline)
+{
+  if(auto it = m_blendPassPipelines.find(&pipeline); it != m_blendPassPipelines.end())
+    return it->second;
+
+  // Shadow casters and depth pre-passes do not blend: their blended draws
+  // keep writing depth.
+  const bool blends = std::any_of(
+      pipeline.cbeginTargetBlends(), pipeline.cendTargetBlends(),
+      [](const QRhiGraphicsPipeline::TargetBlend& b) { return b.enable; });
+  QRhiGraphicsPipeline* ps{};
+  if(blends && m_blendPassRhi && pipeline.hasDepthTest() && pipeline.hasDepthWrite())
+  {
+    ps = m_blendPassRhi->newGraphicsPipeline();
+    ps->setName("RenderedRawRasterPipelineNode::blendPass");
+    ps->setFlags(pipeline.flags());
+    ps->setTopology(pipeline.topology());
+    ps->setCullMode(pipeline.cullMode());
+    ps->setFrontFace(pipeline.frontFace());
+    ps->setTargetBlends(pipeline.cbeginTargetBlends(), pipeline.cendTargetBlends());
+    ps->setDepthTest(true);
+    ps->setDepthWrite(false);
+    ps->setDepthOp(pipeline.depthOp());
+    ps->setStencilTest(pipeline.hasStencilTest());
+    ps->setStencilFront(pipeline.stencilFront());
+    ps->setStencilBack(pipeline.stencilBack());
+    ps->setStencilReadMask(pipeline.stencilReadMask());
+    ps->setStencilWriteMask(pipeline.stencilWriteMask());
+    ps->setSampleCount(pipeline.sampleCount());
+    ps->setLineWidth(pipeline.lineWidth());
+    ps->setDepthBias(pipeline.depthBias());
+    ps->setSlopeScaledDepthBias(pipeline.slopeScaledDepthBias());
+    ps->setPatchControlPointCount(pipeline.patchControlPointCount());
+    ps->setPolygonMode(pipeline.polygonMode());
+#if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
+    ps->setMultiViewCount(pipeline.multiViewCount());
+#endif
+    ps->setShaderStages(pipeline.cbeginShaderStages(), pipeline.cendShaderStages());
+    ps->setVertexInputLayout(pipeline.vertexInputLayout());
+    ps->setShaderResourceBindings(pipeline.shaderResourceBindings());
+    ps->setRenderPassDescriptor(pipeline.renderPassDescriptor());
+    if(!ps->create())
+    {
+      delete ps;
+      ps = nullptr;
+    }
+  }
+  m_blendPassPipelines[&pipeline] = ps;
+  return ps;
+}
+
+void RenderedRawRasterPipelineNode::releaseBlendPassPipeline(
+    QRhiGraphicsPipeline* pipeline)
+{
+  if(auto it = m_blendPassPipelines.find(pipeline); it != m_blendPassPipelines.end())
+  {
+    if(it->second)
+      it->second->deleteLater();
+    m_blendPassPipelines.erase(it);
+  }
+}
+
 void RenderedRawRasterPipelineNode::drawWithPerMeshAuxRebind(
+    QRhiGraphicsPipeline& pipeline, const QRhiViewport& viewport,
     QRhiShaderResourceBindings& srb, QRhiCommandBuffer& cb,
     const FallbackBindingPlan& plan)
 {
@@ -4735,11 +4795,10 @@ void RenderedRawRasterPipelineNode::drawWithPerMeshAuxRebind(
   // VERTEX_INPUTS: [], which builds the pipeline with no vertex bindings and
   // uses VERTEX_COUNT verbatim.
   {
-    const auto& ds = n.descriptor().default_state;
-    if(ds.vertex_count.has_value())
+    if(const auto declared = declaredVertexCount())
     {
-      uint32_t vcount = *ds.vertex_count;
-      const uint32_t icount = ds.instance_count.value_or(1u);
+      uint32_t vcount = *declared;
+      const uint32_t icount = declaredInstanceCount().value_or(1u);
 
       const auto& drawn
           = m_primitiveGeometry.meshes ? m_primitiveGeometry : this->geometry;
@@ -4804,9 +4863,25 @@ void RenderedRawRasterPipelineNode::drawWithPerMeshAuxRebind(
 
   // Single-mesh draw. ScenePreprocessor unified-MDI emits one sub-mesh
   // covering every regular cmd + every instance group; the indirect cmd
-  // list fans out across them. Per-pass pipeline swapping (alpha-blend
-  // etc.) is NOT handled here — that's the job of a dedicated
-  // downstream node configured by the user as a separate render pass.
+  // list fans out across them. Its alpha-blended draws are drawn after
+  // every other one, without depth write, when the pipeline blends.
+  if(auto* cm = dynamic_cast<const CustomMesh*>(m_mesh))
+  {
+    if(const auto blended = cm->blendCommandRange())
+    {
+      if(auto* blendPass = blendPassPipeline(pipeline))
+      {
+        cm->drawSingleMesh(0, 0, m_meshbufs, cb, plan, {0, blended->first});
+        cm->drawSingleMesh(
+            0, 0, m_meshbufs, cb, plan, {blended->first + blended->count});
+        cb.setGraphicsPipeline(blendPass);
+        cb.setViewport(viewport);
+        cb.setShaderResources(&srb);
+        cm->drawSingleMesh(0, 0, m_meshbufs, cb, plan, *blended);
+        return;
+      }
+    }
+  }
   if(m_mesh)
   {
     // Plan-aware draw: the pipeline was built for a compacted binding
@@ -4833,8 +4908,29 @@ bool RenderedRawRasterPipelineNode::isProceduralDraw() const noexcept
 {
   const auto& desc = n.descriptor();
   return desc.vertex_inputs.empty()
-         && desc.default_state.vertex_count.has_value()
-         && *desc.default_state.vertex_count > 0;
+         && ((desc.default_state.vertex_count.has_value()
+              && *desc.default_state.vertex_count > 0)
+             || !desc.default_state.vertex_count_expression.empty());
+}
+
+std::optional<uint32_t> RenderedRawRasterPipelineNode::declaredVertexCount() const
+{
+  const auto& ds = n.descriptor().default_state;
+  if(ds.vertex_count)
+    return ds.vertex_count;
+  if(!ds.vertex_count_expression.empty())
+    return (uint32_t)std::max(0, resolveIntExpression(ds.vertex_count_expression, 0));
+  return std::nullopt;
+}
+
+std::optional<uint32_t> RenderedRawRasterPipelineNode::declaredInstanceCount() const
+{
+  const auto& ds = n.descriptor().default_state;
+  if(ds.instance_count)
+    return ds.instance_count;
+  if(!ds.instance_count_expression.empty())
+    return (uint32_t)std::max(0, resolveIntExpression(ds.instance_count_expression, 0));
+  return std::nullopt;
 }
 
 // Generic integer-expression evaluator, shared by EXECUTION_MODEL=MANUAL
@@ -4916,44 +5012,31 @@ int RenderedRawRasterPipelineNode::resolveIntExpression(
 
   // Walk the descriptor's image-style inputs in declared order so the
   // first one supplies the unsuffixed $WIDTH / $HEIGHT family, matching
-  // CSF's `registerCommonExpressionVariables` semantics.
+  // CSF's `registerCommonExpressionVariables` semantics. Scalar inputs mirror
+  // the $<inputName> surface from their live port values. Ports and sampler
+  // slots are not one per input: port 0 is the Geometry input, and an input
+  // may own none or several, so both come from the canonical walker.
   bool first_image = true;
-  int sampler_idx = 0;
-  for(const auto& inp : n.descriptor().inputs)
-  {
+  walk_descriptor_inputs(
+      n.descriptor(), port_counts{1, 0, 0},
+      [&](const isf::input& inp, const port_counts& cur, const port_counts&) {
     if(ossia::get_if<isf::texture_input>(&inp.data)
        || ossia::get_if<isf::image_input>(&inp.data))
     {
       QRhiTexture* t = nullptr;
-      if(sampler_idx < (int)m_inputSamplers.size())
-        t = m_inputSamplers[sampler_idx].texture;
+      if(cur.samplers < (int)m_inputSamplers.size())
+        t = m_inputSamplers[cur.samplers].texture;
       register_size(inp.name, t, first_image);
-      ++sampler_idx;
+      return;
     }
-  }
-
-  // Scalar ports — mirror the $<inputName> surface. Walking node.input in
-  // parallel with descriptor.inputs lets us pull live values without
-  // reimplementing the port-dispatch plumbing.
-  int port_idx = 0;
-  for(const auto& inp : n.descriptor().inputs)
-  {
-    auto port = (port_idx < (int)n.input.size()) ? n.input[port_idx]
-                                                 : nullptr;
+    auto port = cur.inlets < (int)n.input.size() ? n.input[cur.inlets] : nullptr;
+    if(!port || !port->value)
+      return;
     if(ossia::get_if<isf::float_input>(&inp.data))
-    {
-      if(port && port->value)
-        e.add_constant(
-            "var_" + inp.name, data.emplace_back(*(float*)port->value));
-    }
+      e.add_constant("var_" + inp.name, data.emplace_back(*(float*)port->value));
     else if(ossia::get_if<isf::long_input>(&inp.data))
-    {
-      if(port && port->value)
-        e.add_constant(
-            "var_" + inp.name, data.emplace_back(*(int*)port->value));
-    }
-    ++port_idx;
-  }
+      e.add_constant("var_" + inp.name, data.emplace_back(*(int*)port->value));
+  });
 
   // Register $COUNT_<bufferName> / $BYTESIZE_<bufferName> for every SSBO and UBO
   // the pipeline binds. Same semantics as CSF: COUNT is the flexible array's
@@ -5235,6 +5318,26 @@ const ossia::geometry_spec& RenderedRawRasterPipelineNode::drawGeometry()
         cpu ? (const void*)cpu->raw_data.get() : nullptr, cpu ? cpu->byte_size : 0);
   }
   return m_primitiveGeometry;
+}
+
+QSize RenderedRawRasterPipelineNode::declaredOutputSize() const
+{
+  // First non-zero explicit WIDTH/HEIGHT wins. Depth outputs participate
+  // too: shadow_cascades.frag (depth-only, no colour outputs at all)
+  // declares the shadow-map resolution on its depth output, and we want
+  // that to drive the RT size rather than falling through to renderSize.
+  for(const auto& out : n.descriptor().outputs)
+  {
+    const int w = out.width_expression.empty()
+                      ? out.width
+                      : resolveIntExpression(out.width_expression, 0);
+    const int h = out.height_expression.empty()
+                      ? out.height
+                      : resolveIntExpression(out.height_expression, 0);
+    if(w > 0 && h > 0)
+      return QSize(w, h);
+  }
+  return {};
 }
 
 bool RenderedRawRasterPipelineNode::outputSizeReadsBufferSizes() const noexcept

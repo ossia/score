@@ -11,6 +11,7 @@
 
 #include <QFile>
 #include <QMatrix3x3>
+#include <QMatrix4x4>
 #include <QQuaternion>
 #include <QString>
 #include <QVector3D>
@@ -19,6 +20,7 @@
 #include <cmath>
 #include <cstring>
 #include <optional>
+#include <unordered_map>
 #include <variant>
 
 namespace Threedim
@@ -26,6 +28,58 @@ namespace Threedim
 
 namespace
 {
+
+// Affine matrix -> TRS.
+static ossia::scene_transform transform_from_matrix(const QMatrix4x4& M)
+{
+  ossia::scene_transform t{};
+  // Algorithm: T = column 3; per-column lengths give scale; reflect
+  // one axis when det < 0; normalised 3×3 → quaternion via the
+  // standard branch-on-trace method.
+  t.translation[0] = M(0, 3);
+  t.translation[1] = M(1, 3);
+  t.translation[2] = M(2, 3);
+
+  QVector3D c0(M(0, 0), M(1, 0), M(2, 0));
+  QVector3D c1(M(0, 1), M(1, 1), M(2, 1));
+  QVector3D c2(M(0, 2), M(1, 2), M(2, 2));
+
+  float sx = c0.length();
+  float sy = c1.length();
+  float sz = c2.length();
+
+  // Flip one axis when determinant is negative (reflection encoded
+  // as negative scale on one axis). Without this, the quaternion
+  // extraction below trips on a left-handed basis and yields garbage.
+  const float det
+      = c0.x() * (c1.y() * c2.z() - c1.z() * c2.y())
+      - c0.y() * (c1.x() * c2.z() - c1.z() * c2.x())
+      + c0.z() * (c1.x() * c2.y() - c1.y() * c2.x());
+  if(det < 0.f)
+  {
+    sx = -sx;
+    c0 = -c0;
+  }
+
+  t.scale[0] = sx;
+  t.scale[1] = sy;
+  t.scale[2] = sz;
+
+  if(sx > 1e-6f) c0 /= sx;
+  if(sy > 1e-6f) c1 /= sy;
+  if(sz > 1e-6f) c2 /= sz;
+
+  QMatrix3x3 R;
+  R(0, 0) = c0.x(); R(1, 0) = c0.y(); R(2, 0) = c0.z();
+  R(0, 1) = c1.x(); R(1, 1) = c1.y(); R(2, 1) = c1.z();
+  R(0, 2) = c2.x(); R(1, 2) = c2.y(); R(2, 2) = c2.z();
+  QQuaternion q = QQuaternion::fromRotationMatrix(R);
+  t.rotation[0] = q.x();
+  t.rotation[1] = q.y();
+  t.rotation[2] = q.z();
+  t.rotation[3] = q.scalar();
+  return t;
+}
 
 // glTF TRS decomposition. With Options::DecomposeNodeMatrices we get TRS
 // directly; otherwise we'd need to decompose the 4x4. fastgltf gives us a
@@ -54,53 +108,11 @@ static ossia::scene_transform to_transform(const fastgltf::Node& n)
     // matrices it flags as non-decomposable (negative scale, near-degenerate,
     // library version differences). A translation-only fallback would drop
     // rotation and scale, which matrix-authored glTFs encode there.
-    //
-    // Algorithm: T = column 3; per-column lengths give scale; reflect
-    // one axis when det < 0; normalised 3×3 → quaternion via the
-    // standard branch-on-trace method.
-    const auto& M = *m;
-    t.translation[0] = M[3][0];
-    t.translation[1] = M[3][1];
-    t.translation[2] = M[3][2];
-
-    QVector3D c0(M[0][0], M[0][1], M[0][2]);
-    QVector3D c1(M[1][0], M[1][1], M[1][2]);
-    QVector3D c2(M[2][0], M[2][1], M[2][2]);
-
-    float sx = c0.length();
-    float sy = c1.length();
-    float sz = c2.length();
-
-    // Flip one axis when determinant is negative (reflection encoded
-    // as negative scale on one axis). Without this, the quaternion
-    // extraction below trips on a left-handed basis and yields garbage.
-    const float det
-        = c0.x() * (c1.y() * c2.z() - c1.z() * c2.y())
-        - c0.y() * (c1.x() * c2.z() - c1.z() * c2.x())
-        + c0.z() * (c1.x() * c2.y() - c1.y() * c2.x());
-    if(det < 0.f)
-    {
-      sx = -sx;
-      c0 = -c0;
-    }
-
-    t.scale[0] = sx;
-    t.scale[1] = sy;
-    t.scale[2] = sz;
-
-    if(sx > 1e-6f) c0 /= sx;
-    if(sy > 1e-6f) c1 /= sy;
-    if(sz > 1e-6f) c2 /= sz;
-
-    QMatrix3x3 R;
-    R(0, 0) = c0.x(); R(1, 0) = c0.y(); R(2, 0) = c0.z();
-    R(0, 1) = c1.x(); R(1, 1) = c1.y(); R(2, 1) = c1.z();
-    R(0, 2) = c2.x(); R(1, 2) = c2.y(); R(2, 2) = c2.z();
-    QQuaternion q = QQuaternion::fromRotationMatrix(R);
-    t.rotation[0] = q.x();
-    t.rotation[1] = q.y();
-    t.rotation[2] = q.z();
-    t.rotation[3] = q.scalar();
+    QMatrix4x4 M;
+    for(int c = 0; c < 4; ++c)
+      for(int r = 0; r < 4; ++r)
+        M(r, c) = (*m)[c][r];
+    t = transform_from_matrix(M);
   }
   return t;
 }
@@ -341,9 +353,15 @@ static std::shared_ptr<ossia::material_component> to_material(
   if(m.pbrData.metallicRoughnessTexture)
     fill_tex(mc->metallic_roughness_texture, *m.pbrData.metallicRoughnessTexture);
   if(m.normalTexture)
+  {
     fill_tex(mc->normal_texture, *m.normalTexture);
+    mc->normal_scale = float(m.normalTexture->scale);
+  }
   if(m.occlusionTexture)
+  {
     fill_tex(mc->occlusion_texture, *m.occlusionTexture);
+    mc->occlusion_strength = float(m.occlusionTexture->strength);
+  }
   if(m.emissiveTexture)
     fill_tex(mc->emissive_texture, *m.emissiveTexture);
 
@@ -372,8 +390,12 @@ static std::shared_ptr<ossia::material_component> to_material(
           mc->clearcoat.roughness_texture,
           *m.clearcoat->clearcoatRoughnessTexture);
     if(m.clearcoat->clearcoatNormalTexture)
+    {
       fill_tex(
           mc->clearcoat.normal_texture, *m.clearcoat->clearcoatNormalTexture);
+      mc->clearcoat.normal_scale
+          = float(m.clearcoat->clearcoatNormalTexture->scale);
+    }
   }
 
   // KHR_materials_sheen — fabric / velvet / brushed surfaces.
@@ -494,6 +516,9 @@ static std::shared_ptr<ossia::light_component> to_light(const fastgltf::Light& l
   lc->inner_cone_angle = float(l.innerConeAngle.value_or(0.f));
   lc->outer_cone_angle = float(l.outerConeAngle.value_or(float(M_PI) / 4.f));
   lc->decay = ossia::light_decay::quadratic;
+  // KHR_lights_punctual has no shadow flag: a glTF light casts, like a Light
+  // with Cast shadow on, wherever a shadow pass is wired.
+  lc->shadow.enabled = true;
   return lc;
 }
 
@@ -1241,13 +1266,48 @@ std::function<void(GltfParser&)> GltfParser::ins::gltf_t::process(file_type tv)
     return {};
 
   // Skins — parse joint node list + inverse-bind matrices per skin.
-  // Joint transforms themselves live on the scene_node's local_transform
-  // (set during emit_node). AnimationPlayer consumes this skeleton data
-  // to produce per-frame world-space joint matrices.
+  // Each joint carries its node's rest local TRS and its parent joint, so
+  // the forward kinematics (SceneGPUState's packSkeleton) rebuild the
+  // node hierarchy: joint world = parent joint world × joint local. The
+  // shader applies the joint matrices in the skinned mesh's object space,
+  // before the mesh node's own transform. AnimationPlayer overrides the
+  // TRS of the joints its tracks target.
+  //
+  // Nodes between a joint and its nearest joint ancestor become joints too
+  // (no vertex references them), so their transforms are part of the
+  // chain. A root joint gets a static parent joint holding
+  // inverse(mesh node world) × world of the root joint's parent node, when
+  // that is not the identity: glTF places the joints in the scene, while
+  // the joint matrices act in the mesh node's space.
+  std::vector<int> emitted_of(asset.nodes.size(), -1);
+  for(std::size_t i = 0; i < scene_nodes.size(); ++i)
+  {
+    const auto id = scene_nodes[i].stable_id;
+    if(id > 0 && id - 1 < emitted_of.size())
+      emitted_of[id - 1] = int(i);
+  }
+  const auto local_matrix = [](const ossia::scene_transform& t) {
+    QMatrix4x4 m;
+    m.translate(t.translation[0], t.translation[1], t.translation[2]);
+    m.rotate(QQuaternion(t.rotation[3], t.rotation[0], t.rotation[1], t.rotation[2]));
+    m.scale(t.scale[0], t.scale[1], t.scale[2]);
+    return m;
+  };
+  const auto world_matrix = [&](int e) {
+    QMatrix4x4 m;
+    for(int depth = 0; e >= 0 && depth < 256; ++depth)
+    {
+      m = local_matrix(scene_nodes[e].local_transform) * m;
+      e = scene_nodes[e].parent_index;
+    }
+    return m;
+  };
+
   std::vector<std::shared_ptr<ossia::skeleton_component>> skeletons;
   skeletons.reserve(asset.skins.size());
-  for(const auto& sk : asset.skins)
+  for(std::size_t skinIdx = 0; skinIdx < asset.skins.size(); ++skinIdx)
   {
+    const auto& sk = asset.skins[skinIdx];
     auto skel = std::make_shared<ossia::skeleton_component>();
     // Inverse-bind matrices are optional in glTF; default is identity.
     std::vector<float> ibms;
@@ -1272,19 +1332,20 @@ std::function<void(GltfParser&)> GltfParser::ins::gltf_t::process(file_type tv)
                     "bounds, using identity";
       }
     }
-    skel->joints.reserve(sk.joints.size());
-    skel->joint_node_ids.reserve(sk.joints.size());
-    for(std::size_t j = 0; j < sk.joints.size(); ++j)
-    {
+
+    // glTF node index → joint index in this skeleton.
+    std::unordered_map<std::size_t, int> joint_of;
+    const auto add_joint = [&](std::size_t nodeIdx) {
       ossia::skeleton_joint sj;
-      const auto nodeIdx = sk.joints[j];
       if(nodeIdx < asset.nodes.size())
+      {
         sj.name = std::string(asset.nodes[nodeIdx].name);
-      sj.parent_index = -1; // resolved from node hierarchy at use-time
-      if(j * 16 + 15 < ibms.size())
-        std::memcpy(
-            sj.inverse_bind_matrix, ibms.data() + j * 16,
-            sizeof(float) * 16);
+        const auto t = to_transform(asset.nodes[nodeIdx]);
+        std::memcpy(sj.translation, t.translation, sizeof(sj.translation));
+        std::memcpy(sj.rotation, t.rotation, sizeof(sj.rotation));
+        std::memcpy(sj.scale, t.scale, sizeof(sj.scale));
+      }
+      const int idx = (int)skel->joints.size();
       skel->joints.push_back(std::move(sj));
       // Stable node_id derived from the glTF node index (+1 because 0
       // means "unset" per scene_node_id convention). Matches the IDs
@@ -1292,6 +1353,91 @@ std::function<void(GltfParser&)> GltfParser::ins::gltf_t::process(file_type tv)
       ossia::scene_node_id nid;
       nid.value = std::uint64_t(nodeIdx) + 1;
       skel->joint_node_ids.push_back(nid);
+      joint_of.emplace(nodeIdx, idx);
+      return idx;
+    };
+
+    skel->joints.reserve(sk.joints.size());
+    skel->joint_node_ids.reserve(sk.joints.size());
+    for(std::size_t j = 0; j < sk.joints.size(); ++j)
+    {
+      add_joint(sk.joints[j]);
+      if(j * 16 + 15 < ibms.size())
+        std::memcpy(
+            skel->joints[j].inverse_bind_matrix, ibms.data() + j * 16,
+            sizeof(float) * 16);
+    }
+
+    // The node the skinned mesh hangs from: the first one using this skin.
+    QMatrix4x4 mesh_world_inv;
+    for(std::size_t i = 0; i < scene_nodes.size(); ++i)
+    {
+      if(scene_nodes[i].skin_index == int32_t(skinIdx))
+      {
+        mesh_world_inv = world_matrix(int(i)).inverted();
+        break;
+      }
+    }
+
+    // Root joints' static parents, keyed by the emitted parent node.
+    std::unordered_map<int, int> root_parent_of;
+    std::vector<int> chain;
+    for(std::size_t j = 0; j < sk.joints.size(); ++j)
+    {
+      const auto nodeIdx = sk.joints[j];
+      if(nodeIdx >= emitted_of.size() || emitted_of[nodeIdx] < 0)
+        continue;
+
+      chain.clear();
+      int p = scene_nodes[emitted_of[nodeIdx]].parent_index;
+      while(p >= 0 && !joint_of.contains(scene_nodes[p].stable_id - 1)
+            && chain.size() < 256)
+      {
+        chain.push_back(p);
+        p = scene_nodes[p].parent_index;
+      }
+
+      int parent = -1;
+      if(p >= 0)
+      {
+        parent = joint_of[scene_nodes[p].stable_id - 1];
+        for(auto it = chain.rbegin(); it != chain.rend(); ++it)
+        {
+          const int k = add_joint(scene_nodes[*it].stable_id - 1);
+          skel->joints[k].parent_index = parent;
+          parent = k;
+        }
+      }
+      else
+      {
+        const int root_parent
+            = scene_nodes[emitted_of[nodeIdx]].parent_index;
+        if(auto it = root_parent_of.find(root_parent); it != root_parent_of.end())
+        {
+          parent = it->second;
+        }
+        else
+        {
+          const QMatrix4x4 m = mesh_world_inv * world_matrix(root_parent);
+          const QMatrix4x4 d = m - QMatrix4x4{};
+          bool identity = true;
+          for(int k = 0; k < 16; ++k)
+            identity = identity && std::abs(d.constData()[k]) < 1e-5f;
+          if(!identity)
+          {
+            ossia::skeleton_joint sj;
+            const auto t = transform_from_matrix(m);
+            std::memcpy(sj.translation, t.translation, sizeof(sj.translation));
+            std::memcpy(sj.rotation, t.rotation, sizeof(sj.rotation));
+            std::memcpy(sj.scale, t.scale, sizeof(sj.scale));
+            parent = (int)skel->joints.size();
+            skel->joints.push_back(std::move(sj));
+            skel->joint_node_ids.push_back(ossia::scene_node_id{});
+          }
+          root_parent_of.emplace(root_parent, parent);
+        }
+      }
+      skel->joints[j].parent_index = parent;
     }
     skel->dirty_index = 1;
     skeletons.push_back(std::move(skel));

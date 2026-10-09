@@ -29,7 +29,9 @@ layout(std140, binding = 2) uniform ScatterParams {
     // SPIRV-Cross cannot bake gl_NumWorkGroups to HLSL (D3D11/D3D12).
     uint num_workgroups_x;
     uint num_workgroups_y;
-    uint _pad2;
+    // Stride between destination elements, in floats; 0 packs them at
+    // dst_components (std430 puts a vec3 every 4 floats).
+    uint dst_stride_floats;
 };
 
 void main()
@@ -46,7 +48,7 @@ void main()
         return;
 
     uint s = src_offset_floats + i * src_stride_floats;
-    uint d = i * dst_components;
+    uint d = i * (dst_stride_floats != 0u ? dst_stride_floats : dst_components);
 
     // GPU vertex attribute extension convention: (0, 0, 0, 1)
     // Unrolled for the common dst_components values (1-4).
@@ -203,7 +205,7 @@ void GPUBufferScatter::updateParams(
     uint32_t src_offset_floats;
     uint32_t num_workgroups_x;
     uint32_t num_workgroups_y;
-    uint32_t _pad;
+    uint32_t dst_stride_floats;
   } data{
       p.element_count,
       p.src_components,
@@ -212,7 +214,7 @@ void GPUBufferScatter::updateParams(
       p.src_offset_floats,
       static_cast<uint32_t>(dims.x),
       static_cast<uint32_t>(dims.y),
-      0};
+      p.dst_stride_floats};
 
   res.updateDynamicBuffer(op.paramsUBO, 0, sizeof(data), &data);
 

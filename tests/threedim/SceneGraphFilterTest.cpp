@@ -273,6 +273,18 @@ TEST_CASE("SceneGraphFilter ByPath: ** crosses slashes, * does not",
     // Original untouched.
     CHECK(child_node(*wheels, "FL") == fl.get());
   }
+
+  SECTION("**/*L reaches the grandchild: ** spans the segments before it")
+  {
+    n.inputs.paths.value = {"**/*L"};
+    n();
+    const auto& st = n.outputs.scene_out.scene.state;
+    REQUIRE(st);
+    REQUIRE(st->roots->size() == 1);
+    const auto* out_wheels = child_node(*(*st->roots)[0], "Wheels");
+    REQUIRE(out_wheels);
+    CHECK(child_node(*out_wheels, "FL") == fl.get());
+  }
 }
 
 // ====================================================================== Invert

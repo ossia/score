@@ -34,6 +34,23 @@
 #include <clocale>
 #include <utility>
 
+/// Register the Qt resources score::Application registers in loadResources().
+/// With static plug-ins, score_lib_base is a static archive and the resource
+/// initialisers qt_add_resources generates are dropped unless something
+/// references them: :/skin and :/fonts then do not exist in the test binary.
+/// Outside any namespace, as Q_INIT_RESOURCE requires.
+inline void score_test_init_resources()
+{
+#if defined(SCORE_STATIC_PLUGINS)
+  Q_INIT_RESOURCE(score);
+#if defined(__APPLE__)
+  Q_INIT_RESOURCE(fonts_macos);
+#else
+  Q_INIT_RESOURCE(fonts);
+#endif
+#endif
+}
+
 namespace score::test
 {
 
@@ -160,6 +177,7 @@ template <typename F>
 void run_in_app(F&& fn)
 {
   prepare_test_environment(/*headless=*/true);
+  score_test_init_resources();
 
   QLocale::setDefault(QLocale::C);
   std::setlocale(LC_ALL, "C");
@@ -185,6 +203,7 @@ template <typename F>
 void run_in_gui_app(F&& fn)
 {
   prepare_test_environment(/*headless=*/false);
+  score_test_init_resources();
 
   QLocale::setDefault(QLocale::C);
   std::setlocale(LC_ALL, "C");

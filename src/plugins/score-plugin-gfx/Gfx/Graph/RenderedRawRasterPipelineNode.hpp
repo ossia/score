@@ -82,6 +82,10 @@ private:
   // expressions. Returns >= 1; unparseable expressions degrade to 1.
   int resolveManualInvocationCount() const;
   bool outputSizeReadsBufferSizes() const noexcept;
+  //! The size OUTPUTS.WIDTH / HEIGHT declare, invalid when none does.
+  QSize declaredOutputSize() const;
+  //! declaredOutputSize() when the MRT targets were last allocated.
+  QSize m_declaredOutputSize;
 
   // True when the shader renders procedurally: no VERTEX_INPUTS, driven by
   // gl_VertexIndex, with PIPELINE_STATE.VERTEX_COUNT set. m_mesh stays null and
@@ -89,9 +93,14 @@ private:
   // guards for fullscreen passes, VSA-style draws and IBL precompute shaders.
   bool isProceduralDraw() const noexcept;
 
+  // PIPELINE_STATE.VERTEX_COUNT / INSTANCE_COUNT, literal or evaluated this
+  // frame through resolveIntExpression; nullopt when undeclared.
+  std::optional<uint32_t> declaredVertexCount() const;
+  std::optional<uint32_t> declaredInstanceCount() const;
+
   // Evaluate an integer-valued expression against the same variable
   // surface as resolveManualInvocationCount ($WIDTH_<inp> / $HEIGHT /
-  // scalar inputs). Used for OUTPUTS.WIDTH / HEIGHT at init time.
+  // scalar inputs). Used for OUTPUTS.WIDTH / HEIGHT.
   // Returns `fallback` when the expression is empty, >=1 otherwise.
   int resolveIntExpression(const std::string& expr, int fallback) const;
 
@@ -105,9 +114,24 @@ private:
   // them and re-points the SRB bindings before each draw; single-sub-mesh and MDI
   // geometries delegate to the mesh's own draw(). The SRB is left on the last
   // sub-mesh's bindings, and the next runRenderPass rebinds from scratch.
+  //
+  // `pipeline` and `viewport` are the bound ones: when the ScenePreprocessor
+  // marks alpha-blended draws and `pipeline` blends and writes depth, those
+  // draws go last through blendPassPipeline(pipeline), which leaves the
+  // command buffer on that pipeline.
   void drawWithPerMeshAuxRebind(
+      QRhiGraphicsPipeline& pipeline, const QRhiViewport& viewport,
       QRhiShaderResourceBindings& srb, QRhiCommandBuffer& cb,
       const FallbackBindingPlan& plan = {});
+
+  // `pipeline` without depth write, for the alpha-blended draws; created on
+  // first use, null when `pipeline` does not both blend and write depth.
+  QRhiGraphicsPipeline* blendPassPipeline(QRhiGraphicsPipeline& pipeline);
+  void releaseBlendPassPipeline(QRhiGraphicsPipeline* pipeline);
+  ossia::small_flat_map<QRhiGraphicsPipeline*, QRhiGraphicsPipeline*, 2>
+      m_blendPassPipelines;
+  // The pipelines' QRhi: QRhiResource::rhi() is Qt 6.6+.
+  QRhi* m_blendPassRhi{};
 
   std::vector<Sampler> allSamplers() const noexcept;
 
@@ -158,8 +182,8 @@ private:
     int64_t declared_size{};
   };
   std::vector<AuxiliarySSBO> m_auxiliarySSBOs;
-  static void
-  createAuxPlaceholder(QRhi& rhi, QRhiResourceUpdateBatch& res, AuxiliarySSBO& aux);
+  static void createAuxPlaceholder(
+      QRhi& rhi, QRhiResourceUpdateBatch& res, AuxiliarySSBO& aux, QSize renderSize);
 
   // The `camera` block's buffer while a Camera is wired to the node's camera
   // input (ISFNode::cameraInput): packed from that scene's cameras and bound in
@@ -242,6 +266,9 @@ private:
     // which is the shader's own intent rather than the texture's.
     QRhiSampler* sampler_override{};
     bool declares_compare{false};
+    // MIPMAP_MODE left out of the declaration: `sampler` follows the bound
+    // texture's mips (followTextureMips).
+    bool mips_follow_texture{false};
     QRhiSampler* boundSampler() const noexcept
     {
       return sampler_override ? sampler_override : sampler;

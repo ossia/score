@@ -160,6 +160,10 @@ private:
     std::vector<isf::storage_input::layout_field> layout; // For size calculation
     bool owned{true}; // false when buffer comes from geometry auxiliary
     std::string buffer_usage; // "", "indirect_draw", "indirect_draw_indexed", "dispatch_args"
+    //! PERSISTENT: `prev` is bound as `<name>_prev` and receives a copy of
+    //! the buffer before each frame's passes.
+    bool persistent{false};
+    QRhiBuffer* prev{};
   };
   //! A writable geometry auxiliary's SIZE did not resolve this frame: the
   //! passes are skipped rather than dispatched over an undersized buffer.
@@ -225,6 +229,9 @@ private:
 
       // GPU scatter state (used when format conversion is needed)
       QRhiBuffer* scatterStaging{};      // Staging SSBO for raw CPU data
+      //! Upstream GPU buffer repacked into this slot every frame, borrowed.
+      QRhiBuffer* scatter_source{};
+      bool scatter_seen{false};
       int64_t scatterStagingSize{};
       GPUBufferScatter::PreparedOp scatterOp;
       GPUBufferScatter::Params scatterParams;
@@ -265,6 +272,7 @@ private:
     {
       QRhiSampler* sampler{};   // null for storage-image entries
       QRhiTexture* texture{};   // current bound handle (placeholder or upstream)
+      bool mips_follow_texture{false}; // MIPMAP_MODE left out: see followTextureMips
       QRhiTexture* placeholder{}; // shape-matched empty from RenderList
       std::string name;
       int binding{-1};          // assigned at SRB build
@@ -297,6 +305,7 @@ private:
     uint64_t closesCycleGeneration{~uint64_t{0}};
     bool has_output{false};     // true if any attribute is writable
     bool has_vertex_count_spec{false};   // true if vertex_count expression is set
+    bool warned_multiple_cables{false};  // several cables on the input, reported once
     bool has_instance_count_spec{false}; // true if instance_count expression is set
     bool is_feedback_receiver{false};    // true = uses ping-pong double buffering for read_write attrs
     bool pending_initial_copy{false};    // first frame after read_buffer allocated: use same-buffer mode, then copy buffer→read_buffer
@@ -313,6 +322,10 @@ private:
     int prev_attribute_count{-1};
     int prev_upstream_attr_count{-1};
     int prev_upstream_aux_count{-1};
+    int prev_mesh_count{-1};
+    //! Per further mesh: the mesh list its output mesh was copied from, and
+    //! that list's dirty_index at the time.
+    std::vector<std::pair<const ossia::mesh_list*, int64_t>> mesh_seen;
 
     struct OutputSlots
     {
@@ -336,6 +349,38 @@ private:
     bool uses_indirect_count{false};
   };
   std::vector<GeometryBinding> m_geometryBindings;
+
+  // The meshes after the first of a multi-mesh upstream. Each one runs the
+  // passes over its own geometry bindings and SRBs, which are swapped in
+  // place of the first mesh's while it is updated, dispatched and pushed.
+  struct MeshLayer
+  {
+    std::vector<GeometryBinding> bindings;
+    std::vector<ComputePass> passes;
+    int meshIndex{};
+    bool auxSizeUnresolved{false};
+    //! The mesh lacks a required attribute: it is forwarded as is.
+    bool passthrough{false};
+  };
+  std::vector<MeshLayer> m_meshLayers;
+  //! Mesh of each upstream geometry the bindings currently read.
+  int m_meshIndex{0};
+
+  struct MeshLayerScope
+  {
+    RenderedCSFNode& self;
+    MeshLayer& layer;
+    MeshLayerScope(RenderedCSFNode& s, MeshLayer& l) noexcept;
+    ~MeshLayerScope();
+  };
+  void swapMeshLayer(MeshLayer& layer) noexcept;
+  int processedMeshCount() const;
+  void updateMeshLayers(RenderList& renderer, QRhiResourceUpdateBatch& res);
+  void releaseMeshLayer(RenderList& renderer, MeshLayer& layer);
+  const ossia::geometry* upstreamMesh(int port) const noexcept;
+  void runGeometryPasses(
+      RenderList& renderer, QRhiCommandBuffer& commands, QRhiResourceUpdateBatch*& res,
+      Edge& edge, bool firstMesh);
 
   // One-time "CSF indirect dispatch: gpu|cpu-fallback" log guard (per node
   // instance, so per test session); see the dispatch site.

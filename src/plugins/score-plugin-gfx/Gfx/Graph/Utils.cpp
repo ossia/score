@@ -675,9 +675,17 @@ bool remapVertexInputs(
 {
   outPlan.clear();
 
+  // A shader that reads no attribute (gl_VertexIndex only) consumes none of
+  // the mesh's streams. Leaving them in the layout makes the draw bind every
+  // one of them: on Metal they then sit past the shader's buffers in the
+  // 31-slot table and can overflow it.
   const auto& shader_inputs = vertexShader.description().inputVariables();
   if(shader_inputs.empty())
+  {
+    outPlan.compacted = true;
+    pip.setVertexInputLayout({});
     return true;
+  }
 
   // Shader reflection order is driver-dependent; we don't rely on it
   // matching descriptor declaration order.
@@ -2391,6 +2399,18 @@ QRhiSampler* makeSampler(QRhi& rhi, const isf::sampler_config& cfg)
   s->setTextureCompareOp(parseCompare(cfg.compare));
   s->create();
   return s;
+}
+
+bool followTextureMips(QRhiSampler& sampler, const QRhiTexture& texture)
+{
+  const auto mode = texture.flags().testFlag(QRhiTexture::MipMapped)
+                        ? QRhiSampler::Linear
+                        : QRhiSampler::None;
+  if(sampler.mipmapMode() == mode)
+    return false;
+  sampler.setMipmapMode(mode);
+  sampler.create();
+  return true;
 }
 
 int storageImageUnitLimit(QRhi& rhi)

@@ -313,6 +313,9 @@ score_add_gfx_test(review_render_targets GfxReviewRenderTargets.cpp)
 score_add_gfx_test(review_scene_fallback GfxReviewSceneFallback.cpp)
 score_add_gfx_test(interior_orphan_binding GfxInteriorOrphanBinding.cpp)
 score_add_gfx_test(d3d11_vertex_binding_cap GfxD3D11VertexBindingCap.cpp)
+# A vertex shader with no inputs keeps none of the geometry's vertex bindings
+# (Metal's 31-slot buffer table overflowed with them).
+score_add_gfx_test(procedural_vertex_bindings GfxProceduralVertexBindings.cpp)
 # One resolver behind both entry points: it clears the caller's plan on entry,
 # and the strict and fallback-aware calls agree on layout and plan.
 score_add_gfx_test(unified_binding_resolver GfxUnifiedBindingResolver.cpp)
@@ -603,6 +606,9 @@ score_add_gfx_test(scene_filter_nodes SceneFilterNodes.cpp)
 # times (pointer identity), a bump re-merges exactly once, one contributor
 # short-circuits to a pointer copy, an env-only rootless producer is kept.
 score_add_gfx_test(scene_merge_memo SceneMergeMemo.cpp)
+# Scenes on one port merge in edge order (source node id), not in source Port
+# address order: the first active camera wins.
+score_add_gfx_test(scene_merge_edge_order SceneMergeEdgeOrder.cpp)
 # The unified-MDI geometry published nine vertex bindings, one past
 # QD3D11CommandBuffer::MAX_VERTEX_BUFFER_BINDING_COUNT, so a shader reading
 # every stream lost its ninth on D3D11 without an error. translation and
@@ -637,6 +643,13 @@ if(TARGET score_plugin_threedim AND TARGET score_plugin_avnd)
       "${_threedim}/ModelDisplay/ModelDisplayNode.cpp"
     PLUGINS score_plugin_avnd
     HEADERS_FROM score_plugin_threedim)
+  score_add_gfx_plugin_test(model_display_unwired_texture
+    SOURCES GfxModelDisplayUnwiredTexture.cpp
+    HIDDEN
+      "${_threedim}/Primitive.cpp"
+      "${_threedim}/ModelDisplay/ModelDisplayNode.cpp"
+    PLUGINS score_plugin_avnd
+    HEADERS_FROM score_plugin_threedim)
 endif()
 
 if(TARGET score_plugin_threedim AND TARGET score_plugin_avnd)
@@ -660,6 +673,39 @@ if(TARGET score_plugin_threedim AND TARGET score_plugin_avnd)
       "${_threedim}/ModelDisplay/ModelDisplayNode.cpp"
     PLUGINS score_plugin_avnd
     HEADERS_FROM score_plugin_threedim)
+endif()
+
+# GltfParser.cpp generates tangents with mikktspace, which a dynamic-plugin
+# build does not export: link the copy test_unit_threedim_3rdparty carries.
+set(_gltf_mikktspace "")
+if(TARGET test_unit_threedim_3rdparty)
+  set(_gltf_mikktspace test_unit_threedim_3rdparty)
+endif()
+
+# KHR_lights_punctual lights inside a glTF reach the scene_lights a preset reads.
+if(TARGET score_plugin_threedim AND TARGET score_plugin_avnd)
+  score_add_gfx_plugin_test(gltf_punctual_lights
+    SOURCES GfxGltfPunctualLights.cpp
+    HIDDEN
+      "${_threedim}/GltfParser.cpp"
+    PLUGINS score_plugin_avnd
+    HEADERS_FROM score_plugin_threedim
+    LIBS fastgltf ${_gltf_mikktspace})
+endif()
+
+# A glTF light casts the cascade shadows of Shadow Cascade Setup, through the
+# gallery's two-preprocessor shadow chain.
+if(TARGET score_plugin_threedim AND TARGET score_plugin_avnd)
+  score_add_gfx_plugin_test(gltf_light_shadows
+    SOURCES GfxGltfLightShadows.cpp
+    HIDDEN
+      "${_threedim}/GltfParser.cpp"
+      "${_threedim}/Camera.cpp"
+      "${_threedim}/ShadowCascadeSetup.cpp"
+      "${_threedim}/SceneResourceRoute.cpp"
+    PLUGINS score_plugin_avnd
+    HEADERS_FROM score_plugin_threedim
+    LIBS fastgltf ${_gltf_mikktspace})
 endif()
 
 if(TARGET score_plugin_avnd)
@@ -694,6 +740,16 @@ if(TARGET score_plugin_threedim AND TARGET score_plugin_avnd)
     PLUGINS score_plugin_avnd score_plugin_threedim)
 endif()
 
+# PBR Mesh keeps the auxiliaries and the transform of the geometry wired into
+# it, through the real Scene Preprocessor and a raw raster; a Material
+# Override after it changes its material.
+if(TARGET score_plugin_threedim)
+  score_add_gfx_plugin_test(pbr_mesh_upstream_geometry
+    SOURCES GfxPBRMeshUpstreamGeometry.cpp
+    HIDDEN "${_threedim}/PBRMesh.cpp" "${_threedim}/MaterialOverride.cpp"
+    PLUGINS score_plugin_threedim)
+endif()
+
 # EnvironmentLoader's render_target_size override reaches the camera
 # pass (packCameraUBO's renderSize/aspect), scoped to exactly that -- the
 # physical RT extent must NOT change. CPU producer/merge + camera-math halves
@@ -706,6 +762,20 @@ if(TARGET score_plugin_threedim AND TARGET score_plugin_avnd)
       "${_threedim}/Primitive.cpp"
       "${_threedim}/Camera.cpp"
       "${_threedim}/EnvironmentLoader.cpp"
+    PLUGINS score_plugin_avnd
+    HEADERS_FROM score_plugin_threedim)
+endif()
+
+# shadow_cascades.light_slot names the light Shadow Cascade Setup fitted the
+# cascades to, with or without its direction override.
+if(TARGET score_plugin_threedim AND TARGET score_plugin_avnd)
+  score_add_gfx_plugin_test(shadow_cascade_light_slot
+    SOURCES GfxShadowCascadeLightSlot.cpp
+    HIDDEN
+      "${_threedim}/Primitive.cpp"
+      "${_threedim}/Camera.cpp"
+      "${_threedim}/Light.cpp"
+      "${_threedim}/ShadowCascadeSetup.cpp"
     PLUGINS score_plugin_avnd
     HEADERS_FROM score_plugin_threedim)
 endif()
@@ -805,6 +875,10 @@ score_add_gfx_test(material_preset_wrap GfxMaterialPresetWrap.cpp)
 score_gfx_test_offset_allocator(test_gfx_material_preset_wrap)
 score_add_gfx_test(scene_gpu_attribute_swap GfxScenePreprocessorGpuAttributeSwap.cpp)
 score_gfx_test_offset_allocator(test_gfx_scene_gpu_attribute_swap)
+score_add_gfx_test(scene_gpu_indices GfxScenePreprocessorGpuIndices.cpp)
+score_gfx_test_offset_allocator(test_gfx_scene_gpu_indices)
+score_add_gfx_test(scene_gpu_color_uv1 GfxScenePreprocessorGpuColorUv1.cpp)
+score_gfx_test_offset_allocator(test_gfx_scene_gpu_color_uv1)
 score_gfx_test_offset_allocator(test_gfx_material_texture_swap)
 score_gfx_test_offset_allocator(test_gfx_mesh_slabs)
 
@@ -1258,6 +1332,19 @@ if(TARGET score_plugin_media)
     GFX_TEST_CORPUS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/corpus")
 endif()
 
+# A STATIC image input fed by a video reads the frame, converted into a texture
+# the video renderer owns, rather than black.
+if(TARGET score_plugin_media)
+  score_add_test(test_gfx_video_static_input
+    SOURCES GfxVideoStaticInput.cpp
+    GUI
+    PLUGINS score_plugin_gfx score_plugin_media score_plugin_scenario
+            score_lib_process
+    LIBS test_gfx_engine_glue avutil)
+  target_compile_definitions(test_gfx_video_static_input PRIVATE
+    GFX_TEST_CORPUS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/corpus")
+endif()
+
 # What a frame costs as the target grows, with no readback and no output device
 # in the way. Answers "is the renderer the wall at 8K" -- it is not.
 score_add_test(test_gfx_render_scaling
@@ -1452,9 +1539,9 @@ endif()
 # warned about; a Delayed self-cable carries state.
 score_add_gfx_test(feedback_cycle GfxFeedbackCycle.cpp)
 
-# Library preset fixes (blinn_phong lights, classic_pbr_textured fallback,
-# classic_pbr_shadowed, openpbr light scale, cubemap_orbit orientation, compute
-# preset workgroup sizes and Game of Life).
+# Library preset fixes (blinn_phong lights, the shading tiers' texture
+# fallback and unwired shadows, openpbr light scale, cubemap_orbit
+# orientation, compute preset workgroup sizes and Game of Life).
 score_add_gfx_test(library_presets_render GfxLibraryPresetsRender.cpp)
 score_gfx_test_offset_allocator(test_gfx_library_presets_render)
 if(EXISTS "${SCORE_ROOT_SOURCE_DIR}/src/addons/score-addon-academy/3rdparty/OpenPBR-BSDF/openpbr_data_constants.h")
@@ -1508,6 +1595,45 @@ endif()
 # per-preprocessor environment, hidden scene nodes, exact cloud bucket sizes.
 score_add_gfx_test(scene_preprocessor_regressions GfxScenePreprocessorRegressions.cpp)
 score_gfx_test_offset_allocator(test_gfx_scene_preprocessor_regressions)
+
+# A raw raster OUTPUTS.WIDTH / HEIGHT expression reading an input sizes the
+# target and follows the input, in 2D and cube outputs.
+score_add_gfx_test(raster_output_size_expression GfxRasterOutputSizeExpression.cpp)
+
+# PIPELINE_STATE.VERTEX_COUNT / INSTANCE_COUNT expressions reading an input
+# are evaluated per frame: a procedural draw follows the input.
+score_add_gfx_test(raster_draw_count_expression GfxRasterDrawCountExpression.cpp)
+
+# An unbound raw raster AUXILIARY sized by an input expression has that size,
+# which $COUNT_<name> reports.
+score_add_gfx_test(raw_raster_aux_size_expression GfxRawRasterAuxSizeExpression.cpp)
+
+# A top-level PIPELINE_STATE.COLOR_WRITE masks a raw raster's colour writes.
+score_add_gfx_test(raster_color_write GfxRasterColorWrite.cpp)
+
+# Two cables into one CSF geometry input: the first cable's geometry is read
+# and the others are reported.
+score_add_gfx_test(csf_geometry_multi_cable GfxCsfGeometryMultiCable.cpp)
+
+# A CSF processes every mesh of a multi-mesh geometry, one output mesh each.
+score_add_gfx_test(csf_every_mesh GfxCsfEveryMesh.cpp)
+
+# A CSF reads tightly packed and interleaved attributes, CPU or GPU, at their
+# own stride.
+score_add_gfx_test(csf_packed_attribute GfxCsfPackedAttribute.cpp)
+
+# The camera placeholder a raw raster binds before a scene feeds it carries
+# the render size rather than zero.
+score_add_gfx_test(camera_placeholder_render_size GfxCameraPlaceholderRenderSize.cpp)
+
+# gl_FrontFacing under CULL_MODE none follows the front-face swap that
+# compensates the epilogue's Y mirror, in 2D and PER_CUBE_FACE targets.
+score_add_gfx_test(front_facing_cull_none GfxFrontFacingCullNone.cpp)
+
+# An AUXILIARY texture declared without MIPMAP_MODE samples the bound
+# texture's mips: textureLod on the scene's prefiltered_map reaches level N.
+score_add_gfx_test(aux_texture_mips GfxAuxTextureMips.cpp)
+score_gfx_test_offset_allocator(test_gfx_aux_texture_mips)
 
 # The Splat renderer (GaussianSplatNode) joining a render list through the
 # incremental reconcile path (initState + addOutputPass, no init) must not
@@ -1576,6 +1702,12 @@ score_add_gfx_test(vsa_clip_depth GfxVsaClipDepth.cpp)
 
 # CSF storage bindings at the published range; read_write on a static GPU upstream.
 score_add_gfx_test(csf_buffer_range GfxCsfBufferRange.cpp)
+
+# CSF PERSISTENT storage reads the previous frame's contents as <name>_prev.
+score_add_gfx_test(csf_storage_persistent GfxCsfStoragePersistent.cpp)
+
+# ISF pass and CSF image sizes given as expressions follow the input they read.
+score_add_gfx_test(size_expression_input GfxSizeExpressionInput.cpp)
 
 # Raw raster storage images take the lowest bindings, under the 8 OpenGL image
 # units NVIDIA exposes.

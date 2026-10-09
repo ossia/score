@@ -1,5 +1,6 @@
 #include "ShadowCascadeSetup.hpp"
 
+#include <QDebug>
 #include <QMatrix4x4>
 #include <QQuaternion>
 #include <QVector3D>
@@ -99,11 +100,12 @@ QMatrix4x4 cascadeLightVP(
 // Resolve the first directional light's world direction from the scene
 // tree. Recurses through scene_nodes, accumulating parent TRS, and
 // matches any light_component whose type == directional — regardless of
-// which source node emitted it. Returns false when no directional light
-// is found.
+// which source node emitted it. With `castingOnly`, lights whose Cast
+// shadow is off are skipped. Returns false when no such light is found.
 bool findDirectionalLight(
     const ossia::scene_node& n, const QMatrix4x4& parentWorld,
-    QVector3D& outDir) noexcept
+    bool castingOnly, QVector3D& outDir,
+    const ossia::light_component*& outLight) noexcept
 {
   QMatrix4x4 local;
   if(n.children)
@@ -127,7 +129,8 @@ bool findDirectionalLight(
     {
       if(auto* lc = ossia::get_if<ossia::light_component_ptr>(&p))
       {
-        if(*lc && (*lc)->type == ossia::light_type::directional)
+        if(*lc && (*lc)->type == ossia::light_type::directional
+           && (!castingOnly || (*lc)->shadow.enabled))
         {
           // Directional light convention (the Light node encodes the
           // user's direction as a rotation of canonical local -Z via
@@ -138,12 +141,13 @@ bool findDirectionalLight(
           if(nZ.lengthSquared() > 1e-5f)
           {
             outDir = nZ.normalized();
+            outLight = lc->get();
             return true;
           }
         }
       }
       if(auto* sub = ossia::get_if<ossia::scene_node_ptr>(&p))
-        if(*sub && findDirectionalLight(**sub, world, outDir))
+        if(*sub && findDirectionalLight(**sub, world, castingOnly, outDir, outLight))
           return true;
     }
   }
@@ -242,37 +246,39 @@ void ShadowCascadeSetup::rebuild()
   const float farZ = std::min(inputs.camera_far.value, inputs.shadow_distance.value);
   const float lambda = std::clamp(inputs.lambda.value, 0.f, 1.f);
 
-  // Scene-derived light direction if the control is left at (0,0,0).
-  QVector3D lightDir(cur_dir[0], cur_dir[1], cur_dir[2]);
-  if(lightDir.lengthSquared() < 1e-6f)
+  // The light the cascades belong to: the first directional light with
+  // Cast shadow on, else the first directional light at all (Cast shadow
+  // defaults to off on the Light node, so scenes that never touched it
+  // still get their light). Its direction is used unless the control is
+  // set; with the override the cascades still belong to that light.
+  const ossia::light_component* owner{};
+  QVector3D sceneDir(-0.4f, -0.8f, -0.6f);
+  if(in_state->roots)
   {
-    lightDir = QVector3D(-0.4f, -0.8f, -0.6f);
-    if(in_state->roots)
+    for(bool castingOnly : {true, false})
     {
       for(const auto& r : *in_state->roots)
-      {
-        QVector3D found;
-        if(r && findDirectionalLight(*r, QMatrix4x4{}, found))
-        {
-          lightDir = found;
+        if(r && findDirectionalLight(*r, QMatrix4x4{}, castingOnly, sceneDir, owner))
           break;
-        }
-      }
+      if(owner)
+        break;
     }
   }
+  QVector3D lightDir(cur_dir[0], cur_dir[1], cur_dir[2]);
+  if(lightDir.lengthSquared() < 1e-6f)
+    lightDir = sceneDir;
   lightDir.normalize();
 
   // Find the active camera's view_projection by walking the scene tree
   // the same way findDirectionalLight does. The camera's placement lives
   // on its owning scene_node's scene_transform, so view = inverse(world).
-  // Fall back to identity when the scene has no camera (the cascades
-  // will be approximate but the node stays safe to wire in early).
   //
   // Aspect is unknown at this stage (ScenePreprocessor is the canonical
   // source of the render-target aspect); 16:9 is a reasonable default
   // and the cascade fit is approximate anyway.
   QMatrix4x4 cameraVP;
   QMatrix4x4 cameraProj;
+  bool has_camera = false;
   const float aspect = 16.f / 9.f;
   if(in_state->roots)
   {
@@ -283,12 +289,33 @@ void ShadowCascadeSetup::rebuild()
       {
         cameraVP = proj * view;
         cameraProj = proj;
+        has_camera = true;
         break;
       }
     }
   }
 
   const QMatrix4x4 cameraVPInv = cameraVP.inverted();
+
+  // Without a camera in Scene In the view frustum is unknown (the camera
+  // the scene is finally rendered with is usually wired further down,
+  // into the Scene Preprocessor). Every cascade then covers the cube of
+  // half-size Shadow distance around the world origin: coarse, but any
+  // receiver within that distance of the origin is shadowed whichever
+  // cascade the shader picks for it.
+  QMatrix4x4 fallbackVolume;
+  if(!has_camera)
+  {
+    const float r = inputs.shadow_distance.value;
+    fallbackVolume.scale(r, r, r);
+    if(!m_warned_no_camera)
+    {
+      qWarning() << "Shadow Cascade Setup: no camera in Scene In; the cascades"
+                    " cover a cube of half-size Shadow distance around the"
+                    " origin. Wire the scene camera into Scene In.";
+      m_warned_no_camera = true;
+    }
+  }
 
   // Practical split scheme (Engel/Tabellion).
   ossia::shadow_cascades_info info{};
@@ -297,6 +324,8 @@ void ShadowCascadeSetup::rebuild()
   info.light_direction[0] = lightDir.x();
   info.light_direction[1] = lightDir.y();
   info.light_direction[2] = lightDir.z();
+  if(owner)
+    info.light_slot = owner->raw_slot;
 
   info.split_view_depths[0] = nearZ;
   for(int i = 1; i < count; ++i)
@@ -321,7 +350,9 @@ void ShadowCascadeSetup::rebuild()
     QVector4D p1 = cameraProj * QVector4D(0, 0, -info.split_view_depths[i + 1], 1);
     const float ndc0 = p0.w() != 0.f ? p0.z() / p0.w() : -1.f;
     const float ndc1 = p1.w() != 0.f ? p1.z() / p1.w() : 1.f;
-    QMatrix4x4 m = cascadeLightVP(cameraVPInv, ndc0, ndc1, lightDir);
+    QMatrix4x4 m = has_camera
+                       ? cascadeLightVP(cameraVPInv, ndc0, ndc1, lightDir)
+                       : cascadeLightVP(fallbackVolume, -1.f, 1.f, lightDir);
     std::memcpy(info.light_view_proj[i], m.constData(), sizeof(float) * 16);
   }
 

@@ -127,6 +127,13 @@ score_add_test(test_threedim_instancer_stale
   PLUGINS score_plugin_gfx)
 threedim_test_includes(test_threedim_instancer_stale)
 
+# PBR Mesh publishes its material factors from the colour controls (base
+# RGBA, emissive colour x strength). Pure logic — no GPU.
+score_add_test(test_threedim_pbr_mesh_material
+  SOURCES PBRMeshMaterial.cpp "${THREEDIM_DIR}/PBRMesh.cpp"
+  PLUGINS score_plugin_gfx)
+threedim_test_includes(test_threedim_pbr_mesh_material)
+
 score_add_test(test_threedim_extract_index
   SOURCES ExtractIndex.cpp "${THREEDIM_DIR}/ExtractBuffer2.cpp"
   PLUGINS score_plugin_gfx)
@@ -157,6 +164,7 @@ threedim_test_includes(test_threedim_camera_release)
 # arena slots stay invalid and no GPU is touched.
 score_add_test(test_threedim_scene_graph_ops
   SOURCES SceneGraphOps.cpp
+    "${THREEDIM_DIR}/ConfigurePrimitive.cpp"
     "${THREEDIM_DIR}/SceneGroup.cpp"
     "${THREEDIM_DIR}/SceneSelector.cpp"
     "${THREEDIM_DIR}/SceneDuplicator.cpp"
@@ -180,11 +188,18 @@ score_add_test(test_threedim_transform3d
 threedim_test_includes(test_threedim_transform3d)
 
 # ShadowCascadeSetup's cascade math: split scheme, findActiveCamera id
-# filtering, the reverse-Z NDC flip and the zPad direction.
+# filtering, the reverse-Z NDC flip, the zPad direction, the shadow-casting
+# light choice, the light slot it records and the no-camera fallback volume.
 score_add_test(test_threedim_shadow_cascades
   SOURCES ShadowCascades.cpp "${THREEDIM_DIR}/ShadowCascadeSetup.cpp"
   LIBS ${QT_PREFIX}::Gui)
 threedim_test_includes(test_threedim_shadow_cascades)
+
+# EnvironmentLoader's fog mode and density controls reach scene_environment.
+score_add_test(test_threedim_environment_fog
+  SOURCES EnvironmentFog.cpp "${THREEDIM_DIR}/EnvironmentLoader.cpp"
+  PLUGINS score_plugin_gfx)
+threedim_test_includes(test_threedim_environment_fog)
 
 # EXPECTED RED. Contracts the engine does not satisfy yet (issue #163's
 # one-entry `camera` aux; CameraSwitch's Blend accumulating onto default-
@@ -270,6 +285,12 @@ score_add_test(test_threedim_pcl_to_geometry
   LIBS ${QT_PREFIX}::Gui)
 threedim_test_includes(test_threedim_pcl_to_geometry)
 
+# MaterialOverride through flattenScene: the draws resolve to the clones.
+score_add_test(test_threedim_material_override_draws
+  SOURCES MaterialOverrideDraws.cpp "${THREEDIM_DIR}/MaterialOverride.cpp"
+  PLUGINS score_plugin_gfx)
+threedim_test_includes(test_threedim_material_override_draws)
+
 # InverseKinematics (2-bone analytic solver). Entirely header-inline — pure
 # scene_state / QQuaternion math, no engine .cpp and no GPU; Qt Gui supplies
 # QQuaternion/QVector3D/QMatrix4x4 (same shape as test_threedim_camera_array_faces).
@@ -285,6 +306,11 @@ threedim_test_includes(test_threedim_inverse_kinematics)
 score_add_test(test_threedim_material_override
   SOURCES MaterialOverrideTest.cpp "${THREEDIM_DIR}/MaterialOverride.cpp")
 threedim_test_includes(test_threedim_material_override)
+
+# Material Override takes its base and emissive colours from colour controls.
+score_add_test(test_threedim_material_override_color
+  SOURCES MaterialOverrideColor.cpp "${THREEDIM_DIR}/MaterialOverride.cpp")
+threedim_test_includes(test_threedim_material_override_color)
 
 # SceneGraphFilter: the scene_state -> scene_state culling predicate walker.
 # Pure CPU — the whole unit is rebuild()/operator()(); no GPU, no Qt.
@@ -486,6 +512,18 @@ score_add_test(test_threedim_gltf_animation
   LIBS fastgltf ${QT_PREFIX}::Gui)
 threedim_test_includes(test_threedim_gltf_animation)
 target_compile_definitions(test_threedim_gltf_animation PRIVATE
+  THREEDIM_TEST_DIR="${CMAKE_CURRENT_SOURCE_DIR}")
+
+# A glTF skin keeps its joint hierarchy and rest pose, animated or not.
+score_plugin_hidden_sources(_gltf_skin_hidden
+    "${THREEDIM_DIR}/GltfParser.cpp"
+    "${THREEDIM_DIR}/AnimationPlayer.cpp")
+score_add_test(test_threedim_gltf_skin_hierarchy
+  SOURCES GltfSkinHierarchy.cpp ${_gltf_skin_hidden}
+  PLUGINS score_plugin_threedim score_plugin_gfx score_plugin_avnd
+  LIBS fastgltf ${QT_PREFIX}::Gui)
+threedim_test_includes(test_threedim_gltf_skin_hierarchy)
+target_compile_definitions(test_threedim_gltf_skin_hierarchy PRIVATE
   THREEDIM_TEST_DIR="${CMAKE_CURRENT_SOURCE_DIR}")
 
 # Nodes that instance one glTF mesh share its mesh_primitive stable_id, so the

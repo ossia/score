@@ -192,7 +192,7 @@ QRhiGraphicsPipeline::ColorMask toColorMask(std::string_view s) noexcept
       default: break;
     }
   }
-  if(out == M::ColorMask(0))
+  if(out == M::ColorMask(0) && s != "none")
     out = M::R | M::G | M::B | M::A;
   return out;
 }
@@ -390,7 +390,10 @@ isf::pipeline_state mergeState(isf::pipeline_state base, const isf::pipeline_sta
   if(over.line_width.has_value())             base.line_width = over.line_width;
   if(over.vertex_count.has_value())           base.vertex_count = over.vertex_count;
   if(over.instance_count.has_value())         base.instance_count = over.instance_count;
+  if(!over.vertex_count_expression.empty())   base.vertex_count_expression = over.vertex_count_expression;
+  if(!over.instance_count_expression.empty()) base.instance_count_expression = over.instance_count_expression;
   if(over.topology.has_value())               base.topology = over.topology;
+  if(over.color_write.has_value())            base.color_write = over.color_write;
   if(over.blend_all.has_value())              base.blend_all = over.blend_all;
   if(!over.blend_per_attachment.empty())      base.blend_per_attachment = over.blend_per_attachment;
   if(over.stencil_test.has_value())           base.stencil_test = over.stencil_test;
@@ -426,6 +429,7 @@ bool stateAffectsPipeline(const isf::pipeline_state& s) noexcept
       || s.stencil_front.has_value()
       || s.stencil_back.has_value()
       || s.topology.has_value()
+      || s.color_write.has_value()
 #if QT_VERSION >= QT_VERSION_CHECK(6, 9, 0)
       // shading_rate toggles the QRhiGraphicsPipeline::UsesShadingRate opt-in
       // flag (set in Utils.cpp buildPipelineWithState), so it does affect the
@@ -528,6 +532,17 @@ void applyPipelineState(
     auto t = toTargetBlend(*state.blend_all);
     for(int i = 0; i < nAttachments; ++i)
       blends.push_back(t);
+    pip.setTargetBlends(blends.begin(), blends.end());
+  }
+  if(state.color_write.has_value())
+  {
+    QVarLengthArray<QRhiGraphicsPipeline::TargetBlend, 4> blends(
+        pip.cbeginTargetBlends(), pip.cendTargetBlends());
+    while(blends.size() < nAttachments)
+      blends.push_back({});
+    const auto mask = toColorMask(*state.color_write);
+    for(auto& b : blends)
+      b.colorWrite = mask;
     pip.setTargetBlends(blends.begin(), blends.end());
   }
 

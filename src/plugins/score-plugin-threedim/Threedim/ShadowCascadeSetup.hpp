@@ -63,9 +63,11 @@ public:
     struct : halp::hslider_f32<"Camera far", halp::range{1., 100000., 1000.}>
     { void update(ShadowCascadeSetup& n) { n.rebuild(); } } camera_far;
     // Directional-light override. Normally inherited from the first
-    // directional light in the scene, but some pipelines (e.g. a single
+    // directional light in the scene with Cast shadow on (or the first
+    // directional light if none casts), but some pipelines (e.g. a single
     // orbiting light without a Light node) benefit from setting this
-    // directly.
+    // directly. The cascades still belong to that light: only their
+    // direction changes.
     struct : halp::xyz_spinboxes_f32<"Light direction", halp::range{-1., 1., 0.}>
     { void update(ShadowCascadeSetup& n) { n.rebuild(); } } light_direction;
   } inputs;
@@ -94,6 +96,7 @@ public:
   float m_cached_far{-1.f};
   float m_cached_dir[3]{};
   int64_t m_version_counter{0};
+  bool m_warned_no_camera{false};
 };
 
 }

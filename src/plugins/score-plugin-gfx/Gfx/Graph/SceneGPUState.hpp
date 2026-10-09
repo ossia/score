@@ -55,8 +55,8 @@ struct MeshUBO
 
 // Packed 32-bit texture reference stored in MaterialGPU::textureRefs[]:
 //   bits 31..30 : source (0 = NONE, 1 = STATIC pool, 2 = DYNAMIC pool)
-//   bits 29..24 : bucket index within the selected pool
-//   bits 23.. 0 : layer index within the bucket's texture array
+//   bits 29..23 : bucket index within the selected pool
+//   bits 22.. 0 : layer index within the bucket's texture array
 //
 // 0xFFFFFFFF is the "no texture" sentinel: the shader falls back to the
 // constant baseColor factor, metallic_factor, and so on.
@@ -64,7 +64,7 @@ inline constexpr uint32_t tex_ref_none() { return 0xFFFFFFFFu; }
 inline constexpr uint32_t tex_ref_static(uint32_t bucket, uint32_t layer)
 {
   // Packed layout: source:2 | bucket:7 | layer:23. The 7-bit bucket field gives
-  // headroom for 128 buckets against a runtime cap of kMaxBuckets = 16 in
+  // headroom for 128 buckets against a runtime cap of kMaxBuckets = 8 in
   // GpuResourceRegistry.hpp; raising the cap only needs larger shader sampler
   // arrays, not a new encoding. Shader-side decode is `(ref >> 23) & 0x7Fu` for
   // the bucket and `ref & 0x007FFFFFu` for the layer.
@@ -213,8 +213,9 @@ struct MaterialExtensionsGPU
   // --- Coat / clearcoat (KHR_materials_clearcoat) ---------------------
   // x = coat_weight, y = coat_roughness, z = coat_ior, w = coat_darkening
   float coat[4]{0.f, 0.f, 1.5f, 0.f};
-  // x = roughness_anisotropy, y = rotation_cos, z = rotation_sin, w = _pad
-  float coat_anisotropy[4]{0.f, 1.f, 0.f, 0.f};
+  // x = roughness_anisotropy, y = rotation_cos, z = rotation_sin,
+  // w = clearcoatNormalTexture.scale
+  float coat_anisotropy[4]{0.f, 1.f, 0.f, 1.f};
 
   // --- Fuzz / sheen (KHR_materials_sheen) -----------------------------
   // xyz = color, w = roughness
@@ -364,7 +365,7 @@ struct RawLocalTransform
 // on the other end.
 struct EnvParamsUBO
 {
-  float ambient[4]{0.03f, 0.03f, 0.03f, 1.f};        // xyz = color, w = intensity
+  float ambient[4]{0.f, 0.f, 0.f, 1.f};              // xyz = color, w = intensity
   float fog_color_density[4]{0.8f, 0.8f, 0.8f, 0.f}; // xyz = color, w = density
   float fog_range[4]{10.f, 100.f, 0.f, 0.f};         // x = start, y = end,
                                                       // z = mode, w = enabled (0/1)
@@ -396,6 +397,8 @@ struct WorldTransformMat4
 //   cascade_split_distances[8] view-space far-plane Z of cascade k; slots
 //                              >= cascade_count read as 0
 //   cascade_count              how many entries are live (0..8)
+//   light_slot                 RawLight arena slot of the light the cascades
+//                              belong to, 0xFFFFFFFF for none
 struct ShadowCascadesUBO
 {
   float light_view_proj[8][16]{};
@@ -403,7 +406,7 @@ struct ShadowCascadesUBO
   // std140: two consecutive vec4 rows (32 B total).
   float cascade_split_distances[8]{};
   uint32_t cascade_count{0};
-  uint32_t _pad0{};
+  uint32_t light_slot{0xFFFFFFFFu};
   uint32_t _pad1{};
   uint32_t _pad2{};
 };
@@ -491,9 +494,22 @@ struct FlatScene
 {
   std::vector<DrawCall> draws;
   // RawLight arena slot index per light the walk encountered.
-  // 0xFFFFFFFF for producer-less lights (filtered out when building
-  // scene_light_indices, the shader-facing compact indices list).
+  // 0xFFFFFFFF for producer-less lights until the ScenePreprocessor gives
+  // them a slot (see loaderLights); still 0xFFFFFFFF entries are filtered
+  // out when building scene_light_indices, the shader-facing compact list.
   std::vector<uint32_t> lightArenaSlots;
+
+  // Lights without a RawLight slot of their own, e.g. glTF
+  // KHR_lights_punctual or FBX lights: the ScenePreprocessor writes their
+  // RawLightData and world matrix into slots it owns on their behalf, and
+  // patches lightArenaSlots[index].
+  struct LoaderLight
+  {
+    ossia::light_component_ptr light;
+    QMatrix4x4 worldTransform;
+    std::size_t index{};
+  };
+  std::vector<LoaderLight> loaderLights;
   std::vector<MaterialGPU> materials;
   // Parallel to `materials`: same size, same indexing, zeroed to the OpenPBR spec
   // defaults for materials that set no extension fields. Consumer shaders either
@@ -574,6 +590,7 @@ struct FlatScene
   {
     draws.clear();
     lightArenaSlots.clear();
+    loaderLights.clear();
     materials.clear();
     material_extensions.clear();
     skins.clear();

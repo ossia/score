@@ -1435,8 +1435,11 @@ createOutputTexture(score::gfx::RenderList& renderer, const Tex& texture_spec, Q
   QRhiTexture* texture = &renderer.emptyTexture();
   if(size.width() > 0 && size.height() > 0)
   {
+    // Published through textureForOutput: a CPU texture inlet downstream
+    // (Texture to buffer) reads it back.
     texture = rhi.newTexture(
-        gpp::qrhi::textureFormat(texture_spec), size, 1, QRhiTexture::Flag{});
+        gpp::qrhi::textureFormat(texture_spec), size, 1,
+        QRhiTexture::UsedAsTransferSource);
 
     texture->create();
   }
@@ -1962,7 +1965,7 @@ static QRhiTexture* updateTexture(auto& self, score::gfx::RenderList& renderer, 
     QRhiTexture* oldtex = texture;
     QRhiTexture* newtex = renderer.state.rhi->newTexture(
         gpp::qrhi::textureFormat(cpu_tex), QSize{cpu_tex.width, cpu_tex.height}, 1,
-        QRhiTexture::Flag{});
+        QRhiTexture::UsedAsTransferSource);
     newtex->create();
     for(auto& [edge, pass] : self.m_p)
       if(pass.p.srb)
@@ -1989,7 +1992,7 @@ static QRhiTexture* updateTexture(auto& self, score::gfx::RenderList& renderer, 
 template <avnd::cpu_texture Tex>
 static void uploadOutputTexture(auto& self,
                                 score::gfx::RenderList& renderer, int k, Tex& cpu_tex,
-                                QRhiResourceUpdateBatch* res)
+                                QRhiResourceUpdateBatch* res, bool mirrored)
 {
   if(cpu_tex.changed)
   {
@@ -2024,7 +2027,14 @@ static void uploadOutputTexture(auto& self,
         buf = rgba;
       }
 
-      // Upload it (mirroring is done in shader generic_texgen_fs if necessary)
+      // Upload it (mirroring is done in shader generic_texgen_vs if necessary)
+      if(mirrored)
+      {
+        buf.detach();
+        inplaceMirror(
+            reinterpret_cast<unsigned char*>(buf.data()), cpu_tex.width,
+            cpu_tex.height, int(buf.size() / (qsizetype(cpu_tex.width) * cpu_tex.height)));
+      }
       {
         QRhiTextureSubresourceUploadDescription sd(buf);
         QRhiTextureUploadDescription desc{QRhiTextureUploadEntry{0, 0, sd}};
@@ -2062,6 +2072,33 @@ void main()
 }
 )_";
 
+// For CPU texture outlets, which OpenGL stores mirrored (see
+// texture_outputs_storage::uploadsMirrored).
+static const constexpr auto generic_texgen_cpu_vs = R"_(#version 450
+layout(location = 0) in vec2 position;
+layout(location = 1) in vec2 texcoord;
+
+layout(binding=3) uniform sampler2D y_tex;
+layout(location = 0) out vec2 v_texcoord;
+
+layout(std140, binding = 0) uniform renderer_t {
+  mat4 clipSpaceCorrMatrix;
+  vec2 renderSize;
+} renderer;
+
+out gl_PerVertex { vec4 gl_Position; };
+
+void main()
+{
+#if defined(QSHADER_SPIRV)
+  v_texcoord = vec2(texcoord.x, 1. - texcoord.y);
+#else
+  v_texcoord = texcoord;
+#endif
+  gl_Position = renderer.clipSpaceCorrMatrix * vec4(position.xy, 0.0, 1.);
+}
+)_";
+
 static const constexpr auto generic_texgen_fs = R"_(#version 450
 layout(location = 0) in vec2 v_texcoord;
 layout(location = 0) out vec4 fragColor;
@@ -2087,6 +2124,16 @@ template<typename T>
   requires (avnd::texture_output_introspection<T>::size > 0)
 struct texture_outputs_storage<T>
 {
+  static constexpr bool cpu_only = avnd::gpu_texture_output_introspection<T>::size == 0;
+
+  // A CPU outlet's texture is published (textureForOutput) and must have the
+  // rows of a texture rendered by the engine: bottom-up on OpenGL, where the
+  // image is therefore uploaded mirrored.
+  static bool uploadsMirrored(score::gfx::RenderList& renderer) noexcept
+  {
+    return cpu_only && renderer.state.rhi->isYUpInNDC();
+  }
+
   static bool drawnOutputPremultiplied(auto& self) noexcept
   {
     bool premultiplied = false;
@@ -2111,8 +2158,9 @@ struct texture_outputs_storage<T>
     // Not needed here as we do not have a GPU pass:
     // this->m_material.init(renderer, this->node.input, this->m_samplers);
 
-    std::tie(self.m_vertexS, self.m_fragmentS)
-        = score::gfx::makeShaders(renderer.state, generic_texgen_vs, generic_texgen_fs);
+    std::tie(self.m_vertexS, self.m_fragmentS) = score::gfx::makeShaders(
+        renderer.state, cpu_only ? generic_texgen_cpu_vs : generic_texgen_vs,
+        generic_texgen_fs);
 
     avnd::cpu_texture_output_introspection<T>::for_all(
         avnd::get_outputs<T>(*self.state), [&](auto& t) {
@@ -2152,7 +2200,7 @@ struct texture_outputs_storage<T>
   {
     avnd::cpu_texture_output_introspection<T>::for_all_n(
         avnd::get_outputs<T>(*self.state), [&]<std::size_t N>(auto& t, avnd::predicate_index<N>) {
-      uploadOutputTexture(self, renderer, N, t.texture, res);
+      uploadOutputTexture(self, renderer, N, t.texture, res, uploadsMirrored(renderer));
     });
 
     std::size_t k = gpu_first;

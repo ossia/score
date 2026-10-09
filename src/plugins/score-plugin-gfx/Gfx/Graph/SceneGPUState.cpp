@@ -228,7 +228,11 @@ primitiveToGeometry(const ossia::mesh_primitive& prim)
   if(index_buffer_idx >= 0)
   {
     out->index.buffer = index_buffer_idx;
-    out->index.byte_offset = 0;
+    // A GPU index buffer may start inside its buffer: PBR Mesh carries the
+    // upstream geometry's index byte offset there.
+    const auto* gpu
+        = ossia::get_if<ossia::gpu_buffer_handle>(&prim.index_buffer->resource);
+    out->index.byte_offset = gpu ? gpu->byte_offset : 0;
     out->index.format = (prim.index_type == ossia::index_format::uint16)
         ? decltype(out->index)::uint16
         : decltype(out->index)::uint32;
@@ -353,6 +357,7 @@ MaterialExtensionsGPU packMaterialExtensions(const ossia::material_component& mc
   gpu.coat[1] = mc.clearcoat.roughness_factor;
   gpu.coat[2] = 1.5f;      // coat_ior default (glTF doesn't expose a per-coat IOR)
   gpu.coat[3] = 0.f;       // coat_darkening
+  gpu.coat_anisotropy[3] = mc.clearcoat.normal_scale;
   // Base-layer IOR — glTF's KHR_materials_ior applies here.
   // No OpenPBR field for base IOR directly; we use it in the specular lobe.
 
@@ -543,14 +548,18 @@ struct FlattenVisitor
       if(*light && seenLights.insert(light->get()).second)
       {
         // Arena slot index for shader-side arena-direct light reads.
-        // 0xFFFFFFFF is the sentinel for producer-less lights (e.g.
-        // FBX/glTF-embedded lights that don't own a RawLight slot
-        // yet); those are filtered out when building
-        // scene_light_indices.
-        out.lightArenaSlots.push_back(
-            stamped((*light)->raw_slot, GpuResourceRegistry::Arena::RawLight)
-                ? (*light)->raw_slot.internal_index
-                : 0xFFFFFFFFu);
+        // Producer-less lights (FBX/glTF-embedded) get the 0xFFFFFFFF
+        // sentinel here and are recorded with their world transform, for
+        // the preprocessor to give them a slot.
+        if(stamped((*light)->raw_slot, GpuResourceRegistry::Arena::RawLight))
+        {
+          out.lightArenaSlots.push_back((*light)->raw_slot.internal_index);
+        }
+        else
+        {
+          out.loaderLights.push_back({*light, parentWorld, out.lightArenaSlots.size()});
+          out.lightArenaSlots.push_back(0xFFFFFFFFu);
+        }
       }
     }
     else if(auto* camera = ossia::get_if<ossia::camera_component_ptr>(&payload))
@@ -811,6 +820,46 @@ static SkeletonGPU packSkeleton(const ossia::skeleton_component& sk)
   return sg;
 }
 
+// Alpha-blended draws go after the opaque and masked ones, back to front from
+// the camera, so that in the single indirect batch the presets draw with depth
+// test and write on, each blended surface composites over what is behind it.
+// Opaque and masked draws keep their walk order. The distance is to the centre
+// of the draw's world-space bounds (its origin when it has none): intersecting
+// or nested blended surfaces, or the faces of one blended mesh, can still come
+// out in the wrong order.
+static void sortBlendedDraws(std::vector<DrawCall>& draws, QVector3D eye)
+{
+  const auto blended = [](const DrawCall& dc) {
+    return dc.material && dc.material->alpha == ossia::alpha_mode::blend;
+  };
+  const auto first = std::stable_partition(
+      draws.begin(), draws.end(), [&](const DrawCall& dc) { return !blended(dc); });
+  if(std::distance(first, draws.end()) < 2)
+    return;
+
+  const auto distance = [&](const DrawCall& dc) {
+    const auto& b = dc.local_bounds;
+    const QVector3D centre
+        = b.empty() ? QVector3D{}
+                    : QVector3D{
+                          0.5f * (b.min[0] + b.max[0]), 0.5f * (b.min[1] + b.max[1]),
+                          0.5f * (b.min[2] + b.max[2])};
+    return (dc.worldTransform.map(centre) - eye).lengthSquared();
+  };
+  std::vector<std::pair<float, std::size_t>> order;
+  order.reserve(std::size_t(std::distance(first, draws.end())));
+  for(auto it = first; it != draws.end(); ++it)
+    order.emplace_back(distance(*it), std::size_t(it - draws.begin()));
+  std::stable_sort(order.begin(), order.end(), [](const auto& a, const auto& b) {
+    return a.first > b.first;
+  });
+  std::vector<DrawCall> sorted;
+  sorted.reserve(order.size());
+  for(const auto& [d, i] : order)
+    sorted.push_back(std::move(draws[i]));
+  std::move(sorted.begin(), sorted.end(), first);
+}
+
 void flattenScene(
     const ossia::scene_spec& scene, FlatScene& out, float aspectRatio,
     const GpuResourceRegistry* registry)
@@ -995,6 +1044,7 @@ void flattenScene(
   // Resolve active camera: match scene_state.active_camera_id against the
   // collected camera entries; fall back to the first camera if the id is
   // unset or not found.
+  bool cameraSelected = false;
   if(!out.cameras.empty())
   {
     out.activeCameraIndex = 0;
@@ -1005,6 +1055,7 @@ void flattenScene(
         if(out.cameras[i].node_id == scene.state->active_camera_id)
         {
           out.activeCameraIndex = (int)i;
+          cameraSelected = true;
           break;
         }
       }
@@ -1040,6 +1091,23 @@ void flattenScene(
     out.cameraFar = 1000.f;
     out.hasCamera = false;
   }
+
+  // Every camera of the scene is a view of the one indirect batch (MULTIVIEW
+  // and PER_CUBE_FACE presets index camera.data[i]), and the batch has one
+  // order for all of them: back to front from the cameras' centre, which is
+  // never farther from a view than half their spread. A Camera Array's faces
+  // share their position, and distance does not depend on the view direction,
+  // so the order is exact for each face. A selected camera (Camera Switch,
+  // Camera Array) is taken as the view.
+  QVector3D sortEye = out.cameraPosition;
+  if(!cameraSelected && out.cameras.size() > 1)
+  {
+    sortEye = {};
+    for(const auto& e : out.cameras)
+      sortEye += e.worldTransform.column(3).toVector3D();
+    sortEye /= float(out.cameras.size());
+  }
+  sortBlendedDraws(out.draws, sortEye);
 }
 
 }

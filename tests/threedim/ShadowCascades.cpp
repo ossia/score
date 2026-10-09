@@ -66,10 +66,15 @@ ossia::scene_node_ptr camera_node(
 }
 
 //! A directional light whose local -Z, rotated by `q`, is the world direction.
-ossia::scene_node_ptr light_node(uint64_t id, const QQuaternion& q)
+//! `slot` stands for the RawLight arena slot the Light node stamps.
+ossia::scene_node_ptr light_node(
+    uint64_t id, const QQuaternion& q, bool cast_shadow = true, uint32_t slot = 0)
 {
   auto light = std::make_shared<ossia::light_component>();
   light->type = ossia::light_type::directional;
+  light->shadow.enabled = cast_shadow;
+  light->raw_slot.size = 64;
+  light->raw_slot.internal_index = slot;
 
   ossia::scene_transform t;
   t.rotation[0] = q.x();
@@ -382,5 +387,102 @@ TEST_CASE("ShadowCascadeSetup: passthrough and caching", "[threedim][shadow]")
     CHECK(n.outputs.scene_out.scene.state != out);
     CHECK(n.outputs.scene_out.scene.state->version == 2);
     CHECK(n.outputs.scene_out.dirty == 0xFF);
+  }
+}
+
+TEST_CASE("ShadowCascadeSetup: the scene light is the first one casting shadows",
+          "[threedim][shadow]")
+{
+  Threedim::ShadowCascadeSetup n;
+  n.inputs.light_direction.value = {0.f, 0.f, 0.f};
+  const auto toX = QQuaternion::rotationTo(QVector3D(0, 0, -1), QVector3D(1, 0, 0));
+  const auto toY = QQuaternion::rotationTo(QVector3D(0, 0, -1), QVector3D(0, -1, 0));
+
+  SECTION("a non-casting light earlier in the tree is skipped")
+  {
+    n.inputs.scene_in.scene.state = make_state(
+        {camera_node(1, 0.f), light_node(2, toX, false), light_node(3, toY, true)});
+    const auto& i = run(n);
+    CHECK(i.light_direction[0] == Approx(0.f).margin(1e-4));
+    CHECK(i.light_direction[1] == Approx(-1.f).margin(1e-4));
+    CHECK(i.light_direction[2] == Approx(0.f).margin(1e-4));
+  }
+
+  SECTION("when no light casts, the first directional light is used")
+  {
+    n.inputs.scene_in.scene.state = make_state(
+        {camera_node(1, 0.f), light_node(2, toX, false), light_node(3, toY, false)});
+    const auto& i = run(n);
+    CHECK(i.light_direction[0] == Approx(1.f).margin(1e-4));
+    CHECK(i.light_direction[1] == Approx(0.f).margin(1e-4));
+    CHECK(i.light_direction[2] == Approx(0.f).margin(1e-4));
+  }
+}
+
+TEST_CASE("ShadowCascadeSetup: the cascades record the light they belong to",
+          "[threedim][shadow]")
+{
+  Threedim::ShadowCascadeSetup n;
+  const auto toX = QQuaternion::rotationTo(QVector3D(0, 0, -1), QVector3D(1, 0, 0));
+  const auto toY = QQuaternion::rotationTo(QVector3D(0, 0, -1), QVector3D(0, -1, 0));
+  n.inputs.scene_in.scene.state = make_state(
+      {camera_node(1, 0.f), light_node(2, toX, false, 5), light_node(3, toY, true, 7)});
+
+  SECTION("the first light casting shadows")
+  {
+    n.inputs.light_direction.value = {0.f, 0.f, 0.f};
+    const auto& i = run(n);
+    CHECK(i.light_slot.size == 64u);
+    CHECK(i.light_slot.internal_index == 7u);
+  }
+
+  SECTION("the same light when the direction control overrides its direction")
+  {
+    n.inputs.light_direction.value = {-0.5f, -1.f, -0.4f};
+    const auto& i = run(n);
+    CHECK(i.light_direction[1] < -0.8f);
+    CHECK(i.light_slot.size == 64u);
+    CHECK(i.light_slot.internal_index == 7u);
+  }
+
+  SECTION("no light, no slot")
+  {
+    n.inputs.scene_in.scene.state = make_state({camera_node(1, 0.f)});
+    n.inputs.light_direction.value = {0.f, -1.f, 0.f};
+    CHECK(run(n).light_slot.size == 0u);
+  }
+}
+
+TEST_CASE("ShadowCascadeSetup: without a camera the cascades cover the shadow distance",
+          "[threedim][shadow]")
+{
+  // No camera in Scene In: every cascade must contain the cube of half-size
+  // Shadow distance around the origin, not the [-1, 1] cube an identity
+  // camera would give.
+  Threedim::ShadowCascadeSetup n;
+  n.inputs.scene_in.scene.state = make_state({});
+  n.inputs.cascade_count.value = 3;
+  n.inputs.camera_near.value = 0.1f;
+  n.inputs.camera_far.value = 100.f;
+  n.inputs.shadow_distance.value = 20.f;
+  n.inputs.light_direction.value = {-0.3f, -1.f, 0.2f};
+
+  const auto& info = run(n);
+  REQUIRE(info.cascade_count == 3u);
+  const float r = 19.f;
+  for(int c = 0; c < 3; ++c)
+  {
+    const QMatrix4x4 m = mat_of(info, c);
+    for(int k = 0; k < 8; ++k)
+    {
+      const QVector3D p(k & 1 ? r : -r, k & 2 ? r : -r, k & 4 ? r : -r);
+      const QVector4D clip = m * QVector4D(p, 1.f);
+      const QVector3D ndc = clip.toVector3D() / clip.w();
+      INFO("cascade " << c << " corner " << k << " ndc " << ndc.x() << " "
+                      << ndc.y() << " " << ndc.z());
+      CHECK(std::abs(ndc.x()) <= 1.f);
+      CHECK(std::abs(ndc.y()) <= 1.f);
+      CHECK(std::abs(ndc.z()) <= 1.f);
+    }
   }
 }

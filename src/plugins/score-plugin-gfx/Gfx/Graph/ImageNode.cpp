@@ -392,6 +392,18 @@ private:
   }
 
   TextureRenderTarget renderTargetForInput(const Port& p) override { return {}; }
+
+  // The current image as uploaded, for an input sampling the producer's texture
+  // (STATIC). Inputs with a render target keep the drawn image, scaled, placed
+  // and tiled by the controls, which an avnd input would otherwise bypass by
+  // reading this texture directly.
+  QRhiTexture* textureForOutput(const Port& output) override
+  {
+    if(m_samplers.empty() || !outputGrabbedBySink(output))
+      return nullptr;
+    return m_samplers[0].texture;
+  }
+
   void initState(RenderList& renderer, QRhiResourceUpdateBatch& res) override
   {
     auto& n = static_cast<const ImagesNode&>(this->node);

@@ -223,6 +223,14 @@ std::unique_ptr<GPUVideoDecoder> createGPUVideoDecoder(
     case AV_PIX_FMT_GBRAPF32LE:
       return std::make_unique<PlanarDecoder>(
           QRhiTexture::R32F, 4, "gbra", format, f);
+#if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(59, 55, 100)
+    case AV_PIX_FMT_GBRPF16LE:
+      return std::make_unique<PlanarDecoder>(
+          QRhiTexture::R16F, 2, "gbr", format, f);
+    case AV_PIX_FMT_GBRAPF16LE:
+      return std::make_unique<PlanarDecoder>(
+          QRhiTexture::R16F, 2, "gbra", format, f);
+#endif
     case AV_PIX_FMT_NV24:
       return std::make_unique<NV24Decoder>(format, false);
     case AV_PIX_FMT_NV42:

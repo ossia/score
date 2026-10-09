@@ -5,11 +5,15 @@
 #include <Gfx/Graph/RenderList.hpp>
 #include <Gfx/Graph/SceneGPUState.hpp>
 
+#include <QGenericMatrix>
 #include <QMatrix4x4>
 #include <QQuaternion>
+#include <QVector3D>
 
 #include <algorithm>
+#include <cmath>
 #include <cstring>
+#include <string_view>
 
 namespace Threedim
 {
@@ -95,6 +99,94 @@ wrapGpuBuffer(void* handle, int64_t byte_size) noexcept
   return res;
 }
 
+// The geometry inlet's matrix is zero-filled until the upstream sends one.
+bool isUnset(const float (&m)[16]) noexcept
+{
+  return std::all_of(m, m + 16, [](float v) { return v == 0.f; });
+}
+
+bool isIdentity(const float (&m)[16]) noexcept
+{
+  for(int i = 0; i < 16; i++)
+    if(m[i] != (i % 5 == 0 ? 1.f : 0.f))
+      return false;
+  return true;
+}
+
+// Whether `name` is one of the auxiliaries a Scene Preprocessor publishes for
+// its own scene (ScenePreprocessorNode.cpp rebuildMDI / appendTextureAuxes).
+// When PBR Mesh is fed a preprocessor's output those describe that whole
+// scene: its draws, materials, lights, camera, texture pools. The next
+// preprocessor publishes its own under the same names, and an injection
+// replaces a same-name entry, so they must not be forwarded.
+bool isScenePreprocessorAux(std::string_view name) noexcept
+{
+  static constexpr std::string_view fixed[]{
+      "per_draws",          "per_draw_bounds",     "indirect_draw_cmds",
+      "scene_counts",       "scene_materials",     "scene_materials_ext",
+      "scene_material_uv_xforms", "scene_material_wrap", "scene_lights",
+      "scene_light_indices", "world_transforms",   "world_transforms_prev",
+      "joint_matrices",     "camera",              "camera_prev",
+      "env",                "shadow_cascades",     "raw_splats",
+      "cloud_meta",         "skybox",              "irradiance_map",
+      "prefiltered_map",    "brdf_lut",            "shadow_map_array"};
+  for(auto f : fixed)
+    if(name == f)
+      return true;
+
+  // Texture pools: materialArray<k>, materialDyn<k> and the per-channel
+  // <channel>Array<k> / <channel>Dyn<k> aliases.
+  static constexpr std::string_view prefixes[]{
+      "materialArray",  "materialDyn",     "baseColorArray", "baseColorDyn",
+      "metalRoughArray", "metalRoughDyn",  "normalArray",    "normalDyn",
+      "emissiveArray",  "emissiveDyn",     "occlusionArray", "occlusionDyn"};
+  for(auto p : prefixes)
+    if(name.starts_with(p)
+       && std::all_of(name.begin() + p.size(), name.end(), [](char c) {
+            return c >= '0' && c <= '9';
+          }))
+      return true;
+  return false;
+}
+
+// Column-major TRS matrix -> scene_transform. A shear does not survive.
+ossia::scene_transform decomposeTRS(const float (&m)[16]) noexcept
+{
+  ossia::scene_transform t;
+  t.translation[0] = m[12];
+  t.translation[1] = m[13];
+  t.translation[2] = m[14];
+
+  QVector3D c0{m[0], m[1], m[2]};
+  QVector3D c1{m[4], m[5], m[6]};
+  QVector3D c2{m[8], m[9], m[10]};
+  float sx = c0.length(), sy = c1.length(), sz = c2.length();
+  // A negative determinant is a mirror: carry it as a negative x scale.
+  if(QVector3D::dotProduct(c0, QVector3D::crossProduct(c1, c2)) < 0.f)
+  {
+    sx = -sx;
+    c0 = -c0;
+  }
+  t.scale[0] = sx;
+  t.scale[1] = sy;
+  t.scale[2] = sz;
+
+  const float ax = std::abs(sx);
+  if(ax > 1e-6f) c0 /= ax;
+  if(sy > 1e-6f) c1 /= sy;
+  if(sz > 1e-6f) c2 /= sz;
+  QMatrix3x3 R;
+  R(0, 0) = c0.x(); R(1, 0) = c0.y(); R(2, 0) = c0.z();
+  R(0, 1) = c1.x(); R(1, 1) = c1.y(); R(2, 1) = c1.z();
+  R(0, 2) = c2.x(); R(1, 2) = c2.y(); R(2, 2) = c2.z();
+  const QQuaternion q = QQuaternion::fromRotationMatrix(R);
+  t.rotation[0] = q.x();
+  t.rotation[1] = q.y();
+  t.rotation[2] = q.z();
+  t.rotation[3] = q.scalar();
+  return t;
+}
+
 } // namespace
 
 void PBRMesh::operator()()
@@ -102,6 +194,8 @@ void PBRMesh::operator()()
   if(m_material_stable_id == 0) m_material_stable_id = ossia::mint_stable_id();
   if(m_primitive_stable_id == 0) m_primitive_stable_id = ossia::mint_stable_id();
   if(m_xform_stable_id == 0) m_xform_stable_id = ossia::mint_stable_id();
+  if(m_upstream_xform_stable_id == 0)
+    m_upstream_xform_stable_id = ossia::mint_stable_id();
 
   const auto& m = inputs.geometry_in.mesh;
   void* buf0_handle
@@ -110,10 +204,11 @@ void PBRMesh::operator()()
   // Identity-caching fast path: skip the rebuild when the input
   // geometry buffers / counts / textures / factors are all unchanged.
   const float cur_factors[10]{
-      inputs.base_r.value, inputs.base_g.value, inputs.base_b.value,
-      inputs.base_a.value, inputs.metallic.value, inputs.roughness.value,
-      inputs.em_r.value, inputs.em_g.value, inputs.em_b.value,
-      inputs.em_strength.value};
+      inputs.base_color.value.r, inputs.base_color.value.g,
+      inputs.base_color.value.b, inputs.base_color.value.a,
+      inputs.metallic.value, inputs.roughness.value,
+      inputs.emissive.value.r, inputs.emissive.value.g,
+      inputs.emissive.value.b, inputs.em_strength.value};
   void* cur_tex[4]{
       texture2DHandle(inputs.base_color_tex.texture),
       texture2DHandle(inputs.metal_rough_tex.texture),
@@ -124,6 +219,15 @@ void PBRMesh::operator()()
   CachedTRS xformCache = m_cachedTRS;
   const bool trs_changed = computeTRSMatrix(inputs, scratch, xformCache);
 
+  const auto& upstream = inputs.geometry_in.transform;
+  ossia::small_vector<void*, 4> cur_aux;
+  for(const auto& a : m.auxiliary)
+    cur_aux.push_back(
+        a.buffer >= 0 && a.buffer < (int)m.buffers.size() ? m.buffers[a.buffer].handle
+                                                           : nullptr);
+  for(const auto& a : m.auxiliary_textures)
+    cur_aux.push_back(a.handle);
+
   // Only STRUCTURAL changes bump the scene_state version; content changes
   // go through ScenePreprocessor's GPU-copy path.
   const bool inputs_changed
@@ -131,7 +235,10 @@ void PBRMesh::operator()()
         || m_cached_vertices != m.vertices
         || m_cached_indices != m.indices
         || !std::equal(m_cached_tex, m_cached_tex + 4, cur_tex)
-        || !std::equal(m_cached_factors, m_cached_factors + 10, cur_factors);
+        || !std::equal(m_cached_factors, m_cached_factors + 10, cur_factors)
+        || !std::equal(upstream, upstream + 16, m_cached_upstream)
+        || !std::equal(
+            cur_aux.begin(), cur_aux.end(), m_cached_aux.begin(), m_cached_aux.end());
 
   if(!inputs_changed && !trs_changed && m_wrapped_state && buf0_handle)
   {
@@ -145,6 +252,8 @@ void PBRMesh::operator()()
   m_cached_indices = m.indices;
   std::copy(cur_tex, cur_tex + 4, m_cached_tex);
   std::copy(cur_factors, cur_factors + 10, m_cached_factors);
+  std::copy(upstream, upstream + 16, m_cached_upstream);
+  m_cached_aux.assign(cur_aux.begin(), cur_aux.end());
 
   if(!buf0_handle || m.vertices <= 0)
   {
@@ -266,8 +375,10 @@ void PBRMesh::operator()()
   mesh_comp->primitives.push_back(std::move(mp));
 
   // Assemble the single scene_node: TRS first (Loader convention), then
-  // the mesh_component as the second payload. Matches GltfParser's
-  // layout so the built-in TRS controls act on the mesh the same way.
+  // the upstream geometry's transform, then the mesh_component. Transforms
+  // compose in payload order, so the mesh is placed by the upstream
+  // transform first and the TRS controls act on top of it, the way a
+  // Transform 3D after PBR Mesh would.
   ossia::scene_transform xform;
   xform.stable_id = m_xform_stable_id;
   xform.translation[0] = inputs.position.value.x;
@@ -288,6 +399,12 @@ void PBRMesh::operator()()
 
   auto children = std::make_shared<std::vector<ossia::scene_payload>>();
   children->push_back(xform);
+  if(!isUnset(upstream) && !isIdentity(upstream))
+  {
+    auto up = decomposeTRS(upstream);
+    up.stable_id = m_upstream_xform_stable_id;
+    children->push_back(up);
+  }
   children->push_back(ossia::mesh_component_ptr(std::move(mesh_comp)));
 
   auto node = std::make_shared<ossia::scene_node>();
@@ -303,6 +420,28 @@ void PBRMesh::operator()()
   auto state = std::make_shared<ossia::scene_state>();
   state->roots = std::move(roots);
   state->materials = std::move(mats);
+
+  // The geometry's auxiliaries ride on the scene as injections, which the
+  // Scene Preprocessor publishes by name on its output geometry. An
+  // injection has no offset, so a buffer auxiliary must start its buffer.
+  for(const auto& a : m.auxiliary)
+  {
+    if(a.name.empty() || isScenePreprocessorAux(a.name) || a.byte_offset != 0
+       || a.buffer < 0
+       || a.buffer >= (int)m.buffers.size() || !m.buffers[a.buffer].handle)
+      continue;
+    const auto& b = m.buffers[a.buffer];
+    state->inject_buffers.push_back(
+        {.name = a.name,
+         .native_handle = b.handle,
+         .byte_size = a.byte_size > 0 ? a.byte_size : b.byte_size});
+  }
+  for(const auto& a : m.auxiliary_textures)
+  {
+    if(a.name.empty() || !a.handle || isScenePreprocessorAux(a.name))
+      continue;
+    state->inject_textures.push_back({.name = a.name, .native_handle = a.handle});
+  }
   state->version = m_version_counter;
   state->dirty_index = m_version_counter;
 
@@ -357,17 +496,17 @@ void PBRMesh::update(
     return;
 
   score::gfx::MaterialGPU gpu{};
-  gpu.baseColor[0] = inputs.base_r.value;
-  gpu.baseColor[1] = inputs.base_g.value;
-  gpu.baseColor[2] = inputs.base_b.value;
-  gpu.baseColor[3] = inputs.base_a.value;
+  gpu.baseColor[0] = inputs.base_color.value.r;
+  gpu.baseColor[1] = inputs.base_color.value.g;
+  gpu.baseColor[2] = inputs.base_color.value.b;
+  gpu.baseColor[3] = inputs.base_color.value.a;
   gpu.metallicRoughnessOcclusionUnlit[0] = inputs.metallic.value;
   gpu.metallicRoughnessOcclusionUnlit[1] = inputs.roughness.value;
   gpu.metallicRoughnessOcclusionUnlit[2] = 1.f;
   gpu.metallicRoughnessOcclusionUnlit[3] = 0.f;
-  gpu.emissive_strength[0] = inputs.em_r.value;
-  gpu.emissive_strength[1] = inputs.em_g.value;
-  gpu.emissive_strength[2] = inputs.em_b.value;
+  gpu.emissive_strength[0] = inputs.emissive.value.r;
+  gpu.emissive_strength[1] = inputs.emissive.value.g;
+  gpu.emissive_strength[2] = inputs.emissive.value.b;
   gpu.emissive_strength[3] = inputs.em_strength.value;
 
   using Ch = score::gfx::GpuResourceRegistry::TextureChannel;

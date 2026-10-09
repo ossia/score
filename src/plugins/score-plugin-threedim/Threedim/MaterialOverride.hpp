@@ -97,14 +97,8 @@ public:
     // original factor from the loader passes through.
     struct : halp::toggle<"Use base color">
     { void update(MaterialOverride& n) { n.rebuild(); } } use_base_color;
-    struct : halp::hslider_f32<"R", halp::range{0., 1., 1.}>
-    { void update(MaterialOverride& n) { n.rebuild(); } } base_r;
-    struct : halp::hslider_f32<"G", halp::range{0., 1., 1.}>
-    { void update(MaterialOverride& n) { n.rebuild(); } } base_g;
-    struct : halp::hslider_f32<"B", halp::range{0., 1., 1.}>
-    { void update(MaterialOverride& n) { n.rebuild(); } } base_b;
-    struct : halp::hslider_f32<"A", halp::range{0., 1., 1.}>
-    { void update(MaterialOverride& n) { n.rebuild(); } } base_a;
+    struct : halp::color_chooser<"Color">
+    { void update(MaterialOverride& n) { n.rebuild(); } } base_color;
 
     struct : halp::toggle<"Use metallic">
     { void update(MaterialOverride& n) { n.rebuild(); } } use_metallic;
@@ -118,13 +112,11 @@ public:
 
     struct : halp::toggle<"Use emissive">
     { void update(MaterialOverride& n) { n.rebuild(); } } use_emissive;
-    struct : halp::hslider_f32<"Emissive R", halp::range{0., 10., 0.}>
-    { void update(MaterialOverride& n) { n.rebuild(); } } em_r;
-    struct : halp::hslider_f32<"Emissive G", halp::range{0., 10., 0.}>
-    { void update(MaterialOverride& n) { n.rebuild(); } } em_g;
-    struct : halp::hslider_f32<"Emissive B", halp::range{0., 10., 0.}>
-    { void update(MaterialOverride& n) { n.rebuild(); } } em_b;
-    struct : halp::hslider_f32<"Emissive strength", halp::range{0., 10., 1.}>
+    // Emissive colour (alpha unused) times strength; strength goes above 1
+    // for HDR emission.
+    struct : halp::color_chooser<"Emissive", halp::color_init{.init = {0., 0., 0., 1.}}>
+    { void update(MaterialOverride& n) { n.rebuild(); } } emissive;
+    struct : halp::hslider_f32<"Emissive strength", halp::range{0., 100., 1.}>
     { void update(MaterialOverride& n) { n.rebuild(); } } em_strength;
   } inputs;
 
@@ -161,6 +153,16 @@ public:
       const ossia::material_component*,
       std::shared_ptr<ossia::material_component>>
       m_clone_cache;
+
+  // Primitives reference their material by pointer, so the clones only
+  // take effect once the meshes using a targeted material are copied with
+  // the clone swapped in. Keyed by source mesh; the value keeps the source
+  // alive (no address reuse) next to its copy, which is reused across
+  // rebuilds while it still points at the right clones.
+  ossia::hash_map<
+      const ossia::mesh_component*,
+      std::pair<ossia::mesh_component_ptr, ossia::mesh_component_ptr>>
+      m_mesh_cache;
 
   // Identity cache: (input-scene pointer, input version, control values,
   // texture handles). If all match, we reuse m_cached_out without

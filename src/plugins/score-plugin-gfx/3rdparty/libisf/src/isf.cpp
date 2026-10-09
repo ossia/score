@@ -2237,9 +2237,18 @@ static void parse_pipeline_state(const sajson::value& v, pipeline_state& out)
     else if(k == "FRONT_FACE")              { if(get_str(val, s))  out.front_face = s; }
     else if(k == "POLYGON_MODE")            { if(get_str(val, s))  out.polygon_mode = s; }
     else if(k == "LINE_WIDTH")              { if(get_float(val, f)) out.line_width = f; }
-    else if(k == "VERTEX_COUNT")            { if(get_uint(val, u)) out.vertex_count = u; }
-    else if(k == "INSTANCE_COUNT")          { if(get_uint(val, u)) out.instance_count = u; }
+    else if(k == "VERTEX_COUNT")
+    {
+      if(get_uint(val, u)) out.vertex_count = u;
+      else if(get_str(val, s)) out.vertex_count_expression = s;
+    }
+    else if(k == "INSTANCE_COUNT")
+    {
+      if(get_uint(val, u)) out.instance_count = u;
+      else if(get_str(val, s)) out.instance_count_expression = s;
+    }
     else if(k == "TOPOLOGY")                { if(get_str(val, s))  out.topology = s; }
+    else if(k == "COLOR_WRITE")             { if(get_str(val, s))  out.color_write = s; }
     else if(k == "BLEND")
     {
       // Shortcut: "BLEND": true/false turns on the default alpha-blend.
@@ -4347,7 +4356,9 @@ static std::string isf_emit_multiview_extension(int view_count)
 {
   std::string out;
   out += "#extension GL_EXT_multiview : require\n";
-  out += "#define VIEW_INDEX gl_ViewIndex\n";
+  // On OpenGL gl_ViewIndex bakes to GL_OVR_multiview's uint gl_ViewID_OVR; the
+  // uint() bitcast survives SPIRV-Cross and makes the int() a real conversion.
+  out += "#define VIEW_INDEX int(uint(gl_ViewIndex))\n";
   out += "#define NUM_VIEWS ";
   out += std::to_string(view_count);
   out += "\n";
@@ -4952,7 +4963,11 @@ void parser::parse_raw_raster_pipeline()
   // GL_OVR_multiview2". The vertex stage therefore forwards the view index
   // through an injected flat varying (written by a wrapper main emitted at
   // the end of this function), and the fragment's VIEW_INDEX macro reads
-  // that varying — portable across every backend.
+  // that varying — portable across every backend. The OpenGL bake reads
+  // gl_ViewIndex as GL_OVR_multiview's uint gl_ViewID_OVR, which GLSL does not
+  // convert to int implicitly: the varying is a uint written through an
+  // explicit uint(), a bitcast SPIRV-Cross keeps as a cast, and VIEW_INDEX
+  // converts back to int in both stages.
   const bool mv_fragment_plumbing = m_desc.multiview_count >= 2;
   if(mv_fragment_plumbing)
   {
@@ -4976,17 +4991,17 @@ void parser::parse_raw_raster_pipeline()
       mv_varying_location = std::max(mv_varying_location, attr.location + 1);
 
     const auto nv = std::to_string(m_desc.multiview_count);
-    m_vertex += "#define VIEW_INDEX gl_ViewIndex\n";
+    m_vertex += "#define VIEW_INDEX int(uint(gl_ViewIndex))\n";
     m_vertex += "#define NUM_VIEWS " + nv + "\n";
     m_vertex += fmt::format(
-        "layout(location = {}) flat out int isf_ViewIndexVarying;\n",
+        "layout(location = {}) flat out uint isf_ViewIndexVarying;\n",
         mv_varying_location);
 
     m_fragment += "#define NUM_VIEWS " + nv + "\n";
     m_fragment += fmt::format(
-        "layout(location = {}) flat in int isf_ViewIndexVarying;\n",
+        "layout(location = {}) flat in uint isf_ViewIndexVarying;\n",
         mv_varying_location);
-    m_fragment += "#define VIEW_INDEX isf_ViewIndexVarying\n";
+    m_fragment += "#define VIEW_INDEX int(isf_ViewIndexVarying)\n";
   }
 
   if(m_desc.primitive_data)
@@ -5500,7 +5515,7 @@ void parser::parse_raw_raster_pipeline()
 
   m_vertex += "void isf_vertShaderInit()\n{\n";
   if(mv_fragment_plumbing)
-    m_vertex += "  isf_ViewIndexVarying = gl_ViewIndex;\n";
+    m_vertex += "  isf_ViewIndexVarying = uint(gl_ViewIndex);\n";
   m_vertex += "}\n";
   m_vertex += "void isf_vertShaderFinish()\n{\n";
   if(renders_cube_faces(m_desc))
@@ -7360,22 +7375,34 @@ void parser::parse_csf()
       else
         m_fragment += "restrict ";
 
+      auto emit_fields = [&] {
+        for(const auto& field : storage.layout)
+        {
+          auto bracket = field.type.find('[');
+          if(bracket != std::string::npos)
+            m_fragment += "    " + field.type.substr(0, bracket) + " " + field.name
+                          + field.type.substr(bracket) + ";\n";
+          else
+            m_fragment += "    " + field.type + " " + field.name + ";\n";
+        }
+      };
+
       m_fragment += "buffer " + inp.name + "_buf {\n";
-
-      // Add struct members based on layout
-      for(const auto& field : storage.layout)
-      {
-        auto bracket = field.type.find('[');
-        if(bracket != std::string::npos)
-          m_fragment += "    " + field.type.substr(0, bracket) + " " + field.name
-                        + field.type.substr(bracket) + ";\n";
-        else
-          m_fragment += "    " + field.type + " " + field.name + ";\n";
-      }
-
+      emit_fields();
       m_fragment += "} " + inp.name + ";\n\n";
 
       binding++;
+
+      // PERSISTENT: a readonly `<name>_prev` at the following slot holds what
+      // the buffer contained when the previous frame's passes finished.
+      if(storage.persistent)
+      {
+        m_fragment += "layout(binding = " + std::to_string(binding)
+                      + ", std430) readonly buffer " + inp.name + "_prev_buf {\n";
+        emit_fields();
+        m_fragment += "} " + inp.name + "_prev;\n\n";
+        binding++;
+      }
     }
     else if(auto* img_ptr = ossia::get_if<csf_image_input>(&inp.data))
     {

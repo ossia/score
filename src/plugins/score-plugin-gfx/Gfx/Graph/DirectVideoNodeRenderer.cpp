@@ -1422,6 +1422,7 @@ void DirectVideoNodeRenderer::setupGpuDecoder(RenderList& r)
       p.second.release();
     m_p.clear();
   }
+  m_ownTexture.releasePipeline();
 
   createGpuDecoder(*r.state.rhi);
   createPipelines(r);
@@ -1638,6 +1639,31 @@ void DirectVideoNodeRenderer::update(
     res.updateDynamicBuffer(m_materialUBO, 0, sizeof(Material), &mat);
     m_recomputeScale = false;
   }
+
+  if(m_gpu)
+  {
+    Material own;
+    own.textureSize[0] = m_frameFormat.width;
+    own.textureSize[1] = m_frameFormat.height;
+    own.field[1] = videoFieldMode(
+        m_frameFormat.interlacing, m_frameFormat.deinterlace, /*partnerValid=*/false);
+    m_ownTexture.update(
+        renderer, res, *this->node().output[0], m_frameFormat, own, m_cachedVertexShader,
+        m_cachedFragmentShader, m_processUBO, m_gpu->samplers);
+  }
+}
+
+void DirectVideoNodeRenderer::runInitialPasses(
+    RenderList& renderer, QRhiCommandBuffer& cb, QRhiResourceUpdateBatch*& res,
+    Edge& edge)
+{
+  if(m_gpu && m_gpu->hasFrame)
+    m_ownTexture.render(renderer, cb, res, m_meshBuffer);
+}
+
+QRhiTexture* DirectVideoNodeRenderer::textureForOutput(const Port& output)
+{
+  return m_ownTexture.texture();
 }
 
 void DirectVideoNodeRenderer::release(RenderList& r)
@@ -1705,6 +1731,7 @@ void DirectVideoNodeRenderer::releaseState(RenderList& r)
   for(auto& p : m_p)
     p.second.release();
   m_p.clear();
+  m_ownTexture.release();
 
   m_meshBuffer = {};
 

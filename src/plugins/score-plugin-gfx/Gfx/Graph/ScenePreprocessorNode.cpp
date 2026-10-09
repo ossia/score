@@ -4,6 +4,7 @@
 #include <Gfx/AssetTable.hpp>
 #include <Gfx/Graph/CameraMath.hpp>
 #include <Gfx/Graph/CustomMesh.hpp>
+#include <Gfx/Graph/GPUIndexWiden.hpp>
 #include <Gfx/Graph/NodeRenderer.hpp>
 #include <Gfx/Graph/RenderList.hpp>
 #include <Gfx/Graph/RhiClearBuffer.hpp>
@@ -25,6 +26,7 @@
 
 #include <algorithm>
 #include <array>
+#include <atomic>
 #include <chrono>
 #include <cstring>
 #include <limits>
@@ -61,6 +63,41 @@ struct PerDrawBoundsGPU
 static_assert(sizeof(PerDrawBoundsGPU) == 32,
               "PerDrawBoundsGPU layout must match shader (2 × vec4)");
 
+// RawLightData of a loader light, in the encoding the Light process writes:
+// local -Z is the light's direction, area lights collapse to point and dome
+// to directional. Shadows follow the light's own flag, as Cast shadow does.
+inline RawLightData
+rawLightData(const ossia::light_component& lc, uint32_t transform_slot) noexcept
+{
+  RawLightData raw{};
+  raw.color[0] = lc.color[0];
+  raw.color[1] = lc.color[1];
+  raw.color[2] = lc.color[2];
+  raw.color[3] = lc.intensity;
+  switch(lc.type)
+  {
+    case ossia::light_type::directional:
+    case ossia::light_type::dome:
+      raw.local_direction[3] = 0.f;
+      break;
+    case ossia::light_type::spot:
+      raw.local_direction[3] = 2.f;
+      break;
+    default:
+      raw.local_direction[3] = 1.f;
+      break;
+  }
+  raw.range_cone[0] = lc.range;
+  raw.range_cone[1] = std::cos(lc.inner_cone_angle);
+  raw.range_cone[2] = std::cos(lc.outer_cone_angle);
+  raw.range_cone[3] = lc.shadow.bias;
+  raw.shadow_enabled = lc.shadow.enabled ? 1u : 0u;
+  raw.decay_mode = uint32_t(lc.decay);
+  raw.transform_slot = transform_slot;
+  raw.normal_bias = lc.shadow.normal_bias;
+  return raw;
+}
+
 // Pack an ossia::aabb into PerDrawBoundsGPU. Empty (inverted) input means
 // the source mesh didn't compute bounds — emit a ±FLT_MAX "infinite" box
 // so culling shaders never cull the draw. This keeps sources that can't
@@ -92,6 +129,7 @@ static_assert(sizeof(MaterialGPU) == 80, "MaterialGPU layout must match shader")
 // Per-material per-channel UV transforms (KHR_texture_transform): 5 channels
 // x (offset.xy + scale.xy) + rotations packed in 2 vec4 = 7 vec4 = 112 B.
 // Channels match MaterialChannel: 0=BC, 1=MR, 2=Normal, 3=Em, 4=Occlusion.
+// rotations1.y carries the normal map's normalTexture.scale.
 struct MaterialUVTransformGPU
 {
   float bc_offset_scale[4]{0.f, 0.f, 1.f, 1.f};      // ox, oy, sx, sy
@@ -100,7 +138,7 @@ struct MaterialUVTransformGPU
   float em_offset_scale[4]{0.f, 0.f, 1.f, 1.f};
   float occ_offset_scale[4]{0.f, 0.f, 1.f, 1.f};
   float rotations0[4]{0.f, 0.f, 0.f, 0.f};           // bc, mr, nrm, em (radians)
-  float rotations1[4]{0.f, 0.f, 0.f, 0.f};           // occ, _pad×3
+  float rotations1[4]{0.f, 1.f, 0.f, 0.f};           // occ, normal scale, _pad×2
 };
 static_assert(sizeof(MaterialUVTransformGPU) == 112,
               "MaterialUVTransformGPU layout must match shader (7 × vec4)");
@@ -539,6 +577,9 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
     uint32_t totalVertices{};
     uint32_t totalIndices{};
     uint32_t drawCount{};
+    // The alpha-blended draws' cmds in indirect_draw_cmds.
+    uint32_t blendCmdFirst{};
+    uint32_t blendCmdCount{};
   };
   MDIState m_mdi;
 
@@ -661,7 +702,10 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
     Positions,
     Normals,
     Texcoords,
-    Tangents
+    Tangents,
+    Colors,
+    Texcoords1,
+    Indices
   };
   struct PendingGpuCopy
   {
@@ -679,6 +723,7 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
                          // and color share a 32-byte slot
     int element_size{};  // BytesPerVertex for this attribute
     MdiAttr attr{};
+    bool widen{};        // uint16 indices widened by m_indexWiden, not copied
   };
   std::vector<PendingGpuCopy> m_pendingGpuCopies;
 
@@ -703,6 +748,17 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
   // batch: the RenderList's seed rides its initial batch, which a rebuild can
   // drop before it is ever submitted.
   bool m_defaultMaterialUploaded{false};
+
+  // A mesh with uint16 GPU indices was skipped: neither copied
+  // (copiesGpuIndices) nor widened in a compute pass; warned once.
+  bool m_warnedUint16GpuIndices{false};
+
+  // Compute pass widening the `widen` entries of m_pendingGpuCopies, one
+  // prepared op each, in queue order.
+  score::gfx::GPUIndexWiden m_indexWiden;
+  bool m_indexWidenTried{false};
+  bool m_indexWidenReady{false};
+  std::vector<score::gfx::GPUIndexWiden::PreparedOp> m_widenOps;
 
   // Texture pool generation this preprocessor last published against. The
   // pool is shared, so another preprocessor growing a bucket replaces arrays
@@ -791,6 +847,18 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
   ossia::hash_map<
       const ossia::material_component*, GpuResourceRegistry::Slot>
       m_loaderMaterialSlots;
+
+  // Arena slots this preprocessor allocated for loader lights, i.e. lights
+  // without a RawLight slot of their own (glTF, FBX): a RawLight slot holding
+  // their RawLightData and a RawTransform slot naming their world matrix in
+  // world_transforms. Freed at release, as m_loaderMaterialSlots.
+  struct LoaderLightSlots
+  {
+    GpuResourceRegistry::Slot light;
+    GpuResourceRegistry::Slot transform;
+  };
+  ossia::hash_map<const ossia::light_component*, LoaderLightSlots>
+      m_loaderLightSlots;
 
   // Accumulator sizes from the last full rebuildMDI, used to pre-reserve the
   // temporary vector capacity. Grow-only. Vertex/index stream sizes are the
@@ -903,6 +971,11 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
       for(auto& [mat, slot] : m_loaderMaterialSlots)
         if(slot.valid())
           m_registry->free(slot);
+      for(auto& [light, slots] : m_loaderLightSlots)
+      {
+        m_registry->free(slots.light);
+        m_registry->free(slots.transform);
+      }
       // Release the slabs keyed by the ids minted in resolvePrototypeStableId
       // before dropping m_protoStableIds: mints are globally unique, so the
       // next renderer misses the cache and allocates fresh slabs while these
@@ -913,6 +986,7 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
           m_registry->releaseMeshSlab(id, current_frame);
     }
     m_loaderMaterialSlots.clear();
+    m_loaderLightSlots.clear();
     m_envSlotSeeded = false;
     m_seenPoolGeneration = ~0ull;
     m_protoStableIds.clear();
@@ -1096,6 +1170,12 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
     m_pendingGpuCopies.clear();
     m_pendingGpuCopies.shrink_to_fit();
     m_lastGpuCopiesFrame = -1;
+    for(auto& op : m_widenOps)
+      score::gfx::GPUIndexWiden::releaseOp(op);
+    m_widenOps.clear();
+    m_indexWiden.release();
+    m_indexWidenTried = false;
+    m_indexWidenReady = false;
     // Free per-registry resources on every release(), whether the renderer is
     // about to be destroyed (recreateOutputRenderList) or reused
     // (relinkGraph). Skipping the free on a registry-pointer match would only
@@ -1346,14 +1426,61 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
     return out;
   }
 
+  // GPU-backed counterpart of extractCpuIndices: the index buffer, the byte
+  // offset of the first index and the index size (2 or 4) as the stride. Empty
+  // when the indices are CPU-resident or missing, or would read past the
+  // buffer. The arena holds uint32 indices, so uint16 ones are widened, by
+  // copying each into the low half of a zeroed slot or, where that copy is
+  // refused, by a compute pass that reads the buffer as storage.
+  struct GpuIndexRules
+  {
+    bool uint16{true};
+    bool uint16AsStorage{false};
+  };
+  static GpuAttrView
+  extractGpuIndices(const ossia::geometry& g, GpuIndexRules rules)
+  {
+    if(g.indices <= 0 || g.index.buffer < 0
+       || g.index.buffer >= (int)g.buffers.size())
+      return {};
+    const auto* gpu = ossia::get_if<ossia::geometry::gpu_buffer>(
+        &g.buffers[g.index.buffer].data);
+    if(!gpu || !gpu->handle)
+      return {};
+    const bool u16 = g.index.format == decltype(g.index)::uint16;
+    if(u16 && !rules.uint16)
+      return {};
+    if(u16 && rules.uint16AsStorage
+       && !static_cast<QRhiBuffer*>(gpu->handle)->usage().testFlag(
+           QRhiBuffer::StorageBuffer))
+      return {};
+    const int idxBytes = u16 ? 2 : 4;
+    const int64_t end
+        = (int64_t)g.index.byte_offset + (int64_t)g.indices * idxBytes;
+    if(g.index.byte_offset < 0 || (gpu->byte_size > 0 && end > gpu->byte_size))
+      return {};
+    GpuAttrView v;
+    v.buf = static_cast<QRhiBuffer*>(gpu->handle);
+    v.src_offset = (int)g.index.byte_offset;
+    v.byte_stride = idxBytes;
+    return v;
+  }
+
+  static GpuIndexRules gpuIndexRules(const QRhi& rhi) noexcept
+  {
+    const bool widen = widensGpuIndices(rhi.backend(), ossia::index_format::uint16);
+    return {!widen || rhi.isFeatureSupported(QRhi::Compute), widen};
+  }
+
   // Mesh-deterministic subset of emitDraw's skip predicate: a draw is dropped
-  // when the mesh has no usable positions, or has indices that are GPU-backed.
+  // when the mesh has no usable positions, or has indices that can be neither
+  // read on the CPU nor copied on the GPU.
   // Both depend only on the mesh's buffers, which are invariant while the mesh
   // fingerprint matches, so the fast path can replicate them to keep its
   // freshPerDraws mirror in lock-step with what emitDraw packed. The other
   // emitDraw skips are handled at the call site or cannot occur once a slab is
   // resident.
-  static bool meshEmitsDraw(const ossia::geometry& mesh)
+  static bool meshEmitsDraw(const ossia::geometry& mesh, GpuIndexRules indexRules)
   {
     const bool hasCpuPos
         = !extractCpuAttribute<12>(mesh, ossia::attribute_semantic::position)
@@ -1365,8 +1492,9 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
       if(!gpu_pos.buf)
         return false; // no positions → emitDraw skips
     }
-    if(mesh.indices > 0 && extractCpuIndices(mesh).empty())
-      return false; // GPU-backed indices unsupported → emitDraw skips
+    if(mesh.indices > 0 && extractCpuIndices(mesh).empty()
+       && !extractGpuIndices(mesh, indexRules).buf)
+      return false; // no usable indices → emitDraw skips
     return true;
   }
 
@@ -2201,7 +2329,7 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
       auto col = extractCpuAttribute<16>(*mesh, ossia::attribute_semantic::color0);
       auto tan = extractCpuAttribute<16>(*mesh, ossia::attribute_semantic::tangent);
 
-      GpuAttrView gpu_pos, gpu_nrm, gpu_uv, gpu_tan;
+      GpuAttrView gpu_pos, gpu_nrm, gpu_uv, gpu_tan, gpu_col, gpu_uv1;
       if(pos.empty())
         gpu_pos = extractGpuAttribute(*mesh, ossia::attribute_semantic::position);
       if(nrm.empty())
@@ -2210,6 +2338,21 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
         gpu_uv = extractGpuAttribute(*mesh, ossia::attribute_semantic::texcoord0);
       if(tan.empty())
         gpu_tan = extractGpuAttribute(*mesh, ossia::attribute_semantic::tangent);
+      if(uv1.empty())
+        gpu_uv1 = extractGpuAttribute(*mesh, ossia::attribute_semantic::texcoord1);
+      if(col.empty())
+      {
+        // Only float colours can be copied as-is into the float4 stream; a
+        // float3 one leaves the alpha of the (1,1,1,1) fallback in place.
+        const auto* a = mesh->find(ossia::attribute_semantic::color0);
+        using F = ossia::geometry::attribute;
+        if(a && (a->format == F::float4 || a->format == F::float3))
+        {
+          gpu_col = extractGpuAttribute(*mesh, ossia::attribute_semantic::color0);
+          if(gpu_col.byte_stride == 0 && a->format == F::float3)
+            gpu_col.byte_stride = 12;
+        }
+      }
 
       if(pos.empty() && !gpu_pos.buf)
       {
@@ -2217,12 +2360,28 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
       }
 
       std::vector<uint32_t> idx;
+      GpuAttrView gpu_idx;
       if(mesh->indices > 0)
       {
         idx = extractCpuIndices(*mesh);
         if(idx.empty())
         {
-          return kCmdSkipped; // GPU-backed indices not yet supported.
+          const auto indexRules = gpuIndexRules(rhi);
+          gpu_idx = extractGpuIndices(*mesh, indexRules);
+          if(!gpu_idx.buf)
+          {
+            if(!m_warnedUint16GpuIndices && extractGpuIndices(*mesh, {}).buf)
+            {
+              m_warnedUint16GpuIndices = true;
+              qWarning() << "Scene Preprocessor: a mesh whose 16-bit indices are in "
+                            "a GPU buffer is not drawn on"
+                         << rhi.backendName()
+                         << "(buffer copies must be 4-byte aligned, and the buffer "
+                            "cannot be read by a compute pass); give it 32-bit "
+                            "indices";
+            }
+            return kCmdSkipped;
+          }
         }
       }
       else
@@ -2232,7 +2391,8 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
           idx[v] = (uint32_t)v;
       }
 
-      const uint32_t drawIndexCount = (uint32_t)idx.size();
+      const uint32_t drawIndexCount
+          = gpu_idx.buf ? (uint32_t)mesh->indices : (uint32_t)idx.size();
       const int vc = mesh->vertices;
 
       auto* slab = m_registry->acquireMeshSlab(
@@ -2332,7 +2492,8 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
               scratch.data(), (uint32_t)scratch.size());
         }
 
-        // ── Colors ── vec4; (1,1,1,1) fallback.
+        // ── Colors ── vec4; (1,1,1,1) fallback, which a GPU copy then
+        // overwrites.
         if(!col.empty())
         {
           m_registry->uploadMeshStream(
@@ -2348,14 +2509,24 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
           m_registry->uploadMeshStream(
               res, *slab, Stream::Colors,
               scratch.data(), (uint32_t)scratch.size());
+          if(gpu_col.buf)
+            queueSlabCopy(
+                MdiAttr::Colors, gpu_col, 16, vc,
+                m_registry->meshSlabOffsetBytes(*slab, Stream::Colors));
         }
 
         // ── Texcoords1 ── vec2; zero fallback.
+        const uint32_t uv1Off
+            = m_registry->meshSlabOffsetBytes(*slab, Stream::Texcoords1);
         if(!uv1.empty())
         {
           m_registry->uploadMeshStream(
               res, *slab, Stream::Texcoords1,
               uv1.data(), (uint32_t)uv1.size());
+        }
+        else if(gpu_uv1.buf)
+        {
+          queueSlabCopy(MdiAttr::Texcoords1, gpu_uv1, 8, vc, uv1Off);
         }
         else
         {
@@ -2366,9 +2537,10 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
         }
 
         // ── Indices ──
-        m_registry->uploadMeshStream(
-            res, *slab, Stream::Indices,
-            idx.data(), (uint32_t)(idx.size() * 4));
+        if(!gpu_idx.buf)
+          m_registry->uploadMeshStream(
+              res, *slab, Stream::Indices,
+              idx.data(), (uint32_t)(idx.size() * 4));
       }
       else
       {
@@ -2387,6 +2559,28 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
         requeue(MdiAttr::Normals, Stream::Normals, gpu_nrm, 16);
         requeue(MdiAttr::Texcoords, Stream::Texcoords, gpu_uv, 8);
         requeue(MdiAttr::Tangents, Stream::Tangents, gpu_tan, 16);
+        requeue(MdiAttr::Colors, Stream::Colors, gpu_col, 16);
+        requeue(MdiAttr::Texcoords1, Stream::Texcoords1, gpu_uv1, 8);
+      }
+
+      // Indices are copied with drawIndexCount, not the vertex count. A uint16
+      // source only writes the low half of each uint32 slot, so the slot is
+      // zeroed first, on a reused slab too since it may hold a CPU index.
+      if(gpu_idx.buf)
+      {
+        if(gpu_idx.byte_stride == 2)
+        {
+          scratch.assign(std::size_t(drawIndexCount) * 4, std::byte{});
+          m_registry->uploadMeshStream(
+              res, *slab, Stream::Indices,
+              scratch.data(), (uint32_t)scratch.size());
+        }
+        queueSlabCopy(
+            MdiAttr::Indices, gpu_idx, 4, (int)drawIndexCount,
+            m_registry->meshSlabOffsetBytes(*slab, Stream::Indices));
+        m_pendingGpuCopies.back().widen
+            = gpu_idx.byte_stride == 2
+              && widensGpuIndices(rhi.backend(), ossia::index_format::uint16);
       }
 
       if(m_skinStream && (slab->freshly_allocated || skinStreamCreated))
@@ -2437,14 +2631,28 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
       return cmd_index;
     };
 
+    // flattenScene puts the alpha-blended draws last, so their cmds are one
+    // run, published as _blend_draw_cmds for rasters to draw in a pass of
+    // their own.
+    uint32_t blendCmdFirst = kCmdSkipped;
+    uint32_t blendCmdEnd = 0;
     for(std::size_t i = 0; i < fs.draws.size(); ++i)
     {
       const auto& dc = fs.draws[i];
-      emitDraw(
+      const uint32_t cmd = emitDraw(
           dc.mesh, dc.stable_id, dc.worldTransform, dc.material.get(),
           dc.materialIndex, dc.transform_slot, dc.skinIndex, dc.local_bounds,
           /*instanceCount=*/1u);
+      if(cmd != kCmdSkipped && dc.material
+         && dc.material->alpha == ossia::alpha_mode::blend)
+      {
+        blendCmdFirst = std::min(blendCmdFirst, cmd);
+        blendCmdEnd = cmd + 1;
+      }
     }
+    m_mdi.blendCmdFirst = blendCmdFirst == kCmdSkipped ? 0 : blendCmdFirst;
+    m_mdi.blendCmdCount
+        = blendCmdFirst == kCmdSkipped ? 0 : blendCmdEnd - blendCmdFirst;
 
     // Number of per_draws entries that the fs.draws loop actually emitted
     // (i.e. after emitDraw's skip predicate). The fast path's diff-upload
@@ -3152,9 +3360,10 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
     g.buffers.push_back(wrapGpu(m_mdi.per_draws,          pdBytes));
     g.buffers.push_back(wrapGpu(m_mdi.indirect_draw_cmds, icBytes));
     g.buffers.push_back(wrapGpu(m_sceneCountsBuffer, sizeof(SceneCountsUBO)));
-    // Only bind the ACTIVE camera slot (first 240 bytes) — shaders declare
-    // `uniform camera_t camera` as a single entry, not an array. Slot 0 is
-    // guaranteed to be the active camera by packAndUploadCameras.
+    // The wrappers name one CameraUBOData; the `camera` / `camera_prev`
+    // auxiliaries below carry the extent of every packed camera
+    // (cameraAuxByteSize), which consumers bind, so a multiview shader can index
+    // camera.data[VIEW_INDEX]. Slot 0 is the active camera (packAndUploadCameras).
     g.buffers.push_back(wrapGpu(m_camerasBuffer, sizeof(CameraUBOData)));
     g.buffers.push_back(wrapGpu(m_camerasPrevBuffer, sizeof(CameraUBOData)));
     // Env UBO: the preprocessor-owned buffer. merge_scenes composes the
@@ -3217,6 +3426,17 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
     g.auxiliary.push_back({
         .name = "indirect_draw_cmds", .buffer = baseBuf + 4,
         .byte_offset = 0, .byte_size = icBytes});
+    // The range of indirect_draw_cmds holding the alpha-blended draws. A
+    // raster that blends and writes depth draws them last, without depth
+    // write, so blended surfaces that intersect or nest show through each
+    // other.
+    if(m_mdi.blendCmdCount > 0)
+    {
+      g.auxiliary.push_back({
+          .name = "_blend_draw_cmds", .buffer = baseBuf + 4,
+          .byte_offset = (int64_t)m_mdi.blendCmdFirst * (int64_t)sizeof(Acc::IndirectCmd),
+          .byte_size = (int64_t)m_mdi.blendCmdCount * (int64_t)sizeof(Acc::IndirectCmd)});
+    }
     g.auxiliary.push_back({
         .name = "scene_counts", .buffer = baseBuf + 5,
         .byte_offset = 0, .byte_size = (int64_t)sizeof(SceneCountsUBO)});
@@ -4516,6 +4736,53 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
         }
       }
 
+      // Loader lights: the preprocessor acts as their producer, as for loader
+      // materials. Their RawLightData and world matrix are written on every
+      // rebuild, since the matrix follows the transforms above them.
+      if(m_registry)
+      {
+        ossia::hash_set<const ossia::light_component*> seen;
+        seen.reserve(fs.loaderLights.size());
+        for(const auto& ll : fs.loaderLights)
+        {
+          seen.insert(ll.light.get());
+          auto& slots = m_loaderLightSlots[ll.light.get()];
+          if(!slots.light.valid())
+            slots.light = m_registry->allocate(
+                GpuResourceRegistry::Arena::RawLight, sizeof(RawLightData));
+          if(!slots.transform.valid())
+          {
+            slots.transform = m_registry->allocate(
+                GpuResourceRegistry::Arena::RawTransform, sizeof(RawLocalTransform));
+            if(slots.transform.valid())
+            {
+              RawLocalTransform seed{};
+              m_registry->updateSlot(res, slots.transform, &seed, sizeof(seed));
+            }
+          }
+          if(!slots.light.valid() || !slots.transform.valid())
+            continue;
+
+          const auto raw = rawLightData(*ll.light, slots.transform.slot_index);
+          m_registry->updateSlot(res, slots.light, &raw, sizeof(raw));
+          fs.worldTransforms.push_back({ll.worldTransform, slots.transform.slot_index});
+          fs.lightArenaSlots[ll.index] = slots.light.slot_index;
+        }
+        for(auto it = m_loaderLightSlots.begin(); it != m_loaderLightSlots.end();)
+        {
+          if(seen.find(it->first) == seen.end())
+          {
+            m_registry->free(it->second.light);
+            m_registry->free(it->second.transform);
+            it = m_loaderLightSlots.erase(it);
+          }
+          else
+          {
+            ++it;
+          }
+        }
+      }
+
       // Build / refresh every material-texture channel and patch
       // fs.materials[i].textureRefs[ch] with the assigned layer indices, before
       // the scene_materials SSBO upload below.
@@ -5044,14 +5311,14 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
       for(const auto& dc : fs.draws)
       {
         // Mirror emitDraw's skip predicate exactly: a draw with
-        // no usable positions, or with GPU-backed indices, is dropped by
+        // no usable positions, or with unusable indices, is dropped by
         // rebuildMDI and therefore occupies NO per_draws slot. Filtering the
         // fast-path mirror only by `vertices > 0` would keep such draws and
         // shift every following slot, so diffUpload would write a draw's
         // model matrix into its neighbour's GPU slot.
         if(!dc.mesh || dc.mesh->vertices <= 0 || !m_registry)
           continue;
-        if(!meshEmitsDraw(*dc.mesh))
+        if(!meshEmitsDraw(*dc.mesh, gpuIndexRules(*renderer.state.rhi)))
           continue;
         PerDrawGPU pd{};
         writeMat4(pd.model, dc.worldTransform);
@@ -5090,7 +5357,7 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
       // unchanged mesh_primitive address must force a full rebuild rather than
       // let the queue copy from a freed buffer.
       std::vector<uint64_t> freshMeshFingerprint;
-      freshMeshFingerprint.reserve(fs.draws.size() * 5);
+      freshMeshFingerprint.reserve(fs.draws.size() * 8);
       for(const auto& dc : fs.draws)
       {
         if(dc.mesh && dc.mesh->vertices > 0 && dc.stable_id)
@@ -5112,6 +5379,12 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
               bufId(ossia::attribute_semantic::texcoord0));
           freshMeshFingerprint.push_back(
               bufId(ossia::attribute_semantic::tangent));
+          freshMeshFingerprint.push_back(
+              bufId(ossia::attribute_semantic::color0));
+          freshMeshFingerprint.push_back(
+              bufId(ossia::attribute_semantic::texcoord1));
+          freshMeshFingerprint.push_back(reinterpret_cast<uintptr_t>(
+              extractGpuIndices(*dc.mesh, {}).buf));
         }
       }
 
@@ -5192,6 +5465,7 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
           pack_xform(g.normal_offset_scale, &g.rotations0[2], mats[i]->normal_texture);
           pack_xform(g.em_offset_scale,     &g.rotations0[3], mats[i]->emissive_texture);
           pack_xform(g.occ_offset_scale,    &g.rotations1[0], mats[i]->occlusion_texture);
+          g.rotations1[1] = mats[i]->normal_scale;
 
           auto& w = freshMaterialWraps[slot];
           const auto& m = *mats[i];
@@ -5393,6 +5667,53 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
                     ? src.split_view_depths[k + 1]
                     : 0.f;
         }
+        // The light the cascades belong to, as recorded by Shadow Cascade
+        // Setup. When its input had no directional light with a RawLight
+        // slot, they go to the first directional light with Cast shadow on;
+        // a loader light (glTF, FBX) has the slot this preprocessor gave it.
+        if(m_registry
+           && m_registry->isLiveIn(src.light_slot, GpuResourceRegistry::Arena::RawLight))
+        {
+          sh.light_slot = src.light_slot.internal_index;
+        }
+        else if(m_registry && sh.cascade_count > 0 && this->scene.state->roots)
+        {
+          auto find = [&](auto& self, const ossia::scene_node& n) -> bool {
+            if(!n.children)
+              return false;
+            for(const auto& p : *n.children)
+            {
+              if(auto* lc = ossia::get_if<ossia::light_component_ptr>(&p))
+              {
+                if(*lc && (*lc)->type == ossia::light_type::directional
+                   && (*lc)->shadow.enabled)
+                {
+                  if(m_registry->isLiveIn(
+                         (*lc)->raw_slot, GpuResourceRegistry::Arena::RawLight))
+                  {
+                    sh.light_slot = (*lc)->raw_slot.internal_index;
+                    return true;
+                  }
+                  auto it = m_loaderLightSlots.find(lc->get());
+                  if(it != m_loaderLightSlots.end() && it->second.light.valid())
+                  {
+                    sh.light_slot = it->second.light.slot_index;
+                    return true;
+                  }
+                }
+              }
+              else if(auto* sub = ossia::get_if<ossia::scene_node_ptr>(&p))
+              {
+                if(*sub && self(self, **sub))
+                  return true;
+              }
+            }
+            return false;
+          };
+          for(const auto& r : *this->scene.state->roots)
+            if(r && find(find, *r))
+              break;
+        }
       }
       if(!m_shadowCascadesSeeded
          || std::memcmp(&sh, &m_cachedShadowCascades,
@@ -5430,6 +5751,9 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
       case MdiAttr::Normals:   return m_registry->meshStreamBuffer(Stream::Normals);
       case MdiAttr::Texcoords: return m_registry->meshStreamBuffer(Stream::Texcoords);
       case MdiAttr::Tangents:  return m_registry->meshStreamBuffer(Stream::Tangents);
+      case MdiAttr::Colors:    return m_registry->meshStreamBuffer(Stream::Colors);
+      case MdiAttr::Texcoords1: return m_registry->meshStreamBuffer(Stream::Texcoords1);
+      case MdiAttr::Indices:   return m_registry->meshStreamBuffer(Stream::Indices);
     }
     return nullptr;
   }
@@ -5442,6 +5766,55 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
   //
   // Stride-equal-to-element copies collapse to one copyBuffer; strided
   // vec4->vec3 copies fall back to one copyBuffer per vertex.
+  // The uint16 index copies that the backend cannot blit, run as one compute
+  // pass ahead of the frame's buffer copies.
+  void widenPendingGpuIndices(
+      RenderList& renderer, QRhiCommandBuffer& cb, QRhiResourceUpdateBatch*& res)
+  {
+    auto* rhi = renderer.state.rhi;
+    QRhiBuffer* dst = mdiBufferFor(MdiAttr::Indices);
+    std::vector<score::gfx::GPUIndexWiden::Params> params;
+    for(const auto& op : m_pendingGpuCopies)
+      if(op.widen && op.src && dst)
+        params.push_back(
+            {op.src, dst, (uint32_t)op.vertex_count, (uint32_t)op.src_offset,
+             (uint32_t)op.dst_offset});
+    if(params.empty() || !rhi)
+      return;
+
+    if(!m_indexWidenTried)
+    {
+      m_indexWidenTried = true;
+      m_indexWidenReady = m_indexWiden.init(renderer.state);
+      if(!m_indexWidenReady)
+        qWarning() << "Scene Preprocessor: 16-bit GPU indices cannot be widened on"
+                   << rhi->backendName();
+    }
+    if(!m_indexWidenReady)
+      return;
+
+    while(m_widenOps.size() > params.size())
+    {
+      score::gfx::GPUIndexWiden::releaseOp(m_widenOps.back());
+      m_widenOps.pop_back();
+    }
+    while(m_widenOps.size() < params.size())
+      m_widenOps.push_back(m_indexWiden.prepare(*rhi, params[m_widenOps.size()]));
+
+    if(!res)
+      res = rhi->nextResourceUpdateBatch();
+    for(std::size_t i = 0; i < params.size(); i++)
+      m_indexWiden.updateParams(*res, m_widenOps[i], params[i]);
+
+    cb.beginComputePass(res);
+    res = nullptr;
+    for(std::size_t i = 0; i < params.size(); i++)
+      m_indexWiden.dispatch(cb, m_widenOps[i], params[i]);
+    cb.endComputePass();
+    // The caller queues this frame's world-transform writes into `res`.
+    res = rhi->nextResourceUpdateBatch();
+  }
+
   void issuePendingGpuCopies(RenderList& renderer, QRhiCommandBuffer& cb)
   {
     if(m_pendingGpuCopies.empty())
@@ -5467,7 +5840,7 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
       // unified-MDI per-instance concat copies (the interleaved attribs
       // array) which target preprocessor-owned buffers, not arena streams.
       QRhiBuffer* dst = op.dst ? op.dst : mdiBufferFor(op.attr);
-      if(!op.src || !dst)
+      if(!op.src || !dst || op.widen)
         continue;
       const int src_stride
           = op.src_stride == 0 ? op.element_size : op.src_stride;
@@ -5535,6 +5908,7 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
     // every consumer.
     if(m_lastGpuCopiesFrame != renderer.frame)
     {
+      widenPendingGpuIndices(renderer, commands, res);
       issuePendingGpuCopies(renderer, commands);
       m_lastGpuCopiesFrame = renderer.frame;
     }
@@ -5616,6 +5990,24 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
   // dropped in releaseState; nothing is keyed by output edge.
   void removeOutputPass(RenderList&, Edge&) override { }
 };
+
+bool copiesGpuIndices(QRhi::Implementation backend, ossia::index_format format) noexcept
+{
+  return format != ossia::index_format::uint16 || backend != QRhi::Metal;
+}
+
+static std::atomic_bool g_forceGpuIndexWidening{false};
+
+bool widensGpuIndices(QRhi::Implementation backend, ossia::index_format format) noexcept
+{
+  return format == ossia::index_format::uint16
+         && (!copiesGpuIndices(backend, format) || g_forceGpuIndexWidening.load());
+}
+
+void forceGpuIndexWidening(bool force) noexcept
+{
+  g_forceGpuIndexWidening = force;
+}
 
 ScenePreprocessorNode::ScenePreprocessorNode()
 {

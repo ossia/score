@@ -16,6 +16,12 @@
 //    bucket (a new QRhiTexture array) the first one republishes, so its
 //    classic_pbr_full consumer keeps sampling its own texture from a live
 //    array instead of the deleted one.
+//  - A scene without an environment has no ambient light.
+//  - Alpha-blended draws are drawn after the opaque ones, back to front, so
+//    they composite over what is behind them.
+//  - A blending raster draws the alpha-blended draws without depth write, so
+//    intersecting blended surfaces show through each other; one that does not
+//    blend, such as a shadow caster, keeps writing depth for them.
 
 #include <score_test/Gfx.hpp>
 
@@ -118,6 +124,75 @@ constexpr const char* kEnvFrag = "/*{" SCENE_RASTER_HEADER R"(
 void main()
 {
   isf_FragColor = vec4(env.ambient.rgb * env.ambient.w, 1.0);
+}
+)";
+
+// Scales the ambient term so that the 0.03 grey once used as the default
+// saturates the readback.
+constexpr const char* kEnvAmbientScaledFrag = "/*{" SCENE_RASTER_HEADER R"(
+  "INPUTS": [
+    { "NAME": "env", "TYPE": "uniform", "VISIBILITY": "fragment",
+      "LAYOUT": [ { "NAME": "ambient", "TYPE": "vec4" }, { "NAME": "fog_color_density", "TYPE": "vec4" },
+                  { "NAME": "fog_range", "TYPE": "vec4" }, { "NAME": "exposure_gamma", "TYPE": "vec4" } ] }
+  ]
+}*/
+void main()
+{
+  isf_FragColor = vec4(env.ambient.rgb * env.ambient.w * 100.0, 1.0);
+}
+)";
+
+constexpr const char* kDepthVert = R"(void main()
+{
+  isf_vertShaderInit();
+  v_drawID = draw_id;
+  gl_Position = clipSpaceCorrMatrix * vec4(position.xy, position.z, 1.0);
+  isf_vertShaderFinish();
+}
+)";
+
+// Draws each material's base colour with its alpha, blended over, with depth
+// test and write on as the scene presets do.
+constexpr const char* kBlendFrag = R"(/*{
+  "ISFVSN": "2.0",
+  "MODE": "RAW_RASTER_PIPELINE",
+  "VERTEX_INPUTS": [
+    { "TYPE": "vec3", "NAME": "position" },
+    { "TYPE": "uint", "NAME": "draw_id", "SEMANTIC": "instance_draw_id", "REQUIRED": true }
+  ],
+  "VERTEX_OUTPUTS": [ { "TYPE": "uint", "NAME": "v_drawID" } ],
+  "FRAGMENT_INPUTS": [ { "TYPE": "uint", "NAME": "v_drawID" } ],
+  "FRAGMENT_OUTPUTS": [ { "TYPE": "vec4", "NAME": "isf_FragColor" } ],
+  "PIPELINE_STATE": {
+    "DEPTH_TEST": true, "DEPTH_WRITE": true, "CULL_MODE": "none",
+    "BLEND": {
+      "ENABLE": true,
+      "SRC_COLOR": "src_alpha", "DST_COLOR": "one_minus_src_alpha", "OP_COLOR": "add",
+      "SRC_ALPHA": "one", "DST_ALPHA": "one_minus_src_alpha", "OP_ALPHA": "add"
+    }
+  },
+  "INPUTS": [
+    { "NAME": "per_draws", "TYPE": "storage", "ACCESS": "read_only", "VISIBILITY": "vertex+fragment",
+      "LAYOUT": [ { "NAME": "data", "TYPE": "PerDraw[]" } ] },
+    { "NAME": "scene_materials", "TYPE": "storage", "ACCESS": "read_only", "VISIBILITY": "fragment",
+      "LAYOUT": [ { "NAME": "entries", "TYPE": "Material[]" } ] }
+  ],
+  "TYPES": [
+    { "NAME": "PerDraw", "LAYOUT": [
+        { "NAME": "model", "TYPE": "mat4" }, { "NAME": "normal", "TYPE": "mat4" },
+        { "NAME": "material_index", "TYPE": "uint" }, { "NAME": "tag_hash", "TYPE": "uint" },
+        { "NAME": "transform_slot", "TYPE": "uint" }, { "NAME": "skeleton_offset", "TYPE": "uint" } ] },
+    { "NAME": "Material", "LAYOUT": [
+        { "NAME": "baseColor", "TYPE": "vec4" }, { "NAME": "metallicRoughnessOcclusionUnlit", "TYPE": "vec4" },
+        { "NAME": "emissive_strength", "TYPE": "vec4" }, { "NAME": "textureRefs", "TYPE": "uvec4" },
+        { "NAME": "feature_mask", "TYPE": "uint" }, { "NAME": "hit_group_id", "TYPE": "uint" },
+        { "NAME": "occlusion_textureRef", "TYPE": "uint" }, { "NAME": "alpha_cutoff", "TYPE": "float" } ] }
+  ]
+}*/
+void main()
+{
+  uint mi = per_draws.data[v_drawID].material_index;
+  isf_FragColor = scene_materials.entries[mi].baseColor;
 }
 )";
 
@@ -442,6 +517,268 @@ TEST_CASE(
   CHECK(left[2] < 50);
   CHECK(right[0] < 50);
   CHECK(right[2] > 200);
+}
+
+TEST_CASE(
+    "a scene without an environment has no ambient light",
+    "[gfx][scene][environment]")
+{
+  const auto api = GENERATE(from_range(platform_backends()));
+  CAPTURE(backend_name(api));
+  QTemporaryDir dir;
+  REQUIRE(dir.isValid());
+  const QString vs = writeText(dir, "scenepp.vert", kVert);
+  const QString fs = writeText(dir, "scenepp_env_scaled.frag", kEnvAmbientScaledFrag);
+
+  Result r;
+  score::test::run_in_gui_app([&](const score::GUIApplicationContext&) {
+    GfxPipeline p;
+    const int raster
+        = sceneChain(p, stateWith({nodeWith(quad(-1, 1, 0xF1A0021u), 21)}), vs, fs);
+    if(raster < 0)
+    {
+      r.err = "chain build failed: " + p.error();
+      return;
+    }
+    const int sink = p.addSink({kSize, kSize});
+    p.wire(p.imageOut(raster, 0), p.sinkInput(sink));
+    if(!p.create(api))
+    {
+      r.skipped = p.skipped();
+      r.err = r.skipped ? std::string{} : p.error();
+      return;
+    }
+    p.render(5);
+    r.img = p.readback(sink);
+  });
+  if(r.skipped)
+    SKIP("backend unavailable");
+  REQUIRE(r.err.empty());
+  REQUIRE(r.img.valid());
+  const auto c = r.img.center();
+  INFO("center " << scene::rgba_string(c));
+  CHECK(int(c[0]) == 0);
+  CHECK(int(c[1]) == 0);
+  CHECK(int(c[2]) == 0);
+  CHECK(int(c[3]) == 255);
+}
+
+TEST_CASE(
+    "alpha-blended draws composite over the opaque and blended draws behind them",
+    "[gfx][scene][blend]")
+{
+  const auto api = GENERATE(from_range(platform_backends()));
+  CAPTURE(backend_name(api));
+  QTemporaryDir dir;
+  REQUIRE(dir.isValid());
+  const QString vs = writeText(dir, "scenepp_depth.vert", kDepthVert);
+  const QString fs = writeText(dir, "scenepp_blend.frag", kBlendFrag);
+
+  // Quad over x in [x0, x1] at world depth z; the default camera looks down
+  // -Z from z = 3, and the vertex shader writes z as reverse-Z depth, so a
+  // larger z is nearer in both.
+  auto mats = std::make_shared<std::vector<ossia::material_component_ptr>>();
+  const auto quadAt = [&](float x0, float x1, float z, uint64_t id,
+                          std::array<float, 4> color, bool blend) {
+    auto pos = cpuBuffer(
+        {x0, -1, z, x1, -1, z, x1, 1, z, x0, -1, z, x1, 1, z, x0, 1, z},
+        ossia::buffer_data::usage::vertex_buffer);
+    auto mat = std::make_shared<ossia::material_component>();
+    mat->stable_id = id + 0x100u;
+    mat->unlit = true;
+    std::copy(color.begin(), color.end(), mat->base_color_factor);
+    mat->alpha = blend ? ossia::alpha_mode::blend : ossia::alpha_mode::opaque_;
+    mats->push_back(mat);
+    ossia::mesh_primitive prim;
+    prim.vertex_buffers = {pos};
+    ossia::vertex_attribute p;
+    p.semantic = ossia::attribute_semantic::position;
+    p.format = ossia::vertex_format::float3;
+    p.buffer_index = 0;
+    p.byte_stride = 12;
+    prim.attributes.push_back(p);
+    prim.topology = ossia::primitive_topology::triangles;
+    prim.vertex_count = 6;
+    prim.stable_id = id;
+    prim.bounds = {{x0, -1.f, z}, {x1, 1.f, z}};
+    prim.material = mat;
+    auto mesh = std::make_shared<ossia::mesh_component>();
+    mesh->primitives.push_back(std::move(prim));
+    mesh->bounds = mesh->primitives[0].bounds;
+    mesh->dirty_index = 1;
+    return nodeWith(ossia::mesh_component_ptr(std::move(mesh)), id);
+  };
+
+  // Scene order is the worst case for drawing in order: blended before
+  // opaque, and the nearer blended quad before the farther one.
+  //  left:  opaque blue at z = 0.1 behind 50% red at z = 0.5
+  //  right: 50% red at z = 0.6 in front of 50% green at z = 0.3
+  auto st = stateWith(
+      {quadAt(-1, 0, 0.5f, 0xF1A0051u, {1, 0, 0, 0.5f}, true),
+       quadAt(0, 1, 0.6f, 0xF1A0052u, {1, 0, 0, 0.5f}, true),
+       quadAt(0, 1, 0.3f, 0xF1A0053u, {0, 1, 0, 0.5f}, true),
+       quadAt(-1, 0, 0.1f, 0xF1A0054u, {0, 0, 1, 1}, false)});
+  st->materials = mats;
+
+  Result r;
+  score::test::run_in_gui_app([&](const score::GUIApplicationContext&) {
+    GfxPipeline p;
+    const int raster = sceneChain(p, st, vs, fs);
+    if(raster < 0)
+    {
+      r.err = "chain build failed: " + p.error();
+      return;
+    }
+    const int sink = p.addSink({kSize, kSize});
+    p.wire(p.imageOut(raster, 0), p.sinkInput(sink));
+    if(!p.create(api))
+    {
+      r.skipped = p.skipped();
+      r.err = r.skipped ? std::string{} : p.error();
+      return;
+    }
+    p.render(5);
+    r.img = p.readback(sink);
+  });
+  if(r.skipped)
+    SKIP("backend unavailable");
+  REQUIRE(r.err.empty());
+  REQUIRE(r.img.valid());
+  const auto left = r.img.at(kSize / 4, kSize / 2);
+  const auto right = r.img.at(3 * kSize / 4, kSize / 2);
+  INFO(
+      "left " << scene::rgba_string(left) << " right "
+              << scene::rgba_string(right));
+  // Red over blue: (0.5, 0, 0.5).
+  CHECK(std::abs(int(left[0]) - 128) < 10);
+  CHECK(int(left[1]) < 10);
+  CHECK(std::abs(int(left[2]) - 128) < 10);
+  // Red over green over the black clear: (0.5, 0.25, 0).
+  CHECK(std::abs(int(right[0]) - 128) < 10);
+  CHECK(std::abs(int(right[1]) - 64) < 10);
+  CHECK(int(right[2]) < 10);
+}
+
+TEST_CASE(
+    "intersecting alpha-blended draws show through each other",
+    "[gfx][scene][blend]")
+{
+  const auto api = GENERATE(from_range(platform_backends()));
+  CAPTURE(backend_name(api));
+  QTemporaryDir dir;
+  REQUIRE(dir.isValid());
+  const QString vs = writeText(dir, "scenepp_depth.vert", kDepthVert);
+  const QString blendFs = writeText(dir, "scenepp_blend.frag", kBlendFrag);
+  QByteArray noBlend{kBlendFrag};
+  noBlend.replace("\"ENABLE\": true", "\"ENABLE\": false");
+  const QString opaqueFs = writeText(dir, "scenepp_noblend.frag", noBlend.constData());
+
+  // Full-height quad from (-1, z0) to (1, z1), the vertex shader writing z as
+  // reverse-Z depth (larger is nearer).
+  auto mats = std::make_shared<std::vector<ossia::material_component_ptr>>();
+  const auto slanted = [&](float z0, float z1, float y0, float y1, uint64_t id,
+                           std::array<float, 4> color, bool blend) {
+    auto pos = cpuBuffer(
+        {-1, y0, z0, 1, y0, z1, 1, y1, z1, -1, y0, z0, 1, y1, z1, -1, y1, z0},
+        ossia::buffer_data::usage::vertex_buffer);
+    auto mat = std::make_shared<ossia::material_component>();
+    mat->stable_id = id + 0x100u;
+    mat->unlit = true;
+    std::copy(color.begin(), color.end(), mat->base_color_factor);
+    mat->alpha = blend ? ossia::alpha_mode::blend : ossia::alpha_mode::opaque_;
+    mats->push_back(mat);
+    ossia::mesh_primitive prim;
+    prim.vertex_buffers = {pos};
+    ossia::vertex_attribute p;
+    p.semantic = ossia::attribute_semantic::position;
+    p.format = ossia::vertex_format::float3;
+    p.buffer_index = 0;
+    p.byte_stride = 12;
+    prim.attributes.push_back(p);
+    prim.topology = ossia::primitive_topology::triangles;
+    prim.vertex_count = 6;
+    prim.stable_id = id;
+    prim.bounds = {{-1.f, y0, std::min(z0, z1)}, {1.f, y1, std::max(z0, z1)}};
+    prim.material = mat;
+    auto mesh = std::make_shared<ossia::mesh_component>();
+    mesh->primitives.push_back(std::move(prim));
+    mesh->bounds = mesh->primitives[0].bounds;
+    mesh->dirty_index = 1;
+    return nodeWith(ossia::mesh_component_ptr(std::move(mesh)), id);
+  };
+
+  // 50% red rises from z = 0.2 on the left to 0.6 on the right, 50% green
+  // falls from 0.6 to 0.2: they cross at x = 0 and their bounds have the same
+  // centre, so they keep this order. On the right the red one is nearer and
+  // drawn first; with depth write on, it hides the green one. An opaque blue
+  // band in front over y > 0.5 still hides both.
+  auto st = stateWith(
+      {slanted(0.2f, 0.6f, -1.f, 1.f, 0xB1E0001u, {1, 0, 0, 0.5f}, true),
+       slanted(0.6f, 0.2f, -1.f, 1.f, 0xB1E0002u, {0, 1, 0, 0.5f}, true),
+       slanted(0.9f, 0.9f, 0.5f, 1.f, 0xB1E0003u, {0, 0, 1, 1}, false)});
+  st->materials = mats;
+
+  const auto render = [&](const QString& fs) {
+    Result r;
+    score::test::run_in_gui_app([&](const score::GUIApplicationContext&) {
+      GfxPipeline p;
+      const int raster = sceneChain(p, st, vs, fs);
+      if(raster < 0)
+      {
+        r.err = "chain build failed: " + p.error();
+        return;
+      }
+      const int sink = p.addSink({kSize, kSize});
+      p.wire(p.imageOut(raster, 0), p.sinkInput(sink));
+      if(!p.create(api))
+      {
+        r.skipped = p.skipped();
+        r.err = r.skipped ? std::string{} : p.error();
+        return;
+      }
+      p.render(5);
+      r.img = p.readback(sink);
+    });
+    return r;
+  };
+
+  const Result blended = render(blendFs);
+  if(blended.skipped)
+    SKIP("backend unavailable");
+  REQUIRE(blended.err.empty());
+  REQUIRE(blended.img.valid());
+  {
+    // The image's top row is y = +1 on every backend (the sink's readback is
+    // normalised).
+    const auto left = blended.img.at(kSize / 4, kSize / 2 + kSize / 8);
+    const auto right = blended.img.at(3 * kSize / 4, kSize / 2 + kSize / 8);
+    const auto band = blended.img.at(3 * kSize / 4, kSize / 16);
+    INFO(
+        "left " << scene::rgba_string(left) << " right " << scene::rgba_string(right)
+                << " band " << scene::rgba_string(band));
+    // Green over red over the black clear on both sides: (0.25, 0.5, 0).
+    for(const auto& c : {left, right})
+    {
+      CHECK(std::abs(int(c[0]) - 64) < 10);
+      CHECK(std::abs(int(c[1]) - 128) < 10);
+      CHECK(int(c[2]) < 10);
+    }
+    CHECK(int(band[0]) < 10);
+    CHECK(int(band[1]) < 10);
+    CHECK(int(band[2]) > 245);
+  }
+
+  // Without blending the raster keeps depth write for every draw: on the
+  // right the nearer red quad, drawn first, hides the green one.
+  const Result opaque = render(opaqueFs);
+  REQUIRE(opaque.err.empty());
+  REQUIRE(opaque.img.valid());
+  {
+    const auto right = opaque.img.at(3 * kSize / 4, kSize / 2 + kSize / 8);
+    INFO("right " << scene::rgba_string(right));
+    CHECK(int(right[0]) > 245);
+    CHECK(int(right[1]) < 10);
+  }
 }
 
 TEST_CASE("a scene node with visible == false is not drawn", "[gfx][scene][visibility]")
