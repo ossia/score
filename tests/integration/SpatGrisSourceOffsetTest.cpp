@@ -9,6 +9,14 @@
 // the socket and not out of the protocol objects: an index that is right in
 // the model and wrong in the packet is what this guards against.
 
+#if defined(_WIN32)
+#include <winsock2.h>
+#else
+#include <arpa/inet.h>
+#include <sys/socket.h>
+#include <unistd.h>
+#endif
+
 #include <Spatialization/ADMOSCProtocol.hpp>
 #include <Spatialization/SPATProtocol.hpp>
 #include <Spatialization/SpatGRISProtocol.hpp>
@@ -21,27 +29,58 @@
 
 #include <catch2/catch_test_macros.hpp>
 
-#include <arpa/inet.h>
-#include <sys/socket.h>
-#include <unistd.h>
-
 #include <string>
 #include <vector>
 
 namespace
 {
+// Own the platform runtime and socket separately from listener setup so a
+// failed REQUIRE during bind or timeout configuration still releases both.
+struct socket_owner
+{
+#if defined(_WIN32)
+  static constexpr SOCKET invalid_socket = INVALID_SOCKET;
+  SOCKET fd{invalid_socket};
+#else
+  static constexpr int invalid_socket = -1;
+  int fd{invalid_socket};
+#endif
+
+  socket_owner()
+  {
+#if defined(_WIN32)
+    WSADATA data{};
+    REQUIRE(::WSAStartup(MAKEWORD(2, 2), &data) == 0);
+#endif
+    fd = ::socket(AF_INET, SOCK_DGRAM, 0);
+  }
+
+  ~socket_owner()
+  {
+#if defined(_WIN32)
+    if(fd != invalid_socket)
+      ::closesocket(fd);
+    ::WSACleanup();
+#else
+    if(fd != invalid_socket)
+      ::close(fd);
+#endif
+  }
+
+  socket_owner(const socket_owner&) = delete;
+  socket_owner& operator=(const socket_owner&) = delete;
+};
+
 //! A loopback UDP socket the protocols send to, read to exhaustion after each
 //! push. Short receive timeout: a message that never comes is a failure, and
 //! the test must not hang waiting for it.
-struct listener
+struct listener : socket_owner
 {
-  int fd{-1};
   uint16_t port{};
 
   listener()
   {
-    fd = ::socket(AF_INET, SOCK_DGRAM, 0);
-    REQUIRE(fd >= 0);
+    REQUIRE(fd != invalid_socket);
 
     sockaddr_in a{};
     a.sin_family = AF_INET;
@@ -49,17 +88,26 @@ struct listener
     a.sin_port = 0;
     REQUIRE(::bind(fd, (sockaddr*)&a, sizeof(a)) == 0);
 
+#if defined(_WIN32)
+    int len = sizeof(a);
+#else
     socklen_t len = sizeof(a);
+#endif
     REQUIRE(::getsockname(fd, (sockaddr*)&a, &len) == 0);
     port = ntohs(a.sin_port);
 
+#if defined(_WIN32)
+    // Winsock expects a millisecond count, not POSIX's timeval.
+    DWORD timeout = 200;
+    REQUIRE(
+        ::setsockopt(
+            fd, SOL_SOCKET, SO_RCVTIMEO, reinterpret_cast<const char*>(&timeout),
+            sizeof(timeout))
+        == 0);
+#else
     timeval tv{0, 200000};
-    ::setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
-  }
-  ~listener()
-  {
-    if(fd >= 0)
-      ::close(fd);
+    REQUIRE(::setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv)) == 0);
+#endif
   }
 
   //! "<address> <arg> <arg>...", with floats left out: the indices and the

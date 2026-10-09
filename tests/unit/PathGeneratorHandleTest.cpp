@@ -67,7 +67,7 @@ TEST_CASE("path generator: the handle sets where a shape starts", "[gfx][path]")
 
     SECTION("a polygon puts a vertex on it")
     {
-      w.setPathMode(Polygon);
+      w.setPathMode(Path::Polygon);
       w.setRatioX(3);
       checkSame(w.pathPoint(src, 0.), handlePos(w, b));
     }
@@ -101,14 +101,14 @@ TEST_CASE("path generator: the handle sets the shape's size", "[gfx][path]")
     w.setPathMode(Circle);
 
     const ossia::vec2f a{0.5f, 0.5f};
-    const auto near = source(a, ossia::vec2f{0.6f, 0.5f});
-    const auto far = source(a, ossia::vec2f{0.9f, 0.5f});
+    const auto nearSource = source(a, ossia::vec2f{0.6f, 0.5f});
+    const auto farSource = source(a, ossia::vec2f{0.9f, 0.5f});
 
     // Half a turn later the point is on the far side of the centre, so the
     // bigger handle distance must give the bigger excursion.
     const QPointF centre{a[0] * w.width(), (1. - a[1]) * w.height()};
-    const double dNear = std::abs(w.pathPoint(near, 0.5).x() - centre.x());
-    const double dFar = std::abs(w.pathPoint(far, 0.5).x() - centre.x());
+    const double dNear = std::abs(w.pathPoint(nearSource, 0.5).x() - centre.x());
+    const double dFar = std::abs(w.pathPoint(farSource, 0.5).x() - centre.x());
 
     CHECK(dFar > dNear);
   });
@@ -137,7 +137,7 @@ TEST_CASE("path generator: a source with no handle does not move", "[gfx][path]"
     const ossia::vec2f a{0.5f, 0.5f};
     const std::vector<ossia::value> lone{ossia::value{a}};
 
-    for(int mode = Linear; mode <= Polygon; mode++)
+    for(int mode = Linear; mode <= Path::Polygon; mode++)
     {
       w.setPathMode(mode);
       checkSame(w.pathPoint(lone, 0.), handlePos(w, a));

@@ -94,7 +94,10 @@ function(score_write_static_plugins_header)
   endforeach()
 
   string(APPEND SCORE_PLUGINS_FILE_DATA "#include <score/plugins/PluginInstances.hpp>\n")
-  string(APPEND SCORE_PLUGINS_FILE_DATA "void score_init_static_plugins() {\n")
+  # MinimalApplication is header-only and may be used by several test sources.
+  # Inline keeps one registry (including its function-local plugin instances)
+  # per executable without duplicate definitions across translation units.
+  string(APPEND SCORE_PLUGINS_FILE_DATA "inline void score_init_static_plugins() {\n")
   string(APPEND SCORE_PLUGINS_FILE_DATA "  if(!score::staticPlugins().empty()) return\;\n")
 
   foreach(plugin ${SCORE_PLUGINS_LIST})

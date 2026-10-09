@@ -9,6 +9,10 @@ class Presenter;
 class GUIApplicationRegistrar;
 struct GUIApplicationContext;
 
+//! Make embedded resources available, including in static links, then register
+//! fonts for the current QApplication. Call before constructing views or plugins.
+SCORE_LIB_BASE_EXPORT void loadApplicationResources();
+
 /**
  * @brief The ApplicationInterface class
  *

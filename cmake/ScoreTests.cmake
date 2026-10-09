@@ -152,18 +152,29 @@ endfunction()
 # list (minus score_plugin_jit, exactly as score_add_test does for its own
 # GUI/APP targets below). No-op on dynamic-plugin builds.
 #
-# Ordering seam: SCORE_PLUGINS_LIST is only complete once add_subdirectory(src)
-# has returned, so for tester executables defined inside src/ this must be
-# called from the top-level CMakeLists after that point -- which is why the
-# application site for EncoderTester/ReadbackTester/PipewireRoundtrip lives
-# there and not next to their add_executable.
+# Queue links until the top-level directory finishes: tests declared inside
+# src/ must also see plugins and addons configured after their own directory.
+# Resolve the list only then, rather than capturing an incomplete snapshot.
 function(score_link_plugins_for_static tgt)
   if(SCORE_STATIC_PLUGINS AND TARGET ${tgt})
-    set(_static_plugins "${SCORE_PLUGINS_LIST}")
-    list(REMOVE_ITEM _static_plugins score_plugin_jit)
-    target_link_libraries(${tgt} PRIVATE ${_static_plugins})
+    set_property(GLOBAL APPEND PROPERTY SCORE_STATIC_PLUGIN_TEST_TARGETS "${tgt}")
   endif()
 endfunction()
+
+function(_score_link_static_plugin_tests)
+  get_property(_targets GLOBAL PROPERTY SCORE_STATIC_PLUGIN_TEST_TARGETS)
+  list(REMOVE_DUPLICATES _targets)
+  set(_static_plugins "${SCORE_PLUGINS_LIST}")
+  list(REMOVE_ITEM _static_plugins score_plugin_jit)
+  foreach(_target IN LISTS _targets)
+    target_link_libraries(${_target} PRIVATE ${_static_plugins})
+  endforeach()
+endfunction()
+
+if(SCORE_STATIC_PLUGINS)
+  cmake_language(DEFER DIRECTORY "${SCORE_ROOT_SOURCE_DIR}"
+    CALL _score_link_static_plugin_tests)
+endif()
 
 # A GPU reset (device lost, driver watchdog) destroys every context on the
 # machine, so GPU tests running side by side die together. Every test labelled
@@ -239,11 +250,7 @@ function(score_add_test NAME)
       ${QT_PREFIX}::Network
       ${QT_PREFIX}::Xml)
 
-    if(SCORE_STATIC_PLUGINS)
-      set(_test_plugins "${SCORE_PLUGINS_LIST}")
-      list(REMOVE_ITEM _test_plugins score_plugin_jit)
-      target_link_libraries(${NAME} PRIVATE ${_test_plugins})
-    endif()
+    score_link_plugins_for_static(${NAME})
   endif()
 
   setup_score_common_exe_features(${NAME})

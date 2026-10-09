@@ -1213,6 +1213,7 @@ target_link_libraries(ObjectGallery PRIVATE
   score_plugin_deviceexplorer score_lib_process score_lib_device
   ${QT_PREFIX}::Core ${QT_PREFIX}::Gui ${QT_PREFIX}::Widgets
   ${QT_PREFIX}::Network ${QT_PREFIX}::Xml)
+score_link_plugins_for_static(ObjectGallery)
 setup_score_common_exe_features(ObjectGallery)
 set_target_properties(ObjectGallery PROPERTIES FOLDER "Tests")
 

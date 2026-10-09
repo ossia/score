@@ -279,7 +279,7 @@ QQuickItem* buildUi(QQmlEngine& engine, QQuickWindow& window, const QString& qml
 
 // Readback.
 
-bool near(const QColor& actual, const QColor& expected)
+bool colorsClose(const QColor& actual, const QColor& expected)
 {
   constexpr int tolerance = 28;
   return std::abs(actual.red() - expected.red()) <= tolerance
@@ -322,9 +322,9 @@ bool hasPattern(const QImage& image, const QRectF& rect, double scale, const Pat
     return false;
   const auto q = quadrantsOf(image, rect, scale);
   const bool upright
-      = near(q.tl, p.tl) && near(q.tr, p.tr) && near(q.bl, p.bl) && near(q.br, p.br);
+      = colorsClose(q.tl, p.tl) && colorsClose(q.tr, p.tr) && colorsClose(q.bl, p.bl) && colorsClose(q.br, p.br);
   const bool flipped
-      = near(q.tl, p.bl) && near(q.tr, p.br) && near(q.bl, p.tl) && near(q.br, p.tr);
+      = colorsClose(q.tl, p.bl) && colorsClose(q.tr, p.br) && colorsClose(q.bl, p.tl) && colorsClose(q.br, p.tr);
   return upright || flipped;
 }
 
@@ -333,7 +333,7 @@ bool isBlank(const QImage& image, const QRectF& rect, double scale, const QColor
   if(image.isNull())
     return false;
   const auto q = quadrantsOf(image, rect, scale);
-  return near(q.tl, bg) && near(q.tr, bg) && near(q.bl, bg) && near(q.br, bg);
+  return colorsClose(q.tl, bg) && colorsClose(q.tr, bg) && colorsClose(q.bl, bg) && colorsClose(q.br, bg);
 }
 
 double grabScale(const QQuickWindow& window, const QImage& image)

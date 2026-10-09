@@ -6,8 +6,8 @@
 #include "IsfTestCommon.hpp"
 
 #include <cmath>
-#include <cstdlib>
 #include <cstring>
+#include <new>
 #include <vector>
 
 using namespace score::test::gfx;
@@ -28,24 +28,24 @@ ossia::audio_vector sine(double cyclesPerSample, int samples, int channels = 1)
   return v;
 }
 
-// Fills freed malloc blocks of the sizes the FFT scratch buffers take with
-// 0xff (a NaN pattern), so that a spectrum texel computed from uninitialised
-// scratch memory reads back as non-finite instead of passing as zero.
+// Fills freed 32-byte-aligned blocks of the sizes the FFT scratch buffers take
+// with 0xff (a NaN pattern), so that a spectrum texel computed from
+// uninitialised scratch memory reads back as non-finite instead of passing as zero.
 void poisonHeap()
 {
   std::vector<void*> blocks;
   for(std::size_t bytes : {std::size_t(4104), std::size_t(8200), std::size_t(2056)})
     for(int i = 0; i < 256; ++i)
     {
-      void* p{};
-      if(::posix_memalign(&p, 32, bytes) == 0)
+      void* p = ::operator new(bytes, std::align_val_t{32}, std::nothrow);
+      if(p)
       {
         std::memset(p, 0xff, bytes);
         blocks.push_back(p);
       }
     }
   for(void* p : blocks)
-    std::free(p);
+    ::operator delete(p, std::align_val_t{32});
 }
 
 IsfResult renderAudio(

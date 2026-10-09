@@ -33,13 +33,13 @@
 #include <QDesktopServices>
 #include <QDir>
 #include <QDirIterator>
+#include <QFile>
 #include <QFontDatabase>
 #include <QKeyEvent>
 #include <QLabel>
 #include <QOpenGLContext>
 #include <QPainter>
 #include <QPushButton>
-#include <QResource>
 #include <QStandardPaths>
 #include <QStyleHints>
 #include <QUrl>
@@ -70,10 +70,6 @@ W_OBJECT_IMPL(Application)
 #if defined(SCORE_SOURCE_DIR)
 #include <QFileSystemWatcher>
 #endif
-#if defined(SCORE_STATIC_PLUGINS)
-int qInitResources_score();
-int qInitResources_qtconf();
-#endif
 
 // Always built; only shown by itself at startup outside debug builds.
 #if !defined(SCORE_DEBUG)
@@ -83,37 +79,9 @@ int qInitResources_qtconf();
 
 #include "StartScreen.hpp"
 
-static void loadResources()
-{
-// Note: Q_INIT_RESOURCE must be invoked outside of any namespace
-#if defined(SCORE_STATIC_PLUGINS)
-  Q_INIT_RESOURCE(score);
-  Q_INIT_RESOURCE(qtconf);
-  Q_INIT_RESOURCE(qcodeeditor_resources);
-#if defined(__APPLE__)
-  Q_INIT_RESOURCE(fonts_macos);
-#else
-  Q_INIT_RESOURCE(fonts);
-#endif
-#endif
-
-  if(QString file = QCoreApplication::applicationDirPath() + "/resources.rcc";
-     QFile::exists(file))
-  {
-    QResource::registerResource(file);
-  }
-}
-
 namespace score
 {
 class DocumentModel;
-
-static void loadApplicationResources()
-{
-  loadResources();
-
-  score::registerApplicationFonts();
-}
 
 //! Must run after QApplication::setStyle(), which resets the widget font hash.
 //!
