@@ -60,6 +60,9 @@ private:
       const TextureRenderTarget& rt, RenderList& renderer, Edge& edge, QSize mainTexSize,
       QRhiResourceUpdateBatch& res);
 
+  //! Whether a pass sized by an expression would now get another size.
+  bool passSizesChanged(RenderList& renderer);
+
   PassOutput initPassSampler(
       ISFNode& n, const isf::pass& pass, int passIndex, RenderList& renderer,
       QSize mainTexSize, QRhiResourceUpdateBatch& res);

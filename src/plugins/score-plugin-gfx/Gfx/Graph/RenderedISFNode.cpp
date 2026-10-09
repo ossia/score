@@ -759,6 +759,31 @@ void RenderedISFNode::removeOutputPass(RenderList& renderer, Edge& edge)
   }
 }
 
+bool RenderedISFNode::passSizesChanged(RenderList& renderer)
+{
+  const auto& model_passes = n.descriptor().passes;
+  for(auto& [edge, p] : m_passes)
+  {
+    const QSize mainTexSize = renderer.renderSize(edge);
+    for(std::size_t i = 0; i < p.samplers.size() && i < model_passes.size(); i++)
+    {
+      const auto& pass = model_passes[i];
+      if(pass.width_expression.empty() && pass.height_expression.empty())
+        continue;
+      QRhiTexture* tex{};
+      if(auto* persist = ossia::get_if<PersistSampler>(&p.samplers[i]))
+        tex = persist->textures[0];
+      else if(auto* rt = ossia::get_if<TextureRenderTarget>(&p.samplers[i]))
+        tex = rt->texture;
+      if(tex
+         && tex->pixelSize()
+                != n.computeTextureSize(pass, mainTexSize, m_inputSamplers))
+        return true;
+    }
+  }
+  return false;
+}
+
 void RenderedISFNode::releaseDetachedPassOutputs() noexcept
 {
   for(auto& [passIndex, output] : m_detachedPassOutputs)
@@ -795,6 +820,22 @@ void RenderedISFNode::update(
   // Pipeline creation may have legitimately failed and cleaned up.
   if(m_passes.empty())
     return;
+
+  // A pass sized by an expression over an input is rebuilt when the input
+  // changes its size.
+  if(materialChanged && passSizesChanged(renderer))
+  {
+    std::vector<Edge*> edges;
+    for(auto& [e, p] : m_passes)
+      edges.push_back(e);
+    for(Edge* e : edges)
+    {
+      removeOutputPass(renderer, *e);
+      addOutputPass(renderer, *e, res);
+    }
+    if(m_passes.empty())
+      return;
+  }
 
   // passIndex is set per-pass in the processUBO update loop below, so it
   // needs no value here.
