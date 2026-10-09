@@ -52,7 +52,7 @@ View::~View()
     // DeferredDelete is still honoured when the thread finishes.
     m_thumb->deleteLater();
 
-    score::ThreadPool::instance().releaseThread();
+   // score::ThreadPool::instance().releaseThread();
   }
 }
 

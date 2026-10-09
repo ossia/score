@@ -268,6 +268,9 @@ find_package(${QT_VERSION} REQUIRED
     Canvas2DPrivate
     WebSockets
     WebView
+    WebChannel
+    WebEngineCore
+    WebEngineQuick
     Svg
     CorePrivate
     GuiPrivate
