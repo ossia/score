@@ -1438,6 +1438,27 @@ void RenderedCSFNode::updateStorageBuffers(RenderList& renderer, QRhiResourceUpd
     }
   }
 
+  // The previous-frame copy of a PERSISTENT buffer follows its size.
+  for(auto& storageBuffer : m_storageBuffers)
+  {
+    if(!storageBuffer.persistent || !storageBuffer.buffer)
+      continue;
+    const int64_t size = storageBuffer.owned ? (int64_t)storageBuffer.buffer->size()
+                                             : storageBuffer.size;
+    if(size <= 0 || (storageBuffer.prev && storageBuffer.prev->size() == size))
+      continue;
+    if(storageBuffer.prev)
+      renderer.releaseBuffer(storageBuffer.prev);
+    storageBuffer.prev
+        = createStorageBuffer(
+              renderer, storageBuffer.name + "_prev", QStringLiteral("read_only"), size)
+              .handle;
+    if(storageBuffer.prev)
+      score::gfx::uploadStaticBufferWithStoredData(
+          &res, storageBuffer.prev, 0, QByteArray(size, 0));
+    buffersChanged = true;
+  }
+
   // SRBs will be recreated once at the end of update(), after all buffer
   // mutations (storage + geometry) are finalized. This prevents building
   // intermediate SRBs that reference stale/dangling buffer pointers.
@@ -4223,6 +4244,10 @@ void RenderedCSFNode::buildComputeSrbBindings(
               it->owned ? 0 : it->offset, it->owned ? 0 : it->size, m_srbRangeHash));
           output_port_index++;
         }
+        if(storage_in->persistent)
+          bindings.append(storageBufferBinding(
+              QRhiShaderResourceBinding::BufferLoad, bindingIndex++,
+              it->prev ? it->prev : it->buffer, 0, 0, m_srbRangeHash));
       }
       else
       {
@@ -4234,7 +4259,7 @@ void RenderedCSFNode::buildComputeSrbBindings(
         else
           qWarning() << "CSF: cannot bind null buffer for input"
                      << QString::fromStdString(input.name);
-        bindingIndex++;
+        bindingIndex += storage_in->persistent ? 2 : 1;
       }
 
       // A write-access buffer whose layout ends in a flexible-array member gets a
@@ -4997,6 +5022,7 @@ void RenderedCSFNode::initState(RenderList& renderer, QRhiResourceUpdateBatch& r
       sb.buffer_usage = storage->buffer_usage;
       sb.access = QString::fromStdString(storage->access);
       sb.layout = storage->layout; // Store layout for size calculation
+      sb.persistent = storage->persistent;
       m_storageBuffers.push_back(sb);
 
       if(sb.access.contains("write")) {
@@ -5478,7 +5504,12 @@ void RenderedCSFNode::releaseState(RenderList& r)
   m_computePipeline = nullptr;
 
   for(auto& storageBuffer : m_storageBuffers)
+  {
     releaseSlot(r, storageBuffer);
+    if(storageBuffer.prev)
+      r.releaseBuffer(storageBuffer.prev);
+    storageBuffer.prev = nullptr;
+  }
   m_storageBuffers.clear();
 
   m_gpuScatter.release();
@@ -5804,8 +5835,11 @@ void RenderedCSFNode::recreateShaderResourceBindings(RenderList& renderer, QRhiR
       RenderList::noteBufferLive(gb.indirectCountBuffer);
     }
     for(auto& sb : m_storageBuffers)
+    {
       if(sb.owned)
         RenderList::noteBufferLive(sb.buffer);
+      RenderList::noteBufferLive(sb.prev);
+    }
     RenderList::noteBufferLive(m_materialUBO);
     for(auto& [edge, pass] : m_computePasses)
       RenderList::noteBufferLive(pass.processUBO);
@@ -6692,6 +6726,38 @@ void RenderedCSFNode::runInitialPasses(
     QRhiCommandBuffer* c;
     ~MarkEnd() { c->debugMarkEnd(); }
   } _me{&commands};
+
+  // PERSISTENT storage: `<name>_prev` gets what the buffer holds at the end of
+  // the previous frame, before any pass of this frame writes it.
+  {
+    bool anyPersistent = false;
+    for(const auto& sb : m_storageBuffers)
+      if(sb.persistent && sb.buffer && sb.prev)
+        anyPersistent = true;
+    if(anyPersistent)
+    {
+      if(res)
+      {
+        commands.resourceUpdate(res);
+        res = renderer.state.rhi->nextResourceUpdateBatch();
+      }
+      commands.beginExternal();
+      beginBufferCopyBarrier(*renderer.state.rhi, commands);
+      for(const auto& sb : m_storageBuffers)
+      {
+        if(!sb.persistent || !sb.buffer || !sb.prev)
+          continue;
+        const int64_t size = std::min<int64_t>(
+            sb.owned ? (int64_t)sb.buffer->size() : sb.size, sb.prev->size());
+        if(size > 0)
+          copyBuffer(
+              *renderer.state.rhi, commands, sb.buffer, sb.prev, (int)size,
+              sb.owned ? 0 : (int)sb.offset, 0, BufferCopyBarrier::None);
+      }
+      endBufferCopyBarrier(*renderer.state.rhi, commands);
+      commands.endExternal();
+    }
+  }
 
   runGeometryPasses(renderer, commands, res, edge, true);
   for(auto& layer : m_meshLayers)

@@ -1696,6 +1696,9 @@ score_add_gfx_test(vsa_clip_depth GfxVsaClipDepth.cpp)
 # CSF storage bindings at the published range; read_write on a static GPU upstream.
 score_add_gfx_test(csf_buffer_range GfxCsfBufferRange.cpp)
 
+# CSF PERSISTENT storage reads the previous frame's contents as <name>_prev.
+score_add_gfx_test(csf_storage_persistent GfxCsfStoragePersistent.cpp)
+
 # Raw raster storage images take the lowest bindings, under the 8 OpenGL image
 # units NVIDIA exposes.
 score_add_gfx_test(storage_image_low_binding GfxStorageImageLowBinding.cpp)

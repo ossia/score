@@ -7375,22 +7375,34 @@ void parser::parse_csf()
       else
         m_fragment += "restrict ";
 
+      auto emit_fields = [&] {
+        for(const auto& field : storage.layout)
+        {
+          auto bracket = field.type.find('[');
+          if(bracket != std::string::npos)
+            m_fragment += "    " + field.type.substr(0, bracket) + " " + field.name
+                          + field.type.substr(bracket) + ";\n";
+          else
+            m_fragment += "    " + field.type + " " + field.name + ";\n";
+        }
+      };
+
       m_fragment += "buffer " + inp.name + "_buf {\n";
-
-      // Add struct members based on layout
-      for(const auto& field : storage.layout)
-      {
-        auto bracket = field.type.find('[');
-        if(bracket != std::string::npos)
-          m_fragment += "    " + field.type.substr(0, bracket) + " " + field.name
-                        + field.type.substr(bracket) + ";\n";
-        else
-          m_fragment += "    " + field.type + " " + field.name + ";\n";
-      }
-
+      emit_fields();
       m_fragment += "} " + inp.name + ";\n\n";
 
       binding++;
+
+      // PERSISTENT: a readonly `<name>_prev` at the following slot holds what
+      // the buffer contained when the previous frame's passes finished.
+      if(storage.persistent)
+      {
+        m_fragment += "layout(binding = " + std::to_string(binding)
+                      + ", std430) readonly buffer " + inp.name + "_prev_buf {\n";
+        emit_fields();
+        m_fragment += "} " + inp.name + "_prev;\n\n";
+        binding++;
+      }
     }
     else if(auto* img_ptr = ossia::get_if<csf_image_input>(&inp.data))
     {
