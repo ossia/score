@@ -20,6 +20,8 @@
 #include <catch2/generators/catch_generators.hpp>
 #include <catch2/generators/catch_generators_range.hpp>
 
+#include <algorithm>
+
 using namespace score::test;
 using namespace score::test::gfx;
 
@@ -91,9 +93,28 @@ TEST_CASE(
   INFO("error=" << s.error);
   REQUIRE(s.error.empty());
 
-  // The cube's front face covers the centre of the frame.
-  const auto px = s.img.at(s.img.width / 2, s.img.height / 2);
-  INFO("centre " << int(px[0]) << " " << int(px[1]) << " " << int(px[2]));
+  // The cube spans [0, 1] on each axis, so its front face is off the frame's
+  // centre: sample the middle of what was drawn. Black drawn on black leaves
+  // nothing to find.
+  int left = s.img.width, right = -1, top = s.img.height, bottom = -1;
+  for(int y = 0; y < s.img.height; y++)
+    for(int x = 0; x < s.img.width; x++)
+    {
+      const auto p = s.img.at(x, y);
+      if(p[0] + p[1] + p[2] > 60)
+      {
+        left = std::min(left, x);
+        right = std::max(right, x);
+        top = std::min(top, y);
+        bottom = std::max(bottom, y);
+      }
+    }
+  INFO("drawn cols " << left << ".." << right << " rows " << top << ".." << bottom);
+  REQUIRE(right - left > 8);
+  REQUIRE(bottom - top > 8);
+
+  const auto px = s.img.at((left + right) / 2, (top + bottom) / 2);
+  INFO("face centre " << int(px[0]) << " " << int(px[1]) << " " << int(px[2]));
   CHECK(px[0] > 230);
   CHECK(px[1] > 230);
   CHECK(px[2] > 230);
