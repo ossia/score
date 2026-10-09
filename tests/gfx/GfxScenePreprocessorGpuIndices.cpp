@@ -204,8 +204,18 @@ TEST_CASE(
 {
   const auto api = GENERATE(from_range(platform_backends()));
   const auto fmt = GENERATE(ossia::index_format::uint16, ossia::index_format::uint32);
+  // Widened: the compute pass Metal widens uint16 indices with, forced here.
+  const bool widened = GENERATE(false, true);
+  if(widened && fmt != ossia::index_format::uint16)
+    SKIP("only uint16 indices are widened");
   CAPTURE(backend_name(api));
   CAPTURE(fmt == ossia::index_format::uint16 ? "uint16" : "uint32");
+  CAPTURE(widened);
+  score::gfx::forceGpuIndexWidening(widened);
+  struct ResetWidening
+  {
+    ~ResetWidening() { score::gfx::forceGpuIndexWidening(false); }
+  } resetWidening;
 
   bool built = false;
   bool skipped = false;
@@ -280,7 +290,8 @@ TEST_CASE(
 }
 
 TEST_CASE(
-    "the Scene Preprocessor copies 16-bit GPU indices everywhere but on Metal",
+    "the Scene Preprocessor copies 16-bit GPU indices everywhere but on Metal, "
+    "where it widens them",
     "[gfx][scene][index]")
 {
   using score::gfx::copiesGpuIndices;
@@ -299,4 +310,14 @@ TEST_CASE(
   // copied into each uint32 slot two bytes at a time.
   CHECK(!copiesGpuIndices(QRhi::Metal, ossia::index_format::uint16));
   CHECK(copiesGpuIndices(QRhi::Metal, ossia::index_format::uint32));
+
+  using score::gfx::widensGpuIndices;
+  for(auto api : apis)
+  {
+    CAPTURE(int(api));
+    CHECK(!widensGpuIndices(api, ossia::index_format::uint16));
+    CHECK(!widensGpuIndices(api, ossia::index_format::uint32));
+  }
+  CHECK(widensGpuIndices(QRhi::Metal, ossia::index_format::uint16));
+  CHECK(!widensGpuIndices(QRhi::Metal, ossia::index_format::uint32));
 }

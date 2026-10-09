@@ -158,7 +158,9 @@ void GpuResourceRegistry::init(QRhi& rhi, QRhiResourceUpdateBatch& batch)
     using UF = QRhiBuffer::UsageFlags;
     UF usage;
     if(i == (std::size_t)MeshStream::Indices)
-      usage = UF(QRhiBuffer::IndexBuffer);
+      // Storage too: the Scene Preprocessor widens uint16 GPU indices into it
+      // with a compute pass where a buffer copy cannot (widensGpuIndices).
+      usage = UF(QRhiBuffer::IndexBuffer | QRhiBuffer::StorageBuffer);
     else
       usage = UF(QRhiBuffer::VertexBuffer | QRhiBuffer::StorageBuffer);
 

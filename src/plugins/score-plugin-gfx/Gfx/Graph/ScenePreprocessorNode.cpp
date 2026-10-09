@@ -4,6 +4,7 @@
 #include <Gfx/AssetTable.hpp>
 #include <Gfx/Graph/CameraMath.hpp>
 #include <Gfx/Graph/CustomMesh.hpp>
+#include <Gfx/Graph/GPUIndexWiden.hpp>
 #include <Gfx/Graph/NodeRenderer.hpp>
 #include <Gfx/Graph/RenderList.hpp>
 #include <Gfx/Graph/RhiClearBuffer.hpp>
@@ -25,6 +26,7 @@
 
 #include <algorithm>
 #include <array>
+#include <atomic>
 #include <chrono>
 #include <cstring>
 #include <limits>
@@ -721,6 +723,7 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
                          // and color share a 32-byte slot
     int element_size{};  // BytesPerVertex for this attribute
     MdiAttr attr{};
+    bool widen{};        // uint16 indices widened by m_indexWiden, not copied
   };
   std::vector<PendingGpuCopy> m_pendingGpuCopies;
 
@@ -746,9 +749,16 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
   // drop before it is ever submitted.
   bool m_defaultMaterialUploaded{false};
 
-  // A mesh with uint16 GPU indices was skipped on a backend that cannot copy
-  // them (copiesGpuIndices); warned once.
+  // A mesh with uint16 GPU indices was skipped: neither copied
+  // (copiesGpuIndices) nor widened in a compute pass; warned once.
   bool m_warnedUint16GpuIndices{false};
+
+  // Compute pass widening the `widen` entries of m_pendingGpuCopies, one
+  // prepared op each, in queue order.
+  score::gfx::GPUIndexWiden m_indexWiden;
+  bool m_indexWidenTried{false};
+  bool m_indexWidenReady{false};
+  std::vector<score::gfx::GPUIndexWiden::PreparedOp> m_widenOps;
 
   // Texture pool generation this preprocessor last published against. The
   // pool is shared, so another preprocessor growing a bucket replaces arrays
@@ -1160,6 +1170,12 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
     m_pendingGpuCopies.clear();
     m_pendingGpuCopies.shrink_to_fit();
     m_lastGpuCopiesFrame = -1;
+    for(auto& op : m_widenOps)
+      score::gfx::GPUIndexWiden::releaseOp(op);
+    m_widenOps.clear();
+    m_indexWiden.release();
+    m_indexWidenTried = false;
+    m_indexWidenReady = false;
     // Free per-registry resources on every release(), whether the renderer is
     // about to be destroyed (recreateOutputRenderList) or reused
     // (relinkGraph). Skipping the free on a registry-pointer match would only
@@ -1413,11 +1429,16 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
   // GPU-backed counterpart of extractCpuIndices: the index buffer, the byte
   // offset of the first index and the index size (2 or 4) as the stride. Empty
   // when the indices are CPU-resident or missing, or would read past the
-  // buffer. The arena holds uint32 indices, so uint16 ones are widened by
-  // copying each into the low half of a zeroed slot; see copiesGpuIndices for
-  // allowUint16.
+  // buffer. The arena holds uint32 indices, so uint16 ones are widened, by
+  // copying each into the low half of a zeroed slot or, where that copy is
+  // refused, by a compute pass that reads the buffer as storage.
+  struct GpuIndexRules
+  {
+    bool uint16{true};
+    bool uint16AsStorage{false};
+  };
   static GpuAttrView
-  extractGpuIndices(const ossia::geometry& g, bool allowUint16)
+  extractGpuIndices(const ossia::geometry& g, GpuIndexRules rules)
   {
     if(g.indices <= 0 || g.index.buffer < 0
        || g.index.buffer >= (int)g.buffers.size())
@@ -1427,7 +1448,11 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
     if(!gpu || !gpu->handle)
       return {};
     const bool u16 = g.index.format == decltype(g.index)::uint16;
-    if(u16 && !allowUint16)
+    if(u16 && !rules.uint16)
+      return {};
+    if(u16 && rules.uint16AsStorage
+       && !static_cast<QRhiBuffer*>(gpu->handle)->usage().testFlag(
+           QRhiBuffer::StorageBuffer))
       return {};
     const int idxBytes = u16 ? 2 : 4;
     const int64_t end
@@ -1441,9 +1466,10 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
     return v;
   }
 
-  static bool allowUint16GpuIndices(const QRhi& rhi) noexcept
+  static GpuIndexRules gpuIndexRules(const QRhi& rhi) noexcept
   {
-    return copiesGpuIndices(rhi.backend(), ossia::index_format::uint16);
+    const bool widen = widensGpuIndices(rhi.backend(), ossia::index_format::uint16);
+    return {!widen || rhi.isFeatureSupported(QRhi::Compute), widen};
   }
 
   // Mesh-deterministic subset of emitDraw's skip predicate: a draw is dropped
@@ -1454,7 +1480,7 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
   // freshPerDraws mirror in lock-step with what emitDraw packed. The other
   // emitDraw skips are handled at the call site or cannot occur once a slab is
   // resident.
-  static bool meshEmitsDraw(const ossia::geometry& mesh, bool allowUint16)
+  static bool meshEmitsDraw(const ossia::geometry& mesh, GpuIndexRules indexRules)
   {
     const bool hasCpuPos
         = !extractCpuAttribute<12>(mesh, ossia::attribute_semantic::position)
@@ -1467,7 +1493,7 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
         return false; // no positions → emitDraw skips
     }
     if(mesh.indices > 0 && extractCpuIndices(mesh).empty()
-       && !extractGpuIndices(mesh, allowUint16).buf)
+       && !extractGpuIndices(mesh, indexRules).buf)
       return false; // no usable indices → emitDraw skips
     return true;
   }
@@ -2340,18 +2366,18 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
         idx = extractCpuIndices(*mesh);
         if(idx.empty())
         {
-          const bool allowUint16 = allowUint16GpuIndices(rhi);
-          gpu_idx = extractGpuIndices(*mesh, allowUint16);
+          const auto indexRules = gpuIndexRules(rhi);
+          gpu_idx = extractGpuIndices(*mesh, indexRules);
           if(!gpu_idx.buf)
           {
-            if(!allowUint16 && !m_warnedUint16GpuIndices
-               && extractGpuIndices(*mesh, true).buf)
+            if(!m_warnedUint16GpuIndices && extractGpuIndices(*mesh, {}).buf)
             {
               m_warnedUint16GpuIndices = true;
               qWarning() << "Scene Preprocessor: a mesh whose 16-bit indices are in "
                             "a GPU buffer is not drawn on"
                          << rhi.backendName()
-                         << "(only 4-byte-aligned buffer copies); give it 32-bit "
+                         << "(buffer copies must be 4-byte aligned, and the buffer "
+                            "cannot be read by a compute pass); give it 32-bit "
                             "indices";
             }
             return kCmdSkipped;
@@ -2552,6 +2578,9 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
         queueSlabCopy(
             MdiAttr::Indices, gpu_idx, 4, (int)drawIndexCount,
             m_registry->meshSlabOffsetBytes(*slab, Stream::Indices));
+        m_pendingGpuCopies.back().widen
+            = gpu_idx.byte_stride == 2
+              && widensGpuIndices(rhi.backend(), ossia::index_format::uint16);
       }
 
       if(m_skinStream && (slab->freshly_allocated || skinStreamCreated))
@@ -5289,8 +5318,7 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
         // model matrix into its neighbour's GPU slot.
         if(!dc.mesh || dc.mesh->vertices <= 0 || !m_registry)
           continue;
-        if(!meshEmitsDraw(
-               *dc.mesh, allowUint16GpuIndices(*renderer.state.rhi)))
+        if(!meshEmitsDraw(*dc.mesh, gpuIndexRules(*renderer.state.rhi)))
           continue;
         PerDrawGPU pd{};
         writeMat4(pd.model, dc.worldTransform);
@@ -5356,7 +5384,7 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
           freshMeshFingerprint.push_back(
               bufId(ossia::attribute_semantic::texcoord1));
           freshMeshFingerprint.push_back(reinterpret_cast<uintptr_t>(
-              extractGpuIndices(*dc.mesh, true).buf));
+              extractGpuIndices(*dc.mesh, {}).buf));
         }
       }
 
@@ -5738,6 +5766,55 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
   //
   // Stride-equal-to-element copies collapse to one copyBuffer; strided
   // vec4->vec3 copies fall back to one copyBuffer per vertex.
+  // The uint16 index copies that the backend cannot blit, run as one compute
+  // pass ahead of the frame's buffer copies.
+  void widenPendingGpuIndices(
+      RenderList& renderer, QRhiCommandBuffer& cb, QRhiResourceUpdateBatch*& res)
+  {
+    auto* rhi = renderer.state.rhi;
+    QRhiBuffer* dst = mdiBufferFor(MdiAttr::Indices);
+    std::vector<score::gfx::GPUIndexWiden::Params> params;
+    for(const auto& op : m_pendingGpuCopies)
+      if(op.widen && op.src && dst)
+        params.push_back(
+            {op.src, dst, (uint32_t)op.vertex_count, (uint32_t)op.src_offset,
+             (uint32_t)op.dst_offset});
+    if(params.empty() || !rhi)
+      return;
+
+    if(!m_indexWidenTried)
+    {
+      m_indexWidenTried = true;
+      m_indexWidenReady = m_indexWiden.init(renderer.state);
+      if(!m_indexWidenReady)
+        qWarning() << "Scene Preprocessor: 16-bit GPU indices cannot be widened on"
+                   << rhi->backendName();
+    }
+    if(!m_indexWidenReady)
+      return;
+
+    while(m_widenOps.size() > params.size())
+    {
+      score::gfx::GPUIndexWiden::releaseOp(m_widenOps.back());
+      m_widenOps.pop_back();
+    }
+    while(m_widenOps.size() < params.size())
+      m_widenOps.push_back(m_indexWiden.prepare(*rhi, params[m_widenOps.size()]));
+
+    if(!res)
+      res = rhi->nextResourceUpdateBatch();
+    for(std::size_t i = 0; i < params.size(); i++)
+      m_indexWiden.updateParams(*res, m_widenOps[i], params[i]);
+
+    cb.beginComputePass(res);
+    res = nullptr;
+    for(std::size_t i = 0; i < params.size(); i++)
+      m_indexWiden.dispatch(cb, m_widenOps[i], params[i]);
+    cb.endComputePass();
+    // The caller queues this frame's world-transform writes into `res`.
+    res = rhi->nextResourceUpdateBatch();
+  }
+
   void issuePendingGpuCopies(RenderList& renderer, QRhiCommandBuffer& cb)
   {
     if(m_pendingGpuCopies.empty())
@@ -5763,7 +5840,7 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
       // unified-MDI per-instance concat copies (the interleaved attribs
       // array) which target preprocessor-owned buffers, not arena streams.
       QRhiBuffer* dst = op.dst ? op.dst : mdiBufferFor(op.attr);
-      if(!op.src || !dst)
+      if(!op.src || !dst || op.widen)
         continue;
       const int src_stride
           = op.src_stride == 0 ? op.element_size : op.src_stride;
@@ -5831,6 +5908,7 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
     // every consumer.
     if(m_lastGpuCopiesFrame != renderer.frame)
     {
+      widenPendingGpuIndices(renderer, commands, res);
       issuePendingGpuCopies(renderer, commands);
       m_lastGpuCopiesFrame = renderer.frame;
     }
@@ -5916,6 +5994,19 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
 bool copiesGpuIndices(QRhi::Implementation backend, ossia::index_format format) noexcept
 {
   return format != ossia::index_format::uint16 || backend != QRhi::Metal;
+}
+
+static std::atomic_bool g_forceGpuIndexWidening{false};
+
+bool widensGpuIndices(QRhi::Implementation backend, ossia::index_format format) noexcept
+{
+  return format == ossia::index_format::uint16
+         && (!copiesGpuIndices(backend, format) || g_forceGpuIndexWidening.load());
+}
+
+void forceGpuIndexWidening(bool force) noexcept
+{
+  g_forceGpuIndexWidening = force;
 }
 
 ScenePreprocessorNode::ScenePreprocessorNode()
