@@ -130,6 +130,8 @@ private:
   void releaseBlendPassPipeline(QRhiGraphicsPipeline* pipeline);
   ossia::small_flat_map<QRhiGraphicsPipeline*, QRhiGraphicsPipeline*, 2>
       m_blendPassPipelines;
+  // The pipelines' QRhi: QRhiResource::rhi() is Qt 6.6+.
+  QRhi* m_blendPassRhi{};
 
   std::vector<Sampler> allSamplers() const noexcept;
 
