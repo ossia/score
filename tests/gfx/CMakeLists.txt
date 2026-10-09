@@ -675,6 +675,13 @@ if(TARGET score_plugin_threedim AND TARGET score_plugin_avnd)
     HEADERS_FROM score_plugin_threedim)
 endif()
 
+# GltfParser.cpp generates tangents with mikktspace, which a dynamic-plugin
+# build does not export: link the copy test_unit_threedim_3rdparty carries.
+set(_gltf_mikktspace "")
+if(TARGET test_unit_threedim_3rdparty)
+  set(_gltf_mikktspace test_unit_threedim_3rdparty)
+endif()
+
 # KHR_lights_punctual lights inside a glTF reach the scene_lights a preset reads.
 if(TARGET score_plugin_threedim AND TARGET score_plugin_avnd)
   score_add_gfx_plugin_test(gltf_punctual_lights
@@ -683,7 +690,7 @@ if(TARGET score_plugin_threedim AND TARGET score_plugin_avnd)
       "${_threedim}/GltfParser.cpp"
     PLUGINS score_plugin_avnd
     HEADERS_FROM score_plugin_threedim
-    LIBS fastgltf)
+    LIBS fastgltf ${_gltf_mikktspace})
 endif()
 
 # A glTF light casts the cascade shadows of Shadow Cascade Setup, through the
@@ -698,7 +705,7 @@ if(TARGET score_plugin_threedim AND TARGET score_plugin_avnd)
       "${_threedim}/SceneResourceRoute.cpp"
     PLUGINS score_plugin_avnd
     HEADERS_FROM score_plugin_threedim
-    LIBS fastgltf)
+    LIBS fastgltf ${_gltf_mikktspace})
 endif()
 
 if(TARGET score_plugin_avnd)
