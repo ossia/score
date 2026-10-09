@@ -18,7 +18,7 @@ jobs:
     strategy:
       matrix:
         include:
-          - { image: ubuntu-24.04, arch: x86_64 }
+          - { image: [self-hosted, linux, x64, sat-builder], arch: x86_64 }
           - { image: ubuntu-24.04-arm, arch: aarch64 }
       fail-fast: false
 
