@@ -120,6 +120,11 @@ private:
   {
     enabled = false;
 
+    // initState() reads this to pick the decoder even when no server was
+    // found, so it must track the RHI: Metal cannot compile the sampler2DRect
+    // shader the OpenGL decoder uses, and the draws are silently dropped.
+    m_usingMetal = (rhi.backend() == QRhi::Metal);
+
     // Symmetric with releaseState(): stop any client we already hold before
     // replacing it, otherwise the previous SyphonClient leaks (and keeps a
     // connection open to the server).
@@ -158,7 +163,6 @@ private:
           options:nil
           newFrameHandler:nil
       ];
-      m_usingMetal = true;
       enabled = (m_mtlReceiver != nil);
     }
     else if (rhi.backend() == QRhi::OpenGLES2)
@@ -174,7 +178,6 @@ private:
           options:nil
           newFrameHandler:nil
       ];
-      m_usingMetal = false;
       enabled = (m_receiver != nil);
     }
   }
