@@ -8,6 +8,7 @@
 #include <Library/LibrarySettings.hpp>
 
 #include <score/application/GUIApplicationContext.hpp>
+#include <score/tools/CancellationToken.hpp>
 #include <score/tools/RecursiveWatch.hpp>
 
 #include <QElapsedTimer>
@@ -63,7 +64,7 @@ ProcessesItemModel::ProcessesItemModel(
     const score::GUIApplicationContext& ctx, QObject* parent)
     : TreeNodeBasedItemModel<ProcessNode>{parent}
     , context{ctx}
-    , m_alive{std::make_shared<std::atomic_bool>(true)}
+    , m_searchIndexToken{score::CancellationToken::create()}
 {
   auto& procs = ctx.interfaces<Process::ProcessFactoryList>();
   procs.added.connect<&ProcessesItemModel::on_newPlugin>(*this);
@@ -89,11 +90,13 @@ ProcessesItemModel::ProcessesItemModel(
 
 ProcessesItemModel::~ProcessesItemModel()
 {
-  *m_alive = false;
+  m_searchIndexToken->cancel();
 }
 
 void ProcessesItemModel::indexForSearch()
 {
+  if(m_searchIndexToken->cancelled())
+    return;
   if(m_searchIndexRunning)
   {
     m_searchIndexPending = true;
@@ -130,7 +133,7 @@ void ProcessesItemModel::indexForSearch()
   const auto generation = m_searchIndexGeneration;
 
   QThreadPool::globalInstance()->start(
-      [this, items = std::move(items), generation, alive = m_alive] {
+      [this, items = std::move(items), generation, token = m_searchIndexToken] {
     constexpr std::size_t packetSize = 100;
     std::vector<std::pair<ProcessNode*, QString>> packet;
     packet.reserve(packetSize);
@@ -138,23 +141,25 @@ void ProcessesItemModel::indexForSearch()
     auto flush = [&] {
       if(packet.empty())
         return;
-      QMetaObject::invokeMethod(
-          this, [this, generation, packet = std::move(packet)] {
-        if(generation != m_searchIndexGeneration)
-          return;
-        for(const auto& [node, str] : packet)
-          node->searchString = str;
-      }, Qt::QueuedConnection);
+      token->run([&] {
+        QMetaObject::invokeMethod(
+            this, [this, generation, packet = std::move(packet)] {
+          if(generation != m_searchIndexGeneration)
+            return;
+          for(const auto& [node, str] : packet)
+            node->searchString = str;
+        }, Qt::QueuedConnection);
+      });
       packet.clear();
       packet.reserve(packetSize);
     };
 
     for(const Item& item : *items)
     {
-      if(!*alive)
+      Process::Descriptor desc;
+      if(!token->run([&] { desc = item.factory->descriptor(item.customData); }))
         return;
 
-      const auto desc = item.factory->descriptor(item.customData);
       QStringList parts{item.prettyName, desc.prettyName, desc.description};
       parts += desc.tags;
       parts.removeAll(QString{});
@@ -168,11 +173,13 @@ void ProcessesItemModel::indexForSearch()
     }
     flush();
 
-    QMetaObject::invokeMethod(this, [this, generation] {
-      m_searchIndexRunning = false;
-      if(m_searchIndexPending || generation != m_searchIndexGeneration)
-        m_searchIndexTimer.start();
-    }, Qt::QueuedConnection);
+    token->run([&] {
+      QMetaObject::invokeMethod(this, [this, generation] {
+        m_searchIndexRunning = false;
+        if(m_searchIndexPending || generation != m_searchIndexGeneration)
+          m_searchIndexTimer.start();
+      }, Qt::QueuedConnection);
+    });
   });
 }
 

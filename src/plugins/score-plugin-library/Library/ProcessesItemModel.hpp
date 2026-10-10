@@ -19,7 +19,6 @@
 #include <QIcon>
 #include <QTimer>
 
-#include <atomic>
 #include <memory>
 
 #include <nano_observer.hpp>
@@ -30,6 +29,7 @@
 namespace score
 {
 struct GUIApplicationContext;
+class CancellationToken;
 }
 
 namespace Library
@@ -125,7 +125,7 @@ private:
   uint64_t m_searchIndexGeneration{};
   bool m_searchIndexRunning{};
   bool m_searchIndexPending{};
-  std::shared_ptr<std::atomic_bool> m_alive;
+  std::shared_ptr<score::CancellationToken> m_searchIndexToken;
 };
 
 }
