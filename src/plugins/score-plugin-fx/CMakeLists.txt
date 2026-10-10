@@ -61,15 +61,15 @@ target_link_libraries(score_plugin_fx PUBLIC score_plugin_engine score_plugin_av
 setup_score_plugin(score_plugin_fx)
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   if(CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "MSVC")
-    target_compile_options(score_plugin_fx PRIVATE -clang:-fconstexpr-steps=11271242)
+    target_compile_options(score_plugin_fx PUBLIC -clang:-fconstexpr-steps=11271242)
   else()
-    target_compile_options(score_plugin_fx PRIVATE -fconstexpr-steps=11271242)
+    target_compile_options(score_plugin_fx PUBLIC -fconstexpr-steps=11271242)
   endif()
 elseif(MSVC)
     # D:\a\score\score\src\plugins\score-plugin-fx\Fx\MidiUtil.hpp(145,77): error C2131: expression did not evaluate to a constant
     #       C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Tools\MSVC\14.41.34120\include\xutility(1817,9):
     #       failure was caused by evaluation exceeding step limit of 1048576 (/constexpr:steps<NUMBER>)
-    target_compile_options(score_plugin_fx PRIVATE /constexpr:steps16000000)
+    target_compile_options(score_plugin_fx PUBLIC /constexpr:steps16000000)
 endif()
 
 if(WIN32 AND NOT MSVC AND NOT SCORE_PCH)
