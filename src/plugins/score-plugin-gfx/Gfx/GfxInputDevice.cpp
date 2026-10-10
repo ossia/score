@@ -31,6 +31,11 @@ void video_texture_input_protocol::stop_execution()
       camera_node->must_stop = true;
     }
   }
+  else if(camera)
+  {
+    // No node left to honour must_stop.
+    camera->stop();
+  }
 }
 
 video_texture_input_device::~video_texture_input_device() { }
@@ -99,8 +104,22 @@ void video_texture_input_parameter::pull_texture(ossia::gfx::port_index idx)
 video_texture_input_parameter::~video_texture_input_parameter()
 {
   proto.camera_node = nullptr;
+
+  // Nothing will render from the camera again, so close it: an exclusive device
+  // would otherwise stay open and starve the next opener.
   if(context_alive && *context_alive)
+  {
+    // The render thread owns the frames: unregister_node closes the capture
+    // once the renderers have detached, which is the order avformat needs.
+    if(node)
+      node->must_stop = true;
     context->ui->unregister_node(node_id);
+  }
+  else if(camera)
+  {
+    // No render context left to act on must_stop.
+    camera->stop();
+  }
 }
 
 video_texture_input_node::video_texture_input_node(
