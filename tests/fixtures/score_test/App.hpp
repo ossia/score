@@ -29,6 +29,7 @@
 #include <ossia/detail/thread.hpp>
 
 #include <QApplication>
+#include <QDialog>
 #include <QDir>
 
 #include <clocale>
@@ -152,6 +153,18 @@ struct document_closer
     close_all_documents(ctx);
     QApplication::processEvents();
     flush_deferred_deletes();
+    delete_stray_dialogs();
+  }
+
+  // A dialog without a parent (the local device's "port taken" warning, which
+  // fires for the port 0 the tests ask for) is only destroy()ed by
+  // ~QApplication, not deleted. Under xcb the next application of this process
+  // then repaints it through the dead connection and crashes.
+  static void delete_stray_dialogs()
+  {
+    for(QWidget* w : QApplication::topLevelWidgets())
+      if(!w->parent() && qobject_cast<QDialog*>(w))
+        delete w;
   }
 };
 

@@ -66,7 +66,12 @@ if(NOT DEFINED SCORE_TEST_RUNTIME_LIBDIR)
 endif()
 if(SCORE_TEST_RUNTIME_LIBDIR AND NOT WIN32)
   if(APPLE)
-    set(_score_libpath_mod "DYLD_LIBRARY_PATH=path_list_prepend:${SCORE_TEST_RUNTIME_LIBDIR}")
+    # ossia-score refuses to start with DYLD_LIBRARY_PATH set (ensureDyldPath
+    # in main.cpp, #1711). The fallback path is only searched for what the
+    # binary's own load commands do not find, so it cannot shadow the system
+    # libraries the way DYLD_LIBRARY_PATH does. Setting it replaces dyld's
+    # default fallback, hence /usr/local/lib and /usr/lib after it.
+    set(_score_libpath_mod "DYLD_FALLBACK_LIBRARY_PATH=path_list_append:${SCORE_TEST_RUNTIME_LIBDIR}:/usr/local/lib:/usr/lib")
   else()
     set(_score_libpath_mod "LD_LIBRARY_PATH=path_list_prepend:${SCORE_TEST_RUNTIME_LIBDIR}")
   endif()
