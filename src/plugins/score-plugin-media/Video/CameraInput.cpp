@@ -139,13 +139,23 @@ bool CameraInput::start() noexcept
     {
       qDebug() << "avformat_open_input" << av_to_string(ret);
 
-      // avformat_open_input freed the context: the flags and the interrupt
-      // callback have to be installed again before retrying.
-      if(m_interrupt.expired() || !alloc_format_context())
+      // Not expired(): an elapsed deadline is exactly when to try the fallback.
+      if(m_interrupt.aborted())
       {
         close_file();
         return false;
       }
+
+      // avformat_open_input freed the context: the flags and the interrupt
+      // callback have to be installed again before retrying.
+      if(!alloc_format_context())
+      {
+        close_file();
+        return false;
+      }
+
+      // A fresh budget, not what the first attempt left.
+      LibavTimeout retry_timeout{m_interrupt, open_timeout};
 
       // Let's try with the default settings if the requested settings did not work:
       ret = avformat_open_input(&m_formatContext, m_inputDevice.c_str(), ifmt, nullptr);
