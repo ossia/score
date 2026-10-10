@@ -29,7 +29,7 @@
 namespace
 {
 const QString regex_uuid = "ef63f9b2-cc68-4b25-825e-e3b126875086";
-const QString switch_uuid = "51083c8f-aea0-4617-b026-34fd2793c818";
+const QString regex_sink_switch_uuid = "51083c8f-aea0-4617-b026-34fd2793c818";
 constexpr int fixed_outlets = 5; // Match, Groups, Matched, Unmatched, Error
 
 Process::ControlInlet& pattern(Process::ProcessModel& p)
@@ -60,7 +60,7 @@ TEST_CASE("Regex capture outlets follow the pattern and keep their cables", "[av
     auto doc = score::test::new_document(ctx);
     REQUIRE(doc);
     auto re = score::test::add_process(*doc, regex_uuid, {});
-    auto sink = score::test::add_process(*doc, switch_uuid, {});
+    auto sink = score::test::add_process(*doc, regex_sink_switch_uuid, {});
     if(!re)
       SKIP("Regex not built");
     REQUIRE(sink);
