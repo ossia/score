@@ -67,7 +67,7 @@ bool eventually(Predicate&& predicate)
   return false;
 }
 
-bool near(const QColor& a, const QColor& b)
+bool colorsClose(const QColor& a, const QColor& b)
 {
   return std::abs(a.red() - b.red()) <= 2 && std::abs(a.green() - b.green()) <= 2
          && std::abs(a.blue() - b.blue()) <= 2 && std::abs(a.alpha() - b.alpha()) <= 2;
@@ -250,7 +250,7 @@ PaintSurface {
       if(frame.isNull())
         return false;
       return std::all_of(pixels.begin(), pixels.end(), [&](const Pixel& expected) {
-        return near(pixel(frame, host(expected.document)), expected.color);
+        return colorsClose(pixel(frame, host(expected.document)), expected.color);
       });
     });
     REQUIRE_FALSE(frame.isNull());
@@ -263,7 +263,7 @@ PaintSurface {
                             << expected.color.name(QColor::HexArgb).toStdString()
                             << ", displayed "
                             << actual.name(QColor::HexArgb).toStdString());
-      CHECK(near(actual, expected.color));
+      CHECK(colorsClose(actual, expected.color));
     }
     REQUIRE(matched);
   }
@@ -298,7 +298,7 @@ PaintSurface {
     INFO(
         "Expected sampled " << expected.name(QColor::HexArgb).toStdString() << ", got "
                             << actual.name(QColor::HexArgb).toStdString());
-    CHECK(near(actual, expected));
+    CHECK(colorsClose(actual, expected));
   }
 
   void mouse(QEvent::Type type, QPointF document)
@@ -711,7 +711,7 @@ TEST_CASE(
       REQUIRE(eventually([&] { return !sampled.empty(); }));
       canvas.frames();
       REQUIRE(sampled.size() == 1);
-      CHECK(near(sampled.front().front().value<QColor>(), Qt::black));
+      CHECK(colorsClose(sampled.front().front().value<QColor>(), Qt::black));
     }
     SECTION("document replacement cancels an outstanding sample")
     {
@@ -794,7 +794,7 @@ TEST_CASE(
         {{{640., 360.}, Qt::red}, {{80., 360.}, background}, {{640., 80.}, background}});
     const auto frame = canvas.window.grabWindow();
     REQUIRE_FALSE(frame.isNull());
-    CHECK(near(canvas.pixel(frame, {200., 20.}), Qt::black));
+    CHECK(colorsClose(canvas.pixel(frame, {200., 20.}), Qt::black));
     REQUIRE(view.setProperty("config", style("brush", "#00ff00", 60.)));
     canvas.mouse(QEvent::MouseButtonPress, {320., 280.});
     canvas.mouse(QEvent::MouseButtonRelease, {320., 280.});
@@ -835,7 +835,7 @@ TEST_CASE(
     canvas.mouse(QEvent::MouseButtonRelease, {640., 360.});
     REQUIRE(eventually([&] { return !sampled.empty(); }));
     REQUIRE(sampled.size() == 1);
-    CHECK(near(sampled.front().front().value<QColor>(), Qt::red));
+    CHECK(colorsClose(sampled.front().front().value<QColor>(), Qt::red));
     CHECK(committed.empty());
     CHECK(gestures.empty());
 
@@ -857,7 +857,7 @@ TEST_CASE(
     canvas.mouse(QEvent::MouseButtonRelease, {320., 360.});
     REQUIRE(eventually([&] { return !sampled.empty(); }));
     REQUIRE(sampled.size() == 1);
-    CHECK(near(sampled.front().front().value<QColor>(), Qt::transparent));
+    CHECK(colorsClose(sampled.front().front().value<QColor>(), Qt::transparent));
   });
 }
 
