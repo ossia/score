@@ -5,12 +5,15 @@
 
 #include <ossia/network/generic/generic_node.hpp>
 
+#include <QDebug>
+
 namespace Gfx
 {
 
 void video_texture_input_protocol::start_execution()
 {
-  camera->start();
+  if(!camera->start())
+    qWarning() << "Gfx: could not start the camera input";
 }
 
 void video_texture_input_protocol::stop_execution()
