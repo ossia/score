@@ -286,7 +286,7 @@ else
       portaudio:p \
       fftw:p \
       ffmpeg:p \
-      SDL2:p
+      sdl3:p
       
     echo "[developer.sh] Configuring ($MINGW_PREFIX)"
     mkdir -p $BUILD_DIR
