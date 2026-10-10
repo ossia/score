@@ -8,6 +8,7 @@
 
 #include <score/application/ApplicationContext.hpp>
 #include <score/document/DocumentContext.hpp>
+#include <score/widgets/MessageBox.hpp>
 #include <score/widgets/Pixmap.hpp>
 #if defined(OSSIA_PROTOCOL_OSCQUERY)
 #include <ossia/network/oscquery/oscquery_server.hpp>
@@ -153,7 +154,8 @@ static void warnPortsUnavailable(const QString& problem)
             "Choose other ports by editing the \"score\" device in the Device "
             "explorer, or start score with --local-osc-port and --local-ws-port.");
   qWarning().noquote() << text;
-  if(score::AppContext().applicationSettings.gui)
+  // Without anyone to close it (tests, scripts, offscreen), the log is enough.
+  if(score::interactiveSession())
     QTimer::singleShot(0, qApp, [text] {
       auto box = new QMessageBox{
           QMessageBox::Warning, QObject::tr("Local device"), text, QMessageBox::Ok,
