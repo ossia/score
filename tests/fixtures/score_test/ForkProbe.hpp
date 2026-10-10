@@ -21,8 +21,12 @@
 #include <cstdio>
 #include <cstring>
 
-#if defined(__clang__) || defined(__GNUC__)
-// Defined only in builds with -fprofile-instr-generate.
+// __llvm_profile_write_file is defined only in builds with
+// -fprofile-instr-generate. Mach-O has no ELF-style weak undefined externals
+// (the static link still requires the symbol), so resolve it at run time there.
+#if defined(__APPLE__)
+#include <dlfcn.h>
+#elif defined(__clang__) || defined(__GNUC__)
 extern "C" int __llvm_profile_write_file(void) __attribute__((weak));
 #endif
 
@@ -70,8 +74,12 @@ bool survives(F&& f)
       std::fputc('\n', stderr);
     });
     f();
-#if defined(__clang__) || defined(__GNUC__)
     // _exit skips the atexit hook that saves coverage.
+#if defined(__APPLE__)
+    if(auto write_profile = reinterpret_cast<int (*)(void)>(
+           dlsym(RTLD_DEFAULT, "__llvm_profile_write_file")))
+      write_profile();
+#elif defined(__clang__) || defined(__GNUC__)
     if(&__llvm_profile_write_file)
       __llvm_profile_write_file();
 #endif
