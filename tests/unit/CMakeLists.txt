@@ -21,6 +21,10 @@ score_add_test(test_unit_recursive_watch_cancel
   SOURCES RecursiveWatchCancelTest.cpp
   PLUGINS score_lib_base)
 
+score_add_test(test_unit_cancellation_token
+  SOURCES CancellationTokenTest.cpp
+  PLUGINS score_lib_base)
+
 # A FileWatch's poll timer stays on the thread that armed it, so ~FileWatch
 # can kill it. Armed on one thread and destroyed from another, the timer was
 # left registered in a pool thread's dispatcher pointing at freed memory --
