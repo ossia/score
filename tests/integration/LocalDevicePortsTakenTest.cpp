@@ -71,7 +71,9 @@ void recordWarnings(QtMsgType type, const QMessageLogContext& ctx, const QString
   g_previous(type, ctx, msg);
 }
 
-//! Closes the warning boxes as they show up, and keeps their text.
+//! Closes the warning boxes as they show up, and keeps their text. A test is
+//! not an interactive session (score::interactiveSession()): the warning is
+//! only logged, and no box should show up.
 struct box_closer
 {
   QStringList boxes;
@@ -123,12 +125,12 @@ TEST_CASE(
     // Opening a document: the WebSocket port is taken, nothing is exposed.
     auto doc = score::test::new_document(ctx);
     REQUIRE(doc);
-    REQUIRE(score::test::wait_until([&] { return !boxes.empty(); }));
-    CHECK(boxes.size() == 1);
-    CHECK(mentions(boxes[0], ws));
-    CHECK(mentions(boxes[0], osc));
+    REQUIRE(score::test::wait_until([&] { return !g_warnings.empty(); }));
+    score::test::run_events_for(100);
     REQUIRE(g_warnings.size() == 1);
-    CHECK(g_warnings[0] == boxes[0]);
+    CHECK(mentions(g_warnings[0], ws));
+    CHECK(mentions(g_warnings[0], osc));
+    CHECK(boxes.isEmpty());
 
     auto& devices = doc->context().plugin<Explorer::DeviceDocumentPlugin>().list();
     auto local = devices.localDevice();
@@ -141,12 +143,12 @@ TEST_CASE(
     g_warnings.clear();
     const auto settings = local->settings();
     local->updateSettings(settings);
-    REQUIRE(score::test::wait_until([&] { return !boxes.empty(); }));
-    CHECK(boxes.size() == 1);
-    CHECK(mentions(boxes[0], osc));
-    CHECK(!mentions(boxes[0], ws));
+    REQUIRE(score::test::wait_until([&] { return !g_warnings.empty(); }));
+    score::test::run_events_for(100);
     REQUIRE(g_warnings.size() == 1);
-    CHECK(g_warnings[0] == boxes[0]);
+    CHECK(mentions(g_warnings[0], osc));
+    CHECK(!mentions(g_warnings[0], ws));
+    CHECK(boxes.isEmpty());
 
     // Still running: the document is there and takes a new one next to it.
     CHECK(ctx.docManager.documents().size() == 1);

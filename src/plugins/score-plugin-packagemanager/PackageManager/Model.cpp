@@ -76,31 +76,11 @@ PluginSettingsModel::PluginSettingsModel(
 
 PluginSettingsModel::~PluginSettingsModel() { }
 
-// Whether a human is there to answer a modal question. score::question() is a
-// QDialog::exec(): in a run with no interactive GUI it is delivered to an event
-// loop nobody can click on, and never returns.
-static bool interactiveSession() noexcept
-{
-  if(qEnvironmentVariableIsSet("SCORE_SANITIZE_SKIP_CHECKS"))
-    return false;
-  const auto& settings = score::AppContext().applicationSettings;
-  if(!settings.gui)
-    return false;
-  // A script drives the session; the library question would sit in a nested
-  // event loop with nobody to answer it.
-  if(settings.hasScript)
-    return false;
-  if(!qobject_cast<QApplication*>(qApp))
-    return false;
-
-  const auto& platform = QGuiApplication::platformName();
-  return platform != QLatin1String("offscreen")
-         && platform != QLatin1String("minimal");
-}
-
 void PluginSettingsModel::refresh()
 {
-  if(!interactiveSession())
+  // score::question() is a QDialog::exec(): with nobody to answer it, it never
+  // returns.
+  if(!score::interactiveSession())
     return;
   QNetworkRequest rqst{QUrl(
       "https://raw.githubusercontent.com/ossia/score-packages/refs/heads/"
@@ -194,7 +174,7 @@ void PluginSettingsModel::on_message(QNetworkReply* rep)
 
 void PluginSettingsModel::firstTimeLibraryDownload()
 {
-  if(!interactiveSession())
+  if(!score::interactiveSession())
     return;
 
   const auto& lib = score::GUIAppContext().settings<Library::Settings::Model>();

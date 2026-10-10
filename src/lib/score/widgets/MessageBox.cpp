@@ -5,11 +5,31 @@
 
 #include <core/application/ApplicationSettings.hpp>
 
+#include <QApplication>
 #include <QDebug>
 #include <QMessageBox>
 
 namespace score
 {
+bool interactiveSession() noexcept
+{
+  if(qEnvironmentVariableIsSet("SCORE_SANITIZE_SKIP_CHECKS"))
+    return false;
+  const auto& settings = score::AppContext().applicationSettings;
+  if(!settings.gui)
+    return false;
+  // A script drives the session: a dialog would wait for a click that never
+  // comes.
+  if(settings.hasScript)
+    return false;
+  if(!qobject_cast<QApplication*>(qApp))
+    return false;
+
+  const auto& platform = QGuiApplication::platformName();
+  return platform != QLatin1String("offscreen")
+         && platform != QLatin1String("minimal");
+}
+
 #if defined(__EMSCRIPTEN__)
 namespace
 {
