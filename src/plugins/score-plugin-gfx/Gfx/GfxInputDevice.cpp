@@ -31,6 +31,13 @@ void video_texture_input_protocol::stop_execution()
       camera_node->must_stop = true;
     }
   }
+  else if(camera)
+  {
+    // No render node: the parameter that owned it is gone, so nothing holds a
+    // frame and there is nobody left to honour must_stop. Without this the
+    // camera is never closed at all.
+    camera->stop();
+  }
 }
 
 video_texture_input_device::~video_texture_input_device() { }
@@ -99,8 +106,27 @@ void video_texture_input_parameter::pull_texture(ossia::gfx::port_index idx)
 video_texture_input_parameter::~video_texture_input_parameter()
 {
   proto.camera_node = nullptr;
+
+  // Removing the node destroys this parameter, and nothing will render from the
+  // camera again, so the capture has to be closed -- it used to run on until the
+  // last shared_ptr to it happened to go away. The device stayed open meanwhile,
+  // and a camera that is exclusive, as on Windows, then hands the next open a
+  // source with no frames.
   if(context_alive && *context_alive)
+  {
+    // The render thread owns the frames, so let the node close the capture once
+    // its renderers detach: unregister_node leads there, and that is the order
+    // avformat_close_input needs.
+    if(node)
+      node->must_stop = true;
     context->ui->unregister_node(node_id);
+  }
+  else if(camera)
+  {
+    // The render context is already gone, so no renderer holds a frame and
+    // nothing will act on must_stop.
+    camera->stop();
+  }
 }
 
 video_texture_input_node::video_texture_input_node(

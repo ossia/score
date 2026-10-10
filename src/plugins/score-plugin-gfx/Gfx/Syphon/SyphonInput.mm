@@ -120,6 +120,13 @@ private:
   {
     enabled = false;
 
+    // initState() picks the decoder from this, and it does so whether or not a
+    // server was found -- so it has to say what the RHI is, not how far this
+    // function got. Metal cannot compile the sampler2DRect shader the OpenGL
+    // decoder uses: SPIRV-Cross spells it "unknown_texture_type", no pipeline
+    // is created, and every draw is then dropped with only a qDebug line.
+    m_usingMetal = (rhi.backend() == QRhi::Metal);
+
     // Symmetric with releaseState(): stop any client we already hold before
     // replacing it, otherwise the previous SyphonClient leaks (and keeps a
     // connection open to the server).
@@ -158,7 +165,6 @@ private:
           options:nil
           newFrameHandler:nil
       ];
-      m_usingMetal = true;
       enabled = (m_mtlReceiver != nil);
     }
     else if (rhi.backend() == QRhi::OpenGLES2)
@@ -174,7 +180,6 @@ private:
           options:nil
           newFrameHandler:nil
       ];
-      m_usingMetal = false;
       enabled = (m_receiver != nil);
     }
   }
