@@ -82,8 +82,9 @@ if(UNIX AND NOT EMSCRIPTEN)
     PRIVATE SCORE_BITFOCUS_MOCK_DIR="${CMAKE_CURRENT_SOURCE_DIR}/data/bitfocus-mock")
 
   # Drives a real companion module through score's Bitfocus host; not a ctest
-  # entry, see tests/tools/bitfocus/sweep.py.
-  score_add_test(bitfocus_module_driver NO_CTEST
+  # entry, see tests/tools/bitfocus/sweep.py. GUI: it boots score_test/App.hpp,
+  # which with static plug-ins references every plug-in.
+  score_add_test(bitfocus_module_driver GUI NO_CTEST
     SOURCES
       "${CMAKE_CURRENT_SOURCE_DIR}/BitfocusModuleDriver.cpp"
       "${BITFOCUS_DIR}/BitfocusContext.cpp"
