@@ -107,6 +107,21 @@ clone_addon() {
     elif [[ -n "${ref}" ]]; then
       checkout_ref "$url" "$ref"
     else
+      # checkout_ref leaves a detached HEAD, which "git pull" will not move.
+      if ! git symbolic-ref -q HEAD > /dev/null; then
+        local head_branch
+        head_branch=$(git symbolic-ref -q --short refs/remotes/origin/HEAD 2>/dev/null)
+        head_branch=${head_branch#origin/}
+        if [[ -z "${head_branch}" ]]; then
+          head_branch=$(git remote show origin 2>/dev/null | sed -n 's/.*HEAD branch: //p' | head -1)
+        fi
+        if [[ -n "${head_branch}" ]] && git fetch --force origin "${head_branch}"; then
+          echo "note: ${folder} was detached at $(git rev-parse --short HEAD), moving it onto ${head_branch}" >&2
+          git checkout --force -B "${head_branch}" FETCH_HEAD
+        else
+          echo "note: ${folder} is detached and its default branch could not be resolved, using the local checkout" >&2
+        fi
+      fi
       git pull --ff-only || echo "note: could not update ${folder}, using the local checkout" >&2
       git submodule sync --recursive
       git submodule update --init --recursive --jobs 16
