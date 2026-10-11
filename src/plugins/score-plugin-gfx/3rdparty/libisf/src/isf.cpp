@@ -213,7 +213,7 @@ vec4 isf_unpremultiply(vec4 c) { return c.a > 0.0 ? vec4(c.rgb / c.a, c.a) : vec
 // canonical depth-cube read for inputs declared DEPTH: true on a cubemap,
 // hides the internal `_depth` companion binding.
 #define IMG_CUBE(tex, dir) texture(tex, dir)
-#define IMG_CUBE_DEPTH(tex, dir) texture(tex##_depth, dir).r
+#define IMG_CUBE_DEPTH(tex, dir) textureLod(tex##_depth, dir, 0.0).r
 
 vec4 isf_unpremultiply(vec4 c) { return c.a > 0.0 ? vec4(c.rgb / c.a, c.a) : vec4(0.0); }
 
@@ -224,21 +224,29 @@ vec4 isf_unpremultiply(vec4 c) { return c.a > 0.0 ? vec4(c.rgb / c.a, c.a) : vec
 #define IMG_THIS_NORM_PIXEL_PREMULTIPLIED(tex) texture(tex, ISF_FIXUP_TEXCOORD(isf_FragNormCoord))
 #define IMG_PIXEL_PREMULTIPLIED(tex, coord) texture(tex, ISF_FIXUP_TEXCOORD(coord / RENDERSIZE))
 #define IMG_NORM_PIXEL_PREMULTIPLIED(tex, coord) texture(tex, ISF_FIXUP_TEXCOORD(coord))
-#define IMG_THIS_DEPTH(tex) texture(tex##_depth, ISF_FIXUP_TEXCOORD(isf_FragNormCoord)).r
-#define IMG_DEPTH_PIXEL(tex, coord) texture(tex##_depth, ISF_FIXUP_TEXCOORD(coord / RENDERSIZE)).r
-#define IMG_DEPTH_NORM_PIXEL(tex, coord) texture(tex##_depth, ISF_FIXUP_TEXCOORD(coord)).r
+#define IMG_THIS_DEPTH(tex) textureLod(tex##_depth, ISF_FIXUP_TEXCOORD(isf_FragNormCoord), 0.0).r
+#define IMG_DEPTH_PIXEL(tex, coord) textureLod(tex##_depth, ISF_FIXUP_TEXCOORD(coord / RENDERSIZE), 0.0).r
+#define IMG_DEPTH_NORM_PIXEL(tex, coord) textureLod(tex##_depth, ISF_FIXUP_TEXCOORD(coord), 0.0).r
 #define IMG_TEXEL_PREMULTIPLIED(tex, coord) texelFetch(tex, ivec2(ivec2(coord).x, textureSize(tex, 0).y - 1 - ivec2(coord).y), 0)
+#define IMG_NORM_PIXEL_LOD_PREMULTIPLIED(tex, coord, lod) textureLod(tex, ISF_FIXUP_TEXCOORD(coord), lod)
 #else
 #define isf_FragCoord gl_FragCoord
 #define IMG_THIS_PIXEL_PREMULTIPLIED(tex) texture(tex, isf_FragNormCoord)
 #define IMG_THIS_NORM_PIXEL_PREMULTIPLIED(tex) texture(tex, isf_FragNormCoord)
 #define IMG_PIXEL_PREMULTIPLIED(tex, coord) texture(tex, (coord) / RENDERSIZE)
 #define IMG_NORM_PIXEL_PREMULTIPLIED(tex, coord) texture(tex, coord)
-#define IMG_THIS_DEPTH(tex) texture(tex##_depth, isf_FragNormCoord).r
-#define IMG_DEPTH_PIXEL(tex, coord) texture(tex##_depth, (coord) / RENDERSIZE).r
-#define IMG_DEPTH_NORM_PIXEL(tex, coord) texture(tex##_depth, coord).r
+#define IMG_THIS_DEPTH(tex) textureLod(tex##_depth, isf_FragNormCoord, 0.0).r
+#define IMG_DEPTH_PIXEL(tex, coord) textureLod(tex##_depth, (coord) / RENDERSIZE, 0.0).r
+#define IMG_DEPTH_NORM_PIXEL(tex, coord) textureLod(tex##_depth, coord, 0.0).r
 #define IMG_TEXEL_PREMULTIPLIED(tex, coord) texelFetch(tex, ivec2(coord), 0)
+#define IMG_NORM_PIXEL_LOD_PREMULTIPLIED(tex, coord, lod) textureLod(tex, coord, lod)
 #endif
+
+// IMG_NORM_PIXEL with an explicit mip level. Use it (with lod 0.0) for reads
+// inside loops whose trip count is a uniform: an implicit-gradient texture()
+// there makes fxc (D3D11/D3D12-without-dxc, ps_5_0) try to unroll the loop
+// and fail (X3570 + X3511) -- or crash outright on big shaders.
+#define IMG_NORM_PIXEL_LOD(tex, coord, lod) IMG_NORM_PIXEL_LOD_PREMULTIPLIED(tex, coord, lod)
 
 #define IMG_THIS_PIXEL(tex) IMG_THIS_PIXEL_PREMULTIPLIED(tex)
 #define IMG_THIS_NORM_PIXEL(tex) IMG_THIS_NORM_PIXEL_PREMULTIPLIED(tex)
