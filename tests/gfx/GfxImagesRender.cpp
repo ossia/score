@@ -379,9 +379,8 @@ TEST_CASE("Opacity and tile-mode changes keep the image visible", "[gfx][images]
 // having the image drawn into a render target of its own. Images now publishes
 // the current image for it; it read black before. The image is red over blue,
 // sized like the sink, and the STATIC read must match the drawn one, which pins
-// orientation too -- except on OpenGL, where a render target is stored bottom
-// row first and an uploaded image top row first, and a STATIC input reads the
-// upload as it is: there the halves only have to be both present.
+// orientation too: the image is uploaded in the row order of a rendered texture
+// (Gfx/Graph/RowOrder.hpp), so IMG_NORM_PIXEL reads it upright on every backend.
 TEST_CASE("A STATIC image input fed by Images reads the image", "[gfx][images][render][gui]")
 {
   const auto backend = GENERATE(from_range(platform_backends()));
@@ -437,11 +436,10 @@ void main() { gl_FragColor = IMG_NORM_PIXEL(tex, isf_FragNormCoord); }
     const auto got = p.readback(grabbedSink);
     REQUIRE(ref.valid());
     REQUIRE(got.valid());
-    const bool flipped = backend == score::gfx::GraphicsApi::OpenGL;
     for(int y : {16, 48})
     {
       const auto r = ref.at(32, y);
-      const auto g = got.at(32, flipped ? 63 - y : y);
+      const auto g = got.at(32, y);
       INFO(
           "y=" << y << " drawn " << (int)r[0] << "," << (int)r[1] << "," << (int)r[2]
                << " static " << (int)g[0] << "," << (int)g[1] << "," << (int)g[2]);

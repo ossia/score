@@ -2,6 +2,7 @@
 #include <Gfx/Graph/NodeRenderer.hpp>
 #include <Gfx/Graph/RenderList.hpp>
 #include <Gfx/Graph/RenderState.hpp>
+#include <Gfx/Graph/RowOrder.hpp>
 #include <Gfx/Images/Process.hpp>
 
 #if QT_SVG_LIB
@@ -83,9 +84,16 @@ layout(binding=3) uniform sampler2D y_tex;
 layout(location = 0) in vec2 v_texcoord;
 layout(location = 0) out vec4 fragColor;
 
+// The image is uploaded in the published row order (RowOrder.hpp): its rows
+// are reversed everywhere but Vulkan, so v is flipped back here.
 void main ()
 {
-  fragColor = texture(y_tex, v_texcoord) * mat.opacity;
+#if defined(QSHADER_SPIRV)
+  vec2 tc = v_texcoord;
+#else
+  vec2 tc = vec2(v_texcoord.x, 1.0 - v_texcoord.y);
+#endif
+  fragColor = texture(y_tex, tc) * mat.opacity;
 }
 )_";
 
@@ -138,9 +146,14 @@ layout(binding=3) uniform sampler2D y_tex;
 layout(location = 0) in vec2 v_texcoord;
 layout(location = 0) out vec4 fragColor;
 
+// See images_single_fragment_shader for the flip of v.
 void main ()
 {
-  fragColor = texture(y_tex, v_texcoord * mat.scale + (1.0f - mat.scale) / 2.0f + vec2(-mat.position.x, mat.position.y)) * mat.opacity;
+  vec2 tc = v_texcoord * mat.scale + (1.0f - mat.scale) / 2.0f + vec2(-mat.position.x, mat.position.y);
+#if !defined(QSHADER_SPIRV)
+  tc.y = 1.0 - tc.y;
+#endif
+  fragColor = texture(y_tex, tc) * mat.opacity;
 }
 )_";
 ImagesNode::ImagesNode(const score::DocumentContext& ctx)
@@ -567,7 +580,9 @@ private:
         {
           if(!m_uploaded)
           {
-            res.uploadTexture(m_textures[k], renderer.adaptImage(**qimage));
+            res.uploadTexture(
+                m_textures[k], imageInPublishedRowOrder(
+                                   *renderer.state.rhi, renderer.adaptImage(**qimage)));
             updateCurrentTexture = true;
           }
         }
@@ -586,6 +601,12 @@ private:
                 temp_svg = QImage(svg_size, QImage::Format_ARGB32);
               QPainter temp_svg_painter{&temp_svg};
               temp_svg.fill(0);
+              if(uploadReversesRows(*renderer.state.rhi))
+              {
+                // Drawn upside down: the published row order, at no cost.
+                temp_svg_painter.translate(0, temp_svg.height());
+                temp_svg_painter.scale(1, -1);
+              }
               (*svg)->render(&temp_svg_painter);
               res.uploadTexture(m_textures[k], renderer.adaptImage(temp_svg));
               updateCurrentTexture = true;
@@ -598,6 +619,12 @@ private:
                   temp_svg = QImage(svg_size, QImage::Format_ARGB32);
                 QPainter temp_svg_painter{&temp_svg};
                 temp_svg.fill(0);
+                if(uploadReversesRows(*renderer.state.rhi))
+                {
+                  // Drawn upside down: the published row order, at no cost.
+                  temp_svg_painter.translate(0, temp_svg.height());
+                  temp_svg_painter.scale(1, -1);
+                }
                 (*svg)->render(&temp_svg_painter);
                 res.uploadTexture(m_textures[k], renderer.adaptImage(temp_svg));
                 updateCurrentTexture = true;
@@ -931,7 +958,9 @@ private:
       {
         auto frame = n.linearImages[idx];
 
-        res.uploadTexture(m_texture, renderer.adaptImage(*frame));
+        res.uploadTexture(
+            m_texture,
+            imageInPublishedRowOrder(*renderer.state.rhi, renderer.adaptImage(*frame)));
 
         m_prev_ubo.currentImageIndex = n.ubo.currentImageIndex;
         m_uploaded = true;

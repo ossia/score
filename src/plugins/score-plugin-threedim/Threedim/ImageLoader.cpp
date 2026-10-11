@@ -1,5 +1,7 @@
 #include "ImageLoader.hpp"
 
+#include <Gfx/Graph/RowOrder.hpp>
+
 namespace Threedim
 {
 
@@ -48,7 +50,9 @@ void ImageLoader::update(
     }
   }
 
-  res.uploadTexture(m_tex, m_pendingImage);
+  // Published in the row order of a rendered texture (RowOrder.hpp): the
+  // QImage is top row first, so its rows are reversed off Vulkan.
+  res.uploadTexture(m_tex, score::gfx::imageInPublishedRowOrder(rhi, m_pendingImage));
 
   outputs.texture.texture.handle = m_tex;
   outputs.texture.texture.width = sz.width();

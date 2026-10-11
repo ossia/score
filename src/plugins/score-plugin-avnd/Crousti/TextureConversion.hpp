@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QtGui/private/qrhi_p.h>
+#include <Gfx/Graph/RowOrder.hpp>
 #include <avnd/concepts/gfx.hpp>
 #include <Crousti/TextureFormat.hpp>
 
@@ -1621,7 +1622,9 @@ void loadInputTexture(QRhi& rhi, auto& m_readbacks, Tex& cpu_tex, int k)
     using components_type = std::decay_t<decltype(cpu_tex.bytes)>;
     cpu_tex.bytes = reinterpret_cast<components_type>(buf.data());
 
-    if(rhi.isYUpInNDC())
+    // The texture read back has the published row order (RowOrder.hpp); the
+    // halp texture wants its top row first.
+    if(score::gfx::uploadReversesRows(rhi))
       if(cpu_tex.width * cpu_tex.height > 0)
       {
         int bpp = 0;

@@ -27,6 +27,13 @@
 #include <catch2/generators/catch_generators.hpp>
 #include <catch2/generators/catch_generators_range.hpp>
 
+#include <Gfx/Graph/RowOrder.hpp>
+
+#include <QFile>
+#include <QImage>
+#include <QTemporaryDir>
+
+#include <array>
 #include <vector>
 
 using namespace score::test;
@@ -217,6 +224,80 @@ struct MixedOutlets
   QRhiTexture* m_tex{};
 };
 
+
+// The same red-over-blue image on a CPU texture outlet and, uploaded by the
+// node itself as a loader does, on a GPU texture outlet.
+struct RedOverBlueOutlets
+{
+  halp_meta(name, "Red over blue outlets")
+  halp_meta(c_name, "test_red_over_blue_outlets")
+  halp_meta(category, "Test")
+  halp_meta(uuid, "0c5d8e7a-2f61-4b93-8a4e-5d17c3b9e2f8")
+
+  struct
+  {
+  } inputs;
+
+  struct
+  {
+    halp::texture_output<"Cpu"> cpu;
+    halp::gpu_texture_output<"Gpu"> gpu;
+  } outputs;
+
+  static constexpr int size = 8;
+  static bool upper(int y) noexcept { return y < size / 2; }
+
+  void init(score::gfx::RenderList&, QRhiResourceUpdateBatch&) { }
+
+  void update(
+      score::gfx::RenderList& renderer, QRhiResourceUpdateBatch& res,
+      score::gfx::Edge*)
+  {
+    if(m_tex)
+      return;
+    auto& rhi = *renderer.state.rhi;
+    m_tex = rhi.newTexture(QRhiTexture::RGBA8, QSize{size, size});
+    m_tex->create();
+    QImage img{size, size, QImage::Format_RGBA8888};
+    for(int y = 0; y < size; y++)
+      for(int x = 0; x < size; x++)
+        img.setPixelColor(x, y, upper(y) ? QColor(255, 0, 0) : QColor(0, 0, 255));
+    res.uploadTexture(m_tex, score::gfx::imageInPublishedRowOrder(rhi, img));
+    outputs.gpu.texture.handle = m_tex;
+    outputs.gpu.texture.width = size;
+    outputs.gpu.texture.height = size;
+    outputs.gpu.texture.format = halp::gpu_texture::RGBA8;
+  }
+
+  void release(score::gfx::RenderList&)
+  {
+    delete m_tex;
+    m_tex = nullptr;
+    outputs.gpu.texture.handle = nullptr;
+  }
+
+  void runInitialPasses(
+      score::gfx::RenderList&, QRhiCommandBuffer&, QRhiResourceUpdateBatch*&,
+      score::gfx::Edge&)
+  {
+  }
+
+  void operator()()
+  {
+    if(!outputs.cpu.texture.bytes)
+      outputs.cpu.create(size, size);
+    for(int y = 0; y < size; y++)
+      for(int x = 0; x < size; x++)
+        if(upper(y))
+          outputs.cpu.set(x, y, 255, 0, 0, 255);
+        else
+          outputs.cpu.set(x, y, 0, 0, 255, 255);
+    outputs.cpu.upload();
+  }
+
+  QRhiTexture* m_tex{};
+};
+
 }
 
 TEST_CASE(
@@ -392,4 +473,104 @@ TEST_CASE(
   INFO("gpu outlet " << int(g[0]) << " " << int(g[1]) << " " << int(g[2]));
   CHECK((c[1] > 200 && c[0] < 40));
   CHECK((g[0] > 200 && g[1] < 40));
+}
+
+// Every 2D texture an outlet publishes has the row order of a rendered one
+// (Gfx/Graph/RowOrder.hpp), whether the node uploads it (GPU outlet, like Image
+// loader) or the host does (CPU outlet). Drawn through the outlet blit or bound
+// directly to a STATIC input read with IMG_NORM_PIXEL, the image is upright on
+// every backend.
+TEST_CASE(
+    "an uploaded image is upright through the outlet blit and a STATIC input",
+    "[gfx][avnd][texture][orientation]")
+{
+  const auto api = GENERATE(from_range(platform_backends()));
+  CAPTURE(backend_name(api));
+
+  QTemporaryDir dir;
+  REQUIRE(dir.isValid());
+  const auto shader = [&](const char* name, bool is_static) {
+    const QString path = dir.filePath(name);
+    QFile f(path);
+    REQUIRE(f.open(QIODevice::WriteOnly | QIODevice::Truncate));
+    f.write(QByteArray(R"(/*{
+  "ISFVSN": "2.0",
+  "INPUTS": [ { "NAME": "tex", "TYPE": "image")")
+            + (is_static ? R"(, "STATIC": true)" : "") + R"( } ]
+}*/
+void main() { gl_FragColor = IMG_NORM_PIXEL(tex, isf_FragNormCoord); }
+)");
+    return path;
+  };
+  const QString drawnFs = shader("drawn.fs", false);
+  const QString staticFs = shader("static.fs", true);
+
+  bool skipped = false;
+  std::string err;
+  // cpu drawn, gpu drawn, cpu static, gpu static
+  std::array<ReadbackImage, 4> shots;
+  std::vector<std::unique_ptr<Process::ProcessModel>> models;
+  run_in_gui_app([&](const score::GUIApplicationContext& app) {
+    auto* doc = new_document(app);
+    if(!doc)
+    {
+      err = "no document";
+      return;
+    }
+    const auto& ctx = doc->context();
+    auto model = std::make_unique<oscr::ProcessModel<RedOverBlueOutlets>>(
+        TimeVal::fromMsecs(1000), Id<Process::ProcessModel>{1}, ctx, nullptr);
+    auto* raw = model.get();
+    models.push_back(std::move(model));
+
+    GfxPipeline p;
+    const int producer = p.addNode(std::unique_ptr<score::gfx::Node>{
+        new oscr::GfxNode<RedOverBlueOutlets>{*raw, {}, Gfx::exec_controls{}, 1, ctx}});
+    if(producer < 0)
+    {
+      err = "node build failed: " + p.error();
+      return;
+    }
+    std::array<int, 4> sinks{};
+    for(int i = 0; i < 4; i++)
+    {
+      const int pass = p.addIsf(i < 2 ? drawnFs : staticFs);
+      if(pass < 0)
+      {
+        err = "isf build failed: " + p.error();
+        return;
+      }
+      p.wire(p.nodeImageOut(producer, i % 2), p.imageIn(pass, 0));
+      sinks[i] = p.addSink({16, 16});
+      p.wire(p.imageOut(pass, 0), p.sinkInput(sinks[i]));
+    }
+    if(!p.create(api))
+    {
+      skipped = p.skipped();
+      err = skipped ? std::string{} : p.error();
+      return;
+    }
+    p.render(6);
+    for(int i = 0; i < 4; i++)
+    {
+      shots[i] = p.readback(sinks[i]);
+      if(!shots[i].valid())
+        err = "empty readback";
+    }
+  });
+  if(skipped)
+    SKIP("backend unavailable");
+  INFO("error=" << err);
+  REQUIRE(err.empty());
+  constexpr const char* names[]{"cpu drawn", "gpu drawn", "cpu static", "gpu static"};
+  for(int i = 0; i < 4; i++)
+  {
+    const auto top = shots[i].at(8, 3);
+    const auto bottom = shots[i].at(8, 12);
+    INFO(names[i] << ": top " << int(top[0]) << "," << int(top[1]) << "," << int(top[2])
+                  << " bottom " << int(bottom[0]) << "," << int(bottom[1]) << ","
+                  << int(bottom[2]));
+    CHECK((top[0] > 200 && top[2] < 40));
+    CHECK((bottom[2] > 200 && bottom[0] < 40));
+  }
 }
