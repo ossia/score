@@ -6,6 +6,7 @@
 #include <JS/Qml/EditContext.hpp>
 #include <JS/Qml/Utils.hpp>
 #include <JS/Qml/ViewContext.hpp>
+#include <JS/ThreadLocalQmlEngine.hpp>
 #include <Library/LibrarySettings.hpp>
 #include <LocalTree/LocalTreeDocumentPlugin.hpp>
 
@@ -115,6 +116,7 @@ ApplicationPlugin::ApplicationPlugin(const score::GUIApplicationContext& ctx)
   }};
 
   // For scripts of processes that run in the ui thread:
+  installLocalPathUrlFix(m_scriptProcessUIEngine);
   m_scriptProcessUIEngine.globalObject().setProperty(
       "Util", m_scriptProcessUIEngine.newQObject(new JsUtils));
   m_scriptProcessUIEngine.globalObject().setProperty(
