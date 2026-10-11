@@ -2144,6 +2144,9 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
       RenderList& renderer, QRhiResourceUpdateBatch& res, const FlatScene& fs,
       const std::vector<uint32_t>& materialTagHashes)
   {
+    // Merges the slab uploads below; they reach `res` when this returns.
+    GpuResourceRegistry::MeshUploadBatch meshUploads{m_registry};
+
     // Per-mesh slab allocation. Per draw: acquireMeshSlab(stable_id, vc, ic)
     // against the per-stream OffsetAllocators in GpuResourceRegistry;
     // on freshly_allocated, extract CPU bytes (or queue a GPU copy for

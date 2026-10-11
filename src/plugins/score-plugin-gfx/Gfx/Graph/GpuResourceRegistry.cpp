@@ -1041,7 +1041,41 @@ void GpuResourceRegistry::uploadMeshStream(
                << stream.capacity_bytes << "(stream" << (int)s << ")";
     return;
   }
-  res.uploadStaticBuffer(stream.buffer, offset, size, data);
+  if(m_meshUploadBatchDepth == 0)
+  {
+    res.uploadStaticBuffer(stream.buffer, offset, size, data);
+    return;
+  }
+
+  auto& pending = m_pendingMeshUploads[(std::size_t)s];
+  if(pending.batch != &res || pending.offset + pending.bytes.size() != offset)
+  {
+    flushMeshUpload(s);
+    pending.batch = &res;
+    pending.offset = offset;
+  }
+  const auto* bytes = static_cast<const std::byte*>(data);
+  pending.bytes.insert(pending.bytes.end(), bytes, bytes + size);
+}
+
+void GpuResourceRegistry::flushMeshUpload(MeshStream s) noexcept
+{
+  auto& pending = m_pendingMeshUploads[(std::size_t)s];
+  if(pending.batch && !pending.bytes.empty())
+  {
+    // uploadStaticBuffer copies the bytes, so the run can be reused at once.
+    pending.batch->uploadStaticBuffer(
+        m_meshStreams[(std::size_t)s].buffer, pending.offset,
+        (quint32)pending.bytes.size(), pending.bytes.data());
+  }
+  pending.batch = nullptr;
+  pending.bytes.clear();
+}
+
+void GpuResourceRegistry::flushMeshUploads() noexcept
+{
+  for(std::size_t s = 0; s < m_pendingMeshUploads.size(); ++s)
+    flushMeshUpload((MeshStream)s);
 }
 
 uint32_t GpuResourceRegistry::meshStreamUsedBytes(MeshStream s) const noexcept

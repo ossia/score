@@ -14,6 +14,7 @@
 #include <QtGui/private/qrhi_p.h>
 
 #include <array>
+#include <cstddef>
 #include <cstdint>
 #include <memory>
 #include <vector>
@@ -704,6 +705,33 @@ public:
       QRhiResourceUpdateBatch& res, const MeshSlab& slab,
       MeshStream s, const void* data, uint32_t size) noexcept;
 
+  /// While one is alive, uploadMeshStream calls that continue the previous
+  /// one of the same stream are merged, and the merged runs go to the batch
+  /// when it is destroyed. Every upload costs a staging allocation and a copy
+  /// on every backend, and a freshly loaded scene writes its slabs back to
+  /// back: Sponza is about a hundred primitives times seven streams.
+  class MeshUploadBatch
+  {
+  public:
+    //! A null registry makes this a no-op.
+    explicit MeshUploadBatch(GpuResourceRegistry* r) noexcept
+        : m_registry{r}
+    {
+      if(m_registry)
+        ++m_registry->m_meshUploadBatchDepth;
+    }
+    ~MeshUploadBatch()
+    {
+      if(m_registry && --m_registry->m_meshUploadBatchDepth == 0)
+        m_registry->flushMeshUploads();
+    }
+    MeshUploadBatch(const MeshUploadBatch&) = delete;
+    MeshUploadBatch& operator=(const MeshUploadBatch&) = delete;
+
+  private:
+    GpuResourceRegistry* m_registry{};
+  };
+
   /// Total bytes in use per stream (for the telemetry panel).
   uint32_t meshStreamUsedBytes(MeshStream s) const noexcept;
   uint32_t meshStreamFreeBytes(MeshStream s) const noexcept;
@@ -745,6 +773,19 @@ private:
     QRhiBuffer::UsageFlags usage{};
   };
   std::array<MeshStreamState, (std::size_t)MeshStream::Count_> m_meshStreams{};
+
+  // Mesh uploads held back by a MeshUploadBatch: one contiguous run per
+  // stream, and the batch it goes to.
+  struct PendingMeshUpload
+  {
+    QRhiResourceUpdateBatch* batch{};
+    uint32_t offset{};
+    std::vector<std::byte> bytes;
+  };
+  std::array<PendingMeshUpload, (std::size_t)MeshStream::Count_> m_pendingMeshUploads{};
+  int m_meshUploadBatchDepth{};
+  void flushMeshUpload(MeshStream s) noexcept;
+  void flushMeshUploads() noexcept;
 
   // Shared vertex / index allocators (slot units, not bytes).
   // capacity_slots = min(stream_capacity_bytes / stream_stride) across
