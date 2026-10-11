@@ -1003,6 +1003,13 @@ score_add_test(test_unit_port_address_list
   SOURCES PortAddressListTest.cpp
   PLUGINS score_lib_process score_lib_device score_lib_state)
 
+# The combo box itself: the list is read again when it opens, for the devices
+# that do not report their new nodes, and the full address is its tooltip.
+score_add_test(test_unit_port_address_combo
+  SOURCES PortAddressComboTest.cpp
+  APP
+  PLUGINS score_lib_process score_plugin_deviceexplorer score_lib_device score_lib_state)
+
 # What dropping device explorer nodes (a parameter, a device root) on a port
 # or an address field resolves to.
 score_add_test(test_unit_port_drop
