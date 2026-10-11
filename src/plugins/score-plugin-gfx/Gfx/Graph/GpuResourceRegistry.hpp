@@ -376,6 +376,11 @@ public:
       // keeps its address from being reused by another source while the map
       // still names it.
       std::vector<std::shared_ptr<const ossia::texture_source>> layerSources;
+      // Per layer: its alpha is coverage (the base colour of a MASK or BLEND
+      // material), so it was uploaded colour-bled. Kept so a re-upload after
+      // reallocation bleeds it again, and so a source whose role changes is
+      // uploaded again.
+      std::vector<char> layerCoverage;
       // Some layer's level 0 changed since the chain was last generated.
       bool mipsDirty{false};
     };

@@ -15,6 +15,7 @@
 
 #include <ossia/dataflow/geometry_port.hpp>
 #include <ossia/detail/flat_map.hpp>
+#include <ossia/detail/flat_set.hpp>
 #include <ossia/detail/hash.hpp>
 #include <ossia/detail/hash_map.hpp>
 #include <ossia/network/value/value_conversion.hpp>
@@ -3796,6 +3797,8 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
     QImage image;
     const ossia::texture_source* source{};
     std::shared_ptr<const ossia::texture_source> keep;
+    // Alpha is coverage: colour-bleed before upload (bleedTransparentColor).
+    bool coverage{};
   };
   using LayerMap = ossia::flat_map<const ossia::texture_source*, int>;
 
@@ -3820,6 +3823,32 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
     const auto matsPtr
         = this->scene.state ? this->scene.state->materials : nullptr;
 
+
+    // Base-colour sources whose alpha is coverage: the main base colour of a
+    // MASK or BLEND material. Those are colour-bled before upload, so that
+    // filtering and the mip chain do not pull the RGB authored under alpha 0
+    // into the edge. Any other texture's alpha is data, or unused while its
+    // RGB is visible everywhere, and is left exactly as decoded.
+    ossia::flat_set<const ossia::texture_source*> coverageSources;
+    if(matsPtr && ch == ChannelBaseColor)
+    {
+      const auto note = [&](const ossia::material_component& m) {
+        if(m.alpha != ossia::alpha_mode::opaque_ && m.base_color_texture.source)
+          coverageSources.insert(m.base_color_texture.source.get());
+      };
+      for(const auto& m : *matsPtr)
+        if(m)
+          note(*m);
+      for(const auto& inst_draw : fs.instances)
+      {
+        const auto* inst = inst_draw.instance.get();
+        if(!inst || !inst->prototype)
+          continue;
+        for(const auto& prim : inst->prototype->primitives)
+          if(const auto* mat = prim.material.get(); mat)
+            note(*mat);
+      }
+    }
 
     if(matsPtr)
     {
@@ -3847,6 +3876,7 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
         // clear.
         if(is_main_occlusion && s == mr_source_for_occ_check)
           return;
+        const bool coverage = coverageSources.count(s) != 0;
 
         // Skip if already mapped in any bucket this walk (same source
         // referenced by N materials, or by main + ext slots on the
@@ -3866,7 +3896,25 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
           auto& b = channel.buckets[bi];
           if(b.flags == channelFlags(ch) && it->second >= 0)
           {
-            b.layerMap[s] = it->second;
+            const int layer = it->second;
+            b.layerMap[s] = layer;
+            // Its role changed (a material switched to or from an alpha
+            // mode that makes alpha coverage): upload it again, bled or not.
+            const bool wasCoverage
+                = layer < (int)b.layerCoverage.size() && b.layerCoverage[layer];
+            if(wasCoverage != coverage)
+            {
+              QImage img = decodeTextureSource(*s, renderer.assetTable());
+              if(!img.isNull())
+              {
+                if(img.size() != b.pixelSize)
+                  img = img.scaled(
+                      b.pixelSize, Qt::IgnoreAspectRatio,
+                      Qt::SmoothTransformation);
+                pendingUploads.push_back(
+                    {(int)bi, layer, std::move(img), s, tref.source, coverage});
+              }
+            }
             return;
           }
           break;
@@ -3937,7 +3985,8 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
         }
 
         b_ptr->layerMap[s] = -1;
-        pendingUploads.push_back({b_idx, -1, std::move(img), s, tref.source});
+        pendingUploads.push_back(
+            {b_idx, -1, std::move(img), s, tref.source, coverage});
       };
 
       const auto register_material_refs
@@ -4127,7 +4176,9 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
                 img = img.scaled(
                     b.pixelSize, Qt::IgnoreAspectRatio,
                     Qt::SmoothTransformation);
-              pendingUploads.push_back({(int)bi, (int)li, std::move(img)});
+              const bool coverage = li < b.layerCoverage.size() && b.layerCoverage[li];
+              pendingUploads.push_back(
+                  {(int)bi, (int)li, std::move(img), nullptr, {}, coverage});
             }
           }
         }
@@ -4170,6 +4221,13 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
       QImage img = std::move(pu.image);
       if(img.format() != QImage::Format_RGBA8888)
         img.convertTo(QImage::Format_RGBA8888);
+      // Bled here, after any resample to the bucket size: a smooth scale
+      // averages premultiplied, which zeroes the RGB under alpha 0 again.
+      if(pu.coverage)
+        bleedTransparentColor(img);
+      if((int)b.layerCoverage.size() <= pu.layer_idx)
+        b.layerCoverage.resize(pu.layer_idx + 1, 0);
+      b.layerCoverage[pu.layer_idx] = pu.coverage;
       // Sizes match by construction — no scale needed.
       QRhiTextureSubresourceUploadDescription sub(img);
       QRhiTextureUploadEntry entry(pu.layer_idx, 0, sub);

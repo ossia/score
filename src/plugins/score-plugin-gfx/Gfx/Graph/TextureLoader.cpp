@@ -11,7 +11,9 @@
 
 #include <private/qrhi_p.h>
 
+#include <algorithm>
 #include <cstring>
+#include <vector>
 
 namespace score::gfx
 {
@@ -99,6 +101,157 @@ std::optional<DecodedImage> decodeImageFromMemory(
     out.image.convertTo(QImage::Format_RGBA8888);
   out.debug_name = QStringLiteral("blob:") + mime_hint;
   return out;
+}
+
+bool bleedTransparentColor(QImage& image)
+{
+  if(image.isNull())
+    return false;
+  if(image.format() != QImage::Format_RGBA8888)
+    image.convertTo(QImage::Format_RGBA8888);
+
+  const int w = image.width();
+  const int h = image.height();
+  const auto texel = [&](const QImage& img, int x, int y) {
+    return img.constScanLine(y) + 4 * x;
+  };
+
+  bool anyClear = false, anyCovered = false;
+  for(int y = 0; y < h && !(anyClear && anyCovered); ++y)
+  {
+    const uchar* row = image.constScanLine(y);
+    for(int x = 0; x < w; ++x)
+    {
+      if(row[4 * x + 3] == 0)
+        anyClear = true;
+      else
+        anyCovered = true;
+    }
+  }
+  if(!anyClear || !anyCovered)
+    return false;
+
+  // Push: alpha-weighted sums per 2x2 block, level 1 up to 1x1. Each entry is
+  // (sum a*r, sum a*g, sum a*b, sum a); after the pull below it holds the
+  // un-weighted colour in rgb.
+  struct Level
+  {
+    int w, h;
+    std::vector<float> v;
+  };
+  std::vector<Level> levels;
+  {
+    int lw = w, lh = h;
+    while(lw > 1 || lh > 1)
+    {
+      const int pw = lw, ph = lh;
+      lw = std::max(1, (lw + 1) / 2);
+      lh = std::max(1, (lh + 1) / 2);
+      Level lv{lw, lh, std::vector<float>(std::size_t(lw) * lh * 4, 0.f)};
+      for(int y = 0; y < ph; ++y)
+      {
+        for(int x = 0; x < pw; ++x)
+        {
+          float* dst = &lv.v[(std::size_t(y / 2) * lw + x / 2) * 4];
+          if(levels.empty())
+          {
+            const uchar* p = texel(image, x, y);
+            const float a = p[3];
+            dst[0] += a * p[0];
+            dst[1] += a * p[1];
+            dst[2] += a * p[2];
+            dst[3] += a;
+          }
+          else
+          {
+            const auto& prev = levels.back();
+            const float* src = &prev.v[(std::size_t(y) * pw + x) * 4];
+            for(int c = 0; c < 4; ++c)
+              dst[c] += src[c];
+          }
+        }
+      }
+      levels.push_back(std::move(lv));
+    }
+  }
+
+  // Pull: from the 1x1 top down, a covered block keeps its weighted mean and
+  // an empty one inherits its parent's colour.
+  for(int k = (int)levels.size() - 1; k >= 0; --k)
+  {
+    auto& lv = levels[k];
+    const Level* parent = k + 1 < (int)levels.size() ? &levels[k + 1] : nullptr;
+    for(int y = 0; y < lv.h; ++y)
+    {
+      for(int x = 0; x < lv.w; ++x)
+      {
+        float* t = &lv.v[(std::size_t(y) * lv.w + x) * 4];
+        if(t[3] > 0.f)
+        {
+          t[0] /= t[3];
+          t[1] /= t[3];
+          t[2] /= t[3];
+        }
+        else if(parent)
+        {
+          const float* p = &parent->v[(std::size_t(y / 2) * parent->w + x / 2) * 4];
+          t[0] = p[0];
+          t[1] = p[1];
+          t[2] = p[2];
+        }
+      }
+    }
+  }
+
+  // Level 0. A clear texel touching covered ones takes their alpha-weighted
+  // mean (read from the source, so the fill does not chain); any other takes
+  // its level-1 block colour.
+  const QImage src = image.copy();
+  const auto& l1 = levels.front();
+  for(int y = 0; y < h; ++y)
+  {
+    uchar* row = image.scanLine(y);
+    for(int x = 0; x < w; ++x)
+    {
+      uchar* p = row + 4 * x;
+      if(p[3] != 0)
+        continue;
+      float acc[4]{};
+      for(int dy = -1; dy <= 1; ++dy)
+      {
+        const int yy = y + dy;
+        if(yy < 0 || yy >= h)
+          continue;
+        for(int dx = -1; dx <= 1; ++dx)
+        {
+          const int xx = x + dx;
+          if(xx < 0 || xx >= w)
+            continue;
+          const uchar* q = texel(src, xx, yy);
+          const float a = q[3];
+          acc[0] += a * q[0];
+          acc[1] += a * q[1];
+          acc[2] += a * q[2];
+          acc[3] += a;
+        }
+      }
+      const float* fill = acc;
+      float mean[3];
+      if(acc[3] > 0.f)
+      {
+        for(int c = 0; c < 3; ++c)
+          mean[c] = acc[c] / acc[3];
+        fill = mean;
+      }
+      else
+      {
+        fill = &l1.v[(std::size_t(y / 2) * l1.w + x / 2) * 4];
+      }
+      for(int c = 0; c < 3; ++c)
+        p[c] = (uchar)std::clamp(int(fill[c] + 0.5f), 0, 255);
+    }
+  }
+  return true;
 }
 
 // -----------------------------------------------------------------------------

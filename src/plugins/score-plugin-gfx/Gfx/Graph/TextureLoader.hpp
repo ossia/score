@@ -49,6 +49,19 @@ SCORE_PLUGIN_GFX_EXPORT
 std::optional<DecodedImage> decodeImageFromMemory(
     const QByteArray& bytes, const QString& mime_hint);
 
+// Colour-bleed a straight-alpha RGBA8888 image whose alpha is coverage (a
+// cutout or blended base colour): the RGB under every alpha-0 texel is
+// replaced by the colour of the covered texels around it, alpha untouched.
+// Filtering and mip generation average RGB and alpha independently, so the
+// arbitrary (often black) RGB authored under alpha 0 would otherwise bleed
+// into the surviving edge as a dark or off-colour fringe. Direct neighbours
+// of covered texels take their alpha-weighted mean; the rest are filled
+// pull-push from alpha-weighted 2x2 block averages, which is what a box mip
+// chain averages them into. Linear in the texel count. Returns false, leaving
+// the image as it is, when it has no alpha-0 texel or no covered one.
+SCORE_PLUGIN_GFX_EXPORT
+bool bleedTransparentColor(QImage& image);
+
 // =============================================================================
 // GPU upload — pure RHI, no I/O. Allocates a freshly-sized QRhiTexture
 // (RGBA8 or sRGB8_ALPHA8 depending on `srgb`), records the upload into

@@ -290,6 +290,7 @@ void GpuResourceRegistry::destroy(RenderList& renderer)
       b.layers = 0;
       b.layerMap.clear();
       b.layerSources.clear();
+      b.layerCoverage.clear();
       b.mipsDirty = false;
     }
     ch.buckets.clear();
@@ -362,6 +363,7 @@ void GpuResourceRegistry::destroyOwned()
       b.layers = 0;
       b.layerMap.clear();
       b.layerSources.clear();
+      b.layerCoverage.clear();
       b.mipsDirty = false;
     }
     ch.buckets.clear();
@@ -424,6 +426,7 @@ void GpuResourceRegistry::destroy()
       b.layers = 0;
       b.layerMap.clear();
       b.layerSources.clear();
+      b.layerCoverage.clear();
       b.mipsDirty = false;
     }
     ch.buckets.clear();
