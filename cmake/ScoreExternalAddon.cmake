@@ -5,6 +5,10 @@ endif()
 enable_language(C)
 enable_language(CXX)
 
+if(WIN32 AND CMAKE_GENERATOR MATCHES "Ninja")
+  set(CMAKE_NINJA_FORCE_RESPONSE_FILE ON)
+endif()
+
 # The About dialog's license list only exists in a build of score itself.
 if(NOT COMMAND score_register_license)
   function(score_register_license)
