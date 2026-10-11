@@ -60,6 +60,23 @@
 
 namespace oscr
 {
+//! The value a GPU node's control is handed. The CPU path resolves the paths
+//! of file / folder controls in setup_control_for_exec; the GPU path forwards
+//! the raw inlet value, so a loader whose path is stored as "<PROJECT>:..." or
+//! "<LIBRARY>:..." (what saving a document leaves) received the token itself
+//! and opened nothing. File and folder choosers resolve like the file ports
+//! do; any other control's value is not a path and is passed as is.
+[[nodiscard]] static ossia::value
+gpuControlValue(
+    const Process::ControlInlet& ctrl, const ossia::value& v,
+    const score::DocumentContext& ctx)
+{
+  if(qobject_cast<const Process::FileChooserBase*>(&ctrl)
+     || qobject_cast<const Process::FolderChooser*>(&ctrl))
+    return resolvePathValue(v, ctx);
+  return v;
+}
+
 //! An execution node which applies its worker results at the beginning of its
 //! own tick.
 //!
@@ -310,7 +327,7 @@ public:
       if(auto ctrl = qobject_cast<Process::ControlInlet*>(ctl))
       {
         auto& p = node->add_control();
-        p->value = ctrl->value();
+        p->value = gpuControlValue(*ctrl, ctrl->value(), ctx.doc);
         // An impulse is only ever sent when it is triggered: the object's
         // one-shot inputs start empty, like setup_control_for_exec leaves them
         // on the CPU path.
@@ -323,7 +340,10 @@ public:
 
         QObject::connect(
             ctrl, &Process::ControlInlet::valueChanged, this,
-            Gfx::con_unvalidated{ctx, i, 0, node});
+            [con = Gfx::con_unvalidated{ctx, i, 0, node}, ctrl,
+             &doc = ctx.doc](const ossia::value& v) mutable {
+          con(gpuControlValue(*ctrl, v, doc));
+        });
         i++;
       }
       else if(auto ctrl = qobject_cast<Process::ValueInlet*>(ctl))
