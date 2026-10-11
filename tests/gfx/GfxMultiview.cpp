@@ -72,11 +72,17 @@ namespace
 {
 // Procedural MULTIVIEW raster: view i writes R = (i + 1) * 32 from the
 // fragment's VIEW_INDEX and G = (i + 1) * 32 from the vertex stage's, B = 1.
-// Both stages read VIEW_INDEX as an int, as the presets do.
+// Both stages read the view index as an int, as the presets do. The vertex
+// stage spells it @VI@: the engine's VIEW_INDEX, or a raw gl_ViewIndex stored
+// into an int (test_cube_colors.vert, classic_pbr_multiview.vert). On OpenGL
+// SPIRV-Cross turns the latter into GL_OVR_multiview's uint gl_ViewID_OVR,
+// which needs an explicit int() (qtshadertools patch
+// "SPIRV-Cross: GLSL: cast gl_ViewID_OVR to int when loading ViewIndex"):
+// without it NVIDIA refuses the stage with C7011.
 constexpr const char* kViewColoursVert = R"(void main()
 {
   isf_vertShaderInit();
-  int view = VIEW_INDEX;
+  int view = @VI@;
   v_view = float(view);
   vec2 p = vec2(float((gl_VertexIndex << 1) & 2), float(gl_VertexIndex & 2));
   gl_Position = vec4(p * 2.0 - 1.0, 0.0, 1.0);
@@ -121,10 +127,13 @@ void main()
 }
 )";
 
-QString writeWithViews(const QTemporaryDir& dir, const char* name, const char* text, int n)
+QString writeWithViews(
+    const QTemporaryDir& dir, const char* name, const char* text, int n,
+    const char* viewIndex = "VIEW_INDEX")
 {
   QByteArray src{text};
   src.replace("@N@", QByteArray::number(n));
+  src.replace("@VI@", viewIndex);
   const QString path = dir.filePath(QString::fromUtf8(name));
   QFile f(path);
   if(!f.open(QIODevice::WriteOnly | QIODevice::Truncate))
@@ -139,11 +148,12 @@ TEST_CASE(
 {
   const auto be = GENERATE(from_range(platform_backends()));
   const int views = GENERATE(2, 6);
-  CAPTURE(backend_name(be), views);
+  const char* viewIndex = GENERATE("VIEW_INDEX", "gl_ViewIndex");
+  CAPTURE(backend_name(be), views, viewIndex);
 
   QTemporaryDir dir;
   REQUIRE(dir.isValid());
-  const QString vs = writeWithViews(dir, "mv.vs", kViewColoursVert, views);
+  const QString vs = writeWithViews(dir, "mv.vs", kViewColoursVert, views, viewIndex);
   const QString fs = writeWithViews(dir, "mv.fs", kViewColoursFrag, views);
   const QString strips = writeWithViews(dir, "strips.fs", kStripsFrag, views);
 
