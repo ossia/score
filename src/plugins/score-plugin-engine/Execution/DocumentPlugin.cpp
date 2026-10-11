@@ -471,6 +471,15 @@ void DocumentPlugin::clear()
         std::atomic_thread_fence(std::memory_order_seq_cst);
       }
   }
+  // Releasing m_ctxData rarely destroys it: the tick holds a strong reference.
+  // Mark it retired so it stops acting on its stale state while it survives.
+  if(m_ctxData)
+  {
+    m_ctxData->context.retired = true;
+    if(m_ctxData->execState)
+      m_ctxData->execState->clear_devices();
+  }
+
   m_ctxData.reset();
   m_ctxData = std::make_shared<ContextData>(this->m_context);
   m_ctxData->context.alias = m_ctxData;
