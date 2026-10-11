@@ -268,6 +268,17 @@ struct SCORE_LIB_PROCESS_EXPORT Context
   Context& operator=(Context&&) = delete;
 #endif
 #endif
+
+  //! Set when this context's ContextData has been replaced. A replaced
+  //! ContextData can outlive its replacement: the tick holds a strong
+  //! reference and audio_engine::sync() does not wait for the audio thread
+  //! when running() is false. Until it dies it stays subscribed to the cable
+  //! signal and to every port it bound, over an execution_state whose devices
+  //! may already be gone, so retired contexts must do nothing.
+  //!
+  //! Declared last: ContextData initialises Context positionally.
+  //! UI thread only.
+  bool retired = false;
 };
 
 }

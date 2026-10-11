@@ -330,6 +330,8 @@ void set_destination_impl(
     Impl&& append)
 {
   OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
+  if(plug.retired)
+    return;
   auto& s = plug.execState;
   auto& g = plug.execGraph;
   if(!g)
@@ -516,11 +518,15 @@ void SetupContext::register_outlet(
 
 void SetupContext::on_cableCreated(Process::Cable& c)
 {
+  if(context.retired)
+    return;
   connectCable(c);
 }
 
 void SetupContext::on_cableRemoved(const Process::Cable& c)
 {
+  if(context.retired)
+    return;
   removeCable(c);
 }
 
@@ -825,6 +831,8 @@ void SetupContext::follow_published()
 
 void SetupContext::rebind(QObject* port)
 {
+  if(context.retired)
+    return;
   if(auto in = qobject_cast<Process::Inlet*>(port))
   {
     if(auto it = inlets.find(in); it != inlets.end())
