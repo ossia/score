@@ -55,6 +55,10 @@ if [[ ! -w "$BUILD_FOLDER/score.AppDir" ]]; then
 fi
 
 
+# appimagetool is an AppImage itself and the self-hosted host has no FUSE.
+# Overridable, for a caller that does want FUSE.
+export APPIMAGE_EXTRACT_AND_RUN="${APPIMAGE_EXTRACT_AND_RUN:-1}"
+
 wget -nv "https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-${CPU_ARCH}.AppImage"
 chmod a+x appimagetool-${CPU_ARCH}.AppImage
 
