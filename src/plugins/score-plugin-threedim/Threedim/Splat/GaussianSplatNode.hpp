@@ -781,10 +781,13 @@ void main() {
 
     gl_Position = clipSpaceCorr * vec4(center + ndcOffset, ndc.z, 1.0);
 
-    // Score's texture compositing pipeline flips Y when sampling for Vulkan/HLSL/Metal.
-    // To match this convention (same as ISF shaders), we undo clipSpaceCorr's Y-flip here
-    // so the compositing re-flip produces a correctly oriented final image.
+    // Published images have render-target row order: on Vulkan that means
+    // undoing clipSpaceCorr's Y-flip, on OpenGL flipping the GL-convention
+    // NDC. Metal and D3D already get render-target order from clipSpaceCorr
+    // (no Y term there); negating unconditionally drew them upside down.
+#if !defined(QSHADER_HLSL) && !defined(QSHADER_MSL)
     gl_Position.y = -gl_Position.y;
+#endif
 
     // gl_Position.w is 1, so this interpolates linearly in screen space and
     // is exact at every fragment.
