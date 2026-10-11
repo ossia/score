@@ -644,7 +644,7 @@ layout(std140, binding = 2) uniform Uniforms {
     uint useSorting; // 0 = no sorting, 1 = use sorted indices
 };
 
-layout(location = 0) out vec2 f_center;  // screen-space splat center (pixels)
+layout(location = 0) out vec2 f_offset; // offset from the splat centre, NDC pixels (x right, y up)
 layout(location = 1) out vec4 f_color;
 layout(location = 2) out vec3 f_conic;
 
@@ -762,14 +762,17 @@ void main() {
         return;
     }
 
-    // Inverse covariance (conic) for fragment Gaussian evaluation.
-    // The cross-term sign must match the screen-space convention of gl_FragCoord:
-    //   Vulkan/Metal/D3D (clipSpaceCorr[1][1] < 0): both screen axes flip
-    //     relative to J-space, preserving the cross-product sign.
-    //   OpenGL (clipSpaceCorr[1][1] > 0): only X flips, requiring correction.
+    // Inverse covariance (conic) for fragment Gaussian evaluation, in the same
+    // space as the quad: NDC scaled to pixels (x right, y up). J-space is that
+    // space negated on both axes (view z < 0), which leaves cov_xy unchanged.
+    // The fragment stage evaluates the Gaussian on the interpolated quad
+    // offset, never on gl_FragCoord: the window origin is bottom-left on
+    // OpenGL and top-left elsewhere, and its relation to NDC differs again
+    // between Vulkan (y down) and Metal/D3D (y up), so a gl_FragCoord-based
+    // centre and cross-term sign cannot be right on every backend (it put
+    // every splat off its quad on Metal/D3D, i.e. a black image).
     float inv_det = 1.0 / det;
-    float crossSign = sign(clipSpaceCorr[1][1]);
-    f_conic = vec3(cov_yy * inv_det, crossSign * cov_xy * inv_det, cov_xx * inv_det);
+    f_conic = vec3(cov_yy * inv_det, -cov_xy * inv_det, cov_xx * inv_det);
 
     // Oriented quad: major axis along eigVec1, minor along eigVec2
     vec2 pixelOffset = quadPos.x * r1 * eigVec1 + quadPos.y * r2 * eigVec2;
@@ -783,10 +786,9 @@ void main() {
     // so the compositing re-flip produces a correctly oriented final image.
     gl_Position.y = -gl_Position.y;
 
-    // Screen-space center in pixels (matches gl_FragCoord coordinate system)
-    vec4 centerClip = clipSpaceCorr * vec4(ndc.xy, ndc.z, 1.0);
-    centerClip.y = -centerClip.y;
-    f_center = (centerClip.xy / centerClip.w * 0.5 + 0.5) * viewport;
+    // gl_Position.w is 1, so this interpolates linearly in screen space and
+    // is exact at every fragment.
+    f_offset = pixelOffset;
 
     // Fade out excessively large projected splats.
     float alpha = splat.color.a * mipCoef;
@@ -806,16 +808,16 @@ void main() {
 
 static constexpr auto fragment_shader = R"_(#version 450
 
-layout(location = 0) in vec2 f_center;  // screen-space splat center (pixels)
+layout(location = 0) in vec2 f_offset; // offset from the splat centre, NDC pixels
 layout(location = 1) in vec4 f_color;
 layout(location = 2) in vec3 f_conic;
 
 layout(location = 0) out vec4 fragColor;
 
 void main() {
-    // Pixel offset from splat center, computed per-fragment for precision.
-    // Unlike interpolated UVs, this is exact regardless of quad orientation.
-    vec2 d = gl_FragCoord.xy - f_center;
+    // Offset from the splat centre in the conic's own space (see the vertex
+    // stage), identical on every backend.
+    vec2 d = f_offset;
 
     float power = -0.5 * (f_conic.x * d.x * d.x +
                           2.0 * f_conic.y * d.x * d.y +

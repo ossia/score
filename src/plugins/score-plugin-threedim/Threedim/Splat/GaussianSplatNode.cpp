@@ -484,11 +484,13 @@ void GaussianSplatRenderer::createRenderPipeline(RenderList& renderer)
 
   m_pipeline->setTopology(QRhiGraphicsPipeline::Triangles);
   m_pipeline->setCullMode(QRhiGraphicsPipeline::None);
-  // Reverse-Z like the rest of the engine: the clear is 0.0 (far) and the
-  // compare is Greater. Leaving Qt's default Less here rejects every fragment.
-  m_pipeline->setDepthTest(true);
-  m_pipeline->setDepthWrite(true);
-  m_pipeline->setDepthOp(QRhiGraphicsPipeline::Greater);
+  // No depth test: splats are composited front to back by the sort ("under"
+  // blending below), as the reference 3DGS rasterizer does, so a depth buffer
+  // adds nothing -- and the output target usually has no depth attachment at
+  // all (a downstream texture inlet), where a depth-enabled pipeline is
+  // invalid: Metal and D3D11 drew nothing.
+  m_pipeline->setDepthTest(false);
+  m_pipeline->setDepthWrite(false);
 
   // Front-to-back "under" compositing (premultiplied alpha).
   // Mathematically equivalent to back-to-front "over", but much more stable:
@@ -975,6 +977,14 @@ void GaussianSplatRenderer::runInitialPasses(
     cb.setComputePipeline(m_sortPipeline);
     cb.setShaderResources(pass % 2 == 0 ? m_sortSrb : m_sortSrbAlt);
     cb.dispatch(numWorkgroups, 1, 1);
+    // The next histogram pass reads the scattered keys, and the render pass's
+    // vertex stage reads the sorted indices. Every other pass here ends with
+    // this barrier; without it the OpenGL backend (whose QRhi tracks storage
+    // hazards only inside one compute pass) read stale keys and indices, so the
+    // draw order was partly unsorted and back splats smeared over front ones.
+    cb.beginExternal();
+    insertComputeBarrier(*renderer.state.rhi, cb);
+    cb.endExternal();
     cb.endComputePass();
   }
 }
