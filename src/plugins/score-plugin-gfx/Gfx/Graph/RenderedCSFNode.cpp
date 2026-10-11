@@ -33,6 +33,24 @@ namespace score::gfx
 
 namespace
 {
+// Every layer / slice / face of `src` into `dst`, which has the same shape:
+// QRhi copies one subresource per copyTexture.
+void copyWholeTexture(QRhiResourceUpdateBatch& res, QRhiTexture* dst, QRhiTexture* src)
+{
+  const auto flags = src->flags();
+  const int layers = flags.testFlag(QRhiTexture::ThreeDimensional) ? src->depth()
+                     : flags.testFlag(QRhiTexture::CubeMap)        ? 6
+                     : flags.testFlag(QRhiTexture::TextureArray)   ? src->arraySize()
+                                                                   : 1;
+  for(int layer = 0; layer < std::max(1, layers); layer++)
+  {
+    QRhiTextureCopyDescription desc;
+    desc.setSourceLayer(layer);
+    desc.setDestinationLayer(layer);
+    res.copyTexture(dst, src, desc);
+  }
+}
+
 // Whether the geometry names GPU objects: those belong to the renderer that
 // published it, and do not outlive that renderer's release().
 bool holdsGpuResources(const ossia::geometry_spec& spec) noexcept
@@ -4528,10 +4546,16 @@ void RenderedCSFNode::buildComputeSrbBindings(
 
           // Persistent pair: `<name>_prev` readonly at the adjacent slot.
           // First frame aliases back to `texture` (no prior frame to read).
+          // Not on D3D11: one texture as both UAVs overlaps, and the runtime
+          // drops the whole CSSetUnorderedAccessViews. There `_prev` is the
+          // read texture from the start, and runGeometryPasses copies
+          // `texture` into it before each pass of the first frame.
           if(it->persistent)
           {
-            QRhiTexture* prev_tex
-                = it->pending_initial_copy ? it->texture : it->read_texture;
+            const bool alias_first_frame = rhi.backend() != QRhi::D3D11;
+            QRhiTexture* prev_tex = (it->pending_initial_copy && alias_first_frame)
+                                        ? it->texture
+                                        : it->read_texture;
             if(!prev_tex)
               prev_tex = it->texture;
             it->prev_binding = imageBindingIndex;
@@ -4630,7 +4654,16 @@ void RenderedCSFNode::buildComputeSrbBindings(
             // count resolved -- and every later index then read past its end:
             // zeros under Vulkan robustness, and a diffusion stencil reading
             // zero neighbours collapses the field on its first dispatch.
-            if(req.gathers && !binding.is_feedback_receiver && ssbo.buffer
+            //
+            // D3D11 needs the snapshot for EVERY read_write, gathering or not:
+            // one buffer as both _in and _out is the same resource in two CS
+            // slots (two views of one UAV, or an SRV next to a UAV once
+            // readonly blocks are baked as SRVs), and the D3D11 runtime drops
+            // the overlapping bind, so the dispatch writes nothing.
+            // runGeometryPasses refreshes it before every pass, so a pass
+            // still reads what the previous one wrote, as in place.
+            const bool distinct_in = req.gathers || rhi.backend() == QRhi::D3D11;
+            if(distinct_in && !binding.is_feedback_receiver && ssbo.buffer
                && ssbo.buffer->size() > 0
                && (!ssbo.read_buffer || ssbo.read_buffer->size() != ssbo.buffer->size()))
             {
@@ -4686,8 +4719,15 @@ void RenderedCSFNode::buildComputeSrbBindings(
                        req.name.c_str());
             }
 
-            QRhiBuffer* read_buf = (ssbo.read_buffer && !binding.pending_initial_copy)
-                ? ssbo.read_buffer : ssbo.buffer;
+            // No same-buffer first frame on D3D11 either (see above): the
+            // receiver reads its read_buffer, which runGeometryPasses seeds
+            // from the buffer before each pass of that frame.
+            const bool same_buffer_first_frame = rhi.backend() != QRhi::D3D11;
+            QRhiBuffer* read_buf
+                = (ssbo.read_buffer
+                   && (!binding.pending_initial_copy || !same_buffer_first_frame))
+                      ? ssbo.read_buffer
+                      : ssbo.buffer;
             if(read_buf == ssbo.buffer)
             {
               // Same physical buffer for both _in and _out (non-feedback in-place).
@@ -6228,17 +6268,71 @@ void RenderedCSFNode::runGeometryPasses(
     }
   }
 
+  // D3D11 never binds one resource as both halves of a read_write attribute
+  // or of a persistent image's first frame (see the SRB code). These are the
+  // pairs every other backend binds in place; refreshing the read half from
+  // the write half before a pass reproduces what in place reads.
+  const bool d3d11 = renderer.state.rhi->backend() == QRhi::D3D11;
+  auto d3d11InPlaceBuffers = [&] {
+    std::vector<std::pair<QRhiBuffer*, QRhiBuffer*>> pairs;
+    int gb_idx = 0;
+    for(const auto& input : n.m_descriptor.inputs)
+    {
+      auto* geo_input = ossia::get_if<isf::geometry_input>(&input.data);
+      if(!geo_input)
+        continue;
+      if(gb_idx >= (int)m_geometryBindings.size())
+        break;
+      const auto& gb = m_geometryBindings[gb_idx++];
+      if(gb.is_feedback_receiver && !gb.pending_initial_copy)
+        continue;
+      for(int ai = 0; ai < (int)geo_input->attributes.size()
+                      && ai < (int)gb.attribute_ssbos.size();
+          ai++)
+      {
+        const auto& req = geo_input->attributes[ai];
+        const auto& ssbo = gb.attribute_ssbos[ai];
+        if(req.access == "read_write" && (!req.gathers || gb.is_feedback_receiver)
+           && ssbo.read_buffer && ssbo.buffer && ssbo.read_buffer != ssbo.buffer)
+          pairs.push_back({ssbo.buffer, ssbo.read_buffer});
+      }
+    }
+    return pairs;
+  };
+  auto copyBuffers = [&](const std::vector<std::pair<QRhiBuffer*, QRhiBuffer*>>& pairs) {
+    if(pairs.empty())
+      return;
+    if(res)
+    {
+      commands.resourceUpdate(res);
+      res = renderer.state.rhi->nextResourceUpdateBatch();
+    }
+    commands.beginExternal();
+    beginBufferCopyBarrier(*renderer.state.rhi, commands);
+    for(auto& [src, dst] : pairs)
+    {
+      const int sz = (int)std::min(src->size(), dst->size());
+      if(sz > 0)
+        copyBuffer(
+            *renderer.state.rhi, commands, src, dst, sz, 0, 0,
+            BufferCopyBarrier::None);
+    }
+    endBufferCopyBarrier(*renderer.state.rhi, commands);
+    commands.endExternal();
+  };
+
   {
     std::vector<std::pair<QRhiBuffer*, QRhiBuffer*>> snaps;
     for(auto& binding : m_geometryBindings)
     {
-      if(binding.is_feedback_receiver)
+      // A receiver's read half is last frame's output, except on its first
+      // frame, which D3D11 seeds from the buffer instead of aliasing it.
+      if(binding.is_feedback_receiver && !(d3d11 && binding.pending_initial_copy))
         continue;
       for(auto& ssbo : binding.attribute_ssbos)
         if(ssbo.read_buffer && ssbo.buffer && ssbo.read_buffer != ssbo.buffer)
           snaps.push_back({ssbo.buffer, ssbo.read_buffer});
     }
-
 
     if(!snaps.empty())
     {
@@ -6280,6 +6374,24 @@ void RenderedCSFNode::runGeometryPasses(
     }
     
     const auto& pass = m_computePasses[passIndex].second;
+
+    // D3D11: what this pass reads in place on other backends is what the
+    // previous passes wrote. Pass 0 was seeded above.
+    if(d3d11 && passIndex > 0 && pass.pipeline && pass.srb)
+      copyBuffers(d3d11InPlaceBuffers());
+    if(d3d11 && pass.pipeline && pass.srb)
+    {
+      for(const auto& si : m_storageImages)
+      {
+        if(!si.persistent || !si.pending_initial_copy || !si.texture
+           || !si.read_texture || si.texture == si.read_texture)
+          continue;
+        if(!res)
+          res = renderer.state.rhi->nextResourceUpdateBatch();
+        copyWholeTexture(*res, si.read_texture, si.texture);
+      }
+    }
+
     // A pass whose SRB failed to (re)create must be skipped, not recorded:
     // setShaderResources on a null / half-built SRB is a crash, and the
     // failure was already reported by recreateShaderResourceBindings.

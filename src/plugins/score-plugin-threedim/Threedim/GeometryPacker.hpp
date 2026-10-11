@@ -502,19 +502,15 @@ void main()
       return;
 
     m_sourcesValid = m_outputBuffer != nullptr;
-    QRhiBuffer* placeholderBuffer = m_placeholderBuffer;
+    // Unused slots get the dedicated placeholder, never a live source, so a
+    // source's buffer is bound once per slot that really reads it. D3D11 also
+    // needs the sources baked as SRVs (readonly blocks, SDK Qt patch): as UAVs
+    // any buffer in two slots, the placeholder included, overlaps and the
+    // runtime drops the whole bind, output included.
+    QRhiBuffer* const placeholderBuffer = m_placeholderBuffer;
     for(int i = 0; i < m_srcBufferCount; ++i)
-    {
-      if(m_srcBuffers[i] && m_srcBuffers[i] != m_outputBuffer)
-      {
-        if(placeholderBuffer == m_placeholderBuffer)
-          placeholderBuffer = m_srcBuffers[i];
-      }
-      else
-      {
+      if(!m_srcBuffers[i] || m_srcBuffers[i] == m_outputBuffer)
         m_sourcesValid = false;
-      }
-    }
 
     QRhiBuffer* buffers[MAX_PACKED_ATTRIBUTES + 2]{};
     for(int i = 0; i < MAX_PACKED_ATTRIBUTES; ++i)
