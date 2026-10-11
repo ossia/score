@@ -112,6 +112,15 @@ void TextToMesh::rebuild()
     // Build a QRawFont from the requested family. QRawFont::fromFont
     // resolves aliases (e.g. "Sans" → the system default).
     QFont qf(QString::fromStdString(inputs.font_family.value));
+    // A family the platform does not know ("Sans" outside fontconfig) is
+    // otherwise resolved through the per-script fallback list. On macOS that
+    // list starts with private UI fonts (.AppleSystemUIFont,
+    // .AppleSystemFallback); inside score their engines fail to create
+    // ("Failed to create font engine for fallback 0 ... Blacklisting") and Qt
+    // settles on ".SF Georgian", which has no Latin outlines: every glyph then
+    // triangulates as a filled box. The style hint makes the fallback a real
+    // sans-serif family (Helvetica). It does not change a family that exists.
+    qf.setStyleHint(QFont::SansSerif);
     qf.setPixelSize(inputs.font_size.value);
     qf.setBold(inputs.bold.value);
     qf.setItalic(inputs.italic.value);
@@ -125,7 +134,24 @@ void TextToMesh::rebuild()
     //
     // An empty familyName is the reliable signal; supportsCharacter() still
     // answers true in that state, so it cannot be used for this.
-    if(!rf.isValid() || rf.familyName().isEmpty())
+    //
+    // A resolved family can still lack the requested characters (a script
+    // fallback font): if no visible character maps to a real glyph, the text
+    // would be all .notdef boxes. Treat that as unresolved too.
+    const QString str = QString::fromStdString(inputs.text.value);
+    const auto all_notdef = [&str](const QRawFont& f) {
+      QString visible;
+      for(const QChar c : str)
+        if(!c.isSpace())
+          visible.append(c);
+      if(visible.isEmpty())
+        return false;
+      for(const quint32 g : f.glyphIndexesForString(visible))
+        if(g != 0)
+          return false;
+      return true;
+    };
+    if(!rf.isValid() || rf.familyName().isEmpty() || all_notdef(rf))
     {
       // Fallback: default system font at the requested size, keeping the
       // requested weight and slant.
@@ -135,8 +161,6 @@ void TextToMesh::rebuild()
       def.setItalic(inputs.italic.value);
       rf = QRawFont::fromFont(def);
     }
-
-    const QString str = QString::fromStdString(inputs.text.value);
 
     // Pixel → world scale: QRawFont::pixelSize() is the nominal pixel
     // size. Height control sets the target cap height; we approximate
