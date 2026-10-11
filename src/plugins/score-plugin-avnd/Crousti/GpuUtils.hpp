@@ -2072,8 +2072,14 @@ void main()
 }
 )_";
 
-// For CPU texture outlets, which OpenGL stores mirrored (see
-// texture_outputs_storage::uploadsMirrored).
+// For CPU texture outlets. They are uploaded mirrored wherever isYUpInNDC()
+// (OpenGL, Metal, D3D: see texture_outputs_storage::uploadsMirrored), so that
+// they share the bottom-row-first layout of the textures the engine renders
+// there. The blit below must then be a straight copy on every backend: GLSL
+// needs no flip, while SPIR-V (top-first upload, flipped clipSpaceCorrMatrix)
+// and HLSL/MSL (bottom-first upload, identity clipSpaceCorrMatrix) both need
+// v flipped. Flipping only for SPIR-V turned every CPU-produced image upside
+// down on Metal and D3D.
 static const constexpr auto generic_texgen_cpu_vs = R"_(#version 450
 layout(location = 0) in vec2 position;
 layout(location = 1) in vec2 texcoord;
@@ -2090,7 +2096,7 @@ out gl_PerVertex { vec4 gl_Position; };
 
 void main()
 {
-#if defined(QSHADER_SPIRV)
+#if defined(QSHADER_SPIRV) || defined(QSHADER_HLSL) || defined(QSHADER_MSL)
   v_texcoord = vec2(texcoord.x, 1. - texcoord.y);
 #else
   v_texcoord = texcoord;
