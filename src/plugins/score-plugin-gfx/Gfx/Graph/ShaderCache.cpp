@@ -173,6 +173,15 @@ ShaderCache::Baker::Baker(
       baker.setGeneratedShaders({{QShader::SpirvShader, version}});
       break;
     case GraphicsApi::D3D11:
+      baker.setGeneratedShaders({{QShader::HlslShader, version}});
+#if defined(QT_SHADERTOOLS_HAS_HLSL_READONLY_SSBO_SRV)
+      // readonly storage blocks become ByteAddressBuffer SRVs, which D3D11
+      // binds at every stage (vertex SSBOs), and whose loads fxc accepts in
+      // gradient operations (X3662) and barrier-controlling flow (X3663).
+      // D3D11 only: qrhid3d12 does not understand the {tN, -2} binding.
+      baker.setHlslReadOnlyStorageBuffersAsSrv(true);
+#endif
+      break;
     case GraphicsApi::D3D12:
       baker.setGeneratedShaders({{QShader::HlslShader, version}});
       break;

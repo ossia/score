@@ -1432,15 +1432,25 @@ makeShaders(const RenderState& v, QString vert, QString frag, int multiViewCount
       && v.rhi->backend() == QRhi::D3D11;
 #endif
 
-  if(cannot_bind_vertex_ssbo
-     && !vertexS.description().storageBlocks().isEmpty())
+  // With the SDK's readonly-SSBO-as-SRV patch, readonly blocks are SRVs and
+  // ARE bound at the vertex stage on D3D11; only writable ones are lost.
+  QStringList unbound_blocks;
+  for(const auto& b : vertexS.description().storageBlocks())
+  {
+#if defined(QT_SHADERTOOLS_HAS_HLSL_READONLY_SSBO_SRV)
+    if(v.rhi && v.rhi->backend() == QRhi::D3D11
+       && b.qualifierFlags.testFlag(QShaderDescription::QualifierReadOnly))
+      continue;
+#endif
+    unbound_blocks << QString::fromUtf8(b.blockName);
+  }
+
+  if(cannot_bind_vertex_ssbo && !unbound_blocks.isEmpty())
   {
     static std::unordered_set<std::size_t> warned;
     if(warned.insert(std::hash<std::string>{}(vert.toStdString())).second)
     {
-      QStringList blocks;
-      for(const auto& b : vertexS.description().storageBlocks())
-        blocks << QString::fromUtf8(b.blockName);
+      const QStringList& blocks = unbound_blocks;
       qWarning() << "This backend" << v.rhi->backendName()
                  << "cannot bind a storage buffer to the vertex stage, so these"
                     " blocks read ZERO in the vertex shader (they are not"
