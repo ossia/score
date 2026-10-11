@@ -5624,6 +5624,16 @@ void parser::parse_raw_raster_pipeline()
     m_vertex += "#endif\n";
   }
   m_vertex += "  isf_rawraster_user_main();\n";
+  if(m_desc.multiview_count < 2 || m_desc.default_state.topology == "points")
+  {
+    // Vulkan and GL clamp the point size to their minimum, 1 pixel. Metal does
+    // not: a point smaller than a pixel rasterizes nothing. A shader that
+    // scales gl_PointSize with a sub-unit factor would draw a cloud everywhere
+    // but on Metal, so give Metal the size the other backends draw.
+    m_vertex += "#if defined(QSHADER_MSL)\n";
+    m_vertex += "  gl_PointSize = max(gl_PointSize, 1.0);\n";
+    m_vertex += "#endif\n";
+  }
   if(m_desc.primitive_data)
   {
     std::string topology = m_desc.default_state.topology.value_or("triangles");
@@ -7036,7 +7046,15 @@ layout(location = 0) out vec4 v_color;
   m_vertex += R"_(
 
 void main() {
+#if !defined(QSHADER_HLSL)
+  gl_PointSize = 1.0;
+#endif
   main__vsa_ossia();
+#if defined(QSHADER_MSL)
+  // Vulkan and GL clamp a point to at least 1 pixel; Metal draws nothing below
+  // that. vertexshaderart sizes points with fading factors, so match the others.
+  gl_PointSize = max(gl_PointSize, 1.0);
+#endif
 #if defined(QSHADER_SPIRV) || defined(QSHADER_HLSL) || defined(QSHADER_MSL)
   gl_Position.y = - gl_Position.y;
   gl_Position.z = (gl_Position.z + gl_Position.w) * 0.5;
