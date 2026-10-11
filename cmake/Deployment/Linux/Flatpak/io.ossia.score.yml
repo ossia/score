@@ -111,6 +111,7 @@ modules:
   - shared-modules/linux-audio/lilv.json
   - modules/dr_libs.yaml
   - modules/portaudio.yaml
+  - modules/sdl3.yaml
   - modules/rubberband.yaml
   - modules/rapidfuzz-cpp.yaml
   - modules/re2.yaml

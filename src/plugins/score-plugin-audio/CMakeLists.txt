@@ -99,7 +99,7 @@ if(OSSIA_ENABLE_PIPEWIRE)
 endif()
 
 if(OSSIA_ENABLE_SDL)
-  target_link_libraries(${PROJECT_NAME} PRIVATE $<BUILD_INTERFACE:ossia::sdl2>)
+  target_link_libraries(${PROJECT_NAME} PRIVATE $<BUILD_INTERFACE:ossia::sdl3>)
   score_declare_feature(sdl)
 endif()
 

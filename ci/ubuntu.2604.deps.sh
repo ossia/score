@@ -33,7 +33,7 @@ $SUDO apt install -y \
      qt6-websockets-dev \
      qt6-serialport-dev \
      qt6-shadertools-dev \
-     libbluetooth-dev libsdl2-dev libsdl2-2.0-0 \
+     libbluetooth-dev libsdl3-dev libsdl3-0 \
      libglu1-mesa-dev libglu1-mesa libgles2-mesa-dev \
      libavahi-compat-libdnssd-dev libsamplerate0-dev \
      portaudio19-dev \
