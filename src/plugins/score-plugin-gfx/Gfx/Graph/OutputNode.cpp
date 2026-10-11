@@ -4,6 +4,9 @@
 
 #include <QCoreApplication>
 
+#include <algorithm>
+#include <iterator>
+
 #if defined(Q_OS_WIN)
 // clang-format off
 #include <windows.h>
@@ -76,6 +79,82 @@ bool nativeDeviceRemoved(QRhi& rhi) noexcept
   (void)rhi;
   return false;
 }
+
+#if defined(Q_OS_WIN)
+const char* dredOpName(D3D12_AUTO_BREADCRUMB_OP op) noexcept
+{
+  static constexpr const char* names[] = {
+      "SetMarker", "BeginEvent", "EndEvent", "DrawInstanced",
+      "DrawIndexedInstanced", "ExecuteIndirect", "Dispatch", "CopyBufferRegion",
+      "CopyTextureRegion", "CopyResource", "CopyTiles", "ResolveSubresource",
+      "ClearRenderTargetView", "ClearUnorderedAccessView", "ClearDepthStencilView",
+      "ResourceBarrier", "ExecuteBundle", "Present", "ResolveQueryData",
+      "BeginSubmission", "EndSubmission"};
+  const auto i = std::size_t(op);
+  return i < std::size(names) ? names[i] : "Other";
+}
+#endif
+
+// With SCORE_GPU_VALIDATION set, ScreenNode turns DRED on for D3D12; print
+// what it recorded: the removal reason, every command list that had not
+// finished on the GPU with the operations around the last one it completed,
+// and the allocations near a page-faulting address.
+void logD3D12RemovalInfo(QRhi& rhi) noexcept
+{
+#if defined(Q_OS_WIN)
+  if(rhi.backend() != QRhi::D3D12)
+    return;
+  auto* h = static_cast<const QRhiD3D12NativeHandles*>(rhi.nativeHandles());
+  if(!h || !h->dev)
+    return;
+  auto* dev = static_cast<ID3D12Device*>(h->dev);
+  qCritical("D3D12 device removed, reason 0x%08lx",
+            static_cast<unsigned long>(dev->GetDeviceRemovedReason()));
+
+  ID3D12DeviceRemovedExtendedData* dred{};
+  if(FAILED(dev->QueryInterface(
+         __uuidof(ID3D12DeviceRemovedExtendedData), reinterpret_cast<void**>(&dred))))
+    return;
+
+  D3D12_DRED_AUTO_BREADCRUMBS_OUTPUT crumbs{};
+  if(SUCCEEDED(dred->GetAutoBreadcrumbsOutput(&crumbs)))
+  {
+    for(auto* n = crumbs.pHeadAutoBreadcrumbNode; n; n = n->pNext)
+    {
+      const UINT count = n->BreadcrumbCount;
+      const UINT done = n->pLastBreadcrumbValue ? *n->pLastBreadcrumbValue : 0;
+      if(done >= count)
+        continue; // this command list completed
+      qCritical("DRED: command list %p (%s) on queue %p: %u of %u operations "
+                "completed",
+                (void*)n->pCommandList,
+                n->pCommandListDebugNameA ? n->pCommandListDebugNameA : "unnamed",
+                (void*)n->pCommandQueue, done, count);
+      const UINT from = done > 8 ? done - 8 : 0;
+      const UINT to = std::min(count, done + 4);
+      for(UINT i = from; i < to; i++)
+        qCritical("DRED:   [%u] %s%s", i, dredOpName(n->pCommandHistory[i]),
+                  i == done ? "   <-- first operation that did not complete" : "");
+    }
+  }
+
+  D3D12_DRED_PAGE_FAULT_OUTPUT fault{};
+  if(SUCCEEDED(dred->GetPageFaultAllocationOutput(&fault)) && fault.PageFaultVA)
+  {
+    qCritical("DRED: page fault at GPU VA 0x%llx",
+              static_cast<unsigned long long>(fault.PageFaultVA));
+    for(auto* a = fault.pHeadExistingAllocationNode; a; a = a->pNext)
+      qCritical("DRED:   live allocation there: %s (type %d)",
+                a->ObjectNameA ? a->ObjectNameA : "unnamed", int(a->AllocationType));
+    for(auto* a = fault.pHeadRecentFreedAllocationNode; a; a = a->pNext)
+      qCritical("DRED:   recently freed allocation there: %s (type %d)",
+                a->ObjectNameA ? a->ObjectNameA : "unnamed", int(a->AllocationType));
+  }
+  dred->Release();
+#else
+  (void)rhi;
+#endif
+}
 }
 
 bool OutputNode::checkDeviceLost(
@@ -83,7 +162,10 @@ bool OutputNode::checkDeviceLost(
 {
   if(!m_deviceLost
      && (frame.deviceLost() || rhi.isDeviceLost() || nativeDeviceRemoved(rhi)))
+  {
+    logD3D12RemovalInfo(rhi);
     handleDeviceLost(output);
+  }
   return m_deviceLost;
 }
 
@@ -92,7 +174,10 @@ bool OutputNode::checkDeviceLost(int frameOpResult, QRhi& rhi, const char* outpu
   if(!m_deviceLost
      && (frameOpResult == QRhi::FrameOpDeviceLost || rhi.isDeviceLost()
          || nativeDeviceRemoved(rhi)))
+  {
+    logD3D12RemovalInfo(rhi);
     handleDeviceLost(output);
+  }
   return m_deviceLost;
 }
 

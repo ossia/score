@@ -83,7 +83,26 @@ bool gpuDebugRequested() noexcept
 // must be enabled before QRhi creates its ID3D12Device.
 void enableD3D12GpuValidationIfRequested() noexcept
 {
-  if(qEnvironmentVariableIntValue("SCORE_GPU_VALIDATION") < 2)
+  const int level = qEnvironmentVariableIntValue("SCORE_GPU_VALIDATION");
+  if(level < 1)
+    return;
+
+  // Device Removed Extended Data: auto-breadcrumbs and page-fault reporting,
+  // so a removal (a TDR, a GPU page fault) names the command it died in. The
+  // debug layer alone says nothing about GPU-timeline faults. Must be set
+  // before the device is created; OutputNode logs it when the device is lost.
+  ID3D12DeviceRemovedExtendedDataSettings* dred{};
+  if(SUCCEEDED(D3D12GetDebugInterface(
+         __uuidof(ID3D12DeviceRemovedExtendedDataSettings),
+         reinterpret_cast<void**>(&dred))))
+  {
+    dred->SetAutoBreadcrumbsEnablement(D3D12_DRED_ENABLEMENT_FORCED_ON);
+    dred->SetPageFaultEnablement(D3D12_DRED_ENABLEMENT_FORCED_ON);
+    dred->Release();
+    qDebug() << "D3D12 DRED (auto-breadcrumbs, page faults) active";
+  }
+
+  if(level < 2)
     return;
 
   ID3D12Debug1* debug{};
