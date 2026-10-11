@@ -1049,49 +1049,61 @@ TEST_CASE(
 
 
 TEST_CASE(
-    "the HLSL-intrinsic guard reads code, not comments",
+    "names a target language reserves are renamed for its bake",
     "[gfx][shader][hlsl][shadercache]")
 {
-  // hlslIntrinsicCollision REFUSES a shader outright, and only on D3D11/D3D12.
-  // Run over raw source it therefore rejects a working shader for a declaration
-  // the GLSL compiler never sees -- which is the Direct3D-only failure with no
-  // visible cause that the guard was written to prevent, produced by the guard
-  // itself.
-  using score::gfx::hlslIntrinsicCollision;
+  // SPIRV-Cross spells mix() as lerp(), fract() as frac()... and leaves a user
+  // identifier with that name alone, so `float lerp` became
+  // `float lerp = lerp(...)` and only fxc rejected it (classic_pbr_openpbr's
+  // hashedAlphaThreshold). ShaderCache renames those identifiers before the
+  // D3D bake instead of refusing the shader.
+  using score::gfx::renameHlslReservedIdentifiers;
 
-  // Positive control FIRST: if this stops detecting, every "no collision"
-  // assertion below becomes vacuous and the test would still be green.
-  const QByteArray real = "void main() { float frac; frac = fract(1.0); }";
-  INFO("the guard must still catch a real collision");
-  REQUIRE(hlslIntrinsicCollision(real) == QByteArray("frac"));
-
-  struct Case { const char* what; QByteArray src; };
-  const Case clean[] = {
-      {"declaration in a line comment",
-       "void main() { // float frac;\n float x = fract(1.0); }"},
-      {"declaration in a block comment",
-       "void main() { /* float frac; */ float x = fract(1.0); }"},
-      {"declaration in code, call only in a comment",
-       "void main() { float frac; /* fract(1.0) */ }"},
-      {"whole body commented out",
-       "/*\nvoid main() { float frac; frac = fract(1.0); }\n*/\nvoid main() {}"},
-      {"a // sequence inside a block comment does not end it",
-       "/* // float frac; */ void main() { float x = fract(1.0); }"},
-      {"a /* sequence inside a line comment does not open a block",
-       "// /* float frac;\nvoid main() { float x = fract(1.0); }"},
-  };
-  for(const auto& c : clean)
-  {
-    const QByteArray bad = hlslIntrinsicCollision(c.src);
-    INFO(c.what << ": reported \"" << bad.toStdString() << "\"");
-    CHECK(bad.isEmpty());
-  }
-
-  // Commenting must not swallow real code that follows it.
-  INFO("code after a closed block comment is still scanned");
   CHECK(
-      hlslIntrinsicCollision("/* nothing */ void main(){ float frac; frac = fract(1.0); }")
-      == QByteArray("frac"));
+      renameHlslReservedIdentifiers("float lerp = mix(a, b, t); x = lerp * 2.0;")
+      == QByteArray("float isf_hlsl_lerp = mix(a, b, t); x = isf_hlsl_lerp * 2.0;"));
+
+  // A macro, a function and a struct member: every use follows the definition.
+  CHECK(
+      renameHlslReservedIdentifiers(
+          "#define saturate(x) clamp(x, 0.0, 1.0)\n"
+          "struct S { float frac; };\n"
+          "float mul(S s) { return saturate(s.frac); }")
+      == QByteArray(
+          "#define isf_hlsl_saturate(x) clamp(x, 0.0, 1.0)\n"
+          "struct S { float isf_hlsl_frac; };\n"
+          "float isf_hlsl_mul(S s) { return isf_hlsl_saturate(s.isf_hlsl_frac); }"));
+
+  // Comments, #include strings, longer identifiers, GLSL builtins and number
+  // suffixes are left alone.
+  const QByteArray untouched
+      = "// float lerp;\n/* frac */\n#include \"lerp.glsl\"\n"
+        "float lerpAmount = fract(x) + mix(a, b, 0.5) + min(a, b);\n"
+        "float my_frac = 1e5 + 0x1fu;\n";
+  CHECK(renameHlslReservedIdentifiers(untouched) == untouched);
+
+  // Metal: C++ keywords and names made ambiguous by `using namespace metal`.
+  using score::gfx::renameMslReservedIdentifiers;
+  CHECK(
+      renameMslReservedIdentifiers("float new = plus(x); float or = new;")
+      == QByteArray("float isf_msl_new = isf_msl_plus(x); float isf_msl_or = isf_msl_new;"));
+  CHECK(renameMslReservedIdentifiers("float lerp = mix(a, b, not(t));")
+        == QByteArray("float lerp = mix(a, b, not(t));"));
+
+  // Each target only gets its own list; GL and Vulkan get the source as is.
+  using score::gfx::renameReservedIdentifiers;
+  const QByteArray both = "float lerp = 1.0; float new = lerp;";
+  CHECK(renameReservedIdentifiers(both, score::gfx::GraphicsApi::Vulkan) == both);
+  CHECK(renameReservedIdentifiers(both, score::gfx::GraphicsApi::OpenGL) == both);
+  CHECK(
+      renameReservedIdentifiers(both, score::gfx::GraphicsApi::D3D11)
+      == QByteArray("float isf_hlsl_lerp = 1.0; float new = isf_hlsl_lerp;"));
+  CHECK(
+      renameReservedIdentifiers(both, score::gfx::GraphicsApi::Metal)
+      == QByteArray("float lerp = 1.0; float isf_msl_new = lerp;"));
+
+  // A comment that is never closed does not throw the scan off the end.
+  CHECK(renameHlslReservedIdentifiers("float a; /* lerp") == QByteArray("float a; /* lerp"));
 }
 
 TEST_CASE(

@@ -32,9 +32,10 @@ namespace
 {
 static constexpr struct glsl45_t
 {
+  // Identifiers the target languages reserve (quad / operator / new on Metal,
+  // lerp / frac on D3D...) are renamed per target at bake time, for every
+  // shader: score::gfx::renameReservedIdentifiers in ShaderCache.
   static constexpr auto versionPrelude = R"_(#version 460
-#define quad isf_msl_quad
-#define operator isf_msl_operator
 )_";
 
   static constexpr auto vertexPrelude = R"_(

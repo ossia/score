@@ -19,17 +19,29 @@ namespace score::gfx
 {
 
 /**
- * @brief The identifier a shader declares that collides with an HLSL intrinsic,
- *        or empty if there is none.
+ * @brief Rename the identifiers of a GLSL source that the target language of
+ *        a bake reserves, and that SPIRV-Cross leaves alone.
  *
- * SPIRV-Cross rewrites GLSL builtins to their HLSL spellings but leaves the
- * user's variable names alone, so `float frac` becomes `float frac = frac(...)`
- * and only Direct3D rejects it. Checked before baking for D3D so the author is
- * told which name to change, instead of getting an fxc error about a line that
- * looks correct.
+ * SPIRV-Cross renames user identifiers that collide with GLSL builtins and with
+ * its own keyword list for the target, but not all of them:
+ * - HLSL: the HLSL-only intrinsics and type names it emits (mix -> lerp,
+ *   fract -> frac, clamp(x, 0, 1) -> saturate...). `float lerp` became
+ *   `float lerp = lerp(...)`, which fxc rejects.
+ * - MSL: C++ keywords and alternative tokens (`new`, `or`, `char`, `throw`)
+ *   and the names `using namespace metal` makes ambiguous (`plus`, `array`).
+ *
+ * Those names have no meaning in GLSL, so every occurrence is the author's:
+ * each one is prefixed with isf_hlsl_ / isf_msl_, consistently across
+ * declarations, uses, struct members and macros. Comments and strings are left
+ * alone, and the source is returned as is (shared, not copied) when nothing
+ * matches. Other APIs get the source unchanged.
  */
 SCORE_PLUGIN_GFX_EXPORT
-QByteArray hlslIntrinsicCollision(const QByteArray& src) noexcept;
+QByteArray renameReservedIdentifiers(const QByteArray& src, GraphicsApi api);
+SCORE_PLUGIN_GFX_EXPORT
+QByteArray renameHlslReservedIdentifiers(const QByteArray& src);
+SCORE_PLUGIN_GFX_EXPORT
+QByteArray renameMslReservedIdentifiers(const QByteArray& src);
 
 /**
  * @brief Cache of baked QShader instances

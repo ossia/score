@@ -2,9 +2,14 @@
 #include <QHash>
 #include <QRegularExpression>
 
+#include <string>
+#include <string_view>
+#include <vector>
+
 #include <Gfx/Graph/RenderState.hpp>
 
 #include <ossia/detail/algorithms.hpp>
+#include <ossia/detail/hash_map.hpp>
 #include <ossia/detail/mutex.hpp>
 
 namespace score::gfx
@@ -96,44 +101,22 @@ const std::pair<QShader, QString>& ShaderCache::get(
   if(auto it = cache.find(shader); it != cache.end())
     return it->second;
 
-  // On the D3D targets, refuse a shader whose own identifiers collide
-  // with an HLSL intrinsic, and say which one.
+  // Rename the shader's own identifiers that the target language reserves.
   //
-  // SPIRV-Cross rewrites GLSL builtins to their HLSL spellings -- fract() ->
-  // frac(), mix() -> lerp(), and so on -- but does NOT rename the user's
-  // variables. A shader declaring `float frac` therefore emits
-  // `float frac = frac(...)`, which fxc rejects with a message about the
-  // user's own line that mentions neither GLSL nor the rename. The author
-  // sees a shader that works on OpenGL, Vulkan and Metal and fails only on
-  // Direct3D, for a reason nothing in their source suggests.
-  //
-  // Renaming instead of rejecting would mean rewriting the GLSL before
-  // QShaderBaker hands it to SPIRV-Cross, which needs real tokenisation to
-  // avoid touching strings, comments, struct members and swizzles. Rejecting
-  // costs one scan and tells the author exactly what to rename.
-  if(b.api == GraphicsApi::D3D11 || b.api == GraphicsApi::D3D12)
-  {
-    if(auto bad = score::gfx::hlslIntrinsicCollision(shader); !bad.isEmpty())
-    {
-      static const QString err
-          = QStringLiteral("This shader declares \"%1\", which is the name of "
-                           "an HLSL intrinsic. SPIRV-Cross translates GLSL "
-                           "builtins to their HLSL spellings but does not "
-                           "rename your variables, so the Direct3D backends "
-                           "would emit \"%1 = %1(...)\". Rename it.");
-      auto& slot = cache[shader];
-      slot = {QShader{}, err.arg(QString::fromUtf8(bad))};
-      return slot;
-    }
-  }
-
+  // SPIRV-Cross renames a user identifier that collides with a GLSL builtin
+  // or with its own list of target keywords, but not every name the target
+  // reserves: on D3D a `float lerp` met the lerp() it emits for mix(), and
+  // fxc refused `float lerp = lerp(...)`; on Metal a `float new` or a function
+  // called `plus` reached the Metal compiler as is. The same shader works on
+  // OpenGL and Vulkan. See renameReservedIdentifiers. The cache stays keyed on
+  // the original source.
   // See the file header: on a D3D target below SM 6.1 the
   // SV_ViewID that gl_ViewIndex becomes cannot compile at all, so route the
   // view index through the PASSINDEX uniform the N-pass fallback already
   // stamps. Keyed on the ORIGINAL source, which is correct: the baker is
   // already per-(api, version, multiViewCount), so each backend caches its
   // own bake of the same node.
-  QByteArray source = shader;
+  QByteArray source = renameReservedIdentifiers(shader, api);
   if(multiViewCount >= 2 && viewIndexNeedsPassIndexFallback(api, version, multiViewCount))
     source = lowerViewIndexToPassIndex(std::move(source));
 
@@ -209,116 +192,201 @@ ShaderCache::Baker::Baker(
 
 namespace score::gfx
 {
-//! Blank out // and /* */ comments, preserving length and newlines so any
-//! offset-based reporting still lines up.
-//!
-//! The collision scan below REFUSES the shader outright, and only on the D3D
-//! targets. Run over raw source it would therefore reject a working shader for
-//! a declaration the compiler never sees -- `// float frac = 1.0;` in a
-//! comment, or a commented-out block -- producing exactly the Direct3D-only
-//! failure with no visible cause that the scan exists to prevent. The rename
-//! path above declined to do real tokenisation for good reasons; DETECTING
-//! safely needs only this much of it.
-static QByteArray blankComments(const QByteArray& src) noexcept
+namespace
 {
-  QByteArray out = src;
-  const int n = out.size();
-  enum { Code, Line, Block } st = Code;
-  for(int i = 0; i < n; ++i)
-  {
-    const char c = out[i];
-    const char d = (i + 1 < n) ? out[i + 1] : '\0';
-    switch(st)
-    {
-      case Code:
-        if(c == '/' && d == '/') { st = Line;  out[i] = ' '; out[i + 1] = ' '; ++i; }
-        else if(c == '/' && d == '*') { st = Block; out[i] = ' '; out[i + 1] = ' '; ++i; }
-        break;
-      case Line:
-        if(c == '\n') st = Code;
-        else out[i] = ' ';
-        break;
-      case Block:
-        if(c == '*' && d == '/') { st = Code; out[i] = ' '; out[i + 1] = ' '; ++i; }
-        else if(c != '\n') out[i] = ' ';
-        break;
-    }
-  }
-  return out;
+//! The HLSL names SPIRV-Cross emits that are not also GLSL names.
+//!
+//! These are the only identifiers worth renaming here. A user identifier that
+//! is a GLSL builtin's name (min, step, length...) or an HLSL keyword is
+//! renamed by SPIRV-Cross itself (CompilerGLSL::replace_illegal_names, which
+//! the HLSL backend also calls with its own keyword list) -- and it could not
+//! be renamed in the GLSL source anyway, where the same token also spells the
+//! builtin. The names below have no meaning in GLSL, so every occurrence of one
+//! in a GLSL source is the author's: a variable, a function, a struct member
+//! or a macro. Renaming every occurrence keeps the program the same.
+//!
+//! Restricted to what spirv_hlsl.cpp actually writes (intrinsic calls and the
+//! vector / matrix type names of its declarations) and to the HLSL reserved
+//! words, so that a resource or member name that could not collide -- say a
+//! buffer called "dst" -- keeps its name in the reflection data.
+const ossia::hash_set<std::string_view>& hlslOnlyNames()
+{
+  static const std::vector<std::string> storage = [] {
+    std::vector<std::string> n{
+        "lerp", "frac", "rsqrt", "saturate", "mad", "mul", "fmod", "atan2",
+        "ddx", "ddy", "ddx_coarse", "ddx_fine", "ddy_coarse", "ddy_fine",
+        "asuint", "asint", "asfloat", "asdouble", "countbits", "reversebits",
+        "firstbitlow", "firstbithigh", "f32tof16", "f16tof32",
+        "GroupMemoryBarrier", "GroupMemoryBarrierWithGroupSync",
+        "AllMemoryBarrier", "AllMemoryBarrierWithGroupSync",
+        "DeviceMemoryBarrier", "DeviceMemoryBarrierWithGroupSync",
+        "InterlockedAdd", "InterlockedAnd", "InterlockedOr", "InterlockedXor",
+        "InterlockedMin", "InterlockedMax", "InterlockedExchange",
+        "InterlockedCompareExchange", "EvaluateAttributeAtCentroid",
+        "EvaluateAttributeAtSample", "EvaluateAttributeSnapped",
+        "NonUniformResourceIndex",
+        // HLSL reserved words that are neither GLSL keywords nor GLSL
+        // reserved words, and that SPIRV-Cross's HLSL keyword list lacks:
+        // fxc stops at `float2 new = ...` with "unexpected token 'new'".
+        "auto", "catch", "char", "const_cast", "delete", "dynamic_cast",
+        "explicit", "friend", "mutable", "new", "operator", "private",
+        "protected", "reinterpret_cast", "static_cast", "throw", "try",
+        "typename", "virtual"};
+    for(const char* t : {"float", "int", "uint", "bool", "half", "double", "min16float",
+                         "min16int", "min16uint", "int16_t", "uint16_t", "int64_t",
+                         "uint64_t", "float16_t"})
+      for(int r = 1; r <= 4; r++)
+      {
+        n.push_back(t + std::to_string(r));
+        for(int c = 1; c <= 4; c++)
+          n.push_back(t + std::to_string(r) + "x" + std::to_string(c));
+      }
+    return n;
+  }();
+  static const ossia::hash_set<std::string_view> names{storage.begin(), storage.end()};
+  return names;
 }
 
-/**
- * @brief The identifier a shader declares that collides with an HLSL intrinsic.
- *
- * Empty when there is none. Only the names SPIRV-Cross actually emits when
- * translating a GLSL builtin are listed: an identifier is only dangerous
- * because the generated HLSL will also contain a CALL by that name. A wider
- * list -- every HLSL intrinsic in existence -- would reject shaders that
- * compile perfectly well, which is worse than the bug.
- */
-QByteArray hlslIntrinsicCollision(const QByteArray& raw) noexcept
+//! The names the Metal Shading Language reserves that SPIRV-Cross's MSL
+//! backend does not rename (CompilerMSL::get_reserved_keyword_set covers the
+//! Metal attribute keywords and the metal_stdlib macros, not C++ itself).
+//!
+//! - C++ keywords and alternative tokens that are not GLSL keywords or
+//!   reserved words: a GLSL `float new` or `float or` is legal and reaches
+//!   the Metal compiler as `expected unqualified-id`. `not` is a GLSL builtin
+//!   (SPIRV-Cross renames it) and the GLSL reserved words (class, template,
+//!   this, ...) cannot be identifiers in the first place.
+//! - names `using namespace metal` brings in that a user function of the same
+//!   name makes ambiguous: plus, minus, array, the <functional> objects...
+//! - quad and operator, seen in the corpus.
+const ossia::hash_set<std::string_view>& mslOnlyNames()
 {
-  const QByteArray src = blankComments(raw);
-  // GLSL builtin -> HLSL spelling, for the ones whose HLSL name differs and is
-  // a plausible variable name. `frac` is the one seen in the wild
-  // (isf-long-numeric.fs). Names identical in both languages (sin, cos, abs...)
-  // are just as dangerous, so they are here too.
-  static const QByteArrayList intrinsics{
-      "frac",  "lerp",  "rsqrt", "saturate", "ddx",   "ddy",  "mad",
-      "mul",   "dot",   "cross", "normalize", "length", "step", "smoothstep",
-      "clamp", "min",   "max",   "abs",      "sign",  "floor", "ceil",
-      "round", "trunc", "sqrt",  "pow",      "exp",   "log",   "sin",
-      "cos",   "tan",   "atan",  "asin",     "acos",  "fmod",  "reflect",
-      "refract", "transpose", "determinant", "distance", "faceforward"};
+  static const ossia::hash_set<std::string_view> names{
+      // C++ keywords
+      "new", "delete", "throw", "try", "catch", "char", "char8_t", "char16_t",
+      "char32_t", "wchar_t", "virtual", "explicit", "mutable", "friend",
+      "private", "protected", "typename", "nullptr", "operator", "auto",
+      "register", "decltype", "constexpr", "consteval", "constinit",
+      "static_assert", "alignas", "alignof", "noexcept", "thread_local",
+      "typeid", "static_cast", "dynamic_cast", "const_cast", "reinterpret_cast",
+      "concept", "requires", "co_await", "co_return", "co_yield", "export",
+      // alternative tokens
+      "and", "or", "xor", "bitand", "bitor", "compl", "and_eq", "or_eq",
+      "xor_eq", "not_eq",
+      // metal namespace
+      "quad", "array", "array_ref", "vec", "plus", "minus", "multiplies",
+      "divides", "modulus", "negate", "equal_to", "not_equal_to", "greater",
+      "less", "greater_equal", "less_equal", "logical_and", "logical_or",
+      "logical_not", "bit_and", "bit_or", "bit_xor", "bit_not",
+      "numeric_limits", "enable_if", "conditional"};
+  return names;
+}
 
-  // Declarations only: "<type> <name>" where name is followed by something a
-  // declaration can be followed by. Matching bare occurrences would flag every
-  // legitimate CALL to these functions, which is the overwhelming majority.
-  static const QRegularExpression decl(
-      QStringLiteral(R"(\b(?:float|double|int|uint|bool|half|)"
-                     R"(vec[234]|[iub]vec[234]|dvec[234]|)"
-                     R"(mat[234](?:x[234])?)\s+([A-Za-z_]\w*)\s*(?=[;,=\[)]))"));
+constexpr bool isIdentStart(char c) noexcept
+{
+  return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_';
+}
+constexpr bool isIdentChar(char c) noexcept
+{
+  return isIdentStart(c) || (c >= '0' && c <= '9');
+}
 
-  const QString text = QString::fromUtf8(src);
-  auto it = decl.globalMatch(text);
-  while(it.hasNext())
+QByteArray renameIdentifiers(
+    const QByteArray& src, const ossia::hash_set<std::string_view>& names,
+    std::string_view prefix)
+{
+  QByteArray out;
+  const qsizetype n = src.size();
+  const char* const s = src.constData();
+  qsizetype copied = 0; // src[copied, i) still has to be appended to out
+  bool renamed = false;
+
+  for(qsizetype i = 0; i < n;)
   {
-    const auto name = it.next().captured(1).toUtf8();
-    if(!intrinsics.contains(name))
-      continue;
-
-    // Declaring the name is not enough to break anything. The generated HLSL
-    // only becomes ill-formed when it contains BOTH the declaration and a CALL
-    // that SPIRV-Cross will spell with that name. A shader that declares
-    // `float step` and never calls step() compiles perfectly well, and
-    // rejecting it would be a worse bug than the one being prevented: several
-    // shaders in the corpus do exactly that.
-    //
-    // The call must be looked for under its GLSL spelling as well as its HLSL
-    // one. isf-long-numeric.fs declares `float frac` and calls `fract()`, and
-    // `\bfrac\s*\(` does not match `fract(` -- "frac" there is followed by
-    // "t", not "(". The collision only comes into existence when SPIRV-Cross
-    // renames fract -> frac, by which point this source has long been read.
-    // Matching the HLSL spelling alone lets such a shader through to fxc,
-    //     error X3005: 'frac': identifier represents a variable, not a function
-    // plus a bare "Pipeline not created" -- the unactionable failure this
-    // function exists to prevent.
-    static const QHash<QByteArray, QByteArray> glslSpelling{
-        {"frac", "fract"}, {"lerp", "mix"},   {"rsqrt", "inversesqrt"},
-        {"ddx", "dFdx"},   {"ddy", "dFdy"},   {"fmod", "mod"},
-        {"mad", "fma"}};
-    QByteArrayList callNames{name};
-    if(auto it = glslSpelling.find(name); it != glslSpelling.end())
-      callNames.push_back(it.value());
-
-    static const QString callFmt = QStringLiteral(R"(\b%1\s*\()");
-    for(const auto& cn : callNames)
+    const char c = s[i];
+    const char d = (i + 1 < n) ? s[i + 1] : '\0';
+    if(c == '/' && d == '/')
     {
-      const QRegularExpression call(callFmt.arg(QString::fromUtf8(cn)));
-      if(call.match(text).hasMatch())
-        return name;
+      // Line comment. A backslash-newline continues it, as in the preprocessor.
+      i += 2;
+      while(i < n && !(s[i] == '\n' && s[i - 1] != '\\'))
+        ++i;
+    }
+    else if(c == '/' && d == '*')
+    {
+      i += 2;
+      while(i + 1 < n && !(s[i] == '*' && s[i + 1] == '/'))
+        ++i;
+      i = std::min(i + 2, n);
+    }
+    else if(c == '"')
+    {
+      // Only #include / #line / #error / #pragma carry strings in GLSL.
+      ++i;
+      while(i < n && s[i] != '"' && s[i] != '\n')
+        ++i;
+      if(i < n)
+        ++i;
+    }
+    else if(c >= '0' && c <= '9')
+    {
+      // A number, suffixes and exponents included: 1e5, 0x1fu, 2.0lf.
+      while(i < n && (isIdentChar(s[i]) || s[i] == '.'))
+        ++i;
+    }
+    else if(isIdentStart(c))
+    {
+      const qsizetype b = i;
+      while(i < n && isIdentChar(s[i]))
+        ++i;
+      const std::string_view tok{s + b, std::size_t(i - b)};
+      if(names.contains(tok))
+      {
+        if(!renamed)
+        {
+          out.reserve(n + 64);
+          renamed = true;
+        }
+        out.append(s + copied, b - copied);
+        out.append(prefix.data(), prefix.size());
+        out.append(tok.data(), tok.size());
+        copied = i;
+      }
+    }
+    else
+    {
+      ++i;
     }
   }
-  return {};
+
+  if(!renamed)
+    return src;
+  out.append(s + copied, n - copied);
+  return out;
+}
+}
+
+QByteArray renameHlslReservedIdentifiers(const QByteArray& src)
+{
+  return renameIdentifiers(src, hlslOnlyNames(), "isf_hlsl_");
+}
+
+QByteArray renameMslReservedIdentifiers(const QByteArray& src)
+{
+  return renameIdentifiers(src, mslOnlyNames(), "isf_msl_");
+}
+
+QByteArray renameReservedIdentifiers(const QByteArray& src, GraphicsApi api)
+{
+  switch(api)
+  {
+    case GraphicsApi::D3D11:
+    case GraphicsApi::D3D12:
+      return renameHlslReservedIdentifiers(src);
+    case GraphicsApi::Metal:
+      return renameMslReservedIdentifiers(src);
+    default:
+      return src;
+  }
 }
 }
