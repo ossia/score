@@ -2014,3 +2014,10 @@ if(TARGET score_plugin_audio)
     APP
     PLUGINS score_plugin_audio score_plugin_deviceexplorer score_lib_device)
 endif()
+
+if(TARGET score_plugin_audio)
+  score_add_test(test_unit_audio_routing
+    SOURCES AudioRoutingTest.cpp
+    APP
+    PLUGINS score_plugin_audio score_plugin_deviceexplorer score_lib_device)
+endif()

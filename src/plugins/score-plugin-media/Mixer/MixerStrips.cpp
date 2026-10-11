@@ -5,8 +5,6 @@
 #include <Device/Protocol/ProtocolList.hpp>
 #include <Device/Protocol/ProtocolSettingsWidget.hpp>
 
-#include <Explorer/Commands/Add/AddAddress.hpp>
-#include <Explorer/Commands/Add/LoadDevice.hpp>
 #include <Explorer/Commands/Remove.hpp>
 #include <Explorer/Commands/Update/UpdateAddressSettings.hpp>
 #include <Explorer/DeviceList.hpp>
@@ -23,6 +21,7 @@
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 
 #include <Audio/AudioDevice.hpp>
+#include <Audio/AudioRouting.hpp>
 #include <Audio/PortGain.hpp>
 #include <Execution/DocumentPlugin.hpp>
 
@@ -57,16 +56,6 @@ namespace Mixer
 namespace
 {
 constexpr double floor_db = -96.;
-
-Device::Node*
-explorerNode(Explorer::DeviceDocumentPlugin& plug, const Device::DeviceInterface& dev)
-{
-  for(auto& n : plug.rootNode())
-    if(n.is<Device::DeviceSettings>()
-       && n.get<Device::DeviceSettings>().name == dev.settings().name)
-      return &n;
-  return nullptr;
-}
 
 Device::ProtocolFactory*
 protocolOf(const score::DocumentContext& ctx, const Device::DeviceInterface& dev)
@@ -853,38 +842,6 @@ void PortStrip::onNodeRemoved(const ossia::net::node_base&)
   setEnabled(false);
 }
 
-void addAudioPort(
-    const score::DocumentContext& ctx, Dataflow::AudioDevice& dev, QWidget* parent,
-    const std::string& kind)
-{
-  auto proto = protocolOf(ctx, dev);
-  if(!proto)
-    return;
-  Device::AddressSettings proposed;
-  proposed.extendedAttributes["audio-kind"] = kind;
-  proposed.extendedAttributes["audio-channels"] = 2;
-  std::unique_ptr<Device::AddressDialog> dial{
-      proto->makeEditAddressDialog(proposed, dev, ctx, parent)};
-  if(!dial || dial->exec() != QDialog::Accepted)
-    return;
-
-  auto stgs = dial->getSettings();
-  stgs.name = stgs.name.trimmed();
-  while(stgs.name.startsWith('/'))
-    stgs.name.remove(0, 1);
-  if(stgs.name.isEmpty())
-    return;
-
-  auto& plug = ctx.plugin<Explorer::DeviceDocumentPlugin>();
-  RedoMacroCommandDispatcher<Explorer::Command::AddAddresses> disp{ctx.commandStack};
-  if(!explorerNode(plug, dev))
-    disp.submit(new Explorer::Command::LoadDevice{plug, dev.settings()});
-  if(auto node = explorerNode(plug, dev))
-    disp.submit(new Explorer::Command::AddAddress{
-        plug, Device::NodePath{*node}, InsertMode::AsChild, stgs});
-  disp.commit();
-}
-
 void PortStrip::fillContextMenu(QMenu& menu)
 {
   // Only the ports the user made can be edited.
@@ -923,6 +880,14 @@ void PortStrip::fillContextMenu(QMenu& menu)
     CommandDispatcher<>{ctx.commandStack}.submit<Explorer::Command::UpdateAddressSettings>(
         plug, Device::NodePath{*node}, dial->getSettings());
   });
+
+  if(dynamic_cast<ossia::mapped_audio_parameter*>(m_param))
+  {
+    auto routing = menu.addAction(tr("Audio routing..."));
+    connect(routing, &QAction::triggered, this, [&ctx = m_context] {
+      Audio::showAudioRouting(ctx);
+    });
+  }
 
   auto remove = menu.addAction(tr("Remove the port"));
   connect(remove, &QAction::triggered, this, [this, addr = *address] {
