@@ -267,6 +267,11 @@ TEST_CASE("The port dialog keeps what it does not edit", "[audio][routing]")
         == ossia::audio_mapping{unrouted, 1});
     CHECK(ossia::any_cast<double>(res.extendedAttributes.at("audio-gain")) == 0.5);
 
+    res = edit(portSettings("wide", "out", {0, 999}));
+    CHECK(
+        ossia::any_cast<ossia::audio_mapping>(res.extendedAttributes.at("audio-mapping"))
+        == ossia::audio_mapping{0, 999});
+
     Device::AddressSettings virt;
     virt.name = "bus";
     virt.extendedAttributes["audio-kind"] = std::string{"virtual"};
