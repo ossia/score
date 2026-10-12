@@ -57,6 +57,10 @@ inline QImage imageInPublishedRowOrder(const QRhi& rhi, QImage img)
 {
   if(!uploadReversesRows(rhi) || img.height() <= 1)
     return img;
+#if QT_VERSION >= QT_VERSION_CHECK(6, 9, 0)
   return std::move(img).flipped(Qt::Vertical);
+#else
+  return std::move(img).mirrored(false, true);
+#endif
 }
 }
