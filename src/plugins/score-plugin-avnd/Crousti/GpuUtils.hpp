@@ -1036,6 +1036,7 @@ struct geometry_inputs_storage<T>
               bytesize);
           buf->setName(oscr::getUtf8Name<T>() + "::" + oscr::getUtf8Name(t));
           buf->create();
+          score::gfx::RenderList::noteBufferLive(buf);
           allocated.push_back(buf);
         }
         else if(buf->size() < bytesize)

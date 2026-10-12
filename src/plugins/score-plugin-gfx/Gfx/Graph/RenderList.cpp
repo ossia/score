@@ -996,6 +996,7 @@ struct AdoptedBuffer
 };
 std::mutex g_retiredMutex;
 ossia::flat_map<const QRhiBuffer*, RetiredBuffer> g_retired;
+std::atomic_bool g_anyRetired{false};
 ossia::flat_map<const QRhiBuffer*, AdoptedBuffer> g_adopted;
 std::atomic<uint64_t> g_frameSeq{0};
 
@@ -1005,6 +1006,7 @@ void recordRetirement(QRhiBuffer* buf)
 {
   g_retired.insert_or_assign(
       buf, RetiredBuffer{buf->name(), g_frameSeq.load(std::memory_order_relaxed)});
+  g_anyRetired.store(true, std::memory_order_relaxed);
 }
 }
 
@@ -1017,6 +1019,7 @@ void RenderList::noteFrameCompleted() noexcept
   std::lock_guard lck{g_retiredMutex};
   for(auto it = g_retired.begin(); it != g_retired.end();)
     it = (it->second.seq + 4 < seq) ? g_retired.erase(it) : std::next(it);
+  g_anyRetired.store(!g_retired.empty(), std::memory_order_relaxed);
 }
 
 bool RenderList::isRetiredBuffer(const QRhiBuffer* buf) noexcept
@@ -1031,7 +1034,7 @@ bool RenderList::isRetiredBuffer(const QRhiBuffer* buf) noexcept
 
 bool RenderList::isRetiringBuffer(const QRhiBuffer* buf) noexcept
 {
-  if(!buf)
+  if(!buf || !g_anyRetired.load(std::memory_order_relaxed))
     return false;
   std::lock_guard lck{g_retiredMutex};
   return g_retired.find(buf) != g_retired.end();

@@ -1,4 +1,5 @@
 #include "CustomMesh.hpp"
+#include <Gfx/Graph/RenderList.hpp>
 #include <Gfx/Graph/RhiIndirectCompat.hpp>
 #include <score/tools/Debug.hpp>
 #include <Gfx/Graph/Utils.hpp>
@@ -653,7 +654,8 @@ bool CustomMesh::drawSingleMesh(
     if(flat >= bufs.buffers.size())
       return false;
     auto buf = bufs.buffers[flat].handle;
-    if(!buf)
+    // A borrowed handle can outlive its producer by a frame across a rebuild.
+    if(!buf || RenderList::isRetiringBuffer(buf))
       return false;
     draw_inputs[i] = {buf, in.byte_offset};
   }
@@ -681,6 +683,8 @@ bool CustomMesh::drawSingleMesh(
     if(flat_idx >= bufs.buffers.size())
       return false;
     auto buf = bufs.buffers[flat_idx].handle;
+    if(RenderList::isRetiringBuffer(buf))
+      return false;
     idxBuf = buf;
     idxOffset = g.index.byte_offset;
     if(g.index.format == decltype(g.index)::uint16)
