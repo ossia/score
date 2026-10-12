@@ -456,6 +456,23 @@ public:
     }
 
     {
+      auto title_node
+          = std::make_unique<ossia::net::generic_node>("title", *this, m_root);
+      auto title_param = title_node->create_parameter(ossia::val_type::STRING);
+      title_param->add_callback([this](const ossia::value& v) {
+        if(auto val = v.target<std::string>())
+        {
+          ossia::qt::run_async(
+              &m_qtContext, [screen = this->m_screen, t = QString::fromStdString(*val)] {
+            screen->setTitle(t);
+          });
+        }
+      });
+      title_param->set_value(name);
+      m_root.add_child(std::move(title_node));
+    }
+
+    {
       auto fs_node
           = std::make_unique<ossia::net::generic_node>("fullscreen", *this, m_root);
       auto fs_param = fs_node->create_parameter(ossia::val_type::BOOL);
