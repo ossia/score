@@ -23,6 +23,7 @@
 #include <ossia/network/base/node_functions.hpp>
 
 #include <QCoreApplication>
+#include <QMouseEvent>
 #include <QElapsedTimer>
 
 #include <catch2/catch_test_macros.hpp>
@@ -160,6 +161,27 @@ TEST_CASE("The routing matrix edits the mappings of its ports", "[audio][routing
       m.setPorts({{"a", {0, 3}}});
       CHECK(!fg(0));
       CHECK(fg(1));
+    }
+
+    SECTION("the modifiers of a click pick the gesture")
+    {
+      m.resize(600, 400);
+      m.show();
+      auto click = [&](int row, int column, Qt::KeyboardModifiers mods) {
+        const auto pos = QPointF(m.visualRect(m.model()->index(row, column)).center());
+        QMouseEvent e{
+            QEvent::MouseButtonPress, pos, m.viewport()->mapToGlobal(pos),
+            Qt::LeftButton, Qt::LeftButton, mods};
+        QCoreApplication::sendEvent(m.viewport(), &e);
+      };
+      click(2, 0, Qt::NoModifier);
+      CHECK(m.ports()[1].mapping == ossia::int_vector{0, unrouted, unrouted});
+      click(2, 0, Qt::ControlModifier);
+      CHECK(m.ports()[1].mapping == ossia::int_vector{0, 1, 2});
+      m.disconnectAll();
+      click(1, 1, Qt::ControlModifier | Qt::ShiftModifier);
+      CHECK(m.ports()[0].mapping == ossia::int_vector{unrouted, 1});
+      CHECK(m.ports()[1].mapping == ossia::int_vector{2, 3, unrouted});
     }
 
     SECTION("new ports with the same shape keep the rows")
