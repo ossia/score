@@ -93,30 +93,22 @@
 //
 // KNOWN GAPS, and what this file does with them
 //
-// Two real limitations are NOT defects in this corpus. Each is declared in
-// `known_gaps` / handled by an explicit rule below, and each is reported BY
-// NAME in the run's output with which way it went on this host -- they are
-// properties of the SPIRV-Cross inside the host's qtshadertools and they do not
-// answer the same way on every Qt, so tolerating either outcome and printing it
-// is the honest handling. What is NOT tolerated is a gap turning into "not
-// baked at all": the accounting identity at the bottom of the case counts every
-// (stage, target) offer, and a gap has to be one of {clean here, still fails
-// here}.
+// One real limitation is NOT a defect in this corpus, and is reported BY NAME
+// in the run's output: gl_ViewIndex needs SV_ViewID, which needs Shader Model
+// >= 6.1, while Gfx/Settings/Model.cpp asks QShaderBaker for
+// QShaderVersion(50). It is handled as a RULE (it follows from the
+// descriptor's multiview_count): a multiview shader that fails at SM 5.0 is
+// re-baked at SM 6.1, and only counts as a known gap if the SM 6.1 bake
+// succeeds -- which is what separates "the version request is too low" from
+// "the shader is broken". A multiview shader that fails at BOTH is a plain
+// failure, which is how the isf_FragCoord defect would still be caught in the
+// multiview raw-rasters. The accounting identity at the bottom of the case
+// counts every (stage, target) offer, so a gap cannot become "not baked at
+// all".
 //
-//   1. corpus/isf-long-numeric.fs declares a variable named `frac`, and
-//      SPIRV-Cross renames GLSL fract() to HLSL frac() without renaming the
-//      user's variable, so it emits `float frac = frac(...)`.
-//   2. gl_ViewIndex needs SV_ViewID, which needs Shader Model >= 6.1, while
-//      Gfx/Settings/Model.cpp asks QShaderBaker for QShaderVersion(50).
-//      Handled as a RULE rather than a file list (it follows from the
-//      descriptor's multiview_count): a multiview shader that fails at SM 5.0
-//      is re-baked at SM 6.1, and only counts as a known gap if the SM 6.1
-//      bake succeeds -- which is what separates "the version request is too
-//      low" from "the shader is broken". A multiview shader that fails at BOTH
-//      is a plain failure, which is how the isf_FragCoord defect would still be
-//      caught in the multiview raw-rasters.
+// isf-long-numeric.fs's `float frac` bakes on every Qt: ShaderCache renames it for HLSL.
 //
-// A third, version-shaped one: QShaderBaker::setMultiViewCount arrived in Qt
+// A second, version-shaped one: QShaderBaker::setMultiViewCount arrived in Qt
 // 6.7 (ShaderCache.cpp guards it). CI compiles the tests against distro
 // Qt 6.4.2, where ShaderCache cannot emit `layout(num_views = N)` at all and
 // every multiview shader fails for every target. On such a Qt the multiview
@@ -677,50 +669,6 @@ Generated generate_geometry_filter(const QString& path)
 }
 
 // -----------------------------------------------------------------------------
-// Known gaps: real limitations of SPIRV-Cross / of the requested shader model
-// that are NOT defects in these shaders.
-//
-// A gap is TOLERATED, not asserted-to-fail. Each entry below is a property of
-// the SPIRV-Cross that ships inside the host's qtshadertools, and they do not
-// answer the same way on every Qt -- the `frac` one does not reproduce on Qt
-// 6.13. Pinning a gap as a hard expected-failure would therefore turn the test
-// red on the very Qt where the gap was fixed, which is the opposite of useful.
-// So each outcome is COUNTED and REPORTED by name -- "known gap, still fails"
-// or "known gap, does not reproduce here" -- and the accounting identity at the
-// bottom makes sure neither outcome can quietly become "not baked at all".
-// -----------------------------------------------------------------------------
-struct KnownGap
-{
-  const char* file;
-  Lang lang;
-  const char* why;
-};
-
-const KnownGap known_gaps[] = {
-    // csf-cube-image-write.cs is deliberately NOT listed, even though HLSL has
-    // no RWTextureCube: isf_emit_cube_image_decl declares a cube storage image
-    // as the 2D-array VIEW that Qt's D3D UAV already is (qrhid3d11.cpp /
-    // qrhid3d12.cpp both build TEXTURE2DARRAY with ArraySize 6 over a CubeMap
-    // texture), gated on QSHADER_HLSL, with no change to the authored shader.
-    // The cube shaders therefore bake for HLSL like everything else, and a
-    // regression to the plain `imageCube` declaration comes back as a hard
-    // failure here instead of being tolerated. GfxCubeImageHlsl.cpp pins the
-    // same thing in detail.
-    {"isf-long-numeric.fs", Lang::Hlsl,
-     "the shader declares `float frac` (isf-long-numeric.fs:15) and older "
-     "SPIRV-Cross renames GLSL fract() to HLSL frac() without renaming the "
-     "user's variable, emitting `float frac = frac(...)`"},
-};
-
-const KnownGap* find_gap(const QString& file, Lang lang)
-{
-  for(const auto& g : known_gaps)
-    if(file == QString::fromLatin1(g.file) && g.lang == lang)
-      return &g;
-  return nullptr;
-}
-
-// -----------------------------------------------------------------------------
 // The sweep.
 // -----------------------------------------------------------------------------
 struct Tally
@@ -786,27 +734,6 @@ void sweep_one(Sweep& sw, const CorpusFile& f, const Generated& g)
       const std::string where = std::string{kind_name(f.kind)} + " "
                                 + f.name.toStdString() + " [" + s.name + "] on "
                                 + t.backend + " (" + lang_name(t.lang) + ")";
-
-      if(const KnownGap* gap = find_gap(f.name, t.lang))
-      {
-        if(err.isEmpty())
-        {
-          tally.bakes_ok++;
-          sw.bakes_ok_per_lang[lang_name(t.lang)]++;
-          sw.notes.push_back(
-              "KNOWN GAP HEALED HERE " + where
-              + ": bakes clean on this host's qtshadertools, so the entry is "
-                "kept only for the older SPIRV-Cross CI builds against ("
-              + gap->why + ")");
-        }
-        else
-        {
-          tally.gaps++;
-          sw.gaps_per_lang[lang_name(t.lang)]++;
-          sw.notes.push_back("KNOWN GAP " + where + ": " + gap->why);
-        }
-        continue;
-      }
 
       if(err.isEmpty())
       {
@@ -1090,17 +1017,33 @@ TEST_CASE(
   CHECK(renameMslReservedIdentifiers("float lerp = mix(a, b, not(t));")
         == QByteArray("float lerp = mix(a, b, not(t));"));
 
-  // Each target only gets its own list; GL and Vulkan get the source as is.
+  // OpenGL: words NVIDIA reserves beyond the GLSL spec.
+  using score::gfx::renameGlslReservedIdentifiers;
+  CHECK(
+      renameGlslReservedIdentifiers("float char = 1.0; float register = char + row_major;")
+      == QByteArray("float isf_glsl_char = 1.0; float isf_glsl_register = isf_glsl_char + isf_glsl_row_major;"));
+  // row_major is a layout qualifier too (glslang rejects a renamed one there).
+  CHECK(
+      renameGlslReservedIdentifiers(
+          "layout(std140, binding = 1, row_major) uniform M { mat4 m; } mm;\n"
+          "layout (row_major) uniform N { mat4 m; } nn; float row_major = 1.0;")
+      == QByteArray(
+          "layout(std140, binding = 1, row_major) uniform M { mat4 m; } mm;\n"
+          "layout (row_major) uniform N { mat4 m; } nn; float isf_glsl_row_major = 1.0;"));
+
+  // Each target only gets its own list; Vulkan gets the source as is.
   using score::gfx::renameReservedIdentifiers;
-  const QByteArray both = "float lerp = 1.0; float new = lerp;";
-  CHECK(renameReservedIdentifiers(both, score::gfx::GraphicsApi::Vulkan) == both);
-  CHECK(renameReservedIdentifiers(both, score::gfx::GraphicsApi::OpenGL) == both);
+  const QByteArray all = "float lerp = 1.0; float plus = lerp; float row_major = plus;";
+  CHECK(renameReservedIdentifiers(all, score::gfx::GraphicsApi::Vulkan) == all);
   CHECK(
-      renameReservedIdentifiers(both, score::gfx::GraphicsApi::D3D11)
-      == QByteArray("float isf_hlsl_lerp = 1.0; float new = isf_hlsl_lerp;"));
+      renameReservedIdentifiers(all, score::gfx::GraphicsApi::OpenGL)
+      == QByteArray("float lerp = 1.0; float plus = lerp; float isf_glsl_row_major = plus;"));
   CHECK(
-      renameReservedIdentifiers(both, score::gfx::GraphicsApi::Metal)
-      == QByteArray("float lerp = 1.0; float isf_msl_new = lerp;"));
+      renameReservedIdentifiers(all, score::gfx::GraphicsApi::D3D11)
+      == QByteArray("float isf_hlsl_lerp = 1.0; float plus = isf_hlsl_lerp; float row_major = plus;"));
+  CHECK(
+      renameReservedIdentifiers(all, score::gfx::GraphicsApi::Metal)
+      == QByteArray("float lerp = 1.0; float isf_msl_plus = lerp; float row_major = isf_msl_plus;"));
 
   // A comment that is never closed does not throw the scan off the end.
   CHECK(renameHlslReservedIdentifiers("float a; /* lerp") == QByteArray("float a; /* lerp"));
