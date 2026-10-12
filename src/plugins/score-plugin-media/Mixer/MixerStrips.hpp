@@ -145,7 +145,7 @@ protected:
   void setGainReadout(double gain);
   //! What the metered signal goes through before it is used: the meter shows
   //! it scaled by this.
-  virtual double meterGain() const noexcept { return 1.; }
+  virtual double meterGain(int channel) const noexcept { return 1.; }
   void setTitle(const QString& t);
   void setTitleColor(const QColor& c);
   void resizeEvent(QResizeEvent*) override;
@@ -234,7 +234,7 @@ private:
   void fillContextMenu(QMenu&) override;
   void onNodeRemoved(const ossia::net::node_base&);
 
-  double meterGain() const noexcept override;
+  double meterGain(int channel) const noexcept override;
 
   ossia::audio_parameter* m_param{};
   Meter m_meterKind{Meter::None};

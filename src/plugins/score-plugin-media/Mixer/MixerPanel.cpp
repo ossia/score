@@ -73,9 +73,13 @@ QString sectionHelp(Section s)
     case Section::Buses:
       return QObject::tr("Intervals marked as buses in their inspector.");
     case Section::Inputs:
-      return QObject::tr("The sound card's inputs, one per channel.");
+      return QObject::tr(
+          "The sound card's inputs, one per channel. A fader trims its channel for "
+          "everything that reads it: the main input and the mapped ports too.");
     case Section::Outputs:
-      return QObject::tr("The sound card's outputs, one per channel.");
+      return QObject::tr(
+          "The sound card's outputs, one per channel. A fader sets the level of "
+          "everything its channel gets: the main output and the mapped ports too.");
     case Section::Mapped:
       return QObject::tr(
           "The main input, and the ports mapped onto some channels of the card.");
