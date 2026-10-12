@@ -6,7 +6,13 @@
 #include <score/gfx/OpenGL.hpp>
 #include <score/gfx/Vulkan.hpp>
 
+#include <Gfx/Graph/VulkanVideoDevice.hpp>
+
+#include <QDebug>
 #include <QGuiApplication>
+#include <QPlatformSurfaceEvent>
+#include <QPointer>
+#include <QQuickGraphicsConfiguration>
 #include <QQuickWindow>
 
 #include <wobjectimpl.h>
@@ -160,6 +166,60 @@ static void update_qtquick_graphics_api(const score::gfx::GraphicsApi& api)
   }
 }
 
+#if QT_HAS_VULKAN && QT_VERSION >= QT_VERSION_CHECK(6, 6, 0)
+namespace
+{
+// Qt Quick's VkDevice lacks external-memory extensions; add them on SurfaceCreated, before the first expose creates the QRhi.
+class QtQuickDeviceExtensions final : public QObject
+{
+public:
+  using QObject::QObject;
+
+  bool eventFilter(QObject* obj, QEvent* ev) override
+  {
+    if(ev->type() == QEvent::PlatformSurface
+       && static_cast<QPlatformSurfaceEvent*>(ev)->surfaceEventType()
+              == QPlatformSurfaceEvent::SurfaceCreated)
+    {
+      if(auto* w = qobject_cast<QQuickWindow*>(obj))
+        addTo(*w);
+    }
+    return false;
+  }
+
+  // Merges into the window's configuration, keeping what the application set.
+  static void addTo(QQuickWindow& w)
+  {
+    auto config = w.graphicsConfiguration();
+    auto exts = config.deviceExtensions();
+    const auto before = exts.size();
+    for(const char* ext : score::gfx::qtQuickVulkanDeviceExtensions())
+      if(!exts.contains(ext))
+        exts.append(ext);
+    if(exts.size() == before)
+      return;
+    if(w.rhi())
+      qWarning() << "Gfx: Qt Quick window" << w.objectName()
+                 << "already has a QRhi; its device will lack" << exts.mid(before);
+    config.setDeviceExtensions(exts);
+    w.setGraphicsConfiguration(config);
+  }
+};
+
+void install_qtquick_device_extensions()
+{
+  // Parented to qApp, so a test binary that recreates the application installs it again.
+  static QPointer<QObject> filter;
+  if(filter || !qApp)
+    return;
+  filter = new QtQuickDeviceExtensions{qApp};
+  qApp->installEventFilter(filter);
+}
+}
+#else
+static void install_qtquick_device_extensions() { }
+#endif
+
 Model::Model(
     const UuidKey<score::SettingsDelegateFactory>& k, QSettings& set,
     const score::ApplicationContext& ctx)
@@ -232,6 +292,9 @@ Model::Model(
   {
     update_qtquick_graphics_api(this->graphicsApiEnum());
   });
+
+  // Runs before afterStartup(), where --ui creates its windows.
+  install_qtquick_device_extensions();
 }
 
 int Model::resolveSamples(score::gfx::GraphicsApi api) const noexcept

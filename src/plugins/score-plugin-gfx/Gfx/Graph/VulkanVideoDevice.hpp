@@ -23,6 +23,22 @@
 #include <string>
 #include <vector>
 
+namespace score::gfx
+{
+/// Extensions every Qt Quick window's VkDevice asks for (Spout import into a TextureSource); the head of sharedVulkanDeviceExtensions().
+inline std::vector<const char*> qtQuickVulkanDeviceExtensions()
+{
+  return {
+      VK_KHR_EXTERNAL_MEMORY_EXTENSION_NAME,
+#if defined(_WIN32) && defined(VK_KHR_EXTERNAL_MEMORY_WIN32_EXTENSION_NAME)
+      VK_KHR_EXTERNAL_MEMORY_WIN32_EXTENSION_NAME,
+#endif
+      VK_KHR_DEDICATED_ALLOCATION_EXTENSION_NAME,
+      VK_KHR_GET_MEMORY_REQUIREMENTS_2_EXTENSION_NAME,
+  };
+}
+}
+
 #ifdef VK_KHR_video_decode_queue
 
 namespace score::gfx
@@ -113,7 +129,8 @@ struct SharedVulkanDevice
  */
 inline std::vector<const char*> sharedVulkanDeviceExtensions()
 {
-  return {
+  auto exts = qtQuickVulkanDeviceExtensions();
+  exts.insert(exts.end(), {
       // Qt QRhi requirements
       VK_KHR_SWAPCHAIN_EXTENSION_NAME,
 #ifdef VK_KHR_MAINTENANCE_1_EXTENSION_NAME
@@ -147,16 +164,12 @@ inline std::vector<const char*> sharedVulkanDeviceExtensions()
       VK_KHR_DRIVER_PROPERTIES_EXTENSION_NAME,
 #endif
       // External memory (DMA-BUF, CUDA interop)
-      VK_KHR_EXTERNAL_MEMORY_EXTENSION_NAME,
       VK_KHR_EXTERNAL_SEMAPHORE_EXTENSION_NAME,
 #ifdef VK_KHR_EXTERNAL_MEMORY_FD_EXTENSION_NAME
       VK_KHR_EXTERNAL_MEMORY_FD_EXTENSION_NAME,
 #endif
 #ifdef VK_KHR_EXTERNAL_SEMAPHORE_FD_EXTENSION_NAME
       VK_KHR_EXTERNAL_SEMAPHORE_FD_EXTENSION_NAME,
-#endif
-#ifdef VK_KHR_EXTERNAL_MEMORY_WIN32_EXTENSION_NAME
-      VK_KHR_EXTERNAL_MEMORY_WIN32_EXTENSION_NAME,
 #endif
 #ifdef VK_KHR_EXTERNAL_SEMAPHORE_WIN32_EXTENSION_NAME
       VK_KHR_EXTERNAL_SEMAPHORE_WIN32_EXTENSION_NAME,
@@ -170,8 +183,6 @@ inline std::vector<const char*> sharedVulkanDeviceExtensions()
 #ifdef VK_EXT_EXTERNAL_MEMORY_HOST_EXTENSION_NAME
       VK_EXT_EXTERNAL_MEMORY_HOST_EXTENSION_NAME,
 #endif
-      VK_KHR_DEDICATED_ALLOCATION_EXTENSION_NAME,
-      VK_KHR_GET_MEMORY_REQUIREMENTS_2_EXTENSION_NAME,
       // Vulkan Video decode
       VK_KHR_VIDEO_QUEUE_EXTENSION_NAME,
       VK_KHR_VIDEO_DECODE_QUEUE_EXTENSION_NAME,
@@ -215,7 +226,8 @@ inline std::vector<const char*> sharedVulkanDeviceExtensions()
 #ifdef VK_EXT_DESCRIPTOR_INDEXING_EXTENSION_NAME
       VK_EXT_DESCRIPTOR_INDEXING_EXTENSION_NAME,
 #endif
-  };
+  });
+  return exts;
 }
 
 /**
