@@ -484,6 +484,9 @@ install(
   COMPONENT Devel
   OPTIONAL)
 
+# Must match libossia's ABI; also keeps liblsl's standalone Asio from interposing Boost.Asio's extern "C" symbols.
+add_definitions(-DBOOST_ASIO_ENABLE_VERSION_NAMESPACE=1)
+
 if(WIN32)
   # Pin the Windows target for every translation unit, whatever the compiler.
   #
@@ -508,18 +511,7 @@ if(WIN32)
   # themselves: libremidi builds its own translation units on MSVC, and a
   # PUBLIC definition on ossia never reaches them. libossia repeats this in its
   # own top-level CMakeLists so it is correct when built standalone.
-  # And Asio's version namespace, which libossia enables and which is part of
-  # its ABI: the namespace is an inline namespace, so it is baked into the
-  # mangled name of every Asio type its headers expose. libossia explicitly
-  # instantiates resolve_sync_v4 for boost::asio::ip::udp and ::tcp, so a
-  # translation unit here that does not agree about the namespace names a
-  # different specialisation and fails to link. It comes with the ossia target
-  # too; it is repeated here for the targets that reach Asio without linking
-  # ossia.
-  add_definitions(
-    -D_WIN32_WINNT=0x0A00
-    -DBOOST_ASIO_ENABLE_VERSION_NAMESPACE=1
-  )
+  add_definitions(-D_WIN32_WINNT=0x0A00)
 
   # NOMINMAX and WIN32_LEAN_AND_MEAN belong here too, rather than in the MSVC
   # branch of the top-level CMakeLists where they used to sit: what they change
