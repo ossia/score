@@ -1840,7 +1840,7 @@ endforeach()
 if(TARGET score AND UNIX AND NOT APPLE AND NOT EMSCRIPTEN
    AND (TARGET score_plugin_jit OR TARGET score_plugin_faust))
   add_test(NAME test_app_hides_llvm_symbols
-    COMMAND sh -c "n=$(nm -D --defined-only \"$1\" | grep -c 'N4llvm'); echo \"exported llvm symbols: $n\"; test \"$n\" -eq 0" _ $<TARGET_FILE:score>)
+    COMMAND sh -c "n=$(nm -D --defined-only \"$1\" | awk '{print $NF}' | grep -cE 'N[rVKRO]{0,2}(4llvm|5clang|5polly|3isl|3lld|15LiveDebugValues)|^(LLVM|llvm_|clang_|isl_)'); echo \"exported llvm/clang/polly symbols: $n\"; test \"$n\" -eq 0" _ $<TARGET_FILE:score>)
 
   # A versioned malloc / operator new (named version script) is not what the
   # shared libraries' versioned references bind to: under ASan every

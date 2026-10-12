@@ -225,6 +225,16 @@ elseif(APPLE)
   target_link_libraries(score_plugin_jit PUBLIC ${CLANG_LIBS} ${POLLY_LIBS} ${LLVM_LIBS})
 else()
   target_link_libraries(score_plugin_jit PUBLIC -Wl,--start-group ${CLANG_LIBS} ${POLLY_LIBS} ${LLVM_LIBS} -Wl,--end-group)
+
+  # Also hides the static LLVM's global-namespace names (cl::opt, pass IDs),
+  # which the version script cannot match.
+  file(GLOB _llvm_archives RELATIVE "${LLVM_LIBRARY_DIR}"
+    "${LLVM_LIBRARY_DIR}/libLLVM*.a" "${LLVM_LIBRARY_DIR}/libclang*.a"
+    "${LLVM_LIBRARY_DIR}/libPolly*.a" "${LLVM_LIBRARY_DIR}/liblld*.a")
+  if(_llvm_archives)
+    list(JOIN _llvm_archives ":" _llvm_archives)
+    target_link_options(score_plugin_jit PUBLIC "LINKER:--exclude-libs,${_llvm_archives}")
+  endif()
 endif()
 
 # Code generation

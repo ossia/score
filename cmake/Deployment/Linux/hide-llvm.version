@@ -1,12 +1,32 @@
 /* Anonymous: exported symbols stay unversioned, so an interposed allocator
    (sanitizers, preloaded malloc) still binds for every shared library.
-   Local: the static LLVM, i.e. every mangled name that involves the llvm
-   namespace (members, vtables, thunks, local statics, std:: instantiations
-   over llvm types) and its C API; a system libLLVM loaded by Mesa would
-   otherwise bind to our copies. */
+   Local: the static LLVM, clang and Polly (with its isl): every mangled name
+   nested in their namespaces, cv/ref-qualified members included, and their C
+   APIs. A system libLLVM loaded by Mesa would otherwise bind to our copies.
+   The JIT plug-in also passes --exclude-libs for the names outside them. */
 {
     global: *;
     local:
       *N4llvm*;
+      *N[rVKRO]4llvm*;
+      *N[rVKRO][VKRO]4llvm*;
+      *N5clang*;
+      *N[rVKRO]5clang*;
+      *N[rVKRO][VKRO]5clang*;
+      *N5polly*;
+      *N[rVKRO]5polly*;
+      *N[rVKRO][VKRO]5polly*;
+      *N3isl*;
+      *N[rVKRO]3isl*;
+      *N[rVKRO][VKRO]3isl*;
+      *N3lld*;
+      *N[rVKRO]3lld*;
+      *N[rVKRO][VKRO]3lld*;
+      *N15LiveDebugValues*;
+      *N[rVKRO]15LiveDebugValues*;
+      *N[rVKRO][VKRO]15LiveDebugValues*;
       LLVM*;
+      llvm_*;
+      clang_*;
+      isl_*;
 };
