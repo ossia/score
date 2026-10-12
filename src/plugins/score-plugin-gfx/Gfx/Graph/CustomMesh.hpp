@@ -138,6 +138,11 @@ public:
   //! skipped by the default draw paths.
   bool subMeshLayoutMatchesFirst(std::size_t i) const noexcept;
 
+  //! True when every sub-mesh is one plain draw: no index buffer, a single
+  //! instance and no indirect or CPU command list. Only such a draw can be
+  //! replayed as one instance per vertex (FallbackBindingPlan::point_quads).
+  bool drawsAsPlainVertexList() const noexcept;
+
   const char* defaultVertexShader() const noexcept override;
 
   const ossia::geometry* semanticGeometry() const noexcept override

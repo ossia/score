@@ -298,6 +298,13 @@ private:
       QRhiGraphicsPipeline::Topology drawn);
   int m_warnedModeTopology{-1};
 
+  // isf::raw_raster_point_quads on D3D11 / D3D12: rebuild the pipeline's
+  // vertex input to one instance per point and its topology to triangles,
+  // and mark the plan so the draw issues 6 vertices per point.
+  void applyPointQuads(
+      const RenderList& renderer, QRhiGraphicsPipeline& ps, FallbackBindingPlan& plan);
+  bool m_warnedPointQuads{false};
+
   // Emit the SRB bindings for m_auxTextureSamplers, advancing `binding`.
   // Shared by initPass and initMRTPass so the two can never disagree about
   // how many slots a ladder consumes.
@@ -353,6 +360,11 @@ private:
   // being iterated. -1 in other modes.
   int m_perMipOutputIndex{-1};
   int m_mipCount{0};
+  // PER_MIP on a MULTIVIEW shader whose view index is lowered to a uniform
+  // (viewIndexNeedsPassIndexFallback): no draw amplifies over the views, so
+  // every mip level is rendered once per view, into that view's layer / face.
+  // m_mipRTs then holds m_mipCount * m_perMipViews targets, mip-major.
+  int m_perMipViews{1};
   struct MipRT
   {
     QRhiTextureRenderTarget* renderTarget{};

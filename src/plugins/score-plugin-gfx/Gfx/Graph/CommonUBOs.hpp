@@ -37,9 +37,13 @@ struct alignas(4) ProcessUBO
   // `#define gl_NumWorkGroups isf_process_uniforms.NUMWORKGROUPS_`
   // resolves to real dispatch counts on every backend (especially D3D
   // where SPIRV-Cross refuses to emit the built-in directly).
-  // std140 packs uvec3 into a vec4 slot — the trailing word is padding.
+  // std140 packs uvec3 into a vec4 slot; the trailing word holds VIEWINDEX_.
   uint32_t numWorkgroups[3]{};
-  uint32_t _numWorkgroups_pad{};
+
+  // The view index a lowered MULTIVIEW shader reads instead of gl_ViewIndex
+  // (ShaderCache's pass-per-view fallback): the face / layer this pass
+  // renders. 0 everywhere else.
+  int32_t viewIndex{};
 };
 
 /**

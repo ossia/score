@@ -16,7 +16,7 @@ namespace score::gfx
 {
 
 // -----------------------------------------------------------------------------
-// gl_ViewIndex -> PASSINDEX lowering for the Direct3D targets.
+// gl_ViewIndex -> VIEWINDEX lowering for the Direct3D targets.
 //
 // libisf expands the VIEW_INDEX macro to gl_ViewIndex in the vertex stage
 // (isf.cpp), and SPIRV-Cross translates that to HLSL's SV_ViewID, which needs
@@ -38,9 +38,12 @@ namespace score::gfx
 //
 // The runtime already has the answer. Where QRhi reports no MultiView,
 // RenderedRawRasterPipelineNode renders the N views as N passes and stamps the
-// invocation index into ProcessUBO::passIndex -- which libisf already exposes
-// to both stages as PASSINDEX. On those targets the view index is therefore a
-// uniform we are already uploading, and the shader can just read it.
+// view of each into ProcessUBO::viewIndex, which libisf exposes to both stages
+// as isf_process_uniforms.VIEWINDEX_. On those targets the view index is
+// therefore a uniform we are already uploading, and the shader can just read
+// it. It is not PASSINDEX: a PER_MIP multiview shader (prefilter_ggx) reads
+// PASSINDEX as its mip level, and lowering the view onto the same uniform
+// rendered every mip into face 0, with the content of face <mip>.
 //
 // This is the same sidestep libisf documents for gl_NumWorkGroups, whose
 // built-in SPIRV-Cross also refuses to emit on HLSL: route the reference
@@ -55,7 +58,7 @@ namespace score::gfx
 // viewIndexNeedsPassIndexFallback(): the render path must agree with this
 // rewrite, so both ask the same function.
 
-// Replace every gl_ViewIndex reference with the PASSINDEX uniform. Both the
+// Replace every gl_ViewIndex reference with the VIEWINDEX uniform. Both the
 // `#define VIEW_INDEX int(uint(gl_ViewIndex))` and the wrapper main's
 // `isf_ViewIndexVarying = uint(gl_ViewIndex);` are plain occurrences of the same
 // token, so one substitution covers the macro, the wrapper, and any shader
@@ -64,7 +67,7 @@ namespace score::gfx
 static QByteArray lowerViewIndexToPassIndex(QByteArray src)
 {
   src.replace("#extension GL_EXT_multiview : require\n", "");
-  src.replace("gl_ViewIndex", "isf_process_uniforms.PASSINDEX_");
+  src.replace("gl_ViewIndex", "isf_process_uniforms.VIEWINDEX_");
   return src;
 }
 
@@ -112,7 +115,7 @@ const std::pair<QShader, QString>& ShaderCache::get(
   // the original source.
   // See the file header: on a D3D target below SM 6.1 the
   // SV_ViewID that gl_ViewIndex becomes cannot compile at all, so route the
-  // view index through the PASSINDEX uniform the N-pass fallback already
+  // view index through the VIEWINDEX uniform the N-pass fallback already
   // stamps. Keyed on the ORIGINAL source, which is correct: the baker is
   // already per-(api, version, multiViewCount), so each backend caches its
   // own bake of the same node.

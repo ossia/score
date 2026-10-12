@@ -693,6 +693,19 @@ bool CustomMesh::drawSingleMesh(
     cb.setVertexInput(0, (int)total, draw_inputs.data());
   }
 
+  // Points drawn as quads: one instance of 6 vertices per point. The
+  // pipeline was only built that way for a plain vertex list
+  // (drawsAsPlainVertexList); anything else would be read as garbage.
+  if(plan.point_quads)
+  {
+    if(g.index.buffer >= 0 || g.instances != 1 || g.indirect_count.handle
+       || !g.cpu_draw_commands.empty() || bufs.useIndirectDraw)
+      return false;
+    if(g.vertices > 0)
+      cb.draw(6, (quint32)g.vertices, 0, 0);
+    return true;
+  }
+
   // Per-mesh indirect override: when THIS submesh carries its own
   // `indirect_count` handle (different from bufs.indirectDrawBuffer),
   // use it instead. Required for multi-batch MDI (opaque + transparent
@@ -893,6 +906,19 @@ bool CustomMesh::subMeshLayoutMatchesFirst(std::size_t i) const noexcept
     if(x.binding != y.binding || x.location != y.location
        || x.format != y.format || x.byte_offset != y.byte_offset
        || x.element_byte_size != y.element_byte_size)
+      return false;
+  }
+  return true;
+}
+
+bool CustomMesh::drawsAsPlainVertexList() const noexcept
+{
+  if(geom.meshes.empty())
+    return false;
+  for(const auto& g : geom.meshes)
+  {
+    if(g.index.buffer >= 0 || g.instances != 1 || g.indirect_count.handle
+       || !g.cpu_draw_commands.empty())
       return false;
   }
   return true;

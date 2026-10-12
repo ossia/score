@@ -303,12 +303,12 @@ drawIndirectCountUsable(GraphicsApi api, int multiViewCount) noexcept
  *     Vertex shader error: View Index input is only supported in VS and PS
  *     6.1 or higher.
  *
- * ShaderCache answers this by rewriting gl_ViewIndex to the PASSINDEX uniform,
+ * ShaderCache answers this by rewriting gl_ViewIndex to the VIEWINDEX uniform,
  * which the N-pass path stamps per invocation.
  *
  * That rewrite and the choice of render path MUST be driven by the same
  * predicate. When they disagree the failure is silent and looks like a
- * rasterizer bug: a D3D12 shader lowered to read PASSINDEX while QRhi still
+ * rasterizer bug: a D3D12 shader lowered to read VIEWINDEX while QRhi still
  * reports MultiView gets ONE amplified draw in which passIndex never advances
  * past 0 -- and all six cube faces come back carrying face 0's colour. Ask
  * this function in both places.

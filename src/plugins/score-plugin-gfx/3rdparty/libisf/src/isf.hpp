@@ -1136,6 +1136,16 @@ bool draws_transparent(const descriptor& d) noexcept;
 SCORE_PLUGIN_GFX_EXPORT
 bool renders_cube_faces(const descriptor& d) noexcept;
 
+// Whether a raw raster draws points as screen-aligned quads on the HLSL
+// target. Direct3D has no point size: a point is one pixel whatever the shader
+// writes to gl_PointSize. For a declared PIPELINE_STATE TOPOLOGY "points" the
+// generated HLSL vertex stage therefore expands each point into a quad of
+// gl_PointSize pixels -- six vertices per instance, one instance per point --
+// and hands gl_PointCoord to the fragment stage through a varying. The
+// renderer must draw such a pipeline that way on D3D11 / D3D12.
+SCORE_PLUGIN_GFX_EXPORT
+bool raw_raster_point_quads(const descriptor& d) noexcept;
+
 // Whether a pipeline state declares BLEND or BLEND_PER_ATTACHMENT.
 SCORE_PLUGIN_GFX_EXPORT
 bool declares_blend(const pipeline_state& s) noexcept;

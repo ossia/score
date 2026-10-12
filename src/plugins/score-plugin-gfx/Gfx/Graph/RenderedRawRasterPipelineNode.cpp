@@ -1108,6 +1108,59 @@ void RenderedRawRasterPipelineNode::applyModeTopology(
   warnModeOverridesGeometry(geometry, ps.topology());
 }
 
+void RenderedRawRasterPipelineNode::applyPointQuads(
+    const RenderList& renderer, QRhiGraphicsPipeline& ps, FallbackBindingPlan& plan)
+{
+  const auto api = renderer.state.api;
+  if((api != GraphicsApi::D3D11 && api != GraphicsApi::D3D12)
+     || !isf::raw_raster_point_quads(n.descriptor()))
+    return;
+
+  // The generated HLSL vertex stage expands every point into a quad, so the
+  // draw must give it 6 vertices per point and the point in the instance
+  // index. That is only possible for a plain vertex list or a procedural
+  // draw of one instance; anything else keeps the 1-pixel points Direct3D
+  // rasterizes, each displaced by the corner offset of vertex 0.
+  bool drawable = false;
+  if(const auto vc = declaredVertexCount())
+    drawable = declaredInstanceCount().value_or(1u) == 1u;
+  else if(auto* cm = dynamic_cast<const CustomMesh*>(m_mesh))
+    drawable = cm->drawsAsPlainVertexList();
+  if(!drawable)
+  {
+    if(!std::exchange(m_warnedPointQuads, true))
+      qWarning().noquote()
+          << "RawRaster: points are drawn 1 pixel wide on Direct3D for instanced, "
+             "indexed or indirect geometry; gl_PointSize applies to a plain point list"
+          << QString::fromStdString(n.descriptor().description.substr(0, 80));
+    return;
+  }
+
+  // Every binding steps per instance, one point per instance. A binding that
+  // already stepped per instance (the REQUIRED:false fallback constants, or
+  // the per-instance data of a single instance) must keep reading its first
+  // element: give it a step rate no draw reaches.
+  const auto layout = ps.vertexInputLayout();
+  std::vector<QRhiVertexInputBinding> bindings;
+  for(auto it = layout.cbeginBindings(); it != layout.cendBindings(); ++it)
+  {
+    if(it->classification() == QRhiVertexInputBinding::PerVertex)
+      bindings.emplace_back(it->stride(), QRhiVertexInputBinding::PerInstance, 1);
+    else
+      bindings.emplace_back(
+          it->stride(), QRhiVertexInputBinding::PerInstance, 0x7fffffffu);
+  }
+  QRhiVertexInputLayout quads;
+  quads.setBindings(bindings.begin(), bindings.end());
+  quads.setAttributes(layout.cbeginAttributes(), layout.cendAttributes());
+  ps.setVertexInputLayout(quads);
+  ps.setTopology(QRhiGraphicsPipeline::Triangles);
+  // A point is never culled; the quad must not be either, whatever winding
+  // the epilogue's mirror compensation selects.
+  ps.setCullMode(QRhiGraphicsPipeline::None);
+  plan.point_quads = true;
+}
+
 void RenderedRawRasterPipelineNode::initPass(
     const TextureRenderTarget& inletTarget, RenderList& renderer,
     QRhiResourceUpdateBatch& res, Edge& edge)
@@ -1367,6 +1420,8 @@ void RenderedRawRasterPipelineNode::initPass(
       }
     }
 
+    applyPointQuads(renderer, *ps, fallbackPlan);
+
     if(!checkMetalBufferBudget(rhi, *bindings, *ps, v, n.descriptor()))
     {
       delete ps;
@@ -1443,6 +1498,7 @@ void RenderedRawRasterPipelineNode::initMRTPass(
   }
   m_mipRTs.clear();
   m_mipCount = 0;
+  m_perMipViews = 1;
 
   // PerLayer resources. Both paths keep their per-layer render targets in
   // m_mipRTs (cleared above); the depth path's entries alias the OUTPUT depth
@@ -1639,6 +1695,32 @@ void RenderedRawRasterPipelineNode::initMRTPass(
           m_executionMode = ExecutionMode::PerLayer;
           m_perLayerOutputIndex = i;
           m_perLayerIsDepth = false;
+          break;
+        }
+        ++colorIdx;
+      }
+    }
+
+    // PER_MIP + lowered MULTIVIEW: the view index is a uniform now, so the
+    // views have to be iterated explicitly, inside every mip level. Without
+    // this each level was drawn once, into layer 0, with the view index
+    // reading PASSINDEX = the level: the GGX prefilter wrote face <mip> into
+    // face 0 of mip <mip> and left the five other faces black on D3D11 and
+    // D3D12 (no specular image-based lighting on any PBR tier there).
+    m_perMipViews = 1;
+    if(mvLowered && mvDecl >= 2 && m_executionMode == ExecutionMode::PerMip
+       && m_perMipOutputIndex >= 0)
+    {
+      int colorIdx = 0;
+      for(const auto& out : outputs)
+      {
+        if(out.type == "depth")
+          continue;
+        if(colorIdx == m_perMipOutputIndex)
+        {
+          const int layers = out.is_cubemap ? 6 : out.layers;
+          if(layers >= 2)
+            m_perMipViews = std::min(mvDecl, layers);
           break;
         }
         ++colorIdx;
@@ -2032,16 +2114,21 @@ void RenderedRawRasterPipelineNode::initMRTPass(
       // the extra passes are well-defined once they run.
       const int mipCount = rhi.mipLevelsForSize(baseSize);
       m_mipCount = mipCount;
-      m_mipRTs.reserve(mipCount);
+      const int views = m_perMipViews;
+      m_mipRTs.reserve(mipCount * views);
 
-      for(int i = 0; i < mipCount; ++i)
+      for(int rtIndex = 0; rtIndex < mipCount * views; ++rtIndex)
       {
+        const int i = rtIndex / views;
+        const int view = rtIndex % views;
         QSize mipSize(
             std::max(1, baseSize.width() >> i),
             std::max(1, baseSize.height() >> i));
 
         QRhiColorAttachment color(targetTex);
         color.setLevel(i);
+        if(views > 1)
+          color.setLayer(view);
 #if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
         if(wantMultiview)
           color.setMultiViewCount(mvCount);
@@ -2065,7 +2152,7 @@ void RenderedRawRasterPipelineNode::initMRTPass(
         }
         mipDepth->setName(
             ("RenderedRawRasterPipelineNode::MRT::perMipDepth::"
-             + std::to_string(i))
+             + std::to_string(rtIndex))
                 .c_str());
         SCORE_ASSERT(mipDepth->create());
 
@@ -2076,12 +2163,12 @@ void RenderedRawRasterPipelineNode::initMRTPass(
         auto* mipRT = rhi.newTextureRenderTarget(mipDesc);
         mipRT->setName(
             ("RenderedRawRasterPipelineNode::MRT::perMipRT::"
-             + std::to_string(i))
+             + std::to_string(rtIndex))
                 .c_str());
         auto* mipRP = mipRT->newCompatibleRenderPassDescriptor();
         mipRP->setName(
             ("RenderedRawRasterPipelineNode::MRT::perMipRP::"
-             + std::to_string(i))
+             + std::to_string(rtIndex))
                 .c_str());
         mipRT->setRenderPassDescriptor(mipRP);
         SCORE_ASSERT(mipRT->create());
@@ -2495,6 +2582,8 @@ void RenderedRawRasterPipelineNode::initMRTPass(
         }
       }
     }
+
+    applyPointQuads(renderer, *ps, fallbackPlan);
 
     if(!checkMetalBufferBudget(rhi, *bindings, *ps, v, n.descriptor()))
     {
@@ -3229,6 +3318,7 @@ void RenderedRawRasterPipelineNode::releaseState(RenderList& r)
   }
   m_mipRTs.clear();
   m_mipCount = 0;
+  m_perMipViews = 1;
   m_perMipOutputIndex = -1;
   m_perCubeFaceOutputIndex = -1;
 
@@ -3890,6 +3980,7 @@ void RenderedRawRasterPipelineNode::update(
   updateCameraInlet(renderer, res, renderer.renderSize(edge));
 
   n.standardUBO.passIndex = 0;
+  n.standardUBO.viewIndex = 0;
   const bool firstUpdateOfFrame
       = advanceFrameIndex(n.standardUBO.frameIndex, m_frameIndexFrame, renderer.frame);
   std::copy_n(renderer.currentDate, 4, n.standardUBO.date);
@@ -4352,9 +4443,12 @@ void RenderedRawRasterPipelineNode::runInitialPasses(
   // when it is empty or unparseable. Manual re-evaluates every frame so the
   // count tracks live input values.
   int invocationCount = 1;
-  if(m_executionMode == ExecutionMode::PerMip
-     || m_executionMode == ExecutionMode::PerCubeFace
-     || m_executionMode == ExecutionMode::PerLayer)
+  if(m_executionMode == ExecutionMode::PerMip)
+  {
+    invocationCount = std::max(1, m_mipCount) * std::max(1, m_perMipViews);
+  }
+  else if(m_executionMode == ExecutionMode::PerCubeFace
+          || m_executionMode == ExecutionMode::PerLayer)
   {
     invocationCount = std::max(1, m_mipCount);
   }
@@ -4431,7 +4525,28 @@ void RenderedRawRasterPipelineNode::runInitialPasses(
     auto* invBatch = (i == 0 && updateBatch)
                          ? updateBatch
                          : rhi.nextResourceUpdateBatch();
-    this->n.standardUBO.passIndex = i;
+    // PASSINDEX is the mip level for PER_MIP (whatever view it renders) and
+    // the invocation index otherwise. The view index a lowered MULTIVIEW
+    // shader reads is the view within the mip for PER_MIP, and the face /
+    // layer for the per-face and per-layer loops.
+    const int views = (m_executionMode == ExecutionMode::PerMip)
+                          ? std::max(1, m_perMipViews)
+                          : 1;
+    const int mipLevel = i / views;
+    if(m_executionMode == ExecutionMode::PerMip)
+    {
+      this->n.standardUBO.passIndex = mipLevel;
+      this->n.standardUBO.viewIndex = i % views;
+    }
+    else
+    {
+      this->n.standardUBO.passIndex = i;
+      this->n.standardUBO.viewIndex
+          = (m_executionMode == ExecutionMode::PerCubeFace
+             || m_executionMode == ExecutionMode::PerLayer)
+                ? i
+                : 0;
+    }
     invBatch->updateDynamicBuffer(
         invUBO, 0, sizeof(ProcessUBO), &this->n.standardUBO);
     if(i == 0)
@@ -4445,8 +4560,8 @@ void RenderedRawRasterPipelineNode::runInitialPasses(
     {
       rtForPass = m_mipRTs[i].renderTarget;
       viewportSize = QSize(
-          std::max(1, baseSize.width() >> i),
-          std::max(1, baseSize.height() >> i));
+          std::max(1, baseSize.width() >> mipLevel),
+          std::max(1, baseSize.height() >> mipLevel));
     }
     else if(m_executionMode == ExecutionMode::PerCubeFace
             && i < (int)m_mipRTs.size() && m_mipRTs[i].renderTarget)
@@ -4855,6 +4970,13 @@ void RenderedRawRasterPipelineNode::drawWithPerMeshAuxRebind(
       if(!inputs.isEmpty())
         cb.setVertexInput(0, inputs.size(), inputs.data());
 
+      if(plan.point_quads)
+      {
+        // applyPointQuads only marks a single-instance draw.
+        if(vcount > 0 && icount == 1)
+          cb.draw(6, vcount, 0, 0);
+        return;
+      }
       if(vcount > 0 && icount > 0)
         cb.draw(vcount, icount, 0, 0);
       return;

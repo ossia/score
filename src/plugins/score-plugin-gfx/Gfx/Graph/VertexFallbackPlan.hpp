@@ -50,12 +50,18 @@ struct FallbackBindingPlan
   std::vector<int> mesh_bindings;
   bool compacted{false};
 
-  bool empty() const noexcept { return slots.empty() && !compacted; }
+  // The pipeline draws each point as a quad: every vertex binding steps per
+  // instance, and a point list of N vertices is drawn as N instances of 6
+  // vertices (isf::raw_raster_point_quads, for backends without a point size).
+  bool point_quads{false};
+
+  bool empty() const noexcept { return slots.empty() && !compacted && !point_quads; }
   void clear() noexcept
   {
     slots.clear();
     mesh_bindings.clear();
     compacted = false;
+    point_quads = false;
   }
 };
 

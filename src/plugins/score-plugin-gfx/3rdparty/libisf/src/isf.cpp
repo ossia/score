@@ -117,6 +117,11 @@ layout(std140, binding = 1) uniform process_t {
   // uniform — populated host-side just before each dispatch — and
   // textually shadowing the built-in via the #define below.
   uvec3 NUMWORKGROUPS_;
+  // The view a multiview shader renders where the backend cannot amplify
+  // (MULTIVIEW lowered to one pass per view, see ShaderCache): gl_ViewIndex
+  // reads this. Kept apart from PASSINDEX, which PER_MIP already spends on
+  // the mip level.
+  int VIEWINDEX_;
 } isf_process_uniforms;
 
 #define TIME isf_process_uniforms.TIME_
@@ -2611,6 +2616,18 @@ bool renders_cube_faces(const descriptor& d) noexcept
   });
 }
 
+bool raw_raster_point_quads(const descriptor& d) noexcept
+{
+  if(d.mode != isf::descriptor::RawRaster || d.multiview_count >= 2)
+    return false;
+  if(!d.default_state.topology)
+    return false;
+  std::string t = *d.default_state.topology;
+  for(auto& c : t)
+    c = (char)std::tolower((unsigned char)c);
+  return t == "points";
+}
+
 static std::string isf_depth_convention(const descriptor& d)
 {
   const bool greater = depth_nearer_is_greater(d);
@@ -5033,6 +5050,46 @@ void parser::parse_raw_raster_pipeline()
         location, location + 1);
   }
 
+  // Point sprites on Direct3D, see raw_raster_point_quads(). The vertex stage
+  // runs once per quad corner with one instance per point, so the shader's
+  // point index is the instance index there; ISF_POINT_VERTEX_INDEX /
+  // ISF_POINT_INSTANCE_INDEX / ISF_POINT_COORD stand in for gl_VertexIndex /
+  // gl_InstanceIndex / gl_PointCoord in the user's code (rewritten below) and
+  // are those builtins on every other target.
+  const bool point_quads = raw_raster_point_quads(m_desc);
+  if(point_quads)
+  {
+    // First location past the user varyings, the multiview view index and
+    // the two primitive-data varyings, which take the same first free slot.
+    int location = mv_fragment_plumbing ? mv_varying_location + 1 : 0;
+    for(const auto& attr : m_desc.vertex_outputs)
+      location = std::max(location, attr.location + 1);
+    for(const auto& attr : m_desc.fragment_inputs)
+      location = std::max(location, attr.location + 1);
+    if(m_desc.primitive_data)
+      location += 2;
+
+    m_vertex += fmt::format(
+        "#if defined(QSHADER_HLSL)\n"
+        "layout(location = {}) out vec2 isf_PointCoordVarying;\n"
+        "int isf_PointVertexIndex;\n"
+        "#define ISF_POINT_VERTEX_INDEX isf_PointVertexIndex\n"
+        "#define ISF_POINT_INSTANCE_INDEX 0\n"
+        "#else\n"
+        "#define ISF_POINT_VERTEX_INDEX gl_VertexIndex\n"
+        "#define ISF_POINT_INSTANCE_INDEX gl_InstanceIndex\n"
+        "#endif\n",
+        location);
+    m_fragment += fmt::format(
+        "#if defined(QSHADER_HLSL)\n"
+        "layout(location = {}) in vec2 isf_PointCoordVarying;\n"
+        "#define ISF_POINT_COORD isf_PointCoordVarying\n"
+        "#else\n"
+        "#define ISF_POINT_COORD gl_PointCoord\n"
+        "#endif\n",
+        location);
+  }
+
   // LAYER_INDEX for layered outputs.
   {
     bool has_layered_output = (m_desc.multiview_count >= 2);
@@ -5539,9 +5596,21 @@ void parser::parse_raw_raster_pipeline()
   // Every RAW_RASTER shader writes its own main(), so rename it and run it
   // from a generated wrapper (below) that owns the real entry point.
   m_vertex += "#define main isf_rawraster_user_main\n";
-  m_vertex += m_sourceVertex;
+  if(point_quads)
+  {
+    std::string vs = m_sourceVertex;
+    boost::replace_all(vs, "gl_VertexIndex", "ISF_POINT_VERTEX_INDEX");
+    boost::replace_all(vs, "gl_InstanceIndex", "ISF_POINT_INSTANCE_INDEX");
+    m_vertex += vs;
+  }
+  else
+  {
+    m_vertex += m_sourceVertex;
+  }
   m_vertex += '\n';
   isf_rewrite_straight_sampling(fragWithoutISF, m_desc);
+  if(point_quads)
+    boost::replace_all(fragWithoutISF, "gl_PointCoord", "ISF_POINT_COORD");
   std::vector<std::string> premultiplied;
   if(m_desc.layer.enabled())
   {
@@ -5578,6 +5647,8 @@ void parser::parse_raw_raster_pipeline()
     std::string fs = GLSL45.versionPrelude;
     fs += isf_emit_user_extensions(m_desc.extensions);
     fs += "#define ISF_RESOLVE_PASS 1\n";
+    if(point_quads)
+      fs += "#define ISF_POINT_COORD vec2(0.5)\n";
     fs += fmt::format("layout(location = 0) out vec4 {};\n", r.output);
     fs += GLSL45.defaultUniforms;
     fs += isf_emit_types_struct(d.types);
@@ -5626,13 +5697,39 @@ void parser::parse_raw_raster_pipeline()
   //      Vulkan's framebuffer origin rather than cancelling against it.
   m_vertex += "#undef main\n";
   m_vertex += "void main()\n{\n";
-  if(m_desc.multiview_count < 2 || m_desc.default_state.topology == "points")
+  if(point_quads)
+  {
+    m_vertex += "  gl_PointSize = 1.0;\n";
+    m_vertex += "#if defined(QSHADER_HLSL)\n";
+    m_vertex += "  isf_PointVertexIndex = gl_InstanceIndex;\n";
+    m_vertex += "#endif\n";
+  }
+  else if(m_desc.multiview_count < 2 || m_desc.default_state.topology == "points")
   {
     m_vertex += "#if !defined(QSHADER_HLSL)\n";
     m_vertex += "  gl_PointSize = 1.0;\n";
     m_vertex += "#endif\n";
   }
   m_vertex += "  isf_rawraster_user_main();\n";
+  if(point_quads)
+  {
+    // Grow the point into a quad of gl_PointSize pixels around its centre, in
+    // the final clip space (after the user's isf_vertShaderFinish), so the
+    // offset is the same number of pixels on every axis. Corner (s, t) is the
+    // gl_PointCoord of that corner: s grows to the right, t towards the next
+    // row in memory, as on the backends that rasterize points themselves. A
+    // point the shader collapses with w = 0 stays degenerate.
+    m_vertex += "#if defined(QSHADER_HLSL)\n";
+    m_vertex += "  {\n";
+    m_vertex += "    const vec2 isf_corners[6] = vec2[6](vec2(-1.0, -1.0), vec2(1.0, -1.0), "
+                "vec2(-1.0, 1.0), vec2(-1.0, 1.0), vec2(1.0, -1.0), vec2(1.0, 1.0));\n";
+    m_vertex += "    vec2 isf_corner = isf_corners[gl_VertexIndex % 6];\n";
+    m_vertex += "    float isf_point_size = max(gl_PointSize, 1.0);\n";
+    m_vertex += "    gl_Position.xy += isf_corner * (isf_point_size / RENDERSIZE.xy) * gl_Position.w;\n";
+    m_vertex += "    isf_PointCoordVarying = vec2(0.5 + 0.5 * isf_corner.x, 0.5 - 0.5 * isf_corner.y);\n";
+    m_vertex += "  }\n";
+    m_vertex += "#endif\n";
+  }
   if(m_desc.multiview_count < 2 || m_desc.default_state.topology == "points")
   {
     // Vulkan and GL clamp the point size to their minimum, 1 pixel. Metal does
@@ -5671,7 +5768,7 @@ void parser::parse_raw_raster_pipeline()
     }
     else if(topology == "points")
     {
-      id = "gl_VertexIndex";
+      id = point_quads ? "ISF_POINT_VERTEX_INDEX" : "gl_VertexIndex";
       corner = "0";
     }
     m_vertex += fmt::format(
