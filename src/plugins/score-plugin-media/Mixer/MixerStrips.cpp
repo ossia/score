@@ -403,9 +403,9 @@ void Strip::updateMeter(const Execution::Telemetry& t)
   }
 
   const int total = int(levels->channels);
-  const float scale = float(meterGain());
   m_levels.clear();
   auto add = [&](int src) {
+    const float scale = float(meterGain(int(m_levels.size())));
     if(src >= 0 && src < total)
       m_levels.push_back(
           {levels->peak[src] * scale, levels->rms(src) * scale,
@@ -820,16 +820,13 @@ PortStrip::PortStrip(
 
 PortStrip::~PortStrip() = default;
 
-double PortStrip::meterGain() const noexcept
+double PortStrip::meterGain(int channel) const noexcept
 {
   // The inputs are metered as the driver gives them: what the graph reads is
-  // scaled by the port's gain, and by /in/main's.
-  if(m_meterKind != Meter::HardwareInputs || !m_param)
+  // scaled by the port's gain, by /in/main's and by the channel's /in/N.
+  if(m_meterKind != Meter::HardwareInputs || !m_param || channel < 0)
     return 1.;
-  double g = m_param->gain();
-  if(m_param->upstream)
-    g *= m_param->upstream->gain();
-  return g;
+  return m_param->read_gain(std::size_t(channel));
 }
 
 void PortStrip::poll()
