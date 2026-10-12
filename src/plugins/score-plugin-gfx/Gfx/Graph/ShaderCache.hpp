@@ -29,12 +29,14 @@ namespace score::gfx
  *   `float lerp = lerp(...)`, which fxc rejects.
  * - MSL: C++ keywords and alternative tokens (`new`, `or`, `char`, `throw`)
  *   and the names `using namespace metal` makes ambiguous (`plus`, `array`).
+ * - GLSL for OpenGL: words NVIDIA's compiler reserves beyond the GLSL spec
+ *   (`char`, `register`, `row_major`), which glslang accepts for SPIR-V.
  *
  * Those names have no meaning in GLSL, so every occurrence is the author's:
- * each one is prefixed with isf_hlsl_ / isf_msl_, consistently across
+ * each one is prefixed with isf_hlsl_ / isf_msl_ / isf_glsl_, consistently across
  * declarations, uses, struct members and macros. Comments and strings are left
  * alone, and the source is returned as is (shared, not copied) when nothing
- * matches. Other APIs get the source unchanged.
+ * matches. Vulkan and Null get the source unchanged.
  */
 SCORE_PLUGIN_GFX_EXPORT
 QByteArray renameReservedIdentifiers(const QByteArray& src, GraphicsApi api);
@@ -42,6 +44,8 @@ SCORE_PLUGIN_GFX_EXPORT
 QByteArray renameHlslReservedIdentifiers(const QByteArray& src);
 SCORE_PLUGIN_GFX_EXPORT
 QByteArray renameMslReservedIdentifiers(const QByteArray& src);
+SCORE_PLUGIN_GFX_EXPORT
+QByteArray renameGlslReservedIdentifiers(const QByteArray& src);
 
 /**
  * @brief Cache of baked QShader instances

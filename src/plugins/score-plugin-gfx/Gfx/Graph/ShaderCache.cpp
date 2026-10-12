@@ -110,8 +110,8 @@ const std::pair<QShader, QString>& ShaderCache::get(
   // or with its own list of target keywords, but not every name the target
   // reserves: on D3D a `float lerp` met the lerp() it emits for mix(), and
   // fxc refused `float lerp = lerp(...)`; on Metal a `float new` or a function
-  // called `plus` reached the Metal compiler as is. The same shader works on
-  // OpenGL and Vulkan. See renameReservedIdentifiers. The cache stays keyed on
+  // called `plus` reached the Metal compiler as is; on OpenGL, NVIDIA refuses
+  // a `float char`. See renameReservedIdentifiers. The cache stays keyed on
   // the original source.
   // See the file header: on a D3D target below SM 6.1 the
   // SV_ViewID that gl_ViewIndex becomes cannot compile at all, so route the
@@ -285,6 +285,16 @@ const ossia::hash_set<std::string_view>& mslOnlyNames()
   return names;
 }
 
+//! Names NVIDIA's GL compiler rejects as reserved words, outside the GLSL
+//! spec's reserved list that glslang and SPIRV-Cross already handle.
+const ossia::hash_set<std::string_view>& glslOnlyNames()
+{
+  static const ossia::hash_set<std::string_view> names{
+      "char", "register", "row_major", "pervertexNV", "perprimitiveNV",
+      "perviewNV", "taskNV"};
+  return names;
+}
+
 constexpr bool isIdentStart(char c) noexcept
 {
   return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_';
@@ -343,6 +353,24 @@ QByteArray renameIdentifiers(
       while(i < n && isIdentChar(s[i]))
         ++i;
       const std::string_view tok{s + b, std::size_t(i - b)};
+      // layout(...) holds qualifiers, not identifiers: row_major stays one there.
+      if(tok == "layout")
+      {
+        qsizetype j = i;
+        while(j < n && (s[j] == ' ' || s[j] == '\t' || s[j] == '\r' || s[j] == '\n'))
+          ++j;
+        if(j < n && s[j] == '(')
+        {
+          int depth = 0;
+          do
+          {
+            depth += s[j] == '(' ? 1 : s[j] == ')' ? -1 : 0;
+            ++j;
+          } while(j < n && depth > 0);
+          i = j;
+          continue;
+        }
+      }
       if(names.contains(tok))
       {
         if(!renamed)
@@ -379,10 +407,17 @@ QByteArray renameMslReservedIdentifiers(const QByteArray& src)
   return renameIdentifiers(src, mslOnlyNames(), "isf_msl_");
 }
 
+QByteArray renameGlslReservedIdentifiers(const QByteArray& src)
+{
+  return renameIdentifiers(src, glslOnlyNames(), "isf_glsl_");
+}
+
 QByteArray renameReservedIdentifiers(const QByteArray& src, GraphicsApi api)
 {
   switch(api)
   {
+    case GraphicsApi::OpenGL:
+      return renameGlslReservedIdentifiers(src);
     case GraphicsApi::D3D11:
     case GraphicsApi::D3D12:
       return renameHlslReservedIdentifiers(src);

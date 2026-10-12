@@ -2,8 +2,8 @@
 //
 // SPIRV-Cross renames most MSL keywords, but not a function called `quad`
 // (a Metal type) nor a uniform member called `operator` (a C++ keyword): the
-// MSL fails to compile and the node never draws on Metal. The fixture uses
-// both and renders red.
+// MSL fails to compile and the node never draws on Metal. NVIDIA's GL
+// compiler likewise refuses `char`. The fixture uses them all and renders red.
 #include "IsfTestCommon.hpp"
 
 #include <catch2/catch_test_macros.hpp>
