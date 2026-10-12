@@ -665,6 +665,7 @@ static void setup_app_flags()
 {
   qputenv("QSG_USE_SIMPLE_ANIMATION_DRIVER", "1");
   qputenv("QSG_RENDER_LOOP", "basic");
+  qputenv("QT3D_RENDERER", "rhi");
   // Consistency in looks across macOS, Windows (which prevents the horrible 125% scaling) and Linux
   // FIXME in Qt 6 this is entirely broken... https://bugreports.qt.io/browse/QTBUG-103225
   // qputenv("QT_FONT_DPI", "96");

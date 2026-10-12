@@ -196,8 +196,6 @@ Model::Model(
   m_GraphicsApi = apis.Metal;
 #endif
 
-  qputenv("QT3D_RENDERER", "rhi");
-
   // Latched for the lifetime of the process, because qunsetenv() below removes
   // it after the first read. The application constructs one Model, but a test
   // binary boots a MinimalGUIApplication per Catch2 case: without the latch,

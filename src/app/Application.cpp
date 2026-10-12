@@ -297,6 +297,19 @@ const score::ApplicationComponents& Application::components() const
 
 void Application::init()
 {
+  // Environment writes go before plug-ins start threads that may read it.
+  if(appSettings.ui.isEmpty())
+  {
+    if(!qEnvironmentVariableIsSet("QT_QUICK_CONTROLS_STYLE"))
+    {
+      qputenv("QT_QUICK_CONTROLS_STYLE", "Basic");
+#if QT_VERSION >= QT_VERSION_CHECK(6, 8, 0)
+      if(appSettings.gui)
+        qGuiApp->styleHints()->setColorScheme(Qt::ColorScheme::Dark);
+#endif
+    }
+  }
+
   if(appSettings.gui && appSettings.opengl)
   {
     auto platform = QGuiApplication::platformName();
@@ -352,18 +365,6 @@ void Application::init()
   const QString dir2 = (QCoreApplication::applicationDirPath() + "/plugins");
   SetDllDirectoryW((wchar_t*)dir2.utf16());
 #endif
-
-  if(appSettings.ui.isEmpty())
-  {
-    if(!qEnvironmentVariableIsSet("QT_QUICK_CONTROLS_STYLE"))
-    {
-      qputenv("QT_QUICK_CONTROLS_STYLE", "Basic");
-#if QT_VERSION >= QT_VERSION_CHECK(6, 8, 0)
-      if(appSettings.gui)
-        qGuiApp->styleHints()->setColorScheme(Qt::ColorScheme::Dark);
-#endif
-    }
-  }
 
   // MVP
   if(appSettings.gui)
