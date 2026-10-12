@@ -678,7 +678,7 @@ struct DeviceRecorder : PatternObject
   {
     std::shared_ptr<recorder_thread> recorder;
     std::shared_ptr<player_thread> player;
-    using mode_type = decltype(DeviceRecorder::inputs_t{}.mode.value);
+    using mode_type = decltype(std::declval<inputs_t&>().mode.value);
     mode_type mode{};
     Separator separator{Separator::Colon};
     void operator()()
