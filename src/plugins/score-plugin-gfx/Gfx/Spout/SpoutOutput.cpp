@@ -18,6 +18,9 @@
 #include <QOffscreenSurface>
 #include <QUrl>
 
+#include <algorithm>
+#include <cstring>
+
 #include <Spout/SpoutSender.h>
 #include <Spout/SpoutDirectX.h>
 
@@ -85,6 +88,24 @@ struct SpoutNode final : score::gfx::OutputNode
     }
   }
 
+  bool registerDXSender(HANDLE handle)
+  {
+    // CreateSender renames in place to "name_N" on a collision: full-size buffer, kept as our name.
+    const QByteArray utf8 = m_settings.path.toUtf8();
+    qsizetype n = std::min<qsizetype>(utf8.size(), SpoutMaxSenderNameLen - 16);
+    while(n > 0 && n < utf8.size() && (uchar(utf8[n]) & 0xC0) == 0x80)
+      n--;
+    std::fill(std::begin(m_senderName), std::end(m_senderName), 0);
+    std::memcpy(m_senderName, utf8.constData(), n);
+    const bool ok = m_dxSenderNames.CreateSender(
+        m_senderName, m_settings.width, m_settings.height, handle,
+        DXGI_FORMAT_B8G8R8A8_UNORM);
+    if(ok && utf8 != QByteArray(m_senderName))
+      qWarning() << "SpoutOutput: sender name" << m_settings.path
+                 << "is taken, registered as" << m_senderName;
+    return ok;
+  }
+
   void startRenderingOpenGL()
   {
     m_created = m_spout->CreateSender(
@@ -143,9 +164,7 @@ struct SpoutNode final : score::gfx::OutputNode
     }
 
     // Register the sender
-    m_created = m_dxSenderNames.CreateSender(
-        (char*)m_settings.path.toStdString().c_str(), m_settings.width, m_settings.height,
-        m_shareHandle, DXGI_FORMAT_B8G8R8A8_UNORM);
+    m_created = registerDXSender(m_shareHandle);
   }
 
   void startRenderingD3D12()
@@ -188,9 +207,7 @@ struct SpoutNode final : score::gfx::OutputNode
     }
 
     // Register the sender
-    m_created = m_dxSenderNames.CreateSender(
-        (char*)m_settings.path.toStdString().c_str(), m_settings.width, m_settings.height,
-        m_shareHandle, DXGI_FORMAT_B8G8R8A8_UNORM);
+    m_created = registerDXSender(m_shareHandle);
   }
 
 #if SCORE_SPOUT_VULKAN
@@ -252,9 +269,7 @@ struct SpoutNode final : score::gfx::OutputNode
     }
 
     // Register the sender
-    m_created = m_dxSenderNames.CreateSender(
-        (char*)m_settings.path.toStdString().c_str(), m_settings.width, m_settings.height,
-        m_vkShareHandle, DXGI_FORMAT_B8G8R8A8_UNORM);
+    m_created = registerDXSender(m_vkShareHandle);
   }
 #endif
 
@@ -340,7 +355,7 @@ struct SpoutNode final : score::gfx::OutputNode
 
     auto tex = static_cast<QGles2Texture*>(m_texture)->texture;
     m_spout->SendTexture(tex, GL_TEXTURE_2D, m_settings.width, m_settings.height);
-    m_spout->SetFrameSync(m_settings.path.toStdString().c_str());
+    m_spout->SetFrameSync(m_spout->GetName());
   }
 
   void renderD3D11(QRhi* rhi)
@@ -697,7 +712,7 @@ struct SpoutNode final : score::gfx::OutputNode
         break;
       case QRhi::D3D11:
       {
-        m_dxSenderNames.ReleaseSenderName(m_settings.path.toStdString().c_str());
+        m_dxSenderNames.ReleaseSenderName(m_senderName);
         if(m_sharedTexture)
         {
           m_sharedTexture->Release();
@@ -708,7 +723,7 @@ struct SpoutNode final : score::gfx::OutputNode
       }
       case QRhi::D3D12:
       {
-        m_dxSenderNames.ReleaseSenderName(m_settings.path.toStdString().c_str());
+        m_dxSenderNames.ReleaseSenderName(m_senderName);
 
         // Release wrapped texture first
         if(m_wrappedTexture)
@@ -744,7 +759,7 @@ struct SpoutNode final : score::gfx::OutputNode
 #if SCORE_SPOUT_VULKAN
       case QRhi::Vulkan:
       {
-        m_dxSenderNames.ReleaseSenderName(m_settings.path.toStdString().c_str());
+        m_dxSenderNames.ReleaseSenderName(m_senderName);
         releaseVulkanResources();
         if(m_vkSharedTexture)
         {
@@ -1056,6 +1071,7 @@ private:
 
   // Common to D3D11 / D3D12
   spoutSenderNames m_dxSenderNames;
+  char m_senderName[SpoutMaxSenderNameLen]{};
 
   // D3D11 backend
   spoutDirectX m_spoutDX;
