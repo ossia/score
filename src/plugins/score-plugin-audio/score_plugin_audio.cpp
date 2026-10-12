@@ -3,6 +3,10 @@
 
 #include "score_plugin_audio.hpp"
 
+#include <score/plugins/FactorySetup.hpp>
+
+#include <score_plugin_audio_commands_files.hpp>
+
 #include <Audio/ALSAInterface.hpp>
 #include <Audio/ALSAMiniAudioInterface.hpp>
 #include <Audio/ALSAPortAudioInterface.hpp>
@@ -10,6 +14,9 @@
 #include <Audio/AudioApplicationPlugin.hpp>
 #include <Audio/AudioDevice.hpp>
 #include <Audio/AudioPreviewExecutor.hpp>
+#if __has_include(<Audio/PortGain.hpp>)
+#include <Audio/PortGain.hpp>
+#endif
 #include <Audio/CoreAudioInterface.hpp>
 #include <Audio/DummyInterface.hpp>
 #include <Audio/GenericPortAudioInterface.hpp>
@@ -247,6 +254,20 @@ std::vector<score::InterfaceBase*> score_plugin_audio::factories(
 auto score_plugin_audio::required() const -> std::vector<score::PluginKey>
 {
   return {};
+}
+
+
+std::pair<const CommandGroupKey, CommandGeneratorMap> score_plugin_audio::make_commands()
+{
+  using namespace Audio;
+  std::pair<const CommandGroupKey, CommandGeneratorMap> cmds{
+      CommandGroupKey{"Audio"}, CommandGeneratorMap{}};
+
+  ossia::for_each_type<
+#include <score_plugin_audio_commands.hpp>
+      >(score::commands::FactoryInserter{cmds.second});
+
+  return cmds;
 }
 
 #include <score/plugins/PluginInstances.hpp>

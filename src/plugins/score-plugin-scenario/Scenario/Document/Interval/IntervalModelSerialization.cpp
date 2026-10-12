@@ -159,7 +159,8 @@ DataStreamReader::read(const Scenario::IntervalModel& interval)
            << interval.m_nodalFullViewSlotHeight << interval.m_quantRate
            << interval.m_zoom << interval.m_center << interval.m_nodalOffset
            << interval.m_nodalScale << interval.m_nodalCenter << interval.m_viewMode
-           << interval.m_smallViewShown << interval.m_hasSignature;
+           << interval.m_smallViewShown << interval.m_hasSignature
+           << interval.m_muted << interval.m_soloed;
 
   insertDelimiter();
 }
@@ -207,6 +208,8 @@ DataStreamWriter::write(Scenario::IntervalModel& interval)
   Scenario::IntervalModel::ViewMode vm{Scenario::IntervalModel::ViewMode::Temporal};
   bool sv{};
   bool hs{};
+  bool muted{};
+  bool soloed{};
   m_stream >> interval.m_signatures >> interval.duration >> interval.m_startState
       >> interval.m_endState
 
@@ -214,9 +217,14 @@ DataStreamWriter::write(Scenario::IntervalModel& interval)
       >> interval.m_nodalFullViewSlotHeight >> interval.m_quantRate >> interval.m_zoom
       >> interval.m_center >> interval.m_nodalOffset >> interval.m_nodalScale
       >> interval.m_nodalCenter >> vm >> sv >> hs;
+  // Data saved before mute and solo existed ends here.
+  if(!atDelimiterOrEnd())
+    m_stream >> muted >> soloed;
   interval.m_viewMode = vm;
   interval.m_smallViewShown = sv;
   interval.m_hasSignature = hs;
+  interval.m_muted = muted;
+  interval.m_soloed = soloed;
 
   checkDelimiter();
 }
@@ -277,6 +285,10 @@ JSONReader::read(const Scenario::IntervalModel& interval)
   obj[strings.SmallViewShown] = interval.m_smallViewShown;
 
   obj["HasSignature"] = interval.m_hasSignature;
+  if(interval.m_muted)
+    obj["Muted"] = true;
+  if(interval.m_soloed)
+    obj["Soloed"] = true;
 }
 
 template <>
@@ -386,6 +398,13 @@ SCORE_PLUGIN_SCENARIO_EXPORT void JSONWriter::write(Scenario::IntervalModel& int
     bool sign{};
     assign_with_default(sign, obj.tryGet("HasSignature"), false);
     interval.m_hasSignature = sign;
+  }
+  {
+    bool muted{}, soloed{};
+    assign_with_default(muted, obj.tryGet("Muted"), false);
+    assign_with_default(soloed, obj.tryGet("Soloed"), false);
+    interval.m_muted = muted;
+    interval.m_soloed = soloed;
   }
   auto zit = obj.constFind(strings.Zoom);
   if(zit != obj.constEnd())

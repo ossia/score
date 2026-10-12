@@ -44,6 +44,21 @@ DataStreamWriter::DataStreamWriter(QIODevice* dev)
 {
 }
 
+bool DataStreamWriter::atDelimiterOrEnd()
+{
+  auto dev = m_stream_impl.device();
+  if(!dev)
+    return true;
+  const QByteArray next = dev->peek(4);
+  if(next.size() < 4)
+    return true;
+  QDataStream s{next};
+  s.setByteOrder(m_stream_impl.byteOrder());
+  int32_t val{};
+  s >> val;
+  return val == int32_t(0xDEADBEEF);
+}
+
 void DataStreamWriter::checkDelimiter()
 {
   int val{};
