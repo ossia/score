@@ -130,11 +130,24 @@ void logD3D12RemovalInfo(QRhi& rhi) noexcept
                 (void*)n->pCommandList,
                 n->pCommandListDebugNameA ? n->pCommandListDebugNameA : "unnamed",
                 (void*)n->pCommandQueue, done, count);
-      const UINT from = done > 8 ? done - 8 : 0;
-      const UINT to = std::min(count, done + 4);
-      for(UINT i = from; i < to; i++)
-        qCritical("DRED:   [%u] %s%s", i, dredOpName(n->pCommandHistory[i]),
-                  i == done ? "   <-- first operation that did not complete" : "");
+      // The whole history, run-length encoded: the clears, resolves and
+      // barriers between draws delimit the passes, which places the failing
+      // operation in the frame.
+      for(UINT i = 0; i < count;)
+      {
+        const auto op = n->pCommandHistory[i];
+        UINT j = i + 1;
+        while(j < count && n->pCommandHistory[j] == op && !(i < done && j >= done)
+              && !(i == done))
+          j++;
+        if(j - i > 1)
+          qCritical("DRED:   [%u-%u] %s x%u%s", i, j - 1, dredOpName(op), j - i,
+                    (done >= i && done < j) ? "   <-- first operation that did not complete" : "");
+        else
+          qCritical("DRED:   [%u] %s%s", i, dredOpName(op),
+                    i == done ? "   <-- first operation that did not complete" : "");
+        i = j;
+      }
     }
   }
 
