@@ -152,12 +152,12 @@ if [ "$want_media" = 1 ]; then
     gen_raw "$fmt" 65 33
   done
 
-  # Formats Video::formatNeedsDecoding() sends through swscale to RGBA rather
-  # than to a GPU decoder: the CPU rescale path has no other consumer.
-  for fmt in yuv410p bgr565le rgb555le pal8 bgr8; do
+  # Legacy formats: the first four have GPU decoders, the rest go through swscale.
+  for fmt in yuv410p rgb555le pal8 bgr8 bgr565le rgb444le bgr444le yvyu422; do
     gen_raw "$fmt" 64 64
   done
   gen_raw yuv410p 65 33
+  gen_raw yvyu422 65 33
 
   # Colour-space inference in VideoDecoder::open_stream() branches on the frame
   # height when the stream tags none: <625 -> SMPTE170M, <720 -> BT470BG,
