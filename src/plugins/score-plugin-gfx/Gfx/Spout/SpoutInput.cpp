@@ -424,8 +424,7 @@ private:
     auto tex = m_gpu->samplers[0].texture;
     auto gltex = static_cast<QGles2Texture*>(tex);
 
-    // Probe sender presence — this also lets Spout update its internal
-    // m_bUpdated flag, which IsUpdated() then reports/clears.
+    // Connect / probe without copying: on a sender change this call only re-links and sets IsUpdated().
     if(!m_receiver.ReceiveTexture())
     {
       enabled = false;
@@ -434,18 +433,24 @@ private:
 
     enabled = true;
 
-    // Pull the full sender state (size + DXGI format + handle) for change detection.
-    // GetSenderInfo reads from the Spout sender-names shared memory and is cheap.
-    SpoutSenderInfo si;
-    if(querySpoutSender(node.settings.path.toStdString().c_str(), si)
-       && si.width > 0 && si.height > 0)
-    {
-      if(reconfigureIfNeeded(rhi, si))
-        gltex->specified = true;
-    }
+    followSenderChange(rhi, *gltex);
 
+    // Second call does the copy; keep both, a call that sees a sender change returns without copying.
     GLuint texId = gltex->texture;
     m_receiver.ReceiveTexture(texId, GL_TEXTURE_2D);
+    followSenderChange(rhi, *gltex);
+  }
+
+  void followSenderChange(QRhi& rhi, QGles2Texture& gltex)
+  {
+    // SDK contract (Spout.cpp IsUpdated): check after every receive, the next receive clears the flag.
+    if(!m_receiver.IsUpdated())
+      return;
+    const SpoutSenderInfo si{
+        m_receiver.GetSenderWidth(), m_receiver.GetSenderHeight(),
+        m_receiver.GetSenderFormat(), m_receiver.GetSenderHandle()};
+    if(reconfigureIfNeeded(rhi, si))
+      gltex.specified = true;
   }
 
   void updateD3D11(QRhi& rhi, QRhiResourceUpdateBatch& res)
