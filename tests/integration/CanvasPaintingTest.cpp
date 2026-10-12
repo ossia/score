@@ -170,15 +170,16 @@ struct Canvas
     const auto root = presetsRoot();
     if(root.isEmpty())
       SKIP("Javascript presets are not installed; set SCORE_JS_PRESETS_DIR");
+    // Imported like canvas-painter.qml does, through the Parts qmldir.
     const QDir presets{root + "/canvas-painter"};
-    const auto path = presets.filePath(view ? "PaintView.qml" : "PaintSurface.qml");
-    INFO("Production QML: " << path.toStdString());
-    REQUIRE(QFileInfo::exists(path));
+    const auto qmldir = presets.filePath("Parts/qmldir");
+    INFO("Production QML: " << qmldir.toStdString());
+    REQUIRE(QFileInfo::exists(qmldir));
     QQmlComponent component{&engine};
     const QByteArray wrapper = view ? R"QML(
 import QtQuick
-import "."
-PaintView {
+import "./Parts" as Parts
+Parts.PaintView {
     property var testSamples: []
     property var testCommits: []
     property var testGestures: []
@@ -189,8 +190,8 @@ PaintView {
 )QML"
                                     : R"QML(
 import QtQuick
-import "."
-PaintSurface {
+import "./Parts" as Parts
+Parts.PaintSurface {
     property var testSamples: []
     onColorSampled: function(color) { testSamples = testSamples.concat([color]); }
 }
