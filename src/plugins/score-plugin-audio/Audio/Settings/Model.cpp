@@ -109,6 +109,13 @@ Model::Model(
   // for headless / CI / test runs.
   if(auto k = driverFromEnv())
     m_Driver = *k;
+
+  // SCORE_AUDIO_NO_INPUT=1: default to no capture device (unset card), keeping output.
+  if(qEnvironmentVariableIntValue("SCORE_AUDIO_NO_INPUT") != 0 && m_CardIn.isEmpty())
+  {
+    m_CardIn = QStringLiteral("No device");
+    m_DefaultIn = 0;
+  }
 }
 
 Audio::AudioFactory::ConcreteKey Model::getDriver() const

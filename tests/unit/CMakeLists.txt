@@ -958,6 +958,12 @@ if(TARGET score_plugin_audio)
     SOURCES AudioEngineDocumentsTest.cpp
     APP
     PLUGINS score_plugin_audio score_plugin_deviceexplorer score_lib_device)
+
+  # SCORE_AUDIO_NO_INPUT defaults the input card to none unless one is stored.
+  score_add_test(test_unit_audio_settings_no_input
+    SOURCES AudioSettingsNoInputTest.cpp
+    APP
+    PLUGINS score_plugin_audio)
 endif()
 
 # The delayed reset after a stop acts on the interval it was armed for, not
