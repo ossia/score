@@ -69,9 +69,8 @@ struct PlainNode final : Node
   NodeRenderer* createRenderer(RenderList&) const noexcept override { return nullptr; }
 };
 
-// RenderList only serves as the identity that resolves an edge to the upstream
-// node's renderer (RenderList::bufferForInput touches no GPU state), and its
-// constructor only stores the two references. Nothing here drives the sink.
+// RenderList resolves an edge to the upstream node's renderer; nothing here
+// drives the sink.
 struct StubOutput final : OutputNode
 {
   OutputNodeRenderer* createRenderer(RenderList&) const noexcept override
@@ -101,15 +100,13 @@ struct Outcome
 // `uniform_input`, one producer node publishing `upstream` on its Buffer
 // output, cabled together, then bindUpstreamBuffers() run over it.
 //
-// The placeholder is allocated here rather than by the caller because the
-// adopt path takes ownership of it (`if(e.owned && e.buffer)
-// e.buffer->deleteLater()`), so only bindUpstreamBuffers' own decision can say
-// who frees it.
+// The placeholder is allocated here because the adopt path releases it, so
+// only bindUpstreamBuffers' own decision says who frees it.
 Outcome bindOutcome(QRhi& rhi, QRhiBuffer* upstream)
 {
   StubOutput sink;
   auto st = std::make_shared<RenderState>();
-  st->rhi = nullptr; // never dereferenced on this path
+  st->rhi = &rhi;
   RenderList rl{sink, st};
 
   // The zero-filled UBO ensureStorageResources() allocates so the binding slot
@@ -145,15 +142,9 @@ Outcome bindOutcome(QRhi& rhi, QRhiBuffer* upstream)
 
   QRhiBuffer* bound = store.ubos.front().buffer;
 
-  // Drop the entry rather than store.release()-ing it: release() would
-  // deleteLater() whatever is bound, including an upstream buffer the caller
-  // owns. The placeholder is freed here only when it was kept -- on the adopt
-  // path bindUpstreamBuffers already handed it to deleteLater().
-  store.ubos.front().buffer = nullptr;
-  store.ubos.clear();
+  // An adopted upstream is only un-referenced here; its owner frees it.
+  store.release(rl);
   producer.renderedNodes.clear();
-  if(bound == placeholder)
-    placeholder->deleteLater();
   return {bound, placeholder};
 }
 }
