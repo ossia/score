@@ -553,9 +553,6 @@ public:
     m.resize(n);
     for(int i = old; i < n; i++)
       m[i] = i < cards ? i : Audio::unrouted;
-    for(auto& c : m)
-      if(c >= cards)
-        c = Audio::unrouted;
     m_mapping->setPorts({{portName(), std::move(m)}});
   }
 
