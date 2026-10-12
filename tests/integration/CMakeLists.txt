@@ -1220,6 +1220,7 @@ target_link_libraries(ObjectGallery PRIVATE
   ${QT_PREFIX}::Network ${QT_PREFIX}::Xml)
 score_link_plugins_for_static(ObjectGallery)
 setup_score_common_exe_features(ObjectGallery)
+enable_minimal_qt_plugins(ObjectGallery 1)
 set_target_properties(ObjectGallery PROPERTIES FOLDER "Tests")
 
 # Splat ports stay stable across save/reload
