@@ -41,20 +41,8 @@ namespace Scenario
 class IntervalModel;
 }
 
-namespace Dataflow
-{
-class AudioDevice;
-}
-
 namespace Mixer
 {
-//! Asks for a new mapped or virtual port of the audio device and adds it,
-//! showing the device in the device explorer first if it is not there yet.
-//! `kind` ("in", "out" or "virtual") is the one the dialog proposes.
-void addAudioPort(
-    const score::DocumentContext& ctx, Dataflow::AudioDevice& dev, QWidget* parent,
-    const std::string& kind = "in");
-
 enum class StripWidth
 {
   Narrow,

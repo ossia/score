@@ -7,6 +7,7 @@
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 
 #include <Audio/AudioApplicationPlugin.hpp>
+#include <Audio/RoutingMatrix.hpp>
 #include <Audio/Settings/Model.hpp>
 
 #include <score/tools/Bind.hpp>
@@ -20,15 +21,12 @@
 #include <ossia-qt/js_utilities.hpp>
 
 #include <functional>
+#include <limits>
 
-#include <QButtonGroup>
 #include <QComboBox>
-#include <QCoreApplication>
 #include <QDialogButtonBox>
 #include <QFormLayout>
-#include <QHeaderView>
-#include <QRadioButton>
-#include <QTableWidget>
+#include <QLabel>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Dataflow::AudioDevice)
@@ -337,6 +335,9 @@ try
   {
     const bool output = kind == "out";
     auto chans = ossia::any_cast<ossia::audio_mapping>(attr.at("audio-mapping"));
+    for(auto& c : chans)
+      if(c < 0)
+        c = std::numeric_limits<int>::max();
     if(!param)
     {
       node.set_parameter(
@@ -453,21 +454,30 @@ const Device::DeviceSettings& AudioProtocolFactory::defaultSettings() const noex
 class AudioAddressDialog final : public Device::AddressDialog
 {
 public:
-  void updateType(int idx)
+  AudioAddressDialog(
+      Dataflow::AudioDevice& dev, const score::DocumentContext& ctx, QWidget* parent)
+      : Device::AddressDialog{parent}
+      , m_device{dev}
+      , m_layout{this}
+      , m_nameEdit{this}
+      , m_type{this}
+      , m_channels{this}
+      , m_help{new QLabel{this}}
+      , m_mapping{
+            new Audio::RoutingMatrix{Audio::RoutingMatrix::Direction::FromCard, this}}
+      , m_buttons{
+            QDialogButtonBox::StandardButton::Ok
+                | QDialogButtonBox::StandardButton::Cancel,
+            this}
   {
-    auto& set = score::AppContext().settings<Audio::Settings::Model>();
-    updateType(idx, set.getDefaultIn(), set.getDefaultOut());
-  }
-  void init()
-  {
-    // Make two things: possibility to add a virtual port for which each
-    // channels maps to an existing channel And a pure address-only port used
-    // for inter-transfer.
     this->setMinimumWidth(500);
     m_layout.addRow(tr("Name"), &m_nameEdit);
     m_layout.addRow(tr("Channels"), &m_channels);
     m_layout.addRow(tr("Type"), &m_type);
-    m_layout.addRow(tr("Mapping\nRows: this parameter\nCols: sound card"), &m_mapping);
+    m_help->setWordWrap(true);
+    m_layout.addRow(m_help);
+    m_mapping->setMinimumHeight(160);
+    m_layout.addRow(m_mapping);
     m_layout.addWidget(&m_buttons);
 
     connect(&m_buttons, &QDialogButtonBox::accepted, this, &AudioAddressDialog::accept);
@@ -478,40 +488,13 @@ public:
     m_channels.setValue(2);
     m_type.setCurrentIndex(0);
 
-    con(
-        m_type, SignalUtils::QComboBox_currentIndexChanged_int(), this,
-        [this] { updateType(m_type.currentIndex()); }, Qt::QueuedConnection);
-    con(
-        m_channels, &QSpinBox::editingFinished, this,
-        [this] { updateType(m_type.currentIndex()); }, Qt::QueuedConnection);
+    con(m_type, SignalUtils::QComboBox_currentIndexChanged_int(), this,
+        [this] { updateType(); });
+    con(m_channels, SignalUtils::QSpinBox_valueChanged_int(), this,
+        [this] { updateType(); });
+    con(m_nameEdit, &QLineEdit::textChanged, this, [this] { updateType(); });
 
-    m_mapping.setAlternatingRowColors(true);
-    m_mapping.setCornerButtonEnabled(false);
-    m_mapping.horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
-    m_mapping.horizontalHeader()->setSectionsClickable(false);
-    m_mapping.horizontalHeader()->setSectionsMovable(false);
-    m_mapping.horizontalHeader()->setDefaultAlignment(Qt::AlignCenter);
-    m_mapping.verticalHeader()->setSectionsClickable(false);
-    m_mapping.verticalHeader()->setSectionsMovable(false);
-    m_mapping.verticalHeader()->setDefaultAlignment(Qt::AlignCenter);
-
-    updateType(m_type.currentIndex());
-  }
-  AudioAddressDialog(
-      Dataflow::AudioDevice& dev, const score::DocumentContext& ctx, QWidget* parent)
-      : Device::AddressDialog{parent}
-      , m_device{dev}
-      , m_layout{this}
-      , m_nameEdit{this}
-      , m_type{this}
-      , m_channels{this}
-      , m_mapping{this}
-      , m_buttons{
-            QDialogButtonBox::StandardButton::Ok
-                | QDialogButtonBox::StandardButton::Cancel,
-            this}
-  {
-    init();
+    updateType();
   }
 
   AudioAddressDialog(
@@ -519,125 +502,58 @@ public:
       const score::DocumentContext& ctx, QWidget* parent)
       : AudioAddressDialog{dev, ctx, parent}
   {
+    m_original = addr.extendedAttributes;
     m_nameEdit.setText(addr.name);
-    {
-      auto it = addr.extendedAttributes.find("audio-channels");
-      if(it == addr.extendedAttributes.end())
-        return;
-      auto chans = ossia::any_cast<int>(it->second);
-      m_channels.setValue(chans);
-    }
-    {
-      auto it = addr.extendedAttributes.find("audio-kind");
-      if(it == addr.extendedAttributes.end())
-        return;
-
-      auto kind = ossia::any_cast<std::string>(it->second);
-      if(kind == "in")
-        m_type.setCurrentIndex(0);
-      else if(kind == "out")
-        m_type.setCurrentIndex(1);
-      else if(kind == "virtual")
-        m_type.setCurrentIndex(2);
-
-      updateType(m_type.currentIndex());
-    }
-    QCoreApplication::processEvents();
-    {
-      auto it = addr.extendedAttributes.find("audio-mapping");
-      if(it == addr.extendedAttributes.end())
-        return;
-      const ossia::audio_mapping& mpng
-          = ossia::any_cast<ossia::audio_mapping>(it->second);
-
-      for(std::size_t i = 0; i < m_checkboxes.size(); i++)
-      {
-        for(std::size_t j = 0; j < mpng.size(); j++)
-        {
-          if(mpng[j] == (int)i && j < m_checkboxes[i].size())
-          {
-            m_checkboxes[i][j]->setChecked(true);
-          }
-        }
-      }
-    }
+    const auto& x = addr.extendedAttributes;
+    if(auto it = x.find("audio-channels"); it != x.end())
+      if(auto c = ossia::any_cast<int>(&it->second))
+        m_channels.setValue(*c);
+    if(auto it = x.find("audio-kind"); it != x.end())
+      if(auto k = ossia::any_cast<std::string>(&it->second))
+        m_type.setCurrentIndex(*k == "out" ? 1 : *k == "virtual" ? 2 : 0);
+    if(auto it = x.find("audio-mapping"); it != x.end())
+      if(auto m = ossia::any_cast<ossia::audio_mapping>(&it->second))
+        m_mapping->setPorts({{portName(), *m}});
+    updateType();
   }
 
-  void updateType(int k, int inputs, int outputs)
+  QString portName() const
   {
-    for(auto g : m_groups)
-      delete g;
-    m_groups.clear();
+    auto n = m_nameEdit.text().trimmed();
+    return n.isEmpty() ? tr("Port") : n;
+  }
 
-    m_checkboxes.clear();
-    m_mapping.clear();
-    auto dev = m_device.getDevice();
-    SCORE_ASSERT(dev);
-    // ideally here we need a matrix that goes from "number of channels" to
-    // "number of inputs"
-
-    switch(k)
+  void updateType()
+  {
+    const int k = m_type.currentIndex();
+    if(k == 2)
     {
-      case 0: {
-        m_mapping.setColumnCount(inputs);
-        m_mapping.setRowCount(m_channels.value());
-        m_groups.resize(m_channels.value());
-        m_checkboxes.resize(inputs);
-        for(auto& c : m_checkboxes)
-          c.resize(m_channels.value());
-
-        for(int j = 0; j < m_channels.value(); j++)
-        {
-          for(int i = 0; i < inputs; i++)
-          {
-            auto cb = new QRadioButton{&m_mapping};
-            m_mapping.setCellWidget(j, i, cb);
-            m_checkboxes[i][j] = cb;
-          }
-        }
-        for(int j = 0; j < m_channels.value(); j++)
-        {
-          auto g = new QButtonGroup;
-          g->setExclusive(true);
-          m_groups.push_back(g);
-          for(int i = 0; i < inputs; i++)
-          {
-            auto cb = m_checkboxes[i][j];
-            cb->setChecked(i == j);
-            g->addButton(cb, i);
-          }
-        }
-        break;
-      }
-      case 1: {
-        m_mapping.setColumnCount(outputs);
-        m_mapping.setRowCount(m_channels.value());
-        m_groups.resize(m_channels.value());
-        m_checkboxes.resize(outputs);
-        for(auto& c : m_checkboxes)
-          c.resize(m_channels.value());
-
-        for(int j = 0; j < m_channels.value(); j++)
-        {
-          auto g = new QButtonGroup;
-          g->setExclusive(true);
-          m_groups.push_back(g);
-          for(int i = 0; i < outputs; i++)
-          {
-            auto cb = new QRadioButton{};
-            g->addButton(cb, i);
-            cb->setChecked(i == 0);
-            m_mapping.setCellWidget(j, i, cb);
-            m_checkboxes[i][j] = cb;
-          }
-        }
-        break;
-      }
-      case 2:
-        m_mapping.setColumnCount(0);
-        m_mapping.setRowCount(0);
-        break;
+      m_help->setText(
+          tr("A virtual port carries sound between processes, not to the sound "
+             "card: set the output of some processes to it, and the input of "
+             "others."));
+      m_mapping->hide();
+      return;
     }
+    m_help->setText(Audio::RoutingMatrix::help());
+    m_mapping->show();
+
+    auto& set = score::AppContext().settings<Audio::Settings::Model>();
+    const int cards = k == 0 ? set.getDefaultIn() : set.getDefaultOut();
+    m_mapping->setDirection(
+        k == 0 ? Audio::RoutingMatrix::Direction::FromCard
+               : Audio::RoutingMatrix::Direction::ToCard);
+    m_mapping->setCardChannels(cards);
+
+    ossia::int_vector m;
+    if(!m_mapping->ports().empty())
+      m = m_mapping->ports().front().mapping;
+    const int n = m_channels.value();
+    const int old = int(m.size());
+    m.resize(n);
+    for(int i = old; i < n; i++)
+      m[i] = i < cards ? i : Audio::unrouted;
+    m_mapping->setPorts({{portName(), std::move(m)}});
   }
 
   Device::AddressSettings getSettings() const override
@@ -645,6 +561,7 @@ public:
     Device::AddressSettings addr;
     addr.name = m_nameEdit.text();
     addr.value = ossia::value{};
+    addr.extendedAttributes = m_original;
     switch(m_type.currentIndex())
     {
       case 0:
@@ -658,23 +575,10 @@ public:
         break;
     }
     addr.extendedAttributes["audio-channels"] = m_channels.value();
-
-    if(!m_checkboxes.empty())
-    {
-      ossia::audio_mapping mpng;
-      mpng.resize(m_checkboxes[0].size());
-      for(std::size_t i = 0; i < m_checkboxes.size(); i++)
-      {
-        for(std::size_t j = 0; j < m_checkboxes[i].size(); j++)
-        {
-          if(m_checkboxes[i][j]->isChecked())
-          {
-            mpng[j] = i; // local channel j goes to global channel i
-          }
-        }
-      }
-      addr.extendedAttributes["audio-mapping"] = std::move(mpng);
-    }
+    if(m_type.currentIndex() != 2 && !m_mapping->ports().empty())
+      addr.extendedAttributes["audio-mapping"] = m_mapping->ports().front().mapping;
+    else
+      addr.extendedAttributes.erase("audio-mapping");
     return addr;
   }
 
@@ -684,10 +588,10 @@ public:
   State::AddressFragmentLineEdit m_nameEdit;
   QComboBox m_type;
   QSpinBox m_channels;
-  QTableWidget m_mapping;
+  QLabel* m_help{};
+  Audio::RoutingMatrix* m_mapping{};
   QDialogButtonBox m_buttons;
-  std::vector<QButtonGroup*> m_groups;
-  std::vector<std::vector<QRadioButton*>> m_checkboxes;
+  ossia::extended_attributes m_original;
 };
 
 Device::AddressDialog* AudioProtocolFactory::makeAddAddressDialog(
