@@ -24,6 +24,7 @@
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Document/State/StatePresenter.hpp>
 #include <Scenario/Document/State/StateView.hpp>
@@ -40,6 +41,7 @@
 #include <core/command/CommandStack.hpp>
 #include <core/document/Document.hpp>
 #include <core/document/DocumentModel.hpp>
+#include <core/document/DocumentPresenter.hpp>
 
 #include <QGraphicsScene>
 #include <QGraphicsSceneDragDropEvent>
@@ -105,6 +107,23 @@ triggers(const Scenario::ProcessModel& scenario)
     if(ts.active())
       res.push_back(&ts);
   return res;
+}
+
+// A new full-view slot on the root interval recreates every slot presenter,
+// so the scenario's presenter must be looked up again after one.
+Scenario::ScenarioPresenter& rootScenarioPresenter(
+    const score::GUIApplicationContext& ctx, score::Document& doc,
+    const Scenario::ProcessModel& scenario)
+{
+  QApplication::processEvents();
+  static_cast<Scenario::ScenarioDocumentPresenter&>(
+      *doc.presenter()->presenterDelegate())
+      .focusFrontProcess();
+  auto* pres = ctx.guiApplicationPlugin<Scenario::ScenarioApplicationPlugin>()
+                   .focusedPresenter();
+  REQUIRE(pres);
+  REQUIRE(&pres->model() == &scenario);
+  return *pres;
 }
 
 void doubleClick(Scenario::ScenarioPresenter& pres, QPointF pos)
@@ -316,9 +335,6 @@ TEST_CASE(
         = static_cast<Scenario::ScenarioDocumentModel&>(doc->model().modelDelegate())
               .baseInterval();
     auto& scenario = static_cast<Scenario::ProcessModel&>(*root.processes.begin());
-    auto* pres = ctx.guiApplicationPlugin<Scenario::ScenarioApplicationPlugin>()
-                     .focusedPresenter();
-    REQUIRE(pres);
 
     // Something with a control to automate: the LFO
     Process::ProcessModel* lfo{};
@@ -332,6 +348,7 @@ TEST_CASE(
     }
     if(!lfo)
       SKIP("LFO not built");
+    auto* pres = &rootScenarioPresenter(ctx, *doc, scenario);
     Process::ControlInlet* ctl{};
     for(auto* in : lfo->inlets())
       if(auto c = qobject_cast<Process::ControlInlet*>(in);
@@ -394,10 +411,6 @@ PresetFixture makePresetFixture(const score::GUIApplicationContext& ctx)
                 f.doc->model().modelDelegate())
                 .baseInterval();
   f.scenario = &static_cast<Scenario::ProcessModel&>(*f.root->processes.begin());
-  f.pres = ctx.guiApplicationPlugin<Scenario::ScenarioApplicationPlugin>()
-               .focusedPresenter();
-  REQUIRE(f.pres);
-  REQUIRE(&f.pres->model() == f.scenario);
 
   Scenario::Command::Macro m{
       new Scenario::Command::DropProcessInIntervalMacro, f.doc->context()};
@@ -405,7 +418,7 @@ PresetFixture makePresetFixture(const score::GUIApplicationContext& ctx)
       *f.root, UuidKey<Process::ProcessModel>{"0b1b1816-c33e-4796-a16d-5aab27fe600f"},
       {}, QPointF{});
   m.commit();
-  QApplication::processEvents();
+  f.pres = &rootScenarioPresenter(ctx, *f.doc, *f.scenario);
   return f;
 }
 
