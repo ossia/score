@@ -481,6 +481,19 @@ score_add_test(test_gfx_interop_fence
   PLUGINS score_plugin_gfx score_lib_process
   LIBS test_gfx_engine_glue)
 
+# Each Linux Vulkan importer (DMA-BUF, host import, CUDA) must report unavailable
+# on a VkDevice made with Qt's default extensions, as a Qt Quick window's is, and
+# available on score's own; media for HWCUDA.hpp's headers, avutil for its CUDA
+# hw device.
+if(TARGET score_plugin_media)
+  score_add_test(test_gfx_vulkan_importer_device_checks
+    SOURCES VulkanImporterDeviceChecks.cpp
+    GUI
+    PLUGINS score_plugin_gfx score_plugin_media score_plugin_scenario
+            score_lib_process
+    LIBS test_gfx_engine_glue avutil)
+endif()
+
 # ISOLATED, EXPECTED-RED: the VSA triangle cull-mode cross-backend divergence
 # (R3-N4 area). A front-facing VSA triangle is culled on exactly one backend
 # regardless of winding (OpenGL draws / Vulkan culls, or vice-versa) — there is
