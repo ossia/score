@@ -30,6 +30,11 @@ extern "C" void sincos(double x, double* sin, double* cos)
 #endif
 
 #include <exception>
+#include <propsys.h>
+#include <shellapi.h>
+#include <shobjidl.h>
+
+#include <string>
 #if defined(SCORE_HAS_CPP_WINRT)
 #include <winrt/Windows.Foundation.h>
 #else
@@ -45,6 +50,11 @@ inline void init_apartment_sta() noexcept
   CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
 }
 }
+#endif
+// MinGW's rpcdce.h, pulled in by the shell headers, defines uuid_t as UUID,
+// which turns score::uuid_t into score::UUID.
+#if defined(uuid_t)
+#undef uuid_t
 #endif
 #endif
 // clang-format on
@@ -67,6 +77,10 @@ inline void init_apartment_sta() noexcept
 #include <QSurfaceFormat>
 #include <QTimer>
 #include <qnamespace.h>
+#if defined(_WIN32)
+#include <QPlatformSurfaceEvent>
+#include <QWindow>
+#endif
 
 #include <clocale>
 #include <cstdio>
@@ -765,6 +779,110 @@ static void restore_linux_tty()
 }
 #endif
 
+#if defined(_WIN32)
+// Taskbar identity of a custom app (tools/launcher/launcher.cpp passes it in the environment).
+// https://learn.microsoft.com/en-us/windows/win32/shell/appids
+namespace
+{
+struct
+{
+  std::wstring id;
+  std::wstring relaunch_command;
+  std::wstring relaunch_name;
+  std::wstring relaunch_icon;
+} windows_app_identity;
+
+static std::wstring windows_env(const wchar_t* var)
+{
+  // Read with the Win32 API: nothing in score writes these, and Qt is not up yet
+  std::wstring s(GetEnvironmentVariableW(var, nullptr, 0), L'\0');
+  if(!s.empty())
+    s.resize(GetEnvironmentVariableW(var, s.data(), DWORD(s.size())));
+  return s;
+}
+
+// PKEY_AppUserModel_* (propkey.h), spelled out so no GUID library is needed
+static PROPERTYKEY app_user_model_key(DWORD pid)
+{
+  return {{0x9F4C2855, 0x9F79, 0x4B39, {0xA8, 0xD0, 0xE1, 0xD4, 0x2D, 0xE1, 0xD5, 0xF3}}, pid};
+}
+
+static void set_window_app_identity(HWND hwnd, bool set)
+{
+  IPropertyStore* store{};
+  if(FAILED(SHGetPropertyStoreForWindow(hwnd, IID_PPV_ARGS(&store))))
+    return;
+  // VT_EMPTY removes a property: they must all be removed before the window is destroyed
+  auto put = [&](DWORD pid, const std::wstring& v) {
+    PROPVARIANT pv{};
+    if(set && !v.empty())
+    {
+      pv.vt = VT_LPWSTR;
+      pv.pwszVal = const_cast<wchar_t*>(v.c_str());
+    }
+    store->SetValue(app_user_model_key(pid), pv);
+  };
+  // Relaunch properties first: setting the ID is what notifies the taskbar
+  put(2, windows_app_identity.relaunch_command); // RelaunchCommand
+  put(4, windows_app_identity.relaunch_name);    // RelaunchDisplayNameResource
+  put(3, windows_app_identity.relaunch_icon);    // RelaunchIconResource
+  put(5, windows_app_identity.id);               // ID
+  store->Release();
+}
+
+// Labels every top-level window when its HWND is created, and clears it before it goes
+class WindowsAppIdentityFilter final : public QObject
+{
+public:
+  using QObject::QObject;
+  bool eventFilter(QObject* obj, QEvent* ev) override
+  {
+    if(ev->type() != QEvent::PlatformSurface)
+      return false;
+    auto w = qobject_cast<QWindow*>(obj);
+    if(!w || !w->handle() || !w->isTopLevel())
+      return false;
+    if(w->type() != Qt::Window && w->type() != Qt::Dialog)
+      return false;
+    const auto t = static_cast<QPlatformSurfaceEvent*>(ev)->surfaceEventType();
+    set_window_app_identity(
+        reinterpret_cast<HWND>(w->winId()), t == QPlatformSurfaceEvent::SurfaceCreated);
+    return false;
+  }
+};
+}
+#endif
+
+// Must run before any window exists; without SCORE_CUSTOM_APP_USER_MODEL_ID nothing changes
+static void setup_windows_app_identity()
+{
+#if defined(_WIN32)
+  auto& ident = windows_app_identity;
+  ident.id = windows_env(L"SCORE_CUSTOM_APP_USER_MODEL_ID");
+  if(ident.id.empty())
+    return;
+  SetCurrentProcessExplicitAppUserModelID(ident.id.c_str());
+
+  // Pinning the running window pins the launcher, which sets up the environment, not app-bin.exe
+  if(auto launcher = windows_env(L"SCORE_CUSTOM_APP_LAUNCHER"); !launcher.empty())
+  {
+    ident.relaunch_command = L"\"" + launcher + L"\"";
+    ident.relaunch_icon = launcher + L",0";
+    ident.relaunch_name = windows_env(L"SCORE_CUSTOM_APP_APPLICATION_NAME");
+    if(ident.relaunch_name.empty())
+      ident.relaunch_name = ident.id;
+  }
+#endif
+}
+
+static void install_windows_app_identity_filter()
+{
+#if defined(_WIN32)
+  if(!windows_app_identity.id.empty())
+    qApp->installEventFilter(new WindowsAppIdentityFilter{qApp});
+#endif
+}
+
 static void setup_priority()
 {
 #if defined(_WIN32)
@@ -916,6 +1034,8 @@ int main(int argc, char** argv)
 #endif
 #endif
 
+  setup_windows_app_identity();
+
   struct failsafe failsafe;
 
 #if defined(__APPLE__)
@@ -946,6 +1066,7 @@ int main(int argc, char** argv)
   QtWebView::initialize();
 #endif
   Application app(argc, argv);
+  install_windows_app_identity_filter();
 
 #if defined(_WIN32)
 #if defined(SCORE_HAS_CPP_WINRT)

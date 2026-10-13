@@ -159,6 +159,20 @@ int main(int argc, char* argv[])
       "SCORE_CUSTOM_APP_APPLICATION_NAME", SCORE_CUSTOM_APP_APPLICATION_NAME);
   SetEnvironmentVariableA(
       "SCORE_CUSTOM_APP_APPLICATION_VERSION", SCORE_CUSTOM_APP_APPLICATION_VERSION);
+
+  // app-bin.exe owns the windows: it takes this AppUserModelID so the taskbar and Start
+  // menu see one app, and points the taskbar's relaunch command back at this launcher
+  if(strlen(SCORE_CUSTOM_APP_USER_MODEL_ID) > 0)
+  {
+    wchar_t launcher_path[32768];
+    const DWORD len = GetModuleFileNameW(NULL, launcher_path, 32768);
+    if(len > 0 && len < 32768)
+    {
+      SetEnvironmentVariableA(
+          "SCORE_CUSTOM_APP_USER_MODEL_ID", SCORE_CUSTOM_APP_USER_MODEL_ID);
+      SetEnvironmentVariableW(L"SCORE_CUSTOM_APP_LAUNCHER", launcher_path);
+    }
+  }
  
   if(strlen(SCORE_ENVIRONMENT) > 0)
     parse_and_set_env(SCORE_ENVIRONMENT);

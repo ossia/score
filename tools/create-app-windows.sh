@@ -153,6 +153,12 @@ mv score.exe app-bin.exe
 # Create native C launcher
 echo "Creating native launcher executable..."
 
+# The AppUserModelID groups app-bin.exe's windows under the launcher in the taskbar:
+# at most 128 characters, no spaces (learn.microsoft.com/windows/win32/shell/appids)
+APP_USER_MODEL_ID="${APP_IDENTIFIER:-ossia.score.custom.${APP_NAME_SAFE}}"
+APP_USER_MODEL_ID="$(echo "$APP_USER_MODEL_ID" | sed -E 's/[^A-Za-z0-9.-]+/-/g' | cut -c1-128)"
+echo "AppUserModelID: $APP_USER_MODEL_ID"
+
 # Generate C source code
 echo " =========== "
 cp "$SCORE_SOURCE_DIR/tools/launcher/launcher.cpp" launcher.cpp
@@ -168,6 +174,7 @@ cat > launcher-defines.h << EOF
 #define SCORE_CUSTOM_APP_ORGANIZATION_DOMAIN "$APP_DOMAIN"
 #define SCORE_CUSTOM_APP_APPLICATION_NAME "$APP_NAME"
 #define SCORE_CUSTOM_APP_APPLICATION_VERSION "$APP_VERSION"
+#define SCORE_CUSTOM_APP_USER_MODEL_ID "$APP_USER_MODEL_ID"
 
 EOF
 

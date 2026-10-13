@@ -68,7 +68,7 @@ Optional:
                         building for macOS, unless SCORE_ALLOW_DEFAULT_ICON=1.
     --app-ico           Set the app icon (ico format, Windows). Required when
                         building for Windows, unless SCORE_ALLOW_DEFAULT_ICON=1.
-    --app-identifier    Set the app identifier (e.g. io.ossia.score)
+    --app-identifier    Set the app identifier (e.g. io.ossia.score); also the Windows AppUserModelID
     --app-organization  Set the app organization (e.g. ossia)
     --app-png           Set the app icon (png format, Linux). Required when
                         building for Linux, unless SCORE_ALLOW_DEFAULT_ICON=1.
