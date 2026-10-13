@@ -98,10 +98,12 @@ VulkanBits vulkanBits(QRhi& rhi) noexcept
   const auto* nh = static_cast<const QRhiVulkanNativeHandles*>(rhi.nativeHandles());
   if(!nh || !nh->dev || !nh->physDev)
     return b;
-  // QRhiVulkanNativeHandles only carries the QVulkanInstance from Qt 6.6 on;
-  // score creates every Vulkan RenderState against the process-wide one, so
-  // take it from there and stay buildable on older Qt.
+  // The device's own instance (Qt Quick's differs from score's); before Qt 6.6 only the process-wide one is known.
+#if QT_VERSION >= QT_VERSION_CHECK(6, 6, 0)
+  auto* inst = nh->inst ? nh->inst : score::gfx::staticVulkanInstance(false);
+#else
   auto* inst = score::gfx::staticVulkanInstance(false);
+#endif
   if(!inst)
     return b;
   b.dev = nh->dev;
@@ -109,6 +111,13 @@ VulkanBits vulkanBits(QRhi& rhi) noexcept
   b.inst = inst;
   b.ok = true;
   return b;
+}
+
+// Null unless the device enabled VK_EXT_external_memory_host; the instance would hand out a trampoline regardless.
+PFN_vkGetMemoryHostPointerPropertiesEXT hostPointerProperties(const VulkanBits& b) noexcept
+{
+  return (PFN_vkGetMemoryHostPointerPropertiesEXT)b.inst->functions()->vkGetDeviceProcAddr(
+      b.dev, "vkGetMemoryHostPointerPropertiesEXT");
 }
 } // namespace
 
@@ -125,9 +134,7 @@ std::size_t VkHostImportUpload::requiredAlignment(QRhi& rhi) noexcept
     return 0;
   }
 
-  // The entry point only resolves when the device was created with
-  // VK_EXT_external_memory_host (see ScreenNode's deviceExtensions list).
-  if(!b.inst->getInstanceProcAddr("vkGetMemoryHostPointerPropertiesEXT"))
+  if(!hostPointerProperties(b))
   {
     qWarning() << "VkHostImportUpload: vkGetMemoryHostPointerPropertiesEXT "
                   "unresolved - VK_EXT_external_memory_host not enabled";
@@ -173,8 +180,7 @@ bool importHostPointerBuffer(
   if(!b.ok)
     return false;
   auto* df = b.inst->deviceFunctions(b.dev);
-  auto getHostPtrProps = (PFN_vkGetMemoryHostPointerPropertiesEXT)
-      b.inst->getInstanceProcAddr("vkGetMemoryHostPointerPropertiesEXT");
+  auto getHostPtrProps = hostPointerProperties(b);
   if(!df || !getHostPtrProps)
     return false;
 
@@ -298,8 +304,7 @@ bool VkHostImportUpload::init(
   d->phys = b.phys;
   d->inst = b.inst;
   d->df = b.inst->deviceFunctions(b.dev);
-  d->getHostPtrProps = (PFN_vkGetMemoryHostPointerPropertiesEXT)
-      b.inst->getInstanceProcAddr("vkGetMemoryHostPointerPropertiesEXT");
+  d->getHostPtrProps = hostPointerProperties(b);
   d->importedBytes = ((bytes + align - 1) / align) * align;
   if(!d->df || !d->getHostPtrProps)
   {
