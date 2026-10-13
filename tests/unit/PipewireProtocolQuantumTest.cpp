@@ -386,6 +386,57 @@ TEST_CASE(
 }
 
 TEST_CASE(
+    "pipewire: outputs that nothing reads keep their own signal",
+    "[pipewire][integration]")
+{
+  // The private daemon has no sink, so no output port gets linked, and
+  // PipeWire hands none of them a buffer: each must still hold what the
+  // tick writes to it, as the meters read every output after the tick.
+  daemon_fixture daemon;
+  if (!daemon.start())
+    SKIP("cannot start a private pipewire daemon");
+
+  auto inst = libremidi::pipewire::shared_instance();
+  if (!inst)
+    SKIP("libpipewire is unavailable");
+  auto ctx = libremidi::pipewire::context::make(inst);
+  if (!ctx || !ctx->ok())
+    SKIP("cannot connect to the private pipewire daemon");
+
+  ossia::audio_setup setup;
+  setup.name = "ossia-unlinked-test";
+  setup.outputs = {"out_1", "out_2", "out_3"};
+  setup.rate = 48000;
+  setup.buffer_size = 128;
+
+  auto engine = std::make_shared<ossia::pipewire_audio_protocol>(ctx, setup);
+  REQUIRE(engine->running());
+
+  struct counts
+  {
+    std::atomic<int> ticks{}, mixed{};
+  };
+  auto seen = std::make_shared<counts>();
+  engine->set_tick([seen](const ossia::audio_tick_state& st) {
+    for (int c = 0; c < st.n_out; c++)
+      for (std::size_t i = 0; i < st.frames; i++)
+        st.outputs[c][i] = float(c + 1);
+    for (int c = 0; c < st.n_out; c++)
+      for (std::size_t i = 0; i < st.frames; i++)
+        if (st.outputs[c][i] != float(c + 1))
+        {
+          seen->mixed++;
+          break;
+        }
+    seen->ticks++;
+  });
+
+  REQUIRE(wait_for([&] { return seen->ticks.load() >= 8; }, 5s));
+  engine->stop();
+  CHECK(seen->mixed.load() == 0);
+}
+
+TEST_CASE(
     "pipewire: a graph that schedules nothing is detected and recovery is attempted",
     "[pipewire][integration]")
 {
