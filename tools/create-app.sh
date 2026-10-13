@@ -98,6 +98,9 @@ EOF
     exit 0
 }
 
+# Platform scripts run from other directories, so file options are made absolute here.
+abs_path() { if [[ -z "$1" || "$1" == /* ]]; then printf '%s' "$1"; else printf '%s/%s' "$PWD" "$1"; fi; }
+
 # Parse command line arguments
 while [[ $# -gt 0 ]]; do
     case $1 in
@@ -135,7 +138,11 @@ while [[ $# -gt 0 ]]; do
             shift 2
             ;;
         --app-environment)
-            APP_ENVIRONMENT="$2"
+            APP_ENVIRONMENT="$(abs_path "$2")"
+            if [[ ! -f "$APP_ENVIRONMENT" ]]; then
+                echo "Error: environment file does not exist: $2"
+                exit 1
+            fi
             shift 2
             ;;
         --app-organization)
@@ -163,23 +170,23 @@ while [[ $# -gt 0 ]]; do
             shift 2
             ;;
         --app-appdata-xml)
-            APP_APPDATA_XML="$2"
+            APP_APPDATA_XML="$(abs_path "$2")"
             shift 2
             ;;
         --app-ico)
-            APP_ICON_ICO="$2"
+            APP_ICON_ICO="$(abs_path "$2")"
             shift 2
             ;;
         --app-icns)
-            APP_ICON_ICNS="$2"
+            APP_ICON_ICNS="$(abs_path "$2")"
             shift 2
             ;;
         --app-png)
-            APP_ICON_PNG="$2"
+            APP_ICON_PNG="$(abs_path "$2")"
             shift 2
             ;;
         --app-qrc)
-            APP_QRC="$2"
+            APP_QRC="$(abs_path "$2")"
             shift 2
             ;;
         --autoplay)
