@@ -74,6 +74,93 @@ score::gfx::NodeRenderer* ReleasingNode::createRenderer(score::gfx::RenderList&)
   return new ReleasingRenderer{*this};
 }
 
+// An image inlet and outlet, and a uniform buffer created and uploaded in
+// initState() then deleted outright in releaseState(), as the ISF, CSF and raw
+// raster renderers do with their material UBO. Before deleting it, releaseState()
+// asks the batch the upload went into whether that upload is still pending:
+// QRhi frees a batch's ops once a command buffer has taken them, and the batch
+// object itself lives in QRhi's pool, so this reads no freed memory.
+struct UploadProbe
+{
+  int inits = 0;
+  int releases = 0;
+  int releasedWhileQueued = 0;
+};
+
+struct UploadProbeNode final : score::gfx::ProcessNode
+{
+  explicit UploadProbeNode(UploadProbe& probe)
+      : probe{probe}
+  {
+    input.push_back(new score::gfx::Port{this, {}, score::gfx::Types::Image, {}});
+    output.push_back(new score::gfx::Port{this, {}, score::gfx::Types::Image, {}});
+  }
+  score::gfx::NodeRenderer* createRenderer(score::gfx::RenderList&) const noexcept override;
+  UploadProbe& probe;
+};
+
+struct UploadProbeRenderer final : score::gfx::NodeRenderer
+{
+  explicit UploadProbeRenderer(const UploadProbeNode& n)
+      : NodeRenderer{n}
+      , probe{n.probe}
+  {
+  }
+
+  void initState(score::gfx::RenderList& renderer, QRhiResourceUpdateBatch& res) override
+  {
+    m_ubo = renderer.state.rhi->newBuffer(
+        QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, 16);
+    m_ubo->setName("upload-probe.material");
+    m_ubo->create();
+    const float zero[4]{};
+    res.updateDynamicBuffer(m_ubo, 0, sizeof(zero), zero);
+    m_queuedIn = &res;
+    ++probe.inits;
+  }
+
+  void releaseState(score::gfx::RenderList&) override
+  {
+    if(!m_ubo)
+      return;
+    auto* d = QRhiResourceUpdateBatchPrivate::get(m_queuedIn);
+    for(int i = 0; i < d->activeBufferOpCount; i++)
+      if(d->bufferOps[i].buf == m_ubo)
+      {
+        ++probe.releasedWhileQueued;
+        break;
+      }
+    delete m_ubo;
+    m_ubo = nullptr;
+    m_queuedIn = nullptr;
+    ++probe.releases;
+  }
+
+  void init(score::gfx::RenderList& renderer, QRhiResourceUpdateBatch& res) override
+  {
+    initState(renderer, res);
+    m_initialized = true;
+  }
+  void update(score::gfx::RenderList&, QRhiResourceUpdateBatch&, score::gfx::Edge*) override { }
+  void runRenderPass(score::gfx::RenderList&, QRhiCommandBuffer&, score::gfx::Edge&) override { }
+  void removeOutputPass(score::gfx::RenderList&, score::gfx::Edge&) override { }
+  void release(score::gfx::RenderList& renderer) override
+  {
+    releaseState(renderer);
+    m_initialized = false;
+  }
+
+  UploadProbe& probe;
+  QRhiBuffer* m_ubo{};
+  QRhiResourceUpdateBatch* m_queuedIn{};
+};
+
+score::gfx::NodeRenderer*
+UploadProbeNode::createRenderer(score::gfx::RenderList&) const noexcept
+{
+  return new UploadProbeRenderer{*this};
+}
+
 struct Outcome
 {
   bool skipped = false;
@@ -210,4 +297,57 @@ TEST_CASE(
     UNSCOPED_INFO(d);
   CHECK(r.dead.empty());
   CHECK(r.rendered);
+}
+
+// The first frame after createRenderList used to carry the initial batch, with
+// every renderer's init()-time uploads, into its first pass. An inlet-spec
+// change pending on that frame re-inits the renderer through the surgical
+// render-target update before any pass, and releaseState() deleted the buffers
+// the batch still named: on OpenGL enqueueResourceUpdates then copied into the
+// freed buffer's CPU store (test_gfx_input_sampler_filter, raw raster: a crash
+// or a black frame depending on what reused the allocation).
+TEST_CASE(
+    "a renderer re-initialised on the first frame does not free a buffer the "
+    "initial batch still names",
+    "[gfx][incremental]")
+{
+  const auto api = GENERATE(from_range(platform_backends()));
+  CAPTURE(backend_name(api));
+
+  UploadProbe probe;
+  bool skipped = false;
+  std::string error;
+  int initsAfterCreate = 0;
+  score::test::run_in_gui_app([&](const score::GUIApplicationContext&) {
+    GfxPipeline p;
+    const int n = p.addNode(std::make_unique<UploadProbeNode>(probe));
+    const int sink = p.addSink({32, 32});
+    p.wire(p.nodeImageOut(n, 0), p.sinkInput(sink));
+    if(!p.create(api))
+    {
+      skipped = p.skipped();
+      error = skipped ? std::string{} : p.error();
+      return;
+    }
+    initsAfterCreate = probe.inits;
+
+    // A new inlet size before the first frame: that frame takes the surgical
+    // path, which releases and re-inits the renderer.
+    ossia::render_target_spec spec;
+    spec.size = ossia::texture_size{3, 5};
+    setRenderTargetSpec(*p.node(n), 0, spec);
+    p.render(2);
+  });
+  if(skipped)
+    SKIP("backend unavailable");
+
+  INFO("error=" << error);
+  REQUIRE(error.empty());
+  INFO(
+      "inits after create=" << initsAfterCreate << " inits=" << probe.inits
+                            << " releases=" << probe.releases);
+  // The first frame did re-init the renderer, so the case below was reached.
+  REQUIRE(initsAfterCreate == 1);
+  REQUIRE(probe.inits >= 2);
+  CHECK(probe.releasedWhileQueued == 0);
 }

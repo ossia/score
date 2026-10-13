@@ -1948,16 +1948,19 @@ void RenderList::renderImpl(QRhiCommandBuffer& commands, bool force)
   SCORE_ASSERT(m_emptyTexture);
 
   bool rebuilt = maybeRebuild(false);
-  QRhiResourceUpdateBatch* updateBatch{};
+
+  // Commit the initial batch now rather than carrying it into this frame's
+  // first pass. It holds every renderer's init()-time uploads, by raw pointer,
+  // and this frame can release some of those resources before any pass
+  // commits it: the surgical render-target update below re-inits renderers
+  // whose inlet specs changed, and releaseState() deletes e.g. the material
+  // UBO outright, so the batch would then name a freed buffer (OpenGL copies
+  // into its CPU-side store in enqueueResourceUpdates). Same reason as the
+  // flushInitialBatch() calls in onEdgeRemoved() and Graph::relinkGraph().
   if(m_initialBatch)
-  {
-    updateBatch = m_initialBatch;
-    m_initialBatch = nullptr;
-  }
-  else
-  {
-    updateBatch = state.rhi->nextResourceUpdateBatch();
-  }
+    commands.resourceUpdate(std::exchange(m_initialBatch, nullptr));
+
+  QRhiResourceUpdateBatch* updateBatch = state.rhi->nextResourceUpdateBatch();
   if(!updateBatch)
   {
     qWarning("RenderList::render: resource update batch pool exhausted");
