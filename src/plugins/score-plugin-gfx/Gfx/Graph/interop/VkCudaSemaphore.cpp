@@ -120,7 +120,7 @@ bool VkCudaTimelineSemaphore::create(
       = VkResult(VKAPI_PTR*)(VkDevice, const VkSemaphoreGetWin32HandleInfoKHR*,
                               HANDLE*);
   auto pfn = reinterpret_cast<PFN_vkGetSemaphoreWin32HandleKHR_t>(
-      vk.qInst->getInstanceProcAddr("vkGetSemaphoreWin32HandleKHR"));
+      vk.qInst->functions()->vkGetDeviceProcAddr(vk.dev, "vkGetSemaphoreWin32HandleKHR"));
   if(!pfn)
   {
     qWarning() << "VkCudaTimelineSemaphore: vkGetSemaphoreWin32HandleKHR "
@@ -145,7 +145,7 @@ bool VkCudaTimelineSemaphore::create(
   using PFN_vkGetSemaphoreFdKHR_t
       = VkResult(VKAPI_PTR*)(VkDevice, const VkSemaphoreGetFdInfoKHR*, int*);
   auto pfn = reinterpret_cast<PFN_vkGetSemaphoreFdKHR_t>(
-      vk.qInst->getInstanceProcAddr("vkGetSemaphoreFdKHR"));
+      vk.qInst->functions()->vkGetDeviceProcAddr(vk.dev, "vkGetSemaphoreFdKHR"));
   if(!pfn)
   {
     qWarning() << "VkCudaTimelineSemaphore: vkGetSemaphoreFdKHR unresolved";
