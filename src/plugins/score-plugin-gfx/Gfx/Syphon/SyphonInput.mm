@@ -12,6 +12,9 @@
 #include <Gfx/Graph/decoders/RGBA.hpp>
 
 #include <ossia/detail/algorithms.hpp>
+
+#include <utility>
+#include <vector>
 #include <Gfx/Syphon/SyphonHelpers.hpp>
 #include <Syphon/SyphonClient.h>
 #include <Syphon/SyphonOpenGLClient.h>
@@ -75,10 +78,20 @@ private:
   // OpenGL receiver
   SyphonOpenGLClient* m_receiver{};
   GLuint currentTex = 0;
+  // Owns currentTex: the sampler's QRhiTexture borrows it, and the image's dealloc deletes it.
+  SyphonOpenGLImage* m_currentGlImage{};
 
   // Metal receiver
   SyphonMetalClient* m_mtlReceiver{};
+  // Owns the MTLTexture the sampler's QRhiTexture was createFrom()'d: QRhiMetal does not retain it.
   id<MTLTexture> m_currentMtlTexture{};
+  // Textures replaced while earlier frames may still sample them (unretained command buffers).
+  std::vector<std::pair<id<MTLTexture>, int64_t>> m_retiredMtlTextures;
+
+  // The server last connected to, to find it again once restarted under a new UUID.
+  NSString* m_serverUuid{};
+  NSString* m_serverName{};
+  NSString* m_serverAppName{};
 
   bool enabled{};
   bool m_usingMetal{};
@@ -102,6 +115,17 @@ private:
       }
     }
 
+    // A restarted sender comes back under a new UUID: match the name and app last connected to.
+    if(m_serverName)
+    {
+      for(NSDictionary* s in servers)
+      {
+        if([m_serverName isEqualToString:s[SyphonServerDescriptionNameKey]]
+           && [m_serverAppName isEqualToString:s[SyphonServerDescriptionAppNameKey]])
+          return s;
+      }
+    }
+
     return nullptr;
   }
 
@@ -113,7 +137,11 @@ private:
   {
     SyphonServerDirectory* ssd = [SyphonServerDirectory sharedDirectory];
     NSArray* servers = [ssd serversMatchingName:NULL appName:NULL];
-    return findServer(servers, node.settings.path) != nullptr;
+    // The exact server we hold: a restarted one under a new UUID needs a reconnect.
+    for(NSDictionary* s in servers)
+      if([m_serverUuid isEqualToString:s[SyphonServerDescriptionUUIDKey]])
+        return true;
+    return false;
   }
 
   void openServer(QRhi& rhi)
@@ -138,8 +166,7 @@ private:
       [m_receiver stop];
       m_receiver = nil;
     }
-    m_currentMtlTexture = nil;
-    currentTex = 0;
+    // m_currentMtlTexture / m_currentGlImage stay: the sampler still binds them until a new frame replaces them.
 
     SyphonServerDirectory *ssd = [SyphonServerDirectory sharedDirectory];
     NSArray *servers = [ssd serversMatchingName:NULL appName:NULL];
@@ -149,6 +176,9 @@ private:
     NSDictionary *desc = findServer(servers, node.settings.path);
     if (!desc)
       return;
+    m_serverUuid = desc[SyphonServerDescriptionUUIDKey];
+    m_serverName = desc[SyphonServerDescriptionNameKey];
+    m_serverAppName = desc[SyphonServerDescriptionAppNameKey];
 
     if (rhi.backend() == QRhi::Metal)
     {
@@ -219,6 +249,7 @@ private:
         {
           w = mtlTex.width;
           h = mtlTex.height;
+          retireMetalTexture(renderer);
           m_currentMtlTexture = mtlTex;
         }
       }
@@ -232,6 +263,7 @@ private:
           w = sz.width;
           h = sz.height;
           currentTex = glImg.textureName;
+          m_currentGlImage = glImg;
         }
       }
     }
@@ -363,10 +395,51 @@ private:
       pass.second.p.srb->create();
   }
 
+  // Keep the outgoing texture alive until the frames that may sample it have completed.
+  void retireMetalTexture(score::gfx::RenderList& renderer)
+  {
+    if (m_currentMtlTexture)
+      m_retiredMtlTextures.emplace_back(m_currentMtlTexture, renderer.frame);
+    m_currentMtlTexture = nil;
+  }
+
+  void pruneRetiredMetalTextures(score::gfx::RenderList& renderer)
+  {
+    const int64_t grace = renderer.state.rhi->resourceLimit(QRhi::FramesInFlight) + 1;
+    std::erase_if(m_retiredMtlTextures, [&](const auto& t) {
+      return renderer.frame - t.second > grace;
+    });
+  }
+
+  // releaseState() runs between frames: an empty command buffer committed now completes after them.
+  void releaseMetalTexturesAfterGpu(QRhi& rhi)
+  {
+    NSMutableArray* keep = [NSMutableArray array];
+    if (m_currentMtlTexture)
+      [keep addObject:m_currentMtlTexture];
+    for (auto& t : m_retiredMtlTextures)
+      [keep addObject:t.first];
+    m_currentMtlTexture = nil;
+    m_retiredMtlTextures.clear();
+    if (keep.count == 0 || rhi.backend() != QRhi::Metal)
+      return;
+
+    auto handles = static_cast<const QRhiMetalNativeHandles*>(rhi.nativeHandles());
+    id<MTLCommandQueue> queue = handles ? (id<MTLCommandQueue>)handles->cmdQueue : nil;
+    if (!queue)
+      return;
+    id<MTLCommandBuffer> cb = [queue commandBuffer];
+    [cb addCompletedHandler:^(id<MTLCommandBuffer>) { (void)keep; }];
+    [cb commit];
+  }
+
   void update(score::gfx::RenderList &renderer,
               QRhiResourceUpdateBatch &res,
               score::gfx::Edge *e) override
   {
+    if (m_usingMetal)
+      pruneRetiredMetalTextures(renderer);
+
     if(!enabled)
     {
       auto& rhi = *renderer.state.rhi;
@@ -408,6 +481,7 @@ private:
         material.textureSize[0] = metadata.width;
         material.textureSize[1] = metadata.height;
 
+        retireMetalTexture(renderer);
         m_currentMtlTexture = mtlTex;
         rebuildTextureMetal(mtlTex);
       }
@@ -445,6 +519,8 @@ private:
 
         currentTex = img.textureName;
         rebuildTexture(img);
+        // Only now may the previous image (and its GL texture) go.
+        m_currentGlImage = img;
       }
     }
 
@@ -483,13 +559,14 @@ private:
     }
     enabled = false;
 
-    m_currentMtlTexture = nil;
-    currentTex = 0;
-
+    // The sampler's QRhiTexture goes first, then the native textures it borrowed.
     if (m_gpu)
     {
       m_gpu->release(r);
     }
+    releaseMetalTexturesAfterGpu(*r.state.rhi);
+    m_currentGlImage = nil;
+    currentTex = 0;
 
     delete m_processUBO;
     m_processUBO = nullptr;
