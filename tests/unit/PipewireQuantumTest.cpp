@@ -105,3 +105,18 @@ TEST_CASE("assign_chunk_pointers: offsets live channels, scratch for dead ones",
   REQUIRE(chunk[1] == scratch.data());
   REQUIRE(chunk[2] == ch2.data() + 256);
 }
+
+TEST_CASE("assign_chunk_pointers: each dead channel has its own scratch", "[pipewire]")
+{
+  std::array<float, 512> ch1{};
+  std::array<float, 3 * 128> scratch{};
+  std::array<float*, 3> cycle{nullptr, ch1.data(), nullptr};
+  std::array<float*, 3> chunk{};
+
+  ossia::pipewire::assign_chunk_pointers(
+      cycle.data(), chunk.data(), cycle.size(), 128, scratch.data(), 128);
+
+  REQUIRE(chunk[0] == scratch.data());
+  REQUIRE(chunk[1] == ch1.data() + 128);
+  REQUIRE(chunk[2] == scratch.data() + 2 * 128);
+}
