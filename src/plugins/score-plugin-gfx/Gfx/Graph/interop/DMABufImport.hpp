@@ -4,6 +4,8 @@
 #include <score/gfx/Vulkan.hpp>
 
 #if QT_HAS_VULKAN
+#include <Gfx/Graph/VulkanVideoDevice.hpp>
+
 #include <QtGui/private/qrhivulkan_p.h>
 #include <qvulkanfunctions.h>
 #include <vulkan/vulkan.h>
@@ -44,7 +46,7 @@ struct DMABufPlaneImporter
     m_dev = nh->dev;
     m_dfuncs = nh->inst->deviceFunctions(m_dev);
     m_getMemFdProps = reinterpret_cast<PFN_vkGetMemoryFdPropertiesKHR>(
-        nh->inst->getInstanceProcAddr("vkGetMemoryFdPropertiesKHR"));
+        vulkanDeviceCommand(rhi, "vkGetMemoryFdPropertiesKHR"));
   }
 
   static bool isAvailable(QRhi& rhi)
@@ -55,13 +57,12 @@ struct DMABufPlaneImporter
         = static_cast<const QRhiVulkanNativeHandles*>(rhi.nativeHandles());
     if(!nh || !nh->dev || !nh->physDev || !nh->inst)
       return false;
-    if(!nh->inst->getInstanceProcAddr("vkGetMemoryFdPropertiesKHR"))
+    // Only the device knows what it enabled: external_memory_fd and image_drm_format_modifier.
+    if(!vulkanDeviceCommand(rhi, "vkGetMemoryFdPropertiesKHR")
+       || !vulkanDeviceCommand(rhi, "vkGetImageDrmFormatModifierPropertiesEXT"))
       return false;
 
-    // Verify VK_EXT_external_memory_dma_buf is available on the device.
-    // Without it, DMA-BUF import (VK_EXTERNAL_MEMORY_HANDLE_TYPE_DMA_BUF_BIT_EXT)
-    // will fail. This also catches multi-GPU scenarios where VAAPI decodes on
-    // Intel but Vulkan renders on NVIDIA (which may not support DMA-BUF import).
+    // VK_EXT_external_memory_dma_buf has no command to resolve, so check the physical device supports it (multi-GPU: VAAPI on one, Vulkan on another).
     auto* funcs = nh->inst->functions();
     uint32_t extCount = 0;
     funcs->vkEnumerateDeviceExtensionProperties(
@@ -71,19 +72,14 @@ struct DMABufPlaneImporter
         nh->physDev, nullptr, &extCount, exts.data());
 
     bool hasDmaBuf = false;
-    bool hasDrmModifier = false;
     for(auto& e : exts)
     {
 #ifdef VK_EXT_EXTERNAL_MEMORY_DMA_BUF_EXTENSION_NAME
       if(std::strcmp(e.extensionName, VK_EXT_EXTERNAL_MEMORY_DMA_BUF_EXTENSION_NAME) == 0)
         hasDmaBuf = true;
 #endif
-#ifdef VK_EXT_IMAGE_DRM_FORMAT_MODIFIER_EXTENSION_NAME
-      if(std::strcmp(e.extensionName, VK_EXT_IMAGE_DRM_FORMAT_MODIFIER_EXTENSION_NAME) == 0)
-        hasDrmModifier = true;
-#endif
     }
-    return hasDmaBuf && hasDrmModifier;
+    return hasDmaBuf;
   }
 
   /// VkDriverId of the device QRhi runs on; 0 when it cannot be determined.

@@ -475,6 +475,31 @@ std::shared_ptr<RenderState> createRenderState(
                             << VK_EXT_EXTERNAL_MEMORY_HOST_EXTENSION_NAME
 #endif
         ;
+#if defined(__linux__)
+    // DMA-BUF zero-copy (VAAPI / DRM-PRIME video, PipeWire capture):
+    // DMABufPlaneImporter::isAvailable needs vkGetMemoryFdPropertiesKHR and
+    // vkGetImageDrmFormatModifierPropertiesEXT resolved on the device, as on
+    // the shared device (sharedVulkanDeviceExtensions()). The last three are
+    // what image_drm_format_modifier depends on below Vulkan 1.2 (bind_memory2
+    // and sampler_ycbcr_conversion are core in 1.1, image_format_list in 1.2);
+    // naming them on a newer device is harmless. QRhi drops, with a warning,
+    // any the physical device does not support.
+#ifdef VK_EXT_EXTERNAL_MEMORY_DMA_BUF_EXTENSION_NAME
+    params.deviceExtensions << VK_EXT_EXTERNAL_MEMORY_DMA_BUF_EXTENSION_NAME;
+#endif
+#ifdef VK_EXT_IMAGE_DRM_FORMAT_MODIFIER_EXTENSION_NAME
+    params.deviceExtensions << VK_EXT_IMAGE_DRM_FORMAT_MODIFIER_EXTENSION_NAME;
+#endif
+#ifdef VK_KHR_IMAGE_FORMAT_LIST_EXTENSION_NAME
+    params.deviceExtensions << VK_KHR_IMAGE_FORMAT_LIST_EXTENSION_NAME;
+#endif
+#ifdef VK_KHR_BIND_MEMORY_2_EXTENSION_NAME
+    params.deviceExtensions << VK_KHR_BIND_MEMORY_2_EXTENSION_NAME;
+#endif
+#ifdef VK_KHR_SAMPLER_YCBCR_CONVERSION_EXTENSION_NAME
+    params.deviceExtensions << VK_KHR_SAMPLER_YCBCR_CONVERSION_EXTENSION_NAME;
+#endif
+#endif
 #endif
 
     if(window)

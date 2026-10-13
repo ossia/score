@@ -6,6 +6,7 @@
 // CudaInterop consumer — see Gfx/Graph/interop/CudaFunctions.hpp).
 #include <Gfx/Graph/interop/CudaFunctions.hpp>
 #include <Gfx/Graph/interop/VkExternalMemoryHelpers.hpp>
+#include <Gfx/Graph/VulkanVideoDevice.hpp>
 
 extern "C" {
 #if __has_include(<libavutil/hwcontext_cuda.h>)
@@ -109,11 +110,12 @@ struct HWCudaVulkanDecoder : GPUVideoDecoder
     auto* nh = static_cast<const QRhiVulkanNativeHandles*>(rhi.nativeHandles());
     if(!nh || !nh->dev || !nh->physDev || !nh->inst)
       return false;
+    // Through the device: the export (vkinterop::exportMemoryHandle) resolves it the same way.
 #if defined(_WIN32)
-    if(!nh->inst->getInstanceProcAddr("vkGetMemoryWin32HandleKHR"))
+    if(!vulkanDeviceCommand(rhi, "vkGetMemoryWin32HandleKHR"))
       return false;
 #else
-    if(!nh->inst->getInstanceProcAddr("vkGetMemoryFdKHR"))
+    if(!vulkanDeviceCommand(rhi, "vkGetMemoryFdKHR"))
       return false;
 #endif
     if(!hwDeviceCtx)

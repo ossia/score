@@ -37,6 +37,17 @@ inline std::vector<const char*> qtQuickVulkanDeviceExtensions()
       VK_KHR_GET_MEMORY_REQUIREMENTS_2_EXTENSION_NAME,
   };
 }
+
+/// A device-level command resolved through @p rhi's own VkDevice: null unless that device enabled its extension (or core version).
+inline PFN_vkVoidFunction vulkanDeviceCommand(QRhi& rhi, const char* name)
+{
+  if(rhi.backend() != QRhi::Vulkan)
+    return nullptr;
+  auto* nh = static_cast<const QRhiVulkanNativeHandles*>(rhi.nativeHandles());
+  if(!nh || !nh->inst || !nh->dev)
+    return nullptr;
+  return nh->inst->functions()->vkGetDeviceProcAddr(nh->dev, name);
+}
 }
 
 #ifdef VK_KHR_video_decode_queue
