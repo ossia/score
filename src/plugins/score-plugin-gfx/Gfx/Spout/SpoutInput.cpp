@@ -598,6 +598,16 @@ private:
     }
   }
 
+  // The QRhi's own instance: a Qt Quick window's device belongs to QVulkanDefaultInstance, not score's.
+  static QVulkanInstance* vulkanInstanceOf(const QRhiVulkanNativeHandles& nh)
+  {
+#if QT_VERSION >= QT_VERSION_CHECK(6, 6, 0)
+    if(nh.inst)
+      return nh.inst;
+#endif
+    return score::gfx::staticVulkanInstance();
+  }
+
   // Link a Vulkan image to D3D11 shared texture memory using KMT handle.
   // Caller is expected to have torn down any prior linked resources via
   // releaseVulkanResources() and the QRhiTexture's destroy() before calling.
@@ -618,7 +628,7 @@ private:
     // Spout shares D3D11 textures via legacy KMT handles (NOT NT handles).
     constexpr auto handleType = VK_EXTERNAL_MEMORY_HANDLE_TYPE_D3D11_TEXTURE_KMT_BIT;
 
-    auto* inst = score::gfx::staticVulkanInstance();
+    auto* inst = vulkanInstanceOf(*nativeHandles);
     if(!inst)
       return false;
     auto funcs = inst->functions();
@@ -628,26 +638,9 @@ private:
     if(!dfuncs)
       return false;
 
-    // Resolve vkGetMemoryWin32HandlePropertiesKHR through vkGetDeviceProcAddr, not
-    // inst->getInstanceProcAddr: Qt forwards that to vkGetInstanceProcAddr, which
-    // for a device-level extension function can return a non-null trampoline that
-    // crashes when called, since the instance loader has no per-device dispatch for
-    // device extensions.
-    //
-    // vkGetDeviceProcAddr is itself core 1.0, so resolving it through
-    // getInstanceProcAddr is safe.
-    PFN_vkGetMemoryWin32HandlePropertiesKHR pfnGetMemWin32Props = nullptr;
-    {
-      auto pfnGetDeviceProcAddr = reinterpret_cast<PFN_vkGetDeviceProcAddr>(
-          inst->getInstanceProcAddr("vkGetDeviceProcAddr"));
-      if(pfnGetDeviceProcAddr)
-      {
-        pfnGetMemWin32Props
-            = reinterpret_cast<PFN_vkGetMemoryWin32HandlePropertiesKHR>(
-                pfnGetDeviceProcAddr(
-                    vkDevice, "vkGetMemoryWin32HandlePropertiesKHR"));
-      }
-    }
+    // Through the device, not the instance: null when the device did not enable VK_KHR_external_memory_win32.
+    auto pfnGetMemWin32Props = reinterpret_cast<PFN_vkGetMemoryWin32HandlePropertiesKHR>(
+        funcs->vkGetDeviceProcAddr(vkDevice, "vkGetMemoryWin32HandlePropertiesKHR"));
 
     // Probe whether import for this format/handle type is supported. This is
     // informational; the real test is the memory-type intersection below.
@@ -865,7 +858,7 @@ private:
 
     VkDevice vkDevice = nativeHandles->dev;
 
-    auto* inst = score::gfx::staticVulkanInstance();
+    auto* inst = vulkanInstanceOf(*nativeHandles);
     if(!inst)
       return;
     auto dfuncs = inst->deviceFunctions(vkDevice);
