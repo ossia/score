@@ -97,12 +97,22 @@ static void addSupportLibraries(const QDir& supportDir)
   const QStringList patterns{"*.so", "*.so.*"};
 #endif
 
+#if defined(Q_OS_MACOS)
+  const QDir bundled{QCoreApplication::applicationDirPath() + "/../Frameworks"};
+#else
+  const QDir bundled{QCoreApplication::applicationDirPath() + "/../lib"};
+#endif
+
   QStringList pending;
   for(QDirIterator it(
           supportDir.absolutePath(), patterns, QDir::Files,
           QDirIterator::Subdirectories);
       it.hasNext();)
-    pending.push_back(it.next());
+  {
+    const QString path = it.next();
+    if(!bundled.exists(it.fileName()))
+      pending.push_back(path);
+  }
 
   bool progress = true;
   while(progress && !pending.empty())
