@@ -412,7 +412,6 @@ std::shared_ptr<RenderState> createRenderState(
       params.format.setSamples(state.samples);
     if(gpuDebugRequested())
       params.format.setOption(QSurfaceFormat::DebugContext);
-    state.version = caps.qShaderVersion;
     state.rhi = QRhi::create(QRhi::OpenGLES2, &params, flags);
     if(!state.rhi)
     {
@@ -427,6 +426,7 @@ std::shared_ptr<RenderState> createRenderState(
     }
     else
     {
+      state.version = Gfx::Settings::shaderVersionForRhi(OpenGL, *state.rhi);
       installGlDebugLogger(state.rhi);
       useFirstProvokingVertex(state.rhi);
       state.renderSize = sz;

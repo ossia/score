@@ -100,6 +100,58 @@ NvidiaGlxVendorState nvidiaGlxVendorState() noexcept
 
 namespace
 {
+int glslVersion(QSurfaceFormat::RenderableType type, int major, int minor) noexcept
+{
+  switch(type)
+  {
+    case QSurfaceFormat::OpenGLES: {
+      if(major >= 3)
+      {
+        return major * 100 + minor * 10;
+      }
+      else
+      {
+        return 100;
+      }
+    }
+    case QSurfaceFormat::OpenGL: {
+      if(major > 3 || (major == 3 && minor >= 3))
+      {
+        return major * 100 + minor * 10;
+      }
+      else if(major == 3)
+      {
+        switch(minor)
+        {
+          case 2:
+            return 150;
+          case 1:
+            return 120; // Technically 140 but Rhi looks for 120
+          case 0:
+            return 120; // Technically 140 but Rhi looks for 120
+        }
+      }
+      else if(major == 2)
+      {
+        switch(minor)
+        {
+          case 1:
+            return 120;
+          case 0:
+            return 110;
+        }
+      }
+      else
+      {
+        return 120;
+      }
+    }
+    default: {
+      return major * 100 + minor * 10;
+    }
+  }
+}
+
 struct GLCapabilitiesResult
 {
   int major{};
@@ -157,7 +209,7 @@ struct GLCapabilitiesResult
       major = fmt.majorVersion();
       minor = fmt.minorVersion();
       type = fmt.renderableType();
-      shaderVersion = glShaderVersion();
+      shaderVersion = glslVersion(type, major, minor);
       qWarning() << "score: no usable OpenGL context for capability probing"
                  << "(surface" << surfaceOk << "); keeping the requested format"
                  << major << minor << shaderVersion;
@@ -167,7 +219,7 @@ struct GLCapabilitiesResult
       major = ctx.format().majorVersion();
       minor = ctx.format().minorVersion();
       type = ctx.format().renderableType();
-      shaderVersion = glShaderVersion();
+      shaderVersion = glslVersion(type, major, minor);
       usableContext = true;
       ctx.functions()->initializeOpenGLFunctions();
       if(auto r = (const char*)ctx.functions()->glGetString(GL_RENDERER))
@@ -177,58 +229,6 @@ struct GLCapabilitiesResult
 #endif
     qDebug() << "Available GL context: " << major << minor << shaderVersion << type
              << renderer;
-  }
-
-  int glShaderVersion() noexcept
-  {
-    switch(type)
-    {
-      case QSurfaceFormat::OpenGLES: {
-        if(major >= 3)
-        {
-          return major * 100 + minor * 10;
-        }
-        else
-        {
-          return 100;
-        }
-      }
-      case QSurfaceFormat::OpenGL: {
-        if(major > 3 || (major == 3 && minor >= 3))
-        {
-          return major * 100 + minor * 10;
-        }
-        else if(major == 3)
-        {
-          switch(minor)
-          {
-            case 2:
-              return 150;
-            case 1:
-              return 120; // Technically 140 but Rhi looks for 120
-            case 0:
-              return 120; // Technically 140 but Rhi looks for 120
-          }
-        }
-        else if(major == 2)
-        {
-          switch(minor)
-          {
-            case 1:
-              return 120;
-            case 0:
-              return 110;
-          }
-        }
-        else
-        {
-          return 120;
-        }
-      }
-      default: {
-        return major * 100 + minor * 10;
-      }
-    }
   }
 };
 
@@ -308,6 +308,16 @@ void GLCapabilities::setupFormat(QSurfaceFormat& fmt)
 #endif
   }
 }
+
+#if __has_include(<private/qshader_p.h>)
+QShaderVersion qShaderVersion(const QSurfaceFormat& fmt) noexcept
+{
+  QShaderVersion v{glslVersion(fmt.renderableType(), fmt.majorVersion(), fmt.minorVersion())};
+  if(fmt.renderableType() == QSurfaceFormat::OpenGLES)
+    v.setFlags(QShaderVersion::GlslEs);
+  return v;
+}
+#endif
 
 void pinDefaultOpenGLFormat() noexcept
 {

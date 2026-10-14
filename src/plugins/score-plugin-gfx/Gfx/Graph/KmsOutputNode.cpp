@@ -4,6 +4,7 @@
 
 #include <Gfx/Graph/NodeRenderer.hpp>
 #include <Gfx/Graph/RenderList.hpp>
+#include <Gfx/Settings/Model.hpp>
 #include <score/gfx/OpenGL.hpp>
 #include <score/gfx/QRhiGles2.hpp>
 #include <Gfx/Graph/interop/DrmKmsDevice.hpp>
@@ -330,7 +331,6 @@ void KmsOutputNode::createOutput(OutputConfiguration conf)
   params.format.setSamples(1);
   d->state->surface = QRhiGles2InitParams::newFallbackSurface(params.format);
   params.fallbackSurface = d->state->surface;
-  d->state->version = caps.qShaderVersion;
   d->state->rhi = QRhi::create(QRhi::OpenGLES2, &params);
   if(!d->state->rhi)
   {
@@ -338,6 +338,8 @@ void KmsOutputNode::createOutput(OutputConfiguration conf)
     destroyOutput();
     return;
   }
+  d->state->version
+      = Gfx::Settings::shaderVersionForRhi(score::gfx::OpenGL, *d->state->rhi);
   d->state->caps.populate(*d->state->rhi);
   d->state->renderSize = size;
   d->state->outputSize = size;

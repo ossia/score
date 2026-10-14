@@ -35,7 +35,7 @@ std::shared_ptr<RenderState> importRenderState(QSize sz, QRhi* rhi)
       state.api = score::gfx::Null;
       break;
   }
-  state.version = Gfx::Settings::shaderVersionForAPI(state.api);
+  state.version = Gfx::Settings::shaderVersionForRhi(state.api, *rhi);
   state.rhi = rhi;
   // Host-owned rhi: the global samples setting does not apply, and the host sets
   // the final count on its own swap chain.

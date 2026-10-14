@@ -86,6 +86,10 @@ SCORE_SETTINGS_PARAMETER(Model, Buffers)
 SCORE_PLUGIN_GFX_EXPORT
 QShaderVersion shaderVersionForAPI(score::gfx::GraphicsApi) noexcept;
 
+//! On OpenGL, the version for the context the rhi actually got, desktop or ES.
+SCORE_PLUGIN_GFX_EXPORT
+QShaderVersion shaderVersionForRhi(score::gfx::GraphicsApi, QRhi&) noexcept;
+
 /**
  * @brief The configured sample count, or a usable default with no application.
  *
