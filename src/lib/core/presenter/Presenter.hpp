@@ -44,6 +44,8 @@ public:
   ~Presenter();
   // Exit score
   bool exit();
+  //! True while exit() closes the documents.
+  bool exiting() const noexcept { return m_exiting; }
 
   View* view() const;
 

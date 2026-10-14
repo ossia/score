@@ -601,7 +601,8 @@ void Application::createStartScreen()
 
 void Application::showStartScreen()
 {
-  if(!appSettings.gui || !m_presenter)
+  if(!appSettings.gui || !m_presenter || m_presenter->exiting()
+     || !appSettings.ui.isEmpty())
     return;
 
   if(!m_startScreen)
