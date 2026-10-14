@@ -16,6 +16,10 @@
 #include <QQuickGraphicsConfiguration>
 #include <QQuickWindow>
 
+#if QT_CONFIG(opengl)
+#include <score/gfx/QRhiGles2.hpp>
+#endif
+
 #include <wobjectimpl.h>
 #include <score/tools/Bind.hpp>
 
