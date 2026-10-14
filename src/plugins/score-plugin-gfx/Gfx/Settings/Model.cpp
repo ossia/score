@@ -10,6 +10,7 @@
 
 #include <QDebug>
 #include <QGuiApplication>
+#include <QOpenGLContext>
 #include <QPlatformSurfaceEvent>
 #include <QPointer>
 #include <QQuickGraphicsConfiguration>
@@ -457,6 +458,24 @@ QShaderVersion shaderVersionForAPI(score::gfx::GraphicsApi api) noexcept
       return {};
   }
   return {};
+}
+
+QShaderVersion shaderVersionForRhi(score::gfx::GraphicsApi api, QRhi& rhi) noexcept
+{
+#if QT_CONFIG(opengl)
+  if(rhi.backend() == QRhi::OpenGLES2)
+  {
+    auto h = static_cast<const QRhiGles2NativeHandles*>(rhi.nativeHandles());
+    if(h && h->context)
+    {
+      QSurfaceFormat fmt = h->context->format();
+      fmt.setRenderableType(
+          h->context->isOpenGLES() ? QSurfaceFormat::OpenGLES : QSurfaceFormat::OpenGL);
+      return score::qShaderVersion(fmt);
+    }
+  }
+#endif
+  return shaderVersionForAPI(api);
 }
 
 SCORE_SETTINGS_PARAMETER_CPP(QString, Model, GraphicsApi)

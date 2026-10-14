@@ -83,6 +83,11 @@ public:
   void setupFormat(QSurfaceFormat& fmt);
 };
 
+#if __has_include(<private/qshader_p.h>)
+//! The GLSL version QRhi looks up for a context of this format.
+SCORE_LIB_BASE_EXPORT QShaderVersion qShaderVersion(const QSurfaceFormat& fmt) noexcept;
+#endif
+
 // Unpinned, EGL hands back GLES and score's baked desktop GLSL matches nothing.
 SCORE_LIB_BASE_EXPORT void pinDefaultOpenGLFormat() noexcept;
 }
