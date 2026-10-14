@@ -241,13 +241,14 @@ struct GfxNode<Node_T> final
     : CustomGpuOutputNodeBase
     , GpuNodeElements<Node_T>
 {
-  oscr::ProcessModel<Node_T>& processModel;
+  // Renderers are rebuilt during document teardown, after the model is gone.
+  QPointer<oscr::ProcessModel<Node_T>> processModel;
   GfxNode(
       oscr::ProcessModel<Node_T>& element,
       std::weak_ptr<Execution::ExecutionCommandQueue> q, Gfx::exec_controls ctls,
       int64_t id, const score::DocumentContext& ctx)
       : CustomGpuOutputNodeBase{std::move(q), std::move(ctls), ctx}
-      , processModel{element}
+      , processModel{&element}
   {
     this->instance = id;
 

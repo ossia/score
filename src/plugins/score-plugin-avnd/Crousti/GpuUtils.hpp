@@ -555,8 +555,7 @@ void prepareNewState(std::shared_ptr<Node_T>& eff, const Node& parent)
   }
   if constexpr(avnd::has_processor_to_gui_bus<Node_T>)
   {
-    auto& process = parent.processModel;
-    eff->send_message = [ptr = QPointer{&process}](auto&& b) mutable {
+    eff->send_message = [ptr = parent.processModel](auto&& b) mutable {
       // FIXME right now all the rendering is done in the UI thread, which is very MEH
       //    this->in_edit([&process, bb = std::move(b)]() mutable {
 
