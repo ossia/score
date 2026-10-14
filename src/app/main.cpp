@@ -231,13 +231,32 @@ static bool has_non_nvidia_gpu()
   return false;
 }
 
+#if defined(__linux__)
+static bool has_nvidia_driver()
+{
+  return QDir{"/proc/driver/nvidia/gpus"}
+             .entryList(QDir::Dirs | QDir::NoDotAndDotDot)
+             .count()
+         > 0;
+}
+
+// Qt's QXcbEglWindow hands EGL_PLATFORM_X11_KHR a pointer to a 32-bit
+// xcb_window_t instead of a 64-bit Window: NVIDIA's EGL rejects the window and
+// every GL window stays black. Introduced in Qt 6.7 (12d6fc52291).
+static constexpr bool qt_xcb_egl_window_broken()
+{
+#if defined(SCORE_QT_XCB_EGL_FIXED)
+  return false;
+#else
+  return QT_VERSION >= QT_VERSION_CHECK(6, 7, 0);
+#endif
+}
+#endif
+
 static void setup_gpu()
 {
 #if defined(__linux__)
-  if(QDir{"/proc/driver/nvidia/gpus"}
-         .entryList(QDir::Dirs | QDir::NoDotAndDotDot)
-         .count()
-     > 0)
+  if(has_nvidia_driver())
   {
     // libglvnd dispatches every GLX call to the vendor named here and has no
     // fallback, so when the kernel module and user-space driver releases differ
@@ -320,7 +339,12 @@ static void setup_x11(int argc, char** argv)
         // EGL is the only way to get zero-copy with dma-buf import
         const auto xcb_gl_integration = qgetenv("QT_XCB_GL_INTEGRATION");
         if(xcb_gl_integration.isEmpty())
-          qputenv("QT_XCB_GL_INTEGRATION", "xcb_egl");
+        {
+          if(qt_xcb_egl_window_broken() && has_nvidia_driver())
+            qputenv("QT_XCB_GL_INTEGRATION", "xcb_glx");
+          else
+            qputenv("QT_XCB_GL_INTEGRATION", "xcb_egl");
+        }
       }
     }
   };

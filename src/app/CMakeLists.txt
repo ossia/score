@@ -104,6 +104,9 @@ endif()
 target_compile_definitions(${APPNAME} PUBLIC
     $<$<CONFIG:Debug>:SCORE_SOURCE_DIR="${SCORE_ROOT_SOURCE_DIR}">
 )
+if(SCORE_QT_XCB_EGL_FIXED)
+  target_compile_definitions(${APPNAME} PRIVATE SCORE_QT_XCB_EGL_FIXED=1)
+endif()
 if(TARGET score_plugin_jit OR TARGET score_plugin_faust)
   set_target_properties(${APPNAME} PROPERTIES ENABLE_EXPORTS 1)
 endif()
