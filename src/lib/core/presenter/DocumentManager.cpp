@@ -322,19 +322,16 @@ void DocumentManager::forceCloseDocument(
     delete &doc;
   }
 
-#if defined(__EMSCRIPTEN__)
-  // The window cannot be closed and there is no way to leave the page, so an
-  // empty application is a dead end: offer the start screen instead. Opening a
-  // document closes the virgin one first, so the list is briefly empty in the
+  // An empty application is a dead end: offer the start screen instead. Opening
+  // a document closes the virgin one first, so the list is briefly empty in the
   // middle of a load: answer once the event loop has settled.
   if(m_documents.empty())
   {
-    QTimer::singleShot(0, qApp, [this] {
+    QTimer::singleShot(0, this, [this] {
       if(m_documents.empty())
         score::GUIApplicationInterface::instance().showStartScreen();
     });
   }
-#endif
 }
 
 static void writeJsonToFile(QSaveFile& f, const rapidjson::StringBuffer& buffer)

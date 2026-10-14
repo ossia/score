@@ -18,6 +18,7 @@
 #include <QFileInfo>
 #include <QFontMetrics>
 #include <QLayout>
+#include <QLineEdit>
 #include <QHBoxLayout>
 #include <QKeyEvent>
 #include <QLabel>
@@ -598,10 +599,17 @@ public:
 
   QVBoxLayout* body() const noexcept { return m_bodyLayout; }
 
+  bool expanded() const noexcept { return m_expanded; }
   void setExpanded(bool e)
   {
     m_expanded = e;
     m_body->setVisible(e);
+    m_header->update();
+  }
+
+  void setCount(int c)
+  {
+    m_count = c;
     m_header->update();
   }
 
@@ -734,8 +742,26 @@ public:
     update();
   }
 
-  //! `direct`: Ctrl (Cmd on macOS) was held, the file is opened itself.
-  std::function<void(const QString& path, bool direct)> onActivated;
+  //! Extra text the filter looks into, e.g. the category.
+  void setKeywords(const QString& k) { m_keywords = k; }
+
+  //! Every one of `words` is in the name, author, description, path or keywords.
+  bool matches(const QStringList& words) const
+  {
+    for(const auto& w : words)
+    {
+      if(!m_title.contains(w, Qt::CaseInsensitive)
+         && !m_subtitle.contains(w, Qt::CaseInsensitive)
+         && !m_description.contains(w, Qt::CaseInsensitive)
+         && !m_keywords.contains(w, Qt::CaseInsensitive)
+         && !QFileInfo{m_path}.fileName().contains(w, Qt::CaseInsensitive))
+        return false;
+    }
+    return true;
+  }
+
+  //! Ctrl (Cmd on macOS): the file is opened itself; Alt: no web page.
+  std::function<void(const QString& path, Qt::KeyboardModifiers mods)> onActivated;
 
 protected:
   void paintEvent(QPaintEvent*) override
@@ -842,7 +868,7 @@ protected:
         = m_pressed && e->button() == Qt::LeftButton && rect().contains(e->pos());
     m_pressed = false;
     if(activate && onActivated)
-      onActivated(m_path, e->modifiers() & Qt::ControlModifier);
+      onActivated(m_path, e->modifiers());
   }
 
 private:
@@ -851,11 +877,37 @@ private:
   QString m_title;
   QString m_subtitle;
   QString m_description;
+  QString m_keywords;
   QString m_size;
   QString m_path;
   QPixmap m_thumbnail;
   bool m_hovered{};
   bool m_pressed{};
+};
+
+//! Escape clears the text first, rather than leaving the start screen; the
+//! arrows do not switch pages while typing.
+class FilterEdit final : public QLineEdit
+{
+public:
+  using QLineEdit::QLineEdit;
+
+  //! The words typed, each of which a card has to match.
+  QStringList words() const { return text().simplified().split(' ', Qt::SkipEmptyParts); }
+
+protected:
+  void keyPressEvent(QKeyEvent* e) override
+  {
+    if(e->key() == Qt::Key_Escape && !text().isEmpty())
+    {
+      clear();
+      e->accept();
+      return;
+    }
+    QLineEdit::keyPressEvent(e);
+    if(e->key() == Qt::Key_Up || e->key() == Qt::Key_Down)
+      e->accept();
+  }
 };
 
 /**
@@ -867,7 +919,9 @@ private:
  *   | splash artwork: logo, tagline, version      [update notice] × |
  *   +-----------+---------------------------------------------------+
  *   | Home      |                                                   |
- *   | Examples  |   page (home / examples / learn / community)      |
+ *   | Templates |   page (home / examples / learn / community)      |
+ *   | Local ex  |                                                   |
+ *   | Online ex |                                                   |
  *   | Learn     |                                                   |
  *   | Community |                                                   |
  *   | Exit      |                                                   |
@@ -1019,6 +1073,8 @@ private:
   //! library for templates and examples must not delay the start screen.
   int addPage(const QString& name, const QString& icon, std::function<QWidget*()> make);
   QWidget* createHomePage(const QPointer<QRecentFilesMenu>& recentFiles);
+  //! The documents closed since the start screen was built show in it too.
+  void refreshRecentFiles();
   QWidget* createTemplatesPage();
   QWidget* createAboutPage();
   //! The examples installed locally, or those of the documentation site.
@@ -1037,10 +1093,14 @@ private:
     const OnlineExample* online{};
   };
 
-  QWidget* makeCardGrid(const std::vector<ExampleEntry>& docs, QWidget* parent);
+  //! Also appends the cards it creates to `cards`.
+  QWidget* makeCardGrid(
+      const std::vector<ExampleEntry>& docs, std::vector<ExampleCard*>& cards,
+      QWidget* parent);
   std::vector<ExampleEntry> gatherExamples() const;
-  //! `direct` opens the file itself rather than an untitled copy of it.
-  void openOnlineExample(const OnlineExample& ex, bool direct);
+  //! `direct` opens the file itself rather than an untitled copy of it;
+  //! `openPage` also opens the web page of the example.
+  void openOnlineExample(const OnlineExample& ex, bool direct, bool openPage);
   void refreshExamplesPage();
   void refreshExamplesPage(int index, bool online);
   void requestThumbnail(const OnlineExample& ex, ExampleCard* card);
@@ -1050,6 +1110,8 @@ private:
 
   QLabel* makeSectionTitle(const QString& text, QWidget* parent);
   QLabel* makeHint(const QString& text, QWidget* parent);
+  //! The section title, with a field on its right that filters the cards of the page.
+  FilterEdit* makeTitleWithFilter(const QString& title, QVBoxLayout* lay, QWidget* page);
   InteractiveLabel* makeItem(
       const QString& text, const QString& icon, const QString& url, QWidget* parent);
   //! Same, drawn in the accent color with the matching icon state.
@@ -1072,8 +1134,8 @@ private:
     emitSignal();
   }
 
-  //! Opens an example as a new document, and its web page if it has one.
-  void openExample(const QString& path, bool direct);
+  //! Opens an example as a new document, and its web page if it has one and `openPage`.
+  void openExample(const QString& path, bool direct, bool openPage);
   void requestInfo(const QString& path);
   //! Same, for a card: what is already known about the file goes on it now.
   void requestInfo(const QString& path, ExampleCard& card);
@@ -1100,6 +1162,9 @@ private:
   InteractiveLabel* m_updateLabel{};
   InteractiveLabel* m_crashLabel{};
   InteractiveLabel* m_joinLabel{};
+  QPointer<QRecentFilesMenu> m_recentFiles;
+  QWidget* m_recentPage{};
+  QVBoxLayout* m_recentList{};
   int m_templatesPage{};
   int m_examplesPage{};
   int m_onlineExamplesPage{};
@@ -1178,7 +1243,8 @@ StartScreen::StartScreen(const QPointer<QRecentFilesMenu>& recentFiles, QWidget*
   m_templatesPage
       = addPage(tr("Templates"), "new_file", [this] { return createTemplatesPage(); });
   m_examplesPage = addPage(
-      tr("Examples"), "load_examples", [this] { return createExamplesPage(false); });
+      tr("Local examples"), "load_examples",
+      [this] { return createExamplesPage(false); });
   m_onlineExamplesPage = addPage(
       tr("Online examples"), "net_session",
       [this] { return createExamplesPage(true); });
@@ -1360,6 +1426,25 @@ QLabel* StartScreen::makeHint(const QString& text, QWidget* parent)
   return hint;
 }
 
+FilterEdit*
+StartScreen::makeTitleWithFilter(const QString& title, QVBoxLayout* lay, QWidget* page)
+{
+  auto row = new QHBoxLayout;
+  row->setContentsMargins(0, 0, 8, 0);
+  row->addWidget(makeSectionTitle(title, page));
+  row->addStretch();
+
+  auto filter = new FilterEdit{page};
+  filter->setFont(m_smallFont);
+  filter->setPlaceholderText(tr("Filter..."));
+  filter->setClearButtonEnabled(true);
+  filter->setFixedWidth(220);
+  row->addWidget(filter);
+
+  lay->addLayout(row);
+  return filter;
+}
+
 InteractiveLabel* StartScreen::makeItem(
     const QString& text, const QString& icon, const QString& url, QWidget* parent)
 {
@@ -1510,27 +1595,12 @@ QWidget* StartScreen::createHomePage(const QPointer<QRecentFilesMenu>& recentFil
     col->setSpacing(6);
     col->addWidget(makeSectionTitle(tr("Recent"), page));
 
-    int shown = 0;
-    if(recentFiles)
-    {
-      for(const auto& action : recentFiles->actions())
-      {
-        if(shown++ >= MaxRecentFiles)
-          break;
-
-        const QString path = action->data().toString();
-        col->addWidget(
-            makeScoreItem(QFileInfo{path}.fileName(), "load", path, false, page));
-      }
-    }
-
-    if(shown == 0)
-    {
-      auto none = makeItem(tr("No recent scores yet"), "", "", page);
-      none->disableInteractivity();
-      none->setInactiveColor(StartScreenColors::Muted);
-      col->addWidget(none);
-    }
+    m_recentFiles = recentFiles;
+    m_recentPage = page;
+    m_recentList = new QVBoxLayout;
+    m_recentList->setSpacing(6);
+    col->addLayout(m_recentList);
+    refreshRecentFiles();
 
     col->addSpacing(6);
 
@@ -1548,6 +1618,47 @@ QWidget* StartScreen::createHomePage(const QPointer<QRecentFilesMenu>& recentFil
   }
 
   return page;
+}
+
+void StartScreen::refreshRecentFiles()
+{
+  if(m_preview)
+    m_preview->hide();
+  // deleteLater: the entry that was clicked may still be on the stack.
+  while(auto item = m_recentList->takeAt(0))
+  {
+    if(auto w = item->widget())
+    {
+      w->hide();
+      w->deleteLater();
+    }
+    delete item;
+  }
+
+  int shown = 0;
+  if(m_recentFiles)
+  {
+    for(const auto& action : m_recentFiles->actions())
+    {
+      if(shown++ >= MaxRecentFiles)
+        break;
+
+      // Read again: the file may have been saved with a new thumbnail since.
+      const QString path = action->data().toString();
+      if(auto it = m_infos.find(path); it != m_infos.end() && it->second)
+        m_infos.erase(it);
+      m_recentList->addWidget(makeScoreItem(
+          QFileInfo{path}.fileName(), "load", path, false, m_recentPage));
+    }
+  }
+
+  if(shown == 0)
+  {
+    auto none = makeItem(tr("No recent scores yet"), "", "", m_recentPage);
+    none->disableInteractivity();
+    none->setInactiveColor(StartScreenColors::Muted);
+    m_recentList->addWidget(none);
+  }
 }
 
 QWidget* StartScreen::createTemplatesPage()
@@ -1594,7 +1705,7 @@ QWidget* StartScreen::createExamplesPage(bool online)
     if((doc.online != nullptr) == online)
       docs.push_back(std::move(doc));
 
-  const QString title = online ? tr("Online examples") : tr("Example scores");
+  const QString title = online ? tr("Online examples") : tr("Local examples");
   if(docs.empty())
   {
     return createCardsPage(
@@ -1617,14 +1728,17 @@ QWidget* StartScreen::createExamplesPage(bool online)
   auto lay = new QVBoxLayout{page};
   lay->setContentsMargins(28, 24, 28, 16);
   lay->setSpacing(8);
-  lay->addWidget(makeSectionTitle(title, page));
+  auto filter = makeTitleWithFilter(title, lay, page);
   lay->addWidget(makeHint(
       online ? tr("Each example is downloaded into your library the first time it "
                   "is opened, then opens as a new, untitled score. Ctrl-click opens "
-                  "the example file itself.")
+                  "the example file itself, Alt-click does not open its web page.")
              : tr("Each example opens as a new, untitled score. Ctrl-click opens the "
-                  "example file itself."),
+                  "example file itself, Alt-click does not open its web page."),
       page));
+  auto noMatch = makeHint(tr("Nothing matches this filter."), page);
+  noMatch->hide();
+  lay->addWidget(noMatch);
 
   auto scroll = new QScrollArea{page};
   scroll->setFrameShape(QFrame::NoFrame);
@@ -1650,6 +1764,15 @@ QWidget* StartScreen::createExamplesPage(bool online)
     tree[top][sub].push_back(doc);
   }
 
+  struct Drawer
+  {
+    CategoryDrawer* drawer{};
+    std::vector<ExampleCard*> cards;
+    bool expanded{}; //!< As the user left it before filtering
+  };
+  auto drawers = std::make_shared<std::vector<Drawer>>();
+  auto cards = std::make_shared<std::vector<ExampleCard*>>();
+
   bool first = true;
   for(const auto& [top, subs] : tree)
   {
@@ -1659,25 +1782,60 @@ QWidget* StartScreen::createExamplesPage(bool online)
 
     auto drawer = new CategoryDrawer{m_sectionFont, top, total, 0, container};
     containerLay->addWidget(drawer);
+    const auto topCards = cards->size();
 
     for(const auto& [sub, list] : subs)
     {
       if(sub.isEmpty())
       {
-        drawer->body()->addWidget(makeCardGrid(list, drawer));
+        drawer->body()->addWidget(makeCardGrid(list, *cards, drawer));
       }
       else
       {
         auto inner
             = new CategoryDrawer{m_itemFont, sub, int(list.size()), 1, drawer};
-        inner->body()->addWidget(makeCardGrid(list, inner));
+        const auto innerCards = cards->size();
+        inner->body()->addWidget(makeCardGrid(list, *cards, inner));
         drawer->body()->addWidget(inner);
+        drawers->push_back({inner, {cards->begin() + innerCards, cards->end()}});
       }
     }
+    drawers->push_back({drawer, {cards->begin() + topCards, cards->end()}});
 
     drawer->setExpanded(first);
     first = false;
   }
+
+  // While filtering, every drawer with a match is open; clearing the filter
+  // puts back the drawers the user had opened.
+  connect(
+      filter, &QLineEdit::textChanged, container,
+      [filter, noMatch, drawers, cards, filtering = false]() mutable {
+    const auto words = filter->words();
+    if(!words.empty() && !filtering)
+      for(auto& d : *drawers)
+        d.expanded = d.drawer->expanded();
+
+    for(auto card : *cards)
+      card->setVisible(card->matches(words));
+
+    bool any = false;
+    for(auto& d : *drawers)
+    {
+      const int count = std::count_if(
+          d.cards.begin(), d.cards.end(), [](auto* c) { return !c->isHidden(); });
+      d.drawer->setCount(count);
+      d.drawer->setVisible(count > 0);
+      if(!words.empty())
+        d.drawer->setExpanded(count > 0);
+      else if(filtering)
+        d.drawer->setExpanded(d.expanded);
+      any |= count > 0;
+    }
+
+    filtering = !words.empty();
+    noMatch->setVisible(!any);
+  });
 
   containerLay->addStretch();
   scroll->setWidget(container);
@@ -1717,12 +1875,12 @@ std::vector<StartScreen::ExampleEntry> StartScreen::gatherExamples() const
   return out;
 }
 
-void StartScreen::openOnlineExample(const OnlineExample& ex, bool direct)
+void StartScreen::openOnlineExample(const OnlineExample& ex, bool direct, bool openPage)
 {
   if(m_actionTaken)
     return;
 
-  if(!ex.page.isEmpty())
+  if(openPage && !ex.page.isEmpty())
   {
     if(const QUrl url{ex.page}; url.isValid() && !url.scheme().isEmpty())
       QDesktopServices::openUrl(url);
@@ -1768,13 +1926,29 @@ void StartScreen::refreshExamplesPage(int index, bool online)
     return;
 
   auto host = m_pages->widget(index);
+  QString filter;
+  bool focused{};
+  if(auto edit = host->findChild<QLineEdit*>())
+  {
+    filter = edit->text();
+    focused = edit->hasFocus();
+  }
+
   std::erase_if(m_cards, [host](auto* card) { return host->isAncestorOf(card); });
   qDeleteAll(host->findChildren<QWidget*>(Qt::FindDirectChildrenOnly));
   host->layout()->addWidget(createExamplesPage(online));
+
+  if(auto edit = host->findChild<QLineEdit*>())
+  {
+    edit->setText(filter);
+    if(focused)
+      edit->setFocus();
+  }
 }
 
 QWidget* StartScreen::makeCardGrid(
-    const std::vector<ExampleEntry>& docs, QWidget* parent)
+    const std::vector<ExampleEntry>& docs, std::vector<ExampleCard*>& cards,
+    QWidget* parent)
 {
   auto holder = new QWidget{parent};
   holder->setAutoFillBackground(false);
@@ -1796,19 +1970,24 @@ QWidget* StartScreen::makeCardGrid(
       if(!online->image.isEmpty())
         requestThumbnail(*online, card);
 
-      card->onActivated = [this, ex = *online](const QString&, bool direct) {
-        openOnlineExample(ex, direct);
+      card->onActivated
+          = [this, ex = *online](const QString&, Qt::KeyboardModifiers mods) {
+        openOnlineExample(
+            ex, mods & Qt::ControlModifier, !(mods & Qt::AltModifier));
       };
     }
     else
     {
-      card->onActivated
-          = [this](const QString& path, bool direct) { openExample(path, direct); };
+      card->onActivated = [this](const QString& path, Qt::KeyboardModifiers mods) {
+        openExample(path, mods & Qt::ControlModifier, !(mods & Qt::AltModifier));
+      };
       requestInfo(doc.path, *card);
     }
 
+    card->setKeywords(doc.category);
     grid->addWidget(card);
     m_cards.push_back(card);
+    cards.push_back(card);
   }
   return holder;
 }
@@ -1823,15 +2002,18 @@ QWidget* StartScreen::createCardsPage(
   lay->setContentsMargins(28, 24, 28, 16);
   lay->setSpacing(8);
 
-  lay->addWidget(makeSectionTitle(title, page));
-
   if(docs.empty())
   {
+    lay->addWidget(makeSectionTitle(title, page));
     lay->addWidget(makeHint(emptyHint, page));
   }
   else
   {
+    auto filter = makeTitleWithFilter(title, lay, page);
     lay->addWidget(makeHint(hint, page));
+    auto noMatch = makeHint(tr("Nothing matches this filter."), page);
+    noMatch->hide();
+    lay->addWidget(noMatch);
 
     auto scroll = new QScrollArea{page};
     scroll->setFrameShape(QFrame::NoFrame);
@@ -1843,6 +2025,7 @@ QWidget* StartScreen::createCardsPage(
     container->setAutoFillBackground(false);
     auto grid = new CardFlowLayout{container, 14};
     grid->setContentsMargins(0, 4, 8, 4);
+    std::vector<ExampleCard*> cards;
 
     for(const auto& doc : docs)
     {
@@ -1851,11 +2034,29 @@ QWidget* StartScreen::createCardsPage(
                                                          : doc.source;
       auto card = new ExampleCard{m_itemFont, m_smallFont, doc.name,
                                   subtitle,   doc.path,    container};
-      card->onActivated = [onActivated](const QString& path, bool) { onActivated(path); };
+      card->onActivated = [onActivated](const QString& path, Qt::KeyboardModifiers) {
+        onActivated(path);
+      };
+      card->setKeywords(doc.source);
       grid->addWidget(card);
       m_cards.push_back(card);
+      cards.push_back(card);
       requestInfo(doc.path, *card);
     }
+
+    connect(
+        filter, &QLineEdit::textChanged, container,
+        [filter, noMatch, cards = std::move(cards)] {
+      const auto words = filter->words();
+      bool any = false;
+      for(auto card : cards)
+      {
+        const bool m = card->matches(words);
+        card->setVisible(m);
+        any |= m;
+      }
+      noMatch->setVisible(!any);
+    });
 
     scroll->setWidget(container);
     lay->addWidget(scroll, 1);
@@ -1885,23 +2086,26 @@ StartScreen::createLinksPage(const QString& title, const std::vector<Link>& link
   return page;
 }
 
-void StartScreen::openExample(const QString& path, bool direct)
+void StartScreen::openExample(const QString& path, bool direct, bool openPage)
 {
   if(m_actionTaken)
     return;
 
-  // The information is normally already loaded in the background; if the
-  // user was faster than the parser, read it now.
-  std::optional<ProjectInfo::Info> info;
-  if(auto it = m_infos.find(path); it != m_infos.end() && it->second)
-    info = it->second;
-  else
-    info = ProjectInfo::peek(path);
-
-  if(info && !info->url.isEmpty())
+  if(openPage)
   {
-    if(const QUrl url{info->url}; url.isValid() && !url.scheme().isEmpty())
-      QDesktopServices::openUrl(url);
+    // The information is normally already loaded in the background; if the
+    // user was faster than the parser, read it now.
+    std::optional<ProjectInfo::Info> info;
+    if(auto it = m_infos.find(path); it != m_infos.end() && it->second)
+      info = it->second;
+    else
+      info = ProjectInfo::peek(path);
+
+    if(info && !info->url.isEmpty())
+    {
+      if(const QUrl url{info->url}; url.isValid() && !url.scheme().isEmpty())
+        QDesktopServices::openUrl(url);
+    }
   }
 
   choose([&] { direct ? openFile(path) : openTemplate(path); });
@@ -1957,10 +2161,8 @@ void StartScreen::showPreview(InteractiveLabel* label)
   m_preview->setContent(
       info.thumbnail, info.name.isEmpty() ? label->text() : info.name, info.author,
       info.description, QDir::toNativeSeparators(path));
-  m_preview->showFor(
-      label, QRect{
-                 NavWidth + 8, HeaderHeight + 8, Width - NavWidth - 16,
-                 Height - HeaderHeight - 16});
+  // Not Width x Height: the start screen follows the main window's size.
+  m_preview->showFor(label, m_pages->geometry().adjusted(8, 8, -8, -8));
 }
 
 void StartScreen::addLoadCrashedSession()
@@ -1984,6 +2186,7 @@ void StartScreen::dismiss()
 void StartScreen::reopen()
 {
   m_actionTaken = false;
+  refreshRecentFiles();
   show();
   raise();
   setFocus();
