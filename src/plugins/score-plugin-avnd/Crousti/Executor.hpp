@@ -349,7 +349,7 @@ public:
       else if(auto ctrl = qobject_cast<Process::ValueInlet*>(ctl))
       {
         auto& p = node->add_control();
-        p->changed = true;
+        p->changed = false;
         i++;
       }
       else if(auto ctrl = qobject_cast<Process::AudioInlet*>(ctl))
