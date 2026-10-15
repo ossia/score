@@ -60,10 +60,13 @@ score_plugin_audio::score_plugin_audio()
     });
 #endif
 #if OSSIA_AUDIO_PORTAUDIO && defined(__linux__) && __has_include(<alsa/asoundlib.h>)
-    auto asound = dlopen("libasound.so.2", RTLD_LAZY | RTLD_LOCAL);
-    auto sym = (decltype(snd_lib_error_set_handler)*)dlsym(
-        asound, "snd_lib_error_set_handler");
-    sym(asound_error);
+    if(auto asound = dlopen("libasound.so.2", RTLD_LAZY | RTLD_LOCAL))
+    {
+      auto sym = (decltype(snd_lib_error_set_handler)*)dlsym(
+          asound, "snd_lib_error_set_handler");
+      if(sym)
+        sym(asound_error);
+    }
 #endif
   }
 }
