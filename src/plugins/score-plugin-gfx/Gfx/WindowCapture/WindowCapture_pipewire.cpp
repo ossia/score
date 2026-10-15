@@ -1149,11 +1149,17 @@ std::unique_ptr<WindowCaptureBackend> createWindowCaptureBackend()
 
 namespace Gfx::WindowCapture
 {
+#if defined(HAS_X11_WINDOW_CAPTURE)
 std::unique_ptr<WindowCaptureBackend> createX11Backend();
+#endif
 
 std::unique_ptr<WindowCaptureBackend> createWindowCaptureBackend()
 {
+#if defined(HAS_X11_WINDOW_CAPTURE)
   return createX11Backend();
+#else
+  return nullptr;
+#endif
 }
 } // namespace Gfx::WindowCapture
 

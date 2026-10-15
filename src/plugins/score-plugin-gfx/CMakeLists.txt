@@ -132,7 +132,7 @@ if(NOT EMSCRIPTEN)
       PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON
     )
 
-    if(X11_FOUND)
+    if(X11_FOUND AND X11_XShm_FOUND AND X11_Xcomposite_FOUND AND X11_Xrandr_FOUND)
       list(APPEND WINDOW_CAPTURE_SRCS
         Gfx/WindowCapture/WindowCapture_x11.cpp
       )
