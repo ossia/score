@@ -81,7 +81,7 @@
         </dict>
         <dict>
             <key>CFBundleTypeName</key>
-            <string>ossia score document (legacy binary)</string>
+            <string>ossia score document</string>
             <key>CFBundleTypeExtensions</key>
             <array>
                 <string>scorebin</string>
@@ -129,7 +129,7 @@
             <key>UTTypeIdentifier</key>
             <string>io.ossia.score.document.binary</string>
             <key>UTTypeDescription</key>
-            <string>ossia score document (legacy binary)</string>
+            <string>ossia score document</string>
             <key>UTTypeIconFile</key>
             <string>${MACOSX_BUNDLE_ICON_FILE}</string>
             <key>UTTypeConformsTo</key>

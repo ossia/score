@@ -131,10 +131,6 @@ modules:
       - type: dir
         path: ../../../../
 
-      # The launcher is a separate name rather than a wrapper around a renamed
-      # ossia-score: Qt builds the X11 WM_CLASS instance from argv[0] and the
-      # Wayland app_id from /proc/self/exe, and both have to stay "ossia-score"
-      # for StartupWMClass= in the desktop entry to match the window.
       - type: script
         dest-filename: run
         commands:

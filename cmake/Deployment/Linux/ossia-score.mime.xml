@@ -4,10 +4,10 @@
     <comment>ossia score document</comment>
     <comment xml:lang="fr">Document ossia score</comment>
     <acronym>score</acronym>
-    <expanded-acronym>ossia score sequencer document</expanded-acronym>
+    <expanded-acronym>ossia score document</expanded-acronym>
     <sub-class-of type="application/json"/>
     <icon name="ossia-score"/>
-    <generic-icon name="x-office-document"/>
+    <generic-icon name="video-x-generic"/>
     <glob pattern="*.score"/>
     <glob pattern="*.scorejson"/>
     <magic priority="40">
@@ -17,10 +17,10 @@
   </mime-type>
 
   <mime-type type="application/x-ossia-score-binary">
-    <comment>ossia score document (legacy binary)</comment>
-    <comment xml:lang="fr">Document ossia score (ancien format binaire)</comment>
+    <comment>ossia score document</comment>
+    <comment xml:lang="fr">Document ossia score</comment>
     <icon name="ossia-score"/>
-    <generic-icon name="x-office-document"/>
+    <generic-icon name="video-x-generic"/>
     <glob pattern="*.scorebin"/>
   </mime-type>
 </mime-info>

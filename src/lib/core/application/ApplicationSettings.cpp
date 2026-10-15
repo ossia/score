@@ -220,9 +220,6 @@ void ApplicationSettings::parse(QStringList cargs, int& argc, char** argv)
   if(parser.isSet(waitLoadOpt))
     waitAfterLoad = std::max(0, parser.value(waitLoadOpt).toInt());
 
-  // args only holds existing files at this point, and every one of them is
-  // opened as its own document: Exec=ossia-score %F hands us the whole
-  // selection at once rather than starting a process per file.
   loadList = args;
 }
 
