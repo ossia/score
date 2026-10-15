@@ -6,8 +6,8 @@ config-opts:
   - -Wno-dev
   - -DCMAKE_BUILD_TYPE=RelWithDebInfo
   - -DCMAKE_POSITION_INDEPENDENT_CODE=ON
-  - -DCMAKE_PREFIX_PATH=/usr/lib/sdk/llvm21
-  - -DLLVM_CONFIG=/usr/lib/sdk/llvm21/bin/llvm-config
+  - -DCMAKE_PREFIX_PATH=/usr/lib/sdk/llvm22
+  - -DLLVM_CONFIG=/usr/lib/sdk/llvm22/bin/llvm-config
   - -DBUILD_SHARED_LIBS=ON
   - -DINCLUDE_OSC=0
   - -DINCLUDE_HTTP=0
@@ -36,5 +36,5 @@ config-opts:
   - -DWASM_BACKEND=OFF
 sources:
   - type: archive
-    url: https://github.com/grame-cncm/faust/releases/download/2.83.1/faust-2.83.1.tar.gz
-    sha256: 6ca3d749296191c41e9fd24ce7e5b37f58022d4320acb1c7343fec2df82d5551
+    url: https://github.com/grame-cncm/faust/releases/download/2.88.0/faust-2.88.0.tar.gz
+    sha256: e4e175cf236924b5b7d4784cbb8c50cc01e211159e169655dd9e6d8f92b871d9

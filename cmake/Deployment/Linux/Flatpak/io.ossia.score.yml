@@ -1,13 +1,13 @@
 id: io.ossia.score
 runtime: org.kde.Platform
-runtime-version: "6.10"
+runtime-version: "6.11"
 sdk: org.kde.Sdk
 sdk-extensions:
-  - org.freedesktop.Sdk.Extension.llvm21
+  - org.freedesktop.Sdk.Extension.llvm22
 build-options:
   env:
-    CC: /usr/lib/sdk/llvm21/bin/clang
-    CXX: /usr/lib/sdk/llvm21/bin/clang++
+    CC: /usr/lib/sdk/llvm22/bin/clang
+    CXX: /usr/lib/sdk/llvm22/bin/clang++
 command: score-launcher
 rename-desktop-file: ossia-score.desktop
 rename-icon: ossia-score
@@ -144,8 +144,8 @@ modules:
       # Note: don't use RelWithDebInfo as ossia release builds explicitly expect Release build type.
       - -DCMAKE_BUILD_TYPE=Release
       - -Wno-dev
-      - -DCMAKE_PREFIX_PATH=/usr/lib/sdk/llvm21
-      - -DLLVM_CONFIG=/usr/lib/sdk/llvm21/bin/llvm-config
+      - -DCMAKE_PREFIX_PATH=/usr/lib/sdk/llvm22
+      - -DLLVM_CONFIG=/usr/lib/sdk/llvm22/bin/llvm-config
       - -DSCORE_DEPLOYMENT_BUILD=1
       - -DSCORE_STATIC_PLUGINS=1
       - -DSCORE_FHS_BUILD=1
@@ -158,9 +158,9 @@ modules:
       - -DBOOST_ROOT=/app/include
 
     post-install:
-      - install -Dm755 /usr/lib/sdk/llvm21/lib/libLLVM.so.21.1 "${FLATPAK_DEST}/lib/"
-      - install -Dm755 /usr/lib/sdk/llvm21/lib/libclang-cpp.so.21.1 "${FLATPAK_DEST}/lib/"
-      - cp -rf /usr/lib/sdk/llvm21/include/* "${FLATPAK_DEST}/include/"
+      - install -Dm755 /usr/lib/sdk/llvm22/lib/libLLVM.so.22.1 "${FLATPAK_DEST}/lib/"
+      - install -Dm755 /usr/lib/sdk/llvm22/lib/libclang-cpp.so.22.1 "${FLATPAK_DEST}/lib/"
+      - cp -rf /usr/lib/sdk/llvm22/include/* "${FLATPAK_DEST}/include/"
       - cp -rf /usr/include/* "${FLATPAK_DEST}/include/"
       - install -Dm755 ../run "${FLATPAK_DEST}/bin/score-launcher"
       - install -d /app/extensions/Plugins

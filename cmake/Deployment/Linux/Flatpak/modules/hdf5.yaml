@@ -26,5 +26,5 @@ config-opts:
   - -DBUILD_STATIC_LIBS=1
 sources:
   - type: archive
-    url: https://github.com/HDFGroup/hdf5/archive/refs/tags/2.0.0.tar.gz
-    sha256: 3e6ae0430995c8ae724688c866f4dbb6feba9c6220583d72049fbb9b006c1cd5
+    url: https://github.com/HDFGroup/hdf5/archive/refs/tags/2.2.0.tar.gz
+    sha256: 5b8d75125ae7b4fef55d3b39e8d3dbfd238cdf63b6518afd67fa69ac80f06542

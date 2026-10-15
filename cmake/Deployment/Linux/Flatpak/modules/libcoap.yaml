@@ -13,8 +13,9 @@ config-opts:
   - -DENABLE_DOCS=0
   - -DENABLE_OSCORE=0
   - -DENABLE_SERVER_MODE=0
+  - -DENABLE_PROXY_CODE=0
   - -DMAX_LOGGING_LEVEL=0
 sources:
   - type: archive
-    url: https://github.com/obgm/libcoap/archive/refs/tags/v4.3.4a.tar.gz
-    sha256: 45f1aabbb5f710e841c91d65fc3f37c906d42e8fc44dd04979e767d3960a77cf
+    url: https://github.com/obgm/libcoap/archive/refs/tags/v4.3.5b.tar.gz
+    sha256: 383a17d8466cee7c1cb1d4dfbffad2651004850b29eb590e9591c7bedd46741d

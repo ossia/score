@@ -10,5 +10,5 @@ config-opts:
   - -DPA_USE_JACK=OFF
 sources:
   - type: archive
-    url: https://github.com/PortAudio/portaudio/archive/adbf810825252d0c23c2223626b327425d05be3b.tar.gz
-    sha256: dff279c195b3143ea8414d1db2b5b49620cd56c419e81a23410367b70c55469e
+    url: https://github.com/PortAudio/portaudio/archive/d71746635dae088c5d7c808d5f29f0b939458739.tar.gz
+    sha256: f756f0a6020f547190ed6960cf72e809ec73fc659d91f94da8cac521896c502f

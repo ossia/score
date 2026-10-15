@@ -7,10 +7,10 @@ config-opts:
   - -Dtests=disabled
   - -Dcmdline=disabled
   - -Dladspa=disabled
-  - -Dlv2=disabled
+  - -Dvamp=disabled
   - -Dfft=fftw
   - -Dresampler=libsamplerate
 sources:
   - type: archive
-    url: https://github.com/breakfastquay/rubberband/archive/refs/tags/v3.3.0.tar.gz
-    sha256: 2bb837fe00932442ca90e185af8a468f7591df0c002b4a9e27a1bced1563ac84
+    url: https://github.com/breakfastquay/rubberband/archive/refs/tags/v4.0.0.tar.gz
+    sha256: 24300f48a8014b7c863b573a9647e61b1b19b37875e2cdd92005e64c6424d266
