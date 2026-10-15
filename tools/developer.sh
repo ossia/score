@@ -311,7 +311,7 @@ else
       echo "[developer.sh] To rebuild, run: 'cd $PWD; cmake --build .'"
     fi    
   else
-    source tools/fetch-sdk.sh
+    source tools/fetch-sdk.sh || exit 1
     
     PATH="$PATH:/c/ossia-sdk-x86_64/llvm/bin"
     if [[ -d /c/ossia-sdk-x86_64/cmake/bin ]]; then
