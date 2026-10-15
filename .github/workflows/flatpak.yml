@@ -23,7 +23,7 @@ jobs:
       fail-fast: false
 
     container:
-      image: ghcr.io/flathub-infra/flatpak-github-actions:kde-6.10
+      image: ghcr.io/flathub-infra/flatpak-github-actions:kde-6.11
       options: --privileged
 
     steps:

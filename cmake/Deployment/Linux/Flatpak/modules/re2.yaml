@@ -7,7 +7,8 @@ config-opts:
   - -DCMAKE_BUILD_TYPE=RelWithDebInfo
   - -DCMAKE_POSITION_INDEPENDENT_CODE=ON
   - -DBUILD_SHARED_LIBS=ON
+  - -DRE2_BUILD_TESTING=OFF
 sources:
   - type: archive
-    url: https://github.com/google/re2/archive/refs/tags/2023-06-01.tar.gz
-    sha256: 8b4a8175da7205df2ad02e405a950a02eaa3e3e0840947cd598e92dca453199b
+    url: https://github.com/google/re2/archive/refs/tags/2025-11-05.tar.gz
+    sha256: 87f6029d2f6de8aa023654240a03ada90e876ce9a4676e258dd01ea4c26ffd67

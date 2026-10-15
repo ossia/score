@@ -1,8 +1,12 @@
 # spdlog
 name: spdlog
 buildsystem: cmake-ninja
+# score links the runtime's fmt; spdlog's bundled copy would be another fmt ABI.
+config-opts:
+  - -DSPDLOG_FMT_EXTERNAL=ON
+  - -DSPDLOG_BUILD_EXAMPLE=OFF
 
 sources:
   - type: archive
-    url: https://github.com/gabime/spdlog/archive/refs/tags/v1.15.2.tar.gz
-    sha256: 7a80896357f3e8e920e85e92633b14ba0f229c506e6f978578bdc35ba09e9a5d
+    url: https://github.com/gabime/spdlog/archive/refs/tags/v1.17.0.tar.gz
+    sha256: d8862955c6d74e5846b3f580b1605d2428b11d97a410d86e2fb13e857cd3a744
