@@ -437,6 +437,11 @@ inline ossia::value
 cbor_value(QCborStreamReader& reader, limits& budget, std::size_t depth = 0)
 {
   budget.node();
+  // After an error (e.g. input ending inside a map) the reader keeps reporting
+  // the type it had cached: isString() stays true and the string accessors then
+  // read an invalid tinycbor value (an assertion in a debug Qt).
+  if(reader.lastError() != QCborError::NoError)
+    throw codec_error{"Malformed CBOR input"};
   ossia::value result;
   if(reader.isContainer())
   {
@@ -453,6 +458,8 @@ cbor_value(QCborStreamReader& reader, limits& budget, std::size_t depth = 0)
       while(reader.hasNext())
       {
         budget.node();
+        if(reader.lastError() != QCborError::NoError)
+          throw codec_error{"Malformed CBOR input"};
         if(!reader.isString())
           throw codec_error{"CBOR map keys must be text"};
         auto key = cbor_text(reader);
