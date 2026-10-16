@@ -1245,6 +1245,11 @@ void gpu_exec_node::run(
 void gpu_exec_node::setScript(
     const QString& root, const QString& str, JS::JSState&& new_state)
 {
+  // Runs from a queued execution command: the process may have been removed
+  // (and m_context nulled) since the script change was queued. Keep the node
+  // that is running instead of building one around a dead process.
+  if(!m_context)
+    return;
   exec_context->ui->unregister_node(id);
   id = score::gfx::invalid_node_index;
   m_valueMessages = std::make_shared<GpuValueQueue>();
