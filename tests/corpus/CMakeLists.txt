@@ -71,3 +71,29 @@ if(TARGET score_plugin_gfx AND TARGET score_plugin_engine AND TARGET score_plugi
   endif()
   set_target_properties(score_corpus_tester PROPERTIES FOLDER "Tests")
 endif()
+
+# Adversarial editing of real documents while they play: removals (plain and
+# keep-link), cable edits, undo/redo storms, transport changes; then undo-all /
+# redo-all structural checks. Same one-document-per-process shape as the
+# tester above; run-edit-fuzz.sh drives a directory.
+if(TARGET score_plugin_engine AND TARGET score_plugin_scenario)
+  add_executable(score_edit_fuzzer ScoreEditFuzzer.cpp)
+  target_link_libraries(score_edit_fuzzer PRIVATE
+    score_lib_base
+    score_plugin_scenario score_plugin_engine
+    score_plugin_deviceexplorer score_lib_process score_lib_device
+    ${QT_PREFIX}::Core ${QT_PREFIX}::Gui ${QT_PREFIX}::GuiPrivate ${QT_PREFIX}::Widgets)
+  target_compile_definitions(score_edit_fuzzer PRIVATE
+    "SCORE_TEST_BINARY_DIR=\"${SCORE_ROOT_BINARY_DIR}\"")
+  setup_score_common_exe_features(score_edit_fuzzer)
+  block()
+    set(SCORE_QT_PLUGINS_NO_QTQUICK3D ON)
+    enable_minimal_qt_plugins(score_edit_fuzzer 1)
+  endblock()
+  if(SCORE_STATIC_PLUGINS)
+    set(_fuzz_plugins "${SCORE_PLUGINS_LIST}")
+    list(REMOVE_ITEM _fuzz_plugins score_plugin_jit)
+    target_link_libraries(score_edit_fuzzer PRIVATE ${_fuzz_plugins})
+  endif()
+  set_target_properties(score_edit_fuzzer PROPERTIES FOLDER "Tests")
+endif()
