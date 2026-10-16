@@ -1085,6 +1085,42 @@ void RenderedRawRasterPipelineNode::warnModeOverridesGeometry(
       << QString::fromStdString(n.descriptor().description.substr(0, 80));
 }
 
+namespace
+{
+// The blend fields of the material UBO are the raw values of the blend
+// controls, which a cable or an OSC message can set to anything: QRhi asserts
+// on (and in release, reaches Q_UNREACHABLE for) a factor or op it doesn't
+// know. Out-of-range values fall back to the defaults of the blend controls.
+template <typename Material>
+QRhiGraphicsPipeline::TargetBlend materialBlend(const Material& mat) noexcept
+{
+  using P = QRhiGraphicsPipeline;
+  auto factor = [](P::BlendFactor f, P::BlendFactor def) {
+    const int v = int(f);
+    if(v >= int(P::Zero) && v <= int(P::OneMinusSrc1Alpha))
+      return f;
+    qWarning("RawRaster: blend factor %d out of range, using the default", v);
+    return def;
+  };
+  auto op = [](P::BlendOp o) {
+    const int v = int(o);
+    if(v >= int(P::Add) && v <= int(P::Max))
+      return o;
+    qWarning("RawRaster: blend op %d out of range, using Add", v);
+    return P::Add;
+  };
+  P::TargetBlend b;
+  b.enable = mat.enable_blend;
+  b.srcColor = factor(mat.src_color, P::One);
+  b.dstColor = factor(mat.dst_color, P::Zero);
+  b.opColor = op(mat.op_color);
+  b.srcAlpha = factor(mat.src_alpha, P::One);
+  b.dstAlpha = factor(mat.dst_alpha, P::Zero);
+  b.opAlpha = op(mat.op_alpha);
+  return b;
+}
+}
+
 void RenderedRawRasterPipelineNode::applyModeTopology(
     QRhiGraphicsPipeline& ps, int mode,
     std::optional<QRhiGraphicsPipeline::Topology> geometry)
@@ -1322,14 +1358,7 @@ void RenderedRawRasterPipelineNode::initPass(
     const auto& desc = n.m_descriptor;
     const bool hasDescriptorState = stateAffectsPipeline(desc.default_state);
 
-    QRhiGraphicsPipeline::TargetBlend customBlend;
-    customBlend.enable = mat.enable_blend;
-    customBlend.srcColor = mat.src_color;
-    customBlend.dstColor = mat.dst_color;
-    customBlend.opColor = mat.op_color;
-    customBlend.srcAlpha = mat.src_alpha;
-    customBlend.dstAlpha = mat.dst_alpha;
-    customBlend.opAlpha = mat.op_alpha;
+    QRhiGraphicsPipeline::TargetBlend customBlend = materialBlend(mat);
 
     if(hasDescriptorState)
     {
@@ -2501,14 +2530,7 @@ void RenderedRawRasterPipelineNode::initMRTPass(
     const auto& desc = n.m_descriptor;
     const bool hasDescriptorState = stateAffectsPipeline(desc.default_state);
 
-    QRhiGraphicsPipeline::TargetBlend customBlend;
-    customBlend.enable = mat.enable_blend;
-    customBlend.srcColor = mat.src_color;
-    customBlend.dstColor = mat.dst_color;
-    customBlend.opColor = mat.op_color;
-    customBlend.srcAlpha = mat.src_alpha;
-    customBlend.dstAlpha = mat.dst_alpha;
-    customBlend.opAlpha = mat.op_alpha;
+    QRhiGraphicsPipeline::TargetBlend customBlend = materialBlend(mat);
 
     if(hasDescriptorState)
     {
