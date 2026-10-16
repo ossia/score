@@ -1165,14 +1165,23 @@ private:
     auto& set = (m_draw_mode == 1) ? point_shaders[mode] : triangle_shaders[mode];
     initPasses_impl(renderer, mesh, set);
 
+    // Same for the blend controls: a cable or an OSC message can send any int,
+    // and QRhi asserts on (release: Q_UNREACHABLE for) an unknown factor/op.
+    using P = QRhiGraphicsPipeline;
+    auto factor = [](int v, P::BlendFactor def) {
+      return v >= int(P::Zero) && v <= int(P::OneMinusSrc1Alpha) ? P::BlendFactor(v) : def;
+    };
+    auto op = [](int v) {
+      return v >= int(P::Add) && v <= int(P::Max) ? P::BlendOp(v) : P::Add;
+    };
     QRhiGraphicsPipeline::TargetBlend blend;
     blend.enable = m_blend_enabled;
-    blend.srcColor = (QRhiGraphicsPipeline::BlendFactor)m_blend_color_src;
-    blend.dstColor = (QRhiGraphicsPipeline::BlendFactor)m_blend_color_dst;
-    blend.opColor = (QRhiGraphicsPipeline::BlendOp)m_blend_color_op;
-    blend.srcAlpha = (QRhiGraphicsPipeline::BlendFactor)m_blend_alpha_src;
-    blend.dstAlpha = (QRhiGraphicsPipeline::BlendFactor)m_blend_alpha_dst;
-    blend.opAlpha = (QRhiGraphicsPipeline::BlendOp)m_blend_alpha_op;
+    blend.srcColor = factor(m_blend_color_src, P::One);
+    blend.dstColor = factor(m_blend_color_dst, P::Zero);
+    blend.opColor = op(m_blend_color_op);
+    blend.srcAlpha = factor(m_blend_alpha_src, P::One);
+    blend.dstAlpha = factor(m_blend_alpha_dst, P::Zero);
+    blend.opAlpha = op(m_blend_alpha_op);
 
     for(auto& [e, pass] : this->m_p)
     {
