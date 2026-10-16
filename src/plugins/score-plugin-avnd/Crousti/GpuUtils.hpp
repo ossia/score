@@ -1159,11 +1159,20 @@ struct buffer_inputs_storage<T>
           avnd::get_inputs<T>(state),
           [&]<typename Field, std::size_t N, std::size_t NField>(
               Field& t, avnd::predicate_index<N> np, avnd::field_index<NField> nf) {
+        // Re-fetched every frame: the cached view is only refreshed at the end
+        // of a frame, and the upstream renderer may have been released or
+        // recreated in between (a live graph edit deletes its buffers at once),
+        // which left a freed QRhiBuffer* published to the node and bound as a
+        // vertex input (examples/3d/example-big-cube.score).
         score::gfx::BufferView& buf = m_gpubufs[N];
+        buf = getInputBuffer(renderer, parent, nf);
         if(!buf)
-          buf = getInputBuffer(renderer, parent, nf);
-        if(!buf)
+        {
+          t.buffer.handle = nullptr;
+          t.buffer.byte_size = 0;
+          t.buffer.byte_offset = 0;
           return;
+        }
         t.buffer.handle = buf.handle;
         t.buffer.byte_size = buf.byte_size;
         t.buffer.byte_offset = buf.byte_offset;
