@@ -184,8 +184,12 @@ IntervalComponentBase::IntervalComponentBase(
             OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Audio);
             if(auto graph = g.lock())
             {
+              // The outlet may also carry user cables: only the edge into the
+              // parent scenario is the propagation one.
               auto& cables = cst->node->root_outputs()[0]->cables();
-              SCORE_ASSERT(cables.size() == 0);
+              for(auto* c : cables)
+                if(c->in_node == scenar->node)
+                  return;
               auto cable = graph->allocate_edge(
                   ossia::immediate_glutton_connection{}, cst->node->root_outputs()[0],
                   scenar->node->root_inputs()[0], cst->node, scenar->node);
@@ -195,13 +199,19 @@ IntervalComponentBase::IntervalComponentBase(
         }
         else
         {
-          in_exec([g, cst = m_ossia_interval] {
+          in_exec([g, cst = m_ossia_interval, scenar] {
             OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Audio);
             if(auto graph = g.lock())
             {
               auto& cables = cst->node->root_outputs()[0]->cables();
-              SCORE_ASSERT(cables.size() == 1);
-              graph->disconnect(cables.front());
+              for(auto* c : cables)
+              {
+                if(c->in_node == scenar->node)
+                {
+                  graph->disconnect(c);
+                  break;
+                }
+              }
             }
           });
         }
