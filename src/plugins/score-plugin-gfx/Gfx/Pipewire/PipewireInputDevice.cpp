@@ -363,7 +363,7 @@ public:
       int new_w, int new_h, AVPixelFormat new_pixfmt) noexcept override;
 
   int64_t duration() const noexcept { return 0; }
-  void seek(int64_t /*flicks*/) noexcept { }
+  void seek(int64_t /*flicks*/) noexcept override { }
 
   double fps() const noexcept { return m_fps; }
   bool realTime() const noexcept { return true; }
