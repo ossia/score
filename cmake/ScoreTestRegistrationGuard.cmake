@@ -90,6 +90,9 @@ set(SCORE_TEST_GUARD_ALLOWED_HARNESSES
   # document driven by a script, not a single ctest that dies with the first
   # bad file. run-score-corpus.sh exits 77 when the corpus is absent.
   corpus/run-score-corpus.sh
+  # The live-edit fuzzer: plays real documents for minutes per seed and edits
+  # them at random, on the same external corpus. Started by hand.
+  corpus/run-edit-fuzz.sh
 )
 
 # Executables built under tests/ that are deliberately not ctest entries.
@@ -113,6 +116,8 @@ set(SCORE_TEST_GUARD_ALLOWED_TARGETS
   # Hidden curve-edition benchmark, same reason: its one case is a [.tag]
   # that prints timings. Run by hand per the header of CurveBenchmark.cpp.
   test_unit_curve_bench
+  # Driven by corpus/run-edit-fuzz.sh, one process per (document, seed).
+  score_edit_fuzzer
 )
 
 # Every directory the buildsystem created below `dir`, `dir` included.
