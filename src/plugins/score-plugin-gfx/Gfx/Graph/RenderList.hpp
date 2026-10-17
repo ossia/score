@@ -278,6 +278,13 @@ public:
       const ossia::geometry_spec&, QRhiResourceUpdateBatch& res, const Mesh* current,
       MeshBuffers currentbufs) noexcept;
 
+private:
+  //! Drops the acquireMesh cache entries nothing uses any more: the cache
+  //! holds the last reference to their geometry and no renderer draws them.
+  void sweepMeshCache() noexcept;
+
+public:
+
   /**
    * @brief Nodes present in this RenderList, in order
    */

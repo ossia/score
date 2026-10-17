@@ -146,6 +146,7 @@ private:
 
   int64_t meshChangedIndex{-1};
   const Mesh* m_mesh{};
+  const Mesh* currentMesh() const noexcept override { return m_mesh; }
   MeshBuffers m_meshbufs;
 
   // Quad mesh used for MRT blit passes (separate from the geometry mesh)
