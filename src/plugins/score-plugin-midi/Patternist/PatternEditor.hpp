@@ -6,7 +6,10 @@
 
 class QGraphicsScene;
 class QGraphicsView;
+class QCheckBox;
+class QComboBox;
 class QHBoxLayout;
+class QPushButton;
 class QLabel;
 class QSpinBox;
 class QToolButton;
@@ -30,6 +33,9 @@ public:
 
 private:
   void resizeEvent(QResizeEvent* event) override;
+  QWidget* makeLanePanel();
+  void updateLanePanel();
+  void showStepMenu(int lane, int step, QPoint screen);
   void updateBank();
   void updatePatternControls();
   void fitGrid();
@@ -42,6 +48,16 @@ private:
   QToolButton* m_removePattern{};
   QToolButton* m_paste{};
   QLabel* m_status{};
+  QComboBox* m_field{};
+
+  QSpinBox* m_laneLength{};
+  QSpinBox* m_laneDivision{};
+  QSpinBox* m_laneVelocity{};
+  QCheckBox* m_euclid{};
+  QSpinBox* m_pulses{};
+  QSpinBox* m_rotation{};
+  QComboBox* m_euclidMode{};
+  QPushButton* m_print{};
   QSpinBox* m_steps{};
   QSpinBox* m_rate{};
   int m_playing{-1};

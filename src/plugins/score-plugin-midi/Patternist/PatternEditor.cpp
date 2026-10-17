@@ -7,12 +7,17 @@
 #include <ossia/detail/math.hpp>
 
 #include <QApplication>
+#include <QCheckBox>
 #include <QClipboard>
+#include <QComboBox>
+#include <QFormLayout>
 #include <QGraphicsScene>
 #include <QGraphicsView>
+#include <QGroupBox>
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QMenu>
+#include <QPushButton>
 #include <QScrollArea>
 #include <QSpinBox>
 #include <QTimer>
@@ -136,6 +141,17 @@ Editor::Editor(ProcessModel& model, const score::DocumentContext& ctx, QWidget* 
 
     add(tr("Add lane"), tr("Add a lane, a copy of the last one"),
         [this] { m_controller->addLane(); });
+    row->addSpacing(12);
+
+    row->addWidget(new QLabel{tr("Bars"), this});
+    m_field = new QComboBox{this};
+    m_field->setToolTip(
+        tr("The step parameter drawn under the grid, for the selected lane"));
+    for(auto f :
+        {StepField::Velocity, StepField::Chance, StepField::Offset, StepField::Gate,
+         StepField::Ratchet, StepField::Pitch})
+      m_field->addItem(fieldName(f), int(f));
+    row->addWidget(m_field);
     row->addStretch(1);
 
     m_status = new QLabel{this};
@@ -177,16 +193,30 @@ Editor::Editor(ProcessModel& model, const score::DocumentContext& ctx, QWidget* 
       m_controller->fillMenu(menu, m_view->headerLaneAt(m_view->mapFromScene(scene)));
       menu.exec(screen);
     });
-    lay->addWidget(m_graphics, 1);
+    connect(m_field, &QComboBox::currentIndexChanged, this, [this] {
+      m_view->setField(StepField(m_field->currentData().toInt()));
+    });
+    connect(m_view, &View::laneSelected, this, [this] { updateLanePanel(); });
+    connect(
+        m_view, &View::stepMenuRequested, this,
+        [this](int lane, int step, QPoint screen) { showStepMenu(lane, step, screen); });
+
+    auto body = new QHBoxLayout;
+    body->setSpacing(4);
+    body->addWidget(m_graphics, 1);
+    body->addWidget(makeLanePanel());
+    lay->addLayout(body, 1);
   }
 
   con(model, &ProcessModel::patternsChanged, this, [this] {
     updateBank();
     updatePatternControls();
+    updateLanePanel();
   });
   con(model, &ProcessModel::currentPatternChanged, this, [this] {
     updateBank();
     updatePatternControls();
+    updateLanePanel();
   });
   con(model, &ProcessModel::execPattern, this, [this](int cur, int next) {
     if(cur != m_playing || next != m_pending)
@@ -201,7 +231,167 @@ Editor::Editor(ProcessModel& model, const score::DocumentContext& ctx, QWidget* 
 
   updateBank();
   updatePatternControls();
+  updateLanePanel();
   QTimer::singleShot(0, this, [this] { fitGrid(); });
+}
+
+QWidget* Editor::makeLanePanel()
+{
+  auto panel = new QGroupBox{tr("Lane"), this};
+  panel->setFixedWidth(190);
+  auto form = new QFormLayout{panel};
+  form->setContentsMargins(4, 4, 4, 4);
+
+  const auto lane = [this] { return m_view->selectedLane(); };
+
+  m_laneLength = new QSpinBox{panel};
+  m_laneLength->setRange(0, Pattern::maxLength);
+  m_laneLength->setSpecialValueText(tr("Pattern"));
+  m_laneLength->setToolTip(tr("Steps before the lane loops"));
+  m_laneLength->setKeyboardTracking(false);
+  connect(m_laneLength, &QSpinBox::valueChanged, this, [this, lane](int v) {
+    m_controller->editLane(lane(), [v](Lane& l) { l.length = v; });
+  });
+  form->addRow(tr("Steps"), m_laneLength);
+
+  m_laneDivision = new QSpinBox{panel};
+  m_laneDivision->setRange(0, 64);
+  m_laneDivision->setSpecialValueText(tr("Pattern"));
+  m_laneDivision->setPrefix(QStringLiteral("1/"));
+  m_laneDivision->setToolTip(tr("Steps per whole note"));
+  m_laneDivision->setKeyboardTracking(false);
+  connect(m_laneDivision, &QSpinBox::valueChanged, this, [this, lane](int v) {
+    m_controller->editLane(lane(), [v](Lane& l) { l.division = v; });
+  });
+  form->addRow(tr("Rate"), m_laneDivision);
+
+  m_laneVelocity = new QSpinBox{panel};
+  m_laneVelocity->setRange(0, 127);
+  m_laneVelocity->setKeyboardTracking(false);
+  connect(m_laneVelocity, &QSpinBox::valueChanged, this, [this, lane](int v) {
+    m_controller->editLane(lane(), [v](Lane& l) { l.velocity = v / 127.f; });
+  });
+  form->addRow(tr("Velocity"), m_laneVelocity);
+
+  m_euclid = new QCheckBox{tr("Euclidean"), panel};
+  m_euclid->setToolTip(
+      tr("Spread a number of hits as evenly as possible over the lane"));
+  connect(m_euclid, &QCheckBox::toggled, this, [this, lane](bool b) {
+    m_controller->editLane(lane(), [b](Lane& l) { l.euclid.enabled = b; });
+  });
+  form->addRow(m_euclid);
+
+  m_pulses = new QSpinBox{panel};
+  m_pulses->setRange(0, Pattern::maxLength);
+  m_pulses->setKeyboardTracking(false);
+  connect(m_pulses, &QSpinBox::valueChanged, this, [this, lane](int v) {
+    m_controller->editLane(lane(), [v](Lane& l) { l.euclid.pulses = v; });
+  });
+  form->addRow(tr("Hits"), m_pulses);
+
+  m_rotation = new QSpinBox{panel};
+  m_rotation->setRange(-Pattern::maxLength, Pattern::maxLength);
+  m_rotation->setKeyboardTracking(false);
+  connect(m_rotation, &QSpinBox::valueChanged, this, [this, lane](int v) {
+    m_controller->editLane(lane(), [v](Lane& l) { l.euclid.rotation = v; });
+  });
+  form->addRow(tr("Rotation"), m_rotation);
+
+  m_euclidMode = new QComboBox{panel};
+  m_euclidMode->addItem(tr("Replace the steps"), int(EuclidMode::Replace));
+  m_euclidMode->addItem(tr("Add to the steps"), int(EuclidMode::Add));
+  m_euclidMode->addItem(tr("Mask the steps"), int(EuclidMode::Mask));
+  connect(m_euclidMode, &QComboBox::currentIndexChanged, this, [this, lane] {
+    const auto m = EuclidMode(m_euclidMode->currentData().toInt());
+    m_controller->editLane(lane(), [m](Lane& l) { l.euclid.mode = m; });
+  });
+  form->addRow(tr("Mode"), m_euclidMode);
+
+  m_print = new QPushButton{tr("Write into steps"), panel};
+  m_print->setToolTip(tr("Turn the rhythm into ordinary steps, to edit them by hand"));
+  connect(m_print, &QPushButton::clicked, this, [this, lane] {
+    m_controller->printEuclid(lane());
+  });
+  form->addRow(m_print);
+
+  auto random = new QPushButton{tr("Randomize lane"), panel};
+  connect(random, &QPushButton::clicked, this, [this, lane] {
+    m_controller->randomize(lane());
+  });
+  form->addRow(random);
+  return panel;
+}
+
+void Editor::updateLanePanel()
+{
+  if(!m_model || !m_laneLength
+     || !ossia::valid_index(m_model->currentPattern(), m_model->patterns()))
+    return;
+  const auto& p = m_model->patterns()[m_model->currentPattern()];
+  const int lane = m_view->selectedLane();
+  if(!ossia::valid_index(lane, p.lanes))
+    return;
+  const Lane& l = p.lanes[lane];
+
+  QSignalBlocker b0{m_laneLength}, b1{m_laneDivision}, b2{m_laneVelocity}, b3{m_euclid},
+      b4{m_pulses}, b5{m_rotation}, b6{m_euclidMode};
+  m_laneLength->setValue(l.length);
+  m_laneDivision->setValue(l.division);
+  m_laneVelocity->setValue(int(std::lround(l.velocity * 127.f)));
+  m_euclid->setChecked(l.euclid.enabled);
+  m_pulses->setValue(l.euclid.pulses);
+  m_rotation->setValue(l.euclid.rotation);
+  m_euclidMode->setCurrentIndex(m_euclidMode->findData(int(l.euclid.mode)));
+  for(QWidget* w :
+      {(QWidget*)m_pulses, (QWidget*)m_rotation, (QWidget*)m_euclidMode,
+       (QWidget*)m_print})
+    w->setEnabled(l.euclid.enabled);
+}
+
+void Editor::showStepMenu(int lane, int step, QPoint screen)
+{
+  if(!m_model || !ossia::valid_index(m_model->currentPattern(), m_model->patterns()))
+    return;
+  const auto& p = m_model->patterns()[m_model->currentPattern()];
+  if(!ossia::valid_index(lane, p.lanes))
+    return;
+  const StepParams& sp = stepParams(p.lanes[lane], step);
+
+  QMenu menu;
+  auto title = menu.addAction(tr("Step %1 plays").arg(step + 1));
+  title->setEnabled(false);
+  const auto add = [&](QMenu& m, const QString& text, Condition c, int a, int b) {
+    auto act = m.addAction(text);
+    act->setCheckable(true);
+    act->setChecked(
+        sp.condition == c
+        && (c != Condition::Cycle || (sp.cycleA == a && sp.cycleB == b)));
+    connect(act, &QAction::triggered, this, [this, lane, step, c, a, b] {
+      m_controller->setCondition(lane, step, c, a, b);
+    });
+  };
+  add(menu, tr("Always"), Condition::Always, 1, 2);
+  add(menu, tr("Only during a fill"), Condition::Fill, 1, 2);
+  add(menu, tr("Except during a fill"), Condition::NotFill, 1, 2);
+  add(menu, tr("Only the first time"), Condition::First, 1, 2);
+  add(menu, tr("Except the first time"), Condition::NotFirst, 1, 2);
+  auto cycles = menu.addMenu(tr("Every few passes"));
+  for(int b = 2; b <= 8; b++)
+  {
+    auto sub = cycles->addMenu(tr("Out of %1").arg(b));
+    for(int a = 1; a <= b; a++)
+      add(*sub, tr("Pass %1 of %2").arg(a).arg(b), Condition::Cycle, a, b);
+  }
+  menu.addSeparator();
+  connect(
+      menu.addAction(tr("Reset the step's parameters")), &QAction::triggered, this,
+      [this, lane, step] {
+    m_controller->editLane(lane, [step](Lane& l) {
+      if(ossia::valid_index(step, l.params))
+        l.params[step] = StepParams{};
+    });
+  });
+  menu.exec(screen);
 }
 
 Editor::~Editor()
