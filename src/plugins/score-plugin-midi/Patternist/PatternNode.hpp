@@ -486,14 +486,27 @@ public:
         ls.held = -1;
         break;
 
-      case Note::Legato:
-        if(ls.held == note)
-          break;
-        if(ls.held >= 0)
-          push(at, event_kind::note_off, ls.held, 0);
-        push(at, event_kind::note_on, note, velocity);
-        ls.held = note;
+      case Note::Legato: {
+        // The first hit ties on from the step before; a ratchet strikes the
+        // others, each released after its gate, and holds the last into the
+        // next step.
+        if(ls.held != note)
+        {
+          if(ls.held >= 0)
+            push(at, event_kind::note_off, ls.held, 0);
+          push(at, event_kind::note_on, note, velocity);
+          ls.held = note;
+        }
+        const int ratchet = scheduled ? std::max<int>(1, p.ratchet) : 1;
+        const double sub = unit / ratchet;
+        const float gate = std::clamp(p.gate, 0.05f, 1.f);
+        for(int k = 1; k < ratchet; k++)
+        {
+          push(at + (k - 1 + gate) * sub, event_kind::note_off, note, 0);
+          push(at + k * sub, event_kind::note_on, note, velocity);
+        }
         break;
+      }
 
       case Note::Note: {
         if(ls.held >= 0)

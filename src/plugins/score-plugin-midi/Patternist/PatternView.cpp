@@ -626,7 +626,14 @@ void View::paintCells(QPainter* painter, const Pattern& p) const
 
       if(n == Note::Legato)
       {
-        painter->fillRect(cell.adjusted(-gapX - barGap, 0., 0., 0.), noteColor);
+        // Tied to the step before; a ratchet's other hits are marked by gaps.
+        const QRectF tie = cell.adjusted(-gapX - barGap, 0., 0., 0.);
+        painter->fillRect(tie, noteColor);
+        if(sp.ratchet > 1 && cell.width() >= 2. * sp.ratchet)
+          for(int k = 1; k < sp.ratchet; k++)
+            painter->fillRect(
+                QRectF{cell.x() + k * cell.width() / sp.ratchet - 1., cell.y(), 1., cellH},
+                colors.gap);
       }
       else
       {
