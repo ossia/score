@@ -774,8 +774,8 @@ public:
 
       case Note::Legato: {
         // The first hit ties on from the step before; a ratchet strikes the
-        // others, each released after its gate, and holds the last into the
-        // next step.
+        // others, each released after its gate, and the last is held into the
+        // next step unless the gate ends it first.
         if(ls.held != note)
         {
           release_held();
@@ -790,6 +790,12 @@ public:
           push(at + h[k - 1].off * unit, event_kind::note_off, note, 0);
           push(at + h[k].on * unit, event_kind::note_on, note, velocity);
           ls.held_on = at + h[k].on * unit;
+        }
+        // A gate under a step ends the tied note there.
+        if(h[n - 1].off < 1.)
+        {
+          push(at + h[n - 1].off * unit, event_kind::note_off, note, 0);
+          ls.held = -1;
         }
         break;
       }

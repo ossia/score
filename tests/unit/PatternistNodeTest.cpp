@@ -982,7 +982,21 @@ TEST_CASE("patternist: ratchets, gates and offsets are timed in the step", "[mid
     CHECK(std::abs(off[1] - 417) <= 1);
     CHECK(std::abs(off[2] - 500) <= 1);
   }
-  SECTION("ratchet on a tied step that changes pitch")
+  SECTION("a gate ends a tied note")
+  {
+    auto& l = f.node.patterns[0].lanes[0];
+    l.pattern = {Note::Note, Note::Legato, Note::Rest, Note::Rest};
+    l.params[1].gate = 0.5f;
+    musical_tick(f, 0, 1000);
+    const auto msgs = sent(f);
+    std::vector<int64_t> on, off;
+    for(auto& m : msgs)
+      (m.status == note_on ? on : off).push_back(m.timestamp);
+    REQUIRE(on.size() == 1);
+    REQUIRE(off.size() == 1);
+    CHECK(std::abs(off[0] - 375) <= 1);
+  }
+    SECTION("ratchet on a tied step that changes pitch")
   {
     auto& l = f.node.patterns[0].lanes[0];
     l.pattern = {Note::Note, Note::Legato, Note::Rest, Note::Rest};

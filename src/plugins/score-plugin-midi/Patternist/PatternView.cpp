@@ -830,9 +830,10 @@ void View::paintCells(QPainter* painter, const Pattern& p) const
         // other hits are marked by gaps.
         const float vel = stepParams(l, struckStep(p, l, sl.step)).velocity;
         const double vh = cellH * (0.3 + 0.7 * vel);
-        const QRectF tie
-            = QRectF{cell.x(), cell.bottom() - vh, cell.width(), vh}.adjusted(
-                -gapX - barGap, 0., 0., 0.);
+        // Joined to the step before, it ends at its gate.
+        const double gw = cell.width() * std::clamp(sp.gate, 0.05f, 1.f);
+        const QRectF tie = QRectF{cell.x(), cell.bottom() - vh, gw, vh}.adjusted(
+            -gapX - barGap, 0., 0., 0.);
         painter->fillRect(tie, noteColor);
         if(sp.ratchet > 1 && cell.width() >= 2. * sp.ratchet)
         {
@@ -848,15 +849,12 @@ void View::paintCells(QPainter* painter, const Pattern& p) const
       else
       {
         // Height is velocity, width is gate, position is timing, within the
-        // cell: an early note is cut at the cell's start and marked there.
+        // cell: an early note is cut at the cell's start.
         const double vh = cellH * (0.3 + 0.7 * sp.velocity);
         const double gw = cell.width() * std::max(0.25f, sp.gate);
         const QRectF note
             = QRectF{cell.x() + sp.offset * w, cell.bottom() - vh, gw, vh}.intersected(
                 cell);
-        if(sp.offset < 0.f && cell.width() >= 6.)
-          painter->fillRect(
-              QRectF{cell.x(), cell.top(), 1., cellH}, noteColor);
         if(sp.ratchet <= 1 || note.width() < 2. * sp.ratchet)
         {
           painter->fillRect(note, noteColor);
@@ -1000,7 +998,9 @@ void View::paintRings(QPainter* painter, const Pattern& p) const
       {
         const float vel = stepParams(l, struckStep(p, l, sl.step)).velocity;
         painter->fillPath(
-            sector(c, r.inner, r.inner + thick * (0.3 + 0.7 * vel), a - 1.5 * gap, b),
+            sector(
+                c, r.inner, r.inner + thick * (0.3 + 0.7 * vel), a - 1.5 * gap,
+                a + (b - a) * std::clamp(sp.gate, 0.05f, 1.f)),
             noteColor);
         continue;
       }
