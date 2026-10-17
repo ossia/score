@@ -157,7 +157,8 @@ Result run(score::gfx::GraphicsApi backend, bool staleLast)
 
       reg.free(newXform);
       reg.free(newLight);
-      reg.destroy();
+      // destroy() leaks the buffers on purpose (for a QRhi already gone).
+      reg.destroyOwned();
     }
     st->destroy();
   });
