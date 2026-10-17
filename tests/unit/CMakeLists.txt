@@ -1980,3 +1980,13 @@ if(TARGET score_plugin_lv2)
     $<TARGET_PROPERTY:Suil,INTERFACE_INCLUDE_DIRECTORIES>
     "${OSSIA_3RDPARTY_FOLDER}/readerwriterqueue")
 endif()
+
+# Bytebeat formulas, JIT-compiled, against the sound of a JS engine and of C
+if(TARGET score_plugin_jit)
+  score_add_test(test_unit_bytebeat
+    SOURCES BytebeatTest.cpp BytebeatExecTest.cpp
+    APP
+    PLUGINS score_plugin_jit score_plugin_engine score_plugin_scenario score_lib_process)
+  target_include_directories(test_unit_bytebeat PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-jit")
+endif()
