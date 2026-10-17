@@ -1,8 +1,6 @@
 #pragma once
 #include <Process/LayerPresenter.hpp>
 
-#include <score/command/Dispatchers/SingleOngoingCommandDispatcher.hpp>
-
 #include <Patternist/PatternModel.hpp>
 
 #include <nano_observer.hpp>
@@ -10,6 +8,7 @@
 namespace Patternist
 {
 class View;
+class Controller;
 class Presenter final
     : public Process::LayerPresenter
     , public Nano::Observer
@@ -30,8 +29,14 @@ public:
 
   void parentGeometryChanged() override;
 
+  void fillContextMenu(
+      QMenu&, QPoint pos, QPointF scenepos,
+      const Process::LayerContextMenuManager&) override;
+
 private:
   void on_drop(const QPointF& pos, const QMimeData& md);
+
   View* m_view{};
+  Controller* m_controller{};
 };
 }

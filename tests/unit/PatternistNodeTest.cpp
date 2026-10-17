@@ -6,11 +6,11 @@
 // than about the quantization arithmetic, which token_request owns and
 // QuantificationTest covers.
 
-#include <Patternist/PatternNode.hpp>
-
 #include <ossia/dataflow/exec_state_facade.hpp>
 #include <ossia/dataflow/execution_state.hpp>
 
+#include <Patternist/PatternNode.hpp>
+#include <set>
 #include <catch2/catch_test_macros.hpp>
 
 #include <algorithm>
@@ -84,9 +84,12 @@ struct fixture
 
     ossia::exec_state_facade fac{&st};
     ossia::token_request tk{
-        ossia::time_value{0},      ossia::time_value{100},
-        ossia::time_value{100000}, ossia::time_value{offset},
-        speed,                     ossia::time_signature{4, 4},
+        ossia::time_value{0},
+        ossia::time_value{100},
+        ossia::time_value{100000},
+        ossia::time_value{offset},
+        speed,
+        ossia::time_signature{4, 4},
         120.};
     tk.end_discontinuous = discontinuous;
     static_cast<ossia::graph_node&>(node).run(tk, fac);
@@ -105,9 +108,12 @@ struct fixture
 
     ossia::exec_state_facade fac{&st};
     ossia::token_request tk{
-        ossia::time_value{100},    ossia::time_value{0},
-        ossia::time_value{100000}, ossia::time_value{0},
-        -1.,                       ossia::time_signature{4, 4},
+        ossia::time_value{100},
+        ossia::time_value{0},
+        ossia::time_value{100000},
+        ossia::time_value{0},
+        -1.,
+        ossia::time_signature{4, 4},
         120.};
     static_cast<ossia::graph_node&>(node).run(tk, fac);
 
@@ -141,8 +147,7 @@ TEST_CASE("patternist: notes alternating between two lanes", "[midi][pattern]")
   // 36 38 36 38 ... : every step must release the previous lane's note before
   // the new one is struck.
   fixture f;
-  f.set(
-      {lane(36, {Note::Note, Note::Rest}), lane(38, {Note::Rest, Note::Note})}, 2);
+  f.set({lane(36, {Note::Note, Note::Rest}), lane(38, {Note::Rest, Note::Note})}, 2);
 
   auto s0 = f.step();
   REQUIRE(s0.size() == 1);
@@ -164,7 +169,8 @@ TEST_CASE("patternist: notes alternating between two lanes", "[midi][pattern]")
   CHECK(s2[1].note == 36);
 }
 
-TEST_CASE("patternist: a repeated note is released before being struck", "[midi][pattern]")
+TEST_CASE(
+    "patternist: a repeated note is released before being struck", "[midi][pattern]")
 {
   fixture f;
   f.set({lane(36, {Note::Note, Note::Note})}, 2);
@@ -212,7 +218,8 @@ TEST_CASE("patternist: legato holds a note across steps", "[midi][pattern]")
   CHECK(s3[1].note == 36);
 }
 
-TEST_CASE("patternist: a legato step re-strikes a note that is not held", "[midi][pattern]")
+TEST_CASE(
+    "patternist: a legato step re-strikes a note that is not held", "[midi][pattern]")
 {
   fixture f;
   f.set({lane(36, {Note::Legato, Note::Rest})}, 2);
@@ -331,7 +338,8 @@ TEST_CASE("patternist: a degenerate pattern does not divide by zero", "[midi][pa
   CHECK(f.step().empty());
 }
 
-TEST_CASE("patternist: steps past the end of a lane release held notes", "[midi][pattern]")
+TEST_CASE(
+    "patternist: steps past the end of a lane release held notes", "[midi][pattern]")
 {
   // The pattern is longer than the lane: those steps have no content, but a
   // note held from an earlier one still has to come back off.
@@ -387,9 +395,12 @@ TEST_CASE("patternist: a tick covering several steps plays them all", "[midi][pa
 
   ossia::exec_state_facade fac{&f.st};
   ossia::token_request tk{
-      ossia::time_value{0},      ossia::time_value{1000},
-      ossia::time_value{100000}, ossia::time_value{0},
-      1.,                        ossia::time_signature{4, 4},
+      ossia::time_value{0},
+      ossia::time_value{1000},
+      ossia::time_value{100000},
+      ossia::time_value{0},
+      1.,
+      ossia::time_signature{4, 4},
       120.};
   // One quarter note of music: four sixteenths, so four steps.
   tk.musical_start_position = 0.;
@@ -551,9 +562,12 @@ TEST_CASE(
   f.port.messages.clear();
   ossia::exec_state_facade fac{&f.st};
   ossia::token_request tk{
-      ossia::time_value{100},   ossia::time_value{0},
-      ossia::time_value{100000}, ossia::time_value{50},
-      -1.,                       ossia::time_signature{4, 4},
+      ossia::time_value{100},
+      ossia::time_value{0},
+      ossia::time_value{100000},
+      ossia::time_value{50},
+      -1.,
+      ossia::time_signature{4, 4},
       120.};
   tk.end_discontinuous = true;
   static_cast<ossia::graph_node&>(f.node).run(tk, fac);
@@ -612,7 +626,7 @@ TEST_CASE(
   f.node.switch_rate = 0.; // free: as soon as the tick starts
 
   musical_tick(f, 0, 1000);
-  REQUIRE(f.node.in_flight.contains(36));
+  REQUIRE(f.node.in_flight[36] > 0);
 
   f.node.request_pattern(p1);
   musical_tick(f, 1000, 2000);
@@ -622,12 +636,11 @@ TEST_CASE(
     if(const auto d = decode(m); d.status == note_off && d.note == 36)
       released = true;
   CHECK(released);
-  CHECK(!f.node.in_flight.contains(36));
+  CHECK(f.node.in_flight[36] == 0);
   CHECK(f.node.current_pattern == p1);
 }
 
-TEST_CASE(
-    "patternist: a switch still happens without a tempo map", "[midi][pattern]")
+TEST_CASE("patternist: a switch still happens without a tempo map", "[midi][pattern]")
 {
   // A score with no tempo never advances musical time, so there is no bar line
   // to quantize against. The switch has to fall back to the start of the tick
@@ -651,4 +664,433 @@ TEST_CASE(
       struck_new = true;
   CHECK(struck_new);
   CHECK(f.node.current_pattern == p1);
+}
+
+TEST_CASE(
+    "patternist: a muted lane plays nothing and releases what it held",
+    "[midi][pattern]")
+{
+  fixture f;
+  f.set({lane(36, {Note::Note, Note::Note}), lane(38, {Note::Note, Note::Note})}, 2);
+
+  auto s0 = f.step();
+  CHECK(s0.size() == 2);
+
+  f.node.patterns[0].lanes[0].mute = true;
+  auto s1 = f.step();
+  // 36 is released and not played again, 38 is restarted.
+  int on36 = 0, off36 = 0, on38 = 0;
+  for(auto& m : s1)
+  {
+    on36 += m.note == 36 && m.status == note_on;
+    off36 += m.note == 36 && m.status == note_off;
+    on38 += m.note == 38 && m.status == note_on;
+  }
+  CHECK(on36 == 0);
+  CHECK(off36 == 1);
+  CHECK(on38 == 1);
+}
+
+TEST_CASE("patternist: a soloed lane silences the others", "[midi][pattern]")
+{
+  fixture f;
+  f.set({lane(36, {Note::Note}), lane(38, {Note::Note}), lane(42, {Note::Note})}, 1);
+  f.node.patterns[0].lanes[1].solo = true;
+
+  auto s0 = f.step();
+  REQUIRE(s0.size() == 1);
+  CHECK(s0[0].status == note_on);
+  CHECK(s0[0].note == 38);
+}
+
+TEST_CASE("patternist: a muted accent lane writes no accent", "[midi][pattern]")
+{
+  fixture f;
+  f.set({lane(36, {Note::Note}), lane(255, {Note::Note})}, 1);
+  f.node.patterns[0].lanes[1].mute = true;
+  auto& accent = *f.node.accent_out.target<ossia::value_port>();
+  accent.get_data().clear();
+
+  f.step();
+  REQUIRE(!accent.get_data().empty());
+  CHECK(ossia::convert<float>(accent.get_data().back().value) == 0.f);
+}
+
+namespace
+{
+std::vector<decoded> sent(fixture& f)
+{
+  std::vector<decoded> out;
+  for(const auto& m : f.port.messages)
+    out.push_back(decode(m));
+  return out;
+}
+
+std::vector<decoded> ons(const std::vector<decoded>& msgs)
+{
+  std::vector<decoded> out;
+  for(const auto& m : msgs)
+    if(m.status == note_on)
+      out.push_back(m);
+  return out;
+}
+
+//! Gives every lane its parameters, so that they can be set by step.
+void with_params(fixture& f)
+{
+  for(auto& l : f.node.patterns[0].lanes)
+    l.params.resize(l.pattern.size());
+}
+}
+
+TEST_CASE("patternist: a step with no chance never plays", "[midi][pattern]")
+{
+  fixture f;
+  f.set({lane(36, {Note::Note, Note::Note})}, 2);
+  with_params(f);
+  f.node.patterns[0].lanes[0].params[1].chance = 0.f;
+
+  CHECK(ons(f.step()).size() == 1);
+  // The note of step 0 is released and nothing is struck.
+  auto s1 = f.step();
+  CHECK(ons(s1).empty());
+  REQUIRE(s1.size() == 1);
+  CHECK(s1[0].status == note_off);
+}
+
+TEST_CASE("patternist: density scales every chance", "[midi][pattern]")
+{
+  fixture f;
+  f.set({lane(36, {Note::Note})}, 1);
+  f.node.density = 0.f;
+  for(int i = 0; i < 8; i++)
+    CHECK(ons(f.step()).empty());
+
+  f.node.density = 1.f;
+  CHECK(ons(f.step()).size() == 1);
+}
+
+TEST_CASE("patternist: conditions count the lane's passes", "[midi][pattern]")
+{
+  fixture f;
+  f.set({lane(36, {Note::Note})}, 1);
+  with_params(f);
+  auto& p = f.node.patterns[0].lanes[0].params[0];
+
+  SECTION("first")
+  {
+    p.condition = Condition::First;
+    CHECK(ons(f.step()).size() == 1);
+    for(int i = 0; i < 4; i++)
+      CHECK(ons(f.step()).empty());
+  }
+  SECTION("not first")
+  {
+    p.condition = Condition::NotFirst;
+    CHECK(ons(f.step()).empty());
+    CHECK(ons(f.step()).size() == 1);
+  }
+  SECTION("2 of 3")
+  {
+    p.condition = Condition::Cycle;
+    p.cycleA = 2;
+    p.cycleB = 3;
+    std::vector<int> played;
+    for(int i = 0; i < 9; i++)
+      played.push_back(int(ons(f.step()).size()));
+    CHECK(played == std::vector<int>{0, 1, 0, 0, 1, 0, 0, 1, 0});
+  }
+  SECTION("fill")
+  {
+    p.condition = Condition::Fill;
+    CHECK(ons(f.step()).empty());
+    f.node.fill = true;
+    CHECK(ons(f.step()).size() == 1);
+    p.condition = Condition::NotFill;
+    CHECK(ons(f.step()).empty());
+  }
+}
+
+TEST_CASE("patternist: velocity and pitch come from the step and the lane", "[midi][pattern]")
+{
+  fixture f;
+  f.set({lane(36, {Note::Note, Note::Rest})}, 2);
+  with_params(f);
+  auto& l = f.node.patterns[0].lanes[0];
+  l.velocity = 0.5f;
+  l.params[0].velocity = 0.5f;
+  l.params[0].pitch = 2;
+  f.node.velocity_scale = 1.f;
+
+  auto s0 = f.step();
+  REQUIRE(s0.size() == 1);
+  CHECK(s0[0].note == 38);
+  CHECK(
+      cmidi2_ump_get_midi2_note_velocity(f.port.messages[0].data)
+      == libremidi::from_midi1::note_on(0, 38, 32).data[1] >> 16);
+
+  // The release is for the note that was struck.
+  auto s1 = f.step();
+  REQUIRE(s1.size() == 1);
+  CHECK(s1[0].status == note_off);
+  CHECK(s1[0].note == 38);
+}
+
+TEST_CASE("patternist: velocity and pitch vary within the step's range", "[midi][pattern]")
+{
+  fixture f;
+  f.set({lane(60, {Note::Note})}, 1);
+  with_params(f);
+  auto& l = f.node.patterns[0].lanes[0];
+  l.velocity = 1.f;
+  l.params[0].velocity = 0.5f;
+  l.params[0].velocityRandom = 0.25f;
+  l.params[0].pitchRandom = 2;
+  f.node.velocity_scale = 1.f;
+
+  std::set<int> notes, velocities;
+  for(int i = 0; i < 64; i++)
+  {
+    f.step();
+    for(const auto& m : f.port.messages)
+    {
+      if(cmidi2_ump_get_status_code(m.data) != note_on)
+        continue;
+      notes.insert(cmidi2_ump_get_midi2_note_note(m.data));
+      velocities.insert(cmidi2_ump_get_midi2_note_velocity(m.data));
+    }
+  }
+  CHECK(notes.size() > 1);
+  CHECK(*notes.begin() >= 58);
+  CHECK(*notes.rbegin() <= 62);
+  CHECK(velocities.size() > 1);
+  // 0.25 to 0.75 of 127, in 16 bits.
+  const auto v16 = [](int v) {
+    return int(libremidi::from_midi1::note_on(0, 60, v).data[1] >> 16);
+  };
+  CHECK(*velocities.begin() >= v16(31));
+  CHECK(*velocities.rbegin() <= v16(96));
+}
+
+TEST_CASE("patternist: ratchets, gates and offsets are timed in the step", "[midi][pattern]")
+{
+  // One quarter per tick, 1000 samples: a sixteenth step is 250 samples.
+  fixture f;
+  f.set({lane(36, {Note::Note, Note::Rest, Note::Rest, Note::Rest})}, 4);
+  with_params(f);
+  auto& p = f.node.patterns[0].lanes[0].params[0];
+
+  SECTION("ratchet")
+  {
+    p.ratchet = 4;
+    musical_tick(f, 0, 1000);
+    const auto on = ons(sent(f));
+    REQUIRE(on.size() == 4);
+    CHECK(on[0].timestamp == 0);
+    CHECK(std::abs(on[1].timestamp - 62) <= 1);
+    CHECK(std::abs(on[2].timestamp - 125) <= 1);
+    CHECK(std::abs(on[3].timestamp - 187) <= 1);
+    // Each one released before the next.
+    int offs = 0;
+    for(auto& m : sent(f))
+      offs += m.status == note_off;
+    CHECK(offs == 4);
+  }
+  SECTION("the Ratchet input multiplies every step's")
+  {
+    p.ratchet = 2;
+    f.node.ratchet_scale = 3;
+    musical_tick(f, 0, 1000);
+    const auto on = ons(sent(f));
+    REQUIRE(on.size() == 6);
+    CHECK(std::abs(on[1].timestamp - 42) <= 1);
+  }
+  SECTION("a fractional Ratchet input cuts the last gap short")
+  {
+    f.node.ratchet_scale = 1.5f;
+    musical_tick(f, 0, 1000);
+    const auto on = ons(sent(f));
+    REQUIRE(on.size() == 2);
+    CHECK(std::abs(on[1].timestamp - 167) <= 1);
+  }
+  SECTION("pace bends the spacing")
+  {
+    p.ratchet = 4;
+    p.pace = 1.f;
+    musical_tick(f, 0, 1000);
+    const auto on = ons(sent(f));
+    REQUIRE(on.size() == 4);
+    // (k / 4) ^ 0.25: wide first, then tighter and tighter.
+    CHECK(std::abs(on[1].timestamp - 177) <= 1);
+    CHECK(std::abs(on[2].timestamp - 210) <= 1);
+    CHECK(std::abs(on[3].timestamp - 233) <= 1);
+
+    // The Pace input adds to it: back to even spacing.
+    f.node.pace_offset = -1.f;
+    musical_tick(f, 1000, 2000);
+    const auto even = ons(sent(f));
+    REQUIRE(even.size() == 4);
+    CHECK(std::abs(even[1].timestamp - even[0].timestamp - 62) <= 1);
+  }
+  SECTION("a repeat time, in seconds, for the steps that ratchet")
+  {
+    p.ratchet = 2;
+    // 50 ms at 120 BPM is a tenth of a quarter: 100 samples here.
+    f.node.repeat_time_value = {0.05f, 0.f};
+    musical_tick(f, 0, 1000);
+    const auto on = ons(sent(f));
+    REQUIRE(on.size() == 3);
+    CHECK(std::abs(on[1].timestamp - 100) <= 1);
+    CHECK(std::abs(on[2].timestamp - 200) <= 1);
+  }
+  SECTION("a synced repeat time leaves the steps that do not ratchet alone")
+  {
+    f.node.repeat_time_value = {1.f / 32.f, 1.f};
+    musical_tick(f, 0, 1000);
+    CHECK(ons(sent(f)).size() == 1);
+
+    p.ratchet = 2;
+    musical_tick(f, 1000, 2000);
+    const auto on = ons(sent(f));
+    REQUIRE(on.size() == 2);
+    CHECK(std::abs(on[1].timestamp - on[0].timestamp - 125) <= 1);
+  }
+  SECTION("multiplied ratchets are capped")
+  {
+    p.ratchet = 8;
+    f.node.ratchet_scale = 8;
+    musical_tick(f, 0, 1000);
+    CHECK(ons(sent(f)).size() == pattern_node::max_ratchet);
+  }
+  SECTION("ratchet on a tied step")
+  {
+    auto& l = f.node.patterns[0].lanes[0];
+    l.pattern = {Note::Note, Note::Legato, Note::Rest, Note::Rest};
+    l.params[1].ratchet = 3;
+    musical_tick(f, 0, 1000);
+    const auto msgs = sent(f);
+    std::vector<int64_t> on, off;
+    for(auto& m : msgs)
+      (m.status == note_on ? on : off).push_back(m.timestamp);
+    // The tie carries the first hit, the other two strike again.
+    REQUIRE(on.size() == 3);
+    CHECK(on[0] == 0);
+    CHECK(std::abs(on[1] - 333) <= 1);
+    CHECK(std::abs(on[2] - 417) <= 1);
+    REQUIRE(off.size() == 3);
+    CHECK(std::abs(off[0] - 333) <= 1);
+    CHECK(std::abs(off[1] - 417) <= 1);
+    CHECK(std::abs(off[2] - 500) <= 1);
+  }
+  SECTION("a gate ends a tied note")
+  {
+    auto& l = f.node.patterns[0].lanes[0];
+    l.pattern = {Note::Note, Note::Legato, Note::Rest, Note::Rest};
+    l.params[1].gate = 0.5f;
+    musical_tick(f, 0, 1000);
+    const auto msgs = sent(f);
+    std::vector<int64_t> on, off;
+    for(auto& m : msgs)
+      (m.status == note_on ? on : off).push_back(m.timestamp);
+    REQUIRE(on.size() == 1);
+    REQUIRE(off.size() == 1);
+    CHECK(std::abs(off[0] - 375) <= 1);
+  }
+    SECTION("ratchet on a tied step that changes pitch")
+  {
+    auto& l = f.node.patterns[0].lanes[0];
+    l.pattern = {Note::Note, Note::Legato, Note::Rest, Note::Rest};
+    l.params[1].ratchet = 2;
+    l.params[1].pitch = 3;
+    musical_tick(f, 0, 1000);
+    const auto on = ons(sent(f));
+    REQUIRE(on.size() == 3);
+    CHECK(on[1].timestamp == 250);
+    CHECK(on[1].note == 39);
+    CHECK(on[2].timestamp == 375);
+  }
+  SECTION("gate")
+  {
+    p.gate = 0.5f;
+    musical_tick(f, 0, 1000);
+    const auto msgs = sent(f);
+    REQUIRE(msgs.size() == 2);
+    CHECK(msgs[0].status == note_on);
+    CHECK(msgs[0].timestamp == 0);
+    CHECK(msgs[1].status == note_off);
+    CHECK(std::abs(msgs[1].timestamp - 125) <= 1);
+  }
+  SECTION("late")
+  {
+    p.offset = 0.5f;
+    musical_tick(f, 0, 1000);
+    const auto on = ons(sent(f));
+    REQUIRE(on.size() == 1);
+    CHECK(std::abs(on[0].timestamp - 125) <= 1);
+  }
+  SECTION("late, across a tick boundary")
+  {
+    p.offset = 0.5f;
+    musical_tick(f, 0, 100);
+    CHECK(ons(sent(f)).empty());
+    musical_tick(f, 100, 1000);
+    const auto on = ons(sent(f));
+    REQUIRE(on.size() == 1);
+    CHECK(std::abs(on[0].timestamp - 25) <= 1);
+  }
+  SECTION("early")
+  {
+    auto& l = f.node.patterns[0].lanes[0];
+    l.pattern = {Note::Rest, Note::Note, Note::Rest, Note::Rest};
+    l.params[1].offset = -0.5f;
+    musical_tick(f, 0, 1000);
+    const auto on = ons(sent(f));
+    REQUIRE(on.size() == 1);
+    CHECK(std::abs(on[0].timestamp - 125) <= 1);
+  }
+  SECTION("swing")
+  {
+    auto& l = f.node.patterns[0].lanes[0];
+    l.pattern = {Note::Note, Note::Note, Note::Rest, Note::Rest};
+    f.node.swing = 1.f;
+    musical_tick(f, 0, 1000);
+    const auto on = ons(sent(f));
+    REQUIRE(on.size() == 2);
+    CHECK(on[0].timestamp == 0);
+    CHECK(std::abs(on[1].timestamp - 375) <= 1);
+  }
+}
+
+TEST_CASE("patternist: lanes with their own length and division", "[midi][pattern]")
+{
+  fixture f;
+  f.set(
+      {lane(36, {Note::Note, Note::Note, Note::Note, Note::Note}),
+       lane(38, {Note::Note, Note::Rest, Note::Rest, Note::Rest})},
+      4);
+
+  SECTION("division")
+  {
+    // Eighths against sixteenths: two steps per quarter.
+    f.node.patterns[0].lanes[1].division = 8;
+    f.node.patterns[0].lanes[1].pattern = {Note::Note, Note::Note};
+    f.node.patterns[0].lanes[1].length = 2;
+    musical_tick(f, 0, 1000);
+    std::vector<int64_t> at38;
+    for(auto& m : ons(sent(f)))
+      if(m.note == 38)
+        at38.push_back(m.timestamp);
+    CHECK(at38 == std::vector<int64_t>{0, 500});
+  }
+  SECTION("length")
+  {
+    // A three-step lane over a four-step pattern: 38 again on step 3.
+    f.node.patterns[0].lanes[1].length = 3;
+    musical_tick(f, 0, 1000);
+    std::vector<int64_t> at38;
+    for(auto& m : ons(sent(f)))
+      if(m.note == 38)
+        at38.push_back(m.timestamp);
+    CHECK(at38 == std::vector<int64_t>{0, 750});
+  }
 }

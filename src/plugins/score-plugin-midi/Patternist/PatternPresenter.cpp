@@ -1,11 +1,15 @@
 #include "PatternPresenter.hpp"
 
+#include <Process/Dataflow/NodeItem.hpp>
 #include <Process/Focus/FocusDispatcher.hpp>
 
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
+#include <score/tools/Bind.hpp>
 
 #include <Patternist/Commands/PatternProperties.hpp>
+#include <Patternist/PatternController.hpp>
 #include <Patternist/PatternParsing.hpp>
+#include <Patternist/PatternTimeGrid.hpp>
 #include <Patternist/PatternView.hpp>
 
 namespace Patternist
@@ -16,48 +20,32 @@ Presenter::Presenter(
     QObject* parent)
     : LayerPresenter{layer, view, ctx, parent}
     , m_view{view}
+    , m_controller{new Controller{layer, ctx, this}}
 {
   putToFront();
 
+  // In a node the grid has the node's box to itself; in an interval it is laid
+  // out on time, like every other layer.
+  m_view->setMode(
+      qobject_cast<Process::NodeItem*>(parent) ? View::Mode::Fit : View::Mode::Timeline);
+
+  m_controller->attach(*m_view);
+  // On the timeline the grid takes every click, so nothing else would focus
+  // the layer, and the layer menu only opens on the focused one. A node opens
+  // the menu itself: focusing there too would open a second one over it.
+  if(!qobject_cast<Process::NodeItem*>(parent))
+    connect(m_view, &View::pressed, this, [this] {
+      m_context.context.focusDispatcher.focus(this);
+    });
   connect(m_view, &View::dropReceived, this, &Presenter::on_drop);
 
-  connect(m_view, &View::toggled, this, [&](int lane, int index) {
-    auto cur = layer.patterns()[layer.currentPattern()];
-    const auto& l = cur.lanes[lane];
-    auto b = l.pattern[index];
-
-    switch(b)
-    {
-      case Note::Rest:
-        cur.lanes[lane].pattern[index] = Note::Note;
-        break;
-      case Note::Note:
-        cur.lanes[lane].pattern[index] = l.note < 128 ? Note::Legato : Note::Rest;
-        break;
-      case Note::Legato:
-        cur.lanes[lane].pattern[index] = Note::Rest;
-        break;
-    }
-
-    CommandDispatcher<> disp{m_context.context.commandStack};
-    disp.submit<UpdatePattern>(layer, layer.currentPattern(), cur);
-  });
-
-  connect(m_view, &View::noteChanged, this, [&](int lane, int note) {
-    auto cur = layer.patterns()[layer.currentPattern()];
-    cur.lanes[lane].note = note;
-
-    auto& disp = m_context.context.dispatcher;
-    disp.submit<UpdatePattern>(layer, layer.currentPattern(), cur);
-  });
-
-  connect(m_view, &View::noteChangeFinished, this, [&] {
-    auto& disp = m_context.context.dispatcher;
-    disp.commit();
-  });
+  auto grid = new TimeGridWatcher{layer, this};
+  connect(grid, &TimeGridWatcher::changed, m_view, &View::setTimeGrid);
+  m_view->setTimeGrid(grid->grid());
 }
 
 Presenter::~Presenter() { }
+
 void Presenter::setWidth(qreal val, qreal defaultWidth)
 {
   m_view->setWidth(val);
@@ -78,9 +66,20 @@ void Presenter::putBehind()
   m_view->setEnabled(false);
 }
 
-void Presenter::on_zoomRatioChanged(ZoomRatio zr) { }
+void Presenter::on_zoomRatioChanged(ZoomRatio zr)
+{
+  m_view->setZoom(zr);
+}
 
 void Presenter::parentGeometryChanged() { }
+
+void Presenter::fillContextMenu(
+    QMenu& menu, QPoint pos, QPointF scenepos, const Process::LayerContextMenuManager& m)
+{
+  LayerPresenter::fillContextMenu(menu, pos, scenepos, m);
+
+  m_controller->fillMenu(menu, m_view->headerLaneAt(m_view->mapFromScene(scenepos)));
+}
 
 void Presenter::on_drop(const QPointF& pos, const QMimeData& md)
 {

@@ -34,6 +34,11 @@ set(HEADER_FILES
   Patternist/PatternLibrary.hpp
   Patternist/PatternMetadata.hpp
   Patternist/PatternParsing.hpp
+  Patternist/PatternEdit.hpp
+  Patternist/PatternGrid.hpp
+  Patternist/PatternTimeGrid.hpp
+  Patternist/PatternController.hpp
+  Patternist/PatternEditor.hpp
   Patternist/PatternCommandFactory.hpp
   Patternist/PatternInspector.hpp
   Patternist/Commands/PatternProperties.hpp
@@ -63,6 +68,12 @@ set(SOURCE_FILES
   Patternist/PatternPresenter.cpp
   Patternist/PatternExecutor.cpp
   Patternist/PatternParsing.cpp
+  Patternist/PatternEdit.cpp
+  Patternist/PatternGrid.cpp
+  Patternist/PatternTimeGrid.cpp
+  Patternist/PatternController.cpp
+  Patternist/PatternEditor.cpp
+  Patternist/PatternFactory.cpp
 
   "${CMAKE_CURRENT_SOURCE_DIR}/score_plugin_midi.cpp"
   )

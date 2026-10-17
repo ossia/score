@@ -18,7 +18,8 @@ double dragValue(QGraphicsSceneMouseEvent* event, int min, int max) noexcept
 {
   InfiniteScroller::move_free(event);
 
-  double v = InfiniteScroller::origValue - InfiniteScroller::currentDelta / pixelsPerNote;
+  double v
+      = InfiniteScroller::origValue - InfiniteScroller::currentDelta / pixelsPerNote;
   if(v <= min)
   {
     InfiniteScroller::currentDelta = (InfiniteScroller::origValue - min) * pixelsPerNote;
@@ -43,7 +44,9 @@ QGraphicsNoteChooser::QGraphicsNoteChooser(QGraphicsItem* parent)
 {
   auto& skin = score::Skin::instance();
   setCursor(skin.CursorScaleV);
-  this->setAcceptedMouseButtons(Qt::LeftButton | Qt::RightButton);
+  // Right-click is for the owner's context menu: a drag started by it would
+  // hide the cursor under the menu.
+  this->setAcceptedMouseButtons(Qt::LeftButton);
 }
 
 void QGraphicsNoteChooser::setValue(int v)
@@ -67,6 +70,29 @@ void QGraphicsNoteChooser::setValue(int v)
 int QGraphicsNoteChooser::value() const
 {
   return m_value;
+}
+
+void QGraphicsNoteChooser::setSize(QSizeF sz)
+{
+  if(sz.width() != m_width || sz.height() != m_height)
+  {
+    prepareGeometryChange();
+    m_width = sz.width();
+    m_height = sz.height();
+    update();
+  }
+}
+
+void QGraphicsNoteChooser::setFormatter(std::function<QString(int)> f)
+{
+  m_format = std::move(f);
+  update();
+}
+
+void QGraphicsNoteChooser::setFont(const QFont& f)
+{
+  m_font = f;
+  update();
 }
 
 void QGraphicsNoteChooser::mousePressEvent(QGraphicsSceneMouseEvent* event)
@@ -158,7 +184,7 @@ void QGraphicsNoteChooser::paint(
 {
   auto& style = score::Skin::instance();
   //const QPen& text = style.Gray.main.pen1;
-  const QFont& textFont = style.MonoFontSmall;
+  const QFont& textFont = m_font ? *m_font : style.MonoFontSmall;
   const QPen& currentText = style.Base4.lighter180.pen1;
   // const QBrush& bg = style.SliderBrush;
   // const QPen& noPen = style.NoPen;
@@ -169,9 +195,19 @@ void QGraphicsNoteChooser::paint(
 
   //painter->drawRect(boundingRect());
   painter->setPen(currentText);
-  painter->drawText(
-      boundingRect(), QString{"%1\n%2"}.arg(noteText(m_value)).arg(m_value),
-      QTextOption(Qt::AlignLeft));
+  if(m_format)
+  {
+    const QRectF r = boundingRect();
+    const QString text = painter->fontMetrics().elidedText(
+        m_format(m_value), Qt::ElideRight, r.width());
+    painter->drawText(r, Qt::AlignLeft | Qt::AlignVCenter, text);
+  }
+  else
+  {
+    painter->drawText(
+        boundingRect(), QString{"%1\n%2"}.arg(noteText(m_value)).arg(m_value),
+        QTextOption(Qt::AlignLeft));
+  }
 }
 }
 

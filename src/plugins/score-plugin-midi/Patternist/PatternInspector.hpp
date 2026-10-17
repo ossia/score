@@ -2,18 +2,18 @@
 #include <Process/Inspector/ProcessInspectorWidgetDelegate.hpp>
 #include <Process/Inspector/ProcessInspectorWidgetDelegateFactory.hpp>
 
-#include <score/command/Dispatchers/OngoingCommandDispatcher.hpp>
+#include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/document/DocumentContext.hpp>
 #include <score/tools/Bind.hpp>
-#include <score/widgets/DoubleSlider.hpp>
-#include <score/widgets/SignalUtils.hpp>
 
 #include <ossia/detail/math.hpp>
 
+#include <QComboBox>
 #include <QFormLayout>
 #include <QSpinBox>
 
 #include <Patternist/Commands/PatternProperties.hpp>
+#include <Patternist/PatternEdit.hpp>
 #include <Patternist/PatternModel.hpp>
 
 namespace Patternist
@@ -24,143 +24,107 @@ public:
   explicit InspectorWidget(
       const ProcessModel& obj, const score::DocumentContext& doc, QWidget* parent)
       : InspectorWidgetDelegate_T{obj, parent}
-      , m_dispatcher{doc.dispatcher}
+      , m_dispatcher{doc.commandStack}
       , m_channel{this}
       , m_lanes{this}
-      , m_duration{this}
+      , m_length{this}
       , m_rate{this}
+      , m_labels{this}
   {
-    m_duration.setRange(4, 32);
-    m_rate.setRange(1, 64);
     m_channel.setRange(1, 16);
     m_lanes.setRange(1, 127);
+    m_length.setRange(1, Pattern::maxLength);
+    m_rate.setRange(1, 64);
+    m_rate.setPrefix(QStringLiteral("1/"));
+    m_rate.setToolTip(tr("Steps per whole note"));
+    for(auto box : {&m_channel, &m_lanes, &m_length, &m_rate})
+      box->setKeyboardTracking(false);
 
-    m_channel.setValue(obj.channel());
-
-    if(!ossia::valid_index(obj.currentPattern(), obj.patterns()))
-      return;
-    const Pattern& pat = obj.patterns()[obj.currentPattern()];
-    m_lanes.setValue(pat.lanes.size());
-    m_duration.setValue(pat.length);
-    m_rate.setValue(pat.division);
+    m_labels.addItem(tr("Note and number"), int(LaneLabels::NameAndNumber));
+    m_labels.addItem(tr("Note name"), int(LaneLabels::Name));
+    m_labels.addItem(tr("MIDI number"), int(LaneLabels::Number));
+    m_labels.addItem(tr("General MIDI drum"), int(LaneLabels::DrumName));
 
     auto lay = new QFormLayout{this};
-
-    con(process(), &ProcessModel::channelChanged, this, [&](int c) {
-      if(c != m_channel.value())
-        m_channel.setValue(c);
-    });
-    con(process(), &ProcessModel::currentPatternChanged, this, [&](int c) {
-      const Pattern& pat = obj.patterns()[c];
-      m_lanes.blockSignals(true);
-      m_duration.blockSignals(true);
-      m_rate.blockSignals(true);
-
-      m_lanes.setValue(pat.lanes.size());
-      m_duration.setValue(pat.length);
-      m_rate.setValue(pat.division);
-
-      m_lanes.blockSignals(false);
-      m_duration.blockSignals(false);
-      m_rate.blockSignals(false);
-    });
-    con(process(), &ProcessModel::patternsChanged, this, [&] {
-      if(!ossia::valid_index(obj.currentPattern(), obj.patterns()))
-        return;
-
-      const Pattern& pat = obj.patterns()[obj.currentPattern()];
-      m_lanes.blockSignals(true);
-      m_duration.blockSignals(true);
-      m_rate.blockSignals(true);
-
-      m_lanes.setValue(pat.lanes.size());
-      m_duration.setValue(pat.length);
-      m_rate.setValue(pat.division);
-
-      m_lanes.blockSignals(false);
-      m_duration.blockSignals(false);
-      m_rate.blockSignals(false);
-    });
-
-    con(m_channel, qOverload<int>(&QSpinBox::valueChanged), this, [&](int v) {
-      if(v != obj.channel())
-        m_dispatcher.submit<SetPatternChannel>(obj, v);
-    });
-    con(m_channel, &QSpinBox::editingFinished, this, [&] { m_dispatcher.commit(); });
-
-    con(m_lanes, qOverload<int>(&QSpinBox::valueChanged), this, [&](int nn) {
-      if(nn <= 0)
-        return;
-
-      if(!ossia::valid_index(obj.currentPattern(), obj.patterns()))
-        return;
-
-      const std::size_t n = nn;
-
-      auto p = obj.patterns()[obj.currentPattern()];
-      if(n == p.lanes.size())
-      {
-        return;
-      }
-      else if(n < p.lanes.size())
-      {
-        p.lanes.resize(n);
-      }
-      else
-      {
-        auto last_lane = p.lanes.back();
-        while(p.lanes.size() < n)
-          p.lanes.push_back(last_lane);
-      }
-
-      m_dispatcher.submit<UpdatePattern>(obj, obj.currentPattern(), p);
-    });
-
-    con(m_lanes, &QSpinBox::editingFinished, this, [&]() { m_dispatcher.commit(); });
-
-    con(m_duration, qOverload<int>(&QSpinBox::valueChanged), this, [&]() {
-      int n = m_duration.value();
-      if(n <= 0)
-        return;
-
-      auto p = obj.patterns()[obj.currentPattern()];
-      if(p.length == n)
-        return;
-
-      p.length = n;
-      if(p.length > int64_t(p.lanes[0].pattern.size()))
-      {
-        for(auto& lane : p.lanes)
-        {
-          lane.pattern.resize(n);
-        }
-      }
-
-      m_dispatcher.submit<UpdatePattern>(obj, obj.currentPattern(), p);
-    });
-    con(m_duration, &QSpinBox::editingFinished, this, [&]() { m_dispatcher.commit(); });
-
-    con(m_rate, &QDoubleSpinBox::editingFinished, this, [&] {
-      auto p = obj.patterns()[obj.currentPattern()];
-      if(p.division != m_rate.value())
-        p.division = m_rate.value();
-      m_dispatcher.submit<UpdatePattern>(obj, obj.currentPattern(), p);
-      m_dispatcher.commit();
-    });
-
     lay->addRow(tr("Channel"), &m_channel);
     lay->addRow(tr("Lanes"), &m_lanes);
-    lay->addRow(tr("Steps"), &m_duration);
+    lay->addRow(tr("Steps"), &m_length);
     lay->addRow(tr("Rate"), &m_rate);
+    lay->addRow(tr("Labels"), &m_labels);
+
+    updateFromModel();
+
+    con(obj, &ProcessModel::channelChanged, this, [this] { updateFromModel(); });
+    con(obj, &ProcessModel::currentPatternChanged, this, [this] { updateFromModel(); });
+    con(obj, &ProcessModel::patternsChanged, this, [this] { updateFromModel(); });
+    con(obj, &ProcessModel::laneLabelsChanged, this, [this] { updateFromModel(); });
+
+    con(m_channel, qOverload<int>(&QSpinBox::valueChanged), this, [this](int v) {
+      if(v != process().channel())
+        m_dispatcher.submit<SetPatternChannel>(process(), v);
+    });
+
+    con(m_lanes, qOverload<int>(&QSpinBox::valueChanged), this, [this](int n) {
+      editPattern([n](Pattern& p) {
+        if(n < int(p.lanes.size()))
+          p.lanes.resize(n);
+        while(int(p.lanes.size()) < n)
+          addLane(p);
+      });
+    });
+
+    con(m_length, qOverload<int>(&QSpinBox::valueChanged), this,
+        [this](int n) { editPattern([n](Pattern& p) { setLength(p, n); }); });
+
+    con(m_rate, qOverload<int>(&QSpinBox::valueChanged), this,
+        [this](int n) { editPattern([n](Pattern& p) { p.division = n; }); });
+
+    con(m_labels, qOverload<int>(&QComboBox::currentIndexChanged), this, [this](int) {
+      const auto l = LaneLabels(m_labels.currentData().toInt());
+      if(l != process().laneLabels())
+        m_dispatcher.submit<SetLaneLabels>(process(), l);
+    });
   }
 
 private:
-  OngoingCommandDispatcher& m_dispatcher;
+  template <typename F>
+  void editPattern(F f)
+  {
+    const auto& obj = process();
+    if(!ossia::valid_index(obj.currentPattern(), obj.patterns()))
+      return;
+    auto p = obj.patterns()[obj.currentPattern()];
+    f(p);
+    normalize(p);
+    if(p != obj.patterns()[obj.currentPattern()])
+      m_dispatcher.submit<UpdatePattern>(obj, obj.currentPattern(), p);
+  }
+
+  void updateFromModel()
+  {
+    const auto& obj = process();
+    QSignalBlocker b0{m_channel}, b1{m_lanes}, b2{m_length}, b3{m_rate}, b4{m_labels};
+    m_channel.setValue(obj.channel());
+    m_labels.setCurrentIndex(m_labels.findData(int(obj.laneLabels())));
+
+    const bool valid = ossia::valid_index(obj.currentPattern(), obj.patterns());
+    for(auto box : {&m_lanes, &m_length, &m_rate})
+      box->setEnabled(valid);
+    if(!valid)
+      return;
+    const Pattern& pat = obj.patterns()[obj.currentPattern()];
+    m_lanes.setValue(pat.lanes.size());
+    m_length.setValue(pat.length);
+    m_rate.setValue(pat.division);
+  }
+
+  CommandDispatcher<> m_dispatcher;
 
   QSpinBox m_channel;
   QSpinBox m_lanes;
-  QSpinBox m_duration;
-  QDoubleSpinBox m_rate;
+  QSpinBox m_length;
+  QSpinBox m_rate;
+  QComboBox m_labels;
 };
 class InspectorFactory final
     : public Process::InspectorWidgetDelegateFactory_T<ProcessModel, InspectorWidget>

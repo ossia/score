@@ -15,4 +15,6 @@ PROCESS_METADATA(
     "Sequence MIDI drum patterns on a step grid.", "ossia score", {}, {},
     {std::vector<Process::PortType>{Process::PortType::Midi}},
     QUrl("https://ossia.io/score-docs/processes/patternist.html#midi-pattern-sequencer"),
-    Process::ProcessFlags::SupportsLasting | Process::ProcessFlags::PutInNewSlot)
+    Process::ProcessFlags::SupportsLasting | Process::ProcessFlags::PutInNewSlot
+        | Process::ProcessFlags::ExternalUIAvailable
+        | Process::ProcessFlags::ExternalUIEmbeddable)
