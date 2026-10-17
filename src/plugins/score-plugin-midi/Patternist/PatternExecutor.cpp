@@ -40,11 +40,16 @@ Executor::Executor(
   element.velocity->setupExecution(node->velocity_in, this);
   element.swing->setupExecution(node->swing_in, this);
   element.ratchet->setupExecution(node->ratchet_in, this);
+  element.pace->setupExecution(node->pace_in, this);
+  element.repeatTime->setupExecution(node->repeat_time_in, this);
   node->fill = ossia::convert<bool>(element.fill->value());
   node->density = ossia::convert<float>(element.density->value());
   node->velocity_scale = ossia::convert<float>(element.velocity->value());
   node->swing = ossia::convert<float>(element.swing->value());
-  node->ratchet_scale = std::clamp(ossia::convert<int>(element.ratchet->value()), 1, 8);
+  node->ratchet_scale
+      = std::clamp(ossia::convert<float>(element.ratchet->value()), 1.f, 8.f);
+  node->pace_offset = std::clamp(ossia::convert<float>(element.pace->value()), -1.f, 1.f);
+  node->repeat_time_value = ossia::convert<ossia::vec2f>(element.repeatTime->value());
 
   con(element, &Patternist::ProcessModel::channelChanged, this, [this, node](int c) {
     in_exec([node, c = to_midi_channel(c)] { node->set_channel(c); });
@@ -80,9 +85,19 @@ Executor::Executor(
   });
   con(*element.ratchet, &Process::ControlInlet::valueChanged, this,
       [this, node](const ossia::value& v) {
-    in_exec([node, r = std::clamp(ossia::convert<int>(v), 1, 8)] {
+    in_exec([node, r = std::clamp(ossia::convert<float>(v), 1.f, 8.f)] {
       node->ratchet_scale = r;
     });
+  });
+  con(*element.pace, &Process::ControlInlet::valueChanged, this,
+      [this, node](const ossia::value& v) {
+    in_exec([node, p = std::clamp(ossia::convert<float>(v), -1.f, 1.f)] {
+      node->pace_offset = p;
+    });
+  });
+  con(*element.repeatTime, &Process::ControlInlet::valueChanged, this,
+      [this, node](const ossia::value& v) {
+    in_exec([node, t = ossia::convert<ossia::vec2f>(v)] { node->repeat_time_value = t; });
   });
 
   // Built here so that the audio thread only has to move it in.

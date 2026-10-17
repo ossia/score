@@ -92,6 +92,7 @@ enum class StepField : uint8_t
   Offset,
   Gate,
   Ratchet,
+  Pace,
   Pitch,
   PitchRandom
 };
@@ -114,6 +115,8 @@ SCORE_PLUGIN_MIDI_EXPORT QString fieldText(StepField f, float v);
 //! mostly single hits with a few ratchets.
 SCORE_PLUGIN_MIDI_EXPORT void
 randomizeField(Pattern& p, std::mt19937& rng, StepField f, int lane = -1) noexcept;
+//! A random value of one parameter, in the range randomizeField uses.
+SCORE_PLUGIN_MIDI_EXPORT float randomFieldValue(StepField f, std::mt19937& rng) noexcept;
 //! Puts one parameter back to its default.
 SCORE_PLUGIN_MIDI_EXPORT void resetField(Pattern& p, StepField f, int lane = -1) noexcept;
 

@@ -33,6 +33,8 @@ public:
   ossia::value_inlet velocity_in;
   ossia::value_inlet swing_in;
   ossia::value_inlet ratchet_in;
+  ossia::value_inlet pace_in;
+  ossia::value_inlet repeat_time_in;
   ossia::midi_outlet out;
   ossia::value_outlet accent_out;
   ossia::value_outlet slide_out;
@@ -52,8 +54,16 @@ public:
   float density{1.f};
   float velocity_scale{1.f};
   float swing{0.f};
-  //! Multiplies every step's ratchet, 1 - 8.
-  int ratchet_scale{1};
+  //! Multiplies every step's ratchet, 1 - 8, fractions included.
+  float ratchet_scale{1.f};
+  //! Added to every step's pace, -1 - 1.
+  float pace_offset{0.f};
+  //! When above 0, the steps that ratchet repeat every so many quarters
+  //! instead of dividing the step by their ratchet.
+  double repeat_time{0.};
+  //! The time chooser's value: {seconds, 0} or {whole notes, synced}.
+  ossia::vec2f repeat_time_value{0.f, 0.f};
+  double tempo{120.};
   //! A step's hits once multiplied, held to what a step can still tell apart.
   static constexpr int max_ratchet = 16;
 
@@ -117,6 +127,8 @@ public:
     m_inlets.push_back(&velocity_in);
     m_inlets.push_back(&swing_in);
     m_inlets.push_back(&ratchet_in);
+    m_inlets.push_back(&pace_in);
+    m_inlets.push_back(&repeat_time_in);
     m_outlets.push_back(&out);
     m_outlets.push_back(&accent_out);
     m_outlets.push_back(&slide_out);
@@ -184,7 +196,11 @@ public:
     if(auto& d = swing_in->get_data(); !d.empty())
       swing = std::clamp(ossia::convert<float>(d.back().value), 0.f, 1.f);
     if(auto& d = ratchet_in->get_data(); !d.empty())
-      ratchet_scale = std::clamp(ossia::convert<int>(d.back().value), 1, 8);
+      ratchet_scale = std::clamp(ossia::convert<float>(d.back().value), 1.f, 8.f);
+    if(auto& d = pace_in->get_data(); !d.empty())
+      pace_offset = std::clamp(ossia::convert<float>(d.back().value), -1.f, 1.f);
+    if(auto& d = repeat_time_in->get_data(); !d.empty())
+      repeat_time_value = ossia::convert<ossia::vec2f>(d.back().value);
   }
 
   void run(const ossia::token_request& tk, ossia::exec_state_facade st) noexcept override
@@ -194,6 +210,9 @@ public:
     // Before every early return below: the inlets are cleared once the node has
     // run, so a request read later than this is a request lost.
     read_controls();
+    if(tk.tempo > 0.)
+      tempo = tk.tempo;
+    update_repeat_time();
 
     const double samplesratio = st.modelToSamples();
     // The magnitude of the speed: dividing by a negative speed while rewinding
@@ -412,13 +431,53 @@ public:
   }
 
   //! Every other step is delayed, by up to half a step.
-  //! How many times a step strikes: a single hit when there is no musical
-  //! position to place the others at.
-  int hits(const StepParams& p, bool scheduled) const noexcept
+  void update_repeat_time() noexcept
   {
-    if(!scheduled)
+    const auto [x, mode] = repeat_time_value;
+    if(!(x > 0.f))
+      repeat_time = 0.;
+    else if(mode != 0.f)
+      repeat_time = 4. * x;
+    else
+      repeat_time = x * tempo / 60.;
+  }
+
+  //! Where a step's hits start and end, in fractions of the step. Its
+  //! ratchet, times the Ratchet input, divides the step; with a repeat time,
+  //! the steps that ratchet repeat at that interval instead, divided by the
+  //! Ratchet input. The last gap may be cut short by the next step. The pace
+  //! then bends the spacing: positive starts wide and tightens, negative the
+  //! other way round.
+  struct hit
+  {
+    double on, off;
+  };
+  int hits(
+      const StepParams& p, double unit, bool scheduled,
+      std::array<hit, max_ratchet>& out) const noexcept
+  {
+    const double gate = std::clamp(p.gate, 0.05f, 1.f);
+    if(!scheduled || unit <= 0.)
+    {
+      out[0] = {0., scheduled ? gate : 1.};
       return 1;
-    return std::clamp(std::max<int>(1, p.ratchet) * ratchet_scale, 1, max_ratchet);
+    }
+
+    double gap = 1. / (std::max<int>(1, p.ratchet) * ratchet_scale);
+    if(repeat_time > 0. && p.ratchet > 1)
+      gap = repeat_time / ratchet_scale / unit;
+    const int n = std::clamp(int(std::ceil(1. / gap - 1e-6)), 1, max_ratchet);
+
+    const double pace = std::clamp(p.pace + pace_offset, -1.f, 1.f);
+    const double exponent = std::exp2(-2. * pace);
+    const auto bend = [&](double x) { return std::pow(std::min(x, 1.), exponent); };
+    for(int k = 0; k < n; k++)
+    {
+      const double on = bend(k * gap);
+      const double next = k + 1 < n ? bend((k + 1) * gap) : 1.;
+      out[k] = {on, on + gate * (next - on)};
+    }
+    return n;
   }
 
   double swing_delay(int step) const noexcept
@@ -514,13 +573,12 @@ public:
           push(at, event_kind::note_on, note, velocity);
           ls.held = note;
         }
-        const int ratchet = hits(p, scheduled);
-        const double sub = unit / ratchet;
-        const float gate = std::clamp(p.gate, 0.05f, 1.f);
-        for(int k = 1; k < ratchet; k++)
+        std::array<hit, max_ratchet> h;
+        const int n = hits(p, unit, scheduled, h);
+        for(int k = 1; k < n; k++)
         {
-          push(at + (k - 1 + gate) * sub, event_kind::note_off, note, 0);
-          push(at + k * sub, event_kind::note_on, note, velocity);
+          push(at + h[k - 1].off * unit, event_kind::note_off, note, 0);
+          push(at + h[k].on * unit, event_kind::note_on, note, velocity);
         }
         break;
       }
@@ -530,20 +588,16 @@ public:
           push(at, event_kind::note_off, ls.held, 0);
         ls.held = -1;
 
-        const int ratchet = hits(p, scheduled);
-        const float gate = scheduled ? p.gate : 1.f;
-        const double sub = unit / ratchet;
-        for(int k = 0; k < ratchet; k++)
+        std::array<hit, max_ratchet> h;
+        const int n = hits(p, unit, scheduled, h);
+        for(int k = 0; k < n; k++)
         {
-          const double on = at + k * sub;
-          push(on, event_kind::note_on, note, velocity);
-          if(k + 1 < ratchet)
-            push(on + std::min(1.f, std::max(gate, 0.05f)) * sub, event_kind::note_off,
-                 note, 0);
-          else if(gate >= 1.f)
+          push(at + h[k].on * unit, event_kind::note_on, note, velocity);
+          // The last hit with a full gate holds until the next step.
+          if(k + 1 == n && h[k].off >= 1.)
             ls.held = note;
           else
-            push(on + std::max(gate, 0.05f) * sub, event_kind::note_off, note, 0);
+            push(at + h[k].off * unit, event_kind::note_off, note, 0);
         }
         break;
       }
