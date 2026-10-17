@@ -41,6 +41,7 @@ private:
   void updatePatternControls();
   void fitGrid();
   //! The selected steps when there are some, the whole pattern otherwise.
+  void setRings(bool b);
   void copy();
   void paste();
   void clear();
