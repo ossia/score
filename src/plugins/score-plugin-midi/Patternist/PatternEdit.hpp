@@ -37,6 +37,30 @@ QMimeData* patternToMime(const Pattern& p);
 SCORE_PLUGIN_MIDI_EXPORT
 std::optional<Pattern> patternFromMime(const QMimeData& mime);
 
+//! The step parameters the editor draws as bars.
+enum class StepField : uint8_t
+{
+  Velocity,
+  Chance,
+  Offset,
+  Gate,
+  Ratchet,
+  Pitch
+};
+
+struct FieldRange
+{
+  float min, max;
+  //! Bars start from this value: 0 for most, the middle for offsets and pitch.
+  float origin;
+};
+SCORE_PLUGIN_MIDI_EXPORT FieldRange fieldRange(StepField f) noexcept;
+SCORE_PLUGIN_MIDI_EXPORT QString fieldName(StepField f);
+SCORE_PLUGIN_MIDI_EXPORT float stepField(const StepParams& p, StepField f) noexcept;
+SCORE_PLUGIN_MIDI_EXPORT void setStepField(StepParams& p, StepField f, float v) noexcept;
+//! The value as the editor writes it next to its bar.
+SCORE_PLUGIN_MIDI_EXPORT QString fieldText(StepField f, float v);
+
 //! What a lane header shows for a note.
 SCORE_PLUGIN_MIDI_EXPORT QString laneLabel(int note, LaneLabels mode);
 }

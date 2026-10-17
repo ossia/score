@@ -46,6 +46,21 @@ public:
   void setLength(int length);
   void setDivision(int division);
 
+  //! One-shot edits of a lane, as one undo step.
+  template <typename F>
+  void editLane(int lane, F&& f)
+  {
+    if(!hasPattern())
+      return;
+    auto p = current();
+    if(lane < 0 || lane >= int(p.lanes.size()))
+      return;
+    f(p.lanes[lane]);
+    submit(p);
+  }
+  void printEuclid(int lane);
+  void setCondition(int lane, int step, Condition c, int a, int b);
+
   void selectPattern(int index);
   void duplicatePattern();
   void removePattern();
