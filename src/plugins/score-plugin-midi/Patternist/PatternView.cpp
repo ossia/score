@@ -36,8 +36,8 @@ constexpr double button_h = 18;
 constexpr double min_button_h = 12;
 //! The editor scrolls rather than make the lanes lower than this.
 constexpr double min_lane_height = 20;
-//! With rings: the rows of the lane list, and the room for step numbers.
-constexpr double ring_row_height = 30;
+//! With rings: the lane cards at their tallest, and the room for step numbers.
+constexpr double ring_row_height = 76;
 constexpr double ring_numbers = 16;
 constexpr double name_h = 20;
 constexpr double numbers_height = 18;
@@ -133,8 +133,10 @@ View::View(const Patternist::ProcessModel& model, QGraphicsItem* parent)
   setFlag(QGraphicsItem::ItemClipsChildrenToShape);
   setToolTip(
       tr("Pattern sequencer\n"
-         "Click: add or remove a note · Shift-click: tie to the previous step\n"
-         "Right-click on a note: remove it · Drag: paint over several steps\n"
+         "Click: add or remove a note\n"
+         "Shift-click: tie to the previous step\n"
+         "Right-click on a note: remove it\n"
+         "Drag: paint over several steps\n"
          "Drag a lane name up or down: change its note\n"
          "In the parameter bars: Shift-drag moves them all, Alt-drag blends them "
          "towards a random state"));
@@ -466,8 +468,8 @@ double View::laneHeight() const noexcept
   if(!p || p->lanes.empty())
     return 0.;
   const double h = std::max(0., gridBottom() - gridTop()) / p->lanes.size();
-  // With rings, the headers are a list of rows: as tall as a name and its
-  // buttons, no taller.
+  // With rings, the headers are the same cards as on the grid, stacked from
+  // the top: as tall as a name, its buttons, its steps and rate, no taller.
   return ringsMode() ? std::min(h, ring_row_height) : h;
 }
 
@@ -1081,7 +1083,7 @@ void View::paintRings(QPainter* painter, const Pattern& p) const
       painter->setPen(skin.Gray.lighter.pen1);
       painter->drawText(
           box.adjusted(0., hole * 0.35, 0., 0.), Qt::AlignCenter,
-          tr("%1 hits · %2 steps · 1/%3").arg(hits).arg(len).arg(laneDivision(p, l)));
+          tr("%1 hits, %2 steps, 1/%3").arg(hits).arg(len).arg(laneDivision(p, l)));
     }
   }
 
@@ -1246,7 +1248,7 @@ void View::paintStatus(QPainter* painter) const
   else if(m_execPattern >= 0 && m_execPattern != m_model.currentPattern())
     text = tr("Playing pattern %1").arg(m_execPattern);
   if(m_pendingPattern >= 0 && m_execPattern >= 0)
-    text += (text.isEmpty() ? QString{} : QStringLiteral(" · "))
+    text += (text.isEmpty() ? QString{} : QStringLiteral(", "))
             + tr("next: pattern %1").arg(m_pendingPattern);
   if(text.isEmpty())
     return;
