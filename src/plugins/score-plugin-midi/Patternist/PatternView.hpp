@@ -95,6 +95,11 @@ public:
   //! For `lane`, or every lane when it is -1.
   void fieldRandomized(int lane, int field) W_SIGNAL(fieldRandomized, lane, field);
   void fieldReset(int lane, int field) W_SIGNAL(fieldReset, lane, field);
+  //! A lane's steps (0) or rate (1) dragged in its header; 0 follows the
+  //! pattern.
+  void laneValueEdited(int lane, int which, int value)
+      W_SIGNAL(laneValueEdited, lane, which, value);
+  void laneValueEditFinished() W_SIGNAL(laneValueEditFinished);
 
 private:
   static constexpr StepField allFields[]
@@ -105,10 +110,17 @@ private:
   static constexpr int mute_button = 1000;
   static constexpr int solo_button = 2000;
   static constexpr int field_button = 3000;
+  static constexpr int steps_button = 5000;
+  static constexpr int rate_button = 6000;
 
   QFont nameFont() const;
   QFont smallFont() const;
   bool stackedHeader() const noexcept;
+  bool laneValues() const noexcept;
+  double cellHeight() const noexcept;
+  QRectF valueRect(int lane, int which) const noexcept;
+  void paintValue(
+      QPainter* painter, QRectF r, const QString& text, bool inherited, int id) const;
   QRectF nameRect(int lane) const noexcept;
   QRectF fieldButtonRect(int i) const noexcept;
   int buttonAt(QPointF pos) const noexcept;
@@ -153,6 +165,7 @@ private:
   void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
+  void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event) override;
   void hoverMoveEvent(QGraphicsSceneHoverEvent* event) override;
   void hoverLeaveEvent(QGraphicsSceneHoverEvent* event) override;
   void contextMenuEvent(QGraphicsSceneContextMenuEvent* event) override;
@@ -195,6 +208,15 @@ private:
 
   Cell m_hover;
   int m_hoverButton{-1};
+  struct ValueDrag
+  {
+    int id{};
+    int lane{};
+    int which{};
+    double y{};
+    int start{};
+  };
+  std::optional<ValueDrag> m_valueDrag;
   double m_hoverX{};
   SelectionArea m_selectionArea;
   mutable StepSelection m_selection;
