@@ -132,6 +132,11 @@ forwardedIndirectCommands(const ossia::geometry& upstream, const AuxList& aux_ss
       if(aux.name != in_aux.name || aux.is_uniform || !aux.owned || !aux.buffer
          || aux.buffer == ic.handle || aux.access == "read_only" || aux.size <= 0)
         continue;
+#if QT_VERSION >= QT_VERSION_CHECK(6, 12, 0)
+      // The rasterizer draws from it with drawIndexedIndirect.
+      if(!aux.buffer->usage().testFlag(QRhiBuffer::IndirectBuffer))
+        continue;
+#endif
       return ossia::geometry::gpu_buffer{aux.buffer, std::min(aux.size, ic.byte_size)};
     }
   }
@@ -4768,9 +4773,17 @@ void RenderedCSFNode::buildComputeSrbBindings(
             //
             // Sized from the shader's own LAYOUT rather than a fixed guess -- aux.size is 0
             // here, since it is only assigned where a buffer already exists.
-            const auto fallback_usage = aux.is_uniform
+            //
+            // A storage fallback can later be forwarded as the geometry's
+            // indirect-draw buffer (forwardedIndirectCommands), so it also
+            // takes IndirectBuffer, like the CSF_GeoAuxRestore_ buffers.
+            QRhiBuffer::UsageFlags fallback_usage = aux.is_uniform
                 ? QRhiBuffer::UniformBuffer
                 : QRhiBuffer::StorageBuffer;
+#if QT_VERSION >= QT_VERSION_CHECK(6, 12, 0)
+            if(!aux.is_uniform)
+              fallback_usage |= QRhiBuffer::IndirectBuffer;
+#endif
             const int64_t declared_size = aux.is_uniform
                 ? score::gfx::calculateUniformBlockSize(
                       aux.layout, 0, n.m_descriptor)
