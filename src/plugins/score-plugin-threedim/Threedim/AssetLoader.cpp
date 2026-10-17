@@ -8,6 +8,7 @@
 #include "PrimitiveCloud/SceneFromCloud.hpp"
 #include "PrimitiveCloud/SplatBinary.hpp"
 #include "PrimitiveCloud/SpzCodec.hpp"
+#include "RecentParseCache.hpp"
 #include "SceneFromMeshes.hpp"
 #include "VcgImporters.hpp"
 
@@ -268,6 +269,24 @@ parseAsset(const halp::text_file_view& tv, bool& dispatched)
   return loaded;
 }
 
+// See RecentParseCache: undo/redo storms re-run the file port.
+std::shared_ptr<const ossia::scene_state>
+cachedParseAsset(const halp::text_file_view& tv, bool& dispatched)
+{
+  static Threedim::RecentParseCache<ossia::scene_state> cache;
+  auto key = cache.key(tv.filename, {tv.bytes.data(), tv.bytes.size()});
+  if(auto hit = cache.find(key))
+  {
+    dispatched = true;
+    return hit;
+  }
+
+  auto loaded = parseAsset(tv, dispatched);
+  if(loaded)
+    cache.store(std::move(key), loaded);
+  return loaded;
+}
+
 } // namespace
 
 std::function<void(AssetLoader&)>
@@ -285,7 +304,7 @@ AssetLoader::ins::asset_t::process(file_type file)
   bool dispatched = false;
   try
   {
-    loaded = parseAsset(tv, dispatched);
+    loaded = cachedParseAsset(tv, dispatched);
   }
   catch(const std::exception& e)
   {
