@@ -841,6 +841,14 @@ private:
     if(!pw.stream_available)
       return;
 
+    // Nothing rendered yet: leave the buffers with the stream rather than
+    // queueing an empty one, which a consumer such as pipewiresrc turns into
+    // a black (or malformed) first frame. One critical section covers the
+    // check and the copy.
+    std::unique_lock l{self->m_stagingMutex};
+    if(self->m_staging.empty())
+      return;
+
     pw_buffer* b = pw.stream_dequeue_buffer(self->m_stream);
     if(!b)
       return;
@@ -849,20 +857,15 @@ private:
     auto* dst = static_cast<uint8_t*>(buf->datas[0].data);
     if(!dst)
     {
+      l.unlock();
       pw.stream_queue_buffer(self->m_stream, b);
       return;
     }
 
-    std::size_t copied = 0;
-    {
-      std::lock_guard l{self->m_stagingMutex};
-      if(!self->m_staging.empty())
-      {
-        copied = std::min<std::size_t>(
-            self->m_staging.size(), buf->datas[0].maxsize);
-        std::memcpy(dst, self->m_staging.data(), copied);
-      }
-    }
+    const std::size_t copied
+        = std::min<std::size_t>(self->m_staging.size(), buf->datas[0].maxsize);
+    std::memcpy(dst, self->m_staging.data(), copied);
+    l.unlock();
 
     auto* chunk = buf->datas[0].chunk;
     chunk->offset = 0;
