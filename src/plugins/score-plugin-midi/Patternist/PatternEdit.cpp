@@ -348,6 +348,8 @@ FieldRange fieldRange(StepField f) noexcept
       return {0.f, 1.f, 0.f};
     case StepField::Offset:
       return {-0.5f, 0.5f, 0.f};
+    case StepField::Pace:
+      return {-1.f, 1.f, 0.f};
     case StepField::Ratchet:
       return {1.f, 8.f, 1.f};
     case StepField::Pitch:
@@ -374,6 +376,8 @@ QString fieldName(StepField f)
       return QObject::tr("Gate");
     case StepField::Ratchet:
       return QObject::tr("Ratchet");
+    case StepField::Pace:
+      return QObject::tr("Pace");
     case StepField::Pitch:
       return QObject::tr("Pitch");
     case StepField::PitchRandom:
@@ -398,6 +402,8 @@ float stepField(const StepParams& p, StepField f) noexcept
       return p.gate;
     case StepField::Ratchet:
       return p.ratchet;
+    case StepField::Pace:
+      return p.pace;
     case StepField::Pitch:
       return p.pitch;
     case StepField::PitchRandom:
@@ -430,6 +436,9 @@ void setStepField(StepParams& p, StepField f, float v) noexcept
     case StepField::Ratchet:
       p.ratchet = uint8_t(std::lround(v));
       break;
+    case StepField::Pace:
+      p.pace = v;
+      break;
     case StepField::Pitch:
       p.pitch = int8_t(std::lround(v));
       break;
@@ -453,6 +462,10 @@ QString fieldText(StepField f, float v)
           .arg(int(std::lround(v * 100.f)));
     case StepField::Ratchet:
       return QStringLiteral("x%1").arg(int(std::lround(v)));
+    case StepField::Pace:
+      return QStringLiteral("%1%2%")
+          .arg(v > 0 ? "+" : "")
+          .arg(int(std::lround(v * 100.f)));
     case StepField::Pitch:
       return QStringLiteral("%1%2").arg(v > 0 ? "+" : "").arg(int(std::lround(v)));
     case StepField::VelocityRandom:
@@ -463,7 +476,7 @@ QString fieldText(StepField f, float v)
   return {};
 }
 
-static float randomField(StepField f, std::mt19937& rng) noexcept
+float randomFieldValue(StepField f, std::mt19937& rng) noexcept
 {
   std::uniform_real_distribution<float> unit{0.f, 1.f};
   switch(f)
@@ -489,6 +502,9 @@ static float randomField(StepField f, std::mt19937& rng) noexcept
       static constexpr int intervals[] = {0, 0, 0, 0, 12, -12, 7, -5, 5, 3};
       return intervals[std::uniform_int_distribution<int>{0, 9}(rng)];
     }
+    case StepField::Pace:
+      // Most rolls stay even.
+      return unit(rng) < 0.6f ? 0.f : -0.8f + 1.6f * unit(rng);
     case StepField::PitchRandom:
       // Few steps wander, and not far.
       return unit(rng) < 0.7f ? 0.f : float(std::uniform_int_distribution<int>{1, 3}(rng));
@@ -506,7 +522,7 @@ void randomizeField(Pattern& p, std::mt19937& rng, StepField f, int lane) noexce
     Lane& l = p.lanes[li];
     const int len = std::min<int>(laneLength(p, l), l.params.size());
     for(int i = 0; i < len; i++)
-      setStepField(l.params[i], f, randomField(f, rng));
+      setStepField(l.params[i], f, randomFieldValue(f, rng));
   }
   normalize(p);
 }

@@ -65,6 +65,8 @@ public:
   };
   PasteTarget pasteTarget(int lanes) const;
   StepField field() const noexcept { return m_field; }
+  //! What a Shift- or Alt-drag in the parameter bars sets, for every step.
+  const std::vector<float>& draggedValues() const noexcept { return m_dragValues; }
 
   //! Set a step while painting: emitted for every step the mouse enters.
   void paintStep(int lane, int step, Patternist::Note n)
@@ -79,6 +81,9 @@ public:
   void fieldEdited(int lane, int step, int field, float value)
       W_SIGNAL(fieldEdited, lane, step, field, value);
   void fieldEditFinished() W_SIGNAL(fieldEditFinished);
+  //! The values of a parameter for every step of a lane changed, while
+  //! Shift- or Alt-dragging in the parameter bars: see draggedValues().
+  void fieldValuesEdited(int lane, int field) W_SIGNAL(fieldValuesEdited, lane, field);
   void stepMenuRequested(int lane, int step, QPoint screen)
       W_SIGNAL(stepMenuRequested, lane, step, screen);
 
@@ -92,7 +97,7 @@ private:
   static constexpr StepField allFields[]
       = {StepField::Velocity, StepField::VelocityRandom, StepField::Chance,
          StepField::Offset,   StepField::Gate,           StepField::Ratchet,
-         StepField::Pitch,    StepField::PitchRandom};
+         StepField::Pace,     StepField::Pitch,          StepField::PitchRandom};
   //! Ids of the buttons the editor draws, for the hover.
   static constexpr int mute_button = 1000;
   static constexpr int solo_button = 2000;
@@ -151,6 +156,8 @@ private:
   void dropEvent(QGraphicsSceneDragDropEvent* event) override;
 
   void paintAt(QPointF pos);
+  void startFieldDrag(QPointF pos, Qt::KeyboardModifiers mods);
+  void dragField(QPointF pos);
   void selectOver(QPointF pos);
   struct SelectionArea
   {
@@ -193,6 +200,17 @@ private:
   std::optional<Note> m_painting;
   Cell m_lastPainted;
   bool m_editingField{};
+  enum class FieldDrag
+  {
+    None,
+    Offset,
+    Random
+  } m_fieldDrag{FieldDrag::None};
+  QPointF m_dragOrigin;
+  std::vector<float> m_dragBase;
+  std::vector<float> m_dragTarget;
+  std::vector<int> m_dragSteps;
+  std::vector<float> m_dragValues;
   bool m_swallowContextMenu{};
 };
 }

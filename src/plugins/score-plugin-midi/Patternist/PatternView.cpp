@@ -18,6 +18,7 @@
 #include <Patternist/PatternModel.hpp>
 
 #include <cmath>
+#include <random>
 #include <wobjectimpl.h>
 
 #include <algorithm>
@@ -95,7 +96,9 @@ View::View(const Patternist::ProcessModel& model, QGraphicsItem* parent)
       tr("Pattern sequencer\n"
          "Click: add or remove a note · Shift-click: tie to the previous step\n"
          "Right-click on a note: remove it · Drag: paint over several steps\n"
-         "Drag a lane name up or down: change its note"));
+         "Drag a lane name up or down: change its note\n"
+         "In the parameter bars: Shift-drag moves them all, Alt-drag blends them "
+         "towards a random state"));
 
   con(model, &Patternist::ProcessModel::patternsChanged, this, [this] {
     invalidateSlots();
@@ -630,10 +633,15 @@ void View::paintCells(QPainter* painter, const Pattern& p) const
         const QRectF tie = cell.adjusted(-gapX - barGap, 0., 0., 0.);
         painter->fillRect(tie, noteColor);
         if(sp.ratchet > 1 && cell.width() >= 2. * sp.ratchet)
+        {
+          const double e = std::exp2(-2. * sp.pace);
           for(int k = 1; k < sp.ratchet; k++)
             painter->fillRect(
-                QRectF{cell.x() + k * cell.width() / sp.ratchet - 1., cell.y(), 1., cellH},
+                QRectF{
+                    cell.x() + std::pow(double(k) / sp.ratchet, e) * cell.width() - 1.,
+                    cell.y(), 1., cellH},
                 colors.gap);
+        }
       }
       else
       {
@@ -653,10 +661,14 @@ void View::paintCells(QPainter* painter, const Pattern& p) const
         }
         else
         {
-          const double sub = note.width() / sp.ratchet;
+          // Spaced as the pace bends them.
+          const double e = std::exp2(-2. * sp.pace);
+          const auto at = [&](int k) {
+            return note.x() + std::pow(double(k) / sp.ratchet, e) * note.width();
+          };
           for(int k = 0; k < sp.ratchet; k++)
             painter->fillRect(
-                QRectF{note.x() + k * sub, note.y(), std::max(1., sub - 1.), vh},
+                QRectF{at(k), note.y(), std::max(1., at(k + 1) - at(k) - 1.), vh},
                 noteColor);
         }
       }
@@ -859,6 +871,8 @@ void View::mousePressEvent(QGraphicsSceneMouseEvent* event)
     }
     if(fieldRect().contains(event->pos()))
     {
+      if(event->modifiers() & (Qt::ShiftModifier | Qt::AltModifier))
+        return startFieldDrag(event->pos(), event->modifiers());
       m_editingField = true;
       editFieldAt(event->pos());
       return;
@@ -1070,6 +1084,8 @@ void View::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
   event->accept();
   if(m_editingField)
     editFieldAt(event->pos());
+  else if(m_fieldDrag != FieldDrag::None)
+    dragField(event->pos());
   else if(m_painting)
     paintAt(event->pos());
   else if(m_selecting)
@@ -1098,6 +1114,65 @@ void View::editFieldAt(QPointF pos)
       float(range.min + t * (range.max - range.min)));
 }
 
+//! Shift moves every bar by the same amount; Alt picks a random state and
+//! blends towards it the further the mouse goes. Both act on the selected
+//! steps of the lane when it has some, on all its steps otherwise.
+void View::startFieldDrag(QPointF pos, Qt::KeyboardModifiers mods)
+{
+  auto p = pattern();
+  if(!p || !ossia::valid_index(m_selectedLane, p->lanes))
+    return;
+  const Lane& l = p->lanes[m_selectedLane];
+  m_fieldDrag = (mods & Qt::ShiftModifier) ? FieldDrag::Offset : FieldDrag::Random;
+  m_dragOrigin = pos;
+  m_dragBase.resize(l.params.size());
+  m_dragTarget.resize(l.params.size());
+  for(std::size_t i = 0; i < l.params.size(); i++)
+    m_dragBase[i] = stepField(l.params[i], m_field);
+
+  std::mt19937 rng{std::random_device{}()};
+  for(auto& v : m_dragTarget)
+    v = randomFieldValue(m_field, rng);
+
+  m_dragSteps.clear();
+  const auto& sel = selection();
+  if(sel.valid() && m_selectedLane >= sel.lane0
+     && m_selectedLane < sel.lane0 + int(sel.steps.size()))
+    m_dragSteps = sel.steps[m_selectedLane - sel.lane0];
+  if(m_dragSteps.empty())
+    for(int i = 0; i < std::min<int>(laneLength(*p, l), l.params.size()); i++)
+      m_dragSteps.push_back(i);
+}
+
+void View::dragField(QPointF pos)
+{
+  const QRectF area = fieldRect();
+  if(area.height() <= 0.)
+    return;
+  const auto range = fieldRange(m_field);
+  auto& values = m_dragValues;
+  values = m_dragBase;
+
+  if(m_fieldDrag == FieldDrag::Offset)
+  {
+    const float delta
+        = (m_dragOrigin.y() - pos.y()) / area.height() * (range.max - range.min);
+    for(int i : m_dragSteps)
+      if(i < std::ssize(values))
+        values[i] = std::clamp(m_dragBase[i] + delta, range.min, range.max);
+  }
+  else
+  {
+    const QPointF d = pos - m_dragOrigin;
+    const float t = std::clamp(
+        float(std::hypot(d.x(), d.y()) / std::max(80., area.height())), 0.f, 1.f);
+    for(int i : m_dragSteps)
+      if(i < std::ssize(values))
+        values[i] = m_dragBase[i] + t * (m_dragTarget[i] - m_dragBase[i]);
+  }
+  fieldValuesEdited(m_selectedLane, int(m_field));
+}
+
 void View::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
   event->accept();
@@ -1108,9 +1183,10 @@ void View::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 void View::endPainting()
 {
   m_selecting = false;
-  if(m_editingField)
+  if(m_editingField || m_fieldDrag != FieldDrag::None)
   {
     m_editingField = false;
+    m_fieldDrag = FieldDrag::None;
     fieldEditFinished();
   }
   if(m_painting)
