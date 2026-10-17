@@ -123,10 +123,11 @@ public:
     uint8_t velocity{};
     float value{};
   };
-  //! What is due goes out before every grid point, so the queue holds at most
-  //! the steps around the one playing: the one before (late offset and swing
-  //! delay it by up to a step), this one and the next (scheduled early), with
-  //! room to spare - each a note-on and a note-off per hit, and a release.
+  //! Once half full, what is due goes out before the next grid point, so the
+  //! queue holds at most the steps around the one playing: the one before
+  //! (late offset and swing delay it by up to a step), this one and the next
+  //! (scheduled early), with room to spare - each a note-on and a note-off per
+  //! hit, and a release.
   static constexpr int max_events = 4 * max_lanes * (2 * max_ratchet + 1);
   std::array<event, max_events> queue{};
   int queue_size{};
@@ -426,7 +427,9 @@ public:
       bool rewinding, bool timed, int64_t from_offset, int64_t to_offset) noexcept
   {
     const Pattern& pat = pattern();
-    if(pat.length <= 0 || pat.division <= 0)
+    // The model keeps divisions within range; anything past it would walk a
+    // thousand points a tick.
+    if(pat.length <= 0 || pat.division <= 0 || pat.division > Pattern::maxDivision)
       return;
     if(current < 0 || current >= pat.length)
       current = 0;
@@ -477,7 +480,9 @@ public:
     for(int k = 0; k < count; k++)
     {
       const grid_point& q = points[k];
-      if(timed)
+      // The points come in time order, so what goes out here can never be
+      // later than what the points still to come push.
+      if(timed && queue_size >= max_events / 2)
         emit_until(tk, tick_start, samplesratio, q.position);
 
       if(!q.main)
