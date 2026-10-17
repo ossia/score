@@ -34,6 +34,10 @@ public:
   {
     QRhiShaderResourceBindings* srb{};
     QRhiBuffer* paramsUBO{};
+    // The buffers srb was last created against, by globalResourceId: a buffer
+    // freed and reallocated can come back at the same address.
+    quint64 src_id{};
+    quint64 dst_id{};
   };
 
   bool init(RenderState& state);
@@ -42,7 +46,7 @@ public:
   PreparedOp prepare(QRhi& rhi, const Params& p);
   static void releaseOp(PreparedOp& op);
 
-  void updateParams(QRhiResourceUpdateBatch& res, const PreparedOp& op, const Params& p);
+  void updateParams(QRhiResourceUpdateBatch& res, PreparedOp& op, const Params& p);
   void dispatch(QRhiCommandBuffer& cb, const PreparedOp& op, const Params& p);
 
   static constexpr int LocalSize = 256;
