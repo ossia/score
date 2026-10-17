@@ -25,6 +25,8 @@ public:
 
   virtual void updateText() = 0;
 
+  const Process::ProcessModel& model() const noexcept { return m_model; }
+
   const Process::ProcessModel& m_model;
   const Process::Context& m_context;
 };
@@ -72,6 +74,8 @@ public:
 
   virtual void setSize(QSizeF sz) = 0;
   QRectF boundingRect() const final override;
+
+  const Process::ProcessModel& model() const noexcept { return m_model; }
 
 protected:
   const Process::ProcessModel& m_model;
