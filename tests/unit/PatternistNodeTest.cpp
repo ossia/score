@@ -905,6 +905,56 @@ TEST_CASE("patternist: ratchets, gates and offsets are timed in the step", "[mid
     REQUIRE(on.size() == 6);
     CHECK(std::abs(on[1].timestamp - 42) <= 1);
   }
+  SECTION("a fractional Ratchet input cuts the last gap short")
+  {
+    f.node.ratchet_scale = 1.5f;
+    musical_tick(f, 0, 1000);
+    const auto on = ons(sent(f));
+    REQUIRE(on.size() == 2);
+    CHECK(std::abs(on[1].timestamp - 167) <= 1);
+  }
+  SECTION("pace bends the spacing")
+  {
+    p.ratchet = 4;
+    p.pace = 1.f;
+    musical_tick(f, 0, 1000);
+    const auto on = ons(sent(f));
+    REQUIRE(on.size() == 4);
+    // (k / 4) ^ 0.25: wide first, then tighter and tighter.
+    CHECK(std::abs(on[1].timestamp - 177) <= 1);
+    CHECK(std::abs(on[2].timestamp - 210) <= 1);
+    CHECK(std::abs(on[3].timestamp - 233) <= 1);
+
+    // The Pace input adds to it: back to even spacing.
+    f.node.pace_offset = -1.f;
+    musical_tick(f, 1000, 2000);
+    const auto even = ons(sent(f));
+    REQUIRE(even.size() == 4);
+    CHECK(std::abs(even[1].timestamp - even[0].timestamp - 62) <= 1);
+  }
+  SECTION("a repeat time, in seconds, for the steps that ratchet")
+  {
+    p.ratchet = 2;
+    // 50 ms at 120 BPM is a tenth of a quarter: 100 samples here.
+    f.node.repeat_time_value = {0.05f, 0.f};
+    musical_tick(f, 0, 1000);
+    const auto on = ons(sent(f));
+    REQUIRE(on.size() == 3);
+    CHECK(std::abs(on[1].timestamp - 100) <= 1);
+    CHECK(std::abs(on[2].timestamp - 200) <= 1);
+  }
+  SECTION("a synced repeat time leaves the steps that do not ratchet alone")
+  {
+    f.node.repeat_time_value = {1.f / 32.f, 1.f};
+    musical_tick(f, 0, 1000);
+    CHECK(ons(sent(f)).size() == 1);
+
+    p.ratchet = 2;
+    musical_tick(f, 1000, 2000);
+    const auto on = ons(sent(f));
+    REQUIRE(on.size() == 2);
+    CHECK(std::abs(on[1].timestamp - on[0].timestamp - 125) <= 1);
+  }
   SECTION("multiplied ratchets are capped")
   {
     p.ratchet = 8;

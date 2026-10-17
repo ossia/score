@@ -60,6 +60,9 @@ struct StepParams
   float gate{1.f};
   //! Notes played within the step, 1 - 8.
   uint8_t ratchet{1};
+  //! -1 - 1: positive starts the ratchet's hits wide apart and tightens them,
+  //! negative the other way round.
+  float pace{0.f};
   //! Semitones added to the lane's note.
   int8_t pitch{0};
   //! 0 - 24: each time the step plays, its pitch moves by up to this many
@@ -235,6 +238,10 @@ public:
   std::unique_ptr<Process::ControlInlet> swing;
   //! Multiplies every step's ratchet.
   std::unique_ptr<Process::ControlInlet> ratchet;
+  //! Added to every step's pace.
+  std::unique_ptr<Process::ControlInlet> pace;
+  //! When set, the interval the steps that ratchet repeat at.
+  std::unique_ptr<Process::ControlInlet> repeatTime;
   std::unique_ptr<Process::MidiOutlet> outlet;
   std::unique_ptr<Process::Outlet> accent;
   std::unique_ptr<Process::Outlet> slide;

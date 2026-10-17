@@ -42,6 +42,7 @@ void normalize(Pattern& p) noexcept
       s.offset = std::clamp(s.offset, -0.5f, 0.5f);
       s.gate = std::clamp(s.gate, 0.f, 1.f);
       s.ratchet = std::clamp<uint8_t>(s.ratchet, 1, 8);
+      s.pace = std::clamp(s.pace, -1.f, 1.f);
       s.velocityRandom = std::clamp(s.velocityRandom, 0.f, 1.f);
       s.pitch = std::clamp<int8_t>(s.pitch, -48, 48);
       s.pitchRandom = std::clamp<uint8_t>(s.pitchRandom, 0, 24);
@@ -77,8 +78,21 @@ static std::unique_ptr<Process::ControlInlet> makeSwing(QObject* parent)
 
 static std::unique_ptr<Process::ControlInlet> makeRatchet(QObject* parent)
 {
-  return std::make_unique<Process::IntSlider>(
-      1, 8, 1, QObject::tr("Ratchet"), Id<Process::Port>(6), parent);
+  return std::make_unique<Process::FloatSlider>(
+      1.f, 8.f, 1.f, QObject::tr("Ratchet"), Id<Process::Port>(6), parent);
+}
+
+static std::unique_ptr<Process::ControlInlet> makePace(QObject* parent)
+{
+  return std::make_unique<Process::FloatSlider>(
+      -1.f, 1.f, 0.f, QObject::tr("Pace"), Id<Process::Port>(7), parent);
+}
+
+static std::unique_ptr<Process::ControlInlet> makeRepeatTime(QObject* parent)
+{
+  // 0 leaves the steps' ratchets dividing their step.
+  return std::make_unique<Process::TimeChooser>(
+      0.f, 2.f, 0.f, QObject::tr("Repeat time"), Id<Process::Port>(8), parent);
 }
 
 //! Rates, in the convention ossia::token_request::get_quantification_dates
@@ -138,6 +152,8 @@ ProcessModel::ProcessModel(
     , velocity{makeVelocity(this)}
     , swing{makeSwing(this)}
     , ratchet{makeRatchet(this)}
+    , pace{makePace(this)}
+    , repeatTime{makeRepeatTime(this)}
     , outlet{std::make_unique<Process::MidiOutlet>(
           "MIDI Out", Id<Process::Port>(0), this)}
     , accent{std::make_unique<Process::ValueOutlet>(
@@ -180,8 +196,11 @@ void ProcessModel::init()
   m_inlets.push_back(velocity.get());
   m_inlets.push_back(swing.get());
   m_inlets.push_back(ratchet.get());
+  m_inlets.push_back(pace.get());
+  m_inlets.push_back(repeatTime.get());
   for(auto* port :
-      {fill.get(), density.get(), velocity.get(), swing.get(), ratchet.get()})
+       {fill.get(), density.get(), velocity.get(), swing.get(), ratchet.get(), pace.get(),
+        repeatTime.get()})
     port->displayHandledExplicitly = false;
 
   // The pattern grid is the whole body: no widget shows these controls there,
@@ -344,14 +363,16 @@ template <>
 void DataStreamReader::read(const Patternist::StepParams& s)
 {
   m_stream << s.velocity << s.velocityRandom << s.chance << s.offset << s.gate
-           << s.ratchet << s.pitch << s.pitchRandom << s.condition << s.cycleA << s.cycleB;
+           << s.ratchet << s.pace << s.pitch << s.pitchRandom << s.condition << s.cycleA
+           << s.cycleB;
 }
 
 template <>
 void DataStreamWriter::write(Patternist::StepParams& s)
 {
   m_stream >> s.velocity >> s.velocityRandom >> s.chance >> s.offset >> s.gate
-      >> s.ratchet >> s.pitch >> s.pitchRandom >> s.condition >> s.cycleA >> s.cycleB;
+      >> s.ratchet >> s.pace >> s.pitch >> s.pitchRandom >> s.condition >> s.cycleA
+      >> s.cycleB;
 }
 
 template <>
@@ -432,6 +453,8 @@ void JSONReader::read(const Patternist::Lane& proc)
         obj["Gate"] = s.gate;
       if(s.ratchet != def.ratchet)
         obj["Ratchet"] = (int)s.ratchet;
+      if(s.pace != def.pace)
+        obj["Pace"] = s.pace;
       if(s.pitch != def.pitch)
         obj["Pitch"] = (int)s.pitch;
       if(s.pitchRandom != def.pitchRandom)
@@ -508,6 +531,7 @@ void JSONWriter::write(Patternist::Lane& proc)
       num("Chance", s.chance);
       num("Offset", s.offset);
       num("Gate", s.gate);
+      num("Pace", s.pace);
       int ratchet = s.ratchet, pitch = s.pitch, pitchRandom = s.pitchRandom, cond = 0,
           a = s.cycleA, b = s.cycleB;
       num("Ratchet", ratchet);
@@ -520,6 +544,7 @@ void JSONWriter::write(Patternist::Lane& proc)
       s.pitch = std::clamp(pitch, -48, 48);
       s.pitchRandom = std::clamp(pitchRandom, 0, 24);
       s.velocityRandom = std::clamp(s.velocityRandom, 0.f, 1.f);
+      s.pace = std::clamp(s.pace, -1.f, 1.f);
       s.condition = (Patternist::Condition)std::clamp(
           cond, 0, (int)Patternist::Condition::Cycle);
       s.cycleA = std::clamp(a, 1, 16);
@@ -564,7 +589,7 @@ void DataStreamReader::read(const Patternist::ProcessModel& proc)
 {
   m_stream << *proc.patternSelect << *proc.switchQuantification << *proc.fill
            << *proc.density << *proc.velocity << *proc.swing << *proc.ratchet
-           << *proc.outlet
+           << *proc.pace << *proc.repeatTime << *proc.outlet
            << *proc.accent << *proc.slide << proc.m_channel << proc.m_currentPattern
            << proc.m_laneLabels << proc.m_patterns;
 
@@ -581,6 +606,8 @@ void DataStreamWriter::write(Patternist::ProcessModel& proc)
   proc.velocity = Process::load_control_inlet(*this, &proc);
   proc.swing = Process::load_control_inlet(*this, &proc);
   proc.ratchet = Process::load_control_inlet(*this, &proc);
+  proc.pace = Process::load_control_inlet(*this, &proc);
+  proc.repeatTime = Process::load_control_inlet(*this, &proc);
   proc.outlet = Process::load_midi_outlet(*this, &proc);
   proc.accent = Process::load_value_outlet(*this, &proc);
   proc.slide = Process::load_value_outlet(*this, &proc);
@@ -600,6 +627,8 @@ void JSONReader::read(const Patternist::ProcessModel& proc)
   obj["Velocity"] = *proc.velocity;
   obj["Swing"] = *proc.swing;
   obj["Ratchet"] = *proc.ratchet;
+  obj["Pace"] = *proc.pace;
+  obj["RepeatTime"] = *proc.repeatTime;
   obj["Outlet"] = *proc.outlet;
   obj["Accent"] = *proc.accent;
   obj["Slide"] = *proc.slide;
@@ -645,6 +674,8 @@ void JSONWriter::write(Patternist::ProcessModel& proc)
   proc.velocity = loadControl("Velocity", Patternist::makeVelocity);
   proc.swing = loadControl("Swing", Patternist::makeSwing);
   proc.ratchet = loadControl("Ratchet", Patternist::makeRatchet);
+  proc.pace = loadControl("Pace", Patternist::makePace);
+  proc.repeatTime = loadControl("RepeatTime", Patternist::makeRepeatTime);
 
   {
     JSONWriter writer{obj["Outlet"]};

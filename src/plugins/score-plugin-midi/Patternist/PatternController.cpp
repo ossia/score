@@ -64,6 +64,20 @@ void Controller::attach(View& view)
     l.params[step] = sp;
     m_ctx.dispatcher.submit<UpdatePattern>(m_model, m_model.currentPattern(), p);
   });
+  connect(
+      &view, &View::fieldValuesEdited, this, [this, &view](int lane, int field) {
+    const auto& values = view.draggedValues();
+    if(!hasPattern())
+      return;
+    auto p = current();
+    if(!ossia::valid_index(lane, p.lanes))
+      return;
+    auto& l = p.lanes[lane];
+    for(int i = 0; i < std::ssize(values) && i < std::ssize(l.params); i++)
+      setStepField(l.params[i], StepField(field), values[i]);
+    if(!(p == current()))
+      m_ctx.dispatcher.submit<UpdatePattern>(m_model, m_model.currentPattern(), p);
+  });
   connect(&view, &View::fieldEditFinished, this, [this] { m_ctx.dispatcher.commit(); });
 
   connect(&view, &View::muteToggled, this, &Controller::toggleMute);
