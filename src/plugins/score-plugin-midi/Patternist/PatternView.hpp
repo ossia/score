@@ -43,6 +43,20 @@ public:
   //! Lane whose header is at `pos`, or -1.
   int headerLaneAt(QPointF pos) const noexcept;
 
+  struct Cell
+  {
+    int lane{-1};
+    int step{-1};
+  };
+  //! The step under the mouse, or none.
+  Cell hoveredCell() const noexcept;
+
+  //! Steps selected by dragging in the select mode, or with Ctrl.
+  const StepRange& selection() const noexcept { return m_selection; }
+  void setSelection(StepRange r);
+  void setSelectMode(bool b);
+  StepField field() const noexcept { return m_field; }
+
   //! Set a step while painting: emitted for every step the mouse enters.
   void paintStep(int lane, int step, Patternist::Note n)
       W_SIGNAL(paintStep, lane, step, n);
@@ -59,12 +73,31 @@ public:
   void stepMenuRequested(int lane, int step, QPoint screen)
       W_SIGNAL(stepMenuRequested, lane, step, screen);
 
+  void selectionChanged() W_SIGNAL(selectionChanged);
+  void fieldSelected(int field) W_SIGNAL(fieldSelected, field);
+  //! For `lane`, or every lane when it is -1.
+  void fieldRandomized(int lane, int field) W_SIGNAL(fieldRandomized, lane, field);
+  void fieldReset(int lane, int field) W_SIGNAL(fieldReset, lane, field);
+
 private:
-  struct Cell
-  {
-    int lane{-1};
-    int step{-1};
-  };
+  static constexpr StepField allFields[]
+      = {StepField::Velocity, StepField::Chance, StepField::Offset,
+         StepField::Gate,     StepField::Ratchet, StepField::Pitch};
+  //! Ids of the buttons the editor draws, for the hover.
+  static constexpr int mute_button = 1000;
+  static constexpr int solo_button = 2000;
+  static constexpr int field_button = 3000;
+
+  QFont nameFont() const;
+  QFont smallFont() const;
+  bool stackedHeader() const noexcept;
+  QRectF nameRect(int lane) const noexcept;
+  QRectF fieldButtonRect(int i) const noexcept;
+  int buttonAt(QPointF pos) const noexcept;
+  void pressButton(int id, Qt::KeyboardModifiers mods);
+  void paintButton(
+      QPainter* painter, QRectF r, const QString& text, bool on, const QColor& onColor,
+      int id) const;
 
   const Pattern* pattern() const noexcept;
   void updateLanes();
@@ -81,6 +114,7 @@ private:
   QRectF laneRect(int lane) const noexcept;
   QRectF muteRect(int lane) const noexcept;
   QRectF soloRect(int lane) const noexcept;
+  double fieldHeight() const noexcept;
   QRectF fieldRect() const noexcept;
   bool canEdit() const noexcept;
   Cell cellAt(QPointF pos) const noexcept;
@@ -129,6 +163,11 @@ private:
   int m_pendingPattern{-1};
 
   Cell m_hover;
+  int m_hoverButton{-1};
+  StepRange m_selection;
+  Cell m_selectAnchor;
+  bool m_selecting{};
+  bool m_selectMode{};
   //! What the press started painting, until the release.
   std::optional<Note> m_painting;
   Cell m_lastPainted;

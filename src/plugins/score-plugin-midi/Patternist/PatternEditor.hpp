@@ -6,7 +6,6 @@
 
 class QGraphicsScene;
 class QGraphicsView;
-class QCheckBox;
 class QComboBox;
 class QHBoxLayout;
 class QPushButton;
@@ -39,6 +38,11 @@ private:
   void updateBank();
   void updatePatternControls();
   void fitGrid();
+  //! The selected steps when there are some, the whole pattern otherwise.
+  void copy();
+  void paste();
+  void clear();
+  void addShortcuts();
 
   QPointer<ProcessModel> m_model;
   Controller* m_controller{};
@@ -48,16 +52,14 @@ private:
   QToolButton* m_removePattern{};
   QToolButton* m_paste{};
   QLabel* m_status{};
-  QComboBox* m_field{};
+  QToolButton* m_select{};
 
   QSpinBox* m_laneLength{};
   QSpinBox* m_laneDivision{};
   QSpinBox* m_laneVelocity{};
-  QCheckBox* m_euclid{};
   QSpinBox* m_pulses{};
   QSpinBox* m_rotation{};
-  QComboBox* m_euclidMode{};
-  QPushButton* m_print{};
+  QComboBox* m_combine{};
   QSpinBox* m_steps{};
   QSpinBox* m_rate{};
   int m_playing{-1};

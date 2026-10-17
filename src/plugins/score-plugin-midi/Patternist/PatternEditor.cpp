@@ -7,7 +7,6 @@
 #include <ossia/detail/math.hpp>
 
 #include <QApplication>
-#include <QCheckBox>
 #include <QClipboard>
 #include <QComboBox>
 #include <QFormLayout>
@@ -19,6 +18,7 @@
 #include <QMenu>
 #include <QPushButton>
 #include <QScrollArea>
+#include <QShortcut>
 #include <QSpinBox>
 #include <QTimer>
 #include <QToolButton>
@@ -41,6 +41,21 @@ static QToolButton* toolButton(const QString& text, const QString& tip, QWidget*
   return b;
 }
 
+//! Tool buttons that light up under the mouse and while pressed or checked.
+static QString toolStyle()
+{
+  auto& skin = score::Skin::instance();
+  return QStringLiteral(
+             "QToolButton { border: 1px solid transparent; border-radius: 2px; "
+             "padding: 2px 6px; }"
+             "QToolButton:hover { background: %1; border-color: %2; }"
+             "QToolButton:pressed, QToolButton:checked { background: %3; color: %4; }"
+             "QToolButton:disabled { color: %2; }")
+      .arg(
+          skin.Emphasis2.main.brush.color().name(), skin.Gray.main.brush.color().name(),
+          skin.Base4.main.brush.color().name(), skin.Dark.main.brush.color().name());
+}
+
 Editor::Editor(ProcessModel& model, const score::DocumentContext& ctx, QWidget* parent)
     : QWidget{parent}
     , m_model{&model}
@@ -52,6 +67,8 @@ Editor::Editor(ProcessModel& model, const score::DocumentContext& ctx, QWidget* 
 
   model.externalUI = this;
   model.externalUIVisible(true);
+
+  setStyleSheet(toolStyle());
 
   auto lay = new QVBoxLayout{this};
   lay->setContentsMargins(4, 4, 4, 4);
@@ -99,17 +116,19 @@ Editor::Editor(ProcessModel& model, const score::DocumentContext& ctx, QWidget* 
       row->addWidget(b);
       return b;
     };
-    add(tr("Copy"), tr("Copy the pattern"), [this] { m_controller->copy(); });
-    m_paste = add(tr("Paste"), tr("Replace the pattern with the copied one"), [this] {
-      m_controller->paste();
-    });
+    add(tr("Copy"), tr("Copy the selected steps, or the pattern"), [this] { copy(); });
+    m_paste = add(
+        tr("Paste"),
+        tr("Paste copied steps on the step under the mouse, or a copied pattern "
+           "over this one"),
+        [this] { paste(); });
     const auto updatePaste = [this] {
       auto md = QApplication::clipboard()->mimeData();
-      m_paste->setEnabled(md && patternFromMime(*md));
+      m_paste->setEnabled(md && (patternFromMime(*md) || stepsFromMime(*md)));
     };
     connect(QApplication::clipboard(), &QClipboard::dataChanged, this, updatePaste);
     updatePaste();
-    add(tr("Clear"), tr("Remove every note"), [this] { m_controller->clear(); });
+    add(tr("Clear"), tr("Clear the selected steps, or every note"), [this] { clear(); });
     add(QStringLiteral("◀"), tr("Rotate the pattern one step left"),
         [this] { m_controller->rotate(-1); });
     add(QStringLiteral("▶"), tr("Rotate the pattern one step right"),
@@ -143,15 +162,13 @@ Editor::Editor(ProcessModel& model, const score::DocumentContext& ctx, QWidget* 
         [this] { m_controller->addLane(); });
     row->addSpacing(12);
 
-    row->addWidget(new QLabel{tr("Bars"), this});
-    m_field = new QComboBox{this};
-    m_field->setToolTip(
-        tr("The step parameter drawn under the grid, for the selected lane"));
-    for(auto f :
-        {StepField::Velocity, StepField::Chance, StepField::Offset, StepField::Gate,
-         StepField::Ratchet, StepField::Pitch})
-      m_field->addItem(fieldName(f), int(f));
-    row->addWidget(m_field);
+    m_select = add(
+        tr("Select"),
+        tr("Drag over steps to select them, also with Ctrl held\n"
+           "Ctrl+C, Ctrl+X: copy, cut · Ctrl+V: paste on the step under the mouse\n"
+           "Delete: clear · Escape: deselect"),
+        [this](bool on) { m_view->setSelectMode(on); });
+    m_select->setCheckable(true);
     row->addStretch(1);
 
     m_status = new QLabel{this};
@@ -193,8 +210,11 @@ Editor::Editor(ProcessModel& model, const score::DocumentContext& ctx, QWidget* 
       m_controller->fillMenu(menu, m_view->headerLaneAt(m_view->mapFromScene(scene)));
       menu.exec(screen);
     });
-    connect(m_field, &QComboBox::currentIndexChanged, this, [this] {
-      m_view->setField(StepField(m_field->currentData().toInt()));
+    connect(m_view, &View::fieldRandomized, this, [this](int lane, int f) {
+      m_controller->randomizeField(StepField(f), lane);
+    });
+    connect(m_view, &View::fieldReset, this, [this](int lane, int f) {
+      m_controller->resetField(StepField(f), lane);
     });
     connect(m_view, &View::laneSelected, this, [this] { updateLanePanel(); });
     connect(
@@ -229,6 +249,7 @@ Editor::Editor(ProcessModel& model, const score::DocumentContext& ctx, QWidget* 
   con(model.metadata(), &score::ModelMetadata::NameChanged, this,
       [this](const QString& name) { setWindowTitle(name); });
 
+  addShortcuts();
   updateBank();
   updatePatternControls();
   updateLanePanel();
@@ -273,52 +294,44 @@ QWidget* Editor::makeLanePanel()
   });
   form->addRow(tr("Velocity"), m_laneVelocity);
 
-  m_euclid = new QCheckBox{tr("Euclidean"), panel};
-  m_euclid->setToolTip(
-      tr("Spread a number of hits as evenly as possible over the lane"));
-  connect(m_euclid, &QCheckBox::toggled, this, [this, lane](bool b) {
-    m_controller->editLane(lane(), [b](Lane& l) { l.euclid.enabled = b; });
-  });
-  form->addRow(m_euclid);
+  // Generators write into the lane's steps, as one undo step.
+  auto gen = new QLabel{tr("Generate"), panel};
+  gen->setEnabled(false);
+  form->addRow(gen);
 
-  m_pulses = new QSpinBox{panel};
-  m_pulses->setRange(0, Pattern::maxLength);
-  m_pulses->setKeyboardTracking(false);
-  connect(m_pulses, &QSpinBox::valueChanged, this, [this, lane](int v) {
-    m_controller->editLane(lane(), [v](Lane& l) { l.euclid.pulses = v; });
-  });
-  form->addRow(tr("Hits"), m_pulses);
-
-  m_rotation = new QSpinBox{panel};
-  m_rotation->setRange(-Pattern::maxLength, Pattern::maxLength);
-  m_rotation->setKeyboardTracking(false);
-  connect(m_rotation, &QSpinBox::valueChanged, this, [this, lane](int v) {
-    m_controller->editLane(lane(), [v](Lane& l) { l.euclid.rotation = v; });
-  });
-  form->addRow(tr("Rotation"), m_rotation);
-
-  m_euclidMode = new QComboBox{panel};
-  m_euclidMode->addItem(tr("Replace the steps"), int(EuclidMode::Replace));
-  m_euclidMode->addItem(tr("Add to the steps"), int(EuclidMode::Add));
-  m_euclidMode->addItem(tr("Mask the steps"), int(EuclidMode::Mask));
-  connect(m_euclidMode, &QComboBox::currentIndexChanged, this, [this, lane] {
-    const auto m = EuclidMode(m_euclidMode->currentData().toInt());
-    m_controller->editLane(lane(), [m](Lane& l) { l.euclid.mode = m; });
-  });
-  form->addRow(tr("Mode"), m_euclidMode);
-
-  m_print = new QPushButton{tr("Write into steps"), panel};
-  m_print->setToolTip(tr("Turn the rhythm into ordinary steps, to edit them by hand"));
-  connect(m_print, &QPushButton::clicked, this, [this, lane] {
-    m_controller->printEuclid(lane());
-  });
-  form->addRow(m_print);
-
-  auto random = new QPushButton{tr("Randomize lane"), panel};
+  auto random = new QPushButton{tr("Random"), panel};
+  random->setToolTip(tr("Notes at random, more of them on the beats"));
   connect(random, &QPushButton::clicked, this, [this, lane] {
     m_controller->randomize(lane());
   });
   form->addRow(random);
+
+  m_pulses = new QSpinBox{panel};
+  m_pulses->setRange(0, Pattern::maxLength);
+  m_pulses->setValue(4);
+  m_pulses->setToolTip(tr("Notes to spread over the lane"));
+  form->addRow(tr("Hits"), m_pulses);
+
+  m_rotation = new QSpinBox{panel};
+  m_rotation->setRange(-Pattern::maxLength, Pattern::maxLength);
+  m_rotation->setToolTip(tr("Steps the rhythm is turned later"));
+  form->addRow(tr("Rotation"), m_rotation);
+
+  m_combine = new QComboBox{panel};
+  m_combine->addItem(tr("Replace the steps"), int(Combine::Replace));
+  m_combine->addItem(tr("Add to the steps"), int(Combine::Add));
+  m_combine->addItem(tr("Keep steps on hits"), int(Combine::Mask));
+  form->addRow(m_combine);
+
+  auto euclid = new QPushButton{tr("Euclidean"), panel};
+  euclid->setToolTip(tr("Spread the hits as evenly as possible over the lane"));
+  const auto generate = [this, lane] {
+    m_controller->euclidean(
+        lane(), m_pulses->value(), m_rotation->value(),
+        Combine(m_combine->currentData().toInt()));
+  };
+  connect(euclid, &QPushButton::clicked, this, generate);
+  form->addRow(euclid);
   return panel;
 }
 
@@ -333,19 +346,10 @@ void Editor::updateLanePanel()
     return;
   const Lane& l = p.lanes[lane];
 
-  QSignalBlocker b0{m_laneLength}, b1{m_laneDivision}, b2{m_laneVelocity}, b3{m_euclid},
-      b4{m_pulses}, b5{m_rotation}, b6{m_euclidMode};
+  QSignalBlocker b0{m_laneLength}, b1{m_laneDivision}, b2{m_laneVelocity};
   m_laneLength->setValue(l.length);
   m_laneDivision->setValue(l.division);
   m_laneVelocity->setValue(int(std::lround(l.velocity * 127.f)));
-  m_euclid->setChecked(l.euclid.enabled);
-  m_pulses->setValue(l.euclid.pulses);
-  m_rotation->setValue(l.euclid.rotation);
-  m_euclidMode->setCurrentIndex(m_euclidMode->findData(int(l.euclid.mode)));
-  for(QWidget* w :
-      {(QWidget*)m_pulses, (QWidget*)m_rotation, (QWidget*)m_euclidMode,
-       (QWidget*)m_print})
-    w->setEnabled(l.euclid.enabled);
 }
 
 void Editor::showStepMenu(int lane, int step, QPoint screen)
@@ -392,6 +396,67 @@ void Editor::showStepMenu(int lane, int step, QPoint screen)
     });
   });
   menu.exec(screen);
+}
+
+void Editor::copy()
+{
+  if(m_view->selection().valid())
+    m_controller->copySteps(m_view->selection());
+  else
+    m_controller->copy();
+}
+
+void Editor::paste()
+{
+  // Copied steps land with their first lane and step under the mouse, or on
+  // the selection.
+  View::Cell at = m_view->hoveredCell();
+  if(at.lane < 0 && m_view->selection().valid())
+    at = {m_view->selection().lane0, m_view->selection().step0};
+  if(at.lane < 0)
+    at = {m_view->selectedLane(), 0};
+  if(!m_controller->pasteSteps(at.lane, at.step))
+    m_controller->paste();
+}
+
+void Editor::clear()
+{
+  if(m_view->selection().valid())
+    m_controller->clearSteps(m_view->selection());
+  else
+    m_controller->clear();
+}
+
+void Editor::addShortcuts()
+{
+  const auto add = [this](QKeySequence k, auto f) {
+    auto s = new QShortcut{k, this};
+    s->setContext(Qt::WidgetWithChildrenShortcut);
+    connect(s, &QShortcut::activated, this, f);
+  };
+  add(QKeySequence::Copy, [this] { copy(); });
+  add(QKeySequence::Paste, [this] { paste(); });
+  add(QKeySequence::Cut, [this] {
+    if(m_view->selection().valid())
+    {
+      copy();
+      clear();
+    }
+  });
+  add(QKeySequence::Delete, [this] {
+    if(m_view->selection().valid())
+      clear();
+  });
+  add(QKeySequence::SelectAll, [this] {
+    if(!m_model || !ossia::valid_index(m_model->currentPattern(), m_model->patterns()))
+      return;
+    const auto& p = m_model->patterns()[m_model->currentPattern()];
+    int len = p.length;
+    for(const Lane& l : p.lanes)
+      len = std::max(len, laneLength(p, l));
+    m_view->setSelection({0, int(p.lanes.size()) - 1, 0, len - 1});
+  });
+  add(Qt::Key_Escape, [this] { m_view->setSelection({}); });
 }
 
 Editor::~Editor()
@@ -451,11 +516,14 @@ void Editor::updateBank()
   auto& skin = score::Skin::instance();
   const QString base = QStringLiteral(
       "QToolButton { background: %1; color: %2; border: 1px solid %1; "
-      "border-radius: 2px; padding: 1px 0px; }");
+      "border-radius: 2px; padding: 1px 0px; }"
+      "QToolButton:hover { border-color: %3; }");
+  const QString hover = skin.Light.main.brush.color().name();
   const QString shown = base.arg(
-      skin.Base4.main.brush.color().name(), skin.Dark.main.brush.color().name());
+      skin.Base4.main.brush.color().name(), skin.Dark.main.brush.color().name(), hover);
   const QString other = base.arg(
-      skin.Background2.main.brush.color().name(), skin.Light.main.brush.color().name());
+      skin.Background2.main.brush.color().name(), skin.Light.main.brush.color().name(),
+      hover);
   for(int i = 0; i < count; i++)
   {
     auto b = m_bankButtons[i];

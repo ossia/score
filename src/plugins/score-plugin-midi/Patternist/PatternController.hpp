@@ -1,7 +1,7 @@
 #pragma once
 #include <QObject>
 
-#include <Patternist/PatternModel.hpp>
+#include <Patternist/PatternEdit.hpp>
 
 #include <functional>
 #include <random>
@@ -34,6 +34,12 @@ public:
 
   void copy() const;
   void paste();
+  //! Copies a range of steps, to paste at another place.
+  void copySteps(StepRange r) const;
+  //! Pastes copied steps with their first lane and step at `lane` and `step`.
+  //! False when the clipboard holds no steps.
+  bool pasteSteps(int lane, int step);
+  void clearSteps(StepRange r);
   void clear();
   void rotate(int steps);
   //! One lane, or every lane when `lane` is -1.
@@ -58,7 +64,11 @@ public:
     f(p.lanes[lane]);
     submit(p);
   }
-  void printEuclid(int lane);
+  //! Writes a Euclidean rhythm into the lane.
+  void euclidean(int lane, int hits, int rotation, Combine c);
+  //! One parameter of the steps of `lane`, or of every lane when it is -1.
+  void randomizeField(StepField f, int lane);
+  void resetField(StepField f, int lane);
   void setCondition(int lane, int step, Condition c, int a, int b);
 
   void selectPattern(int index);

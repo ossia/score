@@ -1,12 +1,14 @@
 #pragma once
 #include <score/graphics/widgets/Constants.hpp>
 
+#include <QFont>
 #include <QGraphicsItem>
 #include <QObject>
 
 #include <score_lib_base_export.h>
 
 #include <functional>
+#include <optional>
 #include <verdigris>
 
 namespace score
@@ -24,6 +26,7 @@ class SCORE_LIB_BASE_EXPORT QGraphicsNoteChooser final
   double m_width = 30;
   double m_height = 28;
   std::function<QString(int)> m_format;
+  std::optional<QFont> m_font;
   double m_curValue{};
   int m_value{};
   bool m_grab{};
@@ -38,6 +41,8 @@ public:
   //! Text shown for a value, on one line; unset shows the note name above
   //! the number.
   void setFormatter(std::function<QString(int)> f);
+  //! Unset uses the skin's small mono font.
+  void setFont(const QFont& f);
 
   bool moving = false;
 

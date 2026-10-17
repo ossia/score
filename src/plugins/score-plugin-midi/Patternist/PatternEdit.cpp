@@ -74,6 +74,30 @@ void randomize(Pattern& p, std::mt19937& rng, int lane) noexcept
   }
 }
 
+void euclidean(const Pattern& p, Lane& l, int hits, int rotation, Combine c) noexcept
+{
+  const int len = std::min<int>(laneLength(p, l), l.pattern.size());
+  for(int i = 0; i < len; i++)
+  {
+    const bool hit = euclidHit(i, len, hits, rotation);
+    Note& n = l.pattern[i];
+    switch(c)
+    {
+      case Combine::Replace:
+        n = hit ? Note::Note : Note::Rest;
+        break;
+      case Combine::Add:
+        if(hit && n == Note::Rest)
+          n = Note::Note;
+        break;
+      case Combine::Mask:
+        if(!hit)
+          n = Note::Rest;
+        break;
+    }
+  }
+}
+
 void addLane(Pattern& p)
 {
   if(p.lanes.empty())
@@ -119,6 +143,91 @@ std::optional<Pattern> patternFromMime(const QMimeData& mime)
      || !doc.HasMember("Division"))
     return std::nullopt;
 
+  JSONWriter wr{doc};
+  Pattern p;
+  wr.writeTo(p);
+  if(p.lanes.empty())
+    return std::nullopt;
+  return p;
+}
+
+Pattern copySteps(const Pattern& p, StepRange r)
+{
+  Pattern res;
+  if(!r.valid())
+    return res;
+  res.division = p.division;
+  res.length = std::clamp(r.step1 - r.step0 + 1, 1, Pattern::maxLength);
+  for(int li = r.lane0; li <= r.lane1 && li < int(p.lanes.size()); li++)
+  {
+    const Lane& src = p.lanes[li];
+    Lane l;
+    l.pattern.resize(res.length, Note::Rest);
+    l.params.resize(res.length);
+    for(int i = 0; i < res.length; i++)
+    {
+      l.pattern[i] = writtenNote(p, src, r.step0 + i);
+      l.params[i] = stepParams(src, r.step0 + i);
+    }
+    res.lanes.push_back(std::move(l));
+  }
+  return res;
+}
+
+void pasteSteps(Pattern& p, const Pattern& steps, int lane, int step)
+{
+  normalize(p);
+  if(lane < 0 || step < 0)
+    return;
+  for(int r = 0; r < int(steps.lanes.size()); r++)
+  {
+    if(lane + r >= int(p.lanes.size()))
+      break;
+    Lane& dst = p.lanes[lane + r];
+    const Lane& src = steps.lanes[r];
+    const int len = std::min<int>(laneLength(p, dst), dst.pattern.size());
+    for(int i = 0; i < int(src.pattern.size()) && step + i < len; i++)
+    {
+      dst.pattern[step + i] = src.pattern[i];
+      dst.params[step + i] = stepParams(src, i);
+    }
+  }
+}
+
+void clearSteps(Pattern& p, StepRange r) noexcept
+{
+  normalize(p);
+  if(!r.valid())
+    return;
+  for(int li = r.lane0; li <= r.lane1 && li < int(p.lanes.size()); li++)
+  {
+    Lane& l = p.lanes[li];
+    for(int i = r.step0; i <= r.step1 && i < int(l.pattern.size()); i++)
+    {
+      l.pattern[i] = Note::Rest;
+      l.params[i] = StepParams{};
+    }
+  }
+}
+
+static constexpr auto stepsMimeType = "application/x-score-patternist-steps";
+
+QMimeData* stepsToMime(const Pattern& steps)
+{
+  auto mime = new QMimeData;
+  mime->setData(stepsMimeType, toJson(steps));
+  return mime;
+}
+
+std::optional<Pattern> stepsFromMime(const QMimeData& mime)
+{
+  const QByteArray json = mime.data(stepsMimeType);
+  if(!json.startsWith('{'))
+    return std::nullopt;
+  rapidjson::Document doc;
+  doc.Parse(json.constData(), json.size());
+  if(doc.HasParseError() || !doc.IsObject() || !doc.HasMember("Lanes"))
+    return std::nullopt;
   JSONWriter wr{doc};
   Pattern p;
   wr.writeTo(p);
@@ -320,5 +429,60 @@ QString fieldText(StepField f, float v)
       return QStringLiteral("%1%2").arg(v > 0 ? "+" : "").arg(int(std::lround(v)));
   }
   return {};
+}
+
+static float randomField(StepField f, std::mt19937& rng) noexcept
+{
+  std::uniform_real_distribution<float> unit{0.f, 1.f};
+  switch(f)
+  {
+    case StepField::Velocity:
+      return 0.4f + 0.6f * unit(rng);
+    case StepField::Chance:
+      // Most steps always play.
+      return unit(rng) < 0.5f ? 1.f : 0.25f + 0.75f * unit(rng);
+    case StepField::Offset:
+      return std::normal_distribution<float>{0.f, 0.06f}(rng);
+    case StepField::Gate:
+      return 0.2f + 0.8f * unit(rng);
+    case StepField::Ratchet: {
+      const float r = unit(rng);
+      return r < 0.75f ? 1.f : r < 0.9f ? 2.f : r < 0.97f ? 3.f : 4.f;
+    }
+    case StepField::Pitch: {
+      // Octaves and fifths, around the lane's note.
+      static constexpr int intervals[] = {0, 0, 0, 0, 12, -12, 7, -5, 5, 3};
+      return intervals[std::uniform_int_distribution<int>{0, 9}(rng)];
+    }
+  }
+  return 0.f;
+}
+
+void randomizeField(Pattern& p, std::mt19937& rng, StepField f, int lane) noexcept
+{
+  normalize(p);
+  for(int li = 0; li < int(p.lanes.size()); li++)
+  {
+    if(lane >= 0 && li != lane)
+      continue;
+    Lane& l = p.lanes[li];
+    const int len = std::min<int>(laneLength(p, l), l.params.size());
+    for(int i = 0; i < len; i++)
+      setStepField(l.params[i], f, randomField(f, rng));
+  }
+  normalize(p);
+}
+
+void resetField(Pattern& p, StepField f, int lane) noexcept
+{
+  normalize(p);
+  const float v = stepField(StepParams{}, f);
+  for(int li = 0; li < int(p.lanes.size()); li++)
+  {
+    if(lane >= 0 && li != lane)
+      continue;
+    for(StepParams& s : p.lanes[li].params)
+      setStepField(s, f, v);
+  }
 }
 }

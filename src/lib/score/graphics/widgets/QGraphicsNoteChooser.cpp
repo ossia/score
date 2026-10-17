@@ -89,6 +89,12 @@ void QGraphicsNoteChooser::setFormatter(std::function<QString(int)> f)
   update();
 }
 
+void QGraphicsNoteChooser::setFont(const QFont& f)
+{
+  m_font = f;
+  update();
+}
+
 void QGraphicsNoteChooser::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
   const auto srect = boundingRect();
@@ -178,7 +184,7 @@ void QGraphicsNoteChooser::paint(
 {
   auto& style = score::Skin::instance();
   //const QPen& text = style.Gray.main.pen1;
-  const QFont& textFont = style.MonoFontSmall;
+  const QFont& textFont = m_font ? *m_font : style.MonoFontSmall;
   const QPen& currentText = style.Base4.lighter180.pen1;
   // const QBrush& bg = style.SliderBrush;
   // const QPen& noPen = style.NoPen;
