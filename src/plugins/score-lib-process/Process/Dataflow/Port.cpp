@@ -22,6 +22,8 @@
 #include <score/plugins/SerializableHelpers.hpp>
 
 #include <ossia/dataflow/port.hpp>
+#include <ossia/detail/algorithms.hpp>
+#include <ossia/detail/small_vector.hpp>
 #include <ossia/network/common/destination_qualifiers.hpp>
 
 #include <ossia-qt/name_utils.hpp>
@@ -1390,16 +1392,23 @@ displayNameForPort(const Process::Port& outlet, const score::DocumentContext& do
         QString name = inlet->name();
         auto inlet_parent = inlet->parent();
         auto process = qobject_cast<Process::ProcessModel*>(inlet_parent);
-        if(process)
+        if(!process && qobject_cast<Process::Port*>(inlet_parent))
+          process = qobject_cast<Process::ProcessModel*>(inlet_parent->parent());
+
+        // A process's pretty name can name the port its outlet is cabled to
+        // (automations do), so cables forming a cycle -- e.g. an automation
+        // feeding itself after a remove that kept the links -- would recurse
+        // forever: name each process once along the chain.
+        static thread_local ossia::small_vector<const Process::ProcessModel*, 8>
+            visiting;
+        if(process && !ossia::contains(visiting, process))
         {
-          name += " (" + process->prettyName() + ")";
-        }
-        else if(qobject_cast<Process::Port*>(inlet_parent))
-        {
-          if(auto process = qobject_cast<Process::ProcessModel*>(inlet_parent->parent()))
+          visiting.push_back(process);
+          struct pop
           {
-            name += " (" + process->prettyName() + ")";
-          }
+            ~pop() { visiting.pop_back(); }
+          } guard;
+          name += " (" + process->prettyName() + ")";
         }
         return name;
       }
