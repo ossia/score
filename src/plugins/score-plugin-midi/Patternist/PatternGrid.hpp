@@ -39,6 +39,8 @@ struct StepSlot
   bool repeat{};
   bool barStart{};
   bool beatStart{};
+  //! Index of the beat the step falls in, counted from its bar line.
+  int beat{};
 };
 
 //! The steps that fall in [0; width[ pixels, on the grid the engine walks:
@@ -48,4 +50,14 @@ SCORE_PLUGIN_MIDI_EXPORT
 std::vector<StepSlot> timelineSlots(
     const Pattern& p, const TimeGrid& grid, ZoomRatio zoom, double width,
     std::size_t maxSlots = 100000);
+
+//! The signature in effect at `date`.
+SCORE_PLUGIN_MIDI_EXPORT
+ossia::time_signature signatureAt(const TimeGrid& grid, TimeVal date) noexcept;
+
+//! The steps of a pattern spread evenly over [x0; x1[, grouped in beats and
+//! bars of `sig` counted from the first step.
+SCORE_PLUGIN_MIDI_EXPORT
+std::vector<StepSlot>
+fitSlots(const Pattern& p, ossia::time_signature sig, double x0, double x1);
 }

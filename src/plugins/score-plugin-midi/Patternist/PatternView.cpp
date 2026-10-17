@@ -15,10 +15,10 @@
 #include <Patternist/PatternEdit.hpp>
 #include <Patternist/PatternModel.hpp>
 
+#include <cmath>
 #include <wobjectimpl.h>
 
 #include <algorithm>
-#include <cmath>
 W_OBJECT_IMPL(Patternist::View)
 
 namespace Patternist
@@ -31,23 +31,6 @@ constexpr double numbers_height = 14;
 //! Below this a step is too thin to aim at.
 constexpr double min_editable_step = 3;
 
-//! Steps of a pattern spread evenly over [x0; x1[, a beat being a quarter note.
-std::vector<StepSlot> fitSlots(const Pattern& p, double x0, double x1)
-{
-  std::vector<StepSlot> res;
-  if(p.length <= 0 || x1 <= x0)
-    return res;
-  const double w = (x1 - x0) / p.length;
-  const int stepsPerBeat = p.division % 4 == 0 ? p.division / 4 : 0;
-  res.reserve(p.length);
-  for(int i = 0; i < p.length; i++)
-  {
-    const bool beat = stepsPerBeat > 0 && i % stepsPerBeat == 0;
-    const bool bar = stepsPerBeat > 0 && i % (4 * stepsPerBeat) == 0;
-    res.push_back({x0 + i * w, x0 + (i + 1) * w, i, false, bar, beat});
-  }
-  return res;
-}
 }
 
 View::View(const Patternist::ProcessModel& model, QGraphicsItem* parent)
@@ -157,7 +140,8 @@ const std::vector<StepSlot>& View::slots() const
       if(m_mode == Mode::Timeline)
         m_slots = timelineSlots(*p, m_grid, m_zoom, width());
       else
-        m_slots = fitSlots(*p, headerWidth(), width() - margin);
+        m_slots = fitSlots(
+            *p, signatureAt(m_grid, m_grid.playStart), headerWidth(), width() - margin);
     }
     m_slotsValid = true;
   }
@@ -374,9 +358,12 @@ void View::paintCells(QPainter* painter, const Pattern& p) const
       switch(n)
       {
         case Note::Rest:
+          // Every other beat is a shade darker, so that beats read as groups.
           if(!sl.repeat)
             painter->fillRect(
-                r, playing ? skin.Emphasis2.lighter.brush : skin.Emphasis2.main.brush);
+                r, playing            ? skin.Emphasis2.lighter.brush
+                   : sl.beat % 2 == 1 ? skin.Emphasis2.darker.brush
+                                      : skin.Emphasis2.main.brush);
           break;
         case Note::Legato:
           r.adjust(-gapX, 0., 0., 0.);
@@ -395,16 +382,12 @@ void View::paintCells(QPainter* painter, const Pattern& p) const
   // Bar and beat lines, then what plays and what the mouse is on.
   const double top = gridTop();
   const double bottom = top + h * p.lanes.size();
+  const QPen barPen{QColor{255, 255, 255, 36}, 1.};
   for(const StepSlot& sl : s)
   {
     if(sl.barStart && sl.x0 > 0.)
     {
-      painter->setPen(skin.LightGray.main.pen1);
-      painter->drawLine(QPointF{sl.x0 - 0.5, top}, QPointF{sl.x0 - 0.5, bottom});
-    }
-    else if(sl.beatStart && sl.x0 > 0. && sl.x1 - sl.x0 >= min_editable_step)
-    {
-      painter->setPen(skin.Gray.main.pen1);
+      painter->setPen(barPen);
       painter->drawLine(QPointF{sl.x0 - 0.5, top}, QPointF{sl.x0 - 0.5, bottom});
     }
 
@@ -463,13 +446,6 @@ void View::paintHeader(QPainter* painter, const Pattern& p) const
       };
       drawButton(muteRect(lane), tr("M"), l.mute, skin.Warn3.main.brush);
       drawButton(soloRect(lane), tr("S"), l.solo, skin.Base2.main.brush);
-    }
-    else if(h >= 10. && (l.mute || l.solo))
-    {
-      const QRectF lr = laneRect(lane);
-      painter->setPen(l.solo ? skin.Base2.main.pen1 : skin.Warn3.main.pen1);
-      painter->drawText(
-          QRectF{hw - 12., lr.y(), 10., h}, Qt::AlignCenter, l.solo ? tr("S") : tr("M"));
     }
   }
 }

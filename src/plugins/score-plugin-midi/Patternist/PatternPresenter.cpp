@@ -2,14 +2,13 @@
 
 #include <Process/Dataflow/NodeItem.hpp>
 
-#include <Scenario/Document/Interval/IntervalModel.hpp>
-
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/tools/Bind.hpp>
 
 #include <Patternist/Commands/PatternProperties.hpp>
 #include <Patternist/PatternController.hpp>
 #include <Patternist/PatternParsing.hpp>
+#include <Patternist/PatternTimeGrid.hpp>
 #include <Patternist/PatternView.hpp>
 
 namespace Patternist
@@ -32,9 +31,9 @@ Presenter::Presenter(
   m_controller->attach(*m_view);
   connect(m_view, &View::dropReceived, this, &Presenter::on_drop);
 
-  con(layer, &ProcessModel::timeGridChanged, this, &Presenter::updateTimeGrid);
-  con(layer, &ProcessModel::startOffsetChanged, this, &Presenter::updateTimeGrid);
-  updateTimeGrid();
+  auto grid = new TimeGridWatcher{layer, this};
+  connect(grid, &TimeGridWatcher::changed, m_view, &View::setTimeGrid);
+  m_view->setTimeGrid(grid->grid());
 }
 
 Presenter::~Presenter() { }
@@ -65,51 +64,6 @@ void Presenter::on_zoomRatioChanged(ZoomRatio zr)
 }
 
 void Presenter::parentGeometryChanged() { }
-
-//! The engine reads its musical positions from the closest interval, from the
-//! process's own upwards, that has a time signature or a tempo curve; without
-//! one, from the root.
-void Presenter::updateTimeGrid()
-{
-  auto& proc = static_cast<const Patternist::ProcessModel&>(model());
-
-  TimeVal delta = TimeVal::zero();
-  const Scenario::IntervalModel* found{};
-  for(auto itv = Scenario::closestParentInterval(proc.parent()); itv;
-      itv = Scenario::closestParentInterval(itv->parent()))
-  {
-    found = itv;
-    if(itv->hasTimeSignature() || itv->tempoCurve())
-      break;
-    delta += itv->date();
-  }
-
-  if(found != m_metrics)
-  {
-    QObject::disconnect(m_metricsSignatures);
-    QObject::disconnect(m_metricsHasSignature);
-    m_metrics = found;
-    if(found)
-    {
-      m_metricsSignatures = connect(
-          found, &Scenario::IntervalModel::timeSignaturesChanged, this,
-          &Presenter::updateTimeGrid);
-      m_metricsHasSignature = connect(
-          found, &Scenario::IntervalModel::hasTimeSignatureChanged, this,
-          &Presenter::updateTimeGrid);
-    }
-  }
-
-  TimeGrid g;
-  if(found && found->hasTimeSignature())
-    for(const auto& [date, sig] : found->timeSignatureMap())
-      g.signatures.emplace_back(date, sig);
-  g.playStart = delta;
-  g.origin = (proc.flags() & Process::ProcessFlags::HandlesLooping)
-                 ? delta
-                 : delta - proc.startOffset();
-  m_view->setTimeGrid(g);
-}
 
 void Presenter::fillContextMenu(
     QMenu& menu, QPoint pos, QPointF scenepos, const Process::LayerContextMenuManager& m)
