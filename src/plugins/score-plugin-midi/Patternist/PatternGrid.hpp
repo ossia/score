@@ -44,12 +44,19 @@ struct StepSlot
 };
 
 //! The steps that fall in [0; width[ pixels, on the grid the engine walks:
-//! `division` points per whole note, restarting at every bar line. Empty when
-//! there would be more than `maxSlots` of them.
+//! `division` points per whole note, restarting at every bar line, the steps
+//! looping every `length`. Empty when there would be more than `maxSlots`.
 SCORE_PLUGIN_MIDI_EXPORT
 std::vector<StepSlot> timelineSlots(
-    const Pattern& p, const TimeGrid& grid, ZoomRatio zoom, double width,
+    int length, int division, const TimeGrid& grid, ZoomRatio zoom, double width,
     std::size_t maxSlots = 100000);
+
+inline std::vector<StepSlot> timelineSlots(
+    const Pattern& p, const TimeGrid& grid, ZoomRatio zoom, double width,
+    std::size_t maxSlots = 100000)
+{
+  return timelineSlots(p.length, p.division, grid, zoom, width, maxSlots);
+}
 
 //! The signature in effect at `date`.
 SCORE_PLUGIN_MIDI_EXPORT
@@ -60,4 +67,15 @@ ossia::time_signature signatureAt(const TimeGrid& grid, TimeVal date) noexcept;
 SCORE_PLUGIN_MIDI_EXPORT
 std::vector<StepSlot>
 fitSlots(const Pattern& p, ossia::time_signature sig, double x0, double x1);
+
+//! Musical length, in quarters, of the longest loop among the lanes.
+SCORE_PLUGIN_MIDI_EXPORT double longestLoop(const Pattern& p) noexcept;
+
+//! The steps of one lane over [x0; x1[, where x1 - x0 is `span` quarters: a
+//! lane with a shorter loop repeats, a slower one has wider steps, so that the
+//! lanes line up in time.
+SCORE_PLUGIN_MIDI_EXPORT
+std::vector<StepSlot> fitLaneSlots(
+    int length, int division, ossia::time_signature sig, double span, double x0,
+    double x1);
 }

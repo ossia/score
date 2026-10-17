@@ -31,8 +31,22 @@ void Controller::attach(View& view)
     if(!hasPattern())
       return;
     auto p = current();
-    if(setStep(p, lane, step, n))
+    // Editing a step of a rhythm that replaces the written steps writes the
+    // rhythm out first: the edit then applies to what is heard.
+    bool printed = false;
+    if(ossia::valid_index(lane, p.lanes))
+    {
+      auto& l = p.lanes[lane];
+      if(l.euclid.enabled && l.euclid.mode == EuclidMode::Replace)
+      {
+        Patternist::printEuclid(p, l);
+        printed = true;
+      }
+    }
+    if(setStep(p, lane, step, n) || printed)
       m_ctx.dispatcher.submit<UpdatePattern>(m_model, m_model.currentPattern(), p);
+    if(printed && status)
+      status(tr("Euclidean rhythm written into the steps"));
   });
   connect(&view, &View::paintFinished, this, [this] { m_ctx.dispatcher.commit(); });
 
@@ -46,6 +60,25 @@ void Controller::attach(View& view)
     m_ctx.dispatcher.submit<UpdatePattern>(m_model, m_model.currentPattern(), p);
   });
   connect(&view, &View::noteChangeFinished, this, [this] { m_ctx.dispatcher.commit(); });
+
+  connect(
+      &view, &View::fieldEdited, this, [this](int lane, int step, int field, float v) {
+    if(!hasPattern())
+      return;
+    auto p = current();
+    if(!ossia::valid_index(lane, p.lanes))
+      return;
+    auto& l = p.lanes[lane];
+    if(!ossia::valid_index(step, l.params))
+      return;
+    StepParams sp = l.params[step];
+    setStepField(sp, StepField(field), v);
+    if(sp == l.params[step])
+      return;
+    l.params[step] = sp;
+    m_ctx.dispatcher.submit<UpdatePattern>(m_model, m_model.currentPattern(), p);
+  });
+  connect(&view, &View::fieldEditFinished, this, [this] { m_ctx.dispatcher.commit(); });
 
   connect(&view, &View::muteToggled, this, &Controller::toggleMute);
   connect(&view, &View::soloToggled, this, &Controller::toggleSolo);
@@ -238,6 +271,26 @@ void Controller::setDivision(int division)
   auto p = current();
   p.division = division;
   submit(p);
+}
+
+void Controller::printEuclid(int lane)
+{
+  editLane(lane, [this](Lane& l) {
+    Patternist::printEuclid(m_model.patterns()[m_model.currentPattern()], l);
+  });
+  if(status)
+    status(tr("Euclidean rhythm written into the steps"));
+}
+
+void Controller::setCondition(int lane, int step, Condition c, int a, int b)
+{
+  editLane(lane, [&](Lane& l) {
+    if(!ossia::valid_index(step, l.params))
+      return;
+    l.params[step].condition = c;
+    l.params[step].cycleA = a;
+    l.params[step].cycleB = b;
+  });
 }
 
 void Controller::selectPattern(int index)

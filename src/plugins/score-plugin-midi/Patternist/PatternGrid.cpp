@@ -9,16 +9,16 @@
 namespace Patternist
 {
 std::vector<StepSlot> timelineSlots(
-    const Pattern& p, const TimeGrid& grid, ZoomRatio zoom, double width,
+    int length, int division, const TimeGrid& grid, ZoomRatio zoom, double width,
     std::size_t maxSlots)
 {
   std::vector<StepSlot> res;
-  if(zoom <= 0. || width <= 0. || p.length <= 0 || p.division <= 0)
+  if(zoom <= 0. || width <= 0. || length <= 0 || division <= 0)
     return res;
 
   constexpr double eps = 1e-6;
   const double quarter = ossia::quarter_duration<double>;
-  const double unit = 4. / p.division * quarter;
+  const double unit = 4. / division * quarter;
   const double t0 = grid.origin.impl;
   const double t1 = t0 + width * zoom;
   if((t1 - t0) / unit > double(maxSlots))
@@ -102,8 +102,8 @@ std::vector<StepSlot> timelineSlots(
     const double x1 = i + 1 < points.size() ? (points[i + 1].t - t0) / zoom
                                             : std::min(width, x0 + unit / zoom);
     const std::ptrdiff_t n = std::ptrdiff_t(i) - first;
-    const int step = int(((n % p.length) + p.length) % p.length);
-    res.push_back({x0, x1, step, n < 0 || n >= p.length, pt.bar, pt.beat, pt.beatIndex});
+    const int step = int(((n % length) + length) % length);
+    res.push_back({x0, x1, step, n < 0 || n >= length, pt.bar, pt.beat, pt.beatIndex});
   }
   return res;
 }
@@ -142,6 +142,47 @@ fitSlots(const Pattern& p, ossia::time_signature sig, double x0, double x1)
     const bool bar = stepsPerBar > 0 && i % stepsPerBar == 0;
     const int beatIndex = stepsPerBeat > 0 ? (i % stepsPerBar) / stepsPerBeat : 0;
     res.push_back({x0 + i * w, x0 + (i + 1) * w, i, false, bar, beat, beatIndex});
+  }
+  return res;
+}
+
+double longestLoop(const Pattern& p) noexcept
+{
+  double span = p.division > 0 ? 4. * p.length / p.division : 0.;
+  for(const Lane& l : p.lanes)
+  {
+    const int div = laneDivision(p, l);
+    if(div > 0)
+      span = std::max(span, 4. * laneLength(p, l) / div);
+  }
+  return span;
+}
+
+std::vector<StepSlot> fitLaneSlots(
+    int length, int division, ossia::time_signature sig, double span, double x0,
+    double x1)
+{
+  std::vector<StepSlot> res;
+  if(length <= 0 || division <= 0 || span <= 0. || x1 <= x0)
+    return res;
+  const double w = (x1 - x0) * (4. / division) / span;
+  if(w <= 0.)
+    return res;
+
+  const int stepsPerBeat
+      = (sig.lower > 0 && division % sig.lower == 0) ? division / sig.lower : 0;
+  const int stepsPerBar = stepsPerBeat * sig.upper;
+
+  const int count = int(std::ceil((x1 - x0) / w - 1e-6));
+  res.reserve(count);
+  for(int i = 0; i < count; i++)
+  {
+    const bool beat = stepsPerBeat > 0 && i % stepsPerBeat == 0;
+    const bool bar = stepsPerBar > 0 && i % stepsPerBar == 0;
+    const int beatIndex = stepsPerBeat > 0 ? (i % stepsPerBar) / stepsPerBeat : 0;
+    res.push_back(
+        {x0 + i * w, std::min(x1, x0 + (i + 1) * w), i % length, i >= length, bar, beat,
+         beatIndex});
   }
   return res;
 }

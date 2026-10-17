@@ -8,6 +8,7 @@
 #include <QMimeData>
 
 #include <algorithm>
+#include <cmath>
 
 namespace Patternist
 {
@@ -214,5 +215,110 @@ QString laneLabel(int note, LaneLabels mode)
     default:
       return QStringLiteral("%1 %2").arg(noteName(note)).arg(note);
   }
+}
+
+FieldRange fieldRange(StepField f) noexcept
+{
+  switch(f)
+  {
+    case StepField::Velocity:
+    case StepField::Chance:
+    case StepField::Gate:
+      return {0.f, 1.f, 0.f};
+    case StepField::Offset:
+      return {-0.5f, 0.5f, 0.f};
+    case StepField::Ratchet:
+      return {1.f, 8.f, 1.f};
+    case StepField::Pitch:
+      return {-24.f, 24.f, 0.f};
+  }
+  return {0.f, 1.f, 0.f};
+}
+
+QString fieldName(StepField f)
+{
+  switch(f)
+  {
+    case StepField::Velocity:
+      return QObject::tr("Velocity");
+    case StepField::Chance:
+      return QObject::tr("Chance");
+    case StepField::Offset:
+      return QObject::tr("Timing");
+    case StepField::Gate:
+      return QObject::tr("Gate");
+    case StepField::Ratchet:
+      return QObject::tr("Ratchet");
+    case StepField::Pitch:
+      return QObject::tr("Pitch");
+  }
+  return {};
+}
+
+float stepField(const StepParams& p, StepField f) noexcept
+{
+  switch(f)
+  {
+    case StepField::Velocity:
+      return p.velocity;
+    case StepField::Chance:
+      return p.chance;
+    case StepField::Offset:
+      return p.offset;
+    case StepField::Gate:
+      return p.gate;
+    case StepField::Ratchet:
+      return p.ratchet;
+    case StepField::Pitch:
+      return p.pitch;
+  }
+  return 0.f;
+}
+
+void setStepField(StepParams& p, StepField f, float v) noexcept
+{
+  const auto r = fieldRange(f);
+  v = std::clamp(v, r.min, r.max);
+  switch(f)
+  {
+    case StepField::Velocity:
+      p.velocity = v;
+      break;
+    case StepField::Chance:
+      p.chance = v;
+      break;
+    case StepField::Offset:
+      p.offset = v;
+      break;
+    case StepField::Gate:
+      p.gate = v;
+      break;
+    case StepField::Ratchet:
+      p.ratchet = uint8_t(std::lround(v));
+      break;
+    case StepField::Pitch:
+      p.pitch = int8_t(std::lround(v));
+      break;
+  }
+}
+
+QString fieldText(StepField f, float v)
+{
+  switch(f)
+  {
+    case StepField::Velocity:
+    case StepField::Chance:
+    case StepField::Gate:
+      return QStringLiteral("%1%").arg(int(std::lround(v * 100.f)));
+    case StepField::Offset:
+      return QStringLiteral("%1%2%")
+          .arg(v > 0 ? "+" : "")
+          .arg(int(std::lround(v * 100.f)));
+    case StepField::Ratchet:
+      return QStringLiteral("x%1").arg(int(std::lround(v)));
+    case StepField::Pitch:
+      return QStringLiteral("%1%2").arg(v > 0 ? "+" : "").arg(int(std::lround(v)));
+  }
+  return {};
 }
 }
