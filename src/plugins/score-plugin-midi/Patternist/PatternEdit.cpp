@@ -514,6 +514,20 @@ float randomFieldValue(StepField f, std::mt19937& rng) noexcept
   return 0.f;
 }
 
+float anyFieldValue(StepField f, std::mt19937& rng) noexcept
+{
+  const auto r = fieldRange(f);
+  switch(f)
+  {
+    case StepField::Ratchet:
+    case StepField::Pitch:
+    case StepField::PitchRandom:
+      return float(std::uniform_int_distribution<int>{int(r.min), int(r.max)}(rng));
+    default:
+      return std::uniform_real_distribution<float>{r.min, r.max}(rng);
+  }
+}
+
 void randomizeField(Pattern& p, std::mt19937& rng, StepField f, int lane) noexcept
 {
   normalize(p);
