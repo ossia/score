@@ -90,7 +90,11 @@ GPUIndexWiden::PreparedOp GPUIndexWiden::prepare(QRhi& rhi, const Params& p)
   op.srb->setName("GPUIndexWiden::srb");
   setWidenBindings(*op.srb, p, op.paramsUBO);
   op.srb->create();
+  op.src_id = p.src->globalResourceId();
+  op.dst_id = p.dst->globalResourceId();
 
+  // The pipeline only reads the layout of this srb, at create(); dispatch()
+  // always passes the op's own srb, so this one may be released first.
   if(m_pipeline && !m_pipeline->shaderResourceBindings())
   {
     m_pipeline->setShaderResourceBindings(op.srb);
@@ -119,7 +123,7 @@ GPUIndexWiden::Dims GPUIndexWiden::dims(uint32_t count) const noexcept
 }
 
 void GPUIndexWiden::updateParams(
-    QRhiResourceUpdateBatch& res, const PreparedOp& op, const Params& p)
+    QRhiResourceUpdateBatch& res, PreparedOp& op, const Params& p)
 {
   if(!op.paramsUBO || !op.srb)
     return;
@@ -127,9 +131,17 @@ void GPUIndexWiden::updateParams(
       p.count, p.src_offset_bytes, p.dst_offset_bytes / 4u, uint32_t(dims(p.count).x)};
   res.updateDynamicBuffer(op.paramsUBO, 0, sizeof(data), data);
 
-  // The buffers may have been reallocated since prepare().
-  setWidenBindings(*op.srb, p, op.paramsUBO);
-  op.srb->create();
+  // The buffers may have been reallocated since the srb was created. Only
+  // then rebuild it: create() allocates descriptor sets on Vulkan.
+  const quint64 src_id = p.src->globalResourceId();
+  const quint64 dst_id = p.dst->globalResourceId();
+  if(src_id != op.src_id || dst_id != op.dst_id)
+  {
+    setWidenBindings(*op.srb, p, op.paramsUBO);
+    op.srb->create();
+    op.src_id = src_id;
+    op.dst_id = dst_id;
+  }
 }
 
 void GPUIndexWiden::dispatch(QRhiCommandBuffer& cb, const PreparedOp& op, const Params& p)
