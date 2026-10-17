@@ -264,6 +264,10 @@ Outcome run(score::gfx::GraphicsApi backend, const char* shader)
 
     g.unregister_preview_node(pv);
     g.updateGraph();
+    // Unregistering the sink destroys the QRhi these were made from.
+    rt.reset();
+    rp.reset();
+    tex.reset();
     g.unregister_node(s);
     g.unregister_node(a);
     g.updateGraph();
