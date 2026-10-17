@@ -208,6 +208,7 @@ set(HDRS
     Gfx/Graph/RhiClearBuffer.hpp
     Gfx/Graph/GPUBufferScatter.hpp
     Gfx/Graph/GPUIndexWiden.hpp
+    Gfx/Graph/GPUStridedCopy.hpp
     Gfx/Graph/RenderedCSFNode.hpp
     Gfx/Graph/Graph.hpp
     Gfx/Graph/ISFNode.hpp
@@ -506,6 +507,7 @@ set(SRCS
     Gfx/Graph/RhiClearBuffer.cpp
     Gfx/Graph/GPUBufferScatter.cpp
     Gfx/Graph/GPUIndexWiden.cpp
+    Gfx/Graph/GPUStridedCopy.cpp
     Gfx/Graph/RenderedCSFNode.cpp
     Gfx/Graph/Graph.cpp
     Gfx/Graph/ISFNode.cpp

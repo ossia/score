@@ -5,6 +5,7 @@
 #include <Gfx/Graph/CameraMath.hpp>
 #include <Gfx/Graph/CustomMesh.hpp>
 #include <Gfx/Graph/GPUIndexWiden.hpp>
+#include <Gfx/Graph/GPUStridedCopy.hpp>
 #include <Gfx/Graph/NodeRenderer.hpp>
 #include <Gfx/Graph/RenderList.hpp>
 #include <Gfx/Graph/RhiClearBuffer.hpp>
@@ -14,10 +15,12 @@
 #include <Gfx/Graph/TextureLoader.hpp>
 
 #include <ossia/dataflow/geometry_port.hpp>
+#include <ossia/detail/algorithms.hpp>
 #include <ossia/detail/flat_map.hpp>
 #include <ossia/detail/flat_set.hpp>
 #include <ossia/detail/hash.hpp>
 #include <ossia/detail/hash_map.hpp>
+#include <ossia/detail/small_vector.hpp>
 #include <ossia/network/value/value_conversion.hpp>
 
 #include <QByteArray>
@@ -725,6 +728,7 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
     int element_size{};  // BytesPerVertex for this attribute
     MdiAttr attr{};
     bool widen{};        // uint16 indices widened by m_indexWiden, not copied
+    bool on_compute{};   // this frame: gathered by m_stridedCopy, not copied
   };
   std::vector<PendingGpuCopy> m_pendingGpuCopies;
 
@@ -760,6 +764,16 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
   bool m_indexWidenTried{false};
   bool m_indexWidenReady{false};
   std::vector<score::gfx::GPUIndexWiden::PreparedOp> m_widenOps;
+
+  // Strided entries of m_pendingGpuCopies run as compute gathers in that same
+  // pass when the buffers allow it (see GPUStridedCopy::eligible): one
+  // dispatch instead of one copy region per vertex. PendingGpuCopy::on_compute
+  // marks, for this frame, the ops the pass took, so issuePendingGpuCopies
+  // skips them.
+  score::gfx::GPUStridedCopy m_stridedCopy;
+  bool m_stridedCopyTried{false};
+  bool m_stridedCopyReady{false};
+  ossia::small_vector<score::gfx::GPUStridedCopy::PreparedOp, 8> m_stridedOps;
 
   // Texture pool generation this preprocessor last published against. The
   // pool is shared, so another preprocessor growing a bucket replaces arrays
@@ -1192,6 +1206,12 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
     m_indexWiden.release();
     m_indexWidenTried = false;
     m_indexWidenReady = false;
+    for(auto& op : m_stridedOps)
+      score::gfx::GPUStridedCopy::releaseOp(op);
+    m_stridedOps.clear();
+    m_stridedCopy.release();
+    m_stridedCopyTried = false;
+    m_stridedCopyReady = false;
     // Free per-registry resources on every release(), whether the renderer is
     // about to be destroyed (recreateOutputRenderList) or reused
     // (relinkGraph). Skipping the free on a registry-pointer match would only
@@ -5844,29 +5864,90 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
   // vec4->vec3 copies fall back to one copyBuffer per vertex.
   // The uint16 index copies that the backend cannot blit, run as one compute
   // pass ahead of the frame's buffer copies.
-  void widenPendingGpuIndices(
+  // Destination and per-element layout of a pending copy, as issued.
+  struct CopyLayout
+  {
+    QRhiBuffer* dst{};
+    int src_stride{};
+    int dst_stride{};
+    bool tight{};
+  };
+  CopyLayout layoutOf(const PendingGpuCopy& op)
+  {
+    CopyLayout l;
+    // Explicit dst wins over the mesh-stream lookup — used by the
+    // unified-MDI per-instance concat copies (the interleaved attribs
+    // array) which target preprocessor-owned buffers, not arena streams.
+    l.dst = op.dst ? op.dst : mdiBufferFor(op.attr);
+    l.src_stride = op.src_stride == 0 ? op.element_size : op.src_stride;
+    l.dst_stride = op.dst_stride == 0 ? op.element_size : op.dst_stride;
+    l.tight = l.src_stride == op.element_size && l.dst_stride == op.element_size;
+    return l;
+  }
+
+  // The compute pass of the pending copies: widens the 16-bit GPU indices, and
+  // gathers the strided copies the buffers allow on the GPU.
+  void runPendingComputeCopies(
       RenderList& renderer, QRhiCommandBuffer& cb, QRhiResourceUpdateBatch*& res)
   {
     auto* rhi = renderer.state.rhi;
-    QRhiBuffer* dst = mdiBufferFor(MdiAttr::Indices);
-    std::vector<score::gfx::GPUIndexWiden::Params> params;
-    for(const auto& op : m_pendingGpuCopies)
-      if(op.widen && op.src && dst)
-        params.push_back(
-            {op.src, dst, (uint32_t)op.vertex_count, (uint32_t)op.src_offset,
-             (uint32_t)op.dst_offset});
-    if(params.empty() || !rhi)
+    for(auto& op : m_pendingGpuCopies)
+      op.on_compute = false;
+    if(!rhi)
       return;
 
-    if(!m_indexWidenTried)
+    QRhiBuffer* idxDst = mdiBufferFor(MdiAttr::Indices);
+    ossia::small_vector<score::gfx::GPUIndexWiden::Params, 8> params;
+    for(const auto& op : m_pendingGpuCopies)
+      if(op.widen && op.src && idxDst)
+        params.push_back(
+            {op.src, idxDst, (uint32_t)op.vertex_count, (uint32_t)op.src_offset,
+             (uint32_t)op.dst_offset});
+
+    ossia::small_vector<score::gfx::GPUStridedCopy::Params, 8> gathers;
+    for(auto& op : m_pendingGpuCopies)
     {
-      m_indexWidenTried = true;
-      m_indexWidenReady = m_indexWiden.init(renderer.state);
-      if(!m_indexWidenReady)
-        qWarning() << "Scene Preprocessor: 16-bit GPU indices cannot be widened on"
-                   << rhi->backendName();
+      if(op.widen || !op.src || op.vertex_count <= 0)
+        continue;
+      const auto l = layoutOf(op);
+      if(l.tight || !l.dst)
+        continue;
+      score::gfx::GPUStridedCopy::Params g{
+          op.src,
+          l.dst,
+          (uint32_t)op.vertex_count,
+          (uint32_t)std::min(l.src_stride, op.element_size),
+          (uint32_t)op.src_offset,
+          (uint32_t)l.src_stride,
+          (uint32_t)op.dst_offset,
+          (uint32_t)l.dst_stride};
+      if(!score::gfx::GPUStridedCopy::eligible(g))
+        continue;
+      if(!m_stridedCopyTried)
+      {
+        m_stridedCopyTried = true;
+        m_stridedCopyReady = m_stridedCopy.init(renderer.state);
+      }
+      if(!m_stridedCopyReady)
+        break;
+      gathers.push_back(g);
+      op.on_compute = true;
     }
-    if(!m_indexWidenReady)
+
+    if(!params.empty())
+    {
+      if(!m_indexWidenTried)
+      {
+        m_indexWidenTried = true;
+        m_indexWidenReady = m_indexWiden.init(renderer.state);
+        if(!m_indexWidenReady)
+          qWarning() << "Scene Preprocessor: 16-bit GPU indices cannot be widened on"
+                     << rhi->backendName();
+      }
+      if(!m_indexWidenReady)
+        params.clear();
+    }
+    if(params.empty() && gathers.empty())
       return;
 
     while(m_widenOps.size() > params.size())
@@ -5877,15 +5958,27 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
     while(m_widenOps.size() < params.size())
       m_widenOps.push_back(m_indexWiden.prepare(*rhi, params[m_widenOps.size()]));
 
+    while(m_stridedOps.size() > gathers.size())
+    {
+      score::gfx::GPUStridedCopy::releaseOp(m_stridedOps.back());
+      m_stridedOps.pop_back();
+    }
+    while(m_stridedOps.size() < gathers.size())
+      m_stridedOps.push_back(m_stridedCopy.prepare(*rhi, gathers[m_stridedOps.size()]));
+
     if(!res)
       res = rhi->nextResourceUpdateBatch();
     for(std::size_t i = 0; i < params.size(); i++)
       m_indexWiden.updateParams(*res, m_widenOps[i], params[i]);
+    for(std::size_t i = 0; i < gathers.size(); i++)
+      m_stridedCopy.updateParams(*res, m_stridedOps[i], gathers[i]);
 
     cb.beginComputePass(res);
     res = nullptr;
     for(std::size_t i = 0; i < params.size(); i++)
       m_indexWiden.dispatch(cb, m_widenOps[i], params[i]);
+    for(std::size_t i = 0; i < gathers.size(); i++)
+      m_stridedCopy.dispatch(cb, m_stridedOps[i], gathers[i]);
     cb.endComputePass();
     // The caller queues this frame's world-transform writes into `res`.
     res = rhi->nextResourceUpdateBatch();
@@ -5910,19 +6003,16 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
     score::gfx::beginBufferCopyBarrier(*rhi, cb);
     // Scratch reused across ops — avoids reallocating for each strided op.
     std::vector<score::gfx::BufferCopyRegion> regions;
-    for(const auto& op : m_pendingGpuCopies)
+    for(std::size_t k = 0; k < m_pendingGpuCopies.size(); k++)
     {
-      // Explicit dst wins over the mesh-stream lookup — used by the
-      // unified-MDI per-instance concat copies (the interleaved attribs
-      // array) which target preprocessor-owned buffers, not arena streams.
-      QRhiBuffer* dst = op.dst ? op.dst : mdiBufferFor(op.attr);
+      const auto& op = m_pendingGpuCopies[k];
+      // Already gathered by the compute pass of runPendingComputeCopies.
+      if(op.on_compute)
+        continue;
+      const auto [dst, src_stride, dst_stride, tight] = layoutOf(op);
       if(!op.src || !dst || op.widen)
         continue;
-      const int src_stride
-          = op.src_stride == 0 ? op.element_size : op.src_stride;
-      const int dst_stride
-          = op.dst_stride == 0 ? op.element_size : op.dst_stride;
-      if(src_stride == op.element_size && dst_stride == op.element_size)
+      if(tight)
       {
         // Tight on both ends — one copy, no per-call barrier (batched).
         score::gfx::copyBuffer(
@@ -5984,7 +6074,7 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
     // every consumer.
     if(m_lastGpuCopiesFrame != renderer.frame)
     {
-      widenPendingGpuIndices(renderer, commands, res);
+      runPendingComputeCopies(renderer, commands, res);
       issuePendingGpuCopies(renderer, commands);
       m_lastGpuCopiesFrame = renderer.frame;
     }

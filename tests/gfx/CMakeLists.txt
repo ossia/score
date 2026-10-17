@@ -1706,6 +1706,9 @@ score_add_gfx_test(merge_geometries_gpu_transform MergeGeometriesGpuTransform.cp
 score_add_gfx_test(stale_slot_flatten GfxStaleSlotFlatten.cpp)
 score_gfx_test_offset_allocator(test_gfx_stale_slot_flatten)
 
+# GPUStridedCopy matches the per-element copy regions it replaces.
+score_add_gfx_test(strided_copy GfxStridedCopy.cpp)
+
 # Self-feedback target limits (depth, mips, GrabsFromSource ports).
 score_add_gfx_test(selffb_limits GfxSelfFeedbackLimits.cpp)
 
