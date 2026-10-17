@@ -114,7 +114,7 @@ private:
   static constexpr int rate_button = 6000;
 
   QFont nameFont() const;
-  QFont smallFont() const;
+  const QFont& smallFont() const;
   bool stackedHeader() const noexcept;
   bool laneValues() const noexcept;
   double cellHeight() const noexcept;
