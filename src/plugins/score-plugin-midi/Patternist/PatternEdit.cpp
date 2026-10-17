@@ -364,6 +364,8 @@ FieldRange fieldRange(StepField f) noexcept
       return {0.f, 1.f, 0.f};
     case StepField::Offset:
       return {-0.5f, 0.5f, 0.f};
+    case StepField::OffsetRandom:
+      return {0.f, 0.5f, 0.f};
     case StepField::Pace:
       return {-1.f, 1.f, 0.f};
     case StepField::Ratchet:
@@ -383,11 +385,13 @@ QString fieldName(StepField f)
     case StepField::Velocity:
       return QObject::tr("Velocity");
     case StepField::VelocityRandom:
-      return QObject::tr("Vel. random");
+      return QObject::tr("Velocity random");
     case StepField::Chance:
       return QObject::tr("Chance");
     case StepField::Offset:
       return QObject::tr("Timing");
+    case StepField::OffsetRandom:
+      return QObject::tr("Timing random");
     case StepField::Gate:
       return QObject::tr("Gate");
     case StepField::Ratchet:
@@ -414,6 +418,8 @@ float stepField(const StepParams& p, StepField f) noexcept
       return p.chance;
     case StepField::Offset:
       return p.offset;
+    case StepField::OffsetRandom:
+      return p.offsetRandom;
     case StepField::Gate:
       return p.gate;
     case StepField::Ratchet:
@@ -445,6 +451,9 @@ void setStepField(StepParams& p, StepField f, float v) noexcept
       break;
     case StepField::Offset:
       p.offset = v;
+      break;
+    case StepField::OffsetRandom:
+      p.offsetRandom = v;
       break;
     case StepField::Gate:
       p.gate = v;
@@ -485,6 +494,7 @@ QString fieldText(StepField f, float v)
     case StepField::Pitch:
       return QStringLiteral("%1%2").arg(v > 0 ? "+" : "").arg(int(std::lround(v)));
     case StepField::VelocityRandom:
+    case StepField::OffsetRandom:
       return QStringLiteral("±%1%").arg(int(std::lround(v * 100.f)));
     case StepField::PitchRandom:
       return QStringLiteral("±%1").arg(int(std::lround(v)));
@@ -507,6 +517,9 @@ float randomFieldValue(StepField f, std::mt19937& rng) noexcept
       return unit(rng) < 0.5f ? 1.f : 0.25f + 0.75f * unit(rng);
     case StepField::Offset:
       return std::normal_distribution<float>{0.f, 0.06f}(rng);
+    case StepField::OffsetRandom:
+      // A slight looseness on some steps.
+      return unit(rng) < 0.6f ? 0.f : 0.02f + 0.08f * unit(rng);
     case StepField::Gate:
       return 0.2f + 0.8f * unit(rng);
     case StepField::Ratchet: {

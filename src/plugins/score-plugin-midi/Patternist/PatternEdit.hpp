@@ -94,6 +94,7 @@ enum class StepField : uint8_t
   VelocityRandom,
   Chance,
   Offset,
+  OffsetRandom,
   Gate,
   Ratchet,
   Pace,
