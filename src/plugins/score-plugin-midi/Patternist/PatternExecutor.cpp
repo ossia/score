@@ -39,10 +39,12 @@ Executor::Executor(
   element.density->setupExecution(node->density_in, this);
   element.velocity->setupExecution(node->velocity_in, this);
   element.swing->setupExecution(node->swing_in, this);
+  element.ratchet->setupExecution(node->ratchet_in, this);
   node->fill = ossia::convert<bool>(element.fill->value());
   node->density = ossia::convert<float>(element.density->value());
   node->velocity_scale = ossia::convert<float>(element.velocity->value());
   node->swing = ossia::convert<float>(element.swing->value());
+  node->ratchet_scale = std::clamp(ossia::convert<int>(element.ratchet->value()), 1, 8);
 
   con(element, &Patternist::ProcessModel::channelChanged, this, [this, node](int c) {
     in_exec([node, c = to_midi_channel(c)] { node->set_channel(c); });
@@ -75,6 +77,12 @@ Executor::Executor(
   con(*element.swing, &Process::ControlInlet::valueChanged, this,
       [this, node](const ossia::value& v) {
     in_exec([node, d = ossia::convert<float>(v)] { node->swing = d; });
+  });
+  con(*element.ratchet, &Process::ControlInlet::valueChanged, this,
+      [this, node](const ossia::value& v) {
+    in_exec([node, r = std::clamp(ossia::convert<int>(v), 1, 8)] {
+      node->ratchet_scale = r;
+    });
   });
 
   // Built here so that the audio thread only has to move it in.
