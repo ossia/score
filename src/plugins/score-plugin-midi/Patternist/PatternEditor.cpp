@@ -116,6 +116,14 @@ Editor::Editor(ProcessModel& model, const score::DocumentContext& ctx, QWidget* 
       row->addWidget(b);
       return b;
     };
+    m_select = add(
+        tr("Select"),
+        tr("Drag over steps to select them, also with Ctrl held\n"
+           "Ctrl+C, Ctrl+X: copy, cut · Ctrl+V: paste on the step under the mouse\n"
+           "Delete: clear · Escape: deselect"),
+        [this](bool on) { m_view->setSelectMode(on); });
+    m_select->setCheckable(true);
+    row->addSpacing(12);
     add(tr("Copy"), tr("Copy the selected steps, or the pattern"), [this] { copy(); });
     m_paste = add(
         tr("Paste"),
@@ -162,13 +170,6 @@ Editor::Editor(ProcessModel& model, const score::DocumentContext& ctx, QWidget* 
         [this] { m_controller->addLane(); });
     row->addSpacing(12);
 
-    m_select = add(
-        tr("Select"),
-        tr("Drag over steps to select them, also with Ctrl held\n"
-           "Ctrl+C, Ctrl+X: copy, cut · Ctrl+V: paste on the step under the mouse\n"
-           "Delete: clear · Escape: deselect"),
-        [this](bool on) { m_view->setSelectMode(on); });
-    m_select->setCheckable(true);
     row->addStretch(1);
 
     m_status = new QLabel{this};
@@ -408,15 +409,16 @@ void Editor::copy()
 
 void Editor::paste()
 {
-  // Copied steps land with their first lane and step under the mouse, or on
-  // the selection.
-  View::Cell at = m_view->hoveredCell();
-  if(at.lane < 0 && m_view->selection().valid())
-    at = {m_view->selection().lane0, m_view->selection().step0};
-  if(at.lane < 0)
-    at = {m_view->selectedLane(), 0};
-  if(!m_controller->pasteSteps(at.lane, at.step))
+  auto md = QApplication::clipboard()->mimeData();
+  if(auto steps = md ? stepsFromMime(*md) : std::nullopt)
+  {
+    const auto t = m_view->pasteTarget(steps->lanes.size());
+    m_controller->pasteSteps(t.lane, t.starts);
+  }
+  else
+  {
     m_controller->paste();
+  }
 }
 
 void Editor::clear()
@@ -447,16 +449,8 @@ void Editor::addShortcuts()
     if(m_view->selection().valid())
       clear();
   });
-  add(QKeySequence::SelectAll, [this] {
-    if(!m_model || !ossia::valid_index(m_model->currentPattern(), m_model->patterns()))
-      return;
-    const auto& p = m_model->patterns()[m_model->currentPattern()];
-    int len = p.length;
-    for(const Lane& l : p.lanes)
-      len = std::max(len, laneLength(p, l));
-    m_view->setSelection({0, int(p.lanes.size()) - 1, 0, len - 1});
-  });
-  add(Qt::Key_Escape, [this] { m_view->setSelection({}); });
+  add(QKeySequence::SelectAll, [this] { m_view->selectAll(); });
+  add(Qt::Key_Escape, [this] { m_view->clearSelection(); });
 }
 
 Editor::~Editor()

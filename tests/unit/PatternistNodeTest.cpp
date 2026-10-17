@@ -10,6 +10,7 @@
 #include <ossia/dataflow/execution_state.hpp>
 
 #include <Patternist/PatternNode.hpp>
+#include <set>
 #include <catch2/catch_test_macros.hpp>
 
 #include <algorithm>
@@ -833,6 +834,42 @@ TEST_CASE("patternist: velocity and pitch come from the step and the lane", "[mi
   REQUIRE(s1.size() == 1);
   CHECK(s1[0].status == note_off);
   CHECK(s1[0].note == 38);
+}
+
+TEST_CASE("patternist: velocity and pitch vary within the step's range", "[midi][pattern]")
+{
+  fixture f;
+  f.set({lane(60, {Note::Note})}, 1);
+  with_params(f);
+  auto& l = f.node.patterns[0].lanes[0];
+  l.velocity = 1.f;
+  l.params[0].velocity = 0.5f;
+  l.params[0].velocityRandom = 0.25f;
+  l.params[0].pitchRandom = 2;
+  f.node.velocity_scale = 1.f;
+
+  std::set<int> notes, velocities;
+  for(int i = 0; i < 64; i++)
+  {
+    f.step();
+    for(const auto& m : f.port.messages)
+    {
+      if(cmidi2_ump_get_status_code(m.data) != note_on)
+        continue;
+      notes.insert(cmidi2_ump_get_midi2_note_note(m.data));
+      velocities.insert(cmidi2_ump_get_midi2_note_velocity(m.data));
+    }
+  }
+  CHECK(notes.size() > 1);
+  CHECK(*notes.begin() >= 58);
+  CHECK(*notes.rbegin() <= 62);
+  CHECK(velocities.size() > 1);
+  // 0.25 to 0.75 of 127, in 16 bits.
+  const auto v16 = [](int v) {
+    return int(libremidi::from_midi1::note_on(0, 60, v).data[1] >> 16);
+  };
+  CHECK(*velocities.begin() >= v16(31));
+  CHECK(*velocities.rbegin() <= v16(96));
 }
 
 TEST_CASE("patternist: ratchets, gates and offsets are timed in the step", "[midi][pattern]")

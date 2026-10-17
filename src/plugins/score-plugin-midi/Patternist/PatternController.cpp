@@ -168,17 +168,16 @@ void Controller::paste()
     status(tr("The clipboard holds no pattern"));
 }
 
-void Controller::copySteps(StepRange r) const
+void Controller::copySteps(const StepSelection& s) const
 {
-  if(!hasPattern() || !r.valid())
+  if(!hasPattern() || !s.valid())
     return;
-  QApplication::clipboard()->setMimeData(stepsToMime(Patternist::copySteps(current(), r)));
+  QApplication::clipboard()->setMimeData(stepsToMime(Patternist::copySteps(current(), s)));
   if(status)
-    status(tr("%n lane(s) of %1 step(s) copied", "", r.lane1 - r.lane0 + 1)
-               .arg(r.step1 - r.step0 + 1));
+    status(tr("Steps of %n lane(s) copied", "", s.steps.size()));
 }
 
-bool Controller::pasteSteps(int lane, int step)
+bool Controller::pasteSteps(int lane, const std::vector<int>& starts)
 {
   auto md = QApplication::clipboard()->mimeData();
   if(!md || !hasPattern())
@@ -187,19 +186,19 @@ bool Controller::pasteSteps(int lane, int step)
   if(!steps)
     return false;
   auto p = current();
-  Patternist::pasteSteps(p, *steps, lane, step);
+  Patternist::pasteSteps(p, *steps, lane, starts);
   if(status)
-    status(tr("Pasted on step %1").arg(step + 1));
+    status(tr("Steps pasted"));
   submit(p);
   return true;
 }
 
-void Controller::clearSteps(StepRange r)
+void Controller::clearSteps(const StepSelection& s)
 {
-  if(!hasPattern() || !r.valid())
+  if(!hasPattern() || !s.valid())
     return;
   auto p = current();
-  Patternist::clearSteps(p, r);
+  Patternist::clearSteps(p, s);
   submit(p);
 }
 
