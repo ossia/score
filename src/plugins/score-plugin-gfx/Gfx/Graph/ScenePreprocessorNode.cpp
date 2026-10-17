@@ -951,6 +951,21 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
     init(renderer, res);
   }
 
+  void removeInputEdge(RenderList& renderer, Edge& edge) override
+  {
+    NodeRenderer::removeInputEdge(renderer, edge);
+    // m_pendingGpuCopies holds raw QRhiBuffer* of the upstream renderers, and
+    // is re-issued every frame. The upstream side of this edge is about to be
+    // released (a live graph edit, outside a frame: its buffers are freed at
+    // once), and no new scene arrives to change the mesh fingerprint, so the
+    // queue would copy from freed buffers next frame (Instancer → scene
+    // preprocessor, examples/3d/instancing-full.score). Drop it and force the
+    // next update to rebuild.
+    m_pendingGpuCopies.clear();
+    m_lastGpuCopiesFrame = -1;
+    m_cachedMeshFingerprint.clear();
+  }
+
   void releaseState(RenderList& renderer) override
   {
     release(renderer);
