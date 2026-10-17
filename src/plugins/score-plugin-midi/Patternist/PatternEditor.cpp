@@ -18,6 +18,7 @@
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QMenu>
+#include <QPainter>
 #include <QPushButton>
 #include <QScrollArea>
 #include <QShortcut>
@@ -34,28 +35,62 @@
 
 namespace Patternist
 {
-static QToolButton* toolButton(const QString& text, const QString& tip, QWidget* parent)
+namespace
 {
-  auto b = new QToolButton{parent};
-  b->setText(text);
-  b->setToolTip(tip);
-  b->setAutoRaise(true);
-  return b;
+//! A tool button that lights up under the mouse and while pressed or
+//! checked, in the skin's colours. Drawn by hand rather than with a style
+//! sheet: the deployment builds of Qt are configured with
+//! QT_NO_STYLE_STYLESHEET, where setStyleSheet is not declared at all.
+class Button final : public QToolButton
+{
+public:
+  //! `filled` draws its background at rest too, as the pattern bank does.
+  Button(const QString& text, const QString& tip, bool filled, QWidget* parent)
+      : QToolButton{parent}
+      , m_filled{filled}
+  {
+    setText(text);
+    setToolTip(tip);
+    setAutoRaise(true);
+    setAttribute(Qt::WA_Hover);
+  }
+
+  QSize sizeHint() const override
+  {
+    const QFontMetrics fm{font()};
+    return {fm.horizontalAdvance(text()) + 14, fm.height() + 8};
+  }
+
+private:
+  void paintEvent(QPaintEvent*) override
+  {
+    auto& skin = score::Skin::instance();
+    const bool on = isDown() || isChecked();
+    const bool hovered = underMouse() && isEnabled();
+    QPainter p{this};
+    p.setRenderHint(QPainter::Antialiasing, true);
+    p.setPen(hovered ? QPen{skin.Gray.main.brush.color(), 1.} : QPen{Qt::NoPen});
+    p.setBrush(
+        on        ? skin.Base4.main.brush.color()
+        : hovered ? skin.Emphasis2.main.brush.color()
+        : m_filled ? skin.Background2.main.brush.color()
+                   : QColor{Qt::transparent});
+    p.drawRoundedRect(QRectF{rect()}.adjusted(0.5, 0.5, -0.5, -0.5), 2., 2.);
+    p.setPen(
+        !isEnabled() ? skin.Gray.main.brush.color()
+        : on         ? skin.Dark.main.brush.color()
+                     : skin.Light.main.brush.color());
+    p.setFont(font());
+    p.drawText(rect(), Qt::AlignCenter, text());
+  }
+
+  bool m_filled{};
+};
 }
 
-//! Tool buttons that light up under the mouse and while pressed or checked.
-static QString toolStyle()
+static QToolButton* toolButton(const QString& text, const QString& tip, QWidget* parent)
 {
-  auto& skin = score::Skin::instance();
-  return QStringLiteral(
-             "QToolButton { border: 1px solid transparent; border-radius: 2px; "
-             "padding: 2px 6px; }"
-             "QToolButton:hover { background: %1; border-color: %2; }"
-             "QToolButton:pressed, QToolButton:checked { background: %3; color: %4; }"
-             "QToolButton:disabled { color: %2; }")
-      .arg(
-          skin.Emphasis2.main.brush.color().name(), skin.Gray.main.brush.color().name(),
-          skin.Base4.main.brush.color().name(), skin.Dark.main.brush.color().name());
+  return new Button{text, tip, false, parent};
 }
 
 Editor::Editor(ProcessModel& model, const score::DocumentContext& ctx, QWidget* parent)
@@ -69,8 +104,6 @@ Editor::Editor(ProcessModel& model, const score::DocumentContext& ctx, QWidget* 
 
   model.externalUI = this;
   model.externalUIVisible(true);
-
-  setStyleSheet(toolStyle());
 
   auto lay = new QVBoxLayout{this};
   lay->setContentsMargins(4, 4, 4, 4);
@@ -284,11 +317,11 @@ Editor::Editor(ProcessModel& model, const score::DocumentContext& ctx, QWidget* 
   con(model.metadata(), &score::ModelMetadata::NameChanged, this,
       [this](const QString& name) { setWindowTitle(name); });
 
-  // Another skin: the styles built from its colours are built again.
+  // Another skin: what is drawn from its colours is drawn again.
   connect(&score::Skin::instance(), &score::Skin::changed, this, [this] {
-    setStyleSheet(toolStyle());
     m_graphics->setBackgroundBrush(score::Skin::instance().Background1.main.brush);
-    updateBank();
+    for(auto b : findChildren<QToolButton*>())
+      b->update();
   });
 
   addShortcuts();
@@ -579,9 +612,8 @@ void Editor::updateBank()
   while(std::ssize(m_bankButtons) < count)
   {
     const int idx = m_bankButtons.size();
-    auto b = new QToolButton{m_bank->parentWidget()};
+    auto b = new Button{QString::number(idx), {}, true, m_bank->parentWidget()};
     b->setCheckable(true);
-    b->setText(QString::number(idx));
     // Room for three digits in bold, so that nothing moves when the playing
     // or shown pattern changes.
     QFont bold = b->font();
@@ -602,23 +634,10 @@ void Editor::updateBank()
 
   // The one shown is highlighted, the one playing is bold, the next one
   // underlined.
-  auto& skin = score::Skin::instance();
-  const QString base = QStringLiteral(
-      "QToolButton { background: %1; color: %2; border: 1px solid %1; "
-      "border-radius: 2px; padding: 1px 0px; }"
-      "QToolButton:hover { border-color: %3; }");
-  const QString hover = skin.Light.main.brush.color().name();
-  const QString shown = base.arg(
-      skin.Base4.main.brush.color().name(), skin.Dark.main.brush.color().name(), hover);
-  const QString other = base.arg(
-      skin.Background2.main.brush.color().name(), skin.Light.main.brush.color().name(),
-      hover);
   for(int i = 0; i < count; i++)
   {
     auto b = m_bankButtons[i];
-    const bool current = i == m_model->currentPattern();
-    b->setChecked(current);
-    b->setStyleSheet(current ? shown : other);
+    b->setChecked(i == m_model->currentPattern());
     QFont f = b->font();
     f.setBold(i == m_playing);
     f.setUnderline(i == m_pending);
