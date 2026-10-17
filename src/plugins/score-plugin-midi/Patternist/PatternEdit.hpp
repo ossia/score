@@ -3,6 +3,7 @@
 
 #include <score_plugin_midi_export.h>
 
+#include <algorithm>
 #include <optional>
 #include <random>
 
@@ -52,28 +53,33 @@ QMimeData* patternToMime(const Pattern& p);
 SCORE_PLUGIN_MIDI_EXPORT
 std::optional<Pattern> patternFromMime(const QMimeData& mime);
 
-//! A rectangle of steps: lanes `lane0` to `lane1` and steps `step0` to `step1`,
-//! all included.
-struct StepRange
+//! Steps picked in consecutive lanes from `lane0` on, each lane's in the order
+//! they play.
+struct StepSelection
 {
-  int lane0{-1}, lane1{-1};
-  int step0{-1}, step1{-1};
+  int lane0{-1};
+  std::vector<std::vector<int>> steps;
 
-  bool valid() const noexcept { return lane0 >= 0 && step0 >= 0; }
+  bool valid() const noexcept { return lane0 >= 0 && !steps.empty(); }
   bool contains(int lane, int step) const noexcept
   {
-    return valid() && lane >= lane0 && lane <= lane1 && step >= step0 && step <= step1;
+    if(lane < lane0 || lane >= lane0 + int(steps.size()))
+      return false;
+    const auto& s = steps[lane - lane0];
+    return std::find(s.begin(), s.end(), step) != s.end();
   }
-  bool operator==(const StepRange&) const noexcept = default;
+  bool operator==(const StepSelection&) const noexcept = default;
 };
 
-//! The steps of a range, notes and parameters, as a pattern of as many lanes
-//! and steps; their notes are left at 0.
-SCORE_PLUGIN_MIDI_EXPORT Pattern copySteps(const Pattern& p, StepRange r);
-//! Writes copied steps with their first lane on `lane` and their first step on
-//! `step`; what falls past the last lane or a lane's length is dropped.
-SCORE_PLUGIN_MIDI_EXPORT void pasteSteps(Pattern& p, const Pattern& steps, int lane, int step);
-SCORE_PLUGIN_MIDI_EXPORT void clearSteps(Pattern& p, StepRange r) noexcept;
+//! The selected steps, notes and parameters, as a pattern with a lane for each
+//! selected one, as long as its selection; their notes are left at 0.
+SCORE_PLUGIN_MIDI_EXPORT Pattern copySteps(const Pattern& p, const StepSelection& s);
+//! Writes copied steps on consecutive lanes from `lane`, each from its step in
+//! `starts` and looping over the lane, a loop at most; lanes past the last are
+//! dropped.
+SCORE_PLUGIN_MIDI_EXPORT void
+pasteSteps(Pattern& p, const Pattern& steps, int lane, const std::vector<int>& starts);
+SCORE_PLUGIN_MIDI_EXPORT void clearSteps(Pattern& p, const StepSelection& s) noexcept;
 SCORE_PLUGIN_MIDI_EXPORT QMimeData* stepsToMime(const Pattern& steps);
 SCORE_PLUGIN_MIDI_EXPORT std::optional<Pattern> stepsFromMime(const QMimeData& mime);
 
@@ -81,11 +87,13 @@ SCORE_PLUGIN_MIDI_EXPORT std::optional<Pattern> stepsFromMime(const QMimeData& m
 enum class StepField : uint8_t
 {
   Velocity,
+  VelocityRandom,
   Chance,
   Offset,
   Gate,
   Ratchet,
-  Pitch
+  Pitch,
+  PitchRandom
 };
 
 struct FieldRange

@@ -465,9 +465,18 @@ public:
     if(l.note > 127)
       return;
 
-    const int note = std::clamp(int(l.note) + p.pitch, 0, 127);
+    int pitch = p.pitch;
+    if(p.pitchRandom > 0 && kind != Note::Rest)
+      pitch += std::uniform_int_distribution<int>{-p.pitchRandom, p.pitchRandom}(rng);
+    float vel = p.velocity;
+    if(p.velocityRandom > 0.f && kind != Note::Rest)
+      vel += std::uniform_real_distribution<float>{
+          -p.velocityRandom, p.velocityRandom}(rng);
+    const int note = std::clamp(int(l.note) + pitch, 0, 127);
     const int velocity = std::clamp(
-        int(std::lround(p.velocity * l.velocity * velocity_scale * 127.f)), 1, 127);
+        int(std::lround(
+            std::clamp(vel, 0.f, 1.f) * l.velocity * velocity_scale * 127.f)),
+        1, 127);
 
     switch(kind)
     {

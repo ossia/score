@@ -7,6 +7,7 @@
 #include <ossia/detail/flicks.hpp>
 #include <ossia/detail/math.hpp>
 
+#include <QApplication>
 #include <QFontMetricsF>
 #include <QGraphicsSceneContextMenuEvent>
 #include <QGraphicsSceneMouseEvent>
@@ -191,6 +192,7 @@ const Pattern* View::pattern() const noexcept
 void View::invalidateSlots()
 {
   m_slotsValid = false;
+  m_selectionValid = false;
 }
 
 const std::vector<StepSlot>& View::slots(int lane) const
@@ -286,7 +288,8 @@ void View::updateLanes()
 QFont View::nameFont() const
 {
   auto& skin = score::Skin::instance();
-  return m_advanced ? skin.Medium12Pt : skin.MonoFontSmall;
+  // The editor's names read like its toolbar.
+  return m_advanced ? QApplication::font() : skin.MonoFontSmall;
 }
 
 QFont View::smallFont() const
@@ -603,7 +606,7 @@ void View::paintCells(QPainter* painter, const Pattern& p) const
       // Selected steps are tinted wherever they repeat.
       const QColor& cellColor = isPlaying ? colors.playingCell : colors.cell[shade];
       painter->fillRect(
-          cell, m_selection.contains(lane, sl.step) ? mix(cellColor, colors.selection, 0.25)
+          cell, selection().contains(lane, sl.step) ? mix(cellColor, colors.selection, 0.25)
                                                     : cellColor);
       // Too thin for a gap: the bar line is the background showing through.
       if(barGap > 0. && w <= 4.)
@@ -858,7 +861,7 @@ void View::mousePressEvent(QGraphicsSceneMouseEvent* event)
   const Cell c = cellAt(event->pos());
   if(c.lane < 0)
   {
-    setSelection({});
+    clearSelection();
     return;
   }
 
@@ -879,12 +882,12 @@ void View::mousePressEvent(QGraphicsSceneMouseEvent* event)
   if(m_advanced && event->button() == Qt::LeftButton
      && (m_selectMode || (event->modifiers() & Qt::ControlModifier)))
   {
-    m_selectAnchor = c;
+    m_selectAnchor = event->pos();
     m_selecting = true;
-    setSelection({c.lane, c.lane, c.step, c.step});
+    selectOver(event->pos());
     return;
   }
-  setSelection({});
+  clearSelection();
 
   const Lane& l = p->lanes[c.lane];
   const Note current = writtenNote(*p, l, c.step);
@@ -936,24 +939,123 @@ void View::pressButton(int id, Qt::KeyboardModifiers mods)
     muteToggled(id - mute_button);
 }
 
-void View::setSelection(StepRange r)
+const StepSelection& View::selection() const
 {
-  if(!(r == m_selection))
+  if(!m_selectionValid)
   {
-    m_selection = r;
+    m_selection = {};
+    auto p = pattern();
+    if(p && m_selectionArea.lane0 >= 0)
+    {
+      m_selection.lane0 = m_selectionArea.lane0;
+      for(int lane = m_selectionArea.lane0;
+          lane <= m_selectionArea.lane1 && lane < int(p->lanes.size()); lane++)
+      {
+        // The steps whose middle is in the area, once each.
+        std::vector<int> steps;
+        for(const StepSlot& sl : slots(lane))
+        {
+          const double mid = (sl.x0 + sl.x1) / 2.;
+          if(mid < m_selectionArea.x0 || mid >= m_selectionArea.x1)
+            continue;
+          if(std::find(steps.begin(), steps.end(), sl.step) != steps.end())
+            break;
+          steps.push_back(sl.step);
+        }
+        m_selection.steps.push_back(std::move(steps));
+      }
+    }
+    m_selectionValid = true;
+  }
+  return m_selection;
+}
+
+void View::setSelectionArea(SelectionArea a)
+{
+  if(!(a == m_selectionArea))
+  {
+    m_selectionArea = a;
+    m_selectionValid = false;
     update();
     selectionChanged();
   }
 }
 
+void View::clearSelection()
+{
+  setSelectionArea({});
+}
+
+void View::selectAll()
+{
+  if(auto p = pattern(); p && !p->lanes.empty())
+    setSelectionArea({0, int(p->lanes.size()) - 1, headerWidth(), width()});
+}
+
+//! The lanes from the anchor's to the one at `pos`, over the steps between
+//! theirs: the same stretch of time in every lane.
+void View::selectOver(QPointF pos)
+{
+  const auto under = [this](QPointF pt) -> std::optional<std::pair<int, StepSlot>> {
+    const Cell c = cellAt(pt);
+    if(c.lane < 0)
+      return std::nullopt;
+    const auto& s = slots(c.lane);
+    auto it = std::find_if(s.begin(), s.end(), [&](const StepSlot& sl) {
+      return pt.x() >= sl.x0 && pt.x() < sl.x1;
+    });
+    if(it == s.end())
+      return std::nullopt;
+    return std::make_pair(c.lane, *it);
+  };
+  const auto a = under(m_selectAnchor);
+  const auto b = under(pos);
+  if(!a || !b)
+    return;
+  setSelectionArea(
+      {std::min(a->first, b->first), std::max(a->first, b->first),
+       std::min(a->second.x0, b->second.x0), std::max(a->second.x1, b->second.x1)});
+}
+
+View::PasteTarget View::pasteTarget(int lanes) const
+{
+  PasteTarget t;
+  double x = headerWidth();
+  if(m_hover.lane >= 0)
+  {
+    t.lane = m_hover.lane;
+    x = m_hoverX;
+  }
+  else if(m_selectionArea.lane0 >= 0)
+  {
+    t.lane = m_selectionArea.lane0;
+    x = m_selectionArea.x0;
+  }
+  else
+  {
+    t.lane = std::max(0, m_selectedLane);
+  }
+
+  // Each lane from its step at the same time as the target's.
+  for(int r = 0; r < lanes; r++)
+  {
+    int step = -1;
+    for(const StepSlot& sl : slots(t.lane + r))
+    {
+      if(sl.x1 > x + 0.5)
+      {
+        step = sl.step;
+        break;
+      }
+    }
+    t.starts.push_back(step);
+  }
+  return t;
+}
+
 void View::setSelectMode(bool b)
 {
   m_selectMode = b;
-}
-
-View::Cell View::hoveredCell() const noexcept
-{
-  return m_hover;
 }
 
 void View::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
@@ -964,13 +1066,7 @@ void View::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
   else if(m_painting)
     paintAt(event->pos());
   else if(m_selecting)
-  {
-    const Cell c = cellAt(event->pos());
-    if(c.lane >= 0)
-      setSelection(
-          {std::min(c.lane, m_selectAnchor.lane), std::max(c.lane, m_selectAnchor.lane),
-           std::min(c.step, m_selectAnchor.step), std::max(c.step, m_selectAnchor.step)});
-  }
+    selectOver(event->pos());
 }
 
 void View::paintAt(QPointF pos)
@@ -1056,6 +1152,10 @@ void View::hoverMoveEvent(QGraphicsSceneHoverEvent* event)
 {
   const Cell c = cellAt(event->pos());
   const int b = buttonAt(event->pos());
+  if(c.lane >= 0)
+    for(const StepSlot& sl : slots(c.lane))
+      if(event->pos().x() >= sl.x0 && event->pos().x() < sl.x1)
+        m_hoverX = sl.x0;
   if(c.lane != m_hover.lane || c.step != m_hover.step || b != m_hoverButton)
   {
     m_hover = c;

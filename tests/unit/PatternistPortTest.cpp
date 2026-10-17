@@ -250,6 +250,8 @@ TEST_CASE(
     p.lanes[0].solo = true;
     p.lanes[1].mute = true;
     Patternist::normalize(p);
+    p.lanes[0].params[2].velocityRandom = 0.25f;
+    p.lanes[0].params[2].pitchRandom = 3;
 
     std::unique_ptr<QMimeData> mime{Patternist::patternToMime(p)};
     auto back = Patternist::patternFromMime(*mime);
@@ -268,11 +270,15 @@ TEST_CASE(
     CHECK_FALSE(Patternist::patternFromMime(junk));
 
     // Copied steps are not a pattern, nor the other way around.
-    const auto steps = Patternist::copySteps(p, {0, 1, 2, 5});
+    const auto steps = Patternist::copySteps(p, {0, {{2, 3, 4, 5}, {2, 3}}});
     std::unique_ptr<QMimeData> stepsMime{Patternist::stepsToMime(steps)};
     auto stepsBack = Patternist::stepsFromMime(*stepsMime);
     REQUIRE(stepsBack);
-    CHECK(stepsBack->lanes == steps.lanes);
+    REQUIRE(stepsBack->lanes.size() == 2);
+    CHECK(stepsBack->lanes[0].length == 4);
+    CHECK(stepsBack->lanes[1].length == 2);
+    CHECK(stepsBack->lanes[0].pattern == steps.lanes[0].pattern);
+    CHECK(stepsBack->lanes[0].params[0] == steps.lanes[0].params[0]);
     CHECK_FALSE(Patternist::patternFromMime(*stepsMime));
     CHECK_FALSE(Patternist::stepsFromMime(*mime));
   });

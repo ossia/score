@@ -151,61 +151,72 @@ std::optional<Pattern> patternFromMime(const QMimeData& mime)
   return p;
 }
 
-Pattern copySteps(const Pattern& p, StepRange r)
+Pattern copySteps(const Pattern& p, const StepSelection& s)
 {
   Pattern res;
-  if(!r.valid())
-    return res;
   res.division = p.division;
-  res.length = std::clamp(r.step1 - r.step0 + 1, 1, Pattern::maxLength);
-  for(int li = r.lane0; li <= r.lane1 && li < int(p.lanes.size()); li++)
+  res.length = 1;
+  for(int r = 0; r < int(s.steps.size()); r++)
   {
-    const Lane& src = p.lanes[li];
     Lane l;
-    l.pattern.resize(res.length, Note::Rest);
-    l.params.resize(res.length);
-    for(int i = 0; i < res.length; i++)
+    if(ossia::valid_index(s.lane0 + r, p.lanes))
     {
-      l.pattern[i] = writtenNote(p, src, r.step0 + i);
-      l.params[i] = stepParams(src, r.step0 + i);
+      const Lane& src = p.lanes[s.lane0 + r];
+      for(int step : s.steps[r])
+      {
+        l.pattern.push_back(writtenNote(p, src, step));
+        l.params.push_back(stepParams(src, step));
+      }
     }
+    l.length = std::clamp<int>(l.pattern.size(), 0, Pattern::maxLength);
+    res.length = std::max(res.length, l.length);
     res.lanes.push_back(std::move(l));
   }
   return res;
 }
 
-void pasteSteps(Pattern& p, const Pattern& steps, int lane, int step)
+void pasteSteps(Pattern& p, const Pattern& steps, int lane, const std::vector<int>& starts)
 {
   normalize(p);
-  if(lane < 0 || step < 0)
+  if(lane < 0)
     return;
-  for(int r = 0; r < int(steps.lanes.size()); r++)
+  for(int r = 0; r < int(steps.lanes.size()) && r < int(starts.size()); r++)
   {
     if(lane + r >= int(p.lanes.size()))
       break;
     Lane& dst = p.lanes[lane + r];
     const Lane& src = steps.lanes[r];
     const int len = std::min<int>(laneLength(p, dst), dst.pattern.size());
-    for(int i = 0; i < int(src.pattern.size()) && step + i < len; i++)
+    // A copied lane is padded up to the longest one: its length says how
+    // many steps it holds.
+    const int count
+        = std::min({laneLength(steps, src), int(src.pattern.size()), len});
+    if(len <= 0 || starts[r] < 0)
+      continue;
+    for(int i = 0; i < count; i++)
     {
-      dst.pattern[step + i] = src.pattern[i];
-      dst.params[step + i] = stepParams(src, i);
+      const int step = (starts[r] + i) % len;
+      dst.pattern[step] = src.pattern[i];
+      dst.params[step] = stepParams(src, i);
     }
   }
 }
 
-void clearSteps(Pattern& p, StepRange r) noexcept
+void clearSteps(Pattern& p, const StepSelection& s) noexcept
 {
   normalize(p);
-  if(!r.valid())
-    return;
-  for(int li = r.lane0; li <= r.lane1 && li < int(p.lanes.size()); li++)
+  for(int r = 0; r < int(s.steps.size()); r++)
   {
-    Lane& l = p.lanes[li];
-    for(int i = r.step0; i <= r.step1 && i < int(l.pattern.size()); i++)
+    if(!ossia::valid_index(s.lane0 + r, p.lanes))
+      break;
+    Lane& l = p.lanes[s.lane0 + r];
+    for(int step : s.steps[r])
     {
-      l.pattern[i] = Note::Rest;
-      l.params[i] = StepParams{};
+      if(ossia::valid_index(step, l.pattern))
+      {
+        l.pattern[step] = Note::Rest;
+        l.params[step] = StepParams{};
+      }
     }
   }
 }
@@ -331,6 +342,7 @@ FieldRange fieldRange(StepField f) noexcept
   switch(f)
   {
     case StepField::Velocity:
+    case StepField::VelocityRandom:
     case StepField::Chance:
     case StepField::Gate:
       return {0.f, 1.f, 0.f};
@@ -340,6 +352,8 @@ FieldRange fieldRange(StepField f) noexcept
       return {1.f, 8.f, 1.f};
     case StepField::Pitch:
       return {-24.f, 24.f, 0.f};
+    case StepField::PitchRandom:
+      return {0.f, 24.f, 0.f};
   }
   return {0.f, 1.f, 0.f};
 }
@@ -350,6 +364,8 @@ QString fieldName(StepField f)
   {
     case StepField::Velocity:
       return QObject::tr("Velocity");
+    case StepField::VelocityRandom:
+      return QObject::tr("Vel. random");
     case StepField::Chance:
       return QObject::tr("Chance");
     case StepField::Offset:
@@ -360,6 +376,8 @@ QString fieldName(StepField f)
       return QObject::tr("Ratchet");
     case StepField::Pitch:
       return QObject::tr("Pitch");
+    case StepField::PitchRandom:
+      return QObject::tr("Pitch random");
   }
   return {};
 }
@@ -370,6 +388,8 @@ float stepField(const StepParams& p, StepField f) noexcept
   {
     case StepField::Velocity:
       return p.velocity;
+    case StepField::VelocityRandom:
+      return p.velocityRandom;
     case StepField::Chance:
       return p.chance;
     case StepField::Offset:
@@ -380,6 +400,8 @@ float stepField(const StepParams& p, StepField f) noexcept
       return p.ratchet;
     case StepField::Pitch:
       return p.pitch;
+    case StepField::PitchRandom:
+      return p.pitchRandom;
   }
   return 0.f;
 }
@@ -392,6 +414,9 @@ void setStepField(StepParams& p, StepField f, float v) noexcept
   {
     case StepField::Velocity:
       p.velocity = v;
+      break;
+    case StepField::VelocityRandom:
+      p.velocityRandom = v;
       break;
     case StepField::Chance:
       p.chance = v;
@@ -407,6 +432,9 @@ void setStepField(StepParams& p, StepField f, float v) noexcept
       break;
     case StepField::Pitch:
       p.pitch = int8_t(std::lround(v));
+      break;
+    case StepField::PitchRandom:
+      p.pitchRandom = uint8_t(std::lround(v));
       break;
   }
 }
@@ -427,6 +455,10 @@ QString fieldText(StepField f, float v)
       return QStringLiteral("x%1").arg(int(std::lround(v)));
     case StepField::Pitch:
       return QStringLiteral("%1%2").arg(v > 0 ? "+" : "").arg(int(std::lround(v)));
+    case StepField::VelocityRandom:
+      return QStringLiteral("±%1%").arg(int(std::lround(v * 100.f)));
+    case StepField::PitchRandom:
+      return QStringLiteral("±%1").arg(int(std::lround(v)));
   }
   return {};
 }
@@ -438,6 +470,9 @@ static float randomField(StepField f, std::mt19937& rng) noexcept
   {
     case StepField::Velocity:
       return 0.4f + 0.6f * unit(rng);
+    case StepField::VelocityRandom:
+      // A light humanization on most steps.
+      return unit(rng) < 0.3f ? 0.f : 0.05f + 0.2f * unit(rng);
     case StepField::Chance:
       // Most steps always play.
       return unit(rng) < 0.5f ? 1.f : 0.25f + 0.75f * unit(rng);
@@ -454,6 +489,9 @@ static float randomField(StepField f, std::mt19937& rng) noexcept
       static constexpr int intervals[] = {0, 0, 0, 0, 12, -12, 7, -5, 5, 3};
       return intervals[std::uniform_int_distribution<int>{0, 9}(rng)];
     }
+    case StepField::PitchRandom:
+      // Few steps wander, and not far.
+      return unit(rng) < 0.7f ? 0.f : float(std::uniform_int_distribution<int>{1, 3}(rng));
   }
   return 0.f;
 }
