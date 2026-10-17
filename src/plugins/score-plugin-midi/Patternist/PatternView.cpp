@@ -9,6 +9,7 @@
 
 #include <QApplication>
 #include <QFontMetricsF>
+#include <QGraphicsScene>
 #include <QGraphicsSceneContextMenuEvent>
 #include <QGraphicsSceneMouseEvent>
 #include <QPainter>
@@ -1067,24 +1068,7 @@ void View::paintRings(QPainter* painter, const Pattern& p) const
 
     const double hole = std::max(0., ring(int(p.lanes.size())).inner - 4.);
     if(hole > 20.)
-    {
-      int hits = 0;
-      const int len = laneLength(p, l);
-      for(int i = 0; i < len; i++)
-        hits += writtenNote(p, l, i) != Note::Rest;
-      const QRectF box{c.x() - hole, c.y() - hole, 2. * hole, 2. * hole};
-      painter->setPen(skin.Light.main.pen1);
-      painter->setFont(nameFont());
-      painter->drawText(
-          box.adjusted(0., 0., 0., -hole * 0.35), Qt::AlignCenter,
-          QFontMetricsF{nameFont()}.elidedText(
-              laneLabel(l.note, m_model.laneLabels()), Qt::ElideRight, box.width() - 8.));
-      painter->setFont(smallFont());
-      painter->setPen(skin.Gray.lighter.pen1);
-      painter->drawText(
-          box.adjusted(0., hole * 0.35, 0., 0.), Qt::AlignCenter,
-          tr("%1 hits, %2 steps, 1/%3").arg(hits).arg(len).arg(laneDivision(p, l)));
-    }
+      paintRingCenter(painter, p, QRectF{c.x() - hole, c.y() - hole, 2. * hole, 2. * hole});
   }
 
   if(m_hover.lane >= 0)
@@ -1100,6 +1084,62 @@ void View::paintRings(QPainter* painter, const Pattern& p) const
       }
   }
   painter->setRenderHint(QPainter::Antialiasing, false);
+}
+
+//! While playing, the notes struck on the step each lane is on; stopped, the
+//! selected lane's name and length.
+void View::paintRingCenter(QPainter* painter, const Pattern& p, QRectF box) const
+{
+  auto& skin = score::Skin::instance();
+  const bool playing = m_execPattern == m_model.currentPattern() && m_execPattern >= 0
+                       && !m_model.execSteps().empty();
+  if(playing)
+  {
+    QStringList struck;
+    const bool solo = anySolo(p);
+    for(int lane = 0; lane < int(p.lanes.size()); lane++)
+    {
+      const int slot = playingSlot(lane);
+      const auto& s = slots(lane);
+      if(slot < 0 || slot >= int(s.size()))
+        continue;
+      const Lane& l = p.lanes[lane];
+      if(audibleNote(p, l, s[slot].step, solo) == Note::Note)
+        struck.push_back(laneLabel(l.note, m_model.laneLabels()));
+    }
+    const QFontMetricsF fm{nameFont()};
+    const int fit = std::max(1, int(box.height() * 0.8 / fm.height()));
+    if(struck.size() > fit)
+    {
+      const int more = int(struck.size()) - (fit - 1);
+      struck = struck.mid(0, fit - 1);
+      struck.push_back(tr("%1 more").arg(more));
+    }
+    painter->setFont(nameFont());
+    painter->setPen(skin.Light.main.pen1);
+    painter->drawText(box, Qt::AlignCenter, struck.join(QLatin1Char('\n')));
+    return;
+  }
+
+  if(!ossia::valid_index(m_selectedLane, p.lanes))
+    return;
+  const Lane& l = p.lanes[m_selectedLane];
+  const double hole = box.height() / 2.;
+  int hits = 0;
+  const int len = laneLength(p, l);
+  for(int i = 0; i < len; i++)
+    hits += writtenNote(p, l, i) != Note::Rest;
+  painter->setPen(skin.Light.main.pen1);
+  painter->setFont(nameFont());
+  painter->drawText(
+      box.adjusted(0., 0., 0., -hole * 0.35), Qt::AlignCenter,
+      QFontMetricsF{nameFont()}.elidedText(
+          laneLabel(l.note, m_model.laneLabels()), Qt::ElideRight, box.width() - 8.));
+  painter->setFont(smallFont());
+  painter->setPen(skin.Gray.lighter.pen1);
+  painter->drawText(
+      box.adjusted(0., hole * 0.35, 0., 0.), Qt::AlignCenter,
+      tr("%1 hits, %2 steps, 1/%3").arg(hits).arg(len).arg(laneDivision(p, l)));
 }
 
 void View::paintValue(
@@ -1726,8 +1766,12 @@ void View::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
     return;
   }
   // The press asked for focus through a queued connection, and the menu only
-  // opens on the focused layer: ask once the focus is through.
+  // opens on the focused layer: ask once the focus is through. The press also
+  // grabbed the mouse, which the menu needs to highlight what it hovers.
   event->accept();
+  endPainting();
+  if(scene() && scene()->mouseGrabberItem() == this)
+    ungrabMouse();
   QTimer::singleShot(
       0, this, [this, screen = event->screenPos(), scene = event->scenePos()] {
     askContextMenu(screen, scene);

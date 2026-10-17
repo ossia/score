@@ -131,6 +131,7 @@ private:
   std::pair<double, double> slotTurns(const StepSlot& sl) const noexcept;
   Cell ringCellAt(QPointF pos) const noexcept;
   void paintRings(QPainter*, const Pattern&) const;
+  void paintRingCenter(QPainter*, const Pattern&, QRectF box) const;
   double cellHeight() const noexcept;
   QRectF valueRect(int lane, int which) const noexcept;
   void paintValue(

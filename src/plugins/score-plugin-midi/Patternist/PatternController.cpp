@@ -253,6 +253,17 @@ void Controller::rotate(int steps)
   submit(p);
 }
 
+void Controller::transpose(int semitones)
+{
+  if(!hasPattern())
+    return;
+  auto p = current();
+  if(Patternist::transpose(p, semitones) && status)
+    status(tr("Transposed by %1").arg(semitones > 0 ? QStringLiteral("+%1").arg(semitones)
+                                                    : QString::number(semitones)));
+  submit(p);
+}
+
 void Controller::randomize(int lane)
 {
   if(!hasPattern())
