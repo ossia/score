@@ -6,6 +6,7 @@
 
 #include <Threedim/Debug.hpp>
 #include <Threedim/Ply.hpp>
+#include <Threedim/RecentParseCache.hpp>
 #include <Threedim/VcgImporters.hpp>
 
 namespace Threedim
@@ -214,8 +215,35 @@ static bool check_file_extension(std::string_view filename, std::string_view exp
   return true;
 }
 
+namespace
+{
+// See RecentParseCache. The node takes ownership of its data, so a hit hands
+// out a copy, which is far cheaper than the parse.
+struct ParsedGeometry
+{
+  std::vector<Threedim::mesh> meshes;
+  Threedim::float_vec buffer;
+};
+
+Threedim::RecentParseCache<ParsedGeometry>& geometryCache()
+{
+  static Threedim::RecentParseCache<ParsedGeometry> cache;
+  return cache;
+}
+}
+
 std::function<void(GeometryLoader&)> GeometryLoader::ins::geom_t::process(file_type tv)
 {
+  auto cacheKey = geometryCache().key(tv.filename, tv.bytes);
+  if(auto hit = geometryCache().find(cacheKey))
+  {
+    return [mesh = hit->meshes, buf = hit->buffer](GeometryLoader& o) mutable {
+      std::swap(o.meshinfo, mesh);
+      std::swap(o.complete, buf);
+      o.rebuild_geometry();
+    };
+  }
+
   // Dispatch by extension. Each branch returns a (vector<Threedim::mesh>,
   // float_vec) pair; an empty pair means unsupported or failed parse, and we
   // return {} so the halp runtime leaves the current geometry intact rather
@@ -272,6 +300,9 @@ std::function<void(GeometryLoader&)> GeometryLoader::ins::geom_t::process(file_t
 
   auto upload = [&](auto&& mesh, auto&& buf) {
     deriveMissingNormals(mesh, buf);
+    geometryCache().store(
+        std::move(cacheKey),
+        std::make_shared<const ParsedGeometry>(ParsedGeometry{mesh, buf}));
     return [mesh = std::move(mesh), buf = std::move(buf)](GeometryLoader& o) mutable {
       std::swap(o.meshinfo, mesh);
       std::swap(o.complete, buf);
