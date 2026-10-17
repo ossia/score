@@ -75,6 +75,12 @@ static std::unique_ptr<Process::ControlInlet> makeSwing(QObject* parent)
       0.f, 1.f, 0.f, QObject::tr("Swing"), Id<Process::Port>(5), parent);
 }
 
+static std::unique_ptr<Process::ControlInlet> makeRatchet(QObject* parent)
+{
+  return std::make_unique<Process::IntSlider>(
+      1, 8, 1, QObject::tr("Ratchet"), Id<Process::Port>(6), parent);
+}
+
 //! Rates, in the convention ossia::token_request::get_quantification_dates
 //! consumes: above 1 subdivides the whole note, 1 and below counts bars, and
 //! 0 does not quantize at all.
@@ -131,6 +137,7 @@ ProcessModel::ProcessModel(
     , density{makeDensity(this)}
     , velocity{makeVelocity(this)}
     , swing{makeSwing(this)}
+    , ratchet{makeRatchet(this)}
     , outlet{std::make_unique<Process::MidiOutlet>(
           "MIDI Out", Id<Process::Port>(0), this)}
     , accent{std::make_unique<Process::ValueOutlet>(
@@ -172,7 +179,9 @@ void ProcessModel::init()
   m_inlets.push_back(density.get());
   m_inlets.push_back(velocity.get());
   m_inlets.push_back(swing.get());
-  for(auto* port : {fill.get(), density.get(), velocity.get(), swing.get()})
+  m_inlets.push_back(ratchet.get());
+  for(auto* port :
+      {fill.get(), density.get(), velocity.get(), swing.get(), ratchet.get()})
     port->displayHandledExplicitly = false;
 
   // The pattern grid is the whole body: no widget shows these controls there,
@@ -554,7 +563,8 @@ template <>
 void DataStreamReader::read(const Patternist::ProcessModel& proc)
 {
   m_stream << *proc.patternSelect << *proc.switchQuantification << *proc.fill
-           << *proc.density << *proc.velocity << *proc.swing << *proc.outlet
+           << *proc.density << *proc.velocity << *proc.swing << *proc.ratchet
+           << *proc.outlet
            << *proc.accent << *proc.slide << proc.m_channel << proc.m_currentPattern
            << proc.m_laneLabels << proc.m_patterns;
 
@@ -570,6 +580,7 @@ void DataStreamWriter::write(Patternist::ProcessModel& proc)
   proc.density = Process::load_control_inlet(*this, &proc);
   proc.velocity = Process::load_control_inlet(*this, &proc);
   proc.swing = Process::load_control_inlet(*this, &proc);
+  proc.ratchet = Process::load_control_inlet(*this, &proc);
   proc.outlet = Process::load_midi_outlet(*this, &proc);
   proc.accent = Process::load_value_outlet(*this, &proc);
   proc.slide = Process::load_value_outlet(*this, &proc);
@@ -588,6 +599,7 @@ void JSONReader::read(const Patternist::ProcessModel& proc)
   obj["Density"] = *proc.density;
   obj["Velocity"] = *proc.velocity;
   obj["Swing"] = *proc.swing;
+  obj["Ratchet"] = *proc.ratchet;
   obj["Outlet"] = *proc.outlet;
   obj["Accent"] = *proc.accent;
   obj["Slide"] = *proc.slide;
@@ -632,6 +644,7 @@ void JSONWriter::write(Patternist::ProcessModel& proc)
   proc.density = loadControl("Density", Patternist::makeDensity);
   proc.velocity = loadControl("Velocity", Patternist::makeVelocity);
   proc.swing = loadControl("Swing", Patternist::makeSwing);
+  proc.ratchet = loadControl("Ratchet", Patternist::makeRatchet);
 
   {
     JSONWriter writer{obj["Outlet"]};
