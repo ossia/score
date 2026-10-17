@@ -32,6 +32,7 @@ public:
 
 private:
   void resizeEvent(QResizeEvent* event) override;
+  bool eventFilter(QObject* watched, QEvent* event) override;
   QWidget* makeLanePanel();
   void updateLanePanel();
   void showStepMenu(int lane, int step, QPoint screen);

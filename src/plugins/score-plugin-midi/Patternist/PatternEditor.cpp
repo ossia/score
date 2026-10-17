@@ -63,7 +63,7 @@ Editor::Editor(ProcessModel& model, const score::DocumentContext& ctx, QWidget* 
 {
   setWindowTitle(model.metadata().getName());
   setAttribute(Qt::WA_DeleteOnClose);
-  resize(720, 320);
+  resize(960, 600);
 
   model.externalUI = this;
   model.externalUIVisible(true);
@@ -192,7 +192,9 @@ Editor::Editor(ProcessModel& model, const score::DocumentContext& ctx, QWidget* 
     m_graphics = new QGraphicsView{m_scene, this};
     m_graphics->setFrameShape(QFrame::NoFrame);
     m_graphics->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    m_graphics->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    // Many lanes in a small window scroll, rather than get too low to use.
+    m_graphics->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+    m_graphics->viewport()->installEventFilter(this);
     m_graphics->setAlignment(Qt::AlignLeft | Qt::AlignTop);
     m_graphics->setBackgroundBrush(skin.Background1.main.brush);
     m_graphics->setRenderHint(QPainter::Antialiasing, false);
@@ -233,11 +235,13 @@ Editor::Editor(ProcessModel& model, const score::DocumentContext& ctx, QWidget* 
     updateBank();
     updatePatternControls();
     updateLanePanel();
+    fitGrid();
   });
   con(model, &ProcessModel::currentPatternChanged, this, [this] {
     updateBank();
     updatePatternControls();
     updateLanePanel();
+    fitGrid();
   });
   con(model, &ProcessModel::execPattern, this, [this](int cur, int next) {
     if(cur != m_playing || next != m_pending)
@@ -471,9 +475,19 @@ void Editor::resizeEvent(QResizeEvent* event)
 void Editor::fitGrid()
 {
   const QSize sz = m_graphics->viewport()->size();
-  m_scene->setSceneRect(0, 0, sz.width(), sz.height());
   m_view->setWidth(sz.width());
   m_view->setHeight(sz.height());
+  const double h = std::max<double>(sz.height(), m_view->minimumHeight());
+  m_view->setHeight(h);
+  m_scene->setSceneRect(0, 0, sz.width(), h);
+}
+
+//! The viewport narrows when the scroll bar shows up: the grid follows.
+bool Editor::eventFilter(QObject* watched, QEvent* event)
+{
+  if(watched == m_graphics->viewport() && event->type() == QEvent::Resize)
+    fitGrid();
+  return QWidget::eventFilter(watched, event);
 }
 
 void Editor::updateBank()

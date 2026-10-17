@@ -33,6 +33,9 @@ constexpr double button_side = 14;
 //! The editor's buttons, and the room above its name for the step numbers.
 constexpr double button_w = 24;
 constexpr double button_h = 18;
+constexpr double min_button_h = 12;
+//! The editor scrolls rather than make the lanes lower than this.
+constexpr double min_lane_height = 20;
 constexpr double name_h = 20;
 constexpr double numbers_height = 18;
 //! Room between the header's edge and what it holds.
@@ -193,6 +196,7 @@ void View::invalidateSlots()
 {
   m_slotsValid = false;
   m_selectionValid = false;
+  m_headerWidth.reset();
 }
 
 const std::vector<StepSlot>& View::slots(int lane) const
@@ -302,7 +306,16 @@ QFont View::smallFont() const
   return f;
 }
 
+//! Measures every lane's name: worked out once, then kept until the lanes,
+//! their names or the size change.
 double View::headerWidth() const noexcept
+{
+  if(!m_headerWidth)
+    m_headerWidth = measureHeader();
+  return *m_headerWidth;
+}
+
+double View::measureHeader() const noexcept
 {
   auto p = pattern();
   if(!p)
@@ -347,9 +360,29 @@ double View::fieldHeight() const noexcept
 {
   if(!m_advanced)
     return 0.;
-  // Room for a button per parameter, and a row for Random and Reset.
-  const double minimum = (std::size(allFields) + 1) * button_h + 8.;
+  // Room for a button per parameter, and a row for Random and Reset, the
+  // buttons getting smaller before the bars do.
+  const double rows = std::size(allFields) + 1;
+  const double minimum = rows * min_button_h + 8.;
   return std::clamp(height() * 0.3, minimum, std::max(minimum, 200.));
+}
+
+double View::fieldButtonHeight() const noexcept
+{
+  const double rows = std::size(allFields) + 1;
+  return std::clamp((fieldHeight() - 8.) / rows, min_button_h, button_h);
+}
+
+double View::minimumHeight() const noexcept
+{
+  auto p = pattern();
+  const int lanes = p ? int(p->lanes.size()) : 0;
+  return gridTop() + lanes * min_lane_height + 8. + fieldHeight() + margin;
+}
+
+bool View::laneButtons() const noexcept
+{
+  return laneHeight() >= min_button_h + 2.;
 }
 
 QRectF View::fieldRect() const noexcept
@@ -422,13 +455,13 @@ QRectF View::fieldButtonRect(int i) const noexcept
 {
   const QRectF area = fieldRect();
   const double w = headerWidth() - 2. * pad;
+  const double h = fieldButtonHeight();
   const int n = std::size(allFields);
   if(i < n)
-    return {pad, area.top() + i * button_h, w, button_h - 2.};
+    return {pad, area.top() + i * h, w, h - 2.};
   // Random, then Reset, side by side under the parameters.
   const double half = (w - 2.) / 2.;
-  return {
-      pad + (i - n) * (half + 2.), area.top() + n * button_h + 4., half, button_h - 2.};
+  return {pad + (i - n) * (half + 2.), area.top() + n * h + 4., half, h - 2.};
 }
 
 int View::buttonAt(QPointF pos) const noexcept
@@ -440,6 +473,8 @@ int View::buttonAt(QPointF pos) const noexcept
   {
     const int lane = headerLaneAt(pos);
     if(lane < 0)
+      return -1;
+    if(!laneButtons())
       return -1;
     if(muteRect(lane).contains(pos))
       return mute_button + lane;
@@ -752,6 +787,9 @@ void View::paintHeader(QPainter* painter, const Pattern& p) const
       const QRectF lr = laneRect(lane);
       painter->fillRect(QRectF{0., lr.y(), 3., lr.height() - 1.}, skin.Base4.main.brush);
     }
+    // Too low to aim at: mute and solo stay in the lane's menu.
+    if(!laneButtons())
+      continue;
     paintButton(
         painter, muteRect(lane), tr("M"), l.mute, skin.Warn3.main.brush.color(),
         mute_button + lane);
