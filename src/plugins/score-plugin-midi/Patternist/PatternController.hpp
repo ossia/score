@@ -36,7 +36,8 @@ public:
   void paste();
   void clear();
   void rotate(int steps);
-  void randomize();
+  //! One lane, or every lane when `lane` is -1.
+  void randomize(int lane = -1);
 
   void toggleMute(int lane);
   void toggleSolo(int lane);

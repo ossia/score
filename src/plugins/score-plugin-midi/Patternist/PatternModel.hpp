@@ -29,6 +29,77 @@ W_REGISTER_ARGTYPE(Patternist::Note)
 namespace Patternist
 {
 
+//! When a step plays, beyond its chance.
+enum class Condition : uint8_t
+{
+  Always,
+  //! Only while the Fill input is on, or only while it is off.
+  Fill,
+  NotFill,
+  //! Only on the lane's first pass since the process started, or never on it.
+  First,
+  NotFirst,
+  //! On pass `a` of every `b` passes of the lane.
+  Cycle
+};
+
+//! What a step does besides being a note, a rest or a tie. The defaults play the
+//! step as written.
+struct StepParams
+{
+  //! 0 - 1, scaled by the lane's velocity and the Velocity input.
+  float velocity{1.f};
+  //! 0 - 1, scaled by the Density input.
+  float chance{1.f};
+  //! -0.5 - 0.5 of a step: early or late.
+  float offset{0.f};
+  //! 0 - 1 of a step; a tie, or 1, holds the note until the next step.
+  float gate{1.f};
+  //! Notes played within the step, 1 - 8.
+  uint8_t ratchet{1};
+  //! Semitones added to the lane's note.
+  int8_t pitch{0};
+  Condition condition{Condition::Always};
+  uint8_t cycleA{1};
+  uint8_t cycleB{2};
+
+  bool operator==(const StepParams&) const noexcept = default;
+  bool isDefault() const noexcept { return *this == StepParams{}; }
+};
+
+//! How the Euclidean rhythm of a lane combines with its written steps.
+enum class EuclidMode : uint8_t
+{
+  //! The rhythm replaces the written notes; the step parameters still apply.
+  Replace,
+  //! Notes where either the rhythm or the written steps have one.
+  Add,
+  //! Written notes only where the rhythm has a hit.
+  Mask
+};
+
+struct Euclid
+{
+  bool enabled{};
+  int pulses{4};
+  int rotation{0};
+  EuclidMode mode{EuclidMode::Replace};
+
+  bool operator==(const Euclid&) const noexcept = default;
+};
+
+//! Whether step `i` of `steps` is a hit when `pulses` of them are spread as
+//! evenly as possible, the rhythm turned `rotation` steps later.
+inline bool euclidHit(int i, int steps, int pulses, int rotation) noexcept
+{
+  if(steps <= 0 || pulses <= 0)
+    return false;
+  if(pulses >= steps)
+    return true;
+  const int j = (((i - rotation) % steps) + steps) % steps;
+  return (j * pulses) % steps < pulses;
+}
+
 struct Lane
 {
   std::vector<Patternist::Note> pattern;
@@ -36,12 +107,17 @@ struct Lane
   uint8_t note{};
   bool mute{};
   bool solo{};
+  //! Steps before the lane loops; 0 follows the pattern.
+  int length{};
+  //! Steps per whole note; 0 follows the pattern.
+  int division{};
+  //! 0 - 1.
+  float velocity{100.f / 127.f};
+  Euclid euclid;
+  //! Same size as `pattern`.
+  std::vector<StepParams> params;
 
-  bool operator==(const Lane& other) const noexcept
-  {
-    return note == other.note && pattern == other.pattern && mute == other.mute
-           && solo == other.solo;
-  }
+  bool operator==(const Lane& other) const noexcept = default;
 };
 
 struct Pattern
@@ -71,15 +147,55 @@ inline bool anySolo(const Pattern& p) noexcept
   return false;
 }
 
-//! What a lane plays at a step, once mute and solo are applied.
-inline Note audibleNote(const Lane& l, int step, bool anySolo) noexcept
+inline int laneLength(const Pattern& p, const Lane& l) noexcept
+{
+  return l.length > 0 ? l.length : p.length;
+}
+
+inline int laneDivision(const Pattern& p, const Lane& l) noexcept
+{
+  return l.division > 0 ? l.division : p.division;
+}
+
+//! What a lane's step is once its Euclidean rhythm is applied, before mute,
+//! solo, chance and conditions.
+inline Note writtenNote(const Pattern& p, const Lane& l, int step) noexcept
+{
+  const Note written
+      = (step >= 0 && step < int(l.pattern.size())) ? l.pattern[step] : Note::Rest;
+  if(!l.euclid.enabled)
+    return written;
+
+  const bool hit = euclidHit(step, laneLength(p, l), l.euclid.pulses, l.euclid.rotation);
+  switch(l.euclid.mode)
+  {
+    case EuclidMode::Replace:
+      return hit ? Note::Note : Note::Rest;
+    case EuclidMode::Add:
+      return written != Note::Rest ? written : (hit ? Note::Note : Note::Rest);
+    case EuclidMode::Mask:
+      return hit ? written : Note::Rest;
+  }
+  return written;
+}
+
+inline const StepParams& stepParams(const Lane& l, int step) noexcept
+{
+  static const StepParams defaults;
+  return (step >= 0 && step < int(l.params.size())) ? l.params[step] : defaults;
+}
+
+//! What a lane plays at a step, once its rhythm, mute and solo are applied.
+inline Note audibleNote(const Pattern& p, const Lane& l, int step, bool anySolo) noexcept
 {
   if(l.mute || (anySolo && !l.solo))
     return Note::Rest;
-  if(step < 0 || step >= int(l.pattern.size()))
-    return Note::Rest;
-  return l.pattern[step];
+  return writtenNote(p, l, step);
 }
+
+//! Writes the lane's Euclidean rhythm into its steps and turns it off, so that
+//! it can be edited by hand.
+SCORE_PLUGIN_MIDI_EXPORT void printEuclid(const Pattern& p, Lane& l) noexcept;
 
 //! How the lane headers name their note.
 enum class LaneLabels : uint8_t
@@ -134,12 +250,24 @@ public:
   void setLaneLabels(LaneLabels l);
   LaneLabels laneLabels() const noexcept;
 
+  //! The step each lane of the playing pattern is on, -1 for none.
+  const std::vector<int>& execSteps() const noexcept { return m_execSteps; }
+  void setExecSteps(std::vector<int> s) { m_execSteps = std::move(s); }
+
   void setPattern(int n, Pattern p);
   void setPatterns(const std::vector<Pattern>& n);
   const std::vector<Pattern>& patterns() const noexcept;
 
   std::unique_ptr<Process::ControlInlet> patternSelect;
   std::unique_ptr<Process::ControlInlet> switchQuantification;
+  //! Steps with the Fill / Not fill condition play while it is on / off.
+  std::unique_ptr<Process::ControlInlet> fill;
+  //! Scales the chance of every step.
+  std::unique_ptr<Process::ControlInlet> density;
+  //! Scales the velocity of every step.
+  std::unique_ptr<Process::ControlInlet> velocity;
+  //! Delays every other step, by up to half a step.
+  std::unique_ptr<Process::ControlInlet> swing;
   std::unique_ptr<Process::MidiOutlet> outlet;
   std::unique_ptr<Process::Outlet> accent;
   std::unique_ptr<Process::Outlet> slide;
@@ -175,6 +303,7 @@ private:
   int m_channel{1};
   int m_currentPattern{};
   LaneLabels m_laneLabels{LaneLabels::NameAndNumber};
+  std::vector<int> m_execSteps;
   std::vector<Pattern> m_patterns;
 };
 }

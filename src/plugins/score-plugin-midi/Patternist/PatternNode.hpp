@@ -10,8 +10,10 @@
 #include <libremidi/ump_events.hpp>
 
 #include <algorithm>
+#include <array>
 #include <cmath>
 #include <limits>
+#include <random>
 
 namespace Patternist
 {
@@ -26,6 +28,10 @@ class pattern_node : public ossia::nonowning_graph_node
 public:
   ossia::value_inlet pattern_select;
   ossia::value_inlet switch_quantification;
+  ossia::value_inlet fill_in;
+  ossia::value_inlet density_in;
+  ossia::value_inlet velocity_in;
+  ossia::value_inlet swing_in;
   ossia::midi_outlet out;
   ossia::value_outlet accent_out;
   ossia::value_outlet slide_out;
@@ -41,6 +47,13 @@ public:
   //! A token_request rate: 0 switches at the beginning of the tick.
   double switch_rate{1.};
 
+  bool fill{};
+  float density{1.f};
+  float velocity_scale{1.f};
+  float swing{0.f};
+
+  //! Step of the pattern's own grid, which the lanes without a length or a
+  //! division of their own follow.
   int current = 0;
   int last = -1;
   uint8_t channel{1};
@@ -50,11 +63,53 @@ public:
   bool release_pending{};
   bool mustStop{};
 
+  static constexpr int max_lanes = 128;
+  struct lane_state
+  {
+    //! Steps the lane has started since the pattern started playing.
+    int64_t played{};
+    //! A step scheduled ahead because it plays early, or -1.
+    int64_t early{-1};
+    //! Note the lane holds until its next step, or -1.
+    int16_t held{-1};
+    int16_t last{-1};
+  };
+  std::array<lane_state, max_lanes> lanes{};
+
+  enum class event_kind : uint8_t
+  {
+    note_off,
+    note_on,
+    accent,
+    slide
+  };
+  //! A message waiting for the tick its musical position falls in.
+  struct event
+  {
+    double position{};
+    event_kind kind{};
+    uint8_t note{};
+    uint8_t velocity{};
+    float value{};
+  };
+  static constexpr int max_events = 1024;
+  std::array<event, max_events> queue{};
+  int queue_size{};
+  //! What a step without musical time sends, all at the same date.
+  std::array<event, 2 * max_lanes> immediate{};
+  int immediate_size{};
+
+  std::minstd_rand rng{0x5eed};
+
   pattern_node()
   {
     in_flight.reserve(32);
     m_inlets.push_back(&pattern_select);
     m_inlets.push_back(&switch_quantification);
+    m_inlets.push_back(&fill_in);
+    m_inlets.push_back(&density_in);
+    m_inlets.push_back(&velocity_in);
+    m_inlets.push_back(&swing_in);
     m_outlets.push_back(&out);
     m_outlets.push_back(&accent_out);
     m_outlets.push_back(&slide_out);
@@ -73,14 +128,6 @@ public:
     pending_pattern = (idx == current_pattern) ? -1 : idx;
   }
 
-  bool legato(int note, bool solo) const noexcept
-  {
-    for(const Lane& lane : pattern().lanes)
-      if(lane.note == note && ossia::valid_index(current, lane.pattern))
-        return audibleNote(lane, current, solo) == Note::Legato;
-    return false;
-  }
-
   void release_all(int64_t timestamp) noexcept
   {
     auto& mess = out.target<ossia::midi_port>()->messages;
@@ -90,6 +137,20 @@ public:
       mess.back().timestamp = timestamp;
     }
     in_flight.clear();
+
+    // What was scheduled belongs to what is being released.
+    queue_size = 0;
+    for(auto& l : lanes)
+    {
+      l.held = -1;
+      l.early = -1;
+    }
+  }
+
+  void reset_lanes() noexcept
+  {
+    for(auto& l : lanes)
+      l = lane_state{};
   }
 
   void set_channel(uint8_t c) noexcept
@@ -107,6 +168,14 @@ public:
       request_pattern(ossia::convert<int>(d.back().value));
     if(auto& d = switch_quantification->get_data(); !d.empty())
       switch_rate = ossia::convert<float>(d.back().value);
+    if(auto& d = fill_in->get_data(); !d.empty())
+      fill = ossia::convert<bool>(d.back().value);
+    if(auto& d = density_in->get_data(); !d.empty())
+      density = std::clamp(ossia::convert<float>(d.back().value), 0.f, 1.f);
+    if(auto& d = velocity_in->get_data(); !d.empty())
+      velocity_scale = std::clamp(ossia::convert<float>(d.back().value), 0.f, 1.f);
+    if(auto& d = swing_in->get_data(); !d.empty())
+      swing = std::clamp(ossia::convert<float>(d.back().value), 0.f, 1.f);
   }
 
   void run(const ossia::token_request& tk, ossia::exec_state_facade st) noexcept override
@@ -168,41 +237,57 @@ public:
       pending_pattern = -1;
 
     const bool rewinding = tk.backward();
+    // Without musical time (no tempo anywhere) or going backwards, every lane
+    // takes one step per point of the pattern's grid and plays it at once:
+    // there is no musical position to schedule gates, ratchets or offsets at.
+    const bool timed = !rewinding
+                       && tk.musical_end_position > tk.musical_start_position;
 
     constexpr auto never = std::numeric_limits<int64_t>::max();
     int64_t switch_at = -1;
+    double switch_position{};
     if(pending_pattern >= 0)
     {
       const auto points = tk.get_quantification_dates(switch_rate);
       // Points come in tick order in both directions, so the first one is the
       // earliest the switch can happen in this tick.
       if(!points.empty())
+      {
         switch_at = tk.physical_position(points.front().position, samplesratio);
+        switch_position = points.front().position;
+      }
     }
 
     // The two patterns can have different divisions, so the steps around the
     // switch are walked on their own grids rather than on a single one.
     play_steps(
-        tk, tick_start, samplesratio, rewinding, 0, switch_at < 0 ? never : switch_at);
+        tk, tick_start, samplesratio, rewinding, timed, 0,
+        switch_at < 0 ? never : switch_at);
 
     if(switch_at >= 0)
     {
+      if(timed)
+        emit_until(tk, tick_start, samplesratio, switch_position);
       apply_switch(tick_start + switch_at);
-      play_steps(tk, tick_start, samplesratio, rewinding, switch_at, never);
+      play_steps(tk, tick_start, samplesratio, rewinding, timed, switch_at, never);
     }
+
+    if(timed)
+      emit_until(tk, tick_start, samplesratio, tk.musical_end_position);
   }
 
   //! Plays the steps of the current pattern whose offset in the tick falls in
   //! [from_offset; to_offset[.
   void play_steps(
       const ossia::token_request& tk, int64_t tick_start, double samplesratio,
-      bool rewinding, int64_t from_offset, int64_t to_offset) noexcept
+      bool rewinding, bool timed, int64_t from_offset, int64_t to_offset) noexcept
   {
     const Pattern& pat = pattern();
-    if(pat.length <= 0)
+    if(pat.length <= 0 || pat.division <= 0)
       return;
     if(current < 0 || current >= pat.length)
       current = 0;
+    const int lane_count = std::min(int(pat.lanes.size()), max_lanes);
 
     // All of them, not just the first: a tick covers more than one step as soon
     // as the division is small, the buffer large or the tempo high, and the
@@ -220,7 +305,283 @@ public:
       const int64_t offset = tk.physical_position(q.position, samplesratio);
       if(offset < from_offset || offset >= to_offset)
         continue;
-      play_step(tick_start + offset, rewinding);
+
+      // Forward, the step about to play is the current one and the next tick
+      // plays the one after. Rewinding mirrors that: step back first, so going
+      // out and back over the same ground crosses the same steps.
+      if(rewinding)
+        current = (current + pat.length - 1) % pat.length;
+      last = current;
+      in_flight_channel = channel;
+
+      for(int i = 0; i < lane_count; i++)
+      {
+        const Lane& l = pat.lanes[i];
+        if(timed && laneDivision(pat, l) != pat.division)
+          continue;
+        play_lane(
+            pat, i, q.position, 4. / pat.division, rewinding, timed,
+            tick_start + offset);
+      }
+      flush_immediate(tick_start + offset);
+
+      if(!rewinding)
+        current = (current + 1) % pat.length;
+    }
+
+    // Lanes with a division of their own walk their own grid.
+    if(!timed)
+      return;
+    for(int i = 0; i < lane_count; i++)
+    {
+      const Lane& l = pat.lanes[i];
+      const int div = laneDivision(pat, l);
+      if(div == pat.division)
+        continue;
+
+      // Several lanes can share a division: each walks it on its own, the
+      // points are cheap.
+      for(const auto& q : tk.get_quantification_dates(div))
+      {
+        const int64_t offset = tk.physical_position(q.position, samplesratio);
+        if(offset < from_offset || offset >= to_offset)
+          continue;
+        play_lane(pat, i, q.position, 4. / div, false, true, tick_start + offset);
+      }
+    }
+  }
+
+  //! Lane `i` reaches a point of its grid at musical position `position`, in
+  //! quarters; `unit` is the length of its step in quarters.
+  void play_lane(
+      const Pattern& pat, int i, double position, double unit, bool rewinding,
+      bool timed, int64_t date) noexcept
+  {
+    const Lane& l = pat.lanes[i];
+    auto& ls = lanes[i];
+    const int len = laneLength(pat, l);
+    if(len <= 0)
+      return;
+
+    if(rewinding)
+      ls.played = std::max<int64_t>(0, ls.played - 1);
+    const int64_t n = ls.played;
+    const int step = int(n % len);
+    ls.last = step;
+    if(!rewinding)
+      ls.played++;
+
+    if(!timed)
+    {
+      play_step(pat, i, step, n / len, 0., 0., false, date);
+      return;
+    }
+
+    // Scheduled from the step before, because it plays early.
+    if(ls.early != n)
+    {
+      const auto& p = stepParams(l, step);
+      play_step(
+          pat, i, step, n / len,
+          position + (std::max(0.f, p.offset) + swing_delay(step)) * unit, unit, true,
+          date);
+    }
+    ls.early = -1;
+
+    // The next step, if it plays early, has to be scheduled now: by the time
+    // its own grid point comes, its notes are already due.
+    const int64_t next = n + 1;
+    const int next_step = int(next % len);
+    const auto& np = stepParams(l, next_step);
+    if(np.offset < 0.f)
+    {
+      play_step(
+          pat, i, next_step, next / len,
+          position + (1. + np.offset + swing_delay(next_step)) * unit, unit, true, date);
+      ls.early = next;
+    }
+  }
+
+  //! Every other step is delayed, by up to half a step.
+  double swing_delay(int step) const noexcept
+  {
+    return (step % 2 == 1) ? swing * 0.5 : 0.;
+  }
+
+  bool condition_holds(const StepParams& p, int64_t pass) const noexcept
+  {
+    switch(p.condition)
+    {
+      case Condition::Always:
+        return true;
+      case Condition::Fill:
+        return fill;
+      case Condition::NotFill:
+        return !fill;
+      case Condition::First:
+        return pass == 0;
+      case Condition::NotFirst:
+        return pass != 0;
+      case Condition::Cycle:
+        return p.cycleB > 0 && (pass % p.cycleB) == (p.cycleA - 1);
+    }
+    return true;
+  }
+
+  //! Plays step `step` of lane `i` at musical position `at`. When `scheduled`
+  //! is false everything goes out at once, at `date`.
+  void play_step(
+      const Pattern& pat, int i, int step, int64_t pass, double at, double unit,
+      bool scheduled, int64_t date) noexcept
+  {
+    const Lane& l = pat.lanes[i];
+    auto& ls = lanes[i];
+    const StepParams& p = stepParams(l, step);
+
+    Note kind = audibleNote(pat, l, step, anySolo(pat));
+    if(kind != Note::Rest)
+    {
+      if(!condition_holds(p, pass))
+        kind = Note::Rest;
+      else if(const float chance = p.chance * density; chance < 1.f)
+        if(std::uniform_real_distribution<float>{0.f, 1.f}(rng) >= chance)
+          kind = Note::Rest;
+    }
+
+    const auto push = [&](double position, event_kind k, int note, int velocity,
+                          float value = 0.f) {
+      push_event(
+          {position, k, uint8_t(note), uint8_t(velocity), value}, scheduled, date);
+    };
+
+    if(l.note == 255 || l.note == 254)
+    {
+      push(
+          at, l.note == 255 ? event_kind::accent : event_kind::slide, 0, 0,
+          kind != Note::Rest ? 1.f : 0.f);
+      return;
+    }
+    if(l.note > 127)
+      return;
+
+    const int note = std::clamp(int(l.note) + p.pitch, 0, 127);
+    const int velocity = std::clamp(
+        int(std::lround(p.velocity * l.velocity * velocity_scale * 127.f)), 1, 127);
+
+    switch(kind)
+    {
+      case Note::Rest:
+        if(ls.held >= 0)
+          push(at, event_kind::note_off, ls.held, 0);
+        ls.held = -1;
+        break;
+
+      case Note::Legato:
+        if(ls.held == note)
+          break;
+        if(ls.held >= 0)
+          push(at, event_kind::note_off, ls.held, 0);
+        push(at, event_kind::note_on, note, velocity);
+        ls.held = note;
+        break;
+
+      case Note::Note: {
+        if(ls.held >= 0)
+          push(at, event_kind::note_off, ls.held, 0);
+        ls.held = -1;
+
+        const int ratchet = scheduled ? std::max<int>(1, p.ratchet) : 1;
+        const float gate = scheduled ? p.gate : 1.f;
+        const double sub = unit / ratchet;
+        for(int k = 0; k < ratchet; k++)
+        {
+          const double on = at + k * sub;
+          push(on, event_kind::note_on, note, velocity);
+          if(k + 1 < ratchet)
+            push(on + std::min(1.f, std::max(gate, 0.05f)) * sub, event_kind::note_off,
+                 note, 0);
+          else if(gate >= 1.f)
+            ls.held = note;
+          else
+            push(on + std::max(gate, 0.05f) * sub, event_kind::note_off, note, 0);
+        }
+        break;
+      }
+    }
+  }
+
+  void push_event(const event& e, bool scheduled, int64_t date) noexcept
+  {
+    if(!scheduled)
+    {
+      if(immediate_size < int(immediate.size()))
+        immediate[immediate_size++] = e;
+      return;
+    }
+    if(queue_size < max_events)
+      queue[queue_size++] = e;
+  }
+
+  //! Every lane's releases go before any lane strikes.
+  void flush_immediate(int64_t date) noexcept
+  {
+    std::stable_sort(
+        immediate.begin(), immediate.begin() + immediate_size,
+        [](const event& a, const event& b) { return a.kind < b.kind; });
+    for(int i = 0; i < immediate_size; i++)
+      emit(immediate[i], date);
+    immediate_size = 0;
+  }
+
+  //! Sends what is due before musical position `end`, in order: at the same
+  //! position a note-off goes before a note-on, so that a note restarted on
+  //! the step that ends it is heard.
+  void emit_until(
+      const ossia::token_request& tk, int64_t tick_start, double samplesratio,
+      double end) noexcept
+  {
+    const auto due_end = std::stable_partition(
+        queue.begin(), queue.begin() + queue_size,
+        [end](const event& e) { return e.position < end - 1e-9; });
+    std::stable_sort(queue.begin(), due_end, [](const event& a, const event& b) {
+      if(a.position != b.position)
+        return a.position < b.position;
+      return a.kind < b.kind;
+    });
+
+    for(auto it = queue.begin(); it != due_end; ++it)
+      emit(*it, tick_start + tk.physical_position(it->position, samplesratio));
+
+    const int remaining = int((queue.begin() + queue_size) - due_end);
+    std::move(due_end, queue.begin() + queue_size, queue.begin());
+    queue_size = remaining;
+  }
+
+  void emit(const event& e, int64_t date) noexcept
+  {
+    auto& mess = out.target<ossia::midi_port>()->messages;
+    switch(e.kind)
+    {
+      case event_kind::note_off:
+        if(in_flight.contains(e.note))
+        {
+          mess.push_back(libremidi::from_midi1::note_off(in_flight_channel, e.note, 0));
+          mess.back().timestamp = date;
+          in_flight.erase(e.note);
+        }
+        break;
+      case event_kind::note_on:
+        mess.push_back(libremidi::from_midi1::note_on(channel, e.note, e.velocity));
+        mess.back().timestamp = date;
+        in_flight.insert(e.note);
+        in_flight_channel = channel;
+        break;
+      case event_kind::accent:
+        accent_out->write_value(e.value, date);
+        break;
+      case event_kind::slide:
+        slide_out->write_value(e.value, date);
+        break;
     }
   }
 
@@ -234,94 +595,7 @@ public:
     current_pattern = pending_pattern;
     pending_pattern = -1;
     current = 0;
-  }
-
-  void play_step(int64_t date, bool rewinding = false) noexcept
-  {
-    const Pattern& pat = pattern();
-
-    // Forward, the step about to play is the current one and the next tick
-    // plays the one after. Rewinding mirrors that: step back first, so going
-    // out and back over the same ground crosses the same steps.
-    if(rewinding)
-      current = (current + pat.length - 1) % pat.length;
-    last = current;
-    auto& mess = out.target<ossia::midi_port>()->messages;
-    const bool solo = anySolo(pat);
-
-    for(auto it = in_flight.begin(); it != in_flight.end();)
-    {
-      uint8_t note = *it;
-      if(!legato(note, solo))
-      {
-        mess.push_back(libremidi::from_midi1::note_off(in_flight_channel, note, 0));
-        mess.back().timestamp = date;
-        it = in_flight.erase(it);
-      }
-      else
-      {
-        ++it;
-      }
-    }
-
-    in_flight_channel = channel;
-
-    for(const Lane& lane : pat.lanes)
-    {
-      if(lane.note <= 127 && ossia::valid_index(current, lane.pattern))
-      {
-        switch(audibleNote(lane, current, solo))
-        {
-          case Note::Note:
-            mess.push_back(libremidi::from_midi1::note_on(channel, lane.note, 100));
-            mess.back().timestamp = date;
-            in_flight.insert(lane.note);
-            break;
-          case Note::Legato:
-            if(!in_flight.contains(lane.note))
-            {
-              mess.push_back(libremidi::from_midi1::note_on(channel, lane.note, 100));
-              mess.back().timestamp = date;
-              in_flight.insert(lane.note);
-            }
-            break;
-          case Note::Rest:
-            if(in_flight.contains(lane.note))
-            {
-              mess.push_back(
-                  libremidi::from_midi1::note_off(in_flight_channel, lane.note, 0));
-              mess.back().timestamp = date;
-              in_flight.erase(lane.note);
-            }
-            break;
-        }
-      }
-    }
-
-    for(const Lane& lane : pat.lanes)
-    {
-      if(ossia::valid_index(current, lane.pattern))
-      {
-        const Note n = audibleNote(lane, current, solo);
-        if(lane.note == 255)
-        {
-          if(n != Note::Rest)
-            accent_out->write_value(1., date);
-          else
-            accent_out->write_value(0., date);
-        }
-        else if(lane.note == 254)
-        {
-          if(n != Note::Rest)
-            slide_out->write_value(1., date);
-          else
-            slide_out->write_value(0., date);
-        }
-      }
-    }
-
-    if(!rewinding)
-      current = (current + 1) % pat.length;
+    reset_lanes();
   }
 
   // Writing to the outlet from here would be pointless: this runs outside of a

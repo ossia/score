@@ -26,8 +26,62 @@ void normalize(Pattern& p) noexcept
   p.length = std::clamp(p.length, 1, Pattern::maxLength);
   p.division = std::max(p.division, 1);
   for(Lane& lane : p.lanes)
-    if(std::ssize(lane.pattern) < p.length)
-      lane.pattern.resize(p.length, Note::Rest);
+  {
+    lane.length = std::clamp(lane.length, 0, Pattern::maxLength);
+    lane.division = std::max(lane.division, 0);
+    lane.velocity = std::clamp(lane.velocity, 0.f, 1.f);
+    lane.euclid.pulses = std::clamp(lane.euclid.pulses, 0, Pattern::maxLength);
+
+    const int n = std::max(p.length, lane.length);
+    if(std::ssize(lane.pattern) < n)
+      lane.pattern.resize(n, Note::Rest);
+    lane.params.resize(lane.pattern.size());
+    for(StepParams& s : lane.params)
+    {
+      s.velocity = std::clamp(s.velocity, 0.f, 1.f);
+      s.chance = std::clamp(s.chance, 0.f, 1.f);
+      s.offset = std::clamp(s.offset, -0.5f, 0.5f);
+      s.gate = std::clamp(s.gate, 0.f, 1.f);
+      s.ratchet = std::clamp<uint8_t>(s.ratchet, 1, 8);
+      s.pitch = std::clamp<int8_t>(s.pitch, -48, 48);
+      s.cycleB = std::clamp<uint8_t>(s.cycleB, 1, 16);
+      s.cycleA = std::clamp<uint8_t>(s.cycleA, 1, s.cycleB);
+    }
+  }
+}
+
+void printEuclid(const Pattern& p, Lane& l) noexcept
+{
+  if(!l.euclid.enabled)
+    return;
+  const int n = laneLength(p, l);
+  for(int i = 0; i < n && i < std::ssize(l.pattern); i++)
+    l.pattern[i] = writtenNote(p, l, i);
+  l.euclid.enabled = false;
+}
+
+static std::unique_ptr<Process::ControlInlet> makeFill(QObject* parent)
+{
+  return std::make_unique<Process::Toggle>(
+      false, QObject::tr("Fill"), Id<Process::Port>(2), parent);
+}
+
+static std::unique_ptr<Process::ControlInlet> makeDensity(QObject* parent)
+{
+  return std::make_unique<Process::FloatSlider>(
+      0.f, 1.f, 1.f, QObject::tr("Density"), Id<Process::Port>(3), parent);
+}
+
+static std::unique_ptr<Process::ControlInlet> makeVelocity(QObject* parent)
+{
+  return std::make_unique<Process::FloatSlider>(
+      0.f, 1.f, 1.f, QObject::tr("Velocity"), Id<Process::Port>(4), parent);
+}
+
+static std::unique_ptr<Process::ControlInlet> makeSwing(QObject* parent)
+{
+  return std::make_unique<Process::FloatSlider>(
+      0.f, 1.f, 0.f, QObject::tr("Swing"), Id<Process::Port>(5), parent);
 }
 
 //! Rates, in the convention ossia::token_request::get_quantification_dates
@@ -82,6 +136,10 @@ ProcessModel::ProcessModel(
           duration, id, Metadata<ObjectKey_k, ProcessModel>::get(), parent}
     , patternSelect{makePatternSelect(this)}
     , switchQuantification{makeSwitchQuantification(this)}
+    , fill{makeFill(this)}
+    , density{makeDensity(this)}
+    , velocity{makeVelocity(this)}
+    , swing{makeSwing(this)}
     , outlet{std::make_unique<Process::MidiOutlet>(
           "MIDI Out", Id<Process::Port>(0), this)}
     , accent{std::make_unique<Process::ValueOutlet>(
@@ -94,6 +152,7 @@ ProcessModel::ProcessModel(
       Lane{fromInts({0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0}), 38});
   pattern.lanes.push_back(
       Lane{fromInts({1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0}), 36});
+  normalize(pattern);
   m_patterns.push_back(pattern);
   metadata().setInstanceName(*this);
   init();
@@ -118,6 +177,12 @@ void ProcessModel::init()
 {
   m_inlets.push_back(patternSelect.get());
   m_inlets.push_back(switchQuantification.get());
+  m_inlets.push_back(fill.get());
+  m_inlets.push_back(density.get());
+  m_inlets.push_back(velocity.get());
+  m_inlets.push_back(swing.get());
+  for(auto* port : {fill.get(), density.get(), velocity.get(), swing.get()})
+    port->displayHandledExplicitly = false;
 
   // The pattern grid is the whole body: no widget shows these controls there,
   // so the node shows them as ports, folded or not (documents saved before
@@ -276,15 +341,33 @@ void ProcessModel::setDurationAndShrink(const TimeVal& newDuration) noexcept
 }
 
 template <>
+void DataStreamReader::read(const Patternist::StepParams& s)
+{
+  m_stream << s.velocity << s.chance << s.offset << s.gate << s.ratchet << s.pitch
+           << s.condition << s.cycleA << s.cycleB;
+}
+
+template <>
+void DataStreamWriter::write(Patternist::StepParams& s)
+{
+  m_stream >> s.velocity >> s.chance >> s.offset >> s.gate >> s.ratchet >> s.pitch
+      >> s.condition >> s.cycleA >> s.cycleB;
+}
+
+template <>
 void DataStreamReader::read(const Patternist::Lane& proc)
 {
-  m_stream << proc.note << proc.pattern << proc.mute << proc.solo;
+  m_stream << proc.note << proc.pattern << proc.mute << proc.solo << proc.length
+           << proc.division << proc.velocity << proc.euclid.enabled << proc.euclid.pulses
+           << proc.euclid.rotation << proc.euclid.mode << proc.params;
 }
 
 template <>
 void DataStreamWriter::write(Patternist::Lane& proc)
 {
-  m_stream >> proc.note >> proc.pattern >> proc.mute >> proc.solo;
+  m_stream >> proc.note >> proc.pattern >> proc.mute >> proc.solo >> proc.length
+      >> proc.division >> proc.velocity >> proc.euclid.enabled >> proc.euclid.pulses
+      >> proc.euclid.rotation >> proc.euclid.mode >> proc.params;
 }
 
 template <>
@@ -316,6 +399,61 @@ void JSONReader::read(const Patternist::Lane& proc)
     obj["Mute"] = true;
   if(proc.solo)
     obj["Solo"] = true;
+  if(proc.length > 0)
+    obj["Length"] = proc.length;
+  if(proc.division > 0)
+    obj["Division"] = proc.division;
+  if(proc.velocity != Patternist::Lane{}.velocity)
+    obj["Velocity"] = proc.velocity;
+  if(!(proc.euclid == Patternist::Euclid{}))
+  {
+    stream.Key("Euclid");
+    stream.StartObject();
+    obj["Enabled"] = proc.euclid.enabled;
+    obj["Pulses"] = proc.euclid.pulses;
+    obj["Rotation"] = proc.euclid.rotation;
+    obj["Mode"] = (int)proc.euclid.mode;
+    stream.EndObject();
+  }
+
+  // Only the steps that differ from the defaults.
+  const bool anyParams = std::any_of(
+      proc.params.begin(), proc.params.end(),
+      [](const Patternist::StepParams& s) { return !s.isDefault(); });
+  if(anyParams)
+  {
+    const Patternist::StepParams def;
+    stream.Key("Steps");
+    stream.StartArray();
+    for(std::size_t i = 0; i < proc.params.size(); i++)
+    {
+      const auto& s = proc.params[i];
+      if(s.isDefault())
+        continue;
+      stream.StartObject();
+      obj["Step"] = (int)i;
+      if(s.velocity != def.velocity)
+        obj["Velocity"] = s.velocity;
+      if(s.chance != def.chance)
+        obj["Chance"] = s.chance;
+      if(s.offset != def.offset)
+        obj["Offset"] = s.offset;
+      if(s.gate != def.gate)
+        obj["Gate"] = s.gate;
+      if(s.ratchet != def.ratchet)
+        obj["Ratchet"] = (int)s.ratchet;
+      if(s.pitch != def.pitch)
+        obj["Pitch"] = (int)s.pitch;
+      if(s.condition != def.condition)
+      {
+        obj["Condition"] = (int)s.condition;
+        obj["CycleA"] = (int)s.cycleA;
+        obj["CycleB"] = (int)s.cycleB;
+      }
+      stream.EndObject();
+    }
+    stream.EndArray();
+  }
   stream.EndObject();
 }
 
@@ -349,6 +487,57 @@ void JSONWriter::write(Patternist::Lane& proc)
     proc.mute = v->toBool();
   if(auto v = obj.tryGet("Solo"))
     proc.solo = v->toBool();
+  if(auto v = obj.tryGet("Length"))
+    proc.length = v->toInt();
+  if(auto v = obj.tryGet("Division"))
+    proc.division = v->toInt();
+  if(auto v = obj.tryGet("Velocity"))
+    proc.velocity = v->toDouble();
+  if(auto e = obj.tryGet("Euclid"))
+  {
+    const JsonValue eu = *e;
+    proc.euclid.enabled = eu["Enabled"].toBool();
+    proc.euclid.pulses = eu["Pulses"].toInt();
+    proc.euclid.rotation = eu["Rotation"].toInt();
+    proc.euclid.mode = (Patternist::EuclidMode)std::clamp(
+        eu["Mode"].toInt(), 0, (int)Patternist::EuclidMode::Mask);
+  }
+
+  proc.params.resize(proc.pattern.size());
+  if(auto steps = obj.tryGet("Steps"))
+  {
+    for(const auto& v : steps->toArray())
+    {
+      if(!v.IsObject() || !v.HasMember("Step") || !v["Step"].IsInt())
+        continue;
+      const int i = v["Step"].GetInt();
+      if(i < 0 || i >= Patternist::Pattern::maxLength)
+        continue;
+      if(i >= std::ssize(proc.params))
+        proc.params.resize(i + 1);
+      auto& s = proc.params[i];
+      const auto num = [&](const char* key, auto& field) {
+        if(auto it = v.FindMember(key); it != v.MemberEnd() && it->value.IsNumber())
+          field = it->value.GetDouble();
+      };
+      num("Velocity", s.velocity);
+      num("Chance", s.chance);
+      num("Offset", s.offset);
+      num("Gate", s.gate);
+      int ratchet = s.ratchet, pitch = s.pitch, cond = 0, a = s.cycleA, b = s.cycleB;
+      num("Ratchet", ratchet);
+      num("Pitch", pitch);
+      num("Condition", cond);
+      num("CycleA", a);
+      num("CycleB", b);
+      s.ratchet = std::clamp(ratchet, 1, 8);
+      s.pitch = std::clamp(pitch, -48, 48);
+      s.condition = (Patternist::Condition)std::clamp(
+          cond, 0, (int)Patternist::Condition::Cycle);
+      s.cycleA = std::clamp(a, 1, 16);
+      s.cycleB = std::clamp(b, 1, 16);
+    }
+  }
 }
 
 template <>
@@ -385,7 +574,8 @@ void JSONWriter::write(Patternist::Pattern& proc)
 template <>
 void DataStreamReader::read(const Patternist::ProcessModel& proc)
 {
-  m_stream << *proc.patternSelect << *proc.switchQuantification << *proc.outlet
+  m_stream << *proc.patternSelect << *proc.switchQuantification << *proc.fill
+           << *proc.density << *proc.velocity << *proc.swing << *proc.outlet
            << *proc.accent << *proc.slide << proc.m_channel << proc.m_currentPattern
            << proc.m_laneLabels << proc.m_patterns;
 
@@ -397,6 +587,10 @@ void DataStreamWriter::write(Patternist::ProcessModel& proc)
 {
   proc.patternSelect = Process::load_control_inlet(*this, &proc);
   proc.switchQuantification = Process::load_control_inlet(*this, &proc);
+  proc.fill = Process::load_control_inlet(*this, &proc);
+  proc.density = Process::load_control_inlet(*this, &proc);
+  proc.velocity = Process::load_control_inlet(*this, &proc);
+  proc.swing = Process::load_control_inlet(*this, &proc);
   proc.outlet = Process::load_midi_outlet(*this, &proc);
   proc.accent = Process::load_value_outlet(*this, &proc);
   proc.slide = Process::load_value_outlet(*this, &proc);
@@ -411,6 +605,10 @@ void JSONReader::read(const Patternist::ProcessModel& proc)
 {
   obj["PatternSelect"] = *proc.patternSelect;
   obj["SwitchQuantification"] = *proc.switchQuantification;
+  obj["Fill"] = *proc.fill;
+  obj["Density"] = *proc.density;
+  obj["Velocity"] = *proc.velocity;
+  obj["Swing"] = *proc.swing;
   obj["Outlet"] = *proc.outlet;
   obj["Accent"] = *proc.accent;
   obj["Slide"] = *proc.slide;
@@ -442,6 +640,19 @@ void JSONWriter::write(Patternist::ProcessModel& proc)
   {
     proc.switchQuantification = Patternist::makeSwitchQuantification(&proc);
   }
+
+  const auto loadControl = [&](const std::string& key, auto make) {
+    if(auto port = obj.tryGet(key))
+    {
+      JSONWriter writer{*port};
+      return Process::load_control_inlet(writer, &proc);
+    }
+    return make(&proc);
+  };
+  proc.fill = loadControl("Fill", Patternist::makeFill);
+  proc.density = loadControl("Density", Patternist::makeDensity);
+  proc.velocity = loadControl("Velocity", Patternist::makeVelocity);
+  proc.swing = loadControl("Swing", Patternist::makeSwing);
 
   {
     JSONWriter writer{obj["Outlet"]};

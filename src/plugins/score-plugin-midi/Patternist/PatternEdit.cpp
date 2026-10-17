@@ -38,26 +38,37 @@ void clear(Pattern& p) noexcept
 void rotate(Pattern& p, int steps) noexcept
 {
   normalize(p);
-  const int n = p.length;
-  const int by = ((steps % n) + n) % n;
-  for(Lane& lane : p.lanes)
-    std::rotate(
-        lane.pattern.begin(), lane.pattern.begin() + (n - by) % n,
-        lane.pattern.begin() + n);
-}
-
-void randomize(Pattern& p, std::mt19937& rng) noexcept
-{
-  normalize(p);
-  // Steps falling on a quarter note are the beats.
-  const int stepsPerBeat = std::max(1, p.division / 4);
-  std::uniform_real_distribution<double> dist{0., 1.};
   for(Lane& lane : p.lanes)
   {
-    for(int i = 0; i < p.length; i++)
+    const int len = std::min<int>(laneLength(p, lane), lane.pattern.size());
+    if(len <= 0)
+      continue;
+    const int r = ((steps % len) + len) % len;
+    std::rotate(
+        lane.pattern.begin(), lane.pattern.begin() + (len - r) % len,
+        lane.pattern.begin() + len);
+    std::rotate(
+        lane.params.begin(), lane.params.begin() + (len - r) % len,
+        lane.params.begin() + len);
+  }
+}
+
+void randomize(Pattern& p, std::mt19937& rng, int lane) noexcept
+{
+  normalize(p);
+  std::uniform_real_distribution<double> dist{0., 1.};
+  for(int li = 0; li < int(p.lanes.size()); li++)
+  {
+    if(lane >= 0 && li != lane)
+      continue;
+    Lane& l = p.lanes[li];
+    // Steps falling on a quarter note are the beats.
+    const int stepsPerBeat = std::max(1, laneDivision(p, l) / 4);
+    const int len = laneLength(p, l);
+    for(int i = 0; i < len && i < int(l.pattern.size()); i++)
     {
       const double chance = (i % stepsPerBeat == 0) ? 0.5 : 0.2;
-      lane.pattern[i] = dist(rng) < chance ? Note::Note : Note::Rest;
+      l.pattern[i] = dist(rng) < chance ? Note::Note : Note::Rest;
     }
   }
 }
