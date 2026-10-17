@@ -108,9 +108,11 @@ void AddRemoveList::setCount(int i)
   {
     on_add(m_root + QString::number(count()));
   }
-  while(count() > i)
+  if(count() > i)
   {
-    delete takeItem(count() - 1);
+    while(count() > i)
+      delete takeItem(count() - 1);
+    changed();
   }
 }
 
