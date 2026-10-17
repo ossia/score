@@ -8,6 +8,7 @@
 
 #include <QApplication>
 #include <QButtonGroup>
+#include <QCheckBox>
 #include <QClipboard>
 #include <QComboBox>
 #include <QFormLayout>
@@ -94,6 +95,23 @@ Editor::Editor(ProcessModel& model, const score::DocumentContext& ctx, QWidget* 
     area->setWidget(bank);
     area->setFixedHeight(28);
     row->addWidget(area, 1);
+
+    // How the lanes are laid out, by the pattern controls.
+    auto layout = new QButtonGroup{this};
+    for(bool rings : {false, true})
+    {
+      auto b = toolButton(
+          rings ? tr("Rings") : tr("Grid"),
+          rings ? tr("The lanes as concentric rings, each its own loop")
+                : tr("The lanes as rows, lined up in time"),
+          this);
+      b->setCheckable(true);
+      b->setChecked(!rings);
+      layout->addButton(b);
+      connect(b, &QToolButton::clicked, this, [this, rings] { setRings(rings); });
+      row->addWidget(b);
+    }
+    row->addSpacing(12);
 
     auto dup = toolButton(QStringLiteral("+"), tr("Duplicate the pattern"), this);
     connect(
@@ -182,21 +200,6 @@ Editor::Editor(ProcessModel& model, const score::DocumentContext& ctx, QWidget* 
 
     add(tr("Add lane"), tr("Add a lane, a copy of the last one"),
         [this] { m_controller->addLane(); });
-    row->addSpacing(12);
-
-    auto layout = new QButtonGroup{this};
-    auto grid = add(
-        tr("Grid"), tr("The lanes as rows, lined up in time"), [this] { setRings(false); });
-    auto rings = add(
-        tr("Rings"), tr("The lanes as concentric rings, each its own loop"),
-        [this] { setRings(true); });
-    for(auto b : {grid, rings})
-    {
-      b->setCheckable(true);
-      layout->addButton(b);
-    }
-    grid->setChecked(true);
-
     row->addStretch(1);
 
     m_status = new QLabel{this};
@@ -333,6 +336,33 @@ QWidget* Editor::makeLanePanel()
   });
   form->addRow(tr("Velocity"), m_laneVelocity);
 
+  // Which spreads each hit of a ratchet draws for itself.
+  auto perHitLabel = new QLabel{tr("Random on each hit"), panel};
+  perHitLabel->setToolTip(
+      tr("Checked: each hit of a ratchet gets its own random value\n"
+         "Unchecked: the whole note shares one"));
+  form->addRow(perHitLabel);
+  auto perHit = new QWidget{panel};
+  auto perHitRow = new QVBoxLayout{perHit};
+  perHitRow->setContentsMargins(0, 0, 0, 0);
+  const std::pair<uint8_t, QString> spreads[]
+      = {{Lane::VelocityPerHit, tr("Velocity")},
+         {Lane::PitchPerHit, tr("Pitch")},
+         {Lane::TimingPerHit, tr("Timing")}};
+  for(int i = 0; i < 3; i++)
+  {
+    const auto [bit, name] = spreads[i];
+    auto box = new QCheckBox{name, perHit};
+    connect(box, &QCheckBox::toggled, this, [this, lane, bit = bit](bool on) {
+      m_controller->editLane(lane(), [bit, on](Lane& l) {
+        l.randomPerHit = on ? (l.randomPerHit | bit) : (l.randomPerHit & ~bit);
+      });
+    });
+    perHitRow->addWidget(box);
+    m_perHit[i] = box;
+  }
+  form->addRow(perHit);
+
   // Generators write into the lane's steps, as one undo step.
   auto gen = new QLabel{tr("Generate"), panel};
   gen->setEnabled(false);
@@ -385,7 +415,11 @@ void Editor::updateLanePanel()
     return;
   const Lane& l = p.lanes[lane];
 
-  QSignalBlocker b0{m_laneLength}, b1{m_laneDivision}, b2{m_laneVelocity};
+  QSignalBlocker b0{m_laneLength}, b1{m_laneDivision}, b2{m_laneVelocity},
+      b3{m_perHit[0]}, b4{m_perHit[1]}, b5{m_perHit[2]};
+  m_perHit[0]->setChecked(l.randomPerHit & Lane::VelocityPerHit);
+  m_perHit[1]->setChecked(l.randomPerHit & Lane::PitchPerHit);
+  m_perHit[2]->setChecked(l.randomPerHit & Lane::TimingPerHit);
   m_laneLength->setValue(l.length);
   m_laneDivision->setValue(l.division);
   m_laneVelocity->setValue(int(std::lround(l.velocity * 127.f)));

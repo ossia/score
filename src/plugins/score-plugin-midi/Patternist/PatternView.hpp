@@ -107,8 +107,9 @@ public:
 private:
   static constexpr StepField allFields[]
       = {StepField::Velocity, StepField::VelocityRandom, StepField::Chance,
-         StepField::Offset,   StepField::Gate,           StepField::Ratchet,
-         StepField::Pace,     StepField::Pitch,          StepField::PitchRandom};
+         StepField::Offset,   StepField::OffsetRandom,   StepField::Gate,
+         StepField::Ratchet,  StepField::Pace,           StepField::Pitch,
+         StepField::PitchRandom};
   //! Ids of the buttons the editor draws, for the hover.
   static constexpr int mute_button = 1000;
   static constexpr int solo_button = 2000;

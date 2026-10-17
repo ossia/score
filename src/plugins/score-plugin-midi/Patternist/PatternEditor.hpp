@@ -7,6 +7,7 @@
 
 class QGraphicsScene;
 class QGraphicsView;
+class QCheckBox;
 class QComboBox;
 class QHBoxLayout;
 class QPushButton;
@@ -60,6 +61,7 @@ private:
   QSpinBox* m_laneLength{};
   QSpinBox* m_laneDivision{};
   QSpinBox* m_laneVelocity{};
+  QCheckBox* m_perHit[3]{};
   QSpinBox* m_pulses{};
   QSpinBox* m_rotation{};
   QComboBox* m_combine{};

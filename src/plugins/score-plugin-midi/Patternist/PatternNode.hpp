@@ -109,6 +109,10 @@ public:
     double held_on{-std::numeric_limits<double>::infinity()};
     //! Index of the step playing now, counted like `played`, or -1.
     int64_t last{-1};
+    //! Timing random of the note at step `shift_for`, drawn a step ahead: a
+    //! note it moves early is scheduled from the step before.
+    int64_t shift_for{-1};
+    double shift{};
   };
   std::array<lane_state, max_lanes> lanes{};
 
@@ -686,11 +690,11 @@ public:
     // Scheduled from the step before, because it plays early.
     if(ls.early != n)
     {
-      const auto& p = stepParams(l, step);
+      const double shift = ls.shift_for == n ? ls.shift : note_shift(l, step);
       play_step(
           pat, i, step, n / len,
-          position + (std::max(0.f, p.offset) + swing_delay(step)) * unit, unit, true,
-          solo, date);
+          position + (std::max(0., timing(l, step, shift)) + swing_delay(step)) * unit,
+          unit, true, solo, date);
     }
     ls.early = -1;
 
@@ -698,15 +702,31 @@ public:
     // its own grid point comes, its notes are already due.
     const int64_t next = n + 1;
     const int next_step = int(next % len);
-    const auto& np = stepParams(l, next_step);
-    if(np.offset < 0.f)
+    ls.shift = note_shift(l, next_step);
+    ls.shift_for = next;
+    if(const double t = timing(l, next_step, ls.shift); t < 0.)
     {
       play_step(
           pat, i, next_step, next / len,
-          position + (1. + np.offset + swing_delay(next_step)) * unit, unit, true, solo,
-          date);
+          position + (1. + t + swing_delay(next_step)) * unit, unit, true, solo, date);
       ls.early = next;
     }
+  }
+
+  //! The timing random a whole note moves by, in steps: none when each hit
+  //! draws its own.
+  double note_shift(const Lane& l, int step) noexcept
+  {
+    const float r = stepParams(l, step).offsetRandom;
+    if(r <= 0.f || (l.randomPerHit & Lane::TimingPerHit))
+      return 0.;
+    return std::uniform_real_distribution<double>{-r, r}(rng);
+  }
+
+  //! Where a step's note starts, in steps from its grid point.
+  static double timing(const Lane& l, int step, double shift) noexcept
+  {
+    return std::clamp(stepParams(l, step).offset + shift, -0.5, 0.5);
   }
 
   void update_repeat_time() noexcept
@@ -820,18 +840,54 @@ public:
     if(l.note > 127)
       return;
 
-    int pitch = p.pitch;
-    if(p.pitchRandom > 0 && kind != Note::Rest)
-      pitch += std::uniform_int_distribution<int>{-p.pitchRandom, p.pitchRandom}(rng);
-    float vel = p.velocity;
-    if(p.velocityRandom > 0.f && kind != Note::Rest)
-      vel += std::uniform_real_distribution<float>{
-          -p.velocityRandom, p.velocityRandom}(rng);
-    const int note = std::clamp(int(l.note) + pitch, 0, 127);
-    const int velocity = std::clamp(
-        int(std::lround(
-            std::clamp(vel, 0.f, 1.f) * l.velocity * velocity_scale * 127.f)),
-        1, 127);
+    // Pitch and velocity spreads: drawn once for the whole note, or by each
+    // hit for itself when the lane says so.
+    const auto draw_pitch = [&] {
+      return p.pitchRandom > 0
+                 ? std::uniform_int_distribution<int>{-p.pitchRandom, p.pitchRandom}(rng)
+                 : 0;
+    };
+    const auto draw_velocity = [&] {
+      return p.velocityRandom > 0.f
+                 ? std::uniform_real_distribution<float>{
+                       -p.velocityRandom, p.velocityRandom}(rng)
+                 : 0.f;
+    };
+    const bool pitch_per_hit = l.randomPerHit & Lane::PitchPerHit;
+    const bool velocity_per_hit = l.randomPerHit & Lane::VelocityPerHit;
+    const int note_pitch = kind != Note::Rest && !pitch_per_hit ? draw_pitch() : 0;
+    const float note_velocity
+        = kind != Note::Rest && !velocity_per_hit ? draw_velocity() : 0.f;
+    const auto to_note = [&](int pitch) {
+      return std::clamp(int(l.note) + p.pitch + pitch, 0, 127);
+    };
+    const auto to_velocity = [&](float spread) {
+      return std::clamp(
+          int(std::lround(
+              std::clamp(p.velocity + spread, 0.f, 1.f) * l.velocity * velocity_scale
+              * 127.f)),
+          1, 127);
+    };
+    // The note and velocity of hit k.
+    const auto strike = [&](int k) {
+      return std::make_pair(
+          to_note(pitch_per_hit ? draw_pitch() : note_pitch),
+          to_velocity(velocity_per_hit ? draw_velocity() : note_velocity));
+    };
+    const int note = to_note(note_pitch);
+
+    // Timing spread of each hit, when each hit draws its own: within its own
+    // gap, and never before the step for the first one.
+    const bool timing_per_hit
+        = scheduled && p.offsetRandom > 0.f && (l.randomPerHit & Lane::TimingPerHit);
+    const auto hit_shift = [&](const std::array<hit, max_ratchet>& h, int k, int n) {
+      if(!timing_per_hit)
+        return 0.;
+      const double gap = (k + 1 < n ? h[k + 1].on : 1.) - h[k].on;
+      const double r = p.offsetRandom * gap;
+      const double d = std::uniform_real_distribution<double>{-r, r}(rng);
+      return k == 0 ? std::max(0., d) : d;
+    };
 
     // Released where this step starts, or right after it was struck when this
     // step starts first.
@@ -854,25 +910,32 @@ public:
         // The first hit ties on from the step before; a ratchet strikes the
         // others, each released after its gate, and the last is held into the
         // next step unless the gate ends it first.
-        if(ls.held != note)
-        {
-          release_held();
-          push(at, event_kind::note_on, note, velocity);
-          ls.held = note;
-          ls.held_on = at;
-        }
         std::array<hit, max_ratchet> h;
         const int n = hits(p, unit, scheduled, h);
+        int sounding = ls.held;
+        // With a pitch drawn by each hit, the tie holds whatever was struck.
+        if(ls.held < 0 || (ls.held != note && !pitch_per_hit))
+        {
+          release_held();
+          push(at, event_kind::note_on, note, strike(0).second);
+          ls.held = sounding = note;
+          ls.held_on = at;
+        }
+        double off = at + h[0].off * unit;
         for(int k = 1; k < n; k++)
         {
-          push(at + h[k - 1].off * unit, event_kind::note_off, note, 0);
-          push(at + h[k].on * unit, event_kind::note_on, note, velocity);
-          ls.held_on = at + h[k].on * unit;
+          const double shift = hit_shift(h, k, n);
+          const auto [hit_note, hit_velocity] = strike(k);
+          push(off, event_kind::note_off, sounding, 0);
+          push(at + (h[k].on + shift) * unit, event_kind::note_on, hit_note, hit_velocity);
+          ls.held = sounding = hit_note;
+          ls.held_on = at + (h[k].on + shift) * unit;
+          off = at + (h[k].off + shift) * unit;
         }
         // A gate under a step ends the tied note there.
         if(h[n - 1].off < 1.)
         {
-          push(at + h[n - 1].off * unit, event_kind::note_off, note, 0);
+          push(off, event_kind::note_off, sounding, 0);
           ls.held = -1;
         }
         break;
@@ -885,15 +948,17 @@ public:
         const int n = hits(p, unit, scheduled, h);
         for(int k = 0; k < n; k++)
         {
-          push(at + h[k].on * unit, event_kind::note_on, note, velocity);
+          const double shift = hit_shift(h, k, n);
+          const auto [hit_note, hit_velocity] = strike(k);
+          push(at + (h[k].on + shift) * unit, event_kind::note_on, hit_note, hit_velocity);
           // The last hit with a full gate holds until the next step.
           if(k + 1 == n && h[k].off >= 1.)
           {
-            ls.held = note;
-            ls.held_on = at + h[k].on * unit;
+            ls.held = hit_note;
+            ls.held_on = at + (h[k].on + shift) * unit;
           }
           else
-            push(at + h[k].off * unit, event_kind::note_off, note, 0);
+            push(at + (h[k].off + shift) * unit, event_kind::note_off, hit_note, 0);
         }
         break;
       }
