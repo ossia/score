@@ -123,6 +123,13 @@ TEST_CASE(
 }
 
 TEST_CASE(
+    "IMG_PIXEL divides its whole coordinate expression by RENDERSIZE",
+    "[gfx][isf][orientation]")
+{
+  check_consumer("isf-imgpixel-expr.fs");
+}
+
+TEST_CASE(
     "IMG_TEXEL reads with IMG_PIXEL's row convention in ISF, raw raster and CSF",
     "[gfx][csf][orientation]")
 {
