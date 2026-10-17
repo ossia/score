@@ -266,5 +266,14 @@ TEST_CASE(
     QMimeData junk;
     junk.setText(QStringLiteral("not a pattern"));
     CHECK_FALSE(Patternist::patternFromMime(junk));
+
+    // Copied steps are not a pattern, nor the other way around.
+    const auto steps = Patternist::copySteps(p, {0, 1, 2, 5});
+    std::unique_ptr<QMimeData> stepsMime{Patternist::stepsToMime(steps)};
+    auto stepsBack = Patternist::stepsFromMime(*stepsMime);
+    REQUIRE(stepsBack);
+    CHECK(stepsBack->lanes == steps.lanes);
+    CHECK_FALSE(Patternist::patternFromMime(*stepsMime));
+    CHECK_FALSE(Patternist::stepsFromMime(*mime));
   });
 }

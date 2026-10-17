@@ -30,7 +30,6 @@ void normalize(Pattern& p) noexcept
     lane.length = std::clamp(lane.length, 0, Pattern::maxLength);
     lane.division = std::max(lane.division, 0);
     lane.velocity = std::clamp(lane.velocity, 0.f, 1.f);
-    lane.euclid.pulses = std::clamp(lane.euclid.pulses, 0, Pattern::maxLength);
 
     const int n = std::max(p.length, lane.length);
     if(std::ssize(lane.pattern) < n)
@@ -48,16 +47,6 @@ void normalize(Pattern& p) noexcept
       s.cycleA = std::clamp<uint8_t>(s.cycleA, 1, s.cycleB);
     }
   }
-}
-
-void printEuclid(const Pattern& p, Lane& l) noexcept
-{
-  if(!l.euclid.enabled)
-    return;
-  const int n = laneLength(p, l);
-  for(int i = 0; i < n && i < std::ssize(l.pattern); i++)
-    l.pattern[i] = writtenNote(p, l, i);
-  l.euclid.enabled = false;
 }
 
 static std::unique_ptr<Process::ControlInlet> makeFill(QObject* parent)
@@ -358,16 +347,14 @@ template <>
 void DataStreamReader::read(const Patternist::Lane& proc)
 {
   m_stream << proc.note << proc.pattern << proc.mute << proc.solo << proc.length
-           << proc.division << proc.velocity << proc.euclid.enabled << proc.euclid.pulses
-           << proc.euclid.rotation << proc.euclid.mode << proc.params;
+           << proc.division << proc.velocity << proc.params;
 }
 
 template <>
 void DataStreamWriter::write(Patternist::Lane& proc)
 {
   m_stream >> proc.note >> proc.pattern >> proc.mute >> proc.solo >> proc.length
-      >> proc.division >> proc.velocity >> proc.euclid.enabled >> proc.euclid.pulses
-      >> proc.euclid.rotation >> proc.euclid.mode >> proc.params;
+      >> proc.division >> proc.velocity >> proc.params;
 }
 
 template <>
@@ -405,16 +392,6 @@ void JSONReader::read(const Patternist::Lane& proc)
     obj["Division"] = proc.division;
   if(proc.velocity != Patternist::Lane{}.velocity)
     obj["Velocity"] = proc.velocity;
-  if(!(proc.euclid == Patternist::Euclid{}))
-  {
-    stream.Key("Euclid");
-    stream.StartObject();
-    obj["Enabled"] = proc.euclid.enabled;
-    obj["Pulses"] = proc.euclid.pulses;
-    obj["Rotation"] = proc.euclid.rotation;
-    obj["Mode"] = (int)proc.euclid.mode;
-    stream.EndObject();
-  }
 
   // Only the steps that differ from the defaults.
   const bool anyParams = std::any_of(
@@ -493,15 +470,6 @@ void JSONWriter::write(Patternist::Lane& proc)
     proc.division = v->toInt();
   if(auto v = obj.tryGet("Velocity"))
     proc.velocity = v->toDouble();
-  if(auto e = obj.tryGet("Euclid"))
-  {
-    const JsonValue eu = *e;
-    proc.euclid.enabled = eu["Enabled"].toBool();
-    proc.euclid.pulses = eu["Pulses"].toInt();
-    proc.euclid.rotation = eu["Rotation"].toInt();
-    proc.euclid.mode = (Patternist::EuclidMode)std::clamp(
-        eu["Mode"].toInt(), 0, (int)Patternist::EuclidMode::Mask);
-  }
 
   proc.params.resize(proc.pattern.size());
   if(auto steps = obj.tryGet("Steps"))

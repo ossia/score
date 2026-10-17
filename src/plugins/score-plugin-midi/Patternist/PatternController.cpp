@@ -31,22 +31,8 @@ void Controller::attach(View& view)
     if(!hasPattern())
       return;
     auto p = current();
-    // Editing a step of a rhythm that replaces the written steps writes the
-    // rhythm out first: the edit then applies to what is heard.
-    bool printed = false;
-    if(ossia::valid_index(lane, p.lanes))
-    {
-      auto& l = p.lanes[lane];
-      if(l.euclid.enabled && l.euclid.mode == EuclidMode::Replace)
-      {
-        Patternist::printEuclid(p, l);
-        printed = true;
-      }
-    }
-    if(setStep(p, lane, step, n) || printed)
+    if(setStep(p, lane, step, n))
       m_ctx.dispatcher.submit<UpdatePattern>(m_model, m_model.currentPattern(), p);
-    if(printed && status)
-      status(tr("Euclidean rhythm written into the steps"));
   });
   connect(&view, &View::paintFinished, this, [this] { m_ctx.dispatcher.commit(); });
 
@@ -182,6 +168,41 @@ void Controller::paste()
     status(tr("The clipboard holds no pattern"));
 }
 
+void Controller::copySteps(StepRange r) const
+{
+  if(!hasPattern() || !r.valid())
+    return;
+  QApplication::clipboard()->setMimeData(stepsToMime(Patternist::copySteps(current(), r)));
+  if(status)
+    status(tr("%n lane(s) of %1 step(s) copied", "", r.lane1 - r.lane0 + 1)
+               .arg(r.step1 - r.step0 + 1));
+}
+
+bool Controller::pasteSteps(int lane, int step)
+{
+  auto md = QApplication::clipboard()->mimeData();
+  if(!md || !hasPattern())
+    return false;
+  auto steps = stepsFromMime(*md);
+  if(!steps)
+    return false;
+  auto p = current();
+  Patternist::pasteSteps(p, *steps, lane, step);
+  if(status)
+    status(tr("Pasted on step %1").arg(step + 1));
+  submit(p);
+  return true;
+}
+
+void Controller::clearSteps(StepRange r)
+{
+  if(!hasPattern() || !r.valid())
+    return;
+  auto p = current();
+  Patternist::clearSteps(p, r);
+  submit(p);
+}
+
 void Controller::clear()
 {
   if(!hasPattern())
@@ -273,13 +294,35 @@ void Controller::setDivision(int division)
   submit(p);
 }
 
-void Controller::printEuclid(int lane)
+void Controller::euclidean(int lane, int hits, int rotation, Combine c)
 {
-  editLane(lane, [this](Lane& l) {
-    Patternist::printEuclid(m_model.patterns()[m_model.currentPattern()], l);
+  editLane(lane, [&](Lane& l) {
+    Patternist::euclidean(m_model.patterns()[m_model.currentPattern()], l, hits, rotation, c);
   });
   if(status)
-    status(tr("Euclidean rhythm written into the steps"));
+    status(tr("%n hit(s) spread over the lane", "", hits));
+}
+
+void Controller::randomizeField(StepField f, int lane)
+{
+  if(!hasPattern())
+    return;
+  auto p = current();
+  Patternist::randomizeField(p, m_rng, f, lane);
+  if(status)
+    status(tr("%1 randomized").arg(fieldName(f)));
+  submit(p);
+}
+
+void Controller::resetField(StepField f, int lane)
+{
+  if(!hasPattern())
+    return;
+  auto p = current();
+  Patternist::resetField(p, f, lane);
+  if(status)
+    status(tr("%1 reset").arg(fieldName(f)));
+  submit(p);
 }
 
 void Controller::setCondition(int lane, int step, Condition c, int a, int b)

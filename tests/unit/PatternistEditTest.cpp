@@ -323,3 +323,110 @@ TEST_CASE("patternist: cells alternate by beat, or by bar", "[midi][pattern]")
   CHECK(slotWithIndex(q, 5) == 5);
   CHECK(slotWithIndex(q, 40) == -1);
 }
+
+TEST_CASE("patternist: Euclidean rhythms are written into the steps", "[midi][pattern]")
+{
+  int hits = 0;
+  for(int i = 0; i < 8; i++)
+    hits += euclidHit(i, 8, 3, 0);
+  CHECK(hits == 3);
+  CHECK(euclidHit(1, 8, 3, 1));
+  CHECK_FALSE(euclidHit(0, 8, 0, 0));
+
+  // Hits on 0 and 4 over the 8 steps the lane plays.
+  auto p = pattern({lane(36, {R, N, R, R, R, R, R, R})}, 8);
+  normalize(p);
+  auto& l = p.lanes[0];
+
+  SECTION("replace")
+  {
+    euclidean(p, l, 2, 0, Combine::Replace);
+    CHECK(l.pattern[0] == N);
+    CHECK(l.pattern[1] == R);
+    CHECK(l.pattern[4] == N);
+  }
+  SECTION("add")
+  {
+    euclidean(p, l, 2, 0, Combine::Add);
+    CHECK(l.pattern[0] == N);
+    CHECK(l.pattern[1] == N);
+  }
+  SECTION("mask")
+  {
+    euclidean(p, l, 2, 1, Combine::Mask);
+    CHECK(l.pattern[1] == N);
+    CHECK(l.pattern[0] == R);
+  }
+  SECTION("over the lane's own length")
+  {
+    l.length = 4;
+    normalize(p);
+    euclidean(p, l, 2, 0);
+    CHECK(l.pattern[2] == N);
+    // Past the lane's loop, nothing is written.
+    CHECK(l.pattern[5] == R);
+  }
+}
+
+TEST_CASE("patternist: steps copied across lanes", "[midi][pattern]")
+{
+  // Lanes 46 42 38 36: a beat of 38 and 36 pasted on 46 and 42.
+  auto p = pattern(
+      {lane(46, {R, R, R, R}), lane(42, {R, R, R, R}), lane(38, {R, N, R, L}),
+       lane(36, {N, R, N, R})},
+      4);
+  normalize(p);
+  p.lanes[2].params[1].velocity = 0.5f;
+
+  const auto block = copySteps(p, {2, 3, 1, 3});
+  REQUIRE(block.lanes.size() == 2);
+  CHECK(block.length == 3);
+
+  pasteSteps(p, block, 0, 0);
+  CHECK(p.lanes[0].pattern == std::vector<Note>{N, R, L, R});
+  CHECK(p.lanes[1].pattern == std::vector<Note>{R, N, R, R});
+  CHECK(p.lanes[0].params[0].velocity == 0.5f);
+  // The sources are untouched.
+  CHECK(p.lanes[3].pattern == std::vector<Note>{N, R, N, R});
+
+  SECTION("what falls past the lanes or the steps is dropped")
+  {
+    pasteSteps(p, block, 3, 2);
+    CHECK(p.lanes[3].pattern == std::vector<Note>{N, R, N, R});
+    CHECK(p.lanes[3].pattern.size() == 4);
+  }
+  SECTION("clear")
+  {
+    clearSteps(p, {0, 1, 0, 1});
+    CHECK(p.lanes[0].pattern == std::vector<Note>{R, R, L, R});
+    CHECK(p.lanes[0].params[0].isDefault());
+  }
+}
+
+TEST_CASE("patternist: step parameters at random", "[midi][pattern]")
+{
+  auto p = pattern({lane(36, {N, N, N, N}), lane(38, {N, N, N, N})}, 4);
+  normalize(p);
+  std::mt19937 rng{1};
+  randomizeField(p, rng, StepField::Velocity, 0);
+  bool changed = false;
+  for(const auto& s : p.lanes[0].params)
+  {
+    CHECK(s.velocity >= 0.4f);
+    changed |= s.velocity != 1.f;
+  }
+  CHECK(changed);
+  for(const auto& s : p.lanes[1].params)
+    CHECK(s.isDefault());
+
+  randomizeField(p, rng, StepField::Ratchet, -1);
+  for(const auto& l : p.lanes)
+    for(const auto& s : l.params)
+      CHECK((s.ratchet >= 1 && s.ratchet <= 4));
+
+  resetField(p, StepField::Velocity, -1);
+  resetField(p, StepField::Ratchet, -1);
+  for(const auto& l : p.lanes)
+    for(const auto& s : l.params)
+      CHECK(s.isDefault());
+}
