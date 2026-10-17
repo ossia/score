@@ -896,6 +896,22 @@ TEST_CASE("patternist: ratchets, gates and offsets are timed in the step", "[mid
       offs += m.status == note_off;
     CHECK(offs == 4);
   }
+  SECTION("the Ratchet input multiplies every step's")
+  {
+    p.ratchet = 2;
+    f.node.ratchet_scale = 3;
+    musical_tick(f, 0, 1000);
+    const auto on = ons(sent(f));
+    REQUIRE(on.size() == 6);
+    CHECK(std::abs(on[1].timestamp - 42) <= 1);
+  }
+  SECTION("multiplied ratchets are capped")
+  {
+    p.ratchet = 8;
+    f.node.ratchet_scale = 8;
+    musical_tick(f, 0, 1000);
+    CHECK(ons(sent(f)).size() == pattern_node::max_ratchet);
+  }
   SECTION("ratchet on a tied step")
   {
     auto& l = f.node.patterns[0].lanes[0];

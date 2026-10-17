@@ -233,6 +233,8 @@ public:
   std::unique_ptr<Process::ControlInlet> velocity;
   //! Delays every other step, by up to half a step.
   std::unique_ptr<Process::ControlInlet> swing;
+  //! Multiplies every step's ratchet.
+  std::unique_ptr<Process::ControlInlet> ratchet;
   std::unique_ptr<Process::MidiOutlet> outlet;
   std::unique_ptr<Process::Outlet> accent;
   std::unique_ptr<Process::Outlet> slide;

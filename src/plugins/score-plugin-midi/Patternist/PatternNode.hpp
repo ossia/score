@@ -32,6 +32,7 @@ public:
   ossia::value_inlet density_in;
   ossia::value_inlet velocity_in;
   ossia::value_inlet swing_in;
+  ossia::value_inlet ratchet_in;
   ossia::midi_outlet out;
   ossia::value_outlet accent_out;
   ossia::value_outlet slide_out;
@@ -51,6 +52,10 @@ public:
   float density{1.f};
   float velocity_scale{1.f};
   float swing{0.f};
+  //! Multiplies every step's ratchet, 1 - 8.
+  int ratchet_scale{1};
+  //! A step's hits once multiplied, held to what a step can still tell apart.
+  static constexpr int max_ratchet = 16;
 
   //! Step of the pattern's own grid, which the lanes without a length or a
   //! division of their own follow.
@@ -111,6 +116,7 @@ public:
     m_inlets.push_back(&density_in);
     m_inlets.push_back(&velocity_in);
     m_inlets.push_back(&swing_in);
+    m_inlets.push_back(&ratchet_in);
     m_outlets.push_back(&out);
     m_outlets.push_back(&accent_out);
     m_outlets.push_back(&slide_out);
@@ -177,6 +183,8 @@ public:
       velocity_scale = std::clamp(ossia::convert<float>(d.back().value), 0.f, 1.f);
     if(auto& d = swing_in->get_data(); !d.empty())
       swing = std::clamp(ossia::convert<float>(d.back().value), 0.f, 1.f);
+    if(auto& d = ratchet_in->get_data(); !d.empty())
+      ratchet_scale = std::clamp(ossia::convert<int>(d.back().value), 1, 8);
   }
 
   void run(const ossia::token_request& tk, ossia::exec_state_facade st) noexcept override
@@ -404,6 +412,15 @@ public:
   }
 
   //! Every other step is delayed, by up to half a step.
+  //! How many times a step strikes: a single hit when there is no musical
+  //! position to place the others at.
+  int hits(const StepParams& p, bool scheduled) const noexcept
+  {
+    if(!scheduled)
+      return 1;
+    return std::clamp(std::max<int>(1, p.ratchet) * ratchet_scale, 1, max_ratchet);
+  }
+
   double swing_delay(int step) const noexcept
   {
     return (step % 2 == 1) ? swing * 0.5 : 0.;
@@ -497,7 +514,7 @@ public:
           push(at, event_kind::note_on, note, velocity);
           ls.held = note;
         }
-        const int ratchet = scheduled ? std::max<int>(1, p.ratchet) : 1;
+        const int ratchet = hits(p, scheduled);
         const double sub = unit / ratchet;
         const float gate = std::clamp(p.gate, 0.05f, 1.f);
         for(int k = 1; k < ratchet; k++)
@@ -513,7 +530,7 @@ public:
           push(at, event_kind::note_off, ls.held, 0);
         ls.held = -1;
 
-        const int ratchet = scheduled ? std::max<int>(1, p.ratchet) : 1;
+        const int ratchet = hits(p, scheduled);
         const float gate = scheduled ? p.gate : 1.f;
         const double sub = unit / ratchet;
         for(int k = 0; k < ratchet; k++)

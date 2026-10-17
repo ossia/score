@@ -130,7 +130,7 @@ TEST_CASE(
     // the pattern the document was saved on rather than point at another one.
     REQUIRE(pat->patternSelect);
     REQUIRE(pat->switchQuantification);
-    CHECK(pat->inlets().size() == 6);
+    CHECK(pat->inlets().size() == 7);
     CHECK(ossia::convert<int>(pat->patternSelect->value()) == 3);
 
     delete clone;
