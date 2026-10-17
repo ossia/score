@@ -2,6 +2,7 @@
 
 #include <ossia/detail/flicks.hpp>
 
+#include <algorithm>
 #include <cmath>
 
 #include <limits>
@@ -53,6 +54,7 @@ std::vector<StepSlot> timelineSlots(
     bool bar;
     bool beat;
     int beatIndex;
+    int shade;
   };
   std::vector<Point> points;
   for(const auto& sec : sections)
@@ -74,9 +76,10 @@ std::vector<StepSlot> timelineSlots(
         if(t < t0)
           continue;
         const double inBeats = (t - bar_line) / beat;
+        const int beatIndex = int(std::floor(inBeats + 1e-6));
         points.push_back(
-            {t, j == 0, std::abs(inBeats - std::round(inBeats)) < 1e-6,
-             int(std::floor(inBeats + 1e-6))});
+            {t, j == 0, std::abs(inBeats - std::round(inBeats)) < 1e-6, beatIndex,
+             (unit < beat - eps ? beatIndex : int(k)) % 2});
         if(points.size() > maxSlots)
           return res;
       }
@@ -103,7 +106,9 @@ std::vector<StepSlot> timelineSlots(
                                             : std::min(width, x0 + unit / zoom);
     const std::ptrdiff_t n = std::ptrdiff_t(i) - first;
     const int step = int(((n % length) + length) % length);
-    res.push_back({x0, x1, step, n < 0 || n >= length, pt.bar, pt.beat, pt.beatIndex});
+    res.push_back(
+        {x0, x1, step, n < 0 || n >= length, pt.bar, pt.beat, pt.beatIndex, n,
+         pt.shade});
   }
   return res;
 }
@@ -141,7 +146,11 @@ fitSlots(const Pattern& p, ossia::time_signature sig, double x0, double x1)
     const bool beat = stepsPerBeat > 0 && i % stepsPerBeat == 0;
     const bool bar = stepsPerBar > 0 && i % stepsPerBar == 0;
     const int beatIndex = stepsPerBeat > 0 ? (i % stepsPerBar) / stepsPerBeat : 0;
-    res.push_back({x0 + i * w, x0 + (i + 1) * w, i, false, bar, beat, beatIndex});
+    const int shade = stepsPerBeat > 1 ? beatIndex % 2
+                      : stepsPerBar > 0 ? (i / stepsPerBar) % 2
+                                        : 0;
+    res.push_back(
+        {x0 + i * w, x0 + (i + 1) * w, i, false, bar, beat, beatIndex, i, shade});
   }
   return res;
 }
@@ -180,10 +189,66 @@ std::vector<StepSlot> fitLaneSlots(
     const bool beat = stepsPerBeat > 0 && i % stepsPerBeat == 0;
     const bool bar = stepsPerBar > 0 && i % stepsPerBar == 0;
     const int beatIndex = stepsPerBeat > 0 ? (i % stepsPerBar) / stepsPerBeat : 0;
+    const int shade = stepsPerBeat > 1 ? beatIndex % 2
+                      : stepsPerBar > 0 ? (i / stepsPerBar) % 2
+                                        : 0;
     res.push_back(
         {x0 + i * w, std::min(x1, x0 + (i + 1) * w), i % length, i >= length, bar, beat,
-         beatIndex});
+         beatIndex, i, shade});
   }
   return res;
+}
+
+FitLayout fitLayout(
+    const Pattern& p, ossia::time_signature sig, double x0, double x1, double minStep)
+{
+  FitLayout res;
+  const double span = longestLoop(p);
+  bool aligned = span > 0.;
+  for(const Lane& l : p.lanes)
+  {
+    const int div = laneDivision(p, l);
+    if(div <= 0 || (x1 - x0) * (4. / div) / span < minStep)
+      aligned = false;
+  }
+
+  res.span = aligned ? span : 0.;
+  res.lanes.reserve(p.lanes.size());
+  for(const Lane& l : p.lanes)
+  {
+    const int len = laneLength(p, l);
+    const int div = laneDivision(p, l);
+    res.lanes.push_back(fitLaneSlots(
+        len, div, sig, aligned ? span : 4. * len / std::max(1, div), x0, x1));
+  }
+  return res;
+}
+
+int playingSlot(
+    const std::vector<StepSlot>& slots, int64_t played, int length, int division,
+    double span) noexcept
+{
+  if(played < 0 || length <= 0 || division <= 0 || slots.empty())
+    return -1;
+  const int step = int(played % length);
+  if(span > 0.)
+  {
+    const double unit = 4. / division;
+    const auto at = int64_t(std::floor(std::fmod(played * unit, span) / unit + 1e-6));
+    if(at < int64_t(slots.size()) && slots[at].step == step)
+      return int(at);
+  }
+  for(std::size_t i = 0; i < slots.size(); i++)
+    if(slots[i].step == step)
+      return int(i);
+  return -1;
+}
+
+int slotWithIndex(const std::vector<StepSlot>& slots, int64_t index) noexcept
+{
+  auto it = std::lower_bound(
+      slots.begin(), slots.end(), index,
+      [](const StepSlot& s, int64_t i) { return s.index < i; });
+  return it != slots.end() && it->index == index ? int(it - slots.begin()) : -1;
 }
 }

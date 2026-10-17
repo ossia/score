@@ -246,3 +246,80 @@ TEST_CASE(
   CHECK(timelineSlots(p, g, sixteenth / 1000., 1e6, 1000).empty());
   CHECK(timelineSlots(p, g, 0., 100.).empty());
 }
+
+TEST_CASE(
+    "patternist: a node lines its lanes up over the longest loop", "[midi][pattern]")
+{
+  // 16 sixteenths against 6 steps of a third of a whole note: a bar against two.
+  auto p = pattern({lane(36, {N}), lane(42, {N})}, 16, 16);
+  p.lanes[1].length = 6;
+  p.lanes[1].division = 3;
+  normalize(p);
+
+  const auto layout = fitLayout(p, {4, 4}, 0., 320., 6.);
+  CHECK(layout.span == Catch::Approx(8.));
+  REQUIRE(layout.lanes.size() == 2);
+
+  // The short lane plays twice: the second pass is a repeat of the same steps.
+  const auto& fast = layout.lanes[0];
+  REQUIRE(fast.size() == 32);
+  CHECK(fast[16].step == 0);
+  CHECK(fast[16].repeat);
+  CHECK(fast[16].barStart);
+  CHECK(fast[16].x0 == Catch::Approx(160.));
+  CHECK_FALSE(fast[15].repeat);
+
+  const auto& slow = layout.lanes[1];
+  REQUIRE(slow.size() == 6);
+  CHECK(slow[5].x1 == Catch::Approx(320.));
+  CHECK_FALSE(slow[5].repeat);
+
+  SECTION("what plays falls where the time is")
+  {
+    // The 20th sixteenth is the 5th step of the second pass.
+    CHECK(playingSlot(fast, 20, 16, 16, layout.span) == 20);
+    // Past the span, back to the first pass.
+    CHECK(playingSlot(fast, 33, 16, 16, layout.span) == 1);
+    CHECK(playingSlot(slow, 7, 6, 3, layout.span) == 1);
+    CHECK(playingSlot(fast, -1, 16, 16, layout.span) == -1);
+  }
+
+  SECTION("steps too thin to aim at give each lane the whole width")
+  {
+    const auto narrow = fitLayout(p, {4, 4}, 0., 40., 6.);
+    CHECK(narrow.span == 0.);
+    CHECK(narrow.lanes[0].size() == 16);
+    CHECK(narrow.lanes[1].size() == 6);
+    CHECK(narrow.lanes[0].back().x1 == Catch::Approx(40.));
+    CHECK(playingSlot(narrow.lanes[0], 20, 16, 16, narrow.span) == 4);
+  }
+}
+
+TEST_CASE("patternist: cells alternate by beat, or by bar", "[midi][pattern]")
+{
+  // Sixteenths in 4/4: four cells per tone.
+  const auto s = fitLaneSlots(16, 16, {4, 4}, 4., 0., 160.);
+  REQUIRE(s.size() == 16);
+  CHECK(s[3].shade == 0);
+  CHECK(s[4].shade == 1);
+  CHECK(s[8].shade == 0);
+
+  // Eighths in 7/8: a step is a beat, so the bars alternate.
+  const auto e = fitLaneSlots(7, 8, {7, 8}, 7., 0., 140.);
+  REQUIRE(e.size() == 14);
+  CHECK(e[1].shade == 0);
+  CHECK(e[6].shade == 0);
+  CHECK(e[7].shade == 1);
+
+  // Same on the timeline, quarters in 3/4.
+  TimeGrid g;
+  g.signatures = {{TimeVal::zero(), {3, 4}}};
+  const auto q = timelineSlots(4, 4, g, sixteenth, 48.);
+  REQUIRE(q.size() == 12);
+  CHECK(q[2].shade == 0);
+  CHECK(q[3].shade == 1);
+  CHECK(q[6].shade == 0);
+  CHECK(q[3].index == 3);
+  CHECK(slotWithIndex(q, 5) == 5);
+  CHECK(slotWithIndex(q, 40) == -1);
+}

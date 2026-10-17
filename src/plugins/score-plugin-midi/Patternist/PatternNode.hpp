@@ -72,7 +72,8 @@ public:
     int64_t early{-1};
     //! Note the lane holds until its next step, or -1.
     int16_t held{-1};
-    int16_t last{-1};
+    //! Index of the step playing now, counted like `played`, or -1.
+    int64_t last{-1};
   };
   std::array<lane_state, max_lanes> lanes{};
 
@@ -367,7 +368,7 @@ public:
       ls.played = std::max<int64_t>(0, ls.played - 1);
     const int64_t n = ls.played;
     const int step = int(n % len);
-    ls.last = step;
+    ls.last = n;
     if(!rewinding)
       ls.played++;
 
