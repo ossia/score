@@ -19,6 +19,7 @@
 
 #include <QVarLengthArray>
 
+#include <algorithm>
 #include <array>
 #include <chrono>
 
@@ -1623,7 +1624,11 @@ RenderList::Buffers RenderList::acquireMesh(
     }
   }
 
-  // 3. Really not found, we allocate a new mesh for good
+  // 3. Really not found, we allocate a new mesh for good.
+  // A producer re-created by a graph edit publishes a new geometry_spec, so
+  // first free the meshes (and their vertex buffers) that the previous ones
+  // left behind.
+  sweepMeshCache();
   auto m = new CustomMesh{*p, f};
   auto meshbufs = initMeshBuffer(*m, res);
 
@@ -1705,6 +1710,35 @@ RenderList::Buffers RenderList::acquireMesh(
 
   this->m_customMeshCache[{p, f}] = m;
   return {m, meshbufs};
+}
+
+void RenderList::sweepMeshCache() noexcept
+{
+  for(auto it = m_customMeshCache.begin(); it != m_customMeshCache.end();)
+  {
+    const auto& [spec, mesh] = *it;
+    const bool orphan = spec.meshes.use_count() == 1
+                        && std::none_of(renderers.begin(), renderers.end(), [m = mesh](NodeRenderer* r) {
+      return r && r->currentMesh() == m;
+    });
+    if(!orphan)
+    {
+      ++it;
+      continue;
+    }
+
+    if(auto vb = m_vertexBuffers.find(mesh); vb != m_vertexBuffers.end())
+    {
+      // Same ownership rule as release(): borrowed gpu_buffer handles belong
+      // to their producer.
+      for(auto& b : vb->second.buffers)
+        if(b.owned && b.handle)
+          b.handle->deleteLater();
+      m_vertexBuffers.erase(vb);
+    }
+    delete mesh;
+    it = m_customMeshCache.erase(it);
+  }
 }
 
 void RenderList::clearRenderers()

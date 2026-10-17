@@ -118,6 +118,10 @@ public:
   /// re-initialises the renderer even though none of its inputs changed.
   virtual bool followsRenderSize() const noexcept { return false; }
 
+  /// The mesh this renderer draws when it came from RenderList::acquireMesh;
+  /// the mesh cache keeps it alive while any renderer still points at it.
+  virtual const Mesh* currentMesh() const noexcept { return nullptr; }
+
   /** @} */
 
   void checkForChanges()
@@ -391,6 +395,7 @@ public:
   const score::gfx::Mesh* m_mesh{};
   //! What defaultMeshInit set up: drawn again once the geometry input goes.
   const score::gfx::Mesh* m_initMesh{};
+  const Mesh* currentMesh() const noexcept override { return m_mesh; }
 
   // Render loop
   void
