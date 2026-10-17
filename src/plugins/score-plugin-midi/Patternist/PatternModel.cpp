@@ -416,7 +416,7 @@ void ProcessModel::setDurationAndShrink(const TimeVal& newDuration) noexcept
 }
 
 template <>
-void DataStreamReader::read(const Patternist::StepParams& s)
+SCORE_PLUGIN_MIDI_EXPORT void DataStreamReader::read(const Patternist::StepParams& s)
 {
   m_stream << s.velocity << s.velocityRandom << s.chance << s.offset << s.gate
            << s.ratchet << s.pace << s.pitch << s.pitchRandom << s.condition << s.cycleA
@@ -424,7 +424,7 @@ void DataStreamReader::read(const Patternist::StepParams& s)
 }
 
 template <>
-void DataStreamWriter::write(Patternist::StepParams& s)
+SCORE_PLUGIN_MIDI_EXPORT void DataStreamWriter::write(Patternist::StepParams& s)
 {
   m_stream >> s.velocity >> s.velocityRandom >> s.chance >> s.offset >> s.gate
       >> s.ratchet >> s.pace >> s.pitch >> s.pitchRandom >> s.condition >> s.cycleA
@@ -432,14 +432,14 @@ void DataStreamWriter::write(Patternist::StepParams& s)
 }
 
 template <>
-void DataStreamReader::read(const Patternist::Lane& proc)
+SCORE_PLUGIN_MIDI_EXPORT void DataStreamReader::read(const Patternist::Lane& proc)
 {
   m_stream << proc.note << proc.pattern << proc.mute << proc.solo << proc.length
            << proc.division << proc.velocity << proc.params;
 }
 
 template <>
-void DataStreamWriter::write(Patternist::Lane& proc)
+SCORE_PLUGIN_MIDI_EXPORT void DataStreamWriter::write(Patternist::Lane& proc)
 {
   m_stream >> proc.note >> proc.pattern >> proc.mute >> proc.solo >> proc.length
       >> proc.division >> proc.velocity >> proc.params;
@@ -610,13 +610,13 @@ void JSONWriter::write(Patternist::Lane& proc)
 }
 
 template <>
-void DataStreamReader::read(const Patternist::Pattern& proc)
+SCORE_PLUGIN_MIDI_EXPORT void DataStreamReader::read(const Patternist::Pattern& proc)
 {
   m_stream << proc.length << proc.division << proc.lanes;
 }
 
 template <>
-void DataStreamWriter::write(Patternist::Pattern& proc)
+SCORE_PLUGIN_MIDI_EXPORT void DataStreamWriter::write(Patternist::Pattern& proc)
 {
   m_stream >> proc.length >> proc.division >> proc.lanes;
 }

@@ -1,4 +1,5 @@
 #pragma once
+#include <score_plugin_midi_export.h>
 #include <Process/LayerView.hpp>
 #include <Process/ZoomHelper.hpp>
 
@@ -15,7 +16,7 @@ class QGraphicsNoteChooser;
 namespace Patternist
 {
 class ProcessModel;
-class View final : public Process::LayerView
+class SCORE_PLUGIN_MIDI_EXPORT View final : public Process::LayerView
 {
   W_OBJECT(View)
 public:
