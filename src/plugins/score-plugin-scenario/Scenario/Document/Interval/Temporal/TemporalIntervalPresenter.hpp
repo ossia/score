@@ -73,6 +73,7 @@ private:
   void on_layerModelPutToBack(int slot, const Process::ProcessModel& proc);
   void on_rackChanged();
   void on_processesChanged(const Process::ProcessModel&);
+  void on_processRemoving(const Process::ProcessModel&);
   void on_requestOverlayMenu(QPointF);
   void on_rackVisibleChanged(bool);
   void on_defaultDurationChanged(const TimeVal&);
