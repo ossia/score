@@ -119,6 +119,11 @@ public:
   }
   std::atomic_bool needIdle{};
 
+  //! State saved with a plug-in that could not be loaded, written back as is
+  //! by the serializers (JSON "Data": base64 chunk, "Params": values).
+  std::string m_backup_chunk;
+  ossia::float_vector m_backup_float_data;
+
 private:
   void loadPreset(const Process::Preset& preset) override;
   Process::Preset savePreset() const noexcept override;
@@ -132,8 +137,6 @@ private:
   void closePlugin();
   void initFx();
 
-  std::string m_backup_chunk;
-  ossia::float_vector m_backup_float_data;
   std::vector<std::pair<std::string, int>> m_programs;
   int32_t m_effectId{};
   bool m_createControls{};
