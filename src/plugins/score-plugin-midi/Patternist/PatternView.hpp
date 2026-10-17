@@ -30,7 +30,10 @@ public:
 
 private:
   void updateLanes();
+  void layoutLanes();
   void paint_impl(QPainter*) const override;
+  void heightChanged(qreal) override;
+  void widthChanged(qreal) override;
 
   void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
