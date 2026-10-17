@@ -12,6 +12,7 @@
 #include <QGraphicsSceneMouseEvent>
 #include <QPainter>
 #include <QPainterPath>
+#include <QTimer>
 
 #include <Patternist/PatternModel.hpp>
 
@@ -821,7 +822,13 @@ void View::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
     event->accept();
     return;
   }
-  LayerView::contextMenuEvent(event);
+  // The press asked for focus through a queued connection, and the menu only
+  // opens on the focused layer: ask once the focus is through.
+  event->accept();
+  QTimer::singleShot(
+      0, this, [this, screen = event->screenPos(), scene = event->scenePos()] {
+    askContextMenu(screen, scene);
+  });
 }
 
 void View::dropEvent(QGraphicsSceneDragDropEvent* event)
