@@ -6,6 +6,7 @@
 
 #include <score_lib_base_export.h>
 
+#include <functional>
 #include <verdigris>
 
 namespace score
@@ -20,8 +21,9 @@ class SCORE_LIB_BASE_EXPORT QGraphicsNoteChooser final
 
   static constexpr int m_min = -2;
   static constexpr int m_max = 127;
-  static constexpr double m_width = 30;
-  static constexpr double m_height = 28;
+  double m_width = 30;
+  double m_height = 28;
+  std::function<QString(int)> m_format;
   double m_curValue{};
   int m_value{};
   bool m_grab{};
@@ -31,6 +33,11 @@ public:
 
   void setValue(int v);
   int value() const;
+
+  void setSize(QSizeF sz);
+  //! Text shown for a value, on one line; unset shows the note name above
+  //! the number.
+  void setFormatter(std::function<QString(int)> f);
 
   bool moving = false;
 
