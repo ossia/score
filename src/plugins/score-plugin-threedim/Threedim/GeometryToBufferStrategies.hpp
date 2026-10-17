@@ -268,7 +268,19 @@ public:
       qDebug() << "DirectBufferReferenceStrategy: Null buffer handle";
       return false;
     }
-    assert(m_buffer->size() >= byte_size + byte_offset);
+    // The spec can name a range the buffer doesn't (or no longer) cover: an
+    // upstream that shrank or replaced its buffer while playing. Release
+    // builds compiled the assert out and bound past the buffer's end.
+    if(byte_offset < 0 || byte_size < 0
+       || int64_t(m_buffer->size()) < byte_size + byte_offset)
+    {
+      qWarning() << "DirectBufferReferenceStrategy: range" << byte_offset << "+"
+                 << byte_size << "exceeds buffer size" << m_buffer->size();
+      m_buffer = nullptr;
+      m_offset = 0;
+      m_size = 0;
+      return false;
+    }
     return true;
   }
 
