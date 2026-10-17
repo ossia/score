@@ -1127,3 +1127,57 @@ TEST_CASE("patternist: the layer follows a skin change", "[midi][pattern][ui]")
     load(QStringLiteral(":/skin/DefaultSkin.json"));
   });
 }
+
+TEST_CASE("patternist: what is added during playback joins in time", "[midi][pattern][notes]")
+{
+  fixture f;
+  std::vector<Note> rests(16, Note::Rest);
+  auto kick = rests;
+  kick[0] = Note::Note;
+  f.set({lane(36, kick)}, 16);
+
+  // Five steps in.
+  int64_t t = 0;
+  for(int i = 0; i < 5; i++, t += 250)
+    f.tick(t, t + 250);
+
+  const auto ons_at = [&](int64_t a) {
+    std::set<int> notes;
+    for(auto& m : f.tick(a, a + 250))
+      if(m.status == note_on)
+        notes.insert(m.note);
+    return notes;
+  };
+
+  SECTION("a new lane plays the step the others are on")
+  {
+    auto list = f.node.patterns;
+    auto hat = rests;
+    hat[5] = Note::Note;
+    list[0].lanes.push_back(lane(42, hat));
+    f.node.replace_patterns(list);
+    CHECK(ons_at(t) == std::set<int>{42});
+  }
+  SECTION("a lane at a new rate joins on its own grid")
+  {
+    // Eighths: five sixteenths in, the lane is on its third point.
+    auto list = f.node.patterns;
+    auto eighths = rests;
+    eighths[3] = Note::Note;
+    list[0].lanes[0].pattern = eighths;
+    list[0].lanes[0].division = 8;
+    f.node.replace_patterns(list);
+    // 1.25 quarters in: points at 0, 0.5, 1.0 have passed, the next is 1.5.
+    CHECK(ons_at(t).empty());
+    CHECK(ons_at(t + 250) == std::set<int>{36});
+  }
+  SECTION("a shorter pattern goes on from where it is")
+  {
+    auto list = f.node.patterns;
+    list[0].length = 4;
+    list[0].lanes[0].pattern = {Note::Rest, Note::Note, Note::Rest, Note::Rest};
+    f.node.replace_patterns(list);
+    // Step 5 of a 4-step pattern is its step 1.
+    CHECK(ons_at(t) == std::set<int>{36});
+  }
+}

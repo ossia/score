@@ -79,6 +79,14 @@ public:
   //! Step of the pattern's own grid, which the lanes without a length or a
   //! division of their own follow.
   int current = 0;
+  //! Points of the pattern's own grid since the origin: `current` before the
+  //! modulo, so that a new length starts from where the pattern is.
+  int64_t main_played{};
+  //! Set when the list changes under a playing pattern: lanes that are new or
+  //! changed rate, and the pattern's own counter when its length or rate
+  //! changed, join on the next tick where they would be had they always played.
+  std::array<bool, Pattern::maxLanes> resync_lane{};
+  bool resync_main{};
   int last = -1;
   uint8_t channel{1};
   // Channel the notes currently in flight were started on: a channel change
@@ -219,6 +227,29 @@ public:
   {
     for(auto& l : lanes)
       l = lane_state{};
+    main_played = 0;
+    resync_lane.fill(false);
+    resync_main = false;
+  }
+
+  //! Takes a new list, swapped in so that the old one is freed elsewhere.
+  void replace_patterns(std::vector<Pattern>& list) noexcept
+  {
+    if(ossia::valid_index(current_pattern, patterns)
+       && ossia::valid_index(current_pattern, list))
+    {
+      const Pattern& before = patterns[current_pattern];
+      const Pattern& after = list[current_pattern];
+      const int count_before = std::min(int(before.lanes.size()), max_lanes);
+      const int count_after = std::min(int(after.lanes.size()), max_lanes);
+      for(int i = 0; i < count_after; i++)
+        if(i >= count_before
+           || laneDivision(before, before.lanes[i]) != laneDivision(after, after.lanes[i]))
+          resync_lane[i] = true;
+      if(before.length != after.length || before.division != after.division)
+        resync_main = true;
+    }
+    std::swap(patterns, list);
   }
 
   void set_channel(uint8_t c) noexcept
@@ -373,6 +404,8 @@ public:
     }
     if(!std::isfinite(origin) && std::isfinite(tk.musical_start_position))
       origin = tk.musical_start_position;
+    if(timed)
+      resync(tk);
 
     constexpr auto never = std::numeric_limits<int64_t>::max();
     int64_t switch_at = -1;
@@ -499,7 +532,10 @@ public:
       // plays the one after. Rewinding mirrors that: step back first, so going
       // out and back over the same ground crosses the same steps.
       if(rewinding)
+      {
         current = (current + pat.length - 1) % pat.length;
+        main_played = std::max<int64_t>(0, main_played - 1);
+      }
       last = current;
       in_flight_channel = channel;
 
@@ -514,7 +550,10 @@ public:
       flush_immediate(tick_start + q.offset);
 
       if(!rewinding)
+      {
         current = (current + 1) % pat.length;
+        main_played++;
+      }
     }
   }
 
@@ -559,11 +598,50 @@ public:
       return;
     const double bar_line = tk.musical_start_last_bar;
     const int64_t steps = points_between(origin, at, bar_line, bar, pat.division);
+    main_played = steps;
     current = int(steps % pat.length);
     const int lane_count = std::min(int(pat.lanes.size()), max_lanes);
     for(int i = 0; i < lane_count; i++)
       lanes[i].played
           = points_between(origin, at, bar_line, bar, laneDivision(pat, pat.lanes[i]));
+  }
+
+  //! Puts the lanes flagged by replace_patterns where they would be had they
+  //! always played: a lane on the pattern's grid on its count, another on the
+  //! points of its own grid since the origin. What they hold carries on.
+  void resync(const ossia::token_request& tk) noexcept
+  {
+    if(patterns.empty())
+      return;
+    const Pattern& pat = pattern();
+    if(pat.length <= 0 || pat.division <= 0)
+      return;
+    if(resync_main)
+    {
+      resync_main = false;
+      current = int(main_played % pat.length);
+    }
+    const auto& sig = tk.signature;
+    const double bar = (sig.upper > 0 && sig.lower > 0)
+                           ? 4. * sig.upper / sig.lower
+                           : 4.;
+    const int lane_count = std::min(int(pat.lanes.size()), max_lanes);
+    for(int i = 0; i < lane_count; i++)
+    {
+      if(!resync_lane[i])
+        continue;
+      resync_lane[i] = false;
+      const int div = laneDivision(pat, pat.lanes[i]);
+      auto& ls = lanes[i];
+      ls.played = div == pat.division || !std::isfinite(origin)
+                      ? main_played
+                      : points_between(
+                          origin, tk.musical_start_position, tk.musical_start_last_bar,
+                          bar, div);
+      ls.early = -1;
+    }
+    for(int i = lane_count; i < max_lanes; i++)
+      resync_lane[i] = false;
   }
 
   //! A lane that is gone cannot release what it held: release it here.

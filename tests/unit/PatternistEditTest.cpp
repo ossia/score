@@ -487,3 +487,19 @@ TEST_CASE("patternist: an Alt-drag can reach a parameter's whole range", "[midi]
     CHECK(hi - lo >= 0.9f * (r.max - r.min));
   }
 }
+
+TEST_CASE("patternist: transposing moves every note lane", "[midi][pattern]")
+{
+  auto p = pattern({lane(36, {N}), lane(120, {N}), lane(255, {N}), lane(254, {N})}, 1);
+  CHECK(transpose(p, 12));
+  CHECK(p.lanes[0].note == 48);
+  CHECK(p.lanes[1].note == 127);
+  // The accent and slide lanes stay.
+  CHECK(p.lanes[2].note == 255);
+  CHECK(p.lanes[3].note == 254);
+  CHECK(transpose(p, -1));
+  CHECK(p.lanes[0].note == 47);
+  p.lanes[0].note = 0;
+  p.lanes[1].note = 0;
+  CHECK_FALSE(transpose(p, -12));
+}

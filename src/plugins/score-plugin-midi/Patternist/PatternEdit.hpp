@@ -44,6 +44,10 @@ enum class Combine : uint8_t
 SCORE_PLUGIN_MIDI_EXPORT void euclidean(
     const Pattern& p, Lane& l, int hits, int rotation, Combine c = Combine::Replace) noexcept;
 
+//! Moves the note of every lane by `semitones`, within the MIDI range; the
+//! accent and slide lanes stay. False when nothing could move.
+SCORE_PLUGIN_MIDI_EXPORT bool transpose(Pattern& p, int semitones) noexcept;
+
 SCORE_PLUGIN_MIDI_EXPORT void addLane(Pattern& p);
 SCORE_PLUGIN_MIDI_EXPORT void removeLane(Pattern& p, int lane);
 SCORE_PLUGIN_MIDI_EXPORT void setLength(Pattern& p, int length);

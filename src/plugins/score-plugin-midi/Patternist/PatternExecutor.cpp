@@ -101,7 +101,7 @@ Executor::Executor(
       // Swap, not move: the execution queue hands the command to the GC queue
       // once it has run, so the old list is freed on the UI thread instead of
       // this one. Same reason midi_node::replace_notes swaps.
-      std::swap(node->patterns, p);
+      node->replace_patterns(p);
     });
   });
   // The process can be deleted before this component goes away (removing it

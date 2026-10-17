@@ -42,6 +42,8 @@ public:
   void clearSteps(const StepSelection& s);
   void clear();
   void rotate(int steps);
+  //! Every lane's note, by `semitones`.
+  void transpose(int semitones);
   //! One lane, or every lane when `lane` is -1.
   void randomize(int lane = -1);
 
