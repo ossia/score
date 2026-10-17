@@ -183,7 +183,6 @@ private:
   //! Quarters across the width when the lanes line up in a fit layout.
   mutable double m_span{};
 
-  int m_execPosition{-1};
   int m_execPattern{-1};
   int m_pendingPattern{-1};
 

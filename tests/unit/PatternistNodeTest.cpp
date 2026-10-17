@@ -626,7 +626,7 @@ TEST_CASE(
   f.node.switch_rate = 0.; // free: as soon as the tick starts
 
   musical_tick(f, 0, 1000);
-  REQUIRE(f.node.in_flight.contains(36));
+  REQUIRE(f.node.in_flight[36] > 0);
 
   f.node.request_pattern(p1);
   musical_tick(f, 1000, 2000);
@@ -636,7 +636,7 @@ TEST_CASE(
     if(const auto d = decode(m); d.status == note_off && d.note == 36)
       released = true;
   CHECK(released);
-  CHECK(!f.node.in_flight.contains(36));
+  CHECK(f.node.in_flight[36] == 0);
   CHECK(f.node.current_pattern == p1);
 }
 
