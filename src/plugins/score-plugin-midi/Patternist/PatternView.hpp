@@ -71,7 +71,8 @@ private:
   void layoutLanes();
   void invalidateSlots();
   const std::vector<StepSlot>& slots(int lane) const;
-  int playingStep(int lane) const noexcept;
+  //! Position in slots(lane) of the step that plays, or -1.
+  int playingSlot(int lane) const noexcept;
 
   double headerWidth() const noexcept;
   double gridTop() const noexcept;
@@ -120,6 +121,8 @@ private:
   ZoomRatio m_zoom{};
   mutable std::vector<std::vector<StepSlot>> m_slots;
   mutable bool m_slotsValid{};
+  //! Quarters across the width when the lanes line up in a fit layout.
+  mutable double m_span{};
 
   int m_execPosition{-1};
   int m_execPattern{-1};

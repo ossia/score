@@ -31,6 +31,51 @@ constexpr double button_side = 14;
 constexpr double numbers_height = 14;
 //! Below this a step is too thin to aim at.
 constexpr double min_editable_step = 3;
+//! Below this the lane names are hidden.
+constexpr double min_label_height = 10;
+//! Below this the lanes of a node stop lining up in time.
+constexpr double min_aligned_step = 6;
+
+QColor mix(const QColor& a, const QColor& b, double t) noexcept
+{
+  return QColor::fromRgbF(
+      a.redF() + (b.redF() - a.redF()) * t, a.greenF() + (b.greenF() - a.greenF()) * t,
+      a.blueF() + (b.blueF() - a.blueF()) * t, a.alphaF() + (b.alphaF() - a.alphaF()) * t);
+}
+
+//! Shades of the step cells. Beats alternate between two close tones and bars
+//! are told apart by a wider gap, so that the grid reads without lines drawn
+//! over it; repeats and what plays shift towards the background and the
+//! notes' hue.
+struct Palette
+{
+  explicit Palette(const score::Skin& skin)
+  {
+    const QColor bg = skin.Background1.main.brush.color();
+    const QColor base = skin.Emphasis2.main.brush.color();
+    const QColor accent = skin.Base4.main.brush.color();
+    cell[0] = base;
+    cell[1] = mix(bg, base, 0.6);
+    repeatCell[0] = mix(bg, base, 0.55);
+    repeatCell[1] = mix(bg, base, 0.35);
+    playingCell = mix(base, accent, 0.22);
+    note = accent;
+    repeatNote = mix(bg, accent, 0.45);
+    playingNote = mix(accent, skin.Light.main.brush.color(), 0.35);
+    selectedLane = mix(base, skin.Light.main.brush.color(), 0.06);
+    hover = mix(base, skin.Light.main.brush.color(), 0.55);
+    gap = bg;
+  }
+  QColor cell[2];
+  QColor repeatCell[2];
+  QColor playingCell;
+  QColor note;
+  QColor repeatNote;
+  QColor playingNote;
+  QColor selectedLane;
+  QColor hover;
+  QColor gap;
+};
 }
 
 View::View(const Patternist::ProcessModel& model, QGraphicsItem* parent)
@@ -147,19 +192,22 @@ const std::vector<StepSlot>& View::slots(int lane) const
   if(!m_slotsValid)
   {
     m_slots.clear();
+    m_span = 0.;
     if(auto p = pattern())
     {
-      const double span = longestLoop(*p);
-      const auto sig = signatureAt(m_grid, m_grid.playStart);
-      for(const Lane& l : p->lanes)
+      if(m_mode == Mode::Timeline)
       {
-        const int len = laneLength(*p, l);
-        const int div = laneDivision(*p, l);
-        if(m_mode == Mode::Timeline)
-          m_slots.push_back(timelineSlots(len, div, m_grid, m_zoom, width()));
-        else
-          m_slots.push_back(
-              fitLaneSlots(len, div, sig, span, headerWidth(), width() - margin));
+        for(const Lane& l : p->lanes)
+          m_slots.push_back(timelineSlots(
+              laneLength(*p, l), laneDivision(*p, l), m_grid, m_zoom, width()));
+      }
+      else
+      {
+        auto layout = fitLayout(
+            *p, signatureAt(m_grid, m_grid.playStart), headerWidth(),
+            width() - margin, min_aligned_step);
+        m_slots = std::move(layout.lanes);
+        m_span = layout.span;
       }
     }
     m_slotsValid = true;
@@ -168,14 +216,21 @@ const std::vector<StepSlot>& View::slots(int lane) const
   return ossia::valid_index(lane, m_slots) ? m_slots[lane] : none;
 }
 
-int View::playingStep(int lane) const noexcept
+int View::playingSlot(int lane) const noexcept
 {
-  if(m_execPattern != m_model.currentPattern() || m_execPattern < 0)
+  auto p = pattern();
+  if(!p || m_execPattern != m_model.currentPattern() || m_execPattern < 0
+     || !ossia::valid_index(lane, p->lanes))
     return -1;
   const auto& steps = m_model.execSteps();
-  if(ossia::valid_index(lane, steps))
-    return steps[lane];
-  return m_execPosition;
+  if(!ossia::valid_index(lane, steps))
+    return -1;
+  const auto& s = slots(lane);
+  if(m_mode == Mode::Timeline)
+    return slotWithIndex(s, steps[lane]);
+  const Lane& l = p->lanes[lane];
+  return Patternist::playingSlot(
+      s, steps[lane], laneLength(*p, l), laneDivision(*p, l), m_span);
 }
 
 void View::updateLanes()
@@ -227,6 +282,8 @@ double View::headerWidth() const noexcept
   auto p = pattern();
   if(!p)
     return 0.;
+  if(!m_advanced && laneHeight() < min_label_height)
+    return margin;
 
   const QFontMetricsF metrics{score::Skin::instance().MonoFontSmall};
   double text = 0.;
@@ -295,11 +352,15 @@ void View::layoutLanes()
     const double ch = std::min(h, 16.);
     m_lanes[lane]->setSize({std::max(0., hw - 6.), ch});
     m_lanes[lane]->setPos(4., r.center().y() - ch / 2.);
+    // Names that would run into each other are left out.
+    m_lanes[lane]->setVisible(h >= min_label_height);
   }
 }
 
 void View::heightChanged(qreal)
 {
+  // The header narrows when the lanes get too thin for their names.
+  invalidateSlots();
   layoutLanes();
   update();
 }
@@ -400,9 +461,11 @@ void View::paintCells(QPainter* painter, const Pattern& p) const
   if(h <= 0.)
     return;
 
+  const Palette colors{skin};
   const bool solo = anySolo(p);
   const double gapY = std::clamp(h * 0.12, h > 4. ? 1. : 0., 4.);
-  const QPen barPen{QColor{255, 255, 255, 36}, 1.};
+  const double cellH = h - gapY;
+  const double hw = headerWidth();
 
   for(int lane = 0; lane < int(p.lanes.size()); lane++)
   {
@@ -410,53 +473,64 @@ void View::paintCells(QPainter* painter, const Pattern& p) const
     const auto& s = slots(lane);
     const QRectF lr = laneRect(lane);
     const bool audible = !(l.mute || (solo && !l.solo));
-    const double laneOpacity = audible ? 1. : 0.35;
-    const int playing = playingStep(lane);
-    const double cellH = h - gapY;
+    const int playing = playingSlot(lane);
 
     if(m_advanced && lane == m_selectedLane)
       painter->fillRect(
-          QRectF{headerWidth(), lr.y(), width() - headerWidth(), cellH},
-          QColor{255, 255, 255, 14});
+          QRectF{hw, lr.y() - gapY / 2., width() - hw, h}, colors.selectedLane);
 
-    for(const StepSlot& sl : s)
+    painter->setOpacity(audible ? 1. : 0.35);
+    for(int i = 0; i < int(s.size()); i++)
     {
+      const StepSlot& sl = s[i];
       const double w = sl.x1 - sl.x0;
+      // A bar opens with a wider gap than a step.
       const double gapX = w > 4. ? 1. : 0.;
-      const Note n = writtenNote(p, l, sl.step);
-      const StepParams& sp = stepParams(l, sl.step);
-      const bool isPlaying = !sl.repeat && sl.step == playing;
-      const QRectF cell{sl.x0, lr.y(), w - gapX, cellH};
+      const double barGap
+          = sl.barStart && sl.x0 > hw + 0.5 ? std::clamp(w * 0.2, 1., 3.) : 0.;
+      const QRectF cell{sl.x0 + barGap, lr.y(), w - gapX - barGap, cellH};
+      const bool isPlaying = i == playing;
+      const int shade = sl.shade;
 
-      // The cell itself, so that a quiet or short note still shows its step.
-      painter->setOpacity(laneOpacity);
-      if(!sl.repeat)
-        painter->fillRect(
-            cell, isPlaying          ? skin.Emphasis2.lighter.brush
-                  : sl.beat % 2 == 1 ? skin.Emphasis2.darker.brush
-                                     : skin.Emphasis2.main.brush);
+      painter->fillRect(
+          cell, isPlaying   ? colors.playingCell
+                : sl.repeat ? colors.repeatCell[shade]
+                            : colors.cell[shade]);
+      // Too thin for a gap: the bar line is the background showing through.
+      if(barGap > 0. && w <= 4.)
+        painter->fillRect(QRectF{sl.x0, lr.y(), 1., cellH}, colors.gap);
+
+      const Note n = writtenNote(p, l, sl.step);
       if(n == Note::Rest)
         continue;
 
-      const QBrush& noteBrush = sl.repeat   ? skin.Base4.darker.brush
-                                : isPlaying ? skin.Base4.lighter.brush
-                                            : skin.Base4.main.brush;
+      const StepParams& sp = stepParams(l, sl.step);
+      const QColor& noteColor = isPlaying   ? colors.playingNote
+                                : sl.repeat ? colors.repeatNote
+                                            : colors.note;
       // A note that may not play is faint.
-      painter->setOpacity(laneOpacity * (0.3 + 0.7 * sp.chance));
+      const double opacity = painter->opacity();
+      painter->setOpacity(opacity * (0.3 + 0.7 * sp.chance));
 
       if(n == Note::Legato)
       {
-        painter->fillRect(cell.adjusted(-gapX, 0., 0., 0.), noteBrush);
+        painter->fillRect(cell.adjusted(-gapX - barGap, 0., 0., 0.), noteColor);
       }
       else
       {
-        // Height is velocity, width is gate, position is timing.
+        // Height is velocity, width is gate, position is timing, within the
+        // cell: an early note is cut at the cell's start and marked there.
         const double vh = cellH * (0.3 + 0.7 * sp.velocity);
         const double gw = cell.width() * std::max(0.25f, sp.gate);
-        const QRectF note{cell.x() + sp.offset * w, cell.bottom() - vh, gw, vh};
+        const QRectF note
+            = QRectF{cell.x() + sp.offset * w, cell.bottom() - vh, gw, vh}.intersected(
+                cell);
+        if(sp.offset < 0.f && cell.width() >= 6.)
+          painter->fillRect(
+              QRectF{cell.x(), cell.top(), 1., cellH}, noteColor);
         if(sp.ratchet <= 1 || note.width() < 2. * sp.ratchet)
         {
-          painter->fillRect(note, noteBrush);
+          painter->fillRect(note, noteColor);
         }
         else
         {
@@ -464,7 +538,7 @@ void View::paintCells(QPainter* painter, const Pattern& p) const
           for(int k = 0; k < sp.ratchet; k++)
             painter->fillRect(
                 QRectF{note.x() + k * sub, note.y(), std::max(1., sub - 1.), vh},
-                noteBrush);
+                noteColor);
         }
       }
 
@@ -476,45 +550,36 @@ void View::paintCells(QPainter* painter, const Pattern& p) const
         tri.lineTo(cell.right(), cell.top());
         tri.lineTo(cell.right(), cell.top() + c);
         tri.closeSubpath();
-        painter->fillPath(tri, skin.Light.main.brush);
+        painter->fillPath(tri, colors.hover);
       }
+      painter->setOpacity(opacity);
     }
     painter->setOpacity(1.);
-
-    // Bar lines, and what plays.
-    for(const StepSlot& sl : s)
-    {
-      if(sl.barStart && sl.x0 > headerWidth() + 0.5)
-      {
-        painter->setPen(barPen);
-        painter->drawLine(
-            QPointF{sl.x0 - 0.5, lr.y()}, QPointF{sl.x0 - 0.5, lr.y() + cellH});
-      }
-      if(!sl.repeat && sl.step == playing)
-        painter->fillRect(
-            QRectF{sl.x0, lr.y(), sl.x1 - sl.x0, cellH}, QColor{255, 255, 255, 64});
-    }
   }
 
+  // The step under the mouse, wherever it repeats.
   if(m_hover.lane >= 0)
   {
-    painter->setPen(skin.Light.main.pen1);
+    painter->setPen(QPen{colors.hover, 1.});
     painter->setBrush(Qt::NoBrush);
     const QRectF lr = laneRect(m_hover.lane);
     for(const StepSlot& sl : slots(m_hover.lane))
-      if(sl.step == m_hover.step && !sl.repeat)
-        painter->drawRect(QRectF{sl.x0, lr.y(), sl.x1 - sl.x0 - 1., h - gapY - 1.});
+      if(sl.step == m_hover.step)
+        painter->drawRect(QRectF{sl.x0 + 0.5, lr.y() + 0.5, sl.x1 - sl.x0 - 2., cellH - 1.});
   }
 
   if(m_advanced)
   {
     painter->setFont(skin.MonoFontSmall);
-    painter->setPen(skin.Gray.lighter.pen1);
     for(const StepSlot& sl : slots(m_selectedLane))
-      if(!sl.repeat && (sl.beatStart || sl.x1 - sl.x0 >= 16.))
-        painter->drawText(
-            QRectF{sl.x0, 0., std::max(16., sl.x1 - sl.x0), numbers_height},
-            Qt::AlignLeft | Qt::AlignVCenter, QString::number(sl.step + 1));
+    {
+      if(!(sl.beatStart || sl.x1 - sl.x0 >= 16.))
+        continue;
+      painter->setPen(sl.repeat ? skin.Gray.darker.pen1 : skin.Gray.lighter.pen1);
+      painter->drawText(
+          QRectF{sl.x0, 0., std::max(16., sl.x1 - sl.x0), numbers_height},
+          Qt::AlignLeft | Qt::AlignVCenter, QString::number(sl.step + 1));
+    }
   }
 }
 
@@ -565,6 +630,7 @@ void View::paintField(QPainter* painter, const Pattern& p) const
   if(area.height() <= 4.)
     return;
 
+  const Palette colors{skin};
   painter->fillRect(area, skin.Background2.main.brush);
   painter->setFont(skin.MonoFontSmall);
   painter->setPen(skin.Gray.lighter.pen1);
@@ -580,14 +646,12 @@ void View::paintField(QPainter* painter, const Pattern& p) const
   const double originY = toY(range.origin);
   if(range.origin > range.min)
   {
-    painter->setPen(QPen{QColor{255, 255, 255, 40}, 1.});
+    painter->setPen(QPen{colors.cell[0], 1.});
     painter->drawLine(QPointF{area.left(), originY}, QPointF{area.right(), originY});
   }
 
   for(const StepSlot& sl : slots(m_selectedLane))
   {
-    if(sl.repeat)
-      continue;
     const double w = sl.x1 - sl.x0;
     const double inset = w > 4. ? 1. : 0.;
     const float v = stepField(stepParams(l, sl.step), m_field);
@@ -596,8 +660,9 @@ void View::paintField(QPainter* painter, const Pattern& p) const
     const QRectF bar{
         QPointF{sl.x0 + inset, std::min(y, originY)},
         QPointF{sl.x1 - inset, std::max(y, originY) + 1.}};
-    painter->fillRect(bar, rest ? skin.Base4.darker.brush : skin.Base4.main.brush);
-    if(w >= 22.)
+    painter->fillRect(
+        bar, rest || sl.repeat ? colors.repeatNote : colors.note);
+    if(w >= 22. && !sl.repeat)
     {
       painter->setPen(skin.Light.main.pen1);
       painter->drawText(

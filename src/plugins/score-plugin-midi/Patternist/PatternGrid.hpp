@@ -41,6 +41,12 @@ struct StepSlot
   bool beatStart{};
   //! Index of the beat the step falls in, counted from its bar line.
   int beat{};
+  //! Steps between the first one and this one: negative before the process
+  //! starts.
+  int64_t index{};
+  //! Which of two tones the cell takes: beats alternate, or bars when a step
+  //! lasts a beat or more.
+  int shade{};
 };
 
 //! The steps that fall in [0; width[ pixels, on the grid the engine walks:
@@ -78,4 +84,30 @@ SCORE_PLUGIN_MIDI_EXPORT
 std::vector<StepSlot> fitLaneSlots(
     int length, int division, ossia::time_signature sig, double span, double x0,
     double x1);
+
+//! Every lane of a pattern over [x0; x1[.
+struct FitLayout
+{
+  std::vector<std::vector<StepSlot>> lanes;
+  //! Quarters across the width when the lanes line up, 0 otherwise.
+  double span{};
+};
+
+//! The lanes line up in time, as long as every step stays at least `minStep`
+//! wide: past that, each lane spreads its own loop over the whole width.
+SCORE_PLUGIN_MIDI_EXPORT
+FitLayout fitLayout(
+    const Pattern& p, ossia::time_signature sig, double x0, double x1, double minStep);
+
+//! Position in `slots` of the step a lane plays, given how many steps it played
+//! before it, or -1. On repeats, the one the time falls on when it shows that
+//! step.
+SCORE_PLUGIN_MIDI_EXPORT
+int playingSlot(
+    const std::vector<StepSlot>& slots, int64_t played, int length, int division,
+    double span) noexcept;
+
+//! Position in `slots` of the slot with that index, or -1.
+SCORE_PLUGIN_MIDI_EXPORT
+int slotWithIndex(const std::vector<StepSlot>& slots, int64_t index) noexcept;
 }

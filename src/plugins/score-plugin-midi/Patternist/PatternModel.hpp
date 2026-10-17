@@ -250,9 +250,10 @@ public:
   void setLaneLabels(LaneLabels l);
   LaneLabels laneLabels() const noexcept;
 
-  //! The step each lane of the playing pattern is on, -1 for none.
-  const std::vector<int>& execSteps() const noexcept { return m_execSteps; }
-  void setExecSteps(std::vector<int> s) { m_execSteps = std::move(s); }
+  //! For each lane of the playing pattern, how many steps it played before the
+  //! one it is on, -1 for none.
+  const std::vector<int64_t>& execSteps() const noexcept { return m_execSteps; }
+  void setExecSteps(std::vector<int64_t> s) { m_execSteps = std::move(s); }
 
   void setPattern(int n, Pattern p);
   void setPatterns(const std::vector<Pattern>& n);
@@ -303,7 +304,7 @@ private:
   int m_channel{1};
   int m_currentPattern{};
   LaneLabels m_laneLabels{LaneLabels::NameAndNumber};
-  std::vector<int> m_execSteps;
+  std::vector<int64_t> m_execSteps;
   std::vector<Pattern> m_patterns;
 };
 }
