@@ -67,27 +67,6 @@ struct StepParams
   bool isDefault() const noexcept { return *this == StepParams{}; }
 };
 
-//! How the Euclidean rhythm of a lane combines with its written steps.
-enum class EuclidMode : uint8_t
-{
-  //! The rhythm replaces the written notes; the step parameters still apply.
-  Replace,
-  //! Notes where either the rhythm or the written steps have one.
-  Add,
-  //! Written notes only where the rhythm has a hit.
-  Mask
-};
-
-struct Euclid
-{
-  bool enabled{};
-  int pulses{4};
-  int rotation{0};
-  EuclidMode mode{EuclidMode::Replace};
-
-  bool operator==(const Euclid&) const noexcept = default;
-};
-
 //! Whether step `i` of `steps` is a hit when `pulses` of them are spread as
 //! evenly as possible, the rhythm turned `rotation` steps later.
 inline bool euclidHit(int i, int steps, int pulses, int rotation) noexcept
@@ -113,7 +92,6 @@ struct Lane
   int division{};
   //! 0 - 1.
   float velocity{100.f / 127.f};
-  Euclid euclid;
   //! Same size as `pattern`.
   std::vector<StepParams> params;
 
@@ -157,26 +135,10 @@ inline int laneDivision(const Pattern& p, const Lane& l) noexcept
   return l.division > 0 ? l.division : p.division;
 }
 
-//! What a lane's step is once its Euclidean rhythm is applied, before mute,
-//! solo, chance and conditions.
+//! What a lane's step holds, before mute, solo, chance and conditions.
 inline Note writtenNote(const Pattern& p, const Lane& l, int step) noexcept
 {
-  const Note written
-      = (step >= 0 && step < int(l.pattern.size())) ? l.pattern[step] : Note::Rest;
-  if(!l.euclid.enabled)
-    return written;
-
-  const bool hit = euclidHit(step, laneLength(p, l), l.euclid.pulses, l.euclid.rotation);
-  switch(l.euclid.mode)
-  {
-    case EuclidMode::Replace:
-      return hit ? Note::Note : Note::Rest;
-    case EuclidMode::Add:
-      return written != Note::Rest ? written : (hit ? Note::Note : Note::Rest);
-    case EuclidMode::Mask:
-      return hit ? written : Note::Rest;
-  }
-  return written;
+  return (step >= 0 && step < int(l.pattern.size())) ? l.pattern[step] : Note::Rest;
 }
 
 inline const StepParams& stepParams(const Lane& l, int step) noexcept
@@ -185,17 +147,13 @@ inline const StepParams& stepParams(const Lane& l, int step) noexcept
   return (step >= 0 && step < int(l.params.size())) ? l.params[step] : defaults;
 }
 
-//! What a lane plays at a step, once its rhythm, mute and solo are applied.
+//! What a lane plays at a step, once mute and solo are applied.
 inline Note audibleNote(const Pattern& p, const Lane& l, int step, bool anySolo) noexcept
 {
   if(l.mute || (anySolo && !l.solo))
     return Note::Rest;
   return writtenNote(p, l, step);
 }
-
-//! Writes the lane's Euclidean rhythm into its steps and turns it off, so that
-//! it can be edited by hand.
-SCORE_PLUGIN_MIDI_EXPORT void printEuclid(const Pattern& p, Lane& l) noexcept;
 
 //! How the lane headers name their note.
 enum class LaneLabels : uint8_t
