@@ -11,6 +11,7 @@
 
 #include <Media/Step/StepNode.hpp>
 
+#include <QPointer>
 #include <QTimer>
 namespace Execution
 {
@@ -64,8 +65,13 @@ StepComponent::StepComponent(
   con(element, &Media::Step::Model::minChanged, this, &StepComponent::recompute);
   con(element, &Media::Step::Model::maxChanged, this, &StepComponent::recompute);
 
+  // The process can be deleted before this component goes away (removing it
+  // while playing): the timer must not reach a dead model in between.
   con(ctx.doc.execTimer, &QTimer::timeout, this,
-      [&element, node] { element.execPosition(node->last.load(std::memory_order_relaxed)); });
+      [element = QPointer{&element}, node] {
+    if(element)
+      element->execPosition(node->last.load(std::memory_order_relaxed));
+  });
 }
 
 void StepComponent::recompute()
