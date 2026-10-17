@@ -65,6 +65,8 @@ public:
   };
   PasteTarget pasteTarget(int lanes) const;
   StepField field() const noexcept { return m_field; }
+  //! The height under which the editor's lanes would get too low to use.
+  double minimumHeight() const noexcept;
   //! What a Shift- or Alt-drag in the parameter bars sets, for every step.
   const std::vector<float>& draggedValues() const noexcept { return m_dragValues; }
 
@@ -123,6 +125,9 @@ private:
   int playingSlot(int lane) const noexcept;
 
   double headerWidth() const noexcept;
+  double measureHeader() const noexcept;
+  double fieldButtonHeight() const noexcept;
+  bool laneButtons() const noexcept;
   double gridTop() const noexcept;
   double gridBottom() const noexcept;
   double laneHeight() const noexcept;
@@ -180,6 +185,7 @@ private:
   ZoomRatio m_zoom{};
   mutable std::vector<std::vector<StepSlot>> m_slots;
   mutable bool m_slotsValid{};
+  mutable std::optional<double> m_headerWidth;
   //! Quarters across the width when the lanes line up in a fit layout.
   mutable double m_span{};
 
