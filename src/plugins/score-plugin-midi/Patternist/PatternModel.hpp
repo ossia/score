@@ -56,6 +56,9 @@ struct StepParams
   float chance{1.f};
   //! -0.5 - 0.5 of a step: early or late.
   float offset{0.f};
+  //! 0 - 0.5 of a step: each time the step plays, its timing moves by up to
+  //! this much either way.
+  float offsetRandom{0.f};
   //! 0 - 1 of a step; a tie, or 1, holds the note until the next step.
   float gate{1.f};
   //! Notes played within the step, 1 - 8.
@@ -103,6 +106,15 @@ struct Lane
   float velocity{100.f / 127.f};
   //! Same size as `pattern`.
   std::vector<StepParams> params;
+  //! Which random spreads each hit of a ratchet draws for itself, rather than
+  //! the whole note sharing one.
+  enum RandomPerHit : uint8_t
+  {
+    VelocityPerHit = 1,
+    PitchPerHit = 2,
+    TimingPerHit = 4
+  };
+  uint8_t randomPerHit{};
 
   bool operator==(const Lane& other) const noexcept = default;
 };
@@ -172,8 +184,9 @@ inline bool tieStrikes(const Pattern& p, const Lane& l, int step) noexcept
     return true;
   const StepParams& sp = stepParams(l, step);
   const StepParams& pp = stepParams(l, prev);
-  return sp.ratchet > 1 || sp.pitch != pp.pitch || sp.pitchRandom > 0
-         || pp.pitchRandom > 0;
+  const bool spread
+      = !(l.randomPerHit & Lane::PitchPerHit) && (sp.pitchRandom > 0 || pp.pitchRandom > 0);
+  return sp.ratchet > 1 || sp.pitch != pp.pitch || spread;
 }
 
 //! The step that struck the note a step holds: itself unless it is a tie that

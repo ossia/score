@@ -40,6 +40,7 @@ void normalize(Pattern& p) noexcept
     lane.length = std::clamp(lane.length, 0, Pattern::maxLength);
     lane.division = std::clamp(lane.division, 0, Pattern::maxDivision);
     lane.velocity = sane(lane.velocity, Lane{}.velocity, 0.f, 1.f);
+    lane.randomPerHit &= Lane::VelocityPerHit | Lane::PitchPerHit | Lane::TimingPerHit;
     if(std::ssize(lane.pattern) > Pattern::maxLength)
       lane.pattern.resize(Pattern::maxLength);
 
@@ -52,6 +53,7 @@ void normalize(Pattern& p) noexcept
       s.velocity = sane(s.velocity, def.velocity, 0.f, 1.f);
       s.chance = sane(s.chance, def.chance, 0.f, 1.f);
       s.offset = sane(s.offset, def.offset, -0.5f, 0.5f);
+      s.offsetRandom = sane(s.offsetRandom, def.offsetRandom, 0.f, 0.5f);
       s.gate = sane(s.gate, def.gate, 0.f, 1.f);
       s.ratchet = std::clamp<uint8_t>(s.ratchet, 1, 8);
       s.pace = sane(s.pace, def.pace, -1.f, 1.f);
@@ -418,31 +420,31 @@ void ProcessModel::setDurationAndShrink(const TimeVal& newDuration) noexcept
 template <>
 SCORE_PLUGIN_MIDI_EXPORT void DataStreamReader::read(const Patternist::StepParams& s)
 {
-  m_stream << s.velocity << s.velocityRandom << s.chance << s.offset << s.gate
-           << s.ratchet << s.pace << s.pitch << s.pitchRandom << s.condition << s.cycleA
-           << s.cycleB;
+  m_stream << s.velocity << s.velocityRandom << s.chance << s.offset << s.offsetRandom
+           << s.gate << s.ratchet << s.pace << s.pitch << s.pitchRandom << s.condition
+           << s.cycleA << s.cycleB;
 }
 
 template <>
 SCORE_PLUGIN_MIDI_EXPORT void DataStreamWriter::write(Patternist::StepParams& s)
 {
-  m_stream >> s.velocity >> s.velocityRandom >> s.chance >> s.offset >> s.gate
-      >> s.ratchet >> s.pace >> s.pitch >> s.pitchRandom >> s.condition >> s.cycleA
-      >> s.cycleB;
+  m_stream >> s.velocity >> s.velocityRandom >> s.chance >> s.offset >> s.offsetRandom
+      >> s.gate >> s.ratchet >> s.pace >> s.pitch >> s.pitchRandom >> s.condition
+      >> s.cycleA >> s.cycleB;
 }
 
 template <>
 SCORE_PLUGIN_MIDI_EXPORT void DataStreamReader::read(const Patternist::Lane& proc)
 {
   m_stream << proc.note << proc.pattern << proc.mute << proc.solo << proc.length
-           << proc.division << proc.velocity << proc.params;
+           << proc.division << proc.velocity << proc.params << proc.randomPerHit;
 }
 
 template <>
 SCORE_PLUGIN_MIDI_EXPORT void DataStreamWriter::write(Patternist::Lane& proc)
 {
   m_stream >> proc.note >> proc.pattern >> proc.mute >> proc.solo >> proc.length
-      >> proc.division >> proc.velocity >> proc.params;
+      >> proc.division >> proc.velocity >> proc.params >> proc.randomPerHit;
 }
 
 template <>
@@ -480,6 +482,8 @@ void JSONReader::read(const Patternist::Lane& proc)
     obj["Division"] = proc.division;
   if(proc.velocity != Patternist::Lane{}.velocity)
     obj["Velocity"] = proc.velocity;
+  if(proc.randomPerHit != 0)
+    obj["RandomPerHit"] = (int)proc.randomPerHit;
 
   // Only the steps that differ from the defaults.
   const bool anyParams = std::any_of(
@@ -505,6 +509,8 @@ void JSONReader::read(const Patternist::Lane& proc)
         obj["Chance"] = s.chance;
       if(s.offset != def.offset)
         obj["Offset"] = s.offset;
+      if(s.offsetRandom != def.offsetRandom)
+        obj["OffsetRandom"] = s.offsetRandom;
       if(s.gate != def.gate)
         obj["Gate"] = s.gate;
       if(s.ratchet != def.ratchet)
@@ -564,6 +570,8 @@ void JSONWriter::write(Patternist::Lane& proc)
     proc.division = v->toInt();
   if(auto v = obj.tryGet("Velocity"))
     proc.velocity = v->toDouble();
+  if(auto v = obj.tryGet("RandomPerHit"))
+    proc.randomPerHit = uint8_t(v->toInt() & 7);
 
   proc.params.resize(proc.pattern.size());
   if(auto steps = obj.tryGet("Steps"))
@@ -586,6 +594,7 @@ void JSONWriter::write(Patternist::Lane& proc)
       num("VelocityRandom", s.velocityRandom);
       num("Chance", s.chance);
       num("Offset", s.offset);
+      num("OffsetRandom", s.offsetRandom);
       num("Gate", s.gate);
       num("Pace", s.pace);
       int ratchet = s.ratchet, pitch = s.pitch, pitchRandom = s.pitchRandom, cond = 0,

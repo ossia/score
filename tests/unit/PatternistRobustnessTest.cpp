@@ -1181,3 +1181,111 @@ TEST_CASE("patternist: what is added during playback joins in time", "[midi][pat
     CHECK(ons_at(t) == std::set<int>{36});
   }
 }
+
+TEST_CASE("patternist: random spreads, for the whole note or each hit", "[midi][pattern][notes]")
+{
+  // One quarter per tick of 1000 samples, four sixteenth steps: a 250-sample
+  // step, its ratchet of 4 hits 62.5 samples apart.
+  const auto run = [](uint8_t perHit, auto setup) {
+    fixture f;
+    auto& p = f.set({lane(60, {Note::Note, Note::Rest, Note::Rest, Note::Rest})}, 4);
+    auto& sp = p.lanes[0].params[0];
+    sp.ratchet = 4;
+    sp.gate = 0.5f;
+    p.lanes[0].randomPerHit = perHit;
+    setup(sp);
+    std::vector<std::vector<std::pair<int64_t, std::pair<int, int>>>> passes;
+    synth s;
+    int64_t t = 0;
+    for(int i = 0; i < 64; i++, t += 1000)
+    {
+      f.port.messages.clear();
+      ossia::exec_state_facade fac{&f.st};
+      static_cast<ossia::graph_node&>(f.node).run(f.musical(t, t + 1000), fac);
+      s.hear(f.collect());
+      // On the absolute timeline, each hit with the pass whose step it
+      // belongs to: a hit moved early can go out in the tick before.
+      for(auto& m : f.port.messages)
+      {
+        if(cmidi2_ump_get_status_code(m.data) != note_on)
+          continue;
+        const int64_t at = t + m.timestamp;
+        const auto pass = std::size_t(std::max<int64_t>(0, (at + 500) / 1000));
+        if(passes.size() <= pass)
+          passes.resize(pass + 1);
+        passes[pass].push_back(
+            {at - int64_t(pass) * 1000,
+             {cmidi2_ump_get_midi2_note_note(m.data),
+              cmidi2_ump_get_midi2_note_velocity(m.data)}});
+      }
+    }
+    // The last pass may have started early in the last tick.
+    passes.pop_back();
+    return std::make_pair(passes, s.sounding().size());
+  };
+  const auto all_equal = [](const auto& ons, auto get) {
+    for(auto& o : ons)
+      if(get(o) != get(ons[0]))
+        return false;
+    return true;
+  };
+
+  SECTION("timing")
+  {
+    const auto [whole, stuck_whole] = run(0, [](StepParams& s) { s.offsetRandom = 0.4f; });
+    const auto [each, stuck_each]
+        = run(Lane::TimingPerHit, [](StepParams& s) { s.offsetRandom = 0.4f; });
+    CHECK(stuck_whole == 0);
+    CHECK(stuck_each == 0);
+    bool moved = false, early = false, gaps_kept = true, gaps_varied = false;
+    for(auto& ons : whole)
+    {
+      REQUIRE(ons.size() == 4);
+      moved |= ons[0].first != 0;
+      early |= ons[0].first < 0;
+      for(int k = 1; k < 4; k++)
+        gaps_kept &= std::abs((ons[k].first - ons[k - 1].first) - 62) <= 1;
+    }
+    for(auto& ons : each)
+    {
+      REQUIRE(ons.size() == 4);
+      for(int k = 1; k < 4; k++)
+        gaps_varied |= std::abs((ons[k].first - ons[k - 1].first) - 62) > 2;
+    }
+    CHECK(moved);
+    CHECK(early);
+    CHECK(gaps_kept);
+    CHECK(gaps_varied);
+  }
+  SECTION("velocity")
+  {
+    const auto [whole, _1] = run(0, [](StepParams& s) { s.velocityRandom = 0.5f; });
+    const auto [each, _2]
+        = run(Lane::VelocityPerHit, [](StepParams& s) { s.velocityRandom = 0.5f; });
+    bool shared = true, own = false;
+    const auto vel = [](auto& o) { return o.second.second; };
+    for(auto& ons : whole)
+      shared &= all_equal(ons, vel);
+    for(auto& ons : each)
+      own |= !all_equal(ons, vel);
+    CHECK(shared);
+    CHECK(own);
+  }
+  SECTION("pitch")
+  {
+    const auto [whole, stuck_whole] = run(0, [](StepParams& s) { s.pitchRandom = 12; });
+    const auto [each, stuck_each]
+        = run(Lane::PitchPerHit, [](StepParams& s) { s.pitchRandom = 12; });
+    bool shared = true, own = false;
+    const auto note = [](auto& o) { return o.second.first; };
+    for(auto& ons : whole)
+      shared &= all_equal(ons, note);
+    for(auto& ons : each)
+      own |= !all_equal(ons, note);
+    CHECK(shared);
+    CHECK(own);
+    // Each hit's release is for its own note.
+    CHECK(stuck_whole == 0);
+    CHECK(stuck_each == 0);
+  }
+}
