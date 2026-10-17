@@ -155,6 +155,11 @@ public:
   void clearSmallView();
   void clearFullView();
   void replaceSmallView(const Rack& other);
+  //! Same result as replaceSmallView, but when `other` only adds one slot or
+  //! one layer to the current rack (what undoing a process removal does), it
+  //! is applied incrementally: the presenters then create that slot or layer
+  //! instead of rebuilding every slot of the interval.
+  void restoreSmallView(const Rack& other);
   void replaceFullView(const FullRack& other);
 
   // Adding and removing slots and layers is only for the small view
