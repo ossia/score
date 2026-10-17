@@ -1745,10 +1745,20 @@ void RenderedCSFNode::updateGeometryBindings(
         if(ssbo.owned)
           return;
         releaseSlot(renderer, ssbo);
-        const int64_t sz = std::max<int64_t>(ssbo.size, 16);
+        // An AUXILIARY declared as a uniform block is bound as a UBO: the
+        // fallback must have that usage (and UBO alignment), like the regular
+        // auxiliary allocation, or QRhi asserts on the binding (Vulkan:
+        // qrhivulkan.cpp "m_usage.testFlag(UniformBuffer)",
+        // examples/3d/3dgs.score after its producer is removed).
+        bool uniform = false;
+        if constexpr(requires { ssbo.is_uniform; })
+          uniform = ssbo.is_uniform;
+        const int64_t sz = std::max<int64_t>(ssbo.size, uniform ? 256 : 16);
         auto* buf = renderer.state.rhi->newBuffer(
             QRhiBuffer::Static,
-            QRhiBuffer::StorageBuffer | QRhiBuffer::VertexBuffer, sz);
+            uniform ? QRhiBuffer::UsageFlags{QRhiBuffer::UniformBuffer}
+                    : QRhiBuffer::StorageBuffer | QRhiBuffer::VertexBuffer,
+            sz);
         buf->setName(QByteArray("CSF_GeomOrphanFallback_") + kind);
         if(buf->create())
         {
