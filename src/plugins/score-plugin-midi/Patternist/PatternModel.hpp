@@ -208,6 +208,8 @@ public:
   }
 
   void init();
+  //! Brings what was loaded into the ranges everything else relies on.
+  void sanitize();
 
   ~ProcessModel() override;
 
@@ -282,6 +284,8 @@ private:
   int m_currentPattern{};
   LaneLabels m_laneLabels{LaneLabels::NameAndNumber};
   std::vector<int64_t> m_execSteps;
+  //! Patterns made by selecting past the end and not edited since.
+  std::vector<bool> m_grown;
   std::vector<Pattern> m_patterns;
 };
 }

@@ -21,15 +21,27 @@ W_OBJECT_IMPL(Patternist::ProcessModel)
 
 namespace Patternist
 {
+//! A value that is not a number takes the default, the rest is held to the
+//! range: documents and pastes can carry anything, NaN included.
+static float sane(float v, float def, float lo, float hi) noexcept
+{
+  return std::isfinite(v) ? std::clamp(v, lo, hi) : def;
+}
+
 void normalize(Pattern& p) noexcept
 {
   p.length = std::clamp(p.length, 1, Pattern::maxLength);
-  p.division = std::max(p.division, 1);
+  p.division = std::clamp(p.division, 1, Pattern::maxDivision);
+  if(std::ssize(p.lanes) > Pattern::maxLanes)
+    p.lanes.resize(Pattern::maxLanes);
+  const StepParams def;
   for(Lane& lane : p.lanes)
   {
     lane.length = std::clamp(lane.length, 0, Pattern::maxLength);
-    lane.division = std::max(lane.division, 0);
-    lane.velocity = std::clamp(lane.velocity, 0.f, 1.f);
+    lane.division = std::clamp(lane.division, 0, Pattern::maxDivision);
+    lane.velocity = sane(lane.velocity, Lane{}.velocity, 0.f, 1.f);
+    if(std::ssize(lane.pattern) > Pattern::maxLength)
+      lane.pattern.resize(Pattern::maxLength);
 
     const int n = std::max(p.length, lane.length);
     if(std::ssize(lane.pattern) < n)
@@ -37,13 +49,14 @@ void normalize(Pattern& p) noexcept
     lane.params.resize(lane.pattern.size());
     for(StepParams& s : lane.params)
     {
-      s.velocity = std::clamp(s.velocity, 0.f, 1.f);
-      s.chance = std::clamp(s.chance, 0.f, 1.f);
-      s.offset = std::clamp(s.offset, -0.5f, 0.5f);
-      s.gate = std::clamp(s.gate, 0.f, 1.f);
+      s.velocity = sane(s.velocity, def.velocity, 0.f, 1.f);
+      s.chance = sane(s.chance, def.chance, 0.f, 1.f);
+      s.offset = sane(s.offset, def.offset, -0.5f, 0.5f);
+      s.gate = sane(s.gate, def.gate, 0.f, 1.f);
       s.ratchet = std::clamp<uint8_t>(s.ratchet, 1, 8);
-      s.pace = std::clamp(s.pace, -1.f, 1.f);
-      s.velocityRandom = std::clamp(s.velocityRandom, 0.f, 1.f);
+      s.pace = sane(s.pace, def.pace, -1.f, 1.f);
+      s.velocityRandom = sane(s.velocityRandom, def.velocityRandom, 0.f, 1.f);
+      s.condition = std::min(s.condition, Condition::Cycle);
       s.pitch = std::clamp<int8_t>(s.pitch, -48, 48);
       s.pitchRandom = std::clamp<uint8_t>(s.pitchRandom, 0, 24);
       s.cycleB = std::clamp<uint8_t>(s.cycleB, 1, 16);
@@ -181,14 +194,17 @@ ProcessModel::ProcessModel(
     if(auto data = score::mapAsByteArray(f); !data.isEmpty())
       if(auto pat = parsePatterns(data); pat.size() > 0)
       {
-        for(auto& p : pat)
-          normalize(p);
         this->m_patterns = std::move(pat);
+        sanitize();
       }
 }
 
 void ProcessModel::init()
 {
+  // Whatever a document held: the editor, the layer and the engine rely on at
+  // least one pattern, all of them normalized, and on a valid selection.
+  sanitize();
+
   m_inlets.push_back(patternSelect.get());
   m_inlets.push_back(switchQuantification.get());
   m_inlets.push_back(fill.get());
@@ -239,6 +255,22 @@ ProcessModel::~ProcessModel()
   }
 }
 
+void ProcessModel::sanitize()
+{
+  if(m_patterns.empty())
+  {
+    Pattern p;
+    p.lanes.push_back(Lane{std::vector<Note>(p.length, Note::Rest), 36});
+    m_patterns.push_back(std::move(p));
+  }
+  if(std::ssize(m_patterns) > maxPatterns)
+    m_patterns.resize(maxPatterns);
+  for(auto& p : m_patterns)
+    normalize(p);
+  m_channel = std::clamp(m_channel, 1, 16);
+  m_currentPattern = std::clamp(m_currentPattern, 0, int(m_patterns.size()) - 1);
+}
+
 void ProcessModel::setChannel(int n)
 {
   n = std::clamp(n, 1, 16);
@@ -262,6 +294,7 @@ void ProcessModel::setCurrentPattern(int n)
   if(m_patterns.empty())
     return;
 
+  bool changed = false;
   if(n >= std::ssize(m_patterns))
   {
     auto pattern
@@ -269,11 +302,29 @@ void ProcessModel::setCurrentPattern(int n)
     for(auto& lane : pattern.lanes)
       std::fill(lane.pattern.begin(), lane.pattern.end(), Note::Rest);
 
+    m_grown.resize(m_patterns.size(), false);
     while(n >= std::ssize(m_patterns))
+    {
       m_patterns.push_back(pattern);
-
-    patternsChanged();
+      m_grown.push_back(true);
+    }
+    changed = true;
   }
+  else
+  {
+    // Patterns made by selecting past the end, and still untouched, go away
+    // when the selection comes back below them: undoing a selection then
+    // gives the list back as it was.
+    m_grown.resize(m_patterns.size(), false);
+    while(std::ssize(m_patterns) - 1 > std::max(n, 0) && m_grown.back())
+    {
+      m_patterns.pop_back();
+      m_grown.pop_back();
+      changed = true;
+    }
+  }
+  if(changed)
+    patternsChanged();
 
   n = std::clamp(n, 0, int(std::ssize(m_patterns)) - 1);
   if(n != m_currentPattern)
@@ -314,16 +365,21 @@ void ProcessModel::setPattern(int n, Pattern p)
     return;
   normalize(p);
   m_patterns[n] = std::move(p);
+  if(n < std::ssize(m_grown))
+    m_grown[n] = false;
   patternsChanged();
 }
 
 void ProcessModel::setPatterns(const std::vector<Pattern>& n)
 {
-  if(n != m_patterns)
+  if(n != m_patterns && !n.empty())
   {
     m_patterns = n;
     for(auto& p : m_patterns)
       normalize(p);
+    m_grown.clear();
+    if(m_currentPattern >= std::ssize(m_patterns))
+      setCurrentPattern(int(m_patterns.size()) - 1);
     patternsChanged();
   }
 }

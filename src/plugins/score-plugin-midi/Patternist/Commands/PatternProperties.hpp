@@ -12,46 +12,51 @@ inline auto& CommandFactoryName()
 {
   return Midi::CommandFactoryName();
 }
+//! Edits patterns, one undo step. Ongoing, it follows the edit from pattern to
+//! pattern: the shown one can change in the middle of a drag.
 class UpdatePattern final : public score::Command
 {
   SCORE_COMMAND_DECL(Midi::CommandFactoryName(), UpdatePattern, "Update a pattern")
 public:
   UpdatePattern(const ProcessModel& model, int p, const Pattern& pat)
       : m_model{model}
-      , m_id{p}
-      , m_old{model.patterns()[p]}
-      , m_new{pat}
+      , m_old{model.patterns()}
+      , m_new{model.patterns()}
   {
+    update(model, p, pat);
   }
 
   void undo(const score::DocumentContext& ctx) const override
   {
-    m_model.find(ctx).setPattern(m_id, m_old);
+    m_model.find(ctx).setPatterns(m_old);
   }
 
   void redo(const score::DocumentContext& ctx) const override
   {
-    m_model.find(ctx).setPattern(m_id, m_new);
+    m_model.find(ctx).setPatterns(m_new);
   }
 
-  void update(const ProcessModel& model, int p, const Pattern& pat) { m_new = pat; }
+  void update(const ProcessModel& model, int p, const Pattern& pat)
+  {
+    if(ossia::valid_index(p, m_new))
+      m_new[p] = pat;
+  }
 
 protected:
   void serializeImpl(DataStreamInput& s) const override
   {
-    s << m_model << m_id << m_old << m_new;
+    s << m_model << m_old << m_new;
   }
 
   void deserializeImpl(DataStreamOutput& s) override
   {
-    s >> m_model >> m_id >> m_old >> m_new;
+    s >> m_model >> m_old >> m_new;
   }
 
 private:
   Path<ProcessModel> m_model;
-  int m_id{};
-  Pattern m_old;
-  Pattern m_new;
+  std::vector<Pattern> m_old;
+  std::vector<Pattern> m_new;
 };
 
 class UpdatePatterns final : public score::Command

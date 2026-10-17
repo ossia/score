@@ -100,6 +100,8 @@ void euclidean(const Pattern& p, Lane& l, int hits, int rotation, Combine c) noe
 
 void addLane(Pattern& p)
 {
+  if(std::ssize(p.lanes) >= Pattern::maxLanes)
+    return;
   if(p.lanes.empty())
     p.lanes.push_back(Lane{std::vector<Note>(p.length, Note::Rest), 36});
   else
