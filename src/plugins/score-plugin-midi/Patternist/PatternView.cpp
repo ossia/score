@@ -826,8 +826,13 @@ void View::paintCells(QPainter* painter, const Pattern& p) const
 
       if(n == Note::Legato)
       {
-        // Tied to the step before; a ratchet's other hits are marked by gaps.
-        const QRectF tie = cell.adjusted(-gapX - barGap, 0., 0., 0.);
+        // Tied to the step before, as loud as the note it holds; a ratchet's
+        // other hits are marked by gaps.
+        const float vel = stepParams(l, struckStep(p, l, sl.step)).velocity;
+        const double vh = cellH * (0.3 + 0.7 * vel);
+        const QRectF tie
+            = QRectF{cell.x(), cell.bottom() - vh, cell.width(), vh}.adjusted(
+                -gapX - barGap, 0., 0., 0.);
         painter->fillRect(tie, noteColor);
         if(sp.ratchet > 1 && cell.width() >= 2. * sp.ratchet)
         {
@@ -993,7 +998,10 @@ void View::paintRings(QPainter* painter, const Pattern& p) const
       const double outer = r.inner + thick * (0.3 + 0.7 * sp.velocity);
       if(n == Note::Legato)
       {
-        painter->fillPath(sector(c, r.inner, r.outer, a - 1.5 * gap, b), noteColor);
+        const float vel = stepParams(l, struckStep(p, l, sl.step)).velocity;
+        painter->fillPath(
+            sector(c, r.inner, r.inner + thick * (0.3 + 0.7 * vel), a - 1.5 * gap, b),
+            noteColor);
         continue;
       }
       const double w = b - a;
@@ -1209,7 +1217,13 @@ void View::paintField(QPainter* painter, const Pattern& p) const
     const double inset = w > 4. ? 1. : 0.;
     const float v = stepField(stepParams(l, sl.step), m_field);
     const double y = toY(v);
-    const bool rest = writtenNote(p, l, sl.step) == Note::Rest;
+    // A tie that only holds the note before plays no velocity of its own.
+    const Note note = writtenNote(p, l, sl.step);
+    const bool rest
+        = note == Note::Rest
+          || (note == Note::Legato
+              && (m_field == StepField::Velocity || m_field == StepField::VelocityRandom)
+              && !tieStrikes(p, l, sl.step));
     const QRectF bar{
         QPointF{sl.x0 + inset, std::min(y, originY)},
         QPointF{sl.x1 - inset, std::max(y, originY) + 1.}};
@@ -1555,7 +1569,7 @@ void View::startFieldDrag(QPointF pos, Qt::KeyboardModifiers mods)
 
   std::mt19937 rng{std::random_device{}()};
   for(auto& v : m_dragTarget)
-    v = randomFieldValue(m_field, rng);
+    v = anyFieldValue(m_field, rng);
 
   m_dragSteps.clear();
   const auto& sel = selection();

@@ -159,6 +159,37 @@ inline const StepParams& stepParams(const Lane& l, int step) noexcept
   return (step >= 0 && step < int(l.params.size())) ? l.params[step] : defaults;
 }
 
+//! Whether a tied step strikes a note: when the step before plays nothing,
+//! when it ratchets, or when its pitch differs. Otherwise it only holds the
+//! note struck before it, and its velocity does nothing.
+inline bool tieStrikes(const Pattern& p, const Lane& l, int step) noexcept
+{
+  const int len = laneLength(p, l);
+  if(len <= 0)
+    return true;
+  const int prev = ((step - 1) % len + len) % len;
+  if(writtenNote(p, l, prev) == Note::Rest)
+    return true;
+  const StepParams& sp = stepParams(l, step);
+  const StepParams& pp = stepParams(l, prev);
+  return sp.ratchet > 1 || sp.pitch != pp.pitch || sp.pitchRandom > 0
+         || pp.pitchRandom > 0;
+}
+
+//! The step that struck the note a step holds: itself unless it is a tie that
+//! does not strike, in which case the one before, and so on.
+inline int struckStep(const Pattern& p, const Lane& l, int step) noexcept
+{
+  const int len = laneLength(p, l);
+  for(int k = 0; k < len; k++)
+  {
+    if(writtenNote(p, l, step) != Note::Legato || tieStrikes(p, l, step))
+      return step;
+    step = ((step - 1) % len + len) % len;
+  }
+  return step;
+}
+
 //! What a lane plays at a step, once mute and solo are applied.
 inline Note audibleNote(const Pattern& p, const Lane& l, int step, bool anySolo) noexcept
 {
