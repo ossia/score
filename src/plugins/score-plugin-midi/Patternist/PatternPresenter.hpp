@@ -5,10 +5,6 @@
 
 #include <nano_observer.hpp>
 
-namespace Scenario
-{
-class IntervalModel;
-}
 namespace Patternist
 {
 class View;
@@ -39,12 +35,8 @@ public:
 
 private:
   void on_drop(const QPointF& pos, const QMimeData& md);
-  void updateTimeGrid();
 
   View* m_view{};
   Controller* m_controller{};
-  const Scenario::IntervalModel* m_metrics{};
-  QMetaObject::Connection m_metricsSignatures;
-  QMetaObject::Connection m_metricsHasSignature;
 };
 }

@@ -3,6 +3,7 @@
 #include <ossia/detail/flicks.hpp>
 
 #include <cmath>
+
 #include <limits>
 
 namespace Patternist
@@ -51,6 +52,7 @@ std::vector<StepSlot> timelineSlots(
     double t;
     bool bar;
     bool beat;
+    int beatIndex;
   };
   std::vector<Point> points;
   for(const auto& sec : sections)
@@ -72,7 +74,9 @@ std::vector<StepSlot> timelineSlots(
         if(t < t0)
           continue;
         const double inBeats = (t - bar_line) / beat;
-        points.push_back({t, j == 0, std::abs(inBeats - std::round(inBeats)) < 1e-6});
+        points.push_back(
+            {t, j == 0, std::abs(inBeats - std::round(inBeats)) < 1e-6,
+             int(std::floor(inBeats + 1e-6))});
         if(points.size() > maxSlots)
           return res;
       }
@@ -99,7 +103,45 @@ std::vector<StepSlot> timelineSlots(
                                             : std::min(width, x0 + unit / zoom);
     const std::ptrdiff_t n = std::ptrdiff_t(i) - first;
     const int step = int(((n % p.length) + p.length) % p.length);
-    res.push_back({x0, x1, step, n < 0 || n >= p.length, pt.bar, pt.beat});
+    res.push_back({x0, x1, step, n < 0 || n >= p.length, pt.bar, pt.beat, pt.beatIndex});
+  }
+  return res;
+}
+
+ossia::time_signature signatureAt(const TimeGrid& grid, TimeVal date) noexcept
+{
+  ossia::time_signature sig{4, 4};
+  for(const auto& [t, s] : grid.signatures)
+  {
+    if(t > date)
+      break;
+    if(s.upper > 0 && s.lower > 0)
+      sig = s;
+  }
+  return sig;
+}
+
+std::vector<StepSlot>
+fitSlots(const Pattern& p, ossia::time_signature sig, double x0, double x1)
+{
+  std::vector<StepSlot> res;
+  if(p.length <= 0 || x1 <= x0)
+    return res;
+  const double w = (x1 - x0) / p.length;
+
+  // Steps per beat, when a beat is a whole number of steps: a beat is a
+  // 1/lower note, a step a 1/division note.
+  const int stepsPerBeat
+      = (sig.lower > 0 && p.division % sig.lower == 0) ? p.division / sig.lower : 0;
+  const int stepsPerBar = stepsPerBeat * sig.upper;
+
+  res.reserve(p.length);
+  for(int i = 0; i < p.length; i++)
+  {
+    const bool beat = stepsPerBeat > 0 && i % stepsPerBeat == 0;
+    const bool bar = stepsPerBar > 0 && i % stepsPerBar == 0;
+    const int beatIndex = stepsPerBeat > 0 ? (i % stepsPerBar) / stepsPerBeat : 0;
+    res.push_back({x0 + i * w, x0 + (i + 1) * w, i, false, bar, beat, beatIndex});
   }
   return res;
 }

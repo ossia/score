@@ -64,7 +64,11 @@ Pattern Controller::current() const
 void Controller::submit(const Pattern& p)
 {
   if(!hasPattern() || p == current())
+  {
+    if(status)
+      status(tr("Nothing changed"));
     return;
+  }
   CommandDispatcher<> disp{m_ctx.commandStack};
   disp.submit<UpdatePattern>(m_model, m_model.currentPattern(), p);
 }
@@ -118,15 +122,27 @@ void Controller::fillMenu(QMenu& menu, int lane)
 
 void Controller::copy() const
 {
-  if(hasPattern())
-    QApplication::clipboard()->setMimeData(patternToMime(current()));
+  if(!hasPattern())
+    return;
+  QApplication::clipboard()->setMimeData(patternToMime(current()));
+  if(status)
+    status(tr("Pattern %1 copied").arg(m_model.currentPattern()));
 }
 
 void Controller::paste()
 {
   if(auto md = QApplication::clipboard()->mimeData())
+  {
     if(auto p = patternFromMime(*md))
+    {
+      if(status)
+        status(tr("Pasted into pattern %1").arg(m_model.currentPattern()));
       submit(*p);
+      return;
+    }
+  }
+  if(status)
+    status(tr("The clipboard holds no pattern"));
 }
 
 void Controller::clear()
@@ -135,6 +151,8 @@ void Controller::clear()
     return;
   auto p = current();
   Patternist::clear(p);
+  if(status)
+    status(tr("Pattern %1 cleared").arg(m_model.currentPattern()));
   submit(p);
 }
 
@@ -144,6 +162,8 @@ void Controller::rotate(int steps)
     return;
   auto p = current();
   Patternist::rotate(p, steps);
+  if(status)
+    status(steps < 0 ? tr("Rotated left") : tr("Rotated right"));
   submit(p);
 }
 
@@ -153,6 +173,8 @@ void Controller::randomize()
     return;
   auto p = current();
   Patternist::randomize(p, m_rng);
+  if(status)
+    status(tr("Randomized"));
   submit(p);
 }
 

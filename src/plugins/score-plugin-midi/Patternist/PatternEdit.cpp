@@ -95,13 +95,16 @@ std::optional<Pattern> patternFromMime(const QMimeData& mime)
 {
   QByteArray json = mime.data(patternMimeType);
   if(json.isEmpty())
-    json = mime.text().toUtf8();
-  if(json.isEmpty())
+    json = mime.text().trimmed().toUtf8();
+  // Most of what goes through the clipboard is not JSON at all: parse quietly.
+  if(!json.startsWith('{'))
     return std::nullopt;
 
-  const rapidjson::Document doc = readJson(json);
-  if(!doc.IsObject() || !doc.HasMember("Lanes") || !doc["Lanes"].IsArray()
-     || !doc.HasMember("Length") || !doc.HasMember("Division"))
+  rapidjson::Document doc;
+  doc.Parse(json.constData(), json.size());
+  if(doc.HasParseError() || !doc.IsObject() || !doc.HasMember("Lanes")
+     || !doc["Lanes"].IsArray() || !doc.HasMember("Length")
+     || !doc.HasMember("Division"))
     return std::nullopt;
 
   JSONWriter wr{doc};
