@@ -8,9 +8,11 @@
 #include <llvm/ExecutionEngine/Orc/LLJIT.h>
 #include <llvm/ExecutionEngine/Orc/ThreadSafeModule.h>
 
+#include <score_plugin_jit_export.h>
+
 namespace Jit
 {
-class JitCompiler
+class SCORE_PLUGIN_JIT_EXPORT JitCompiler
 {
   using ModulePtr_t = std::unique_ptr<llvm::Module>;
 

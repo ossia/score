@@ -11,6 +11,8 @@
 #include <Effect/EffectFactory.hpp>
 #include <JitCpp/EditScript.hpp>
 
+#include <Bytebeat/BytebeatCodegen.hpp>
+
 #include <ossia/dataflow/execution_state.hpp>
 #include <ossia/dataflow/graph_node.hpp>
 #include <ossia/dataflow/node_process.hpp>
@@ -28,10 +30,16 @@ PROCESS_METADATA(
 namespace Jit
 {
 struct Driver;
-using BytebeatFunction = void(double* input, int size, int time);
 using BytebeatCompiler = Driver;
-using BytebeatFactory = std::function<BytebeatFunction>;
-class BytebeatModel : public Process::ProcessModel
+
+// A compiled formula; the compiler owns the code the function points into.
+struct BytebeatProgram
+{
+  std::shared_ptr<BytebeatCompiler> compiler;
+  Bytebeat::Function* function{};
+  int state_size{};
+};
+class SCORE_PLUGIN_JIT_EXPORT BytebeatModel : public Process::ProcessModel
 {
   friend class JitUI;
   friend class JitUpdateUI;
@@ -52,16 +60,21 @@ public:
 
   const QString& script() const noexcept { return m_text; }
   [[nodiscard]] Process::ScriptChangeResult setScript(const QString& txt);
-  void scriptChanged(const QString& txt) W_SIGNAL(scriptChanged, txt);
+  void scriptChanged(const QString& txt) E_SIGNAL(SCORE_PLUGIN_JIT_EXPORT, scriptChanged, txt);
 
   bool validate(const QString& txt) const noexcept;
 
+  // Inlets: language, output mode, rate
+  Bytebeat::Language language() const noexcept;
+  Bytebeat::OutputMode outputMode() const noexcept;
+  int rate() const noexcept;
+
   QString prettyName() const noexcept override;
-  void programChanged() W_SIGNAL(programChanged);
+  void programChanged() E_SIGNAL(SCORE_PLUGIN_JIT_EXPORT, programChanged);
 
-  BytebeatFactory factory;
+  std::shared_ptr<const BytebeatProgram> program;
 
-  void errorMessage(int line, const QString& e) W_SIGNAL(errorMessage, line, e);
+  void errorMessage(int line, const QString& e) E_SIGNAL(SCORE_PLUGIN_JIT_EXPORT, errorMessage, line, e);
 
   PROPERTY(QString, script READ script WRITE setScript NOTIFY scriptChanged)
 private:
@@ -69,9 +82,10 @@ private:
   void loadPreset(const Process::Preset& preset) override;
   Process::Preset savePreset() const noexcept override;
   void init();
+  void finishLoad();
   [[nodiscard]] Process::ScriptChangeResult reload();
   QString m_text;
-  std::unique_ptr<BytebeatCompiler> m_compiler;
+  bool m_loadingPreset{};
 };
 }
 
