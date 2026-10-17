@@ -6,6 +6,8 @@
 
 #include <ossia/detail/math.hpp>
 
+#include <QApplication>
+#include <QClipboard>
 #include <QGraphicsScene>
 #include <QGraphicsView>
 #include <QHBoxLayout>
@@ -18,7 +20,9 @@
 #include <QVBoxLayout>
 
 #include <Patternist/PatternController.hpp>
+#include <Patternist/PatternEdit.hpp>
 #include <Patternist/PatternModel.hpp>
+#include <Patternist/PatternTimeGrid.hpp>
 #include <Patternist/PatternView.hpp>
 
 namespace Patternist
@@ -88,10 +92,18 @@ Editor::Editor(ProcessModel& model, const score::DocumentContext& ctx, QWidget* 
       auto b = toolButton(text, tip, this);
       connect(b, &QToolButton::clicked, this, f);
       row->addWidget(b);
+      return b;
     };
     add(tr("Copy"), tr("Copy the pattern"), [this] { m_controller->copy(); });
-    add(tr("Paste"), tr("Replace the pattern with the copied one"),
-        [this] { m_controller->paste(); });
+    m_paste = add(tr("Paste"), tr("Replace the pattern with the copied one"), [this] {
+      m_controller->paste();
+    });
+    const auto updatePaste = [this] {
+      auto md = QApplication::clipboard()->mimeData();
+      m_paste->setEnabled(md && patternFromMime(*md));
+    };
+    connect(QApplication::clipboard(), &QClipboard::dataChanged, this, updatePaste);
+    updatePaste();
     add(tr("Clear"), tr("Remove every note"), [this] { m_controller->clear(); });
     add(QStringLiteral("◀"), tr("Rotate the pattern one step left"),
         [this] { m_controller->rotate(-1); });
@@ -125,6 +137,17 @@ Editor::Editor(ProcessModel& model, const score::DocumentContext& ctx, QWidget* 
     add(tr("Add lane"), tr("Add a lane, a copy of the last one"),
         [this] { m_controller->addLane(); });
     row->addStretch(1);
+
+    m_status = new QLabel{this};
+    m_status->setEnabled(false);
+    row->addWidget(m_status);
+    auto clearStatus = new QTimer{this};
+    clearStatus->setSingleShot(true);
+    connect(clearStatus, &QTimer::timeout, m_status, &QLabel::clear);
+    m_controller->status = [this, clearStatus](const QString& text) {
+      m_status->setText(text);
+      clearStatus->start(2500);
+    };
     lay->addLayout(row);
   }
 
@@ -144,6 +167,9 @@ Editor::Editor(ProcessModel& model, const score::DocumentContext& ctx, QWidget* 
     m_view = new View{model, nullptr};
     m_view->setMode(View::Mode::Fit);
     m_view->setAdvanced(true);
+    auto grid = new TimeGridWatcher{model, this};
+    connect(grid, &TimeGridWatcher::changed, m_view, &View::setTimeGrid);
+    m_view->setTimeGrid(grid->grid());
     m_scene->addItem(m_view);
     m_controller->attach(*m_view);
     connect(m_view, &View::askContextMenu, this, [this](QPoint screen, QPointF scene) {
@@ -212,7 +238,11 @@ void Editor::updateBank()
     auto b = new QToolButton{m_bank->parentWidget()};
     b->setCheckable(true);
     b->setText(QString::number(idx));
-    b->setMinimumWidth(24);
+    // Room for three digits in bold, so that nothing moves when the playing
+    // or shown pattern changes.
+    QFont bold = b->font();
+    bold.setBold(true);
+    b->setFixedWidth(QFontMetrics{bold}.horizontalAdvance(QStringLiteral("000")) + 14);
     connect(b, &QToolButton::clicked, this, [this, idx] {
       m_controller->selectPattern(idx);
       updateBank();
@@ -229,19 +259,19 @@ void Editor::updateBank()
   // The one shown is highlighted, the one playing is bold, the next one
   // underlined.
   auto& skin = score::Skin::instance();
-  const QString shown
-      = QStringLiteral(
-            "QToolButton { background: %1; color: %2; border: 1px solid %1; "
-            "border-radius: 2px; padding: 1px 6px; }")
-            .arg(
-                skin.Base4.main.brush.color().name(),
-                skin.Dark.main.brush.color().name());
+  const QString base = QStringLiteral(
+      "QToolButton { background: %1; color: %2; border: 1px solid %1; "
+      "border-radius: 2px; padding: 1px 0px; }");
+  const QString shown = base.arg(
+      skin.Base4.main.brush.color().name(), skin.Dark.main.brush.color().name());
+  const QString other = base.arg(
+      skin.Background2.main.brush.color().name(), skin.Light.main.brush.color().name());
   for(int i = 0; i < count; i++)
   {
     auto b = m_bankButtons[i];
     const bool current = i == m_model->currentPattern();
     b->setChecked(current);
-    b->setStyleSheet(current ? shown : QString{});
+    b->setStyleSheet(current ? shown : other);
     QFont f = b->font();
     f.setBold(i == m_playing);
     f.setUnderline(i == m_pending);

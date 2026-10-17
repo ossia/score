@@ -7,6 +7,7 @@
 class QGraphicsScene;
 class QGraphicsView;
 class QHBoxLayout;
+class QLabel;
 class QSpinBox;
 class QToolButton;
 namespace score
@@ -39,6 +40,8 @@ private:
   QHBoxLayout* m_bank{};
   std::vector<QToolButton*> m_bankButtons;
   QToolButton* m_removePattern{};
+  QToolButton* m_paste{};
+  QLabel* m_status{};
   QSpinBox* m_steps{};
   QSpinBox* m_rate{};
   int m_playing{-1};

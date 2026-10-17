@@ -36,6 +36,7 @@ set(HEADER_FILES
   Patternist/PatternParsing.hpp
   Patternist/PatternEdit.hpp
   Patternist/PatternGrid.hpp
+  Patternist/PatternTimeGrid.hpp
   Patternist/PatternController.hpp
   Patternist/PatternEditor.hpp
   Patternist/PatternCommandFactory.hpp
@@ -69,6 +70,7 @@ set(SOURCE_FILES
   Patternist/PatternParsing.cpp
   Patternist/PatternEdit.cpp
   Patternist/PatternGrid.cpp
+  Patternist/PatternTimeGrid.cpp
   Patternist/PatternController.cpp
   Patternist/PatternEditor.cpp
   Patternist/PatternFactory.cpp

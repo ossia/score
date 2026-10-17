@@ -3,6 +3,7 @@
 
 #include <Patternist/PatternModel.hpp>
 
+#include <functional>
 #include <random>
 
 class QMenu;
@@ -27,6 +28,9 @@ public:
 
   //! Pattern actions, and those of `lane` when it is valid.
   void fillMenu(QMenu& menu, int lane);
+
+  //! What the last action did, for the editor to show.
+  std::function<void(const QString&)> status;
 
   void copy() const;
   void paste();
