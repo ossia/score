@@ -7,7 +7,7 @@
 #include <score/serialization/DataStreamVisitor.hpp>
 
 template <>
-void DataStreamReader::read(const score::CommandStack& stack)
+SCORE_LIB_BASE_EXPORT void DataStreamReader::read(const score::CommandStack& stack)
 {
   std::vector<score::CommandData> undoStack, redoStack;
   for(const auto& cmd : stack.undoable())
