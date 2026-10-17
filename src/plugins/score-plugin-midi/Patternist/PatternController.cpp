@@ -91,6 +91,10 @@ void Controller::fillMenu(QMenu& menu, int lane)
     solo->setChecked(pat.lanes[lane].solo);
     connect(solo, &QAction::triggered, this, [this, lane] { toggleSolo(lane); });
 
+    connect(
+        menu.addAction(tr("Randomize lane")), &QAction::triggered, this,
+        [this, lane] { randomize(lane); });
+
     auto remove = menu.addAction(tr("Remove lane"));
     remove->setEnabled(pat.lanes.size() > 1);
     connect(remove, &QAction::triggered, this, [this, lane] { removeLane(lane); });
@@ -115,7 +119,7 @@ void Controller::fillMenu(QMenu& menu, int lane)
   connect(menu.addAction(tr("Rotate right")), &QAction::triggered, this, [this] {
     rotate(1);
   });
-  connect(menu.addAction(tr("Randomize")), &QAction::triggered, this, [this] {
+  connect(menu.addAction(tr("Randomize pattern")), &QAction::triggered, this, [this] {
     randomize();
   });
 }
@@ -167,14 +171,14 @@ void Controller::rotate(int steps)
   submit(p);
 }
 
-void Controller::randomize()
+void Controller::randomize(int lane)
 {
   if(!hasPattern())
     return;
   auto p = current();
-  Patternist::randomize(p, m_rng);
+  Patternist::randomize(p, m_rng, lane);
   if(status)
-    status(tr("Randomized"));
+    status(lane < 0 ? tr("Pattern randomized") : tr("Lane randomized"));
   submit(p);
 }
 

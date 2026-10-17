@@ -44,7 +44,9 @@ QGraphicsNoteChooser::QGraphicsNoteChooser(QGraphicsItem* parent)
 {
   auto& skin = score::Skin::instance();
   setCursor(skin.CursorScaleV);
-  this->setAcceptedMouseButtons(Qt::LeftButton | Qt::RightButton);
+  // Right-click is for the owner's context menu: a drag started by it would
+  // hide the cursor under the menu.
+  this->setAcceptedMouseButtons(Qt::LeftButton);
 }
 
 void QGraphicsNoteChooser::setValue(int v)
