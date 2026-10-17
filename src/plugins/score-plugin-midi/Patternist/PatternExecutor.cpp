@@ -94,7 +94,7 @@ Executor::Executor(
     const int count = (cur >= 0 && cur < int(pats.size()))
                           ? std::min<int>(pats[cur].lanes.size(), pattern_node::max_lanes)
                           : 0;
-    std::vector<int> steps(count);
+    std::vector<int64_t> steps(count);
     for(int i = 0; i < count; i++)
       steps[i] = node->lanes[i].last;
     element.setExecSteps(std::move(steps));
