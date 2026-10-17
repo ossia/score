@@ -90,6 +90,16 @@ public:
 
   void release(score::gfx::RenderList& r)
   {
+    // The buffer is ours: without this, every renderer release (each undo /
+    // redo that recreates the node, a QRhi teardown) leaked it, and Vulkan's
+    // allocator asserted "Some allocations were not freed" when the QRhi
+    // went away (examples/3d/extract-attribute.score).
+    if(buf)
+      r.releaseBuffer(buf);
+    buf = nullptr;
+    outputs.buffer.buffer.handle = nullptr;
+    outputs.buffer.buffer.byte_size = 0;
+    outputs.buffer.buffer.changed = true;
   }
 
   void runInitialPasses(
