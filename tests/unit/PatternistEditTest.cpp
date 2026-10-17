@@ -441,3 +441,49 @@ TEST_CASE("patternist: step parameters at random", "[midi][pattern]")
     for(const auto& s : l.params)
       CHECK(s.isDefault());
 }
+
+TEST_CASE("patternist: which tied steps strike a note", "[midi][pattern]")
+{
+  auto p = pattern({lane(36, {N, L, L, R, L, L})}, 6);
+  normalize(p);
+  auto& l = p.lanes[0];
+
+  // A tie after a note only holds it: its velocity is the note's.
+  CHECK_FALSE(tieStrikes(p, l, 1));
+  CHECK(struckStep(p, l, 2) == 0);
+  // After a rest a tie strikes.
+  CHECK(tieStrikes(p, l, 4));
+  CHECK(struckStep(p, l, 5) == 4);
+  CHECK(struckStep(p, l, 0) == 0);
+
+  SECTION("a ratchet or another pitch strikes again")
+  {
+    l.params[2].ratchet = 2;
+    CHECK(tieStrikes(p, l, 2));
+    CHECK(struckStep(p, l, 2) == 2);
+    l.params[2].ratchet = 1;
+    l.params[2].pitch = 3;
+    CHECK(tieStrikes(p, l, 2));
+  }
+}
+
+TEST_CASE("patternist: an Alt-drag can reach a parameter's whole range", "[midi][pattern]")
+{
+  std::mt19937 rng{7};
+  for(auto f : {StepField::PitchRandom, StepField::Pitch, StepField::VelocityRandom,
+                StepField::Ratchet})
+  {
+    const auto r = fieldRange(f);
+    float lo = r.max, hi = r.min;
+    for(int i = 0; i < 2000; i++)
+    {
+      const float v = anyFieldValue(f, rng);
+      lo = std::min(lo, v);
+      hi = std::max(hi, v);
+    }
+    CHECK(lo >= r.min);
+    CHECK(hi <= r.max);
+    // Close to both ends, not the mild range the Random button uses.
+    CHECK(hi - lo >= 0.9f * (r.max - r.min));
+  }
+}
