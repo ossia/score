@@ -465,6 +465,63 @@ void IntervalModel::replaceSmallView(const Rack& other)
   rackChanged(Slot::SmallView);
 }
 
+void IntervalModel::restoreSmallView(const Rack& other)
+{
+  if(m_smallView == other)
+    return;
+
+  const auto n = m_smallView.size();
+  if(other.size() == n + 1)
+  {
+    // One slot to put back: the first index where the racks differ.
+    std::size_t k = 0;
+    while(k < n && m_smallView[k] == other[k])
+      k++;
+    if(std::equal(m_smallView.begin() + k, m_smallView.end(), other.begin() + k + 1))
+      addSlot(other[k], int(k));
+  }
+  else if(other.size() == n && n > 0)
+  {
+    // One layer to put back into one slot.
+    std::size_t k = 0;
+    while(k < n && m_smallView[k] == other[k])
+      k++;
+    if(k < n
+       && std::equal(m_smallView.begin() + k + 1, m_smallView.end(), other.begin() + k + 1))
+    {
+      auto& cur = m_smallView[k];
+      const auto& tgt = other[k];
+      if(tgt.processes.size() == cur.processes.size() + 1 && tgt.nodal == cur.nodal)
+      {
+        std::size_t i = 0;
+        while(i < cur.processes.size() && cur.processes[i] == tgt.processes[i])
+          i++;
+        if(std::equal(
+               cur.processes.begin() + i, cur.processes.end(),
+               tgt.processes.begin() + i + 1))
+        {
+          const auto id = tgt.processes[i];
+          cur.processes.insert(cur.processes.begin() + i, id);
+          const bool resized = cur.height != tgt.height;
+          cur.height = tgt.height;
+          cur.focus = tgt.focus;
+          layerAdded({int(k), Slot::SmallView}, id);
+          if(tgt.frontProcess)
+            putLayerToFront(int(k), *tgt.frontProcess);
+          else
+            putLayerToFront(int(k), std::nullopt);
+          if(resized)
+            slotResized({int(k), Slot::SmallView});
+        }
+      }
+    }
+  }
+
+  // Anything else, or an incremental step that did not reach `other`.
+  if(m_smallView != other)
+    replaceSmallView(other);
+}
+
 void IntervalModel::replaceFullView(const FullRack& other)
 {
   m_fullView = other;

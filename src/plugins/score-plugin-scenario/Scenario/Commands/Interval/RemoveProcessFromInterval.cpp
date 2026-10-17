@@ -56,7 +56,7 @@ void RemoveProcessFromInterval::undo(const score::DocumentContext& ctx) const
 
   Dataflow::restoreCables(m_cables, ctx);
 
-  interval.replaceSmallView(m_smallView);
+  interval.restoreSmallView(m_smallView);
   interval.setSmallViewVisible(m_smallViewVisible);
 }
 
