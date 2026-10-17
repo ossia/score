@@ -756,6 +756,8 @@ void Model::load()
 
 #define SCORE_DATASTREAM_IDENTIFY_VST_CHUNK int32_t(0xABABABAB)
 #define SCORE_DATASTREAM_IDENTIFY_VST_PARAMS int32_t(0x10101010)
+// The plug-in could not be loaded: the state it was saved with, kept as is
+#define SCORE_DATASTREAM_IDENTIFY_VST_BACKUP int32_t(0x0BAC0BAC)
 
 static void saveVstChunkToDatastream(DataStreamInput& stream, const vst::Model& eff)
 {
@@ -784,6 +786,14 @@ static void saveVstChunkToDatastream(DataStreamInput& stream, const vst::Model& 
       stream << arr;
     }
   }
+  else
+  {
+    // Always write a kind: the loader reads one unconditionally, and without
+    // it consumed the delimiter (undo of removing a plug-in that failed to
+    // load asserted in checkDelimiter).
+    stream << SCORE_DATASTREAM_IDENTIFY_VST_BACKUP << eff.m_backup_chunk
+           << eff.m_backup_float_data;
+  }
 }
 
 static void loadVstChunkFromDatastream(DataStreamOutput& stream, vst::Model& eff)
@@ -805,6 +815,33 @@ static void loadVstChunkFromDatastream(DataStreamOutput& stream, vst::Model& eff
           eff.fx->dispatch(effSetChunk, 0, chunk.size(), chunk.data(), 0.f);
         }
       }
+      else
+      {
+        // Same encoding as the JSON "Data" the backup is written back to
+        eff.m_backup_chunk = websocketpp::base64_encode(
+            (const unsigned char*)chunk.data(), chunk.size());
+      }
+    }
+  }
+  else if(kind == SCORE_DATASTREAM_IDENTIFY_VST_BACKUP)
+  {
+    std::string chunk;
+    ossia::float_vector params;
+    stream >> chunk >> params;
+    if(eff.fx)
+    {
+      if(!chunk.empty() && (eff.fx->fx->flags & effFlagsProgramChunks))
+      {
+        auto data = websocketpp::base64_decode(chunk);
+        eff.fx->dispatch(effSetChunk, 0, data.size(), data.data(), 0.f);
+      }
+      for(std::size_t i = 0; i < params.size(); i++)
+        eff.fx->setParameter(i, params[i]);
+    }
+    else
+    {
+      eff.m_backup_chunk = std::move(chunk);
+      eff.m_backup_float_data = std::move(params);
     }
   }
   else if(kind == SCORE_DATASTREAM_IDENTIFY_VST_PARAMS)
@@ -818,6 +855,10 @@ static void loadVstChunkFromDatastream(DataStreamOutput& stream, vst::Model& eff
       {
         eff.fx->setParameter(i, params[i]);
       }
+    }
+    else
+    {
+      eff.m_backup_float_data = std::move(params);
     }
   }
 
