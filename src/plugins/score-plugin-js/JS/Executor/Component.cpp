@@ -91,7 +91,7 @@ Component::Component(
   {
 #if defined(SCORE_HAS_GPU_JS)
     std::shared_ptr<gpu_exec_node> node = ossia::make_node<gpu_exec_node>(
-        *ctx.execState, &process(), ctx.doc.plugin<Gfx::DocumentPlugin>().exec);
+        *ctx.execState, ctx.doc.plugin<Gfx::DocumentPlugin>().exec);
     this->node = node;
 
     m_ossia_process = std::make_shared<ossia::node_process>(node);
@@ -425,18 +425,27 @@ Component::on_gpuScriptChange(const QString& script, Execution::Transaction& com
 
     swap(node->controls, controls);
     auto& [root, script, state] = *source;
-    node->setScript(root, script, std::move(state));
-    if(self)
-    {
-      QMetaObject::invokeMethod(self, [self, weak_node, script_index, id = node->id] {
-        const auto node = weak_node.lock();
-        if(!self || !node || self->node != node || node->script_index != script_index)
-          return;
-        for(auto* outlet : self->process().outlets())
-          if(auto out = qobject_cast<Gfx::TextureOutlet*>(outlet))
-            out->nodeId = id;
-      }, Qt::QueuedConnection);
-    }
+    // This runs on the execution thread, while the UI thread may be removing
+    // the process: build the new GpuNode here, but connect and register it
+    // from the UI thread, and only if the component (hence its process) is
+    // still alive and this is still the latest script.
+    auto box = std::make_shared<std::unique_ptr<score::gfx::Node>>(
+        node->prepareScript(root, script, std::move(state)));
+    QMetaObject::invokeMethod(
+        qApp,
+        [self, weak_node, script_index, box] {
+      const auto exec = std::dynamic_pointer_cast<gpu_exec_node>(weak_node.lock());
+      if(!self || !exec || self->node != exec || exec->script_index != script_index
+         || !*box)
+        return; // dropping the box deletes the unregistered node, here on the UI thread
+      const int32_t id = exec->attachAndRegister(std::move(*box), self->process());
+      self->system().executionQueue.enqueue(
+          [exec, id, script_index] { exec->adoptId(id, script_index); });
+      for(auto* outlet : self->process().outlets())
+        if(auto out = qobject_cast<Gfx::TextureOutlet*>(outlet))
+          out->nodeId = id;
+    },
+        Qt::QueuedConnection);
   });
 
   SCORE_ASSERT(process().inlets().size() == inls.size());
