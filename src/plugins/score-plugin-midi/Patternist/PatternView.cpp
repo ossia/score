@@ -75,6 +75,8 @@ struct Palette
     selectedLane = mix(base, light, 0.06);
     hover = mix(base, light, 0.55);
     selection = skin.Base2.main.brush.color();
+    header = mix(bg, base, 0.45);
+    selectedHeader = mix(header, light, 0.08);
     gap = bg;
   }
   QColor cell[2];
@@ -85,6 +87,8 @@ struct Palette
   QColor selectedLane;
   QColor hover;
   QColor selection;
+  QColor header;
+  QColor selectedHeader;
   QColor gap;
 };
 }
@@ -340,6 +344,10 @@ double View::measureHeader() const noexcept
   fields = std::max(
       fields, small.horizontalAdvance(tr("Random")) + small.horizontalAdvance(tr("Reset"))
                   + 26.);
+  // The lane's steps and rate side by side, at their widest.
+  fields = std::max(
+      fields, small.horizontalAdvance(tr("%1 steps").arg(128))
+                  + small.horizontalAdvance(QStringLiteral("1/64")) + 2. * 8. + 4.);
   const double buttons = 2. * button_w + 2.;
   const double header
       = stackedHeader() ? std::max(text, buttons) : text + buttons + pad;
@@ -349,6 +357,18 @@ double View::measureHeader() const noexcept
 bool View::stackedHeader() const noexcept
 {
   return laneHeight() >= name_h + button_h + 10.;
+}
+
+//! Room for a third row in the header: the lane's own steps and rate.
+bool View::laneValues() const noexcept
+{
+  return m_advanced && laneHeight() >= name_h + 2. * button_h + 16.;
+}
+
+double View::cellHeight() const noexcept
+{
+  const double h = laneHeight();
+  return h - std::clamp(h * 0.12, h > 4. ? 1. : 0., 4.);
 }
 
 double View::gridTop() const noexcept
@@ -424,7 +444,10 @@ QRectF View::nameRect(int lane) const noexcept
   }
   if(stackedHeader())
   {
-    const double top = r.center().y() - (name_h + 4. + button_h) / 2.;
+    // The name and the rows under it, as one block in the lane's card.
+    const double block
+        = name_h + 4. + button_h + (laneValues() ? 4. + button_h : 0.);
+    const double top = r.y() + (cellHeight() - block) / 2.;
     return {pad, top, hw - 2. * pad, name_h};
   }
   const double ch = std::min(r.height(), name_h);
@@ -449,6 +472,14 @@ QRectF View::muteRect(int lane) const noexcept
 QRectF View::soloRect(int lane) const noexcept
 {
   return muteRect(lane).translated(button_w + 2., 0.);
+}
+
+//! The lane's steps (0) or rate (1), under its mute and solo buttons.
+QRectF View::valueRect(int lane, int which) const noexcept
+{
+  const QRectF m = muteRect(lane);
+  const double w = (headerWidth() - 2. * pad - 4.) / 2.;
+  return {pad + which * (w + 4.), m.bottom() + 4., w, button_h};
 }
 
 QRectF View::fieldButtonRect(int i) const noexcept
@@ -480,6 +511,10 @@ int View::buttonAt(QPointF pos) const noexcept
       return mute_button + lane;
     if(soloRect(lane).contains(pos))
       return solo_button + lane;
+    if(laneValues())
+      for(int which : {0, 1})
+        if(valueRect(lane, which).contains(pos))
+          return (which == 0 ? steps_button : rate_button) + lane;
     return -1;
   }
   for(int i = 0; i < int(std::size(allFields)) + 2; i++)
@@ -763,6 +798,21 @@ void View::paintButton(
   painter->drawText(r, Qt::AlignCenter, text);
 }
 
+void View::paintValue(
+    QPainter* painter, QRectF r, const QString& text, bool inherited, int id) const
+{
+  auto& skin = score::Skin::instance();
+  const Palette colors{skin};
+  const bool active = id == m_hoverButton || (m_valueDrag && m_valueDrag->id == id);
+  painter->setPen(Qt::NoPen);
+  painter->setBrush(active ? mix(colors.cell[0], colors.hover, 0.4) : colors.cell[0]);
+  painter->drawRoundedRect(r, 2., 2.);
+  painter->setPen(inherited ? skin.Gray.main.pen1 : skin.Light.main.pen1);
+  painter->drawText(
+      r.adjusted(3., 0., -3., 0.), Qt::AlignCenter,
+      QFontMetricsF{painter->font()}.elidedText(text, Qt::ElideRight, r.width() - 6.));
+}
+
 void View::paintHeader(QPainter* painter, const Pattern& p) const
 {
   auto& skin = score::Skin::instance();
@@ -777,27 +827,45 @@ void View::paintHeader(QPainter* painter, const Pattern& p) const
   if(!m_advanced)
     return;
 
+  // Each lane's header is a card on its row, the start of the lane: same
+  // height, same gaps, lit with it when selected.
+  const Palette colors{skin};
+  const double ch = cellHeight();
   painter->setFont(smallFont());
-  painter->setRenderHint(QPainter::Antialiasing, true);
   for(int lane = 0; lane < int(p.lanes.size()); lane++)
   {
     const Lane& l = p.lanes[lane];
-    if(lane == m_selectedLane)
-    {
-      const QRectF lr = laneRect(lane);
-      painter->fillRect(QRectF{0., lr.y(), 3., lr.height() - 1.}, skin.Base4.main.brush);
-    }
+    const QRectF lr = laneRect(lane);
+    const bool selected = lane == m_selectedLane;
+    painter->fillRect(
+        QRectF{0., lr.y(), hw - 2., ch},
+        selected ? colors.selectedHeader : colors.header);
+    if(selected)
+      painter->fillRect(QRectF{0., lr.y(), 3., ch}, skin.Base4.main.brush);
+
     // Too low to aim at: mute and solo stay in the lane's menu.
     if(!laneButtons())
       continue;
+    painter->setRenderHint(QPainter::Antialiasing, true);
     paintButton(
         painter, muteRect(lane), tr("M"), l.mute, skin.Warn3.main.brush.color(),
         mute_button + lane);
     paintButton(
         painter, soloRect(lane), tr("S"), l.solo, skin.Base2.main.brush.color(),
         solo_button + lane);
+    if(laneValues())
+    {
+      // Dimmed while the lane follows the pattern.
+      const int len = laneLength(p, l), div = laneDivision(p, l);
+      paintValue(
+          painter, valueRect(lane, 0), tr("%1 steps").arg(len), l.length == 0,
+          steps_button + lane);
+      paintValue(
+          painter, valueRect(lane, 1), QStringLiteral("1/%1").arg(div), l.division == 0,
+          rate_button + lane);
+    }
+    painter->setRenderHint(QPainter::Antialiasing, false);
   }
-  painter->setRenderHint(QPainter::Antialiasing, false);
 }
 
 void View::paintField(QPainter* painter, const Pattern& p) const
@@ -813,7 +881,10 @@ void View::paintField(QPainter* painter, const Pattern& p) const
   const Palette colors{skin};
   painter->fillRect(area, skin.Background2.main.brush);
 
-  // The parameters to choose from, beside their bars.
+  // The parameters to choose from, beside their bars, on a card like the
+  // lanes' headers.
+  painter->fillRect(
+      QRectF{0., area.top(), area.left() - 2., area.height()}, colors.header);
   painter->setFont(smallFont());
   painter->setRenderHint(QPainter::Antialiasing, true);
   for(int i = 0; i < int(std::size(allFields)); i++)
@@ -896,6 +967,20 @@ void View::mousePressEvent(QGraphicsSceneMouseEvent* event)
 
   if(m_advanced && event->button() == Qt::LeftButton)
   {
+    if(const int b = buttonAt(event->pos()); b >= steps_button)
+    {
+      // Dragged up or down; it starts from what the lane plays now.
+      const int lane = b % 1000;
+      const Lane& l = p->lanes[lane];
+      const bool steps = b < rate_button;
+      m_valueDrag = ValueDrag{
+          b, lane, steps ? 0 : 1, event->pos().y(),
+          steps ? laneLength(*p, l) : laneDivision(*p, l)};
+      setSelectedLane(lane);
+      laneSelected(lane);
+      update();
+      return;
+    }
     if(const int b = buttonAt(event->pos()); b >= 0)
       return pressButton(b, event->modifiers());
     if(int lane = headerLaneAt(event->pos()); lane >= 0)
@@ -1117,7 +1202,15 @@ void View::setSelectMode(bool b)
 void View::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 {
   event->accept();
-  if(m_editingField)
+  if(m_valueDrag)
+  {
+    const auto& d = *m_valueDrag;
+    const int v = d.start + int(std::round((d.y - event->pos().y()) / 6.));
+    laneValueEdited(
+        d.lane, d.which,
+        std::clamp(v, 1, d.which == 0 ? Pattern::maxLength : Pattern::maxDivision));
+  }
+  else if(m_editingField)
     editFieldAt(event->pos());
   else if(m_fieldDrag != FieldDrag::None)
     dragField(event->pos());
@@ -1208,6 +1301,20 @@ void View::dragField(QPointF pos)
   fieldValuesEdited(m_selectedLane, int(m_field));
 }
 
+//! On a lane's steps or rate: back to following the pattern.
+void View::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event)
+{
+  const int b = buttonAt(event->pos());
+  if(b >= steps_button && event->button() == Qt::LeftButton)
+  {
+    event->accept();
+    laneValueEdited(b % 1000, b < rate_button ? 0 : 1, 0);
+    laneValueEditFinished();
+    return;
+  }
+  LayerView::mouseDoubleClickEvent(event);
+}
+
 void View::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
   event->accept();
@@ -1218,6 +1325,12 @@ void View::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 void View::endPainting()
 {
   m_selecting = false;
+  if(m_valueDrag)
+  {
+    m_valueDrag.reset();
+    laneValueEditFinished();
+    update();
+  }
   if(m_editingField || m_fieldDrag != FieldDrag::None)
   {
     m_editingField = false;

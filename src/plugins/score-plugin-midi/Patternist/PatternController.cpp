@@ -80,6 +80,21 @@ void Controller::attach(View& view)
   });
   connect(&view, &View::fieldEditFinished, this, [this] { m_ctx.dispatcher.commit(); });
 
+  connect(&view, &View::laneValueEdited, this, [this](int lane, int which, int value) {
+    if(!hasPattern())
+      return;
+    auto p = current();
+    if(!ossia::valid_index(lane, p.lanes))
+      return;
+    (which == 0 ? p.lanes[lane].length : p.lanes[lane].division) = value;
+    normalize(p);
+    if(!(p == current()))
+      m_ctx.dispatcher.submit<UpdatePattern>(m_model, m_model.currentPattern(), p);
+  });
+  connect(&view, &View::laneValueEditFinished, this, [this] {
+    m_ctx.dispatcher.commit();
+  });
+
   connect(&view, &View::muteToggled, this, &Controller::toggleMute);
   connect(&view, &View::soloToggled, this, &Controller::toggleSolo);
 }
