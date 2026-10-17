@@ -27,7 +27,7 @@ Executor::Executor(
   node->patterns = element.patterns();
   node->current_pattern = element.currentPattern();
   node->current = 0;
-  node->switch_rate = ossia::convert<float>(element.switchQuantification->value());
+  node->set_switch_rate(ossia::convert<float>(element.switchQuantification->value()));
 
   this->node = node;
   m_ossia_process = std::make_shared<pattern_node_process>(node);
@@ -42,13 +42,12 @@ Executor::Executor(
   element.pace->setupExecution(node->pace_in, this);
   element.repeatTime->setupExecution(node->repeat_time_in, this);
   node->fill = ossia::convert<bool>(element.fill->value());
-  node->density = ossia::convert<float>(element.density->value());
-  node->velocity_scale = ossia::convert<float>(element.velocity->value());
-  node->swing = ossia::convert<float>(element.swing->value());
-  node->ratchet_scale
-      = std::clamp(ossia::convert<float>(element.ratchet->value()), 1.f, 8.f);
-  node->pace_offset = std::clamp(ossia::convert<float>(element.pace->value()), -1.f, 1.f);
-  node->repeat_time_value = ossia::convert<ossia::vec2f>(element.repeatTime->value());
+  node->set_density(ossia::convert<float>(element.density->value()));
+  node->set_velocity_scale(ossia::convert<float>(element.velocity->value()));
+  node->set_swing(ossia::convert<float>(element.swing->value()));
+  node->set_ratchet_scale(ossia::convert<float>(element.ratchet->value()));
+  node->set_pace_offset(ossia::convert<float>(element.pace->value()));
+  node->set_repeat_time(ossia::convert<ossia::vec2f>(element.repeatTime->value()));
 
   con(element, &Patternist::ProcessModel::channelChanged, this, [this, node](int c) {
     in_exec([node, c = to_midi_channel(c)] { node->set_channel(c); });
@@ -62,41 +61,36 @@ Executor::Executor(
       [this, node](const ossia::value& v) {
     in_exec([node, c = ossia::convert<int>(v)] { node->request_pattern(c); });
   });
-  con(*element.switchQuantification, &Process::ControlInlet::valueChanged, this,
-      [this, node](const ossia::value& v) {
-    in_exec([node, r = double(ossia::convert<float>(v))] { node->switch_rate = r; });
-  });
-  con(*element.fill, &Process::ControlInlet::valueChanged, this,
-      [this, node](const ossia::value& v) {
-    in_exec([node, f = ossia::convert<bool>(v)] { node->fill = f; });
-  });
-  con(*element.density, &Process::ControlInlet::valueChanged, this,
-      [this, node](const ossia::value& v) {
-    in_exec([node, d = ossia::convert<float>(v)] { node->density = d; });
-  });
-  con(*element.velocity, &Process::ControlInlet::valueChanged, this,
-      [this, node](const ossia::value& v) {
-    in_exec([node, d = ossia::convert<float>(v)] { node->velocity_scale = d; });
-  });
-  con(*element.swing, &Process::ControlInlet::valueChanged, this,
-      [this, node](const ossia::value& v) {
-    in_exec([node, d = ossia::convert<float>(v)] { node->swing = d; });
-  });
-  con(*element.ratchet, &Process::ControlInlet::valueChanged, this,
-      [this, node](const ossia::value& v) {
-    in_exec([node, r = std::clamp(ossia::convert<float>(v), 1.f, 8.f)] {
-      node->ratchet_scale = r;
+  // Through the node's setters, which hold every value to its range.
+  const auto forward = [this, node](Process::ControlInlet& port, auto set) {
+    con(port, &Process::ControlInlet::valueChanged, this,
+        [this, node, set](const ossia::value& v) {
+      in_exec([node, set, v] { set(*node, v); });
     });
+  };
+  forward(*element.switchQuantification, [](pattern_node& n, const ossia::value& v) {
+    n.set_switch_rate(ossia::convert<float>(v));
   });
-  con(*element.pace, &Process::ControlInlet::valueChanged, this,
-      [this, node](const ossia::value& v) {
-    in_exec([node, p = std::clamp(ossia::convert<float>(v), -1.f, 1.f)] {
-      node->pace_offset = p;
-    });
+  forward(*element.fill, [](pattern_node& n, const ossia::value& v) {
+    n.fill = ossia::convert<bool>(v);
   });
-  con(*element.repeatTime, &Process::ControlInlet::valueChanged, this,
-      [this, node](const ossia::value& v) {
-    in_exec([node, t = ossia::convert<ossia::vec2f>(v)] { node->repeat_time_value = t; });
+  forward(*element.density, [](pattern_node& n, const ossia::value& v) {
+    n.set_density(ossia::convert<float>(v));
+  });
+  forward(*element.velocity, [](pattern_node& n, const ossia::value& v) {
+    n.set_velocity_scale(ossia::convert<float>(v));
+  });
+  forward(*element.swing, [](pattern_node& n, const ossia::value& v) {
+    n.set_swing(ossia::convert<float>(v));
+  });
+  forward(*element.ratchet, [](pattern_node& n, const ossia::value& v) {
+    n.set_ratchet_scale(ossia::convert<float>(v));
+  });
+  forward(*element.pace, [](pattern_node& n, const ossia::value& v) {
+    n.set_pace_offset(ossia::convert<float>(v));
+  });
+  forward(*element.repeatTime, [](pattern_node& n, const ossia::value& v) {
+    n.set_repeat_time(ossia::convert<ossia::vec2f>(v));
   });
 
   // Built here so that the audio thread only has to move it in.
@@ -110,19 +104,21 @@ Executor::Executor(
     });
   });
   con(ctx.doc.execTimer, &QTimer::timeout, this, [&element, node] {
-    // Read while the engine writes them: a step drawn one refresh late is all
-    // a torn read can cost.
-    const auto& pats = node->patterns;
-    const int cur = node->current_pattern;
-    const int count = (cur >= 0 && cur < int(pats.size()))
-                          ? std::min<int>(pats[cur].lanes.size(), pattern_node::max_lanes)
-                          : 0;
+    const auto& shown = node->shown;
+    const int count = std::clamp(
+        shown.lane_count.load(std::memory_order_relaxed), 0, pattern_node::max_lanes);
     std::vector<int64_t> steps(count);
     for(int i = 0; i < count; i++)
-      steps[i] = node->lanes[i].last;
-    element.setExecSteps(std::move(steps));
-    element.execPosition(node->last);
-    element.execPattern(node->current_pattern, node->pending_pattern);
+      steps[i] = shown.lanes[i].load(std::memory_order_relaxed);
+    // Only when something moved: every change repaints the layer.
+    if(steps != element.execSteps())
+    {
+      element.setExecSteps(std::move(steps));
+      element.execStepsChanged();
+    }
+    element.execPattern(
+        shown.pattern.load(std::memory_order_relaxed),
+        shown.pending.load(std::memory_order_relaxed));
   });
 }
 
@@ -130,7 +126,7 @@ void Executor::stop()
 {
   ProcessComponent::stop();
   this->process().setExecSteps({});
-  this->process().execPosition(-1);
+  this->process().execStepsChanged();
   this->process().execPattern(-1, -1);
 }
 Executor::~Executor() { }

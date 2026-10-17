@@ -110,10 +110,7 @@ View::View(const Patternist::ProcessModel& model, QGraphicsItem* parent)
   });
   con(model, &Patternist::ProcessModel::laneLabelsChanged, this,
       [this] { updateLanes(); });
-  con(model, &Patternist::ProcessModel::execPosition, this, [this](int x) {
-    m_execPosition = x;
-    update();
-  });
+  con(model, &Patternist::ProcessModel::execStepsChanged, this, [this] { update(); });
   con(model, &Patternist::ProcessModel::execPattern, this, [this](int cur, int next) {
     if(cur != m_execPattern || next != m_pendingPattern)
     {
