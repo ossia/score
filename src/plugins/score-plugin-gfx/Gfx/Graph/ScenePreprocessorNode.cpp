@@ -978,6 +978,84 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
     m_pendingGpuCopies.clear();
     m_lastGpuCopiesFrame = -1;
     m_cachedMeshFingerprint.clear();
+
+    // The published geometry also carries textures the departing producer
+    // owns: dynamic material textures (an upstream node's render target,
+    // custom-pbr.score's PBR Mesh) and scene-injected ones are passed through
+    // by handle, not copied into the registry's arrays. The rebuild that drops
+    // them only reaches the consumers in the next frame's runInitialPasses,
+    // after their update() already bound this frame's SRBs: they would draw
+    // once with the freed texture. Republish now, keeping only the textures
+    // the registry owns; consumers fall back to their empty texture until the
+    // rebuild.
+    stripBorrowedTexturesAndRepublish(renderer);
+  }
+
+  void stripBorrowedTexturesAndRepublish(RenderList& renderer)
+  {
+    if(!m_outputSpec.meshes)
+      return;
+    ossia::small_vector<void*, 8> owned;
+    if(m_registry)
+      for(const auto& b : m_registry->texturePool().buckets)
+        if(b.array)
+          owned.push_back(b.array);
+
+    auto fresh = std::make_shared<ossia::mesh_list>(*m_outputSpec.meshes);
+    bool changed = false;
+    for(auto& g : fresh->meshes)
+    {
+      const auto n = g.auxiliary_textures.size();
+      g.auxiliary_textures.erase(
+          std::remove_if(
+              g.auxiliary_textures.begin(), g.auxiliary_textures.end(),
+              [&](const ossia::geometry::auxiliary_texture& t) {
+                return !ossia::contains(owned, t.native_handle);
+              }),
+          g.auxiliary_textures.end());
+      changed |= g.auxiliary_textures.size() != n;
+    }
+    if(!changed)
+      return;
+    fresh->dirty_index = m_outputSpec.meshes->dirty_index + 1;
+    m_outputSpec.meshes = std::move(fresh);
+
+    for(auto* out : m_node.output)
+      for(auto* e : out->edges)
+        if(e)
+          publishTo(renderer, *e);
+  }
+
+  // Hands m_outputSpec to the renderer of the edge's sink port.
+  void publishTo(RenderList& renderer, Edge& edge)
+  {
+    auto* src = edge.source;
+    const int src_port_idx = src && src->node
+        ? int(std::find(src->node->output.begin(), src->node->output.end(), src)
+              - src->node->output.begin())
+        : -1;
+
+    // Only the Geometry output (port 0) pushes a geometry_spec. It is the
+    // only output port; the guard keeps that true if more are added.
+    if(src_port_idx != 0)
+      return;
+    if(!m_outputSpec.meshes)
+      return;
+
+    auto* sink = edge.sink;
+    if(!sink || !sink->node)
+      return;
+
+    auto rn_it = sink->node->renderedNodes.find(&renderer);
+    if(rn_it == sink->node->renderedNodes.end())
+      return;
+
+    auto it = std::find(sink->node->input.begin(), sink->node->input.end(), sink);
+    if(it == sink->node->input.end())
+      return;
+
+    int port_idx = (int)(it - sink->node->input.begin());
+    rn_it->second->process(port_idx, m_outputSpec, edge.source);
   }
 
   void releaseState(RenderList& renderer) override
@@ -6120,33 +6198,7 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
       m_lastSnapshotFrame = renderer.frame;
     }
 
-    auto* src = edge.source;
-    const int src_port_idx = src && src->node
-        ? int(std::find(src->node->output.begin(), src->node->output.end(), src)
-              - src->node->output.begin())
-        : -1;
-
-    // Only the Geometry output (port 0) pushes a geometry_spec. It is the
-    // only output port; the guard keeps that true if more are added.
-    if(src_port_idx != 0)
-      return;
-    if(!m_outputSpec.meshes)
-      return;
-
-    auto* sink = edge.sink;
-    if(!sink || !sink->node)
-      return;
-
-    auto rn_it = sink->node->renderedNodes.find(&renderer);
-    if(rn_it == sink->node->renderedNodes.end())
-      return;
-
-    auto it = std::find(sink->node->input.begin(), sink->node->input.end(), sink);
-    if(it == sink->node->input.end())
-      return;
-
-    int port_idx = (int)(it - sink->node->input.begin());
-    rn_it->second->process(port_idx, m_outputSpec, edge.source);
+    publishTo(renderer, edge);
   }
 
   void runRenderPass(RenderList&, QRhiCommandBuffer&, Edge&) override { }
