@@ -1,6 +1,7 @@
 #include "PatternPresenter.hpp"
 
 #include <Process/Dataflow/NodeItem.hpp>
+#include <Process/Focus/FocusDispatcher.hpp>
 
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/tools/Bind.hpp>
@@ -29,6 +30,11 @@ Presenter::Presenter(
       qobject_cast<Process::NodeItem*>(parent) ? View::Mode::Fit : View::Mode::Timeline);
 
   m_controller->attach(*m_view);
+  // The grid takes every click, so nothing else would focus the layer, and the
+  // layer menu only opens on the focused one.
+  connect(m_view, &View::pressed, this, [this] {
+    m_context.context.focusDispatcher.focus(this);
+  });
   connect(m_view, &View::dropReceived, this, &Presenter::on_drop);
 
   auto grid = new TimeGridWatcher{layer, this};
