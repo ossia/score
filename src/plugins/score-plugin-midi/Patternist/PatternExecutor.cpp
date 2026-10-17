@@ -9,6 +9,7 @@
 
 #include <ossia/network/value/value_conversion.hpp>
 
+#include <QPointer>
 #include <QTimer>
 
 #include <Patternist/PatternNode.hpp>
@@ -62,9 +63,12 @@ Executor::Executor(
       std::swap(node->patterns, p);
     });
   });
-  con(ctx.doc.execTimer, &QTimer::timeout, this, [&element, node] {
-    int c = node->last;
-    element.execPosition(c);
+  // The process can be deleted before this component goes away (removing it
+  // while playing): the timer must not reach a dead model in between.
+  con(ctx.doc.execTimer, &QTimer::timeout, this,
+      [element = QPointer{&element}, node] {
+    if(element)
+      element->execPosition(int(node->last));
   });
 }
 
