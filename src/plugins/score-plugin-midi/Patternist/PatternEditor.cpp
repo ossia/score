@@ -99,7 +99,7 @@ Editor::Editor(ProcessModel& model, const score::DocumentContext& ctx, QWidget* 
     connect(
         dup, &QToolButton::clicked, this, [this] { m_controller->duplicatePattern(); });
     row->addWidget(dup);
-    m_removePattern = toolButton(QStringLiteral("−"), tr("Remove the pattern"), this);
+    m_removePattern = toolButton(QStringLiteral("-"), tr("Remove the pattern"), this);
     connect(m_removePattern, &QToolButton::clicked, this, [this] {
       m_controller->removePattern();
     });
@@ -119,9 +119,11 @@ Editor::Editor(ProcessModel& model, const score::DocumentContext& ctx, QWidget* 
     };
     m_select = add(
         tr("Select"),
-        tr("Drag over steps to select them, also with Ctrl held\n"
-           "Ctrl+C, Ctrl+X: copy, cut · Ctrl+V: paste on the step under the mouse\n"
-           "Delete: clear · Escape: deselect"),
+        tr("Drag over steps to select them, or hold Ctrl\n"
+           "Ctrl+C, Ctrl+X: copy, cut\n"
+           "Ctrl+V: paste on the step under the mouse\n"
+           "Delete: clear\n"
+           "Escape: deselect"),
         [this](bool on) { m_view->setSelectMode(on); });
     m_select->setCheckable(true);
     row->addSpacing(12);
