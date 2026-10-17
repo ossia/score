@@ -55,6 +55,9 @@ public:
   void clearSelection();
   void selectAll();
   void setSelectMode(bool b);
+  //! In the editor: the lanes as concentric rings, each its own loop.
+  void setRings(bool b);
+  bool rings() const noexcept { return m_rings; }
 
   //! Where copied steps go: the lane under the mouse, or the selection's
   //! first, or the selected lane; and in it and the lanes below, the step at
@@ -117,6 +120,17 @@ private:
   const QFont& smallFont() const;
   bool stackedHeader() const noexcept;
   bool laneValues() const noexcept;
+  bool ringsMode() const noexcept;
+  struct Ring
+  {
+    double inner{}, outer{};
+  };
+  QRectF ringArea() const noexcept;
+  QPointF ringCenter() const noexcept;
+  Ring ring(int lane) const noexcept;
+  std::pair<double, double> slotTurns(const StepSlot& sl) const noexcept;
+  Cell ringCellAt(QPointF pos) const noexcept;
+  void paintRings(QPainter*, const Pattern&) const;
   double cellHeight() const noexcept;
   QRectF valueRect(int lane, int which) const noexcept;
   void paintValue(
@@ -224,6 +238,7 @@ private:
   QPointF m_selectAnchor;
   bool m_selecting{};
   bool m_selectMode{};
+  bool m_rings{};
   //! What the press started painting, until the release.
   std::optional<Note> m_painting;
   Cell m_lastPainted;

@@ -36,6 +36,9 @@ constexpr double button_h = 18;
 constexpr double min_button_h = 12;
 //! The editor scrolls rather than make the lanes lower than this.
 constexpr double min_lane_height = 20;
+//! With rings: the rows of the lane list, and the room for step numbers.
+constexpr double ring_row_height = 30;
+constexpr double ring_numbers = 16;
 constexpr double name_h = 20;
 constexpr double numbers_height = 18;
 //! Room between the header's edge and what it holds.
@@ -248,6 +251,18 @@ const std::vector<StepSlot>& View::slots(int lane) const
           m_slots.push_back(timelineSlots(
               laneLength(*p, l), laneDivision(*p, l), m_grid, m_zoom, width()));
       }
+      else if(ringsMode())
+      {
+        // Each ring is its own loop; the parameter bars spread its steps.
+        const auto sig = signatureAt(m_grid, m_grid.playStart);
+        for(const Lane& l : p->lanes)
+        {
+          const int len = laneLength(*p, l), div = laneDivision(*p, l);
+          m_slots.push_back(fitLaneSlots(
+              len, div, sig, 4. * len / std::max(1, div), headerWidth(),
+              width() - margin));
+        }
+      }
       else
       {
         auto layout = fitLayout(
@@ -450,7 +465,91 @@ double View::laneHeight() const noexcept
   auto p = pattern();
   if(!p || p->lanes.empty())
     return 0.;
-  return std::max(0., gridBottom() - gridTop()) / p->lanes.size();
+  const double h = std::max(0., gridBottom() - gridTop()) / p->lanes.size();
+  // With rings, the headers are a list of rows: as tall as a name and its
+  // buttons, no taller.
+  return ringsMode() ? std::min(h, ring_row_height) : h;
+}
+
+bool View::ringsMode() const noexcept
+{
+  return m_rings && m_advanced && m_mode == Mode::Fit;
+}
+
+void View::setRings(bool b)
+{
+  if(b != m_rings)
+  {
+    m_rings = b;
+    m_selectionArea = {};
+    invalidateSlots();
+    layoutLanes();
+    update();
+  }
+}
+
+QRectF View::ringArea() const noexcept
+{
+  const double x = headerWidth() + pad;
+  return {x, gridTop(), std::max(0., width() - margin - x), std::max(0., gridBottom() - gridTop())};
+}
+
+QPointF View::ringCenter() const noexcept
+{
+  return ringArea().center();
+}
+
+//! Lane 0 outermost, each ring as thick as the others but the selected one,
+//! twice as thick; the step numbers of the selected lane go around them all.
+View::Ring View::ring(int lane) const noexcept
+{
+  auto p = pattern();
+  const int lanes = p ? int(p->lanes.size()) : 0;
+  const QRectF area = ringArea();
+  const double outer = std::max(0., std::min(area.width(), area.height()) / 2. - ring_numbers);
+  const double hole = std::max(outer * 0.3, std::min(outer, 36.));
+  const double unit = (outer - hole) / std::max(1, lanes + 1);
+  double r = outer;
+  for(int i = 0; i < lanes; i++)
+  {
+    const double t = unit * (i == m_selectedLane ? 2. : 1.);
+    if(i == lane)
+      return {r - t + (t > 6. ? 1.5 : 0.), r};
+    r -= t;
+  }
+  return {hole, hole};
+}
+
+//! Where a slot of a lane falls on its ring, in turns from the top, clockwise.
+std::pair<double, double> View::slotTurns(const StepSlot& sl) const noexcept
+{
+  const double x0 = headerWidth(), w = std::max(1., width() - margin - x0);
+  return {(sl.x0 - x0) / w, (sl.x1 - x0) / w};
+}
+
+View::Cell View::ringCellAt(QPointF pos) const noexcept
+{
+  auto p = pattern();
+  if(!p)
+    return {};
+  const QPointF d = pos - ringCenter();
+  const double radius = std::hypot(d.x(), d.y());
+  double turn = std::atan2(d.x(), -d.y()) / (2. * M_PI);
+  if(turn < 0.)
+    turn += 1.;
+  for(int lane = 0; lane < int(p->lanes.size()); lane++)
+  {
+    const Ring r = ring(lane);
+    if(radius < r.inner || radius >= r.outer)
+      continue;
+    for(const StepSlot& sl : slots(lane))
+    {
+      const auto [a, b] = slotTurns(sl);
+      if(turn >= a && turn < b)
+        return {lane, sl.step};
+    }
+  }
+  return {};
 }
 
 QRectF View::laneRect(int lane) const noexcept
@@ -612,6 +711,8 @@ View::Cell View::cellAt(QPointF pos) const noexcept
   auto p = pattern();
   if(!p || !canEdit())
     return {};
+  if(ringsMode())
+    return pos.x() >= headerWidth() && pos.y() < gridBottom() ? ringCellAt(pos) : Cell{};
   const double h = laneHeight();
   if(h <= 0. || pos.y() >= gridBottom())
     return {};
@@ -654,7 +755,10 @@ void View::paint_impl(QPainter* painter) const
   if(!p)
     return;
 
-  paintCells(painter, *p);
+  if(ringsMode())
+    paintRings(painter, *p);
+  else
+    paintCells(painter, *p);
   paintHeader(painter, *p);
   if(m_advanced)
     paintField(painter, *p);
@@ -822,6 +926,170 @@ void View::paintButton(
   painter->drawRoundedRect(r, 2., 2.);
   painter->setPen(on || hovered ? skin.Dark.main.pen1 : skin.Gray.lighter.pen1);
   painter->drawText(r, Qt::AlignCenter, text);
+}
+
+//! An annular sector from turn a to turn b (clockwise from the top), between
+//! two radii.
+static QPainterPath sector(QPointF c, double inner, double outer, double a, double b)
+{
+  const QRectF ro{c.x() - outer, c.y() - outer, 2. * outer, 2. * outer};
+  const QRectF ri{c.x() - inner, c.y() - inner, 2. * inner, 2. * inner};
+  const double start = 90. - 360. * a, span = -360. * (b - a);
+  QPainterPath path;
+  path.arcMoveTo(ro, start);
+  path.arcTo(ro, start, span);
+  path.arcTo(ri, start + span, -span);
+  path.closeSubpath();
+  return path;
+}
+
+void View::paintRings(QPainter* painter, const Pattern& p) const
+{
+  auto& skin = score::Skin::instance();
+  const auto& colors = Palette::instance();
+  const QPointF c = ringCenter();
+  const bool solo = anySolo(p);
+  painter->setRenderHint(QPainter::Antialiasing, true);
+  painter->setPen(Qt::NoPen);
+
+  for(int lane = 0; lane < int(p.lanes.size()); lane++)
+  {
+    const Lane& l = p.lanes[lane];
+    const Ring r = ring(lane);
+    const double thick = r.outer - r.inner;
+    if(thick <= 0.5)
+      continue;
+    const bool selected = lane == m_selectedLane;
+    const bool audible = !(l.mute || (solo && !l.solo));
+    // The selected ring stands out: the others step back.
+    const double laneOpacity = (audible ? 1. : 0.35) * (selected ? 1. : 0.7);
+    const auto& s = slots(lane);
+    const int playing = playingSlot(lane);
+    const double mid = (r.inner + r.outer) / 2.;
+    // A pixel of gap between cells, wider where a bar starts.
+    const double gap = 1. / (2. * M_PI * mid);
+
+    for(int i = 0; i < int(s.size()); i++)
+    {
+      const StepSlot& sl = s[i];
+      auto [a, b] = slotTurns(sl);
+      a += (sl.barStart && i > 0 ? 2.5 : 0.5) * gap;
+      b -= 0.5 * gap;
+      if(b <= a)
+        continue;
+      const bool isPlaying = i == playing;
+      painter->setOpacity(laneOpacity);
+      painter->fillPath(
+          sector(c, r.inner, r.outer, a, b),
+          isPlaying ? colors.playingCell : colors.cell[sl.shade]);
+
+      const Note n = writtenNote(p, l, sl.step);
+      if(n == Note::Rest)
+        continue;
+      const StepParams& sp = stepParams(l, sl.step);
+      const QColor& noteColor = isPlaying ? colors.playingNote : colors.note;
+      painter->setOpacity(laneOpacity * (0.3 + 0.7 * sp.chance));
+      // Outward is velocity, along the ring the gate, shifted by the timing.
+      const double outer = r.inner + thick * (0.3 + 0.7 * sp.velocity);
+      if(n == Note::Legato)
+      {
+        painter->fillPath(sector(c, r.inner, r.outer, a - 1.5 * gap, b), noteColor);
+        continue;
+      }
+      const double w = b - a;
+      const double na = std::clamp(a + sp.offset * w, a, b);
+      const double nb = std::clamp(na + w * std::max(0.25f, sp.gate), a, b);
+      painter->fillPath(sector(c, r.inner, outer, na, nb), noteColor);
+      if(sp.ratchet > 1 && (nb - na) * 2. * M_PI * mid >= 2. * sp.ratchet)
+      {
+        const double e = std::exp2(-2. * sp.pace);
+        painter->setOpacity(laneOpacity);
+        for(int k = 1; k < sp.ratchet; k++)
+        {
+          const double t = na + std::pow(double(k) / sp.ratchet, e) * (nb - na);
+          painter->fillPath(sector(c, r.inner, outer, t - 0.5 * gap, t + 0.5 * gap), colors.gap);
+        }
+      }
+      if(sp.condition != Condition::Always && thick >= 6.)
+      {
+        const double t = (na + nb) / 2. * 2. * M_PI;
+        const QPointF dot{
+            c.x() + std::sin(t) * (r.outer - 2.5), c.y() - std::cos(t) * (r.outer - 2.5)};
+        painter->setOpacity(laneOpacity);
+        painter->setBrush(colors.hover);
+        painter->drawEllipse(dot, 1.8, 1.8);
+        painter->setBrush(Qt::NoBrush);
+      }
+    }
+  }
+  painter->setOpacity(1.);
+
+  // The selected lane: an outline around its ring, its step numbers around
+  // all of them, its name in the middle.
+  if(ossia::valid_index(m_selectedLane, p.lanes))
+  {
+    const Lane& l = p.lanes[m_selectedLane];
+    const Ring r = ring(m_selectedLane);
+    painter->setPen(QPen{colors.hover, 1.5});
+    painter->setBrush(Qt::NoBrush);
+    painter->drawEllipse(c, r.outer + 1., r.outer + 1.);
+    painter->drawEllipse(c, r.inner - 1., r.inner - 1.);
+
+    const double outermost = ring(0).outer;
+    painter->setFont(smallFont());
+    const QFontMetricsF fm{smallFont()};
+    const auto& s = slots(m_selectedLane);
+    const double perStep = 2. * M_PI * outermost / std::max<std::size_t>(1, s.size());
+    for(const StepSlot& sl : s)
+    {
+      // Every step when there is room, the beats otherwise.
+      if(!(perStep >= 18. || sl.beatStart))
+        continue;
+      const auto [a, b] = slotTurns(sl);
+      const double t = (a + b) / 2. * 2. * M_PI;
+      const double rr = outermost + ring_numbers / 2. + 1.;
+      const QPointF at{c.x() + std::sin(t) * rr, c.y() - std::cos(t) * rr};
+      painter->setPen(skin.Gray.lighter.pen1);
+      painter->drawText(
+          QRectF{at.x() - 14., at.y() - fm.height() / 2., 28., fm.height()},
+          Qt::AlignCenter, QString::number(sl.step + 1));
+    }
+
+    const double hole = std::max(0., ring(int(p.lanes.size())).inner - 4.);
+    if(hole > 20.)
+    {
+      int hits = 0;
+      const int len = laneLength(p, l);
+      for(int i = 0; i < len; i++)
+        hits += writtenNote(p, l, i) != Note::Rest;
+      const QRectF box{c.x() - hole, c.y() - hole, 2. * hole, 2. * hole};
+      painter->setPen(skin.Light.main.pen1);
+      painter->setFont(nameFont());
+      painter->drawText(
+          box.adjusted(0., 0., 0., -hole * 0.35), Qt::AlignCenter,
+          QFontMetricsF{nameFont()}.elidedText(
+              laneLabel(l.note, m_model.laneLabels()), Qt::ElideRight, box.width() - 8.));
+      painter->setFont(smallFont());
+      painter->setPen(skin.Gray.lighter.pen1);
+      painter->drawText(
+          box.adjusted(0., hole * 0.35, 0., 0.), Qt::AlignCenter,
+          tr("%1 hits · %2 steps · 1/%3").arg(hits).arg(len).arg(laneDivision(p, l)));
+    }
+  }
+
+  if(m_hover.lane >= 0)
+  {
+    const Ring r = ring(m_hover.lane);
+    painter->setPen(QPen{colors.hover, 1.});
+    painter->setBrush(Qt::NoBrush);
+    for(const StepSlot& sl : slots(m_hover.lane))
+      if(sl.step == m_hover.step)
+      {
+        const auto [a, b] = slotTurns(sl);
+        painter->drawPath(sector(c, r.inner + 0.5, r.outer - 0.5, a, b));
+      }
+  }
+  painter->setRenderHint(QPainter::Antialiasing, false);
 }
 
 void View::paintValue(
@@ -1047,7 +1315,7 @@ void View::mousePressEvent(QGraphicsSceneMouseEvent* event)
   }
 
   // Selecting: in the select mode, or with Ctrl.
-  if(m_advanced && event->button() == Qt::LeftButton
+  if(m_advanced && !ringsMode() && event->button() == Qt::LeftButton
      && (m_selectMode || (event->modifiers() & Qt::ControlModifier)))
   {
     m_selectAnchor = event->pos();

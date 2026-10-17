@@ -7,6 +7,7 @@
 #include <ossia/detail/math.hpp>
 
 #include <QApplication>
+#include <QButtonGroup>
 #include <QClipboard>
 #include <QComboBox>
 #include <QFormLayout>
@@ -169,6 +170,19 @@ Editor::Editor(ProcessModel& model, const score::DocumentContext& ctx, QWidget* 
     add(tr("Add lane"), tr("Add a lane, a copy of the last one"),
         [this] { m_controller->addLane(); });
     row->addSpacing(12);
+
+    auto layout = new QButtonGroup{this};
+    auto grid = add(
+        tr("Grid"), tr("The lanes as rows, lined up in time"), [this] { setRings(false); });
+    auto rings = add(
+        tr("Rings"), tr("The lanes as concentric rings, each its own loop"),
+        [this] { setRings(true); });
+    for(auto b : {grid, rings})
+    {
+      b->setCheckable(true);
+      layout->addButton(b);
+    }
+    grid->setChecked(true);
 
     row->addStretch(1);
 
@@ -408,6 +422,19 @@ void Editor::showStepMenu(int lane, int step, QPoint screen)
     });
   });
   menu.exec(screen);
+}
+
+void Editor::setRings(bool b)
+{
+  // No step selection on rings.
+  m_select->setEnabled(!b);
+  if(b)
+  {
+    m_select->setChecked(false);
+    m_view->setSelectMode(false);
+    m_view->clearSelection();
+  }
+  m_view->setRings(b);
 }
 
 void Editor::copy()
