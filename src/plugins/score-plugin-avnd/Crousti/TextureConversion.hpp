@@ -1580,7 +1580,10 @@ void loadInputTexture(QRhi& rhi, auto& m_readbacks, Tex& cpu_tex, int k)
 
   if(buf.size() < bytesize)
   {
+    // No usable frame (the readback is smaller than the texture, e.g. while an
+    // edit resizes its source): processors must not read this one.
     cpu_tex.bytes = nullptr;
+    cpu_tex.changed = false;
   }
   else
   {
