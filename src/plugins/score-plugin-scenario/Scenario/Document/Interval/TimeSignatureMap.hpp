@@ -16,7 +16,7 @@ namespace Scenario
 struct TimeSignatureMap;
 }
 template <>
-struct TSerializer<DataStream, Scenario::TimeSignatureMap>;
+struct SCORE_PLUGIN_SCENARIO_EXPORT TSerializer<DataStream, Scenario::TimeSignatureMap>;
 template <>
 struct TSerializer<JSONObject, Scenario::TimeSignatureMap>;
 namespace Scenario
@@ -66,7 +66,7 @@ struct is_custom_serialized<Scenario::TimeSignatureMap> : std::true_type
 };
 
 template <>
-struct TSerializer<DataStream, Scenario::TimeSignatureMap>
+struct SCORE_PLUGIN_SCENARIO_EXPORT TSerializer<DataStream, Scenario::TimeSignatureMap>
 {
   static void
   readFrom(DataStream::Serializer& s, const Scenario::TimeSignatureMap& path);
