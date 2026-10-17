@@ -73,11 +73,11 @@ public:
     pending_pattern = (idx == current_pattern) ? -1 : idx;
   }
 
-  bool legato(int note) const noexcept
+  bool legato(int note, bool solo) const noexcept
   {
     for(const Lane& lane : pattern().lanes)
       if(lane.note == note && ossia::valid_index(current, lane.pattern))
-        return lane.pattern[current] == Note::Legato;
+        return audibleNote(lane, current, solo) == Note::Legato;
     return false;
   }
 
@@ -247,11 +247,12 @@ public:
       current = (current + pat.length - 1) % pat.length;
     last = current;
     auto& mess = out.target<ossia::midi_port>()->messages;
+    const bool solo = anySolo(pat);
 
     for(auto it = in_flight.begin(); it != in_flight.end();)
     {
       uint8_t note = *it;
-      if(!legato(note))
+      if(!legato(note, solo))
       {
         mess.push_back(libremidi::from_midi1::note_off(in_flight_channel, note, 0));
         mess.back().timestamp = date;
@@ -269,7 +270,7 @@ public:
     {
       if(lane.note <= 127 && ossia::valid_index(current, lane.pattern))
       {
-        switch(lane.pattern[current])
+        switch(audibleNote(lane, current, solo))
         {
           case Note::Note:
             mess.push_back(libremidi::from_midi1::note_on(channel, lane.note, 100));
@@ -301,16 +302,17 @@ public:
     {
       if(ossia::valid_index(current, lane.pattern))
       {
+        const Note n = audibleNote(lane, current, solo);
         if(lane.note == 255)
         {
-          if(lane.pattern[current] != Note::Rest)
+          if(n != Note::Rest)
             accent_out->write_value(1., date);
           else
             accent_out->write_value(0., date);
         }
         else if(lane.note == 254)
         {
-          if(lane.pattern[current] != Note::Rest)
+          if(n != Note::Rest)
             slide_out->write_value(1., date);
           else
             slide_out->write_value(0., date);

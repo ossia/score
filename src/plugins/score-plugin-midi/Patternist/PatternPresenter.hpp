@@ -1,15 +1,18 @@
 #pragma once
 #include <Process/LayerPresenter.hpp>
 
-#include <score/command/Dispatchers/SingleOngoingCommandDispatcher.hpp>
-
 #include <Patternist/PatternModel.hpp>
 
 #include <nano_observer.hpp>
 
+namespace Scenario
+{
+class IntervalModel;
+}
 namespace Patternist
 {
 class View;
+class Controller;
 class Presenter final
     : public Process::LayerPresenter
     , public Nano::Observer
@@ -30,8 +33,18 @@ public:
 
   void parentGeometryChanged() override;
 
+  void fillContextMenu(
+      QMenu&, QPoint pos, QPointF scenepos,
+      const Process::LayerContextMenuManager&) override;
+
 private:
   void on_drop(const QPointF& pos, const QMimeData& md);
+  void updateTimeGrid();
+
   View* m_view{};
+  Controller* m_controller{};
+  const Scenario::IntervalModel* m_metrics{};
+  QMetaObject::Connection m_metricsSignatures;
+  QMetaObject::Connection m_metricsHasSignature;
 };
 }
