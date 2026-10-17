@@ -896,6 +896,39 @@ TEST_CASE("patternist: ratchets, gates and offsets are timed in the step", "[mid
       offs += m.status == note_off;
     CHECK(offs == 4);
   }
+  SECTION("ratchet on a tied step")
+  {
+    auto& l = f.node.patterns[0].lanes[0];
+    l.pattern = {Note::Note, Note::Legato, Note::Rest, Note::Rest};
+    l.params[1].ratchet = 3;
+    musical_tick(f, 0, 1000);
+    const auto msgs = sent(f);
+    std::vector<int64_t> on, off;
+    for(auto& m : msgs)
+      (m.status == note_on ? on : off).push_back(m.timestamp);
+    // The tie carries the first hit, the other two strike again.
+    REQUIRE(on.size() == 3);
+    CHECK(on[0] == 0);
+    CHECK(std::abs(on[1] - 333) <= 1);
+    CHECK(std::abs(on[2] - 417) <= 1);
+    REQUIRE(off.size() == 3);
+    CHECK(std::abs(off[0] - 333) <= 1);
+    CHECK(std::abs(off[1] - 417) <= 1);
+    CHECK(std::abs(off[2] - 500) <= 1);
+  }
+  SECTION("ratchet on a tied step that changes pitch")
+  {
+    auto& l = f.node.patterns[0].lanes[0];
+    l.pattern = {Note::Note, Note::Legato, Note::Rest, Note::Rest};
+    l.params[1].ratchet = 2;
+    l.params[1].pitch = 3;
+    musical_tick(f, 0, 1000);
+    const auto on = ons(sent(f));
+    REQUIRE(on.size() == 3);
+    CHECK(on[1].timestamp == 250);
+    CHECK(on[1].note == 39);
+    CHECK(on[2].timestamp == 375);
+  }
   SECTION("gate")
   {
     p.gate = 0.5f;
