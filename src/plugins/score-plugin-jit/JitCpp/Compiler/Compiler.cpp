@@ -466,13 +466,16 @@ static std::unique_ptr<llvm::orc::LLJIT> jitBuilder(JitCompiler& self)
 
 static std::unique_ptr<llvm::jitlink::JITLinkMemoryManager> makeMemoryManager()
 {
-#if defined(_WIN32) && !defined(_MSC_VER) && LLVM_VERSION_MAJOR >= 22
+#if ((defined(_WIN32) && !defined(_MSC_VER)) || defined(__APPLE__)) \
+    && LLVM_VERSION_MAJOR >= 22
   // Windows x64 SEH unwind tables (.pdata/.xdata) reference code and unwind data
-  // with 32-bit image-relative RVAs (target - __ImageBase). The default
-  // InProcessMemoryManager hands out scattered mmap regions, so for a real add-on
-  // the header and the code segments land >2GB apart and those RVAs overflow
-  // ("relocation target out of range of Pointer32 fixup"). Reserve one large
-  // contiguous slab instead, so __ImageBase + every segment stay within RVA range.
+  // with 32-bit image-relative RVAs (target - __ImageBase), and MachO's
+  // __unwind_info encodes function offsets from the image header in 32 bits. The
+  // default InProcessMemoryManager hands out scattered mmap regions, so for a real
+  // add-on the header and the code segments land >2GB apart and those offsets
+  // overflow ("relocation target out of range of Pointer32 fixup", "__unwind_info,
+  // delta to end of functions ... exceeds 32 bits"). Reserve one large contiguous
+  // slab instead, so the header and every segment stay within range.
   constexpr size_t SlabSize = size_t{1} << 30; // 1 GiB reservation granularity
   auto m = llvm::orc::MapperJITLinkMemoryManager::CreateWithMapper<
       llvm::orc::InProcessMemoryMapper>(SlabSize);

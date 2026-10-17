@@ -111,6 +111,49 @@ if(TARGET score_plugin_jit OR TARGET score_plugin_faust)
   set_target_properties(${APPNAME} PROPERTIES ENABLE_EXPORTS 1)
 endif()
 
+if(MINGW AND CMAKE_NM AND (TARGET score_plugin_jit OR TARGET score_plugin_faust))
+  set(_score_export_archives)
+  foreach(_lib avcodec avdevice avfilter avformat avutil swresample swscale)
+    if(TARGET ${_lib})
+      get_target_property(_lib_location ${_lib} IMPORTED_LOCATION)
+      if(_lib_location MATCHES "\\.a$" AND NOT _lib_location MATCHES "\\.dll\\.a$")
+        list(APPEND _score_export_archives "${_lib_location}")
+      endif()
+    endif()
+  endforeach()
+  set(_score_export_targets)
+  if(TARGET rubberband)
+    get_target_property(_rubberband_type rubberband TYPE)
+    if(_rubberband_type STREQUAL "STATIC_LIBRARY")
+      list(APPEND _score_export_archives "$<TARGET_FILE:rubberband>")
+      list(APPEND _score_export_targets rubberband)
+    endif()
+  endif()
+
+  if(_score_export_archives)
+    set(_score_exports_def "${CMAKE_CURRENT_BINARY_DIR}/score-exports.def")
+    string(JOIN "|" _score_export_archives_arg ${_score_export_archives})
+    add_custom_command(
+      OUTPUT "${_score_exports_def}"
+      COMMAND "${CMAKE_COMMAND}"
+        "-DNM=${CMAKE_NM}"
+        "-DOUTPUT=${_score_exports_def}"
+        "-DARCHIVES=${_score_export_archives_arg}"
+        "-DPATTERN=^(av|avcodec|avdevice|avfilter|avformat|avio|avutil|avsubtitle|sws|swr|swresample|swscale|rubberband)_|^_Z(N|NK|TVN|TIN|TSN)10RubberBand(19RubberBandStretcher|21RubberBandLiveShifter)"
+        -P "${SCORE_ROOT_SOURCE_DIR}/cmake/ScoreExportArchives.cmake"
+      DEPENDS
+        ${_score_export_archives}
+        ${_score_export_targets}
+        "${SCORE_ROOT_SOURCE_DIR}/cmake/ScoreExportArchives.cmake"
+      VERBATIM
+    )
+    add_custom_target(score_exports_def DEPENDS "${_score_exports_def}")
+    add_dependencies(${APPNAME} score_exports_def)
+    target_link_options(${APPNAME} PRIVATE "${_score_exports_def}")
+    set_property(TARGET ${APPNAME} APPEND PROPERTY LINK_DEPENDS "${_score_exports_def}")
+  endif()
+endif()
+
 # On Windows, threads created with the default stack size get the
 # executable's stack reserve: 16 MB, as libossia's threads have elsewhere.
 if(MINGW OR MSYS)

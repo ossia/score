@@ -6,14 +6,14 @@
 #include <score/serialization/DataStreamVisitor.hpp>
 
 template <>
-void DataStreamReader::read(const score::CommandData& d)
+SCORE_LIB_BASE_EXPORT void DataStreamReader::read(const score::CommandData& d)
 {
   m_stream << d.parentKey << d.commandKey << d.data;
   insertDelimiter();
 }
 
 template <>
-void DataStreamWriter::write(score::CommandData& d)
+SCORE_LIB_BASE_EXPORT void DataStreamWriter::write(score::CommandData& d)
 {
   m_stream >> d.parentKey >> d.commandKey >> d.data;
   checkDelimiter();

@@ -230,7 +230,7 @@ static inline std::string locateOrcRuntime()
   return {};
 }
 
-// Locate compiler-rt's builtins archive (libclang_rt.builtins-*.a). clang's driver
+// Locate compiler-rt's builtins archive (libclang_rt.builtins-<arch>.a). clang's driver
 // links it via -rtlib=compiler-rt; the JIT compiles with bare -cc1 (no driver), so
 // builtins such as __udivti3 (128-bit integer division, pulled by fmt and others)
 // are otherwise unresolved. We hand it to ORC as a definition generator. Same
@@ -250,15 +250,17 @@ static inline std::string locateBuiltinsRuntime()
   const QStringList roots{base,           parent,
                           parent + "/llvm", parent + "/llvm-libs",
                           base + "/llvm",   base + "/llvm-libs"};
+  const llvm::Triple host{llvm::sys::getProcessTriple()};
+  const QString archive = QString::fromStdString(
+      "libclang_rt.builtins-" + llvm::Triple::getArchTypeName(host.getArch()).str()
+      + ".a");
   QString fallback;
   for(const QString& root : roots)
   {
     const QString clangLibs = root + "/lib/clang";
     if(!QDir(clangLibs).exists())
       continue;
-    QDirIterator it(
-        clangLibs, {"libclang_rt.builtins*.a"}, QDir::Files,
-        QDirIterator::Subdirectories);
+    QDirIterator it(clangLibs, {archive}, QDir::Files, QDirIterator::Subdirectories);
     while(it.hasNext())
     {
       const QString f = it.next();
