@@ -58,10 +58,22 @@ QColor mix(const QColor& a, const QColor& b, double t) noexcept
 //! are told apart by a wider gap, so that the grid reads without lines drawn
 //! over it. Repeats keep the cells' tones and dim their notes; what plays is
 //! tinted towards the notes' hue.
+//!
+//! Derived from the skin once, and again only when another skin loads.
 struct Palette
 {
-  explicit Palette(const score::Skin& skin)
+  static const Palette& instance()
   {
+    static Palette p;
+    auto& skin = score::Skin::instance();
+    if(p.m_loadIndex != skin.LoadIndex)
+      p.reload(skin);
+    return p;
+  }
+
+  void reload(const score::Skin& skin)
+  {
+    m_loadIndex = skin.LoadIndex;
     const QColor bg = skin.Background1.main.brush.color();
     const QColor base = skin.Emphasis2.main.brush.color();
     const QColor accent = skin.Base4.main.brush.color();
@@ -78,6 +90,15 @@ struct Palette
     header = mix(bg, base, 0.45);
     selectedHeader = mix(header, light, 0.08);
     gap = bg;
+    fieldBackground = skin.Background2.main.brush.color();
+    // A step without a note keeps its value, but it plays nothing: barely
+    // off the background.
+    restBar = mix(fieldBackground, accent, 0.1);
+    fieldOrigin = mix(fieldBackground, base, 0.6);
+
+    small = skin.MonoFontSmall;
+    editorSmall = skin.Medium8Pt;
+    editorSmall.setPixelSize(11);
   }
   QColor cell[2];
   QColor playingCell;
@@ -90,6 +111,14 @@ struct Palette
   QColor header;
   QColor selectedHeader;
   QColor gap;
+  QColor fieldBackground;
+  QColor restBar;
+  QColor fieldOrigin;
+  QFont small;
+  QFont editorSmall;
+
+private:
+  int m_loadIndex{-1};
 };
 }
 
@@ -118,6 +147,8 @@ View::View(const Patternist::ProcessModel& model, QGraphicsItem* parent)
   con(model, &Patternist::ProcessModel::laneLabelsChanged, this,
       [this] { updateLanes(); });
   con(model, &Patternist::ProcessModel::execStepsChanged, this, [this] { update(); });
+  // Colours and fonts come from the skin: another one remeasures and repaints.
+  connect(&score::Skin::instance(), &score::Skin::changed, this, [this] { updateLanes(); });
   con(model, &Patternist::ProcessModel::execPattern, this, [this](int cur, int next) {
     if(cur != m_execPattern || next != m_pendingPattern)
     {
@@ -295,19 +326,14 @@ void View::updateLanes()
 
 QFont View::nameFont() const
 {
-  auto& skin = score::Skin::instance();
   // The editor's names read like its toolbar.
-  return m_advanced ? QApplication::font() : skin.MonoFontSmall;
+  return m_advanced ? QApplication::font() : Palette::instance().small;
 }
 
-QFont View::smallFont() const
+const QFont& View::smallFont() const
 {
-  auto& skin = score::Skin::instance();
-  if(!m_advanced)
-    return skin.MonoFontSmall;
-  QFont f = skin.Medium8Pt;
-  f.setPixelSize(11);
-  return f;
+  const auto& p = Palette::instance();
+  return m_advanced ? p.editorSmall : p.small;
 }
 
 //! Measures every lane's name: worked out once, then kept until the lanes,
@@ -642,7 +668,7 @@ void View::paintCells(QPainter* painter, const Pattern& p) const
   if(h <= 0.)
     return;
 
-  const Palette colors{skin};
+  const auto& colors = Palette::instance();
   const bool solo = anySolo(p);
   const double gapY = std::clamp(h * 0.12, h > 4. ? 1. : 0., 4.);
   const double cellH = h - gapY;
@@ -786,7 +812,7 @@ void View::paintButton(
     int id) const
 {
   auto& skin = score::Skin::instance();
-  const Palette colors{skin};
+  const auto& colors = Palette::instance();
   const bool hovered = id == m_hoverButton;
   painter->setPen(Qt::NoPen);
   painter->setBrush(
@@ -802,7 +828,7 @@ void View::paintValue(
     QPainter* painter, QRectF r, const QString& text, bool inherited, int id) const
 {
   auto& skin = score::Skin::instance();
-  const Palette colors{skin};
+  const auto& colors = Palette::instance();
   const bool active = id == m_hoverButton || (m_valueDrag && m_valueDrag->id == id);
   painter->setPen(Qt::NoPen);
   painter->setBrush(active ? mix(colors.cell[0], colors.hover, 0.4) : colors.cell[0]);
@@ -829,7 +855,7 @@ void View::paintHeader(QPainter* painter, const Pattern& p) const
 
   // Each lane's header is a card on its row, the start of the lane: same
   // height, same gaps, lit with it when selected.
-  const Palette colors{skin};
+  const auto& colors = Palette::instance();
   const double ch = cellHeight();
   painter->setFont(smallFont());
   for(int lane = 0; lane < int(p.lanes.size()); lane++)
@@ -878,8 +904,8 @@ void View::paintField(QPainter* painter, const Pattern& p) const
   if(area.height() <= 4.)
     return;
 
-  const Palette colors{skin};
-  painter->fillRect(area, skin.Background2.main.brush);
+  const auto& colors = Palette::instance();
+  painter->fillRect(area, colors.fieldBackground);
 
   // The parameters to choose from, beside their bars, on a card like the
   // lanes' headers.
@@ -905,7 +931,7 @@ void View::paintField(QPainter* painter, const Pattern& p) const
   const double originY = toY(range.origin);
   if(range.origin > range.min)
   {
-    painter->setPen(QPen{colors.cell[0], 1.});
+    painter->setPen(QPen{colors.fieldOrigin, 1.});
     painter->drawLine(QPointF{area.left(), originY}, QPointF{area.right(), originY});
   }
 
@@ -919,7 +945,8 @@ void View::paintField(QPainter* painter, const Pattern& p) const
     const QRectF bar{
         QPointF{sl.x0 + inset, std::min(y, originY)},
         QPointF{sl.x1 - inset, std::max(y, originY) + 1.}};
-    painter->fillRect(bar, rest || sl.repeat ? colors.repeatNote : colors.note);
+    painter->fillRect(
+        bar, rest ? colors.restBar : sl.repeat ? colors.repeatNote : colors.note);
     const QString text = fieldText(m_field, v);
     if(!sl.repeat && QFontMetricsF{painter->font()}.horizontalAdvance(text) + 2. <= w)
     {

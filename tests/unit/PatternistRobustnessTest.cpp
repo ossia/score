@@ -31,7 +31,10 @@
 #include <QElapsedTimer>
 #include <QGraphicsScene>
 #include <QGraphicsView>
+#include <QFile>
 #include <QImage>
+#include <QJsonDocument>
+#include <QJsonObject>
 #include <QMimeData>
 #include <QPainter>
 
@@ -1081,5 +1084,46 @@ TEST_CASE("patternist: the editor window at its default size", "[.][midi][patter
       editor->grab().save(dir + QStringLiteral("/editor_window_%1_lanes.png").arg(lanes));
       delete editor;
     }
+  });
+}
+
+TEST_CASE("patternist: the layer follows a skin change", "[midi][pattern][ui]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext&) {
+    const auto load = [](const QString& path) {
+      QFile f{path};
+      REQUIRE(f.open(QIODevice::ReadOnly));
+      score::Skin::instance().load(QJsonDocument::fromJson(f.readAll()).object());
+    };
+    // One lane of rests, too low for a name: the first cell starts at x = 2
+    // and takes the skin's cell colour as it is.
+    Patternist::ProcessModel proc{
+        TimeVal::fromMsecs(1000), Id<Process::ProcessModel>{0}, nullptr};
+    auto p = proc.patterns()[0];
+    p.lanes.resize(1);
+    std::fill(p.lanes[0].pattern.begin(), p.lanes[0].pattern.end(), Note::Rest);
+    proc.setPattern(0, p);
+    Patternist::View v{proc, nullptr};
+    v.setWidth(400);
+    v.setHeight(8);
+    const auto cell = [&] {
+      QImage img{400, 8, QImage::Format_ARGB32_Premultiplied};
+      img.fill(Qt::transparent);
+      QPainter painter{&img};
+      static_cast<QGraphicsItem&>(v).paint(&painter, nullptr, nullptr);
+      painter.end();
+      return img.pixelColor(10, 3);
+    };
+
+    load(QStringLiteral(":/skin/DefaultSkin.json"));
+    const QColor dark = cell();
+    CHECK(dark == score::Skin::instance().Emphasis2.main.brush.color());
+
+    load(QStringLiteral(":/skin/SolarizedLightSkin.json"));
+    const QColor light = cell();
+    CHECK(light == score::Skin::instance().Emphasis2.main.brush.color());
+    CHECK(light != dark);
+
+    load(QStringLiteral(":/skin/DefaultSkin.json"));
   });
 }

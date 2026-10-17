@@ -254,6 +254,13 @@ Editor::Editor(ProcessModel& model, const score::DocumentContext& ctx, QWidget* 
   con(model.metadata(), &score::ModelMetadata::NameChanged, this,
       [this](const QString& name) { setWindowTitle(name); });
 
+  // Another skin: the styles built from its colours are built again.
+  connect(&score::Skin::instance(), &score::Skin::changed, this, [this] {
+    setStyleSheet(toolStyle());
+    m_graphics->setBackgroundBrush(score::Skin::instance().Background1.main.brush);
+    updateBank();
+  });
+
   addShortcuts();
   updateBank();
   updatePatternControls();
