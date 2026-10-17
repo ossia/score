@@ -34,12 +34,12 @@ public:
 
   void copy() const;
   void paste();
-  //! Copies a range of steps, to paste at another place.
-  void copySteps(StepRange r) const;
-  //! Pastes copied steps with their first lane and step at `lane` and `step`.
+  //! Copies steps, to paste at another place.
+  void copySteps(const StepSelection& s) const;
+  //! Pastes copied steps from `lane` on, each lane from its step in `starts`.
   //! False when the clipboard holds no steps.
-  bool pasteSteps(int lane, int step);
-  void clearSteps(StepRange r);
+  bool pasteSteps(int lane, const std::vector<int>& starts);
+  void clearSteps(const StepSelection& s);
   void clear();
   void rotate(int steps);
   //! One lane, or every lane when `lane` is -1.

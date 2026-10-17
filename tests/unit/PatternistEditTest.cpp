@@ -378,26 +378,37 @@ TEST_CASE("patternist: steps copied across lanes", "[midi][pattern]")
   normalize(p);
   p.lanes[2].params[1].velocity = 0.5f;
 
-  const auto block = copySteps(p, {2, 3, 1, 3});
+  const auto block = copySteps(p, {2, {{1, 2, 3}, {1, 2, 3}}});
   REQUIRE(block.lanes.size() == 2);
   CHECK(block.length == 3);
 
-  pasteSteps(p, block, 0, 0);
+  pasteSteps(p, block, 0, {0, 0});
   CHECK(p.lanes[0].pattern == std::vector<Note>{N, R, L, R});
   CHECK(p.lanes[1].pattern == std::vector<Note>{R, N, R, R});
   CHECK(p.lanes[0].params[0].velocity == 0.5f);
   // The sources are untouched.
   CHECK(p.lanes[3].pattern == std::vector<Note>{N, R, N, R});
 
-  SECTION("what falls past the lanes or the steps is dropped")
+  SECTION("pasted steps loop over the lane, and past the last lane are dropped")
   {
-    pasteSteps(p, block, 3, 2);
-    CHECK(p.lanes[3].pattern == std::vector<Note>{N, R, N, R});
+    pasteSteps(p, block, 3, {2});
+    CHECK(p.lanes[3].pattern == std::vector<Note>{L, R, N, R});
     CHECK(p.lanes[3].pattern.size() == 4);
+  }
+  SECTION("lanes of different rates keep their own steps")
+  {
+    // A beat is one step of a quarter-note lane and four of the others.
+    p.lanes[0].division = 4;
+    p.lanes[0].length = 4;
+    normalize(p);
+    const auto mixed = copySteps(p, {0, {{1}, {4 % 4, 5 % 4, 6 % 4, 7 % 4}}});
+    CHECK(mixed.lanes[0].pattern.size() == 1);
+    CHECK(mixed.lanes[1].pattern.size() == 4);
+    CHECK(mixed.length == 4);
   }
   SECTION("clear")
   {
-    clearSteps(p, {0, 1, 0, 1});
+    clearSteps(p, {0, {{0, 1}, {0, 1}}});
     CHECK(p.lanes[0].pattern == std::vector<Note>{R, R, L, R});
     CHECK(p.lanes[0].params[0].isDefault());
   }

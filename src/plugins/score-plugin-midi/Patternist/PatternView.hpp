@@ -48,13 +48,22 @@ public:
     int lane{-1};
     int step{-1};
   };
-  //! The step under the mouse, or none.
-  Cell hoveredCell() const noexcept;
-
-  //! Steps selected by dragging in the select mode, or with Ctrl.
-  const StepRange& selection() const noexcept { return m_selection; }
-  void setSelection(StepRange r);
+  //! Steps selected by dragging in the select mode, or with Ctrl: in every
+  //! lane, those under the stretch of time dragged over.
+  const StepSelection& selection() const;
+  void clearSelection();
+  void selectAll();
   void setSelectMode(bool b);
+
+  //! Where copied steps go: the lane under the mouse, or the selection's
+  //! first, or the selected lane; and in it and the lanes below, the step at
+  //! that time.
+  struct PasteTarget
+  {
+    int lane{-1};
+    std::vector<int> starts;
+  };
+  PasteTarget pasteTarget(int lanes) const;
   StepField field() const noexcept { return m_field; }
 
   //! Set a step while painting: emitted for every step the mouse enters.
@@ -81,8 +90,9 @@ public:
 
 private:
   static constexpr StepField allFields[]
-      = {StepField::Velocity, StepField::Chance, StepField::Offset,
-         StepField::Gate,     StepField::Ratchet, StepField::Pitch};
+      = {StepField::Velocity, StepField::VelocityRandom, StepField::Chance,
+         StepField::Offset,   StepField::Gate,           StepField::Ratchet,
+         StepField::Pitch,    StepField::PitchRandom};
   //! Ids of the buttons the editor draws, for the hover.
   static constexpr int mute_button = 1000;
   static constexpr int solo_button = 2000;
@@ -141,6 +151,14 @@ private:
   void dropEvent(QGraphicsSceneDragDropEvent* event) override;
 
   void paintAt(QPointF pos);
+  void selectOver(QPointF pos);
+  struct SelectionArea
+  {
+    int lane0{-1}, lane1{-1};
+    double x0{}, x1{};
+    bool operator==(const SelectionArea&) const noexcept = default;
+  };
+  void setSelectionArea(SelectionArea a);
   void editFieldAt(QPointF pos);
   void endPainting();
 
@@ -164,8 +182,11 @@ private:
 
   Cell m_hover;
   int m_hoverButton{-1};
-  StepRange m_selection;
-  Cell m_selectAnchor;
+  double m_hoverX{};
+  SelectionArea m_selectionArea;
+  mutable StepSelection m_selection;
+  mutable bool m_selectionValid{};
+  QPointF m_selectAnchor;
   bool m_selecting{};
   bool m_selectMode{};
   //! What the press started painting, until the release.

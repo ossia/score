@@ -49,6 +49,9 @@ struct StepParams
 {
   //! 0 - 1, scaled by the lane's velocity and the Velocity input.
   float velocity{1.f};
+  //! 0 - 1: each time the step plays, its velocity moves by up to this much
+  //! either way.
+  float velocityRandom{0.f};
   //! 0 - 1, scaled by the Density input.
   float chance{1.f};
   //! -0.5 - 0.5 of a step: early or late.
@@ -59,6 +62,9 @@ struct StepParams
   uint8_t ratchet{1};
   //! Semitones added to the lane's note.
   int8_t pitch{0};
+  //! 0 - 24: each time the step plays, its pitch moves by up to this many
+  //! semitones either way.
+  uint8_t pitchRandom{0};
   Condition condition{Condition::Always};
   uint8_t cycleA{1};
   uint8_t cycleB{2};

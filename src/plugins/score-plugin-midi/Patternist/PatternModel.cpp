@@ -42,7 +42,9 @@ void normalize(Pattern& p) noexcept
       s.offset = std::clamp(s.offset, -0.5f, 0.5f);
       s.gate = std::clamp(s.gate, 0.f, 1.f);
       s.ratchet = std::clamp<uint8_t>(s.ratchet, 1, 8);
+      s.velocityRandom = std::clamp(s.velocityRandom, 0.f, 1.f);
       s.pitch = std::clamp<int8_t>(s.pitch, -48, 48);
+      s.pitchRandom = std::clamp<uint8_t>(s.pitchRandom, 0, 24);
       s.cycleB = std::clamp<uint8_t>(s.cycleB, 1, 16);
       s.cycleA = std::clamp<uint8_t>(s.cycleA, 1, s.cycleB);
     }
@@ -332,15 +334,15 @@ void ProcessModel::setDurationAndShrink(const TimeVal& newDuration) noexcept
 template <>
 void DataStreamReader::read(const Patternist::StepParams& s)
 {
-  m_stream << s.velocity << s.chance << s.offset << s.gate << s.ratchet << s.pitch
-           << s.condition << s.cycleA << s.cycleB;
+  m_stream << s.velocity << s.velocityRandom << s.chance << s.offset << s.gate
+           << s.ratchet << s.pitch << s.pitchRandom << s.condition << s.cycleA << s.cycleB;
 }
 
 template <>
 void DataStreamWriter::write(Patternist::StepParams& s)
 {
-  m_stream >> s.velocity >> s.chance >> s.offset >> s.gate >> s.ratchet >> s.pitch
-      >> s.condition >> s.cycleA >> s.cycleB;
+  m_stream >> s.velocity >> s.velocityRandom >> s.chance >> s.offset >> s.gate
+      >> s.ratchet >> s.pitch >> s.pitchRandom >> s.condition >> s.cycleA >> s.cycleB;
 }
 
 template <>
@@ -411,6 +413,8 @@ void JSONReader::read(const Patternist::Lane& proc)
       obj["Step"] = (int)i;
       if(s.velocity != def.velocity)
         obj["Velocity"] = s.velocity;
+      if(s.velocityRandom != def.velocityRandom)
+        obj["VelocityRandom"] = s.velocityRandom;
       if(s.chance != def.chance)
         obj["Chance"] = s.chance;
       if(s.offset != def.offset)
@@ -421,6 +425,8 @@ void JSONReader::read(const Patternist::Lane& proc)
         obj["Ratchet"] = (int)s.ratchet;
       if(s.pitch != def.pitch)
         obj["Pitch"] = (int)s.pitch;
+      if(s.pitchRandom != def.pitchRandom)
+        obj["PitchRandom"] = (int)s.pitchRandom;
       if(s.condition != def.condition)
       {
         obj["Condition"] = (int)s.condition;
@@ -489,17 +495,22 @@ void JSONWriter::write(Patternist::Lane& proc)
           field = it->value.GetDouble();
       };
       num("Velocity", s.velocity);
+      num("VelocityRandom", s.velocityRandom);
       num("Chance", s.chance);
       num("Offset", s.offset);
       num("Gate", s.gate);
-      int ratchet = s.ratchet, pitch = s.pitch, cond = 0, a = s.cycleA, b = s.cycleB;
+      int ratchet = s.ratchet, pitch = s.pitch, pitchRandom = s.pitchRandom, cond = 0,
+          a = s.cycleA, b = s.cycleB;
       num("Ratchet", ratchet);
       num("Pitch", pitch);
+      num("PitchRandom", pitchRandom);
       num("Condition", cond);
       num("CycleA", a);
       num("CycleB", b);
       s.ratchet = std::clamp(ratchet, 1, 8);
       s.pitch = std::clamp(pitch, -48, 48);
+      s.pitchRandom = std::clamp(pitchRandom, 0, 24);
+      s.velocityRandom = std::clamp(s.velocityRandom, 0.f, 1.f);
       s.condition = (Patternist::Condition)std::clamp(
           cond, 0, (int)Patternist::Condition::Cycle);
       s.cycleA = std::clamp(a, 1, 16);
