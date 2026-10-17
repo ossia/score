@@ -147,7 +147,8 @@ private:
   template <typename Port_T, typename OssiaPort_T, typename Impl>
   void bind_address(
       Port_T& proc_port, const OssiaPort_T& ossia_port,
-      RegisteredPorts::connections& cons, Impl&& impl);
+      const std::shared_ptr<ossia::graph_node>& node, RegisteredPorts::connections& cons,
+      Impl&& impl);
 
   template <typename Impl>
   void register_inlet_impl(

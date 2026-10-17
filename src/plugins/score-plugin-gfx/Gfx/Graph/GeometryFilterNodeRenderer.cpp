@@ -1,8 +1,12 @@
 #include <Gfx/Graph/GeometryFilterNode.hpp>
 #include <Gfx/Graph/GeometryFilterNodeRenderer.hpp>
+
 #include <Gfx/Graph/RenderList.hpp>
 
 #include <score/tools/Debug.hpp>
+
+#include <atomic>
+
 namespace score::gfx
 {
 
@@ -35,6 +39,8 @@ void GeometryFilterNodeRenderer::initState(RenderList& renderer, QRhiResourceUpd
         = rhi.newBuffer(QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, m_materialSize);
     m_materialUBO->setName("GeometryFilterNodeRenderer.ubo");
     SCORE_ASSERT(m_materialUBO->create());
+    static std::atomic<uint64_t> generation{0};
+    m_materialGeneration = ++generation;
     if(node().m_material_data)
       res.updateDynamicBuffer(m_materialUBO, 0, m_materialSize, node().m_material_data.get());
   }
@@ -68,6 +74,7 @@ void GeometryFilterNodeRenderer::releaseState(RenderList& r)
   if(m_materialUBO)
     m_materialUBO->deleteLater();
   m_materialUBO = nullptr;
+  m_materialGeneration = 0;
   m_initialized = false;
 }
 

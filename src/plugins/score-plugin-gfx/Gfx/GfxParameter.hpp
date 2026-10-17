@@ -7,9 +7,11 @@
 #include <ossia/network/base/parameter.hpp>
 #include <ossia/network/base/protocol.hpp>
 
+#include <score_plugin_gfx_export.h>
+
 namespace Gfx
 {
-class gfx_parameter_base : public ossia::gfx::texture_parameter
+class SCORE_PLUGIN_GFX_EXPORT gfx_parameter_base : public ossia::gfx::texture_parameter
 {
 protected:
   GfxExecutionAction* context{};

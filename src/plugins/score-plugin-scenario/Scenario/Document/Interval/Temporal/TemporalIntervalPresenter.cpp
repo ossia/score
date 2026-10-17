@@ -235,6 +235,8 @@ TemporalIntervalPresenter::TemporalIntervalPresenter(
   });
 
   m_model.processes.added.connect<&TemporalIntervalPresenter::on_processesChanged>(this);
+  m_model.processes.removing.connect<&TemporalIntervalPresenter::on_processRemoving>(
+      this);
   m_model.processes.removed.connect<&TemporalIntervalPresenter::on_processesChanged>(
       this);
 
@@ -749,6 +751,25 @@ void TemporalIntervalPresenter::updateProcessShape(int slot, const LayerData& ld
     ld.setWidth(width, width);
     ld.parentGeometryChanged();
     ld.update();
+  }
+}
+
+void TemporalIntervalPresenter::on_processRemoving(const Process::ProcessModel& proc)
+{
+  // The slot header and footer show the front process's delegates (its ports,
+  // in the footer). They are normally dropped when the model changes the front
+  // layer, but that did not always happen before the process was deleted
+  // (collapsed slots in a nested scenario's full view): drop them before the
+  // process and its ports go away.
+  for(std::size_t i = 0; i < m_slots.size(); i++)
+  {
+    auto slt = m_slots[i].getLayerSlot();
+    if(!slt)
+      continue;
+    const bool header = slt->headerDelegate && &slt->headerDelegate->model() == &proc;
+    const bool footer = slt->footerDelegate && &slt->footerDelegate->model() == &proc;
+    if(header || footer)
+      slt->cleanupHeaderFooter();
   }
 }
 

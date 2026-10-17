@@ -39,6 +39,7 @@
 #include <algorithm>
 #include <array>
 #include <map>
+#include <optional>
 #include <set>
 
 #if defined(__EMSCRIPTEN__)
@@ -507,7 +508,20 @@ inline void sweepLibrary(
         "build root, as ctest does.");
 
   g_previous = qInstallMessageHandler(capture);
-  Sweeper sweeper{gfx_settings->graphicsApiEnum()};
+  // The QRhi is reused across shaders, but a lost device never comes back:
+  // without a fresh one, a single hanging shader would be reported again as
+  // "devicelost" for every shader after it.
+  std::optional<Sweeper> sweeper;
+  sweeper.emplace(gfx_settings->graphicsApiEnum());
+  auto recoverFromDeviceLoss = [&] {
+    if(auto st = sweeper->output.renderState(); st && st->rhi && st->rhi->isDeviceLost())
+    {
+      sweeper.reset();
+      sweeper.emplace(gfx_settings->graphicsApiEnum());
+      return true;
+    }
+    return false;
+  };
 
   std::map<QString, std::map<std::string, std::string>> failures;
 
@@ -546,16 +560,20 @@ inline void sweepLibrary(
       continue;
     }
 
-    auto res = sweeper.run(*program, 0);
+    auto res = sweeper->run(*program, 0);
     if(!blankIsFailure)
       res.erase("blank");
-    dumpFrame(rel, sweeper.output.shared_readback);
+    dumpFrame(rel, sweeper->output.shared_readback);
+    // The mid-timeline pass would only lose the fresh device again.
+    const bool lostCold = recoverFromDeviceLoss();
 
     // The same shader again on a fresh node, started mid-timeline. Only what
     // the cold pass did NOT already report is interesting: the bake and its
     // diagnostics are properties of the program, not of the frame range, so
     // repeating them here would double every line.
-    for(auto& [kind, detail] : sweeper.run(*program, mid_start_frame))
+    for(auto& [kind, detail] :
+        lostCold ? std::map<std::string, std::string>{}
+                 : sweeper->run(*program, mid_start_frame))
     {
       if(kind == "gles300" || kind == "warning")
         continue;
@@ -565,6 +583,8 @@ inline void sweepLibrary(
         continue;
       res.emplace(kind + "-mid", detail);
     }
+    if(!lostCold)
+      recoverFromDeviceLoss();
     if(!res.empty())
     {
       report(rel, res);

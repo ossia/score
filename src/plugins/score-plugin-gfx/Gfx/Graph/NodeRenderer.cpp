@@ -97,6 +97,44 @@ void NodeRenderer::removeInputEdge(RenderList&, Edge& edge)
   // Force rebuildMergedScene to recompute from scratch next time.
   m_mergeCacheInputs.clear();
   m_mergeCacheOutput = {};
+
+  // The single `geometry` field still points at what the removed producer
+  // published last: its GPU buffers, which a live graph edit frees right
+  // after this (outside a frame). Fall back to another producer on the same
+  // port, or to nothing, and let the next update rebuild against that.
+  if(edge.sink->type == Types::Geometry)
+  {
+    ossia::geometry_spec next{};
+    for(const auto& [k, g] : m_portGeometries)
+    {
+      if(k.first == port)
+      {
+        next = g;
+        break;
+      }
+    }
+    if(this->geometry != next)
+    {
+      this->geometry = std::move(next);
+      geometryChanged = true;
+    }
+  }
+  // Same for the single `scene` field, read by single-scene-input nodes
+  // (oscr scene_inputs_storage, e.g. Threedim::Instancer).
+  else if(edge.sink->type == Types::Scene)
+  {
+    ossia::scene_spec next{};
+    for(const auto& [k, sc] : m_portScenes)
+    {
+      if(k.first == port)
+      {
+        next = sc;
+        break;
+      }
+    }
+    this->scene = std::move(next);
+    sceneChanged = true;
+  }
 }
 
 bool NodeRenderer::hasOutputPassForEdge(Edge& edge) const { return false; }
@@ -180,6 +218,7 @@ void GenericNodeRenderer::defaultMeshInit(
     RenderList& renderer, const Mesh& mesh, QRhiResourceUpdateBatch& res)
 {
   m_mesh = &mesh;
+  m_initMesh = &mesh;
   if(m_meshbufs.buffers.empty())
   {
     m_meshbufs = renderer.initMeshBuffer(mesh, res);
@@ -476,6 +515,13 @@ void GenericNodeRenderer::defaultMeshUpdate(
   {
     std::tie(m_mesh, m_meshbufs)
         = renderer.acquireMesh(geometry, res, m_mesh, m_meshbufs);
+  }
+  else if(geometryChanged && m_mesh != m_initMesh)
+  {
+    // The geometry input went away (removeInputEdge): m_mesh / m_meshbufs
+    // still name the departed producer's mesh and borrowed buffers.
+    m_mesh = m_initMesh ? m_initMesh : &renderer.defaultQuad();
+    m_meshbufs = renderer.initMeshBuffer(*m_mesh, res);
   }
 }
 

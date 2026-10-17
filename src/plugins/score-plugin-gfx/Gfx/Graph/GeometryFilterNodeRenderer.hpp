@@ -26,6 +26,10 @@ struct SCORE_PLUGIN_GFX_EXPORT GeometryFilterNodeRenderer : score::gfx::NodeRend
   void removeOutputPass(RenderList&, Edge&) override { }
 
   QRhiBuffer* material() const noexcept { return m_materialUBO; }
+  //! Changes every time the material UBO is (re)created, never reused: lets a
+  //! consumer that baked material() into its SRB notice that it must rebuild,
+  //! even when a new buffer lands at the freed one's address.
+  uint64_t materialGeneration() const noexcept { return m_materialGeneration; }
 
 private:
   GeometryFilterNode& node() const noexcept;
@@ -33,6 +37,7 @@ private:
   ossia::geometry_spec outputGeometry;
 
   QRhiBuffer* m_materialUBO{};
+  uint64_t m_materialGeneration{};
   int m_materialSize{};
   int m_dirtyTransformIndex{-1};
 };

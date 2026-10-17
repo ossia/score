@@ -23,6 +23,7 @@
 #include <ossia/detail/thread.hpp>
 
 #include <QByteArray>
+#include <QCoreApplication>
 
 #include <catch2/catch_test_macros.hpp>
 #include <score_test/Project.hpp>
@@ -121,6 +122,10 @@ struct js_gpu_executor
     REQUIRE(factory != nullptr);
     component = factory->make(process, context->context, nullptr);
     REQUIRE(component != nullptr);
+    run_as_audio_thread(context->m_execQueue, [] { });
+    // The script change registers the gfx node from a queued UI-thread call,
+    // which hands the id back through the execution queue.
+    QCoreApplication::sendPostedEvents(nullptr, QEvent::MetaCall);
     run_as_audio_thread(context->m_execQueue, [] { });
     // Checked by the caller: a failed REQUIRE here would skip the cleanup.
     node = dynamic_cast<Gfx::gfx_exec_node*>(component->node.get());

@@ -9,6 +9,7 @@
 #include <boost/algorithm/string.hpp>
 #include <ossia/detail/fmt.hpp>
 #include <ossia/detail/math.hpp>
+#include <ossia/detail/small_vector.hpp>
 #include <ossia/gfx/port_index.hpp>
 #include <ossia/network/value/value.hpp>
 #include <ossia/network/value/value_conversion.hpp>
@@ -894,6 +895,52 @@ public:
   RenderShaders point_shaders[CAMERA_MODE_COUNT];
 
   int64_t meshChangedIndex{-1};
+  // The geometry filters whose material UBOs are baked into m_p's SRBs, as
+  // (node id, material generation). Those UBOs belong to the filters'
+  // renderers: when one is released or recreated (a live graph edit, outside
+  // a frame, deletes it at once) the SRBs must be rebuilt before the next draw.
+  ossia::small_vector<std::pair<int64_t, uint64_t>, 8> m_boundFilters;
+  bool m_inputRemoved{false};
+
+  static uint64_t filterGeneration(RenderList& renderer, int64_t node_id)
+  {
+    for(auto n : renderer.renderers)
+    {
+      if(n->nodeId == node_id)
+      {
+        if(auto c = dynamic_cast<score::gfx::GeometryFilterNodeRenderer*>(n))
+          return c->materialGeneration();
+        break;
+      }
+    }
+    return 0;
+  }
+
+  void bindFilterSignature(RenderList& renderer, const Mesh& mesh)
+  {
+    m_boundFilters.clear();
+    if(!mesh.filters)
+      return;
+    for(auto& f : mesh.filters->filters)
+      m_boundFilters.emplace_back(f.node_id, filterGeneration(renderer, f.node_id));
+  }
+
+  //! Checked every frame: compares in place rather than building a signature.
+  bool filtersStillBound(RenderList& renderer, const Mesh& mesh) const
+  {
+    const std::size_t n = mesh.filters ? mesh.filters->filters.size() : 0;
+    if(n != m_boundFilters.size())
+      return false;
+    for(std::size_t i = 0; i < n; i++)
+    {
+      const auto& f = mesh.filters->filters[i];
+      if(m_boundFilters[i].first != f.node_id
+         || m_boundFilters[i].second != filterGeneration(renderer, f.node_id))
+        return false;
+    }
+    return true;
+  }
+
   int m_curShader{0};
   int m_draw_mode{0};
   int m_camera_mode{0};
@@ -922,6 +969,7 @@ private:
     int cur_binding = 4;
     std::vector<QRhiBuffer*> ubos;
     std::vector<QRhiShaderResourceBinding> additional_bindings;
+    bindFilterSignature(renderer, mesh);
 
     if (mesh.filters)
     {
@@ -1165,14 +1213,23 @@ private:
     auto& set = (m_draw_mode == 1) ? point_shaders[mode] : triangle_shaders[mode];
     initPasses_impl(renderer, mesh, set);
 
+    // Same for the blend controls: a cable or an OSC message can send any int,
+    // and QRhi asserts on (release: Q_UNREACHABLE for) an unknown factor/op.
+    using P = QRhiGraphicsPipeline;
+    auto factor = [](int v, P::BlendFactor def) {
+      return v >= int(P::Zero) && v <= int(P::OneMinusSrc1Alpha) ? P::BlendFactor(v) : def;
+    };
+    auto op = [](int v) {
+      return v >= int(P::Add) && v <= int(P::Max) ? P::BlendOp(v) : P::Add;
+    };
     QRhiGraphicsPipeline::TargetBlend blend;
     blend.enable = m_blend_enabled;
-    blend.srcColor = (QRhiGraphicsPipeline::BlendFactor)m_blend_color_src;
-    blend.dstColor = (QRhiGraphicsPipeline::BlendFactor)m_blend_color_dst;
-    blend.opColor = (QRhiGraphicsPipeline::BlendOp)m_blend_color_op;
-    blend.srcAlpha = (QRhiGraphicsPipeline::BlendFactor)m_blend_alpha_src;
-    blend.dstAlpha = (QRhiGraphicsPipeline::BlendFactor)m_blend_alpha_dst;
-    blend.opAlpha = (QRhiGraphicsPipeline::BlendOp)m_blend_alpha_op;
+    blend.srcColor = factor(m_blend_color_src, P::One);
+    blend.dstColor = factor(m_blend_color_dst, P::Zero);
+    blend.opColor = op(m_blend_color_op);
+    blend.srcAlpha = factor(m_blend_alpha_src, P::One);
+    blend.dstAlpha = factor(m_blend_alpha_dst, P::Zero);
+    blend.opAlpha = op(m_blend_alpha_op);
 
     for(auto& [e, pass] : this->m_p)
     {
@@ -1584,11 +1641,21 @@ private:
     }
 
     const auto& mesh = m_mesh ? *m_mesh : renderer.defaultQuad();
+    // The geometry input went away (removeInputEdge): draw the default quad,
+    // whose buffers init() would otherwise have set up.
+    if(!m_mesh && m_meshbufs.buffers.empty())
+    {
+      m_meshbufs = renderer.initMeshBuffer(mesh, res);
+      mustRecreatePasses = true;
+    }
     // FIXME is that neeeded?
-    // FIXME also not handling geometry_filter dirty geom so far
     if(mesh.hasGeometryChanged(meshChangedIndex)) {
       mustRecreatePasses = true;
     }
+    // A filter UBO baked into the SRBs went away or was recreated.
+    if(m_inputRemoved || !filtersStillBound(renderer, mesh))
+      mustRecreatePasses = true;
+    m_inputRemoved = false;
 
     if (mustRecreatePasses)
     {
@@ -1617,6 +1684,22 @@ private:
   {
     const auto& mesh = m_mesh ? *m_mesh : renderer.defaultQuad();
     defaultRenderPass(renderer, mesh, cb, edge);
+  }
+
+  void removeInputEdge(RenderList& r, Edge& edge) override
+  {
+    score::gfx::NodeRenderer::removeInputEdge(r, edge);
+    if(!edge.sink || edge.sink->type != score::gfx::Types::Geometry)
+      return;
+    // The upstream geometry (and the filters it carries, whose UBOs our SRBs
+    // reference) is going away with the edge: forget the mesh, and rebuild the
+    // passes on the next update, once the upstream renderers are gone from
+    // the list.
+    geometry = {};
+    m_mesh = nullptr;
+    m_meshbufs = {};
+    this->geometryChanged = true;
+    m_inputRemoved = true;
   }
 
   void release(RenderList& r) override

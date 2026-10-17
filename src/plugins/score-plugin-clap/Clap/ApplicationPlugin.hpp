@@ -1,5 +1,6 @@
 #pragma once
 #include <score/plugins/application/GUIApplicationPlugin.hpp>
+#include <score/serialization/DataStreamFwd.hpp>
 
 #include <QObject>
 #include <QtCore/qglobal.h>
@@ -92,3 +93,8 @@ private:
 
 Q_DECLARE_METATYPE(Clap::PluginInfo)
 Q_DECLARE_METATYPE(std::vector<Clap::PluginInfo>)
+// Declared here, not only defined in ApplicationPlugin.cpp: QMetaType picks up
+// the stream operators in the translation unit that instantiates it, so a
+// QVariant of these types made anywhere else could not be saved to QSettings.
+SCORE_SERIALIZE_DATASTREAM_DECLARE(SCORE_PLUGIN_CLAP_EXPORT, Clap::PluginInfo)
+SCORE_SERIALIZE_DATASTREAM_DECLARE(SCORE_PLUGIN_CLAP_EXPORT, std::vector<Clap::PluginInfo>)

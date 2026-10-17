@@ -39,6 +39,8 @@ struct SCORE_PLUGIN_SCENARIO_EXPORT Slot
   qreal height{200};
   bool focus{};
   bool nodal{};
+
+  bool operator==(const Slot&) const noexcept = default;
 };
 
 using Rack = std::vector<Slot>;

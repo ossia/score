@@ -119,6 +119,7 @@ add_library(
   Threedim/Noise.cpp
   Threedim/GeometryLoader.hpp
   Threedim/GeometryLoader.cpp
+  Threedim/RecentParseCache.hpp
   Threedim/AssetLoader.hpp
   Threedim/AssetLoader.cpp
   Threedim/FbxParser.hpp

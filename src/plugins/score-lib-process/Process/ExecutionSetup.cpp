@@ -210,7 +210,8 @@ static State::AddressAccessor effectiveAddress(const Process::Port& port)
 template <typename Port_T, typename OssiaPort_T, typename Impl>
 void SetupContext::bind_address(
     Port_T& proc_port, const OssiaPort_T& ossia_port,
-    RegisteredPorts::connections& cons, Impl&& impl)
+    const std::shared_ptr<ossia::graph_node>& node, RegisteredPorts::connections& cons,
+    Impl&& impl)
 {
   for(auto& con : cons)
     QObject::disconnect(con);
@@ -237,7 +238,7 @@ void SetupContext::bind_address(
   set_declared_unit_impl(proc_port, ossia_port, impl);
 
   // Also registers the port with the execution state once the address resolves.
-  set_destination_impl(context, effectiveAddress(proc_port), ossia_port, impl);
+  set_destination_impl(context, effectiveAddress(proc_port), ossia_port, node, impl);
 }
 
 template <typename Impl>
@@ -249,7 +250,8 @@ void SetupContext::register_inlet_impl(
   SCORE_ASSERT(node);
   SCORE_ASSERT(ossia_port);
 
-  bind_address(proc_port, ossia_port, runtime_connections[node].inlets[proc_port.id()], impl);
+  bind_address(
+      proc_port, ossia_port, node, runtime_connections[node].inlets[proc_port.id()], impl);
 
   inlets.insert({&proc_port, std::make_pair(node, ossia_port)});
 }
@@ -324,14 +326,42 @@ void SetupContext::unregister_node(
   proc_map.erase(node.get());
 }
 
+static bool hasPort(const ossia::graph_node& node, const ossia::inlet* port) noexcept
+{
+  return ossia::any_of_inlet(node, [port](const ossia::inlet& p) { return &p == port; });
+}
+static bool hasPort(const ossia::graph_node& node, const ossia::outlet* port) noexcept
+{
+  return ossia::any_of_outlet(node, [port](const ossia::outlet& p) { return &p == port; });
+}
+
 template <typename T, typename Impl>
 void set_destination_impl(
     const Context& plug, const State::AddressAccessor& address, const T& port,
-    Impl&& append)
+    const std::shared_ptr<ossia::graph_node>& owner, Impl&& enqueue)
 {
   OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
   if(plug.retired)
     return;
+
+  // The commands run later on the execution thread and only hold the raw
+  // ossia port: by then an edit (undo/redo, a program change) may have
+  // removed the node or the port. Skip them when the port's node is gone or no
+  // longer has it. The port is captured once, here, and handed to the command:
+  // the whole closure has to fit an ExecutionCommand.
+  auto append = [&enqueue, &owner, port]<typename F>(F&& f) {
+    if(!owner)
+    {
+      enqueue([f = std::forward<F>(f), port]() mutable { f(port); });
+      return;
+    }
+    enqueue([f = std::forward<F>(f), wn = std::weak_ptr{owner}, port]() mutable {
+      auto n = wn.lock();
+      if(!n || !hasPort(*n, port))
+        return;
+      f(port);
+    });
+  };
   auto& s = plug.execState;
   auto& g = plug.execGraph;
   if(!g)
@@ -339,7 +369,7 @@ void set_destination_impl(
 
   if(address.address.device.isEmpty())
   {
-    append([ws = std::weak_ptr{s}, port, wg = std::weak_ptr{g}] {
+    append([ws = std::weak_ptr{s}, wg = std::weak_ptr{g}](const T& port) {
       OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Audio);
       auto s = ws.lock();
       if(!s)
@@ -368,7 +398,7 @@ void set_destination_impl(
     auto p = n->get_parameter();
     if(p)
     {
-      append([ws = std::weak_ptr{s}, port, p, qual = qual, wg = std::weak_ptr{g}] {
+      append([ws = std::weak_ptr{s}, p, qual = qual, wg = std::weak_ptr{g}](const T& port) {
         OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Audio);
         auto s = ws.lock();
         if(!s)
@@ -391,7 +421,7 @@ void set_destination_impl(
     }
     else
     {
-      append([ws = std::weak_ptr{s}, n, port, wg = std::weak_ptr{g}] {
+      append([ws = std::weak_ptr{s}, n, wg = std::weak_ptr{g}](const T& port) {
         auto s = ws.lock();
         if(!s)
           return;
@@ -413,7 +443,7 @@ void set_destination_impl(
     auto path = ossia::traversal::make_path(ad);
     if(path)
     {
-      append([ws = std::weak_ptr{s}, p = *path, port, wg = std::weak_ptr{g}]() mutable {
+      append([ws = std::weak_ptr{s}, p = *path, wg = std::weak_ptr{g}](const T& port) mutable {
         OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Audio);
         auto s = ws.lock();
         if(!s)
@@ -434,7 +464,7 @@ void set_destination_impl(
     }
     else
     {
-      append([ws = std::weak_ptr{s}, n, port, wg = std::weak_ptr{g}] {
+      append([ws = std::weak_ptr{s}, n, wg = std::weak_ptr{g}](const T& port) {
         OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Audio);
         auto s = ws.lock();
         if(!s)
@@ -460,14 +490,14 @@ void SetupContext::set_destination(
     const State::AddressAccessor& address, const ossia::inlet_ptr& port)
 {
   OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
-  set_destination_impl(context, address, port, enqueue_in_context(*this));
+  set_destination_impl(context, address, port, {}, enqueue_in_context(*this));
 }
 
 void SetupContext::set_destination(
     const State::AddressAccessor& address, const ossia::outlet_ptr& port)
 {
   OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
-  set_destination_impl(context, address, port, enqueue_in_context(*this));
+  set_destination_impl(context, address, port, {}, enqueue_in_context(*this));
 }
 
 void SetupContext::register_inlet(
@@ -563,7 +593,8 @@ void SetupContext::register_outlet_impl(
   SCORE_ASSERT(node);
   SCORE_ASSERT(ossia_port);
   bind_address(
-      proc_port, ossia_port, runtime_connections[node].outlets[proc_port.id()], impl);
+      proc_port, ossia_port, node, runtime_connections[node].outlets[proc_port.id()],
+      impl);
 
   outlets.insert({&proc_port, std::make_pair(node, ossia_port)});
 
@@ -836,12 +867,16 @@ void SetupContext::rebind(QObject* port)
   if(auto in = qobject_cast<Process::Inlet*>(port))
   {
     if(auto it = inlets.find(in); it != inlets.end())
-      set_destination(effectiveAddress(*in), it->second.second);
+      set_destination_impl(
+          context, effectiveAddress(*in), it->second.second, it->second.first,
+          enqueue_in_context(*this));
   }
   else if(auto out = qobject_cast<Process::Outlet*>(port))
   {
     if(auto it = outlets.find(out); it != outlets.end())
-      set_destination(effectiveAddress(*out), it->second.second);
+      set_destination_impl(
+          context, effectiveAddress(*out), it->second.second, it->second.first,
+          enqueue_in_context(*this));
   }
 }
 

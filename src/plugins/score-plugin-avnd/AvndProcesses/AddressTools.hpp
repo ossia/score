@@ -2,6 +2,7 @@
 #include <ossia/dataflow/exec_state_facade.hpp>
 #include <ossia/dataflow/execution_state.hpp>
 #include <ossia/detail/algorithms.hpp>
+#include <ossia/network/base/device.hpp>
 #include <ossia/network/common/path.hpp>
 
 #include <boost/algorithm/string.hpp>
@@ -24,6 +25,22 @@ struct PatternObject
   ossia::exec_state_facade ossia_state;
   std::vector<ossia::traversal::path> m_paths;
   std::vector<ossia::net::node_base*> roots;
+};
+
+// Watches the execution devices for tree changes. A Nano::Observer, so that
+// its connections go away with whichever of it or the device dies first: the
+// devices it stops observing (no longer executed, possibly already destroyed)
+// cannot keep a slot pointing at a freed selector. A copy starts unconnected.
+struct PatternDeviceObserver : Nano::Observer
+{
+  PatternDeviceObserver() = default;
+  PatternDeviceObserver(const PatternDeviceObserver&) noexcept { }
+  PatternDeviceObserver& operator=(const PatternDeviceObserver&) noexcept { return *this; }
+
+  void mark_dirty(ossia::net::node_base&) { dirty = true; }
+
+  bool dirty = false;
+  ossia::flat_set<ossia::net::device_base*> devices;
 };
 
 struct PatternSelector : halp::lineedit<"Pattern", "">
@@ -68,21 +85,24 @@ struct PatternSelector : halp::lineedit<"Pattern", "">
     if(p.m_paths.empty())
       return;
 
+    auto& observed = observer.devices;
     for(auto& dev : rdev)
     {
-      if(devices_observed.find(dev) == devices_observed.end())
+      if(observed.find(dev) == observed.end())
       {
-        devices_observed.insert(dev);
-        dev->on_node_created.connect<&PatternSelector::mark_dirty>(this);
-        dev->on_node_removing.connect<&PatternSelector::mark_dirty>(this);
+        observed.insert(dev);
+        dev->on_node_created.connect<&PatternDeviceObserver::mark_dirty>(observer);
+        dev->on_node_removing.connect<&PatternDeviceObserver::mark_dirty>(observer);
       }
       p.roots.push_back(&dev->get_root_node());
     }
 
-    for(auto it = devices_observed.begin(); it != devices_observed.end();)
+    // Not disconnected here: such a device may already be gone. A live one
+    // stays connected until the observer dies, which is harmless.
+    for(auto it = observed.begin(); it != observed.end();)
     {
       if(!ossia::contains(rdev, *it))
-        it = devices_observed.erase(it);
+        it = observed.erase(it);
       else
         ++it;
     }
@@ -106,25 +126,11 @@ struct PatternSelector : halp::lineedit<"Pattern", "">
 
     std::swap(p.roots, total);
 
-    devices_dirty = false;
+    observer.dirty = false;
   }
-
-  ~PatternSelector()
-  {
-    reprocess();
-    for(auto* dev : devices_observed)
-    {
-      dev->on_node_created.disconnect<&PatternSelector::mark_dirty>(this);
-      dev->on_node_removing.disconnect<&PatternSelector::mark_dirty>(this);
-    }
-  }
-
-  void mark_dirty(ossia::net::node_base&) { devices_dirty = true; }
 
   PatternObject* current_object{};
-  bool devices_dirty = false;
-
-  ossia::flat_set<ossia::net::device_base*> devices_observed;
+  PatternDeviceObserver observer;
 };
 
 struct PatternUnfolder : PatternObject

@@ -227,10 +227,10 @@ vec4 isf_unpremultiply(vec4 c) { return c.a > 0.0 ? vec4(c.rgb / c.a, c.a) : vec
 #define ISF_FIXUP_TEXCOORD(coord) vec2((coord).x, 1. - (coord).y)
 #define IMG_THIS_PIXEL_PREMULTIPLIED(tex) texture(tex, ISF_FIXUP_TEXCOORD(isf_FragNormCoord))
 #define IMG_THIS_NORM_PIXEL_PREMULTIPLIED(tex) texture(tex, ISF_FIXUP_TEXCOORD(isf_FragNormCoord))
-#define IMG_PIXEL_PREMULTIPLIED(tex, coord) texture(tex, ISF_FIXUP_TEXCOORD(coord / RENDERSIZE))
+#define IMG_PIXEL_PREMULTIPLIED(tex, coord) texture(tex, ISF_FIXUP_TEXCOORD((coord) / RENDERSIZE))
 #define IMG_NORM_PIXEL_PREMULTIPLIED(tex, coord) texture(tex, ISF_FIXUP_TEXCOORD(coord))
 #define IMG_THIS_DEPTH(tex) textureLod(tex##_depth, ISF_FIXUP_TEXCOORD(isf_FragNormCoord), 0.0).r
-#define IMG_DEPTH_PIXEL(tex, coord) textureLod(tex##_depth, ISF_FIXUP_TEXCOORD(coord / RENDERSIZE), 0.0).r
+#define IMG_DEPTH_PIXEL(tex, coord) textureLod(tex##_depth, ISF_FIXUP_TEXCOORD((coord) / RENDERSIZE), 0.0).r
 #define IMG_DEPTH_NORM_PIXEL(tex, coord) textureLod(tex##_depth, ISF_FIXUP_TEXCOORD(coord), 0.0).r
 #define IMG_TEXEL_PREMULTIPLIED(tex, coord) texelFetch(tex, ivec2(ivec2(coord).x, textureSize(tex, 0).y - 1 - ivec2(coord).y), 0)
 #define IMG_NORM_PIXEL_LOD_PREMULTIPLIED(tex, coord, lod) textureLod(tex, ISF_FIXUP_TEXCOORD(coord), lod)

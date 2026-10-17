@@ -1210,9 +1210,8 @@ void GpuNode::process(score::gfx::Message&& msg)
   }
 }
 
-gpu_exec_node::gpu_exec_node(JS::ProcessModel* context, Gfx::GfxExecutionAction& ctx)
+gpu_exec_node::gpu_exec_node(Gfx::GfxExecutionAction& ctx)
     : gfx_exec_node{ctx}
-    , m_context{context}
 {
 }
 
@@ -1242,69 +1241,75 @@ void gpu_exec_node::run(
   }
 }
 
-void gpu_exec_node::setScript(
+std::unique_ptr<score::gfx::Node> gpu_exec_node::prepareScript(
     const QString& root, const QString& str, JS::JSState&& new_state)
 {
+  // Runs from a queued execution command, i.e. on the execution thread while
+  // the UI thread may be deleting the JS process: nothing here may touch the
+  // process. Building the GpuNode (a QObject) here is fine as long as it only
+  // reads the exec node's own ports; it is wired to the process on the UI
+  // thread, in attachAndRegister.
   exec_context->ui->unregister_node(id);
   id = score::gfx::invalid_node_index;
   m_valueMessages = std::make_shared<GpuValueQueue>();
 
   auto n = std::make_unique<JS::GpuNode>(
-      m_context, std::move(new_state), root, str, this->root_inputs(),
+      nullptr, std::move(new_state), root, str, this->root_inputs(),
       this->root_outputs());
   n->m_valueMessages = m_valueMessages;
 
   // A render target may be created after the controls' first execution tick.
   // Seed its retained input snapshot instead of waiting for another change.
   n->m_lastState.input.resize(root_inputs().size());
+  std::size_t controlIndex = 0;
+  for(std::size_t i = 0; i < root_inputs().size(); ++i)
   {
-    std::size_t controlIndex = 0;
-    for(std::size_t i = 0; i < root_inputs().size(); ++i)
+    auto& port = *root_inputs()[i];
+    if(port.target<ossia::value_port>())
     {
-      if(root_inputs()[i]->target<ossia::value_port>())
-      {
-        const auto& value = controls[controlIndex++]->value;
-        if(value.valid())
-          n->m_lastState.input[i] = value;
-      }
+      const auto& value = controls[controlIndex++]->value;
+      if(value.valid())
+        n->m_lastState.input[i] = value;
+    }
+    else if(port.which() == ossia::texture_port::which)
+    {
+      // Setup render_target_spec. FIXME this should be done at a more general
+      // level, right now it's only done here and in avendish nodes
+      n->process(int32_t(i), static_cast<ossia::texture_inlet&>(port).data);
     }
   }
 
-  {
-    auto& element = *m_context;
+  n->moveToThread(qApp->thread());
+  return n;
+}
 
-    n->moveToThread(m_context->thread());
-    n->m_uiContext = m_context;
-    n->m_messageToUi = [ctx=m_context] (const QVariant& v){
-      OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
-      if(!ctx)
-        return;
-      ctx->executionToUi(v);
-    };
+void gpu_exec_node::adoptId(int32_t new_id, int expected_script_index)
+{
+  if(script_index == expected_script_index)
+    id = new_id;
+  else
+    exec_context->ui->unregister_node(new_id);
+}
 
-    QObject::connect(
-        &element, &JS::ProcessModel::uiToExecution, n.get(), &JS::GpuNode::uiMessage);
-    QObject::connect(
-        &element, &JS::ProcessModel::stateElementChanged, n.get(),
-        &JS::GpuNode::stateElementChanged);
-    {
+int32_t gpu_exec_node::attachAndRegister(
+    std::unique_ptr<score::gfx::Node> node, JS::ProcessModel& element)
+{
+  OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
+  auto* n = safe_cast<JS::GpuNode*>(node.get());
+  n->m_uiContext = &element;
+  n->m_messageToUi = [ctx = QPointer{&element}](const QVariant& v) {
+    OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
+    if(!ctx)
+      return;
+    ctx->executionToUi(v);
+  };
 
-      int i = 0;
-      for(auto& ctl : element.inlets())
-      {
-        if(auto ctrl = qobject_cast<Gfx::TextureInlet*>(ctl))
-        {
-          ossia::texture_inlet& inl
-              = static_cast<ossia::texture_inlet&>(*root_inputs()[i]);
-          n->process(i, inl.data); // Setup render_target_spec
-          // FIXME this should be done at a more general level, right now it's only done here
-          // and in avendish nodes
-        }
-        i++;
-      }
-    }
-  }
-  id = exec_context->ui->register_node(std::move(n));
+  QObject::connect(
+      &element, &JS::ProcessModel::uiToExecution, n, &JS::GpuNode::uiMessage);
+  QObject::connect(
+      &element, &JS::ProcessModel::stateElementChanged, n,
+      &JS::GpuNode::stateElementChanged);
+  return exec_context->ui->register_node(std::move(node));
 }
 }
 #endif
