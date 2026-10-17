@@ -389,6 +389,8 @@ public:
   DefaultShaderMaterial m_material;
 
   const score::gfx::Mesh* m_mesh{};
+  //! What defaultMeshInit set up: drawn again once the geometry input goes.
+  const score::gfx::Mesh* m_initMesh{};
 
   // Render loop
   void
