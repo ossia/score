@@ -35,6 +35,14 @@ Executor::Executor(
 
   element.patternSelect->setupExecution(node->pattern_select, this);
   element.switchQuantification->setupExecution(node->switch_quantification, this);
+  element.fill->setupExecution(node->fill_in, this);
+  element.density->setupExecution(node->density_in, this);
+  element.velocity->setupExecution(node->velocity_in, this);
+  element.swing->setupExecution(node->swing_in, this);
+  node->fill = ossia::convert<bool>(element.fill->value());
+  node->density = ossia::convert<float>(element.density->value());
+  node->velocity_scale = ossia::convert<float>(element.velocity->value());
+  node->swing = ossia::convert<float>(element.swing->value());
 
   con(element, &Patternist::ProcessModel::channelChanged, this, [this, node](int c) {
     in_exec([node, c = to_midi_channel(c)] { node->set_channel(c); });
@@ -52,6 +60,22 @@ Executor::Executor(
       [this, node](const ossia::value& v) {
     in_exec([node, r = double(ossia::convert<float>(v))] { node->switch_rate = r; });
   });
+  con(*element.fill, &Process::ControlInlet::valueChanged, this,
+      [this, node](const ossia::value& v) {
+    in_exec([node, f = ossia::convert<bool>(v)] { node->fill = f; });
+  });
+  con(*element.density, &Process::ControlInlet::valueChanged, this,
+      [this, node](const ossia::value& v) {
+    in_exec([node, d = ossia::convert<float>(v)] { node->density = d; });
+  });
+  con(*element.velocity, &Process::ControlInlet::valueChanged, this,
+      [this, node](const ossia::value& v) {
+    in_exec([node, d = ossia::convert<float>(v)] { node->velocity_scale = d; });
+  });
+  con(*element.swing, &Process::ControlInlet::valueChanged, this,
+      [this, node](const ossia::value& v) {
+    in_exec([node, d = ossia::convert<float>(v)] { node->swing = d; });
+  });
 
   // Built here so that the audio thread only has to move it in.
   con(element, &Patternist::ProcessModel::patternsChanged, this,
@@ -67,17 +91,28 @@ Executor::Executor(
   // while playing): the timer must not reach a dead model in between.
   con(ctx.doc.execTimer, &QTimer::timeout, this,
       [element = QPointer{&element}, node] {
-    if(element)
-    {
-      element->execPosition(int(node->last));
-      element->execPattern(node->current_pattern, node->pending_pattern);
-    }
+    if(!element)
+      return;
+    // Read while the engine writes them: a step drawn one refresh late is all
+    // a torn read can cost.
+    const auto& pats = node->patterns;
+    const int cur = node->current_pattern;
+    const int count = (cur >= 0 && cur < int(pats.size()))
+                          ? std::min<int>(pats[cur].lanes.size(), pattern_node::max_lanes)
+                          : 0;
+    std::vector<int> steps(count);
+    for(int i = 0; i < count; i++)
+      steps[i] = node->lanes[i].last;
+    element->setExecSteps(std::move(steps));
+    element->execPosition(node->last);
+    element->execPattern(node->current_pattern, node->pending_pattern);
   });
 }
 
 void Executor::stop()
 {
   ProcessComponent::stop();
+  this->process().setExecSteps({});
   this->process().execPosition(-1);
   this->process().execPattern(-1, -1);
 }

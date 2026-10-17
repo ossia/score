@@ -130,7 +130,7 @@ TEST_CASE(
     // the pattern the document was saved on rather than point at another one.
     REQUIRE(pat->patternSelect);
     REQUIRE(pat->switchQuantification);
-    CHECK(pat->inlets().size() == 2);
+    CHECK(pat->inlets().size() == 6);
     CHECK(ossia::convert<int>(pat->patternSelect->value()) == 3);
 
     delete clone;
@@ -249,6 +249,7 @@ TEST_CASE(
     }();
     p.lanes[0].solo = true;
     p.lanes[1].mute = true;
+    Patternist::normalize(p);
 
     std::unique_ptr<QMimeData> mime{Patternist::patternToMime(p)};
     auto back = Patternist::patternFromMime(*mime);

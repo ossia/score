@@ -714,3 +714,286 @@ TEST_CASE("patternist: a muted accent lane writes no accent", "[midi][pattern]")
   REQUIRE(!accent.get_data().empty());
   CHECK(ossia::convert<float>(accent.get_data().back().value) == 0.f);
 }
+
+namespace
+{
+std::vector<decoded> sent(fixture& f)
+{
+  std::vector<decoded> out;
+  for(const auto& m : f.port.messages)
+    out.push_back(decode(m));
+  return out;
+}
+
+std::vector<decoded> ons(const std::vector<decoded>& msgs)
+{
+  std::vector<decoded> out;
+  for(const auto& m : msgs)
+    if(m.status == note_on)
+      out.push_back(m);
+  return out;
+}
+
+//! Gives every lane its parameters, so that they can be set by step.
+void with_params(fixture& f)
+{
+  for(auto& l : f.node.patterns[0].lanes)
+    l.params.resize(l.pattern.size());
+}
+}
+
+TEST_CASE("patternist: a step with no chance never plays", "[midi][pattern]")
+{
+  fixture f;
+  f.set({lane(36, {Note::Note, Note::Note})}, 2);
+  with_params(f);
+  f.node.patterns[0].lanes[0].params[1].chance = 0.f;
+
+  CHECK(ons(f.step()).size() == 1);
+  // The note of step 0 is released and nothing is struck.
+  auto s1 = f.step();
+  CHECK(ons(s1).empty());
+  REQUIRE(s1.size() == 1);
+  CHECK(s1[0].status == note_off);
+}
+
+TEST_CASE("patternist: density scales every chance", "[midi][pattern]")
+{
+  fixture f;
+  f.set({lane(36, {Note::Note})}, 1);
+  f.node.density = 0.f;
+  for(int i = 0; i < 8; i++)
+    CHECK(ons(f.step()).empty());
+
+  f.node.density = 1.f;
+  CHECK(ons(f.step()).size() == 1);
+}
+
+TEST_CASE("patternist: conditions count the lane's passes", "[midi][pattern]")
+{
+  fixture f;
+  f.set({lane(36, {Note::Note})}, 1);
+  with_params(f);
+  auto& p = f.node.patterns[0].lanes[0].params[0];
+
+  SECTION("first")
+  {
+    p.condition = Condition::First;
+    CHECK(ons(f.step()).size() == 1);
+    for(int i = 0; i < 4; i++)
+      CHECK(ons(f.step()).empty());
+  }
+  SECTION("not first")
+  {
+    p.condition = Condition::NotFirst;
+    CHECK(ons(f.step()).empty());
+    CHECK(ons(f.step()).size() == 1);
+  }
+  SECTION("2 of 3")
+  {
+    p.condition = Condition::Cycle;
+    p.cycleA = 2;
+    p.cycleB = 3;
+    std::vector<int> played;
+    for(int i = 0; i < 9; i++)
+      played.push_back(int(ons(f.step()).size()));
+    CHECK(played == std::vector<int>{0, 1, 0, 0, 1, 0, 0, 1, 0});
+  }
+  SECTION("fill")
+  {
+    p.condition = Condition::Fill;
+    CHECK(ons(f.step()).empty());
+    f.node.fill = true;
+    CHECK(ons(f.step()).size() == 1);
+    p.condition = Condition::NotFill;
+    CHECK(ons(f.step()).empty());
+  }
+}
+
+TEST_CASE("patternist: velocity and pitch come from the step and the lane", "[midi][pattern]")
+{
+  fixture f;
+  f.set({lane(36, {Note::Note, Note::Rest})}, 2);
+  with_params(f);
+  auto& l = f.node.patterns[0].lanes[0];
+  l.velocity = 0.5f;
+  l.params[0].velocity = 0.5f;
+  l.params[0].pitch = 2;
+  f.node.velocity_scale = 1.f;
+
+  auto s0 = f.step();
+  REQUIRE(s0.size() == 1);
+  CHECK(s0[0].note == 38);
+  CHECK(
+      cmidi2_ump_get_midi2_note_velocity(f.port.messages[0].data)
+      == libremidi::from_midi1::note_on(0, 38, 32).data[1] >> 16);
+
+  // The release is for the note that was struck.
+  auto s1 = f.step();
+  REQUIRE(s1.size() == 1);
+  CHECK(s1[0].status == note_off);
+  CHECK(s1[0].note == 38);
+}
+
+TEST_CASE("patternist: ratchets, gates and offsets are timed in the step", "[midi][pattern]")
+{
+  // One quarter per tick, 1000 samples: a sixteenth step is 250 samples.
+  fixture f;
+  f.set({lane(36, {Note::Note, Note::Rest, Note::Rest, Note::Rest})}, 4);
+  with_params(f);
+  auto& p = f.node.patterns[0].lanes[0].params[0];
+
+  SECTION("ratchet")
+  {
+    p.ratchet = 4;
+    musical_tick(f, 0, 1000);
+    const auto on = ons(sent(f));
+    REQUIRE(on.size() == 4);
+    CHECK(on[0].timestamp == 0);
+    CHECK(std::abs(on[1].timestamp - 62) <= 1);
+    CHECK(std::abs(on[2].timestamp - 125) <= 1);
+    CHECK(std::abs(on[3].timestamp - 187) <= 1);
+    // Each one released before the next.
+    int offs = 0;
+    for(auto& m : sent(f))
+      offs += m.status == note_off;
+    CHECK(offs == 4);
+  }
+  SECTION("gate")
+  {
+    p.gate = 0.5f;
+    musical_tick(f, 0, 1000);
+    const auto msgs = sent(f);
+    REQUIRE(msgs.size() == 2);
+    CHECK(msgs[0].status == note_on);
+    CHECK(msgs[0].timestamp == 0);
+    CHECK(msgs[1].status == note_off);
+    CHECK(std::abs(msgs[1].timestamp - 125) <= 1);
+  }
+  SECTION("late")
+  {
+    p.offset = 0.5f;
+    musical_tick(f, 0, 1000);
+    const auto on = ons(sent(f));
+    REQUIRE(on.size() == 1);
+    CHECK(std::abs(on[0].timestamp - 125) <= 1);
+  }
+  SECTION("late, across a tick boundary")
+  {
+    p.offset = 0.5f;
+    musical_tick(f, 0, 100);
+    CHECK(ons(sent(f)).empty());
+    musical_tick(f, 100, 1000);
+    const auto on = ons(sent(f));
+    REQUIRE(on.size() == 1);
+    CHECK(std::abs(on[0].timestamp - 25) <= 1);
+  }
+  SECTION("early")
+  {
+    auto& l = f.node.patterns[0].lanes[0];
+    l.pattern = {Note::Rest, Note::Note, Note::Rest, Note::Rest};
+    l.params[1].offset = -0.5f;
+    musical_tick(f, 0, 1000);
+    const auto on = ons(sent(f));
+    REQUIRE(on.size() == 1);
+    CHECK(std::abs(on[0].timestamp - 125) <= 1);
+  }
+  SECTION("swing")
+  {
+    auto& l = f.node.patterns[0].lanes[0];
+    l.pattern = {Note::Note, Note::Note, Note::Rest, Note::Rest};
+    f.node.swing = 1.f;
+    musical_tick(f, 0, 1000);
+    const auto on = ons(sent(f));
+    REQUIRE(on.size() == 2);
+    CHECK(on[0].timestamp == 0);
+    CHECK(std::abs(on[1].timestamp - 375) <= 1);
+  }
+}
+
+TEST_CASE("patternist: lanes with their own length and division", "[midi][pattern]")
+{
+  fixture f;
+  f.set(
+      {lane(36, {Note::Note, Note::Note, Note::Note, Note::Note}),
+       lane(38, {Note::Note, Note::Rest, Note::Rest, Note::Rest})},
+      4);
+
+  SECTION("division")
+  {
+    // Eighths against sixteenths: two steps per quarter.
+    f.node.patterns[0].lanes[1].division = 8;
+    f.node.patterns[0].lanes[1].pattern = {Note::Note, Note::Note};
+    f.node.patterns[0].lanes[1].length = 2;
+    musical_tick(f, 0, 1000);
+    std::vector<int64_t> at38;
+    for(auto& m : ons(sent(f)))
+      if(m.note == 38)
+        at38.push_back(m.timestamp);
+    CHECK(at38 == std::vector<int64_t>{0, 500});
+  }
+  SECTION("length")
+  {
+    // A three-step lane over a four-step pattern: 38 again on step 3.
+    f.node.patterns[0].lanes[1].length = 3;
+    musical_tick(f, 0, 1000);
+    std::vector<int64_t> at38;
+    for(auto& m : ons(sent(f)))
+      if(m.note == 38)
+        at38.push_back(m.timestamp);
+    CHECK(at38 == std::vector<int64_t>{0, 750});
+  }
+}
+
+TEST_CASE("patternist: Euclidean lanes", "[midi][pattern]")
+{
+  SECTION("the hits are spread")
+  {
+    int hits = 0;
+    for(int i = 0; i < 8; i++)
+      hits += euclidHit(i, 8, 3, 0);
+    CHECK(hits == 3);
+    CHECK(euclidHit(0, 8, 3, 0));
+    CHECK(euclidHit(1, 8, 3, 1));
+    CHECK_FALSE(euclidHit(0, 8, 0, 0));
+    CHECK(euclidHit(5, 8, 9, 0));
+  }
+
+  Pattern p;
+  p.length = 8;
+  p.lanes.push_back(Lane{
+      {Note::Rest, Note::Note, Note::Rest, Note::Rest, Note::Rest, Note::Rest,
+       Note::Rest, Note::Rest},
+      36});
+  auto& l = p.lanes[0];
+  l.euclid.enabled = true;
+  l.euclid.pulses = 2; // hits on 0 and 4
+
+  SECTION("replace")
+  {
+    l.euclid.mode = EuclidMode::Replace;
+    CHECK(writtenNote(p, l, 0) == Note::Note);
+    CHECK(writtenNote(p, l, 1) == Note::Rest);
+    CHECK(writtenNote(p, l, 4) == Note::Note);
+  }
+  SECTION("add")
+  {
+    l.euclid.mode = EuclidMode::Add;
+    CHECK(writtenNote(p, l, 0) == Note::Note);
+    CHECK(writtenNote(p, l, 1) == Note::Note);
+  }
+  SECTION("mask")
+  {
+    l.euclid.mode = EuclidMode::Mask;
+    CHECK(writtenNote(p, l, 0) == Note::Rest);
+    CHECK(writtenNote(p, l, 1) == Note::Rest);
+  }
+  SECTION("print")
+  {
+    printEuclid(p, l);
+    CHECK_FALSE(l.euclid.enabled);
+    CHECK(l.pattern[0] == Note::Note);
+    CHECK(l.pattern[1] == Note::Rest);
+    CHECK(l.pattern[4] == Note::Note);
+  }
+}

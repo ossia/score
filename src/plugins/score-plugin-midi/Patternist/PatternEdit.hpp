@@ -23,8 +23,10 @@ SCORE_PLUGIN_MIDI_EXPORT void clear(Pattern& p) noexcept;
 //! positive moves them later.
 SCORE_PLUGIN_MIDI_EXPORT void rotate(Pattern& p, int steps) noexcept;
 
-//! Fills every lane with notes at random, more of them on the beats.
-SCORE_PLUGIN_MIDI_EXPORT void randomize(Pattern& p, std::mt19937& rng) noexcept;
+//! Fills lane `lane`, or every lane when it is -1, with notes at random, more
+//! of them on the beats.
+SCORE_PLUGIN_MIDI_EXPORT void
+randomize(Pattern& p, std::mt19937& rng, int lane = -1) noexcept;
 
 SCORE_PLUGIN_MIDI_EXPORT void addLane(Pattern& p);
 SCORE_PLUGIN_MIDI_EXPORT void removeLane(Pattern& p, int lane);

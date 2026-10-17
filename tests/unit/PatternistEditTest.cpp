@@ -133,16 +133,16 @@ TEST_CASE("patternist: mute and solo decide what a lane plays", "[midi][pattern]
 {
   auto p = pattern({lane(36, {N}), lane(38, {N}), lane(40, {L})}, 1);
   CHECK_FALSE(anySolo(p));
-  CHECK(audibleNote(p.lanes[0], 0, false) == N);
+  CHECK(audibleNote(p, p.lanes[0], 0, false) == N);
 
   p.lanes[0].mute = true;
-  CHECK(audibleNote(p.lanes[0], 0, anySolo(p)) == R);
+  CHECK(audibleNote(p, p.lanes[0], 0, anySolo(p)) == R);
 
   p.lanes[2].solo = true;
   CHECK(anySolo(p));
-  CHECK(audibleNote(p.lanes[1], 0, true) == R);
-  CHECK(audibleNote(p.lanes[2], 0, true) == L);
-  CHECK(audibleNote(p.lanes[2], 5, true) == R);
+  CHECK(audibleNote(p, p.lanes[1], 0, true) == R);
+  CHECK(audibleNote(p, p.lanes[2], 0, true) == L);
+  CHECK(audibleNote(p, p.lanes[2], 5, true) == R);
 }
 
 TEST_CASE("patternist: lane labels", "[midi][pattern]")
