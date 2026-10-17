@@ -478,6 +478,12 @@ score_add_test(test_unit_midi_message
     APP
     PLUGINS score_plugin_midi score_lib_process)
 
+  # Patternist's pattern operations and the timeline layout of its steps.
+  score_add_test(test_unit_patternist_edit
+    SOURCES PatternistEditTest.cpp
+    PLUGINS score_plugin_midi score_lib_process
+    LIBS ${QT_PREFIX}::Gui)
+
   # Piano roll rows: skin tints, and the cached rows redrawn on a skin change.
   score_add_test(test_unit_midi_row_tints
     SOURCES MidiRowTintsTest.cpp

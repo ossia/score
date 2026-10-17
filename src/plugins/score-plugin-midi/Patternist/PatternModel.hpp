@@ -21,20 +21,33 @@ enum class Note : uint8_t
   Note,
   Legato
 };
+}
+
+Q_DECLARE_METATYPE(Patternist::Note)
+W_REGISTER_ARGTYPE(Patternist::Note)
+
+namespace Patternist
+{
 
 struct Lane
 {
   std::vector<Patternist::Note> pattern;
+  //! A MIDI note, or 255 for the accent lane and 254 for the slide lane.
   uint8_t note{};
+  bool mute{};
+  bool solo{};
 
   bool operator==(const Lane& other) const noexcept
   {
-    return note == other.note && pattern == other.pattern;
+    return note == other.note && pattern == other.pattern && mute == other.mute
+           && solo == other.solo;
   }
 };
 
 struct Pattern
 {
+  static const constexpr int maxLength = 128;
+
   int length{16};
   int division{16};
   std::vector<Lane> lanes;
@@ -44,6 +57,45 @@ struct Pattern
     return length == other.length && division == other.division && lanes == other.lanes;
   }
 };
+
+//! Brings a pattern into the range the editor and the engine rely on: every lane
+//! has at least `length` steps. Steps past `length` are kept, so that shortening
+//! a pattern then lengthening it again gives the same steps back.
+SCORE_PLUGIN_MIDI_EXPORT void normalize(Pattern& p) noexcept;
+
+inline bool anySolo(const Pattern& p) noexcept
+{
+  for(const Lane& l : p.lanes)
+    if(l.solo)
+      return true;
+  return false;
+}
+
+//! What a lane plays at a step, once mute and solo are applied.
+inline Note audibleNote(const Lane& l, int step, bool anySolo) noexcept
+{
+  if(l.mute || (anySolo && !l.solo))
+    return Note::Rest;
+  if(step < 0 || step >= int(l.pattern.size()))
+    return Note::Rest;
+  return l.pattern[step];
+}
+
+//! How the lane headers name their note.
+enum class LaneLabels : uint8_t
+{
+  NameAndNumber,
+  Name,
+  Number,
+  DrumName
+};
+}
+
+Q_DECLARE_METATYPE(Patternist::LaneLabels)
+W_REGISTER_ARGTYPE(Patternist::LaneLabels)
+
+namespace Patternist
+{
 
 class SCORE_PLUGIN_MIDI_EXPORT ProcessModel final : public Process::ProcessModel
 {
@@ -79,6 +131,9 @@ public:
   void setCurrentPattern(int n);
   int currentPattern() const noexcept;
 
+  void setLaneLabels(LaneLabels l);
+  LaneLabels laneLabels() const noexcept;
+
   void setPattern(int n, Pattern p);
   void setPatterns(const std::vector<Pattern>& n);
   const std::vector<Pattern>& patterns() const noexcept;
@@ -93,7 +148,13 @@ public:
   void channelChanged(int arg_1) W_SIGNAL(channelChanged, arg_1);
   void currentPatternChanged(int arg_1) W_SIGNAL(currentPatternChanged, arg_1);
   void execPosition(int arg_1) W_SIGNAL(execPosition, arg_1);
+  //! The pattern playing and the one waiting for the next quantification
+  //! point (-1 when none is), or -1, -1 when stopped.
+  void execPattern(int current, int pending) W_SIGNAL(execPattern, current, pending);
   void patternsChanged() W_SIGNAL(patternsChanged);
+  void laneLabelsChanged(LaneLabels arg_1) W_SIGNAL(laneLabelsChanged, arg_1);
+  //! The bar grid the steps fall on moved: an ancestor moved or changed tempo.
+  void timeGridChanged() W_SIGNAL(timeGridChanged);
 
   PROPERTY(int, channel READ channel WRITE setChannel NOTIFY channelChanged, W_Final)
   PROPERTY(
@@ -101,13 +162,19 @@ public:
       currentPattern READ currentPattern WRITE setCurrentPattern NOTIFY
           currentPatternChanged,
       W_Final)
+  PROPERTY(
+      LaneLabels,
+      laneLabels READ laneLabels WRITE setLaneLabels NOTIFY laneLabelsChanged, W_Final)
 private:
+  void ancestorStartDateChanged() override;
+  void ancestorTempoChanged() override;
   void setDurationAndScale(const TimeVal& newDuration) noexcept override;
   void setDurationAndGrow(const TimeVal& newDuration) noexcept override;
   void setDurationAndShrink(const TimeVal& newDuration) noexcept override;
 
   int m_channel{1};
   int m_currentPattern{};
+  LaneLabels m_laneLabels{LaneLabels::NameAndNumber};
   std::vector<Pattern> m_patterns;
 };
 }
