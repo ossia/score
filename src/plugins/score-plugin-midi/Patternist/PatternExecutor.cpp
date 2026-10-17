@@ -20,7 +20,7 @@ namespace Patternist
 Executor::Executor(
     Patternist::ProcessModel& element, const Execution::Context& ctx, QObject* parent)
     : ::Execution::ProcessComponent_T<Patternist::ProcessModel, ossia::node_process>{
-        element, ctx, "PatternComponent", parent}
+          element, ctx, "PatternComponent", parent}
 {
   auto node = ossia::make_node<pattern_node>(*ctx.execState);
   node->channel = to_midi_channel(element.channel());
@@ -68,7 +68,10 @@ Executor::Executor(
   con(ctx.doc.execTimer, &QTimer::timeout, this,
       [element = QPointer{&element}, node] {
     if(element)
+    {
       element->execPosition(int(node->last));
+      element->execPattern(node->current_pattern, node->pending_pattern);
+    }
   });
 }
 
@@ -76,6 +79,7 @@ void Executor::stop()
 {
   ProcessComponent::stop();
   this->process().execPosition(-1);
+  this->process().execPattern(-1, -1);
 }
 Executor::~Executor() { }
 }

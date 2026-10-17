@@ -6,10 +6,13 @@
 
 #include <score/tools/File.hpp>
 
+#include <ossia/detail/math.hpp>
 #include <ossia/detail/ssize.hpp>
 
 #include <Patternist/PatternModel.hpp>
 #include <Patternist/PatternParsing.hpp>
+
+#include <QWidget>
 
 #include <cmath>
 #include <wobjectimpl.h>
@@ -18,6 +21,15 @@ W_OBJECT_IMPL(Patternist::ProcessModel)
 
 namespace Patternist
 {
+void normalize(Pattern& p) noexcept
+{
+  p.length = std::clamp(p.length, 1, Pattern::maxLength);
+  p.division = std::max(p.division, 1);
+  for(Lane& lane : p.lanes)
+    if(std::ssize(lane.pattern) < p.length)
+      lane.pattern.resize(p.length, Note::Rest);
+}
+
 //! Rates, in the convention ossia::token_request::get_quantification_dates
 //! consumes: above 1 subdivides the whole note, 1 and below counts bars, and
 //! 0 does not quantize at all.
@@ -66,8 +78,8 @@ static std::vector<Patternist::Note> fromInts(std::initializer_list<int> e)
 }
 ProcessModel::ProcessModel(
     const TimeVal& duration, const Id<Process::ProcessModel>& id, QObject* parent)
-    : Process::
-          ProcessModel{duration, id, Metadata<ObjectKey_k, ProcessModel>::get(), parent}
+    : Process::ProcessModel{
+          duration, id, Metadata<ObjectKey_k, ProcessModel>::get(), parent}
     , patternSelect{makePatternSelect(this)}
     , switchQuantification{makeSwitchQuantification(this)}
     , outlet{std::make_unique<Process::MidiOutlet>(
@@ -95,7 +107,11 @@ ProcessModel::ProcessModel(
   if(QFile f{customData}; f.open(QIODevice::ReadOnly))
     if(auto data = score::mapAsByteArray(f); !data.isEmpty())
       if(auto pat = parsePatterns(data); pat.size() > 0)
+      {
+        for(auto& p : pat)
+          normalize(p);
         this->m_patterns = std::move(pat);
+      }
 }
 
 void ProcessModel::init()
@@ -128,7 +144,16 @@ void ProcessModel::init()
   m_outlets.push_back(slide.get());
 }
 
-ProcessModel::~ProcessModel() { }
+ProcessModel::~ProcessModel()
+{
+  // The editor draws from this model: it cannot outlive it, not even until a
+  // deferred deletion.
+  if(auto ui = externalUI)
+  {
+    externalUI = nullptr;
+    delete ui;
+  }
+}
 
 void ProcessModel::setChannel(int n)
 {
@@ -185,8 +210,25 @@ int ProcessModel::currentPattern() const noexcept
   return m_currentPattern;
 }
 
+void ProcessModel::setLaneLabels(LaneLabels l)
+{
+  if(l != m_laneLabels)
+  {
+    m_laneLabels = l;
+    laneLabelsChanged(l);
+  }
+}
+
+LaneLabels ProcessModel::laneLabels() const noexcept
+{
+  return m_laneLabels;
+}
+
 void ProcessModel::setPattern(int n, Pattern p)
 {
+  if(!ossia::valid_index(n, m_patterns))
+    return;
+  normalize(p);
   m_patterns[n] = std::move(p);
   patternsChanged();
 }
@@ -196,8 +238,20 @@ void ProcessModel::setPatterns(const std::vector<Pattern>& n)
   if(n != m_patterns)
   {
     m_patterns = n;
+    for(auto& p : m_patterns)
+      normalize(p);
     patternsChanged();
   }
+}
+
+void ProcessModel::ancestorStartDateChanged()
+{
+  timeGridChanged();
+}
+
+void ProcessModel::ancestorTempoChanged()
+{
+  timeGridChanged();
 }
 
 const std::vector<Pattern>& ProcessModel::patterns() const noexcept
@@ -224,13 +278,13 @@ void ProcessModel::setDurationAndShrink(const TimeVal& newDuration) noexcept
 template <>
 void DataStreamReader::read(const Patternist::Lane& proc)
 {
-  m_stream << proc.note << proc.pattern;
+  m_stream << proc.note << proc.pattern << proc.mute << proc.solo;
 }
 
 template <>
 void DataStreamWriter::write(Patternist::Lane& proc)
 {
-  m_stream >> proc.note >> proc.pattern;
+  m_stream >> proc.note >> proc.pattern >> proc.mute >> proc.solo;
 }
 
 template <>
@@ -258,6 +312,10 @@ void JSONReader::read(const Patternist::Lane& proc)
   }
 
   obj["Pattern"] = str;
+  if(proc.mute)
+    obj["Mute"] = true;
+  if(proc.solo)
+    obj["Solo"] = true;
   stream.EndObject();
 }
 
@@ -287,6 +345,10 @@ void JSONWriter::write(Patternist::Lane& proc)
         break;
     }
   }
+  if(auto v = obj.tryGet("Mute"))
+    proc.mute = v->toBool();
+  if(auto v = obj.tryGet("Solo"))
+    proc.solo = v->toBool();
 }
 
 template <>
@@ -317,6 +379,7 @@ void JSONWriter::write(Patternist::Pattern& proc)
   proc.length = obj["Length"].toInt();
   proc.division = obj["Division"].toInt();
   proc.lanes <<= obj["Lanes"];
+  Patternist::normalize(proc);
 }
 
 template <>
@@ -324,7 +387,7 @@ void DataStreamReader::read(const Patternist::ProcessModel& proc)
 {
   m_stream << *proc.patternSelect << *proc.switchQuantification << *proc.outlet
            << *proc.accent << *proc.slide << proc.m_channel << proc.m_currentPattern
-           << proc.m_patterns;
+           << proc.m_laneLabels << proc.m_patterns;
 
   insertDelimiter();
 }
@@ -337,7 +400,8 @@ void DataStreamWriter::write(Patternist::ProcessModel& proc)
   proc.outlet = Process::load_midi_outlet(*this, &proc);
   proc.accent = Process::load_value_outlet(*this, &proc);
   proc.slide = Process::load_value_outlet(*this, &proc);
-  m_stream >> proc.m_channel >> proc.m_currentPattern >> proc.m_patterns;
+  m_stream >> proc.m_channel >> proc.m_currentPattern >> proc.m_laneLabels
+      >> proc.m_patterns;
 
   checkDelimiter();
 }
@@ -352,6 +416,7 @@ void JSONReader::read(const Patternist::ProcessModel& proc)
   obj["Slide"] = *proc.slide;
   obj["Channel"] = proc.m_channel;
   obj["Pattern"] = proc.m_currentPattern;
+  obj["LaneLabels"] = (int)proc.m_laneLabels;
   obj["Patterns"] = proc.m_patterns;
 }
 
@@ -406,5 +471,8 @@ void JSONWriter::write(Patternist::ProcessModel& proc)
   }
   proc.m_channel = obj["Channel"].toInt();
   proc.m_currentPattern = obj["Pattern"].toInt();
+  if(auto v = obj.tryGet("LaneLabels"))
+    proc.m_laneLabels = (Patternist::LaneLabels)std::clamp(
+        v->toInt(), 0, (int)Patternist::LaneLabels::DrumName);
   proc.m_patterns <<= obj["Patterns"];
 }

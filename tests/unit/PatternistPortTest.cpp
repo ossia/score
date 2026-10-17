@@ -3,28 +3,28 @@
 // Before, the port reached the executor alone, and moving it did nothing at all
 // in the editor.
 
-#include <score_test/App.hpp>
-
-#include <Patternist/PatternModel.hpp>
-
 #include <Process/Dataflow/Port.hpp>
-
-#include <ossia/network/value/value.hpp>
-#include <ossia/network/value/value_conversion.hpp>
-
-#include <score_test/Document.hpp>
-
 #include <Process/ProcessList.hpp>
 
-#include <core/document/Document.hpp>
-#include <core/document/DocumentModel.hpp>
 #include <score/model/EntitySerialization.hpp>
 #include <score/plugins/SerializableHelpers.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
 #include <score/serialization/VisitorCommon.hpp>
 
+#include <core/document/Document.hpp>
+#include <core/document/DocumentModel.hpp>
+
+#include <ossia/network/value/value.hpp>
+#include <ossia/network/value/value_conversion.hpp>
+
+#include <QMimeData>
+
+#include <Patternist/PatternEdit.hpp>
+#include <Patternist/PatternModel.hpp>
 #include <catch2/catch_test_macros.hpp>
+#include <score_test/App.hpp>
+#include <score_test/Document.hpp>
 
 namespace
 {
@@ -89,8 +89,8 @@ TEST_CASE(
   });
 }
 
-
-TEST_CASE("patternist: a document written before the ports still loads", "[midi][pattern]")
+TEST_CASE(
+    "patternist: a document written before the ports still loads", "[midi][pattern]")
 {
   score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
     auto doc = score::test::new_document(ctx);
@@ -167,5 +167,103 @@ TEST_CASE("patternist: a document written with the ports round-trips", "[midi][p
     CHECK(ossia::convert<float>(pat->switchQuantification->value()) == 4.);
 
     delete clone;
+  });
+}
+
+TEST_CASE(
+    "patternist: lane labels, mute and solo round-trip; short lanes are padded",
+    "[midi][pattern]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    auto doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    QObject* owner = new QObject{&doc->model()};
+
+    Patternist::ProcessModel proc{
+        TimeVal::fromMsecs(1000), Id<Process::ProcessModel>{1}, owner};
+    proc.setLaneLabels(Patternist::LaneLabels::DrumName);
+    auto p = proc.patterns()[0];
+    p.lanes[0].mute = true;
+    p.lanes[1].solo = true;
+    proc.setPattern(0, p);
+
+    auto& pl = ctx.interfaces<Process::ProcessFactoryList>();
+    const Process::ProcessModel& as_base = proc;
+
+    SECTION("JSON")
+    {
+      JSONReader reader;
+      reader.readFrom(as_base);
+      rapidjson::Document jdoc = toValue(reader);
+
+      // A lane shorter than the pattern, as a hand-written file can have.
+      auto& lane0 = jdoc["Patterns"][0]["Lanes"][0];
+      lane0["Pattern"].SetString("1-1", jdoc.GetAllocator());
+
+      JSONWriter writer{jdoc};
+      auto clone = deserialize_interface(pl, writer, doc->context(), owner);
+      REQUIRE(clone);
+      auto pat = dynamic_cast<Patternist::ProcessModel*>(clone);
+      REQUIRE(pat);
+
+      CHECK(pat->laneLabels() == Patternist::LaneLabels::DrumName);
+      const auto& lanes = pat->patterns()[0].lanes;
+      CHECK(lanes[0].mute);
+      CHECK_FALSE(lanes[0].solo);
+      CHECK(lanes[1].solo);
+      CHECK(lanes[0].pattern.size() == 16);
+      CHECK(lanes[0].pattern[1] == Patternist::Note::Rest);
+      CHECK(lanes[0].pattern[2] == Patternist::Note::Note);
+      delete clone;
+    }
+
+    SECTION("DataStream")
+    {
+      QByteArray arr;
+      DataStreamReader reader{&arr};
+      reader.readFrom(as_base);
+      DataStreamWriter writer{arr};
+      auto clone = deserialize_interface(pl, writer, doc->context(), owner);
+      REQUIRE(clone);
+      auto pat = dynamic_cast<Patternist::ProcessModel*>(clone);
+      REQUIRE(pat);
+      CHECK(pat->laneLabels() == Patternist::LaneLabels::DrumName);
+      CHECK(pat->patterns() == proc.patterns());
+      delete clone;
+    }
+  });
+}
+
+TEST_CASE(
+    "patternist: a pattern goes through the clipboard unchanged", "[midi][pattern]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext&) {
+    auto p = [] {
+      using namespace Patternist;
+      Pattern p;
+      p.length = 4;
+      p.division = 8;
+      p.lanes.push_back(Lane{{Note::Note, Note::Rest, Note::Legato, Note::Rest}, 36});
+      p.lanes.push_back(Lane{{Note::Rest, Note::Note, Note::Rest, Note::Note}, 255});
+      return p;
+    }();
+    p.lanes[0].solo = true;
+    p.lanes[1].mute = true;
+
+    std::unique_ptr<QMimeData> mime{Patternist::patternToMime(p)};
+    auto back = Patternist::patternFromMime(*mime);
+    REQUIRE(back);
+    CHECK(*back == p);
+
+    // Plain text holding the same JSON is accepted too.
+    QMimeData text;
+    text.setText(mime->text());
+    auto fromText = Patternist::patternFromMime(text);
+    REQUIRE(fromText);
+    CHECK(*fromText == p);
+
+    QMimeData junk;
+    junk.setText(QStringLiteral("not a pattern"));
+    CHECK_FALSE(Patternist::patternFromMime(junk));
   });
 }

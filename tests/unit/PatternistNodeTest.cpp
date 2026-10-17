@@ -6,11 +6,10 @@
 // than about the quantization arithmetic, which token_request owns and
 // QuantificationTest covers.
 
-#include <Patternist/PatternNode.hpp>
-
 #include <ossia/dataflow/exec_state_facade.hpp>
 #include <ossia/dataflow/execution_state.hpp>
 
+#include <Patternist/PatternNode.hpp>
 #include <catch2/catch_test_macros.hpp>
 
 #include <algorithm>
@@ -84,9 +83,12 @@ struct fixture
 
     ossia::exec_state_facade fac{&st};
     ossia::token_request tk{
-        ossia::time_value{0},      ossia::time_value{100},
-        ossia::time_value{100000}, ossia::time_value{offset},
-        speed,                     ossia::time_signature{4, 4},
+        ossia::time_value{0},
+        ossia::time_value{100},
+        ossia::time_value{100000},
+        ossia::time_value{offset},
+        speed,
+        ossia::time_signature{4, 4},
         120.};
     tk.end_discontinuous = discontinuous;
     static_cast<ossia::graph_node&>(node).run(tk, fac);
@@ -105,9 +107,12 @@ struct fixture
 
     ossia::exec_state_facade fac{&st};
     ossia::token_request tk{
-        ossia::time_value{100},    ossia::time_value{0},
-        ossia::time_value{100000}, ossia::time_value{0},
-        -1.,                       ossia::time_signature{4, 4},
+        ossia::time_value{100},
+        ossia::time_value{0},
+        ossia::time_value{100000},
+        ossia::time_value{0},
+        -1.,
+        ossia::time_signature{4, 4},
         120.};
     static_cast<ossia::graph_node&>(node).run(tk, fac);
 
@@ -141,8 +146,7 @@ TEST_CASE("patternist: notes alternating between two lanes", "[midi][pattern]")
   // 36 38 36 38 ... : every step must release the previous lane's note before
   // the new one is struck.
   fixture f;
-  f.set(
-      {lane(36, {Note::Note, Note::Rest}), lane(38, {Note::Rest, Note::Note})}, 2);
+  f.set({lane(36, {Note::Note, Note::Rest}), lane(38, {Note::Rest, Note::Note})}, 2);
 
   auto s0 = f.step();
   REQUIRE(s0.size() == 1);
@@ -164,7 +168,8 @@ TEST_CASE("patternist: notes alternating between two lanes", "[midi][pattern]")
   CHECK(s2[1].note == 36);
 }
 
-TEST_CASE("patternist: a repeated note is released before being struck", "[midi][pattern]")
+TEST_CASE(
+    "patternist: a repeated note is released before being struck", "[midi][pattern]")
 {
   fixture f;
   f.set({lane(36, {Note::Note, Note::Note})}, 2);
@@ -212,7 +217,8 @@ TEST_CASE("patternist: legato holds a note across steps", "[midi][pattern]")
   CHECK(s3[1].note == 36);
 }
 
-TEST_CASE("patternist: a legato step re-strikes a note that is not held", "[midi][pattern]")
+TEST_CASE(
+    "patternist: a legato step re-strikes a note that is not held", "[midi][pattern]")
 {
   fixture f;
   f.set({lane(36, {Note::Legato, Note::Rest})}, 2);
@@ -331,7 +337,8 @@ TEST_CASE("patternist: a degenerate pattern does not divide by zero", "[midi][pa
   CHECK(f.step().empty());
 }
 
-TEST_CASE("patternist: steps past the end of a lane release held notes", "[midi][pattern]")
+TEST_CASE(
+    "patternist: steps past the end of a lane release held notes", "[midi][pattern]")
 {
   // The pattern is longer than the lane: those steps have no content, but a
   // note held from an earlier one still has to come back off.
@@ -387,9 +394,12 @@ TEST_CASE("patternist: a tick covering several steps plays them all", "[midi][pa
 
   ossia::exec_state_facade fac{&f.st};
   ossia::token_request tk{
-      ossia::time_value{0},      ossia::time_value{1000},
-      ossia::time_value{100000}, ossia::time_value{0},
-      1.,                        ossia::time_signature{4, 4},
+      ossia::time_value{0},
+      ossia::time_value{1000},
+      ossia::time_value{100000},
+      ossia::time_value{0},
+      1.,
+      ossia::time_signature{4, 4},
       120.};
   // One quarter note of music: four sixteenths, so four steps.
   tk.musical_start_position = 0.;
@@ -551,9 +561,12 @@ TEST_CASE(
   f.port.messages.clear();
   ossia::exec_state_facade fac{&f.st};
   ossia::token_request tk{
-      ossia::time_value{100},   ossia::time_value{0},
-      ossia::time_value{100000}, ossia::time_value{50},
-      -1.,                       ossia::time_signature{4, 4},
+      ossia::time_value{100},
+      ossia::time_value{0},
+      ossia::time_value{100000},
+      ossia::time_value{50},
+      -1.,
+      ossia::time_signature{4, 4},
       120.};
   tk.end_discontinuous = true;
   static_cast<ossia::graph_node&>(f.node).run(tk, fac);
@@ -626,8 +639,7 @@ TEST_CASE(
   CHECK(f.node.current_pattern == p1);
 }
 
-TEST_CASE(
-    "patternist: a switch still happens without a tempo map", "[midi][pattern]")
+TEST_CASE("patternist: a switch still happens without a tempo map", "[midi][pattern]")
 {
   // A score with no tempo never advances musical time, so there is no bar line
   // to quantize against. The switch has to fall back to the start of the tick
@@ -651,4 +663,54 @@ TEST_CASE(
       struck_new = true;
   CHECK(struck_new);
   CHECK(f.node.current_pattern == p1);
+}
+
+TEST_CASE(
+    "patternist: a muted lane plays nothing and releases what it held",
+    "[midi][pattern]")
+{
+  fixture f;
+  f.set({lane(36, {Note::Note, Note::Note}), lane(38, {Note::Note, Note::Note})}, 2);
+
+  auto s0 = f.step();
+  CHECK(s0.size() == 2);
+
+  f.node.patterns[0].lanes[0].mute = true;
+  auto s1 = f.step();
+  // 36 is released and not played again, 38 is restarted.
+  int on36 = 0, off36 = 0, on38 = 0;
+  for(auto& m : s1)
+  {
+    on36 += m.note == 36 && m.status == note_on;
+    off36 += m.note == 36 && m.status == note_off;
+    on38 += m.note == 38 && m.status == note_on;
+  }
+  CHECK(on36 == 0);
+  CHECK(off36 == 1);
+  CHECK(on38 == 1);
+}
+
+TEST_CASE("patternist: a soloed lane silences the others", "[midi][pattern]")
+{
+  fixture f;
+  f.set({lane(36, {Note::Note}), lane(38, {Note::Note}), lane(42, {Note::Note})}, 1);
+  f.node.patterns[0].lanes[1].solo = true;
+
+  auto s0 = f.step();
+  REQUIRE(s0.size() == 1);
+  CHECK(s0[0].status == note_on);
+  CHECK(s0[0].note == 38);
+}
+
+TEST_CASE("patternist: a muted accent lane writes no accent", "[midi][pattern]")
+{
+  fixture f;
+  f.set({lane(36, {Note::Note}), lane(255, {Note::Note})}, 1);
+  f.node.patterns[0].lanes[1].mute = true;
+  auto& accent = *f.node.accent_out.target<ossia::value_port>();
+  accent.get_data().clear();
+
+  f.step();
+  REQUIRE(!accent.get_data().empty());
+  CHECK(ossia::convert<float>(accent.get_data().back().value) == 0.f);
 }

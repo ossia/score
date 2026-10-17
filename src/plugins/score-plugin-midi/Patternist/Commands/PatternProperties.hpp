@@ -88,6 +88,54 @@ private:
   std::vector<Pattern> m_old;
   std::vector<Pattern> m_new;
 };
+
+//! Changes the pattern list and which one is current together, so that adding
+//! or removing a pattern is a single undo step.
+class ReplacePatterns final : public score::Command
+{
+  SCORE_COMMAND_DECL(Midi::CommandFactoryName(), ReplacePatterns, "Change the patterns")
+public:
+  ReplacePatterns(const ProcessModel& model, std::vector<Pattern> pat, int current)
+      : m_model{model}
+      , m_old{model.patterns()}
+      , m_new{std::move(pat)}
+      , m_oldCurrent{model.currentPattern()}
+      , m_newCurrent{current}
+  {
+  }
+
+  void undo(const score::DocumentContext& ctx) const override
+  {
+    auto& m = m_model.find(ctx);
+    m.setPatterns(m_old);
+    m.setCurrentPattern(m_oldCurrent);
+  }
+
+  void redo(const score::DocumentContext& ctx) const override
+  {
+    auto& m = m_model.find(ctx);
+    m.setPatterns(m_new);
+    m.setCurrentPattern(m_newCurrent);
+  }
+
+protected:
+  void serializeImpl(DataStreamInput& s) const override
+  {
+    s << m_model << m_old << m_new << m_oldCurrent << m_newCurrent;
+  }
+
+  void deserializeImpl(DataStreamOutput& s) override
+  {
+    s >> m_model >> m_old >> m_new >> m_oldCurrent >> m_newCurrent;
+  }
+
+private:
+  Path<ProcessModel> m_model;
+  std::vector<Pattern> m_old;
+  std::vector<Pattern> m_new;
+  int m_oldCurrent{};
+  int m_newCurrent{};
+};
 }
 PROPERTY_COMMAND_T(
     Patternist, SetPatternChannel, ProcessModel::p_channel, "Change channel")
@@ -95,3 +143,6 @@ SCORE_COMMAND_DECL_T(Patternist::SetPatternChannel)
 PROPERTY_COMMAND_T(
     Patternist, SetCurrentPattern, ProcessModel::p_currentPattern, "Change pattern")
 SCORE_COMMAND_DECL_T(Patternist::SetCurrentPattern)
+PROPERTY_COMMAND_T(
+    Patternist, SetLaneLabels, ProcessModel::p_laneLabels, "Change lane labels")
+SCORE_COMMAND_DECL_T(Patternist::SetLaneLabels)
