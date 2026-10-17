@@ -98,6 +98,20 @@ void euclidean(const Pattern& p, Lane& l, int hits, int rotation, Combine c) noe
   }
 }
 
+bool transpose(Pattern& p, int semitones) noexcept
+{
+  bool moved = false;
+  for(Lane& l : p.lanes)
+  {
+    if(l.note > 127)
+      continue;
+    const int n = std::clamp(int(l.note) + semitones, 0, 127);
+    moved |= n != l.note;
+    l.note = uint8_t(n);
+  }
+  return moved;
+}
+
 void addLane(Pattern& p)
 {
   if(std::ssize(p.lanes) >= Pattern::maxLanes)

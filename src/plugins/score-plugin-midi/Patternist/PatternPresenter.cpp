@@ -30,11 +30,13 @@ Presenter::Presenter(
       qobject_cast<Process::NodeItem*>(parent) ? View::Mode::Fit : View::Mode::Timeline);
 
   m_controller->attach(*m_view);
-  // The grid takes every click, so nothing else would focus the layer, and the
-  // layer menu only opens on the focused one.
-  connect(m_view, &View::pressed, this, [this] {
-    m_context.context.focusDispatcher.focus(this);
-  });
+  // On the timeline the grid takes every click, so nothing else would focus
+  // the layer, and the layer menu only opens on the focused one. A node opens
+  // the menu itself: focusing there too would open a second one over it.
+  if(!qobject_cast<Process::NodeItem*>(parent))
+    connect(m_view, &View::pressed, this, [this] {
+      m_context.context.focusDispatcher.focus(this);
+    });
   connect(m_view, &View::dropReceived, this, &Presenter::on_drop);
 
   auto grid = new TimeGridWatcher{layer, this};

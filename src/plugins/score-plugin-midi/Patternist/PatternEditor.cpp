@@ -148,6 +148,17 @@ Editor::Editor(ProcessModel& model, const score::DocumentContext& ctx, QWidget* 
         [this] { m_controller->randomize(); });
     row->addSpacing(12);
 
+    row->addWidget(new QLabel{tr("Transpose"), this});
+    const std::pair<int, QString> moves[]
+        = {{-12, tr("Every lane's note an octave down")},
+           {-1, tr("Every lane's note a semitone down")},
+           {1, tr("Every lane's note a semitone up")},
+           {12, tr("Every lane's note an octave up")}};
+    for(const auto& [semitones, tip] : moves)
+      add(semitones > 0 ? QStringLiteral("+%1").arg(semitones) : QString::number(semitones),
+          tip, [this, semitones = semitones] { m_controller->transpose(semitones); });
+    row->addSpacing(12);
+
     row->addWidget(new QLabel{tr("Steps"), this});
     m_steps = new QSpinBox{this};
     m_steps->setRange(1, Pattern::maxLength);
