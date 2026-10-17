@@ -71,7 +71,7 @@ struct Spammer : PatternObject
     m_delay.store(
         std::chrono::nanoseconds(int64_t(1e9 * inputs.delay.value)),
         std::memory_order_release);
-    if(!m_thread.joinable() || inputs.pattern.devices_dirty)
+    if(!m_thread.joinable() || inputs.pattern.observer.dirty)
     {
       update();
     }

@@ -239,7 +239,7 @@ struct PatternCombiner : PatternObject
       return;
 
     current_values.clear();
-    if(inputs.pattern.devices_dirty)
+    if(inputs.pattern.observer.dirty)
       inputs.pattern.reprocess();
     for(auto in : this->roots)
     {
