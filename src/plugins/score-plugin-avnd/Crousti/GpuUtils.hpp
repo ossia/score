@@ -941,6 +941,22 @@ struct geometry_inputs_storage<T>
       // Here we fetch the readbacks results
       auto& meshes = this->inputs[N].meshes[0];
 
+      // No geometry: the producer's edge was removed (removeInputEdge resets
+      // the spec). meshes_from_ossia returns early on a null mesh list and
+      // would leave t.mesh holding the departed producer's GPU handles, freed
+      // a frame later, with nothing marking it changed: Threedim::Instancer
+      // kept baking from a freed CSF buffer
+      // (examples/3d/instancing-full.score).
+      if(!spec.meshes)
+      {
+        t.mesh = {};
+        if constexpr(requires { t.dirty_mesh; })
+          t.dirty_mesh = true;
+        meshes.buffers.clear();
+        meshes.readbacks.clear();
+        return;
+      }
+
       oscr::meshes_from_ossia(
           spec.meshes, t.mesh,
           [&](auto& write_buf, int buffer_index, void* data, int64_t bytesize) {
