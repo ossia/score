@@ -110,6 +110,9 @@ struct Lane
 struct Pattern
 {
   static const constexpr int maxLength = 128;
+  static const constexpr int maxLanes = 128;
+  //! Steps per whole note, at most.
+  static const constexpr int maxDivision = 64;
 
   int length{16};
   int division{16};
@@ -249,7 +252,8 @@ public:
 public:
   void channelChanged(int arg_1) W_SIGNAL(channelChanged, arg_1);
   void currentPatternChanged(int arg_1) W_SIGNAL(currentPatternChanged, arg_1);
-  void execPosition(int arg_1) W_SIGNAL(execPosition, arg_1);
+  //! execSteps() changed.
+  void execStepsChanged() W_SIGNAL(execStepsChanged);
   //! The pattern playing and the one waiting for the next quantification
   //! point (-1 when none is), or -1, -1 when stopped.
   void execPattern(int current, int pending) W_SIGNAL(execPattern, current, pending);

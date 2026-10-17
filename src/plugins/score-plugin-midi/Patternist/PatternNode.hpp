@@ -2,7 +2,6 @@
 #include <ossia/dataflow/graph_node.hpp>
 #include <ossia/dataflow/node_process.hpp>
 #include <ossia/dataflow/port.hpp>
-#include <ossia/detail/flat_set.hpp>
 #include <ossia/detail/math.hpp>
 #include <ossia/network/value/value_conversion.hpp>
 
@@ -11,6 +10,7 @@
 
 #include <algorithm>
 #include <array>
+#include <atomic>
 #include <cmath>
 #include <limits>
 #include <random>
@@ -42,7 +42,9 @@ public:
   // The whole list, so that switching pattern moves an index rather than
   // copying lanes - which would allocate, on the audio thread.
   std::vector<Pattern> patterns;
-  ossia::flat_set<uint8_t> in_flight;
+  //! For each note, how many of the lanes' notes are sounding on it: two
+  //! lanes on one note share a single voice, released by the last of them.
+  std::array<uint8_t, 128> in_flight{};
 
   int current_pattern{};
   //! Pattern the next quantification point switches to; -1 when nothing waits.
@@ -67,6 +69,13 @@ public:
   //! A step's hits once multiplied, held to what a step can still tell apart.
   static constexpr int max_ratchet = 16;
 
+  //! Musical position the step counters count from: where the pattern started
+  //! playing, or switched. NaN until the first tick with musical time.
+  double origin = std::numeric_limits<double>::quiet_NaN();
+  //! Set by a transport: the next tick moves the step counters to where the
+  //! playhead landed.
+  bool transport_requested{};
+
   //! Step of the pattern's own grid, which the lanes without a length or a
   //! division of their own follow.
   int current = 0;
@@ -78,7 +87,7 @@ public:
   bool release_pending{};
   bool mustStop{};
 
-  static constexpr int max_lanes = 128;
+  static constexpr int max_lanes = Pattern::maxLanes;
   struct lane_state
   {
     //! Steps the lane has started since the pattern started playing.
@@ -87,6 +96,9 @@ public:
     int64_t early{-1};
     //! Note the lane holds until its next step, or -1.
     int16_t held{-1};
+    //! Position of the note-on of `held`: its release goes after it, even when
+    //! the next step lands before it - a late step followed by an early one.
+    double held_on{-std::numeric_limits<double>::infinity()};
     //! Index of the step playing now, counted like `played`, or -1.
     int64_t last{-1};
   };
@@ -103,23 +115,56 @@ public:
   struct event
   {
     double position{};
+    //! Order it was pushed in: what goes out at the same position goes out in
+    //! that order, which is the order the lanes meant.
+    uint32_t order{};
     event_kind kind{};
     uint8_t note{};
     uint8_t velocity{};
     float value{};
   };
-  static constexpr int max_events = 1024;
+  //! What is due goes out before every grid point, so the queue holds at most
+  //! the steps around the one playing: the one before (late offset and swing
+  //! delay it by up to a step), this one and the next (scheduled early), with
+  //! room to spare - each a note-on and a note-off per hit, and a release.
+  static constexpr int max_events = 4 * max_lanes * (2 * max_ratchet + 1);
   std::array<event, max_events> queue{};
   int queue_size{};
+  uint32_t next_order{};
   //! What a step without musical time sends, all at the same date.
   std::array<event, 2 * max_lanes> immediate{};
   int immediate_size{};
 
+  //! The grid points of a tick, across the divisions the lanes walk.
+  struct grid_point
+  {
+    double position{};
+    int64_t offset{};
+    int division{};
+    //! A point of the pattern's own grid, which moves `current`.
+    bool main{};
+  };
+  static constexpr int max_points = 2048;
+  std::array<grid_point, max_points> points{};
+
   std::minstd_rand rng{0x5eed};
+
+  //! What the GUI draws, written at the end of every tick and read by its
+  //! refresh timer: the only state both threads touch, so the GUI never reads
+  //! `patterns` while a new list is swapped in.
+  struct display_state
+  {
+    std::atomic<int> pattern{-1};
+    std::atomic<int> pending{-1};
+    std::atomic<int> lane_count{0};
+    std::array<std::atomic<int64_t>, max_lanes> lanes;
+  };
+  display_state shown;
 
   pattern_node()
   {
-    in_flight.reserve(32);
+    for(auto& l : shown.lanes)
+      l.store(-1, std::memory_order_relaxed);
     m_inlets.push_back(&pattern_select);
     m_inlets.push_back(&switch_quantification);
     m_inlets.push_back(&fill_in);
@@ -150,18 +195,21 @@ public:
   void release_all(int64_t timestamp) noexcept
   {
     auto& mess = out.target<ossia::midi_port>()->messages;
-    for(uint8_t note : in_flight)
+    for(int note = 0; note < 128; note++)
     {
+      if(in_flight[note] == 0)
+        continue;
       mess.push_back(libremidi::from_midi1::note_off(in_flight_channel, note, 0));
       mess.back().timestamp = timestamp;
+      in_flight[note] = 0;
     }
-    in_flight.clear();
 
     // What was scheduled belongs to what is being released.
     queue_size = 0;
     for(auto& l : lanes)
     {
       l.held = -1;
+      l.held_on = -std::numeric_limits<double>::infinity();
       l.early = -1;
     }
   }
@@ -181,27 +229,70 @@ public:
     release_pending = true;
   }
 
+  //! The controls, from the inlets or from the GUI: each one keeps its value
+  //! when given something that is not a finite number, and is held to its
+  //! range otherwise.
+  static bool finite(float v) noexcept { return std::isfinite(v); }
+  void set_switch_rate(float v) noexcept
+  {
+    if(finite(v))
+      switch_rate = std::clamp(v, 0.f, 64.f);
+  }
+  void set_density(float v) noexcept
+  {
+    if(finite(v))
+      density = std::clamp(v, 0.f, 1.f);
+  }
+  void set_velocity_scale(float v) noexcept
+  {
+    if(finite(v))
+      velocity_scale = std::clamp(v, 0.f, 1.f);
+  }
+  void set_swing(float v) noexcept
+  {
+    if(finite(v))
+      swing = std::clamp(v, 0.f, 1.f);
+  }
+  void set_ratchet_scale(float v) noexcept
+  {
+    if(finite(v))
+      ratchet_scale = std::clamp(v, 1.f, 8.f);
+  }
+  void set_pace_offset(float v) noexcept
+  {
+    if(finite(v))
+      pace_offset = std::clamp(v, -1.f, 1.f);
+  }
+  void set_repeat_time(ossia::vec2f v) noexcept
+  {
+    if(finite(v[0]) && finite(v[1]))
+      repeat_time_value = {std::clamp(v[0], 0.f, 60.f), v[1]};
+  }
+
   void read_controls() noexcept
   {
     if(auto& d = pattern_select->get_data(); !d.empty())
       request_pattern(ossia::convert<int>(d.back().value));
     if(auto& d = switch_quantification->get_data(); !d.empty())
-      switch_rate = ossia::convert<float>(d.back().value);
+      set_switch_rate(ossia::convert<float>(d.back().value));
     if(auto& d = fill_in->get_data(); !d.empty())
       fill = ossia::convert<bool>(d.back().value);
     if(auto& d = density_in->get_data(); !d.empty())
-      density = std::clamp(ossia::convert<float>(d.back().value), 0.f, 1.f);
+      set_density(ossia::convert<float>(d.back().value));
     if(auto& d = velocity_in->get_data(); !d.empty())
-      velocity_scale = std::clamp(ossia::convert<float>(d.back().value), 0.f, 1.f);
+      set_velocity_scale(ossia::convert<float>(d.back().value));
     if(auto& d = swing_in->get_data(); !d.empty())
-      swing = std::clamp(ossia::convert<float>(d.back().value), 0.f, 1.f);
+      set_swing(ossia::convert<float>(d.back().value));
     if(auto& d = ratchet_in->get_data(); !d.empty())
-      ratchet_scale = std::clamp(ossia::convert<float>(d.back().value), 1.f, 8.f);
+      set_ratchet_scale(ossia::convert<float>(d.back().value));
     if(auto& d = pace_in->get_data(); !d.empty())
-      pace_offset = std::clamp(ossia::convert<float>(d.back().value), -1.f, 1.f);
+      set_pace_offset(ossia::convert<float>(d.back().value));
     if(auto& d = repeat_time_in->get_data(); !d.empty())
-      repeat_time_value = ossia::convert<ossia::vec2f>(d.back().value);
+      set_repeat_time(ossia::convert<ossia::vec2f>(d.back().value));
   }
+
+  //! The playhead moved somewhere else: the next tick follows it.
+  void transport() noexcept { transport_requested = true; }
 
   void run(const ossia::token_request& tk, ossia::exec_state_facade st) noexcept override
   {
@@ -210,7 +301,7 @@ public:
     // Before every early return below: the inlets are cleared once the node has
     // run, so a request read later than this is a request lost.
     read_controls();
-    if(tk.tempo > 0.)
+    if(tk.tempo > 0. && std::isfinite(tk.tempo))
       tempo = tk.tempo;
     update_repeat_time();
 
@@ -234,6 +325,7 @@ public:
     {
       release_all(tick_start);
       mustStop = false;
+      transport_requested = false;
       return;
     }
 
@@ -263,6 +355,7 @@ public:
     current_pattern = std::clamp(current_pattern, 0, int(patterns.size()) - 1);
     if(pending_pattern >= int(patterns.size()))
       pending_pattern = -1;
+    release_removed_lanes(tick_start);
 
     const bool rewinding = tk.backward();
     // Without musical time (no tempo anywhere) or going backwards, every lane
@@ -270,6 +363,15 @@ public:
     // there is no musical position to schedule gates, ratchets or offsets at.
     const bool timed = !rewinding
                        && tk.musical_end_position > tk.musical_start_position;
+
+    if(transport_requested)
+    {
+      transport_requested = false;
+      release_all(tick_start);
+      reposition(tk);
+    }
+    if(!std::isfinite(origin) && std::isfinite(tk.musical_start_position))
+      origin = tk.musical_start_position;
 
     constexpr auto never = std::numeric_limits<int64_t>::max();
     int64_t switch_at = -1;
@@ -297,11 +399,24 @@ public:
       if(timed)
         emit_until(tk, tick_start, samplesratio, switch_position);
       apply_switch(tick_start + switch_at);
+      origin = switch_position;
       play_steps(tk, tick_start, samplesratio, rewinding, timed, switch_at, never);
     }
 
     if(timed)
       emit_until(tk, tick_start, samplesratio, tk.musical_end_position);
+    publish();
+  }
+
+  void publish() noexcept
+  {
+    const int count
+        = patterns.empty() ? 0 : std::min(int(pattern().lanes.size()), max_lanes);
+    for(int i = 0; i < count; i++)
+      shown.lanes[i].store(lanes[i].last, std::memory_order_relaxed);
+    shown.lane_count.store(count, std::memory_order_relaxed);
+    shown.pattern.store(patterns.empty() ? -1 : current_pattern, std::memory_order_relaxed);
+    shown.pending.store(pending_pattern, std::memory_order_relaxed);
   }
 
   //! Plays the steps of the current pattern whose offset in the tick falls in
@@ -317,22 +432,63 @@ public:
       current = 0;
     const int lane_count = std::min(int(pat.lanes.size()), max_lanes);
 
-    // All of them, not just the first: a tick covers more than one step as soon
-    // as the division is small, the buffer large or the tempo high, and the
-    // single-date version would silently drop every step but one.
-    // get_quantification_dates walks the grid in tick order, so rewinding it
-    // hands back the steps the tick crosses in decreasing musical order. Walk
-    // the pattern the same way, or the sequence marches on while the timeline
-    // runs the other way.
-    for(const auto& q : tk.get_quantification_dates(pat.division))
+    // Every point of the tick, not just the first: a tick covers more than one
+    // step as soon as the division is small, the buffer large or the tempo
+    // high. Rewinding, the points come in decreasing musical order, and the
+    // pattern walks back the same way. Lanes with a division of their own walk
+    // their own grid, but in time order with the others: what is due goes out
+    // before each point, so nothing pushed later can fall before it.
+    int count = 0;
+    const auto collect = [&](int division, bool main) {
+      tk.for_each_quantification_date(division, [&](const auto& q) {
+        // Through the tick's one musical-position -> sample map, not through
+        // the point's date: the date is truncated to a whole flick, so
+        // flooring it into a sample rounds twice and puts the step a sample
+        // before the metronome click on the same bar line.
+        const int64_t offset = tk.physical_position(q.position, samplesratio);
+        if(offset >= from_offset && offset < to_offset && count < max_points)
+          points[count++] = {q.position, offset, division, main};
+      });
+    };
+    collect(pat.division, true);
+    if(timed)
     {
-      // Through the tick's one musical-position -> sample map, not through the
-      // point's date: the date is truncated to a whole flick, so flooring it
-      // into a sample rounds twice and puts the step a sample before the
-      // metronome click on the same bar line.
-      const int64_t offset = tk.physical_position(q.position, samplesratio);
-      if(offset < from_offset || offset >= to_offset)
+      std::array<bool, Pattern::maxDivision + 1> walked{};
+      walked[std::min(pat.division, Pattern::maxDivision)] = true;
+      for(int i = 0; i < lane_count; i++)
+      {
+        const int div = laneDivision(pat, pat.lanes[i]);
+        if(div > 0 && div <= Pattern::maxDivision && !walked[div])
+        {
+          walked[div] = true;
+          collect(div, false);
+        }
+      }
+      std::sort(
+          points.begin(), points.begin() + count,
+          [](const grid_point& a, const grid_point& b) {
+        if(a.position != b.position)
+          return a.position < b.position;
+        return a.main > b.main;
+      });
+    }
+
+    const bool solo = anySolo(pat);
+    for(int k = 0; k < count; k++)
+    {
+      const grid_point& q = points[k];
+      if(timed)
+        emit_until(tk, tick_start, samplesratio, q.position);
+
+      if(!q.main)
+      {
+        for(int i = 0; i < lane_count; i++)
+          if(laneDivision(pat, pat.lanes[i]) == q.division)
+            play_lane(
+                pat, i, q.position, 4. / q.division, false, true, solo,
+                tick_start + q.offset);
         continue;
+      }
 
       // Forward, the step about to play is the current one and the next tick
       // plays the one after. Rewinding mirrors that: step back first, so going
@@ -344,38 +500,77 @@ public:
 
       for(int i = 0; i < lane_count; i++)
       {
-        const Lane& l = pat.lanes[i];
-        if(timed && laneDivision(pat, l) != pat.division)
+        if(timed && laneDivision(pat, pat.lanes[i]) != pat.division)
           continue;
         play_lane(
-            pat, i, q.position, 4. / pat.division, rewinding, timed,
-            tick_start + offset);
+            pat, i, q.position, 4. / pat.division, rewinding, timed, solo,
+            tick_start + q.offset);
       }
-      flush_immediate(tick_start + offset);
+      flush_immediate(tick_start + q.offset);
 
       if(!rewinding)
         current = (current + 1) % pat.length;
     }
+  }
 
-    // Lanes with a division of their own walk their own grid.
-    if(!timed)
-      return;
-    for(int i = 0; i < lane_count; i++)
+  //! Points of a grid of `division` per whole note in [from; to[, the grid
+  //! starting again at every bar line: bars of `bar` quarters, one of them at
+  //! `bar_line`. The same points get_quantification_dates() walks.
+  static int64_t points_between(
+      double from, double to, double bar_line, double bar, int division) noexcept
+  {
+    if(!(bar > 0.) || division <= 0 || !(to > from))
+      return 0;
+    const double unit = 4. / division;
+    const auto per_bar = int64_t(std::ceil(bar / unit - 1e-9));
+    const auto before = [&](double x) {
+      const double rel = x - bar_line;
+      const double bars = std::floor(rel / bar + 1e-12);
+      const double within = std::max(0., rel - bars * bar);
+      return int64_t(bars) * per_bar
+             + std::min(per_bar, int64_t(std::ceil(within / unit - 1e-9)));
+    };
+    return before(to) - before(from);
+  }
+
+  //! After a transport: the counters as if the pattern had played from its
+  //! origin up to where the tick starts.
+  void reposition(const ossia::token_request& tk) noexcept
+  {
+    reset_lanes();
+    current = 0;
+    const double at = tk.musical_start_position;
+    if(!std::isfinite(origin) || !std::isfinite(at) || patterns.empty())
     {
-      const Lane& l = pat.lanes[i];
-      const int div = laneDivision(pat, l);
-      if(div == pat.division)
-        continue;
+      origin = std::numeric_limits<double>::quiet_NaN();
+      return;
+    }
+    const auto& sig = tk.signature;
+    const double bar = (sig.upper > 0 && sig.lower > 0)
+                           ? 4. * sig.upper / sig.lower
+                           : 4.;
+    const Pattern& pat = pattern();
+    if(pat.length <= 0 || pat.division <= 0)
+      return;
+    const double bar_line = tk.musical_start_last_bar;
+    const int64_t steps = points_between(origin, at, bar_line, bar, pat.division);
+    current = int(steps % pat.length);
+    const int lane_count = std::min(int(pat.lanes.size()), max_lanes);
+    for(int i = 0; i < lane_count; i++)
+      lanes[i].played
+          = points_between(origin, at, bar_line, bar, laneDivision(pat, pat.lanes[i]));
+  }
 
-      // Several lanes can share a division: each walks it on its own, the
-      // points are cheap.
-      for(const auto& q : tk.get_quantification_dates(div))
-      {
-        const int64_t offset = tk.physical_position(q.position, samplesratio);
-        if(offset < from_offset || offset >= to_offset)
-          continue;
-        play_lane(pat, i, q.position, 4. / div, false, true, tick_start + offset);
-      }
+  //! A lane that is gone cannot release what it held: release it here.
+  void release_removed_lanes(int64_t date) noexcept
+  {
+    const int lane_count = std::min(int(pattern().lanes.size()), max_lanes);
+    for(int i = lane_count; i < max_lanes; i++)
+    {
+      auto& ls = lanes[i];
+      if(ls.held >= 0)
+        emit({0., 0, event_kind::note_off, uint8_t(ls.held), 0, 0.f}, date);
+      ls = lane_state{};
     }
   }
 
@@ -383,7 +578,7 @@ public:
   //! quarters; `unit` is the length of its step in quarters.
   void play_lane(
       const Pattern& pat, int i, double position, double unit, bool rewinding,
-      bool timed, int64_t date) noexcept
+      bool timed, bool solo, int64_t date) noexcept
   {
     const Lane& l = pat.lanes[i];
     auto& ls = lanes[i];
@@ -401,7 +596,7 @@ public:
 
     if(!timed)
     {
-      play_step(pat, i, step, n / len, 0., 0., false, date);
+      play_step(pat, i, step, n / len, 0., 0., false, solo, date);
       return;
     }
 
@@ -412,7 +607,7 @@ public:
       play_step(
           pat, i, step, n / len,
           position + (std::max(0.f, p.offset) + swing_delay(step)) * unit, unit, true,
-          date);
+          solo, date);
     }
     ls.early = -1;
 
@@ -425,12 +620,12 @@ public:
     {
       play_step(
           pat, i, next_step, next / len,
-          position + (1. + np.offset + swing_delay(next_step)) * unit, unit, true, date);
+          position + (1. + np.offset + swing_delay(next_step)) * unit, unit, true, solo,
+          date);
       ls.early = next;
     }
   }
 
-  //! Every other step is delayed, by up to half a step.
   void update_repeat_time() noexcept
   {
     const auto [x, mode] = repeat_time_value;
@@ -480,6 +675,7 @@ public:
     return n;
   }
 
+  //! Every other step is delayed, by up to half a step.
   double swing_delay(int step) const noexcept
   {
     return (step % 2 == 1) ? swing * 0.5 : 0.;
@@ -509,13 +705,13 @@ public:
   //! is false everything goes out at once, at `date`.
   void play_step(
       const Pattern& pat, int i, int step, int64_t pass, double at, double unit,
-      bool scheduled, int64_t date) noexcept
+      bool scheduled, bool solo, int64_t date) noexcept
   {
     const Lane& l = pat.lanes[i];
     auto& ls = lanes[i];
     const StepParams& p = stepParams(l, step);
 
-    Note kind = audibleNote(pat, l, step, anySolo(pat));
+    Note kind = audibleNote(pat, l, step, solo);
     if(kind != Note::Rest)
     {
       if(!condition_holds(p, pass))
@@ -528,7 +724,7 @@ public:
     const auto push = [&](double position, event_kind k, int note, int velocity,
                           float value = 0.f) {
       push_event(
-          {position, k, uint8_t(note), uint8_t(velocity), value}, scheduled, date);
+          {position, 0, k, uint8_t(note), uint8_t(velocity), value}, scheduled, date);
     };
 
     if(l.note == 255 || l.note == 254)
@@ -554,12 +750,21 @@ public:
             std::clamp(vel, 0.f, 1.f) * l.velocity * velocity_scale * 127.f)),
         1, 127);
 
+    // Released where this step starts, or right after it was struck when this
+    // step starts first.
+    const auto release_held = [&] {
+      if(ls.held >= 0)
+        push(
+            std::max(
+                at, std::nextafter(ls.held_on, std::numeric_limits<double>::infinity())),
+            event_kind::note_off, ls.held, 0);
+      ls.held = -1;
+    };
+
     switch(kind)
     {
       case Note::Rest:
-        if(ls.held >= 0)
-          push(at, event_kind::note_off, ls.held, 0);
-        ls.held = -1;
+        release_held();
         break;
 
       case Note::Legato: {
@@ -568,10 +773,10 @@ public:
         // next step.
         if(ls.held != note)
         {
-          if(ls.held >= 0)
-            push(at, event_kind::note_off, ls.held, 0);
+          release_held();
           push(at, event_kind::note_on, note, velocity);
           ls.held = note;
+          ls.held_on = at;
         }
         std::array<hit, max_ratchet> h;
         const int n = hits(p, unit, scheduled, h);
@@ -579,14 +784,13 @@ public:
         {
           push(at + h[k - 1].off * unit, event_kind::note_off, note, 0);
           push(at + h[k].on * unit, event_kind::note_on, note, velocity);
+          ls.held_on = at + h[k].on * unit;
         }
         break;
       }
 
       case Note::Note: {
-        if(ls.held >= 0)
-          push(at, event_kind::note_off, ls.held, 0);
-        ls.held = -1;
+        release_held();
 
         std::array<hit, max_ratchet> h;
         const int n = hits(p, unit, scheduled, h);
@@ -595,7 +799,10 @@ public:
           push(at + h[k].on * unit, event_kind::note_on, note, velocity);
           // The last hit with a full gate holds until the next step.
           if(k + 1 == n && h[k].off >= 1.)
+          {
             ls.held = note;
+            ls.held_on = at + h[k].on * unit;
+          }
           else
             push(at + h[k].off * unit, event_kind::note_off, note, 0);
         }
@@ -604,14 +811,23 @@ public:
     }
   }
 
-  void push_event(const event& e, bool scheduled, int64_t date) noexcept
+  //! The queue keeps room for releases: when it is that full, a note that
+  //! could not be released later is not struck at all.
+  static constexpr int release_reserve = 2 * max_lanes;
+  void push_event(event e, bool scheduled, int64_t date) noexcept
   {
+    e.order = next_order++;
     if(!scheduled)
     {
       if(immediate_size < int(immediate.size()))
         immediate[immediate_size++] = e;
       return;
     }
+    // A position that is not a number would never come due.
+    if(!std::isfinite(e.position))
+      return;
+    if(e.kind == event_kind::note_on && queue_size >= max_events - release_reserve)
+      return;
     if(queue_size < max_events)
       queue[queue_size++] = e;
   }
@@ -619,9 +835,13 @@ public:
   //! Every lane's releases go before any lane strikes.
   void flush_immediate(int64_t date) noexcept
   {
-    std::stable_sort(
+    std::sort(
         immediate.begin(), immediate.begin() + immediate_size,
-        [](const event& a, const event& b) { return a.kind < b.kind; });
+        [](const event& a, const event& b) {
+      if(a.kind != b.kind)
+        return a.kind < b.kind;
+      return a.order < b.order;
+    });
     for(int i = 0; i < immediate_size; i++)
       emit(immediate[i], date);
     immediate_size = 0;
@@ -629,22 +849,29 @@ public:
 
   //! Sends what is due before musical position `end`, in order: at the same
   //! position a note-off goes before a note-on, so that a note restarted on
-  //! the step that ends it is heard.
+  //! the step that ends it is heard; then in the order they were pushed.
   void emit_until(
       const ossia::token_request& tk, int64_t tick_start, double samplesratio,
       double end) noexcept
   {
-    const auto due_end = std::stable_partition(
+    const auto due_end = std::partition(
         queue.begin(), queue.begin() + queue_size,
         [end](const event& e) { return e.position < end - 1e-9; });
-    std::stable_sort(queue.begin(), due_end, [](const event& a, const event& b) {
+    std::sort(queue.begin(), due_end, [](const event& a, const event& b) {
       if(a.position != b.position)
         return a.position < b.position;
-      return a.kind < b.kind;
+      if(a.kind != b.kind)
+        return a.kind < b.kind;
+      return a.order < b.order;
     });
 
+    // Late arrivals are stamped at the start of the tick rather than before it,
+    // where every consumer would drop them.
     for(auto it = queue.begin(); it != due_end; ++it)
-      emit(*it, tick_start + tk.physical_position(it->position, samplesratio));
+      emit(
+          *it, tick_start
+                   + tk.physical_position(
+                       std::max(it->position, tk.musical_start_position), samplesratio));
 
     const int remaining = int((queue.begin() + queue_size) - due_end);
     std::move(due_end, queue.begin() + queue_size, queue.begin());
@@ -657,17 +884,25 @@ public:
     switch(e.kind)
     {
       case event_kind::note_off:
-        if(in_flight.contains(e.note))
+        if(e.note < 128 && in_flight[e.note] > 0 && --in_flight[e.note] == 0)
         {
           mess.push_back(libremidi::from_midi1::note_off(in_flight_channel, e.note, 0));
           mess.back().timestamp = date;
-          in_flight.erase(e.note);
         }
         break;
       case event_kind::note_on:
+        if(e.note >= 128)
+          break;
+        // Struck again while another lane holds it: the voice restarts.
+        if(in_flight[e.note] > 0)
+        {
+          mess.push_back(libremidi::from_midi1::note_off(in_flight_channel, e.note, 0));
+          mess.back().timestamp = date;
+        }
         mess.push_back(libremidi::from_midi1::note_on(channel, e.note, e.velocity));
         mess.back().timestamp = date;
-        in_flight.insert(e.note);
+        if(in_flight[e.note] < 255)
+          in_flight[e.note]++;
         in_flight_channel = channel;
         break;
       case event_kind::accent:
@@ -710,6 +945,11 @@ public:
     auto& n = *static_cast<pattern_node*>(node.get());
     n.request(ossia::token_request{});
     n.mustStop = true;
+  }
+
+  void transport_impl(ossia::time_value date) override
+  {
+    static_cast<pattern_node*>(node.get())->transport();
   }
 };
 }
