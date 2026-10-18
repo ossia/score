@@ -16,6 +16,7 @@
 #include <catch2/generators/catch_generators.hpp>
 #include <catch2/generators/catch_generators_range.hpp>
 
+#include <algorithm>
 #include <cstdio>
 #include <vector>
 
@@ -122,4 +123,49 @@ TEST_CASE("VSA points grid: OpenGL and Vulkan agree", "[gfx][l3][vsa]")
   }
   if(compared == 0)
     SKIP("fewer than two backends available to compare");
+}
+
+// LINE_LOOP closes the loop: the last vertex joins the first. QRhi has no line
+// loop topology; drawn as Lines, the four corners of a square gave two of its
+// sides, (0, 1) and (2, 3). Every side must have lit pixels at its midpoint
+// column / row.
+TEST_CASE("VSA: LINE_LOOP draws every side, the closing one included", "[gfx][vsa][V05]")
+{
+  const auto be = GENERATE(from_range(platform_backends()));
+  IsfResult r;
+  score::test::run_in_gui_app([&](const score::GUIApplicationContext&) {
+    r = render_vsa(be, QString{GFX_TEST_CORPUS_DIR "/vsa-line-loop.vs"});
+  });
+  if(r.skipped)
+    SKIP(r.backend << ": " << r.skip_reason);
+  INFO("backend=" << r.backend << " error=" << r.error);
+  REQUIRE(r.error.empty());
+  REQUIRE(r.outputs.size() == 1);
+  const auto& img = r.outputs[0];
+  REQUIRE(img.valid());
+
+  // A side is drawn when a lit pixel sits within 2 px of where it crosses the
+  // middle row / column; 0.8 in NDC is 10 % of the frame from the border.
+  auto lit = [&](int x, int y) {
+    const auto p = img.at(x, y);
+    return int(p[0]) + int(p[1]) + int(p[2]) > 150;
+  };
+  auto lit_near_column = [&](int x0, int y) {
+    for(int x = std::max(0, x0 - 2); x <= std::min(img.width - 1, x0 + 2); x++)
+      if(lit(x, y))
+        return true;
+    return false;
+  };
+  auto lit_near_row = [&](int x, int y0) {
+    for(int y = std::max(0, y0 - 2); y <= std::min(img.height - 1, y0 + 2); y++)
+      if(lit(x, y))
+        return true;
+    return false;
+  };
+  const int left = img.width / 10, right = img.width - 1 - img.width / 10;
+  const int bottom = img.height / 10, top = img.height - 1 - img.height / 10;
+  CHECK(lit_near_row(img.width / 2, bottom));
+  CHECK(lit_near_row(img.width / 2, top));
+  CHECK(lit_near_column(right, img.height / 2));
+  CHECK(lit_near_column(left, img.height / 2));
 }

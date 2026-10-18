@@ -277,6 +277,9 @@ void SimpleRenderedVSANode::initState(RenderList& renderer, QRhiResourceUpdateBa
         m->topology = QRhiGraphicsPipeline::Topology::LineStrip;
         break;
       case 2:
+        m->topology = QRhiGraphicsPipeline::Topology::LineStrip;
+        m_indexList = IndexList::LineLoop;
+        break;
       case 3:
         m->topology = QRhiGraphicsPipeline::Topology::Lines;
         break;
@@ -291,17 +294,22 @@ void SimpleRenderedVSANode::initState(RenderList& renderer, QRhiResourceUpdateBa
         else
         {
           m->topology = QRhiGraphicsPipeline::Topology::Triangles;
-          m_fanIndices = rhi.newBuffer(
-              QRhiBuffer::Static, QRhiBuffer::IndexBuffer, sizeof(uint32_t));
-          m_fanIndices->setName("SimpleRenderedVSANode::m_fanIndices");
-          m_fanIndices->create();
-          m_fanIndexVertexCount = -1;
-          m->indexBuffer = m_fanIndices;
+          m_indexList = IndexList::TriangleFan;
         }
         break;
       case 6:
         m->topology = QRhiGraphicsPipeline::Topology::Triangles;
         break;
+    }
+
+    if(m_indexList != IndexList::None)
+    {
+      m_indices = rhi.newBuffer(
+          QRhiBuffer::Static, QRhiBuffer::IndexBuffer, sizeof(uint32_t));
+      m_indices->setName("SimpleRenderedVSANode::m_indices");
+      m_indices->create();
+      m_indexVertexCount = -1;
+      m->indexBuffer = m_indices;
     }
 
     m_mesh = m;
@@ -387,22 +395,25 @@ void SimpleRenderedVSANode::update(
   const auto count = *(float*)n.input[n.input.size() - 2]->value;
   auto& mesh = *static_cast<DummyMesh*>(m_mesh);
   mesh.vertexCount = count;
-  if(m_fanIndices && mesh.vertexCount != m_fanIndexVertexCount)
+  if(m_indices && mesh.vertexCount != m_indexVertexCount)
   {
-    m_fanIndexVertexCount = mesh.vertexCount;
-    std::vector<uint32_t> order(std::max(0, mesh.vertexCount));
-    std::iota(order.begin(), order.end(), 0u);
-    const auto list = triangleFanToList(order);
+    m_indexVertexCount = mesh.vertexCount;
+    std::vector<uint32_t> list(std::max(0, mesh.vertexCount));
+    std::iota(list.begin(), list.end(), 0u);
+    if(m_indexList == IndexList::TriangleFan)
+      list = triangleFanToList(list);
+    else if(list.size() >= 2)
+      list.push_back(0);
     mesh.indexCount = int(list.size());
     if(!list.empty())
     {
       const quint32 bytes = quint32(list.size() * sizeof(uint32_t));
-      if(m_fanIndices->size() != bytes)
+      if(m_indices->size() != bytes)
       {
-        m_fanIndices->setSize(bytes);
-        m_fanIndices->create();
+        m_indices->setSize(bytes);
+        m_indices->create();
       }
-      res.uploadStaticBuffer(m_fanIndices, 0, bytes, list.data());
+      res.uploadStaticBuffer(m_indices, 0, bytes, list.data());
     }
   }
 
@@ -537,8 +548,9 @@ void SimpleRenderedVSANode::releaseState(RenderList& r)
 
   delete m_mesh;
   m_mesh = nullptr;
-  delete m_fanIndices;
-  m_fanIndices = nullptr;
+  delete m_indices;
+  m_indices = nullptr;
+  m_indexList = IndexList::None;
 
   m_initialized = false;
 }

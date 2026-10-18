@@ -58,10 +58,18 @@ private:
 
   Mesh* m_mesh{};
 
-  // TRI_FAN on a backend without triangle fans: the mesh draws Triangles from
-  // this index list, {0, i - 1, i} per triangle, rebuilt when the count changes.
-  QRhiBuffer* m_fanIndices{};
-  int m_fanIndexVertexCount{-1};
+  // Primitive modes QRhi cannot draw directly are drawn from an index list
+  // over the vertex ids, rebuilt when the count changes: LINE_LOOP as a line
+  // strip 0, 1, ..., N - 1, 0, and TRI_FAN on a backend without triangle fans
+  // as triangles {0, i - 1, i}.
+  enum class IndexList : uint8_t
+  {
+    None,
+    LineLoop,
+    TriangleFan
+  } m_indexList{};
+  QRhiBuffer* m_indices{};
+  int m_indexVertexCount{-1};
 
   QRhiBuffer* m_materialUBO{};
   int m_materialSize{};
