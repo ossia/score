@@ -4924,6 +4924,56 @@ void RenderedCSFNode::buildComputeSrbBindings(
       input_port_index++;
       audio_index++;
     }
+    else if(auto* uni = ossia::get_if<isf::uniform_input>(&input.data))
+    {
+      // A uniform block takes a binding at its position (isf.cpp parse_csf),
+      // fed by its Buffer inlet, or zeros with nothing cabled.
+      QRhiBuffer* buf{};
+      if(input_port_index < (int)this->node.input.size())
+        if(auto* port = this->node.input[input_port_index]; !port->edges.empty())
+          if(auto in = renderer.bufferForInput(*port->edges.front()); in.handle)
+          {
+            if(in.handle->usage().testFlag(QRhiBuffer::UniformBuffer))
+            {
+              buf = in.handle;
+              adoptForSrb(buf);
+            }
+            else
+            {
+              qWarning() << "CSF uniform" << QString::fromStdString(input.name)
+                         << "is fed by a buffer without UniformBuffer usage; "
+                            "binding zeros. Declare it as a storage input, or "
+                            "have the producer publish a uniform buffer.";
+            }
+          }
+      if(!buf)
+      {
+        auto& ph = m_uniformPlaceholders[input.name];
+        if(!ph)
+        {
+          const auto size = (quint32)std::max<int64_t>(
+              256, score::gfx::calculateUniformBlockSize(uni->layout, 0, n.m_descriptor));
+          ph = rhi.newBuffer(QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, size);
+          ph->setName(QByteArray("RenderedCSFNode::uniform::") + input.name.c_str());
+          if(ph->create())
+          {
+            const std::vector<char> zeros(size, 0);
+            res.updateDynamicBuffer(ph, 0, size, zeros.data());
+          }
+          else
+          {
+            delete ph;
+            ph = nullptr;
+          }
+        }
+        buf = ph;
+      }
+      if(buf)
+        bindings.append(QRhiShaderResourceBinding::uniformBuffer(
+            bindingIndex, QRhiShaderResourceBinding::ComputeStage, buf));
+      bindingIndex++;
+      input_port_index++;
+    }
     else
     {
       input_port_index++;
@@ -5650,6 +5700,10 @@ void RenderedCSFNode::releaseState(RenderList& r)
 
   delete m_materialUBO;
   m_materialUBO = nullptr;
+
+  for(auto& [name, buf] : m_uniformPlaceholders)
+    delete buf;
+  m_uniformPlaceholders.clear();
 
   for(auto sampler : m_inputSamplers)
   {

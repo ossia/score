@@ -2147,3 +2147,6 @@ score_add_gfx_test(triangle_fan_fallback GfxTriangleFanFallback.cpp)
 
 # A sampled AUXILIARY texture with DEPTH:true takes one binding, not two.
 score_add_gfx_test(csf_aux_depth_binding GfxCsfAuxDepthBinding.cpp)
+
+# A top-level CSF uniform block is bound, and what follows it keeps its binding.
+score_add_gfx_test(csf_uniform_binding GfxCsfUniformBinding.cpp)

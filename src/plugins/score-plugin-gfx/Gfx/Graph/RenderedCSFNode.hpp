@@ -4,6 +4,7 @@
 #include <Gfx/Graph/NodeRenderer.hpp>
 #include <Gfx/Graph/RenderedISFUtils.hpp>
 
+#include <ossia/detail/hash_map.hpp>
 #include <ossia/detail/small_flat_map.hpp>
 #include <ossia/detail/small_vector.hpp>
 
@@ -169,6 +170,9 @@ private:
   //! passes are skipped rather than dispatched over an undersized buffer.
   bool m_auxSizeUnresolved{false};
   std::vector<StorageBuffer> m_storageBuffers; // Contains both ins and outs
+  //! Zero-filled UBO bound for a top-level uniform_input with nothing cabled,
+  //! by input name, sized from its LAYOUT.
+  ossia::hash_map<std::string, QRhiBuffer*> m_uniformPlaceholders;
 
 
   // Only outs, matched with index in m_storageBuffers
