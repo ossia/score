@@ -217,6 +217,56 @@ void View::setField(StepField f)
   update();
 }
 
+bool View::fieldUsed(StepField f) const noexcept
+{
+  auto p = pattern();
+  if(!p || !ossia::valid_index(m_selectedLane, p->lanes))
+    return true;
+  switch(p->lanes[m_selectedLane].note)
+  {
+    case accentLane:
+      return f == StepField::Velocity || f == StepField::VelocityRandom
+             || f == StepField::Chance || f == StepField::Gate;
+    case slideLane:
+      return f == StepField::Chance || f == StepField::Gate;
+    default:
+      return true;
+  }
+}
+
+StepField View::field() const noexcept
+{
+  if(fieldUsed(m_field))
+    return m_field;
+  for(auto f : allFields)
+    if(fieldUsed(f))
+      return f;
+  return m_field;
+}
+
+//! What a parameter is to the selected lane: an accent's velocity is how much
+//! it accents, a slide's gate how long it glides.
+QString View::fieldLabel(StepField f) const
+{
+  auto p = pattern();
+  const int note = p && ossia::valid_index(m_selectedLane, p->lanes)
+                       ? p->lanes[m_selectedLane].note
+                       : 0;
+  if(note == accentLane && f == StepField::Velocity)
+    return tr("Amount");
+  if(note == slideLane && f == StepField::Gate)
+    return tr("Glide");
+  for(const auto& row : fieldRows)
+    if(row.random == f)
+      return tr("Rand.");
+  return fieldName(f);
+}
+
+double View::randomButtonWidth() const noexcept
+{
+  return QFontMetricsF{smallFont()}.horizontalAdvance(tr("Rand.")) + 12.;
+}
+
 void View::setSelectedLane(int lane)
 {
   if(lane != m_selectedLane)
@@ -383,8 +433,10 @@ double View::measureHeader() const noexcept
   // the parameter buttons under the lanes.
   const QFontMetricsF small{smallFont()};
   double fields = 0.;
-  for(auto f : allFields)
-    fields = std::max(fields, small.horizontalAdvance(fieldName(f)) + 12.);
+  for(const auto& row : fieldRows)
+    fields = std::max(
+        fields, small.horizontalAdvance(fieldName(row.value)) + 12.
+                    + (row.random ? randomButtonWidth() + 2. : 0.));
   fields = std::max(
       fields, small.horizontalAdvance(tr("Random")) + small.horizontalAdvance(tr("Reset"))
                   + 26.);
@@ -424,16 +476,16 @@ double View::fieldHeight() const noexcept
 {
   if(!m_advanced)
     return 0.;
-  // Room for a button per parameter, and a row for Random and Reset, the
-  // buttons getting smaller before the bars do.
-  const double rows = std::size(allFields) + 1;
+  // Room for a row of buttons per parameter, and a row for Random and Reset,
+  // the buttons getting smaller before the bars do.
+  const double rows = std::size(fieldRows) + 1;
   const double minimum = rows * min_button_h + 8.;
   return std::clamp(height() * 0.3, minimum, std::max(minimum, 200.));
 }
 
 double View::fieldButtonHeight() const noexcept
 {
-  const double rows = std::size(allFields) + 1;
+  const double rows = std::size(fieldRows) + 1;
   return std::clamp((fieldHeight() - 8.) / rows, min_button_h, button_h);
 }
 
@@ -616,11 +668,26 @@ QRectF View::fieldButtonRect(int i) const noexcept
   const double w = headerWidth() - 2. * pad;
   const double h = fieldButtonHeight();
   const int n = std::size(allFields);
+  // The rows the selected lane uses, one after the other.
+  int row = 0;
+  for(const auto& r : fieldRows)
+  {
+    if(!fieldUsed(r.value))
+      continue;
+    const double top = area.top() + row * h;
+    const bool random = r.random && fieldUsed(*r.random);
+    const double rw = random ? randomButtonWidth() : 0.;
+    if(i < n && allFields[i] == r.value)
+      return {pad, top, random ? w - rw - 2. : w, h - 2.};
+    if(i < n && random && allFields[i] == *r.random)
+      return {pad + w - rw, top, rw, h - 2.};
+    row++;
+  }
   if(i < n)
-    return {pad, area.top() + i * h, w, h - 2.};
+    return {};
   // Random, then Reset, side by side under the parameters.
   const double half = (w - 2.) / 2.;
-  return {pad + (i - n) * (half + 2.), area.top() + n * h + 4., half, h - 2.};
+  return {pad + (i - n) * (half + 2.), area.top() + row * h + 4., half, h - 2.};
 }
 
 int View::buttonAt(QPointF pos) const noexcept
@@ -1231,17 +1298,19 @@ void View::paintField(QPainter* painter, const Pattern& p) const
       QRectF{0., area.top(), area.left() - 2., area.height()}, colors.header);
   painter->setFont(smallFont());
   painter->setRenderHint(QPainter::Antialiasing, true);
+  const StepField shown = field();
   for(int i = 0; i < int(std::size(allFields)); i++)
-    paintButton(
-        painter, fieldButtonRect(i), fieldName(allFields[i]), allFields[i] == m_field,
-        skin.Base4.main.brush.color(), field_button + i);
+    if(const QRectF r = fieldButtonRect(i); !r.isEmpty())
+      paintButton(
+          painter, r, fieldLabel(allFields[i]), allFields[i] == shown,
+          skin.Base4.main.brush.color(), field_button + i);
   const int n = std::size(allFields);
   paintButton(painter, fieldButtonRect(n), tr("Random"), false, {}, field_button + n);
   paintButton(
       painter, fieldButtonRect(n + 1), tr("Reset"), false, {}, field_button + n + 1);
   painter->setRenderHint(QPainter::Antialiasing, false);
 
-  const auto range = fieldRange(m_field);
+  const auto range = fieldRange(shown);
   const auto toY = [&](float v) {
     const double t = (v - range.min) / (range.max - range.min);
     return area.bottom() - t * area.height();
@@ -1257,21 +1326,21 @@ void View::paintField(QPainter* painter, const Pattern& p) const
   {
     const double w = sl.x1 - sl.x0;
     const double inset = w > 4. ? 1. : 0.;
-    const float v = stepField(stepParams(l, sl.step), m_field);
+    const float v = stepField(stepParams(l, sl.step), shown);
     const double y = toY(v);
     // A tie that only holds the note before plays no velocity of its own.
     const Note note = writtenNote(p, l, sl.step);
     const bool rest
         = note == Note::Rest
           || (note == Note::Legato
-              && (m_field == StepField::Velocity || m_field == StepField::VelocityRandom)
+              && (shown == StepField::Velocity || shown == StepField::VelocityRandom)
               && !tieStrikes(p, l, sl.step));
     const QRectF bar{
         QPointF{sl.x0 + inset, std::min(y, originY)},
         QPointF{sl.x1 - inset, std::max(y, originY) + 1.}};
     painter->fillRect(
         bar, rest ? colors.restBar : sl.repeat ? colors.repeatNote : colors.note);
-    const QString text = fieldText(m_field, v);
+    const QString text = fieldText(shown, v);
     if(!sl.repeat && QFontMetricsF{painter->font()}.horizontalAdvance(text) + 2. <= w)
     {
       painter->setPen(skin.Light.main.pen1);
@@ -1413,16 +1482,16 @@ void View::pressButton(int id, Qt::KeyboardModifiers mods)
     if(i < n)
     {
       setField(allFields[i]);
-      fieldSelected(int(m_field));
+      fieldSelected(int(field()));
     }
     else
     {
       // Shift applies to every lane.
       const int lane = (mods & Qt::ShiftModifier) ? -1 : m_selectedLane;
       if(i == n)
-        fieldRandomized(lane, int(m_field));
+        fieldRandomized(lane, int(field()));
       else
-        fieldReset(lane, int(m_field));
+        fieldReset(lane, int(field()));
     }
   }
   else if(id >= solo_button)
@@ -1586,10 +1655,10 @@ void View::editFieldAt(QPointF pos)
   const int step = fieldStepAt(pos);
   if(step < 0 || area.height() <= 0.)
     return;
-  const auto range = fieldRange(m_field);
+  const auto range = fieldRange(field());
   const double t = std::clamp((area.bottom() - pos.y()) / area.height(), 0., 1.);
   fieldEdited(
-      m_selectedLane, step, int(m_field),
+      m_selectedLane, step, int(field()),
       float(range.min + t * (range.max - range.min)));
 }
 
@@ -1607,11 +1676,11 @@ void View::startFieldDrag(QPointF pos, Qt::KeyboardModifiers mods)
   m_dragBase.resize(l.params.size());
   m_dragTarget.resize(l.params.size());
   for(std::size_t i = 0; i < l.params.size(); i++)
-    m_dragBase[i] = stepField(l.params[i], m_field);
+    m_dragBase[i] = stepField(l.params[i], field());
 
   std::mt19937 rng{std::random_device{}()};
   for(auto& v : m_dragTarget)
-    v = anyFieldValue(m_field, rng);
+    v = anyFieldValue(field(), rng);
 
   m_dragSteps.clear();
   const auto& sel = selection();
@@ -1628,7 +1697,7 @@ void View::dragField(QPointF pos)
   const QRectF area = fieldRect();
   if(area.height() <= 0.)
     return;
-  const auto range = fieldRange(m_field);
+  const auto range = fieldRange(field());
   auto& values = m_dragValues;
   values = m_dragBase;
 
@@ -1649,7 +1718,7 @@ void View::dragField(QPointF pos)
       if(i < std::ssize(values))
         values[i] = m_dragBase[i] + t * (m_dragTarget[i] - m_dragBase[i]);
   }
-  fieldValuesEdited(m_selectedLane, int(m_field));
+  fieldValuesEdited(m_selectedLane, int(field()));
 }
 
 //! On a lane's steps or rate: back to following the pattern.
@@ -1717,6 +1786,22 @@ QVariant View::itemChange(GraphicsItemChange change, const QVariant& value)
 //! The lane names are note choosers: pressing one also selects its lane.
 bool View::sceneEventFilter(QGraphicsItem* watched, QEvent* event)
 {
+  // An accent or a slide lane has no note to choose.
+  switch(event->type())
+  {
+    case QEvent::GraphicsSceneMouseMove:
+    case QEvent::GraphicsSceneMouseDoubleClick:
+    case QEvent::GraphicsSceneWheel:
+      if(auto p = pattern())
+        if(auto it = std::find(m_lanes.begin(), m_lanes.end(), watched);
+           it != m_lanes.end())
+          if(const int lane = int(it - m_lanes.begin());
+             ossia::valid_index(lane, p->lanes) && isControlLane(p->lanes[lane]))
+            return true;
+      break;
+    default:
+      break;
+  }
   if(m_advanced && event->type() == QEvent::GraphicsSceneMousePress)
   {
     auto it = std::find(m_lanes.begin(), m_lanes.end(), watched);

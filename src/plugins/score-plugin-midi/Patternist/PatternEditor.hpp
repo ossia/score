@@ -3,12 +3,15 @@
 #include <QPointer>
 #include <QWidget>
 
+#include <array>
 #include <vector>
 
 class QGraphicsScene;
 class QGraphicsView;
+class QAction;
 class QCheckBox;
 class QComboBox;
+class QFormLayout;
 class QHBoxLayout;
 class QPushButton;
 class QLabel;
@@ -61,7 +64,11 @@ private:
   QSpinBox* m_laneLength{};
   QSpinBox* m_laneDivision{};
   QSpinBox* m_laneVelocity{};
-  QCheckBox* m_perHit[3]{};
+  QCheckBox* m_perHit[4]{};
+  std::array<QWidget*, 2> m_perHitRows{};
+  QFormLayout* m_laneForm{};
+  QAction* m_addAccent{};
+  QAction* m_addSlide{};
   QSpinBox* m_pulses{};
   QSpinBox* m_rotation{};
   QComboBox* m_combine{};

@@ -503,3 +503,35 @@ TEST_CASE("patternist: transposing moves every note lane", "[midi][pattern]")
   p.lanes[1].note = 0;
   CHECK_FALSE(transpose(p, -12));
 }
+
+TEST_CASE("patternist: accent and slide lanes stay at the bottom", "[midi][pattern]")
+{
+  Pattern p;
+  p.length = 4;
+  p.lanes.push_back(Lane{std::vector<Note>(4, Note::Note), 36});
+  normalize(p);
+
+  CHECK(addControlLane(p, accentLane));
+  CHECK(!addControlLane(p, accentLane));
+  CHECK(addControlLane(p, slideLane));
+  REQUIRE(p.lanes.size() == 3);
+  CHECK(p.lanes[1].note == accentLane);
+  CHECK(p.lanes[1].pattern == std::vector<Note>(4, Note::Rest));
+
+  // A new lane copies the last note lane, above the accent and the slide.
+  addLane(p);
+  REQUIRE(p.lanes.size() == 4);
+  CHECK(p.lanes[1].note == 36);
+  CHECK(p.lanes[1].pattern == p.lanes[0].pattern);
+  CHECK(p.lanes[2].note == accentLane);
+  CHECK(p.lanes[3].note == slideLane);
+  CHECK(hasLane(p, slideLane));
+}
+
+TEST_CASE("patternist: the gate random is a parameter", "[midi][pattern]")
+{
+  StepParams s;
+  setStepField(s, StepField::GateRandom, 2.f);
+  CHECK(stepField(s, StepField::GateRandom) == 1.f);
+  CHECK(s.gate == StepParams{}.gate);
+}

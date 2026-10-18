@@ -40,7 +40,8 @@ void normalize(Pattern& p) noexcept
     lane.length = std::clamp(lane.length, 0, Pattern::maxLength);
     lane.division = std::clamp(lane.division, 0, Pattern::maxDivision);
     lane.velocity = sane(lane.velocity, Lane{}.velocity, 0.f, 1.f);
-    lane.randomPerHit &= Lane::VelocityPerHit | Lane::PitchPerHit | Lane::TimingPerHit;
+    lane.randomPerHit &= Lane::VelocityPerHit | Lane::PitchPerHit | Lane::TimingPerHit
+                       | Lane::GatePerHit;
     if(std::ssize(lane.pattern) > Pattern::maxLength)
       lane.pattern.resize(Pattern::maxLength);
 
@@ -55,6 +56,7 @@ void normalize(Pattern& p) noexcept
       s.offset = sane(s.offset, def.offset, -0.5f, 0.5f);
       s.offsetRandom = sane(s.offsetRandom, def.offsetRandom, 0.f, 0.5f);
       s.gate = sane(s.gate, def.gate, 0.f, 1.f);
+      s.gateRandom = sane(s.gateRandom, def.gateRandom, 0.f, 1.f);
       s.ratchet = std::clamp<uint8_t>(s.ratchet, 1, 8);
       s.pace = sane(s.pace, def.pace, -1.f, 1.f);
       s.velocityRandom = sane(s.velocityRandom, def.velocityRandom, 0.f, 1.f);
@@ -421,7 +423,7 @@ template <>
 SCORE_PLUGIN_MIDI_EXPORT void DataStreamReader::read(const Patternist::StepParams& s)
 {
   m_stream << s.velocity << s.velocityRandom << s.chance << s.offset << s.offsetRandom
-           << s.gate << s.ratchet << s.pace << s.pitch << s.pitchRandom << s.condition
+           << s.gate << s.gateRandom << s.ratchet << s.pace << s.pitch << s.pitchRandom << s.condition
            << s.cycleA << s.cycleB;
 }
 
@@ -429,7 +431,7 @@ template <>
 SCORE_PLUGIN_MIDI_EXPORT void DataStreamWriter::write(Patternist::StepParams& s)
 {
   m_stream >> s.velocity >> s.velocityRandom >> s.chance >> s.offset >> s.offsetRandom
-      >> s.gate >> s.ratchet >> s.pace >> s.pitch >> s.pitchRandom >> s.condition
+      >> s.gate >> s.gateRandom >> s.ratchet >> s.pace >> s.pitch >> s.pitchRandom >> s.condition
       >> s.cycleA >> s.cycleB;
 }
 
@@ -513,6 +515,8 @@ void JSONReader::read(const Patternist::Lane& proc)
         obj["OffsetRandom"] = s.offsetRandom;
       if(s.gate != def.gate)
         obj["Gate"] = s.gate;
+      if(s.gateRandom != def.gateRandom)
+        obj["GateRandom"] = s.gateRandom;
       if(s.ratchet != def.ratchet)
         obj["Ratchet"] = (int)s.ratchet;
       if(s.pace != def.pace)
@@ -571,7 +575,7 @@ void JSONWriter::write(Patternist::Lane& proc)
   if(auto v = obj.tryGet("Velocity"))
     proc.velocity = v->toDouble();
   if(auto v = obj.tryGet("RandomPerHit"))
-    proc.randomPerHit = uint8_t(v->toInt() & 7);
+    proc.randomPerHit = uint8_t(v->toInt());
 
   proc.params.resize(proc.pattern.size());
   if(auto steps = obj.tryGet("Steps"))
@@ -596,6 +600,7 @@ void JSONWriter::write(Patternist::Lane& proc)
       num("Offset", s.offset);
       num("OffsetRandom", s.offsetRandom);
       num("Gate", s.gate);
+      num("GateRandom", s.gateRandom);
       num("Pace", s.pace);
       int ratchet = s.ratchet, pitch = s.pitch, pitchRandom = s.pitchRandom, cond = 0,
           a = s.cycleA, b = s.cycleB;

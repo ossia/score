@@ -151,6 +151,13 @@ void Controller::fillMenu(QMenu& menu, int lane)
 
   connect(
       menu.addAction(tr("Add lane")), &QAction::triggered, this, [this] { addLane(); });
+  for(auto [note, name] :
+      {std::pair{accentLane, tr("Add accent lane")}, std::pair{slideLane, tr("Add slide lane")}})
+  {
+    auto act = menu.addAction(name);
+    act->setEnabled(!hasLane(pat, note));
+    connect(act, &QAction::triggered, this, [this, note = note] { addControlLane(note); });
+  }
   menu.addSeparator();
   connect(
       menu.addAction(tr("Copy pattern")), &QAction::triggered, this, [this] { copy(); });
@@ -304,6 +311,15 @@ void Controller::addLane()
   auto p = current();
   Patternist::addLane(p);
   submit(p);
+}
+
+void Controller::addControlLane(uint8_t note)
+{
+  if(!hasPattern())
+    return;
+  auto p = current();
+  if(Patternist::addControlLane(p, note))
+    submit(p);
 }
 
 void Controller::removeLane(int lane)

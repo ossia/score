@@ -48,7 +48,11 @@ SCORE_PLUGIN_MIDI_EXPORT void euclidean(
 //! accent and slide lanes stay. False when nothing could move.
 SCORE_PLUGIN_MIDI_EXPORT bool transpose(Pattern& p, int semitones) noexcept;
 
+//! A copy of the last note lane, before the accent and slide lanes.
 SCORE_PLUGIN_MIDI_EXPORT void addLane(Pattern& p);
+//! The accent or slide lane, at the bottom: false when the pattern has it.
+SCORE_PLUGIN_MIDI_EXPORT bool addControlLane(Pattern& p, uint8_t note) noexcept;
+SCORE_PLUGIN_MIDI_EXPORT bool hasLane(const Pattern& p, uint8_t note) noexcept;
 SCORE_PLUGIN_MIDI_EXPORT void removeLane(Pattern& p, int lane);
 SCORE_PLUGIN_MIDI_EXPORT void setLength(Pattern& p, int length);
 
@@ -99,7 +103,8 @@ enum class StepField : uint8_t
   Ratchet,
   Pace,
   Pitch,
-  PitchRandom
+  PitchRandom,
+  GateRandom
 };
 
 struct FieldRange

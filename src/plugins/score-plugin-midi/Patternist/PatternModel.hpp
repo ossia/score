@@ -61,6 +61,9 @@ struct StepParams
   float offsetRandom{0.f};
   //! 0 - 1 of a step; a tie, or 1, holds the note until the next step.
   float gate{1.f};
+  //! 0 - 1: each time the step plays, its gate moves by up to this much
+  //! either way.
+  float gateRandom{0.f};
   //! Notes played within the step, 1 - 8.
   uint8_t ratchet{1};
   //! -1 - 1: positive starts the ratchet's hits wide apart and tightens them,
@@ -94,7 +97,7 @@ inline bool euclidHit(int i, int steps, int pulses, int rotation) noexcept
 struct Lane
 {
   std::vector<Patternist::Note> pattern;
-  //! A MIDI note, or 255 for the accent lane and 254 for the slide lane.
+  //! A MIDI note, or accentLane or slideLane.
   uint8_t note{};
   bool mute{};
   bool solo{};
@@ -112,12 +115,25 @@ struct Lane
   {
     VelocityPerHit = 1,
     PitchPerHit = 2,
-    TimingPerHit = 4
+    TimingPerHit = 4,
+    GatePerHit = 8
   };
   uint8_t randomPerHit{};
 
   bool operator==(const Lane& other) const noexcept = default;
 };
+
+//! Lanes that play no note of their own and act on the notes of the others on
+//! the same step. An accent raises their velocity towards the top, by the
+//! accent step's velocity times the accent lane's; a slide holds them into the
+//! next step, which strikes before the held note is released, so that a mono
+//! synth glides between the two.
+inline constexpr uint8_t accentLane = 255;
+inline constexpr uint8_t slideLane = 254;
+inline bool isControlLane(const Lane& l) noexcept
+{
+  return l.note == accentLane || l.note == slideLane;
+}
 
 struct Pattern
 {

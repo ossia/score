@@ -116,10 +116,34 @@ void addLane(Pattern& p)
 {
   if(std::ssize(p.lanes) >= Pattern::maxLanes)
     return;
-  if(p.lanes.empty())
-    p.lanes.push_back(Lane{std::vector<Note>(p.length, Note::Rest), 36});
-  else
-    p.lanes.push_back(p.lanes.back());
+  auto last = std::find_if(
+      p.lanes.rbegin(), p.lanes.rend(), [](const Lane& l) { return l.note < 128; });
+  Lane lane = last != p.lanes.rend()
+                  ? *last
+                  : Lane{std::vector<Note>(p.length, Note::Rest), 36};
+  auto controls = std::find_if(
+      p.lanes.begin(), p.lanes.end(), [](const Lane& l) { return isControlLane(l); });
+  if(last != p.lanes.rend() && controls < last.base())
+    controls = last.base();
+  p.lanes.insert(controls, std::move(lane));
+}
+
+bool hasLane(const Pattern& p, uint8_t note) noexcept
+{
+  return std::any_of(
+      p.lanes.begin(), p.lanes.end(), [note](const Lane& l) { return l.note == note; });
+}
+
+bool addControlLane(Pattern& p, uint8_t note) noexcept
+{
+  if(std::ssize(p.lanes) >= Pattern::maxLanes || hasLane(p, note))
+    return false;
+  Lane lane{std::vector<Note>(p.length, Note::Rest), note};
+  // Starts as a moderate accent, and its depth sets how far each step goes.
+  lane.velocity = 0.5f;
+  lane.params.resize(lane.pattern.size());
+  p.lanes.push_back(std::move(lane));
+  return true;
 }
 
 void removeLane(Pattern& p, int lane)
@@ -361,6 +385,7 @@ FieldRange fieldRange(StepField f) noexcept
     case StepField::VelocityRandom:
     case StepField::Chance:
     case StepField::Gate:
+    case StepField::GateRandom:
       return {0.f, 1.f, 0.f};
     case StepField::Offset:
       return {-0.5f, 0.5f, 0.f};
@@ -394,6 +419,8 @@ QString fieldName(StepField f)
       return QObject::tr("Timing random");
     case StepField::Gate:
       return QObject::tr("Gate");
+    case StepField::GateRandom:
+      return QObject::tr("Gate random");
     case StepField::Ratchet:
       return QObject::tr("Ratchet");
     case StepField::Pace:
@@ -422,6 +449,8 @@ float stepField(const StepParams& p, StepField f) noexcept
       return p.offsetRandom;
     case StepField::Gate:
       return p.gate;
+    case StepField::GateRandom:
+      return p.gateRandom;
     case StepField::Ratchet:
       return p.ratchet;
     case StepField::Pace:
@@ -457,6 +486,9 @@ void setStepField(StepParams& p, StepField f, float v) noexcept
       break;
     case StepField::Gate:
       p.gate = v;
+      break;
+    case StepField::GateRandom:
+      p.gateRandom = v;
       break;
     case StepField::Ratchet:
       p.ratchet = uint8_t(std::lround(v));
@@ -495,6 +527,7 @@ QString fieldText(StepField f, float v)
       return QStringLiteral("%1%2").arg(v > 0 ? "+" : "").arg(int(std::lround(v)));
     case StepField::VelocityRandom:
     case StepField::OffsetRandom:
+    case StepField::GateRandom:
       return QStringLiteral("±%1%").arg(int(std::lround(v * 100.f)));
     case StepField::PitchRandom:
       return QStringLiteral("±%1").arg(int(std::lround(v)));
@@ -522,6 +555,9 @@ float randomFieldValue(StepField f, std::mt19937& rng) noexcept
       return unit(rng) < 0.6f ? 0.f : 0.02f + 0.08f * unit(rng);
     case StepField::Gate:
       return 0.2f + 0.8f * unit(rng);
+    case StepField::GateRandom:
+      // Some steps a little looser.
+      return unit(rng) < 0.6f ? 0.f : 0.05f + 0.25f * unit(rng);
     case StepField::Ratchet: {
       const float r = unit(rng);
       return r < 0.75f ? 1.f : r < 0.9f ? 2.f : r < 0.97f ? 3.f : 4.f;

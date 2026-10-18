@@ -113,14 +113,29 @@ public:
     //! note it moves early is scheduled from the step before.
     int64_t shift_for{-1};
     double shift{};
+    //! Where on its grid the step `last` is, in quarters.
+    double last_at{};
+    //! The note held is slid into the next step: it strikes before the
+    //! release, and the same note carries on.
+    bool slid{};
+    //! A control lane's last steps: whether each is on, and its value, drawn
+    //! once so that its outlet and the notes it acts on agree.
+    struct decided
+    {
+      int64_t n{-1};
+      float value{};
+    };
+    std::array<decided, 2> decisions{};
   };
   std::array<lane_state, max_lanes> lanes{};
 
+  //! At the same position, in this order: an accent is set before the notes
+  //! it acts on, a slide changes once the note it glides into is struck.
   enum class event_kind : uint8_t
   {
+    accent,
     note_off,
     note_on,
-    accent,
     slide
   };
   //! A message waiting for the tick its musical position falls in.
@@ -161,6 +176,10 @@ public:
   std::array<grid_point, max_points> points{};
 
   std::minstd_rand rng{0x5eed};
+
+  //! The accent and slide lanes of the pattern playing.
+  std::array<int16_t, max_lanes> control_lanes{};
+  int control_lane_count{};
 
   //! What the GUI draws, written at the end of every tick and read by its
   //! refresh timer: the only state both threads touch, so the GUI never reads
@@ -224,6 +243,7 @@ public:
       l.held = -1;
       l.held_on = -std::numeric_limits<double>::infinity();
       l.early = -1;
+      l.slid = false;
     }
   }
 
@@ -471,6 +491,10 @@ public:
     if(current < 0 || current >= pat.length)
       current = 0;
     const int lane_count = std::min(int(pat.lanes.size()), max_lanes);
+    control_lane_count = 0;
+    for(int i = 0; i < lane_count; i++)
+      if(isControlLane(pat.lanes[i]))
+        control_lanes[control_lane_count++] = int16_t(i);
 
     // Every point of the tick, not just the first: a tick covers more than one
     // step as soon as the division is small, the buffer large or the tempo
@@ -522,13 +546,17 @@ public:
       if(timed && queue_size >= max_events / 2)
         emit_until(tk, tick_start, samplesratio, q.position);
 
+      // The accent and slide lanes first, so that the notes they act on
+      // find them on this step.
       if(!q.main)
       {
-        for(int i = 0; i < lane_count; i++)
-          if(laneDivision(pat, pat.lanes[i]) == q.division)
-            play_lane(
-                pat, i, q.position, 4. / q.division, false, true, solo,
-                tick_start + q.offset);
+        for(int first = 1; first >= 0; first--)
+          for(int i = 0; i < lane_count; i++)
+            if(isControlLane(pat.lanes[i]) == bool(first)
+               && laneDivision(pat, pat.lanes[i]) == q.division)
+              play_lane(
+                  pat, i, q.position, 4. / q.division, false, true, solo,
+                  tick_start + q.offset);
         continue;
       }
 
@@ -543,14 +571,17 @@ public:
       last = current;
       in_flight_channel = channel;
 
-      for(int i = 0; i < lane_count; i++)
-      {
-        if(timed && laneDivision(pat, pat.lanes[i]) != pat.division)
-          continue;
-        play_lane(
-            pat, i, q.position, 4. / pat.division, rewinding, timed, solo,
-            tick_start + q.offset);
-      }
+      for(int first = 1; first >= 0; first--)
+        for(int i = 0; i < lane_count; i++)
+        {
+          if(isControlLane(pat.lanes[i]) != bool(first))
+            continue;
+          if(timed && laneDivision(pat, pat.lanes[i]) != pat.division)
+            continue;
+          play_lane(
+              pat, i, q.position, 4. / pat.division, rewinding, timed, solo,
+              tick_start + q.offset);
+        }
       flush_immediate(tick_start + q.offset);
 
       if(!rewinding)
@@ -678,12 +709,13 @@ public:
     const int64_t n = ls.played;
     const int step = int(n % len);
     ls.last = n;
+    ls.last_at = position;
     if(!rewinding)
       ls.played++;
 
     if(!timed)
     {
-      play_step(pat, i, step, n / len, 0., 0., false, solo, date);
+      play_step(pat, i, step, n / len, 0., 0., 0., false, solo, date);
       return;
     }
 
@@ -692,7 +724,7 @@ public:
     {
       const double shift = ls.shift_for == n ? ls.shift : note_shift(l, step);
       play_step(
-          pat, i, step, n / len,
+          pat, i, step, n / len, position,
           position + (std::max(0., timing(l, step, shift)) + swing_delay(step)) * unit,
           unit, true, solo, date);
     }
@@ -707,7 +739,7 @@ public:
     if(const double t = timing(l, next_step, ls.shift); t < 0.)
     {
       play_step(
-          pat, i, next_step, next / len,
+          pat, i, next_step, next / len, position + unit,
           position + (1. + t + swing_delay(next_step)) * unit, unit, true, solo, date);
       ls.early = next;
     }
@@ -745,19 +777,20 @@ public:
   //! the steps that ratchet repeat at that interval instead, divided by the
   //! Ratchet input. The last gap may be cut short by the next step. The pace
   //! then bends the spacing: positive starts wide and tightens, negative the
-  //! other way round.
+  //! other way round. `gate_of(k)` is the gate of hit k.
   struct hit
   {
     double on, off;
   };
+  template <typename Gate>
   int hits(
-      const StepParams& p, double unit, bool scheduled,
-      std::array<hit, max_ratchet>& out) const noexcept
+      const StepParams& p, double unit, bool scheduled, std::array<hit, max_ratchet>& out,
+      Gate&& gate_of) const noexcept
   {
-    const double gate = std::clamp(p.gate, 0.05f, 1.f);
+    const auto gate = [&](int k) { return std::clamp(gate_of(k), 0.05f, 1.f); };
     if(!scheduled || unit <= 0.)
     {
-      out[0] = {0., scheduled ? gate : 1.};
+      out[0] = {0., scheduled ? gate(0) : 1.};
       return 1;
     }
 
@@ -773,7 +806,7 @@ public:
     {
       const double on = bend(k * gap);
       const double next = k + 1 < n ? bend((k + 1) * gap) : 1.;
-      out[k] = {on, on + gate * (next - on)};
+      out[k] = {on, on + gate(k) * (next - on)};
     }
     return n;
   }
@@ -804,15 +837,111 @@ public:
     return true;
   }
 
-  //! Plays step `step` of lane `i` at musical position `at`. When `scheduled`
-  //! is false everything goes out at once, at `date`.
+  //! Step `n` of control lane `i`: 0 when it does not play, otherwise its
+  //! accent amount, or its glide time for a slide. Drawn once per step.
+  float control_value(const Pattern& pat, int i, int64_t n) noexcept
+  {
+    auto& ls = lanes[i];
+    for(const auto& d : ls.decisions)
+      if(d.n == n)
+        return d.value;
+
+    const Lane& l = pat.lanes[i];
+    const int len = laneLength(pat, l);
+    if(len <= 0 || n < 0)
+      return 0.f;
+    const int step = int(n % len);
+    const StepParams& p = stepParams(l, step);
+    float v = 0.f;
+    // The solo of a note lane leaves the accents and slides on it.
+    if(audibleNote(pat, l, step, false) != Note::Rest && condition_holds(p, n / len))
+    {
+      const float chance = p.chance * density;
+      if(chance >= 1.f || std::uniform_real_distribution<float>{0.f, 1.f}(rng) < chance)
+      {
+        if(l.note == accentLane)
+        {
+          const float spread
+              = p.velocityRandom > 0.f
+                    ? std::uniform_real_distribution<float>{
+                          -p.velocityRandom, p.velocityRandom}(rng)
+                    : 0.f;
+          v = std::clamp(p.velocity + spread, 0.f, 1.f) * std::clamp(l.velocity, 0.f, 1.f);
+        }
+        else
+        {
+          v = std::clamp(p.gate, 0.05f, 1.f);
+        }
+      }
+    }
+    auto& slot = ls.decisions[0].n < ls.decisions[1].n ? ls.decisions[0] : ls.decisions[1];
+    slot = {n, v};
+    return v;
+  }
+
+  //! What the control lanes do to a note on the grid at `grid`: the steps of
+  //! theirs it falls in.
+  struct step_controls
+  {
+    float accent{};
+    bool slide{};
+  };
+  step_controls controls_at(const Pattern& pat, double grid, bool scheduled) noexcept
+  {
+    step_controls c;
+    for(int k = 0; k < control_lane_count; k++)
+    {
+      const int i = control_lanes[k];
+      const Lane& l = pat.lanes[i];
+      const auto& ls = lanes[i];
+      // Played before the note lanes on every point: without a position, the
+      // step it played last is the one.
+      int64_t n = ls.last;
+      if(scheduled && ls.last >= 0)
+      {
+        const double unit = 4. / laneDivision(pat, l);
+        n += int64_t(std::floor((grid - ls.last_at) / unit + 1e-6));
+      }
+      else if(ls.last < 0)
+        n = ls.played;
+      const float v = control_value(pat, i, n);
+      if(l.note == accentLane)
+        c.accent = std::max(c.accent, v);
+      else
+        c.slide |= v > 0.f;
+    }
+    return c;
+  }
+
+  //! Plays step `step` of lane `i` at musical position `at`, its point on the
+  //! grid being `grid`. When `scheduled` is false everything goes out at once,
+  //! at `date`.
   void play_step(
-      const Pattern& pat, int i, int step, int64_t pass, double at, double unit,
-      bool scheduled, bool solo, int64_t date) noexcept
+      const Pattern& pat, int i, int step, int64_t pass, double grid, double at,
+      double unit, bool scheduled, bool solo, int64_t date) noexcept
   {
     const Lane& l = pat.lanes[i];
     auto& ls = lanes[i];
     const StepParams& p = stepParams(l, step);
+
+    const auto push = [&](double position, event_kind k, int note, int velocity,
+                          float value = 0.f) {
+      push_event(
+          {position, 0, k, uint8_t(note), uint8_t(velocity), value}, scheduled, date);
+    };
+
+    if(isControlLane(l))
+    {
+      const auto kind = l.note == accentLane ? event_kind::accent : event_kind::slide;
+      const float v = control_value(pat, i, pass * laneLength(pat, l) + step);
+      push(at, kind, 0, 0, v);
+      // An accent's gate ends it within the step.
+      if(kind == event_kind::accent && v > 0.f && scheduled && p.gate < 1.f)
+        push(at + std::max(p.gate, 0.05f) * unit, kind, 0, 0, 0.f);
+      return;
+    }
+    if(l.note > 127)
+      return;
 
     Note kind = audibleNote(pat, l, step, solo);
     if(kind != Note::Rest)
@@ -823,22 +952,9 @@ public:
         if(std::uniform_real_distribution<float>{0.f, 1.f}(rng) >= chance)
           kind = Note::Rest;
     }
-
-    const auto push = [&](double position, event_kind k, int note, int velocity,
-                          float value = 0.f) {
-      push_event(
-          {position, 0, k, uint8_t(note), uint8_t(velocity), value}, scheduled, date);
-    };
-
-    if(l.note == 255 || l.note == 254)
-    {
-      push(
-          at, l.note == 255 ? event_kind::accent : event_kind::slide, 0, 0,
-          kind != Note::Rest ? 1.f : 0.f);
-      return;
-    }
-    if(l.note > 127)
-      return;
+    const step_controls controls = control_lane_count > 0 && kind != Note::Rest
+                                       ? controls_at(pat, grid, scheduled)
+                                       : step_controls{};
 
     // Pitch and velocity spreads: drawn once for the whole note, or by each
     // hit for itself when the lane says so.
@@ -861,12 +977,12 @@ public:
     const auto to_note = [&](int pitch) {
       return std::clamp(int(l.note) + p.pitch + pitch, 0, 127);
     };
+    // An accent takes the step's velocity part of the way to the top.
     const auto to_velocity = [&](float spread) {
+      float v = std::clamp(p.velocity + spread, 0.f, 1.f);
+      v += controls.accent * (1.f - v);
       return std::clamp(
-          int(std::lround(
-              std::clamp(p.velocity + spread, 0.f, 1.f) * l.velocity * velocity_scale
-              * 127.f)),
-          1, 127);
+          int(std::lround(v * l.velocity * velocity_scale * 127.f)), 1, 127);
     };
     // The note and velocity of hit k.
     const auto strike = [&](int k) {
@@ -875,6 +991,16 @@ public:
           to_velocity(velocity_per_hit ? draw_velocity() : note_velocity));
     };
     const int note = to_note(note_pitch);
+
+    const bool gate_per_hit = l.randomPerHit & Lane::GatePerHit;
+    const auto draw_gate = [&] {
+      return p.gateRandom > 0.f ? std::uniform_real_distribution<float>{
+                                      -p.gateRandom, p.gateRandom}(rng)
+                                : 0.f;
+    };
+    const float note_gate = kind != Note::Rest && !gate_per_hit ? draw_gate() : 0.f;
+    const auto gate_of
+        = [&](int) { return p.gate + (gate_per_hit ? draw_gate() : note_gate); };
 
     // Timing spread of each hit, when each hit draws its own: within its own
     // gap, and never before the step for the first one.
@@ -889,15 +1015,30 @@ public:
       return k == 0 ? std::max(0., d) : d;
     };
 
+    constexpr auto inf = std::numeric_limits<double>::infinity();
     // Released where this step starts, or right after it was struck when this
     // step starts first.
     const auto release_held = [&] {
       if(ls.held >= 0)
         push(
-            std::max(
-                at, std::nextafter(ls.held_on, std::numeric_limits<double>::infinity())),
-            event_kind::note_off, ls.held, 0);
+            std::max(at, std::nextafter(ls.held_on, inf)), event_kind::note_off, ls.held,
+            0);
       ls.held = -1;
+    };
+    // Slid into: struck at `on` first, the held note released right after;
+    // the same note just carries on.
+    const bool slid = ls.slid && ls.held >= 0;
+    ls.slid = false;
+    const auto glide_to = [&](double on, int hit_note, int hit_velocity) {
+      if(ls.held != hit_note)
+      {
+        push(on, event_kind::note_on, hit_note, hit_velocity);
+        push(
+            std::nextafter(std::max(on, ls.held_on), inf), event_kind::note_off, ls.held,
+            0);
+        ls.held_on = on;
+      }
+      ls.held = hit_note;
     };
 
     switch(kind)
@@ -911,16 +1052,18 @@ public:
         // others, each released after its gate, and the last is held into the
         // next step unless the gate ends it first.
         std::array<hit, max_ratchet> h;
-        const int n = hits(p, unit, scheduled, h);
-        int sounding = ls.held;
+        const int n = hits(p, unit, scheduled, h, gate_of);
         // With a pitch drawn by each hit, the tie holds whatever was struck.
-        if(ls.held < 0 || (ls.held != note && !pitch_per_hit))
+        if(slid)
+          glide_to(at, note, strike(0).second);
+        else if(ls.held < 0 || (ls.held != note && !pitch_per_hit))
         {
           release_held();
           push(at, event_kind::note_on, note, strike(0).second);
-          ls.held = sounding = note;
+          ls.held = note;
           ls.held_on = at;
         }
+        int sounding = ls.held;
         double off = at + h[0].off * unit;
         for(int k = 1; k < n; k++)
         {
@@ -932,8 +1075,8 @@ public:
           ls.held_on = at + (h[k].on + shift) * unit;
           off = at + (h[k].off + shift) * unit;
         }
-        // A gate under a step ends the tied note there.
-        if(h[n - 1].off < 1.)
+        // A gate under a step ends the tied note there, unless it slides on.
+        if(h[n - 1].off < 1. && !controls.slide)
         {
           push(off, event_kind::note_off, sounding, 0);
           ls.held = -1;
@@ -942,27 +1085,39 @@ public:
       }
 
       case Note::Note: {
-        release_held();
+        if(!slid)
+          release_held();
 
         std::array<hit, max_ratchet> h;
-        const int n = hits(p, unit, scheduled, h);
+        const int n = hits(p, unit, scheduled, h, gate_of);
         for(int k = 0; k < n; k++)
         {
           const double shift = hit_shift(h, k, n);
           const auto [hit_note, hit_velocity] = strike(k);
-          push(at + (h[k].on + shift) * unit, event_kind::note_on, hit_note, hit_velocity);
-          // The last hit with a full gate holds until the next step.
-          if(k + 1 == n && h[k].off >= 1.)
+          const double on = at + (h[k].on + shift) * unit;
+          if(k == 0 && slid)
+            glide_to(on, hit_note, hit_velocity);
+          else
+            push(on, event_kind::note_on, hit_note, hit_velocity);
+          // The last hit with a full gate, or sliding on, holds until the
+          // next step.
+          if(k + 1 == n && (h[k].off >= 1. || controls.slide))
           {
+            if(!(k == 0 && slid && ls.held_on < on))
+              ls.held_on = on;
             ls.held = hit_note;
-            ls.held_on = at + (h[k].on + shift) * unit;
           }
           else
+          {
             push(at + (h[k].off + shift) * unit, event_kind::note_off, hit_note, 0);
+            if(k == 0 && slid)
+              ls.held = -1;
+          }
         }
         break;
       }
     }
+    ls.slid = controls.slide && ls.held >= 0;
   }
 
   //! The queue keeps room for releases: when it is that full, a note that

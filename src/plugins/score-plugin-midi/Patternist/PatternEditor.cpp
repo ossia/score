@@ -58,10 +58,16 @@ public:
   QSize sizeHint() const override
   {
     const QFontMetrics fm{font()};
-    return {fm.horizontalAdvance(text()) + 14, fm.height() + 8};
+    return {fm.horizontalAdvance(text()) + 14 + menuWidth(), fm.height() + 8};
   }
 
 private:
+  //! The part that opens the menu, when the button has one besides its click.
+  int menuWidth() const
+  {
+    return popupMode() == QToolButton::MenuButtonPopup && menu() ? 14 : 0;
+  }
+
   void paintEvent(QPaintEvent*) override
   {
     auto& skin = score::Skin::instance();
@@ -81,7 +87,19 @@ private:
         : on         ? skin.Dark.main.brush.color()
                      : skin.Light.main.brush.color());
     p.setFont(font());
-    p.drawText(rect(), Qt::AlignCenter, text());
+    const int mw = menuWidth();
+    p.drawText(rect().adjusted(0, 0, -mw, 0), Qt::AlignCenter, text());
+    if(mw > 0)
+    {
+      const QPointF c{width() - mw / 2. - 1., height() / 2. + 1.};
+      p.setPen(Qt::NoPen);
+      p.setBrush(isEnabled() ? skin.Light.main.brush.color() : skin.Gray.main.brush.color());
+      p.drawPolygon(QPolygonF{
+          {QPointF{c.x() - 3.5, c.y() - 2.}, QPointF{c.x() + 3.5, c.y() - 2.},
+           QPointF{c.x(), c.y() + 2.}}});
+      p.setPen(QPen{skin.Gray.main.brush.color(), 1.});
+      p.drawLine(QPointF{width() - mw - 0.5, 5.}, QPointF{width() - mw - 0.5, height() - 5.});
+    }
   }
 
   bool m_filled{};
@@ -231,8 +249,24 @@ Editor::Editor(ProcessModel& model, const score::DocumentContext& ctx, QWidget* 
     row->addWidget(m_rate);
     row->addSpacing(12);
 
-    add(tr("Add lane"), tr("Add a lane, a copy of the last one"),
-        [this] { m_controller->addLane(); });
+    {
+      auto b = add(
+          tr("Add lane"), tr("Add a lane, a copy of the last one"),
+          [this] { m_controller->addLane(); });
+      // The accent and slide lanes from its menu.
+      auto menu = new QMenu{b};
+      m_addAccent = menu->addAction(tr("Accent lane"), this, [this] {
+        m_controller->addControlLane(accentLane);
+      });
+      m_addAccent->setToolTip(tr("Raises the velocity of the notes on its steps"));
+      m_addSlide = menu->addAction(tr("Slide lane"), this, [this] {
+        m_controller->addControlLane(slideLane);
+      });
+      m_addSlide->setToolTip(tr("Holds the notes on its steps into the next ones"));
+      menu->setToolTipsVisible(true);
+      b->setMenu(menu);
+      b->setPopupMode(QToolButton::MenuButtonPopup);
+    }
     row->addStretch(1);
 
     m_status = new QLabel{this};
@@ -335,7 +369,7 @@ QWidget* Editor::makeLanePanel()
 {
   auto panel = new QGroupBox{tr("Lane"), this};
   panel->setFixedWidth(190);
-  auto form = new QFormLayout{panel};
+  auto form = m_laneForm = new QFormLayout{panel};
   form->setContentsMargins(4, 4, 4, 4);
 
   const auto lane = [this] { return m_view->selectedLane(); };
@@ -381,8 +415,9 @@ QWidget* Editor::makeLanePanel()
   const std::pair<uint8_t, QString> spreads[]
       = {{Lane::VelocityPerHit, tr("Velocity")},
          {Lane::PitchPerHit, tr("Pitch")},
-         {Lane::TimingPerHit, tr("Timing")}};
-  for(int i = 0; i < 3; i++)
+         {Lane::TimingPerHit, tr("Timing")},
+         {Lane::GatePerHit, tr("Gate")}};
+  for(int i = 0; i < 4; i++)
   {
     const auto [bit, name] = spreads[i];
     auto box = new QCheckBox{name, perHit};
@@ -395,6 +430,7 @@ QWidget* Editor::makeLanePanel()
     m_perHit[i] = box;
   }
   form->addRow(perHit);
+  m_perHitRows = {perHitLabel, perHit};
 
   // Generators write into the lane's steps, as one undo step.
   auto gen = new QLabel{tr("Generate"), panel};
@@ -449,10 +485,26 @@ void Editor::updateLanePanel()
   const Lane& l = p.lanes[lane];
 
   QSignalBlocker b0{m_laneLength}, b1{m_laneDivision}, b2{m_laneVelocity},
-      b3{m_perHit[0]}, b4{m_perHit[1]}, b5{m_perHit[2]};
+      b3{m_perHit[0]}, b4{m_perHit[1]}, b5{m_perHit[2]}, b6{m_perHit[3]};
   m_perHit[0]->setChecked(l.randomPerHit & Lane::VelocityPerHit);
   m_perHit[1]->setChecked(l.randomPerHit & Lane::PitchPerHit);
   m_perHit[2]->setChecked(l.randomPerHit & Lane::TimingPerHit);
+  m_perHit[3]->setChecked(l.randomPerHit & Lane::GatePerHit);
+  if(m_addAccent)
+  {
+    m_addAccent->setEnabled(!hasLane(p, accentLane));
+    m_addSlide->setEnabled(!hasLane(p, slideLane));
+  }
+  // An accent or a slide strikes nothing: no hits to spread over, and only
+  // the accent has a depth.
+  for(auto w : m_perHitRows)
+    w->setVisible(!isControlLane(l));
+  m_laneVelocity->setVisible(l.note != slideLane);
+  if(auto label = m_laneForm->labelForField(m_laneVelocity))
+  {
+    label->setVisible(l.note != slideLane);
+    static_cast<QLabel*>(label)->setText(l.note == accentLane ? tr("Depth") : tr("Velocity"));
+  }
   m_laneLength->setValue(l.length);
   m_laneDivision->setValue(l.division);
   m_laneVelocity->setValue(int(std::lround(l.velocity * 127.f)));

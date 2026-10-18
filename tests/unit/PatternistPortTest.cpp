@@ -252,6 +252,8 @@ TEST_CASE(
     Patternist::normalize(p);
     p.lanes[0].params[2].velocityRandom = 0.25f;
     p.lanes[0].params[2].pitchRandom = 3;
+    p.lanes[0].params[1].gateRandom = 0.25f;
+    p.lanes[0].randomPerHit = Patternist::Lane::GatePerHit;
 
     std::unique_ptr<QMimeData> mime{Patternist::patternToMime(p)};
     auto back = Patternist::patternFromMime(*mime);
