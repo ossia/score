@@ -173,6 +173,7 @@ private:
   //! Zero-filled UBO bound for a top-level uniform_input with nothing cabled,
   //! by input name, sized from its LAYOUT.
   ossia::hash_map<std::string, QRhiBuffer*> m_uniformPlaceholders;
+  bool m_warnedIndirectArgs{false};
 
 
   // Only outs, matched with index in m_storageBuffers

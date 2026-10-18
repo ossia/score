@@ -2150,3 +2150,7 @@ score_add_gfx_test(csf_aux_depth_binding GfxCsfAuxDepthBinding.cpp)
 
 # A top-level CSF uniform block is bound, and what follows it keeps its binding.
 score_add_gfx_test(csf_uniform_binding GfxCsfUniformBinding.cpp)
+
+# INDIRECT dispatch arguments outside their buffer, or unaligned, never reach
+# the device: the pass runs its WORKGROUPS ceiling.
+score_add_gfx_test(csf_indirect_dispatch_bounds GfxCsfIndirectDispatchBounds.cpp)

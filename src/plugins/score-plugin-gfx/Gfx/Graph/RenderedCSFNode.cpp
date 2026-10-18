@@ -6578,17 +6578,36 @@ void RenderedCSFNode::runGeometryPasses(
       dispatchX = std::max(1, passDesc.workgroups[0]);
       dispatchY = std::max(1, passDesc.workgroups[1]);
       dispatchZ = std::max(1, passDesc.workgroups[2]);
+      bool targetFound = false;
       for(auto& sb : m_storageBuffers)
       {
         if(sb.buffer && sb.name.toStdString() == passDesc.target_resource)
         {
-          indirectDispatchArgs = sb.buffer;
-          indirectDispatchArgsOffset
-              = (quint32)std::max(0, passDesc.indirect_byte_offset);
+          targetFound = true;
+          // The device reads 12 bytes at a 4-byte aligned offset; anything
+          // else is an out-of-bounds read (a device fault) or, on Qt's side, an
+          // assert. OFFSET is relative to the region the shader sees.
+          const int64_t base = sb.owned ? 0 : sb.offset;
+          const int64_t region
+              = sb.owned || sb.size <= 0 ? sb.buffer->size() - base : sb.size;
+          const int64_t off = passDesc.indirect_byte_offset;
+          if(off >= 0 && off % 4 == 0 && off + 12 <= region)
+          {
+            indirectDispatchArgs = sb.buffer;
+            indirectDispatchArgsOffset = (quint32)(base + off);
+          }
+          else if(!std::exchange(m_warnedIndirectArgs, true))
+          {
+            qWarning().noquote()
+                << "CSF: INDIRECT dispatch arguments of" << sb.name << "at OFFSET"
+                << off << "do not fit:" << region
+                << "bytes, and the {x, y, z} triplet needs 12 at a multiple of 4. "
+                   "Running the pass with its WORKGROUPS ceiling.";
+          }
           break;
         }
       }
-      if(!indirectDispatchArgs)
+      if(!targetFound)
       {
         qWarning() << "CSF: INDIRECT dispatch target not found:"
                    << QString::fromStdString(passDesc.target_resource);
