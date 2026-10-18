@@ -91,6 +91,17 @@ SCORE_PLUGIN_MIDI_EXPORT void clearSteps(Pattern& p, const StepSelection& s) noe
 SCORE_PLUGIN_MIDI_EXPORT QMimeData* stepsToMime(const Pattern& steps);
 SCORE_PLUGIN_MIDI_EXPORT std::optional<Pattern> stepsFromMime(const QMimeData& mime);
 
+//! Whole lanes, in the order given: what they play, without the note.
+SCORE_PLUGIN_MIDI_EXPORT Pattern copyLanes(const Pattern& p, const std::vector<int>& lanes);
+//! Writes copied lanes over `targets`, in order, as far as both go; each
+//! target keeps its note, mute, solo and velocity. False when nothing changed.
+SCORE_PLUGIN_MIDI_EXPORT bool
+pasteLanes(Pattern& p, const Pattern& lanes, const std::vector<int>& targets);
+//! Rests on every step of `lanes`, with the default parameters.
+SCORE_PLUGIN_MIDI_EXPORT void clearLanes(Pattern& p, const std::vector<int>& lanes);
+SCORE_PLUGIN_MIDI_EXPORT QMimeData* lanesToMime(const Pattern& lanes);
+SCORE_PLUGIN_MIDI_EXPORT std::optional<Pattern> lanesFromMime(const QMimeData& mime);
+
 //! The step parameters the editor draws as bars.
 enum class StepField : uint8_t
 {

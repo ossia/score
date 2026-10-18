@@ -270,9 +270,9 @@ QMimeData* stepsToMime(const Pattern& steps)
   return mime;
 }
 
-std::optional<Pattern> stepsFromMime(const QMimeData& mime)
+static std::optional<Pattern> fromMime(const QMimeData& mime, const char* type)
 {
-  const QByteArray json = mime.data(stepsMimeType);
+  const QByteArray json = mime.data(type);
   if(!json.startsWith('{'))
     return std::nullopt;
   rapidjson::Document doc;
@@ -285,6 +285,72 @@ std::optional<Pattern> stepsFromMime(const QMimeData& mime)
   if(p.lanes.empty())
     return std::nullopt;
   return p;
+}
+
+std::optional<Pattern> stepsFromMime(const QMimeData& mime)
+{
+  return fromMime(mime, stepsMimeType);
+}
+
+static constexpr auto lanesMimeType = "application/x-score-patternist-lanes";
+
+Pattern copyLanes(const Pattern& p, const std::vector<int>& lanes)
+{
+  Pattern res;
+  res.length = p.length;
+  res.division = p.division;
+  for(int l : lanes)
+    if(ossia::valid_index(l, p.lanes))
+      res.lanes.push_back(p.lanes[l]);
+  return res;
+}
+
+bool pasteLanes(Pattern& p, const Pattern& lanes, const std::vector<int>& targets)
+{
+  const Pattern before = p;
+  const int n = std::min(lanes.lanes.size(), targets.size());
+  for(int i = 0; i < n; i++)
+  {
+    if(!ossia::valid_index(targets[i], p.lanes))
+      continue;
+    Lane& to = p.lanes[targets[i]];
+    Lane from = lanes.lanes[i];
+    from.note = to.note;
+    from.mute = to.mute;
+    from.solo = to.solo;
+    from.velocity = to.velocity;
+    // A lane that followed the copied pattern's length keeps its steps.
+    if(from.length == 0 && lanes.length != p.length)
+      from.length = std::clamp(lanes.length, 1, Pattern::maxLength);
+    to = std::move(from);
+  }
+  normalize(p);
+  return !(p == before);
+}
+
+void clearLanes(Pattern& p, const std::vector<int>& lanes)
+{
+  normalize(p);
+  for(int l : lanes)
+  {
+    if(!ossia::valid_index(l, p.lanes))
+      continue;
+    auto& lane = p.lanes[l];
+    std::fill(lane.pattern.begin(), lane.pattern.end(), Note::Rest);
+    std::fill(lane.params.begin(), lane.params.end(), StepParams{});
+  }
+}
+
+QMimeData* lanesToMime(const Pattern& lanes)
+{
+  auto mime = new QMimeData;
+  mime->setData(lanesMimeType, toJson(lanes));
+  return mime;
+}
+
+std::optional<Pattern> lanesFromMime(const QMimeData& mime)
+{
+  return fromMime(mime, lanesMimeType);
 }
 
 //! General MIDI percussion, notes 35 to 81.

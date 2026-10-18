@@ -143,6 +143,20 @@ void Controller::fillMenu(QMenu& menu, int lane)
         menu.addAction(tr("Randomize lane")), &QAction::triggered, this,
         [this, lane] { randomize(lane); });
 
+    menu.addSeparator();
+    connect(menu.addAction(tr("Copy lane")), &QAction::triggered, this, [this, lane] {
+      copyLanes({lane});
+    });
+    auto pasteLane = menu.addAction(tr("Paste lane"));
+    {
+      auto md = QApplication::clipboard()->mimeData();
+      pasteLane->setEnabled(md && lanesFromMime(*md));
+    }
+    connect(pasteLane, &QAction::triggered, this, [this, lane] { pasteLanes({lane}); });
+    connect(menu.addAction(tr("Clear lane")), &QAction::triggered, this, [this, lane] {
+      clearLanes({lane});
+    });
+
     auto remove = menu.addAction(tr("Remove lane"));
     remove->setEnabled(pat.lanes.size() > 1);
     connect(remove, &QAction::triggered, this, [this, lane] { removeLane(lane); });
@@ -210,7 +224,9 @@ void Controller::copySteps(const StepSelection& s) const
     return;
   QApplication::clipboard()->setMimeData(stepsToMime(Patternist::copySteps(current(), s)));
   if(status)
-    status(tr("Steps of %n lane(s) copied", "", s.steps.size()));
+    status(
+        s.steps.size() == 1 ? tr("Steps copied")
+                            : tr("Steps of %1 lanes copied").arg(s.steps.size()));
 }
 
 bool Controller::pasteSteps(int lane, const std::vector<int>& starts)
@@ -227,6 +243,41 @@ bool Controller::pasteSteps(int lane, const std::vector<int>& starts)
     status(tr("Steps pasted"));
   submit(p);
   return true;
+}
+
+void Controller::copyLanes(const std::vector<int>& lanes) const
+{
+  if(!hasPattern() || lanes.empty())
+    return;
+  QApplication::clipboard()->setMimeData(
+      lanesToMime(Patternist::copyLanes(current(), lanes)));
+  if(status)
+    status(lanes.size() == 1 ? tr("Lane copied") : tr("%1 lanes copied").arg(lanes.size()));
+}
+
+bool Controller::pasteLanes(const std::vector<int>& targets)
+{
+  auto md = QApplication::clipboard()->mimeData();
+  if(!md || !hasPattern())
+    return false;
+  auto lanes = lanesFromMime(*md);
+  if(!lanes)
+    return false;
+  auto p = current();
+  if(Patternist::pasteLanes(p, *lanes, targets))
+    submit(p);
+  if(status)
+    status(tr("Lanes pasted"));
+  return true;
+}
+
+void Controller::clearLanes(const std::vector<int>& lanes)
+{
+  if(!hasPattern() || lanes.empty())
+    return;
+  auto p = current();
+  Patternist::clearLanes(p, lanes);
+  submit(p);
 }
 
 void Controller::clearSteps(const StepSelection& s)

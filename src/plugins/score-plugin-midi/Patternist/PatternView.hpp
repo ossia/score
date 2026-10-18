@@ -52,6 +52,12 @@ public:
   //! Steps selected by dragging in the select mode, or with Ctrl: in every
   //! lane, those under the stretch of time dragged over.
   const StepSelection& selection() const;
+  //! Lanes picked whole, with Ctrl-click on their header or the All lanes
+  //! button: what Copy, Paste and Clear act on when no step is selected.
+  //! Picking lanes drops the steps selected, and the other way round.
+  const std::vector<int>& selectedLanes() const noexcept { return m_selectedLanes; }
+  void setSelectedLanes(std::vector<int> lanes);
+  //! Both the steps and the lanes.
   void clearSelection();
   void selectAll();
   void setSelectMode(bool b);
@@ -132,6 +138,7 @@ private:
   QString fieldLabel(StepField f) const;
   double randomButtonWidth() const noexcept;
   //! Ids of the buttons the editor draws, for the hover.
+  static constexpr int all_button = 999;
   static constexpr int mute_button = 1000;
   static constexpr int solo_button = 2000;
   static constexpr int field_button = 3000;
@@ -160,6 +167,8 @@ private:
       QPainter* painter, QRectF r, const QString& text, bool inherited, int id) const;
   QRectF nameRect(int lane) const noexcept;
   QRectF fieldButtonRect(int i) const noexcept;
+  QRectF allButtonRect() const noexcept;
+  void toggleLane(int lane);
   int buttonAt(QPointF pos) const noexcept;
   void pressButton(int id, Qt::KeyboardModifiers mods);
   void paintButton(
@@ -257,6 +266,7 @@ private:
   double m_hoverX{};
   SelectionArea m_selectionArea;
   mutable StepSelection m_selection;
+  std::vector<int> m_selectedLanes;
   mutable bool m_selectionValid{};
   QPointF m_selectAnchor;
   bool m_selecting{};

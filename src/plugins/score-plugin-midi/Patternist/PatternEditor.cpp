@@ -189,6 +189,7 @@ Editor::Editor(ProcessModel& model, const score::DocumentContext& ctx, QWidget* 
     m_select = add(
         tr("Select"),
         tr("Drag over steps to select them, or hold Ctrl\n"
+           "Ctrl-click a lane header, or All lanes: pick whole lanes\n"
            "Ctrl+C, Ctrl+X: copy, cut\n"
            "Ctrl+V: paste on the step under the mouse\n"
            "Delete: clear\n"
@@ -196,19 +197,24 @@ Editor::Editor(ProcessModel& model, const score::DocumentContext& ctx, QWidget* 
         [this](bool on) { m_view->setSelectMode(on); });
     m_select->setCheckable(true);
     row->addSpacing(12);
-    add(tr("Copy"), tr("Copy the selected steps, or the pattern"), [this] { copy(); });
+    add(tr("Copy"),
+        tr("Copy the selected steps, or the lanes picked with Ctrl-click or All lanes"),
+        [this] { copy(); });
     m_paste = add(
         tr("Paste"),
-        tr("Paste copied steps on the step under the mouse, or a copied pattern "
-           "over this one"),
+        tr("Paste copied steps on the step under the mouse, copied lanes over the "
+           "lanes picked or from the lane under the mouse, or a copied pattern over "
+           "this one"),
         [this] { paste(); });
     const auto updatePaste = [this] {
       auto md = QApplication::clipboard()->mimeData();
-      m_paste->setEnabled(md && (patternFromMime(*md) || stepsFromMime(*md)));
+      m_paste->setEnabled(
+          md && (patternFromMime(*md) || stepsFromMime(*md) || lanesFromMime(*md)));
     };
     connect(QApplication::clipboard(), &QClipboard::dataChanged, this, updatePaste);
     updatePaste();
-    add(tr("Clear"), tr("Clear the selected steps, or every note"), [this] { clear(); });
+    add(tr("Clear"), tr("Clear the selected steps, or the lanes picked"),
+        [this] { clear(); });
     add(QStringLiteral("◀"), tr("Rotate the pattern one step left"),
         [this] { m_controller->rotate(-1); });
     add(QStringLiteral("▶"), tr("Rotate the pattern one step right"),
@@ -573,8 +579,10 @@ void Editor::copy()
 {
   if(m_view->selection().valid())
     m_controller->copySteps(m_view->selection());
+  else if(!m_view->selectedLanes().empty())
+    m_controller->copyLanes(m_view->selectedLanes());
   else
-    m_controller->copy();
+    m_controller->status(tr("Select steps or lanes to copy"));
 }
 
 void Editor::paste()
@@ -584,6 +592,16 @@ void Editor::paste()
   {
     const auto t = m_view->pasteTarget(steps->lanes.size());
     m_controller->pasteSteps(t.lane, t.starts);
+  }
+  else if(auto lanes = md ? lanesFromMime(*md) : std::nullopt)
+  {
+    // Over the lanes picked, or from the lane under the mouse down.
+    std::vector<int> targets = m_view->selectedLanes();
+    if(targets.empty())
+      for(int i = 0, first = m_view->pasteTarget(lanes->lanes.size()).lane;
+          first >= 0 && i < int(lanes->lanes.size()); i++)
+        targets.push_back(first + i);
+    m_controller->pasteLanes(targets);
   }
   else
   {
@@ -595,8 +613,10 @@ void Editor::clear()
 {
   if(m_view->selection().valid())
     m_controller->clearSteps(m_view->selection());
+  else if(!m_view->selectedLanes().empty())
+    m_controller->clearLanes(m_view->selectedLanes());
   else
-    m_controller->clear();
+    m_controller->status(tr("Select steps or lanes to clear"));
 }
 
 void Editor::addShortcuts()
@@ -608,15 +628,17 @@ void Editor::addShortcuts()
   };
   add(QKeySequence::Copy, [this] { copy(); });
   add(QKeySequence::Paste, [this] { paste(); });
-  add(QKeySequence::Cut, [this] {
-    if(m_view->selection().valid())
+  const auto selected
+      = [this] { return m_view->selection().valid() || !m_view->selectedLanes().empty(); };
+  add(QKeySequence::Cut, [this, selected] {
+    if(selected())
     {
       copy();
       clear();
     }
   });
-  add(QKeySequence::Delete, [this] {
-    if(m_view->selection().valid())
+  add(QKeySequence::Delete, [this, selected] {
+    if(selected())
       clear();
   });
   add(QKeySequence::SelectAll, [this] { m_view->selectAll(); });
