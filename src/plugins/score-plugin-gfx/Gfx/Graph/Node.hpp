@@ -45,6 +45,9 @@ struct Timings
 {
   ossia::time_value date{};
   ossia::time_value parent_duration{};
+  //! The engine's audio rate (SAMPLERATE); 0 when the sender does not know it,
+  //! which keeps the last one.
+  double sample_rate{};
 };
 
 struct Message

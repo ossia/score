@@ -2163,3 +2163,6 @@ score_add_gfx_test(csf_storage_too_large GfxCsfStorageTooLarge.cpp)
 
 # A PERSISTENT storage image's first-frame _prev is its own zero-filled image.
 score_add_gfx_test(csf_persistent_image_history GfxCsfPersistentImageHistory.cpp)
+
+# Built-in process uniforms: DATE in single-pass ISF, SAMPLERATE.
+score_add_gfx_test(process_uniforms GfxProcessUniforms.cpp)

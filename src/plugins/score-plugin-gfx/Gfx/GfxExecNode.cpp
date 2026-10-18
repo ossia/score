@@ -54,7 +54,7 @@ void gfx_exec_node::link_cable_to_inlet(ossia::inlet* inlet, int inlet_i)
 }
 
 void gfx_exec_node::run(
-    const ossia::token_request& tk, ossia::exec_state_facade) noexcept
+    const ossia::token_request& tk, ossia::exec_state_facade estate) noexcept
 {
   m_last_flicks = tk.date;
   {
@@ -75,6 +75,7 @@ void gfx_exec_node::run(
   msg.node_id = id;
   msg.token.date = tk.date;
   msg.token.parent_duration = tk.parent_duration;
+  msg.token.sample_rate = estate.sampleRate();
   msg.input.resize(this->m_inlets.size());
   int inlet_i = 0;
   for(ossia::inlet* inlet : this->m_inlets)

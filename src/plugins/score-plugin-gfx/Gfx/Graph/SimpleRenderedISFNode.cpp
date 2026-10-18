@@ -824,6 +824,7 @@ void SimpleRenderedISFNode::update(
 {
   n.standardUBO.passIndex = 0;
   advanceFrameIndex(n.standardUBO.frameIndex, m_frameIndexFrame, renderer.frame);
+  std::copy_n(renderer.currentDate, 4, n.standardUBO.date);
   auto sz = renderer.renderSize(edge);
   n.standardUBO.renderSize[0] = sz.width();
   n.standardUBO.renderSize[1] = sz.height();

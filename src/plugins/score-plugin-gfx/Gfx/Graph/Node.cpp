@@ -46,6 +46,9 @@ void ProcessNode::process(Timings tk)
   else
     UBO.progress = 0.;
 
+  if(tk.sample_rate > 0.)
+    UBO.sampleRate = tk.sample_rate;
+
   UBO.passIndex = 0;
 }
 
