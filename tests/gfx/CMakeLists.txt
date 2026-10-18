@@ -2144,3 +2144,6 @@ score_add_gfx_test(raw_raster_primitive_data_cache GfxRawRasterPrimitiveDataCach
 # forced on Vulkan / OpenGL with SCORE_GFX_NO_TRIANGLE_FAN: CPU fan geometry
 # and VSA TRI_FAN cover the same pixels as a native fan.
 score_add_gfx_test(triangle_fan_fallback GfxTriangleFanFallback.cpp)
+
+# A sampled AUXILIARY texture with DEPTH:true takes one binding, not two.
+score_add_gfx_test(csf_aux_depth_binding GfxCsfAuxDepthBinding.cpp)

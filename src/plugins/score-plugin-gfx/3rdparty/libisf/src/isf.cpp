@@ -991,8 +991,8 @@ static void parse_auxiliary_texture(
     else if(fkey == "DEPTH")
     {
       // DEPTH overload — context-dependent:
-      //   "DEPTH": true   → legacy sampleable-depth flag (paired with
-      //                     COMPARE for shadow-comparison samplers)
+      //   "DEPTH": true   → the texture holds depth (paired with COMPARE for
+      //                     shadow-comparison samplers); one binding
       //   "DEPTH": <int>  → 3D-texture depth dimension literal
       //   "DEPTH": "<expr>" → 3D-texture depth dimension expression
       // Distinguishable by sajson type so authors can use either form
@@ -1141,8 +1141,7 @@ static void isf_group_auxiliary_texture_ladders(
   std::size_t i = 0;
   while(i < textures.size())
   {
-    // is_depth is excluded: those entries emit a paired <name>_depth sampler,
-    // which has no place in an array binding. A comparison sampler is excluded
+    // is_depth is excluded: a depth texture is sampled on its own. A comparison sampler is excluded
     // too: its combined type is sampler*Shadow, whose separated form needs
     // samplerShadow, and every such entry in the tree is a singleton anyway.
     auto [base, idx] = strip_index(textures[i].name);
@@ -5493,17 +5492,12 @@ void parser::parse_raw_raster_pipeline()
           continue;
         }
 
+        // One binding, DEPTH:true included: an auxiliary texture is a single
+        // handle on the geometry, so there is no <name>_depth companion to bind
+        // (unlike a top-level image input's depth attachment).
         aux_tex_decls += "layout(binding = " + std::to_string(sampler_binding)
                          + ") uniform " + sampler_type + " " + atx.name + ";\n";
         sampler_binding++;
-
-        // Paired depth sampler when DEPTH:true on a plain 2D tex.
-        if(atx.is_depth && !atx.is_cubemap && atx.dimensions != 3 && !atx.is_array)
-        {
-          aux_tex_decls += "layout(binding = " + std::to_string(sampler_binding)
-                           + ") uniform sampler2D " + atx.name + "_depth;\n";
-          sampler_binding++;
-        }
       }
     }
     material_ubos += aux_tex_decls;
@@ -7846,21 +7840,13 @@ void parser::parse_csf()
           else
             sampler_type = cmp ? "sampler2DShadow" : "sampler2D";
 
+          // One binding, DEPTH:true included: RenderedCSFNode binds one
+          // texture per auxiliary, there is no <name>_depth companion.
           m_fragment += "layout(binding = " + std::to_string(binding)
                         + ") uniform " + sampler_type + " " + atx.name + ";\n";
           if(aliased)
             m_fragment += "#define " + aux_prefix + " " + atx.name + "\n";
           binding++;
-
-          if(atx.is_depth && !atx.is_cubemap && atx.dimensions != 3 && !atx.is_array)
-          {
-            m_fragment += "layout(binding = " + std::to_string(binding)
-                          + ") uniform sampler2D " + atx.name + "_depth;\n";
-            if(aliased)
-              m_fragment += "#define " + aux_prefix + "_depth "
-                            + atx.name + "_depth\n";
-            binding++;
-          }
         }
       }
 
