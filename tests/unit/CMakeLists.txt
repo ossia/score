@@ -2064,3 +2064,10 @@ if(TARGET score_plugin_gfx)
     PLUGINS score_plugin_gfx
     LIBS ${QT_PREFIX}::Gui)
 endif()
+
+# CSF storage image shapes without a GPU type (cube array, 3D array) are rejected.
+if(TARGET score_plugin_gfx)
+  score_add_test(test_unit_isf_csf_image_shape
+    SOURCES IsfCsfImageShapeTest.cpp
+    PLUGINS score_plugin_gfx)
+endif()

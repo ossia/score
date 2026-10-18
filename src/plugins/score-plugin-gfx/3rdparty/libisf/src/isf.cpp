@@ -1907,12 +1907,10 @@ static void parse_input(csf_image_input& inp, const sajson::value& v)
   // 3D arrays do not exist as a core GLSL image type either.
   if(inp.is_array && inp.is3D())
   {
-    fmt::print(
-        stderr,
-        "[isf] csf_image_input: IS_ARRAY + 3D image (DIMENSIONS: 3 or DEPTH "
-        "expression) is not a valid GLSL type (image3DArray is not core). "
-        "Dropping IS_ARRAY.\n");
-    inp.is_array = false;
+    throw invalid_file{
+        "csf_image_input: IS_ARRAY + 3D image (DIMENSIONS: 3 or a DEPTH "
+        "expression) is not supported — image3DArray is not a GLSL type. Use a "
+        "3D image with the layers along its depth, or a 2D array."};
   }
 }
 
@@ -3249,9 +3247,10 @@ static const ossia::string_map<root_fun>& root_parse{[] {
               input inp;
               parse_input_base(inp, obj);
               csf_image_input ci;
-              parse_input(ci, obj);
+              // Before parse_input, whose shape checks need to know it is a cube.
               if(type_str == "image_cube")
                 ci.cubemap = true;
+              parse_input(ci, obj);
               inp.data = ci;
               d.inputs.push_back(inp);
             }
