@@ -943,17 +943,17 @@ static void parse_input(storage_input& inp, const sajson::value& v)
     }
   }
 
-  // Warn on semantically-impossible combinations. PERSISTENT allocates a
-  // ping-pong pair and always emits `_prev` as a readonly buffer — if the
-  // primary is write_only, nothing ever writes the data that _prev is
-  // supposed to read back, so it's silently always zero.
-  if(inp.persistent && inp.access == "write_only")
+  // PERSISTENT keeps last frame's contents as `_prev`, read while the shader
+  // updates the buffer: only read_write means that. A write_only buffer is
+  // never read back, a read_only one never written.
+  if(inp.persistent && (inp.access == "write_only" || inp.access == "read_only"))
   {
     throw invalid_file{
-        "storage input declared as PERSISTENT + ACCESS: write_only is "
-        "invalid — _prev would always read zero (no read path exists to "
-        "populate it). Use ACCESS: read_write or read_only with PERSISTENT, "
-        "or drop PERSISTENT if you don't need frame history."};
+        "storage input declared as PERSISTENT + ACCESS: " + inp.access
+        + " is invalid — PERSISTENT keeps the previous frame as <name>_prev "
+          "for a shader that reads and updates the buffer. Use ACCESS: "
+          "read_write with PERSISTENT, or drop PERSISTENT if you don't need "
+          "frame history."};
   }
 
   // Reject empty LAYOUT for non-indirect storage_inputs. The graphics
@@ -1881,15 +1881,14 @@ static void parse_input(csf_image_input& inp, const sajson::value& v)
     }
   }
 
-  // See the matching note on storage_input — persistent + write_only has no
-  // useful semantics because _prev is readonly and nothing writes it.
-  if(inp.persistent && inp.access == "write_only")
+  // See the matching note on storage_input: PERSISTENT is read_write only.
+  if(inp.persistent && (inp.access == "write_only" || inp.access == "read_only"))
   {
     throw invalid_file{
-        "csf_image_input declared as PERSISTENT + ACCESS: write_only is "
-        "invalid — _prev would always read zero (no read path exists to "
-        "populate it). Use ACCESS: read_write or read_only with PERSISTENT, "
-        "or drop PERSISTENT."};
+        "csf_image_input declared as PERSISTENT + ACCESS: " + inp.access
+        + " is invalid — PERSISTENT keeps the previous frame as <name>_prev "
+          "for a shader that reads and updates the image. Use ACCESS: "
+          "read_write with PERSISTENT, or drop PERSISTENT."};
   }
 
   // Cube-array writable images are unsupported (see sampler-side analysis in

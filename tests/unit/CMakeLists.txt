@@ -2026,3 +2026,10 @@ if(TARGET score_plugin_gfx)
     PLUGINS score_plugin_gfx
     LIBS ${QT_PREFIX}::Gui)
 endif()
+
+# PERSISTENT storage images / buffers are read_write only.
+if(TARGET score_plugin_gfx)
+  score_add_test(test_unit_isf_persistent_access
+    SOURCES IsfPersistentAccessTest.cpp
+    PLUGINS score_plugin_gfx)
+endif()
