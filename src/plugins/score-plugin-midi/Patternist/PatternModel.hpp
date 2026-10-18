@@ -291,6 +291,12 @@ public:
   void setPatterns(const std::vector<Pattern>& n);
   const std::vector<Pattern>& patterns() const noexcept;
 
+  //! The patterns, the channel and the lane labels, with the controls. A
+  //! preset without controls leaves them as they are and starts on its first
+  //! pattern.
+  void loadPreset(const Process::Preset& preset) override;
+  Process::Preset savePreset() const noexcept override;
+
   std::unique_ptr<Process::ControlInlet> patternSelect;
   std::unique_ptr<Process::ControlInlet> switchQuantification;
   //! Steps with the Fill / Not fill condition play while it is on / off.
