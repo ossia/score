@@ -78,7 +78,8 @@ TEST_CASE("toCompareOp maps the DEPTH_COMPARE vocabulary", "[pipeline_state][dep
   CHECK(toCompareOp("greater_equal") == QRhiGraphicsPipeline::GreaterOrEqual);
   CHECK(toCompareOp("not_equal") == QRhiGraphicsPipeline::NotEqual);
   CHECK(toCompareOp("always") == QRhiGraphicsPipeline::Always);
-  CHECK(toCompareOp("nonsense") == QRhiGraphicsPipeline::Less);
+  // Unknown: the reverse-Z default, which the 0 clear admits (R10).
+  CHECK(toCompareOp("nonsense") == QRhiGraphicsPipeline::Greater);
 }
 
 TEST_CASE("depthsAdmitted describes the depth test the way the pipeline does", "[pipeline_state][depth]")

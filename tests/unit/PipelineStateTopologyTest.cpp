@@ -23,3 +23,16 @@ TEST_CASE("toTopology maps every TOPOLOGY spelling", "[pipeline_state][topology]
   CHECK(toTopology("line_strip") == T::LineStrip);
   CHECK(toTopology("points") == T::Points);
 }
+
+// The project is reverse-Z (CameraMath.hpp): the depth buffer is cleared to 0
+// and the nearer fragment has the greater depth. An unknown DEPTH_COMPARE fell
+// back to `less`, which against a 0 clear rejects every fragment (R10).
+TEST_CASE("an unknown DEPTH_COMPARE falls back to reverse-Z greater", "[pipeline_state][depth][R10]")
+{
+  using score::gfx::toCompareOp;
+  CHECK(toCompareOp("bogus") == QRhiGraphicsPipeline::Greater);
+  CHECK(toCompareOp("") == QRhiGraphicsPipeline::Greater);
+  CHECK(toCompareOp("less_or_equal") == QRhiGraphicsPipeline::LessOrEqual);
+  CHECK(toCompareOp("greater_equal") == QRhiGraphicsPipeline::GreaterOrEqual);
+  CHECK(toCompareOp("not_equal") == QRhiGraphicsPipeline::NotEqual);
+}

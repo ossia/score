@@ -18,6 +18,7 @@ struct Port;
 // (e.g. "lequal" / "less_equal" both map to CompareOp::LessOrEqual).
 // Unknown strings fall back to a sensible default (documented per function).
 
+// Unknown → Greater, the reverse-Z default (warns once).
 SCORE_PLUGIN_GFX_EXPORT
 QRhiGraphicsPipeline::CompareOp toCompareOp(std::string_view s) noexcept;
 

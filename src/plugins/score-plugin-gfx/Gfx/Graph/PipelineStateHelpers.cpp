@@ -50,7 +50,13 @@ QRhiGraphicsPipeline::CompareOp toCompareOp(std::string_view s) noexcept
   if(ieq(s, "greaterorequal") || ieq(s, "greaterequal") || ieq(s, "gequal"))
     return QRhiGraphicsPipeline::GreaterOrEqual;
   if(ieq(s, "always"))         return QRhiGraphicsPipeline::Always;
-  return QRhiGraphicsPipeline::Less;
+  // Reverse-Z (CameraMath.hpp): `less` against the 0 depth clear would reject
+  // every fragment.
+  static std::atomic_flag warned = ATOMIC_FLAG_INIT;
+  if(!warned.test_and_set())
+    qWarning() << "score.gfx: unknown DEPTH_COMPARE" << QString::fromUtf8(s.data(), s.size())
+               << "; using greater (reverse-Z).";
+  return QRhiGraphicsPipeline::Greater;
 }
 
 float depthClearForCompare(QRhiGraphicsPipeline::CompareOp compare) noexcept
