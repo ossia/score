@@ -2009,3 +2009,12 @@ if(TARGET score_plugin_jit)
   target_include_directories(test_unit_bytebeat PRIVATE
     "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-jit")
 endif()
+
+# The GLSL libisf generates for accepted headers bakes on every backend:
+# clip / cull distances, bgra8 images, VSA shared-resource inputs.
+if(TARGET score_plugin_gfx)
+  score_add_test(test_unit_isf_generated_glsl_bake
+    SOURCES IsfGeneratedGlslBakeTest.cpp
+    PLUGINS score_plugin_gfx
+    LIBS ${QT_PREFIX}::Gui)
+endif()

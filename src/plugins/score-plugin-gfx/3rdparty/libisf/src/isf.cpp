@@ -1540,8 +1540,7 @@ static bool isf_is_known_image_format(std::string fmt)
       "r8",     "r8_snorm",     "r8ui",    "r8i",
       "r16",    "r16_snorm",    "r16f",    "r16ui",  "r16i",
       "r32f",   "r32ui",        "r32i",
-      "rgb10_a2", "rgb10_a2ui", "r11f_g11f_b10f",
-      "bgra8"};
+      "rgb10_a2", "rgb10_a2ui", "r11f_g11f_b10f"};
   return known.count(fmt) > 0;
 }
 
@@ -1587,14 +1586,24 @@ static void parse_input(csf_image_input& inp, const sajson::value& v)
       if(val.get_type() == sajson::TYPE_STRING)
       {
         inp.format = val.as_string();
-        if(!inp.format.empty() && !isf_is_known_image_format(inp.format))
+        if(boost::algorithm::iequals(inp.format, "bgra8"))
+        {
+          // GLSL has no BGRA image qualifier. A storage image of rgba8 reads
+          // and samples as the same (r, g, b, a) values; the channel order in
+          // memory is not observable from shaders.
+          inp.format = "rgba8";
+        }
+        else if(!inp.format.empty() && !isf_is_known_image_format(inp.format))
         {
           fmt::print(
               stderr,
               "[isf] csf_image_input FORMAT \"{}\" is not a recognised GLSL "
-              "image qualifier — will fall back to rgba8 at runtime. Check "
+              "image qualifier — falling back to rgba8. Check "
               "for typos (e.g. \"rgba16\" vs \"rgba16f\").\n",
               inp.format);
+          // Emitting the unknown spelling as a layout qualifier would fail to
+          // compile; fall back for the declaration and the allocation alike.
+          inp.format = "rgba8";
         }
       }
     }
@@ -5151,10 +5160,11 @@ void parser::parse_raw_raster_pipeline()
     // is a redeclaration that changes their qualification, and the compiler says
     // exactly that: "cannot change qualification of gl_ClipDistance". Redeclaring
     // the block instead is the form the spec provides for resizing them, and it
-    // has to carry gl_Position too since redeclaring a built-in block replaces it.
+    // has to carry gl_Position and gl_PointSize too since redeclaring a built-in
+    // block replaces it, and the generated main() below writes gl_PointSize.
     if(m_desc.clip_distances > 0 || m_desc.cull_distances > 0)
     {
-      m_vertex += "out gl_PerVertex {\n  vec4 gl_Position;\n";
+      m_vertex += "out gl_PerVertex {\n  vec4 gl_Position;\n  float gl_PointSize;\n";
       if(m_desc.clip_distances > 0)
         m_vertex += fmt::format(
             "  float gl_ClipDistance[{}];\n", m_desc.clip_distances);
@@ -6972,6 +6982,24 @@ void parser::parse_vsa()
 
   auto [end, desc] = parse_isf_header(m_sourceVertex);
   m_desc = std::move(desc);
+
+  // VSA has a material UBO and sampled images / audio, nothing else: storage
+  // buffers, uniform blocks, geometry and storage images have no runtime path,
+  // and declaring them would emit `layout(binding = N) buffer name;`, which
+  // does not compile. Drop them, so that no port is created either.
+  std::erase_if(m_desc.inputs, [](const isf::input& in) {
+    const bool unsupported = ossia::get_if<storage_input>(&in.data)
+                             || ossia::get_if<uniform_input>(&in.data)
+                             || ossia::get_if<geometry_input>(&in.data)
+                             || ossia::get_if<csf_image_input>(&in.data);
+    if(unsupported)
+      fmt::print(
+          stderr,
+          "[isf] VERTEX_SHADER_ART: input \"{}\" is a storage, uniform, "
+          "geometry or image resource, which VSA does not support; ignored.\n",
+          in.name);
+    return unsupported;
+  });
 
   // Remove the ISF json
   m_sourceVertex.erase(0, end + 2);
