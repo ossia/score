@@ -12,23 +12,24 @@
 namespace
 {
 // Case-insensitive comparison: "lessOrEqual" == "less_or_equal" == "LEQUAL".
-// Strips underscores/hyphens so all forms compare equal.
-static bool ieq(std::string_view a, const char* b)
+// Strips underscores/hyphens/spaces from both sides so all forms compare equal.
+static bool ieq(std::string_view a, std::string_view b)
 {
-  std::size_t bi = 0;
-  for(std::size_t i = 0; i < a.size(); ++i)
+  const auto sep = [](char c) { return c == '_' || c == '-' || c == ' '; };
+  std::size_t ai = 0, bi = 0;
+  for(;;)
   {
-    char ca = (char)std::tolower((unsigned char)a[i]);
-    if(ca == '_' || ca == '-' || ca == ' ')
-      continue;
-    if(b[bi] == '\0')
+    while(ai < a.size() && sep(a[ai]))
+      ++ai;
+    while(bi < b.size() && sep(b[bi]))
+      ++bi;
+    if(ai == a.size() || bi == b.size())
+      return ai == a.size() && bi == b.size();
+    if(std::tolower((unsigned char)a[ai]) != std::tolower((unsigned char)b[bi]))
       return false;
-    char cb = (char)std::tolower((unsigned char)b[bi]);
-    if(ca != cb)
-      return false;
+    ++ai;
     ++bi;
   }
-  return b[bi] == '\0';
 }
 }
 

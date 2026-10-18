@@ -2033,3 +2033,11 @@ if(TARGET score_plugin_gfx)
     SOURCES IsfPersistentAccessTest.cpp
     PLUGINS score_plugin_gfx)
 endif()
+
+# PIPELINE_STATE TOPOLOGY names with an underscore.
+if(TARGET score_plugin_gfx)
+  score_add_test(test_unit_pipeline_state_topology
+    SOURCES PipelineStateTopologyTest.cpp
+    PLUGINS score_plugin_gfx
+    LIBS ${QT_PREFIX}::Gui)
+endif()
