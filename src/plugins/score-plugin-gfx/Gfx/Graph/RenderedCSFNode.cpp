@@ -1205,6 +1205,14 @@ void RenderedCSFNode::registerCommonExpressionVariables(
   }
 }
 
+// ceil(items / (local * stride)) in 64-bit: a 1024-wide workgroup times a
+// stride of 2^21 is past int. Clamped to int, which the device limit is below.
+static int workgroupsFor(int64_t items, int local, int stride) noexcept
+{
+  const int64_t per = std::max<int64_t>(1, int64_t(local) * std::max(1, stride));
+  return (int)std::min<int64_t>((items + per - 1) / per, INT32_MAX);
+}
+
 int RenderedCSFNode::resolveDispatchExpression(const std::string& expr) const
 {
   if(expr.empty())
@@ -1336,6 +1344,19 @@ void RenderedCSFNode::updateStorageBuffers(RenderList& renderer, QRhiResourceUpd
 {
   bool buffersChanged = false;
 
+  // A buffer that cannot be allocated at its declared size stops the passes:
+  // run against a smaller one, the shader reads and writes past its end.
+  m_storageUnallocated = false;
+  auto unallocated = [&](const StorageBuffer& sb, int64_t bytes) {
+    m_storageUnallocated = true;
+    if(!std::exchange(m_warnedStorageUnallocated, true))
+      qWarning().noquote()
+          << "CSF: storage buffer" << sb.name << "needs" << bytes
+          << "bytes and cannot be allocated (a GPU buffer holds at most"
+          << INT_MAX << "bytes, and the device may refuse less). The shader's"
+          << "passes are skipped until its size is reduced.";
+  };
+
   // Check each storage buffer to see if it needs resizing
   for(auto& storageBuffer : m_storageBuffers)
   {
@@ -1397,8 +1418,11 @@ void RenderedCSFNode::updateStorageBuffers(RenderList& renderer, QRhiResourceUpd
     // Calculate required buffer size
     auto requiredSize = score::gfx::calculateStorageBufferSize(
         storageBuffer.layout, currentArraySize, this->n.descriptor());
-    if(requiredSize >= INT_MAX)
-      requiredSize = INT_MAX;
+    if(requiredSize > INT_MAX)
+    {
+      unallocated(storageBuffer, requiredSize);
+      continue;
+    }
 
     // Check if buffer needs to be resized
     if(requiredSize != storageBuffer.lastKnownSize || !storageBuffer.buffer)
@@ -1406,7 +1430,15 @@ void RenderedCSFNode::updateStorageBuffers(RenderList& renderer, QRhiResourceUpd
       // Create new buffer with correct size
       if(storageBuffer.buffer)
       {
-        storageBuffer.buffer = regrowBuffer(renderer, storageBuffer.buffer, requiredSize);
+        // On failure regrowBuffer keeps the old, smaller buffer: keep its
+        // size too, and retry next frame.
+        auto* old = storageBuffer.buffer;
+        storageBuffer.buffer = regrowBuffer(renderer, old, requiredSize);
+        if(storageBuffer.buffer == old)
+        {
+          unallocated(storageBuffer, requiredSize);
+          continue;
+        }
       }
       else
       {
@@ -1447,6 +1479,11 @@ void RenderedCSFNode::updateStorageBuffers(RenderList& renderer, QRhiResourceUpd
                     .handle;
         }
       }
+      if(!storageBuffer.buffer)
+      {
+        unallocated(storageBuffer, requiredSize);
+        continue;
+      }
       storageBuffer.size = requiredSize;
       storageBuffer.lastKnownSize = requiredSize;
 
@@ -1460,6 +1497,9 @@ void RenderedCSFNode::updateStorageBuffers(RenderList& renderer, QRhiResourceUpd
       buffersChanged = true;
     }
   }
+
+  if(!m_storageUnallocated)
+    m_warnedStorageUnallocated = false;
 
   // The previous-frame copy of a PERSISTENT buffer follows its size.
   for(auto& storageBuffer : m_storageBuffers)
@@ -6541,8 +6581,8 @@ void RenderedCSFNode::runGeometryPasses(
     {
       QRhiTexture* tex = resolveDispatchTexture();
       QSize textureSize = tex ? tex->pixelSize() : QSize(1280, 720);
-      dispatchX = (textureSize.width() + localX * strideX - 1) / (localX * strideX);
-      dispatchY = (textureSize.height() + localY * strideY - 1) / (localY * strideY);
+      dispatchX = workgroupsFor(textureSize.width(), localX, strideX);
+      dispatchY = workgroupsFor(textureSize.height(), localY, strideY);
       dispatchZ = 1;
     }
     else if(passDesc.execution_type == "3D_IMAGE")
@@ -6552,9 +6592,9 @@ void RenderedCSFNode::runGeometryPasses(
       {
         QSize sz = tex->pixelSize();
         int depth = std::max(1, tex->depth());
-        dispatchX = (sz.width() + localX * strideX - 1) / (localX * strideX);
-        dispatchY = (sz.height() + localY * strideY - 1) / (localY * strideY);
-        dispatchZ = (depth + localZ * strideZ - 1) / (localZ * strideZ);
+        dispatchX = workgroupsFor(sz.width(), localX, strideX);
+        dispatchY = workgroupsFor(sz.height(), localY, strideY);
+        dispatchZ = workgroupsFor(depth, localZ, strideZ);
       }
       else
       {
@@ -6768,17 +6808,26 @@ void RenderedCSFNode::runGeometryPasses(
         }
       }
 
-      const auto requiredInvocations = n;
-      const auto threadsPerWorkgroup = localX * localY * localZ;
-      const int64_t totalWorkgroups = (requiredInvocations + threadsPerWorkgroup * strideX - 1)
-                                      / (threadsPerWorkgroup * strideX);
-      static constexpr int64_t maxWorkgroups = 65535;
+      // 64-bit throughout: LOCAL_SIZE 1024 times a STRIDE_X of 2^22 is 2^32.
+      const int64_t requiredInvocations = n;
+      const int64_t itemsPerWorkgroup = std::max<int64_t>(
+          1, int64_t(localX) * localY * localZ * std::max(1, strideX));
+      const int64_t totalWorkgroups
+          = (requiredInvocations + itemsPerWorkgroup - 1) / itemsPerWorkgroup;
+      // The device's limit per dimension; 65535 is the minimum every API
+      // guarantees, and D3D's and Metal's actual value.
+      const int limit = renderer.state.rhi->resourceLimit(QRhi::MaxThreadGroupsPerDimension);
+      const int64_t maxWorkgroups = limit > 0 ? limit : 65535;
 
       if(totalWorkgroups > maxWorkgroups * maxWorkgroups * maxWorkgroups)
       {
         // Workgroup count overflow: skip this pass only. No compute pass is open at
         // this point -- the begin/end is hoisted after the size calculation -- so there
         // is nothing to close, and `return` would desync the ping-pong swaps.
+        if(!std::exchange(m_warnedDispatchTooLarge, true))
+          qWarning() << "CSF: pass" << passIndex << "needs" << totalWorkgroups
+                     << "workgroups, more than the device dispatches"
+                     << "(" << maxWorkgroups << "per dimension); skipped.";
         continue;
       }
       if(totalWorkgroups > maxWorkgroups * maxWorkgroups)
@@ -6805,14 +6854,15 @@ void RenderedCSFNode::runGeometryPasses(
     {
       // Default fallback (same as 2D_IMAGE with strides)
       QSize textureSize = m_outputTexture ? m_outputTexture->pixelSize() : QSize(1280, 720);
-      dispatchX = (textureSize.width() + localX * strideX - 1) / (localX * strideX);
-      dispatchY = (textureSize.height() + localY * strideY - 1) / (localY * strideY);
+      dispatchX = workgroupsFor(textureSize.width(), localX, strideX);
+      dispatchY = workgroupsFor(textureSize.height(), localY, strideY);
       dispatchZ = 1;
     }
 
     // Guard against dispatch(0,0,0) which is invalid per Vulkan spec.
     // Pass not yet opened, so we just skip without closing anything.
-    if(dispatchX <= 0 || dispatchY <= 0 || dispatchZ <= 0 || m_auxSizeUnresolved)
+    if(dispatchX <= 0 || dispatchY <= 0 || dispatchZ <= 0 || m_auxSizeUnresolved
+       || m_storageUnallocated)
       continue;
 
     // Publish the workgroup count to the per-pass ProcessUBO so the shader can read

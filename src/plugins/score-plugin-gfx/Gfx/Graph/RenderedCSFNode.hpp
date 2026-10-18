@@ -174,6 +174,11 @@ private:
   //! by input name, sized from its LAYOUT.
   ossia::hash_map<std::string, QRhiBuffer*> m_uniformPlaceholders;
   bool m_warnedIndirectArgs{false};
+  bool m_warnedDispatchTooLarge{false};
+  //! A storage buffer could not be allocated at its declared size this frame:
+  //! the passes are skipped (updateStorageBuffers).
+  bool m_storageUnallocated{false};
+  bool m_warnedStorageUnallocated{false};
 
 
   // Only outs, matched with index in m_storageBuffers
