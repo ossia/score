@@ -49,6 +49,9 @@ public:
 
   void toggleMute(int lane);
   void toggleSolo(int lane);
+  void copyLanes(const std::vector<int>& lanes) const;
+  bool pasteLanes(const std::vector<int>& targets);
+  void clearLanes(const std::vector<int>& lanes);
   void addLane();
   void addControlLane(uint8_t note);
   void removeLane(int lane);

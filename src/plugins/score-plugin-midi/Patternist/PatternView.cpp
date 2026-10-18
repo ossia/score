@@ -356,6 +356,8 @@ void View::updateLanes()
 
   if(p->lanes.size() != m_lanes.size())
   {
+    // The lanes picked are counted from the top: they no longer hold.
+    m_selectedLanes.clear();
     for(auto l : m_lanes)
       delete l;
     m_lanes.clear();
@@ -695,6 +697,8 @@ int View::buttonAt(QPointF pos) const noexcept
   auto p = pattern();
   if(!p || !m_advanced || pos.x() >= headerWidth())
     return -1;
+  if(allButtonRect().contains(pos))
+    return all_button;
   if(pos.y() < gridBottom())
   {
     const int lane = headerLaneAt(pos);
@@ -1238,6 +1242,17 @@ void View::paintHeader(QPainter* painter, const Pattern& p) const
   if(!m_advanced)
     return;
 
+  if(const QRectF all = allButtonRect(); !all.isEmpty())
+  {
+    painter->setFont(smallFont());
+    painter->setRenderHint(QPainter::Antialiasing, true);
+    paintButton(
+        painter, all, tr("All lanes"),
+        !p.lanes.empty() && m_selectedLanes.size() == p.lanes.size(),
+        Palette::instance().selection, all_button);
+    painter->setRenderHint(QPainter::Antialiasing, false);
+  }
+
   // Each lane's header is a card on its row, the start of the lane: same
   // height, same gaps, lit with it when selected.
   const auto& colors = Palette::instance();
@@ -1248,9 +1263,12 @@ void View::paintHeader(QPainter* painter, const Pattern& p) const
     const Lane& l = p.lanes[lane];
     const QRectF lr = laneRect(lane);
     const bool selected = lane == m_selectedLane;
-    painter->fillRect(
-        QRectF{0., lr.y(), hw - 2., ch},
-        selected ? colors.selectedHeader : colors.header);
+    const bool picked
+        = std::binary_search(m_selectedLanes.begin(), m_selectedLanes.end(), lane);
+    QColor card = selected ? colors.selectedHeader : colors.header;
+    if(picked)
+      card = mix(card, colors.selection, 0.3);
+    painter->fillRect(QRectF{0., lr.y(), hw - 2., ch}, card);
     if(selected)
       painter->fillRect(QRectF{0., lr.y(), 3., ch}, skin.Base4.main.brush);
 
@@ -1405,6 +1423,10 @@ void View::mousePressEvent(QGraphicsSceneMouseEvent* event)
       return pressButton(b, event->modifiers());
     if(int lane = headerLaneAt(event->pos()); lane >= 0)
     {
+      if(event->modifiers() & Qt::ControlModifier)
+        toggleLane(lane);
+      else
+        setSelectedLanes({});
       setSelectedLane(lane);
       laneSelected(lane);
       return;
@@ -1476,7 +1498,16 @@ void View::mousePressEvent(QGraphicsSceneMouseEvent* event)
 void View::pressButton(int id, Qt::KeyboardModifiers mods)
 {
   const int n = std::size(allFields);
-  if(id >= field_button)
+  if(id == all_button)
+  {
+    auto p = pattern();
+    std::vector<int> lanes;
+    if(p && m_selectedLanes.size() != p->lanes.size())
+      for(int i = 0; i < int(p->lanes.size()); i++)
+        lanes.push_back(i);
+    setSelectedLanes(std::move(lanes));
+  }
+  else if(id >= field_button)
   {
     const int i = id - field_button;
     if(i < n)
@@ -1537,14 +1568,51 @@ void View::setSelectionArea(SelectionArea a)
   {
     m_selectionArea = a;
     m_selectionValid = false;
+    if(a.lane0 >= 0)
+      m_selectedLanes.clear();
     update();
     selectionChanged();
   }
 }
 
+void View::setSelectedLanes(std::vector<int> lanes)
+{
+  std::sort(lanes.begin(), lanes.end());
+  lanes.erase(std::unique(lanes.begin(), lanes.end()), lanes.end());
+  if(lanes == m_selectedLanes)
+    return;
+  m_selectedLanes = std::move(lanes);
+  if(!m_selectedLanes.empty())
+  {
+    m_selectionArea = {};
+    m_selectionValid = false;
+  }
+  update();
+  selectionChanged();
+}
+
+void View::toggleLane(int lane)
+{
+  auto lanes = m_selectedLanes;
+  if(auto it = std::find(lanes.begin(), lanes.end(), lane); it != lanes.end())
+    lanes.erase(it);
+  else
+    lanes.push_back(lane);
+  setSelectedLanes(std::move(lanes));
+}
+
 void View::clearSelection()
 {
   setSelectionArea({});
+  setSelectedLanes({});
+}
+
+//! Over the lane headers, on the row of the step numbers.
+QRectF View::allButtonRect() const noexcept
+{
+  if(!m_advanced || ringsMode() || !laneButtons())
+    return {};
+  return {pad, 1., headerWidth() - 2. * pad, numbers_height - 3.};
 }
 
 void View::selectAll()
@@ -1808,8 +1876,17 @@ bool View::sceneEventFilter(QGraphicsItem* watched, QEvent* event)
     if(it != m_lanes.end())
     {
       const int lane = int(it - m_lanes.begin());
+      // Ctrl picks the lane rather than its note.
+      const bool ctrl = static_cast<QGraphicsSceneMouseEvent*>(event)->modifiers()
+                        & Qt::ControlModifier;
+      if(ctrl)
+        toggleLane(lane);
+      else
+        setSelectedLanes({});
       setSelectedLane(lane);
       laneSelected(lane);
+      if(ctrl)
+        return true;
     }
   }
   return false;

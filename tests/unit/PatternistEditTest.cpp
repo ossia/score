@@ -535,3 +535,45 @@ TEST_CASE("patternist: the gate random is a parameter", "[midi][pattern]")
   CHECK(stepField(s, StepField::GateRandom) == 1.f);
   CHECK(s.gate == StepParams{}.gate);
 }
+
+TEST_CASE("patternist: whole lanes copied over others", "[midi][pattern]")
+{
+  auto p = pattern(
+      {lane(46, {R, R, R, R}), lane(42, {R, R, R, R}), lane(38, {R, N, R, N}),
+       lane(36, {N, R, N, R})},
+      4);
+  normalize(p);
+  p.lanes[3].params[0].velocity = 0.5f;
+  p.lanes[3].velocity = 0.25f;
+  p.lanes[0].mute = true;
+
+  const Pattern copied = copyLanes(p, {2, 3});
+  REQUIRE(copied.lanes.size() == 2);
+  CHECK(pasteLanes(p, copied, {0, 1}));
+  // What they play moves; which note, mute, and how loud, stay.
+  CHECK(p.lanes[0].pattern == p.lanes[2].pattern);
+  CHECK(p.lanes[1].pattern == p.lanes[3].pattern);
+  CHECK(p.lanes[0].note == 46);
+  CHECK(p.lanes[0].mute);
+  CHECK(p.lanes[1].params[0].velocity == 0.5f);
+  CHECK(p.lanes[1].velocity == Lane{}.velocity);
+  CHECK(!pasteLanes(p, copied, {0, 1}));
+
+  // More lanes copied than targets: as far as the targets go.
+  CHECK(pasteLanes(p, copyLanes(p, {3, 2}), {2}));
+  CHECK(p.lanes[2].pattern == p.lanes[3].pattern);
+
+  clearLanes(p, {1, 2});
+  CHECK(p.lanes[1].pattern == std::vector<Note>(4, R));
+  CHECK(p.lanes[1].params[0] == StepParams{});
+  CHECK(p.lanes[3].pattern == std::vector<Note>({N, R, N, R}));
+}
+
+TEST_CASE("patternist: a lane copied from a pattern of another length", "[midi][pattern]")
+{
+  auto from = pattern({lane(36, {N, R, R})}, 3);
+  auto to = pattern({lane(38, {R, R, R, R, R, R, R, R})}, 8);
+  CHECK(pasteLanes(to, copyLanes(from, {0}), {0}));
+  CHECK(to.lanes[0].length == 3);
+  CHECK(writtenNote(to, to.lanes[0], 0) == N);
+}
