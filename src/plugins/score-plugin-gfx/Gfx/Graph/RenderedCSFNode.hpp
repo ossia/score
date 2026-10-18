@@ -66,7 +66,9 @@ private:
   std::size_t expressionSymbolReserveCount() const noexcept;
 
   // Image management
-  std::optional<QSize> getImageSize(const isf::csf_image_input&) const noexcept;
+  //! Each axis: its WIDTH / HEIGHT expression, else the first input image's,
+  //! else `fallback` (the render size).
+  QSize getImageSize(const isf::csf_image_input&, QSize fallback) const noexcept;
   QSize computeTextureSize(const isf::csf_image_input& img) const noexcept;
 
   // Buffer management methods

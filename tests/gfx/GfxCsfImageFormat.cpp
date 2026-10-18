@@ -100,3 +100,74 @@ TEST_CASE("a CSF storage image is allocated in its FORMAT", "[gfx][csf][format][
   CHECK(r.format == int(c.expected));
 }
 
+// Size: an axis without WIDTH / HEIGHT takes the default size's, the other
+// keeps its expression. Giving only one replaced the whole size with the
+// render size (shader board C17).
+TEST_CASE("a CSF storage image with only WIDTH or HEIGHT keeps it", "[gfx][csf][size][C17]")
+{
+  const auto be = GENERATE(from_range(platform_backends()));
+  const auto axis = GENERATE(std::string{"WIDTH"}, std::string{"HEIGHT"});
+  CAPTURE(backend_name(be), axis);
+
+  QTemporaryDir dir;
+  REQUIRE(dir.isValid());
+  const QString path = dir.path() + "/size.cs";
+  {
+    QFile f{path};
+    REQUIRE(f.open(QIODevice::WriteOnly));
+    f.write(QString::fromStdString(R"_(/*{
+  "ISFVSN": "2.0",
+  "MODE": "COMPUTE_SHADER",
+  "RESOURCES": [
+    { "NAME": "outputImage", "TYPE": "image", "ACCESS": "write_only", "FORMAT": "rgba8", ")_"
+                                   + axis + R"_(": "16" }
+  ],
+  "PASSES": [ { "LOCAL_SIZE": [8, 8, 1], "EXECUTION_MODEL": { "TYPE": "2D_IMAGE", "TARGET": "outputImage" } } ]
+}*/
+void main() { imageStore(outputImage, ivec2(gl_GlobalInvocationID.xy), vec4(1.0)); }
+)_").toUtf8());
+  }
+
+  struct
+  {
+    bool skipped{};
+    std::string error;
+    QSize size;
+  } r;
+  score::test::run_in_gui_app([&](const score::GUIApplicationContext&) {
+    GfxPipeline p;
+    const int cs = p.addCsf(path);
+    if(cs < 0)
+    {
+      r.error = p.error();
+      return;
+    }
+    const int sink = p.addSink({64, 48});
+    p.wire(p.imageOut(cs, 0), p.sinkInput(sink));
+    if(!p.create(be))
+    {
+      r.skipped = p.skipped();
+      r.error = r.skipped ? std::string{} : p.error();
+      return;
+    }
+    p.render(2);
+    auto& node = *p.isf(cs);
+    if(!node.renderedNodes.empty())
+      if(auto* tex
+         = node.renderedNodes.begin()->second->textureForOutput(*node.output[0]))
+        r.size = tex->pixelSize();
+  });
+  if(r.skipped)
+    SKIP(backend_name(be) << ": no usable backend");
+  if(const char* why = compute_shader_skip_reason(be))
+    SKIP(std::string{backend_name(be)} + ": " + why);
+  INFO(r.error);
+  REQUIRE(r.error.empty());
+  INFO("size " << r.size.width() << "x" << r.size.height());
+  if(axis == "WIDTH")
+    CHECK(r.size.width() == 16);
+  else
+    CHECK(r.size.height() == 16);
+  // The other axis is the render size's.
+  CHECK((axis == "WIDTH" ? r.size.height() : r.size.width()) > 16);
+}

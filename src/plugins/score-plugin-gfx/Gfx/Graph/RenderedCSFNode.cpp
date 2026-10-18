@@ -1231,26 +1231,24 @@ int RenderedCSFNode::resolveDispatchExpression(const std::string& expr) const
   return 1;
 }
 
-std::optional<QSize>
-RenderedCSFNode::getImageSize(const isf::csf_image_input& img) const noexcept
+QSize RenderedCSFNode::getImageSize(
+    const isf::csf_image_input& img, QSize fallback) const noexcept
 {
-  // 1. Does img have a width or height expression set
+  // An axis without an expression keeps the default size's: giving only WIDTH
+  // must not throw the authored width away.
+  QSize res = fallback;
+  if(!this->m_inputSamplers.empty() && this->m_inputSamplers[0].texture)
+    res = this->m_inputSamplers[0].texture->pixelSize();
+
   if(!img.width_expression.empty() || !img.height_expression.empty())
   {
-    return computeTextureSize(img);
+    const QSize expr = computeTextureSize(img);
+    if(expr.width() >= 1)
+      res.setWidth(expr.width());
+    if(expr.height() >= 1)
+      res.setHeight(expr.height());
   }
-
-  // 2. If not: take size of first input image if any?
-  if(!this->m_inputSamplers.empty())
-  {
-    if(this->m_inputSamplers[0].texture)
-    {
-      return this->m_inputSamplers[0].texture->pixelSize();
-    }
-  }
-
-  // 3. If not: take size of renderer
-  return std::nullopt;
+  return res;
 }
 
 BufferView RenderedCSFNode::createStorageBuffer(
@@ -4383,9 +4381,7 @@ void RenderedCSFNode::buildComputeSrbBindings(
         {
           QRhiTexture::Format format
               = getTextureFormat(QString::fromStdString(image->format));
-          QSize imageSize = renderer.state.renderSize;
-          if(auto sz = getImageSize(*image))
-            imageSize = *sz;
+          QSize imageSize = getImageSize(*image, renderer.state.renderSize);
           if(imageSize.width() < 1 || imageSize.height() < 1)
             imageSize = renderer.state.renderSize;
 
