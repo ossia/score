@@ -746,7 +746,14 @@ QRhiTexture* RenderedCSFNode::textureForOutput(const Port& output)
     if(&output == port)
     {
       if(index < (int)m_storageImages.size())
-        return m_storageImages[index].texture;
+      {
+        // A persistent image's last written frame is its read texture once
+        // a frame has run (see the ping-pong swap in runInitialPasses).
+        const auto& si = m_storageImages[index];
+        return si.persistent && si.read_texture && !si.pending_initial_copy
+                   ? si.read_texture
+                   : si.texture;
+      }
     }
   }
 
@@ -4599,18 +4606,17 @@ void RenderedCSFNode::buildComputeSrbBindings(
             imageBindingIndex++; // keep indices synchronized with shader layout
           }
 
-          // Persistent pair: `<name>_prev` readonly at the adjacent slot.
-          // First frame aliases back to `texture` (no prior frame to read).
-          // Not on D3D11: one texture as both UAVs overlaps, and the runtime
-          // drops the whole CSSetUnorderedAccessViews. There `_prev` is the
-          // read texture from the start, and runGeometryPasses copies
-          // `texture` into it before each pass of the first frame.
+          // Persistent pair: `<name>_prev` readonly at the adjacent slot, always
+          // the read texture. On the first frame, which has no previous one,
+          // runGeometryPasses copies `texture` into it before each pass, so a
+          // pass reads what the earlier passes of that frame wrote (an init
+          // pass, typically) but never the image it is writing: bound to
+          // `texture` itself, a pass reading `_prev` at a texel it already
+          // wrote read its own output (and on D3D11 the two UAVs of one
+          // texture overlap, which drops the whole CSSetUnorderedAccessViews).
           if(it->persistent)
           {
-            const bool alias_first_frame = rhi.backend() != QRhi::D3D11;
-            QRhiTexture* prev_tex = (it->pending_initial_copy && alias_first_frame)
-                                        ? it->texture
-                                        : it->read_texture;
+            QRhiTexture* prev_tex = it->read_texture;
             if(!prev_tex)
               prev_tex = it->texture;
             it->prev_binding = imageBindingIndex;
@@ -6496,8 +6502,10 @@ void RenderedCSFNode::runGeometryPasses(
     // previous passes wrote. Pass 0 was seeded above.
     if(d3d11 && passIndex > 0 && pass.pipeline && pass.srb)
       copyBuffers(d3d11InPlaceBuffers());
-    if(d3d11 && pass.pipeline && pass.srb)
+    if(pass.pipeline && pass.srb)
     {
+      // First frame of a persistent image: _prev is what this frame's earlier
+      // passes wrote (see buildComputeSrbBindings).
       for(const auto& si : m_storageImages)
       {
         if(!si.persistent || !si.pending_initial_copy || !si.texture
@@ -7088,14 +7096,22 @@ void RenderedCSFNode::runInitialPasses(
   // previous frame's data. After the frame renders, swap pointers so the
   // next frame reads what we just wrote, and patch every compute SRB
   // that holds these bindings via the indices recorded at build time.
+  //
+  // From the swap on, what this frame wrote is `read_texture`: that is what
+  // the outputs show (textureForOutput, the graphics passes, m_outputTexture).
+  // `texture` is now the slot the next frame overwrites, a frame old.
   {
     bool any_swap = false;
+    // The image each swapped pair just wrote, by either of its two textures.
+    ossia::small_flat_map<QRhiTexture*, QRhiTexture*, 4> written;
     for(auto& si : m_storageImages)
     {
       if(!si.persistent || !si.texture || !si.read_texture)
         continue;
       std::swap(si.texture, si.read_texture);
       si.pending_initial_copy = false;
+      written[si.texture] = si.read_texture;
+      written[si.read_texture] = si.read_texture;
       any_swap = true;
     }
     if(any_swap)
@@ -7117,10 +7133,8 @@ void RenderedCSFNode::runInitialPasses(
         // path already refreshes the backend descriptor state.
       }
 
-      // Graphics passes that visualize the persistent image bake the pre-swap
-      // si.texture pointer at construction, so after the ping-pong that handle names
-      // the stale slot. Patch every graphics SRB to sample the post-swap writable
-      // target.
+      // Graphics passes that visualize the persistent image sample one of the
+      // pair: patch every graphics SRB to sample the image just written.
       for(auto& [e, gp] : m_graphicsPasses)
       {
         if(!gp.pipeline.srb || !gp.outputSampler)
@@ -7132,23 +7146,15 @@ void RenderedCSFNode::runInitialPasses(
           {
             const auto& si = m_storageImages[index];
             if(si.persistent)
-              newTex = si.texture;
+              newTex = si.read_texture;
             break;
           }
         }
         if(!newTex)
         {
-          // Fallback path — graphics pass uses m_outputTexture. Find the
-          // persistent entry whose post-swap read_texture equals the
-          // pre-swap m_outputTexture (= what the SRB currently binds).
-          for(const auto& si : m_storageImages)
-          {
-            if(si.persistent && si.read_texture == m_outputTexture)
-            {
-              newTex = si.texture;
-              break;
-            }
-          }
+          // Fallback path — graphics pass uses m_outputTexture, one of a pair.
+          if(auto it = written.find(m_outputTexture); it != written.end())
+            newTex = it->second;
         }
         if(newTex)
           score::gfx::replaceTexture(*gp.pipeline.srb, gp.outputSampler, newTex);
@@ -7156,19 +7162,9 @@ void RenderedCSFNode::runInitialPasses(
 
       // m_outputTexture is the fallback returned by textureForOutput() for
       // default-port queries, captured from the first persistent storage image's
-      // primary texture at build time. After the swap that pointer is the stale slot,
-      // so find the entry whose post-swap read_texture matches it and refresh.
-      if(m_outputTexture)
-      {
-        for(const auto& si : m_storageImages)
-        {
-          if(si.persistent && si.read_texture == m_outputTexture && si.texture)
-          {
-            m_outputTexture = si.texture;
-            break;
-          }
-        }
-      }
+      // primary texture at build time: follow its pair to the image just written.
+      if(auto it = written.find(m_outputTexture); it != written.end())
+        m_outputTexture = it->second;
     }
   }
 

@@ -2160,3 +2160,6 @@ score_add_gfx_test(csf_dispatch_size GfxCsfDispatchSize.cpp)
 
 # A CSF storage buffer too large to allocate stops the node's passes.
 score_add_gfx_test(csf_storage_too_large GfxCsfStorageTooLarge.cpp)
+
+# A PERSISTENT storage image's first-frame _prev is its own zero-filled image.
+score_add_gfx_test(csf_persistent_image_history GfxCsfPersistentImageHistory.cpp)
