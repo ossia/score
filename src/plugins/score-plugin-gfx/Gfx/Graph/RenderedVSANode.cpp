@@ -470,6 +470,11 @@ void SimpleRenderedVSANode::update(
   }
   materialChanged = false;
 
+  // An EVENT input is on for one frame: reset it now that the UBO has its
+  // pulse, and upload the 0 next frame.
+  if(n.resetEventPortsAfterFrame())
+    materialChanged = true;
+
   // Update all the process UBOs
   for(auto& pass : m_passes)
   {

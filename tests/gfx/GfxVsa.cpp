@@ -169,3 +169,52 @@ TEST_CASE("VSA: LINE_LOOP draws every side, the closing one included", "[gfx][vs
   CHECK(lit_near_column(right, img.height / 2));
   CHECK(lit_near_column(left, img.height / 2));
 }
+
+// An EVENT input is true for the one frame it fires on. The VSA renderer never
+// reset its event ports after the frame, so a single impulse stayed on for
+// good (U16).
+TEST_CASE("VSA: an event input fires for one frame", "[gfx][vsa][event][U16]")
+{
+  const auto be = GENERATE(from_range(platform_backends()));
+  struct
+  {
+    bool skipped{};
+    std::string error;
+    std::vector<ReadbackImage> shots;
+  } r;
+  score::test::run_in_gui_app([&](const score::GUIApplicationContext&) {
+    GfxPipeline p;
+    const int vsa = p.addVsa(QString{GFX_TEST_CORPUS_DIR "/vsa-event-flash.vs"});
+    if(vsa < 0)
+    {
+      r.error = p.error();
+      return;
+    }
+    const int sink = p.addSink({16, 16});
+    p.wire(p.imageOut(vsa, 0), p.sinkInput(sink));
+    if(!p.create(be))
+    {
+      r.skipped = p.skipped();
+      r.error = r.skipped ? std::string{} : p.error();
+      return;
+    }
+    p.render(2);
+    r.shots.push_back(p.readback(sink));
+    p.isf(vsa)->process(nth_control_input(*p.isf(vsa), 0), ossia::value{ossia::impulse{}});
+    p.render(1);
+    r.shots.push_back(p.readback(sink));
+    p.render(2);
+    r.shots.push_back(p.readback(sink));
+  });
+  if(r.skipped)
+    SKIP(backend_name(be) << ": no usable backend");
+  INFO(r.error);
+  REQUIRE(r.error.empty());
+  REQUIRE(r.shots.size() == 3);
+  for(auto& s : r.shots)
+    REQUIRE(s.valid());
+  const auto red = [](const ReadbackImage& img) { return img.at(8, 8)[0] > 200; };
+  CHECK_FALSE(red(r.shots[0]));
+  CHECK(red(r.shots[1]));
+  CHECK_FALSE(red(r.shots[2]));
+}
