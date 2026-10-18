@@ -2048,3 +2048,11 @@ if(TARGET score_plugin_gfx)
     SOURCES IsfVsaHeaderTest.cpp
     PLUGINS score_plugin_gfx)
 endif()
+
+# ISF render node control defaults are the UI's.
+if(TARGET score_plugin_gfx)
+  score_add_test(test_unit_isf_node_defaults
+    SOURCES IsfNodeDefaultsTest.cpp
+    PLUGINS score_plugin_gfx
+    LIBS ${QT_PREFIX}::Gui)
+endif()

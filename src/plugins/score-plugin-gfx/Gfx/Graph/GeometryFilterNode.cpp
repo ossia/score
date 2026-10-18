@@ -15,12 +15,10 @@ struct geometry_input_port_vis
   char* data{};
   int sz{};
 
+  // Initial values are the UI controls' (see ISFNode.cpp).
   void operator()(const isf::float_input& in) noexcept
   {
-    if(in.def != 0.)
-      *reinterpret_cast<float*>(data) = in.def;
-    else
-      *reinterpret_cast<float*>(data) = (in.max - in.min) / 2.;
+    *reinterpret_cast<float*>(data) = in.def;
     self.input.push_back(new Port{&self, data, Types::Float, {}});
     data += 4;
     sz += 4;
@@ -75,7 +73,7 @@ struct geometry_input_port_vis
       data += 4;
     }
 
-    const auto& arr = in.def.value_or(std::array<double, 2>{0.5, 0.5});
+    const auto& arr = in.def.value_or(std::array<double, 2>{0., 0.});
     *reinterpret_cast<float*>(data) = arr[0];
     *reinterpret_cast<float*>(data + 4) = arr[1];
     self.input.push_back(new Port{&self, data, Types::Vec2, {}});
@@ -90,7 +88,7 @@ struct geometry_input_port_vis
       sz += 4;
       data += 4;
     }
-    const auto& arr = in.def.value_or(std::array<double, 3>{0.5, 0.5, 0.5});
+    const auto& arr = in.def.value_or(std::array<double, 3>{0., 0., 0.});
     *reinterpret_cast<float*>(data) = arr[0];
     *reinterpret_cast<float*>(data + 4) = arr[1];
     *reinterpret_cast<float*>(data + 8) = arr[2];
@@ -106,7 +104,7 @@ struct geometry_input_port_vis
       sz += 4;
       data += 4;
     }
-    const auto& arr = in.def.value_or(std::array<double, 4>{0.5, 0.5, 0.5, 0.5});
+    const auto& arr = in.def.value_or(std::array<double, 4>{0.5, 0.5, 0.5, 1.});
     *reinterpret_cast<float*>(data) = arr[0];
     *reinterpret_cast<float*>(data + 4) = arr[1];
     *reinterpret_cast<float*>(data + 8) = arr[2];
