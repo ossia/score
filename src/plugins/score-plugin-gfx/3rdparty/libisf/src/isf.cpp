@@ -4907,6 +4907,27 @@ void parser::parse_isf()
     }
   }
 
+  // The classic renderers draw their fullscreen mesh: a draw count was parsed
+  // and silently ignored, 64 requested points drawing 4 (shader board F16).
+  {
+    auto refuse_counts = [](const pipeline_state& ps, const std::string& where) {
+      const char* key = (ps.vertex_count || !ps.vertex_count_expression.empty())
+                            ? "VERTEX_COUNT"
+                        : (ps.instance_count || !ps.instance_count_expression.empty())
+                            ? "INSTANCE_COUNT"
+                            : nullptr;
+      if(key)
+        throw invalid_file{
+            where + "PIPELINE_STATE " + key
+            + " is not drawn by classic ISF, which always draws its fullscreen "
+              "mesh. Use RAW_RASTER_PIPELINE (or VERTEX_SHADER_ART) to choose the "
+              "draw counts."};
+    };
+    refuse_counts(m_desc.default_state, "");
+    for(std::size_t i = 0; i < m_desc.passes.size(); i++)
+      refuse_counts(m_desc.passes[i].override_state, "PASSES[" + std::to_string(i) + "] ");
+  }
+
   // The classic renderers allocate every OUTPUT as a 2D (or layered) target:
   // a volume, cubemap or GENERATE_MIPS output was accepted, whether a pass
   // targets it or not, and drawn as a plain 2D image (shader board F15).

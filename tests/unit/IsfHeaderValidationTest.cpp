@@ -297,3 +297,28 @@ TEST_CASE("an auxiliary texture index too large for an int is not a ladder rung"
   for(const auto& t : d.auxiliary_textures)
     CHECK(!t.in_ladder());
 }
+
+// A classic ISF draws its fullscreen mesh: PIPELINE_STATE VERTEX_COUNT /
+// INSTANCE_COUNT were parsed and silently ignored, 64 requested points drawing
+// 4 (shader board F16). They are refused, top-level or per pass, pointing to
+// raw raster or VSA; the rest of PIPELINE_STATE stays accepted.
+TEST_CASE("a classic ISF refuses VERTEX_COUNT and INSTANCE_COUNT", "[isf][header][F16]")
+{
+  for(const char* extra :
+      {R"("PIPELINE_STATE": { "VERTEX_COUNT": 64 })",
+       R"("PIPELINE_STATE": { "VERTEX_COUNT": "$USER" })",
+       R"("PIPELINE_STATE": { "INSTANCE_COUNT": 4 })",
+       R"("PIPELINE_STATE": { "INSTANCE_COUNT": "2 * 2" })",
+       R"("PASSES": [ { "PIPELINE_STATE": { "VERTEX_COUNT": 6 } } ])",
+       R"("PASSES": [ { "PIPELINE_STATE": { "INSTANCE_COUNT": 3 } } ])"})
+  {
+    CAPTURE(extra);
+    const auto msg = refusal([&] { parseIsf(extra); });
+    const bool names_key = msg.find("VERTEX_COUNT") != std::string::npos
+                           || msg.find("INSTANCE_COUNT") != std::string::npos;
+    CHECK(names_key);
+    CHECK_THAT(msg, Catch::Matchers::ContainsSubstring("RAW_RASTER_PIPELINE"));
+  }
+
+  CHECK_NOTHROW(parseIsf(R"("PIPELINE_STATE": { "TOPOLOGY": "points", "CULL_MODE": "none" })"));
+}
