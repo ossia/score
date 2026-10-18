@@ -1695,18 +1695,16 @@ static void parse_input(geometry_input& inp, const sajson::value& v)
 // check we can do cheaply is reject unknown format strings.
 static bool isf_is_known_image_format(std::string fmt)
 {
+  // The GLSL image format qualifiers QRhi can allocate a texture for
+  // (imageFormatFromQualifier in Gfx/Graph/Utils.cpp). Valid GLSL beyond these
+  // (snorm, rg16f / rg32f, 8 / 16-bit integers, r11f_g11f_b10f, rgba16) would be
+  // declared in the shader and allocated as something else.
   boost::algorithm::to_lower(fmt);
   static const ossia::hash_set<std::string> known{
-      "rgba8",  "rgba8_snorm",  "rgba8ui", "rgba8i",
-      "rgba16", "rgba16_snorm", "rgba16f", "rgba16ui", "rgba16i",
-      "rgba32f","rgba32ui",     "rgba32i",
-      "rg8",    "rg8_snorm",    "rg8ui",   "rg8i",
-      "rg16",   "rg16_snorm",   "rg16f",   "rg16ui", "rg16i",
-      "rg32f",  "rg32ui",       "rg32i",
-      "r8",     "r8_snorm",     "r8ui",    "r8i",
-      "r16",    "r16_snorm",    "r16f",    "r16ui",  "r16i",
-      "r32f",   "r32ui",        "r32i",
-      "rgb10_a2", "rgb10_a2ui", "r11f_g11f_b10f"};
+      "rgba8",  "r8",      "rg8",    "r16",     "rg16",
+      "r16f",   "r32f",    "rgba16f", "rgba32f", "rgb10_a2",
+      "r8ui",   "r32ui",   "rg32ui", "rgba32ui",
+      "r8i",    "r32i",    "rg32i",  "rgba32i"};
   return known.count(fmt) > 0;
 }
 
@@ -1763,9 +1761,9 @@ static void parse_input(csf_image_input& inp, const sajson::value& v)
         {
           fmt::print(
               stderr,
-              "[isf] csf_image_input FORMAT \"{}\" is not a recognised GLSL "
-              "image qualifier — falling back to rgba8. Check "
-              "for typos (e.g. \"rgba16\" vs \"rgba16f\").\n",
+              "[isf] csf_image_input FORMAT \"{}\" is not an image format the "
+              "engine can allocate — falling back to rgba8. Check for typos "
+              "(e.g. \"rgba16\" vs \"rgba16f\").\n",
               inp.format);
           // Emitting the unknown spelling as a layout qualifier would fail to
           // compile; fall back for the declaration and the allocation alike.

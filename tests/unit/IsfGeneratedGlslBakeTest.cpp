@@ -151,3 +151,31 @@ void main() {
   require_bakes(b, p.vertex(), QShader::VertexStage);
   require_bakes(b, p.fragment(), QShader::FragmentStage);
 }
+
+// A GLSL image format QRhi cannot allocate (snorm, rg16f / rg32f, 8 / 16-bit
+// integers, r11f_g11f_b10f) was emitted as is and allocated as RGBA8: the shader
+// and the texture disagreed (shader board C16). Such a FORMAT falls back to
+// rgba8 in the declaration too, with a warning, like an unknown one.
+TEST_CASE("a CSF image FORMAT QRhi cannot allocate is declared rgba8", "[gfx][isf][csf][C16]")
+{
+  const auto format = GENERATE(
+      std::string{"rgba8_snorm"}, std::string{"rg16f"}, std::string{"rg32f"},
+      std::string{"r16ui"}, std::string{"rgba16"}, std::string{"r11f_g11f_b10f"});
+  CAPTURE(format);
+  const std::string cs = R"_(/*{
+  "ISFVSN": "2.0",
+  "MODE": "COMPUTE_SHADER",
+  "RESOURCES": [
+    { "NAME": "outputImage", "TYPE": "image", "ACCESS": "write_only", "FORMAT": ")_"
+                         + format + R"_(", "WIDTH": "16", "HEIGHT": "16" }
+  ],
+  "PASSES": [ { "LOCAL_SIZE": [8, 8, 1], "EXECUTION_MODEL": { "TYPE": "2D_IMAGE", "TARGET": "outputImage" } } ]
+}*/
+void main() { }
+)_";
+  ::isf::parser p{{}, cs, 450, ::isf::parser::ShaderType::CSF};
+  const auto src = p.compute_shader();
+  INFO(src);
+  CHECK(src.find(format) == std::string::npos);
+  CHECK(src.find(", rgba8)") != std::string::npos);
+}
