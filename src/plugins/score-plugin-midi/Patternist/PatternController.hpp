@@ -50,6 +50,7 @@ public:
   void toggleMute(int lane);
   void toggleSolo(int lane);
   void addLane();
+  void addControlLane(uint8_t note);
   void removeLane(int lane);
   void setLength(int length);
   void setDivision(int division);

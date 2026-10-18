@@ -1094,3 +1094,290 @@ TEST_CASE("patternist: lanes with their own length and division", "[midi][patter
     CHECK(at38 == std::vector<int64_t>{0, 750});
   }
 }
+
+namespace
+{
+int velocity7(const libremidi::ump& u)
+{
+  // The node converts from MIDI 1: back to 7 bits.
+  return int(cmidi2_ump_get_midi2_note_velocity(u.data) >> 9);
+}
+
+std::vector<std::pair<int64_t, float>> values(ossia::value_outlet& out)
+{
+  std::vector<std::pair<int64_t, float>> res;
+  for(const auto& v : out.target<ossia::value_port>()->get_data())
+    res.emplace_back(v.timestamp, ossia::convert<float>(v.value));
+  return res;
+}
+}
+
+TEST_CASE("patternist: an accent raises the notes of its step", "[midi][pattern]")
+{
+  fixture f;
+  // The accent lane after the note lane: it still applies on the same step.
+  f.set({lane(36, {Note::Note, Note::Note}), lane(accentLane, {Note::Note, Note::Rest})}, 2);
+  with_params(f);
+  auto& l = f.node.patterns[0].lanes[0];
+  l.velocity = 0.5f;
+  l.params[0].velocity = l.params[1].velocity = 0.5f;
+  auto& a = f.node.patterns[0].lanes[1];
+  a.velocity = 1.f;
+  a.params[0].velocity = 0.5f;
+
+  f.step();
+  std::vector<int> v;
+  for(auto& m : f.port.messages)
+    if(decode(m).status == note_on)
+      v.push_back(velocity7(m));
+  f.step();
+  for(auto& m : f.port.messages)
+    if(decode(m).status == note_on)
+      v.push_back(velocity7(m));
+  REQUIRE(v.size() == 2);
+  // Half way from 0.5 to the top, then scaled by the lane: 0.75 * 0.5.
+  CHECK(v[0] == 48);
+  CHECK(v[1] == 32);
+  CHECK(values(f.node.accent_out).back().second == 0.f);
+}
+
+TEST_CASE("patternist: what an accent lane acts on", "[midi][pattern]")
+{
+  fixture f;
+  const auto struck = [&] {
+    std::vector<std::pair<int64_t, int>> res;
+    for(auto& m : f.port.messages)
+      if(decode(m).status == note_on)
+        res.emplace_back(m.timestamp, velocity7(m));
+    return res;
+  };
+
+  SECTION("the steps of a slower accent lane cover several notes")
+  {
+    f.set(
+        {lane(36, {Note::Note, Note::Note, Note::Note, Note::Note}),
+         lane(accentLane, {Note::Note, Note::Rest})},
+        4);
+    with_params(f);
+    f.node.patterns[0].lanes[1].division = 8;
+    f.node.patterns[0].lanes[0].velocity = 1.f;
+    for(auto& p : f.node.patterns[0].lanes[0].params)
+      p.velocity = 0.5f;
+    f.node.patterns[0].lanes[1].velocity = 1.f;
+    musical_tick(f, 0, 1000);
+    const auto s = struck();
+    REQUIRE(s.size() == 4);
+    CHECK(s[0].second == 127);
+    CHECK(s[1].second == 127);
+    CHECK(s[2].second == 64);
+    CHECK(s[3].second == 64);
+  }
+  SECTION("a note scheduled early finds the accent of its own step")
+  {
+    f.set(
+        {lane(36, {Note::Rest, Note::Note, Note::Rest, Note::Rest}),
+         lane(accentLane, {Note::Rest, Note::Note, Note::Rest, Note::Rest})},
+        4);
+    with_params(f);
+    f.node.patterns[0].lanes[0].params[1].offset = -0.25f;
+    f.node.patterns[0].lanes[0].velocity = 1.f;
+    f.node.patterns[0].lanes[1].velocity = 1.f;
+    musical_tick(f, 0, 1000);
+    const auto s = struck();
+    REQUIRE(s.size() == 1);
+    CHECK(std::abs(s[0].first - 187) <= 1);
+    CHECK(s[0].second == 127);
+  }
+  SECTION("its outlet carries the amount, back to 0 when its gate ends")
+  {
+    f.set(
+        {lane(36, {Note::Note, Note::Rest, Note::Rest, Note::Rest}),
+         lane(accentLane, {Note::Note, Note::Rest, Note::Rest, Note::Rest})},
+        4);
+    with_params(f);
+    auto& a = f.node.patterns[0].lanes[1];
+    a.velocity = 1.f;
+    a.params[0].velocity = 0.5f;
+    a.params[0].gate = 0.5f;
+    f.node.accent_out.target<ossia::value_port>()->get_data().clear();
+    musical_tick(f, 0, 1000);
+    const auto v = values(f.node.accent_out);
+    REQUIRE(v.size() >= 2);
+    CHECK(v[0].first == 0);
+    CHECK(v[0].second == 0.5f);
+    CHECK(std::abs(v[1].first - 125) <= 1);
+    CHECK(v[1].second == 0.f);
+  }
+  SECTION("a note lane's solo leaves the accents on")
+  {
+    f.set({lane(36, {Note::Note}), lane(accentLane, {Note::Note})}, 1);
+    f.node.patterns[0].lanes[0].solo = true;
+    f.node.patterns[0].lanes[0].velocity = 1.f;
+    f.node.patterns[0].lanes[1].velocity = 1.f;
+    musical_tick(f, 0, 250);
+    const auto s = struck();
+    REQUIRE(s.size() == 1);
+    CHECK(s[0].second == 127);
+  }
+}
+
+TEST_CASE("patternist: a slide glides into the next step", "[midi][pattern]")
+{
+  fixture f;
+  f.set(
+      {lane(36, {Note::Note, Note::Note, Note::Rest, Note::Rest}),
+       lane(slideLane, {Note::Note, Note::Rest, Note::Rest, Note::Rest})},
+      4);
+  with_params(f);
+  auto& l = f.node.patterns[0].lanes[0];
+
+  SECTION("to another note: struck before the held one is released")
+  {
+    l.params[1].pitch = 7;
+    musical_tick(f, 0, 1000);
+    const auto s = sent(f);
+    REQUIRE(s.size() == 4);
+    CHECK((s[0].status == note_on && s[0].note == 36 && s[0].timestamp == 0));
+    CHECK((s[1].status == note_on && s[1].note == 43 && s[1].timestamp == 250));
+    CHECK((s[2].status == note_off && s[2].note == 36 && s[2].timestamp == 250));
+    CHECK((s[3].status == note_off && s[3].note == 43 && s[3].timestamp == 500));
+  }
+  SECTION("to the same note: it carries on")
+  {
+    musical_tick(f, 0, 1000);
+    const auto s = sent(f);
+    REQUIRE(s.size() == 2);
+    CHECK((s[0].status == note_on && s[0].timestamp == 0));
+    CHECK((s[1].status == note_off && s[1].timestamp == 500));
+  }
+  SECTION("past a short gate, and from the last hit of a ratchet")
+  {
+    l.params[0].gate = 0.5f;
+    l.params[0].ratchet = 2;
+    l.params[1].pitch = 7;
+    musical_tick(f, 0, 1000);
+    const auto s = sent(f);
+    // 36 at 0, off at 62; 36 at 125 held, 43 at 250, then 36 off, 43 off.
+    REQUIRE(s.size() == 6);
+    CHECK((s[2].status == note_on && s[2].note == 36 && s[2].timestamp == 125));
+    CHECK((s[3].status == note_on && s[3].note == 43 && s[3].timestamp == 250));
+    CHECK((s[4].status == note_off && s[4].note == 36 && s[4].timestamp == 250));
+  }
+  SECTION("without a slide the gate still ends the note")
+  {
+    f.node.patterns[0].lanes[1].pattern[0] = Note::Rest;
+    l.params[0].gate = 0.5f;
+    musical_tick(f, 0, 1000);
+    const auto s = sent(f);
+    REQUIRE(s.size() == 4);
+    CHECK((s[1].status == note_off && s[1].timestamp == 125));
+  }
+  SECTION("its outlet changes once the note it glides into is struck")
+  {
+    auto& port = *f.node.slide_out.target<ossia::value_port>();
+    port.get_data().clear();
+    l.params[1].pitch = 7;
+    f.node.patterns[0].lanes[1].params[0].gate = 0.25f;
+    musical_tick(f, 0, 1000);
+    const auto v = values(f.node.slide_out);
+    REQUIRE(v.size() == 4);
+    CHECK(v[0] == std::pair<int64_t, float>{0, 0.25f});
+    CHECK(v[1] == std::pair<int64_t, float>{250, 0.f});
+  }
+}
+
+TEST_CASE("patternist: accents and slides leave no note stuck", "[midi][pattern]")
+{
+  fixture f;
+  f.set(
+      {lane(36, {Note::Note, Note::Legato, Note::Note, Note::Rest, Note::Note, Note::Note,
+                 Note::Legato, Note::Note}),
+       lane(38, {Note::Rest, Note::Note, Note::Note, Note::Note, Note::Rest, Note::Legato,
+                 Note::Note, Note::Rest}),
+       lane(slideLane, {Note::Note, Note::Rest, Note::Note, Note::Note, Note::Rest,
+                        Note::Note, Note::Note, Note::Rest}),
+       lane(accentLane, {Note::Note, Note::Rest, Note::Rest, Note::Note, Note::Note,
+                         Note::Rest, Note::Note, Note::Rest})},
+      8);
+  with_params(f);
+  for(auto& l : f.node.patterns[0].lanes)
+    for(int k = 0; k < 8; k++)
+    {
+      auto& p = l.params[k];
+      p.chance = 0.6f;
+      p.ratchet = uint8_t(1 + k % 3);
+      p.gate = 0.3f + 0.1f * k;
+      p.offset = (k % 4 - 1.5f) * 0.2f;
+      p.pitch = int8_t(k % 5);
+      p.pitchRandom = uint8_t(k % 2) * 3;
+    }
+  f.node.patterns[0].lanes[2].division = 8;
+
+  std::array<int, 128> balance{};
+  for(int i = 0; i < 400; i++)
+  {
+    musical_tick(f, i * 333, (i + 1) * 333);
+    for(auto& m : sent(f))
+      balance[m.note] += m.status == note_on ? 1 : m.status == note_off ? -1 : 0;
+    for(int n = 0; n < 128; n++)
+    {
+      REQUIRE(balance[n] >= 0);
+      REQUIRE(balance[n] <= 1);
+    }
+  }
+  f.node.all_notes_off();
+  musical_tick(f, 400 * 333, 400 * 333 + 1);
+  for(auto& m : sent(f))
+    balance[m.note] += m.status == note_on ? 1 : m.status == note_off ? -1 : 0;
+  for(int n = 0; n < 128; n++)
+    CHECK(balance[n] == 0);
+}
+
+TEST_CASE("patternist: a gate random moves the release", "[midi][pattern]")
+{
+  fixture f;
+  f.set({lane(36, {Note::Note, Note::Rest, Note::Rest, Note::Rest})}, 4);
+  with_params(f);
+  auto& l = f.node.patterns[0].lanes[0];
+  l.params[0].gate = 0.5f;
+  l.params[0].gateRandom = 0.25f;
+  l.params[0].ratchet = 2;
+
+  const auto releases = [&] {
+    std::vector<int64_t> res;
+    for(auto& m : sent(f))
+      if(m.status == note_off)
+        res.push_back(m.timestamp);
+    return res;
+  };
+
+  SECTION("by one amount for the whole note")
+  {
+    std::set<int64_t> seen;
+    for(int i = 0; i < 40; i++)
+    {
+      musical_tick(f, i * 1000, (i + 1) * 1000);
+      const auto r = releases();
+      REQUIRE(r.size() == 2);
+      // Each hit's gap is 125 samples: 0.25 - 0.75 of it.
+      CHECK(r[0] >= 30);
+      CHECK(r[0] <= 94 + 1);
+      CHECK(std::abs((r[1] - 125) - r[0]) <= 1);
+      seen.insert(r[0]);
+    }
+    CHECK(seen.size() > 5);
+  }
+  SECTION("or by each hit for itself")
+  {
+    l.randomPerHit = Lane::GatePerHit;
+    int differ = 0;
+    for(int i = 0; i < 40; i++)
+    {
+      musical_tick(f, i * 1000, (i + 1) * 1000);
+      const auto r = releases();
+      REQUIRE(r.size() == 2);
+      differ += std::abs((r[1] - 125) - r[0]) > 1;
+    }
+    CHECK(differ > 10);
+  }
+}

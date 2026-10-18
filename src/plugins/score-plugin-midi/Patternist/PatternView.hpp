@@ -68,7 +68,9 @@ public:
     std::vector<int> starts;
   };
   PasteTarget pasteTarget(int lanes) const;
-  StepField field() const noexcept { return m_field; }
+  //! The parameter the bars show: the one chosen, unless the selected lane is
+  //! an accent or a slide that has no use for it.
+  StepField field() const noexcept;
   //! The height under which the editor's lanes would get too low to use.
   double minimumHeight() const noexcept;
   //! What a Shift- or Alt-drag in the parameter bars sets, for every step.
@@ -108,8 +110,27 @@ private:
   static constexpr StepField allFields[]
       = {StepField::Velocity, StepField::VelocityRandom, StepField::Chance,
          StepField::Offset,   StepField::OffsetRandom,   StepField::Gate,
-         StepField::Ratchet,  StepField::Pace,           StepField::Pitch,
-         StepField::PitchRandom};
+         StepField::GateRandom, StepField::Ratchet,      StepField::Pace,
+         StepField::Pitch,    StepField::PitchRandom};
+  //! The parameter buttons, a row each, with the random spread beside the
+  //! value it spreads.
+  struct FieldRow
+  {
+    StepField value;
+    std::optional<StepField> random;
+  };
+  static constexpr FieldRow fieldRows[]
+      = {{StepField::Velocity, StepField::VelocityRandom},
+         {StepField::Chance, {}},
+         {StepField::Offset, StepField::OffsetRandom},
+         {StepField::Gate, StepField::GateRandom},
+         {StepField::Ratchet, {}},
+         {StepField::Pace, {}},
+         {StepField::Pitch, StepField::PitchRandom}};
+  //! Whether the selected lane uses a parameter.
+  bool fieldUsed(StepField f) const noexcept;
+  QString fieldLabel(StepField f) const;
+  double randomButtonWidth() const noexcept;
   //! Ids of the buttons the editor draws, for the hover.
   static constexpr int mute_button = 1000;
   static constexpr int solo_button = 2000;
