@@ -403,6 +403,7 @@ static QRhiTexture::Format parseImageFormat(const std::string& fmt)
   if(f == "rg8")     return QRhiTexture::RG8;
   if(f == "r16")     return QRhiTexture::R16;
   if(f == "rg16")    return QRhiTexture::RG16;
+  if(f == "rgb10_a2" || f == "rgb10a2") return QRhiTexture::RGB10A2;
   if(f == "r16f")    return QRhiTexture::R16F;
   if(f == "r32f")    return QRhiTexture::R32F;
 //  if(f == "rg16f")   return QRhiTexture::RG16F;
@@ -422,8 +423,8 @@ static QRhiTexture::Format parseImageFormat(const std::string& fmt)
   if(f == "rgba32ui")               return QRhiTexture::RGBA32UI;
   if(f == "r8si" || f == "r8i")     return QRhiTexture::R8SI;
   if(f == "r32si" || f == "r32i")   return QRhiTexture::R32SI;
-  if(f == "rg32si")                 return QRhiTexture::RG32SI;
-  if(f == "rgba32si")               return QRhiTexture::RGBA32SI;
+  if(f == "rg32si" || f == "rg32i") return QRhiTexture::RG32SI;
+  if(f == "rgba32si" || f == "rgba32i") return QRhiTexture::RGBA32SI;
 #endif
   // r16ui / r16si / r16i are not exposed by QRhiTexture::Format at all,
   // and on older Qt the wider integer formats are also absent. Refuse
@@ -432,8 +433,8 @@ static QRhiTexture::Format parseImageFormat(const std::string& fmt)
   if(f == "r8ui"   || f == "r8si"  || f == "r8i"
      || f == "r16ui" || f == "r16si" || f == "r16i"
      || f == "r32ui" || f == "r32si" || f == "r32i"
-     || f == "rg32ui" || f == "rg32si"
-     || f == "rgba32ui" || f == "rgba32si")
+     || f == "rg32ui" || f == "rg32si" || f == "rg32i"
+     || f == "rgba32ui" || f == "rgba32si" || f == "rgba32i")
   {
     qWarning() << "ISF storage image format" << fmt.c_str()
                << "requires Qt 6.10+ integer formats; refusing binding "

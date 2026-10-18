@@ -229,52 +229,12 @@ QRhiShaderResourceBinding uniformBufferBinding(
 }
 }
 
+// A CSF FORMAT is a GLSL image format qualifier (libisf emits it as one); the
+// texture is allocated from the same table every storage image uses.
 static QRhiTexture::Format
 getTextureFormat(const QString& format)  noexcept
 {
-  // Map CSF format strings to Qt RHI texture formats. Compared case-insensitively:
-  // libisf lowercases the FORMAT layout qualifier into the GLSL while the CSF JSON
-  // parser stores image->format verbatim, so both spellings must resolve here.
-  const QString f = format.toUpper();
-
-  if(f == "RGBA8")    return QRhiTexture::RGBA8;
-  if(f == "BGRA8")    return QRhiTexture::BGRA8;
-  if(f == "R8")       return QRhiTexture::R8;
-#if QT_VERSION >= QT_VERSION_CHECK(6, 4, 0)
-  if(f == "RG8")      return QRhiTexture::RG8;
-#endif
-  if(f == "R16")      return QRhiTexture::R16;
-#if QT_VERSION >= QT_VERSION_CHECK(6, 4, 0)
-  if(f == "RG16")     return QRhiTexture::RG16;
-#endif
-  if(f == "RGBA16F")  return QRhiTexture::RGBA16F;
-  if(f == "RGBA32F")  return QRhiTexture::RGBA32F;
-  if(f == "R16F")     return QRhiTexture::R16F;
-  if(f == "R32F")     return QRhiTexture::R32F;
-#if QT_VERSION >= QT_VERSION_CHECK(6, 4, 0)
-  if(f == "RGB10A2")  return QRhiTexture::RGB10A2;
-#endif
-
-  // Integer formats, required for atomic image ops. Atomics in Vulkan, D3D12 and
-  // Metal 3.1+ work on the R{8,32}{UI,SI} family; the wider {RG,RGBA}32{UI,SI}
-  // variants are sample-only on most desktop GPUs but still legal as storage
-  // images, and are exposed so several counters can be packed per voxel.
-  //
-  // Added to QRhiTexture::Format in Qt 6.10; on older Qt the request falls
-  // through to RGBA8 rather than failing the build.
-#if QT_VERSION >= QT_VERSION_CHECK(6, 10, 0)
-  if(f == "R8UI")     return QRhiTexture::R8UI;
-  if(f == "R32UI")    return QRhiTexture::R32UI;
-  if(f == "RG32UI")   return QRhiTexture::RG32UI;
-  if(f == "RGBA32UI") return QRhiTexture::RGBA32UI;
-  if(f == "R8SI")     return QRhiTexture::R8SI;
-  if(f == "R32SI")    return QRhiTexture::R32SI;
-  if(f == "RG32SI")   return QRhiTexture::RG32SI;
-  if(f == "RGBA32SI") return QRhiTexture::RGBA32SI;
-#endif
-
-  // Default to RGBA8 if format not recognized
-  return QRhiTexture::RGBA8;
+  return score::gfx::imageFormatFromQualifier(format.toStdString());
 }
 
 static QString rhiTextureFormatToShaderLayoutFormatString(QRhiTexture::Format fmt)
@@ -306,7 +266,7 @@ static QString rhiTextureFormatToShaderLayoutFormatString(QRhiTexture::Format fm
     case QRhiTexture::RG16:
       return QStringLiteral("rg16");
     case QRhiTexture::RGB10A2:
-      return QStringLiteral("rgba10_a2");
+      return QStringLiteral("rgb10_a2");
     case QRhiTexture::Format::D24:
       return QStringLiteral("r32ui");
     case QRhiTexture::Format::D24S8:
