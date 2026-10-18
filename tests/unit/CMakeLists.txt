@@ -2056,3 +2056,11 @@ if(TARGET score_plugin_gfx)
     PLUGINS score_plugin_gfx
     LIBS ${QT_PREFIX}::Gui)
 endif()
+
+# ISF pass WIDTH / HEIGHT expressions bind controls by port, past resources.
+if(TARGET score_plugin_gfx)
+  score_add_test(test_unit_isf_pass_size_expression
+    SOURCES IsfPassSizeExpressionTest.cpp
+    PLUGINS score_plugin_gfx
+    LIBS ${QT_PREFIX}::Gui)
+endif()

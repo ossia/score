@@ -504,28 +504,22 @@ QSize ISFNode::computeTextureSize(
 
   e.add_constant("var_WIDTH", data.emplace_back(res.width()));
   e.add_constant("var_HEIGHT", data.emplace_back(res.height()));
-  int port_k = 0;
-  std::size_t sampler_k = 0;
-  for(const isf::input& input : m_descriptor.inputs)
-  {
-    if(port_k >= (int)this->input.size())
-      break;
-    auto port = this->input[port_k];
-    if(port->type == Types::Image)
+  // Inputs create zero (a written buffer or image), one, or several ($USER
+  // sizes) input ports: walk them with the canonical counts, not one port each.
+  walk_descriptor_inputs(
+      m_descriptor,
+      [&](const isf::input& input, port_counts cur, port_counts delta) {
+    if(delta.inlets == 0 || cur.inlets >= (int)this->input.size())
+      return;
+    auto port = this->input[cur.inlets];
+    if(ossia::get_if<isf::image_input>(&input.data)
+       || ossia::get_if<isf::cubemap_input>(&input.data))
     {
       QSize sz = origSize;
-      if(sampler_k < inputSamplers.size() && inputSamplers[sampler_k].texture)
-        sz = inputSamplers[sampler_k].texture->pixelSize();
-      if(ossia::get_if<isf::image_input>(&input.data)
-         || ossia::get_if<isf::cubemap_input>(&input.data))
-      {
-        e.add_constant("var_WIDTH_" + input.name, data.emplace_back(sz.width()));
-        e.add_constant("var_HEIGHT_" + input.name, data.emplace_back(sz.height()));
-      }
-      sampler_k++;
-      if((port->flags & Flag::SamplableDepth) == Flag::SamplableDepth
-         && (port->flags & Flag::GrabsFromSource) != Flag::GrabsFromSource)
-        sampler_k++;
+      if(cur.samplers < (int)inputSamplers.size() && inputSamplers[cur.samplers].texture)
+        sz = inputSamplers[cur.samplers].texture->pixelSize();
+      e.add_constant("var_WIDTH_" + input.name, data.emplace_back(sz.width()));
+      e.add_constant("var_HEIGHT_" + input.name, data.emplace_back(sz.height()));
     }
     else if(ossia::get_if<isf::float_input>(&input.data))
     {
@@ -535,9 +529,7 @@ QSize ISFNode::computeTextureSize(
     {
       e.add_constant("var_" + input.name, data.emplace_back(*(int*)port->value));
     }
-
-    port_k++;
-  }
+  });
 
   if(auto expr = pass.width_expression; !expr.empty())
   {
