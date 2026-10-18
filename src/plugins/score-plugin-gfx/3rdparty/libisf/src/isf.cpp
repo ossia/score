@@ -711,6 +711,167 @@ static void parse_input(audioHist_input& inp, const sajson::value& v)
   parse_audio_sampler_config(inp.sampler, v);
 }
 
+namespace
+{
+// Integer constant expression of an array extent: + - * / % and parentheses
+// over decimal literals. Returns -1 when malformed, divided by zero or out of
+// int32 range.
+struct extent_parser
+{
+  std::string_view s;
+  std::size_t i{};
+  bool ok{true};
+
+  void skip()
+  {
+    while(i < s.size() && std::isspace((unsigned char)s[i]))
+      i++;
+  }
+  int64_t primary()
+  {
+    skip();
+    if(i < s.size() && s[i] == '(')
+    {
+      i++;
+      const int64_t v = sum();
+      skip();
+      if(i < s.size() && s[i] == ')')
+        i++;
+      else
+        ok = false;
+      return v;
+    }
+    if(i < s.size() && (s[i] == '-' || s[i] == '+'))
+    {
+      const bool neg = s[i++] == '-';
+      const int64_t v = primary();
+      return neg ? -v : v;
+    }
+    if(i >= s.size() || !std::isdigit((unsigned char)s[i]))
+    {
+      ok = false;
+      return 0;
+    }
+    int64_t v = 0;
+    while(i < s.size() && std::isdigit((unsigned char)s[i]))
+    {
+      v = v * 10 + (s[i++] - '0');
+      if(v > INT32_MAX)
+        ok = false;
+    }
+    // GLSL integer literal suffix.
+    if(i < s.size() && (s[i] == 'u' || s[i] == 'U'))
+      i++;
+    return v;
+  }
+  int64_t product()
+  {
+    int64_t v = primary();
+    for(;;)
+    {
+      skip();
+      if(i >= s.size() || (s[i] != '*' && s[i] != '/' && s[i] != '%'))
+        return v;
+      const char op = s[i++];
+      const int64_t r = primary();
+      if(op == '*')
+        v *= r;
+      else if(r == 0)
+        ok = false;
+      else
+        v = op == '/' ? v / r : v % r;
+      if(v > INT32_MAX || v < -INT32_MAX)
+        ok = false;
+      if(!ok)
+        return 0;
+    }
+  }
+  int64_t sum()
+  {
+    int64_t v = product();
+    for(;;)
+    {
+      skip();
+      if(i >= s.size() || (s[i] != '+' && s[i] != '-'))
+        return v;
+      const char op = s[i++];
+      const int64_t r = product();
+      v = op == '+' ? v + r : v - r;
+      if(v > INT32_MAX || v < -INT32_MAX)
+        ok = false;
+      if(!ok)
+        return 0;
+    }
+  }
+  int64_t parse()
+  {
+    const int64_t v = sum();
+    skip();
+    return ok && i == s.size() && v > 0 ? v : -1;
+  }
+};
+}
+
+array_type parse_array_type(std::string_view type)
+{
+  array_type r;
+  const auto lbr = type.find('[');
+  auto base = type.substr(0, lbr);
+  while(!base.empty() && std::isspace((unsigned char)base.back()))
+    base.remove_suffix(1);
+  while(!base.empty() && std::isspace((unsigned char)base.front()))
+    base.remove_prefix(1);
+  r.base = base;
+  std::size_t i = lbr;
+  while(i != std::string_view::npos && i < type.size())
+  {
+    if(type[i] != '[')
+    {
+      if(!std::isspace((unsigned char)type[i]))
+      {
+        r.extents.push_back(-1);
+        break;
+      }
+      i++;
+      continue;
+    }
+    const auto rbr = type.find(']', i + 1);
+    if(rbr == std::string_view::npos)
+    {
+      r.extents.push_back(-1);
+      break;
+    }
+    auto inner = type.substr(i + 1, rbr - i - 1);
+    bool blank = true;
+    for(char c : inner)
+      blank &= bool(std::isspace((unsigned char)c));
+    r.extents.push_back(blank ? 0 : extent_parser{inner}.parse());
+    i = rbr + 1;
+  }
+  return r;
+}
+
+// A LAYOUT field TYPE whose array extents the engine can size: integer
+// constant expressions, a runtime-sized [] only as the outermost one.
+static void validate_layout_type(
+    std::string_view block, const std::string& field, const std::string& type)
+{
+  const auto t = parse_array_type(type);
+  for(std::size_t k = 0; k < t.extents.size(); k++)
+  {
+    if(t.extents[k] < 0)
+      throw invalid_file{fmt::format(
+          "{}: LAYOUT field \"{}\" has TYPE \"{}\": an array size must be a "
+          "positive integer constant expression, e.g. float[16] or float[4 * 4].",
+          block, field, type)};
+    if(t.extents[k] == 0 && k != 0)
+      throw invalid_file{fmt::format(
+          "{}: LAYOUT field \"{}\" has TYPE \"{}\": only the outermost array "
+          "can be runtime-sized ([]).",
+          block, field, type)};
+  }
+}
+
 // CSF-specific parsing functions
 static void parse_input(storage_input& inp, const sajson::value& v)
 {
@@ -758,6 +919,7 @@ static void parse_input(storage_input& inp, const sajson::value& v)
               }
             }
 
+            validate_layout_type("storage", lf.name, lf.type);
             inp.layout.push_back(lf);
           }
         }
@@ -852,6 +1014,7 @@ static void parse_input(uniform_input& inp, const sajson::value& v)
                 lf.type = tv.as_string();
             }
           }
+          validate_layout_type("uniform", lf.name, lf.type);
           inp.layout.push_back(lf);
         }
       }
@@ -7225,6 +7388,17 @@ void parser::parse_csf()
       tex.dimensions = img->dimensions;
       tex.sampler = img->sampler;
       inp.data = std::move(tex);
+    }
+    else if(auto* st = ossia::get_if<storage_input>(&inp.data); st && st->layout.empty())
+    {
+      // A compute shader declares every storage buffer, BUFFER_USAGE ones
+      // included: an empty LAYOUT is `buffer { };` (invalid GLSL) and a
+      // zero-byte allocation.
+      throw invalid_file{
+          "CSF storage \"" + inp.name
+          + "\" declares no LAYOUT. A compute shader reads and writes it, so it "
+            "needs its members, e.g. \"LAYOUT\": [ { \"NAME\": \"xyz\", "
+            "\"TYPE\": \"uint[3]\" } ] for dispatch_args."};
     }
   }
 

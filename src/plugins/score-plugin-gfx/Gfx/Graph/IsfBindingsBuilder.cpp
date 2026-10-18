@@ -58,26 +58,14 @@ int64_t std430LayoutSize(
   int64_t sz = 0;
   for(const auto& f : layout)
   {
-    auto type = f.type;
+    // Every extent counts, an array of arrays being one array; an empty '[]'
+    // means runtime-length and counts as 1 element for sizing the fixed part
+    // of the struct, the renderer sizes the buffer based on actual data.
+    const auto parsed = isf::parse_array_type(f.type);
     int64_t count = 1;
-    auto lbr = type.find('[');
-    if(lbr != std::string::npos)
-    {
-      auto rbr = type.find(']', lbr + 1);
-      if(rbr != std::string::npos && rbr > lbr + 1)
-      {
-        auto inner = type.substr(lbr + 1, rbr - lbr - 1);
-        if(!inner.empty())
-        {
-          try { count = std::stoll(inner); } catch(...) { count = 1; }
-        }
-        // else: empty '[]' means runtime-length — counted as 1 element for
-        // sizing the fixed part of the struct; the renderer sizes the buffer
-        // based on actual data.
-      }
-      type = type.substr(0, lbr);
-    }
-    int64_t element = glslTypeSizeBytes(type);
+    for(auto e : parsed.extents)
+      count *= std::max<int64_t>(1, e);
+    int64_t element = glslTypeSizeBytes(parsed.base);
     // std430: elements align to 16 bytes for vec3/mat arrays; keep it simple
     // and align each field to 16 bytes to match the CSF renderer's convention.
     element = (element + 15) & ~15;

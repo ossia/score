@@ -1,8 +1,12 @@
 #pragma once
 
-#include <limits>
-
 #include <isf.hpp>
+
+#include <QDebug>
+#include <QString>
+
+#include <limits>
+#include <span>
 
 namespace score::gfx
 {
@@ -25,7 +29,11 @@ struct LayoutResult
 struct ArrayParseResult
 {
   QString baseType;
-  int arrayCount{}; // 0 = not an array, -1 = flexible array [], >0 = fixed array [N]
+  // 0 = not an array, -1 = flexible array [], >0 = fixed array: the product
+  // of every extent, an array of arrays being laid out as one array.
+  int arrayCount{};
+  // Flexible array of arrays (type[][a][b]): the elements per runtime entry.
+  int64_t innerCount{1};
 };
 
 static constexpr inline int64_t alignUp(int64_t value, int64_t alignment)
@@ -35,35 +43,29 @@ static constexpr inline int64_t alignUp(int64_t value, int64_t alignment)
   return (value + alignment - 1) & ~(alignment - 1);
 }
 
+// Extents are integer constant expressions (isf::parse_array_type); libisf
+// rejects the malformed ones at parse time, they count as 1 here.
 static inline ArrayParseResult parseArrayType(const QString& typeStr)
 {
   ArrayParseResult result;
-  result.baseType = typeStr;
-  result.arrayCount = 0; // Not an array
+  const auto t = isf::parse_array_type(typeStr.toStdString());
+  result.baseType = QString::fromStdString(t.base);
+  if(t.extents.empty())
+    return result;
 
-  int bracketStart = typeStr.lastIndexOf('[');
-  int bracketEnd = typeStr.lastIndexOf(']');
-
-  if(bracketStart != -1 && bracketEnd > bracketStart)
+  int64_t inner = 1;
+  for(std::size_t k = 1; k < t.extents.size(); k++)
+    inner = std::min<int64_t>(inner * std::max<int64_t>(1, t.extents[k]), INT32_MAX);
+  if(t.extents[0] == 0)
   {
-    QString content
-        = typeStr.mid(bracketStart + 1, bracketEnd - bracketStart - 1).trimmed();
-    result.baseType = typeStr.left(bracketStart).trimmed();
-
-    if(content.isEmpty())
-    {
-      // Flexible array: "type[]"
-      result.arrayCount = -1;
-    }
-    else
-    {
-      // Fixed array: "type[N]"
-      bool ok = false;
-      int count = content.toInt(&ok);
-      result.arrayCount = ok ? count : 1;
-    }
+    result.arrayCount = -1;
+    result.innerCount = inner;
   }
-
+  else
+  {
+    result.arrayCount = (int)std::min<int64_t>(
+        std::max<int64_t>(1, t.extents[0]) * inner, INT32_MAX);
+  }
   return result;
 }
 
@@ -407,7 +409,7 @@ calculateUniformBlockSize(const Layout& layout, int arrayCount, const isf::descr
 
     currentOffset = alignUp(currentOffset, fieldAlign);
     if(isFlexibleArray)
-      currentOffset += elementStride * arrayCount;
+      currentOffset += elementStride * parsed.innerCount * arrayCount;
     else if(isFixedArray)
       currentOffset += elementStride * parsed.arrayCount;
     else
@@ -487,7 +489,7 @@ static inline int64_t calculateStorageBufferSize(
     if(isFlexibleArray)
     {
       // Variable-length array: use provided arrayCount
-      currentOffset += elementStride * (int64_t)arrayCount;
+      currentOffset += elementStride * parsed.innerCount * (int64_t)arrayCount;
     }
     else if(isFixedArray)
     {

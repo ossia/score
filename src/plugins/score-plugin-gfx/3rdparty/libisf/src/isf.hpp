@@ -1101,6 +1101,19 @@ struct descriptor
   std::string depth_layout;
 };
 
+// A LAYOUT field TYPE split into its base type and its array extents, in
+// declaration order: "vec4[2][3]" is {vec4, {2, 3}}, "float[4 * 8]" {float, {32}},
+// "uint[]" {uint, {0}}. Each extent is an integer constant expression
+// (+ - * / %, parentheses); 0 is a runtime-sized [], -1 one that is not a
+// positive integer constant.
+struct array_type
+{
+  std::string base;
+  std::vector<int64_t> extents;
+};
+SCORE_PLUGIN_GFX_EXPORT
+array_type parse_array_type(std::string_view type);
+
 // The ALPHA convention of a colour output: the OUTPUTS entry's, else the
 // descriptor's, else the mode's default.
 SCORE_PLUGIN_GFX_EXPORT

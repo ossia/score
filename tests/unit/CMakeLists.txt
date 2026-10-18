@@ -2018,3 +2018,11 @@ if(TARGET score_plugin_gfx)
     PLUGINS score_plugin_gfx
     LIBS ${QT_PREFIX}::Gui)
 endif()
+
+# A CSF storage buffer's LAYOUT size covers what the compiled shader addresses.
+if(TARGET score_plugin_gfx)
+  score_add_test(test_unit_csf_storage_layout_size
+    SOURCES CsfStorageLayoutSizeTest.cpp
+    PLUGINS score_plugin_gfx
+    LIBS ${QT_PREFIX}::Gui)
+endif()
