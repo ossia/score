@@ -3,6 +3,7 @@
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Dataflow/PortSerialization.hpp>
 #include <Process/Dataflow/WidgetInlets.hpp>
+#include <Process/PresetHelpers.hpp>
 
 #include <score/tools/File.hpp>
 
@@ -779,4 +780,59 @@ void JSONWriter::write(Patternist::ProcessModel& proc)
     proc.m_laneLabels = (Patternist::LaneLabels)std::clamp(
         v->toInt(), 0, (int)Patternist::LaneLabels::DrumName);
   proc.m_patterns <<= obj["Patterns"];
+}
+
+namespace Patternist
+{
+void ProcessModel::loadPreset(const Process::Preset& preset)
+{
+  const rapidjson::Document doc = readJson(preset.data);
+  // What the default implementation saved: the controls alone.
+  if(doc.IsArray())
+  {
+    Process::loadFixedControls(doc.GetArray(), *this);
+    return;
+  }
+  if(!doc.IsObject())
+    return;
+
+  JSONWriter w{doc};
+  if(auto v = w.obj.tryGet("Patterns"))
+  {
+    std::vector<Pattern> pats;
+    pats <<= *v;
+    if(std::ssize(pats) > maxPatterns)
+      pats.resize(maxPatterns);
+    setPatterns(pats);
+  }
+  if(auto v = w.obj.tryGet("Channel"))
+    setChannel(v->toInt());
+  if(auto v = w.obj.tryGet("LaneLabels"))
+    setLaneLabels(
+        (LaneLabels)std::clamp(v->toInt(), 0, (int)LaneLabels::DrumName));
+
+  if(auto it = doc.FindMember("Controls"); it != doc.MemberEnd() && it->value.IsArray())
+    Process::loadFixedControls(it->value.GetArray(), *this);
+  else
+    patternSelect->setValue(0);
+}
+
+Process::Preset ProcessModel::savePreset() const noexcept
+{
+  Process::Preset p;
+  p.name = this->metadata().getName();
+  p.key = {this->concreteKey(), {}};
+
+  JSONReader r;
+  r.stream.StartObject();
+  r.stream.Key("Controls");
+  Process::saveFixedControls(r, *this);
+  r.obj["Channel"] = m_channel;
+  r.obj["LaneLabels"] = (int)m_laneLabels;
+  r.obj["Patterns"] = m_patterns;
+  r.stream.EndObject();
+
+  p.data = r.toByteArray();
+  return p;
+}
 }

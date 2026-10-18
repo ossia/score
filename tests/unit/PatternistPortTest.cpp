@@ -285,3 +285,56 @@ TEST_CASE(
     CHECK_FALSE(Patternist::stepsFromMime(*mime));
   });
 }
+
+TEST_CASE("patternist: a preset round-trips", "[midi][pattern]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext&) {
+    auto proc = makeProcess();
+    auto pats = proc->patterns();
+    pats.push_back(pats.front());
+    pats.back().lanes[0].pattern[3] = Patternist::Note::Legato;
+    pats.back().lanes[0].params[3].gateRandom = 0.25f;
+    proc->setPatterns(pats);
+    proc->setChannel(10);
+    proc->setLaneLabels(Patternist::LaneLabels::DrumName);
+    proc->patternSelect->setValue(1);
+    proc->density->setValue(0.5f);
+
+    const auto preset = proc->savePreset();
+
+    auto other = makeProcess();
+    other->loadPreset(preset);
+    CHECK(other->patterns() == proc->patterns());
+    CHECK(other->channel() == 10);
+    CHECK(other->laneLabels() == Patternist::LaneLabels::DrumName);
+    CHECK(other->currentPattern() == 1);
+    CHECK(ossia::convert<float>(other->density->value()) == 0.5f);
+  });
+}
+
+TEST_CASE("patternist: a preset without controls keeps them", "[midi][pattern]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext&) {
+    auto proc = makeProcess();
+    proc->setPatterns({proc->patterns().front(), proc->patterns().front()});
+    proc->patternSelect->setValue(1);
+    proc->density->setValue(0.5f);
+
+    Process::Preset preset;
+    preset.key = {proc->concreteKey(), {}};
+    preset.data = R"({"LaneLabels":1,"Patterns":[{"Length":16,"Division":16,"Lanes":[
+      {"Note":72,"Pattern":""},{"Note":255,"Pattern":""}]}]})";
+    proc->loadPreset(preset);
+
+    REQUIRE(proc->patterns().size() == 1);
+    const auto& p = proc->patterns().front();
+    REQUIRE(p.lanes.size() == 2);
+    CHECK(p.lanes[0].note == 72);
+    CHECK(p.lanes[1].note == Patternist::accentLane);
+    CHECK(p.lanes[0].pattern.size() == 16);
+    CHECK(p.lanes[0].params.size() == 16);
+    CHECK(proc->laneLabels() == Patternist::LaneLabels::Name);
+    CHECK(proc->currentPattern() == 0);
+    CHECK(ossia::convert<float>(proc->density->value()) == 0.5f);
+  });
+}
