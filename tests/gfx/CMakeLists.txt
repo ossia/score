@@ -2166,3 +2166,6 @@ score_add_gfx_test(csf_persistent_image_history GfxCsfPersistentImageHistory.cpp
 
 # Built-in process uniforms: DATE in single-pass ISF, SAMPLERATE.
 score_add_gfx_test(process_uniforms GfxProcessUniforms.cpp)
+
+# ISF IMG_PIXEL / IMG_THIS_PIXEL sample in the image's own pixels.
+score_add_gfx_test(isf_img_pixel GfxIsfImgPixel.cpp)

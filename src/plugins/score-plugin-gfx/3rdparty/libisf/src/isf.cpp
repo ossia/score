@@ -222,26 +222,30 @@ vec4 isf_unpremultiply(vec4 c) { return c.a > 0.0 ? vec4(c.rgb / c.a, c.a) : vec
 
 vec4 isf_unpremultiply(vec4 c) { return c.a > 0.0 ? vec4(c.rgb / c.a, c.a) : vec4(0.0); }
 
+// Pixel-unit reads are in the sampled image's own pixels, as in the ISF spec:
+// IMG_PIXEL(image, coord) is coord / size(image), IMG_THIS_PIXEL(image) is
+// IMG_PIXEL(image, gl_FragCoord.xy), pixel-aligned. IMG_THIS_NORM_PIXEL is the
+// one that stretches the image over the frame.
 #if defined(QSHADER_SPIRV)
 #define isf_FragCoord vec4(gl_FragCoord.x, RENDERSIZE.y - gl_FragCoord.y, gl_FragCoord.z, gl_FragCoord.w)
 #define ISF_FIXUP_TEXCOORD(coord) vec2((coord).x, 1. - (coord).y)
-#define IMG_THIS_PIXEL_PREMULTIPLIED(tex) texture(tex, ISF_FIXUP_TEXCOORD(isf_FragNormCoord))
+#define IMG_THIS_PIXEL_PREMULTIPLIED(tex) IMG_PIXEL_PREMULTIPLIED(tex, isf_FragCoord.xy)
 #define IMG_THIS_NORM_PIXEL_PREMULTIPLIED(tex) texture(tex, ISF_FIXUP_TEXCOORD(isf_FragNormCoord))
-#define IMG_PIXEL_PREMULTIPLIED(tex, coord) texture(tex, ISF_FIXUP_TEXCOORD((coord) / RENDERSIZE))
+#define IMG_PIXEL_PREMULTIPLIED(tex, coord) texture(tex, ISF_FIXUP_TEXCOORD((coord) / vec2(textureSize(tex, 0))))
 #define IMG_NORM_PIXEL_PREMULTIPLIED(tex, coord) texture(tex, ISF_FIXUP_TEXCOORD(coord))
 #define IMG_THIS_DEPTH(tex) textureLod(tex##_depth, ISF_FIXUP_TEXCOORD(isf_FragNormCoord), 0.0).r
-#define IMG_DEPTH_PIXEL(tex, coord) textureLod(tex##_depth, ISF_FIXUP_TEXCOORD((coord) / RENDERSIZE), 0.0).r
+#define IMG_DEPTH_PIXEL(tex, coord) textureLod(tex##_depth, ISF_FIXUP_TEXCOORD((coord) / vec2(textureSize(tex##_depth, 0))), 0.0).r
 #define IMG_DEPTH_NORM_PIXEL(tex, coord) textureLod(tex##_depth, ISF_FIXUP_TEXCOORD(coord), 0.0).r
 #define IMG_TEXEL_PREMULTIPLIED(tex, coord) texelFetch(tex, ivec2(ivec2(coord).x, textureSize(tex, 0).y - 1 - ivec2(coord).y), 0)
 #define IMG_NORM_PIXEL_LOD_PREMULTIPLIED(tex, coord, lod) textureLod(tex, ISF_FIXUP_TEXCOORD(coord), lod)
 #else
 #define isf_FragCoord gl_FragCoord
-#define IMG_THIS_PIXEL_PREMULTIPLIED(tex) texture(tex, isf_FragNormCoord)
+#define IMG_THIS_PIXEL_PREMULTIPLIED(tex) IMG_PIXEL_PREMULTIPLIED(tex, isf_FragCoord.xy)
 #define IMG_THIS_NORM_PIXEL_PREMULTIPLIED(tex) texture(tex, isf_FragNormCoord)
-#define IMG_PIXEL_PREMULTIPLIED(tex, coord) texture(tex, (coord) / RENDERSIZE)
+#define IMG_PIXEL_PREMULTIPLIED(tex, coord) texture(tex, (coord) / vec2(textureSize(tex, 0)))
 #define IMG_NORM_PIXEL_PREMULTIPLIED(tex, coord) texture(tex, coord)
 #define IMG_THIS_DEPTH(tex) textureLod(tex##_depth, isf_FragNormCoord, 0.0).r
-#define IMG_DEPTH_PIXEL(tex, coord) textureLod(tex##_depth, (coord) / RENDERSIZE, 0.0).r
+#define IMG_DEPTH_PIXEL(tex, coord) textureLod(tex##_depth, (coord) / vec2(textureSize(tex##_depth, 0)), 0.0).r
 #define IMG_DEPTH_NORM_PIXEL(tex, coord) textureLod(tex##_depth, coord, 0.0).r
 #define IMG_TEXEL_PREMULTIPLIED(tex, coord) texelFetch(tex, ivec2(coord), 0)
 #define IMG_NORM_PIXEL_LOD_PREMULTIPLIED(tex, coord, lod) textureLod(tex, coord, lod)
