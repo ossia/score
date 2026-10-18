@@ -111,6 +111,8 @@ struct RenderState
     // textureViewFormat: R32UI <-> R32F aliasing, needed by the visibility buffer
     //   preset.
     // depthClamp: reverse-Z shadow passes avoiding near-plane clipping.
+    // triangleFan: triangleFanSupported(), false on D3D and Metal; fans are
+    //   drawn as triangle lists there (lowerTriangleFan, the VSA index list).
     bool baseInstance{false};
     bool instanceIndexIncludesBaseInstance{false};
     bool variableRateShading{false};
@@ -118,6 +120,7 @@ struct RenderState
     bool pipelineCacheDataLoadSave{false};
     bool textureViewFormat{false};
     bool depthClamp{false};
+    bool triangleFan{false};
 
     void populate(QRhi& rhi);
   } caps;

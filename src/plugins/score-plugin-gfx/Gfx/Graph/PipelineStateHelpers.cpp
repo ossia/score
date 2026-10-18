@@ -5,6 +5,8 @@
 
 #include <algorithm>
 #include <atomic>
+#include <unordered_set>
+#include <mutex>
 #include <cctype>
 
 namespace
@@ -108,6 +110,57 @@ QRhiGraphicsPipeline::PolygonMode supportedPolygonMode(
                   "backend (QRhi::NonFillPolygonMode: OpenGL ES, or a Vulkan device "
                   "without fillModeNonSolid); drawing filled polygons instead.";
   return QRhiGraphicsPipeline::Fill;
+}
+
+bool triangleFanSupported(const QRhi& rhi) noexcept
+{
+  return rhi.isFeatureSupported(QRhi::TriangleFanTopology)
+         && qEnvironmentVariableIntValue("SCORE_GFX_NO_TRIANGLE_FAN") <= 0;
+}
+
+QRhiGraphicsPipeline::Topology
+supportedTopology(const QRhi& rhi, QRhiGraphicsPipeline::Topology requested) noexcept
+{
+  if(requested != QRhiGraphicsPipeline::TriangleFan || triangleFanSupported(rhi))
+    return requested;
+  return QRhiGraphicsPipeline::Triangles;
+}
+
+namespace
+{
+// Pipelines standing for a fan the backend cannot draw, by resource id (a new
+// pipeline can take a freed one's address, never its id).
+std::mutex g_unsupportedFansMutex;
+std::unordered_set<quint64> g_unsupportedFans;
+}
+
+void setSupportedTopology(
+    QRhiGraphicsPipeline& ps, QRhiGraphicsPipeline::Topology requested) noexcept
+{
+  const auto t = ps.rhi() ? supportedTopology(*ps.rhi(), requested) : requested;
+  ps.setTopology(t);
+  const bool demoted = t != requested;
+  std::lock_guard lock{g_unsupportedFansMutex};
+  if(!demoted)
+  {
+    g_unsupportedFans.erase(ps.globalResourceId());
+    return;
+  }
+  if(g_unsupportedFans.insert(ps.globalResourceId()).second)
+    qWarning().noquote()
+        << "score.gfx: triangle fans are not supported by this graphics backend ("
+        << (ps.rhi() ? ps.rhi()->backendName() : "?")
+        << ") and this triangle fan cannot be converted to a triangle list (a "
+           "procedural draw, a GPU index buffer or an indirect draw): it is not "
+           "drawn." << ps.name();
+}
+
+bool drawsUnsupportedFan(const QRhiGraphicsPipeline& ps) noexcept
+{
+  if(ps.topology() != QRhiGraphicsPipeline::Triangles)
+    return false;
+  std::lock_guard lock{g_unsupportedFansMutex};
+  return g_unsupportedFans.contains(ps.globalResourceId());
 }
 
 QRhiGraphicsPipeline::Topology toTopology(std::string_view s) noexcept
@@ -507,7 +560,7 @@ void applyPipelineState(
   // lets a shader that uses VERTEX_COUNT emit points / lines / strips
   // without depending on the incoming geometry's topology.
   if(state.topology.has_value())
-    pip.setTopology(toTopology(*state.topology));
+    setSupportedTopology(pip, toTopology(*state.topology));
 
   // ── Blending ────────────────────────────────────────────────────────
   // Only override target blends when the shader explicitly declares blend

@@ -1,4 +1,5 @@
 #include <Gfx/Graph/Mesh.hpp>
+#include <Gfx/Graph/PipelineStateHelpers.hpp>
 #include <Gfx/Graph/RhiIndirectCompat.hpp>
 #include <Gfx/Graph/Utils.hpp>
 #include <score/tools/Debug.hpp>
@@ -70,7 +71,7 @@ void BasicMesh::preparePipeline(QRhiGraphicsPipeline& pip) const noexcept
     pip.setDepthOp(QRhiGraphicsPipeline::Greater);
   }
 
-  pip.setTopology(this->topology);
+  setSupportedTopology(pip, this->topology);
   pip.setCullMode(this->cullMode);
   pip.setFrontFace(this->frontFace);
 
@@ -190,6 +191,13 @@ void main()
 
 void DummyMesh::draw(const MeshBuffers& bufs, QRhiCommandBuffer& cb) const noexcept
 {
+  if(indexBuffer)
+  {
+    cb.setVertexInput(0, 0, nullptr, indexBuffer, 0, QRhiCommandBuffer::IndexUInt32);
+    if(indexCount > 0)
+      cb.drawIndexed(indexCount);
+    return;
+  }
   cb.setVertexInput(0, 0, nullptr, nullptr);
   cb.draw(vertexCount);
 }

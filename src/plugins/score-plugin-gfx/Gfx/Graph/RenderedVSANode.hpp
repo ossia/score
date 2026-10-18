@@ -58,6 +58,11 @@ private:
 
   Mesh* m_mesh{};
 
+  // TRI_FAN on a backend without triangle fans: the mesh draws Triangles from
+  // this index list, {0, i - 1, i} per triangle, rebuilt when the count changes.
+  QRhiBuffer* m_fanIndices{};
+  int m_fanIndexVertexCount{-1};
+
   QRhiBuffer* m_materialUBO{};
   int m_materialSize{};
 

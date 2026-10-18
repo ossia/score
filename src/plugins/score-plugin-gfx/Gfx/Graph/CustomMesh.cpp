@@ -1,4 +1,6 @@
 #include "CustomMesh.hpp"
+#include <Gfx/Graph/GeometryTopology.hpp>
+#include <Gfx/Graph/PipelineStateHelpers.hpp>
 #include <Gfx/Graph/RenderList.hpp>
 #include <Gfx/Graph/RhiIndirectCompat.hpp>
 #include <score/tools/Debug.hpp>
@@ -539,7 +541,7 @@ void CustomMesh::preparePipeline(QRhiGraphicsPipeline &pip) const noexcept
     pip.setDepthOp(QRhiGraphicsPipeline::Greater);
   }
 
-  pip.setTopology(this->topology);
+  setSupportedTopology(pip, this->topology);
   pip.setCullMode(this->cullMode);
   pip.setFrontFace(this->frontFace);
 
@@ -560,6 +562,10 @@ void CustomMesh::reload(const ossia::mesh_list &ml, const ossia::geometry_filter
                                     : (qsizetype)ml.meshes[0].buffers.size());
   this->geom = ml;
   this->filters = f;
+  // D3D and Metal have no triangle fans; drawing every fan whose order the CPU
+  // can see as a triangle list keeps one path on all backends.
+  for(auto& mesh : this->geom.meshes)
+    lowerTriangleFan(mesh);
 
   if(this->geom.meshes.size() == 0)
   {

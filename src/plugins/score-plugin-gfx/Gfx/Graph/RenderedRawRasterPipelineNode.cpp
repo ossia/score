@@ -1129,16 +1129,16 @@ void RenderedRawRasterPipelineNode::applyModeTopology(
   {
     default:
     case 0:
-      ps.setTopology(QRhiGraphicsPipeline::Triangles);
+      setSupportedTopology(ps, QRhiGraphicsPipeline::Triangles);
       break;
     case 1:
-      ps.setTopology(QRhiGraphicsPipeline::Points);
+      setSupportedTopology(ps, QRhiGraphicsPipeline::Points);
       break;
     case 2:
-      ps.setTopology(QRhiGraphicsPipeline::Lines);
+      setSupportedTopology(ps, QRhiGraphicsPipeline::Lines);
       break;
     case 3:
-      ps.setTopology(geometry.value_or(QRhiGraphicsPipeline::Triangles));
+      setSupportedTopology(ps, geometry.value_or(QRhiGraphicsPipeline::Triangles));
       return;
   }
   warnModeOverridesGeometry(geometry, ps.topology());
@@ -1190,7 +1190,7 @@ void RenderedRawRasterPipelineNode::applyPointQuads(
   quads.setBindings(bindings.begin(), bindings.end());
   quads.setAttributes(layout.cbeginAttributes(), layout.cendAttributes());
   ps.setVertexInputLayout(quads);
-  ps.setTopology(QRhiGraphicsPipeline::Triangles);
+  setSupportedTopology(ps, QRhiGraphicsPipeline::Triangles);
   // A point is never culled; the quad must not be either, whatever winding
   // the epilogue's mirror compensation selects.
   ps.setCullMode(QRhiGraphicsPipeline::None);
@@ -4914,6 +4914,11 @@ void RenderedRawRasterPipelineNode::drawWithPerMeshAuxRebind(
     QRhiShaderResourceBindings& srb, QRhiCommandBuffer& cb,
     const FallbackBindingPlan& plan)
 {
+  // A triangle fan the backend cannot draw and the engine could not lower
+  // (setSupportedTopology warned): nothing, rather than other triangles.
+  if(drawsUnsupportedFan(pipeline))
+    return;
+
   // ScenePreprocessor's output geometry is always a single sub-mesh: regular
   // meshes and instance groups all ride one drawIndexedIndirect. The SRB is
   // bound once and the draw fans out through the indirect cmd list.

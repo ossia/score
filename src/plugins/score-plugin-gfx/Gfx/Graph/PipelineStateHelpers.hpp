@@ -36,6 +36,33 @@ SCORE_PLUGIN_GFX_EXPORT
 QRhiGraphicsPipeline::PolygonMode supportedPolygonMode(
     QRhiGraphicsPipeline::PolygonMode requested, bool nonFillSupported) noexcept;
 
+// QRhi::TriangleFanTopology, which D3D11, D3D12 and Metal do not have: their
+// backends hit Q_UNREACHABLE (D3D11, Metal) or draw a strip (D3D12) when given
+// a TriangleFan pipeline. SCORE_GFX_NO_TRIANGLE_FAN=1 reports it unsupported
+// on any backend, so that the fallbacks can be exercised on Vulkan / OpenGL.
+SCORE_PLUGIN_GFX_EXPORT
+bool triangleFanSupported(const QRhi& rhi) noexcept;
+
+// `requested`, or Triangles in place of a TriangleFan the backend cannot draw,
+// so that the pipeline never reaches the backend's unreachable path. Callers
+// that can lower the fan to a triangle list (lowerTriangleFan, the VSA index
+// list) do so before getting here.
+SCORE_PLUGIN_GFX_EXPORT
+QRhiGraphicsPipeline::Topology
+supportedTopology(const QRhi& rhi, QRhiGraphicsPipeline::Topology requested) noexcept;
+
+// Sets supportedTopology(requested) on `ps`. When that had to replace a fan,
+// `ps` is recorded so that drawsUnsupportedFan says its draws are skipped,
+// with one warning for the pipeline: a fan drawn as a triangle list is other
+// triangles than the fan's. Any other topology clears the record.
+SCORE_PLUGIN_GFX_EXPORT
+void setSupportedTopology(
+    QRhiGraphicsPipeline& ps, QRhiGraphicsPipeline::Topology requested) noexcept;
+
+// Whether `ps` stands for a triangle fan the backend cannot draw.
+SCORE_PLUGIN_GFX_EXPORT
+bool drawsUnsupportedFan(const QRhiGraphicsPipeline& ps) noexcept;
+
 SCORE_PLUGIN_GFX_EXPORT
 QRhiGraphicsPipeline::BlendFactor toBlendFactor(std::string_view s) noexcept;
 

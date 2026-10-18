@@ -537,7 +537,9 @@ set(SRCS
     Gfx/Graph/RenderedISFNode.cpp
     Gfx/Graph/RenderedRawRasterPipelineNode.cpp
     Gfx/Graph/RenderedVSANode.cpp
+    Gfx/Graph/GeometryTopology.hpp
     Gfx/Graph/PipelineStateHelpers.hpp
+    Gfx/Graph/GeometryTopology.cpp
     Gfx/Graph/PipelineStateHelpers.cpp
     Gfx/Graph/IsfBindingsBuilder.hpp
     Gfx/Graph/IsfBindingsBuilder.cpp

@@ -2705,6 +2705,8 @@ void RenderState::Caps::populate(QRhi& rhi)
   geometryShader = rhi.isFeatureSupported(QRhi::GeometryShader);
   baseInstance = rhi.isFeatureSupported(QRhi::BaseInstance);
   pipelineCacheDataLoadSave = rhi.isFeatureSupported(QRhi::PipelineCacheDataLoadSave);
+  triangleFan = triangleFanSupported(rhi);
+  qDebug("score.gfx: RHI topology caps: triangleFan=%d", int(triangleFan));
 
   // One greppable line with the final (post-kill-switch) indirect rung caps.
   // GfxIndirectFallbackLadder.cpp captures this through a message handler as

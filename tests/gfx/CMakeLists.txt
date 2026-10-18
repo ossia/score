@@ -2139,3 +2139,8 @@ score_add_gfx_test(merge_geometries_bake GfxMergeGeometriesBake.cpp)
 # the same dirty mesh: no CustomMesh::reload after warm-up, same picture; a
 # buffer rewritten in place is expanded again.
 score_add_gfx_test(raw_raster_primitive_data_cache GfxRawRasterPrimitiveDataCache.cpp)
+
+# Triangle fans on backends without QRhi::TriangleFanTopology (D3D, Metal),
+# forced on Vulkan / OpenGL with SCORE_GFX_NO_TRIANGLE_FAN: CPU fan geometry
+# and VSA TRI_FAN cover the same pixels as a native fan.
+score_add_gfx_test(triangle_fan_fallback GfxTriangleFanFallback.cpp)

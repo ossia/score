@@ -1,3 +1,4 @@
+#include <Gfx/Graph/GeometryTopology.hpp>
 #include <Gfx/Graph/PipelineStateHelpers.hpp>
 #include <Gfx/Graph/RenderedISFSamplerUtils.hpp>
 #include <Gfx/Graph/RenderedVSANode.hpp>
@@ -5,6 +6,8 @@
 #include <score/tools/Debug.hpp>
 
 #include <ossia/detail/algorithms.hpp>
+
+#include <numeric>
 
 namespace score::gfx
 {
@@ -281,7 +284,20 @@ void SimpleRenderedVSANode::initState(RenderList& renderer, QRhiResourceUpdateBa
         m->topology = QRhiGraphicsPipeline::Topology::TriangleStrip;
         break;
       case 5:
-        m->topology = QRhiGraphicsPipeline::Topology::TriangleFan;
+        // D3D and Metal have no triangle fans: draw the same triangles from an
+        // index list over the vertex ids, which update() fills.
+        if(triangleFanSupported(rhi))
+          m->topology = QRhiGraphicsPipeline::Topology::TriangleFan;
+        else
+        {
+          m->topology = QRhiGraphicsPipeline::Topology::Triangles;
+          m_fanIndices = rhi.newBuffer(
+              QRhiBuffer::Static, QRhiBuffer::IndexBuffer, sizeof(uint32_t));
+          m_fanIndices->setName("SimpleRenderedVSANode::m_fanIndices");
+          m_fanIndices->create();
+          m_fanIndexVertexCount = -1;
+          m->indexBuffer = m_fanIndices;
+        }
         break;
       case 6:
         m->topology = QRhiGraphicsPipeline::Topology::Triangles;
@@ -369,7 +385,26 @@ void SimpleRenderedVSANode::update(
   }
 
   const auto count = *(float*)n.input[n.input.size() - 2]->value;
-  static_cast<DummyMesh*>(m_mesh)->vertexCount = count;
+  auto& mesh = *static_cast<DummyMesh*>(m_mesh);
+  mesh.vertexCount = count;
+  if(m_fanIndices && mesh.vertexCount != m_fanIndexVertexCount)
+  {
+    m_fanIndexVertexCount = mesh.vertexCount;
+    std::vector<uint32_t> order(std::max(0, mesh.vertexCount));
+    std::iota(order.begin(), order.end(), 0u);
+    const auto list = triangleFanToList(order);
+    mesh.indexCount = int(list.size());
+    if(!list.empty())
+    {
+      const quint32 bytes = quint32(list.size() * sizeof(uint32_t));
+      if(m_fanIndices->size() != bytes)
+      {
+        m_fanIndices->setSize(bytes);
+        m_fanIndices->create();
+      }
+      res.uploadStaticBuffer(m_fanIndices, 0, bytes, list.data());
+    }
+  }
 
   n.standardUBO.passIndex = 0;
   advanceFrameIndex(n.standardUBO.frameIndex, m_frameIndexFrame, renderer.frame);
@@ -502,6 +537,8 @@ void SimpleRenderedVSANode::releaseState(RenderList& r)
 
   delete m_mesh;
   m_mesh = nullptr;
+  delete m_fanIndices;
+  m_fanIndices = nullptr;
 
   m_initialized = false;
 }

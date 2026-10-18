@@ -274,6 +274,11 @@ struct SCORE_PLUGIN_GFX_EXPORT BasicMesh : Mesh
 struct SCORE_PLUGIN_GFX_EXPORT DummyMesh : BasicMesh
 {
   explicit DummyMesh(int count);
+  // When set, draw() issues indexCount uint32 indices from it instead of
+  // vertexCount vertices: gl_VertexIndex is then the index value, which lets a
+  // procedural vertex shader be drawn in another topology (see the VSA node).
+  QRhiBuffer* indexBuffer{};
+  int indexCount{};
   [[nodiscard]] Flags flags() const noexcept override { return Flags{}; }
   const char* defaultVertexShader() const noexcept override;
   void
