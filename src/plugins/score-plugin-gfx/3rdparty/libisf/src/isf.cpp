@@ -7187,8 +7187,11 @@ void parser::parse_vsa()
 
   // Set up descriptor for VSA
   m_desc.mode = isf::descriptor::VSA;
-  m_desc.description = "Vertex Shader Art";
-  m_desc.categories.push_back("VSA");
+  if(m_desc.description.empty())
+    m_desc.description = "Vertex Shader Art";
+  if(std::find(m_desc.categories.begin(), m_desc.categories.end(), "VSA")
+     == m_desc.categories.end())
+    m_desc.categories.push_back("VSA");
   m_desc.default_vertex_shader = false;
 
   // Add standard VSA inputs to descriptor, at the end so that we can easily replace audioreactive ones
@@ -7200,7 +7203,8 @@ void parser::parse_vsa()
     float_input vc;
     vc.min = 3.0;
     vc.max = 100000.0;
-    vc.def = 10000.0;
+    // Without POINT_COUNT: one triangle.
+    vc.def = 3.0;
     if(m_desc.point_count > 0)
       vc.def = m_desc.point_count;
     vertexCount.data = vc;
@@ -7223,12 +7227,22 @@ void parser::parse_vsa()
     vc.def = 6;
     if(!m_desc.primitive_mode.empty())
     {
+      bool known = false;
       for(int i = 0; i < 7; i++)
-        if(m_desc.primitive_mode == ossia::get<std::string>(vc.values[i]))
+        if(boost::algorithm::iequals(
+               m_desc.primitive_mode, ossia::get<std::string>(vc.values[i])))
         {
           vc.def = i;
+          known = true;
           break;
         }
+      if(!known)
+        fmt::print(
+            stderr,
+            "[isf] VERTEX_SHADER_ART: unknown PRIMITIVE_MODE \"{}\" (POINTS, "
+            "LINE_STRIP, LINE_LOOP, LINES, TRI_STRIP, TRI_FAN, TRIANGLES); "
+            "drawing TRIANGLES.\n",
+            m_desc.primitive_mode);
     }
     primitiveType.data = vc;
     m_desc.inputs.push_back(primitiveType);

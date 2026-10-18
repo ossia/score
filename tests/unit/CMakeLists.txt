@@ -2041,3 +2041,10 @@ if(TARGET score_plugin_gfx)
     PLUGINS score_plugin_gfx
     LIBS ${QT_PREFIX}::Gui)
 endif()
+
+# VERTEX_SHADER_ART header defaults: POINT_COUNT, PRIMITIVE_MODE, DESCRIPTION.
+if(TARGET score_plugin_gfx)
+  score_add_test(test_unit_isf_vsa_header
+    SOURCES IsfVsaHeaderTest.cpp
+    PLUGINS score_plugin_gfx)
+endif()
