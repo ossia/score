@@ -1033,3 +1033,178 @@ TEST_CASE(
   CHECK(std::abs(r.arrived.g - encByte(kEyeB[1])) <= 2);
   CHECK(std::abs(r.arrived.b - encByte(kEyeB[2])) <= 2);
 }
+
+// =============================================================================
+// scene_data REACHES SHADERS BY NAME (shader board P37).
+//
+// A scene_data payload in the scene tree is a named, scene-level buffer: the
+// ScenePreprocessor collected it and published nothing. It is an auxiliary of
+// that name now. The probe draws the cube through the camera and paints the
+// vec4 held by a CPU scene_data named "scene_extra".
+// =============================================================================
+namespace
+{
+constexpr const char* kSceneDataProbeFS = R"__(/*{
+  "DESCRIPTION": "probe: draws scene geometry through camera.viewProjection in the colour held by the scene_extra scene_data buffer.",
+  "CREDIT": "test",
+  "ISFVSN": "2.0",
+  "MODE": "RAW_RASTER_PIPELINE",
+  "CATEGORIES": ["TEST-SYNTHETIC", "TEST-SCENE"],
+  "VERTEX_INPUTS": [ { "TYPE": "vec4", "NAME": "position" } ],
+  "VERTEX_OUTPUTS": [],
+  "FRAGMENT_INPUTS": [],
+  "FRAGMENT_OUTPUTS": [ { "TYPE": "vec4", "NAME": "isf_FragColor" } ],
+  "AUXILIARY": [
+    { "NAME": "scene_extra", "TYPE": "storage", "ACCESS": "read_only",
+      "LAYOUT": [ { "NAME": "colour", "TYPE": "vec4" } ] }
+  ],
+  "INPUTS": [
+    { "NAME": "camera", "TYPE": "uniform",
+      "LAYOUT": [
+        { "NAME": "view",           "TYPE": "mat4" },
+        { "NAME": "projection",     "TYPE": "mat4" },
+        { "NAME": "viewProjection", "TYPE": "mat4" },
+        { "NAME": "cameraPosition", "TYPE": "vec4" },
+        { "NAME": "renderSize",     "TYPE": "vec4" },
+        { "NAME": "params",         "TYPE": "vec4" }
+      ]
+    }
+  ]
+}*/
+
+void main()
+{
+    isf_FragColor = vec4(scene_extra.colour.rgb, 1.0);
+}
+)__";
+
+struct SceneDataOutcome
+{
+  bool skipped = false;
+  std::string skip_reason, error, backend;
+  Phase drawn;
+  Phase redrawn; // after the scene_data payload was replaced, same geometry
+};
+
+// The scene tree's roots plus a node holding one CPU scene_data vec4 named
+// "scene_extra", at @p version.
+std::shared_ptr<std::vector<ossia::scene_node_ptr>> withSceneData(
+    const std::vector<ossia::scene_node_ptr>& roots, std::array<float, 4> colour,
+    int64_t version)
+{
+  auto bytes = std::shared_ptr<float[]>(new float[4]{colour[0], colour[1], colour[2], colour[3]});
+  auto res = std::make_shared<ossia::buffer_resource>();
+  res->resource = ossia::buffer_data{
+      .data = std::shared_ptr<const void>(bytes, bytes.get()),
+      .byte_size = 4 * sizeof(float),
+      .usage_hint = ossia::buffer_data::usage::storage_buffer};
+  auto data = std::make_shared<ossia::scene_data>();
+  data->name = "scene_extra";
+  data->data = res;
+  data->dirty_index = version;
+  auto holder = std::make_shared<ossia::scene_node>();
+  holder->id = ossia::scene_node_id{0x5ceeda7a};
+  holder->children = std::make_shared<const std::vector<ossia::scene_payload>>(
+      std::vector<ossia::scene_payload>{ossia::scene_data_ptr{data}});
+  auto out = std::make_shared<std::vector<ossia::scene_node_ptr>>(roots);
+  out->push_back(holder);
+  return out;
+}
+
+SceneDataOutcome run_scene_data(score::gfx::GraphicsApi api)
+{
+  SceneDataOutcome out;
+  score::test::run_in_gui_app([&](const score::GUIApplicationContext& app) {
+    auto* doc = score::test::new_document(app);
+    QTemporaryDir shaderDir;
+    if(!doc || !shaderDir.isValid())
+    {
+      out.error = "cannot create a document or a temporary directory";
+      return;
+    }
+    const QString vsPath = shaderDir.filePath("scene-data-probe.vs");
+    const QString fsPath = shaderDir.filePath("scene-data-probe.fs");
+    if(!writeFile(vsPath, kProbeVS) || !writeFile(fsPath, kSceneDataProbeFS))
+    {
+      out.error = "cannot write the probe shaders";
+      return;
+    }
+
+    Threedim::Camera camA;
+    const auto stateA = tickCamera(camA, kEyeA);
+    if(!stateA || !stateA->roots)
+    {
+      out.error = "Camera did not publish a scene_state with roots";
+      return;
+    }
+
+    // The scene_data: one vec4, (0.25, 0.5, 0.75, 1).
+    const auto roots = withSceneData(*stateA->roots, {0.25f, 0.5f, 0.75f, 1.f}, 1);
+
+    HalpProcesses procs;
+    GfxPipeline p;
+    const int cube = p.addNode(procs.make<Threedim::Cube>(doc->context()));
+    auto pub_uptr = std::make_unique<CamPublisherNode>();
+    auto* pub = pub_uptr.get();
+    pub_uptr->pendingState = makeSwitchedState(roots, camA.m_id, /*version=*/1);
+    const int pubIdx = p.addNode(std::move(pub_uptr));
+    const int flat = p.addNode(std::make_unique<score::gfx::ScenePreprocessorNode>());
+    const int raster = p.addRaster(vsPath, fsPath);
+    if(cube < 0 || pubIdx < 0 || flat < 0 || raster < 0)
+    {
+      out.error = "chain build failed: " + p.error();
+      return;
+    }
+    p.wire(p.nodeSceneOut(cube, 0), p.nodeSceneIn(flat, 0));
+    p.wire(p.nodeSceneOut(pubIdx, 0), p.nodeSceneIn(flat, 0));
+    p.wire(p.nodeGeometryOut(flat, 0), p.geometryIn(raster, 0));
+    const int sink = p.addSink({kSize, kSize});
+    p.wire(p.imageOut(raster, 0), p.sinkInput(sink));
+    if(!p.create(api))
+    {
+      out.backend = p.backend();
+      out.skipped = p.skipped();
+      out.skip_reason = p.skipReason();
+      out.error = p.error();
+      return;
+    }
+    out.backend = p.backend();
+    p.render(4);
+    out.drawn = analyze(p.readback(sink));
+
+    // A new payload, the same geometry: (1, 0.5, 0, 1).
+    pub->pendingState = makeSwitchedState(
+        withSceneData(*stateA->roots, {1.f, 0.5f, 0.f, 1.f}, 2), camA.m_id, /*version=*/2);
+    p.render(4);
+    out.redrawn = analyze(p.readback(sink));
+  });
+  return out;
+}
+}
+
+TEST_CASE("scene_data reaches shaders by name", "[gfx][threedim][scene][P37]")
+{
+  const auto api = GENERATE(from_range(platform_backends()));
+  CAPTURE(backend_name(api));
+  const auto r = run_scene_data(api);
+  if(r.skipped)
+    SKIP(r.backend + ": " + r.skip_reason);
+  INFO("backend=" << r.backend << " error=" << r.error);
+  REQUIRE(r.error.empty());
+  REQUIRE(r.drawn.valid);
+  INFO("rgb=(" << r.drawn.r << "," << r.drawn.g << "," << r.drawn.b << ") lit="
+               << r.drawn.litCount);
+  REQUIRE(r.drawn.litCount > 40);
+  CHECK(std::abs(r.drawn.r - 64) <= 2);
+  CHECK(std::abs(r.drawn.g - 128) <= 2);
+  CHECK(std::abs(r.drawn.b - 191) <= 2);
+
+  // The payload changed and the geometry did not: the preprocessor's fast
+  // path kept the previous rebuild's bytes (the review's F-08).
+  INFO("after the payload change: rgb=(" << r.redrawn.r << "," << r.redrawn.g << ","
+                                         << r.redrawn.b << ")");
+  REQUIRE(r.redrawn.valid);
+  CHECK(std::abs(r.redrawn.r - 255) <= 2);
+  CHECK(std::abs(r.redrawn.g - 128) <= 2);
+  CHECK(r.redrawn.b <= 2);
+}

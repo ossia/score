@@ -464,8 +464,10 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
   {
     QRhiBuffer* buffer{};
     std::string name;
+    int64_t byte_offset{};
     int64_t byte_size{};
     bool owned{false};
+    bool uniform{false};
   };
   std::vector<SceneDataBinding> m_sceneDataBuffers;
 
@@ -847,6 +849,10 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
   // a moving cloud stays on the fast path, which only re-uploads cloud_meta.
   uint64_t m_cachedCloudFingerprint{};
   uint64_t m_cachedCloudTransformFingerprint{};
+  // Fingerprint of the scene_data payloads: they are published (uploaded or
+  // borrowed) only by rebuildMDI, so a new payload behind the same mesh tree
+  // has to leave the fast path (review F-08).
+  uint64_t m_cachedSceneDataFingerprint{};
   std::vector<MaterialExtensionsGPU> m_cachedMaterialExt;
   std::vector<PerDrawGPU> m_cachedPerDraws;
   // Mirror of the per_draw_bounds SSBO for diff-upload on the fast-path
@@ -1108,6 +1114,7 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
     m_cachedMeshFingerprint.clear();
     m_cachedCloudFingerprint = 0;
     m_cachedCloudTransformFingerprint = 0;
+    m_cachedSceneDataFingerprint = 0;
     m_cachedMaterialExt.clear();
     m_cachedPerDraws.clear();
     m_cachedPerDrawBounds.clear();
@@ -3652,6 +3659,87 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
     // missing a given channel falls back to its own sampler (emptyTexture).
     appendTextureAuxes(g);
 
+    // Loader-emitted scene_data: each named buffer is published as an
+    // auxiliary of that name, which shaders bind by AUXILIARY / INPUTS name.
+    // A GPU handle is borrowed; CPU bytes are uploaded into a buffer owned
+    // here, reused across rebuilds while it is big enough. They were
+    // collected by flattenScene and never published (shader board P37).
+    // InjectBuffer below still wins on a name collision.
+    {
+      std::vector<SceneDataBinding> next;
+      next.reserve(fs.scene_data.size());
+      for(const auto& sd : fs.scene_data)
+      {
+        if(!sd || sd->name.empty() || !sd->data)
+          continue;
+        SceneDataBinding b;
+        b.name = sd->name;
+        if(auto* gpu = ossia::get_if<ossia::gpu_buffer_handle>(&sd->data->resource))
+        {
+          if(!gpu->valid() || gpu->byte_size <= 0)
+            continue;
+          b.buffer = static_cast<QRhiBuffer*>(gpu->native_handle);
+          b.byte_offset = gpu->byte_offset;
+          b.byte_size = gpu->byte_size;
+        }
+        else if(auto* cpu = ossia::get_if<ossia::buffer_data>(&sd->data->resource))
+        {
+          if(!cpu->data || cpu->byte_size <= 0)
+            continue;
+          b.byte_size = cpu->byte_size;
+          b.uniform = cpu->usage_hint == ossia::buffer_data::usage::uniform_buffer;
+          b.owned = true;
+          // Reuse last rebuild's buffer of that name when it is big enough.
+          auto old = std::find_if(
+              m_sceneDataBuffers.begin(), m_sceneDataBuffers.end(), [&](const auto& o) {
+            return o.owned && o.buffer && o.name == b.name && o.uniform == b.uniform
+                   && (int64_t)o.buffer->size() >= b.byte_size;
+          });
+          if(old != m_sceneDataBuffers.end())
+          {
+            b.buffer = std::exchange(old->buffer, nullptr);
+          }
+          else
+          {
+            auto& rhi = *renderer.state.rhi;
+            b.buffer = b.uniform
+                           ? rhi.newBuffer(
+                                 QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer,
+                                 (quint32)b.byte_size)
+                           : rhi.newBuffer(
+                                 QRhiBuffer::Static, QRhiBuffer::StorageBuffer,
+                                 (quint32)b.byte_size);
+            b.buffer->setName(QByteArray("ScenePreprocessor::scene_data:") + b.name.c_str());
+            if(!b.buffer->create())
+            {
+              delete b.buffer;
+              continue;
+            }
+          }
+          if(b.uniform)
+            res.updateDynamicBuffer(b.buffer, 0, (quint32)b.byte_size, cpu->data.get());
+          else
+            res.uploadStaticBuffer(b.buffer, 0, (quint32)b.byte_size, cpu->data.get());
+        }
+        else
+        {
+          continue;
+        }
+        const int buf_idx = (int)g.buffers.size();
+        g.buffers.push_back(wrapGpu(b.buffer, b.byte_offset + b.byte_size));
+        g.auxiliary.push_back(
+            {.name = b.name,
+             .buffer = buf_idx,
+             .byte_offset = b.byte_offset,
+             .byte_size = b.byte_size});
+        next.push_back(std::move(b));
+      }
+      for(auto& o : m_sceneDataBuffers)
+        if(o.owned && o.buffer)
+          renderer.releaseBuffer(o.buffer);
+      m_sceneDataBuffers = std::move(next);
+    }
+
     // Mid-pipeline aux injection from upstream InjectBuffer / InjectTexture.
     // Appended after the preprocessor's own entries; colliding earlier entries
     // are pre-removed below so find_auxiliary resolves last-wins.
@@ -5614,6 +5702,37 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
             ossia::hash_bytes(d.worldTransform.constData(), 64));
       }
 
+      // scene_data fingerprint: name, payload identity and version, and the
+      // borrowed GPU handle and range or the CPU bytes and size, so a new
+      // payload, a bumped dirty_index or a reallocated producer buffer
+      // republishes (the fast path keeps the last rebuild's buffers).
+      uint64_t freshSceneDataFingerprint = 0;
+      ossia::hash_combine(freshSceneDataFingerprint, (uint64_t)fs.scene_data.size());
+      for(const auto& sd : fs.scene_data)
+      {
+        if(!sd)
+        {
+          ossia::hash_combine(freshSceneDataFingerprint, (uint64_t)0);
+          continue;
+        }
+        ossia::hash_combine(freshSceneDataFingerprint, (uint64_t)ossia::hash_string(sd->name));
+        ossia::hash_combine(freshSceneDataFingerprint, (uint64_t)sd->dirty_index);
+        ossia::hash_combine(freshSceneDataFingerprint, (uint64_t)(uintptr_t)sd->data.get());
+        if(!sd->data)
+          continue;
+        if(auto* gpu = ossia::get_if<ossia::gpu_buffer_handle>(&sd->data->resource))
+        {
+          ossia::hash_combine(freshSceneDataFingerprint, (uint64_t)(uintptr_t)gpu->native_handle);
+          ossia::hash_combine(freshSceneDataFingerprint, (uint64_t)gpu->byte_offset);
+          ossia::hash_combine(freshSceneDataFingerprint, (uint64_t)gpu->byte_size);
+        }
+        else if(auto* cpu = ossia::get_if<ossia::buffer_data>(&sd->data->resource))
+        {
+          ossia::hash_combine(freshSceneDataFingerprint, (uint64_t)(uintptr_t)cpu->data.get());
+          ossia::hash_combine(freshSceneDataFingerprint, (uint64_t)cpu->byte_size);
+        }
+      }
+
       // Pack per-material UV transforms (KHR_texture_transform) and material
       // extensions. The shader reads both as entries[pd.material_index], where
       // material_index is the Material arena slot, so these must be
@@ -5696,6 +5815,8 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
             // geometries onto the freshly rebuilt mesh list, so any cloud
             // add / remove / re-upload must drop us off the fast path.
             && (freshCloudFingerprint == m_cachedCloudFingerprint)
+            // scene_data payloads are published by rebuildMDI only.
+            && freshSceneDataFingerprint == m_cachedSceneDataFingerprint
             // freshPerDraws / freshMeshFingerprint cover fs.draws only;
             // fs.instances cmds are processed exclusively inside rebuildMDI(),
             // so any instance group present forces the full rebuild.
@@ -5787,6 +5908,7 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
         m_cachedMeshFingerprint = std::move(freshMeshFingerprint);
         m_cachedCloudFingerprint = freshCloudFingerprint;
         m_cachedCloudTransformFingerprint = freshCloudTransformFingerprint;
+        m_cachedSceneDataFingerprint = freshSceneDataFingerprint;
         m_cachedLightIndices = std::move(freshLightIndices);
         m_cachedMaterialExt = std::move(freshMaterialExtensions);
         m_cachedMaterialUVTransforms = std::move(freshMaterialUVTransforms);
