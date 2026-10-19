@@ -56,7 +56,7 @@ struct Run
   ReadbackImage filtered, unfiltered;
 };
 
-Run render(score::gfx::GraphicsApi api)
+Run render(score::gfx::GraphicsApi api, const char* filterShader = "csf-scene-filter-zero.cs")
 {
   Run out;
   run_in_gui_app([&](const score::GUIApplicationContext& app) {
@@ -72,7 +72,7 @@ Run render(score::gfx::GraphicsApi api)
     GfxPipeline p;
 
     const int prep = p.addNode(std::make_unique<score::gfx::ScenePreprocessorNode>());
-    const int filter = p.addCsf(corpus("csf-scene-filter-zero.cs"));
+    const int filter = p.addCsf(corpus(filterShader));
     const int rasterA
         = p.addRaster(corpus("rr-sinkdepth-less.vs"), corpus("rr-sinkdepth-less.fs"));
     const int rasterB
@@ -145,5 +145,32 @@ TEST_CASE(
   const int b = litPixels(r.unfiltered);
   INFO("filtered branch lit " << a << " px, unfiltered branch lit " << b << " px");
   CHECK(b > 200);
+  CHECK(a == 0);
+}
+
+// A filter writing the upstream command buffer itself (write_only, no private
+// copy) leaves the indirect buffer's handle unchanged. The upstream CPU command
+// list was forwarded with it, and the CPU rung drew those stale commands
+// instead of reading back the rewritten ones (shader board P34).
+TEST_CASE(
+    "a filter rewriting the upstream indirect commands in place does not forward "
+    "their stale CPU copy",
+    "[gfx][csf][scene-filter][indirect][P34]")
+{
+  const auto api = GENERATE(from_range(platform_backends()));
+  CAPTURE(backend_name(api));
+  qputenv("SCORE_GFX_NO_GPU_INDIRECT", "1");
+  const Run r = render(api, "csf-scene-filter-zero-inplace.cs");
+  qunsetenv("SCORE_GFX_NO_GPU_INDIRECT");
+
+  if(r.skipped)
+    SKIP("backend unavailable: " + r.skip_reason);
+  if(const char* why = compute_shader_skip_reason(api))
+    SKIP(why);
+  INFO("error=" << r.error);
+  REQUIRE(r.error.empty());
+  REQUIRE(r.filtered.valid());
+  const int a = litPixels(r.filtered);
+  INFO("filtered branch lit " << a << " px");
   CHECK(a == 0);
 }

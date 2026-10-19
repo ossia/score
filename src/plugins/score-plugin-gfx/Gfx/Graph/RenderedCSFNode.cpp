@@ -143,6 +143,21 @@ forwardedIndirectCommands(const ossia::geometry& upstream, const AuxList& aux_ss
   return ic;
 }
 
+// Whether this CSF writes the upstream's indirect command buffer itself (a
+// write_only auxiliary, or one bound in place): the handle stays the same,
+// and the upstream's CPU copy of the commands no longer describes it.
+template <typename AuxList>
+bool rewritesIndirectInPlace(const ossia::geometry& upstream, const AuxList& aux_ssbos)
+{
+  const auto* ic = upstream.indirect_count.handle;
+  if(!ic)
+    return false;
+  for(const auto& aux : aux_ssbos)
+    if(aux.buffer == ic && !aux.is_uniform && aux.access != "read_only")
+      return true;
+  return false;
+}
+
 // Largest minStorageBufferOffsetAlignment Vulkan allows, and the largest
 // GL_SHADER_STORAGE_BUFFER_OFFSET_ALIGNMENT OpenGL allows.
 constexpr int64_t kStorageOffsetAlignment = 256;
@@ -3198,8 +3213,11 @@ void RenderedCSFNode::pushOutputGeometry(RenderList& renderer, QRhiResourceUpdat
       // for the non-GPU-indirect fallback path, and without the forward
       // CustomMesh::update skips its assign() and the fallback issues drawIndexed with
       // whatever output_meshbuf.cpuDrawCommands still held.
+      // Not when this CSF rewrites those commands in place (shader board
+      // P34): the downstream CPU rung then reads the buffer back.
       if(binding_upstream && !binding_upstream->cpu_draw_commands.empty()
-         && out_geo.indirect_count.handle == binding_upstream->indirect_count.handle)
+         && out_geo.indirect_count.handle == binding_upstream->indirect_count.handle
+         && !rewritesIndirectInPlace(*binding_upstream, binding.auxiliary_ssbos))
       {
         out_geo.cpu_draw_commands.assign(
             binding_upstream->cpu_draw_commands.begin(),
@@ -3452,7 +3470,8 @@ void RenderedCSFNode::pushOutputGeometry(RenderList& renderer, QRhiResourceUpdat
       // upstream rebuilds (e.g. a scene reload). Cheap re-assign each
       // frame; ScenePreprocessor's command list is at most ~1k entries.
       if(binding_upstream
-         && out_geo.indirect_count.handle != binding_upstream->indirect_count.handle)
+         && (out_geo.indirect_count.handle != binding_upstream->indirect_count.handle
+             || rewritesIndirectInPlace(*binding_upstream, binding.auxiliary_ssbos)))
       {
         out_geo.cpu_draw_commands.clear();
       }
