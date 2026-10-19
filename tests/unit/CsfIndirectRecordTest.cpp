@@ -120,3 +120,21 @@ TEST_CASE(
              {"firstInstance", 12},
              {"baseVertex", 16}});
 }
+
+// Each geometry emitted its own `#define ISF_INDIRECT(<name>) <name>_indirect`
+// (and ISF_INDIRECT_COUNT): two INDIRECT geometries redefine the macro and the
+// shader does not compile.
+TEST_CASE(
+    "two INDIRECT geometries each have their command buffer", "[gfx][csf][indirect]")
+{
+  const auto r = bake(csf(
+      geometry("a", false) + ", " + geometry("b", true),
+      "  ISF_INDIRECT(a)[0].vertexCount = 3u;\n"
+      "  ISF_INDIRECT(b)[0].indexCount = 6u;"));
+  INFO(r.error);
+  REQUIRE(r.error.empty());
+  CHECK(r.records.count("a_indirect"));
+  CHECK(r.records.count("b_indirect"));
+  CHECK(r.records.at("a_indirect").count("vertexCount"));
+  CHECK(r.records.at("b_indirect").count("indexCount"));
+}

@@ -8105,7 +8105,10 @@ void parser::parse_csf()
                       "restrict buffer " + buf_name + "_buf {\n"
                       "    " + cmd_type + " " + buf_name + "[];\n"
                       "};\n";
-        m_fragment += "#define ISF_INDIRECT(" + inp.name + ") " + buf_name + "\n\n";
+        // One definition for every geometry: a per-geometry
+        // `#define ISF_INDIRECT(<name>) <name>_indirect` is redefined by the
+        // second INDIRECT geometry and the shader does not compile.
+        m_fragment += "#ifndef ISF_INDIRECT\n#define ISF_INDIRECT(geo) geo##_indirect\n#endif\n\n";
         binding++;
 
         // GPU-written draw count (INDIRECT: { DRAW_COUNT: true }): a single
@@ -8120,8 +8123,9 @@ void parser::parse_csf()
                         + ", std430) restrict buffer " + cnt_name + "_buf {\n"
                         "    uint " + cnt_name + ";\n"
                         "};\n";
-          m_fragment += "#define ISF_INDIRECT_COUNT(" + inp.name + ") "
-                        + cnt_name + "\n\n";
+          m_fragment += "#ifndef ISF_INDIRECT_COUNT\n"
+                         "#define ISF_INDIRECT_COUNT(geo) geo##_indirect_count\n"
+                         "#endif\n\n";
           binding++;
         }
       }
