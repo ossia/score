@@ -880,3 +880,156 @@ TEST_CASE(
   CHECK(r.snapC.bucketLayers == r.snapA.bucketLayers);
   CHECK(r.snapC.dyn == r.snapA.dyn);
 }
+
+// =============================================================================
+// camera_prev WHEN THE CAMERA COUNT CHANGES (shader board P24).
+//
+// camera_prev's auxiliary publishes as many entries as `camera`, but its buffer
+// held last frame's cameras only: on the frame a second camera appears,
+// camera_prev.data[1] was whatever the buffer held. A camera that was not
+// there last frame has no motion: its previous value is its current one. The
+// probe draws the cube through the active camera and paints
+// camera_prev.data[1]'s position, in the frame the second camera arrives.
+// =============================================================================
+namespace
+{
+constexpr const char* kPrevProbeFS = R"__(/*{
+  "DESCRIPTION": "probe: draws scene geometry through camera.viewProjection and encodes camera_prev.data[1].cameraPosition_ into flat colour: R=(x+4)/8, G=(y+4)/8, B=(z+4)/8.",
+  "CREDIT": "test",
+  "ISFVSN": "2.0",
+  "MODE": "RAW_RASTER_PIPELINE",
+  "CATEGORIES": ["TEST-SYNTHETIC", "TEST-SCENE"],
+  "VERTEX_INPUTS": [ { "TYPE": "vec4", "NAME": "position" } ],
+  "VERTEX_OUTPUTS": [],
+  "FRAGMENT_INPUTS": [],
+  "FRAGMENT_OUTPUTS": [ { "TYPE": "vec4", "NAME": "isf_FragColor" } ],
+  "TYPES": [
+    { "NAME": "prev_camera_t", "LAYOUT": [
+        { "NAME": "view_", "TYPE": "mat4" }, { "NAME": "projection_", "TYPE": "mat4" },
+        { "NAME": "viewProjection_", "TYPE": "mat4" }, { "NAME": "cameraPosition_", "TYPE": "vec4" },
+        { "NAME": "cameraRenderSize_", "TYPE": "vec4" }, { "NAME": "cameraParams_", "TYPE": "vec4" } ] }
+  ],
+  "AUXILIARY": [
+    { "NAME": "camera_prev", "TYPE": "uniform", "ACCESS": "read_only",
+      "LAYOUT": [ { "NAME": "data", "TYPE": "prev_camera_t[16]" } ] }
+  ],
+  "INPUTS": [
+    { "NAME": "camera", "TYPE": "uniform",
+      "LAYOUT": [
+        { "NAME": "view",           "TYPE": "mat4" },
+        { "NAME": "projection",     "TYPE": "mat4" },
+        { "NAME": "viewProjection", "TYPE": "mat4" },
+        { "NAME": "cameraPosition", "TYPE": "vec4" },
+        { "NAME": "renderSize",     "TYPE": "vec4" },
+        { "NAME": "params",         "TYPE": "vec4" }
+      ]
+    }
+  ]
+}*/
+
+void main()
+{
+    vec3 p = camera_prev.data[1].cameraPosition_.xyz;
+    isf_FragColor = vec4((p + 4.0) / 8.0, 1.0);
+}
+)__";
+
+struct CountChange
+{
+  bool skipped = false;
+  std::string skip_reason, error, backend;
+  Phase arrived; // the frame the second camera appears
+};
+
+CountChange run_camera_count_change(score::gfx::GraphicsApi api)
+{
+  CountChange out;
+  score::test::run_in_gui_app([&](const score::GUIApplicationContext& app) {
+    auto* doc = score::test::new_document(app);
+    QTemporaryDir shaderDir;
+    if(!doc || !shaderDir.isValid())
+    {
+      out.error = "cannot create a document or a temporary directory";
+      return;
+    }
+    const QString vsPath = shaderDir.filePath("cam-prev-probe.vs");
+    const QString fsPath = shaderDir.filePath("cam-prev-probe.fs");
+    if(!writeFile(vsPath, kProbeVS) || !writeFile(fsPath, kPrevProbeFS))
+    {
+      out.error = "cannot write the probe shaders";
+      return;
+    }
+
+    Threedim::Camera camA, camB;
+    const auto stateA = tickCamera(camA, kEyeA);
+    const auto stateB = tickCamera(camB, kEyeB);
+    if(!stateA || !stateA->roots || !stateB || !stateB->roots)
+    {
+      out.error = "Camera did not publish a scene_state with roots";
+      return;
+    }
+    auto one = std::make_shared<std::vector<ossia::scene_node_ptr>>(*stateA->roots);
+    auto two = std::make_shared<std::vector<ossia::scene_node_ptr>>(*stateA->roots);
+    for(const auto& r : *stateB->roots)
+      two->push_back(r);
+
+    HalpProcesses procs;
+    GfxPipeline p;
+    const int cube = p.addNode(procs.make<Threedim::Cube>(doc->context()));
+    auto pub_uptr = std::make_unique<CamPublisherNode>();
+    auto* pub = pub_uptr.get();
+    pub->pendingState = makeSwitchedState(one, camA.m_id, /*version=*/1);
+    const int pubIdx = p.addNode(std::move(pub_uptr));
+    const int flat = p.addNode(std::make_unique<score::gfx::ScenePreprocessorNode>());
+    const int raster = p.addRaster(vsPath, fsPath);
+    if(cube < 0 || pubIdx < 0 || flat < 0 || raster < 0)
+    {
+      out.error = "chain build failed: " + p.error();
+      return;
+    }
+    p.wire(p.nodeSceneOut(cube, 0), p.nodeSceneIn(flat, 0));
+    p.wire(p.nodeSceneOut(pubIdx, 0), p.nodeSceneIn(flat, 0));
+    p.wire(p.nodeGeometryOut(flat, 0), p.geometryIn(raster, 0));
+    const int sink = p.addSink({kSize, kSize});
+    p.wire(p.imageOut(raster, 0), p.sinkInput(sink));
+    if(!p.create(api))
+    {
+      out.backend = p.backend();
+      out.skipped = p.skipped();
+      out.skip_reason = p.skipReason();
+      out.error = p.error();
+      return;
+    }
+    out.backend = p.backend();
+
+    // One camera, several frames; then the second camera arrives, and the
+    // frame it arrives in is read back.
+    p.render(4);
+    pub->pendingState = makeSwitchedState(two, camA.m_id, /*version=*/2);
+    p.render(1);
+    out.arrived = analyze(p.readback(sink));
+  });
+  return out;
+}
+}
+
+TEST_CASE(
+    "camera_prev of a camera that just appeared is its current value",
+    "[gfx][threedim][camera][scene][P24]")
+{
+  const auto api = GENERATE(from_range(platform_backends()));
+  CAPTURE(backend_name(api));
+  const auto r = run_camera_count_change(api);
+  if(r.skipped)
+    SKIP(r.backend + ": " + r.skip_reason);
+  INFO("backend=" << r.backend << " error=" << r.error);
+  REQUIRE(r.error.empty());
+  REQUIRE(r.arrived.valid);
+  INFO(
+      "camera_prev[1] rgb=(" << r.arrived.r << "," << r.arrived.g << "," << r.arrived.b
+                             << ") lit=" << r.arrived.litCount);
+  REQUIRE(r.arrived.litCount > 40);
+  CHECK(std::abs(r.arrived.r - encByte(kEyeB[0])) <= 2);
+  CHECK(std::abs(r.arrived.g - encByte(kEyeB[1])) <= 2);
+  CHECK(std::abs(r.arrived.b - encByte(kEyeB[2])) <= 2);
+}

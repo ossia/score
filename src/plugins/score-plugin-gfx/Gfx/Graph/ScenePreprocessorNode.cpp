@@ -4748,12 +4748,22 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
     // as m_worldTransformsPrevBuffer: prev is a function of the GPU buffer's
     // last frame, not of cache-hit history. Current is uploaded unconditionally
     // -- a diff-skip would save under 4 KB of Dynamic-UBO churn per frame.
-    const auto& prevPayload
-        = m_cachedCameras.empty() ? fresh : m_cachedCameras;
+    //
+    // camera_prev has as many entries as camera, which is the extent its
+    // auxiliary publishes: when the camera count changes, a camera that was
+    // not there last frame takes its current value (no motion), and one that
+    // went away is dropped. Last frame's count left a stale tail, or a missing
+    // one, behind the published extent (shader board P24).
+    // Built in m_cachedCameras itself, which `fresh` replaces just below
+    // (updateDynamicBuffer copies the bytes): no copy of the mirror a frame.
+    const std::size_t lastCount = m_cachedCameras.size();
+    m_cachedCameras.resize(fresh.size());
+    for(std::size_t i = lastCount; i < fresh.size(); i++)
+      m_cachedCameras[i] = fresh[i];
     const int64_t prevBytes
-        = (int64_t)(prevPayload.size() * sizeof(CameraUBOData));
+        = (int64_t)(m_cachedCameras.size() * sizeof(CameraUBOData));
     res.updateDynamicBuffer(
-        m_camerasPrevBuffer, 0, (quint32)prevBytes, prevPayload.data());
+        m_camerasPrevBuffer, 0, (quint32)prevBytes, m_cachedCameras.data());
 
     res.updateDynamicBuffer(m_camerasBuffer, 0, (quint32)bytes, fresh.data());
     m_cachedCameras = std::move(fresh);
