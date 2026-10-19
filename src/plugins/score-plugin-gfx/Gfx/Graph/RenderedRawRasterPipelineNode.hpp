@@ -371,6 +371,10 @@ private:
     QRhiTextureRenderTarget* renderTarget{};
     QRhiRenderPassDescriptor* renderPass{};
     QRhiTexture* depth{}; // per-level depth — owned here.
+    //! Colour attachments: every colour output, at its own location.
+    int colorCount{1};
+    //! Stand-ins for the outputs this iteration's size or shape excludes.
+    std::vector<QRhiTexture*> scratch;
   };
   std::vector<MipRT> m_mipRTs;
 

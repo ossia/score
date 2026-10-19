@@ -1524,6 +1524,8 @@ void RenderedRawRasterPipelineNode::initMRTPass(
       e.renderPass->deleteLater();
     if(e.depth)
       e.depth->deleteLater();
+    for(auto* t : e.scratch)
+      t->deleteLater();
   }
   m_mipRTs.clear();
   m_mipCount = 0;
@@ -2042,6 +2044,72 @@ void RenderedRawRasterPipelineNode::initMRTPass(
     return;
   }
 
+  // The colour attachments of one PER_MIP / PER_CUBE_FACE / PER_LAYER
+  // iteration: every colour output, at its own location, so the shader's
+  // outputs and their blend entries keep their identity (shader board R18 /
+  // R31: only the target was attached, and blend entry 0 applied to it). The
+  // target gets the iterated subresource; another output the same layer or
+  // level when its shape allows it, itself when its size matches, else a
+  // scratch texture whose writes are discarded, with a warning. A multiview
+  // iteration keeps the target alone: every attachment would need the view
+  // count.
+  auto iterationColors = [&](int targetIdx, const QRhiColorAttachment& target,
+                             QSize size, int level, int layer,
+                             std::vector<QRhiTexture*>& scratch) {
+    QList<QRhiColorAttachment> out;
+    if(wantMultiview)
+    {
+      out.append(target);
+      return out;
+    }
+    for(int c = 0; c < (int)colorTextures.size(); c++)
+    {
+      if(c == targetIdx)
+      {
+        out.append(target);
+        continue;
+      }
+      QRhiTexture* tex = colorTextures[c];
+      const bool cube = tex->flags().testFlag(QRhiTexture::CubeMap);
+      const bool array = tex->flags().testFlag(QRhiTexture::TextureArray);
+      const int layers = cube ? 6 : array ? tex->arraySize() : 1;
+      const QSize base = tex->pixelSize();
+      QRhiColorAttachment att(tex);
+      if(layer >= 0 && (cube || array) && layer < layers && base == size)
+      {
+        att.setLayer(layer);
+        out.append(att);
+      }
+      else if(
+          level > 0 && !cube && !array && tex->flags().testFlag(QRhiTexture::MipMapped)
+          && level < rhi.mipLevelsForSize(base)
+          && QSize(std::max(1, base.width() >> level), std::max(1, base.height() >> level))
+                 == size)
+      {
+        att.setLevel(level);
+        out.append(att);
+      }
+      else if(!cube && !array && level <= 0 && base == size)
+      {
+        out.append(att);
+      }
+      else
+      {
+        auto* stand = rhi.newTexture(tex->format(), size, 1, QRhiTexture::RenderTarget);
+        stand->setName("RRPNode::MRT::iterationScratch");
+        SCORE_ASSERT(stand->create());
+        scratch.push_back(stand);
+        out.append(QRhiColorAttachment(stand));
+        if(level <= 0 && layer <= 0)
+          qWarning().noquote()
+              << "RawRaster EXECUTION_MODEL: colour output" << c
+              << "does not match the iterated target's size or shape; its"
+                 " writes are discarded in those iterations.";
+      }
+    }
+    return out;
+  };
+
   // PER_CUBE_FACE: one render target per cube face, each attaching the same
   // cube texture via setLayer(i). Structurally the PER_MIP path with a CubeMap
   // target; m_mipRTs is reused as storage, its index meaning face here and mip
@@ -2080,8 +2148,11 @@ void RenderedRawRasterPipelineNode::initMRTPass(
                 .c_str());
         SCORE_ASSERT(faceDepth->create());
 
+        std::vector<QRhiTexture*> scratch;
+        const auto colors = iterationColors(
+            m_perCubeFaceOutputIndex, color, faceSize, -1, face, scratch);
         QRhiTextureRenderTargetDescription faceDesc;
-        faceDesc.setColorAttachments({color});
+        faceDesc.setColorAttachments(colors.begin(), colors.end());
         faceDesc.setDepthTexture(faceDepth);
 
         auto* faceRT = rhi.newTextureRenderTarget(faceDesc);
@@ -2101,7 +2172,9 @@ void RenderedRawRasterPipelineNode::initMRTPass(
         entry.renderTarget = faceRT;
         entry.renderPass = faceRP;
         entry.depth = faceDepth;
-        m_mipRTs.push_back(entry);
+        entry.colorCount = (int)colors.size();
+        entry.scratch = std::move(scratch);
+        m_mipRTs.push_back(std::move(entry));
       }
     }
     else
@@ -2185,8 +2258,11 @@ void RenderedRawRasterPipelineNode::initMRTPass(
                 .c_str());
         SCORE_ASSERT(mipDepth->create());
 
+        std::vector<QRhiTexture*> scratch;
+        const auto colors = iterationColors(
+            m_perMipOutputIndex, color, mipSize, i, views > 1 ? view : -1, scratch);
         QRhiTextureRenderTargetDescription mipDesc;
-        mipDesc.setColorAttachments({color});
+        mipDesc.setColorAttachments(colors.begin(), colors.end());
         mipDesc.setDepthTexture(mipDepth);
 
         auto* mipRT = rhi.newTextureRenderTarget(mipDesc);
@@ -2206,7 +2282,9 @@ void RenderedRawRasterPipelineNode::initMRTPass(
         entry.renderTarget = mipRT;
         entry.renderPass = mipRP;
         entry.depth = mipDepth;
-        m_mipRTs.push_back(entry);
+        entry.colorCount = (int)colors.size();
+        entry.scratch = std::move(scratch);
+        m_mipRTs.push_back(std::move(entry));
       }
     }
     else
@@ -2363,8 +2441,11 @@ void RenderedRawRasterPipelineNode::initMRTPass(
                   .c_str());
           SCORE_ASSERT(layerDepth->create());
 
+          std::vector<QRhiTexture*> scratch;
+          const auto colors
+              = iterationColors(colorIdx, color, layerSize, -1, layer, scratch);
           QRhiTextureRenderTargetDescription layerDesc;
-          layerDesc.setColorAttachments({color});
+          layerDesc.setColorAttachments(colors.begin(), colors.end());
           layerDesc.setDepthTexture(layerDepth);
 
           auto* layerRT = rhi.newTextureRenderTarget(layerDesc);
@@ -2382,7 +2463,9 @@ void RenderedRawRasterPipelineNode::initMRTPass(
           entry.renderTarget = layerRT;
           entry.renderPass = layerRP;
           entry.depth = layerDepth;
-          m_mipRTs.push_back(entry);
+          entry.colorCount = (int)colors.size();
+          entry.scratch = std::move(scratch);
+          m_mipRTs.push_back(std::move(entry));
         }
       }
       else
@@ -2491,7 +2574,7 @@ void RenderedRawRasterPipelineNode::initMRTPass(
 
     // PerMip / PerCubeFace / PerLayer-colour draw exclusively into the
     // per-iteration RTs in m_mipRTs, so the pipeline must be built against
-    // their render pass (1 colour attachment, 1 sample) to satisfy QRhi's
+    // their render pass (every colour output, 1 sample) to satisfy QRhi's
     // compatibility check.
     QRhiRenderPassDescriptor* pipelineRP = m_mrtRenderTarget.renderPass;
     int pipelineColorCount = m_mrtRenderTarget.colorAttachmentCount();
@@ -2502,7 +2585,7 @@ void RenderedRawRasterPipelineNode::initMRTPass(
        && m_mipRTs[0].renderPass)
     {
       pipelineRP = m_mipRTs[0].renderPass;
-      pipelineColorCount = 1;
+      pipelineColorCount = m_mipRTs[0].colorCount;
       pipelineSamples = 1;
     }
     ps->setSampleCount(pipelineSamples);
@@ -3343,6 +3426,8 @@ void RenderedRawRasterPipelineNode::releaseState(RenderList& r)
       e.renderPass->deleteLater();
     if(e.depth)
       e.depth->deleteLater();
+    for(auto* t : e.scratch)
+      t->deleteLater();
   }
   m_mipRTs.clear();
   m_mipCount = 0;
