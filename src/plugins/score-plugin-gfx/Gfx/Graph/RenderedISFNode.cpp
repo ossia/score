@@ -13,6 +13,27 @@
 namespace score::gfx
 {
 
+// Per-pass FORMAT override takes precedence over the legacy FLOAT flag.
+// Covers the handful of formats useful as intermediate render targets:
+// rgba8 (default), rgba16f (common precision bump), rgba32f, r16f, r32f.
+static QRhiTexture::Format passTextureFormat(const isf::pass& pass)
+{
+  if(pass.format.empty())
+    return pass.float_storage ? QRhiTexture::RGBA32F : QRhiTexture::RGBA8;
+  std::string f = pass.format;
+  for(auto& c : f)
+    c = (char)std::tolower((unsigned char)c);
+  if(f == "rgba8")    return QRhiTexture::RGBA8;
+  if(f == "rgba16f")  return QRhiTexture::RGBA16F;
+  if(f == "rgba32f")  return QRhiTexture::RGBA32F;
+  if(f == "r8")       return QRhiTexture::R8;
+  if(f == "r16f")     return QRhiTexture::R16F;
+  if(f == "r32f")     return QRhiTexture::R32F;
+  qWarning() << "ISF pass FORMAT" << pass.format.c_str()
+             << "not recognised — falling back to RGBA8";
+  return QRhiTexture::RGBA8;
+}
+
 RenderedISFNode::~RenderedISFNode() { }
 PassOutput RenderedISFNode::initPassSampler(
     ISFNode& n, const isf::pass& pass, int passIndex, RenderList& renderer,
@@ -39,27 +60,8 @@ PassOutput RenderedISFNode::initPassSampler(
         pass.target.c_str());
   }
 
-  // Per-pass FORMAT override takes precedence over the legacy FLOAT flag.
-  // Covers the handful of formats useful as intermediate render targets:
-  // rgba8 (default), rgba16f (common precision bump), rgba32f, r16f, r32f.
-  auto pass_format = [&]() -> QRhiTexture::Format {
-    if(pass.format.empty())
-      return pass.float_storage ? QRhiTexture::RGBA32F : QRhiTexture::RGBA8;
-    std::string f = pass.format;
-    for(auto& c : f)
-      c = (char)std::tolower((unsigned char)c);
-    if(f == "rgba8")    return QRhiTexture::RGBA8;
-    if(f == "rgba16f")  return QRhiTexture::RGBA16F;
-    if(f == "rgba32f")  return QRhiTexture::RGBA32F;
-    if(f == "r8")       return QRhiTexture::R8;
-    if(f == "r16f")     return QRhiTexture::R16F;
-    if(f == "r32f")     return QRhiTexture::R32F;
-    qWarning() << "ISF pass FORMAT" << pass.format.c_str()
-               << "not recognised — falling back to RGBA8";
-    return QRhiTexture::RGBA8;
-  };
   // In all the other cases we create a custom render target
-  const auto fmt = pass_format();
+  const auto fmt = passTextureFormat(pass);
   const QSize texSize = (pass.width_expression.empty() && pass.height_expression.empty())
                             ? mainTexSize
                             : n.computeTextureSize(pass, mainTexSize, m_inputSamplers);
@@ -508,13 +510,29 @@ void RenderedISFNode::initPasses(
   auto& model_passes = n.descriptor().passes;
   SCORE_ASSERT(model_passes.size() > 0);
 
+  // A non-persistent last pass renders straight into the provided render
+  // target, unless one of its settings differs from it: its own size, format
+  // or filter then take an own target, blitted into the destination like a
+  // persistent last pass (shader board F05).
+  const auto& lastModel = model_passes.back();
+  bool lastPassDirect = !lastModel.persistent;
+  if(lastPassDirect)
+  {
+    const QSize rtSize = rt.texture ? rt.texture->pixelSize() : mainTexSize;
+    const auto rtFormat = rt.texture ? rt.texture->format() : QRhiTexture::RGBA8;
+    if(!lastModel.width_expression.empty() || !lastModel.height_expression.empty())
+      lastPassDirect
+          &= n.computeTextureSize(lastModel, mainTexSize, m_inputSamplers) == rtSize;
+    if(!lastModel.format.empty() || lastModel.float_storage)
+      lastPassDirect &= passTextureFormat(lastModel) == rtFormat;
+    lastPassDirect &= !lastModel.nearest_filter;
+  }
+
   for(auto& pass : model_passes)
   {
     const bool last_pass = &pass == &model_passes.back();
-    if(last_pass && !pass.persistent)
+    if(last_pass && lastPassDirect)
     {
-      // If the last pass is not persistent we render directly
-      // on the provided render target
       passes.samplers.push_back(rt);
     }
     else
@@ -597,7 +615,7 @@ void RenderedISFNode::initPasses(
 
   SCORE_ASSERT(passes.passes.size() == passes.samplers.size());
 
-  if(model_passes.back().persistent)
+  if(!lastPassDirect)
   {
     // We have to add a last pass that will blit on the output render target
     const auto [p1, p2] = createFinalPass(renderer, passes.samplers, rt);

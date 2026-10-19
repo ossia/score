@@ -3722,7 +3722,7 @@ static const ossia::string_map<root_fun>& root_parse{[] {
             {
               const auto& val = obj.get_object_value(float_k);
               p.nearest_filter = val.get_type() == sajson::TYPE_STRING
-                                 && val.as_string() == std::string_view("NEAREST");
+                                 && boost::algorithm::iequals(val.as_string(), "nearest");
             }
 
             if(auto width_k = obj.find_object_key_insensitive(sajson::literal("WIDTH"));
