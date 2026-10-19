@@ -2128,3 +2128,11 @@ if(TARGET score_plugin_gfx)
     PLUGINS score_plugin_gfx
     LIBS ${QT_PREFIX}::Gui)
 endif()
+
+# Classic ISF rejects volume / cubemap / GENERATE_MIPS outputs (F15).
+if(TARGET score_plugin_gfx)
+  score_add_test(test_unit_isf_classic_outputs
+    SOURCES IsfClassicOutputsTest.cpp
+    PLUGINS score_plugin_gfx
+    LIBS ${QT_PREFIX}::Gui)
+endif()

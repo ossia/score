@@ -4888,6 +4888,23 @@ void parser::parse_isf()
     }
   }
 
+  // The classic renderers allocate every OUTPUT as a 2D (or layered) target:
+  // a volume, cubemap or GENERATE_MIPS output was accepted, whether a pass
+  // targets it or not, and drawn as a plain 2D image (shader board F15).
+  // Rejected until they implement them; RAW_RASTER_PIPELINE does.
+  for(const auto& out : m_desc.outputs)
+  {
+    const char* what = out.depth > 1 ? "a 3D (DEPTH > 1)"
+                       : out.is_cubemap ? "a CUBEMAP"
+                       : out.generate_mips ? "a GENERATE_MIPS"
+                                           : nullptr;
+    if(what)
+      throw invalid_file{
+          "OUTPUTS \"" + out.name + "\" is " + what
+          + " output, which classic ISF does not render. Use RAW_RASTER_PIPELINE "
+            "(or a CSF for volumes)."};
+  }
+
   auto& d = m_desc;
 
   // We start from empty strings.
