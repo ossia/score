@@ -2071,3 +2071,12 @@ if(TARGET score_plugin_gfx)
     SOURCES IsfCsfImageShapeTest.cpp
     PLUGINS score_plugin_gfx)
 endif()
+
+# Generated CSF INDIRECT command records: indexed fields named for what they
+# hold, at the native word offsets (shader board C50).
+if(TARGET score_plugin_gfx)
+  score_add_test(test_unit_csf_indirect_record
+    SOURCES CsfIndirectRecordTest.cpp
+    PLUGINS score_plugin_gfx
+    LIBS ${QT_PREFIX}::Gui)
+endif()

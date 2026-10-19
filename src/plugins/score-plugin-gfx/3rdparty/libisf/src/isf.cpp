@@ -8067,13 +8067,12 @@ void parser::parse_csf()
       //
       //   indexed -- the 5 words are a native QRhiDrawIndexedIndirectCommand
       //     { indexCount, instanceCount, firstIndex, baseVertex,
-      //       firstInstance }.
+      //       firstInstance }, under those names.
       //
-      // Both structs expose the SAME member names, so shader source is
-      // identical either way; only the byte offsets move. Emitting the
-      // indexed order for a non-indexed draw is what made drawIndirect() read
-      // firstInstance out of word 3 (baseVertex) while the CPU readback rung
-      // read word 4, so the two rungs of the ladder silently disagreed.
+      // Emitting the indexed order for a non-indexed draw is what made
+      // drawIndirect() read firstInstance out of word 3 (baseVertex) while
+      // the CPU readback rung read word 4, so the two rungs of the ladder
+      // silently disagreed.
       if(geo.indirect)
       {
         const bool indexed_layout = geo.indirect->indexed;
@@ -8082,9 +8081,9 @@ void parser::parse_csf()
         if(indexed_layout && !emitted_indexed_indirect_struct)
         {
           m_fragment += "struct DrawIndexedIndirectCommand {\n"
-                        "    uint vertexCount;\n"
+                        "    uint indexCount;\n"
                         "    uint instanceCount;\n"
-                        "    uint firstVertex;\n"
+                        "    uint firstIndex;\n"
                         "    int  baseVertex;\n"
                         "    uint firstInstance;\n"
                         "};\n\n";
