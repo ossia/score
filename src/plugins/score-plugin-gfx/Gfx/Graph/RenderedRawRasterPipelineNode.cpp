@@ -2989,7 +2989,13 @@ void RenderedRawRasterPipelineNode::initState(
     }
     ensureStorageResources(
         *renderer.state.rhi, res, renderer, desc, m_storage,
-        renderer.state.renderSize);
+        renderer.state.renderSize, [this](const GraphicsStorageImage& e, QSize base) {
+      return QSize{
+          e.width_expression.empty() ? base.width()
+                                     : resolveIntExpression(e.width_expression, base.width()),
+          e.height_expression.empty() ? base.height()
+                                      : resolveIntExpression(e.height_expression, base.height())};
+    });
     bindUpstreamBuffers(renderer, n.input, m_storage);
     // Read-only csf_image_input adopts the matching upstream auxiliary_texture
     // by name -- the storage image an upstream CSF or RawRaster published into

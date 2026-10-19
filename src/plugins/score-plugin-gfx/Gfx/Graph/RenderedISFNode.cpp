@@ -581,7 +581,13 @@ void RenderedISFNode::initPasses(
   // read-only SSBOs (no SRB patch here — SRBs don't exist yet).
   ensureStorageResources(
       *renderer.state.rhi, res, renderer, n.descriptor(), m_storage,
-      renderer.state.renderSize);
+      renderer.state.renderSize,
+      [this](const GraphicsStorageImage& e, QSize base) {
+        isf::pass size;
+        size.width_expression = e.width_expression;
+        size.height_expression = e.height_expression;
+        return n.computeTextureSize(size, base, m_inputSamplers);
+      });
   bindUpstreamBuffers(renderer, n.input, m_storage);
 
   for(std::size_t i = 0; i < passes.samplers.size(); i++)

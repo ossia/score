@@ -309,6 +309,8 @@ void collectGraphicsStorageResources(
           e.cubemap = img->isCube();
           e.is_array = img->is_array;
           e.persistent = img->persistent;
+          e.width_expression = img->width_expression;
+          e.height_expression = img->height_expression;
           if(e.is3D && !img->depth_expression.empty())
           {
             try
@@ -503,7 +505,8 @@ static void ensureSentinelBuffer(
 void ensureStorageResources(
     QRhi& rhi, QRhiResourceUpdateBatch& res, const RenderList& renderer,
     const isf::descriptor& /*desc*/, GraphicsStorageResources& store,
-    QSize renderSize)
+    QSize renderSize,
+    const std::function<QSize(const GraphicsStorageImage&, QSize)>& imageSize)
 {
   // Sentinel disconnect-fallback buffer: only allocate when the node has
   // at least one upstream-bound SSBO or UBO. ensureSentinelBuffer is
@@ -599,6 +602,14 @@ void ensureStorageResources(
       continue;
 
     QSize sz = renderSize.isValid() ? renderSize : QSize(256, 256);
+    // WIDTH / HEIGHT are honoured (shader board U45: an owned graphics
+    // storage image was always the render size).
+    if(imageSize && (!e.width_expression.empty() || !e.height_expression.empty()))
+    {
+      const QSize declared = imageSize(e, sz);
+      if(declared.width() > 0 && declared.height() > 0)
+        sz = declared;
+    }
     QRhiTexture::Format fmt = parseImageFormat(e.format);
     if(fmt == QRhiTexture::UnknownFormat)
       continue; // parseImageFormat already warned
@@ -643,6 +654,16 @@ void ensureStorageResources(
       return t;
     };
 
+    // A size change (an expression's input, the render size) re-allocates;
+    // the caller's pass rebuild binds the new textures.
+    if(e.texture && e.texture->pixelSize() != sz)
+    {
+      e.texture->deleteLater();
+      e.texture = nullptr;
+      if(e.prev)
+        e.prev->deleteLater();
+      e.prev = nullptr;
+    }
     if(!e.texture)
       e.texture = make_tex("");
     if(e.persistent && !e.prev)

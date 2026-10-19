@@ -1,4 +1,5 @@
 #pragma once
+#include <functional>
 
 // Shared infrastructure for binding `storage_input` and `csf_image_input`
 // declarations into a graphics pipeline's shader resource bindings.
@@ -74,6 +75,9 @@ struct GraphicsStorageImage
   bool cubemap{false};    //!< imageCube — 6-layer cubemap storage image
   bool is_array{false};   //!< image2DArray — N-layer array texture
   bool persistent{false}; //!< Ping-pong two textures swapped every frame
+  //! WIDTH / HEIGHT, literal or `$` expression; empty = the render size.
+  std::string width_expression;
+  std::string height_expression;
   int depth{0};   //!< Explicit Z dimension for 3D textures; 0 = use default (16)
   int layers{0}; //!< Layer count for is_array (0 = use parser-supplied default)
 
@@ -206,7 +210,10 @@ SCORE_PLUGIN_GFX_EXPORT
 void ensureStorageResources(
     QRhi& rhi, QRhiResourceUpdateBatch& res, const RenderList& renderer,
     const isf::descriptor& desc, GraphicsStorageResources& store,
-    QSize renderSize);
+    QSize renderSize,
+    //! Resolves a storage image's WIDTH / HEIGHT expressions against the
+    //! node's inputs, from the render size; without it they are ignored.
+    const std::function<QSize(const GraphicsStorageImage&, QSize)>& imageSize = {});
 
 /**
  * @brief Produce the QRhiShaderResourceBinding list for the graphics pipeline.

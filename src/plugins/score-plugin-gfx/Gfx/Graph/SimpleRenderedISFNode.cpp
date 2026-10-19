@@ -214,7 +214,13 @@ void SimpleRenderedISFNode::initPass(
   // cycles under X11 async resize, where each tick rebuilds the RenderList with
   // no intervening frame.
   ensureStorageResources(
-      rhi, res, renderer, n.descriptor(), m_storage, renderer.state.renderSize);
+      rhi, res, renderer, n.descriptor(), m_storage, renderer.state.renderSize,
+      [this](const GraphicsStorageImage& e, QSize base) {
+        isf::pass size;
+        size.width_expression = e.width_expression;
+        size.height_expression = e.height_expression;
+        return n.computeTextureSize(size, base, m_inputSamplers);
+      });
   bindUpstreamBuffers(renderer, n.input, m_storage);
 
   auto extraRhiBindings = buildExtraBindings(m_storage);
@@ -391,7 +397,13 @@ void SimpleRenderedISFNode::initMRTPass(RenderList& renderer, QRhiResourceUpdate
   // ensureStorageResources is idempotent, so this runs once when the shared MRT
   // target is first built.
   ensureStorageResources(
-      rhi, res, renderer, n.descriptor(), m_storage, renderer.state.renderSize);
+      rhi, res, renderer, n.descriptor(), m_storage, renderer.state.renderSize,
+      [this](const GraphicsStorageImage& e, QSize base) {
+        isf::pass size;
+        size.width_expression = e.width_expression;
+        size.height_expression = e.height_expression;
+        return n.computeTextureSize(size, base, m_inputSamplers);
+      });
   bindUpstreamBuffers(renderer, n.input, m_storage);
 
   auto extraRhiBindings = buildExtraBindings(m_storage);
