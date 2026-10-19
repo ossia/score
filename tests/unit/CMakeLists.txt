@@ -2120,3 +2120,11 @@ if(TARGET score_plugin_gfx)
     PLUGINS score_plugin_gfx
     LIBS ${QT_PREFIX}::Gui)
 endif()
+
+# Storage-image VISIBILITY defaults and spellings (U43).
+if(TARGET score_plugin_gfx)
+  score_add_test(test_unit_isf_visibility
+    SOURCES IsfVisibilityTest.cpp
+    PLUGINS score_plugin_gfx
+    LIBS ${QT_PREFIX}::Gui)
+endif()

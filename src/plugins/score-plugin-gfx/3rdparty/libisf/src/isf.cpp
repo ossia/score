@@ -58,6 +58,35 @@ static std::string upper_value(const sajson::value& v)
   return s;
 }
 
+// VISIBILITY, normalised: "vertex+fragment" also spelled "both", "graphics"
+// or "all"; an unknown value is an error rather than a silent fragment-only
+// or unbound resource (shader board U43).
+static std::string parse_visibility(const sajson::value& v)
+{
+  std::string s = v.as_string();
+  for(char& c : s)
+    c = (char)std::tolower((unsigned char)c);
+  if(s == "both" || s == "graphics" || s == "all")
+    return "vertex+fragment";
+  if(s == "fragment" || s == "vertex" || s == "vertex+fragment" || s == "compute"
+     || s == "none")
+    return s;
+  throw invalid_file{
+      "VISIBILITY \"" + v.as_string()
+      + "\" is not one of fragment, vertex, vertex+fragment (both, graphics, all), "
+        "compute, none."};
+}
+
+// A storage image without VISIBILITY is seen by the stage that can use it:
+// compute in a compute shader, fragment in a graphics one. The default was
+// "compute" everywhere, which a graphics shader never binds.
+static void default_image_visibility(descriptor& d, std::string_view vis)
+{
+  for(auto& inp : d.inputs)
+    if(auto* img = ossia::get_if<csf_image_input>(&inp.data); img && img->visibility.empty())
+      img->visibility = vis;
+}
+
 static std::string relax_isf_json(std::string_view json);
 
 // The ISF header: the first block comment whose content is a JSON object,
@@ -1047,7 +1076,7 @@ static void parse_input(storage_input& inp, const sajson::value& v)
     {
       auto val = v.get_object_value(i);
       if(val.get_type() == sajson::TYPE_STRING)
-        inp.visibility = val.as_string();
+        inp.visibility = parse_visibility(val);
     }
   }
 
@@ -1131,7 +1160,7 @@ static void parse_input(uniform_input& inp, const sajson::value& v)
     {
       auto val = v.get_object_value(i);
       if(val.get_type() == sajson::TYPE_STRING)
-        inp.visibility = val.as_string();
+        inp.visibility = parse_visibility(val);
     }
   }
   if(inp.layout.empty())
@@ -1952,7 +1981,7 @@ static void parse_input(csf_image_input& inp, const sajson::value& v)
     {
       auto val = v.get_object_value(i);
       if(val.get_type() == sajson::TYPE_STRING)
-        inp.visibility = val.as_string();
+        inp.visibility = parse_visibility(val);
     }
     else if(k == "PERSISTENT")
     {
@@ -4362,6 +4391,7 @@ void parser::parse_geometry_filter()
   using namespace std::literals;
 
   auto [end, desc] = parse_isf_header(m_source_geometry_filter);
+  default_image_visibility(desc, "fragment");
   m_desc = std::move(desc);
 
   std::string& geomWithoutISF = m_source_geometry_filter;
@@ -4442,9 +4472,9 @@ static std::string isf_glsl_type_prefix(const std::string& format)
 // declared in a graphics pipeline (vertex or fragment stage).
 static bool is_graphics_visibility(std::string_view vis)
 {
-  return vis == "fragment" || vis == "vertex" || vis == "vertex+fragment"
-         || vis == "both" || vis == "graphics";
+  return vis == "fragment" || vis == "vertex" || vis == "vertex+fragment";
 }
+
 
 // Emit GLSL `struct <name> { <fields...> };` declarations from the TYPES
 // section. Must be injected BEFORE any SSBO/UBO body that references the
@@ -4815,6 +4845,7 @@ void parser::parse_isf()
   using namespace std::literals;
 
   auto [end, desc] = parse_isf_header(m_sourceFragment);
+  default_image_visibility(desc, "fragment");
   m_desc = std::move(desc);
 
   std::string& fragWithoutISF = m_sourceFragment;
@@ -5149,6 +5180,7 @@ void parser::parse_raw_raster_pipeline()
   using namespace std::literals;
 
   auto [end, desc] = parse_isf_header(m_sourceFragment);
+  default_image_visibility(desc, "fragment");
   m_desc = std::move(desc);
 
   std::string& fragWithoutISF = m_sourceFragment;
@@ -7302,6 +7334,7 @@ void parser::parse_vsa()
   // VSA shaders are vertex shaders, so we process the vertex source
 
   auto [end, desc] = parse_isf_header(m_sourceVertex);
+  default_image_visibility(desc, "fragment");
   m_desc = std::move(desc);
 
   // VSA has a material UBO and sampled images / audio, nothing else: storage
@@ -7549,6 +7582,7 @@ void parser::parse_csf()
   using namespace std::literals;
 
   auto [end, desc] = parse_isf_header(m_sourceFragment);
+  default_image_visibility(desc, "compute");
   m_desc = std::move(desc);
   m_desc.mode = descriptor::CSF;
 

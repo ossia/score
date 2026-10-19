@@ -301,9 +301,11 @@ struct csf_image_input
   bool is_array{false};
   std::string layers_expression; // LAYERS: expression for arraySize, may contain $USER
 
-  // VISIBILITY: which shader stage(s) see this binding.
-  // Accepted: "compute" (default), "fragment", "vertex", "vertex+fragment"/"both".
-  std::string visibility{"compute"};
+  // VISIBILITY: which shader stage(s) see this binding: "fragment", "vertex",
+  // "vertex+fragment" (also "both", "graphics", "all"), "compute", "none".
+  // Without it, the parser sets "compute" in a compute shader and "fragment"
+  // in a graphics one.
+  std::string visibility;
 
   // PERSISTENT: creates a ping-pong pair of images swapped each frame.
   // In GLSL, `<name>` is the current (write or read_write) image and
