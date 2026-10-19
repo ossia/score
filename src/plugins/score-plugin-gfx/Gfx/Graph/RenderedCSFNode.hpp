@@ -176,6 +176,11 @@ private:
   //! by input name, sized from its LAYOUT.
   ossia::hash_map<std::string, QRhiBuffer*> m_uniformPlaceholders;
   bool m_warnedIndirectArgs{false};
+  bool m_warnedIndirectNumWorkGroups{false};
+  // Whether this node's compute shaders were built reading gl_NumWorkGroups
+  // through the NUMWORKGROUPS_ uniform: decided when they are compiled (the
+  // environment switch is read then), not again per dispatch.
+  bool m_numWorkGroupsUniform{false};
   bool m_warnedDispatchTooLarge{false};
   //! A storage buffer could not be allocated at its declared size this frame:
   //! the passes are skipped (updateStorageBuffers).

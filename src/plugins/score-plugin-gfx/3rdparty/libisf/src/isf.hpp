@@ -970,6 +970,8 @@ struct descriptor
     std::array<int, 3> user_dispatch_ports{-1, -1, -1}; // Port indices for USER mode (X, Y, Z)
   };
   std::vector<dispatch_info> csf_passes;
+  // The CSF's own code names gl_NumWorkGroups / isf_NumWorkGroups.
+  bool csf_reads_num_workgroups{};
 
   // For raw shaders
 

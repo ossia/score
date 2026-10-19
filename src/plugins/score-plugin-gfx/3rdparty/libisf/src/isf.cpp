@@ -7418,6 +7418,20 @@ void parser::parse_csf()
 
   std::string& compWithoutCSF = m_sourceFragment;
   compWithoutCSF.erase(0, end + 2);
+  for(std::string_view tok : {"gl_NumWorkGroups"sv, "isf_NumWorkGroups"sv})
+  {
+    for(auto p = compWithoutCSF.find(tok); p != std::string::npos;
+        p = compWithoutCSF.find(tok, p + 1))
+    {
+      const auto e = p + tok.size();
+      if((p == 0 || !isf_is_ident_char(compWithoutCSF[p - 1]))
+         && (e == compWithoutCSF.size() || !isf_is_ident_char(compWithoutCSF[e])))
+      {
+        m_desc.csf_reads_num_workgroups = true;
+        break;
+      }
+    }
+  }
 
   // Generate compute shader
   m_fragment.clear();

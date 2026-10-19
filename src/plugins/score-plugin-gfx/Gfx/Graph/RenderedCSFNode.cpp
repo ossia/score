@@ -4093,6 +4093,7 @@ void RenderedCSFNode::createComputePipeline(RenderList& renderer)
         src.replace("ISF_LOCAL_SIZE_Z", QString::number(key[2]));
 
         QShader compiled = score::gfx::makeCompute(renderer.state, src);
+        m_numWorkGroupsUniform = numWorkGroupsThroughUniform(renderer.state.api);
 
         auto* pipeline = rhi.newComputePipeline();
         pipeline->setShaderStage(QRhiShaderStage(QRhiShaderStage::Compute, compiled));
@@ -6617,6 +6618,15 @@ void RenderedCSFNode::runGeometryPasses(
         qWarning() << "CSF: INDIRECT dispatch target not found:"
                    << QString::fromStdString(passDesc.target_resource);
       }
+      // Where gl_NumWorkGroups is the NUMWORKGROUPS_ uniform (D3D), it holds
+      // the ceiling stamped below, not the count the GPU dispatches.
+      if(indirectDispatchArgs && m_numWorkGroupsUniform
+         && n.m_descriptor.csf_reads_num_workgroups
+         && !std::exchange(m_warnedIndirectNumWorkGroups, true))
+        qWarning().noquote()
+            << "CSF: on this backend gl_NumWorkGroups in an INDIRECT pass reads its"
+               " WORKGROUPS ceiling, not the dispatched count. Pass the count in a"
+               " buffer instead.";
     }
     else if(passDesc.execution_type == "USER")
     {

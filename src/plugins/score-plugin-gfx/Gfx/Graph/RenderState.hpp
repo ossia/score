@@ -303,6 +303,25 @@ drawIndirectCountUsable(GraphicsApi api, int multiViewCount) noexcept
 }
 
 /**
+ * @brief Whether a compute shader reads gl_NumWorkGroups from the
+ *        NUMWORKGROUPS_ uniform rather than the built-in.
+ *
+ * SPIRV-Cross cannot emit the built-in for HLSL, so on D3D libisf's alias
+ * routes it through a uniform the CSF node fills before each dispatch. An
+ * INDIRECT dispatch's count is decided on the GPU, so there the uniform can
+ * only hold the WORKGROUPS ceiling (shader board C33): every other backend
+ * keeps the built-in, which ShaderCache restores. RenderedCSFNode asks the
+ * same function to warn when an INDIRECT pass reads it through the uniform.
+ * SCORE_GFX_NO_NATIVE_NUM_WORKGROUPS forces the uniform everywhere.
+ */
+inline bool numWorkGroupsThroughUniform(GraphicsApi api) noexcept
+{
+  if(api == GraphicsApi::D3D11 || api == GraphicsApi::D3D12)
+    return true;
+  return qEnvironmentVariableIntValue("SCORE_GFX_NO_NATIVE_NUM_WORKGROUPS") > 0;
+}
+
+/**
  * @brief Whether MULTIVIEW must be emulated with one pass per view.
  *
  * gl_ViewIndex becomes HLSL SV_ViewID, which requires shader model 6.1. D3D11

@@ -72,6 +72,19 @@ static QByteArray lowerViewIndexToPassIndex(QByteArray src)
 }
 
 
+// libisf aliases gl_NumWorkGroups (and isf_NumWorkGroups) to the
+// NUMWORKGROUPS_ uniform for the sake of HLSL; on the other targets the
+// built-in is restored, which is right on INDIRECT passes too. See
+// numWorkGroupsThroughUniform().
+static QByteArray restoreNumWorkGroupsBuiltin(QByteArray src)
+{
+  src.replace("#define gl_NumWorkGroups isf_process_uniforms.NUMWORKGROUPS_\n", "");
+  src.replace(
+      "#define isf_NumWorkGroups isf_process_uniforms.NUMWORKGROUPS_",
+      "#define isf_NumWorkGroups gl_NumWorkGroups");
+  return src;
+}
+
 const std::pair<QShader, QString>& ShaderCache::get(
     GraphicsApi api, const QShaderVersion& version, const QByteArray& shader,
     QShader::Stage stage, int multiViewCount)
@@ -122,6 +135,8 @@ const std::pair<QShader, QString>& ShaderCache::get(
   QByteArray source = renameReservedIdentifiers(shader, api);
   if(multiViewCount >= 2 && viewIndexNeedsPassIndexFallback(api, version, multiViewCount))
     source = lowerViewIndexToPassIndex(std::move(source));
+  if(stage == QShader::ComputeStage && !numWorkGroupsThroughUniform(api))
+    source = restoreNumWorkGroupsBuiltin(std::move(source));
 
   b.baker.setSourceString(source, stage);
   b.baker.setPerTargetCompilation(true);

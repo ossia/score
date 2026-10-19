@@ -179,3 +179,31 @@ void main() { }
   CHECK(src.find(format) == std::string::npos);
   CHECK(src.find(", rgba8)") != std::string::npos);
 }
+
+// gl_NumWorkGroups is the NUMWORKGROUPS_ uniform on D3D (SPIRV-Cross emits no
+// HLSL for the built-in) and the built-in elsewhere, where ShaderCache drops
+// libisf's alias so INDIRECT passes read the dispatched count (C33).
+TEST_CASE("a CSF reading gl_NumWorkGroups bakes", "[gfx][isf][csf][C33]")
+{
+  const auto b = any_backend();
+  const std::string cs = R"_(/*{
+  "ISFVSN": "2.0",
+  "MODE": "COMPUTE_SHADER",
+  "RESOURCES": [
+    { "NAME": "outputImage", "TYPE": "image", "ACCESS": "write_only", "FORMAT": "rgba8", "WIDTH": "8", "HEIGHT": "8" }
+  ],
+  "PASSES": [ { "LOCAL_SIZE": [1, 1, 1], "EXECUTION_MODEL": { "TYPE": "MANUAL", "WORKGROUPS": [8, 8, 1] } } ]
+}*/
+void main()
+{
+  imageStore(outputImage, ivec2(gl_WorkGroupID.xy), vec4(vec3(gl_NumWorkGroups) + vec3(isf_NumWorkGroups), 1.0));
+}
+)_";
+  ::isf::parser p{{}, cs, 450, ::isf::parser::ShaderType::CSF};
+  CHECK(p.data().csf_reads_num_workgroups);
+  auto src = QString::fromStdString(p.compute_shader());
+  src.replace("ISF_LOCAL_SIZE_X", "1");
+  src.replace("ISF_LOCAL_SIZE_Y", "1");
+  src.replace("ISF_LOCAL_SIZE_Z", "1");
+  require_bakes(b, src.toStdString(), QShader::ComputeStage);
+}
