@@ -2088,3 +2088,11 @@ if(TARGET score_plugin_gfx)
     PLUGINS score_plugin_gfx
     LIBS ${QT_PREFIX}::Gui)
 endif()
+
+# PIPELINE_STATE counts, masks and DEPTH_BIAS are strict integers (R12).
+if(TARGET score_plugin_gfx)
+  score_add_test(test_unit_pipeline_state_numbers
+    SOURCES PipelineStateNumbersTest.cpp
+    PLUGINS score_plugin_gfx
+    LIBS ${QT_PREFIX}::Gui)
+endif()

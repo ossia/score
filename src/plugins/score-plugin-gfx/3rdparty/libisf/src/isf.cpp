@@ -14,6 +14,8 @@
 #include <array>
 #include <cctype>
 #include <charconv>
+#include <cmath>
+#include <limits>
 #include <iostream>
 #include <map>
 #include <set>
@@ -2325,11 +2327,24 @@ static bool get_int(const sajson::value& v, int& out)
   if(v.get_type() == sajson::TYPE_DOUBLE)  { out = (int)v.get_double_value(); return true; }
   return false;
 }
-static bool get_uint(const sajson::value& v, uint32_t& out)
+// A PIPELINE_STATE count or mask: a non-negative integer. A negative or
+// fractional number is an error rather than wrapped or truncated (shader
+// board R12); a string is left to the caller (count expressions).
+static bool get_uint(const sajson::value& v, uint32_t& out, std::string_view key)
 {
-  int x{};
-  if(get_int(v, x)) { out = (uint32_t)x; return true; }
-  return false;
+  double x{};
+  if(v.get_type() == sajson::TYPE_INTEGER)
+    x = v.get_integer_value();
+  else if(v.get_type() == sajson::TYPE_DOUBLE)
+    x = v.get_double_value();
+  else
+    return false;
+  if(!(x >= 0.) || x != std::floor(x) || x > (double)std::numeric_limits<uint32_t>::max())
+    throw invalid_file{
+        "PIPELINE_STATE " + std::string{key} + " must be a non-negative integer, got "
+        + std::to_string(x) + "."};
+  out = (uint32_t)x;
+  return true;
 }
 static bool get_str(const sajson::value& v, std::string& out)
 {
@@ -2415,7 +2430,19 @@ static void parse_pipeline_state(const sajson::value& v, pipeline_state& out)
     if     (k == "DEPTH_TEST" )             { if(get_bool(val, b)) out.depth_test  = b; }
     else if(k == "DEPTH_WRITE")             { if(get_bool(val, b)) out.depth_write = b; }
     else if(k == "DEPTH_COMPARE")           { if(get_str(val, s))  out.depth_compare = s; }
-    else if(k == "DEPTH_BIAS")              { if(get_float(val, f)) out.depth_bias = f; }
+    else if(k == "DEPTH_BIAS")
+    {
+      // QRhiGraphicsPipeline::setDepthBias takes an int: a fractional
+      // constant bias cannot be honoured (SLOPE_SCALED_DEPTH_BIAS is a float).
+      if(get_float(val, f))
+      {
+        if(f != std::floor(f))
+          throw invalid_file{
+              "PIPELINE_STATE DEPTH_BIAS is a whole number of depth units, got "
+              + std::to_string(f) + ". Use SLOPE_SCALED_DEPTH_BIAS for a fractional bias."};
+        out.depth_bias = f;
+      }
+    }
     else if(k == "SLOPE_SCALED_DEPTH_BIAS") { if(get_float(val, f)) out.slope_scaled_depth_bias = f; }
     else if(k == "CULL_MODE")               { if(get_str(val, s))  out.cull_mode = s; }
     else if(k == "FRONT_FACE")              { if(get_str(val, s))  out.front_face = s; }
@@ -2423,12 +2450,12 @@ static void parse_pipeline_state(const sajson::value& v, pipeline_state& out)
     else if(k == "LINE_WIDTH")              { if(get_float(val, f)) out.line_width = f; }
     else if(k == "VERTEX_COUNT")
     {
-      if(get_uint(val, u)) out.vertex_count = u;
+      if(get_uint(val, u, "VERTEX_COUNT")) out.vertex_count = u;
       else if(get_str(val, s)) out.vertex_count_expression = s;
     }
     else if(k == "INSTANCE_COUNT")
     {
-      if(get_uint(val, u)) out.instance_count = u;
+      if(get_uint(val, u, "INSTANCE_COUNT")) out.instance_count = u;
       else if(get_str(val, s)) out.instance_count_expression = s;
     }
     else if(k == "TOPOLOGY")                { if(get_str(val, s))  out.topology = s; }
@@ -2467,8 +2494,8 @@ static void parse_pipeline_state(const sajson::value& v, pipeline_state& out)
       }
     }
     else if(k == "STENCIL_TEST")       { if(get_bool(val, b)) out.stencil_test = b; }
-    else if(k == "STENCIL_READ_MASK")  { if(get_uint(val, u)) out.stencil_read_mask = u; }
-    else if(k == "STENCIL_WRITE_MASK") { if(get_uint(val, u)) out.stencil_write_mask = u; }
+    else if(k == "STENCIL_READ_MASK")  { if(get_uint(val, u, "STENCIL_READ_MASK")) out.stencil_read_mask = u; }
+    else if(k == "STENCIL_WRITE_MASK") { if(get_uint(val, u, "STENCIL_WRITE_MASK")) out.stencil_write_mask = u; }
     else if(k == "STENCIL_FRONT")
     {
       stencil_op_state st{};
@@ -3837,9 +3864,18 @@ static const ossia::string_map<root_fun>& root_parse{[] {
       d.cull_distances = n;
   }});
 
+  // A conservative-depth promise: one of greater / less / unchanged / any
+  // (case-insensitive). Anything else was emitted as nothing (shader board R49).
   p.insert({"DEPTH_LAYOUT", [](descriptor& d, const sajson::value& v) {
+    std::string dl;
     if(v.get_type() == sajson::TYPE_STRING)
-      d.depth_layout = v.as_string();
+      dl = v.as_string();
+    for(auto& c : dl)
+      c = (char)tolower((unsigned char)c);
+    if(dl != "greater" && dl != "less" && dl != "unchanged" && dl != "any")
+      throw invalid_file{
+          "DEPTH_LAYOUT must be \"greater\", \"less\", \"unchanged\" or \"any\"."};
+    d.depth_layout = dl;
   }});
 
   p.insert({"EXTENSIONS", [](descriptor& d, const sajson::value& v) {
