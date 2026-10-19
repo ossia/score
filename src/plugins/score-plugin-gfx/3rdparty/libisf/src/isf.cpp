@@ -4028,16 +4028,31 @@ static const ossia::string_map<root_fun>& root_parse{[] {
     d.depth_layout = dl;
   }});
 
+  // EXTENSIONS: GLSL extension names, each emitted as `#extension <name> :
+  // require` (shader board B14: anything was emitted verbatim, blanks and
+  // duplicates included).
   p.insert({"EXTENSIONS", [](descriptor& d, const sajson::value& v) {
     if(v.get_type() != sajson::TYPE_ARRAY)
-      return;
+      throw invalid_file{"EXTENSIONS must be an array of extension names."};
     std::size_t n = v.get_length();
     d.extensions.reserve(d.extensions.size() + n);
     for(std::size_t i = 0; i < n; i++)
     {
       auto e = v.get_array_element(i);
+      std::string name;
       if(e.get_type() == sajson::TYPE_STRING)
-        d.extensions.emplace_back(e.as_string());
+        name = e.as_string();
+      const bool valid
+          = !name.empty() && !std::isdigit((unsigned char)name[0])
+            && std::all_of(name.begin(), name.end(), [](char c) {
+                 return std::isalnum((unsigned char)c) || c == '_';
+               });
+      if(!valid)
+        throw invalid_file{
+            "EXTENSIONS[" + std::to_string(i)
+            + "] is not a GLSL extension name (e.g. \"GL_KHR_shader_subgroup_basic\")."};
+      if(std::find(d.extensions.begin(), d.extensions.end(), name) == d.extensions.end())
+        d.extensions.push_back(std::move(name));
     }
   }});
 
@@ -4759,16 +4774,20 @@ static std::string isf_emit_multiview_extension(int view_count)
 // User-declared EXTENSIONS from the descriptor. Emitted alongside the
 // multiview extension, each as `#extension <name> : require`. Advanced
 // effects (subgroup ops, atomic floats, ray queries, …) go through here.
-static std::string isf_emit_user_extensions(const std::vector<std::string>& exts)
+// `stage` is the stage's text so far: an extension the engine already
+// requires there is not required twice.
+static std::string isf_emit_user_extensions(
+    const std::vector<std::string>& exts, std::string_view stage = {})
 {
   std::string out;
   for(const auto& e : exts)
   {
     if(e.empty())
       continue;
-    out += "#extension ";
-    out += e;
-    out += " : require\n";
+    const std::string line = "#extension " + e + " : require\n";
+    if(stage.find(line) != std::string_view::npos || out.find(line) != std::string::npos)
+      continue;
+    out += line;
   }
   return out;
 }
@@ -4922,7 +4941,7 @@ void parser::parse_isf()
       std::string extensions_prelude;
       if(d.multiview_count >= 2)
         extensions_prelude += isf_emit_multiview_extension(d.multiview_count);
-      extensions_prelude += isf_emit_user_extensions(d.extensions);
+      extensions_prelude += isf_emit_user_extensions(d.extensions, extensions_prelude);
 
       // Setup vertex shader
       {
@@ -5385,9 +5404,8 @@ void parser::parse_raw_raster_pipeline()
   }
 
   {
-    std::string user_ext = isf_emit_user_extensions(m_desc.extensions);
-    m_vertex += user_ext;
-    m_fragment += user_ext;
+    m_vertex += isf_emit_user_extensions(m_desc.extensions, m_vertex);
+    m_fragment += isf_emit_user_extensions(m_desc.extensions, m_fragment);
   }
 
   int mv_varying_location = 0;
@@ -6025,7 +6043,7 @@ void parser::parse_raw_raster_pipeline()
   {
     auto& r = m_desc.layer.resolve;
     std::string fs = GLSL45.versionPrelude;
-    fs += isf_emit_user_extensions(m_desc.extensions);
+    fs += isf_emit_user_extensions(m_desc.extensions, fs);
     fs += "#define ISF_RESOLVE_PASS 1\n";
     if(point_quads)
       fs += "#define ISF_POINT_COORD vec2(0.5)\n";
@@ -7673,7 +7691,7 @@ void parser::parse_csf()
   m_fragment += "\n";
 
   // User-declared GLSL EXTENSIONS must come right after #version.
-  m_fragment += isf_emit_user_extensions(m_desc.extensions);
+  m_fragment += isf_emit_user_extensions(m_desc.extensions, m_fragment);
 
   // Add standard ProcessUBO uniforms (same as ISF/VSA)
   m_fragment += GLSL45.defaultUniforms;

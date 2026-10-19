@@ -2136,3 +2136,11 @@ if(TARGET score_plugin_gfx)
     PLUGINS score_plugin_gfx
     LIBS ${QT_PREFIX}::Gui)
 endif()
+
+# EXTENSIONS validation and dedup (B14).
+if(TARGET score_plugin_gfx)
+  score_add_test(test_unit_isf_extensions
+    SOURCES IsfExtensionsTest.cpp
+    PLUGINS score_plugin_gfx
+    LIBS ${QT_PREFIX}::Gui)
+endif()
