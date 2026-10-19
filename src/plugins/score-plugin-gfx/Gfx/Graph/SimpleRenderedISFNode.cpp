@@ -256,23 +256,13 @@ void SimpleRenderedISFNode::initMRTPass(RenderList& renderer, QRhiResourceUpdate
 {
   QRhi& rhi = *renderer.state.rhi;
   const auto& outputs = n.descriptor().outputs;
-  QSize sz = renderer.state.renderSize;
-
   // Honour OUTPUTS.WIDTH / HEIGHT when declared, otherwise the renderer's
-  // render size. First non-zero explicit pair wins and every attachment of the
-  // shared pass takes it, which is what the RAW_RASTER twin does
-  // (RenderedRawRasterPipelineNode::initMRTPass). Without this the simple MRT
-  // path would parse WIDTH/HEIGHT and then silently allocate at renderSize.
-  // Expression forms ($-variables) are NOT resolved here -- that evaluator is a
-  // member of the raw-raster renderer -- so a literal pair is required.
-  for(const auto& out : outputs)
-  {
-    if(out.width > 0 && out.height > 0)
-    {
-      sz = QSize(out.width, out.height);
-      break;
-    }
-  }
+  // render size. First explicit pair wins and every attachment of the shared
+  // pass takes it, which is what the RAW_RASTER twin does
+  // (RenderedRawRasterPipelineNode::initMRTPass).
+  m_declaredOutputSize = declaredOutputSize(renderer);
+  const QSize sz = m_declaredOutputSize.isValid() ? m_declaredOutputSize
+                                                  : renderer.state.renderSize;
 
   // Detect layered / multiview rendering needs.
   int maxLayers = 1;
@@ -438,6 +428,30 @@ void SimpleRenderedISFNode::initMRTPass(RenderList& renderer, QRhiResourceUpdate
   {
     delete pubo;
   }
+}
+
+QSize SimpleRenderedISFNode::declaredOutputSize(const RenderList& renderer) const
+{
+  // `$` expressions are evaluated like pass sizes, against the inputs
+  // (shader board F13: they were skipped, and only a literal pair counted).
+  for(const auto& out : n.descriptor().outputs)
+  {
+    isf::pass size;
+    size.width_expression = !out.width_expression.empty() ? out.width_expression
+                            : out.width > 0              ? std::to_string(out.width)
+                                                         : std::string{};
+    size.height_expression = !out.height_expression.empty() ? out.height_expression
+                             : out.height > 0              ? std::to_string(out.height)
+                                                           : std::string{};
+    if(size.width_expression.empty() || size.height_expression.empty())
+      continue;
+    // $WIDTH / $HEIGHT are the render size's.
+    const QSize sz
+        = n.computeTextureSize(size, renderer.state.renderSize, m_inputSamplers);
+    if(sz.width() > 0 && sz.height() > 0)
+      return sz;
+  }
+  return {};
 }
 
 void SimpleRenderedISFNode::initMRTBlitPass(RenderList& renderer, QRhiResourceUpdateBatch& res, Edge& edge)
@@ -860,6 +874,25 @@ void SimpleRenderedISFNode::update(
       }
     }
     ++audio_idx;
+  }
+
+  // OUTPUTS.WIDTH / HEIGHT may read inputs: the MRT target follows them.
+  if(m_hasMRT && m_mrtRenderTarget && m_declaredOutputSize.isValid()
+     && declaredOutputSize(renderer) != m_declaredOutputSize)
+  {
+    for(auto& [e, pass] : m_passes)
+    {
+      pass.p.release();
+      if(pass.processUBO)
+        pass.processUBO->deleteLater();
+    }
+    m_passes.clear();
+    for(auto& [e, sampler] : m_blitSamplersByEdge)
+      delete sampler;
+    m_blitSamplersByEdge.clear();
+    m_mrtRenderTarget.release();
+    initMRTPass(renderer, res);
+    initMRTBlitPasses(renderer, res);
   }
 
   // Update material

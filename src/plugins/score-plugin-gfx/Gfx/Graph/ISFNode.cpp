@@ -349,6 +349,16 @@ bool writesFragDepth(QStringView frag) noexcept
 }
 }
 
+struct ISFNode::SizeExpressions
+{
+  std::string width, height;
+  // The variables both expressions read, by reference: sized once, before
+  // they are registered, so that their addresses never move.
+  std::vector<double> values;
+  ossia::math_expression widthExpr, heightExpr;
+  bool widthOk{}, heightOk{};
+};
+
 ISFNode::ISFNode(const isf::descriptor& desc, const QString& vert, const QString& frag)
     : m_descriptor{desc}
 {
@@ -489,67 +499,110 @@ void ISFNode::process(Message&& msg)
   ProcessNode::process(std::move(msg));
 }
 
+std::atomic<uint64_t>& sizeExpressionCompilations() noexcept
+{
+  static std::atomic<uint64_t> n{0};
+  return n;
+}
+
 QSize ISFNode::computeTextureSize(
     const isf::pass& pass, QSize origSize, std::span<const Sampler> inputSamplers)
 {
   QSize res = origSize;
+  if(pass.width_expression.empty() && pass.height_expression.empty())
+    return res;
 
-  ossia::math_expression e;
-  ossia::small_pod_vector<double, 16> data;
+  // $WIDTH / $HEIGHT, then per input: an image's size, a float's or long's
+  // value. Inputs create zero (a written buffer or image), one, or several
+  // ($USER sizes) input ports: walk them with the canonical counts, not one
+  // port each. The same walk names the variables and refreshes their values.
+  auto collect = [&](std::vector<double>& values, std::vector<std::string>* names) {
+    values.clear();
+    auto add = [&](std::string name, double v) {
+      values.push_back(v);
+      if(names)
+        names->push_back(std::move(name));
+    };
+    add("var_WIDTH", res.width());
+    add("var_HEIGHT", res.height());
+    walk_descriptor_inputs(
+        m_descriptor, [&](const isf::input& input, port_counts cur, port_counts delta) {
+      if(delta.inlets == 0 || cur.inlets >= (int)this->input.size())
+        return;
+      auto port = this->input[cur.inlets];
+      if(ossia::get_if<isf::image_input>(&input.data)
+         || ossia::get_if<isf::cubemap_input>(&input.data))
+      {
+        QSize sz = origSize;
+        if(cur.samplers < (int)inputSamplers.size() && inputSamplers[cur.samplers].texture)
+          sz = inputSamplers[cur.samplers].texture->pixelSize();
+        add("var_WIDTH_" + input.name, sz.width());
+        add("var_HEIGHT_" + input.name, sz.height());
+      }
+      else if(ossia::get_if<isf::float_input>(&input.data))
+      {
+        add("var_" + input.name, *(float*)port->value);
+      }
+      else if(ossia::get_if<isf::long_input>(&input.data))
+      {
+        add("var_" + input.name, *(int*)port->value);
+      }
+    });
+  };
 
-  // Note : reserve is super important here,
-  // as the expression parser takes *references* to the
-  // variables.
-  data.reserve(2 + 3 * m_descriptor.inputs.size());
+  std::lock_guard lock{m_sizeExpressionsMutex};
+  SizeExpressions* e{};
+  for(auto& cached : m_sizeExpressions)
+    if(cached->width == pass.width_expression && cached->height == pass.height_expression)
+      e = cached.get();
 
-  e.add_constant("var_WIDTH", data.emplace_back(res.width()));
-  e.add_constant("var_HEIGHT", data.emplace_back(res.height()));
-  // Inputs create zero (a written buffer or image), one, or several ($USER
-  // sizes) input ports: walk them with the canonical counts, not one port each.
-  walk_descriptor_inputs(
-      m_descriptor,
-      [&](const isf::input& input, port_counts cur, port_counts delta) {
-    if(delta.inlets == 0 || cur.inlets >= (int)this->input.size())
-      return;
-    auto port = this->input[cur.inlets];
-    if(ossia::get_if<isf::image_input>(&input.data)
-       || ossia::get_if<isf::cubemap_input>(&input.data))
-    {
-      QSize sz = origSize;
-      if(cur.samplers < (int)inputSamplers.size() && inputSamplers[cur.samplers].texture)
-        sz = inputSamplers[cur.samplers].texture->pixelSize();
-      e.add_constant("var_WIDTH_" + input.name, data.emplace_back(sz.width()));
-      e.add_constant("var_HEIGHT_" + input.name, data.emplace_back(sz.height()));
-    }
-    else if(ossia::get_if<isf::float_input>(&input.data))
-    {
-      e.add_constant("var_" + input.name, data.emplace_back(*(float*)port->value));
-    }
-    else if(ossia::get_if<isf::long_input>(&input.data))
-    {
-      e.add_constant("var_" + input.name, data.emplace_back(*(int*)port->value));
-    }
-  });
-
-  if(auto expr = pass.width_expression; !expr.empty())
+  std::vector<double> current;
+  if(e)
   {
-    boost::algorithm::replace_all(expr, "$", "var_");
-    e.register_symbol_table();
-    if(!e.set_expression(expr))
-      qDebug() << e.error().c_str() << expr.c_str();
-    else if(const double v = e.value(); is_texture_dimension(v))
+    collect(current, nullptr);
+    if(current.size() != e->values.size())
+      e = nullptr; // the inputs changed shape: compile again
+    else
+      std::copy(current.begin(), current.end(), e->values.begin());
+  }
+  if(!e)
+  {
+    std::erase_if(m_sizeExpressions, [&](const auto& cached) {
+      return cached->width == pass.width_expression
+             && cached->height == pass.height_expression;
+    });
+    auto fresh = std::make_unique<SizeExpressions>();
+    fresh->width = pass.width_expression;
+    fresh->height = pass.height_expression;
+    std::vector<std::string> names;
+    collect(fresh->values, &names);
+    auto compile = [&](ossia::math_expression& expr, std::string text) {
+      if(text.empty())
+        return false;
+      for(std::size_t i = 0; i < names.size(); i++)
+        expr.add_variable(names[i], fresh->values[i]);
+      expr.register_symbol_table();
+      boost::algorithm::replace_all(text, "$", "var_");
+      sizeExpressionCompilations()++;
+      if(!expr.set_expression(text))
+      {
+        qDebug() << expr.error().c_str() << text.c_str();
+        return false;
+      }
+      return true;
+    };
+    fresh->widthOk = compile(fresh->widthExpr, fresh->width);
+    fresh->heightOk = compile(fresh->heightExpr, fresh->height);
+    e = fresh.get();
+    m_sizeExpressions.push_back(std::move(fresh));
+  }
+
+  if(e->widthOk)
+    if(const double v = e->widthExpr.value(); is_texture_dimension(v))
       res.setWidth(v);
-  }
-  if(auto expr = pass.height_expression; !expr.empty())
-  {
-    boost::algorithm::replace_all(expr, "$", "var_");
-    e.register_symbol_table();
-    if(!e.set_expression(expr))
-      qDebug() << e.error().c_str() << expr.c_str();
-    else if(const double v = e.value(); is_texture_dimension(v))
+  if(e->heightOk)
+    if(const double v = e->heightExpr.value(); is_texture_dimension(v))
       res.setHeight(v);
-  }
-
   return res;
 }
 

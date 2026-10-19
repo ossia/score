@@ -7,9 +7,13 @@
 
 #include <score_plugin_gfx_export.h>
 
+#include <atomic>
 #include <limits>
 #include <list>
 #include <span>
+#include <vector>
+#include <mutex>
+#include <memory>
 namespace score::gfx
 {
 //! A width or height expression can give NaN (sqrt(-1), an interrupted loop)
@@ -27,6 +31,10 @@ struct isf_input_port_vis;
  *
  * See https://isf.video
  */
+//! Size expressions (pass and OUTPUTS WIDTH / HEIGHT) ISFNode has compiled,
+//! process-wide. For tests: each is compiled once per node, then evaluated.
+SCORE_PLUGIN_GFX_EXPORT std::atomic<uint64_t>& sizeExpressionCompilations() noexcept;
+
 class SCORE_PLUGIN_GFX_EXPORT ISFNode : public score::gfx::ProcessNode
 {
 public:
@@ -66,6 +74,13 @@ public:
   QString m_computeS;
 
   int m_cameraInput{-1};
+
+  // The size expressions computeTextureSize has compiled, by their WIDTH and
+  // HEIGHT text: compiled once, then given the current values and evaluated.
+  struct SizeExpressions;
+  std::mutex m_sizeExpressionsMutex;
+  std::vector<std::unique_ptr<SizeExpressions>> m_sizeExpressions;
+
   int m_materialSize{};
   // Bytes of m_material_data the shader's material UBO actually covers. USER
   // dispatch ports are appended past this: their values are read on the CPU to

@@ -47,6 +47,9 @@ private:
       const TextureRenderTarget& rt, RenderList& renderer, Edge& edge,
       QRhiResourceUpdateBatch& res);
   void initMRTPass(RenderList& renderer, QRhiResourceUpdateBatch& res);
+  //! First OUTPUTS entry with a WIDTH and HEIGHT, literal or `$` expression,
+  //! resolved; invalid when none declares one (the render size then).
+  QSize declaredOutputSize(const RenderList& renderer) const;
   void initMRTBlitPasses(RenderList& renderer, QRhiResourceUpdateBatch& res);
   void initMRTBlitPass(RenderList& renderer, QRhiResourceUpdateBatch& res, Edge& edge);
 
@@ -72,6 +75,9 @@ private:
   // MRT: internally-owned render target with multiple attachments
   TextureRenderTarget m_mrtRenderTarget;
   bool m_hasMRT{false};
+  //! declaredOutputSize() the MRT target was created at: it follows the
+  //! inputs an expression reads.
+  QSize m_declaredOutputSize;
   // update() runs once per downstream sink; once-per-frame work is keyed
   // on the RenderList frame counter instead of bools reset in update().
   int64_t m_lastMRTRenderFrame{-1};
