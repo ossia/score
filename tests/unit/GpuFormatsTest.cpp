@@ -179,8 +179,8 @@ TEST_CASE("the codecs score offers hardware decoding for", "[video][gpuformats]"
   CHECK_FALSE(ffmpegCanDoHardwareDecoding(AV_CODEC_ID_HAP));
   CHECK_FALSE(ffmpegCanDoHardwareDecoding(AV_CODEC_ID_PNG));
 
-  // Vulkan decodes these two with compute shaders rather than Vulkan Video and
-  // must not be selected for them, however "accelerable" they otherwise are.
+  // Vulkan decodes these two with compute shaders rather than Vulkan Video, and
+  // only gets them right past FFmpeg 9.0 (vulkanComputeDecodersAreReliable).
   CHECK(isVulkanComputeCodec(AV_CODEC_ID_PRORES));
   CHECK(isVulkanComputeCodec(AV_CODEC_ID_FFV1));
   CHECK_FALSE(isVulkanComputeCodec(AV_CODEC_ID_H264));
