@@ -361,7 +361,6 @@ inline std::string hwCodecName(const char* codec_name, AVHWDeviceType device)
 }
 
 /// Codecs that FFmpeg decodes via Vulkan compute shaders (not Vulkan Video).
-/// These are unstable on some drivers (Intel ANV) and should not use Vulkan HW accel.
 inline bool isVulkanComputeCodec(AVCodecID id)
 {
   switch(id)
@@ -374,18 +373,31 @@ inline bool isVulkanComputeCodec(AVCodecID id)
   }
 }
 
+/// Whether the libavcodec in use decodes isVulkanComputeCodec() codecs correctly.
+/// In FFmpeg 9.0.x the ProRes compute decoder gets part of every frame full-scale
+/// wrong (~0.1% of the samples of the FATE ProRes 422 files, up to 147 code
+/// values off). Master fixed it on 2026-09-20 at lavc 63.14 (vulkan/prores_idct
+/// clipping, quant matrix permutation, separable iDCT scale factors); since then
+/// it matches the software decoder to +-1 on Intel ANV and NVIDIA alike.
+/// The 9.0 release branch stays at lavc 63.1.x, so any later lavc counts as fixed
+/// -- which also covers master's 63.21 bump, typed as 63.2 by 0ec6a0872d.
+inline bool vulkanComputeDecodersAreReliable() noexcept
+{
+  return avcodec_version() >= AV_VERSION_INT(63, 2, 0);
+}
+
 /// Checks dedicated decoder name or avcodec_get_hw_config for codec+format support.
 inline bool codecSupportsHWPixelFormat(
     AVCodecID codec_id, AVPixelFormat pix_fmt, uint32_t gpuVendorId = 0)
 {
   (void)gpuVendorId;
 
-  // The Vulkan compute-shader decoders (not Vulkan Video) produce wrong
-  // pixels: part of every frame comes out full-scale wrong. This check is
-  // the gate for both an explicitly requested accel and the automatic
-  // selection, so refusing here sends these codecs to the software decoder
-  // on every path.
-  if(pix_fmt == AV_PIX_FMT_VULKAN && isVulkanComputeCodec(codec_id))
+  // This check is the gate for both an explicitly requested accel and the
+  // automatic selection, so refusing here sends these codecs to the software
+  // decoder on every path. Checked against the libavcodec actually loaded, not
+  // the headers: Linux builds use the distribution's.
+  if(pix_fmt == AV_PIX_FMT_VULKAN && isVulkanComputeCodec(codec_id)
+     && !vulkanComputeDecodersAreReliable())
     return false;
 
   auto hwInfo = ffmpegHardwareDecodingFormats(pix_fmt);
