@@ -11,7 +11,8 @@
 
 namespace isf
 {
-class invalid_file : public std::runtime_error
+// Exported: thrown from the plug-in, caught by type outside it (tests, editors).
+class SCORE_PLUGIN_GFX_EXPORT invalid_file : public std::runtime_error
 {
 public:
   using std::runtime_error::runtime_error;
