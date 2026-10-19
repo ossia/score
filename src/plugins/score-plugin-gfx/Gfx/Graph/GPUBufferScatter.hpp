@@ -3,6 +3,8 @@
 
 #include <private/qrhi_p.h>
 
+#include <score_plugin_gfx_export.h>
+
 namespace score::gfx
 {
 
@@ -26,17 +28,44 @@ namespace score::gfx
 class GPUBufferScatter
 {
 public:
+  //! How a source component is stored.
+  enum class SourceFormat : uint32_t
+  {
+    Float32 = 0,
+    Unorm8 = 1, //!< 0..255 read as 0..1 (the byte value for an integer destination)
+    Half = 2,
+    Uint32 = 3,
+    Sint32 = 4,
+  };
+  //! What the destination component holds: float, uint or int.
+  enum class DestinationKind : uint32_t
+  {
+    Float = 0,
+    Uint = 1,
+    Int = 2,
+  };
+
   struct Params
   {
     QRhiBuffer* staging{};    // Source SSBO (raw CPU data, uploaded as-is)
     QRhiBuffer* output{};     // Destination SSBO (format-converted result)
     uint32_t element_count{};
-    uint32_t src_components{}; // Floats per source element (1-4)
-    uint32_t dst_components{}; // Floats per destination element (1-4)
-    uint32_t src_stride_floats{}; // Stride between source elements (in floats, >= src_components)
-    uint32_t src_offset_floats{}; // Starting offset in source buffer (in floats)
-    uint32_t dst_stride_floats{}; // Stride between destination elements (in floats, 0 = dst_components)
+    uint32_t src_components{}; // Components per source element (1-4)
+    uint32_t dst_components{}; // Components per destination element (1-4)
+    uint32_t src_stride_bytes{}; // Stride between source elements, in bytes
+    uint32_t src_offset_bytes{}; // Offset of the first element in the source, in bytes
+    uint32_t dst_stride_floats{}; // Stride between destination elements (in words, 0 = dst_components)
+    SourceFormat src_format{SourceFormat::Float32};
+    DestinationKind dst_kind{DestinationKind::Float};
   };
+
+  /**
+   * @brief The scatter on the CPU, for a backend without compute: decodes
+   * `p.element_count` elements of `src` (`src_size` bytes) into `dst`, laid out
+   * like the shader's output. `dst` is the destination buffer's bytes.
+   */
+  SCORE_PLUGIN_GFX_EXPORT static void scatterOnCpu(
+      const Params& p, const char* src, int64_t src_size, char* dst, int64_t dst_size);
 
   bool init(RenderState& state);
   void release();

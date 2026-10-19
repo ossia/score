@@ -522,6 +522,71 @@ static bool isFloatType(std::string_view type) noexcept
   return type == "float" || type == "vec2" || type == "vec3" || type == "vec4";
 }
 
+//! How the scatter reads a geometry attribute; nullopt when it cannot
+//! (user_struct and other layouts it has no decoder for).
+struct ScatterSource
+{
+  GPUBufferScatter::SourceFormat format;
+  uint32_t components;
+};
+static std::optional<ScatterSource>
+scatterSource(const ossia::geometry::attribute& a) noexcept
+{
+  using F = ossia::geometry::attribute;
+  using S = GPUBufferScatter::SourceFormat;
+  switch(a.format)
+  {
+    case F::float1: return ScatterSource{S::Float32, 1};
+    case F::float2: return ScatterSource{S::Float32, 2};
+    case F::float3: return ScatterSource{S::Float32, 3};
+    case F::float4: return ScatterSource{S::Float32, 4};
+    case F::unormbyte1: return ScatterSource{S::Unorm8, 1};
+    case F::unormbyte2: return ScatterSource{S::Unorm8, 2};
+    case F::unormbyte4: return ScatterSource{S::Unorm8, 4};
+    case F::half1: return ScatterSource{S::Half, 1};
+    case F::half2: return ScatterSource{S::Half, 2};
+    case F::half3: return ScatterSource{S::Half, 3};
+    case F::half4: return ScatterSource{S::Half, 4};
+    case F::uint1: return ScatterSource{S::Uint32, 1};
+    case F::uint2: return ScatterSource{S::Uint32, 2};
+    case F::uint3: return ScatterSource{S::Uint32, 3};
+    case F::uint4: return ScatterSource{S::Uint32, 4};
+    case F::sint1: return ScatterSource{S::Sint32, 1};
+    case F::sint2: return ScatterSource{S::Sint32, 2};
+    case F::sint3: return ScatterSource{S::Sint32, 3};
+    case F::sint4: return ScatterSource{S::Sint32, 4};
+    default: return std::nullopt;
+  }
+}
+
+//! The scatter destination for a declared attribute type; nullopt for a
+//! type that is not a float / int / uint scalar or vector.
+static std::optional<GPUBufferScatter::DestinationKind>
+scatterDestination(std::string_view type) noexcept
+{
+  using D = GPUBufferScatter::DestinationKind;
+  if(isFloatType(type))
+    return D::Float;
+  if(type == "uint" || type == "uvec2" || type == "uvec3" || type == "uvec4")
+    return D::Uint;
+  if(type == "int" || type == "ivec2" || type == "ivec3" || type == "ivec4")
+    return D::Int;
+  return std::nullopt;
+}
+
+//! Whether the attribute's bits differ from what the declared type reads: a
+//! byte, half or integer attribute declared vec*, a float one declared ivec*.
+static bool scatterConverts(
+    const ScatterSource& src, GPUBufferScatter::DestinationKind dst) noexcept
+{
+  using S = GPUBufferScatter::SourceFormat;
+  using D = GPUBufferScatter::DestinationKind;
+  return !(
+      (src.format == S::Float32 && dst == D::Float)
+      || (src.format == S::Uint32 && dst == D::Uint)
+      || (src.format == S::Sint32 && dst == D::Int));
+}
+
 void RenderedCSFNode::bindInputSampler(std::size_t samplerIndex, QRhiTexture* t)
 {
   if(samplerIndex >= m_inputSamplers.size())
@@ -1918,14 +1983,19 @@ void RenderedCSFNode::updateGeometryBindings(
         if(auto* gpu = ossia::get_if<ossia::geometry::gpu_buffer>(&geo_buf.data))
         {
           const int elem_size = glslTypeSizeBytes(req.type, n.m_descriptor);
-          // Float data whose elements are not csf_elem_stride apart (a tightly
-          // packed float3, an interleaved buffer) is repacked on the GPU.
+          // Data whose elements are not csf_elem_stride apart (a tightly
+          // packed float3, an interleaved buffer), or not stored as the
+          // declared type reads it (bytes, halves, integers declared vec*:
+          // shader board C40), is repacked on the GPU.
           const int src_stride = stride != 0 ? stride : attr_size;
           const int64_t src_offset = input_byte_offset + geo_attr->byte_offset;
-          const bool repack = src_stride != (int)csf_elem_stride
-                              && isFloatAttribute(*geo_attr) && isFloatType(req.type);
-          if(repack && gpu->handle && m_gpuScatterAvailable && src_stride % 4 == 0
-             && src_offset % 4 == 0
+          const auto scatter_src = scatterSource(*geo_attr);
+          const auto scatter_dst = scatterDestination(req.type);
+          const bool converts
+              = scatter_src && scatter_dst && scatterConverts(*scatter_src, *scatter_dst);
+          const bool repack = scatter_src && scatter_dst
+                              && (src_stride != (int)csf_elem_stride || converts);
+          if(repack && gpu->handle && m_gpuScatterAvailable && src_offset >= 0
              && (static_cast<QRhiBuffer*>(gpu->handle)->usage() & QRhiBuffer::StorageBuffer))
           {
             if(binding.is_feedback_receiver && req.access == "read_write")
@@ -1973,11 +2043,13 @@ void RenderedCSFNode::updateGeometryBindings(
                 .staging = rhi_buf,
                 .output = ssbo.buffer,
                 .element_count = (uint32_t)std::min<int64_t>(count, available),
-                .src_components = (uint32_t)(attr_size / sizeof(float)),
+                .src_components = scatter_src->components,
                 .dst_components = (uint32_t)(elem_size / sizeof(float)),
-                .src_stride_floats = (uint32_t)(src_stride / sizeof(float)),
-                .src_offset_floats = (uint32_t)(src_offset / sizeof(float)),
+                .src_stride_bytes = (uint32_t)src_stride,
+                .src_offset_bytes = (uint32_t)src_offset,
                 .dst_stride_floats = (uint32_t)(csf_elem_stride / sizeof(float)),
+                .src_format = scatter_src->format,
+                .dst_kind = *scatter_dst,
             };
             if(!ssbo.scatterOp.srb)
               ssbo.scatterOp = m_gpuScatter.prepare(*renderer.state.rhi, ssbo.scatterParams);
@@ -2072,9 +2144,9 @@ void RenderedCSFNode::updateGeometryBindings(
             ssbo.offset = region_offset;
             continue;
           }
-          // A non-float format at another stride, or a source the repack
-          // cannot read (not a storage buffer, unaligned, no compute): read as
-          // zeros, one per element, rather than bound misaligned.
+          // A format the repack has no decoder for, or a source it cannot read
+          // (not a storage buffer, no compute): read as zeros, one per
+          // element, rather than bound misaligned.
           qWarning() << "CSF geometry: cannot repack the GPU attribute"
                       << req.name.c_str()
                       << "(upstream_size=" << attr_size << "shader_size=" << elem_size
@@ -2170,7 +2242,30 @@ void RenderedCSFNode::updateGeometryBindings(
           // be std430-strided (16 bytes per element) — a tightly-packed
           // upstream vec3 (stride 12) routes through scatter so the
           // destination's 4-byte trailing padding stays zeroed.
-          if(is_soa && (int64_t)stride == elem_stride)
+          // Bytes, halves or integers declared vec* (or the reverse) are
+          // decoded by the scatter, never uploaded as is (C40). A layout it
+          // cannot decode keeps the float-word copy.
+          const auto scatter_src = scatterSource(*geo_attr);
+          const auto scatter_dst = scatterDestination(req.type);
+          const bool converts
+              = scatter_src && scatter_dst && scatterConverts(*scatter_src, *scatter_dst);
+          const int src_stride = stride != 0 ? stride : attr_size;
+          const GPUBufferScatter::Params cpuScatter{
+              .element_count = (uint32_t)data_count,
+              .src_components = scatter_src && scatter_dst
+                                    ? scatter_src->components
+                                    : (uint32_t)(attr_size / sizeof(float)),
+              .dst_components = (uint32_t)(elem_size / sizeof(float)),
+              .src_stride_bytes = (uint32_t)src_stride,
+              .src_offset_bytes = (uint32_t)base_offset,
+              .dst_stride_floats = (uint32_t)(elem_stride / sizeof(float)),
+              .src_format = scatter_src && scatter_dst
+                                ? scatter_src->format
+                                : GPUBufferScatter::SourceFormat::Float32,
+              .dst_kind = scatter_dst.value_or(GPUBufferScatter::DestinationKind::Float),
+          };
+
+          if(is_soa && (int64_t)stride == elem_stride && !converts)
           {
             // SoA CPU buffer with matching stride: upload directly
             const int64_t upload_size = std::min(needed, cpu->byte_size - base_offset);
@@ -2181,7 +2276,7 @@ void RenderedCSFNode::updateGeometryBindings(
           {
             // GPU scatter: upload raw data to staging SSBO, dispatch compute to convert.
             // This avoids expensive per-element CPU memcpy for large point clouds.
-            const int64_t raw_size = (int64_t)data_count * stride;
+            const int64_t raw_size = (int64_t)data_count * src_stride;
             const int64_t staging_needed = base_offset + raw_size;
 
             if(!ssbo.scatterStaging || ssbo.scatterStagingSize < staging_needed)
@@ -2201,16 +2296,9 @@ void RenderedCSFNode::updateGeometryBindings(
             // The scatter compute lays out destination elements elem_stride
             // apart: for vec3 in std430 that is 12 bytes of data inside the
             // 16-byte stride.
-            ssbo.scatterParams = GPUBufferScatter::Params{
-                .staging = ssbo.scatterStaging,
-                .output = ssbo.buffer,
-                .element_count = (uint32_t)data_count,
-                .src_components = (uint32_t)(attr_size / sizeof(float)),
-                .dst_components = (uint32_t)(elem_size / sizeof(float)),
-                .src_stride_floats = (uint32_t)(stride / sizeof(float)),
-                .src_offset_floats = (uint32_t)(base_offset / sizeof(float)),
-                .dst_stride_floats = (uint32_t)(elem_stride / sizeof(float)),
-            };
+            ssbo.scatterParams = cpuScatter;
+            ssbo.scatterParams.staging = ssbo.scatterStaging;
+            ssbo.scatterParams.output = ssbo.buffer;
 
             if(!ssbo.scatterOp.srb)
               ssbo.scatterOp = m_gpuScatter.prepare(*renderer.state.rhi, ssbo.scatterParams);
@@ -2219,27 +2307,12 @@ void RenderedCSFNode::updateGeometryBindings(
           }
           else
           {
-            // CPU fallback: scatter per-element with format conversion
-            // (used when compute shaders are not available). Destination
-            // slots are elem_stride bytes apart; the first elem_size bytes
-            // hold the data, any trailing std430 padding stays zero.
+            // CPU fallback (no compute shaders): the same decoding as the
+            // scatter shader. Destination slots are elem_stride bytes apart;
+            // any trailing std430 padding stays zero.
             QByteArray scattered(needed, 0);
-
-            if(elem_size > attr_size && elem_size >= (int)sizeof(float))
-            {
-              const float one = 1.0f;
-              for(int i = 0; i < data_count; i++)
-                std::memcpy(scattered.data() + (int64_t)i * elem_stride + elem_size - sizeof(float),
-                            &one, sizeof(float));
-            }
-
-            const int copy_size = std::min((int)elem_size, attr_size);
-            for(int i = 0; i < data_count; i++)
-            {
-              const int64_t src_off = (int64_t)i * stride + base_offset;
-              if(src_off + copy_size <= cpu->byte_size)
-                std::memcpy(scattered.data() + (int64_t)i * elem_stride, src + src_off, copy_size);
-            }
+            GPUBufferScatter::scatterOnCpu(
+                cpuScatter, src, cpu->byte_size, scattered.data(), needed);
             res.uploadStaticBuffer(ssbo.buffer, 0, needed, scattered.constData());
           }
           ssbo.lastUploadSrc = src;
