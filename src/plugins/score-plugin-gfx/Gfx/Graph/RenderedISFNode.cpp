@@ -35,6 +35,15 @@ static QRhiTexture::Format passTextureFormat(const isf::pass& pass)
 }
 
 RenderedISFNode::~RenderedISFNode() { }
+
+int RenderedISFNode::blittedEdges() const noexcept
+{
+  const auto passCount = n.descriptor().passes.size();
+  int count = 0;
+  for(const auto& [edge, passes] : m_passes)
+    count += passes.passes.size() > passCount;
+  return count;
+}
 PassOutput RenderedISFNode::initPassSampler(
     ISFNode& n, const isf::pass& pass, int passIndex, RenderList& renderer,
     QSize mainTexSize, QRhiResourceUpdateBatch& res)
@@ -511,9 +520,11 @@ void RenderedISFNode::initPasses(
   SCORE_ASSERT(model_passes.size() > 0);
 
   // A non-persistent last pass renders straight into the provided render
-  // target, unless one of its settings differs from it: its own size, format
-  // or filter then take an own target, blitted into the destination like a
-  // persistent last pass (shader board F05).
+  // target, unless its own size or FORMAT differs from it: it then takes an
+  // own target, blitted into the destination like a persistent last pass
+  // (shader board F05). FLOAT alone and FILTER at the destination's size
+  // change nothing in the pixels of one draw, and do not cost a target and a
+  // blit.
   const auto& lastModel = model_passes.back();
   bool lastPassDirect = !lastModel.persistent;
   if(lastPassDirect)
@@ -523,9 +534,8 @@ void RenderedISFNode::initPasses(
     if(!lastModel.width_expression.empty() || !lastModel.height_expression.empty())
       lastPassDirect
           &= n.computeTextureSize(lastModel, mainTexSize, m_inputSamplers) == rtSize;
-    if(!lastModel.format.empty() || lastModel.float_storage)
+    if(!lastModel.format.empty())
       lastPassDirect &= passTextureFormat(lastModel) == rtFormat;
-    lastPassDirect &= !lastModel.nearest_filter;
   }
 
   for(auto& pass : model_passes)

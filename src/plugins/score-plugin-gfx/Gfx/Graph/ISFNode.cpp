@@ -627,8 +627,20 @@ score::gfx::NodeRenderer* ISFNode::createRenderer(RenderList& r) const noexcept
     case isf::descriptor::ISF:
       switch(this->m_descriptor.passes.size())
       {
-        case 1:
-          if(!this->m_descriptor.passes[0].persistent)
+        case 1: {
+          // A pass that declares its own size or format needs its own target,
+          // which only the multipass renderer allocates (shader board F04: the
+          // simple renderer drew into the destination regardless). FLOAT and
+          // FILTER alone do not: one draw at the destination's size gives the
+          // same pixels into the destination as into a float or nearest target
+          // blitted at 1:1. MRT OUTPUTS stay on the simple renderer, which
+          // sizes them itself.
+          const auto& pass = this->m_descriptor.passes[0];
+          const bool ownTarget
+              = this->m_descriptor.outputs.empty()
+                && (!pass.width_expression.empty() || !pass.height_expression.empty()
+                    || !pass.format.empty());
+          if(!pass.persistent && !ownTarget)
           {
             return new SimpleRenderedISFNode{*this};
           }
@@ -637,6 +649,7 @@ score::gfx::NodeRenderer* ISFNode::createRenderer(RenderList& r) const noexcept
             return new RenderedISFNode{*this};
           }
           break;
+        }
         default: {
           return new RenderedISFNode{*this};
           break;

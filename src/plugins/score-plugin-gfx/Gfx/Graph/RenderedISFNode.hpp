@@ -18,7 +18,7 @@ persistentTextureIndex(int writerPass, int readerPass, int frameParity) noexcept
   return writerPass < readerPass ? frameParity : 1 - frameParity;
 }
 
-struct RenderedISFNode : score::gfx::NodeRenderer
+struct SCORE_PLUGIN_GFX_EXPORT RenderedISFNode : score::gfx::NodeRenderer
 {
   explicit RenderedISFNode(const ISFNode& node) noexcept;
 
@@ -47,6 +47,10 @@ struct RenderedISFNode : score::gfx::NodeRenderer
   void runRenderPass(RenderList&, QRhiCommandBuffer& commands, Edge& edge) override;
 
   QRhiGraphicsPipeline::CompareOp depthCompare() const noexcept override;
+
+  //! How many output edges draw the last pass into its own target and blit
+  //! it, rather than straight into the destination. For tests.
+  int blittedEdges() const noexcept;
 
 private:
   std::pair<Pass, Pass> createPass(
