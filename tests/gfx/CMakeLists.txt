@@ -2176,3 +2176,4 @@ score_add_gfx_test(isf_img_pixel GfxIsfImgPixel.cpp)
 # A CSF storage image is allocated in the format its FORMAT qualifier names.
 score_add_gfx_test(csf_image_format GfxCsfImageFormat.cpp)
 score_add_gfx_test(library_parse GfxLibraryParse.cpp)
+score_add_gfx_test(shader_include_invalidation GfxShaderIncludeInvalidation.cpp)

@@ -9,6 +9,7 @@
 
 #include <QDebug>
 #include <QObject>
+#include <QDateTime>
 #include <QString>
 #include <QtGui/private/qshader_p.h>
 
@@ -239,6 +240,16 @@ struct SCORE_PLUGIN_GFX_EXPORT ProgramCache
   get(const ShaderSource& program, const QString& originPath = {}) noexcept;
 
   ossia::hash_map<ProgramCacheKey, ProcessedProgram> programs;
+  //! The files each cached program #included, with the modification time
+  //! and size they had: a hit whose includes changed on disk is rebuilt
+  //! (shader board U52).
+  struct IncludedFile
+  {
+    QString path;
+    QDateTime modified;
+    qint64 size{};
+  };
+  ossia::hash_map<ProgramCacheKey, std::vector<IncludedFile>> includes;
 };
 
 }

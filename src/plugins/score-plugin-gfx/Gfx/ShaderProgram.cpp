@@ -184,6 +184,7 @@ struct IncludeContext
   int maxDepth = 16;
   QString error;             // first fatal error encountered
   QStringList missing;       // unresolved headers, for diagnostics
+  QStringList included;      // every file read, both stages
 };
 
 static void removeIncludesInComments(QByteArray& data);
@@ -244,6 +245,7 @@ static QByteArray expandFile(
     return {};
   }
 
+  ctx.included.push_back(canonicalPath);
   QFile f{canonicalPath};
   if(!f.open(QIODevice::ReadOnly))
   {
@@ -498,7 +500,23 @@ ProgramCache::get(const ShaderSource& program, const QString& originPath) noexce
 
   auto it = programs.find(cacheKey);
   if(it != programs.end())
-    return {it->second, QString{}};
+  {
+    bool includesChanged = false;
+    if(auto inc = includes.find(cacheKey); inc != includes.end())
+      for(const auto& file : inc->second)
+      {
+        const QFileInfo fi{file.path};
+        if(!fi.exists() || fi.lastModified() != file.modified || fi.size() != file.size)
+        {
+          includesChanged = true;
+          break;
+        }
+      }
+    if(!includesChanged)
+      return {it->second, QString{}};
+    programs.erase(it);
+    includes.erase(cacheKey);
+  }
 
   try
   {
@@ -590,6 +608,13 @@ ProgramCache::get(const ShaderSource& program, const QString& originPath) noexce
           if(vertexS.isValid() && fragmentS.isValid())
           {
             programs[cacheKey] = processed;
+            auto& files = includes[cacheKey];
+            files.clear();
+            for(const QString& path : ctx.included)
+            {
+              const QFileInfo fi{path};
+              files.push_back({path, fi.lastModified(), fi.size()});
+            }
             return {processed, {}};
           }
         }
