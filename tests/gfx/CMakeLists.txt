@@ -2155,6 +2155,7 @@ score_add_gfx_test(csf_uniform_binding GfxCsfUniformBinding.cpp)
 # the device: the pass runs its WORKGROUPS ceiling.
 score_add_gfx_test(csf_indirect_dispatch_bounds GfxCsfIndirectDispatchBounds.cpp)
 score_add_gfx_test(csf_indirect_numworkgroups GfxCsfIndirectNumWorkGroups.cpp)
+score_add_gfx_test(csf_count_expression GfxCsfCountExpression.cpp)
 
 # CSF dispatch sizing in 64-bit: workgroup size times stride past int.
 score_add_gfx_test(csf_dispatch_size GfxCsfDispatchSize.cpp)

@@ -1086,39 +1086,48 @@ void RenderedCSFNode::registerCommonExpressionVariables(
   // top-level output-side re-registration is suppressed: `$COUNT_scene_lights`
   // means the upstream count, not the size of the buffer about to be overwritten.
   //
-  // For a UBO, COUNT is 1 and BYTESIZE the struct size. For an SSBO with a
-  // flexible array, stride comes from calculateStorageBufferSize(layout, 1) minus
-  // calculateStorageBufferSize(layout, 0) and COUNT is the element count;
-  // without one, COUNT is 1.
+  // $COUNT is the element count of the buffer's trailing array member, the
+  // array a buffer holds: for a flexible array (`T[]`) the elements its
+  // allocation holds, stride from calculateStorageBufferSize(layout, 1) minus
+  // calculateStorageBufferSize(layout, 0); for a fixed one the product of its
+  // extents. A layout that ends in no array is one element. UBOs and SSBOs
+  // alike (shader board C25). It is a capacity: the CPU does not know how many
+  // elements a shader has written. $BYTESIZE is the allocation's byte size.
   {
     ossia::hash_set<std::string> registered;
     const auto& eff_desc = n.descriptor();
 
-    auto register_buffer
-        = [&](const std::string& name, int64_t byte_size, bool is_uniform,
-              std::span<const isf::storage_input::layout_field> layout) {
+    auto register_buffer = [&](const std::string& name, int64_t byte_size,
+                               bool is_uniform, const auto& layout) {
       if(name.empty() || registered.contains(name))
         return;
       int64_t element_count = 1;
-      if(is_uniform)
+      const auto trailing = std::empty(layout)
+                                ? isf::array_type{}
+                                : isf::parse_array_type(std::rbegin(layout)->type);
+      if(!trailing.extents.empty() && trailing.extents.front() == 0 && !is_uniform)
       {
-        // UBO: single struct. $COUNT = 1, $BYTESIZE = struct size.
+        if constexpr(requires {
+                       score::gfx::calculateStorageBufferSize(layout, 0, eff_desc);
+                     })
+        {
+          const int64_t fixed_part
+              = score::gfx::calculateStorageBufferSize(layout, 0, eff_desc);
+          const int64_t with_one
+              = score::gfx::calculateStorageBufferSize(layout, 1, eff_desc);
+          const int64_t stride = with_one - fixed_part;
+          if(stride > 0 && byte_size > fixed_part)
+            element_count = (byte_size - fixed_part) / stride;
+        }
+      }
+      else if(!trailing.extents.empty())
+      {
+        for(const int64_t extent : trailing.extents)
+          if(extent > 0)
+            element_count *= extent;
+      }
+      if(element_count < 1)
         element_count = 1;
-      }
-      else
-      {
-        const int64_t fixed_part
-            = score::gfx::calculateStorageBufferSize(layout, 0, eff_desc);
-        const int64_t with_one
-            = score::gfx::calculateStorageBufferSize(layout, 1, eff_desc);
-        const int64_t stride = with_one - fixed_part;
-        if(stride > 0 && byte_size > fixed_part)
-          element_count = (byte_size - fixed_part) / stride;
-        else
-          element_count = 1;
-        if(element_count < 1)
-          element_count = 1;
-      }
       e.add_constant(
           fmt::format("var_COUNT_{}", name),
           data.emplace_back((double)element_count));
@@ -1158,6 +1167,13 @@ void RenderedCSFNode::registerCommonExpressionVariables(
       }
       register_buffer(sb.name.toStdString(), sb.size, is_uniform, sb.layout);
     }
+
+    // Top-level uniform blocks (TYPE "uniform"): not storage buffers.
+    for(const auto& inp : eff_desc.inputs)
+      if(auto* ub = ossia::get_if<isf::uniform_input>(&inp.data))
+        register_buffer(
+            inp.name, score::gfx::calculateUniformBlockSize(ub->layout, 0, eff_desc),
+            true, ub->layout);
 
     auto register_pending = [&](const isf::geometry_input::auxiliary_request& aux) {
       if(aux.access == "read_only")
