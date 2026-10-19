@@ -343,11 +343,8 @@ void ProcessNode::process(int32_t port, const ossia::audio_vector& v)
 
   tex.channels = v.size();
   tex.data.clear();
-  // if(tex.fixedSize)
-  {
-      // TODO
-
-  } // else
+  // Full resolution: the upload caps the texture at the input's MAX
+  // (AudioTextureUpload, fixedSize).
   {
     tex.data.resize(v.size() * v[0].size());
 

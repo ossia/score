@@ -136,3 +136,45 @@ TEST_CASE(
   CHECK(one.litRows <= frames);
   CHECK(two.litRows == one.litRows);
 }
+
+// An audio input's MAX caps the texture width: a waveform is resampled to MAX
+// samples, a spectrum averages its bins into MAX. MAX was parsed and ignored
+// (shader board U40).
+TEST_CASE("ISF audio MAX caps the audio texture width", "[gfx][isf][audio][U40]")
+{
+  const auto backend = GENERATE(from_range(platform_backends()));
+  struct Case
+  {
+    const char* shader;
+    int max;
+  };
+  const auto c = GENERATE(Case{"isf-audio-wave-max.fs", 64}, Case{"isf-audio-fft-max.fs", 16});
+  CAPTURE(backend_name(backend), c.shader);
+
+  IsfResult r;
+  score::test::run_in_gui_app([&](const score::GUIApplicationContext&) {
+    r = render_isf_audio(
+        backend, corpus(c.shader), 0, const_audio(1.0, 441), {}, {512, 2}, 3);
+  });
+  if(r.skipped)
+    SKIP(r.backend + ": " + r.skip_reason);
+  REQUIRE(r.error.empty());
+  REQUIRE(r.outputs.size() == 1);
+  const ReadbackImage& img = r.outputs[0];
+
+  int width = 0, saturated = 0;
+  for(int x = 0; x < img.width; ++x)
+  {
+    const auto px = img.at(x, 0);
+    if(px[2] > 127)
+    {
+      width++;
+      saturated += px[0] > 250;
+    }
+  }
+  CHECK(width == c.max);
+  // A constant 1.0 waveform resamples to 1.0 in every column (stored as
+  // 0.5 + v / 2).
+  if(c.max == 64)
+    CHECK(saturated == width);
+}

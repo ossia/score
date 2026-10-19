@@ -57,6 +57,8 @@ private:
   ossia::fft_complex* executeFFT(const float* samples, std::size_t count);
 
   std::vector<float> m_scratchpad;
+  //! One channel's full-resolution spectrum, before MAX averages its bins.
+  std::vector<float> m_binRow;
   std::vector<float> m_fftInput;
   ossia::hash_map<const AudioTexture*, std::vector<float>> m_histograms;
   ossia::hash_map<const AudioTexture*, int64_t> m_uploadedFrame;

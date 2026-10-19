@@ -1228,6 +1228,52 @@ AudioTextureUpload::executeFFT(const float* samples, std::size_t count)
   return m_fft.execute(m_fftInput.data(), n);
 }
 
+// An audio input's MAX caps its texture width (shader board U40): a waveform
+// is resampled to that many samples, a spectrum averages its bins into that
+// many. A smaller natural width is kept as is.
+static int audioTextureWidth(int natural, int max) noexcept
+{
+  return max > 0 ? std::max(1, std::min(natural, max)) : std::max(1, natural);
+}
+
+// Linear resampling of n values onto m (m <= n), at the m bucket centres.
+static void resampleLinear(const float* in, int n, float* out, int m) noexcept
+{
+  if(m == n)
+  {
+    std::copy_n(in, n, out);
+    return;
+  }
+  const double step = double(n) / m;
+  for(int i = 0; i < m; i++)
+  {
+    const double x = std::clamp((i + 0.5) * step - 0.5, 0., double(n - 1));
+    const int i0 = int(x);
+    const int i1 = std::min(i0 + 1, n - 1);
+    const float t = float(x - i0);
+    out[i] = in[i0] * (1.f - t) + in[i1] * t;
+  }
+}
+
+// n spectrum bins averaged into m (m <= n) contiguous groups.
+static void averageBins(const float* in, int n, float* out, int m) noexcept
+{
+  if(m == n)
+  {
+    std::copy_n(in, n, out);
+    return;
+  }
+  for(int i = 0; i < m; i++)
+  {
+    const int b0 = int(int64_t(i) * n / m);
+    const int b1 = std::max(b0 + 1, int(int64_t(i + 1) * n / m));
+    float sum = 0.f;
+    for(int b = b0; b < b1; b++)
+      sum += in[b];
+    out[i] = sum / float(b1 - b0);
+  }
+}
+
 void AudioTextureUpload::process(
     AudioTexture& audio, QRhiResourceUpdateBatch& res, QRhiTexture* rhiTexture)
 {
@@ -1248,21 +1294,26 @@ void AudioTextureUpload::process(
 void AudioTextureUpload::processTemporal(
     AudioTexture& audio, QRhiResourceUpdateBatch& res, QRhiTexture* rhiTexture)
 {
-  if(m_scratchpad.size() < audio.data.size())
-    m_scratchpad.resize(audio.data.size());
-  for(std::size_t i = 0; i < audio.data.size(); i++)
-  {
-    m_scratchpad[i] = 0.5f + audio.data[i] / 2.f;
-  }
+  if(audio.channels <= 0)
+    return;
+  const int samples = int(audio.data.size()) / audio.channels;
+  const int width = rhiTexture->pixelSize().width();
+  if(width > samples || width <= 0)
+    return;
+  const std::size_t count = std::size_t(width) * audio.channels;
+  if(m_scratchpad.size() < count)
+    m_scratchpad.resize(count);
+  for(int c = 0; c < audio.channels; c++)
+    resampleLinear(
+        audio.data.data() + std::size_t(c) * samples, samples,
+        m_scratchpad.data() + std::size_t(c) * width, width);
+  for(std::size_t i = 0; i < count; i++)
+    m_scratchpad[i] = 0.5f + m_scratchpad[i] / 2.f;
 
-  // Copy it. Texture layout is samples × channels (width × height).
+  // Texture layout is samples x channels (width x height).
   QRhiTextureSubresourceUploadDescription subdesc(
-      m_scratchpad.data(), audio.data.size() * sizeof(float));
-  if(audio.channels > 0)
-  {
-    const int samples_per_channel = int(audio.data.size()) / audio.channels;
-    subdesc.setSourceSize(QSize(samples_per_channel, audio.channels));
-  }
+      m_scratchpad.data(), count * sizeof(float));
+  subdesc.setSourceSize(QSize(width, audio.channels));
   QRhiTextureUploadEntry entry{0, 0, subdesc};
   QRhiTextureUploadDescription desc{entry};
   res.uploadTexture(rhiTexture, desc);
@@ -1281,12 +1332,14 @@ void AudioTextureUpload::processHistogram(
   std::size_t fftSize = AudioTextureUpload::fftSize(audioInputBufferSize) / 2 - 2;
   if(fftSize == 0)
     return;
+  const std::size_t width
+      = std::min<std::size_t>(fftSize, std::max(1, rhiTexture->pixelSize().width()));
   auto& history = m_histograms[&audio];
-  if(history.size() != 240 * fftSize)
-    history.assign(240 * fftSize, 0.f);
+  if(history.size() != 240 * width)
+    history.assign(240 * width, 0.f);
 
-  // 1. Rotate the history by one row (fftSize)
-  std::rotate(history.begin(), history.end() - fftSize, history.end());
+  // 1. Rotate the history by one row
+  std::rotate(history.begin(), history.end() - width, history.end());
 
   {
     const float dbmax = 0.f;
@@ -1323,7 +1376,8 @@ void AudioTextureUpload::processHistogram(
       // coefficient is nyquist. Skip both.
       auto spectrum = executeFFT(windowed, audioInputBufferSize);
 
-      float* outputSpectrum = history.data();
+      m_binRow.resize(fftSize);
+      float* outputSpectrum = m_binRow.data();
 
       // Fill all fftSize slots of the new row: bounds of k=1..fftSize-1 would
       // leave the last two pixels holding a 240-frame-old row's data.
@@ -1342,13 +1396,14 @@ void AudioTextureUpload::processHistogram(
         // R32F texture with values scaled to [0; 1]
         outputSpectrum[k] = std::clamp(magnitude_byte, 0.f, 255.f) / 255.f;
       }
+      averageBins(outputSpectrum, (int)fftSize, history.data(), (int)width);
     }
   }
   // Copy it. setSourceSize makes the row pitch explicit, as processSpectral
   // also does.
   QRhiTextureSubresourceUploadDescription subdesc(
       history.data(), history.size() * sizeof(float));
-  subdesc.setSourceSize(QSize((int)fftSize, 240));
+  subdesc.setSourceSize(QSize((int)width, 240));
   QRhiTextureUploadEntry entry{0, 0, subdesc};
   QRhiTextureUploadDescription desc{entry};
   res.uploadTexture(rhiTexture, desc);
@@ -1359,10 +1414,13 @@ void AudioTextureUpload::processSpectral(
 {
   std::size_t audioBufferSize = audio.data.size() / audio.channels;
   std::size_t fftSize = AudioTextureUpload::fftSize(audioBufferSize) / 2;
-  std::size_t outputSize = fftSize * audio.channels;
+  const std::size_t width
+      = std::min<std::size_t>(fftSize, std::max(1, rhiTexture->pixelSize().width()));
+  std::size_t outputSize = width * audio.channels;
 
   if(m_scratchpad.size() < outputSize)
     m_scratchpad.resize(outputSize);
+  m_binRow.resize(fftSize);
 
   const float norm = 1. / (2. * audioBufferSize);
   for(int i = 0; i < audio.channels; i++)
@@ -1370,7 +1428,7 @@ void AudioTextureUpload::processSpectral(
     const float* inputData = audio.data.data() + i * audioBufferSize;
     auto spectrum = executeFFT(inputData, audioBufferSize);
 
-    float* outputSpectrum = m_scratchpad.data() + i * fftSize;
+    float* outputSpectrum = m_binRow.data();
     for(std::size_t k = 0; k < fftSize; k++)
     {
       outputSpectrum[k]
@@ -1379,12 +1437,14 @@ void AudioTextureUpload::processSpectral(
                 spectrum[k][0] * spectrum[k][0] + spectrum[k][1] * spectrum[k][1])
             * norm;
     }
+    averageBins(
+        outputSpectrum, (int)fftSize, m_scratchpad.data() + i * width, (int)width);
   }
 
   // Copy it
   QRhiTextureSubresourceUploadDescription subdesc(
       m_scratchpad.data(), outputSize * sizeof(float));
-  subdesc.setSourceSize(QSize(fftSize, audio.channels));
+  subdesc.setSourceSize(QSize(width, audio.channels));
 
   QRhiTextureUploadEntry entry{0, 0, subdesc};
   QRhiTextureUploadDescription desc{entry};
@@ -1420,14 +1480,16 @@ std::optional<Sampler> AudioTextureUpload::updateAudioTexture(
     switch(audio.mode)
     {
       case AudioTexture::Mode::Waveform:
-        desired = {samples, audio.channels};
+        desired = {audioTextureWidth(samples, audio.fixedSize), audio.channels};
         break;
       case AudioTexture::Mode::FFT:
-        desired = {std::max(1, int(fftSize(samples)) / 2), audio.channels};
+        desired = {
+            audioTextureWidth(int(fftSize(samples)) / 2, audio.fixedSize),
+            audio.channels};
         break;
       case AudioTexture::Mode::Histogram:
         // Histogram is a scrolling spectrogram: rows = frames of FFT history.
-        desired = {std::max(1, int(fftSize(samples)) / 2 - 2), 240};
+        desired = {audioTextureWidth(int(fftSize(samples)) / 2 - 2, audio.fixedSize), 240};
         break;
     }
   }
