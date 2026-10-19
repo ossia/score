@@ -36,6 +36,7 @@
 #include <Gfx/Graph/ScenePreprocessorNode.hpp>
 
 #include <ossia/dataflow/geometry_port.hpp>
+#include <ossia/detail/hash.hpp>
 
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/generators/catch_generators.hpp>
@@ -1025,6 +1026,99 @@ TEST_CASE(
   CHECK(u1.meta >= u0.meta + 4);
   CHECK(u2.rows == u1.rows);
   CHECK(u2.meta == u1.meta);
+}
+
+// A draw command's baseInstance is its first instance slot, not its draw
+// index: they part ways after an instanced draw. The library's scene filters
+// read per_draws[baseInstance], so every draw after an instanced one was
+// judged on another draw's record (shader board P09). Library
+// scene_filter_transform keeps draws whose world origin is 500..5000 from the
+// camera, on [an instanced quad at the origin, drawn on the left, three
+// instances; an instanced quad 1000 away, drawn on the right, one instance]:
+// only the right half may be drawn. The second draw's baseInstance is 3, past
+// the end of per_draws.
+TEST_CASE(
+    "a library scene filter judges each draw on its own per_draws record",
+    "[gfx][scene][scene-filter][P09]")
+{
+  const auto api = GENERATE(from_range(platform_backends()));
+  CAPTURE(backend_name(api));
+  const QString rel = QStringLiteral("presets/filters/scene_filter_transform.csf");
+  const QString filterPath = library::find(rel);
+  if(filterPath.isEmpty())
+    SKIP(library::skip_reason(rel));
+  QTemporaryDir dir;
+  REQUIRE(dir.isValid());
+  const QString vs = writeText(dir, "scenepp_p09.vert", kVert);
+  const QString fs = writeText(dir, "scenepp_p09.frag", kSolidFrag);
+
+  auto instanced = [](ossia::mesh_component_ptr proto, uint32_t count) {
+    auto inst = std::make_shared<ossia::instance_component>();
+    inst->prototype = std::move(proto);
+    inst->instance_count = count;
+    inst->transform_type = ossia::instance_component::transform_format::translation;
+    inst->instance_transforms = cpuBuffer(
+        std::vector<float>(3 * count, 0.f), ossia::buffer_data::usage::storage_buffer);
+    inst->dirty_index = 1;
+    return ossia::instance_component_ptr{inst};
+  };
+  auto placed = [](ossia::scene_payload payload, float x, uint64_t id) {
+    ossia::scene_transform t;
+    t.translation[0] = x;
+    auto children = std::make_shared<std::vector<ossia::scene_payload>>();
+    children->push_back(t);
+    children->push_back(std::move(payload));
+    auto n = std::make_shared<ossia::scene_node>();
+    n->id.value = id;
+    n->children = std::move(children);
+    return ossia::scene_node_ptr{n};
+  };
+  auto st = stateWith(
+      {placed(instanced(quad(-1.f, 0.f, 0xF1A0091u), 3), 0.f, 91),
+       placed(instanced(quad(0.f, 1.f, 0xF1A0092u), 1), 1000.f, 92)});
+
+  Result r;
+  score::test::run_in_gui_app([&](const score::GUIApplicationContext& ctx) {
+    library::RootGuard root{ctx};
+    GfxPipeline p;
+    const int hn = p.addNode(std::make_unique<StaticSceneNode>(st));
+    const int flat = p.addNode(std::make_unique<score::gfx::ScenePreprocessorNode>());
+    const int filter = p.addCsf(filterPath);
+    const int raster = p.addRaster(vs, fs);
+    if(hn < 0 || flat < 0 || filter < 0 || raster < 0)
+    {
+      r.err = "chain build failed: " + p.error();
+      return;
+    }
+    p.wire(p.nodeSceneOut(hn, 0), p.nodeSceneIn(flat, 0));
+    p.wire(p.nodeGeometryOut(flat, 0), p.geometryIn(filter, 0));
+    p.wire(p.geometryOut(filter, 0), p.geometryIn(raster, 0));
+    const int sink = p.addSink({kSize, kSize});
+    p.wire(p.imageOut(raster, 0), p.sinkInput(sink));
+    if(!p.create(api))
+    {
+      r.skipped = p.skipped();
+      r.err = r.skipped ? std::string{} : p.error();
+      return;
+    }
+    auto& f = *p.isf(filter);
+    setControl(f, nth_control_input(f, 0), ossia::value{0});      // mode: distance band
+    setControl(f, nth_control_input(f, 1), ossia::value{500.f});  // nearDistance
+    setControl(f, nth_control_input(f, 2), ossia::value{5000.f}); // farDistance
+    p.render(5);
+    r.img = p.readback(sink);
+  });
+  if(r.skipped)
+    SKIP("backend unavailable");
+  if(const char* why = compute_shader_skip_reason(api))
+    SKIP(why);
+  REQUIRE(r.err.empty());
+  REQUIRE(r.img.valid());
+  const auto left = r.img.at(kSize / 4, kSize / 2);
+  const auto right = r.img.at(3 * kSize / 4, kSize / 2);
+  INFO("left " << scene::rgba_string(left) << " right " << scene::rgba_string(right));
+  CHECK(right[0] > 200);
+  CHECK(left[0] < 32);
 }
 
 // A primitive cloud whose rows live in a GPU buffer: its range of raw_splats
