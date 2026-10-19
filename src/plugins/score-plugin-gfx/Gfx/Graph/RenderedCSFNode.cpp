@@ -1082,9 +1082,11 @@ void RenderedCSFNode::registerCommonExpressionVariables(
   // the node binds, input or output, so SIZE / TARGET / WIDTH / HEIGHT
   // expressions can size themselves to upstream extents by name.
   //
-  // On a name collision the nested input-side binding is registered first and the
-  // top-level output-side re-registration is suppressed: `$COUNT_scene_lights`
-  // means the upstream count, not the size of the buffer about to be overwritten.
+  // On a name collision the resource the shader declares at the top level wins
+  // over a nested geometry auxiliary of the same name (shader board C49): it is
+  // registered first and the nested registration is skipped. A top-level
+  // resource name-matched to an upstream auxiliary is that auxiliary's buffer,
+  // so `$COUNT_scene_lights` there is still the upstream count.
   //
   // $COUNT is the element count of the buffer's trailing array member, the
   // array a buffer holds: for a flexible array (`T[]`) the elements its
@@ -1137,20 +1139,8 @@ void RenderedCSFNode::registerCommonExpressionVariables(
       registered.insert(name);
     };
 
-    // Pass 1 — nested auxiliaries on every geometry input (the "upstream
-    // side" of filters; these are the buffers whose counts the user most
-    // often wants to size against). Registered first so collisions with
-    // top-level same-name overrides in Pass 2 fall through.
-    for(const auto& binding : m_geometryBindings)
-    {
-      for(const auto& aux : binding.auxiliary_ssbos)
-      {
-        register_buffer(aux.name, aux.size, aux.is_uniform, aux.layout);
-      }
-    }
-
-    // Pass 2 — top-level storage buffers (INPUTS storage_input +
-    // top-level AUXILIARY writes).
+    // First the top-level storage buffers (INPUTS storage_input +
+    // top-level AUXILIARY writes): the resources the shader declares.
     for(const auto& sb : m_storageBuffers)
     {
       // Whether this top-level buffer is a UBO or SSBO depends on the
@@ -1174,6 +1164,16 @@ void RenderedCSFNode::registerCommonExpressionVariables(
         register_buffer(
             inp.name, score::gfx::calculateUniformBlockSize(ub->layout, 0, eff_desc),
             true, ub->layout);
+
+    // Then nested auxiliaries on every geometry input (the "upstream side"
+    // of filters), for the names no top-level resource took.
+    for(const auto& binding : m_geometryBindings)
+    {
+      for(const auto& aux : binding.auxiliary_ssbos)
+      {
+        register_buffer(aux.name, aux.size, aux.is_uniform, aux.layout);
+      }
+    }
 
     auto register_pending = [&](const isf::geometry_input::auxiliary_request& aux) {
       if(aux.access == "read_only")

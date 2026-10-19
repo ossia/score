@@ -1,7 +1,9 @@
 // $COUNT_<name> in a CSF size expression is the element count of the buffer's
 // array member: a flexible array's allocated capacity, a fixed array's extent.
 // A buffer of fixed arrays reported 1, as did a uniform block (shader board
-// C25); a layout without an array is one element.
+// C25); a layout without an array is one element. A resource the shader
+// declares at the top level wins over a nested geometry auxiliary of the same
+// name (C49).
 #include <score_test/Gfx.hpp>
 
 #include <catch2/catch_test_macros.hpp>
@@ -25,7 +27,13 @@ TEST_CASE("$COUNT_ is the element count of the buffer's array", "[gfx][csf][C25]
       Case{R"_({ "NAME": "buf", "TYPE": "storage", "ACCESS": "read_write", "LAYOUT": [ { "NAME": "n", "TYPE": "uint" }, { "NAME": "v", "TYPE": "vec4[16]" } ] })_", 16},
       Case{R"_({ "NAME": "buf", "TYPE": "storage", "ACCESS": "read_write", "LAYOUT": [ { "NAME": "v", "TYPE": "vec4[2][3]" } ] })_", 6},
       Case{R"_({ "NAME": "buf", "TYPE": "storage", "ACCESS": "read_write", "LAYOUT": [ { "NAME": "a", "TYPE": "float" }, { "NAME": "b", "TYPE": "vec4" } ] })_", 1},
-      Case{R"_({ "NAME": "buf", "TYPE": "uniform", "LAYOUT": [ { "NAME": "w", "TYPE": "vec4[8]" } ] })_", 8});
+      Case{R"_({ "NAME": "buf", "TYPE": "uniform", "LAYOUT": [ { "NAME": "w", "TYPE": "vec4[8]" } ] })_", 8},
+      // A nested geometry auxiliary of the same name does not shadow the
+      // resource the shader declares at the top level (C49).
+      Case{R"_({ "NAME": "geo", "TYPE": "geometry", "VERTEX_COUNT": "3",
+                 "ATTRIBUTES": [ { "NAME": "position", "SEMANTIC": "position", "TYPE": "vec4", "ACCESS": "write_only" } ],
+                 "AUXILIARY": [ { "NAME": "buf", "ACCESS": "read_write", "SIZE": "4", "LAYOUT": [ { "NAME": "d", "TYPE": "vec4[]" } ] } ] },
+               { "NAME": "buf", "TYPE": "storage", "ACCESS": "read_write", "LAYOUT": [ { "NAME": "v", "TYPE": "vec4[16]" } ] })_", 16});
   CAPTURE(backend_name(be), c.resource);
 
   QTemporaryDir dir;
