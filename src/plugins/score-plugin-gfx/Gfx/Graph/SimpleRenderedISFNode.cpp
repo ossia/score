@@ -324,7 +324,11 @@ void SimpleRenderedISFNode::initMRTPass(RenderList& renderer, QRhiResourceUpdate
     else
     {
       auto fmt = parseOutputFormat(out.format, QRhiTexture::RGBA8);
-      QRhiTexture::Flags flags = QRhiTexture::RenderTarget | QRhiTexture::UsedWithLoadStore;
+      // UsedAsTransferSource like createRenderTarget's outputs: a self-feedback
+      // grab or a consumer copies the output (validation error on Vulkan
+      // otherwise).
+      QRhiTexture::Flags flags = QRhiTexture::RenderTarget | QRhiTexture::UsedWithLoadStore
+                                 | QRhiTexture::UsedAsTransferSource;
       const int layers = std::max({1, out.layers, (wantMultiview ? mvCount : 1)});
       QRhiTexture* tex = nullptr;
       if(layers > 1)
