@@ -30,6 +30,86 @@ extern "C" {
 
 namespace isf
 {
+static std::string relax_isf_json(std::string_view json);
+
+// The ISF header: the first block comment whose content is a JSON object,
+// so that a licence comment may come first (shader board U01), including one
+// that starts with a brace ("/* {c} 2024 ... */"): of the comments that start
+// with '{', the first that parses as JSON, else the first of them, whose
+// error is then reported. Returns the offsets of its "/*" and of its "*/", or
+// npos.
+static std::pair<std::size_t, std::size_t> find_isf_header(std::string_view src) noexcept
+{
+  std::pair<std::size_t, std::size_t> first{std::string_view::npos, std::string_view::npos};
+  for(auto start = src.find("/*"); start != std::string_view::npos;)
+  {
+    const auto end = src.find("*/", start + 2);
+    if(end == std::string_view::npos)
+      return first.first != std::string_view::npos ? first
+                                                    : std::pair{start, end};
+    const auto body = src.find_first_not_of(" \t\r\n", start + 2);
+    if(body < end && src[body] == '{')
+    {
+      std::string json = relax_isf_json(src.substr(start + 2, end - start - 2));
+      const auto doc = sajson::parse(
+          sajson::dynamic_allocation(),
+          sajson::mutable_string_view(json.size(), json.data()));
+      if(doc.is_valid() && doc.get_root().get_type() == sajson::TYPE_OBJECT)
+        return {start, end};
+      if(first.first == std::string_view::npos)
+        first = {start, end};
+    }
+    start = src.find("/*", end + 2);
+  }
+  return first;
+}
+
+// JSON as authors write it: // line comments and trailing commas are blanked
+// out, outside strings, with spaces, so that error lines and columns still
+// point into the source (shader board U01).
+static std::string relax_isf_json(std::string_view json)
+{
+  std::string out{json};
+  bool in_string = false;
+  for(std::size_t i = 0; i < out.size(); i++)
+  {
+    const char c = out[i];
+    if(in_string)
+    {
+      if(c == '\\')
+        i++;
+      else if(c == '"')
+        in_string = false;
+      continue;
+    }
+    if(c == '"')
+      in_string = true;
+    else if(c == '/' && i + 1 < out.size() && out[i + 1] == '/')
+    {
+      for(; i < out.size() && out[i] != '\n'; i++)
+        out[i] = ' ';
+    }
+    else if(c == ',')
+    {
+      // A comma followed, past blanks and comments, by } or ].
+      std::size_t j = i + 1;
+      while(j < out.size())
+      {
+        if(out[j] == ' ' || out[j] == '\t' || out[j] == '\r' || out[j] == '\n')
+          j++;
+        else if(out[j] == '/' && j + 1 < out.size() && out[j + 1] == '/')
+          while(j < out.size() && out[j] != '\n')
+            j++;
+        else
+          break;
+      }
+      if(j < out.size() && (out[j] == '}' || out[j] == ']'))
+        out[i] = ' ';
+    }
+  }
+  return out;
+}
+
 namespace
 {
 static constexpr struct glsl45_t
@@ -350,14 +430,7 @@ parser::parser(std::string vert, std::string frag, int glslVersion, ShaderType t
     if(!has_isf)
       return false;
 
-    auto start_pos = str.find("/*");
-    if(start_pos == std::string::npos)
-      return false;
-
-    auto start_json_pos = str.find('{', start_pos);
-    if(start_json_pos == std::string::npos || ((start_json_pos - start_pos) > 10))
-      return false;
-    return true;
+    return find_isf_header(str).second != std::string::npos;
   };
   static const auto is_shadertoy_json
       = [](const std::string& str) { return str.starts_with("[{\"ver\":\""); };
@@ -4141,18 +4214,16 @@ static void upgrade_v1_persistent_buffers(descriptor& d, const sajson::value& v)
 std::pair<int, descriptor> parser::parse_isf_header(std::string_view source)
 {
   using namespace std::literals;
-  auto start = source.find("/*");
+  const auto [start, end] = find_isf_header(source);
   if(start == std::string::npos)
     throw invalid_file{"Missing start comment"};
-  auto end = source.find("*/", start);
   if(end == std::string::npos)
     throw invalid_file{"Unfinished comment"};
 
   // First comes the json part
+  std::string json = relax_isf_json(source.substr(start + 2, end - start - 2));
   auto doc = sajson::parse(
-      sajson::dynamic_allocation(),
-      sajson::mutable_string_view(
-          (end - start - 2), const_cast<char*>(source.data()) + start + 2));
+      sajson::dynamic_allocation(), sajson::mutable_string_view(json.size(), json.data()));
   if(!doc.is_valid())
   {
     std::stringstream err;

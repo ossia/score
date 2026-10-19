@@ -2104,3 +2104,11 @@ if(TARGET score_plugin_gfx)
     PLUGINS score_plugin_gfx
     LIBS ${QT_PREFIX}::Gui)
 endif()
+
+# ISF header after a licence comment; JSON comments and trailing commas (U01).
+if(TARGET score_plugin_gfx)
+  score_add_test(test_unit_isf_header_syntax
+    SOURCES IsfHeaderSyntaxTest.cpp
+    PLUGINS score_plugin_gfx
+    LIBS ${QT_PREFIX}::Gui)
+endif()
