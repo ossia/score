@@ -970,6 +970,9 @@ struct descriptor
     std::array<int, 3> user_dispatch_ports{-1, -1, -1}; // Port indices for USER mode (X, Y, Z)
   };
   std::vector<dispatch_info> csf_passes;
+  // Every PASSES entry read as a dispatch, in authored order; parse_csf
+  // makes it csf_passes (a header key handler cannot know the MODE).
+  std::vector<dispatch_info> csf_pass_candidates;
   // The CSF's own code names gl_NumWorkGroups / isf_NumWorkGroups.
   bool csf_reads_num_workgroups{};
 

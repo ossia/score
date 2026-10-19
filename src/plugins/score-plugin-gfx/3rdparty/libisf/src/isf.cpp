@@ -3395,24 +3395,28 @@ static const ossia::string_map<root_fun>& root_parse{[] {
         auto obj = v.get_array_element(i);
         if(obj.get_type() == sajson::TYPE_OBJECT)
         {
-          // Check if this looks like a CSF dispatch pass (has LOCAL_SIZE)
-          if(auto ls_k = obj.find_object_key_insensitive(sajson::literal("LOCAL_SIZE"));
-             ls_k != obj.get_length())
+          // A pass with LOCAL_SIZE is a CSF dispatch pass. Every pass is also
+          // read as one, in authored order, into csf_pass_candidates: in a
+          // COMPUTE_SHADER (whose MODE may come after PASSES) parse_csf takes
+          // that list, so a pass without LOCAL_SIZE is a compute pass there
+          // too, with the default local size.
+          const auto ls_k = obj.find_object_key_insensitive(sajson::literal("LOCAL_SIZE"));
+          const bool has_local_size = ls_k != obj.get_length();
           {
-            // This is a CSF dispatch pass
-            d.mode = descriptor::CSF;
-
             descriptor::dispatch_info dispatch;
 
             // Parse LOCAL_SIZE
-            auto ls_val = obj.get_object_value(ls_k);
-            if(ls_val.get_type() == sajson::TYPE_ARRAY && ls_val.get_length() >= 3)
+            if(has_local_size)
             {
-              for(int idx = 0; idx < 3; idx++)
+              auto ls_val = obj.get_object_value(ls_k);
+              if(ls_val.get_type() == sajson::TYPE_ARRAY && ls_val.get_length() >= 3)
               {
-                auto elem = ls_val.get_array_element(idx);
-                if(elem.get_type() == sajson::TYPE_INTEGER)
-                  dispatch.local_size[idx] = elem.get_integer_value();
+                for(int idx = 0; idx < 3; idx++)
+                {
+                  auto elem = ls_val.get_array_element(idx);
+                  if(elem.get_type() == sajson::TYPE_INTEGER)
+                    dispatch.local_size[idx] = elem.get_integer_value();
+                }
               }
             }
 
@@ -3499,9 +3503,14 @@ static const ossia::string_map<root_fun>& root_parse{[] {
               }
             }
 
-            d.csf_passes.push_back(dispatch);
+            d.csf_pass_candidates.push_back(dispatch);
+            if(has_local_size)
+            {
+              d.mode = descriptor::CSF;
+              d.csf_passes.push_back(std::move(dispatch));
+            }
           }
-          else
+          if(!has_local_size)
           {
             // This is an ISF pass
             pass p;
@@ -7387,6 +7396,23 @@ void parser::parse_csf()
   auto [end, desc] = parse_isf_header(m_sourceFragment);
   m_desc = std::move(desc);
   m_desc.mode = descriptor::CSF;
+
+  // Every pass of a compute shader is a compute pass, LOCAL_SIZE or not
+  // (shader board C30): one without it was read as a raster pass, dropped
+  // from the dispatch list, and the passes after it renumbered.
+  if(!m_desc.csf_pass_candidates.empty())
+  {
+    m_desc.csf_passes = std::move(m_desc.csf_pass_candidates);
+    m_desc.passes.clear();
+    m_desc.pass_targets.clear();
+  }
+  m_desc.csf_pass_candidates.clear();
+  for(std::size_t i = 0; i < m_desc.csf_passes.size(); i++)
+    for(int axis = 0; axis < 3; axis++)
+      if(m_desc.csf_passes[i].local_size[axis] < 1)
+        throw invalid_file{
+            "CSF PASSES[" + std::to_string(i) + "]: LOCAL_SIZE must be three integers of at least 1, got "
+            + std::to_string(m_desc.csf_passes[i].local_size[axis]) + "."};
 
   for(auto& inp : m_desc.inputs)
   {

@@ -2080,3 +2080,11 @@ if(TARGET score_plugin_gfx)
     PLUGINS score_plugin_gfx
     LIBS ${QT_PREFIX}::Gui)
 endif()
+
+# Every pass of a COMPUTE_SHADER is a compute pass, LOCAL_SIZE or not (C30).
+if(TARGET score_plugin_gfx)
+  score_add_test(test_unit_csf_pass_classification
+    SOURCES CsfPassClassificationTest.cpp
+    PLUGINS score_plugin_gfx
+    LIBS ${QT_PREFIX}::Gui)
+endif()
