@@ -1834,8 +1834,12 @@ void RenderedRawRasterPipelineNode::initMRTPass(
     else
     {
       auto fmt = score::gfx::parseOutputFormat(out.format, QRhiTexture::RGBA8);
-      QRhiTexture::Flags flags
-          = QRhiTexture::RenderTarget | QRhiTexture::UsedWithLoadStore;
+      // UsedAsTransferSource like createRenderTarget's outputs: a consumer
+      // may copy or read the output back (validation error on Vulkan
+      // otherwise).
+      QRhiTexture::Flags flags = QRhiTexture::RenderTarget
+                                 | QRhiTexture::UsedWithLoadStore
+                                 | QRhiTexture::UsedAsTransferSource;
       const int layers
           = std::max({1, out.layers, (wantMultiview ? mvCount : 1),
                        (out.is_cubemap ? 6 : 1)});
