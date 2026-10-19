@@ -251,6 +251,14 @@ target_compile_definitions(score_lib_base INTERFACE
   SCORE_PLUGIN_TRANSPORT
 )
 
+if(WIN32)
+  target_compile_definitions(score_lib_base INTERFACE
+    _WIN32_WINNT=0x0A00
+    $<$<COMPILE_LANGUAGE:CXX>:NOMINMAX>
+    $<$<COMPILE_LANGUAGE:CXX>:WIN32_LEAN_AND_MEAN>
+  )
+endif()
+
 add_definitions(-DQT_DISABLE_DEPRECATED_BEFORE=0x060900)
 add_definitions(-DQT_NO_KEYWORDS)
 
