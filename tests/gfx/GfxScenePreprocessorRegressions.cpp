@@ -341,6 +341,7 @@ struct Result
   bool skipped = false;
   std::string err;
   ReadbackImage img;
+  ReadbackImage after; // a second readback, when a case takes one
 };
 
 // scene -> ScenePreprocessor -> raster; returns the raster node index.
@@ -1024,6 +1025,130 @@ TEST_CASE(
   CHECK(u1.meta >= u0.meta + 4);
   CHECK(u2.rows == u1.rows);
   CHECK(u2.meta == u1.meta);
+}
+
+// A primitive cloud whose rows live in a GPU buffer: its range of raw_splats
+// was zero-filled instead of copied (shader board P12). The rows are copied on
+// the GPU now, every frame.
+TEST_CASE(
+    "a GPU-resident primitive cloud's rows reach raw_splats",
+    "[gfx][scene][primitivecloud][P12]")
+{
+  const auto api = GENERATE(from_range(platform_backends()));
+  CAPTURE(backend_name(api));
+  QTemporaryDir dir;
+  REQUIRE(dir.isValid());
+  const QString csf = writeText(dir, "scenepp_cloud_gpu.cs", kCloudMetaCsf);
+
+  constexpr int kRows = 64;
+  std::vector<float> rows(kRows * 4);
+  for(int i = 0; i < kRows; ++i)
+    rows[i * 4] = float(i + 3); // raw_splats.values[4] = row 1 = 4.0
+
+  Result r;
+  std::string setupError;
+  score::test::run_in_gui_app([&](const score::GUIApplicationContext&) {
+    GfxPipeline p;
+    auto sceneNode = std::make_unique<StaticSceneNode>();
+    auto* scene = sceneNode.get();
+    const int hn = p.addNode(std::move(sceneNode));
+    const int flat = p.addNode(std::make_unique<score::gfx::ScenePreprocessorNode>());
+    auto filterNode = std::make_unique<score::gfx::FlattenedSceneFilterNode>();
+    filterNode->m_mode = 12;
+    filterNode->m_match = 0;
+    filterNode->m_match_str = "scenepp.gpucloud";
+    const int filter = p.addNode(std::move(filterNode));
+    const int c = p.addCsf(csf);
+    if(hn < 0 || flat < 0 || filter < 0 || c < 0)
+    {
+      r.err = "chain build failed: " + p.error();
+      return;
+    }
+    p.wire(p.nodeSceneOut(hn, 0), p.nodeSceneIn(flat, 0));
+    p.wire(p.nodeGeometryOut(flat, 0), p.nodeGeometryIn(filter, 0));
+    p.wire(p.nodeGeometryOut(filter, 0), p.geometryIn(c, 0));
+    const int sink = p.addSink({kSize, kSize});
+    p.wire(p.imageOut(c, 0), p.sinkInput(sink));
+    if(!p.create(api))
+    {
+      r.skipped = p.skipped();
+      r.err = r.skipped ? std::string{} : p.error();
+      return;
+    }
+
+    // The producer's GPU buffer, on the pipeline's QRhi.
+    auto rs = p.sink(sink)->renderState();
+    if(!rs || !rs->rhi)
+    {
+      r.err = "no QRhi";
+      return;
+    }
+    QRhi& rhi = *rs->rhi;
+    const quint32 bytes = quint32(rows.size() * sizeof(float));
+    std::unique_ptr<QRhiBuffer> gpuRows{rhi.newBuffer(
+        QRhiBuffer::Static, QRhiBuffer::StorageBuffer | QRhiBuffer::VertexBuffer, bytes)};
+    QRhiCommandBuffer* cb{};
+    if(!gpuRows->create() || rhi.beginOffscreenFrame(&cb) != QRhi::FrameOpSuccess)
+    {
+      r.err = "cannot upload the producer's buffer";
+      return;
+    }
+    auto* batch = rhi.nextResourceUpdateBatch();
+    batch->uploadStaticBuffer(gpuRows.get(), 0, bytes, rows.data());
+    cb->resourceUpdate(batch);
+    rhi.endOffscreenFrame();
+
+    auto cloud = std::make_shared<ossia::primitive_cloud_component>();
+    auto res = std::make_shared<ossia::buffer_resource>();
+    res->resource = ossia::gpu_buffer_handle{
+        .native_handle = gpuRows.get(), .byte_size = int64_t(bytes)};
+    res->dirty_index = 1;
+    cloud->raw_data = res;
+    cloud->row_stride = 16;
+    cloud->primitive_count = kRows;
+    cloud->format_id = "scenepp.gpucloud";
+    cloud->bounds = {{0.f, 0.f, 0.f}, {1.f, 1.f, 1.f}};
+    cloud->stable_id = 0xF1A0071u;
+    scene->state = stateWith({nodeWith(ossia::primitive_cloud_component_ptr{cloud}, 71)});
+
+    p.render(5);
+    r.img = p.readback(sink);
+
+    // The producer reallocates: the same buffer_resource, the same
+    // dirty_index, another GPU buffer (row 1 = 9). The copy source was not in
+    // the cloud fingerprint, so the preprocessor kept copying from the old
+    // buffer -- kept alive here, so that it reads 4 rather than freed memory.
+    for(int i = 0; i < kRows; ++i)
+      rows[i * 4] = float(i + 8);
+    std::unique_ptr<QRhiBuffer> gpuRows2{rhi.newBuffer(
+        QRhiBuffer::Static, QRhiBuffer::StorageBuffer | QRhiBuffer::VertexBuffer, bytes)};
+    if(!gpuRows2->create() || rhi.beginOffscreenFrame(&cb) != QRhi::FrameOpSuccess)
+    {
+      r.err = "cannot upload the reallocated buffer";
+      return;
+    }
+    batch = rhi.nextResourceUpdateBatch();
+    batch->uploadStaticBuffer(gpuRows2.get(), 0, bytes, rows.data());
+    cb->resourceUpdate(batch);
+    rhi.endOffscreenFrame();
+    res->resource = ossia::gpu_buffer_handle{
+        .native_handle = gpuRows2.get(), .byte_size = int64_t(bytes)};
+    scene->state = stateWith({nodeWith(ossia::primitive_cloud_component_ptr{cloud}, 71)});
+    p.render(5);
+    r.after = p.readback(sink);
+  });
+  if(r.skipped)
+    SKIP("backend unavailable");
+  if(const char* why = compute_shader_skip_reason(api))
+    SKIP(why);
+  REQUIRE(r.err.empty());
+  REQUIRE(r.img.valid());
+  const auto px = r.img.center();
+  INFO("raw_splats.values[4] * 255 = " << int(px[1]));
+  CHECK(int(px[1]) == 4);
+  REQUIRE(r.after.valid());
+  INFO("after the reallocation: " << int(r.after.center()[1]));
+  CHECK(int(r.after.center()[1]) == 9);
 }
 
 TEST_CASE(

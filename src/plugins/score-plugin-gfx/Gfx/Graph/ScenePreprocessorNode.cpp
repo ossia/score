@@ -2028,6 +2028,39 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
                   : 0u;
         ossia::hash_combine(rawFp, content_id);
         ossia::hash_combine(rawFp, (uint64_t)d->cloud->primitive_count);
+        if(raw)
+          if(auto* gpu = ossia::get_if<ossia::gpu_buffer_handle>(&raw->resource))
+            ossia::hash_combine(rawFp, (uint64_t)(uintptr_t)gpu->native_handle);
+      }
+
+      // GPU-resident rows: a GPU-to-GPU copy into this cloud's range of
+      // raw_splats, queued on every rebuild (rebuildMDI clears the queue) and
+      // re-issued every frame, since the producer may rewrite its buffer on
+      // the GPU at any frame. They were left zero (shader board P12).
+      {
+        int64_t rowOffset = 0;
+        for(const auto* d : b.draws)
+        {
+          const int64_t bytes
+              = (int64_t)d->cloud->primitive_count * (int64_t)b.row_stride;
+          const auto& br = d->cloud->raw_data;
+          if(br)
+            if(auto* gpu = ossia::get_if<ossia::gpu_buffer_handle>(&br->resource);
+               gpu && gpu->valid() && gpu->byte_size >= bytes && bytes > 0
+               && rowOffset + bytes <= std::numeric_limits<int>::max())
+            {
+              PendingGpuCopy op;
+              op.src = static_cast<QRhiBuffer*>(gpu->native_handle);
+              op.dst = bb.raw_splats;
+              op.src_offset = (int)gpu->byte_offset;
+              op.dst_offset = (int)rowOffset;
+              op.vertex_count = 1;
+              op.element_size = (int)bytes;
+              op.size = (int)bytes;
+              m_pendingGpuCopies.push_back(op);
+            }
+          rowOffset += bytes;
+        }
       }
 
       // 0 forces the first upload. A buffer growBuf just reallocated comes
@@ -2042,8 +2075,8 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
           const auto& br = d.cloud->raw_data;
           if(!br)
             return nullptr;
-          // GPU-resident raw_data would need a GPU-to-GPU copy: not supported,
-          // the rows are zeroed.
+          // GPU-resident rows are copied on the GPU (queued below); their
+          // range is zero here.
           auto* cpu = ossia::get_if<ossia::buffer_data>(&br->resource);
           return cpu && cpu->data && cpu->byte_size >= bytes
                      ? static_cast<const uint8_t*>(cpu->data.get())
@@ -5693,6 +5726,17 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
                                             : (uint64_t)raw->dirty_index)
                   : 0u;
         ossia::hash_combine(freshCloudFingerprint, content_id);
+        // GPU-resident rows: the copy source m_pendingGpuCopies re-issues every
+        // frame. A producer reallocating it behind the same buffer_resource
+        // left the queue copying from the old buffer, possibly freed.
+        if(raw)
+          if(auto* gpu = ossia::get_if<ossia::gpu_buffer_handle>(&raw->resource))
+          {
+            ossia::hash_combine(
+                freshCloudFingerprint, (uint64_t)(uintptr_t)gpu->native_handle);
+            ossia::hash_combine(freshCloudFingerprint, (uint64_t)gpu->byte_offset);
+            ossia::hash_combine(freshCloudFingerprint, (uint64_t)gpu->byte_size);
+          }
         ossia::hash_combine(
             freshCloudFingerprint, (uint64_t)d.cloud->primitive_count);
         ossia::hash_combine(
