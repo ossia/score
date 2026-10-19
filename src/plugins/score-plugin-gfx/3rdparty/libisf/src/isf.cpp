@@ -2948,6 +2948,24 @@ static const ossia::string_map<root_fun>& root_parse{[] {
     }
   }});
 
+  // An input of a TYPE the parser does not know was dropped silently, its
+  // port and its declaration with it (shader board U38).
+  static constexpr auto throw_unknown_input_type
+      = [](std::string_view section, std::size_t index, const sajson::value& obj,
+           const std::string& type) {
+    std::string name;
+    if(auto nk = obj.find_object_key_insensitive(sajson::literal("NAME"));
+       nk != obj.get_length())
+      get_str(obj.get_object_value(nk), name);
+    throw invalid_file{
+        std::string{section} + "[" + std::to_string(index) + "]"
+        + (name.empty() ? std::string{} : " \"" + name + "\"") + ": unknown TYPE \""
+        + type
+        + "\". Known types: float, long, bool, event, color, point2D, point3D, image, "
+          "cubemap, audio, audioFFT, audioHistogram, storage, uniform, texture, "
+          "geometry, image_cube (RESOURCES)."};
+  };
+
   static const ossia::hash_map<std::string, input_fun>& input_parse{[] {
     static ossia::hash_map<std::string, input_fun> i;
     i.insert({"float", [](const auto& s) { return parse<float_input>(s); }});
@@ -2991,7 +3009,8 @@ static const ossia::string_map<root_fun>& root_parse{[] {
           {
             std::string type_str;
             if(!get_str(obj.get_object_value(k), type_str))
-              continue;
+              throw invalid_file{
+                  "INPUTS[" + std::to_string(i) + "]: TYPE must be a string."};
             boost::algorithm::to_lower(type_str);
 
             // "image" with ACCESS or FORMAT → storage image (csf_image_input),
@@ -3011,8 +3030,9 @@ static const ossia::string_map<root_fun>& root_parse{[] {
             else
             {
               auto inp = input_parse.find(type_str);
-              if(inp != input_parse.end())
-                d.inputs.push_back((inp->second)(obj));
+              if(inp == input_parse.end())
+                throw_unknown_input_type("INPUTS", i, obj, type_str);
+              d.inputs.push_back((inp->second)(obj));
             }
           }
           else
@@ -3263,7 +3283,8 @@ static const ossia::string_map<root_fun>& root_parse{[] {
           {
             std::string type_str;
             if(!get_str(obj.get_object_value(k), type_str))
-              continue;
+              throw invalid_file{
+                  "RESOURCES[" + std::to_string(i) + "]: TYPE must be a string."};
 
             boost::algorithm::to_lower(type_str);
             // Handle special cases for CSF image types
@@ -3285,17 +3306,15 @@ static const ossia::string_map<root_fun>& root_parse{[] {
             {
               // Try to parse as regular input type
               auto inp_parser = input_parse.find(type_str);
-              if(inp_parser != input_parse.end())
-              {
-                d.inputs.push_back((inp_parser->second)(obj));
-              }
-              else
-              {
-              }
+              if(inp_parser == input_parse.end())
+                throw_unknown_input_type("RESOURCES", i, obj, type_str);
+              d.inputs.push_back((inp_parser->second)(obj));
             }
           }
           else
           {
+            throw invalid_file{
+                "RESOURCES[" + std::to_string(i) + "] has no TYPE."};
           }
         }
       }

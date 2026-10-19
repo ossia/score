@@ -2096,3 +2096,11 @@ if(TARGET score_plugin_gfx)
     PLUGINS score_plugin_gfx
     LIBS ${QT_PREFIX}::Gui)
 endif()
+
+# An unknown input / resource TYPE is a parse error (U38).
+if(TARGET score_plugin_gfx)
+  score_add_test(test_unit_isf_input_type
+    SOURCES IsfInputTypeTest.cpp
+    PLUGINS score_plugin_gfx
+    LIBS ${QT_PREFIX}::Gui)
+endif()
