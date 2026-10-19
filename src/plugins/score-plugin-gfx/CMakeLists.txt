@@ -426,6 +426,7 @@ set(HDRS
     Gfx/GfxInputDevice.hpp
     Gfx/InvertYRenderer.hpp
     Gfx/ISFProcess.hpp
+    Gfx/LongInputControl.hpp
     Gfx/ISFExecutor.hpp
     Gfx/ISFExecutorNode.hpp
     Gfx/TexturePort.hpp

@@ -4,6 +4,7 @@
 #include <Process/Dataflow/WidgetInlets.hpp>
 #include <Process/PresetHelpers.hpp>
 
+#include <Gfx/LongInputControl.hpp>
 #include <Gfx/Graph/Node.hpp>
 #include <Gfx/Graph/ShaderCache.hpp>
 #include <Gfx/ISFProcess.hpp>
@@ -275,81 +276,8 @@ void Model::setupCSF(const isf::descriptor& desc)
 
     void operator()(const long_input& v)
     {
-      // Numeric mode: MIN/MAX set and no VALUES/LABELS → IntSpinBox
-      if(v.values.empty() && v.min && v.max)
-      {
-        auto port = new Process::IntSpinBox(
-            *v.min, *v.max, (int)v.def, QString::fromStdString(input.name),
-            Id<Process::Port>(input_i++), &self);
-        self.m_inlets.push_back(port);
-        self.controlAdded(port->id());
-        return;
-      }
-
-      // Enum mode: VALUES/LABELS → ComboBox
-      std::vector<std::pair<QString, ossia::value>> alternatives;
-      if(v.labels.size() == v.values.size())
-      {
-        for(std::size_t value_idx = 0; value_idx < v.values.size(); value_idx++)
-        {
-          auto& val = v.values[value_idx];
-          if(auto int_ptr = ossia::get_if<int64_t>(&val))
-          {
-            alternatives.emplace_back(
-                QString::fromStdString(v.labels[value_idx]), int(*int_ptr));
-          }
-          else if(auto dbl_ptr = ossia::get_if<double>(&val))
-          {
-            alternatives.emplace_back(
-                QString::fromStdString(v.labels[value_idx]), int(*dbl_ptr));
-          }
-          else
-          {
-            alternatives.emplace_back(
-                QString::fromStdString(v.labels[value_idx]), int(value_idx));
-          }
-        }
-      }
-      else
-      {
-        for(std::size_t value_idx = 0; value_idx < v.values.size(); value_idx++)
-        {
-          auto& val = v.values[value_idx];
-          if(auto int_ptr = ossia::get_if<int64_t>(&val))
-          {
-            alternatives.emplace_back(QString::number(*int_ptr), int(*int_ptr));
-          }
-          else if(auto dbl_ptr = ossia::get_if<double>(&val))
-          {
-            alternatives.emplace_back(QString::number(*dbl_ptr), int(*dbl_ptr));
-          }
-          else if(auto str_ptr = ossia::get_if<std::string>(&val))
-          {
-            alternatives.emplace_back(QString::fromStdString(*str_ptr), int(value_idx));
-          }
-        }
-      }
-
-      if(alternatives.empty())
-      {
-        alternatives.emplace_back("0", 0);
-        alternatives.emplace_back("1", 1);
-        alternatives.emplace_back("2", 2);
-      }
-
-      // ComboBox::init is a VALUE that must match one of the alternatives'
-      // values — NOT an index, while libisf stores `v.def` as the INDEX into
-      // values (see isf.hpp comment on long_input::def). Look up the
-      // alternative at v.def and pass its second (the value); the raw index
-      // matches no alternative and silently selects alternatives[0].
-      const std::size_t def_idx
-          = std::min<std::size_t>(v.def, alternatives.size() - 1);
-      const ossia::value& init_value = alternatives[def_idx].second;
-
-      auto port = new Process::ComboBox(
-          std::move(alternatives), init_value, QString::fromStdString(input.name),
-          Id<Process::Port>(input_i++), &self);
-
+      auto port = makeLongInputControl(
+          v, QString::fromStdString(input.name), Id<Process::Port>(input_i++), &self);
       self.m_inlets.push_back(port);
       self.controlAdded(port->id());
     }

@@ -4,6 +4,7 @@
 #include <Process/Dataflow/WidgetInlets.hpp>
 #include <Process/PresetHelpers.hpp>
 
+#include <Gfx/LongInputControl.hpp>
 #include <Gfx/Graph/Node.hpp>
 #include <Gfx/Graph/ShaderCache.hpp>
 #include <Gfx/TexturePort.hpp>
@@ -277,70 +278,8 @@ void Model::setupIsf(const isf::descriptor& desc)
 
     Process::Inlet* operator()(const long_input& v)
     {
-      std::vector<std::pair<QString, ossia::value>> alternatives;
-      if(v.labels.size() == v.values.size())
-      {
-        // Sane, respectful example
-        for(std::size_t value_idx = 0; value_idx < v.values.size(); value_idx++)
-        {
-          auto& val = v.values[value_idx];
-          if(auto int_ptr = ossia::get_if<int64_t>(&val))
-          {
-            alternatives.emplace_back(
-                QString::fromStdString(v.labels[value_idx]), int(*int_ptr));
-          }
-          else if(auto dbl_ptr = ossia::get_if<double>(&val))
-          {
-            alternatives.emplace_back(
-                QString::fromStdString(v.labels[value_idx]), int(*dbl_ptr));
-          }
-          else
-          {
-            alternatives.emplace_back(
-                QString::fromStdString(v.labels[value_idx]), int(value_idx));
-          }
-        }
-      }
-      else
-      {
-        for(std::size_t value_idx = 0; value_idx < v.values.size(); value_idx++)
-        {
-          auto& val = v.values[value_idx];
-          if(auto int_ptr = ossia::get_if<int64_t>(&val))
-          {
-            alternatives.emplace_back(QString::number(*int_ptr), int(*int_ptr));
-          }
-          else if(auto dbl_ptr = ossia::get_if<double>(&val))
-          {
-            alternatives.emplace_back(QString::number(*dbl_ptr), int(*dbl_ptr));
-          }
-          else if(auto str_ptr = ossia::get_if<std::string>(&val))
-          {
-            alternatives.emplace_back(QString::fromStdString(*str_ptr), int(value_idx));
-          }
-        }
-      }
-
-      if(alternatives.empty())
-      {
-        alternatives.emplace_back("0", 0);
-        alternatives.emplace_back("1", 1);
-        alternatives.emplace_back("2", 2);
-      }
-
-      // ComboBox::init expects the VALUE that should be initially selected,
-      // not an index. libisf stores `v.def` as the INDEX into values.
-      // Pass the alternative's value at v.def so the widget initialises
-      // to the author-intended entry instead of falling back to
-      // alternatives[0]. Same as CSF/Process.cpp.
-      const std::size_t def_idx
-          = std::min<std::size_t>(v.def, alternatives.size() - 1);
-      const ossia::value& init_value = alternatives[def_idx].second;
-
-      auto port = new Process::ComboBox(
-          std::move(alternatives), init_value, QString::fromStdString(input.name),
-          Id<Process::Port>(i), &self);
-
+      auto port = makeLongInputControl(
+          v, QString::fromStdString(input.name), Id<Process::Port>(i), &self);
       self.m_inlets.push_back(port);
       self.controlAdded(port->id());
       return port;
