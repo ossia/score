@@ -976,6 +976,17 @@ void flattenScene(
       auto it = mat_index.find(dc.material.get());
       dc.materialIndex = (it != mat_index.end()) ? it->second : -1;
     }
+    for(auto& id : out.instances)
+    {
+      if(!id.instance || !id.instance->prototype
+         || id.instance->prototype->primitives.empty())
+        continue;
+      const auto& mat = id.instance->prototype->primitives[0].material;
+      if(!mat)
+        continue;
+      auto it = mat_index.find(mat.get());
+      id.materialIndex = (it != mat_index.end()) ? it->second : -1;
+    }
   }
   if(scene.state->skeletons && !scene.state->skeletons->empty())
   {

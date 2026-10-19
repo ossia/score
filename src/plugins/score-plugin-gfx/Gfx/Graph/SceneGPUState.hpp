@@ -537,6 +537,9 @@ struct FlatScene
   {
     ossia::instance_component_ptr instance;
     QMatrix4x4 worldTransform;
+    // Index of the prototype's material in scene_state::materials, -1 when
+    // it is not there: what PerDraw.tag_hash is looked up with.
+    int materialIndex{-1};
   };
   std::vector<InstanceDraw> instances;
 

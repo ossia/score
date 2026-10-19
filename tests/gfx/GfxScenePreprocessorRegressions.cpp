@@ -1121,6 +1121,99 @@ TEST_CASE(
   CHECK(left[0] < 32);
 }
 
+// An instance group's PerDraw.tag_hash is its prototype material's tag. It
+// was always 0 (the instanced draws were emitted without a material index),
+// so a tag filter could not tell instance groups apart. Library
+// scene_filter_by_tag_hash keeping tag "b" on [instances tagged "a", left;
+// instances tagged "b", right]: only the right half may be drawn.
+TEST_CASE(
+    "a tag filter selects instance groups by their prototype material's tag",
+    "[gfx][scene][scene-filter][instancing]")
+{
+  const auto api = GENERATE(from_range(platform_backends()));
+  CAPTURE(backend_name(api));
+  const QString rel = QStringLiteral("presets/filters/scene_filter_by_tag_hash.csf");
+  const QString filterPath = library::find(rel);
+  if(filterPath.isEmpty())
+    SKIP(library::skip_reason(rel));
+  QTemporaryDir dir;
+  REQUIRE(dir.isValid());
+  const QString vs = writeText(dir, "scenepp_tags.vert", kVert);
+  const QString fs = writeText(dir, "scenepp_tags.frag", kSolidFrag);
+
+  auto tagged = [](const char* tag, uint64_t id) {
+    auto m = std::make_shared<ossia::material_component>();
+    m->stable_id = id;
+    m->unlit = true;
+    m->tag = tag;
+    return ossia::material_component_ptr{m};
+  };
+  auto instanced = [](ossia::mesh_component_ptr mesh, ossia::material_component_ptr mat,
+                      uint32_t count) {
+    auto proto = std::make_shared<ossia::mesh_component>(*mesh);
+    proto->primitives[0].material = std::move(mat);
+    auto inst = std::make_shared<ossia::instance_component>();
+    inst->prototype = std::move(proto);
+    inst->instance_count = count;
+    inst->transform_type = ossia::instance_component::transform_format::translation;
+    inst->instance_transforms = cpuBuffer(
+        std::vector<float>(3 * count, 0.f), ossia::buffer_data::usage::storage_buffer);
+    inst->dirty_index = 1;
+    return ossia::instance_component_ptr{inst};
+  };
+  const auto matA = tagged("a", 0xA0911u);
+  const auto matB = tagged("b", 0xA0912u);
+  auto st = stateWith(
+      {nodeWith(instanced(quad(-1.f, 0.f, 0xF1A0093u), matA, 3), 93),
+       nodeWith(instanced(quad(0.f, 1.f, 0xF1A0094u), matB, 2), 94)});
+  st->materials = std::make_shared<std::vector<ossia::material_component_ptr>>(
+      std::vector<ossia::material_component_ptr>{matA, matB});
+
+  Result r;
+  score::test::run_in_gui_app([&](const score::GUIApplicationContext& ctx) {
+    library::RootGuard root{ctx};
+    GfxPipeline p;
+    const int hn = p.addNode(std::make_unique<StaticSceneNode>(st));
+    const int flat = p.addNode(std::make_unique<score::gfx::ScenePreprocessorNode>());
+    const int filter = p.addCsf(filterPath);
+    const int raster = p.addRaster(vs, fs);
+    if(hn < 0 || flat < 0 || filter < 0 || raster < 0)
+    {
+      r.err = "chain build failed: " + p.error();
+      return;
+    }
+    p.wire(p.nodeSceneOut(hn, 0), p.nodeSceneIn(flat, 0));
+    p.wire(p.nodeGeometryOut(flat, 0), p.geometryIn(filter, 0));
+    p.wire(p.geometryOut(filter, 0), p.geometryIn(raster, 0));
+    const int sink = p.addSink({kSize, kSize});
+    p.wire(p.imageOut(raster, 0), p.sinkInput(sink));
+    if(!p.create(api))
+    {
+      r.skipped = p.skipped();
+      r.err = r.skipped ? std::string{} : p.error();
+      return;
+    }
+    // hash = FNV-1a-32("b"), as the preprocessor stamps PerDraw.tag_hash.
+    const auto hash = (uint32_t)ossia::hash_string(std::string{"b"});
+    auto& f = *p.isf(filter);
+    setControl(f, nth_control_input(f, 0), ossia::value{(int)hash});
+    setControl(f, nth_control_input(f, 1), ossia::value{0});
+    p.render(5);
+    r.img = p.readback(sink);
+  });
+  if(r.skipped)
+    SKIP("backend unavailable");
+  if(const char* why = compute_shader_skip_reason(api))
+    SKIP(why);
+  REQUIRE(r.err.empty());
+  REQUIRE(r.img.valid());
+  const auto left = r.img.at(kSize / 4, kSize / 2);
+  const auto right = r.img.at(3 * kSize / 4, kSize / 2);
+  INFO("left " << scene::rgba_string(left) << " right " << scene::rgba_string(right));
+  CHECK(right[0] > 200);
+  CHECK(left[0] < 32);
+}
+
 // A primitive cloud whose rows live in a GPU buffer: its range of raw_splats
 // was zero-filled instead of copied (shader board P12). The rows are copied on
 // the GPU now, every frame.

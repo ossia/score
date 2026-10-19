@@ -2967,7 +2967,7 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
 
       const uint32_t cmd_index = emitDraw(
           proto_geom.get(), prim_id, inst_draw.worldTransform,
-          prim.material.get(), /*materialIndex=*/-1,
+          prim.material.get(), inst_draw.materialIndex,
           inst.raw_slot.size != 0 ? inst.raw_slot.internal_index
                                   : 0xFFFFFFFFu,
           /*skinIndex=*/-1, ossia::aabb{{1.f, 1.f, 1.f}, {-1.f, -1.f, -1.f}},
