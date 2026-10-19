@@ -260,6 +260,9 @@ const SharedVertex shared_vertex_pairs[] = {
     {"cube-dir-ndc-perface-cull.fs", "cube-dir-ndc-perface.vs"},
     {"rr-aux-count-single.fs", "rr-aux-count.vs"},
     {"rr-msaa-edge-samples1.fs", "rr-msaa-edge.vs"},
+    {"rr-msaa-edge-samples4.fs", "rr-msaa-edge.vs"},
+    {"rr-msaa-samples-uniform-s1.fs", "rr-msaa-samples-uniform.vs"},
+    {"rr-msaa-samples-uniform-s4.fs", "rr-msaa-samples-uniform.vs"},
 };
 
 QString shared_vertex_of(const QString& fsPath)

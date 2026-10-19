@@ -117,6 +117,16 @@ void RenderList::init()
       = rhi.newBuffer(QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, sizeof(OutputUBO));
   m_outputUBO->setName("RenderList::m_outputUBO");
   SCORE_ASSERT(m_outputUBO->create());
+  for(int count : rhi.supportedSampleCounts())
+  {
+    if(count == m_samples)
+      continue;
+    auto* ubo
+        = rhi.newBuffer(QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, sizeof(OutputUBO));
+    ubo->setName(QByteArray("RenderList::m_outputUBO/") + QByteArray::number(count));
+    SCORE_ASSERT(ubo->create());
+    m_outputUBOBySamples.emplace_back(count, ubo);
+  }
 
   // Typed placeholders so a shader declaring sampler3D / samplerCube /
   // sampler2DArray / sampler2D can be bound to a matching view before any upstream
@@ -917,6 +927,9 @@ void RenderList::release()
 
   delete m_outputUBO;
   m_outputUBO = nullptr;
+  for(auto& [count, ubo] : m_outputUBOBySamples)
+    delete ubo;
+  m_outputUBOBySamples.clear();
 
   delete m_emptyTexture;
   m_emptyTexture = nullptr;
@@ -2590,7 +2603,22 @@ void RenderList::update(QRhiResourceUpdateBatch& res)
     m_outputUBOData.sampleCount = m_samples;
 
     res.updateDynamicBuffer(m_outputUBO, 0, sizeof(OutputUBO), &m_outputUBOData);
+    for(auto& [count, ubo] : m_outputUBOBySamples)
+    {
+      OutputUBO data = m_outputUBOData;
+      data.sampleCount = count;
+      res.updateDynamicBuffer(ubo, 0, sizeof(OutputUBO), &data);
+    }
   }
+}
+
+QRhiBuffer& RenderList::outputUBO(int sampleCount) const noexcept
+{
+  if(sampleCount > 0 && sampleCount != m_samples)
+    for(auto& [count, ubo] : m_outputUBOBySamples)
+      if(count == sampleCount)
+        return *ubo;
+  return *m_outputUBO;
 }
 
 //! Backend + device identity, printed for EVERY backend.

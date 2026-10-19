@@ -346,6 +346,18 @@ public:
   QRhiBuffer& outputUBO() const noexcept { return *m_outputUBO; }
 
   /**
+   * @brief The output UBO for a pass rendering at `sampleCount` samples.
+   *
+   * Identical to outputUBO() but for MSAA_SAMPLES, which is the pass's own
+   * sample count: a pass whose target is not at samples() (a raw raster
+   * OUTPUT declaring SAMPLES, a single-sampled per-mip / face / layer
+   * iteration) must not read the render list's (shader board U24). A count
+   * <= 0 (unknown, e.g. a swap-chain wrapper) or one the device does not
+   * support gives outputUBO().
+   */
+  QRhiBuffer& outputUBO(int sampleCount) const noexcept;
+
+  /**
    * @brief Per-output GPU arena store for scene-graph source nodes.
    *
    * Returns a reference to the registry that owns the Camera / Light /
@@ -590,6 +602,8 @@ private:
 
   // Material
   QRhiBuffer* m_outputUBO{};
+  // outputUBO(int): one copy per other supported sample count.
+  std::vector<std::pair<int, QRhiBuffer*>> m_outputUBOBySamples;
   QRhiTexture* m_emptyTexture{};
   QRhiTexture* m_emptyTexture3D{};
   QRhiTexture* m_emptyTextureCube{};

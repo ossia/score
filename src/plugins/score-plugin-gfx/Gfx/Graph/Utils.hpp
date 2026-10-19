@@ -617,13 +617,17 @@ void replaceTexture(
     QRhiShaderResourceBindings& srb, QRhiTexture* old_tex, QRhiTexture* new_tex);
 /**
  * @brief Create bindings following the score conventions for shaders and materials.
+ *
+ * Binding 0 is the output UBO for `sampleCount`, or when it is 0 for the
+ * sample count of `rt`: pass it when the pipeline renders into another target
+ * than `rt`.
  */
 SCORE_PLUGIN_GFX_EXPORT
 QRhiShaderResourceBindings* createDefaultBindings(
     const RenderList& renderer, const TextureRenderTarget& rt, QRhiBuffer* processUBO,
     QRhiBuffer* materialUBO, std::span<const Sampler> samplers,
     std::span<QRhiShaderResourceBinding> additionalBindings = {},
-    int firstSamplerBinding = 3);
+    int firstSamplerBinding = 3, int sampleCount = 0);
 
 /**
  * @brief Match a (name, semantic) request to an upstream geometry attribute.

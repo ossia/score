@@ -604,7 +604,8 @@ void RenderedRawRasterPipelineNode::initLayerResolve(
     {
       const auto& r = l.resolve;
       QVarLengthArray<QRhiShaderResourceBinding, 12> b;
-      b.push_back(QRhiShaderResourceBinding::uniformBuffer(0, stage, &renderer.outputUBO()));
+      // Resolve pipelines render single-sampled (MSAA_SAMPLES, U24).
+      b.push_back(QRhiShaderResourceBinding::uniformBuffer(0, stage, &renderer.outputUBO(1)));
       b.push_back(QRhiShaderResourceBinding::uniformBuffer(1, stage, processUBO));
       if(m_materialUBO)
         b.push_back(QRhiShaderResourceBinding::uniformBuffer(2, stage, m_materialUBO));
@@ -2005,19 +2006,39 @@ void RenderedRawRasterPipelineNode::initMRTPass(
       for(std::size_t i = 1; i < colorTextures.size(); i++)
         m_mrtRenderTarget.additionalColorTextures.push_back(colorTextures[i]);
 
+      // A declared SAMPLES (or the renderer's MSAA) renders into multisample
+      // colour buffers that resolve into the output textures; the attachments
+      // were single-sampled whatever SAMPLES said (found with shader board U24).
       QList<QRhiColorAttachment> attachments;
       for(auto* tex : colorTextures)
-        attachments.append(QRhiColorAttachment(tex));
+      {
+        if(mrtSamples <= 1)
+        {
+          attachments.append(QRhiColorAttachment(tex));
+          continue;
+        }
+        auto* rb = rhi.newRenderBuffer(
+            QRhiRenderBuffer::Color, tex->pixelSize(), mrtSamples, {}, tex->format());
+        rb->setName("RenderedRawRasterPipelineNode::MRT::colorRB");
+        if(!m_mrtRenderTarget.colorRenderBuffer)
+          m_mrtRenderTarget.colorRenderBuffer = rb;
+        else
+          m_mrtRenderTarget.additionalColorRenderBuffers.push_back(rb);
+        SCORE_ASSERT(rb->create());
+        QRhiColorAttachment att(rb);
+        att.setResolveTexture(tex);
+        attachments.append(att);
+      }
 
       QRhiTextureRenderTargetDescription desc;
       desc.setColorAttachments(attachments.begin(), attachments.end());
 
       // Reverse-Z project rule: D32F float depth. D24 + reverse-Z is strictly
       // worse than standard-Z. Stencil dropped (unused elsewhere).
-      // Sample count must match the single-sample color attachments above,
-      // or renderTarget->create() fails.
+      // Sample count must match the colour attachments above, or
+      // renderTarget->create() fails.
       m_mrtRenderTarget.depthTexture = rhi.newTexture(
-          QRhiTexture::D32F, sz, 1,
+          QRhiTexture::D32F, sz, std::max(mrtSamples, 1),
           QRhiTexture::RenderTarget);
       m_mrtRenderTarget.depthTexture->setName(
           "RenderedRawRasterPipelineNode::MRT::depthTexture (D32F)");
@@ -2562,16 +2583,6 @@ void RenderedRawRasterPipelineNode::initMRTPass(
     additionalBindings.push_back(QRhiShaderResourceBinding::uniformBuffer(
         max_binding, bindingStages, m_modelUBO));
 
-    auto bindings = createDefaultBindings(
-        renderer, m_mrtRenderTarget, pubo, m_materialUBO, samplers,
-        std::span<QRhiShaderResourceBinding>(
-            additionalBindings.data(), additionalBindings.size()),
-        m_firstSamplerBinding);
-
-    auto ps = rhi.newGraphicsPipeline();
-    ps->setName("RenderedRawRasterPipelineNode::initMRTPass::ps");
-    SCORE_ASSERT(ps);
-
     // PerMip / PerCubeFace / PerLayer-colour draw exclusively into the
     // per-iteration RTs in m_mipRTs, so the pipeline must be built against
     // their render pass (every colour output, 1 sample) to satisfy QRhi's
@@ -2588,6 +2599,18 @@ void RenderedRawRasterPipelineNode::initMRTPass(
       pipelineColorCount = m_mipRTs[0].colorCount;
       pipelineSamples = 1;
     }
+    // MSAA_SAMPLES is the count the pipeline renders at, not the MRT
+    // target's when the iterations render single-sampled (U24).
+    auto bindings = createDefaultBindings(
+        renderer, m_mrtRenderTarget, pubo, m_materialUBO, samplers,
+        std::span<QRhiShaderResourceBinding>(
+            additionalBindings.data(), additionalBindings.size()),
+        m_firstSamplerBinding, pipelineSamples);
+
+    auto ps = rhi.newGraphicsPipeline();
+    ps->setName("RenderedRawRasterPipelineNode::initMRTPass::ps");
+    SCORE_ASSERT(ps);
+
     ps->setSampleCount(pipelineSamples);
 
     // Multiview: activate the matching view count on the pipeline so that

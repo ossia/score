@@ -1100,7 +1100,8 @@ static Pipeline buildPipelineImpl(
 QRhiShaderResourceBindings* createDefaultBindings(
     const RenderList& renderer, const TextureRenderTarget& rt, QRhiBuffer* processUBO,
     QRhiBuffer* materialUBO, std::span<const Sampler> samplers,
-    std::span<QRhiShaderResourceBinding> additionalBindings, int firstSamplerBinding)
+    std::span<QRhiShaderResourceBinding> additionalBindings, int firstSamplerBinding,
+    int sampleCount)
 {
   auto& rhi = *renderer.state.rhi;
   // Shader resource bindings
@@ -1114,7 +1115,7 @@ QRhiShaderResourceBindings* createDefaultBindings(
 
   {
     const auto rendererBinding = QRhiShaderResourceBinding::uniformBuffer(
-        0, bindingStages, &renderer.outputUBO());
+        0, bindingStages, &renderer.outputUBO(sampleCount > 0 ? sampleCount : rt.sampleCount()));
     bindings.push_back(rendererBinding);
   }
 

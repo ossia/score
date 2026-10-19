@@ -4,7 +4,8 @@
 // - a required vertex input with no upstream attribute still skips the
 //   draw, but says so at warning level and names the input;
 // - an OUTPUT declaring SAMPLES 1 renders single-sampled under a 4x
-//   renderer; one declaring nothing keeps the renderer's MSAA;
+//   renderer; one declaring nothing keeps the renderer's MSAA; one declaring
+//   SAMPLES 4 and no depth OUTPUT renders multisampled under a 1x renderer;
 // - the strict vertex-input resolver refuses a geometry binding past the
 //   pipeline's mesh bindings instead of renumbering it onto slot 0.
 #include <Gfx/Settings/Model.hpp>
@@ -151,12 +152,12 @@ struct EdgeShot
   int lit = 0;
 };
 
-EdgeShot render_edge(score::gfx::GraphicsApi api, const char* fs)
+EdgeShot render_edge(score::gfx::GraphicsApi api, const char* fs, int samples = 4)
 {
   EdgeShot r;
   score::test::run_in_gui_app([&](const score::GUIApplicationContext& ctx) {
     samples_guard guard{ctx.settings<Gfx::Settings::Model>()};
-    guard.gfx.setSamples(4);
+    guard.gfx.setSamples(samples);
 
     GfxPipeline p;
     const int raster = p.addRaster(corpus("rr-msaa-edge.vs"), corpus(fs));
@@ -330,4 +331,25 @@ void main() { frag = v_col; }
   CHECK(inRange);
   CHECK(!oneOut);
   CHECK(!allOut);
+}
+
+TEST_CASE(
+    "a declared SAMPLES 4 renders multisampled under a single-sampled renderer",
+    "[gfx][raster][msaa][U24]")
+{
+  const auto api = GENERATE(from_range(platform_backends()));
+  CAPTURE(backend_name(api));
+
+  // The plain MRT path without a depth OUTPUT allocated every attachment
+  // single-sampled whatever SAMPLES declared.
+  const auto shot = render_edge(api, "rr-msaa-edge-samples4.fs", 1);
+  if(shot.skipped)
+    SKIP("backend unavailable");
+  INFO("error=" << shot.err);
+  REQUIRE(shot.err.empty());
+  INFO("renderer samples " << shot.rendererSamples << ", SAMPLES 4: partial="
+                           << shot.partial << " lit=" << shot.lit);
+  CHECK(shot.rendererSamples <= 1);
+  CHECK(shot.lit > 500);
+  CHECK(shot.partial > 20);
 }

@@ -1516,6 +1516,7 @@ score_add_csf_test(sampled_inputs GfxCsfSampledInputs.cpp)
 # Raw raster: single colour OUTPUT FORMAT, missing required vertex input
 # reported at warning level.
 score_add_gfx_test(raw_raster_output_and_vertex_input GfxRawRasterOutputAndVertexInput.cpp)
+score_add_gfx_test(msaa_samples_uniform GfxMsaaSamplesUniform.cpp)
 
 # Merge Geometries bakes each input's transform into its meshes. No device:
 # the renderer runs on a RenderList without a QRhi (GfxCpuRenderList.hpp).
