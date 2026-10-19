@@ -181,6 +181,8 @@ target_link_libraries(score_lib_base
     Qt6::Core Qt6::Gui Qt6::Widgets Qt6::Network Qt6::Qml Qt6::WidgetsPrivate Qt6::GuiPrivate Qt6::CorePrivate
 )
 
+target_link_libraries(score_plugin_js INTERFACE Qt6::Quick)
+
 if(TARGET Qt6::ShaderTools)
   target_link_libraries(score_plugin_gfx INTERFACE Qt6::ShaderTools Qt6::ShaderToolsPrivate)
 endif()
