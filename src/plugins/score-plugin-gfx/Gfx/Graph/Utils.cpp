@@ -10,11 +10,18 @@
 
 #include <isf.hpp>
 
+#include <score/gfx/Vulkan.hpp>
+
 #include <score/tools/Debug.hpp>
 
 #include <QMutex>
 #include <QOpenGLContext>
+#include <QOpenGLExtraFunctions>
 #include <QOpenGLFunctions>
+#if QT_HAS_VULKAN
+#include <QVulkanFunctions>
+#include <QVulkanInstance>
+#endif
 #include <QRegularExpression>
 
 #include <algorithm>
@@ -2444,6 +2451,39 @@ int storageImageUnitLimit(QRhi& rhi)
   }
 #endif
   return units > 0 ? units : 8;
+}
+
+int64_t storageBufferSizeLimit(QRhi& rhi)
+{
+  constexpr int64_t rhi_limit = std::numeric_limits<quint32>::max();
+  int64_t device = 0;
+#if QT_HAS_VULKAN
+  if(rhi.backend() == QRhi::Vulkan)
+  {
+    auto* nh = static_cast<const QRhiVulkanNativeHandles*>(rhi.nativeHandles());
+    if(nh && nh->inst && nh->physDev)
+    {
+      VkPhysicalDeviceProperties props{};
+      nh->inst->functions()->vkGetPhysicalDeviceProperties(nh->physDev, &props);
+      device = props.limits.maxStorageBufferRange;
+    }
+  }
+#endif
+#if QT_CONFIG(opengl)
+  if(rhi.backend() == QRhi::OpenGLES2 && rhi.makeThreadLocalNativeContextCurrent())
+  {
+    if(auto* ctx = QOpenGLContext::currentContext())
+    {
+      constexpr GLenum max_ssbo_block_size = 0x90DE;
+      GLint64 v = 0;
+      ctx->extraFunctions()->glGetInteger64v(max_ssbo_block_size, &v);
+      while(ctx->functions()->glGetError() != GL_NO_ERROR)
+        ;
+      device = v;
+    }
+  }
+#endif
+  return device > 0 ? std::min(device, rhi_limit) : rhi_limit;
 }
 
 int maxStorageImageBinding(QStringView glsl)

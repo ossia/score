@@ -1252,7 +1252,7 @@ QSize RenderedCSFNode::getImageSize(
 }
 
 BufferView RenderedCSFNode::createStorageBuffer(
-    RenderList& renderer, const QString& name, const QString& access, int size)
+    RenderList& renderer, const QString& name, const QString& access, int64_t size)
 {
   QRhi& rhi = *renderer.state.rhi;
   QRhiBuffer* buffer = rhi.newBuffer(
@@ -1312,14 +1312,15 @@ void RenderedCSFNode::updateStorageBuffers(RenderList& renderer, QRhiResourceUpd
   // A buffer that cannot be allocated at its declared size stops the passes:
   // run against a smaller one, the shader reads and writes past its end.
   m_storageUnallocated = false;
+  const int64_t maxSize = renderer.state.caps.maxStorageBufferSize;
   auto unallocated = [&](const StorageBuffer& sb, int64_t bytes) {
     m_storageUnallocated = true;
     if(!std::exchange(m_warnedStorageUnallocated, true))
       qWarning().noquote()
           << "CSF: storage buffer" << sb.name << "needs" << bytes
-          << "bytes and cannot be allocated (a GPU buffer holds at most"
-          << INT_MAX << "bytes, and the device may refuse less). The shader's"
-          << "passes are skipped until its size is reduced.";
+          << "bytes and cannot be allocated (this device binds at most" << maxSize
+          << "bytes, and may refuse less). The shader's passes are skipped until"
+          << "its size is reduced.";
   };
 
   // Check each storage buffer to see if it needs resizing
@@ -1383,7 +1384,7 @@ void RenderedCSFNode::updateStorageBuffers(RenderList& renderer, QRhiResourceUpd
     // Calculate required buffer size
     auto requiredSize = score::gfx::calculateStorageBufferSize(
         storageBuffer.layout, currentArraySize, this->n.descriptor());
-    if(requiredSize > INT_MAX)
+    if(requiredSize > maxSize)
     {
       unallocated(storageBuffer, requiredSize);
       continue;

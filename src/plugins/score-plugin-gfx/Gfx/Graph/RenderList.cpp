@@ -12,6 +12,7 @@
 #include <Gfx/Graph/RenderList.hpp>
 
 #include <Gfx/Graph/RhiIndirectCompat.hpp>
+#include <Gfx/Graph/Utils.hpp>
 #include <Gfx/Graph/VertexFallbackPool.hpp>
 #include <Gfx/Settings/Model.hpp>
 
@@ -2707,6 +2708,13 @@ void RenderState::Caps::populate(QRhi& rhi)
   pipelineCacheDataLoadSave = rhi.isFeatureSupported(QRhi::PipelineCacheDataLoadSave);
   triangleFan = triangleFanSupported(rhi);
   qDebug("score.gfx: RHI topology caps: triangleFan=%d", int(triangleFan));
+
+  maxStorageBufferSize = storageBufferSizeLimit(rhi);
+  if(const auto cap = qEnvironmentVariable("SCORE_GFX_MAX_STORAGE_BUFFER_SIZE").toLongLong();
+     cap > 0)
+    maxStorageBufferSize = std::min<int64_t>(maxStorageBufferSize, cap);
+  qDebug("score.gfx: RHI storage caps: maxStorageBufferSize=%lld",
+         (long long)maxStorageBufferSize);
 
   // One greppable line with the final (post-kill-switch) indirect rung caps.
   // GfxIndirectFallbackLadder.cpp captures this through a message handler as

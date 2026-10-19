@@ -74,7 +74,7 @@ private:
   // Buffer management methods
   int calculateStorageBufferSize(std::span<const isf::storage_input::layout_field> layout, int arrayCount) const;
   BufferView createStorageBuffer(
-      RenderList& renderer, const QString& name, const QString& access, int size);
+      RenderList& renderer, const QString& name, const QString& access, int64_t size);
   void updateStorageBuffers(RenderList& renderer, QRhiResourceUpdateBatch& res);
   void recreateShaderResourceBindings(RenderList& renderer, QRhiResourceUpdateBatch& res);
 

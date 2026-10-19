@@ -1004,6 +1004,15 @@ QRhiTexture* createStorageImagePlaceholder(
 SCORE_PLUGIN_GFX_EXPORT
 int storageImageUnitLimit(QRhi& rhi);
 
+/**
+ * @brief Largest storage buffer the device binds, in bytes: Vulkan
+ *        maxStorageBufferRange, GL MAX_SHADER_STORAGE_BLOCK_SIZE. Elsewhere
+ *        the QRhi limit (QRhi::newBuffer takes a quint32 size): a buffer the
+ *        device refuses below it fails in create().
+ */
+SCORE_PLUGIN_GFX_EXPORT
+int64_t storageBufferSizeLimit(QRhi& rhi);
+
 //! Highest binding of a storage image declared in `glsl`, -1 if none.
 SCORE_PLUGIN_GFX_EXPORT
 int maxStorageImageBinding(QStringView glsl);

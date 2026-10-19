@@ -5,6 +5,7 @@
 #include <score_plugin_gfx_export.h>
 
 #include <functional>
+#include <limits>
 
 #if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
 using QRhiBufferReadbackResult = QRhiReadbackResult;
@@ -121,6 +122,11 @@ struct RenderState
     bool textureViewFormat{false};
     bool depthClamp{false};
     bool triangleFan{false};
+
+    // Largest storage buffer a node allocates, in bytes: storageBufferSizeLimit()
+    // (4 GiB - 1 on most Vulkan devices, 2 GiB - 1 on GL on NVIDIA).
+    // SCORE_GFX_MAX_STORAGE_BUFFER_SIZE=<bytes> lowers it.
+    int64_t maxStorageBufferSize{std::numeric_limits<quint32>::max()};
 
     void populate(QRhi& rhi);
   } caps;
