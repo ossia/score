@@ -30,6 +30,34 @@ extern "C" {
 
 namespace isf
 {
+// A header key, uppercased: header keys are case-independent, and every
+// keyword comparison is against the uppercase spelling (shader board U02).
+// Not for keys that are names (TYPES, AUXILIARY maps).
+static std::string header_key(const sajson::string& k)
+{
+  std::string s = k.as_string();
+  for(char& c : s)
+    c = (char)std::toupper((unsigned char)c);
+  return s;
+}
+
+// Keyword values are case-independent too: ACCESS and BUFFER_USAGE are
+// compared in lowercase, execution-model TYPEs in uppercase (U02).
+static std::string lower_value(const sajson::value& v)
+{
+  std::string s = v.as_string();
+  for(char& c : s)
+    c = (char)std::tolower((unsigned char)c);
+  return s;
+}
+static std::string upper_value(const sajson::value& v)
+{
+  std::string s = v.as_string();
+  for(char& c : s)
+    c = (char)std::toupper((unsigned char)c);
+  return s;
+}
+
 static std::string relax_isf_json(std::string_view json);
 
 // The ISF header: the first block comment whose content is a JSON object,
@@ -423,10 +451,11 @@ parser::parser(std::string vert, std::string frag, int glslVersion, ShaderType t
   this->m_desc.default_vertex_shader = m_sourceVertex.empty();
 
   static const auto is_isf = [](const std::string& str) {
+    // Header keys are case-independent (U02).
     bool has_isf
         = (str.find("isf") != std::string::npos || str.find("ISF") != std::string::npos
            || str.find("IMG_") != std::string::npos
-           || str.find("\"INPUTS\":") != std::string::npos);
+           || !boost::algorithm::ifind_first(str, "\"INPUTS\"").empty());
     if(!has_isf)
       return false;
 
@@ -436,12 +465,12 @@ parser::parser(std::string vert, std::string frag, int glslVersion, ShaderType t
       = [](const std::string& str) { return str.starts_with("[{\"ver\":\""); };
   static const auto is_shadertoy = [](const std::string& str) {
     return str.find("void mainImage(") != std::string::npos
-           && str.find("\"ISFVSN\"") == std::string::npos;
+           && boost::algorithm::ifind_first(str, "\"ISFVSN\"").empty();
   };
   static const auto is_glslsandbox = [](const std::string& str) {
     return (str.find("uniform float time;") != std::string::npos
             || str.find("glslsandbox") != std::string::npos)
-           && str.find("\"ISFVSN\"") == std::string::npos;
+           && boost::algorithm::ifind_first(str, "\"ISFVSN\"").empty();
   };
   static const auto is_vsa = [](const std::string& str) {
     // Check for common VSA patterns
@@ -452,14 +481,14 @@ parser::parser(std::string vert, std::string frag, int glslVersion, ShaderType t
     return (has_vertexId || has_v_color) && (no_frag_color);
   };
   static const auto is_csf = [](const std::string& str) {
-    bool has_dispatch = str.find("\"DISPATCH\"") != std::string::npos;
-    bool has_local_size = str.find("\"LOCAL_SIZE\"") != std::string::npos;
-    bool has_resources = str.find("\"RESOURCES\"") != std::string::npos;
+    bool has_dispatch = !boost::algorithm::ifind_first(str, "\"DISPATCH\"").empty();
+    bool has_local_size = !boost::algorithm::ifind_first(str, "\"LOCAL_SIZE\"").empty();
+    bool has_resources = !boost::algorithm::ifind_first(str, "\"RESOURCES\"").empty();
 
     return has_dispatch && has_local_size && (has_resources || is_isf(str));
   };
   static const auto is_raw_raster_pipeline = [](const std::string& str) {
-    bool res = str.find("\"RAW_RASTER_PIPELINE\"") != std::string::npos;
+    bool res = !boost::algorithm::ifind_first(str, "\"RAW_RASTER_PIPELINE\"").empty();
     return res;
   };
 
@@ -549,7 +578,7 @@ static void parse_input_base(input& inp, const sajson::value& v)
 
   for(std::size_t i = 0; i < N; i++)
   {
-    auto k = v.get_object_key(i).as_string();
+    auto k = header_key(v.get_object_key(i));
     if(k == "NAME")
     {
       auto val = v.get_object_value(i);
@@ -758,7 +787,7 @@ static void parse_input(audio_input& inp, const sajson::value& v)
 
   for(std::size_t i = 0; i < N; i++)
   {
-    auto k = v.get_object_key(i).as_string();
+    auto k = header_key(v.get_object_key(i));
     if(k == "MAX")
     {
       auto val = v.get_object_value(i);
@@ -777,7 +806,7 @@ static void parse_input(audioHist_input& inp, const sajson::value& v)
 
   for(std::size_t i = 0; i < N; i++)
   {
-    auto k = v.get_object_key(i).as_string();
+    auto k = header_key(v.get_object_key(i));
     if(k == "MAX")
     {
       auto val = v.get_object_value(i);
@@ -958,12 +987,12 @@ static void parse_input(storage_input& inp, const sajson::value& v)
 
   for(std::size_t i = 0; i < N; i++)
   {
-    auto k = v.get_object_key(i).as_string();
+    auto k = header_key(v.get_object_key(i));
     if(k == "ACCESS")
     {
       auto val = v.get_object_value(i);
       if(val.get_type() == sajson::TYPE_STRING)
-        inp.access = val.as_string();
+        inp.access = lower_value(val);
     }
     else if(k == "LAYOUT")
     {
@@ -983,7 +1012,7 @@ static void parse_input(storage_input& inp, const sajson::value& v)
             // Parse NAME and TYPE
             for(std::size_t f = 0; f < field.get_length(); f++)
             {
-              auto field_key = field.get_object_key(f).as_string();
+              auto field_key = header_key(field.get_object_key(f));
               if(field_key == "NAME")
               {
                 auto name_val = field.get_object_value(f);
@@ -1008,7 +1037,7 @@ static void parse_input(storage_input& inp, const sajson::value& v)
     {
       auto val = v.get_object_value(i);
       if(val.get_type() == sajson::TYPE_STRING)
-        inp.buffer_usage = val.as_string();
+        inp.buffer_usage = lower_value(val);
     }
     else if(k == "PERSISTENT")
     {
@@ -1063,7 +1092,7 @@ static void parse_input(uniform_input& inp, const sajson::value& v)
   std::size_t N = v.get_length();
   for(std::size_t i = 0; i < N; i++)
   {
-    auto k = v.get_object_key(i).as_string();
+    auto k = header_key(v.get_object_key(i));
     if(k == "LAYOUT")
     {
       auto val = v.get_object_value(i);
@@ -1079,7 +1108,7 @@ static void parse_input(uniform_input& inp, const sajson::value& v)
           uniform_input::layout_field lf;
           for(std::size_t f = 0; f < field.get_length(); f++)
           {
-            auto fk = field.get_object_key(f).as_string();
+            auto fk = header_key(field.get_object_key(f));
             if(fk == "NAME")
             {
               auto nv = field.get_object_value(f);
@@ -1145,7 +1174,7 @@ parse_copy_from(const sajson::value& obj)
   geometry_input::copy_from cf;
   for(std::size_t i = 0; i < obj.get_length(); i++)
   {
-    auto k = obj.get_object_key(i).as_string();
+    auto k = header_key(obj.get_object_key(i));
     auto v = obj.get_object_value(i);
     if(v.get_type() != sajson::TYPE_STRING)
       continue;
@@ -1203,7 +1232,7 @@ static void parse_auxiliary_texture(
 {
   for(std::size_t f = 0; f < aux_obj.get_length(); f++)
   {
-    auto fkey = aux_obj.get_object_key(f).as_string();
+    auto fkey = header_key(aux_obj.get_object_key(f));
     auto fval = aux_obj.get_object_value(f);
 
     if(fkey == "NAME" && fval.get_type() == sajson::TYPE_STRING)
@@ -1254,9 +1283,9 @@ static void parse_auxiliary_texture(
     else if(fkey == "STORAGE")
       out.is_storage = (fval.get_type() == sajson::TYPE_TRUE);
     else if(fkey == "FORMAT" && fval.get_type() == sajson::TYPE_STRING)
-      out.format = fval.as_string();
+      out.format = lower_value(fval);
     else if(fkey == "ACCESS" && fval.get_type() == sajson::TYPE_STRING)
-      out.access = fval.as_string();
+      out.access = lower_value(fval);
     // WIDTH / HEIGHT / LAYERS — same expression-or-literal convention as
     // csf_image_input. Strings allow `$var` substitution against the
     // shader's long/float inputs at allocation time.
@@ -1460,13 +1489,13 @@ static void parse_auxiliary_array(
 
     for(std::size_t f = 0; f < aux_obj.get_length(); f++)
     {
-      auto fkey = aux_obj.get_object_key(f).as_string();
+      auto fkey = header_key(aux_obj.get_object_key(f));
       auto fval = aux_obj.get_object_value(f);
 
       if(fkey == "NAME" && fval.get_type() == sajson::TYPE_STRING)
         ar.name = fval.as_string();
       else if(fkey == "ACCESS" && fval.get_type() == sajson::TYPE_STRING)
-        ar.access = fval.as_string();
+        ar.access = lower_value(fval);
       else if(fkey == "SIZE")
       {
         if(fval.get_type() == sajson::TYPE_STRING)
@@ -1488,7 +1517,7 @@ static void parse_auxiliary_array(
           storage_input::layout_field lf;
           for(std::size_t ff = 0; ff < field.get_length(); ff++)
           {
-            auto field_key = field.get_object_key(ff).as_string();
+            auto field_key = header_key(field.get_object_key(ff));
             if(field_key == "NAME")
             {
               auto name_val = field.get_object_value(ff);
@@ -1569,7 +1598,7 @@ static void parse_input(geometry_input& inp, const sajson::value& v)
 
   for(std::size_t i = 0; i < N; i++)
   {
-    auto k = v.get_object_key(i).as_string();
+    auto k = header_key(v.get_object_key(i));
     if(k == "ATTRIBUTES")
     {
       auto val = v.get_object_value(i);
@@ -1588,7 +1617,7 @@ static void parse_input(geometry_input& inp, const sajson::value& v)
 
           for(std::size_t f = 0; f < attr_obj.get_length(); f++)
           {
-            auto fkey = attr_obj.get_object_key(f).as_string();
+            auto fkey = header_key(attr_obj.get_object_key(f));
             auto fval = attr_obj.get_object_value(f);
 
             if(fkey == "NAME" && fval.get_type() == sajson::TYPE_STRING)
@@ -1598,7 +1627,7 @@ static void parse_input(geometry_input& inp, const sajson::value& v)
             else if(fkey == "TYPE" && fval.get_type() == sajson::TYPE_STRING)
               ar.type = fval.as_string();
             else if(fkey == "ACCESS" && fval.get_type() == sajson::TYPE_STRING)
-              ar.access = fval.as_string();
+              ar.access = lower_value(fval);
             else if(fkey == "RATE" && fval.get_type() == sajson::TYPE_STRING)
               ar.rate = fval.as_string();
             else if(fkey == "REQUIRED")
@@ -1812,20 +1841,20 @@ static void parse_input(csf_image_input& inp, const sajson::value& v)
 
   for(std::size_t i = 0; i < N; i++)
   {
-    auto k = v.get_object_key(i).as_string();
+    auto k = header_key(v.get_object_key(i));
     if(k == "ACCESS")
     {
       auto val = v.get_object_value(i);
       if(val.get_type() == sajson::TYPE_STRING)
-        inp.access = val.as_string();
+        inp.access = lower_value(val);
     }
     else if(k == "FORMAT")
     {
       auto val = v.get_object_value(i);
       if(val.get_type() == sajson::TYPE_STRING)
       {
-        inp.format = val.as_string();
-        if(boost::algorithm::iequals(inp.format, "bgra8"))
+        inp.format = lower_value(val);
+        if(inp.format == "bgra8")
         {
           // GLSL has no BGRA image qualifier. A storage image of rgba8 reads
           // and samples as the same (r, g, b, a) values; the channel order in
@@ -1995,7 +2024,7 @@ static void parse_input(audioFFT_input& inp, const sajson::value& v)
 
   for(std::size_t i = 0; i < N; i++)
   {
-    auto k = v.get_object_key(i).as_string();
+    auto k = header_key(v.get_object_key(i));
     if(k == "MAX")
     {
       auto val = v.get_object_value(i);
@@ -2058,7 +2087,7 @@ static void parse_input(long_input& inp, const sajson::value& v)
 
   for(std::size_t i = 0; i < N; i++)
   {
-    auto k = v.get_object_key(i).as_string();
+    auto k = header_key(v.get_object_key(i));
     if(k == "VALUES")
     {
       auto val = v.get_object_value(i);
@@ -2247,7 +2276,7 @@ static void parse_input(Input_T& inp, const sajson::value& v)
 
   for(std::size_t i = 0; i < N; i++)
   {
-    auto k = v.get_object_key(i).as_string();
+    auto k = header_key(v.get_object_key(i));
     if(k == "MIN")
     {
       auto val = v.get_object_value(i);
@@ -2360,7 +2389,7 @@ static void parse_input(Input_T& inp, const sajson::value& v)
 
   for(std::size_t i = 0; i < N; i++)
   {
-    auto k = v.get_object_key(i).as_string();
+    auto k = header_key(v.get_object_key(i));
     if(k == "DEFAULT")
     {
       auto val = v.get_object_value(i);
@@ -2451,7 +2480,7 @@ static void parse_blend_attachment(const sajson::value& v, blend_attachment& out
   std::size_t n = v.get_length();
   for(std::size_t i = 0; i < n; i++)
   {
-    auto k = v.get_object_key(i).as_string();
+    auto k = header_key(v.get_object_key(i));
     auto val = v.get_object_value(i);
     bool b{};
     if     (k == "ENABLE"     ) { get_bool(val, b); out.enable = b; }
@@ -2476,7 +2505,7 @@ static void parse_stencil_op_state(const sajson::value& v, stencil_op_state& out
   std::size_t n = v.get_length();
   for(std::size_t i = 0; i < n; i++)
   {
-    auto k = v.get_object_key(i).as_string();
+    auto k = header_key(v.get_object_key(i));
     auto val = v.get_object_value(i);
     if     (k == "FAIL_OP"      ) get_str(val, out.fail_op);
     else if(k == "DEPTH_FAIL_OP") get_str(val, out.depth_fail_op);
@@ -2493,7 +2522,7 @@ static void parse_pipeline_state(const sajson::value& v, pipeline_state& out)
   std::size_t n = v.get_length();
   for(std::size_t i = 0; i < n; i++)
   {
-    auto k = v.get_object_key(i).as_string();
+    auto k = header_key(v.get_object_key(i));
     auto val = v.get_object_value(i);
     bool b{};
     float f{};
@@ -3431,7 +3460,7 @@ static const ossia::string_map<root_fun>& root_parse{[] {
           {
             auto type_val = em_val.get_object_value(type_k);
             if(type_val.get_type() == sajson::TYPE_STRING)
-              dispatch.execution_type = type_val.as_string();
+              dispatch.execution_type = upper_value(type_val);
           }
 
           // Parse TARGET
@@ -3554,7 +3583,7 @@ static const ossia::string_map<root_fun>& root_parse{[] {
                 {
                   auto type_val = em_val.get_object_value(type_k);
                   if(type_val.get_type() == sajson::TYPE_STRING)
-                    dispatch.execution_type = type_val.as_string();
+                    dispatch.execution_type = upper_value(type_val);
                 }
 
                 // Parse TARGET
@@ -3713,7 +3742,7 @@ static const ossia::string_map<root_fun>& root_parse{[] {
             {
               auto v2 = obj.get_object_value(fmt_k);
               if(v2.get_type() == sajson::TYPE_STRING)
-                p.format = v2.as_string();
+                p.format = lower_value(v2);
             }
 
             // PIPELINE_STATE: per-pass pipeline state overrides.
@@ -3783,7 +3812,7 @@ static const ossia::string_map<root_fun>& root_parse{[] {
           {
             auto v2 = obj.get_object_value(fmt_k);
             if(v2.get_type() == sajson::TYPE_STRING)
-              out.format = v2.as_string();
+              out.format = lower_value(v2);
           }
 
           // SAMPLES: MSAA sample count (1, 2, 4, 8, 16, ...).
@@ -4257,7 +4286,7 @@ std::pair<int, descriptor> parser::parse_isf_header(std::string_view source)
     upgrade_v1_persistent_buffers(d, root.get_object_value(k));
 
   if(d.layer.enabled()
-     && source.find("\"RAW_RASTER_PIPELINE\"") == std::string_view::npos)
+     && boost::algorithm::ifind_first(source, "\"RAW_RASTER_PIPELINE\"").empty())
     throw invalid_file{"LAYER is only supported by RAW_RASTER_PIPELINE shaders"};
 
   bool composite = d.composite != composite_mode::unspecified;

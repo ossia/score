@@ -653,14 +653,15 @@ ShaderFamily shaderFileFamily(const QString& path) noexcept
       {"\"VERTEX_SHADER_ART\"", ShaderFamily::VertexShaderArt},
   };
 
+  // MODE values are case-independent, like the rest of the header (shader
+  // board U02).
+  QFile f{path};
+  if(!f.open(QIODevice::ReadOnly))
+    return ShaderFamily::Unknown;
+  const QByteArray text = f.readAll().toUpper();
   for(const auto& [marker, family] : markers)
-  {
-    // A fresh QFile per marker: fileContains reads from wherever the device
-    // currently is.
-    QFile f{path};
-    if(score::fileContains(f, marker))
+    if(text.contains(QByteArrayView{marker.data(), qsizetype(marker.size())}))
       return family;
-  }
   return ShaderFamily::Unknown;
 }
 

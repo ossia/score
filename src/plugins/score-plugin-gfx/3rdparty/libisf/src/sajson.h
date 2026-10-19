@@ -399,14 +399,19 @@ namespace sajson {
             return true;
         }
 
+        // Linear: the keys are sorted case-sensitively, so a binary search
+        // only finds a key spelled in the same case as `key` (score U02).
         size_t find_object_key_insensitive(const string& key) const {
             assert_type(TYPE_OBJECT);
             const object_key_record* start = reinterpret_cast<const object_key_record*>(payload + 1);
-            const object_key_record* end = start + get_length();
-            const object_key_record* i = std::lower_bound(start, end, key, object_key_comparator(text));
-            return (i != end
-                    && (i->key_end - i->key_start) == key.length()
-                    && compare_case_insensitive(key.data(), text + i->key_start, key.length()))? i - start : get_length();
+            const size_t n = get_length();
+            for(size_t i = 0; i < n; i++) {
+                const object_key_record& r = start[i];
+                if((r.key_end - r.key_start) == key.length()
+                   && compare_case_insensitive(key.data(), text + r.key_start, key.length()))
+                    return i;
+            }
+            return n;
         }
 
         // valid iff get_type() is TYPE_INTEGER

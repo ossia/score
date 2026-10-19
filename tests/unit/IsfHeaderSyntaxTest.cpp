@@ -69,3 +69,15 @@ void main() { gl_FragColor = vec4(gain); }
   CHECK(p.data().inputs[0].name == "gain");
 }
 
+// The header's keys are case-independent (U02), so the autodetection reads
+// them so too: a lower-case header next to a mainImage was taken for a
+// Shadertoy, which ignores the header and its inputs.
+TEST_CASE("autodetection reads a lower-case ISF header", "[gfx][isf][U02]")
+{
+  const std::string src = R"_(/*{ "isfvsn": "2", "inputs": [ { "name": "gain", "type": "float" } ] }*/
+void mainImage(out vec4 fragColor, in vec2 fragCoord) { fragColor = vec4(gain); }
+)_";
+  isf::parser p{{}, src, 450, isf::parser::ShaderType::Autodetect};
+  REQUIRE(p.data().inputs.size() >= 1);
+  CHECK(p.data().inputs[0].name == "gain");
+}

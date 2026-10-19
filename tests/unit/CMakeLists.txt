@@ -2112,3 +2112,11 @@ if(TARGET score_plugin_gfx)
     PLUGINS score_plugin_gfx
     LIBS ${QT_PREFIX}::Gui)
 endif()
+
+# Header keys and keyword values are case-independent (U02).
+if(TARGET score_plugin_gfx)
+  score_add_test(test_unit_isf_case_insensitive
+    SOURCES IsfCaseInsensitiveTest.cpp
+    PLUGINS score_plugin_gfx
+    LIBS ${QT_PREFIX}::Gui)
+endif()
