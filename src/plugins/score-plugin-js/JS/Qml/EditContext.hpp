@@ -486,6 +486,17 @@ public:
   void saveAs(QString path);
   W_SLOT(saveAs)
 
+  //! As File > Project files > Consolidate: copies every file the document
+  //! uses next to it, rewrites the references and saves. Returns one
+  //! {path, newPath, source, action, note} entry per reference.
+  QVariantList consolidate(bool collectLibraryFiles);
+  W_SLOT(consolidate)
+
+  //! As File > Project files > Archive: consolidates, saves, then writes the
+  //! project into `zipPath`. Returns an empty string, or the error.
+  QString archive(QString zipPath, bool collectLibraryFiles);
+  W_SLOT(archive)
+
   ////////////////
   /// Document ///
   ////////////////
