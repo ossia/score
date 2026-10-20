@@ -9,6 +9,10 @@
 #include <score/selection/Selection.hpp>
 #include <score/selection/SelectionStack.hpp>
 #include <score/tools/File.hpp>
+#include <score/tools/Zip.hpp>
+
+#include <Process/ProjectArchive.hpp>
+#include <Process/ProjectConsolidation.hpp>
 
 #include <core/command/CommandStack.hpp>
 #include <core/document/Document.hpp>
@@ -228,6 +232,51 @@ void EditJsContext::saveAs(QString path)
 
   auto& documents = score::GUIAppContext().docManager;
   documents.saveDocumentAs(*doc, path);
+}
+
+QVariantList EditJsContext::consolidate(bool collectLibraryFiles)
+{
+  auto doc = (score::Document*)document();
+  if(!doc || doc->metadata().projectFolder().isEmpty())
+    return {};
+
+  score::ConsolidateOptions opts;
+  opts.collectLibraryFiles = collectLibraryFiles;
+  const auto report = Process::consolidateProjectFiles(doc->context(), opts);
+  score::GUIAppContext().docManager.saveDocument(*doc);
+
+  QVariantList res;
+  for(const auto& e : report.entries)
+  {
+    res.push_back(QVariantMap{
+        {QStringLiteral("path"), e.storedPath},
+        {QStringLiteral("newPath"), e.newStoredPath},
+        {QStringLiteral("source"), e.sourcePath},
+        {QStringLiteral("action"), Process::toString(e.action)},
+        {QStringLiteral("note"), e.note}});
+  }
+  return res;
+}
+
+QString EditJsContext::archive(QString zipPath, bool collectLibraryFiles)
+{
+  auto doc = (score::Document*)document();
+  if(!doc || doc->metadata().projectFolder().isEmpty())
+    return QStringLiteral("The document has not been saved");
+
+  score::ConsolidateOptions opts;
+  opts.collectLibraryFiles = collectLibraryFiles;
+  const auto report = Process::consolidateProjectFiles(doc->context(), opts);
+  score::GUIAppContext().docManager.saveDocument(*doc);
+
+  const auto contents = Process::projectArchiveContents(doc->context(), report);
+  if(contents.empty())
+    return QStringLiteral("Nothing to archive");
+
+  QString error;
+  if(!score::writeZipArchive(zipPath, contents, /*level=*/1, error))
+    return error;
+  return {};
 }
 
 QObject* EditJsContext::document()
