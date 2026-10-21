@@ -1,6 +1,8 @@
 #include <Media/Libav.hpp>
 #if SCORE_HAS_LIBAV
 #include "CameraInput.hpp"
+
+#include <Video/CameraPermission.hpp>
 extern "C" {
 #include <libavcodec/avcodec.h>
 #include <libavutil/pixdesc.h>
@@ -18,6 +20,7 @@ extern "C" {
 
 #include <chrono>
 #include <functional>
+#include <mutex>
 #include <thread>
 namespace Video
 {
@@ -36,14 +39,83 @@ bool ExternalInput::notifyFormatChange(
   return true;
 }
 
+struct CameraInput::PendingStart
+{
+  //! Held while the answer is acted on, so that the input cannot die meanwhile
+  std::mutex mutex;
+  CameraInput* self{};
+
+  std::atomic_bool requested{};
+  std::atomic_bool wanted{};
+};
+
 CameraInput::CameraInput() noexcept
+    : m_pendingStart{std::make_shared<PendingStart>()}
 {
   realTime = true;
+  m_pendingStart->self = this;
 }
 
 CameraInput::~CameraInput() noexcept
 {
+  {
+    std::lock_guard lock{m_pendingStart->mutex};
+    m_pendingStart->self = nullptr;
+  }
   close_file();
+}
+
+// On macOS, avformat_open_input on a camera the user has not allowed waits for a
+// first frame that never comes, on the calling thread. Find out beforehand, and if
+// the user still has to answer, ask them and open the device once they agree.
+// Returns false when start() must not go on opening the device now.
+bool CameraInput::start_when_authorized() noexcept
+{
+  if(m_inputKind != "avfoundation")
+    return true;
+
+  switch(cameraAuthorization())
+  {
+    case CameraAuthorization::Authorized:
+      return true;
+
+    case CameraAuthorization::Denied:
+      qWarning() << "Camera: access denied. Allow it in System Settings > "
+                    "Privacy & Security > Camera.";
+      return false;
+
+    case CameraAuthorization::NotDetermined:
+      break;
+  }
+
+  qDebug() << "Camera: waiting for the user to allow camera access";
+  m_pendingStart->wanted = true;
+  if(m_pendingStart->requested.exchange(true))
+    return false;
+
+  requestCameraAuthorization(
+      [weak = std::weak_ptr<PendingStart>{m_pendingStart}](bool granted) {
+    auto pending = weak.lock();
+    if(!pending)
+      return;
+
+    std::lock_guard lock{pending->mutex};
+    pending->requested = false;
+    // Stopped or destroyed while the prompt was up
+    if(!pending->wanted.exchange(false) || !pending->self)
+      return;
+
+    if(granted)
+    {
+      if(!pending->self->start())
+        qWarning() << "Camera: could not start after access was granted";
+    }
+    else
+    {
+      qWarning() << "Camera: access denied by the user";
+    }
+  });
+  return false;
 }
 
 bool CameraInput::load(
@@ -92,6 +164,9 @@ bool CameraInput::start() noexcept
 
   auto ifmt = av_find_input_format(m_inputKind.c_str());
   if(!ifmt)
+    return false;
+
+  if(!start_when_authorized())
     return false;
 
   m_interrupt.reset();
@@ -250,6 +325,9 @@ void CameraInput::close_file() noexcept
 {
   // Stop the running status
   m_running.store(false, std::memory_order_release);
+
+  // A start still waiting for the user to answer the camera prompt is cancelled
+  m_pendingStart->wanted = false;
 
   // The buffer thread may be blocked in av_read_frame: joining without
   // unblocking it first would hang for as long as the device does.
