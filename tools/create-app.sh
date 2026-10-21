@@ -19,6 +19,7 @@ APP_APPDATA_XML=""
 APP_COPYRIGHT=""
 APP_DESCRIPTION=""
 APP_ENVIRONMENT=""
+APP_INFO_PLIST=""
 APP_ORGANIZATION=""
 APP_DOMAIN=""
 APP_IDENTIFIER=""
@@ -63,11 +64,16 @@ Optional:
     --app-copyright     Set the app copyright (e.g. ossia.io)
     --app-description   Set the app description (one line max)
     --app-domain        Set the app domain (e.g. ossia.io)
-    --app-environment   Set a file containing environment variables to set
+    --app-environment   Set a file containing environment variables to set:
+                        [export] KEY=VALUE lines, # comments. On macOS,
+                        \$RESOURCES_DIR (Contents/Resources) is the only
+                        variable expanded.
     --app-icns          Set the app icon (icns format, macOS). Required when
                         building for macOS, unless SCORE_ALLOW_DEFAULT_ICON=1.
     --app-ico           Set the app icon (ico format, Windows). Required when
                         building for Windows, unless SCORE_ALLOW_DEFAULT_ICON=1.
+    --app-info-plist    Info.plist entries for the app, merged over score's
+                        (macOS): e.g. NSCameraUsageDescription worded for the app
     --app-identifier    Set the app identifier (e.g. io.ossia.score); also the Windows AppUserModelID
     --app-organization  Set the app organization (e.g. ossia)
     --app-png           Set the app icon (png format, Linux). Required when
@@ -141,6 +147,14 @@ while [[ $# -gt 0 ]]; do
             APP_ENVIRONMENT="$(abs_path "$2")"
             if [[ ! -f "$APP_ENVIRONMENT" ]]; then
                 echo "Error: environment file does not exist: $2"
+                exit 1
+            fi
+            shift 2
+            ;;
+        --app-info-plist)
+            APP_INFO_PLIST="$(abs_path "$2")"
+            if [[ ! -f "$APP_INFO_PLIST" ]]; then
+                echo "Error: Info.plist file does not exist: $2"
                 exit 1
             fi
             shift 2
@@ -381,6 +395,7 @@ export APP_DOMAIN
 APP_ENVIRONMENT_BASE="$APP_ENVIRONMENT"
 export APP_ENVIRONMENT
 export APP_IDENTIFIER
+export APP_INFO_PLIST
 export APP_ICON_ICO
 export APP_ICON_ICNS
 export APP_ICON_PNG
