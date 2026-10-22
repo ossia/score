@@ -56,6 +56,7 @@ add_library(
 )
 
 target_include_directories(score_plugin_fx PRIVATE "${OSSIA_3RDPARTY_FOLDER}")
+target_include_directories(score_plugin_fx SYSTEM PUBLIC "${3RDPARTY_FOLDER}/avendish/examples")
 target_link_libraries(score_plugin_fx PUBLIC score_plugin_engine score_plugin_avnd)
 
 setup_score_plugin(score_plugin_fx)

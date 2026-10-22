@@ -174,6 +174,12 @@ class CustomNodeProcess : public ossia::node_process
     auto& n = static_cast<safe_node<Node>&>(*node);
     if_possible(n.impl.effect.stop());
     node_process::stop();
+
+    // A stopped node is not ticked again: an object that releases its held
+    // notes in stop() gets one more tick to send the note-offs.
+    if constexpr(avnd::midi_output_introspection<Node>::size > 0)
+      if constexpr(requires { n.impl.effect.stop(); })
+        n.request(ossia::token_request{});
   }
 
   void offset_impl(ossia::time_value date) override

@@ -638,6 +638,12 @@ target_include_directories(test_unit_avnd_midi_humanizer SYSTEM PRIVATE
   "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/include"
   "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/examples")
 
+score_add_test(test_unit_avnd_midi_common
+  SOURCES AvndMidiCommonTest.cpp)
+target_include_directories(test_unit_avnd_midi_common SYSTEM PRIVATE
+  "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/include"
+  "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/examples")
+
 if(TARGET gamma)
   score_add_test(test_unit_avnd_compressor_limiter_flanger
     SOURCES AvndCompressorLimiterFlangerTest.cpp)
