@@ -160,6 +160,11 @@ add_library(
   "${AVND_FOLDER}/examples/Advanced/Utilities/ADSR.hpp"
   "${AVND_FOLDER}/examples/Advanced/MidiScaler/MidiEnvelope.hpp"
   "${AVND_FOLDER}/examples/Advanced/MidiScaler/MidiHumanizer.hpp"
+  "${AVND_FOLDER}/examples/Advanced/MidiScaler/MidiDelay.hpp"
+  "${AVND_FOLDER}/examples/Advanced/MidiScaler/MidiSustain.hpp"
+  "${AVND_FOLDER}/examples/Advanced/MidiScaler/MidiTransform.hpp"
+  "${AVND_FOLDER}/examples/Advanced/MidiScaler/MidiCCSnapshot.hpp"
+  "${AVND_FOLDER}/examples/Advanced/MidiScaler/MidiValueShaper.hpp"
   "${AVND_FOLDER}/examples/Advanced/Audio/AudioFilters.hpp"
   "${AVND_FOLDER}/examples/Advanced/Audio/Bitcrush.hpp"
   "${AVND_FOLDER}/examples/Advanced/Audio/Convolver.hpp"
@@ -324,6 +329,7 @@ target_include_directories(score_plugin_avnd
     "${AVND_FOLDER}/include"
   PRIVATE
     "$<BUILD_INTERFACE:${3RDPARTY_FOLDER}/csv2/include>"
+    "$<BUILD_INTERFACE:${AVND_FOLDER}/examples>"
 )
 target_link_libraries(score_plugin_avnd
   PUBLIC
@@ -636,6 +642,55 @@ avnd_make_score(
   SOURCES "${AVND_FOLDER}/examples/Advanced/MidiScaler/MidiHumanizer.hpp"
   TARGET midihumanizer
   MAIN_CLASS MidiHumanizer
+  NAMESPACE mtk
+)
+
+avnd_make_score(
+  SOURCES "${AVND_FOLDER}/examples/Advanced/MidiScaler/MidiDelay.hpp"
+  TARGET mididelay
+  MAIN_CLASS MidiDelay
+  NAMESPACE mtk
+)
+
+avnd_make_score(
+  SOURCES "${AVND_FOLDER}/examples/Advanced/MidiScaler/MidiSustain.hpp"
+  TARGET midisustain
+  MAIN_CLASS MidiSustain
+  NAMESPACE mtk
+)
+
+avnd_make_score(
+  SOURCES "${AVND_FOLDER}/examples/Advanced/MidiScaler/MidiDispatcher.hpp"
+  TARGET mididispatcher
+  MAIN_CLASS MidiDispatcher
+  NAMESPACE mtk
+)
+
+avnd_make_score(
+  SOURCES "${AVND_FOLDER}/examples/Advanced/MidiScaler/MidiMpe.hpp"
+  TARGET midimpe
+  MAIN_CLASS MidiMpe
+  NAMESPACE mtk
+)
+
+avnd_make_score(
+  SOURCES "${AVND_FOLDER}/examples/Advanced/MidiScaler/MidiTransform.hpp"
+  TARGET miditransform
+  MAIN_CLASS MidiTransform
+  NAMESPACE mtk
+)
+
+avnd_make_score(
+  SOURCES "${AVND_FOLDER}/examples/Advanced/MidiScaler/MidiCCSnapshot.hpp"
+  TARGET midiccsnapshot
+  MAIN_CLASS MidiCCSnapshot
+  NAMESPACE mtk
+)
+
+avnd_make_score(
+  SOURCES "${AVND_FOLDER}/examples/Advanced/MidiScaler/MidiValueShaper.hpp"
+  TARGET midi_value_shaper
+  MAIN_CLASS MidiValueShaper
   NAMESPACE mtk
 )
 
