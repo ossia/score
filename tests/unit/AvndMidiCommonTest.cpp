@@ -275,3 +275,34 @@ TEST_CASE("theory", "[midi_common]")
   for(int d = -14; d < 14; d++)
     CHECK(semitones_to_degree(mode::dorian, degree_to_semitones(mode::dorian, d)) == d);
 }
+
+TEST_CASE("event queue tags and note tracker lookup", "[midi_common]")
+{
+  event_queue<8> q;
+  q.schedule(20, on(1, 60), 7);
+  q.schedule(10, on(1, 62));
+  std::vector<std::pair<int, uint32_t>> tagged;
+  q.release(0, 64, [&](libremidi::message m, uint32_t tag) {
+    tagged.push_back({m.bytes[1], tag});
+  });
+  REQUIRE(tagged.size() == 2);
+  CHECK(tagged[0] == std::pair<int, uint32_t>{62, 0});
+  CHECK(tagged[1] == std::pair<int, uint32_t>{60, 7});
+
+  q.schedule(5, on(1, 64), 3);
+  q.schedule(6, on(1, 65), 4);
+  q.remove_if([](const auto& e) { return e.tag == 3; });
+  REQUIRE(q.size() == 1);
+  CHECK(q[0].tag == 4);
+
+  note_tracker<4, 4> t;
+  std::vector<libremidi::message> out;
+  auto emit = [&](libremidi::message m) { out.push_back(m); };
+  CHECK(t.find(1, 60) == nullptr);
+  t.begin(1, 60, 0, emit);
+  auto* h = t.find(1, 60);
+  REQUIRE(h != nullptr);
+  t.play(*h, 2, 64, 100, 0, emit);
+  CHECK(t.sounding(2, 64) == 1);
+  CHECK(t.find(2, 60) == nullptr);
+}
