@@ -645,9 +645,74 @@ target_include_directories(test_unit_avnd_midi_humanizer SYSTEM PRIVATE
   "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/include"
   "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/examples")
 
+score_add_test(test_unit_avnd_midi_delay
+  SOURCES AvndMidiDelayTest.cpp)
+target_include_directories(test_unit_avnd_midi_delay SYSTEM PRIVATE
+  "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/include"
+  "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/examples")
+
+score_add_test(test_unit_avnd_midi_value_shaper
+  SOURCES AvndMidiValueShaperTest.cpp)
+target_include_directories(test_unit_avnd_midi_value_shaper SYSTEM PRIVATE
+  "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/include"
+  "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/examples")
+
 score_add_test(test_unit_avnd_midi_common
   SOURCES AvndMidiCommonTest.cpp)
 target_include_directories(test_unit_avnd_midi_common SYSTEM PRIVATE
+  "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/include"
+  "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/examples")
+
+score_add_test(test_unit_avnd_midi_filter
+  SOURCES AvndMidiFilterTest.cpp)
+target_include_directories(test_unit_avnd_midi_filter SYSTEM PRIVATE
+  "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/include"
+  "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/examples")
+
+score_add_test(test_unit_avnd_midi_transform
+  SOURCES AvndMidiTransformTest.cpp)
+target_include_directories(test_unit_avnd_midi_transform SYSTEM PRIVATE
+  "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/include"
+  "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/examples")
+
+score_add_test(test_unit_avnd_midi_cc_snapshot
+  SOURCES AvndMidiCCSnapshotTest.cpp)
+target_include_directories(test_unit_avnd_midi_cc_snapshot SYSTEM PRIVATE
+  "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/include"
+  "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/examples")
+
+score_add_test(test_unit_avnd_midi_sustain
+  SOURCES AvndMidiSustainTest.cpp)
+target_include_directories(test_unit_avnd_midi_sustain SYSTEM PRIVATE
+  "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/include"
+  "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/examples")
+
+score_add_test(test_unit_avnd_midi_scaler
+  SOURCES AvndMidiScalerTest.cpp)
+target_include_directories(test_unit_avnd_midi_scaler SYSTEM PRIVATE
+  "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/include"
+  "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/examples")
+
+score_add_test(test_unit_avnd_midi_dispatcher
+  SOURCES AvndMidiDispatcherTest.cpp)
+target_include_directories(test_unit_avnd_midi_dispatcher SYSTEM PRIVATE
+  "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/include"
+  "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/examples")
+
+score_add_test(test_unit_avnd_midi_mpe
+  SOURCES AvndMidiMpeTest.cpp)
+target_include_directories(test_unit_avnd_midi_mpe SYSTEM PRIVATE
+  "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/include"
+  "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/examples")
+
+score_add_test(test_unit_avnd_midi_sync_out
+  SOURCES AvndMidiSyncOutTest.cpp)
+target_include_directories(test_unit_avnd_midi_sync_out SYSTEM PRIVATE
+  "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-avnd")
+
+score_add_test(test_unit_avnd_midi_sync_in
+  SOURCES AvndMidiSyncInTest.cpp)
+target_include_directories(test_unit_avnd_midi_sync_in SYSTEM PRIVATE
   "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/include"
   "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/examples")
 
@@ -679,6 +744,22 @@ if(TARGET score_plugin_fx)
   # Midi scale: every note it starts, it stops, on its own channel.
   score_add_test(test_unit_fx_midi_scale
     SOURCES FxMidiScaleTest.cpp
+    PLUGINS score_plugin_fx)
+
+  # Arpeggiator v2: the old patterns unchanged, gate, swing, accents, latch,
+  # pressure, and every note it starts, it stops.
+  score_add_test(test_unit_fx_arpeggiator
+    SOURCES FxArpeggiatorTest.cpp
+    PLUGINS score_plugin_fx)
+
+  # Midi quantify v2: gate, trigger on release, decay, release velocity.
+  score_add_test(test_unit_fx_quantifier
+    SOURCES FxQuantifierTest.cpp
+    PLUGINS score_plugin_fx)
+
+  # Chord: table, harmonizer, chance, strum, memory, MPE.
+  score_add_test(test_unit_fx_chord
+    SOURCES FxChordTest.cpp
     PLUGINS score_plugin_fx)
 
   # The value-domain ExprTK processes (Micromap, Expression Value Filter /
@@ -1744,6 +1825,11 @@ if(TARGET score_plugin_fx)
   # that runs for hours.
   score_add_test(test_unit_fx_lfo_phase_continuity
     SOURCES FxLfoPhaseContinuityTest.cpp
+    PLUGINS score_plugin_fx)
+
+  # LFO v3 one shot: a single cycle, then silence until Retrigger.
+  score_add_test(test_unit_fx_lfo
+    SOURCES FxLfoTest.cpp
     PLUGINS score_plugin_fx)
 
   # Metronome, quantizer, rate limiter and arpeggiator grids at every buffer

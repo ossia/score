@@ -273,6 +273,160 @@ TEST_CASE("Midi scale: random playing never leaves a note behind", "[fx][midi][s
   }
 }
 
+TEST_CASE("Midi scale: direction of out-of-scale notes", "[fx][midi][scale]")
+{
+  using Nodes::MidiUtil::scale_direction;
+  auto first = [](Rig& r, int pitch) {
+    auto& on = r.tick({note_on(1, pitch, 100)});
+    const int out = on.empty() ? -1 : on[0].bytes[1];
+    r.tick({note_off(1, pitch)});
+    return out;
+  };
+
+  Rig r{"ionian"};
+  CHECK(first(r, 61) == 62); // Nearest, the default: ties go up
+  CHECK(first(r, 66) == 67);
+  r.node.inputs.direction.value = scale_direction::down;
+  CHECK(first(r, 61) == 60);
+  CHECK(first(r, 66) == 65);
+  CHECK(first(r, 64) == 64);
+  r.node.inputs.direction.value = scale_direction::up;
+  CHECK(first(r, 63) == 64);
+  CHECK(first(r, 66) == 67);
+
+  // Nothing that way: the other way.
+  Rig c{"100000000000"};
+  c.node.inputs.direction.value = scale_direction::up;
+  CHECK(first(c, 127) == 120);
+  c.node.inputs.direction.value = scale_direction::down;
+  CHECK(first(c, 5) == 0);
+  CHECK(first(c, 13) == 12);
+  // A custom mask.
+  c.node.inputs.sc.value = "001000010000"; // D and G
+  CHECK(first(c, 60) == 55);
+  c.node.inputs.direction.value = scale_direction::up;
+  CHECK(first(c, 60) == 62);
+  CHECK(r.out.errors.empty());
+  CHECK(c.out.errors.empty());
+}
+
+TEST_CASE("Midi scale: per-degree remap", "[fx][midi][scale]")
+{
+  using Nodes::MidiUtil::scale_mode;
+  Rig r{"ionian"};
+  // Not used unless the mode says so.
+  r.node.inputs.d1.value = -1;
+  CHECK(r.tick({note_on(1, 61, 100)})[0].bytes[1] == 62);
+  r.tick({note_off(1, 61)});
+
+  r.node.inputs.mode.value = scale_mode::remap;
+  r.node.inputs.d4.value = -1; // major third to minor third
+  CHECK(r.tick({note_on(1, 61, 100)})[0].bytes[1] == 60);
+  CHECK(r.tick({note_on(1, 76, 100)})[0].bytes[1] == 75);
+  // Degrees without an offset, and out-of-scale notes, are left as they are.
+  CHECK(r.tick({note_on(1, 66, 100)})[0].bytes[1] == 66);
+  r.tick({note_off(1, 61), note_off(1, 76), note_off(1, 66)});
+  CHECK(r.out.still_sounding() == 0);
+
+  // Degrees count from Base; Transpose still applies.
+  r.node.inputs.base.value = 2;
+  r.node.inputs.transp.value = 12;
+  CHECK(r.tick({note_on(1, 66, 100)})[0].bytes[1] == 77); // F# is III of D
+  r.tick({note_off(1, 66)});
+
+  // The scale does not apply: an empty one still plays.
+  r.node.inputs.sc.value = "000000000000";
+  r.node.inputs.transp.value = 0;
+  CHECK(r.tick({note_on(1, 60, 100)})[0].bytes[1] == 60);
+  r.tick({note_off(1, 60)});
+  // Clamped at the ends.
+  r.node.inputs.base.value = 0;
+  r.node.inputs.d7.value = 12;
+  CHECK(r.tick({note_on(1, 127, 100)})[0].bytes[1] == 127);
+  r.tick({note_off(1, 127)});
+  CHECK(r.out.errors.empty());
+  CHECK(r.out.still_sounding() == 0);
+}
+
+TEST_CASE("Midi scale: held notes follow mode, direction and degrees", "[fx][midi][scale]")
+{
+  using Nodes::MidiUtil::scale_direction;
+  using Nodes::MidiUtil::scale_mode;
+  Rig r{"ionian"};
+  r.tick({note_on(1, 64, 100), note_on(1, 61, 100)});
+  r.node.inputs.mode.value = scale_mode::remap;
+  r.node.inputs.d4.value = -1;
+  auto& moved = r.tick();
+  REQUIRE(moved.size() == 4); // 64 -> 63 and 62 -> 61
+  CHECK(r.out.sounding[{1, 63}] == 1);
+  CHECK(r.out.sounding[{1, 61}] == 1);
+  r.node.inputs.mode.value = scale_mode::scale;
+  r.node.inputs.direction.value = scale_direction::down;
+  r.tick();
+  CHECK(r.out.sounding[{1, 64}] == 1);
+  CHECK(r.out.sounding[{1, 60}] == 1);
+  r.tick({note_off(1, 64), note_off(1, 61)});
+  CHECK(r.out.errors.empty());
+  CHECK(r.out.still_sounding() == 0);
+}
+
+TEST_CASE("Midi scale: random playing with remap and directions", "[fx][midi][scale]")
+{
+  using Nodes::MidiUtil::scale_direction;
+  using Nodes::MidiUtil::scale_mode;
+  for(unsigned seed = 1; seed <= 20; seed++)
+  {
+    std::mt19937 rng{seed};
+    auto pick = [&](int lo, int hi) {
+      return std::uniform_int_distribution<int>{lo, hi}(rng);
+    };
+    Rig r{"dorian"};
+    std::map<std::pair<int, int>, bool> held;
+    for(int step = 0; step < 400; step++)
+    {
+      std::vector<libremidi::message> in;
+      for(int i = pick(0, 4); i > 0; i--)
+      {
+        const int ch = pick(1, 3), p = pick(0, 127);
+        if(pick(0, 1))
+        {
+          in.push_back(note_on(ch, p, pick(1, 127), pick(0, 63)));
+          held[{ch, p}] = true;
+        }
+        else
+        {
+          in.push_back(note_off(ch, p, pick(0, 63)));
+          held[{ch, p}] = false;
+        }
+      }
+      auto& n = r.node.inputs;
+      switch(pick(0, 12))
+      {
+        case 0: n.mode.value = scale_mode(pick(0, 1)); break;
+        case 1: n.direction.value = scale_direction(pick(0, 2)); break;
+        case 2: n.d0.value = pick(-12, 12); break;
+        case 3: n.d4.value = pick(-12, 12); break;
+        case 4: n.d11.value = pick(-12, 12); break;
+        case 5: n.base.value = pick(0, 12); break;
+        case 6: n.transp.value = pick(-48, 48); break;
+        case 7: n.sc.value = pick(0, 1) ? "101000000001" : "lydian"; break;
+        default: break;
+      }
+      r.tick(std::move(in));
+    }
+    std::vector<libremidi::message> release;
+    for(auto& [k, h] : held)
+      if(h)
+        release.push_back(note_off(k.first, k.second));
+    r.tick(std::move(release));
+
+    INFO("seed " << seed << ": " << r.out.errors.size() << " errors, first: "
+                 << (r.out.errors.empty() ? "" : r.out.errors[0]));
+    CHECK(r.out.errors.empty());
+    CHECK(r.out.still_sounding() == 0);
+  }
+}
+
 TEST_CASE("halp's MIDI output counts channels from 1, as libremidi", "[fx][midi]")
 {
   halp::midi_out_bus<"out", libremidi::message> bus;
