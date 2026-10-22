@@ -100,6 +100,9 @@ struct Node
     //! retrigger was pressed; on, from the start of the timeline (or the
     //! retrigger), so they fall on the bars wherever playback starts.
     halp::toggle<"Lock to bars"> lock_to_bars;
+    //! Runs a single cycle from the start of playback or from Retrigger, then
+    //! sends nothing until the next Retrigger.
+    halp::toggle<"One shot"> one_shot;
   } inputs;
   struct
   {
@@ -129,6 +132,9 @@ struct Node
   float held{};
   int last_square{}; // -1, +1, or 0 before the first tick
   bool held_valid{};
+
+  //! One shot: the cycles run since the start or the last retrigger.
+  double one_shot_elapsed{};
 
   static double frac(double x) noexcept { return x - std::floor(x); }
 
@@ -208,6 +214,7 @@ struct Node
       held_valid = false;
       last_square = 0;
       seed = uint32_t(rd());
+      one_shot_elapsed = 0.;
     }
     else if(sync && !locked && tk.unexpected_bar_change())
     {
@@ -246,18 +253,39 @@ struct Node
         c1 = c0;
     }
 
+    // One shot: the tick that completes the cycle sends the value at its end,
+    // the ticks after it send nothing.
+    double c_eval = c0;
+    bool silent = false;
+    if(inputs.one_shot.value)
+    {
+      const double delta = c1 - c0;
+      // The tolerance absorbs the rounding of the accumulated cycles and of the
+      // float period, so that a cycle made of whole ticks ends on its last tick.
+      constexpr double eps = 1e-6;
+      const double remaining = 1. - one_shot_elapsed;
+      if(remaining <= eps)
+        silent = true;
+      else if(std::abs(delta) >= remaining - eps)
+        c_eval = c0 + std::copysign(std::max(0., remaining - eps), delta);
+      one_shot_elapsed += std::abs(delta);
+    }
+
     double shift = inputs.phase.value;
     if(jitter > 0)
       shift += std::uniform_real_distribution<float>(-jitter, jitter)(this->rd);
     shift /= 360.;
     c0 += shift;
     c1 += shift;
-    const double x = frac(c0);
+    c_eval += shift;
+    const double x = frac(c_eval);
 
     // Every waveform, the noises included, spans [-1; 1]: Ampl. and Offset
     // place them all the same way.
-    const auto add_val
-        = [&](auto new_val) { outputs.out.value = ampl * new_val + offset; };
+    const auto add_val = [&](auto new_val) {
+      if(!silent)
+        outputs.out.value = ampl * new_val + offset;
+    };
 
     // Sample and hold: a new value at each of the two steps of a cycle.
     const auto crossed = [&] {
@@ -314,7 +342,7 @@ struct Node
         add_val(std::clamp(std::cauchy_distribution<float>(0.f, 0.1f)(this->rd), -1.f, 1.f));
         break;
       case Drift:
-        add_val(drift(c0, shape, seed));
+        add_val(drift(c_eval, shape, seed));
         break;
     }
 
@@ -369,6 +397,7 @@ struct Node
       halp_meta(background, halp::colors::background_mid)
       halp::control<&ins::retrigger> r;
       halp::control<&ins::lock_to_bars> l;
+      halp::control<&ins::one_shot> o;
     } toggles;
   };
 };

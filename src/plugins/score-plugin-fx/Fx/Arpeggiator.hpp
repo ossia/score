@@ -9,6 +9,8 @@
 #include <libremidi/message.hpp>
 #include <rnd/random.hpp>
 
+#include <algorithm>
+
 namespace Nodes
 {
 template <typename T>
@@ -65,6 +67,9 @@ struct Engine
   ossia::flat_map<byte, byte> notes;
   ossia::small_vector<chord, 10> arpeggio;
   std::array<int8_t, 128> in_flight{};
+  //! The held notes in the order they came, for "As played".
+  std::array<byte, 128> order{};
+  int order_count{};
 
   int previous_octave{};
   int previous_octave_mode{};
@@ -138,6 +143,61 @@ struct Engine
       case 5: // Random - note selection happens in process()
         arpeggiate(1);
         break;
+      case 6: // Up/Down: the top and the bottom once each
+      case 7: // Down/Up
+      {
+        arpeggio.clear();
+        const int n = notes.size();
+        for(int i = 0; i < n; i++)
+          arpeggio.push_back(chord{*(notes.begin() + i)});
+        for(int i = n - 2; i > 0; i--)
+          arpeggio.push_back(chord{*(notes.begin() + i)});
+        if(previous_arpeggio == 7 && n > 1)
+          std::rotate(arpeggio.begin(), arpeggio.begin() + (n - 1), arpeggio.end());
+        break;
+      }
+      case 8: // Converge: from the outside in
+      case 9: // Diverge: from the inside out
+      {
+        arpeggio.clear();
+        int lo = 0, hi = int(notes.size()) - 1;
+        while(lo <= hi)
+        {
+          arpeggio.push_back(chord{*(notes.begin() + lo)});
+          if(hi != lo)
+            arpeggio.push_back(chord{*(notes.begin() + hi)});
+          lo++;
+          hi--;
+        }
+        if(previous_arpeggio == 9)
+          std::reverse(arpeggio.begin(), arpeggio.end());
+        break;
+      }
+      case 10: // Low Up: the lowest note between each of the others
+      case 11: // High Up: the highest note between each of the others
+      {
+        arpeggio.clear();
+        const int n = notes.size();
+        if(n == 1)
+          arpeggio.push_back(chord{*notes.begin()});
+        const int pivot = previous_arpeggio == 10 ? 0 : n - 1;
+        for(int i = 0; i < n; i++)
+        {
+          if(i == pivot)
+            continue;
+          arpeggio.push_back(chord{*(notes.begin() + pivot)});
+          arpeggio.push_back(chord{*(notes.begin() + i)});
+        }
+        break;
+      }
+      case 12: // As played
+      {
+        arpeggio.clear();
+        for(int i = 0; i < order_count; i++)
+          if(auto it = notes.find(order[i]); it != notes.end())
+            arpeggio.push_back(chord{*it});
+        break;
+      }
     }
 
     // Apply repeat: each step N times, expanded in place from the back
