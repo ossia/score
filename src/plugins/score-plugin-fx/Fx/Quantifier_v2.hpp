@@ -1,4 +1,5 @@
 #pragma once
+#include <Advanced/MidiScaler/MidiCommon/Messages.hpp>
 #include <Fx/Quantifier.hpp>
 
 #include <algorithm>
@@ -40,6 +41,47 @@ struct Node
     halp::enum_t<NoteLength, "Length"> length;
     //! The length of a note, or the grid its end falls on.
     halp::time_chooser<"Duration", halp::range{0., 8., 0.25}> duration;
+
+    struct : halp::hslider_i32<"Gate", halp::irange{0, 200, 100}>
+    {
+      halp_meta(description, "Scales the length of the notes, in percent")
+    } gate;
+    struct : halp::toggle<"Trigger">
+    {
+      halp_meta(
+          description,
+          "A note plays when its key is released, quantized like a note-on. With "
+          "Until note-off, it lasts as long as the key was held.")
+    } trigger;
+    struct : halp::hslider_i32<"Decay", halp::irange{0, 100, 0}>
+    {
+      halp_meta(
+          description,
+          "A key pressed again while its last note still sounds or waits, and with "
+          "Trigger every release, plays at the velocity of the key's previous note "
+          "lowered by this percentage")
+    } decay;
+    struct
+    {
+      halp_meta(name, "Release vel.");
+      halp_meta(
+          description, "Velocity of the note-offs: the fixed value, or the one of "
+                       "the key's release");
+      enum widget
+      {
+        combobox
+      };
+      struct range
+      {
+        halp::combo_pair<int> values[2]{{"Fixed", 0}, {"Input", 1}};
+        int init{0};
+      };
+      int value{};
+    } release_mode;
+    struct : halp::spinbox_i32<"Release value", halp::irange{0, 127, 0}>
+    {
+      halp_meta(description, "Fixed velocity of the note-offs")
+    } release_velocity;
   } inputs;
   struct
   {
@@ -59,12 +101,39 @@ struct Node
     int64_t start{};  // absolute frame
     int64_t played{}; // absolute frame of the note-on as played
     int64_t length{-1}; // frames, once released before starting
+    uint8_t off_vel{};
   };
   struct Running
   {
     Note note;
     int64_t end{-1}; // absolute frame; -1: until the note-off
+    int64_t start{};
+    uint8_t off_vel{};
   };
+  //! A key held while Trigger is on: its note plays on release.
+  struct Held
+  {
+    uint8_t vel{}; // 0: not held
+    int64_t at{};
+  };
+  std::array<std::array<Held, 128>, 16> held{};
+  bool stop_requested{};
+
+  void stop() noexcept { stop_requested = true; }
+
+  double gate() const noexcept { return std::max(0, inputs.gate.value) / 100.; }
+  uint8_t fixed_release() const noexcept
+  {
+    return uint8_t(std::clamp(inputs.release_velocity.value, 0, 127));
+  }
+  //! A velocity lowered by Decay.
+  uint8_t decayed(int vel) const noexcept
+  {
+    const int d = std::clamp(inputs.decay.value, 0, 100);
+    if(d == 0)
+      return uint8_t(vel);
+    return uint8_t(std::clamp(int(std::lround(vel * (100 - d) / 100.)), 1, 127));
+  }
   std::vector<Pending> pending;
   std::vector<Running> running;
   int64_t last_end{-1};
@@ -164,9 +233,9 @@ struct Node
     return -1;
   }
 
-  void note_off(const Note& n, int64_t at, int64_t pos)
+  void note_off(const Note& n, int64_t at, int64_t pos, uint8_t vel = 0)
   {
-    auto m = libremidi::channel_events::note_off(n.chan, n.pitch, 0);
+    auto m = libremidi::channel_events::note_off(n.chan, n.pitch, vel);
     m.timestamp = std::max<int64_t>(0, at - pos);
     outputs.midi.push_back(m);
   }
@@ -176,7 +245,7 @@ struct Node
   void release_all(int64_t at, int64_t pos)
   {
     for(auto& r : running)
-      note_off(r.note, at, pos);
+      note_off(r.note, at, pos, r.off_vel);
     running.clear();
     pending.clear();
   }
@@ -189,14 +258,26 @@ struct Node
     set_clock(tk);
 
     // Playback restarted or jumped back: nothing that was waiting still holds
-    if(last_end >= 0 && pos != last_end)
+    if(stop_requested || (last_end >= 0 && pos != last_end))
+    {
       release_all(pos, pos);
+      for(auto& c : held)
+        c.fill({});
+      stop_requested = false;
+    }
     last_end = end;
 
+    const bool from_input = inputs.release_mode.value == 1;
     for(const libremidi::message& in : inputs.midi)
     {
       if(!in.is_note_on_or_off())
       {
+        if(mtk::is_all_notes_off(in))
+        {
+          release_all(pos + in.timestamp, pos);
+          for(auto& c : held)
+            c.fill({});
+        }
         outputs.midi.push_back(in);
         continue;
       }
@@ -209,37 +290,98 @@ struct Node
         return x.note.pitch == note.pitch && x.note.chan == note.chan;
       };
 
-      if(on)
-      {
-        // The same key again: what was waiting is replaced, what sounds ends
-        std::erase_if(pending, same);
+      auto& key = held[(note.chan - 1) & 15][note.pitch & 127];
+
+      // The same key again: what was waiting is replaced, what sounds ends.
+      // Returns the velocity of the key's latest note, or -1.
+      auto replace = [&] {
+        int previous = -1;
+        for(auto it = pending.begin(); it != pending.end();)
+          if(same(*it))
+          {
+            previous = it->note.vel;
+            it = pending.erase(it);
+          }
+          else
+            ++it;
         for(auto it = running.begin(); it != running.end();)
           if(same(*it))
           {
-            note_off(it->note, at, pos);
+            if(previous < 0)
+              previous = it->note.vel;
+            note_off(it->note, at, pos, it->off_vel);
             it = running.erase(it);
           }
           else
             ++it;
-        pending.push_back({note, start_of(at), at, -1});
-      }
-      else if(inputs.length.value == UntilNoteOff)
+        return previous;
+      };
+
+      if(on && inputs.trigger.value)
       {
-        // Not started yet: it will play the length it was played with.
-        // Started: it ends now.
-        for(auto& p : pending)
-          if(same(p) && p.length < 0)
-            p.length = std::max<int64_t>(1, at - p.played);
-        for(auto it = running.begin(); it != running.end();)
-          if(same(*it))
-          {
-            note_off(it->note, at, pos);
-            it = running.erase(it);
-          }
-          else
-            ++it;
+        key = {note.vel, at};
       }
-      // The other lengths do not depend on the note-off
+      else if(on)
+      {
+        const int previous = replace();
+        Note n = note;
+        if(previous > 0 && inputs.decay.value > 0)
+          n.vel = decayed(previous);
+        pending.push_back({n, start_of(at), at, -1, fixed_release()});
+      }
+      else if(inputs.trigger.value && key.vel > 0)
+      {
+        // The release plays the note, as long as the key was held with Until
+        // note-off
+        const int previous = replace();
+        Note n = note;
+        n.vel = inputs.decay.value > 0 ? decayed(previous > 0 ? previous : key.vel)
+                                       : key.vel;
+        const int64_t length
+            = inputs.length.value == UntilNoteOff ? std::max<int64_t>(1, at - key.at) : -1;
+        pending.push_back(
+            {n, start_of(at), at, length, from_input ? note.vel : fixed_release()});
+        key = {};
+      }
+      else
+      {
+        key = {};
+        if(from_input)
+        {
+          for(auto& p : pending)
+            if(same(p))
+              p.off_vel = note.vel;
+          for(auto& r : running)
+            if(same(r))
+              r.off_vel = note.vel;
+        }
+        if(inputs.length.value == UntilNoteOff)
+        {
+          // Not started yet: it will play the length it was played with.
+          // Started: it ends now, or after Gate of its length.
+          for(auto& p : pending)
+            if(same(p) && p.length < 0)
+              p.length = std::max<int64_t>(1, at - p.played);
+          const double g = gate();
+          for(auto it = running.begin(); it != running.end();)
+          {
+            if(same(*it) && (g == 1. || it->end < 0))
+            {
+              const int64_t stop
+                  = it->start + std::llround((at - it->start) * g);
+              if(g <= 1. || stop <= at)
+              {
+                note_off(it->note, at, pos, it->off_vel);
+                it = running.erase(it);
+                continue;
+              }
+              it->end = stop;
+            }
+            ++it;
+          }
+        }
+        // The other lengths do not depend on the note-off
+      }
     }
 
     // Notes whose start is in this tick
@@ -252,8 +394,11 @@ struct Node
             it->note.chan, it->note.pitch, it->note.vel);
         no.timestamp = start - pos;
         outputs.midi.push_back(no);
-        const int64_t stop = it->length >= 0 ? start + it->length : end_of(start);
-        running.push_back({it->note, stop});
+        const double g = gate();
+        int64_t stop = it->length >= 0 ? start + it->length : end_of(start);
+        if(stop >= 0 && g != 1.)
+          stop = start + std::llround((stop - start) * g);
+        running.push_back({it->note, stop, start, it->off_vel});
         it = pending.erase(it);
       }
       else
@@ -265,7 +410,7 @@ struct Node
     {
       if(it->end >= 0 && it->end < end)
       {
-        note_off(it->note, std::max(it->end, pos), pos);
+        note_off(it->note, std::max(it->end, pos), pos, it->off_vel);
         it = running.erase(it);
       }
       else

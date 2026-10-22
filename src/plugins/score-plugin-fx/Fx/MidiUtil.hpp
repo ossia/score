@@ -182,6 +182,40 @@ static std::optional<std::size_t> find_closest_index(const scale_array& arr, std
   return std::nullopt;
 }
 
+//! What the twelve degree controls do: nothing (the scale applies), or
+//! move each degree by its own number of semitones.
+enum class scale_mode : uint8_t
+{
+  scale,
+  remap
+};
+
+//! Where a note out of the scale goes.
+enum class scale_direction : uint8_t
+{
+  nearest,
+  up,
+  down
+};
+
+//! The scale note in `dir` from `i`, or in the other direction when there is
+//! none that way; none for an empty scale.
+static std::optional<std::size_t>
+find_index(const scale_array& arr, std::size_t i, scale_direction dir)
+{
+  if(dir == scale_direction::nearest)
+    return find_closest_index(arr, i);
+  const int n = int(arr.size());
+  const int step = dir == scale_direction::up ? 1 : -1;
+  for(int k = int(i); k >= 0 && k < n; k += step)
+    if(arr[k])
+      return k;
+  for(int k = int(i) - step; k >= 0 && k < n; k -= step)
+    if(arr[k])
+      return k;
+  return std::nullopt;
+}
+
 struct Node
 {
   halp_meta(name, "Midi scale")
@@ -198,6 +232,46 @@ struct Node
     halp::string_enum_t<scale_type, "Scale"> sc; // FIXME check that this works
     octave_slider<"Base", 0, 1> base;
     octave_slider<"Transpose", -4, 4> transp;
+
+    struct : halp::enum_t<scale_mode, "Mode">
+    {
+      halp_meta(
+          description,
+          "Scale moves notes into the scale; Remap moves each degree by the "
+          "semitones set for it")
+      struct range
+      {
+        std::string_view values[2] = {"Scale", "Remap"};
+        scale_mode init = scale_mode::scale;
+      };
+    } mode;
+
+    struct : halp::enum_t<scale_direction, "Direction">
+    {
+      halp_meta(
+          description,
+          "Where a note out of the scale goes: the nearest scale note, the next "
+          "one up, or the next one down")
+      struct range
+      {
+        std::string_view values[3] = {"Nearest", "Up", "Down"};
+        scale_direction init = scale_direction::nearest;
+      };
+    } direction;
+
+    // Remap: semitones added to each degree, counted from Base.
+    halp::spinbox_i32<"I", halp::irange{-12, 12, 0}> d0;
+    halp::spinbox_i32<"I#", halp::irange{-12, 12, 0}> d1;
+    halp::spinbox_i32<"II", halp::irange{-12, 12, 0}> d2;
+    halp::spinbox_i32<"II#", halp::irange{-12, 12, 0}> d3;
+    halp::spinbox_i32<"III", halp::irange{-12, 12, 0}> d4;
+    halp::spinbox_i32<"IV", halp::irange{-12, 12, 0}> d5;
+    halp::spinbox_i32<"IV#", halp::irange{-12, 12, 0}> d6;
+    halp::spinbox_i32<"V", halp::irange{-12, 12, 0}> d7;
+    halp::spinbox_i32<"V#", halp::irange{-12, 12, 0}> d8;
+    halp::spinbox_i32<"VI", halp::irange{-12, 12, 0}> d9;
+    halp::spinbox_i32<"VI#", halp::irange{-12, 12, 0}> d10;
+    halp::spinbox_i32<"VII", halp::irange{-12, 12, 0}> d11;
   } inputs;
   struct
   {
@@ -218,16 +292,25 @@ struct Node
   std::string scale{};
   int base{};
   int transpose{};
+  scale_mode mode{};
+  scale_direction direction{};
+  std::array<int, 12> offsets{};
 
   static uint16_t key(int chan, int pitch) noexcept { return uint16_t(chan * 128 + pitch); }
 
   //! The map never allocates on the audio thread.
   Node() { map.reserve(16 * 128); }
 
-  static std::optional<uint8_t>
-  map_note(const scale_array& scale, int pitch, int transp) noexcept
+  //! Uses the mode, direction, offsets and base of the current tick.
+  std::optional<uint8_t>
+  map_note(const scale_array& scale, int pitch, int transp) const noexcept
   {
-    if(auto index = find_closest_index(scale, pitch))
+    if(mode == scale_mode::remap)
+    {
+      const int degree = ((pitch - base) % 12 + 12) % 12;
+      return (uint8_t)ossia::clamp(pitch + offsets[degree] + transp, 0, 127);
+    }
+    if(auto index = find_index(scale, pitch, direction))
       return (uint8_t)ossia::clamp(int(*index) + transp, 0, 127);
     return std::nullopt;
   }
@@ -364,9 +447,22 @@ struct Node
     this->method_name(std::forward<Args>(args)...); \
   }
 
-    if(!this->map.empty()
-       && (new_scale != this->scale || new_base != this->base
-           || new_transpose != this->transpose))
+    const auto& in = inputs;
+    const std::array<int, 12> new_offsets{
+        in.d0.value, in.d1.value, in.d2.value, in.d3.value, in.d4.value,  in.d5.value,
+        in.d6.value, in.d7.value, in.d8.value, in.d9.value, in.d10.value, in.d11.value};
+    const bool changed = new_scale != this->scale || new_base != this->base
+                         || new_transpose != this->transpose
+                         || in.mode.value != this->mode
+                         || in.direction.value != this->direction
+                         || new_offsets != this->offsets;
+
+    this->base = new_base;
+    this->mode = in.mode.value;
+    this->direction = in.direction.value;
+    this->offsets = new_offsets;
+
+    if(!this->map.empty() && changed)
     {
       apply(forward_to_method(update));
     }
@@ -374,8 +470,8 @@ struct Node
     apply(forward_to_method(exec));
 #undef forward_to_method
 
-    this->scale = new_scale;
-    this->base = new_base;
+    if(new_scale != this->scale)
+      this->scale = new_scale;
     this->transpose = new_transpose;
   }
 };
