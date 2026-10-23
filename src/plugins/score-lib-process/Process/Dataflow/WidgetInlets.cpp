@@ -7,6 +7,7 @@
 #include <score/tools/FileWatch.hpp>
 
 #include <ossia/dataflow/port.hpp>
+#include <ossia/detail/algorithms.hpp>
 #include <ossia/detail/parse_strict.hpp>
 #include <ossia/detail/ssize.hpp>
 #include <ossia/network/value/value_conversion.hpp>
@@ -120,10 +121,33 @@ int ComboBox::indexOfValue(const ossia::value& v) const noexcept
     if(alternatives[i].second == v)
       return i;
 
+  if(auto str = v.target<std::string>())
+  {
+    const auto label = QString::fromStdString(*str);
+    for(int i = 0; i < n; i++)
+      if(alternatives[i].first == label)
+        return i;
+  }
+
   if(!entriesAreNames(alternatives))
     return -1;
 
   return readEntryIndex(v, n).value_or(-1);
+}
+
+void ComboBox::setValue(const ossia::value& value)
+{
+  if(value.target<std::string>())
+  {
+    const bool is_a_value = ossia::any_of(
+        alternatives, [&](const auto& alt) { return alt.second == value; });
+    if(!is_a_value)
+    {
+      if(const int i = indexOfValue(value); i >= 0)
+        return ControlInlet::setValue(alternatives[i].second);
+    }
+  }
+  ControlInlet::setValue(value);
 }
 
 ossia::value ComboBox::valueAtIndex(int i) const noexcept

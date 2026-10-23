@@ -100,6 +100,12 @@ score_add_test(test_unit_graphics_int_spinbox_stepper
   SOURCES GraphicsIntSpinboxStepperTest.cpp
   APP)
 
+# A combo box port takes an entry's label for that entry's value.
+score_add_test(test_unit_combobox_label
+  SOURCES ComboBoxLabelTest.cpp
+  PLUGINS score_lib_process
+  APP)
+
 # The list, note matrix and channel mask widgets of the MIDI objects.
 score_add_test(test_unit_graphics_list_widgets
   SOURCES GraphicsListWidgetsTest.cpp
