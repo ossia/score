@@ -2119,6 +2119,13 @@ if(TARGET score_plugin_gfx)
     LIBS ${QT_PREFIX}::Gui)
 endif()
 
+# The flattened scene filter selects draws inside a merged batch (P05).
+if(TARGET score_plugin_gfx)
+  score_add_test(test_unit_flattened_scene_filter_draws
+    SOURCES FlattenedSceneFilterDrawsTest.cpp
+    PLUGINS score_plugin_gfx)
+endif()
+
 # The CPU twin of the CSF attribute scatter decodes like the shader (C40).
 if(TARGET score_plugin_gfx)
   score_add_test(test_unit_gpu_buffer_scatter_cpu

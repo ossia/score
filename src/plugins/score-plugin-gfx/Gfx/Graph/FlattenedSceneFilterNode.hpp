@@ -36,15 +36,21 @@ namespace score::gfx
  *   - Port 2: Match value (Types::Int) — user-supplied, interpreted per mode
  *   - Port 3: Match string (Types::Empty control) — used by modes 12/13
  *
- * Per-draw filtering (e.g. "alphaMode=BLEND draws inside a single MDI
- * batch") is not handled here — ScenePreprocessor emits one geometry
- * per MDI batch so mesh-level fields collapse to 0. Use a CSF compute
- * filter for per-draw cases; this node is for multi-mesh inputs
- * (per-object producers, pre-MDI composition).
+ * The tag and material modes (0-3, 12, 13) select DRAWS in a merged batch:
+ * ScenePreprocessor merges every regular draw into one geometry and gives it
+ * a CPU "draw_filter_keys" auxiliary, a (tag_hash, material_index) pair per
+ * draw command, material_index being the per_draws slot. The matching
+ * commands are kept and drawn from the CPU command list (shader board P05).
+ * The other modes, and meshes without the keys, keep or drop whole meshes.
  *
  * Outputs:
  *   - Port 0: Geometry (Types::Geometry)
  */
+//! The node's rewrite of a flattened scene (see FlattenedSceneFilterNode).
+SCORE_PLUGIN_GFX_EXPORT
+ossia::geometry_spec filterFlattenedScene(
+    const ossia::geometry_spec& in, int mode, int match, const std::string& match_str);
+
 class SCORE_PLUGIN_GFX_EXPORT FlattenedSceneFilterNode : public ProcessNode
 {
 public:

@@ -1214,6 +1214,93 @@ TEST_CASE(
   CHECK(left[0] < 32);
 }
 
+// The Flattened Scene Filter selects draws in the merged batch by the
+// per-draw keys the preprocessor publishes (P05). The key of command c was
+// read from per_draws[first_instance of c], an instance slot, where per_draws
+// has one record per command: every command after an instance group of more
+// than one instance read another draw's key or none. [3 instances tagged "a",
+// left; 2 instances tagged "b", right], keeping tag "b": the right half is
+// drawn, the left is not.
+TEST_CASE(
+    "the flattened filter keys each instance group by its own draw",
+    "[gfx][scene][scene-filter][instancing][P05]")
+{
+  const auto api = GENERATE(from_range(platform_backends()));
+  CAPTURE(backend_name(api));
+  QTemporaryDir dir;
+  REQUIRE(dir.isValid());
+  const QString vs = writeText(dir, "scenepp_flatkeys.vert", kVert);
+  const QString fs = writeText(dir, "scenepp_flatkeys.frag", kSolidFrag);
+
+  auto tagged = [](const char* tag, uint64_t id) {
+    auto m = std::make_shared<ossia::material_component>();
+    m->stable_id = id;
+    m->unlit = true;
+    m->tag = tag;
+    return ossia::material_component_ptr{m};
+  };
+  auto instanced = [](ossia::mesh_component_ptr mesh, ossia::material_component_ptr mat,
+                      uint32_t count) {
+    auto proto = std::make_shared<ossia::mesh_component>(*mesh);
+    proto->primitives[0].material = std::move(mat);
+    auto inst = std::make_shared<ossia::instance_component>();
+    inst->prototype = std::move(proto);
+    inst->instance_count = count;
+    inst->transform_type = ossia::instance_component::transform_format::translation;
+    inst->instance_transforms = cpuBuffer(
+        std::vector<float>(3 * count, 0.f), ossia::buffer_data::usage::storage_buffer);
+    inst->dirty_index = 1;
+    return ossia::instance_component_ptr{inst};
+  };
+  const auto matA = tagged("a", 0xA0921u);
+  const auto matB = tagged("b", 0xA0922u);
+  auto st = stateWith(
+      {nodeWith(instanced(quad(-1.f, 0.f, 0xF1A00A3u), matA, 3), 95),
+       nodeWith(instanced(quad(0.f, 1.f, 0xF1A00A4u), matB, 2), 96)});
+  st->materials = std::make_shared<std::vector<ossia::material_component_ptr>>(
+      std::vector<ossia::material_component_ptr>{matA, matB});
+
+  Result r;
+  score::test::run_in_gui_app([&](const score::GUIApplicationContext&) {
+    GfxPipeline p;
+    const int hn = p.addNode(std::make_unique<StaticSceneNode>(st));
+    const int flat = p.addNode(std::make_unique<score::gfx::ScenePreprocessorNode>());
+    auto filterNode = std::make_unique<score::gfx::FlattenedSceneFilterNode>();
+    filterNode->m_mode = 12; // tag == match_str
+    filterNode->m_match = 0;
+    filterNode->m_match_str = "b";
+    const int filter = p.addNode(std::move(filterNode));
+    const int raster = p.addRaster(vs, fs);
+    if(hn < 0 || flat < 0 || filter < 0 || raster < 0)
+    {
+      r.err = "chain build failed: " + p.error();
+      return;
+    }
+    p.wire(p.nodeSceneOut(hn, 0), p.nodeSceneIn(flat, 0));
+    p.wire(p.nodeGeometryOut(flat, 0), p.nodeGeometryIn(filter, 0));
+    p.wire(p.nodeGeometryOut(filter, 0), p.geometryIn(raster, 0));
+    const int sink = p.addSink({kSize, kSize});
+    p.wire(p.imageOut(raster, 0), p.sinkInput(sink));
+    if(!p.create(api))
+    {
+      r.skipped = p.skipped();
+      r.err = r.skipped ? std::string{} : p.error();
+      return;
+    }
+    p.render(5);
+    r.img = p.readback(sink);
+  });
+  if(r.skipped)
+    SKIP("backend unavailable");
+  REQUIRE(r.err.empty());
+  REQUIRE(r.img.valid());
+  const auto left = r.img.at(kSize / 4, kSize / 2);
+  const auto right = r.img.at(3 * kSize / 4, kSize / 2);
+  INFO("left " << scene::rgba_string(left) << " right " << scene::rgba_string(right));
+  CHECK(right[0] > 200);
+  CHECK(left[0] < 32);
+}
+
 // The Scene Preprocessor publishes its texture pool as materialArray<k> /
 // materialDyn<s> only (P32): the per-channel aliases baseColorArray<k>,
 // metalRoughDyn<s>, ... are gone, so a saved shader that declares one samples

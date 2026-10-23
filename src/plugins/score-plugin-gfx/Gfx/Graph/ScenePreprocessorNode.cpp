@@ -3816,6 +3816,31 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
           .first_instance = cmd.baseInstance});
     }
 
+    // The per-draw filter keys, (tag_hash, material_index) per command, read
+    // from the draw's PerDrawGPU: the Flattened Scene Filter selects draws in
+    // this one merged geometry by them (shader board P05). CPU-only; no
+    // shader declares the name. per_draws has one record per command, pushed
+    // with it (emitDraw): command c's is per_draws[c]. first_instance is an
+    // instance slot, past c after any group of more than one instance.
+    if(!g.cpu_draw_commands.empty())
+    {
+      const std::size_t n = g.cpu_draw_commands.size();
+      auto keys = std::shared_ptr<uint32_t[]>(new uint32_t[2 * n]);
+      for(std::size_t c = 0; c < n; c++)
+      {
+        const bool known = c < acc.perDraws.size();
+        keys[2 * c] = known ? acc.perDraws[c].tag_hash : 0u;
+        keys[2 * c + 1] = known ? acc.perDraws[c].material_index : 0u;
+      }
+      const int64_t bytes = int64_t(2 * n * sizeof(uint32_t));
+      g.auxiliary.push_back(
+          {.name = "draw_filter_keys", .buffer = (int)g.buffers.size(),
+           .byte_offset = 0, .byte_size = bytes});
+      g.buffers.push_back(
+          {.data = ossia::geometry::cpu_buffer{
+               std::shared_ptr<void>(keys, keys.get()), bytes}});
+    }
+
     auto meshes = std::make_shared<ossia::mesh_list>();
     meshes->meshes.push_back(std::move(g));
     meshes->dirty_index
