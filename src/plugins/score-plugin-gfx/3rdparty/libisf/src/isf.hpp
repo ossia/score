@@ -997,6 +997,11 @@ struct descriptor
   // frame.
   std::vector<geometry_input::auxiliary_texture_request> auxiliary_textures;
 
+  // Header content that was accepted but has no effect in the engine, one
+  // message each (e.g. a sampler key QRhi has no setting for, shader board
+  // U36). Also printed to stderr when the header is parsed.
+  std::vector<std::string> warnings;
+
   // PIPELINE_STATE: global pipeline state (depth, blend, cull, stencil, ...).
   // Applies to every output pass; may be overridden per-pass via pass::override_state.
   pipeline_state default_state;

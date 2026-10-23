@@ -393,3 +393,50 @@ void main() { fragColor = vec4(1.0); }
   }),
       Catch::Matchers::ContainsSubstring("BLEND_PER_ATTACHMENT"));
 }
+
+// Sampler keys QRhi has no setting for are parsed, then ignored by the engine:
+// ANISOTROPY, BORDER_COLOR, LOD_BIAS, MIN_LOD, MAX_LOD and the mirror_once wrap
+// (shader board U36). They stay accepted, and each one set produces a warning
+// naming the input and the key.
+TEST_CASE("unsupported sampler keys are kept and warned about", "[isf][header][sampler][U36]")
+{
+  const auto parse = [](const std::string& input) {
+    return isf::parser{
+        {},
+        R"_(/*{ "ISFVSN": "2", "INPUTS": [ )_" + input
+            + R"_( ] }*/
+void main() { gl_FragColor = IMG_NORM_PIXEL(tex, vec2(0.5)); }
+)_",
+        450, isf::parser::ShaderType::ISF};
+  };
+  const auto warnings = [&](const std::string& input) { return parse(input).data().warnings; };
+  const auto mentions = [](const std::vector<std::string>& w, const char* what) {
+    for(const auto& s : w)
+      if(s.find(what) != std::string::npos && s.find("tex") != std::string::npos)
+        return true;
+    return false;
+  };
+
+  CHECK(warnings(R"({ "NAME": "tex", "TYPE": "image", "FILTER": "linear", "WRAP": "repeat" })")
+            .empty());
+
+  for(const char* key : {"ANISOTROPY", "LOD_BIAS", "MIN_LOD", "MAX_LOD"})
+  {
+    CAPTURE(key);
+    const auto w = warnings(
+        std::string{R"({ "NAME": "tex", "TYPE": "image", ")"} + key + R"(": 2 })");
+    CHECK(mentions(w, key));
+  }
+  CHECK(mentions(
+      warnings(R"({ "NAME": "tex", "TYPE": "image", "BORDER_COLOR": "opaque_black" })"),
+      "BORDER_COLOR"));
+  CHECK(mentions(
+      warnings(R"({ "NAME": "tex", "TYPE": "image", "WRAP_S": "mirror_once" })"),
+      "mirror_once"));
+  // Still parsed into the descriptor.
+  const auto d = parse(R"({ "NAME": "tex", "TYPE": "image", "ANISOTROPY": 8 })").data();
+  REQUIRE(!d.inputs.empty());
+  const auto* img = ossia::get_if<isf::image_input>(&d.inputs[0].data);
+  REQUIRE(img);
+  CHECK(img->sampler.anisotropy == 8.f);
+}

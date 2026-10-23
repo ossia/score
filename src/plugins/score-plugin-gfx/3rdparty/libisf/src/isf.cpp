@@ -4333,6 +4333,56 @@ std::pair<int, descriptor> parser::parse_isf_header(std::string_view source)
      && boost::algorithm::ifind_first(source, "\"RAW_RASTER_PIPELINE\"").empty())
     throw invalid_file{"LAYER is only supported by RAW_RASTER_PIPELINE shaders"};
 
+  // Sampler keys QRhiSampler has no setting for: kept, and warned about
+  // (shader board U36).
+  {
+    auto warn_sampler = [&d](const std::string& who, const sampler_config& s) {
+      auto warn = [&](const std::string& key) {
+        d.warnings.push_back(
+            "\"" + who + "\": " + key
+            + " is not supported by the renderer (QRhi has no such sampler "
+              "setting) and is ignored");
+      };
+      if(s.anisotropy)
+        warn("ANISOTROPY");
+      if(!s.border_color.empty())
+        warn("BORDER_COLOR");
+      if(s.lod_bias)
+        warn("LOD_BIAS");
+      if(s.min_lod)
+        warn("MIN_LOD");
+      if(s.max_lod)
+        warn("MAX_LOD");
+      for(const std::string* w : {&s.wrap, &s.wrap_s, &s.wrap_t, &s.wrap_r})
+      {
+        std::string v = *w;
+        for(char& c : v)
+          c = (char)std::tolower((unsigned char)c);
+        if(v == "mirror_once" || v == "mirror-once" || v == "mirror_clamp_to_edge")
+        {
+          warn("WRAP " + *w);
+          break;
+        }
+      }
+    };
+    for(const auto& in : d.inputs)
+    {
+      if(auto* img = ossia::get_if<image_input>(&in.data))
+        warn_sampler(in.name, img->sampler);
+      else if(auto* cube = ossia::get_if<cubemap_input>(&in.data))
+        warn_sampler(in.name, cube->sampler);
+      else if(auto* tex = ossia::get_if<texture_input>(&in.data))
+        warn_sampler(in.name, tex->sampler);
+      else if(auto* geo = ossia::get_if<geometry_input>(&in.data))
+        for(const auto& t : geo->auxiliary_textures)
+          warn_sampler(in.name + "." + t.name, t.sampler);
+    }
+    for(const auto& t : d.auxiliary_textures)
+      warn_sampler(t.name, t.sampler);
+    for(const auto& w : d.warnings)
+      fprintf(stderr, "[isf] %s\n", w.c_str());
+  }
+
   bool composite = d.composite != composite_mode::unspecified;
   for(const auto& out : d.outputs)
     composite |= out.composite != composite_mode::unspecified;
