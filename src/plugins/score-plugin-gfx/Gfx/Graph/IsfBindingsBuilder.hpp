@@ -1,4 +1,5 @@
 #pragma once
+#include <QString>
 #include <functional>
 
 // Shared infrastructure for binding `storage_input` and `csf_image_input`
@@ -41,6 +42,12 @@ struct GraphicsSSBO
   bool adopted{false};     //!< Holds a RenderList::adoptBuffer reference on `buffer`
   bool from_port{false};   //!< `buffer` was borrowed through the Buffer input port
   int64_t size{0};         //!< Buffer size in bytes (0 = auto from layout)
+  //! Byte offset of the published range in a borrowed `buffer` (shader board
+  //! U42): an upstream may publish its data inside a larger buffer.
+  int64_t offset{0};
+  //! Why the last upstream buffer was refused (U42), so the warning is said
+  //! once per change, not every frame.
+  QString refused;
 
   // Layout fields (for size computation + validation). May be empty for auxiliaries.
   std::vector<isf::storage_input::layout_field> layout;
@@ -115,11 +122,18 @@ struct GraphicsUBO
   int binding{-1};
   QRhiShaderResourceBinding::StageFlags stages{};
   int input_port_index{-1};
+  //! The published range of a borrowed `buffer` (shader board U42); size 0
+  //! means to its end.
+  int64_t offset{0};
+  int64_t size{0};
+  QString refused; //!< See GraphicsSSBO::refused.
 
   //! std140 size of the block the shader declares, from the LAYOUT alone.
   //! Independent of any upstream buffer, so the placeholder allocated for a
   //! never-connected input still covers everything the shader reads.
   int64_t declared_size{};
+  //! The smallest buffer that can back it: minimumUniformBlockSize (U42).
+  int64_t min_size{};
 };
 
 /**

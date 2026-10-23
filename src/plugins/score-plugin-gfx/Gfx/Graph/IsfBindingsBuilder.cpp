@@ -360,6 +360,7 @@ void collectGraphicsStorageResources(
           GraphicsUBO e;
           e.name = inp.name;
           e.declared_size = score::gfx::calculateUniformBlockSize(uni->layout, 0, desc);
+          e.min_size = score::gfx::minimumUniformBlockSize(uni->layout, desc);
           e.owned = false; // sourced from upstream port each frame
           e.stages = stages;
           e.binding = binding++;
@@ -692,18 +693,27 @@ QVarLengthArray<QRhiShaderResourceBinding, 8> buildExtraBindings(
     if(stages == QRhiShaderResourceBinding::StageFlags{})
       continue;
 
-    if(e.access == "read_only")
+    // A borrowed buffer is bound at the range its producer published (U42).
+    const auto r = e.owned ? BufferRange{}
+                           : bindableRange(e.buffer, e.offset, e.size, e.name.c_str());
+    if(r.offset > 0)
     {
+      if(e.access == "read_only")
+        out.append(QRhiShaderResourceBinding::bufferLoad(
+            e.binding, stages, e.buffer, r.offset, r.size));
+      else if(e.access == "write_only")
+        out.append(QRhiShaderResourceBinding::bufferStore(
+            e.binding, stages, e.buffer, r.offset, r.size));
+      else
+        out.append(QRhiShaderResourceBinding::bufferLoadStore(
+            e.binding, stages, e.buffer, r.offset, r.size));
+    }
+    else if(e.access == "read_only")
       out.append(QRhiShaderResourceBinding::bufferLoad(e.binding, stages, e.buffer));
-    }
     else if(e.access == "write_only")
-    {
       out.append(QRhiShaderResourceBinding::bufferStore(e.binding, stages, e.buffer));
-    }
     else
-    {
       out.append(QRhiShaderResourceBinding::bufferLoadStore(e.binding, stages, e.buffer));
-    }
 
     if(e.persistent && e.prev && e.prev_binding >= 0)
     {
@@ -741,7 +751,13 @@ QVarLengthArray<QRhiShaderResourceBinding, 8> buildExtraBindings(
     const auto stages = e.stages;
     if(stages == QRhiShaderResourceBinding::StageFlags{})
       continue;
-    out.append(QRhiShaderResourceBinding::uniformBuffer(e.binding, stages, e.buffer));
+    const auto r = e.owned ? BufferRange{}
+                           : bindableRange(e.buffer, e.offset, e.size, e.name.c_str());
+    if(r.offset > 0)
+      out.append(QRhiShaderResourceBinding::uniformBuffer(
+          e.binding, stages, e.buffer, r.offset, r.size));
+    else
+      out.append(QRhiShaderResourceBinding::uniformBuffer(e.binding, stages, e.buffer));
   }
 
   return out;
@@ -750,6 +766,27 @@ QVarLengthArray<QRhiShaderResourceBinding, 8> buildExtraBindings(
 
 namespace
 {
+// Whether `buf` is refused for entry `e` (U42, plan step 3), warning once per
+// change of reason.
+template <typename Entry>
+bool refuses(
+    Entry& e, const QRhiBuffer* buf, bool uniform, int64_t offset, int64_t range,
+    int64_t declared)
+{
+  const QString why = blockRefusal(buf, uniform, offset, range, declared);
+  if(why.isEmpty())
+  {
+    e.refused.clear();
+    return false;
+  }
+  if(why != e.refused)
+  {
+    qWarning().noquote() << "score.gfx:" << QString::fromStdString(e.name) << why;
+    e.refused = why;
+  }
+  return true;
+}
+
 // Every handle a storage entry borrows is adopted, and every handle it lets go
 // of is dropped only if it was adopted: a drop the entry never took would
 // release another consumer's reference.
@@ -936,9 +973,6 @@ void bindUpstreamBuffers(
     }
     return {};
   };
-  auto fetchUpstream = [&](Port* port) -> QRhiBuffer* {
-    return fetchUpstreamView(port).handle;
-  };
   // For each SSBO that has an input_port_index and is either read-only or an
   // indirect-draw buffer, try to fetch the buffer from the upstream port.
   for(auto& e : store.ssbos)
@@ -956,10 +990,13 @@ void bindUpstreamBuffers(
     if(port->type != Types::Buffer)
       continue;
 
-    const auto view = fetchUpstreamView(port);
+    auto view = fetchUpstreamView(port);
+    if(view.handle
+       && refuses(e, view.handle, false, view.byte_offset, view.byte_size, 0))
+      view = {};
     if(auto* buf = view.handle)
     {
-      if(buf == e.buffer)
+      if(buf == e.buffer && (int64_t)view.byte_offset == e.offset)
       {
         if(!e.owned && e.from_port && view.byte_size > 0)
           e.size = view.byte_size;
@@ -972,8 +1009,11 @@ void bindUpstreamBuffers(
         borrow(rhi, e, buf);
         e.from_port = true;
         e.size = view.byte_size;
+        e.offset = view.byte_offset;
         if(srb && e.binding >= 0)
-          replaceBuffer(*srb, e.binding, buf);
+          replaceBuffer(
+              *srb, e.binding, buf,
+              bindableRange(buf, e.offset, e.size, e.name.c_str()));
       }
     }
     else if(
@@ -1001,8 +1041,9 @@ void bindUpstreamBuffers(
       if(e.buffer != store.sentinelBuffer)
       {
         bindSentinel(rhi, e, store.sentinelBuffer);
+        e.offset = 0;
         if(srb && e.binding >= 0)
-          replaceBuffer(*srb, e.binding, store.sentinelBuffer);
+          replaceBuffer(*srb, e.binding, store.sentinelBuffer, BufferRange{});
       }
       else
         syncBinding(srb, e.binding, e.buffer);
@@ -1024,7 +1065,8 @@ void bindUpstreamBuffers(
     Port* port = inputPorts[e.input_port_index];
     if(!port || port->type != Types::Buffer)
       continue;
-    QRhiBuffer* found = fetchUpstream(port);
+    const auto view = fetchUpstreamView(port);
+    QRhiBuffer* found = view.handle;
 
     // A uniform_input descriptor is VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, so the buffer
     // behind it must carry UniformBuffer usage. An upstream publishing a storage
@@ -1032,16 +1074,11 @@ void bindUpstreamBuffers(
     // vkUpdateDescriptorSets rejects with
     // VUID-VkWriteDescriptorSet-descriptorType-00330. Keep the zero-filled
     // placeholder instead of handing the backend an invalid descriptor.
-    if(found && !found->usage().testFlag(QRhiBuffer::UniformBuffer))
-    {
-      qWarning() << "ISF uniform_input" << e.name.c_str()
-                 << "is fed by a buffer without UniformBuffer usage; keeping the"
-                    " placeholder. Declare the input as storage_input, or have"
-                    " the producer publish a uniform buffer.";
+    if(found
+       && refuses(e, found, true, view.byte_offset, view.byte_size, e.min_size))
       found = nullptr;
-    }
 
-    if(found == e.buffer)
+    if(found == e.buffer && (int64_t)view.byte_offset == e.offset)
     {
       if(syncBinding(srb, e.binding, found))
         ubo_srb_changed = true;
@@ -1054,10 +1091,14 @@ void bindUpstreamBuffers(
       // bound. Drop any placeholder we owned and retarget the binding.
       borrow(rhi, e, found);
       e.from_port = true;
+      e.offset = view.byte_offset;
+      e.size = view.byte_size;
 
       if(srb && e.binding >= 0)
       {
-        replaceBuffer(*srb, e.binding, found);
+        replaceBuffer(
+            *srb, e.binding, found,
+            bindableRange(found, e.offset, e.size, e.name.c_str()));
         ubo_srb_changed = true;
       }
     }
@@ -1078,9 +1119,10 @@ void bindUpstreamBuffers(
       if(e.buffer != store.sentinelUniformBuffer)
       {
         bindSentinel(rhi, e, store.sentinelUniformBuffer);
+        e.offset = 0;
         if(srb && e.binding >= 0)
         {
-          replaceBuffer(*srb, e.binding, store.sentinelUniformBuffer);
+          replaceBuffer(*srb, e.binding, store.sentinelUniformBuffer, BufferRange{});
           ubo_srb_changed = true;
         }
       }
@@ -1146,17 +1188,6 @@ void bindUpstreamImagesFromGeometry(
   }
 }
 
-namespace
-{
-// bindUpstreamBuffersFromGeometry is SCORE_PLUGIN_GFX_EXPORT, and a dllexport
-// function may not hold a thread_local, so the one-shot dedup lives out here.
-bool warnOnceIsfAuxUniform(const std::string& name)
-{
-  static thread_local std::set<std::string> warned;
-  return warned.insert(name).second;
-}
-}
-
 void bindUpstreamBuffersFromGeometry(
     QRhi& rhi, QRhiResourceUpdateBatch& res,
     GraphicsStorageResources& store, const ossia::geometry& geometry,
@@ -1181,8 +1212,13 @@ void bindUpstreamBuffersFromGeometry(
     QRhiBuffer* handle{};
     int64_t byte_size{0};
     bool owned{false};
+    int64_t byte_offset{0}; //!< Of the published range in `handle` (U42).
   };
-  auto resolve_aux = [&](const std::string& name, bool is_uniform) -> ResolvedBuffer {
+  // `refuse(handle, offset, size)` says whether the consumer refuses a
+  // producer's buffer (U42): checked before a CPU upload, which is made with
+  // the right usage and so is never refused.
+  auto resolve_aux = [&](const std::string& name, bool is_uniform,
+                         const auto& refuse) -> ResolvedBuffer {
     auto* geo_aux = mesh.find_auxiliary(name);
     if(!geo_aux || geo_aux->buffer < 0
        || geo_aux->buffer >= (int)mesh.buffers.size())
@@ -1193,24 +1229,22 @@ void bindUpstreamBuffersFromGeometry(
       if(!gpu->handle)
         return {};
       auto* handle = static_cast<QRhiBuffer*>(gpu->handle);
-      if(is_uniform && !handle->usage().testFlag(QRhiBuffer::UniformBuffer))
-      {
-        if(warnOnceIsfAuxUniform(name))
-          qWarning() << "ISF aux" << name.c_str()
-                     << "is declared uniform but the producer publishes a buffer"
-                        " without UniformBuffer usage; on OpenGL every member of"
-                        " it reads as zero.";
-      }
+      if(refuse(handle, geo_aux->byte_offset, geo_aux->byte_size))
+        return {};
       return {handle,
               geo_aux->byte_size > 0 ? geo_aux->byte_size : gpu->byte_size,
-              false};
+              false, geo_aux->byte_offset};
     }
     else if(auto* cpu = ossia::get_if<ossia::geometry::cpu_buffer>(&geo_buf.data))
     {
-      if(!cpu->raw_data || cpu->byte_size <= 0)
+      // The published range is what gets uploaded (U42: it was uploaded from
+      // the first byte whatever the offset).
+      const int64_t off = std::max<int64_t>(0, geo_aux->byte_offset);
+      if(!cpu->raw_data || cpu->byte_size <= off)
         return {};
-      const int64_t sz
-          = geo_aux->byte_size > 0 ? geo_aux->byte_size : cpu->byte_size;
+      const int64_t sz = geo_aux->byte_size > 0
+                             ? std::min<int64_t>(geo_aux->byte_size, cpu->byte_size - off)
+                             : cpu->byte_size - off;
       const auto usage
           = is_uniform ? QRhiBuffer::UniformBuffer : QRhiBuffer::StorageBuffer;
       const auto type = bufferTypeFor(usage);
@@ -1221,10 +1255,11 @@ void bindUpstreamBuffersFromGeometry(
         delete buf;
         return {};
       }
+      const auto* src = static_cast<const char*>(cpu->raw_data.get()) + off;
       if(type == QRhiBuffer::Dynamic)
-        res.updateDynamicBuffer(buf, 0, (quint32)sz, cpu->raw_data.get());
+        res.updateDynamicBuffer(buf, 0, (quint32)sz, src);
       else
-        res.uploadStaticBuffer(buf, 0, sz, cpu->raw_data.get());
+        res.uploadStaticBuffer(buf, 0, sz, src);
       return {buf, sz, true};
     }
     return {};
@@ -1237,8 +1272,13 @@ void bindUpstreamBuffersFromGeometry(
     // Indirect-draw SSBOs carry no shader binding; handled elsewhere.
     if(!e.buffer_usage.empty())
       continue;
-    auto resolved = resolve_aux(e.name, /*is_uniform=*/false);
-    if(!resolved.handle || resolved.handle == e.buffer)
+    auto resolved = resolve_aux(
+        e.name, /*is_uniform=*/false,
+        [&](const QRhiBuffer* b, int64_t off, int64_t sz) {
+      return refuses(e, b, false, off, sz, 0);
+    });
+    if(!resolved.handle
+       || (resolved.handle == e.buffer && resolved.byte_offset == e.offset))
       continue;
     if(resolved.owned)
     {
@@ -1249,16 +1289,24 @@ void bindUpstreamBuffersFromGeometry(
     else
       borrow(rhi, e, resolved.handle);
     e.size = resolved.byte_size;
+    e.offset = resolved.byte_offset;
     if(srb)
-      replaceBuffer(*srb, e.binding, e.buffer);
+      replaceBuffer(
+          *srb, e.binding, e.buffer,
+          bindableRange(e.buffer, e.offset, e.size, e.name.c_str()));
   }
 
   for(auto& e : store.ubos)
   {
     if(e.binding < 0)
       continue;
-    auto resolved = resolve_aux(e.name, /*is_uniform=*/true);
-    if(!resolved.handle || resolved.handle == e.buffer)
+    auto resolved = resolve_aux(
+        e.name, /*is_uniform=*/true,
+        [&](const QRhiBuffer* b, int64_t off, int64_t sz) {
+      return refuses(e, b, true, off, sz, e.min_size);
+    });
+    if(!resolved.handle
+       || (resolved.handle == e.buffer && resolved.byte_offset == e.offset))
       continue;
     if(resolved.owned)
     {
@@ -1268,8 +1316,12 @@ void bindUpstreamBuffersFromGeometry(
     }
     else
       borrow(rhi, e, resolved.handle);
+    e.size = resolved.byte_size;
+    e.offset = resolved.byte_offset;
     if(srb)
-      replaceBuffer(*srb, e.binding, e.buffer);
+      replaceBuffer(
+          *srb, e.binding, e.buffer,
+          bindableRange(e.buffer, e.offset, e.size, e.name.c_str()));
   }
 }
 

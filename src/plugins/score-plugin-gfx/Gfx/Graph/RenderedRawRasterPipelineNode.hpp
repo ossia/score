@@ -169,6 +169,11 @@ private:
     QRhiBuffer* buffer{};
     QRhiBuffer* prev_buffer{}; //!< Only set when persistent == true: the other half of the ping-pong pair.
     int64_t size{};
+    //! Byte offset of the published range in a borrowed `buffer` (shader
+    //! board U42).
+    int64_t offset{};
+    //! Why the last upstream buffer was refused (U42): warned once per change.
+    QString refused;
     bool owned{true}; // false when adopted from upstream geometry / upstream port
     bool is_uniform{false}; // true for uniform_input, false for storage_input
     bool persistent{false}; //!< Ping-pong pair swapped each frame (raw raster AUXILIARY only)
@@ -187,6 +192,9 @@ private:
     //! Independent of `size`, which is only ever set where a buffer already
     //! exists — so this is what the disconnected-placeholder path must use.
     int64_t declared_size{};
+    //! The smallest buffer a uniform block can be bound to (U42): its size
+    //! with a trailing array counted as one element.
+    int64_t min_size{};
   };
   std::vector<AuxiliarySSBO> m_auxiliarySSBOs;
   static void createAuxPlaceholder(

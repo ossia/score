@@ -52,10 +52,13 @@ struct UpstreamRenderer final : NodeRenderer
   using NodeRenderer::NodeRenderer;
 
   QRhiBuffer* published{};
+  quint32 offset{};
+  quint32 size{};
 
   BufferView bufferForOutput(const Port&) override
   {
-    return BufferView{.handle = published, .owned = false};
+    return BufferView{
+        .handle = published, .byte_offset = offset, .byte_size = size, .owned = false};
   }
 
   void init(RenderList&, QRhiResourceUpdateBatch&) override { }
@@ -94,6 +97,7 @@ struct Outcome
 {
   QRhiBuffer* bound{};       //!< what the UBO entry ended up pointing at
   QRhiBuffer* placeholder{}; //!< the zero-filled UBO the entry started with
+  int64_t offset{};          //!< the published offset the entry adopted
 };
 
 // One consumer node with a single Buffer input standing for a declared
@@ -102,7 +106,9 @@ struct Outcome
 //
 // The placeholder is allocated here because the adopt path releases it, so
 // only bindUpstreamBuffers' own decision says who frees it.
-Outcome bindOutcome(QRhi& rhi, QRhiBuffer* upstream)
+Outcome bindOutcome(
+    QRhi& rhi, QRhiBuffer* upstream, quint32 offset = 0, quint32 size = 0,
+    int64_t declared = 64)
 {
   StubOutput sink;
   auto st = std::make_shared<RenderState>();
@@ -126,6 +132,8 @@ Outcome bindOutcome(QRhi& rhi, QRhiBuffer* upstream)
 
   UpstreamRenderer up{producer};
   up.published = upstream;
+  up.offset = offset;
+  up.size = size;
   producer.renderedNodes.insert({&rl, &up});
 
   GraphicsStorageResources store;
@@ -136,16 +144,18 @@ Outcome bindOutcome(QRhi& rhi, QRhiBuffer* upstream)
   e.binding = 2;
   e.stages = QRhiShaderResourceBinding::FragmentStage;
   e.input_port_index = 0;
-  e.declared_size = 64;
+  e.declared_size = declared;
+  e.min_size = declared;
 
   bindUpstreamBuffers(rl, consumer.input, store, nullptr);
 
   QRhiBuffer* bound = store.ubos.front().buffer;
+  const int64_t adoptedOffset = store.ubos.front().offset;
 
   // An adopted upstream is only un-referenced here; its owner frees it.
   store.release(rl);
   producer.renderedNodes.clear();
-  return {bound, placeholder};
+  return {bound, placeholder, adoptedOffset};
 }
 }
 
@@ -203,5 +213,40 @@ TEST_CASE(
     REQUIRE(both);
     const auto o = bindOutcome(*rhi, both.get());
     CHECK(o.bound == both.get());
+  }
+}
+
+// A uniform block is only bound to a buffer covering it (shader board U42,
+// plan step 3): an undersized upstream made every member past its end read
+// out of bounds.
+TEST_CASE(
+    "a uniform_input keeps its placeholder for an upstream smaller than the block",
+    "[gfx][isf][binding][U42]")
+{
+  QRhiNullInitParams params;
+  std::unique_ptr<QRhi> rhi{QRhi::create(QRhi::Null, &params)};
+  REQUIRE(rhi);
+
+  SECTION("a buffer smaller than the block")
+  {
+    std::unique_ptr<QRhiBuffer> ubo{
+        rhi->newBuffer(QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, 128)};
+    const auto o = bindOutcome(*rhi, ubo.get(), 0, 0, /*declared=*/240);
+    CHECK(o.bound == o.placeholder);
+  }
+  SECTION("a published range smaller than the block, in a larger buffer")
+  {
+    std::unique_ptr<QRhiBuffer> ubo{
+        rhi->newBuffer(QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, 512)};
+    const auto o = bindOutcome(*rhi, ubo.get(), 0, 128, /*declared=*/240);
+    CHECK(o.bound == o.placeholder);
+  }
+  SECTION("a range covering the block is adopted, with its offset")
+  {
+    std::unique_ptr<QRhiBuffer> ubo{
+        rhi->newBuffer(QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, 512)};
+    const auto o = bindOutcome(*rhi, ubo.get(), 256, 240, /*declared=*/240);
+    CHECK(o.bound == ubo.get());
+    CHECK(o.offset == 256);
   }
 }

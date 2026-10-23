@@ -251,6 +251,54 @@ void warnUnresolvedVertexInputs(
         << QString::fromStdString(desc.description);
   }
 }
+
+// Whether a raw raster AUXILIARY block refuses the producer's `buf` (U42,
+// plan step 3), warning once per change of reason.
+template <typename Aux>
+bool refusesAux(Aux& aux, const QRhiBuffer* buf, int64_t offset, int64_t range)
+{
+  const QString why
+      = blockRefusal(buf, aux.is_uniform, offset, range, aux.min_size);
+  if(why.isEmpty())
+  {
+    aux.refused.clear();
+    return false;
+  }
+  if(why != aux.refused)
+  {
+    qWarning().noquote() << "score.gfx:" << QString::fromStdString(aux.name) << why;
+    aux.refused = why;
+  }
+  return true;
+}
+
+// The binding of a raw raster AUXILIARY / name-matched buffer: a borrowed
+// buffer at the range its producer published (shader board U42).
+template <typename Aux>
+QRhiShaderResourceBinding auxBufferBinding(
+    int slot, QRhiShaderResourceBinding::StageFlags stages, const Aux& aux)
+{
+  using B = QRhiShaderResourceBinding;
+  const auto r = aux.owned ? BufferRange{}
+                           : bindableRange(aux.buffer, aux.offset, aux.size, aux.name.c_str());
+  if(r.offset > 0)
+  {
+    if(aux.is_uniform)
+      return B::uniformBuffer(slot, stages, aux.buffer, r.offset, r.size);
+    if(aux.access == "read_only")
+      return B::bufferLoad(slot, stages, aux.buffer, r.offset, r.size);
+    if(aux.access == "write_only")
+      return B::bufferStore(slot, stages, aux.buffer, r.offset, r.size);
+    return B::bufferLoadStore(slot, stages, aux.buffer, r.offset, r.size);
+  }
+  if(aux.is_uniform)
+    return B::uniformBuffer(slot, stages, aux.buffer);
+  if(aux.access == "read_only")
+    return B::bufferLoad(slot, stages, aux.buffer);
+  if(aux.access == "write_only")
+    return B::bufferStore(slot, stages, aux.buffer);
+  return B::bufferLoadStore(slot, stages, aux.buffer);
+}
 }
 
 
@@ -1320,22 +1368,8 @@ void RenderedRawRasterPipelineNode::initPass(
         max_binding++;
       }
 
-      QRhiShaderResourceBinding binding;
-      if(aux.is_uniform)
-      {
-        // uniform_input → std140 UBO binding
-        binding = QRhiShaderResourceBinding::uniformBuffer(
-            max_binding, bindingStages, aux.buffer);
-      }
-      else if(aux.access == "read_only")
-        binding = QRhiShaderResourceBinding::bufferLoad(
-            max_binding, bindingStages, aux.buffer);
-      else if(aux.access == "write_only")
-        binding = QRhiShaderResourceBinding::bufferStore(
-            max_binding, bindingStages, aux.buffer);
-      else
-        binding = QRhiShaderResourceBinding::bufferLoadStore(
-            max_binding, bindingStages, aux.buffer);
+      const QRhiShaderResourceBinding binding
+          = auxBufferBinding(max_binding, bindingStages, aux);
 
 
       additionalBindings.push_back(binding);
@@ -2737,22 +2771,8 @@ void RenderedRawRasterPipelineNode::initMRTPass(
         max_binding++;
       }
 
-      QRhiShaderResourceBinding binding;
-      if(aux.is_uniform)
-      {
-        // uniform_input → std140 UBO binding
-        binding = QRhiShaderResourceBinding::uniformBuffer(
-            max_binding, bindingStages, aux.buffer);
-      }
-      else if(aux.access == "read_only")
-        binding = QRhiShaderResourceBinding::bufferLoad(
-            max_binding, bindingStages, aux.buffer);
-      else if(aux.access == "write_only")
-        binding = QRhiShaderResourceBinding::bufferStore(
-            max_binding, bindingStages, aux.buffer);
-      else
-        binding = QRhiShaderResourceBinding::bufferLoadStore(
-            max_binding, bindingStages, aux.buffer);
+      const QRhiShaderResourceBinding binding
+          = auxBufferBinding(max_binding, bindingStages, aux);
 
       additionalBindings.push_back(binding);
       aux.binding = max_binding;  // remember slot for per-sub-mesh patching
@@ -3088,20 +3108,29 @@ void RenderedRawRasterPipelineNode::initState(
       const auto& geo_buf = mesh.buffers[geo_aux->buffer];
       if(auto* gpu = ossia::get_if<ossia::geometry::gpu_buffer>(&geo_buf.data))
       {
-        if(!gpu->handle)
+        if(!gpu->handle
+           || refusesAux(
+               ssbo, static_cast<QRhiBuffer*>(gpu->handle), geo_aux->byte_offset,
+               geo_aux->byte_size))
           return;
         ssbo.buffer = static_cast<QRhiBuffer*>(gpu->handle);
         // Borrowed, so take the reference update() and the teardown both
         // assume: releaseState() drops one for every non-owned slot.
         RenderList::adoptBuffer(ssbo.buffer);
         ssbo.size = geo_aux->byte_size > 0 ? geo_aux->byte_size : gpu->byte_size;
+        ssbo.offset = geo_aux->byte_offset;
         ssbo.owned = false;
       }
       else if(auto* cpu = ossia::get_if<ossia::geometry::cpu_buffer>(&geo_buf.data))
       {
-        if(!cpu->raw_data || cpu->byte_size <= 0)
+        // The published range is what gets uploaded (U42).
+        const int64_t off = std::max<int64_t>(0, geo_aux->byte_offset);
+        if(!cpu->raw_data || cpu->byte_size <= off)
           return;
-        int64_t sz = geo_aux->byte_size > 0 ? geo_aux->byte_size : cpu->byte_size;
+        int64_t sz = geo_aux->byte_size > 0
+                         ? std::min<int64_t>(geo_aux->byte_size, cpu->byte_size - off)
+                         : cpu->byte_size - off;
+        const auto* src = static_cast<const char*>(cpu->raw_data.get()) + off;
         // Usage flag must match the aux kind — binding a StorageBuffer-
         // only buffer as a uniform block (or vice versa) is rejected by
         // the Vulkan validation layer.
@@ -3120,11 +3149,12 @@ void RenderedRawRasterPipelineNode::initState(
         // uploadStaticBuffer is only defined for non-Dynamic buffers, and a
         // uniform block is Dynamic everywhere -- see bufferTypeFor.
         if(type == QRhiBuffer::Dynamic)
-          res.updateDynamicBuffer(buf, 0, (quint32)sz, cpu->raw_data.get());
+          res.updateDynamicBuffer(buf, 0, (quint32)sz, src);
         else
-          res.uploadStaticBuffer(buf, 0, sz, cpu->raw_data.get());
+          res.uploadStaticBuffer(buf, 0, sz, src);
         ssbo.buffer = buf;
         ssbo.size = sz;
+        ssbo.offset = 0;
         ssbo.owned = true;
       }
     };
@@ -3357,6 +3387,8 @@ void RenderedRawRasterPipelineNode::initState(
       ssbo.persistent = aux.persistent && !aux.is_uniform;
       ssbo.is_uniform = aux.is_uniform;
       ssbo.declared_size = aux_declared_size(aux);
+      if(aux.is_uniform)
+        ssbo.min_size = score::gfx::minimumUniformBlockSize(aux.layout, desc);
 
       if(ssbo.persistent)
       {
@@ -3846,36 +3878,47 @@ void RenderedRawRasterPipelineNode::refreshStorageBuffers(F&& refresh)
   // The bind helpers skip an entry whose pointer is unchanged, so a per-SRB
   // call would only reach the first SRB: diff against the previous pointers
   // and patch every SRB from that.
-  ossia::small_vector<QRhiBuffer*, 8> prevSsbos, prevUbos;
+  // A pointer and the offset of its published range (U42).
+  using Bound = std::pair<QRhiBuffer*, int64_t>;
+  ossia::small_vector<Bound, 8> prevSsbos, prevUbos;
   for(const auto& e : m_storage.ssbos)
-    prevSsbos.push_back(e.buffer);
+    prevSsbos.push_back({e.buffer, e.offset});
   for(const auto& e : m_storage.ubos)
-    prevUbos.push_back(e.buffer);
+    prevUbos.push_back({e.buffer, e.offset});
 
   refresh();
 
+  const auto moved = [](const auto& e, const Bound& prev) {
+    return e.buffer != prev.first || e.offset != prev.second;
+  };
   bool changed = false;
   for(std::size_t i = 0; i < m_storage.ssbos.size(); ++i)
-    changed |= m_storage.ssbos[i].buffer != prevSsbos[i];
+    changed |= moved(m_storage.ssbos[i], prevSsbos[i]);
   for(std::size_t i = 0; i < m_storage.ubos.size(); ++i)
-    changed |= m_storage.ubos[i].buffer != prevUbos[i];
+    changed |= moved(m_storage.ubos[i], prevUbos[i]);
   if(!changed)
     return;
 
   const auto patch = [&](QRhiShaderResourceBindings* srb) {
     if(!srb)
       return;
+    const auto rebind = [&](const auto& e) {
+      replaceBuffer(
+          *srb, e.binding, e.buffer,
+          e.owned ? BufferRange{}
+                  : bindableRange(e.buffer, e.offset, e.size, e.name.c_str()));
+    };
     for(std::size_t i = 0; i < m_storage.ssbos.size(); ++i)
     {
       const auto& e = m_storage.ssbos[i];
-      if(e.buffer != prevSsbos[i] && e.buffer && e.binding >= 0)
-        replaceBuffer(*srb, e.binding, e.buffer);
+      if(moved(e, prevSsbos[i]) && e.buffer && e.binding >= 0)
+        rebind(e);
     }
     for(std::size_t i = 0; i < m_storage.ubos.size(); ++i)
     {
       const auto& e = m_storage.ubos[i];
-      if(e.buffer != prevUbos[i] && e.buffer && e.binding >= 0)
-        replaceBuffer(*srb, e.binding, e.buffer);
+      if(moved(e, prevUbos[i]) && e.buffer && e.binding >= 0)
+        rebind(e);
     }
   };
   for(auto& [e, pass] : m_passes)
@@ -4145,10 +4188,31 @@ void RenderedRawRasterPipelineNode::update(
             const auto& geo_buf = mesh.buffers[geo_aux->buffer];
             if(auto* gpu = ossia::get_if<ossia::geometry::gpu_buffer>(&geo_buf.data))
             {
-              if(gpu->handle)
+              const bool refused
+                  = gpu->handle
+                    && refusesAux(
+                        aux, static_cast<QRhiBuffer*>(gpu->handle),
+                        geo_aux->byte_offset, geo_aux->byte_size);
+              if(refused && aux.buffer && !aux.owned)
+              {
+                // Stop borrowing the previous producer buffer: the binding
+                // pass re-creates the placeholder for a null buffer.
+                RenderList::dropAdoptedBuffer(*renderer.state.rhi, aux.buffer);
+                aux.buffer = nullptr;
+                aux.offset = 0;
+                mustRecreatePasses = true;
+              }
+              else if(gpu->handle && !refused)
               {
                 auto* new_buf = static_cast<QRhiBuffer*>(gpu->handle);
-                if(aux.buffer != new_buf)
+                if(aux.buffer == new_buf && aux.offset != geo_aux->byte_offset)
+                {
+                  // The same buffer, a new range: rebind it (U42).
+                  aux.offset = geo_aux->byte_offset;
+                  aux.size = geo_aux->byte_size > 0 ? geo_aux->byte_size : gpu->byte_size;
+                  mustRecreatePasses = true;
+                }
+                else if(aux.buffer != new_buf)
                 {
                   if(aux.owned && aux.buffer)
                     aux.buffer->deleteLater();
@@ -4159,6 +4223,7 @@ void RenderedRawRasterPipelineNode::update(
                   RenderList::adoptBuffer(new_buf);
                   aux.buffer = new_buf;
                   aux.size = geo_aux->byte_size > 0 ? geo_aux->byte_size : gpu->byte_size;
+                  aux.offset = geo_aux->byte_offset;
                   aux.owned = false;
                   mustRecreatePasses = true;
                 }
@@ -4174,25 +4239,38 @@ void RenderedRawRasterPipelineNode::update(
             }
             else if(auto* cpu = ossia::get_if<ossia::geometry::cpu_buffer>(&geo_buf.data))
             {
-              // CPU buffer: upload to GPU
-              if(cpu->raw_data && cpu->byte_size > 0)
+              // CPU buffer: upload its published range to the GPU (U42), in
+              // a buffer of the kind the shader declares, as the first bind
+              // does: a uniform block got a storage buffer here.
+              const int64_t off = std::max<int64_t>(0, geo_aux->byte_offset);
+              if(cpu->raw_data && cpu->byte_size > off)
               {
                 auto& rhi = *renderer.state.rhi;
-                int64_t sz = geo_aux->byte_size > 0 ? geo_aux->byte_size : cpu->byte_size;
+                const int64_t sz
+                    = geo_aux->byte_size > 0
+                          ? std::min<int64_t>(geo_aux->byte_size, cpu->byte_size - off)
+                          : cpu->byte_size - off;
+                const auto* src = static_cast<const char*>(cpu->raw_data.get()) + off;
 
                 if(aux.owned && aux.buffer)
                   renderer.releaseBuffer(aux.buffer);
                 else if(aux.buffer)
                   RenderList::dropAdoptedBuffer(rhi, aux.buffer);
 
-                auto* buf = rhi.newBuffer(
-                    QRhiBuffer::Immutable, QRhiBuffer::StorageBuffer, sz);
+                const auto usage = aux.is_uniform ? QRhiBuffer::UniformBuffer
+                                                  : QRhiBuffer::StorageBuffer;
+                const auto type = bufferTypeFor(usage);
+                auto* buf = rhi.newBuffer(type, usage, sz);
                 buf->setName(QByteArray("RRP_aux_") + aux.name.c_str());
                 buf->create();
-                res.uploadStaticBuffer(buf, 0, sz, cpu->raw_data.get());
+                if(type == QRhiBuffer::Dynamic)
+                  res.updateDynamicBuffer(buf, 0, (quint32)sz, src);
+                else
+                  res.uploadStaticBuffer(buf, 0, sz, src);
 
                 aux.buffer = buf;
                 aux.size = sz;
+                aux.offset = 0;
                 aux.owned = true;
                 mustRecreatePasses = true;
               }

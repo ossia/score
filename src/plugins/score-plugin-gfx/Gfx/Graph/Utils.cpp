@@ -14,6 +14,8 @@
 
 #include <score/tools/Debug.hpp>
 
+#include <ossia/detail/hash.hpp>
+
 #include <QMutex>
 #include <QOpenGLContext>
 #include <QOpenGLExtraFunctions>
@@ -374,6 +376,104 @@ void replaceBuffer(
       }
     }
   }
+}
+
+BufferRange bindableRange(
+    const QRhiBuffer* buf, int64_t offset, int64_t size, const char* who) noexcept
+{
+  // Largest minStorageBufferOffsetAlignment / minUniformBufferOffsetAlignment
+  // Vulkan allows, and the largest GL offset alignment.
+  constexpr int64_t alignment = 256;
+  const int64_t capacity = buf ? (int64_t)buf->size() : 0;
+  if(!buf || offset <= 0 || offset >= capacity)
+    return {};
+  if(offset % alignment != 0)
+  {
+    static std::unordered_set<std::size_t> warned;
+    std::size_t key = std::hash<const void*>{}(buf);
+    ossia::hash_combine(key, offset);
+    if(warned.insert(key).second)
+      qWarning().nospace()
+          << "score.gfx: " << who << " (" << buf->name()
+          << ") is published at byte offset " << offset << ", not a multiple of the "
+          << alignment
+          << "-byte offset alignment; the whole buffer is bound from byte 0, so the "
+             "shader sees the published data "
+          << offset << " bytes in";
+    return {};
+  }
+  const int64_t avail = capacity - offset;
+  return {quint32(offset), quint32(size > 0 ? std::min(size, avail) : avail)};
+}
+
+QString blockRefusal(
+    const QRhiBuffer* buf, bool uniform, int64_t offset, int64_t range,
+    int64_t declared)
+{
+  if(!buf)
+    return {};
+  const auto usage = buf->usage();
+  if(uniform && !usage.testFlag(QRhiBuffer::UniformBuffer))
+    return QStringLiteral(
+        "is declared uniform but the producer publishes a buffer without "
+        "UniformBuffer usage; the block keeps its zero-filled placeholder. Declare "
+        "it as storage, or have the producer publish a uniform buffer.");
+  if(!uniform && !usage.testFlag(QRhiBuffer::StorageBuffer))
+    return QStringLiteral(
+        "is declared storage but the producer publishes a buffer without "
+        "StorageBuffer usage; the block keeps its zero-filled placeholder. Declare "
+        "it as uniform, or have the producer publish a storage buffer.");
+  if(uniform && declared > 0)
+  {
+    const int64_t avail
+        = range > 0 ? range : std::max<int64_t>(0, (int64_t)buf->size() - offset);
+    if(avail < declared)
+      return QStringLiteral(
+                 "receives %1 bytes, smaller than the %2-byte block the shader "
+                 "declares; the block keeps its zero-filled placeholder.")
+          .arg(avail)
+          .arg(declared);
+  }
+  return {};
+}
+
+void replaceBuffer(
+    std::vector<QRhiShaderResourceBinding>& tmp, int binding, QRhiBuffer* newBuffer,
+    BufferRange range)
+{
+  for(QRhiShaderResourceBinding& b : tmp)
+  {
+    auto d = reinterpret_cast<QRhiShaderResourceBinding::Data*>(&b);
+    if(d->binding != binding)
+      continue;
+    switch(d->type)
+    {
+      case QRhiShaderResourceBinding::Type::UniformBuffer:
+        d->u.ubuf.buf = newBuffer;
+        d->u.ubuf.offset = range.offset;
+        d->u.ubuf.maybeSize = range.size;
+        break;
+      case QRhiShaderResourceBinding::Type::BufferLoad:
+      case QRhiShaderResourceBinding::Type::BufferStore:
+      case QRhiShaderResourceBinding::Type::BufferLoadStore:
+        d->u.sbuf.buf = newBuffer;
+        d->u.sbuf.offset = range.offset;
+        d->u.sbuf.maybeSize = range.size;
+        break;
+      default:
+        break;
+    }
+  }
+}
+
+void replaceBuffer(
+    QRhiShaderResourceBindings& srb, int binding, QRhiBuffer* newBuffer, BufferRange range)
+{
+  std::vector<QRhiShaderResourceBinding> tmp;
+  tmp.assign(srb.cbeginBindings(), srb.cendBindings());
+  replaceBuffer(tmp, binding, newBuffer, range);
+  srb.setBindings(tmp.begin(), tmp.end());
+  srb.updateResources();
 }
 
 void replaceSampler(

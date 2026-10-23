@@ -567,6 +567,38 @@ void replaceTexture(QRhiShaderResourceBindings&, int binding, QRhiTexture* newTe
 SCORE_PLUGIN_GFX_EXPORT
 void replaceBuffer(
     std::vector<QRhiShaderResourceBinding>&, int binding, QRhiBuffer* newBuffer);
+
+//! The byte range a buffer published at `offset` / `size` is bound with
+//! (shader board U42). An offset on the 256-byte offset alignment binds that
+//! range; an unaligned one binds the whole buffer from byte 0 with one
+//! warning naming `who`, since no backend can bind it. size 0 = to the end.
+struct BufferRange
+{
+  quint32 offset{0};
+  quint32 size{0}; //!< 0: the whole buffer.
+};
+SCORE_PLUGIN_GFX_EXPORT
+BufferRange bindableRange(
+    const QRhiBuffer* buf, int64_t offset, int64_t size, const char* who) noexcept;
+
+//! Why `buf` cannot back a shader block, or an empty string when it can
+//! (shader board U42, plan step 3). A uniform block needs UniformBuffer usage
+//! and a published range of at least the block's declared size; a storage
+//! block needs StorageBuffer usage. `range` is the published byte size, 0 for
+//! the whole buffer from `offset`; `declared` 0 skips the extent check.
+SCORE_PLUGIN_GFX_EXPORT
+QString blockRefusal(
+    const QRhiBuffer* buf, bool uniform, int64_t offset, int64_t range,
+    int64_t declared);
+
+//! replaceBuffer, also setting the bound range.
+SCORE_PLUGIN_GFX_EXPORT
+void replaceBuffer(
+    QRhiShaderResourceBindings&, int binding, QRhiBuffer* newBuffer, BufferRange range);
+SCORE_PLUGIN_GFX_EXPORT
+void replaceBuffer(
+    std::vector<QRhiShaderResourceBinding>&, int binding, QRhiBuffer* newBuffer,
+    BufferRange range);
 SCORE_PLUGIN_GFX_EXPORT
 void replaceSampler(
     std::vector<QRhiShaderResourceBinding>&, int binding, QRhiSampler* newSampler);

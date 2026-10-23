@@ -421,6 +421,44 @@ calculateUniformBlockSize(const Layout& layout, int arrayCount, const isf::descr
   return alignUp(currentOffset, maxBufferAlignment);
 }
 
+/**
+ * @brief The smallest buffer a uniform block can be bound to (shader board
+ * U42): its std140 size with a trailing array counted as one element. A
+ * block ending in an array (the parser-injected `camera.data[16]`) is read up
+ * to the count its producer publishes, so one element is what it needs; a
+ * block whose members all have to be there needs its whole size.
+ */
+template <typename Layout>
+static inline int64_t
+minimumUniformBlockSize(const Layout& layout, const isf::descriptor& d)
+{
+  if(std::empty(layout))
+    return 0;
+  const auto& typeDefinitions = d.types;
+  int64_t currentOffset = 0;
+  int64_t maxBufferAlignment = kStd140Vec4Alignment;
+  const auto last = std::prev(std::end(layout));
+  for(auto it = std::begin(layout); it != std::end(layout); ++it)
+  {
+    const ArrayParseResult parsed = parseArrayType(QString::fromStdString(it->type));
+    const LayoutResult member = std140MemberInfo(parsed.baseType, typeDefinitions);
+    const bool isArray = parsed.arrayCount != 0;
+    int64_t fieldAlign = member.alignment;
+    if(isArray)
+      fieldAlign = std::max<int64_t>(fieldAlign, kStd140Vec4Alignment);
+    const int64_t elementStride = alignUp(member.size, fieldAlign);
+    currentOffset = alignUp(currentOffset, fieldAlign);
+    if(isArray && it == last)
+      currentOffset += elementStride;
+    else if(parsed.arrayCount > 0)
+      currentOffset += elementStride * parsed.arrayCount;
+    else if(!isArray)
+      currentOffset += member.size;
+    maxBufferAlignment = std::max(maxBufferAlignment, fieldAlign);
+  }
+  return alignUp(currentOffset, maxBufferAlignment);
+}
+
 static inline int64_t calculateStorageBufferSize(
     std::span<const isf::storage_input::layout_field> layout, int arrayCount,
     const isf::descriptor& d)

@@ -1294,6 +1294,13 @@ score_add_test(test_unit_scene_camera_aux
     PLUGINS score_plugin_gfx score_lib_process
     LIBS ${QT_PREFIX}::Gui)
 
+  # bindableRange / blockRefusal: the range a borrowed buffer is bound with and
+  # whether it backs a block (U42). Null QRhi backend, like the test above.
+  score_add_test(test_unit_gfx_buffer_range
+    SOURCES GfxBufferRangeTest.cpp
+    PLUGINS score_plugin_gfx
+    LIBS ${QT_PREFIX}::Gui)
+
   # RhiClearBuffer's batch path holds a bounded zero block.
   score_add_test(test_unit_rhi_clear_buffer
     SOURCES RhiClearBufferTest.cpp
