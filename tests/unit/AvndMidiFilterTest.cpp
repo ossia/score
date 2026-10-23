@@ -138,7 +138,7 @@ TEST_CASE("Midi filter legacy type, index and channel", "[midi_filter]")
       == std::vector<bytes>{{0x91, 61, 100}, {0x90, 60, 100}, {0xB1, 60, 1}});
   CHECK(d.raw_values == std::vector<int>{60, 60});
 
-  SECTION("Note on type with zero to note off drops velocity 0 from the output")
+  SECTION("Note on type: the note-off of a kept note is kept too")
   {
     driver e;
     e.fx.inputs.filter.value = Filter::NoteOn;
@@ -146,8 +146,8 @@ TEST_CASE("Midi filter legacy type, index and channel", "[midi_filter]")
     e.in(on(1, 60, 100));
     e.in(on(1, 60, 0));
     e.run();
-    CHECK(driver::b(e.main) == std::vector<bytes>{{0x90, 60, 100}});
-    CHECK(driver::b(e.rejected) == std::vector<bytes>{{0x90, 60, 0}});
+    CHECK(driver::b(e.main) == std::vector<bytes>{{0x90, 60, 100}, {0x90, 60, 0}});
+    CHECK(e.rejected.empty());
   }
 
   SECTION("Note running type with note off to zero")
@@ -234,7 +234,7 @@ TEST_CASE("Midi filter range lists and values", "[midi_filter]")
         == std::vector<bytes>{{0x94, 60, 100}, {0x95, 72, 100}, {0xB1, 8, 1}});
   }
 
-  SECTION("Drop in range splits a keyboard")
+  SECTION("Invert ranges splits a keyboard")
   {
     d.fx.inputs.notes.value = "C-1-B3";
     d.fx.inputs.drop_in_range.value = true;
@@ -290,7 +290,7 @@ TEST_CASE("Midi filter remap", "[midi_filter]")
             {0x98, 60, 100}, {0x9F, 67, 100}, {0x98, 30, 100}, {0xB8, 1, 5}});
   }
 
-  SECTION("Out of map drop sends to Rejected")
+  SECTION("Outside map drop sends to Rejected")
   {
     d.fx.inputs.note_map.value = "C3-C4 > C4-C5";
     d.fx.inputs.out_of_map.value = Filter::Drop;
@@ -318,7 +318,7 @@ TEST_CASE("Midi filter remap", "[midi_filter]")
     CHECK(d.rejected.empty());
   }
 
-  SECTION("A note-on rejected by kind: its note-off is mapped, stop uses the input note")
+  SECTION("A note-on rejected by kind: its note-off follows it to Rejected")
   {
     d.fx.inputs.kinds.value = "noteoff";
     d.fx.inputs.note_map.value = "0-126 > 1-127";
@@ -329,7 +329,8 @@ TEST_CASE("Midi filter remap", "[midi_filter]")
     d.fx.inputs.note_map.value = "";
     d.in(off(1, 60));
     d.run();
-    CHECK(driver::b(d.main) == std::vector<bytes>{{0x80, 61, 0}});
+    CHECK(d.main.empty());
+    CHECK(driver::b(d.rejected) == std::vector<bytes>{{0x80, 60, 0}});
     d.fx.stop();
     d.run(0);
     CHECK(driver::b(d.rejected) == std::vector<bytes>{{0x80, 70, 0}});

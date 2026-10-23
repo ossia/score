@@ -147,19 +147,27 @@ TEST_CASE("Midi dispatcher: note-offs follow their note, surplus", "[midi_dispat
   for(int i = 0; i < 5; i++)
     d.note_on(60 + i, i);
   d.tick();
-  // Four channels: the fifth note is dropped.
-  CHECK(d.on_channels() == std::vector<int>{1, 2, 3, 4});
+  // Four channels and no surplus channel: the fifth note ends the oldest one
+  // and takes its channel.
+  CHECK(d.on_channels() == std::vector<int>{1, 2, 3, 4, 1});
+  {
+    auto stolen = d.of_kind(mtk::midi_kind::note_off);
+    REQUIRE(stolen.size() == 1);
+    CHECK(mtk::channel_of(stolen[0].msg) == 1);
+    CHECK(stolen[0].msg.bytes[1] == 60);
+  }
 
   d.out.clear();
   for(int i = 0; i < 5; i++)
     d.note_off(60 + i, i);
   d.tick();
   auto offs = d.of_kind(mtk::midi_kind::note_off);
-  REQUIRE(offs.size() == 4); // the dropped note's note-off is swallowed
+  REQUIRE(offs.size() == 4); // the stolen note's own note-off is swallowed
+  const std::vector<std::pair<int, int>> expected{{2, 61}, {3, 62}, {4, 63}, {1, 64}};
   for(int i = 0; i < 4; i++)
   {
-    CHECK(mtk::channel_of(offs[i].msg) == i + 1);
-    CHECK(offs[i].msg.bytes[1] == 60 + i);
+    CHECK(mtk::channel_of(offs[i].msg) == expected[i].first);
+    CHECK(offs[i].msg.bytes[1] == expected[i].second);
   }
 
   d.out.clear();
@@ -167,7 +175,8 @@ TEST_CASE("Midi dispatcher: note-offs follow their note, surplus", "[midi_dispat
   for(int i = 0; i < 6; i++)
     d.note_on(70 + i);
   d.tick();
-  CHECK(d.on_channels() == std::vector<int>{1, 2, 3, 4, 10, 10});
+  // Round robin resumes after channel 1, the last one taken.
+  CHECK(d.on_channels() == std::vector<int>{2, 3, 4, 1, 10, 10});
   // Velocity 0 note-ons end notes too.
   for(int i = 0; i < 6; i++)
     d.send(libremidi::channel_events::note_on(1, 70 + i, 0));
