@@ -2166,6 +2166,9 @@ score_add_gfx_test(csf_count_expression GfxCsfCountExpression.cpp)
 # CSF dispatch sizing in 64-bit: workgroup size times stride past int.
 score_add_gfx_test(csf_dispatch_size GfxCsfDispatchSize.cpp)
 
+# An empty 1D_BUFFER TARGET dispatches per element, not per byte (C26).
+score_add_gfx_test(csf_empty_target_count GfxCsfEmptyTargetCount.cpp)
+
 # A CSF storage buffer too large to allocate stops the node's passes.
 score_add_gfx_test(csf_storage_too_large GfxCsfStorageTooLarge.cpp)
 
@@ -2178,7 +2181,7 @@ score_add_gfx_test(process_uniforms GfxProcessUniforms.cpp)
 # ISF IMG_PIXEL / IMG_THIS_PIXEL sample in the image's own pixels.
 score_add_gfx_test(isf_img_pixel GfxIsfImgPixel.cpp)
 
-# Classic ISF PIPELINE_STATE VERTEX_COUNT (runtime check of F16).
+# Classic ISF refuses PIPELINE_STATE VERTEX_COUNT (F16).
 score_add_gfx_test(isf_vertex_count GfxIsfVertexCount.cpp)
 
 # A CSF storage image is allocated in the format its FORMAT qualifier names.

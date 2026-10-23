@@ -6825,8 +6825,10 @@ void RenderedCSFNode::runGeometryPasses(
         //   a bare identifier ("bufferName"): dispatch over that buffer's element
         //   count, shorthand for "$COUNT_bufferName".
         //
-        //   empty: size by the output storage buffer matching the current edge, in
-        //   BYTES rather than elements, then by the first geometry's vertex_count.
+        //   empty: the element count of the output storage buffer matching the
+        //   current edge ($COUNT_ of it, as a TARGET naming it would give), then
+        //   the first geometry's vertex_count. It was the buffer's byte size:
+        //   16 times too many threads for a vec4 buffer (shader board C26).
         const std::string& target = passDesc.target_resource;
 
         auto looks_like_expression = [&]() -> bool {
@@ -6868,11 +6870,12 @@ void RenderedCSFNode::runGeometryPasses(
         }
         else
         {
-          // Legacy empty-TARGET fallback — preserved verbatim for
-          // compatibility with existing scores.
-          for(auto& [port, index] : this->m_outStorageBuffers) {
-            if(port == edge.source) {
-              n = this->m_storageBuffers[index].size;
+          for(auto& [port, index] : this->m_outStorageBuffers)
+          {
+            if(port == edge.source)
+            {
+              n = resolveDispatchExpression(
+                  "$COUNT_" + this->m_storageBuffers[index].name.toStdString());
               break;
             }
           }
