@@ -12,6 +12,12 @@ namespace ossia { class math_expression; }
 
 namespace score::gfx
 {
+//! The vertex format a CSF publishes for a geometry attribute of GLSL type
+//! @p type: signed for int / ivecN (it was the unsigned format, shader board
+//! C42), float4 for a type with no attribute format (bool, matrices, structs).
+SCORE_PLUGIN_GFX_EXPORT
+decltype(ossia::geometry::attribute::format) csfAttributeFormat(std::string_view type) noexcept;
+
 
 struct SCORE_PLUGIN_GFX_EXPORT RenderedCSFNode : score::gfx::NodeRenderer
 {

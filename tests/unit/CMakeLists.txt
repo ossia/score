@@ -2104,6 +2104,21 @@ if(TARGET score_plugin_threedim)
     LIBS ${QT_PREFIX}::Gui)
 endif()
 
+# Scene Filter "keep matching names" keeps the parent chain (P03).
+if(TARGET score_plugin_gfx)
+  score_add_test(test_unit_scene_filter_name
+    SOURCES SceneFilterNameTest.cpp
+    PLUGINS score_plugin_gfx)
+endif()
+
+# A CSF attribute's published vertex format follows its GLSL type (C42).
+if(TARGET score_plugin_gfx)
+  score_add_test(test_unit_csf_attribute_format
+    SOURCES CsfAttributeFormatTest.cpp
+    PLUGINS score_plugin_gfx
+    LIBS ${QT_PREFIX}::Gui)
+endif()
+
 # The CPU twin of the CSF attribute scatter decodes like the shader (C40).
 if(TARGET score_plugin_gfx)
   score_add_test(test_unit_gpu_buffer_scatter_cpu

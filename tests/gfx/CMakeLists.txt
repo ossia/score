@@ -2172,6 +2172,15 @@ score_add_gfx_test(csf_empty_target_count GfxCsfEmptyTargetCount.cpp)
 # A feedback receiver's geometry auxiliary keeps its contents (C45).
 score_add_gfx_test(csf_aux_feedback_counter GfxCsfAuxFeedbackCounter.cpp)
 
+# An image input samples with the sampler its JSON declares (U34).
+score_add_gfx_test(isf_sampler_json GfxIsfSamplerJson.cpp)
+
+# INSTANCE_COUNT multiplies a raw raster mesh draw (R21).
+score_add_gfx_test(raw_raster_instance_count GfxRawRasterInstanceCount.cpp)
+
+# A producerless writable aux storage image has its declared size (R46).
+score_add_gfx_test(raw_raster_aux_storage_size GfxRawRasterAuxStorageSize.cpp)
+
 # A flexible-array graphics storage buffer follows its size control (U44).
 score_add_gfx_test(isf_storage_flex_size GfxIsfStorageFlexSize.cpp)
 

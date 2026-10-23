@@ -31,6 +31,24 @@
 namespace score::gfx
 {
 
+decltype(ossia::geometry::attribute::format) csfAttributeFormat(std::string_view type) noexcept
+{
+  using A = ossia::geometry::attribute;
+  if(type == "float") return A::float1;
+  if(type == "vec2") return A::float2;
+  if(type == "vec3") return A::float3;
+  if(type == "vec4") return A::float4;
+  if(type == "int") return A::sint1;
+  if(type == "ivec2") return A::sint2;
+  if(type == "ivec3") return A::sint3;
+  if(type == "ivec4") return A::sint4;
+  if(type == "uint") return A::uint1;
+  if(type == "uvec2") return A::uint2;
+  if(type == "uvec3") return A::uint3;
+  if(type == "uvec4") return A::uint4;
+  return A::float4;
+}
+
 namespace
 {
 // Every layer / slice / face of `src` into `dst`, which has the same shape:
@@ -2802,15 +2820,7 @@ void RenderedCSFNode::pushOutputGeometry(RenderList& renderer, QRhiResourceUpdat
         if(sem == ossia::attribute_semantic::custom)
           attr.name = customAttributeName(req);
 
-        if(req.type == "vec4") attr.format = ossia::geometry::attribute::float4;
-        else if(req.type == "vec3") attr.format = ossia::geometry::attribute::float3;
-        else if(req.type == "vec2") attr.format = ossia::geometry::attribute::float2;
-        else if(req.type == "float") attr.format = ossia::geometry::attribute::float1;
-        else if(req.type == "ivec4" || req.type == "uvec4") attr.format = ossia::geometry::attribute::uint4;
-        else if(req.type == "ivec3" || req.type == "uvec3") attr.format = ossia::geometry::attribute::uint3;
-        else if(req.type == "ivec2" || req.type == "uvec2") attr.format = ossia::geometry::attribute::uint2;
-        else if(req.type == "int" || req.type == "uint") attr.format = ossia::geometry::attribute::uint1;
-        else attr.format = ossia::geometry::attribute::float4;
+        attr.format = csfAttributeFormat(req.type);
 
         attr.byte_offset = 0;
         out_geo.attributes.push_back(attr);
@@ -3212,11 +3222,11 @@ void RenderedCSFNode::pushOutputGeometry(RenderList& renderer, QRhiResourceUpdat
                             ? std::string(customAttributeName(attr_req))
                             : attr_req.name;
 
-            // Override format from the request type
-            if(attr_req.type == "float") attr.format = ossia::geometry::attribute::float1;
-            else if(attr_req.type == "vec2") attr.format = ossia::geometry::attribute::float2;
-            else if(attr_req.type == "vec3") attr.format = ossia::geometry::attribute::float3;
-            else if(attr_req.type == "vec4") attr.format = ossia::geometry::attribute::float4;
+            // Override format from the request type; a type with no attribute
+            // format keeps the upstream one.
+            if(const auto f = csfAttributeFormat(attr_req.type);
+               f != ossia::geometry::attribute::float4 || attr_req.type == "vec4")
+              attr.format = f;
 
             out_geo.attributes.push_back(attr);
 
