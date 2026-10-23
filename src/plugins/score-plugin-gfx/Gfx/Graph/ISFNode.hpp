@@ -50,6 +50,10 @@ public:
 
   const isf::descriptor& descriptor() const noexcept { return m_descriptor; }
 
+  //! An image input whose JSON declares a MIPMAP_MODE samples a mip chain:
+  //! the render target the upstream draws into gets one (shader board U37).
+  void adjustRenderTargetSpecs(int32_t port, RenderTargetSpecs& spec) const noexcept override;
+
   // A raw raster whose shader reads the `camera` block gets one extra Scene
   // input, after every INPUTS port: a Camera wired there fills that block.
   static bool hasCameraInput(const isf::descriptor& desc) noexcept;

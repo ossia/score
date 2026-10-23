@@ -668,4 +668,28 @@ void ISFNode::process(int32_t port, const ossia::value& v)
   if(!fireEventPort(port, v))
     ProcessNode::process(port, v);
 }
+
+void ISFNode::adjustRenderTargetSpecs(int32_t port, RenderTargetSpecs& spec) const noexcept
+{
+  const int first = m_descriptor.mode == isf::descriptor::RawRaster ? 1 : 0;
+  const std::string* mipmap = nullptr;
+  walk_descriptor_inputs(
+      m_descriptor, port_counts{first, 0, 0},
+      [&](const isf::input& inp, const port_counts& before, const port_counts& delta) {
+    if(delta.inlets < 1 || before.inlets != port)
+      return;
+    if(auto* cfg = inputSamplerConfig(inp))
+      mipmap = &cfg->mipmap_mode;
+  });
+  if(!mipmap || mipmap->empty())
+    return;
+  std::string m = *mipmap;
+  for(auto& c : m)
+    c = (char)std::tolower((unsigned char)c);
+  if(m == "linear")
+    spec.mipmap_mode = QRhiSampler::Linear;
+  else if(m == "nearest")
+    spec.mipmap_mode = QRhiSampler::Nearest;
+}
+
 }

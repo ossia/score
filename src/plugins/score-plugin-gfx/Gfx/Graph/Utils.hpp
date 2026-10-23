@@ -22,6 +22,11 @@ namespace isf
 struct descriptor;
 }
 
+namespace isf
+{
+struct input;
+}
+
 namespace score::gfx
 {
 class Node;
@@ -801,6 +806,11 @@ QRhiSampler* makeSampler(QRhi& rhi, const isf::sampler_config& cfg);
 //! (shader board U34).
 SCORE_PLUGIN_GFX_EXPORT
 bool declaresSampler(const isf::sampler_config& cfg) noexcept;
+
+//! The sampler fields a sampled image input declares (image, cubemap, or a
+//! compute shader's texture), or null for any other input.
+SCORE_PLUGIN_GFX_EXPORT
+const isf::sampler_config* inputSamplerConfig(const isf::input& inp) noexcept;
 
 //! Whether a declared sampler asks for a depth comparison. Such a sampler is
 //! the shader's own intent, not a property of the texture, so it is kept even

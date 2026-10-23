@@ -196,6 +196,11 @@ public:
   RenderTargetSpecs
   resolveRenderTargetSpecs(int32_t port, RenderList& renderer) const noexcept;
 
+  //! What the node's own declarations add to the render target of input @p
+  //! port, applied last by resolveRenderTargetSpecs: an ISF input whose JSON
+  //! declares a MIPMAP_MODE gets a mip chain (shader board U37).
+  virtual void adjustRenderTargetSpecs(int32_t port, RenderTargetSpecs& spec) const noexcept;
+
   /**
    * @brief What the first texture input asks to be rendered into.
    *

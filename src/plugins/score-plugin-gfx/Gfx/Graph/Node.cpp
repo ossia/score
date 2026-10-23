@@ -468,8 +468,11 @@ Node::resolveRenderTargetSpecs(int32_t port, RenderList& renderer) const noexcep
   if(spec.size == QSize{})
     spec.size = {renderer.state.renderSize.width(), renderer.state.renderSize.height()};
 
+  adjustRenderTargetSpecs(port, spec);
   return spec;
 }
+
+void Node::adjustRenderTargetSpecs(int32_t, RenderTargetSpecs&) const noexcept { }
 
 std::optional<RenderTargetSpecs> Node::firstInputRenderTargetSpecs() const noexcept
 {

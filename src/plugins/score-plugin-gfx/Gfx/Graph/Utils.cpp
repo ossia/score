@@ -1726,10 +1726,7 @@ std::vector<Sampler> initInputSamplers(
         [&](const isf::input& inp, const port_counts& before, const port_counts& delta) {
       if(delta.inlets < 1 || before.inlets >= (int)port_sampler_cfg.size())
         return;
-      if(auto* im = ossia::get_if<isf::image_input>(&inp.data))
-        port_sampler_cfg[before.inlets] = &im->sampler;
-      else if(auto* cm = ossia::get_if<isf::cubemap_input>(&inp.data))
-        port_sampler_cfg[before.inlets] = &cm->sampler;
+      port_sampler_cfg[before.inlets] = inputSamplerConfig(inp);
     });
   }
 
@@ -1793,9 +1790,12 @@ std::vector<Sampler> initInputSamplers(
           }
           else
           {
+            // W too: a 3D texture otherwise repeated along W (shader board
+            // C22).
             sampler = rhi.newSampler(
                 QRhiSampler::Linear, QRhiSampler::Linear, QRhiSampler::Linear,
-                QRhiSampler::ClampToEdge, QRhiSampler::ClampToEdge);
+                QRhiSampler::ClampToEdge, QRhiSampler::ClampToEdge,
+                QRhiSampler::ClampToEdge);
             SCORE_ASSERT(sampler->create());
           }
           sampler->setName("initInputSamplers::grabs_sampler");
@@ -1901,10 +1901,8 @@ void updateInputSamplerFilter(
         [&](const isf::input& inp, const port_counts& before, const port_counts& delta) {
       if(delta.inlets < 1 || before.inlets != port)
         return;
-      if(auto* im = ossia::get_if<isf::image_input>(&inp.data))
-        declared = declaresSampler(im->sampler);
-      else if(auto* cm = ossia::get_if<isf::cubemap_input>(&inp.data))
-        declared = declaresSampler(cm->sampler);
+      if(auto* cfg = inputSamplerConfig(inp))
+        declared = declaresSampler(*cfg);
     });
     if(declared)
       return;
@@ -2427,6 +2425,17 @@ static QRhiSampler::CompareOp parseCompare(const std::string& s)
   if(v == "always")                                   return QRhiSampler::Always;
   return QRhiSampler::Never;
 }
+}
+
+const isf::sampler_config* inputSamplerConfig(const isf::input& inp) noexcept
+{
+  if(auto* im = ossia::get_if<isf::image_input>(&inp.data))
+    return &im->sampler;
+  if(auto* cm = ossia::get_if<isf::cubemap_input>(&inp.data))
+    return &cm->sampler;
+  if(auto* tx = ossia::get_if<isf::texture_input>(&inp.data))
+    return &tx->sampler;
+  return nullptr;
 }
 
 bool declaresSampler(const isf::sampler_config& cfg) noexcept
