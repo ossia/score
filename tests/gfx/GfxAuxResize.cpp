@@ -14,9 +14,10 @@
 //   $COUNT_items (red = items.length(), green = copy.length());
 // - the same with `items` name-matched into a top-level storage resource.
 //
-// A producer publishing its auxiliary at an offset that is not a multiple of
-// the 256-byte storage offset alignment gets its whole buffer bound from
-// byte 0, with one warning saying so; an aligned
+// A producer publishing its auxiliary at an offset the device cannot bind a
+// buffer at (4: off every device's storage offset alignment) is refused, with
+// one warning: the block keeps a zero-filled buffer of its own. It was bound
+// from byte 0, so the shader read the data that many bytes off. An aligned
 // offset binds the published range without a warning.
 #include "GfxLogCapture.hpp"
 #include "IsfTestCommon.hpp"
@@ -139,11 +140,11 @@ TEST_CASE("consumers follow an upstream auxiliary resized at run time", "[gfx][a
 }
 
 TEST_CASE(
-    "a published offset off the storage alignment warns once and binds the whole buffer",
+    "a published offset the device cannot bind at is refused, with one warning",
     "[gfx][auxiliary][alignment]")
 {
   const auto api = GENERATE(from_range(platform_backends()));
-  const int offset = GENERATE(16, 256);
+  const int offset = GENERATE(4, 256);
   CAPTURE(backend_name(api), offset);
   bool skipped = false;
   std::string err;
@@ -178,7 +179,7 @@ TEST_CASE(
       return;
     }
     centre = img.center();
-    warnings = log.count({u"offset alignment", u"aux_range.items"});
+    warnings = log.count({u"items", u"cannot bind a buffer at"});
   });
   if(skipped)
     SKIP("backend unavailable");
@@ -188,10 +189,10 @@ TEST_CASE(
   INFO("error=" << err);
   REQUIRE(err.empty());
   INFO("centre " << int(centre[0]) << " " << int(centre[1]));
-  if(offset == 16)
+  if(offset == 4)
   {
     CHECK(warnings == 1);
-    CHECK(centre[0] == 255);
+    CHECK(centre[0] == 1);
   }
   else
   {

@@ -5,9 +5,11 @@
 // CPU-side auxiliary was uploaded from its first byte, whatever the offset
 // (shader board U42, plan step 4). aux_range::AuxProducerNode publishes item i
 // = (i + 1, 0, 0, 0) at `offset`: at 256 bytes, the first item read is 17.
-// An offset off the 256-byte offset alignment cannot be bound by any backend:
-// the whole buffer is bound, with one warning, as a CSF does. A range that
-// moves at run time is followed.
+// An offset the device cannot bind a buffer at (off its storage offset
+// alignment, 4 here: no device has a smaller one) is refused like a buffer of
+// the wrong kind or size: the block keeps its zero placeholder, with one
+// warning. It was bound from byte 0, so the shader read the data that many
+// bytes off. A range that moves at run time is followed.
 #include "GfxLogCapture.hpp"
 #include "IsfTestCommon.hpp"
 
@@ -56,7 +58,7 @@ struct Shot
   bool skipped = false;
   std::string err;
   std::array<uint8_t, 4> before{}, after{};
-  int warnings = 0;
+  int refusals = 0;
 };
 
 // Renders with the producer at `offset`, then at `moveTo` when >= 0.
@@ -105,7 +107,7 @@ Shot shoot(score::gfx::GraphicsApi api, const QString& fs, int offset, int moveT
       }
       s.after = img.center();
     }
-    s.warnings = log.count({u"offset alignment", u"aux_range.items"});
+    s.refusals = log.count({u"items", u"cannot bind a buffer at"});
   });
   return s;
 }
@@ -178,7 +180,7 @@ TEST_CASE(
 }
 
 TEST_CASE(
-    "an unaligned auxiliary offset binds the whole buffer and warns once",
+    "an auxiliary offset the device cannot bind at is refused, with one warning",
     "[gfx][auxiliary][U42]")
 {
   const auto api = GENERATE(from_range(platform_backends()));
@@ -186,13 +188,13 @@ TEST_CASE(
   CAPTURE(backend_name(api), nested);
   QTemporaryDir dir;
   REQUIRE(dir.isValid());
-  const auto s = shoot(api, writeShader(dir, nested), 16);
+  const auto s = shoot(api, writeShader(dir, nested), 4);
   if(s.skipped)
     SKIP("backend unavailable");
   INFO("error=" << s.err);
   REQUIRE(s.err.empty());
-  CHECK(int(s.before[0]) == 1);
-  CHECK(s.warnings == 1);
+  CHECK(int(s.before[0]) == 0);
+  CHECK(s.refusals == 1);
 }
 
 TEST_CASE(

@@ -820,6 +820,10 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
   // borrowed) only by rebuildMDI, so a new payload behind the same mesh tree
   // has to leave the fast path (review F-08).
   uint64_t m_cachedSceneDataFingerprint{};
+  // The camera count the published `camera` / `camera_prev` extents were
+  // computed for: consumers bind that range (U42), so a count change must
+  // republish them, which only rebuildMDI does.
+  std::size_t m_publishedCameraCount{};
   std::vector<MaterialExtensionsGPU> m_cachedMaterialExt;
   std::vector<PerDrawGPU> m_cachedPerDraws;
   // Mirror of the per_draw_bounds SSBO for diff-upload on the fast-path
@@ -2193,6 +2197,7 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
             .buffer = camBufIdx,
             .byte_offset = 0,
             .byte_size = cameraAuxByteSize(m_cachedCameras.size())});
+        m_publishedCameraCount = m_cachedCameras.size();
       }
       if(m_sceneCountsBuffer)
       {
@@ -3572,6 +3577,7 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
         .name = "camera_prev", .buffer = baseBuf + 7,
         .byte_offset = 0,
         .byte_size = cameraAuxByteSize(m_cachedCameras.size())});
+    m_publishedCameraCount = m_cachedCameras.size();
     g.auxiliary.push_back({
         .name = "env", .buffer = baseBuf + 8,
         .byte_offset = 0,
@@ -4891,6 +4897,9 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
       flattenScene(this->scene, cameraFs, /*aspectRatio=*/1.f, m_registry);
       packAndUploadCameras(renderer, res, cameraFs);
     }
+    // A camera came or went: the published camera extents are stale.
+    if(m_outputSpec.meshes && m_publishedCameraCount != m_cachedCameras.size())
+      needsRebuild = true;
 
     if(!needsRebuild)
     {
@@ -5800,6 +5809,9 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
             // rebuildMDI does this cleanly by building a fresh geometry
             // with wrapGpu() wrappers over the current buffer pointers.
             && !auxBuffersChanged
+            // The camera count changed: the `camera` / `camera_prev` extents
+            // consumers bind are republished by rebuildMDI only.
+            && m_publishedCameraCount == m_cachedCameras.size()
             // The dynamic texture-slot table moved: the published geometry's
             // "<channel>Dyn<slot>" auxiliary_textures name the OLD
             // QRhiTexture*s, and downstream only re-resolves them on

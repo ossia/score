@@ -569,9 +569,12 @@ void replaceBuffer(
     std::vector<QRhiShaderResourceBinding>&, int binding, QRhiBuffer* newBuffer);
 
 //! The byte range a buffer published at `offset` / `size` is bound with
-//! (shader board U42). An offset on the 256-byte offset alignment binds that
-//! range; an unaligned one binds the whole buffer from byte 0 with one
-//! warning naming `who`, since no backend can bind it. size 0 = to the end.
+//! (shader board U42): that range, including, for a storage block, one that
+//! starts at 0 and stops short of the end (so its .length() is the published
+//! count; a uniform block keeps the whole buffer there).
+//! An offset off the device's alignment (bufferOffsetAlignment) is refused by
+//! blockRefusal before a buffer is adopted; here it binds the whole buffer from
+//! byte 0 with one warning naming `who`, as a safety net. size 0 = to the end.
 struct BufferRange
 {
   quint32 offset{0};
@@ -579,13 +582,15 @@ struct BufferRange
 };
 SCORE_PLUGIN_GFX_EXPORT
 BufferRange bindableRange(
-    const QRhiBuffer* buf, int64_t offset, int64_t size, const char* who) noexcept;
+    const QRhiBuffer* buf, int64_t offset, int64_t size, const char* who,
+    bool uniform = false) noexcept;
 
 //! Why `buf` cannot back a shader block, or an empty string when it can
 //! (shader board U42, plan step 3). A uniform block needs UniformBuffer usage
 //! and a published range of at least the block's declared size; a storage
 //! block needs StorageBuffer usage. `range` is the published byte size, 0 for
-//! the whole buffer from `offset`; `declared` 0 skips the extent check.
+//! the whole buffer from `offset`; `declared` 0 skips the extent check. An
+//! offset the device cannot bind a buffer at is refused too.
 SCORE_PLUGIN_GFX_EXPORT
 QString blockRefusal(
     const QRhiBuffer* buf, bool uniform, int64_t offset, int64_t range,
@@ -1068,6 +1073,16 @@ int storageImageUnitLimit(QRhi& rhi);
  */
 SCORE_PLUGIN_GFX_EXPORT
 int64_t storageBufferSizeLimit(QRhi& rhi);
+
+/**
+ * @brief The byte multiple a buffer binding's offset must be on this device:
+ *        QRhi::ubufAlignment() for a uniform buffer; for a storage buffer
+ *        Vulkan minStorageBufferOffsetAlignment, GL
+ *        SHADER_STORAGE_BUFFER_OFFSET_ALIGNMENT, else 256 (the largest either
+ *        allows). Queried once per QRhi.
+ */
+SCORE_PLUGIN_GFX_EXPORT
+int64_t bufferOffsetAlignment(QRhi& rhi, bool uniform);
 
 //! Highest binding of a storage image declared in `glsl`, -1 if none.
 SCORE_PLUGIN_GFX_EXPORT

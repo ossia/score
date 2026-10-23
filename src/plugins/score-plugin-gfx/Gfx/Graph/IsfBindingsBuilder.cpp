@@ -696,7 +696,7 @@ QVarLengthArray<QRhiShaderResourceBinding, 8> buildExtraBindings(
     // A borrowed buffer is bound at the range its producer published (U42).
     const auto r = e.owned ? BufferRange{}
                            : bindableRange(e.buffer, e.offset, e.size, e.name.c_str());
-    if(r.offset > 0)
+    if(r.size > 0)
     {
       if(e.access == "read_only")
         out.append(QRhiShaderResourceBinding::bufferLoad(
@@ -752,8 +752,8 @@ QVarLengthArray<QRhiShaderResourceBinding, 8> buildExtraBindings(
     if(stages == QRhiShaderResourceBinding::StageFlags{})
       continue;
     const auto r = e.owned ? BufferRange{}
-                           : bindableRange(e.buffer, e.offset, e.size, e.name.c_str());
-    if(r.offset > 0)
+                           : bindableRange(e.buffer, e.offset, e.size, e.name.c_str(), true);
+    if(r.size > 0)
       out.append(QRhiShaderResourceBinding::uniformBuffer(
           e.binding, stages, e.buffer, r.offset, r.size));
     else
@@ -1098,7 +1098,7 @@ void bindUpstreamBuffers(
       {
         replaceBuffer(
             *srb, e.binding, found,
-            bindableRange(found, e.offset, e.size, e.name.c_str()));
+            bindableRange(found, e.offset, e.size, e.name.c_str(), true));
         ubo_srb_changed = true;
       }
     }
@@ -1321,7 +1321,7 @@ void bindUpstreamBuffersFromGeometry(
     if(srb)
       replaceBuffer(
           *srb, e.binding, e.buffer,
-          bindableRange(e.buffer, e.offset, e.size, e.name.c_str()));
+          bindableRange(e.buffer, e.offset, e.size, e.name.c_str(), true));
   }
 }
 

@@ -280,8 +280,10 @@ QRhiShaderResourceBinding auxBufferBinding(
 {
   using B = QRhiShaderResourceBinding;
   const auto r = aux.owned ? BufferRange{}
-                           : bindableRange(aux.buffer, aux.offset, aux.size, aux.name.c_str());
-  if(r.offset > 0)
+                           : bindableRange(
+                               aux.buffer, aux.offset, aux.size, aux.name.c_str(),
+                               aux.is_uniform);
+  if(r.size > 0)
   {
     if(aux.is_uniform)
       return B::uniformBuffer(slot, stages, aux.buffer, r.offset, r.size);
@@ -3902,23 +3904,23 @@ void RenderedRawRasterPipelineNode::refreshStorageBuffers(F&& refresh)
   const auto patch = [&](QRhiShaderResourceBindings* srb) {
     if(!srb)
       return;
-    const auto rebind = [&](const auto& e) {
+    const auto rebind = [&](const auto& e, bool uniform) {
       replaceBuffer(
           *srb, e.binding, e.buffer,
           e.owned ? BufferRange{}
-                  : bindableRange(e.buffer, e.offset, e.size, e.name.c_str()));
+                  : bindableRange(e.buffer, e.offset, e.size, e.name.c_str(), uniform));
     };
     for(std::size_t i = 0; i < m_storage.ssbos.size(); ++i)
     {
       const auto& e = m_storage.ssbos[i];
       if(moved(e, prevSsbos[i]) && e.buffer && e.binding >= 0)
-        rebind(e);
+        rebind(e, false);
     }
     for(std::size_t i = 0; i < m_storage.ubos.size(); ++i)
     {
       const auto& e = m_storage.ubos[i];
       if(moved(e, prevUbos[i]) && e.buffer && e.binding >= 0)
-        rebind(e);
+        rebind(e, true);
     }
   };
   for(auto& [e, pass] : m_passes)

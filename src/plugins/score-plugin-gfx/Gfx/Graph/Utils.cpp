@@ -15,6 +15,7 @@
 #include <score/tools/Debug.hpp>
 
 #include <ossia/detail/hash.hpp>
+#include <ossia/detail/hash_map.hpp>
 
 #include <QMutex>
 #include <QOpenGLContext>
@@ -35,6 +36,8 @@
 #include <emscripten/val.h>
 #endif
 #include <QDebug>
+
+#include <mutex>
 
 namespace score::gfx
 {
@@ -379,18 +382,28 @@ void replaceBuffer(
 }
 
 BufferRange bindableRange(
-    const QRhiBuffer* buf, int64_t offset, int64_t size, const char* who) noexcept
+    const QRhiBuffer* buf, int64_t offset, int64_t size, const char* who,
+    bool uniform) noexcept
 {
-  // Largest minStorageBufferOffsetAlignment / minUniformBufferOffsetAlignment
-  // Vulkan allows, and the largest GL offset alignment.
-  constexpr int64_t alignment = 256;
   const int64_t capacity = buf ? (int64_t)buf->size() : 0;
-  if(!buf || offset <= 0 || offset >= capacity)
+  if(!buf || offset < 0 || offset >= capacity)
     return {};
+  // At the start: a storage block gets the published bytes, so that its
+  // .length() is the producer's count rather than the buffer's capacity. A
+  // uniform block has no length: it keeps the whole buffer, so that it never
+  // misses bytes its producer uploaded beyond a published extent that lags
+  // (the Scene Preprocessor's camera extent follows the camera count a frame
+  // after the cameras themselves).
+  if(offset == 0)
+    return !uniform && size > 0 && size < capacity ? BufferRange{0, quint32(size)}
+                                                    : BufferRange{};
+  // blockRefusal refuses an offset the device cannot bind at, so a refused
+  // buffer never reaches here; this is the safety net, warned once per buffer.
+  const int64_t alignment = buf->rhi() ? bufferOffsetAlignment(*buf->rhi(), uniform) : 256;
   if(offset % alignment != 0)
   {
     static std::unordered_set<std::size_t> warned;
-    std::size_t key = std::hash<const void*>{}(buf);
+    std::size_t key = std::hash<quint64>{}(buf->globalResourceId());
     ossia::hash_combine(key, offset);
     if(warned.insert(key).second)
       qWarning().nospace()
@@ -423,6 +436,18 @@ QString blockRefusal(
         "is declared storage but the producer publishes a buffer without "
         "StorageBuffer usage; the block keeps its zero-filled placeholder. Declare "
         "it as uniform, or have the producer publish a storage buffer.");
+  if(offset > 0 && buf->rhi())
+  {
+    const int64_t alignment = bufferOffsetAlignment(*buf->rhi(), uniform);
+    if(offset % alignment != 0)
+      return QStringLiteral(
+                 "is published at byte offset %1, which this device cannot bind a "
+                 "buffer at (offsets are multiples of %2 bytes); the block keeps its "
+                 "zero-filled placeholder. Have the producer publish at an aligned "
+                 "offset.")
+          .arg(offset)
+          .arg(alignment);
+  }
   if(uniform && declared > 0)
   {
     const int64_t avail
@@ -2636,6 +2661,61 @@ int64_t storageBufferSizeLimit(QRhi& rhi)
   }
 #endif
   return device > 0 ? std::min(device, rhi_limit) : rhi_limit;
+}
+
+int64_t bufferOffsetAlignment(QRhi& rhi, bool uniform)
+{
+  if(uniform)
+    return std::max(1, rhi.ubufAlignment());
+
+  // Per QRhi, dropped when it is destroyed: a new QRhi can land at a freed
+  // one's address.
+  static std::mutex mutex;
+  static ossia::hash_map<const QRhi*, int64_t> cache;
+  {
+    std::lock_guard lock{mutex};
+    if(auto it = cache.find(&rhi); it != cache.end())
+      return it->second;
+  }
+
+  int64_t align = 0;
+#if QT_HAS_VULKAN
+  if(rhi.backend() == QRhi::Vulkan)
+  {
+    auto* nh = static_cast<const QRhiVulkanNativeHandles*>(rhi.nativeHandles());
+    if(nh && nh->inst && nh->physDev)
+    {
+      VkPhysicalDeviceProperties props{};
+      nh->inst->functions()->vkGetPhysicalDeviceProperties(nh->physDev, &props);
+      align = (int64_t)props.limits.minStorageBufferOffsetAlignment;
+    }
+  }
+#endif
+#if QT_CONFIG(opengl)
+  if(rhi.backend() == QRhi::OpenGLES2 && rhi.makeThreadLocalNativeContextCurrent())
+  {
+    if(auto* ctx = QOpenGLContext::currentContext())
+    {
+      constexpr GLenum ssbo_offset_alignment = 0x90DF;
+      GLint v = 0;
+      ctx->functions()->glGetIntegerv(ssbo_offset_alignment, &v);
+      while(ctx->functions()->glGetError() != GL_NO_ERROR)
+        ;
+      align = v;
+    }
+  }
+#endif
+  if(align <= 0)
+    align = 256;
+  qDebug("score.gfx: storage buffer offset alignment: %lld", (long long)align);
+
+  std::lock_guard lock{mutex};
+  if(cache.emplace(&rhi, align).second)
+    rhi.addCleanupCallback([](QRhi* r) {
+      std::lock_guard lock{mutex};
+      cache.erase(r);
+    });
+  return align;
 }
 
 int maxStorageImageBinding(QStringView glsl)

@@ -176,17 +176,13 @@ bool rewritesIndirectInPlace(const ossia::geometry& upstream, const AuxList& aux
   return false;
 }
 
-// Largest minStorageBufferOffsetAlignment Vulkan allows, and the largest
-// GL_SHADER_STORAGE_BUFFER_OFFSET_ALIGNMENT OpenGL allows.
-constexpr int64_t kStorageOffsetAlignment = 256;
-
 thread_local std::unordered_set<std::size_t> g_warnedUnalignedOffsets;
 
 void warnUnalignedOffset(
     const char* kind, int binding, const QRhiBuffer* buf, int64_t offset,
     int64_t alignment)
 {
-  std::size_t key = std::hash<const void*>{}(buf);
+  std::size_t key = std::hash<quint64>{}(buf ? buf->globalResourceId() : 0);
   ossia::hash_combine(key, binding);
   ossia::hash_combine(key, offset);
   if(!g_warnedUnalignedOffsets.insert(key).second)
@@ -206,11 +202,15 @@ QRhiShaderResourceBinding storageBufferBinding(
 {
   constexpr auto stage = QRhiShaderResourceBinding::ComputeStage;
   const int64_t capacity = buf ? (int64_t)buf->size() : 0;
-  const bool aligned = offset % kStorageOffsetAlignment == 0;
+  // A refused offset never reaches here (blockRefusal at adoption); this is
+  // the safety net.
+  const int64_t alignment
+      = buf && buf->rhi() ? score::gfx::bufferOffsetAlignment(*buf->rhi(), false) : 256;
+  const bool aligned = offset % alignment == 0;
   const bool ranged = size > 0 && offset >= 0 && offset < capacity && aligned
                       && (offset > 0 || size < capacity);
   if(!aligned && size > 0 && offset > 0 && offset < capacity)
-    warnUnalignedOffset("storage", binding, buf, offset, kStorageOffsetAlignment);
+    warnUnalignedOffset("storage", binding, buf, offset, alignment);
   if(!ranged)
   {
     switch(type)
@@ -2377,9 +2377,26 @@ void RenderedCSFNode::updateGeometryBindings(
                       renderer, aux, rhi_buf, geo_aux->byte_offset, published);
                   continue;
                 }
-                adoptIntoSlot(renderer, aux, rhi_buf, published);
-                aux.offset = geo_aux->byte_offset;
-                continue;
+                // A buffer this block cannot be bound to (another kind, or an
+                // offset the device cannot bind at) is refused: the block
+                // keeps a zero-filled buffer of its own, below (U42).
+                const QString why = score::gfx::blockRefusal(
+                    rhi_buf, aux.is_uniform, geo_aux->byte_offset, published, 0);
+                auto& said = m_uniformRefusals["aux:" + aux.name];
+                if(why.isEmpty())
+                {
+                  said.clear();
+                  adoptIntoSlot(renderer, aux, rhi_buf, published);
+                  aux.offset = geo_aux->byte_offset;
+                  continue;
+                }
+                if(why != said)
+                {
+                  qWarning().noquote()
+                      << "score.gfx: CSF auxiliary" << QString::fromStdString(aux.name)
+                      << why;
+                  said = why;
+                }
               }
             }
           }
@@ -5028,22 +5045,32 @@ void RenderedCSFNode::buildComputeSrbBindings(
     {
       // A uniform block takes a binding at its position (isf.cpp parse_csf),
       // fed by its Buffer inlet, or zeros with nothing cabled.
+      // At the range its producer publishes, and only when that buffer can
+      // back the block (shader board U42): the whole buffer was bound from
+      // byte 0, an undersized one too.
       QRhiBuffer* buf{};
+      score::gfx::BufferRange range{};
       if(input_port_index < (int)this->node.input.size())
         if(auto* port = this->node.input[input_port_index]; !port->edges.empty())
           if(auto in = renderer.bufferForInput(*port->edges.front()); in.handle)
           {
-            if(in.handle->usage().testFlag(QRhiBuffer::UniformBuffer))
+            const QString why = score::gfx::blockRefusal(
+                in.handle, true, in.byte_offset, in.byte_size,
+                score::gfx::minimumUniformBlockSize(uni->layout, n.m_descriptor));
+            auto& said = m_uniformRefusals[input.name];
+            if(why.isEmpty())
             {
+              said.clear();
               buf = in.handle;
+              range = score::gfx::bindableRange(
+                  buf, in.byte_offset, in.byte_size, input.name.c_str(), true);
               adoptForSrb(buf);
             }
-            else
+            else if(why != said)
             {
-              qWarning() << "CSF uniform" << QString::fromStdString(input.name)
-                         << "is fed by a buffer without UniformBuffer usage; "
-                            "binding zeros. Declare it as a storage input, or "
-                            "have the producer publish a uniform buffer.";
+              qWarning().noquote()
+                  << "score.gfx:" << QString::fromStdString(input.name) << why;
+              said = why;
             }
           }
       if(!buf)
@@ -5068,7 +5095,11 @@ void RenderedCSFNode::buildComputeSrbBindings(
         }
         buf = ph;
       }
-      if(buf)
+      if(buf && range.size > 0)
+        bindings.append(QRhiShaderResourceBinding::uniformBuffer(
+            bindingIndex, QRhiShaderResourceBinding::ComputeStage, buf, range.offset,
+            range.size));
+      else if(buf)
         bindings.append(QRhiShaderResourceBinding::uniformBuffer(
             bindingIndex, QRhiShaderResourceBinding::ComputeStage, buf));
       bindingIndex++;
