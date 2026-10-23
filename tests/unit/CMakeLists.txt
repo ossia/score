@@ -650,6 +650,18 @@ target_include_directories(test_unit_avnd_midi_delay_presets SYSTEM PRIVATE
   "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/include"
   "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/examples")
 
+score_add_test(test_unit_avnd_midi_life
+  SOURCES AvndMidiLifeTest.cpp)
+target_include_directories(test_unit_avnd_midi_life SYSTEM PRIVATE
+  "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/include"
+  "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/examples")
+
+score_add_test(test_unit_avnd_midi_life_presets
+  SOURCES AvndMidiLifePresetsTest.cpp)
+target_include_directories(test_unit_avnd_midi_life_presets SYSTEM PRIVATE
+  "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/include"
+  "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/examples")
+
 score_add_test(test_unit_avnd_midi_value_shaper
   SOURCES AvndMidiValueShaperTest.cpp)
 target_include_directories(test_unit_avnd_midi_value_shaper SYSTEM PRIVATE
@@ -683,6 +695,18 @@ target_include_directories(test_unit_avnd_midi_dispatcher_presets SYSTEM PRIVATE
 score_add_test(test_unit_avnd_midi_mpe_presets
   SOURCES AvndMidiMpePresetsTest.cpp)
 target_include_directories(test_unit_avnd_midi_mpe_presets SYSTEM PRIVATE
+  "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/include"
+  "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/examples")
+
+score_add_test(test_unit_avnd_midi_random_sequencer
+  SOURCES AvndMidiRandomSequencerTest.cpp)
+target_include_directories(test_unit_avnd_midi_random_sequencer SYSTEM PRIVATE
+  "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/include"
+  "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/examples")
+
+score_add_test(test_unit_avnd_midi_random_sequencer_presets
+  SOURCES AvndMidiRandomSequencerPresetsTest.cpp)
+target_include_directories(test_unit_avnd_midi_random_sequencer_presets SYSTEM PRIVATE
   "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/include"
   "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/examples")
 
@@ -781,6 +805,24 @@ score_add_test(test_unit_avnd_midi_sync_out_presets
 target_include_directories(test_unit_avnd_midi_sync_out_presets SYSTEM PRIVATE
   "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-avnd"
   "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/include")
+
+score_add_test(test_unit_avnd_midi_progressions
+  SOURCES AvndMidiProgressionsTest.cpp)
+target_include_directories(test_unit_avnd_midi_progressions SYSTEM PRIVATE
+  "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/include"
+  "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/examples")
+
+score_add_test(test_unit_avnd_midi_progression_player
+  SOURCES AvndMidiProgressionPlayerTest.cpp)
+target_include_directories(test_unit_avnd_midi_progression_player SYSTEM PRIVATE
+  "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/include"
+  "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/examples")
+
+score_add_test(test_unit_avnd_midi_progression_player_presets
+  SOURCES AvndMidiProgressionPlayerPresetsTest.cpp)
+target_include_directories(test_unit_avnd_midi_progression_player_presets SYSTEM PRIVATE
+  "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/include"
+  "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/examples")
 
 if(TARGET gamma)
   score_add_test(test_unit_avnd_compressor_limiter_flanger
