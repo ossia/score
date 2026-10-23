@@ -4,9 +4,8 @@
 //
 // Everything here goes through the real registries — ProcessDropHandlerList
 // and LibraryInterfaceList, looked up by the SCORE_CONCRETE uuid — because
-// that is what the application does, and because the handler classes are not
-// exported from the shared plug-in (and their overrides are private, so they
-// could only ever be called through the base anyway).
+// that is what the application does, and because the handler overrides are
+// private, so they can only be called through the base anyway.
 //
 // NETWORK: Gfx::Filter::DropHandler::dropCustom downloads from shadertoy.com
 // for any URL whose host ends in "shadertoy.com" AND whose path starts with
@@ -464,18 +463,21 @@ TEST_CASE(
       CHECK_FALSE(has_key(drops, pkey(UUID_P_FILTER)));
     }
 
-    SECTION("a geometry filter and a plain shader both claim .glsl")
+    SECTION("a .glsl is a geometry filter, or nothing")
     {
       const auto geom = drop_urls(
           ctx, *doc, {QUrl::fromLocalFile(corpus("syn-geofilter-shift.glsl"))});
       REQUIRE(geom.size() == 1);
       CHECK(has_key(geom, pkey(UUID_P_GEOMFILTER)));
 
+      // A .glsl without a geometry-filter MODE -- an include such as
+      // score_pbr_brdf.glsl -- is no process: an ISF process only loads
+      // .fs / .frag, and used to be created for it anyway (shader board F01).
       const QString plain = file_with(
           "plain-filter.glsl", "void main() { gl_FragColor = vec4(1.); }");
-      const auto isf = drop_urls(ctx, *doc, {QUrl::fromLocalFile(plain)});
-      REQUIRE(isf.size() == 1);
-      CHECK(has_key(isf, pkey(UUID_P_FILTER)));
+      const auto none = drop_urls(ctx, *doc, {QUrl::fromLocalFile(plain)});
+      CHECK_FALSE(has_key(none, pkey(UUID_P_FILTER)));
+      CHECK(none.empty());
     }
 
     SECTION("a compute shader is a CSF process")
