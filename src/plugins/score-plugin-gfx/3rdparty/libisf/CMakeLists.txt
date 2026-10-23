@@ -13,6 +13,7 @@ set(CMAKE_VISIBILITY_INLINES_HIDDEN 1)
 add_library(isf
     src/sajson.h
     src/isf.hpp
+    src/isf_glsl_prelude.hpp
     src/isf.cpp
 )
 target_include_directories(isf

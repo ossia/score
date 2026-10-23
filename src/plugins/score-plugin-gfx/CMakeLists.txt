@@ -591,6 +591,7 @@ set(SRCS
 
     3rdparty/libisf/src/sajson.h
     3rdparty/libisf/src/isf.hpp
+    3rdparty/libisf/src/isf_glsl_prelude.hpp
     3rdparty/libisf/src/isf.cpp
 
     "${3RDPARTY_FOLDER}/glsl-parser/glsl_ast.c"
