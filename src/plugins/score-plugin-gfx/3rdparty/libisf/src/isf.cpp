@@ -4401,6 +4401,7 @@ extract_glsl_function_definitions(std::string_view str)
   return defs;
 }
 
+
 void parser::parse_geometry_filter()
 {
   using namespace std::literals;
@@ -5317,6 +5318,23 @@ void parser::parse_raw_raster_pipeline()
   }
   validate_layer(m_desc, fragWithoutISF);
 
+  // One BLEND_PER_ATTACHMENT entry per colour output: a short list repeated its
+  // last entry for the remaining outputs, a long one dropped the extra entries
+  // (shader board R18 / R31).
+  // Raw raster has the one pass set above, so the header's PIPELINE_STATE is
+  // the whole pipeline state. Without FRAGMENT_OUTPUTS the shader writes its
+  // own single colour output.
+  if(const auto& blends = m_desc.default_state.blend_per_attachment; !blends.empty())
+  {
+    const std::size_t colourOutputs = std::max<std::size_t>(1, m_desc.fragment_outputs.size());
+    if(blends.size() != colourOutputs)
+      throw invalid_file{
+          "PIPELINE_STATE BLEND_PER_ATTACHMENT has " + std::to_string(blends.size())
+          + " entries for " + std::to_string(colourOutputs)
+          + " fragment outputs: give one entry per FRAGMENT_OUTPUTS entry, or use BLEND "
+            "for all of them."};
+  }
+
   // Add the raw raster uniforms
   {
     static const auto default_ins = [] {
@@ -5387,7 +5405,7 @@ void parser::parse_raw_raster_pipeline()
       return default_inputs;
     }();
     m_desc.inputs.insert(m_desc.inputs.begin(), default_ins.begin(), default_ins.end());
-  }
+    }
 
   auto& d = m_desc;
 

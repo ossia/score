@@ -322,3 +322,74 @@ TEST_CASE("a classic ISF refuses VERTEX_COUNT and INSTANCE_COUNT", "[isf][header
 
   CHECK_NOTHROW(parseIsf(R"("PIPELINE_STATE": { "TOPOLOGY": "points", "CULL_MODE": "none" })"));
 }
+
+// BLEND_PER_ATTACHMENT has one entry per colour output. A shorter list used to
+// repeat its last entry for the remaining outputs, a longer one dropped the
+// extra ones, silently either way (shader board R18 / R31): both are refused.
+TEST_CASE(
+    "BLEND_PER_ATTACHMENT has one entry per fragment output", "[isf][header][R18]")
+{
+  const std::string one = R"({ "ENABLE": true, "SRC_COLOR": "one", "DST_COLOR": "one" })";
+  const auto two_outputs = [](const std::string& state) {
+    return isf::parser{
+        std::string(k_vert),
+        R"_(/*{
+  "ISFVSN": "2",
+  "MODE": "RAW_RASTER_PIPELINE",
+  "VERTEX_INPUTS": [ { "TYPE": "vec3", "NAME": "position" } ],
+  "FRAGMENT_OUTPUTS": [ { "TYPE": "vec4", "NAME": "a" }, { "TYPE": "vec4", "NAME": "b" } ],
+  "OUTPUTS": [ { "NAME": "outA", "TYPE": "color" }, { "NAME": "outB", "TYPE": "color" } ],
+  "INPUTS": [],
+  )_" + state + R"_(
+}*/
+void main() { a = vec4(1.0); b = vec4(1.0); }
+)_",
+        450, isf::parser::ShaderType::RawRasterPipeline};
+  };
+
+  // One output, two entries.
+  CHECK_THAT(
+      refusal([&] {
+    parseRawRaster(R"("PIPELINE_STATE": { "BLEND_PER_ATTACHMENT": [ )" + one + ", " + one
+                   + " ] }");
+  }),
+      Catch::Matchers::ContainsSubstring("BLEND_PER_ATTACHMENT"));
+  // Two outputs, one entry.
+  CHECK_THAT(
+      refusal([&] {
+    two_outputs(R"("PIPELINE_STATE": { "BLEND_PER_ATTACHMENT": [ )" + one + " ] }");
+  }),
+      Catch::Matchers::ContainsSubstring("2 fragment outputs"));
+
+  CHECK_NOTHROW(two_outputs(
+      R"("PIPELINE_STATE": { "BLEND_PER_ATTACHMENT": [ )" + one + ", " + one + " ] }"));
+  CHECK_NOTHROW(
+      parseRawRaster(R"("PIPELINE_STATE": { "BLEND_PER_ATTACHMENT": [ )" + one + " ] }"));
+
+  // Without FRAGMENT_OUTPUTS the shader writes its own single colour output:
+  // one entry is that output's. It was refused, counted against no output.
+  const auto implicit_output = [](const std::string& state) {
+    return isf::parser{
+        std::string(k_vert),
+        R"_(/*{
+  "ISFVSN": "2",
+  "MODE": "RAW_RASTER_PIPELINE",
+  "VERTEX_INPUTS": [ { "TYPE": "vec3", "NAME": "position" } ],
+  "INPUTS": [],
+  )_" + state + R"_(
+}*/
+layout(location = 0) out vec4 fragColor;
+void main() { fragColor = vec4(1.0); }
+)_",
+        450, isf::parser::ShaderType::RawRasterPipeline};
+  };
+  CHECK_NOTHROW(implicit_output(R"("PIPELINE_STATE": { "CULL_MODE": "none" })"));
+  CHECK_NOTHROW(
+      implicit_output(R"("PIPELINE_STATE": { "BLEND_PER_ATTACHMENT": [ )" + one + " ] }"));
+  CHECK_THAT(
+      refusal([&] {
+    implicit_output(
+        R"("PIPELINE_STATE": { "BLEND_PER_ATTACHMENT": [ )" + one + ", " + one + " ] }");
+  }),
+      Catch::Matchers::ContainsSubstring("BLEND_PER_ATTACHMENT"));
+}
