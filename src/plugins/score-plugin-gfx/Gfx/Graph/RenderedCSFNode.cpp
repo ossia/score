@@ -51,6 +51,58 @@ decltype(ossia::geometry::attribute::format) csfAttributeFormat(std::string_view
 
 namespace
 {
+bool hasVertexFormat(std::string_view type) noexcept
+{
+  return csfAttributeFormat(type) != ossia::geometry::attribute::float4 || type == "vec4";
+}
+}
+
+void describeCsfAttribute(
+    ossia::geometry::attribute& attr, std::string_view type,
+    const isf::descriptor& d) noexcept
+{
+  if(hasVertexFormat(type))
+  {
+    attr.format = csfAttributeFormat(type);
+    attr.user_type_name.clear();
+    attr.element_byte_size = 0;
+    return;
+  }
+  attr.format = ossia::geometry::attribute::user_struct;
+  attr.user_type_name = std::string(type);
+  attr.element_byte_size = (uint32_t)std430ArrayStride(type, d);
+}
+
+QString csfAttributeRefusal(
+    const ossia::geometry::attribute& upstream, std::string_view type,
+    const isf::descriptor& d)
+{
+  const bool upstreamElement = upstream.format == ossia::geometry::attribute::user_struct;
+  const bool declaredElement = !hasVertexFormat(type);
+  const QString declared = QString::fromUtf8(type.data(), (qsizetype)type.size());
+  if(!upstreamElement && !declaredElement)
+    return {};
+  if(!upstreamElement)
+    return QStringLiteral(
+               "is declared %1, but the upstream attribute is a scalar or vector; "
+               "it is not converted")
+        .arg(declared);
+  const QString upstreamName = QString::fromStdString(upstream.user_type_name);
+  const int64_t stride = std430ArrayStride(type, d);
+  if(!declaredElement || upstream.user_type_name != type
+     || (int64_t)upstream.element_byte_size != stride)
+    return QStringLiteral(
+               "is declared %1 (%2 bytes per element), but the upstream attribute "
+               "holds %3 (%4 bytes per element); it is not converted")
+        .arg(declared)
+        .arg(stride)
+        .arg(upstreamName.isEmpty() ? QStringLiteral("an unnamed type") : upstreamName)
+        .arg(upstream.element_byte_size);
+  return {};
+}
+
+namespace
+{
 // Every layer / slice / face of `src` into `dst`, which has the same shape:
 // QRhi copies one subresource per copyTexture.
 void copyWholeTexture(QRhiResourceUpdateBatch& res, QRhiTexture* dst, QRhiTexture* src)
@@ -1921,6 +1973,22 @@ void RenderedCSFNode::updateGeometryBindings(
         const ossia::geometry::attribute* geo_attr
             = score::gfx::findGeometryAttribute(mesh, req.name, req.semantic);
 
+        // An attribute whose element type the declaration cannot read is
+        // treated as absent: the shader reads zeros, not reinterpreted bytes.
+        if(geo_attr)
+        {
+          const QString why = csfAttributeRefusal(*geo_attr, req.type, n.m_descriptor);
+          auto& said = m_uniformRefusals[input.name + "." + req.name];
+          if(!why.isEmpty())
+          {
+            if(why != said)
+              qWarning().noquote() << "score.gfx: CSF attribute"
+                                   << QString::fromStdString(req.name) << why;
+            geo_attr = nullptr;
+          }
+          said = why;
+        }
+
         if(!geo_attr)
         {
           // Create or keep a zero-filled fallback buffer. std430ArrayStride
@@ -2837,7 +2905,7 @@ void RenderedCSFNode::pushOutputGeometry(RenderList& renderer, QRhiResourceUpdat
         if(sem == ossia::attribute_semantic::custom)
           attr.name = customAttributeName(req);
 
-        attr.format = csfAttributeFormat(req.type);
+        describeCsfAttribute(attr, req.type, n.m_descriptor);
 
         attr.byte_offset = 0;
         out_geo.attributes.push_back(attr);
@@ -3239,11 +3307,8 @@ void RenderedCSFNode::pushOutputGeometry(RenderList& renderer, QRhiResourceUpdat
                             ? std::string(customAttributeName(attr_req))
                             : attr_req.name;
 
-            // Override format from the request type; a type with no attribute
-            // format keeps the upstream one.
-            if(const auto f = csfAttributeFormat(attr_req.type);
-               f != ossia::geometry::attribute::float4 || attr_req.type == "vec4")
-              attr.format = f;
+            // The request's type describes the copied attribute.
+            describeCsfAttribute(attr, attr_req.type, n.m_descriptor);
 
             out_geo.attributes.push_back(attr);
 

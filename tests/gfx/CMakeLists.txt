@@ -2204,6 +2204,11 @@ score_add_gfx_test(library_feedback_shaders GfxLibraryFeedbackShaders.cpp)
 # chain part skips without SCORE_TEST_LIBRARY_ROOT.
 score_add_gfx_test(gpu_only_particles GfxGpuOnlyParticles.cpp)
 
+# Struct, bool and matrix CSF attributes are published as user_struct with
+# their type name and size; a mismatched compute consumer and a raster vertex
+# input are refused (C42 points 2-5).
+score_add_gfx_test(csf_typed_attributes GfxCsfTypedAttributes.cpp)
+
 # A CSF storage buffer too large to allocate stops the node's passes.
 score_add_gfx_test(csf_storage_too_large GfxCsfStorageTooLarge.cpp)
 

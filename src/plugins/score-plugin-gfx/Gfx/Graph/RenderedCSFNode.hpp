@@ -18,6 +18,25 @@ namespace score::gfx
 SCORE_PLUGIN_GFX_EXPORT
 decltype(ossia::geometry::attribute::format) csfAttributeFormat(std::string_view type) noexcept;
 
+//! Describes a CSF geometry attribute of GLSL type @p type in @p attr. A
+//! scalar or vector gets its vertex format. A type with none (bool, matrices,
+//! TYPES structs) is published as user_struct with its type name and std430
+//! element size, instead of as a float4 nothing can read (C42).
+SCORE_PLUGIN_GFX_EXPORT
+void describeCsfAttribute(
+    ossia::geometry::attribute& attr, std::string_view type,
+    const isf::descriptor& d) noexcept;
+
+//! Why a CSF attribute declared @p type cannot read @p upstream, or an empty
+//! string when it can. A user_struct element is read only by the same type
+//! at the same element size; a scalar or vector attribute is read by any
+//! scalar or vector type (the scatter converts it, C40), never by a bool, a
+//! matrix or a struct. There is no implicit conversion between the two.
+SCORE_PLUGIN_GFX_EXPORT
+QString csfAttributeRefusal(
+    const ossia::geometry::attribute& upstream, std::string_view type,
+    const isf::descriptor& d);
+
 
 struct SCORE_PLUGIN_GFX_EXPORT RenderedCSFNode : score::gfx::NodeRenderer
 {
@@ -181,8 +200,8 @@ private:
   //! Zero-filled UBO bound for a top-level uniform_input with nothing cabled,
   //! by input name, sized from its LAYOUT.
   ossia::hash_map<std::string, QRhiBuffer*> m_uniformPlaceholders;
-  //! Why each uniform or storage input's last upstream was refused (U42):
-  //! warned once per change.
+  //! Why each uniform or storage input's last upstream was refused (U42), and
+  //! each geometry attribute's ("input.attribute", C42): warned once per change.
   ossia::hash_map<std::string, QString> m_uniformRefusals;
   bool m_warnedIndirectArgs{false};
   bool m_warnedIndirectNumWorkGroups{false};

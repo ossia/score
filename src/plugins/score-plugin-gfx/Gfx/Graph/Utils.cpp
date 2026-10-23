@@ -879,6 +879,21 @@ bool remapVertexInputs(
                  << "mesh bindings";
         return false;
       }
+      // A bool, matrix or struct element has no vertex format: casting the
+      // enum would hand QRhi an unrelated format (C42).
+      if(match->format == ossia::geometry::attribute::user_struct)
+      {
+        qWarning().noquote()
+            << "score.gfx: VERTEX_INPUT"
+            << QString::fromUtf8(var_name.data(), (int)var_name.size())
+            << "matches an attribute of type"
+            << QString::fromStdString(
+                   match->user_type_name.empty() ? std::string("(unnamed)")
+                                                 : match->user_type_name)
+            << "which has no vertex format; read it in a compute shader and "
+               "publish scalars or vectors for the raster";
+        return false;
+      }
 
       appendAttr(
           match->binding, -1,
