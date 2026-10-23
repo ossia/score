@@ -1542,6 +1542,7 @@ void RenderedRawRasterPipelineNode::initMRTPass(
     m_perLayerDummyColor = nullptr;
   }
   m_perLayerOutputIndex = -1;
+  m_perLayerViews = 0;
   m_perLayerIsDepth = false;
 
   if(m_cubeCopyCube)
@@ -1613,6 +1614,7 @@ void RenderedRawRasterPipelineNode::initMRTPass(
     m_perMipOutputIndex = -1;
     m_perCubeFaceOutputIndex = -1;
     m_perLayerOutputIndex = -1;
+    m_perLayerViews = 0;
     m_perLayerIsDepth = false;
     const bool needsTarget = m_executionMode == ExecutionMode::PerMip
                              || m_executionMode == ExecutionMode::PerCubeFace
@@ -1727,6 +1729,9 @@ void RenderedRawRasterPipelineNode::initMRTPass(
           m_executionMode = ExecutionMode::PerLayer;
           m_perLayerOutputIndex = i;
           m_perLayerIsDepth = false;
+          // The loop replaces the views: it runs once per view, not once per
+          // layer of the output (shader board R39).
+          m_perLayerViews = mvDecl;
           break;
         }
         ++colorIdx;
@@ -2341,7 +2346,9 @@ void RenderedRawRasterPipelineNode::initMRTPass(
   if(m_executionMode == ExecutionMode::PerLayer && m_perLayerOutputIndex >= 0)
   {
     const auto& targetOut = outputs[m_perLayerOutputIndex];
-    const int layerCount = std::max(1, targetOut.layers);
+    int layerCount = std::max(1, targetOut.layers);
+    if(m_perLayerViews > 0)
+      layerCount = std::min(layerCount, m_perLayerViews);
 
     if(m_perLayerIsDepth)
     {
@@ -3472,6 +3479,7 @@ void RenderedRawRasterPipelineNode::releaseState(RenderList& r)
     m_perLayerDummyColor = nullptr;
   }
   m_perLayerOutputIndex = -1;
+  m_perLayerViews = 0;
   m_perLayerIsDepth = false;
 
   m_executionMode = ExecutionMode::Single;
@@ -4204,6 +4212,10 @@ void RenderedRawRasterPipelineNode::update(
   // QRhiBuffer object, so the plans' cached handles stay valid and no
   // pipeline is rebuilt -- a vertex input layout fixes stride and
   // classification, not buffer length.
+  // INSTANCE_COUNT without VERTEX_COUNT multiplies the mesh draws (shader
+  // board R21); a procedural draw takes both counts itself.
+  m_meshbufs.instanceMultiplier
+      = declaredVertexCount() ? 1u : std::max(1u, declaredInstanceCount().value_or(1u));
   {
     bool anyFallback = false;
     for(const auto& [e, pass] : m_passes)
@@ -4233,6 +4245,7 @@ void RenderedRawRasterPipelineNode::update(
       for(const auto& cmd : m_meshbufs.cpuDrawCommands)
         instances = std::max(
             instances, (uint32_t)cmd.first_instance + (uint32_t)cmd.instance_count);
+      instances *= m_meshbufs.instanceMultiplier;
 
       auto& pool = renderer.vertexFallbackPool();
       for(auto& [e, pass] : m_passes)

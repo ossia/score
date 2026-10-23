@@ -5207,6 +5207,34 @@ void parser::parse_raw_raster_pipeline()
   // One BLEND_PER_ATTACHMENT entry per colour output: a short list repeated its
   // last entry for the remaining outputs, a long one dropped the extra entries
   // (shader board R18 / R31).
+  // MULTIVIEW N draws into N layers of every colour output: one with fewer was
+  // rendered as a single 2D view, or looped over the layers it had (shader
+  // board R39). A cubemap has 6 layers.
+  if(m_desc.multiview_count >= 2)
+    for(const auto& out : m_desc.outputs)
+    {
+      if(out.type == "depth")
+        continue;
+      const int layers = out.is_cubemap ? 6 : out.layers;
+      if(layers < m_desc.multiview_count)
+        throw invalid_file{
+            "OUTPUTS \"" + out.name + "\" has " + std::to_string(layers)
+            + " layer(s) for MULTIVIEW " + std::to_string(m_desc.multiview_count)
+            + ": give it \"LAYERS\": " + std::to_string(m_desc.multiview_count)
+            + " or more."};
+    }
+
+  // VERTEX_COUNT draws that many vertices from gl_VertexIndex, without the
+  // mesh: next to VERTEX_INPUTS it was clamped to the mesh's vertex count and
+  // drew the mesh without its index buffer (shader board R21).
+  if((m_desc.default_state.vertex_count
+      || !m_desc.default_state.vertex_count_expression.empty())
+     && !m_desc.vertex_inputs.empty())
+    throw invalid_file{
+        "PIPELINE_STATE VERTEX_COUNT makes a procedural draw (positions from "
+        "gl_VertexIndex), which reads no mesh: declare \"VERTEX_INPUTS\": [], or drop "
+        "VERTEX_COUNT to draw the mesh (INSTANCE_COUNT multiplies its draws)."};
+
   // Depth has no portable mip generation: Qt's Vulkan blit uses colour aspects
   // and D3D refuses it (shader board R32).
   for(const auto& out : m_desc.outputs)

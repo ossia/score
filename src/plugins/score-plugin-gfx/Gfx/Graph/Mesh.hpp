@@ -101,6 +101,12 @@ struct MeshBuffers
   //   !gpuIndirectSupported && cpuDrawCommands   → per-command drawIndexed loop
   //   neither                                    → single drawIndexed
   QRhiBuffer* indirectDrawBuffer{};
+  //! Raw raster PIPELINE_STATE INSTANCE_COUNT on a mesh draw: each CPU-issued
+  //! draw of the mesh draws this many times its instances (shader board R21).
+  //! Not applied to GPU-indirect draws, whose counts the host never reads, nor
+  //! to a mesh with per-instance attributes, whose data covers its own
+  //! instances only.
+  quint32 instanceMultiplier{1};
   bool useIndirectDraw{false};
   bool indirectDrawIndexed{false};
   bool gpuIndirectSupported{false};  // set from RenderState::caps at init

@@ -716,6 +716,21 @@ bool CustomMesh::drawSingleMesh(
     return true;
   }
 
+  // INSTANCE_COUNT on a mesh draw (shader board R21), unless the mesh has
+  // per-instance attributes: they hold data for its own instances only.
+  quint32 instanceMul = 1;
+  if(bufs.instanceMultiplier > 1)
+  {
+    bool perInstance = false;
+    for(const auto& b : g.bindings)
+      perInstance |= b.classification == std::decay_t<decltype(b)>::per_instance;
+    if(!perInstance)
+      instanceMul = bufs.instanceMultiplier;
+    else if(static bool warned = false; !std::exchange(warned, true))
+      qWarning() << "Raw raster: INSTANCE_COUNT is not applied to a mesh with "
+                    "per-instance attributes";
+  }
+
   // Per-mesh indirect override: when THIS submesh carries its own
   // `indirect_count` handle (different from bufs.indirectDrawBuffer),
   // use it instead. Required for multi-batch MDI (opaque + transparent
@@ -860,11 +875,11 @@ bool CustomMesh::drawSingleMesh(
         }
         if(indexed)
           cb.drawIndexed(
-              cmd.index_or_vertex_count, cmd.instance_count,
+              cmd.index_or_vertex_count, cmd.instance_count * instanceMul,
               cmd.first_index_or_vertex, cmd.base_vertex, firstInstance);
         else
           cb.draw(
-              cmd.index_or_vertex_count, cmd.instance_count,
+              cmd.index_or_vertex_count, cmd.instance_count * instanceMul,
               cmd.first_index_or_vertex, firstInstance);
       }
       noteZeroCountSlotsSkipped(skipped);
@@ -877,11 +892,11 @@ bool CustomMesh::drawSingleMesh(
   if(g.index.buffer > -1)
   {
     if(g.indices > 0 && g.instances > 0)
-      cb.drawIndexed(g.indices, g.instances);
+      cb.drawIndexed(g.indices, g.instances * instanceMul);
   }
   else if(g.vertices > 0 && g.instances > 0)
   {
-    cb.draw(g.vertices, g.instances);
+    cb.draw(g.vertices, g.instances * instanceMul);
   }
   return true;
 }

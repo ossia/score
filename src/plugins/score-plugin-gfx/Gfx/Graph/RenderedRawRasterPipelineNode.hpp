@@ -366,6 +366,9 @@ private:
   // every mip level is rendered once per view, into that view's layer / face.
   // m_mipRTs then holds m_mipCount * m_perMipViews targets, mip-major.
   int m_perMipViews{1};
+  //! PER_LAYER promoted from a lowered MULTIVIEW: the loop runs once per view
+  //! (shader board R39). 0 = every layer of the output.
+  int m_perLayerViews{0};
   struct MipRT
   {
     QRhiTextureRenderTarget* renderTarget{};
