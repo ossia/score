@@ -13,6 +13,7 @@
 #include <halp/audio.hpp>
 #include <halp/controls.hpp>
 #include <halp/file_port.hpp>
+#include <halp/layout.hpp>
 #include <halp/meta.hpp>
 #include <halp/midi.hpp>
 #include <halp/midifile_port.hpp>
@@ -47,8 +48,8 @@ enum class MidiTimeCodeFrameRate
 {
   SMPTE_24 = 0b00,
   SMPTE_25 = 0b01,
-  SMPTE_30 = 0b10,
-  SMPTE_2997 = 0b11
+  SMPTE_2997 = 0b10,
+  SMPTE_30 = 0b11
 };
 
 enum class MidiClockSource
@@ -137,7 +138,7 @@ struct MIDISyncOut
   std::atomic<MidiStartStopEvent> next_event_mtc{};
   std::atomic<double> current_song_pos{};
 
-  struct
+  struct ins
   {
     halp::enum_t<MidiClockMode, "MIDI Clock"> clock;
     halp::enum_t<MidiStartStopMode, "MIDI Start/Stop"> clock_startstop;
@@ -236,6 +237,62 @@ struct MIDISyncOut
       halp_meta(description, "Tempo of the clock before nudge and rate")
     } tempo;
   } outputs;
+
+  struct ui
+  {
+    halp_meta(name, "MIDI Sync Out")
+    halp_meta(layout, halp::layouts::hbox)
+    halp_meta(background, halp::colors::background_dark)
+
+    struct
+    {
+      halp_meta(name, "Send")
+      halp_meta(layout, halp::layouts::section)
+      halp_meta(background, halp::colors::background_mid)
+      halp::item<&ins::clock> clock;
+      halp::item<&ins::clock_startstop> clock_startstop;
+      halp::item<&ins::mtc> mtc;
+      halp::item<&ins::offset> offset;
+      halp::item<&ins::rate> rate;
+    } send;
+
+    struct
+    {
+      halp_meta(name, "Clock")
+      halp_meta(layout, halp::layouts::section)
+      halp_meta(background, halp::colors::background_mid)
+      halp::item<&ins::source> source;
+      halp::item<&ins::clock_rate, halp::look{.widget = halp::control_widget::combo}>
+          clock_rate;
+      halp::item<&ins::clock_offset> clock_offset;
+    } clock;
+
+    struct
+    {
+      halp_meta(name, "Free clock")
+      halp_meta(layout, halp::layouts::section)
+      halp_meta(background, halp::colors::background_mid)
+      static constexpr auto condition()
+      {
+        return halp::enabled_when<&ins::source, MidiClockSource::Free>{};
+      }
+      halp::item<&ins::bpm> bpm;
+      struct
+      {
+        halp_meta(layout, halp::layouts::hbox)
+        halp::item<&ins::start_button> start;
+        halp::item<&ins::stop_button> stop;
+        halp::item<&ins::continue_button> cont;
+      } transport;
+      struct
+      {
+        halp_meta(layout, halp::layouts::hbox)
+        halp::item<&ins::tap> tap;
+        halp::item<&ins::nudge_down> nudge_down;
+        halp::item<&ins::nudge_up> nudge_up;
+      } tempo;
+    } free_clock;
+  };
 
   // Free clock: written by operator(), read by the clock thread.
   std::atomic_bool free_mode{false};
@@ -410,10 +467,10 @@ struct MIDISyncOut
         return 25.;
         break;
       case 0b10:
-        return 30.;
+        return 29.97;
         break;
       case 0b11:
-        return 29.97;
+        return 30.;
         break;
     }
     return 30.;
