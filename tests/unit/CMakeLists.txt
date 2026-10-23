@@ -956,6 +956,12 @@ if(TARGET score_addon_trackingprotocols)
     PLUGINS score_plugin_deviceexplorer score_lib_device score_lib_state)
 endif()
 
+# The audio settings' channel names: a smaller count is saved like a larger
+# one, or the engine kept the channels the list no longer showed.
+score_add_test(test_unit_add_remove_list
+  SOURCES AddRemoveListTest.cpp
+  GUI)
+
 # The explorer listens to exactly what it shows, across device tree swaps and
 # settings edits. GUI: needs the device explorer panel and its view.
 score_add_test(test_unit_device_listening
