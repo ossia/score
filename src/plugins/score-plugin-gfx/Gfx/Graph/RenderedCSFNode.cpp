@@ -4368,6 +4368,25 @@ void RenderedCSFNode::buildComputeSrbBindings(
           if(!port->edges.empty())
           {
             auto input_buf = renderer.bufferForInput(*port->edges.front());
+            // Only a buffer with StorageBuffer usage backs a storage block
+            // (U42): a uniform-only one aborted Qt on OpenGL. The default
+            // dummy stays bound instead.
+            if(input_buf)
+            {
+              const QString why = score::gfx::blockRefusal(
+                  input_buf.handle, false, input_buf.byte_offset, input_buf.byte_size, 0);
+              auto& said = m_uniformRefusals[input.name];
+              if(!why.isEmpty())
+              {
+                if(why != said)
+                  qWarning().noquote()
+                      << "score.gfx:" << QString::fromStdString(input.name) << why;
+                said = why;
+                input_buf = {};
+              }
+              else
+                said.clear();
+            }
             if(input_buf)
             {
               buf = input_buf.handle;

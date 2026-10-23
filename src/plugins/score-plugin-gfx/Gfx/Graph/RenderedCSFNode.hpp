@@ -181,8 +181,8 @@ private:
   //! Zero-filled UBO bound for a top-level uniform_input with nothing cabled,
   //! by input name, sized from its LAYOUT.
   ossia::hash_map<std::string, QRhiBuffer*> m_uniformPlaceholders;
-  //! Why each uniform input's last upstream was refused (U42): warned once
-  //! per change.
+  //! Why each uniform or storage input's last upstream was refused (U42):
+  //! warned once per change.
   ossia::hash_map<std::string, QString> m_uniformRefusals;
   bool m_warnedIndirectArgs{false};
   bool m_warnedIndirectNumWorkGroups{false};

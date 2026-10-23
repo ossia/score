@@ -4,7 +4,8 @@
 // buffer from byte 0, so a camera published at offset 256 of a larger buffer
 // read the wrong bytes, and an undersized one was bound anyway. The producer
 // publishes a 512-byte uniform buffer whose first 256 bytes hold 1.0 and the
-// next 256 hold 7.0; the CSF writes params.first.x as red.
+// next 256 hold 7.0; the CSF writes params.first.x as red. A storage
+// resource fed that uniform-only buffer is refused the same way.
 #include "GfxLogCapture.hpp"
 #include "IsfTestCommon.hpp"
 
@@ -110,7 +111,30 @@ struct Shot
   int warnings = 0;
 };
 
-Shot shoot(score::gfx::GraphicsApi api, quint32 offset, quint32 size)
+// The same block declared as a storage buffer, which a uniform-only buffer
+// cannot back.
+constexpr auto kCsfStorage = R"_(/*{
+  "ISFVSN": "2.0",
+  "MODE": "COMPUTE_SHADER",
+  "RESOURCES": [
+    { "NAME": "params", "TYPE": "storage", "ACCESS": "read_only", "LAYOUT": [
+        { "NAME": "first", "TYPE": "vec4" }, { "NAME": "last", "TYPE": "vec4" } ] },
+    { "NAME": "outputImage", "TYPE": "image", "ACCESS": "write_only", "FORMAT": "rgba8", "WIDTH": "4", "HEIGHT": "4" }
+  ],
+  "PASSES": [ { "LOCAL_SIZE": [4, 4, 1], "EXECUTION_MODEL": { "TYPE": "2D_IMAGE", "TARGET": "outputImage" } } ]
+}*/
+void main()
+{
+  ivec2 pos = ivec2(gl_GlobalInvocationID.xy);
+  if(pos.x >= 4 || pos.y >= 4)
+    return;
+  imageStore(outputImage, pos, vec4(params.first.x / 255.0, params.last.x / 255.0, 0.0, 1.0));
+}
+)_";
+
+Shot shoot(
+    score::gfx::GraphicsApi api, quint32 offset, quint32 size, const char* shader = kCsf,
+    const char16_t* warning = u"smaller than")
 {
   Shot s;
   QTemporaryDir dir;
@@ -122,7 +146,7 @@ Shot shoot(score::gfx::GraphicsApi api, quint32 offset, quint32 size)
       s.err = "cannot write the shader";
       return s;
     }
-    f.write(kCsf);
+    f.write(shader);
   }
   score::test::run_in_gui_app([&](const score::GUIApplicationContext&) {
     LogCapture log;
@@ -154,7 +178,7 @@ Shot shoot(score::gfx::GraphicsApi api, quint32 offset, quint32 size)
       return;
     }
     s.centre = img.center();
-    s.warnings = log.count({u"params", u"smaller than"});
+    s.warnings = log.count({u"params", warning});
   });
   return s;
 }
@@ -190,4 +214,20 @@ TEST_CASE(
   REQUIRE(shortRange.err.empty());
   CHECK(int(shortRange.centre[0]) == 0);
   CHECK(shortRange.warnings == 1);
+}
+
+TEST_CASE(
+    "a CSF storage input refuses a buffer without storage usage", "[gfx][csf][U42]")
+{
+  const auto api = GENERATE(from_range(platform_backends()));
+  CAPTURE(backend_name(api));
+  const auto s = shoot(api, 0, 0, kCsfStorage, u"StorageBuffer usage");
+  if(s.skipped)
+    SKIP("backend unavailable");
+  if(const char* why = compute_shader_skip_reason(api))
+    SKIP(why);
+  INFO("error=" << s.err);
+  REQUIRE(s.err.empty());
+  CHECK(int(s.centre[0]) == 0);
+  CHECK(s.warnings == 1);
 }
