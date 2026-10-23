@@ -1821,12 +1821,26 @@ std::vector<Sampler> initInputSamplers(
             fallback = &renderer.emptyTexture();
           QRhiTexture* texture = rt.texture ? rt.texture : fallback;
 
-          auto spec = node.resolveRenderTargetSpecs(cur_port, renderer);
-          auto sampler = rhi.newSampler(
-              spec.mag_filter, spec.min_filter, spec.mipmap_mode, spec.address_u,
-              spec.address_v, spec.address_w);
+          // The sampler the shader's JSON declares wins over the inlet's
+          // (shader board U34): it was only honoured for grabbed inputs.
+          const isf::sampler_config* cfg
+              = cur_port < (int)port_sampler_cfg.size() ? port_sampler_cfg[cur_port]
+                                                        : nullptr;
+          const bool declared = cfg && declaresSampler(*cfg);
+          QRhiSampler* sampler{};
+          if(declared)
+          {
+            sampler = score::gfx::makeSampler(rhi, *cfg);
+          }
+          else
+          {
+            auto spec = node.resolveRenderTargetSpecs(cur_port, renderer);
+            sampler = rhi.newSampler(
+                spec.mag_filter, spec.min_filter, spec.mipmap_mode, spec.address_u,
+                spec.address_v, spec.address_w);
+            SCORE_ASSERT(sampler->create());
+          }
           sampler->setName("initInputSamplers::sampler");
-          SCORE_ASSERT(sampler->create());
 
           samplers.push_back({sampler, texture, fallback});
 
@@ -1874,6 +1888,27 @@ void updateInputSamplerFilter(
   if(sampler_idx >= samplers.size())
     return;
 
+  // A sampler the shader's JSON declares is not the inlet's to change (U34).
+  if(auto* isfNode = dynamic_cast<const ISFNode*>(&node))
+  {
+    const auto& desc = isfNode->descriptor();
+    const int first = desc.mode == isf::descriptor::RawRaster ? 1 : 0;
+    const int port = int(std::find(node.input.begin(), node.input.end(), &input)
+                         - node.input.begin());
+    bool declared = false;
+    walk_descriptor_inputs(
+        desc, port_counts{first, 0, 0},
+        [&](const isf::input& inp, const port_counts& before, const port_counts& delta) {
+      if(delta.inlets < 1 || before.inlets != port)
+        return;
+      if(auto* im = ossia::get_if<isf::image_input>(&inp.data))
+        declared = declaresSampler(im->sampler);
+      else if(auto* cm = ossia::get_if<isf::cubemap_input>(&inp.data))
+        declared = declaresSampler(cm->sampler);
+    });
+    if(declared)
+      return;
+  }
   auto* sampler = samplers[sampler_idx].sampler;
   if(!sampler)
     return;
@@ -2392,6 +2427,13 @@ static QRhiSampler::CompareOp parseCompare(const std::string& s)
   if(v == "always")                                   return QRhiSampler::Always;
   return QRhiSampler::Never;
 }
+}
+
+bool declaresSampler(const isf::sampler_config& cfg) noexcept
+{
+  return !cfg.wrap.empty() || !cfg.wrap_s.empty() || !cfg.wrap_t.empty()
+         || !cfg.wrap_r.empty() || !cfg.filter.empty() || !cfg.min_filter.empty()
+         || !cfg.mag_filter.empty() || !cfg.mipmap_mode.empty() || !cfg.compare.empty();
 }
 
 bool declaresCompare(const isf::sampler_config& cfg) noexcept

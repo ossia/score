@@ -796,6 +796,12 @@ namespace score::gfx
 SCORE_PLUGIN_GFX_EXPORT
 QRhiSampler* makeSampler(QRhi& rhi, const isf::sampler_config& cfg);
 
+//! Whether the shader's JSON sets any sampler field of an input (WRAP,
+//! FILTER, MIPMAP_MODE, COMPARE...): that sampler then wins over the inlet's
+//! (shader board U34).
+SCORE_PLUGIN_GFX_EXPORT
+bool declaresSampler(const isf::sampler_config& cfg) noexcept;
+
 //! Whether a declared sampler asks for a depth comparison. Such a sampler is
 //! the shader's own intent, not a property of the texture, so it is kept even
 //! when the texture's publisher offers a sampler of its own.
