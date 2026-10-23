@@ -6,6 +6,8 @@
 // GfxRawRasterOutputAndVertexInput's MSAA test, drawn through an iteration.
 #include "IsfTestCommon.hpp"
 
+#include <Gfx/Graph/RenderedRawRasterPipelineNode.hpp>
+
 #include <QFile>
 #include <QTemporaryDir>
 #include <catch2/catch_test_macros.hpp>
@@ -207,4 +209,36 @@ TEST_CASE("a PER_MIP iteration resolves into each level", "[gfx][raster][msaa][R
   CHECK(single.lit > 120);
   CHECK(msaa.partial > 8);
   CHECK(single.partial == 0);
+}
+
+// The iterations are passes one after the other: one multisample colour buffer
+// per attachment and one scratch depth serve every iteration of a size. Each
+// iteration allocated its own: 6 x (outputs + 1) at SAMPLES 4 for a cube face,
+// 192 MiB of colour for two 1024² outputs. Four layers of one size now cost
+// what two do (the targets may be built more than once; both runs build the
+// same number of times).
+TEST_CASE(
+    "the iterations of one size share their multisample and depth attachments",
+    "[gfx][raster][msaa][R31][perf]")
+{
+  const auto api = GENERATE(from_range(platform_backends()));
+  CAPTURE(backend_name(api));
+  auto allocations = [&](int layers, Edge& e) {
+    const auto before = score::gfx::iterationAttachmentAllocations().load();
+    e = renderEdge(
+        api, "PER_LAYER", R"(, "LAYERS": )" + std::to_string(layers), 4, true);
+    return score::gfx::iterationAttachmentAllocations().load() - before;
+  };
+  Edge two, four;
+  const auto a2 = allocations(2, two);
+  if(two.skipped)
+    SKIP("backend unavailable");
+  const auto a4 = allocations(4, four);
+  INFO(two.err << four.err);
+  REQUIRE(two.err.empty());
+  REQUIRE(four.err.empty());
+  CHECK(four.partial > 20);
+  INFO("2 layers: " << a2 << " attachments; 4 layers: " << a4);
+  CHECK(a2 > 0);
+  CHECK(a4 == a2);
 }

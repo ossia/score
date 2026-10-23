@@ -1,4 +1,5 @@
 #pragma once
+#include <atomic>
 
 #include <Gfx/Graph/ISFNode.hpp>
 #include <Gfx/Graph/IsfBindingsBuilder.hpp>
@@ -12,6 +13,11 @@
 
 namespace score::gfx
 {
+//! Multisample colour buffers and scratch depth textures the raw raster
+//! iteration modes (PER_MIP / PER_LAYER / PER_CUBE_FACE) have allocated,
+//! process-wide. For tests.
+SCORE_PLUGIN_GFX_EXPORT std::atomic<uint64_t>& iterationAttachmentAllocations() noexcept;
+
 // Used for the simple case of a single, non-persistent pass (the most common case)
 
 struct SCORE_PLUGIN_GFX_EXPORT RenderedRawRasterPipelineNode : score::gfx::NodeRenderer
