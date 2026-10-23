@@ -315,15 +315,15 @@ TEST_CASE("Midi scale: per-degree remap", "[fx][midi][scale]")
   using Nodes::MidiUtil::scale_mode;
   Rig r{"ionian"};
   // Not used unless the mode says so.
-  r.node.inputs.d1.value = -1;
+  r.node.inputs.map.value[1] = 0;
   CHECK(r.tick({note_on(1, 61, 100)})[0].bytes[1] == 62);
   r.tick({note_off(1, 61)});
 
   r.node.inputs.mode.value = scale_mode::remap;
-  r.node.inputs.d4.value = -1; // major third to minor third
+  r.node.inputs.map.value[4] = 3; // major third to minor third
   CHECK(r.tick({note_on(1, 61, 100)})[0].bytes[1] == 60);
   CHECK(r.tick({note_on(1, 76, 100)})[0].bytes[1] == 75);
-  // Degrees without an offset, and out-of-scale notes, are left as they are.
+  // Degrees mapped to themselves, and out-of-scale notes, are left as they are.
   CHECK(r.tick({note_on(1, 66, 100)})[0].bytes[1] == 66);
   r.tick({note_off(1, 61), note_off(1, 76), note_off(1, 66)});
   CHECK(r.out.still_sounding() == 0);
@@ -341,9 +341,48 @@ TEST_CASE("Midi scale: per-degree remap", "[fx][midi][scale]")
   r.tick({note_off(1, 60)});
   // Clamped at the ends.
   r.node.inputs.base.value = 0;
-  r.node.inputs.d7.value = 12;
+  r.node.inputs.map.value[7] = 12;
   CHECK(r.tick({note_on(1, 127, 100)})[0].bytes[1] == 127);
   r.tick({note_off(1, 127)});
+  CHECK(r.out.errors.empty());
+  CHECK(r.out.still_sounding() == 0);
+}
+
+TEST_CASE("Midi scale: muted degrees, fold and range", "[fx][midi][scale]")
+{
+  using Nodes::MidiUtil::scale_mode;
+  Rig r{"all"};
+  r.node.inputs.mode.value = scale_mode::remap;
+
+  // A muted degree plays nothing, in every octave
+  r.node.inputs.map.value[1] = -1;
+  CHECK(r.tick({note_on(1, 61, 100)}).empty());
+  CHECK(r.tick({note_on(1, 37, 100)}).empty());
+  r.tick({note_off(1, 61), note_off(1, 37)});
+  CHECK(r.tick({note_on(1, 62, 100)})[0].bytes[1] == 62);
+  r.tick({note_off(1, 62)});
+
+  // The root to the octave above; folded, it stays
+  r.node.inputs.map.value[0] = 12;
+  CHECK(r.tick({note_on(1, 60, 100)})[0].bytes[1] == 72);
+  r.tick({note_off(1, 60)});
+  r.node.inputs.fold.value = true;
+  CHECK(r.tick({note_on(1, 60, 100)})[0].bytes[1] == 60);
+  r.tick({note_off(1, 60)});
+  // E to the C above (+8) goes to the C below (-4)
+  r.node.inputs.map.value[4] = 12;
+  CHECK(r.tick({note_on(1, 64, 100)})[0].bytes[1] == 60);
+  r.tick({note_off(1, 64)});
+
+  // Outside [Lowest, Lowest + Range] notes pass as they are, untransposed
+  r.node.inputs.transp.value = 7;
+  r.node.inputs.lowest.value = 60;
+  r.node.inputs.range.value = 11;
+  CHECK(r.tick({note_on(1, 59, 100)})[0].bytes[1] == 59);
+  CHECK(r.tick({note_on(1, 72, 100)})[0].bytes[1] == 72);
+  CHECK(r.tick({note_on(1, 62, 100)})[0].bytes[1] == 69);
+  CHECK(r.tick({note_on(1, 61, 100)}).empty());
+  r.tick({note_off(1, 59), note_off(1, 72), note_off(1, 62), note_off(1, 61)});
   CHECK(r.out.errors.empty());
   CHECK(r.out.still_sounding() == 0);
 }
@@ -355,7 +394,7 @@ TEST_CASE("Midi scale: held notes follow mode, direction and degrees", "[fx][mid
   Rig r{"ionian"};
   r.tick({note_on(1, 64, 100), note_on(1, 61, 100)});
   r.node.inputs.mode.value = scale_mode::remap;
-  r.node.inputs.d4.value = -1;
+  r.node.inputs.map.value[4] = 3;
   auto& moved = r.tick();
   REQUIRE(moved.size() == 4); // 64 -> 63 and 62 -> 61
   CHECK(r.out.sounding[{1, 63}] == 1);
@@ -404,9 +443,12 @@ TEST_CASE("Midi scale: random playing with remap and directions", "[fx][midi][sc
       {
         case 0: n.mode.value = scale_mode(pick(0, 1)); break;
         case 1: n.direction.value = scale_direction(pick(0, 2)); break;
-        case 2: n.d0.value = pick(-12, 12); break;
-        case 3: n.d4.value = pick(-12, 12); break;
-        case 4: n.d11.value = pick(-12, 12); break;
+        case 2: n.map.value[0] = pick(-1, 12); break;
+        case 3: n.map.value[4] = pick(-1, 12); break;
+        case 4: n.map.value[11] = pick(-1, 12); break;
+        case 8: n.fold.value = !n.fold.value; break;
+        case 9: n.lowest.value = pick(0, 127); break;
+        case 10: n.range.value = pick(0, 127); break;
         case 5: n.base.value = pick(0, 12); break;
         case 6: n.transp.value = pick(-48, 48); break;
         case 7: n.sc.value = pick(0, 1) ? "101000000001" : "lydian"; break;

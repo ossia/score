@@ -100,6 +100,11 @@ score_add_test(test_unit_graphics_int_spinbox_stepper
   SOURCES GraphicsIntSpinboxStepperTest.cpp
   APP)
 
+# The list, note matrix and channel mask widgets of the MIDI objects.
+score_add_test(test_unit_graphics_list_widgets
+  SOURCES GraphicsListWidgetsTest.cpp
+  APP)
+
 # Double-click on a control puts it back to the default the process declared.
 score_add_test(test_unit_slider_defaults
   SOURCES SliderDefaultsTest.cpp

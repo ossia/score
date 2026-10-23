@@ -121,6 +121,62 @@ void assign(
     {
       field.value = num() > 0.5;
     }
+    else if constexpr(requires { field.value.size(); typename V::value_type; }
+                      && !std::is_same_v<V, std::string>)
+    {
+      // List control: {"Tuple":[elements]}, an element being a number or, for
+      // aggregates, a Tuple of numbers. Arrays take exactly their size.
+      using E = typename V::value_type;
+      if(!v.contains("Tuple"))
+        return fail("expected Tuple");
+      constexpr bool resizable = requires { field.value.clear(); };
+      const auto elts = v["Tuple"].toArray();
+      if constexpr(resizable)
+        field.value.clear();
+      else if(std::size_t(elts.size()) != field.value.size())
+        return fail("wrong number of elements");
+      std::size_t idx = 0;
+      for(const auto& elt : elts)
+      {
+        const auto o = elt.toObject();
+        auto number = [&](const QJsonObject& x) -> double {
+          if(x.contains("Float"))
+            return x["Float"].toDouble();
+          if(x.contains("Int"))
+            return x["Int"].toInt();
+          if(x.contains("Bool"))
+            return x["Bool"].toBool() ? 1. : 0.;
+          fail("expected a number in the list");
+          return 0.;
+        };
+        E e{};
+        if constexpr(std::is_arithmetic_v<E>)
+        {
+          e = E(number(o));
+        }
+        else
+        {
+          const auto sub = o["Tuple"].toArray();
+          int k = 0;
+          avnd::pfr::for_each_field(e, [&](auto& m) {
+            if(k < sub.size())
+              m = std::decay_t<decltype(m)>(number(sub[k].toObject()));
+            k++;
+          });
+        }
+        if constexpr(resizable)
+        {
+          if(field.value.size() < field.value.capacity())
+            field.value.push_back(e);
+          else
+            fail("too many elements");
+        }
+        else
+        {
+          field.value[idx++] = e;
+        }
+      }
+    }
     else if constexpr(std::is_same_v<V, std::string>)
     {
       if(!v.contains("String"))

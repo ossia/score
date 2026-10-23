@@ -1,5 +1,7 @@
 #include <Advanced/MidiScaler/MidiScaler.hpp>
 
+#include "MidiChannelMask.hpp"
+
 #include <catch2/catch_approx.hpp>
 #include <catch2/catch_test_macros.hpp>
 
@@ -237,7 +239,7 @@ TEST_CASE("Midi scaler: channel range, round robin, sharing and stealing", "[mid
 {
   driver d;
   d.load_scale(pythagorean);
-  d.fx.inputs.channels.value = "2-4";
+  d.fx.inputs.channels.value = midi_test::channels_on({2, 3, 4});
   // C D E: three different offsets, on 2, 3, 4.
   d.note_on(60);
   d.note_on(62);
@@ -290,7 +292,7 @@ TEST_CASE("Midi scaler: always send bend", "[midi_scaler]")
   for(bool always : {false, true})
   {
     driver d;
-    d.fx.inputs.channels.value = "5";
+    d.fx.inputs.channels.value = midi_test::channels_on({5});
     d.fx.inputs.always_bend.value = always;
     for(int i = 0; i < 3; i++)
     {
@@ -308,7 +310,7 @@ TEST_CASE("Midi scaler: always send bend", "[midi_scaler]")
 TEST_CASE("Midi scaler: incoming bend, controllers and pass-through", "[midi_scaler]")
 {
   driver d;
-  d.fx.inputs.channels.value = "1-3";
+  d.fx.inputs.channels.value = midi_test::channels_on({1, 2, 3});
   d.note_on(60);
   d.note_on(64);
   d.tick();
@@ -376,7 +378,7 @@ TEST_CASE("Midi scaler: control changes and stop end held notes", "[midi_scaler]
   d.note_on(62);
   d.note_on(63);
   d.tick();
-  d.fx.inputs.channels.value = "3-9";
+  d.fx.inputs.channels.value = midi_test::channels_on({3, 4, 5, 6, 7, 8, 9});
   d.tick();
   CHECK(d.total_sounding() == 0);
 

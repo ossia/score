@@ -4,6 +4,8 @@
 
 #include <Fx/Chord.hpp>
 
+#include "MidiChannelMask.hpp"
+
 #include <catch2/catch_test_macros.hpp>
 
 #include <algorithm>
@@ -221,21 +223,17 @@ TEST_CASE("Chord: harmonizer intervals, root and inversions", "[fx][midi][chord]
 {
   Chord c;
   c.inputs.mode.value = Chord::Harmonizer;
-  c.inputs.intervals.value = "4 7 4 0";
+  c.inputs.intervals.value = {4, 7, 4, 0};
   CHECK(voices(c) == std::vector<int>{0, 4, 7});
   c.inputs.root.value = false;
   CHECK(voices(c) == std::vector<int>{4, 7, 0});
-  c.inputs.intervals.value = "4, 7";
-  CHECK(voices(c) == std::vector<int>{4, 7});
-  c.inputs.intervals.value = "-12 +19";
+  c.inputs.intervals.value = {-12, 19};
   CHECK(voices(c) == std::vector<int>{-12, 19});
-  c.inputs.intervals.value = "1 2 3 4 5 6 7 8 9"; // more than 8: invalid
-  CHECK(voices(c).empty());
-  c.inputs.intervals.value = "4 x";
+  c.inputs.intervals.value = {};
   CHECK(voices(c).empty());
 
   c.inputs.root.value = true;
-  c.inputs.intervals.value = "4 7";
+  c.inputs.intervals.value = {4, 7};
   c.inputs.inversion.value = 1;
   CHECK(voices(c) == std::vector<int>{12, 4, 7});
   c.inputs.inversion.value = 2;
@@ -257,7 +255,7 @@ TEST_CASE("Chord: harmonizer intervals, root and inversions", "[fx][midi][chord]
   // Played: the inversion sounds, in pitch order.
   Rig r;
   r.node.inputs.mode.value = Chord::Harmonizer;
-  r.node.inputs.intervals.value = "4 7";
+  r.node.inputs.intervals.value = {4, 7};
   r.node.inputs.inversion.value = 1;
   CHECK(pitches_on(r.tick({note_on(1, 60, 100)})) == std::vector<int>{64, 67, 72});
   r.tick({note_off(1, 60)});
@@ -267,12 +265,12 @@ TEST_CASE("Chord: harmonizer intervals, root and inversions", "[fx][midi][chord]
 TEST_CASE("Chord: chance and velocity per voice", "[fx][midi][chord]")
 {
   Rig r;
-  r.node.inputs.chance.value = "100 0";
+  r.node.inputs.chance.value = {100, 0};
   CHECK(pitches_on(r.tick({note_on(1, 60, 100)})) == std::vector<int>{60});
   r.tick({note_off(1, 60)});
 
-  r.node.inputs.chance.value = "100";
-  r.node.inputs.velocity.value = "100 50 200";
+  r.node.inputs.chance.value = {100};
+  r.node.inputs.velocity.value = {100, 50, 200};
   auto& on = r.tick({note_on(1, 60, 100)});
   REQUIRE(on.size() == 3);
   CHECK(on[0].bytes[2] == 100);
@@ -284,7 +282,7 @@ TEST_CASE("Chord: chance and velocity per voice", "[fx][midi][chord]")
   auto take = [](int seed) {
     Rig r;
     r.node.inputs.seed.value = seed;
-    r.node.inputs.chance.value = "50";
+    r.node.inputs.chance.value = {50};
     r.node.inputs.num.value = 5;
     std::vector<int> played;
     for(int i = 0; i < 40; i++)
@@ -346,7 +344,7 @@ TEST_CASE("Chord: strum time, direction, tension and crescendo", "[fx][midi][cho
   CHECK(slow[1].first == 10 + 960 / 16);
   CHECK(slow[2].first == 970);
 
-  auto cresc = strum([](Chord& c) { c.inputs.crescendo.value = 0.5f; c.inputs.velocity.value = "80"; });
+  auto cresc = strum([](Chord& c) { c.inputs.crescendo.value = 0.5f; c.inputs.velocity.value = {80}; });
   REQUIRE(cresc.size() == 3);
   CHECK(cresc[0].second.bytes[2] == 80);
   CHECK(cresc[1].second.bytes[2] == 100);
@@ -483,7 +481,7 @@ TEST_CASE("Chord: MPE voices on their own channels", "[fx][midi][chord]")
 {
   Rig r;
   r.node.inputs.mpe.value = true;
-  r.node.inputs.mpe_channels.value = "2-4";
+  r.node.inputs.mpe_channels.value = midi_test::channels_on({2, 3, 4});
   auto& on = r.tick({note_on(1, 60, 100)});
   REQUIRE(on.size() == 3);
   CHECK(on[0].get_channel() == 2);
@@ -610,9 +608,19 @@ TEST_CASE("Chord: random playing and control changes never leave a note behind",
         case 0: n.chord.value = Chord::Chord(pick(0, 42)); break;
         case 1: n.num.value = pick(1, 5); break;
         case 2: n.mode.value = Chord::PlayMode(pick(0, 2)); break;
-        case 3: n.intervals.value = pick(0, 1) ? "4 7 11" : "-12 3 19 24"; break;
+        case 3:
+          if(pick(0, 1))
+            n.intervals.value = {4, 7, 11};
+          else
+            n.intervals.value = {-12, 3, 19, 24};
+          break;
         case 4: n.inversion.value = pick(-8, 8); break;
-        case 5: n.chance.value = pick(0, 1) ? "100 50" : "30"; break;
+        case 5:
+          if(pick(0, 1))
+            n.chance.value = {100, 50};
+          else
+            n.chance.value = {30};
+          break;
         case 6: n.strum.value = pick(0, 1) ? 0.f : 0.003f; break;
         case 7: n.strum_direction.value = Chord::StrumDirection(pick(0, 2)); break;
         case 8: n.mpe.value = !n.mpe.value; break;
