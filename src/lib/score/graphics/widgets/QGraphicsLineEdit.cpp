@@ -1,5 +1,9 @@
 #include "QGraphicsLineEdit.hpp"
 
+#include <score/model/Skin.hpp>
+
+#include <QPainter>
+
 #include <QTextDocument>
 
 #include <private/qwidgettextcontrol_p.h>
@@ -59,6 +63,20 @@ void QGraphicsLineEdit::focusOutEvent(QFocusEvent* e)
 QVariant QGraphicsLineEdit::itemChange(GraphicsItemChange change, const QVariant& value)
 {
   return QGraphicsTextItem::itemChange(change, value);
+}
+
+//! The field is drawn under the text, so that an empty one can still be seen
+//! and clicked.
+void QGraphicsLineEdit::paint(
+    QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+{
+  auto& skin = score::Skin::instance();
+  painter->setRenderHint(QPainter::Antialiasing, true);
+  painter->setPen(skin.NoPen);
+  painter->setBrush(skin.Emphasis2.main.brush);
+  painter->drawRoundedRect(boundingRect().adjusted(0, 1, 0, -1), 1, 1);
+  painter->setRenderHint(QPainter::Antialiasing, false);
+  QGraphicsTextItem::paint(painter, option, widget);
 }
 
 void QGraphicsLineEdit::checkSize()
