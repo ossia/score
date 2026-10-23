@@ -550,8 +550,13 @@ public:
   const auto& getValues() const noexcept { return alternatives; }
   auto count() const noexcept { return alternatives.size(); }
 
-  //! Index of the entry an incoming value selects, or -1 for none.
+  //! Index of the entry an incoming value selects, or -1 for none. A string
+  //! that is no entry's value selects the entry of that label.
   int indexOfValue(const ossia::value& v) const noexcept;
+
+  //! A label stands for its entry's value: presets and scripts may name the
+  //! entry rather than give its value.
+  void setValue(const ossia::value& value) override;
 
   //! The value that selects entry i; invalid if there is no such entry.
   ossia::value valueAtIndex(int i) const noexcept;
