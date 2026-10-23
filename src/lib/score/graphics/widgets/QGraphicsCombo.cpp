@@ -235,7 +235,7 @@ void QGraphicsCombo::init()
   for(auto& value : this->array)
   {
     auto r = metrics.boundingRect(value);
-    maxW = std::max(r.width() + 8. + stepperWidth, maxW);
+    maxW = std::max(r.width() + 16. + stepperWidth, maxW);
   }
   m_rect.setWidth(maxW);
 }
