@@ -2,6 +2,8 @@
 
 #include <Gfx/Graph/Node.hpp>
 
+#include <score_plugin_threedim_export.h>
+
 #include <QFont>
 #include <QPen>
 
@@ -38,7 +40,7 @@ namespace score::gfx
 /**
  * @brief A node that renders a model to screen.
  */
-struct ModelDisplayNode : NodeModel
+struct SCORE_PLUGIN_THREEDIM_EXPORT ModelDisplayNode : NodeModel
 {
 public:
   explicit ModelDisplayNode();
@@ -52,7 +54,7 @@ public:
   ModelCameraUBO ubo;
 
   ossia::vec3f position, center;
-  float fov{90.f}, near{0.001f}, far{10000.f};
+  float fov{90.f}, near{0.001f}, far{1000.f};
 
   int texture_projection{};
   int draw_mode{};

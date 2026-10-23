@@ -2089,6 +2089,15 @@ if(TARGET score_plugin_gfx)
     LIBS ${QT_PREFIX}::Gui)
 endif()
 
+# The Model Display Far control starts inside its range (M04).
+if(TARGET score_plugin_threedim)
+  score_add_test(test_unit_model_display_far_control
+    SOURCES ModelDisplayFarControlTest.cpp
+    APP
+    PLUGINS score_plugin_threedim score_plugin_gfx score_lib_process
+    LIBS ${QT_PREFIX}::Gui)
+endif()
+
 # The CPU twin of the CSF attribute scatter decodes like the shader (C40).
 if(TARGET score_plugin_gfx)
   score_add_test(test_unit_gpu_buffer_scatter_cpu

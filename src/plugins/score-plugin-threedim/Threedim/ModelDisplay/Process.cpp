@@ -44,7 +44,7 @@ void Model::init()
     m_inlets.push_back(new Process::FloatSlider{
         0.001, 1000., 0.001, "Near", Id<Process::Port>(5), this});
     m_inlets.push_back(new Process::FloatSlider{
-        0.001, 10000., 100000., "Far", Id<Process::Port>(6), this});
+        0.001, 100000., 1000., "Far", Id<Process::Port>(6), this});
   }
   else
   {
@@ -70,7 +70,7 @@ void Model::init()
       m_inlets.push_back(new Process::FloatSlider{
           0.001, 1000., 0.001, "Near", Id<Process::Port>(5), this});
       m_inlets.push_back(new Process::FloatSlider{
-          0.001, 10000., 100000., "Far", Id<Process::Port>(6), this});
+          0.001, 100000., 1000., "Far", Id<Process::Port>(6), this});
     }
   }
 
