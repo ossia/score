@@ -21,7 +21,10 @@
 #include <catch2/generators/catch_generators.hpp>
 #include <catch2/generators/catch_generators_range.hpp>
 
+#include <QDir>
 #include <QFileInfo>
+
+#include <map>
 
 using namespace score::test::gfx;
 using scene::StaticSceneNode;
@@ -101,26 +104,10 @@ struct Result
   std::string err;
   ReadbackImage img;
 };
-}
 
-TEST_CASE(
-    "the csf-examples scene test shaders draw against the current scene ABI",
-    "[gfx][scene][library][P39]")
+// scene -> Scene Preprocessor -> the raster pair -> a sink, a few frames.
+Result drawBehindScene(score::gfx::GraphicsApi api, const QString& vs, const QString& fs)
 {
-  const auto name = GENERATE(
-      std::string{"fbx-classic-pbr"}, std::string{"fbx-textured-pbr"},
-      std::string{"scene-aux-lights"}, std::string{"scene-aux-materials"},
-      std::string{"scene-aux-per-draw"}, std::string{"scene-camera-array"},
-      std::string{"scene-cubemap-multiview"});
-  const auto api = GENERATE(from_range(platform_backends()));
-  CAPTURE(name, backend_name(api));
-
-  const QString base = QStringLiteral("csf-testers/tests-scene/") + QString::fromStdString(name);
-  const QString fs = library::find(base + ".fs");
-  const QString vs = library::find(base + ".vs");
-  if(fs.isEmpty() || vs.isEmpty())
-    SKIP(library::skip_reason(base + ".fs"));
-
   Result r;
   score::test::run_in_gui_app([&](const score::GUIApplicationContext& ctx) {
     library::RootGuard root{ctx};
@@ -146,6 +133,34 @@ TEST_CASE(
     p.render(4);
     r.img = p.readback(sink);
   });
+  return r;
+}
+}
+
+TEST_CASE(
+    "the csf-examples scene test shaders draw against the current scene ABI",
+    "[gfx][scene][library][P39]")
+{
+  const auto name = GENERATE(
+      std::string{"fbx-classic-pbr"}, std::string{"fbx-textured-pbr"},
+      std::string{"scene-aux-lights"}, std::string{"scene-aux-materials"},
+      std::string{"scene-aux-per-draw"}, std::string{"scene-camera-array"},
+      std::string{"scene-cubemap-multiview"});
+  const auto api = GENERATE(from_range(platform_backends()));
+  CAPTURE(name, backend_name(api));
+
+  const QString base = QStringLiteral("csf-testers/tests-scene/") + QString::fromStdString(name);
+  if(library::root().isEmpty())
+    SKIP(library::skip_reason(base + ".fs"));
+  // A library without one of these is a stale list, not a skip (one skipped
+  // value reports the whole case skipped).
+  const QString fs = library::find(base + ".fs");
+  const QString vs = library::find(base + ".vs");
+  INFO(library::skip_reason(base + ".fs"));
+  REQUIRE(!fs.isEmpty());
+  REQUIRE(!vs.isEmpty());
+
+  const Result r = drawBehindScene(api, vs, fs);
   if(r.skipped)
     SKIP("backend unavailable");
   INFO(r.err);
@@ -160,4 +175,45 @@ TEST_CASE(
     CHECK(c[1] < 16);
     CHECK(c[2] < 16);
   }
+}
+
+// Every raw raster pair of csf-testers/tests-scene builds and draws behind a
+// Scene Preprocessor, as the library ships it: a shader left on an old ABI, or
+// an include whose TYPES its header lacks, is a build error here.
+TEST_CASE(
+    "every csf-testers scene raster shader builds behind a Scene Preprocessor",
+    "[gfx][scene][library][P39]")
+{
+  const QString probe = library::find(QStringLiteral("csf-testers/tests-scene/scene-aux-lights.fs"));
+  if(probe.isEmpty())
+    SKIP(library::skip_reason(QStringLiteral("csf-testers/tests-scene/scene-aux-lights.fs")));
+  const QDir dir = QFileInfo{probe}.dir();
+  const auto api = GENERATE(from_range(platform_backends()));
+  CAPTURE(backend_name(api));
+
+  int drawn = 0;
+  std::map<std::string, std::string> failed;
+  for(const QString& name : dir.entryList({QStringLiteral("*.fs")}, QDir::Files, QDir::Name))
+  {
+    const QString fs = dir.filePath(name);
+    const QString vs = dir.filePath(QFileInfo{name}.completeBaseName() + ".vs");
+    if(!QFileInfo::exists(vs))
+      continue;
+    QFile f{fs};
+    if(!f.open(QIODevice::ReadOnly) || !f.readAll().contains("RAW_RASTER_PIPELINE"))
+      continue;
+    const Result r = drawBehindScene(api, vs, fs);
+    if(r.skipped)
+      SKIP("backend unavailable");
+    if(!r.err.empty())
+      failed[name.toStdString()] = r.err;
+    else if(!r.img.valid())
+      failed[name.toStdString()] = "no readback";
+    else
+      ++drawn;
+  }
+  for(const auto& [name, err] : failed)
+    UNSCOPED_INFO(name << ": " << err);
+  CHECK(failed.empty());
+  CHECK(drawn > 30);
 }
