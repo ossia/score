@@ -17,8 +17,8 @@ TEST_CASE("pass size expressions read the named control", "[gfx][isf][passes][F0
   // Each resource shifts the port walk differently: none, -1, +1 port.
   const auto resource = GENERATE(
       std::string{},
-      std::string{R"_({ "NAME": "out", "TYPE": "storage", "ACCESS": "write_only", "LAYOUT": [ { "NAME": "v", "TYPE": "float[4]" } ] },)_"},
-      std::string{R"_({ "NAME": "out", "TYPE": "storage", "ACCESS": "write_only", "LAYOUT": [ { "NAME": "v", "TYPE": "float[]" } ] },)_"});
+      std::string{R"_({ "NAME": "results", "TYPE": "storage", "ACCESS": "write_only", "LAYOUT": [ { "NAME": "v", "TYPE": "float[4]" } ] },)_"},
+      std::string{R"_({ "NAME": "results", "TYPE": "storage", "ACCESS": "write_only", "LAYOUT": [ { "NAME": "v", "TYPE": "float[]" } ] },)_"});
   CAPTURE(resource);
   const std::string fs = R"_(/*{
   "ISFVSN": "2.0",

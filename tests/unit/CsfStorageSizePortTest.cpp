@@ -35,9 +35,9 @@ constexpr auto writtenBuffers = R"_(/*{
 "MODE": "COMPUTE_SHADER",
 "RESOURCES": [
   { "NAME": "gain", "TYPE": "float", "DEFAULT": 1.0 },
-  { "NAME": "input", "TYPE": "storage", "ACCESS": "read_only",
+  { "NAME": "particles", "TYPE": "storage", "ACCESS": "read_only",
     "LAYOUT": [ { "NAME": "values", "TYPE": "float[]" } ] },
-  { "NAME": "fixed", "TYPE": "storage", "ACCESS": "write_only",
+  { "NAME": "totals", "TYPE": "storage", "ACCESS": "write_only",
     "LAYOUT": [ { "NAME": "sum", "TYPE": "float" } ] },
   { "NAME": "flexible", "TYPE": "storage", "ACCESS": "read_write",
     "LAYOUT": [ { "NAME": "count", "TYPE": "uint" }, { "NAME": "values", "TYPE": "vec4[]" } ] },
@@ -75,8 +75,8 @@ TEST_CASE(
     "[gfx][csf][storage][ports]")
 {
   const auto desc = parse(writtenBuffers);
-  CHECK(score::gfx::storage_array_size_port(desc, "input") == -1);
-  CHECK(score::gfx::storage_array_size_port(desc, "fixed") == -1);
+  CHECK(score::gfx::storage_array_size_port(desc, "particles") == -1);
+  CHECK(score::gfx::storage_array_size_port(desc, "totals") == -1);
   CHECK(score::gfx::storage_array_size_port(desc, "missing") == -1);
 
   const int port = score::gfx::storage_array_size_port(desc, "flexible");

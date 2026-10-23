@@ -457,3 +457,72 @@ TEST_CASE("GENERATE_MIPS on a depth output is refused", "[isf][header][R32]")
       R"("OUTPUTS": [ { "NAME": "color", "TYPE": "color", "GENERATE_MIPS": true },
                       { "NAME": "depth", "TYPE": "depth" } ])"));
 }
+
+// An input name the generated GLSL already uses, or that GLSL reserves, made a
+// shader that did not compile, or one where the engine's value silently
+// replaced the user's (shader board U05): an INPUT named "layout" (the
+// cubemap_from_source preset), "TIME" (#define TIME in the prelude), "isf_..."
+// or "gl_...", two inputs with one name, a raw-raster input named like the
+// control the engine adds ("Mode"). Each is refused naming the input; names are
+// never renamed behind the author's back.
+TEST_CASE("an input name that collides with generated code is refused", "[isf][header][U05]")
+{
+  const auto isf_with = [](const std::string& inputs) {
+    return isf::parser{
+        {},
+        R"_(/*{ "ISFVSN": "2", "INPUTS": [ )_" + inputs + R"_( ] }*/
+void main() { gl_FragColor = vec4(1.0); }
+)_",
+        450, isf::parser::ShaderType::ISF};
+  };
+  const auto f = [](const char* name) {
+    return std::string{R"({ "NAME": ")"} + name + R"(", "TYPE": "float" })";
+  };
+
+  for(const char* name :
+      {"layout", "uniform", "buffer", "sample", "vec4", "sampler2D", "TIME", "RENDERSIZE",
+       "PASSINDEX", "FRAMEINDEX", "DATE", "IMG_PIXEL", "isf_FragColor", "isf_custom",
+       "gl_Position", "a__b"})
+  {
+    CAPTURE(name);
+    const auto msg = refusal([&] { isf_with(f(name)); });
+    CHECK_THAT(msg, Catch::Matchers::ContainsSubstring(std::string{"\""} + name + "\""));
+  }
+
+  CHECK_THAT(
+      refusal([&] { isf_with(f("speed") + ", " + f("speed")); }),
+      Catch::Matchers::ContainsSubstring("\"speed\""));
+
+  CHECK_THAT(
+      refusal([&] {
+    isf::parser{
+        std::string(k_vert),
+        R"_(/*{
+  "ISFVSN": "2",
+  "MODE": "RAW_RASTER_PIPELINE",
+  "VERTEX_INPUTS": [ { "TYPE": "vec3", "NAME": "position" } ],
+  "FRAGMENT_OUTPUTS": [ { "TYPE": "vec4", "NAME": "color" } ],
+  "INPUTS": [ { "NAME": "Mode", "TYPE": "float" } ]
+}*/
+void main() { color = vec4(1.0); }
+)_",
+        450, isf::parser::ShaderType::RawRasterPipeline};
+  }),
+      Catch::Matchers::ContainsSubstring("\"Mode\""));
+
+  // Ordinary names, including ones that only contain a reserved word.
+  CHECK_NOTHROW(isf_with(f("speed") + ", " + f("layoutScale") + ", " + f("time")
+                         + ", " + f("_private") + ", " + f("myTIME")));
+}
+
+// demote is a keyword only with GL_EXT_demote_to_helper_invocation, which no
+// generated shader enables: an input of that name compiles and is not refused.
+TEST_CASE("an input named demote is accepted", "[isf][header][U05]")
+{
+  CHECK_NOTHROW(isf::parser{
+      {},
+      R"_(/*{ "ISFVSN": "2", "INPUTS": [ { "NAME": "demote", "TYPE": "float" } ] }*/
+void main() { gl_FragColor = vec4(demote); }
+)_",
+      450, isf::parser::ShaderType::ISF});
+}

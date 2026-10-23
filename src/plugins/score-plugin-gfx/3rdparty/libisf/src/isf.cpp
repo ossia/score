@@ -4452,6 +4452,64 @@ extract_glsl_function_definitions(std::string_view str)
 }
 
 
+// An input name the generated GLSL already uses, or that GLSL reserves, made a
+// shader that did not compile, or one whose engine value silently replaced the
+// user's (shader board U05). Such a name is refused, never renamed: the author
+// reads the name back in their own code.
+static void check_input_names(const descriptor& d)
+{
+  static const ossia::flat_set<std::string_view> glsl_reserved{
+      // GLSL 4.60 keywords
+      "const", "uniform", "buffer", "shared", "attribute", "varying", "coherent",
+      "volatile", "restrict", "readonly", "writeonly", "atomic_uint", "layout",
+      "centroid", "flat", "smooth", "noperspective", "patch", "sample", "invariant",
+      "precise", "break", "continue", "do", "for", "while", "switch", "case", "default",
+      "if", "else", "subroutine", "in", "out", "inout", "int", "void", "bool", "true",
+      "false", "float", "double", "discard", "return", "uint", "lowp", "mediump", "highp",
+      "precision", "struct",
+      // reserved for future use
+      "common", "partition", "active", "asm", "class", "union", "enum", "typedef",
+      "template", "this", "resource", "goto", "inline", "noinline", "public", "static",
+      "extern", "external", "interface", "long", "short", "half", "fixed", "unsigned",
+      "superp", "input", "output", "filter", "sizeof", "cast", "namespace", "using"};
+  // Built-in uniforms and macros of the generated preludes.
+  static const ossia::flat_set<std::string_view> engine_names{
+      "TIME", "TIMEDELTA", "PROGRESS", "SAMPLERATE", "PASSINDEX", "FRAMEINDEX",
+      "RENDERSIZE", "DATE", "MSAA_SAMPLES", "NUM_VIEWS", "VIEW_INDEX", "LAYER_INDEX",
+      "MODEL_MATRIX", "VIEW_MATRIX", "PROJECTION_MATRIX", "VIEWPROJECTION_MATRIX",
+      "CAMERA_POSITION", "PRIMITIVE_ID", "BARYCENTRIC", "TEX_DIMENSIONS",
+      "TEX_DIMENSIONS_2D", "TEX_DIMENSIONS_3D", "LAYER_TEXEL", "main"};
+  // vec4, dmat2x3, usampler2DArray, image3D, textureCube, subpassInputMS...
+  const auto glsl_type = [](std::string_view n) -> bool {
+    return ctre::match<
+        "([iubd]?vec[234]|d?mat[234](x[234])?"
+        "|[iu]?(sampler|image|texture)(1D|2D|3D|Cube|2DRect|Buffer|2DMS)(Array)?(Shadow)?"
+        "|samplerShadow|sampler|[iu]?subpassInput(MS)?)">(n);
+  };
+
+  ossia::flat_set<std::string_view> seen;
+  for(const auto& in : d.inputs)
+  {
+    const std::string_view n = in.name;
+    const char* why = nullptr;
+    if(glsl_reserved.contains(n) || glsl_type(n))
+      why = "a GLSL reserved word";
+    else if(n.starts_with("gl_"))
+      why = "reserved by GLSL (gl_ prefix)";
+    else if(n.find("__") != std::string_view::npos)
+      why = "reserved by GLSL (two consecutive underscores)";
+    else if(n.starts_with("isf_") || n.starts_with("ISF_") || n.starts_with("IMG_"))
+      why = "reserved for the generated code (isf_ / ISF_ / IMG_ prefix)";
+    else if(engine_names.contains(n))
+      why = "a built-in name of the generated code";
+    else if(!seen.insert(n).second)
+      why = "declared twice (or the name of a control the engine adds)";
+    if(why)
+      throw invalid_file{
+          "input \"" + in.name + "\": the name is " + why + "; rename it."};
+  }
+}
+
 void parser::parse_geometry_filter()
 {
   using namespace std::literals;
@@ -4459,6 +4517,7 @@ void parser::parse_geometry_filter()
   auto [end, desc] = parse_isf_header(m_source_geometry_filter);
   default_image_visibility(desc, "fragment");
   m_desc = std::move(desc);
+  check_input_names(m_desc);
 
   std::string& geomWithoutISF = m_source_geometry_filter;
   geomWithoutISF.erase(0, end + 2);
@@ -4917,6 +4976,7 @@ void parser::parse_isf()
   auto [end, desc] = parse_isf_header(m_sourceFragment);
   default_image_visibility(desc, "fragment");
   m_desc = std::move(desc);
+  check_input_names(m_desc);
 
   std::string& fragWithoutISF = m_sourceFragment;
   fragWithoutISF.erase(0, end + 2);
@@ -5464,7 +5524,8 @@ void parser::parse_raw_raster_pipeline()
       return default_inputs;
     }();
     m_desc.inputs.insert(m_desc.inputs.begin(), default_ins.begin(), default_ins.end());
-    }
+    check_input_names(m_desc);
+  }
 
   auto& d = m_desc;
 
@@ -7578,6 +7639,7 @@ void parser::parse_vsa()
     primitiveType.data = vc;
     m_desc.inputs.push_back(primitiveType);
   }
+  check_input_names(m_desc);
 
   // Generate GLSL 4.5 vertex shader
   m_vertex = GLSL45.versionPrelude;
@@ -7717,6 +7779,7 @@ void parser::parse_csf()
   auto [end, desc] = parse_isf_header(m_sourceFragment);
   default_image_visibility(desc, "compute");
   m_desc = std::move(desc);
+  check_input_names(m_desc);
   m_desc.mode = descriptor::CSF;
 
   // Every pass of a compute shader is a compute pass, LOCAL_SIZE or not
