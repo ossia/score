@@ -2081,6 +2081,14 @@ if(TARGET score_plugin_gfx)
     LIBS ${QT_PREFIX}::Gui)
 endif()
 
+# The ISF drop handler leaves .glsl to geometry filters and includes (F01).
+if(TARGET score_plugin_gfx)
+  score_add_test(test_unit_shader_drop_extensions
+    SOURCES ShaderDropExtensionsTest.cpp
+    PLUGINS score_plugin_gfx
+    LIBS ${QT_PREFIX}::Gui)
+endif()
+
 # The CPU twin of the CSF attribute scatter decodes like the shader (C40).
 if(TARGET score_plugin_gfx)
   score_add_test(test_unit_gpu_buffer_scatter_cpu

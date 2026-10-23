@@ -1,4 +1,5 @@
 #pragma once
+#include <score_plugin_gfx_export.h>
 #include <Process/Drop/ProcessDropHandler.hpp>
 
 #include <Library/LibraryInterface.hpp>
@@ -20,7 +21,7 @@ class LibraryHandler final : public Library::LibraryInterface
   Library::CategoryPaths categories;
 };
 
-class DropHandler final : public Process::ProcessDropHandler
+class SCORE_PLUGIN_GFX_EXPORT DropHandler final : public Process::ProcessDropHandler
 {
   SCORE_CONCRETE("e3a8ec68-262a-419a-b4bb-a7e0400f4c24")
 

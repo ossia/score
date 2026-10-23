@@ -147,7 +147,9 @@ QWidget* LibraryHandler::previewWidget(
 
 QSet<QString> DropHandler::fileExtensions() const noexcept
 {
-  return {"frag", "glsl", "fs"};
+  // Not .glsl: that is the geometry filters' extension and the includes', and
+  // an ISF process only loads .fs / .frag (shader board F01).
+  return {"frag", "fs"};
 }
 
 void DropHandler::dropPath(

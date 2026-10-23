@@ -33,7 +33,7 @@ class LibraryHandler final : public Library::LibraryInterface
   Library::CategoryPaths categories;
 };
 
-class DropHandler final : public Process::ProcessDropHandler
+class SCORE_PLUGIN_GFX_EXPORT DropHandler final : public Process::ProcessDropHandler
 {
   SCORE_CONCRETE("d1e16bba-4c53-4d24-8b6b-71b94daef68d")
 
