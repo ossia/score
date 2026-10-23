@@ -44,9 +44,11 @@ namespace
 //
 // Pattern != 0 hits a side path that materialises the requested 4-byte pattern
 // into a separate vector. Every current call site uses the 0 path.
+thread_local std::vector<char> zero_pool;
+thread_local std::vector<char> pattern_pool;
+
 const char* getZeroBuffer(quint32 size)
 {
-  thread_local std::vector<char> zero_pool;
   if(zero_pool.size() < size)
     zero_pool.assign(size, 0);
   return zero_pool.data();
@@ -58,7 +60,6 @@ const char* getZeroBuffer(quint32 size)
 // same memory. Switching patterns rewrites the buffer.
 const char* getPatternBuffer(quint32 size, quint32 pattern)
 {
-  thread_local std::vector<char> pattern_pool;
   thread_local quint32 last_pattern = 0u;
   thread_local quint32 last_filled = 0u;
   const bool grow = pattern_pool.size() < size;
@@ -96,20 +97,22 @@ void clearViaBatch(
 {
   if(!buf || size == 0)
     return;
-  const char* src = getSourceBytes(size, pattern);
-  if(buf->type() == QRhiBuffer::Dynamic)
+  // Uploads of one bounded block, a multiple of 4 so that a pattern stays
+  // aligned: the block was as large as the largest clear ever asked for, kept
+  // per thread for the rest of the process (up to 4 GiB of host zeros).
+  constexpr quint32 blockSize = 1u << 20;
+  const quint32 dynamicChunk = 65532u; // QRhi's per-call limit, 4-aligned
+  const char* src = getSourceBytes(std::min(size, blockSize), pattern);
+  const bool dynamic = buf->type() == QRhiBuffer::Dynamic;
+  const quint32 step = dynamic ? dynamicChunk : blockSize;
+  for(quint32 off = 0; off < size;)
   {
-    quint32 off = 0;
-    while(off < size)
-    {
-      const quint32 chunk = std::min<quint32>(size - off, 65535u);
-      batch.updateDynamicBuffer(buf, offset + off, chunk, src + off);
-      off += chunk;
-    }
-  }
-  else
-  {
-    batch.uploadStaticBuffer(buf, offset, size, src);
+    const quint32 chunk = std::min(size - off, step);
+    if(dynamic)
+      batch.updateDynamicBuffer(buf, offset + off, chunk, src);
+    else
+      batch.uploadStaticBuffer(buf, offset + off, chunk, src);
+    off += chunk;
   }
 }
 
@@ -249,6 +252,11 @@ void RhiClearBuffer::clearBuffer(
   // fill and apply it in the next CB-recording op.
   (void)rhi;
   clearViaBatch(batch, buf, offset, size, pattern);
+}
+
+std::size_t RhiClearBuffer::poolBytes() noexcept
+{
+  return zero_pool.capacity() + pattern_pool.capacity();
 }
 
 }  // namespace score::gfx

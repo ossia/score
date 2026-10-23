@@ -1294,6 +1294,12 @@ score_add_test(test_unit_scene_camera_aux
     PLUGINS score_plugin_gfx score_lib_process
     LIBS ${QT_PREFIX}::Gui)
 
+  # RhiClearBuffer's batch path holds a bounded zero block.
+  score_add_test(test_unit_rhi_clear_buffer
+    SOURCES RhiClearBufferTest.cpp
+    PLUGINS score_plugin_gfx
+    LIBS ${QT_PREFIX}::Gui)
+
   # AUXILIARY blocks must be generated from the shader's declared kind, not the
   # producer's buffer type. Pure CPU: the libisf parser and its GLSL emission,
   # no QRhi.

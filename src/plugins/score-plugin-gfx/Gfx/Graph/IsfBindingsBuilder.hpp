@@ -61,6 +61,12 @@ struct GraphicsSSBO
   // connected to a port (e.g. private aux buffer or persistent-only).
   int input_port_index{-1};
   int output_port_index{-1};
+
+  //! An owned buffer whose LAYOUT ends in a flexible array is sized by its
+  //! "<name> size" control, at this input port: fixed part + count x element
+  //! stride (shader board U44). -1 for every other buffer.
+  int size_port_index{-1};
+  int count{0};
 };
 
 /**
@@ -214,6 +220,20 @@ void ensureStorageResources(
     //! Resolves a storage image's WIDTH / HEIGHT expressions against the
     //! node's inputs, from the render size; without it they are ignored.
     const std::function<QSize(const GraphicsStorageImage&, QSize)>& imageSize = {});
+
+/**
+ * @brief Resize the owned flexible-array SSBOs whose size control changed.
+ *
+ * Reads each one's "<name> size" control from @p inputPorts and recreates the
+ * buffer, zero-filled, at fixed part + count x element stride (shader board
+ * U44). The QRhiBuffer objects stay the same, so the SRBs that bind them pick
+ * the new native buffers up by themselves. Call every frame, before the
+ * passes run. Returns true when a buffer was resized.
+ */
+SCORE_PLUGIN_GFX_EXPORT
+bool resizeCountedStorage(
+    QRhi& rhi, QRhiResourceUpdateBatch& res, const std::vector<Port*>& inputPorts,
+    const isf::descriptor& desc, GraphicsStorageResources& store);
 
 /**
  * @brief Produce the QRhiShaderResourceBinding list for the graphics pipeline.

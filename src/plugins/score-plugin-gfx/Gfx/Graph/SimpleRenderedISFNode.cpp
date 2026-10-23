@@ -931,6 +931,7 @@ void SimpleRenderedISFNode::update(
   // descriptor set in place; without this, uniform_input cables connected
   // post-init never reach the shader and the placeholder UBO stays bound
   // (zero-filled → degenerate matrices on the GPU).
+  resizeCountedStorage(*renderer.state.rhi, res, n.input, n.descriptor(), m_storage);
   for(auto& [e, pass] : m_passes)
   {
     bindUpstreamBuffers(renderer, n.input, m_storage, pass.p.srb);

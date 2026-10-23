@@ -2172,6 +2172,9 @@ score_add_gfx_test(csf_empty_target_count GfxCsfEmptyTargetCount.cpp)
 # A feedback receiver's geometry auxiliary keeps its contents (C45).
 score_add_gfx_test(csf_aux_feedback_counter GfxCsfAuxFeedbackCounter.cpp)
 
+# A flexible-array graphics storage buffer follows its size control (U44).
+score_add_gfx_test(isf_storage_flex_size GfxIsfStorageFlexSize.cpp)
+
 # Library compute shaders with state in a delayed self-cable (CircularHistory,
 # NBodyGravity). Skips without SCORE_TEST_LIBRARY_ROOT.
 score_add_gfx_test(library_feedback_shaders GfxLibraryFeedbackShaders.cpp)

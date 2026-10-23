@@ -927,6 +927,7 @@ void RenderedISFNode::update(
   // and alt chains hold independent descriptor sets referencing the same
   // storage resources; both must be patched. bindUpstreamBuffers is
   // idempotent when the pointer already matches.
+  resizeCountedStorage(*renderer.state.rhi, res, n.input, n.descriptor(), m_storage);
   for(auto& [e, p] : m_passes)
   {
     for(auto& pass : p.passes)

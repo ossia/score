@@ -12,6 +12,7 @@
 #include <ossia/detail/small_vector.hpp>
 
 #include <algorithm>
+#include <limits>
 #include <set>
 
 namespace score::gfx
@@ -128,16 +129,6 @@ int64_t std430ArrayStride(std::string_view type, const isf::descriptor& d) noexc
 
 }
 
-namespace
-{
-// Internal alias for the AUXILIARY size sites in this translation unit;
-// defers to the public helper.
-inline int64_t isf_ssbo_elem_size(
-    const std::vector<isf::storage_input::layout_field>& layout) noexcept
-{
-  return score::gfx::std430LayoutSize(layout);
-}
-}
 
 namespace score::gfx
 {
@@ -278,13 +269,29 @@ void collectGraphicsStorageResources(
           e.access = s->access;
           e.persistent = s->persistent;
           e.owned = true;
-          e.size = isf_ssbo_elem_size(s->layout);
           e.layout = s->layout;
           e.stages = stages;
           e.binding = binding++;
           // Only read-only storage_inputs have a matching input port; write
           // variants put the buffer on an OUTPUT port (no upstream rebind).
           e.input_port_index = (s->access == "read_only") ? port_idx : -1;
+          // A written buffer ending in a flexible array has a size control at
+          // this port instead (ISFProcess.hpp, isf_input_port_vis): it holds
+          // that many elements, 1024 until the control says otherwise. It was
+          // allocated as one element (shader board U44).
+          const bool flexible = !s->layout.empty()
+                                && s->layout.back().type.find("[]") != std::string::npos;
+          if(s->access != "read_only" && flexible)
+          {
+            e.size_port_index = port_idx;
+            e.count = 1024;
+          }
+          // At least one element of a flexible array even when nothing is
+          // bound: Metal's API validation aborts a draw whose shader reads a
+          // `mat4[]` from a 16-byte placeholder ("has space for 16 bytes, but
+          // argument has a length(64)").
+          e.size = std::max<int64_t>(
+              16, calculateStorageBufferSize(s->layout, std::max(e.count, 1), desc));
           if(s->persistent)
             e.prev_binding = binding++;
           out.ssbos.push_back(std::move(e));
@@ -860,6 +867,49 @@ void GraphicsStorageResources::release(RenderList& renderer)
   indirectDrawBuffer = nullptr;
   indirectDrawSsboIndex = -1;
   nextBinding = -1;
+}
+
+bool resizeCountedStorage(
+    QRhi& rhi, QRhiResourceUpdateBatch& res, const std::vector<Port*>& inputPorts,
+    const isf::descriptor& desc, GraphicsStorageResources& store)
+{
+  bool resized = false;
+  for(auto& e : store.ssbos)
+  {
+    if(e.size_port_index < 0 || e.size_port_index >= (int)inputPorts.size() || !e.owned)
+      continue;
+    const Port* port = inputPorts[e.size_port_index];
+    if(!port || !port->value || port->type != Types::Int)
+      continue;
+    const int count = std::max(1, *static_cast<const int*>(port->value));
+    if(count == e.count)
+      continue;
+    const int64_t size
+        = std::max<int64_t>(16, calculateStorageBufferSize(e.layout, count, desc));
+    if(size > std::numeric_limits<quint32>::max())
+    {
+      qWarning() << "ISF storage" << e.name.c_str() << ":" << count
+                 << "elements do not fit in a buffer; keeping" << e.count;
+      continue;
+    }
+    e.count = count;
+    if(size == e.size)
+      continue;
+    e.size = size;
+    for(QRhiBuffer* b : {e.buffer, e.prev})
+    {
+      if(!b)
+        continue;
+      b->setSize(quint32(size));
+      if(b->create())
+        RhiClearBuffer::clearBuffer(rhi, res, b, 0, quint32(size));
+      else
+        qWarning() << "ISF storage" << e.name.c_str() << ": could not allocate"
+                   << size << "bytes";
+    }
+    resized = true;
+  }
+  return resized;
 }
 
 void bindUpstreamBuffers(

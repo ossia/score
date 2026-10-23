@@ -3816,6 +3816,7 @@ void RenderedRawRasterPipelineNode::update(
 
   // Refresh upstream-bound storage_input / uniform_input buffers from input
   // ports, then patch every SRB that already exists.
+  resizeCountedStorage(*renderer.state.rhi, res, n.input, n.descriptor(), m_storage);
   refreshStorageBuffers([&] { bindUpstreamBuffers(renderer, n.input, m_storage); });
   // Same for read-only csf_image_input: adopt the matching upstream
   // auxiliary_texture. Called per frame so a producer that swaps its

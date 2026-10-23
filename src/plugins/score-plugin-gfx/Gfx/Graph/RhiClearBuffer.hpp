@@ -83,6 +83,10 @@ void clearBuffer(
     quint32 size,
     quint32 pattern = 0u);
 
+/// For tests: the bytes this thread's zero and pattern pools hold.
+SCORE_PLUGIN_GFX_EXPORT
+std::size_t poolBytes() noexcept;
+
 }  // namespace RhiClearBuffer
 
 // Metal-specific implementation hook (lives in RhiClearBufferMetal.mm).
