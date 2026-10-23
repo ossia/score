@@ -991,14 +991,18 @@ SCORE_PLUGIN_GFX_EXPORT
 QRhiTexture::Format imageFormatFromQualifier(std::string_view qualifier) noexcept;
 
 /**
- * @brief A zero-filled 1x1 texture a storage image binding declared with
+ * @brief A zero-filled texture a storage image binding declared with
  *        `qualifier` can take when nothing is bound: same format, the shape of
  *        the declaration, usable with image load/store. Owned by the caller.
+ *
+ * 1x1 unless @p size says otherwise; @p extent is the depth of a 3D image or
+ * the layer count of an array (shader board R46: a writable image nothing
+ * produces is the node's own, at its declared size).
  */
 SCORE_PLUGIN_GFX_EXPORT
 QRhiTexture* createStorageImagePlaceholder(
     QRhi& rhi, QRhiResourceUpdateBatch& res, std::string_view qualifier, int dimensions,
-    bool array, bool cube);
+    bool array, bool cube, QSize size = {1, 1}, int extent = 1);
 
 /**
  * @brief Number of storage image units the backend binds by binding number:

@@ -2577,19 +2577,23 @@ QRhiTexture::Format imageFormatFromQualifier(std::string_view qualifier) noexcep
 
 QRhiTexture* createStorageImagePlaceholder(
     QRhi& rhi, QRhiResourceUpdateBatch& res, std::string_view qualifier, int dimensions,
-    bool array, bool cube)
+    bool array, bool cube, QSize size, int extent)
 {
   const auto format = imageFormatFromQualifier(qualifier);
   QRhiTexture::Flags flags = QRhiTexture::UsedWithLoadStore;
+  size = size.expandedTo(QSize{1, 1});
+  extent = std::max(1, extent);
   QRhiTexture* tex{};
   if(cube)
-    tex = rhi.newTexture(format, QSize{1, 1}, 1, flags | QRhiTexture::CubeMap);
+    tex = rhi.newTexture(format, size, 1, flags | QRhiTexture::CubeMap);
   else if(dimensions == 3)
-    tex = rhi.newTexture(format, 1, 1, 1, 1, flags | QRhiTexture::ThreeDimensional);
+    tex = rhi.newTexture(
+        format, size.width(), size.height(), extent, 1,
+        flags | QRhiTexture::ThreeDimensional);
   else if(array)
-    tex = rhi.newTextureArray(format, 1, QSize{1, 1}, 1, flags | QRhiTexture::TextureArray);
+    tex = rhi.newTextureArray(format, extent, size, 1, flags | QRhiTexture::TextureArray);
   else
-    tex = rhi.newTexture(format, QSize{1, 1}, 1, flags);
+    tex = rhi.newTexture(format, size, 1, flags);
   tex->setName(QByteArray("storage_image_placeholder_") + QByteArray(qualifier.data(), qualifier.size()));
   if(!tex->create())
   {
@@ -2597,14 +2601,15 @@ QRhiTexture* createStorageImagePlaceholder(
     return nullptr;
   }
 
-  static const char zero[16]{};
+  // 16 bytes per texel covers every storage format (rgba32f / rgba32ui).
+  const QByteArray zero(qsizetype(size.width()) * size.height() * 16, 0);
   QRhiTextureUploadDescription desc;
-  const int layers = cube ? 6 : 1;
+  const int layers = cube ? 6 : (dimensions == 3 || array) ? extent : 1;
   QList<QRhiTextureUploadEntry> entries;
   for(int layer = 0; layer < layers; layer++)
   {
-    QRhiTextureSubresourceUploadDescription sub{zero, 16};
-    sub.setSourceSize(QSize{1, 1});
+    QRhiTextureSubresourceUploadDescription sub{zero.constData(), quint32(zero.size())};
+    sub.setSourceSize(size);
     entries.push_back(QRhiTextureUploadEntry{layer, 0, sub});
   }
   desc.setEntries(entries.begin(), entries.end());

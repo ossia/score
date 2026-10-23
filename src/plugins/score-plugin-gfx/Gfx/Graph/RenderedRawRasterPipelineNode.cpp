@@ -3033,8 +3033,33 @@ void RenderedRawRasterPipelineNode::initState(
       // handle around — UAF waiting to happen when the producer releases
       // the texture).
       if(atx.is_storage)
+      {
+        // A writable image nothing produces is the node's own: it gets its
+        // declared WIDTH / HEIGHT (and DEPTH / LAYERS), resolved against the
+        // node's inputs like the INPUTS storage images, instead of 1 x 1
+        // (shader board R46). The render size fills in a missing side.
+        QSize size{1, 1};
+        int extent = 1;
+        if(atx.access != "read_only"
+           && (!atx.width_expression.empty() || !atx.height_expression.empty()))
+        {
+          const QSize rs = renderer.state.renderSize;
+          size = QSize{
+              atx.width_expression.empty()
+                  ? rs.width()
+                  : resolveIntExpression(atx.width_expression, rs.width()),
+              atx.height_expression.empty()
+                  ? rs.height()
+                  : resolveIntExpression(atx.height_expression, rs.height())};
+          const auto& ext
+              = atx.dimensions == 3 ? atx.depth_expression : atx.layers_expression;
+          if(!ext.empty())
+            extent = resolveIntExpression(ext, 1);
+        }
         ats.placeholder = createStorageImagePlaceholder(
-            rhi, res, atx.format, atx.dimensions, atx.is_array, atx.is_cubemap);
+            rhi, res, atx.format, atx.dimensions, atx.is_array, atx.is_cubemap, size,
+            extent);
+      }
       ats.owns_placeholder = ats.placeholder != nullptr;
       if(!ats.placeholder)
       {
