@@ -561,6 +561,12 @@ static void parse_input(image_input& inp, const sajson::value& v)
   parse_sampler_config(inp.sampler, v);
   if(inp.dimensions == 3)
   {
+    // A depth companion is a render target's depth attachment; a volume has
+    // none (shader board U32).
+    if(inp.depth)
+      throw invalid_file{
+          "image input: IS_DEPTH on a DIMENSIONS: 3 volume -- a volume has no depth "
+          "attachment to sample. Declare the depth field as a separate input."};
     drop_unsupported_compare_3d(inp.sampler, "image input (DIMENSIONS: 3)");
     if(inp.is_array)
     {

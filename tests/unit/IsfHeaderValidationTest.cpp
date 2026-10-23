@@ -722,6 +722,27 @@ void main() { color = vec4(1.0); }
   CHECK_NOTHROW(mv(R"({ "NAME": "cube", "TYPE": "color", "CUBEMAP": true })"));
 }
 
+// A depth companion comes from a render target's depth attachment; a volume
+// has none, so IS_DEPTH on a DIMENSIONS 3 input is refused (shader board U32).
+TEST_CASE("a volume input has no depth companion", "[isf][header][U32]")
+{
+  const auto isf_with = [](const std::string& input) {
+    return isf::parser{
+        {},
+        R"_(/*{ "ISFVSN": "2", "INPUTS": [ )_" + input + R"_( ] }*/
+void main() { gl_FragColor = vec4(1.0); }
+)_",
+        450, isf::parser::ShaderType::ISF};
+  };
+  CHECK_THAT(
+      refusal([&] {
+    isf_with(R"({ "NAME": "vol", "TYPE": "image", "DIMENSIONS": 3, "IS_DEPTH": true })");
+  }),
+      Catch::Matchers::ContainsSubstring("IS_DEPTH"));
+  CHECK_NOTHROW(isf_with(R"({ "NAME": "arr", "TYPE": "image", "IS_ARRAY": true, "IS_DEPTH": true })"));
+  CHECK_NOTHROW(isf_with(R"({ "NAME": "img", "TYPE": "image", "STATIC": true, "IS_DEPTH": true })"));
+}
+
 // demote is a keyword only with GL_EXT_demote_to_helper_invocation, which no
 // generated shader enables: an input of that name compiles and is not refused.
 TEST_CASE("an input named demote is accepted", "[isf][header][U05]")
