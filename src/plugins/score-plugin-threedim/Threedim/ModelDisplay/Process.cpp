@@ -145,7 +145,7 @@ void Model::init()
     };
 
     std::vector<std::pair<QString, ossia::value>> blend_op{
-        {"Add", 0}, {"Substract", 1}, {"Reverse Substract", 2}, {"Min", 3}, {"Max", 4},
+        {"Add", 0}, {"Subtract", 1}, {"Reverse Subtract", 2}, {"Min", 3}, {"Max", 4},
     };
 
     m_inlets.push_back(
@@ -161,7 +161,7 @@ void Model::init()
     m_inlets.push_back(new Process::ComboBox{
         blend_factors, 1, "Dst Alpha", Id<Process::Port>(15), this});
     m_inlets.push_back(
-        new Process::ComboBox{blend_op, 0, "Op alpha", Id<Process::Port>(16), this});
+        new Process::ComboBox{blend_op, 0, "Op Alpha", Id<Process::Port>(16), this});
   }
 }
 

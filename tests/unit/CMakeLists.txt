@@ -2089,10 +2089,10 @@ if(TARGET score_plugin_gfx)
     LIBS ${QT_PREFIX}::Gui)
 endif()
 
-# The Model Display Far control starts inside its range (M04).
+# Model Display controls: Far inside its range (M04), blend labels (M08).
 if(TARGET score_plugin_threedim)
-  score_add_test(test_unit_model_display_far_control
-    SOURCES ModelDisplayFarControlTest.cpp
+  score_add_test(test_unit_model_display_controls
+    SOURCES ModelDisplayControlsTest.cpp
     APP
     PLUGINS score_plugin_threedim score_plugin_gfx score_lib_process
     LIBS ${QT_PREFIX}::Gui)

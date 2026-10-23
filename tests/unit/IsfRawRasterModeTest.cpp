@@ -100,3 +100,25 @@ TEST_CASE("a CSF geometry TOPOLOGY is parsed, written back and validated", "[isf
       (isf::parser{csfWithTopology("quads"), isf::parser::ShaderType::CSF}),
       isf::invalid_file);
 }
+
+// The blend operation controls spell "Subtract" (shader board M08).
+TEST_CASE("the raw raster blend operation labels are spelled right", "[isf][raster][M08]")
+{
+  const auto vs = readCorpus("raw-raster-basic.vs");
+  const auto fs = readCorpus("raw-raster-basic.fs");
+  REQUIRE(!fs.empty());
+  isf::parser p{vs, fs, 450, isf::parser::ShaderType::RawRasterPipeline};
+  const auto& ins = p.data().inputs;
+  for(const char* name : {"OpColor", "OpAlpha"})
+  {
+    CAPTURE(name);
+    const auto it = std::find_if(
+        ins.begin(), ins.end(), [&](const isf::input& i) { return i.name == name; });
+    REQUIRE(it != ins.end());
+    const auto* l = ossia::get_if<isf::long_input>(&it->data);
+    REQUIRE(l);
+    REQUIRE(l->labels.size() == 5);
+    CHECK(l->labels[1] == "Subtract");
+    CHECK(l->labels[2] == "Reverse Subtract");
+  }
+}

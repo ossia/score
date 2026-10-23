@@ -5335,7 +5335,7 @@ void parser::parse_raw_raster_pipeline()
           "OneMinusDstAlpha", "ConstantColor", "OneMinusConstantColor", "ConstantAlpha",
           "OneMinusConstantAlpha", "SrcAlphaSaturate");
       static const auto blend_ops
-          = long_enum(0, "Add", "Substract", "Reverse Substract", "Min", "Max");
+          = long_enum(0, "Add", "Subtract", "Reverse Subtract", "Min", "Max");
 
       // Default blend: standard alpha blending
       // SrcColor=SrcAlpha(6), DstColor=OneMinusSrcAlpha(7), OpColor=Add(0)
