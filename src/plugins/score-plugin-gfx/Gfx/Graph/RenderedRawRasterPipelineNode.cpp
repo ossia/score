@@ -29,6 +29,34 @@
 
 namespace score::gfx
 {
+
+namespace
+{
+// baseColorArray<k>, metalRoughDyn<s>, ...: the per-channel aliases of the
+// Scene Preprocessor's texture pool, removed in favour of materialArray<k> /
+// materialDyn<s> (shader board P32).
+bool isRemovedSceneTextureAlias(std::string_view name) noexcept
+{
+  for(std::string_view channel :
+      {"baseColor", "metalRough", "normal", "emissive", "occlusion"})
+  {
+    if(!name.starts_with(channel))
+      continue;
+    auto rest = name.substr(channel.size());
+    for(std::string_view kind : {"Array", "Dyn"})
+    {
+      if(!rest.starts_with(kind))
+        continue;
+      const auto digits = rest.substr(kind.size());
+      return !digits.empty()
+             && std::all_of(digits.begin(), digits.end(), [](char c) {
+        return c >= '0' && c <= '9';
+      });
+    }
+  }
+  return false;
+}
+}
 namespace
 {
 //! The MSL form of a shader, whose native binding map says which Metal buffer
@@ -4364,6 +4392,19 @@ bool RenderedRawRasterPipelineNode::rebindAuxTextures(RenderList& renderer)
     const auto* aux = mesh ? mesh->find_auxiliary_texture(b.name) : nullptr;
     auto* tex = aux ? static_cast<QRhiTexture*>(aux->native_handle) : nullptr;
     auto& slot = m_inputSamplers[b.sampler_idx];
+    if(!aux && mesh && !b.removedAliasWarned && isRemovedSceneTextureAlias(b.name))
+    {
+      // The Scene Preprocessor published its texture pool under per-channel
+      // aliases too; they are removed (shader board P32): say why the input
+      // stays empty.
+      b.removedAliasWarned = true;
+      qWarning().noquote()
+          << QStringLiteral(
+                 "Raw raster: input \"%1\" is a scene texture name that is no longer "
+                 "published; the Scene Preprocessor's texture pool is materialArray<k> "
+                 "/ materialDyn<s>. The input stays empty.")
+                 .arg(QString::fromStdString(b.name));
+    }
     if(!tex)
     {
       // The geometry no longer publishes it, and its producer may already have

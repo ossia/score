@@ -1,10 +1,11 @@
 // =============================================================================
 // Collapsing a material-texture ladder into one array binding.
 //
-// ScenePreprocessor publishes one auxiliary texture per bucket per channel, so
-// a full-PBR shader declares baseColorArray0..15, metalRoughArray0..15 and so
-// on. Emitted one combined `sampler2DArray` each, that is 80 SRB bindings for
-// the ladders alone, and Qt's Metal backend derives the vertex-buffer origin
+// ScenePreprocessor publishes one auxiliary texture per bucket of its shared
+// pool, so a full-PBR shader declares materialArray0..N; the per-channel
+// ladders it used to declare (baseColorArray0..15, metalRoughArray0..15...)
+// were 80 SRB bindings for the ladders alone when emitted one combined
+// `sampler2DArray` each, and Qt's Metal backend derives the vertex-buffer origin
 // from the highest binding number (firstVertexBinding = maxBinding + 1), so
 // those 80 push the vertex buffers past the 31-entry buffer table.
 //

@@ -1214,6 +1214,87 @@ TEST_CASE(
   CHECK(left[0] < 32);
 }
 
+// The Scene Preprocessor publishes its texture pool as materialArray<k> /
+// materialDyn<s> only (P32): the per-channel aliases baseColorArray<k>,
+// metalRoughDyn<s>, ... are gone, so a saved shader that declares one samples
+// an empty texture. That is said, once, naming the input and its replacement.
+namespace
+{
+QStringList g_p32Warnings;
+void captureP32(QtMsgType type, const QMessageLogContext&, const QString& msg)
+{
+  if(type == QtWarningMsg)
+    g_p32Warnings.push_back(msg);
+}
+}
+
+TEST_CASE(
+    "a shader input named like a removed scene texture alias is warned about",
+    "[gfx][scene][P32]")
+{
+  const auto api = GENERATE(from_range(platform_backends()));
+  CAPTURE(backend_name(api));
+  QTemporaryDir dir;
+  REQUIRE(dir.isValid());
+  const QString vs = writeText(dir, "scenepp_alias.vert", kVert);
+  const QString fs = writeText(dir, "scenepp_alias.frag", "/*{" SCENE_RASTER_HEADER R"(
+  "INPUTS": [ { "NAME": "baseColorArray0", "TYPE": "image", "IS_ARRAY": true },
+              { "NAME": "materialArray0", "TYPE": "image", "IS_ARRAY": true } ]
+}*/
+void main()
+{
+  isf_FragColor = texture(baseColorArray0, vec3(0.5, 0.5, 0.0)) + texture(materialArray0, vec3(0.5, 0.5, 0.0));
+}
+)");
+  auto st = stateWith({nodeWith(quad(-1.f, 1.f, 0xF1A00B1u), 97)});
+
+  Result r;
+  g_p32Warnings.clear();
+  score::test::run_in_gui_app([&](const score::GUIApplicationContext&) {
+    // Inside the application, which installs its own handler.
+    auto previous = qInstallMessageHandler(captureP32);
+    struct Restore
+    {
+      QtMessageHandler h;
+      ~Restore() { qInstallMessageHandler(h); }
+    } restore{previous};
+    GfxPipeline p;
+    const int hn = p.addNode(std::make_unique<StaticSceneNode>(st));
+    const int flat = p.addNode(std::make_unique<score::gfx::ScenePreprocessorNode>());
+    const int raster = p.addRaster(vs, fs);
+    if(hn < 0 || flat < 0 || raster < 0)
+    {
+      r.err = "chain build failed: " + p.error();
+      return;
+    }
+    p.wire(p.nodeSceneOut(hn, 0), p.nodeSceneIn(flat, 0));
+    p.wire(p.nodeGeometryOut(flat, 0), p.geometryIn(raster, 0));
+    const int sink = p.addSink({kSize, kSize});
+    p.wire(p.imageOut(raster, 0), p.sinkInput(sink));
+    if(!p.create(api))
+    {
+      r.skipped = p.skipped();
+      r.err = r.skipped ? std::string{} : p.error();
+      return;
+    }
+    p.render(3);
+  });
+  if(r.skipped)
+    SKIP("backend unavailable");
+  REQUIRE(r.err.empty());
+  int aliasWarnings = 0, poolWarnings = 0;
+  for(const auto& w : g_p32Warnings)
+  {
+    if(w.contains("baseColorArray0") && w.contains("materialArray"))
+      aliasWarnings++;
+    if(w.contains("\"materialArray0\""))
+      poolWarnings++;
+  }
+  INFO(g_p32Warnings.join("\n").toStdString());
+  CHECK(aliasWarnings == 1);
+  CHECK(poolWarnings == 0);
+}
+
 // A primitive cloud whose rows live in a GPU buffer: its range of raw_splats
 // was zero-filled instead of copied (shader board P12). The rows are copied on
 // the GPU now, every frame.

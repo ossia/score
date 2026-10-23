@@ -60,7 +60,7 @@
 //   * meshesUnchanged (:4497-4515) has NO dynamic-slot term: a handle swap
 //     with an unchanged materials fingerprint keeps m_outputSpec.meshes'
 //     shared_ptr, so the dyn aux entries emitted at the last rebuildMDI
-//     (:3568-3583, "baseColorDyn<slot>") still name the OLD QRhiTexture, and
+//     (:3568-3583, "materialDyn<slot>") still name the OLD QRhiTexture, and
 //     downstream never sees geometryChanged (NodeRenderer.cpp:546-549 is
 //     shared_ptr identity).
 //   * The MaterialGPU arena upload (:3952-3956) is gated on
@@ -162,12 +162,12 @@ constexpr const char* kVs = R"__(void main()
 // Dynamic-slot consumer: four screen quarters sample the four dynamic
 // BaseColor slots (kMaxDynamicSlots == 4, GpuResourceRegistry.hpp:299). The
 // slots are AUXILIARY textures resolved by name from the geometry's
-// auxiliary_textures ("baseColorDyn<slot>", ScenePreprocessorNode.cpp:3568);
+// auxiliary_textures ("materialDyn<slot>", ScenePreprocessorNode.cpp:3568);
 // an unpublished slot falls back to the renderer's 1x1 placeholder, whose
 // content is undefined -- so the oracle only ever asserts on the quarter
 // whose slot is expected to be LIVE, never on placeholder quarters.
 constexpr const char* kFsDyn = R"__(/*{
-  "DESCRIPTION": "dynamic-slot probe: quarter i of the screen samples baseColorDyn[i], so WHERE a colour appears identifies WHICH dynamic slot the registry routed the live texture to, and the colour identifies WHICH QRhiTexture is bound there.",
+  "DESCRIPTION": "dynamic-slot probe: quarter i of the screen samples materialDyn[i], so WHERE a colour appears identifies WHICH dynamic slot the registry routed the live texture to, and the colour identifies WHICH QRhiTexture is bound there.",
   "CREDIT": "test",
   "ISFVSN": "2.0",
   "MODE": "RAW_RASTER_PIPELINE",
@@ -178,25 +178,25 @@ constexpr const char* kFsDyn = R"__(/*{
   "FRAGMENT_OUTPUTS": [ { "TYPE": "vec4", "NAME": "isf_FragColor" } ],
   "INPUTS": [],
   "AUXILIARY": [
-    { "NAME": "baseColorDyn0", "TYPE": "image" },
-    { "NAME": "baseColorDyn1", "TYPE": "image" },
-    { "NAME": "baseColorDyn2", "TYPE": "image" },
-    { "NAME": "baseColorDyn3", "TYPE": "image" }
+    { "NAME": "materialDyn0", "TYPE": "image" },
+    { "NAME": "materialDyn1", "TYPE": "image" },
+    { "NAME": "materialDyn2", "TYPE": "image" },
+    { "NAME": "materialDyn3", "TYPE": "image" }
   ]
 }*/
 void main()
 {
     vec3 c;
-    if(v_uv.x < 0.25)      c = texture(sampler2D(baseColorDyn_tex[0], baseColorDyn_smp), v_uv).rgb;
-    else if(v_uv.x < 0.5)  c = texture(sampler2D(baseColorDyn_tex[1], baseColorDyn_smp), v_uv).rgb;
-    else if(v_uv.x < 0.75) c = texture(sampler2D(baseColorDyn_tex[2], baseColorDyn_smp), v_uv).rgb;
-    else                   c = texture(sampler2D(baseColorDyn_tex[3], baseColorDyn_smp), v_uv).rgb;
+    if(v_uv.x < 0.25)      c = texture(sampler2D(materialDyn_tex[0], materialDyn_smp), v_uv).rgb;
+    else if(v_uv.x < 0.5)  c = texture(sampler2D(materialDyn_tex[1], materialDyn_smp), v_uv).rgb;
+    else if(v_uv.x < 0.75) c = texture(sampler2D(materialDyn_tex[2], materialDyn_smp), v_uv).rgb;
+    else                   c = texture(sampler2D(materialDyn_tex[3], materialDyn_smp), v_uv).rgb;
     isf_FragColor = vec4(c, 1.0);
 }
 )__";
 
 // Bucket-array consumer: samples layer 0 of BaseColor bucket 0
-// ("baseColorArray0", the suffixed per-bucket aux from
+// ("materialArray0", the suffixed per-bucket aux from
 // ScenePreprocessorNode.cpp:3554; ARRAY:true emits sampler2DArray, see
 // libisf isf.cpp parse_auxiliary_texture IS_ARRAY/ARRAY keys).
 constexpr const char* kFsArr = R"__(/*{
@@ -211,12 +211,12 @@ constexpr const char* kFsArr = R"__(/*{
   "FRAGMENT_OUTPUTS": [ { "TYPE": "vec4", "NAME": "isf_FragColor" } ],
   "INPUTS": [],
   "AUXILIARY": [
-    { "NAME": "baseColorArray0", "TYPE": "image", "ARRAY": true }
+    { "NAME": "materialArray0", "TYPE": "image", "ARRAY": true }
   ]
 }*/
 void main()
 {
-    isf_FragColor = vec4(texture(baseColorArray0, vec3(v_uv, 0.0)).rgb, 1.0);
+    isf_FragColor = vec4(texture(materialArray0, vec3(v_uv, 0.0)).rgb, 1.0);
 }
 )__";
 
@@ -237,12 +237,12 @@ constexpr const char* kFsArrLastMip = R"__(/*{
   "FRAGMENT_OUTPUTS": [ { "TYPE": "vec4", "NAME": "isf_FragColor" } ],
   "INPUTS": [],
   "AUXILIARY": [
-    { "NAME": "baseColorArray0", "TYPE": "image", "ARRAY": true, "MIPMAP_MODE": "linear" }
+    { "NAME": "materialArray0", "TYPE": "image", "ARRAY": true, "MIPMAP_MODE": "linear" }
   ]
 }*/
 void main()
 {
-    isf_FragColor = vec4(textureLod(baseColorArray0, vec3(v_uv, 0.0), 16.0).rgb, 1.0);
+    isf_FragColor = vec4(textureLod(materialArray0, vec3(v_uv, 0.0), 16.0).rgb, 1.0);
 }
 )__";
 
@@ -260,12 +260,12 @@ constexpr const char* kFsArrLastMipUndeclared = R"__(/*{
   "FRAGMENT_OUTPUTS": [ { "TYPE": "vec4", "NAME": "isf_FragColor" } ],
   "INPUTS": [],
   "AUXILIARY": [
-    { "NAME": "baseColorArray0", "TYPE": "image", "ARRAY": true }
+    { "NAME": "materialArray0", "TYPE": "image", "ARRAY": true }
   ]
 }*/
 void main()
 {
-    isf_FragColor = vec4(textureLod(baseColorArray0, vec3(v_uv, 0.0), 16.0).rgb, 1.0);
+    isf_FragColor = vec4(textureLod(materialArray0, vec3(v_uv, 0.0), 16.0).rgb, 1.0);
 }
 )__";
 
@@ -428,7 +428,7 @@ ossia::material_component_ptr makeDynMaterial(QRhiTexture* t, uint64_t id)
 // sampler config so it lands in the SAME bucket the preprocessor
 // pre-allocates at init (:806-846) -- making the phase-2 realloc a pure
 // layer-count growth of bucket 0 rather than a new-bucket creation, which
-// keeps the consumer's "baseColorArray0" name stable across both phases.
+// keeps the consumer's "materialArray0" name stable across both phases.
 ossia::material_component_ptr makeStaticMaterial(
     QColor fill, uint64_t id, QColor rightHalf = {},
     int size = score::gfx::GpuResourceRegistry::kTextureLayerSize)
@@ -599,7 +599,7 @@ struct MatSwapRenderer final : score::gfx::NodeRenderer
       // Phase 1: the material carries texA (RED). First arrival: the
       // materials fingerprint changes ([] -> [0xA1]) so the full
       // rebuildChannel path runs once, rebuildMDI publishes the meshes with
-      // aux "baseColorDyn0" -> texA, and quarter 0 turns red.
+      // aux "materialDyn0" -> texA, and quarter 0 turns red.
       self.texA = makeFilledTexture(
           rhi, res, QColor(255, 0, 0, 255), "texA_red");
       m_scene.state = makeState(
@@ -707,8 +707,8 @@ std::array<uint8_t, 4> probe(const ReadbackImage& img, int x)
 {
   return img.at(x, img.height / 2);
 }
-constexpr int kQ0x = 10; // uv.x ~ 0.16 -> baseColorDyn0
-constexpr int kQ1x = 24; // uv.x ~ 0.38 -> baseColorDyn1
+constexpr int kQ0x = 10; // uv.x ~ 0.16 -> materialDyn0
+constexpr int kQ1x = 24; // uv.x ~ 0.38 -> materialDyn1
 constexpr int kMidx = 32;
 
 constexpr std::array<uint8_t, 4> kRed{255, 0, 0, 255};
@@ -1093,7 +1093,7 @@ TEST_CASE(
       "If q1 of phase 2 is not green: the swap was rerouted in the registry "
       "(case 1 proves it) but never republished -- meshesUnchanged "
       "(ScenePreprocessorNode.cpp:4497) lacks a dynamic-slot term, so the "
-      "baseColorDyn aux entries and the MaterialGPU slot index stay stale.");
+      "materialDyn aux entries and the MaterialGPU slot index stay stale.");
 
   // Sanity: phase 1 drew texA's red in quarter 0.
   CHECK(near(r.q0p1, kRed, kTol));
