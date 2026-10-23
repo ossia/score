@@ -24,7 +24,7 @@ struct Node
 {
   halp_meta(name, "Midi quantify")
   halp_meta(c_name, "Quantifier")
-  halp_meta(category, "Midi")
+  halp_meta(category, "Midi/Timing")
   halp_meta(manual_url, "https://ossia.io/score-docs/processes/midi-utilities.html#quantifier")
   halp_meta(author, "ossia score")
   halp_meta(description, "Quantifies a MIDI input")

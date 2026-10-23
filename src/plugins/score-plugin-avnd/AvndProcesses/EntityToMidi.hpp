@@ -231,7 +231,7 @@ struct EntityToMidi
 {
   halp_meta(name, "Entity To MIDI")
   halp_meta(c_name, "avnd_entity_to_midi")
-  halp_meta(category, "Midi")
+  halp_meta(category, "Midi/Control")
   halp_meta(author, "ossia team")
   halp_meta(
       description,

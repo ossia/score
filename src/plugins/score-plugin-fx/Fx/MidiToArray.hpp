@@ -15,7 +15,7 @@ struct Node
 {
   halp_meta(name, "MIDI to array")
   halp_meta(c_name, "MidiToArray")
-  halp_meta(category, "Midi")
+  halp_meta(category, "Midi/Control")
   halp_meta(author, "ossia score")
   halp_meta(manual_url, "")
   halp_meta(description, "Converts a MIDI 1 input to a sequence of bytes")

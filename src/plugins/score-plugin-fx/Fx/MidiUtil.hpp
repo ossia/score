@@ -221,7 +221,7 @@ struct Node
 {
   halp_meta(name, "Midi scale")
   halp_meta(c_name, "MidiScale")
-  halp_meta(category, "Midi")
+  halp_meta(category, "Midi/Pitch")
   halp_meta(author, "ossia score")
   halp_meta(manual_url, "https://ossia.io/score-docs/processes/midi-utilities.html#midi-scale")
   halp_meta(description, "Maps a midi input to a given scale")
