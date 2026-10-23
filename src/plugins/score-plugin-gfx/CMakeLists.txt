@@ -235,6 +235,7 @@ set(HDRS
     Gfx/Graph/FlattenedSceneFilterNode.hpp
     Gfx/Graph/MergeGeometriesNode.hpp
     Gfx/Graph/Quirks.hpp
+    Gfx/Graph/ReadbackStats.hpp
     Gfx/Graph/RenderList.hpp
     Gfx/Graph/RenderState.hpp
     Gfx/Graph/RenderedISFNode.hpp
@@ -534,6 +535,7 @@ set(SRCS
     Gfx/Graph/FlattenedSceneFilterNode.cpp
     Gfx/Graph/MergeGeometriesNode.cpp
     Gfx/Graph/Quirks.cpp
+    Gfx/Graph/ReadbackStats.cpp
     Gfx/Graph/RenderList.cpp
     Gfx/Graph/RenderedISFNode.cpp
     Gfx/Graph/RenderedRawRasterPipelineNode.cpp

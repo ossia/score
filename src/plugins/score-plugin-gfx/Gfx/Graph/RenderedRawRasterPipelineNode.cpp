@@ -4,6 +4,7 @@
 #include <cstring>
 #include <Gfx/Graph/ISFVisitors.hpp>
 #include <Gfx/Graph/PipelineStateHelpers.hpp>
+#include <Gfx/Graph/ReadbackStats.hpp>
 #include <Gfx/Graph/RhiClearBuffer.hpp>
 #include <Gfx/Graph/RenderedISFSamplerUtils.hpp>
 #include <Gfx/Graph/RenderedRawRasterPipelineNode.hpp>
@@ -4827,6 +4828,7 @@ void RenderedRawRasterPipelineNode::runInitialPasses(
     }
     cb.resourceUpdate(rb);
     rhi.finish();
+    readbackStats().data.fetch_add(1 + (wantCount ? 1 : 0), std::memory_order_relaxed);
     if(wantCount
        && m_meshbufs.countReadbackResult.data.size() >= (qsizetype)sizeof(uint32_t))
     {

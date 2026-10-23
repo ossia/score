@@ -1,3 +1,4 @@
+#include <Gfx/Graph/ReadbackStats.hpp>
 #include <Gfx/Graph/RhiComputeBarrier.hpp>
 
 #include <QtGui/private/qrhi_p.h>
@@ -63,6 +64,7 @@ void flushPendingHostWritesMetal(QRhi& rhi, QRhiCommandBuffer& cb, QRhiBuffer* b
   auto* result = new QRhiReadbackResult;
   result->completed = [result] { delete result; };
   batch->readBackBuffer(buf, 0, 1, result);
+  readbackStats().flush.fetch_add(1, std::memory_order_relaxed);
   cb.resourceUpdate(batch);
 }
 }

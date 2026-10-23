@@ -2198,6 +2198,12 @@ score_add_gfx_test(isf_storage_flex_size GfxIsfStorageFlexSize.cpp)
 # NBodyGravity). Skips without SCORE_TEST_LIBRARY_ROOT.
 score_add_gfx_test(library_feedback_shaders GfxLibraryFeedbackShaders.cpp)
 
+# A particle chain built entirely on the GPU (live count, indirect dispatch,
+# indirect count draw, geometry and texture feedback) reads no buffer back;
+# the readback counter moves under the forced CPU fallback. The library POP
+# chain part skips without SCORE_TEST_LIBRARY_ROOT.
+score_add_gfx_test(gpu_only_particles GfxGpuOnlyParticles.cpp)
+
 # A CSF storage buffer too large to allocate stops the node's passes.
 score_add_gfx_test(csf_storage_too_large GfxCsfStorageTooLarge.cpp)
 
