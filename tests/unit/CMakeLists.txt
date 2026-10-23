@@ -651,9 +651,45 @@ target_include_directories(test_unit_avnd_midi_delay SYSTEM PRIVATE
   "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/include"
   "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/examples")
 
+score_add_test(test_unit_avnd_midi_delay_presets
+  SOURCES AvndMidiDelayPresetsTest.cpp)
+target_include_directories(test_unit_avnd_midi_delay_presets SYSTEM PRIVATE
+  "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/include"
+  "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/examples")
+
 score_add_test(test_unit_avnd_midi_value_shaper
   SOURCES AvndMidiValueShaperTest.cpp)
 target_include_directories(test_unit_avnd_midi_value_shaper SYSTEM PRIVATE
+  "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/include"
+  "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/examples")
+
+score_add_test(test_unit_avnd_midi_humanizer_presets
+  SOURCES AvndMidiHumanizerPresetsTest.cpp)
+target_include_directories(test_unit_avnd_midi_humanizer_presets SYSTEM PRIVATE
+  "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/include"
+  "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/examples")
+
+score_add_test(test_unit_avnd_midi_sustain_presets
+  SOURCES AvndMidiSustainPresetsTest.cpp)
+target_include_directories(test_unit_avnd_midi_sustain_presets SYSTEM PRIVATE
+  "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/include"
+  "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/examples")
+
+score_add_test(test_unit_avnd_midi_scaler_presets
+  SOURCES AvndMidiScalerPresetsTest.cpp)
+target_include_directories(test_unit_avnd_midi_scaler_presets SYSTEM PRIVATE
+  "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/include"
+  "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/examples")
+
+score_add_test(test_unit_avnd_midi_dispatcher_presets
+  SOURCES AvndMidiDispatcherPresetsTest.cpp)
+target_include_directories(test_unit_avnd_midi_dispatcher_presets SYSTEM PRIVATE
+  "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/include"
+  "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/examples")
+
+score_add_test(test_unit_avnd_midi_mpe_presets
+  SOURCES AvndMidiMpePresetsTest.cpp)
+target_include_directories(test_unit_avnd_midi_mpe_presets SYSTEM PRIVATE
   "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/include"
   "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/examples")
 
@@ -678,6 +714,30 @@ target_include_directories(test_unit_avnd_midi_transform SYSTEM PRIVATE
 score_add_test(test_unit_avnd_midi_cc_snapshot
   SOURCES AvndMidiCCSnapshotTest.cpp)
 target_include_directories(test_unit_avnd_midi_cc_snapshot SYSTEM PRIVATE
+  "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/include"
+  "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/examples")
+
+score_add_test(test_unit_avnd_midi_filter_presets
+  SOURCES AvndMidiFilterPresetsTest.cpp)
+target_include_directories(test_unit_avnd_midi_filter_presets SYSTEM PRIVATE
+  "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/include"
+  "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/examples")
+
+score_add_test(test_unit_avnd_midi_transform_presets
+  SOURCES AvndMidiTransformPresetsTest.cpp)
+target_include_directories(test_unit_avnd_midi_transform_presets SYSTEM PRIVATE
+  "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/include"
+  "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/examples")
+
+score_add_test(test_unit_avnd_midi_cc_snapshot_presets
+  SOURCES AvndMidiCCSnapshotPresetsTest.cpp)
+target_include_directories(test_unit_avnd_midi_cc_snapshot_presets SYSTEM PRIVATE
+  "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/include"
+  "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/examples")
+
+score_add_test(test_unit_avnd_midi_value_shaper_presets
+  SOURCES AvndMidiValueShaperPresetsTest.cpp)
+target_include_directories(test_unit_avnd_midi_value_shaper_presets SYSTEM PRIVATE
   "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/include"
   "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/examples")
 
@@ -715,6 +775,19 @@ score_add_test(test_unit_avnd_midi_sync_in
 target_include_directories(test_unit_avnd_midi_sync_in SYSTEM PRIVATE
   "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/include"
   "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/examples")
+
+score_add_test(test_unit_avnd_midi_sync_in_presets
+  SOURCES AvndMidiSyncInPresetsTest.cpp)
+target_include_directories(test_unit_avnd_midi_sync_in_presets SYSTEM PRIVATE
+  "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/include"
+  "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/examples")
+
+score_add_test(test_unit_avnd_midi_sync_out_presets
+  SOURCES AvndMidiSyncOutPresetsTest.cpp
+  PLUGINS score_plugin_avnd)
+target_include_directories(test_unit_avnd_midi_sync_out_presets SYSTEM PRIVATE
+  "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-avnd"
+  "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/include")
 
 if(TARGET gamma)
   score_add_test(test_unit_avnd_compressor_limiter_flanger
@@ -757,9 +830,25 @@ if(TARGET score_plugin_fx)
     SOURCES FxQuantifierTest.cpp
     PLUGINS score_plugin_fx)
 
+  # The Arpeggiator and Midi quantify presets of the default package.
+  score_add_test(test_unit_fx_arpeggiator_presets
+    SOURCES FxArpeggiatorPresetsTest.cpp
+    PLUGINS score_plugin_fx)
+  score_add_test(test_unit_fx_quantifier_presets
+    SOURCES FxQuantifierPresetsTest.cpp
+    PLUGINS score_plugin_fx)
+
   # Chord: table, harmonizer, chance, strum, memory, MPE.
   score_add_test(test_unit_fx_chord
     SOURCES FxChordTest.cpp
+    PLUGINS score_plugin_fx)
+
+  # The Chord and Midi scale presets of the default package.
+  score_add_test(test_unit_fx_chord_presets
+    SOURCES FxChordPresetsTest.cpp
+    PLUGINS score_plugin_fx)
+  score_add_test(test_unit_fx_midi_scale_presets
+    SOURCES FxMidiScalePresetsTest.cpp
     PLUGINS score_plugin_fx)
 
   # The value-domain ExprTK processes (Micromap, Expression Value Filter /
@@ -1830,6 +1919,11 @@ if(TARGET score_plugin_fx)
   # LFO v3 one shot: a single cycle, then silence until Retrigger.
   score_add_test(test_unit_fx_lfo
     SOURCES FxLfoTest.cpp
+    PLUGINS score_plugin_fx)
+
+  # The LFO presets of the default package draw the curves they are named for.
+  score_add_test(test_unit_fx_lfo_presets
+    SOURCES FxLfoPresetsTest.cpp
     PLUGINS score_plugin_fx)
 
   # Metronome, quantizer, rate limiter and arpeggiator grids at every buffer
