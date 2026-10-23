@@ -8,6 +8,7 @@
 #include <halp/layout.hpp>
 #include <halp/meta.hpp>
 #include <halp/midi.hpp>
+#include <halp/note_matrix.hpp>
 
 #include <array>
 #include <optional>
@@ -183,8 +184,7 @@ static std::optional<std::size_t> find_closest_index(const scale_array& arr, std
   return std::nullopt;
 }
 
-//! What the twelve degree controls do: nothing (the scale applies), or
-//! move each degree by its own number of semitones.
+//! Whether the scale applies, or the map of degrees.
 enum class scale_mode : uint8_t
 {
   scale,
@@ -260,54 +260,31 @@ struct Node
       };
     } direction;
 
-    struct : halp::spinbox_i32<"I", halp::irange{-12, 12, 0}>
+    struct : halp::note_matrix<"Map">
     {
-      halp_meta(description, "Remap mode: semitones added to the notes on Base")
-    } d0;
-    struct : halp::spinbox_i32<"I#", halp::irange{-12, 12, 0}>
+      halp_meta(
+          description,
+          "Remap mode: the degree each degree of the octave from Base plays. "
+          "Click a cell to choose, click the lit cell to mute that degree")
+    } map;
+
+    struct : halp::toggle<"Fold">
     {
-      halp_meta(description, "Remap mode: semitones added to the notes 1 semitone above Base")
-    } d1;
-    struct : halp::spinbox_i32<"II", halp::irange{-12, 12, 0}>
+      halp_meta(
+          description,
+          "Remap mode: a note the map moves by more than 6 semitones goes to the "
+          "nearer octave instead")
+    } fold;
+
+    struct : halp::spinbox_i32<"Lowest", halp::irange{0, 127, 0}>
     {
-      halp_meta(description, "Remap mode: semitones added to the notes 2 semitones above Base")
-    } d2;
-    struct : halp::spinbox_i32<"II#", halp::irange{-12, 12, 0}>
+      halp_meta(description, "Lowest note that is mapped; notes outside the range pass unchanged")
+    } lowest;
+
+    struct : halp::spinbox_i32<"Range", halp::irange{0, 127, 127}>
     {
-      halp_meta(description, "Remap mode: semitones added to the notes 3 semitones above Base")
-    } d3;
-    struct : halp::spinbox_i32<"III", halp::irange{-12, 12, 0}>
-    {
-      halp_meta(description, "Remap mode: semitones added to the notes 4 semitones above Base")
-    } d4;
-    struct : halp::spinbox_i32<"IV", halp::irange{-12, 12, 0}>
-    {
-      halp_meta(description, "Remap mode: semitones added to the notes 5 semitones above Base")
-    } d5;
-    struct : halp::spinbox_i32<"IV#", halp::irange{-12, 12, 0}>
-    {
-      halp_meta(description, "Remap mode: semitones added to the notes 6 semitones above Base")
-    } d6;
-    struct : halp::spinbox_i32<"V", halp::irange{-12, 12, 0}>
-    {
-      halp_meta(description, "Remap mode: semitones added to the notes 7 semitones above Base")
-    } d7;
-    struct : halp::spinbox_i32<"V#", halp::irange{-12, 12, 0}>
-    {
-      halp_meta(description, "Remap mode: semitones added to the notes 8 semitones above Base")
-    } d8;
-    struct : halp::spinbox_i32<"VI", halp::irange{-12, 12, 0}>
-    {
-      halp_meta(description, "Remap mode: semitones added to the notes 9 semitones above Base")
-    } d9;
-    struct : halp::spinbox_i32<"VI#", halp::irange{-12, 12, 0}>
-    {
-      halp_meta(description, "Remap mode: semitones added to the notes 10 semitones above Base")
-    } d10;
-    struct : halp::spinbox_i32<"VII", halp::irange{-12, 12, 0}>
-    {
-      halp_meta(description, "Remap mode: semitones added to the notes 11 semitones above Base")
-    } d11;
+      halp_meta(description, "Semitones above Lowest that are mapped")
+    } range;
   } inputs;
   struct
   {
@@ -338,6 +315,8 @@ struct Node
         halp::item<&ins::sc> sc;
         halp::item<&ins::direction> direction;
       } in_scale;
+      halp::item<&ins::lowest> lowest;
+      halp::item<&ins::range> range;
     } scale_page;
 
     struct
@@ -347,24 +326,13 @@ struct Node
       halp_meta(background, halp::colors::background_mid)
       struct
       {
-        halp_meta(layout, halp::layouts::grid)
-        halp_meta(columns, 4)
+        halp_meta(layout, halp::layouts::vbox)
         static constexpr auto condition()
         {
           return halp::enabled_when<&ins::mode, scale_mode::remap>{};
         }
-        halp::item<&ins::d0> d0;
-        halp::item<&ins::d1> d1;
-        halp::item<&ins::d2> d2;
-        halp::item<&ins::d3> d3;
-        halp::item<&ins::d4> d4;
-        halp::item<&ins::d5> d5;
-        halp::item<&ins::d6> d6;
-        halp::item<&ins::d7> d7;
-        halp::item<&ins::d8> d8;
-        halp::item<&ins::d9> d9;
-        halp::item<&ins::d10> d10;
-        halp::item<&ins::d11> d11;
+        halp::item<&ins::map> map;
+        halp::item<&ins::fold> fold;
       } degrees;
     } remap;
   };
@@ -385,21 +353,35 @@ struct Node
   int transpose{};
   scale_mode mode{};
   scale_direction direction{};
-  std::array<int, 12> offsets{};
+  std::array<int, 12> degrees{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11};
+  bool fold{};
+  int lowest{};
+  int range{127};
 
   static uint16_t key(int chan, int pitch) noexcept { return uint16_t(chan * 128 + pitch); }
 
   //! The map never allocates on the audio thread.
   Node() { map.reserve(16 * 128); }
 
-  //! Uses the mode, direction, offsets and base of the current tick.
+  //! Uses the mode, direction, map and base of the current tick. Notes
+  //! outside [lowest, lowest + range] pass unchanged.
   std::optional<uint8_t>
   map_note(const scale_array& scale, int pitch, int transp) const noexcept
   {
+    if(pitch < lowest || pitch > lowest + range)
+      return (uint8_t)pitch;
     if(mode == scale_mode::remap)
     {
       const int degree = ((pitch - base) % 12 + 12) % 12;
-      return (uint8_t)ossia::clamp(pitch + offsets[degree] + transp, 0, 127);
+      const int target = degrees[degree];
+      if(target < 0 || target > 12)
+        return std::nullopt;
+      int offset = target - degree;
+      if(fold && offset > 6)
+        offset -= 12;
+      else if(fold && offset < -6)
+        offset += 12;
+      return (uint8_t)ossia::clamp(pitch + offset + transp, 0, 127);
     }
     if(auto index = find_index(scale, pitch, direction))
       return (uint8_t)ossia::clamp(int(*index) + transp, 0, 127);
@@ -544,19 +526,21 @@ struct Node
   }
 
     const auto& in = inputs;
-    const std::array<int, 12> new_offsets{
-        in.d0.value, in.d1.value, in.d2.value, in.d3.value, in.d4.value,  in.d5.value,
-        in.d6.value, in.d7.value, in.d8.value, in.d9.value, in.d10.value, in.d11.value};
     const bool changed = new_scale != this->scale || new_base != this->base
                          || new_transpose != this->transpose
                          || in.mode.value != this->mode
                          || in.direction.value != this->direction
-                         || new_offsets != this->offsets;
+                         || in.map.value != this->degrees || in.fold.value != this->fold
+                         || in.lowest.value != this->lowest
+                         || in.range.value != this->range;
 
     this->base = new_base;
     this->mode = in.mode.value;
     this->direction = in.direction.value;
-    this->offsets = new_offsets;
+    this->degrees = in.map.value;
+    this->fold = in.fold.value;
+    this->lowest = in.lowest.value;
+    this->range = in.range.value;
 
     if(!this->map.empty() && changed)
     {

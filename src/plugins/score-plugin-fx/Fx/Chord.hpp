@@ -6,10 +6,12 @@
 #include <Advanced/MidiScaler/MidiCommon/Theory.hpp>
 
 #include <halp/audio.hpp>
+#include <halp/channel_mask.hpp>
 #include <halp/controls.hpp>
 #include <halp/layout.hpp>
 #include <halp/meta.hpp>
 #include <halp/midi.hpp>
+#include <halp/value_list.hpp>
 #include <libremidi/message.hpp>
 
 #include <algorithm>
@@ -66,6 +68,16 @@ struct int_list
       values[count++] = v;
       i = std::size_t(ptr - s.data());
     }
+  }
+
+  //! The elements of a list control, clamped.
+  void assign(const auto& values, int min, int max) noexcept
+  {
+    count = 0;
+    valid = true;
+    for(int v : values)
+      if(count < int(N))
+        this->values[count++] = std::clamp(v, min, max);
   }
 
   //! Element i, the last one repeating past the end; `fallback` when empty.
@@ -190,12 +202,16 @@ struct Node
       };
     } mode;
 
-    struct : halp::lineedit<"Intervals", "4 7">
+    struct : halp::value_list<"Intervals", int, max_intervals, 4, 7>
     {
       halp_meta(
           description,
-          "Harmonizer: up to 8 intervals in semitones from the played note, e.g. "
-          "4 7 or -12 7. A repeated interval plays one note")
+          "Harmonizer: intervals in semitones from the played note, e.g. 4 7 or "
+          "-12 7. A repeated interval plays one note")
+      static constexpr std::array<halp::list_column, 1> columns()
+      {
+        return {halp::list_column{.name = "Semitones", .min = -48, .max = 48, .init = 7}};
+      }
     } intervals;
 
     struct : halp::toggle<"Play root", halp::toggle_setup{.init = true}>
@@ -212,20 +228,28 @@ struct Node
           "octaves")
     } inversion;
 
-    struct : halp::lineedit<"Voice chance", "100">
+    struct : halp::value_list<"Voice chance", int, max_voices, 100>
     {
       halp_meta(
           description,
           "Percent chance of each voice, from the root up, e.g. 100 50 50. The "
           "last value applies to the remaining voices")
+      static constexpr std::array<halp::list_column, 1> columns()
+      {
+        return {halp::list_column{.name = "Percent", .min = 0, .max = 100, .init = 100}};
+      }
     } chance;
 
-    struct : halp::lineedit<"Voice velocity", "100">
+    struct : halp::value_list<"Voice velocity", int, max_voices, 100>
     {
       halp_meta(
           description,
           "Percent of the played velocity for each voice, from the root up, e.g. "
           "100 80 60. The last value applies to the remaining voices")
+      static constexpr std::array<halp::list_column, 1> columns()
+      {
+        return {halp::list_column{.name = "Percent", .min = 0, .max = 400, .init = 100}};
+      }
     } velocity;
 
     struct : halp::spinbox_i32<"Seed", halp::irange{0, 10000, 0}>
@@ -292,9 +316,9 @@ struct Node
           "CC 74 of the note that started it")
     } mpe;
 
-    struct : halp::lineedit<"MPE channels", "2-16">
+    struct : halp::channel_mask<"MPE channels", 0xFFFE>
     {
-      halp_meta(description, "Channels the MPE voices use, e.g. 2-16")
+      halp_meta(description, "Channels the MPE voices use. None: 2 to 16")
     } mpe_channels;
   } inputs;
 
@@ -486,16 +510,12 @@ private:
       reseed();
     }
 
-    m_intervals.update(inputs.intervals.value, -127, 127);
-    m_chance.update(inputs.chance.value, 0, 100);
-    m_velocity.update(inputs.velocity.value, 0, 400);
+    m_intervals.assign(inputs.intervals.value, -127, 127);
+    m_chance.assign(inputs.chance.value, 0, 100);
+    m_velocity.assign(inputs.velocity.value, 0, 400);
     update_memory(inputs.memory.value);
 
-    const auto& chans = m_mpe_channels.update(inputs.mpe_channels.value, 1, 16);
-    uint16_t mask = 0;
-    for(int ch = 1; ch <= 16; ch++)
-      if(chans.contains(ch))
-        mask |= uint16_t(1u << (ch - 1));
+    const uint16_t mask = inputs.mpe_channels.mask();
     m_alloc.set_channels(mask != 0 ? mask : uint16_t(0xFFFE));
 
     if(!inputs.learn.value)
@@ -732,7 +752,7 @@ private:
       case Harmonizer: {
         if(inputs.root.value)
           add(0);
-        const auto& iv = m_intervals.list;
+        const auto& iv = m_intervals;
         for(int i = 0; i < std::min(iv.count, max_intervals); i++)
         {
           bool seen = false;
@@ -864,8 +884,8 @@ private:
     for(int i = 0; i < n; i++)
     {
       const double draw = random01() * 100.;
-      const int chance = m_chance.list.at_or_last(v[i].index, 100);
-      const int percent = m_velocity.list.at_or_last(v[i].index, 100);
+      const int chance = m_chance.at_or_last(v[i].index, 100);
+      const int percent = m_velocity.at_or_last(v[i].index, 100);
       const int out = pitch + v[i].offset;
       if(draw >= chance || out < 0 || out > 127)
         continue;
@@ -1075,10 +1095,9 @@ private:
   tracker_type m_tracker;
   mtk::event_queue<512> m_queue;
   mtk::channel_allocator m_alloc;
-  mtk::cached_range_list m_mpe_channels;
-  cached_int_list<max_intervals> m_intervals;
-  cached_int_list<max_voices> m_chance;
-  cached_int_list<max_voices> m_velocity;
+  int_list<max_intervals> m_intervals;
+  int_list<max_voices> m_chance;
+  int_list<max_voices> m_velocity;
 
   std::array<learned_chord, 128> m_memory{};
   std::array<char, max_memory_text> m_memory_text{};
