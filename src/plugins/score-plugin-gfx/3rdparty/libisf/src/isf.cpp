@@ -5371,6 +5371,15 @@ void parser::parse_raw_raster_pipeline()
   // One BLEND_PER_ATTACHMENT entry per colour output: a short list repeated its
   // last entry for the remaining outputs, a long one dropped the extra entries
   // (shader board R18 / R31).
+  // Depth has no portable mip generation: Qt's Vulkan blit uses colour aspects
+  // and D3D refuses it (shader board R32).
+  for(const auto& out : m_desc.outputs)
+    if(out.generate_mips && out.type == "depth")
+      throw invalid_file{
+          "OUTPUTS \"" + out.name
+          + "\" is a depth output with GENERATE_MIPS, which no backend can generate. "
+            "Write the levels with PER_MIP passes, or generate mips on a colour output."};
+
   // Raw raster has the one pass set above, so the header's PIPELINE_STATE is
   // the whole pipeline state. Without FRAGMENT_OUTPUTS the shader writes its
   // own single colour output.

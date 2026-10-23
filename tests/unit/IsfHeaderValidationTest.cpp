@@ -440,3 +440,20 @@ void main() { gl_FragColor = IMG_NORM_PIXEL(tex, vec2(0.5)); }
   REQUIRE(img);
   CHECK(img->sampler.anisotropy == 8.f);
 }
+
+// A depth OUTPUT has no portable mip generation: Qt's Vulkan blit uses colour
+// aspects (17 validation errors) and D3D refuses it. GENERATE_MIPS on depth is
+// refused rather than skipped in silence (shader board R32); on colour it is
+// accepted.
+TEST_CASE("GENERATE_MIPS on a depth output is refused", "[isf][header][R32]")
+{
+  CHECK_THAT(
+      refusal([] {
+    parseRawRaster(R"("OUTPUTS": [ { "NAME": "color", "TYPE": "color" },
+                                   { "NAME": "depth", "TYPE": "depth", "GENERATE_MIPS": true } ])");
+  }),
+      Catch::Matchers::ContainsSubstring("GENERATE_MIPS"));
+  CHECK_NOTHROW(parseRawRaster(
+      R"("OUTPUTS": [ { "NAME": "color", "TYPE": "color", "GENERATE_MIPS": true },
+                      { "NAME": "depth", "TYPE": "depth" } ])"));
+}
