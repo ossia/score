@@ -4,8 +4,8 @@
   "ISFVSN": "2.0",
   "MODE": "COMPUTE_SHADER",
   "CATEGORIES": ["TEST-IMAGE"],
-  "INPUTS": [ { "NAME": "size", "TYPE": "long", "DEFAULT": 16, "MIN": 1, "MAX": 64 } ],
   "RESOURCES": [
+    { "NAME": "size", "TYPE": "long", "DEFAULT": 16, "MIN": 1, "MAX": 64 },
     { "NAME": "outputImage", "TYPE": "image", "ACCESS": "write_only", "FORMAT": "rgba8", "WIDTH": "$size", "HEIGHT": "$size" }
   ],
   "PASSES": [

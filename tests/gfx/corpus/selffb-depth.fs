@@ -9,7 +9,7 @@
   "FRAGMENT_INPUTS": [],
   "FRAGMENT_OUTPUTS": [ { "TYPE": "vec4", "NAME": "isf_FragColor" } ],
   "INPUTS": [
-    { "NAME": "inputImage", "TYPE": "image", "DEPTH": true }
+    { "NAME": "inputImage", "TYPE": "image", "IS_DEPTH": true }
   ],
   "PIPELINE_STATE": {
     "DEPTH_TEST": true,

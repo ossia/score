@@ -4,11 +4,9 @@
   "ISFVSN": "2.0",
   "MODE": "COMPUTE_SHADER",
   "CATEGORIES": ["TEST-SYNTHETIC", "TEST-INDIRECT", "TEST-EXECUTION-MODEL"],
-  "INPUTS": [
-    { "NAME": "count",  "TYPE": "long", "DEFAULT": 3, "MIN": 0, "MAX": 8 },
-    { "NAME": "poison", "TYPE": "long", "DEFAULT": 0, "MIN": 0, "MAX": 1 }
-  ],
   "RESOURCES": [
+    { "NAME": "count",  "TYPE": "long", "DEFAULT": 3, "MIN": 0, "MAX": 8 },
+    { "NAME": "poison", "TYPE": "long", "DEFAULT": 0, "MIN": 0, "MAX": 1 },
     {
       "NAME": "geo",
       "TYPE": "geometry",

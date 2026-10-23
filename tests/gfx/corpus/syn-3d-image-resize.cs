@@ -4,10 +4,8 @@
   "ISFVSN": "2.0",
   "MODE": "COMPUTE_SHADER",
   "CATEGORIES": ["TEST-3D"],
-  "INPUTS": [
-    { "NAME": "edge", "TYPE": "long", "DEFAULT": 64, "MIN": 1, "MAX": 256 }
-  ],
   "RESOURCES": [
+    { "NAME": "edge", "TYPE": "long", "DEFAULT": 64, "MIN": 1, "MAX": 256 },
     { "NAME": "volume", "TYPE": "image", "ACCESS": "write_only", "FORMAT": "rgba8", "WIDTH": "$edge", "HEIGHT": "$edge", "DEPTH": "$edge" }
   ],
   "PASSES": [

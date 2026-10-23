@@ -7,7 +7,7 @@
   "RESOURCES": [
     { "NAME": "geoIn", "TYPE": "geometry",
       "ATTRIBUTES": [ { "NAME": "foo", "SEMANTIC": "foo", "TYPE": "float", "ACCESS": "read_only", "REQUIRED": false } ],
-      "AUXILIARY": [ { "NAME": "shadow", "TYPE": "texture", "DEPTH": true } ] },
+      "AUXILIARY": [ { "NAME": "shadow", "TYPE": "texture", "IS_DEPTH": true } ] },
     { "NAME": "after", "TYPE": "texture" },
     { "NAME": "outputImage", "TYPE": "image", "ACCESS": "write_only", "FORMAT": "rgba8", "WIDTH": "64", "HEIGHT": "64" }
   ],

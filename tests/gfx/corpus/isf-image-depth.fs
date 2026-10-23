@@ -4,7 +4,7 @@
   "ISFVSN": "2.0",
   "CATEGORIES": ["TEST-IMAGE"],
   "INPUTS": [
-    { "NAME": "inputImage", "TYPE": "image", "DEPTH": true }
+    { "NAME": "inputImage", "TYPE": "image", "IS_DEPTH": true }
   ]
 }*/
 

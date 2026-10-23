@@ -9,7 +9,7 @@
   "INPUTS": [],
   "LAYER": {
     "TARGETS": [
-      { "NAME": "accum", "FORMAT": "rgba16f", "BLEND": { "SRC": "one", "DST": "one" } },
+      { "NAME": "accum", "FORMAT": "rgba16f", "BLEND": { "SRC_COLOR": "one", "DST_COLOR": "one", "SRC_ALPHA": "one", "DST_ALPHA": "one" } },
       { "NAME": "reveal", "FORMAT": "r16f", "CLEAR": [1, 0, 0, 0], "BLEND": { "SRC_COLOR": "zero", "DST_COLOR": "one_minus_src_color", "SRC_ALPHA": "zero", "DST_ALPHA": "one_minus_src_alpha" } }
     ],
     "RESOLVE": { "COMPOSITE": "over" }

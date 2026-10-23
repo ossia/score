@@ -4,10 +4,8 @@
   "ISFVSN": "2.0",
   "MODE": "COMPUTE_SHADER",
   "CATEGORIES": ["TEST-SYNTHETIC", "TEST-INSTANCING", "TEST-INDIRECT"],
-  "INPUTS": [
-    { "NAME": "count", "TYPE": "long", "DEFAULT": 3, "MIN": 0, "MAX": 8 }
-  ],
   "RESOURCES": [
+    { "NAME": "count", "TYPE": "long", "DEFAULT": 3, "MIN": 0, "MAX": 8 },
     {
       "NAME": "geo",
       "TYPE": "geometry",

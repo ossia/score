@@ -4,12 +4,10 @@
   "ISFVSN": "2.0",
   "MODE": "COMPUTE_SHADER",
   "CATEGORIES": ["TEST-SYNTHETIC", "TEST-INDIRECT", "PARTICLES"],
-  "INPUTS": [
+  "RESOURCES": [
     { "NAME": "alive",  "TYPE": "long", "DEFAULT": 5, "MIN": 0, "MAX": 16 },
     { "NAME": "tick",   "TYPE": "long", "DEFAULT": 0, "MIN": 0, "MAX": 64 },
-    { "NAME": "poison", "TYPE": "long", "DEFAULT": 0, "MIN": 0, "MAX": 1 }
-  ],
-  "RESOURCES": [
+    { "NAME": "poison", "TYPE": "long", "DEFAULT": 0, "MIN": 0, "MAX": 1 },
     {
       "NAME": "geo",
       "TYPE": "geometry",

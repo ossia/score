@@ -504,6 +504,21 @@ static void drop_unsupported_compare_3d(sampler_config& s, const char* where)
   s.compare.clear();
 }
 
+// IS_DEPTH: the texture holds depth (sampled with COMPARE for shadows). DEPTH
+// is the extent of a volume (shader board R44); a boolean DEPTH is the older
+// spelling of IS_DEPTH, still read for the libraries and documents that use it.
+static void parse_is_depth(const sajson::value& v, bool& depth)
+{
+  if(auto k = v.find_object_key_insensitive(sajson::literal("DEPTH")); k != v.get_length())
+  {
+    const auto t = v.get_object_value(k).get_type();
+    if(t == sajson::TYPE_TRUE || t == sajson::TYPE_FALSE)
+      depth = t == sajson::TYPE_TRUE;
+  }
+  if(auto k = v.find_object_key_insensitive(sajson::literal("IS_DEPTH")); k != v.get_length())
+    depth = v.get_object_value(k).get_type() == sajson::TYPE_TRUE;
+}
+
 static void parse_input(image_input& inp, const sajson::value& v)
 {
   if(auto k = v.find_object_key_insensitive(sajson::literal("DIMENSIONS"));
@@ -520,11 +535,7 @@ static void parse_input(image_input& inp, const sajson::value& v)
       inp.dimensions = d;
     }
   }
-  if(auto k = v.find_object_key_insensitive(sajson::literal("DEPTH"));
-     k != v.get_length())
-  {
-    inp.depth = v.get_object_value(k).get_type() == sajson::TYPE_TRUE;
-  }
+  parse_is_depth(v, inp.depth);
   if(auto k = v.find_object_key_insensitive(sajson::literal("IS_ARRAY"));
      k != v.get_length())
   {
@@ -562,11 +573,7 @@ static void parse_input(image_input& inp, const sajson::value& v)
 }
 static void parse_input(cubemap_input& inp, const sajson::value& v)
 {
-  if(auto k = v.find_object_key_insensitive(sajson::literal("DEPTH"));
-     k != v.get_length())
-  {
-    inp.depth = v.get_object_value(k).get_type() == sajson::TYPE_TRUE;
-  }
+  parse_is_depth(v, inp.depth);
   parse_sampler_config(inp.sampler, v);
 }
 
@@ -1050,20 +1057,16 @@ static void parse_auxiliary_texture(
     }
     else if(fkey == "IS_ARRAY" || fkey == "ARRAY")
       out.is_array = (fval.get_type() == sajson::TYPE_TRUE);
+    else if(fkey == "IS_DEPTH")
+      // The texture holds depth (paired with COMPARE for shadow samplers).
+      out.is_depth = fval.get_type() == sajson::TYPE_TRUE;
     else if(fkey == "DEPTH")
     {
-      // DEPTH overload — context-dependent:
-      //   "DEPTH": true   → the texture holds depth (paired with COMPARE for
-      //                     shadow-comparison samplers); one binding
-      //   "DEPTH": <int>  → 3D-texture depth dimension literal
-      //   "DEPTH": "<expr>" → 3D-texture depth dimension expression
-      // Distinguishable by sajson type so authors can use either form
-      // without the parser silently dropping one.
+      // The depth of a volume, a literal or an expression (shader board R44).
+      // A boolean DEPTH is the older spelling of IS_DEPTH, still read.
       const auto t = fval.get_type();
-      if(t == sajson::TYPE_TRUE)
-        out.is_depth = true;
-      else if(t == sajson::TYPE_FALSE)
-        out.is_depth = false;
+      if(t == sajson::TYPE_TRUE || t == sajson::TYPE_FALSE)
+        out.is_depth = t == sajson::TYPE_TRUE;
       else if(t == sajson::TYPE_INTEGER)
         out.depth_expression = std::to_string(fval.get_integer_value());
       else if(t == sajson::TYPE_DOUBLE)
@@ -1072,7 +1075,10 @@ static void parse_auxiliary_texture(
         out.depth_expression = fval.as_string();
     }
     else if(fkey == "STORAGE")
-      out.is_storage = (fval.get_type() == sajson::TYPE_TRUE);
+      throw invalid_file{
+          "auxiliary texture \"" + out.name
+          + "\": a storage image is declared by its TYPE: storage_image, storage_3d, "
+            "storage_cube or storage_image_array."};
     else if(fkey == "FORMAT" && fval.get_type() == sajson::TYPE_STRING)
       out.format = lower_value(fval);
     else if(fkey == "ACCESS" && fval.get_type() == sajson::TYPE_STRING)
@@ -1118,17 +1124,8 @@ static void parse_auxiliary_texture(
   if(!out.depth_expression.empty() && out.dimensions == 2)
     out.dimensions = 3;
 
-  // Auto-infer storage-image semantics when FORMAT is explicitly set to
-  // anything other than the sampled-texture default (rgba8). ONLY uses
-  // FORMAT — NOT ACCESS — because `access` defaults to "read_write" in
-  // the struct, so FORMAT is the only usable discriminator.
-  if(!out.is_storage)
-  {
-    const bool format_implies_storage
-        = !out.format.empty() && out.format != "rgba8";
-    if(format_implies_storage)
-      out.is_storage = true;
-  }
+  // A storage image is what its TYPE says (storage_*), never inferred from a
+  // FORMAT other than rgba8 (shader board R44).
   // Inherit the flat sampler_config fields (WRAP/FILTER/COMPARE/…).
   parse_sampler_config(out.sampler, aux_obj);
   // Storage images don't use the sampler; regular samplers on a 3D texture
@@ -2282,10 +2279,18 @@ static void parse_blend_attachment(const sajson::value& v, blend_attachment& out
     else if(k == "DST_ALPHA"  ) get_str(val, out.dst_alpha);
     else if(k == "OP_ALPHA"   ) get_str(val, out.op_alpha);
     else if(k == "COLOR_WRITE") get_str(val, out.color_write);
-    // Legacy shorter names
-    else if(k == "SRC"        ) { get_str(val, out.src_color); out.src_alpha = out.src_color; }
-    else if(k == "DST"        ) { get_str(val, out.dst_color); out.dst_alpha = out.dst_color; }
-    else if(k == "OP"         ) { get_str(val, out.op_color);  out.op_alpha  = out.op_color;  }
+    // One spelling per field: the SRC / DST / OP shorthand for both colour and
+    // alpha is removed (shader board R14), and an unknown key is refused
+    // rather than ignored.
+    else if(k == "SRC" || k == "DST" || k == "OP")
+      throw invalid_file{
+          "BLEND: " + k + " is not a blend key; set " + k + "_COLOR and " + k
+          + "_ALPHA."};
+    else
+      throw invalid_file{
+          "BLEND: unknown key " + k
+          + " (ENABLE, SRC_COLOR, DST_COLOR, OP_COLOR, SRC_ALPHA, DST_ALPHA, OP_ALPHA, "
+            "COLOR_WRITE)"};
   }
 }
 
@@ -3183,7 +3188,16 @@ static const ossia::string_map<root_fun>& root_parse{[] {
             // Handle special cases for CSF image types
             //   "image"      → 2D / 3D storage image (image2D / image3D)
             //   "image_cube" → writable cubemap storage image (imageCube)
-            if(type_str == "image" || type_str == "image_cube")
+            // except an image with neither ACCESS nor FORMAT, a sampled
+            // texture, as it was in INPUTS, the list RESOURCES replaces
+            // (shader board C07).
+            const bool sampled_image
+                = type_str == "image"
+                  && obj.find_object_key_insensitive(sajson::literal("ACCESS"))
+                         == obj.get_length()
+                  && obj.find_object_key_insensitive(sajson::literal("FORMAT"))
+                         == obj.get_length();
+            if(!sampled_image && (type_str == "image" || type_str == "image_cube"))
             {
               input inp;
               parse_input_base(inp, obj);
@@ -6910,7 +6924,7 @@ std::string parser::write_isf() const
         void operator()(const image_input& img) {
           oss << "      \"TYPE\": \"image\"";
           if(img.depth)
-            oss << ",\n      \"DEPTH\": true";
+            oss << ",\n      \"IS_DEPTH\": true";
           if(img.is_array)
             oss << ",\n      \"IS_ARRAY\": true";
           if(img.dimensions != 2)
@@ -6921,7 +6935,7 @@ std::string parser::write_isf() const
         {
           oss << "      \"TYPE\": \"cubemap\"";
           if(c.depth)
-            oss << ",\n      \"DEPTH\": true";
+            oss << ",\n      \"IS_DEPTH\": true";
           oss << "\n";
         }
 
@@ -7140,7 +7154,7 @@ std::string parser::write_isf() const
               if(atx.dimensions != 2 && !atx.is_storage)
                 oss << ", \"DIMENSIONS\": " << atx.dimensions;
               if(atx.is_depth)
-                oss << ", \"DEPTH\": true";
+                oss << ", \"IS_DEPTH\": true";
               if(atx.is_storage)
               {
                 if(!atx.format.empty() && atx.format != "rgba8")
@@ -7539,6 +7553,8 @@ void parser::parse_csf()
   using namespace std::literals;
 
   auto [end, desc] = parse_isf_header(m_sourceFragment);
+  // RESOURCES is the list of a compute shader's controls and resources
+  // (shader board C07); INPUTS, its older spelling, is still read.
   default_image_visibility(desc, "compute");
   m_desc = std::move(desc);
   check_input_names(m_desc);

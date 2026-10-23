@@ -9,7 +9,7 @@
   "FRAGMENT_OUTPUTS": [ { "TYPE": "vec4", "NAME": "isf_FragColor" } ],
   "INPUTS": [
     { "NAME": "scene", "TYPE": "geometry", "ATTRIBUTES": [] },
-    { "NAME": "inputImage", "TYPE": "image", "DEPTH": true, "VISIBILITY": "fragment" },
+    { "NAME": "inputImage", "TYPE": "image", "IS_DEPTH": true, "VISIBILITY": "fragment" },
     { "NAME": "camera", "TYPE": "uniform", "VISIBILITY": "fragment", "LAYOUT": [ { "NAME": "view", "TYPE": "mat4" }, { "NAME": "params", "TYPE": "vec4" } ] },
     { "NAME": "level", "TYPE": "float", "DEFAULT": 0.25, "MIN": 0.0, "MAX": 1.0 },
     { "NAME": "mode", "TYPE": "long", "DEFAULT": 0, "VALUES": [0, 1], "LABELS": ["a", "b"] }

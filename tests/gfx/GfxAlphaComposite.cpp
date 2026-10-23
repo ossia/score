@@ -245,11 +245,9 @@ void main()
   const std::string csfSrc = R"_(/*{
   "ISFVSN": "2.0",
   "MODE": "COMPUTE_SHADER",
-  "INPUTS": [
-    { "NAME": "rt", "TYPE": "image" },
-    { "NAME": "vol", "TYPE": "texture", "DIMENSIONS": 3 }
-  ],
   "RESOURCES": [
+    { "NAME": "rt", "TYPE": "image" },
+    { "NAME": "vol", "TYPE": "texture", "DIMENSIONS": 3 },
     { "NAME": "src", "TYPE": "image", "ACCESS": "read_only", "FORMAT": "RGBA8" },
     { "NAME": "outputImage", "TYPE": "image", "ACCESS": "write_only", "FORMAT": "RGBA8", "WIDTH": "8", "HEIGHT": "8" }
   ],

@@ -4,10 +4,8 @@
   "ISFVSN": "2.0",
   "MODE": "COMPUTE_SHADER",
   "CATEGORIES": ["TEST"],
-  "INPUTS": [
-    { "NAME": "e6img", "TYPE": "image", "ACCESS": "write_only", "FORMAT": "rgba8" }
-  ],
   "RESOURCES": [
+    { "NAME": "e6img", "TYPE": "image", "ACCESS": "write_only", "FORMAT": "rgba8" },
     {
       "NAME": "geoOut",
       "TYPE": "geometry",

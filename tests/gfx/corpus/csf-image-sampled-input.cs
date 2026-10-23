@@ -3,8 +3,7 @@
   "CREDIT": "test",
   "ISFVSN": "2.0",
   "MODE": "COMPUTE_SHADER",
-  "INPUTS": [ { "NAME": "inputImage", "TYPE": "image" } ],
-  "RESOURCES": [ { "NAME": "outImage", "TYPE": "image", "ACCESS": "write_only", "FORMAT": "RGBA8", "WIDTH": "64", "HEIGHT": "64" } ],
+  "RESOURCES": [ { "NAME": "inputImage", "TYPE": "image" }, { "NAME": "outImage", "TYPE": "image", "ACCESS": "write_only", "FORMAT": "RGBA8", "WIDTH": "64", "HEIGHT": "64" } ],
   "PASSES": [ { "LOCAL_SIZE": [8, 8, 1], "EXECUTION_MODEL": { "TYPE": "2D_IMAGE", "TARGET": "outImage" } } ]
 }*/
 void main()

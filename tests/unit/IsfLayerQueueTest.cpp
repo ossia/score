@@ -69,7 +69,7 @@ bool rejects(const std::string& keys, const std::string& outputs = oneOutput,
 const std::string twoTargets = R"_(,
   "LAYER": {
     "TARGETS": [
-      { "NAME": "accum", "FORMAT": "RGBA16F", "BLEND": { "SRC": "one", "DST": "one" } },
+      { "NAME": "accum", "FORMAT": "RGBA16F", "BLEND": { "SRC_COLOR": "one", "DST_COLOR": "one", "SRC_ALPHA": "one", "DST_ALPHA": "one" } },
       { "NAME": "reveal", "FORMAT": "r8", "CLEAR": [1], "COMPOSITE": "multiply" }
     ],
     "DEPTH_TEST": false,

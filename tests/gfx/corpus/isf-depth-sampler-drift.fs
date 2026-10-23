@@ -4,7 +4,7 @@
   "ISFVSN": "2.0",
   "CATEGORIES": ["TEST-IMAGE", "TEST-BINDING"],
   "INPUTS": [
-    { "NAME": "imgA", "TYPE": "image", "DEPTH": true },
+    { "NAME": "imgA", "TYPE": "image", "IS_DEPTH": true },
     { "NAME": "imgB", "TYPE": "image" }
   ]
 }*/

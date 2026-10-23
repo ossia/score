@@ -9,8 +9,8 @@
   "INPUTS": [],
   "LAYER": {
     "TARGETS": [
-      { "NAME": "sum", "FORMAT": "rgba16f", "BLEND": { "SRC": "one", "DST": "one" } },
-      { "NAME": "peak", "FORMAT": "rgba16f", "CLEAR": [0.25, 0.25, 0.25, 0.25], "BLEND": { "SRC": "one", "DST": "one", "OP": "max" } }
+      { "NAME": "sum", "FORMAT": "rgba16f", "BLEND": { "SRC_COLOR": "one", "DST_COLOR": "one", "SRC_ALPHA": "one", "DST_ALPHA": "one" } },
+      { "NAME": "peak", "FORMAT": "rgba16f", "CLEAR": [0.25, 0.25, 0.25, 0.25], "BLEND": { "SRC_COLOR": "one", "DST_COLOR": "one", "OP_COLOR": "max", "SRC_ALPHA": "one", "DST_ALPHA": "one", "OP_ALPHA": "max" } }
     ],
     "RESOLVE": { "COMPOSITE": "replace" }
   },

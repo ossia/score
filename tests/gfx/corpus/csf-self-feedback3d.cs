@@ -3,10 +3,8 @@
   "CREDIT": "test",
   "ISFVSN": "2.0",
   "MODE": "COMPUTE_SHADER",
-  "INPUTS": [
-    { "NAME": "prev", "TYPE": "texture", "DIMENSIONS": 3 }
-  ],
   "RESOURCES": [
+    { "NAME": "prev", "TYPE": "texture", "DIMENSIONS": 3 },
     { "NAME": "volOut", "TYPE": "image", "ACCESS": "write_only", "FORMAT": "RGBA8", "WIDTH": "8", "HEIGHT": "8", "DEPTH": "8" }
   ],
   "PASSES": [ { "LOCAL_SIZE": [4, 4, 4], "EXECUTION_MODEL": { "TYPE": "3D_IMAGE", "TARGET": "volOut" } } ]

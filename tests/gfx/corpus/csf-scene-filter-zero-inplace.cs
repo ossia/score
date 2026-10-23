@@ -4,7 +4,7 @@
   "ISFVSN": "2",
   "MODE": "COMPUTE_SHADER",
   "CATEGORIES": ["TEST"],
-  "INPUTS": [
+  "RESOURCES": [
     { "NAME": "scene", "TYPE": "geometry",
       "ATTRIBUTES": [],
       "AUXILIARY": [

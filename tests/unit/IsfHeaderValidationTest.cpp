@@ -515,6 +515,213 @@ void main() { color = vec4(1.0); }
                          + ", " + f("_private") + ", " + f("myTIME")));
 }
 
+// A COMPUTE_SHADER declares its controls and resources in RESOURCES (shader
+// board C07). INPUTS, the older spelling of the same list, is still read the
+// same way, silently: the published libraries and saved documents use it.
+TEST_CASE("a COMPUTE_SHADER reads INPUTS as RESOURCES", "[isf][header][csf][C07]")
+{
+  const auto csf = [](const std::string& list) {
+    return isf::parser{
+        {},
+        R"_(/*{
+  "ISFVSN": "2.0",
+  "MODE": "COMPUTE_SHADER",
+  )_" + list + R"_(: [
+    { "NAME": "gain", "TYPE": "float", "DEFAULT": 1.0 },
+    { "NAME": "src", "TYPE": "image" },
+    { "NAME": "outputImage", "TYPE": "image", "ACCESS": "write_only", "FORMAT": "rgba8", "WIDTH": 8, "HEIGHT": 8 }
+  ],
+  "PASSES": [ { "LOCAL_SIZE": [8, 8, 1], "EXECUTION_MODEL": { "TYPE": "2D_IMAGE", "TARGET": "outputImage" } } ]
+}*/
+void main() { imageStore(outputImage, ivec2(gl_GlobalInvocationID.xy), vec4(gain) * IMG_NORM_PIXEL(src, vec2(0.5))); }
+)_",
+        450, isf::parser::ShaderType::CSF};
+  };
+  for(const char* list : {R"("RESOURCES")", R"("INPUTS")"})
+  {
+    CAPTURE(list);
+    const auto d = csf(list).data();
+    REQUIRE(d.inputs.size() == 3);
+    // An image with neither ACCESS nor FORMAT is a sampled texture; with them,
+    // a storage image.
+    CHECK(ossia::get_if<isf::float_input>(&d.inputs[0].data));
+    CHECK(ossia::get_if<isf::texture_input>(&d.inputs[1].data));
+    CHECK(ossia::get_if<isf::csf_image_input>(&d.inputs[2].data));
+    CHECK(d.warnings.empty());
+  }
+}
+
+// A blend entry has one spelling per field: SRC_COLOR / SRC_ALPHA, DST_COLOR /
+// DST_ALPHA, OP_COLOR / OP_ALPHA. The SRC / DST / OP shorthand for both is
+// removed (shader board R14), and an unknown key is refused rather than
+// ignored, so a removed or misspelt key never blends differently in silence.
+TEST_CASE("a blend entry refuses the SRC / DST / OP shorthand and unknown keys", "[isf][header][R14]")
+{
+  for(const char* key : {"SRC", "DST", "OP"})
+  {
+    CAPTURE(key);
+    const auto msg = refusal([&] {
+      parseRawRaster(
+          std::string{R"("PIPELINE_STATE": { "BLEND": { "ENABLE": true, ")"} + key
+          + R"(": "one" } })");
+    });
+    CHECK_THAT(msg, Catch::Matchers::ContainsSubstring(std::string{key} + "_COLOR"));
+  }
+  CHECK_THAT(
+      refusal([] {
+    parseRawRaster(R"("PIPELINE_STATE": { "BLEND": { "ENABLE": true, "SCR_COLOR": "one" } })");
+  }),
+      Catch::Matchers::ContainsSubstring("SCR_COLOR"));
+  CHECK_THAT(
+      refusal([] {
+    parseRawRaster(R"("LAYER": { "TARGETS": [ { "NAME": "color", "BLEND": { "SRC": "one" } } ] })");
+  }),
+      Catch::Matchers::ContainsSubstring("SRC_COLOR"));
+  CHECK_NOTHROW(parseRawRaster(
+      R"("PIPELINE_STATE": { "BLEND": { "ENABLE": true, "SRC_COLOR": "one", "DST_COLOR": "one",
+         "OP_COLOR": "add", "SRC_ALPHA": "one", "DST_ALPHA": "one", "OP_ALPHA": "max",
+         "COLOR_WRITE": "rgba" } })"));
+}
+
+// Textures (shader board R44). The flag that makes a texture hold depth is
+// IS_DEPTH, like IS_ARRAY; DEPTH is the extent of a volume. A boolean DEPTH, the
+// older spelling of the flag, is still read as IS_DEPTH, silently: the
+// published libraries and saved documents use it.
+// An auxiliary texture is a storage image only when its TYPE says so
+// (storage_image, storage_3d, ...): a FORMAT other than rgba8 used to turn it
+// into one silently.
+TEST_CASE("texture DEPTH, IS_DEPTH and storage are explicit", "[isf][header][R44]")
+{
+  const auto isf_with = [](const std::string& input) {
+    return isf::parser{
+        {},
+        R"_(/*{ "ISFVSN": "2", "INPUTS": [ )_" + input + R"_( ] }*/
+void main() { gl_FragColor = vec4(1.0); }
+)_",
+        450, isf::parser::ShaderType::ISF};
+  };
+  for(const char* key : {"IS_DEPTH", "DEPTH"})
+  {
+    CAPTURE(key);
+    for(const bool v : {true, false})
+    {
+      CAPTURE(v);
+      const std::string flag = std::string{"\""} + key + "\": " + (v ? "true" : "false");
+      const auto d = isf_with(R"({ "NAME": "depthTex", "TYPE": "image", )" + flag + " }").data();
+      REQUIRE(!d.inputs.empty());
+      const auto* img = ossia::get_if<isf::image_input>(&d.inputs[0].data);
+      REQUIRE(img);
+      CHECK(img->depth == v);
+      CHECK(d.warnings.empty());
+      const auto c = isf_with(R"({ "NAME": "env", "TYPE": "cubemap", )" + flag + " }").data();
+      REQUIRE(!c.inputs.empty());
+      const auto* cube = ossia::get_if<isf::cubemap_input>(&c.inputs[0].data);
+      REQUIRE(cube);
+      CHECK(cube->depth == v);
+    }
+  }
+
+  const auto aux = [](const std::string& entry) {
+    return isf::parser{
+        std::string(k_vert),
+        R"_(/*{
+  "ISFVSN": "2",
+  "MODE": "RAW_RASTER_PIPELINE",
+  "VERTEX_INPUTS": [ { "TYPE": "vec3", "NAME": "position" } ],
+  "FRAGMENT_OUTPUTS": [ { "TYPE": "vec4", "NAME": "color" } ],
+  "INPUTS": [ { "NAME": "geo", "TYPE": "geometry",
+                "ATTRIBUTES": [ { "NAME": "position", "SEMANTIC": "position", "TYPE": "vec3", "ACCESS": "read_only" } ],
+                "AUXILIARY": [ )_" + entry + R"_( ] } ]
+}*/
+void main() { color = vec4(1.0); }
+)_",
+        450, isf::parser::ShaderType::RawRasterPipeline};
+  };
+  const auto aux_tex = [&](const std::string& entry) {
+    const auto d = aux(entry).data();
+    for(const auto& in : d.inputs)
+      if(auto* g = ossia::get_if<isf::geometry_input>(&in.data))
+        if(!g->auxiliary_textures.empty())
+          return g->auxiliary_textures.front();
+    FAIL("no auxiliary texture");
+    return isf::geometry_input::auxiliary_texture_request{};
+  };
+
+  // FORMAT alone no longer makes a storage image.
+  CHECK_FALSE(aux_tex(R"({ "NAME": "lut", "TYPE": "image", "FORMAT": "r32f" })").is_storage);
+  {
+    const auto t = aux_tex(
+        R"({ "NAME": "vox", "TYPE": "storage_3d", "FORMAT": "r32ui", "ACCESS": "read_only", "DEPTH": 64 })");
+    CHECK(t.is_storage);
+    CHECK(t.dimensions == 3);
+    CHECK(t.depth_expression == "64");
+  }
+  CHECK(aux_tex(R"({ "NAME": "shadow", "TYPE": "image", "IS_DEPTH": true })").is_depth);
+  CHECK(aux_tex(R"({ "NAME": "shadow", "TYPE": "image", "DEPTH": true })").is_depth);
+  CHECK_FALSE(aux_tex(R"({ "NAME": "shadow", "TYPE": "image", "DEPTH": false })").is_depth);
+  CHECK_THAT(
+      refusal([&] { aux(R"({ "NAME": "img", "TYPE": "image", "STORAGE": true })"); }),
+      Catch::Matchers::ContainsSubstring("storage_image"));
+}
+
+// VERTEX_COUNT makes a raw raster draw procedural: it draws that many vertices
+// from gl_VertexIndex, without the mesh. Next to VERTEX_INPUTS, which read the
+// mesh, it was silently clamped to the mesh's vertex count and drew it without
+// its index buffer (shader board R21); that is refused. INSTANCE_COUNT alone
+// is accepted with vertex inputs: it multiplies the mesh draws.
+TEST_CASE("raw raster VERTEX_COUNT is for procedural draws", "[isf][header][R21]")
+{
+  CHECK_THAT(
+      refusal([] { parseRawRaster(R"("PIPELINE_STATE": { "VERTEX_COUNT": 3 })"); }),
+      Catch::Matchers::ContainsSubstring("VERTEX_INPUTS"));
+  CHECK_NOTHROW(parseRawRaster(R"("PIPELINE_STATE": { "INSTANCE_COUNT": 4 })"));
+  CHECK_NOTHROW(isf::parser{
+      std::string(k_vert),
+      R"_(/*{
+  "ISFVSN": "2",
+  "MODE": "RAW_RASTER_PIPELINE",
+  "VERTEX_INPUTS": [],
+  "FRAGMENT_OUTPUTS": [ { "TYPE": "vec4", "NAME": "color" } ],
+  "INPUTS": [],
+  "PIPELINE_STATE": { "VERTEX_COUNT": 3, "INSTANCE_COUNT": 2 }
+}*/
+void main() { color = vec4(1.0); }
+)_",
+      450, isf::parser::ShaderType::RawRasterPipeline});
+}
+
+// MULTIVIEW N draws into N layers of every colour output: an output with fewer
+// layers was accepted, then rendered as a single 2D view, or looped over the
+// layers it had (shader board R39). It is refused; a cubemap has 6 layers.
+TEST_CASE("a MULTIVIEW output has at least as many layers as views", "[isf][header][R39]")
+{
+  const auto mv = [](const std::string& outputs) {
+    return isf::parser{
+        std::string(k_vert),
+        R"_(/*{
+  "ISFVSN": "2",
+  "MODE": "RAW_RASTER_PIPELINE",
+  "MULTIVIEW": 4,
+  "VERTEX_INPUTS": [ { "TYPE": "vec3", "NAME": "position" } ],
+  "FRAGMENT_OUTPUTS": [ { "TYPE": "vec4", "NAME": "color" } ],
+  "OUTPUTS": [ )_" + outputs + R"_( ],
+  "INPUTS": []
+}*/
+void main() { color = vec4(1.0); }
+)_",
+        450, isf::parser::ShaderType::RawRasterPipeline};
+  };
+  CHECK_THAT(
+      refusal([&] { mv(R"({ "NAME": "views", "TYPE": "color", "LAYERS": 2 })"); }),
+      Catch::Matchers::ContainsSubstring("MULTIVIEW"));
+  CHECK_THAT(
+      refusal([&] { mv(R"({ "NAME": "views", "TYPE": "color" })"); }),
+      Catch::Matchers::ContainsSubstring("\"views\""));
+  CHECK_NOTHROW(mv(R"({ "NAME": "views", "TYPE": "color", "LAYERS": 4 })"));
+  CHECK_NOTHROW(mv(R"({ "NAME": "views", "TYPE": "color", "LAYERS": 8 })"));
+  CHECK_NOTHROW(mv(R"({ "NAME": "cube", "TYPE": "color", "CUBEMAP": true })"));
+}
+
 // demote is a keyword only with GL_EXT_demote_to_helper_invocation, which no
 // generated shader enables: an input of that name compiles and is not refused.
 TEST_CASE("an input named demote is accepted", "[isf][header][U05]")

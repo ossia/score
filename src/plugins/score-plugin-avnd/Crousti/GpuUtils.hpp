@@ -719,7 +719,7 @@ struct port_to_type_enum
 //   - `samplable_depth` (samplable_depth_of) — opt-in to having the
 //     framework allocate a sampleable depth attachment on the producing
 //     edge's RT and expose its handle through `texture.depth_handle`,
-//     mirroring the semantics CSF/ISF shaders get via "DEPTH": true.
+//     mirroring the semantics CSF/ISF shaders get via "IS_DEPTH": true.
 template <typename Field>
 constexpr score::gfx::Flag port_flags_for_field() noexcept
 {
