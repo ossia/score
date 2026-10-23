@@ -3,6 +3,8 @@
 #include <QGraphicsScene>
 #include <QGraphicsView>
 
+#include <cmath>
+
 namespace Dataflow
 {
 
@@ -13,6 +15,10 @@ QWidget* makeGraphicsViewForInspectorItem(QGraphicsItem* item, QWidget* parent)
   s->setParent(widg);
   widg->setMinimumWidth(item->boundingRect().width());
   widg->setMinimumHeight(item->boundingRect().height());
+  // The form layout of the inspector gives extra height to expanding widgets:
+  // the view is exactly as tall as its item.
+  widg->setMaximumHeight(std::ceil(item->boundingRect().height()));
+  widg->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
   widg->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
   widg->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 

@@ -24,6 +24,9 @@ public:
   void focusInEvent(QFocusEvent* e) override;
   void focusOutEvent(QFocusEvent* e) override;
   QVariant itemChange(GraphicsItemChange change, const QVariant& value) override;
+  void paint(
+      QPainter* painter, const QStyleOptionGraphicsItem* option,
+      QWidget* widget) override;
 
   void checkSize();
 

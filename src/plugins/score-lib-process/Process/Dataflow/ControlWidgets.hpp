@@ -916,7 +916,7 @@ struct LineEdit
     auto sl = new QLineEdit{parent};
     sl->setText(QString::fromStdString(ossia::convert<std::string>(inlet.value())));
     sl->setContentsMargins(0, 0, 0, 0);
-    sl->setMaximumWidth(70);
+    sl->setMinimumWidth(70);
     QObject::connect(sl, &QLineEdit::editingFinished, context, [sl, &inlet, &ctx]() {
       CommandDispatcher<>{ctx.commandStack}.submit<SetControlValue<T>>(
           inlet, sl->text().toStdString());
@@ -1385,12 +1385,51 @@ struct Enum
     return sl;
   }
 
+  //! Beyond this many values, a grid of buttons takes more room than the rest of
+  //! the process: the enum is drawn as a drop-down instead.
+  static constexpr std::size_t max_values_as_buttons = 8;
+
   template <typename T, typename Control_T>
-  static auto make_item(
+  static QGraphicsItem* make_combo_item(
+      const T& slider, Control_T& inlet, const score::DocumentContext& ctx,
+      QObject* context)
+  {
+    const auto& values = slider.getValues();
+    auto sl = new score::QGraphicsCombo{QStringList(values.begin(), values.end()), nullptr};
+    initWidgetProperties(inlet, *sl);
+
+    auto set_index = [&slider, sl](const ossia::value& val) {
+      if(const int idx = slider.indexOfValue(val); idx >= 0)
+        sl->setValue(idx);
+    };
+    set_index(inlet.value());
+
+    QObject::connect(
+        sl, &score::QGraphicsCombo::sliderMoved, context, [&slider, sl, &inlet, &ctx] {
+      sl->moving = true;
+      if(auto v = slider.valueAtIndex(sl->value()); v.valid())
+        ctx.dispatcher.submit<SetControlValue<Control_T>>(inlet, std::move(v));
+    });
+    QObject::connect(sl, &score::QGraphicsCombo::sliderReleased, context, [sl, &ctx] {
+      ctx.dispatcher.commit();
+      sl->moving = false;
+    });
+    QObject::connect(&inlet, &Control_T::valueChanged, sl, [=](const ossia::value& val) {
+      if(!sl->moving)
+        set_index(val);
+    });
+    return sl;
+  }
+
+  template <typename T, typename Control_T>
+  static QGraphicsItem* make_item(
       const T& slider, Control_T& inlet, const score::DocumentContext& ctx,
       QGraphicsItem* parent, QObject* context)
   {
     const auto& values = slider.getValues();
+    const bool has_pixmaps = !slider.pixmaps.empty() && slider.pixmaps[0] != nullptr;
+    if(!has_pixmaps && std::size_t(values.size()) > max_values_as_buttons)
+      return make_combo_item(slider, inlet, ctx, context);
 
     auto sl = slider.pixmaps.empty() || slider.pixmaps[0] == nullptr
                   ? new score::QGraphicsEnum{values, nullptr}
