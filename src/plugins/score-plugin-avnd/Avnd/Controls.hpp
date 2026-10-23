@@ -2,6 +2,8 @@
 #include <Process/Dataflow/ControlWidgets.hpp>
 #include <Process/Dataflow/StringListEditor.hpp>
 
+#include <halp/value_list.hpp>
+
 #include <Scenario/Commands/SetControllerControlValue.hpp>
 
 #include <Crousti/Executor.hpp>
@@ -176,11 +178,23 @@ struct MatchingWidget<Field>
 template <typename Field>
 concept string_list_field = requires { Field::widget::string_list; };
 
+template <typename Field>
+concept value_list_field = requires { Field::widget::value_list; };
+
+template <typename Field>
+concept note_matrix_field = requires { Field::widget::note_matrix; };
+
+template <typename Field>
+concept channel_mask_field = requires { Field::widget::channel_mask; };
+
 template <typename Node, typename Refl>
 struct CustomControlFactory;
 
 template <typename Node, std::size_t N, typename Field>
-  requires(!avnd::controller_interaction_port<Field> && !string_list_field<Field>)
+  requires(
+      !avnd::controller_interaction_port<Field> && !string_list_field<Field>
+      && !value_list_field<Field> && !note_matrix_field<Field>
+      && !channel_mask_field<Field>)
 struct CustomControlFactory<Node, avnd::field_reflection<N, Field>>
     : public Dataflow::WidgetInletFactory<
           oscr::CustomFloatControl<Node, avnd::field_index<N>>,
@@ -432,6 +446,88 @@ struct CustomControlFactory<Node, avnd::field_reflection<N, Field>>
 {
 };
 
+//! The columns and count bounds of a halp::value_list
+template <typename Field>
+struct ValueListConfig
+{
+  static score::ValueListColumn column(const halp::list_column& c)
+  {
+    score::ValueListColumn res{
+        .name = QString::fromUtf8(c.name.data(), qsizetype(c.name.size())),
+        .min = c.min,
+        .max = c.max,
+        .init = c.init,
+        .integral = c.integral};
+    for(std::string_view choice : c.choices)
+      res.choices.push_back(QString::fromUtf8(choice.data(), qsizetype(choice.size())));
+    return res;
+  }
+
+  static void configure(score::QGraphicsValueList& list)
+  {
+    using element_type = typename Field::element_type;
+    std::vector<score::ValueListColumn> cols;
+    if constexpr(requires { Field::columns(); })
+    {
+      for(const auto& c : Field::columns())
+        cols.push_back(column(c));
+    }
+    else if constexpr(std::is_floating_point_v<element_type>)
+    {
+      cols.push_back(score::ValueListColumn{.min = 0., .max = 1., .integral = false});
+    }
+    else if constexpr(std::is_arithmetic_v<element_type>)
+    {
+      cols.push_back(score::ValueListColumn{});
+    }
+    else
+    {
+      avnd::pfr::for_each_field(element_type{}, [&]<typename F>(const F&) {
+        cols.push_back(score::ValueListColumn{.integral = std::is_integral_v<F>});
+      });
+    }
+    list.setColumns(std::move(cols));
+
+    int min = 0;
+    int max = int(Field::capacity);
+    if constexpr(requires { Field::min_count(); })
+      min = Field::min_count();
+    if constexpr(requires { Field::max_count(); })
+      max = std::min(max, int(Field::max_count()));
+    list.setCountRange(min, max);
+
+    if constexpr(requires { Field::items_per_line(); })
+      list.setItemsPerLine(Field::items_per_line());
+  }
+};
+
+template <typename Node, std::size_t N, typename Field>
+  requires value_list_field<Field>
+struct CustomControlFactory<Node, avnd::field_reflection<N, Field>>
+    : public Dataflow::WidgetInletFactory<
+          CustomGenericControl<Process::MultiSlider, Node, Field, avnd::field_index<N>>,
+          WidgetFactory::ValueList<ValueListConfig<Field>>>
+{
+};
+
+template <typename Node, std::size_t N, typename Field>
+  requires note_matrix_field<Field>
+struct CustomControlFactory<Node, avnd::field_reflection<N, Field>>
+    : public Dataflow::WidgetInletFactory<
+          CustomGenericControl<Process::MultiSlider, Node, Field, avnd::field_index<N>>,
+          WidgetFactory::GraphicsListControl<score::QGraphicsNoteMatrix>>
+{
+};
+
+template <typename Node, std::size_t N, typename Field>
+  requires channel_mask_field<Field>
+struct CustomControlFactory<Node, avnd::field_reflection<N, Field>>
+    : public Dataflow::WidgetInletFactory<
+          CustomGenericControl<Process::MultiSlider, Node, Field, avnd::field_index<N>>,
+          WidgetFactory::GraphicsListControl<score::QGraphicsChannelMask>>
+{
+};
+
 template <typename Node, std::size_t N, typename Field>
   requires controller_spinbox_field<Field>
 struct CustomControlFactory<Node, avnd::field_reflection<N, Field>>
@@ -458,7 +554,8 @@ template <std::size_t N, typename Field>
 struct controller_needs_factory<avnd::field_reflection<N, Field>>
     : std::bool_constant<
           controller_spinbox_field<Field> || controller_lineedit_field<Field>
-          || string_list_field<Field>>
+          || string_list_field<Field> || value_list_field<Field>
+          || note_matrix_field<Field> || channel_mask_field<Field>>
 {
 };
 

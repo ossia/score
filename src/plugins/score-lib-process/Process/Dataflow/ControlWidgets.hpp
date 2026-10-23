@@ -14,6 +14,7 @@
 #include <score/document/DocumentContext.hpp>
 #include <score/graphics/GraphicWidgets.hpp>
 #include <score/graphics/GraphicsItem.hpp>
+#include <score/graphics/GraphicsLayout.hpp>
 #include <score/graphics/RectItem.hpp>
 #include <score/graphics/TextItem.hpp>
 #include <score/tools/File.hpp>
@@ -406,6 +407,52 @@ struct FloatRangeSlider
     return sl;
   }
 };
+struct IntRangeSpinBox
+{
+  static Process::PortItemLayout layout() noexcept
+  {
+    return Process::DefaultControlLayouts::pad();
+  }
+
+  template <typename T>
+  static auto make_widget(
+      T& inlet, const score::DocumentContext& ctx, QWidget* parent, QObject* context)
+  {
+    return make_range_widget(inlet, ctx, parent, context, /* integral */ true);
+  }
+
+  template <typename T, typename Control_T>
+  static QGraphicsItem* make_item(
+      const T& slider, Control_T& inlet, const score::DocumentContext& ctx,
+      QGraphicsItem* parent, QObject* context)
+  {
+    auto sl = new score::QGraphicsIntXYSpinboxChooser{true, nullptr};
+    initWidgetProperties(inlet, *sl);
+    bindVec2Domain(slider, inlet, *sl);
+    sl->setValue(ossia::convert<ossia::vec2f>(inlet.value()));
+
+    QObject::connect(
+        sl, &score::QGraphicsIntXYSpinboxChooser::sliderMoved, context,
+        [=, &inlet, &ctx] {
+      sl->moving = true;
+      auto [x, y] = sl->value();
+      ctx.dispatcher.submit<SetControlValue<Control_T>>(inlet, ossia::make_vec(x, y));
+    });
+    QObject::connect(
+        sl, &score::QGraphicsIntXYSpinboxChooser::sliderReleased, context, [&ctx, sl]() {
+          ctx.dispatcher.commit();
+          sl->moving = false;
+        });
+
+    QObject::connect(&inlet, &Control_T::valueChanged, sl, [=](const ossia::value& val) {
+      if(!sl->moving)
+        sl->setValue(ossia::convert<ossia::vec2f>(val));
+    });
+
+    return sl;
+  }
+};
+
 struct FloatRangeSpinBox
 {
   static Process::PortItemLayout layout() noexcept
@@ -1939,6 +1986,104 @@ struct MultiSlider
         sl->setValue(std::move(val));
     });
 
+    return sl;
+  }
+};
+
+//! Rows of numbers. Config::configure(score::QGraphicsValueList&) sets the
+//! columns and the count range.
+template <typename Config>
+struct ValueList
+{
+  static Process::PortItemLayout layout() noexcept
+  {
+    return Process::DefaultControlLayouts::list();
+  }
+
+  template <typename T>
+  static QWidget* make_widget(
+      T& inlet, const score::DocumentContext& ctx, QWidget* parent, QObject* context)
+  {
+    // The inspector shows the same item as the process
+    return nullptr;
+  }
+
+  template <typename T, typename Control_T>
+  static QGraphicsItem* make_item(
+      const T&, Control_T& inlet, const score::DocumentContext& ctx,
+      QGraphicsItem* parent, QObject* context)
+  {
+    auto sl = new score::QGraphicsValueList{nullptr};
+    Config::configure(*sl);
+    sl->setValue(inlet.value());
+
+    QObject::connect(
+        sl, &score::QGraphicsValueList::sliderMoved, context, [=, &inlet, &ctx] {
+          sl->moving = true;
+          ctx.dispatcher.submit<SetControlValue<Control_T>>(inlet, sl->value());
+        });
+    QObject::connect(
+        sl, &score::QGraphicsValueList::sliderReleased, context, [&ctx, sl] {
+          ctx.dispatcher.commit();
+          sl->moving = false;
+        });
+    QObject::connect(
+        sl, &score::QGraphicsValueList::edited, context, [sl, &inlet, &ctx] {
+          CommandDispatcher<>{ctx.commandStack}.submit<SetControlValue<Control_T>>(
+              inlet, sl->value());
+        });
+    QObject::connect(&inlet, &Control_T::valueChanged, sl, [sl](const ossia::value& val) {
+      if(!sl->moving)
+        sl->setValue(val);
+    });
+
+    QObject::connect(sl, &score::QGraphicsValueList::sizeChanged, sl, [sl, context] {
+      score::GraphicsLayout::relayoutAround(sl);
+      if(auto obj = dynamic_cast<score::ResizeableItem*>(context))
+        obj->childrenSizeChanged();
+    });
+
+    return sl;
+  }
+};
+
+//! A graphics item editing a whole list value at once, with the signals of
+//! the sliders: score::QGraphicsNoteMatrix, score::QGraphicsChannelMask.
+template <typename Item_T>
+struct GraphicsListControl
+{
+  static Process::PortItemLayout layout() noexcept
+  {
+    return Process::DefaultControlLayouts::list();
+  }
+
+  template <typename T>
+  static QWidget* make_widget(
+      T& inlet, const score::DocumentContext& ctx, QWidget* parent, QObject* context)
+  {
+    return nullptr;
+  }
+
+  template <typename T, typename Control_T>
+  static QGraphicsItem* make_item(
+      const T&, Control_T& inlet, const score::DocumentContext& ctx,
+      QGraphicsItem* parent, QObject* context)
+  {
+    auto sl = new Item_T{nullptr};
+    sl->setValue(inlet.value());
+
+    QObject::connect(sl, &Item_T::sliderMoved, context, [=, &inlet, &ctx] {
+      sl->moving = true;
+      ctx.dispatcher.submit<SetControlValue<Control_T>>(inlet, sl->value());
+    });
+    QObject::connect(sl, &Item_T::sliderReleased, context, [&ctx, sl] {
+      ctx.dispatcher.commit();
+      sl->moving = false;
+    });
+    QObject::connect(&inlet, &Control_T::valueChanged, sl, [sl](const ossia::value& val) {
+      if(!sl->moving)
+        sl->setValue(val);
+    });
     return sl;
   }
 };

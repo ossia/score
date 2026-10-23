@@ -306,7 +306,8 @@ make_control_in(avnd::field_index<N>, Id<Process::Port>&& id, QObject* parent)
   else if constexpr(widg.widget == avnd::widget_type::range_slider)
   {
     static constexpr auto c = avnd::get_range<T>();
-    if constexpr(std::is_integral_v<value_type>)
+    // The bounds' type: the value is a {start, end} pair
+    if constexpr(std::is_integral_v<std::decay_t<decltype(value_type{}.start)>>)
     {
       auto [start, end] = c.init;
       return new Process::IntRangeSlider{c.min, c.max, {(float)start, (float)end},
@@ -322,7 +323,8 @@ make_control_in(avnd::field_index<N>, Id<Process::Port>&& id, QObject* parent)
   else if constexpr(widg.widget == avnd::widget_type::range_spinbox)
   {
     static constexpr auto c = avnd::get_range<T>();
-    if constexpr(std::is_integral_v<value_type>)
+    // The bounds' type: the value is a {start, end} pair
+    if constexpr(std::is_integral_v<std::decay_t<decltype(value_type{}.start)>>)
     {
       auto [start, end] = c.init;
       return new Process::IntRangeSpinBox{c.min, c.max, {(float)start, (float)end},
@@ -337,6 +339,18 @@ make_control_in(avnd::field_index<N>, Id<Process::Port>&& id, QObject* parent)
   }
   else if constexpr(widg.widget == avnd::widget_type::string_list)
   {
+    auto p
+        = new CustomGenericControl<Process::MultiSlider, Node, T, avnd::field_index<N>>{
+            oscr::to_ossia_value(T{}.value), qname, id, parent};
+    p->setDomain(State::Domain{});
+    return p;
+  }
+  else if constexpr(
+      widg.widget == avnd::widget_type::value_list
+      || widg.widget == avnd::widget_type::note_matrix
+      || widg.widget == avnd::widget_type::channel_mask)
+  {
+    // An empty domain: the port must not clamp the list
     auto p
         = new CustomGenericControl<Process::MultiSlider, Node, T, avnd::field_index<N>>{
             oscr::to_ossia_value(T{}.value), qname, id, parent};
