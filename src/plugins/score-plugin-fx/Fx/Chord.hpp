@@ -7,6 +7,7 @@
 
 #include <halp/audio.hpp>
 #include <halp/controls.hpp>
+#include <halp/layout.hpp>
 #include <halp/meta.hpp>
 #include <halp/midi.hpp>
 #include <libremidi/message.hpp>
@@ -211,7 +212,7 @@ struct Node
           "octaves")
     } inversion;
 
-    struct : halp::lineedit<"Chance", "100">
+    struct : halp::lineedit<"Voice chance", "100">
     {
       halp_meta(
           description,
@@ -219,7 +220,7 @@ struct Node
           "last value applies to the remaining voices")
     } chance;
 
-    struct : halp::lineedit<"Velocity", "100">
+    struct : halp::lineedit<"Voice velocity", "100">
     {
       halp_meta(
           description,
@@ -240,7 +241,7 @@ struct Node
       halp_meta(description, "Delay between successive notes of a chord")
     } strum;
 
-    struct : halp::enum_t<StrumDirection, "Strum dir">
+    struct : halp::enum_t<StrumDirection, "Strum direction">
     {
       halp_meta(
           description, "Order of the strum: low to high, high to low, or both in turn")
@@ -301,6 +302,95 @@ struct Node
   {
     midi_out midi;
   } outputs;
+
+  struct ui
+  {
+    halp_meta(name, "Chord")
+    halp_meta(layout, halp::layouts::hbox)
+    halp_meta(background, halp::colors::background_dark)
+
+    struct
+    {
+      halp_meta(name, "Chord")
+      halp_meta(layout, halp::layouts::section)
+      halp_meta(background, halp::colors::background_mid)
+      halp::item<&ins::mode> mode;
+      struct
+      {
+        halp_meta(layout, halp::layouts::vbox)
+        static constexpr auto condition()
+        {
+          return halp::enabled_when<&ins::mode, PlayMode::Table>{};
+        }
+        halp::item<&ins::chord> chord;
+        halp::item<&ins::num> num;
+      } table;
+      halp::item<&ins::inversion> inversion;
+    } chord;
+
+    struct
+    {
+      halp_meta(name, "Strum")
+      halp_meta(layout, halp::layouts::section)
+      halp_meta(background, halp::colors::background_mid)
+      halp::item<&ins::strum> strum;
+      halp::item<&ins::strum_direction, halp::label_as("Direction")> strum_direction;
+      struct
+      {
+        halp_meta(layout, halp::layouts::hbox)
+        halp::item<&ins::tension> tension;
+        halp::item<&ins::crescendo> crescendo;
+      } shape;
+    } strum;
+
+    struct
+    {
+      halp_meta(name, "Settings")
+      halp_meta(layout, halp::layouts::tabs)
+      halp_meta(background, halp::colors::background_darker)
+
+      struct
+      {
+        halp_meta(name, "Harmonizer")
+        halp_meta(layout, halp::layouts::vbox)
+        static constexpr auto condition()
+        {
+          return halp::enabled_when<&ins::mode, PlayMode::Harmonizer>{};
+        }
+        halp::item<&ins::intervals> intervals;
+        halp::item<&ins::root> root;
+      } harmonizer;
+
+      struct
+      {
+        halp_meta(name, "Voices")
+        halp_meta(layout, halp::layouts::vbox)
+        halp::item<&ins::chance> chance;
+        halp::item<&ins::velocity> velocity;
+        halp::item<&ins::seed> seed;
+      } voices;
+
+      struct
+      {
+        halp_meta(name, "Memory")
+        halp_meta(layout, halp::layouts::vbox)
+        static constexpr auto condition()
+        {
+          return halp::enabled_when<&ins::mode, PlayMode::Memory>{};
+        }
+        halp::item<&ins::learn> learn;
+        halp::item<&ins::memory> memory;
+      } memory;
+
+      struct
+      {
+        halp_meta(name, "MPE")
+        halp_meta(layout, halp::layouts::vbox)
+        halp::item<&ins::mpe> mpe;
+        halp::item<&ins::mpe_channels, halp::label_as("Channels")> mpe_channels;
+      } mpe;
+    } settings;
+  };
 
   // C C# D D# E F F# G G# A A# B
   // 1 .  . .  1 . .  1 .  1 .  .

@@ -5,6 +5,7 @@
 #include <ossia/detail/math.hpp>
 
 #include <halp/controls.hpp>
+#include <halp/layout.hpp>
 #include <halp/meta.hpp>
 #include <halp/midi.hpp>
 
@@ -226,7 +227,7 @@ struct Node
   halp_meta(description, "Maps a midi input to a given scale")
   halp_meta(uuid, "06b33b83-bb67-4f7a-9980-f5d66e4266c5")
 
-  struct
+  struct ins
   {
     halp::midi_bus<"in", libremidi::message> midi;
     halp::string_enum_t<scale_type, "Scale"> sc; // FIXME check that this works
@@ -259,24 +260,114 @@ struct Node
       };
     } direction;
 
-    // Remap: semitones added to each degree, counted from Base.
-    halp::spinbox_i32<"I", halp::irange{-12, 12, 0}> d0;
-    halp::spinbox_i32<"I#", halp::irange{-12, 12, 0}> d1;
-    halp::spinbox_i32<"II", halp::irange{-12, 12, 0}> d2;
-    halp::spinbox_i32<"II#", halp::irange{-12, 12, 0}> d3;
-    halp::spinbox_i32<"III", halp::irange{-12, 12, 0}> d4;
-    halp::spinbox_i32<"IV", halp::irange{-12, 12, 0}> d5;
-    halp::spinbox_i32<"IV#", halp::irange{-12, 12, 0}> d6;
-    halp::spinbox_i32<"V", halp::irange{-12, 12, 0}> d7;
-    halp::spinbox_i32<"V#", halp::irange{-12, 12, 0}> d8;
-    halp::spinbox_i32<"VI", halp::irange{-12, 12, 0}> d9;
-    halp::spinbox_i32<"VI#", halp::irange{-12, 12, 0}> d10;
-    halp::spinbox_i32<"VII", halp::irange{-12, 12, 0}> d11;
+    struct : halp::spinbox_i32<"I", halp::irange{-12, 12, 0}>
+    {
+      halp_meta(description, "Remap mode: semitones added to the notes on Base")
+    } d0;
+    struct : halp::spinbox_i32<"I#", halp::irange{-12, 12, 0}>
+    {
+      halp_meta(description, "Remap mode: semitones added to the notes 1 semitone above Base")
+    } d1;
+    struct : halp::spinbox_i32<"II", halp::irange{-12, 12, 0}>
+    {
+      halp_meta(description, "Remap mode: semitones added to the notes 2 semitones above Base")
+    } d2;
+    struct : halp::spinbox_i32<"II#", halp::irange{-12, 12, 0}>
+    {
+      halp_meta(description, "Remap mode: semitones added to the notes 3 semitones above Base")
+    } d3;
+    struct : halp::spinbox_i32<"III", halp::irange{-12, 12, 0}>
+    {
+      halp_meta(description, "Remap mode: semitones added to the notes 4 semitones above Base")
+    } d4;
+    struct : halp::spinbox_i32<"IV", halp::irange{-12, 12, 0}>
+    {
+      halp_meta(description, "Remap mode: semitones added to the notes 5 semitones above Base")
+    } d5;
+    struct : halp::spinbox_i32<"IV#", halp::irange{-12, 12, 0}>
+    {
+      halp_meta(description, "Remap mode: semitones added to the notes 6 semitones above Base")
+    } d6;
+    struct : halp::spinbox_i32<"V", halp::irange{-12, 12, 0}>
+    {
+      halp_meta(description, "Remap mode: semitones added to the notes 7 semitones above Base")
+    } d7;
+    struct : halp::spinbox_i32<"V#", halp::irange{-12, 12, 0}>
+    {
+      halp_meta(description, "Remap mode: semitones added to the notes 8 semitones above Base")
+    } d8;
+    struct : halp::spinbox_i32<"VI", halp::irange{-12, 12, 0}>
+    {
+      halp_meta(description, "Remap mode: semitones added to the notes 9 semitones above Base")
+    } d9;
+    struct : halp::spinbox_i32<"VI#", halp::irange{-12, 12, 0}>
+    {
+      halp_meta(description, "Remap mode: semitones added to the notes 10 semitones above Base")
+    } d10;
+    struct : halp::spinbox_i32<"VII", halp::irange{-12, 12, 0}>
+    {
+      halp_meta(description, "Remap mode: semitones added to the notes 11 semitones above Base")
+    } d11;
   } inputs;
   struct
   {
     midi_out midi;
   } outputs;
+
+  struct ui
+  {
+    halp_meta(name, "Midi scale")
+    halp_meta(layout, halp::layouts::hbox)
+    halp_meta(background, halp::colors::background_dark)
+
+    struct
+    {
+      halp_meta(name, "Scale")
+      halp_meta(layout, halp::layouts::section)
+      halp_meta(background, halp::colors::background_mid)
+      halp::item<&ins::mode> mode;
+      halp::item<&ins::base> base;
+      halp::item<&ins::transp> transp;
+      struct
+      {
+        halp_meta(layout, halp::layouts::vbox)
+        static constexpr auto condition()
+        {
+          return halp::enabled_when<&ins::mode, scale_mode::scale>{};
+        }
+        halp::item<&ins::sc> sc;
+        halp::item<&ins::direction> direction;
+      } in_scale;
+    } scale_page;
+
+    struct
+    {
+      halp_meta(name, "Remap")
+      halp_meta(layout, halp::layouts::section)
+      halp_meta(background, halp::colors::background_mid)
+      struct
+      {
+        halp_meta(layout, halp::layouts::grid)
+        halp_meta(columns, 4)
+        static constexpr auto condition()
+        {
+          return halp::enabled_when<&ins::mode, scale_mode::remap>{};
+        }
+        halp::item<&ins::d0> d0;
+        halp::item<&ins::d1> d1;
+        halp::item<&ins::d2> d2;
+        halp::item<&ins::d3> d3;
+        halp::item<&ins::d4> d4;
+        halp::item<&ins::d5> d5;
+        halp::item<&ins::d6> d6;
+        halp::item<&ins::d7> d7;
+        halp::item<&ins::d8> d8;
+        halp::item<&ins::d9> d9;
+        halp::item<&ins::d10> d10;
+        halp::item<&ins::d11> d11;
+      } degrees;
+    } remap;
+  };
 
   struct Note
   {
@@ -431,12 +522,17 @@ struct Node
       }
       else
       {
+        // A custom scale is a mask of '1' and '0' starting on Base. A text that
+        // is not such a mask, such as "custom" itself, keeps every note.
         scale_array arr{{}};
         const auto degrees = ossia::min(std::ssize(scale), std::ptrdiff_t(12));
+        bool is_mask = degrees > 0;
+        for(std::ptrdiff_t d = 0; d < degrees; d++)
+          is_mask &= scale[d] == '1' || scale[d] == '0';
         for(std::size_t note = 0; note < arr.size(); note++)
         {
-          const auto degree = std::ptrdiff_t(note % 12);
-          arr[note] = degree < degrees && scale[degree] == '1';
+          const auto degree = std::ptrdiff_t((note + 12 - new_base) % 12);
+          arr[note] = !is_mask || (degree < degrees && scale[degree] == '1');
         }
         f(arr, new_transpose);
       }

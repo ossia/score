@@ -94,6 +94,7 @@ struct Engine
   void update()
   {
     // Create the content of the arpeggio
+    bool spans_octaves = false;
     switch(previous_arpeggio)
     {
       case 0: // Forward
@@ -146,48 +147,54 @@ struct Engine
       case 6: // Up/Down: the top and the bottom once each
       case 7: // Down/Up
       {
+        const auto ext = notes_over_octaves();
         arpeggio.clear();
-        const int n = notes.size();
+        const int n = ext.size();
         for(int i = 0; i < n; i++)
-          arpeggio.push_back(chord{*(notes.begin() + i)});
+          arpeggio.push_back(chord{ext[i]});
         for(int i = n - 2; i > 0; i--)
-          arpeggio.push_back(chord{*(notes.begin() + i)});
+          arpeggio.push_back(chord{ext[i]});
         if(previous_arpeggio == 7 && n > 1)
           std::rotate(arpeggio.begin(), arpeggio.begin() + (n - 1), arpeggio.end());
+        spans_octaves = true;
         break;
       }
       case 8: // Converge: from the outside in
       case 9: // Diverge: from the inside out
       {
+        const auto ext = notes_over_octaves();
         arpeggio.clear();
-        int lo = 0, hi = int(notes.size()) - 1;
+        int lo = 0, hi = int(ext.size()) - 1;
         while(lo <= hi)
         {
-          arpeggio.push_back(chord{*(notes.begin() + lo)});
+          arpeggio.push_back(chord{ext[lo]});
           if(hi != lo)
-            arpeggio.push_back(chord{*(notes.begin() + hi)});
+            arpeggio.push_back(chord{ext[hi]});
           lo++;
           hi--;
         }
         if(previous_arpeggio == 9)
           std::reverse(arpeggio.begin(), arpeggio.end());
+        spans_octaves = true;
         break;
       }
       case 10: // Low Up: the lowest note between each of the others
       case 11: // High Up: the highest note between each of the others
       {
+        const auto ext = notes_over_octaves();
         arpeggio.clear();
-        const int n = notes.size();
+        const int n = ext.size();
         if(n == 1)
-          arpeggio.push_back(chord{*notes.begin()});
+          arpeggio.push_back(chord{ext[0]});
         const int pivot = previous_arpeggio == 10 ? 0 : n - 1;
         for(int i = 0; i < n; i++)
         {
           if(i == pivot)
             continue;
-          arpeggio.push_back(chord{*(notes.begin() + pivot)});
-          arpeggio.push_back(chord{*(notes.begin() + i)});
+          arpeggio.push_back(chord{ext[pivot]});
+          arpeggio.push_back(chord{ext[i]});
         }
+        spans_octaves = true;
         break;
       }
       case 12: // As played
@@ -211,6 +218,10 @@ struct Engine
           arpeggio[i * rep + r] = arpeggio[i];
     }
 
+    // These patterns already run across the octaves.
+    if(spans_octaves)
+      return;
+
     const std::size_t orig_size = arpeggio.size();
 
     // Create the octave duplicates based on octave mode
@@ -225,6 +236,31 @@ struct Engine
       for(int i = 1; i < previous_octave; i++)
         octavize(orig_size, -i);
     }
+  }
+
+  //! The held notes and their octave copies, lowest first, without
+  //! duplicates: what the patterns that run across the octaves walk through.
+  std::vector<std::pair<byte, byte>> notes_over_octaves() const
+  {
+    std::vector<std::pair<byte, byte>> ext;
+    const int lo_oct = previous_octave_mode != 1 ? -(previous_octave - 1) : 0;
+    const int hi_oct = previous_octave_mode != 2 ? (previous_octave - 1) : 0;
+    for(int o = lo_oct; o <= hi_oct; o++)
+      for(std::pair note : notes)
+      {
+        const int p = note.first + 12 * o;
+        if(p >= 0 && p <= 127)
+          ext.push_back({static_cast<byte>(p), note.second});
+      }
+    std::stable_sort(ext.begin(), ext.end(), [](const auto& a, const auto& b) {
+      return a.first < b.first;
+    });
+    ext.erase(
+        std::unique(ext.begin(), ext.end(), [](const auto& a, const auto& b) {
+      return a.first == b.first;
+    }),
+        ext.end());
+    return ext;
   }
 
   void arpeggiate(int size_mult)

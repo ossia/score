@@ -3,6 +3,7 @@
 #include <Advanced/MidiScaler/MidiCommon/Messages.hpp>
 #include <Advanced/MidiScaler/MidiCommon/Rhythm.hpp>
 #include <Fx/Arpeggiator.hpp>
+#include <halp/layout.hpp>
 
 #include <cmath>
 
@@ -128,7 +129,7 @@ struct Node
 
   using byte = unsigned char;
 
-  struct
+  struct ins
   {
     halp::midi_bus<"in", libremidi::message> midi;
     Arpeggios arpeggios;
@@ -170,7 +171,7 @@ struct Node
     } decay_target;
     Retrigger retrigger;
     Latch latch;
-    struct : halp::toggle<"Hold">
+    struct : halp::toggle<"Latch hold">
     {
       halp_meta(description, "With the Momentary latch: released notes keep playing while on")
     } hold;
@@ -184,6 +185,65 @@ struct Node
   {
     halp::midi_out_bus<"out", libremidi::message> midi;
   } outputs;
+
+  struct ui
+  {
+    halp_meta(name, "Arpeggiator")
+    halp_meta(layout, halp::layouts::hbox)
+    halp_meta(background, halp::colors::background_dark)
+
+    struct
+    {
+      halp_meta(name, "Pattern")
+      halp_meta(layout, halp::layouts::section)
+      halp_meta(background, halp::colors::background_mid)
+      halp::item<&ins::arpeggios> arpeggios;
+      halp::item<&ins::octave> octave;
+      halp::item<&ins::octave_mode> octave_mode;
+      halp::item<&ins::repeat> repeat;
+      halp::item<&ins::rate> rate;
+    } pattern;
+
+    struct
+    {
+      halp_meta(name, "Timing")
+      halp_meta(layout, halp::layouts::section)
+      halp_meta(background, halp::colors::background_mid)
+      halp::item<&ins::gate> gate;
+      halp::item<&ins::swing> swing;
+      halp::item<&ins::retrigger> retrigger;
+    } timing;
+
+    struct
+    {
+      halp_meta(name, "Velocity")
+      halp_meta(layout, halp::layouts::section)
+      halp_meta(background, halp::colors::background_mid)
+      halp::item<&ins::accent_every> accent_every;
+      halp::item<&ins::accent_velocity> accent_velocity;
+      halp::item<&ins::decay> decay;
+      halp::item<&ins::decay_target> decay_target;
+      halp::item<&ins::pressure> pressure;
+    } velocity;
+
+    struct
+    {
+      halp_meta(name, "Latch")
+      halp_meta(layout, halp::layouts::section)
+      halp_meta(background, halp::colors::background_mid)
+      halp::item<&ins::latch> latch;
+      struct
+      {
+        halp_meta(layout, halp::layouts::vbox)
+        static constexpr auto condition()
+        {
+          return halp::enabled_when<&ins::latch, int(LatchMomentary)>{};
+        }
+        halp::item<&ins::hold> hold;
+      } hold;
+      halp::item<&ins::seed> seed;
+    } latch;
+  };
 
   //! `notes` is what plays: the held keys, and with a latch, the released ones.
   Engine engine;
@@ -461,6 +521,9 @@ private:
         {
           if(auto it = engine.notes.find(m.bytes[1]); it != engine.notes.end())
           {
+            // The most recent kind of pressure wins: per-key values take over
+            // again from an earlier channel pressure.
+            m_channel_pressure = -1;
             it->second = byte(std::max(1, int(m.bytes[2])));
             return true;
           }
