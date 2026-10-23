@@ -5,6 +5,8 @@
 #include <QGraphicsSceneMouseEvent>
 #include <QPainter>
 
+#include <cmath>
+
 #include <wobjectimpl.h>
 
 #include <algorithm>
@@ -248,6 +250,22 @@ void QGraphicsRangeSlider::paint(
   auto linesRect = m_rangeRect.adjusted(0, 1, 0, 0);
   painter->drawLine(linesRect.topLeft(), linesRect.bottomLeft());
   painter->drawLine(linesRect.topRight(), linesRect.bottomRight());
+
+  // The bounds, at the two ends; each in the color that reads on what lies
+  // under it, the selected range or the background.
+  const auto v = value();
+  const auto text = [](float x) {
+    return std::abs(x) >= 100.f || x == std::round(x) ? QString::number(std::lround(x))
+                                                       : QString::number(x, 'f', 2);
+  };
+  painter->setFont(skin.Medium8Pt);
+  const QRectF textRect = m_rect.adjusted(3, 0, -3, 0);
+  const QColor onRange{QColor::fromRgb(0x20, 0x20, 0x20)};
+  const QColor onBackground{QColor::fromRgb(0xd0, 0xd0, 0xd0)};
+  painter->setPen(m_rangeRect.left() <= textRect.left() + 6 ? onRange : onBackground);
+  painter->drawText(textRect, Qt::AlignLeft | Qt::AlignVCenter, text(v[0]));
+  painter->setPen(m_rangeRect.right() >= textRect.right() - 6 ? onRange : onBackground);
+  painter->drawText(textRect, Qt::AlignRight | Qt::AlignVCenter, text(v[1]));
 }
 
 void QGraphicsRangeSlider::updateRect()
