@@ -207,6 +207,22 @@ TEST_CASE("Midi scale presets: remaps", "[presets][midi_scale]")
       {{60, 60}, {61, 62}, {63, 64}, {66, 67}, {68, 69}, {70, 71}, {71, 71}});
 }
 
+TEST_CASE("Midi scale presets: matrix", "[presets][midi_scale]")
+{
+  // Ableton's inversion: C to the C above, then down the diagonal
+  check_map(
+      "Invert melody around C",
+      {{60, 72}, {62, 70}, {64, 68}, {65, 67}, {67, 65}, {69, 63}, {71, 61}});
+  // Mirrored around C, each note moving by 6 semitones at most
+  check_map(
+      "Invert melody, same register",
+      {{60, 60}, {62, 58}, {64, 68}, {65, 67}, {67, 65}, {69, 63}, {71, 73}});
+  check_map(
+      "Mute the black keys",
+      {{60, 60}, {61, -1}, {62, 62}, {63, -1}, {66, -1}, {68, -1}, {70, -1}, {71, 71}});
+  check_map("Fifth up above C4 only", {{59, 59}, {48, 48}, {60, 67}, {72, 79}, {120, 127}});
+}
+
 // "custom" is one of the entries of the Scale list: picking it in the UI must
 // not silence the object.
 TEST_CASE("Midi scale: custom picked from the list", "[presets][midi_scale]")

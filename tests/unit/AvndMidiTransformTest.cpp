@@ -253,8 +253,8 @@ TEST_CASE("Midi transform input filter", "[midi_transform]")
   driver d;
   d.fx.inputs.into.value = T::CC;
   d.fx.inputs.channel.value = 2;
-  d.fx.inputs.byte1_range.value = "C4-B4";
-  d.fx.inputs.byte2_range.value = "100-127";
+  d.fx.inputs.byte1_range.value = {60, 71};
+  d.fx.inputs.byte2_range.value = {100, 127};
   d.fx.inputs.byte2_test.value = T::Outside;
   d.in(msg({0x91, 60, 50}));  // transformed
   d.in(msg({0x90, 60, 50}));  // channel 1

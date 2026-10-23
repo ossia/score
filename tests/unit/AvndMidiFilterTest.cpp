@@ -1,5 +1,7 @@
 #include <Advanced/MidiScaler/MidiFilter.hpp>
 
+#include "MidiChannelMask.hpp"
+
 #include <catch2/catch_test_macros.hpp>
 
 #include <cstdint>
@@ -216,7 +218,7 @@ TEST_CASE("Midi filter range lists and values", "[midi_filter]")
 
   SECTION("Channels, notes and CCs")
   {
-    d.fx.inputs.channels.value = "1-4, 6";
+    d.fx.inputs.channels.value = midi_test::channels_on({1, 2, 3, 4, 6});
     d.fx.inputs.notes.value = "C4-B4";
     d.fx.inputs.ccs.value = "7";
     d.in(on(1, 60, 100));
@@ -260,12 +262,12 @@ TEST_CASE("Midi filter range lists and values", "[midi_filter]")
     CHECK(driver::b(d.main) == std::vector<bytes>{{0xB0, 1, 100}});
   }
 
-  SECTION("Invalid text restricts nothing")
+  SECTION("No channel on keeps nothing")
   {
-    d.fx.inputs.channels.value = "1-x";
+    d.fx.inputs.channels.value = {};
     d.in(on(3, 60, 100));
     d.run();
-    CHECK(d.main.size() == 1);
+    CHECK(d.main.empty());
   }
 }
 
@@ -276,9 +278,9 @@ TEST_CASE("Midi filter remap", "[midi_filter]")
 
   SECTION("Linear maps with rounding")
   {
-    d.fx.inputs.note_map.value = "C3-C4 > C4-C5";
-    d.fx.inputs.channel_map.value = "1-8 > 9-16";
-    d.fx.inputs.cc_map.value = "0-127 > 0-63";
+    d.fx.inputs.note_map.value = {{48, 60, 60, 72}};
+    d.fx.inputs.channel_map.value = {{1, 8, 9, 16}};
+    d.fx.inputs.cc_map.value = {{0, 127, 0, 63}};
     d.in(on(1, 48, 100));
     d.in(on(8, 55, 100));
     d.in(on(9, 30, 100));
@@ -292,7 +294,7 @@ TEST_CASE("Midi filter remap", "[midi_filter]")
 
   SECTION("Outside map drop sends to Rejected")
   {
-    d.fx.inputs.note_map.value = "C3-C4 > C4-C5";
+    d.fx.inputs.note_map.value = {{48, 60, 60, 72}};
     d.fx.inputs.out_of_map.value = Filter::Drop;
     d.in(on(1, 30, 100));
     d.in(on(1, 50, 100));
@@ -303,14 +305,14 @@ TEST_CASE("Midi filter remap", "[midi_filter]")
 
   SECTION("Note-offs follow their note-on when the settings change")
   {
-    d.fx.inputs.note_map.value = "C3-C4 > C4-C5";
-    d.fx.inputs.channel_map.value = "1 > 2";
+    d.fx.inputs.note_map.value = {{48, 60, 60, 72}};
+    d.fx.inputs.channel_map.value = {{1, 1, 2, 2}};
     d.in(on(1, 50, 100));
     d.run();
     CHECK(driver::b(d.main) == std::vector<bytes>{{0x91, 62, 100}});
 
-    d.fx.inputs.note_map.value = "C3-C4 > C5-C6";
-    d.fx.inputs.channel_map.value = "";
+    d.fx.inputs.note_map.value = {{48, 60, 72, 84}};
+    d.fx.inputs.channel_map.value = {};
     d.fx.inputs.notes.value = "C8";
     d.in(on(1, 50, 0));
     d.run();
@@ -321,12 +323,12 @@ TEST_CASE("Midi filter remap", "[midi_filter]")
   SECTION("A note-on rejected by kind: its note-off follows it to Rejected")
   {
     d.fx.inputs.kinds.value = "noteoff";
-    d.fx.inputs.note_map.value = "0-126 > 1-127";
+    d.fx.inputs.note_map.value = {{0, 126, 1, 127}};
     d.in(on(1, 60, 100));
     d.in(on(1, 70, 100));
     d.run();
     CHECK(driver::b(d.rejected) == std::vector<bytes>{{0x90, 60, 100}, {0x90, 70, 100}});
-    d.fx.inputs.note_map.value = "";
+    d.fx.inputs.note_map.value = {};
     d.in(off(1, 60));
     d.run();
     CHECK(d.main.empty());
@@ -354,7 +356,7 @@ TEST_CASE("Midi filter releases held notes", "[midi_filter]")
 {
   driver d;
   d.fx.inputs.kinds.value = "all";
-  d.fx.inputs.note_map.value = "0-126 > 1-127";
+  d.fx.inputs.note_map.value = {{0, 126, 1, 127}};
   d.fx.inputs.notes.value = "C4";
 
   SECTION("CC 123 sends the note-offs and passes")
@@ -393,7 +395,7 @@ TEST_CASE("Midi filter releases held notes", "[midi_filter]")
   {
     d.in(on(1, 60, 100));
     d.run();
-    d.fx.inputs.note_map.value = "0-127 > 0-127";
+    d.fx.inputs.note_map.value = {{0, 127, 0, 127}};
     d.in(on(1, 60, 100));
     d.run();
     d.in(off(1, 60));

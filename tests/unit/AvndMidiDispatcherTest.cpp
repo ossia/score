@@ -1,5 +1,7 @@
 #include <Advanced/MidiScaler/MidiDispatcher.hpp>
 
+#include "MidiChannelMask.hpp"
+
 #include <catch2/catch_test_macros.hpp>
 
 #include <algorithm>
@@ -136,7 +138,7 @@ TEST_CASE("Midi dispatcher: round robin and ping pong", "[midi_dispatcher]")
   }
   {
     driver d;
-    d.fx.inputs.channels.value = "3, 5-6";
+    d.fx.inputs.channels.value = midi_test::channels_on({3, 5, 6});
     CHECK(d.sequence(4) == std::vector<int>{3, 5, 6, 3});
   }
 }
@@ -189,7 +191,7 @@ TEST_CASE("Midi dispatcher: random is seeded", "[midi_dispatcher]")
   auto run = [](int seed) {
     driver d;
     d.fx.inputs.algorithm.value = Algo::random;
-    d.fx.inputs.channels.value = "1-8";
+    d.fx.inputs.channels.value = midi_test::channels_on({1, 2, 3, 4, 5, 6, 7, 8});
     d.fx.inputs.seed.value = seed;
     return d.sequence(40);
   };
@@ -377,7 +379,7 @@ TEST_CASE("Midi dispatcher: changes while notes are held, stop", "[midi_dispatch
   d.note_on(60);
   d.note_on(62);
   d.tick();
-  d.fx.inputs.channels.value = "10-12";
+  d.fx.inputs.channels.value = midi_test::channels_on({10, 11, 12});
   d.fx.inputs.algorithm.value = Algo::ping_pong;
   d.note_on(64);
   d.tick();
@@ -390,7 +392,7 @@ TEST_CASE("Midi dispatcher: changes while notes are held, stop", "[midi_dispatch
 
   // Channel 1 is usable again after its notes ended under another set.
   d.out.clear();
-  d.fx.inputs.channels.value = "1";
+  d.fx.inputs.channels.value = midi_test::channels_on({1});
   d.note_on(65);
   d.tick();
   CHECK(d.on_channels() == std::vector<int>{1});

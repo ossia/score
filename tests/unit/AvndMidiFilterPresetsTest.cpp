@@ -219,7 +219,7 @@ TEST_CASE("Midi filter preset: remaps", "[presets][midi_filter]")
     driver d{"Channel 1 to 10"};
     d.run({on(1, 60, 100), on(2, 62, 100)});
     CHECK(d.main == list{on(10, 60, 100), on(2, 62, 100)});
-    d.fx.inputs.channel_map.value = ""; // the note-off follows its note-on
+    d.fx.inputs.channel_map.value = {}; // the note-off follows its note-on
     d.run({off(1, 60), off(2, 62)});
     CHECK(d.main == list{off(10, 60), off(2, 62)});
     d.check_paired();

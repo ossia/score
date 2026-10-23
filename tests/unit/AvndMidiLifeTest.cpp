@@ -284,16 +284,6 @@ TEST_CASE("Midi life parses drawn patterns and note maps", "[avnd][midi][life]")
   CHECK(q.rows[0] == 0b101);
   CHECK(q.rows[1] == 0b010);
 
-  mtk::life::note_map m;
-  m.parse("36 38, 42 C4 F#2");
-  CHECK(m.valid);
-  REQUIRE(m.count == 5);
-  CHECK(m.notes[0] == 36);
-  CHECK(m.notes[3] == 60);
-  CHECK(m.notes[4] == 42);
-  m.parse("36 200");
-  CHECK(!m.valid);
-  CHECK(m.count == 0);
 }
 
 TEST_CASE("Midi life evolves blinkers, blocks and gliders", "[avnd][midi][life]")
@@ -457,7 +447,7 @@ TEST_CASE("Midi life note map plays drums on channel 10", "[avnd][midi][life]")
   r.frozen("o... .o.. ..o. ...o");
   r.node.inputs.width.value = 4;
   r.node.inputs.height.value = 4;
-  r.node.inputs.note_map.value = "36 38 42";
+  r.node.inputs.note_map.value = {36, 38, 42};
   r.node.inputs.channel.value = 10;
   r.run(4 * 6000);
   r.stop();
@@ -692,7 +682,12 @@ TEST_CASE("Midi life ends every note it starts", "[avnd][midi][life]")
         case 4: r.sync(rng() % 2 ? 1. / 32. : 1. / 8.); break;
         case 5: r.node.inputs.gate.value = 5 + int(rng() % 96); break;
         case 6: r.node.inputs.rule.value = int(rng() % 6); break;
-        case 7: r.node.inputs.note_map.value = rng() % 2 ? "36 36 38 36" : ""; break;
+        case 7:
+          if(rng() % 2)
+            r.node.inputs.note_map.value = {36, 36, 38, 36};
+          else
+            r.node.inputs.note_map.value = {};
+          break;
         case 8: r.node.inputs.play.value = int(rng() % 2); break;
         default: r.node.inputs.mode.value = int(rng() % 14); break;
       }
