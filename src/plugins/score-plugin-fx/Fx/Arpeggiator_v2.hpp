@@ -115,7 +115,7 @@ struct Node
 {
   halp_meta(name, "Arpeggiator")
   halp_meta(c_name, "Arpeggiator")
-  halp_meta(category, "Midi")
+  halp_meta(category, "Midi/Generators")
   halp_meta(author, "ossia score")
   halp_meta(
       manual_url,

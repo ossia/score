@@ -14,7 +14,7 @@ struct Input
 {
   halp_meta(name, "Midi hi-res input")
   halp_meta(c_name, "MidiHiResIn")
-  halp_meta(category, "Midi")
+  halp_meta(category, "Midi/Control")
   halp_meta(author, "ossia score")
   halp_meta(
       manual_url, "https://ossia.io/score-docs/processes/midi-utilities.html#midi-hires")
@@ -52,7 +52,7 @@ struct Output
 {
   halp_meta(name, "Midi hi-res output")
   halp_meta(c_name, "MidiHiResOut")
-  halp_meta(category, "Midi")
+  halp_meta(category, "Midi/Control")
   halp_meta(manual_url, "https://ossia.io/score-docs/processes/javascript.html#midi")
   halp_meta(author, "ossia score")
   halp_meta(description, "Creates MIDI LSB/MSB from a 0-16384 or 0-1 value")

@@ -118,7 +118,7 @@ struct Node
 {
   halp_meta(name, "Chord")
   halp_meta(c_name, "Chord")
-  halp_meta(category, "Midi")
+  halp_meta(category, "Midi/Pitch")
   halp_meta(author, "ossia score")
   halp_meta(manual_url, "https://ossia.io/score-docs/processes/midi-utilities.html#chord")
   halp_meta(description, "Generate a chord from a single note")

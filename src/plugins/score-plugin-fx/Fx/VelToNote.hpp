@@ -145,7 +145,7 @@ struct Node
 {
   halp_meta(name, "Pulse to Midi")
   halp_meta(c_name, "VelToNote")
-  halp_meta(category, "Midi")
+  halp_meta(category, "Midi/Control")
   halp_meta(author, "ossia score")
   halp_meta(
       manual_url,
