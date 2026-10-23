@@ -161,10 +161,13 @@ add_library(
   "${AVND_FOLDER}/examples/Advanced/MidiScaler/MidiEnvelope.hpp"
   "${AVND_FOLDER}/examples/Advanced/MidiScaler/MidiHumanizer.hpp"
   "${AVND_FOLDER}/examples/Advanced/MidiScaler/MidiDelay.hpp"
+  "${AVND_FOLDER}/examples/Advanced/MidiScaler/MidiLife.hpp"
   "${AVND_FOLDER}/examples/Advanced/MidiScaler/MidiSustain.hpp"
   "${AVND_FOLDER}/examples/Advanced/MidiScaler/MidiTransform.hpp"
   "${AVND_FOLDER}/examples/Advanced/MidiScaler/MidiCCSnapshot.hpp"
   "${AVND_FOLDER}/examples/Advanced/MidiScaler/MidiValueShaper.hpp"
+  "${AVND_FOLDER}/examples/Advanced/MidiScaler/MidiRandomSequencer.hpp"
+  "${AVND_FOLDER}/examples/Advanced/MidiScaler/MidiProgressionPlayer.hpp"
   "${AVND_FOLDER}/examples/Advanced/Audio/AudioFilters.hpp"
   "${AVND_FOLDER}/examples/Advanced/Audio/Bitcrush.hpp"
   "${AVND_FOLDER}/examples/Advanced/Audio/Convolver.hpp"
@@ -653,6 +656,13 @@ avnd_make_score(
 )
 
 avnd_make_score(
+  SOURCES "${AVND_FOLDER}/examples/Advanced/MidiScaler/MidiLife.hpp"
+  TARGET midilife
+  MAIN_CLASS MidiLife
+  NAMESPACE mtk
+)
+
+avnd_make_score(
   SOURCES "${AVND_FOLDER}/examples/Advanced/MidiScaler/MidiSustain.hpp"
   TARGET midisustain
   MAIN_CLASS MidiSustain
@@ -691,6 +701,20 @@ avnd_make_score(
   SOURCES "${AVND_FOLDER}/examples/Advanced/MidiScaler/MidiValueShaper.hpp"
   TARGET midi_value_shaper
   MAIN_CLASS MidiValueShaper
+  NAMESPACE mtk
+)
+
+avnd_make_score(
+  SOURCES "${AVND_FOLDER}/examples/Advanced/MidiScaler/MidiRandomSequencer.hpp"
+  TARGET midi_random_sequencer
+  MAIN_CLASS MidiRandomSequencer
+  NAMESPACE mtk
+)
+
+avnd_make_score(
+  SOURCES "${AVND_FOLDER}/examples/Advanced/MidiScaler/MidiProgressionPlayer.hpp"
+  TARGET midi_progression_player
+  MAIN_CLASS MidiProgressionPlayer
   NAMESPACE mtk
 )
 
