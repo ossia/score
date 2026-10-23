@@ -263,8 +263,9 @@ private:
     // SSBO via bufferLoad / bufferStore / bufferLoadStore.
     struct AuxiliarySSBO
     {
-      QRhiBuffer* buffer{};       // GPU SSBO/UBO (write target / primary)
-      QRhiBuffer* read_buffer{};  // Separate read buffer for ping-pong (nullptr = use buffer for both)
+      //! The one buffer the shader binds: `_in`, `_out` and the bare name all
+      //! alias it, so there is no ping-pong half (shader board C45).
+      QRhiBuffer* buffer{};
       int64_t size{};
       int64_t offset{};
       bool owned{true};

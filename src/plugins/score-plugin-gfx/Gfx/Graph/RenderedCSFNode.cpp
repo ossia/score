@@ -1812,23 +1812,11 @@ void RenderedCSFNode::updateGeometryBindings(
           }
         }
 
-        // Allocate ping-pong read_buffers for read_write auxiliary SSBOs.
-        // Mirrors the attribute path above so that aux state (e.g. uint counters,
-        // free lists) can persist across feedback frames the same way attributes do.
-        for(auto& aux : binding.auxiliary_ssbos)
-        {
-          if(aux.access == "read_write" && !aux.read_buffer && aux.size > 0)
-          {
-            auto* buf = renderer.state.rhi->newBuffer(
-                QRhiBuffer::Static,
-                QRhiBuffer::StorageBuffer, aux.size);
-            buf->setName(QByteArray("CSF_GeomPPAux_") + aux.name.c_str());
-            buf->create();
-            QByteArray zero(aux.size, 0);
-            res.uploadStaticBuffer(buf, 0, aux.size, zero.constData());
-            aux.read_buffer = buf;
-          }
-        }
+        // Auxiliary SSBOs get no ping-pong half: the shader's `_in`, `_out` and
+        // bare names all alias the one binding, so a feedback receiver's
+        // auxiliary is one buffer that keeps its contents from frame to frame.
+        // A twin swapped every frame showed the shader its real buffer one
+        // frame and a zeroed copy the next (shader board C45).
       }
     }
 
@@ -2344,8 +2332,7 @@ void RenderedCSFNode::updateGeometryBindings(
                     = geo_aux->byte_size > 0 ? geo_aux->byte_size
                                              : gpu->byte_size - geo_aux->byte_offset;
                 if(!in_place && !aux.is_uniform && aux.access == "read_write"
-                   && published > 0 && rhi_buf != aux.read_buffer
-                   && (!aux.owned || rhi_buf != aux.buffer))
+                   && published > 0 && (!aux.owned || rhi_buf != aux.buffer))
                 {
                   if(!aux.owned || !aux.buffer
                      || (aux.size_expr.empty() && aux.size != published))
@@ -2623,13 +2610,6 @@ void RenderedCSFNode::updateGeometryBindings(
         QByteArray zero(requiredSize, 0);
         res.uploadStaticBuffer(aux.buffer, 0, requiredSize, zero.constData());
         aux.size = requiredSize;
-
-        // Keep read_buffer in sync for feedback receivers
-        if(aux.read_buffer)
-        {
-          aux.read_buffer = regrowBuffer(renderer, aux.read_buffer, requiredSize);
-          res.uploadStaticBuffer(aux.read_buffer, 0, requiredSize, zero.constData());
-        }
       }
     }
 
@@ -4295,8 +4275,6 @@ void RenderedCSFNode::buildComputeSrbBindings(
           continue;
         int f = (aux.access == "read_only") ? 1 : (aux.access == "write_only") ? 2 : 3;
         access_flags[aux.buffer] |= f;
-        if(aux.read_buffer && aux.read_buffer != aux.buffer)
-          access_flags[aux.read_buffer] |= 1;
       }
     }
     for(const auto& [buf, flags] : access_flags)
@@ -6058,7 +6036,6 @@ void RenderedCSFNode::recreateShaderResourceBindings(RenderList& renderer, QRhiR
       {
         if(aux.owned)
           RenderList::noteBufferLive(aux.buffer);
-        RenderList::noteBufferLive(aux.read_buffer);
       }
       RenderList::noteBufferLive(gb.indirectBuffer);
       RenderList::noteBufferLive(gb.indirectCountBuffer);
@@ -6344,9 +6321,6 @@ void RenderedCSFNode::releaseMeshLayer(RenderList& r, MeshLayer& layer)
     }
     for(auto& aux : binding.auxiliary_ssbos)
     {
-      if(aux.read_buffer)
-        r.releaseBuffer(aux.read_buffer);
-      aux.read_buffer = nullptr;
       releaseSlot(r, aux);
       dropRestoreSource(r, aux);
     }
@@ -7158,11 +7132,6 @@ void RenderedCSFNode::runInitialPasses(
           if(geo_input->attributes[ai].access == "read_write" && ssbo.read_buffer
              && ssbo.owned)
             std::swap(ssbo.buffer, ssbo.read_buffer);
-        }
-        for(auto& aux : gb.auxiliary_ssbos)
-        {
-          if(aux.access == "read_write" && aux.read_buffer && aux.owned)
-            std::swap(aux.buffer, aux.read_buffer);
         }
       }
       gb_idx++;

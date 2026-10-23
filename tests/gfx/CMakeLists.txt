@@ -2169,6 +2169,9 @@ score_add_gfx_test(csf_dispatch_size GfxCsfDispatchSize.cpp)
 # An empty 1D_BUFFER TARGET dispatches per element, not per byte (C26).
 score_add_gfx_test(csf_empty_target_count GfxCsfEmptyTargetCount.cpp)
 
+# A feedback receiver's geometry auxiliary keeps its contents (C45).
+score_add_gfx_test(csf_aux_feedback_counter GfxCsfAuxFeedbackCounter.cpp)
+
 # A CSF storage buffer too large to allocate stops the node's passes.
 score_add_gfx_test(csf_storage_too_large GfxCsfStorageTooLarge.cpp)
 
