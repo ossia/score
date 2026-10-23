@@ -1,6 +1,7 @@
 #pragma once
 #include <Advanced/MidiScaler/MidiCommon/Messages.hpp>
 #include <Fx/Quantifier.hpp>
+#include <halp/layout.hpp>
 
 #include <algorithm>
 #include <cmath>
@@ -29,7 +30,7 @@ struct Node
   halp_meta(description, "Quantifies a MIDI input")
   halp_meta(uuid, "a0cb1144-05a8-4f9b-b22c-81cd964314fb")
 
-  struct
+  struct ins
   {
     halp::midi_bus<"in", libremidi::message> midi;
     //! Notes start on this grid; 0 lets them through as they come.
@@ -87,6 +88,59 @@ struct Node
   {
     midi_out midi;
   } outputs;
+
+  struct ui
+  {
+    halp_meta(name, "Midi quantify")
+    halp_meta(layout, halp::layouts::hbox)
+    halp_meta(background, halp::colors::background_dark)
+
+    struct
+    {
+      halp_meta(name, "Grid")
+      halp_meta(layout, halp::layouts::section)
+      halp_meta(background, halp::colors::background_mid)
+      halp::item<&ins::grid> grid;
+      halp::item<&ins::tightness> tightness;
+    } grid;
+
+    struct
+    {
+      halp_meta(name, "Length")
+      halp_meta(layout, halp::layouts::section)
+      halp_meta(background, halp::colors::background_mid)
+      halp::item<&ins::length> length;
+      struct
+      {
+        halp_meta(layout, halp::layouts::vbox)
+        static constexpr auto condition()
+        {
+          return halp::enabled_when<&ins::length, FixedDuration, EndOnGrid>{};
+        }
+        halp::item<&ins::duration> duration;
+      } duration;
+      halp::item<&ins::gate> gate;
+    } length;
+
+    struct
+    {
+      halp_meta(name, "Release")
+      halp_meta(layout, halp::layouts::section)
+      halp_meta(background, halp::colors::background_mid)
+      halp::item<&ins::trigger> trigger;
+      halp::item<&ins::decay> decay;
+      halp::item<&ins::release_mode> release_mode;
+      struct
+      {
+        halp_meta(layout, halp::layouts::vbox)
+        static constexpr auto condition()
+        {
+          return halp::enabled_when<&ins::release_mode, 0>{};
+        }
+        halp::item<&ins::release_velocity> release_velocity;
+      } release_value;
+    } release;
+  };
 
   struct Note
   {
@@ -190,6 +244,8 @@ struct Node
                                    * clock.frames_per_quarter)
                          : int64_t(std::llround(unit));
   }
+  static constexpr double grid_epsilon = 1e-6;
+
   //! A time chooser's value, which is in seconds even when synced.
   double length(float seconds, bool sync) const noexcept
   {
@@ -204,10 +260,12 @@ struct Node
     if(g * frames_per_unit(sync) < 1.)
       return at;
     const double u = to_unit(at, sync);
-    const double prev = std::floor(u / g) * g;
+    // The frame to musical time conversion is not exact: a note on a grid point
+    // can land a hair after it, or before it.
+    const double prev = std::floor(u / g + grid_epsilon) * g;
     const double window = (1. - std::clamp(inputs.tightness.value, 0.f, 1.f)) * g / 2.;
-    if(u - prev <= window)
-      return at; // just missed the grid point: on time
+    if(u - prev <= window + grid_epsilon * g)
+      return at; // on the grid point, or just missed it: on time
     return std::max(at, to_frame(prev + g, sync));
   }
 
@@ -227,7 +285,7 @@ struct Node
         if(d * frames_per_unit(sync) < 1.)
           return start;
         const double u = to_unit(start, sync);
-        return std::max(start, to_frame((std::floor(u / d) + 1.) * d, sync));
+        return std::max(start, to_frame((std::floor(u / d + grid_epsilon) + 1.) * d, sync));
       }
     }
     return -1;
