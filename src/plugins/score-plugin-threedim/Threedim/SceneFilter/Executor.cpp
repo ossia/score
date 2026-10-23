@@ -43,14 +43,16 @@ ProcessExecutorComponent::ProcessExecutorComponent(
       *ctx.execState, ctx.doc.plugin<DocumentPlugin>().exec);
 
   n->add_geometry();
+  // Ports 1-2: Mode, Name.
+  for(std::size_t i = 1; i <= 2 && i < element.inlets().size(); i++)
   {
-    auto ctrl = qobject_cast<Process::ControlInlet*>(element.inlets()[1]);
+    auto ctrl = qobject_cast<Process::ControlInlet*>(element.inlets()[i]);
     auto& p = n->add_control();
     ctrl->setupExecution(*n->root_inputs().back(), this);
     p->value = ctrl->value();
     QObject::connect(
         ctrl, &Process::ControlInlet::valueChanged, this,
-        con_unvalidated{ctx, 1, 0, n});
+        con_unvalidated{ctx, i, 0, n});
   }
   n->add_geometry_out();
   n->init();

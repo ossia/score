@@ -1064,44 +1064,23 @@ TEST_CASE(
 // SCENE FILTER -- THE RE-SCOPED PIN
 // =============================================================================
 
-// EXPECTED RED, on the half of SceneFilterNode.hpp:20-22 that is still true:
-// "string port missing in the renderer for now".
-//
-// SceneFilterNode's constructor creates exactly two input ports, Scene and
-// Mode (SceneFilterNode.cpp:219-227). Ports are a score::gfx::Node's only
-// input channel (Node.hpp:103, fed by Node::process(Message&&)), so mode 2 --
-// documented as "keep only subtrees whose node name contains the substring set
-// in the 'Name' control" -- cannot be given a substring by any route. It is
-// not merely unwired, it is unconfigurable, and no test anywhere can drive its
-// real behaviour until this changes. That is why the row's own contract had to
-// be asserted in the substring-agnostic form above.
-//
-// The correct behaviour: SceneFilterNode must expose a Name input alongside
-// Scene and Mode. The pin deliberately does not constrain that port's TYPE --
-// score::gfx::Types has no string kind today (Uniforms.hpp:10-24: Empty, Int,
-// Float, Vec2, Vec3, Vec4, Image, Audio, Camera, Geometry, Buffer, Scene), so
-// which type it ends up with is UNVERIFIED and up to whoever adds it. Flips to
-// a plain pass the day a third input port lands.
+// SceneFilterNode's name mode (mode 2) keeps the subtrees whose node name
+// matches the "Name" control. Ports are a score::gfx::Node's only input channel
+// (Node.hpp, fed by Node::process(Message&&)), so the mode needs a third input
+// next to Scene and Mode; it had none, and could not be given a pattern by any
+// route (shader board P03, bd2321d74d). The Name port is control-only (Empty:
+// score::gfx::Types has no string kind); the string arrives through process().
 TEST_CASE(
-    "DEFECT: SceneFilterNode mode 2 has no Name port, so it "
-    "cannot be configured at all",
-    "[gfx][scene][scenefilter][p2-12][known-defect][!shouldfail]")
+    "SceneFilterNode has a Name input for its name mode",
+    "[gfx][scene][scenefilter][p2-12]")
 {
   score::gfx::SceneFilterNode node;
 
-  // Today: [0] = Scene, [1] = Mode (SceneFilterNode.cpp:221-225).
-  REQUIRE(node.input.size() >= 2);
+  REQUIRE(node.input.size() == 3);
   REQUIRE(node.input[0] != nullptr);
   REQUIRE(node.input[1] != nullptr);
+  REQUIRE(node.input[2] != nullptr);
   CHECK(node.input[0]->type == score::gfx::Types::Scene);
   CHECK(node.input[1]->type == score::gfx::Types::Int);
-
-  INFO("SceneFilterNode.hpp:20-22 admits it: mode 2 is 'keep only subtrees "
-       "whose node name contains the substring set in the \"Name\" control "
-       "(future-wired; string port missing in the renderer for now, so behaves "
-       "like mode 1 until wired)'");
-  INFO("input port count is " << node.input.size() << "; a Name input is needed "
-                                                      "for mode 2 to mean anything");
-
-  CHECK(node.input.size() >= 3u);
+  CHECK(node.input[2]->type == score::gfx::Types::Empty);
 }

@@ -12,7 +12,7 @@ PROCESS_METADATA(
     "Scene Filter",
     Process::ProcessCategory::Visual,
     "Visuals/3D/Scene",
-    "Filter the hierarchy of a scene_spec (visibility, layers, names)",
+    "Filter the hierarchy of a scene_spec (visibility, names)",
     "ossia team",
     (QStringList{"gfx", "scene", "filter", "3d", "hierarchy"}),
     {},

@@ -64,7 +64,6 @@ set(SCORE_EXPECTED_RED
   "shouldfail@tests/gfx/CroustiCpuNodes.cpp@a geometry filter displaces the mesh it is given@the CPU geometry-filter path does not displace"
   "shouldfail@tests/gfx/GfxGeometryFilterShift.cpp@a geometry filter shifts the drawn silhouette by exactly the delta@the silhouette is not displaced"
   "shouldfail@tests/threedim/SceneApproximationPins.cpp@DEFECT: the render-thread light encoder collapses area lights onto point, and dome onto directional@light-type information is lost in the render-thread encoder"
-  "shouldfail@tests/threedim/SceneApproximationPins.cpp@DEFECT: SceneFilterNode mode 2 has no Name port, so it cannot be configured at all@mode 2 exposes no Name port"
 
   "shouldfail@tests/integration/PipewireVideoOutputTest.cpp@a PipeWire video output keeps up at 7680x4320@the readback path copies 132 MB per frame through host memory and delivers 3.5 distinct frames a second against the 60 the device asks for. Spout and Syphon carry 8K because they hand over a texture -- this goes green when the dma-buf path negotiates with an outside consumer"
 

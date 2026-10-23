@@ -32,8 +32,12 @@ void Model::init()
     m_inlets.push_back(new Process::ComboBox{
         std::vector<std::pair<QString, ossia::value>>{
             {QStringLiteral("pass through"),     0},
-            {QStringLiteral("keep visible only"),1}},
+            {QStringLiteral("keep visible only"),1},
+            {QStringLiteral("keep matching names"), 2}},
         0, "Mode", Id<Process::Port>(1), this});
+    // Mode 2's pattern: OSC syntax (*, ?, [0-9], {a,b}) on the whole node name.
+    m_inlets.push_back(
+        new Process::LineEdit{QString{}, "Name", Id<Process::Port>(2), this});
     m_outlets.push_back(new GeometryOutlet{"Scene Out", Id<Process::Port>(0), this});
   }
 }
