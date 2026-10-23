@@ -26,6 +26,15 @@ public:
 
   void updateChildrenRects(const QList<QGraphicsItem*>&);
 
+  //! The layout keeps its children's bounding rect plus these margins as its
+  //! size, also when relayoutAround() lays it out again.
+  void setFitMargins(qreal right, qreal bottom);
+
+  //! Lays out again the containers and layouts around an item whose size
+  //! changed, innermost first, and reports it to the outermost layout's owner
+  //! through its childrenSizeChanged().
+  static void relayoutAround(QGraphicsItem* item);
+
   void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
       override;
 
@@ -36,6 +45,8 @@ protected:
   qreal m_margin{};
   qreal m_padding{};
   qreal m_spacing{-1.};
+  qreal m_fitRight{-1.};
+  qreal m_fitBottom{-1.};
 };
 
 }

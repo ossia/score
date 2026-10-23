@@ -5,6 +5,8 @@
 #include <score/widgets/Pixmap.hpp>
 
 #include <QPainter>
+
+#include <vector>
 namespace score
 {
 
@@ -64,6 +66,45 @@ void GraphicsLayout::updateChildrenRects(const QList<QGraphicsItem*>& items)
       rect->fitChildrenRect();
     }
   }
+}
+
+void GraphicsLayout::setFitMargins(qreal right, qreal bottom)
+{
+  m_fitRight = right;
+  m_fitBottom = bottom;
+}
+
+void GraphicsLayout::relayoutAround(QGraphicsItem* item)
+{
+  std::vector<GraphicsLayout*> layouts;
+  for(auto* p = item->parentItem(); p; p = p->parentItem())
+  {
+    if(auto* lay = dynamic_cast<GraphicsLayout*>(p))
+    {
+      lay->layout();
+      if(lay->m_fitRight >= 0.)
+      {
+        const auto& cld = lay->childrenBoundingRect();
+        lay->setRect(
+            QRectF{0., 0., cld.right() + lay->m_fitRight, cld.bottom() + lay->m_fitBottom});
+      }
+      layouts.push_back(lay);
+    }
+    else if(auto* rect = dynamic_cast<EmptyRectItem*>(p))
+    {
+      // A control's box: label, port and widget
+      rect->fitChildrenRect();
+    }
+    else
+    {
+      break;
+    }
+  }
+
+  for(auto* lay : layouts)
+    lay->centerContent();
+  if(!layouts.empty())
+    layouts.back()->childrenSizeChanged();
 }
 
 void GraphicsLayout::setMargin(qreal p)

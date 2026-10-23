@@ -1,5 +1,7 @@
 #include "WidgetInletFactory.hpp"
 
+#include <score/graphics/widgets/QGraphicsValueList.hpp>
+
 #include <QGraphicsScene>
 #include <QGraphicsView>
 
@@ -40,6 +42,20 @@ QWidget* makeGraphicsViewForInspectorItem(QGraphicsItem* item, QWidget* parent)
 #endif
   s->addItem(item);
   widg->centerOn(item);
+
+  // Lists grow and shrink with their rows: the view follows
+  if(auto list = qgraphicsitem_cast<score::QGraphicsValueList*>(item))
+  {
+    QObject::connect(list, &score::QGraphicsValueList::sizeChanged, widg, [widg, s, list] {
+      const QRectF r = list->boundingRect();
+      s->setSceneRect(r);
+      widg->setMinimumWidth(r.width());
+      widg->setMinimumHeight(r.height());
+      widg->setMaximumHeight(std::ceil(r.height()));
+      widg->updateGeometry();
+    });
+    s->setSceneRect(list->boundingRect());
+  }
   return widg;
 }
 

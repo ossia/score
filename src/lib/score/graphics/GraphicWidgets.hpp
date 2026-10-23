@@ -12,6 +12,9 @@
 #include <score/graphics/widgets/QGraphicsLogSlider.hpp>
 #include <score/graphics/widgets/QGraphicsMultiSlider.hpp>
 #include <score/graphics/widgets/QGraphicsMultiSliderXY.hpp>
+#include <score/graphics/widgets/QGraphicsChannelMask.hpp>
+#include <score/graphics/widgets/QGraphicsNoteMatrix.hpp>
+#include <score/graphics/widgets/QGraphicsValueList.hpp>
 #include <score/graphics/widgets/QGraphicsPathGeneratorXY.hpp>
 #include <score/graphics/widgets/QGraphicsNoteChooser.hpp>
 #include <score/graphics/widgets/QGraphicsPixmapButton.hpp>

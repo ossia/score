@@ -123,6 +123,7 @@ void LayoutBuilderBase::finalizeLayout(QGraphicsItem* rootItem)
           = (margins || lay.hasBackground()) ? default_margin : 0.;
       const auto& cld = lay.childrenBoundingRect();
       lay.setRect(QRectF{0., 0., cld.right() + right_margin, cld.bottom() + margin});
+      lay.setFitMargins(right_margin, margin);
     }
   }
 

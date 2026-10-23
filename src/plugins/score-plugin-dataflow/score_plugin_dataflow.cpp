@@ -49,7 +49,7 @@ std::vector<score::InterfaceBase*> score_plugin_dataflow::factories(
          Dataflow::WidgetInletFactory<
              Process::FloatRangeSlider, WidgetFactory::FloatRangeSlider>,
          Dataflow::WidgetInletFactory<
-             Process::IntRangeSpinBox, WidgetFactory::FloatRangeSpinBox>,
+             Process::IntRangeSpinBox, WidgetFactory::IntRangeSpinBox>,
          Dataflow::WidgetInletFactory<
              Process::FloatRangeSpinBox, WidgetFactory::FloatRangeSpinBox>,
          Dataflow::WidgetInletFactory<Process::IntSpinBox, WidgetFactory::IntSpinBox>,
