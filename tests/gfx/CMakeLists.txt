@@ -1617,6 +1617,7 @@ score_gfx_test_offset_allocator(test_gfx_scene_preprocessor_regressions)
 # target and follows the input, in 2D and cube outputs.
 score_add_gfx_test(raster_output_size_expression GfxRasterOutputSizeExpression.cpp)
 score_add_gfx_test(raster_iteration_attachments GfxRasterIterationAttachments.cpp)
+score_add_gfx_test(raster_iteration_msaa GfxRasterIterationMsaa.cpp)
 score_add_gfx_test(isf_output_size_expression GfxIsfOutputSizeExpression.cpp)
 score_add_gfx_test(isf_last_pass_settings GfxIsfLastPassSettings.cpp)
 score_add_gfx_test(isf_storage_image_size GfxIsfStorageImageSize.cpp)

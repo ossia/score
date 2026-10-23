@@ -1555,6 +1555,8 @@ void RenderedRawRasterPipelineNode::initMRTPass(
       e.depth->deleteLater();
     for(auto* t : e.scratch)
       t->deleteLater();
+    for(auto* rb : e.msaa)
+      rb->deleteLater();
   }
   m_mipRTs.clear();
   m_mipCount = 0;
@@ -2168,6 +2170,34 @@ void RenderedRawRasterPipelineNode::initMRTPass(
     return out;
   };
 
+  // The sample count of the iterations: the target's SAMPLES (or the
+  // renderer's MSAA), as for a single pass. Each attachment then renders into
+  // a multisample colour buffer that resolves into its level / layer / face
+  // (shader board R31: the iterations were single-sampled whatever SAMPLES
+  // said). Multiview iterations stay single-sampled.
+  const int iterSamples = wantMultiview ? 1 : std::max(mrtSamples, 1);
+  auto multisample = [&](QList<QRhiColorAttachment>& colors, QSize size,
+                         std::vector<QRhiRenderBuffer*>& rbs) {
+    if(iterSamples <= 1)
+      return;
+    for(auto& att : colors)
+    {
+      QRhiTexture* tex = att.texture();
+      if(!tex)
+        continue;
+      auto* rb = rhi.newRenderBuffer(
+          QRhiRenderBuffer::Color, size, iterSamples, {}, tex->format());
+      rb->setName("RRPNode::MRT::iterationMSAA");
+      SCORE_ASSERT(rb->create());
+      rbs.push_back(rb);
+      QRhiColorAttachment ms(rb);
+      ms.setResolveTexture(tex);
+      ms.setResolveLayer(att.layer());
+      ms.setResolveLevel(att.level());
+      att = ms;
+    }
+  };
+
   // PER_CUBE_FACE: one render target per cube face, each attaching the same
   // cube texture via setLayer(i). Structurally the PER_MIP path with a CubeMap
   // target; m_mipRTs is reused as storage, its index meaning face here and mip
@@ -2199,7 +2229,7 @@ void RenderedRawRasterPipelineNode::initMRTPass(
         // QRhi anyway.
 
         QRhiTexture* faceDepth = rhi.newTexture(
-            QRhiTexture::D32F, faceSize, 1, QRhiTexture::RenderTarget);
+            QRhiTexture::D32F, faceSize, iterSamples, QRhiTexture::RenderTarget);
         faceDepth->setName(
             ("RRPNode::MRT::perCubeFaceDepth::"
              + std::to_string(face))
@@ -2207,8 +2237,10 @@ void RenderedRawRasterPipelineNode::initMRTPass(
         SCORE_ASSERT(faceDepth->create());
 
         std::vector<QRhiTexture*> scratch;
-        const auto colors = iterationColors(
+        std::vector<QRhiRenderBuffer*> msaa;
+        auto colors = iterationColors(
             m_perCubeFaceOutputIndex, color, faceSize, -1, face, scratch);
+        multisample(colors, faceSize, msaa);
         QRhiTextureRenderTargetDescription faceDesc;
         faceDesc.setColorAttachments(colors.begin(), colors.end());
         faceDesc.setDepthTexture(faceDepth);
@@ -2232,6 +2264,8 @@ void RenderedRawRasterPipelineNode::initMRTPass(
         entry.depth = faceDepth;
         entry.colorCount = (int)colors.size();
         entry.scratch = std::move(scratch);
+        entry.msaa = std::move(msaa);
+        entry.samples = iterSamples;
         m_mipRTs.push_back(std::move(entry));
       }
     }
@@ -2308,7 +2342,7 @@ void RenderedRawRasterPipelineNode::initMRTPass(
         else
         {
           mipDepth = rhi.newTexture(
-              QRhiTexture::D32F, mipSize, 1, QRhiTexture::RenderTarget);
+              QRhiTexture::D32F, mipSize, iterSamples, QRhiTexture::RenderTarget);
         }
         mipDepth->setName(
             ("RenderedRawRasterPipelineNode::MRT::perMipDepth::"
@@ -2317,8 +2351,10 @@ void RenderedRawRasterPipelineNode::initMRTPass(
         SCORE_ASSERT(mipDepth->create());
 
         std::vector<QRhiTexture*> scratch;
-        const auto colors = iterationColors(
+        std::vector<QRhiRenderBuffer*> msaa;
+        auto colors = iterationColors(
             m_perMipOutputIndex, color, mipSize, i, views > 1 ? view : -1, scratch);
+        multisample(colors, mipSize, msaa);
         QRhiTextureRenderTargetDescription mipDesc;
         mipDesc.setColorAttachments(colors.begin(), colors.end());
         mipDesc.setDepthTexture(mipDepth);
@@ -2342,6 +2378,8 @@ void RenderedRawRasterPipelineNode::initMRTPass(
         entry.depth = mipDepth;
         entry.colorCount = (int)colors.size();
         entry.scratch = std::move(scratch);
+        entry.msaa = std::move(msaa);
+        entry.samples = iterSamples;
         m_mipRTs.push_back(std::move(entry));
       }
     }
@@ -2495,15 +2533,17 @@ void RenderedRawRasterPipelineNode::initMRTPass(
           // layered depth here would force multi-view shape against a
           // single-layer colour binding.
           QRhiTexture* layerDepth = rhi.newTexture(
-              QRhiTexture::D32F, layerSize, 1, QRhiTexture::RenderTarget);
+              QRhiTexture::D32F, layerSize, iterSamples, QRhiTexture::RenderTarget);
           layerDepth->setName(
               ("RRPNode::MRT::perLayerDepth::" + std::to_string(layer))
                   .c_str());
           SCORE_ASSERT(layerDepth->create());
 
           std::vector<QRhiTexture*> scratch;
-          const auto colors
+          std::vector<QRhiRenderBuffer*> msaa;
+          auto colors
               = iterationColors(colorIdx, color, layerSize, -1, layer, scratch);
+          multisample(colors, layerSize, msaa);
           QRhiTextureRenderTargetDescription layerDesc;
           layerDesc.setColorAttachments(colors.begin(), colors.end());
           layerDesc.setDepthTexture(layerDepth);
@@ -2525,6 +2565,8 @@ void RenderedRawRasterPipelineNode::initMRTPass(
           entry.depth = layerDepth;
           entry.colorCount = (int)colors.size();
           entry.scratch = std::move(scratch);
+          entry.msaa = std::move(msaa);
+          entry.samples = iterSamples;
           m_mipRTs.push_back(std::move(entry));
         }
       }
@@ -2624,8 +2666,8 @@ void RenderedRawRasterPipelineNode::initMRTPass(
 
     // PerMip / PerCubeFace / PerLayer-colour draw exclusively into the
     // per-iteration RTs in m_mipRTs, so the pipeline must be built against
-    // their render pass (every colour output, 1 sample) to satisfy QRhi's
-    // compatibility check.
+    // their render pass (every colour output, at the iterations' sample
+    // count) to satisfy QRhi's compatibility check.
     QRhiRenderPassDescriptor* pipelineRP = m_mrtRenderTarget.renderPass;
     int pipelineColorCount = m_mrtRenderTarget.colorAttachmentCount();
     int pipelineSamples = m_mrtRenderTarget.sampleCount() > 0
@@ -2636,7 +2678,7 @@ void RenderedRawRasterPipelineNode::initMRTPass(
     {
       pipelineRP = m_mipRTs[0].renderPass;
       pipelineColorCount = m_mipRTs[0].colorCount;
-      pipelineSamples = 1;
+      pipelineSamples = m_mipRTs[0].samples;
     }
     // MSAA_SAMPLES is the count the pipeline renders at, not the MRT
     // target's when the iterations render single-sampled (U24).
@@ -3520,6 +3562,8 @@ void RenderedRawRasterPipelineNode::releaseState(RenderList& r)
       e.depth->deleteLater();
     for(auto* t : e.scratch)
       t->deleteLater();
+    for(auto* rb : e.msaa)
+      rb->deleteLater();
   }
   m_mipRTs.clear();
   m_mipCount = 0;

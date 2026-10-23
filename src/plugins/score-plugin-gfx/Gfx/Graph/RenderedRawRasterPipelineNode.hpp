@@ -381,6 +381,10 @@ private:
     int colorCount{1};
     //! Stand-ins for the outputs this iteration's size or shape excludes.
     std::vector<QRhiTexture*> scratch;
+    //! Multisample colour buffers resolving into the attachments when the
+    //! target declares SAMPLES (shader board R31) — owned here.
+    std::vector<QRhiRenderBuffer*> msaa;
+    int samples{1};
   };
   std::vector<MipRT> m_mipRTs;
 

@@ -7,6 +7,7 @@
 #include "IsfTestCommon.hpp"
 
 #include <QFile>
+#include <string>
 #include <QTemporaryDir>
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/generators/catch_generators.hpp>
@@ -26,6 +27,9 @@ constexpr const char* kVert = R"(void main()
 }
 )";
 
+// SAMPLES_ is replaced by the test with "" or a SAMPLES entry: the
+// iterations also render multisampled and resolve every output into its
+// face (R31).
 constexpr const char* kFrag = R"(/*{
   "ISFVSN": "2.0",
   "MODE": "RAW_RASTER_PIPELINE",
@@ -35,8 +39,8 @@ constexpr const char* kFrag = R"(/*{
     { "TYPE": "vec4", "NAME": "cube_out" }
   ],
   "OUTPUTS": [
-    { "NAME": "flat_out", "TYPE": "color", "WIDTH": 32, "HEIGHT": 32 },
-    { "NAME": "cube_out", "TYPE": "color", "WIDTH": 32, "HEIGHT": 32, "CUBEMAP": true, "LAYERS": 6 }
+    { "NAME": "flat_out", "TYPE": "color", "WIDTH": 32, "HEIGHT": 32 SAMPLES_ },
+    { "NAME": "cube_out", "TYPE": "color", "WIDTH": 32, "HEIGHT": 32, "CUBEMAP": true, "LAYERS": 6 SAMPLES_ }
   ],
   "EXECUTION_MODEL": { "TYPE": "PER_CUBE_FACE", "TARGET": "cube_out" },
   "INPUTS": [],
@@ -57,7 +61,8 @@ TEST_CASE(
     "a cube-face iteration's target holds its own output", "[gfx][raster][R18][R31]")
 {
   const auto api = GENERATE(from_range(platform_backends()));
-  CAPTURE(backend_name(api));
+  const std::string samples = GENERATE(std::string{}, std::string{R"(, "SAMPLES": 4)"});
+  CAPTURE(backend_name(api), samples);
   QTemporaryDir dir;
   REQUIRE(dir.isValid());
   const auto write = [&](const char* name, const char* text) {
@@ -67,7 +72,10 @@ TEST_CASE(
     return dir.filePath(name);
   };
   const QString vs = write("iter.vert", kVert);
-  const QString fs = write("iter.frag", kFrag);
+  std::string frag = kFrag;
+  for(std::size_t at; (at = frag.find(" SAMPLES_")) != std::string::npos;)
+    frag.replace(at, 9, samples);
+  const QString fs = write("iter.frag", frag.c_str());
 
   bool skipped = false;
   std::string err;
