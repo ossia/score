@@ -5,6 +5,7 @@
 
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 
+#include <Gfx/Graph/Utils.hpp>
 #include <Gfx/LongInputControl.hpp>
 #include <Gfx/TexturePort.hpp>
 #include <Gfx/WindowDevice.hpp>
@@ -247,6 +248,8 @@ struct ISFHelpers
       {
         auto port = new Gfx::TextureInlet(
             QString::fromStdString(input.name), Id<Process::Port>(i), &self);
+        // The shader's sampler wins over the inlet's (shader board U34).
+        port->setSamplerFromShader(score::gfx::declaresSampler(v.sampler));
 
         self.m_inlets.push_back(port);
         return port;
@@ -255,6 +258,7 @@ struct ISFHelpers
       {
         auto port = new Gfx::TextureInlet(
             QString::fromStdString(input.name), Id<Process::Port>(i), &self);
+        port->setSamplerFromShader(score::gfx::declaresSampler(v.sampler));
 
         self.m_inlets.push_back(port);
         return port;
@@ -344,6 +348,7 @@ struct ISFHelpers
         // returning nullptr here would shift every subsequent port.
         auto port = new Gfx::TextureInlet(
             QString::fromStdString(input.name), Id<Process::Port>(i), &self);
+        port->setSamplerFromShader(score::gfx::declaresSampler(v.sampler));
         self.m_inlets.push_back(port);
         return port;
       }

@@ -67,10 +67,20 @@ public:
       ossia::texture_filter, textureMipmapMode, = ossia::texture_filter::NONE,
       textureMipmapMode, setTextureMipmapMode, textureMipmapModeChanged)
 
+  //! The shader's JSON declares this input's sampler (WRAP, FILTER,
+  //! MIPMAP_MODE...): it wins over the filter, address and mipmap settings
+  //! here, which the inspector then shows read-only (shader board U34). Set
+  //! when the process creates its ports; not saved.
+  bool samplerFromShader() const noexcept { return m_samplerFromShader; }
+  void setSamplerFromShader(bool b) noexcept { m_samplerFromShader = b; }
+
   void setupExecution(ossia::inlet&, QObject* exec_context) const noexcept override;
 
 private:
   std::optional<QSize> m_renderSize;
+
+private:
+  bool m_samplerFromShader{false};
 };
 
 class SCORE_PLUGIN_GFX_EXPORT TextureOutlet : public Process::Outlet

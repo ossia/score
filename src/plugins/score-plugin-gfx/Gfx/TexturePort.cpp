@@ -395,6 +395,21 @@ struct TextureSizeWidget : public QWidget
   QSize m_lastSize{};
 };
 
+namespace
+{
+// The shader's JSON declares this input's sampler, which wins over these
+// settings (shader board U34): shown, not editable.
+void disableIfSetByShader(const TextureInlet& inlet, QWidget* w)
+{
+  if(!inlet.samplerFromShader())
+    return;
+  w->setEnabled(false);
+  w->setToolTip(QObject::tr(
+      "Set by the shader: its WRAP / FILTER / MIPMAP_MODE fields decide how "
+      "this input is sampled."));
+}
+}
+
 void TextureInletFactory::setupInletInspector(
     const Process::Inlet& port, const score::DocumentContext& ctx, QWidget* parent,
     Inspector::Layout& lay, QObject* context)
@@ -468,6 +483,7 @@ void TextureInletFactory::setupInletInspector(
             inlet, mode);
     });
 
+    disableIfSetByShader(inlet, combo);
     lay.addRow("Filter", combo);
   }
 
@@ -494,6 +510,7 @@ void TextureInletFactory::setupInletInspector(
             inlet, (ossia::texture_address_mode)idx);
     });
 
+    disableIfSetByShader(inlet, combo);
     lay.addRow("Address mode", combo);
   }
 
@@ -524,6 +541,7 @@ void TextureInletFactory::setupInletInspector(
             inlet, mode);
     });
 
+    disableIfSetByShader(inlet, combo);
     lay.addRow("Mipmaps", combo);
   }
 }

@@ -2126,6 +2126,15 @@ if(TARGET score_plugin_gfx)
     PLUGINS score_plugin_gfx)
 endif()
 
+# A texture inlet is read-only when the shader declares its sampler (U34).
+if(TARGET score_plugin_gfx)
+  score_add_test(test_unit_isf_inlet_sampler
+    SOURCES IsfInletSamplerTest.cpp
+    APP
+    PLUGINS score_plugin_gfx score_lib_process
+    LIBS ${QT_PREFIX}::Gui)
+endif()
+
 # The CPU twin of the CSF attribute scatter decodes like the shader (C40).
 if(TARGET score_plugin_gfx)
   score_add_test(test_unit_gpu_buffer_scatter_cpu
