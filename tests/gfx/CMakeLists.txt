@@ -2175,6 +2175,9 @@ score_add_gfx_test(csf_aux_feedback_counter GfxCsfAuxFeedbackCounter.cpp)
 # An image input samples with the sampler its JSON declares (U34).
 score_add_gfx_test(isf_sampler_json GfxIsfSamplerJson.cpp)
 
+# GENERATE_MIPS on a lone raw raster output generates its mips (R32).
+score_add_gfx_test(raw_raster_generate_mips GfxRawRasterGenerateMips.cpp)
+
 # INSTANCE_COUNT multiplies a raw raster mesh draw (R21).
 score_add_gfx_test(raw_raster_instance_count GfxRawRasterInstanceCount.cpp)
 

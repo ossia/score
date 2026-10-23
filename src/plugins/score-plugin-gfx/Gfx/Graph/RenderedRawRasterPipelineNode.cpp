@@ -3300,9 +3300,14 @@ void RenderedRawRasterPipelineNode::initState(
       perMip = (et == "PER_MIP");
       manual = (et == "MANUAL");
     }
+    // GENERATE_MIPS too: on the direct path the node draws into its
+    // consumer's render target, which has no mip chain (shader board R32).
+    bool generateMips = false;
+    for(const auto& out : n.descriptor().outputs)
+      generateMips |= out.generate_mips && out.type != "depth";
     m_hasMRT = colorCount > 1 || hasDepth || hasLayered || hasCubemap
                || hasColorOverride || hasExplicitSize || perMip || manual
-               || n.descriptor().multiview_count >= 2;
+               || generateMips || n.descriptor().multiview_count >= 2;
   }
 
   if(m_hasMRT)
