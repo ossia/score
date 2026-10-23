@@ -223,7 +223,7 @@ void RenderList::init()
     }
   }
 
-  // Scene-graph arena store (camera / light / material / per_draw
+  // Scene-graph arena store (camera / light / material / per_draws
   // buffers). Source nodes grab slots from it at construction and
   // write their own packed bytes at their own update(), so
   // ScenePreprocessor never CPU-touches this data in the render path.

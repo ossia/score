@@ -575,7 +575,7 @@ private:
   QRhiResourceUpdateBatch* m_initialBatch{};
   void retireResourcesReleasedOutsideFrame() noexcept;
 
-  // Scene-graph arena store (camera / light / material / per_draw buffers).
+  // Scene-graph arena store (camera / light / material / per_draws buffers).
   // Persist-across-rebuild contract: ownership is on the OutputNode
   // (OutputNode::m_registry), so the registry — and all its arena
   // buffers, mesh slabs, texture-array channels, ScenePreprocessor

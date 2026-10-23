@@ -36,7 +36,7 @@ SCORE_PLUGIN_GFX_EXPORT void forceGpuIndexWidening(bool force) noexcept;
  * mesh primitive. Each output geometry carries a set of well-known
  * auxiliary buffers:
  *
- *   - `scene_lights`           : LightGPU[]     (per scene light_component)
+ *   - `scene_lights`           : RawLightData[] (per scene light_component)
  *   - `scene_materials`        : MaterialGPU[]  (per scene material)
  *   - `scene_materials_ext`    : MaterialExtGPU[] (extended material data)
  *   - `per_draws`              : PerDrawGPU[]   (one per draw: model/normal mat,
@@ -52,7 +52,8 @@ SCORE_PLUGIN_GFX_EXPORT void forceGpuIndexWidening(bool force) noexcept;
  *
  * Conditionally emitted (when present in the scene):
  *   - `scene_material_uv_xforms` : mat3[]       (per-material UV transforms)
- *   - `per_draw_bounds`          : AABB[]        (per-draw world-space bounds)
+ *   - `per_draw_bounds`          : AABB[]        (per-draw local-space bounds,
+ *                                                  +-FLT_MAX when unknown)
  *   - `shadow_cascades`          : CascadeUBO[]  (shadow cascade matrices)
  *
  * Per-draw indexing in shaders uses the MDI `firstInstance` / `gl_DrawID`

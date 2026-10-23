@@ -17,8 +17,8 @@ class GpuResourceRegistry;
 // Raw* structs are written by source nodes (Camera, Light, Transform3D,
 // EnvironmentLoader) into their own GpuResourceRegistry arena slot at their
 // operator()() time: view-independent, no aspect-ratio math or scene-graph
-// composition. The cooked structs (CameraUBOData, LightGPU, MaterialGPU,
-// PerDrawGPU, WorldTransformMat4) are produced by ScenePreprocessor from those
+// composition. The cooked structs (CameraUBOData, PerDrawGPU,
+// WorldTransformMat4) are produced by ScenePreprocessor from those
 // arenas plus render-target state, and are what consumer shaders bind.
 //
 // Materials and env are composition-independent, so Raw == Cooked for them and

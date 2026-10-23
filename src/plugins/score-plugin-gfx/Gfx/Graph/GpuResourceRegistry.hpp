@@ -67,8 +67,7 @@ public:
     Material,         // MaterialGPU        — 80 B per slot, SSBO
     Env,              // EnvParamsUBO       — 64 B per slot, UBO
 
-    // Cooked outputs (camera UBOs, composed world matrices, per-draw structs,
-    // LightGPU with world direction, MaterialGPU with resolved textureRefs) are
+    // Cooked outputs (camera UBOs, composed world matrices, per-draw structs) are
     // preprocessor-private: they are view- and filter-dependent, so a shared arena
     // would be wrong when two preprocessors see different filtered views.
 

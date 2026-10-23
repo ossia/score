@@ -2897,7 +2897,7 @@ void RenderedRawRasterPipelineNode::initState(
     // Resolve a buffer for `ssbo` by looking up its name in the first
     // incoming geometry's auxiliary_buffer list. Used for the scene-aware
     // wiring where the upstream ScenePreprocessor publishes scene_lights /
-    // scene_materials / per_draw as named aux buffers travelling with the
+    // scene_materials / per_draws as named aux buffers travelling with the
     // geometry edge.
     auto try_bind_from_geometry = [&](AuxiliarySSBO& ssbo) {
       if(!geometry.meshes || geometry.meshes->meshes.empty())

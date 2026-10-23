@@ -134,8 +134,8 @@ void Light::operator()()
 
 namespace
 {
-// Mode → raw type encoding used by RawLightData::local_direction.w and
-// LightGPU::position_type.w. Area / dome modes collapse onto punctual
+// Mode → raw type encoding used by RawLightData::local_direction.w. Area /
+// dome modes collapse onto punctual
 // analogues for the raw arena (directional for dome, point for rect /
 // disk / sphere) — area-light shading is a shader-side extension.
 inline float toRawLightType(Light::Mode m) noexcept

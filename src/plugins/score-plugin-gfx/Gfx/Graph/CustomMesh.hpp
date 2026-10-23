@@ -111,7 +111,7 @@ public:
   // Returns true if a draw call was issued.
   //
   // Exposed so consumers that need per-sub-mesh state (e.g. RawRaster
-  // swapping the per_draw SSBO between meshes) can iterate sub-meshes
+  // swapping the per_draws SSBO between meshes) can iterate sub-meshes
   // themselves instead of invoking the fire-and-forget `draw()` above.
   //
   // `plan` (default empty) says which of the mesh's own bindings the

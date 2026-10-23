@@ -41,7 +41,7 @@ namespace score::gfx
 namespace
 {
 
-// std430 layout matching the `per_draw` AUXILIARY block in the preset
+// std430 layout matching the `per_draws` AUXILIARY block in the preset
 // rasterizer shaders. tag_hash is rapidhash(material.tag) truncated to 32 bits.
 // transform_slot indexes world_transforms / world_transforms_prev;
 // skeleton_offset indexes joint_matrices. 0xFFFFFFFF means "none" for both.
@@ -2338,8 +2338,8 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
 
     // Concat offsets for joint matrices across every skeleton in this flatten:
     // skinJointOffsets[k] = sum of joint counts for skins < k. Stamped into
-    // PerDrawGPU.skeleton_offset, with 0xFFFFFFFF for unskinned draws, so a
-    // future consolidated joint_matrices SSBO needs no shader change.
+    // PerDrawGPU.skeleton_offset, with 0xFFFFFFFF for unskinned draws. No
+    // joint_matrices buffer is published yet: scene skinning is not wired.
     std::vector<uint32_t> skinJointOffsets;
     skinJointOffsets.reserve(fs.skins.size());
     {

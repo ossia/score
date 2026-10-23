@@ -169,7 +169,7 @@ private:
     std::string name;
     std::string access;
     // SRB binding slot assigned at pipeline build time. Needed so the per-
-    // sub-mesh draw loop can patch `per_draw` (and any other per-mesh aux)
+    // sub-mesh draw loop can patch `per_draws` (and any other per-mesh aux)
     // to point at mesh[i]'s buffer before drawing sub-mesh i. -1 when the
     // aux was filtered out of the SRB (e.g. visibility==none).
     int binding{-1};
