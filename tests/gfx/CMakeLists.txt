@@ -1609,6 +1609,8 @@ endif()
 # ScenePreprocessorNode: default material after a pre-frame RenderList rebuild,
 # per-preprocessor environment, hidden scene nodes, exact cloud bucket sizes.
 score_add_gfx_test(scene_preprocessor_regressions GfxScenePreprocessorRegressions.cpp)
+score_add_gfx_test(scene_library_shaders GfxSceneLibraryShaders.cpp)
+score_gfx_test_offset_allocator(test_gfx_scene_library_shaders)
 score_gfx_test_offset_allocator(test_gfx_scene_preprocessor_regressions)
 
 # A raw raster OUTPUTS.WIDTH / HEIGHT expression reading an input sizes the

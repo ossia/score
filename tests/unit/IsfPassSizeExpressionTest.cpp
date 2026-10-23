@@ -41,3 +41,36 @@ void main() { gl_FragColor = vec4(0.0); }
   CHECK(sz.width() == 24);
   CHECK(sz.height() == 6);
 }
+
+// Header expressions take libossia's argument order, value first, which is
+// not GLSL's: lerp(t, a, b), step(value, edge), smoothstep(value, a, b). It
+// is kept so saved scores read the same and documented as such (shader board
+// U07); this pins it.
+TEST_CASE("pass size expressions take libossia's argument order", "[gfx][isf][passes][U07]")
+{
+  struct Case
+  {
+    std::string expr;
+    int size;
+  };
+  const auto c = GENERATE(
+      Case{"lerp(0.25, 100, 200)", 125},           // GLSL mix(a, b, t)
+      Case{"step(5, 10) * 7 + step(10, 5) * 40", 40}, // GLSL step(edge, x)
+      Case{"smoothstep(15, 10, 20) * 64", 32});    // GLSL smoothstep(a, b, x)
+  CAPTURE(c.expr);
+  const std::string fs = R"_(/*{
+  "ISFVSN": "2.0",
+  "INPUTS": [],
+  "PASSES": [ { "TARGET": "buf", "WIDTH": ")_" + c.expr + R"_(", "HEIGHT": "8" }, { } ]
+}*/
+void main() { gl_FragColor = vec4(0.0); }
+)_";
+  isf::parser p{"", fs, 450, isf::parser::ShaderType::ISF};
+  const auto d = p.data();
+  REQUIRE(d.passes.size() == 2);
+  score::gfx::ISFNode node{
+      d, QString::fromStdString(p.vertex()), QString::fromStdString(p.fragment())};
+  const QSize sz = node.computeTextureSize(d.passes[0], QSize{640, 480}, {});
+  CHECK(sz.width() == c.size);
+  CHECK(sz.height() == 8);
+}
