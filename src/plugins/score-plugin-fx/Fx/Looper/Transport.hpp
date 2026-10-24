@@ -112,7 +112,9 @@ struct transport
   //! phase.
   int64_t engine_frame(const ossia::token_request& tk) const noexcept
   {
-    return m_facade.samplesSinceStart() + (m_facade.timings(tk).start_sample - tickStartSample);
+    // The engine's count is at the end of the buffer while the graph runs.
+    return m_facade.samplesSinceStart() - m_facade.bufferSize()
+           + m_facade.timings(tk).start_sample + m_close_offset;
   }
 
   //! Called by the looper whenever it records or overdubs.
@@ -409,16 +411,15 @@ private:
             action(sub_tk, e);
           }
 
-          // We can switch to the new mode
+          // We can switch to the new mode. The take closes on the bar line,
+          // which is where the loop starts again.
+          auto sub_tk = tk;
+          sub_tk.set_start_time(t);
           switch_to_main_mode();
-          close(tk, e);
+          close(sub_tk, e);
 
           // Remaining of the tick
-          {
-            auto sub_tk = tk;
-            sub_tk.set_start_time(t);
-            action(sub_tk, e);
-          }
+          action(sub_tk, e);
         }
         else if(tk.musical_end_position - tk.musical_end_last_bar < 1e-9)
         {
@@ -458,12 +459,16 @@ private:
     if(m_forced_close)
     {
       m_forced_close = false;
+      // The loop starts again where the buffer filled up.
+      m_close_offset = done;
       close(tk, e);
+      m_close_offset = 0;
       if(done < length)
         e.looper_run(first + done, length - done);
     }
   }
 
   ossia::exec_state_facade m_facade{};
+  int64_t m_close_offset{};
 };
 }

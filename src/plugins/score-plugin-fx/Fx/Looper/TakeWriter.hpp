@@ -9,6 +9,7 @@
 #include <boost/container/vector.hpp>
 
 #include <QDir>
+#include <QFile>
 #include <QFileInfo>
 #include <QStandardPaths>
 
@@ -73,13 +74,15 @@ struct take_writer
   {
     QDir{}.mkpath(folder);
     QString path;
-    for(int n = 1;; n++)
+    // Created here, so that two loopers writing a take at once never pick
+    // the same name.
+    for(int n = 1; n < 100000; n++)
     {
       path = QStringLiteral("%1/%2-take%3.%4").arg(folder, prefix).arg(n).arg(extension);
-      if(!QFileInfo::exists(path))
+      if(QFile f{path}; f.open(QIODevice::WriteOnly | QIODevice::NewOnly))
         break;
     }
-    paths[slot] = path.toStdString();
+    paths[slot].assign(path.toStdString());
     return paths[slot];
   }
 

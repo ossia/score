@@ -11,6 +11,7 @@
 #include <cstdint>
 #include <cstdlib>
 #include <new>
+#include <map>
 #include <vector>
 
 using Catch::Approx;
@@ -386,10 +387,12 @@ TEST_CASE("MIDI looper: stopping the process ends the notes the loop was playing
           "[fx][midi][looper]")
 {
   midi_harness h;
-  record(h, 640, [](midi_harness& h) {
-    h.note_on(60, 10);
-    h.note_off(60, 600);
-  });
+  h.node.inputs.mode = LoopMode::Record;
+  h.note_on(60, 10);
+  h.run_frames(576);
+  h.note_off(60, 24); // frame 600
+  h.run_frames(64);
+  h.node.inputs.mode = LoopMode::Play;
   h.out.clear();
   h.run(64); // plays the note-on
   REQUIRE(h.ons().size() == 1);
@@ -511,4 +514,76 @@ TEST_CASE("MIDI looper: capture makes a loop of the last bars played",
   CHECK(h.node.loop.notes[0].length == 200);
   CHECK(h.node.loop.notes[1].start == 1484 - 48);
   CHECK(h.node.transport.actualMode == LoopMode::Play);
+}
+
+namespace
+{
+//! Stops the process the way the host does: the notes still sounding end in
+//! one more, empty tick.
+void stop_and_collect(midi_harness& h)
+{
+  h.node.stop();
+  h.node.outputs.midi.midi_messages.clear();
+  h.node(h.tick(0));
+  for(auto& m : h.node.outputs.midi.midi_messages)
+    if(mtk::classify(m) == mtk::midi_kind::note_off)
+      h.out.push_back({h.now, false, 1, m.bytes[1]});
+}
+
+//! Every note-on has its note-off, by pitch.
+bool balanced(const std::vector<out_note>& out)
+{
+  std::map<int, int> s;
+  for(auto& n : out)
+    s[n.pitch] += n.on ? 1 : -1;
+  for(auto& [p, c] : s)
+    if(c != 0)
+      return false;
+  return true;
+}
+}
+
+TEST_CASE("MIDI looper: a note held longer than the loop ends once it is let go",
+          "[fx][midi][looper]")
+{
+  midi_harness h;
+  h.node.inputs.passthrough = Passthrough::Full;
+  h.node.inputs.mode = LoopMode::Record;
+  h.note_on(60, 10);
+  h.run_frames(640);
+  h.node.inputs.mode = LoopMode::Play;
+  h.run_frames(640 * 3); // still held
+  h.note_off(60, 5);
+  h.run();
+  h.run_frames(640 * 3);
+  stop_and_collect(h);
+  CHECK(balanced(h.out));
+}
+
+TEST_CASE("MIDI looper: a note replaced while it sounds still ends",
+          "[fx][midi][looper]")
+{
+  midi_harness h;
+  h.node.inputs.overdub_mode = OverdubMode::Replace;
+  h.node.inputs.restart = Looper::Restart::Recording;
+  record(h, 640, [](midi_harness& h) {
+    h.note_on(60, 10);
+    h.note_off(60, 50);
+  });
+  h.run();
+  h.out.clear();
+  h.node.inputs.mode = LoopMode::Overdub;
+  h.run_frames(600);
+  // The loop's C4 starts at 10 of the next round; play C4 over it.
+  h.run(32);
+  h.note_on(60, 0);
+  h.run(4);
+  h.note_off(60, 0);
+  h.run_frames(640);
+  h.node.inputs.mode = LoopMode::Play;
+  h.run_frames(640 * 2);
+  stop_and_collect(h);
+  // The note of the first pass played once, the one replacing it each round.
+  CHECK(h.ons().front().at < h.ons()[1].at - 600);
+  CHECK(balanced(h.out));
 }

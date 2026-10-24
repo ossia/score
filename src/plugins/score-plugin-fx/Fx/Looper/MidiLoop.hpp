@@ -191,11 +191,19 @@ struct midi_loop
   void merge_oldest() noexcept
   {
     for(int i = 0; i < note_count; i++)
+    {
       if(notes[i].pass > 0)
         notes[i].pass--;
+      if(notes[i].replaced_by > 0)
+        notes[i].replaced_by--;
+    }
     for(int i = 0; i < control_count; i++)
+    {
       if(controls[i].pass > 0)
         controls[i].pass--;
+      if(controls[i].replaced_by > 0)
+        controls[i].replaced_by--;
+    }
     count--;
   }
 

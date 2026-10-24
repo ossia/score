@@ -13,6 +13,8 @@ namespace Nodes::Looper
 //! Its audio is kept apart from the other passes', so that undoing it is
 //! hiding it and its gain can decay with feedback without touching what it
 //! recorded.
+inline constexpr int max_audio_layers = 32;
+
 struct audio_layer
 {
   //! Which buffer of the pool holds it.
@@ -20,9 +22,11 @@ struct audio_layer
   //! Gain it is played with: one, times the feedback of every overdub pass
   //! that went over it since.
   float gain{1.f};
-  //! Gain this pass applied to the passes under it, so that undoing it can
-  //! give it back.
-  float applied{1.f};
+  //! Gains of the passes under it when it started, which undoing it gives
+  //! back, and when it was undone, which redoing it puts back: feedback may
+  //! have taken them down to nothing.
+  std::array<float, max_audio_layers> below_before{};
+  std::array<float, max_audio_layers> below_after{};
   //! Loop position of its first frame.
   int64_t start{};
   //! Frames it was written for. Positions past them are silence until the
@@ -40,7 +44,7 @@ struct audio_layer
  */
 struct audio_layers
 {
-  static constexpr int max_layers = 32;
+  static constexpr int max_layers = max_audio_layers;
   static constexpr int max_channels = 16;
   static constexpr int fade_frames = 128;
   //! Frames summed up into one point of the peak overview.
@@ -64,7 +68,8 @@ struct audio_layers
   void allocate(int chans, int layer_count, int64_t frames)
   {
     chans = std::clamp(chans, 1, max_channels);
-    layer_count = std::clamp(layer_count, 1, max_layers);
+    // One buffer for the recording and one at least for an overdub.
+    layer_count = std::clamp(layer_count, 2, max_layers);
     frames = std::max<int64_t>(frames, 1);
     if(chans == channels && layer_count == slots && frames == capacity)
       return;
@@ -136,7 +141,7 @@ struct audio_layers
     count = 1;
     total = 1;
     length = 0;
-    layers[0] = audio_layer{.slot = 0, .gain = 1.f, .applied = 1.f, .start = 0, .written = 0};
+    layers[0] = audio_layer{.slot = 0, .gain = 1.f, .start = 0, .written = 0};
     std::fill_n(peaks_of(0), peak_count(), 0.f);
   }
 
@@ -163,7 +168,13 @@ struct audio_layers
     const int slot = free_slot();
     if(slot < 0)
       return;
-    layers[count] = audio_layer{.slot = slot, .gain = 1.f, .applied = 1.f, .start = start, .written = 0};
+    auto& l = layers[count];
+    l.slot = slot;
+    l.gain = 1.f;
+    l.start = start;
+    l.written = 0;
+    for(int i = 0; i < count; i++)
+      l.below_before[i] = layers[i].gain;
     std::fill_n(peaks_of(slot), peak_count(), 0.f);
     count++;
     total = count;
@@ -192,6 +203,16 @@ struct audio_layers
     a.gain = 1.f;
     for(int i = 1; i + 1 < count; i++)
       layers[i] = layers[i + 1];
+    // The two oldest passes are one now, with their gains in it.
+    for(int i = 1; i + 1 < count; i++)
+    {
+      for(auto* g : {&layers[i].below_before, &layers[i].below_after})
+      {
+        for(int j = 1; j + 1 < max_layers; j++)
+          (*g)[j] = (*g)[j + 1];
+        (*g)[0] = 1.f;
+      }
+    }
     count--;
     total = count;
   }
@@ -204,17 +225,18 @@ struct audio_layers
       return;
     for(int i = 0; i < count - 1; i++)
       layers[i].gain *= feedback;
-    layers[count - 1].applied *= feedback;
   }
 
   bool undo() noexcept
   {
     if(count == 0)
       return false;
-    const float applied = layers[count - 1].applied;
-    if(applied > 1e-6f)
-      for(int i = 0; i < count - 1; i++)
-        layers[i].gain /= applied;
+    auto& l = layers[count - 1];
+    for(int i = 0; i < count - 1; i++)
+    {
+      l.below_after[i] = layers[i].gain;
+      layers[i].gain = l.below_before[i];
+    }
     count--;
     return true;
   }
@@ -223,9 +245,9 @@ struct audio_layers
   {
     if(count >= total)
       return false;
-    const float applied = layers[count].applied;
+    const auto& l = layers[count];
     for(int i = 0; i < count; i++)
-      layers[i].gain *= applied;
+      layers[i].gain = l.below_after[i];
     count++;
     return true;
   }

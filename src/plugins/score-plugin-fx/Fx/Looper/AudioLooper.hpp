@@ -13,6 +13,7 @@
 #include <halp/controls.hpp>
 #include <halp/layout.hpp>
 #include <halp/meta.hpp>
+#include <halp/soundfile_port.hpp>
 
 #include <functional>
 #include <memory>
@@ -144,7 +145,7 @@ struct Node
           "change applies from the next start.")
     } max_seconds;
 
-    struct : halp::spinbox_i32<"Max layers", halp::irange{1, 32, 8}>
+    struct : halp::spinbox_i32<"Max layers", halp::irange{2, 32, 8}>
     {
       halp_meta(
           description,
@@ -210,6 +211,14 @@ struct Node
           "sound card while the loop is heard. Leave off for input made inside "
           "score.")
     } engine_latency;
+
+    struct : halp::soundfile_port<"Loop file">
+    {
+      halp_meta(
+          description,
+          "A sound file to loop: dropping one on the looper replaces the loop "
+          "with it, up to Max length.")
+    } file;
   } inputs;
 
   struct
@@ -304,6 +313,7 @@ struct Node
     apply_buttons();
     if(inputs.capture.value)
       capture(tk);
+    load_file();
 
     const Looper::transport_settings settings{
         .mode = inputs.mode,
@@ -434,6 +444,7 @@ private:
   double m_export_tempo{120.};
   ossia::time_signature m_export_signature{4, 4};
   double m_export_date{};
+  double m_job_date{};
   int m_take_slot{};
   int m_takes_written{};
   double m_last_take_date{};
@@ -445,6 +456,14 @@ private:
 
   void apply_buttons();
   void capture(const tick& tk);
+  void load_file();
+
+  // A file being copied into the loop, a part per tick.
+  const float** m_file_data{};
+  int64_t m_file_frames{};
+  int64_t m_file_pos{};
+  int64_t m_file_target{};
+  bool m_loading{};
   void keep_input(int64_t frames);
   void fade_edges(int slot);
 
@@ -471,6 +490,7 @@ inline void Node::apply_buttons()
   if(inputs.clear.value)
   {
     sync.release();
+    m_loading = false;
     layers.clear();
     transport.playbackPos = 0;
     // Whatever was being taken in is gone with the rest.
@@ -568,7 +588,8 @@ inline void Node::looper_close_take(
       layers.length = total_samples;
 
     // In a sync group, the loop fits the group's.
-    const auto synced = sync.close(layers.length, transport.engine_frame(tk));
+    const auto synced
+        = sync.close(layers.length, transport.engine_frame(tk), transport.playbackPos);
     if(synced.length < layers.length)
       layers.length = synced.length;
     const int64_t sync_extend = std::min(synced.length, layers.capacity);
@@ -711,6 +732,69 @@ inline void Node::capture(const tick& tk)
   m_export_pending = true;
 }
 
+//! A new file replaces the loop. It is copied about a second per tick so that
+//! a long file does not make one tick long, at the looper's rate: a file at
+//! another rate is resampled linearly.
+inline void Node::load_file()
+{
+  const auto& f = inputs.file.soundfile;
+  if(f.data != m_file_data || f.frames != m_file_frames)
+  {
+    m_file_data = f.data;
+    m_file_frames = f.frames;
+    m_loading = false;
+
+    if(!inputs.file || transport.is_taking())
+      return;
+
+    const double ratio = f.rate > 0 ? m_rate / f.rate : 1.;
+    m_file_target = std::min<int64_t>(int64_t(f.frames * ratio), layers.capacity);
+    if(m_file_target <= 0)
+      return;
+    layers.begin_recording();
+    // Nothing is heard until the whole file is in.
+    layers.count = 0;
+    m_file_pos = 0;
+    m_loading = true;
+    m_full = false;
+    m_flattening = false;
+  }
+
+  if(!m_loading)
+    return;
+
+  const double step = f.rate > 0 ? double(f.rate) / m_rate : 1.;
+  const int slot = layers.layers[0].slot;
+  const int64_t end = std::min(m_file_target, m_file_pos + 65536);
+  for(int c = 0; c < layers.channels; c++)
+  {
+    float* dst = layers.data(slot, c);
+    // A mono file goes to every channel.
+    const float* src = f.channels > 0 ? f.data[std::min(c, f.channels - 1)] : nullptr;
+    for(int64_t k = m_file_pos; k < end; k++)
+    {
+      const double x = k * step;
+      const int64_t i = int64_t(x);
+      const float a = i < f.frames ? src[i] : 0.f;
+      const float b = i + 1 < f.frames ? src[i + 1] : a;
+      const float v = a + float(x - i) * (b - a);
+      dst[k] = v;
+      layers.note_peak(slot, k, v);
+    }
+  }
+  m_file_pos = end;
+  if(m_file_pos < m_file_target)
+    return;
+
+  m_loading = false;
+  layers.length = m_file_target;
+  layers.layers[0].written = m_file_target;
+  layers.count = 1;
+  layers.total = 1;
+  fade_edges(slot);
+  transport.play_captured(0);
+}
+
 inline void Node::play(int64_t first_pos, int64_t samples)
 {
   auto& p2 = outputs.audio;
@@ -718,14 +802,14 @@ inline void Node::play(int64_t first_pos, int64_t samples)
   const int out_chans = p2.channels;
   const int loop_chans = std::min(layers.channels, out_chans);
   const int64_t len = layers.length;
+  const int64_t start = transport.playbackPos % len;
 
-  int64_t k = transport.playbackPos % len;
   for(int i = 0; i < loop_chans; i++)
   {
     auto& out = p2.samples[i];
     // The loop is free to be shorter than the tick, and to end anywhere
     // inside it.
-    k = transport.playbackPos % len;
+    int64_t k = start;
     for(int64_t j = first_pos; j < last; j++)
     {
       out[j] = layers.mix(i, k);
@@ -742,7 +826,8 @@ inline void Node::play(int64_t first_pos, int64_t samples)
       out[j] = 0.;
   }
 
-  transport.playbackPos = k;
+  // The loop goes on with no output to play it to, e.g. nothing patched in.
+  transport.playbackPos = (start + samples) % len;
 }
 
 //! Outlet buffers come from a pool and are resized, not cleared: writing
@@ -807,6 +892,7 @@ inline int64_t Node::record(int64_t first_pos, int64_t samples, bool echo)
     m_flattening = false;
     m_export_pending = false;
     m_full = false;
+    m_loading = false;
   }
   transport.taking(LoopMode::Record);
 
@@ -888,7 +974,8 @@ inline void Node::overdub(int64_t first_pos, int64_t samples, bool echo)
       const float in = c < in_chans ? float(p1.samples[c][j]) : 0.f;
       const float before = layers.mix(c, k);
       float& d = layers.data(top->slot, c)[k];
-      d = (first_time ? 0.f : d) + in * ramp;
+      // Later laps of the pass fade what it laid down on the earlier ones.
+      d = (first_time ? 0.f : d * feedback) + in * ramp;
       layers.note_peak(top->slot, k, d);
       if(c < out_chans)
         p2.samples[c][j] = echo ? before + in : before;
@@ -915,6 +1002,8 @@ inline void Node::run_export()
     m_export_pending = false;
     m_flattening = true;
     m_flatten_pos = 0;
+    // A take closing while this one is written must not change its date.
+    m_job_date = m_export_date;
     m_export_length = layers.length;
     m_export_channels = layers.channels;
   }
@@ -960,9 +1049,9 @@ inline void Node::take_written(int slot, bool ok)
     return;
 
   m_takes_written++;
-  m_last_take_date = m_export_date;
+  m_last_take_date = m_job_date;
   const auto& path = writer->path(slot);
-  std::copy_n(path.data(), m_view.take_path.size(), m_view.take_path.data());
+  std::copy_n(path.data(), std::min(path.size() + 1, m_view.take_path.size()), m_view.take_path.data());
   m_view.take_path.back() = 0;
   m_view.take = m_takes_written;
   m_view.take_date = m_last_take_date;
