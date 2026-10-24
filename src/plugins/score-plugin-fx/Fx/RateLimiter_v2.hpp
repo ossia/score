@@ -31,6 +31,7 @@ struct Node
       "Limit a value stream to one value per interval, on the musical grid when "
       "the interval is synced, or debounce after a quiet interval")
   halp_meta(uuid, "485d39ed-e495-448c-95df-5f2ea905ef5b")
+  halp_flag(process_exec);
 
   enum class Mode
   {

@@ -32,6 +32,8 @@
 #include <Fx/Chord.hpp>
 #include <Fx/Looper/AudioLooper.hpp>
 #include <Fx/Looper/MidiLooper.hpp>
+#include <Fx/RateLimiter.hpp>
+#include <Fx/RateLimiter_v2.hpp>
 #include <catch2/catch_template_test_macros.hpp>
 #include <catch2/catch_test_macros.hpp>
 #include <examples/Advanced/MidiScaler/MidiLife.hpp>
@@ -495,5 +497,42 @@ TEST_CASE("MIDI Sync Out through the binding: Stop goes out once, in the tick af
     e.tick(0);
     count();
     CHECK(stops == 1);
+  });
+}
+
+TEMPLATE_TEST_CASE(
+    "Rate limiters: stopping the process drops the value held back",
+    "[avnd][execution][stop]", Nodes::RateLimiter::Node, Nodes::RateLimiter::v2::Node)
+{
+  const QString uuid = std::is_same_v<TestType, Nodes::RateLimiter::Node>
+                           ? QStringLiteral("76cfd504-7c10-4bdb-a1b4-fbe449cc06f0")
+                           : QStringLiteral("485d39ed-e495-448c-95df-5f2ea905ef5b");
+  with<TestType>(uuid, [](auto& e) {
+    e.tick(64);
+    // A value held back until the end of the interval: a later start must
+    // not send it.
+    e.object().pending = ossia::value{1.f};
+    e.comp->OSSIAProcess().stop();
+    CHECK(!e.object().pending);
+  });
+}
+
+TEST_CASE("MIDI looper through the binding: passthrough", "[avnd][execution][looper]")
+{
+  with<Nodes::MidiLooper::Node>(QStringLiteral("0c0b7d3e-5a52-4b8f-9d1f-6e3a2b8c4f71"), [](auto& e) {
+    INFO("Passthrough port value: " << ossia::value_to_pretty_string(e.control("Passthrough").value()));
+    CHECK(e.object().inputs.passthrough.value == Nodes::Looper::Passthrough::Full);
+    for(const char* mode : {"Stop", "Play", "Record"})
+    {
+      e.gui("Loop", ossia::value{std::string{mode}});
+      e.tick(64);
+      e.midi({note_on(60)});
+      e.tick(64);
+      INFO(mode);
+      CHECK(e.midi_out() == std::vector<int>{0x90});
+      e.midi({note_off(60)});
+      e.tick(64);
+      CHECK(e.midi_out() == std::vector<int>{0x80});
+    }
   });
 }

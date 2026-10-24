@@ -239,21 +239,27 @@ TEST_CASE("Looper: playback wraps on the loop length, not on the buffer length",
   }
 }
 
-TEST_CASE("Looper: overdubbing an empty loop writes nothing into it",
-          "[fx][audio][looper]")
+TEST_CASE("Looper: overdubbing an empty loop records it", "[fx][audio][looper]")
 {
   looper_harness h;
-  // A buffer barely larger than the tick: a write on a loop of length zero
-  // would land past it.
-  h.node.layers.allocate(2, 2, 64);
+  // A buffer barely larger than the tick: the recording fills it and stops.
+  h.node.layers.allocate(2, 2, 100);
 
   h.fill_input(0, [](int64_t i) { return double(i + 1); });
   h.node.inputs.mode = LoopMode::Overdub;
   h.run(64);
-
-  CHECK(h.loop().size() == 0);
+  CHECK(h.loop().size() == 64);
+  CHECK(h.node.transport.actualMode == LoopMode::Record);
   for(int i = 0; i < 64; i++)
     CHECK(h.out_buf[0][i] == Approx(double(i + 1)));
+
+  // Changing the mode closes the recording; Overdub again layers over it.
+  h.node.inputs.mode = LoopMode::Play;
+  h.run(64);
+  h.node.inputs.mode = LoopMode::Overdub;
+  h.run(64);
+  CHECK(h.node.transport.actualMode == LoopMode::Overdub);
+  CHECK(h.node.layers.count == 2);
 }
 
 TEST_CASE("Looper: overdub keeps its phase across a loop that is not a multiple "
@@ -537,6 +543,8 @@ struct musical_harness : looper_harness
 {
   double tempo{120.};
   int upper{4}, lower{4};
+  bool accumulate{false};
+  double position{};
 
   explicit musical_harness(int bs = 9600)
       : looper_harness{1, bs, 48000}
@@ -561,8 +569,19 @@ struct musical_harness : looper_harness
 
     const double qps = quarters_per_sample();
     const double bar_q = 4. * (double(upper) / lower);
-    tk.musical_start_position = now * qps;
-    tk.musical_end_position = (now + frames) * qps;
+    if(accumulate)
+    {
+      // Positions go on from where they were: a tempo change bends the time
+      // from then on, not what came before.
+      tk.musical_start_position = position;
+      tk.musical_end_position = position + frames * qps;
+      position += frames * qps;
+    }
+    else
+    {
+      tk.musical_start_position = now * qps;
+      tk.musical_end_position = (now + frames) * qps;
+    }
     tk.musical_start_last_bar = std::floor(tk.musical_start_position / bar_q) * bar_q;
     tk.musical_end_last_bar = std::floor(tk.musical_end_position / bar_q) * bar_q;
     tk.musical_start_last_signature = 0.;
@@ -1394,4 +1413,99 @@ TEST_CASE("Looper: a stop just after the bar line keeps a sync group on the grid
   REQUIRE(g);
   CHECK(g->origin.load() == 3 * h.bar_samples());
   CHECK(h.node.transport.playbackPos == 2 * h.buffer_size);
+}
+
+TEST_CASE("Looper: overdub on an empty loop hands over to overdubbing after its bars",
+          "[fx][audio][looper][musical]")
+{
+  musical_harness h;
+  h.node.inputs.quantif.value = 1.0f;
+  h.node.inputs.postaction_bars.value = 1;
+  h.node.inputs.postaction = Postaction::Play;
+  h.node.inputs.mode = LoopMode::Stop;
+  h.run_bars(1);
+  h.fill_input(0, [](int64_t) { return 0.5; });
+  h.node.inputs.mode = LoopMode::Overdub;
+  h.run_bars(1);
+  CHECK(h.node.transport.actualMode == LoopMode::Record);
+  h.run_bars(2.5);
+  CHECK(h.loop().size() == h.bar_samples());
+  CHECK(h.node.transport.actualMode == LoopMode::Overdub);
+  CHECK(h.node.layers.count == 2);
+}
+
+TEST_CASE("Looper: a take can be written as its mix, its layers, or both",
+          "[fx][audio][looper][takes]")
+{
+  QTemporaryDir dir;
+  REQUIRE(dir.isValid());
+
+  looper_harness h{1, 64};
+  auto writer = std::make_shared<Nodes::Looper::take_writer>();
+  writer->folder = dir.path();
+  writer->prefix = "t";
+  writer->extension = "wav";
+  h.node.writer = writer;
+  h.node.worker.request = [&](Nodes::Looper::take_job job) {
+    Looper::worker_t::work(std::move(job))(h.node);
+  };
+  h.node.inputs.takes.value = Nodes::Looper::TakeFiles::Both;
+
+  record_and_overdub(h, 512, 0.25, 0.5);
+  for(int i = 0; i < 10; i++)
+    h.run(64);
+
+  auto files = QDir{dir.path()}.entryList({"*.wav"}, QDir::Files, QDir::Name);
+  // The take of the recording, then the one of the overdub.
+  CHECK(files.contains("t-take1.wav"));
+  CHECK(files.contains("t-take1-layer1.wav"));
+  CHECK(files.contains("t-take2.wav"));
+  CHECK(files.contains("t-take2-layer1.wav"));
+  CHECK(files.contains("t-take2-layer2.wav"));
+
+  const auto layer2 = read_wav(QString(dir.path() + "/t-take2-layer2.wav").toStdString());
+  REQUIRE(layer2.samples.size() == 512 * std::size_t(layer2.channels));
+  CHECK(layer2.samples[256 * layer2.channels] == Approx(0.5));
+  const auto mix = read_wav(QString(dir.path() + "/t-take2.wav").toStdString());
+  REQUIRE(mix.samples.size() == 512 * std::size_t(mix.channels));
+  CHECK(mix.samples[256 * mix.channels] == Approx(0.75));
+
+  // What the view offers to send or drag: every file of the last take.
+  Nodes::Looper::view_message v{};
+  v.set_take(QString(dir.path() + "/t-take2").toStdString(), "wav", true, 2);
+  const auto paths = v.take_files();
+  REQUIRE(paths.size() == 3);
+  CHECK(paths[2] == QString(dir.path() + "/t-take2-layer2.wav").toStdString());
+}
+
+TEST_CASE("Looper: a take keeps the tempo it was recorded at, whatever the tempo is now",
+          "[fx][audio][looper][takes][tempo]")
+{
+  QTemporaryDir dir;
+  REQUIRE(dir.isValid());
+  musical_harness h{4800};
+  h.accumulate = true;
+  h.node.inputs.quantif.value = 0.f;
+  auto writer = std::make_shared<Nodes::Looper::take_writer>();
+  writer->folder = dir.path();
+  writer->prefix = "t";
+  writer->extension = "wav";
+  h.node.writer = writer;
+  h.node.worker.request = [&](Nodes::Looper::take_job job) {
+    Looper::worker_t::work(std::move(job))(h.node);
+  };
+
+  // Two bars at 120, then the tempo drops to 90 just as the recording ends.
+  h.fill_input(0, [](int64_t) { return 0.25; });
+  h.node.inputs.mode = LoopMode::Record;
+  for(int i = 0; i < 40; i++)
+    h.run(h.mtick(4800));
+  h.tempo = 90.;
+  h.node.inputs.mode = LoopMode::Play;
+  for(int i = 0; i < 6; i++)
+    h.run(h.mtick(4800));
+
+  const auto wav = read_wav(QString(dir.path() + "/t-take1.wav").toStdString());
+  CHECK(wav.tempo == Approx(120.f));
+  CHECK(wav.beats == 8);
 }

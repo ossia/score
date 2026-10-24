@@ -4,6 +4,10 @@
 
 #include <libremidi/reader.hpp>
 
+#include <QDir>
+#include <QFile>
+#include <QTemporaryDir>
+
 #include <catch2/catch_approx.hpp>
 #include <catch2/catch_test_macros.hpp>
 
@@ -63,6 +67,7 @@ struct midi_harness
   ossia::execution_state st;
   int buffer_size{64};
   int64_t now{0};
+  double tempo{120.};
   std::vector<libremidi::message> pending;
   std::vector<libremidi::message> controls_out;
   std::vector<out_note> out;
@@ -109,7 +114,7 @@ struct midi_harness
     tk.date = ossia::time_value{now + frames};
     tk.start_sample = 0;
     tk.length_sample = frames;
-    tk.tempo = 120.;
+    tk.tempo = tempo;
     return tk;
   }
 
@@ -586,4 +591,147 @@ TEST_CASE("MIDI looper: a note replaced while it sounds still ends",
   // The note of the first pass played once, the one replacing it each round.
   CHECK(h.ons().front().at < h.ons()[1].at - 600);
   CHECK(balanced(h.out));
+}
+
+TEST_CASE("MIDI looper: quantizing the ends never makes a note vanish",
+          "[fx][midi][looper]")
+{
+  // A sixteenth is 6000 frames. A 400-frame note around a grid point has its
+  // start and its end pulled to the same point: it keeps its length.
+  midi_harness h{64, 48000};
+  h.node.inputs.grid.value = 1.f / 16.f;
+  h.node.inputs.strength.value = 1.f;
+  h.node.inputs.quantize_ends.value = true;
+  h.node.inputs.mode = LoopMode::Record;
+  h.run_frames(5760);
+  h.note_on(60, 0); // 5760
+  h.run_frames(384);
+  h.note_off(60, 16); // 6160
+  h.run_frames(24000 - 6144);
+  h.node.inputs.mode = LoopMode::Play;
+  h.run();
+  REQUIRE(h.node.loop.length == 24000);
+
+  h.out.clear();
+  const int64_t start = h.now; // loop position 64
+  h.run_frames(24000);
+  const auto ons = h.ons();
+  const auto offs = h.offs();
+  REQUIRE(ons.size() == 1);
+  REQUIRE(offs.size() == 1);
+  CHECK(ons[0].at == start + 6000 - 64);
+  CHECK(offs[0].at - ons[0].at == 400);
+}
+
+TEST_CASE("MIDI looper: full passthrough lets the input through in every mode",
+          "[fx][midi][looper][passthrough]")
+{
+  for(auto mode : {LoopMode::Stop, LoopMode::Play, LoopMode::Record, LoopMode::Overdub})
+  {
+    midi_harness h;
+    h.node.inputs.passthrough = Passthrough::Full;
+    h.node.inputs.mode = mode;
+    h.run();
+    h.out.clear();
+    h.note_on(62, 3);
+    h.run();
+    h.note_off(62, 5);
+    h.run();
+    INFO(int(mode));
+    REQUIRE(h.out.size() == 2);
+    CHECK(h.out[0].on);
+    CHECK(h.out[0].pitch == 62);
+    CHECK(!h.out[1].on);
+  }
+}
+
+TEST_CASE("MIDI looper: overdubbing an empty loop records it", "[fx][midi][looper]")
+{
+  midi_harness h;
+  h.node.inputs.mode = LoopMode::Overdub;
+  h.note_on(60, 10);
+  h.run();
+  h.note_off(60, 20);
+  h.run();
+  h.run_frames(512);
+  h.node.inputs.mode = LoopMode::Play;
+  h.run();
+  CHECK(h.node.loop.length == 640);
+  CHECK(h.node.loop.note_count == 1);
+}
+
+TEST_CASE("MIDI looper: a take can be written as its mix, its passes, or both",
+          "[fx][midi][looper][takes]")
+{
+  QTemporaryDir dir;
+  REQUIRE(dir.isValid());
+  midi_harness h;
+  auto writer = std::make_shared<Nodes::Looper::take_writer>();
+  writer->folder = dir.path();
+  writer->prefix = "m";
+  writer->extension = "mid";
+  h.node.writer = writer;
+  h.node.worker.request = [&](Nodes::Looper::midi_take_job job) {
+    Looper::worker_t::work(std::move(job))(h.node);
+  };
+  h.node.inputs.takes.value = Nodes::Looper::TakeFiles::Layers;
+  h.node.inputs.restart = Looper::Restart::Recording;
+
+  record(h, 640, [](midi_harness& h) {
+    h.note_on(60, 10);
+    h.note_off(60, 20);
+  });
+  h.node.inputs.mode = LoopMode::Overdub;
+  h.note_on(67, 10);
+  h.note_off(67, 20);
+  h.run_frames(640);
+  h.node.inputs.mode = LoopMode::Play;
+  for(int i = 0; i < 4; i++)
+    h.run();
+
+  const auto files = QDir{dir.path()}.entryList({"*.mid"}, QDir::Files, QDir::Name);
+  CHECK(!files.contains("m-take2.mid"));
+  REQUIRE(files.contains("m-take2-layer1.mid"));
+  REQUIRE(files.contains("m-take2-layer2.mid"));
+
+  auto pitches = [&](const char* name) {
+    QFile f{dir.path() + "/" + name};
+    REQUIRE(f.open(QIODevice::ReadOnly));
+    const auto bytes = f.readAll();
+    libremidi::reader r;
+    std::vector<uint8_t> raw(bytes.begin(), bytes.end());
+    r.parse(raw);
+    std::vector<int> res;
+    for(auto& ev : r.tracks[0])
+      if(mtk::classify(ev.m) == mtk::midi_kind::note_on)
+        res.push_back(ev.m.bytes[1]);
+    return res;
+  };
+  CHECK(pitches("m-take2-layer1.mid") == std::vector<int>{60});
+  CHECK(pitches("m-take2-layer2.mid") == std::vector<int>{67});
+}
+
+TEST_CASE("MIDI looper: after a tempo change, quantize keeps to the loop's own beats",
+          "[fx][midi][looper][tempo]")
+{
+  midi_harness h{64, 48000};
+  h.node.inputs.grid.value = 1.f / 16.f;
+  h.node.inputs.strength.value = 1.f;
+  h.node.inputs.mode = LoopMode::Record;
+  h.run_frames(5900);
+  h.note_on(60, 0); // 100 frames before the second sixteenth at 120
+  h.run(64);
+  h.note_off(60, 0);
+  h.run_frames(24000 - 5964);
+  h.node.inputs.mode = LoopMode::Play;
+  h.run();
+
+  // At 90, a sixteenth would be 8000 frames: the loop still has its 6000.
+  h.tempo = 90.;
+  h.out.clear();
+  const int64_t start = h.now; // loop position 64
+  h.run_frames(24000);
+  const auto ons = h.ons();
+  REQUIRE(ons.size() == 1);
+  CHECK(ons[0].at == start + 6000 - 64);
 }

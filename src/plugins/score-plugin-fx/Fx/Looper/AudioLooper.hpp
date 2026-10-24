@@ -219,6 +219,16 @@ struct Node
           "A sound file to loop: dropping one on the looper replaces the loop "
           "with it, up to Max length.")
     } file;
+
+    struct : Looper::enum_combobox<"Takes", Looper::TakeFiles, Looper::TakeFiles::Mix>
+    {
+      using enum_combobox::operator=;
+      halp_meta(
+          description,
+          "What a take is written as: the loop as it is heard (Mix), each pass "
+          "in a file of its own (Layers), or both. Sending or dragging a take "
+          "places every file of it, each on a lane of its own.")
+    } takes;
   } inputs;
 
   struct
@@ -237,7 +247,9 @@ struct Node
     static std::function<void(Node&)> work(Looper::take_job&& job)
     {
       const bool ok = job.run();
-      return [slot = job.slot, ok](Node& self) { self.take_written(slot, ok); };
+      return [slot = job.slot, number = job.number, ok](Node& self) {
+        self.take_written(slot, number, ok);
+      };
     }
   } worker;
 
@@ -315,8 +327,9 @@ struct Node
       capture(tk);
     load_file();
 
+    m_mode = transport.effective(inputs.mode, layers.empty());
     const Looper::transport_settings settings{
-        .mode = inputs.mode,
+        .mode = m_mode,
         .quantif = inputs.quantif.value,
         .postaction = inputs.postaction,
         .postaction_bars = inputs.postaction_bars,
@@ -361,6 +374,7 @@ struct Node
         halp::item<&ins::redo> redo;
         halp::item<&ins::clear> clear;
         halp::item<&ins::send> send;
+        halp::item<&ins::takes> takes;
       } actions;
       struct
       {
@@ -442,10 +456,22 @@ private:
   int64_t m_export_length{};
   int m_export_channels{};
   double m_export_tempo{120.};
+  //! Tempo the loop was recorded at: the loop keeps its own speed.
+  double m_loop_tempo{120.};
   ossia::time_signature m_export_signature{4, 4};
   double m_export_date{};
+  //! The mode asked for, as the transport takes it up.
+  LoopMode m_mode{LoopMode::Stop};
   double m_job_date{};
   int m_take_slot{};
+  // The files of the take being written: the mix (item -1), then the layers,
+  // one after the other under one take number.
+  int m_export_item{};
+  int m_export_layers{};
+  bool m_export_mix{};
+  bool m_export_cancelled{};
+  int m_export_number{};
+  std::array<Looper::audio_layer, Looper::audio_layers::max_layers> m_export_snapshot{};
   int m_takes_written{};
   double m_last_take_date{};
   bool m_send_requested{};
@@ -474,7 +500,8 @@ private:
   //! Frames of input seen since the looper was created.
   int64_t m_ring_written{};
   void run_export();
-  void take_written(int slot, bool ok);
+  void take_written(int slot, int number, bool ok);
+  void start_export_item(int item);
   void send_view(int64_t frames);
 
   void play(int64_t first_pos, int64_t samples);
@@ -571,6 +598,7 @@ inline void Node::looper_close_take(
 
   if(mode == LoopMode::Record)
   {
+    m_loop_tempo = transport.loop_tempo(tk, layers.length);
     const double bar_samples = m_rate * 4.
                                * (double(tk.signature.upper) / tk.signature.lower)
                                * (60. / tk.tempo);
@@ -626,7 +654,7 @@ inline void Node::looper_close_take(
       layers.shift_earlier(*top, latency);
   }
 
-  m_export_tempo = tk.tempo;
+  m_export_tempo = m_loop_tempo;
   m_export_signature = tk.signature;
   m_export_pending = true;
 }
@@ -727,7 +755,8 @@ inline void Node::capture(const tick& tk)
   const double model_per_frame = ossia_state.samplesToModel();
   m_export_date = (tk.prev_date.impl - (m_ring_written - end + n) * model_per_frame)
                   / double(ossia::flicks_per_second<int64_t>);
-  m_export_tempo = tk.tempo;
+  m_loop_tempo = tk.tempo;
+  m_export_tempo = m_loop_tempo;
   m_export_signature = tk.signature;
   m_export_pending = true;
 }
@@ -787,6 +816,7 @@ inline void Node::load_file()
     return;
 
   m_loading = false;
+  m_loop_tempo = m_tempo;
   layers.length = m_file_target;
   layers.layers[0].written = m_file_target;
   layers.count = 1;
@@ -891,6 +921,7 @@ inline int64_t Node::record(int64_t first_pos, int64_t samples, bool echo)
     transport.playbackPos = 0;
     m_flattening = false;
     m_export_pending = false;
+    m_export_cancelled = m_writing;
     m_full = false;
     m_loading = false;
   }
@@ -993,6 +1024,13 @@ inline void Node::overdub(int64_t first_pos, int64_t samples, bool echo)
   transport.playbackPos = k;
 }
 
+inline void Node::start_export_item(int item)
+{
+  m_export_item = item;
+  m_flattening = true;
+  m_flatten_pos = 0;
+}
+
 inline void Node::run_export()
 {
   if(m_export_pending && !m_flattening && !m_writing && !layers.empty() && writer
@@ -1000,12 +1038,18 @@ inline void Node::run_export()
      && export_audio->channels >= layers.channels)
   {
     m_export_pending = false;
-    m_flattening = true;
-    m_flatten_pos = 0;
     // A take closing while this one is written must not change its date.
     m_job_date = m_export_date;
     m_export_length = layers.length;
     m_export_channels = layers.channels;
+    const auto files = inputs.takes.value;
+    m_export_mix = files != Looper::TakeFiles::Layers;
+    m_export_layers = files != Looper::TakeFiles::Mix ? layers.count : 0;
+    // The passes as they are now: gains change with feedback while the files
+    // are written.
+    std::copy_n(layers.layers.begin(), layers.count, m_export_snapshot.begin());
+    m_export_number = 0;
+    start_export_item(m_export_mix ? -1 : 0);
   }
 
   if(!m_flattening)
@@ -1018,8 +1062,18 @@ inline void Node::run_export()
   for(int c = 0; c < m_export_channels; c++)
   {
     float* dst = export_audio->channel(c);
-    for(int64_t k = m_flatten_pos; k < end; k++)
-      dst[k] = layers.mix(c, k);
+    if(m_export_item < 0)
+    {
+      for(int64_t k = m_flatten_pos; k < end; k++)
+        dst[k] = layers.mix(c, k);
+    }
+    else
+    {
+      const auto& l = m_export_snapshot[m_export_item];
+      const float* src = layers.data(l.slot, c);
+      for(int64_t k = m_flatten_pos; k < end; k++)
+        dst[k] = layers.valid(l, k) ? l.gain * src[k] : 0.f;
+    }
   }
   m_flatten_pos = end;
 
@@ -1033,6 +1087,8 @@ inline void Node::run_export()
   job.writer = writer;
   job.audio = export_audio;
   job.slot = m_take_slot;
+  job.number = m_export_number;
+  job.layer = m_export_item;
   job.channels = m_export_channels;
   job.frames = m_export_length;
   job.rate = int(m_rate);
@@ -1042,17 +1098,27 @@ inline void Node::run_export()
   worker.request(std::move(job));
 }
 
-inline void Node::take_written(int slot, bool ok)
+inline void Node::take_written(int slot, int number, bool ok)
 {
   m_writing = false;
-  if(!ok || !writer)
+  if(m_export_cancelled || !ok || !writer)
+  {
+    // A new recording replaced what was being written, or the file could not
+    // be: the take stops there.
+    m_export_cancelled = false;
     return;
+  }
+
+  m_export_number = number;
+  if(m_export_item + 1 < m_export_layers)
+  {
+    start_export_item(m_export_item + 1);
+    return;
+  }
 
   m_takes_written++;
   m_last_take_date = m_job_date;
-  const auto& path = writer->path(slot);
-  std::copy_n(path.data(), std::min(path.size() + 1, m_view.take_path.size()), m_view.take_path.data());
-  m_view.take_path.back() = 0;
+  m_view.set_take(writer->take_base(slot), "wav", m_export_mix, m_export_layers);
   m_view.take = m_takes_written;
   m_view.take_date = m_last_take_date;
   m_take_slot = (slot + 1) % Looper::take_writer::slots;
@@ -1081,7 +1147,7 @@ inline void Node::send_view(int64_t frames)
   v.empty = layers.empty();
   v.mode = int(transport.actualMode);
   v.requested = int(transport.quantizedPlayMode);
-  v.wanted = int(inputs.mode.value);
+  v.wanted = int(m_mode);
   v.layers = layers.count;
   v.redo = layers.total - layers.count;
   v.full = m_full;

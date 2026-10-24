@@ -117,6 +117,20 @@ struct transport
            + m_facade.timings(tk).start_sample + m_close_offset;
   }
 
+  //! The tempo of a recording that is closing: the quarters it went over for
+  //! the frames it kept. A tempo change during the recording is accounted
+  //! for; the tempo of the moment is used where there are no quarters.
+  double loop_tempo(const ossia::token_request& tk, int64_t frames) const noexcept
+  {
+    double quarters = tk.musical_start_position - recordStartPosition;
+    // A late stop dropped the frames after the grid point, not their quarters.
+    if(m_closing_late)
+      quarters -= m_late_frames / sampleRate * tk.tempo / 60.;
+    if(quarters > 1e-3 && frames > 0 && sampleRate > 0)
+      return 60. * quarters / (frames / sampleRate);
+    return tk.tempo;
+  }
+
   //! Called by the looper whenever it records or overdubs.
   void taking(LoopMode m) noexcept { m_taking = m; }
   bool is_taking() const noexcept { return m_taking != LoopMode::Stop; }
@@ -130,6 +144,22 @@ struct transport
     endedByPostaction = false;
     actualMode = postaction == Postaction::Overdub ? LoopMode::Overdub : LoopMode::Play;
     m_forced_close = true;
+  }
+
+  //! The mode to take up for the one the looper is asked for. Overdubbing an
+  //! empty loop records it: the first pass has nothing to go over, and a
+  //! performer who starts with Overdub expects to be heard. The recording
+  //! then goes on until the mode changes, or the post-action takes over after
+  //! its bars, after which overdubbing proper starts.
+  LoopMode effective(LoopMode wanted, bool empty) noexcept
+  {
+    if(wanted != LoopMode::Overdub)
+      m_overdub_records = false;
+    else if(empty && !is_taking())
+      m_overdub_records = true;
+    else if(m_overdub_records && actualMode != LoopMode::Record && !empty)
+      m_overdub_records = false;
+    return m_overdub_records ? LoopMode::Record : wanted;
   }
 
   //! The looper made a loop out of what it heard before, without recording:
@@ -206,7 +236,9 @@ struct transport
         {
           enterMode(m, s.restart);
           playbackPos = m_late_frames;
+          m_closing_late = true;
           changeAction(tk, e);
+          m_closing_late = false;
           preAction(tk, s, e);
         }
         else if(auto& time = this_buffer_quantif_time)
@@ -275,6 +307,8 @@ struct transport
 
 private:
   LoopMode m_taking{LoopMode::Stop};
+  bool m_overdub_records{};
+  bool m_closing_late{};
   bool m_forced_close{};
   int64_t m_late_frames{};
   std::optional<int64_t> m_point_this_tick;

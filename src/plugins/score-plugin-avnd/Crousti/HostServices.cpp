@@ -18,6 +18,7 @@
 #include <QUrl>
 
 #include <chrono>
+#include <vector>
 
 namespace oscr
 {
@@ -73,15 +74,21 @@ void sendToTimeline(
   // Several views of one process each ask: only the first one is heeded.
   {
     using clock = std::chrono::steady_clock;
-    static const Process::ProcessModel* last_proc{};
-    static std::string last_file;
-    static clock::time_point last_time{};
+    struct sent
+    {
+      const Process::ProcessModel* proc;
+      std::string file;
+      clock::time_point time;
+    };
+    static std::vector<sent> recent;
     const auto now = clock::now();
-    if(last_proc == &proc && last_file == clip.file && now - last_time < std::chrono::milliseconds(500))
-      return;
-    last_proc = &proc;
-    last_file = clip.file;
-    last_time = now;
+    std::erase_if(recent, [now](const sent& s) {
+      return now - s.time > std::chrono::milliseconds(500);
+    });
+    for(const auto& s : recent)
+      if(s.proc == &proc && s.file == clip.file)
+        return;
+    recent.push_back({&proc, clip.file, now});
   }
 
   const auto [scenario, interval, offset] = findScenario(proc);
