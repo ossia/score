@@ -1,0 +1,1 @@
+{"Key":{"Uuid":"0b1b1816-c33e-4796-a16d-5aab27fe600f","Effect":""},"Name":"Random steps on sixteenths","Category":"Classic","Preset":[[0,{"Vec2f":[0.125,1.0]}],[1,{"Float":0.5}],[3,{"Float":0.5}],[4,{"Float":0.5}],[5,{"Float":0.0}],[6,{"Float":0.0}],[7,{"String":"SampleAndHold"}],[8,{"Bool":false}],[9,{"Bool":false}]]}

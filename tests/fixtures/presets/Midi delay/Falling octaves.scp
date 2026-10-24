@@ -1,0 +1,1 @@
+{"Key":{"Uuid":"5ba4e20c-8936-43ab-aee5-8ac4555e05c1","Effect":""},"Name":"Falling octaves","Category":"Pitch","Preset":[[1,{"Vec2f":[0.25,1]}],[2,{"Int":3}],[3,{"Bool":false}],[4,{"Float":0.8}],[5,{"Int":1}],[6,{"Int":-12}],[7,{"Float":0.5}],[8,{"Bool":false}],[9,{"Vec2f":[0.0625,1]}],[10,{"Bool":false}]]}

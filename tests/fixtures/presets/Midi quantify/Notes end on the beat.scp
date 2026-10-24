@@ -1,0 +1,1 @@
+{"Key":{"Uuid":"a0cb1144-05a8-4f9b-b22c-81cd964314fb","Effect":""},"Name":"Notes end on the beat","Category":"Length","Preset":[[1,{"Vec2f":[0.0625,1]}],[2,{"Float":1.0}],[3,{"String":"EndOnGrid"}],[4,{"Vec2f":[0.25,1]}],[5,{"Float":1.0}],[6,{"Bool":false}],[7,{"Float":0.0}],[8,{"Int":0}],[9,{"Int":0}]]}

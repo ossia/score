@@ -1458,28 +1458,32 @@ if(TARGET score_plugin_avnd AND TARGET score_plugin_engine)
       "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish"
       "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/examples")
   endif()
+  if(TARGET score_plugin_fx)
+    # A process stopped inside a buffer: notes started in its last tick end in
+    # the extra tick.
+    score_add_test(test_unit_avnd_stop_tick_exec
+      SOURCES AvndStopTickExecTest.cpp
+      APP
+      PLUGINS score_plugin_avnd score_plugin_fx score_plugin_dataflow score_plugin_engine score_plugin_scenario score_lib_process)
+    target_include_directories(test_unit_avnd_stop_tick_exec PRIVATE
+      "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish"
+      "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/examples")
+
+    # A looper's take sent to the timeline: a box of the looper's scenario at
+    # the take's date, a looping sound or a MIDI clip of the take's length, one
+    # undoable command.
+    if(TARGET score_plugin_media AND TARGET score_plugin_midi)
+      score_add_test(test_unit_looper_timeline
+        SOURCES LooperTimelineTest.cpp
+        APP
+        PLUGINS score_plugin_avnd score_plugin_fx score_plugin_media score_plugin_midi score_plugin_engine score_plugin_scenario score_lib_process)
+      target_include_directories(test_unit_looper_timeline PRIVATE
+        "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish"
+        "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/examples")
+    endif()
+  endif()
+
   # Enumerator, Counter, Value Delay through the binding: port and inspector.
-  # A process stopped inside a buffer: notes started in its last tick end in
-  # the extra tick.
-  # A looper's take sent to the timeline: a box of the looper's scenario at
-  # the take's date, a looping sound or a MIDI clip of the take's length, one
-  # undoable command.
-  score_add_test(test_unit_looper_timeline
-    SOURCES LooperTimelineTest.cpp
-    APP
-    PLUGINS score_plugin_avnd score_plugin_fx score_plugin_media score_plugin_midi score_plugin_engine score_plugin_scenario score_lib_process)
-  target_include_directories(test_unit_looper_timeline PRIVATE
-    "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish"
-    "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/examples")
-
-  score_add_test(test_unit_avnd_stop_tick_exec
-    SOURCES AvndStopTickExecTest.cpp
-    APP
-    PLUGINS score_plugin_avnd score_plugin_fx score_plugin_dataflow score_plugin_engine score_plugin_scenario score_lib_process)
-  target_include_directories(test_unit_avnd_stop_tick_exec PRIVATE
-    "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish"
-    "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/examples")
-
   score_add_test(test_unit_avnd_utilities_exec
     SOURCES AvndUtilitiesExecTest.cpp
     APP
@@ -2285,3 +2289,49 @@ if(TARGET score_plugin_jit)
   target_include_directories(test_unit_bytebeat PRIVATE
     "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-jit")
 endif()
+
+# A preset of the library through score's own loader (Preset::fromJson, the
+# load-preset command, the avnd binding's conversion) gives the object the
+# values the preset harnesses give it.
+if(TARGET score_plugin_avnd AND TARGET score_plugin_fx)
+  score_add_test(test_unit_preset_loader
+    SOURCES PresetLoaderTest.cpp
+    APP
+    PLUGINS score_plugin_avnd score_plugin_fx score_plugin_dataflow
+            score_plugin_engine score_plugin_scenario score_lib_process)
+  target_include_directories(test_unit_preset_loader PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish"
+    "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/include"
+    "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/examples")
+endif()
+
+# The preset tests read the copy of the default package's presets kept in the
+# tree; SCORE_PRESETS_ROOT, when set, still overrides it.
+foreach(_preset_test
+    test_unit_avnd_midi_delay_presets
+    test_unit_avnd_midi_life_presets
+    test_unit_avnd_midi_humanizer_presets
+    test_unit_avnd_midi_sustain_presets
+    test_unit_avnd_midi_scaler_presets
+    test_unit_avnd_midi_dispatcher_presets
+    test_unit_avnd_midi_mpe_presets
+    test_unit_avnd_midi_random_sequencer_presets
+    test_unit_avnd_midi_filter_presets
+    test_unit_avnd_midi_transform_presets
+    test_unit_avnd_midi_cc_snapshot_presets
+    test_unit_avnd_midi_value_shaper_presets
+    test_unit_avnd_midi_sync_in_presets
+    test_unit_avnd_midi_sync_out_presets
+    test_unit_avnd_midi_progression_player_presets
+    test_unit_fx_arpeggiator_presets
+    test_unit_fx_quantifier_presets
+    test_unit_fx_chord_presets
+    test_unit_fx_midi_scale_presets
+    test_unit_fx_looper_presets
+    test_unit_fx_lfo_presets
+    test_unit_preset_loader)
+  if(TARGET ${_preset_test})
+    target_compile_definitions(${_preset_test} PRIVATE
+      "SCORE_TEST_PRESETS_ROOT=\"${SCORE_ROOT_SOURCE_DIR}/tests/fixtures/presets\"")
+  endif()
+endforeach()
