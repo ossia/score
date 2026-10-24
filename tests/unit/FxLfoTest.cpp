@@ -109,6 +109,22 @@ TEST_CASE("LFO v3: one shot runs a single cycle", "[fx][lfo]")
   }
 }
 
+TEST_CASE("LFO v3: one shot plays again when the process starts again", "[fx][lfo]")
+{
+  // A looping interval, or one triggered again, restarts its processes
+  auto a = make(Sin, 0.1f, true);
+  int first = 0;
+  for(int i = 0; i < 30; i++)
+    first += tick(a, i * 10, i * 10 + 10).has_value();
+  CHECK(first == 10);
+
+  a.start();
+  int second = 0;
+  for(int i = 30; i < 60; i++)
+    second += tick(a, i * 10, i * 10 + 10).has_value();
+  CHECK(second == 10);
+}
+
 TEST_CASE("LFO v3: one shot ends inside a long tick", "[fx][lfo]")
 {
   // The saw starts its cycle at 0 and comes back to 0 at its end

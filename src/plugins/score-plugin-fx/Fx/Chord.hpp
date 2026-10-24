@@ -123,6 +123,7 @@ struct Node
   halp_meta(manual_url, "https://ossia.io/score-docs/processes/midi-utilities.html#chord")
   halp_meta(description, "Generate a chord from a single note")
   halp_meta(uuid, "F0904279-EA26-48DB-B0DF-F68FE3091DA1");
+  halp_flag(process_exec);
 
   //! The first six are saved in documents by name and keep their notes; the
   //! others follow mtk::chord_types, in its order.
@@ -172,16 +173,17 @@ struct Node
     {
       // Names of the table that would only differ by case from another
       // entry are spelled out: "sus2" is "sus2 triad" next to "Sus2", "M7+5"
-      // is "maj7+5" next to "m7+5".
+      // is "maj7+5" next to "m7+5". No name starts with a digit: an integer
+      // value is an index, and resolvers try names first.
       struct range
       {
         std::string_view values[chord_count]
             = {"Maj",        "Min",       "Sus2",      "Sus4",     "Dim",
                "Aug",        "maj triad", "min triad", "dim triad", "aug triad",
-               "5",          "sus2 triad", "sus4 triad", "6",       "7",
-               "7-5",        "7+5",       "7sus4",     "maj7",     "maj7+5",
-               "add4",       "add9",      "sus4add9",  "add11",    "69",
-               "9",          "maj9",      "9sus4",     "7-9",      "7+11",
+               "Power",      "sus2 triad", "sus4 triad", "maj6",    "Dom7",
+               "Dom7-5",     "Dom7+5",    "Dom7sus4",  "maj7",     "maj7+5",
+               "add4",       "add9",      "sus4add9",  "add11",    "maj6/9",
+               "Dom9",       "maj9",      "Dom9sus4",  "Dom7-9",   "Dom7+11",
                "m6",         "m7",        "m7-5",      "m7+5",     "dim7",
                "mM7",        "madd4",     "madd9",     "m69",      "m9",
                "m7b9b5",     "m7add11",   "mM7add11"};
@@ -228,27 +230,29 @@ struct Node
           "octaves")
     } inversion;
 
-    struct : halp::value_list<"Voice chance", int, max_voices, 100>
+    struct : halp::value_list<"Voice chance", float, max_voices, 1.f>
     {
       halp_meta(
           description,
-          "Percent chance of each voice, from the root up, e.g. 100 50 50. The "
-          "last value applies to the remaining voices")
+          "Chance of each voice from 0 to 1, from the root up, e.g. 1 0.5 0.5. "
+          "The last value applies to the remaining voices")
       static constexpr std::array<halp::list_column, 1> columns()
       {
-        return {halp::list_column{.name = "Percent", .min = 0, .max = 100, .init = 100}};
+        return {halp::list_column{
+            .name = "Chance", .min = 0., .max = 1., .init = 1., .integral = false}};
       }
     } chance;
 
-    struct : halp::value_list<"Voice velocity", int, max_voices, 100>
+    struct : halp::value_list<"Voice velocity", float, max_voices, 1.f>
     {
       halp_meta(
           description,
-          "Percent of the played velocity for each voice, from the root up, e.g. "
-          "100 80 60. The last value applies to the remaining voices")
+          "Factor applied to the played velocity for each voice, from the root "
+          "up, e.g. 1 0.8 0.6. The last value applies to the remaining voices")
       static constexpr std::array<halp::list_column, 1> columns()
       {
-        return {halp::list_column{.name = "Percent", .min = 0, .max = 400, .init = 100}};
+        return {halp::list_column{
+            .name = "Velocity", .min = 0., .max = 4., .init = 1., .integral = false}};
       }
     } velocity;
 
@@ -305,7 +309,10 @@ struct Node
           description,
           "Learned chords: key, then semitones from the key, e.g. 60: 0 4 7; "
           "C3: 12 15 19. Keys may be note names")
-      std::function<void(std::string)> update_controller;
+      // Learning writes the table back here from the audio thread: the
+      // binding hands the text over to the UI without allocating.
+      static constexpr std::size_t max_length() { return max_memory_text; }
+      std::function<void(std::string_view)> update_controller;
     } memory;
 
     struct : halp::toggle<"MPE">
@@ -388,7 +395,7 @@ struct Node
       struct
       {
         halp_meta(name, "Voices")
-        halp_meta(layout, halp::layouts::vbox)
+        halp_meta(layout, halp::layouts::hbox)
         halp::item<&ins::chance> chance;
         halp::item<&ins::velocity> velocity;
         halp::item<&ins::seed> seed;
@@ -511,8 +518,6 @@ private:
     }
 
     m_intervals.assign(inputs.intervals.value, -127, 127);
-    m_chance.assign(inputs.chance.value, 0, 100);
-    m_velocity.assign(inputs.velocity.value, 0, 400);
     update_memory(inputs.memory.value);
 
     const uint16_t mask = inputs.mpe_channels.mask();
@@ -525,6 +530,16 @@ private:
   void reseed() noexcept
   {
     m_rng = m_seed != 0 ? uint64_t(m_seed) * UINT64_C(0x9E3779B97F4A7C15) : m_free_seed;
+  }
+
+  //! Element i of a per-voice list clamped to [0, max], the last one repeating
+  //! past the end; 1 when the list is empty.
+  static float voice_factor(const auto& list, int i, float max) noexcept
+  {
+    if(list.empty())
+      return 1.f;
+    const float v = list[std::min(std::size_t(i), list.size() - 1)];
+    return std::isfinite(v) ? std::clamp(v, 0.f, max) : 1.f;
   }
 
   //! splitmix64, so that a seed gives the same draws on every platform.
@@ -699,13 +714,12 @@ private:
     for(int i = 0; i < m_captured_count; i++)
       c.offsets[i] = int8_t(m_captured[i] - key);
 
-    // Sending the text to the control is the one place that allocates: it is
-    // what saves the learned chord with the document, and it only happens on
-    // a learning gesture.
+    // The text sent to the control is what saves the learned chord with the
+    // document.
     if(inputs.memory.update_controller)
     {
       const auto n = print_memory(m_memory, m_print_buffer.data(), m_print_buffer.size());
-      inputs.memory.update_controller(std::string(m_print_buffer.data(), n));
+      inputs.memory.update_controller(std::string_view(m_print_buffer.data(), n));
     }
   }
 
@@ -883,15 +897,15 @@ private:
     int kept = 0;
     for(int i = 0; i < n; i++)
     {
-      const double draw = random01() * 100.;
-      const int chance = m_chance.at_or_last(v[i].index, 100);
-      const int percent = m_velocity.at_or_last(v[i].index, 100);
+      const double draw = random01();
+      const float chance = voice_factor(inputs.chance.value, v[i].index, 1.f);
+      const float gain = voice_factor(inputs.velocity.value, v[i].index, 4.f);
       const int out = pitch + v[i].offset;
       if(draw >= chance || out < 0 || out > 127)
         continue;
       v[kept] = v[i];
       v[kept].offset = out;
-      v[kept].velocity = int(std::lround(vel * percent / 100.));
+      v[kept].velocity = int(std::lround(vel * double(gain)));
       kept++;
     }
     n = kept;
@@ -1096,8 +1110,6 @@ private:
   mtk::event_queue<512> m_queue;
   mtk::channel_allocator m_alloc;
   int_list<max_intervals> m_intervals;
-  int_list<max_voices> m_chance;
-  int_list<max_voices> m_velocity;
 
   std::array<learned_chord, 128> m_memory{};
   std::array<char, max_memory_text> m_memory_text{};

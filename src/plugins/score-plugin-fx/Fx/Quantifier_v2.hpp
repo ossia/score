@@ -29,6 +29,7 @@ struct Node
   halp_meta(author, "ossia score")
   halp_meta(description, "Quantifies a MIDI input")
   halp_meta(uuid, "a0cb1144-05a8-4f9b-b22c-81cd964314fb")
+  halp_flag(process_exec);
 
   struct ins
   {
@@ -38,14 +39,19 @@ struct Node
     //! 1: a note always waits for the next grid point. Lower: a note played
     //! just after a grid point -- by up to (1 - tightness) of half a step --
     //! counts as on time, and starts at once.
-    halp::hslider_f32<"Tightness", halp::range{0.f, 1.f, 0.8f}> tightness;
+    struct : halp::knob_f32<"Tightness", halp::range{0.f, 1.f, 0.8f}>
+    {
+      halp_meta(
+          description, "1: a note always waits for the next grid point. Lower: a "
+                       "note just after a grid point starts at once.")
+    } tightness;
     halp::enum_t<NoteLength, "Length"> length;
     //! The length of a note, or the grid its end falls on.
     halp::time_chooser<"Duration", halp::range{0., 8., 0.25}> duration;
 
-    struct : halp::hslider_i32<"Gate", halp::irange{0, 200, 100}>
+    struct : halp::knob_f32<"Gate", halp::range{0., 2., 1.}>
     {
-      halp_meta(description, "Scales the length of the notes, in percent")
+      halp_meta(description, "Scales the length of the notes: 1 keeps it, 2 doubles it")
     } gate;
     struct : halp::toggle<"Trigger">
     {
@@ -54,13 +60,13 @@ struct Node
           "A note plays when its key is released, quantized like a note-on. With "
           "Until note-off, it lasts as long as the key was held.")
     } trigger;
-    struct : halp::hslider_i32<"Decay", halp::irange{0, 100, 0}>
+    struct : halp::knob_f32<"Decay", halp::range{0., 1., 0.}>
     {
       halp_meta(
           description,
           "A key pressed again while its last note still sounds or waits, and with "
           "Trigger every release, plays at the velocity of the key's previous note "
-          "lowered by this percentage")
+          "lowered by this proportion")
     } decay;
     struct
     {
@@ -112,14 +118,18 @@ struct Node
       halp::item<&ins::length> length;
       struct
       {
-        halp_meta(layout, halp::layouts::vbox)
-        static constexpr auto condition()
+        halp_meta(layout, halp::layouts::hbox)
+        struct
         {
-          return halp::enabled_when<&ins::length, FixedDuration, EndOnGrid>{};
-        }
-        halp::item<&ins::duration> duration;
-      } duration;
-      halp::item<&ins::gate> gate;
+          halp_meta(layout, halp::layouts::vbox)
+          static constexpr auto condition()
+          {
+            return halp::enabled_when<&ins::length, FixedDuration, EndOnGrid>{};
+          }
+          halp::item<&ins::duration> duration;
+        } duration;
+        halp::item<&ins::gate> gate;
+      } knobs;
     } length;
 
     struct
@@ -175,7 +185,7 @@ struct Node
 
   void stop() noexcept { stop_requested = true; }
 
-  double gate() const noexcept { return std::max(0, inputs.gate.value) / 100.; }
+  double gate() const noexcept { return std::max(0., double(inputs.gate.value)); }
   uint8_t fixed_release() const noexcept
   {
     return uint8_t(std::clamp(inputs.release_velocity.value, 0, 127));
@@ -183,10 +193,10 @@ struct Node
   //! A velocity lowered by Decay.
   uint8_t decayed(int vel) const noexcept
   {
-    const int d = std::clamp(inputs.decay.value, 0, 100);
-    if(d == 0)
+    const double d = std::clamp(double(inputs.decay.value), 0., 1.);
+    if(d == 0.)
       return uint8_t(vel);
-    return uint8_t(std::clamp(int(std::lround(vel * (100 - d) / 100.)), 1, 127));
+    return uint8_t(std::clamp(int(std::lround(vel * (1. - d))), 1, 127));
   }
   std::vector<Pending> pending;
   std::vector<Running> running;

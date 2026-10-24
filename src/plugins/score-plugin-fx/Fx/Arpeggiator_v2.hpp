@@ -126,6 +126,7 @@ struct Node
       "Pressure mode: the held notes repeat at the rate, at the velocity of the "
       "key pressure.")
   halp_meta(uuid, "4df48c1c-f5f2-4ab1-9f37-3b0adba139ae")
+  halp_flag(process_exec);
 
   using byte = unsigned char;
 
@@ -139,16 +140,16 @@ struct Node
     //! Between two steps: seconds, or a note value, on the bars' grid.
     halp::time_chooser<"Rate", halp::range{0.01, 4., 0.125}> rate;
 
-    struct : halp::hslider_i32<"Gate", halp::irange{1, 200, 100}>
+    struct : halp::knob_f32<"Gate", halp::range{0.01, 2., 1.}>
     {
       halp_meta(
-          description, "Length of a note in percent of a step. 100 lasts until the "
-                       "next step, above overlaps it.")
+          description, "Length of a note as a proportion of a step. 1 lasts until "
+                       "the next step, above overlaps it.")
     } gate;
-    struct : halp::hslider_i32<"Swing", halp::irange{0, 100, 0}>
+    struct : halp::knob_f32<"Swing", halp::range{0., 1., 0.}>
     {
       halp_meta(
-          description, "Delays every second step: 50 puts it on the triplet, 100 at "
+          description, "Delays every second step: 0.5 puts it on the triplet, 1 at "
                        "5/6 of the pair")
     } swing;
     struct : halp::spinbox_i32<"Accent every", halp::irange{0, 16, 0}>
@@ -159,11 +160,11 @@ struct Node
     {
       halp_meta(description, "Velocity of the accented steps")
     } accent_velocity;
-    struct : halp::hslider_i32<"Vel. decay", halp::irange{0, 100, 0}>
+    struct : halp::knob_f32<"Vel. decay", halp::range{0., 1., 0.}>
     {
       halp_meta(
           description, "At each step since the chord started, the velocity moves "
-                       "this percentage of the way to the decay target")
+                       "this proportion of the way to the decay target")
     } decay;
     struct : halp::hslider_i32<"Decay target", halp::irange{1, 127, 1}>
     {
@@ -198,51 +199,64 @@ struct Node
       halp_meta(layout, halp::layouts::section)
       halp_meta(background, halp::colors::background_mid)
       halp::item<&ins::arpeggios> arpeggios;
-      halp::item<&ins::octave> octave;
-      halp::item<&ins::octave_mode> octave_mode;
-      halp::item<&ins::repeat> repeat;
-      halp::item<&ins::rate> rate;
+      struct
+      {
+        halp_meta(layout, halp::layouts::hbox)
+        halp::item<&ins::rate> rate;
+        halp::item<&ins::gate> gate;
+        halp::item<&ins::swing> swing;
+      } timing;
+      struct
+      {
+        halp_meta(layout, halp::layouts::hbox)
+        halp::item<&ins::octave> octave;
+        halp::item<&ins::octave_mode> octave_mode;
+      } octaves;
     } pattern;
 
     struct
     {
-      halp_meta(name, "Timing")
-      halp_meta(layout, halp::layouts::section)
-      halp_meta(background, halp::colors::background_mid)
-      halp::item<&ins::gate> gate;
-      halp::item<&ins::swing> swing;
-      halp::item<&ins::retrigger> retrigger;
-    } timing;
+      halp_meta(name, "Settings")
+      halp_meta(layout, halp::layouts::tabs)
+      halp_meta(background, halp::colors::background_darker)
 
-    struct
-    {
-      halp_meta(name, "Velocity")
-      halp_meta(layout, halp::layouts::section)
-      halp_meta(background, halp::colors::background_mid)
-      halp::item<&ins::accent_every> accent_every;
-      halp::item<&ins::accent_velocity> accent_velocity;
-      halp::item<&ins::decay> decay;
-      halp::item<&ins::decay_target> decay_target;
-      halp::item<&ins::pressure> pressure;
-    } velocity;
-
-    struct
-    {
-      halp_meta(name, "Latch")
-      halp_meta(layout, halp::layouts::section)
-      halp_meta(background, halp::colors::background_mid)
-      halp::item<&ins::latch> latch;
       struct
       {
+        halp_meta(name, "Steps")
         halp_meta(layout, halp::layouts::vbox)
-        static constexpr auto condition()
+        halp::item<&ins::repeat> repeat;
+        halp::item<&ins::retrigger> retrigger;
+        halp::item<&ins::seed> seed;
+      } steps;
+
+      struct
+      {
+        halp_meta(name, "Velocity")
+        halp_meta(layout, halp::layouts::grid)
+        halp_meta(columns, 2)
+        halp::item<&ins::accent_every> accent_every;
+        halp::item<&ins::accent_velocity> accent_velocity;
+        halp::item<&ins::decay> decay;
+        halp::item<&ins::decay_target> decay_target;
+        halp::item<&ins::pressure> pressure;
+      } velocity;
+
+      struct
+      {
+        halp_meta(name, "Latch")
+        halp_meta(layout, halp::layouts::vbox)
+        halp::item<&ins::latch> latch;
+        struct
         {
-          return halp::enabled_when<&ins::latch, int(LatchMomentary)>{};
-        }
-        halp::item<&ins::hold> hold;
-      } hold;
-      halp::item<&ins::seed> seed;
-    } latch;
+          halp_meta(layout, halp::layouts::vbox)
+          static constexpr auto condition()
+          {
+            return halp::enabled_when<&ins::latch, int(LatchMomentary)>{};
+          }
+          halp::item<&ins::hold> hold;
+        } hold;
+      } latch;
+    } settings;
   };
 
   //! `notes` is what plays: the held keys, and with a latch, the released ones.
@@ -306,9 +320,9 @@ struct Node
     m_sustaining = sustaining;
 
     const int mode = std::clamp(inputs.arpeggios.value, 0, 12);
-    const int octave = inputs.octave;
+    const int octave = std::clamp(int(inputs.octave), 1, Engine::max_octave);
     const int octave_mode = inputs.octave_mode.value;
-    const int repeat = inputs.repeat;
+    const int repeat = std::clamp(int(inputs.repeat), 1, Engine::max_repeat);
     if(dirty || octave != engine.previous_octave
        || octave_mode != engine.previous_octave_mode
        || repeat != engine.previous_repeat || mode != engine.previous_arpeggio)
@@ -376,7 +390,7 @@ struct Node
         Step s;
         s.valid = true;
         const int64_t delay = std::llround(
-            mtk::swing_delay(grid_index, inputs.swing.value / 100.) * m_step_frames);
+            mtk::swing_delay(grid_index, double(inputs.swing.value)) * m_step_frames);
         s.at = at + std::max<int64_t>(0, delay);
         for(auto [pitch, vel] : engine.arpeggio[play_index])
         {
@@ -436,11 +450,10 @@ private:
   int velocity(int key_velocity, int64_t step) const noexcept
   {
     double v = m_channel_pressure >= 0 ? m_channel_pressure : key_velocity;
-    if(inputs.decay.value > 0)
+    if(const double decay = std::clamp(double(inputs.decay.value), 0., 1.); decay > 0.)
     {
       const double target = inputs.decay_target.value;
-      v = target
-          + (v - target) * std::pow(1. - inputs.decay.value / 100., double(step));
+      v = target + (v - target) * std::pow(1. - decay, double(step));
     }
     if(inputs.accent_every.value > 0 && step % inputs.accent_every.value == 0)
       v = inputs.accent_velocity.value;
@@ -595,8 +608,10 @@ private:
     m_floor = ts;
     release_until(ts);
 
-    const int gate = inputs.gate.value;
-    if(gate <= 100)
+    // Within half a percent of 1 the knob means "until the next step"
+    const double gate = std::clamp(double(inputs.gate.value), 0.01, 2.);
+    const bool legato = std::abs(gate - 1.) < 0.005;
+    if(gate < 1. || legato)
     {
       // The previous step ends where this one starts, at the latest
       end_all(ts);
@@ -617,7 +632,7 @@ private:
     }
 
     const int64_t length
-        = std::max<int64_t>(1, std::llround(m_step_frames * gate / 100.));
+        = std::max<int64_t>(1, std::llround(m_step_frames * gate));
     for(int i = 0; i < s.count; i++)
     {
       const auto [p, v] = s.notes[i];
@@ -626,7 +641,7 @@ private:
       m_sounding[p] = 1;
       outputs.midi.note_on(1, p, v).timestamp = ts;
       // At 100 the note lasts until the next step, wherever it falls
-      if(gate != 100)
+      if(!legato)
         m_offs.schedule(
             m_now + ts + length, libremidi::channel_events::note_off(1, p, 0));
     }

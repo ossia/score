@@ -8,11 +8,37 @@
 #include <catch2/catch_test_macros.hpp>
 
 #include <algorithm>
+#include <atomic>
+#include <cstdlib>
 #include <map>
+#include <new>
 #include <random>
 #include <string>
 #include <tuple>
 #include <vector>
+
+namespace
+{
+std::atomic<bool> g_count_allocations{false};
+std::atomic<int> g_allocations{0};
+}
+
+void* operator new(std::size_t n)
+{
+  if(g_count_allocations.load(std::memory_order_relaxed))
+    g_allocations++;
+  if(void* p = std::malloc(n ? n : 1))
+    return p;
+  throw std::bad_alloc{};
+}
+void operator delete(void* p) noexcept
+{
+  std::free(p);
+}
+void operator delete(void* p, std::size_t) noexcept
+{
+  std::free(p);
+}
 
 namespace
 {
@@ -285,7 +311,7 @@ TEST_CASE("Arpeggiator v2: gate", "[fx][arpeggiator]")
   SECTION("Shorter than the step")
   {
     Rig<Arp> r{64};
-    r.node.inputs.gate.value = 50;
+    r.node.inputs.gate.value = 0.5f;
     r.run(1000, {{0, note_on(60, 100)}, {0, note_on(64, 100)}});
     // Each note ends half of 125 frames after it starts
     std::map<int, int64_t> started;
@@ -309,7 +335,7 @@ TEST_CASE("Arpeggiator v2: gate", "[fx][arpeggiator]")
   SECTION("Longer than the step: the notes overlap")
   {
     Rig<Arp> r{100};
-    r.node.inputs.gate.value = 180;
+    r.node.inputs.gate.value = 1.8f;
     r.run(1000, {{0, note_on(60, 100)}, {0, note_on(64, 100)}, {0, note_on(67, 100)}});
     // 60 starts at 0 and ends at 225, after 64 started at 125
     bool overlapped = false;
@@ -324,7 +350,7 @@ TEST_CASE("Arpeggiator v2: gate", "[fx][arpeggiator]")
   SECTION("Longer than the step on a single key: it ends before it starts again")
   {
     Rig<Arp> r{100};
-    r.node.inputs.gate.value = 200;
+    r.node.inputs.gate.value = 2.f;
     r.run(800, {{0, note_on(60, 100)}});
     CHECK(r.ons().size() >= 6);
     r.check_clean();
@@ -339,7 +365,7 @@ TEST_CASE("Arpeggiator v2: swing delays every second step", "[fx][arpeggiator]")
   for(int buffer : {1, 50, 100, 333})
   {
     Rig<Arp> r{buffer};
-    r.node.inputs.swing.value = 50;
+    r.node.inputs.swing.value = 0.5f;
     r.run(1000, {{0, note_on(60, 100)}, {0, note_on(64, 100)}});
     std::vector<int64_t> at;
     for(auto& e : r.ons())
@@ -371,7 +397,7 @@ TEST_CASE("Arpeggiator v2: accents and velocity decay", "[fx][arpeggiator]")
   SECTION("Decay")
   {
     Rig<Arp> r;
-    r.node.inputs.decay.value = 50;
+    r.node.inputs.decay.value = 0.5f;
     r.node.inputs.decay_target.value = 20;
     r.run(1000, {{0, note_on(60, 100)}});
     std::vector<int> v;
@@ -536,8 +562,8 @@ TEST_CASE("Arpeggiator v2: stop and all notes off end everything", "[fx][arpeggi
   {
     INFO("gate " << gate);
     Rig<Arp> r;
-    r.node.inputs.gate.value = gate;
-    r.node.inputs.swing.value = 60;
+    r.node.inputs.gate.value = float(gate) / 100.f;
+    r.node.inputs.swing.value = 0.6f;
     r.node.inputs.latch.value = Nodes::Arpeggiator::v2::LatchToggle;
     r.run(450, {{0, note_on(60, 100)}, {0, note_on(64, 100)}, {50, note_off(60)}, {60, note_off(64)}});
     r.stop();
@@ -618,8 +644,8 @@ TEST_CASE("Arpeggiator v2: random play with every control moving", "[fx][arpeggi
     for(int64_t t = 0; t < 8000; t += 500)
     {
       r.node.inputs.arpeggios.value = rng() % 13;
-      r.node.inputs.gate.value = 1 + rng() % 200;
-      r.node.inputs.swing.value = rng() % 101;
+      r.node.inputs.gate.value = float(1 + rng() % 200) / 100.f;
+      r.node.inputs.swing.value = float(rng() % 101) / 100.f;
       r.node.inputs.octave.value = 1 + rng() % 3;
       r.node.inputs.repeat.value = 1 + rng() % 3;
       r.node.inputs.latch.value = rng() % 3;
@@ -633,4 +659,35 @@ TEST_CASE("Arpeggiator v2: random play with every control moving", "[fx][arpeggi
     r.check_clean();
     CHECK(r.out.still_sounding() == 0);
   }
+}
+
+TEST_CASE(
+    "Arpeggiator engine: the longest arpeggios are built without allocating",
+    "[fx][arpeggiator]")
+{
+  using Engine = Nodes::Arpeggiator::Engine;
+  Engine e;
+  for(int p = 0; p < 128; p++)
+    e.notes.insert({(unsigned char)p, 100});
+  // Forward, Backward, F->B, B->F, Random, Up/Down, Down/Up, Converge,
+  // Diverge, Low Up, High Up
+  for(int mode : {0, 1, 2, 3, 5, 6, 7, 8, 9, 10, 11})
+    for(int octave_mode : {0, 1, 2})
+    {
+      INFO("mode " << mode << " octave mode " << octave_mode);
+      e.previous_arpeggio = mode;
+      e.previous_octave = Engine::max_octave;
+      e.previous_octave_mode = octave_mode;
+      e.previous_repeat = Engine::max_repeat;
+      g_allocations = 0;
+      g_count_allocations = true;
+      e.update();
+      g_count_allocations = false;
+      CHECK(g_allocations == 0);
+      CHECK(e.arpeggio.size() <= Engine::max_steps);
+      if(mode == 6)
+        CHECK(e.arpeggio.size() == (2 * 128 - 2) * Engine::max_repeat);
+      if(mode == 2 && octave_mode == 0)
+        CHECK(e.arpeggio.size() == Engine::max_steps);
+    }
 }
