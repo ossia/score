@@ -108,6 +108,13 @@ public:
   }
 };
 
+/**
+ * Commands from the execution threads to the UI thread.
+ *
+ * enqueue() allocates a block when the preallocated ones are used up; the
+ * try_ variants never allocate once the producing thread has enqueued once,
+ * and return false when the preallocated capacity is full.
+ */
 struct EditionCommandQueue : private moodycamel::ConcurrentQueue<ExecutionCommand>
 {
 public:
@@ -128,13 +135,13 @@ public:
   inline auto try_enqueue(Args&&... args) -> decltype(auto)
   {
     OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Audio);
-    return ConcurrentQueue<ExecutionCommand>::enqueue(std::forward<Args>(args)...);
+    return ConcurrentQueue<ExecutionCommand>::try_enqueue(std::forward<Args>(args)...);
   }
   template <typename... Args>
   inline auto try_enqueue_bulk(Args&&... args) -> decltype(auto)
   {
     OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Audio);
-    return ConcurrentQueue<ExecutionCommand>::enqueue(std::forward<Args>(args)...);
+    return ConcurrentQueue<ExecutionCommand>::try_enqueue_bulk(std::forward<Args>(args)...);
   }
 
   template <typename... Args>
@@ -172,13 +179,13 @@ public:
   inline auto try_enqueue(Args&&... args) -> decltype(auto)
   {
     OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Audio);
-    return ConcurrentQueue<GCCommand>::enqueue(std::forward<Args>(args)...);
+    return ConcurrentQueue<GCCommand>::try_enqueue(std::forward<Args>(args)...);
   }
   template <typename... Args>
   inline auto try_enqueue_bulk(Args&&... args) -> decltype(auto)
   {
     OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Audio);
-    return ConcurrentQueue<GCCommand>::enqueue(std::forward<Args>(args)...);
+    return ConcurrentQueue<GCCommand>::try_enqueue_bulk(std::forward<Args>(args)...);
   }
 
   template <typename... Args>

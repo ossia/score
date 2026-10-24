@@ -44,6 +44,8 @@
 
 #include <QTimer>
 
+#include <atomic>
+
 #include <avnd/binding/ossia/data_node.hpp>
 #include <avnd/binding/ossia/mono_audio_node.hpp>
 #include <avnd/binding/ossia/node.hpp>
@@ -57,6 +59,8 @@
 #include <Crousti/WorkerBinding.hpp>
 
 #include <QPointer>
+
+#include <atomic>
 
 namespace oscr
 {
@@ -139,11 +143,42 @@ struct exec_worker_delivery
   }
 };
 
+template <typename Node>
+using exec_base_node_t
+    = std::conditional_t<avnd::has_worker<Node>, node_with_worker<Node>, safe_node<Node>>;
+
+//! Objects that release their notes when stopped send the note-offs in one
+//! more, empty tick after the process stops. Their stop() is only called
+//! then: an interval usually ends inside a buffer, and its last, partial tick
+//! is run after the process is stopped. Stopping them before it would release
+//! the held notes at its start, and the notes it starts would never end.
+template <typename Node>
+concept stops_with_extra_tick = avnd::tag_process_exec<Node>
+                                && avnd::midi_output_introspection<Node>::size > 0
+                                && requires(Node& n) { n.stop(); };
+
+template <typename Node>
+struct node_with_deferred_stop : exec_base_node_t<Node>
+{
+  using exec_base_node_t<Node>::exec_base_node_t;
+
+  //! Set by the process when it stops, from whichever thread stops it.
+  std::atomic_bool stop_pending{};
+
+  void
+  run(const ossia::token_request& tk, ossia::exec_state_facade st) noexcept override
+  {
+    if(tk.date == tk.prev_date && stop_pending.exchange(false))
+      this->impl.effect.stop();
+    exec_base_node_t<Node>::run(tk, st);
+  }
+};
+
 //! The exec node score gives an avnd object: with worker-result delivery if
 //! the object has a worker, the plain avendish node otherwise.
 template <typename Node>
-using exec_node_t
-    = std::conditional_t<avnd::has_worker<Node>, node_with_worker<Node>, safe_node<Node>>;
+using exec_node_t = std::conditional_t<
+    stops_with_extra_tick<Node>, node_with_deferred_stop<Node>, exec_base_node_t<Node>>;
 
 template <typename Node>
 class CustomNodeProcess : public ossia::node_process
@@ -172,14 +207,19 @@ class CustomNodeProcess : public ossia::node_process
   void stop() override
   {
     auto& n = static_cast<safe_node<Node>&>(*node);
-    if_possible(n.impl.effect.stop());
-    node_process::stop();
-
-    // A stopped node is not ticked again: an object that releases its held
-    // notes in stop() gets one more tick to send the note-offs.
-    if constexpr(avnd::midi_output_introspection<Node>::size > 0)
-      if constexpr(requires { n.impl.effect.stop(); })
-        n.request(ossia::token_request{});
+    if constexpr(stops_with_extra_tick<Node>)
+    {
+      // A stopped node is not ticked again: one more, empty tick sends the
+      // note-offs, and stops the object at its start.
+      static_cast<node_with_deferred_stop<Node>&>(*node).stop_pending = true;
+      node_process::stop();
+      n.request(ossia::token_request{});
+    }
+    else
+    {
+      if_possible(n.impl.effect.stop());
+      node_process::stop();
+    }
   }
 
   void offset_impl(ossia::time_value date) override
@@ -869,33 +909,57 @@ public:
       };
     }
 
+    // Processor to UI messages never allocate on the processor's thread: they
+    // go in an execution command when they fit, else in a ring of the node's
+    // own. Both have a fixed capacity: when it is full the message is dropped,
+    // and the UI catches up with the next one.
     if constexpr(avnd::has_processor_to_gui_bus<Node>)
     {
       if constexpr(requires { eff.send_message = [](auto&&) { }; })
       {
-        eff.send_message = [proc = QPointer{&this->process()},
-                            qed_ptr = weak_edit]<typename T>(T&& b) mutable {
-          auto qed = qed_ptr.lock();
-          if(!qed)
-            return;
-          if constexpr(
-              sizeof(QPointer<QObject>) + sizeof(b)
-              < Execution::ExecutionCommand::max_storage)
-          {
-            qed->enqueue([proc, bb = std::move(b)]() mutable {
+        using send_type = std::remove_cvref_t<decltype(eff.send_message)>;
+        using message_type
+            = std::remove_cvref_t<typename function_argument<send_type>::type>;
+        if constexpr(
+            sizeof(QPointer<QObject>) + sizeof(message_type)
+            < Execution::ExecutionCommand::max_storage)
+        {
+          eff.send_message = [proc = QPointer{&this->process()},
+                              qed_ptr = weak_edit]<typename T>(T&& b) mutable {
+            auto qed = qed_ptr.lock();
+            if(!qed)
+              return;
+            qed->try_enqueue([proc, bb = message_type(std::forward<T>(b))]() mutable {
               if(proc && proc->to_ui)
                 MessageBusSender{proc->to_ui}(std::move(bb));
             });
-          }
-          else
-          {
-            qed->enqueue(
-                [proc, bb = std::make_unique<std::decay_t<T>>(std::move(b))]() mutable {
-              if(proc && proc->to_ui)
-                MessageBusSender{proc->to_ui}(*std::move(bb));
+          };
+        }
+        else
+        {
+          static_assert(
+              std::is_default_constructible_v<message_type>,
+              "a processor to UI message is stored in a preallocated ring");
+          auto ring = std::make_shared<message_ring<message_type>>();
+          eff.send_message = [proc = QPointer{&this->process()}, qed_ptr = weak_edit,
+                              ring]<typename T>(T&& b) mutable {
+            auto qed = qed_ptr.lock();
+            if(!qed)
+              return;
+            if(!ring->push(message_type(std::forward<T>(b))))
+              return;
+            if(!ring->request())
+              return;
+            const bool sent = qed->try_enqueue([proc, ring]() mutable {
+              ring->drain([&](message_type&& m) {
+                if(proc && proc->to_ui)
+                  MessageBusSender{proc->to_ui}(std::move(m));
+              });
             });
-          }
-        };
+            if(!sent)
+              ring->cancel();
+          };
+        }
       }
       else if constexpr(requires { eff.send_message = []() { }; })
       {
@@ -907,7 +971,7 @@ public:
           if(!qed)
             return;
 
-          qed->enqueue([proc]() mutable {
+          qed->try_enqueue([proc]() mutable {
             if(proc && proc->to_ui)
               MessageBusSender{proc->to_ui}();
           });

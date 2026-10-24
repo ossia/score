@@ -1435,7 +1435,29 @@ if(TARGET score_plugin_avnd AND TARGET score_plugin_engine)
     PLUGINS score_plugin_avnd score_plugin_dataflow score_plugin_engine score_plugin_scenario score_lib_process)
   target_include_directories(test_unit_avnd_adsr_exec PRIVATE
     "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish")
+  # Processor to UI: the edition queue, the message ring and the control
+  # mailbox, then Chord learning and Midi life through the binding.
+  if(TARGET score_plugin_fx)
+    score_add_test(test_unit_avnd_processor_to_ui
+      SOURCES AvndProcessorToUiTest.cpp
+      APP
+      PLUGINS score_plugin_avnd score_plugin_dataflow score_plugin_engine
+              score_plugin_scenario score_lib_process score_plugin_fx)
+    target_include_directories(test_unit_avnd_processor_to_ui PRIVATE
+      "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish"
+      "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/examples")
+  endif()
   # Enumerator, Counter, Value Delay through the binding: port and inspector.
+  # A process stopped inside a buffer: notes started in its last tick end in
+  # the extra tick.
+  score_add_test(test_unit_avnd_stop_tick_exec
+    SOURCES AvndStopTickExecTest.cpp
+    APP
+    PLUGINS score_plugin_avnd score_plugin_fx score_plugin_dataflow score_plugin_engine score_plugin_scenario score_lib_process)
+  target_include_directories(test_unit_avnd_stop_tick_exec PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish"
+    "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/examples")
+
   score_add_test(test_unit_avnd_utilities_exec
     SOURCES AvndUtilitiesExecTest.cpp
     APP
