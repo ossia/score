@@ -90,6 +90,36 @@ static void default_image_visibility(descriptor& d, std::string_view vis)
 
 static std::string relax_isf_json(std::string_view json);
 
+// The INPUTS / RESOURCES entry being parsed, so that an error from deep in its
+// parsing says which entry it is about (review F-19). A scope per entry: when
+// an exception leaves it, it records "INPUTS[i] "name"" for parse_isf_header,
+// which prefixes the message unless the message already names the entry.
+static thread_local std::string t_failed_entry;
+struct entry_scope
+{
+  const char* section;
+  std::size_t index;
+  std::string name;
+  int exceptions = std::uncaught_exceptions();
+  ~entry_scope()
+  {
+    if(std::uncaught_exceptions() > exceptions && t_failed_entry.empty())
+      t_failed_entry = std::string{section} + "[" + std::to_string(index) + "]"
+                       + (name.empty() ? std::string{} : " \"" + name + "\"");
+  }
+};
+
+// Warnings of the header being parsed: parse_isf_header points this at the
+// descriptor's warnings, which the shader's UI and stderr both show.
+static thread_local std::vector<std::string>* t_header_warnings = nullptr;
+static void header_warning(std::string w)
+{
+  if(t_header_warnings)
+    t_header_warnings->push_back(std::move(w));
+  else
+    fprintf(stderr, "[isf] %s\n", w.c_str());
+}
+
 // The ISF header: the first block comment whose content is a JSON object,
 // so that a licence comment may come first (shader board U01), including one
 // that starts with a brace ("/* {c} 2024 ... */"): of the comments that start
@@ -1660,12 +1690,11 @@ static void parse_input(csf_image_input& inp, const sajson::value& v)
         }
         else if(!inp.format.empty() && !isf_is_known_image_format(inp.format))
         {
-          fmt::print(
-              stderr,
-              "[isf] csf_image_input FORMAT \"{}\" is not an image format the "
-              "engine can allocate — falling back to rgba8. Check for typos "
-              "(e.g. \"rgba16\" vs \"rgba16f\").\n",
-              inp.format);
+          header_warning(fmt::format(
+              "image FORMAT \"{}\" is not an image format the engine can allocate "
+              "— falling back to rgba8. Check for typos (e.g. \"rgba16\" vs "
+              "\"rgba16f\").",
+              inp.format));
           // Emitting the unknown spelling as a layout qualifier would fail to
           // compile; fall back for the declaration and the allocation alike.
           inp.format = "rgba8";
@@ -2241,7 +2270,7 @@ static bool get_uint(const sajson::value& v, uint32_t& out, std::string_view key
   if(!(x >= 0.) || x != std::floor(x) || x > (double)std::numeric_limits<uint32_t>::max())
     throw invalid_file{
         "PIPELINE_STATE " + std::string{key} + " must be a non-negative integer, got "
-        + std::to_string(x) + "."};
+        + fmt::format("{}", x) + "."};
   out = (uint32_t)x;
   return true;
 }
@@ -2270,7 +2299,8 @@ static void get_size_expression(const sajson::value& v, std::string& out)
   }
 }
 
-static void parse_blend_attachment(const sajson::value& v, blend_attachment& out)
+static void parse_blend_attachment(
+    const sajson::value& v, blend_attachment& out, const std::string& where)
 {
   if(v.get_type() != sajson::TYPE_OBJECT)
     return;
@@ -2293,11 +2323,11 @@ static void parse_blend_attachment(const sajson::value& v, blend_attachment& out
     // rather than ignored.
     else if(k == "SRC" || k == "DST" || k == "OP")
       throw invalid_file{
-          "BLEND: " + k + " is not a blend key; set " + k + "_COLOR and " + k
+          where + ": " + k + " is not a blend key; set " + k + "_COLOR and " + k
           + "_ALPHA."};
     else
       throw invalid_file{
-          "BLEND: unknown key " + k
+          where + ": unknown key " + k
           + " (ENABLE, SRC_COLOR, DST_COLOR, OP_COLOR, SRC_ALPHA, DST_ALPHA, OP_ALPHA, "
             "COLOR_WRITE)"};
   }
@@ -2380,7 +2410,7 @@ static void parse_pipeline_state(const sajson::value& v, pipeline_state& out)
       {
         blend_attachment a{};
         a.enable = true;
-        parse_blend_attachment(val, a);
+        parse_blend_attachment(val, a, "BLEND");
         out.blend_all = a;
       }
     }
@@ -2395,7 +2425,8 @@ static void parse_pipeline_state(const sajson::value& v, pipeline_state& out)
         {
           blend_attachment a{};
           a.enable = true;
-          parse_blend_attachment(val.get_array_element(j), a);
+          parse_blend_attachment(
+              val.get_array_element(j), a, "BLEND_PER_ATTACHMENT[" + std::to_string(j) + "]");
           out.blend_per_attachment.push_back(a);
         }
       }
@@ -2466,7 +2497,7 @@ static std::optional<blend_attachment> parse_layer_blend(const sajson::value& v,
   if(v.get_type() != sajson::TYPE_OBJECT)
     throw invalid_file{what + ".BLEND must be a boolean or an object"};
   b.enable = true;
-  parse_blend_attachment(v, b);
+  parse_blend_attachment(v, b, what + ".BLEND");
   return b;
 }
 
@@ -2911,6 +2942,10 @@ static const ossia::string_map<root_fun>& root_parse{[] {
         auto obj = v.get_array_element(i);
         if(obj.get_type() == sajson::TYPE_OBJECT)
         {
+          entry_scope scope{"INPUTS", i, {}};
+          if(auto nk = obj.find_object_key_insensitive(sajson::literal("NAME"));
+             nk != obj.get_length())
+            get_str(obj.get_object_value(nk), scope.name);
           auto k = obj.find_object_key_insensitive(sajson::literal("TYPE"));
           if(k != obj.get_length())
           {
@@ -3185,6 +3220,10 @@ static const ossia::string_map<root_fun>& root_parse{[] {
         auto obj = v.get_array_element(i);
         if(obj.get_type() == sajson::TYPE_OBJECT)
         {
+          entry_scope scope{"RESOURCES", i, {}};
+          if(auto nk = obj.find_object_key_insensitive(sajson::literal("NAME"));
+             nk != obj.get_length())
+            get_str(obj.get_object_value(nk), scope.name);
           auto k = obj.find_object_key_insensitive(sajson::literal("TYPE"));
           if(k != obj.get_length())
           {
@@ -4096,6 +4135,11 @@ std::pair<int, descriptor> parser::parse_isf_header(std::string_view source)
     throw invalid_file{"Not a JSON object"};
 
   descriptor d;
+  struct warnings_scope
+  {
+    std::vector<std::string>* previous;
+    ~warnings_scope() { t_header_warnings = previous; }
+  } warnings{std::exchange(t_header_warnings, &d.warnings)};
   for(std::size_t i = 0; i < root.get_length(); i++)
   {
     std::string key = root.get_object_key(i).as_string();
@@ -4105,7 +4149,24 @@ std::pair<int, descriptor> parser::parse_isf_header(std::string_view source)
     auto it = root_parse.find(key);
     if(it != root_parse.end())
     {
-      (it->second)(d, root.get_object_value(i));
+      t_failed_entry.clear();
+      try
+      {
+        (it->second)(d, root.get_object_value(i));
+      }
+      catch(const invalid_file& e)
+      {
+        // Name the INPUTS / RESOURCES entry the error is about, unless the
+        // message already does.
+        const std::string what = e.what();
+        std::string entry = std::exchange(t_failed_entry, {});
+        const auto quoted = entry.find('"');
+        if(entry.empty() || what.starts_with(entry.substr(0, entry.find('[')) + "[")
+           || (quoted != std::string::npos
+               && what.find(entry.substr(quoted)) != std::string::npos))
+          throw;
+        throw invalid_file{entry + ": " + what};
+      }
     }
   }
 

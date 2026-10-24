@@ -754,3 +754,63 @@ void main() { gl_FragColor = vec4(demote); }
 )_",
       450, isf::parser::ShaderType::ISF});
 }
+
+// Header errors and warnings say where (review F-19): the input of an
+// invalid VISIBILITY, the blend entry of an unknown key, a negative count as
+// the integer written; a FORMAT the engine cannot allocate is a descriptor
+// warning (shown with the shader), not only a line on stderr.
+TEST_CASE("header messages name what they are about", "[isf][header]")
+{
+  {
+    const auto msg = refusal([] {
+      isf::parser{
+          {},
+          R"_(/*{ "ISFVSN": "2", "INPUTS": [ { "NAME": "accum", "TYPE": "image", "ACCESS": "read_write", "FORMAT": "r32f", "VISIBILITY": "pixel" } ] }*/
+void main() { gl_FragColor = vec4(1.0); }
+)_",
+          450, isf::parser::ShaderType::ISF};
+    });
+    CHECK_THAT(msg, Catch::Matchers::ContainsSubstring("accum"));
+  }
+  {
+    const std::string ok = R"({ "ENABLE": true, "SRC_COLOR": "one", "DST_COLOR": "one" })";
+    const auto msg = refusal([&] {
+      isf::parser{
+          std::string(k_vert),
+          R"_(/*{
+  "ISFVSN": "2",
+  "MODE": "RAW_RASTER_PIPELINE",
+  "VERTEX_INPUTS": [ { "TYPE": "vec3", "NAME": "position" } ],
+  "FRAGMENT_OUTPUTS": [ { "TYPE": "vec4", "NAME": "a" }, { "TYPE": "vec4", "NAME": "b" } ],
+  "OUTPUTS": [ { "NAME": "outA", "TYPE": "color" }, { "NAME": "outB", "TYPE": "color" } ],
+  "INPUTS": [],
+  "PIPELINE_STATE": { "BLEND_PER_ATTACHMENT": [ )_" + ok + R"_(, { "ENABLE": true, "SRC_COLOUR": "one" } ] }
+}*/
+void main() { a = vec4(1.0); b = vec4(1.0); }
+)_",
+          450, isf::parser::ShaderType::RawRasterPipeline};
+    });
+    CHECK_THAT(msg, Catch::Matchers::ContainsSubstring("BLEND_PER_ATTACHMENT[1]"));
+  }
+  {
+    const auto msg = refusal([] {
+      parseRawRaster(R"("PIPELINE_STATE": { "INSTANCE_COUNT": -1 })");
+    });
+    CHECK_THAT(msg, Catch::Matchers::ContainsSubstring("got -1."));
+    CHECK_THAT(msg, !Catch::Matchers::ContainsSubstring("000000"));
+  }
+  {
+    const isf::parser p{
+        {},
+        R"_(/*{ "ISFVSN": "2", "MODE": "COMPUTE_SHADER",
+  "RESOURCES": [ { "NAME": "img", "TYPE": "image", "ACCESS": "write_only", "FORMAT": "rgba16", "WIDTH": 8, "HEIGHT": 8 } ],
+  "PASSES": [ { "LOCAL_SIZE": [8, 8, 1], "EXECUTION_MODEL": { "TYPE": "2D_IMAGE", "TARGET": "img" } } ] }*/
+void main() { }
+)_",
+        450, isf::parser::ShaderType::CSF};
+    bool warned = false;
+    for(const auto& w : p.data().warnings)
+      warned |= w.find("rgba16") != std::string::npos;
+    CHECK(warned);
+  }
+}
