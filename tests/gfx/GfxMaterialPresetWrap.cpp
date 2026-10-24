@@ -3,7 +3,7 @@
 // The pool samples every array with one repeat sampler and publishes each
 // texture's own wrap mode in scene_material_wrap; the preset's sampling
 // helper applies it to the coordinate. This drives the real chain -- scene,
-// ScenePreprocessor, classic_pbr_full -- with an unlit quad whose U runs from
+// ScenePreprocessor, classic_pbr (the tier that replaced classic_pbr_full) -- with an unlit quad whose U runs from
 // 0 to 2 across it, textured left half red, right half blue. At U = 1.25
 // repeat reads red (0.25), clamp-to-edge reads blue (the right edge), and
 // mirror reads blue (0.75).
@@ -27,7 +27,7 @@ using scene::rgba_string;
 namespace
 {
 constexpr int kSize = 64;
-const QString kFullFrag = QStringLiteral("presets/rasterizers/classic_pbr_full.frag");
+const QString kFrag = QStringLiteral("presets/rasterizers/classic_pbr.frag");
 
 ossia::material_component_ptr splitMaterial(ossia::texture_address_mode wrap)
 {
@@ -104,7 +104,7 @@ struct Probe
 Probe render(score::gfx::GraphicsApi api, ossia::texture_address_mode wrap)
 {
   Probe out;
-  const QString fs = library::find(kFullFrag);
+  const QString fs = library::find(kFrag);
   const QString vs = fs.chopped(4) + QStringLiteral("vert");
   score::test::run_in_gui_app([&](const score::GUIApplicationContext& ctx) {
     library::RootGuard root{ctx};
@@ -147,13 +147,15 @@ Probe render(score::gfx::GraphicsApi api, ossia::texture_address_mode wrap)
 }
 
 TEST_CASE(
-    "classic_pbr_full applies a texture's wrap mode",
+    "classic_pbr applies a texture's wrap mode",
     "[gfx][presets][material][sampler]")
 {
   const auto api = GENERATE(from_range(platform_backends()));
   CAPTURE(backend_name(api));
-  if(library::find(kFullFrag).isEmpty())
-    SKIP(library::skip_reason(kFullFrag));
+  if(library::root().isEmpty())
+    SKIP(library::skip_reason(kFrag));
+  INFO(library::skip_reason(kFrag));
+  REQUIRE(!library::find(kFrag).isEmpty());
 
   const auto repeat = render(api, ossia::texture_address_mode::REPEAT);
   if(repeat.skipped)

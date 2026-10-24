@@ -14,7 +14,7 @@
 //  - Two preprocessors share the registry's texture pool: when the second one
 //    adds a texture, the first one's layer is kept, and when that grows a
 //    bucket (a new QRhiTexture array) the first one republishes, so its
-//    classic_pbr_full consumer keeps sampling its own texture from a live
+//    classic_pbr consumer keeps sampling its own texture from a live
 //    array instead of the deleted one.
 //  - A scene without an environment has no ambient light.
 //  - Alpha-blended draws are drawn after the opaque ones, back to front, so
@@ -1513,16 +1513,20 @@ TEST_CASE(
 {
   const auto api = GENERATE(from_range(platform_backends()));
   CAPTURE(backend_name(api));
-  const QString kFullFrag = QStringLiteral("presets/rasterizers/classic_pbr_full.frag");
-  const QString presetDir = library::dir_of(kFullFrag);
-  if(presetDir.isEmpty())
-    SKIP(library::skip_reason(kFullFrag));
+  // classic_pbr, the textured tier that replaced classic_pbr_full (archived by
+  // the shading-tiers rework, which left this case skipping in silence).
+  const QString kFrag = QStringLiteral("presets/rasterizers/classic_pbr.frag");
+  if(library::root().isEmpty())
+    SKIP(library::skip_reason(kFrag));
+  const QString presetDir = library::dir_of(kFrag);
+  INFO(library::skip_reason(kFrag));
+  REQUIRE(!presetDir.isEmpty());
   const QDir presets(presetDir);
   QTemporaryDir dir;
   REQUIRE(dir.isValid());
   const QString combine = writeText(dir, "scenepp_side.fs", kSideBySide);
-  const QString vs = presets.filePath(QStringLiteral("classic_pbr_full.vert"));
-  const QString fs = presets.filePath(QStringLiteral("classic_pbr_full.frag"));
+  const QString vs = presets.filePath(QStringLiteral("classic_pbr.vert"));
+  const QString fs = presets.filePath(QStringLiteral("classic_pbr.frag"));
 
   Result before, after;
   score::test::run_in_gui_app([&](const score::GUIApplicationContext& ctx) {
@@ -1607,13 +1611,16 @@ TEST_CASE(
   // although the materials list looks unchanged.
   const auto api = GENERATE(from_range(platform_backends()));
   CAPTURE(backend_name(api));
-  const QString kFullFrag = QStringLiteral("presets/rasterizers/classic_pbr_full.frag");
-  const QString presetDir = library::dir_of(kFullFrag);
-  if(presetDir.isEmpty())
-    SKIP(library::skip_reason(kFullFrag));
+  // classic_pbr: the textured tier that replaced classic_pbr_full.
+  const QString kFrag = QStringLiteral("presets/rasterizers/classic_pbr.frag");
+  if(library::root().isEmpty())
+    SKIP(library::skip_reason(kFrag));
+  const QString presetDir = library::dir_of(kFrag);
+  INFO(library::skip_reason(kFrag));
+  REQUIRE(!presetDir.isEmpty());
   const QDir presets(presetDir);
-  const QString vs = presets.filePath(QStringLiteral("classic_pbr_full.vert"));
-  const QString fs = presets.filePath(QStringLiteral("classic_pbr_full.frag"));
+  const QString vs = presets.filePath(QStringLiteral("classic_pbr.vert"));
+  const QString fs = presets.filePath(QStringLiteral("classic_pbr.frag"));
 
   Result before, after;
   score::test::run_in_gui_app([&](const score::GUIApplicationContext& ctx) {

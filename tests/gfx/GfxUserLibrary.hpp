@@ -46,7 +46,7 @@ inline QString find(const QString& relative)
 }
 
 /// Directory holding `file` in the library, e.g. the rasterizer presets as
-/// dir_of("presets/rasterizers/classic_pbr_full.frag").
+/// dir_of("presets/rasterizers/classic_pbr.frag").
 inline QString dir_of(const QString& relativeFile)
 {
   const QString f = find(relativeFile);
