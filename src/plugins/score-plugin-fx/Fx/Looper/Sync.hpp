@@ -1,5 +1,9 @@
 #pragma once
+#include <halp/polyfill.hpp>
 #include <halp/shared_instance.hpp>
+#include <halp/static_string.hpp>
+
+#include <avnd/common/enum_reflection.hpp>
 
 #include <array>
 #include <atomic>
@@ -20,6 +24,29 @@ enum class SyncGroup
   B,
   C,
   D
+};
+
+//! An enumeration shown as a combobox: compact where the choices are many.
+template <halp::static_string Name, typename Enum, Enum Init>
+struct enum_combobox
+{
+  static clang_buggy_consteval auto name() { return std::string_view{Name.value}; }
+  enum widget
+  {
+    combobox
+  };
+  struct range
+  {
+    decltype(avnd::enum_names<Enum>()) values = avnd::enum_names<Enum>();
+    Enum init = Init;
+  };
+  Enum value = Init;
+  operator Enum() const noexcept { return value; }
+  auto& operator=(Enum t) noexcept
+  {
+    value = t;
+    return *this;
+  }
 };
 
 struct sync_registry

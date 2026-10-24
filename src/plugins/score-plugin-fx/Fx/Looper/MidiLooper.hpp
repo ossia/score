@@ -43,27 +43,6 @@ struct Node
   using OverdubMode = Looper::OverdubMode;
   using HeldNotes = Looper::HeldNotes;
 
-  struct passthrough_selector
-  {
-    static clang_buggy_consteval auto name() { return std::string_view{"Passthrough"}; }
-    enum widget
-    {
-      combobox
-    };
-    struct range
-    {
-      decltype(avnd::enum_names<Passthrough>()) values = avnd::enum_names<Passthrough>();
-      Passthrough init = Passthrough::Full;
-    };
-    Passthrough value = Passthrough::Full;
-    operator Passthrough() const noexcept { return value; }
-    auto& operator=(Passthrough t) noexcept
-    {
-      value = t;
-      return *this;
-    }
-  };
-
   struct ins
   {
     halp::midi_bus<"in", libremidi::message> midi;
@@ -85,9 +64,9 @@ struct Node
           "a bar. None changes at once.")
     } quantif;
 
-    struct : passthrough_selector
+    struct : Looper::enum_combobox<"Passthrough", Passthrough, Passthrough::Full>
     {
-      using passthrough_selector::operator=;
+      using enum_combobox::operator=;
       halp_meta(
           description,
           "Whether what is played is heard as well as the loop: never, only "
@@ -199,9 +178,9 @@ struct Node
       halp_meta(description, "Channel the loop is played on; 0 keeps the recorded ones")
     } out_channel;
 
-    struct : halp::enum_t<Looper::SyncGroup, "Sync">
+    struct : Looper::enum_combobox<"Sync", Looper::SyncGroup, Looper::SyncGroup::None>
     {
-      using halp::enum_t<Looper::SyncGroup, "Sync">::operator=;
+      using enum_combobox::operator=;
       halp_meta(
           description,
           "Loopers of one group play together: the first to record sets the "
