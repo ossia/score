@@ -2202,6 +2202,10 @@ score_add_gfx_test(isf_storage_flex_size GfxIsfStorageFlexSize.cpp)
 # NBodyGravity). Skips without SCORE_TEST_LIBRARY_ROOT.
 score_add_gfx_test(library_feedback_shaders GfxLibraryFeedbackShaders.cpp)
 
+# The library's 3D viewers fed a 3D generator's volume, on every backend.
+# Skips without SCORE_TEST_LIBRARY_ROOT.
+score_add_gfx_test(library_volume_viewers GfxLibraryVolumeViewers.cpp)
+
 # A particle chain built entirely on the GPU (live count, indirect dispatch,
 # indirect count draw, geometry and texture feedback) reads no buffer back;
 # the readback counter moves under the forced CPU fallback. The library POP
