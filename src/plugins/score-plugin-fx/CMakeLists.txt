@@ -41,6 +41,7 @@ set(HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/Fx/Looper/MidiLoop.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Fx/Looper/MidiLooper.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Fx/Looper/MidiTake.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Fx/Looper/Sync.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Fx/Looper/TakeWriter.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Fx/Looper/Transport.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Fx/Smooth.hpp"

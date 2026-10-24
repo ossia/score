@@ -479,3 +479,36 @@ TEST_CASE("MIDI looper: a take is a MIDI file as long as the loop, at 120 bpm",
   CHECK(ons == 3);
   CHECK(last_on_tick == int(15.5 * 480));
 }
+
+TEST_CASE("MIDI looper: capture makes a loop of the last bars played",
+          "[fx][midi][looper][capture]")
+{
+  midi_harness h{64, 1000}; // a bar is 2000 frames
+  h.node.inputs.capture_bars.value = 1;
+  h.node.inputs.mode = LoopMode::Stop;
+  h.run_frames(448);
+  h.note_on(60, 52); // frame 500
+  h.run();
+  h.run_frames(128);
+  h.note_off(60, 60); // frame 700
+  h.run();
+  h.run_frames(768);
+  h.note_on(64, 12); // frame 1484
+  h.run();
+  h.note_off(64, 20);
+  h.run();
+  while(h.now < 2048)
+    h.run();
+
+  h.node.inputs.capture.value.emplace();
+  h.run();
+  h.node.inputs.capture.value.reset();
+
+  REQUIRE(h.node.loop.length == 2000);
+  REQUIRE(h.node.loop.note_count == 2);
+  // The loop is frames 48 to 2048.
+  CHECK(h.node.loop.notes[0].start == 500 - 48);
+  CHECK(h.node.loop.notes[0].length == 200);
+  CHECK(h.node.loop.notes[1].start == 1484 - 48);
+  CHECK(h.node.transport.actualMode == LoopMode::Play);
+}

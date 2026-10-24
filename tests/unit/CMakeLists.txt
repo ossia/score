@@ -924,6 +924,11 @@ if(TARGET score_plugin_fx)
     SOURCES FxMidiLooperTest.cpp
     PLUGINS score_plugin_fx)
 
+  # The looper presets of the default package.
+  score_add_test(test_unit_fx_looper_presets
+    SOURCES FxLooperPresetsTest.cpp
+    PLUGINS score_plugin_fx)
+
 endif()
 
 # --- ExprTK wrapper ----------------------------------------------------------

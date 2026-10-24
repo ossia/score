@@ -2,6 +2,7 @@
 #include <Fx/Looper/AudioLayers.hpp>
 #include <Fx/Looper/LooperView.hpp>
 #include <Fx/Looper/TakeWriter.hpp>
+#include <Fx/Looper/Sync.hpp>
 #include <Fx/Looper/Transport.hpp>
 #include <Fx/Types.hpp>
 
@@ -180,6 +181,37 @@ struct Node
           "the next start.")
     } channels;
 
+    struct : halp::enum_t<Looper::SyncGroup, "Sync">
+    {
+      using halp::enum_t<Looper::SyncGroup, "Sync">::operator=;
+      halp_meta(
+          description,
+          "Loopers of one group play together: the first to record sets the "
+          "loop, the loops recorded after it are a whole number of it or a "
+          "half, quarter or eighth of it, in phase with it.")
+    } sync;
+
+    struct : halp::spinbox_i32<"Keep last (s)", halp::irange{0, 600, 0}>
+    {
+      halp_meta(
+          description,
+          "Seconds of input kept at all times, for Capture. Zero keeps none. "
+          "Applies from the next start.")
+    } keep;
+
+    struct : halp::spinbox_i32<"Capture bars", halp::irange{1, 64, 4}>
+    {
+      halp_meta(description, "How many bars Capture takes")
+    } capture_bars;
+
+    struct : halp::impulse_button<"Capture">
+    {
+      halp_meta(
+          description,
+          "Makes a loop of the last bars of the input, recorded or not, and plays "
+          "it at once. Needs Keep last.")
+    } capture;
+
     struct : halp::impulse_button<"Send to timeline">
     {
       halp_meta(
@@ -215,6 +247,7 @@ struct Node
   ossia::exec_state_facade ossia_state;
 
   Looper::transport transport;
+  Looper::loop_sync sync;
   Looper::audio_layers layers;
   std::shared_ptr<Looper::take_writer> writer;
   std::shared_ptr<Looper::export_buffer> export_audio;
@@ -235,8 +268,23 @@ struct Node
        && (export_audio->channels != layers.channels
            || export_audio->capacity != layers.capacity))
       export_audio = Looper::export_buffer::make(layers.channels, layers.capacity);
+    allocate_ring(layers.channels, int64_t(inputs.keep.value * rate));
     if(ossia_document_context)
       writer = Looper::take_writer::make(*ossia_document_context, "Looper", "wav");
+  }
+
+  //! Main thread only.
+  void allocate_ring(int channels, int64_t frames)
+  {
+    if(channels == m_ring_channels && frames == m_ring_capacity)
+      return;
+    m_ring.clear();
+    m_ring.shrink_to_fit();
+    m_ring_channels = channels;
+    m_ring_capacity = std::max<int64_t>(0, frames);
+    m_ring.resize(
+        std::size_t(m_ring_channels) * std::size_t(m_ring_capacity),
+        boost::container::default_init);
   }
 
   // The transport's engine
@@ -261,7 +309,10 @@ struct Node
     m_signature = tk.signature;
     m_in_chans = std::min<int>(inputs.audio.channels, layers.channels);
 
+    sync.set_group(inputs.sync.value);
     apply_buttons();
+    if(inputs.capture.value)
+      capture(tk);
 
     const Looper::transport_settings settings{
         .mode = inputs.mode,
@@ -271,6 +322,7 @@ struct Node
         .restart = inputs.restart,
         .late_seconds = inputs.late.value / 1000.};
     transport(tk, ossia_state, settings, *this);
+    keep_input(ossia_state.timings(tk).length);
 
     run_export();
 
@@ -321,6 +373,7 @@ struct Node
           halp::item<&ins::postaction> postaction;
           halp::item<&ins::postaction_bars> bars;
           halp::item<&ins::late> late;
+          halp::item<&ins::sync> sync;
         } length;
         struct
         {
@@ -330,6 +383,14 @@ struct Node
           halp::item<&ins::restart> restart;
           halp::item<&ins::feedback> feedback;
         } play;
+        struct
+        {
+          halp_meta(name, "Capture")
+          halp_meta(layout, halp::layouts::hbox)
+          halp::item<&ins::capture> capture;
+          halp::item<&ins::capture_bars> capture_bars;
+          halp::item<&ins::keep> keep;
+        } capture;
         struct
         {
           halp_meta(name, "Memory")
@@ -391,6 +452,16 @@ private:
   Looper::view_message m_view{};
 
   void apply_buttons();
+  void capture(const tick& tk);
+  void keep_input(int64_t frames);
+  void fade_edges(int slot);
+
+  // The input of the last seconds, for Capture.
+  boost::container::vector<float> m_ring;
+  int64_t m_ring_capacity{};
+  int m_ring_channels{};
+  //! Frames of input seen since the looper was created.
+  int64_t m_ring_written{};
   void run_export();
   void take_written(int slot, bool ok);
   void send_view(int64_t frames);
@@ -407,6 +478,7 @@ inline void Node::apply_buttons()
 {
   if(inputs.clear.value)
   {
+    sync.release();
     layers.clear();
     transport.playbackPos = 0;
     // Whatever was being taken in is gone with the rest.
@@ -499,31 +571,16 @@ inline void Node::looper_close_take(
     if(quantify_length && total_samples < layers.length)
       layers.length = total_samples;
 
+    // In a sync group, the loop fits the group's.
+    const auto synced = sync.close(layers.length, transport.engine_frame(tk));
+    if(synced.length < layers.length)
+      layers.length = synced.length;
+    const int64_t sync_extend = std::min(synced.length, layers.capacity);
+
     if(latency > 0)
       layers.shift_earlier(*top, latency);
 
-    // A small fade on the first and last samples
-    for(int c = 0; c < layers.channels; c++)
-    {
-      float* chan = layers.data(top->slot, c);
-      const int64_t samples = layers.length;
-      if(int64_t min_n = std::min(samples, int64_t(Looper::audio_layers::fade_frames));
-         min_n > 0)
-      {
-        float f = 1.f / min_n;
-        float ff = 0.f;
-        for(int64_t i = 0; i < min_n; i++)
-        {
-          chan[i] *= ff;
-          ff += f;
-        }
-        for(int64_t i = samples - min_n; i < samples; i++)
-        {
-          chan[i] *= ff;
-          ff -= f;
-        }
-      }
-    }
+    fade_edges(top->slot);
 
     // If there are less samples than expected we extend
     if(quantify_length && total_samples > layers.length)
@@ -533,6 +590,15 @@ inline void Node::looper_close_take(
         std::fill(layers.data(top->slot, c) + layers.length, layers.data(top->slot, c) + end, 0.f);
       layers.length = end;
     }
+    if(sync_extend > layers.length)
+    {
+      for(int c = 0; c < layers.channels; c++)
+        std::fill(layers.data(top->slot, c) + layers.length, layers.data(top->slot, c) + sync_extend, 0.f);
+      layers.length = sync_extend;
+    }
+    if(sync.current())
+      transport.playbackPos = synced.position % std::max<int64_t>(1, layers.length);
+
     top->written = layers.length;
     m_export_date = transport.recordStartDate.impl / double(ossia::flicks_per_second<int64_t>);
   }
@@ -543,6 +609,107 @@ inline void Node::looper_close_take(
       layers.shift_earlier(*top, latency);
   }
 
+  m_export_tempo = tk.tempo;
+  m_export_signature = tk.signature;
+  m_export_pending = true;
+}
+
+//! A small fade on the first and last samples of a recorded pass.
+inline void Node::fade_edges(int slot)
+{
+  for(int c = 0; c < layers.channels; c++)
+  {
+    float* chan = layers.data(slot, c);
+    const int64_t samples = layers.length;
+    if(int64_t min_n = std::min(samples, int64_t(Looper::audio_layers::fade_frames));
+       min_n > 0)
+    {
+      float f = 1.f / min_n;
+      float ff = 0.f;
+      for(int64_t i = 0; i < min_n; i++)
+      {
+        chan[i] *= ff;
+        ff += f;
+      }
+      for(int64_t i = samples - min_n; i < samples; i++)
+      {
+        chan[i] *= ff;
+        ff -= f;
+      }
+    }
+  }
+}
+
+inline void Node::keep_input(int64_t frames)
+{
+  if(m_ring_capacity > 0)
+  {
+    auto& in = inputs.audio;
+    for(int c = 0; c < m_ring_channels; c++)
+    {
+      float* ring = m_ring.data() + std::size_t(c) * std::size_t(m_ring_capacity);
+      int64_t k = m_ring_written % m_ring_capacity;
+      for(int64_t j = 0; j < frames; j++)
+      {
+        ring[k] = c < in.channels ? float(in.samples[c][j]) : 0.f;
+        if(++k == m_ring_capacity)
+          k = 0;
+      }
+    }
+  }
+  m_ring_written += frames;
+}
+
+//! The last bars heard become the loop, ending on the last grid point when it
+//! was just passed, as a late stop would.
+inline void Node::capture(const tick& tk)
+{
+  if(transport.is_taking() || m_ring_capacity <= 0)
+    return;
+
+  const double bar = m_rate * 4. * (double(tk.signature.upper) / tk.signature.lower)
+                     * (60. / std::max(1., tk.tempo));
+  int64_t end = m_ring_written;
+  if(transport.quantif > 0.f && transport.lastPointFrame)
+  {
+    const int64_t late = transport.frame - *transport.lastPointFrame;
+    if(late >= 0 && late <= int64_t(inputs.late.value * m_rate / 1000.))
+      end -= late;
+  }
+  const int64_t n = std::min<int64_t>(
+      {int64_t(inputs.capture_bars.value * bar), end, m_ring_capacity, layers.capacity});
+  if(n <= 0)
+    return;
+
+  layers.begin_recording();
+  const int slot = layers.layers[0].slot;
+  for(int c = 0; c < layers.channels; c++)
+  {
+    float* dst = layers.data(slot, c);
+    if(c >= m_ring_channels)
+    {
+      std::fill_n(dst, n, 0.f);
+      continue;
+    }
+    const float* ring = m_ring.data() + std::size_t(c) * std::size_t(m_ring_capacity);
+    for(int64_t i = 0; i < n; i++)
+    {
+      const float v = ring[(end - n + i) % m_ring_capacity];
+      dst[i] = v;
+      layers.note_peak(slot, i, v);
+    }
+  }
+  layers.length = n;
+  layers.layers[0].written = n;
+  fade_edges(slot);
+
+  m_full = false;
+  m_flattening = false;
+  transport.play_captured((m_ring_written - end) % n);
+
+  const double model_per_frame = ossia_state.samplesToModel();
+  m_export_date = (tk.prev_date.impl - (m_ring_written - end + n) * model_per_frame)
+                  / double(ossia::flicks_per_second<int64_t>);
   m_export_tempo = tk.tempo;
   m_export_signature = tk.signature;
   m_export_pending = true;

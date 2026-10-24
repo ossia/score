@@ -112,6 +112,8 @@ struct looper_harness
     tk.length_sample = frames;
     tk.tempo = 120.;
     now += frames;
+    // The engine's clock is at the end of the buffer while it runs.
+    st.samples_since_start = now;
     return tk;
   }
 
@@ -1183,4 +1185,98 @@ TEST_CASE("Looper: a stop just after a grid point ends the recording on that poi
       CHECK(h.node.transport.playbackPos == 2 * h.buffer_size);
     }
   }
+}
+
+TEST_CASE("Looper: loopers of one sync group share the loop and its phase",
+          "[fx][audio][looper][sync]")
+{
+  looper_harness a{1, 100}, b{1, 100};
+  a.node.inputs.sync.value = Nodes::Looper::SyncGroup::B;
+  b.node.inputs.sync.value = Nodes::Looper::SyncGroup::B;
+  a.fill_input(0, [](int64_t) { return 1.; });
+  b.fill_input(0, [](int64_t) { return 1.; });
+
+  auto both = [&](int ticks) {
+    for(int i = 0; i < ticks; i++)
+    {
+      a.run(100);
+      b.run(100);
+    }
+  };
+
+  // a records 1000 frames and leads.
+  a.node.inputs.mode = LoopMode::Record;
+  both(10);
+  a.node.inputs.mode = LoopMode::Play;
+  both(3);
+  REQUIRE(a.node.layers.length == 1000);
+
+  // b records 1900 frames: its loop becomes two of a's.
+  b.node.inputs.mode = LoopMode::Record;
+  both(19);
+  b.node.inputs.mode = LoopMode::Play;
+  both(1);
+  CHECK(b.node.layers.length == 2000);
+
+  // Both go round in phase: b's position is a's, or a's plus one loop of a.
+  for(int i = 0; i < 25; i++)
+  {
+    both(1);
+    CHECK(b.node.transport.playbackPos % 1000 == a.node.transport.playbackPos);
+  }
+
+  // A third, short recording becomes half of the group's loop.
+  looper_harness c{1, 100};
+  c.node.inputs.sync.value = Nodes::Looper::SyncGroup::B;
+  c.fill_input(0, [](int64_t) { return 1.; });
+  c.now = a.now;
+  c.node.inputs.mode = LoopMode::Record;
+  for(int i = 0; i < 6; i++)
+  {
+    a.run(100);
+    c.run(100);
+  }
+  c.node.inputs.mode = LoopMode::Play;
+  a.run(100);
+  c.run(100);
+  CHECK(c.node.layers.length == 500);
+  CHECK(c.node.transport.playbackPos == a.node.transport.playbackPos % 500);
+
+  // Clearing the leader frees the group.
+  a.node.inputs.clear.value.emplace();
+  a.run(100);
+  CHECK(a.node.sync.current()->leader.load() == nullptr);
+}
+
+TEST_CASE("Looper: capture makes a loop of the last bars heard, and plays it",
+          "[fx][audio][looper][capture]")
+{
+  // 1000 frames a second: a bar at 120 bpm is 2000 frames.
+  looper_harness h{1, 100, 1000};
+  h.node.allocate_ring(1, 3000);
+  h.node.inputs.capture_bars.value = 1;
+  h.node.inputs.passthrough = Passthrough::None;
+  h.node.inputs.mode = LoopMode::Stop;
+
+  int64_t t = 0;
+  for(int i = 0; i < 30; i++)
+  {
+    for(int j = 0; j < 100; j++)
+      h.in_buf[0][j] = double(t + j) / 10000.;
+    t += 100;
+    h.run(100);
+  }
+
+  h.reset_input();
+  h.node.inputs.capture.value.emplace();
+  h.run(100);
+  h.node.inputs.capture.value.reset();
+
+  REQUIRE(h.node.layers.length == 2000);
+  CHECK(h.node.transport.actualMode == LoopMode::Play);
+  // The loop is frames 1000 to 3000 of the input, faded at its edges.
+  for(int64_t i = 200; i < 1800; i += 50)
+    CHECK(h.loop()[i] == Approx((1000. + i) / 10000.).margin(1e-6));
+  // The tick of the capture played the loop's start.
+  CHECK(h.node.transport.playbackPos == 100);
 }

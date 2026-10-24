@@ -2,6 +2,7 @@
 #include <Fx/Looper/LooperView.hpp>
 #include <Fx/Looper/MidiLoop.hpp>
 #include <Fx/Looper/MidiTake.hpp>
+#include <Fx/Looper/Sync.hpp>
 #include <Fx/Looper/Transport.hpp>
 #include <Fx/Types.hpp>
 
@@ -198,6 +199,29 @@ struct Node
       halp_meta(description, "Channel the loop is played on; 0 keeps the recorded ones")
     } out_channel;
 
+    struct : halp::enum_t<Looper::SyncGroup, "Sync">
+    {
+      using halp::enum_t<Looper::SyncGroup, "Sync">::operator=;
+      halp_meta(
+          description,
+          "Loopers of one group play together: the first to record sets the "
+          "loop, the loops recorded after it are a whole number of it or a "
+          "half, quarter or eighth of it, in phase with it.")
+    } sync;
+
+    struct : halp::spinbox_i32<"Capture bars", halp::irange{1, 64, 4}>
+    {
+      halp_meta(description, "How many bars Capture takes")
+    } capture_bars;
+
+    struct : halp::impulse_button<"Capture">
+    {
+      halp_meta(
+          description,
+          "Makes a loop of the last bars played, recorded or not, and plays it "
+          "at once.")
+    } capture;
+
     struct : halp::impulse_button<"Send to timeline">
     {
       halp_meta(
@@ -232,6 +256,7 @@ struct Node
   ossia::exec_state_facade ossia_state;
 
   Looper::transport transport;
+  Looper::loop_sync sync;
   Looper::midi_loop loop;
   std::shared_ptr<Looper::take_writer> writer;
   std::shared_ptr<Looper::midi_export> export_data;
@@ -301,7 +326,10 @@ struct Node
       m_out_channel = inputs.out_channel.value;
     }
 
+    sync.set_group(inputs.sync.value);
     apply_buttons();
+    if(inputs.capture.value)
+      capture(tk);
 
     const Looper::transport_settings settings{
         .mode = inputs.mode,
@@ -358,6 +386,7 @@ struct Node
           halp::item<&ins::postaction_bars> bars;
           halp::item<&ins::late> late;
           halp::item<&ins::grace> grace;
+          halp::item<&ins::sync> sync;
         } length;
         struct
         {
@@ -384,6 +413,13 @@ struct Node
           halp::item<&ins::in_channel> in_channel;
           halp::item<&ins::out_channel> out_channel;
         } notes;
+        struct
+        {
+          halp_meta(name, "Capture")
+          halp_meta(layout, halp::layouts::hbox)
+          halp::item<&ins::capture> capture;
+          halp::item<&ins::capture_bars> capture_bars;
+        } capture;
       } settings;
     } controls;
 
@@ -458,6 +494,18 @@ private:
   Looper::view_message m_view{};
 
   void apply_buttons();
+  void capture(const tick& tk);
+
+  // What was played lately, recorded or not, for Capture.
+  struct played
+  {
+    int64_t frame;
+    uint8_t bytes[3];
+    uint8_t size;
+  };
+  static constexpr int history_size = 8192;
+  std::array<played, history_size> m_history{};
+  int64_t m_history_count{};
   void handle_input(int64_t from, int64_t to, int64_t pos0, bool taking);
   void record_note_on(int64_t pos, const libremidi::message& m);
   void record_note_off(int64_t pos, const libremidi::message& m);
@@ -560,6 +608,7 @@ inline void Node::apply_buttons()
 {
   if(inputs.clear.value)
   {
+    sync.release();
     flush_loop(0);
     loop.clear();
     transport.playbackPos = 0;
@@ -601,6 +650,75 @@ inline void Node::apply_buttons()
     m_send_requested = true;
 }
 
+//! The last bars played become the loop, ending on the last grid point when
+//! it was just passed, as a late stop would.
+inline void Node::capture(const tick& tk)
+{
+  if(transport.is_taking())
+    return;
+
+  const double bar = m_rate * 4. * (double(tk.signature.upper) / tk.signature.lower)
+                     * (60. / std::max(1., tk.tempo));
+  int64_t end = m_now;
+  if(transport.quantif > 0.f && transport.lastPointFrame)
+  {
+    const int64_t late = transport.frame - *transport.lastPointFrame;
+    if(late >= 0 && late <= int64_t(inputs.late.value * m_rate / 1000.))
+      end -= late;
+  }
+  const int64_t n = std::min<int64_t>(int64_t(inputs.capture_bars.value * bar), end);
+  if(n <= 0)
+    return;
+  const int64_t from = end - n;
+
+  flush_loop(0);
+  loop.begin_recording();
+  loop.length = n;
+  const int64_t count = std::min<int64_t>(m_history_count, history_size);
+  for(int64_t i = m_history_count - count; i < m_history_count; i++)
+  {
+    const auto& h = m_history[i % history_size];
+    if(h.frame < from || h.frame >= end)
+      continue;
+    const int64_t pos = h.frame - from;
+    libremidi::message m;
+    if(h.size == 3)
+      m = libremidi::message{h.bytes[0], h.bytes[1], h.bytes[2]};
+    else if(h.size == 2)
+      m = libremidi::message{h.bytes[0], h.bytes[1]};
+    else
+      continue;
+    switch(mtk::classify(m))
+    {
+      case mtk::midi_kind::note_on:
+        loop.add_note(pos, mtk::channel_of(m), m.bytes[1], m.bytes[2]);
+        break;
+      case mtk::midi_kind::note_off:
+        if(auto* note = loop.open_note(mtk::channel_of(m), m.bytes[1]))
+          note->length = std::max<int64_t>(1, pos - note->start);
+        break;
+      case mtk::midi_kind::control_change:
+      case mtk::midi_kind::pitch_bend:
+      case mtk::midi_kind::channel_pressure:
+      case mtk::midi_kind::poly_pressure:
+        loop.add_control(pos, m.bytes[0], m.bytes[1], h.size > 2 ? m.bytes[2] : 0);
+        break;
+      default:
+        break;
+    }
+  }
+  loop.pass_written = n;
+  loop.end_pass(inputs.overdub_mode);
+
+  transport.play_captured((m_now - end) % n);
+  m_expected_pos = transport.playbackPos;
+
+  const double model_per_frame = ossia_state.samplesToModel();
+  m_export_date = (tk.prev_date.impl - (m_now - from) * model_per_frame)
+                  / double(ossia::flicks_per_second<int64_t>);
+  m_export_pending = true;
+}
+
 inline int64_t Node::quantize(int64_t pos) const noexcept
 {
   const float strength = std::clamp(inputs.strength.value, 0.f, 1.f);
@@ -634,6 +752,14 @@ inline void Node::handle_input(int64_t from, int64_t to, int64_t pos0, bool taki
     const auto kind = mtk::classify(m);
     const int ch = mtk::channel_of(m);
     const bool ours = ch > 0 && (in_ch == 0 || ch == in_ch);
+    if(ours && m.size() > 0)
+    {
+      auto& h = m_history[m_history_count++ % history_size];
+      h.frame = m_now + ts;
+      h.size = uint8_t(std::min<std::size_t>(3, m.size()));
+      for(int b = 0; b < h.size; b++)
+        h.bytes[b] = m.bytes[b];
+    }
 
     // Where the message falls in the loop. A recording's loop is as long as
     // what was recorded so far, so its positions are not wrapped.
@@ -905,6 +1031,13 @@ inline void Node::looper_close_take(
     if(ended_by_postaction && transport.quantif > 0.f && transport.postaction_bars > 0
        && total > 0)
       loop.length = total;
+    // In a sync group, the loop fits the group's.
+    const auto synced = sync.close(loop.length, transport.engine_frame(tk));
+    if(synced.length != loop.length)
+      looper_trim_recording(std::max<int64_t>(0, loop.length - synced.length));
+    loop.length = synced.length;
+    if(sync.current())
+      transport.playbackPos = synced.position % std::max<int64_t>(1, loop.length);
     loop.pass_written = loop.length;
     m_export_date = transport.recordStartDate.impl / double(ossia::flicks_per_second<int64_t>);
   }

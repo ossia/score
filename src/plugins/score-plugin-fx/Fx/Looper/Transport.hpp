@@ -107,6 +107,14 @@ struct transport
   //! Musical position at which the current recording started.
   ossia::quarter_note recordStartPosition{};
 
+  //! The engine's frame count at the start of the span of `tk`: the same
+  //! clock for every looper, which is what keeps loops of a sync group in
+  //! phase.
+  int64_t engine_frame(const ossia::token_request& tk) const noexcept
+  {
+    return m_facade.samplesSinceStart() + (m_facade.timings(tk).start_sample - tickStartSample);
+  }
+
   //! Called by the looper whenever it records or overdubs.
   void taking(LoopMode m) noexcept { m_taking = m; }
   bool is_taking() const noexcept { return m_taking != LoopMode::Stop; }
@@ -120,6 +128,17 @@ struct transport
     endedByPostaction = false;
     actualMode = postaction == Postaction::Overdub ? LoopMode::Overdub : LoopMode::Play;
     m_forced_close = true;
+  }
+
+  //! The looper made a loop out of what it heard before, without recording:
+  //! it plays it from `position` until the mode is changed.
+  void play_captured(int64_t position) noexcept
+  {
+    actualMode = LoopMode::Play;
+    recordStartBar = -1.;
+    recordEndBar = -1.;
+    m_taking = LoopMode::Stop;
+    playbackPos = position;
   }
 
   void reset() noexcept
