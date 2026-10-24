@@ -711,27 +711,98 @@ TEST_CASE("MIDI looper: a take can be written as its mix, its passes, or both",
   CHECK(pitches("m-take2-layer2.mid") == std::vector<int>{67});
 }
 
-TEST_CASE("MIDI looper: after a tempo change, quantize keeps to the loop's own beats",
+TEST_CASE("MIDI looper: after a tempo change, the loop keeps its beats, and follows the "
+          "tempo when asked",
+          "[fx][midi][looper][tempo]")
+{
+  for(const bool follow : {false, true})
+  {
+    midi_harness h{64, 48000};
+    h.node.inputs.follow_tempo.value = follow;
+    h.node.inputs.grid.value = 1.f / 16.f;
+    h.node.inputs.strength.value = 1.f;
+    h.node.inputs.mode = LoopMode::Record;
+    h.run_frames(5900);
+    h.note_on(60, 0); // 100 frames before the second sixteenth at 120
+    h.run(64);
+    h.note_off(60, 0);
+    h.run_frames(24000 - 5964);
+    h.node.inputs.mode = LoopMode::Play;
+    h.run();
+
+    // At 90, a sixteenth would be 8000 frames: quantize stays on the loop's
+    // 6000. Following the tempo, the loop goes at 90 / 120 of its speed.
+    h.tempo = 90.;
+    h.out.clear();
+    const int64_t start = h.now; // loop position 64
+    h.run_frames(32000);
+    const auto ons = h.ons();
+    REQUIRE(!ons.empty());
+    if(follow)
+      CHECK(ons[0].at == start + int64_t((6000 - 64) / 0.75));
+    else
+      CHECK(ons[0].at == start + 6000 - 64);
+  }
+}
+
+TEST_CASE("MIDI looper: following the tempo, a loop recorded at 120 lasts its bars at 60",
           "[fx][midi][looper][tempo]")
 {
   midi_harness h{64, 48000};
-  h.node.inputs.grid.value = 1.f / 16.f;
-  h.node.inputs.strength.value = 1.f;
   h.node.inputs.mode = LoopMode::Record;
-  h.run_frames(5900);
-  h.note_on(60, 0); // 100 frames before the second sixteenth at 120
-  h.run(64);
-  h.note_off(60, 0);
-  h.run_frames(24000 - 5964);
+  h.note_on(60, 0);
+  h.run();
+  h.note_off(60, 10);
+  h.run();
+  h.run_frames(48000 - 128); // one bar at 120
+  h.node.inputs.mode = LoopMode::Play;
+  h.run(); // the recording closes at 120
+  h.tempo = 60.;
+  h.out.clear();
+  h.run_frames(96000 * 3);
+  const auto ons = h.ons();
+  REQUIRE(ons.size() == 3);
+  CHECK(ons[1].at - ons[0].at == 96000);
+  CHECK(ons[2].at - ons[1].at == 96000);
+}
+
+TEST_CASE("MIDI looper: an extending overdub makes the loop longer, the first pass "
+          "repeating under it",
+          "[fx][midi][looper]")
+{
+  midi_harness h;
+  h.node.inputs.past_end.value = Nodes::Looper::PastEnd::Extend;
+  h.node.inputs.restart = Looper::Restart::Recording;
+  record(h, 640, [](midi_harness& h) {
+    h.note_on(60, 10);
+    h.note_off(60, 20);
+  });
+  h.node.inputs.mode = LoopMode::Overdub;
+  for(int i = 0; i < 40; i++) // four lengths
+  {
+    if(i == 25) // in the third length
+    {
+      h.note_on(67, 5);
+      h.note_off(67, 15);
+    }
+    h.run();
+  }
   h.node.inputs.mode = LoopMode::Play;
   h.run();
+  CHECK(h.node.loop.length == 2560);
 
-  // At 90, a sixteenth would be 8000 frames: the loop still has its 6000.
-  h.tempo = 90.;
+  stop_and_collect(h);
   h.out.clear();
-  const int64_t start = h.now; // loop position 64
-  h.run_frames(24000);
-  const auto ons = h.ons();
-  REQUIRE(ons.size() == 1);
-  CHECK(ons[0].at == start + 6000 - 64);
+  h.node.inputs.mode = LoopMode::Play;
+  h.node.stop();
+  h.node(h.tick(0));
+  h.run_frames(2560);
+  int c4 = 0, g4 = 0;
+  for(auto& n : h.ons())
+    (n.pitch == 60 ? c4 : g4)++;
+  CHECK(c4 == 4);
+  CHECK(g4 == 1);
+
+  h.press(h.node.inputs.undo);
+  CHECK(h.node.loop.length == 640);
 }

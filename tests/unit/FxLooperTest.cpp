@@ -1509,3 +1509,70 @@ TEST_CASE("Looper: a take keeps the tempo it was recorded at, whatever the tempo
   CHECK(wav.tempo == Approx(120.f));
   CHECK(wav.beats == 8);
 }
+
+TEST_CASE("Looper: an extending overdub makes the loop longer, by whole loops",
+          "[fx][audio][looper][layers]")
+{
+  looper_harness h{1, 64};
+  h.node.inputs.past_end.value = Nodes::Looper::PastEnd::Extend;
+  h.node.inputs.restart = Looper::Restart::Recording;
+  for(auto& v : h.in_buf[0])
+    v = 0.25;
+  h.node.inputs.mode = LoopMode::Record;
+  for(int i = 0; i < 8; i++)
+    h.run(64);
+  REQUIRE(h.node.layers.length == 512);
+
+  // Overdub from the loop's start for four of its lengths.
+  for(auto& v : h.in_buf[0])
+    v = 0.5;
+  h.node.inputs.mode = LoopMode::Overdub;
+  for(int i = 0; i < 32; i++)
+    h.run(64);
+  h.reset_input();
+  h.node.inputs.mode = LoopMode::Play;
+  h.run(64);
+
+  CHECK(h.node.layers.length == 2048);
+  // The first pass plays again under each part of the dub.
+  CHECK(h.node.layers.mix(0, 256) == Approx(0.75));
+  CHECK(h.node.layers.mix(0, 3 * 512 + 256) == Approx(0.75));
+
+  // Undo gives the loop its length back; redo the longer one.
+  press(h.node.inputs.undo, h);
+  CHECK(h.node.layers.length == 512);
+  press(h.node.inputs.redo, h);
+  CHECK(h.node.layers.length == 2048);
+
+  // A dub that stops shorter than the loop does not change it.
+  for(auto& v : h.in_buf[0])
+    v = 0.125;
+  h.node.inputs.mode = LoopMode::Overdub;
+  for(int i = 0; i < 8; i++)
+    h.run(64);
+  h.reset_input();
+  h.node.inputs.mode = LoopMode::Play;
+  h.run(64);
+  CHECK(h.node.layers.length == 2048);
+}
+
+TEST_CASE("Looper: an extending overdub stopped just past the end does not add a loop",
+          "[fx][audio][looper][layers]")
+{
+  looper_harness h{1, 64};
+  h.node.inputs.past_end.value = Nodes::Looper::PastEnd::Extend;
+  h.node.inputs.restart = Looper::Restart::Recording;
+  h.node.inputs.late.value = 1; // 48 frames
+  for(auto& v : h.in_buf[0])
+    v = 0.25;
+  h.node.inputs.mode = LoopMode::Record;
+  for(int i = 0; i < 8; i++)
+    h.run(64);
+  h.node.inputs.mode = LoopMode::Overdub;
+  for(int i = 0; i < 24; i++) // three lengths
+    h.run(64);
+  h.run(32);
+  h.node.inputs.mode = LoopMode::Play;
+  h.run(64);
+  CHECK(h.node.layers.length == 1536);
+}
