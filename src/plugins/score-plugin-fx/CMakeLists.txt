@@ -67,6 +67,16 @@ target_include_directories(score_plugin_fx PRIVATE "${OSSIA_3RDPARTY_FOLDER}")
 target_include_directories(score_plugin_fx SYSTEM PUBLIC "${3RDPARTY_FOLDER}/avendish/examples")
 target_link_libraries(score_plugin_fx PUBLIC score_plugin_engine score_plugin_avnd)
 
+# The audio looper follows the tempo with the stretchers of the sound files.
+if(TARGET rubberband)
+  target_link_libraries(score_plugin_fx PUBLIC rubberband)
+endif()
+if(TARGET SampleRate::samplerate)
+  target_link_libraries(score_plugin_fx PUBLIC SampleRate::samplerate)
+elseif(TARGET samplerate)
+  target_link_libraries(score_plugin_fx PUBLIC samplerate)
+endif()
+
 setup_score_plugin(score_plugin_fx)
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   if(CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "MSVC")

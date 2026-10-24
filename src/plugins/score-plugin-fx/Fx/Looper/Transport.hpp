@@ -77,6 +77,16 @@ enum class PastEnd
   Extend ///< Makes the loop longer by the loop's length, the passes under it repeating.
 };
 
+//! How an audio loop follows the tempo of the score, as sound files do.
+enum class FollowTempo
+{
+  Off,
+  Repitch,
+  RepitchFast,
+  Timestretch,
+  TimestretchPercussive
+};
+
 struct transport_settings
 {
   LoopMode mode{LoopMode::Stop};

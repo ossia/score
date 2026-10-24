@@ -7,6 +7,7 @@
 #include <Fx/Types.hpp>
 
 #include <ossia/dataflow/exec_state_facade.hpp>
+#include <ossia/dataflow/nodes/sound.hpp>
 #include <ossia/dataflow/token_request.hpp>
 
 #include <halp/audio.hpp>
@@ -17,6 +18,27 @@
 
 #include <functional>
 #include <memory>
+
+namespace Nodes::Looper
+{
+inline ossia::audio_stretch_mode stretch_mode(FollowTempo f) noexcept
+{
+  switch(f)
+  {
+    case FollowTempo::Repitch:
+      return ossia::audio_stretch_mode::Repitch;
+    case FollowTempo::RepitchFast:
+      return ossia::audio_stretch_mode::RepitchFastestQ;
+    case FollowTempo::Timestretch:
+      return ossia::audio_stretch_mode::RubberBandStandard;
+    case FollowTempo::TimestretchPercussive:
+      return ossia::audio_stretch_mode::RubberBandPercussive;
+    case FollowTempo::Off:
+    default:
+      return ossia::audio_stretch_mode::None;
+  }
+}
+}
 
 namespace Nodes::AudioLooper
 {
@@ -240,6 +262,18 @@ struct Node
           "passes under it playing again (Extend). An extended loop ends when "
           "overdubbing stops.")
     } past_end;
+
+    struct : Looper::enum_combobox<"Follow tempo", Looper::FollowTempo, Looper::FollowTempo::Off>
+    {
+      using enum_combobox::operator=;
+      halp_meta(
+          description,
+          "Plays the loop at the tempo of the score, as sound files are: "
+          "resampled (Repitch: the pitch follows), or time-stretched (the "
+          "pitch stays). A loop being recorded or overdubbed plays at its own "
+          "speed, and a tempo change applies from the next round of the loop. "
+          "Applies from the next start.")
+    } follow_tempo;
   } inputs;
 
   struct
@@ -292,8 +326,20 @@ struct Node
            || export_audio->capacity != layers.capacity))
       export_audio = Looper::export_buffer::make(layers.channels, layers.capacity);
     allocate_ring(layers.channels, int64_t(inputs.keep.value * rate));
+    prepare_stretch(rate, s.frames);
     if(ossia_document_context)
       writer = Looper::take_writer::make(*ossia_document_context, "Looper", "wav");
+  }
+
+  //! Main thread only: the stretcher allocates.
+  void prepare_stretch(double rate, int frames)
+  {
+    m_stretch_mode = Looper::stretch_mode(inputs.follow_tempo.value);
+    m_stretcher.reset(0, m_stretch_mode, std::size_t(layers.channels), std::size_t(rate), std::size_t(rate));
+    m_stretch_out.resize(std::size_t(layers.channels));
+    for(auto& c : m_stretch_out)
+      c.assign(std::size_t(std::max(frames, 8192)), 0.);
+    m_stretch_ready = false;
   }
 
   //! Main thread only.
@@ -409,6 +455,7 @@ struct Node
           halp::item<&ins::restart> restart;
           halp::item<&ins::feedback> feedback;
           halp::item<&ins::past_end> past_end;
+          halp::item<&ins::follow_tempo> follow_tempo;
         } play;
         struct
         {
@@ -491,6 +538,46 @@ private:
   int64_t m_extend_unit{};
   bool m_extended{};
 
+  // Playing the loop at the tempo of the score, with the stretchers of the
+  // sound files reading the loop as their source.
+  ossia::resampler m_stretcher;
+  ossia::audio_stretch_mode m_stretch_mode{ossia::audio_stretch_mode::None};
+  std::vector<std::vector<double>> m_stretch_out;
+  double m_cycle_ratio{1.};
+  bool m_stretch_ready{};
+  int64_t m_expected_pos{};
+  bool m_wrapped{};
+  void play_stretched(int64_t first_pos, int64_t samples);
+
+public:
+  //! What the stretchers read: the loop as it is heard, round and round.
+  template <typename T>
+  void fetch_audio(int64_t start, int64_t frames, T** out) noexcept
+  {
+    const int64_t len = layers.length;
+    for(int c = 0; c < layers.channels; c++)
+    {
+      int64_t k = len > 0 ? start % len : 0;
+      for(int64_t j = 0; j < frames; j++)
+      {
+        out[c][j] = len > 0 ? T(layers.mix(c, k)) : T(0);
+        if(++k >= len)
+        {
+          k = 0;
+          m_wrapped = true;
+        }
+      }
+    }
+  }
+  template <typename T>
+  void fetch_audio_backward(int64_t, int64_t frames, T** out) noexcept
+  {
+    for(int c = 0; c < layers.channels; c++)
+      std::fill_n(out[c], frames, T(0));
+  }
+
+private:
+
   int64_t m_view_countdown{};
   Looper::view_message m_view{};
 
@@ -568,6 +655,10 @@ inline void Node::apply_buttons()
 
 inline int64_t Node::looper_run(int64_t start, int64_t length)
 {
+  // Stretching starts again from where the loop is, the next time it plays.
+  if(transport.actualMode != LoopMode::Play)
+    m_stretch_ready = false;
+
   // Record passthrough is what its name says: the input while something is
   // being taken in, and nothing else. Only Full is heard the rest of the time.
   const Passthrough pt = inputs.passthrough;
@@ -580,11 +671,14 @@ inline int64_t Node::looper_run(int64_t start, int64_t length)
         echo_otherwise ? through(start, length) : silence(start, length);
       else
       {
-        play(start, length);
+        if(m_stretch_mode != ossia::audio_stretch_mode::None)
+          play_stretched(start, length);
+        else
+          play(start, length);
         if(echo_otherwise)
           mix_input(start, length);
       }
-      break;
+      return length;
     case LoopMode::Stop:
       echo_otherwise ? through(start, length) : silence(start, length);
       break;
@@ -853,6 +947,51 @@ inline void Node::load_file()
   layers.total = 1;
   fade_edges(slot);
   transport.play_captured(0);
+}
+
+//! Plays the loop at the tempo of the score. The ratio is taken when the
+//! loop starts a round, so that a tempo change is heard from the next round.
+inline void Node::play_stretched(int64_t first_pos, int64_t samples)
+{
+  const int64_t len = layers.length;
+  const int chans = layers.channels;
+  if(std::ssize(m_stretch_out) < chans || samples > std::ssize(m_stretch_out[0]))
+  {
+    play(first_pos, samples);
+    return;
+  }
+  if(!m_stretch_ready || transport.playbackPos % len != m_expected_pos)
+  {
+    m_stretcher.transport(transport.playbackPos % len);
+    m_cycle_ratio = m_loop_tempo / std::max(1., m_tempo);
+    m_stretch_ready = true;
+  }
+
+  ossia::mutable_audio_span<double> ap;
+  for(int c = 0; c < chans; c++)
+    ap.emplace_back(m_stretch_out[c].data(), std::size_t(samples));
+
+  ossia::token_request tk;
+  tk.prev_date = ossia::time_value{0};
+  tk.date = ossia::time_value{samples};
+  m_wrapped = false;
+  m_stretcher.run(
+      *this, tk, ossia_state, m_cycle_ratio, 1., std::size_t(chans), len, samples,
+      samples, 0, ap);
+  if(m_wrapped)
+    m_cycle_ratio = m_loop_tempo / std::max(1., m_tempo);
+
+  auto& p2 = outputs.audio;
+  const int loop_chans = std::min(chans, p2.channels);
+  for(int c = 0; c < loop_chans; c++)
+    for(int64_t j = 0; j < samples; j++)
+      p2.samples[c][first_pos + j] = m_stretch_out[c][j];
+  for(int c = loop_chans; c < p2.channels; c++)
+    for(int64_t j = 0; j < samples; j++)
+      p2.samples[c][first_pos + j] = 0.;
+
+  transport.playbackPos = m_stretcher.next_sample_to_read() % len;
+  m_expected_pos = transport.playbackPos;
 }
 
 inline void Node::play(int64_t first_pos, int64_t samples)
