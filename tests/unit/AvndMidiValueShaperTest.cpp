@@ -105,7 +105,7 @@ TEST_CASE("mtk::MidiValueShaper keeps the 14 bits of pitch bend", "[avnd][midi][
 
   SECTION("gain scales around the center, at full resolution")
   {
-    d.fx.inputs.gain.value = 50.f;
+    d.fx.inputs.gain.value = 0.5f;
     REQUIRE(d.bend(8192) == 8192);
     REQUIRE(d.bend(16383) == 8192 + 4096);
     REQUIRE(d.bend(0) == 4096);
@@ -137,11 +137,11 @@ TEST_CASE("mtk::MidiValueShaper keeps the 14 bits of pitch bend", "[avnd][midi][
 TEST_CASE("mtk::MidiValueShaper amplifies and offsets velocities", "[avnd][midi][shaper]")
 {
   driver d;
-  d.fx.inputs.gain.value = 150.f;
+  d.fx.inputs.gain.value = 1.5f;
   REQUIRE(d.velocity(40) == 60);
   REQUIRE(d.velocity(100) == 127);
 
-  d.fx.inputs.gain.value = 100.f;
+  d.fx.inputs.gain.value = 1.f;
   d.fx.inputs.offset.value = -20.f;
   REQUIRE(d.velocity(50) == 30);
   // A note-on never becomes a note-off
@@ -227,9 +227,9 @@ TEST_CASE("mtk::MidiValueShaper clips into a range", "[avnd][midi][shaper]")
 TEST_CASE("mtk::MidiValueShaper key-tracked gain", "[avnd][midi][shaper]")
 {
   driver d;
-  d.fx.inputs.low_gain.value = 50.f;
-  d.fx.inputs.mid_gain.value = 100.f;
-  d.fx.inputs.high_gain.value = 150.f;
+  d.fx.inputs.low_gain.value = 0.5f;
+  d.fx.inputs.mid_gain.value = 1.f;
+  d.fx.inputs.high_gain.value = 1.5f;
   REQUIRE(d.velocity(80, 0) == 40);
   REQUIRE(d.velocity(80, 24) == 40);
   REQUIRE(d.velocity(80, 42) == 60);
@@ -256,7 +256,7 @@ TEST_CASE("mtk::MidiValueShaper fixed value", "[avnd][midi][shaper]")
   REQUIRE(d.velocity(127) == 90);
 
   // The chain goes on after it
-  d.fx.inputs.gain.value = 50.f;
+  d.fx.inputs.gain.value = 0.5f;
   REQUIRE(d.velocity(10) == 45);
 }
 
@@ -311,6 +311,21 @@ TEST_CASE("mtk::MidiValueShaper random add is seeded and bounded", "[avnd][midi]
       third.push_back(d.velocity(64));
     REQUIRE(first == third);
   }
+
+  SECTION("seed 0 keeps running across a stop")
+  {
+    driver d;
+    d.fx.inputs.random.value = {-10.f, 10.f};
+    std::vector<int> first;
+    for(int i = 0; i < 20; i++)
+      first.push_back(d.velocity(64));
+    d.fx.stop();
+    REQUIRE(d.run({}, 0).empty());
+    std::vector<int> second;
+    for(int i = 0; i < 20; i++)
+      second.push_back(d.velocity(64));
+    REQUIRE(first != second);
+  }
 }
 
 TEST_CASE("mtk::MidiValueShaper only touches what it selects", "[avnd][midi][shaper]")
@@ -319,7 +334,7 @@ TEST_CASE("mtk::MidiValueShaper only touches what it selects", "[avnd][midi][sha
   d.fx.inputs.kind.value = Shaper::CC;
   d.fx.inputs.number.value = 7;
   d.fx.inputs.channel.value = 2;
-  d.fx.inputs.gain.value = 50.f;
+  d.fx.inputs.gain.value = 0.5f;
 
   REQUIRE(d.cc(7, 100, 2) == 50);
   REQUIRE(d.cc(7, 100, 1) == 100);
@@ -378,7 +393,7 @@ TEST_CASE("mtk::MidiValueShaper pressure kinds", "[avnd][midi][shaper]")
 {
   driver d;
   d.fx.inputs.kind.value = Shaper::Pressure;
-  d.fx.inputs.gain.value = 50.f;
+  d.fx.inputs.gain.value = 0.5f;
   auto out = d.run(
       {libremidi::channel_events::aftertouch(1, 100),
        libremidi::channel_events::poly_pressure(1, 60, 100)});
@@ -405,7 +420,7 @@ TEST_CASE("mtk::MidiValueShaper keeps note pairs whatever the controls do", "[av
   int ons = 0, offs = 0;
   for(int i = 0; i < 500; i++)
   {
-    d.fx.inputs.gain.value = float(i % 5) * 50.f;
+    d.fx.inputs.gain.value = float(i % 5) * 0.5f;
     auto out = d.run(
         {libremidi::channel_events::note_on(1, i % 128, 1 + i % 127),
          libremidi::channel_events::note_off(1, i % 128, 0),

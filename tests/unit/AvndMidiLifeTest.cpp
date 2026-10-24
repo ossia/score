@@ -413,6 +413,70 @@ TEST_CASE("Midi life free rate counts seconds from the start", "[avnd][midi][lif
     CHECK(ons[i].at == int64_t(i) * 2400);
 }
 
+TEST_CASE("Midi life turning sync off plays on, without a burst", "[avnd][midi][life]")
+{
+  Rig r{512};
+  r.frozen("oooooooooooooooo");
+  r.node.inputs.max_notes.value = 1;
+  r.sync(1. / 8.);
+  r.run(60 * 48000);
+  const auto synced = r.ons().size();
+  CHECK(synced == 240);
+  const int64_t switched = r.pos;
+  r.free_rate(0.25f);
+  r.run(switched + 48000);
+  r.stop();
+  r.check_clean();
+  const auto ons = r.ons();
+  // Four free steps in the second that follows, 0.25 s apart, from the switch
+  REQUIRE(ons.size() == synced + 4);
+  for(std::size_t i = 0; i < 4; i++)
+    CHECK(ons[synced + i].at == switched + int64_t(i) * 12000);
+}
+
+TEST_CASE("Midi life swings the odd steps of the grid, not of the take", "[avnd][midi][life]")
+{
+  // Playback starts on the second eighth of the bar: that step is swung
+  Rig r{256};
+  r.frozen("oooooooooooooooo");
+  r.node.inputs.max_notes.value = 1;
+  r.node.inputs.gate.value = 0.25f;
+  r.node.inputs.swing.value = 0.5f;
+  r.sync(1. / 8.);
+  r.rewind(12000);
+  r.run(12000 + 4 * 12000);
+  r.stop();
+  r.check_clean();
+  const auto ons = r.ons();
+  REQUIRE(ons.size() == 4);
+  CHECK(ons[0].at == 12000 + 4000);
+  CHECK(ons[1].at == 24000);
+  CHECK(ons[2].at == 36000 + 4000);
+  CHECK(ons[3].at == 48000);
+}
+
+TEST_CASE("Midi life free steps do not drift", "[avnd][midi][life]")
+{
+  Rig r{512};
+  r.frozen("oooooooooooooooo");
+  r.node.inputs.max_notes.value = 1;
+  r.node.inputs.gate.value = 0.1f;
+  // Half a frame past a whole number of frames: rounding each step drifts
+  const float seconds = float(2400.5 / rate);
+  r.free_rate(seconds);
+  const double len = double(seconds) * rate;
+  r.run(int64_t(1001 * len) + 1);
+  r.stop();
+  r.check_clean();
+  const auto ons = r.ons();
+  REQUIRE(ons.size() >= 1001);
+  for(std::size_t i : {std::size_t(10), std::size_t(500), std::size_t(1000)})
+  {
+    INFO("step " << i);
+    CHECK(std::abs(ons[i].at - int64_t(std::floor(double(i) * len))) <= 1);
+  }
+}
+
 TEST_CASE("Midi life plays the rows of the play-head's column", "[avnd][midi][life]")
 {
   Rig r;
@@ -423,7 +487,7 @@ TEST_CASE("Midi life plays the rows of the play-head's column", "[avnd][midi][li
   r.node.inputs.root.value = 2; // D
   r.node.inputs.octave.value = 3;
   r.node.inputs.max_notes.value = 4;
-  r.node.inputs.gate.value = 50;
+  r.node.inputs.gate.value = 0.5f;
   r.run(2 * 6000);
   r.stop();
   r.check_clean();
@@ -664,10 +728,10 @@ TEST_CASE("Midi life ends every note it starts", "[avnd][midi][life]")
   {
     Rig r{std::uniform_int_distribution<int>{32, 700}(rng)};
     r.node.inputs.seed.value = 1 + round;
-    r.node.inputs.density.value = 50;
+    r.node.inputs.density.value = 0.5f;
     r.node.inputs.max_notes.value = 16;
-    r.node.inputs.gate.value = 100;
-    r.node.inputs.swing.value = 60;
+    r.node.inputs.gate.value = 1.f;
+    r.node.inputs.swing.value = 0.6f;
     Rig::input in;
     for(int k = 1; k < 20; k++)
       in.push_back({k * 17011, cc(k % 2 ? 123 : 120, 0)});
@@ -680,7 +744,7 @@ TEST_CASE("Midi life ends every note it starts", "[avnd][midi][life]")
         case 2: r.node.inputs.width.value = 4 + int(rng() % 29); break;
         case 3: r.node.inputs.height.value = 2 + int(rng() % 15); break;
         case 4: r.sync(rng() % 2 ? 1. / 32. : 1. / 8.); break;
-        case 5: r.node.inputs.gate.value = 5 + int(rng() % 96); break;
+        case 5: r.node.inputs.gate.value = float(5 + int(rng() % 96)) / 100.f; break;
         case 6: r.node.inputs.rule.value = int(rng() % 6); break;
         case 7:
           if(rng() % 2)
@@ -709,7 +773,7 @@ TEST_CASE("Midi life stop releases in a 0-frame tick", "[avnd][midi][life]")
 {
   Rig r;
   r.frozen("oooooooooooooooo");
-  r.node.inputs.gate.value = 100;
+  r.node.inputs.gate.value = 1.f;
   r.run(1000);
   REQUIRE(r.node.sounding() == 1);
   const auto before = r.events.size();

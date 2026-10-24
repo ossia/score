@@ -348,3 +348,83 @@ TEST_CASE("Clock out on stop sends the delayed transport at once", "[midi_sync_i
   REQUIRE(d.out.size() == 1);
   CHECK(d.out[0].at == d.now - 64);
 }
+
+namespace
+{
+//! The 8 quarter frames of hh:mm:ss:ff, rate bits r, pieces [first, last].
+void quarter_frames(driver& d, int h, int m, int s, int f, int r, int first = 0, int last = 7)
+{
+  const uint8_t data[8]{
+      uint8_t(f & 0x0F),        uint8_t((f >> 4) & 0x01), uint8_t(s & 0x0F),
+      uint8_t((s >> 4) & 0x03), uint8_t(m & 0x0F),        uint8_t((m >> 4) & 0x03),
+      uint8_t(h & 0x0F),        uint8_t(((h >> 4) & 0x01) | (r << 1))};
+  for(int i = first; i <= last; i++)
+    d.send({0xF1, uint8_t((i << 4) | data[i])});
+}
+
+void full_frame(driver& d, int h, int m, int s, int f, int r)
+{
+  d.send({0xF0, 0x7F, 0x7F, 0x01, 0x01, uint8_t(h | (r << 5)), uint8_t(m), uint8_t(s),
+          uint8_t(f), 0xF7});
+}
+}
+
+TEST_CASE("MIDI Sync In: a full frame sets the position at once", "[midi_sync_in]")
+{
+  driver d;
+  d.fx.inputs.sync_mode.value = Sync::SyncMode::MTC_Only;
+  // 01:02:03:04 at 25 fps.
+  full_frame(d, 1, 2, 3, 4, 0b01);
+  d.tick(64);
+  CHECK(d.fx.outputs.valid.value);
+  CHECK(d.fx.outputs.frame_rate.value == Approx(25.));
+  CHECK(d.fx.outputs.timecode.value == Approx(3723. + 4. / 25.));
+
+  // Any device ID.
+  d.send({0xF0, 0x7F, 0x05, 0x01, 0x01, uint8_t(2 | (0b11 << 5)), 0, 0, 15, 0xF7});
+  d.tick(64);
+  CHECK(d.fx.outputs.frame_rate.value == Approx(30.));
+  CHECK(d.fx.outputs.timecode.value == Approx(7200. + 0.5));
+}
+
+TEST_CASE("MIDI Sync In: quarter frames from before a full frame are dropped", "[midi_sync_in]")
+{
+  driver d;
+  d.fx.inputs.sync_mode.value = Sync::SyncMode::MTC_Only;
+  quarter_frames(d, 0, 10, 20, 5, 0b11);
+  d.tick(64);
+  CHECK(d.fx.outputs.timecode.value == Approx(620. + 5. / 30.));
+
+  // Half a sequence, then a locate.
+  quarter_frames(d, 0, 10, 20, 7, 0b11, 0, 3);
+  full_frame(d, 1, 0, 0, 0, 0b11);
+  d.tick(64);
+  CHECK(d.fx.outputs.timecode.value == Approx(3600.));
+
+  // The other half does not complete the old sequence.
+  quarter_frames(d, 0, 10, 20, 7, 0b11, 4, 7);
+  d.tick(64);
+  CHECK(d.fx.outputs.timecode.value == Approx(3600.));
+
+  // Quarter frames still decode afterwards.
+  quarter_frames(d, 1, 0, 2, 0, 0b11);
+  d.tick(64);
+  CHECK(d.fx.outputs.timecode.value == Approx(3602.));
+}
+
+TEST_CASE("MIDI Sync In: a full frame drops the clock interpolation", "[midi_sync_in]")
+{
+  driver d;
+  d.fx.inputs.sync_mode.value = Sync::SyncMode::MTC_With_Clock_Interpolation;
+  quarter_frames(d, 0, 0, 10, 0, 0b11);
+  d.tick(64);
+  CHECK(d.fx.outputs.timecode.value == Approx(10.));
+  for(int i = 0; i < 24; i++)
+    d.send({0xF8});
+  d.tick(64);
+  CHECK(d.fx.outputs.timecode.value > 10.1);
+
+  full_frame(d, 0, 1, 0, 0, 0b11);
+  d.tick(64);
+  CHECK(d.fx.outputs.timecode.value == Approx(60.));
+}

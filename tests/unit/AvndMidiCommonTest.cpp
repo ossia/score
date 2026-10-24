@@ -188,6 +188,36 @@ TEST_CASE("event queue", "[midi_common]")
   CHECK(quarters_to_frames(1., 120., 48000.) == 24000);
 }
 
+TEST_CASE("event queue: dropped events and making room", "[midi_common]")
+{
+  event_queue<3> q;
+  CHECK(q.schedule(10, on(1, 1)));
+  CHECK(q.schedule(20, libremidi::channel_events::pitch_bend(1, 100)));
+  CHECK(q.schedule(30, libremidi::channel_events::pitch_bend(1, 200)));
+  CHECK(q.full());
+  CHECK_FALSE(q.schedule(5, on(1, 2)));
+  CHECK(q.size() == 3);
+
+  const auto not_a_note
+      = [](const auto& e) { return !is_note_on(e.msg) && !is_note_off(e.msg); };
+  // The latest matching event goes.
+  CHECK(q.make_room(not_a_note));
+  CHECK(q.size() == 2);
+  CHECK(q[1].at == 20);
+  CHECK(q.schedule(5, on(1, 2)));
+  CHECK(q.make_room(not_a_note));
+  CHECK(q.schedule(6, on(1, 3)));
+  REQUIRE(q.size() == 3);
+  CHECK(q[0].msg.bytes[1] == 2);
+  CHECK(q[1].msg.bytes[1] == 3);
+  CHECK(q[2].msg.bytes[1] == 1);
+  // Nothing matches: no room.
+  CHECK_FALSE(q.make_room(not_a_note));
+  CHECK(q.size() == 3);
+  q.clear();
+  CHECK(q.make_room(not_a_note));
+}
+
 TEST_CASE("channel allocator", "[midi_common]")
 {
   channel_allocator a;

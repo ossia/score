@@ -150,7 +150,7 @@ TEST_CASE("Midi delay: echoes with feedback", "[avnd][midi][delay]")
     INFO("buffer " << buffer);
     Rig r{buffer};
     r.node.inputs.repeats.value = 3;
-    r.node.inputs.feedback.value = 50;
+    r.node.inputs.feedback.value = 0.5f;
     r.run(1000, {{0, note_on(60, 100)}, {50, note_off(60)}});
     CHECK(
         r.events
@@ -174,7 +174,7 @@ TEST_CASE("Midi delay: pitch step, floor and infinite", "[avnd][midi][delay]")
   {
     Rig r;
     r.node.inputs.repeats.value = 20;
-    r.node.inputs.feedback.value = 100;
+    r.node.inputs.feedback.value = 1.f;
     r.node.inputs.pitch_step.value = 12;
     r.run(3000, {{0, note_on(60, 100)}, {50, note_off(60)}});
     std::vector<int> p;
@@ -188,7 +188,7 @@ TEST_CASE("Midi delay: pitch step, floor and infinite", "[avnd][midi][delay]")
   {
     Rig r;
     r.node.inputs.infinite.value = true;
-    r.node.inputs.feedback.value = 50;
+    r.node.inputs.feedback.value = 0.5f;
     r.node.inputs.floor.value = 10;
     r.run(3000, {{0, note_on(60, 100)}, {50, note_off(60)}});
     std::vector<int> v;
@@ -201,7 +201,7 @@ TEST_CASE("Midi delay: pitch step, floor and infinite", "[avnd][midi][delay]")
   {
     Rig r;
     r.node.inputs.infinite.value = true;
-    r.node.inputs.feedback.value = 100;
+    r.node.inputs.feedback.value = 1.f;
     r.run(10000, {{0, note_on(60, 100)}, {150, note_off(60)}});
     CHECK(r.ons().size() == 100);
     r.stop();
@@ -218,8 +218,8 @@ TEST_CASE("Midi delay: dry/wet", "[avnd][midi][delay]")
   auto velocities = [](int mix) {
     Rig r;
     r.node.inputs.repeats.value = 1;
-    r.node.inputs.feedback.value = 100;
-    r.node.inputs.mix.value = mix;
+    r.node.inputs.feedback.value = 1.f;
+    r.node.inputs.mix.value = mix / 100.f;
     r.run(1000, {{0, note_on(60, 100)}, {50, note_off(60)}});
     std::vector<int> v;
     for(auto& e : r.ons())
@@ -239,7 +239,7 @@ TEST_CASE("Midi delay: fixed length", "[avnd][midi][delay]")
 {
   Rig r{64};
   r.node.inputs.repeats.value = 2;
-  r.node.inputs.feedback.value = 100;
+  r.node.inputs.feedback.value = 1.f;
   r.node.inputs.fixed.value = true;
   r.node.inputs.length.value = 0.02f;
   SECTION("Echoes on other pitches")
@@ -278,7 +278,7 @@ TEST_CASE("Midi delay: echoes longer than the delay", "[avnd][midi][delay]")
 {
   Rig r{37};
   r.node.inputs.repeats.value = 3;
-  r.node.inputs.feedback.value = 80;
+  r.node.inputs.feedback.value = 0.8f;
   r.run(1000, {{0, note_on(60, 100)}, {250, note_off(60)}});
   r.check_clean();
   CHECK(r.still_sounding() == 0);
@@ -289,7 +289,7 @@ TEST_CASE("Midi delay: echoes keep the channel, MPE echoes the expression", "[av
 {
   Rig r;
   r.node.inputs.repeats.value = 2;
-  r.node.inputs.feedback.value = 100;
+  r.node.inputs.feedback.value = 1.f;
   r.node.inputs.mpe.value = true;
   r.run(
       1000, {{0, note_on(60, 100, 3)},
@@ -317,6 +317,45 @@ TEST_CASE("Midi delay: echoes keep the channel, MPE echoes the expression", "[av
   r.check_clean();
 }
 
+TEST_CASE("Midi delay: a full queue never cuts a held note", "[avnd][midi][delay]")
+{
+  // Dense MPE bends fill the queue with expression echoes: the echoes of
+  // the held notes, same pitch and a short fixed length, still play, and
+  // the held notes sound until their keys are released.
+  Rig r{64};
+  r.node.inputs.mpe.value = true;
+  r.node.inputs.time.value = 0.25f;
+  r.node.inputs.repeats.value = 3;
+  r.node.inputs.feedback.value = 1.f;
+  r.node.inputs.fixed.value = true;
+  r.node.inputs.length.value = 0.01f;
+  std::vector<std::pair<int64_t, libremidi::message>> in;
+  for(int c = 2; c <= 6; c++)
+    in.emplace_back(0, note_on(58 + c, 100, c));
+  for(int64_t t = 1; t < 2000; t += 2)
+    for(int c = 2; c <= 6; c++)
+      in.emplace_back(t, libremidi::channel_events::pitch_bend(c, 4096 + (t * 7) % 8192));
+  for(int c = 2; c <= 6; c++)
+    in.emplace_back(2000, note_off(58 + c, c));
+  std::stable_sort(
+      in.begin(), in.end(), [](auto& a, auto& b) { return a.first < b.first; });
+
+  r.run(2000, in);
+  for(int c = 2; c <= 6; c++)
+  {
+    INFO("channel " << c);
+    CHECK(r.sounding[{c, 58 + c}] == 1);
+    int echoes = 0;
+    for(auto& e : r.ons())
+      echoes += e.chan == c && e.at > 0;
+    CHECK(echoes == 3);
+  }
+  r.run(4000, in);
+  r.stop();
+  CHECK(r.still_sounding() == 0);
+  r.check_clean();
+}
+
 TEST_CASE("Midi delay: without MPE, expression passes once", "[avnd][midi][delay]")
 {
   Rig r;
@@ -336,7 +375,7 @@ TEST_CASE("Midi delay: 32 notes remembered, the oldest chain makes room", "[avnd
 {
   Rig r;
   r.node.inputs.repeats.value = 8;
-  r.node.inputs.feedback.value = 100;
+  r.node.inputs.feedback.value = 1.f;
   std::vector<std::pair<int64_t, libremidi::message>> in;
   for(int i = 0; i < 40; i++)
     in.emplace_back(i, note_on(40 + i, 100));
@@ -360,7 +399,7 @@ TEST_CASE("Midi delay: stop and all notes off", "[avnd][midi][delay]")
 {
   Rig r;
   r.node.inputs.repeats.value = 10;
-  r.node.inputs.feedback.value = 100;
+  r.node.inputs.feedback.value = 1.f;
   r.run(250, {{0, note_on(60, 100)}, {10, note_on(64, 100, 2)}, {150, note_off(60)}});
   CHECK(r.still_sounding() > 0);
   r.stop();
@@ -417,10 +456,10 @@ TEST_CASE("Midi delay: random play with every control moving", "[avnd][midi][del
       r.node.inputs.time.value = 0.01f + (rng() % 30) * 0.01f;
       r.node.inputs.repeats.value = 1 + rng() % 8;
       r.node.inputs.infinite.value = rng() % 4 == 0;
-      r.node.inputs.feedback.value = rng() % 101;
+      r.node.inputs.feedback.value = (rng() % 101) / 100.f;
       r.node.inputs.floor.value = 1 + rng() % 40;
       r.node.inputs.pitch_step.value = int(rng() % 25) - 12;
-      r.node.inputs.mix.value = rng() % 101;
+      r.node.inputs.mix.value = (rng() % 101) / 100.f;
       r.node.inputs.fixed.value = rng() % 2;
       r.node.inputs.length.value = 0.005f + (rng() % 20) * 0.02f;
       r.node.inputs.mpe.value = rng() % 2;
