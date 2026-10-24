@@ -20,8 +20,8 @@
 // control: a benchmark of a silently-fallen-back path is worse than none) and
 // spot-checks the oracle so a path that draws garbage cannot post a number:
 // on every path the poisoned dead slots stay undrawn.
-// On Metal the count path is declined by drawIndirectCountUsable(), and is
-// reported as declined rather than as zero.
+// On Metal the count path needs a pipeline that binds no texture
+// (drawIndirectCountUsable()); the bench's is one, so it takes it there too.
 //
 // Measurement: CPU wall time of one whole-graph frame (GfxPipeline::render(1)
 // — compute passes + draw + offscreen present) on the render path,
@@ -86,6 +86,9 @@ struct BenchResult
   bool capsParsed = false;
   int capsDrawIndirect = -1, capsMulti = -1, capsCount = -1, capsDispatch = -1;
   std::string dispatchLog;
+  // "score.gfx: raw raster draw count: count rung" / "clamped on the GPU".
+  bool countRungLog = false;
+  bool clampedLog = false;
   std::vector<double> frame_ms;
   ReadbackImage shot;
 };
@@ -176,6 +179,10 @@ BenchResult run_bench(
         capture.text.find("CSF indirect dispatch: cpu-fallback")
         != std::string::npos)
       r.dispatchLog = "cpu-fallback";
+    r.countRungLog = capture.text.find("raw raster draw count: count rung")
+                     != std::string::npos;
+    r.clampedLog = capture.text.find("raw raster draw count: clamped on the GPU")
+                   != std::string::npos;
   });
 
   for(const char* s : kSwitches)
@@ -252,24 +259,14 @@ TEST_CASE(
   REQUIRE(count.error.empty());
   REQUIRE(count.capsParsed);
 
-  const bool metal = backend == score::gfx::Metal;
-  const bool countRung = count.capsCount == 1 && !metal;
+  const bool countRung = count.capsCount == 1 && count.capsDrawIndirect == 1;
   if(count.capsDispatch == 1)
     REQUIRE(count.dispatchLog == "gpu");
+  CHECK(count.countRungLog == countRung);
 
   if(countRung)
   {
     report(count, "count");
-  }
-  else if(metal && count.capsCount == 1)
-  {
-    std::fprintf(
-        stderr,
-        "BENCH backend=%s path=count DECLINED (drawIndirectCountUsable: "
-        "Metal prerequisites not plumbed) — capacity rung measured under "
-        "path=mdi instead\n",
-        count.backend.c_str());
-    // The no-switch session ran the capacity rung; its numbers belong to mdi.
   }
   else
   {
@@ -284,6 +281,7 @@ TEST_CASE(
     REQUIRE(r.error.empty());
     REQUIRE(r.capsParsed);
     REQUIRE(r.capsCount == 0);
+    CHECK(r.clampedLog == (r.capsDrawIndirect == 1));
     if(r.capsDrawIndirect == 1)
       report(r, "mdi");
     else

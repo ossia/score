@@ -1,4 +1,5 @@
 #include <Gfx/Graph/MultiWindowNode.hpp>
+#include <Gfx/Graph/RhiIndirectCompat.hpp>
 #include <Gfx/Graph/PipelineStateHelpers.hpp>
 
 #include <algorithm>
@@ -887,7 +888,7 @@ void MultiWindowNode::initWindowSwapChain(int index)
 
   wo.depthStencil = rhi->newRenderBuffer(
       QRhiRenderBuffer::DepthStencil, QSize(), m_renderState->samples,
-      QRhiRenderBuffer::UsedWithSwapChainOnly);
+      QRhiRenderBuffer::UsedWithSwapChainOnly | depthStencilRenderBufferFlags(*rhi));
   wo.swapChain->setDepthStencil(wo.depthStencil);
   wo.swapChain->setSampleCount(m_renderState->samples);
 

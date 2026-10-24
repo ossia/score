@@ -1,5 +1,6 @@
 #include "LibavEncoderNode.hpp"
 
+#include <Gfx/Graph/RhiIndirectCompat.hpp>
 #include <Gfx/Graph/RenderList.hpp>
 #include <Gfx/Graph/RenderState.hpp>
 #include <Gfx/Graph/encoders/I420.hpp>
@@ -245,7 +246,8 @@ void LibavEncoderNode::createOutput(score::gfx::OutputConfiguration conf)
   m_texture->create();
 
   m_depthStencil = rhi->newRenderBuffer(
-      QRhiRenderBuffer::DepthStencil, m_renderState->renderSize, 1);
+      QRhiRenderBuffer::DepthStencil, m_renderState->renderSize, 1,
+      score::gfx::depthStencilRenderBufferFlags(*rhi));
   m_depthStencil->create();
 
   QRhiTextureRenderTargetDescription desc{m_texture};

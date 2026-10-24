@@ -130,8 +130,10 @@ struct LadderResult
   std::string dispatchLog;
 
   // "score.gfx: raw raster draw count: clamped on the GPU" / "unclamped".
+  // "... count rung".
   bool clamped = false;
   bool unclamped = false;
+  bool countRungLog = false;
 
   ReadbackImage at3, at6;
 };
@@ -227,6 +229,8 @@ LadderResult run_session(
                 != std::string::npos;
     r.unclamped = capture.text.find("raw raster draw count: unclamped")
                   != std::string::npos;
+    r.countRungLog = capture.text.find("raw raster draw count: count rung")
+                     != std::string::npos;
   });
 
   for(const char* s : kSwitches)
@@ -313,12 +317,10 @@ TEST_CASE(
     SKIP(why);
   INFO("backend=" << s1.backend);
 
-  // Whether the count rung (R1) actually engages: the caps line carries the
-  // QRhi feature; drawIndirectCountUsable() additionally declines Metal
-  // until UsesIndirectDraws / no-texture / NoTransientBacking are plumbed
-  // (RenderState.hpp) -- mirror that here.
-  const bool metal = backend == score::gfx::Metal;
-  const bool countRung = s1.capsCount == 1 && !metal;
+  // Whether the count rung (R1) engages: the caps line carries the QRhi
+  // feature. On Metal drawIndirectCountUsable() also needs a pipeline that
+  // binds no texture, which syn-vertex-color is: there too it engages.
+  const bool countRung = s1.capsCount == 1 && s1.capsDrawIndirect == 1;
   {
     INFO(
         "S1 caps: drawIndirect=" << s1.capsDrawIndirect << " multi="
@@ -327,6 +329,7 @@ TEST_CASE(
                                  << " countRung=" << countRung);
     // A capacity rung draws the clamped copy: an indirect-capable backend
     // without the count rung clamps, and no rung shows the poison.
+    CHECK(s1.countRungLog == countRung);
     CHECK(s1.clamped == (s1.capsDrawIndirect == 1 && !countRung));
     CHECK_FALSE(s1.unclamped);
     check_session(s1, false);
@@ -343,6 +346,7 @@ TEST_CASE(
     REQUIRE(s2.error.empty());
     REQUIRE(s2.capsParsed);
     REQUIRE(s2.capsCount == 0); // the switch landed
+    CHECK_FALSE(s2.countRungLog);
     CHECK(s2.clamped == (s2.capsDrawIndirect == 1));
     CHECK_FALSE(s2.unclamped);
     check_session(s2, false);
@@ -359,6 +363,7 @@ TEST_CASE(
     REQUIRE(s3.capsParsed);
     REQUIRE(s3.capsCount == 0);
     REQUIRE(s3.capsMulti == 0);
+    CHECK_FALSE(s3.countRungLog);
     CHECK(s3.clamped == (s3.capsDrawIndirect == 1));
     CHECK_FALSE(s3.unclamped);
     check_session(s3, false);

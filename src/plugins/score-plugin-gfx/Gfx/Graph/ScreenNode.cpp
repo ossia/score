@@ -1,3 +1,4 @@
+#include <Gfx/Graph/RhiIndirectCompat.hpp>
 #include <Gfx/Graph/Graph.hpp>
 #include <Gfx/Graph/NodeRenderer.hpp>
 #include <Gfx/Graph/OutputNode.hpp>
@@ -1085,7 +1086,9 @@ void ScreenNode::createOutput(score::gfx::OutputConfiguration conf)
       m_depthStencil = m_window->state->rhi->newRenderBuffer(
           QRhiRenderBuffer::DepthStencil,
           QSize(), // no need to set the size here, due to UsedWithSwapChainOnly
-          m_window->state->samples, QRhiRenderBuffer::UsedWithSwapChainOnly);
+          m_window->state->samples,
+          QRhiRenderBuffer::UsedWithSwapChainOnly
+              | depthStencilRenderBufferFlags(*m_window->state->rhi));
       m_depthStencil->setName("ScreenNode::m_depthStencil");
       m_swapChain->setWindow(m_window.get());
       m_swapChain->setDepthStencil(m_depthStencil);

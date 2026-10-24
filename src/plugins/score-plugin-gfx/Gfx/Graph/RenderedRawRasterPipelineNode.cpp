@@ -214,14 +214,17 @@ std::string executionModelType(const isf::descriptor& desc)
   return et;
 }
 
-void applyMeshCaps(MeshBuffers& mb, const RenderState& state, int multiview) noexcept
+void applyMeshCaps(
+    MeshBuffers& mb, const RenderState& state, int multiview,
+    bool pipelineBindsTextures) noexcept
 {
   mb.baseInstanceSupported = state.caps.baseInstance;
   mb.gpuIndirectSupported
       = state.caps.drawIndirect && !indirectDrawBreaksMultiView(state.api, multiview);
   mb.gpuIndirectMultiSupported = state.caps.drawIndirectMulti;
   mb.gpuIndirectCountSupported
-      = state.caps.drawIndirectCount && drawIndirectCountUsable(state.api, multiview);
+      = state.caps.drawIndirectCount
+        && drawIndirectCountUsable(state.api, multiview, pipelineBindsTextures);
 }
 
 void warnUnresolvedVertexInputs(
@@ -1282,6 +1285,16 @@ void RenderedRawRasterPipelineNode::applyPointQuads(
   plan.point_quads = true;
 }
 
+void RenderedRawRasterPipelineNode::requestIndirectCommandBuffers(
+    QRhiGraphicsPipeline& ps, const QRhi& rhi, const QShader& vs, const QShader& fs)
+{
+  // Metal's count rung needs indirect command buffers, which need the
+  // pipeline flag and refuse a pipeline that binds textures: see
+  // drawIndirectCountUsable(). The mesh caps follow what this pipeline does.
+  m_drawBindsTextures = shadersBindTextures({&vs, &fs});
+  ps.setFlags(ps.flags() | indirectDrawPipelineFlags(rhi));
+}
+
 void RenderedRawRasterPipelineNode::initPass(
     const TextureRenderTarget& inletTarget, RenderList& renderer,
     QRhiResourceUpdateBatch& res, Edge& edge)
@@ -1531,6 +1544,7 @@ void RenderedRawRasterPipelineNode::initPass(
     }
 
     ps->setShaderStages({{QRhiShaderStage::Vertex, v}, {QRhiShaderStage::Fragment, s}});
+    requestIndirectCommandBuffers(*ps, rhi, v, s);
 
     ps->setShaderResourceBindings(bindings);
 
@@ -2927,6 +2941,7 @@ void RenderedRawRasterPipelineNode::initMRTPass(
     }
 
     ps->setShaderStages({{QRhiShaderStage::Vertex, v}, {QRhiShaderStage::Fragment, s}});
+    requestIndirectCommandBuffers(*ps, rhi, v, s);
     ps->setShaderResourceBindings(bindings);
 
     SCORE_ASSERT(pipelineRP);
@@ -3041,7 +3056,9 @@ void RenderedRawRasterPipelineNode::initState(
     {
       std::tie(m_mesh, m_meshbufs)
           = renderer.acquireMesh(drawGeometry(), res, m_mesh, m_meshbufs);
-      applyMeshCaps(m_meshbufs, renderer.state, n.descriptor().multiview_count);
+      applyMeshCaps(
+          m_meshbufs, renderer.state, n.descriptor().multiview_count,
+          m_drawBindsTextures);
     }
     else
     {
@@ -3050,7 +3067,9 @@ void RenderedRawRasterPipelineNode::initState(
         if(m_meshbufs.buffers.empty())
         {
           m_meshbufs = renderer.initMeshBuffer(*m_mesh, res);
-          applyMeshCaps(m_meshbufs, renderer.state, n.descriptor().multiview_count);
+          applyMeshCaps(
+              m_meshbufs, renderer.state, n.descriptor().multiview_count,
+              m_drawBindsTextures);
         }
       }
     }
@@ -4113,7 +4132,9 @@ void RenderedRawRasterPipelineNode::update(
       const Mesh* prevMesh = m_mesh;
       std::tie(m_mesh, m_meshbufs)
           = renderer.acquireMesh(drawGeometry(), res, m_mesh, m_meshbufs);
-      applyMeshCaps(m_meshbufs, renderer.state, n.descriptor().multiview_count);
+      applyMeshCaps(
+          m_meshbufs, renderer.state, n.descriptor().multiview_count,
+          m_drawBindsTextures);
 
       this->meshChangedIndex = this->m_mesh->dirtyGeometryIndex;
 
@@ -4775,27 +4796,41 @@ void RenderedRawRasterPipelineNode::runInitialPasses(
   if(!m_countClampedThisFrame)
   {
     m_countClampedThisFrame = true;
+    // The pipelines may have been rebuilt since the mesh caps were applied.
+    m_meshbufs.gpuIndirectCountSupported
+        = renderer.state.caps.drawIndirectCount
+          && drawIndirectCountUsable(
+              renderer.state.api, n.descriptor().multiview_count,
+              m_drawBindsTextures);
     m_meshbufs.clampedIndirectBuffer = nullptr;
     if(m_meshbufs.useIndirectDraw && m_meshbufs.gpuIndirectSupported
-       && !m_meshbufs.gpuIndirectCountSupported && m_meshbufs.indirectDrawBuffer
-       && m_meshbufs.indirectCountBuffer)
+       && m_meshbufs.indirectDrawBuffer && m_meshbufs.indirectCountBuffer)
     {
-      m_meshbufs.clampedIndirectBuffer = m_countClamp.run(
-          renderer.state, cb, updateBatch,
-          {.commands = m_meshbufs.indirectDrawBuffer,
-           .commandsOffset = m_meshbufs.indirectDrawOffset,
-           .stride = m_meshbufs.indirectDrawStride,
-           .slots = m_meshbufs.indirectDrawCount,
-           .count = m_meshbufs.indirectCountBuffer,
-           .countOffset = m_meshbufs.indirectCountOffset});
-      // One line per change; GfxIndirectFallbackLadder.cpp captures it as the
-      // positive control that the count rung was really off.
-      const char* why = m_countClamp.refusal();
-      if(!m_countClampLogged || why != m_countClampLastRefusal)
+      const char* why = nullptr;
+      if(!m_meshbufs.gpuIndirectCountSupported)
       {
-        m_countClampLogged = true;
+        m_meshbufs.clampedIndirectBuffer = m_countClamp.run(
+            renderer.state, cb, updateBatch,
+            {.commands = m_meshbufs.indirectDrawBuffer,
+             .commandsOffset = m_meshbufs.indirectDrawOffset,
+             .stride = m_meshbufs.indirectDrawStride,
+             .slots = m_meshbufs.indirectDrawCount,
+             .count = m_meshbufs.indirectCountBuffer,
+             .countOffset = m_meshbufs.indirectCountOffset,
+             .frame = renderer.frame});
+        why = m_countClamp.refusal();
+      }
+      // One line per change of path; GfxIndirectFallbackLadder.cpp and
+      // GfxIndirectDrawBench.cpp capture it as the positive control of the
+      // path the count took.
+      const int path = m_meshbufs.gpuIndirectCountSupported ? 1 : why ? 2 : 3;
+      if(path != m_countPathLogged || why != m_countClampLastRefusal)
+      {
+        m_countPathLogged = path;
         m_countClampLastRefusal = why;
-        if(why)
+        if(path == 1)
+          qDebug("score.gfx: raw raster draw count: count rung");
+        else if(why)
           qWarning("score.gfx: raw raster draw count: unclamped, %s; every "
                    "command slot is drawn",
                    why);

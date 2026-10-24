@@ -1307,6 +1307,12 @@ score_add_test(test_unit_scene_camera_aux
     PLUGINS score_plugin_gfx
     LIBS ${QT_PREFIX}::Gui)
 
+  # The draw-count clamp as a unit: one run per frame, consistent bindings.
+  score_add_test(test_unit_indirect_count_clamp
+    SOURCES IndirectCountClampTest.cpp
+    PLUGINS score_plugin_gfx
+    LIBS ${QT_PREFIX}::Gui)
+
   # AUXILIARY blocks must be generated from the shader's declared kind, not the
   # producer's buffer type. Pure CPU: the libisf parser and its GLSL emission,
   # no QRhi.

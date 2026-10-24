@@ -42,6 +42,10 @@ public:
     quint32 slots{};          // command slots to copy
     QRhiBuffer* count{};
     quint32 countOffset{}; // bytes, a multiple of 4
+    //! RenderList::frame: run() refuses a second run in the same frame, whose
+    //! parameters would overwrite the first's in their per-frame uniform
+    //! buffer before either dispatch executes. -1: unchecked.
+    int64_t frame{-1};
   };
 
   /// The clamped copy of the commands, at offset 0 with the same stride, or
@@ -57,6 +61,12 @@ public:
 
   static constexpr int LocalSize = 64;
 
+  //! For tests: the resource ids of the bindings the dispatch uses and of the
+  //! ones the pipeline was last given (ids, not addresses: a new object can
+  //! take a deleted one's address).
+  quint64 bindingsId() const noexcept;
+  quint64 pipelineBindingsId() const noexcept { return m_pipelineBindingsId; }
+
 private:
   bool ensurePipeline(RenderState& state);
 
@@ -66,6 +76,8 @@ private:
   QRhiBuffer* m_clamped{};
   bool m_failed{};
   const char* m_refusal{};
+  int64_t m_lastFrame{-1};
+  quint64 m_pipelineBindingsId{};
 
   // What m_srb binds; any change rebuilds it.
   quint64 m_boundCommands{};

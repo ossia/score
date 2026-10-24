@@ -1,3 +1,4 @@
+#include <Gfx/Graph/RhiIndirectCompat.hpp>
 #include <Gfx/Graph/ISFNode.hpp>
 #include <Gfx/Graph/ISFVisitors.hpp>
 #include <Gfx/Graph/RenderList.hpp>
@@ -2116,7 +2117,8 @@ TextureRenderTarget createDepthOnlyRenderTarget(
   else
   {
     ret.depthRenderBuffer = state.rhi->newRenderBuffer(
-        QRhiRenderBuffer::DepthStencil, sz, effectiveSamples);
+        QRhiRenderBuffer::DepthStencil, sz, effectiveSamples,
+        depthStencilRenderBufferFlags(*state.rhi));
     ret.depthRenderBuffer->setName("createDepthOnlyRenderTarget::depthRB");
     if(!ret.depthRenderBuffer->create())
       return renderTargetFailed(ret, "the depth buffer");

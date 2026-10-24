@@ -327,6 +327,10 @@ private:
   // Emit the SRB bindings for m_auxTextureSamplers, advancing `binding`.
   // Shared by initPass and initMRTPass so the two can never disagree about
   // how many slots a ladder consumes.
+  void requestIndirectCommandBuffers(
+      QRhiGraphicsPipeline& ps, const QRhi& rhi, const QShader& vs,
+      const QShader& fs);
+
   void appendAuxTextureBindings(
       ossia::small_vector<QRhiShaderResourceBinding, 4>& out, int& binding,
       int imageBinding);
@@ -342,7 +346,11 @@ private:
   // drawn by the plain indirect rungs (MeshBuffers::clampedIndirectBuffer).
   IndirectCountClamp m_countClamp;
   bool m_countClampedThisFrame{false};
-  bool m_countClampLogged{false};
+  // Whether the mesh pipelines' shaders bind a texture, which declines the
+  // count rung on Metal (drawIndirectCountUsable). Until there is a pipeline,
+  // assume they do.
+  bool m_drawBindsTextures{true};
+  int m_countPathLogged{0};
   const char* m_countClampLastRefusal{};
   int64_t m_frameIndexFrame{-1};
 

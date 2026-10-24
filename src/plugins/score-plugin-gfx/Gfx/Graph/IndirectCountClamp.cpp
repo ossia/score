@@ -89,6 +89,8 @@ QRhiBuffer* IndirectCountClamp::run(
     m_refusal = why;
     return nullptr;
   };
+  if(in.frame >= 0 && in.frame == m_lastFrame)
+    return refuse("it already ran this frame: its parameters would overwrite that run's");
   if(!in.commands || !in.count || in.slots == 0 || in.stride == 0
      || (in.stride % 4) != 0 || (in.commandsOffset % 4) != 0
      || (in.countOffset % 4) != 0)
@@ -112,6 +114,7 @@ QRhiBuffer* IndirectCountClamp::run(
   const quint32 clampedSize = in.slots * in.stride;
   if(m_clamped && m_clamped->size() < clampedSize)
   {
+    // The pipeline is given the rebuilt bindings below.
     delete m_srb;
     m_srb = nullptr;
     m_clamped->destroy();
@@ -160,16 +163,17 @@ QRhiBuffer* IndirectCountClamp::run(
     m_boundCount = in.count->globalResourceId();
     m_boundCommandsSize = in.commands->size();
     m_boundCountSize = in.count->size();
-    if(!m_pipeline->shaderResourceBindings())
+    // The bindings are layout-compatible with the pipeline's: it is created
+    // once and given each new set, so that it never names a deleted one.
+    const bool created = m_pipeline->shaderResourceBindings() != nullptr;
+    m_pipeline->setShaderResourceBindings(m_srb);
+    m_pipelineBindingsId = m_srb->globalResourceId();
+    if(!created && !m_pipeline->create())
     {
-      m_pipeline->setShaderResourceBindings(m_srb);
-      if(!m_pipeline->create())
-      {
-        qWarning() << "IndirectCountClamp: the clamp pipeline could not be created";
-        release();
-        m_failed = true;
-        return refuse("compute is unavailable");
-      }
+      qWarning() << "IndirectCountClamp: the clamp pipeline could not be created";
+      release();
+      m_failed = true;
+      return refuse("compute is unavailable");
     }
   }
 
@@ -190,6 +194,7 @@ QRhiBuffer* IndirectCountClamp::run(
   cb.setComputePipeline(m_pipeline);
   cb.setShaderResources(m_srb);
   cb.dispatch(int(groups), 1, 1);
+  m_lastFrame = in.frame;
   if(gl)
   {
     cb.beginExternal();
@@ -198,6 +203,11 @@ QRhiBuffer* IndirectCountClamp::run(
   }
   cb.endComputePass();
   return m_clamped;
+}
+
+quint64 IndirectCountClamp::bindingsId() const noexcept
+{
+  return m_srb ? m_srb->globalResourceId() : 0;
 }
 
 void IndirectCountClamp::release()
@@ -214,5 +224,7 @@ void IndirectCountClamp::release()
   m_boundCount = 0;
   m_boundCommandsSize = 0;
   m_boundCountSize = 0;
+  m_lastFrame = -1;
+  m_pipelineBindingsId = 0;
 }
 }

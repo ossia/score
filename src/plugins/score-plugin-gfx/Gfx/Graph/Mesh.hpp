@@ -165,7 +165,8 @@ struct MeshBuffers
   //! consumer every frame, null when the clamp did not run.
   QRhiBuffer* clampedIndirectBuffer{};
   bool gpuIndirectCountSupported{false}; // caps.drawIndirectCount &&
-                                         // drawIndirectCountUsable()
+                                         // drawIndirectCountUsable(), for
+                                         // the pipeline that draws
   bool gpuIndirectMultiSupported{false}; // caps.drawIndirectMulti; false =>
                                          // per-command drawCount=1 loop rung
 

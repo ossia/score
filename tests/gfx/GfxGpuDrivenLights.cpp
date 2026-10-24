@@ -241,9 +241,6 @@ TEST_CASE(
         r.backend
         + ": QRhi::DrawIndirectCount/DispatchIndirect not reported (caps line)"
           " — top rungs cannot engage on this backend/Qt tier");
-  if(backend == score::gfx::Metal)
-    SKIP("Metal: count rung declined by drawIndirectCountUsable() until "
-         "UsesIndirectDraws/no-texture/NoTransientBacking are plumbed");
 
   // The INDIRECT pass must have gone through cb.dispatchIndirect.
   REQUIRE(r.dispatchLog == "gpu");

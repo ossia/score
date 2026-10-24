@@ -147,6 +147,75 @@ inline bool drawIndirectCountCompat(
   }
 }
 
+namespace detail
+{
+template <typename P, typename = void>
+struct rhi_pipeline_uses_indirect_draws
+{
+  static constexpr bool exists = false;
+  static typename P::Flags flag() noexcept { return {}; }
+};
+template <typename P>
+struct rhi_pipeline_uses_indirect_draws<P, std::void_t<decltype(P::UsesIndirectDraws)>>
+{
+  static constexpr bool exists = true;
+  static typename P::Flags flag() noexcept { return P::UsesIndirectDraws; }
+};
+
+template <typename RB, typename = void>
+struct rhi_renderbuffer_no_transient_backing
+{
+  static constexpr bool exists = false;
+  static typename RB::Flags flag() noexcept { return {}; }
+};
+template <typename RB>
+struct rhi_renderbuffer_no_transient_backing<
+    RB, std::void_t<decltype(RB::NoTransientBacking)>>
+{
+  static constexpr bool exists = true;
+  static typename RB::Flags flag() noexcept { return RB::NoTransientBacking; }
+};
+}
+
+/// Metal implements the draw-count rung with indirect command buffers, and
+/// Qt then needs two more things than the feature flag says (qrhimetal.mm
+/// icbUnavailableReason, QRhiCommandBuffer::drawIndexedIndirect docs): the
+/// pipeline created with UsesIndirectDraws, and a depth-stencil renderbuffer
+/// created with NoTransientBacking, since the encode kernel interrupts and
+/// restarts the render pass. Both are 6.13-era (the SDK picks them), hence
+/// detected like the rest. The third condition, a pipeline binding no
+/// texture, is drawIndirectCountUsable()'s.
+#if defined(SCORE_GFX_SIMULATE_QT612)
+inline constexpr bool rhiHasIndirectCommandBufferFlags = false;
+#else
+inline constexpr bool rhiHasIndirectCommandBufferFlags
+    = detail::rhi_pipeline_uses_indirect_draws<QRhiGraphicsPipeline>::exists
+      && detail::rhi_renderbuffer_no_transient_backing<QRhiRenderBuffer>::exists;
+#endif
+
+/// UsesIndirectDraws on Metal when this Qt has the indirect command buffer
+/// flags, no flag otherwise. Harmless on a pipeline that ends up not using
+/// them: Qt then keeps its plain indirect draws.
+inline QRhiGraphicsPipeline::Flags indirectDrawPipelineFlags(const QRhi& rhi) noexcept
+{
+  if constexpr(rhiHasIndirectCommandBufferFlags)
+    if(rhi.backend() == QRhi::Metal)
+      return detail::rhi_pipeline_uses_indirect_draws<QRhiGraphicsPipeline>::flag();
+  return {};
+}
+
+/// NoTransientBacking on Metal when this Qt has the indirect command buffer
+/// flags: a depth-stencil renderbuffer score creates keeps its contents
+/// across the pass restart an indirect command buffer draw causes. It costs
+/// the memory a memoryless (transient) one would not take.
+inline QRhiRenderBuffer::Flags depthStencilRenderBufferFlags(const QRhi& rhi) noexcept
+{
+  if constexpr(rhiHasIndirectCommandBufferFlags)
+    if(rhi.backend() == QRhi::Metal)
+      return detail::rhi_renderbuffer_no_transient_backing<QRhiRenderBuffer>::flag();
+  return {};
+}
+
 /// dispatchIndirect when the API exists; returns false when it does not, so
 /// the caller can fall back to a CPU worst-case dispatch.
 template <typename CB = QRhiCommandBuffer>

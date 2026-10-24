@@ -1,10 +1,12 @@
 #pragma once
 #include <QOffscreenSurface>
 #include <QtGui/private/qrhi_p.h>
+#include <Gfx/Graph/RhiIndirectCompat.hpp>
 
 #include <score_plugin_gfx_export.h>
 
 #include <functional>
+#include <initializer_list>
 #include <limits>
 
 #if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
@@ -276,34 +278,54 @@ indirectDrawBreaksMultiView(GraphicsApi api, int multiViewCount) noexcept
 }
 
 /**
- * @brief Whether the GPU-count draw path (drawIndexedIndirectCount) is usable.
+ * @brief Whether the GPU-count draw path (drawIndexedIndirectCount) is usable
+ *        for a pipeline.
  *
  * Ask this WITH caps.drawIndirectCount at every site that selects the count
  * rung; QRhi's feature flag alone is not enough:
  *
  *  - Metal implements the count draw exclusively through Indirect Command
- *    Buffers, which demand things the flag cannot express: the graphics
- *    pipeline must be created with QRhiGraphicsPipeline::UsesIndirectDraws
- *    (qrhimetal.mm icbUnavailableReason — the draw is SKIPPED with a warning
- *    otherwise), the pipeline may not sample textures at all, and the pass is
- *    interrupted/restarted so a transient DepthStencil renderbuffer loses its
- *    contents unless created with NoTransientBacking. None of those three are
- *    plumbed yet, so the count rung is declined on Metal wholesale; the plain
- *    multi-draw rung there stays correct because producers zero dead command
- *    slots. Lift this once the three prerequisites land together.
+ *    Buffers, which demand things the flag cannot express (qrhimetal.mm
+ *    icbUnavailableReason; the draw is SKIPPED with a warning otherwise):
+ *    the graphics pipeline created with QRhiGraphicsPipeline::UsesIndirectDraws
+ *    (indirectDrawPipelineFlags()), a depth-stencil renderbuffer created with
+ *    NoTransientBacking since the pass is interrupted and restarted
+ *    (depthStencilRenderBufferFlags()), and a pipeline whose shaders bind no
+ *    texture, sampled or storage, which Metal refuses in such a pipeline.
+ *    The first two need the 6.13-era flags (rhiHasIndirectCommandBufferFlags);
+ *    the last one is @p pipelineBindsTextures, see shadersBindTextures(). A
+ *    declined pipeline takes the multi-draw rung over commands clamped to the
+ *    count on the GPU (IndirectCountClamp).
  *
  *  - The multiview-on-Metal indirect break applies to the count entry points
  *    exactly as it does to drawIndexedIndirect (they share the encoder path),
  *    so the existing predicate is folded in.
  */
-inline bool
-drawIndirectCountUsable(GraphicsApi api, int multiViewCount) noexcept
+inline bool drawIndirectCountUsable(
+    GraphicsApi api, int multiViewCount, bool pipelineBindsTextures) noexcept
 {
   if(indirectDrawBreaksMultiView(api, multiViewCount))
     return false;
   if(api == GraphicsApi::Metal)
-    return false;
+    return rhiHasIndirectCommandBufferFlags && !pipelineBindsTextures;
   return true;
+}
+
+/// Whether shaders bind a texture the way Qt's Metal backend counts it for
+/// indirect command buffers (qrhimetal.mm usesTextures): a combined image
+/// sampler, a separate image or a storage image in any stage.
+inline bool shadersBindTextures(std::initializer_list<const QShader*> shaders) noexcept
+{
+  for(const QShader* s : shaders)
+  {
+    if(!s)
+      continue;
+    const QShaderDescription d = s->description();
+    if(!d.combinedImageSamplers().isEmpty() || !d.separateImages().isEmpty()
+       || !d.storageImages().isEmpty())
+      return true;
+  }
+  return false;
 }
 
 /**
