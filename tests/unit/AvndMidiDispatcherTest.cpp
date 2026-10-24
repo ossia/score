@@ -410,3 +410,26 @@ TEST_CASE("Midi dispatcher: changes while notes are held, stop", "[midi_dispatch
   d.tick();
   CHECK(d.of_kind(mtk::midi_kind::note_on).empty());
 }
+
+TEST_CASE("Midi dispatcher: untracked note-offs do not free a channel", "[midi_dispatcher]")
+{
+  driver d;
+  d.strict = false;
+  d.fx.inputs.surplus.value = 16;
+  d.note_on(60);
+  d.tick();
+  d.fx.stop();
+  d.tick(0);
+  d.out.clear();
+  d.note_on(62);
+  d.tick();
+  REQUIRE(d.on_channels() == std::vector<int>{1});
+  // The key held across the stop: its note-off passes through on channel 1.
+  d.note_off(60);
+  d.tick();
+  d.out.clear();
+  for(int p : {64, 66, 68, 70})
+    d.note_on(p);
+  d.tick();
+  CHECK(d.on_channels() == std::vector<int>{2, 3, 4, 16});
+}

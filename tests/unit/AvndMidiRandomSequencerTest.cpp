@@ -647,7 +647,7 @@ TEST_CASE("Random sequencer: notes, gate length, velocity, accent, channel", "[m
   Rig r;
   r.node.inputs.seed.value = 8;
   r.node.inputs.lock.value = 0.f;
-  r.node.inputs.gate_length.value = 25;
+  r.node.inputs.gate_length.value = 0.25f;
   r.node.inputs.velocity.value = {40.f, 100.f};
   r.node.inputs.channel.value = 10;
   r.run(64 * sixteenth);
@@ -695,7 +695,7 @@ TEST_CASE("Random sequencer: every note ends, whatever changes", "[midi_random_s
   Rig r{100};
   r.node.inputs.seed.value = 99;
   r.node.inputs.lock.value = 0.f;
-  r.node.inputs.gate_length.value = 200;
+  r.node.inputs.gate_length.value = 2.f;
   r.node.inputs.octaves.value = 3;
   std::mt19937 g{1};
   Input in{{50000, libremidi::channel_events::control_change(1, 123, 0)},
@@ -712,7 +712,7 @@ TEST_CASE("Random sequencer: every note ends, whatever changes", "[midi_random_s
         r.node.inputs.length.value = 1 + int(g() % 16);
         break;
       case 2:
-        r.node.inputs.gate_length.value = 1 + int(g() % 200);
+        r.node.inputs.gate_length.value = float(1 + int(g() % 200)) / 100.f;
         break;
       case 3:
         r.node.inputs.note_range.value = {float(g() % 60), float(60 + g() % 60)};
@@ -742,7 +742,7 @@ TEST_CASE("Random sequencer: every note ends, whatever changes", "[midi_random_s
 
   // All notes off ends what sounds at once, and passes through
   Rig c;
-  c.node.inputs.gate_length.value = 100;
+  c.node.inputs.gate_length.value = 1.f;
   c.run(sixteenth + 1000, {{sixteenth + 500, libremidi::channel_events::control_change(1, 123, 0)}});
   bool found = false;
   for(std::size_t i = 0; i < c.events.size(); i++)

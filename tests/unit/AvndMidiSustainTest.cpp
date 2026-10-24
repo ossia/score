@@ -179,6 +179,23 @@ TEST_CASE("Midi sustain: Chord keeps only the last chord", "[avnd][midi][sustain
   CHECK(r.out.errors.empty());
 }
 
+TEST_CASE("Midi sustain: Chord also ends the chord held at pedal down", "[avnd][midi][sustain]")
+{
+  Rig r{Sustain::Chord};
+  r.tick({on(1, 60), on(1, 64), on(1, 67)});
+  r.tick({pedal(1, true)});
+  r.tick({off(1, 60), off(1, 64), off(1, 67)});
+  CHECK(r.offs().empty());
+  r.tick({on(1, 65), on(1, 69), on(1, 72)});
+  CHECK(r.offs() == std::vector<int>{60, 64, 67});
+  r.tick({off(1, 65), off(1, 69), off(1, 72)});
+  CHECK(r.out.still_sounding() == 3);
+  r.tick({pedal(1, false)});
+  CHECK(r.offs() == std::vector<int>{65, 69, 72});
+  CHECK(r.out.still_sounding() == 0);
+  CHECK(r.out.errors.empty());
+}
+
 TEST_CASE("Midi sustain: Sostenuto holds the notes down when the pedal went down", "[avnd][midi][sustain]")
 {
   Rig r{Sustain::Sostenuto};

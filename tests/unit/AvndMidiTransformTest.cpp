@@ -317,3 +317,53 @@ TEST_CASE("Midi transform real-time first", "[midi_transform]")
   s.in(msg({0xFA}));
   CHECK(s.run() == std::vector<bytes>{{0xFA}, {0xB0, 1, 2}});
 }
+
+TEST_CASE("Midi transform ends a produced note when Into changes", "[midi_transform]")
+{
+  SECTION("Note to note on a fixed channel")
+  {
+    driver d;
+    d.fx.inputs.channel_source.value = T::ChannelArg;
+    d.fx.inputs.channel_arg.value = 2;
+    d.in(msg({0x90, 60, 100}));
+    d.run();
+    CHECK(d.held() == 1);
+    d.fx.inputs.into.value = T::CC;
+    d.run();
+    d.in(msg({0x80, 60, 0}));
+    d.run();
+    CHECK(d.held() == 0);
+  }
+  SECTION("CC to note")
+  {
+    driver d;
+    d.fx.inputs.what.value = T::CC;
+    d.fx.inputs.into.value = T::NoteOn;
+    d.in(msg({0xB0, 64, 127}));
+    d.run();
+    CHECK(d.held() == 1);
+    d.fx.inputs.into.value = T::CC;
+    d.in(msg({0xB0, 64, 0}));
+    d.run();
+    CHECK(d.held() == 0);
+  }
+}
+
+TEST_CASE("Midi transform note-offs follow their note-on when What changes", "[midi_transform]")
+{
+  driver d;
+  d.fx.inputs.into.value = T::CC;
+  d.in(msg({0x90, 60, 100}));
+  CHECK(d.run() == std::vector<bytes>{{0xB0, 60, 100}});
+  d.fx.inputs.what.value = T::CC;
+  // The note-on was replaced: its note-off goes nowhere.
+  d.in(msg({0x80, 60, 0}));
+  CHECK(d.run().empty());
+  d.fx.inputs.what.value = T::NoteOn;
+  d.fx.inputs.mode.value = T::InsertAfter;
+  d.in(msg({0x90, 60, 100}));
+  d.run();
+  d.in(msg({0x80, 60, 0}));
+  d.run();
+  CHECK(d.held() == 0);
+}

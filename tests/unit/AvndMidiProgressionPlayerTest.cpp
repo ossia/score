@@ -381,7 +381,7 @@ TEST_CASE("A rewind restarts the take, the same way", "[progression_player]")
 TEST_CASE("Gate shortens the chords", "[progression_player]")
 {
   Rig r{128};
-  r.node.inputs.gate.value = 50;
+  r.node.inputs.gate.value = 0.5f;
   r.run(96000 * 2);
   std::vector<int64_t> offs;
   for(auto& e : r.events)
@@ -672,7 +672,7 @@ TEST_CASE("Every note-on gets one note-off, whatever happens", "[progression_pla
       r.node.inputs.chords.value = rng() % 4 != 0;
       r.node.inputs.bass.value = rng() % 2;
       r.node.inputs.channel.value = chan(rng);
-      r.node.inputs.gate.value = 1 + rng() % 100;
+      r.node.inputs.gate.value = float(1 + rng() % 100) / 100.f;
       r.node.inputs.notes.value = 1 + rng() % 6;
       r.node.inputs.center.value = 24 + rng() % 84;
       if(rng() % 3 == 0)

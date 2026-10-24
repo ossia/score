@@ -446,3 +446,29 @@ TEST_CASE("Midi MPE: mode change and stop end held notes", "[midi_mpe]")
   d.tick(0);
   CHECK(d.total_sounding() == 0);
 }
+
+TEST_CASE("Midi MPE: note-offs passed through keep the member busy", "[midi_mpe]")
+{
+  driver d;
+  d.fx.inputs.members.value = 3;
+  d.fx.inputs.input_channel.value = 1;
+  d.fx.inputs.route.value = Mpe::route_control::all;
+  d.note_on(60);
+  d.tick();
+  // A note on another input channel, on the member's channel: it passes, and
+  // its note-off does not free member 2, where 60 sounds.
+  d.note_on(70, 2);
+  d.tick();
+  d.note_off(70, 2);
+  d.tick();
+  d.out.clear();
+  d.send(libremidi::channel_events::pitch_bend(1, 0x2000 + 0x800));
+  d.tick();
+  bool bend_on_2 = false;
+  for(auto& m : d.of_kind(mtk::midi_kind::pitch_bend))
+    bend_on_2 = bend_on_2 || mtk::channel_of(m) == 2;
+  CHECK(bend_on_2);
+  d.note_off(60);
+  d.tick();
+  CHECK(d.total_sounding() == 0);
+}

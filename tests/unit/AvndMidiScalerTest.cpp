@@ -406,6 +406,9 @@ TEST_CASE("Midi scaler: MTS sysex", "[midi_scaler]")
   for(auto& m : sysex)
   {
     REQUIRE(m.size() == 8 + 4 * Scaler::mts_keys_per_message);
+    // Within the inline storage: no allocation on the audio thread.
+    CHECK(m.bytes.size() <= Scaler::mts_inline_bytes);
+    CHECK(m.bytes.capacity() <= Scaler::mts_inline_bytes);
     CHECK(m.bytes[0] == 0xF0);
     CHECK(m.bytes[1] == 0x7F); // real-time
     CHECK(m.bytes[2] == 0x7F); // all devices
