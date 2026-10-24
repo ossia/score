@@ -1,0 +1,870 @@
+#pragma once
+#include <Fx/Looper/AudioLayers.hpp>
+#include <Fx/Looper/LooperView.hpp>
+#include <Fx/Looper/TakeWriter.hpp>
+#include <Fx/Looper/Transport.hpp>
+#include <Fx/Types.hpp>
+
+#include <ossia/dataflow/exec_state_facade.hpp>
+#include <ossia/dataflow/token_request.hpp>
+
+#include <halp/audio.hpp>
+#include <halp/controls.hpp>
+#include <halp/layout.hpp>
+#include <halp/meta.hpp>
+
+#include <functional>
+#include <memory>
+
+namespace Nodes::AudioLooper
+{
+struct Node
+{
+  halp_meta(name, "Looper (audio)")
+  halp_meta(c_name, "Looper (audio)")
+  halp_meta(category, "Audio/Utilities")
+  halp_meta(author, "ossia score")
+  halp_meta(manual_url, "https://ossia.io/score-docs/processes/audio-looper.html")
+  halp_meta(
+      description,
+      "Loop audio in layers, and turn the loop into a clip of the timeline")
+  halp_meta(uuid, "a0ad4227-ac3d-448b-a19b-19581ed4e2c6");
+  halp_meta(recommended_height, 200);
+  halp_flag(process_exec);
+
+  using LoopMode = Looper::LoopMode;
+  using Postaction = Looper::Postaction;
+  using Restart = Looper::Restart;
+  using Passthrough = Looper::Passthrough;
+
+  struct passthrough_selector
+  {
+    static clang_buggy_consteval auto name() { return std::string_view{"Passthrough"}; }
+    enum widget
+    {
+      combobox
+    };
+    struct range
+    {
+      decltype(avnd::enum_names<Passthrough>()) values = avnd::enum_names<Passthrough>();
+      Passthrough init = Passthrough::Record;
+    };
+    Passthrough value = Passthrough::Record;
+    operator Passthrough() const noexcept { return value; }
+    auto& operator=(Passthrough t) noexcept
+    {
+      value = t;
+      return *this;
+    }
+  };
+
+  struct ins
+  {
+    halp::dynamic_audio_bus<"in", double> audio;
+
+    struct : halp::enum_t<LoopMode, "Loop">
+    {
+      using halp::enum_t<LoopMode, "Loop">::operator=;
+      halp_meta(
+          description,
+          "What the looper is doing: playing the loop, recording a new one over "
+          "it, overdubbing on top of it, or nothing.")
+    } mode;
+
+    struct : quant_selector<"Quantif">
+    {
+      halp_meta(
+          description,
+          "Waits for the next point of this grid before changing mode, so a "
+          "loop starts and ends in time. Whole is a bar. None changes at once.")
+    } quantif;
+
+    struct : passthrough_selector
+    {
+      using passthrough_selector::operator=;
+      halp_meta(
+          description,
+          "Whether the input is heard as well as the loop. Record passthrough "
+          "is heard only while recording or overdubbing; Full is heard always.")
+    } passthrough;
+
+    struct : halp::enum_t<Postaction, "Post-action">
+    {
+      using halp::enum_t<Postaction, "Post-action">::operator=;
+      halp_meta(
+          description,
+          "What recording gives way to once it has run for Bars bars, without "
+          "the mode being touched.")
+    } postaction;
+
+    struct : halp::spinbox_i32<"Bars", halp::irange{0, 64, 4}>
+    {
+      halp_meta(
+          description,
+          "How long a recording runs before the post-action takes over, and so "
+          "how long the loop it leaves is. Zero leaves recording to be ended by "
+          "hand, and the loop is then as long as it was played for.")
+    } postaction_bars;
+
+    struct : halp::enum_t<Restart, "Restart">
+    {
+      using halp::enum_t<Restart, "Restart">::operator=;
+      halp_meta(
+          description,
+          "Where the loop is read from when the mode changes. Always reads it "
+          "from the beginning again; Recording lets playing and overdubbing "
+          "carry on from where they were.")
+    } restart;
+
+    struct : halp::impulse_button<"Undo">
+    {
+      halp_meta(
+          description,
+          "Removes the last pass: the overdub in progress, else the last one "
+          "made. Undoing the first recording empties the loop.")
+    } undo;
+    struct : halp::impulse_button<"Redo">
+    {
+      halp_meta(description, "Brings back the last pass undone")
+    } redo;
+    struct : halp::impulse_button<"Clear">
+    {
+      halp_meta(description, "Empties the loop and forgets every pass")
+    } clear;
+
+    struct : halp::knob_f32<"Feedback", halp::range{0., 1., 1.}>
+    {
+      halp_meta(
+          description,
+          "How much of the loop is kept each time an overdub goes round it: "
+          "one keeps it all, lower values let older passes fade away.")
+    } feedback;
+
+    struct : halp::spinbox_i32<"Late stop (ms)", halp::irange{0, 500, 120}>
+    {
+      halp_meta(
+          description,
+          "A recording asked to stop this long after a point of the grid ends "
+          "on that point, instead of a whole grid step later.")
+    } late;
+
+    struct : halp::spinbox_i32<"Latency (ms)", halp::irange{0, 500, 0}>
+    {
+      halp_meta(
+          description,
+          "How late the input reaches the looper: what was recorded is moved "
+          "this much earlier in the loop.")
+    } latency;
+
+    struct : halp::spinbox_i32<"Max length (s)", halp::irange{1, 3600, 60}>
+    {
+      halp_meta(
+          description,
+          "Longest loop. The memory is reserved when playback starts, so a "
+          "change applies from the next start.")
+    } max_seconds;
+
+    struct : halp::spinbox_i32<"Max layers", halp::irange{1, 32, 8}>
+    {
+      halp_meta(
+          description,
+          "Passes kept apart for undo. Past it, the two oldest are merged. "
+          "Applies from the next start.")
+    } max_layers;
+
+    struct : halp::spinbox_i32<"Channels", halp::irange{1, 16, 2}>
+    {
+      halp_meta(
+          description,
+          "Channels recorded; the input's other channels are not. Applies from "
+          "the next start.")
+    } channels;
+
+    struct : halp::impulse_button<"Send to timeline">
+    {
+      halp_meta(
+          description,
+          "Places the last take in the timeline, where it was recorded, as a "
+          "looping sound file.")
+    } send;
+  } inputs;
+
+  struct
+  {
+    halp::mimic_audio_bus<"out", &ins::audio> audio;
+    struct : halp::val_port<"Phase", float>
+    {
+      halp_meta(description, "Position in the loop, from 0 to 1")
+    } phase;
+  } outputs;
+
+  // Writing takes to files
+  struct worker_t
+  {
+    std::function<void(Looper::take_job)> request;
+    static std::function<void(Node&)> work(Looper::take_job&& job)
+    {
+      const bool ok = job.run();
+      return [slot = job.slot, ok](Node& self) { self.take_written(slot, ok); };
+    }
+  } worker;
+
+  std::function<void(Looper::view_message)> send_message;
+
+  const score::DocumentContext* ossia_document_context{};
+  ossia::exec_state_facade ossia_state;
+
+  Looper::transport transport;
+  Looper::audio_layers layers;
+  std::shared_ptr<Looper::take_writer> writer;
+  std::shared_ptr<Looper::export_buffer> export_audio;
+
+  Node()
+  {
+    layers.allocate(2, 8, 60 * 48000);
+    export_audio = Looper::export_buffer::make(layers.channels, layers.capacity);
+  }
+
+  void prepare(halp::setup s)
+  {
+    const double rate = s.rate > 0 ? s.rate : 48000.;
+    layers.allocate(
+        inputs.channels.value, inputs.max_layers.value,
+        int64_t(inputs.max_seconds.value * rate));
+    if(!m_writing
+       && (export_audio->channels != layers.channels
+           || export_audio->capacity != layers.capacity))
+      export_audio = Looper::export_buffer::make(layers.channels, layers.capacity);
+    if(ossia_document_context)
+      writer = Looper::take_writer::make(*ossia_document_context, "Looper", "wav");
+  }
+
+  // The transport's engine
+  int64_t looper_run(int64_t start, int64_t length);
+  void looper_close_take(
+      const ossia::token_request& tk, LoopMode mode, bool ended_by_postaction);
+  void looper_trim_recording(int64_t frames)
+  {
+    layers.length = std::max<int64_t>(0, layers.length - frames);
+    if(auto* l = layers.top())
+      l->written = layers.length;
+  }
+
+  using tick = ossia::token_request;
+  void operator()(const tick& tk)
+  {
+    if(tk.date == tk.prev_date)
+      return;
+
+    m_rate = ossia_state.sampleRate();
+    m_tempo = tk.tempo;
+    m_signature = tk.signature;
+    m_in_chans = std::min<int>(inputs.audio.channels, layers.channels);
+
+    apply_buttons();
+
+    const Looper::transport_settings settings{
+        .mode = inputs.mode,
+        .quantif = inputs.quantif.value,
+        .postaction = inputs.postaction,
+        .postaction_bars = inputs.postaction_bars,
+        .restart = inputs.restart,
+        .late_seconds = inputs.late.value / 1000.};
+    transport(tk, ossia_state, settings, *this);
+
+    run_export();
+
+    outputs.phase.value = layers.length > 0
+                              ? float(transport.playbackPos % layers.length)
+                                    / float(layers.length)
+                              : 0.f;
+    send_view(ossia_state.timings(tk).length);
+  }
+
+  //! Stopping the process keeps the loop: only the transport starts over.
+  void stop()
+  {
+    transport.reset();
+    m_view_countdown = 0;
+  }
+
+  struct ui
+  {
+    halp_meta(layout, halp::layouts::hbox)
+    halp_meta(background, halp::colors::background_dark)
+    struct
+    {
+      halp_meta(layout, halp::layouts::vbox)
+      struct
+      {
+        halp_meta(layout, halp::layouts::hbox)
+        halp::item<&ins::mode> mode;
+        halp::item<&ins::quantif> quantif;
+      } transport;
+      struct
+      {
+        halp_meta(layout, halp::layouts::hbox)
+        halp::item<&ins::undo> undo;
+        halp::item<&ins::redo> redo;
+        halp::item<&ins::clear> clear;
+        halp::item<&ins::send> send;
+      } actions;
+      struct
+      {
+        halp_meta(name, "Settings")
+        halp_meta(layout, halp::layouts::tabs)
+        halp_meta(background, halp::colors::background_darker)
+        struct
+        {
+          halp_meta(name, "Length")
+          halp_meta(layout, halp::layouts::hbox)
+          halp::item<&ins::postaction> postaction;
+          halp::item<&ins::postaction_bars> bars;
+          halp::item<&ins::late> late;
+        } length;
+        struct
+        {
+          halp_meta(name, "Play")
+          halp_meta(layout, halp::layouts::hbox)
+          halp::item<&ins::passthrough> passthrough;
+          halp::item<&ins::restart> restart;
+          halp::item<&ins::feedback> feedback;
+        } play;
+        struct
+        {
+          halp_meta(name, "Memory")
+          halp_meta(layout, halp::layouts::hbox)
+          halp::item<&ins::max_seconds> max_seconds;
+          halp::item<&ins::max_layers> max_layers;
+          halp::item<&ins::channels> channels;
+          halp::item<&ins::latency> latency;
+        } memory;
+      } settings;
+    } controls;
+
+    struct
+    {
+      halp_meta(layout, halp::layouts::container)
+      halp_meta(background, halp::colors::background_mid)
+      halp::custom_actions_item<Looper::looper_view> view;
+    } view;
+
+    struct bus
+    {
+      static void process_message(ui& self, Looper::view_message msg)
+      {
+        self.view.view.receive(msg);
+      }
+    };
+  };
+
+  // Public for the tests: the audio of one pass.
+  const float* layer_data(int layer, int chan) const noexcept
+  {
+    return layers.data(layers.layers[layer].slot, chan);
+  }
+
+private:
+  double m_rate{48000.};
+  double m_tempo{120.};
+  ossia::time_signature m_signature{4, 4};
+  int m_in_chans{};
+
+  // Export of a take: the passes are flattened into the export buffer a
+  // bounded number of frames per tick, then a worker writes it.
+  bool m_export_pending{};
+  bool m_flattening{};
+  bool m_writing{};
+  int64_t m_flatten_pos{};
+  int64_t m_export_length{};
+  int m_export_channels{};
+  double m_export_tempo{120.};
+  ossia::time_signature m_export_signature{4, 4};
+  double m_export_date{};
+  int m_take_slot{};
+  int m_takes_written{};
+  double m_last_take_date{};
+  bool m_send_requested{};
+  bool m_full{};
+
+  int64_t m_view_countdown{};
+  Looper::view_message m_view{};
+
+  void apply_buttons();
+  void run_export();
+  void take_written(int slot, bool ok);
+  void send_view(int64_t frames);
+
+  void play(int64_t first_pos, int64_t samples);
+  void silence(int64_t first_pos, int64_t samples);
+  void mix_input(int64_t first_pos, int64_t samples);
+  void through(int64_t first_pos, int64_t samples);
+  int64_t record(int64_t first_pos, int64_t samples, bool echo);
+  void overdub(int64_t first_pos, int64_t samples, bool echo);
+};
+
+inline void Node::apply_buttons()
+{
+  if(inputs.clear.value)
+  {
+    layers.clear();
+    transport.playbackPos = 0;
+    // Whatever was being taken in is gone with the rest.
+    if(transport.is_taking())
+      transport.taking(LoopMode::Stop);
+    m_full = false;
+  }
+
+  if(inputs.undo.value)
+  {
+    if(transport.is_taking())
+    {
+      // The pass in progress is dropped; taking in starts a new one.
+      if(transport.actualMode == LoopMode::Record)
+        layers.clear();
+      else
+        layers.undo(), layers.total = layers.count;
+      transport.taking(LoopMode::Stop);
+      if(transport.actualMode == LoopMode::Record)
+        transport.playbackPos = 0;
+    }
+    else
+    {
+      layers.undo();
+    }
+  }
+
+  if(inputs.redo.value && !transport.is_taking())
+    layers.redo();
+
+  if(inputs.send.value)
+    m_send_requested = true;
+}
+
+inline int64_t Node::looper_run(int64_t start, int64_t length)
+{
+  // Record passthrough is what its name says: the input while something is
+  // being taken in, and nothing else. Only Full is heard the rest of the time.
+  const Passthrough pt = inputs.passthrough;
+  const bool echo_while_taking_in = pt != Passthrough::None;
+  const bool echo_otherwise = pt == Passthrough::Full;
+  switch(transport.actualMode)
+  {
+    case LoopMode::Play:
+      if(layers.empty())
+        echo_otherwise ? through(start, length) : silence(start, length);
+      else
+      {
+        play(start, length);
+        if(echo_otherwise)
+          mix_input(start, length);
+      }
+      break;
+    case LoopMode::Stop:
+      echo_otherwise ? through(start, length) : silence(start, length);
+      break;
+    case LoopMode::Record:
+      return record(start, length, echo_while_taking_in);
+    case LoopMode::Overdub:
+      overdub(start, length, echo_while_taking_in);
+      break;
+  }
+  return length;
+}
+
+inline void Node::looper_close_take(
+    const ossia::token_request& tk, LoopMode mode, bool ended_by_postaction)
+{
+  auto* top = layers.top();
+  if(!top || layers.length <= 0)
+    return;
+
+  const int64_t latency = int64_t(inputs.latency.value * m_rate / 1000.);
+
+  if(mode == LoopMode::Record)
+  {
+    const double bar_samples = m_rate * 4.
+                               * (double(tk.signature.upper) / tk.signature.lower)
+                               * (60. / tk.tempo);
+    const int64_t total_samples
+        = int64_t(std::floor(transport.postaction_bars * bar_samples));
+
+    // The bar count says when the post-action takes over, so it is the length
+    // of a recording the post-action ended -- trimming the rounding off the
+    // last bar. A recording stopped by hand is as long as it was played for,
+    // and stretching it out to that count is how a loop ended early came back
+    // with bars of silence at the end of it.
+    const bool quantify_length = ended_by_postaction && transport.quantif > 0.f
+                                 && transport.postaction_bars > 0;
+    if(quantify_length && total_samples < layers.length)
+      layers.length = total_samples;
+
+    if(latency > 0)
+      layers.shift_earlier(*top, latency);
+
+    // A small fade on the first and last samples
+    for(int c = 0; c < layers.channels; c++)
+    {
+      float* chan = layers.data(top->slot, c);
+      const int64_t samples = layers.length;
+      if(int64_t min_n = std::min(samples, int64_t(Looper::audio_layers::fade_frames));
+         min_n > 0)
+      {
+        float f = 1.f / min_n;
+        float ff = 0.f;
+        for(int64_t i = 0; i < min_n; i++)
+        {
+          chan[i] *= ff;
+          ff += f;
+        }
+        for(int64_t i = samples - min_n; i < samples; i++)
+        {
+          chan[i] *= ff;
+          ff -= f;
+        }
+      }
+    }
+
+    // If there are less samples than expected we extend
+    if(quantify_length && total_samples > layers.length)
+    {
+      const int64_t end = std::min(total_samples, layers.capacity);
+      for(int c = 0; c < layers.channels; c++)
+        std::fill(layers.data(top->slot, c) + layers.length, layers.data(top->slot, c) + end, 0.f);
+      layers.length = end;
+    }
+    top->written = layers.length;
+    m_export_date = transport.recordStartDate.impl / double(ossia::flicks_per_second<int64_t>);
+  }
+  else
+  {
+    layers.fade_out_top();
+    if(latency > 0)
+      layers.shift_earlier(*top, latency);
+  }
+
+  m_export_tempo = tk.tempo;
+  m_export_signature = tk.signature;
+  m_export_pending = true;
+}
+
+inline void Node::play(int64_t first_pos, int64_t samples)
+{
+  auto& p2 = outputs.audio;
+  const int64_t last = first_pos + samples;
+  const int out_chans = p2.channels;
+  const int loop_chans = std::min(layers.channels, out_chans);
+  const int64_t len = layers.length;
+
+  int64_t k = transport.playbackPos % len;
+  for(int i = 0; i < loop_chans; i++)
+  {
+    auto& out = p2.samples[i];
+    // The loop is free to be shorter than the tick, and to end anywhere
+    // inside it.
+    k = transport.playbackPos % len;
+    for(int64_t j = first_pos; j < last; j++)
+    {
+      out[j] = layers.mix(i, k);
+      if(++k == len)
+        k = 0;
+    }
+  }
+
+  // The bus can carry more channels than the loop was recorded with.
+  for(int i = loop_chans; i < out_chans; i++)
+  {
+    auto& out = p2.samples[i];
+    for(int64_t j = first_pos; j < last; j++)
+      out[j] = 0.;
+  }
+
+  transport.playbackPos = k;
+}
+
+//! Outlet buffers come from a pool and are resized, not cleared: writing
+//! nothing leaves the previous tick's audio in them.
+inline void Node::silence(int64_t first_pos, int64_t samples)
+{
+  auto& p2 = outputs.audio;
+  const int64_t last = first_pos + samples;
+  for(int i = 0; i < p2.channels; i++)
+  {
+    auto& out = p2.samples[i];
+    for(int64_t j = first_pos; j < last; j++)
+      out[j] = 0.;
+  }
+}
+
+inline void Node::mix_input(int64_t first_pos, int64_t samples)
+{
+  auto& p1 = inputs.audio;
+  auto& p2 = outputs.audio;
+  const int chans = std::min(p1.channels, p2.channels);
+  const int64_t last = first_pos + samples;
+  for(int i = 0; i < chans; i++)
+  {
+    auto& in = p1.samples[i];
+    auto& out = p2.samples[i];
+    for(int64_t j = first_pos; j < last; j++)
+      out[j] += in[j];
+  }
+}
+
+inline void Node::through(int64_t first_pos, int64_t samples)
+{
+  auto& p1 = inputs.audio;
+  auto& p2 = outputs.audio;
+  const int chans = std::min(p1.channels, p2.channels);
+  const int64_t last = first_pos + samples;
+  for(int i = 0; i < chans; i++)
+  {
+    auto& in = p1.samples[i];
+    auto& out = p2.samples[i];
+    for(int64_t j = first_pos; j < last; j++)
+      out[j] = in[j];
+  }
+  for(int i = chans; i < p2.channels; i++)
+  {
+    auto& out = p2.samples[i];
+    for(int64_t j = first_pos; j < last; j++)
+      out[j] = 0.;
+  }
+}
+
+inline int64_t Node::record(int64_t first_pos, int64_t samples, bool echo)
+{
+  auto& p1 = inputs.audio;
+  if(!transport.is_taking())
+  {
+    // A new recording: the passes go, and an export of them that was still
+    // being flattened would read the new one.
+    layers.begin_recording();
+    transport.playbackPos = 0;
+    m_flattening = false;
+    m_export_pending = false;
+    m_full = false;
+  }
+  transport.taking(LoopMode::Record);
+
+  auto& base = layers.layers[0];
+  const int64_t pos = layers.length;
+  const int64_t room = std::max<int64_t>(0, layers.capacity - pos);
+  const int64_t n = std::min(samples, room);
+  const int chans = std::min(p1.channels, layers.channels);
+
+  for(int c = 0; c < layers.channels; c++)
+  {
+    float* dst = layers.data(base.slot, c) + pos;
+    if(c < chans)
+    {
+      auto& in = p1.samples[c];
+      for(int64_t j = 0; j < n; j++)
+      {
+        const float v = float(in[first_pos + j]);
+        dst[j] = v;
+        layers.note_peak(base.slot, pos + j, v);
+      }
+    }
+    else
+    {
+      std::fill_n(dst, n, 0.f);
+    }
+  }
+  layers.length += n;
+  base.written = layers.length;
+  transport.playbackPos = layers.length;
+
+  echo ? through(first_pos, n) : silence(first_pos, n);
+
+  if(n < samples)
+  {
+    // The buffer is full: the loop is what fitted, and the post-action takes
+    // over for the rest of the span.
+    m_full = true;
+    transport.end_recording(inputs.postaction);
+    transport.playbackPos = 0;
+  }
+  return n;
+}
+
+inline void Node::overdub(int64_t first_pos, int64_t samples, bool echo)
+{
+  auto& p1 = inputs.audio;
+  auto& p2 = outputs.audio;
+  const int64_t last = first_pos + samples;
+
+  // Nothing to layer onto: an overdub of an empty loop is an echo.
+  if(layers.empty())
+  {
+    echo ? through(first_pos, samples) : silence(first_pos, samples);
+    return;
+  }
+
+  const int64_t len = layers.length;
+  if(!transport.is_taking())
+    layers.begin_overdub(transport.playbackPos % len);
+  transport.taking(LoopMode::Overdub);
+
+  auto* top = layers.top();
+  if(!top)
+    return;
+
+  const int in_chans = std::min(p1.channels, layers.channels);
+  const int out_chans = p2.channels;
+  const float feedback = std::clamp(inputs.feedback.value, 0.f, 1.f);
+  const int fade = Looper::audio_layers::fade_frames;
+
+  int64_t k = transport.playbackPos % len;
+  for(int64_t j = first_pos; j < last; j++)
+  {
+    const bool first_time = top->written < len;
+    const float ramp = top->written < fade ? float(top->written) / fade : 1.f;
+    for(int c = 0; c < layers.channels; c++)
+    {
+      const float in = c < in_chans ? float(p1.samples[c][j]) : 0.f;
+      const float before = layers.mix(c, k);
+      float& d = layers.data(top->slot, c)[k];
+      d = (first_time ? 0.f : d) + in * ramp;
+      layers.note_peak(top->slot, k, d);
+      if(c < out_chans)
+        p2.samples[c][j] = echo ? before + in : before;
+    }
+    for(int c = layers.channels; c < out_chans; c++)
+      p2.samples[c][j] = 0.;
+
+    top->written++;
+    if(++k == len)
+    {
+      k = 0;
+      layers.decay(feedback);
+    }
+  }
+  transport.playbackPos = k;
+}
+
+inline void Node::run_export()
+{
+  if(m_export_pending && !m_flattening && !m_writing && !layers.empty() && writer
+     && export_audio->capacity >= layers.length
+     && export_audio->channels >= layers.channels)
+  {
+    m_export_pending = false;
+    m_flattening = true;
+    m_flatten_pos = 0;
+    m_export_length = layers.length;
+    m_export_channels = layers.channels;
+  }
+
+  if(!m_flattening)
+    return;
+
+  // About a second of audio per tick at most: a minute-long loop does not
+  // make one tick a minute of work.
+  constexpr int64_t chunk = 65536;
+  const int64_t end = std::min(m_export_length, m_flatten_pos + chunk);
+  for(int c = 0; c < m_export_channels; c++)
+  {
+    float* dst = export_audio->channel(c);
+    for(int64_t k = m_flatten_pos; k < end; k++)
+      dst[k] = layers.mix(c, k);
+  }
+  m_flatten_pos = end;
+
+  if(m_flatten_pos < m_export_length)
+    return;
+
+  m_flattening = false;
+  m_writing = true;
+
+  Looper::take_job job;
+  job.writer = writer;
+  job.audio = export_audio;
+  job.slot = m_take_slot;
+  job.channels = m_export_channels;
+  job.frames = m_export_length;
+  job.rate = int(m_rate);
+  job.tempo = m_export_tempo;
+  job.meter_numerator = m_export_signature.upper;
+  job.meter_denominator = m_export_signature.lower;
+  worker.request(std::move(job));
+}
+
+inline void Node::take_written(int slot, bool ok)
+{
+  m_writing = false;
+  if(!ok || !writer)
+    return;
+
+  m_takes_written++;
+  m_last_take_date = m_export_date;
+  const auto& path = writer->path(slot);
+  std::copy_n(path.data(), m_view.take_path.size(), m_view.take_path.data());
+  m_view.take_path.back() = 0;
+  m_view.take = m_takes_written;
+  m_view.take_date = m_last_take_date;
+  m_take_slot = (slot + 1) % Looper::take_writer::slots;
+  // Force a view update with the new take.
+  m_view_countdown = 0;
+}
+
+inline void Node::send_view(int64_t frames)
+{
+  if(!send_message)
+    return;
+
+  if(m_send_requested && m_view.take > 0)
+  {
+    m_send_requested = false;
+    m_view.send_serial++;
+    m_view_countdown = 0;
+  }
+
+  m_view_countdown -= frames;
+  if(m_view_countdown > 0)
+    return;
+  m_view_countdown = int64_t(m_rate / 30.);
+
+  auto& v = m_view;
+  v.empty = layers.empty();
+  v.mode = int(transport.actualMode);
+  v.requested = int(transport.quantizedPlayMode);
+  v.wanted = int(inputs.mode.value);
+  v.layers = layers.count;
+  v.redo = layers.total - layers.count;
+  v.full = m_full;
+  v.length_seconds = float(layers.length / m_rate);
+  v.max_seconds = float(layers.capacity / m_rate);
+  v.position = layers.length > 0
+                   ? float(transport.playbackPos % layers.length) / float(layers.length)
+                   : 0.f;
+  v.tempo = float(m_tempo);
+  v.writing = m_flattening || m_writing;
+
+  // Lanes: one per pass, the oldest merged into the first when there are
+  // more passes than lanes.
+  const int lanes = std::min(layers.count, Looper::view_message::max_lanes);
+  v.lanes = lanes;
+  std::fill(v.peaks.begin(), v.peaks.end(), 0.f);
+  const int64_t len = layers.length;
+  if(len > 0)
+  {
+    const int64_t micro = (len + Looper::audio_layers::peak_frames - 1)
+                          / Looper::audio_layers::peak_frames;
+    for(int i = 0; i < layers.count; i++)
+    {
+      const int lane = std::max(0, i - (layers.count - lanes));
+      const auto& l = layers.layers[i];
+      const float* p = const_cast<Looper::audio_layers&>(layers).peaks_of(l.slot);
+      float* dst = v.peaks.data() + lane * Looper::view_message::bins;
+      for(int64_t m = 0; m < micro; m++)
+      {
+        const int b = int(m * Looper::view_message::bins / micro);
+        dst[b] = std::max(dst[b], p[m] * l.gain);
+      }
+    }
+  }
+
+  send_message(v);
+}
+}

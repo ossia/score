@@ -22,6 +22,7 @@
 
 #include <score/tools/File.hpp>
 
+#include <QPointer>
 #include <QFileInfo>
 #include <QTimer>
 
@@ -63,7 +64,29 @@ struct dummy_ui_callback
 template <avnd::has_processor_to_gui_bus Info>
 struct MessageBusWrapperToUi<Info>
 {
-  std::function<void(QByteArray)> to_ui = dummy_ui_callback{};
+  //! The process box, the node of the nodal view and the inspector each show
+  //! the process: every one of them gets the messages. A view that is gone is
+  //! forgotten at the next message.
+  std::vector<std::pair<QPointer<QObject>, std::function<void(QByteArray)>>>
+      to_ui_listeners;
+
+  std::function<void(QByteArray)> to_ui = [this](QByteArray mess) {
+    std::erase_if(to_ui_listeners, [](const auto& l) { return l.first.isNull(); });
+    const auto n = to_ui_listeners.size();
+    for(std::size_t i = 0; i < n; i++)
+    {
+      // The listener may add another view: hold a copy of its callback.
+      auto f = to_ui_listeners[i].second;
+      if(i + 1 == n)
+        f(std::move(mess));
+      else
+        f(mess);
+    }
+  };
+
+  MessageBusWrapperToUi() = default;
+  MessageBusWrapperToUi(const MessageBusWrapperToUi&) = delete;
+  MessageBusWrapperToUi& operator=(const MessageBusWrapperToUi&) = delete;
 };
 
 template <avnd::has_gui_to_processor_bus Info>

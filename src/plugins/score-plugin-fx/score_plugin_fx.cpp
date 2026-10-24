@@ -25,7 +25,8 @@
 #include <Fx/LFO.hpp>
 #include <Fx/LFO_v2.hpp>
 #include <Fx/LFO_v3.hpp>
-#include <Fx/Looper.hpp>
+#include <Fx/Looper/AudioLooper.hpp>
+#include <Fx/Looper/MidiLooper.hpp>
 #include <Fx/MathAudioFilter.hpp>
 #include <Fx/MathAudioGenerator.hpp>
 #include <Fx/MathGenerator.hpp>
@@ -107,6 +108,7 @@ std::vector<score::InterfaceBase*> score_plugin_fx::factories(
   oscr::instantiate_fx<Nodes::RateLimiter::Node>(fx, ctx, key);
   oscr::instantiate_fx<Nodes::RateLimiter::v2::Node>(fx, ctx, key);
   oscr::instantiate_fx<Nodes::AudioLooper::Node>(fx, ctx, key);
+  oscr::instantiate_fx<Nodes::MidiLooper::Node>(fx, ctx, key);
 
 #if defined(SCORE_DEBUG)
   //oscr::instantiate_fx<Nodes::Debug::Node>(fx, ctx, key);

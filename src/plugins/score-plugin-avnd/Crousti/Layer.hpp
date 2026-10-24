@@ -20,6 +20,8 @@
 #include <score/graphics/widgets/QGraphicsLineEdit.hpp>
 #include <score/tools/File.hpp>
 
+#include <Crousti/HostServices.hpp>
+
 #include <avnd/common/aggregates.hpp>
 #include <avnd/common/enum_reflection.hpp>
 
@@ -692,6 +694,13 @@ struct LayoutBuilder final : Process::LayoutBuilderBase
   void createCustom(Item& item)
   {
     static_assert(!requires { item.transaction; });
+    if constexpr(requires { item.send_to_timeline = [](halp::timeline_clip) { }; })
+    {
+      item.send_to_timeline
+          = [&proc = this->proc, &doc = this->doc](halp::timeline_clip clip) {
+        oscr::sendToTimeline(proc, doc, clip);
+      };
+    }
     auto res = new oscr::CustomItem<Item&>{item};
     setupItem(item, *res);
   }
@@ -1099,8 +1108,8 @@ private:
 
     if constexpr(avnd::has_processor_to_gui_bus<Info>)
     {
-      // engine -> ui
-      proc.to_ui = [ptr = QPointer{ptr}](QByteArray mess) {
+      // engine -> ui: every view of the process listens.
+      proc.to_ui_listeners.emplace_back(ptr, [ptr = QPointer{ptr}](QByteArray mess) {
         // FIXME this is not enough as the message may be sent from another thread?
         if(!ptr)
           return;
@@ -1124,7 +1133,7 @@ private:
         {
           ptr->bus.process_message(ptr->ui, {});
         }
-      };
+      });
     }
 
     if_possible(ptr->bus.init(ptr->ui));

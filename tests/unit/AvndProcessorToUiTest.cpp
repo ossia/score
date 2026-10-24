@@ -30,6 +30,9 @@
 #include <Crousti/ProcessModel.hpp>
 #include <AvndProcesses/MIDISync.hpp>
 #include <Fx/Chord.hpp>
+#include <Fx/Looper/AudioLooper.hpp>
+#include <Fx/Looper/MidiLooper.hpp>
+#include <catch2/catch_template_test_macros.hpp>
 #include <catch2/catch_test_macros.hpp>
 #include <examples/Advanced/MidiScaler/MidiLife.hpp>
 #include <libremidi/detail/conversion.hpp>
@@ -403,6 +406,63 @@ TEST_CASE("Midi life through the binding: the view reaches the layer", "[avnd][m
       e.tick(256);
     e.ui();
     CHECK(views > before);
+  });
+}
+
+TEST_CASE("Midi life through the binding: every view of the process gets the view",
+          "[avnd][message_bus][execution]")
+{
+  // The process box, the node of the nodal view and the inspector each show
+  // the process; a view that is gone stops getting them.
+  with<mtk::MidiLife>(QStringLiteral("04db97fd-2ccf-4271-a5a6-d66552baf0d7"), [](auto& e) {
+    auto& model = static_cast<oscr::ProcessModel<mtk::MidiLife>&>(e.proc);
+    int first = 0, second = 0;
+    QObject first_view, *second_view = new QObject;
+    model.to_ui_listeners.emplace_back(&first_view, [&](QByteArray) { first++; });
+    model.to_ui_listeners.emplace_back(second_view, [&](QByteArray) { second++; });
+
+    for(int i = 0; i < 200; i++)
+      e.tick(256);
+    e.ui();
+    CHECK(first > 0);
+    CHECK(second == first);
+
+    delete second_view;
+    const int before = second;
+    for(int i = 0; i < 40; i++)
+      e.tick(256);
+    e.ui();
+    CHECK(first > before);
+    CHECK(second == before);
+    CHECK(model.to_ui_listeners.size() == 1);
+  });
+}
+
+TEMPLATE_TEST_CASE(
+    "Loopers through the binding: the view reaches the layer",
+    "[avnd][message_bus][execution][looper]", Nodes::AudioLooper::Node,
+    Nodes::MidiLooper::Node)
+{
+  const QString uuid = std::is_same_v<TestType, Nodes::AudioLooper::Node>
+                           ? QStringLiteral("a0ad4227-ac3d-448b-a19b-19581ed4e2c6")
+                           : QStringLiteral("0c0b7d3e-5a52-4b8f-9d1f-6e3a2b8c4f71");
+  with<TestType>(uuid, [](auto& e) {
+    auto& model = static_cast<oscr::ProcessModel<TestType>&>(e.proc);
+    int views = 0;
+    int mode = -1;
+    model.to_ui = [&](QByteArray b) {
+      Nodes::Looper::view_message m;
+      oscr::MessageBusReader{b}(m);
+      views++;
+      mode = m.mode;
+    };
+
+    e.gui("Loop", ossia::value{std::string{"Record"}});
+    for(int i = 0; i < 100; i++)
+      e.tick(512);
+    e.ui();
+    CHECK(views > 0);
+    CHECK(mode == int(Nodes::Looper::LoopMode::Record));
   });
 }
 

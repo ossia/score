@@ -195,6 +195,8 @@ add_library(
   Crousti/GpuNode.hpp
   Crousti/GpuUtils.cpp
   Crousti/GpuUtils.hpp
+  Crousti/HostServices.cpp
+  Crousti/HostServices.hpp
   Crousti/Layer.hpp
   Crousti/MessageBus.hpp
   Crousti/Metadata.hpp

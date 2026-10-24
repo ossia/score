@@ -918,6 +918,12 @@ if(TARGET score_plugin_fx)
     SOURCES FxLooperTest.cpp
     PLUGINS score_plugin_fx)
 
+  # The MIDI looper on the same transport: passes, replace and merge,
+  # controllers, held notes, grace, quantize, and its takes as MIDI files.
+  score_add_test(test_unit_fx_midi_looper
+    SOURCES FxMidiLooperTest.cpp
+    PLUGINS score_plugin_fx)
+
 endif()
 
 # --- ExprTK wrapper ----------------------------------------------------------
@@ -1450,6 +1456,17 @@ if(TARGET score_plugin_avnd AND TARGET score_plugin_engine)
   # Enumerator, Counter, Value Delay through the binding: port and inspector.
   # A process stopped inside a buffer: notes started in its last tick end in
   # the extra tick.
+  # A looper's take sent to the timeline: a box of the looper's scenario at
+  # the take's date, a looping sound or a MIDI clip of the take's length, one
+  # undoable command.
+  score_add_test(test_unit_looper_timeline
+    SOURCES LooperTimelineTest.cpp
+    APP
+    PLUGINS score_plugin_avnd score_plugin_fx score_plugin_media score_plugin_midi score_plugin_engine score_plugin_scenario score_lib_process)
+  target_include_directories(test_unit_looper_timeline PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish"
+    "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/examples")
+
   score_add_test(test_unit_avnd_stop_tick_exec
     SOURCES AvndStopTickExecTest.cpp
     APP
