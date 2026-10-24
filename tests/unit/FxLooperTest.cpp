@@ -70,6 +70,7 @@ struct looper_harness
   int channels{1};
   int buffer_size{64};
   int64_t now{0};
+  double tempo{120.};
 
   explicit looper_harness(int chans = 1, int bs = 64, int rate = 48000)
       : channels{chans}
@@ -110,7 +111,7 @@ struct looper_harness
     tk.date = ossia::time_value{now + frames};
     tk.start_sample = start;
     tk.length_sample = frames;
-    tk.tempo = 120.;
+    tk.tempo = tempo;
     now += frames;
     // The engine's clock is at the end of the buffer while it runs.
     st.samples_since_start = now;
@@ -1575,4 +1576,37 @@ TEST_CASE("Looper: an extending overdub stopped just past the end does not add a
   h.node.inputs.mode = LoopMode::Play;
   h.run(64);
   CHECK(h.node.layers.length == 1536);
+}
+
+TEST_CASE("Looper: following the tempo, a loop recorded at 120 lasts its bars at 60",
+          "[fx][audio][looper][tempo]")
+{
+  for(auto mode : {Nodes::Looper::FollowTempo::Repitch, Nodes::Looper::FollowTempo::Timestretch})
+  {
+    // 1000 frames a second, a 500-frame loop recorded at 120 bpm.
+    looper_harness h{1, 100, 1000};
+    h.node.inputs.follow_tempo.value = mode;
+    h.node.prepare_stretch(1000, 100);
+    h.node.inputs.passthrough = Passthrough::None;
+    h.fill_input(0, [](int64_t i) { return std::sin(i * 0.3); });
+    h.node.inputs.mode = LoopMode::Record;
+    for(int i = 0; i < 5; i++)
+      h.run(100);
+    h.node.inputs.mode = LoopMode::Play;
+    h.run(100);
+    REQUIRE(h.node.layers.length == 500);
+
+    // At 60 the loop takes twice as long, from its next round: then four
+    // ticks of 100 frames go 200 frames into it, not 400.
+    h.tempo = 60.;
+    for(int i = 0; i < 5; i++)
+      h.run(100);
+    const int64_t before = h.node.transport.playbackPos;
+    for(int i = 0; i < 4; i++)
+      h.run(100);
+    INFO(int(mode));
+    const int64_t moved = (h.node.transport.playbackPos - before + 500) % 500;
+    CHECK(moved > 150);
+    CHECK(moved < 260);
+  }
 }
