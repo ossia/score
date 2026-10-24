@@ -32,6 +32,13 @@ struct audio_layer
   //! Frames it was written for. Positions past them are silence until the
   //! pass has gone round the whole loop once.
   int64_t written{};
+  //! Length it repeats with: zero while it is the length of the loop. A pass
+  //! made before the loop was extended plays again over the longer loop.
+  int64_t period{};
+  //! Length of the loop before this pass, which undoing it gives back, and
+  //! after it, which redoing it puts back.
+  int64_t loop_before{};
+  int64_t loop_after{};
 };
 
 /**
@@ -112,13 +119,26 @@ struct audio_layers
     return peaks.data() + std::size_t(slot) * peak_count();
   }
 
+  int64_t period_of(const audio_layer& l) const noexcept
+  {
+    return l.period > 0 ? l.period : length;
+  }
+
+  //! Where position k of the loop is in the layer's own buffer.
+  int64_t index(const audio_layer& l, int64_t k) const noexcept
+  {
+    const int64_t p = period_of(l);
+    return p > 0 ? k % p : 0;
+  }
+
   bool valid(const audio_layer& l, int64_t k) const noexcept
   {
-    if(l.written >= length)
+    const int64_t p = period_of(l);
+    if(l.written >= p)
       return true;
-    int64_t d = k - l.start;
+    int64_t d = k % p - l.start;
     if(d < 0)
-      d += length;
+      d += p;
     return d < l.written;
   }
 
@@ -130,9 +150,23 @@ struct audio_layers
     {
       const auto& l = layers[i];
       if(valid(l, k))
-        sum += l.gain * data(l.slot, c)[k];
+        sum += l.gain * data(l.slot, c)[index(l, k)];
     }
     return sum;
+  }
+
+  //! The top pass goes on past the end of the loop: the loop grows by `unit`
+  //! frames, and the passes under it play again over the new part. False when
+  //! the buffers are full.
+  bool extend(int64_t unit) noexcept
+  {
+    if(count == 0 || unit <= 0 || length + unit > capacity)
+      return false;
+    for(int i = 0; i < count - 1; i++)
+      if(layers[i].period == 0)
+        layers[i].period = length;
+    length += unit;
+    return true;
   }
 
   //! Forgets every pass and starts a recording in the first buffer.
@@ -173,6 +207,9 @@ struct audio_layers
     l.gain = 1.f;
     l.start = start;
     l.written = 0;
+    l.period = 0;
+    l.loop_before = length;
+    l.loop_after = length;
     for(int i = 0; i < count; i++)
       l.below_before[i] = layers[i].gain;
     std::fill_n(peaks_of(slot), peak_count(), 0.f);
@@ -191,15 +228,29 @@ struct audio_layers
     auto& b = layers[1];
     float* pa = peaks_of(a.slot);
     const float* pb = peaks_of(b.slot);
+    // The merged pass is as long as the longer of the two: the shorter one is
+    // repeated into it first.
+    const int64_t pa_len = period_of(a), pb_len = period_of(b);
+    const int64_t merged = std::max(pa_len, pb_len);
     for(int c = 0; c < channels; c++)
     {
       float* da = data(a.slot, c);
       const float* db = data(b.slot, c);
-      for(int64_t k = 0; k < length; k++)
-        da[k] = a.gain * da[k] + (valid(b, k) ? b.gain * db[k] : 0.f);
+      for(int64_t k = pa_len; k < merged; k++)
+        da[k] = da[k % pa_len];
+      for(int64_t k = 0; k < merged; k++)
+        da[k] = a.gain * da[k] + (valid(b, k) ? b.gain * db[k % pb_len] : 0.f);
     }
-    for(std::size_t i = 0; i < peak_count(); i++)
-      pa[i] = a.gain * pa[i] + b.gain * pb[i];
+    a.period = merged == length ? 0 : merged;
+    a.written = merged;
+    {
+      const std::size_t bins = std::size_t((merged + peak_frames - 1) / peak_frames);
+      const std::size_t a_bins = std::max<std::size_t>(1, std::size_t((pa_len + peak_frames - 1) / peak_frames));
+      for(std::size_t i = a_bins; i < bins; i++)
+        pa[i] = pa[i % a_bins];
+      for(std::size_t i = 0; i < bins; i++)
+        pa[i] = a.gain * pa[i] + b.gain * pb[i];
+    }
     a.gain = 1.f;
     for(int i = 1; i + 1 < count; i++)
       layers[i] = layers[i + 1];
@@ -237,6 +288,11 @@ struct audio_layers
       l.below_after[i] = layers[i].gain;
       layers[i].gain = l.below_before[i];
     }
+    if(count > 1)
+    {
+      l.loop_after = length;
+      length = l.loop_before;
+    }
     count--;
     return true;
   }
@@ -248,6 +304,8 @@ struct audio_layers
     const auto& l = layers[count];
     for(int i = 0; i < count; i++)
       layers[i].gain = l.below_after[i];
+    if(count > 0)
+      length = l.loop_after;
     count++;
     return true;
   }
@@ -272,15 +330,16 @@ struct audio_layers
     auto* l = top();
     if(!l || length <= 0 || l->written <= 0)
       return;
-    const int64_t n = std::min<int64_t>({fade_frames, l->written, length});
+    const int64_t p = period_of(*l);
+    const int64_t n = std::min<int64_t>({fade_frames, l->written, p});
     for(int c = 0; c < channels; c++)
     {
       float* d = data(l->slot, c);
       for(int64_t i = 0; i < n; i++)
       {
-        int64_t k = (l->start + std::min(l->written, length) - 1 - i) % length;
+        int64_t k = (l->start + std::min(l->written, p) - 1 - i) % p;
         if(k < 0)
-          k += length;
+          k += p;
         d[k] *= float(i) / float(n);
       }
     }
@@ -291,24 +350,25 @@ struct audio_layers
   //! that late.
   void shift_earlier(audio_layer& l, int64_t frames) noexcept
   {
-    if(length <= 0)
+    const int64_t len = period_of(l);
+    if(len <= 0)
       return;
-    frames %= length;
+    frames %= len;
     if(frames <= 0)
       return;
     for(int c = 0; c < channels; c++)
     {
       float* d = data(l.slot, c);
-      std::rotate(d, d + frames, d + length);
+      std::rotate(d, d + frames, d + len);
     }
     float* p = peaks_of(l.slot);
-    const int64_t bins = (length + peak_frames - 1) / peak_frames;
+    const int64_t bins = (len + peak_frames - 1) / peak_frames;
     const int64_t bin_shift = frames / peak_frames;
     if(bin_shift > 0 && bins > 0)
       std::rotate(p, p + (bin_shift % bins), p + bins);
     l.start -= frames;
     if(l.start < 0)
-      l.start += length;
+      l.start += len;
   }
 };
 }

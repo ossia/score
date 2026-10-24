@@ -229,6 +229,17 @@ struct Node
           "in a file of its own (Layers), or both. Sending or dragging a take "
           "places every file of it, each on a lane of its own.")
     } takes;
+
+    struct : Looper::enum_combobox<"Past the end", Looper::PastEnd, Looper::PastEnd::Wrap>
+    {
+      using enum_combobox::operator=;
+      halp_meta(
+          description,
+          "What an overdub does at the end of the loop: go round it again "
+          "(Wrap), or make the loop longer by its own length each time, the "
+          "passes under it playing again (Extend). An extended loop ends when "
+          "overdubbing stops.")
+    } past_end;
   } inputs;
 
   struct
@@ -397,6 +408,7 @@ struct Node
           halp::item<&ins::passthrough> passthrough;
           halp::item<&ins::restart> restart;
           halp::item<&ins::feedback> feedback;
+          halp::item<&ins::past_end> past_end;
         } play;
         struct
         {
@@ -476,6 +488,8 @@ private:
   double m_last_take_date{};
   bool m_send_requested{};
   bool m_full{};
+  int64_t m_extend_unit{};
+  bool m_extended{};
 
   int64_t m_view_countdown{};
   Looper::view_message m_view{};
@@ -649,6 +663,22 @@ inline void Node::looper_close_take(
   }
   else
   {
+    // An extending pass asked to stop just after the loop grew ends on the
+    // old end, as a late stop would.
+    if(m_extended && m_extend_unit > 0)
+    {
+      const int64_t into_last = transport.playbackPos - (layers.length - m_extend_unit);
+      if(into_last >= 0 && into_last <= int64_t(inputs.late.value * m_rate / 1000.)
+         && layers.length - m_extend_unit >= m_extend_unit)
+      {
+        layers.length -= m_extend_unit;
+        top->written
+            = std::clamp<int64_t>(layers.length - top->start, 0, top->written);
+        transport.playbackPos = into_last;
+      }
+    }
+    m_extended = false;
+    layers.top()->loop_after = layers.length;
     layers.fade_out_top();
     if(latency > 0)
       layers.shift_earlier(*top, latency);
@@ -981,10 +1011,16 @@ inline void Node::overdub(int64_t first_pos, int64_t samples, bool echo)
     return;
   }
 
-  const int64_t len = layers.length;
+  int64_t len = layers.length;
   if(!transport.is_taking())
+  {
     layers.begin_overdub(transport.playbackPos % len);
+    // An extending pass grows the loop by the loop it started over.
+    m_extend_unit = len;
+    m_extended = false;
+  }
   transport.taking(LoopMode::Overdub);
+  const bool extend = inputs.past_end.value == Looper::PastEnd::Extend;
 
   auto* top = layers.top();
   if(!top)
@@ -1017,8 +1053,16 @@ inline void Node::overdub(int64_t first_pos, int64_t samples, bool echo)
     top->written++;
     if(++k == len)
     {
-      k = 0;
-      layers.decay(feedback);
+      if(extend && layers.extend(m_extend_unit))
+      {
+        len = layers.length;
+        m_extended = true;
+      }
+      else
+      {
+        k = 0;
+        layers.decay(feedback);
+      }
     }
   }
   transport.playbackPos = k;
@@ -1072,7 +1116,7 @@ inline void Node::run_export()
       const auto& l = m_export_snapshot[m_export_item];
       const float* src = layers.data(l.slot, c);
       for(int64_t k = m_flatten_pos; k < end; k++)
-        dst[k] = layers.valid(l, k) ? l.gain * src[k] : 0.f;
+        dst[k] = layers.valid(l, k) ? l.gain * src[layers.index(l, k)] : 0.f;
     }
   }
   m_flatten_pos = end;
@@ -1175,10 +1219,14 @@ inline void Node::send_view(int64_t frames)
       const auto& l = layers.layers[i];
       const float* p = const_cast<Looper::audio_layers&>(layers).peaks_of(l.slot);
       float* dst = v.peaks.data() + lane * Looper::view_message::bins;
+      // A pass shorter than the loop plays again over the rest of it.
+      const int64_t own = std::max<int64_t>(
+          1, (layers.period_of(l) + Looper::audio_layers::peak_frames - 1)
+                 / Looper::audio_layers::peak_frames);
       for(int64_t m = 0; m < micro; m++)
       {
         const int b = int(m * Looper::view_message::bins / micro);
-        dst[b] = std::max(dst[b], p[m] * l.gain);
+        dst[b] = std::max(dst[b], p[m % own] * l.gain);
       }
     }
   }

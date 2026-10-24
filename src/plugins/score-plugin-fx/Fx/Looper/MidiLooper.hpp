@@ -220,6 +220,25 @@ struct Node
           "pass in a MIDI file of its own (Layers), or both. Sending or dragging "
           "a take places every file of it, each on a lane of its own.")
     } takes;
+
+    struct : Looper::enum_combobox<"Past the end", Looper::PastEnd, Looper::PastEnd::Wrap>
+    {
+      using enum_combobox::operator=;
+      halp_meta(
+          description,
+          "What an overdub does at the end of the loop: go round it again "
+          "(Wrap), or make the loop longer by its own length each time, the "
+          "passes under it playing again (Extend). An extended loop ends when "
+          "overdubbing stops.")
+    } past_end;
+
+    struct : halp::toggle<"Follow tempo", halp::default_on_toggle>
+    {
+      halp_meta(
+          description,
+          "Plays the loop at the tempo of the score: it keeps to the bars when "
+          "the tempo changes. Off, it keeps the speed it was recorded at.")
+    } follow_tempo;
   } inputs;
 
   struct
@@ -389,6 +408,7 @@ struct Node
           halp_meta(layout, halp::layouts::hbox)
           halp::item<&ins::overdub_mode> overdub_mode;
           halp::item<&ins::held> held;
+          halp::item<&ins::past_end> past_end;
           halp::item<&ins::restart> restart;
         } overdub;
         struct
@@ -398,6 +418,7 @@ struct Node
           halp::item<&ins::grid> grid;
           halp::item<&ins::strength> strength;
           halp::item<&ins::quantize_ends> ends;
+          halp::item<&ins::follow_tempo> follow_tempo;
         } quantize;
         struct
         {
@@ -506,11 +527,15 @@ private:
   static constexpr int history_size = 8192;
   std::array<played, history_size> m_history{};
   int64_t m_history_count{};
-  void handle_input(int64_t from, int64_t to, int64_t pos0, bool taking);
+  void handle_input(int64_t from, int64_t to, double pos0, bool taking, double rate = 1.);
   void record_note_on(int64_t pos, const libremidi::message& m);
   void record_note_off(int64_t pos, const libremidi::message& m);
-  void play_range(int64_t k, int64_t k_end, int64_t offset);
-  void play(int64_t start, int64_t length);
+  void play_range(double a, double b, double out0, double r);
+  void advance(int64_t start, int64_t length, bool overdub);
+  double rate() const noexcept;
+  double m_phase{};
+  int64_t m_extend_unit{};
+  bool m_extended{};
   void begin_pass_grace(int64_t pos);
 
   struct placed_note
@@ -520,7 +545,7 @@ private:
   };
   double grid_frames() const noexcept;
   int64_t pull(int64_t pos) const noexcept;
-  placed_note place(const Looper::midi_note& n) const noexcept;
+  placed_note place(const Looper::midi_note& n, int64_t period = 0) const noexcept;
 
   void emit(int64_t ts, const libremidi::message& m)
   {
@@ -767,9 +792,10 @@ inline int64_t Node::pull(int64_t pos) const noexcept
 //! length. A pulled end never comes before the pulled start: a note whose
 //! two ends fall on one grid point keeps a grid step, or its own length when
 //! it was shorter.
-inline Node::placed_note Node::place(const Looper::midi_note& n) const noexcept
+inline Node::placed_note
+Node::place(const Looper::midi_note& n, int64_t period) const noexcept
 {
-  const int64_t len = std::max<int64_t>(1, loop.length);
+  const int64_t len = std::max<int64_t>(1, period > 0 ? period : loop.length);
   const int64_t length = std::clamp<int64_t>(n.length, 1, len - 1);
   const int64_t on = pull(n.start);
   int64_t played = length;
@@ -788,7 +814,8 @@ inline Node::placed_note Node::place(const Looper::midi_note& n) const noexcept
 
 //! The input messages of [from; to[ of the tick: recorded at pos0 and on when
 //! taking in, passed through when the passthrough says so.
-inline void Node::handle_input(int64_t from, int64_t to, int64_t pos0, bool taking)
+inline void Node::handle_input(
+    int64_t from, int64_t to, double pos0, bool taking, double rate)
 {
   const Passthrough pt = inputs.passthrough;
   const bool echo = taking ? pt != Passthrough::None : pt == Passthrough::Full;
@@ -819,7 +846,7 @@ inline void Node::handle_input(int64_t from, int64_t to, int64_t pos0, bool taki
     int64_t pos = -1;
     if(pos0 >= 0)
     {
-      pos = pos0 + (std::max(ts, from) - from);
+      pos = int64_t(pos0 + (std::max(ts, from) - from) * rate);
       if(transport.actualMode != LoopMode::Record && loop.length > 0)
         pos %= loop.length;
     }
@@ -912,7 +939,10 @@ inline int64_t Node::looper_run(int64_t start, int64_t length)
   // The playhead jumped, e.g. a mode change read the loop from its start
   // again: the notes the loop was playing would end at the wrong time.
   if(!loop.empty() && transport.playbackPos % loop.length != m_expected_pos)
+  {
     flush_loop(start);
+    m_phase = double(transport.playbackPos % loop.length);
+  }
 
   const LoopMode mode = transport.actualMode;
   switch(mode)
@@ -922,12 +952,9 @@ inline int64_t Node::looper_run(int64_t start, int64_t length)
       handle_input(start, start + length, -1, false);
       break;
 
-    case LoopMode::Play: {
-      const int64_t k0 = loop.empty() ? -1 : transport.playbackPos % loop.length;
-      play(start, length);
-      handle_input(start, start + length, k0, false);
+    case LoopMode::Play:
+      advance(start, length, false);
       break;
-    }
 
     case LoopMode::Record: {
       if(!transport.is_taking())
@@ -940,11 +967,13 @@ inline int64_t Node::looper_run(int64_t start, int64_t length)
       }
       transport.taking(LoopMode::Record);
       const int64_t pos0 = loop.length;
-      handle_input(start, start + length, pos0, true);
+      handle_input(start, start + length, double(pos0), true);
       loop.length += length;
       loop.pass_written = loop.length;
       transport.playbackPos = loop.length;
-      break;
+      m_phase = 0.;
+      m_expected_pos = 0;
+      return length;
     }
 
     case LoopMode::Overdub: {
@@ -955,56 +984,95 @@ inline int64_t Node::looper_run(int64_t start, int64_t length)
       }
       if(!transport.is_taking())
       {
-        loop.begin_overdub(transport.playbackPos % loop.length);
-        begin_pass_grace(transport.playbackPos % loop.length);
+        const int64_t k = int64_t(m_phase) % loop.length;
+        loop.begin_overdub(k);
+        begin_pass_grace(k);
+        // An extending pass grows the loop by the loop it started over.
+        m_extend_unit = loop.length;
+        m_extended = false;
       }
       transport.taking(LoopMode::Overdub);
-
-      // Splits at the loop point, so that a position is always in the loop.
-      int64_t done = 0;
-      while(done < length)
-      {
-        const int64_t k = transport.playbackPos % loop.length;
-        const int64_t n = std::min(length - done, loop.length - k);
-        play(start + done, n);
-        handle_input(start + done, start + done + n, k, true);
-        loop.pass_written += n;
-        done += n;
-      }
+      advance(start, length, true);
       break;
     }
   }
 
-  m_expected_pos = loop.empty() ? 0 : transport.playbackPos % loop.length;
+  if(!loop.empty())
+  {
+    transport.playbackPos = int64_t(m_phase) % loop.length;
+    m_expected_pos = transport.playbackPos;
+  }
   return length;
 }
 
-//! Plays the loop over [start; start + length[ and moves the playhead.
-inline void Node::play(int64_t start, int64_t length)
+//! How fast the loop goes for the score: with Follow tempo, at the score's
+//! tempo over the loop's own.
+inline double Node::rate() const noexcept
 {
-  if(loop.empty())
-    return;
-  const int64_t len = loop.length;
-  int64_t k = transport.playbackPos % len;
-  int64_t done = 0;
-  while(done < length)
-  {
-    const int64_t n = std::min(length - done, len - k);
-    play_range(k, k + n, start + done);
-    done += n;
-    k += n;
-    if(k >= len)
-      k = 0;
-  }
-  transport.playbackPos = k;
+  if(!inputs.follow_tempo.value || loop.empty() || m_loop_tempo <= 0.)
+    return 1.;
+  return std::clamp(m_tempo / m_loop_tempo, 0.05, 20.);
 }
 
-inline void Node::play_range(int64_t k, int64_t k_end, int64_t offset)
+//! Plays the loop over [start; start + length[ of the tick, and takes in what
+//! is played when overdubbing. The loop's positions go `rate()` times as fast
+//! as the tick's frames; at the loop's end, an overdub extends it or the
+//! playhead goes round.
+inline void Node::advance(int64_t start, int64_t length, bool overdub)
+{
+  const double r = rate();
+  const bool extend = overdub && inputs.past_end.value == Looper::PastEnd::Extend;
+  // Undoing an extension can leave the playhead past the end of the loop.
+  double ph = std::fmod(std::max(0., m_phase), double(loop.length));
+  double out = double(start);
+  const double out_end = double(start + length);
+
+  while(out < out_end - 1e-9)
+  {
+    const double L = double(loop.length);
+    const double b = std::min(L, ph + (out_end - out) * r);
+    const double seg_out = (b - ph) / r;
+
+    play_range(ph, b, out, r);
+    // The input of the frames this part of the loop covers.
+    const int64_t from = int64_t(std::ceil(out - 1e-9));
+    const int64_t to = b >= L ? int64_t(std::ceil(out + seg_out - 1e-9))
+                              : int64_t(std::ceil(out_end - 1e-9));
+    handle_input(from, to, ph + (from - out) * r, overdub, r);
+    if(overdub)
+      loop.pass_written += int64_t(b - ph);
+
+    out += seg_out;
+    ph = b;
+    if(ph >= L - 1e-9)
+    {
+      if(extend && loop.extend(m_extend_unit))
+      {
+        m_extended = true;
+      }
+      else
+      {
+        ph -= L;
+        if(ph < 0.)
+          ph = 0.;
+      }
+    }
+  }
+  // Input on the last frame, when the span ended on the loop's end.
+  if(!overdub)
+    handle_input(start + length, start + length, -1, false);
+  m_phase = ph;
+}
+
+//! The notes and controllers of the loop between positions a and b, sent at
+//! the frames of the tick they fall on: out0 is the frame of position a.
+inline void Node::play_range(double a, double b, double out0, double r)
 {
   const int64_t len = loop.length;
   const auto mode = inputs.overdub_mode.value;
   const bool truncate = inputs.held.value == HeldNotes::Truncate;
-  auto in_range = [&](int64_t q) { return q >= k && q < k_end; };
+  auto in_range = [&](int64_t q) { return q >= a && q < b; };
+  auto frame = [&](int64_t q) { return int64_t(out0 + (q - a) / r); };
 
   // The note-ons and note-offs of the range, applied in time order: a note
   // starting and ending in one range must not end before it starts.
@@ -1024,7 +1092,10 @@ inline void Node::play_range(int64_t k, int64_t k_end, int64_t offset)
     // end still goes out, the counts keep it from ending anything else.
     const bool heard = loop.heard(n, mode);
 
-    const auto [on, length] = place(n);
+    // A pass shorter than the loop plays again over the rest of it.
+    const int64_t period = std::clamp<int64_t>(loop.period_of(n.pass), 1, len);
+    const auto [first, length] = place(n, period);
+    for(int64_t on = first; on < len; on += period)
     {
       int64_t off = on + length;
       if(truncate && off >= len)
@@ -1032,9 +1103,9 @@ inline void Node::play_range(int64_t k, int64_t k_end, int64_t offset)
       off %= len;
       if(in_range(off))
         add(off, false, i);
+      if(heard && in_range(on))
+        add(on, true, i);
     }
-    if(heard && in_range(on))
-      add(on, true, i);
   }
   std::sort(m_range.begin(), m_range.begin() + count, [](const range_event& a, const range_event& b) {
     if(a.pos != b.pos)
@@ -1050,25 +1121,31 @@ inline void Node::play_range(int64_t k, int64_t k_end, int64_t offset)
     const int ch = m_out_channel > 0 ? m_out_channel : n.channel;
     const int pitch = n.pitch + m_transpose;
     if(e.on)
-      note_on(ch, pitch, n.velocity, offset + (e.pos - k), true);
+      note_on(ch, pitch, n.velocity, frame(e.pos), true);
     else
-      note_off(ch, pitch, offset + (e.pos - k), true);
+      note_off(ch, pitch, frame(e.pos), true);
   }
 
   for(int i = 0; i < loop.control_count; i++)
   {
     const auto& c = loop.controls[i];
-    if(!loop.heard(c) || !in_range(c.pos))
+    if(!loop.heard(c))
       continue;
-    libremidi::message m;
-    const uint8_t kind = c.status & 0xF0;
-    const int ch = m_out_channel > 0 ? m_out_channel : (c.status & 0x0F) + 1;
-    const uint8_t status = uint8_t(kind | ((ch - 1) & 0x0F));
-    if(kind == 0xD0)
-      m = libremidi::message{status, c.data1};
-    else
-      m = libremidi::message{status, c.data1, c.data2};
-    emit(offset + (c.pos - k), m);
+    const int64_t period = std::clamp<int64_t>(loop.period_of(c.pass), 1, len);
+    for(int64_t q = c.pos % period; q < len; q += period)
+    {
+      if(!in_range(q))
+        continue;
+      libremidi::message m;
+      const uint8_t kind = c.status & 0xF0;
+      const int ch = m_out_channel > 0 ? m_out_channel : (c.status & 0x0F) + 1;
+      const uint8_t status = uint8_t(kind | ((ch - 1) & 0x0F));
+      if(kind == 0xD0)
+        m = libremidi::message{status, c.data1};
+      else
+        m = libremidi::message{status, c.data1, c.data2};
+      emit(frame(q), m);
+    }
   }
 }
 
@@ -1100,6 +1177,35 @@ inline void Node::looper_close_take(
     loop.pass_written = loop.length;
     m_export_date = transport.recordStartDate.impl / double(ossia::flicks_per_second<int64_t>);
   }
+  else if(m_extended && m_extend_unit > 0)
+  {
+    // An extending pass asked to stop just after the loop grew ends on the
+    // old end, as a late stop would.
+    const int64_t into_last = transport.playbackPos - (loop.length - m_extend_unit);
+    if(into_last >= 0 && into_last <= int64_t(inputs.late.value * m_rate / 1000.)
+       && loop.length - m_extend_unit >= m_extend_unit)
+    {
+      const int64_t end = loop.length - m_extend_unit;
+      const int pass = loop.count - 1;
+      loop.note_count = int(
+          std::remove_if(
+              loop.notes.begin(), loop.notes.begin() + loop.note_count,
+              [=](const Looper::midi_note& n) { return n.pass == pass && n.start >= end; })
+          - loop.notes.begin());
+      loop.control_count = int(
+          std::remove_if(
+              loop.controls.begin(), loop.controls.begin() + loop.control_count,
+              [=](const Looper::midi_control& c) { return c.pass == pass && c.pos >= end; })
+          - loop.controls.begin());
+      loop.length = end;
+      transport.playbackPos = into_last;
+      m_phase = double(into_last);
+      m_expected_pos = into_last;
+    }
+  }
+  m_extended = false;
+  if(loop.count > 0)
+    loop.loop_after[loop.count - 1] = loop.length;
   loop.end_pass(inputs.overdub_mode);
   m_export_pending = true;
 }
@@ -1137,16 +1243,31 @@ inline void Node::write_export_item(int item)
       continue;
     if(n.length < 0)
       n.length = loop.distance(n.start, transport.playbackPos % loop.length);
-    const auto placed = place(n);
-    n.start = placed.start;
-    n.length = placed.length;
-    e.notes[e.note_count++] = n;
+    // A pass shorter than the loop is in the file as many times as it plays.
+    const int64_t period = std::clamp<int64_t>(loop.period_of(n.pass), 1, loop.length);
+    const auto placed = place(n, period);
+    for(int64_t on = placed.start; on < loop.length; on += period)
+    {
+      if(e.note_count >= Looper::midi_loop::max_notes)
+        break;
+      n.start = on;
+      n.length = placed.length;
+      e.notes[e.note_count++] = n;
+    }
   }
   for(int i = 0; i < loop.control_count; i++)
   {
     const auto& c = loop.controls[i];
-    if(loop.heard(c) && (item < 0 || c.pass == item))
-      e.controls[e.control_count++] = c;
+    if(!loop.heard(c) || (item >= 0 && c.pass != item))
+      continue;
+    const int64_t period = std::max<int64_t>(1, std::min<int64_t>(loop.period_of(c.pass), loop.length));
+    for(int64_t q = c.pos % period; q < loop.length; q += period)
+    {
+      if(e.control_count >= Looper::midi_loop::max_controls)
+        break;
+      e.controls[e.control_count] = c;
+      e.controls[e.control_count++].pos = q;
+    }
   }
   e.length = loop.length;
   e.rate = m_rate;
@@ -1228,14 +1349,20 @@ inline void Node::send_view(int64_t frames)
     const auto& n = loop.notes[i];
     if(!loop.heard(n, mode))
       continue;
-    auto& d = v.note[shown++];
     const int64_t l = n.length < 0 ? loop.distance(n.start, transport.playbackPos % len)
                                    : std::min(n.length, len - 1);
-    d.start = float(n.start % len) / float(len);
-    d.end = float((n.start + l) % len) / float(len);
-    d.pitch = n.pitch;
-    d.lane = uint8_t(n.pass % Looper::view_message::max_lanes);
-    d.velocity = n.velocity;
+    // A pass shorter than the loop is drawn each time it plays.
+    const int64_t period = std::max<int64_t>(1, std::min<int64_t>(loop.period_of(n.pass), len));
+    for(int64_t on = n.start % period; on < len && shown < Looper::view_message::max_notes;
+        on += period)
+    {
+      auto& d = v.note[shown++];
+      d.start = float(on) / float(len);
+      d.end = float((on + l) % len) / float(len);
+      d.pitch = n.pitch;
+      d.lane = uint8_t(n.pass % Looper::view_message::max_lanes);
+      d.velocity = n.velocity;
+    }
   }
   v.notes = shown;
   send_message(v);

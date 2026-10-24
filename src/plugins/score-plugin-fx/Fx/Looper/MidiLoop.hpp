@@ -84,6 +84,31 @@ struct midi_loop
   int64_t length{};
   bool full{};
 
+  //! Length each pass repeats with: zero while it is the loop's length. A
+  //! pass made before the loop was extended plays again over the longer loop.
+  std::array<int64_t, max_passes + 1> period{};
+  //! Length of the loop before and after each pass, for undo and redo.
+  std::array<int64_t, max_passes + 1> loop_before{};
+  std::array<int64_t, max_passes + 1> loop_after{};
+
+  int64_t period_of(int pass) const noexcept
+  {
+    return period[pass] > 0 ? period[pass] : length;
+  }
+
+  //! The top pass goes on past the end of the loop: the loop grows by `unit`
+  //! frames, the passes under it repeating.
+  bool extend(int64_t unit) noexcept
+  {
+    if(count == 0 || unit <= 0)
+      return false;
+    for(int p = 0; p < count - 1; p++)
+      if(period[p] == 0)
+        period[p] = length;
+    length += unit;
+    return true;
+  }
+
   // The pass being recorded: where it went, and what it touched.
   int64_t pass_start{};
   int64_t pass_written{};
@@ -173,6 +198,7 @@ struct midi_loop
     clear();
     count = 1;
     total = 1;
+    period[0] = 0;
     begin_pass_state(0);
   }
 
@@ -183,6 +209,9 @@ struct midi_loop
     drop_redo();
     if(count >= max_passes)
       merge_oldest();
+    period[count] = 0;
+    loop_before[count] = length;
+    loop_after[count] = length;
     count++;
     total = count;
     begin_pass_state(start);
@@ -203,6 +232,15 @@ struct midi_loop
         controls[i].pass--;
       if(controls[i].replaced_by > 0)
         controls[i].replaced_by--;
+    }
+    // The merged pass repeats with the longer of the two periods; notes of
+    // the shorter one are not repeated into it.
+    period[0] = period[0] == 0 || period[1] == 0 ? 0 : std::max(period[0], period[1]);
+    for(int p = 1; p + 1 < count; p++)
+    {
+      period[p] = period[p + 1];
+      loop_before[p] = loop_before[p + 1];
+      loop_after[p] = loop_after[p + 1];
     }
     count--;
   }
@@ -245,6 +283,11 @@ struct midi_loop
   {
     if(count == 0)
       return false;
+    if(count > 1)
+    {
+      loop_after[count - 1] = length;
+      length = loop_before[count - 1];
+    }
     count--;
     return true;
   }
@@ -253,6 +296,8 @@ struct midi_loop
   {
     if(count >= total)
       return false;
+    if(count > 0)
+      length = loop_after[count];
     count++;
     return true;
   }

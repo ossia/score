@@ -70,6 +70,13 @@ enum class Passthrough
   Full    ///< Always heard, mixed over the loop during playback.
 };
 
+//! What an overdub does at the end of the loop.
+enum class PastEnd
+{
+  Wrap,  ///< Goes round the loop again.
+  Extend ///< Makes the loop longer by the loop's length, the passes under it repeating.
+};
+
 struct transport_settings
 {
   LoopMode mode{LoopMode::Stop};
