@@ -166,7 +166,9 @@ void QGraphicsValueList::setValue(const ossia::value& v)
   if(int(rows.size()) > maxCount())
     rows.resize(maxCount());
 
-  if(rows.size() == m_rows.size())
+  // Against the cells shown: a structural edit changes m_rows before its
+  // deferred rebuild() resizes them
+  if(rows.size() == m_cells.size())
   {
     m_rows = std::move(rows);
     updateCells();
