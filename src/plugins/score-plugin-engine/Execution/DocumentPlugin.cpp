@@ -349,6 +349,11 @@ void DocumentPlugin::makeGraph()
 
   execState->bufferSize = audiosettings.getBufferSize();
   execState->sampleRate = audiosettings.getRate();
+  if(auto& audio = m_context.app.guiApplicationPlugin<Audio::ApplicationPlugin>().audio)
+  {
+    execState->inputLatency = audio->effective_input_latency;
+    execState->outputLatency = audio->effective_output_latency;
+  }
 
   // Publish audio clock state for video frame pacing
   Audio::execution_samples.store(0, std::memory_order_relaxed);
