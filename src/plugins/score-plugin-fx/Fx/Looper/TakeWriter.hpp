@@ -17,6 +17,7 @@
 #include <array>
 #include <cmath>
 #include <memory>
+#include <mutex>
 #include <string>
 #include <string_view>
 
@@ -33,6 +34,15 @@ namespace Nodes::Looper
  * Every take gets a name of its own: a sound file is cached by its path, and
  * a take written over an earlier one would play the earlier one's audio.
  */
+//! What a take is written as: the loop as it is heard, or each of its passes
+//! in a file of its own, or both.
+enum class TakeFiles
+{
+  Mix,
+  Layers,
+  Both
+};
+
 struct take_writer
 {
   //! Takes in flight at once: a slot's path is written by the worker and read
@@ -43,6 +53,7 @@ struct take_writer
   QString prefix;
   QString extension;
   std::array<std::string, slots> paths;
+  std::array<std::string, slots> bases;
 
   static QString folder_for(const score::DocumentContext& ctx)
   {
@@ -65,27 +76,53 @@ struct take_writer
     w->extension = QString::fromUtf8(extension.data(), qsizetype(extension.size()));
     for(auto& p : w->paths)
       p.reserve(1024);
+    for(auto& p : w->bases)
+      p.reserve(1024);
     return w;
   }
 
-  //! Worker thread: the first name of the form <prefix>-take<N>.<ext> that is
-  //! free in the folder.
-  const std::string& next_path(int slot)
+  QString base(int number) const
   {
+    return QStringLiteral("%1/%2-take%3").arg(folder, prefix).arg(number);
+  }
+  QString file(int number, int layer) const
+  {
+    return layer < 0 ? QStringLiteral("%1.%2").arg(base(number), extension)
+                     : QStringLiteral("%1-layer%2.%3").arg(base(number)).arg(layer + 1).arg(extension);
+  }
+
+  //! Worker thread: the file of a take, the mix when `layer` is -1, else one of
+  //! its layers. A take has one number for all its files; 0 asks for the first
+  //! number free in the folder, which is then set.
+  const std::string& next_path(int slot, int& number, int layer)
+  {
+    // Loopers of a document write from several workers: the choice of a
+    // number and the creation of its first file go together.
+    static std::mutex choosing;
+    std::lock_guard _{choosing};
+
     QDir{}.mkpath(folder);
-    QString path;
-    // Created here, so that two loopers writing a take at once never pick
-    // the same name.
-    for(int n = 1; n < 100000; n++)
+    if(number <= 0)
     {
-      path = QStringLiteral("%1/%2-take%3.%4").arg(folder, prefix).arg(n).arg(extension);
-      if(QFile f{path}; f.open(QIODevice::WriteOnly | QIODevice::NewOnly))
-        break;
+      for(int n = 1; n < 100000; n++)
+      {
+        if(!QFileInfo::exists(file(n, -1)) && !QFileInfo::exists(file(n, 0)))
+        {
+          number = n;
+          break;
+        }
+      }
     }
+    const QString path = file(number, layer);
+    if(QFile f{path}; f.open(QIODevice::WriteOnly))
+      f.close();
     paths[slot].assign(path.toStdString());
+    bases[slot].assign(base(number).toStdString());
     return paths[slot];
   }
 
+  //! The path of a take's files without the layer and the extension.
+  const std::string& take_base(int slot) const noexcept { return bases[slot]; }
   const std::string& path(int slot) const noexcept { return paths[slot]; }
 };
 
@@ -119,6 +156,9 @@ struct take_job
   std::shared_ptr<take_writer> writer;
   std::shared_ptr<export_buffer> audio;
   int slot{};
+  //! Number of the take, 0 for a new one; -1 for the mix, else the layer.
+  int number{};
+  int layer{-1};
   int channels{};
   int64_t frames{};
   int rate{};
@@ -136,7 +176,7 @@ struct take_job
     for(int c = 0; c < channels; c++)
       data[c] = audio->channel(c);
 
-    const auto& path = writer->next_path(slot);
+    const auto& path = writer->next_path(slot, number, layer);
     const double quarters = tempo > 0 ? frames / double(rate) * tempo / 60. : 0.;
     ossia::wav_loop_info info;
     info.tempo = tempo;

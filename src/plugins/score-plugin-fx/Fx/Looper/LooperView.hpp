@@ -11,6 +11,8 @@
 #include <cstring>
 #include <functional>
 #include <string>
+#include <string_view>
+#include <vector>
 
 namespace Nodes::Looper
 {
@@ -47,7 +49,7 @@ struct view_message
   int layers;
   int redo;
   int lanes;
-  //! Takes written so far; the last one is take_path.
+  //! Takes written so far; the files of the last one are take_files().
   int take;
   //! Changes each time Send to timeline is asked from the controls.
   int send_serial;
@@ -64,7 +66,38 @@ struct view_message
   double take_date;
   std::array<float, max_lanes * bins> peaks;
   std::array<view_note, max_notes> note;
-  std::array<char, 512> take_path;
+  //! The last take's files: <base>.<ext> for the mix if there is one,
+  //! <base>-layer<k>.<ext> for its layers.
+  std::array<char, 512> take_base;
+  std::array<char, 4> take_ext;
+  bool take_mix;
+  int take_layers;
+
+  void set_take(std::string_view base, std::string_view ext, bool mix, int layers) noexcept
+  {
+    const auto n = std::min(base.size(), take_base.size() - 1);
+    std::copy_n(base.data(), n, take_base.data());
+    take_base[n] = 0;
+    const auto e = std::min(ext.size(), take_ext.size() - 1);
+    std::copy_n(ext.data(), e, take_ext.data());
+    take_ext[e] = 0;
+    take_mix = mix;
+    take_layers = layers;
+  }
+
+  //! UI thread: the paths of the last take's files, the mix first.
+  std::vector<std::string> take_files() const
+  {
+    std::vector<std::string> files;
+    const std::string base{take_base.data()}, ext{take_ext.data()};
+    if(base.empty())
+      return files;
+    if(take_mix)
+      files.push_back(base + "." + ext);
+    for(int k = 0; k < take_layers; k++)
+      files.push_back(base + "-layer" + std::to_string(k + 1) + "." + ext);
+    return files;
+  }
 };
 
 struct looper_view
@@ -94,14 +127,17 @@ struct looper_view
       update();
   }
 
-  bool has_take() const noexcept { return has_state && state.take > 0 && state.take_path[0]; }
+  bool has_take() const noexcept { return has_state && state.take > 0 && state.take_base[0]; }
 
+  //! Every file of the take, each on a lane of its own.
   void send()
   {
     if(!has_take() || !send_to_timeline)
       return;
-    send_to_timeline(halp::timeline_clip{
-        .file = std::string(state.take_path.data()), .date = state.take_date, .lane = 0});
+    int lane = 0;
+    for(auto& f : state.take_files())
+      send_to_timeline(
+          halp::timeline_clip{.file = std::move(f), .date = state.take_date, .lane = lane++});
   }
 
   static rgba mode_color(int mode, bool empty) noexcept
@@ -347,7 +383,7 @@ struct looper_view
   {
     halp::drag_payload p;
     if(has_take() && !in_send(x, y))
-      p.files.emplace_back(state.take_path.data());
+      p.files = state.take_files();
     return p;
   }
 };

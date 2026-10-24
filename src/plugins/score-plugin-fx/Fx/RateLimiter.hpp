@@ -32,6 +32,7 @@ struct Node
       "(debounce ignores quantization)")
   halp_flag(deprecated);
   halp_meta(uuid, "76cfd504-7c10-4bdb-a1b4-fbe449cc06f0")
+  halp_flag(process_exec);
 
   enum class Mode
   {

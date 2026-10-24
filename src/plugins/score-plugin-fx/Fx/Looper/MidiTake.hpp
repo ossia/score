@@ -123,13 +123,16 @@ struct midi_take_job
   std::shared_ptr<take_writer> writer;
   std::shared_ptr<midi_export> data;
   int slot{};
+  //! Number of the take, 0 for a new one; -1 for the mix, else the pass.
+  int number{};
+  int layer{-1};
 
   bool run()
   {
     if(!writer || !data || data->length <= 0)
       return false;
     const std::string bytes = data->to_smf();
-    const auto& path = writer->next_path(slot);
+    const auto& path = writer->next_path(slot, number, layer);
     std::ofstream f{
         std::filesystem::path{std::u8string_view{
             reinterpret_cast<const char8_t*>(path.data()), path.size()}},

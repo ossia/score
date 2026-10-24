@@ -208,6 +208,18 @@ struct Node
           "Places the last take in the timeline, where it was recorded, as a "
           "MIDI clip.")
     } send;
+
+    // Controls added after the first presets go last: presets address the
+    // inputs by their index.
+    struct : Looper::enum_combobox<"Takes", Looper::TakeFiles, Looper::TakeFiles::Mix>
+    {
+      using enum_combobox::operator=;
+      halp_meta(
+          description,
+          "What a take is written as: what is heard of the loop (Mix), each "
+          "pass in a MIDI file of its own (Layers), or both. Sending or dragging "
+          "a take places every file of it, each on a lane of its own.")
+    } takes;
   } inputs;
 
   struct
@@ -225,7 +237,9 @@ struct Node
     static std::function<void(Node&)> work(Looper::midi_take_job&& job)
     {
       const bool ok = job.run();
-      return [slot = job.slot, ok](Node& self) { self.take_written(slot, ok); };
+      return [slot = job.slot, number = job.number, ok](Node& self) {
+        self.take_written(slot, number, ok);
+      };
     }
   } worker;
 
@@ -310,8 +324,9 @@ struct Node
     if(inputs.capture.value)
       capture(tk);
 
+    m_mode = transport.effective(inputs.mode, loop.empty());
     const Looper::transport_settings settings{
-        .mode = inputs.mode,
+        .mode = m_mode,
         .quantif = inputs.quantif.value,
         .postaction = inputs.postaction,
         .postaction_bars = inputs.postaction_bars,
@@ -351,6 +366,7 @@ struct Node
         halp::item<&ins::redo> redo;
         halp::item<&ins::clear> clear;
         halp::item<&ins::send> send;
+        halp::item<&ins::takes> takes;
       } actions;
       struct
       {
@@ -466,6 +482,10 @@ private:
   bool m_export_pending{};
   bool m_writing{};
   double m_export_date{};
+  //! Tempo the loop was recorded at: the loop keeps its own speed.
+  double m_loop_tempo{120.};
+  //! The mode asked for, as the transport takes it up.
+  LoopMode m_mode{LoopMode::Stop};
   double m_job_date{};
   int m_take_slot{};
   int m_takes_written{};
@@ -493,7 +513,14 @@ private:
   void play(int64_t start, int64_t length);
   void begin_pass_grace(int64_t pos);
 
-  int64_t quantize(int64_t pos) const noexcept;
+  struct placed_note
+  {
+    int64_t start;
+    int64_t length;
+  };
+  double grid_frames() const noexcept;
+  int64_t pull(int64_t pos) const noexcept;
+  placed_note place(const Looper::midi_note& n) const noexcept;
 
   void emit(int64_t ts, const libremidi::message& m)
   {
@@ -507,7 +534,12 @@ private:
   void push_outputs();
 
   void run_export();
-  void take_written(int slot, bool ok);
+  void take_written(int slot, int number, bool ok);
+  void write_export_item(int item);
+  int m_export_item{};
+  int m_export_layers{};
+  bool m_export_mix{};
+  int m_export_number{};
   void send_view(int64_t frames);
 };
 
@@ -705,6 +737,7 @@ inline void Node::capture(const tick& tk)
 
   transport.play_captured((m_now - end) % n);
   m_expected_pos = transport.playbackPos;
+  m_loop_tempo = tk.tempo;
 
   const double model_per_frame = ossia_state.samplesToModel();
   m_export_date = (tk.prev_date.impl - (m_now - from) * model_per_frame)
@@ -712,18 +745,45 @@ inline void Node::capture(const tick& tk)
   m_export_pending = true;
 }
 
-inline int64_t Node::quantize(int64_t pos) const noexcept
+inline double Node::grid_frames() const noexcept
+{
+  // The loop's own beats: it keeps the speed it was recorded at.
+  const double tempo = loop.empty() ? m_tempo : m_loop_tempo;
+  return m_rate * 60. / std::max(1., tempo) * 4. * inputs.grid.value;
+}
+
+//! A position pulled towards the grid by the strength, not wrapped.
+inline int64_t Node::pull(int64_t pos) const noexcept
 {
   const float strength = std::clamp(inputs.strength.value, 0.f, 1.f);
-  const double grid = m_rate * 60. / std::max(1., m_tempo) * 4. * inputs.grid.value;
-  if(strength <= 0.f || grid < 1. || loop.length <= 0)
+  const double grid = grid_frames();
+  if(strength <= 0.f || grid < 1.)
     return pos;
   const double target = std::round(pos / grid) * grid;
-  int64_t q = int64_t(std::llround(pos + strength * (target - pos)));
-  q %= loop.length;
-  if(q < 0)
-    q += loop.length;
-  return q;
+  return int64_t(std::llround(pos + strength * (target - pos)));
+}
+
+//! Where a note plays, quantize applied: its start in the loop and its
+//! length. A pulled end never comes before the pulled start: a note whose
+//! two ends fall on one grid point keeps a grid step, or its own length when
+//! it was shorter.
+inline Node::placed_note Node::place(const Looper::midi_note& n) const noexcept
+{
+  const int64_t len = std::max<int64_t>(1, loop.length);
+  const int64_t length = std::clamp<int64_t>(n.length, 1, len - 1);
+  const int64_t on = pull(n.start);
+  int64_t played = length;
+  if(inputs.quantize_ends.value)
+  {
+    played = pull(n.start + length) - on;
+    const int64_t shortest
+        = std::max<int64_t>(1, std::min<int64_t>(length, int64_t(grid_frames())));
+    played = std::clamp<int64_t>(played, shortest, len - 1);
+  }
+  int64_t start = on % len;
+  if(start < 0)
+    start += len;
+  return {start, played};
 }
 
 //! The input messages of [from; to[ of the tick: recorded at pos0 and on when
@@ -944,7 +1004,6 @@ inline void Node::play_range(int64_t k, int64_t k_end, int64_t offset)
   const int64_t len = loop.length;
   const auto mode = inputs.overdub_mode.value;
   const bool truncate = inputs.held.value == HeldNotes::Truncate;
-  const bool ends = inputs.quantize_ends.value;
   auto in_range = [&](int64_t q) { return q >= k && q < k_end; };
 
   // The note-ons and note-offs of the range, applied in time order: a note
@@ -965,13 +1024,10 @@ inline void Node::play_range(int64_t k, int64_t k_end, int64_t offset)
     // end still goes out, the counts keep it from ending anything else.
     const bool heard = loop.heard(n, mode);
 
-    const int64_t on = quantize(n.start);
+    const auto [on, length] = place(n);
     {
-      int64_t length = std::min(n.length, len - 1);
-      int64_t off = ends ? quantize(n.start + length) : on + length;
-      if(off == on)
-        off = on + 1;
-      if(truncate && on + length >= len)
+      int64_t off = on + length;
+      if(truncate && off >= len)
         off = 0; // the loop's end, which is where the next round starts
       off %= len;
       if(in_range(off))
@@ -1021,6 +1077,7 @@ inline void Node::looper_close_take(
 {
   if(mode == LoopMode::Record)
   {
+    m_loop_tempo = transport.loop_tempo(tk, loop.length);
     const double bar_samples = m_rate * 4.
                                * (double(tk.signature.upper) / tk.signature.lower)
                                * (60. / tk.tempo);
@@ -1049,14 +1106,26 @@ inline void Node::looper_close_take(
 
 inline void Node::run_export()
 {
-  if(!m_export_pending || m_writing || !writer || loop.empty())
-    return;
-  m_export_pending = false;
-  m_writing = true;
-  // A take closing while this one is written must not change its date.
-  m_job_date = m_export_date;
+  if(m_export_pending && !m_writing && writer && !loop.empty())
+  {
+    m_export_pending = false;
+    // A take closing while this one is written must not change its date.
+    m_job_date = m_export_date;
+    const auto files = inputs.takes.value;
+    m_export_mix = files != Looper::TakeFiles::Layers;
+    m_export_layers = files != Looper::TakeFiles::Mix ? loop.count : 0;
+    m_export_number = 0;
+    write_export_item(m_export_mix ? -1 : 0);
+  }
+}
 
-  // Only what is heard goes into the take.
+//! Writes one file of the take: what is heard of the loop (item -1), or what
+//! is heard of one of its passes.
+inline void Node::write_export_item(int item)
+{
+  m_export_item = item;
+  m_writing = true;
+
   auto& e = *export_data;
   e.note_count = 0;
   e.control_count = 0;
@@ -1064,19 +1133,24 @@ inline void Node::run_export()
   for(int i = 0; i < loop.note_count; i++)
   {
     auto n = loop.notes[i];
-    if(!loop.heard(n, mode))
+    if(!loop.heard(n, mode) || (item >= 0 && n.pass != item))
       continue;
     if(n.length < 0)
       n.length = loop.distance(n.start, transport.playbackPos % loop.length);
-    n.start = quantize(n.start);
+    const auto placed = place(n);
+    n.start = placed.start;
+    n.length = placed.length;
     e.notes[e.note_count++] = n;
   }
   for(int i = 0; i < loop.control_count; i++)
-    if(loop.heard(loop.controls[i]))
-      e.controls[e.control_count++] = loop.controls[i];
+  {
+    const auto& c = loop.controls[i];
+    if(loop.heard(c) && (item < 0 || c.pass == item))
+      e.controls[e.control_count++] = c;
+  }
   e.length = loop.length;
   e.rate = m_rate;
-  e.tempo = m_tempo;
+  e.tempo = m_loop_tempo;
   e.meter_numerator = m_signature.upper;
   e.meter_denominator = m_signature.lower;
   e.wrap = inputs.held.value == HeldNotes::Wrap;
@@ -1085,18 +1159,26 @@ inline void Node::run_export()
   job.writer = writer;
   job.data = export_data;
   job.slot = m_take_slot;
+  job.number = m_export_number;
+  job.layer = item;
   worker.request(std::move(job));
 }
 
-inline void Node::take_written(int slot, bool ok)
+inline void Node::take_written(int slot, int number, bool ok)
 {
   m_writing = false;
   if(!ok || !writer)
     return;
+
+  m_export_number = number;
+  if(m_export_item + 1 < m_export_layers)
+  {
+    write_export_item(m_export_item + 1);
+    return;
+  }
+
   m_takes_written++;
-  const auto& path = writer->path(slot);
-  std::copy_n(path.data(), std::min(path.size() + 1, m_view.take_path.size()), m_view.take_path.data());
-  m_view.take_path.back() = 0;
+  m_view.set_take(writer->take_base(slot), "mid", m_export_mix, m_export_layers);
   m_view.take = m_takes_written;
   m_view.take_date = m_job_date;
   m_take_slot = (slot + 1) % Looper::take_writer::slots;
@@ -1125,7 +1207,7 @@ inline void Node::send_view(int64_t frames)
   v.empty = loop.empty();
   v.mode = int(transport.actualMode);
   v.requested = int(transport.quantizedPlayMode);
-  v.wanted = int(inputs.mode.value);
+  v.wanted = int(m_mode);
   v.layers = loop.count;
   v.redo = loop.total - loop.count;
   v.lanes = std::min(loop.count, Looper::view_message::max_lanes);
