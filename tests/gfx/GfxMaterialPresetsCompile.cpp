@@ -22,11 +22,15 @@ TEST_CASE(
     "[gfx][presets][material]")
 {
   const auto api = GENERATE(from_range(platform_backends()));
+  // The shading tiers that sample the pool (csf-examples d8e4b99 / 3b30283
+  // replaced classic_pbr_full and classic_pbr_textured, archived).
   const auto preset = GENERATE(
-      std::pair{"classic_pbr_full.vert", "classic_pbr_full.frag"},
+      std::pair{"classic_pbr.vert", "classic_pbr.frag"},
+      std::pair{"classic_pbr_cube.vert", "classic_pbr_cube.frag"},
       std::pair{"classic_pbr_openpbr.vert", "classic_pbr_openpbr.frag"},
-      std::pair{"classic_pbr_textured.vert", "classic_pbr_textured.frag"},
       std::pair{"classic_pbr_skinned.vert", "classic_pbr_skinned.frag"},
+      std::pair{"pbr_fast.vert", "pbr_fast.frag"},
+      std::pair{"blinn_phong.vert", "blinn_phong.frag"},
       std::pair{"g6_cluster_probe.vert", "g6_cluster_probe.frag"});
   CAPTURE(backend_name(api));
   CAPTURE(preset.second);
@@ -34,11 +38,22 @@ TEST_CASE(
   const QString rel = QStringLiteral("presets/rasterizers/");
   const QString vs = library::find(rel + QLatin1String(preset.first));
   const QString fs = library::find(rel + QLatin1String(preset.second));
-  if(vs.isEmpty() || fs.isEmpty())
+  // Without a library there is nothing to compile; with one, a preset it does
+  // not have is a stale list, not a skip (this list named two archived
+  // presets and skipped in silence).
+  if(library::root().isEmpty())
     SKIP(library::skip_reason(rel + QLatin1String(preset.second)));
+  INFO(library::skip_reason(rel + QLatin1String(preset.second)));
+  REQUIRE(!vs.isEmpty());
+  REQUIRE(!fs.isEmpty());
+  // Not a SKIP: one skipped generator value reports the whole case skipped,
+  // which hid every other preset's result.
   if(api == score::gfx::OpenGL
      && std::string_view{preset.second} == "classic_pbr_openpbr.frag")
-    SKIP("classic_pbr_openpbr binds more fragment storage buffers than OpenGL offers");
+  {
+    SUCCEED("classic_pbr_openpbr binds more fragment storage buffers than OpenGL offers");
+    return;
+  }
 
   bool skipped = false;
   std::string err;
