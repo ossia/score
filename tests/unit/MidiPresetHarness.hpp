@@ -3,12 +3,19 @@
 // Loads the presets of an object from a package's Presets folder (the .scp
 // files score saves) and applies them to the object's `inputs`, the way the
 // avnd process maps them: preset entry N is input field N, ports included.
+//
+// The presets come from tests/fixtures/presets, a copy of the folders of the
+// default package that the tests read; SCORE_PRESETS_ROOT points them at
+// another library, e.g. to check a package before it is published.
 
 #include <avnd/common/aggregates.hpp>
 #include <avnd/introspection/range.hpp>
 #include <avnd/introspection/widgets.hpp>
 
+#include <catch2/catch_test_macros.hpp>
+
 #include <QDir>
+#include <QFileInfo>
 #include <QFile>
 #include <QJsonArray>
 #include <QJsonDocument>
@@ -32,19 +39,30 @@ struct preset
   QJsonArray values;
 };
 
-//! SCORE_PRESETS_ROOT, or the default package of the user library.
+//! SCORE_PRESETS_ROOT, or the fixtures of the source tree the test was built from.
 inline QString presets_root()
 {
-  if(const char* env = std::getenv("SCORE_PRESETS_ROOT"))
+  if(const char* env = std::getenv("SCORE_PRESETS_ROOT"); env && *env)
     return QString::fromUtf8(env);
-  return QDir::homePath() + "/Documents/ossia/score/packages/default/Presets";
+#if defined(SCORE_TEST_PRESETS_ROOT)
+  return QStringLiteral(SCORE_TEST_PRESETS_ROOT);
+#else
+  return {};
+#endif
 }
 
 //! Every .scp of `folder` (relative to presets_root()) whose key is `uuid`.
+//! Skips the running test when the folder is absent: the binary was moved away
+//! from its source tree, and counting what is there would test nothing.
 inline std::vector<preset> load(const QString& folder, const QString& uuid)
 {
   std::vector<preset> res;
-  QDir dir{presets_root() + "/" + folder};
+  const QString root = presets_root();
+  QDir dir{root + "/" + folder};
+  if(root.isEmpty() || !dir.exists())
+    SKIP(
+        "no preset folder " << QString(root + "/" + folder).toStdString()
+                            << " (set SCORE_PRESETS_ROOT)");
   for(const auto& fi : dir.entryInfoList({"*.scp"}, QDir::Files, QDir::Name))
   {
     QFile f{fi.absoluteFilePath()};

@@ -1,0 +1,1 @@
+{"Key":{"Uuid":"5ba4e20c-8936-43ab-aee5-8ac4555e05c1","Effect":""},"Name":"Short ratchet","Category":"Loop","Preset":[[1,{"Vec2f":[0.03125,1]}],[2,{"Int":4}],[3,{"Bool":false}],[4,{"Float":0.9}],[5,{"Int":1}],[6,{"Int":0}],[7,{"Float":0.5}],[8,{"Bool":true}],[9,{"Vec2f":[0.015625,1]}],[10,{"Bool":false}]]}

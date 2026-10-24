@@ -1,0 +1,1 @@
+{"Key":{"Uuid":"aa7c1ae5-495e-436e-a079-e3f1a19861bb","Effect":""},"Name":"MTC 30 fps starting at one hour","Category":"Timecode","Preset":[[0,{"String":"Disabled"}],[1,{"String":"Disabled"}],[2,{"String":"Enabled"}],[3,{"Int":3600}],[4,{"String":"30"}],[5,{"String":"Score"}],[6,{"Float":120.0}],[11,{"Bool":false}],[12,{"Bool":false}],[13,{"String":"x1"}],[14,{"Float":0.0}]]}

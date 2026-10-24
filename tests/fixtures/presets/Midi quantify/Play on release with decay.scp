@@ -1,0 +1,1 @@
+{"Key":{"Uuid":"a0cb1144-05a8-4f9b-b22c-81cd964314fb","Effect":""},"Name":"Play on release with decay","Category":"Release","Preset":[[1,{"Vec2f":[0.0625,1]}],[2,{"Float":1.0}],[3,{"String":"UntilNoteOff"}],[4,{"Vec2f":[0.0625,1]}],[5,{"Float":1.0}],[6,{"Bool":true}],[7,{"Float":0.2}],[8,{"Int":1}],[9,{"Int":0}]]}
