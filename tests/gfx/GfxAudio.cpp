@@ -160,3 +160,43 @@ TEST_CASE(
   CHECK(c[1] > 240);
   CHECK(c[2] < 16);
 }
+
+// A temporal audio buffer shorter than the texture it uploads into (the
+// buffer shrank: a host block-size change) was not uploaded, so the texture
+// kept the previous buffer for that frame. It is resampled to the texture
+// width: the frame shows the new buffer.
+TEST_CASE("a temporal audio buffer that shrinks is shown the frame it arrives", "[gfx][l3][isf][audio]")
+{
+  const auto backend = GENERATE(from_range(platform_backends()));
+  CAPTURE(backend_name(backend));
+  ReadbackImage img;
+  bool skipped = false;
+  std::string error;
+  score::test::run_in_gui_app([&](const score::GUIApplicationContext&) {
+    GfxPipeline p;
+    const int n = p.addIsf(corpus("isf-audio-const.fs"));
+    if(n < 0)
+    {
+      error = p.error();
+      return;
+    }
+    const int sink = p.addSink({64, 64});
+    p.wire(p.imageOut(n, 0), p.sinkInput(sink));
+    if(!p.create(backend))
+    {
+      skipped = p.skipped();
+      error = skipped ? std::string{} : p.error();
+      return;
+    }
+    setAudio(*p.isf(n), 0, const_audio(0.0, 256));
+    p.render(4);
+    setAudio(*p.isf(n), 0, const_audio(0.6, 128));
+    p.render(1);
+    img = p.readback(sink);
+  });
+  if(skipped)
+    SKIP("backend unavailable");
+  INFO(error);
+  REQUIRE(error.empty());
+  check_uniform(img, expect_level(0.6), 3);
+}
