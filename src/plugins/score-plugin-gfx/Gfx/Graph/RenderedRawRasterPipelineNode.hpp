@@ -327,6 +327,11 @@ private:
   // Emit the SRB bindings for m_auxTextureSamplers, advancing `binding`.
   // Shared by initPass and initMRTPass so the two can never disagree about
   // how many slots a ladder consumes.
+  // Whether this shader cannot be built on the current backend at all; warns
+  // once.
+  bool refusesBackend(const RenderList& renderer);
+  bool m_backendRefusalLogged{false};
+
   void requestIndirectCommandBuffers(
       QRhiGraphicsPipeline& ps, const QRhi& rhi, const QShader& vs,
       const QShader& fs);

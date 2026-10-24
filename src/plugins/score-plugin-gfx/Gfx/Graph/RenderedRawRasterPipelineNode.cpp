@@ -1285,6 +1285,28 @@ void RenderedRawRasterPipelineNode::applyPointQuads(
   plan.point_quads = true;
 }
 
+bool RenderedRawRasterPipelineNode::refusesBackend(const RenderList& renderer)
+{
+  // MSL has clip distances but no cull distances, and SPIRV-Cross emits a
+  // vertex function that does not compile. Say so once instead of the
+  // compiler's errors on every pipeline build; nothing is drawn.
+  const auto& desc = n.descriptor();
+  if(renderer.state.api == GraphicsApi::Metal && desc.cull_distances > 0)
+  {
+    if(!m_backendRefusalLogged)
+    {
+      m_backendRefusalLogged = true;
+      qWarning().noquote()
+          << "RawRaster: CULL_DISTANCES has no Metal equivalent; this shader is not"
+             " drawn on Metal. Cull in the vertex shader instead (move the"
+             " primitive out of the clip volume)."
+          << QString::fromStdString(desc.description);
+    }
+    return true;
+  }
+  return false;
+}
+
 void RenderedRawRasterPipelineNode::requestIndirectCommandBuffers(
     QRhiGraphicsPipeline& ps, const QRhi& rhi, const QShader& vs, const QShader& fs)
 {
@@ -1325,6 +1347,9 @@ void RenderedRawRasterPipelineNode::initPass(
         self.releaseLayerTargets(&edge);
     }
   } layerCleanup{*this, edge, internalLayer};
+
+  if(refusesBackend(renderer))
+    return;
 
   QRhiBuffer* pubo{};
   pubo = rhi.newBuffer(
@@ -1545,6 +1570,7 @@ void RenderedRawRasterPipelineNode::initPass(
 
     ps->setShaderStages({{QRhiShaderStage::Vertex, v}, {QRhiShaderStage::Fragment, s}});
     requestIndirectCommandBuffers(*ps, rhi, v, s);
+    dropStencilWithoutAttachment(*ps, renderTarget.hasStencil(), desc.description);
 
     ps->setShaderResourceBindings(bindings);
 
@@ -1651,6 +1677,12 @@ void RenderedRawRasterPipelineNode::initMRTPass(
   for(auto* srb : m_perInvocationSRBs)
     if(srb) srb->deleteLater();
   m_perInvocationSRBs.clear();
+
+  // A shader the backend cannot run draws nothing (refusesBackend warns):
+  // allocate none of its targets, and publish none for consumers to read
+  // uninitialised.
+  if(refusesBackend(renderer))
+    return;
 
   // Honour OUTPUTS.WIDTH / HEIGHT when declared, otherwise the renderer's
   // render size. A RAW_RASTER_PIPELINE shader has one shared render pass, so
@@ -2942,6 +2974,8 @@ void RenderedRawRasterPipelineNode::initMRTPass(
 
     ps->setShaderStages({{QRhiShaderStage::Vertex, v}, {QRhiShaderStage::Fragment, s}});
     requestIndirectCommandBuffers(*ps, rhi, v, s);
+    dropStencilWithoutAttachment(
+        *ps, m_mrtRenderTarget.hasStencil(), n.descriptor().description);
     ps->setShaderResourceBindings(bindings);
 
     SCORE_ASSERT(pipelineRP);

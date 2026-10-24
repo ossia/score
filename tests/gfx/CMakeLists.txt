@@ -1620,6 +1620,9 @@ score_add_gfx_test(raster_output_size_expression GfxRasterOutputSizeExpression.c
 score_add_gfx_test(raster_iteration_attachments GfxRasterIterationAttachments.cpp)
 score_add_gfx_test(raster_iteration_msaa GfxRasterIterationMsaa.cpp)
 score_add_gfx_test(raster_iteration_depth GfxRasterIterationDepth.cpp)
+# A raw raster the backend refuses (CULL_DISTANCES on Metal) allocates no
+# iteration targets.
+score_add_gfx_test(raw_raster_cull_distances GfxRawRasterCullDistances.cpp)
 score_add_gfx_test(raster_aux_offset GfxRasterAuxOffset.cpp)
 score_add_gfx_test(raster_ubo_extent GfxRasterUboExtent.cpp)
 score_add_gfx_test(csf_uniform_input_range GfxCsfUniformInputRange.cpp)
