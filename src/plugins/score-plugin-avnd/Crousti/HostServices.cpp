@@ -17,6 +17,7 @@
 #include <QMimeData>
 #include <QUrl>
 
+#include <algorithm>
 #include <chrono>
 #include <vector>
 
@@ -109,7 +110,11 @@ void sendToTimeline(
     return;
   }
 
-  const TimeVal start = offset + TimeVal::fromMsecs(clip.date * 1000.);
+  // A take that began before the scenario did, e.g. a capture of what was
+  // heard before the looper's box started, is placed at the scenario's start:
+  // whole, rather than cut short by the time it is early.
+  const TimeVal start
+      = std::max<TimeVal>(offset + TimeVal::fromMsecs(clip.date * 1000.), TimeVal::zero());
   const TimeVal duration
       = handlers.getMaxDuration(drops).value_or(TimeVal::fromMsecs(10000.));
   const double y = std::clamp(

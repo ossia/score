@@ -303,6 +303,10 @@ struct Node
     loop.length = end;
     loop.pass_written = end;
   }
+  int64_t looper_trim_extension(int64_t max_frames);
+
+  //! Longest loop an extending overdub makes, as the audio looper's longest.
+  static constexpr double max_loop_seconds = 3600.;
 
   using tick = ossia::token_request;
   void operator()(const tick& tk)
@@ -561,6 +565,12 @@ private:
   void run_export();
   void take_written(int slot, int number, bool ok);
   void write_export_item(int item);
+  //! The loop as it was when the take closed, which every file of the take
+  //! is made from: the loop changes while they are written.
+  Looper::midi_loop m_export_loop;
+  int64_t m_export_pos{};
+  double m_export_tempo{120.};
+  ossia::time_signature m_export_signature{4, 4};
   int m_export_item{};
   int m_export_layers{};
   bool m_export_mix{};
@@ -1040,13 +1050,13 @@ inline void Node::advance(int64_t start, int64_t length, bool overdub)
                               : int64_t(std::ceil(out_end - 1e-9));
     handle_input(from, to, ph + (from - out) * r, overdub, r);
     if(overdub)
-      loop.pass_written += int64_t(b - ph);
+      loop.advance_pass(b - ph);
 
     out += seg_out;
     ph = b;
     if(ph >= L - 1e-9)
     {
-      if(extend && loop.extend(m_extend_unit))
+      if(extend && loop.extend(m_extend_unit, int64_t(max_loop_seconds * m_rate)))
       {
         m_extended = true;
       }
@@ -1071,8 +1081,21 @@ inline void Node::play_range(double a, double b, double out0, double r)
   const int64_t len = loop.length;
   const auto mode = inputs.overdub_mode.value;
   const bool truncate = inputs.held.value == HeldNotes::Truncate;
-  auto in_range = [&](int64_t q) { return q >= a && q < b; };
   auto frame = [&](int64_t q) { return int64_t(out0 + (q - a) / r); };
+  // The whole positions in [a; b[.
+  const int64_t lo = int64_t(std::ceil(a));
+  const int64_t hi = std::min(len, int64_t(std::ceil(b)));
+  // The repeats first + i * period of the loop that fall in [from; to[: a
+  // long loop over a short pass is not gone through repeat by repeat.
+  auto repeats = [len](int64_t first, int64_t period, int64_t from, int64_t to, auto f) {
+    from = std::max(from, first);
+    to = std::min(to, len);
+    if(from >= to)
+      return;
+    for(int64_t q = first + (from - first + period - 1) / period * period; q < to;
+        q += period)
+      f(q);
+  };
 
   // The note-ons and note-offs of the range, applied in time order: a note
   // starting and ending in one range must not end before it starts.
@@ -1095,17 +1118,20 @@ inline void Node::play_range(double a, double b, double out0, double r)
     // A pass shorter than the loop plays again over the rest of it.
     const int64_t period = std::clamp<int64_t>(loop.period_of(n.pass), 1, len);
     const auto [first, length] = place(n, period);
-    for(int64_t on = first; on < len; on += period)
-    {
-      int64_t off = on + length;
-      if(truncate && off >= len)
-        off = 0; // the loop's end, which is where the next round starts
-      off %= len;
-      if(in_range(off))
-        add(off, false, i);
-      if(heard && in_range(on))
-        add(on, true, i);
-    }
+    if(heard)
+      repeats(first, period, lo, hi, [&](int64_t on) { add(on, true, i); });
+    // The ends inside the loop, then the ones past its end: those wrap to its
+    // start, or, truncated, are on the loop's end, which is where the next
+    // round starts.
+    repeats(first, period, lo - length, std::min(hi, len) - length, [&](int64_t on) {
+      add(on + length, false, i);
+    });
+    if(!truncate)
+      repeats(first, period, lo - length + len, hi - length + len, [&](int64_t on) {
+        add(on + length - len, false, i);
+      });
+    else if(lo <= 0 && 0 < hi)
+      repeats(first, period, len - length, len, [&](int64_t) { add(0, false, i); });
   }
   std::sort(m_range.begin(), m_range.begin() + count, [](const range_event& a, const range_event& b) {
     if(a.pos != b.pos)
@@ -1132,10 +1158,7 @@ inline void Node::play_range(double a, double b, double out0, double r)
     if(!loop.heard(c))
       continue;
     const int64_t period = std::clamp<int64_t>(loop.period_of(c.pass), 1, len);
-    for(int64_t q = c.pos % period; q < len; q += period)
-    {
-      if(!in_range(q))
-        continue;
+    repeats(c.pos % period, period, lo, hi, [&](int64_t q) {
       libremidi::message m;
       const uint8_t kind = c.status & 0xF0;
       const int ch = m_out_channel > 0 ? m_out_channel : (c.status & 0x0F) + 1;
@@ -1145,7 +1168,7 @@ inline void Node::play_range(double a, double b, double out0, double r)
       else
         m = libremidi::message{status, c.data1, c.data2};
       emit(frame(q), m);
-    }
+    });
   }
 }
 
@@ -1177,37 +1200,43 @@ inline void Node::looper_close_take(
     loop.pass_written = loop.length;
     m_export_date = transport.recordStartDate.impl / double(ossia::flicks_per_second<int64_t>);
   }
-  else if(m_extended && m_extend_unit > 0)
-  {
-    // An extending pass asked to stop just after the loop grew ends on the
-    // old end, as a late stop would.
-    const int64_t into_last = transport.playbackPos - (loop.length - m_extend_unit);
-    if(into_last >= 0 && into_last <= int64_t(inputs.late.value * m_rate / 1000.)
-       && loop.length - m_extend_unit >= m_extend_unit)
-    {
-      const int64_t end = loop.length - m_extend_unit;
-      const int pass = loop.count - 1;
-      loop.note_count = int(
-          std::remove_if(
-              loop.notes.begin(), loop.notes.begin() + loop.note_count,
-              [=](const Looper::midi_note& n) { return n.pass == pass && n.start >= end; })
-          - loop.notes.begin());
-      loop.control_count = int(
-          std::remove_if(
-              loop.controls.begin(), loop.controls.begin() + loop.control_count,
-              [=](const Looper::midi_control& c) { return c.pass == pass && c.pos >= end; })
-          - loop.controls.begin());
-      loop.length = end;
-      transport.playbackPos = into_last;
-      m_phase = double(into_last);
-      m_expected_pos = into_last;
-    }
-  }
   m_extended = false;
   if(loop.count > 0)
     loop.loop_after[loop.count - 1] = loop.length;
   loop.end_pass(inputs.overdub_mode);
   m_export_pending = true;
+}
+
+//! An extending pass asked to stop just after the loop grew ends on the old
+//! end, as a late stop would: what it played since is dropped.
+inline int64_t Node::looper_trim_extension(int64_t max_frames)
+{
+  if(!m_extended || m_extend_unit <= 0 || loop.count == 0)
+    return -1;
+  const int64_t end = loop.length - m_extend_unit;
+  const int64_t into_last = transport.playbackPos - end;
+  if(into_last < 0 || into_last > max_frames || end < m_extend_unit)
+    return -1;
+
+  const int pass = loop.count - 1;
+  loop.note_count = int(
+      std::remove_if(
+          loop.notes.begin(), loop.notes.begin() + loop.note_count,
+          [=](const Looper::midi_note& n) { return n.pass == pass && n.start >= end; })
+      - loop.notes.begin());
+  loop.control_count = int(
+      std::remove_if(
+          loop.controls.begin(), loop.controls.begin() + loop.control_count,
+          [=](const Looper::midi_control& c) { return c.pass == pass && c.pos >= end; })
+      - loop.controls.begin());
+  loop.length = end;
+  // The pass went from where it started to the old end, and no further.
+  loop.pass_written = std::clamp<int64_t>(end - loop.pass_start, 0, loop.pass_written);
+  loop.pass_progress = double(loop.pass_written);
+  m_phase = double(into_last);
+  m_expected_pos = into_last;
+  m_extended = false;
+  return into_last;
 }
 
 inline void Node::run_export()
@@ -1221,6 +1250,10 @@ inline void Node::run_export()
     m_export_mix = files != Looper::TakeFiles::Layers;
     m_export_layers = files != Looper::TakeFiles::Mix ? loop.count : 0;
     m_export_number = 0;
+    m_export_loop.assign(loop);
+    m_export_pos = loop.length > 0 ? transport.playbackPos % loop.length : 0;
+    m_export_tempo = m_loop_tempo;
+    m_export_signature = m_signature;
     write_export_item(m_export_mix ? -1 : 0);
   }
 }
@@ -1236,17 +1269,18 @@ inline void Node::write_export_item(int item)
   e.note_count = 0;
   e.control_count = 0;
   const auto mode = inputs.overdub_mode.value;
-  for(int i = 0; i < loop.note_count; i++)
+  const auto& snap = m_export_loop;
+  for(int i = 0; i < snap.note_count; i++)
   {
-    auto n = loop.notes[i];
-    if(!loop.heard(n, mode) || (item >= 0 && n.pass != item))
+    auto n = snap.notes[i];
+    if(!snap.heard(n, mode) || (item >= 0 && n.pass != item))
       continue;
     if(n.length < 0)
-      n.length = loop.distance(n.start, transport.playbackPos % loop.length);
+      n.length = snap.distance(n.start, m_export_pos);
     // A pass shorter than the loop is in the file as many times as it plays.
-    const int64_t period = std::clamp<int64_t>(loop.period_of(n.pass), 1, loop.length);
+    const int64_t period = std::clamp<int64_t>(snap.period_of(n.pass), 1, snap.length);
     const auto placed = place(n, period);
-    for(int64_t on = placed.start; on < loop.length; on += period)
+    for(int64_t on = placed.start; on < snap.length; on += period)
     {
       if(e.note_count >= Looper::midi_loop::max_notes)
         break;
@@ -1255,13 +1289,13 @@ inline void Node::write_export_item(int item)
       e.notes[e.note_count++] = n;
     }
   }
-  for(int i = 0; i < loop.control_count; i++)
+  for(int i = 0; i < snap.control_count; i++)
   {
-    const auto& c = loop.controls[i];
-    if(!loop.heard(c) || (item >= 0 && c.pass != item))
+    const auto& c = snap.controls[i];
+    if(!snap.heard(c) || (item >= 0 && c.pass != item))
       continue;
-    const int64_t period = std::max<int64_t>(1, std::min<int64_t>(loop.period_of(c.pass), loop.length));
-    for(int64_t q = c.pos % period; q < loop.length; q += period)
+    const int64_t period = std::max<int64_t>(1, std::min<int64_t>(snap.period_of(c.pass), snap.length));
+    for(int64_t q = c.pos % period; q < snap.length; q += period)
     {
       if(e.control_count >= Looper::midi_loop::max_controls)
         break;
@@ -1269,11 +1303,11 @@ inline void Node::write_export_item(int item)
       e.controls[e.control_count++].pos = q;
     }
   }
-  e.length = loop.length;
+  e.length = snap.length;
   e.rate = m_rate;
-  e.tempo = m_loop_tempo;
-  e.meter_numerator = m_signature.upper;
-  e.meter_denominator = m_signature.lower;
+  e.tempo = m_export_tempo;
+  e.meter_numerator = m_export_signature.upper;
+  e.meter_denominator = m_export_signature.lower;
   e.wrap = inputs.held.value == HeldNotes::Wrap;
 
   Looper::midi_take_job job;

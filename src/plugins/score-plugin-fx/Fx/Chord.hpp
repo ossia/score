@@ -124,6 +124,10 @@ struct Node
   halp_meta(description, "Generate a chord from a single note")
   halp_meta(uuid, "F0904279-EA26-48DB-B0DF-F68FE3091DA1");
   halp_flag(process_exec);
+  // The stop's extra, empty tick runs in the same buffer as the last, partial
+  // one: the output of both is kept until the graph's next execution.
+  halp_meta(local_midi_tick_batch, true)
+  halp_meta(local_midi_tick_batch_reserve, 4096)
 
   //! The first six are saved in documents by name and keep their notes; the
   //! others follow mtk::chord_types, in its order.
@@ -850,8 +854,12 @@ private:
           release_channel(ch, ts);
           break;
         }
-        if(m.size() >= 3 && m.bytes[1] == 74 && forward_expression(m, ch, -1))
-          return;
+        if(m.size() >= 3 && m.bytes[1] == 74)
+        {
+          m_in_timbre[ch - 1] = int16_t(m.bytes[2] & 127);
+          if(forward_expression(m, ch, -1))
+            return;
+        }
         break;
       case mtk::midi_kind::pitch_bend:
         if(m.size() >= 3)
@@ -860,6 +868,8 @@ private:
           return;
         break;
       case mtk::midi_kind::channel_pressure:
+        if(m.size() >= 2)
+          m_in_pressure[ch - 1] = int16_t(m.bytes[1] & 127);
         if(forward_expression(m, ch, -1))
           return;
         break;
@@ -998,6 +1008,8 @@ private:
     const auto ch = m_alloc.allocate(m_now + ts, [this] { return random01(); });
     if(!ch)
       return;
+    // The voice's channel takes on the expression of the input channel
+    // before its note starts
     const int16_t bend = m_in_bend[in_ch - 1];
     if(m_out_bend[*ch - 1] != bend)
     {
@@ -1005,6 +1017,20 @@ private:
       b.timestamp = ts;
       outputs.midi.push_back(std::move(b));
       m_out_bend[*ch - 1] = bend;
+    }
+    if(const int16_t p = m_in_pressure[in_ch - 1]; m_out_pressure[*ch - 1] != p)
+    {
+      auto b = libremidi::channel_events::aftertouch(*ch, uint8_t(p));
+      b.timestamp = ts;
+      outputs.midi.push_back(std::move(b));
+      m_out_pressure[*ch - 1] = p;
+    }
+    if(const int16_t t = m_in_timbre[in_ch - 1]; m_out_timbre[*ch - 1] != t)
+    {
+      auto b = libremidi::channel_events::control_change(*ch, 74, uint8_t(t));
+      b.timestamp = ts;
+      outputs.midi.push_back(std::move(b));
+      m_out_timbre[*ch - 1] = t;
     }
     m_mpe_voice[*ch - 1][pitch] = true;
     m_tracker.play(h, *ch, pitch, vel, ts, send);
@@ -1056,8 +1082,20 @@ private:
         sent |= uint16_t(1u << (o.channel - 1));
         auto c = m;
         mtk::set_channel(c, o.channel);
-        if(mtk::classify(c) == mtk::midi_kind::pitch_bend)
-          m_out_bend[o.channel - 1] = m_in_bend[ch - 1];
+        switch(mtk::classify(c))
+        {
+          case mtk::midi_kind::pitch_bend:
+            m_out_bend[o.channel - 1] = m_in_bend[ch - 1];
+            break;
+          case mtk::midi_kind::channel_pressure:
+            m_out_pressure[o.channel - 1] = m_in_pressure[ch - 1];
+            break;
+          case mtk::midi_kind::control_change:
+            m_out_timbre[o.channel - 1] = m_in_timbre[ch - 1];
+            break;
+          default:
+            break;
+        }
         outputs.midi.push_back(std::move(c));
       }
     }
@@ -1129,6 +1167,13 @@ private:
   std::array<int16_t, 16> m_in_bend{8192, 8192, 8192, 8192, 8192, 8192, 8192, 8192,
                                     8192, 8192, 8192, 8192, 8192, 8192, 8192, 8192};
   std::array<int16_t, 16> m_out_bend{m_in_bend};
+  //! Channel pressure and CC 74 by input channel, and as last sent on each
+  //! output channel; from the MPE defaults, no pressure and a centred timbre.
+  std::array<int16_t, 16> m_in_pressure{};
+  std::array<int16_t, 16> m_out_pressure{};
+  std::array<int16_t, 16> m_in_timbre{64, 64, 64, 64, 64, 64, 64, 64,
+                                      64, 64, 64, 64, 64, 64, 64, 64};
+  std::array<int16_t, 16> m_out_timbre{m_in_timbre};
 
   double m_rate{48000.};
   int64_t m_now{};

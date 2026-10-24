@@ -61,7 +61,8 @@ struct driver
     now += frames;
   }
 
-  //! Start, then `clocks` clocks, one per tick at timestamp `ts`.
+  //! Start, then `clocks` clocks at 120 BPM: one per tick of 1000 frames, at
+  //! timestamp `ts`.
   void start_and_clock(int clocks, int ts = 100)
   {
     send({0xFA}, 0);
@@ -69,9 +70,12 @@ struct driver
     for(int i = 0; i < clocks; i++)
     {
       send({0xF8}, ts);
-      tick();
+      tick(clock_frames);
     }
   }
+
+  //! Frames between two clocks at 120 BPM.
+  static constexpr int clock_frames = 1000;
 
   //! The eight quarter frames of a time code.
   void quarter_frames(int h, int m, int s, int f, int code)
@@ -182,19 +186,20 @@ TEST_CASE("MIDI Sync In preset: follow MTC 25 fps", "[presets][midi_sync_in]")
   const auto all = load_all();
   driver d;
   apply(d, all, "Follow MTC 25 fps");
+  // 00:01:02:10, two frames later when the last piece arrives
   d.quarter_frames(0, 1, 2, 10, 0b01);
   CHECK(d.fx.outputs.mtc_active.value);
   CHECK(d.fx.outputs.valid.value);
   CHECK(d.fx.outputs.frame_rate.value == Approx(25.));
-  CHECK(d.fx.outputs.timecode.value == Approx(62.4).margin(1e-6));
+  CHECK(d.fx.outputs.timecode.value == Approx(62.48).margin(1e-6));
 
   // Clocks do not move an MTC-only position.
   for(int i = 0; i < 24; i++)
   {
     d.send({0xF8});
-    d.tick();
+    d.tick(d.clock_frames);
   }
-  CHECK(d.fx.outputs.timecode.value == Approx(62.4).margin(1e-6));
+  CHECK(d.fx.outputs.timecode.value == Approx(62.48).margin(1e-6));
 }
 
 TEST_CASE("MIDI Sync In preset: follow MTC from a full frame", "[presets][midi_sync_in]")
@@ -216,15 +221,15 @@ TEST_CASE("MIDI Sync In preset: MTC with clock interpolation", "[presets][midi_s
   apply(d, all, "MTC with clock interpolation");
   d.quarter_frames(0, 0, 10, 0, 0b01);
   CHECK(d.fx.outputs.frame_rate.value == Approx(25.));
-  CHECK(d.fx.outputs.timecode.value == Approx(10.).margin(1e-6));
+  CHECK(d.fx.outputs.timecode.value == Approx(10.08).margin(1e-6));
   // Half a beat of clocks at 120 BPM: a quarter of a second more.
   for(int i = 0; i < 12; i++)
   {
     d.send({0xF8});
-    d.tick();
+    d.tick(d.clock_frames);
   }
   CHECK(d.fx.outputs.clock_active.value);
-  CHECK(d.fx.outputs.timecode.value == Approx(10.25).margin(1e-6));
+  CHECK(d.fx.outputs.timecode.value == Approx(10.33).margin(1e-6));
 }
 
 TEST_CASE("MIDI Sync In preset: timecode in milliseconds", "[presets][midi_sync_in]")
@@ -233,13 +238,13 @@ TEST_CASE("MIDI Sync In preset: timecode in milliseconds", "[presets][midi_sync_
   driver d;
   apply(d, all, "Timecode in milliseconds");
   d.quarter_frames(0, 0, 10, 0, 0b01);
-  CHECK(d.fx.outputs.timecode.value == Approx(10000.).margin(1e-3));
+  CHECK(d.fx.outputs.timecode.value == Approx(10080.).margin(1e-3));
   for(int i = 0; i < 12; i++)
   {
     d.send({0xF8});
-    d.tick();
+    d.tick(d.clock_frames);
   }
-  CHECK(d.fx.outputs.timecode.value == Approx(10250.).margin(1e-3));
+  CHECK(d.fx.outputs.timecode.value == Approx(10330.).margin(1e-3));
 }
 
 TEST_CASE("MIDI Sync In preset: MTC at 30 fps decodes as 30 fps", "[presets][midi_sync_in]")
@@ -250,7 +255,7 @@ TEST_CASE("MIDI Sync In preset: MTC at 30 fps decodes as 30 fps", "[presets][mid
   // Rate code 3 is 30 fps, code 2 is 29.97 drop frame.
   d.quarter_frames(0, 0, 10, 15, 0b11);
   CHECK(d.fx.outputs.frame_rate.value == Approx(30.));
-  CHECK(d.fx.outputs.timecode.value == Approx(10.5).margin(1e-6));
+  CHECK(d.fx.outputs.timecode.value == Approx(10. + 17. / 30.).margin(1e-6));
 }
 
 TEST_CASE("MIDI Sync In preset: clock dividers", "[presets][midi_sync_in]")

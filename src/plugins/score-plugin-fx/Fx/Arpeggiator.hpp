@@ -68,6 +68,11 @@ struct Engine
 
   ossia::flat_map<byte, byte> notes;
   ossia::small_vector<chord, 10> arpeggio;
+  //! The Chord pattern's single step. It holds every note and its octave
+  //! copies, more than a chord's inline storage: kept apart from `arpeggio`,
+  //! whose steps are destroyed and made again at each update, so that its
+  //! storage is allocated once.
+  chord m_chord;
   std::array<int8_t, 128> in_flight{};
   //! The held notes in the order they came, for "As played".
   std::array<byte, 128> order{};
@@ -93,6 +98,8 @@ struct Engine
   //! over 6 octaves above and 6 below.
   static constexpr std::size_t max_steps
       = 128 * 2 * max_repeat * (2 * (max_octave - 1) + 1);
+  //! The largest chord: 128 notes, each copied over 6 octaves above and 6 below.
+  static constexpr std::size_t max_chord = 128 * (2 * (max_octave - 1) + 1);
 
   Engine()
   {
@@ -100,6 +107,13 @@ struct Engine
     // past these
     notes.reserve(128);
     arpeggio.reserve(max_steps);
+    m_chord.reserve(max_chord);
+  }
+
+  //! The notes of a step of the arpeggio.
+  const chord& step(std::size_t i) const noexcept
+  {
+    return previous_arpeggio == 4 ? m_chord : arpeggio[i];
   }
 
   void update()
@@ -130,11 +144,14 @@ struct Engine
         break;
       case 4: // Chord - all notes play simultaneously, octaves expand the chord
       {
+        // A single step, played from m_chord: an empty one in the arpeggio
+        // stands for it
         arpeggio.clear();
         arpeggio.resize(1);
+        m_chord.clear();
         for(std::pair note : notes)
         {
-          arpeggio[0].push_back(note);
+          m_chord.push_back(note);
           // Add octave duplicates directly into the chord
           for(int i = 1; i < previous_octave; i++)
           {
@@ -143,13 +160,13 @@ struct Engine
             {
               int up = note.first + 12 * i;
               if(up <= 127)
-                arpeggio[0].push_back({static_cast<byte>(up), note.second});
+                m_chord.push_back({static_cast<byte>(up), note.second});
             }
             if(previous_octave_mode != 1) // Below or Both
             {
               int down = note.first - 12 * i;
               if(down >= 0)
-                arpeggio[0].push_back({static_cast<byte>(down), note.second});
+                m_chord.push_back({static_cast<byte>(down), note.second});
             }
           }
         }
@@ -386,7 +403,7 @@ struct Engine
       }
 
       // Start the next note in the chord
-      for(auto& note : arpeggio[play_index])
+      for(auto& note : step(play_index))
       {
         in_flight[note.first]++;
         out.note_on(1, note.first, note.second).timestamp = date;

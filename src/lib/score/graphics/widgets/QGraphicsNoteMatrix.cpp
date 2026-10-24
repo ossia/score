@@ -11,6 +11,7 @@
 #include <QLineEdit>
 #include <QMenu>
 #include <QPainter>
+#include <QPointer>
 #include <QRegularExpression>
 
 #include <wobjectimpl.h>
@@ -198,6 +199,30 @@ void QGraphicsNoteMatrix::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
   }
 }
 
+//! QEvent::UngrabMouse: the scene took the implicit grab away and there will
+//! be no release to end the drag on. See DefaultGraphicsSliderImpl for what
+//! goes wrong if the edit is left open.
+bool QGraphicsNoteMatrix::sceneEvent(QEvent* event)
+{
+  if(event->type() == QEvent::UngrabMouse)
+  {
+    // A press on the lit cell that has not moved yet changed nothing: only an
+    // edit that was sent ends here, without the release's mute
+    if(std::exchange(m_grabbed, -1) >= 0)
+    {
+      m_dragged = false;
+      m_pressedLit = false;
+      update();
+      if(moving)
+      {
+        moving = false;
+        sliderReleased();
+      }
+    }
+  }
+  return QGraphicsItem::sceneEvent(event);
+}
+
 void QGraphicsNoteMatrix::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
 {
   event->accept();
@@ -245,6 +270,8 @@ void QGraphicsNoteMatrix::contextMenuEvent(QGraphicsSceneContextMenuEvent* event
     QWidget* parent{};
     if(auto s = scene(); s && !s->views().isEmpty())
       parent = s->views().front();
+    // The dialog runs its own event loop, in which the item may be deleted
+    QPointer<QGraphicsNoteMatrix> self{this};
     QString text = toText();
     QString hint = QObject::tr(
         "The output degree, 0 to 12, of each of the 12 degrees; x mutes one");
@@ -253,7 +280,7 @@ void QGraphicsNoteMatrix::contextMenuEvent(QGraphicsSceneContextMenuEvent* event
       bool ok = false;
       text = QInputDialog::getText(
           parent, QObject::tr("Edit map"), hint, QLineEdit::Normal, text, &ok);
-      if(!ok || setText(text))
+      if(!self || !ok || setText(text))
         return;
       hint = QObject::tr("12 values are needed, each 0 to 12 or x");
     }

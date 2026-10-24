@@ -190,3 +190,49 @@ TEST_CASE("A MIDI take sent to the timeline is a MIDI clip as long as the loop",
     CHECK(clip->duration.defaultDuration().msec() == Approx(8000.).margin(20.));
   });
 }
+
+TEST_CASE("A take that began before the scenario is placed at its start, whole",
+          "[looper][timeline][app]")
+{
+  score::test::run_in_app([&](const score::GUIApplicationContext& ctx) {
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    auto* scenario = main_scenario(*doc);
+    REQUIRE(scenario);
+    auto* looper = add_looper(*doc, *scenario, audio_looper_uuid);
+    REQUIRE(looper);
+
+    // Two bars at 120 bpm: 4 s.
+    QTemporaryDir dir;
+    const QString file = dir.path() + "/Looper-take1.wav";
+    const int rate = 48000;
+    const int64_t frames = 4 * rate;
+    std::vector<float> l(frames), r(frames);
+    for(int64_t i = 0; i < frames; i++)
+      l[i] = r[i] = 0.25f * std::sin(i * 0.01f);
+    const float* data[2]{l.data(), r.data()};
+    ossia::wav_loop_info info;
+    info.tempo = 120.;
+    info.beats = 8;
+    REQUIRE(ossia::write_loop_wav(file.toStdString(), 2, rate, frames, data, info));
+
+    // Captured 3 s before the looper's box, which starts at 2 s: a second
+    // before the scenario's start.
+    const auto before = scenario->intervals.size();
+    oscr::sendToTimeline(
+        *looper, doc->context(),
+        halp::timeline_clip{.file = file.toStdString(), .date = -3., .lane = 0});
+    QApplication::processEvents();
+
+    // The box, straight off the scenario's start, with nothing leading to it.
+    REQUIRE(scenario->intervals.size() == before + 1);
+    const Scenario::IntervalModel* clip{};
+    for(auto& itv : scenario->intervals)
+      for(auto& p : itv.processes)
+        if(qobject_cast<const Media::Sound::ProcessModel*>(&p))
+          clip = &itv;
+    REQUIRE(clip);
+    CHECK(clip->date().msec() == Approx(0.).margin(1.));
+    CHECK(clip->duration.defaultDuration().msec() == Approx(4000.).margin(20.));
+  });
+}

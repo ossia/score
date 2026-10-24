@@ -77,6 +77,8 @@ TEST_CASE("MIDI Sync In decoding on a known clock stream", "[midi_sync_in]")
   {
     driver d;
     d.fx.inputs.sync_mode.value = Sync::SyncMode::Clock_Only;
+    // A filter of 1 holds Base Tempo: these clocks are not at 120 BPM
+    d.fx.inputs.clock_filter.value = 1.f;
     d.send({0xFA});
     for(int i = 0; i < 48; i++)
       d.send({0xF8}, i);
@@ -110,7 +112,7 @@ TEST_CASE("MIDI Sync In decoding on a known clock stream", "[midi_sync_in]")
   SECTION("MTC quarter frames")
   {
     driver d;
-    // 01:02:03:04 at 25 fps
+    // 01:02:03:04 at 25 fps: the last piece arrives two frames later
     for(uint8_t qf : {0x04, 0x10, 0x23, 0x30, 0x42, 0x50, 0x61, 0x72})
       d.send({0xF1, qf});
     d.tick(512);
@@ -118,7 +120,7 @@ TEST_CASE("MIDI Sync In decoding on a known clock stream", "[midi_sync_in]")
     CHECK(d.fx.outputs.mtc_active.value);
     CHECK(d.fx.outputs.valid.value);
     CHECK(d.fx.outputs.frame_rate.value == Approx(25.));
-    CHECK(d.fx.outputs.timecode.value == Approx(3600. + 120. + 3. + 4. / 25.));
+    CHECK(d.fx.outputs.timecode.value == Approx(3600. + 120. + 3. + 6. / 25.));
     CHECK(!d.fx.outputs.clock_active.value);
 
     // Clocks interpolate between quarter frames.
@@ -126,7 +128,7 @@ TEST_CASE("MIDI Sync In decoding on a known clock stream", "[midi_sync_in]")
       d.send({0xF8});
     d.tick(512);
     CHECK(d.fx.outputs.clock_active.value);
-    CHECK(d.fx.outputs.timecode.value == Approx(3723.16 + 0.25));
+    CHECK(d.fx.outputs.timecode.value == Approx(3723.24 + 0.25));
   }
 
   SECTION("decoding does not depend on the clock out controls")
@@ -393,7 +395,7 @@ TEST_CASE("MIDI Sync In: quarter frames from before a full frame are dropped", "
   d.fx.inputs.sync_mode.value = Sync::SyncMode::MTC_Only;
   quarter_frames(d, 0, 10, 20, 5, 0b11);
   d.tick(64);
-  CHECK(d.fx.outputs.timecode.value == Approx(620. + 5. / 30.));
+  CHECK(d.fx.outputs.timecode.value == Approx(620. + 7. / 30.));
 
   // Half a sequence, then a locate.
   quarter_frames(d, 0, 10, 20, 7, 0b11, 0, 3);
@@ -409,7 +411,7 @@ TEST_CASE("MIDI Sync In: quarter frames from before a full frame are dropped", "
   // Quarter frames still decode afterwards.
   quarter_frames(d, 1, 0, 2, 0, 0b11);
   d.tick(64);
-  CHECK(d.fx.outputs.timecode.value == Approx(3602.));
+  CHECK(d.fx.outputs.timecode.value == Approx(3602. + 2. / 30.));
 }
 
 TEST_CASE("MIDI Sync In: a full frame drops the clock interpolation", "[midi_sync_in]")
@@ -418,7 +420,7 @@ TEST_CASE("MIDI Sync In: a full frame drops the clock interpolation", "[midi_syn
   d.fx.inputs.sync_mode.value = Sync::SyncMode::MTC_With_Clock_Interpolation;
   quarter_frames(d, 0, 0, 10, 0, 0b11);
   d.tick(64);
-  CHECK(d.fx.outputs.timecode.value == Approx(10.));
+  CHECK(d.fx.outputs.timecode.value == Approx(10. + 2. / 30.));
   for(int i = 0; i < 24; i++)
     d.send({0xF8});
   d.tick(64);
@@ -427,4 +429,105 @@ TEST_CASE("MIDI Sync In: a full frame drops the clock interpolation", "[midi_syn
   full_frame(d, 0, 1, 0, 0, 0b11);
   d.tick(64);
   CHECK(d.fx.outputs.timecode.value == Approx(60.));
+}
+
+TEST_CASE("MIDI Sync In: quarter frames give the time the last one arrives", "[midi_sync_in]")
+{
+  // Piece 0 goes out at the start of the frame it carries, piece 7 a frame and
+  // three quarters later: the next piece 0 carries two frames more
+  driver d;
+  d.fx.inputs.sync_mode.value = Sync::SyncMode::MTC_Only;
+  quarter_frames(d, 0, 0, 1, 28, 0b11);
+  d.tick(64);
+  CHECK(d.fx.outputs.timecode.value == Approx(2.));
+  quarter_frames(d, 0, 0, 2, 0, 0b11);
+  d.tick(64);
+  CHECK(d.fx.outputs.timecode.value == Approx(2. + 2. / 30.));
+}
+
+TEST_CASE("MIDI Sync In: the tempo comes from the clocks' timestamps", "[midi_sync_in]")
+{
+  // 125 BPM: a clock every 960 frames, in buffers of 256 that do not line up
+  // with them, processed much faster than they would play
+  driver d;
+  d.fx.inputs.sync_mode.value = Sync::SyncMode::Clock_Only;
+  d.fx.inputs.clock_filter.value = 0.f;
+  d.send({0xFA});
+  int64_t next = 0;
+  for(int b = 0; b < 200; b++)
+  {
+    const int64_t start = d.now;
+    while(next < start + 256)
+    {
+      d.send({0xF8}, int(next - start));
+      next += 960;
+    }
+    d.tick(256);
+  }
+  CHECK(d.fx.outputs.estimated_tempo.value == Approx(125.));
+
+  // The history keeps 24 intervals in place
+  const auto& iv = d.fx.clock_interp.tick_intervals;
+  CHECK(iv.size() == Sync::ClockInterpolation::max_interval_history);
+#if defined(OSSIA_SMALL_VECTOR)
+  CHECK(iv.capacity() == Sync::ClockInterpolation::max_interval_history);
+#endif
+}
+
+TEST_CASE("Clock out follows Song Position through divide and shift", "[midi_sync_in]")
+{
+  SECTION("divide")
+  {
+    driver d;
+    d.fx.inputs.clock_divide.value = 2;
+    d.send({0xFA});
+    for(int i = 0; i < 13; i++)
+      d.send({0xF8}, 1 + i);
+    d.send({0xFC}, 20);
+    // Sixteenth 4 is clock 24: on the divided grid, and the 12th clock out,
+    // so sixteenth 2 of the clock out
+    d.send({0xF2, 4, 0}, 30);
+    d.send({0xFB}, 31);
+    d.send({0xF8}, 40);
+    d.send({0xF8}, 41);
+    d.send({0xF8}, 42);
+    d.tick(256);
+    std::vector<event> after;
+    for(auto& e : d.out)
+      if(e.at >= 30)
+        after.push_back(e);
+    const std::vector<event> expected{
+        {30, {0xF2, 2, 0}}, {31, {0xFB}}, {40, {0xF8}}, {42, {0xF8}}};
+    CHECK(after == expected);
+  }
+
+  SECTION("shift then divide")
+  {
+    driver d;
+    d.fx.inputs.start_shift.value = 1;
+    d.fx.inputs.clock_divide.value = 3;
+    // Sixteenth 2 is clock 12: 11 clocks past the shift, the next to pass is
+    // clock 13, the 5th clock out (sixteenth 0 of the clock out)
+    d.send({0xF2, 2, 0}, 0);
+    d.send({0xFB}, 1);
+    for(int i = 0; i < 6; i++)
+      d.send({0xF8}, 10 + i);
+    d.tick(256);
+    const std::vector<event> expected{
+        {0, {0xF2, 0, 0}}, {1, {0xFB}}, {11, {0xF8}}, {14, {0xF8}}};
+    CHECK(d.out == expected);
+  }
+
+  SECTION("a position before the shift drops the clocks up to it")
+  {
+    driver d;
+    d.fx.inputs.start_shift.value = 8;
+    d.send({0xF2, 1, 0}, 0); // clock 6
+    d.send({0xFB}, 1);
+    for(int i = 0; i < 4; i++)
+      d.send({0xF8}, 10 + i);
+    d.tick(256);
+    const std::vector<event> expected{{0, {0xF2, 0, 0}}, {1, {0xFB}}, {12, {0xF8}}, {13, {0xF8}}};
+    CHECK(d.out == expected);
+  }
 }

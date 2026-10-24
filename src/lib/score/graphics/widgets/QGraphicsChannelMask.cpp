@@ -11,6 +11,7 @@
 #include <QLineEdit>
 #include <QMenu>
 #include <QPainter>
+#include <QPointer>
 #include <QRegularExpression>
 
 #include <wobjectimpl.h>
@@ -161,6 +162,22 @@ void QGraphicsChannelMask::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
   sliderReleased();
 }
 
+//! QEvent::UngrabMouse: the scene took the implicit grab away and there will
+//! be no release to end the drag on. See DefaultGraphicsSliderImpl for what
+//! goes wrong if the edit is left open.
+bool QGraphicsChannelMask::sceneEvent(QEvent* event)
+{
+  if(event->type() == QEvent::UngrabMouse)
+  {
+    if(std::exchange(m_grab, false))
+    {
+      moving = false;
+      sliderReleased();
+    }
+  }
+  return QGraphicsItem::sceneEvent(event);
+}
+
 void QGraphicsChannelMask::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
 {
   event->accept();
@@ -183,6 +200,8 @@ void QGraphicsChannelMask::contextMenuEvent(QGraphicsSceneContextMenuEvent* even
     QWidget* parent{};
     if(auto s = scene(); s && !s->views().isEmpty())
       parent = s->views().front();
+    // The dialog runs its own event loop, in which the item may be deleted
+    QPointer<QGraphicsChannelMask> self{this};
     QString text = toText();
     QString hint = QObject::tr("Channels and ranges, e.g. 1-4, 10");
     for(;;)
@@ -190,7 +209,7 @@ void QGraphicsChannelMask::contextMenuEvent(QGraphicsSceneContextMenuEvent* even
       bool ok = false;
       text = QInputDialog::getText(
           parent, QObject::tr("Edit channels"), hint, QLineEdit::Normal, text, &ok);
-      if(!ok || setText(text))
+      if(!self || !ok || setText(text))
         return;
       hint = QObject::tr("Channels go from 1 to 16, e.g. 1-4, 10");
     }

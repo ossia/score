@@ -319,6 +319,65 @@ TEST_CASE("Midi MPE: MPE to MIDI collapses the zone", "[midi_mpe]")
   d.tick();
 }
 
+TEST_CASE("Midi MPE: MPE to MIDI reads the member RPNs", "[midi_mpe]")
+{
+  driver d;
+  d.fx.inputs.mode.value = Mode::mpe_to_midi;
+  d.fx.inputs.midi_bend_range.value = 12;
+  d.tick();
+  d.out.clear();
+
+  // The pitch bend range of each member, as an MPE controller announces it.
+  auto cc = [&](int ch, int n, int v) {
+    d.send(libremidi::channel_events::control_change(ch, n, v));
+  };
+  for(int ch = 2; ch <= 16; ch++)
+  {
+    cc(ch, 101, 0);
+    cc(ch, 100, 0);
+    cc(ch, 6, 24);
+    cc(ch, 38, 0);
+    cc(ch, 101, 127);
+    cc(ch, 100, 127);
+  }
+  // An NRPN with increments: also for the member, not for the output.
+  cc(5, 99, 1);
+  cc(5, 98, 2);
+  cc(5, 96, 1);
+  cc(5, 97, 1);
+  cc(5, 6, 3);
+  // Other controllers of members and of the master still pass.
+  cc(3, 7, 90);
+  cc(1, 101, 0);
+  d.tick();
+  REQUIRE(d.out.size() == 2);
+  CHECK(is(d.out[0].msg, {0xB0, 7, 90}));
+  CHECK(is(d.out[1].msg, {0xB0, 101, 0}));
+
+  // +6 semitones out of the announced 24, on an output range of 12.
+  d.out.clear();
+  d.send(libremidi::channel_events::pitch_bend(2, 8192 + 2048));
+  d.note_on(60, 2);
+  d.tick();
+  REQUIRE(!d.out.empty());
+  CHECK(mtk::classify(d.out[0].msg) == mtk::midi_kind::pitch_bend);
+  CHECK(bend_of(d.out[0].msg) == 8192 + 4096);
+  d.note_off(60, 2);
+  d.tick();
+  CHECK(d.total_sounding() == 0);
+
+  // The control takes over again when it changes.
+  d.fx.inputs.mpe_bend_range.value = 12;
+  d.out.clear();
+  d.send(libremidi::channel_events::pitch_bend(2, 8192 + 2048));
+  d.note_on(62, 2);
+  d.tick();
+  REQUIRE(!d.out.empty());
+  CHECK(bend_of(d.out[0].msg) == 8192 + 2048);
+  d.note_off(62, 2);
+  d.tick();
+}
+
 TEST_CASE("Midi MPE: MPE to MPE shaping", "[midi_mpe]")
 {
   driver d;

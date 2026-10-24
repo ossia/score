@@ -127,9 +127,14 @@ struct MIDISyncOut
   halp_flag(process_exec);
 
   ossia::exec_state_facade ossia_state;
-  //! The MIDI device the output is bound to: written by operator(), read by
-  //! the clock thread.
-  std::atomic<ossia::net::midi::midi_stream*> midi_out{};
+  /**
+   * The MIDI device the output is bound to, as of the last tick: audio thread
+   * only. The clock thread gets its own copy through to_device, in order with
+   * the messages, and lets go of it when the process stops or pauses: a
+   * process that is not ticked cannot tell when its device is removed. In Free
+   * mode the clock then sends to the output port until the next tick.
+   */
+  ossia::net::midi::midi_stream* midi_out{};
 
   struct ins
   {
@@ -302,8 +307,18 @@ struct MIDISyncOut
   //! Written by the clock thread.
   std::atomic<float> free_tempo{120.f};
   //! What the free clock sends when the output has no MIDI device to write to:
-  //! operator() forwards it through the output port.
+  //! operator() forwards it through the output port, and drops what waited
+  //! longer than a tick or two: nothing drains it while the process is not
+  //! ticked.
   ossia::spsc_queue<midi_clock::message> to_output_port{1024};
+
+  //! A message for the device, or a change of the device itself.
+  struct device_message
+  {
+    midi_clock::message msg;
+    ossia::net::midi::midi_stream* device{};
+    bool rebind{};
+  };
 
   /**
    * What operator() makes when the output is a MIDI device: score clock,
@@ -312,7 +327,7 @@ struct MIDISyncOut
    * the graph would write everything a second time, in a burst at the end of
    * the tick. A full queue drops messages.
    */
-  ossia::spsc_queue<midi_clock::message> to_device{4096};
+  ossia::spsc_queue<device_message> to_device{4096};
 
   //! Timecode fields of a timeline position.
   struct mtc_time
@@ -333,10 +348,11 @@ struct MIDISyncOut
   std::atomic_bool stop_requested{false};
   std::atomic_bool pause_requested{false};
 
-  void send_midi(std::span<const uint8_t> bytes)
+  static void send_midi(
+      ossia::net::midi::midi_stream* device, std::span<const uint8_t> bytes)
   {
-    if(auto proto = midi_out.load())
-      proto->push_value(libremidi::message{{std::begin(bytes), std::end(bytes)}, 0});
+    if(device)
+      device->push_value(libremidi::message{{std::begin(bytes), std::end(bytes)}, 0});
   }
 
   [[nodiscard]]
@@ -374,10 +390,11 @@ struct MIDISyncOut
         .send_transport = free_send_transport.load(std::memory_order_relaxed)};
   }
 
-  void send_free_clock_message(const midi_clock::message& m)
+  void send_free_clock_message(
+      ossia::net::midi::midi_stream* device, const midi_clock::message& m)
   {
-    if(midi_out.load())
-      send_midi(std::span<const uint8_t>(m.bytes.data(), m.size));
+    if(device)
+      send_midi(device, std::span<const uint8_t>(m.bytes.data(), m.size));
     else
       to_output_port.try_enqueue(m);
   }
@@ -396,9 +413,12 @@ struct MIDISyncOut
     sleep_accurate precise_sleep;
     midi_clock::free_clock free_clock;
     bool was_free = false;
-    midi_clock::message pending;
+    device_message pending;
     bool has_pending = false;
-    auto send = [this](const midi_clock::message& m) { send_free_clock_message(m); };
+    ossia::net::midi::midi_stream* device{};
+    auto send = [this, &device](const midi_clock::message& m) {
+      send_free_clock_message(device, m);
+    };
 
     while(clock_thread_running.load(std::memory_order_acquire))
     {
@@ -435,12 +455,18 @@ struct MIDISyncOut
           has_pending = to_device.try_dequeue(pending);
         if(!has_pending)
           break;
-        if(pending.at > steady_now_ns())
+        if(pending.rebind)
         {
-          deadline = std::min(deadline, pending.at);
+          device = pending.device;
+          has_pending = false;
+          continue;
+        }
+        if(pending.msg.at > steady_now_ns())
+        {
+          deadline = std::min(deadline, pending.msg.at);
           break;
         }
-        send_midi(std::span<const uint8_t>(pending.bytes.data(), pending.size));
+        send_midi(device, std::span<const uint8_t>(pending.msg.bytes.data(), pending.msg.size));
         has_pending = false;
       }
 
@@ -546,16 +572,39 @@ struct MIDISyncOut
                               : float(tk.tempo);
 
     // Free clock messages arrive when they are due: they go out at the start
-    // of the tick, one tick of latency at most.
+    // of the tick, one tick of latency at most. Older ones were sent while
+    // the process was not ticked, and are dropped.
+    const int64_t stale_before
+        = steady_now_ns() - 2 * main_state.latency_ns - 2'000'000;
     midi_clock::message m;
     while(to_output_port.try_dequeue(m))
     {
+      if(m.at < stale_before)
+        continue;
       halp::midi_msg msg;
       msg.bytes.assign(m.bytes.begin(), m.bytes.begin() + m.size);
       msg.timestamp = 0;
       outputs.midi.push_back(std::move(msg));
     }
     sort_output();
+
+    // No tick may come before the device is removed: the clock thread lets go
+    // of it once it has sent what this tick dated for it.
+    if(stopping || pausing)
+      set_device(nullptr);
+  }
+
+  //! Hands the device over to the clock thread, after what is queued for the
+  //! previous one.
+  void set_device(ossia::net::midi::midi_stream* stream) noexcept
+  {
+    if(stream == midi_out)
+      return;
+    device_message d;
+    d.device = stream;
+    d.rebind = true;
+    if(to_device.try_enqueue(d))
+      midi_out = stream;
   }
 
   //! The MIDI device the output is bound to, if any.
@@ -567,7 +616,7 @@ struct MIDISyncOut
       auto& proto = outputs.midi.ossia_node->get_device().get_protocol();
       stream = dynamic_cast<ossia::net::midi::midi_stream*>(&proto);
     }
-    midi_out.store(stream, std::memory_order_release);
+    set_device(stream);
   }
 
   //! Hands the controls the clock thread reads over to it.
@@ -626,7 +675,7 @@ struct MIDISyncOut
     main_state.latency_ns = buffer_ns;
     main_state.next_tick_ns
         = main_state.tick_start_ns + int64_t(std::max(frames, 0) * ns_per_frame);
-    main_state.to_device = midi_out.load(std::memory_order_relaxed) != nullptr;
+    main_state.to_device = midi_out != nullptr;
     main_state.tick_frames = std::max(frames, 0);
   }
 
@@ -635,12 +684,13 @@ struct MIDISyncOut
   {
     if(main_state.to_device)
     {
-      midi_clock::message m;
+      device_message d;
+      auto& m = d.msg;
       m.at = main_state.tick_start_ns + main_state.latency_ns
              + int64_t(frame * main_state.ns_per_frame);
       m.size = int(std::min(bytes.size(), m.bytes.size()));
       std::copy_n(bytes.begin(), m.size, m.bytes.begin());
-      to_device.try_enqueue(m);
+      to_device.try_enqueue(d);
     }
     else
     {
@@ -792,9 +842,34 @@ struct MIDISyncOut
     }
     const double fps = from_mtc_framerate(time.frame_rate);
     main_state.mtc_quarter_frame_index = 0;
-    main_state.last_mtc_quarter_frame_time = current_time - 1.0 / (fps * 4.0);
+    main_state.last_mtc_quarter_frame_time
+        = next_even_frame(current_time, fps) - 1.0 / (fps * 4.0);
   }
 
+  /**
+   * Timeline time of the first even frame of the timecode at or after `t`.
+   * The eight quarter frames span two frames: a receiver reads the time of
+   * the first piece on even frames.
+   */
+  double next_even_frame(double t, double fps) const noexcept
+  {
+    const double offset = this->inputs.offset;
+    const double u = t + offset;
+    const double second = std::floor(u);
+    // As make_mtc_time numbers them: from 0 in each second
+    const int per_second = int(std::ceil(fps - 1e-9));
+    int k = int(std::ceil((u - second) * fps - 1e-6));
+    if(k % 2 != 0)
+      k++;
+    const double frame = k < per_second ? second + k / fps : second + 1.;
+    return frame - offset;
+  }
+
+  /**
+   * The eight pieces of a timecode, a quarter of a frame apart. Piece 0 takes
+   * the time at its own date, and the seven others carry the same time, so
+   * that a receiver assembles one consistent value across a carry.
+   */
   void send_quarter_frames(
       const halp::tick_flicks& tk, const mtc_time& time, double current_time,
       double frame_duration)
@@ -807,38 +882,45 @@ struct MIDISyncOut
 
     while(next_qf_time < current_time + frame_duration)
     {
-      if(next_qf_time >= current_time)
+      // A piece due at the very start of the tick is not lost to rounding
+      if(next_qf_time >= current_time - 1e-9)
       {
         int64_t sample_offset
             = ((next_qf_time - current_time) / frame_duration) * tk.frames;
         sample_offset = std::clamp<int64_t>(sample_offset, 0, tk.frames - 1);
 
+        // Half a piece in, to stay clear of the frame boundary
+        if(main_state.mtc_quarter_frame_index == 0)
+          main_state.mtc_cycle
+              = make_mtc_time(next_qf_time + seconds_per_quarter_frame / 2.);
+        const mtc_time& cycle = main_state.mtc_cycle;
+
         uint8_t qf_data = 0;
         switch(main_state.mtc_quarter_frame_index)
         {
           case 0:
-            qf_data = 0x00 | (time.f & 0x0F);
+            qf_data = 0x00 | (cycle.f & 0x0F);
             break;
           case 1:
-            qf_data = 0x10 | ((time.f >> 4) & 0x01);
+            qf_data = 0x10 | ((cycle.f >> 4) & 0x01);
             break;
           case 2:
-            qf_data = 0x20 | (time.s & 0x0F);
+            qf_data = 0x20 | (cycle.s & 0x0F);
             break;
           case 3:
-            qf_data = 0x30 | ((time.s >> 4) & 0x03);
+            qf_data = 0x30 | ((cycle.s >> 4) & 0x03);
             break;
           case 4:
-            qf_data = 0x40 | (time.m & 0x0F);
+            qf_data = 0x40 | (cycle.m & 0x0F);
             break;
           case 5:
-            qf_data = 0x50 | ((time.m >> 4) & 0x03);
+            qf_data = 0x50 | ((cycle.m >> 4) & 0x03);
             break;
           case 6:
-            qf_data = 0x60 | (time.h & 0x0F);
+            qf_data = 0x60 | (cycle.h & 0x0F);
             break;
           case 7:
-            qf_data = 0x70 | (time.frame_rate << 1) | ((time.h >> 4) & 0x01);
+            qf_data = 0x70 | (cycle.frame_rate << 1) | ((cycle.h >> 4) & 0x01);
             break;
         }
 
@@ -859,6 +941,8 @@ struct MIDISyncOut
     midi_clock::timeline_clock clock;
     double last_mtc_quarter_frame_time = 0.0;
     int mtc_quarter_frame_index = 0;
+    //! The time the pieces of the current timecode carry.
+    mtc_time mtc_cycle{};
     //! Playing since the last start, stop or pause.
     bool running = false;
     int64_t next_start_in_flicks = 0;

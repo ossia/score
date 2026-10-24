@@ -36,6 +36,20 @@ TEST_CASE("classify", "[midi_common]")
   CHECK(classify(libremidi::message{{0xF0, 0x7E, 0xF7}, 0}) == midi_kind::sysex);
   CHECK(classify(libremidi::message{{0xF2, 0, 0}, 0}) == midi_kind::song_position);
   CHECK(classify(libremidi::message{}) == midi_kind::other);
+
+  // Channel messages missing a data byte carry nothing usable: objects that
+  // switch on the kind read every byte the kind implies.
+  CHECK(classify(libremidi::message{{0x90, 60}, 0}) == midi_kind::other);
+  CHECK(classify(libremidi::message{{0x80, 60}, 0}) == midi_kind::other);
+  CHECK(classify(libremidi::message{{0xA0, 60}, 0}) == midi_kind::other);
+  CHECK(classify(libremidi::message{{0xB0, 7}, 0}) == midi_kind::other);
+  CHECK(classify(libremidi::message{{0xE0, 0}, 0}) == midi_kind::other);
+  CHECK(classify(libremidi::message{libremidi::midi_bytes{0xC0}, 0}) == midi_kind::other);
+  CHECK(classify(libremidi::message{libremidi::midi_bytes{0xD0}, 0}) == midi_kind::other);
+  CHECK(classify(libremidi::message{libremidi::midi_bytes{0x93}, 0}) == midi_kind::other);
+  CHECK(classify(libremidi::message{{0xC0, 5}, 0}) == midi_kind::program_change);
+  CHECK(classify(libremidi::message{{0xD0, 5}, 0}) == midi_kind::channel_pressure);
+  CHECK(classify(libremidi::message{{0xA0, 60, 5}, 0}) == midi_kind::poly_pressure);
   CHECK(channel_of(on(16, 1)) == 16);
   CHECK(channel_of(libremidi::message{{0xF8}, 0}) == 0);
 
@@ -139,6 +153,26 @@ TEST_CASE("note tracker pairs every note-on with one note-off", "[midi_common]")
   CHECK(t.size() == 0);
   for(auto& m : out)
     CHECK(is_note_off(m));
+
+  // end_at releases the entry at that index, not the oldest with its key.
+  out.clear();
+  t.begin(1, 50, 0, emit); // tracked without output, as a stolen note is
+  auto& c = t.begin(1, 50, 0, emit);
+  t.play(c, 2, 50, 100, 0, emit);
+  REQUIRE(out.size() == 1);
+  REQUIRE(t.size() == 2);
+  REQUIRE(t[1].count == 1);
+  t.end_at(1, 4, 0, emit);
+  REQUIRE(out.size() == 2);
+  CHECK(is_note_off(out.back()));
+  CHECK(channel_of(out.back()) == 2);
+  CHECK(out.back().timestamp == 4);
+  CHECK(t.size() == 1);
+  CHECK(t[0].count == 0);
+  t.end_at(5, 0, 0, emit);
+  CHECK(t.size() == 1);
+  t.end_all(0, emit);
+  CHECK(out.size() == 2);
 }
 
 TEST_CASE("event queue", "[midi_common]")

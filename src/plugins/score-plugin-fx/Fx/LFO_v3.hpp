@@ -219,7 +219,9 @@ struct Node
     {
       phase = 0.;
       cycles = 0;
-      sync_origin = tk.start_position_in_quarters;
+      // Locked, a start counts the cycles from the start of the timeline: on
+      // the bars wherever playback starts. Only Retrigger moves the origin.
+      sync_origin = retrigger ? tk.start_position_in_quarters : 0.;
       held_valid = false;
       last_square = 0;
       if(retrigger)

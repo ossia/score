@@ -95,9 +95,9 @@ gpuControlValue(
 //! this tick, and whatever it writes to an output field is flushed by the
 //! usual finish_run() at the end of it.
 template <typename Node>
-struct node_with_worker : safe_node<Node>
+struct node_with_worker : node_with_ui_wakeups<Node>
 {
-  using safe_node<Node>::safe_node;
+  using node_with_ui_wakeups<Node>::node_with_ui_wakeups;
 
   //! Filled on the Qt main thread by Executor::connect_worker, drained on the
   //! execution thread: same producer / consumer pair as the execution queue.
@@ -118,7 +118,7 @@ struct node_with_worker : safe_node<Node>
       } while(worker_results.try_dequeue(cmd));
     }
 
-    safe_node<Node>::run(tk, st);
+    node_with_ui_wakeups<Node>::run(tk, st);
   }
 };
 
@@ -144,8 +144,8 @@ struct exec_worker_delivery
 };
 
 template <typename Node>
-using exec_base_node_t
-    = std::conditional_t<avnd::has_worker<Node>, node_with_worker<Node>, safe_node<Node>>;
+using exec_base_node_t = std::conditional_t<
+    avnd::has_worker<Node>, node_with_worker<Node>, node_with_ui_wakeups<Node>>;
 
 //! Objects that release their notes when stopped send the note-offs in one
 //! more, empty tick after the process stops. Their stop() is only called
@@ -312,7 +312,7 @@ public:
     if constexpr(requires { ptr->impl.effect; })
       if constexpr(std::is_same_v<std::decay_t<decltype(ptr->impl.effect)>, Node>)
       {
-        connect_message_bus(element, ctx, ptr->impl.effect);
+        connect_message_bus(element, ctx, ptr->impl.effect, node->wakeups);
         connect_dynamic_items(element, ptr->impl.effect);
       }
     connect_worker(ptr);
@@ -878,7 +878,8 @@ public:
   }
 
   void connect_message_bus(
-      ProcessModel<Node>& element, const ::Execution::Context& ctx, Node& eff)
+      ProcessModel<Node>& element, const ::Execution::Context& ctx, Node& eff,
+      ui_wakeups& wakeups)
   {
     // Custom UI messages to engine
     if constexpr(avnd::has_gui_to_processor_bus<Node>)
@@ -912,7 +913,8 @@ public:
     // Processor to UI messages never allocate on the processor's thread: they
     // go in an execution command when they fit, else in a ring of the node's
     // own. Both have a fixed capacity: when it is full the message is dropped,
-    // and the UI catches up with the next one.
+    // and the UI catches up with the next one. The messages a ring holds are
+    // not lost when the queue is full: the node wakes the UI on a later tick.
     if constexpr(avnd::has_processor_to_gui_bus<Node>)
     {
       if constexpr(requires { eff.send_message = [](auto&&) { }; })
@@ -941,23 +943,40 @@ public:
               std::is_default_constructible_v<message_type>,
               "a processor to UI message is stored in a preallocated ring");
           auto ring = std::make_shared<message_ring<message_type>>();
-          eff.send_message = [proc = QPointer{&this->process()}, qed_ptr = weak_edit,
-                              ring]<typename T>(T&& b) mutable {
+          // Sends the wake-up the ring requested; false when the queue is full.
+          auto wake = [proc = QPointer{&this->process()}, qed_ptr = weak_edit, ring] {
             auto qed = qed_ptr.lock();
             if(!qed)
+            {
+              ring->cancel();
+              return true;
+            }
+            if(qed->try_enqueue([proc, ring]() mutable {
+              ring->drain([&](message_type&& m) {
+                if(proc && proc->to_ui)
+                  MessageBusSender{proc->to_ui}(std::move(m));
+              });
+            }))
+              return true;
+            ring->park();
+            return false;
+          };
+          wakeups.add([ring, wake] {
+            if(!ring->unpark() || !ring->request())
+              return true;
+            return wake();
+          });
+
+          eff.send_message = [qed_ptr = weak_edit, ring, wake,
+                              wakeups = &wakeups]<typename T>(T&& b) mutable {
+            if(qed_ptr.expired())
               return;
             if(!ring->push(message_type(std::forward<T>(b))))
               return;
             if(!ring->request())
               return;
-            const bool sent = qed->try_enqueue([proc, ring]() mutable {
-              ring->drain([&](message_type&& m) {
-                if(proc && proc->to_ui)
-                  MessageBusSender{proc->to_ui}(std::move(m));
-              });
-            });
-            if(!sent)
-              ring->cancel();
+            if(!wake())
+              wakeups->park();
           };
         }
       }

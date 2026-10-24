@@ -8,6 +8,8 @@
 
 #include "MidiChannelMask.hpp"
 
+#include "AllocCounter.hpp"
+
 #include <catch2/catch_test_macros.hpp>
 
 #include <algorithm>
@@ -21,29 +23,6 @@
 #include <string>
 #include <utility>
 #include <vector>
-
-namespace
-{
-std::atomic_bool g_count_allocations{false};
-std::atomic<int> g_allocations{0};
-}
-
-void* operator new(std::size_t n)
-{
-  if(g_count_allocations.load(std::memory_order_relaxed))
-    g_allocations++;
-  if(void* p = std::malloc(n ? n : 1))
-    return p;
-  throw std::bad_alloc{};
-}
-void operator delete(void* p) noexcept
-{
-  std::free(p);
-}
-void operator delete(void* p, std::size_t) noexcept
-{
-  std::free(p);
-}
 
 namespace
 {
@@ -519,11 +498,13 @@ TEST_CASE("Chord: learning a chord does not allocate", "[fx][midi][chord]")
     r.node.outputs.midi.midi_messages.clear();
     halp::tick_musical t;
     t.frames = 64;
-    g_allocations = 0;
-    g_count_allocations = true;
-    r.node(t);
-    g_count_allocations = false;
-    CHECK(g_allocations == 0);
+    int allocated = 0;
+    {
+      alloc_counter::scope counter;
+      r.node(t);
+      allocated = counter.allocations();
+    }
+    CHECK(allocated == 0);
     r.node.outputs.midi.midi_messages.clear();
     r.tick({note_off(1, key)});
   };
@@ -612,6 +593,50 @@ TEST_CASE("Chord: MPE voices on their own channels", "[fx][midi][chord]")
   CHECK(again[0].get_message_type() == libremidi::message_type::PITCH_BEND);
   CHECK(mtk::is_note_on(again[1]));
   r.tick({note_off(1, 62)});
+  CHECK(r.out.still_sounding() == 0);
+  CHECK(r.out.errors.empty());
+}
+
+TEST_CASE("Chord: an MPE voice starts with the pressure and timbre of its note", "[fx][midi][chord]")
+{
+  Rig r;
+  r.node.inputs.mpe.value = true;
+  r.node.inputs.mpe_channels.value = midi_test::channels_on({2, 3, 4});
+
+  // The controller sets the expression of a note's channel before the note
+  r.tick(
+      {libremidi::channel_events::aftertouch(5, 40),
+       libremidi::channel_events::control_change(5, 74, 90)});
+  auto& on = r.tick({note_on(5, 60, 100)});
+  REQUIRE(on.size() == 9);
+  for(int v = 0; v < 3; v++)
+  {
+    INFO("voice " << v);
+    const auto& p = on[3 * v];
+    const auto& t = on[3 * v + 1];
+    const auto& n = on[3 * v + 2];
+    CHECK(p.get_message_type() == libremidi::message_type::AFTERTOUCH);
+    CHECK(p.get_channel() == 2 + v);
+    CHECK(p.bytes[1] == 40);
+    CHECK(t.get_message_type() == libremidi::message_type::CONTROL_CHANGE);
+    CHECK(t.get_channel() == 2 + v);
+    CHECK(t.bytes[1] == 74);
+    CHECK(t.bytes[2] == 90);
+    CHECK(mtk::is_note_on(n));
+    CHECK(n.get_channel() == 2 + v);
+  }
+  r.tick({note_off(5, 60)});
+
+  // A note from a channel with no expression yet: the voice channels go back
+  // to no pressure and a centred timbre
+  auto& again = r.tick({note_on(6, 62, 100)});
+  REQUIRE(again.size() == 9);
+  CHECK(again[0].get_message_type() == libremidi::message_type::AFTERTOUCH);
+  CHECK(again[0].bytes[1] == 0);
+  CHECK(again[1].bytes[1] == 74);
+  CHECK(again[1].bytes[2] == 64);
+  CHECK(mtk::is_note_on(again[2]));
+  r.tick({note_off(6, 62)});
   CHECK(r.out.still_sounding() == 0);
   CHECK(r.out.errors.empty());
 }

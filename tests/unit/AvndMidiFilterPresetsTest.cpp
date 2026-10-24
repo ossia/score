@@ -38,8 +38,9 @@ struct driver
 {
   Filter fx;
   list main, rejected;
-  //! Sounding notes per (status channel, note), over both outputs.
-  std::map<std::pair<int, int>, int> sounding;
+  //! Sounding notes per (status channel, note), one map per output: a note
+  //! started on one output has to end on that same output.
+  std::map<std::pair<int, int>, int> sounding_main, sounding_rejected;
 
   explicit driver(const char* name)
   {
@@ -58,7 +59,7 @@ struct driver
     REQUIRE(errors.isEmpty());
   }
 
-  void track(const libremidi::message& m)
+  static void track(std::map<std::pair<int, int>, int>& sounding, const libremidi::message& m)
   {
     const int st = m.bytes[0] & 0xF0;
     const auto key = std::make_pair(m.bytes[0] & 0x0F, int(m.bytes[1]));
@@ -89,7 +90,7 @@ struct driver
       CHECK(m.timestamp < frames);
       main.push_back(bytes(m.bytes.begin(), m.bytes.end()));
       if(m.size() == 3)
-        track(m);
+        track(sounding_main, m);
     }
     for(auto& m : fx.outputs.rejected)
     {
@@ -97,7 +98,7 @@ struct driver
       CHECK(m.timestamp < frames);
       rejected.push_back(bytes(m.bytes.begin(), m.bytes.end()));
       if(m.size() == 3)
-        track(m);
+        track(sounding_rejected, m);
     }
     // Nothing is lost: every message goes to one of the two outputs
     CHECK(main.size() + rejected.size() == in.size());
@@ -108,9 +109,14 @@ struct driver
 
   void check_paired()
   {
-    for(auto [k, n] : sounding)
+    for(auto [k, n] : sounding_main)
     {
-      INFO("channel " << k.first + 1 << " note " << k.second);
+      INFO("main: channel " << k.first + 1 << " note " << k.second);
+      CHECK(n == 0);
+    }
+    for(auto [k, n] : sounding_rejected)
+    {
+      INFO("rejected: channel " << k.first + 1 << " note " << k.second);
       CHECK(n == 0);
     }
   }

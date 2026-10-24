@@ -145,6 +145,7 @@ TEST_CASE("LFO v3: synced, the phase follows the musical position", "[fx][lfo]")
   SECTION("retrigger restarts the cycle where it is pressed")
   {
     auto lfo = make(Sin, 60.f / 120.f, true, 0.5f, locked);
+    lfo.start();
     tick_synced(lfo, 0., 0.3, 120.);
     lfo.inputs.retrigger.value.emplace();
     CHECK(tick_synced(lfo, 0.3, 0.4, 120.) == Approx(0.).margin(1e-6));
@@ -185,6 +186,8 @@ TEST_CASE("LFO v3: synced, the cycles count from the start unless locked to the 
   SECTION("locked: playback starting mid-bar is still on the beats")
   {
     auto lfo = make(Sin, 60.f / 120.f, true, 0.5f, true);
+    // The host starts the process before its first tick
+    lfo.start();
     CHECK(tick_synced(lfo, 2.25, 2.5, 120.) == Approx(1.).margin(1e-5));
     CHECK(tick_synced(lfo, 2.5, 2.75, 120.) == Approx(0.).margin(1e-5));
     CHECK(tick_synced(lfo, 3., 3.25, 120.) == Approx(0.).margin(1e-5));
@@ -195,6 +198,7 @@ TEST_CASE("LFO v3: synced, the cycles count from the start unless locked to the 
     // Playback started mid-bar, locked: a quarter-note cycle on the beats.
     // Unlocked at quarter 4.3, the next tick moves by one tick only.
     auto lfo = make(Sin, 60.f / 120.f, true, 0.5f, true);
+    lfo.start();
     float prev = tick_synced(lfo, 2.3, 2.35, 120.);
     for(int i = 1; i < 40; i++)
       prev = tick_synced(lfo, 2.3 + i * 0.05, 2.35 + i * 0.05, 120.);
@@ -217,9 +221,12 @@ TEST_CASE("LFO v3: synced, the cycles count from the start unless locked to the 
   {
     auto a = make(Saw, 2.f * 60.f / 120.f, true, 0.5f, true);
     auto b = make(Saw, 2.f * 60.f / 120.f, true, 0.5f, true);
-    for(int i = 0; i < 16; i++)
+    a.start();
+    for(int i = 0; i < 12; i++)
       tick_synced(a, i * 0.125, (i + 1) * 0.125, 120.);
-    for(int i = 16; i < 64; i++)
+    // b's interval starts at quarter 1.5: three quarters into a cycle
+    b.start();
+    for(int i = 12; i < 64; i++)
     {
       const double q0 = i * 0.125, q1 = q0 + 0.125;
       CHECK(tick_synced(a, q0, q1, 120.) == Approx(tick_synced(b, q0, q1, 120.)).margin(1e-6));

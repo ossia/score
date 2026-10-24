@@ -331,15 +331,57 @@ struct Node
       writer = Looper::take_writer::make(*ossia_document_context, "Looper", "wav");
   }
 
-  //! Main thread only: the stretcher allocates.
+  //! Main thread only: the stretcher allocates. It is run once here over the
+  //! longest span it will be given, on silence, so that the buffers it sizes
+  //! on its first run are sized before the audio thread runs it.
   void prepare_stretch(double rate, int frames)
   {
     m_stretch_mode = Looper::stretch_mode(inputs.follow_tempo.value);
-    m_stretcher.reset(0, m_stretch_mode, std::size_t(layers.channels), std::size_t(rate), std::size_t(rate));
-    m_stretch_out.resize(std::size_t(layers.channels));
+    const auto chans = std::size_t(layers.channels);
+    m_stretcher.reset(0, m_stretch_mode, chans, std::size_t(rate), std::size_t(rate));
+    const auto longest = std::size_t(std::max(frames, 8192));
+    m_stretch_out.resize(chans);
     for(auto& c : m_stretch_out)
-      c.assign(std::size_t(std::max(frames, 8192)), 0.);
+      c.assign(longest, 0.);
+    m_stretch_span.clear();
+    for(auto& c : m_stretch_out)
+      m_stretch_span.emplace_back(c.data(), longest);
     m_stretch_ready = false;
+
+    if(m_stretch_mode != ossia::audio_stretch_mode::None)
+    {
+      struct silence_source
+      {
+        void fetch_audio(int64_t, int64_t n, float** out) const noexcept
+        {
+          for(std::size_t c = 0; c < chans; c++)
+            std::fill_n(out[c], n, 0.f);
+        }
+        void fetch_audio(int64_t, int64_t n, double** out) const noexcept
+        {
+          for(std::size_t c = 0; c < chans; c++)
+            std::fill_n(out[c], n, 0.);
+        }
+        void fetch_audio_backward(int64_t s, int64_t n, float** out) const noexcept
+        {
+          fetch_audio(s, n, out);
+        }
+        void fetch_audio_backward(int64_t s, int64_t n, double** out) const noexcept
+        {
+          fetch_audio(s, n, out);
+        }
+        std::size_t chans;
+      } source{chans};
+      ossia::token_request tk;
+      tk.prev_date = ossia::time_value{0};
+      tk.date = ossia::time_value{int64_t(longest)};
+      m_stretcher.run(
+          source, tk, ossia_state, 1., 1., chans, int64_t(longest), int64_t(longest),
+          int64_t(longest), 0, m_stretch_span);
+      m_stretcher.transport(0);
+      for(auto& c : m_stretch_out)
+        std::fill(c.begin(), c.end(), 0.);
+    }
   }
 
   //! Main thread only.
@@ -366,6 +408,7 @@ struct Node
     if(auto* l = layers.top())
       l->written = layers.length;
   }
+  int64_t looper_trim_extension(int64_t max_frames);
 
   using tick = ossia::token_request;
   void operator()(const tick& tk)
@@ -395,6 +438,9 @@ struct Node
     transport(tk, ossia_state, settings, *this);
     keep_input(ossia_state.timings(tk).length);
 
+    // About a quarter of a million samples of merging per tick, whatever the
+    // number of channels.
+    layers.merge_step(std::max<int64_t>(1024, work_per_tick / std::max(1, layers.channels)));
     run_export();
 
     outputs.phase.value = layers.length > 0
@@ -500,6 +546,10 @@ struct Node
     return layers.data(layers.layers[layer].slot, chan);
   }
 
+  //! Samples the looper's background work -- merging passes, flattening a
+  //! take, drawing the overview -- goes through in one tick at most.
+  static constexpr int64_t work_per_tick = 262144;
+
 private:
   double m_rate{48000.};
   double m_tempo{120.};
@@ -530,7 +580,13 @@ private:
   bool m_export_mix{};
   bool m_export_cancelled{};
   int m_export_number{};
-  std::array<Looper::audio_layer, Looper::audio_layers::max_layers> m_export_snapshot{};
+  //! The passes of the take as they were when it closed, which every file of
+  //! it is flattened from: their buffers are reserved until it is written.
+  std::array<Looper::audio_layer, Looper::audio_layers::max_layers + 1> m_export_snapshot{};
+  int m_export_count{};
+  //! Passes when the take closed: one started in the same tick is not in it.
+  int m_closed_count{};
+  void cancel_export() noexcept;
   int m_takes_written{};
   double m_last_take_date{};
   bool m_send_requested{};
@@ -543,6 +599,11 @@ private:
   ossia::resampler m_stretcher;
   ossia::audio_stretch_mode m_stretch_mode{ossia::audio_stretch_mode::None};
   std::vector<std::vector<double>> m_stretch_out;
+  //! Views on m_stretch_out, made once: more channels than the container
+  //! holds inline would allocate.
+  ossia::mutable_audio_span<double> m_stretch_span;
+  //! Position of the loop being heard: the stretchers read ahead of it.
+  double m_heard{};
   double m_cycle_ratio{1.};
   bool m_stretch_ready{};
   int64_t m_expected_pos{};
@@ -580,6 +641,15 @@ private:
 
   int64_t m_view_countdown{};
   Looper::view_message m_view{};
+  // The overview of the passes, worked out over as many messages as a long
+  // loop needs.
+  std::array<float, Looper::view_message::max_lanes * Looper::view_message::bins>
+      m_scan_peaks{};
+  int m_scan_layer{};
+  int64_t m_scan_pos{};
+  int m_scan_count{-1};
+  int64_t m_scan_length{-1};
+  void scan_peaks();
 
   void apply_buttons();
   void capture(const tick& tk);
@@ -757,20 +827,6 @@ inline void Node::looper_close_take(
   }
   else
   {
-    // An extending pass asked to stop just after the loop grew ends on the
-    // old end, as a late stop would.
-    if(m_extended && m_extend_unit > 0)
-    {
-      const int64_t into_last = transport.playbackPos - (layers.length - m_extend_unit);
-      if(into_last >= 0 && into_last <= int64_t(inputs.late.value * m_rate / 1000.)
-         && layers.length - m_extend_unit >= m_extend_unit)
-      {
-        layers.length -= m_extend_unit;
-        top->written
-            = std::clamp<int64_t>(layers.length - top->start, 0, top->written);
-        transport.playbackPos = into_last;
-      }
-    }
     m_extended = false;
     layers.top()->loop_after = layers.length;
     layers.fade_out_top();
@@ -781,6 +837,34 @@ inline void Node::looper_close_take(
   m_export_tempo = m_loop_tempo;
   m_export_signature = tk.signature;
   m_export_pending = true;
+  m_closed_count = layers.count;
+}
+
+//! An extending pass asked to stop just after the loop grew ends on the old
+//! end, as a late stop would.
+inline int64_t Node::looper_trim_extension(int64_t max_frames)
+{
+  auto* top = layers.top();
+  if(!top || !m_extended || m_extend_unit <= 0)
+    return -1;
+  const int64_t end = layers.length - m_extend_unit;
+  const int64_t into_last = transport.playbackPos - end;
+  if(into_last < 0 || into_last > max_frames || end < m_extend_unit)
+    return -1;
+  layers.length = end;
+  top->written = std::clamp<int64_t>(end - top->start, 0, top->written);
+  m_extended = false;
+  return into_last;
+}
+
+//! What was taken for a take being written is about to change: the take
+//! stops where it is, and is not offered for sending.
+inline void Node::cancel_export() noexcept
+{
+  m_flattening = false;
+  if(m_writing)
+    m_export_cancelled = true;
+  layers.reserved = 0;
 }
 
 //! A small fade on the first and last samples of a recorded pass.
@@ -850,6 +934,7 @@ inline void Node::capture(const tick& tk)
   if(n <= 0)
     return;
 
+  cancel_export();
   layers.begin_recording();
   const int slot = layers.layers[0].slot;
   for(int c = 0; c < layers.channels; c++)
@@ -873,7 +958,6 @@ inline void Node::capture(const tick& tk)
   fade_edges(slot);
 
   m_full = false;
-  m_flattening = false;
   transport.play_captured((m_ring_written - end) % n);
 
   const double model_per_frame = ossia_state.samplesToModel();
@@ -883,6 +967,7 @@ inline void Node::capture(const tick& tk)
   m_export_tempo = m_loop_tempo;
   m_export_signature = tk.signature;
   m_export_pending = true;
+  m_closed_count = layers.count;
 }
 
 //! A new file replaces the loop. It is copied about a second per tick so that
@@ -904,13 +989,13 @@ inline void Node::load_file()
     m_file_target = std::min<int64_t>(int64_t(f.frames * ratio), layers.capacity);
     if(m_file_target <= 0)
       return;
+    cancel_export();
     layers.begin_recording();
     // Nothing is heard until the whole file is in.
     layers.count = 0;
     m_file_pos = 0;
     m_loading = true;
     m_full = false;
-    m_flattening = false;
   }
 
   if(!m_loading)
@@ -955,7 +1040,8 @@ inline void Node::play_stretched(int64_t first_pos, int64_t samples)
 {
   const int64_t len = layers.length;
   const int chans = layers.channels;
-  if(std::ssize(m_stretch_out) < chans || samples > std::ssize(m_stretch_out[0]))
+  if(std::ssize(m_stretch_out) < chans || std::ssize(m_stretch_span) < chans
+     || samples > std::ssize(m_stretch_out[0]))
   {
     play(first_pos, samples);
     return;
@@ -963,21 +1049,23 @@ inline void Node::play_stretched(int64_t first_pos, int64_t samples)
   if(!m_stretch_ready || transport.playbackPos % len != m_expected_pos)
   {
     m_stretcher.transport(transport.playbackPos % len);
+    m_heard = double(transport.playbackPos % len);
     m_cycle_ratio = m_loop_tempo / std::max(1., m_tempo);
     m_stretch_ready = true;
   }
 
-  ossia::mutable_audio_span<double> ap;
   for(int c = 0; c < chans; c++)
-    ap.emplace_back(m_stretch_out[c].data(), std::size_t(samples));
+    m_stretch_span[c] = std::span<double>(m_stretch_out[c].data(), std::size_t(samples));
 
   ossia::token_request tk;
   tk.prev_date = ossia::time_value{0};
   tk.date = ossia::time_value{samples};
   m_wrapped = false;
+  // Frames of output per frame of the loop, for this run.
+  const double ratio = m_stretcher.stretch() ? m_cycle_ratio : 1.;
   m_stretcher.run(
       *this, tk, ossia_state, m_cycle_ratio, 1., std::size_t(chans), len, samples,
-      samples, 0, ap);
+      samples, 0, m_stretch_span);
   if(m_wrapped)
     m_cycle_ratio = m_loop_tempo / std::max(1., m_tempo);
 
@@ -990,7 +1078,11 @@ inline void Node::play_stretched(int64_t first_pos, int64_t samples)
     for(int64_t j = 0; j < samples; j++)
       p2.samples[c][first_pos + j] = 0.;
 
-  transport.playbackPos = m_stretcher.next_sample_to_read() % len;
+  // The stretcher reads ahead of what it outputs, by what it keeps buffered
+  // and its own latency: the position is the one of what was heard, which an
+  // overdub that carries on from here writes at.
+  m_heard = std::fmod(m_heard + double(samples) / std::max(1e-9, ratio), double(len));
+  transport.playbackPos = int64_t(m_heard) % len;
   m_expected_pos = transport.playbackPos;
 }
 
@@ -1086,11 +1178,10 @@ inline int64_t Node::record(int64_t first_pos, int64_t samples, bool echo)
   {
     // A new recording: the passes go, and an export of them that was still
     // being flattened would read the new one.
+    cancel_export();
     layers.begin_recording();
     transport.playbackPos = 0;
-    m_flattening = false;
     m_export_pending = false;
-    m_export_cancelled = m_writing;
     m_full = false;
     m_loading = false;
   }
@@ -1153,7 +1244,11 @@ inline void Node::overdub(int64_t first_pos, int64_t samples, bool echo)
   int64_t len = layers.length;
   if(!transport.is_taking())
   {
+    layers.reserved_overwritten = false;
     layers.begin_overdub(transport.playbackPos % len);
+    // No buffer was left but one a take being written still reads.
+    if(layers.reserved_overwritten)
+      cancel_export();
     // An extending pass grows the loop by the loop it started over.
     m_extend_unit = len;
     m_extended = false;
@@ -1226,11 +1321,15 @@ inline void Node::run_export()
     m_export_length = layers.length;
     m_export_channels = layers.channels;
     const auto files = inputs.takes.value;
+    // The passes as they are now: gains change with feedback, the loop's
+    // length with undo, and new passes come while the files are written.
+    m_export_count = std::clamp(m_closed_count, 1, layers.count);
     m_export_mix = files != Looper::TakeFiles::Layers;
-    m_export_layers = files != Looper::TakeFiles::Mix ? layers.count : 0;
-    // The passes as they are now: gains change with feedback while the files
-    // are written.
+    m_export_layers = files != Looper::TakeFiles::Mix ? m_export_count : 0;
     std::copy_n(layers.layers.begin(), layers.count, m_export_snapshot.begin());
+    layers.reserved = 0;
+    for(int i = 0; i < m_export_count; i++)
+      layers.reserved |= uint64_t(1) << m_export_snapshot[i].slot;
     m_export_number = 0;
     start_export_item(m_export_mix ? -1 : 0);
   }
@@ -1238,24 +1337,36 @@ inline void Node::run_export()
   if(!m_flattening)
     return;
 
-  // About a second of audio per tick at most: a minute-long loop does not
-  // make one tick a minute of work.
-  constexpr int64_t chunk = 65536;
+  // A bounded amount of work per tick: a minute-long loop of many passes and
+  // channels does not make one tick a minute of work.
+  const int64_t per_frame
+      = int64_t(m_export_channels) * (m_export_item < 0 ? std::max(1, m_export_count) : 1);
+  const int64_t chunk = std::max<int64_t>(1024, work_per_tick / std::max<int64_t>(1, per_frame));
   const int64_t end = std::min(m_export_length, m_flatten_pos + chunk);
+  const int64_t len = m_export_length;
   for(int c = 0; c < m_export_channels; c++)
   {
     float* dst = export_audio->channel(c);
     if(m_export_item < 0)
     {
-      for(int64_t k = m_flatten_pos; k < end; k++)
-        dst[k] = layers.mix(c, k);
+      std::fill(dst + m_flatten_pos, dst + end, 0.f);
+      for(int i = 0; i < m_export_count; i++)
+      {
+        const auto& l = m_export_snapshot[i];
+        const float* src = layers.data(l.slot, c);
+        for(int64_t k = m_flatten_pos; k < end; k++)
+          if(Looper::audio_layers::valid_in(l, k, len))
+            dst[k] += l.gain * src[Looper::audio_layers::index_in(l, k, len)];
+      }
     }
     else
     {
       const auto& l = m_export_snapshot[m_export_item];
       const float* src = layers.data(l.slot, c);
       for(int64_t k = m_flatten_pos; k < end; k++)
-        dst[k] = layers.valid(l, k) ? l.gain * src[layers.index(l, k)] : 0.f;
+        dst[k] = Looper::audio_layers::valid_in(l, k, len)
+                     ? l.gain * src[Looper::audio_layers::index_in(l, k, len)]
+                     : 0.f;
     }
   }
   m_flatten_pos = end;
@@ -1286,9 +1397,10 @@ inline void Node::take_written(int slot, int number, bool ok)
   m_writing = false;
   if(m_export_cancelled || !ok || !writer)
   {
-    // A new recording replaced what was being written, or the file could not
-    // be: the take stops there.
+    // What was being written changed, or the file could not be: the take
+    // stops there.
     m_export_cancelled = false;
+    layers.reserved = 0;
     return;
   }
 
@@ -1299,6 +1411,7 @@ inline void Node::take_written(int slot, int number, bool ok)
     return;
   }
 
+  layers.reserved = 0;
   m_takes_written++;
   m_last_take_date = m_job_date;
   m_view.set_take(writer->take_base(slot), "wav", m_export_mix, m_export_layers);
@@ -1342,34 +1455,64 @@ inline void Node::send_view(int64_t frames)
   v.tempo = float(m_tempo);
   v.writing = m_flattening || m_writing;
 
-  // Lanes: one per pass, the oldest merged into the first when there are
-  // more passes than lanes.
-  const int lanes = std::min(layers.count, Looper::view_message::max_lanes);
-  v.lanes = lanes;
-  std::fill(v.peaks.begin(), v.peaks.end(), 0.f);
+  scan_peaks();
+  send_message(v);
+}
+
+//! The overview: one lane per pass, the oldest merged into the first when
+//! there are more passes than lanes. A long loop of many passes is gone
+//! through over several messages, the view keeping the last complete one.
+inline void Node::scan_peaks()
+{
+  using layers_t = Looper::audio_layers;
+  constexpr int bins = Looper::view_message::bins;
+  const int count = layers.count;
   const int64_t len = layers.length;
-  if(len > 0)
+  const int lanes = std::min(count, Looper::view_message::max_lanes);
+  if(count != m_scan_count || len != m_scan_length)
   {
-    const int64_t micro = (len + Looper::audio_layers::peak_frames - 1)
-                          / Looper::audio_layers::peak_frames;
-    for(int i = 0; i < layers.count; i++)
+    m_scan_count = count;
+    m_scan_length = len;
+    m_scan_layer = 0;
+    m_scan_pos = 0;
+    std::fill(m_scan_peaks.begin(), m_scan_peaks.end(), 0.f);
+  }
+
+  const int64_t micro = (len + layers_t::peak_frames - 1) / layers_t::peak_frames;
+  int64_t budget = work_per_tick / 8;
+  while(m_scan_layer < count && budget > 0)
+  {
+    const int i = m_scan_layer;
+    const int lane = std::max(0, i - (count - lanes));
+    const auto& l = layers.layers[i];
+    const float* p = layers.peaks_of(l.slot);
+    float* dst = m_scan_peaks.data() + lane * bins;
+    // A pass shorter than the loop plays again over the rest of it.
+    const int64_t own = std::max<int64_t>(
+        1, (layers.period_of(l) + layers_t::peak_frames - 1) / layers_t::peak_frames);
+    const int64_t end = std::min(micro, m_scan_pos + budget);
+    for(int64_t m = m_scan_pos; m < end; m++)
     {
-      const int lane = std::max(0, i - (layers.count - lanes));
-      const auto& l = layers.layers[i];
-      const float* p = const_cast<Looper::audio_layers&>(layers).peaks_of(l.slot);
-      float* dst = v.peaks.data() + lane * Looper::view_message::bins;
-      // A pass shorter than the loop plays again over the rest of it.
-      const int64_t own = std::max<int64_t>(
-          1, (layers.period_of(l) + Looper::audio_layers::peak_frames - 1)
-                 / Looper::audio_layers::peak_frames);
-      for(int64_t m = 0; m < micro; m++)
-      {
-        const int b = int(m * Looper::view_message::bins / micro);
-        dst[b] = std::max(dst[b], p[m % own] * l.gain);
-      }
+      const int b = int(m * bins / micro);
+      dst[b] = std::max(dst[b], p[m % own] * l.gain);
+    }
+    budget -= end - m_scan_pos;
+    m_scan_pos = end;
+    if(m_scan_pos >= micro)
+    {
+      m_scan_layer++;
+      m_scan_pos = 0;
     }
   }
 
-  send_message(v);
+  if(m_scan_layer < count)
+    return;
+  m_view.lanes = lanes;
+  m_view.peaks = m_scan_peaks;
+  // The next message goes through the passes again: gains change as an
+  // overdub goes round, and what it records with them.
+  m_scan_layer = 0;
+  m_scan_pos = 0;
+  std::fill(m_scan_peaks.begin(), m_scan_peaks.end(), 0.f);
 }
 }

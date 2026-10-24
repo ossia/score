@@ -30,6 +30,10 @@ struct Node
   halp_meta(description, "Quantifies a MIDI input")
   halp_meta(uuid, "a0cb1144-05a8-4f9b-b22c-81cd964314fb")
   halp_flag(process_exec);
+  // The stop's extra, empty tick runs in the same buffer as the last, partial
+  // one: the output of both is kept until the graph's next execution.
+  halp_meta(local_midi_tick_batch, true)
+  halp_meta(local_midi_tick_batch_reserve, 4096)
 
   struct ins
   {
@@ -405,10 +409,9 @@ struct Node
         Note n = note;
         n.vel = inputs.decay.value > 0 ? decayed(previous > 0 ? previous : key.vel)
                                        : key.vel;
-        const int64_t length
-            = inputs.length.value == UntilNoteOff ? std::max<int64_t>(1, at - key.at) : -1;
         pending.push_back(
-            {n, start_of(at), at, length, from_input ? note.vel : fixed_release()});
+            {n, start_of(at), at, std::max<int64_t>(1, at - key.at),
+             from_input ? note.vel : fixed_release()});
         key = {};
       }
       else
@@ -423,32 +426,31 @@ struct Node
             if(same(r))
               r.off_vel = note.vel;
         }
-        if(inputs.length.value == UntilNoteOff)
+        // Whatever Length is now: a note started or queued while it was Until
+        // note-off has no other end than this release.
+        // Not started yet: it plays the length it was played with, if Length is
+        // Until note-off when it starts.
+        // Started: it ends now, or after Gate of its length.
+        for(auto& p : pending)
+          if(same(p) && p.length < 0)
+            p.length = std::max<int64_t>(1, at - p.played);
+        const double g = gate();
+        const bool until_off = inputs.length.value == UntilNoteOff;
+        for(auto it = running.begin(); it != running.end();)
         {
-          // Not started yet: it will play the length it was played with.
-          // Started: it ends now, or after Gate of its length.
-          for(auto& p : pending)
-            if(same(p) && p.length < 0)
-              p.length = std::max<int64_t>(1, at - p.played);
-          const double g = gate();
-          for(auto it = running.begin(); it != running.end();)
+          if(same(*it) && ((until_off && g == 1.) || it->end < 0))
           {
-            if(same(*it) && (g == 1. || it->end < 0))
+            const int64_t stop = it->start + std::llround((at - it->start) * g);
+            if(g <= 1. || stop <= at)
             {
-              const int64_t stop
-                  = it->start + std::llround((at - it->start) * g);
-              if(g <= 1. || stop <= at)
-              {
-                note_off(it->note, at, pos, it->off_vel);
-                it = running.erase(it);
-                continue;
-              }
-              it->end = stop;
+              note_off(it->note, at, pos, it->off_vel);
+              it = running.erase(it);
+              continue;
             }
-            ++it;
+            it->end = stop;
           }
+          ++it;
         }
-        // The other lengths do not depend on the note-off
       }
     }
 
@@ -463,7 +465,11 @@ struct Node
         no.timestamp = start - pos;
         outputs.midi.push_back(no);
         const double g = gate();
-        int64_t stop = it->length >= 0 ? start + it->length : end_of(start);
+        // Fixed duration and End on grid do not depend on the key; Until
+        // note-off does, when it was released before the note started.
+        int64_t stop = end_of(start);
+        if(stop < 0 && it->length >= 0)
+          stop = start + it->length;
         if(stop >= 0 && g != 1.)
           stop = start + std::llround((stop - start) * g);
         running.push_back({it->note, stop, start, it->off_vel});

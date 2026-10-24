@@ -368,6 +368,33 @@ TEST_CASE("mtk::MidiValueShaper only touches what it selects", "[avnd][midi][sha
     REQUIRE(d.cc(123, 0, 2) == 0);
     REQUIRE(d.cc(120, 0, 2) == 0);
   }
+
+  SECTION("any controller leaves bank select, RPN, NRPN and channel mode alone")
+  {
+    d.fx.inputs.number.value = -1;
+    d.fx.inputs.gain.value = 1.f;
+    d.fx.inputs.offset.value = 10.f;
+    REQUIRE(d.cc(1, 50, 2) == 60);
+
+    auto cc = [](int n, int v) { return libremidi::channel_events::control_change(2, n, v); };
+    // Bank select, then pitch bend range (RPN 0) set to 2 semitones, an
+    // increment, an NRPN select, and every channel mode message.
+    std::vector<libremidi::message> in{
+        cc(0, 1),   cc(32, 3),  cc(101, 0), cc(100, 0), cc(6, 2),   cc(38, 0),
+        cc(96, 1),  cc(97, 1),  cc(99, 5),  cc(98, 7),  cc(101, 127), cc(100, 127),
+        cc(121, 0), cc(122, 0), cc(124, 0), cc(125, 0), cc(126, 1), cc(127, 0)};
+    auto out = d.run(in);
+    REQUIRE(out.size() == in.size());
+    for(std::size_t i = 0; i < in.size(); i++)
+    {
+      INFO("controller " << int(in[i].bytes[1]));
+      CHECK(out[i].bytes == in[i].bytes);
+    }
+
+    // A selected number is reshaped whatever it is.
+    d.fx.inputs.number.value = 6;
+    REQUIRE(d.cc(6, 2, 2) == 12);
+  }
 }
 
 TEST_CASE("mtk::MidiValueShaper release velocity", "[avnd][midi][shaper]")

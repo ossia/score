@@ -10,6 +10,8 @@
 #include <atomic>
 #include <cstddef>
 #include <functional>
+#include <utility>
+#include <vector>
 
 namespace oscr
 {
@@ -27,7 +29,8 @@ struct function_argument<std::function<R(Arg)>>
  *
  * The writer calls request() after each write and wakes the reader up (with
  * an execution command) only when it returns true; when the wake-up cannot be
- * sent it calls cancel(), and what it wrote goes with the next wake-up. The
+ * sent it calls park(), and what it wrote goes with the next wake-up: the
+ * next write's, or the one ui_wakeups::retry() sends on a later tick. The
  * reader calls clear() before it reads, so that a write that it misses wakes
  * it up again.
  */
@@ -37,8 +40,50 @@ struct drain_request
   void cancel() noexcept { m_pending.store(false, std::memory_order_release); }
   void clear() noexcept { m_pending.store(false, std::memory_order_release); }
 
+  //! Writer's thread: the wake-up could not be sent.
+  void park() noexcept
+  {
+    cancel();
+    m_parked.store(true, std::memory_order_relaxed);
+  }
+  //! Writer's thread: whether a wake-up was parked since the last call.
+  bool unpark() noexcept { return m_parked.exchange(false, std::memory_order_relaxed); }
+
 private:
   std::atomic_bool m_pending{false};
+  std::atomic_bool m_parked{false};
+};
+
+/**
+ * Wake-ups of the UI that an exec node could not send because the edition
+ * queue was full. Without them, a value written once (a one-shot update of a
+ * control) would wait for a next write that may never come.
+ *
+ * Each channel of the node registers how to resend its wake-up, on the UI
+ * thread before the node runs; the node calls retry() at each tick, which
+ * neither allocates nor locks and does nothing when nothing is parked.
+ */
+struct ui_wakeups
+{
+  //! UI thread, before the node runs. f returns false when it is still parked.
+  void add(std::function<bool()> f) { m_retries.push_back(std::move(f)); }
+
+  //! Writer's thread: a channel parked its wake-up.
+  void park() noexcept { m_parked = true; }
+
+  //! Writer's thread, at each tick.
+  void retry() noexcept
+  {
+    if(!std::exchange(m_parked, false))
+      return;
+    for(auto& f : m_retries)
+      if(!f())
+        m_parked = true;
+  }
+
+private:
+  std::vector<std::function<bool()>> m_retries;
+  bool m_parked{};
 };
 
 /**

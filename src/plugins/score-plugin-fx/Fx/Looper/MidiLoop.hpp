@@ -97,10 +97,11 @@ struct midi_loop
   }
 
   //! The top pass goes on past the end of the loop: the loop grows by `unit`
-  //! frames, the passes under it repeating.
-  bool extend(int64_t unit) noexcept
+  //! frames, the passes under it repeating. False when the loop would be
+  //! longer than `max_length`.
+  bool extend(int64_t unit, int64_t max_length) noexcept
   {
-    if(count == 0 || unit <= 0)
+    if(count == 0 || unit <= 0 || length + unit > max_length)
       return false;
     for(int p = 0; p < count - 1; p++)
       if(period[p] == 0)
@@ -112,6 +113,9 @@ struct midi_loop
   // The pass being recorded: where it went, and what it touched.
   int64_t pass_start{};
   int64_t pass_written{};
+  //! The frames the pass went over, not rounded: at a rate other than one, a
+  //! tick goes over a fraction of a frame more than its whole frames.
+  double pass_progress{};
   std::array<bool, 128> touched_pitches{};
   std::array<uint16_t, max_touched> touched_keys{};
   int touched_count{};
@@ -249,6 +253,7 @@ struct midi_loop
   {
     pass_start = start;
     pass_written = 0;
+    pass_progress = 0.;
     touched_pitches.fill(false);
     touched_count = 0;
     taking = true;
@@ -277,6 +282,36 @@ struct midi_loop
       }
     }
     taking = false;
+  }
+
+  //! The pass went over `frames` more frames of the loop.
+  void advance_pass(double frames) noexcept
+  {
+    pass_progress += frames;
+    pass_written = int64_t(std::floor(pass_progress + 1e-6));
+  }
+
+  //! Copies what another loop holds, without its unused storage.
+  void assign(const midi_loop& o) noexcept
+  {
+    std::copy_n(o.notes.begin(), o.note_count, notes.begin());
+    std::copy_n(o.controls.begin(), o.control_count, controls.begin());
+    note_count = o.note_count;
+    control_count = o.control_count;
+    count = o.count;
+    total = o.total;
+    length = o.length;
+    full = o.full;
+    period = o.period;
+    loop_before = o.loop_before;
+    loop_after = o.loop_after;
+    pass_start = o.pass_start;
+    pass_written = o.pass_written;
+    pass_progress = o.pass_progress;
+    touched_pitches = o.touched_pitches;
+    touched_keys = o.touched_keys;
+    touched_count = o.touched_count;
+    taking = o.taking;
   }
 
   bool undo() noexcept
