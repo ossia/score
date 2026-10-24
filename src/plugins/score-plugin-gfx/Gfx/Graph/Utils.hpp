@@ -333,6 +333,31 @@ struct TextureRenderTarget
     return 0;
   }
 
+  // Whether the depth attachment has a stencil aspect: a depth-stencil
+  // renderbuffer, or a D24S8 / D32FS8 depth texture. The D32F targets the
+  // engine creates for 3D rendering have none.
+  bool hasStencil() const noexcept
+  {
+    if(depthRenderBuffer)
+      return depthRenderBuffer->type() == QRhiRenderBuffer::DepthStencil;
+    for(const QRhiTexture* t : {depthTexture, msDepthTexture})
+    {
+      if(!t)
+        continue;
+      switch(t->format())
+      {
+        case QRhiTexture::D24S8:
+#if QT_VERSION >= QT_VERSION_CHECK(6, 9, 0)
+        case QRhiTexture::D32FS8:
+#endif
+          return true;
+        default:
+          return false;
+      }
+    }
+    return false;
+  }
+
   // Returns the actual MSAA sample count of this render target, or -1 if it
   // cannot be determined from the stored fields. Callers must treat -1 as
   // "unknown — fall back to the renderlist's global sample count".

@@ -204,4 +204,15 @@ void applyPipelineState(
     bool depthAttachmentAvailable,
     bool wantsDepthByDefault) noexcept;
 
+// Turns the stencil test of `pip` off when its target has no stencil
+// attachment, with a warning naming `what`. The engine's 3D targets are D32F
+// without stencil; a STENCIL_TEST drawn into one tests nothing on Vulkan and
+// GL, and Metal's API validation aborts on it ("MTLDepthStencilDescriptor
+// uses frontFaceStencil but MTLRenderPassDescriptor has a nil
+// stencilAttachment texture").
+SCORE_PLUGIN_GFX_EXPORT
+void dropStencilWithoutAttachment(
+    QRhiGraphicsPipeline& pip, bool stencilAttachmentAvailable,
+    std::string_view what) noexcept;
+
 }

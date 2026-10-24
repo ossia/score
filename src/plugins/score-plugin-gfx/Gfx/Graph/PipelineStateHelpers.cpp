@@ -503,6 +503,17 @@ bool stateAffectsPipeline(const isf::pipeline_state& s) noexcept
   // intentionally absent from this check.
 }
 
+void dropStencilWithoutAttachment(
+    QRhiGraphicsPipeline& pip, bool stencilAttachmentAvailable,
+    std::string_view what) noexcept
+{
+  if(stencilAttachmentAvailable || !pip.hasStencilTest())
+    return;
+  qWarning().noquote() << "score.gfx: STENCIL_TEST ignored, the render target has no"
+                       << "stencil attachment:" << QString::fromUtf8(what.data(), what.size());
+  pip.setStencilTest(false);
+}
+
 void applyPipelineState(
     const QRhi& rhi, QRhiGraphicsPipeline& pip,
     const isf::pipeline_state& state,

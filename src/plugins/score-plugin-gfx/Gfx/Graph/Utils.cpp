@@ -1430,6 +1430,7 @@ Pipeline buildPipelineWithState(
   // override the seeded defaults above + mesh.preparePipeline()'s setup.
   applyPipelineState(
       rhi, *ps, state, rt.colorAttachmentCount(), depthAvailable, wantsDepthByDefault);
+  dropStencilWithoutAttachment(*ps, rt.hasStencil(), ps->name().toStdString());
 
   // The ISF vertex epilogue mirrors Y under QSHADER_SPIRV / QSHADER_HLSL /
   // QSHADER_MSL, i.e. on Vulkan, D3D11/12 and Metal -- every backend except
