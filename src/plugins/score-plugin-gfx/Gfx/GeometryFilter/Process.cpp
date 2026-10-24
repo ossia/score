@@ -190,10 +190,12 @@ Process::ScriptChangeResult Model::setScript(const QString& f)
     }
     catch(const std::exception& e)
     {
+      logShaderError(*this, e.what());
       this->errorMessage(0, e.what());
     }
     catch(...)
     {
+      logShaderError(*this, "Unknown error parsing geometry filter");
       this->errorMessage(0, "Unknown error parsing geometry filter");
     }
     return {.valid = false, .inlets = std::move(inls), .outlets = {}};

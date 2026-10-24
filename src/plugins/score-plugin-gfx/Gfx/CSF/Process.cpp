@@ -173,6 +173,7 @@ Process::ScriptChangeResult Model::setScript(const QString& f)
         = Gfx::preprocessShaderIncludes(m_compute.toUtf8(), m_scriptPath);
     if(!err.isEmpty())
     {
+      logShaderError(*this, err);
       this->errorMessage(0, err);
       return {.valid = false, .inlets = std::move(inls), .outlets = std::move(outls)};
     }
@@ -190,10 +191,12 @@ Process::ScriptChangeResult Model::setScript(const QString& f)
   }
   catch(const std::exception& e)
   {
+    logShaderError(*this, e.what());
     this->errorMessage(0, e.what());
   }
   catch(...)
   {
+    logShaderError(*this, "Unknown error parsing CSF shader");
     this->errorMessage(0, "Unknown error parsing CSF shader");
   }
 

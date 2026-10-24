@@ -1292,6 +1292,8 @@ function(score_add_gfx_process_test name source)
 endfunction()
 
 score_add_gfx_process_test(shader_commands GfxShaderCommands.cpp)
+# A shader process whose shader does not parse logs a warning naming it.
+score_add_gfx_process_test(shader_load_error GfxShaderLoadError.cpp)
 score_add_gfx_process_test(long_input_control GfxLongInputControl.cpp)
 score_add_gfx_process_test(images          GfxImagesProcess.cpp)
 score_add_gfx_process_test(video_text      GfxVideoTextProcess.cpp)

@@ -192,7 +192,7 @@ Process::ScriptChangeResult Model::setProgram(ShaderSource f)
   }
   else
   {
-    qDebug() << "Error while processing program: " << error;
+    Gfx::logShaderError(*this, error);
   }
   return {};
 }

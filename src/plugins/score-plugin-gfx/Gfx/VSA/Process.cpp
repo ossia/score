@@ -205,7 +205,7 @@ Process::ScriptChangeResult Model::setProgram(ShaderSource f)
   }
   else
   {
-    qDebug() << "Error while processing program: " << error;
+    logShaderError(*this, error);
   }
   return {};
 }

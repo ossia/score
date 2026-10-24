@@ -168,6 +168,12 @@ programFromVSAVertexShaderPath(const QString& vertexFilename, QByteArray vertexD
 SCORE_PLUGIN_GFX_EXPORT
 std::pair<QByteArray, QString>
 preprocessShaderIncludes(QByteArray source, const QString& originPath = {}) noexcept;
+
+//! Logs, as a warning naming @p process, that its shader could not be used.
+//! For the shader processes' setProgram / setScript, which a document load
+//! runs: their errorMessage signal only reaches an open script editor.
+SCORE_PLUGIN_GFX_EXPORT
+void logShaderError(const QObject& process, const QString& error) noexcept;
 }
 
 namespace std

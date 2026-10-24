@@ -10,6 +10,8 @@
 
 #include <core/document/Document.hpp>
 
+#include <Process/Process.hpp>
+
 #include <ossia/detail/flat_map.hpp>
 #include <ossia/detail/hash_map.hpp>
 
@@ -773,5 +775,13 @@ preprocessShaderIncludes(QByteArray source, const QString& originPath) noexcept
   if(!ctx.error.isEmpty())
     return {{}, ctx.error};
   return {std::move(expanded), {}};
+}
+
+void logShaderError(const QObject& process, const QString& error) noexcept
+{
+  QString name = process.objectName();
+  if(auto* p = qobject_cast<const Process::ProcessModel*>(&process))
+    name = p->metadata().getName();
+  qWarning().noquote() << name << ": the shader cannot be used:" << error;
 }
 }
