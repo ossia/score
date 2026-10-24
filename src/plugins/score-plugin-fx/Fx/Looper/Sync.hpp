@@ -87,26 +87,27 @@ struct loop_sync
     int64_t position;
   };
 
-  //! A recording of `length` frames closed at engine frame `now`, after
-  //! which the loop restarts from its beginning. Leads the group if nobody
-  //! does; else follows it.
-  result close(int64_t length, int64_t now) noexcept
+  //! A recording of `length` frames closed at engine frame `now`, where
+  //! the loop plays on from `position`: 0 after a recording that ended on time,
+  //! more after one that ended late. Leads the group if nobody does; else
+  //! follows it.
+  result close(int64_t length, int64_t now, int64_t position) noexcept
   {
     auto* g = current();
     if(!g || length <= 0)
-      return {length, 0};
+      return {length, position};
 
     const void* expected = nullptr;
     if(g->leader.compare_exchange_strong(expected, this) || expected == this)
     {
       g->length.store(length);
-      g->origin.store(now);
-      return {length, 0};
+      g->origin.store(now - position % length);
+      return {length, position % length};
     }
 
     const int64_t master = g->length.load();
     if(master <= 0)
-      return {length, 0};
+      return {length, position};
 
     const int64_t synced = fit(length, master);
     int64_t pos = (now - g->origin.load()) % synced;

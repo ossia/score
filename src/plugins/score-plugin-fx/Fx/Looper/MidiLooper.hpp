@@ -466,6 +466,7 @@ private:
   bool m_export_pending{};
   bool m_writing{};
   double m_export_date{};
+  double m_job_date{};
   int m_take_slot{};
   int m_takes_written{};
   bool m_send_requested{};
@@ -686,6 +687,19 @@ inline void Node::capture(const tick& tk)
         break;
     }
   }
+  // Notes let go after the window, e.g. when it was moved back to a grid
+  // point, end there; the ones still held end when they are let go.
+  for(int64_t i = m_history_count - count; i < m_history_count; i++)
+  {
+    const auto& h = m_history[i % history_size];
+    if(h.frame < end || h.size < 2)
+      continue;
+    const libremidi::message m{h.bytes[0], h.bytes[1], h.size > 2 ? h.bytes[2] : uint8_t(0)};
+    if(mtk::classify(m) == mtk::midi_kind::note_off)
+      if(auto* note = loop.open_note(mtk::channel_of(m), m.bytes[1]))
+        note->length = std::max<int64_t>(1, h.frame - from - note->start);
+  }
+
   loop.pass_written = n;
   loop.end_pass(inputs.overdub_mode);
 
@@ -943,11 +957,15 @@ inline void Node::play_range(int64_t k, int64_t k_end, int64_t offset)
   for(int i = 0; i < loop.note_count; i++)
   {
     const auto& n = loop.notes[i];
-    if(!loop.heard(n, mode))
+    // A note still held on the input is heard from the input: playing it
+    // again each round would start it with nothing to end it.
+    if(n.length < 0 || n.pass >= loop.count)
       continue;
+    // A note an overdub replaces may be sounding when it is replaced: its
+    // end still goes out, the counts keep it from ending anything else.
+    const bool heard = loop.heard(n, mode);
 
     const int64_t on = quantize(n.start);
-    if(n.length >= 0)
     {
       int64_t length = std::min(n.length, len - 1);
       int64_t off = ends ? quantize(n.start + length) : on + length;
@@ -959,7 +977,7 @@ inline void Node::play_range(int64_t k, int64_t k_end, int64_t offset)
       if(in_range(off))
         add(off, false, i);
     }
-    if(in_range(on))
+    if(heard && in_range(on))
       add(on, true, i);
   }
   std::sort(m_range.begin(), m_range.begin() + count, [](const range_event& a, const range_event& b) {
@@ -1009,9 +1027,14 @@ inline void Node::looper_close_take(
     const int64_t total = int64_t(std::floor(transport.postaction_bars * bar_samples));
     if(ended_by_postaction && transport.quantif > 0.f && transport.postaction_bars > 0
        && total > 0)
+    {
+      if(total < loop.length)
+        looper_trim_recording(loop.length - total);
       loop.length = total;
+    }
     // In a sync group, the loop fits the group's.
-    const auto synced = sync.close(loop.length, transport.engine_frame(tk));
+    const auto synced
+        = sync.close(loop.length, transport.engine_frame(tk), transport.playbackPos);
     if(synced.length != loop.length)
       looper_trim_recording(std::max<int64_t>(0, loop.length - synced.length));
     loop.length = synced.length;
@@ -1030,6 +1053,8 @@ inline void Node::run_export()
     return;
   m_export_pending = false;
   m_writing = true;
+  // A take closing while this one is written must not change its date.
+  m_job_date = m_export_date;
 
   // Only what is heard goes into the take.
   auto& e = *export_data;
@@ -1073,7 +1098,7 @@ inline void Node::take_written(int slot, bool ok)
   std::copy_n(path.data(), std::min(path.size() + 1, m_view.take_path.size()), m_view.take_path.data());
   m_view.take_path.back() = 0;
   m_view.take = m_takes_written;
-  m_view.take_date = m_export_date;
+  m_view.take_date = m_job_date;
   m_take_slot = (slot + 1) % Looper::take_writer::slots;
   m_view_countdown = 0;
 }

@@ -567,6 +567,7 @@ struct musical_harness : looper_harness
     tk.musical_end_last_bar = std::floor(tk.musical_end_position / bar_q) * bar_q;
     tk.musical_start_last_signature = 0.;
     now += frames;
+    st.samples_since_start = now;
     return tk;
   }
 
@@ -1305,4 +1306,92 @@ TEST_CASE("Looper: the latency the engine reports is made up for when asked",
 
     CHECK(h.loop()[engine ? 240 : 250] == Approx(1.));
   }
+}
+
+TEST_CASE("Looper: a sound file dropped on the looper becomes the loop",
+          "[fx][audio][looper]")
+{
+  looper_harness h{2, 100, 1000};
+  h.node.inputs.passthrough = Passthrough::None;
+  h.node.inputs.mode = LoopMode::Play;
+
+  // A mono file at half the looper's rate: it is resampled, and both channels
+  // get it.
+  std::vector<float> mono(400);
+  for(int i = 0; i < 400; i++)
+    mono[i] = float(i) / 400.f;
+  const float* chans[1]{mono.data()};
+  h.node.inputs.file.soundfile.data = chans;
+  h.node.inputs.file.soundfile.frames = 400;
+  h.node.inputs.file.soundfile.channels = 1;
+  h.node.inputs.file.soundfile.rate = 500;
+
+  h.run(100);
+  REQUIRE(h.node.layers.length == 800);
+  CHECK(h.node.transport.actualMode == LoopMode::Play);
+  CHECK(h.node.layers.mix(0, 400) == Approx(200.f / 400.f));
+  CHECK(h.node.layers.mix(1, 401) == Approx(200.5f / 400.f));
+
+  // The same file again changes nothing; another one replaces the loop.
+  h.run(100);
+  CHECK(h.node.layers.length == 800);
+  h.node.inputs.file.soundfile.frames = 200;
+  h.run(100);
+  CHECK(h.node.layers.length == 400);
+}
+
+TEST_CASE("Looper: the loop goes round with no output channel", "[fx][audio][looper]")
+{
+  looper_harness h{1, 64};
+  h.fill_input(0, [](int64_t) { return 1.; });
+  h.node.inputs.mode = LoopMode::Record;
+  h.run(64);
+  h.run(36);
+  REQUIRE(h.node.layers.length == 100);
+
+  // Nothing is patched in any more: the bus has no channel.
+  h.channels = 0;
+  h.node.inputs.mode = LoopMode::Play;
+  h.run(64);
+  CHECK(h.node.transport.playbackPos == 64);
+  h.run(64);
+  CHECK(h.node.transport.playbackPos == 28);
+}
+
+TEST_CASE("Looper: undoing an overdub brings back what feedback took away",
+          "[fx][audio][looper][layers]")
+{
+  looper_harness h{1, 64};
+  h.node.inputs.feedback.value = 0.f;
+  record_and_overdub(h, 512, 0.25, 0.5);
+  REQUIRE(h.node.layers.layers[0].gain == Approx(0.f));
+  press(h.node.inputs.undo, h);
+  CHECK(h.node.layers.layers[0].gain == Approx(1.f));
+  CHECK(h.node.layers.mix(0, 256) == Approx(0.25));
+  press(h.node.inputs.redo, h);
+  CHECK(h.node.layers.layers[0].gain == Approx(0.f));
+}
+
+TEST_CASE("Looper: a stop just after the bar line keeps a sync group on the grid",
+          "[fx][audio][looper][sync]")
+{
+  musical_harness h;
+  h.node.inputs.quantif.value = 1.0f;
+  h.node.inputs.postaction_bars.value = 0;
+  h.node.inputs.late.value = 250;
+  h.node.inputs.sync.value = Nodes::Looper::SyncGroup::C;
+  h.node.inputs.mode = LoopMode::Stop;
+  h.run_bars(1);
+  h.fill_input(0, [](int64_t) { return 1.0; });
+  h.node.inputs.mode = LoopMode::Record;
+  h.run_bars(2);
+  h.run(h.mtick(h.buffer_size));
+  h.node.inputs.mode = LoopMode::Play;
+  h.run(h.mtick(h.buffer_size));
+
+  // The loop restarted on the bar line, one tick before the stop was asked.
+  auto* g = h.node.sync.current();
+  REQUIRE(g);
+  CHECK(g->origin.load() == 3 * h.bar_samples());
+  CHECK(h.node.transport.playbackPos == 2 * h.buffer_size);
 }
