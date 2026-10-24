@@ -5,10 +5,13 @@
 
 #include <Advanced/MidiScaler/MidiRandomSequencer.hpp>
 
+#include "AllocCounter.hpp"
+
 #include <catch2/catch_test_macros.hpp>
 
 #include <algorithm>
 #include <atomic>
+#include <chrono>
 #include <cmath>
 #include <cstdlib>
 #include <map>
@@ -17,29 +20,6 @@
 #include <set>
 #include <string>
 #include <vector>
-
-namespace
-{
-std::atomic<bool> g_count_allocations{false};
-std::atomic<int> g_allocations{0};
-}
-
-void* operator new(std::size_t n)
-{
-  if(g_count_allocations.load(std::memory_order_relaxed))
-    g_allocations++;
-  if(void* p = std::malloc(n ? n : 1))
-    return p;
-  throw std::bad_alloc{};
-}
-void operator delete(void* p) noexcept
-{
-  std::free(p);
-}
-void operator delete(void* p, std::size_t) noexcept
-{
-  std::free(p);
-}
 
 namespace
 {
@@ -71,7 +51,11 @@ struct Rig
   Seq node;
   int buffer{512};
   double tempo{120.};
+  //! Where the transport is
   int64_t pos{};
+  //! Frames processed since the node was created: the host's
+  //! position_in_frames, which never goes back
+  int64_t processed{};
   double quarters{};
   std::vector<Event> events;
   std::vector<std::string> errors;
@@ -120,18 +104,20 @@ struct Rig
     node.outputs.midi.midi_messages.clear();
     halp::tick_musical tk{};
     tk.frames = frames;
-    tk.position_in_frames = pos;
+    tk.position_in_frames = processed;
     tk.tempo = tempo;
     tk.signature = {4, 4};
     tk.start_position_in_quarters = quarters;
     const double end_q = m_q0 + double(pos + frames - m_pos0) / rate * tempo / 60.;
     tk.end_position_in_quarters = end_q;
 
-    g_allocations = 0;
-    g_count_allocations = true;
-    node(tk);
-    g_count_allocations = false;
-    allocations += g_allocations;
+    int allocated = 0;
+    {
+      alloc_counter::scope counter;
+      node(tk);
+      allocated = counter.allocations();
+    }
+    allocations += allocated;
 
     node.inputs.step.value.reset();
     node.inputs.reset.value.reset();
@@ -155,6 +141,7 @@ struct Rig
       gates.push_back({pos + ts, v});
     node.outputs.gate.values.clear();
     pos += frames;
+    processed += frames;
     quarters = end_q;
   }
 
@@ -194,13 +181,16 @@ struct Rig
     tick(0);
   }
 
-  //! Back to the start of the timeline, as a transport rewind does.
-  void rewind()
+  //! Back to the start of the timeline: the host calls transport() on a
+  //! seek. Without `notify`, the node only sees the musical position go back.
+  void rewind(bool notify = true)
   {
     pos = 0;
     quarters = 0.;
     m_pos0 = 0;
     m_q0 = 0.;
+    if(notify)
+      node.transport(std::chrono::duration<int64_t, std::ratio<1, 705'600'000>>{0});
   }
 
   std::vector<Event> ons() const
@@ -347,26 +337,31 @@ TEST_CASE("Random sequencer: same seed, same take; rewind and Reset restart it",
     a.check_clean();
     b.check_clean();
 
-    // A rewind without a stop restarts the take
-    Rig c{100};
-    setup(c);
-    c.run(8 * 24000);
-    auto first = c.ons();
-    c.rewind();
-    c.events.clear();
-    c.run(8 * 24000);
-    c.stop();
-    auto second = c.ons();
-    REQUIRE(second.size() >= first.size() - 1);
-    // The jitter may carry the last note of the first pass over the rewind
-    for(std::size_t i = 0; i + 1 < first.size(); i++)
+    // A rewind without a stop restarts the take: a seek the host tells, or a
+    // loop seen in the musical position only
+    for(bool notify : {true, false})
     {
-      INFO("note " << i);
-      CHECK(first[i].d1 == second[i].d1);
-      CHECK(first[i].d2 == second[i].d2);
-      CHECK(first[i].at == second[i].at);
+      INFO("notify " << notify);
+      Rig c{100};
+      setup(c);
+      c.run(8 * 24000);
+      auto first = c.ons();
+      c.rewind(notify);
+      c.events.clear();
+      c.run(8 * 24000);
+      c.stop();
+      auto second = c.ons();
+      REQUIRE(second.size() >= first.size() - 1);
+      // The jitter may carry the last note of the first pass over the rewind
+      for(std::size_t i = 0; i + 1 < first.size(); i++)
+      {
+        INFO("note " << i);
+        CHECK(first[i].d1 == second[i].d1);
+        CHECK(first[i].d2 == second[i].d2);
+        CHECK(first[i].at == second[i].at);
+      }
+      c.check_clean();
     }
-    c.check_clean();
 
     // Reset at a bar line restarts it too, from that bar
     Rig d{100};
@@ -392,6 +387,46 @@ TEST_CASE("Random sequencer: same seed, same take; rewind and Reset restart it",
   e.run(4 * 24000);
   f.run(4 * 24000);
   CHECK(e.pitches() != f.pitches());
+}
+
+TEST_CASE("Random sequencer: a free take plays on after a seek back", "[midi_random_sequencer]")
+{
+  for(bool notify : {true, false})
+  {
+    INFO("notify " << notify);
+    Rig r;
+    r.run(4 * 24000);
+    REQUIRE(r.ons().size() == 16);
+    r.rewind(notify);
+    r.events.clear();
+    // The grid starts over: every sixteenth plays again from the start
+    r.run(2 * 24000);
+    const auto ons = r.ons();
+    REQUIRE(ons.size() == 8);
+    for(std::size_t i = 0; i < ons.size(); i++)
+      CHECK(ons[i].at == int64_t(i) * sixteenth);
+    r.stop();
+    r.check_clean();
+  }
+}
+
+TEST_CASE("Random sequencer: the gate output ends each tick as the notes do", "[midi_random_sequencer]")
+{
+  // 1/32 steps in ticks of 46000 frames: over 30 gate changes a tick, more than
+  // the port holds
+  Rig r{46000};
+  r.set_rate_note(1. / 32.);
+  r.node.inputs.gate_length.value = 0.5f;
+  for(int k = 0; k < 4; k++)
+  {
+    r.gates.clear();
+    r.tick(46000);
+    INFO("tick " << k);
+    REQUIRE(!r.gates.empty());
+    CHECK(r.gates.back().second == (r.node.sounding() > 0));
+  }
+  r.stop();
+  r.check_clean();
 }
 
 TEST_CASE("Random sequencer: Turing lock", "[midi_random_sequencer]")

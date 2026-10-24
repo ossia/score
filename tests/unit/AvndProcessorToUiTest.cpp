@@ -34,7 +34,11 @@
 #include <Fx/Looper/MidiLooper.hpp>
 #include <Fx/RateLimiter.hpp>
 #include <Fx/RateLimiter_v2.hpp>
+#include <boost/container/static_vector.hpp>
+
 #include <catch2/catch_template_test_macros.hpp>
+#include "AllocCounter.hpp"
+
 #include <catch2/catch_test_macros.hpp>
 #include <examples/Advanced/MidiScaler/MidiLife.hpp>
 #include <libremidi/detail/conversion.hpp>
@@ -50,39 +54,6 @@
 #include <thread>
 #include <vector>
 
-namespace
-{
-thread_local bool t_count_allocations = false;
-std::atomic<int> g_allocations{0};
-
-struct count_allocations
-{
-  count_allocations()
-  {
-    g_allocations = 0;
-    t_count_allocations = true;
-  }
-  ~count_allocations() { t_count_allocations = false; }
-};
-}
-
-void* operator new(std::size_t n)
-{
-  if(t_count_allocations)
-    g_allocations++;
-  if(void* p = std::malloc(n ? n : 1))
-    return p;
-  throw std::bad_alloc{};
-}
-void operator delete(void* p) noexcept
-{
-  std::free(p);
-}
-void operator delete(void* p, std::size_t) noexcept
-{
-  std::free(p);
-}
-
 TEST_CASE("Edition queue: try_enqueue does not allocate, and fails when full", "[avnd][message_bus]")
 {
   ossia::set_thread_pinned(ossia::thread_type::Ui, 0);
@@ -95,10 +66,10 @@ TEST_CASE("Edition queue: try_enqueue does not allocate, and fails when full", "
     // The first command of a thread registers it as a producer of the queue.
     q.try_enqueue([&ran] { ran++; });
     {
-      count_allocations c;
+      alloc_counter::scope c;
       while(accepted < 100000 && q.try_enqueue([&ran] { ran++; }))
         accepted++;
-      allocations = g_allocations;
+      allocations = c.allocations();
     }
   }};
   audio.join();
@@ -114,10 +85,10 @@ TEST_CASE("Edition queue: try_enqueue does not allocate, and fails when full", "
   // The blocks of the commands that ran are free again.
   std::thread audio2{[&] {
     ossia::set_thread_pinned(ossia::thread_type::Audio, 0);
-    count_allocations c;
+    alloc_counter::scope c;
     for(int i = 0; i < 32 && q.try_enqueue([&ran] { ran++; }); i++)
       accepted_again++;
-    allocations_again = g_allocations;
+    allocations_again = c.allocations();
   }};
   audio2.join();
   CHECK(allocations_again == 0);
@@ -143,7 +114,7 @@ TEST_CASE("Message ring: fixed room, order, wake-ups", "[avnd][message_bus]")
   int pushed = 0;
   int wakeups = 0;
   {
-    count_allocations c;
+    alloc_counter::scope c;
     for(auto& m : msgs)
     {
       if(ring.push(std::move(m)))
@@ -153,7 +124,7 @@ TEST_CASE("Message ring: fixed room, order, wake-ups", "[avnd][message_bus]")
           wakeups++;
       }
     }
-    CHECK(g_allocations == 0);
+    CHECK(c.allocations() == 0);
   }
   CHECK(pushed == 4);
   CHECK(ring.dropped() == 2);
@@ -189,25 +160,25 @@ TEST_CASE("Latest value: the newest text, without allocation", "[avnd][message_b
   CHECK(box.take() == nullptr);
   const std::string a(200, 'a'), b(150, 'b'), c(180, 'c');
   {
-    count_allocations cnt;
+    alloc_counter::scope cnt;
     box.back().assign(a);
     box.publish();
     box.back().assign(b);
     box.publish();
-    CHECK(g_allocations == 0);
+    CHECK(cnt.allocations() == 0);
   }
   auto* v = box.take();
   REQUIRE(v);
   CHECK(*v == b);
   CHECK(box.take() == nullptr);
   {
-    count_allocations cnt;
+    alloc_counter::scope cnt;
     for(int i = 0; i < 100; i++)
     {
       box.back().assign(i % 2 ? a : c);
       box.publish();
     }
-    CHECK(g_allocations == 0);
+    CHECK(cnt.allocations() == 0);
   }
   v = box.take();
   REQUIRE(v);
@@ -338,6 +309,26 @@ libremidi::message note_off(int pitch)
 {
   return libremidi::channel_events::note_off(1, pitch, 0);
 }
+
+//! Plays a chord then the key it is learned on, a tick for each.
+template <typename E>
+void learn_chord(E& e, std::vector<int> chord, int key)
+{
+  std::vector<libremidi::message> on, off;
+  for(int p : chord)
+  {
+    on.push_back(note_on(p));
+    off.push_back(note_off(p));
+  }
+  e.midi(on);
+  e.tick();
+  e.midi(off);
+  e.tick();
+  e.midi({note_on(key)});
+  e.tick();
+  e.midi({note_off(key)});
+  e.tick();
+}
 }
 
 TEST_CASE("Chord through the binding: a learned chord reaches the Memory control", "[avnd][message_bus][execution]")
@@ -378,6 +369,70 @@ TEST_CASE("Chord through the binding: a learned chord reaches the Memory control
         e.control("Memory").value()
         == ossia::value{std::string{"48: 12 16 19; 50: 12 15 19; 52: 12 15 19"}});
   });
+}
+
+TEST_CASE("Chord through the binding: a learned chord reaches the Memory control after the queue was full", "[avnd][message_bus][execution]")
+{
+  with<Nodes::Chord::Node>(
+      QStringLiteral("F0904279-EA26-48DB-B0DF-F68FE3091DA1"), [](auto& e) {
+    e.gui("Learn", true);
+    REQUIRE(e.object().inputs.learn.value);
+
+    // The UI thread is busy (saving, loading): the edition queue fills up.
+    ossia::set_thread_pinned(ossia::thread_type::Audio, 0);
+    int filled = 0;
+    while(filled < 1000000 && e.plug.context().editionQueue.try_enqueue([] { }))
+      filled++;
+    ossia::set_thread_pinned(ossia::thread_type::Ui, 0);
+    REQUIRE(filled < 1000000);
+
+    // The chord is learned once, and nothing writes the Memory again.
+    learn_chord(e, {60, 64, 67}, 48);
+    e.ui();
+    CHECK(e.control("Memory").value() == ossia::value{std::string{}});
+
+    // The next tick sends the wake-up the full queue refused.
+    e.tick();
+    e.ui();
+    CHECK(e.control("Memory").value() == ossia::value{std::string{"48: 12 16 19"}});
+  });
+}
+
+TEST_CASE("Midi life through the binding: views that are gone are dropped when another is added", "[avnd][message_bus]")
+{
+  // A process that never sends anything keeps its listeners as long as it is
+  // shown: each rebuild of its views adds one.
+  with<mtk::MidiLife>(QStringLiteral("04db97fd-2ccf-4271-a5a6-d66552baf0d7"), [](auto& e) {
+    auto& model = static_cast<oscr::ProcessModel<mtk::MidiLife>&>(e.proc);
+    const auto before = model.to_ui_listeners.size();
+    for(int i = 0; i < 10; i++)
+    {
+      auto view = new QObject;
+      model.add_to_ui_listener(view, [](QByteArray) { });
+      delete view;
+    }
+    QObject live;
+    model.add_to_ui_listener(&live, [](QByteArray) { });
+    CHECK(model.to_ui_listeners.size() <= before + 1);
+    for(auto& l : model.to_ui_listeners)
+      CHECK(!l.first.isNull());
+  });
+}
+
+TEST_CASE("Values to fixed-capacity lists keep their first elements", "[avnd][from_value]")
+{
+  boost::container::static_vector<float, 2> v;
+  CHECK(oscr::from_ossia_value_impl{}(ossia::value{ossia::vec4f{1.f, 2.f, 3.f, 4.f}}, v));
+  CHECK(v.size() == 2);
+  CHECK(v[0] == 1.f);
+  CHECK(v[1] == 2.f);
+  CHECK(oscr::from_ossia_value_impl{}(ossia::value{ossia::vec3f{5.f, 6.f, 7.f}}, v));
+  CHECK(v.size() == 2);
+  CHECK(v[1] == 6.f);
+
+  boost::container::static_vector<float, 8> w;
+  CHECK(oscr::from_ossia_value_impl{}(ossia::value{ossia::vec2f{1.f, 2.f}}, w));
+  CHECK(w.size() == 2);
 }
 
 TEST_CASE("Midi life through the binding: the view reaches the layer", "[avnd][message_bus][execution]")

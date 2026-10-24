@@ -5,6 +5,8 @@
 
 #include <Fx/Arpeggiator_v2.hpp>
 
+#include "AllocCounter.hpp"
+
 #include <catch2/catch_test_macros.hpp>
 
 #include <algorithm>
@@ -16,29 +18,6 @@
 #include <string>
 #include <tuple>
 #include <vector>
-
-namespace
-{
-std::atomic<bool> g_count_allocations{false};
-std::atomic<int> g_allocations{0};
-}
-
-void* operator new(std::size_t n)
-{
-  if(g_count_allocations.load(std::memory_order_relaxed))
-    g_allocations++;
-  if(void* p = std::malloc(n ? n : 1))
-    return p;
-  throw std::bad_alloc{};
-}
-void operator delete(void* p) noexcept
-{
-  std::free(p);
-}
-void operator delete(void* p, std::size_t) noexcept
-{
-  std::free(p);
-}
 
 namespace
 {
@@ -122,6 +101,8 @@ struct Rig
   std::vector<std::string> errors;
   int64_t pos{};
   int buffer{100};
+  int sig_num{4};
+  int sig_denom{4};
 
   explicit Rig(int buffer = 100)
       : buffer{buffer}
@@ -155,7 +136,7 @@ struct Rig
     tk.start_position_in_quarters = pos / 500.;
     tk.end_position_in_quarters = (pos + frames) / 500.;
     tk.tempo = 120.;
-    tk.signature = {4, 4};
+    tk.signature = {sig_num, sig_denom};
     node(tk);
     int64_t last = 0;
     for(auto& m : node.outputs.midi.midi_messages)
@@ -249,7 +230,9 @@ TEST_CASE("Arpeggiator v2: at its defaults it plays what the old one plays", "[f
     {
       INFO("mode " << mode << " buffer " << buffer);
       Rig<Arp> n{buffer};
-      Rig<Old> o{buffer};
+      // The old one applies a tick's input before its steps: with one-frame
+      // ticks, that is in time order, as the new one plays at any buffer size
+      Rig<Old> o{1};
       n.node.inputs.arpeggios.value = mode;
       o.node.inputs.arpeggios.value = mode;
       n.node.inputs.octave.value = o.node.inputs.octave.value = 2;
@@ -292,8 +275,8 @@ TEST_CASE("Arpeggiator v2: As played follows the order of the keys", "[fx][arpeg
   r.node.inputs.arpeggios.value = 12;
   r.run(
       1000, {{0, note_on(67, 100)},
-             {1, note_on(60, 100)},
-             {2, note_on(71, 100)},
+             {0, note_on(60, 100)},
+             {0, note_on(71, 100)},
              {300, note_off(60)},
              {300, note_on(62, 100)}});
   // Steps every 125 frames: 67 60 71, then without 60 and with 62 at the end
@@ -375,6 +358,91 @@ TEST_CASE("Arpeggiator v2: swing delays every second step", "[fx][arpeggiator]")
     CHECK(std::vector<int64_t>(at.begin(), at.begin() + 6)
           == std::vector<int64_t>{0, 167, 250, 417, 500, 667});
     r.run(1100, {{1000, note_off(60)}, {1000, note_off(64)}});
+    r.check_clean();
+    CHECK(r.out.still_sounding() == 0);
+  }
+}
+
+TEST_CASE("Arpeggiator v2: the swing pairs and the steps follow the bars", "[fx][arpeggiator]")
+{
+  SECTION("7/8, eighths: the downbeat of every bar is straight")
+  {
+    for(int buffer : {1, 100, 333})
+    {
+      INFO("buffer " << buffer);
+      Rig<Arp> r{buffer};
+      r.sig_num = 7;
+      r.sig_denom = 8;
+      r.node.inputs.rate.value = 0.25f; // an eighth: 250 frames, 7 to a bar
+      r.node.inputs.swing.value = 0.5f;
+      r.run(2300, {{0, note_on(60, 100)}});
+      std::vector<int64_t> at;
+      for(auto& e : r.ons())
+        at.push_back(e.at);
+      // Second of each pair of the bar late by a third of a step: 250 / 3.
+      // The seventh eighth is the first of a pair: the bar line, at 1750,
+      // starts a new one.
+      CHECK(
+          at
+          == std::vector<int64_t>{0, 333, 500, 833, 1000, 1333, 1500, 1750, 2083, 2250});
+      r.stop();
+      r.check_clean();
+      CHECK(r.out.still_sounding() == 0);
+    }
+  }
+  SECTION("3/4, whole-note steps: a step is a bar, the gate a share of it")
+  {
+    Rig<Arp> r{100};
+    r.sig_num = 3;
+    r.sig_denom = 4;
+    r.node.inputs.rate.value = 2.f; // a whole note: one bar of 3/4, 1500 frames
+    r.node.inputs.gate.value = 0.5f;
+    r.run(3200, {{0, note_on(60, 100)}, {0, note_on(64, 100)}});
+    std::vector<Event> notes;
+    for(auto& e : r.events)
+      if(e.status == 0x90 || e.status == 0x80)
+        notes.push_back(e);
+    CHECK(
+        notes
+        == std::vector<Event>{
+            {0, 0x90, 60, 100},
+            {750, 0x80, 60, 0},
+            {1500, 0x90, 64, 100},
+            {2250, 0x80, 64, 0},
+            {3000, 0x90, 60, 100}});
+    r.stop();
+    r.check_clean();
+    CHECK(r.out.still_sounding() == 0);
+  }
+}
+
+TEST_CASE("Arpeggiator v2: the input changes the steps from its own frame on", "[fx][arpeggiator]")
+{
+  SECTION("A key pressed late in a buffer plays from the next step after it")
+  {
+    Rig<Arp> r{1000};
+    r.run(1000, {{400, note_on(64, 100)}});
+    REQUIRE(!r.ons().empty());
+    CHECK(r.ons()[0] == Event{500, 0x90, 64, 100});
+    r.run(1100, {{1050, note_off(64)}});
+    r.check_clean();
+    CHECK(r.out.still_sounding() == 0);
+  }
+  SECTION("A key released late in a buffer plays in the steps before it")
+  {
+    Rig<Arp> r{1000};
+    r.run(1000, {{0, note_on(60, 100)}, {400, note_off(60)}});
+    CHECK(
+        r.events
+        == std::vector<Event>{
+            {0, 0x90, 60, 100},
+            {125, 0x80, 60, 0},
+            {125, 0x90, 60, 100},
+            {250, 0x80, 60, 0},
+            {250, 0x90, 60, 100},
+            {375, 0x80, 60, 0},
+            {375, 0x90, 60, 100},
+            {400, 0x80, 60, 0}});
     r.check_clean();
     CHECK(r.out.still_sounding() == 0);
   }
@@ -679,15 +747,96 @@ TEST_CASE(
       e.previous_octave = Engine::max_octave;
       e.previous_octave_mode = octave_mode;
       e.previous_repeat = Engine::max_repeat;
-      g_allocations = 0;
-      g_count_allocations = true;
-      e.update();
-      g_count_allocations = false;
-      CHECK(g_allocations == 0);
+      int allocated = 0;
+      {
+        alloc_counter::scope counter;
+        e.update();
+        allocated = counter.allocations();
+      }
+      CHECK(allocated == 0);
       CHECK(e.arpeggio.size() <= Engine::max_steps);
       if(mode == 6)
         CHECK(e.arpeggio.size() == (2 * 128 - 2) * Engine::max_repeat);
       if(mode == 2 && octave_mode == 0)
         CHECK(e.arpeggio.size() == Engine::max_steps);
     }
+}
+
+TEST_CASE(
+    "Arpeggiator: a chord larger than a step's inline storage plays without allocating",
+    "[fx][arpeggiator]")
+{
+  using Engine = Nodes::Arpeggiator::Engine;
+  SECTION("Engine: built again from another pattern, all the octaves")
+  {
+    Engine e;
+    for(int p = 0; p < 128; p++)
+      e.notes.insert({(unsigned char)p, 100});
+    for(int octave_mode : {0, 1, 2})
+      for(int mode : {0, 4, 6, 4})
+      {
+        INFO("mode " << mode << " octave mode " << octave_mode);
+        e.previous_arpeggio = mode;
+        e.previous_octave = Engine::max_octave;
+        e.previous_octave_mode = octave_mode;
+        e.previous_repeat = Engine::max_repeat;
+        int allocated = 0;
+        {
+          alloc_counter::scope counter;
+          e.update();
+          allocated = counter.allocations();
+        }
+        CHECK(allocated == 0);
+        if(mode == 4)
+        {
+          CHECK(e.arpeggio.size() == 1);
+          CHECK(e.step(0).size() >= 128);
+        }
+      }
+  }
+
+  SECTION("Node: nine keys, each tick")
+  {
+    Arp a;
+    a.prepare({.input_channels = 0, .output_channels = 0, .frames = 100, .rate = 1000.});
+    a.inputs.rate.value = 0.125f;
+    a.inputs.rate.sync = true;
+    a.inputs.arpeggios.value = 4;
+    a.inputs.midi.midi_messages.reserve(16);
+    a.outputs.midi.midi_messages.reserve(256);
+    std::vector<int> per_tick;
+    Listener out;
+    int64_t pos = 0;
+    for(int t = 0; t < 10; t++)
+    {
+      a.inputs.midi.midi_messages.clear();
+      if(t == 0)
+        for(int i = 0; i < 9; i++)
+          a.inputs.midi.midi_messages.push_back(note_on(60 + i, 100));
+      if(t == 6)
+        for(int i = 0; i < 9; i++)
+          a.inputs.midi.midi_messages.push_back(note_off(60 + i));
+      a.outputs.midi.midi_messages.clear();
+      halp::tick_musical tk{};
+      tk.frames = 100;
+      tk.position_in_frames = pos;
+      tk.start_position_in_quarters = pos / 500.;
+      tk.end_position_in_quarters = (pos + 100) / 500.;
+      tk.tempo = 120.;
+      tk.signature = {4, 4};
+      int allocated = 0;
+      {
+        alloc_counter::scope counter;
+        a(tk);
+        allocated = counter.allocations();
+      }
+      per_tick.push_back(allocated);
+      for(auto& m : a.outputs.midi.midi_messages)
+        out.feed(m);
+      pos += 100;
+    }
+    CHECK(per_tick == std::vector<int>(10, 0));
+    CHECK(out.errors.empty());
+    CHECK(out.still_sounding() == 0);
+  }
 }

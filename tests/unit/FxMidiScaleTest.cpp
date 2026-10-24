@@ -3,6 +3,8 @@
 
 #include <Fx/MidiUtil.hpp>
 
+#include "AllocCounter.hpp"
+
 #include <catch2/catch_test_macros.hpp>
 
 #include <atomic>
@@ -12,29 +14,6 @@
 #include <random>
 #include <utility>
 #include <vector>
-
-namespace
-{
-std::atomic_bool g_count_allocations{false};
-std::atomic<int> g_allocations{0};
-}
-
-void* operator new(std::size_t n)
-{
-  if(g_count_allocations.load(std::memory_order_relaxed))
-    g_allocations++;
-  if(void* p = std::malloc(n ? n : 1))
-    return p;
-  throw std::bad_alloc{};
-}
-void operator delete(void* p) noexcept
-{
-  std::free(p);
-}
-void operator delete(void* p, std::size_t) noexcept
-{
-  std::free(p);
-}
 
 namespace
 {
@@ -510,12 +489,14 @@ TEST_CASE("Midi scale: a scale text change does not allocate", "[fx][midi][scale
 
   // Longer than any small-string buffer: copying it would allocate.
   r.node.inputs.sc.value = "not a scale, and longer than a short string";
-  g_allocations = 0;
-  g_count_allocations = true;
-  r.node.outputs.midi.midi_messages.clear();
-  r.node(halp::tick_flicks{});
-  g_count_allocations = false;
-  CHECK(g_allocations == 0);
+  int allocated = 0;
+  {
+    alloc_counter::scope counter;
+    r.node.outputs.midi.midi_messages.clear();
+    r.node(halp::tick_flicks{});
+    allocated = counter.allocations();
+  }
+  CHECK(allocated == 0);
 
   // The text is not a mask: every note passes.
   auto& on = r.tick({note_on(1, 61, 100)});

@@ -19,6 +19,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <memory>
 
 namespace oscr
 {
@@ -529,11 +530,28 @@ protected:
         paint(&p, nullptr, nullptr);
       }
 
+      // The drag takes the release: the item gets it once the drag is over,
+      // at the last position it saw. Its own event loop may delete the item.
+      auto release = make_event(event);
+      release.button = custom_mouse_event::left;
+      release.held_buttons = custom_mouse_event::no_button;
+      if(!m_alive)
+        m_alive = std::make_shared<char>();
+      std::weak_ptr<char> alive = m_alive;
+
       auto drag = new QDrag(event->widget());
       drag->setMimeData(mime);
       drag->setPixmap(pixmap.scaledToWidth(std::min(160, pixmap.width())));
       drag->setHotSpot(QPoint(5, 5));
       drag->exec(Qt::CopyAction);
+
+      if(alive.expired())
+        return true;
+      if constexpr(requires { impl.mouse_release(0, 0); })
+        impl.mouse_release(release.x, release.y);
+      else if constexpr(requires { impl.mouse_release(custom_mouse_event{}); })
+        impl.mouse_release(release);
+      update();
       return true;
     }
     return false;
@@ -601,6 +619,10 @@ protected:
 
 protected:
   Item impl;
+
+private:
+  //! Expires with the item: tells a drag's event loop that it was deleted
+  std::shared_ptr<char> m_alive;
 };
 
 template <typename Item>

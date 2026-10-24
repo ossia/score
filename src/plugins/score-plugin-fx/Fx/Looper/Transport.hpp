@@ -2,6 +2,7 @@
 #include <ossia/dataflow/exec_state_facade.hpp>
 #include <ossia/dataflow/token_request.hpp>
 
+#include <algorithm>
 #include <cmath>
 #include <cstdint>
 #include <optional>
@@ -33,6 +34,11 @@
  *   // A recording stopped this many frames after a grid point ends on that
  *   // point: what was recorded since is dropped.
  *   void looper_trim_recording(int64_t frames);
+ *
+ *   // An overdub that made the loop longer is stopped: when the playhead is
+ *   // at most `max_frames` into the part the loop last grew by, that part is
+ *   // dropped and the frames the playhead is into it are returned, else -1.
+ *   int64_t looper_trim_extension(int64_t max_frames);
  *
  * The looper calls transport.taking(mode) whenever it records or overdubs.
  */
@@ -160,6 +166,7 @@ struct transport
     recordEndBar = -1.;
     endedByPostaction = false;
     actualMode = postaction == Postaction::Overdub ? LoopMode::Overdub : LoopMode::Play;
+    overdub_after_recording();
     m_forced_close = true;
   }
 
@@ -167,7 +174,8 @@ struct transport
   //! empty loop records it: the first pass has nothing to go over, and a
   //! performer who starts with Overdub expects to be heard. The recording
   //! then goes on until the mode changes, or the post-action takes over after
-  //! its bars, after which overdubbing proper starts.
+  //! its bars, after which overdubbing proper starts at once, on the sample
+  //! the recording ended on.
   LoopMode effective(LoopMode wanted, bool empty) noexcept
   {
     if(wanted != LoopMode::Overdub)
@@ -247,7 +255,14 @@ struct transport
 
     if(m != quantizedPlayMode)
     {
-      if(quantif != 0 && tk.prev_date != 0_tv)
+      if(late_extension_stop(s, e))
+      {
+        enterMode(m, s.restart);
+        playbackPos = m_late_frames;
+        changeAction(tk, e);
+        preAction(tk, s, e);
+      }
+      else if(quantif != 0 && tk.prev_date != 0_tv)
       {
         if(late_stop(s, e))
         {
@@ -355,6 +370,40 @@ private:
     return true;
   }
 
+  //! An overdub that has just made the loop longer, asked to stop a little
+  //! after the end it grew from, ends on that end: the performer meant to stop
+  //! there. Checked before the mode is taken up, whether or not the change
+  //! waits for the grid, while the playhead is still where the overdub left it.
+  //! A stop on the very frame the loop grew is on time, not late: it ends on
+  //! the old end with no late window at all.
+  template <typename Engine>
+  bool late_extension_stop(const transport_settings& s, Engine& e)
+  {
+    if(actualMode != LoopMode::Overdub || m_taking != LoopMode::Overdub)
+      return false;
+    if(s.mode == LoopMode::Overdub)
+      return false;
+    const int64_t into = e.looper_trim_extension(
+        std::max<int64_t>(0, int64_t(s.late_seconds * sampleRate)));
+    if(into < 0)
+      return false;
+    m_late_frames = into;
+    return true;
+  }
+
+  //! A recording that Overdub started on an empty loop gives way to
+  //! overdubbing, whatever the post-action: Overdub is still what is asked
+  //! for, and taking it up now rather than on the next grid point keeps the
+  //! loop going round from where the recording closed it.
+  void overdub_after_recording() noexcept
+  {
+    if(!m_overdub_records)
+      return;
+    m_overdub_records = false;
+    actualMode = LoopMode::Overdub;
+    quantizedPlayMode = LoopMode::Overdub;
+  }
+
   //! Taking up a mode. A recording always starts its buffer again -- there is
   //! nothing yet to carry on from. Whether playing and overdubbing do is what
   //! the Restart setting is for: reading the loop from the top on every change
@@ -432,6 +481,7 @@ private:
             actualMode = LoopMode::Stop;
             break;
         }
+        overdub_after_recording();
 
         recordStartBar = -1.;
         endedByPostaction = true;

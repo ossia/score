@@ -9,9 +9,12 @@
 #include <QTemporaryDir>
 
 #include <catch2/catch_approx.hpp>
+#include "AllocCounter.hpp"
+
 #include <catch2/catch_test_macros.hpp>
 
 #include <atomic>
+#include <cmath>
 #include <cstdint>
 #include <cstdlib>
 #include <new>
@@ -19,29 +22,6 @@
 #include <vector>
 
 using Catch::Approx;
-
-namespace
-{
-std::atomic_bool g_count_allocations{false};
-std::atomic<int> g_allocations{0};
-}
-
-void* operator new(std::size_t n)
-{
-  if(g_count_allocations.load(std::memory_order_relaxed))
-    g_allocations++;
-  if(void* p = std::malloc(n ? n : 1))
-    return p;
-  throw std::bad_alloc{};
-}
-void operator delete(void* p) noexcept
-{
-  std::free(p);
-}
-void operator delete(void* p, std::size_t) noexcept
-{
-  std::free(p);
-}
 
 namespace
 {
@@ -68,6 +48,8 @@ struct midi_harness
   int buffer_size{64};
   int64_t now{0};
   double tempo{120.};
+  //! Ticks carry their place in the bars, 4/4 from the start, for the grid.
+  bool musical{false};
   std::vector<libremidi::message> pending;
   std::vector<libremidi::message> controls_out;
   std::vector<out_note> out;
@@ -115,6 +97,16 @@ struct midi_harness
     tk.start_sample = 0;
     tk.length_sample = frames;
     tk.tempo = tempo;
+    if(musical)
+    {
+      const double qps = tempo / 60. / st.sampleRate;
+      tk.musical_start_position = now * qps;
+      tk.musical_end_position = (now + frames) * qps;
+      tk.musical_start_last_bar = std::floor(tk.musical_start_position / 4.) * 4.;
+      tk.musical_end_last_bar = std::floor(tk.musical_end_position / 4.) * 4.;
+      // The engine's clock is at the end of the buffer while it runs.
+      st.samples_since_start = now + frames;
+    }
     return tk;
   }
 
@@ -422,32 +414,33 @@ TEST_CASE("MIDI looper: nothing is allocated while recording, overdubbing and pl
   h.out.reserve(100000);
   h.controls_out.reserve(100000);
 
-  g_allocations = 0;
-  g_count_allocations = true;
-  h.node.inputs.mode = LoopMode::Record;
-  for(int i = 0; i < 20; i++)
+  int allocated = 0;
   {
-    h.note_on(60 + i % 12, 3);
-    h.cc(1, i, 4);
-    h.note_off(60 + i % 12, 50);
-    h.run();
+    alloc_counter::scope counter;
+    h.node.inputs.mode = LoopMode::Record;
+    for(int i = 0; i < 20; i++)
+    {
+      h.note_on(60 + i % 12, 3);
+      h.cc(1, i, 4);
+      h.note_off(60 + i % 12, 50);
+      h.run();
+    }
+    h.node.inputs.mode = LoopMode::Overdub;
+    for(int i = 0; i < 40; i++)
+    {
+      h.note_on(48 + i % 12, 3);
+      h.note_off(48 + i % 12, 50);
+      h.run();
+    }
+    h.node.inputs.mode = LoopMode::Play;
+    for(int i = 0; i < 40; i++)
+      h.run();
+    h.press(h.node.inputs.undo);
+    h.press(h.node.inputs.redo);
+    h.press(h.node.inputs.clear);
+    allocated = counter.allocations();
   }
-  h.node.inputs.mode = LoopMode::Overdub;
-  for(int i = 0; i < 40; i++)
-  {
-    h.note_on(48 + i % 12, 3);
-    h.note_off(48 + i % 12, 50);
-    h.run();
-  }
-  h.node.inputs.mode = LoopMode::Play;
-  for(int i = 0; i < 40; i++)
-    h.run();
-  h.press(h.node.inputs.undo);
-  h.press(h.node.inputs.redo);
-  h.press(h.node.inputs.clear);
-  g_count_allocations = false;
-
-  CHECK(g_allocations == 0);
+  CHECK(allocated == 0);
 }
 
 TEST_CASE("MIDI looper: a take is a MIDI file as long as the loop, at 120 bpm",
@@ -805,4 +798,201 @@ TEST_CASE("MIDI looper: an extending overdub makes the loop longer, the first pa
 
   h.press(h.node.inputs.undo);
   CHECK(h.node.loop.length == 640);
+}
+
+TEST_CASE("MIDI looper: an extending overdub stopped just past the end does not add a "
+          "loop, on the grid and restarting",
+          "[fx][midi][looper][musical]")
+{
+  // The defaults: the loop is read from its start on every change, and the
+  // stop waits for the grid -- a bar, which the overdub has just grown the
+  // loop by.
+  midi_harness h{4800, 48000};
+  h.musical = true;
+  h.node.inputs.quantif.value = 1.f;
+  h.node.inputs.late.value = 120;
+  h.node.inputs.past_end.value = Nodes::Looper::PastEnd::Extend;
+  const int64_t bar = 96000;
+
+  h.node.inputs.mode = LoopMode::Stop;
+  h.run_frames(bar);
+  h.node.inputs.mode = LoopMode::Record;
+  h.note_on(60, 10);
+  h.note_off(60, 20);
+  h.run_frames(bar);
+  h.node.inputs.mode = LoopMode::Overdub;
+  h.run_frames(2 * bar); // the loop grows on each of the two bar lines
+  REQUIRE(h.node.loop.length == 3 * bar);
+
+  // 100 ms past the bar line the loop last grew on: the stop is late.
+  h.note_on(64, 10); // in the part the stop drops
+  h.note_off(64, 20);
+  h.run();
+  h.node.inputs.mode = LoopMode::Play;
+  h.run();
+
+  CHECK(h.node.transport.actualMode == LoopMode::Play);
+  CHECK(h.node.loop.length == 2 * bar);
+  CHECK(h.node.transport.playbackPos == 2 * h.buffer_size);
+  for(int i = 0; i < h.node.loop.note_count; i++)
+    CHECK(h.node.loop.notes[i].pitch != 64);
+}
+
+TEST_CASE("MIDI looper: an extending overdub cut back to the loop replaces only where "
+          "it went",
+          "[fx][midi][looper]")
+{
+  midi_harness h;
+  h.node.inputs.past_end.value = Nodes::Looper::PastEnd::Extend;
+  h.node.inputs.restart = Looper::Restart::Recording;
+  h.node.inputs.overdub_mode = OverdubMode::Replace;
+  h.node.inputs.late.value = 50; // 2400 frames
+
+  // A note at 10 and one at 330 of a 640-frame loop.
+  h.node.inputs.mode = LoopMode::Record;
+  for(int i = 0; i < 10; i++)
+  {
+    if(i == 0 || i == 5)
+    {
+      h.note_on(60, 10);
+      h.note_off(60, 20);
+    }
+    h.run();
+  }
+  h.node.inputs.mode = LoopMode::Play;
+  h.run_frames(320);
+
+  // An overdub from the middle of the loop plays the pitch at 350, grows the
+  // loop at its end and is stopped a tick later.
+  h.node.inputs.mode = LoopMode::Overdub;
+  h.note_on(60, 30);
+  h.note_off(60, 40);
+  h.run_frames(320 + 64);
+  h.node.inputs.mode = LoopMode::Play;
+  h.run();
+  REQUIRE(h.node.loop.length == 640);
+
+  // The pass went over the second half of the loop only.
+  int checked = 0;
+  for(int i = 0; i < h.node.loop.note_count; i++)
+  {
+    const auto& n = h.node.loop.notes[i];
+    if(n.pass != 0)
+      continue;
+    INFO(n.start);
+    if(n.start == 10)
+      CHECK(n.replaced_by == -1);
+    else if(n.start == 330)
+      CHECK(n.replaced_by == 1);
+    checked++;
+  }
+  CHECK(checked == 2);
+}
+
+TEST_CASE("MIDI looper: an overdub at another tempo goes over the frames the loop went "
+          "over",
+          "[fx][midi][looper][tempo]")
+{
+  midi_harness h;
+  record(h, 48000, [](midi_harness&) {});
+  h.run(); // the recording closes at 120
+
+  // 1.3 times as fast: a tick of 64 frames goes over 83.2 frames of the loop.
+  h.tempo = 156.;
+  h.node.inputs.mode = LoopMode::Overdub;
+  for(int i = 0; i < 100; i++)
+    h.run();
+  CHECK(std::abs(h.node.loop.pass_written - 8320) <= 1);
+}
+
+TEST_CASE("MIDI looper: an extending overdub stops growing the loop at an hour",
+          "[fx][midi][looper]")
+{
+  midi_harness h{100, 100}; // an hour is 360000 frames
+  h.node.inputs.past_end.value = Nodes::Looper::PastEnd::Extend;
+  h.node.inputs.restart = Looper::Restart::Recording;
+  record(h, 1000, [](midi_harness& h) {
+    h.note_on(60, 10);
+    h.note_off(60, 20);
+  });
+  h.node.inputs.mode = LoopMode::Overdub;
+  h.run_frames(400000);
+  CHECK(h.node.loop.length == 360000);
+
+  // The first pass plays at each of its repeats, the last ones as well.
+  h.node.inputs.mode = LoopMode::Play;
+  h.run();
+  h.out.clear();
+  h.run_frames(360000);
+  CHECK(h.ons().size() == 360);
+  CHECK(h.offs().size() == 360);
+  REQUIRE(!h.ons().empty());
+  CHECK(h.ons().back().at - h.ons().front().at == 359000);
+}
+
+TEST_CASE("MIDI looper: the files of a take are the loop as it was when it closed",
+          "[fx][midi][looper][takes]")
+{
+  QTemporaryDir dir;
+  REQUIRE(dir.isValid());
+  midi_harness h;
+  auto writer = std::make_shared<Nodes::Looper::take_writer>();
+  writer->folder = dir.path();
+  writer->prefix = "m";
+  writer->extension = "mid";
+  h.node.writer = writer;
+  // Written when the test says, as a worker thread would at its own pace.
+  std::vector<Nodes::Looper::midi_take_job> jobs;
+  h.node.worker.request = [&](Nodes::Looper::midi_take_job job) {
+    jobs.push_back(std::move(job));
+  };
+  auto finish = [&] {
+    while(!jobs.empty())
+    {
+      auto job = std::move(jobs.front());
+      jobs.erase(jobs.begin());
+      Looper::worker_t::work(std::move(job))(h.node);
+    }
+  };
+  h.node.inputs.takes.value = Nodes::Looper::TakeFiles::Layers;
+  h.node.inputs.restart = Looper::Restart::Recording;
+
+  record(h, 640, [](midi_harness& h) {
+    h.note_on(60, 10);
+    h.note_off(60, 20);
+  });
+  h.run();
+  finish();
+
+  h.node.inputs.mode = LoopMode::Overdub;
+  h.note_on(67, 10);
+  h.note_off(67, 20);
+  h.run_frames(640);
+  h.node.inputs.mode = LoopMode::Play;
+  h.run();
+  // The take of the overdub is being written when a new loop is recorded.
+  REQUIRE(!jobs.empty());
+  record(h, 640, [](midi_harness& h) {
+    h.note_on(72, 10);
+    h.note_off(72, 20);
+  });
+  h.run();
+  finish();
+
+  auto pitches = [&](const char* name) {
+    QFile f{dir.path() + "/" + name};
+    if(!f.open(QIODevice::ReadOnly))
+      return std::vector<int>{-1};
+    const auto bytes = f.readAll();
+    libremidi::reader r;
+    std::vector<uint8_t> raw(bytes.begin(), bytes.end());
+    r.parse(raw);
+    std::vector<int> res;
+    for(auto& ev : r.tracks[0])
+      if(mtk::classify(ev.m) == mtk::midi_kind::note_on)
+        res.push_back(ev.m.bytes[1]);
+    return res;
+  };
+  CHECK(pitches("m-take2-layer1.mid") == std::vector<int>{60});
+  CHECK(pitches("m-take2-layer2.mid") == std::vector<int>{67});
 }

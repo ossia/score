@@ -66,15 +66,24 @@ struct MessageBusWrapperToUi<Info>
 {
   //! The process box, the node of the nodal view and the inspector each show
   //! the process: every one of them gets the messages. A view that is gone is
-  //! forgotten at the next message.
+  //! forgotten at the next message, or when another view is added.
   std::vector<std::pair<QPointer<QObject>, std::function<void(QByteArray)>>>
       to_ui_listeners;
+
+  void add_to_ui_listener(QObject* view, std::function<void(QByteArray)> f)
+  {
+    std::erase_if(to_ui_listeners, [](const auto& l) { return l.first.isNull(); });
+    to_ui_listeners.emplace_back(view, std::move(f));
+  }
 
   std::function<void(QByteArray)> to_ui = [this](QByteArray mess) {
     std::erase_if(to_ui_listeners, [](const auto& l) { return l.first.isNull(); });
     const auto n = to_ui_listeners.size();
     for(std::size_t i = 0; i < n; i++)
     {
+      // A listener that adds a view also drops the views gone meanwhile
+      if(i >= to_ui_listeners.size())
+        break;
       // The listener may add another view: hold a copy of its callback.
       auto f = to_ui_listeners[i].second;
       if(i + 1 == n)

@@ -8,6 +8,7 @@
 #include <catch2/catch_test_macros.hpp>
 
 #include <algorithm>
+#include <chrono>
 #include <cmath>
 #include <map>
 #include <random>
@@ -58,7 +59,11 @@ struct Rig
   std::vector<std::string> errors;
   std::vector<Event> events;
   std::vector<libremidi::message> others;
+  //! Where the transport is
   int64_t pos{};
+  //! Frames processed since the node was created: the host's
+  //! position_in_frames, which never goes back
+  int64_t processed{};
   double quarter{};
   double q_anchor{};
   int64_t pos_anchor{};
@@ -106,7 +111,7 @@ struct Rig
     const double qib = 4. * sig_num / sig_den;
     halp::tick_musical tk{};
     tk.frames = frames;
-    tk.position_in_frames = pos;
+    tk.position_in_frames = processed;
     tk.tempo = tempo;
     tk.signature = {sig_num, sig_den};
     tk.start_position_in_quarters = quarter;
@@ -151,6 +156,7 @@ struct Rig
            m.size() > 2 ? m.bytes[2] : 0});
     }
     pos += frames;
+    processed += frames;
     quarter = tk.end_position_in_quarters;
   }
 
@@ -160,17 +166,16 @@ struct Rig
       tick(int(std::min<int64_t>(buffer, until - pos)), in);
   }
 
-  void rewind()
-  {
-    pos = 0;
-    quarter = 0;
-    q_anchor = 0;
-    pos_anchor = 0;
-  }
-  void jump(int64_t p, double q)
+  //! Back to the start of the timeline. The host calls transport() on a
+  //! seek; without `notify`, the node only sees the musical position go back.
+  void rewind(bool notify = true) { jump(0, 0., notify); }
+  void jump(int64_t p, double q, bool notify = true)
   {
     pos = pos_anchor = p;
     quarter = q_anchor = q;
+    if(notify)
+      node.transport(std::chrono::duration<int64_t, std::ratio<1, 705'600'000>>{
+          p * (705'600'000 / 48000)});
   }
 
   void stop()
@@ -332,6 +337,34 @@ TEST_CASE("Free steps in seconds", "[progression_player]")
   REQUIRE(c.size() == 4);
   for(int i = 0; i < 4; i++)
     CHECK(c[i].first == 24000 * i);
+  r.stop();
+  r.check_clean();
+}
+
+TEST_CASE("Free steps follow the transport, not the time played", "[progression_player]")
+{
+  Rig r{100};
+  r.node.inputs.progression.value = choice_of("I V vi IV");
+  r.node.inputs.step.sync = false;
+  r.node.inputs.step.value = 0.5f;
+  // Two and a half steps, then back to the start: the first chord again
+  r.run(60000);
+  CHECK(r.node.outputs.index.value == 2);
+  r.rewind();
+  r.run(1000);
+  CHECK(r.node.outputs.index.value == 0);
+  // A seek to 1.25 s: the chord of the third step, the fourth at 1.5 s
+  r.jump(60000, 2.5);
+  r.run(60000 + 1000);
+  CHECK(r.node.outputs.index.value == 2);
+  r.run(72000 + 1000);
+  CHECK(r.node.outputs.index.value == 3);
+  // A loop seen only in the musical position
+  r.rewind(false);
+  r.run(1000);
+  CHECK(r.node.outputs.index.value == 0);
+  r.run(24000 + 1000);
+  CHECK(r.node.outputs.index.value == 1);
   r.stop();
   r.check_clean();
 }

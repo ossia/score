@@ -127,6 +127,10 @@ struct Node
       "key pressure.")
   halp_meta(uuid, "4df48c1c-f5f2-4ab1-9f37-3b0adba139ae")
   halp_flag(process_exec);
+  // The stop's extra, empty tick runs in the same buffer as the last, partial
+  // one: the output of both is kept until the graph's next execution.
+  halp_meta(local_midi_tick_batch, true)
+  halp_meta(local_midi_tick_batch_reserve, 4096)
 
   using byte = unsigned char;
 
@@ -303,9 +307,6 @@ struct Node
       reseed();
     }
 
-    for(const auto& m : inputs.midi)
-      dirty |= handle(m, frames > 0 ? std::clamp<int64_t>(m.timestamp, 0, frames - 1) : 0);
-
     // Leaving a latch: what is not held any more stops
     const bool sustaining = this->sustaining();
     if(m_sustaining && !sustaining)
@@ -323,29 +324,49 @@ struct Node
     const int octave = std::clamp(int(inputs.octave), 1, Engine::max_octave);
     const int octave_mode = inputs.octave_mode.value;
     const int repeat = std::clamp(int(inputs.repeat), 1, Engine::max_repeat);
-    if(dirty || octave != engine.previous_octave
-       || octave_mode != engine.previous_octave_mode
-       || repeat != engine.previous_repeat || mode != engine.previous_arpeggio)
-    {
-      engine.previous_octave = octave;
-      engine.previous_octave_mode = octave_mode;
-      engine.previous_repeat = repeat;
-      engine.previous_arpeggio = mode;
-      engine.update();
-    }
-
+    dirty |= octave != engine.previous_octave
+             || octave_mode != engine.previous_octave_mode
+             || repeat != engine.previous_repeat || mode != engine.previous_arpeggio;
+    engine.previous_octave = octave;
+    engine.previous_octave_mode = octave_mode;
+    engine.previous_repeat = repeat;
+    engine.previous_arpeggio = mode;
+    const auto refresh = [&] {
+      if(dirty)
+      {
+        engine.update();
+        dirty = false;
+      }
+    };
+    refresh();
     if(engine.arpeggio.empty())
-    {
-      end_all(0);
-      m_pending.valid = false;
-      m_step = 0;
-      m_channel_pressure = -1;
-      finish(frames);
-      return;
-    }
+      silence(0);
 
-    if(engine.index >= engine.arpeggio.size())
-      engine.index = 0;
+    // The input and the steps are taken in time order: a message at a frame
+    // changes the steps from that frame on.
+    std::size_t next_input = 0;
+    const auto take_inputs_until = [&](int64_t until) {
+      for(; next_input < inputs.midi.size(); next_input++)
+      {
+        const auto& m = inputs.midi.midi_messages[next_input];
+        const int64_t ts = frames > 0 ? std::clamp<int64_t>(m.timestamp, 0, frames - 1) : 0;
+        if(ts > until)
+          break;
+        // A swung step due before the message plays first
+        if(m_pending.valid && m_pending.at <= m_now + ts)
+          fire_pending();
+        if(handle(m, ts))
+        {
+          dirty = true;
+          if(engine.notes.empty())
+          {
+            refresh();
+            if(engine.arpeggio.empty())
+              silence(ts);
+          }
+        }
+      }
+    };
 
     const double rate = grid_rate(tk);
     const double dq = tk.end_position_in_quarters - tk.start_position_in_quarters;
@@ -353,25 +374,40 @@ struct Node
     const double sr = setup.rate > 0. ? setup.rate : 48000.;
     const double frames_per_quarter
         = musical ? frames / dq : (tk.tempo > 0. ? 60. / tk.tempo * sr : 0.5 * sr);
-    m_step_frames = rate > 0. ? frames_per_quarter * 4. / rate : double(std::max(1, frames));
+    // The grid's unit, as get_quantification_date counts it: a subdivision of
+    // the whole note, or for a bar or longer, a number of bars.
+    const bool valid_sig = tk.signature.num > 0 && tk.signature.denom > 0;
+    const double quarters_in_bar
+        = valid_sig ? 4. * tk.signature.num / tk.signature.denom : 4.;
+    const double quarters_per_step = rate > 1. ? 4. / rate : quarters_in_bar / rate;
+    m_step_frames = rate > 0. ? frames_per_quarter * quarters_per_step
+                              : double(std::max(1, frames));
 
     if(frames > 0)
     {
-      for(auto [date, bar] : tk.get_quantification_date_with_bars(rate))
+      for(auto [date, grid_point] : tk.get_quantification_date(rate))
       {
         if(date >= frames)
           break;
+        take_inputs_until(date);
+        refresh();
+        if(engine.arpeggio.empty())
+          continue;
+        if(engine.index >= engine.arpeggio.size())
+          engine.index = 0;
+
         const int64_t at = m_now + date;
         if(m_pending.valid && m_pending.at <= at)
           fire_pending();
 
-        // Where the step falls on the grid: for the swing pairs and the beats
+        // Where the step falls on the grid: for the swing pairs, counted from
+        // the bar line as the grid is, and for the beats
         int64_t grid_index = m_free_grid++;
         bool on_beat = false;
         if(musical && rate > 0.)
         {
           const double q = tk.start_position_in_quarters + date * dq / frames;
-          grid_index = std::llround(q * rate / 4.);
+          grid_index = grid_point;
           on_beat = std::abs(q - std::round(q)) <= 0.5 * dq / frames + 1e-9;
         }
         if(inputs.retrigger.value == RetriggerOnBeat && on_beat)
@@ -392,7 +428,7 @@ struct Node
         const int64_t delay = std::llround(
             mtk::swing_delay(grid_index, double(inputs.swing.value)) * m_step_frames);
         s.at = at + std::max<int64_t>(0, delay);
-        for(auto [pitch, vel] : engine.arpeggio[play_index])
+        for(auto [pitch, vel] : engine.step(play_index))
         {
           if(s.count == 128)
             break;
@@ -410,9 +446,11 @@ struct Node
         if(s.at < m_now + frames)
           fire_pending();
       }
-      if(m_pending.valid && m_pending.at < m_now + frames)
-        fire_pending();
     }
+    take_inputs_until(frames);
+    refresh();
+    if(m_pending.valid && m_pending.at < m_now + frames)
+      fire_pending();
     finish(frames);
   }
 
@@ -645,6 +683,15 @@ private:
         m_offs.schedule(
             m_now + ts + length, libremidi::channel_events::note_off(1, p, 0));
     }
+  }
+
+  //! Nothing left to play: what sounds ends at `ts`, the pattern starts over.
+  void silence(int64_t ts) noexcept
+  {
+    end_all(ts);
+    m_pending.valid = false;
+    m_step = 0;
+    m_channel_pressure = -1;
   }
 
   void reset() noexcept

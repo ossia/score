@@ -12,11 +12,16 @@
 
 #include <score_test/App.hpp>
 
+#include <QApplication>
 #include <QCoreApplication>
 #include <QGraphicsScene>
 #include <QGraphicsSceneMouseEvent>
+#include <QInputDialog>
+#include <QTimer>
 
 #include <catch2/catch_all.hpp>
+
+#include <functional>
 
 namespace
 {
@@ -37,6 +42,26 @@ void click(Scene& scene, QGraphicsItem& item, QPointF at)
     ev.setPos(at);
     scene.sendEvent(&item, &ev);
   }
+}
+
+void mouse(
+    Scene& scene, QGraphicsItem& item, QEvent::Type type, QPointF at,
+    Qt::MouseButtons held)
+{
+  QGraphicsSceneMouseEvent ev{type};
+  ev.setButton(type == QEvent::GraphicsSceneMouseMove ? Qt::NoButton : Qt::LeftButton);
+  ev.setButtons(held);
+  ev.setScenePos(item.mapToScene(at));
+  ev.setPos(at);
+  scene.sendEvent(&item, &ev);
+}
+
+//! What the scene sends when it drops the item's grab without a release: a
+//! focus change, a popup, or a move with no button held.
+void lose_grab(Scene& scene, QGraphicsItem& item)
+{
+  QEvent ev{QEvent::UngrabMouse};
+  scene.sendEvent(&item, &ev);
 }
 
 std::vector<int> ints(const ossia::value& v)
@@ -163,6 +188,52 @@ TEST_CASE("Value list: rows of several columns", "[graphics][value_list]")
   });
 }
 
+TEST_CASE("Value list: elements with missing columns take their defaults", "[graphics][value_list]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext&) {
+    score::QGraphicsValueList list{nullptr};
+    std::vector<score::ValueListColumn> cols;
+    for(const char* name : {"Step", "Length", "Gate", "Repeat"})
+      cols.push_back({.name = name, .min = 0, .max = 127, .init = 16});
+    list.setColumns(cols);
+    list.setValue(std::vector<ossia::value>{std::vector<ossia::value>{1, 8}});
+    CHECK(rows(list.value()) == std::vector<std::vector<int>>{{1, 8, 16, 16}});
+    // As the text form does
+    CHECK(list.setText("1 8"));
+    CHECK(rows(list.value()) == std::vector<std::vector<int>>{{1, 8, 16, 16}});
+  });
+}
+
+TEST_CASE("Value list: the text editor outlives the list", "[graphics][value_list]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext&) {
+    Scene scene;
+    auto list = new score::QGraphicsValueList{nullptr};
+    scene.addItem(list);
+    list->setColumns({semitones()});
+    list->setValue(std::vector<ossia::value>{4, 7});
+
+    // While the dialog is open, the list goes away (its process is removed,
+    // the document closes); then the text is accepted.
+    bool accepted = false;
+    std::function<void(int)> answer = [&](int tries) {
+      if(auto d = qobject_cast<QInputDialog*>(QApplication::activeModalWidget()))
+      {
+        delete list;
+        d->setTextValue(QStringLiteral("1 2 3"));
+        d->accept();
+        accepted = true;
+        return;
+      }
+      if(tries > 0)
+        QTimer::singleShot(10, [&answer, tries] { answer(tries - 1); });
+    };
+    QTimer::singleShot(0, [&answer] { answer(500); });
+    list->editAsText();
+    CHECK(accepted);
+  });
+}
+
 TEST_CASE("Value list: the layouts around it follow its size", "[graphics][value_list]")
 {
   score::test::run_in_app([](const score::GUIApplicationContext&) {
@@ -252,5 +323,75 @@ TEST_CASE("Channel mask: clicks, drags and text", "[graphics][channel_mask]")
     CHECK(!m->setText("0-4"));
     CHECK(!m->setText("17"));
     CHECK(m->toText() == "1-4, 10");
+  });
+}
+
+TEST_CASE("Note matrix: a drag that loses the mouse ends", "[graphics][note_matrix]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext&) {
+    Scene scene;
+    auto m = new score::QGraphicsNoteMatrix{nullptr};
+    scene.addItem(m);
+    int released = 0;
+    QObject::connect(
+        m, &score::QGraphicsNoteMatrix::sliderReleased, [&] { released++; });
+    auto cell = [](int col, int row) {
+      return QPointF{18. + col * 14. + 7., 11. + (12 - row) * 10. + 5.};
+    };
+
+    mouse(scene, *m, QEvent::GraphicsSceneMousePress, cell(2, 5), Qt::LeftButton);
+    mouse(scene, *m, QEvent::GraphicsSceneMouseMove, cell(2, 7), Qt::LeftButton);
+    CHECK(ints(m->value())[2] == 7);
+    CHECK(m->moving);
+
+    // The edit is committed and the widget takes values again
+    lose_grab(scene, *m);
+    CHECK(released == 1);
+    CHECK(!m->moving);
+
+    // The column is not held any more
+    mouse(scene, *m, QEvent::GraphicsSceneMouseMove, cell(2, 1), Qt::NoButton);
+    CHECK(ints(m->value())[2] == 7);
+    mouse(scene, *m, QEvent::GraphicsSceneMouseRelease, cell(2, 1), Qt::NoButton);
+    CHECK(ints(m->value())[2] == 7);
+    CHECK(released == 1);
+
+    // A press on the lit cell that has not moved yet: nothing to commit
+    mouse(scene, *m, QEvent::GraphicsSceneMousePress, cell(4, 4), Qt::LeftButton);
+    lose_grab(scene, *m);
+    CHECK(released == 1);
+    CHECK(ints(m->value())[4] == 4);
+  });
+}
+
+TEST_CASE("Channel mask: a drag that loses the mouse ends", "[graphics][channel_mask]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext&) {
+    Scene scene;
+    auto m = new score::QGraphicsChannelMask{nullptr};
+    scene.addItem(m);
+    m->setValue(std::vector<ossia::value>(16, ossia::value{true}));
+    int released = 0;
+    QObject::connect(
+        m, &score::QGraphicsChannelMask::sliderReleased, [&] { released++; });
+    auto cell = [](int channel) {
+      const int c = channel - 1;
+      return QPointF{(c % 8) * 17. + 8., (c / 8) * 15. + 7.};
+    };
+
+    mouse(scene, *m, QEvent::GraphicsSceneMousePress, cell(3), Qt::LeftButton);
+    mouse(scene, *m, QEvent::GraphicsSceneMouseMove, cell(4), Qt::LeftButton);
+    CHECK(m->toText() == "1-2, 5-16");
+    CHECK(m->moving);
+
+    lose_grab(scene, *m);
+    CHECK(released == 1);
+    CHECK(!m->moving);
+
+    // Moves no longer paint
+    mouse(scene, *m, QEvent::GraphicsSceneMouseMove, cell(5), Qt::NoButton);
+    CHECK(m->toText() == "1-2, 5-16");
+    mouse(scene, *m, QEvent::GraphicsSceneMouseRelease, cell(5), Qt::NoButton);
+    CHECK(released == 1);
   });
 }

@@ -14,6 +14,7 @@
 #include <QLineEdit>
 #include <QMenu>
 #include <QPainter>
+#include <QPointer>
 #include <QRegularExpression>
 #include <QTimer>
 
@@ -114,6 +115,10 @@ QGraphicsValueList::Row QGraphicsValueList::defaultRow() const
 
 QGraphicsValueList::Row QGraphicsValueList::clampRow(Row r) const
 {
+  // Missing trailing columns take their default
+  r.reserve(m_columns.size());
+  for(std::size_t i = r.size(); i < m_columns.size(); i++)
+    r.push_back(m_columns[i].init);
   r.resize(m_columns.size());
   for(std::size_t i = 0; i < m_columns.size(); i++)
   {
@@ -285,12 +290,14 @@ void QGraphicsValueList::editAsText()
     hint += QStringLiteral(": ") + names.join(' ');
   }
 
+  // The dialog runs its own event loop, in which the list may be deleted
+  QPointer<QGraphicsValueList> self{this};
   for(;;)
   {
     bool ok = false;
     text = QInputDialog::getText(
         parent, QObject::tr("Edit list"), hint, QLineEdit::Normal, text, &ok);
-    if(!ok || setText(text))
+    if(!self || !ok || setText(text))
       return;
     hint = QObject::tr("Could not read that list, or it has too many or too few elements.");
   }
@@ -579,7 +586,9 @@ void QGraphicsValueList::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event)
     }
   }
   event->accept();
-  editAsText();
+  // Out of the scene's event delivery: the dialog's event loop may delete the
+  // list, which the scene would still be delivering to
+  QTimer::singleShot(0, this, [this] { editAsText(); });
 }
 
 void QGraphicsValueList::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)

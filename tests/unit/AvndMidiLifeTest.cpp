@@ -5,10 +5,13 @@
 
 #include <Advanced/MidiScaler/MidiLife.hpp>
 
+#include "AllocCounter.hpp"
+
 #include <catch2/catch_test_macros.hpp>
 
 #include <algorithm>
 #include <atomic>
+#include <chrono>
 #include <cmath>
 #include <cstdlib>
 #include <map>
@@ -16,29 +19,6 @@
 #include <random>
 #include <string>
 #include <vector>
-
-namespace
-{
-std::atomic<bool> g_count_allocations{false};
-std::atomic<int> g_allocations{0};
-}
-
-void* operator new(std::size_t n)
-{
-  if(g_count_allocations.load(std::memory_order_relaxed))
-    g_allocations++;
-  if(void* p = std::malloc(n ? n : 1))
-    return p;
-  throw std::bad_alloc{};
-}
-void operator delete(void* p) noexcept
-{
-  std::free(p);
-}
-void operator delete(void* p, std::size_t) noexcept
-{
-  std::free(p);
-}
 
 namespace
 {
@@ -61,7 +41,11 @@ struct Rig
 {
   Life node;
   int buffer;
+  //! Where the transport is
   int64_t pos{};
+  //! Frames processed since the node was created: the host's
+  //! position_in_frames, which never goes back
+  int64_t processed{};
   double quarters{};
   double tempo{120.};
   //! Where the current tempo started: positions are computed from it rather
@@ -138,7 +122,7 @@ struct Rig
     const double dq = end_q - quarters;
     halp::tick_musical tk{};
     tk.frames = frames;
-    tk.position_in_frames = pos;
+    tk.position_in_frames = processed;
     tk.tempo = tempo;
     tk.signature = {4, 4};
     tk.start_position_in_quarters = quarters;
@@ -146,11 +130,13 @@ struct Rig
     tk.bar_at_start = std::floor(quarters / 4. + 1e-9) * 4.;
     tk.bar_at_end = std::floor((quarters + dq) / 4. + 1e-9) * 4.;
 
-    g_allocations = 0;
-    g_count_allocations = true;
-    node(tk);
-    g_count_allocations = false;
-    allocations += g_allocations;
+    int allocated = 0;
+    {
+      alloc_counter::scope counter;
+      node(tk);
+      allocated = counter.allocations();
+    }
+    allocations += allocated;
 
     int64_t last = 0;
     for(auto& m : node.outputs.midi.midi_messages)
@@ -165,6 +151,7 @@ struct Rig
       record(m, pos + m.timestamp);
     }
     pos += frames;
+    processed += frames;
     quarters = end_q;
   }
 
@@ -196,13 +183,18 @@ struct Rig
       tick(int(std::min<int64_t>(buffer, until - pos)), in);
   }
 
-  //! Moves the transport back, as a loop or a rewind does.
-  void rewind(int64_t to = 0)
+  //! Moves the transport, as a seek does: the host calls transport() with
+  //! the new date. Without `notify`, the node only sees the musical position
+  //! go back.
+  void rewind(int64_t to = 0, bool notify = true)
   {
     pos = to;
     quarters = double(to) * tempo / 60. / rate;
     anchor_pos = 0;
     anchor_q = 0.;
+    if(notify)
+      node.transport(std::chrono::duration<int64_t, std::ratio<1, 705'600'000>>{
+          to * 705'600'000 / int64_t(rate)});
   }
 
   void stop()
@@ -672,6 +664,28 @@ TEST_CASE("Midi life reseeds a world that died or stalled", "[avnd][midi][life]"
   }
 }
 
+TEST_CASE("Midi life sees a still life through a change of width", "[avnd][midi][life]")
+{
+  // A block in the middle of 16 columns, then of 12: the world the layer
+  // shows does not change, the generations before count towards Reseed after
+  Rig r;
+  r.node.inputs.start.value = Life::StartText;
+  r.node.inputs.pattern.value = "oo/oo";
+  r.node.inputs.evolve.value = Life::EveryNSteps;
+  r.node.inputs.steps_per_gen.value = 1;
+  r.node.inputs.patience.value = 5;
+  r.node.inputs.width.value = 16;
+  r.run(3 * 6000 + 1);
+  REQUIRE(r.node.generation() == 3);
+  r.node.inputs.width.value = 12;
+  r.run(5 * 6000 + 1);
+  CHECK(r.node.reseeds() == 0);
+  r.run(6 * 6000 + 1);
+  CHECK(r.node.reseeds() == 1);
+  r.stop();
+  r.check_clean();
+}
+
 TEST_CASE("Midi life reseeds on the impulse at the next step", "[avnd][midi][life]")
 {
   Rig r;
@@ -706,19 +720,47 @@ TEST_CASE("Midi life seeded takes repeat, rewinds restart them", "[avnd][midi][l
   // Free running: another world each time
   CHECK(take(0, 512) != take(0, 512));
 
-  Rig r;
-  r.node.inputs.seed.value = 42;
-  r.node.inputs.evolve.value = Life::EveryNSteps;
-  r.node.inputs.steps_per_gen.value = 2;
-  r.run(4 * 96000);
-  const auto first = r.ons();
-  r.rewind();
-  r.events.clear();
-  r.run(4 * 96000);
-  r.stop();
-  r.check_clean();
-  auto second = r.ons();
-  CHECK(second == first);
+  // A seek told by the host, then a loop seen in the musical position only
+  for(bool notify : {true, false})
+  {
+    INFO("notify " << notify);
+    Rig r;
+    r.node.inputs.seed.value = 42;
+    r.node.inputs.evolve.value = Life::EveryNSteps;
+    r.node.inputs.steps_per_gen.value = 2;
+    r.run(4 * 96000);
+    const auto first = r.ons();
+    r.rewind(0, notify);
+    r.events.clear();
+    r.run(4 * 96000);
+    r.stop();
+    r.check_clean();
+    auto second = r.ons();
+    CHECK(second == first);
+  }
+}
+
+TEST_CASE("Midi life seeks forward restart the world too", "[avnd][midi][life]")
+{
+  // The world at a place depends on where playback started, not on how long
+  // the node has run
+  auto from = [](int64_t at, bool played_before) {
+    Rig r;
+    r.node.inputs.seed.value = 7;
+    r.node.inputs.evolve.value = Life::EveryNSteps;
+    r.node.inputs.steps_per_gen.value = 1;
+    if(played_before)
+      r.run(at / 2);
+    r.rewind(at);
+    r.events.clear();
+    r.run(at + 2 * 96000);
+    r.stop();
+    r.check_clean();
+    return r.ons();
+  };
+  const auto fresh = from(96000, false);
+  REQUIRE(fresh.size() > 10);
+  CHECK(from(96000, true) == fresh);
 }
 
 TEST_CASE("Midi life ends every note it starts", "[avnd][midi][life]")

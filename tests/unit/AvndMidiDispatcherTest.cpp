@@ -186,6 +186,34 @@ TEST_CASE("Midi dispatcher: note-offs follow their note, surplus", "[midi_dispat
   CHECK(d.total_sounding() == 0);
 }
 
+TEST_CASE("Midi dispatcher: stealing ends the note that sounds", "[midi_dispatcher]")
+{
+  driver d;
+  d.fx.inputs.channels.value = midi_test::channels_on({1});
+  // The second 60 steals the channel of the first, whose entry stays tracked
+  // without output, ahead of the sounding one with the same key.
+  d.note_on(60, 0);
+  d.note_on(60, 1);
+  d.note_on(64, 2);
+  d.tick();
+  CHECK(d.on_channels() == std::vector<int>{1, 1, 1});
+  auto offs = d.of_kind(mtk::midi_kind::note_off);
+  REQUIRE(offs.size() == 2);
+  CHECK(offs[1].msg.bytes[1] == 60);
+  CHECK(offs[1].at == 2);
+  CHECK(d.total_sounding() == 1);
+
+  d.out.clear();
+  d.note_off(60, 0);
+  d.note_off(60, 1);
+  d.note_off(64, 2);
+  d.tick();
+  auto last = d.of_kind(mtk::midi_kind::note_off);
+  REQUIRE(last.size() == 1);
+  CHECK(last[0].msg.bytes[1] == 64);
+  CHECK(d.total_sounding() == 0);
+}
+
 TEST_CASE("Midi dispatcher: random is seeded", "[midi_dispatcher]")
 {
   auto run = [](int seed) {

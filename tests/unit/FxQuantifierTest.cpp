@@ -299,6 +299,53 @@ TEST_CASE("Midi quantify v2: release velocity", "[fx][quantifier]")
   }
 }
 
+TEST_CASE(
+    "Midi quantify v2: a key released after Length changed still ends its note",
+    "[fx][quantifier]")
+{
+  SECTION("Sounding, held with Until note-off, released with Fixed duration")
+  {
+    Rig r;
+    r.run(200, {{100, note_on(60, 100)}});
+    REQUIRE(r.still_sounding() == 1);
+    r.node.inputs.length.value = FixedDuration;
+    r.node.inputs.duration.value = 0.1f;
+    r.run(1000, {{300, note_off(60)}});
+    CHECK(r.notes() == std::vector<Event>{{100, 0x90, 60, 100}, {300, 0x80, 60, 0}});
+    CHECK(r.still_sounding() == 0);
+    r.check_clean();
+  }
+  SECTION("Waiting, released with Fixed duration, started with Until note-off")
+  {
+    Rig r;
+    r.node.inputs.grid.value = 0.5f; // a quarter: every 500 frames
+    r.node.inputs.grid.sync = true;
+    r.node.inputs.length.value = FixedDuration;
+    r.node.inputs.duration.value = 0.1f;
+    r.run(400, {{100, note_on(60, 100)}, {150, note_off(60)}});
+    r.node.inputs.length.value = UntilNoteOff;
+    r.run(1500);
+    CHECK(r.notes() == std::vector<Event>{{500, 0x90, 60, 100}, {550, 0x80, 60, 0}});
+    CHECK(r.still_sounding() == 0);
+    r.check_clean();
+  }
+  SECTION("Trigger, released with Fixed duration, started with Until note-off")
+  {
+    Rig r;
+    r.node.inputs.trigger.value = true;
+    r.node.inputs.grid.value = 0.5f;
+    r.node.inputs.grid.sync = true;
+    r.node.inputs.length.value = FixedDuration;
+    r.node.inputs.duration.value = 0.1f;
+    r.run(400, {{100, note_on(60, 100)}, {300, note_off(60)}});
+    r.node.inputs.length.value = UntilNoteOff;
+    r.run(1500);
+    CHECK(r.notes() == std::vector<Event>{{500, 0x90, 60, 100}, {700, 0x80, 60, 0}});
+    CHECK(r.still_sounding() == 0);
+    r.check_clean();
+  }
+}
+
 TEST_CASE("Midi quantify v2: stop and all notes off end everything", "[fx][quantifier]")
 {
   Rig r;

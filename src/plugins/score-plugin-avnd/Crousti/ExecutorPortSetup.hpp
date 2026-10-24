@@ -12,6 +12,23 @@
 
 namespace oscr
 {
+//! The exec node of an avnd object: it resends, at the beginning of each tick,
+//! the UI wake-ups that a full edition queue refused.
+template <typename Node>
+struct node_with_ui_wakeups : safe_node<Node>
+{
+  using safe_node<Node>::safe_node;
+
+  ui_wakeups wakeups;
+
+  void
+  run(const ossia::token_request& tk, ossia::exec_state_facade st) noexcept override
+  {
+    wakeups.retry();
+    safe_node<Node>::run(tk, st);
+  }
+};
+
 template <typename T>
 struct dynamic_ports_component_data
 {
@@ -222,9 +239,44 @@ struct setup_control_for_exec : setup_control_for_exec_base<Node, Field>
       if constexpr(is_text)
         box->for_each_slot([capacity](std::string& s) { s.reserve(capacity); });
 
+      // Sends the wake-up the box requested; false when the queue is full.
+      auto wake = [inlet = QPointer{inlet}, self = QPointer{&this->element},
+                   qed_ptr = this->ctx.weakEditionQueue(), box] {
+        auto qed = qed_ptr.lock();
+        if(!qed)
+        {
+          box->cancel();
+          return true;
+        }
+        if(qed->try_enqueue([inlet, self, box] {
+          auto v = box->take();
+          if(!v || !self || !inlet)
+            return;
+          inlet->setValue(*v);
+        }))
+          return true;
+        box->park();
+        return false;
+      };
+
+      // A value written once, then never again, still reaches the UI when
+      // the queue was full: the node sends its wake-up on a later tick.
+      auto* wakeups = [&]() -> ui_wakeups* {
+        if(auto n = dynamic_cast<node_with_ui_wakeups<Node>*>(this->node_ptr.get()))
+          return &n->wakeups;
+        return nullptr;
+      }();
+      if(wakeups)
+      {
+        wakeups->add([box, wake] {
+          if(!box->unpark() || !box->request())
+            return true;
+          return wake();
+        });
+      }
+
       param.update_controller
-          = [inlet = QPointer{inlet}, self = QPointer{&this->element},
-             qed_ptr = this->ctx.weakEditionQueue(), box, capacity](arg_type value) {
+          = [box, capacity, wake, wakeups](arg_type value) {
         if constexpr(is_text)
           box->back().assign(value.substr(0, std::min(value.size(), capacity)));
         else
@@ -233,20 +285,8 @@ struct setup_control_for_exec : setup_control_for_exec_base<Node, Field>
 
         if(!box->request())
           return;
-        auto qed = qed_ptr.lock();
-        if(!qed)
-        {
-          box->cancel();
-          return;
-        }
-        const bool sent = qed->try_enqueue([inlet, self, box] {
-          auto v = box->take();
-          if(!v || !self || !inlet)
-            return;
-          inlet->setValue(*v);
-        });
-        if(!sent)
-          box->cancel();
+        if(!wake() && wakeups)
+          wakeups->park();
       };
     }
   }

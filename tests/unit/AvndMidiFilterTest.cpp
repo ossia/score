@@ -320,22 +320,50 @@ TEST_CASE("Midi filter remap", "[midi_filter]")
     CHECK(d.rejected.empty());
   }
 
-  SECTION("A note-on rejected by kind: its note-off follows it to Rejected")
+  SECTION("Selected note-offs go to the main output, even those of notes rejected by kind")
   {
     d.fx.inputs.kinds.value = "noteoff";
     d.fx.inputs.note_map.value = {{0, 126, 1, 127}};
     d.in(on(1, 60, 100));
     d.in(on(1, 70, 100));
     d.run();
+    CHECK(d.main.empty());
     CHECK(driver::b(d.rejected) == std::vector<bytes>{{0x90, 60, 100}, {0x90, 70, 100}});
+    // The note-off keeps the mapping its note-on had.
     d.fx.inputs.note_map.value = {};
     d.in(off(1, 60));
     d.run();
-    CHECK(d.main.empty());
-    CHECK(driver::b(d.rejected) == std::vector<bytes>{{0x80, 60, 0}});
+    CHECK(driver::b(d.main) == std::vector<bytes>{{0x80, 61, 0}});
+    CHECK(d.rejected.empty());
     d.fx.stop();
     d.run(0);
-    CHECK(driver::b(d.rejected) == std::vector<bytes>{{0x80, 70, 0}});
+    CHECK(driver::b(d.main) == std::vector<bytes>{{0x80, 71, 0}});
+    CHECK(d.rejected.empty());
+  }
+
+  SECTION("Note off type: the note-offs go to the main output")
+  {
+    driver e;
+    e.fx.inputs.filter.value = Filter::NoteOff;
+    e.in(on(1, 60, 100));
+    e.in(off(1, 60));
+    e.in(off(1, 62));
+    e.run();
+    CHECK(driver::b(e.main) == std::vector<bytes>{{0x80, 60, 0}, {0x80, 62, 0}});
+    CHECK(driver::b(e.rejected) == std::vector<bytes>{{0x90, 60, 100}});
+  }
+
+  SECTION("Selected note-offs of notes rejected by the criteria stay on Rejected")
+  {
+    d.fx.inputs.kinds.value = "noteoff";
+    d.fx.inputs.notes.value = "C8";
+    d.in(on(1, 50, 100));
+    d.run();
+    d.fx.inputs.notes.value = "";
+    d.in(off(1, 50));
+    d.run();
+    CHECK(d.main.empty());
+    CHECK(driver::b(d.rejected) == std::vector<bytes>{{0x80, 50, 0}});
   }
 
   SECTION("A rejected note keeps its note-off on Rejected")

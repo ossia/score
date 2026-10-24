@@ -204,6 +204,30 @@ TEST_CASE("Midi scaler: defaults keep the frequency output", "[midi_scaler]")
   CHECK(d.fx.outputs.freq.value.empty());
 }
 
+TEST_CASE("Midi scaler: the frequency output never grows on the audio thread", "[midi_scaler]")
+{
+  driver d;
+  // Reserved in prepare, on the main thread, for one value per key.
+  REQUIRE(d.fx.outputs.freq.value.capacity() >= 128);
+  const float* storage = d.fx.outputs.freq.value.data();
+
+  for(int k = 0; k < 128; k++)
+    d.note_on(k);
+  d.tick();
+  CHECK(d.fx.outputs.freq.value.size() == 128);
+  CHECK(d.fx.outputs.freq.value.data() == storage);
+
+  for(int k = 0; k < 128; k++)
+    d.note_off(k);
+  d.raw({0x90, 60}); // truncated: no velocity, so no note
+  d.tick();
+  CHECK(d.fx.outputs.freq.value.empty());
+  CHECK(d.fx.outputs.freq.value.data() == storage);
+  d.fx.stop();
+  d.tick(0);
+  CHECK(d.total_sounding() == 0);
+}
+
 TEST_CASE("Midi scaler: pitch bend retuning lands on the scale", "[midi_scaler]")
 {
   for(int range : {2, 12, 48})

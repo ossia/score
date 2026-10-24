@@ -324,17 +324,23 @@ private:
  * smaller offset moves before the current tick, including at the first tick
  * with a negative offset, are sent at the start of the tick instead, so that
  * a receiver counting clocks keeps its position.
+ *
+ * Located on a grid point, as at the start of the timeline, the clock of that
+ * point goes out at once, with Start or Continue, as the free clock does.
  */
 struct timeline_clock
 {
   double last_clock_time = 0.0;
   uint32_t clock_tick_count = 0;
   double previous_offset = 0.0;
+  //! The clock at last_clock_time is still to send.
+  bool clock_at_locate = false;
 
   /**
    * Puts the clock back on the grid of the timeline at a new position, as at
-   * the start: the next clock is the first grid point after `quarters`.
-   * `time` is the timeline time of `quarters`, in seconds.
+   * the start: the next clock is `quarters` when it is a grid point, else
+   * the first grid point after it. `time` is the timeline time of
+   * `quarters`, in seconds.
    */
   void locate(double time, double quarters, double tempo, double factor) noexcept
   {
@@ -343,6 +349,7 @@ struct timeline_clock
     const double since_grid = quarters - grid / clocks_per_quarter;
     last_clock_time = time - since_grid * 60.0 / tempo;
     previous_offset = 0.0;
+    clock_at_locate = since_grid * clocks_per_quarter < 1e-6;
   }
 
   //! factor: nudge times clock rate; offset in seconds.
@@ -364,9 +371,13 @@ struct timeline_clock
     }
 
     double next_tick_time = last_clock_time + seconds_per_tick;
+    // Not before the gap: the clock of the located point is never skipped
+    if(clock_at_locate && frames > 0)
+      next_tick_time = std::max(last_clock_time, gap_start_time);
 
     while(next_tick_time < buffer_end_time)
     {
+      clock_at_locate = false;
       if(next_tick_time >= buffer_start_time)
       {
         int64_t sample_offset

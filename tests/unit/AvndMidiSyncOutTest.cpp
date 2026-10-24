@@ -502,3 +502,65 @@ TEST_CASE("timeline clock rate, nudge and offset", "[midi_sync_out]")
     CHECK(a.count - ref.count == Approx(48. * 0.1).margin(1));
   }
 }
+
+TEST_CASE("timeline clock sends the clock of a located grid point at once", "[midi_sync_out]")
+{
+  const double rate = 48000.;
+  const int frames = 512;
+  const double dur = frames / rate;
+
+  SECTION("at the start, with Start")
+  {
+    timeline_run a;
+    a.clk.locate(0., 0., 120., 1.);
+    a.process(0., dur, frames, 120.f, 1., 0.);
+    CHECK(a.stamps == std::vector<int64_t>{0});
+    a.process(dur, dur, frames, 120.f, 1., 0.);
+    a.process(2 * dur, dur, frames, 120.f, 1., 0.);
+    // Then one period later
+    REQUIRE(a.count == 2);
+    CHECK(frames + a.stamps[1] == Approx(rate / 48.).margin(1));
+  }
+
+  SECTION("delayed by a positive offset")
+  {
+    timeline_run a;
+    a.clk.locate(0., 0., 120., 1.);
+    double t = 0.;
+    int64_t now = 0;
+    int64_t first_frame = -1;
+    while(t < 0.5 && first_frame < 0)
+    {
+      a.process(t, dur, frames, 120.f, 1., 0.1);
+      if(!a.stamps.empty())
+        first_frame = now + a.stamps.front();
+      t += dur;
+      now += frames;
+    }
+    CHECK(first_frame == Approx(0.1 * rate).margin(1));
+  }
+
+  SECTION("at once with a negative offset")
+  {
+    timeline_run a;
+    a.clk.locate(0., 0., 120., 1.);
+    a.process(0., dur, frames, 120.f, 1., -0.1);
+    // The clocks of [0, 100 ms + one tick), the one at 0 included
+    CHECK(a.count == int((0.1 + dur) * 48.) + 1);
+    REQUIRE(!a.stamps.empty());
+    CHECK(a.stamps.front() == 0);
+  }
+
+  SECTION("not between two grid points")
+  {
+    timeline_run a;
+    // 2.01 quarters at 120 BPM: the next clock is at 2 + 1/24 quarters
+    a.clk.locate(1.005, 2.01, 120., 1.);
+    a.process(1.005, dur, frames, 120.f, 1., 0.);
+    CHECK(a.count == 0);
+    a.process(1.005 + dur, dur, frames, 120.f, 1., 0.);
+    REQUIRE(a.count == 1);
+    const double next = (2. + 1. / 24. - 2.01) / 2.;
+    CHECK(frames + a.stamps[0] == Approx(next * rate).margin(1));
+  }
+}

@@ -1109,7 +1109,7 @@ private:
     if constexpr(avnd::has_processor_to_gui_bus<Info>)
     {
       // engine -> ui: every view of the process listens.
-      proc.to_ui_listeners.emplace_back(ptr, [ptr = QPointer{ptr}](QByteArray mess) {
+      proc.add_to_ui_listener(ptr, [ptr = QPointer{ptr}](QByteArray mess) {
         // FIXME this is not enough as the message may be sent from another thread?
         if(!ptr)
           return;
