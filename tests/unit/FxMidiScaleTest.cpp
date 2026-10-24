@@ -5,10 +5,36 @@
 
 #include <catch2/catch_test_macros.hpp>
 
+#include <atomic>
+#include <cstdlib>
 #include <map>
+#include <new>
 #include <random>
 #include <utility>
 #include <vector>
+
+namespace
+{
+std::atomic_bool g_count_allocations{false};
+std::atomic<int> g_allocations{0};
+}
+
+void* operator new(std::size_t n)
+{
+  if(g_count_allocations.load(std::memory_order_relaxed))
+    g_allocations++;
+  if(void* p = std::malloc(n ? n : 1))
+    return p;
+  throw std::bad_alloc{};
+}
+void operator delete(void* p) noexcept
+{
+  std::free(p);
+}
+void operator delete(void* p, std::size_t) noexcept
+{
+  std::free(p);
+}
 
 namespace
 {
@@ -475,4 +501,33 @@ TEST_CASE("halp's MIDI output counts channels from 1, as libremidi", "[fx][midi]
   CHECK(bus.note_on(1, 60, 100).bytes[0] == 0x90);
   CHECK(bus.note_off(16, 60, 0).bytes[0] == 0x8F);
   CHECK(bus.note_on(1, 60, 100).get_channel() == 1);
+}
+
+TEST_CASE("Midi scale: a scale text change does not allocate", "[fx][midi][scale]")
+{
+  Rig r{"ionian"};
+  r.tick();
+
+  // Longer than any small-string buffer: copying it would allocate.
+  r.node.inputs.sc.value = "not a scale, and longer than a short string";
+  g_allocations = 0;
+  g_count_allocations = true;
+  r.node.outputs.midi.midi_messages.clear();
+  r.node(halp::tick_flicks{});
+  g_count_allocations = false;
+  CHECK(g_allocations == 0);
+
+  // The text is not a mask: every note passes.
+  auto& on = r.tick({note_on(1, 61, 100)});
+  REQUIRE(on.size() == 1);
+  CHECK(on[0].bytes[1] == 61);
+  r.tick({note_off(1, 61)});
+
+  r.node.inputs.sc.value = "101011010101";
+  auto& on2 = r.tick({note_on(1, 61, 100)});
+  REQUIRE(on2.size() == 1);
+  CHECK(on2[0].bytes[1] == 62);
+  r.tick({note_off(1, 61)});
+  CHECK(r.out.errors.empty());
+  CHECK(r.out.still_sounding() == 0);
 }

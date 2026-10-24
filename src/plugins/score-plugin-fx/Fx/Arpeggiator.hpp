@@ -10,6 +10,8 @@
 #include <rnd/random.hpp>
 
 #include <algorithm>
+#include <array>
+#include <span>
 
 namespace Nodes
 {
@@ -71,6 +73,9 @@ struct Engine
   std::array<byte, 128> order{};
   int order_count{};
 
+  std::array<std::pair<byte, byte>, 128> m_ext{};
+  int m_ext_count{};
+
   int previous_octave{};
   int previous_octave_mode{};
   int previous_repeat{};
@@ -82,17 +87,26 @@ struct Engine
     return r;
   }()};
 
+  static constexpr int max_octave = 7;
+  static constexpr int max_repeat = 8;
+  //! The longest arpeggio: 128 notes back and forth, each repeated, copied
+  //! over 6 octaves above and 6 below.
+  static constexpr std::size_t max_steps
+      = 128 * 2 * max_repeat * (2 * (max_octave - 1) + 1);
+
   Engine()
   {
-    // Rebuilding the arpeggio on the audio thread stays within these for any
-    // reasonable chord: 16 held notes, back and forth, 8 repeats, 4 octaves
-    // above or below (2 in both directions).
+    // Rebuilding the arpeggio happens on the audio thread: it never grows
+    // past these
     notes.reserve(128);
-    arpeggio.reserve(1024);
+    arpeggio.reserve(max_steps);
   }
 
   void update()
   {
+    previous_octave = std::clamp(previous_octave, 1, max_octave);
+    previous_repeat = std::clamp(previous_repeat, 1, max_repeat);
+
     // Create the content of the arpeggio
     bool spans_octaves = false;
     switch(previous_arpeggio)
@@ -147,7 +161,7 @@ struct Engine
       case 6: // Up/Down: the top and the bottom once each
       case 7: // Down/Up
       {
-        const auto ext = notes_over_octaves();
+        const std::span ext = notes_over_octaves();
         arpeggio.clear();
         const int n = ext.size();
         for(int i = 0; i < n; i++)
@@ -162,7 +176,7 @@ struct Engine
       case 8: // Converge: from the outside in
       case 9: // Diverge: from the inside out
       {
-        const auto ext = notes_over_octaves();
+        const std::span ext = notes_over_octaves();
         arpeggio.clear();
         int lo = 0, hi = int(ext.size()) - 1;
         while(lo <= hi)
@@ -181,7 +195,7 @@ struct Engine
       case 10: // Low Up: the lowest note between each of the others
       case 11: // High Up: the highest note between each of the others
       {
-        const auto ext = notes_over_octaves();
+        const std::span ext = notes_over_octaves();
         arpeggio.clear();
         const int n = ext.size();
         if(n == 1)
@@ -239,28 +253,27 @@ struct Engine
   }
 
   //! The held notes and their octave copies, lowest first, without
-  //! duplicates: what the patterns that run across the octaves walk through.
-  std::vector<std::pair<byte, byte>> notes_over_octaves() const
+  //! duplicates (the copy from the lowest octave, then the lowest held note,
+  //! wins): what the patterns that run across the octaves walk through.
+  //! In a member buffer, as it is built on the audio thread.
+  std::span<const std::pair<byte, byte>> notes_over_octaves() noexcept
   {
-    std::vector<std::pair<byte, byte>> ext;
+    std::array<int16_t, 128> velocity_of;
+    velocity_of.fill(-1);
     const int lo_oct = previous_octave_mode != 1 ? -(previous_octave - 1) : 0;
     const int hi_oct = previous_octave_mode != 2 ? (previous_octave - 1) : 0;
     for(int o = lo_oct; o <= hi_oct; o++)
       for(std::pair note : notes)
       {
         const int p = note.first + 12 * o;
-        if(p >= 0 && p <= 127)
-          ext.push_back({static_cast<byte>(p), note.second});
+        if(p >= 0 && p <= 127 && velocity_of[p] < 0)
+          velocity_of[p] = note.second;
       }
-    std::stable_sort(ext.begin(), ext.end(), [](const auto& a, const auto& b) {
-      return a.first < b.first;
-    });
-    ext.erase(
-        std::unique(ext.begin(), ext.end(), [](const auto& a, const auto& b) {
-      return a.first == b.first;
-    }),
-        ext.end());
-    return ext;
+    m_ext_count = 0;
+    for(int p = 0; p < 128; p++)
+      if(velocity_of[p] >= 0)
+        m_ext[m_ext_count++] = {byte(p), byte(velocity_of[p])};
+    return {m_ext.data(), std::size_t(m_ext_count)};
   }
 
   void arpeggiate(int size_mult)

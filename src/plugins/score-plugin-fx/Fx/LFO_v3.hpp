@@ -12,6 +12,8 @@
 #include <rnd/random.hpp>
 #include <tuplet/tuple.hpp>
 
+#include <utility>
+
 #include <random>
 
 namespace Nodes::LFO::v3
@@ -44,6 +46,7 @@ struct Node
   halp_meta(description, "Low-frequency oscillator")
   halp_meta(recommended_height, 130.)
   halp_meta(uuid, "0b1b1816-c33e-4796-a16d-5aab27fe600f");
+  halp_flag(process_exec);
 
   struct ins
   {
@@ -135,6 +138,11 @@ struct Node
 
   //! One shot: the cycles run since the start or the last retrigger.
   double one_shot_elapsed{};
+  //! Set when the process starts again (a loop, a new trigger of its
+  //! interval): the next tick starts the cycle over, as a retrigger does.
+  bool restart_requested{};
+
+  void start() noexcept { restart_requested = true; }
 
   static double frac(double x) noexcept { return x - std::floor(x); }
 
@@ -206,14 +214,16 @@ struct Node
     const bool sync = inputs.period.sync;
     const bool locked = sync && inputs.lock_to_bars.value;
 
-    if(inputs.retrigger)
+    const bool retrigger = inputs.retrigger;
+    if(retrigger || std::exchange(restart_requested, false))
     {
       phase = 0.;
       cycles = 0;
       sync_origin = tk.start_position_in_quarters;
       held_valid = false;
       last_square = 0;
-      seed = uint32_t(rd());
+      if(retrigger)
+        seed = uint32_t(rd());
       one_shot_elapsed = 0.;
     }
     else if(sync && !locked && tk.unexpected_bar_change())

@@ -142,9 +142,9 @@ struct Rig
 TEST_CASE("Midi quantify v2: the new controls default to the old behaviour", "[fx][quantifier]")
 {
   Q q;
-  CHECK(q.inputs.gate.value == 100);
+  CHECK(q.inputs.gate.value == 1.f);
   CHECK(!q.inputs.trigger.value);
-  CHECK(q.inputs.decay.value == 0);
+  CHECK(q.inputs.decay.value == 0.f);
   CHECK(q.inputs.release_mode.value == 0);
   CHECK(q.inputs.release_velocity.value == 0);
 }
@@ -169,7 +169,7 @@ TEST_CASE("Midi quantify v2: gate scales the length", "[fx][quantifier]")
       Rig r;
       r.node.inputs.length.value = FixedDuration;
       r.node.inputs.duration.value = 0.1f;
-      r.node.inputs.gate.value = gate;
+      r.node.inputs.gate.value = gate / 100.f;
       r.run(1000, {{10, note_on(60, 100)}, {20, note_off(60)}});
       REQUIRE(r.notes().size() == 2);
       CHECK(r.notes()[1].at == 10 + gate);
@@ -179,7 +179,7 @@ TEST_CASE("Midi quantify v2: gate scales the length", "[fx][quantifier]")
   SECTION("Until note-off: longer")
   {
     Rig r;
-    r.node.inputs.gate.value = 150;
+    r.node.inputs.gate.value = 1.5f;
     r.run(1000, {{100, note_on(60, 100)}, {300, note_off(60)}});
     CHECK(r.notes() == std::vector<Event>{{100, 0x90, 60, 100}, {400, 0x80, 60, 0}});
     r.check_clean();
@@ -187,7 +187,7 @@ TEST_CASE("Midi quantify v2: gate scales the length", "[fx][quantifier]")
   SECTION("Until note-off: shorter ends at the release")
   {
     Rig r;
-    r.node.inputs.gate.value = 50;
+    r.node.inputs.gate.value = 0.5f;
     r.run(1000, {{100, note_on(60, 100)}, {300, note_off(60)}});
     CHECK(r.notes() == std::vector<Event>{{100, 0x90, 60, 100}, {300, 0x80, 60, 0}});
   }
@@ -196,7 +196,7 @@ TEST_CASE("Midi quantify v2: gate scales the length", "[fx][quantifier]")
     Rig r;
     r.node.inputs.grid.value = 0.5f; // a quarter: every 500 frames
     r.node.inputs.grid.sync = true;
-    r.node.inputs.gate.value = 200;
+    r.node.inputs.gate.value = 2.f;
     r.run(1500, {{100, note_on(60, 100)}, {150, note_off(60)}});
     CHECK(r.notes() == std::vector<Event>{{500, 0x90, 60, 100}, {600, 0x80, 60, 0}});
   }
@@ -228,7 +228,7 @@ TEST_CASE("Midi quantify v2: trigger plays on release", "[fx][quantifier]")
   {
     Rig r;
     r.node.inputs.trigger.value = true;
-    r.node.inputs.decay.value = 50;
+    r.node.inputs.decay.value = 0.5f;
     r.node.inputs.length.value = FixedDuration;
     r.node.inputs.duration.value = 0.5f;
     r.run(
@@ -255,7 +255,7 @@ TEST_CASE("Midi quantify v2: trigger plays on release", "[fx][quantifier]")
 TEST_CASE("Midi quantify v2: decay on a key struck again", "[fx][quantifier]")
 {
   Rig r;
-  r.node.inputs.decay.value = 40;
+  r.node.inputs.decay.value = 0.4f;
   r.run(1000, {{0, note_on(60, 100)}, {100, note_on(60, 120)}, {200, note_on(60, 120)}, {300, note_off(60)}, {400, note_on(60, 70)}, {500, note_off(60)}});
   CHECK(
       r.notes()
@@ -350,9 +350,9 @@ TEST_CASE("Midi quantify v2: random play with every control moving", "[fx][quant
       r.node.inputs.grid.sync = rng() % 2;
       r.node.inputs.length.value = Nodes::Quantifier::v2::NoteLength(rng() % 3);
       r.node.inputs.duration.value = 0.05f + (rng() % 4) * 0.1f;
-      r.node.inputs.gate.value = rng() % 201;
+      r.node.inputs.gate.value = (rng() % 201) / 100.f;
       r.node.inputs.trigger.value = rng() % 2;
-      r.node.inputs.decay.value = rng() % 101;
+      r.node.inputs.decay.value = (rng() % 101) / 100.f;
       r.node.inputs.release_mode.value = rng() % 2;
       r.run(t + 400, in);
     }

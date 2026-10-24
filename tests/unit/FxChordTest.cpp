@@ -4,17 +4,46 @@
 
 #include <Fx/Chord.hpp>
 
+#include <avnd/binding/ossia/from_value.hpp>
+
 #include "MidiChannelMask.hpp"
 
 #include <catch2/catch_test_macros.hpp>
 
 #include <algorithm>
+#include <array>
+#include <atomic>
 #include <cctype>
+#include <cstdlib>
 #include <map>
+#include <new>
 #include <random>
 #include <string>
 #include <utility>
 #include <vector>
+
+namespace
+{
+std::atomic_bool g_count_allocations{false};
+std::atomic<int> g_allocations{0};
+}
+
+void* operator new(std::size_t n)
+{
+  if(g_count_allocations.load(std::memory_order_relaxed))
+    g_allocations++;
+  if(void* p = std::malloc(n ? n : 1))
+    return p;
+  throw std::bad_alloc{};
+}
+void operator delete(void* p) noexcept
+{
+  std::free(p);
+}
+void operator delete(void* p, std::size_t) noexcept
+{
+  std::free(p);
+}
 
 namespace
 {
@@ -90,7 +119,7 @@ struct Rig
   {
     node.prepare(halp::setup{.rate = 48000.});
     node.inputs.seed.value = 1;
-    node.inputs.memory.update_controller = [this](std::string s) { learned = std::move(s); };
+    node.inputs.memory.update_controller = [this](std::string_view s) { learned = std::string(s); };
   }
 
   const std::vector<libremidi::message>& tick(std::vector<libremidi::message> in = {}, int frames = 64)
@@ -185,7 +214,11 @@ TEST_CASE("Chord: the table follows mtk::chord_types", "[fx][midi][chord]")
   static_assert(std::size(chord_names.values) == 43);
   const std::map<std::string_view, std::string_view> renamed{
       {"M", "maj triad"},   {"m", "min triad"},   {"dim", "dim triad"}, {"aug", "aug triad"},
-      {"sus2", "sus2 triad"}, {"sus4", "sus4 triad"}, {"M7+5", "maj7+5"}};
+      {"sus2", "sus2 triad"}, {"sus4", "sus4 triad"}, {"M7+5", "maj7+5"},
+      {"5", "Power"},         {"6", "maj6"},          {"7", "Dom7"},
+      {"7-5", "Dom7-5"},      {"7+5", "Dom7+5"},      {"7sus4", "Dom7sus4"},
+      {"69", "maj6/9"},       {"9", "Dom9"},          {"9sus4", "Dom9sus4"},
+      {"7-9", "Dom7-9"},      {"7+11", "Dom7+11"}};
   for(int i = 0; i < mtk::chord_type_count; i++)
   {
     const auto& t = mtk::chord_types[i];
@@ -209,6 +242,19 @@ TEST_CASE("Chord: the table follows mtk::chord_types", "[fx][midi][chord]")
         ch = char(std::tolower(ch));
       CHECK(a != b);
     }
+
+  // An integer is an index: no name could take it for itself.
+  for(int i = 0; i < 43; i++)
+    CHECK(!std::isdigit((unsigned char)chord_names.values[i][0]));
+  for(int i : {5, 6, 7, 9, 24, 25})
+  {
+    Chord n;
+    oscr::from_ossia_value(n.inputs.chord, ossia::value{i}, n.inputs.chord.value);
+    CHECK(int(n.inputs.chord.value) == i);
+    oscr::from_ossia_value(
+        n.inputs.chord, ossia::value{std::to_string(i)}, n.inputs.chord.value);
+    CHECK(int(n.inputs.chord.value) == i);
+  }
 
   // Num. Notes caps the count; a chord with fewer notes plays them all.
   Chord c;
@@ -265,12 +311,12 @@ TEST_CASE("Chord: harmonizer intervals, root and inversions", "[fx][midi][chord]
 TEST_CASE("Chord: chance and velocity per voice", "[fx][midi][chord]")
 {
   Rig r;
-  r.node.inputs.chance.value = {100, 0};
+  r.node.inputs.chance.value = {1.f, 0.f};
   CHECK(pitches_on(r.tick({note_on(1, 60, 100)})) == std::vector<int>{60});
   r.tick({note_off(1, 60)});
 
-  r.node.inputs.chance.value = {100};
-  r.node.inputs.velocity.value = {100, 50, 200};
+  r.node.inputs.chance.value = {1.f};
+  r.node.inputs.velocity.value = {1.f, 0.5f, 2.f};
   auto& on = r.tick({note_on(1, 60, 100)});
   REQUIRE(on.size() == 3);
   CHECK(on[0].bytes[2] == 100);
@@ -282,7 +328,7 @@ TEST_CASE("Chord: chance and velocity per voice", "[fx][midi][chord]")
   auto take = [](int seed) {
     Rig r;
     r.node.inputs.seed.value = seed;
-    r.node.inputs.chance.value = {50};
+    r.node.inputs.chance.value = {0.5f};
     r.node.inputs.num.value = 5;
     std::vector<int> played;
     for(int i = 0; i < 40; i++)
@@ -344,7 +390,7 @@ TEST_CASE("Chord: strum time, direction, tension and crescendo", "[fx][midi][cho
   CHECK(slow[1].first == 10 + 960 / 16);
   CHECK(slow[2].first == 970);
 
-  auto cresc = strum([](Chord& c) { c.inputs.crescendo.value = 0.5f; c.inputs.velocity.value = {80}; });
+  auto cresc = strum([](Chord& c) { c.inputs.crescendo.value = 0.5f; c.inputs.velocity.value = {0.8f}; });
   REQUIRE(cresc.size() == 3);
   CHECK(cresc[0].second.bytes[2] == 80);
   CHECK(cresc[1].second.bytes[2] == 100);
@@ -448,6 +494,47 @@ TEST_CASE("Chord: chord memory, learned and written", "[fx][midi][chord]")
   CHECK(pitches_on(r.tick({note_on(1, 48, 100)})) == std::vector<int>{60, 64, 67});
   r.tick({note_off(1, 48)});
   CHECK(r.out.errors.empty());
+}
+
+TEST_CASE("Chord: learning a chord does not allocate", "[fx][midi][chord]")
+{
+  Rig r;
+  // What the binding does with the text: copy it into storage made beforehand.
+  std::array<char, Chord::max_memory_text> sent{};
+  std::size_t sent_size = 0;
+  r.node.inputs.memory.update_controller = [&](std::string_view s) {
+    std::copy(s.begin(), s.end(), sent.begin());
+    sent_size = s.size();
+  };
+  r.node.inputs.learn.value = true;
+
+  auto learn = [&](std::vector<libremidi::message> chord, int key) {
+    std::vector<libremidi::message> offs;
+    for(auto& m : chord)
+      offs.push_back(note_off(1, m.bytes[1]));
+    r.tick(chord);
+    r.tick(offs);
+    std::vector<libremidi::message> trigger{note_on(1, key, 100)};
+    r.node.inputs.midi.midi_messages.assign(trigger.begin(), trigger.end());
+    r.node.outputs.midi.midi_messages.clear();
+    halp::tick_musical t;
+    t.frames = 64;
+    g_allocations = 0;
+    g_count_allocations = true;
+    r.node(t);
+    g_count_allocations = false;
+    CHECK(g_allocations == 0);
+    r.node.outputs.midi.midi_messages.clear();
+    r.tick({note_off(1, key)});
+  };
+
+  // Past the size of a small string from the second chord on.
+  learn({note_on(1, 60, 100), note_on(1, 64, 100), note_on(1, 67, 100)}, 48);
+  learn({note_on(1, 62, 100), note_on(1, 65, 100), note_on(1, 69, 100)}, 50);
+  learn({note_on(1, 64, 100), note_on(1, 67, 100), note_on(1, 71, 100)}, 52);
+  CHECK(
+      std::string_view(sent.data(), sent_size)
+      == "48: 12 16 19; 50: 12 15 19; 52: 12 15 19");
 }
 
 TEST_CASE("Chord: chord memory text", "[fx][midi][chord]")
@@ -617,9 +704,9 @@ TEST_CASE("Chord: random playing and control changes never leave a note behind",
         case 4: n.inversion.value = pick(-8, 8); break;
         case 5:
           if(pick(0, 1))
-            n.chance.value = {100, 50};
+            n.chance.value = {1.f, 0.5f};
           else
-            n.chance.value = {30};
+            n.chance.value = {0.3f};
           break;
         case 6: n.strum.value = pick(0, 1) ? 0.f : 0.003f; break;
         case 7: n.strum_direction.value = Chord::StrumDirection(pick(0, 2)); break;

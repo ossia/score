@@ -299,42 +299,48 @@ struct Node
 
     struct
     {
-      halp_meta(name, "Scale")
+      halp_meta(name, "Notes")
       halp_meta(layout, halp::layouts::section)
       halp_meta(background, halp::colors::background_mid)
       halp::item<&ins::mode> mode;
-      halp::item<&ins::base> base;
-      halp::item<&ins::transp> transp;
       struct
       {
+        halp_meta(layout, halp::layouts::hbox)
+        halp::item<&ins::base> base;
+        halp::item<&ins::transp> transp;
+      } pitch;
+      struct
+      {
+        halp_meta(layout, halp::layouts::hbox)
+        halp::item<&ins::lowest> lowest;
+        halp::item<&ins::range> range;
+      } bounds;
+    } common;
+
+    // The page of the current Mode
+    struct Page
+    {
+      halp_meta(layout, halp::layouts::tabs)
+      halp_meta(background, halp::colors::background_mid)
+      halp_flag(hide_tabs);
+      static constexpr auto model = &ins::mode;
+
+      struct
+      {
+        halp_meta(name, "Scale")
         halp_meta(layout, halp::layouts::vbox)
-        static constexpr auto condition()
-        {
-          return halp::enabled_when<&ins::mode, scale_mode::scale>{};
-        }
         halp::item<&ins::sc> sc;
         halp::item<&ins::direction> direction;
       } in_scale;
-      halp::item<&ins::lowest> lowest;
-      halp::item<&ins::range> range;
-    } scale_page;
 
-    struct
-    {
-      halp_meta(name, "Remap")
-      halp_meta(layout, halp::layouts::section)
-      halp_meta(background, halp::colors::background_mid)
       struct
       {
+        halp_meta(name, "Remap")
         halp_meta(layout, halp::layouts::vbox)
-        static constexpr auto condition()
-        {
-          return halp::enabled_when<&ins::mode, scale_mode::remap>{};
-        }
         halp::item<&ins::map> map;
         halp::item<&ins::fold> fold;
       } degrees;
-    } remap;
+    } page;
   };
 
   struct Note
@@ -348,7 +354,8 @@ struct Node
   //! Held keys per output note: two keys can map to the same scale note, which
   //! must only stop with the last one.
   std::array<std::array<uint8_t, 128>, 17> playing{};
-  std::string scale{};
+  //! The notes of the current scale on the current base.
+  scale_array scale{};
   int base{};
   int transpose{};
   scale_mode mode{};
@@ -486,47 +493,45 @@ struct Node
     playing[chan] = {};
   }
 
+  //! The notes of a scale text on a base. A custom scale is a mask of '1' and
+  //! '0' starting on the base; a text that is not such a mask, such as
+  //! "custom" itself, keeps every note.
+  static void
+  resolve_scale(std::string_view text, int base, scale_array& out) noexcept
+  {
+    const auto idx = get_scale(text);
+    if(idx >= 0 && idx < scale_type::custom)
+    {
+      out = scales[idx][base];
+      return;
+    }
+
+    const auto degrees = ossia::min(std::ssize(text), std::ptrdiff_t(12));
+    bool is_mask = degrees > 0;
+    for(std::ptrdiff_t d = 0; d < degrees; d++)
+      is_mask &= text[d] == '1' || text[d] == '0';
+    for(std::size_t note = 0; note < out.size(); note++)
+    {
+      const auto degree = std::ptrdiff_t((note + 12 - base) % 12);
+      out[note] = !is_mask || (degree < degrees && text[degree] == '1');
+    }
+  }
+
   using tick = halp::tick_flicks;
   void operator()(const tick& tk)
   {
-    const auto& new_scale = inputs.sc.value;
+    const auto& text = inputs.sc.value;
     // A base of 12 is the same scale one octave up.
     const int new_base = ((inputs.base.value % 12) + 12) % 12;
     const int new_transpose = inputs.transp.value;
-    std::string_view scale{new_scale.data(), new_scale.size()};
 
-    const auto new_scale_idx = get_scale(scale);
-
-    auto apply = [&](auto f) {
-      if(new_scale_idx >= 0 && new_scale_idx < scale_type::custom)
-      {
-        f(scales[new_scale_idx][new_base], new_transpose);
-      }
-      else
-      {
-        // A custom scale is a mask of '1' and '0' starting on Base. A text that
-        // is not such a mask, such as "custom" itself, keeps every note.
-        scale_array arr{{}};
-        const auto degrees = ossia::min(std::ssize(scale), std::ptrdiff_t(12));
-        bool is_mask = degrees > 0;
-        for(std::ptrdiff_t d = 0; d < degrees; d++)
-          is_mask &= scale[d] == '1' || scale[d] == '0';
-        for(std::size_t note = 0; note < arr.size(); note++)
-        {
-          const auto degree = std::ptrdiff_t((note + 12 - new_base) % 12);
-          arr[note] = !is_mask || (degree < degrees && scale[degree] == '1');
-        }
-        f(arr, new_transpose);
-      }
-    };
-
-#define forward_to_method(method_name)              \
-  [&]<typename... Args>(Args&&... args) {           \
-    this->method_name(std::forward<Args>(args)...); \
-  }
+    // The scale is kept as its notes, not as its text: comparing or copying
+    // the text could allocate.
+    scale_array next;
+    resolve_scale({text.data(), text.size()}, new_base, next);
 
     const auto& in = inputs;
-    const bool changed = new_scale != this->scale || new_base != this->base
+    const bool changed = next != this->scale || new_base != this->base
                          || new_transpose != this->transpose
                          || in.mode.value != this->mode
                          || in.direction.value != this->direction
@@ -534,6 +539,7 @@ struct Node
                          || in.lowest.value != this->lowest
                          || in.range.value != this->range;
 
+    this->scale = next;
     this->base = new_base;
     this->mode = in.mode.value;
     this->direction = in.direction.value;
@@ -543,15 +549,9 @@ struct Node
     this->range = in.range.value;
 
     if(!this->map.empty() && changed)
-    {
-      apply(forward_to_method(update));
-    }
+      update(this->scale, new_transpose);
 
-    apply(forward_to_method(exec));
-#undef forward_to_method
-
-    if(new_scale != this->scale)
-      this->scale = new_scale;
+    exec(this->scale, new_transpose);
     this->transpose = new_transpose;
   }
 };
