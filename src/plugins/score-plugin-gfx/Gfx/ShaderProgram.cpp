@@ -20,6 +20,8 @@
 #include <QFileInfo>
 #include <QRegularExpression>
 
+#include <cctype>
+
 namespace Gfx
 {
 
@@ -680,14 +682,32 @@ ShaderFamily shaderFileFamily(const QString& path) noexcept
       {"\"VERTEX_SHADER_ART\"", ShaderFamily::VertexShaderArt},
   };
 
-  // MODE values are case-independent, like the rest of the header (shader
-  // board U02).
+  // The header is the first block comment whose content is a JSON object, as
+  // libisf reads it (a licence comment may come first): only it is searched,
+  // so a body naming another mode is not taken for it. MODE values are
+  // case-independent, like the rest of the header (shader board U02).
   QFile f{path};
   if(!f.open(QIODevice::ReadOnly))
     return ShaderFamily::Unknown;
-  const QByteArray text = f.readAll().toUpper();
+  const QByteArray text = f.readAll();
+  QByteArray header;
+  for(qsizetype open = text.indexOf("/*"); open >= 0; open = text.indexOf("/*", open + 2))
+  {
+    const qsizetype close = text.indexOf("*/", open + 2);
+    if(close < 0)
+      break;
+    qsizetype first = open + 2;
+    while(first < close && std::isspace((unsigned char)text[first]))
+      first++;
+    if(first < close && text[first] == '{')
+    {
+      header = text.mid(first, close - first).toUpper();
+      break;
+    }
+    open = close;
+  }
   for(const auto& [marker, family] : markers)
-    if(text.contains(QByteArrayView{marker.data(), qsizetype(marker.size())}))
+    if(header.contains(QByteArrayView{marker.data(), qsizetype(marker.size())}))
       return family;
   return ShaderFamily::Unknown;
 }
