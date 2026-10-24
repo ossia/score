@@ -112,3 +112,51 @@ TEST_CASE("ISF temporal audio input agrees across backends", "[gfx][l3][isf][aud
     CHECK(d <= 3);
   }
 }
+
+// libisf declares an ISF's samplers in INPUTS order, audio ones included; the
+// renderer bound its image samplers first and the audio ones after, so an
+// audio input declared before an image input swapped the two textures. With
+// a cubemap in place of the image Metal's validation aborts the draw
+// (default/Presets/GLSL_shaders/grigm/Reflect_inputLearing.fs).
+TEST_CASE(
+    "ISF samplers bind in INPUTS order when an audio input comes first",
+    "[gfx][l3][isf][audio]")
+{
+  const auto backend = GENERATE(from_range(platform_backends()));
+  CAPTURE(backend_name(backend));
+  ReadbackImage img;
+  bool skipped = false;
+  std::string error;
+  score::test::run_in_gui_app([&](const score::GUIApplicationContext&) {
+    GfxPipeline p;
+    const int green = p.addIsf(corpus("isf-solid-green.fs"));
+    const int n = p.addIsf(corpus("isf-audio-then-image.fs"));
+    if(green < 0 || n < 0)
+    {
+      error = p.error();
+      return;
+    }
+    const int sink = p.addSink({32, 32});
+    p.wire(p.imageOut(green, 0), p.imageIn(n, 0));
+    p.wire(p.imageOut(n, 0), p.sinkInput(sink));
+    if(!p.create(backend))
+    {
+      skipped = p.skipped();
+      error = skipped ? std::string{} : p.error();
+      return;
+    }
+    setAudio(*p.isf(n), 0, const_audio(0.0, 256));
+    p.render(4);
+    img = p.readback(sink);
+  });
+  if(skipped)
+    SKIP("backend unavailable");
+  INFO(error);
+  REQUIRE(error.empty());
+  REQUIRE(img.valid());
+  const auto c = img.center();
+  INFO("center " << int(c[0]) << "," << int(c[1]) << "," << int(c[2]));
+  CHECK(c[0] < 16);
+  CHECK(c[1] > 240);
+  CHECK(c[2] < 16);
+}

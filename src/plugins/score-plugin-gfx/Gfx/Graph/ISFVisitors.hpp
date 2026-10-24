@@ -3,7 +3,9 @@
 
 #include <ossia/detail/variant.hpp>
 
+#include <span>
 #include <string_view>
+#include <vector>
 
 namespace score::gfx
 {
@@ -265,4 +267,37 @@ struct isf_input_size_vis
         (*this)(isf::long_input{});
   }
 };
+
+// The image-like and audio samplers of `desc` in the order libisf declares
+// them: INPUTS order, an image-like input's port_counts::samplers and an
+// audio / audioFFT / audioHist input's one in turn (isf.cpp, the material
+// sampler loop). `image` holds the image-like inputs' samplers in port order,
+// storage images left out; `audio` the audio inputs' in INPUTS order. Any the
+// walk does not account for are appended, so none is lost.
+//
+// Binding the image ones first and the audio ones after, as the renderers
+// did, swapped textures whenever an audio input came before an image input.
+template <typename S>
+std::vector<S> samplersInInputOrder(
+    const isf::descriptor& desc, std::span<const S> image, std::span<const S> audio)
+{
+  std::vector<S> out;
+  out.reserve(image.size() + audio.size());
+  std::size_t i = 0, a = 0;
+  walk_descriptor_inputs(desc, [&](const isf::input& inp, port_counts, port_counts delta) {
+    if(ossia::get_if<isf::audio_input>(&inp.data)
+       || ossia::get_if<isf::audioFFT_input>(&inp.data)
+       || ossia::get_if<isf::audioHist_input>(&inp.data))
+    {
+      if(a < audio.size())
+        out.push_back(audio[a++]);
+      return;
+    }
+    for(int k = 0; k < delta.samplers && i < image.size(); k++)
+      out.push_back(image[i++]);
+  });
+  out.insert(out.end(), image.begin() + i, image.end());
+  out.insert(out.end(), audio.begin() + a, audio.end());
+  return out;
+}
 }

@@ -2,6 +2,7 @@
 #include <Gfx/Graph/RenderList.hpp>
 #include <Gfx/Graph/RenderedISFSamplerUtils.hpp>
 #include <Gfx/Graph/SimpleRenderedISFNode.hpp>
+#include <Gfx/Graph/ISFVisitors.hpp>
 
 #include <set>
 
@@ -179,17 +180,14 @@ QRhiTexture* SimpleRenderedISFNode::textureForOutput(const Port& output)
 
 std::vector<Sampler> SimpleRenderedISFNode::allSamplers() const noexcept
 {
-  // Input ports
-  std::vector<Sampler> samplers;
-  samplers.reserve(m_inputSamplers.size() + m_audioSamplers.size());
+  // Input ports and audio textures, in the order the shader declares them
+  std::vector<Sampler> images;
+  images.reserve(m_inputSamplers.size());
   for(int i = 0; i < (int)m_inputSamplers.size(); i++)
     if(!ossia::contains(m_storageImageSamplers, i))
-      samplers.push_back(m_inputSamplers[i]);
+      images.push_back(m_inputSamplers[i]);
 
-  // Audio textures
-  samplers.insert(samplers.end(), m_audioSamplers.begin(), m_audioSamplers.end());
-
-  return samplers;
+  return samplersInInputOrder<Sampler>(n.descriptor(), images, m_audioSamplers);
 }
 
 void SimpleRenderedISFNode::initPass(

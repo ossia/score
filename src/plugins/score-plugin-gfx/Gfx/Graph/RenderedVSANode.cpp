@@ -2,6 +2,7 @@
 #include <Gfx/Graph/PipelineStateHelpers.hpp>
 #include <Gfx/Graph/RenderedISFSamplerUtils.hpp>
 #include <Gfx/Graph/RenderedVSANode.hpp>
+#include <Gfx/Graph/ISFVisitors.hpp>
 
 #include <score/tools/Debug.hpp>
 
@@ -87,13 +88,8 @@ void SimpleRenderedVSANode::updateInputTexture(const Port& input, QRhiTexture* t
 
 std::vector<Sampler> SimpleRenderedVSANode::allSamplers() const noexcept
 {
-  // Input ports
-  std::vector<Sampler> samplers = m_inputSamplers;
-
-  // Audio textures
-  samplers.insert(samplers.end(), m_audioSamplers.begin(), m_audioSamplers.end());
-
-  return samplers;
+  // Input ports and audio textures, in the order the shader declares them
+  return samplersInInputOrder<Sampler>(n.descriptor(), m_inputSamplers, m_audioSamplers);
 }
 
 void SimpleRenderedVSANode::initPass(

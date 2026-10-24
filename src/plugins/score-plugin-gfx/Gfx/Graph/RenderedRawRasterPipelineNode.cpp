@@ -887,7 +887,7 @@ std::vector<Sampler> RenderedRawRasterPipelineNode::allSamplers() const noexcept
 {
   // Input ports
   std::vector<Sampler> samplers;
-  samplers.reserve(m_inputSamplers.size() + m_audioSamplers.size());
+  samplers.reserve(m_inputSamplers.size());
 
   // Apply non-owning per-port sampler overrides published by the upstream
   // geometry's auxiliary_texture::sampler_handle. Applied only on the SRB-build
@@ -903,10 +903,8 @@ std::vector<Sampler> RenderedRawRasterPipelineNode::allSamplers() const noexcept
     samplers.push_back(s);
   }
 
-  // Audio textures
-  samplers.insert(samplers.end(), m_audioSamplers.begin(), m_audioSamplers.end());
-
-  return samplers;
+  // Audio textures, in the order the shader declares them
+  return samplersInInputOrder<Sampler>(n.descriptor(), samplers, m_audioSamplers);
 }
 
 static bool

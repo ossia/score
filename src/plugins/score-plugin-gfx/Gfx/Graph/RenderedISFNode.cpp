@@ -6,6 +6,7 @@
 #include <iterator>
 #include <Gfx/Graph/RenderedISFSamplerUtils.hpp>
 #include <Gfx/Graph/ShaderCache.hpp>
+#include <Gfx/Graph/ISFVisitors.hpp>
 
 #include <score/tools/Debug.hpp>
 
@@ -141,14 +142,13 @@ std::vector<Sampler> RenderedISFNode::allSamplers(
     int frameParity) const noexcept
 {
   SCORE_ASSERT(frameParity == 0 || frameParity == 1);
-  // Input ports
-  std::vector<Sampler> samplers;
+  // Input ports and audio textures, in the order the shader declares them
+  std::vector<Sampler> images;
   for(int i = 0; i < (int)m_inputSamplers.size(); i++)
     if(!ossia::contains(m_storageImageSamplers, i))
-      samplers.push_back(m_inputSamplers[i]);
-
-  // Audio textures
-  samplers.insert(samplers.end(), m_audioSamplers.begin(), m_audioSamplers.end());
+      images.push_back(m_inputSamplers[i]);
+  std::vector<Sampler> samplers = samplersInInputOrder<Sampler>(
+      n.descriptor(), images, m_audioSamplers);
 
   // Pass samplers. For a non-persistent pass both textures are the same one.
   for(int k = 0; k < (int)passSamplers.size(); k++)
