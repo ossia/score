@@ -1040,6 +1040,11 @@ int alive(const Board& b)
 }
 
 // Conway B3/S23 on the 256x256 torus.
+//
+// Written without `live ? (c == 2 || c == 3) : (c == 3)`: Apple clang 21
+// (clang-2100.1.1.101, arm64) miscompiles that select when it vectorizes the
+// x loop, at -O2 and above, and about 1.4% of the cells came out wrong; the
+// GPU boards were right (byte-identical to OpenGL's).
 Board conway(const Board& b)
 {
   Board n(b.size());
@@ -1051,8 +1056,7 @@ Board conway(const Board& b)
         for(int dx = -1; dx <= 1; ++dx)
           if(dx || dy)
             c += b[((y + dy + 256) % 256) * 256 + (x + dx + 256) % 256];
-      const bool live = b[y * 256 + x];
-      n[y * 256 + x] = live ? (c == 2 || c == 3) : (c == 3);
+      n[y * 256 + x] = uint8_t(c == 3 || (c == 2 && b[y * 256 + x] != 0));
     }
   return n;
 }
@@ -1099,7 +1103,12 @@ TEST_CASE(
     if(boards[i + 1] == boards[i])
       continue;
     CAPTURE(i);
-    CHECK(boards[i + 1] == conway(boards[i]));
+    const Board expected = conway(boards[i]);
+    int wrong = 0;
+    for(int c = 0; c < 256 * 256; ++c)
+      wrong += boards[i + 1][c] != expected[c];
+    INFO(wrong << " cells off one generation");
+    CHECK(wrong == 0);
     ++steps;
   }
   CHECK(steps >= 2);
