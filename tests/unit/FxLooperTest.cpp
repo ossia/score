@@ -1280,3 +1280,29 @@ TEST_CASE("Looper: capture makes a loop of the last bars heard, and plays it",
   // The tick of the capture played the loop's start.
   CHECK(h.node.transport.playbackPos == 100);
 }
+
+TEST_CASE("Looper: the latency the engine reports is made up for when asked",
+          "[fx][audio][looper]")
+{
+  for(const bool engine : {false, true})
+  {
+    looper_harness h{1, 100, 1000};
+    h.st.inputLatency = 4;
+    h.st.outputLatency = 6;
+    h.node.inputs.latency.value = 0;
+    h.node.inputs.engine_latency.value = engine;
+    h.node.inputs.passthrough = Passthrough::None;
+    h.node.inputs.mode = LoopMode::Record;
+    for(int i = 0; i < 5; i++)
+    {
+      h.reset_input();
+      if(i == 2)
+        h.in_buf[0][50] = 1.;
+      h.run(100);
+    }
+    h.node.inputs.mode = LoopMode::Play;
+    h.run(100);
+
+    CHECK(h.loop()[engine ? 240 : 250] == Approx(1.));
+  }
+}

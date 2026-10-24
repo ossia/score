@@ -198,6 +198,18 @@ struct Node
           "Places the last take in the timeline, where it was recorded, as a "
           "looping sound file.")
     } send;
+
+    // Controls added after the first presets go last: presets address the
+    // inputs by their index.
+    struct : halp::toggle<"Engine latency">
+    {
+      halp_meta(
+          description,
+          "Also moves what is recorded earlier by the latency the audio driver "
+          "reports for its input and output, for input that comes from the "
+          "sound card while the loop is heard. Leave off for input made inside "
+          "score.")
+    } engine_latency;
   } inputs;
 
   struct
@@ -378,6 +390,7 @@ struct Node
           halp::item<&ins::max_layers> max_layers;
           halp::item<&ins::channels> channels;
           halp::item<&ins::latency> latency;
+          halp::item<&ins::engine_latency> engine_latency;
         } memory;
       } settings;
     } controls;
@@ -530,7 +543,11 @@ inline void Node::looper_close_take(
   if(!top || layers.length <= 0)
     return;
 
-  const int64_t latency = int64_t(inputs.latency.value * m_rate / 1000.);
+  const int64_t latency
+      = int64_t(inputs.latency.value * m_rate / 1000.)
+        + (inputs.engine_latency.value
+               ? int64_t(ossia_state.inputLatency()) + ossia_state.outputLatency()
+               : 0);
 
   if(mode == LoopMode::Record)
   {
