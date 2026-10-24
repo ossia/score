@@ -1,18 +1,49 @@
-#include <Fx/Looper.hpp>
+#include <Fx/Looper/AudioLooper.hpp>
 
 #include <ossia/dataflow/execution_state.hpp>
+
+#include <QDir>
+#include <QTemporaryDir>
+
+#include <dr_wav.h>
 
 #include <catch2/catch_approx.hpp>
 #include <catch2/catch_test_macros.hpp>
 
+#include <atomic>
 #include <cstdint>
+#include <cstdlib>
 #include <cmath>
+#include <new>
 #include <string>
 
 #include <array>
 #include <vector>
 
 using Catch::Approx;
+
+namespace
+{
+std::atomic_bool g_count_allocations{false};
+std::atomic<int> g_allocations{0};
+}
+
+void* operator new(std::size_t n)
+{
+  if(g_count_allocations.load(std::memory_order_relaxed))
+    g_allocations++;
+  if(void* p = std::malloc(n ? n : 1))
+    return p;
+  throw std::bad_alloc{};
+}
+void operator delete(void* p) noexcept
+{
+  std::free(p);
+}
+void operator delete(void* p, std::size_t) noexcept
+{
+  std::free(p);
+}
 
 namespace
 {
@@ -53,6 +84,8 @@ struct looper_harness
     // Quantification is a quarter note by default; most cases here are about
     // the sample machinery, not the musical grid.
     node.inputs.quantif.value = 0.f;
+    // Most cases here are about what happens on the grid, not just after it.
+    node.inputs.late.value = 0;
 
     for(int i = 0; i < max_channels; i++)
     {
@@ -99,7 +132,15 @@ struct looper_harness
 
   void run(int64_t frames, int64_t start = 0) { run(tick(frames, start)); }
 
-  const ossia::audio_channel& loop(int chan = 0) const { return node.state.audio[chan]; }
+  //! The first pass of the loop, as the test sees it: as long as the loop.
+  struct loop_view
+  {
+    const Looper& node;
+    int chan;
+    int64_t size() const noexcept { return node.layers.length; }
+    float operator[](int64_t i) const noexcept { return node.layer_data(0, chan)[i]; }
+  };
+  loop_view loop(int chan = 0) const { return {node, chan}; }
 };
 }
 
@@ -200,10 +241,9 @@ TEST_CASE("Looper: overdubbing an empty loop writes nothing into it",
           "[fx][audio][looper]")
 {
   looper_harness h;
-  // The constructor reserves a large capacity, which is what hides an
-  // out-of-bounds write on a loop of length zero.
-  h.node.state.audio[0].shrink_to_fit();
-  h.node.state.audio[1].shrink_to_fit();
+  // A buffer barely larger than the tick: a write on a loop of length zero
+  // would land past it.
+  h.node.layers.allocate(2, 2, 64);
 
   h.fill_input(0, [](int64_t i) { return double(i + 1); });
   h.node.inputs.mode = LoopMode::Overdub;
@@ -234,8 +274,9 @@ TEST_CASE("Looper: overdub keeps its phase across a loop that is not a multiple 
   h.in_buf[0][0] = 1.;
   h.run(64);
 
-  CHECK(h.loop()[28] == Approx(1.));
-  CHECK(h.loop()[0] == Approx(0.));
+  // Overdubs are layers of their own: what the loop plays is their mix.
+  CHECK(h.node.layers.mix(0, 28) == Approx(1.));
+  CHECK(h.node.layers.mix(0, 0) == Approx(0.));
 }
 
 TEST_CASE("Looper: playback never writes past the advertised output channels",
@@ -247,7 +288,7 @@ TEST_CASE("Looper: playback never writes past the advertised output channels",
 
   h.node.inputs.mode = LoopMode::Record;
   h.run(64);
-  REQUIRE(h.node.state.channels() == 2);
+  REQUIRE(h.node.layers.channels == 2);
 
   // The source is re-patched to a mono one: the output bus now mimics one
   // channel, the recorded loop still has two.
@@ -278,7 +319,7 @@ TEST_CASE("Looper: a channel that comes back is as long as the ones that stayed"
   h.node.inputs.mode = LoopMode::Overdub;
   h.run(64);
 
-  REQUIRE(h.node.state.channels() == 2);
+  REQUIRE(h.node.layers.channels == 2);
   CHECK(h.loop(1).size() == h.loop(0).size());
 }
 
@@ -452,7 +493,7 @@ TEST_CASE("Looper: a post-action bar line inside a tick covers both halves",
     CHECK(h.out_buf[0][i] != Approx(looper_harness::sentinel));
   for(int i = 32; i < 64; i++)
     CHECK(h.out_buf[0][i] == Approx(h.loop()[i - 32]));
-  CHECK(h.node.state.playbackPos == 32);
+  CHECK(h.node.transport.playbackPos == 32);
 }
 
 TEST_CASE("Looper: a quantized mode change covers both halves of the tick",
@@ -609,7 +650,7 @@ TEST_CASE("Looper: a quantification point on the tick's first sample switches th
   h.node.inputs.mode = LoopMode::Record;
   h.run_bars(2);
 
-  CHECK(h.node.state.actualMode == LoopMode::Record);
+  CHECK(h.node.transport.actualMode == LoopMode::Record);
   CHECK(h.loop().size() == Approx(2. * h.bar_samples()).margin(h.buffer_size));
 }
 
@@ -630,13 +671,13 @@ TEST_CASE("Looper: the post-action takes over after the bars it was given",
   h.fill_input(0, [](int64_t) { return 1.0; });
   h.node.inputs.mode = LoopMode::Record;
   h.run_bars(1.5);
-  CHECK(h.node.state.actualMode == LoopMode::Record);
+  CHECK(h.node.transport.actualMode == LoopMode::Record);
   h.run_bars(0.5);
 
   // The mode control is never touched again from here.
   h.reset_input();
   h.run_bars(1); // the bar the hand-over falls in is part recording, so silent
-  CHECK(h.node.state.actualMode == LoopMode::Play);
+  CHECK(h.node.transport.actualMode == LoopMode::Play);
   CHECK(h.loop().size() == Approx(2. * h.bar_samples()).margin(h.buffer_size));
 
   const auto out = h.run_bars(2);
@@ -779,5 +820,367 @@ TEST_CASE("Looper: overdub can hand over to play without rewinding",
     h.node.inputs.mode = LoopMode::Record;
     h.run(64);
     CHECK(h.loop().size() == 64);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Layers, undo, feedback, memory and takes.
+// ---------------------------------------------------------------------------
+
+namespace
+{
+//! Records `len` frames of a constant, then overdubs one pass of another
+//! constant over the whole loop, ending in Play.
+void record_and_overdub(looper_harness& h, int64_t len, double base, double over)
+{
+  h.fill_input(0, [](int64_t) { return 0.; });
+  for(auto& v : h.in_buf[0])
+    v = base;
+  h.node.inputs.mode = LoopMode::Record;
+  for(int64_t done = 0; done < len; done += h.buffer_size)
+    h.run(std::min<int64_t>(h.buffer_size, len - done));
+
+  for(auto& v : h.in_buf[0])
+    v = over;
+  h.node.inputs.mode = LoopMode::Overdub;
+  for(int64_t done = 0; done < len; done += h.buffer_size)
+    h.run(std::min<int64_t>(h.buffer_size, len - done));
+
+  h.reset_input();
+  h.node.inputs.mode = LoopMode::Play;
+  h.run(h.buffer_size);
+}
+
+void press(auto& button, looper_harness& h)
+{
+  button.value.emplace();
+  h.run(h.buffer_size);
+  button.value.reset();
+}
+}
+
+TEST_CASE("Looper: an overdub is a layer of its own, which undo hides and redo brings back",
+          "[fx][audio][looper][layers]")
+{
+  looper_harness h{1, 64};
+  record_and_overdub(h, 512, 0.25, 0.5);
+  REQUIRE(h.node.layers.count == 2);
+
+  // Away from the faded edges, the loop plays both passes.
+  CHECK(h.node.layers.mix(0, 256) == Approx(0.75));
+  // The first pass is untouched by the overdub.
+  CHECK(h.loop()[256] == Approx(0.25));
+
+  press(h.node.inputs.undo, h);
+  CHECK(h.node.layers.count == 1);
+  CHECK(h.node.layers.mix(0, 256) == Approx(0.25));
+
+  press(h.node.inputs.redo, h);
+  CHECK(h.node.layers.count == 2);
+  CHECK(h.node.layers.mix(0, 256) == Approx(0.75));
+}
+
+TEST_CASE("Looper: undoing the first recording empties the loop, and redo restores it",
+          "[fx][audio][looper][layers]")
+{
+  looper_harness h{1, 64};
+  h.node.inputs.passthrough = Passthrough::None;
+  record_and_overdub(h, 512, 0.25, 0.5);
+
+  press(h.node.inputs.undo, h);
+  press(h.node.inputs.undo, h);
+  CHECK(h.node.layers.empty());
+  h.reset_output();
+  h.run(64);
+  for(int i = 0; i < 64; i++)
+    CHECK(h.out_buf[0][i] == Approx(0.));
+
+  press(h.node.inputs.redo, h);
+  CHECK(!h.node.layers.empty());
+  CHECK(h.node.layers.mix(0, 256) == Approx(0.25));
+}
+
+TEST_CASE("Looper: a new overdub after an undo drops what redo would have brought back",
+          "[fx][audio][looper][layers]")
+{
+  looper_harness h{1, 64};
+  record_and_overdub(h, 512, 0.25, 0.5);
+  press(h.node.inputs.undo, h);
+  REQUIRE(h.node.layers.total == 2);
+
+  for(auto& v : h.in_buf[0])
+    v = 0.125;
+  h.node.inputs.mode = LoopMode::Overdub;
+  h.run(64);
+  CHECK(h.node.layers.count == 2);
+  CHECK(h.node.layers.total == 2);
+  press(h.node.inputs.redo, h);
+  CHECK(h.node.layers.count == 2);
+}
+
+TEST_CASE("Looper: clear forgets every pass", "[fx][audio][looper][layers]")
+{
+  looper_harness h{1, 64};
+  record_and_overdub(h, 512, 0.25, 0.5);
+  press(h.node.inputs.clear, h);
+  CHECK(h.node.layers.empty());
+  CHECK(h.node.layers.length == 0);
+  press(h.node.inputs.redo, h);
+  CHECK(h.node.layers.empty());
+}
+
+TEST_CASE("Looper: undo during an overdub drops the pass in progress",
+          "[fx][audio][looper][layers]")
+{
+  looper_harness h{1, 64};
+  record_and_overdub(h, 512, 0.25, 0.5);
+  for(auto& v : h.in_buf[0])
+    v = 1.;
+  h.node.inputs.mode = LoopMode::Overdub;
+  h.run(64);
+  REQUIRE(h.node.layers.count == 3);
+
+  h.node.inputs.undo.value.emplace();
+  h.run(64);
+  h.node.inputs.undo.value.reset();
+  // The pass was dropped, and overdubbing carries on in a new one.
+  CHECK(h.node.layers.count == 3);
+  CHECK(h.node.layers.top()->written == 64);
+}
+
+TEST_CASE("Looper: feedback lets older passes decay as an overdub goes round",
+          "[fx][audio][looper][layers]")
+{
+  looper_harness h{1, 64};
+  h.node.inputs.feedback.value = 0.5f;
+  h.fill_input(0, [](int64_t) { return 1.; });
+  h.node.inputs.mode = LoopMode::Record;
+  h.run(64);
+  h.run(64);
+
+  h.reset_input();
+  h.node.inputs.mode = LoopMode::Overdub;
+  for(int i = 0; i < 4; i++) // two whole rounds
+    h.run(64);
+
+  CHECK(h.node.layers.layers[0].gain == Approx(0.25));
+
+  // Undoing the overdub gives the first pass its gain back.
+  h.node.inputs.mode = LoopMode::Play;
+  h.run(64);
+  press(h.node.inputs.undo, h);
+  CHECK(h.node.layers.layers[0].gain == Approx(1.));
+}
+
+TEST_CASE("Looper: past the last layer, the two oldest passes merge and the sum is kept",
+          "[fx][audio][looper][layers]")
+{
+  looper_harness h{1, 64};
+  h.node.layers.allocate(2, 2, 48000);
+  record_and_overdub(h, 512, 0.25, 0.5);
+  REQUIRE(h.node.layers.count == 2);
+
+  for(auto& v : h.in_buf[0])
+    v = 0.125;
+  h.node.inputs.mode = LoopMode::Overdub;
+  for(int i = 0; i < 8; i++)
+    h.run(64);
+  h.reset_input();
+  h.node.inputs.mode = LoopMode::Play;
+  h.run(64);
+
+  CHECK(h.node.layers.count == 2);
+  CHECK(h.node.layers.mix(0, 256) == Approx(0.875));
+}
+
+TEST_CASE("Looper: a full buffer ends the recording and plays what fitted",
+          "[fx][audio][looper]")
+{
+  looper_harness h{1, 64};
+  h.node.layers.allocate(1, 2, 150);
+  h.node.inputs.passthrough = Passthrough::None;
+  h.fill_input(0, [](int64_t i) { return double(i + 1); });
+
+  h.node.inputs.mode = LoopMode::Record;
+  h.run(64);
+  h.run(64);
+  h.reset_output();
+  h.run(64); // 22 frames fit, the rest plays the loop
+
+  CHECK(h.node.layers.length == 150);
+  CHECK(h.node.transport.actualMode == LoopMode::Play);
+  for(int i = 22; i < 64; i++)
+    CHECK(h.out_buf[0][i] == Approx(h.node.layers.mix(0, i - 22)));
+}
+
+TEST_CASE("Looper: latency moves what was recorded earlier in the loop",
+          "[fx][audio][looper]")
+{
+  looper_harness h{1, 100, 1000}; // 1 ms is a frame
+  h.node.inputs.latency.value = 10;
+  h.node.inputs.passthrough = Passthrough::None;
+  // Away from the faded edges of a 500 frame loop.
+  h.node.inputs.mode = LoopMode::Record;
+  for(int i = 0; i < 5; i++)
+  {
+    h.reset_input();
+    if(i == 2)
+      h.in_buf[0][50] = 1.;
+    h.run(100);
+  }
+  h.node.inputs.mode = LoopMode::Play;
+  h.run(100);
+
+  CHECK(h.loop()[240] == Approx(1.));
+  CHECK(h.loop()[250] == Approx(0.));
+}
+
+TEST_CASE("Looper: nothing is allocated while recording, overdubbing, undoing and playing",
+          "[fx][audio][looper]")
+{
+  looper_harness h{2, 64};
+  h.fill_input(0, [](int64_t i) { return std::sin(i * 0.1); });
+  h.fill_input(1, [](int64_t i) { return std::cos(i * 0.1); });
+
+  g_allocations = 0;
+  g_count_allocations = true;
+  h.node.inputs.mode = LoopMode::Record;
+  for(int i = 0; i < 20; i++)
+    h.run(64);
+  h.node.inputs.mode = LoopMode::Overdub;
+  for(int i = 0; i < 40; i++)
+    h.run(64);
+  h.node.inputs.mode = LoopMode::Play;
+  for(int i = 0; i < 10; i++)
+    h.run(64);
+  press(h.node.inputs.undo, h);
+  press(h.node.inputs.redo, h);
+  press(h.node.inputs.clear, h);
+  h.node.inputs.mode = LoopMode::Record;
+  h.run(64);
+  g_count_allocations = false;
+
+  CHECK(g_allocations == 0);
+}
+
+namespace
+{
+struct wav_contents
+{
+  std::vector<float> samples;
+  int channels{};
+  int rate{};
+  float tempo{};
+  int beats{};
+  bool has_loop{};
+};
+
+wav_contents read_wav(const std::string& path)
+{
+  wav_contents res;
+  drwav wav;
+  if(!drwav_init_file_with_metadata(&wav, path.c_str(), 0, nullptr))
+    return res;
+  res.channels = wav.channels;
+  res.rate = wav.sampleRate;
+  for(drwav_uint32 i = 0; i < wav.metadataCount; i++)
+  {
+    const auto& m = wav.pMetadata[i];
+    if(m.type == drwav_metadata_type_acid)
+    {
+      res.tempo = m.data.acid.tempo;
+      res.beats = int(m.data.acid.numBeats);
+    }
+    else if(m.type == drwav_metadata_type_smpl)
+      res.has_loop = m.data.smpl.sampleLoopCount > 0;
+  }
+  res.samples.resize(wav.totalPCMFrameCount * wav.channels);
+  drwav_read_pcm_frames_f32(&wav, wav.totalPCMFrameCount, res.samples.data());
+  drwav_uninit(&wav);
+  return res;
+}
+}
+
+TEST_CASE("Looper: a take is written as a looping WAV with its tempo, as it plays",
+          "[fx][audio][looper][takes]")
+{
+  QTemporaryDir dir;
+  REQUIRE(dir.isValid());
+
+  musical_harness h{4800};
+  h.tempo = 97.;
+  h.node.inputs.quantif.value = 0.f;
+  h.node.inputs.passthrough = Passthrough::None;
+
+  auto writer = std::make_shared<Nodes::Looper::take_writer>();
+  writer->folder = dir.path();
+  writer->prefix = "test";
+  writer->extension = "wav";
+  h.node.writer = writer;
+  h.node.worker.request = [&](Nodes::Looper::take_job job) {
+    Looper::worker_t::work(std::move(job))(h.node);
+  };
+
+  // Two bars at 97 bpm.
+  const int64_t len = int64_t(std::round(2. * 4. * 60. / 97. * 48000.));
+  h.fill_input(0, [](int64_t i) { return 0.5 * std::sin(i * 0.05); });
+  h.node.inputs.mode = LoopMode::Record;
+  for(int64_t done = 0; done < len; done += 4800)
+    h.run(h.mtick(std::min<int64_t>(4800, len - done)));
+  h.reset_input();
+  h.node.inputs.mode = LoopMode::Play;
+  // Flattening is spread over a few ticks.
+  for(int i = 0; i < 6; i++)
+    h.run(h.mtick(4800));
+  REQUIRE(h.node.layers.length == len);
+
+  const auto files = QDir{dir.path()}.entryList({"*.wav"});
+  REQUIRE(files.size() == 1);
+  CHECK(files[0] == "test-take1.wav");
+
+  const auto wav = read_wav(QString(dir.path() + "/" + files[0]).toStdString());
+  CHECK(wav.rate == 48000);
+  CHECK(wav.tempo == Approx(97.f));
+  CHECK(wav.beats == 8);
+  CHECK(wav.has_loop);
+  REQUIRE(int64_t(wav.samples.size()) == len * wav.channels);
+  for(int64_t i = 0; i < len; i += 97)
+    CHECK(wav.samples[i * wav.channels] == Approx(h.node.layers.mix(0, i)).margin(1e-6));
+}
+
+TEST_CASE("Looper: a stop just after a grid point ends the recording on that point",
+          "[fx][audio][looper][musical]")
+{
+  for(const int late_ms : {0, 250})
+  {
+    musical_harness h;
+    h.node.inputs.quantif.value = 1.0f;
+    h.node.inputs.postaction_bars.value = 0;
+    h.node.inputs.passthrough = Passthrough::None;
+    h.node.inputs.late.value = late_ms;
+
+    h.node.inputs.mode = LoopMode::Stop;
+    h.run_bars(1);
+    h.fill_input(0, [](int64_t) { return 1.0; });
+    h.node.inputs.mode = LoopMode::Record;
+    h.run_bars(2);
+    // One tick, 200 ms, past the bar line: the footswitch was pressed late.
+    h.run(h.mtick(h.buffer_size));
+
+    h.node.inputs.mode = LoopMode::Play;
+    h.run(h.mtick(h.buffer_size));
+
+    if(late_ms == 0)
+    {
+      // Waits for the next bar line.
+      CHECK(h.node.transport.actualMode == LoopMode::Record);
+    }
+    else
+    {
+      CHECK(h.node.transport.actualMode == LoopMode::Play);
+      CHECK(h.loop().size() == 2 * h.bar_samples());
+      // Playback carries on where the loop would be had the stop been on time.
+      CHECK(h.node.transport.playbackPos == 2 * h.buffer_size);
+    }
   }
 }

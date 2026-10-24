@@ -5,7 +5,12 @@
 #include <QGradient>
 #include <QGraphicsItem>
 #include <QGraphicsSceneMouseEvent>
+#include <QApplication>
+#include <QDrag>
 #include <QGraphicsSceneWheelEvent>
+#include <QMimeData>
+#include <QPixmap>
+#include <QUrl>
 #include <QPainter>
 #include <QPolygon>
 
@@ -488,8 +493,60 @@ protected:
     update();
   }
 
+  //! An item with a drag_payload(x, y) starts a drag of what it returns once
+  //! the mouse has moved far enough with the left button held, the way files
+  //! are dragged out of a file manager.
+  bool startDrag(QGraphicsSceneMouseEvent* event)
+  {
+    if constexpr(requires { impl.drag_payload(0., 0.).empty(); })
+    {
+      if(!(event->buttons() & Qt::LeftButton) || !event->widget())
+        return false;
+      const auto down = event->buttonDownScreenPos(Qt::LeftButton);
+      if((event->screenPos() - down).manhattanLength() < QApplication::startDragDistance())
+        return false;
+
+      const auto press = event->buttonDownPos(Qt::LeftButton);
+      auto payload = impl.drag_payload(press.x(), press.y());
+      if(payload.empty())
+        return false;
+
+      auto mime = new QMimeData;
+      QList<QUrl> urls;
+      for(const auto& f : payload.files)
+        urls.push_back(QUrl::fromLocalFile(QString::fromStdString(f)));
+      if(!urls.empty())
+        mime->setUrls(urls);
+      if(!payload.mime.empty())
+        mime->setData(
+            QString::fromStdString(payload.mime),
+            QByteArray(payload.data.data(), qsizetype(payload.data.size())));
+
+      QPixmap pixmap(boundingRect().size().toSize());
+      pixmap.fill(Qt::transparent);
+      {
+        QPainter p{&pixmap};
+        paint(&p, nullptr, nullptr);
+      }
+
+      auto drag = new QDrag(event->widget());
+      drag->setMimeData(mime);
+      drag->setPixmap(pixmap.scaledToWidth(std::min(160, pixmap.width())));
+      drag->setHotSpot(QPoint(5, 5));
+      drag->exec(Qt::CopyAction);
+      return true;
+    }
+    return false;
+  }
+
   void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override
   {
+    if(startDrag(event))
+    {
+      event->accept();
+      return;
+    }
+
     if constexpr(requires { impl.mouse_move(0, 0); })
     {
       impl.mouse_move(event->pos().x(), event->pos().y());
