@@ -111,6 +111,10 @@ void BasicMesh::draw(const MeshBuffers& bufs, QRhiCommandBuffer& cb) const noexc
 #if QT_VERSION >= QT_VERSION_CHECK(6, 12, 0)
     if(bufs.gpuIndirectSupported)
     {
+      auto* const cmdBuf = bufs.clampedIndirectBuffer ? bufs.clampedIndirectBuffer
+                                                      : bufs.indirectDrawBuffer;
+      const quint32 cmdOffset
+          = bufs.clampedIndirectBuffer ? 0 : bufs.indirectDrawOffset;
       if(!bufs.gpuIndirectMultiSupported && bufs.indirectDrawCount > 1)
       {
         // Single-indirect rung: one drawCount=1 call per command. Qt would
@@ -119,25 +123,20 @@ void BasicMesh::draw(const MeshBuffers& bufs, QRhiCommandBuffer& cb) const noexc
         // forceable (SCORE_GFX_NO_GPU_INDIRECT_MULTI) on any hardware.
         for(quint32 i = 0; i < bufs.indirectDrawCount; i++)
         {
-          const quint32 off
-              = bufs.indirectDrawOffset + i * bufs.indirectDrawStride;
+          const quint32 off = cmdOffset + i * bufs.indirectDrawStride;
           if(bufs.indirectDrawIndexed)
-            cb.drawIndexedIndirect(
-                bufs.indirectDrawBuffer, off, 1, bufs.indirectDrawStride);
+            cb.drawIndexedIndirect(cmdBuf, off, 1, bufs.indirectDrawStride);
           else
-            cb.drawIndirect(
-                bufs.indirectDrawBuffer, off, 1, bufs.indirectDrawStride);
+            cb.drawIndirect(cmdBuf, off, 1, bufs.indirectDrawStride);
         }
         return;
       }
       if(bufs.indirectDrawIndexed)
         cb.drawIndexedIndirect(
-            bufs.indirectDrawBuffer, bufs.indirectDrawOffset,
-            bufs.indirectDrawCount, bufs.indirectDrawStride);
+            cmdBuf, cmdOffset, bufs.indirectDrawCount, bufs.indirectDrawStride);
       else
         cb.drawIndirect(
-            bufs.indirectDrawBuffer, bufs.indirectDrawOffset,
-            bufs.indirectDrawCount, bufs.indirectDrawStride);
+            cmdBuf, cmdOffset, bufs.indirectDrawCount, bufs.indirectDrawStride);
       return;
     }
 #endif

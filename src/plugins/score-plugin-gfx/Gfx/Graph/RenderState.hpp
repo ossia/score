@@ -74,10 +74,14 @@ struct RenderState
     //   drawIndirectCount  → drawIndexedIndirectCount / drawIndirectCount
     //                        (count read by the GPU from a count buffer)
     //   drawIndirect+multi → one drawIndexedIndirect of the full command
-    //                        capacity (producers MUST leave command slots
-    //                        beyond their GPU-written count zeroed: a zero
-    //                        command draws nothing, so capacity == count)
-    //   drawIndirect only  → per-command loop of drawCount=1 indirect draws
+    //                        capacity. With a count buffer, the raw raster
+    //                        first clamps a copy of the commands to the count
+    //                        on the GPU (IndirectCountClamp: dead slots
+    //                        zeroed, a zero command draws nothing) and draws
+    //                        that; without compute, producers must leave the
+    //                        slots past their count zeroed themselves
+    //   drawIndirect only  → per-command loop of drawCount=1 indirect draws,
+    //                        over the same clamped copy
     //   none               → CPU loop over cpuDrawCommands, filled by the
     //                        producer or by the readback fallback (which also
     //                        reads the count buffer and clamps).

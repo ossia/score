@@ -207,6 +207,7 @@ set(HDRS
     Gfx/Graph/RhiTextureReadback.hpp
     Gfx/Graph/RhiClearBuffer.hpp
     Gfx/Graph/GPUBufferScatter.hpp
+    Gfx/Graph/IndirectCountClamp.hpp
     Gfx/Graph/GPUIndexWiden.hpp
     Gfx/Graph/GPUStridedCopy.hpp
     Gfx/Graph/RenderedCSFNode.hpp
@@ -508,6 +509,7 @@ set(SRCS
     Gfx/Graph/RhiTextureReadback.cpp
     Gfx/Graph/RhiClearBuffer.cpp
     Gfx/Graph/GPUBufferScatter.cpp
+    Gfx/Graph/IndirectCountClamp.cpp
     Gfx/Graph/GPUIndexWiden.cpp
     Gfx/Graph/GPUStridedCopy.cpp
     Gfx/Graph/RenderedCSFNode.cpp

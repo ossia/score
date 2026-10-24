@@ -2,6 +2,7 @@
 #include <atomic>
 
 #include <Gfx/Graph/ISFNode.hpp>
+#include <Gfx/Graph/IndirectCountClamp.hpp>
 #include <Gfx/Graph/IsfBindingsBuilder.hpp>
 #include <Gfx/Graph/NodeRenderer.hpp>
 #include <Gfx/Graph/RenderedISFUtils.hpp>
@@ -336,6 +337,13 @@ private:
   TextureRenderTarget m_mrtRenderTarget;
   bool m_hasMRT{false};
   bool m_mrtRenderedThisFrame{false};
+
+  // Without the draw-count rung: the commands with their dead slots zeroed,
+  // drawn by the plain indirect rungs (MeshBuffers::clampedIndirectBuffer).
+  IndirectCountClamp m_countClamp;
+  bool m_countClampedThisFrame{false};
+  bool m_countClampLogged{false};
+  const char* m_countClampLastRefusal{};
   int64_t m_frameIndexFrame{-1};
 
   // EXECUTION_MODEL (top-level, RAW_RASTER only).

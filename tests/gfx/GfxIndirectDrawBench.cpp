@@ -9,6 +9,8 @@
 //   count  — drawIndirectCount (GPU count buffer)         [no switches]
 //   mdi    — one full-capacity multi-draw indirect        [NO_GPU_INDIRECT_COUNT]
 //   loop   — 4096 drawCount=1 indirect draws              [+ NO_GPU_INDIRECT_MULTI]
+//            (both draw a copy of the commands clamped to the GPU count by a
+//             compute pass, IndirectCountClamp, whose cost they include)
 //   cpu    — CPU loop over commands read back each frame  [NO_GPU_INDIRECT]
 //            (this path's cost includes the per-frame readback + rhi->finish()
 //             stall that the engine's fallback performs; that is its honest
@@ -16,7 +18,8 @@
 //
 // Each session REQUIREs the caps line matching the path it claims (positive
 // control: a benchmark of a silently-fallen-back path is worse than none) and
-// spot-checks the oracle so a path that draws garbage cannot post a number.
+// spot-checks the oracle so a path that draws garbage cannot post a number:
+// on every path the poisoned dead slots stay undrawn.
 // On Metal the count path is declined by drawIndirectCountUsable(), and is
 // reported as declined rather than as zero.
 //
@@ -188,13 +191,12 @@ std::array<int, 2> cell_probe(int cell)
   return {4 * cx + 1, 253 - 4 * cy};
 }
 
-void spot_check(const ReadbackImage& img, bool poisonVisible)
+void spot_check(const ReadbackImage& img)
 {
   REQUIRE(img.valid());
   REQUIRE(img.width == kSize);
   REQUIRE(img.height == kSize);
   const std::array<uint8_t, 4> red{255, 0, 0, 255};
-  const std::array<uint8_t, 4> blue{0, 0, 255, 255};
   for(int c : {0, 1, kAlive / 2, kAlive - 1})
   {
     const auto pr = cell_probe(c);
@@ -209,10 +211,7 @@ void spot_check(const ReadbackImage& img, bool poisonVisible)
     const auto px = img.at(pr[0], pr[1]);
     INFO("dead cell " << c << " px=(" << int(px[0]) << "," << int(px[1]) << ","
                       << int(px[2]) << ")");
-    if(poisonVisible)
-      CHECK(near(px, blue, kTol));
-    else
-      CHECK(int(px[2]) < 255 - 4 * kTol);
+    CHECK(int(px[2]) < 255 - 4 * kTol);
   }
 }
 
@@ -223,9 +222,9 @@ double percentile(std::vector<double> v, double p)
   return v[i];
 }
 
-void report(const BenchResult& r, const char* path, bool poisonVisible)
+void report(const BenchResult& r, const char* path)
 {
-  spot_check(r.shot, poisonVisible);
+  spot_check(r.shot);
   std::fprintf(
       stderr,
       "BENCH backend=%s path=%s slots=%d alive=%d frames=%d "
@@ -260,7 +259,7 @@ TEST_CASE(
 
   if(countRung)
   {
-    report(count, "count", /*poisonVisible=*/false);
+    report(count, "count");
   }
   else if(metal && count.capsCount == 1)
   {
@@ -286,7 +285,7 @@ TEST_CASE(
     REQUIRE(r.capsParsed);
     REQUIRE(r.capsCount == 0);
     if(r.capsDrawIndirect == 1)
-      report(r, "mdi", /*poisonVisible=*/true);
+      report(r, "mdi");
     else
       std::fprintf(
           stderr, "BENCH backend=%s path=mdi UNAVAILABLE (no drawIndirect)\n",
@@ -303,7 +302,7 @@ TEST_CASE(
     REQUIRE(r.capsCount == 0);
     REQUIRE(r.capsMulti == 0);
     if(r.capsDrawIndirect == 1)
-      report(r, "loop", /*poisonVisible=*/true);
+      report(r, "loop");
     else
       std::fprintf(
           stderr, "BENCH backend=%s path=loop UNAVAILABLE (no drawIndirect)\n",
@@ -316,6 +315,6 @@ TEST_CASE(
     REQUIRE(r.error.empty());
     REQUIRE(r.capsParsed);
     REQUIRE(r.capsDrawIndirect == 0);
-    report(r, "cpu", /*poisonVisible=*/false);
+    report(r, "cpu");
   }
 }

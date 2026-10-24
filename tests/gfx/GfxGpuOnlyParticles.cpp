@@ -94,13 +94,18 @@ struct ChainShot
   ReadbackImage trailA, trailB;
 };
 
-ChainShot run_chain(score::gfx::GraphicsApi be, bool forceCpuFallback)
+ChainShot run_chain(
+    score::gfx::GraphicsApi be, bool forceCpuFallback, bool declineCount = false)
 {
   ChainShot r;
   if(forceCpuFallback)
     qputenv("SCORE_GFX_NO_GPU_INDIRECT", "1");
   else
     qunsetenv("SCORE_GFX_NO_GPU_INDIRECT");
+  if(declineCount)
+    qputenv("SCORE_GFX_NO_GPU_INDIRECT_COUNT", "1");
+  else
+    qunsetenv("SCORE_GFX_NO_GPU_INDIRECT_COUNT");
 
   score::test::run_in_gui_app([&](const score::GUIApplicationContext&) {
     LogCapture log;
@@ -151,6 +156,7 @@ ChainShot run_chain(score::gfx::GraphicsApi be, bool forceCpuFallback)
       r.error = p.error();
   });
   qunsetenv("SCORE_GFX_NO_GPU_INDIRECT");
+  qunsetenv("SCORE_GFX_NO_GPU_INDIRECT_COUNT");
   return r;
 }
 
@@ -198,6 +204,29 @@ TEST_CASE(
   if(!r.gpuIndirect)
     SKIP(r.backend << " has no GPU indirect draw: the CPU readback fallback is its documented path");
 
+  check_picture(r);
+  CHECK(r.dataReadbacks == 0);
+}
+
+// Metal has no draw-count rung for most pipelines (it goes through indirect
+// command buffers, which refuse textures), and neither do backends without
+// the feature. The poison commands this chain leaves in its dead slots must
+// still not be drawn there, without reading anything back: the multi-draw
+// rung draws a copy of the commands clamped to the GPU-written count.
+TEST_CASE(
+    "without the draw-count rung the dead command slots are still not drawn",
+    "[gfx][csf][feedback][indirect][U42]")
+{
+  const auto api = GENERATE(from_range(platform_backends()));
+  CAPTURE(backend_name(api));
+  const ChainShot r = run_chain(api, false, true);
+  if(r.skipped)
+    SKIP("backend unavailable: " << r.skip_reason);
+  INFO(r.error);
+  REQUIRE(r.error.empty());
+  REQUIRE(r.rasterA.valid());
+  if(!r.gpuIndirect)
+    SKIP(r.backend << " has no GPU indirect draw: the CPU readback fallback is its documented path");
   check_picture(r);
   CHECK(r.dataReadbacks == 0);
 }

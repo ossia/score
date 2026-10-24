@@ -150,13 +150,20 @@ struct MeshBuffers
   // command-slot capacity). Producers publish the buffer through the
   // "_indirect_draw_count" auxiliary convention (CustomMesh picks it up).
   //
-  // When the count rung is unavailable, correctness relies on the producer
-  // contract stated in RenderState::Caps: command slots beyond the written
-  // count stay zeroed, so the full-capacity multi-draw rung paints the same
-  // pixels. The CPU-readback fallback reads this buffer too and clamps
+  // When the count rung is unavailable, the raw raster clamps a copy of the
+  // commands to the count on the GPU (clampedIndirectBuffer below), so the
+  // full-capacity multi-draw rung paints the same pixels; without compute it
+  // relies on the producer contract stated in RenderState::Caps: command
+  // slots beyond the written count stay zeroed. The CPU-readback fallback reads this buffer too and clamps
   // cpuDrawCommands to the GPU-written count.
   QRhiBuffer* indirectCountBuffer{};
   quint32 indirectCountOffset{0};
+  //! Without the count rung: a copy of indirectDrawBuffer's slots with those
+  //! at or past the GPU-written count zeroed (IndirectCountClamp), at offset
+  //! 0 and the same stride. The plain indirect rungs draw it instead, so a
+  //! producer's dead slots are not drawn whatever they hold. Refreshed by the
+  //! consumer every frame, null when the clamp did not run.
+  QRhiBuffer* clampedIndirectBuffer{};
   bool gpuIndirectCountSupported{false}; // caps.drawIndirectCount &&
                                          // drawIndirectCountUsable()
   bool gpuIndirectMultiSupported{false}; // caps.drawIndirectMulti; false =>

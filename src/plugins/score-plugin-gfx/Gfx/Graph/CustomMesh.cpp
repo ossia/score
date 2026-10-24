@@ -756,62 +756,75 @@ bool CustomMesh::drawSingleMesh(
 
   // Multi-draw indirect: runtime capability check, not compile-time.
   // Only meaningful for single-sub-mesh MDI-mode geometries.
-  if(bufs.useIndirectDraw && effIndirectBuf)
+  // A mesh carrying its own CPU commands draws them even without an indirect
+  // buffer: a Flattened Scene Filter keeps a subset of a merged batch that way
+  // (shader board P05). Without this the whole index range was drawn at
+  // base vertex 0.
+  const bool gpuCommands = bufs.useIndirectDraw && effIndirectBuf;
+  if(gpuCommands || !g.cpu_draw_commands.empty())
   {
-    const bool ranged = range.first != 0 || range.count != 0xFFFFFFFFu;
-    const quint32 cmdFirst = std::min<quint32>(range.first, effIndirectCount);
-    const quint32 cmdCount
-        = std::min<quint32>(range.count, effIndirectCount - cmdFirst);
-    if(ranged && cmdCount == 0)
-      return false;
-    // Fallback ladder — same rung order and producer contract as
-    // BasicMesh::draw; see the RenderState::Caps declaration. The count
-    // buffer is scoped to the single-mesh MDI path exactly like the
-    // indirect buffer itself (picked up from mesh[0]), so it pairs with
-    // bufs.indirectDrawBuffer; a per-mesh override buffer keeps the plain
-    // rungs.
-    if(!ranged && bufs.gpuIndirectCountSupported && bufs.indirectCountBuffer
-       && bufs.gpuIndirectSupported && effIndirectBuf == bufs.indirectDrawBuffer)
+    if(gpuCommands)
     {
-      if(score::gfx::drawIndirectCountCompat(
-             cb, bufs.indirectDrawIndexed, effIndirectBuf,
-             bufs.indirectDrawOffset, bufs.indirectCountBuffer,
-             bufs.indirectCountOffset, effIndirectCount,
-             bufs.indirectDrawStride))
-        return true;
-      // API missing in this Qt: fall through to the plain indirect rungs.
-    }
-#if QT_VERSION >= QT_VERSION_CHECK(6, 12, 0)
-    if(bufs.gpuIndirectSupported)
-    {
-      if(!bufs.gpuIndirectMultiSupported && cmdCount > 1)
+      const bool ranged = range.first != 0 || range.count != 0xFFFFFFFFu;
+      const quint32 cmdFirst = std::min<quint32>(range.first, effIndirectCount);
+      const quint32 cmdCount
+          = std::min<quint32>(range.count, effIndirectCount - cmdFirst);
+      if(ranged && cmdCount == 0)
+        return false;
+      // Fallback ladder — same rung order and producer contract as
+      // BasicMesh::draw; see the RenderState::Caps declaration. The count
+      // buffer is scoped to the single-mesh MDI path exactly like the
+      // indirect buffer itself (picked up from mesh[0]), so it pairs with
+      // bufs.indirectDrawBuffer; a per-mesh override buffer keeps the plain
+      // rungs.
+      if(!ranged && bufs.gpuIndirectCountSupported && bufs.indirectCountBuffer
+         && bufs.gpuIndirectSupported && effIndirectBuf == bufs.indirectDrawBuffer)
       {
-        // Single-indirect rung: one drawCount=1 call per command slot (see
-        // BasicMesh::draw for why the loop lives here and not in Qt).
-        for(quint32 i = cmdFirst; i < cmdFirst + cmdCount; i++)
+        if(score::gfx::drawIndirectCountCompat(
+               cb, bufs.indirectDrawIndexed, effIndirectBuf,
+               bufs.indirectDrawOffset, bufs.indirectCountBuffer,
+               bufs.indirectCountOffset, effIndirectCount,
+               bufs.indirectDrawStride))
+          return true;
+        // API missing in this Qt: fall through to the plain indirect rungs.
+      }
+#if QT_VERSION >= QT_VERSION_CHECK(6, 12, 0)
+      if(bufs.gpuIndirectSupported)
+      {
+        // The clamped copy stands for the single-mesh MDI buffer only, like the
+        // count buffer it was clamped with.
+        const bool clamped = bufs.clampedIndirectBuffer
+                             && effIndirectBuf == bufs.indirectDrawBuffer;
+        const quint32 cmdOffset = clamped ? 0 : bufs.indirectDrawOffset;
+        if(clamped)
+          effIndirectBuf = bufs.clampedIndirectBuffer;
+        if(!bufs.gpuIndirectMultiSupported && cmdCount > 1)
         {
-          const quint32 off
-              = bufs.indirectDrawOffset + i * bufs.indirectDrawStride;
-          if(bufs.indirectDrawIndexed)
-            cb.drawIndexedIndirect(
-                effIndirectBuf, off, 1, bufs.indirectDrawStride);
-          else
-            cb.drawIndirect(
-                effIndirectBuf, off, 1, bufs.indirectDrawStride);
+          // Single-indirect rung: one drawCount=1 call per command slot (see
+          // BasicMesh::draw for why the loop lives here and not in Qt).
+          for(quint32 i = cmdFirst; i < cmdFirst + cmdCount; i++)
+          {
+            const quint32 off = cmdOffset + i * bufs.indirectDrawStride;
+            if(bufs.indirectDrawIndexed)
+              cb.drawIndexedIndirect(
+                  effIndirectBuf, off, 1, bufs.indirectDrawStride);
+            else
+              cb.drawIndirect(
+                  effIndirectBuf, off, 1, bufs.indirectDrawStride);
+          }
+          return true;
         }
+        const quint32 firstOff = cmdOffset + cmdFirst * bufs.indirectDrawStride;
+        if(bufs.indirectDrawIndexed)
+          cb.drawIndexedIndirect(
+              effIndirectBuf, firstOff, cmdCount, bufs.indirectDrawStride);
+        else
+          cb.drawIndirect(
+              effIndirectBuf, firstOff, cmdCount, bufs.indirectDrawStride);
         return true;
       }
-      const quint32 firstOff
-          = bufs.indirectDrawOffset + cmdFirst * bufs.indirectDrawStride;
-      if(bufs.indirectDrawIndexed)
-        cb.drawIndexedIndirect(
-            effIndirectBuf, firstOff, cmdCount, bufs.indirectDrawStride);
-      else
-        cb.drawIndirect(
-            effIndirectBuf, firstOff, cmdCount, bufs.indirectDrawStride);
-      return true;
-    }
 #endif
+    }
 
     // CPU fallback: iterate draw commands with correct firstInstance /
     // baseVertex so each sub-draw gets its own per-draw data via

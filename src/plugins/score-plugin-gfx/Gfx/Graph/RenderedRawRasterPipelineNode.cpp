@@ -3592,6 +3592,9 @@ void RenderedRawRasterPipelineNode::releaseState(RenderList& r)
   if(!m_initialized)
     return;
 
+  m_countClamp.release();
+  m_meshbufs.clampedIndirectBuffer = nullptr;
+
   {
     for(auto& texture : n.m_audio_textures)
     {
@@ -4409,6 +4412,7 @@ void RenderedRawRasterPipelineNode::update(
   }
 
   m_mrtRenderedThisFrame = false;
+  m_countClampedThisFrame = false;
 
   updateCameraInlet(renderer, res, renderer.renderSize(edge));
 
@@ -4763,6 +4767,44 @@ void RenderedRawRasterPipelineNode::runInitialPasses(
     RenderList& renderer, QRhiCommandBuffer& cb, QRhiResourceUpdateBatch*& updateBatch,
     Edge& edge)
 {
+  // GPU indirect draw without the count rung (Metal for a pipeline that binds
+  // textures, drivers without the feature, SCORE_GFX_NO_GPU_INDIRECT_COUNT):
+  // the plain rungs draw every command slot, so zero those past the
+  // GPU-written count first. Once per frame; the commands do not depend on
+  // the edge.
+  if(!m_countClampedThisFrame)
+  {
+    m_countClampedThisFrame = true;
+    m_meshbufs.clampedIndirectBuffer = nullptr;
+    if(m_meshbufs.useIndirectDraw && m_meshbufs.gpuIndirectSupported
+       && !m_meshbufs.gpuIndirectCountSupported && m_meshbufs.indirectDrawBuffer
+       && m_meshbufs.indirectCountBuffer)
+    {
+      m_meshbufs.clampedIndirectBuffer = m_countClamp.run(
+          renderer.state, cb, updateBatch,
+          {.commands = m_meshbufs.indirectDrawBuffer,
+           .commandsOffset = m_meshbufs.indirectDrawOffset,
+           .stride = m_meshbufs.indirectDrawStride,
+           .slots = m_meshbufs.indirectDrawCount,
+           .count = m_meshbufs.indirectCountBuffer,
+           .countOffset = m_meshbufs.indirectCountOffset});
+      // One line per change; GfxIndirectFallbackLadder.cpp captures it as the
+      // positive control that the count rung was really off.
+      const char* why = m_countClamp.refusal();
+      if(!m_countClampLogged || why != m_countClampLastRefusal)
+      {
+        m_countClampLogged = true;
+        m_countClampLastRefusal = why;
+        if(why)
+          qWarning("score.gfx: raw raster draw count: unclamped, %s; every "
+                   "command slot is drawn",
+                   why);
+        else
+          qDebug("score.gfx: raw raster draw count: clamped on the GPU");
+      }
+    }
+  }
+
   // MDI readback fallback for backends without drawIndirect: synchronously read
   // back the GPU indirect buffer so the CPU draw loop has this frame's
   // commands.

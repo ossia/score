@@ -11,9 +11,11 @@
 //       u32 the GPU wrote into a count buffer (Qt 6.13-era API, detected via
 //       RhiIndirectCompat.hpp because the SDK's Qt reports 6.12 while
 //       carrying the 6.13 API).
-//   R2  one drawIndirect of the full command-slot CAPACITY -- correct only
-//       under the producer contract that dead slots stay zeroed.
-//   R3  a per-command drawCount=1 indirect loop (no DrawIndirectMulti).
+//   R2  one drawIndirect of the full command-slot CAPACITY, over a copy of
+//       the commands a compute pass clamped to the GPU-written count
+//       (IndirectCountClamp: dead slots zeroed, whatever they held).
+//   R3  a per-command drawCount=1 indirect loop (no DrawIndirectMulti), over
+//       the same clamped copy.
 //   R4  CPU loop over commands read back synchronously; the count buffer is
 //       read back too and CLAMPS the command list.
 //
@@ -35,10 +37,11 @@
 //    ("score.gfx: RHI indirect caps: ..."); each session captures it through
 //    a message handler and REQUIREs the switch actually landed.
 //  * The poison device: the compute producer fills dead command slots with
-//    draws of sentinel-blue quads (columns 32..63) when 'poison'=1. The
-//    count rung (R1) and the clamping CPU rung (R4) must NOT paint them; the
-//    capacity rungs (R2, R3) MUST -- which simultaneously proves the count
-//    rung was really off in those sessions.
+//    draws of sentinel-blue quads (columns 32..63) when 'poison'=1. No rung
+//    may paint them: R1 and R4 honour the count themselves, R2 and R3 draw
+//    the clamped copy. The raw raster logs "raw raster draw count: clamped
+//    on the GPU" when it clamps, which proves the count rung was really off
+//    in the R2 / R3 sessions.
 //  * EXECUTION_MODEL INDIRECT passes log one "CSF indirect dispatch:
 //    gpu|cpu-fallback" line per node; sessions assert the path they forced.
 //
@@ -125,6 +128,10 @@ struct LadderResult
   // "gpu" / "cpu-fallback" from "score.gfx: CSF indirect dispatch:"; empty
   // when the line never appeared (INDIRECT pass never dispatched -- a bug).
   std::string dispatchLog;
+
+  // "score.gfx: raw raster draw count: clamped on the GPU" / "unclamped".
+  bool clamped = false;
+  bool unclamped = false;
 
   ReadbackImage at3, at6;
 };
@@ -216,6 +223,10 @@ LadderResult run_session(
         capture.text.find("CSF indirect dispatch: cpu-fallback")
         != std::string::npos)
       r.dispatchLog = "cpu-fallback";
+    r.clamped = capture.text.find("raw raster draw count: clamped on the GPU")
+                != std::string::npos;
+    r.unclamped = capture.text.find("raw raster draw count: unclamped")
+                  != std::string::npos;
   });
 
   for(const char* s : kSwitches)
@@ -314,10 +325,11 @@ TEST_CASE(
                                  << s1.capsMulti << " count=" << s1.capsCount
                                  << " dispatchIndirect=" << s1.capsDispatch
                                  << " countRung=" << countRung);
-    // Poison appears exactly when a capacity rung draws dead slots: an
-    // indirect-capable backend without the count rung.
-    const bool poisonVisible = s1.capsDrawIndirect == 1 && !countRung;
-    check_session(s1, poisonVisible);
+    // A capacity rung draws the clamped copy: an indirect-capable backend
+    // without the count rung clamps, and no rung shows the poison.
+    CHECK(s1.clamped == (s1.capsDrawIndirect == 1 && !countRung));
+    CHECK_FALSE(s1.unclamped);
+    check_session(s1, false);
     // The INDIRECT pass must have dispatched, on the path the caps promise.
     REQUIRE(!s1.dispatchLog.empty());
     CHECK(s1.dispatchLog == (s1.capsDispatch == 1 ? "gpu" : "cpu-fallback"));
@@ -331,7 +343,9 @@ TEST_CASE(
     REQUIRE(s2.error.empty());
     REQUIRE(s2.capsParsed);
     REQUIRE(s2.capsCount == 0); // the switch landed
-    check_session(s2, /*poisonVisible=*/s2.capsDrawIndirect == 1);
+    CHECK(s2.clamped == (s2.capsDrawIndirect == 1));
+    CHECK_FALSE(s2.unclamped);
+    check_session(s2, false);
   }
 
   // S3: additionally no multi -- the per-command loop rung (R3).
@@ -345,7 +359,9 @@ TEST_CASE(
     REQUIRE(s3.capsParsed);
     REQUIRE(s3.capsCount == 0);
     REQUIRE(s3.capsMulti == 0);
-    check_session(s3, /*poisonVisible=*/s3.capsDrawIndirect == 1);
+    CHECK(s3.clamped == (s3.capsDrawIndirect == 1));
+    CHECK_FALSE(s3.unclamped);
+    check_session(s3, false);
   }
 
   // S4: no GPU indirect at all -- the CPU readback rung (R4). Poison stays ON
@@ -359,6 +375,7 @@ TEST_CASE(
     REQUIRE(s4.capsParsed);
     REQUIRE(s4.capsDrawIndirect == 0);
     REQUIRE(s4.capsCount == 0);
+    CHECK_FALSE(s4.clamped);
     check_session(s4, /*poisonVisible=*/false);
   }
 
@@ -373,12 +390,8 @@ TEST_CASE(
     REQUIRE(s5.capsDispatch == 0);
     REQUIRE(s5.dispatchLog == "cpu-fallback");
     check_session(s5, /*poisonVisible=*/false);
-    // Equivalence against S1's frames where the expected pictures coincide:
-    // when S1 had no poison on screen, its frames and S5's must agree.
-    if(!(s1.capsDrawIndirect == 1 && !countRung))
-    {
-      CHECK(max_channel_diff(s1.at6, s5.at6) <= kTol);
-      CHECK(max_channel_diff(s1.at3, s5.at3) <= kTol);
-    }
+    // Every rung paints the same picture, so S1's frames and S5's agree.
+    CHECK(max_channel_diff(s1.at6, s5.at6) <= kTol);
+    CHECK(max_channel_diff(s1.at3, s5.at3) <= kTol);
   }
 }
