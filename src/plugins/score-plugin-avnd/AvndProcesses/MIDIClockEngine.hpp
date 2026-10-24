@@ -86,7 +86,8 @@ struct message
 {
   //! Time at which the message is due, in the caller's clock.
   int64_t at{};
-  std::array<uint8_t, 3> bytes{};
+  //! Large enough for a full MTC frame.
+  std::array<uint8_t, 10> bytes{};
   int size{};
 };
 
@@ -329,6 +330,20 @@ struct timeline_clock
   double last_clock_time = 0.0;
   uint32_t clock_tick_count = 0;
   double previous_offset = 0.0;
+
+  /**
+   * Puts the clock back on the grid of the timeline at a new position, as at
+   * the start: the next clock is the first grid point after `quarters`.
+   * `time` is the timeline time of `quarters`, in seconds.
+   */
+  void locate(double time, double quarters, double tempo, double factor) noexcept
+  {
+    const double clocks_per_quarter = 24.0 * factor;
+    const double grid = std::floor(quarters * clocks_per_quarter + 1e-9);
+    const double since_grid = quarters - grid / clocks_per_quarter;
+    last_clock_time = time - since_grid * 60.0 / tempo;
+    previous_offset = 0.0;
+  }
 
   //! factor: nudge times clock rate; offset in seconds.
   template <typename Emit>

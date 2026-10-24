@@ -11,7 +11,12 @@
 #include <catch2/catch_approx.hpp>
 #include <catch2/catch_test_macros.hpp>
 
+#include <ossia/network/generic/generic_device.hpp>
+
+#include <chrono>
 #include <map>
+#include <mutex>
+#include <thread>
 #include <vector>
 
 using Catch::Approx;
@@ -37,7 +42,10 @@ struct driver
   driver() { fx.prepare(halp::setup{.frames = frames, .rate = rate}); }
 
   //! Plays `seconds` at 120 BPM from the start of the timeline.
-  void play(double seconds, double tempo = 120.)
+  void play(double seconds, double tempo = 120.) { play_from(0, seconds, tempo); }
+
+  //! Plays `seconds` from the timeline frame `first`.
+  void play_from(int64_t first, double seconds, double tempo = 120.)
   {
     const int64_t n = int64_t(seconds * rate / frames);
     for(int64_t i = 0; i < n; i++)
@@ -46,13 +54,13 @@ struct driver
       tk.frames = frames;
       tk.tempo = tempo;
       tk.signature = {4, 4};
-      const int64_t f0 = i * frames;
+      const int64_t f0 = first + i * frames;
       const int64_t f1 = f0 + frames;
       tk.start_in_flicks = int64_t(f0 / rate * flicks_per_second);
       tk.end_in_flicks = int64_t(f1 / rate * flicks_per_second);
       tk.start_position_in_quarters = f0 / rate * tempo / 60.;
       tk.end_position_in_quarters = f1 / rate * tempo / 60.;
-      tk.relative_position = double(i) / 1000.;
+      tk.relative_position = double(f0) / 1e6;
       tk.position_in_frames = f0;
 
       fx.outputs.midi.midi_messages.clear();
@@ -65,6 +73,29 @@ struct driver
       }
       now += frames;
     }
+  }
+
+  //! The tick the executor gives after stop().
+  void stop()
+  {
+    fx.stop();
+    halp::tick_flicks tk{};
+    tk.frames = 0;
+    tk.tempo = 120.;
+    fx.outputs.midi.midi_messages.clear();
+    fx(tk);
+    for(const auto& m : fx.outputs.midi.midi_messages)
+      out.push_back(event{now, {m.bytes.begin(), m.bytes.end()}});
+  }
+
+  //! What went out from frame `from` on.
+  std::vector<event> since(int64_t from) const
+  {
+    std::vector<event> r;
+    for(auto& e : out)
+      if(e.at >= from)
+        r.push_back(e);
+    return r;
   }
 
   double seconds() const { return now / rate; }
@@ -275,4 +306,338 @@ TEST_CASE("MIDI Sync Out preset: everything enabled", "[presets][midi_sync_out]"
   CHECK(d.count(0xF8) == Approx(d.seconds() * 48.).margin(1));
   CHECK(d.count(0xF1) == Approx(d.seconds() * 25. * 4.).margin(1));
   CHECK(d.fx.free_mode.load() == false);
+}
+
+namespace
+{
+void enable_all(driver& d)
+{
+  d.fx.inputs.clock.value = mtk::MidiClockMode::Enabled;
+  d.fx.inputs.clock_startstop.value = mtk::MidiStartStopMode::Enabled;
+  d.fx.inputs.mtc.value = mtk::MidiTimeCodeMode::Enabled;
+  d.fx.inputs.rate.value = mtk::MidiTimeCodeFrameRate::SMPTE_25;
+}
+
+std::vector<uint8_t> statuses(const std::vector<event>& evs, int64_t at)
+{
+  std::vector<uint8_t> r;
+  for(auto& e : evs)
+    if(e.at == at && !e.bytes.empty())
+      r.push_back(e.bytes[0]);
+  return r;
+}
+}
+
+TEST_CASE("MIDI Sync Out: a loop starting over is a seek to its start", "[midi_sync_out]")
+{
+  driver d;
+  enable_all(d);
+  d.play(1.0);
+  const int64_t loop = d.now;
+  const int first_pass_clocks = d.count(0xF8);
+  REQUIRE(first_pass_clocks > 40);
+
+  // The timeline starts over at 0.
+  d.play(1.0);
+  const auto after = d.since(loop);
+
+  // Stop, Start, then a full timecode frame at 00:00:00:00.
+  const auto at_loop = statuses(after, loop);
+  REQUIRE(at_loop.size() >= 3);
+  CHECK(at_loop[0] == 0xFC);
+  CHECK(at_loop[1] == 0xFA);
+  CHECK(at_loop[2] == 0xF0);
+  for(auto& e : after)
+    if(e.at == loop && e.bytes[0] == 0xF0)
+      CHECK(e.bytes == std::vector<uint8_t>{0xF0, 0x7F, 0x7F, 0x01, 0x01, 0x20, 0, 0, 0, 0xF7});
+
+  // The clock and the timecode go on as on the first pass.
+  int clocks = 0, quarter_frames = 0;
+  int64_t first_clock = -1;
+  int first_piece = -1;
+  for(auto& e : after)
+  {
+    if(e.bytes[0] == 0xF8)
+    {
+      if(first_clock < 0)
+        first_clock = e.at;
+      clocks++;
+    }
+    if(e.bytes[0] == 0xF1)
+    {
+      if(first_piece < 0)
+        first_piece = e.bytes[1] >> 4;
+      quarter_frames++;
+    }
+  }
+  CHECK(clocks == first_pass_clocks);
+  CHECK(first_clock - loop == d.dates(0xF8).front());
+  CHECK(quarter_frames == Approx(d.seconds() / 2. * 100.).margin(2));
+  CHECK(first_piece == 0);
+  CHECK(d.count(0xFA) == 2);
+}
+
+TEST_CASE("MIDI Sync Out: a jump into the middle sends Song Position and Continue", "[midi_sync_out]")
+{
+  driver d;
+  d.fx.inputs.clock.value = mtk::MidiClockMode::Enabled;
+  d.fx.inputs.clock_startstop.value = mtk::MidiStartStopMode::Enabled;
+  d.play(1.0);
+  const int64_t jump = d.now;
+
+  // 49152 frames at 120 BPM: 2.048 quarters, so MIDI beat 8.
+  d.play_from(49152, 0.5);
+  const auto after = d.since(jump);
+  const auto at_jump = statuses(after, jump);
+  REQUIRE(at_jump.size() >= 3);
+  CHECK(at_jump[0] == 0xFC);
+  CHECK(at_jump[1] == 0xF2);
+  CHECK(at_jump[2] == 0xFB);
+  for(auto& e : after)
+    if(e.bytes[0] == 0xF2)
+      CHECK(e.bytes == std::vector<uint8_t>{0xF2, 8, 0});
+
+  // The next clock is on the grid of the timeline: 2.0833 quarters.
+  int64_t first_clock = -1;
+  for(auto& e : after)
+    if(e.bytes[0] == 0xF8)
+    {
+      first_clock = e.at;
+      break;
+    }
+  const double next_grid_seconds = (2. + 2. / 24.) / 2.;
+  CHECK(first_clock - jump == Approx((next_grid_seconds - 49152. / rate) * rate).margin(1));
+}
+
+TEST_CASE("MIDI Sync Out: Stop, then a new Start from the beginning", "[midi_sync_out]")
+{
+  driver d;
+  d.fx.inputs.clock.value = mtk::MidiClockMode::Enabled;
+  d.fx.inputs.clock_startstop.value = mtk::MidiStartStopMode::Enabled;
+  d.play(1.0);
+  d.stop();
+  CHECK(d.count(0xFC) == 1);
+  // The extra tick of the executor does not send it twice.
+  d.stop();
+  CHECK(d.count(0xFC) == 1);
+
+  const int64_t restart = d.now;
+  const int before = d.count(0xF8);
+  d.fx.start();
+  d.play(1.0);
+  CHECK(d.count(0xFA) == 2);
+  // The Stop of the extra tick, then the Start.
+  CHECK(statuses(d.since(restart), restart) == std::vector<uint8_t>{0xFC, 0xFA});
+  CHECK(d.count(0xF8) - before == before);
+}
+
+namespace
+{
+//! A MIDI output device that notes when each message reaches it.
+struct fake_midi_out final
+    : ossia::net::protocol_base
+    , ossia::net::midi::midi_stream
+{
+  fake_midi_out()
+      : protocol_base{flags{}}
+  {
+  }
+  bool pull(ossia::net::parameter_base&) override { return false; }
+  bool push(const ossia::net::parameter_base&, const ossia::value&) override
+  {
+    return false;
+  }
+  bool push_raw(const ossia::net::full_parameter_data&) override { return false; }
+  bool observe(ossia::net::parameter_base&, bool) override { return false; }
+  bool update(ossia::net::node_base&) override { return false; }
+
+  libremidi::midi_in* midi_in() const noexcept override { return nullptr; }
+  void enable_registration() override { }
+  void push_value(const libremidi::ump&) override { }
+  void push_value(const libremidi::message& m) override
+  {
+    std::lock_guard l{mutex};
+    sent.push_back(
+        {std::chrono::steady_clock::now(), {m.bytes.begin(), m.bytes.end()}});
+  }
+
+  std::mutex mutex;
+  std::vector<std::pair<std::chrono::steady_clock::time_point, std::vector<uint8_t>>>
+      sent;
+};
+}
+
+TEST_CASE("MIDI Sync Out: a MIDI device gets the score clock once, on time", "[midi_sync_out]")
+{
+  auto proto = std::make_unique<fake_midi_out>();
+  auto& midi = *proto;
+  ossia::net::generic_device dev{std::move(proto), "fake"};
+
+  driver d;
+  d.fx.inputs.clock.value = mtk::MidiClockMode::Enabled;
+  d.fx.inputs.clock_startstop.value = mtk::MidiStartStopMode::Enabled;
+  d.fx.outputs.midi.ossia_node = &dev.get_root_node();
+
+  // Ticks at the pace of a sound card, for 3 seconds.
+  using namespace std::chrono;
+  const auto t0 = steady_clock::now();
+  const auto buffer = nanoseconds(int64_t(frames * 1e9 / rate));
+  const int ticks = int(3. * rate / frames);
+  for(int i = 0; i < ticks; i++)
+  {
+    std::this_thread::sleep_until(t0 + i * buffer);
+    halp::tick_flicks tk{};
+    tk.frames = frames;
+    tk.tempo = 120.;
+    tk.signature = {4, 4};
+    const int64_t f0 = int64_t(i) * frames;
+    tk.start_in_flicks = int64_t(f0 / rate * flicks_per_second);
+    tk.end_in_flicks = int64_t((f0 + frames) / rate * flicks_per_second);
+    tk.start_position_in_quarters = f0 / rate * 2.;
+    tk.end_position_in_quarters = (f0 + frames) / rate * 2.;
+    tk.position_in_frames = f0;
+    d.fx.outputs.midi.midi_messages.clear();
+    d.fx(tk);
+    // Everything goes to the device: the port would write it a second time.
+    CHECK(d.fx.outputs.midi.midi_messages.empty());
+  }
+  std::this_thread::sleep_for(milliseconds(100));
+
+  std::vector<steady_clock::time_point> clocks;
+  int starts = 0;
+  {
+    std::lock_guard l{midi.mutex};
+    for(auto& [t, bytes] : midi.sent)
+    {
+      if(bytes == std::vector<uint8_t>{0xF8})
+        clocks.push_back(t);
+      if(bytes == std::vector<uint8_t>{0xFA})
+        starts++;
+    }
+  }
+  CHECK(starts == 1);
+  // 48 clocks a second, each sent once.
+  CHECK(int(clocks.size()) == Approx(ticks * frames / rate * 48.).margin(2));
+  REQUIRE(clocks.size() > 100);
+
+  // On a fixed grid: no drift over the run, little jitter from one to the next.
+  const double period_ms = 1000. / 48.;
+  const double span_ms
+      = duration<double, std::milli>(clocks.back() - clocks.front()).count();
+  CHECK(span_ms == Approx(period_ms * (clocks.size() - 1)).margin(2.));
+  int late = 0;
+  for(std::size_t i = 1; i < clocks.size(); i++)
+  {
+    const double dt = duration<double, std::milli>(clocks[i] - clocks[i - 1]).count();
+    if(std::abs(dt - period_ms) > 2.)
+      late++;
+  }
+  // The clock thread is not real time: a loaded machine delays a few.
+  CHECK(late <= int(clocks.size()) / 20);
+}
+
+TEST_CASE("MIDI Sync Out: a positive clock offset delays the transport with the clock", "[midi_sync_out]")
+{
+  driver d;
+  d.fx.inputs.clock.value = mtk::MidiClockMode::Enabled;
+  d.fx.inputs.clock_startstop.value = mtk::MidiStartStopMode::Enabled;
+  d.fx.inputs.clock_offset.value = 100.f;
+  const int64_t offset = 4800;
+
+  d.play(1.0);
+  // Start one offset later, then the first clock one period after it.
+  REQUIRE(d.dates(0xFA).size() == 1);
+  CHECK(d.dates(0xFA).front() == offset);
+  CHECK(d.dates(0xF8).front() == Approx(offset + rate / 48.).margin(1));
+
+  // A jump: Stop, Song Position and Continue one offset later, before the
+  // first clock of the new position.
+  const int64_t jump = d.now;
+  d.play_from(49152, 0.5);
+  const auto at = statuses(d.since(jump), jump + offset);
+  CHECK(at == std::vector<uint8_t>{0xFC, 0xF2, 0xFB});
+  int64_t first_clock = -1;
+  for(auto& e : d.since(jump + offset))
+    if(e.bytes[0] == 0xF8)
+    {
+      first_clock = e.at;
+      break;
+    }
+  CHECK(first_clock == Approx(jump + offset + 848).margin(1));
+
+  // Stop: nothing is left to wait for, it goes out after the last clock.
+  d.stop();
+  CHECK(d.count(0xFC) == 2);
+  CHECK(d.dates(0xFC).back() >= d.dates(0xF8).back());
+
+  // The port is in time order.
+  for(std::size_t i = 1; i < d.out.size(); i++)
+    CHECK(d.out[i - 1].at <= d.out[i].at);
+}
+
+TEST_CASE("MIDI Sync Out: a positive clock offset delays Start on a MIDI device too", "[midi_sync_out]")
+{
+  auto proto = std::make_unique<fake_midi_out>();
+  auto& midi = *proto;
+  ossia::net::generic_device dev{std::move(proto), "fake"};
+
+  driver d;
+  d.fx.inputs.clock.value = mtk::MidiClockMode::Enabled;
+  d.fx.inputs.clock_startstop.value = mtk::MidiStartStopMode::Enabled;
+  d.fx.inputs.clock_offset.value = 100.f;
+  d.fx.outputs.midi.ossia_node = &dev.get_root_node();
+
+  using namespace std::chrono;
+  const auto t0 = steady_clock::now();
+  const auto buffer = nanoseconds(int64_t(frames * 1e9 / rate));
+  const int ticks = int(1. * rate / frames);
+  steady_clock::time_point first_tick{};
+  for(int i = 0; i < ticks; i++)
+  {
+    std::this_thread::sleep_until(t0 + i * buffer);
+    if(i == 0)
+      first_tick = steady_clock::now();
+    halp::tick_flicks tk{};
+    tk.frames = frames;
+    tk.tempo = 120.;
+    tk.signature = {4, 4};
+    const int64_t f0 = int64_t(i) * frames;
+    tk.start_in_flicks = int64_t(f0 / rate * flicks_per_second);
+    tk.end_in_flicks = int64_t((f0 + frames) / rate * flicks_per_second);
+    tk.start_position_in_quarters = f0 / rate * 2.;
+    tk.end_position_in_quarters = (f0 + frames) / rate * 2.;
+    tk.position_in_frames = f0;
+    d.fx.outputs.midi.midi_messages.clear();
+    d.fx(tk);
+    CHECK(d.fx.outputs.midi.midi_messages.empty());
+  }
+  d.stop();
+  std::this_thread::sleep_for(milliseconds(250));
+
+  steady_clock::time_point start{}, stop{}, first_clock{}, last_clock{};
+  {
+    std::lock_guard l{midi.mutex};
+    for(auto& [t, bytes] : midi.sent)
+    {
+      if(bytes == std::vector<uint8_t>{0xFA})
+        start = t;
+      if(bytes == std::vector<uint8_t>{0xFC})
+        stop = t;
+      if(bytes == std::vector<uint8_t>{0xF8})
+      {
+        if(first_clock == steady_clock::time_point{})
+          first_clock = t;
+        last_clock = t;
+      }
+    }
+  }
+  REQUIRE(start != steady_clock::time_point{});
+  REQUIRE(stop != steady_clock::time_point{});
+  REQUIRE(first_clock != steady_clock::time_point{});
+  const auto ms = [](auto d) { return duration<double, std::milli>(d).count(); };
+  // One buffer of latency, then the offset.
+  CHECK(ms(start - first_tick) == Approx(100. + 1000. * frames / rate).margin(5.));
+  // As without an offset: the first clock one period after Start.
+  CHECK(ms(first_clock - start) == Approx(1000. / 48.).margin(3.));
+  CHECK(stop >= last_clock);
 }

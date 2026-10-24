@@ -21,9 +21,11 @@
 
 #include <AvndProcesses/MIDIClockEngine.hpp>
 
-#include <cmath>
-
+#include <algorithm>
+#include <array>
 #include <chrono>
+#include <cmath>
+#include <initializer_list>
 #include <span>
 #include <thread>
 
@@ -67,14 +69,6 @@ enum class MidiClockRate
   x2,
   x3,
   x4
-};
-
-enum class MidiStartStopEvent
-{
-  None,
-  Start,
-  Stop,
-  Continue
 };
 
 // https://blat-blatnik.github.io/computerBear/making-accurate-sleep-function/
@@ -133,10 +127,9 @@ struct MIDISyncOut
   halp_flag(process_exec);
 
   ossia::exec_state_facade ossia_state;
+  //! The MIDI device the output is bound to: written by operator(), read by
+  //! the clock thread.
   std::atomic<ossia::net::midi::midi_stream*> midi_out{};
-  std::atomic<MidiStartStopEvent> next_event_midiclock{};
-  std::atomic<MidiStartStopEvent> next_event_mtc{};
-  std::atomic<double> current_song_pos{};
 
   struct ins
   {
@@ -219,9 +212,9 @@ struct MIDISyncOut
     {
       halp_meta(
           description,
-          "Positive values delay the clock. Negative values send the score clock early "
-          "on the output port by extrapolating the current tempo; what the clock thread "
-          "sends straight to a MIDI device can only be delayed")
+          "Positive values delay the clock and the transport messages. Negative values "
+          "send the score clock early by extrapolating the current tempo, on the output "
+          "port or to a MIDI device")
     } clock_offset;
   } inputs;
 
@@ -312,147 +305,38 @@ struct MIDISyncOut
   //! operator() forwards it through the output port.
   ossia::spsc_queue<midi_clock::message> to_output_port{1024};
 
-  union storage
-  {
-    uint64_t u;
-    struct alignas(uint64_t) impl
-    {
-      float tempo = 0.f;
-      uint32_t has_clock : 1 = 0;
-      uint32_t has_startstop : 1 = 0;
-      uint32_t has_mtc : 1 = 0;
+  /**
+   * What operator() makes when the output is a MIDI device: score clock,
+   * transport and timecode, dated in steady_clock nanoseconds. The clock thread
+   * writes each to the device at its date; the output port stays empty, else
+   * the graph would write everything a second time, in a burst at the end of
+   * the tick. A full queue drops messages.
+   */
+  ossia::spsc_queue<midi_clock::message> to_device{4096};
 
-      uint32_t frame_rate : 2 = 0b10;
-      uint32_t h : 5 = 0;
-      uint32_t m : 6 = 0;
-      uint32_t s : 6 = 0;
-      uint32_t f : 5 = 0;
-    };
-    static_assert(sizeof(impl) == 8);
+  //! Timecode fields of a timeline position.
+  struct mtc_time
+  {
+    uint8_t frame_rate = 0b10;
+    uint8_t h = 0;
+    uint8_t m = 0;
+    uint8_t s = 0;
+    uint8_t f = 0;
   };
 
   using tick = halp::tick_flicks;
   std::thread clock_thread;
-  std::thread mtc_thread;
   std::atomic_bool clock_thread_running = true;
-  std::atomic_bool mtc_thread_running = true;
 
-  std::atomic<uint64_t> current_state = 0;
-
-  template <typename... T>
-  void send_midi(T... bytes)
-    requires(!(std::is_pointer_v<T> || ...))
-  {
-    if(auto proto = midi_out.load())
-      proto->push_value(libremidi::message{
-          libremidi::midi_bytes{static_cast<unsigned char>(bytes)...}, 0});
-  }
+  //! Set by start(), stop(), pause() and resume(); handled by the next tick.
+  std::atomic_bool start_requested{false};
+  std::atomic_bool stop_requested{false};
+  std::atomic_bool pause_requested{false};
 
   void send_midi(std::span<const uint8_t> bytes)
   {
     if(auto proto = midi_out.load())
       proto->push_value(libremidi::message{{std::begin(bytes), std::end(bytes)}, 0});
-  }
-
-  [[nodiscard]]
-  auto load_state() noexcept
-  {
-    auto u = this->current_state.load(std::memory_order_acquire);
-    auto state = std::bit_cast<storage::impl>(u);
-    if(state.tempo <= 0.)
-      state.tempo = 120.;
-    return state;
-  }
-
-  [[nodiscard]]
-  static auto compute_time_between_ticks(storage::impl state, double factor = 1.) noexcept
-  {
-    const double duration_of_quarter_note_in_seconds = 60. / (state.tempo * factor);
-    const std::chrono::nanoseconds time_between_ticks = std::chrono::nanoseconds(
-        int64_t(1e9 * duration_of_quarter_note_in_seconds / 24.));
-    return time_between_ticks;
-  };
-
-  void full_songpos_message(double quarters)
-  {
-    // A midi beat = a 16th note
-    // Note that this means due to having only 14 bits of storage,
-    // that a song is limited to 1024 bars.. half an hour at 120 bpm lol
-    // To prevent unwanted looping we will make the editorial choice to not send the message
-    // if it ends up > to that limit
-    double midi_beats = quarters * 4.;
-
-    uint64_t res = std::floor(midi_beats);
-    if(res < 16384)
-    {
-      // 0b0111'1111 0b0001'1111
-      uint8_t message[3] = {0xF2, 0x00, 0x00};
-      message[1] = (res & 0b0011'1111'1000'0000) >> 7;
-      message[2] = (res & 0b0000'0000'0111'1111);
-      send_midi(message);
-    }
-  }
-
-  void full_mtc_message(storage::impl state)
-  {
-    static_assert(0b0000'0011 << 5 == 0b01100000);
-    const uint8_t h = state.h | (state.frame_rate << 5);
-    const uint8_t m = state.m;
-    const uint8_t s = state.s;
-    const uint8_t f = state.f;
-
-    const uint8_t bytes[10]{0xF0, 0x7F, 0x7F, 0x01, 0x00, h, m, s, f, 0xF7};
-    send_midi(bytes);
-  }
-
-  void current_mtc_message(int& index, storage::impl state)
-  {
-    uint8_t bytes[2]{0xF1, 0};
-    // thanks wikipedia my good friend i promise i will donate
-    // 0 	0000 ffff 	Frame number lsbits
-    // 1 	0001 000f 	Frame number msbit
-    // 2 	0010 ssss 	Second lsbits
-    // 3 	0011 00ss 	Second msbits
-    // 4 	0100 mmmm 	Minute lsbits
-    // 5 	0101 00mm 	Minute msbits
-    // 6 	0110 hhhh 	Hour lsbits
-    // 7 	0111 0rrh 	Rate and hour msbit
-    switch(index)
-    {
-      case 0:
-        bytes[1] = 0b0000'0000 | (0b1111 & state.f);
-        index++;
-        break;
-      case 1:
-        bytes[1] = 0b0001'0000 | (0b0001 & (state.f >> 4));
-        index++;
-        break;
-      case 2:
-        bytes[1] = 0b0010'0000 | (0b1111 & state.s);
-        index++;
-        break;
-      case 3:
-        bytes[1] = 0b0011'0000 | (0b0011 & (state.s >> 4));
-        index++;
-        break;
-      case 4:
-        bytes[1] = 0b0100'0000 | (0b1111 & state.m);
-        index++;
-        break;
-      case 5:
-        bytes[1] = 0b0101'0000 | (0b0011 & (state.m >> 4));
-        index++;
-        break;
-      case 6:
-        bytes[1] = 0b0110'0000 | (0b0011 & state.h);
-        index++;
-        break;
-      case 7:
-        bytes[1] = 0b0111'0000 | (state.frame_rate << 1) | (0b0001 & (state.h >> 4));
-        index = 0;
-        break;
-    }
-    send_midi(bytes);
   }
 
   [[nodiscard]]
@@ -462,16 +346,12 @@ struct MIDISyncOut
     {
       case 0b00:
         return 24.;
-        break;
       case 0b01:
         return 25.;
-        break;
       case 0b10:
         return 29.97;
-        break;
       case 0b11:
         return 30.;
-        break;
     }
     return 30.;
   }
@@ -481,13 +361,6 @@ struct MIDISyncOut
     return std::chrono::duration_cast<std::chrono::nanoseconds>(
                std::chrono::steady_clock::now().time_since_epoch())
         .count();
-  }
-
-  //! Nudge and clock rate: how many times faster than 24 per beat clocks go.
-  double clock_factor() const noexcept
-  {
-    return midi_clock::nudge_factor(nudge.load(std::memory_order_relaxed))
-           * clock_rate_factor.load(std::memory_order_relaxed);
   }
 
   midi_clock::free_clock_params load_free_params() const noexcept
@@ -509,328 +382,164 @@ struct MIDISyncOut
       to_output_port.try_enqueue(m);
   }
 
-  //! One iteration of the clock thread in free mode: score transport events
-  //! are dropped, the free clock sends what is due, then the thread sleeps
-  //! until the next clock, or 1 ms when that is far, to see new commands.
-  void free_clock_step(midi_clock::free_clock& clk, sleep_accurate& precise_sleep)
+  /**
+   * The clock thread: runs the free clock, and writes to the MIDI device what
+   * operator() dated for it. Every message is sent at its own date, from the
+   * steady clock: waiting never adds up from one message to the next.
+   */
+  void clock_thread_main()
   {
     using namespace std::chrono;
-    const auto p = load_free_params();
+    ossia::set_thread_name("ossia midi clock");
+    ossia::set_thread_pinned(ossia::thread_type::Midi, 0);
+
+    sleep_accurate precise_sleep;
+    midi_clock::free_clock free_clock;
+    bool was_free = false;
+    midi_clock::message pending;
+    bool has_pending = false;
     auto send = [this](const midi_clock::message& m) { send_free_clock_message(m); };
 
-    this->next_event_midiclock.exchange(MidiStartStopEvent::None);
+    while(clock_thread_running.load(std::memory_order_acquire))
+    {
+      const auto p = load_free_params();
+      const int64_t now = steady_now_ns();
+      int64_t deadline = midi_clock::free_clock::never;
+      if(free_mode.load(std::memory_order_acquire))
+      {
+        was_free = true;
+        if(auto c = free_command.exchange(midi_clock::transport_command::None);
+           c != midi_clock::transport_command::None)
+          free_clock.command(c, now, p, send);
+        if(auto t = pending_tap.exchange(0); t != 0)
+          free_clock.tap(t, p);
 
-    const int64_t now = steady_now_ns();
-    if(auto c = free_command.exchange(midi_clock::transport_command::None);
-       c != midi_clock::transport_command::None)
-      clk.command(c, now, p, send);
-    if(auto t = pending_tap.exchange(0); t != 0)
-      clk.tap(t, p);
+        free_clock.process(now, p, send);
+        free_tempo.store(free_clock.tempo(p), std::memory_order_relaxed);
+        deadline = free_clock.next_deadline(p);
+      }
+      else
+      {
+        if(was_free)
+        {
+          was_free = false;
+          free_clock.command(midi_clock::transport_command::Stop, now, p, send);
+        }
+        free_command.exchange(midi_clock::transport_command::None);
+        pending_tap.exchange(0);
+      }
 
-    clk.process(now, p, send);
-    free_tempo.store(clk.tempo(p), std::memory_order_relaxed);
+      for(;;)
+      {
+        if(!has_pending)
+          has_pending = to_device.try_dequeue(pending);
+        if(!has_pending)
+          break;
+        if(pending.at > steady_now_ns())
+        {
+          deadline = std::min(deadline, pending.at);
+          break;
+        }
+        send_midi(std::span<const uint8_t>(pending.bytes.data(), pending.size));
+        has_pending = false;
+      }
 
-    const int64_t wait = clk.next_deadline(p) - steady_now_ns();
-    if(wait > 3'000'000)
-      std::this_thread::sleep_for(milliseconds(1));
-    else if(wait > 0)
-      precise_sleep(wait / 1e9);
-  }
-
-  //! Score clock: a positive offset delays Start. Events reach this thread
-  //! when they happen, so there is nothing to send early.
-  void wait_clock_offset(sleep_accurate& precise_sleep)
-  {
-    using namespace std::chrono;
-    const double ms = clock_offset_ms.load(std::memory_order_relaxed);
-    if(ms <= 0.)
-      return;
-    const auto until = steady_clock::now() + nanoseconds(int64_t(ms * 1e6));
-    while(clock_thread_running.load(std::memory_order_acquire)
-          && until - steady_clock::now() > milliseconds(3))
-      std::this_thread::sleep_for(milliseconds(1));
-    const auto remaining = until - steady_clock::now();
-    if(remaining > nanoseconds(0))
-      precise_sleep(duration_cast<nanoseconds>(remaining).count() / 1e9);
+      // Sleep 1 ms at most, to see new commands and messages.
+      const int64_t wait = deadline - steady_now_ns();
+      if(wait > 3'000'000)
+        std::this_thread::sleep_for(milliseconds(1));
+      else if(wait > 0)
+        precise_sleep(wait / 1e9);
+    }
   }
 
   MIDISyncOut()
   {
-    // Midi Clock handling
-    clock_thread = std::thread{[this] {
-      ossia::set_thread_name("ossia midi clock");
-      ossia::set_thread_pinned(ossia::thread_type::Midi, 0);
-
-      sleep_accurate precise_sleep;
-
-      std::chrono::steady_clock::time_point last_tick_sent{}, now{};
-      // Send one now
-      last_tick_sent = std::chrono::steady_clock::now();
-      now = last_tick_sent;
-
-      // if(load_state().has_clock)
-      //   send_midi(0xF8);
-
-      midi_clock::free_clock free_clock;
-      bool was_free = false;
-
-      while(clock_thread_running.load(std::memory_order_acquire))
-      {
-        if(free_mode.load(std::memory_order_acquire))
-        {
-          was_free = true;
-          free_clock_step(free_clock, precise_sleep);
-          last_tick_sent = std::chrono::steady_clock::now();
-          now = last_tick_sent;
-          continue;
-        }
-        else if(was_free)
-        {
-          was_free = false;
-          free_clock.command(
-              midi_clock::transport_command::Stop, steady_now_ns(), load_free_params(),
-              [this](const midi_clock::message& m) { send_free_clock_message(m); });
-        }
-        this->free_command.exchange(midi_clock::transport_command::None);
-        this->pending_tap.exchange(0);
-
-        auto state = load_state();
-        auto msg_to_send = this->next_event_midiclock.exchange(MidiStartStopEvent::None);
-        if(state.has_startstop)
-        {
-          switch(msg_to_send)
-          {
-            case MidiStartStopEvent::None:
-              break;
-            case MidiStartStopEvent::Start:
-              wait_clock_offset(precise_sleep);
-              full_songpos_message(0.);
-              send_midi(0xFA);
-              if(state.has_clock)
-              {
-                send_midi(0xF8);
-                last_tick_sent = std::chrono::steady_clock::now();
-                now = last_tick_sent;
-              }
-              break;
-            case MidiStartStopEvent::Continue:
-              full_songpos_message(
-                  this->current_song_pos.load(std::memory_order_acquire));
-              send_midi(0xFB);
-              break;
-            case MidiStartStopEvent::Stop:
-              full_songpos_message(0.);
-              send_midi(0xFC);
-              break;
-          }
-        }
-
-        if(state.has_clock)
-        {
-          auto time_between_ticks = compute_time_between_ticks(state, clock_factor());
-          auto elapsed_nsecs = std::chrono::duration_cast<std::chrono::nanoseconds>(
-              now - last_tick_sent);
-
-          if(elapsed_nsecs < time_between_ticks)
-            precise_sleep((time_between_ticks - elapsed_nsecs).count() / 1e9);
-
-          send_midi(0xF8);
-
-          last_tick_sent = now;
-        }
-        else
-        {
-          std::this_thread::sleep_for(std::chrono::milliseconds(3));
-        }
-      }
-    }};
-
-    // Midi Clock handling
-    mtc_thread = std::thread{[this] {
-      ossia::set_thread_name("ossia midi mtc");
-      ossia::set_thread_pinned(ossia::thread_type::Midi, 0);
-
-      sleep_accurate precise_sleep;
-
-      std::chrono::steady_clock::time_point last_tick_sent{}, now{};
-      // Send one now
-      last_tick_sent = std::chrono::steady_clock::now();
-      now = last_tick_sent;
-
-      storage::impl state;
-      int current_index = 0;
-      if(state = load_state(); state.has_mtc)
-        current_mtc_message(current_index, state);
-
-      while(mtc_thread_running.load(std::memory_order_acquire))
-      {
-        auto new_state = load_state();
-        auto msg_to_send = this->next_event_mtc.exchange(MidiStartStopEvent::None);
-        if(state.has_startstop)
-        {
-          switch(msg_to_send)
-          {
-            case MidiStartStopEvent::None:
-              break;
-            case MidiStartStopEvent::Start:
-              full_mtc_message(make_state(state.tempo, 0.));
-              break;
-            case MidiStartStopEvent::Continue:
-              full_mtc_message(state);
-              break;
-            case MidiStartStopEvent::Stop:
-              full_mtc_message(make_state(state.tempo, 0.));
-              break;
-          }
-        }
-
-        if(new_state.has_mtc)
-        {
-          // We don't want to change the timing in the middle
-          // of packets
-          if(current_index == 0)
-            state = new_state;
-
-          double frame_rate = from_mtc_framerate(state.frame_rate);
-          // We send messages in quarter frames
-          frame_rate *= 4.;
-
-          auto time_between_ticks = std::chrono::nanoseconds(int64_t(1e9 / frame_rate));
-          auto elapsed_nsecs = std::chrono::duration_cast<std::chrono::nanoseconds>(
-              now - last_tick_sent);
-
-          if(elapsed_nsecs < time_between_ticks)
-            precise_sleep((time_between_ticks - elapsed_nsecs).count() / 1e9);
-
-          current_mtc_message(current_index, state);
-
-          last_tick_sent = now;
-        }
-        else
-        {
-          current_index = 0;
-          state = new_state;
-          std::this_thread::sleep_for(std::chrono::milliseconds(3));
-        }
-      }
-    }};
+    clock_thread = std::thread{[this] { clock_thread_main(); }};
   }
 
   ~MIDISyncOut()
   {
     clock_thread_running.store(false, std::memory_order_release);
-    mtc_thread_running.store(false, std::memory_order_release);
     clock_thread.join();
-    mtc_thread.join();
   }
 
-  void start()
-  {
-    next_event_midiclock.store(MidiStartStopEvent::Start, std::memory_order_release);
-    current_song_pos.store(0., std::memory_order_release);
-  }
+  void start() { start_requested.store(true, std::memory_order_release); }
+  void stop() { stop_requested.store(true, std::memory_order_release); }
+  void pause() { pause_requested.store(true, std::memory_order_release); }
+  void resume() { }
 
-  void stop()
-  {
-    // The free clock keeps its own transport.
-    if(free_mode.load(std::memory_order_acquire))
-      return;
-
-    if(inputs.clock_startstop == MidiStartStopMode::Enabled)
-      send_midi(0xFC);
-
-    next_event_midiclock.store(MidiStartStopEvent::Stop, std::memory_order_release);
-    current_song_pos.store(0., std::memory_order_release);
-  }
-
-  void pause()
-  {
-    auto u = this->current_state.load(std::memory_order_acquire);
-    auto state = std::bit_cast<storage::impl>(u);
-    state.has_clock = false;
-    state.has_mtc = false;
-    this->current_state.store(std::bit_cast<uint64_t>(state), std::memory_order_release);
-  }
-
-  void resume()
-  {
-    next_event_midiclock.store(MidiStartStopEvent::Continue, std::memory_order_release);
-
-    auto u = this->current_state.load(std::memory_order_acquire);
-    auto state = std::bit_cast<storage::impl>(u);
-    state.has_clock = inputs.clock == MidiClockMode::Enabled;
-    state.has_mtc = inputs.mtc == MidiTimeCodeMode::Enabled;
-    this->current_state.store(std::bit_cast<uint64_t>(state), std::memory_order_release);
-  }
-
-  void transport(auto time)
-  {
-    // FIXME
-    /*
-    auto nsec = std::chrono::duration_cast<std::chrono::nanoseconds>(time);
-    auto state = make_state(0., nsec.count() / 1e9);
-    if(inputs.mtc == MidiTimeCodeMode::Emit)
-      full_mtc_message(state);
-
-    if(inputs.clock == MidiClockMode::Emit)
-      full_songpos_message(state);
-    */
-  }
 
   [[nodiscard]]
-  storage::impl make_state(double tempo, double total_seconds)
+  mtc_time make_mtc_time(double total_seconds) const noexcept
   {
-    storage::impl state;
-    state.tempo = tempo;
+    mtc_time t;
+    t.frame_rate
+        = static_cast<std::underlying_type_t<MidiTimeCodeFrameRate>>(inputs.rate.value)
+          & 0b11;
 
     total_seconds += this->inputs.offset;
+    if(total_seconds < 0.)
+      total_seconds = 0.;
 
     auto h = std::div((long long)total_seconds, (long long)3600).quot;
     total_seconds -= h * 3600;
     auto m = std::div((long long)total_seconds, (long long)60).quot;
     total_seconds -= m * 60;
-    float s;
+    double s;
     auto frames = std::modf(total_seconds, &s);
 
-    state.has_clock = inputs.clock == MidiClockMode::Enabled;
-    state.has_startstop = inputs.clock_startstop == MidiStartStopMode::Enabled;
-    state.has_mtc = inputs.mtc == MidiTimeCodeMode::Enabled;
-    state.frame_rate
-        = static_cast<std::underlying_type_t<MidiTimeCodeFrameRate>>(inputs.rate.value);
-    state.h = h % 24;
-    state.m = m % 60;
-    state.s = std::floor(s);
-    state.f = from_mtc_framerate(state.frame_rate) * frames;
-
-    return state;
+    t.h = h % 24;
+    t.m = m % 60;
+    t.s = uint8_t(s);
+    t.f = std::min(uint8_t(from_mtc_framerate(t.frame_rate) * frames), uint8_t(29));
+    return t;
   }
 
   halp::setup setup;
   void prepare(halp::setup s) { setup = s; }
+
   void operator()(halp::tick_flicks tk)
   {
-    // The tick requested after stop() has no frames: stop() already reset the
-    // song position and queued the Stop, which this tick must not overwrite.
-    if(setup.rate <= 0 || tk.frames <= 0)
+    if(setup.rate <= 0)
       return;
 
-    if(outputs.midi.ossia_node)
+    bind_output();
+    publish_clock_controls();
+    begin_tick(tk.frames);
+    const bool is_free = inputs.source.value == MidiClockSource::Free;
+
+    if(start_requested.exchange(false, std::memory_order_acq_rel))
+      main_state.running = false;
+
+    // The executor ticks once more, with no frame, after stop().
+    const bool stopping = stop_requested.exchange(false, std::memory_order_acq_rel);
+    const bool pausing = pause_requested.exchange(false, std::memory_order_acq_rel);
+    if(stopping || pausing)
     {
-      auto& proto = outputs.midi.ossia_node->get_device().get_protocol();
-      if(auto mp = dynamic_cast<ossia::net::midi::midi_stream*>(&proto))
-        midi_out = mp;
+      // No tick may come to send them later: on the port, what was delayed
+      // goes out now, then Stop.
+      flush_delayed();
+      if(main_state.running && !is_free
+         && inputs.clock_startstop == MidiStartStopMode::Enabled)
+      {
+        if(main_state.to_device)
+          emit_transport({0xFC});
+        else
+          emit(0, {0xFC});
+      }
+      main_state.running = false;
+    }
+    else
+    {
+      release_delayed(tk.frames);
     }
 
-    publish_clock_controls();
+    if(tk.frames > 0)
+      process_timeline(tk, is_free);
 
-    auto state = make_state(tk.tempo, tk.start_in_flicks / 705'600'000.);
-    // FIXME midi out : mpmc for output
-    // Global MTC start / stop input has to be done in a device
-
-    handle_audio_thread_output(tk, state);
-
-    this->current_state.store(std::bit_cast<uint64_t>(state), std::memory_order_release);
-    this->current_song_pos.store(tk.start_position_in_quarters);
+    if(tk.frames > 0)
+      main_state.out_frame += tk.frames;
 
     outputs.tempo.value = free_mode.load(std::memory_order_relaxed)
                               ? free_tempo.load(std::memory_order_relaxed)
@@ -846,6 +555,19 @@ struct MIDISyncOut
       msg.timestamp = 0;
       outputs.midi.push_back(std::move(msg));
     }
+    sort_output();
+  }
+
+  //! The MIDI device the output is bound to, if any.
+  void bind_output() noexcept
+  {
+    ossia::net::midi::midi_stream* stream{};
+    if(outputs.midi.ossia_node)
+    {
+      auto& proto = outputs.midi.ossia_node->get_device().get_protocol();
+      stream = dynamic_cast<ossia::net::midi::midi_stream*>(&proto);
+    }
+    midi_out.store(stream, std::memory_order_release);
   }
 
   //! Hands the controls the clock thread reads over to it.
@@ -883,117 +605,275 @@ struct MIDISyncOut
     }
   }
 
-  void
-  handle_audio_thread_output(const halp::tick_flicks& tk, const storage::impl& state)
+  /**
+   * Dates the frames of the tick for the device: the start of the tick
+   * follows the previous one by its length, corrected slowly towards the time
+   * operator() is called, so that the jitter of the audio callback does not
+   * reach the clock. One buffer of latency puts every message of the tick in
+   * the future of the clock thread.
+   */
+  void begin_tick(int frames) noexcept
+  {
+    const int64_t now = steady_now_ns();
+    const double ns_per_frame = 1e9 / setup.rate;
+    const int64_t buffer_ns = int64_t(std::max(setup.frames, frames) * ns_per_frame);
+    const int64_t drift = now - main_state.next_tick_ns;
+    if(main_state.next_tick_ns == 0 || std::abs(drift) > buffer_ns + 2'000'000)
+      main_state.tick_start_ns = now;
+    else
+      main_state.tick_start_ns = main_state.next_tick_ns + drift / 16;
+    main_state.ns_per_frame = ns_per_frame;
+    main_state.latency_ns = buffer_ns;
+    main_state.next_tick_ns
+        = main_state.tick_start_ns + int64_t(std::max(frames, 0) * ns_per_frame);
+    main_state.to_device = midi_out.load(std::memory_order_relaxed) != nullptr;
+    main_state.tick_frames = std::max(frames, 0);
+  }
+
+  //! Sends a message at a frame of the tick, to the port or to the device.
+  void emit(int64_t frame, std::initializer_list<uint8_t> bytes) noexcept
+  {
+    if(main_state.to_device)
+    {
+      midi_clock::message m;
+      m.at = main_state.tick_start_ns + main_state.latency_ns
+             + int64_t(frame * main_state.ns_per_frame);
+      m.size = int(std::min(bytes.size(), m.bytes.size()));
+      std::copy_n(bytes.begin(), m.size, m.bytes.begin());
+      to_device.try_enqueue(m);
+    }
+    else
+    {
+      halp::midi_msg msg;
+      msg.bytes.assign(bytes.begin(), bytes.end());
+      msg.timestamp = frame;
+      outputs.midi.push_back(std::move(msg));
+    }
+  }
+
+  /**
+   * Start, Continue, Stop and Song Position, delayed by a positive clock
+   * offset as the clocks are, so that a receiver sees them in the same
+   * relation to the clock. What falls past the current tick waits in
+   * main_state.delayed, dated in frames since the object started.
+   */
+  void emit_transport(std::initializer_list<uint8_t> bytes) noexcept
+  {
+    const double offset = inputs.clock_offset.value / 1000.;
+    const int64_t delay = offset > 0. ? int64_t(std::llround(offset * setup.rate)) : 0;
+    if(main_state.to_device || delay < main_state.tick_frames)
+    {
+      emit(delay, bytes);
+      return;
+    }
+
+    auto& d = main_state.delayed;
+    if(main_state.delayed_count == int(d.size()))
+    {
+      // Out of room: late rather than lost.
+      emit(std::max<int64_t>(main_state.tick_frames - 1, 0), bytes);
+      return;
+    }
+    auto& e = d[main_state.delayed_count++];
+    e.at = main_state.out_frame + delay;
+    e.size = int(std::min(bytes.size(), e.bytes.size()));
+    std::copy_n(bytes.begin(), e.size, e.bytes.begin());
+  }
+
+  void emit_message(int64_t frame, const midi_clock::message& m) noexcept
+  {
+    halp::midi_msg msg;
+    msg.bytes.assign(m.bytes.begin(), m.bytes.begin() + m.size);
+    msg.timestamp = frame;
+    outputs.midi.push_back(std::move(msg));
+  }
+
+  //! Sends the delayed transport messages due in this tick.
+  void release_delayed(int frames) noexcept
+  {
+    const int64_t end = main_state.out_frame + std::max(frames, 0);
+    int kept = 0;
+    for(int i = 0; i < main_state.delayed_count; i++)
+    {
+      auto& e = main_state.delayed[i];
+      if(e.at < end)
+        emit_message(std::max<int64_t>(e.at - main_state.out_frame, 0), e);
+      else
+        main_state.delayed[kept++] = e;
+    }
+    main_state.delayed_count = kept;
+  }
+
+  void flush_delayed() noexcept
+  {
+    for(int i = 0; i < main_state.delayed_count; i++)
+      emit_message(0, main_state.delayed[i]);
+    main_state.delayed_count = 0;
+  }
+
+  //! The port's messages in time order: delayed ones are added out of order.
+  void sort_output() noexcept
+  {
+    auto& v = outputs.midi.midi_messages;
+    for(std::size_t i = 1; i < v.size(); i++)
+      for(std::size_t j = i; j > 0 && v[j - 1].timestamp > v[j].timestamp; j--)
+        std::swap(v[j - 1], v[j]);
+  }
+
+  void process_timeline(const halp::tick_flicks& tk, bool is_free)
   {
     const double current_time = tk.start_in_flicks / 705'600'000.0;
     const double frame_duration
         = std::abs(tk.end_in_flicks - tk.start_in_flicks) / 705'600'000.0;
+    const auto time = make_mtc_time(current_time);
+    const double factor
+        = midi_clock::nudge_factor(
+              int(inputs.nudge_up.value) - int(inputs.nudge_down.value))
+          * midi_clock::clock_rate_factor(int(inputs.clock_rate.value));
 
-    const bool is_free = inputs.source.value == MidiClockSource::Free;
+    // A tick that does not start where the previous one ended is a jump of
+    // the timeline: a seek, or a loop starting over.
+    const bool jumped
+        = main_state.running && tk.start_in_flicks != main_state.next_start_in_flicks;
+    if(!main_state.running || jumped)
+      locate(tk, time, current_time, factor, jumped, is_free);
+    main_state.running = true;
+    main_state.next_start_in_flicks = tk.end_in_flicks;
 
-    // Handle transport start/stop/continue
-    if(!is_free && tk.relative_position == 0 && !main_state.transport_started)
-    {
-      if(inputs.clock_startstop == MidiStartStopMode::Enabled)
-      {
-        // Send Start message
-        outputs.midi.push_back({.bytes = {0xFA}, .timestamp = 0});
-        main_state.transport_started = true;
-      }
-
-      // Send initial Song Position
-      if(inputs.clock == MidiClockMode::Enabled)
-      {
-        uint16_t pos = tk.start_position_in_quarters * 4; // Convert to 16th notes
-        if(pos < 16384)
-        {
-          outputs.midi.push_back(
-              {.bytes = {0xF2, uint8_t(pos & 0x7F), uint8_t((pos >> 7) & 0x7F)},
-               .timestamp = 0});
-        }
-      }
-    }
-
-    // Generate MIDI Clock messages for this buffer
     if(!is_free && inputs.clock == MidiClockMode::Enabled)
     {
-      const double factor
-          = midi_clock::nudge_factor(
-                int(inputs.nudge_up.value) - int(inputs.nudge_down.value))
-            * midi_clock::clock_rate_factor(int(inputs.clock_rate.value));
       main_state.clock.process(
-          current_time, frame_duration, tk.frames, state.tempo, factor,
-          inputs.clock_offset.value / 1000., [this](int64_t sample_offset) {
-        outputs.midi.push_back({.bytes = {0xF8}, .timestamp = sample_offset});
-      });
+          current_time, frame_duration, tk.frames, tk.tempo, factor,
+          inputs.clock_offset.value / 1000.,
+          [this](int64_t sample_offset) { emit(sample_offset, {0xF8}); });
     }
 
-    // Generate MTC Quarter Frame messages for this buffer
+    if(inputs.mtc == MidiTimeCodeMode::Enabled)
+      send_quarter_frames(tk, time, current_time, frame_duration);
+  }
+
+  /**
+   * Starting, resuming, seeking and looping: Song Position then Start or
+   * Continue, as a receiver expects when it is stopped, after a Stop when it
+   * was running; Start at the beginning of the timeline. The clock and the
+   * timecode start over from the new position.
+   */
+  void locate(
+      const halp::tick_flicks& tk, const mtc_time& time, double current_time,
+      double factor, bool jumped, bool is_free)
+  {
+    const bool transport
+        = !is_free && inputs.clock_startstop == MidiStartStopMode::Enabled;
+    const bool clock = !is_free && inputs.clock == MidiClockMode::Enabled;
+    const double quarters = tk.start_position_in_quarters;
+    const bool at_start = std::abs(quarters) < 1e-9;
+
+    if(jumped && transport)
+      emit_transport({0xFC});
+
+    if(clock || transport)
+    {
+      // A MIDI beat is a 16th note, 14 bits: past 1024 bars there is no
+      // position to send.
+      const int64_t beats = int64_t(std::floor(quarters * 4. + 1e-9));
+      if(!(transport && at_start) && beats >= 0 && beats < 16384)
+        emit_transport({0xF2, uint8_t(beats & 0x7F), uint8_t((beats >> 7) & 0x7F)});
+      if(transport)
+        emit_transport({uint8_t(at_start ? 0xFA : 0xFB)});
+    }
+
+    main_state.clock.locate(current_time, quarters, tk.tempo, factor);
+
     if(inputs.mtc == MidiTimeCodeMode::Enabled)
     {
-      double fps = from_mtc_framerate(state.frame_rate);
-      double seconds_per_quarter_frame = 1.0 / (fps * 4.0);
+      emit(
+          0, {0xF0, 0x7F, 0x7F, 0x01, 0x01, uint8_t(time.h | (time.frame_rate << 5)),
+              time.m, time.s, time.f, 0xF7});
+    }
+    const double fps = from_mtc_framerate(time.frame_rate);
+    main_state.mtc_quarter_frame_index = 0;
+    main_state.last_mtc_quarter_frame_time = current_time - 1.0 / (fps * 4.0);
+  }
 
-      double next_qf_time
-          = main_state.last_mtc_quarter_frame_time + seconds_per_quarter_frame;
+  void send_quarter_frames(
+      const halp::tick_flicks& tk, const mtc_time& time, double current_time,
+      double frame_duration)
+  {
+    const double fps = from_mtc_framerate(time.frame_rate);
+    const double seconds_per_quarter_frame = 1.0 / (fps * 4.0);
 
-      while(next_qf_time < current_time + frame_duration)
+    double next_qf_time
+        = main_state.last_mtc_quarter_frame_time + seconds_per_quarter_frame;
+
+    while(next_qf_time < current_time + frame_duration)
+    {
+      if(next_qf_time >= current_time)
       {
-        if(next_qf_time >= current_time)
+        int64_t sample_offset
+            = ((next_qf_time - current_time) / frame_duration) * tk.frames;
+        sample_offset = std::clamp<int64_t>(sample_offset, 0, tk.frames - 1);
+
+        uint8_t qf_data = 0;
+        switch(main_state.mtc_quarter_frame_index)
         {
-          int64_t sample_offset
-              = ((next_qf_time - current_time) / frame_duration) * tk.frames;
-          sample_offset = std::clamp<int64_t>(sample_offset, 0, tk.frames - 1);
-
-          // Generate the quarter frame message
-          uint8_t qf_data = 0;
-          switch(main_state.mtc_quarter_frame_index)
-          {
-            case 0:
-              qf_data = 0x00 | (state.f & 0x0F);
-              break;
-            case 1:
-              qf_data = 0x10 | ((state.f >> 4) & 0x01);
-              break;
-            case 2:
-              qf_data = 0x20 | (state.s & 0x0F);
-              break;
-            case 3:
-              qf_data = 0x30 | ((state.s >> 4) & 0x03);
-              break;
-            case 4:
-              qf_data = 0x40 | (state.m & 0x0F);
-              break;
-            case 5:
-              qf_data = 0x50 | ((state.m >> 4) & 0x03);
-              break;
-            case 6:
-              qf_data = 0x60 | (state.h & 0x0F);
-              break;
-            case 7:
-              qf_data = 0x70 | (state.frame_rate << 1) | ((state.h >> 4) & 0x01);
-              break;
-          }
-
-          outputs.midi.push_back({.bytes = {0xF1, qf_data}, .timestamp = sample_offset});
-
-          main_state.mtc_quarter_frame_index
-              = (main_state.mtc_quarter_frame_index + 1) % 8;
+          case 0:
+            qf_data = 0x00 | (time.f & 0x0F);
+            break;
+          case 1:
+            qf_data = 0x10 | ((time.f >> 4) & 0x01);
+            break;
+          case 2:
+            qf_data = 0x20 | (time.s & 0x0F);
+            break;
+          case 3:
+            qf_data = 0x30 | ((time.s >> 4) & 0x03);
+            break;
+          case 4:
+            qf_data = 0x40 | (time.m & 0x0F);
+            break;
+          case 5:
+            qf_data = 0x50 | ((time.m >> 4) & 0x03);
+            break;
+          case 6:
+            qf_data = 0x60 | (time.h & 0x0F);
+            break;
+          case 7:
+            qf_data = 0x70 | (time.frame_rate << 1) | ((time.h >> 4) & 0x01);
+            break;
         }
 
-        main_state.last_mtc_quarter_frame_time = next_qf_time;
-        next_qf_time += seconds_per_quarter_frame;
+        emit(sample_offset, {0xF1, qf_data});
+
+        main_state.mtc_quarter_frame_index
+            = (main_state.mtc_quarter_frame_index + 1) % 8;
       }
+
+      main_state.last_mtc_quarter_frame_time = next_qf_time;
+      next_qf_time += seconds_per_quarter_frame;
     }
   }
 
+  //! State of the audio thread.
   struct MainThreadState
   {
     midi_clock::timeline_clock clock;
     double last_mtc_quarter_frame_time = 0.0;
     int mtc_quarter_frame_index = 0;
-    bool transport_started = false;
+    //! Playing since the last start, stop or pause.
+    bool running = false;
+    int64_t next_start_in_flicks = 0;
+
+    //! Frames of output since the object started, and in the current tick.
+    int64_t out_frame = 0;
+    int tick_frames = 0;
+    std::array<midi_clock::message, 32> delayed{};
+    int delayed_count = 0;
+
+    bool to_device = false;
+    int64_t tick_start_ns = 0;
+    int64_t next_tick_ns = 0;
+    int64_t latency_ns = 0;
+    double ns_per_frame = 0.;
   } main_state;
 };
 }
