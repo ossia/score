@@ -3,6 +3,7 @@
 #include <Process/Process.hpp>
 
 #include <Crousti/File.hpp>
+#include <Crousti/MessageBus.hpp>
 #include <Crousti/ProcessModel.hpp>
 
 #include <ossia/detail/flat_map.hpp>
@@ -192,28 +193,60 @@ struct setup_control_for_exec : setup_control_for_exec_base<Node, Field>
     }
   }
 
+  /**
+   * The processor sets its control from its own thread. The value reaches the
+   * UI through a mailbox without allocation or lock; values the UI has not
+   * taken yet are replaced by newer ones. A text control's update_controller
+   * takes a std::string_view and passes at most Field::max_length()
+   * characters, 4096 when the field does not say.
+   */
   void update_controller(Field& param, Process::ControlInlet* inlet)
   {
-    // FIXME proper tag
     if constexpr(requires { param.update_controller; })
     {
+      using function_type = std::remove_cvref_t<decltype(param.update_controller)>;
+      using arg_type
+          = std::remove_cvref_t<typename function_argument<function_type>::type>;
+      static constexpr bool is_text = std::is_same_v<arg_type, std::string_view>;
+      using value_type = std::conditional_t<is_text, std::string, arg_type>;
+
+      std::size_t capacity = 0;
+      if constexpr(is_text)
+      {
+        capacity = 4096;
+        if constexpr(requires { Field::max_length(); })
+          capacity = Field::max_length();
+      }
+
+      auto box = std::make_shared<latest_value<value_type>>();
+      if constexpr(is_text)
+        box->for_each_slot([capacity](std::string& s) { s.reserve(capacity); });
+
       param.update_controller
-          = [inlet = QPointer{inlet}, self = QPointer{&this->element}](auto&& value) {
-        if(!self || !inlet)
+          = [inlet = QPointer{inlet}, self = QPointer{&this->element},
+             qed_ptr = this->ctx.weakEditionQueue(), box, capacity](arg_type value) {
+        if constexpr(is_text)
+          box->back().assign(value.substr(0, std::min(value.size(), capacity)));
+        else
+          box->back() = std::move(value);
+        box->publish();
+
+        if(!box->request())
           return;
-
-        // Notify the UI if the object has the power
-        // to actually change the value of the control
-        ossia::qt::run_async(qApp, [self, inlet, val = std::move(value)] {
-          if(!self || !inlet)
+        auto qed = qed_ptr.lock();
+        if(!qed)
+        {
+          box->cancel();
+          return;
+        }
+        const bool sent = qed->try_enqueue([inlet, self, box] {
+          auto v = box->take();
+          if(!v || !self || !inlet)
             return;
-
-          // FIXME better to use in_edit queue ?
-          // FIXME not too efficient but which choice do we have ?
-          static const Field field;
-          oscr::to_ossia_value(field, val);
-          inlet->setValue(val);
+          inlet->setValue(*v);
         });
+        if(!sent)
+          box->cancel();
       };
     }
   }

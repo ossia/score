@@ -1,0 +1,439 @@
+// What a processor sends to the UI from the audio thread: messages to its
+// layer (oscr::message_ring and the edition queue) and values of its own
+// controls (update_controller, oscr::latest_value). Nothing may allocate on
+// the sending side; when the preallocated room is full, messages are dropped.
+
+#include <Process/Dataflow/WidgetInlets.hpp>
+#include <Process/ExecutionContext.hpp>
+#include <Process/ExecutionSetup.hpp>
+
+#include <Scenario/Document/Interval/IntervalExecution.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
+
+#include <Execution/BaseScenarioComponent.hpp>
+#include <Execution/DocumentPlugin.hpp>
+
+#include <score/document/DocumentInterface.hpp>
+
+#include <core/document/Document.hpp>
+
+#include <ossia/dataflow/execution_state.hpp>
+#include <ossia/dataflow/graph_node.hpp>
+#include <ossia/dataflow/port.hpp>
+#include <ossia/detail/thread.hpp>
+
+#include <QApplication>
+
+#include <Avnd/Factories.hpp>
+#include <Crousti/Executor.hpp>
+#include <Crousti/MessageBus.hpp>
+#include <Crousti/ProcessModel.hpp>
+#include <AvndProcesses/MIDISync.hpp>
+#include <Fx/Chord.hpp>
+#include <catch2/catch_test_macros.hpp>
+#include <examples/Advanced/MidiScaler/MidiLife.hpp>
+#include <libremidi/detail/conversion.hpp>
+#include <score_test/App.hpp>
+#include <score_test/Document.hpp>
+#include <score_test/Execution.hpp>
+#include <score_test/Project.hpp>
+
+#include <atomic>
+#include <cstdlib>
+#include <new>
+#include <string>
+#include <thread>
+#include <vector>
+
+namespace
+{
+thread_local bool t_count_allocations = false;
+std::atomic<int> g_allocations{0};
+
+struct count_allocations
+{
+  count_allocations()
+  {
+    g_allocations = 0;
+    t_count_allocations = true;
+  }
+  ~count_allocations() { t_count_allocations = false; }
+};
+}
+
+void* operator new(std::size_t n)
+{
+  if(t_count_allocations)
+    g_allocations++;
+  if(void* p = std::malloc(n ? n : 1))
+    return p;
+  throw std::bad_alloc{};
+}
+void operator delete(void* p) noexcept
+{
+  std::free(p);
+}
+void operator delete(void* p, std::size_t) noexcept
+{
+  std::free(p);
+}
+
+TEST_CASE("Edition queue: try_enqueue does not allocate, and fails when full", "[avnd][message_bus]")
+{
+  ossia::set_thread_pinned(ossia::thread_type::Ui, 0);
+  Execution::EditionCommandQueue q{64};
+  int ran = 0;
+
+  int accepted = 0, allocations = -1, accepted_again = 0, allocations_again = -1;
+  std::thread audio{[&] {
+    ossia::set_thread_pinned(ossia::thread_type::Audio, 0);
+    // The first command of a thread registers it as a producer of the queue.
+    q.try_enqueue([&ran] { ran++; });
+    {
+      count_allocations c;
+      while(accepted < 100000 && q.try_enqueue([&ran] { ran++; }))
+        accepted++;
+      allocations = g_allocations;
+    }
+  }};
+  audio.join();
+  CHECK(allocations == 0);
+  CHECK(accepted > 0);
+  CHECK(accepted < 100000);
+
+  Execution::ExecutionCommand cmd;
+  while(q.try_dequeue(cmd))
+    cmd();
+  CHECK(ran == accepted + 1);
+
+  // The blocks of the commands that ran are free again.
+  std::thread audio2{[&] {
+    ossia::set_thread_pinned(ossia::thread_type::Audio, 0);
+    count_allocations c;
+    for(int i = 0; i < 32 && q.try_enqueue([&ran] { ran++; }); i++)
+      accepted_again++;
+    allocations_again = g_allocations;
+  }};
+  audio2.join();
+  CHECK(allocations_again == 0);
+  CHECK(accepted_again == 32);
+  while(q.try_dequeue(cmd))
+    cmd();
+}
+
+TEST_CASE("Message ring: fixed room, order, wake-ups", "[avnd][message_bus]")
+{
+  struct message
+  {
+    std::vector<int> values;
+    int id{};
+  };
+  oscr::message_ring<message, 4> ring;
+
+  // The messages are made before, as an object makes its own.
+  std::vector<message> msgs;
+  for(int i = 0; i < 6; i++)
+    msgs.push_back(message{std::vector<int>(100, i), i});
+
+  int pushed = 0;
+  int wakeups = 0;
+  {
+    count_allocations c;
+    for(auto& m : msgs)
+    {
+      if(ring.push(std::move(m)))
+      {
+        pushed++;
+        if(ring.request())
+          wakeups++;
+      }
+    }
+    CHECK(g_allocations == 0);
+  }
+  CHECK(pushed == 4);
+  CHECK(ring.dropped() == 2);
+  // One wake-up for the reader until it reads.
+  CHECK(wakeups == 1);
+
+  std::vector<int> ids;
+  ring.drain([&](message&& m) {
+    CHECK(m.values.size() == 100);
+    ids.push_back(m.id);
+  });
+  CHECK(ids == std::vector<int>{0, 1, 2, 3});
+
+  // After a read, the next message wakes the reader up again.
+  CHECK(ring.push(message{{1, 2, 3}, 10}));
+  CHECK(ring.request());
+  CHECK_FALSE(ring.request());
+  // A wake-up that could not be sent: the next write asks again.
+  ring.cancel();
+  CHECK(ring.push(message{{}, 11}));
+  CHECK(ring.request());
+  ids.clear();
+  ring.drain([&](message&& m) { ids.push_back(m.id); });
+  CHECK(ids == std::vector<int>{10, 11});
+  CHECK(ring.drain([](message&&) {}) == 0);
+}
+
+TEST_CASE("Latest value: the newest text, without allocation", "[avnd][message_bus]")
+{
+  oscr::latest_value<std::string> box;
+  box.for_each_slot([](std::string& s) { s.reserve(256); });
+
+  CHECK(box.take() == nullptr);
+  const std::string a(200, 'a'), b(150, 'b'), c(180, 'c');
+  {
+    count_allocations cnt;
+    box.back().assign(a);
+    box.publish();
+    box.back().assign(b);
+    box.publish();
+    CHECK(g_allocations == 0);
+  }
+  auto* v = box.take();
+  REQUIRE(v);
+  CHECK(*v == b);
+  CHECK(box.take() == nullptr);
+  {
+    count_allocations cnt;
+    for(int i = 0; i < 100; i++)
+    {
+      box.back().assign(i % 2 ? a : c);
+      box.publish();
+    }
+    CHECK(g_allocations == 0);
+  }
+  v = box.take();
+  REQUIRE(v);
+  CHECK(*v == a);
+}
+
+namespace
+{
+using score::test::run_exec;
+
+template <typename T>
+struct exec
+{
+  Process::ProcessModel& proc;
+  Execution::DocumentPlugin& plug;
+  std::shared_ptr<Execution::ProcessComponent> comp;
+  oscr::safe_node<T>& node;
+  int64_t date{};
+
+  T& object() { return node.impl.effect; }
+
+  Process::ControlInlet& control(const char* name)
+  {
+    for(auto* i : proc.inlets())
+      if(i->name() == name)
+        if(auto* c = qobject_cast<Process::ControlInlet*>(i))
+          return *c;
+    FAIL("no control " << name);
+    throw;
+  }
+  int index_of(const char* name)
+  {
+    for(std::size_t i = 0; i < proc.inlets().size(); i++)
+      if(proc.inlets()[i]->name() == name)
+        return int(i);
+    FAIL("no inlet " << name);
+    return -1;
+  }
+
+  void gui(const char* name, const ossia::value& v)
+  {
+    control(name).setValue(v);
+    run_exec(plug);
+  }
+
+  void midi(std::vector<libremidi::message> in)
+  {
+    auto* port = node.root_inputs()[0]->template target<ossia::midi_port>();
+    REQUIRE(port);
+    for(auto& m : in)
+    {
+      libremidi::ump u = libremidi::ump_from_midi1(m);
+      port->messages.push_back(u);
+    }
+  }
+
+  //! Status bytes of the MIDI written to outlet `o` by the last tick.
+  std::vector<int> midi_out(int o = 0)
+  {
+    std::vector<int> r;
+    if(auto* port = node.root_outputs()[o]->template target<ossia::midi_port>())
+      for(auto& u : port->messages)
+        r.push_back(int((u.data[0] >> 16) & 0xFF));
+    return r;
+  }
+
+  void tick(int frames = 64)
+  {
+    const double rate = plug.context().execState->sampleRate;
+    const auto to_flicks = [&](int64_t samples) {
+      return ossia::time_value{
+          int64_t(samples * ossia::flicks_per_second<double> / rate)};
+    };
+    ossia::token_request tk;
+    tk.prev_date = to_flicks(date);
+    tk.date = to_flicks(date + frames);
+    tk.start_sample = 0;
+    tk.length_sample = frames;
+    date += frames;
+
+    ossia::set_thread_pinned(ossia::thread_type::Audio, 0);
+    node.run(tk, ossia::exec_state_facade{plug.context().execState.get()});
+    ossia::set_thread_pinned(ossia::thread_type::Ui, 0);
+
+    if(auto* port = node.root_inputs()[0]->template target<ossia::midi_port>())
+      port->messages.clear();
+  }
+
+  //! What the UI thread does on its timer.
+  void ui()
+  {
+    Execution::ExecutionCommand cmd;
+    while(plug.context().editionQueue.try_dequeue(cmd))
+      cmd();
+  }
+};
+
+template <typename T, typename F>
+void with(const QString& uuid, F&& f)
+{
+  score::test::run_in_app([&](const score::GUIApplicationContext& ctx) {
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    auto* proc = score::test::add_process(*doc, uuid, {});
+    if(!proc)
+      SKIP("not built");
+
+    auto& plug = doc->context().plugin<Execution::DocumentPlugin>();
+    plug.reload(true, score::test::base_interval(*doc));
+    run_exec(plug);
+    REQUIRE(plug.baseScenario());
+    auto& procs = plug.baseScenario()->baseInterval().processes();
+    auto it = procs.find(proc->id());
+    REQUIRE(it != procs.end());
+    REQUIRE(it->second->node);
+    auto comp = it->second;
+    exec<T> e{*proc, plug, comp, static_cast<oscr::safe_node<T>&>(*comp->node)};
+    f(e);
+    QApplication::processEvents();
+  });
+}
+
+libremidi::message note_on(int pitch)
+{
+  return libremidi::channel_events::note_on(1, pitch, 100);
+}
+libremidi::message note_off(int pitch)
+{
+  return libremidi::channel_events::note_off(1, pitch, 0);
+}
+}
+
+TEST_CASE("Chord through the binding: a learned chord reaches the Memory control", "[avnd][message_bus][execution]")
+{
+  with<Nodes::Chord::Node>(
+      QStringLiteral("F0904279-EA26-48DB-B0DF-F68FE3091DA1"), [](auto& e) {
+    e.gui("Learn", true);
+    REQUIRE(e.object().inputs.learn.value);
+
+    auto learn = [&](std::vector<int> chord, int key) {
+      std::vector<libremidi::message> on, off;
+      for(int p : chord)
+      {
+        on.push_back(note_on(p));
+        off.push_back(note_off(p));
+      }
+      e.midi(on);
+      e.tick();
+      e.midi(off);
+      e.tick();
+      e.midi({note_on(key)});
+      e.tick();
+      e.midi({note_off(key)});
+      e.tick();
+    };
+
+    learn({60, 64, 67}, 48);
+    learn({62, 65, 69}, 50);
+    // Nothing reaches the model before the UI thread runs.
+    CHECK(e.control("Memory").value() == ossia::value{std::string{}});
+    e.ui();
+    // Only the latest text is applied.
+    CHECK(e.control("Memory").value() == ossia::value{std::string{"48: 12 16 19; 50: 12 15 19"}});
+
+    learn({64, 67, 71}, 52);
+    e.ui();
+    CHECK(
+        e.control("Memory").value()
+        == ossia::value{std::string{"48: 12 16 19; 50: 12 15 19; 52: 12 15 19"}});
+  });
+}
+
+TEST_CASE("Midi life through the binding: the view reaches the layer", "[avnd][message_bus][execution]")
+{
+  with<mtk::MidiLife>(QStringLiteral("04db97fd-2ccf-4271-a5a6-d66552baf0d7"), [](auto& e) {
+    auto& model = static_cast<oscr::ProcessModel<mtk::MidiLife>&>(e.proc);
+    int views = 0;
+    int last_width = -1;
+    model.to_ui = [&](QByteArray b) {
+      mtk::life::view_message m;
+      oscr::MessageBusReader{b}(m);
+      views++;
+      last_width = m.width;
+    };
+
+    // The view fits in an execution command: it goes through the edition queue.
+    static_assert(
+        sizeof(QPointer<QObject>) + sizeof(mtk::life::view_message)
+        < Execution::ExecutionCommand::max_storage);
+    for(int i = 0; i < 200; i++)
+      e.tick(256);
+    e.ui();
+    CHECK(views > 0);
+    CHECK(last_width > 0);
+
+    const int before = views;
+    for(int i = 0; i < 40; i++)
+      e.tick(256);
+    e.ui();
+    CHECK(views > before);
+  });
+}
+
+TEST_CASE("MIDI Sync Out through the binding: Stop goes out once, in the tick after stop", "[avnd][midi_sync_out][execution]")
+{
+  with<mtk::MIDISyncOut>(QStringLiteral("aa7c1ae5-495e-436e-a079-e3f1a19861bb"), [](auto& e) {
+    e.object().inputs.clock.value = mtk::MidiClockMode::Enabled;
+    e.object().inputs.clock_startstop.value = mtk::MidiStartStopMode::Enabled;
+    int starts = 0, stops = 0;
+    auto count = [&] {
+      for(int s : e.midi_out())
+      {
+        starts += s == 0xFA;
+        stops += s == 0xFC;
+      }
+    };
+    for(int i = 0; i < 20; i++)
+    {
+      e.tick(512);
+      count();
+    }
+    CHECK(starts == 1);
+    CHECK(stops == 0);
+
+    e.comp->OSSIAProcess().stop();
+    // The executor's extra, empty tick.
+    e.tick(0);
+    count();
+    CHECK(stops == 1);
+    e.tick(0);
+    count();
+    CHECK(stops == 1);
+  });
+}
