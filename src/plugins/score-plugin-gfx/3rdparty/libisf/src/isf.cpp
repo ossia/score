@@ -421,6 +421,9 @@ static int64_t parse_input_impl(sajson::value& v, int64_t)
 
 static bool parse_input_impl(sajson::value& v, bool)
 {
+  // Many ISF files write a bool DEFAULT as 0 / 1.
+  if(is_number(v))
+    return v.get_number_value() != 0.;
   return v.get_type() == sajson::TYPE_TRUE;
 }
 

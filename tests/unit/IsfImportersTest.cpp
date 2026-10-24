@@ -1019,3 +1019,28 @@ TEST_CASE("REGRESSION: writing a long input back out emits a VALUE, not a positi
   REQUIRE(l->def < l->labels.size());
   CHECK(l->labels[l->def] == "Normal");
 }
+
+TEST_CASE("a bool input reads a numeric DEFAULT as non-zero = true")
+{
+  // ISF files in the wild (Shockwave, the VDMX library) write bool defaults as
+  // 0 and 1; the parser kept only a JSON true, so "DEFAULT": 1 came out false.
+  const auto parse = [](const std::string& def) {
+    const std::string src
+        = "/*{ \"ISFVSN\": \"2\", \"INPUTS\": [ { \"NAME\": \"on\", \"TYPE\": "
+          "\"bool\", \"DEFAULT\": "
+          + def + " } ] }*/\nvoid main() { isf_FragColor = vec4(float(on)); }\n";
+    parser p{{}, src, 450, parser::ShaderType::ISF};
+    auto d = p.data();
+    REQUIRE(d.inputs.size() == 1);
+    auto* b = ossia::get_if<isf::bool_input>(&d.inputs[0].data);
+    REQUIRE(b);
+    return b->def;
+  };
+  CHECK(parse("1") == true);
+  CHECK(parse("1.0") == true);
+  CHECK(parse("-1") == true);
+  CHECK(parse("0") == false);
+  CHECK(parse("0.0") == false);
+  CHECK(parse("true") == true);
+  CHECK(parse("false") == false);
+}
