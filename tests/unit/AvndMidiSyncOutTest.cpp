@@ -4,6 +4,7 @@
 #include <catch2/catch_test_macros.hpp>
 
 #include <algorithm>
+#include <cmath>
 #include <cstdint>
 #include <vector>
 
@@ -139,15 +140,17 @@ TEST_CASE("free clock start, stop, continue", "[midi_sync_out]")
   CHECK(c.next_deadline(p) == free_clock::never);
   CHECK(c.song_position() == 8);
 
-  // Continue from there.
+  // Continue from the next 16th note: 49 clocks went out, a receiver resumes
+  // on a 16th, and its first clock is the 54th.
   s.out.clear();
   c.command(transport_command::Continue, 3 * sec, p, s.fn());
   c.process(3 * sec, p, s.fn());
   REQUIRE(s.out.size() == 3);
   CHECK(s.out[0].bytes[0] == 0xF2);
-  CHECK(s.out[0].bytes[1] == 8);
+  CHECK(s.out[0].bytes[1] == 9);
   CHECK(s.out[1].bytes[0] == 0xFB);
   CHECK(s.out[2].bytes[0] == 0xF8);
+  CHECK(c.song_position() == 55 / 6);
 
   // Continue while running does nothing.
   s.out.clear();
@@ -551,16 +554,36 @@ TEST_CASE("timeline clock sends the clock of a located grid point at once", "[mi
     CHECK(a.stamps.front() == 0);
   }
 
-  SECTION("not between two grid points")
+  SECTION("between two 16th notes")
+  {
+    for(double factor : {1., 2., 1. / 3.})
+    {
+      INFO("clock rate x" << factor);
+      timeline_run a;
+      // 2.01 quarters at 120 BPM: the receiver's next 16th note
+      const auto position = a.clk.locate(1.005, 2.01, 120., factor);
+      const double sixteenth = std::ceil(2.01 * 4. * factor);
+      CHECK(position == int64_t(sixteenth));
+      double t = 1.005;
+      int64_t now = 0;
+      int64_t first_frame = -1;
+      while(t < 3. && first_frame < 0)
+      {
+        a.process(t, dur, frames, 120.f, factor, 0.);
+        if(!a.stamps.empty())
+          first_frame = now + a.stamps.front();
+        t += dur;
+        now += frames;
+      }
+      const double next = (sixteenth / (4. * factor) - 2.01) / 2.;
+      CHECK(first_frame == Approx(next * rate).margin(1));
+    }
+  }
+
+  SECTION("on a clock that is not a 16th note")
   {
     timeline_run a;
-    // 2.01 quarters at 120 BPM: the next clock is at 2 + 1/24 quarters
-    a.clk.locate(1.005, 2.01, 120., 1.);
-    a.process(1.005, dur, frames, 120.f, 1., 0.);
-    CHECK(a.count == 0);
-    a.process(1.005 + dur, dur, frames, 120.f, 1., 0.);
-    REQUIRE(a.count == 1);
-    const double next = (2. + 1. / 24. - 2.01) / 2.;
-    CHECK(frames + a.stamps[0] == Approx(next * rate).margin(1));
+    // 2 + 1/24 quarters: the receiver can only resume on 2.25
+    CHECK(a.clk.locate(1. + 1. / 48., 2. + 1. / 24., 120., 1.) == 9);
   }
 }

@@ -301,6 +301,8 @@ struct mounted
     auto& n = *comp->node;
     clear_outputs(n);
     ossia::set_thread_pinned(ossia::thread_type::Audio, 0);
+    // Each tick is a graph execution of its own
+    n.begin_execution();
     n.run(
         make_token(tick_index++, rate, buffer),
         ossia::exec_state_facade{plug.context().execState.get()});

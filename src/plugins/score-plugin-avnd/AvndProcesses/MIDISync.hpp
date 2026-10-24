@@ -821,18 +821,21 @@ struct MIDISyncOut
     if(jumped && transport)
       emit_transport({0xFC});
 
+    // The clock resumes on the receiver's 16th note that the Song Position
+    // names. Nudge is a passing change of tempo, not of the receiver's beat.
+    const int64_t beats = main_state.clock.locate(
+        current_time, quarters, tk.tempo,
+        midi_clock::clock_rate_factor(int(inputs.clock_rate.value)));
+
     if(clock || transport)
     {
       // A MIDI beat is a 16th note, 14 bits: past 1024 bars there is no
       // position to send.
-      const int64_t beats = int64_t(std::floor(quarters * 4. + 1e-9));
       if(!(transport && at_start) && beats >= 0 && beats < 16384)
         emit_transport({0xF2, uint8_t(beats & 0x7F), uint8_t((beats >> 7) & 0x7F)});
       if(transport)
         emit_transport({uint8_t(at_start ? 0xFA : 0xFB)});
     }
-
-    main_state.clock.locate(current_time, quarters, tk.tempo, factor);
 
     if(inputs.mtc == MidiTimeCodeMode::Enabled)
     {

@@ -124,9 +124,7 @@ struct Node
   halp_meta(description, "Generate a chord from a single note")
   halp_meta(uuid, "F0904279-EA26-48DB-B0DF-F68FE3091DA1");
   halp_flag(process_exec);
-  // The stop's extra, empty tick runs in the same buffer as the last, partial
-  // one: the output of both is kept until the graph's next execution.
-  halp_meta(local_midi_tick_batch, true)
+  // MIDI packets the output keeps for all the ticks of one buffer
   halp_meta(local_midi_tick_batch_reserve, 4096)
 
   //! The first six are saved in documents by name and keep their notes; the

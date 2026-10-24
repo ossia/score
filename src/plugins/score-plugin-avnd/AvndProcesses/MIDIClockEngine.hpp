@@ -233,8 +233,9 @@ struct free_clock
     if(m_state == state::starting && now >= m_start_at)
     {
       const int64_t t = m_start_at;
-      if(!m_start_is_continue)
-        m_clocks = 0;
+      // The receiver resumes from a Song Position, a 16th note: on the next
+      // one, so that its count of clocks and ours agree.
+      m_clocks = m_start_is_continue ? (m_clocks + 5) / 6 * 6 : 0;
       if(p.send_transport)
       {
         const int64_t pos = std::clamp<int64_t>(song_position(), 0, 16383);
@@ -325,8 +326,9 @@ private:
  * with a negative offset, are sent at the start of the tick instead, so that
  * a receiver counting clocks keeps its position.
  *
- * Located on a grid point, as at the start of the timeline, the clock of that
- * point goes out at once, with Start or Continue, as the free clock does.
+ * After a locate, the first clock is the one of the receiver's 16th note the
+ * Song Position names: at once when the timeline is located on it, as at its
+ * start, with Start or Continue as the free clock does.
  */
 struct timeline_clock
 {
@@ -337,19 +339,24 @@ struct timeline_clock
   bool clock_at_locate = false;
 
   /**
-   * Puts the clock back on the grid of the timeline at a new position, as at
-   * the start: the next clock is `quarters` when it is a grid point, else
-   * the first grid point after it. `time` is the timeline time of
-   * `quarters`, in seconds.
+   * Puts the clock back on the timeline at a new position, as at the start.
+   * A receiver resumes from a Song Position, which counts its 16th notes, on
+   * the next clock: the next clock is the first of the receiver's 16ths at
+   * or after `quarters`, and nothing is sent before it. `time` is the
+   * timeline time of `quarters`, in seconds; `rate` the clock rate factor,
+   * which sets how many of the receiver's quarters a score quarter is.
+   *
+   * Returns the Song Position of that 16th.
    */
-  void locate(double time, double quarters, double tempo, double factor) noexcept
+  int64_t locate(double time, double quarters, double tempo, double rate) noexcept
   {
-    const double clocks_per_quarter = 24.0 * factor;
-    const double grid = std::floor(quarters * clocks_per_quarter + 1e-9);
-    const double since_grid = quarters - grid / clocks_per_quarter;
-    last_clock_time = time - since_grid * 60.0 / tempo;
+    const double sixteenths_per_quarter = 4.0 * rate;
+    const double position = std::ceil(quarters * sixteenths_per_quarter - 1e-9);
+    const double ahead = position / sixteenths_per_quarter - quarters;
+    last_clock_time = time + ahead * 60.0 / tempo;
     previous_offset = 0.0;
-    clock_at_locate = since_grid * clocks_per_quarter < 1e-6;
+    clock_at_locate = true;
+    return int64_t(position);
   }
 
   //! factor: nudge times clock rate; offset in seconds.

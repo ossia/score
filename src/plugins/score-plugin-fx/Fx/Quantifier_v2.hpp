@@ -30,9 +30,7 @@ struct Node
   halp_meta(description, "Quantifies a MIDI input")
   halp_meta(uuid, "a0cb1144-05a8-4f9b-b22c-81cd964314fb")
   halp_flag(process_exec);
-  // The stop's extra, empty tick runs in the same buffer as the last, partial
-  // one: the output of both is kept until the graph's next execution.
-  halp_meta(local_midi_tick_batch, true)
+  // MIDI packets the output keeps for all the ticks of one buffer
   halp_meta(local_midi_tick_batch_reserve, 4096)
 
   struct ins

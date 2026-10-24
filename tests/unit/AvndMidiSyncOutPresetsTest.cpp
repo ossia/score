@@ -49,6 +49,7 @@ struct driver
   //! Plays `seconds` from the timeline frame `first`.
   void play_from(int64_t first, double seconds, double tempo = 120.)
   {
+    played.push_back({now, first, tempo});
     const int64_t n = int64_t(seconds * rate / frames);
     for(int64_t i = 0; i < n; i++)
     {
@@ -101,6 +102,26 @@ struct driver
   }
 
   double seconds() const { return now / rate; }
+
+  //! A stretch of timeline played: from the output frame `at`, the timeline
+  //! frame `first` on, at `tempo`.
+  struct segment
+  {
+    int64_t at{};
+    int64_t first{};
+    double tempo{};
+  };
+  std::vector<segment> played;
+
+  //! The position of the timeline, in quarters, at the output frame `at`.
+  double quarters_at(int64_t at) const
+  {
+    const segment* s = &played.front();
+    for(auto& p : played)
+      if(p.at <= at)
+        s = &p;
+    return double(s->first + (at - s->at)) / rate * s->tempo / 60.;
+  }
 
   int count(uint8_t status) const
   {
@@ -387,7 +408,8 @@ TEST_CASE("MIDI Sync Out: a jump into the middle sends Song Position and Continu
   d.play(1.0);
   const int64_t jump = d.now;
 
-  // 49152 frames at 120 BPM: 2.048 quarters, so MIDI beat 8.
+  // 49152 frames at 120 BPM: 2.048 quarters, past the 16th note 8. The
+  // receiver resumes on the next one, 9, at 2.25 quarters.
   d.play_from(49152, 0.5);
   const auto after = d.since(jump);
   const auto at_jump = statuses(after, jump);
@@ -397,9 +419,9 @@ TEST_CASE("MIDI Sync Out: a jump into the middle sends Song Position and Continu
   CHECK(at_jump[2] == 0xFB);
   for(auto& e : after)
     if(e.bytes[0] == 0xF2)
-      CHECK(e.bytes == std::vector<uint8_t>{0xF2, 8, 0});
+      CHECK(e.bytes == std::vector<uint8_t>{0xF2, 9, 0});
 
-  // The next clock is on the grid of the timeline: 2.0833 quarters.
+  // No clock before that 16th note: 2.25 quarters are 1.125 s, frame 54000.
   int64_t first_clock = -1;
   for(auto& e : after)
     if(e.bytes[0] == 0xF8)
@@ -407,8 +429,109 @@ TEST_CASE("MIDI Sync Out: a jump into the middle sends Song Position and Continu
       first_clock = e.at;
       break;
     }
-  const double next_grid_seconds = (2. + 2. / 24.) / 2.;
-  CHECK(first_clock - jump == Approx((next_grid_seconds - 49152. / rate) * rate).margin(1));
+  CHECK(first_clock - jump == Approx(54000 - 49152).margin(1));
+}
+
+namespace
+{
+//! A clock follower as the MIDI specification describes it: Start sets its
+//! position to 0, Song Position to that many 16th notes, and each clock
+//! received while running plays the position, then moves it on by a clock.
+struct receiver
+{
+  struct beat
+  {
+    int64_t at{};
+    //! The receiver's position at that clock, in its quarters.
+    double quarters{};
+  };
+
+  std::vector<beat> clocks;
+  int64_t position{};
+  bool running{};
+
+  void feed(const std::vector<event>& evs)
+  {
+    for(auto& e : evs)
+    {
+      switch(e.bytes.empty() ? 0 : e.bytes[0])
+      {
+        case 0xF2:
+          position = 6 * (e.bytes[1] | (e.bytes[2] << 7));
+          break;
+        case 0xFA:
+          position = 0;
+          running = true;
+          break;
+        case 0xFB:
+          running = true;
+          break;
+        case 0xFC:
+          running = false;
+          break;
+        case 0xF8:
+          if(running)
+            clocks.push_back({e.at, position++ / 24.});
+          break;
+      }
+    }
+  }
+};
+
+//! Every clock a receiver gets puts it where the timeline is: its quarters
+//! are `factor` times the timeline's, within a frame.
+void check_receiver_follows(const driver& d, double factor)
+{
+  receiver r;
+  r.feed(d.out);
+  REQUIRE(r.clocks.size() > 10);
+  const double frames_per_quarter = rate * 60. / 120.;
+  for(auto& c : r.clocks)
+  {
+    const double timeline = d.quarters_at(c.at);
+    INFO("clock at frame " << c.at << ", timeline " << timeline << " quarters");
+    CHECK(
+        (c.quarters / factor - timeline) * frames_per_quarter
+        == Approx(0.).margin(1.01));
+  }
+}
+}
+
+TEST_CASE("MIDI Sync Out: a receiver is where the timeline is after any jump", "[midi_sync_out]")
+{
+  // Positions in frames at 120 BPM, 24000 to a quarter: on a 16th note, on a
+  // clock between two 16ths, between two clocks.
+  const int64_t targets[] = {48000, 49000, 49152, 6000 + 4 * 1000, 123457, 6001};
+  const int rates[] = {0, 1, 2, 3, 4, 5, 6};
+  for(int rate_index : rates)
+  {
+    const double factor = mtk::midi_clock::clock_rate_factor(rate_index);
+    for(int64_t target : targets)
+    {
+      INFO("clock rate x" << factor << ", jump to frame " << target);
+      driver d;
+      d.fx.inputs.clock.value = mtk::MidiClockMode::Enabled;
+      d.fx.inputs.clock_startstop.value = mtk::MidiStartStopMode::Enabled;
+      d.fx.inputs.clock_rate.value = mtk::MidiClockRate(rate_index);
+      d.play(0.5);
+      d.play_from(target, 1.0);
+      // And a loop back to the start
+      d.play_from(0, 0.5);
+      check_receiver_follows(d, factor);
+    }
+  }
+}
+
+TEST_CASE("MIDI Sync Out: a receiver is where the timeline is after a stop and a start in the middle", "[midi_sync_out]")
+{
+  driver d;
+  d.fx.inputs.clock.value = mtk::MidiClockMode::Enabled;
+  d.fx.inputs.clock_startstop.value = mtk::MidiStartStopMode::Enabled;
+  d.play(0.5);
+  d.stop();
+  d.fx.start();
+  d.play_from(31111, 1.0);
+  check_receiver_follows(d, 1.);
 }
 
 TEST_CASE("MIDI Sync Out: the first clock goes out with Start", "[midi_sync_out]")
@@ -582,7 +705,8 @@ TEST_CASE("MIDI Sync Out: a positive clock offset delays the transport with the 
       first_clock = e.at;
       break;
     }
-  CHECK(first_clock == Approx(jump + offset + 848).margin(1));
+  // The receiver resumes on the 16th note at 2.25 quarters, frame 54000.
+  CHECK(first_clock == Approx(jump + offset + 54000 - 49152).margin(1));
 
   // Stop: nothing is left to wait for, it goes out after the last clock.
   d.stop();

@@ -1,6 +1,12 @@
-// An interval ends inside a buffer: its process is stopped, then its last,
-// partial tick runs, then one more empty tick. Notes a MIDI object starts in
-// that last tick must still get their note-off in the empty one.
+// A node can be run several times in one buffer, and its outlet must carry
+// the MIDI of all of them:
+// - an interval ends inside a buffer: its process is stopped, then its last,
+//   partial tick runs, then one more empty tick. Notes a MIDI object starts in
+//   that last tick must still get their note-off in the empty one.
+// - a looping process wraps inside a buffer: it runs up to its loop point,
+//   then from its start.
+
+#include "AllocCounter.hpp"
 
 #include <Process/ExecutionSetup.hpp>
 
@@ -22,6 +28,7 @@
 
 #include <QApplication>
 
+#include <Advanced/MidiScaler/MidiSustain.hpp>
 #include <Avnd/Factories.hpp>
 #include <Crousti/Executor.hpp>
 #include <Fx/Arpeggiator_v2.hpp>
@@ -36,16 +43,22 @@
 #include <score_test/Project.hpp>
 
 #include <map>
+#include <string>
+#include <vector>
 
 namespace
 {
 using Chord = Nodes::Chord::Node;
 const QString chord_uuid = QStringLiteral("F0904279-EA26-48DB-B0DF-F68FE3091DA1");
+using Sustain = mtk::MidiSustain;
+const QString sustain_uuid = QStringLiteral("943f891c-e56f-4e60-a270-3420657fe368");
 
 //! The notes on a MIDI output, by pitch.
 struct Notes
 {
   std::map<int, int> sounding;
+  //! Note-ons by pitch
+  std::map<int, int> started;
   int note_ons{};
 
   //! Counts the messages of `out` from index `from` on; returns how many it has.
@@ -60,6 +73,7 @@ struct Notes
       if(t == libremidi::message_type::NOTE_ON && m.bytes[2] > 0)
       {
         sounding[m.bytes[1]]++;
+        started[m.bytes[1]]++;
         note_ons++;
       }
       else if(
@@ -222,10 +236,11 @@ TEMPLATE_TEST_CASE(
 
 TEMPLATE_TEST_CASE(
     "Notes held when the engine ends an interval inside a buffer end with it",
-    "[avnd][exec][stop]", Chord, Nodes::Quantifier::v2::Node,
+    "[avnd][exec][stop]", Chord, Sustain, Nodes::Quantifier::v2::Node,
     Nodes::Arpeggiator::v2::Node)
 {
-  const QString uuid = std::is_same_v<TestType, Chord> ? chord_uuid
+  const QString uuid = std::is_same_v<TestType, Chord>     ? chord_uuid
+                       : std::is_same_v<TestType, Sustain> ? sustain_uuid
                        : std::is_same_v<TestType, Nodes::Quantifier::v2::Node>
                            ? QStringLiteral("a0cb1144-05a8-4f9b-b22c-81cd964314fb")
                            : QStringLiteral("4df48c1c-f5f2-4ab1-9f37-3b0adba139ae");
@@ -275,7 +290,7 @@ TEMPLATE_TEST_CASE(
       if(i == last)
       {
         sounding_before_last = notes.still_sounding();
-        // Started in the partial tick: the Chord plays it at once
+        // Started in the partial tick: the Chord and the Sustain play it at once
         in.messages.push_back(
             libremidi::ump_from_midi1(libremidi::channel_events::note_on(1, 64, 100)));
       }
@@ -290,8 +305,102 @@ TEMPLATE_TEST_CASE(
     REQUIRE(notes.note_ons > 0);
     CHECK(sounding_before_last > 0);
     notes.check_balanced();
-    if constexpr(std::is_same_v<TestType, Chord>)
-      CHECK(notes.sounding.contains(64));
+    if constexpr(std::is_same_v<TestType, Chord> || std::is_same_v<TestType, Sustain>)
+      CHECK(notes.started.contains(64));
+
+    plug.clear();
+    QApplication::processEvents();
+  });
+}
+
+TEMPLATE_TEST_CASE(
+    "MIDI sent before the loop point of a process inside a buffer is kept",
+    "[avnd][exec][loop]", Sustain, Chord)
+{
+  const QString uuid = std::is_same_v<TestType, Chord> ? chord_uuid : sustain_uuid;
+  score::test::run_in_app([&](const score::GUIApplicationContext& ctx) {
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    auto* proc = score::test::add_process(*doc, uuid, {});
+    REQUIRE(proc);
+
+    auto& plug = doc->context().plugin<Execution::DocumentPlugin>();
+    plug.reload(true, score::test::base_interval(*doc));
+    score::test::run_exec(plug);
+    REQUIRE(plug.baseScenario());
+    auto& base = *plug.baseScenario();
+    auto& procs = base.baseInterval().processes();
+    auto it = procs.find(proc->id());
+    REQUIRE(it != procs.end());
+    auto& node = static_cast<oscr::safe_node<TestType>&>(*it->second->node);
+    auto& in = *node.root_inputs()[0]->template target<ossia::midi_port>();
+    auto& out = *node.root_outputs()[0]->template target<ossia::midi_port>();
+
+    auto& ectx = plug.context();
+    auto& st = *ectx.execState;
+    auto& itv = *base.baseInterval().OSSIAInterval();
+    constexpr int buffer = 512;
+    constexpr int loop = 1000;
+    constexpr int buffers = 16;
+
+    // The process loops every 1000 frames: buffers 1, 3, 5... run it up to
+    // its loop point, then again from its start, after the frames where each
+    // buffer sends its note.
+    ossia::set_thread_pinned(ossia::thread_type::Audio, 0);
+    const auto to_model = [&](int64_t frames) {
+      return ossia::time_value{int64_t(std::llround(frames * st.samplesToModelRatio))};
+    };
+    const auto end = to_model(4 * buffers * buffer);
+    itv.set_min_duration(end);
+    itv.set_nominal_duration(end);
+    itv.set_max_duration(end);
+    auto& oproc = it->second->OSSIAProcess();
+    oproc.set_loops(true);
+    oproc.set_loop_duration(to_model(loop));
+    itv.start_and_tick();
+    ossia::buffer_tick tick{st, *ectx.execGraph, base.baseScenario(), {}};
+
+    Notes notes;
+    std::vector<int> note_ons;
+    int allocations = 0;
+    for(int i = 0; i < buffers; i++)
+    {
+      auto on = libremidi::ump_from_midi1(
+          libremidi::channel_events::note_on(1, 48 + i, 100));
+      auto off
+          = libremidi::ump_from_midi1(libremidi::channel_events::note_off(1, 48 + i, 0));
+      on.timestamp = 0;
+      off.timestamp = 10;
+      in.messages.push_back(on);
+      in.messages.push_back(off);
+      const int before = notes.note_ons;
+      {
+        // The outlet and the batch were reserved by the first buffers
+        alloc_counter::scope allocs;
+        tick(buffer, double(i * buffer) / st.sampleRate);
+        if(i >= 4)
+          allocations += allocs.allocations();
+      }
+      notes.take(out);
+      note_ons.push_back(notes.note_ons - before);
+      in.messages.clear();
+    }
+    const bool still_running = itv.running();
+    ossia::set_thread_pinned(ossia::thread_type::Ui, 0);
+
+    REQUIRE(still_running);
+    REQUIRE(note_ons[0] > 0);
+    CHECK(allocations == 0);
+    std::string counts;
+    for(int n : note_ons)
+      counts += std::to_string(n) + " ";
+    INFO("note-ons per buffer: " << counts);
+    for(int i = 0; i < buffers; i++)
+    {
+      INFO("buffer " << i);
+      CHECK(note_ons[i] == note_ons[0]);
+    }
+    notes.check_balanced();
 
     plug.clear();
     QApplication::processEvents();

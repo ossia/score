@@ -260,6 +260,8 @@ struct exec
     date += frames;
 
     ossia::set_thread_pinned(ossia::thread_type::Audio, 0);
+    // Each tick is a graph execution of its own
+    node.begin_execution();
     node.run(tk, ossia::exec_state_facade{plug.context().execState.get()});
     ossia::set_thread_pinned(ossia::thread_type::Ui, 0);
 

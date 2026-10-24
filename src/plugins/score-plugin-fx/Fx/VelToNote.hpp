@@ -152,9 +152,8 @@ struct Node
       "https://ossia.io/score-docs/processes/midi-utilities.html#pulse-to-note")
   halp_meta(uuid, "2c6493c3-5449-4e52-ae04-9aee3be5fb6a")
   halp_meta(process_exec, true)
-  // Aggregate already-produced slices until the graph's begin_execution boundary.
-  // Pending notes and future releases remain exclusively in engine_.
-  halp_meta(local_midi_tick_batch, true)
+  // MIDI packets the output keeps for all the ticks of one buffer. Pending
+  // notes and future releases remain exclusively in engine_.
   halp_meta(local_midi_tick_batch_reserve, detail::Engine<>::max_output_events)
   halp_meta(
       description,
