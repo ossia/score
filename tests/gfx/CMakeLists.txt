@@ -605,6 +605,7 @@ score_add_gfx_test(csf_feedback_loop GfxCsfFeedbackLoop.cpp)
 # buffers its producer freed in release().
 score_add_gfx_test(csf_rebuild_stale_geometry GfxCsfRebuildStaleGeometry.cpp)
 score_add_gfx_test(buffer_adoption_lifetime GfxBufferAdoptionLifetime.cpp)
+score_add_gfx_test(retired_address_reuse GfxRetiredAddressReuse.cpp)
 score_add_gfx_test(raw_raster_buffer_input GfxRawRasterBufferInput.cpp)
 score_add_gfx_test(raw_raster_aux_count GfxRawRasterAuxCount.cpp)
 score_add_gfx_test(depth_sampler   GfxDepthSampler.cpp)

@@ -996,12 +996,19 @@ void RenderList::release()
 //    completes a frame. A buffer is "retired" -- actually freed -- only once
 //    that sequence has moved past its stamp, since deleteLater() holds the
 //    object to the end of the frame that released it.
+//
+//  * A buffer retired through releaseBuffer() or dropAdoptedBuffer() stays an
+//    object as long as its entry: the entry owns it (`rhi`) and hands it to
+//    deleteLater() when it ages out. Freed earlier, its address could go to a
+//    new buffer the entry would then name, and every check on that buffer
+//    would read it as retiring: CustomMesh skipped its draws for five frames.
 namespace
 {
 struct RetiredBuffer
 {
   QByteArray name;
   uint64_t seq{};
+  QRhi* rhi{}; // set when the entry owns the object
 };
 struct AdoptedBuffer
 {
@@ -1017,24 +1024,42 @@ std::atomic<uint64_t> g_frameSeq{0};
 
 // Under g_retiredMutex. The name is read here, while the object is alive:
 // it is what the liveness warning prints after the object is gone.
-void recordRetirement(QRhiBuffer* buf)
+// With `owner`, the entry keeps the object until it ages out.
+void recordRetirement(QRhiBuffer* buf, QRhi* owner = nullptr)
 {
   g_retired.insert_or_assign(
-      buf, RetiredBuffer{buf->name(), g_frameSeq.load(std::memory_order_relaxed)});
+      buf,
+      RetiredBuffer{buf->name(), g_frameSeq.load(std::memory_order_relaxed), owner});
   g_anyRetired.store(true, std::memory_order_relaxed);
 }
+
+void releaseResourceOn(QRhi* rhi, QRhiResource* res);
+void freeParkedWhenDestroyed(QRhi& rhi);
 }
 
 void RenderList::noteFrameCompleted() noexcept
 {
   const auto seq = g_frameSeq.fetch_add(1, std::memory_order_relaxed) + 1;
-  // Bound the registry. An address freed more than a few frames ago may be
-  // handed back by the allocator, and a stale hit on a reused address would
-  // only cost a needless reallocation, but there is no reason to keep it.
-  std::lock_guard lck{g_retiredMutex};
-  for(auto it = g_retired.begin(); it != g_retired.end();)
-    it = (it->second.seq + 4 < seq) ? g_retired.erase(it) : std::next(it);
-  g_anyRetired.store(!g_retired.empty(), std::memory_order_relaxed);
+  // Bound the registry, and free the objects of the entries that age out:
+  // only from then on can the allocator hand their address to a new buffer.
+  std::vector<std::pair<QRhi*, QRhiBuffer*>> expired;
+  {
+    std::lock_guard lck{g_retiredMutex};
+    for(auto it = g_retired.begin(); it != g_retired.end();)
+    {
+      if(it->second.seq + 4 < seq)
+      {
+        if(it->second.rhi)
+          expired.emplace_back(it->second.rhi, const_cast<QRhiBuffer*>(it->first));
+        it = g_retired.erase(it);
+      }
+      else
+        ++it;
+    }
+    g_anyRetired.store(!g_retired.empty(), std::memory_order_relaxed);
+  }
+  for(auto [rhi, buf] : expired)
+    releaseResourceOn(rhi, buf);
 }
 
 bool RenderList::isRetiredBuffer(const QRhiBuffer* buf) noexcept
@@ -1073,8 +1098,9 @@ void RenderList::noteBufferLive(const QRhiBuffer* buf) noexcept
   if(!buf)
     return;
   std::lock_guard lck{g_retiredMutex};
-  if(!g_retired.empty())
-    g_retired.erase(buf);
+  // An entry that owns its object holds the address: nothing else lives there.
+  if(auto it = g_retired.find(buf); it != g_retired.end() && !it->second.rhi)
+    g_retired.erase(it);
 }
 
 void RenderList::adoptBuffer(QRhiBuffer* buf)
@@ -1116,11 +1142,17 @@ void RenderList::dropAdoptedBuffer(QRhi& rhi, QRhiBuffer* buf)
       return;
     free = it->second.orphaned;
     g_adopted.erase(it);
+    // The consumer's QRhi becomes the owner of the producer's buffer: they
+    // must be the same one (producer and consumers share the render list's
+    // QRhi), as the direct release path asserts.
     if(free)
-      recordRetirement(buf);
+    {
+      SCORE_ASSERT(buf->rhi() == &rhi);
+      recordRetirement(buf, &rhi);
+    }
   }
   if(free)
-    releaseResource(rhi, buf);
+    freeParkedWhenDestroyed(rhi);
 }
 
 int RenderList::adoptedBufferCount() noexcept
@@ -1166,13 +1198,16 @@ void RenderList::releaseBuffer(QRhiBuffer* buf)
       it->second.orphaned = true;
       return;
     }
-    recordRetirement(buf);
+    recordRetirement(buf, state.rhi);
   }
   // Don't call destroy() immediately — the buffer may still be referenced
   // by pending uploadStaticBuffer operations in the current frame's batch.
-  // deleteLater() defers destruction to the next beginFrame(), ensuring
-  // the GPU handle stays valid for all queued operations this frame.
-  releaseResourceOn(state.rhi, buf);
+  // The registry entry hands it to deleteLater() once it ages out, and frees
+  // it with the QRhi if that goes first.
+  if(state.rhi)
+    freeParkedWhenDestroyed(*state.rhi);
+  else
+    releaseResourceOn(nullptr, buf);
 }
 
 namespace
@@ -1201,6 +1236,26 @@ void freeParked(QRhi* rhi)
 {
   for(auto* r : takeParked(rhi))
     delete r;
+
+  // The retired buffers this QRhi's entries still own; the entries go with
+  // them, since the addresses are free again.
+  std::vector<QRhiBuffer*> owned;
+  {
+    std::lock_guard lck{g_retiredMutex};
+    for(auto it = g_retired.begin(); it != g_retired.end();)
+    {
+      if(it->second.rhi == rhi)
+      {
+        owned.push_back(const_cast<QRhiBuffer*>(it->first));
+        it = g_retired.erase(it);
+      }
+      else
+        ++it;
+    }
+    g_anyRetired.store(!g_retired.empty(), std::memory_order_relaxed);
+  }
+  for(auto* b : owned)
+    delete b;
 }
 
 #if QT_VERSION < QT_VERSION_CHECK(6, 7, 0)
