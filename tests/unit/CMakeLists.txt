@@ -782,6 +782,12 @@ target_include_directories(test_unit_avnd_midi_sustain SYSTEM PRIVATE
   "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/include"
   "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/examples")
 
+score_add_test(test_unit_avnd_midi_glide
+  SOURCES AvndMidiGlideTest.cpp)
+target_include_directories(test_unit_avnd_midi_glide SYSTEM PRIVATE
+  "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/include"
+  "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/examples")
+
 score_add_test(test_unit_avnd_midi_scaler
   SOURCES AvndMidiScalerTest.cpp)
 target_include_directories(test_unit_avnd_midi_scaler SYSTEM PRIVATE
