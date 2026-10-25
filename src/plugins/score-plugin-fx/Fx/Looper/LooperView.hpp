@@ -62,8 +62,6 @@ struct view_message
   int lanes;
   //! Takes written so far; the files of the last one are take_files().
   int take;
-  //! Changes each time Send to timeline is asked from the controls.
-  int send_serial;
   int notes;
   bool empty;
   bool full;
@@ -125,7 +123,6 @@ struct looper_view
 
   view_message state{};
   bool has_state{};
-  int last_send_serial{-1};
 
   std::function<void()> update;
   //! Set by the host when it can place clips in the timeline.
@@ -135,12 +132,8 @@ struct looper_view
 
   void receive(const view_message& m) noexcept
   {
-    const bool asked = has_state && m.send_serial != last_send_serial;
     state = m;
     has_state = true;
-    last_send_serial = m.send_serial;
-    if(asked)
-      send();
     if(update)
       update();
   }

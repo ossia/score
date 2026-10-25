@@ -1834,3 +1834,136 @@ TEST_CASE("MIDI looper: reverse, speed, passes per cycle and mutes allocate noth
   CHECK(allocated == 0);
   CHECK(h.node.loop.count > 3);
 }
+
+namespace
+{
+struct timed_note
+{
+  int64_t on, off;
+  int pitch;
+};
+
+//! Runs the harness to frame `to`, sending each note of `notes` on the frame
+//! it is at, ticks cut at the buffer size.
+void play_to(midi_harness& h, int64_t to, const std::vector<timed_note>& notes)
+{
+  while(h.now < to)
+  {
+    const int64_t n = std::min<int64_t>(h.buffer_size, to - h.now);
+    for(auto& t : notes)
+    {
+      if(t.on >= h.now && t.on < h.now + n)
+        h.note_on(t.pitch, int(t.on - h.now));
+      if(t.off >= h.now && t.off < h.now + n)
+        h.note_off(t.pitch, int(t.off - h.now));
+    }
+    h.run(n);
+  }
+}
+}
+
+TEST_CASE("MIDI looper: every note of an overdub started on a bar line is heard, the "
+          "first one too",
+          "[fx][midi][looper][grace]")
+{
+  // How the overdub starts: asked for in the middle of a bar while the loop
+  // plays; after the recording an Overdub on the empty loop made, at the end
+  // of its bars; asked for 100 ms after the bar line that ends a recording.
+  enum flow
+  {
+    from_play,
+    from_postaction,
+    late
+  };
+  for(const flow how : {from_play, from_postaction, late})
+  for(const double tempo : {120., 124.7})
+  for(const int64_t offset : {-960, -81, -1, 0, 1, 16, 960})
+  {
+    CAPTURE(int(how), tempo, offset);
+    midi_harness h{512, 48000};
+    // As the object is made in the app.
+    h.musical = true;
+    h.tempo = tempo;
+    h.node.inputs.quantif.value = 1.f;
+    h.node.inputs.grid.value = 1.f;
+    h.node.inputs.late.value = 120;
+    h.node.inputs.grace.value = 60;
+    h.node.inputs.passthrough = Passthrough::Full;
+    if(how == late)
+      h.node.inputs.postaction_bars.value = 0;
+
+    const double bar = 4. * 60. / tempo * 48000.;
+    auto bar_frame = [&](double b) { return int64_t(std::ceil(b * bar - 1e-6)); };
+    const int64_t beat = int64_t(bar / 4.);
+    const int64_t note = 9600;
+
+    // Four notes recorded from bar 1, then four more over the loop from the
+    // bar line `pass`, the first `offset` frames from it.
+    play_to(h, bar_frame(0.5), {});
+    h.node.inputs.mode = how == from_postaction ? LoopMode::Overdub : LoopMode::Record;
+    std::vector<timed_note> first;
+    for(int i = 0; i < 4; i++)
+    {
+      const int64_t on = bar_frame(1 + i) + beat;
+      first.push_back({on, on + note, 60 + i});
+    }
+    int64_t pass = bar_frame(5);
+    std::vector<timed_note> second{{pass + offset, pass + offset + note, 72}};
+    if(how == from_play)
+    {
+      play_to(h, bar_frame(5.5), first);
+      REQUIRE(h.node.transport.actualMode == LoopMode::Play);
+      h.node.inputs.mode = LoopMode::Overdub;
+      pass = bar_frame(6);
+      second[0] = {pass + offset, pass + offset + note, 72};
+      first.clear();
+    }
+    else if(how == late)
+    {
+      first.push_back(second[0]);
+      play_to(h, pass + 4800, first);
+      h.node.inputs.mode = LoopMode::Overdub;
+      first.clear();
+      second = first;
+      second.push_back({-1, pass + offset + note, 72});
+    }
+    for(int i = 1; i < 4; i++)
+    {
+      const int64_t on = pass + int64_t(i * bar) + beat;
+      second.push_back({on, on + note, 72 + i});
+    }
+    second.insert(second.end(), first.begin(), first.end());
+    play_to(h, pass + bar_frame(4.5), second);
+    REQUIRE(h.node.transport.actualMode == LoopMode::Overdub);
+    REQUIRE(h.node.loop.count == 2);
+    CHECK(h.node.loop.note_count == 8);
+    int in_second = 0;
+    for(int i = 0; i < h.node.loop.note_count; i++)
+    {
+      CHECK(h.node.loop.notes[i].length > 0);
+      in_second += h.node.loop.notes[i].pass == 1;
+    }
+    // Played before a recording ended, a note is the recording's.
+    if(how == from_play || offset >= 0)
+      CHECK(in_second == 4);
+
+    // Rounds counted from a point of the loop where nothing starts, still
+    // overdubbing, then playing.
+    const int64_t len = h.node.loop.length;
+    for(const auto mode : {LoopMode::Overdub, LoopMode::Play})
+    {
+      CAPTURE(int(mode));
+      h.node.inputs.mode = mode;
+      play_to(h, h.now + len, {});
+      while(std::abs(h.node.transport.playbackPos - len * 3 / 32) > 512)
+        h.run();
+      h.out.clear();
+      play_to(h, h.now + 3 * len, {});
+      std::map<int, int> heard;
+      for(auto& n : h.ons())
+        heard[n.pitch]++;
+      CHECK(heard == std::map<int, int>{
+                {60, 3}, {61, 3}, {62, 3}, {63, 3}, {72, 3}, {73, 3}, {74, 3}, {75, 3}});
+    }
+  }
+}

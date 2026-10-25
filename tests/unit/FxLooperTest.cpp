@@ -1200,6 +1200,46 @@ TEST_CASE("Looper: a stop just after a grid point ends the recording on that poi
   }
 }
 
+TEST_CASE("Looper: an overdub asked for just after a grid point ends a recording keeps "
+          "what was played since the point",
+          "[fx][audio][looper][musical]")
+{
+  musical_harness h{480};
+  h.node.inputs.quantif.value = 1.0f;
+  h.node.inputs.postaction_bars.value = 0;
+  h.node.inputs.passthrough = Passthrough::None;
+  h.node.inputs.late.value = 120;
+
+  h.node.inputs.mode = LoopMode::Stop;
+  h.run_bars(1);
+  h.node.inputs.mode = LoopMode::Record;
+  h.run_bars(2);
+  // A hit on the bar line, and the footswitch pressed 100 ms later.
+  h.fill_input(0, [](int64_t) { return 1.0; });
+  h.run_bars(0.05);
+  h.node.inputs.mode = LoopMode::Overdub;
+  h.run(h.mtick(h.buffer_size));
+  REQUIRE(h.node.transport.actualMode == LoopMode::Overdub);
+  REQUIRE(h.loop().size() == 2 * h.bar_samples());
+  h.reset_input();
+  h.run_bars(2);
+  h.node.inputs.mode = LoopMode::Play;
+  h.run_bars(0.5);
+  REQUIRE(h.node.layers.count == 2);
+
+  // The hit is the pass's from the bar line on, faded in as a pass starts.
+  const float* pass = h.node.layer_data(1, 0);
+  const int64_t played = int64_t(h.bar_samples() * 0.05) + h.buffer_size;
+  for(int64_t i : {int64_t(0), int64_t(64)})
+    CHECK(pass[i] == Approx(double(i) / Nodes::Looper::audio_layers::fade_frames));
+  for(int64_t i : {int64_t(128), int64_t(1000), int64_t(4799), played - 1})
+  {
+    INFO(i);
+    CHECK(pass[i] == Approx(1.0));
+  }
+  CHECK(pass[played + 10] == Approx(0.0));
+}
+
 TEST_CASE("Looper: loopers of one sync group share the loop and its phase",
           "[fx][audio][looper][sync]")
 {

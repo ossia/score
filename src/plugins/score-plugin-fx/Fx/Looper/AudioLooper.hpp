@@ -221,14 +221,6 @@ struct Node
           "it at once. Needs Keep last.")
     } capture;
 
-    struct : halp::impulse_button<"Send to timeline">
-    {
-      halp_meta(
-          description,
-          "Places the last take in the timeline, where it was recorded, as a "
-          "looping sound file.")
-    } send;
-
     // Controls added after the first presets go last: presets address the
     // inputs by their index.
     struct : halp::toggle<"Engine latency">
@@ -482,7 +474,11 @@ struct Node
       const ossia::token_request& tk, LoopMode mode, bool ended_by_postaction);
   void looper_trim_recording(int64_t frames)
   {
-    layers.length = std::max<int64_t>(0, layers.length - frames);
+    // What was recorded past the grid point stays in the buffer, after the
+    // loop's end, for an overdub that starts there.
+    const int64_t end = std::max<int64_t>(0, layers.length - frames);
+    m_carried_span += layers.length - end;
+    layers.length = end;
     if(auto* l = layers.top())
       l->written = layers.length;
   }
@@ -519,6 +515,8 @@ struct Node
         .restart = inputs.restart,
         .late_seconds = inputs.late.value / 1000.};
     transport(tk, ossia_state, settings, *this);
+    // Only a pass that starts with the take closing gets what it cut off.
+    m_carried_span = 0;
     keep_input(ossia_state.timings(tk).length);
 
     // About a quarter of a million samples of merging per tick, whatever the
@@ -561,7 +559,6 @@ struct Node
         halp::item<&ins::clear> clear;
         halp::item<&ins::erase_layer> erase_layer;
         halp::item<&ins::layer> layer;
-        halp::item<&ins::send> send;
         halp::item<&ins::takes> takes;
       } actions;
       struct
@@ -693,7 +690,6 @@ private:
   void cancel_export() noexcept;
   int m_takes_written{};
   double m_last_take_date{};
-  bool m_send_requested{};
   bool m_full{};
   int64_t m_extend_unit{};
   bool m_extended{};
@@ -739,6 +735,9 @@ private:
   //! Positions the pass has written, its later rounds included: the first
   //! ones fade it in.
   int64_t m_pass_frames{};
+  //! Frames a recording cut back to a grid point had recorded past it.
+  int64_t m_carried_span{};
+  void begin_pass_carried(int64_t len);
   //! Where position 0 of the loop was on the timeline: its date in frames and
   //! its musical position.
   Looper::transport::timeline_point m_origin{};
@@ -924,9 +923,6 @@ inline void Node::apply_buttons()
 
   if(inputs.redo.value && !transport.is_taking())
     layers.redo();
-
-  if(inputs.send.value)
-    m_send_requested = true;
 }
 
 inline int64_t Node::looper_run(int64_t start, int64_t length)
@@ -1647,6 +1643,39 @@ inline bool Node::cycle_end(int64_t& len, bool extend, float feedback)
   return true;
 }
 
+//! An overdub starts where the playhead is. A recording that just closed on
+//! a grid point it was cut back to, the playhead going on from that point,
+//! hands it what was recorded since: the pass starts on the grid point with
+//! it, faded in as a pass starts.
+inline void Node::begin_pass_carried(int64_t len)
+{
+  const int64_t span = m_carried_span;
+  m_carried_span = 0;
+  m_pass_frames = 0;
+  const int64_t k = transport.playbackPos % len;
+  const bool carried = span > 0 && span < len && k == span && layers.count == 1
+                       && m_speed == 1. && !m_reverse
+                       && len + span <= layers.capacity;
+  layers.begin_overdub(carried ? 0 : k);
+  auto* top = layers.top();
+  if(!carried || !top || layers.count != 2)
+    return;
+  const auto& base = layers.layers[0];
+  const int fade = Looper::audio_layers::fade_frames;
+  for(int64_t i = 0; i < span; i++)
+  {
+    const float ramp = i < fade ? float(i) / fade : 1.f;
+    for(int c = 0; c < layers.channels; c++)
+    {
+      const float v = layers.data(base.slot, c)[len + i] * ramp;
+      layers.data(top->slot, c)[i] = v;
+      layers.note_peak(top->slot, i, v);
+    }
+    layers.cover(*top, i);
+  }
+  m_pass_frames = span;
+}
+
 inline void Node::overdub(int64_t first_pos, int64_t samples, bool echo)
 {
   auto& p1 = inputs.audio;
@@ -1670,7 +1699,7 @@ inline void Node::overdub(int64_t first_pos, int64_t samples, bool echo)
   if(!transport.is_taking())
   {
     layers.reserved_overwritten = false;
-    layers.begin_overdub(transport.playbackPos % len);
+    begin_pass_carried(len);
     // No buffer was left but one a take being written still reads.
     if(layers.reserved_overwritten)
       cancel_export();
@@ -1679,7 +1708,6 @@ inline void Node::overdub(int64_t first_pos, int64_t samples, bool echo)
     m_extended = false;
     m_cycle_pass = false;
     m_cycle_pending = false;
-    m_pass_frames = 0;
     m_acc_n = 0;
     for(int c = 0; c < layers.channels; c++)
     {
@@ -1883,13 +1911,6 @@ inline void Node::send_view(int64_t frames)
 {
   if(!send_message)
     return;
-
-  if(m_send_requested && m_view.take > 0)
-  {
-    m_send_requested = false;
-    m_view.send_serial++;
-    m_view_countdown = 0;
-  }
 
   m_view_countdown -= frames;
   if(m_view_countdown > 0)

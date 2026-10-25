@@ -71,7 +71,7 @@ TEST_CASE("Looper presets: every one loads, and none starts the looper",
     INFO(p.name.toStdString());
     CHECK(midi_presets::apply(n.inputs, p).empty());
     CHECK(n.inputs.mode.value == LoopMode::Stop);
-    CHECK(!n.inputs.send.value);
+    CHECK(!n.inputs.capture.value);
   }
 }
 

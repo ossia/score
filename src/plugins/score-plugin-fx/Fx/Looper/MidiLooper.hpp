@@ -209,14 +209,6 @@ struct Node
           "at once.")
     } capture;
 
-    struct : halp::impulse_button<"Send to timeline">
-    {
-      halp_meta(
-          description,
-          "Places the last take in the timeline, where it was recorded, as a "
-          "MIDI clip.")
-    } send;
-
     // Controls added after the first presets go last: presets address the
     // inputs by their index.
     struct : Looper::enum_combobox<"Takes", Looper::TakeFiles, Looper::TakeFiles::Mix>
@@ -368,16 +360,44 @@ struct Node
   void looper_trim_recording(int64_t frames)
   {
     const int64_t end = std::max<int64_t>(0, loop.length - frames);
-    // What was played after the grid point belongs to the next pass.
+    // What was played after the grid point belongs to the next pass: it is
+    // kept aside, from the grid point on, for an overdub that starts there.
+    const int64_t cut = loop.length - end;
+    for(int i = 0; i < m_carried_note_count; i++)
+      m_carried_notes[i].start += cut;
+    for(int i = 0; i < m_carried_control_count; i++)
+      m_carried_controls[i].pos += cut;
+    m_carried_span += cut;
+    auto carry_note = [this, end](const Looper::midi_note& n) {
+      if(n.start < end)
+        return false;
+      if(m_carried_note_count < int(m_carried_notes.size()))
+      {
+        auto& c = m_carried_notes[m_carried_note_count++];
+        c = n;
+        c.start -= end;
+      }
+      return true;
+    };
+    auto carry_control = [this, end](const Looper::midi_control& c) {
+      if(c.pos < end)
+        return false;
+      if(m_carried_control_count < int(m_carried_controls.size()))
+      {
+        auto& k = m_carried_controls[m_carried_control_count++];
+        k = c;
+        k.pos -= end;
+      }
+      return true;
+    };
     loop.note_count = int(
         std::remove_if(
-            loop.notes.begin(), loop.notes.begin() + loop.note_count,
-            [end](const Looper::midi_note& n) { return n.start >= end; })
+            loop.notes.begin(), loop.notes.begin() + loop.note_count, carry_note)
         - loop.notes.begin());
     loop.control_count = int(
         std::remove_if(
             loop.controls.begin(), loop.controls.begin() + loop.control_count,
-            [end](const Looper::midi_control& c) { return c.pos >= end; })
+            carry_control)
         - loop.controls.begin());
     loop.length = end;
     loop.pass_written = end;
@@ -440,6 +460,10 @@ struct Node
         .restart = inputs.restart,
         .late_seconds = inputs.late.value / 1000.};
     transport(tk, ossia_state, settings, *this);
+    // Only a pass that starts with the take closing gets what it cut off.
+    m_carried_note_count = 0;
+    m_carried_control_count = 0;
+    m_carried_span = 0;
 
     // Input past the last span, e.g. on a sub-sample tick.
     handle_input(m_tick_frames, m_tick_frames + 1, -1, false);
@@ -474,7 +498,6 @@ struct Node
         halp::item<&ins::clear> clear;
         halp::item<&ins::erase_layer> erase_layer;
         halp::item<&ins::layer> layer;
-        halp::item<&ins::send> send;
         halp::item<&ins::takes> takes;
       } actions;
       struct
@@ -600,6 +623,14 @@ private:
   std::array<early_note, 16> m_early{};
   int m_early_count{};
 
+  // What a recording cut back to a grid point had recorded past it, from the
+  // grid point on, and how many frames were cut.
+  std::array<Looper::midi_note, 128> m_carried_notes{};
+  std::array<Looper::midi_control, 1024> m_carried_controls{};
+  int m_carried_note_count{};
+  int m_carried_control_count{};
+  int64_t m_carried_span{};
+
   double m_rate{48000.};
   double m_tempo{120.};
   ossia::time_signature m_signature{4, 4};
@@ -622,7 +653,6 @@ private:
   double m_job_date{};
   int m_take_slot{};
   int m_takes_written{};
-  bool m_send_requested{};
   int64_t m_view_countdown{};
   Looper::view_message m_view{};
 
@@ -691,6 +721,7 @@ private:
   int64_t m_extend_unit{};
   bool m_extended{};
   void begin_pass_grace(int64_t pos);
+  void begin_pass_carried(int64_t k);
 
   struct placed_note
   {
@@ -891,9 +922,6 @@ inline void Node::apply_buttons()
     flush_loop(0);
     loop.redo();
   }
-
-  if(inputs.send.value)
-    m_send_requested = true;
 }
 
 //! The last bars played become the loop, ending on the last grid point when
@@ -1205,6 +1233,37 @@ inline void Node::begin_pass_grace(int64_t pos)
   m_early_count = 0;
 }
 
+//! An overdub starts at position k. A recording that just closed on a grid
+//! point it was cut back to hands it what was played since that point: when
+//! the playhead went on from the grid point, the pass starts there and what
+//! was played is where it was played; else it is played at the start of the
+//! pass, as the grace window does.
+inline void Node::begin_pass_carried(int64_t k)
+{
+  const int64_t len = loop.length;
+  const bool from_point
+      = m_carried_span > 0 && m_carried_span < len && k == m_carried_span;
+  loop.begin_overdub(from_point ? 0 : k);
+  begin_pass_grace(from_point ? 0 : k);
+  for(int i = 0; i < m_carried_note_count; i++)
+  {
+    const auto& c = m_carried_notes[i];
+    const int64_t pos = from_point ? c.start % len : k;
+    if(auto* n = loop.add_note(pos, c.channel, c.pitch, c.velocity); n && c.length >= 0)
+      n->length = std::max<int64_t>(1, c.length);
+  }
+  for(int i = 0; i < m_carried_control_count; i++)
+  {
+    const auto& c = m_carried_controls[i];
+    loop.add_control(from_point ? c.pos % len : k, c.status, c.data1, c.data2);
+  }
+  if(from_point)
+    loop.advance_pass(double(m_carried_span));
+  m_carried_note_count = 0;
+  m_carried_control_count = 0;
+  m_carried_span = 0;
+}
+
 inline int64_t Node::looper_run(int64_t start, int64_t length)
 {
   // The playhead jumped, e.g. a mode change read the loop from its start
@@ -1264,8 +1323,7 @@ inline int64_t Node::looper_run(int64_t start, int64_t length)
       if(!transport.is_taking())
       {
         const int64_t k = int64_t(m_phase) % loop.length;
-        loop.begin_overdub(k);
-        begin_pass_grace(k);
+        begin_pass_carried(k);
         m_cycle_pending = false;
         m_last_ctl_count = 0;
         // An extending pass grows the loop by the loop it started over.
@@ -1850,13 +1908,6 @@ inline void Node::send_view(int64_t frames)
 {
   if(!send_message)
     return;
-
-  if(m_send_requested && m_view.take > 0)
-  {
-    m_send_requested = false;
-    m_view.send_serial++;
-    m_view_countdown = 0;
-  }
 
   m_view_countdown -= frames;
   if(m_view_countdown > 0)

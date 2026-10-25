@@ -28,6 +28,8 @@
 #include <ossia/detail/thread.hpp>
 
 #include <QApplication>
+#include <QFileInfo>
+#include <QThread>
 
 #include <Avnd/Factories.hpp>
 #include <Crousti/Executor.hpp>
@@ -771,5 +773,64 @@ TEMPLATE_TEST_CASE(
     const auto counts = on_audio_thread([&] { e.plug.runAllCommands(); });
     CHECK(counts.allocations == 0);
     CHECK(counts.frees == 0);
+  });
+}
+
+TEMPLATE_TEST_CASE(
+    "Loopers through the binding: the view drags the last take",
+    "[avnd][message_bus][execution][looper][takes]", Nodes::AudioLooper::Node,
+    Nodes::MidiLooper::Node)
+{
+  const QString uuid = std::is_same_v<TestType, Nodes::AudioLooper::Node>
+                           ? QStringLiteral("a0ad4227-ac3d-448b-a19b-19581ed4e2c6")
+                           : QStringLiteral("0c0b7d3e-5a52-4b8f-9d1f-6e3a2b8c4f71");
+  with<TestType>(uuid, [](auto& e) {
+    auto& model = static_cast<oscr::ProcessModel<TestType>&>(e.proc);
+    Nodes::Looper::looper_view view;
+    model.to_ui = [&](QByteArray b) {
+      auto m = std::make_unique<Nodes::Looper::view_message>();
+      oscr::MessageBusReader{b}(*m);
+      view.receive(*m);
+    };
+    e.gui("Quantif", ossia::value{0.f});
+    e.gui("Takes", ossia::value{std::string{"Both"}});
+
+    // Plays until the view shows `take` takes.
+    auto until_take = [&](int take) {
+      for(int i = 0; i < 2000 && view.state.take < take; i++)
+      {
+        e.tick(256);
+        e.ui();
+        QThread::msleep(1);
+        // The workers' results come back through the UI thread's event loop.
+        QApplication::processEvents();
+      }
+      REQUIRE(view.state.take == take);
+    };
+    auto dragged = [&] {
+      return view.drag_payload(view.width() / 2., view.height() - 10.).files;
+    };
+    auto pass = [&](const char* mode, int take) {
+      e.gui("Loop", ossia::value{std::string{mode}});
+      for(int i = 0; i < 100; i++)
+        e.tick(256);
+      e.gui("Loop", ossia::value{std::string{"Play"}});
+      until_take(take);
+    };
+
+    pass("Record", 1);
+    const auto first = dragged();
+    pass("Overdub", 2);
+    const auto second = dragged();
+
+    // The mix, then a file for each pass.
+    REQUIRE(first.size() == 2);
+    REQUIRE(second.size() == 3);
+    for(const auto& f : second)
+    {
+      INFO(f);
+      CHECK(QFileInfo::exists(QString::fromStdString(f)));
+      CHECK(std::find(first.begin(), first.end(), f) == first.end());
+    }
   });
 }

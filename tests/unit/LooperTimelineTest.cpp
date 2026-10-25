@@ -362,15 +362,6 @@ struct midi_looper_run
     node.inputs.mode = MidiLooper::LoopMode::Play;
     run_frames(48000);
   }
-
-  void send()
-  {
-    node.inputs.send.value.emplace();
-    run();
-    node.inputs.send.value.reset();
-    for(int i = 0; i < 2; i++)
-      run();
-  }
 };
 
 std::set<int> pitches_in(const QString& file)
@@ -469,8 +460,9 @@ TEST_CASE("The MIDI looper's takes in the timeline: each file holds its pass, ea
           CHECK(!QFileInfo::exists(mix(3)));
         }
 
-        // The last take goes to the timeline: one box, a clip per file.
-        h.send();
+        // The last take goes to the timeline with the view's Send: one box, a
+        // clip per file.
+        h.view.send();
         QApplication::processEvents();
         const auto clips = midi_clips(*scenario);
         const std::size_t expected = (files != TakeFiles::Layers ? 1 : 0)
