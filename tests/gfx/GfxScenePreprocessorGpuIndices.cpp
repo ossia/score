@@ -206,8 +206,13 @@ TEST_CASE(
   const auto fmt = GENERATE(ossia::index_format::uint16, ossia::index_format::uint32);
   // Widened: the compute pass Metal widens uint16 indices with, forced here.
   const bool widened = GENERATE(false, true);
+  // Not a SKIP: one skipped generator value reports the whole case skipped,
+  // which hid every other combination's result.
   if(widened && fmt != ossia::index_format::uint16)
-    SKIP("only uint16 indices are widened");
+  {
+    SUCCEED("only uint16 indices are widened");
+    return;
+  }
   CAPTURE(backend_name(api));
   CAPTURE(fmt == ossia::index_format::uint16 ? "uint16" : "uint32");
   CAPTURE(widened);
