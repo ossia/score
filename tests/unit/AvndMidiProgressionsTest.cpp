@@ -415,8 +415,8 @@ TEST_CASE("Malformed progressions give the offending token", "[progressions]")
   const auto n = mtk::format_parse_error(e, text, buf);
   CHECK(std::string_view(buf.data(), n) == "Unknown chord type: IVxx (at 2)");
   // Truncated, never overflowing
-  std::array<char, 5> small{};
-  CHECK(mtk::format_parse_error(e, text, small) == 5);
+  std::array<char, 5> short_buffer{};
+  CHECK(mtk::format_parse_error(e, text, short_buffer) == 5);
 }
 
 TEST_CASE("Suffix lookup: mingus first, then Theory's names", "[progressions]")
