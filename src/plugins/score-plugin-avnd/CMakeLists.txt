@@ -384,6 +384,10 @@ endif()
 
 setup_score_plugin(score_plugin_avnd)
 
+# Each object is a heavy template instantiation: one unity file for all of
+# them needs more memory than the CI's arm64 runners have.
+set_target_properties(score_plugin_avnd PROPERTIES UNITY_BUILD_BATCH_SIZE 48)
+
 score_register_license(Avendish URL "https://github.com/celtera/avendish" FILES "${AVND_FOLDER}/LICENSE")
 score_register_license(csv2 URL "https://github.com/p-ranav/csv2" NOTICES "${3RDPARTY_FOLDER}/csv2/include/csv2/csv2.hpp")
 score_register_license(Alphanum NOTICES "${CMAKE_CURRENT_SOURCE_DIR}/AvndProcesses/Alphanum.hpp")
