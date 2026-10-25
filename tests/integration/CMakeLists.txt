@@ -1649,6 +1649,18 @@ if(TARGET score AND TARGET score_plugin_gfx AND NOT EMSCRIPTEN)
     TIMEOUT 900 RUN_SERIAL TRUE LABELS "gui")
 endif()
 
+# An Academy Texture Loader opens a "<PROJECT>:" path.
+if(TARGET score AND TARGET score_addon_academy AND NOT EMSCRIPTEN)
+  score_add_test(test_integration_academy_project_path
+    SOURCES AcademyProjectPathTest.cpp
+    GUI
+    LIBS ${QT_PREFIX}::Gui)
+  target_compile_definitions(test_integration_academy_project_path PRIVATE
+    "SCORE_APP_BINARY=\"$<TARGET_FILE:score>\"")
+  set_tests_properties(test_integration_academy_project_path PROPERTIES
+    TIMEOUT 300 RUN_SERIAL TRUE LABELS "gui")
+endif()
+
 # A GPU Javascript script draws in frames rendered by a script's renderFrames().
 if(TARGET score AND TARGET score_plugin_js AND TARGET score_plugin_gfx AND NOT EMSCRIPTEN)
   score_add_test(test_integration_js_gpu_stepped_render
