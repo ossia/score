@@ -1,5 +1,6 @@
 #include "HostServices.hpp"
 
+#include <Process/Commands/Properties.hpp>
 #include <Process/Drop/ProcessDropHandler.hpp>
 #include <Process/Process.hpp>
 
@@ -131,8 +132,18 @@ void sendToTimeline(
   score::Dispatcher_T disp{m};
   for(const auto& drop : drops)
   {
-    if(auto p = m.createProcessInNewSlot(box, drop.creation); p && drop.setup)
+    auto p = m.createProcessInNewSlot(box, drop.creation);
+    if(!p)
+      continue;
+    if(drop.setup)
       drop.setup(*p, disp);
+    // A take is a loop: its clip plays it round for as long as its box is
+    // made longer. A sound file loops by itself; a MIDI clip is set to.
+    if(!p->loops())
+    {
+      m.submit(new Process::SetLoop{*p, true});
+      m.submit(new Process::SetLoopDuration{*p, drop.duration.value_or(duration)});
+    }
   }
   m.submit(new Scenario::Command::ChangeElementName{box, QFileInfo{file}.completeBaseName()});
   m.showRack(box);

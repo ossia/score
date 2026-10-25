@@ -264,9 +264,14 @@ void ProcessDropHandlerList::initCaches() const
 
     for(auto& handler : *this)
     {
+      // Extensions are matched without case: a handler that lists "mid" and
+      // "MID" is there once for "mid", else a dropped file becomes two
+      // processes.
       for(const auto& ext : handler.fileExtensions())
       {
-        m_perFileExtension[ext.toLower().toStdString()].push_back(&handler);
+        auto& handlers = m_perFileExtension[ext.toLower().toStdString()];
+        if(!ossia::contains(handlers, &handler))
+          handlers.push_back(&handler);
       }
 
       for(const auto& ext : handler.mimeTypes())
