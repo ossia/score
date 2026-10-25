@@ -19,6 +19,7 @@
 #include <Threedim/BufferToGeometry2.hpp>
 #include <Threedim/GeometryInfo.hpp>
 #include <Threedim/GeometryPacker.hpp>
+#include <Threedim/GltfLiveLink.hpp>
 #include <Threedim/GeometryToBuffer.hpp>
 #include <Threedim/ModelDisplay/Executor.hpp>
 #include <Threedim/ModelDisplay/Process.hpp>
@@ -385,6 +386,7 @@ std::vector<score::InterfaceBase*> score_plugin_threedim::factories(
   oscr::instantiate_fx<Threedim::StrucSynth>(fx, ctx, key);
   oscr::instantiate_fx<Threedim::GeometryLoader>(fx, ctx, key);
   oscr::instantiate_fx<Threedim::AssetLoader>(fx, ctx, key);
+  oscr::instantiate_fx<Threedim::GltfLiveLink>(fx, ctx, key);
   oscr::instantiate_fx<Threedim::BufferInfo>(fx, ctx, key);
   oscr::instantiate_fx<Threedim::TextureInfo>(fx, ctx, key);
   oscr::instantiate_fx<Threedim::ImageLoader>(fx, ctx, key);

@@ -1838,6 +1838,24 @@ score_add_test(test_unit_threedim_loaders
     "${SCORE_ROOT_SOURCE_DIR}/3rdparty/vcglib"
     "${SCORE_ROOT_SOURCE_DIR}/3rdparty/eigen")
 
+  # glTF Live Link: wire protocol, streamed-transform overrides and their seq
+  # ordering, and a .glb sent over loopback TCP coming out parsed. Same wiring
+  # as the loaders target above, plus the node and its server.
+  score_plugin_hidden_sources(_livelink_hidden
+      "${_threedim_src}/GltfLiveLink.cpp"
+      "${_threedim_src}/LiveLink/Server.cpp"
+      "${_threedim_src}/LiveLink/NativeScene.cpp")
+  score_add_test(test_unit_threedim_gltf_live_link
+    SOURCES
+      GltfLiveLinkTest.cpp
+      ${_threedim_hidden}
+      ${_livelink_hidden}
+    PLUGINS score_plugin_threedim score_plugin_gfx score_plugin_avnd
+    LIBS ${_threedim_test_libs} "${QT_PREFIX}::Gui")
+  target_include_directories(test_unit_threedim_gltf_live_link SYSTEM PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/3rdparty/vcglib"
+    "${SCORE_ROOT_SOURCE_DIR}/3rdparty/eigen")
+
   # The ufbx FBX path yields position / normal / UV streams with the
   # expected counts, plus a fork-isolated truncation matrix. Same wiring as
   # the loaders target above.

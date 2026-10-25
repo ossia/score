@@ -122,6 +122,14 @@ add_library(
   Threedim/RecentParseCache.hpp
   Threedim/AssetLoader.hpp
   Threedim/AssetLoader.cpp
+  Threedim/GltfLiveLink.hpp
+  Threedim/GltfLiveLink.cpp
+  Threedim/LiveLink/Protocol.hpp
+  Threedim/LiveLink/Server.hpp
+  Threedim/LiveLink/Server.cpp
+  Threedim/LiveLink/Components.hpp
+  Threedim/LiveLink/NativeScene.hpp
+  Threedim/LiveLink/NativeScene.cpp
   Threedim/FbxParser.hpp
   Threedim/FbxParser.cpp
   Threedim/GltfParser.hpp
