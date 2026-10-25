@@ -302,6 +302,19 @@ void closeWhilePlaying(const score::GUIApplicationContext& ctx, QString uuid, in
   // 8192 frames: sync() in set_tick() waits long enough to see the stopped
   // tick replace the playing one.
   auto& set = ctx.settings<Audio::Settings::Model>();
+  // Settings are saved in the tests' shared profile: put them back after.
+  struct restore_audio_settings
+  {
+    Audio::Settings::Model& set;
+    int rate = set.getRate();
+    int buffer = set.getBufferSize();
+    ~restore_audio_settings()
+    {
+      set.setRate(rate);
+      set.setBufferSize(buffer);
+      set.changed();
+    }
+  } restore{set};
   set.setRate(44100);
   set.setBufferSize(8192);
   set.changed();

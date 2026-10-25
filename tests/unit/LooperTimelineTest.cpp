@@ -639,7 +639,9 @@ TEST_CASE("A MIDI take recorded in the engine has the loop's quarters at the sco
         libremidi::reader r;
         std::vector<uint8_t> raw(bytes.begin(), bytes.end());
         r.parse(raw);
-        CHECK(r.get_end_time() / r.ticksPerBeat == Approx(16.).margin(0.2));
+        // A stop by hand takes effect at a buffer's end: as far off as the loop.
+        const double buffer_quarters = double(buffer) / st.sampleRate * tempo / 60.;
+        CHECK(r.get_end_time() / r.ticksPerBeat == Approx(16.).margin(0.05 + buffer_quarters));
 
         plug.clear();
         QApplication::processEvents();
