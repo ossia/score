@@ -1,5 +1,15 @@
 #include <Midi/MidiSyncInput.hpp>
 
+#include <ossia/dataflow/execution_state.hpp>
+#include <ossia/dataflow/graph/graph_utils.hpp>
+#include <ossia/network/context.hpp>
+#include <ossia/protocols/midi/midi_device.hpp>
+#include <ossia/protocols/midi/midi_protocol.hpp>
+
+#include <avnd/binding/ossia/data_node.hpp>
+#include <libremidi/configurations.hpp>
+#include <libremidi/defaults.hpp>
+
 #include <catch2/catch_approx.hpp>
 #include <catch2/catch_test_macros.hpp>
 
@@ -530,4 +540,114 @@ TEST_CASE("Clock out follows Song Position through divide and shift", "[midi_syn
     const std::vector<event> expected{{0, {0xF2, 0, 0}}, {1, {0xFB}}, {12, {0xF8}}, {13, {0xF8}}};
     CHECK(d.out == expected);
   }
+}
+
+// From the wire to the object: a full frame read by a MIDI input device, carried
+// by the dataflow graph as SysEx7 packets, and handed to MIDI Sync In through
+// the avendish binding.
+
+namespace
+{
+struct sync_node_rig
+{
+  ossia::execution_state state;
+  oscr::safe_node<Sync> node{64, rate, 1};
+  ossia::inlet* midi_in{};
+
+  sync_node_rig()
+  {
+    state.sampleRate = int(rate);
+    state.bufferSize = 64;
+    node.finish_init();
+    node.audio_configuration_changed({&state});
+    node.prepare(state);
+    node.impl.effect.inputs.sync_mode.value = Sync::SyncMode::MTC_Only;
+    for(auto* in : node.root_inputs())
+      if(in->target<ossia::midi_port>())
+        midi_in = in;
+    REQUIRE(midi_in);
+  }
+
+  auto& packets() { return midi_in->target<ossia::midi_port>()->messages; }
+
+  void run()
+  {
+    ossia::token_request token;
+    token.prev_date = ossia::time_value{0};
+    token.date = ossia::time_value{64};
+    token.start_sample = 0;
+    token.length_sample = 64;
+    node.requested_tokens.clear();
+    node.request(token);
+    ossia::graph_util::exec_node(node, state);
+    packets().clear();
+  }
+};
+
+std::vector<libremidi::ump> packets_of(std::initializer_list<uint8_t> bytes)
+{
+  const std::vector<uint8_t> v{bytes};
+  libremidi::midi1_to_midi2 conv;
+  std::vector<libremidi::ump> packets;
+  conv.convert_packets(
+      v.data(), v.size(), 0, [&](const libremidi::ump& p) { packets.push_back(p); });
+  return packets;
+}
+}
+
+TEST_CASE("MIDI Sync In node: a full frame from a MIDI input device locates the timecode", "[midi_sync_in]")
+{
+  sync_node_rig rig;
+
+  auto ctx = std::make_shared<ossia::net::network_context>();
+  libremidi::input_configuration conf;
+  ossia::net::midi::midi_device dev{
+      "midi", std::make_unique<ossia::net::midi::midi_protocol>(
+                  ctx, ossia::net::midi::midi_protocol_configuration{"midi"}, conf,
+                  libremidi::midi_in_configuration_for(libremidi::API::KEYBOARD))};
+  REQUIRE(!conf.ignore_sysex);
+
+  rig.state.register_device(&dev);
+  rig.midi_in->address = &dev.get_root_node();
+  rig.state.register_port(*rig.midi_in);
+  rig.state.begin_tick();
+
+  // 01:02:03:04 at 25 fps
+  libremidi::message frame;
+  frame.bytes = {0xF0, 0x7F, 0x7F, 0x01, 0x01, uint8_t(1 | (0b01 << 5)), 2, 3, 4, 0xF7};
+  conf.on_message(std::move(frame));
+  rig.state.begin_tick();
+  rig.state.copy_from_global_node(dev.get_root_node(), *rig.midi_in);
+  REQUIRE(rig.packets().size() == 2);
+  rig.run();
+
+  auto& out = rig.node.impl.effect.outputs;
+  CHECK(out.valid.value);
+  CHECK(out.mtc_active.value);
+  CHECK(out.frame_rate.value == Approx(25.));
+  CHECK(out.timecode.value == Approx(3723. + 4. / 25.));
+
+  rig.state.unregister_port(*rig.midi_in);
+  rig.state.unregister_device(&dev);
+  rig.state.begin_tick();
+}
+
+TEST_CASE("MIDI Sync In node: a full frame split over two buffers locates once complete", "[midi_sync_in]")
+{
+  sync_node_rig rig;
+  // 02:00:00:15 at 30 fps, from another process's MIDI outlet
+  const auto packets
+      = packets_of({0xF0, 0x7F, 0x7F, 0x01, 0x01, uint8_t(2 | (0b11 << 5)), 0, 0, 15, 0xF7});
+  REQUIRE(packets.size() == 2);
+
+  rig.packets().push_back(packets[0]);
+  rig.run();
+  CHECK(!rig.node.impl.effect.outputs.valid.value);
+
+  rig.packets().push_back(packets[1]);
+  rig.run();
+  auto& out = rig.node.impl.effect.outputs;
+  CHECK(out.valid.value);
+  CHECK(out.frame_rate.value == Approx(30.));
+  CHECK(out.timecode.value == Approx(7200. + 0.5));
 }

@@ -917,20 +917,11 @@ struct midi_device_protocol final
     // it came, whatever the description makes of it afterwards.
     if(m_streaming.load(std::memory_order_relaxed))
     {
-      m_toUmp.convert(
+      // A message longer than one packet -- system-exclusive -- arrives as
+      // the packets it is made of, all of them.
+      m_toUmp.convert_packets(
           m.bytes.data(), m.bytes.size(), m.timestamp,
-          [this](const uint32_t* ump, int count, auto ts) {
-        // A message longer than one packet -- system-exclusive -- arrives as
-        // the packets it is made of, all of them.
-        for(int at = 0; at < count; at += 4)
-        {
-          libremidi::ump u;
-          std::copy_n(ump + at, std::min(count - at, 4), u.data);
-          u.timestamp = ts;
-          receive_ump(u);
-        }
-        return stdx::error{};
-      });
+          [this](const libremidi::ump& u) { receive_ump(u); });
     }
 
     if(m.size() < 2)

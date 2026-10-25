@@ -1206,6 +1206,11 @@ score_add_test(test_unit_midi_missing_api
 score_add_test(test_unit_midi_malformed_message
   SOURCES MidiMalformedMessageTest.cpp)
 
+# System-exclusive from a MIDI input: asked of the backend, carried as every
+# SysEx7 packet it is made of, kept away from ports bound to a channel.
+score_add_test(test_unit_midi_sysex_input
+  SOURCES MidiSysexInputTest.cpp)
+
 # The tracking protocols addon as devices: every protocol can be added to a
 # document and coexists with the others (what the "Add device" dialog checks).
 if(TARGET score_addon_trackingprotocols)
