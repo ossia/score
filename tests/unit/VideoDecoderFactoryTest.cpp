@@ -42,6 +42,7 @@
 #include <catch2/catch_test_macros.hpp>
 
 #include <cstring>
+#include <string_view>
 #include <typeinfo>
 
 using namespace score::gfx;
@@ -73,10 +74,23 @@ std::unique_ptr<GPUVideoDecoder> makeFourcc(const char (&tag)[5], std::string f 
   return createGPUVideoDecoder(d, f);
 }
 
+// By type name rather than dynamic_cast: with the plug-in built as a shared
+// library its typeinfo is hidden, so dynamic_cast and typeid == from here
+// fail on an object of exactly T. A hidden type's name starts with '*'.
+std::string_view typeName(const std::type_info& t)
+{
+  std::string_view n = t.name();
+  if(n.starts_with('*'))
+    n.remove_prefix(1);
+  return n;
+}
+
 template <typename T>
 T* as(const std::unique_ptr<GPUVideoDecoder>& d)
 {
-  return dynamic_cast<T*>(d.get());
+  if(!d || typeName(typeid(*d)) != typeName(typeid(T)))
+    return nullptr;
+  return static_cast<T*>(d.get());
 }
 }
 
