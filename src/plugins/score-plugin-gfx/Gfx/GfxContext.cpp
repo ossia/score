@@ -1244,6 +1244,11 @@ void GfxContext::renderFrames(int frames)
       clock = nullptr;
     }
 
+    // The tick may have queued work on the UI thread, which the event loop
+    // runs between frames when the clock drives them: a GPU script registers
+    // its gfx node that way. This loop blocks the event loop, so run it here.
+    QCoreApplication::sendPostedEvents(qApp, QEvent::MetaCall);
+
     // Same order as the clock-driven path: parameters first, then draw, so a
     // value written by the script is visible in the frame that follows it.
     updateGraph();

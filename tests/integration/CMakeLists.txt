@@ -1649,6 +1649,22 @@ if(TARGET score AND TARGET score_plugin_gfx AND NOT EMSCRIPTEN)
     TIMEOUT 900 RUN_SERIAL TRUE LABELS "gui")
 endif()
 
+# A GPU Javascript script draws in frames rendered by a script's renderFrames().
+if(TARGET score AND TARGET score_plugin_js AND TARGET score_plugin_gfx AND NOT EMSCRIPTEN)
+  score_add_test(test_integration_js_gpu_stepped_render
+    SOURCES JsGpuSteppedRenderTest.cpp
+    GUI
+    LIBS ${QT_PREFIX}::Gui)
+  target_compile_definitions(test_integration_js_gpu_stepped_render PRIVATE
+    "SCORE_APP_BINARY=\"$<TARGET_FILE:score>\"")
+  get_target_property(_js_definitions_stepped score_plugin_js COMPILE_DEFINITIONS)
+  if("SCORE_HAS_GPU_JS" IN_LIST _js_definitions_stepped)
+    target_compile_definitions(test_integration_js_gpu_stepped_render PRIVATE SCORE_HAS_GPU_JS)
+  endif()
+  set_tests_properties(test_integration_js_gpu_stepped_render PROPERTIES
+    TIMEOUT 300 RUN_SERIAL TRUE LABELS "gui")
+endif()
+
 # A text-mode avnd file port hands the object exactly the bytes that were read
 # (QIODevice::Text drops '\r'), both through oscr::executePortPreprocess and
 # through oscr::raw_file_storage::load.
