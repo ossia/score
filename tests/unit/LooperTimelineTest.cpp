@@ -140,7 +140,7 @@ TEST_CASE("An audio take sent to the timeline is a looping sound at its date",
     const auto before = scenario->intervals.size();
     oscr::sendToTimeline(
         *looper, doc->context(),
-        halp::timeline_clip{.file = file.toStdString(), .date = 1.5, .lane = 0});
+        halp::timeline_clip{.files = {file.toStdString()}, .date = 1.5});
     QApplication::processEvents();
 
     // The box, and the interval from the start that leads to it.
@@ -200,7 +200,7 @@ TEST_CASE("A MIDI take sent to the timeline is a MIDI clip as long as the loop",
     const auto before = scenario->intervals.size();
     oscr::sendToTimeline(
         *looper, doc->context(),
-        halp::timeline_clip{.file = file.toStdString(), .date = 1., .lane = 0});
+        halp::timeline_clip{.files = {file.toStdString()}, .date = 1.});
     QApplication::processEvents();
 
     REQUIRE(scenario->intervals.size() == before + 2);
@@ -248,7 +248,7 @@ TEST_CASE("A take that began before the scenario is placed at its start, whole",
     const auto before = scenario->intervals.size();
     oscr::sendToTimeline(
         *looper, doc->context(),
-        halp::timeline_clip{.file = file.toStdString(), .date = -3., .lane = 0});
+        halp::timeline_clip{.files = {file.toStdString()}, .date = -3.});
     QApplication::processEvents();
 
     // The box, straight off the scenario's start, with nothing leading to it.
@@ -405,7 +405,7 @@ std::map<QString, const Midi::ProcessModel*> midi_clips(const Scenario::ProcessM
   for(auto& itv : scenario.intervals)
     for(auto& p : itv.processes)
       if(auto m = qobject_cast<const Midi::ProcessModel*>(&p))
-        res[itv.metadata().getName()] = m;
+        res[m->metadata().getName()] = m;
   return res;
 }
 }
@@ -469,7 +469,7 @@ TEST_CASE("The MIDI looper's takes in the timeline: each file holds its pass, ea
           CHECK(!QFileInfo::exists(mix(3)));
         }
 
-        // The last take goes to the timeline: a clip per file.
+        // The last take goes to the timeline: one box, a clip per file.
         h.send();
         QApplication::processEvents();
         const auto clips = midi_clips(*scenario);
@@ -477,17 +477,35 @@ TEST_CASE("The MIDI looper's takes in the timeline: each file holds its pass, ea
                                      + (files != TakeFiles::Mix ? 3 : 0);
         REQUIRE(clips.size() == expected);
 
+        // The box is named after the take, its slots in the order of the files:
+        // the mix first.
+        const auto& box = *qobject_cast<const Scenario::IntervalModel*>(
+            clips.begin()->second->parent());
+        CHECK(box.metadata().getName() == "MIDI looper-take3");
+        CHECK(box.processes.size() == expected);
+        REQUIRE(box.smallView().size() == expected);
+        {
+          std::vector<QString> order;
+          for(const auto& slot : box.smallView())
+            order.push_back(box.processes.at(*slot.frontProcess).metadata().getName());
+          std::vector<QString> files_order;
+          if(files != TakeFiles::Layers)
+            files_order.push_back("MIDI looper-take3");
+          if(files != TakeFiles::Mix)
+            for(int k = 1; k <= 3; k++)
+              files_order.push_back("MIDI looper-take3-layer" + QString::number(k));
+          CHECK(order == files_order);
+        }
+        // Four bars of score's time: 16 quarters of half a second.
+        CHECK(box.duration.defaultDuration().msec() == Approx(8000.).margin(1.));
+
         auto check_clip = [&](const QString& name, std::set<int> pitches) {
           INFO(name.toStdString());
           auto it = clips.find(name);
           REQUIRE(it != clips.end());
           const auto& midi = *it->second;
           CHECK(pitches_in(midi) == pitches);
-          // Four bars of score's time: 16 quarters of half a second.
-          const auto& box = *qobject_cast<const Scenario::IntervalModel*>(midi.parent());
-          // One clip for the one track of the file.
-          CHECK(box.processes.size() == 1);
-          CHECK(box.duration.defaultDuration().msec() == Approx(8000.).margin(1.));
+          CHECK(midi.parent() == &box);
           CHECK(midi.duration().msec() == Approx(8000.).margin(1.));
           // The clip loops, at the loop's length.
           CHECK(midi.loops());
@@ -502,9 +520,8 @@ TEST_CASE("The MIDI looper's takes in the timeline: each file holds its pass, ea
           check_clip("MIDI looper-take3-layer3", {67});
         }
 
-        // One undoable step per file sent.
-        for(std::size_t i = 0; i < expected; i++)
-          doc->commandStack().undo();
+        // One undoable step for the whole take.
+        doc->commandStack().undo();
         QApplication::processEvents();
         CHECK(midi_clips(*scenario).empty());
       });
@@ -568,7 +585,8 @@ TEST_CASE("A MIDI take recorded in the engine has the loop's quarters at the sco
         itv.start_and_tick();
         ossia::buffer_tick tick{st, *ectx.execGraph, base.baseScenario(), {}};
 
-        constexpr int buffer = 512;
+        // Ticks as the engine gives them: never more than the buffer it was set up with.
+        const int buffer = st.bufferSize;
         int64_t frames = 0;
         auto run = [&](int64_t n) {
           for(int64_t i = 0; i < n; i += buffer)
@@ -666,7 +684,7 @@ TEST_CASE("A MIDI take's clip is one process, and its loop settings survive a re
     }
     oscr::sendToTimeline(
         *looper, doc->context(),
-        halp::timeline_clip{.file = file.toStdString(), .date = 1., .lane = 0});
+        halp::timeline_clip{.files = {file.toStdString()}, .date = 1.});
     QApplication::processEvents();
 
     auto clips_of = [](score::Document& d) {

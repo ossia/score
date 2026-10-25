@@ -19,6 +19,7 @@
 #include <QUrl>
 
 #include <algorithm>
+#include <optional>
 #include <chrono>
 #include <vector>
 
@@ -63,15 +64,17 @@ void sendToTimeline(
     const Process::ProcessModel& proc, const score::DocumentContext& ctx,
     const halp::timeline_clip& clip)
 {
-  if(clip.file.empty())
-    return;
-
-  const QString file = QString::fromStdString(clip.file);
-  if(!QFileInfo::exists(file))
+  QStringList files;
+  for(const auto& f : clip.files)
   {
-    qWarning() << "Send to timeline:" << file << "does not exist";
-    return;
+    const QString file = QString::fromStdString(f);
+    if(QFileInfo::exists(file))
+      files.push_back(file);
+    else
+      qWarning() << "Send to timeline:" << file << "does not exist";
   }
+  if(files.isEmpty())
+    return;
 
   // Several views of one process each ask: only the first one is heeded.
   {
@@ -79,7 +82,7 @@ void sendToTimeline(
     struct sent
     {
       const Process::ProcessModel* proc;
-      std::string file;
+      std::vector<std::string> files;
       clock::time_point time;
     };
     static std::vector<sent> recent;
@@ -88,9 +91,9 @@ void sendToTimeline(
       return now - s.time > std::chrono::milliseconds(500);
     });
     for(const auto& s : recent)
-      if(s.proc == &proc && s.file == clip.file)
+      if(s.proc == &proc && s.files == clip.files)
         return;
-    recent.push_back({&proc, clip.file, now});
+    recent.push_back({&proc, clip.files, now});
   }
 
   const auto [scenario, interval, offset] = findScenario(proc);
@@ -101,25 +104,34 @@ void sendToTimeline(
     return;
   }
 
-  QMimeData mime;
-  mime.setUrls({QUrl::fromLocalFile(file)});
+  // Each file is dropped on its own, so that the slots keep the files' order.
   const auto& handlers = ctx.app.interfaces<Process::ProcessDropHandlerList>();
-  auto drops = handlers.getDrop(mime, ctx);
-  if(drops.empty())
+  std::vector<std::vector<Process::ProcessDropHandler::ProcessDrop>> drops;
+  std::optional<TimeVal> longest;
+  for(const auto& file : files)
   {
-    qWarning() << "Send to timeline: no process plays" << file;
-    return;
+    QMimeData mime;
+    mime.setUrls({QUrl::fromLocalFile(file)});
+    auto d = handlers.getDrop(mime, ctx);
+    if(d.empty())
+    {
+      qWarning() << "Send to timeline: no process plays" << file;
+      continue;
+    }
+    if(auto dur = handlers.getMaxDuration(d); dur && (!longest || *dur > *longest))
+      longest = dur;
+    drops.push_back(std::move(d));
   }
+  if(drops.empty())
+    return;
 
   // A take that began before the scenario did, e.g. a capture of what was
   // heard before the looper's box started, is placed at the scenario's start:
   // whole, rather than cut short by the time it is early.
   const TimeVal start
       = std::max<TimeVal>(offset + TimeVal::fromMsecs(clip.date * 1000.), TimeVal::zero());
-  const TimeVal duration
-      = handlers.getMaxDuration(drops).value_or(TimeVal::fromMsecs(10000.));
-  const double y = std::clamp(
-      interval->heightPercentage() + 0.08 + 0.05 * clip.lane, 0.02, 0.95);
+  const TimeVal duration = longest.value_or(TimeVal::fromMsecs(10000.));
+  const double y = std::clamp(interval->heightPercentage() + 0.08, 0.02, 0.95);
 
   // The box hangs off the scenario's start, through an empty interval up to
   // the take's date: a box nothing leads to does not play.
@@ -130,22 +142,27 @@ void sendToTimeline(
     box_start = m.createIntervalAfter(*scenario, from.id(), {start, y}).endState();
   auto& box = m.createIntervalAfter(*scenario, box_start, {start + duration, y});
   score::Dispatcher_T disp{m};
-  for(const auto& drop : drops)
+  for(const auto& file_drops : drops)
   {
-    auto p = m.createProcessInNewSlot(box, drop.creation);
-    if(!p)
-      continue;
-    if(drop.setup)
-      drop.setup(*p, disp);
-    // A take is a loop: its clip plays it round for as long as its box is
-    // made longer. A sound file loops by itself; a MIDI clip is set to.
-    if(!p->loops())
+    for(const auto& drop : file_drops)
     {
-      m.submit(new Process::SetLoop{*p, true});
-      m.submit(new Process::SetLoopDuration{*p, drop.duration.value_or(duration)});
+      auto p = m.createProcessInNewSlot(box, drop.creation);
+      if(!p)
+        continue;
+      if(drop.setup)
+        drop.setup(*p, disp);
+      // A take is a loop: its clip plays it round for as long as its box is
+      // made longer. A sound file loops by itself; a MIDI clip is set to.
+      if(!p->loops())
+      {
+        m.submit(new Process::SetLoop{*p, true});
+        m.submit(new Process::SetLoopDuration{*p, drop.duration.value_or(duration)});
+      }
     }
   }
-  m.submit(new Scenario::Command::ChangeElementName{box, QFileInfo{file}.completeBaseName()});
+  const QString name = clip.name.empty() ? QFileInfo{files.front()}.completeBaseName()
+                                         : QString::fromStdString(clip.name);
+  m.submit(new Scenario::Command::ChangeElementName{box, name});
   m.showRack(box);
   m.commit();
 }

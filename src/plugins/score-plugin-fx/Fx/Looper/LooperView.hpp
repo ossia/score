@@ -141,15 +141,16 @@ struct looper_view
 
   bool has_take() const noexcept { return has_state && state.take > 0 && state.take_base[0]; }
 
-  //! Every file of the take, each on a lane of its own.
+  //! The take in one box named after it, a slot per file, the mix first.
   void send()
   {
     if(!has_take() || !send_to_timeline)
       return;
-    int lane = 0;
-    for(auto& f : state.take_files())
-      send_to_timeline(
-          halp::timeline_clip{.file = std::move(f), .date = state.take_date, .lane = lane++});
+    std::string_view base{state.take_base.data()};
+    if(auto slash = base.find_last_of("/\\"); slash != std::string_view::npos)
+      base.remove_prefix(slash + 1);
+    send_to_timeline(halp::timeline_clip{
+        .files = state.take_files(), .date = state.take_date, .name = std::string{base}});
   }
 
   static rgba mode_color(int mode, bool empty) noexcept
