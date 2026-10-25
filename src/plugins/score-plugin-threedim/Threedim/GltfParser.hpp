@@ -5,6 +5,7 @@
 
 #include <functional>
 #include <memory>
+#include <string>
 #include <vector>
 
 namespace Threedim
@@ -58,6 +59,10 @@ public:
     // Indexed by variant (parallel to scene_state::variant_names).
     // -1 at a position = "no override for this variant, use default".
     std::vector<int> variant_material_indices;
+    // Morph targets: per target, float3 deltas over vertex_count, or null when
+    // the target does not move that attribute.
+    std::vector<std::shared_ptr<std::vector<float>>> morph_positions;
+    std::vector<std::shared_ptr<std::vector<float>>> morph_normals;
   };
 
   struct SceneNode
@@ -78,10 +83,15 @@ public:
     // by skeleton_component::joint_node_ids to resolve each joint to
     // its node's world transform.
     std::uint64_t stable_id{0};
+    // Morph target weights: the node's own, else its mesh's defaults.
+    std::vector<float> morph_weights;
   };
 
   std::vector<SceneNode> m_scene_nodes;
   std::vector<std::shared_ptr<ossia::material_component>> m_materials;
+  // glTF material names, parallel to m_materials and so to the emitted
+  // scene_state::materials (material_component carries no name).
+  std::vector<std::string> m_material_names;
   std::vector<std::shared_ptr<ossia::skeleton_component>> m_skeletons;
   // KHR_materials_variants: names (UI-facing) declared at asset scope.
   // Parallel to mesh_primitive::material_variants and

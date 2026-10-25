@@ -1605,7 +1605,7 @@ if(TARGET score_plugin_threedim AND TARGET score_plugin_media AND TARGET score_p
   endif()
   score_plugin_hidden_sources(_albb_hidden
       "${_albb_src}/AssetLoader.cpp"
-      "${_albb_src}/GltfParser.cpp"
+      "${_albb_src}/GltfParser.cpp" "${_albb_src}/MorphTargets.cpp"
       "${_albb_src}/FbxParser.cpp"
       "${_albb_src}/TinyObj.cpp"
       "${_albb_src}/Ply.cpp"

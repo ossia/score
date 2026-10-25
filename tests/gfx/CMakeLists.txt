@@ -700,7 +700,7 @@ if(TARGET score_plugin_threedim AND TARGET score_plugin_avnd)
   score_add_gfx_plugin_test(gltf_punctual_lights
     SOURCES GfxGltfPunctualLights.cpp
     HIDDEN
-      "${_threedim}/GltfParser.cpp"
+      "${_threedim}/GltfParser.cpp" "${_threedim}/MorphTargets.cpp"
     PLUGINS score_plugin_avnd
     HEADERS_FROM score_plugin_threedim
     LIBS fastgltf ${_gltf_mikktspace})
@@ -712,7 +712,7 @@ if(TARGET score_plugin_threedim AND TARGET score_plugin_avnd)
   score_add_gfx_plugin_test(gltf_light_shadows
     SOURCES GfxGltfLightShadows.cpp
     HIDDEN
-      "${_threedim}/GltfParser.cpp"
+      "${_threedim}/GltfParser.cpp" "${_threedim}/MorphTargets.cpp"
       "${_threedim}/Camera.cpp"
       "${_threedim}/ShadowCascadeSetup.cpp"
       "${_threedim}/SceneResourceRoute.cpp"
@@ -1464,7 +1464,7 @@ score_add_gfx_test(per_layer_depth GfxPerLayerDepth.cpp)
 if(TARGET score_plugin_threedim AND TARGET test_unit_threedim_3rdparty)
   set(_splat_3d "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-threedim/Threedim")
   score_plugin_hidden_sources(_splat_hidden
-      "${_splat_3d}/AssetLoader.cpp" "${_splat_3d}/GltfParser.cpp"
+      "${_splat_3d}/AssetLoader.cpp" "${_splat_3d}/GltfParser.cpp" "${_splat_3d}/MorphTargets.cpp"
       "${_splat_3d}/FbxParser.cpp"   "${_splat_3d}/TinyObj.cpp"
       "${_splat_3d}/Ply.cpp"         "${_splat_3d}/VcgImporters.cpp"
       "${_splat_3d}/SceneFromMeshes.cpp"

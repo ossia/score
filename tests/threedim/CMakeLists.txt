@@ -504,7 +504,7 @@ threedim_test_includes(test_threedim_animation_interpolation)
 
 # A glTF animation is imported and drives AnimationPlayer.
 score_plugin_hidden_sources(_gltf_anim_hidden
-    "${THREEDIM_DIR}/GltfParser.cpp"
+    "${THREEDIM_DIR}/GltfParser.cpp" "${THREEDIM_DIR}/MorphTargets.cpp"
     "${THREEDIM_DIR}/AnimationPlayer.cpp")
 score_add_test(test_threedim_gltf_animation
   SOURCES GltfAnimation.cpp ${_gltf_anim_hidden}
@@ -516,7 +516,7 @@ target_compile_definitions(test_threedim_gltf_animation PRIVATE
 
 # A glTF skin keeps its joint hierarchy and rest pose, animated or not.
 score_plugin_hidden_sources(_gltf_skin_hidden
-    "${THREEDIM_DIR}/GltfParser.cpp"
+    "${THREEDIM_DIR}/GltfParser.cpp" "${THREEDIM_DIR}/MorphTargets.cpp"
     "${THREEDIM_DIR}/AnimationPlayer.cpp")
 score_add_test(test_threedim_gltf_skin_hierarchy
   SOURCES GltfSkinHierarchy.cpp ${_gltf_skin_hidden}
@@ -529,7 +529,7 @@ target_compile_definitions(test_threedim_gltf_skin_hierarchy PRIVATE
 # Nodes that instance one glTF mesh share its mesh_primitive stable_id, so the
 # scene preprocessor keeps one GPU copy of it.
 score_plugin_hidden_sources(_gltf_shared_mesh_hidden
-    "${THREEDIM_DIR}/GltfParser.cpp")
+    "${THREEDIM_DIR}/GltfParser.cpp" "${THREEDIM_DIR}/MorphTargets.cpp")
 score_add_test(test_threedim_gltf_shared_mesh
   SOURCES GltfSharedMeshTest.cpp ${_gltf_shared_mesh_hidden}
   PLUGINS score_plugin_threedim score_plugin_gfx score_plugin_avnd
