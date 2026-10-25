@@ -126,6 +126,8 @@ add_library(
   Threedim/FbxParser.cpp
   Threedim/GltfParser.hpp
   Threedim/GltfParser.cpp
+  Threedim/MorphTargets.hpp
+  Threedim/MorphTargets.cpp
   Threedim/VcgImporters.hpp
   Threedim/VcgImporters.cpp
   Threedim/Camera.hpp

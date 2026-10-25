@@ -1784,7 +1784,7 @@ if(TARGET score_plugin_threedim)
 
     score_plugin_hidden_sources(_threedim_hidden
         "${_threedim_src}/AssetLoader.cpp"
-        "${_threedim_src}/GltfParser.cpp"
+        "${_threedim_src}/GltfParser.cpp" "${_threedim_src}/MorphTargets.cpp"
         "${_threedim_src}/FbxParser.cpp"
         "${_threedim_src}/TinyObj.cpp"
         "${_threedim_src}/Ply.cpp"
@@ -2154,7 +2154,7 @@ endif()
 if(TARGET score_plugin_threedim)
   set(_anim_robust_src "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-threedim/Threedim")
   score_plugin_hidden_sources(_anim_robust_hidden
-      "${_anim_robust_src}/GltfParser.cpp"
+      "${_anim_robust_src}/GltfParser.cpp" "${_anim_robust_src}/MorphTargets.cpp"
       "${_anim_robust_src}/AnimationPlayer.cpp")
   score_add_test(test_unit_threedim_animation_robustness
     SOURCES ThreedimAnimationRobustnessTest.cpp ${_anim_robust_hidden}

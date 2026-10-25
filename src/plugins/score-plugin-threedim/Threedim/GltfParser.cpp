@@ -1,4 +1,8 @@
+#include <string_view>
+#include <fstream>
 #include "GltfParser.hpp"
+
+#include "MorphTargets.hpp"
 
 #include "TangentUtils.hpp"
 
@@ -25,6 +29,56 @@
 
 namespace Threedim
 {
+namespace
+{
+// The file's bytes with every `"texCoord": -<n>` of its JSON (the whole of a
+// .gltf, a .glb's JSON chunk) rewritten as `"texCoord":  0`, which keeps
+// every length and offset as it was. Null when there was nothing to rewrite.
+std::optional<std::vector<std::byte>>
+withNonNegativeTexCoords(const std::filesystem::path& path)
+{
+  std::ifstream f{path, std::ios::binary};
+  if(!f)
+    return std::nullopt;
+  std::vector<char> data{std::istreambuf_iterator<char>{f}, {}};
+
+  std::size_t begin = 0, end = data.size();
+  if(data.size() >= 20 && std::memcmp(data.data(), "glTF", 4) == 0)
+  {
+    uint32_t len{};
+    std::memcpy(&len, data.data() + 12, 4);
+    begin = 20;
+    end = std::min<std::size_t>(data.size(), 20 + std::size_t(len));
+  }
+
+  static constexpr std::string_view key = "\"texCoord\"";
+  bool changed = false;
+  std::string_view json{data.data() + begin, end - begin};
+  for(auto pos = json.find(key); pos != std::string_view::npos; pos = json.find(key, pos + 1))
+  {
+    auto i = pos + key.size();
+    while(i < json.size() && (json[i] == ' ' || json[i] == ':'))
+      ++i;
+    if(i >= json.size() || json[i] != '-')
+      continue;
+    // "-12" becomes " 0" then spaces: same byte count.
+    char* p = data.data() + begin + i;
+    *p++ = ' ';
+    bool first = true;
+    while(p < data.data() + end && *p >= '0' && *p <= '9')
+    {
+      *p++ = first ? '0' : ' ';
+      first = false;
+    }
+    changed = true;
+  }
+  if(!changed)
+    return std::nullopt;
+  std::vector<std::byte> out(data.size());
+  std::memcpy(out.data(), data.data(), data.size());
+  return out;
+}
+}
 
 namespace
 {
@@ -822,6 +876,27 @@ static GltfParser::ScenePart extract_primitive(
   if(auto* a = get_accessor("WEIGHTS_0"))
     sp.weights0 = read_float_accessor<4>(asset, *a);
 
+  // Morph targets, read as the base attributes are. A target whose delta
+  // count does not match the primitive's vertex count is ignored for that
+  // attribute rather than trusted.
+  sp.morph_positions.resize(prim.targets.size());
+  sp.morph_normals.resize(prim.targets.size());
+  for(std::size_t t = 0; t < prim.targets.size(); ++t)
+  {
+    for(const auto& a : prim.targets[t])
+    {
+      if(a.accessorIndex >= asset.accessors.size())
+        continue;
+      const auto& acc = asset.accessors[a.accessorIndex];
+      if(acc.count != sp.vertex_count || acc.type != fastgltf::AccessorType::Vec3)
+        continue;
+      if(a.name == "POSITION")
+        sp.morph_positions[t] = read_float_accessor<3>(asset, acc);
+      else if(a.name == "NORMAL")
+        sp.morph_normals[t] = read_float_accessor<3>(asset, acc);
+    }
+  }
+
   if(prim.indicesAccessor.has_value())
   {
     if(*prim.indicesAccessor >= asset.accessors.size())
@@ -1048,6 +1123,12 @@ static int emit_node(
       }
     }
     sn.parts = *parts;
+
+    const auto& mesh = asset.meshes[*n.meshIndex];
+    if(!n.weights.empty())
+      sn.morph_weights.assign(n.weights.begin(), n.weights.end());
+    else
+      sn.morph_weights.assign(mesh.weights.begin(), mesh.weights.end());
   }
   if(n.lightIndex.has_value() && *n.lightIndex < asset.lights.size())
     sn.light = to_light(asset.lights[*n.lightIndex]);
@@ -1060,6 +1141,52 @@ static int emit_node(
     emit_node(
         asset, ci, self, out, material_index_remap, visited, mesh_parts, depth + 1);
   return self;
+}
+
+// Concatenates the parts' per-target deltas into mesh_component::morph_targets,
+// following the layout MorphTargets.hpp documents. The weights the buffers
+// are blended with start at zero: the parts hold the unmorphed attributes.
+static void attach_morph_targets(
+    ossia::mesh_component& mc, const std::vector<GltfParser::ScenePart>& parts)
+{
+  std::size_t targets = 0;
+  for(const auto& p : parts)
+    targets = std::max(targets, p.morph_positions.size());
+  if(targets == 0)
+    return;
+
+  std::size_t vertices = 0;
+  for(const auto& p : parts)
+    vertices += p.vertex_count;
+
+  auto concat = [&](std::size_t t, bool positions) -> ossia::buffer_resource_ptr {
+    bool any = false;
+    for(const auto& p : parts)
+    {
+      const auto& v = positions ? p.morph_positions : p.morph_normals;
+      any = any || (t < v.size() && v[t]);
+    }
+    if(!any)
+      return {};
+    auto all = std::make_shared<std::vector<float>>(vertices * 3, 0.f);
+    std::size_t base = 0;
+    for(const auto& p : parts)
+    {
+      const auto& v = positions ? p.morph_positions : p.morph_normals;
+      if(t < v.size() && v[t])
+        std::copy(v[t]->begin(), v[t]->end(), all->begin() + base * 3);
+      base += p.vertex_count;
+    }
+    return make_buffer_resource_f(std::move(all));
+  };
+
+  mc.morph_targets.resize(targets);
+  for(std::size_t t = 0; t < targets; ++t)
+  {
+    mc.morph_targets[t].position_deltas = concat(t, true);
+    mc.morph_targets[t].normal_deltas = concat(t, false);
+  }
+  mc.morph_weights.assign(targets, 0.f);
 }
 
 }  // namespace
@@ -1099,7 +1226,11 @@ void GltfParser::rebuild_scene()
          && std::size_t(src.skin_index) < m_skeletons.size())
         mc->skin = ossia::skeleton_component_ptr(m_skeletons[src.skin_index]);
       mc->dirty_index = 1;
-      lst.push_back(ossia::mesh_component_ptr(std::move(mc)));
+      attach_morph_targets(*mc, src.parts);
+      if(std::ranges::any_of(src.morph_weights, [](float w) { return w != 0.f; }))
+        lst.push_back(Threedim::blendMorphTargets(*mc, src.morph_weights));
+      else
+        lst.push_back(ossia::mesh_component_ptr(std::move(mc)));
     }
     if(src.light)
       lst.push_back(ossia::light_component_ptr(src.light));
@@ -1202,6 +1333,30 @@ std::function<void(GltfParser&)> GltfParser::ins::gltf_t::process(file_type tv)
 
   auto assetE = parser.loadGltf(
       gltfFile.get(), path.parent_path(), gltfOptions);
+
+  // Blender's exporter writes "texCoord": -1 for a texture whose UV Map node
+  // names a UV map the mesh lacks; fastgltf reads texCoord as unsigned and
+  // refuses the whole file. Such a file is read again with those set to 0,
+  // the first UV set. Kept alive with the asset, which may view its bytes.
+  std::optional<fastgltf::GltfDataBuffer> repaired;
+  if(assetE.error() == fastgltf::Error::InvalidJson)
+  {
+    if(auto bytes = withNonNegativeTexCoords(path))
+    {
+      auto buf = fastgltf::GltfDataBuffer::FromBytes(bytes->data(), bytes->size());
+      if(bool(buf))
+      {
+        repaired.emplace(std::move(buf.get()));
+        auto retry = parser.loadGltf(*repaired, path.parent_path(), gltfOptions);
+        if(retry.error() == fastgltf::Error::None)
+        {
+          qWarning() << "GltfParser:" << path.string().c_str()
+                     << ": negative texCoord indices read as 0";
+          assetE = std::move(retry);
+        }
+      }
+    }
+  }
   if(assetE.error() != fastgltf::Error::None)
   {
     qWarning() << "GltfParser:" << path.string().c_str() << ":"
@@ -1234,6 +1389,7 @@ std::function<void(GltfParser&)> GltfParser::ins::gltf_t::process(file_type tv)
   // Materials first so primitives can remap their material indices.
   std::vector<std::shared_ptr<ossia::material_component>> materials;
   std::vector<int> material_index_remap(asset.materials.size(), -1);
+  std::vector<std::string> material_names;
   for(std::size_t i = 0; i < asset.materials.size(); ++i)
   {
     material_index_remap[i] = (int)materials.size();
@@ -1245,6 +1401,7 @@ std::function<void(GltfParser&)> GltfParser::ins::gltf_t::process(file_type tv)
         ossia::scene_node_id::from_path(path.string()),
         std::string("mat/") + std::to_string(i)).value;
     materials.push_back(std::move(mat));
+    material_names.emplace_back(asset.materials[i].name);
   }
 
   // Scene — walk the default scene's roots. glTF allows multiple scenes but
@@ -1561,9 +1718,11 @@ std::function<void(GltfParser&)> GltfParser::ins::gltf_t::process(file_type tv)
           materials = std::move(materials),
           skeletons = std::move(skeletons),
           animations = std::move(animations),
-          variant_names = std::move(variant_names)](GltfParser& o) mutable {
+          variant_names = std::move(variant_names),
+          material_names = std::move(material_names)](GltfParser& o) mutable {
     std::swap(o.m_scene_nodes, scene_nodes);
     std::swap(o.m_materials, materials);
+    std::swap(o.m_material_names, material_names);
     std::swap(o.m_skeletons, skeletons);
     std::swap(o.m_animations, animations);
     std::swap(o.m_variant_names, variant_names);
