@@ -13,12 +13,14 @@
 
 #include <catch2/catch_test_macros.hpp>
 
+#include <algorithm>
 #include <atomic>
 #include <cmath>
 #include <cstdint>
 #include <cstdlib>
 #include <new>
 #include <map>
+#include <memory>
 #include <set>
 #include <tuple>
 #include <vector>
@@ -2163,4 +2165,455 @@ TEST_CASE("MIDI looper switches: the actions allocate nothing", "[fx][midi][loop
   // The last recording, overdubbed.
   CHECK(h.passes() == 2);
   CHECK(h.shown_count > 5);
+}
+
+namespace
+{
+//! Four bars at 120 bpm and 48 kHz; a whole note of the grid is a bar.
+constexpr int64_t quantize_loop_length = 384000;
+
+//! Records a four-bar loop with one note of `pitch` at `at`, `length` frames
+//! long, and plays it from its start. The grid is a whole note.
+void quantize_loop(midi_harness& h, int64_t at, int64_t length, int pitch = 60)
+{
+  constexpr int64_t len = quantize_loop_length;
+  h.node.inputs.grid.value = 1.f;
+  h.node.inputs.mode = LoopMode::Record;
+  h.run_frames(at);
+  h.note_on(pitch, 0);
+  if(at + length <= len)
+  {
+    h.run_frames(length);
+    h.note_off(pitch, 0);
+    h.run_frames(len - at - length);
+    h.node.inputs.mode = LoopMode::Play;
+  }
+  else
+  {
+    // Let go after the recording ended: the note wraps to the loop's start.
+    h.run_frames(len - at);
+    h.node.inputs.mode = LoopMode::Play;
+    h.run_frames(at + length - len);
+    h.note_off(pitch, 0);
+    h.run_frames(len - (at + length - len));
+  }
+  REQUIRE(h.node.loop.length == len);
+  REQUIRE(h.node.loop.note_count == 1);
+  REQUIRE(h.node.loop.notes[0].length == length);
+}
+
+//! The note-ons and note-offs of `pitch` alternate, an on first.
+bool alternates(const std::vector<out_note>& out, int pitch)
+{
+  bool sounding = false;
+  for(auto& n : out)
+  {
+    if(n.pitch != pitch)
+      continue;
+    if(n.on == sounding)
+      return false;
+    sounding = n.on;
+  }
+  return true;
+}
+
+int ons_of(const midi_harness& h, int pitch, int64_t from, int64_t to)
+{
+  int k = 0;
+  for(auto& n : h.out)
+    k += n.on && n.pitch == pitch && n.at >= from && n.at < to;
+  return k;
+}
+
+//! Plays to loop position `pos` of the round that starts at `round`.
+void play_to_position(midi_harness& h, int64_t round, int64_t pos)
+{
+  h.run_frames(round + pos - h.now);
+}
+
+//! A note pulled later while it sounds: a second note-on for it, then, as
+//! Quantize goes back to 0 in the middle of the pulled note, its note-off
+//! behind the playhead.
+void quantize_later_and_back(midi_harness& h)
+{
+  constexpr int64_t len = quantize_loop_length;
+  quantize_loop(h, 60000, 20000);
+  const int64_t start = h.now;
+  play_to_position(h, start, 70000);
+  // Pulled half way to the bar line at 96000: it starts at 78000.
+  h.node.inputs.strength.value = 0.5f;
+  play_to_position(h, start + len, 85000);
+  h.node.inputs.strength.value = 0.f;
+  h.run_frames(start + 5 * len - h.now);
+}
+}
+
+TEST_CASE("MIDI looper: a note Quantize moves later while it sounds starts once, and "
+          "plays every round after",
+          "[fx][midi][looper][quantize]")
+{
+  constexpr int64_t len = quantize_loop_length;
+  midi_harness h{500};
+  h.out.clear();
+  quantize_later_and_back(h);
+  const int64_t start = h.now - 5 * len;
+  stop_and_collect(h);
+  CHECK(alternates(h.out, 60));
+  CHECK(balanced(h.out));
+  for(int k = 0; k < 5; k++)
+  {
+    INFO(k);
+    CHECK(ons_of(h, 60, start + k * len, start + (k + 1) * len) == 1);
+  }
+  // At Quantize 0 again, where it was recorded.
+  for(auto& n : h.out)
+    if(n.on && n.at >= start + 2 * len)
+      CHECK((n.at - start) % len == 60000);
+}
+
+TEST_CASE("MIDI looper: a note Quantize moves earlier while it sounds still ends, and "
+          "plays every round after",
+          "[fx][midi][looper][quantize]")
+{
+  constexpr int64_t len = quantize_loop_length;
+  midi_harness h{500};
+  quantize_loop(h, 40000, 20000);
+  h.out.clear();
+  const int64_t start = h.now;
+  play_to_position(h, start, 50000);
+  // Pulled to the bar line at 0: its end, at 20000, is behind the playhead.
+  h.node.inputs.strength.value = 1.f;
+  h.run_frames(start + 4 * len - h.now);
+  stop_and_collect(h);
+  CHECK(alternates(h.out, 60));
+  CHECK(balanced(h.out));
+  for(int k = 0; k < 4; k++)
+  {
+    INFO(k);
+    CHECK(ons_of(h, 60, start + k * len, start + (k + 1) * len) == 1);
+  }
+  for(auto& n : h.out)
+    if(n.at >= start + len)
+      CHECK((n.at - start) % len == (n.on ? 0 : 20000));
+}
+
+TEST_CASE("MIDI looper: a note Quantize pulls across the loop's end while it sounds "
+          "starts once",
+          "[fx][midi][looper][quantize]")
+{
+  constexpr int64_t len = quantize_loop_length;
+  for(auto held : {HeldNotes::Wrap, HeldNotes::Truncate})
+  {
+    INFO(int(held));
+    midi_harness h{500};
+    h.node.inputs.held = held;
+    quantize_loop(h, 380000, 10000);
+    // Past the end of the note the last round left sounding.
+    const int64_t start = h.now;
+    play_to_position(h, start, 20000);
+    h.out.clear();
+    play_to_position(h, start, 382000);
+    // Pulled to the bar line at the loop's end, which is its start.
+    h.node.inputs.strength.value = 1.f;
+    h.run_frames(start + 4 * len - h.now);
+    stop_and_collect(h);
+    CHECK(alternates(h.out, 60));
+    CHECK(balanced(h.out));
+    // The round it was pulled in, it started at 380000. Wrapped, it still
+    // sounds at 0 of the next round, where it would start again: it goes on
+    // to its end instead. Then it starts at 0.
+    CHECK(ons_of(h, 60, start, start + len) == 1);
+    CHECK(ons_of(h, 60, start + len, start + 2 * len) == (held == HeldNotes::Wrap ? 0 : 1));
+    for(int k = 2; k < 4; k++)
+    {
+      INFO(k);
+      CHECK(ons_of(h, 60, start + k * len, start + (k + 1) * len) == 1);
+    }
+  }
+}
+
+TEST_CASE("MIDI looper: after Quantize moved a sounding note, the same key played live "
+          "is heard",
+          "[fx][midi][looper][quantize]")
+{
+  constexpr int64_t len = quantize_loop_length;
+  for(const bool earlier : {false, true})
+  {
+    INFO(earlier);
+    midi_harness h{500};
+    h.node.inputs.passthrough = Passthrough::Full;
+    if(earlier)
+    {
+      quantize_loop(h, 40000, 20000);
+      play_to_position(h, h.now, 50000);
+      h.node.inputs.strength.value = 1.f;
+      h.run_frames(2 * len);
+    }
+    else
+    {
+      quantize_later_and_back(h);
+    }
+    // Where the loop plays nothing. The rounds start on multiples of the
+    // loop's length.
+    const int64_t round = h.now - h.now % len;
+    play_to_position(h, round + len, 200000);
+    h.out.clear();
+    h.note_on(60, 0);
+    h.run_frames(1000);
+    h.note_off(60, 0);
+    h.run_frames(1000);
+    REQUIRE(h.out.size() == 2);
+    CHECK(h.out[0].on);
+    CHECK(h.out[0].at == round + len + 200000);
+    CHECK(!h.out[1].on);
+    CHECK(h.out[1].at == round + len + 201000);
+  }
+}
+
+TEST_CASE("MIDI looper: Quantize ends and the grid changed while a note sounds leave it "
+          "playing every round",
+          "[fx][midi][looper][quantize]")
+{
+  constexpr int64_t len = quantize_loop_length;
+  // The note is at 40000 for 20000 frames, Quantize 0.5 on a whole note: it
+  // plays from 20000 to 40000, to 78000 with its end pulled.
+  enum change
+  {
+    ends_off,
+    ends_on,
+    grid_half
+  };
+  for(const change what : {ends_off, ends_on, grid_half})
+  {
+    INFO(int(what));
+    midi_harness h{500};
+    quantize_loop(h, 40000, 20000);
+    h.node.inputs.strength.value = 0.5f;
+    h.node.inputs.quantize_ends.value = what == ends_off;
+    h.out.clear();
+    const int64_t start = h.now;
+    switch(what)
+    {
+      case ends_off:
+        // Its end goes from 78000 back to 40000, behind the playhead.
+        play_to_position(h, start, 60000);
+        h.node.inputs.quantize_ends.value = false;
+        break;
+      case ends_on:
+        // Its end goes from 40000 to 78000.
+        play_to_position(h, start, 30000);
+        h.node.inputs.quantize_ends.value = true;
+        break;
+      case grid_half:
+        // Its start goes from 20000 to 44000, ahead of the playhead.
+        play_to_position(h, start, 30000);
+        h.node.inputs.grid.value = 0.5f;
+        break;
+    }
+    h.run_frames(start + 4 * len - h.now);
+    stop_and_collect(h);
+    CHECK(alternates(h.out, 60));
+    CHECK(balanced(h.out));
+    // Moved ahead of the playhead once it ended, it plays there as well the
+    // round it was moved in.
+    CHECK(ons_of(h, 60, start, start + len) == (what == grid_half ? 2 : 1));
+    for(int k = 1; k < 4; k++)
+    {
+      INFO(k);
+      CHECK(ons_of(h, 60, start + k * len, start + (k + 1) * len) == 1);
+    }
+  }
+}
+
+TEST_CASE("MIDI looper: Quantize changed while notes sound allocates nothing",
+          "[fx][midi][looper][quantize]")
+{
+  midi_harness h{500};
+  h.pending.reserve(64);
+  h.out.reserve(100000);
+  h.controls_out.reserve(100000);
+  int allocated = -1;
+  {
+    alloc_counter::scope counter;
+    quantize_later_and_back(h);
+    allocated = counter.allocations();
+  }
+  CHECK(allocated == 0);
+  CHECK(alternates(h.out, 60));
+}
+
+namespace
+{
+//! The pitches of the note-ons of a MIDI file of the takes folder.
+std::vector<int> take_pitches(const QString& path)
+{
+  QFile f{path};
+  if(!f.open(QIODevice::ReadOnly))
+    return {};
+  const auto bytes = f.readAll();
+  libremidi::reader r;
+  std::vector<uint8_t> raw(bytes.begin(), bytes.end());
+  r.parse(raw);
+  std::vector<int> res;
+  for(auto& ev : r.tracks[0])
+    if(mtk::classify(ev.m) == mtk::midi_kind::note_on)
+      res.push_back(ev.m.bytes[1]);
+  std::sort(res.begin(), res.end());
+  return res;
+}
+
+std::shared_ptr<Nodes::Looper::take_writer> temp_writer(const QTemporaryDir& dir)
+{
+  auto writer = std::make_shared<Nodes::Looper::take_writer>();
+  writer->folder = dir.path();
+  writer->prefix = "m";
+  writer->extension = "mid";
+  return writer;
+}
+}
+
+TEST_CASE("MIDI looper: a take asked for while a pass is taken in has it as far as it "
+          "went",
+          "[fx][midi][looper][takes]")
+{
+  QTemporaryDir dir;
+  REQUIRE(dir.isValid());
+  midi_harness h;
+  h.node.writer = temp_writer(dir);
+  h.node.worker.request = [&](Nodes::Looper::midi_take_job job) {
+    Looper::worker_t::work(std::move(job))(h.node);
+  };
+  auto view = std::make_unique<Nodes::Looper::view_message>();
+  h.node.send_message = [&](const Nodes::Looper::view_message& m) { *view = m; };
+
+  // Asked for while recording: what was recorded so far.
+  h.node.inputs.mode = LoopMode::Record;
+  h.note_on(60, 10);
+  h.run();
+  h.note_off(60, 20);
+  h.run_frames(320);
+  h.node.process_message({.pass = -1, .layers = -1, .mute = false, .take = 1});
+  h.run_frames(320);
+  CHECK(h.node.transport.actualMode == LoopMode::Record);
+  REQUIRE(view->answered == 1);
+  CHECK(take_pitches(dir.path() + "/m-take1.mid") == std::vector<int>{60});
+  CHECK(view->take_files() == std::vector<std::string>{QString(dir.path() + "/m-take1.mid").toStdString()});
+
+  // The recording closes with a take of its own.
+  h.node.inputs.mode = LoopMode::Play;
+  h.run_frames(640);
+  REQUIRE(view->take == 2);
+
+  // Asked for while overdubbing: both passes, the open one with the note it
+  // has so far and the one still held.
+  h.node.inputs.mode = LoopMode::Overdub;
+  h.note_on(67, 10);
+  h.run();
+  h.note_off(67, 20);
+  h.note_on(72, 30);
+  h.run_frames(128);
+  h.node.process_message({.pass = -1, .layers = -1, .mute = false, .take = 2});
+  h.run_frames(128);
+  CHECK(h.node.transport.actualMode == LoopMode::Overdub);
+  REQUIRE(view->answered == 2);
+  CHECK(view->take == 3);
+  CHECK(take_pitches(dir.path() + "/m-take3.mid") == std::vector<int>{60, 67, 72});
+  // Overdubbing goes on into the same pass.
+  CHECK(h.node.loop.count == 2);
+  CHECK(h.node.loop.taking);
+}
+
+TEST_CASE("MIDI looper: the score stopping while a pass is taken in writes a take of the "
+          "loop as it is heard",
+          "[fx][midi][looper][takes]")
+{
+  for(const bool recording : {false, true})
+  {
+    INFO(recording);
+    QTemporaryDir dir;
+    REQUIRE(dir.isValid());
+    // The jobs run once the looper is gone, as when the process is removed
+    // as the score stops.
+    std::vector<Nodes::Looper::midi_take_job> jobs;
+    {
+      auto h = std::make_unique<midi_harness>();
+      h->node.writer = temp_writer(dir);
+      h->node.worker.request = [&](Nodes::Looper::midi_take_job job) {
+        jobs.push_back(std::move(job));
+      };
+      if(recording)
+      {
+        h->node.inputs.mode = LoopMode::Record;
+        h->note_on(60, 10);
+        h->run();
+        h->note_off(60, 20);
+        h->run_frames(320);
+      }
+      else
+      {
+        record(*h, 640, [](midi_harness& h) {
+          h.note_on(60, 10);
+          h.note_off(60, 20);
+        });
+        h->run_frames(640);
+        jobs.clear();
+        h->node.inputs.mode = LoopMode::Overdub;
+        h->note_on(67, 10);
+        h->run();
+        h->note_off(67, 20);
+        h->run_frames(128);
+      }
+      REQUIRE(jobs.empty());
+      stop_and_collect(*h);
+    }
+    REQUIRE(jobs.size() == 1);
+    CHECK(jobs[0].alone);
+    REQUIRE(jobs[0].run());
+    const auto files = QDir{dir.path()}.entryList({"*.mid"}, QDir::Files, QDir::Name);
+    CHECK(files == QStringList{"m-take1.mid"});
+    CHECK(
+        take_pitches(dir.path() + "/m-take1.mid")
+        == (recording ? std::vector<int>{60} : std::vector<int>{60, 67}));
+  }
+}
+
+TEST_CASE("MIDI looper: a take asked for allocates nothing", "[fx][midi][looper][takes]")
+{
+  QTemporaryDir dir;
+  REQUIRE(dir.isValid());
+  midi_harness h;
+  h.node.writer = temp_writer(dir);
+  std::vector<Nodes::Looper::midi_take_job> jobs;
+  jobs.reserve(16);
+  h.node.worker.request = [&](Nodes::Looper::midi_take_job job) {
+    jobs.push_back(std::move(job));
+  };
+  h.pending.reserve(64);
+  h.out.reserve(10000);
+  record(h, 640, [](midi_harness& h) {
+    h.note_on(60, 10);
+    h.note_off(60, 20);
+  });
+  h.run_frames(640);
+  h.node.inputs.mode = LoopMode::Overdub;
+  h.run();
+  // The takes the passes closed with are written.
+  for(int i = 0; i < 8 && !jobs.empty(); i++)
+  {
+    auto done = std::move(jobs);
+    jobs.clear();
+    jobs.reserve(16);
+    for(auto& j : done)
+      Looper::worker_t::work(std::move(j))(h.node);
+  }
+  jobs.clear();
+  int allocated = -1;
+  {
+    alloc_counter::scope counter;
+    h.node.process_message({.pass = -1, .layers = -1, .mute = false, .take = 1});
+    h.run();
+    allocated = counter.allocations();
+  }
+  CHECK(allocated == 0);
+  CHECK(jobs.size() == 1);
 }

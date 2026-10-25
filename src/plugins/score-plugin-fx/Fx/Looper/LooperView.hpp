@@ -12,6 +12,7 @@
 #include <functional>
 #include <string>
 #include <string_view>
+#include <utility>
 #include <vector>
 
 namespace Nodes::Looper
@@ -37,11 +38,15 @@ struct view_note
 //! Sent by the view to the looper: erase pass `pass`, counting from the
 //! oldest one, of a loop the view showed with `layers` passes, or mute it or
 //! unmute it when `mute` is set. A loop that has changed since is left alone.
+//! With `take` set, it asks instead for a take of the loop as it is heard
+//! now, the pass being taken in included as far as it went: `take` numbers
+//! the request, which view_message::answered gives back once it is written.
 struct erase_request
 {
   int pass;
   int layers;
   bool mute{};
+  int take{};
 };
 
 //! What a looper shows of itself, sent about thirty times a second. Trivial,
@@ -92,6 +97,9 @@ struct view_message
   //! new pass.
   bool restart_pending;
   bool new_pass_pending;
+  //! The last take the view asked for that is written, or that there was no
+  //! loop to make: the last take is the one it asked for, or a later one.
+  int answered;
 
   void set_take(std::string_view base, std::string_view ext, bool mix, int layers) noexcept
   {
@@ -123,7 +131,8 @@ struct view_message
 struct looper_view
 {
   static constexpr double width() { return 360.; }
-  static constexpr double height() { return 132.; }
+  //! Tall enough for eight lanes of 26 pixels under the header.
+  static constexpr double height() { return 238.; }
   static constexpr double header = 26.;
   static constexpr double send_w = 56.;
 
@@ -133,21 +142,71 @@ struct looper_view
   std::function<void()> update;
   //! Set by the host when it can place clips in the timeline.
   std::function<void(halp::timeline_clip)> send_to_timeline;
-  //! Set by the looper's UI bus: asks the looper to erase a pass.
+  //! Set by the looper's UI bus: asks the looper to erase a pass, or for a
+  //! take.
   std::function<void(erase_request)> erase;
+
+  //! While a pass is taken in, the last take lacks it: a drag or a Send asks
+  //! for a take of the loop as it is now, and waits for it. A drag starts
+  //! with the next move of the mouse once it is there, if the button is still
+  //! held; else the take is the one the next drag or Send gives.
+  int m_requests{};
+  int m_waiting{};
+  bool m_send_waiting{};
 
   void receive(const view_message& m) noexcept
   {
     state = m;
     has_state = true;
+    if(m_waiting > 0 && m.answered >= m_waiting)
+    {
+      m_waiting = 0;
+      if(std::exchange(m_send_waiting, false))
+        send_now();
+    }
     if(update)
       update();
   }
 
   bool has_take() const noexcept { return has_state && state.take > 0 && state.take_base[0]; }
 
+  //! A pass is being taken in: the last take does not have it.
+  bool taking_in() const noexcept
+  {
+    if(!has_state || state.empty)
+      return false;
+    const auto m = LoopMode(state.mode);
+    return m == LoopMode::Record || m == LoopMode::Overdub || m == LoopMode::Comp;
+  }
+  bool saving() const noexcept { return m_waiting > 0 || (has_state && state.writing); }
+
+  //! Asks for a take of the loop as it is now, unless one was asked already.
+  void request_take()
+  {
+    if(m_waiting > 0 || !erase)
+      return;
+    // Above what the looper answered already: another view of it may have
+    // asked before.
+    m_requests = std::max(m_requests, has_state ? state.answered : 0) + 1;
+    m_waiting = m_requests;
+    erase(erase_request{.pass = -1, .layers = -1, .mute = false, .take = m_waiting});
+    if(update)
+      update();
+  }
+
   //! The take in one box named after it, a slot per file, the mix first.
   void send()
+  {
+    if(taking_in() && erase)
+    {
+      m_send_waiting = true;
+      request_take();
+      return;
+    }
+    send_now();
+  }
+
+  void send_now()
   {
     if(!has_take() || !send_to_timeline)
       return;
@@ -282,7 +341,7 @@ struct looper_view
       }
 
       // Send to timeline
-      const bool enabled = has_take() && bool(send_to_timeline);
+      const bool enabled = (has_take() || taking_in()) && bool(send_to_timeline);
       const rgba button = enabled ? rgba{60, 110, 160, 255} : rgba{44, 44, 48, 255};
       ctx.set_fill_color({button.r, button.g, button.b, button.a});
       ctx.begin_path();
@@ -291,7 +350,7 @@ struct looper_view
       const rgba label = enabled ? rgba{235, 240, 245, 255} : rgba{110, 110, 116, 255};
       ctx.set_fill_color({label.r, label.g, label.b, label.a});
       ctx.begin_path();
-      ctx.draw_text(w - send_w + 6., cy + 4., s.writing ? "Saving" : "Send");
+      ctx.draw_text(w - send_w + 6., cy + 4., saving() ? "Saving" : "Send");
       ctx.fill();
     }
 
@@ -620,6 +679,11 @@ struct looper_view
       return true;
     }
     // Pressing elsewhere is the start of a drag of the take.
+    if(taking_in() && erase)
+    {
+      request_take();
+      return true;
+    }
     return has_take();
   }
   void mouse_move(double, double) { }
@@ -628,6 +692,8 @@ struct looper_view
   halp::drag_payload drag_payload(double x, double y) const
   {
     halp::drag_payload p;
+    if(m_waiting > 0)
+      return p;
     if(has_take() && !in_send(x, y) && erase_lane_at(x, y) < 0 && mute_lane_at(x, y) < 0)
       p.files = state.take_files();
     return p;

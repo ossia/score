@@ -17,6 +17,7 @@
 #include <cstdint>
 #include <cstdlib>
 #include <cmath>
+#include <memory>
 #include <new>
 #include <string>
 
@@ -2904,6 +2905,88 @@ TEST_CASE("Looper switches: a recording ends into an overdub on the frame it end
   }
 }
 
+TEST_CASE("Looper switches: the recording's end is faded while the overdub it went on "
+          "into is not heard",
+          "[fx][audio][looper][switches][layers]")
+{
+  enum how
+  {
+    by_undo,
+    by_mute,
+    by_erase
+  };
+  for(const how what : {by_undo, by_mute, by_erase})
+  {
+    INFO(int(what));
+    switches_harness h;
+    h.ramp = true;
+    auto& in = h.node.inputs;
+    in.after_record.value = Nodes::Looper::AfterRecord::Overdub;
+    looper_switches::press_off_beat(h, in.rec_play_dub);
+    looper_switches::next_beat(h);
+    const int64_t start = h.now - switches_harness::frames;
+    looper_switches::beats(h, 3);
+    looper_switches::press(h, in.rec_play_dub);
+    looper_switches::next_beat(h);
+    looper_switches::beats(h, 1);
+    looper_switches::press_off_beat(h, in.play);
+    looper_switches::next_beat(h);
+    REQUIRE(h.passes() == 2);
+
+    const int64_t len = h.length();
+    const float* rec = h.node.layer_data(0, 0);
+    auto played = [&](int64_t k) { return switches_harness::ramp_at(start + k); };
+    auto unfaded = [&] {
+      CHECK(rec[len - 1] == Approx(played(len - 1)));
+      CHECK(rec[len - 64] == Approx(played(len - 64)));
+    };
+    auto faded = [&] {
+      CHECK(rec[len - 1] == Approx(played(len - 1) / 128.).margin(1e-4));
+      CHECK(rec[len - 64] == Approx(played(len - 64) * 64. / 128.).margin(1e-4));
+      CHECK(rec[len - 129] == Approx(played(len - 129)));
+    };
+    unfaded();
+
+    switch(what)
+    {
+      case by_undo:
+        looper_switches::press(h, in.undo);
+        REQUIRE(h.passes() == 1);
+        faded();
+        looper_switches::press(h, in.redo);
+        REQUIRE(h.passes() == 2);
+        unfaded();
+        // Undone, then replaced by another overdub: the seam is gone.
+        looper_switches::press(h, in.undo);
+        in.mode = LoopMode::Overdub;
+        looper_switches::beats(h, 1);
+        in.mode = LoopMode::Play;
+        looper_switches::beats(h, 1);
+        REQUIRE(h.passes() == 2);
+        faded();
+        break;
+      case by_mute:
+        looper_switches::press(h, in.mute_last);
+        looper_switches::next_beat(h);
+        REQUIRE(h.muted(1));
+        faded();
+        looper_switches::press(h, in.mute_last);
+        looper_switches::next_beat(h);
+        REQUIRE(!h.muted(1));
+        unfaded();
+        break;
+      case by_erase:
+        looper_switches::press(h, in.erase_last);
+        looper_switches::next_beat(h);
+        REQUIRE(h.passes() == 1);
+        faded();
+        looper_switches::press(h, in.redo);
+        faded();
+        break;
+    }
+  }
+}
+
 TEST_CASE("Looper switches: the actions allocate nothing", "[fx][audio][looper][switches]")
 {
   switches_harness h;
@@ -2923,4 +3006,165 @@ TEST_CASE("Looper switches: the actions allocate nothing", "[fx][audio][looper][
   // The last recording, overdubbed.
   CHECK(h.passes() == 2);
   CHECK(h.shown_count > 5);
+}
+
+namespace
+{
+std::shared_ptr<Nodes::Looper::take_writer> temp_take_writer(const QTemporaryDir& dir)
+{
+  auto writer = std::make_shared<Nodes::Looper::take_writer>();
+  writer->folder = dir.path();
+  writer->prefix = "t";
+  writer->extension = "wav";
+  return writer;
+}
+}
+
+TEST_CASE("Looper: a take asked for while overdubbing is the loop of that moment",
+          "[fx][audio][looper][takes]")
+{
+  QTemporaryDir dir;
+  REQUIRE(dir.isValid());
+  // Long enough to be flattened over several ticks, while the overdub goes
+  // on writing over what it wrote on its first round.
+  constexpr int64_t len = 600000;
+  looper_harness h{1, 4096};
+  h.node.writer = temp_take_writer(dir);
+  h.node.worker.request = [&](Nodes::Looper::take_job job) {
+    Looper::worker_t::work(std::move(job))(h.node);
+  };
+  auto view = std::make_unique<Nodes::Looper::view_message>();
+  h.node.send_message = [&](const Nodes::Looper::view_message& m) { *view = m; };
+  h.node.inputs.feedback.value = 1.f;
+  h.node.inputs.takes.value = Nodes::Looper::TakeFiles::Mix;
+
+  auto run_to = [&](int64_t frames) {
+    for(int64_t done = 0; done < frames; done += h.buffer_size)
+      h.run(std::min<int64_t>(h.buffer_size, frames - done));
+  };
+  for(auto& v : h.in_buf[0])
+    v = 0.25;
+  h.node.inputs.mode = LoopMode::Record;
+  run_to(len);
+  for(auto& v : h.in_buf[0])
+    v = 0.5;
+  h.node.inputs.mode = LoopMode::Overdub;
+  run_to(len);
+  REQUIRE(view->take == 1);
+  for(auto& v : h.in_buf[0])
+    v = 1.;
+  run_to(len / 2);
+
+  h.node.process_message({.pass = -1, .layers = -1, .mute = false, .take = 1});
+  h.run(h.buffer_size);
+  // The loop as it is heard once the tick that took the request is over.
+  std::vector<float> heard(len);
+  for(int64_t k = 0; k < len; k++)
+    heard[k] = h.node.layers.mix(0, k);
+  for(int i = 0; i < 40 && view->answered < 1; i++)
+    h.run(h.buffer_size);
+  REQUIRE(view->answered == 1);
+  REQUIRE(view->take == 2);
+  CHECK(h.node.transport.actualMode == LoopMode::Overdub);
+  // The overdub went on meanwhile.
+  CHECK(h.node.layers.mix(0, (h.node.transport.playbackPos + len - 1000) % len)
+        != Approx(heard[(h.node.transport.playbackPos + len - 1000) % len]));
+
+  const auto take = read_wav(QString(dir.path() + "/t-take2.wav").toStdString());
+  REQUIRE(take.channels > 0);
+  REQUIRE(take.samples.size() == std::size_t(len) * std::size_t(take.channels));
+  int differ = 0;
+  for(int64_t k = 0; k < len; k += 97)
+    differ += std::abs(take.samples[k * take.channels] - heard[k]) > 1e-4;
+  CHECK(differ == 0);
+  // Both rounds of the overdub are in it, where the playhead was.
+  CHECK(heard[len / 4] == Approx(1.75));
+  CHECK(heard[3 * len / 4] == Approx(0.75));
+}
+
+TEST_CASE("Looper: the score stopping while a pass is taken in writes a take of the loop "
+          "as it is heard",
+          "[fx][audio][looper][takes]")
+{
+  for(const bool recording : {false, true})
+  {
+    INFO(recording);
+    QTemporaryDir dir;
+    REQUIRE(dir.isValid());
+    std::vector<Nodes::Looper::take_job> jobs;
+    {
+      auto h = std::make_unique<looper_harness>(1, 64);
+      h->node.writer = temp_take_writer(dir);
+      h->node.worker.request = [&](Nodes::Looper::take_job job) {
+        jobs.push_back(std::move(job));
+      };
+      for(auto& v : h->in_buf[0])
+        v = 0.25;
+      h->node.inputs.mode = LoopMode::Record;
+      for(int i = 0; i < 8; i++)
+        h->run(64);
+      if(!recording)
+      {
+        for(auto& v : h->in_buf[0])
+          v = 0.5;
+        h->node.inputs.mode = LoopMode::Overdub;
+        for(int i = 0; i < 4; i++)
+          h->run(64);
+        // The take of the recording: written by the time the score stops.
+        REQUIRE(jobs.size() == 1);
+        Looper::worker_t::work(std::move(jobs[0]))(h->node);
+        jobs.clear();
+      }
+      REQUIRE(jobs.empty());
+      h->node.stop();
+    }
+    // Written once the looper is gone.
+    REQUIRE(jobs.size() == 1);
+    CHECK(jobs[0].alone);
+    REQUIRE(jobs[0].run());
+    const auto name = recording ? "/t-take1.wav" : "/t-take2.wav";
+    const auto take = read_wav(QString(dir.path() + name).toStdString());
+    REQUIRE(take.channels > 0);
+    REQUIRE(take.samples.size() == 512 * std::size_t(take.channels));
+    CHECK(take.samples[200 * take.channels] == Approx(recording ? 0.25 : 0.75));
+    CHECK(take.samples[300 * take.channels] == Approx(0.25));
+  }
+}
+
+TEST_CASE("Looper: a take asked for while overdubbing allocates nothing",
+          "[fx][audio][looper][takes]")
+{
+  QTemporaryDir dir;
+  REQUIRE(dir.isValid());
+  looper_harness h{1, 64};
+  h.node.writer = temp_take_writer(dir);
+  std::vector<Nodes::Looper::take_job> jobs;
+  jobs.reserve(16);
+  h.node.worker.request = [&](Nodes::Looper::take_job job) {
+    jobs.push_back(std::move(job));
+  };
+  record_and_overdub(h, 512, 0.25, 0.5);
+  h.node.inputs.mode = LoopMode::Overdub;
+  h.run(64);
+  // The takes the passes closed with are written.
+  for(int i = 0; i < 4 && !jobs.empty(); i++)
+  {
+    auto done = std::move(jobs);
+    jobs.clear();
+    jobs.reserve(16);
+    for(auto& j : done)
+      Looper::worker_t::work(std::move(j))(h.node);
+    h.run(64);
+  }
+  jobs.clear();
+  int allocated = -1;
+  {
+    alloc_counter::scope counter;
+    h.node.process_message({.pass = -1, .layers = -1, .mute = false, .take = 1});
+    for(int i = 0; i < 4; i++)
+      h.run(64);
+    allocated = counter.allocations();
+  }
+  CHECK(allocated == 0);
+  CHECK(jobs.size() == 1);
 }

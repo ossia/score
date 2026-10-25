@@ -892,3 +892,124 @@ TEMPLATE_TEST_CASE(
     CHECK(echo.allocations == 0);
   });
 }
+
+TEMPLATE_TEST_CASE(
+    "Loopers through the binding: a mode shown in Loop does not come back to the "
+    "looper, which has gone on to another",
+    "[avnd][message_bus][execution][looper][switches]", Nodes::AudioLooper::Node,
+    Nodes::MidiLooper::Node)
+{
+  const QString uuid = std::is_same_v<TestType, Nodes::AudioLooper::Node>
+                           ? QStringLiteral("a0ad4227-ac3d-448b-a19b-19581ed4e2c6")
+                           : QStringLiteral("0c0b7d3e-5a52-4b8f-9d1f-6e3a2b8c4f71");
+  with<TestType>(uuid, [](auto& e) {
+    using Nodes::Looper::LoopMode;
+    e.gui("Quantif", ossia::value{0.f});
+    e.gui("Loop", ossia::value{std::string{"Stop"}});
+    e.tick(512);
+    auto loop = [&] { return ossia::convert<std::string>(e.control("Loop").value()); };
+
+    // Two actions from a footswitch, the UI refreshing between them: Loop
+    // shows Record while the looper already plays.
+    e.object().inputs.record.value.emplace();
+    e.tick(512);
+    e.object().inputs.record.value.reset();
+    REQUIRE(e.object().transport.actualMode == LoopMode::Record);
+    e.ui();
+    CHECK(loop() == "Record");
+    e.object().inputs.play.value.emplace();
+    e.tick(512);
+    e.object().inputs.play.value.reset();
+    REQUIRE(e.object().transport.actualMode == LoopMode::Play);
+
+    // The UI's commands reach the looper: the later action wins.
+    const auto counts = on_audio_thread([&] { e.plug.runAllCommands(); });
+    CHECK(counts.allocations == 0);
+    for(int i = 0; i < 4; i++)
+      e.tick(512);
+    CHECK(e.object().transport.actualMode == LoopMode::Play);
+    e.ui();
+    CHECK(loop() == "Play");
+    run_exec(e.plug);
+    e.tick(512);
+    CHECK(e.object().transport.actualMode == LoopMode::Play);
+
+    // Loop set in the UI is still a change, the same mode it showed included.
+    e.gui("Loop", ossia::value{std::string{"Stop"}});
+    e.tick(512);
+    CHECK(e.object().transport.actualMode == LoopMode::Stop);
+  });
+}
+
+TEMPLATE_TEST_CASE(
+    "Loopers through the binding: a drag or a Send while overdubbing waits for a take "
+    "of the loop as it is now",
+    "[avnd][message_bus][execution][looper][takes]", Nodes::AudioLooper::Node,
+    Nodes::MidiLooper::Node)
+{
+  const QString uuid = std::is_same_v<TestType, Nodes::AudioLooper::Node>
+                           ? QStringLiteral("a0ad4227-ac3d-448b-a19b-19581ed4e2c6")
+                           : QStringLiteral("0c0b7d3e-5a52-4b8f-9d1f-6e3a2b8c4f71");
+  with<TestType>(uuid, [](auto& e) {
+    auto& model = static_cast<oscr::ProcessModel<TestType>&>(e.proc);
+    Nodes::Looper::looper_view view;
+    model.to_ui = [&](QByteArray b) {
+      auto m = std::make_unique<Nodes::Looper::view_message>();
+      oscr::MessageBusReader{b}(*m);
+      view.receive(*m);
+    };
+    // What the layer does with the view's requests.
+    view.erase = [&](Nodes::Looper::erase_request r) {
+      oscr::MessageBusSender{model.from_ui}(r);
+    };
+    std::vector<halp::timeline_clip> sent;
+    view.send_to_timeline = [&](halp::timeline_clip c) { sent.push_back(std::move(c)); };
+    e.gui("Quantif", ossia::value{0.f});
+    e.gui("Takes", ossia::value{std::string{"Mix"}});
+
+    // The view's requests reach the looper through the execution queue.
+    auto play = [&](auto until) {
+      for(int i = 0; i < 2000 && !until(); i++)
+      {
+        run_exec(e.plug);
+        e.tick(256);
+        e.ui();
+        QThread::msleep(1);
+        QApplication::processEvents();
+      }
+    };
+    auto dragged = [&] {
+      return view.drag_payload(view.width() / 2., view.height() - 10.).files;
+    };
+
+    e.gui("Loop", ossia::value{std::string{"Record"}});
+    for(int i = 0; i < 100; i++)
+      e.tick(256);
+    e.gui("Loop", ossia::value{std::string{"Overdub"}});
+    play([&] { return view.state.take == 1 && view.state.mode == int(Nodes::Looper::LoopMode::Overdub); });
+    REQUIRE(view.state.take == 1);
+    const auto recording = dragged();
+    REQUIRE(recording.size() == 1);
+
+    // A press that would start a drag asks for a take, and the drag waits.
+    CHECK(view.mouse_press(view.width() / 2., view.height() - 10.));
+    CHECK(view.saving());
+    CHECK(dragged().empty());
+    play([&] { return !view.saving(); });
+    const auto overdub = dragged();
+    REQUIRE(overdub.size() == 1);
+    CHECK(overdub != recording);
+    CHECK(QFileInfo::exists(QString::fromStdString(overdub[0])));
+    view.mouse_release(view.width() / 2., view.height() - 10.);
+    CHECK(view.state.mode == int(Nodes::Looper::LoopMode::Overdub));
+
+    // Send waits as well, then sends the take it asked for.
+    CHECK(view.mouse_press(view.width() - 20., 10.));
+    CHECK(sent.empty());
+    play([&] { return !sent.empty(); });
+    REQUIRE(sent.size() == 1);
+    REQUIRE(sent[0].files.size() == 1);
+    CHECK(sent[0].files[0] != overdub[0]);
+    CHECK(QFileInfo::exists(QString::fromStdString(sent[0].files[0])));
+  });
+}

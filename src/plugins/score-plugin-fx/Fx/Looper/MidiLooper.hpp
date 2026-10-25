@@ -122,9 +122,9 @@ struct Node
       halp_meta(description, "Empties the loop and forgets every pass")
     } clear;
 
-    struct : halp::enum_t<OverdubMode, "Overdub">
+    struct : halp::enum_t<OverdubMode, "Overdub mode">
     {
-      using halp::enum_t<OverdubMode, "Overdub">::operator=;
+      using halp::enum_t<OverdubMode, "Overdub mode">::operator=;
       halp_meta(
           description,
           "Merge keeps every pass. Replace silences a pitch of earlier passes "
@@ -348,8 +348,8 @@ struct Node
     static std::function<void(Node&)> work(Looper::midi_take_job&& job)
     {
       const bool ok = job.run();
-      return [slot = job.slot, number = job.number, ok](Node& self) {
-        self.take_written(slot, number, ok);
+      return [slot = job.slot, number = job.number, alone = job.alone, ok](Node& self) {
+        self.take_written(slot, number, ok, alone);
       };
     }
   } worker;
@@ -359,6 +359,11 @@ struct Node
   //! From the view: applied at the start of the next tick.
   void process_message(const Looper::erase_request& r)
   {
+    if(r.take > 0)
+    {
+      m_take_request = std::max(m_take_request, r.take);
+      return;
+    }
     m_erase_request = r;
     m_erase_requested = true;
   }
@@ -372,7 +377,14 @@ struct Node
   std::shared_ptr<Looper::take_writer> writer;
   std::shared_ptr<Looper::midi_export> export_data;
 
-  Node() { export_data = std::make_shared<Looper::midi_export>(); }
+  Node()
+  {
+    export_data = std::make_shared<Looper::midi_export>();
+    stop_data = std::make_shared<Looper::midi_export>();
+  }
+  //! What the take written when the score stops is made of: the node may be
+  //! gone before it is written.
+  std::shared_ptr<Looper::midi_export> stop_data;
 
   void prepare(halp::setup s)
   {
@@ -467,12 +479,21 @@ struct Node
     if(m_stop_requested)
     {
       m_stop_requested = false;
+      const bool recording = loop.taking && transport.actualMode == LoopMode::Record;
+      const double date
+          = recording
+                ? transport.recordStartDate.impl / double(ossia::flicks_per_second<int64_t>)
+                : m_export_date;
+      const int64_t pos = loop.length > 0 ? transport.playbackPos % loop.length : 0;
       flush_loop(0);
       flush_input(0);
       transport.reset();
       m_switches.reset();
       if(loop.taking)
+      {
         loop.end_pass(inputs.overdub_mode);
+        write_stop_take(recording, date, pos);
+      }
     }
 
     if(tk.date == tk.prev_date)
@@ -552,10 +573,14 @@ struct Node
       halp_meta(layout, halp::layouts::vbox)
       struct
       {
-        halp_meta(layout, halp::layouts::hbox)
-        halp::item<&ins::mode> mode;
-        halp::item<&ins::quantif> quantif;
-        halp::item<&ins::takes> takes;
+        halp_meta(layout, halp::layouts::vbox)
+        Looper::item_in_columns<&ins::mode, 5> mode;
+        struct
+        {
+          halp_meta(layout, halp::layouts::hbox)
+          halp::item<&ins::quantif> quantif;
+          halp::item<&ins::takes> takes;
+        } timing;
       } transport;
       struct
       {
@@ -565,21 +590,30 @@ struct Node
         struct
         {
           halp_meta(name, "Length")
-          halp_meta(layout, halp::layouts::hbox)
+          halp_meta(layout, halp::layouts::grid)
+          halp_meta(columns, 3)
           halp::item<&ins::postaction> postaction;
           halp::item<&ins::postaction_bars> bars;
+          halp::item<&ins::sync> sync;
           halp::item<&ins::late> late;
           halp::item<&ins::grace> grace;
-          halp::item<&ins::sync> sync;
         } length;
         struct
         {
           halp_meta(name, "Play")
-          halp_meta(layout, halp::layouts::hbox)
-          halp::item<&ins::restart> restart;
-          halp::item<&ins::follow_tempo> follow_tempo;
-          halp::item<&ins::reverse> reverse;
-          halp::item<&ins::speed> speed;
+          halp_meta(layout, halp::layouts::vbox)
+          struct
+          {
+            halp_meta(layout, halp::layouts::hbox)
+            halp::item<&ins::restart> restart;
+            halp::item<&ins::speed> speed;
+          } first;
+          struct
+          {
+            halp_meta(layout, halp::layouts::hbox)
+            halp::item<&ins::follow_tempo> follow_tempo;
+            halp::item<&ins::reverse> reverse;
+          } second;
         } play;
         struct
         {
@@ -587,41 +621,45 @@ struct Node
           halp_meta(layout, halp::layouts::vbox)
           struct
           {
-            halp_meta(layout, halp::layouts::hbox)
-            halp::item<&ins::rec_play_dub> rec_play_dub;
+            halp_meta(layout, halp::layouts::grid)
+            halp_meta(columns, 3)
             halp::item<&ins::after_record> after_record;
             halp::item<&ins::after_overdub> after_overdub;
-            halp::item<&ins::play_stop> play_stop;
             halp::item<&ins::stop_at> stop_at;
-          } one_button;
+          } settings;
           struct
           {
-            halp_meta(layout, halp::layouts::hbox)
+            halp_meta(layout, halp::layouts::grid)
+            halp_meta(columns, 3)
+            halp::item<&ins::rec_play_dub> rec_play_dub;
+            halp::item<&ins::play_stop> play_stop;
+            halp::item<&ins::restart_loop> restart_loop;
             halp::item<&ins::record> record;
             halp::item<&ins::overdub> overdub;
             halp::item<&ins::comp_next> comp_next;
             halp::item<&ins::play> play;
             halp::item<&ins::stop> stop;
-            halp::item<&ins::restart_loop> restart_loop;
+            halp::item<&ins::clear> clear;
             halp::item<&ins::undo> undo;
             halp::item<&ins::redo> redo;
-            halp::item<&ins::clear> clear;
           } transport;
           struct
           {
-            halp_meta(layout, halp::layouts::hbox)
+            halp_meta(layout, halp::layouts::grid)
+            halp_meta(columns, 3)
             halp::item<&ins::erase_last> erase_last;
             halp::item<&ins::mute_last> mute_last;
+            halp::item<&ins::solo_layer> solo_layer;
             halp::item<&ins::previous_layer> previous_layer;
             halp::item<&ins::next_layer> next_layer;
-            halp::item<&ins::layer> layer;
             halp::item<&ins::mute_layer> mute_layer;
             halp::item<&ins::erase_layer> erase_layer;
-            halp::item<&ins::solo_layer> solo_layer;
           } layers;
           struct
           {
-            halp_meta(layout, halp::layouts::hbox)
+            halp_meta(layout, halp::layouts::grid)
+            halp_meta(columns, 3)
+            halp::item<&ins::layer> layer;
             halp::item<&ins::reverse_toggle> reverse;
             halp::item<&ins::half_speed> half_speed;
             halp::item<&ins::double_speed> double_speed;
@@ -653,7 +691,8 @@ struct Node
         struct
         {
           halp_meta(name, "Notes")
-          halp_meta(layout, halp::layouts::hbox)
+          halp_meta(layout, halp::layouts::grid)
+          halp_meta(columns, 2)
           halp::item<&ins::passthrough> passthrough;
           halp::item<&ins::transpose> transpose;
           halp::item<&ins::in_channel> in_channel;
@@ -703,10 +742,11 @@ private:
   std::array<out_event, max_out> m_out{};
   int m_out_count{};
 
+  //! A note-on of the loop in the range played, and where its note ends.
   struct range_event
   {
     int64_t pos;
-    bool on;
+    int64_t end;
     int note;
   };
   std::array<range_event, 2048> m_range{};
@@ -714,6 +754,28 @@ private:
   // Notes sounding on the output, and how many of them the loop started.
   std::array<std::array<uint16_t, 128>, 16> m_sounding{};
   std::array<std::array<uint16_t, 128>, 16> m_loop_sounding{};
+
+  //! A note of the loop sounding on the output. Where it ends is fixed when
+  //! it starts: Quantize, Grid or Quantize ends changed while it sounds move
+  //! its next rounds, not this one, so it neither loses its note-off nor
+  //! starts twice.
+  struct playing_note
+  {
+    //! Position it ends at, on the round being played: past the loop's end
+    //! when it ends in the next one.
+    int64_t end;
+    //! The note of the loop: its index, and what tells it from another one
+    //! that came to that index since.
+    int64_t start;
+    int note;
+    uint8_t note_channel, note_pitch;
+    //! As it went out.
+    uint8_t channel, pitch;
+  };
+  static constexpr int max_playing = 512;
+  //! By end.
+  std::array<playing_note, max_playing> m_playing{};
+  int m_playing_count{};
 
   // Note-ons played just before a pass started, for the grace window.
   struct early_note
@@ -756,7 +818,8 @@ private:
   LoopMode m_loop_shown{LoopMode::Stop};
   Looper::switches m_switches;
   double m_job_date{};
-  int m_take_slot{};
+  int m_export_slot{};
+  double m_stop_date{};
   int m_takes_written{};
   int64_t m_view_countdown{};
   Looper::view_message m_view{};
@@ -845,12 +908,33 @@ private:
   void note_on(int ch, int pitch, int vel, int64_t ts, bool from_loop);
   void note_off(int ch, int pitch, int64_t ts, bool from_loop);
   void flush_loop(int64_t ts);
+  bool playing(int note) const noexcept;
+  void start_playing(int note, int64_t end, int64_t ts);
+  template <typename Frame>
+  void end_playing(int64_t last, int64_t lo, Frame frame);
+  void wrap_playing(int64_t len, int64_t ts);
+  template <typename Frame>
+  void play_notes(int count, int64_t lo, int64_t hi, Frame frame);
   void flush_input(int64_t ts);
   void push_outputs();
 
   void run_export();
-  void take_written(int slot, int number, bool ok);
+  void take_written(int slot, int number, bool ok, bool alone);
   void write_export_item(int item);
+  void fill_export(
+      const Looper::midi_loop& snap, int item, int64_t pos, Looper::midi_export& e) const;
+  void write_stop_take(bool recording, double date, int64_t pos);
+  int claim_take_slot() noexcept
+  {
+    const int slot = m_next_take_slot;
+    m_next_take_slot = (slot + 1) % Looper::take_writer::slots;
+    return slot;
+  }
+  //! The last take the view asked for, and the one the take being written
+  //! answers.
+  int m_take_request{};
+  int m_job_request{};
+  int m_next_take_slot{};
   //! The loop as it was when the take closed, which every file of the take
   //! is made from: the loop changes while they are written.
   Looper::midi_loop m_export_loop;
@@ -897,12 +981,102 @@ inline void Node::note_off(int ch, int pitch, int64_t ts, bool from_loop)
 
 inline void Node::flush_loop(int64_t ts)
 {
+  m_playing_count = 0;
   if(m_loop_total == 0)
     return;
   for(int c = 0; c < 16; c++)
     for(int p = 0; p < 128; p++)
       while(m_loop_sounding[c][p] > 0)
         note_off(c + 1, p, ts, true);
+}
+
+inline bool Node::playing(int note) const noexcept
+{
+  const auto& n = loop.notes[note];
+  for(int k = 0; k < m_playing_count; k++)
+  {
+    const auto& p = m_playing[k];
+    if(p.note == note && p.start == n.start && p.note_pitch == n.pitch
+       && p.note_channel == n.channel)
+      return true;
+  }
+  return false;
+}
+
+//! Note `note` of the loop starts, unless it still sounds: it ends at `end`.
+inline void Node::start_playing(int note, int64_t end, int64_t ts)
+{
+  if(m_playing_count >= max_playing || playing(note))
+    return;
+  const auto& n = loop.notes[note];
+  const int ch = m_out_channel > 0 ? m_out_channel : n.channel;
+  const int pitch = n.pitch + m_transpose;
+  if(ch < 1 || ch > 16 || pitch < 0 || pitch > 127)
+    return;
+
+  auto it = std::upper_bound(
+      m_playing.begin(), m_playing.begin() + m_playing_count, end,
+      [](int64_t e, const playing_note& p) { return e < p.end; });
+  std::move_backward(it, m_playing.begin() + m_playing_count, m_playing.begin() + m_playing_count + 1);
+  *it = playing_note{
+      .end = end,
+      .start = n.start,
+      .note = note,
+      .note_channel = n.channel,
+      .note_pitch = n.pitch,
+      .channel = uint8_t(ch),
+      .pitch = uint8_t(pitch)};
+  m_playing_count++;
+  note_on(ch, pitch, n.velocity, ts, true);
+}
+
+//! The notes of the loop ending at `last` or before end, at the frame of
+//! where they end; one that should have ended before the range, at `lo`.
+template <typename Frame>
+inline void Node::end_playing(int64_t last, int64_t lo, Frame frame)
+{
+  int k = 0;
+  for(; k < m_playing_count && m_playing[k].end <= last; k++)
+  {
+    const auto& p = m_playing[k];
+    note_off(p.channel, p.pitch, frame(std::max(p.end, lo)), true);
+  }
+  if(k == 0)
+    return;
+  std::move(m_playing.begin() + k, m_playing.begin() + m_playing_count, m_playing.begin());
+  m_playing_count -= k;
+}
+
+//! The playhead goes round: the notes still sounding end in the new round.
+//! No note is as long as the loop, so one ends before the end of that round.
+inline void Node::wrap_playing(int64_t len, int64_t ts)
+{
+  for(int k = 0; k < m_playing_count; k++)
+    m_playing[k].end = std::min(m_playing[k].end - len, len - 1);
+  // A note of the loop counted as sounding with none playing would mute its
+  // key for good: every later note-on of it would be a second one.
+  if(m_playing_count == 0 && m_loop_total != 0)
+    flush_loop(ts);
+}
+
+//! The note-ons of [lo; hi[ gathered in m_range, applied in time order with
+//! the note-offs of the notes playing: at one position, the note-offs first,
+//! so that a note ending where it starts again is heard twice.
+template <typename Frame>
+inline void Node::play_notes(int count, int64_t lo, int64_t hi, Frame frame)
+{
+  std::sort(m_range.begin(), m_range.begin() + count, [](const range_event& a, const range_event& b) {
+    if(a.pos != b.pos)
+      return a.pos < b.pos;
+    return a.note < b.note;
+  });
+  for(int i = 0; i < count; i++)
+  {
+    const auto& e = m_range[i];
+    end_playing(e.pos, lo, frame);
+    start_playing(e.note, e.end, frame(e.pos));
+  }
+  end_playing(hi - 1, lo, frame);
 }
 
 inline void Node::flush_input(int64_t ts)
@@ -1555,6 +1729,7 @@ inline void Node::advance(int64_t start, int64_t length, bool overdub)
         y -= L;
         if(y < 0.)
           y = 0.;
+        wrap_playing(loop.length, int64_t(out));
         if(per_cycle)
         {
           // The pass is over at the loop's start.
@@ -1600,60 +1775,31 @@ inline void Node::play_range(double a, double b, double out0, double r)
       f(q);
   };
 
-  // The note-ons and note-offs of the range, applied in time order: a note
-  // starting and ending in one range must not end before it starts.
   int count = 0;
-  auto add = [&](int64_t pos, bool on, int note) {
+  auto add = [&](int64_t pos, int64_t end, int note) {
     if(count < int(m_range.size()))
-      m_range[count++] = {pos, on, note};
+      m_range[count++] = {pos, end, note};
   };
   for(int i = 0; i < loop.note_count; i++)
   {
     const auto& n = loop.notes[i];
     // A note still held on the input is heard from the input: playing it
-    // again each round would start it with nothing to end it.
-    if(n.length < 0 || n.pass >= loop.count)
+    // again each round would start it with nothing to end it. A note an
+    // overdub replaces may be sounding when it is replaced: it ends where
+    // it was going to.
+    if(n.length < 0 || n.pass >= loop.count || !loop.heard(n, mode))
       continue;
-    // A note an overdub replaces may be sounding when it is replaced: its
-    // end still goes out, the counts keep it from ending anything else.
-    const bool heard = loop.heard(n, mode);
 
     // A pass shorter than the loop plays again over the rest of it.
     const int64_t period = std::clamp<int64_t>(loop.period_of(n.pass), 1, len);
     const auto [first, length] = place(n, period);
-    if(heard)
-      repeats(first, period, lo, hi, [&](int64_t on) { add(on, true, i); });
-    // The ends inside the loop, then the ones past its end: those wrap to its
-    // start, or, truncated, are on the loop's end, which is where the next
-    // round starts.
-    repeats(first, period, lo - length, std::min(hi, len) - length, [&](int64_t on) {
-      add(on + length, false, i);
+    // A note held past the loop's end wraps to its start, or, truncated,
+    // ends on the loop's end, which is where the next round starts.
+    repeats(first, period, lo, hi, [&](int64_t on) {
+      add(on, truncate ? std::min(on + length, len) : on + length, i);
     });
-    if(!truncate)
-      repeats(first, period, lo - length + len, hi - length + len, [&](int64_t on) {
-        add(on + length - len, false, i);
-      });
-    else if(lo <= 0 && 0 < hi)
-      repeats(first, period, len - length, len, [&](int64_t) { add(0, false, i); });
   }
-  std::sort(m_range.begin(), m_range.begin() + count, [](const range_event& a, const range_event& b) {
-    if(a.pos != b.pos)
-      return a.pos < b.pos;
-    if(a.on != b.on)
-      return !a.on;
-    return a.note < b.note;
-  });
-  for(int i = 0; i < count; i++)
-  {
-    const auto& e = m_range[i];
-    const auto& n = loop.notes[e.note];
-    const int ch = m_out_channel > 0 ? m_out_channel : n.channel;
-    const int pitch = n.pitch + m_transpose;
-    if(e.on)
-      note_on(ch, pitch, n.velocity, frame(e.pos), true);
-    else
-      note_off(ch, pitch, frame(e.pos), true);
-  }
+  play_notes(count, lo, hi, frame);
 
   for(int i = 0; i < loop.control_count; i++)
   {
@@ -1712,69 +1858,37 @@ inline void Node::play_range_reverse(double a, double b, double out0, double r)
   };
 
   int count = 0;
-  auto add = [&](int64_t pos, bool on, int note) {
+  auto add = [&](int64_t pos, int64_t end, int note) {
     if(count < int(m_range.size()))
-      m_range[count++] = {pos, on, note};
+      m_range[count++] = {pos, end, note};
   };
   for(int i = 0; i < loop.note_count; i++)
   {
     const auto& n = loop.notes[i];
-    if(n.length < 0 || n.pass >= loop.count)
+    if(n.length < 0 || n.pass >= loop.count || !loop.heard(n, mode))
       continue;
-    const bool heard = loop.heard(n, mode);
     const int64_t period = period_of(n.pass);
     const auto [start, length] = place(n, period);
     const int64_t first = mirrored(start + length, period);
     if(!truncate)
     {
-      if(heard)
-        repeats(first, period, lo, hi, [&](int64_t on) { add(on, true, i); });
-      repeats(first, period, lo - length, std::min(hi, len) - length, [&](int64_t on) {
-        add(on + length, false, i);
-      });
-      repeats(first, period, lo - length + len, hi - length + len, [&](int64_t on) {
-        add(on + length - len, false, i);
-      });
+      repeats(first, period, lo, hi, [&](int64_t on) { add(on, on + length, i); });
     }
     else
     {
       // Forwards, a note held across the loop's end ends with it: what is
       // heard of it is its start. Backwards, that is from the loop's start
       // to where the note started.
-      if(heard)
-      {
-        repeats(first, period, lo, std::min(hi, len - length + 1), [&](int64_t on) {
-          add(on, true, i);
+      repeats(first, period, lo, std::min(hi, len - length + 1), [&](int64_t on) {
+        add(on, on + length, i);
+      });
+      if(lo <= 0 && 0 < hi)
+        repeats(first, period, len - length + 1, len, [&](int64_t on) {
+          add(0, on + length - len, i);
         });
-        if(lo <= 0 && 0 < hi)
-          repeats(first, period, len - length + 1, len, [&](int64_t) { add(0, true, i); });
-      }
-      repeats(first, period, lo - length, std::min(hi, len) - length, [&](int64_t on) {
-        add(on + length, false, i);
-      });
-      repeats(first, period, lo - length + len, hi - length + len, [&](int64_t on) {
-        add(on + length - len, false, i);
-      });
     }
   }
-  std::sort(m_range.begin(), m_range.begin() + count, [](const range_event& a, const range_event& b) {
-    if(a.pos != b.pos)
-      return a.pos < b.pos;
-    if(a.on != b.on)
-      return !a.on;
-    return a.note < b.note;
-  });
-  for(int i = 0; i < count; i++)
-  {
-    const auto& e = m_range[i];
-    const auto& n = loop.notes[e.note];
-    const int ch = m_out_channel > 0 ? m_out_channel : n.channel;
-    const int pitch = n.pitch + m_transpose;
-    if(e.on)
-      note_on(ch, pitch, n.velocity, frame(e.pos), true);
-    else
-      note_off(ch, pitch, frame(e.pos), true);
-  }
+  play_notes(count, lo, hi, frame);
 
   update_reverse_controls();
   for(int i = 0; i < loop.control_count; i++)
@@ -1935,18 +2049,33 @@ inline int64_t Node::looper_trim_extension(int64_t max_frames)
 
 inline void Node::run_export()
 {
-  if(m_export_pending && !m_writing && writer && !loop.empty())
+  const bool asked = m_take_request > m_view.answered;
+  if(asked && loop.empty())
+  {
+    // Nothing to take: the last take is what there is.
+    m_view.answered = m_take_request;
+    m_view_countdown = 0;
+    return;
+  }
+  if((m_export_pending || asked) && !m_writing && writer && !loop.empty())
   {
     m_export_pending = false;
+    m_job_request = m_take_request;
+    // A recording asked for while it goes on is placed where it started,
+    // at the tempo it is played at.
+    const bool recording = loop.taking && transport.actualMode == LoopMode::Record;
+    if(recording)
+      m_export_date = transport.recordStartDate.impl / double(ossia::flicks_per_second<int64_t>);
     // A take closing while this one is written must not change its date.
     m_job_date = m_export_date;
     const auto files = inputs.takes.value;
     m_export_mix = files != Looper::TakeFiles::Layers;
     m_export_layers = files != Looper::TakeFiles::Mix ? loop.count : 0;
     m_export_number = 0;
+    m_export_slot = claim_take_slot();
     m_export_loop.assign(loop);
     m_export_pos = loop.length > 0 ? transport.playbackPos % loop.length : 0;
-    m_export_tempo = m_loop_tempo;
+    m_export_tempo = recording ? m_tempo : m_loop_tempo;
     m_export_signature = m_signature;
     write_export_item(m_export_mix ? -1 : 0);
   }
@@ -1958,12 +2087,49 @@ inline void Node::write_export_item(int item)
 {
   m_export_item = item;
   m_writing = true;
+  fill_export(m_export_loop, item, m_export_pos, *export_data);
 
-  auto& e = *export_data;
+  Looper::midi_take_job job;
+  job.writer = writer;
+  job.data = export_data;
+  job.slot = m_export_slot;
+  job.number = m_export_number;
+  job.layer = item;
+  worker.request(std::move(job));
+}
+
+//! The score stopped while a pass was taken in: the loop as it is heard is a
+//! take of its own, the mix, whose job owns all it needs. It is skipped when
+//! the one before it is still being written.
+inline void Node::write_stop_take(bool recording, double date, int64_t pos)
+{
+  if(!writer || loop.empty() || stop_data->in_use)
+    return;
+  fill_export(loop, -1, pos, *stop_data);
+  stop_data->tempo = recording ? m_tempo : m_loop_tempo;
+  stop_data->meter_numerator = m_signature.upper;
+  stop_data->meter_denominator = m_signature.lower;
+  m_stop_date = date;
+
+  Looper::midi_take_job job;
+  job.writer = writer;
+  job.data = stop_data;
+  job.slot = claim_take_slot();
+  job.number = 0;
+  job.layer = -1;
+  job.alone = true;
+  stop_data->in_use = true;
+  worker.request(std::move(job));
+}
+
+//! What is heard of `snap` (item -1), or of one of its passes, into `e`; a
+//! note still held lasts until `pos`.
+inline void Node::fill_export(
+    const Looper::midi_loop& snap, int item, int64_t pos, Looper::midi_export& e) const
+{
   e.note_count = 0;
   e.control_count = 0;
   const auto mode = inputs.overdub_mode.value;
-  const auto& snap = m_export_loop;
   for(int i = 0; i < snap.note_count; i++)
   {
     // A muted pass has its file, as it would be heard.
@@ -1971,7 +2137,7 @@ inline void Node::write_export_item(int item)
     if(!snap.heard(n, mode, item < 0) || (item >= 0 && n.pass != item))
       continue;
     if(n.length < 0)
-      n.length = snap.distance(n.start, m_export_pos);
+      n.length = snap.distance(n.start, pos);
     // A pass shorter than the loop is in the file as many times as it plays.
     const int64_t period = std::clamp<int64_t>(snap.period_of(n.pass), 1, snap.length);
     const auto placed = place(n, period);
@@ -2004,21 +2170,27 @@ inline void Node::write_export_item(int item)
   e.meter_numerator = m_export_signature.upper;
   e.meter_denominator = m_export_signature.lower;
   e.wrap = inputs.held.value == HeldNotes::Wrap;
-
-  Looper::midi_take_job job;
-  job.writer = writer;
-  job.data = export_data;
-  job.slot = m_take_slot;
-  job.number = m_export_number;
-  job.layer = item;
-  worker.request(std::move(job));
 }
 
-inline void Node::take_written(int slot, int number, bool ok)
+inline void Node::take_written(int slot, int number, bool ok, bool alone)
 {
+  if(alone)
+  {
+    if(!ok || !writer)
+      return;
+    m_takes_written++;
+    m_view.set_take(writer->take_base(slot), "mid", true, 0);
+    m_view.take = m_takes_written;
+    m_view.take_date = m_stop_date;
+    m_view_countdown = 0;
+    return;
+  }
   m_writing = false;
   if(!ok || !writer)
+  {
+    m_view.answered = std::max(m_view.answered, m_job_request);
     return;
+  }
 
   m_export_number = number;
   if(m_export_item + 1 < m_export_layers)
@@ -2031,7 +2203,7 @@ inline void Node::take_written(int slot, int number, bool ok)
   m_view.set_take(writer->take_base(slot), "mid", m_export_mix, m_export_layers);
   m_view.take = m_takes_written;
   m_view.take_date = m_job_date;
-  m_take_slot = (slot + 1) % Looper::take_writer::slots;
+  m_view.answered = std::max(m_view.answered, m_job_request);
   m_view_countdown = 0;
 }
 

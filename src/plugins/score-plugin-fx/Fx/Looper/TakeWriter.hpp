@@ -15,6 +15,7 @@
 
 #include <algorithm>
 #include <array>
+#include <atomic>
 #include <cmath>
 #include <memory>
 #include <mutex>
@@ -134,6 +135,9 @@ struct export_buffer
   boost::container::vector<float> data;
   int channels{};
   int64_t capacity{};
+  //! A job is writing it: the processing thread does not write it until the
+  //! job is over. The job may outlive the looper that made it.
+  std::atomic_bool in_use{};
 
   //! Main thread only. The memory is reserved without being written.
   static std::shared_ptr<export_buffer> make(int channels, int64_t frames)
@@ -159,6 +163,9 @@ struct take_job
   //! Number of the take, 0 for a new one; -1 for the mix, else the layer.
   int number{};
   int layer{-1};
+  //! A take of this one file, written whatever the looper does meanwhile,
+  //! e.g. when the score stops while a pass is taken in.
+  bool alone{};
   int channels{};
   int64_t frames{};
   int rate{};
@@ -168,7 +175,14 @@ struct take_job
 
   bool run()
   {
-    if(!writer || !audio || channels <= 0 || frames <= 0)
+    if(!audio)
+      return false;
+    struct release
+    {
+      export_buffer& b;
+      ~release() { b.in_use = false; }
+    } done{*audio};
+    if(!writer || channels <= 0 || frames <= 0)
       return false;
 
     std::array<const float*, 16> data{};

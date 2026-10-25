@@ -383,8 +383,8 @@ struct Node
     static std::function<void(Node&)> work(Looper::take_job&& job)
     {
       const bool ok = job.run();
-      return [slot = job.slot, number = job.number, ok](Node& self) {
-        self.take_written(slot, number, ok);
+      return [slot = job.slot, number = job.number, alone = job.alone, ok](Node& self) {
+        self.take_written(slot, number, ok, alone);
       };
     }
   } worker;
@@ -394,6 +394,11 @@ struct Node
   //! From the view: applied at the start of the next tick.
   void process_message(const Looper::erase_request& r)
   {
+    if(r.take > 0)
+    {
+      m_take_request = std::max(m_take_request, r.take);
+      return;
+    }
     m_erase_request = r;
     m_erase_requested = true;
   }
@@ -591,6 +596,8 @@ struct Node
   //! Stopping the process keeps the loop: only the transport starts over.
   void stop()
   {
+    if(transport.is_taking())
+      write_stop_take();
     transport.reset();
     m_switches.reset();
     m_view_countdown = 0;
@@ -605,10 +612,14 @@ struct Node
       halp_meta(layout, halp::layouts::vbox)
       struct
       {
-        halp_meta(layout, halp::layouts::hbox)
-        halp::item<&ins::mode> mode;
-        halp::item<&ins::quantif> quantif;
-        halp::item<&ins::takes> takes;
+        halp_meta(layout, halp::layouts::vbox)
+        Looper::item_in_columns<&ins::mode, 5> mode;
+        struct
+        {
+          halp_meta(layout, halp::layouts::hbox)
+          halp::item<&ins::quantif> quantif;
+          halp::item<&ins::takes> takes;
+        } timing;
       } transport;
       struct
       {
@@ -618,23 +629,36 @@ struct Node
         struct
         {
           halp_meta(name, "Length")
-          halp_meta(layout, halp::layouts::hbox)
+          halp_meta(layout, halp::layouts::grid)
+          halp_meta(columns, 2)
           halp::item<&ins::postaction> postaction;
           halp::item<&ins::postaction_bars> bars;
-          halp::item<&ins::late> late;
           halp::item<&ins::sync> sync;
+          halp::item<&ins::late> late;
         } length;
         struct
         {
           halp_meta(name, "Play")
-          halp_meta(layout, halp::layouts::hbox)
-          halp::item<&ins::passthrough> passthrough;
-          halp::item<&ins::restart> restart;
-          halp::item<&ins::feedback> feedback;
-          halp::item<&ins::past_end> past_end;
-          halp::item<&ins::follow_tempo> follow_tempo;
-          halp::item<&ins::reverse> reverse;
-          halp::item<&ins::speed> speed;
+          halp_meta(layout, halp::layouts::vbox)
+          struct
+          {
+            halp_meta(layout, halp::layouts::hbox)
+            halp::item<&ins::passthrough> passthrough;
+            halp::item<&ins::past_end> past_end;
+            halp::item<&ins::speed> speed;
+          } first;
+          struct
+          {
+            halp_meta(layout, halp::layouts::hbox)
+            halp::item<&ins::restart> restart;
+            halp::item<&ins::feedback> feedback;
+          } second;
+          struct
+          {
+            halp_meta(layout, halp::layouts::hbox)
+            halp::item<&ins::follow_tempo> follow_tempo;
+            halp::item<&ins::reverse> reverse;
+          } third;
         } play;
         struct
         {
@@ -642,41 +666,45 @@ struct Node
           halp_meta(layout, halp::layouts::vbox)
           struct
           {
-            halp_meta(layout, halp::layouts::hbox)
-            halp::item<&ins::rec_play_dub> rec_play_dub;
+            halp_meta(layout, halp::layouts::grid)
+            halp_meta(columns, 3)
             halp::item<&ins::after_record> after_record;
             halp::item<&ins::after_overdub> after_overdub;
-            halp::item<&ins::play_stop> play_stop;
             halp::item<&ins::stop_at> stop_at;
-          } one_button;
+          } settings;
           struct
           {
-            halp_meta(layout, halp::layouts::hbox)
+            halp_meta(layout, halp::layouts::grid)
+            halp_meta(columns, 3)
+            halp::item<&ins::rec_play_dub> rec_play_dub;
+            halp::item<&ins::play_stop> play_stop;
+            halp::item<&ins::restart_loop> restart_loop;
             halp::item<&ins::record> record;
             halp::item<&ins::overdub> overdub;
             halp::item<&ins::comp_next> comp_next;
             halp::item<&ins::play> play;
             halp::item<&ins::stop> stop;
-            halp::item<&ins::restart_loop> restart_loop;
+            halp::item<&ins::clear> clear;
             halp::item<&ins::undo> undo;
             halp::item<&ins::redo> redo;
-            halp::item<&ins::clear> clear;
           } transport;
           struct
           {
-            halp_meta(layout, halp::layouts::hbox)
+            halp_meta(layout, halp::layouts::grid)
+            halp_meta(columns, 3)
             halp::item<&ins::erase_last> erase_last;
             halp::item<&ins::mute_last> mute_last;
+            halp::item<&ins::solo_layer> solo_layer;
             halp::item<&ins::previous_layer> previous_layer;
             halp::item<&ins::next_layer> next_layer;
-            halp::item<&ins::layer> layer;
             halp::item<&ins::mute_layer> mute_layer;
             halp::item<&ins::erase_layer> erase_layer;
-            halp::item<&ins::solo_layer> solo_layer;
           } layers;
           struct
           {
-            halp_meta(layout, halp::layouts::hbox)
+            halp_meta(layout, halp::layouts::grid)
+            halp_meta(columns, 3)
+            halp::item<&ins::layer> layer;
             halp::item<&ins::reverse_toggle> reverse;
             halp::item<&ins::half_speed> half_speed;
             halp::item<&ins::double_speed> double_speed;
@@ -699,7 +727,8 @@ struct Node
         struct
         {
           halp_meta(name, "Memory")
-          halp_meta(layout, halp::layouts::hbox)
+          halp_meta(layout, halp::layouts::grid)
+          halp_meta(columns, 3)
           halp::item<&ins::max_seconds> max_seconds;
           halp::item<&ins::max_layers> max_layers;
           halp::item<&ins::channels> channels;
@@ -770,7 +799,6 @@ private:
   LoopMode m_loop_shown{LoopMode::Stop};
   Looper::switches m_switches;
   double m_job_date{};
-  int m_take_slot{};
   // The files of the take being written: the mix (item -1), then the layers,
   // one after the other under one take number.
   int m_export_item{};
@@ -925,6 +953,23 @@ private:
   //! A recording closed into an overdub on the same frame: the pass carries
   //! on what it was taking in, so neither is faded where they meet.
   bool m_seamless{};
+  //! The end of such a recording, faded while the overdub that went on from
+  //! it is not heard, as it is when a recording simply ends. The samples the
+  //! fade changes are kept to give them back.
+  struct seam
+  {
+    //! Buffers of the recording and of the overdub, -1 for none.
+    int base_slot{-1};
+    int pass_slot{-1};
+    //! Frames of the recording.
+    int64_t end{};
+    bool faded{};
+    std::array<
+        float, Looper::audio_layers::max_channels * Looper::audio_layers::fade_frames>
+        kept{};
+  } m_seam;
+  void update_seam(bool new_pass);
+  void fade_seam(bool faded);
 
   // The input of the last seconds, for Capture.
   boost::container::vector<float> m_ring;
@@ -933,8 +978,35 @@ private:
   //! Frames of input seen since the looper was created.
   int64_t m_ring_written{};
   void run_export();
-  void take_written(int slot, int number, bool ok);
+  void take_written(int slot, int number, bool ok, bool alone);
   void start_export_item(int item);
+  void flatten(
+      const Looper::audio_layer* passes, int count, int item, int64_t len, int64_t from,
+      int64_t to);
+  void copy_open_pass();
+  void write_stop_take();
+  int claim_take_slot() noexcept
+  {
+    const int slot = m_next_take_slot;
+    m_next_take_slot = (slot + 1) % Looper::take_writer::slots;
+    return slot;
+  }
+  //! The last take the view asked for, and the one the take being written
+  //! answers.
+  int m_take_request{};
+  int m_job_request{};
+  int m_next_take_slot{};
+  int m_export_slot{};
+  double m_stop_date{};
+  //! A take asked for while an overdub goes on: the pass is copied into a
+  //! free buffer before the take is flattened, ahead of where the pass
+  //! writes, so that the take is the loop of one moment.
+  int m_copy_from{-1};
+  int m_copy_to{-1};
+  int64_t m_copy_pos{};
+  int64_t m_copy_left{};
+  int64_t m_copy_period{};
+  int m_copy_dir{1};
   void send_view(int64_t frames);
 
   void play(int64_t first_pos, int64_t samples);
@@ -952,6 +1024,7 @@ inline void Node::clear_loop()
   sync.release();
   m_loading = false;
   layers.clear();
+  m_seam.base_slot = -1;
   transport.playbackPos = 0;
   // Whatever was being taken in is gone with the rest.
   if(transport.is_taking())
@@ -1032,6 +1105,7 @@ inline void Node::apply_buttons()
 
 inline int64_t Node::looper_run(int64_t start, int64_t length)
 {
+  update_seam(false);
   // Stretching starts again from where the loop is, the next time it plays.
   if(transport.actualMode != LoopMode::Play)
     m_stretch_ready = false;
@@ -1115,6 +1189,18 @@ inline void Node::looper_close_take(
     // played: the end of the loop goes on into the first pass over it.
     m_seamless = Looper::overdubbing(transport.actualMode);
     fade_edges(top->slot, !m_seamless);
+    if(m_seamless)
+    {
+      const int64_t n = std::min<int64_t>(layers.length, Looper::audio_layers::fade_frames);
+      m_seam.base_slot = top->slot;
+      m_seam.pass_slot = -1;
+      m_seam.end = layers.length;
+      m_seam.faded = false;
+      for(int c = 0; c < layers.channels; c++)
+        std::copy_n(
+            layers.data(top->slot, c) + layers.length - n, n,
+            m_seam.kept.data() + c * Looper::audio_layers::fade_frames);
+    }
 
     // If there are less samples than expected we extend
     if(quantify_length && total_samples > layers.length)
@@ -1245,9 +1331,59 @@ inline int64_t Node::looper_trim_extension(int64_t max_frames)
 inline void Node::cancel_export() noexcept
 {
   m_flattening = false;
+  m_copy_left = 0;
   if(m_writing)
     m_export_cancelled = true;
   layers.reserved = 0;
+}
+
+//! The recording's end is faded unless the overdub that went on from it is
+//! heard over it. Once that overdub is gone for good, redo or not, the fade
+//! stays. `new_pass`: a pass is about to start, which drops what redo would
+//! bring back.
+inline void Node::update_seam(bool new_pass)
+{
+  auto& s = m_seam;
+  if(s.base_slot < 0 || s.pass_slot < 0)
+    return;
+  // Merged into another pass, or erased: what is in that buffer is not the
+  // recording any more.
+  if(layers.count == 0 || layers.layers[0].slot != s.base_slot)
+  {
+    s.base_slot = -1;
+    return;
+  }
+  const int kept = new_pass ? layers.count : layers.total;
+  bool there = false;
+  for(int i = 1; i < kept; i++)
+    there = there || layers.layers[i].slot == s.pass_slot;
+  if(!there)
+  {
+    fade_seam(true);
+    s.base_slot = -1;
+    return;
+  }
+  const auto& over = layers.layers[1];
+  fade_seam(!(layers.count > 1 && over.slot == s.pass_slot && !over.muted));
+}
+
+inline void Node::fade_seam(bool faded)
+{
+  auto& s = m_seam;
+  if(s.faded == faded)
+    return;
+  s.faded = faded;
+  constexpr int fade = Looper::audio_layers::fade_frames;
+  const int64_t n = std::min<int64_t>(s.end, fade);
+  if(n <= 0 || s.end > layers.capacity)
+    return;
+  for(int c = 0; c < layers.channels; c++)
+  {
+    float* d = layers.data(s.base_slot, c) + s.end - n;
+    const float* k = s.kept.data() + c * fade;
+    for(int64_t i = 0; i < n; i++)
+      d[i] = faded ? k[i] * (1.f - float(i) / float(n)) : k[i];
+  }
 }
 
 //! A small fade on the first and last samples of a recorded pass.
@@ -1321,6 +1457,7 @@ inline void Node::capture(const tick& tk)
 
   cancel_export();
   layers.begin_recording();
+  m_seam.base_slot = -1;
   m_switches.soloed.forget();
   const int slot = layers.layers[0].slot;
   for(int c = 0; c < layers.channels; c++)
@@ -1380,6 +1517,7 @@ inline void Node::load_file()
       return;
     cancel_export();
     layers.begin_recording();
+    m_seam.base_slot = -1;
     m_switches.soloed.forget();
     // Nothing is heard until the whole file is in.
     layers.count = 0;
@@ -1673,6 +1811,7 @@ inline int64_t Node::record(int64_t first_pos, int64_t samples, bool echo)
     // being flattened would read the new one.
     cancel_export();
     layers.begin_recording();
+    m_seam.base_slot = -1;
     m_switches.soloed.forget();
     m_seamless = false;
     transport.playbackPos = 0;
@@ -1733,6 +1872,7 @@ inline void Node::write_tape(int64_t y, const float* v, float feedback)
     if(auto* done = layers.top())
       shift_pass(*done);
     layers.reserved_overwritten = false;
+    update_seam(true);
     layers.begin_overdub(m_reverse ? layers.length - 1 - y : y);
     if(layers.reserved_overwritten)
       cancel_export();
@@ -1795,8 +1935,11 @@ inline void Node::begin_pass_carried(int64_t len)
   const bool carried = span > 0 && span < len && k == span && layers.count == 1
                        && m_speed == 1. && !m_reverse
                        && len + span <= layers.capacity;
+  update_seam(true);
   layers.begin_overdub(carried ? 0 : k);
   auto* top = layers.top();
+  if(seamless && top)
+    m_seam.pass_slot = top->slot;
   if(!carried || !top || layers.count != 2)
     return;
   const auto& base = layers.layers[0];
@@ -1933,11 +2076,32 @@ inline void Node::start_export_item(int item)
 
 inline void Node::run_export()
 {
-  if(m_export_pending && !m_flattening && !m_writing && !layers.empty() && writer
-     && export_audio->capacity >= layers.length
-     && export_audio->channels >= layers.channels)
+  const bool asked = m_take_request > m_view.answered;
+  if(asked && layers.empty())
+  {
+    // Nothing to take: the last take is what there is.
+    m_view.answered = m_take_request;
+    m_view_countdown = 0;
+  }
+  else if(
+      (m_export_pending || asked) && !m_flattening && !m_writing && !layers.empty()
+      && writer && !export_audio->in_use
+      && export_audio->capacity >= layers.length
+      && export_audio->channels >= layers.channels)
   {
     m_export_pending = false;
+    m_job_request = m_take_request;
+    // Asked for while a pass is taken in, the take has every pass, that one
+    // as far as it went. A recording is placed where it started, at the
+    // tempo it is played at.
+    const bool open = asked && transport.is_taking();
+    const bool recording = open && transport.actualMode == LoopMode::Record;
+    if(recording)
+    {
+      m_export_date = transport.recordStartDate.impl / double(ossia::flicks_per_second<int64_t>);
+      m_export_tempo = m_tempo;
+      m_export_signature = m_signature;
+    }
     // A take closing while this one is written must not change its date.
     m_job_date = m_export_date;
     m_export_length = layers.length;
@@ -1945,7 +2109,7 @@ inline void Node::run_export()
     const auto files = inputs.takes.value;
     // The passes as they are now: gains change with feedback, the loop's
     // length with undo, and new passes come while the files are written.
-    m_export_count = std::clamp(m_closed_count, 1, layers.count);
+    m_export_count = open ? layers.count : std::clamp(m_closed_count, 1, layers.count);
     m_export_mix = files != Looper::TakeFiles::Layers;
     m_export_layers = files != Looper::TakeFiles::Mix ? m_export_count : 0;
     std::copy_n(layers.layers.begin(), layers.count, m_export_snapshot.begin());
@@ -1953,11 +2117,42 @@ inline void Node::run_export()
     for(int i = 0; i < m_export_count; i++)
       layers.reserved |= uint64_t(1) << m_export_snapshot[i].slot;
     m_export_number = 0;
+    m_export_slot = claim_take_slot();
     start_export_item(m_export_mix ? -1 : 0);
+    if(open && !recording)
+      copy_open_pass();
   }
 
   if(!m_flattening)
     return;
+
+  if(m_copy_left > 0)
+  {
+    const int64_t n = std::min(
+        m_copy_left,
+        std::max<int64_t>(65536, work_per_tick / std::max(1, m_export_channels)));
+    for(int c = 0; c < m_export_channels; c++)
+    {
+      const float* src = layers.data(m_copy_from, c);
+      float* dst = layers.data(m_copy_to, c);
+      int64_t q = m_copy_pos;
+      for(int64_t i = 0; i < n; i++)
+      {
+        dst[q] = src[q];
+        q += m_copy_dir;
+        if(q >= m_copy_period)
+          q = 0;
+        else if(q < 0)
+          q = m_copy_period - 1;
+      }
+    }
+    m_copy_pos = (m_copy_pos + m_copy_dir * n) % m_copy_period;
+    if(m_copy_pos < 0)
+      m_copy_pos += m_copy_period;
+    m_copy_left -= n;
+    if(m_copy_left > 0)
+      return;
+  }
 
   // A bounded amount of work per tick: a minute-long loop of many passes and
   // channels does not make one tick a minute of work.
@@ -1965,33 +2160,9 @@ inline void Node::run_export()
       = int64_t(m_export_channels) * (m_export_item < 0 ? std::max(1, m_export_count) : 1);
   const int64_t chunk = std::max<int64_t>(1024, work_per_tick / std::max<int64_t>(1, per_frame));
   const int64_t end = std::min(m_export_length, m_flatten_pos + chunk);
-  const int64_t len = m_export_length;
-  for(int c = 0; c < m_export_channels; c++)
-  {
-    float* dst = export_audio->channel(c);
-    if(m_export_item < 0)
-    {
-      std::fill(dst + m_flatten_pos, dst + end, 0.f);
-      for(int i = 0; i < m_export_count; i++)
-      {
-        const auto& l = m_export_snapshot[i];
-        const float* src = layers.data(l.slot, c);
-        for(int64_t k = m_flatten_pos; k < end; k++)
-          if(Looper::audio_layers::valid_in(l, k, len))
-            dst[k] += l.gain * src[Looper::audio_layers::index_in(l, k, len)];
-      }
-    }
-    else
-    {
-      // A muted pass has its file, as it would be heard.
-      const auto& l = m_export_snapshot[m_export_item];
-      const float* src = layers.data(l.slot, c);
-      for(int64_t k = m_flatten_pos; k < end; k++)
-        dst[k] = Looper::audio_layers::valid_in(l, k, len)
-                     ? l.unmuted_gain * src[Looper::audio_layers::index_in(l, k, len)]
-                     : 0.f;
-    }
-  }
+  flatten(
+      m_export_snapshot.data(), m_export_count, m_export_item, m_export_length,
+      m_flatten_pos, end);
   m_flatten_pos = end;
 
   if(m_flatten_pos < m_export_length)
@@ -2003,7 +2174,7 @@ inline void Node::run_export()
   Looper::take_job job;
   job.writer = writer;
   job.audio = export_audio;
-  job.slot = m_take_slot;
+  job.slot = m_export_slot;
   job.number = m_export_number;
   job.layer = m_export_item;
   job.channels = m_export_channels;
@@ -2012,11 +2183,122 @@ inline void Node::run_export()
   job.tempo = m_export_tempo;
   job.meter_numerator = m_export_signature.upper;
   job.meter_denominator = m_export_signature.lower;
+  export_audio->in_use = true;
   worker.request(std::move(job));
 }
 
-inline void Node::take_written(int slot, int number, bool ok)
+//! Frames [from; to[ of a take of `count` passes into the export buffer: what
+//! is heard of them (item -1), or of one of them.
+inline void Node::flatten(
+    const Looper::audio_layer* passes, int count, int item, int64_t len, int64_t from,
+    int64_t to)
 {
+  for(int c = 0; c < m_export_channels; c++)
+  {
+    float* dst = export_audio->channel(c);
+    if(item < 0)
+    {
+      std::fill(dst + from, dst + to, 0.f);
+      for(int i = 0; i < count; i++)
+      {
+        const auto& l = passes[i];
+        const float* src = layers.data(l.slot, c);
+        for(int64_t k = from; k < to; k++)
+          if(Looper::audio_layers::valid_in(l, k, len))
+            dst[k] += l.gain * src[Looper::audio_layers::index_in(l, k, len)];
+      }
+    }
+    else
+    {
+      // A muted pass has its file, as it would be heard.
+      const auto& l = passes[item];
+      const float* src = layers.data(l.slot, c);
+      for(int64_t k = from; k < to; k++)
+        dst[k] = Looper::audio_layers::valid_in(l, k, len)
+                     ? l.unmuted_gain * src[Looper::audio_layers::index_in(l, k, len)]
+                     : 0.f;
+    }
+  }
+}
+
+//! The take has the overdub going on: its pass is copied into a free buffer,
+//! from a little behind where it writes and on the way the playhead goes,
+//! faster than the playhead: every position is copied before the pass writes
+//! it again. Without a free buffer, the take reads the pass as it goes on.
+inline void Node::copy_open_pass()
+{
+  auto& l = m_export_snapshot[m_export_count - 1];
+  int spare = -1;
+  for(int s = 0; s < layers.buffers() && spare < 0; s++)
+    if(!layers.slot_used(s) && !layers.is_reserved(s))
+      spare = s;
+  const int64_t period = Looper::audio_layers::period_in(l, m_export_length);
+  if(spare < 0 || period <= 0)
+    return;
+  layers.reserved |= uint64_t(1) << spare;
+  m_copy_from = l.slot;
+  m_copy_to = spare;
+  l.slot = spare;
+  m_copy_period = period;
+  m_copy_left = period;
+  m_copy_dir = m_reverse ? -1 : 1;
+  const int64_t head = transport.playbackPos % std::max<int64_t>(1, m_export_length) % period;
+  const int64_t behind = std::min<int64_t>(period / 2, 8192);
+  m_copy_pos = ((head - m_copy_dir * behind) % period + period) % period;
+}
+
+//! The score stopped while a pass was taken in: the loop as it is heard is a
+//! take of its own, the mix, flattened at once since the looper may be gone
+//! by the next tick; its job owns the buffer. A take being flattened is
+//! flattened again afterwards; one being written leaves no room for it.
+inline void Node::write_stop_take()
+{
+  if(!writer || layers.empty() || m_writing || export_audio->in_use
+     || export_audio->capacity < layers.length || export_audio->channels < layers.channels)
+    return;
+  if(m_flattening)
+  {
+    cancel_export();
+    m_export_pending = true;
+  }
+  const bool recording = transport.actualMode == LoopMode::Record;
+  m_stop_date = recording
+                    ? transport.recordStartDate.impl / double(ossia::flicks_per_second<int64_t>)
+                    : m_export_date;
+  m_export_channels = layers.channels;
+  flatten(layers.layers.data(), layers.count, -1, layers.length, 0, layers.length);
+
+  Looper::take_job job;
+  job.writer = writer;
+  job.audio = export_audio;
+  job.slot = claim_take_slot();
+  job.number = 0;
+  job.layer = -1;
+  job.alone = true;
+  job.channels = layers.channels;
+  job.frames = layers.length;
+  job.rate = int(m_rate);
+  job.tempo = recording ? m_tempo : m_loop_tempo;
+  job.meter_numerator = m_signature.upper;
+  job.meter_denominator = m_signature.lower;
+  export_audio->in_use = true;
+  worker.request(std::move(job));
+}
+
+inline void Node::take_written(int slot, int number, bool ok, bool alone)
+{
+  if(alone)
+  {
+    if(!ok || !writer)
+      return;
+    m_takes_written++;
+    m_last_take_date = m_stop_date;
+    m_view.set_take(writer->take_base(slot), "wav", true, 0);
+    m_view.take = m_takes_written;
+    m_view.take_date = m_last_take_date;
+    m_view_countdown = 0;
+    return;
+  }
   m_writing = false;
   if(m_export_cancelled || !ok || !writer)
   {
@@ -2024,6 +2306,7 @@ inline void Node::take_written(int slot, int number, bool ok)
     // stops there.
     m_export_cancelled = false;
     layers.reserved = 0;
+    m_view.answered = std::max(m_view.answered, m_job_request);
     return;
   }
 
@@ -2040,7 +2323,7 @@ inline void Node::take_written(int slot, int number, bool ok)
   m_view.set_take(writer->take_base(slot), "wav", m_export_mix, m_export_layers);
   m_view.take = m_takes_written;
   m_view.take_date = m_last_take_date;
-  m_take_slot = (slot + 1) % Looper::take_writer::slots;
+  m_view.answered = std::max(m_view.answered, m_job_request);
   // Force a view update with the new take.
   m_view_countdown = 0;
 }

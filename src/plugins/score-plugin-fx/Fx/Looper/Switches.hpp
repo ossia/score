@@ -3,6 +3,7 @@
 #include <Fx/Looper/Transport.hpp>
 
 #include <halp/controls.hpp>
+#include <halp/layout.hpp>
 #include <halp/meta.hpp>
 
 #include <algorithm>
@@ -29,6 +30,16 @@
  */
 namespace Nodes::Looper
 {
+//! The control F of a layout, its choices on `Columns` buttons a row: Loop
+//! keeps its five modes on one line.
+template <auto F, int Columns>
+struct item_in_columns
+{
+  halp_meta(layout, halp::layouts::control)
+  static constexpr int columns() noexcept { return Columns; }
+  decltype(F) model = F;
+};
+
 //! What Rec / Play / Dub does while overdubbing until the setting is changed.
 inline constexpr AfterOverdub after_overdub_default = AfterOverdub::Play;
 

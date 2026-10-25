@@ -6,6 +6,7 @@
 
 #include <algorithm>
 #include <array>
+#include <atomic>
 #include <cmath>
 #include <filesystem>
 #include <fstream>
@@ -29,6 +30,9 @@ struct midi_export
   int meter_numerator{4};
   int meter_denominator{4};
   bool wrap{true};
+  //! A job is writing it: the processing thread does not fill it until the
+  //! job is over. The job may outlive the looper that made it.
+  std::atomic_bool in_use{};
 
   static constexpr int ticks_per_quarter = 480;
 
@@ -126,10 +130,20 @@ struct midi_take_job
   //! Number of the take, 0 for a new one; -1 for the mix, else the pass.
   int number{};
   int layer{-1};
+  //! A take of this one file, written whatever the looper does meanwhile,
+  //! e.g. when the score stops while a pass is taken in.
+  bool alone{};
 
   bool run()
   {
-    if(!writer || !data || data->length <= 0)
+    if(!data)
+      return false;
+    struct release
+    {
+      midi_export& e;
+      ~release() { e.in_use = false; }
+    } done{*data};
+    if(!writer || data->length <= 0)
       return false;
     const std::string bytes = data->to_smf();
     const auto& path = writer->next_path(slot, number, layer);

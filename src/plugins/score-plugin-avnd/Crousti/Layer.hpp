@@ -17,6 +17,8 @@
 #include <score/graphics/layouts/GraphicsStripDetailLayout.hpp>
 #include <score/graphics/layouts/GraphicsTabLayout.hpp>
 #include <score/graphics/layouts/LayoutSelection.hpp>
+#include <score/graphics/RectItem.hpp>
+#include <score/graphics/widgets/QGraphicsEnum.hpp>
 #include <score/graphics/widgets/QGraphicsLineEdit.hpp>
 #include <score/tools/File.hpp>
 
@@ -392,6 +394,17 @@ struct LayoutBuilder final : Process::LayoutBuilderBase
     {
       if(auto edit = qgraphicsitem_cast<score::QGraphicsLineEdit*>(lay.control))
         edit->setTextWidth(Item::width());
+    }
+    // An enumeration shown as buttons, so many a row
+    if constexpr(requires { Item::columns(); })
+    {
+      if(auto e = dynamic_cast<score::QGraphicsEnum*>(lay.control))
+      {
+        e->columns = Item::columns();
+        e->updateRect();
+        if(auto container = dynamic_cast<score::EmptyRectItem*>(lay.container))
+          container->fitChildrenRect();
+      }
     }
   }
 

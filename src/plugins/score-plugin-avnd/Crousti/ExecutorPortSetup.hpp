@@ -10,6 +10,10 @@
 
 #include <avnd/binding/ossia/node.hpp>
 
+#include <atomic>
+#include <cstdint>
+#include <utility>
+
 namespace oscr
 {
 //! The exec node of an avnd object: it resends, at the beginning of each tick,
@@ -83,6 +87,31 @@ ossia::value resolveControlPath(const ossia::value& v, const score::DocumentCont
 template <typename T>
 inline constexpr bool control_value_owns_memory = !std::is_trivially_destructible_v<T>;
 
+/**
+ * A value a processor wrote to one of its own controls, while the UI thread
+ * sets it on the inlet. It goes back to the processor like a value from the
+ * UI, so that the processor's input holds what the UI shows, but only when
+ * it is still the last one the processor wrote: an older one arriving after
+ * the processor went on to another would undo it.
+ */
+struct processor_write_back
+{
+  //! The control, only compared with.
+  const void* field{};
+  //! Which write it is, and how many the processor has made so far: the
+  //! counter is written and read on the audio thread only, and lives as long
+  //! as the processor.
+  uint64_t number{};
+  const std::atomic<uint64_t>* written{};
+
+  //! Audio thread.
+  bool stale() const noexcept
+  {
+    return written && written->load(std::memory_order_relaxed) != number;
+  }
+};
+inline thread_local processor_write_back control_written_by_processor{};
+
 template <typename Node, typename Field, std::size_t NPred, std::size_t NField>
 struct con_unvalidated
 {
@@ -104,6 +133,9 @@ struct con_unvalidated
   {
     using control_value_type = std::decay_t<decltype(Field::value)>;
 
+    const auto echo = control_written_by_processor.field == &field
+                          ? control_written_by_processor
+                          : processor_write_back{};
     if(auto node = weak_node.lock())
     {
       if constexpr(control_value_owns_memory<control_value_type>)
@@ -111,8 +143,8 @@ struct con_unvalidated
         auto v = std::make_unique<control_value_type>();
         node->from_ossia_value(field, val, *v, avnd::field_index<NField>{});
         ctx.executionQueue.enqueue([weak_node = weak_node, gcq = ctx.weakGCQueue(),
-                                    v = std::move(v)]() mutable {
-          if(auto n = weak_node.lock())
+                                    v = std::move(v), echo]() mutable {
+          if(auto n = weak_node.lock(); n && !echo.stale())
             n->template control_updated_from_ui<control_value_type, control_index>(
                 std::move(*v));
           free_on_main_thread(gcq, v);
@@ -122,8 +154,8 @@ struct con_unvalidated
       {
         control_value_type v;
         node->from_ossia_value(field, val, v, avnd::field_index<NField>{});
-        ctx.executionQueue.enqueue([weak_node = weak_node, v = std::move(v)]() mutable {
-          if(auto n = weak_node.lock())
+        ctx.executionQueue.enqueue([weak_node = weak_node, v = std::move(v), echo]() mutable {
+          if(auto n = weak_node.lock(); n && !echo.stale())
           {
             n->template control_updated_from_ui<control_value_type, control_index>(
                 std::move(v));
@@ -275,24 +307,32 @@ struct setup_control_for_exec : setup_control_for_exec_base<Node, Field>
           capacity = Field::max_length();
       }
 
-      auto box = std::make_shared<latest_value<value_type>>();
+      // Each value goes with the number of the write it is.
+      using written_value = std::pair<value_type, uint64_t>;
+      auto box = std::make_shared<latest_value<written_value>>();
       if constexpr(is_text)
-        box->for_each_slot([capacity](std::string& s) { s.reserve(capacity); });
+        box->for_each_slot([capacity](written_value& s) { s.first.reserve(capacity); });
+      auto written = std::make_shared<std::atomic<uint64_t>>(0);
 
       // Sends the wake-up the box requested; false when the queue is full.
+      const void* field = &param;
       auto wake = [inlet = QPointer{inlet}, self = QPointer{&this->element},
-                   qed_ptr = this->ctx.weakEditionQueue(), box] {
+                   qed_ptr = this->ctx.weakEditionQueue(), box, field, written] {
         auto qed = qed_ptr.lock();
         if(!qed)
         {
           box->cancel();
           return true;
         }
-        if(qed->try_enqueue([inlet, self, box] {
+        if(qed->try_enqueue([inlet, self, box, field, written] {
           auto v = box->take();
           if(!v || !self || !inlet)
             return;
-          inlet->setValue(*v);
+          const auto previous = std::exchange(
+              control_written_by_processor,
+              processor_write_back{field, v->second, written.get()});
+          inlet->setValue(v->first);
+          control_written_by_processor = previous;
         }))
           return true;
         box->park();
@@ -316,11 +356,13 @@ struct setup_control_for_exec : setup_control_for_exec_base<Node, Field>
       }
 
       param.update_controller
-          = [box, capacity, wake, wakeups](arg_type value) {
+          = [box, capacity, wake, wakeups, written](arg_type value) {
+        auto& slot = box->back();
         if constexpr(is_text)
-          box->back().assign(value.substr(0, std::min(value.size(), capacity)));
+          slot.first.assign(value.substr(0, std::min(value.size(), capacity)));
         else
-          box->back() = std::move(value);
+          slot.first = std::move(value);
+        slot.second = written->fetch_add(1, std::memory_order_relaxed) + 1;
         box->publish();
 
         if(!box->request())
