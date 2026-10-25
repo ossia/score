@@ -818,20 +818,21 @@ public:
           QMetaObject::invokeMethod(
               QCoreApplication::instance(),
               [&ctx, file = std::move(file), eff_ptr = std::move(eff_ptr), idx = idx] {
-            ctx.executionQueue.enqueue(
-                [sf = std::move(file), p = std::weak_ptr{eff_ptr}, idx]() mutable {
-              auto eff_ptr = p.lock();
-              if(!eff_ptr)
-                return;
-
-              avnd::effect_container<Node>& eff = eff_ptr->impl;
-              soundfile_inputs_type::for_nth_mapped_n2(
-                  avnd::get_inputs<Node>(eff), idx,
-                  [&]<std::size_t NField, std::size_t N>(
-                      auto& field, avnd::predicate_index<N> p,
-                      avnd::field_index<NField> f) {
-                sf = eff_ptr->soundfile_loaded(sf, p, f);
-              });
+            ctx.executionQueue.enqueue([sf = std::move(file), p = std::weak_ptr{eff_ptr},
+                                        gcq = ctx.weakGCQueue(), idx]() mutable {
+              if(auto eff_ptr = p.lock())
+              {
+                avnd::effect_container<Node>& eff = eff_ptr->impl;
+                soundfile_inputs_type::for_nth_mapped_n2(
+                    avnd::get_inputs<Node>(eff), idx,
+                    [&]<std::size_t NField, std::size_t N>(
+                        auto& field, avnd::predicate_index<N> p,
+                        avnd::field_index<NField> f) {
+                  sf = eff_ptr->soundfile_loaded(sf, p, f);
+                });
+              }
+              // sf is now the file the port held before
+              free_on_main_thread(gcq, sf);
             });
           });
         }
@@ -884,30 +885,7 @@ public:
     // Custom UI messages to engine
     if constexpr(avnd::has_gui_to_processor_bus<Node>)
     {
-      element.from_ui = [qex_ptr = weak_exec, &eff](QByteArray b) {
-        auto qex = qex_ptr.lock();
-        if(!qex)
-          return;
-
-        qex->enqueue([mess = std::move(b), &eff]() mutable {
-          using refl = avnd::function_reflection<&Node::process_message>;
-          static_assert(refl::count <= 1);
-
-          if constexpr(refl::count == 0)
-          {
-            // no arguments, just call it
-            eff.process_message();
-          }
-          else if constexpr(refl::count == 1)
-          {
-            using arg_type = avnd::first_argument<&Node::process_message>;
-            std::decay_t<arg_type> arg;
-            MessageBusReader reader{mess};
-            reader(arg);
-            eff.process_message(std::move(arg));
-          }
-        });
-      };
+      element.from_ui = ui_to_processor_bus(eff, weak_exec, weak_gc);
     }
 
     // Processor to UI messages never allocate on the processor's thread: they

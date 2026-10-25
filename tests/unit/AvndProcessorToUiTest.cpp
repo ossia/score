@@ -2,6 +2,11 @@
 // layer (oscr::message_ring and the edition queue) and values of its own
 // controls (update_controller, oscr::latest_value). Nothing may allocate on
 // the sending side; when the preallocated room is full, messages are dropped.
+//
+// The other way, what the UI sends to a processor (a control set in the UI, a
+// message from its view) is made on the UI thread: the audio thread neither
+// allocates nor frees, and what it is done with is freed on the main thread,
+// through the GC queue.
 
 #include <Process/Dataflow/WidgetInlets.hpp>
 #include <Process/ExecutionContext.hpp>
@@ -47,8 +52,10 @@
 #include <score_test/Execution.hpp>
 #include <score_test/Project.hpp>
 
+#include <array>
 #include <atomic>
 #include <cstdlib>
+#include <memory>
 #include <new>
 #include <string>
 #include <thread>
@@ -183,6 +190,120 @@ TEST_CASE("Latest value: the newest text, without allocation", "[avnd][message_b
   v = box.take();
   REQUIRE(v);
   CHECK(*v == a);
+}
+
+namespace
+{
+//! A processor whose view sends it messages that own memory.
+struct heavy_receiver
+{
+  struct message
+  {
+    std::string text;
+    std::vector<float> values;
+  };
+
+  // Written without allocating: what process_message saw, in order.
+  std::array<int, 8> sizes{};
+  std::array<char, 8> first_chars{};
+  std::array<float, 8> first_values{};
+  int count{};
+
+  void process_message(const message& m)
+  {
+    if(count >= int(sizes.size()))
+      return;
+    sizes[count] = int(m.values.size());
+    first_chars[count] = m.text.empty() ? 0 : m.text[0];
+    first_values[count] = m.values.empty() ? 0.f : m.values[0];
+    count++;
+  }
+};
+
+struct audio_thread_counts
+{
+  int allocations = -1;
+  int frees = -1;
+};
+
+//! Runs f as the audio thread, counting what it allocates and frees.
+template <typename F>
+audio_thread_counts on_audio_thread(F&& f)
+{
+  audio_thread_counts r;
+  ossia::set_thread_pinned(ossia::thread_type::Audio, 0);
+  {
+    alloc_counter::scope c;
+    f();
+    r.allocations = c.allocations();
+    r.frees = c.frees();
+  }
+  ossia::set_thread_pinned(ossia::thread_type::Ui, 0);
+  return r;
+}
+}
+
+TEST_CASE("UI to processor bus: messages that own memory are made and freed on the UI thread", "[avnd][message_bus]")
+{
+  // Messages that are not trivial are serialized, which needs the application.
+  score::test::run_in_app([](const score::GUIApplicationContext&) {
+    ossia::set_thread_pinned(ossia::thread_type::Ui, 0);
+    auto exq = std::make_shared<Execution::ExecutionCommandQueue>(64);
+    auto gcq = std::make_shared<Execution::GCCommandQueue>(64);
+    heavy_receiver recv;
+    std::function<void(QByteArray)> bus = oscr::ui_to_processor_bus(
+        recv, std::weak_ptr{exq}, std::weak_ptr{gcq});
+
+    auto send = [&](char c, int n) {
+      oscr::MessageBusSender{bus}(heavy_receiver::message{
+          std::string(100, c), std::vector<float>(std::size_t(n), float(n))});
+    };
+    auto run_audio = [&] {
+      Execution::ExecutionCommand cmd;
+      while(exq->try_dequeue(cmd))
+        cmd();
+    };
+    auto run_gc = [&] {
+      for(;;)
+      {
+        Execution::GCCommand gc;
+        if(!gcq->try_dequeue(gc))
+          break;
+        gc();
+      }
+    };
+
+    // The first command of a thread registers it as a producer of the GC queue.
+    send('w', 1);
+    on_audio_thread(run_audio);
+    run_gc();
+    REQUIRE(recv.count == 1);
+
+    send('a', 10);
+    send('b', 20);
+    send('c', 30);
+    const auto counts = on_audio_thread(run_audio);
+    CHECK(counts.allocations == 0);
+    CHECK(counts.frees == 0);
+
+    // In the order they were sent, as sent.
+    REQUIRE(recv.count == 4);
+    CHECK(recv.sizes[1] == 10);
+    CHECK(recv.sizes[2] == 20);
+    CHECK(recv.sizes[3] == 30);
+    CHECK(recv.first_chars[1] == 'a');
+    CHECK(recv.first_chars[3] == 'c');
+    CHECK(recv.first_values[2] == 20.f);
+
+    // Each message comes back to be freed here: its text, its values, its block.
+    int frees = 0;
+    {
+      alloc_counter::scope c;
+      run_gc();
+      frees = c.frees();
+    }
+    CHECK(frees >= 9);
+  });
 }
 
 namespace
@@ -591,5 +712,64 @@ TEST_CASE("MIDI looper through the binding: passthrough", "[avnd][execution][loo
       e.tick(64);
       CHECK(e.midi_out() == std::vector<int>{0x80});
     }
+  });
+}
+
+TEST_CASE("Chord through the binding: a text set in the UI is neither allocated nor freed on the audio thread", "[avnd][message_bus][execution][gc]")
+{
+  with<Nodes::Chord::Node>(
+      QStringLiteral("F0904279-EA26-48DB-B0DF-F68FE3091DA1"), [](auto& e) {
+    // Longer than a short string: each lives in a heap block.
+    const std::string first = "60: 0 4 7; 62: 0 3 7; 64: 0 3 7";
+    const std::string second = "48: 12 16 19; 50: 12 15 19; 52: 12 15 19";
+    const std::string third = "36: 0 4 7 11; 38: 0 3 7 10; 40: 0 3 7 10";
+
+    // The first command of a thread registers it as a producer of the GC queue.
+    e.gui("Memory", ossia::value{first});
+    e.plug.contextData()->processEditCommands();
+    REQUIRE(e.object().inputs.memory.value == first);
+
+    e.control("Memory").setValue(ossia::value{second});
+    e.control("Memory").setValue(ossia::value{third});
+    const auto counts = on_audio_thread([&] { e.plug.runAllCommands(); });
+    CHECK(counts.allocations == 0);
+    CHECK(counts.frees == 0);
+    // The latest text wins.
+    CHECK(e.object().inputs.memory.value == third);
+
+    // The previous texts are freed when the main thread runs the GC queue.
+    int frees = 0;
+    {
+      alloc_counter::scope c;
+      e.plug.contextData()->processEditCommands();
+      frees = c.frees();
+    }
+    CHECK(frees >= 4);
+  });
+}
+
+TEMPLATE_TEST_CASE(
+    "Loopers through the binding: an erase from the view is neither allocated nor freed on the audio thread",
+    "[avnd][message_bus][execution][looper][gc]", Nodes::AudioLooper::Node,
+    Nodes::MidiLooper::Node)
+{
+  const QString uuid = std::is_same_v<TestType, Nodes::AudioLooper::Node>
+                           ? QStringLiteral("a0ad4227-ac3d-448b-a19b-19581ed4e2c6")
+                           : QStringLiteral("0c0b7d3e-5a52-4b8f-9d1f-6e3a2b8c4f71");
+  with<TestType>(uuid, [](auto& e) {
+    auto& model = static_cast<oscr::ProcessModel<TestType>&>(e.proc);
+    // What the layer does when the x of a lane is clicked.
+    auto erase = [&] {
+      oscr::MessageBusSender{model.from_ui}(
+          Nodes::Looper::erase_request{.pass = 0, .layers = 1});
+    };
+    erase();
+    run_exec(e.plug);
+
+    erase();
+    erase();
+    const auto counts = on_audio_thread([&] { e.plug.runAllCommands(); });
+    CHECK(counts.allocations == 0);
+    CHECK(counts.frees == 0);
   });
 }

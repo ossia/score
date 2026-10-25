@@ -73,6 +73,16 @@ ossia::value resolveControlPath(const ossia::value& v, const score::DocumentCont
     return resolvePathValue(v, ctx);
 }
 
+/**
+ * A value from the UI on its way to the audio thread. A value that owns memory
+ * (a text, a list) is converted on the UI thread into a block of its own; the
+ * audio thread swaps it into the object and sends the block, which then holds
+ * the previous value, back to be freed on the main thread. Other values travel
+ * as they are.
+ */
+template <typename T>
+inline constexpr bool control_value_owns_memory = !std::is_trivially_destructible_v<T>;
+
 template <typename Node, typename Field, std::size_t NPred, std::size_t NField>
 struct con_unvalidated
 {
@@ -96,15 +106,30 @@ struct con_unvalidated
 
     if(auto node = weak_node.lock())
     {
-      control_value_type v;
-      node->from_ossia_value(field, val, v, avnd::field_index<NField>{});
-      ctx.executionQueue.enqueue([weak_node = weak_node, v = std::move(v)]() mutable {
-        if(auto n = weak_node.lock())
-        {
-          n->template control_updated_from_ui<control_value_type, control_index>(
-              std::move(v));
-        }
-      });
+      if constexpr(control_value_owns_memory<control_value_type>)
+      {
+        auto v = std::make_unique<control_value_type>();
+        node->from_ossia_value(field, val, *v, avnd::field_index<NField>{});
+        ctx.executionQueue.enqueue([weak_node = weak_node, gcq = ctx.weakGCQueue(),
+                                    v = std::move(v)]() mutable {
+          if(auto n = weak_node.lock())
+            n->template control_updated_from_ui<control_value_type, control_index>(
+                std::move(*v));
+          free_on_main_thread(gcq, v);
+        });
+      }
+      else
+      {
+        control_value_type v;
+        node->from_ossia_value(field, val, v, avnd::field_index<NField>{});
+        ctx.executionQueue.enqueue([weak_node = weak_node, v = std::move(v)]() mutable {
+          if(auto n = weak_node.lock())
+          {
+            n->template control_updated_from_ui<control_value_type, control_index>(
+                std::move(v));
+          }
+        });
+      }
     }
   }
 };
@@ -133,16 +158,31 @@ struct con_unvalidated_dynamic_port
       // local instance; the bounds check happens in the execution thread,
       // in control_updated_from_ui.
       control_type witness{};
-      control_value_type v;
-      node->from_ossia_value(witness, val, v, avnd::field_index<NField>{});
-      ctx.executionQueue.enqueue([weak_node = weak_node, port_index = port_index,
-                                  v = std::move(v)]() mutable {
-        if(auto n = weak_node.lock())
-        {
-          n->template control_updated_from_ui<control_value_type, NPred>(
-              std::move(v), port_index);
-        }
-      });
+      if constexpr(control_value_owns_memory<control_value_type>)
+      {
+        auto v = std::make_unique<control_value_type>();
+        node->from_ossia_value(witness, val, *v, avnd::field_index<NField>{});
+        ctx.executionQueue.enqueue([weak_node = weak_node, port_index = port_index,
+                                    gcq = ctx.weakGCQueue(), v = std::move(v)]() mutable {
+          if(auto n = weak_node.lock())
+            n->template control_updated_from_ui<control_value_type, NPred>(
+                std::move(*v), port_index);
+          free_on_main_thread(gcq, v);
+        });
+      }
+      else
+      {
+        control_value_type v;
+        node->from_ossia_value(witness, val, v, avnd::field_index<NField>{});
+        ctx.executionQueue.enqueue([weak_node = weak_node, port_index = port_index,
+                                    v = std::move(v)]() mutable {
+          if(auto n = weak_node.lock())
+          {
+            n->template control_updated_from_ui<control_value_type, NPred>(
+                std::move(v), port_index);
+          }
+        });
+      }
     }
   }
 };
@@ -392,15 +432,13 @@ struct setup_control_for_exec<Node, Field, N, NField>
         if(auto st = weak_st.lock())
           if(auto file = loadSoundfile(v, ctx.doc, st))
           {
-            ctx.executionQueue.enqueue([f = std::move(file), weak_node]() mutable {
-              auto n = weak_node.lock();
-              if(!n)
-                return;
-
-              // We store the sound file handle returned in this lambda so that it gets
-              // GC'd in the main thread
-              f = n->soundfile_loaded(
-                  f, avnd::predicate_index<N>{}, avnd::field_index<NField>{});
+            ctx.executionQueue.enqueue([f = std::move(file), weak_node,
+                                        gcq = ctx.weakGCQueue()]() mutable {
+              // f becomes the file the port held before
+              if(auto n = weak_node.lock())
+                f = n->soundfile_loaded(
+                    f, avnd::predicate_index<N>{}, avnd::field_index<NField>{});
+              free_on_main_thread(gcq, f);
             });
           }
     });
@@ -438,15 +476,13 @@ struct setup_control_for_exec<Node, Field, N, NField>
       if(auto n = weak_node.lock())
         if(auto file = loadMidifile(v, ctx.doc))
         {
-          ctx.executionQueue.enqueue([f = std::move(file), weak_node]() mutable {
-            auto n = weak_node.lock();
-            if(!n)
-              return;
-
-            // We store the sound file handle returned in this lambda so that it gets
-            // GC'd in the main thread
-            f = n->midifile_loaded(
-                f, avnd::predicate_index<N>{}, avnd::field_index<NField>{});
+          ctx.executionQueue.enqueue([f = std::move(file), weak_node,
+                                      gcq = ctx.weakGCQueue()]() mutable {
+            // f becomes the file the port held before
+            if(auto n = weak_node.lock())
+              f = n->midifile_loaded(
+                  f, avnd::predicate_index<N>{}, avnd::field_index<NField>{});
+            free_on_main_thread(gcq, f);
           });
         }
     });
@@ -504,31 +540,29 @@ struct setup_control_for_exec<Node, Field, N, NField>
           if constexpr(avnd::port_can_process<Field>)
           {
             auto func = executePortPreprocess<Field>(*file);
-            ctx.executionQueue.enqueue(
-                [f = std::move(file), weak_node, ff = std::move(func)]() mutable {
-              auto n = weak_node.lock();
-              if(!n)
-                return;
-
-              // We store the sound file handle returned in this lambda so that it gets
-              // GC'd in the main thread
-              f = n->file_loaded(
-                  f, avnd::predicate_index<N>{}, avnd::field_index<NField>{});
-              if(ff)
-                ff(n->impl.effect);
+            ctx.executionQueue.enqueue([f = std::move(file), weak_node,
+                                        gcq = ctx.weakGCQueue(),
+                                        ff = std::move(func)]() mutable {
+              // f becomes the file the port held before
+              if(auto n = weak_node.lock())
+              {
+                f = n->file_loaded(
+                    f, avnd::predicate_index<N>{}, avnd::field_index<NField>{});
+                if(ff)
+                  ff(n->impl.effect);
+              }
+              free_on_main_thread(gcq, f, ff);
             });
           }
           else
           {
-            ctx.executionQueue.enqueue([f = std::move(file), weak_node]() mutable {
-              auto n = weak_node.lock();
-              if(!n)
-                return;
-
-              // We store the sound file handle returned in this lambda so that it gets
-              // GC'd in the main thread
-              f = n->file_loaded(
-                  f, avnd::predicate_index<N>{}, avnd::field_index<NField>{});
+            ctx.executionQueue.enqueue([f = std::move(file), weak_node,
+                                        gcq = ctx.weakGCQueue()]() mutable {
+              // f becomes the file the port held before
+              if(auto n = weak_node.lock())
+                f = n->file_loaded(
+                    f, avnd::predicate_index<N>{}, avnd::field_index<NField>{});
+              free_on_main_thread(gcq, f);
             });
           }
         }

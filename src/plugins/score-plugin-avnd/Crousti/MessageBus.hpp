@@ -1,8 +1,12 @@
 #pragma once
+#include <Process/ExecutionContext.hpp>
+#include <Process/ExecutionTransaction.hpp>
+
 #include <score/serialization/DataStreamVisitor.hpp>
 
 #include <boost/pfr.hpp>
 
+#include <avnd/common/function_reflection.hpp>
 #include <avnd/common/tag.hpp>
 #include <avnd/concepts/message_bus.hpp>
 
@@ -10,6 +14,8 @@
 #include <atomic>
 #include <cstddef>
 #include <functional>
+#include <memory>
+#include <type_traits>
 #include <utility>
 #include <vector>
 
@@ -240,7 +246,7 @@ struct MessageBusSender
         && alignof(T) <= alignof(max_align_t))
   void operator()(const T& msg)
   {
-    QByteArray b(msg.size(), Qt::Uninitialized);
+    QByteArray b(sizeof(msg), Qt::Uninitialized);
     auto dst = reinterpret_cast<T*>(b.data());
     new(dst) T(msg);
 
@@ -387,4 +393,75 @@ struct MessageBusReader
   }
 };
 
+/**
+ * Hands what the audio thread is done with to the main thread, which frees it
+ * when it runs the GC queue. When the queue is gone (the execution is being
+ * torn down) it is freed where it is.
+ */
+template <typename... T>
+void free_on_main_thread(const std::weak_ptr<Execution::GCCommandQueue>& gcq, T&... t)
+{
+  if(auto q = gcq.lock())
+    q->enqueue(Execution::gc(std::move(t)...));
+}
+
+/**
+ * The UI to processor bus of an object: what the view sends is decoded here,
+ * on the UI thread, and reaches process_message() through the execution queue,
+ * in the order it was sent. Nothing is allocated or freed on the audio thread:
+ * a message that owns memory travels in a block made here, and the block comes
+ * back through the GC queue once the processor has seen it.
+ *
+ * A process_message() that takes its message by value frees what it does not
+ * keep on the audio thread; taking it by reference avoids that.
+ */
+template <typename Node>
+std::function<void(QByteArray)> ui_to_processor_bus(
+    Node& eff, std::weak_ptr<Execution::ExecutionCommandQueue> qex_ptr,
+    std::weak_ptr<Execution::GCCommandQueue> gcq)
+{
+  return [qex_ptr = std::move(qex_ptr), gcq = std::move(gcq), &eff](QByteArray b) {
+    auto qex = qex_ptr.lock();
+    if(!qex)
+      return;
+
+    using refl = avnd::function_reflection<&Node::process_message>;
+    static_assert(refl::count <= 1);
+
+    if constexpr(refl::count == 0)
+    {
+      qex->enqueue([&eff] { eff.process_message(); });
+    }
+    else
+    {
+      using arg_type = avnd::first_argument<&Node::process_message>;
+      using message_type = std::decay_t<arg_type>;
+      static constexpr auto deliver = [](Node& eff, message_type& m) {
+        if constexpr(std::is_lvalue_reference_v<arg_type>)
+          eff.process_message(m);
+        else
+          eff.process_message(std::move(m));
+      };
+
+      if constexpr(
+          std::is_trivially_destructible_v<message_type>
+          && sizeof(message_type) + sizeof(Node*)
+                 < Execution::ExecutionCommand::max_storage)
+      {
+        message_type msg{};
+        MessageBusReader{b}(msg);
+        qex->enqueue([msg, &eff]() mutable { deliver(eff, msg); });
+      }
+      else
+      {
+        auto msg = std::make_unique<message_type>();
+        MessageBusReader{b}(*msg);
+        qex->enqueue([msg = std::move(msg), gcq, &eff]() mutable {
+          deliver(eff, *msg);
+          free_on_main_thread(gcq, msg);
+        });
+      }
+    }
+  };
+}
 }
