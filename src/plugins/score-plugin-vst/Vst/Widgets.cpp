@@ -102,7 +102,13 @@ void GraphicsSlider::paint(
     QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
   if(!fx)
+  {
+    // The plug-in is not installed: nothing to format the value with.
+    score::DefaultGraphicsSliderImpl::paint(
+        *this, score::Skin::instance(), QString::number(m_value, 'f', 3), painter,
+        widget);
     return;
+  }
 
   char str[256]{};
   // Note that effGetParamDisplay will sometimes ignore the m_value argument

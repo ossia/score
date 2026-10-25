@@ -106,15 +106,10 @@ QGraphicsItem* ControlPortFactory::makeControlItem(
   auto inl = safe_cast<vst::ControlInlet*>(&port);
   // A document can reference a VST whose .so/.dll is not installed on this
   // machine: the Model then exists with its serialized control ports but
-  // `fx` is an empty shared_ptr, and dereferencing it here SIGSEGVs while
-  // the effect's UI is being built (reached from DefaultEffectItem::recreate
-  // -> PortFactory::makeFullItem). nullptr is the value the caller already
-  // expects for "no control item": both sibling overloads in this file return
-  // it, and PortFactory::makeFullItem guards on it with SCORE_SOFT_ASSERT +
-  // `if(ret.control)`.
-  if(!proc->fx || !proc->fx->fx)
-    return nullptr;
-  return VSTFloatSlider::make_item(proc->fx->fx, *inl, ctx, parent, context);
+  // `fx` is an empty shared_ptr. The slider then shows and edits the saved
+  // value without the plug-in.
+  AEffect* fx = proc->fx ? proc->fx->fx : nullptr;
+  return VSTFloatSlider::make_item(fx, *inl, ctx, parent, context);
 }
 
 QGraphicsItem* ControlPortFactory::makeControlItem(

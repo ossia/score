@@ -854,6 +854,12 @@ if(TARGET score_plugin_vst)
     PLUGINS score_plugin_vst)
   target_include_directories(test_unit_vst_scan_reply PRIVATE
     "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-vst")
+
+  # The controls of a VST that is not installed still get a slider.
+  score_add_test(test_unit_vst_missing_plugin_control
+    SOURCES VstMissingPluginControlTest.cpp
+    GUI
+    PLUGINS score_plugin_scenario score_lib_process score_plugin_vst)
 endif()
 
 if(TARGET score_plugin_vst3)
