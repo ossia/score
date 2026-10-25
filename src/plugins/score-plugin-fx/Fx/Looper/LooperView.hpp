@@ -35,12 +35,13 @@ struct view_note
 };
 
 //! Sent by the view to the looper: erase pass `pass`, counting from the
-//! oldest one, of a loop the view showed with `layers` passes. A loop that has
-//! changed since is left alone.
+//! oldest one, of a loop the view showed with `layers` passes, or mute it or
+//! unmute it when `mute` is set. A loop that has changed since is left alone.
 struct erase_request
 {
   int pass;
   int layers;
+  bool mute{};
 };
 
 //! What a looper shows of itself, sent about thirty times a second. Trivial,
@@ -82,6 +83,11 @@ struct view_message
   std::array<char, 4> take_ext;
   bool take_mix;
   int take_layers;
+  //! The loop plays backwards, and at this speed.
+  bool reverse;
+  float speed;
+  //! Lanes of a single pass that is muted.
+  std::array<uint8_t, max_lanes> muted;
 
   void set_take(std::string_view base, std::string_view ext, bool mix, int layers) noexcept
   {
@@ -187,6 +193,15 @@ struct looper_view
     }
   }
 
+  //! What is not heard: a third of its colour over the background.
+  static rgba dimmed(rgba c) noexcept
+  {
+    constexpr rgba bg{34, 34, 38, 255};
+    return {
+        uint8_t((c.r + 2 * bg.r) / 3), uint8_t((c.g + 2 * bg.g) / 3),
+        uint8_t((c.b + 2 * bg.b) / 3), 255};
+  }
+
   static rgba lane_color(int lane, int lanes) noexcept
   {
     static constexpr rgba palette[]{
@@ -234,7 +249,9 @@ struct looper_view
             text, sizeof(text), "%s, then %s on the grid", mode_name(s.mode),
             mode_name(s.wanted));
       else
-        std::snprintf(text, sizeof(text), "%s", mode_name(s.mode));
+        std::snprintf(
+            text, sizeof(text), "%s%s%s%s", mode_name(s.mode),
+            s.reverse ? ", reverse" : "", speed_name()[0] ? " " : "", speed_name());
 
       ctx.set_fill_color({col.r, col.g, col.b, col.a});
       ctx.begin_path();
@@ -291,7 +308,7 @@ struct looper_view
     else
       paint_lanes(ctx, top, lanes_h);
 
-    // Playhead
+    // Playhead, with an arrow the way it goes.
     const double x = 4. + s.position * (w - 8.);
     ctx.set_stroke_color({col.r, col.g, col.b, col.a});
     ctx.set_stroke_width(2.);
@@ -300,8 +317,27 @@ struct looper_view
     ctx.line_to(x, top + lanes_h);
     ctx.stroke();
     ctx.set_stroke_width(1.);
+    {
+      const double dir = s.reverse ? -1. : 1.;
+      ctx.set_fill_color({col.r, col.g, col.b, col.a});
+      ctx.begin_path();
+      ctx.move_to(x, top);
+      ctx.line_to(x + dir * 7., top + 4.);
+      ctx.line_to(x, top + 8.);
+      ctx.close_path();
+      ctx.fill();
+    }
 
     paint_erase_boxes(ctx);
+  }
+
+  //! The speed the loop plays at, empty at x1.
+  const char* speed_name() const noexcept
+  {
+    for(auto& [name, value] : speeds)
+      if(value != 1.f && std::abs(value - state.speed) < 1e-4f)
+        return name;
+    return "";
   }
 
   // The lanes: one per pass, the oldest passes all in the first one when
@@ -343,6 +379,18 @@ struct looper_view
     return {lanes_x + lanes_width() - size - 3., y, size};
   }
 
+  //! The mute button of a lane, left of its erase button.
+  box mute_box(int lane) const noexcept
+  {
+    const auto e = erase_box(lane);
+    return {e.x - e.size - 4., e.y, e.size};
+  }
+
+  bool lane_muted(int lane) const noexcept
+  {
+    return lane >= 0 && lane < view_message::max_lanes && state.muted[lane];
+  }
+
   //! The lane whose erase button is at (x, y), -1 for none.
   int erase_lane_at(double x, double y) const noexcept
   {
@@ -350,6 +398,17 @@ struct looper_view
       return -1;
     for(int l = 0; l < lane_count(); l++)
       if(pass_of_lane(l) >= 0 && erase_box(l).contains(x, y))
+        return l;
+    return -1;
+  }
+
+  //! The lane whose mute button is at (x, y), -1 for none.
+  int mute_lane_at(double x, double y) const noexcept
+  {
+    if(!erase)
+      return -1;
+    for(int l = 0; l < lane_count(); l++)
+      if(pass_of_lane(l) >= 0 && mute_box(l).contains(x, y))
         return l;
     return -1;
   }
@@ -362,6 +421,30 @@ struct looper_view
     {
       if(pass_of_lane(l) < 0)
         continue;
+      {
+        const auto b = mute_box(l);
+        const bool muted = lane_muted(l);
+        const rgba fill = muted ? rgba{230, 160, 60, 255} : rgba{44, 44, 50, 230};
+        const rgba ink = muted ? rgba{24, 24, 26, 255} : rgba{210, 210, 216, 255};
+        ctx.set_fill_color({fill.r, fill.g, fill.b, fill.a});
+        ctx.begin_path();
+        ctx.draw_rounded_rect(b.x, b.y, b.size, b.size, 2.);
+        ctx.fill();
+        // An m: two arches.
+        const double m = std::max(2., b.size * 0.25);
+        const double x0 = b.x + m, x1 = b.x + b.size - m, xm = (x0 + x1) / 2.;
+        const double y0 = b.y + m, y1 = b.y + b.size - m;
+        ctx.set_stroke_color({ink.r, ink.g, ink.b, ink.a});
+        ctx.set_stroke_width(1.5);
+        ctx.begin_path();
+        ctx.move_to(x0, y1);
+        ctx.line_to(x0, y0);
+        ctx.line_to(xm, (y0 + y1) / 2.);
+        ctx.line_to(x1, y0);
+        ctx.line_to(x1, y1);
+        ctx.stroke();
+        ctx.set_stroke_width(1.);
+      }
       const auto b = erase_box(l);
       ctx.set_fill_color({44, 44, 50, 230});
       ctx.begin_path();
@@ -397,6 +480,8 @@ struct looper_view
       ctx.fill();
 
       auto c = lane_color(l, lanes);
+      if(lane_muted(l))
+        c = dimmed(c);
       ctx.set_fill_color({c.r, c.g, c.b, c.a});
       ctx.begin_path();
       const float* p = s.peaks.data() + l * view_message::bins;
@@ -458,9 +543,7 @@ struct looper_view
         const double nh = std::clamp(rh - 0.5, 2., 6.);
         auto c = lane_color(l, lanes);
         if(!heard)
-          c = rgba{
-              uint8_t((c.r + 2 * bg.r) / 3), uint8_t((c.g + 2 * bg.g) / 3),
-              uint8_t((c.b + 2 * bg.b) / 3), 255};
+          c = dimmed(c);
         ctx.set_fill_color({c.r, c.g, c.b, c.a});
         ctx.begin_path();
         const double a = x0 + n.start * lw;
@@ -491,7 +574,12 @@ struct looper_view
     }
     if(const int lane = erase_lane_at(x, y); lane >= 0)
     {
-      erase(erase_request{.pass = pass_of_lane(lane), .layers = state.layers});
+      erase(erase_request{.pass = pass_of_lane(lane), .layers = state.layers, .mute = false});
+      return true;
+    }
+    if(const int lane = mute_lane_at(x, y); lane >= 0)
+    {
+      erase(erase_request{.pass = pass_of_lane(lane), .layers = state.layers, .mute = true});
       return true;
     }
     // Pressing elsewhere is the start of a drag of the take.
@@ -503,7 +591,7 @@ struct looper_view
   halp::drag_payload drag_payload(double x, double y) const
   {
     halp::drag_payload p;
-    if(has_take() && !in_send(x, y) && erase_lane_at(x, y) < 0)
+    if(has_take() && !in_send(x, y) && erase_lane_at(x, y) < 0 && mute_lane_at(x, y) < 0)
       p.files = state.take_files();
     return p;
   }

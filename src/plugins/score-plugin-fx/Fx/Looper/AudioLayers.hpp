@@ -20,8 +20,11 @@ struct audio_layer
   //! Which buffer of the pool holds it.
   int slot{-1};
   //! Gain it is played with: the product of the decays of the passes heard
-  //! over it. Worked out by audio_layers::update_gains().
+  //! over it, zero while it is muted. Worked out by audio_layers::update_gains().
   float gain{1.f};
+  //! The gain it would be played with were it not muted: what it is written
+  //! with in a take of layers.
+  float unmuted_gain{1.f};
   //! What its feedback took from every pass under it while it was the top
   //! one: the product of the feedback of each time it went round the loop.
   //! Hiding the pass, by undo or erase, gives it back to them.
@@ -38,6 +41,12 @@ struct audio_layer
   //! after it, which redoing it puts back.
   int64_t loop_before{};
   int64_t loop_after{};
+  //! Kept, but not heard: as if erased for what the loop sounds like, its
+  //! feedback included.
+  bool muted{};
+  //! The playhead went backwards over it last: its last frames are the first
+  //! of the part it wrote.
+  bool backwards{};
 };
 
 /**
@@ -91,6 +100,8 @@ struct audio_layers
     //! Gain of the oldest relative to the second one: the decay of the
     //! second. The merged pass is played with the gain of the second.
     float a_gain{};
+    float b_gain{1.f};
+    bool muted{};
     audio_layer b{};
     int64_t a_len{}, b_len{};
     int64_t merged{};
@@ -193,9 +204,26 @@ struct audio_layers
     float g = 1.f;
     for(int i = count - 1; i >= 0; i--)
     {
-      layers[i].gain = g;
-      g *= layers[i].decay;
+      auto& l = layers[i];
+      l.unmuted_gain = g;
+      l.gain = l.muted ? 0.f : g;
+      if(!l.muted)
+        g *= l.decay;
     }
+  }
+
+  //! Mutes or unmutes pass k, k being heard.
+  bool set_muted(int k, bool m) noexcept
+  {
+    if(k < 0 || k >= count || layers[k].muted == m)
+      return false;
+    layers[k].muted = m;
+    // The merged pass is worked out with the mutes the two oldest had.
+    if(k < 2)
+      merging.active = false;
+    changes++;
+    update_gains();
+    return true;
   }
 
   //! What the loop sounds like at position k of channel c.
@@ -205,10 +233,59 @@ struct audio_layers
     for(int i = 0; i < count; i++)
     {
       const auto& l = layers[i];
-      if(valid(l, k))
+      if(!l.muted && valid(l, k))
         sum += l.gain * data(l.slot, c)[index(l, k)];
     }
     return sum;
+  }
+
+  //! Position k of the loop was written by the pass: the part it wrote, which
+  //! the playhead goes over without a gap in either direction, takes it in. A
+  //! playhead that jumped leaves silence between that part and k.
+  void cover(audio_layer& l, int64_t k) noexcept
+  {
+    const int64_t p = period_of(l);
+    if(p <= 0 || l.written >= p)
+      return;
+    if(l.written == 0)
+    {
+      l.start = k;
+      l.written = 1;
+      return;
+    }
+    int64_t d = (k - l.start) % p;
+    if(d < 0)
+      d += p;
+    if(d < l.written)
+      return;
+    const int64_t after = d - l.written;
+    const int64_t before = p - 1 - d;
+    if(after <= before)
+    {
+      silence(l, l.start + l.written, after);
+      l.written = d + 1;
+    }
+    else
+    {
+      silence(l, k + 1, before);
+      l.start = k;
+      l.written += before + 1;
+    }
+    l.written = std::min(l.written, p);
+  }
+
+  //! Zeroes n positions of a pass from position `from` on, round its period.
+  void silence(audio_layer& l, int64_t from, int64_t n) noexcept
+  {
+    const int64_t p = period_of(l);
+    if(p <= 0 || n <= 0)
+      return;
+    for(int c = 0; c < channels; c++)
+    {
+      float* d = data(l.slot, c);
+      for(int64_t i = 0; i < n; i++)
+        d[(from + i) % p] = 0.f;
+    }
   }
 
   //! The top pass goes on past the end of the loop: the loop grows by `unit`
@@ -294,6 +371,8 @@ struct audio_layers
     l.period = 0;
     l.loop_before = length;
     l.loop_after = length;
+    l.muted = false;
+    l.backwards = false;
     std::fill_n(peaks_of(slot), peak_count(), 0.f);
     count++;
     total = count;
@@ -323,12 +402,16 @@ struct audio_layers
       return;
     const auto& a = layers[0];
     const auto& b = layers[1];
+    // A muted pass is left out of the merged one, and takes nothing from the
+    // pass under it: merging is where it is lost.
     merging = merge_state{
         .active = true,
         .target = target,
         .a_slot = a.slot,
         .b_slot = b.slot,
-        .a_gain = b.decay,
+        .a_gain = a.muted ? 0.f : b.muted ? 1.f : b.decay,
+        .b_gain = b.muted ? 0.f : 1.f,
+        .muted = a.muted && b.muted,
         .b = b,
         .a_len = std::max<int64_t>(1, period_of(a)),
         .b_len = std::max<int64_t>(1, period_of(b)),
@@ -360,7 +443,7 @@ struct audio_layers
       const float* db = data(m.b_slot, c);
       for(int64_t k = m.pos; k < end; k++)
         dst[k] = m.a_gain * da[k % m.a_len]
-                 + (valid_in(m.b, k, m.b_len) ? db[k % m.b_len] : 0.f);
+                 + (valid_in(m.b, k, m.b_len) ? m.b_gain * db[k % m.b_len] : 0.f);
     }
     {
       float* pt = peaks_of(m.target);
@@ -368,7 +451,7 @@ struct audio_layers
       const float* pb = peaks_of(m.b_slot);
       const int64_t a_bins = std::max<int64_t>(1, (m.a_len + peak_frames - 1) / peak_frames);
       for(int64_t i = m.pos / peak_frames; i < (end + peak_frames - 1) / peak_frames; i++)
-        pt[i] = m.a_gain * pa[i % a_bins] + pb[i];
+        pt[i] = m.a_gain * pa[i % a_bins] + m.b_gain * pb[i];
     }
     m.pos = end;
     if(m.pos < m.merged)
@@ -381,6 +464,8 @@ struct audio_layers
     a.start = 0;
     a.period = m.merged == length ? 0 : m.merged;
     a.written = m.merged;
+    a.muted = m.muted;
+    a.backwards = false;
     for(int i = 1; i + 1 < count; i++)
       layers[i] = layers[i + 1];
     count--;
@@ -395,7 +480,8 @@ struct audio_layers
   }
 
   //! Applies feedback to every pass under the top one, as one overdub pass
-  //! goes round the loop.
+  //! goes round the loop. A muted pass takes nothing, but keeps what it
+  //! would take for when it is heard again.
   void decay(float feedback) noexcept
   {
     if(count < 2 || feedback >= 1.f)
@@ -481,7 +567,8 @@ struct audio_layers
       float* d = data(l->slot, c);
       for(int64_t i = 0; i < n; i++)
       {
-        int64_t k = (l->start + std::min(l->written, p) - 1 - i) % p;
+        int64_t k = l->backwards ? (l->start + i) % p
+                                 : (l->start + std::min(l->written, p) - 1 - i) % p;
         if(k < 0)
           k += p;
         d[k] *= float(i) / float(n);
@@ -497,7 +584,11 @@ struct audio_layers
     const int64_t len = period_of(l);
     if(len <= 0)
       return;
+    // A negative count moves it later: the input of a pass the playhead went
+    // over backwards belongs further on in the loop.
     frames %= len;
+    if(frames < 0)
+      frames += len;
     if(frames <= 0)
       return;
     for(int c = 0; c < channels; c++)

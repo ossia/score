@@ -1372,3 +1372,465 @@ TEST_CASE("Looper view: the x of a lane asks to erase its pass, and starts no dr
   v.mouse_press(b7.x + b7.size / 2., b7.y + b7.size / 2.);
   CHECK(sent.size() == 2);
 }
+
+// ---------------------------------------------------------------------------
+// Reverse, speed, a pass per cycle, and playing in phase with the timeline.
+// ---------------------------------------------------------------------------
+
+namespace
+{
+//! Runs one tick at a time over `frames`, the controllers sent then as
+//! {frame on the harness' count, value}.
+std::vector<std::pair<int64_t, int>> controller_values(midi_harness& h, int64_t frames)
+{
+  std::vector<std::pair<int64_t, int>> r;
+  while(frames > 0)
+  {
+    const int64_t n = std::min<int64_t>(h.buffer_size, frames);
+    const int64_t at = h.now;
+    h.node.outputs.midi.midi_messages.clear();
+    h.run(n);
+    for(auto& m : h.node.outputs.midi.midi_messages)
+      if(mtk::classify(m) == mtk::midi_kind::control_change)
+        r.emplace_back(at + m.timestamp, m.bytes[2]);
+    frames -= n;
+  }
+  return r;
+}
+
+//! Runs a tick whose musical position goes on from `quarters`, at the
+//! harness' tempo.
+void musical_run(midi_harness& h, double& quarters, int64_t frames)
+{
+  auto& in = h.node.inputs.midi.midi_messages;
+  in.clear();
+  h.node.outputs.midi.midi_messages.clear();
+  ossia::token_request tk;
+  tk.prev_date = ossia::time_value{h.now};
+  tk.date = ossia::time_value{h.now + frames};
+  tk.start_sample = 0;
+  tk.length_sample = frames;
+  tk.tempo = h.tempo;
+  tk.musical_start_position = quarters;
+  quarters += double(frames) / h.st.sampleRate * h.tempo / 60.;
+  tk.musical_end_position = quarters;
+  tk.musical_start_last_bar = std::floor(tk.musical_start_position / 4.) * 4.;
+  tk.musical_end_last_bar = std::floor(tk.musical_end_position / 4.) * 4.;
+  h.node(tk);
+  h.now += frames;
+}
+}
+
+TEST_CASE("MIDI looper: reversed, a note plays where it ended and controllers go back",
+          "[fx][midi][looper][reverse]")
+{
+  midi_harness h;
+  h.node.inputs.mode = LoopMode::Record;
+  h.note_on(60, 10);
+  h.note_off(60, 40);
+  h.run(); // 0
+  h.cc(1, 10, 36);
+  h.run(); // 64: the controller at 100
+  h.run_frames(128);
+  h.cc(1, 90, 44);
+  h.run(); // 256: at 300
+  h.run_frames(320);
+  REQUIRE(h.node.loop.length == 640);
+  h.node.inputs.mode = LoopMode::Play;
+  h.node.inputs.reverse.value = true;
+
+  // The loop is read from its start, backwards: the note [10; 40[ is
+  // [600; 630[ of it.
+  h.out.clear();
+  const int64_t start = h.now;
+  const auto values = controller_values(h, 640);
+  REQUIRE(h.ons().size() == 1);
+  REQUIRE(h.offs().size() == 1);
+  CHECK(h.ons()[0].at == start + 600);
+  CHECK(h.offs()[0].at == start + 630);
+  CHECK(h.node.transport.playbackPos == 0);
+
+  // Going back over 300, the controller is 10 again, as it was before 300;
+  // over 100, it is what it was before 100, round the loop: 90.
+  REQUIRE(values.size() == 2);
+  CHECK(values[0] == std::pair<int64_t, int>{start + 340, 10});
+  CHECK(values[1] == std::pair<int64_t, int>{start + 540, 90});
+
+  // The playhead and the phase go backwards.
+  h.run();
+  CHECK(h.node.transport.playbackPos == 576);
+  CHECK(h.node.outputs.phase.value == Approx(0.9));
+}
+
+TEST_CASE("MIDI looper: reversed, a note held across the loop's end wraps or is "
+          "truncated as it was forwards",
+          "[fx][midi][looper][reverse]")
+{
+  for(auto held : {HeldNotes::Wrap, HeldNotes::Truncate})
+  {
+    INFO(int(held));
+    midi_harness h;
+    h.node.inputs.held = held;
+    h.node.inputs.mode = LoopMode::Record;
+    h.run_frames(500);
+    h.note_on(64, 0); // at 500
+    h.run_frames(140);
+    h.node.inputs.mode = LoopMode::Play;
+    h.run(60);
+    h.note_off(64, 0);
+    h.run(4);
+    REQUIRE(h.node.loop.notes[0].length == 200);
+
+    // From position 64, backwards: 576 of the loop read from its end.
+    h.node.inputs.reverse.value = true;
+    h.out.clear();
+    const int64_t start = h.now;
+    h.run_frames(640 * 2);
+    const auto ons = h.ons();
+    const auto offs = h.offs();
+    REQUIRE(ons.size() >= 1);
+    REQUIRE(offs.size() >= 1);
+    // Heard forwards over [500; 640[ then [0; 60[: backwards, from 580 of
+    // the reversed loop to 140 of its next round. Truncated, what was heard
+    // is [500; 640[: the reversed loop's [0; 140[.
+    if(held == HeldNotes::Wrap)
+      CHECK(ons[0].at == start + 4);
+    else
+      CHECK(ons[0].at == start + 64);
+    CHECK(offs[0].at == start + 64 + 140);
+  }
+}
+
+TEST_CASE("MIDI looper: an overdub over the reversed loop plays reversed forwards",
+          "[fx][midi][looper][reverse]")
+{
+  midi_harness h;
+  record(h, 640, [](midi_harness&) {});
+  h.run();
+  h.node.inputs.reverse.value = true;
+  h.node.inputs.mode = LoopMode::Overdub;
+  // From the loop's start, backwards: frame f of the overdub is at 640 - f.
+  h.run(); // 0
+  h.note_on(62, 36);
+  h.run(); // 64: on at 100
+  h.note_off(62, 22);
+  h.cc(7, 50, 22);
+  h.run(); // 128: off and 50 at 150
+  h.run(); // 192
+  h.cc(7, 90, 16);
+  h.run(); // 256: 90 at 272
+  h.run_frames(640 - 320);
+  h.node.inputs.mode = LoopMode::Play;
+  h.node.inputs.reverse.value = false;
+  h.run();
+
+  REQUIRE(h.node.loop.note_count == 1);
+  const auto& n = h.node.loop.notes[0];
+  CHECK(n.pass == 1);
+  CHECK(n.start == 490);
+  CHECK(n.length == 50);
+
+  // Forwards, the controller is 90 up to where it was set, then 50 up to
+  // where 50 was set; above that the overdub did not move it.
+  REQUIRE(h.node.loop.control_count == 2);
+  std::map<int64_t, int> ctl;
+  for(int i = 0; i < h.node.loop.control_count; i++)
+    ctl[h.node.loop.controls[i].pos] = h.node.loop.controls[i].data2;
+  CHECK(ctl == std::map<int64_t, int>{{0, 90}, {368, 50}});
+
+  // Played forwards, the note is where it was let go.
+  h.out.clear();
+  const int64_t start = h.now; // position 64
+  h.run_frames(640);
+  REQUIRE(h.ons().size() == 1);
+  CHECK(h.ons()[0].at == start + 490 - 64);
+
+  // Played backwards again, it is where it was played.
+  h.node.inputs.reverse.value = true;
+  h.out.clear();
+  const int64_t back = h.now; // position 64, 576 backwards
+  h.run_frames(640);
+  REQUIRE(h.ons().size() == 1);
+  CHECK(h.ons()[0].at == back + 100 - 576 + 640);
+}
+
+TEST_CASE("MIDI looper: at double speed the loop takes half as long, at half twice",
+          "[fx][midi][looper][speed]")
+{
+  for(float speed : {2.f, 0.5f})
+  {
+    INFO(speed);
+    midi_harness h;
+    record(h, 640, [](midi_harness& h) {
+      h.note_on(60, 10);
+      h.note_off(60, 40);
+    });
+    h.node.inputs.speed.value = speed;
+    h.out.clear();
+    const int64_t start = h.now;
+    h.run();
+    CHECK(h.node.transport.playbackPos == int64_t(64 * speed));
+    h.run_frames(int64_t(640 / speed));
+    REQUIRE(h.ons().size() >= 1);
+    REQUIRE(h.offs().size() >= 1);
+    CHECK(h.ons()[0].at == start + int64_t(10 / speed));
+    CHECK(h.offs()[0].at == start + int64_t(40 / speed));
+    // A whole round later, the same note.
+    REQUIRE(h.ons().size() == 2);
+    CHECK(h.ons()[1].at == start + int64_t(650 / speed));
+  }
+}
+
+TEST_CASE("MIDI looper: an overdub at half speed is twice as fast at x1",
+          "[fx][midi][looper][speed]")
+{
+  midi_harness h;
+  record(h, 640, [](midi_harness&) {});
+  h.run();
+  h.node.inputs.speed.value = 0.5f;
+  h.node.inputs.mode = LoopMode::Overdub;
+  h.run_frames(64);
+  h.note_on(62, 36); // frame 100: position 50
+  h.run();
+  h.note_off(62, 32); // frame 160: position 80
+  h.run();
+  h.run_frames(1280 - 192);
+  h.node.inputs.mode = LoopMode::Play;
+  h.node.inputs.speed.value = 1.f;
+  h.run();
+  REQUIRE(h.node.loop.note_count == 1);
+  CHECK(h.node.loop.notes[0].start == 50);
+  CHECK(h.node.loop.notes[0].length == 30);
+}
+
+TEST_CASE("MIDI looper: a pass per cycle makes a pass of each round, and a muted one "
+          "replaces nothing",
+          "[fx][midi][looper][comp]")
+{
+  midi_harness h;
+  record(h, 640, [](midi_harness&) {});
+  h.run();
+  h.node.inputs.overdub_mode = OverdubMode::Replace;
+  h.node.inputs.passes.value = Nodes::Looper::Passes::PerCycle;
+  h.node.inputs.mode = LoopMode::Overdub;
+  for(int pitch : {60, 60, 64})
+  {
+    short_note(h, pitch, 10);
+    h.run_frames(640);
+  }
+  h.node.inputs.mode = LoopMode::Play;
+  h.run();
+
+  // Three rounds, three passes; the overdub stopped where a fourth would
+  // start, and left none.
+  REQUIRE(h.node.loop.count == 4);
+  REQUIRE(h.node.loop.note_count == 3);
+  std::map<int, int> pass_of;
+  for(int i = 0; i < 3; i++)
+    pass_of[h.node.loop.notes[i].pass] = h.node.loop.notes[i].pitch;
+  CHECK(pass_of == std::map<int, int>{{1, 60}, {2, 60}, {3, 64}});
+  // The second 60 replaces the first.
+  CHECK(round_pitches(h, 640) == std::multiset<int>{60, 64});
+  auto heard = [&](int pass) {
+    for(int i = 0; i < h.node.loop.note_count; i++)
+      if(h.node.loop.notes[i].pass == pass)
+        return h.node.loop.heard(h.node.loop.notes[i], OverdubMode::Replace);
+    return false;
+  };
+  CHECK(!heard(1));
+  CHECK(heard(2));
+
+  // Muted, the second round is not heard, and the first is heard again.
+  h.node.inputs.layer.value = 3;
+  h.press(h.node.inputs.mute_layer);
+  CHECK(h.node.loop.muted[2]);
+  CHECK(heard(1));
+  CHECK(!heard(2));
+  CHECK(round_pitches(h, 640) == std::multiset<int>{60, 64});
+
+  // Unmuted, it replaces the first again; erased, the first is back.
+  h.press(h.node.inputs.mute_layer);
+  CHECK(!heard(1));
+  CHECK(heard(2));
+  erase_layer(h, 3);
+  CHECK(h.node.loop.count == 3);
+  CHECK(heard(1));
+}
+
+TEST_CASE("MIDI looper: a take of passes per cycle has a file for each, the muted ones "
+          "out of its mix",
+          "[fx][midi][looper][comp][takes]")
+{
+  QTemporaryDir dir;
+  REQUIRE(dir.isValid());
+  midi_harness h;
+  auto writer = std::make_shared<Nodes::Looper::take_writer>();
+  writer->folder = dir.path();
+  writer->prefix = "m";
+  writer->extension = "mid";
+  h.node.writer = writer;
+  h.node.worker.request = [&](Nodes::Looper::midi_take_job job) {
+    Looper::worker_t::work(std::move(job))(h.node);
+  };
+  h.node.inputs.takes.value = Nodes::Looper::TakeFiles::Both;
+  h.node.inputs.passes.value = Nodes::Looper::Passes::PerCycle;
+
+  record(h, 640, [](midi_harness&) {});
+  h.run();
+  h.node.inputs.mode = LoopMode::Overdub;
+  short_note(h, 60, 10);
+  h.run_frames(640);
+  short_note(h, 62, 10);
+  h.run_frames(640);
+  // The second round is muted while the third is played.
+  h.node.inputs.layer.value = 3;
+  h.node.inputs.mute_layer.value.emplace();
+  short_note(h, 64, 10);
+  h.run();
+  h.node.inputs.mute_layer.value.reset();
+  h.run_frames(640 - 64);
+  h.node.inputs.mode = LoopMode::Play;
+  for(int i = 0; i < 8; i++)
+    h.run();
+
+  auto pitches = [&](const QString& name) {
+    QFile f{dir.path() + "/" + name};
+    REQUIRE(f.open(QIODevice::ReadOnly));
+    const auto bytes = f.readAll();
+    libremidi::reader r;
+    std::vector<uint8_t> raw(bytes.begin(), bytes.end());
+    r.parse(raw);
+    std::multiset<int> res;
+    for(auto& ev : r.tracks[0])
+      if(mtk::classify(ev.m) == mtk::midi_kind::note_on)
+        res.insert(ev.m.bytes[1]);
+    return res;
+  };
+  CHECK(pitches("m-take2.mid") == std::multiset<int>{60, 64});
+  CHECK(pitches("m-take2-layer2.mid") == std::multiset<int>{60});
+  CHECK(pitches("m-take2-layer3.mid") == std::multiset<int>{62});
+  CHECK(pitches("m-take2-layer4.mid") == std::multiset<int>{64});
+}
+
+TEST_CASE("MIDI looper: in phase, a loop played again is where it would be had it kept "
+          "playing",
+          "[fx][midi][looper][phase]")
+{
+  midi_harness h;
+  // Following the tempo, as by default: at one tempo, the timeline's
+  // quarters go as its frames.
+  h.musical = true;
+  h.node.inputs.restart = Looper::Restart::InPhase;
+  h.node.inputs.mode = LoopMode::Record;
+  h.run_frames(512);
+  short_note(h, 72, 18); // at 530
+  h.run_frames(128);
+  h.node.inputs.mode = LoopMode::Play;
+  h.run_frames(192);
+  REQUIRE(h.node.transport.playbackPos == 192);
+
+  // Stopped for 320 frames: it comes back 512 frames on.
+  h.node.inputs.mode = LoopMode::Stop;
+  h.run_frames(320);
+  h.node.inputs.mode = LoopMode::Play;
+  h.out.clear();
+  const int64_t start = h.now;
+  h.run();
+  CHECK(h.node.transport.playbackPos == 576);
+  REQUIRE(h.ons().size() == 1);
+  // The loop's tempo comes from the quarters it was recorded over, which
+  // round: a frame either way.
+  CHECK(std::abs(h.ons()[0].at - (start + 18)) <= 1);
+
+  // The score stopped and started again 100 frames after the loop's start.
+  h.node.stop();
+  h.now = 640 * 7 + 100;
+  h.run();
+  CHECK(h.node.transport.playbackPos == 164);
+}
+
+TEST_CASE("MIDI looper: in phase and following the tempo, a loop keeps to the bars "
+          "across a tempo change",
+          "[fx][midi][looper][phase][tempo]")
+{
+  midi_harness h{4800, 48000};
+  h.node.inputs.restart = Looper::Restart::InPhase;
+  double quarters = 0.;
+  h.node.inputs.mode = LoopMode::Stop;
+  for(int i = 0; i < 20; i++)
+    musical_run(h, quarters, 4800);
+  h.node.inputs.mode = LoopMode::Record;
+  for(int i = 0; i < 20; i++)
+    musical_run(h, quarters, 4800);
+  h.node.inputs.mode = LoopMode::Play;
+  for(int i = 0; i < 10; i++)
+    musical_run(h, quarters, 4800);
+  REQUIRE(h.node.loop.length == 96000);
+  REQUIRE(quarters == Approx(10.));
+
+  // Twice as slow, stopped for three quarters.
+  h.tempo = 60.;
+  h.node.inputs.mode = LoopMode::Stop;
+  for(int i = 0; i < 30; i++)
+    musical_run(h, quarters, 4800);
+  h.node.inputs.mode = LoopMode::Play;
+  musical_run(h, quarters, 4800);
+  // 13 quarters, five after the loop's start: a bar and a quarter. Then a
+  // buffer at half the loop's speed.
+  CHECK(h.node.transport.playbackPos == 24000 + 2400);
+}
+
+TEST_CASE("MIDI looper: reverse, speed, passes per cycle and mutes allocate nothing",
+          "[fx][midi][looper][reverse][speed][comp]")
+{
+  midi_harness h;
+  h.pending.reserve(64);
+  h.out.reserve(100000);
+  h.controls_out.reserve(100000);
+  h.node.inputs.passes.value = Nodes::Looper::Passes::PerCycle;
+  h.node.inputs.overdub_mode = OverdubMode::Replace;
+  h.node.inputs.restart = Looper::Restart::InPhase;
+
+  int allocated = 0;
+  {
+    alloc_counter::scope counter;
+    h.node.inputs.mode = LoopMode::Record;
+    for(int i = 0; i < 10; i++)
+    {
+      h.note_on(60 + i % 12, 3);
+      h.cc(1, i, 4);
+      h.note_off(60 + i % 12, 50);
+      h.run();
+    }
+    h.node.inputs.reverse.value = true;
+    h.node.inputs.mode = LoopMode::Overdub;
+    for(int i = 0; i < 30; i++)
+    {
+      h.note_on(48 + i % 12, 3);
+      h.cc(1, 100 - i, 5);
+      h.note_off(48 + i % 12, 50);
+      h.run();
+    }
+    h.node.inputs.speed.value = 0.5f;
+    h.node.inputs.reverse.value = false;
+    for(int i = 0; i < 30; i++)
+    {
+      h.cc(2, i, 5);
+      h.run();
+    }
+    h.node.inputs.mode = LoopMode::Play;
+    h.node.inputs.reverse.value = true;
+    for(int i = 0; i < 20; i++)
+      h.run();
+    h.node.inputs.layer.value = 2;
+    h.press(h.node.inputs.mute_layer);
+    h.node.inputs.mode = LoopMode::Stop;
+    h.run();
+    h.node.inputs.mode = LoopMode::Play;
+    for(int i = 0; i < 20; i++)
+      h.run();
+    allocated = counter.allocations();
+  }
+  CHECK(allocated == 0);
+  CHECK(h.node.loop.count > 3);
+}

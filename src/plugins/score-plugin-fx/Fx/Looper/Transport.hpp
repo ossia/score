@@ -2,10 +2,16 @@
 #include <ossia/dataflow/exec_state_facade.hpp>
 #include <ossia/dataflow/token_request.hpp>
 
+#include <halp/polyfill.hpp>
+#include <halp/static_string.hpp>
+
 #include <algorithm>
+#include <array>
 #include <cmath>
 #include <cstdint>
 #include <optional>
+#include <string_view>
+#include <utility>
 
 /**
  * What the audio and the MIDI looper share: when they record, overdub, play
@@ -40,6 +46,11 @@
  *   // dropped and the frames the playhead is into it are returned, else -1.
  *   int64_t looper_trim_extension(int64_t max_frames);
  *
+ *   // Restart::InPhase: the loop starts being heard again, at the start of
+ *   // the span of `tk`; the looper puts the playhead where the loop would be
+ *   // had it kept playing since it was made, by the timeline's clock.
+ *   void looper_rephase(const ossia::token_request& tk);
+ *
  * The looper calls transport.taking(mode) whenever it records or overdubs.
  */
 namespace Nodes::Looper
@@ -63,9 +74,45 @@ enum class Postaction
 //! Order matters: the first is what the object did before there was a choice.
 enum class Restart
 {
-  Always,   ///< Every change of mode reads the loop from its beginning again.
-  Recording ///< Only a recording does; playing and overdubbing carry straight on.
+  Always,    ///< Every change of mode reads the loop from its beginning again.
+  Recording, ///< Only a recording does; playing and overdubbing carry straight on.
+  InPhase    ///< As Recording, and a loop heard again after a stop, a transport
+             ///< start or a jump of the timeline is where it would be had it
+             ///< kept playing.
 };
+
+//! What an overdub that goes round the loop several times leaves.
+enum class Passes
+{
+  Whole,   ///< One pass, from when the overdub starts to when it stops.
+  PerCycle ///< A pass for each time it goes round, starting on the loop's start.
+};
+
+//! The speeds a loop is played at, as a tape: the pitch follows.
+inline constexpr std::array<std::pair<const char*, float>, 5> speeds{
+    {{"x1/4", 0.25f}, {"x1/2", 0.5f}, {"x1", 1.f}, {"x2", 2.f}, {"x4", 4.f}}};
+
+template <halp::static_string Name>
+struct speed_selector
+{
+  static clang_buggy_consteval auto name() { return std::string_view{Name.value}; }
+  enum widget
+  {
+    combobox
+  };
+  struct range
+  {
+    decltype(speeds) values = speeds;
+    float init = 1.f;
+  };
+  float value = 1.f;
+};
+
+//! A speed the loopers can play at, whatever a port sends.
+inline double clamp_speed(float s) noexcept
+{
+  return std::isfinite(s) ? std::clamp(double(s), 0.25, 4.) : 1.;
+}
 
 // Order matters: this replaced a toggle, and a stored 0/1 has to keep
 // meaning what it did.
@@ -154,6 +201,28 @@ struct transport
     return tk.tempo;
   }
 
+  //! Where the timeline is at the start of the span of `tk`: its date in
+  //! frames, and its musical position in quarters. A take closed by the
+  //! looper itself in the middle of a span closes at that point of it.
+  struct timeline_point
+  {
+    double frames;
+    double quarters;
+  };
+  timeline_point timeline(const ossia::token_request& tk) const noexcept
+  {
+    const double ratio = m_facade.modelToSamples();
+    const double frames = double(tk.prev_date.impl) * ratio + double(m_close_offset);
+    const auto& t = m_tick;
+    double quarters = t.musical_start_position;
+    if(const double span = double((t.date - t.prev_date).impl); span > 0.)
+      quarters += (t.musical_end_position - t.musical_start_position)
+                  * (double((tk.prev_date - t.prev_date).impl) / span);
+    if(sampleRate > 0.)
+      quarters += double(m_close_offset) / sampleRate * t.tempo / 60.;
+    return {frames, quarters};
+  }
+
   //! Called by the looper whenever it records or overdubs.
   void taking(LoopMode m) noexcept { m_taking = m; }
   bool is_taking() const noexcept { return m_taking != LoopMode::Stop; }
@@ -207,6 +276,8 @@ struct transport
     recordEndBar = -1.;
     endedByPostaction = false;
     m_taking = LoopMode::Stop;
+    m_rephase = false;
+    m_last_date.reset();
   }
 
   template <typename Engine>
@@ -217,6 +288,7 @@ struct transport
     using namespace ossia;
 
     m_facade = st;
+    m_tick = tk;
     const auto timings = st.timings(tk);
     this->tickStartSample = timings.start_sample;
     this->postaction_bars = s.postaction_bars;
@@ -225,6 +297,13 @@ struct transport
 
     const LoopMode m = s.mode;
     const float quantif = s.quantif;
+
+    // The timeline jumped, e.g. the score was moved to another date: a loop
+    // in phase with it goes there as well.
+    if(s.restart == Restart::InPhase && m_last_date && tk.prev_date != *m_last_date
+       && actualMode == LoopMode::Play && m_taking == LoopMode::Stop)
+      m_rephase = true;
+    m_last_date = tk.date;
 
     if(quantif != 0 && tk.prev_date != 0_tv)
     {
@@ -342,6 +421,10 @@ private:
   bool m_overdub_records{};
   bool m_closing_late{};
   bool m_forced_close{};
+  //! The loop is heard again: the next span asks the looper where it is.
+  bool m_rephase{};
+  std::optional<ossia::time_value> m_last_date;
+  ossia::token_request m_tick{};
   int64_t m_late_frames{};
   std::optional<int64_t> m_point_this_tick;
 
@@ -410,10 +493,15 @@ private:
   //! jumps, which is heard when overdubbing hands over to playing.
   void enterMode(LoopMode m, Restart restart)
   {
+    const LoopMode was = actualMode;
     quantizedPlayMode = m;
     actualMode = m;
     if(m == LoopMode::Record || restart == Restart::Always)
       playbackPos = 0;
+    else if(
+        restart == Restart::InPhase && was == LoopMode::Stop
+        && (m == LoopMode::Play || m == LoopMode::Overdub))
+      m_rephase = true;
   }
 
   template <typename Engine>
@@ -554,6 +642,8 @@ private:
   {
     const auto [start, length] = m_facade.timings(tk);
     const int64_t first = start - tickStartSample;
+    if(std::exchange(m_rephase, false))
+      e.looper_rephase(tk);
     const int64_t done = e.looper_run(first, length);
     // The engine ended the recording itself (its buffer is full): the take is
     // closed, then the rest of the span is the post-action's.
@@ -572,4 +662,12 @@ private:
   ossia::exec_state_facade m_facade{};
   int64_t m_close_offset{};
 };
+
+//! Where the timeline is at the start of a tick, before the transport has run
+//! it.
+inline transport::timeline_point
+timeline_start(const ossia::token_request& tk, ossia::exec_state_facade st) noexcept
+{
+  return {double(tk.prev_date.impl) * st.modelToSamples(), tk.musical_start_position};
+}
 }

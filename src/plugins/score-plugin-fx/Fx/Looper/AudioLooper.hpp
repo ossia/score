@@ -112,11 +112,18 @@ struct Node
     struct : halp::enum_t<Restart, "Restart">
     {
       using halp::enum_t<Restart, "Restart">::operator=;
+      struct range
+      {
+        std::string_view values[3] = {"Always", "Recording", "In phase"};
+        Restart init{};
+      };
       halp_meta(
           description,
           "Where the loop is read from when the mode changes. Always reads it "
           "from the beginning again; Recording lets playing and overdubbing "
-          "carry on from where they were.")
+          "carry on from where they were. In phase carries on as well, and a loop "
+          "played again after a stop, or when the score starts or jumps, is "
+          "where it would be had it kept playing with the timeline.")
     } restart;
 
     struct : halp::impulse_button<"Undo">
@@ -292,6 +299,52 @@ struct Node
           "of that number from the top while there are no more passes than "
           "lanes, and the file of that number of a take written as layers.")
     } layer;
+
+    struct : halp::toggle<"Reverse">
+    {
+      halp_meta(
+          description,
+          "Plays the loop backwards, from where the playhead is. An overdub "
+          "writes where the playhead goes, as on tape: what is played over the "
+          "reversed loop sounds reversed once it plays forwards again. "
+          "Recording a new loop is always forwards.")
+    } reverse;
+
+    struct : Looper::speed_selector<"Speed">
+    {
+      halp_meta(
+          description,
+          "Plays the loop slower or faster, as a tape: the pitch follows. An "
+          "overdub writes where the playhead goes, so what is played at x1/2 "
+          "sounds an octave up at x1. The grid, the bars and the loop's length "
+          "stay in the score's time; combines with Follow tempo.")
+    } speed;
+
+    struct : Looper::enum_combobox<"Passes", Looper::Passes, Looper::Passes::Whole>
+    {
+      using enum_combobox::operator=;
+      struct range
+      {
+        std::string_view values[2] = {"Whole", "Per cycle"};
+        Looper::Passes init = Looper::Passes::Whole;
+      };
+      halp_meta(
+          description,
+          "What an overdub that goes round the loop several times leaves: one "
+          "pass (Whole), or a pass for each time round (Per cycle), to keep the "
+          "best one with Mute layer, erase the others, or splice them in the "
+          "timeline from a take written as layers.")
+    } passes;
+
+    struct : halp::impulse_button<"Mute layer">
+    {
+      halp_meta(
+          description,
+          "Mutes the pass Layer says, or unmutes it, as the m of its lane does. "
+          "A muted pass is kept but not heard: it takes nothing from the passes "
+          "under it, is not in the mix of a take, and still has its file in a "
+          "take written as layers.")
+    } mute_layer;
   } inputs;
 
   struct
@@ -434,6 +487,7 @@ struct Node
       l->written = layers.length;
   }
   int64_t looper_trim_extension(int64_t max_frames);
+  void looper_rephase(const ossia::token_request& tk);
 
   using tick = ossia::token_request;
   void operator()(const tick& tk)
@@ -445,6 +499,10 @@ struct Node
     m_tempo = tk.tempo;
     m_signature = tk.signature;
     m_in_chans = std::min<int>(inputs.audio.channels, layers.channels);
+
+    m_speed = Looper::clamp_speed(inputs.speed.value);
+    m_reverse = inputs.reverse.value;
+    m_tick_start = Looper::timeline_start(tk, ossia_state);
 
     sync.set_group(inputs.sync.value);
     apply_buttons();
@@ -529,7 +587,16 @@ struct Node
           halp::item<&ins::feedback> feedback;
           halp::item<&ins::past_end> past_end;
           halp::item<&ins::follow_tempo> follow_tempo;
+          halp::item<&ins::reverse> reverse;
+          halp::item<&ins::speed> speed;
         } play;
+        struct
+        {
+          halp_meta(name, "Comp")
+          halp_meta(layout, halp::layouts::hbox)
+          halp::item<&ins::passes> passes;
+          halp::item<&ins::mute_layer> mute_layer;
+        } comp;
         struct
         {
           halp_meta(name, "Capture")
@@ -590,6 +657,8 @@ private:
   double m_tempo{120.};
   ossia::time_signature m_signature{4, 4};
   int m_in_chans{};
+  //! Where the timeline is at the start of this tick.
+  Looper::transport::timeline_point m_tick_start{};
 
   // Export of a take: the passes are flattened into the export buffer a
   // bounded number of frames per tick, then a worker writes it.
@@ -643,7 +712,48 @@ private:
   bool m_stretch_ready{};
   int64_t m_expected_pos{};
   bool m_wrapped{};
+  //! Speed and direction the stretchers were last given the loop at.
+  double m_stretch_speed{1.};
+  bool m_stretch_reverse{};
   void play_stretched(int64_t first_pos, int64_t samples);
+
+  // The playhead as a tape's: it reads the loop at m_speed, backwards when
+  // m_reverse is set. Its position is transport.playbackPos and the part of a
+  // frame m_frac it is past it, which a move of the playhead by anything else
+  // than playing drops.
+  double m_speed{1.};
+  bool m_reverse{};
+  double m_frac{};
+  int64_t m_head_pos{-1};
+  //! The input of the last frame, and what came in since the last position
+  //! an overdub slower than x1 wrote.
+  std::array<float, Looper::audio_layers::max_channels> m_prev_in{};
+  std::array<float, Looper::audio_layers::max_channels> m_acc{};
+  int m_acc_n{};
+  //! The pass being taken in is one cycle of an overdub that went round: it
+  //! starts on the end of the one before, without a fade.
+  bool m_cycle_pass{};
+  //! The overdub went round with a pass per cycle: the next position it
+  //! writes starts a new pass. An overdub that stops there leaves none.
+  bool m_cycle_pending{};
+  //! Positions the pass has written, its later rounds included: the first
+  //! ones fade it in.
+  int64_t m_pass_frames{};
+  //! Where position 0 of the loop was on the timeline: its date in frames and
+  //! its musical position.
+  Looper::transport::timeline_point m_origin{};
+  double head_y(int64_t len) const noexcept;
+  void set_head_y(double y, int64_t len) noexcept;
+  float tape(int c, int64_t k, int64_t len) const noexcept
+  {
+    return layers.mix(c, m_reverse ? len - 1 - k : k);
+  }
+  float read_span(int c, double y, double s, int64_t len) const noexcept;
+  void write_tape(int64_t y, const float* v, float feedback);
+  bool cycle_end(int64_t& len, bool extend, float feedback);
+  int64_t latency_frames() const noexcept;
+  void shift_pass(Looper::audio_layer& l);
+  void mute_pass(int pass);
 
 public:
   //! What the stretchers read: the loop as it is heard, round and round.
@@ -651,6 +761,18 @@ public:
   void fetch_audio(int64_t start, int64_t frames, T** out) noexcept
   {
     const int64_t len = layers.length;
+    if(len > 0 && (m_stretch_speed != 1. || m_stretch_reverse))
+    {
+      // Frame u of what the stretchers read is the tape at u * speed.
+      const double sp = m_stretch_speed;
+      for(int c = 0; c < layers.channels; c++)
+        for(int64_t j = 0; j < frames; j++)
+          out[c][j] = T(read_span(c, std::fmod(double(start + j) * sp, double(len)), sp, len));
+      if(std::floor(double(start + frames) * sp / double(len))
+         > std::floor(double(start) * sp / double(len)))
+        m_wrapped = true;
+      return;
+    }
     for(int c = 0; c < layers.channels; c++)
     {
       int64_t k = len > 0 ? start % len : 0;
@@ -717,6 +839,7 @@ private:
   void send_view(int64_t frames);
 
   void play(int64_t first_pos, int64_t samples);
+  void play_tape(int64_t first_pos, int64_t samples);
   void silence(int64_t first_pos, int64_t samples);
   void mix_input(int64_t first_pos, int64_t samples);
   void through(int64_t first_pos, int64_t samples);
@@ -766,15 +889,30 @@ inline void Node::erase_pass(int pass)
   }
 }
 
+//! A muted pass is kept as it is; muting it again lets it be heard.
+inline void Node::mute_pass(int pass)
+{
+  if(pass < 0 || pass >= layers.count || m_loading)
+    return;
+  layers.set_muted(pass, !layers.layers[pass].muted);
+}
+
 inline void Node::apply_buttons()
 {
   if(inputs.clear.value)
     clear_loop();
 
   if(std::exchange(m_erase_requested, false) && m_erase_request.layers == layers.count)
-    erase_pass(m_erase_request.pass);
+  {
+    if(m_erase_request.mute)
+      mute_pass(m_erase_request.pass);
+    else
+      erase_pass(m_erase_request.pass);
+  }
   if(inputs.erase_layer.value)
     erase_pass(inputs.layer.value - 1);
+  if(inputs.mute_layer.value)
+    mute_pass(inputs.layer.value - 1);
 
   if(inputs.undo.value)
   {
@@ -796,6 +934,8 @@ inline int64_t Node::looper_run(int64_t start, int64_t length)
   // Stretching starts again from where the loop is, the next time it plays.
   if(transport.actualMode != LoopMode::Play)
     m_stretch_ready = false;
+  if(transport.playbackPos != m_head_pos)
+    m_frac = 0.;
 
   // Record passthrough is what its name says: the input while something is
   // being taken in, and nothing else. Only Full is heard the rest of the time.
@@ -811,6 +951,8 @@ inline int64_t Node::looper_run(int64_t start, int64_t length)
       {
         if(m_stretch_mode != ossia::audio_stretch_mode::None)
           play_stretched(start, length);
+        else if(m_speed != 1. || m_reverse || m_frac != 0.)
+          play_tape(start, length);
         else
           play(start, length);
         if(echo_otherwise)
@@ -836,11 +978,7 @@ inline void Node::looper_close_take(
   if(!top || layers.length <= 0)
     return;
 
-  const int64_t latency
-      = int64_t(inputs.latency.value * m_rate / 1000.)
-        + (inputs.engine_latency.value
-               ? int64_t(ossia_state.inputLatency()) + ossia_state.outputLatency()
-               : 0);
+  const int64_t latency = latency_frames();
 
   if(mode == LoopMode::Record)
   {
@@ -892,20 +1030,72 @@ inline void Node::looper_close_take(
 
     top->written = layers.length;
     m_export_date = transport.recordStartDate.impl / double(ossia::flicks_per_second<int64_t>);
+
+    // Position 0 of the loop on the timeline: the loop plays on from
+    // playbackPos at the point the take closes.
+    const auto at = double(transport.playbackPos % std::max<int64_t>(1, layers.length));
+    m_origin = transport.timeline(tk);
+    m_origin.frames -= at;
+    m_origin.quarters -= at / m_rate * m_loop_tempo / 60.;
   }
   else
   {
     m_extended = false;
     layers.top()->loop_after = layers.length;
     layers.fade_out_top();
-    if(latency > 0)
-      layers.shift_earlier(*top, latency);
+    shift_pass(*top);
   }
 
   m_export_tempo = m_loop_tempo;
   m_export_signature = tk.signature;
   m_export_pending = true;
   m_closed_count = layers.count;
+}
+
+inline int64_t Node::latency_frames() const noexcept
+{
+  return int64_t(inputs.latency.value * m_rate / 1000.)
+         + (inputs.engine_latency.value
+                ? int64_t(ossia_state.inputLatency()) + ossia_state.outputLatency()
+                : 0);
+}
+
+//! An overdub pass is moved by the latency, in positions of the loop: the
+//! playhead went `speed` of them a frame, and backwards it moves the pass
+//! later.
+inline void Node::shift_pass(Looper::audio_layer& l)
+{
+  const int64_t latency = latency_frames();
+  if(latency <= 0)
+    return;
+  const int64_t positions = std::llround(double(latency) * m_speed);
+  layers.shift_earlier(l, l.backwards ? -positions : positions);
+}
+
+//! The loop is heard again: the playhead goes where it would be had the loop
+//! kept playing at its speed since it was made. Following the tempo, the loop
+//! keeps to the bars: its position comes from the timeline's quarters, which
+//! a tempo change does not move. Else it comes from the timeline's date.
+inline void Node::looper_rephase(const ossia::token_request& tk)
+{
+  if(layers.empty())
+    return;
+  const int64_t len = layers.length;
+  const auto now = transport.timeline(tk);
+  double cycles{};
+  if(m_stretch_mode != ossia::audio_stretch_mode::None && m_loop_tempo > 0.)
+  {
+    const double quarters = double(len) / m_rate * m_loop_tempo / 60.;
+    cycles = (now.quarters - m_origin.quarters) / quarters;
+  }
+  else
+  {
+    cycles = (now.frames - m_origin.frames) / double(len);
+  }
+  cycles *= m_speed;
+  // A whole position: what is left of a frame is rounding.
+  set_head_y(std::floor((cycles - std::floor(cycles)) * double(len) + 1e-6), len);
+  m_stretch_ready = false;
 }
 
 //! An extending pass asked to stop just after the loop grew ends on the old
@@ -1027,6 +1217,9 @@ inline void Node::capture(const tick& tk)
 
   m_full = false;
   transport.play_captured((m_ring_written - end) % n);
+  m_origin = Looper::timeline_start(tk, ossia_state);
+  m_origin.frames -= double(transport.playbackPos);
+  m_origin.quarters -= double(transport.playbackPos) / m_rate * tk.tempo / 60.;
 
   const double model_per_frame = ossia_state.samplesToModel();
   m_export_date = (tk.prev_date.impl - (m_ring_written - end + n) * model_per_frame)
@@ -1100,6 +1293,7 @@ inline void Node::load_file()
   layers.total = 1;
   fade_edges(slot);
   transport.play_captured(0);
+  m_origin = m_tick_start;
 }
 
 //! Plays the loop at the tempo of the score. The ratio is taken when the
@@ -1114,10 +1308,16 @@ inline void Node::play_stretched(int64_t first_pos, int64_t samples)
     play(first_pos, samples);
     return;
   }
-  if(!m_stretch_ready || transport.playbackPos % len != m_expected_pos)
+  if(!m_stretch_ready || transport.playbackPos % len != m_expected_pos
+     || m_stretch_speed != m_speed || m_stretch_reverse != m_reverse)
   {
-    m_stretcher.transport(transport.playbackPos % len);
-    m_heard = double(transport.playbackPos % len);
+    // The stretchers read the tape at m_speed: their frame u is position
+    // u * m_speed of it, which goes round every len / m_speed frames.
+    m_stretch_speed = m_speed;
+    m_stretch_reverse = m_reverse;
+    const auto u = int64_t(head_y(len) / m_speed);
+    m_stretcher.transport(u);
+    m_heard = double(u);
     m_cycle_ratio = m_loop_tempo / std::max(1., m_tempo);
     m_stretch_ready = true;
   }
@@ -1149,9 +1349,105 @@ inline void Node::play_stretched(int64_t first_pos, int64_t samples)
   // The stretcher reads ahead of what it outputs, by what it keeps buffered
   // and its own latency: the position is the one of what was heard, which an
   // overdub that carries on from here writes at.
-  m_heard = std::fmod(m_heard + double(samples) / std::max(1e-9, ratio), double(len));
-  transport.playbackPos = int64_t(m_heard) % len;
+  m_heard = std::fmod(
+      m_heard + double(samples) / std::max(1e-9, ratio), double(len) / m_stretch_speed);
+  if(m_stretch_speed == 1. && !m_stretch_reverse)
+  {
+    transport.playbackPos = int64_t(m_heard) % len;
+    m_frac = 0.;
+    m_head_pos = transport.playbackPos;
+  }
+  else
+  {
+    set_head_y(std::fmod(m_heard * m_stretch_speed, double(len)), len);
+  }
   m_expected_pos = transport.playbackPos;
+}
+
+//! The playhead in the coordinates it goes forward in: the loop's own, or
+//! the loop read from its end when it plays backwards.
+inline double Node::head_y(int64_t len) const noexcept
+{
+  const double h = double(transport.playbackPos % len) + m_frac;
+  double y = m_reverse ? double(len) - h : h;
+  if(y >= double(len))
+    y -= double(len);
+  if(y < 0.)
+    y += double(len);
+  return y;
+}
+
+inline void Node::set_head_y(double y, int64_t len) noexcept
+{
+  double h = m_reverse ? double(len) - y : y;
+  h = std::fmod(h, double(len));
+  if(h < 0.)
+    h += double(len);
+  const double whole = std::floor(h);
+  transport.playbackPos = int64_t(whole) % len;
+  m_frac = h - whole;
+  // A position that rounds to the loop's end is its start.
+  if(m_frac >= 1. - 1e-9)
+  {
+    transport.playbackPos = (transport.playbackPos + 1) % len;
+    m_frac = 0.;
+  }
+  m_head_pos = transport.playbackPos;
+}
+
+//! What a frame of output hears of the tape it goes over, [y; y + s[: faster
+//! than x1, the positions of it averaged; slower, the two nearest positions
+//! to its middle, interpolated. At x1 on a whole position, that position.
+inline float Node::read_span(int c, double y, double s, int64_t len) const noexcept
+{
+  if(s > 1.)
+  {
+    const int n = int(std::lround(s));
+    const auto k0 = int64_t(y);
+    float sum = 0.f;
+    for(int i = 0; i < n; i++)
+      sum += tape(c, (k0 + i) % len, len);
+    return sum / float(n);
+  }
+  const double centre = y + 0.5 * s - 0.5;
+  const double whole = std::floor(centre);
+  const double f = centre - whole;
+  int64_t k = int64_t(whole) % len;
+  if(k < 0)
+    k += len;
+  const float a = tape(c, k, len);
+  if(f < 1e-9)
+    return a;
+  return a + float(f) * (tape(c, (k + 1) % len, len) - a);
+}
+
+//! Playback at another speed than x1, or backwards.
+inline void Node::play_tape(int64_t first_pos, int64_t samples)
+{
+  auto& p2 = outputs.audio;
+  const int64_t last = first_pos + samples;
+  const int out_chans = p2.channels;
+  const int loop_chans = std::min(layers.channels, out_chans);
+  const int64_t len = layers.length;
+  const double s = m_speed;
+  double y = head_y(len);
+  // Faster than x1, whole positions are gone over.
+  if(s > 1.)
+    y = std::floor(y);
+
+  for(int64_t j = first_pos; j < last; j++)
+  {
+    for(int i = 0; i < loop_chans; i++)
+      p2.samples[i][j] = read_span(i, y, s, len);
+    y += s;
+    while(y >= double(len))
+      y -= double(len);
+  }
+  for(int i = loop_chans; i < out_chans; i++)
+    for(int64_t j = first_pos; j < last; j++)
+      p2.samples[i][j] = 0.;
+
+  set_head_y(y, len);
 }
 
 inline void Node::play(int64_t first_pos, int64_t samples)
@@ -1296,6 +1592,61 @@ inline int64_t Node::record(int64_t first_pos, int64_t samples, bool echo)
   return n;
 }
 
+//! Position y of the tape, going the way the playhead goes, is written with
+//! v: replacing what the pass had not written yet, over what it wrote on its
+//! earlier rounds, faded by the feedback.
+inline void Node::write_tape(int64_t y, const float* v, float feedback)
+{
+  if(std::exchange(m_cycle_pending, false))
+  {
+    if(auto* done = layers.top())
+      shift_pass(*done);
+    layers.reserved_overwritten = false;
+    layers.begin_overdub(m_reverse ? layers.length - 1 - y : y);
+    if(layers.reserved_overwritten)
+      cancel_export();
+    m_cycle_pass = true;
+  }
+  auto* t = layers.top();
+  if(!t)
+    return;
+  auto& top = *t;
+  const int64_t len = layers.length;
+  const int64_t k = m_reverse ? len - 1 - y : y;
+  const bool first_time = !layers.valid(top, k);
+  const int fade = Looper::audio_layers::fade_frames;
+  const float ramp
+      = !m_cycle_pass && m_pass_frames < fade ? float(m_pass_frames) / fade : 1.f;
+  m_pass_frames++;
+  for(int c = 0; c < layers.channels; c++)
+  {
+    float& d = layers.data(top.slot, c)[k];
+    // Later laps of the pass fade what it laid down on the earlier ones.
+    d = (first_time ? 0.f : d * feedback) + v[c] * ramp;
+    layers.note_peak(top.slot, k, d);
+  }
+  layers.cover(top, k);
+  top.backwards = m_reverse;
+}
+
+//! The overdub went past the last position of the loop. An extending pass
+//! makes the loop longer, else the playhead goes round, the passes under it
+//! fade by the feedback, and with a pass per cycle the next round is a pass
+//! of its own. True when the playhead goes round.
+inline bool Node::cycle_end(int64_t& len, bool extend, float feedback)
+{
+  if(extend && layers.extend(m_extend_unit))
+  {
+    len = layers.length;
+    m_extended = true;
+    return false;
+  }
+  layers.decay(feedback);
+  if(inputs.passes.value == Looper::Passes::PerCycle)
+    m_cycle_pending = true;
+  return true;
+}
+
 inline void Node::overdub(int64_t first_pos, int64_t samples, bool echo)
 {
   auto& p1 = inputs.audio;
@@ -1309,6 +1660,12 @@ inline void Node::overdub(int64_t first_pos, int64_t samples, bool echo)
     return;
   }
 
+  const int in_chans = std::min(p1.channels, layers.channels);
+  const int out_chans = p2.channels;
+  auto input = [&](int c, int64_t j) {
+    return c < in_chans ? float(p1.samples[c][j]) : 0.f;
+  };
+
   int64_t len = layers.length;
   if(!transport.is_taking())
   {
@@ -1320,54 +1677,85 @@ inline void Node::overdub(int64_t first_pos, int64_t samples, bool echo)
     // An extending pass grows the loop by the loop it started over.
     m_extend_unit = len;
     m_extended = false;
-  }
-  transport.taking(LoopMode::Overdub);
-  const bool extend = inputs.past_end.value == Looper::PastEnd::Extend;
-
-  auto* top = layers.top();
-  if(!top)
-    return;
-
-  const int in_chans = std::min(p1.channels, layers.channels);
-  const int out_chans = p2.channels;
-  const float feedback = std::clamp(inputs.feedback.value, 0.f, 1.f);
-  const int fade = Looper::audio_layers::fade_frames;
-
-  int64_t k = transport.playbackPos % len;
-  for(int64_t j = first_pos; j < last; j++)
-  {
-    const bool first_time = top->written < len;
-    const float ramp = top->written < fade ? float(top->written) / fade : 1.f;
+    m_cycle_pass = false;
+    m_cycle_pending = false;
+    m_pass_frames = 0;
+    m_acc_n = 0;
     for(int c = 0; c < layers.channels; c++)
     {
-      const float in = c < in_chans ? float(p1.samples[c][j]) : 0.f;
-      const float before = layers.mix(c, k);
-      float& d = layers.data(top->slot, c)[k];
-      // Later laps of the pass fade what it laid down on the earlier ones.
-      d = (first_time ? 0.f : d * feedback) + in * ramp;
-      layers.note_peak(top->slot, k, d);
+      m_acc[c] = 0.f;
+      m_prev_in[c] = input(c, first_pos);
+    }
+  }
+  transport.taking(LoopMode::Overdub);
+  // Backwards, the playhead reaches the loop's start, not its end.
+  const bool extend = inputs.past_end.value == Looper::PastEnd::Extend && !m_reverse;
+
+  if(!layers.top())
+    return;
+
+  const float feedback = std::clamp(inputs.feedback.value, 0.f, 1.f);
+  const double s = m_speed;
+  double y = head_y(len);
+  if(s >= 1.)
+    y = std::floor(y);
+  const int steps = s >= 1. ? int(std::lround(s)) : 1;
+  std::array<float, Looper::audio_layers::max_channels> v{};
+
+  for(int64_t j = first_pos; j < last; j++)
+  {
+    for(int c = 0; c < layers.channels; c++)
+    {
+      const float in = input(c, j);
+      const float before = read_span(c, y, s, len);
       if(c < out_chans)
         p2.samples[c][j] = echo ? before + in : before;
     }
     for(int c = layers.channels; c < out_chans; c++)
       p2.samples[c][j] = 0.;
 
-    top->written++;
-    if(++k == len)
+    if(s >= 1.)
     {
-      if(extend && layers.extend(m_extend_unit))
+      // Each frame goes over `steps` positions: the input between the last
+      // frame and this one, interpolated, the last of them this frame's.
+      auto w = int64_t(y);
+      for(int i = 0; i < steps; i++)
       {
-        len = layers.length;
-        m_extended = true;
+        const float t = float(i + 1) / float(steps);
+        for(int c = 0; c < layers.channels; c++)
+          v[c] = steps == 1 ? input(c, j) : m_prev_in[c] + t * (input(c, j) - m_prev_in[c]);
+        write_tape(w, v.data(), feedback);
+        if(++w == len && cycle_end(len, extend, feedback))
+          w = 0;
       }
-      else
+      y = double(w);
+    }
+    else
+    {
+      // A position takes several frames: what came in over them, averaged,
+      // once the playhead leaves it.
+      for(int c = 0; c < layers.channels; c++)
+        m_acc[c] += input(c, j);
+      m_acc_n++;
+      const auto k = int64_t(y);
+      y += s;
+      if(y >= double(k + 1) - 1e-9)
       {
-        k = 0;
-        layers.decay(feedback);
+        for(int c = 0; c < layers.channels; c++)
+        {
+          v[c] = m_acc[c] / float(m_acc_n);
+          m_acc[c] = 0.f;
+        }
+        m_acc_n = 0;
+        write_tape(k, v.data(), feedback);
+        if(k + 1 == len && cycle_end(len, extend, feedback))
+          y -= double(len);
       }
     }
+    for(int c = 0; c < layers.channels; c++)
+      m_prev_in[c] = input(c, j);
   }
-  transport.playbackPos = k;
+  set_head_y(y, len);
 }
 
 inline void Node::start_export_item(int item)
@@ -1429,11 +1817,12 @@ inline void Node::run_export()
     }
     else
     {
+      // A muted pass has its file, as it would be heard.
       const auto& l = m_export_snapshot[m_export_item];
       const float* src = layers.data(l.slot, c);
       for(int64_t k = m_flatten_pos; k < end; k++)
         dst[k] = Looper::audio_layers::valid_in(l, k, len)
-                     ? l.gain * src[Looper::audio_layers::index_in(l, k, len)]
+                     ? l.unmuted_gain * src[Looper::audio_layers::index_in(l, k, len)]
                      : 0.f;
     }
   }
@@ -1522,6 +1911,15 @@ inline void Node::send_view(int64_t frames)
                    : 0.f;
   v.tempo = float(m_tempo);
   v.writing = m_flattening || m_writing;
+  v.reverse = m_reverse;
+  v.speed = float(m_speed);
+  {
+    const int lanes = std::min(layers.count, Looper::view_message::max_lanes);
+    const int merged = layers.count - lanes;
+    v.muted.fill(0);
+    for(int l = merged > 0 ? 1 : 0; l < lanes; l++)
+      v.muted[l] = layers.layers[l + merged].muted;
+  }
 
   scan_peaks();
   send_message(v);
@@ -1560,10 +1958,13 @@ inline void Node::scan_peaks()
     const int64_t own = std::max<int64_t>(
         1, (layers.period_of(l) + layers_t::peak_frames - 1) / layers_t::peak_frames);
     const int64_t end = std::min(micro, m_scan_pos + budget);
+    // A muted pass of a lane of its own is drawn as it would be heard, the
+    // view dims it; in the lane of the oldest passes, it is left out.
+    const float gain = count > lanes && i <= count - lanes ? l.gain : l.unmuted_gain;
     for(int64_t m = m_scan_pos; m < end; m++)
     {
       const int b = int(m * bins / micro);
-      dst[b] = std::max(dst[b], p[m % own] * l.gain);
+      dst[b] = std::max(dst[b], p[m % own] * gain);
     }
     budget -= end - m_scan_pos;
     m_scan_pos = end;

@@ -2177,3 +2177,513 @@ TEST_CASE("Looper: erasing a pass allocates nothing", "[fx][audio][looper][layer
   }
   CHECK(allocated == 0);
 }
+
+// ---------------------------------------------------------------------------
+// Reverse, speed, a pass per cycle, and playing in phase with the timeline.
+// ---------------------------------------------------------------------------
+
+namespace
+{
+//! Records `len` frames of what `f` gives for each frame, then asks for Play.
+void record_with(looper_harness& h, int64_t len, double (*f)(int64_t))
+{
+  h.node.inputs.mode = LoopMode::Record;
+  for(int64_t done = 0; done < len; done += h.buffer_size)
+  {
+    const int64_t n = std::min<int64_t>(h.buffer_size, len - done);
+    for(int64_t i = 0; i < n; i++)
+      h.in_buf[0][i] = f(done + i);
+    h.run(n);
+  }
+  h.reset_input();
+  h.node.inputs.mode = LoopMode::Play;
+}
+
+//! Runs `frames` frames, the input of frame i (from the first of them) being
+//! f(i), and gives back what came out.
+std::vector<double> run_with(looper_harness& h, int64_t frames, double (*f)(int64_t))
+{
+  std::vector<double> out;
+  for(int64_t done = 0; done < frames; done += h.buffer_size)
+  {
+    const int64_t n = std::min<int64_t>(h.buffer_size, frames - done);
+    for(int64_t i = 0; i < n; i++)
+      h.in_buf[0][i] = f ? f(done + i) : 0.;
+    h.reset_output();
+    h.run(n);
+    out.insert(out.end(), h.out_buf[0].begin(), h.out_buf[0].begin() + n);
+  }
+  h.reset_input();
+  return out;
+}
+
+//! Times the signal goes from below zero to above it over [from; to[.
+int rising_crossings(const std::vector<double>& v, std::size_t from, std::size_t to)
+{
+  int n = 0;
+  for(std::size_t i = from + 1; i < to && i < v.size(); i++)
+    n += v[i - 1] < 0. && v[i] >= 0.;
+  return n;
+}
+
+double ramp(int64_t i)
+{
+  return 0.001 * double(i % 512 + 1);
+}
+double sine32(int64_t i)
+{
+  return std::sin(2. * M_PI * (double(i) + 0.25) / 32.);
+}
+double sine64(int64_t i)
+{
+  return std::sin(2. * M_PI * (double(i) + 0.25) / 64.);
+}
+double silent(int64_t)
+{
+  return 0.;
+}
+}
+
+TEST_CASE("Looper: reversed, the loop plays backwards from where the playhead is",
+          "[fx][audio][looper][reverse]")
+{
+  looper_harness h{1, 64};
+  h.node.inputs.passthrough = Passthrough::None;
+  record_with(h, 1024, ramp);
+  h.node.inputs.reverse.value = true;
+
+  // The recording closes and the loop is read from its start: backwards,
+  // that is its last frame.
+  h.reset_output();
+  h.run(64);
+  for(int j = 0; j < 64; j++)
+    CHECK(h.out_buf[0][j] == Approx(h.loop()[1023 - j]));
+  CHECK(h.node.transport.playbackPos == 1024 - 64);
+  CHECK(h.node.outputs.phase.value == Approx(960. / 1024.));
+
+  h.reset_output();
+  h.run(64);
+  for(int j = 0; j < 64; j++)
+    CHECK(h.out_buf[0][j] == Approx(h.loop()[959 - j]));
+  CHECK(h.node.transport.playbackPos == 896);
+
+  // Forwards again, from there.
+  h.node.inputs.reverse.value = false;
+  h.reset_output();
+  h.run(64);
+  for(int j = 0; j < 64; j++)
+    CHECK(h.out_buf[0][j] == Approx(h.loop()[896 + j]));
+  CHECK(h.node.transport.playbackPos == 960);
+}
+
+TEST_CASE("Looper: an overdub over the reversed loop sounds reversed once it plays "
+          "forwards",
+          "[fx][audio][looper][reverse]")
+{
+  looper_harness h{1, 64};
+  h.node.inputs.passthrough = Passthrough::None;
+  record_with(h, 1024, [](int64_t) { return 0.25; });
+  h.run(64);
+
+  h.node.inputs.reverse.value = true;
+  h.node.inputs.mode = LoopMode::Overdub;
+  // The overdub starts from the loop's start, going backwards: its frame j
+  // is written at position 1023 - j.
+  run_with(h, 1024, ramp);
+  REQUIRE(h.node.layers.count == 2);
+  const auto& top = *h.node.layers.top();
+  CHECK(top.written == 1024);
+  CHECK(top.backwards);
+  for(int64_t j = 128; j < 1024; j++)
+    CHECK(h.node.layer_data(1, 0)[1023 - j] == Approx(ramp(j)));
+
+  h.node.inputs.reverse.value = false;
+  h.node.inputs.mode = LoopMode::Play;
+  const auto out = run_with(h, 1024, nullptr);
+  for(int64_t k = 200; k < 800; k++)
+    CHECK(out[k] == Approx(0.25 + ramp(1023 - k)));
+}
+
+TEST_CASE("Looper: at half speed a loop's sine is an octave down, at double speed up",
+          "[fx][audio][looper][speed]")
+{
+  looper_harness h{1, 64};
+  h.node.inputs.passthrough = Passthrough::None;
+  record_with(h, 1024, sine32);
+
+  SECTION("x1/2")
+  {
+    h.node.inputs.speed.value = 0.5f;
+    const auto out = run_with(h, 2048, nullptr);
+    // The whole loop takes twice as long.
+    CHECK(h.node.transport.playbackPos == 0);
+    // Away from the faded edges, the sine's period is 64 frames.
+    for(std::size_t j = 256; j < 1792; j++)
+      CHECK(out[j] == Approx(std::sin(2. * M_PI * double(j) / 64.)).margin(0.01));
+    CHECK(rising_crossings(out, 250, 1790) == 24);
+  }
+  SECTION("x2")
+  {
+    h.node.inputs.speed.value = 2.f;
+    const auto out = run_with(h, 256, nullptr);
+    CHECK(h.node.transport.playbackPos == 512);
+    // Two positions a frame, averaged: a period of 16 frames.
+    for(std::size_t j = 64; j < 256; j++)
+      CHECK(out[j] == Approx(std::sin(2. * M_PI * (2. * j + 0.75) / 32.)).margin(0.02));
+    CHECK(rising_crossings(out, 60, 250) == 12);
+  }
+  SECTION("x1/2 backwards: the frames between two positions are interpolated")
+  {
+    h.node.inputs.speed.value = 0.5f;
+    h.node.inputs.reverse.value = true;
+    run_with(h, 640, nullptr);
+    CHECK(h.node.transport.playbackPos == 1024 - 320);
+    CHECK(h.node.outputs.phase.value == Approx(704. / 1024.));
+  }
+}
+
+TEST_CASE("Looper: an overdub at another speed writes where the playhead goes",
+          "[fx][audio][looper][speed]")
+{
+  looper_harness h{1, 64};
+  h.node.inputs.passthrough = Passthrough::None;
+  record_with(h, 1024, silent);
+  h.run(64);
+
+  SECTION("played at x1/2, it is an octave up at x1")
+  {
+    h.node.inputs.speed.value = 0.5f;
+    h.node.inputs.mode = LoopMode::Overdub;
+    run_with(h, 2048, sine64);
+    REQUIRE(h.node.layers.count == 2);
+    CHECK(h.node.layers.top()->written == 1024);
+    // Two frames of input for each position, averaged.
+    const float* d = h.node.layer_data(1, 0);
+    for(int64_t k = 128; k < 1000; k++)
+      CHECK(d[k] == Approx(std::cos(M_PI / 64.) * std::sin(2. * M_PI * (k + 0.375) / 32.))
+                        .margin(1e-3));
+
+    h.node.inputs.speed.value = 1.f;
+    h.node.inputs.mode = LoopMode::Play;
+    const auto out = run_with(h, 1024, nullptr);
+    CHECK(rising_crossings(out, 120, 890) == 24);
+  }
+  SECTION("played at x2, it is an octave down at x1")
+  {
+    h.node.inputs.speed.value = 2.f;
+    h.node.inputs.mode = LoopMode::Overdub;
+    run_with(h, 512, sine32);
+    REQUIRE(h.node.layers.count == 2);
+    CHECK(h.node.layers.top()->written == 1024);
+    // Two positions for each frame, the input interpolated between frames.
+    const float* d = h.node.layer_data(1, 0);
+    for(int64_t k = 256; k < 1000; k++)
+      CHECK(d[k] == Approx(std::sin(2. * M_PI * ((k - 1) / 2. + 0.25) / 32.)).margin(0.01));
+
+    h.node.inputs.speed.value = 1.f;
+    h.node.inputs.mode = LoopMode::Play;
+    const auto out = run_with(h, 1024, nullptr);
+    CHECK(rising_crossings(out, 250, 1000) == 12);
+  }
+}
+
+TEST_CASE("Looper: speed and reverse leave the grid and the loop's length alone",
+          "[fx][audio][looper][speed][musical]")
+{
+  // A recording of four bars at x1/2: the recording is the loop, at x1, and
+  // the post-action takes over after its bars.
+  musical_harness h{4800};
+  h.node.inputs.quantif.value = 1.0f;
+  h.node.inputs.postaction_bars.value = 1;
+  h.node.inputs.speed.value = 0.5f;
+  h.node.inputs.reverse.value = true;
+  h.fill_input(0, [](int64_t) { return 0.25; });
+  h.node.inputs.mode = LoopMode::Stop;
+  h.run_bars(1);
+  h.node.inputs.mode = LoopMode::Record;
+  h.run_bars(1.5);
+  CHECK(h.node.transport.actualMode == LoopMode::Play);
+  CHECK(h.node.layers.length == h.bar_samples());
+}
+
+TEST_CASE("Looper: a pass per cycle makes a pass of each time an overdub goes round",
+          "[fx][audio][looper][comp]")
+{
+  looper_harness h{1, 64};
+  h.node.inputs.passthrough = Passthrough::None;
+  h.node.inputs.passes.value = Nodes::Looper::Passes::PerCycle;
+  record_with(h, 512, [](int64_t) { return 0.25; });
+  h.run(64);
+
+  h.node.inputs.mode = LoopMode::Overdub;
+  run_with(h, 1536, [](int64_t i) { return 0.1 * double(i / 512 + 1); });
+  h.node.inputs.mode = LoopMode::Play;
+  h.run(64);
+
+  // The recording, then a pass for each of the three rounds, and none for
+  // the round the overdub stopped at the start of.
+  REQUIRE(h.node.layers.count == 4);
+  CHECK(h.node.layer_data(1, 0)[256] == Approx(0.1));
+  CHECK(h.node.layer_data(2, 0)[256] == Approx(0.2));
+  CHECK(h.node.layer_data(3, 0)[256] == Approx(0.3));
+  // A round starts on the end of the one before: no fade between them.
+  CHECK(h.node.layer_data(2, 0)[0] == Approx(0.2));
+  CHECK(h.node.layers.mix(0, 256) == Approx(0.85));
+
+  SECTION("muting a pass takes it out of what is heard, and keeps it")
+  {
+    h.node.inputs.layer.value = 3;
+    press(h.node.inputs.mute_layer, h);
+    CHECK(h.node.layers.layers[2].muted);
+    CHECK(h.node.layers.count == 4);
+    CHECK(h.node.layers.mix(0, 256) == Approx(0.65));
+    h.reset_output();
+    h.run(64);
+    CHECK(h.node.transport.playbackPos == 192);
+    for(int j = 0; j < 64; j++)
+      CHECK(h.out_buf[0][j] == Approx(h.node.layers.mix(0, 128 + j)));
+    // The m of the lane says the same.
+    Nodes::Looper::view_message last{};
+    h.node.send_message = [&](Nodes::Looper::view_message v) { last = v; };
+    for(int i = 0; i < 30; i++)
+      h.run(64);
+    CHECK(last.muted[2] == 1);
+    CHECK(last.muted[1] == 0);
+
+    press(h.node.inputs.mute_layer, h);
+    CHECK(!h.node.layers.layers[2].muted);
+    CHECK(h.node.layers.mix(0, 256) == Approx(0.85));
+  }
+  SECTION("the view mutes a pass of the loop it showed")
+  {
+    h.node.process_message(
+        Nodes::Looper::erase_request{.pass = 1, .layers = 4, .mute = true});
+    h.run(64);
+    CHECK(h.node.layers.layers[1].muted);
+    CHECK(h.node.layers.mix(0, 256) == Approx(0.75));
+    h.node.process_message(
+        Nodes::Looper::erase_request{.pass = 2, .layers = 3, .mute = true});
+    h.run(64);
+    CHECK(!h.node.layers.layers[2].muted);
+  }
+  SECTION("each pass is undone and erased on its own")
+  {
+    press(h.node.inputs.undo, h);
+    CHECK(h.node.layers.count == 3);
+    CHECK(h.node.layers.mix(0, 256) == Approx(0.55));
+    erase_layer(h, 2);
+    CHECK(h.node.layers.count == 2);
+    CHECK(h.node.layers.mix(0, 256) == Approx(0.45));
+  }
+}
+
+TEST_CASE("Looper: a muted pass takes nothing from the passes under it",
+          "[fx][audio][looper][comp]")
+{
+  looper_harness h{1, 64};
+  h.node.inputs.passthrough = Passthrough::None;
+  h.node.inputs.passes.value = Nodes::Looper::Passes::PerCycle;
+  h.node.inputs.feedback.value = 0.5f;
+  record_with(h, 512, [](int64_t) { return 0.25; });
+  h.run(64);
+  h.node.inputs.mode = LoopMode::Overdub;
+  run_with(h, 1536, [](int64_t i) { return 0.1 * double(i / 512 + 1); });
+  h.node.inputs.mode = LoopMode::Play;
+  h.run(64);
+  REQUIRE(h.node.layers.count == 4);
+
+  // As one overdub of three rounds: each round fades what is under it.
+  CHECK(h.node.layers.mix(0, 256) == Approx(0.25 / 8 + 0.1 / 4 + 0.2 / 2 + 0.3));
+
+  h.node.inputs.layer.value = 3;
+  press(h.node.inputs.mute_layer, h);
+  CHECK(h.node.layers.mix(0, 256) == Approx(0.25 / 4 + 0.1 / 2 + 0.3));
+}
+
+TEST_CASE("Looper: a take of passes per cycle has a file for each, the muted ones out "
+          "of its mix",
+          "[fx][audio][looper][comp][takes]")
+{
+  QTemporaryDir dir;
+  REQUIRE(dir.isValid());
+  looper_harness h{1, 64};
+  auto writer = std::make_shared<Nodes::Looper::take_writer>();
+  writer->folder = dir.path();
+  writer->prefix = "t";
+  writer->extension = "wav";
+  h.node.writer = writer;
+  h.node.worker.request = [&](Nodes::Looper::take_job job) {
+    Looper::worker_t::work(std::move(job))(h.node);
+  };
+  h.node.inputs.takes.value = Nodes::Looper::TakeFiles::Both;
+  h.node.inputs.passthrough = Passthrough::None;
+  h.node.inputs.passes.value = Nodes::Looper::Passes::PerCycle;
+
+  record_with(h, 512, [](int64_t) { return 0.25; });
+  h.run(64);
+  h.node.inputs.mode = LoopMode::Overdub;
+  run_with(h, 1024, [](int64_t i) { return 0.1 * double(i / 512 + 1); });
+  // The second round is muted while the third is played.
+  h.node.inputs.layer.value = 3;
+  h.node.inputs.mute_layer.value.emplace();
+  run_with(h, 64, [](int64_t) { return 0.3; });
+  h.node.inputs.mute_layer.value.reset();
+  run_with(h, 448, [](int64_t) { return 0.3; });
+  h.node.inputs.mode = LoopMode::Play;
+  for(int i = 0; i < 10; i++)
+    h.run(64);
+
+  REQUIRE(QFileInfo::exists(dir.path() + "/t-take2.wav"));
+  for(int k = 1; k <= 4; k++)
+    CHECK(QFileInfo::exists(dir.path() + QString("/t-take2-layer%1.wav").arg(k)));
+  const auto mix = read_wav(QString(dir.path() + "/t-take2.wav").toStdString());
+  REQUIRE(mix.samples.size() == 512 * std::size_t(mix.channels));
+  CHECK(mix.samples[256 * mix.channels] == Approx(0.25 + 0.1 + 0.3));
+  const auto muted = read_wav(QString(dir.path() + "/t-take2-layer3.wav").toStdString());
+  REQUIRE(muted.samples.size() == 512 * std::size_t(muted.channels));
+  CHECK(muted.samples[256 * muted.channels] == Approx(0.2));
+}
+
+TEST_CASE("Looper: in phase, a loop played again is where it would be had it kept "
+          "playing",
+          "[fx][audio][looper][phase]")
+{
+  // 1000 frames a second, a loop of a second.
+  looper_harness h{1, 100, 1000};
+  h.node.inputs.passthrough = Passthrough::None;
+  h.node.inputs.restart = Looper::Restart::InPhase;
+  record_with(h, 1000, ramp);
+  for(int i = 0; i < 3; i++)
+    h.run(100);
+  REQUIRE(h.node.transport.playbackPos == 300);
+
+  // Stopped for half a second: it comes back half a loop on.
+  h.node.inputs.mode = LoopMode::Stop;
+  for(int i = 0; i < 5; i++)
+    h.run(100);
+  h.node.inputs.mode = LoopMode::Play;
+  h.reset_output();
+  h.run(100);
+  for(int j = 0; j < 100; j++)
+    CHECK(h.out_buf[0][j] == Approx(h.loop()[800 + j]));
+  CHECK(h.node.transport.playbackPos == 900);
+
+  SECTION("the score stopped and started again elsewhere")
+  {
+    h.node.stop();
+    h.now = 3250;
+    h.run(100);
+    CHECK(h.node.transport.playbackPos == 350);
+  }
+  SECTION("the score jumps while the loop plays")
+  {
+    h.now += 120;
+    h.run(100);
+    CHECK(h.node.transport.playbackPos == 120);
+    // Played on, it does not jump.
+    h.run(100);
+    CHECK(h.node.transport.playbackPos == 220);
+  }
+  SECTION("backwards and at double speed, it is where it would be going that way")
+  {
+    h.node.inputs.mode = LoopMode::Stop;
+    h.run(100);
+    h.node.inputs.reverse.value = true;
+    h.node.inputs.speed.value = 2.f;
+    h.node.inputs.mode = LoopMode::Play;
+    // A second after the loop's start, at x2: two rounds exactly, then a
+    // buffer goes over 200 positions, backwards.
+    h.run(100);
+    CHECK(h.node.transport.playbackPos == 1000 - 200);
+  }
+  SECTION("Recording carries on from where it stopped")
+  {
+    h.node.inputs.restart = Looper::Restart::Recording;
+    h.node.inputs.mode = LoopMode::Stop;
+    for(int i = 0; i < 3; i++)
+      h.run(100);
+    h.node.inputs.mode = LoopMode::Play;
+    h.run(100);
+    CHECK(h.node.transport.playbackPos == 0);
+  }
+}
+
+TEST_CASE("Looper: in phase and following the tempo, a loop keeps to the bars across "
+          "a tempo change",
+          "[fx][audio][looper][phase][tempo]")
+{
+  musical_harness h{4800};
+  h.accumulate = true;
+  h.node.inputs.quantif.value = 0.f;
+  h.node.inputs.postaction_bars.value = 0;
+  h.node.inputs.restart = Looper::Restart::InPhase;
+  h.node.inputs.follow_tempo.value = Nodes::Looper::FollowTempo::Repitch;
+  h.node.prepare_stretch(48000, 4800);
+  h.node.inputs.passthrough = Passthrough::None;
+  h.fill_input(0, [](int64_t i) { return std::sin(i * 0.3); });
+
+  h.node.inputs.mode = LoopMode::Stop;
+  h.run_bars(1);
+  h.node.inputs.mode = LoopMode::Record;
+  h.run_bars(1);
+  h.node.inputs.mode = LoopMode::Play;
+  h.run_bars(0.5);
+  REQUIRE(h.node.layers.length == h.bar_samples());
+
+  // Twice as slow, and stopped for three quarters of a bar of it.
+  h.tempo = 60.;
+  h.node.inputs.mode = LoopMode::Stop;
+  for(int i = 0; i < 30; i++)
+    h.run(h.mtick(h.buffer_size));
+  const double quarters = h.position;
+  h.node.inputs.mode = LoopMode::Play;
+  h.run(h.mtick(h.buffer_size));
+
+  // A bar of the loop is four quarters, wherever the tempo went: the loop
+  // starts where the bar it was recorded on puts it, then plays a buffer at
+  // half its speed.
+  const double into = std::fmod(quarters - 8., 4.) / 4.;
+  const auto expected = int64_t(into * double(h.node.layers.length)) + h.buffer_size / 2;
+  CHECK(std::abs(h.node.transport.playbackPos - expected) <= 1);
+}
+
+TEST_CASE("Looper: reverse, speed, passes per cycle and mutes allocate nothing",
+          "[fx][audio][looper][reverse][speed][comp]")
+{
+  looper_harness h{2, 64};
+  h.fill_input(0, [](int64_t i) { return std::sin(i * 0.1); });
+  h.fill_input(1, [](int64_t i) { return std::cos(i * 0.1); });
+  h.node.inputs.passes.value = Nodes::Looper::Passes::PerCycle;
+  h.node.inputs.restart = Looper::Restart::InPhase;
+  int allocated = 0;
+  {
+    alloc_counter::scope counter;
+    h.node.inputs.mode = LoopMode::Record;
+    for(int i = 0; i < 8; i++)
+      h.run(64);
+    h.node.inputs.reverse.value = true;
+    h.node.inputs.mode = LoopMode::Overdub;
+    for(int i = 0; i < 20; i++)
+      h.run(64);
+    h.node.inputs.speed.value = 0.5f;
+    for(int i = 0; i < 20; i++)
+      h.run(64);
+    h.node.inputs.speed.value = 2.f;
+    h.node.inputs.reverse.value = false;
+    for(int i = 0; i < 20; i++)
+      h.run(64);
+    h.node.inputs.mode = LoopMode::Play;
+    for(int i = 0; i < 10; i++)
+      h.run(64);
+    h.node.inputs.layer.value = 2;
+    press(h.node.inputs.mute_layer, h);
+    h.node.inputs.mode = LoopMode::Stop;
+    h.run(64);
+    h.node.inputs.mode = LoopMode::Play;
+    for(int i = 0; i < 10; i++)
+      h.run(64);
+    allocated = counter.allocations();
+  }
+  CHECK(allocated == 0);
+  CHECK(h.node.layers.count > 4);
+}

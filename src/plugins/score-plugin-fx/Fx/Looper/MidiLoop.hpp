@@ -134,6 +134,11 @@ struct midi_loop
   std::array<int64_t, max_passes + 1> loop_after{};
   //! What each pass that is over went over.
   std::array<pass_region, max_passes + 1> regions{};
+  //! Passes kept but not heard: as if erased for what the loop sounds like,
+  //! so they replace nothing either.
+  std::array<bool, max_passes + 1> muted{};
+  //! Changes each time what is heard of the controllers may have changed.
+  uint64_t edits{};
 
   int64_t period_of(int pass) const noexcept
   {
@@ -160,6 +165,9 @@ struct midi_loop
   //! The frames the pass went over, not rounded: at a rate other than one, a
   //! tick goes over a fraction of a frame more than its whole frames.
   double pass_progress{};
+  //! The playhead goes backwards: the part the pass went over grows towards
+  //! the loop's start, pass_start being its first position.
+  bool pass_backwards{};
   std::array<bool, 128> touched_pitches{};
   std::array<uint16_t, max_touched> touched_keys{};
   int touched_count{};
@@ -189,22 +197,63 @@ struct midi_loop
 
   bool replaced(int16_t by) const noexcept { return by >= 0 && by < count; }
 
-  bool heard(const midi_note& n, OverdubMode mode) const noexcept
+  //! The pass being taken in replaces what is under it as it goes, unless it
+  //! is muted.
+  bool replacing() const noexcept { return taking && count > 0 && !muted[count - 1]; }
+
+  //! `own_mute` false hears a muted pass's events as if it were not muted.
+  bool heard(const midi_note& n, OverdubMode mode, bool own_mute = true) const noexcept
   {
-    if(n.pass >= count || replaced(n.replaced_by))
+    if(n.pass >= count || replaced(n.replaced_by) || (own_mute && muted[n.pass]))
       return false;
-    if(taking && n.pass + 1 < count && mode == OverdubMode::Replace
+    if(replacing() && n.pass + 1 < count && mode == OverdubMode::Replace
        && touched_pitches[n.pitch] && in_pass(n.start))
       return false;
     return true;
   }
 
-  bool heard(const midi_control& c) const noexcept
+  bool heard(const midi_control& c, bool own_mute = true) const noexcept
   {
-    if(c.pass >= count || replaced(c.replaced_by))
+    if(c.pass >= count || replaced(c.replaced_by) || (own_mute && muted[c.pass]))
       return false;
-    if(taking && c.pass + 1 < count && touched(c.key()) && in_pass(c.pos))
+    if(replacing() && c.pass + 1 < count && touched(c.key()) && in_pass(c.pos))
       return false;
+    return true;
+  }
+
+  //! The first pass over the one of `e` that replaces it and is heard, -1
+  //! for none: the pass being taken in replaces as it goes, not through this.
+  template <typename E>
+  int16_t first_replacer(const E& e, int from) const noexcept
+  {
+    for(int q = std::max<int>(from, e.pass + 1); q < total; q++)
+      if(!(taking && q == count - 1) && !muted[q] && regions[q].replaces(e))
+        return int16_t(q);
+    return -1;
+  }
+
+  //! Mutes or unmutes pass k, heard and over: what it replaced is heard again
+  //! while it is muted, unless a later pass replaces it as well.
+  bool set_muted(int k, bool m) noexcept
+  {
+    if(k < 0 || k >= count || muted[k] == m)
+      return false;
+    muted[k] = m;
+    edits++;
+    if(taking && k == count - 1)
+      return true;
+    auto update = [&](auto& e) {
+      if(e.pass >= k)
+        return;
+      if(m && e.replaced_by == k)
+        e.replaced_by = first_replacer(e, k + 1);
+      else if(!m && (e.replaced_by < 0 || e.replaced_by > k) && regions[k].replaces(e))
+        e.replaced_by = int16_t(k);
+    };
+    for(int i = 0; i < note_count; i++)
+      update(notes[i]);
+    for(int i = 0; i < control_count; i++)
+      update(controls[i]);
     return true;
   }
 
@@ -217,6 +266,7 @@ struct midi_loop
     length = 0;
     full = false;
     taking = false;
+    edits++;
   }
 
   //! Drops what redo would have brought back.
@@ -239,6 +289,7 @@ struct midi_loop
       if(controls[i].replaced_by >= count)
         controls[i].replaced_by = -1;
     total = count;
+    edits++;
   }
 
   void begin_recording() noexcept
@@ -247,6 +298,7 @@ struct midi_loop
     count = 1;
     total = 1;
     period[0] = 0;
+    muted[0] = false;
     begin_pass_state(0);
   }
 
@@ -260,6 +312,7 @@ struct midi_loop
     period[count] = 0;
     loop_before[count] = length;
     loop_after[count] = length;
+    muted[count] = false;
     count++;
     total = count;
     begin_pass_state(start);
@@ -267,6 +320,23 @@ struct midi_loop
 
   void merge_oldest() noexcept
   {
+    // A muted pass is left out of the merged one: merging is where it is lost.
+    if(muted[0] != muted[1])
+    {
+      const int lost = muted[0] ? 0 : 1;
+      note_count = int(
+          std::remove_if(
+              notes.begin(), notes.begin() + note_count,
+              [lost](const midi_note& n) { return n.pass == lost; })
+          - notes.begin());
+      control_count = int(
+          std::remove_if(
+              controls.begin(), controls.begin() + control_count,
+              [lost](const midi_control& c) { return c.pass == lost; })
+          - controls.begin());
+      muted[0] = false;
+    }
+    edits++;
     for(int i = 0; i < note_count; i++)
     {
       if(notes[i].pass > 0)
@@ -291,6 +361,7 @@ struct midi_loop
       loop_before[p] = loop_before[p + 1];
       loop_after[p] = loop_after[p + 1];
       regions[p] = regions[p + 1];
+      muted[p] = muted[p + 1];
     }
     count--;
   }
@@ -300,6 +371,7 @@ struct midi_loop
     pass_start = start;
     pass_written = 0;
     pass_progress = 0.;
+    pass_backwards = false;
     touched_pitches.fill(false);
     touched_count = 0;
     taking = true;
@@ -324,7 +396,9 @@ struct midi_loop
       r.keys = touched_keys;
       r.key_count = touched_count;
     }
-    if(pass > 0)
+    edits++;
+    // A muted pass replaces nothing until it is unmuted.
+    if(pass > 0 && !muted[pass])
     {
       for(int i = 0; i < note_count; i++)
       {
@@ -343,11 +417,20 @@ struct midi_loop
     taking = false;
   }
 
-  //! The pass went over `frames` more frames of the loop.
-  void advance_pass(double frames) noexcept
+  //! The pass went over `frames` more frames of the loop, backwards when
+  //! the playhead goes backwards.
+  void advance_pass(double frames, bool backwards = false) noexcept
   {
     pass_progress += frames;
-    pass_written = int64_t(std::floor(pass_progress + 1e-6));
+    const auto written = int64_t(std::floor(pass_progress + 1e-6));
+    if(backwards && length > 0)
+    {
+      pass_start = (pass_start - (written - pass_written)) % length;
+      if(pass_start < 0)
+        pass_start += length;
+    }
+    pass_backwards = backwards;
+    pass_written = written;
   }
 
   //! Copies what another loop holds, without its unused storage.
@@ -365,9 +448,12 @@ struct midi_loop
     loop_before = o.loop_before;
     loop_after = o.loop_after;
     std::copy_n(o.regions.begin(), std::max(0, o.total), regions.begin());
+    muted = o.muted;
+    edits = o.edits;
     pass_start = o.pass_start;
     pass_written = o.pass_written;
     pass_progress = o.pass_progress;
+    pass_backwards = o.pass_backwards;
     touched_pitches = o.touched_pitches;
     touched_keys = o.touched_keys;
     touched_count = o.touched_count;
@@ -378,6 +464,7 @@ struct midi_loop
   {
     if(count == 0)
       return false;
+    edits++;
     if(count > 1)
     {
       loop_after[count - 1] = length;
@@ -391,6 +478,7 @@ struct midi_loop
   {
     if(count >= total)
       return false;
+    edits++;
     if(count > 0)
       length = loop_after[count];
     count++;
@@ -409,18 +497,13 @@ struct midi_loop
 
     // A pass replaces only what is under it, and the first pass that does is
     // the one an event keeps: only the events k was first to replace change.
-    auto replacer = [&](const auto& e) -> int16_t {
-      for(int q = k + 1; q < total; q++)
-        if(!(taking && q == count - 1) && regions[q].replaces(e))
-          return int16_t(q);
-      return -1;
-    };
+    edits++;
     for(int i = 0; i < note_count; i++)
       if(notes[i].replaced_by == k && notes[i].pass != k)
-        notes[i].replaced_by = replacer(notes[i]);
+        notes[i].replaced_by = first_replacer(notes[i], k + 1);
     for(int i = 0; i < control_count; i++)
       if(controls[i].replaced_by == k && controls[i].pass != k)
-        controls[i].replaced_by = replacer(controls[i]);
+        controls[i].replaced_by = first_replacer(controls[i], k + 1);
 
     note_count = int(
         std::remove_if(
@@ -449,6 +532,7 @@ struct midi_loop
       loop_before[p] = loop_before[p + 1];
       loop_after[p] = loop_after[p + 1];
       regions[p] = regions[p + 1];
+      muted[p] = muted[p + 1];
     }
     count--;
     total--;
@@ -494,6 +578,7 @@ struct midi_loop
       full = true;
       return;
     }
+    edits++;
     auto& c = controls[control_count++];
     c = midi_control{
         .pos = pos,
@@ -503,6 +588,13 @@ struct midi_loop
         .pass = uint8_t(count - 1),
         .replaced_by = -1};
     const auto key = c.key();
+    if(!touched(key) && touched_count < max_touched)
+      touched_keys[touched_count++] = key;
+  }
+
+  //! The pass moves a controller it has no value of yet: it replaces it.
+  void touch(uint16_t key) noexcept
+  {
     if(!touched(key) && touched_count < max_touched)
       touched_keys[touched_count++] = key;
   }
