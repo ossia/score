@@ -30,7 +30,17 @@ struct view_note
   uint8_t pitch;
   uint8_t lane;
   uint8_t velocity;
-  uint8_t pad;
+  //! Zero when the note is not heard, e.g. replaced by a later pass.
+  uint8_t heard;
+};
+
+//! Sent by the view to the looper: erase pass `pass`, counting from the
+//! oldest one, of a loop the view showed with `layers` passes. A loop that has
+//! changed since is left alone.
+struct erase_request
+{
+  int pass;
+  int layers;
 };
 
 //! What a looper shows of itself, sent about thirty times a second. Trivial,
@@ -39,7 +49,7 @@ struct view_message
 {
   static constexpr int max_lanes = 8;
   static constexpr int bins = 192;
-  static constexpr int max_notes = 384;
+  static constexpr int max_notes = 768;
 
   //! LoopMode the looper is in, the one it has taken up, and the one asked
   //! for, which it may still be waiting for the grid to take up.
@@ -114,6 +124,8 @@ struct looper_view
   std::function<void()> update;
   //! Set by the host when it can place clips in the timeline.
   std::function<void(halp::timeline_clip)> send_to_timeline;
+  //! Set by the looper's UI bus: asks the looper to erase a pass.
+  std::function<void(erase_request)> erase;
 
   void receive(const view_message& m) noexcept
   {
@@ -231,15 +243,12 @@ struct looper_view
       if(has_state)
       {
         char info[160];
-        const int count = s.midi ? s.notes : s.layers;
-        const char* unit = s.midi ? (count == 1 ? "note" : "notes")
-                                  : (count == 1 ? "layer" : "layers");
         if(s.full)
           std::snprintf(info, sizeof(info), "%.1f s, full", s.length_seconds);
         else
           std::snprintf(
-              info, sizeof(info), "%.1f s  %d %s%s", s.length_seconds, count, unit,
-              s.redo > 0 ? "  (redo)" : "");
+              info, sizeof(info), "%.1f s  %d %s%s", s.length_seconds, s.layers,
+              s.layers == 1 ? "layer" : "layers", s.redo > 0 ? "  (redo)" : "");
         ctx.set_fill_color({170, 170, 176, 255});
         ctx.begin_path();
         ctx.draw_text(170., cy + 4., info);
@@ -290,6 +299,84 @@ struct looper_view
     ctx.line_to(x, top + lanes_h);
     ctx.stroke();
     ctx.set_stroke_width(1.);
+
+    paint_erase_boxes(ctx);
+  }
+
+  // The lanes: one per pass, the oldest passes all in the first one when
+  // there are more passes than lanes.
+  static constexpr double lanes_top = header;
+  static constexpr double lanes_x = 4.;
+  static double lanes_height() noexcept { return height() - header - 4.; }
+  static double lanes_width() noexcept { return width() - 8.; }
+  int lane_count() const noexcept { return std::max(1, state.lanes); }
+  double lane_height() const noexcept { return lanes_height() / lane_count(); }
+
+  //! The pass a lane shows alone, -1 for a lane of several passes or none.
+  int pass_of_lane(int lane) const noexcept
+  {
+    const auto& s = state;
+    if(!has_state || s.empty || lane < 0 || lane >= s.lanes)
+      return -1;
+    const int merged = s.layers - s.lanes;
+    if(merged > 0 && lane == 0)
+      return -1;
+    return lane + merged;
+  }
+
+  struct box
+  {
+    double x, y, size;
+    bool contains(double px, double py) const noexcept
+    {
+      return px >= x - 1. && px <= x + size + 1. && py >= y - 1. && py <= y + size + 1.;
+    }
+  };
+
+  //! The erase button of a lane, at its right edge.
+  box erase_box(int lane) const noexcept
+  {
+    const double lh = lane_height();
+    const double size = std::clamp(lh - 4., 8., 12.);
+    const double y = lanes_top + lane * lh + (lh - size) / 2.;
+    return {lanes_x + lanes_width() - size - 3., y, size};
+  }
+
+  //! The lane whose erase button is at (x, y), -1 for none.
+  int erase_lane_at(double x, double y) const noexcept
+  {
+    if(!erase)
+      return -1;
+    for(int l = 0; l < lane_count(); l++)
+      if(pass_of_lane(l) >= 0 && erase_box(l).contains(x, y))
+        return l;
+    return -1;
+  }
+
+  void paint_erase_boxes(auto& ctx)
+  {
+    if(!erase)
+      return;
+    for(int l = 0; l < lane_count(); l++)
+    {
+      if(pass_of_lane(l) < 0)
+        continue;
+      const auto b = erase_box(l);
+      ctx.set_fill_color({44, 44, 50, 230});
+      ctx.begin_path();
+      ctx.draw_rounded_rect(b.x, b.y, b.size, b.size, 2.);
+      ctx.fill();
+      const double m = std::max(2., b.size * 0.28);
+      ctx.set_stroke_color({210, 210, 216, 255});
+      ctx.set_stroke_width(1.5);
+      ctx.begin_path();
+      ctx.move_to(b.x + m, b.y + m);
+      ctx.line_to(b.x + b.size - m, b.y + b.size - m);
+      ctx.move_to(b.x + b.size - m, b.y + m);
+      ctx.line_to(b.x + m, b.y + b.size - m);
+      ctx.stroke();
+      ctx.set_stroke_width(1.);
+    }
   }
 
   void paint_lanes(auto& ctx, double top, double lanes_h)
@@ -322,42 +409,70 @@ struct looper_view
     }
   }
 
+  //! One small piano roll per lane, over the pitches of that lane. Notes
+  //! that are not heard are dimmed.
   void paint_notes(auto& ctx, double top, double lanes_h)
   {
     const auto& s = state;
+    const int lanes = std::max(1, s.lanes);
+    const double lh = lanes_h / lanes;
     const double x0 = 4., lw = width() - 8.;
-    ctx.set_fill_color({34, 34, 38, 255});
-    ctx.begin_path();
-    ctx.draw_rect(x0, top + 1., lw, lanes_h - 2.);
-    ctx.fill();
+    constexpr rgba bg{34, 34, 38, 255};
 
-    int lo = 127, hi = 0;
-    for(int i = 0; i < s.notes; i++)
-    {
-      lo = std::min<int>(lo, s.note[i].pitch);
-      hi = std::max<int>(hi, s.note[i].pitch);
-    }
-    if(lo > hi)
-      return;
-    lo = std::max(0, lo - 2);
-    hi = std::min(127, hi + 2);
-    const double rh = lanes_h / (hi - lo + 1);
+    std::array<int, view_message::max_lanes> lo, hi;
+    lo.fill(127);
+    hi.fill(0);
     for(int i = 0; i < s.notes; i++)
     {
       const auto& n = s.note[i];
-      const double y = top + (hi - n.pitch) * rh;
-      const auto lc = lane_color(n.lane, s.lanes);
-      ctx.set_fill_color({lc.r, lc.g, lc.b, lc.a});
+      const int l = std::min<int>(n.lane, view_message::max_lanes - 1);
+      lo[l] = std::min<int>(lo[l], n.pitch);
+      hi[l] = std::max<int>(hi[l], n.pitch);
+    }
+
+    for(int l = 0; l < lanes; l++)
+    {
+      const double y = top + l * lh;
+      ctx.set_fill_color({bg.r, bg.g, bg.b, bg.a});
       ctx.begin_path();
-      const double a = x0 + n.start * lw;
-      if(n.end >= n.start)
-        ctx.draw_rect(a, y, std::max(2., (n.end - n.start) * lw), std::max(1.5, rh - 0.5));
-      else
-      {
-        ctx.draw_rect(a, y, std::max(2., (1. - n.start) * lw), std::max(1.5, rh - 0.5));
-        ctx.draw_rect(x0, y, std::max(2., n.end * lw), std::max(1.5, rh - 0.5));
-      }
+      ctx.draw_rect(x0, y + 1., lw, lh - 2.);
       ctx.fill();
+      if(lo[l] > hi[l])
+        continue;
+      lo[l] = std::max(0, lo[l] - 1);
+      hi[l] = std::min(127, hi[l] + 1);
+    }
+
+    // The notes not heard first, so that the ones heard are drawn over them.
+    for(int heard = 0; heard < 2; heard++)
+    {
+      for(int i = 0; i < s.notes; i++)
+      {
+        const auto& n = s.note[i];
+        if(bool(n.heard) != bool(heard))
+          continue;
+        const int l = std::min<int>(n.lane, lanes - 1);
+        const double rh = (lh - 3.) / (hi[l] - lo[l] + 1);
+        const double y = top + l * lh + 1.5 + (hi[l] - n.pitch) * rh;
+        const double nh = std::clamp(rh - 0.5, 2., 6.);
+        auto c = lane_color(l, lanes);
+        if(!heard)
+          c = rgba{
+              uint8_t((c.r + 2 * bg.r) / 3), uint8_t((c.g + 2 * bg.g) / 3),
+              uint8_t((c.b + 2 * bg.b) / 3), 255};
+        ctx.set_fill_color({c.r, c.g, c.b, c.a});
+        ctx.begin_path();
+        const double a = x0 + n.start * lw;
+        const double yc = std::round(y + (rh - nh) / 2.);
+        if(n.end >= n.start)
+          ctx.draw_rect(a, yc, std::max(2., (n.end - n.start) * lw), nh);
+        else
+        {
+          ctx.draw_rect(a, yc, std::max(2., (1. - n.start) * lw), nh);
+          ctx.draw_rect(x0, yc, std::max(2., n.end * lw), nh);
+        }
+        ctx.fill();
+      }
     }
   }
 
@@ -373,6 +488,11 @@ struct looper_view
       send();
       return true;
     }
+    if(const int lane = erase_lane_at(x, y); lane >= 0)
+    {
+      erase(erase_request{.pass = pass_of_lane(lane), .layers = state.layers});
+      return true;
+    }
     // Pressing elsewhere is the start of a drag of the take.
     return has_take();
   }
@@ -382,7 +502,7 @@ struct looper_view
   halp::drag_payload drag_payload(double x, double y) const
   {
     halp::drag_payload p;
-    if(has_take() && !in_send(x, y))
+    if(has_take() && !in_send(x, y) && erase_lane_at(x, y) < 0)
       p.files = state.take_files();
     return p;
   }

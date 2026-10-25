@@ -5,6 +5,7 @@
 
 #include <algorithm>
 #include <array>
+#include <bitset>
 #include <cmath>
 #include <cstdint>
 
@@ -62,9 +63,10 @@ struct midi_control
  * The notes and controllers of a MIDI loop, in fixed storage.
  *
  * Every event is tagged with the pass that recorded it: undoing a pass hides
- * its events, redoing shows them again. Controllers of a pass replace the
- * same controller of earlier passes where the pass went, so two curves of one
- * controller never fight; notes do as well with OverdubMode::Replace.
+ * its events, redoing shows them again, erasing it removes them. Controllers
+ * of a pass replace the same controller of earlier passes where the pass
+ * went, so two curves of one controller never fight; notes do as well with
+ * OverdubMode::Replace.
  */
 struct midi_loop
 {
@@ -72,6 +74,46 @@ struct midi_loop
   static constexpr int max_controls = 8192;
   static constexpr int max_passes = 255;
   static constexpr int max_touched = 64;
+
+  //! Where a pass that is over went and what it touched: what it replaces is
+  //! worked out from it again when a pass under it is erased.
+  struct pass_region
+  {
+    int64_t start{};
+    int64_t written{};
+    //! Length of the loop when the pass ended.
+    int64_t loop{};
+    std::bitset<128> pitches{};
+    std::array<uint16_t, max_touched> keys{};
+    int key_count{};
+    //! It was made with OverdubMode::Replace.
+    bool replaces_notes{};
+
+    bool covers(int64_t k) const noexcept
+    {
+      if(written >= loop)
+        return true;
+      int64_t d = k - start;
+      if(d < 0)
+        d += loop;
+      return d < written;
+    }
+    bool touched(uint16_t key) const noexcept
+    {
+      for(int i = 0; i < key_count; i++)
+        if(keys[i] == key)
+          return true;
+      return false;
+    }
+    bool replaces(const midi_note& n) const noexcept
+    {
+      return replaces_notes && pitches[n.pitch & 127] && covers(n.start);
+    }
+    bool replaces(const midi_control& c) const noexcept
+    {
+      return touched(c.key()) && covers(c.pos);
+    }
+  };
 
   std::array<midi_note, max_notes> notes{};
   std::array<midi_control, max_controls> controls{};
@@ -90,6 +132,8 @@ struct midi_loop
   //! Length of the loop before and after each pass, for undo and redo.
   std::array<int64_t, max_passes + 1> loop_before{};
   std::array<int64_t, max_passes + 1> loop_after{};
+  //! What each pass that is over went over.
+  std::array<pass_region, max_passes + 1> regions{};
 
   int64_t period_of(int pass) const noexcept
   {
@@ -240,11 +284,13 @@ struct midi_loop
     // The merged pass repeats with the longer of the two periods; notes of
     // the shorter one are not repeated into it.
     period[0] = period[0] == 0 || period[1] == 0 ? 0 : std::max(period[0], period[1]);
+    // Nothing is under the merged pass: its region replaces nothing.
     for(int p = 1; p + 1 < count; p++)
     {
       period[p] = period[p + 1];
       loop_before[p] = loop_before[p + 1];
       loop_after[p] = loop_after[p + 1];
+      regions[p] = regions[p + 1];
     }
     count--;
   }
@@ -265,6 +311,19 @@ struct midi_loop
     if(!taking)
       return;
     const int pass = count - 1;
+    if(pass >= 0)
+    {
+      auto& r = regions[pass];
+      r.start = pass_start;
+      r.written = pass_written;
+      r.loop = length;
+      r.replaces_notes = mode == OverdubMode::Replace;
+      r.pitches.reset();
+      for(int p = 0; p < 128; p++)
+        r.pitches[p] = touched_pitches[p];
+      r.keys = touched_keys;
+      r.key_count = touched_count;
+    }
     if(pass > 0)
     {
       for(int i = 0; i < note_count; i++)
@@ -305,6 +364,7 @@ struct midi_loop
     period = o.period;
     loop_before = o.loop_before;
     loop_after = o.loop_after;
+    std::copy_n(o.regions.begin(), std::max(0, o.total), regions.begin());
     pass_start = o.pass_start;
     pass_written = o.pass_written;
     pass_progress = o.pass_progress;
@@ -334,6 +394,64 @@ struct midi_loop
     if(count > 0)
       length = loop_after[count];
     count++;
+    return true;
+  }
+
+  //! Takes pass k out of the loop, k being heard, not the only pass heard and
+  //! not one being taken in: its events go, the passes over it and the ones
+  //! redo brings back move down a place, and the loop keeps its length. An
+  //! event k replaced is replaced by the first pass over k that replaces it
+  //! too, else heard again.
+  bool erase(int k) noexcept
+  {
+    if(k < 0 || k >= count || count < 2 || (taking && k == count - 1))
+      return false;
+
+    // A pass replaces only what is under it, and the first pass that does is
+    // the one an event keeps: only the events k was first to replace change.
+    auto replacer = [&](const auto& e) -> int16_t {
+      for(int q = k + 1; q < total; q++)
+        if(!(taking && q == count - 1) && regions[q].replaces(e))
+          return int16_t(q);
+      return -1;
+    };
+    for(int i = 0; i < note_count; i++)
+      if(notes[i].replaced_by == k && notes[i].pass != k)
+        notes[i].replaced_by = replacer(notes[i]);
+    for(int i = 0; i < control_count; i++)
+      if(controls[i].replaced_by == k && controls[i].pass != k)
+        controls[i].replaced_by = replacer(controls[i]);
+
+    note_count = int(
+        std::remove_if(
+            notes.begin(), notes.begin() + note_count,
+            [k](const midi_note& n) { return n.pass == k; })
+        - notes.begin());
+    control_count = int(
+        std::remove_if(
+            controls.begin(), controls.begin() + control_count,
+            [k](const midi_control& c) { return c.pass == k; })
+        - controls.begin());
+    auto shift = [k](auto& e) {
+      if(e.pass > k)
+        e.pass--;
+      if(e.replaced_by > k)
+        e.replaced_by--;
+    };
+    for(int i = 0; i < note_count; i++)
+      shift(notes[i]);
+    for(int i = 0; i < control_count; i++)
+      shift(controls[i]);
+
+    for(int p = k; p + 1 < total; p++)
+    {
+      period[p] = period[p + 1];
+      loop_before[p] = loop_before[p + 1];
+      loop_after[p] = loop_after[p + 1];
+      regions[p] = regions[p + 1];
+    }
+    count--;
+    total--;
     return true;
   }
 

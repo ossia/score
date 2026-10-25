@@ -19,6 +19,8 @@
 #include <cstdlib>
 #include <new>
 #include <map>
+#include <set>
+#include <tuple>
 #include <vector>
 
 using Catch::Approx;
@@ -995,4 +997,378 @@ TEST_CASE("MIDI looper: the files of a take are the loop as it was when it close
   };
   CHECK(pitches("m-take2-layer1.mid") == std::vector<int>{60});
   CHECK(pitches("m-take2-layer2.mid") == std::vector<int>{67});
+}
+
+// ---------------------------------------------------------------------------
+// Erasing a pass.
+// ---------------------------------------------------------------------------
+
+namespace
+{
+//! One more overdub pass of `len` frames with the notes `f` plays, then play.
+void overdub(midi_harness& h, int64_t len, auto f)
+{
+  h.node.inputs.mode = LoopMode::Overdub;
+  f(h);
+  h.run_frames(len);
+  h.node.inputs.mode = LoopMode::Play;
+  h.run();
+}
+
+void erase_layer(midi_harness& h, int layer)
+{
+  h.node.inputs.layer.value = layer;
+  h.press(h.node.inputs.erase_layer);
+}
+
+std::multiset<int> round_pitches(midi_harness& h, int64_t len)
+{
+  h.out.clear();
+  h.run_frames(len);
+  std::multiset<int> r;
+  for(auto& n : h.ons())
+    r.insert(n.pitch);
+  return r;
+}
+
+//! Plays the loop until `pitch` has started, and a little more: the output
+//! is then what came since it started.
+void sound(midi_harness& h, int pitch)
+{
+  h.out.clear();
+  int64_t started = -1;
+  for(int i = 0; i < 40 && started < 0; i++)
+  {
+    h.run();
+    for(auto& n : h.ons())
+      if(n.pitch == pitch)
+        started = n.at;
+  }
+  REQUIRE(started >= 0);
+  h.run();
+  h.run();
+  for(auto& n : h.offs())
+    REQUIRE((n.pitch != pitch || n.at < started));
+  h.out.clear();
+}
+
+void short_note(midi_harness& h, int pitch, int at)
+{
+  h.note_on(pitch, at);
+  h.note_off(pitch, at + 5);
+}
+
+//! Three passes with Replace: 60 and 64; then 60, 64 and 67, replacing both
+//! notes of the first; then 60, replacing the 60 of the first two.
+void three_replacing_passes(midi_harness& h)
+{
+  h.node.inputs.overdub_mode = OverdubMode::Replace;
+  h.node.inputs.restart = Looper::Restart::Recording;
+  record(h, 640, [](midi_harness& h) {
+    short_note(h, 60, 10);
+    short_note(h, 64, 30);
+  });
+  overdub(h, 640, [](midi_harness& h) {
+    short_note(h, 60, 10);
+    short_note(h, 64, 20);
+    short_note(h, 67, 40);
+  });
+  overdub(h, 640, [](midi_harness& h) { short_note(h, 60, 10); });
+}
+
+//! What a view message shows: lane, pitch and whether it is heard.
+std::multiset<std::tuple<int, int, bool>> shown(const Nodes::Looper::view_message& v)
+{
+  std::multiset<std::tuple<int, int, bool>> r;
+  for(int i = 0; i < v.notes; i++)
+    r.insert({v.note[i].lane, v.note[i].pitch, bool(v.note[i].heard)});
+  return r;
+}
+}
+
+TEST_CASE("MIDI looper: erasing the middle pass brings back what only it replaced",
+          "[fx][midi][looper][erase]")
+{
+  midi_harness h;
+  three_replacing_passes(h);
+  REQUIRE(h.node.loop.count == 3);
+  CHECK(round_pitches(h, 640) == std::multiset<int>{60, 64, 67});
+
+  const int64_t length = h.node.loop.length;
+  erase_layer(h, 2);
+  CHECK(h.node.loop.count == 2);
+  CHECK(h.node.loop.total == 2);
+  CHECK(h.node.loop.length == length);
+  // Its notes are gone; the 60 of the first pass is still replaced by the
+  // last one, and its 64 is heard again.
+  CHECK(round_pitches(h, 640) == std::multiset<int>{60, 64});
+  for(int i = 0; i < h.node.loop.note_count; i++)
+  {
+    const auto& n = h.node.loop.notes[i];
+    CHECK(n.pass < 2);
+    if(n.pass == 0 && n.pitch == 60)
+      CHECK(n.replaced_by == 1);
+    if(n.pass == 0 && n.pitch == 64)
+      CHECK(n.replaced_by == -1);
+  }
+
+  // Undo and redo go on with the passes left.
+  h.press(h.node.inputs.undo);
+  CHECK(round_pitches(h, 640) == std::multiset<int>{60, 64});
+  h.press(h.node.inputs.redo);
+  CHECK(round_pitches(h, 640) == std::multiset<int>{60, 64});
+  erase_layer(h, 2);
+  CHECK(round_pitches(h, 640) == std::multiset<int>{60, 64});
+}
+
+TEST_CASE("MIDI looper: the view shows a lane per pass, and follows an erase",
+          "[fx][midi][looper][erase][view]")
+{
+  midi_harness h;
+  Nodes::Looper::view_message last{};
+  h.node.send_message = [&](Nodes::Looper::view_message v) { last = v; };
+  three_replacing_passes(h);
+  h.run_frames(2000);
+  CHECK(last.layers == 3);
+  CHECK(last.lanes == 3);
+  using shown_t = std::multiset<std::tuple<int, int, bool>>;
+  CHECK(
+      shown(last)
+      == shown_t{
+          {0, 60, false},
+          {0, 64, false},
+          {1, 60, false},
+          {1, 64, true},
+          {1, 67, true},
+          {2, 60, true}});
+
+  erase_layer(h, 2);
+  h.run_frames(2000);
+  CHECK(last.layers == 2);
+  CHECK(last.lanes == 2);
+  CHECK(shown(last) == shown_t{{0, 60, false}, {0, 64, true}, {1, 60, true}});
+}
+
+TEST_CASE("MIDI looper: past eight passes the oldest share the first lane, and the "
+          "notes are shared out between the lanes",
+          "[fx][midi][looper][erase][view]")
+{
+  midi_harness h;
+  Nodes::Looper::view_message last{};
+  h.node.send_message = [&](Nodes::Looper::view_message v) { last = v; };
+  h.node.inputs.restart = Looper::Restart::Recording;
+  // A first pass with far more notes than the view holds, then nine with one.
+  record(h, 6400, [](midi_harness&) { });
+  for(int i = 0; i < 2000; i++)
+    h.node.loop.add_note(i * 3, 1, 40 + i % 20, 100)->length = 2;
+  for(int p = 0; p < 9; p++)
+    overdub(h, 6400, [p](midi_harness& h) { short_note(h, 70 + p, 10); });
+  REQUIRE(h.node.loop.count == 10);
+  h.run_frames(2000);
+
+  CHECK(last.lanes == 8);
+  std::array<int, 8> per_lane{};
+  for(int i = 0; i < last.notes; i++)
+    per_lane[last.note[i].lane]++;
+  // The first lane holds the three oldest passes and gets what the others
+  // leave of the message.
+  CHECK(per_lane[0] == Nodes::Looper::view_message::max_notes - 7);
+  for(int l = 1; l < 8; l++)
+    CHECK(per_lane[l] == 1);
+}
+
+TEST_CASE("MIDI looper: erasing the pass being overdubbed is undoing it",
+          "[fx][midi][looper][erase]")
+{
+  midi_harness h;
+  h.node.inputs.restart = Looper::Restart::Recording;
+  record(h, 640, [](midi_harness& h) { short_note(h, 60, 10); });
+  h.node.inputs.mode = LoopMode::Overdub;
+  short_note(h, 67, 10);
+  h.run_frames(128);
+  REQUIRE(h.node.loop.count == 2);
+
+  erase_layer(h, 2);
+  // The pass was dropped, and overdubbing carries on in a new one.
+  CHECK(h.node.loop.count == 2);
+  CHECK(h.node.loop.taking);
+  for(int i = 0; i < h.node.loop.note_count; i++)
+    CHECK(h.node.loop.notes[i].pitch != 67);
+  h.node.inputs.mode = LoopMode::Play;
+  h.run();
+  CHECK(round_pitches(h, 640) == std::multiset<int>{60});
+}
+
+TEST_CASE("MIDI looper: erasing the only pass empties the loop and ends its notes",
+          "[fx][midi][looper][erase]")
+{
+  midi_harness h;
+  h.node.inputs.restart = Looper::Restart::Recording;
+  h.node.inputs.mode = LoopMode::Record;
+  h.note_on(60, 10);
+  h.run_frames(576);
+  h.note_off(60, 0);
+  h.run_frames(64);
+  h.node.inputs.mode = LoopMode::Play;
+  sound(h, 60);
+
+  erase_layer(h, 1);
+  CHECK(h.node.loop.empty());
+  CHECK(h.offs().size() == 1);
+  h.press(h.node.inputs.redo);
+  CHECK(h.node.loop.empty());
+}
+
+TEST_CASE("MIDI looper: the notes of an erased pass that are sounding end at once",
+          "[fx][midi][looper][erase]")
+{
+  midi_harness h;
+  h.node.inputs.restart = Looper::Restart::Recording;
+  record(h, 640, [](midi_harness& h) { short_note(h, 60, 10); });
+  // A pass with a note held over most of the loop.
+  h.node.inputs.mode = LoopMode::Overdub;
+  h.note_on(67, 1);
+  h.run_frames(576);
+  h.note_off(67, 0);
+  h.run_frames(64);
+  h.node.inputs.mode = LoopMode::Play;
+  h.run();
+  overdub(h, 640, [](midi_harness& h) { short_note(h, 72, 10); });
+  sound(h, 67);
+
+  erase_layer(h, 2);
+  CHECK(h.offs().size() == 1);
+  CHECK(h.offs()[0].pitch == 67);
+  CHECK(round_pitches(h, 640) == std::multiset<int>{60, 72});
+}
+
+TEST_CASE("MIDI looper: erasing a pass keeps what redo brings back",
+          "[fx][midi][looper][erase]")
+{
+  midi_harness h;
+  h.node.inputs.restart = Looper::Restart::Recording;
+  record(h, 640, [](midi_harness& h) { short_note(h, 60, 10); });
+  overdub(h, 640, [](midi_harness& h) { short_note(h, 64, 10); });
+  overdub(h, 640, [](midi_harness& h) { short_note(h, 67, 10); });
+  h.press(h.node.inputs.undo);
+  REQUIRE(h.node.loop.count == 2);
+  REQUIRE(h.node.loop.total == 3);
+
+  erase_layer(h, 1);
+  CHECK(h.node.loop.count == 1);
+  CHECK(h.node.loop.total == 2);
+  CHECK(round_pitches(h, 640) == std::multiset<int>{64});
+  h.press(h.node.inputs.redo);
+  CHECK(h.node.loop.count == 2);
+  CHECK(round_pitches(h, 640) == std::multiset<int>{64, 67});
+}
+
+TEST_CASE("MIDI looper: the view asks for a pass to be erased, a changed loop is left alone",
+          "[fx][midi][looper][erase]")
+{
+  midi_harness h;
+  h.node.inputs.restart = Looper::Restart::Recording;
+  record(h, 640, [](midi_harness& h) { short_note(h, 60, 10); });
+  overdub(h, 640, [](midi_harness& h) { short_note(h, 64, 10); });
+
+  h.node.process_message(Nodes::Looper::erase_request{.pass = 0, .layers = 3});
+  h.run();
+  CHECK(h.node.loop.count == 2);
+  h.node.process_message(Nodes::Looper::erase_request{.pass = 0, .layers = 2});
+  h.run();
+  CHECK(h.node.loop.count == 1);
+  CHECK(round_pitches(h, 640) == std::multiset<int>{64});
+}
+
+TEST_CASE("MIDI looper: erasing a pass allocates nothing", "[fx][midi][looper][erase]")
+{
+  midi_harness h;
+  h.pending.reserve(64);
+  h.out.reserve(100000);
+  h.controls_out.reserve(100000);
+  h.node.inputs.overdub_mode = OverdubMode::Replace;
+  h.node.inputs.restart = Looper::Restart::Recording;
+  h.node.send_message = [](const Nodes::Looper::view_message&) { };
+
+  int allocated = 0;
+  {
+    alloc_counter::scope counter;
+    record(h, 640, [](midi_harness& h) { short_note(h, 60, 10); });
+    for(int p = 0; p < 3; p++)
+    {
+      h.node.inputs.mode = LoopMode::Overdub;
+      h.cc(1, p, 5);
+      short_note(h, 60 + p, 10);
+      h.run_frames(640);
+      h.node.inputs.mode = LoopMode::Play;
+      h.run();
+    }
+    h.run_frames(2000);
+    erase_layer(h, 2);
+    h.node.process_message(Nodes::Looper::erase_request{.pass = 0, .layers = 3});
+    h.run();
+    h.run_frames(2000);
+    erase_layer(h, 1);
+    allocated = counter.allocations();
+  }
+  CHECK(allocated == 0);
+}
+
+TEST_CASE("Looper view: the x of a lane asks to erase its pass, and starts no drag",
+          "[fx][looper][erase][view]")
+{
+  Looper::ui ui;
+  Looper::ui::bus bus;
+  std::vector<Nodes::Looper::erase_request> sent;
+  bus.send_message = [&](Nodes::Looper::erase_request r) { sent.push_back(r); };
+  bus.init(ui);
+  auto& v = ui.view.view;
+
+  Nodes::Looper::view_message m{};
+  m.midi = true;
+  m.layers = 3;
+  m.lanes = 3;
+  m.length_seconds = 2.f;
+  m.take = 1;
+  m.set_take("/tmp/looper-take", "mid", true, 0);
+  v.receive(m);
+
+  const auto b = v.erase_box(1);
+  const double cx = b.x + b.size / 2., cy = b.y + b.size / 2.;
+  // Inside its lane, under the header and its Send button.
+  CHECK(b.y >= Nodes::Looper::looper_view::header);
+  CHECK(cy > v.lanes_top + v.lane_height());
+  CHECK(cy < v.lanes_top + 2. * v.lane_height());
+  CHECK(!v.in_send(cx, cy));
+  CHECK(v.mouse_press(cx, cy));
+  REQUIRE(sent.size() == 1);
+  CHECK(sent[0].pass == 1);
+  CHECK(sent[0].layers == 3);
+  CHECK(v.drag_payload(cx, cy).files.empty());
+  // Anywhere else, a press is the start of a drag of the take.
+  CHECK(!v.drag_payload(100., 60.).files.empty());
+  v.mouse_press(100., 60.);
+  CHECK(sent.size() == 1);
+
+  // Ten passes on eight lanes: the first lane holds three, and has no x.
+  m.layers = 10;
+  m.lanes = 8;
+  v.receive(m);
+  CHECK(v.pass_of_lane(0) == -1);
+  CHECK(v.pass_of_lane(1) == 3);
+  CHECK(v.pass_of_lane(7) == 9);
+  const auto b0 = v.erase_box(0);
+  v.mouse_press(b0.x + b0.size / 2., b0.y + b0.size / 2.);
+  CHECK(sent.size() == 1);
+  const auto b7 = v.erase_box(7);
+  v.mouse_press(b7.x + b7.size / 2., b7.y + b7.size / 2.);
+  REQUIRE(sent.size() == 2);
+  CHECK(sent[1].pass == 9);
+  CHECK(sent[1].layers == 10);
+
+  // An empty loop has nothing to erase.
+  m.empty = true;
+  v.receive(m);
+  v.mouse_press(b7.x + b7.size / 2., b7.y + b7.size / 2.);
+  CHECK(sent.size() == 2);
 }

@@ -274,6 +274,24 @@ struct Node
           "speed, and a tempo change applies from the next round of the loop. "
           "Applies from the next start.")
     } follow_tempo;
+
+    struct : halp::impulse_button<"Erase layer">
+    {
+      halp_meta(
+          description,
+          "Removes the pass Layer says from the loop, as the x of its lane does. "
+          "The passes over it stay where they are, the ones under it get back "
+          "what its feedback took, and the loop keeps its length.")
+    } erase_layer;
+
+    struct : halp::spinbox_i32<"Layer", halp::irange{1, 32, 1}>
+    {
+      halp_meta(
+          description,
+          "The pass Erase layer removes, counting from the oldest one: the lane "
+          "of that number from the top while there are no more passes than "
+          "lanes, and the file of that number of a take written as layers.")
+    } layer;
   } inputs;
 
   struct
@@ -299,6 +317,13 @@ struct Node
   } worker;
 
   std::function<void(Looper::view_message)> send_message;
+
+  //! From the view: applied at the start of the next tick.
+  void process_message(const Looper::erase_request& r)
+  {
+    m_erase_request = r;
+    m_erase_requested = true;
+  }
 
   const score::DocumentContext* ossia_document_context{};
   ossia::exec_state_facade ossia_state;
@@ -476,6 +501,8 @@ struct Node
         halp::item<&ins::undo> undo;
         halp::item<&ins::redo> redo;
         halp::item<&ins::clear> clear;
+        halp::item<&ins::erase_layer> erase_layer;
+        halp::item<&ins::layer> layer;
         halp::item<&ins::send> send;
         halp::item<&ins::takes> takes;
       } actions;
@@ -533,10 +560,18 @@ struct Node
 
     struct bus
     {
+      void init(ui& self)
+      {
+        self.view.view.erase = [this](Looper::erase_request r) {
+          if(send_message)
+            send_message(r);
+        };
+      }
       static void process_message(ui& self, Looper::view_message msg)
       {
         self.view.view.receive(msg);
       }
+      std::function<void(Looper::erase_request)> send_message;
     };
   };
 
@@ -648,10 +683,16 @@ private:
   int m_scan_layer{};
   int64_t m_scan_pos{};
   int m_scan_count{-1};
+  uint64_t m_scan_changes{};
   int64_t m_scan_length{-1};
   void scan_peaks();
 
   void apply_buttons();
+  void clear_loop();
+  void drop_taken_pass();
+  void erase_pass(int pass);
+  Looper::erase_request m_erase_request{};
+  bool m_erase_requested{};
   void capture(const tick& tk);
   void load_file();
 
@@ -683,37 +724,64 @@ private:
   void overdub(int64_t first_pos, int64_t samples, bool echo);
 };
 
+inline void Node::clear_loop()
+{
+  sync.release();
+  m_loading = false;
+  layers.clear();
+  transport.playbackPos = 0;
+  // Whatever was being taken in is gone with the rest.
+  if(transport.is_taking())
+    transport.taking(LoopMode::Stop);
+  m_full = false;
+}
+
+//! The pass in progress is dropped; taking in starts a new one.
+inline void Node::drop_taken_pass()
+{
+  if(transport.actualMode == LoopMode::Record)
+    layers.clear();
+  else
+    layers.undo(), layers.total = layers.count;
+  transport.taking(LoopMode::Stop);
+  if(transport.actualMode == LoopMode::Record)
+    transport.playbackPos = 0;
+}
+
+//! Erasing the pass being taken in is undoing it, and erasing the only pass
+//! heard is clearing the loop.
+inline void Node::erase_pass(int pass)
+{
+  if(pass < 0 || pass >= layers.count || m_loading)
+    return;
+  if(layers.count == 1)
+    clear_loop();
+  else if(transport.is_taking() && pass == layers.count - 1)
+    drop_taken_pass();
+  else if(layers.erase(pass))
+  {
+    // The take that closed last is made of the passes it had then.
+    if(pass < m_closed_count)
+      m_closed_count--;
+  }
+}
+
 inline void Node::apply_buttons()
 {
   if(inputs.clear.value)
-  {
-    sync.release();
-    m_loading = false;
-    layers.clear();
-    transport.playbackPos = 0;
-    // Whatever was being taken in is gone with the rest.
-    if(transport.is_taking())
-      transport.taking(LoopMode::Stop);
-    m_full = false;
-  }
+    clear_loop();
+
+  if(std::exchange(m_erase_requested, false) && m_erase_request.layers == layers.count)
+    erase_pass(m_erase_request.pass);
+  if(inputs.erase_layer.value)
+    erase_pass(inputs.layer.value - 1);
 
   if(inputs.undo.value)
   {
     if(transport.is_taking())
-    {
-      // The pass in progress is dropped; taking in starts a new one.
-      if(transport.actualMode == LoopMode::Record)
-        layers.clear();
-      else
-        layers.undo(), layers.total = layers.count;
-      transport.taking(LoopMode::Stop);
-      if(transport.actualMode == LoopMode::Record)
-        transport.playbackPos = 0;
-    }
+      drop_taken_pass();
     else
-    {
       layers.undo();
-    }
   }
 
   if(inputs.redo.value && !transport.is_taking())
@@ -1469,10 +1537,11 @@ inline void Node::scan_peaks()
   const int count = layers.count;
   const int64_t len = layers.length;
   const int lanes = std::min(count, Looper::view_message::max_lanes);
-  if(count != m_scan_count || len != m_scan_length)
+  if(count != m_scan_count || len != m_scan_length || layers.changes != m_scan_changes)
   {
     m_scan_count = count;
     m_scan_length = len;
+    m_scan_changes = layers.changes;
     m_scan_layer = 0;
     m_scan_pos = 0;
     std::fill(m_scan_peaks.begin(), m_scan_peaks.end(), 0.f);

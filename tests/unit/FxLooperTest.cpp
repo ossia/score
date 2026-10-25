@@ -1917,3 +1917,263 @@ TEST_CASE("Looper: the files of a take are its passes as they were when it close
         QString("-layer%1.wav").arg(paths.size())));
   }
 }
+
+// ---------------------------------------------------------------------------
+// Erasing a pass.
+// ---------------------------------------------------------------------------
+
+namespace
+{
+//! One more overdub pass of a constant over the whole loop, ending in Play.
+void overdub_pass(looper_harness& h, int64_t len, double value)
+{
+  for(auto& v : h.in_buf[0])
+    v = value;
+  h.node.inputs.mode = LoopMode::Overdub;
+  for(int64_t done = 0; done < len; done += h.buffer_size)
+    h.run(std::min<int64_t>(h.buffer_size, len - done));
+  h.reset_input();
+  h.node.inputs.mode = LoopMode::Play;
+  h.run(h.buffer_size);
+}
+
+//! Erases a pass with the ports, counting from one.
+void erase_layer(looper_harness& h, int layer)
+{
+  h.node.inputs.layer.value = layer;
+  press(h.node.inputs.erase_layer, h);
+}
+}
+
+TEST_CASE("Looper: erasing the middle pass gives the passes under it back what it took",
+          "[fx][audio][looper][layers][erase]")
+{
+  looper_harness h{1, 64};
+  h.node.inputs.feedback.value = 0.5f;
+  record_and_overdub(h, 512, 0.25, 0.5);
+  h.node.inputs.feedback.value = 1.f;
+  overdub_pass(h, 512, 0.125);
+  REQUIRE(h.node.layers.count == 3);
+  REQUIRE(h.node.layers.layers[0].gain == Approx(0.5));
+  CHECK(h.node.layers.mix(0, 320) == Approx(0.25 * 0.5 + 0.5 + 0.125));
+
+  erase_layer(h, 2);
+  CHECK(h.node.layers.count == 2);
+  CHECK(h.node.layers.total == 2);
+  CHECK(h.node.layers.length == 512);
+  CHECK(h.node.layers.layers[0].gain == Approx(1.));
+  CHECK(h.node.layers.mix(0, 320) == Approx(0.25 + 0.125));
+
+  // Undo goes on with the passes left.
+  press(h.node.inputs.undo, h);
+  CHECK(h.node.layers.count == 1);
+  CHECK(h.node.layers.mix(0, 320) == Approx(0.25));
+  press(h.node.inputs.redo, h);
+  CHECK(h.node.layers.mix(0, 320) == Approx(0.375));
+}
+
+TEST_CASE("Looper: erasing a pass keeps the feedback of the ones over it",
+          "[fx][audio][looper][layers][erase]")
+{
+  looper_harness h{1, 64};
+  record_and_overdub(h, 512, 0.25, 0.5);
+  h.node.inputs.feedback.value = 0.5f;
+  overdub_pass(h, 512, 0.125);
+  REQUIRE(h.node.layers.mix(0, 320) == Approx(0.25 * 0.5 + 0.5 * 0.5 + 0.125));
+
+  // The third pass took half of both passes under it: the first keeps it.
+  erase_layer(h, 2);
+  CHECK(h.node.layers.mix(0, 320) == Approx(0.25 * 0.5 + 0.125));
+  erase_layer(h, 2);
+  CHECK(h.node.layers.mix(0, 320) == Approx(0.25));
+}
+
+TEST_CASE("Looper: erasing the pass being overdubbed is undoing it",
+          "[fx][audio][looper][layers][erase]")
+{
+  looper_harness h{1, 64};
+  record_and_overdub(h, 512, 0.25, 0.5);
+  for(auto& v : h.in_buf[0])
+    v = 1.;
+  h.node.inputs.mode = LoopMode::Overdub;
+  h.run(64);
+  REQUIRE(h.node.layers.count == 3);
+
+  h.node.inputs.layer.value = 3;
+  h.node.inputs.erase_layer.value.emplace();
+  h.run(64);
+  h.node.inputs.erase_layer.value.reset();
+  // The pass was dropped, and overdubbing carries on in a new one.
+  CHECK(h.node.layers.count == 3);
+  CHECK(h.node.layers.top()->written == 64);
+
+  // A pass under it goes while overdubbing goes on.
+  h.node.inputs.layer.value = 1;
+  h.node.inputs.erase_layer.value.emplace();
+  h.run(64);
+  h.node.inputs.erase_layer.value.reset();
+  CHECK(h.node.layers.count == 2);
+  CHECK(h.node.transport.actualMode == LoopMode::Overdub);
+  CHECK(h.node.layers.top()->written == 128);
+  CHECK(h.node.layer_data(0, 0)[320] == Approx(0.5));
+}
+
+TEST_CASE("Looper: erasing the only pass empties the loop", "[fx][audio][looper][layers][erase]")
+{
+  looper_harness h{1, 64};
+  h.node.inputs.passthrough = Passthrough::None;
+  record_and_overdub(h, 512, 0.25, 0.5);
+  press(h.node.inputs.undo, h);
+  REQUIRE(h.node.layers.count == 1);
+
+  erase_layer(h, 1);
+  CHECK(h.node.layers.empty());
+  CHECK(h.node.layers.length == 0);
+  // Like clear, nothing is left to redo.
+  press(h.node.inputs.redo, h);
+  CHECK(h.node.layers.empty());
+  h.reset_output();
+  h.run(64);
+  for(int i = 0; i < 64; i++)
+    CHECK(h.out_buf[0][i] == Approx(0.));
+
+  // A pass that is not there is left alone.
+  record_and_overdub(h, 512, 0.25, 0.5);
+  erase_layer(h, 5);
+  CHECK(h.node.layers.count == 2);
+}
+
+TEST_CASE("Looper: erasing a pass keeps what redo brings back",
+          "[fx][audio][looper][layers][erase]")
+{
+  looper_harness h{1, 64};
+  record_and_overdub(h, 512, 0.25, 0.5);
+  overdub_pass(h, 512, 0.125);
+  press(h.node.inputs.undo, h);
+  REQUIRE(h.node.layers.count == 2);
+  REQUIRE(h.node.layers.total == 3);
+
+  erase_layer(h, 1);
+  CHECK(h.node.layers.count == 1);
+  CHECK(h.node.layers.total == 2);
+  CHECK(h.node.layers.mix(0, 320) == Approx(0.5));
+  press(h.node.inputs.redo, h);
+  CHECK(h.node.layers.count == 2);
+  CHECK(h.node.layers.mix(0, 320) == Approx(0.625));
+}
+
+TEST_CASE("Looper: erasing an extending pass keeps the loop it made",
+          "[fx][audio][looper][layers][erase]")
+{
+  looper_harness h{1, 64};
+  record_and_overdub(h, 512, 0.25, 0.5);
+  h.node.inputs.past_end = Nodes::Looper::PastEnd::Extend;
+  overdub_pass(h, 1024, 0.125);
+  const int64_t length = h.node.layers.length;
+  REQUIRE(length > 512);
+  REQUIRE(h.node.layers.count == 3);
+
+  erase_layer(h, 3);
+  CHECK(h.node.layers.length == length);
+  // The passes under it play again over the part it added.
+  CHECK(h.node.layers.mix(0, 512 + 320) == Approx(0.75));
+}
+
+TEST_CASE("Looper: the view asks for a pass to be erased, a changed loop is left alone",
+          "[fx][audio][looper][layers][erase]")
+{
+  looper_harness h{1, 64};
+  record_and_overdub(h, 512, 0.25, 0.5);
+  overdub_pass(h, 512, 0.125);
+
+  h.node.process_message(Nodes::Looper::erase_request{.pass = 0, .layers = 2});
+  h.run(64);
+  CHECK(h.node.layers.count == 3);
+
+  h.node.process_message(Nodes::Looper::erase_request{.pass = 0, .layers = 3});
+  h.run(64);
+  CHECK(h.node.layers.count == 2);
+  CHECK(h.node.layers.mix(0, 320) == Approx(0.625));
+}
+
+TEST_CASE("Looper: the overview of the passes follows an erase",
+          "[fx][audio][looper][layers][erase]")
+{
+  looper_harness h{1, 64};
+  Nodes::Looper::view_message last{};
+  h.node.send_message = [&](Nodes::Looper::view_message v) { last = v; };
+  record_and_overdub(h, 512, 0.25, 0.5);
+  overdub_pass(h, 512, 0.125);
+  for(int i = 0; i < 30; i++)
+    h.run(64);
+  REQUIRE(last.lanes == 3);
+
+  erase_layer(h, 2);
+  for(int i = 0; i < 30; i++)
+    h.run(64);
+  CHECK(last.layers == 2);
+  CHECK(last.lanes == 2);
+  constexpr int bins = Nodes::Looper::view_message::bins;
+  CHECK(last.peaks[bins / 2] == Approx(0.25).margin(0.01));
+  CHECK(last.peaks[bins + bins / 2] == Approx(0.125).margin(0.01));
+}
+
+TEST_CASE("Looper: erasing a pass while the two oldest merge",
+          "[fx][audio][looper][layers][erase]")
+{
+  for(int layer : {1, 2, 3})
+  {
+    INFO("erasing layer " << layer);
+    looper_harness h{1, 4096};
+    h.node.layers.allocate(1, 2, 700000);
+    record_and_overdub(h, 600000, 0.25, 0.5);
+    for(auto& v : h.in_buf[0])
+      v = 0.125;
+    h.node.inputs.mode = LoopMode::Overdub;
+    h.run(4096);
+    REQUIRE(h.node.layers.merging.active);
+    REQUIRE(h.node.layers.count == 3);
+
+    h.node.inputs.layer.value = layer;
+    h.node.inputs.erase_layer.value.emplace();
+    h.run(4096);
+    h.node.inputs.erase_layer.value.reset();
+    for(int i = 0; i < 4; i++)
+      h.run(4096);
+    CHECK(!h.node.layers.merging.active);
+    CHECK(h.node.layers.count == 2);
+    const double expected = layer == 1 ? 0.5 : layer == 2 ? 0.25 : 0.75;
+    CHECK(h.node.layers.mix(0, 300000) == Approx(expected));
+    // Every pass heard has a buffer of its own.
+    for(int i = 0; i < h.node.layers.count; i++)
+      for(int j = i + 1; j < h.node.layers.count; j++)
+        CHECK(h.node.layers.layers[i].slot != h.node.layers.layers[j].slot);
+  }
+}
+
+TEST_CASE("Looper: erasing a pass allocates nothing", "[fx][audio][looper][layers][erase]")
+{
+  looper_harness h{2, 64};
+  h.fill_input(0, [](int64_t i) { return std::sin(i * 0.1); });
+  int allocated = 0;
+  {
+    alloc_counter::scope counter;
+    h.node.inputs.mode = LoopMode::Record;
+    for(int i = 0; i < 8; i++)
+      h.run(64);
+    h.node.inputs.mode = LoopMode::Overdub;
+    for(int i = 0; i < 40; i++)
+      h.run(64);
+    h.node.inputs.mode = LoopMode::Play;
+    h.run(64);
+    h.node.inputs.mode = LoopMode::Overdub;
+    for(int i = 0; i < 10; i++)
+      h.run(64);
+    erase_layer(h, 2);
+    h.node.process_message(Nodes::Looper::erase_request{.pass = 0, .layers = h.node.layers.count});
+    h.run(64);
+    erase_layer(h, 1);
+    allocated = counter.allocations();
+  }
+  CHECK(allocated == 0);
+}

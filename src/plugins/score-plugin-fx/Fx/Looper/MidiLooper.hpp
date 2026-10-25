@@ -239,6 +239,24 @@ struct Node
           "Plays the loop at the tempo of the score: it keeps to the bars when "
           "the tempo changes. Off, it keeps the speed it was recorded at.")
     } follow_tempo;
+
+    struct : halp::impulse_button<"Erase layer">
+    {
+      halp_meta(
+          description,
+          "Removes the pass Layer says from the loop, as the x of its lane does. "
+          "The passes over it stay where they are, and the notes only it "
+          "replaced are heard again.")
+    } erase_layer;
+
+    struct : halp::spinbox_i32<"Layer", halp::irange{1, 32, 1}>
+    {
+      halp_meta(
+          description,
+          "The pass Erase layer removes, counting from the oldest one: the lane "
+          "of that number from the top while there are no more passes than "
+          "lanes, and the file of that number of a take written as layers.")
+    } layer;
   } inputs;
 
   struct
@@ -263,6 +281,13 @@ struct Node
   } worker;
 
   std::function<void(Looper::view_message)> send_message;
+
+  //! From the view: applied at the start of the next tick.
+  void process_message(const Looper::erase_request& r)
+  {
+    m_erase_request = r;
+    m_erase_requested = true;
+  }
 
   const score::DocumentContext* ossia_document_context{};
   ossia::exec_state_facade ossia_state;
@@ -388,6 +413,8 @@ struct Node
         halp::item<&ins::undo> undo;
         halp::item<&ins::redo> redo;
         halp::item<&ins::clear> clear;
+        halp::item<&ins::erase_layer> erase_layer;
+        halp::item<&ins::layer> layer;
         halp::item<&ins::send> send;
         halp::item<&ins::takes> takes;
       } actions;
@@ -452,10 +479,18 @@ struct Node
 
     struct bus
     {
+      void init(ui& self)
+      {
+        self.view.view.erase = [this](Looper::erase_request r) {
+          if(send_message)
+            send_message(r);
+        };
+      }
       static void process_message(ui& self, Looper::view_message msg)
       {
         self.view.view.receive(msg);
       }
+      std::function<void(Looper::erase_request)> send_message;
     };
   };
 
@@ -520,6 +555,11 @@ private:
 
   void apply_buttons();
   void capture(const tick& tk);
+  void clear_loop();
+  void drop_taken_pass();
+  void erase_pass(int pass);
+  Looper::erase_request m_erase_request{};
+  bool m_erase_requested{};
 
   // What was played lately, recorded or not, for Capture.
   struct played
@@ -651,38 +691,69 @@ inline void Node::push_outputs()
   m_out_count = 0;
 }
 
+inline void Node::clear_loop()
+{
+  sync.release();
+  flush_loop(0);
+  loop.clear();
+  transport.playbackPos = 0;
+  if(transport.is_taking())
+    transport.taking(LoopMode::Stop);
+}
+
+//! The pass being taken in is dropped; taking in starts a new one.
+inline void Node::drop_taken_pass()
+{
+  flush_loop(0);
+  if(transport.actualMode == LoopMode::Record)
+  {
+    loop.clear();
+    transport.playbackPos = 0;
+  }
+  else
+  {
+    loop.taking = false;
+    loop.undo();
+    loop.drop_redo();
+  }
+  transport.taking(LoopMode::Stop);
+}
+
+//! Erasing the pass being taken in is undoing it, and erasing the only pass
+//! heard is clearing the loop. The notes the loop was playing end, as with
+//! undo.
+inline void Node::erase_pass(int pass)
+{
+  if(pass < 0 || pass >= loop.count)
+    return;
+  if(loop.count == 1)
+    clear_loop();
+  else if(transport.is_taking() && pass == loop.count - 1)
+    drop_taken_pass();
+  else
+  {
+    flush_loop(0);
+    loop.erase(pass);
+  }
+}
+
 inline void Node::apply_buttons()
 {
   if(inputs.clear.value)
-  {
-    sync.release();
-    flush_loop(0);
-    loop.clear();
-    transport.playbackPos = 0;
-    if(transport.is_taking())
-      transport.taking(LoopMode::Stop);
-  }
+    clear_loop();
+
+  if(std::exchange(m_erase_requested, false) && m_erase_request.layers == loop.count)
+    erase_pass(m_erase_request.pass);
+  if(inputs.erase_layer.value)
+    erase_pass(inputs.layer.value - 1);
 
   if(inputs.undo.value)
   {
-    flush_loop(0);
     if(transport.is_taking())
-    {
-      if(transport.actualMode == LoopMode::Record)
-      {
-        loop.clear();
-        transport.playbackPos = 0;
-      }
-      else
-      {
-        loop.taking = false;
-        loop.undo();
-        loop.drop_redo();
-      }
-      transport.taking(LoopMode::Stop);
-    }
+      drop_taken_pass();
     else
     {
+      flush_loop(0);
       loop.undo();
     }
   }
@@ -1375,27 +1446,87 @@ inline void Node::send_view(int64_t frames)
   v.tempo = float(m_tempo);
   v.writing = m_writing;
 
-  int shown = 0;
+  // One lane per pass, the oldest passes in the first one when there are more
+  // passes than lanes, as the audio looper's.
+  constexpr int max_lanes = Looper::view_message::max_lanes;
+  constexpr int max_shown = Looper::view_message::max_notes;
+  const int lanes = v.lanes;
+  const int merged = loop.count - lanes;
   const auto mode = inputs.overdub_mode.value;
   const int64_t len = std::max<int64_t>(1, loop.length);
-  for(int i = 0; i < loop.note_count && shown < Looper::view_message::max_notes; i++)
+  auto lane_of = [&](int pass) { return std::max(0, pass - merged); };
+  // A pass shorter than the loop is drawn each time it plays.
+  auto period_of = [&](const Looper::midi_note& n) {
+    return std::max<int64_t>(1, std::min<int64_t>(loop.period_of(n.pass), len));
+  };
+
+  // Each lane gets as many of the notes as it has, up to an even share of
+  // what the message holds; the share a lane does not use goes to the others.
+  std::array<int64_t, max_lanes> wanted{};
+  for(int i = 0; i < loop.note_count; i++)
   {
     const auto& n = loop.notes[i];
-    if(!loop.heard(n, mode))
+    if(n.pass >= loop.count)
       continue;
-    const int64_t l = n.length < 0 ? loop.distance(n.start, transport.playbackPos % len)
-                                   : std::min(n.length, len - 1);
-    // A pass shorter than the loop is drawn each time it plays.
-    const int64_t period = std::max<int64_t>(1, std::min<int64_t>(loop.period_of(n.pass), len));
-    for(int64_t on = n.start % period; on < len && shown < Looper::view_message::max_notes;
-        on += period)
+    const int64_t period = period_of(n);
+    wanted[lane_of(n.pass)] += (len - 1 - n.start % period) / period + 1;
+  }
+  std::array<int, max_lanes> quota{};
+  {
+    std::array<bool, max_lanes> settled{};
+    int left = max_shown;
+    for(bool changed = true; changed;)
     {
-      auto& d = v.note[shown++];
-      d.start = float(on) / float(len);
-      d.end = float((on + l) % len) / float(len);
-      d.pitch = n.pitch;
-      d.lane = uint8_t(n.pass % Looper::view_message::max_lanes);
-      d.velocity = n.velocity;
+      changed = false;
+      int open = 0;
+      for(int l = 0; l < lanes; l++)
+        open += !settled[l];
+      if(open == 0)
+        break;
+      const int share = left / open;
+      for(int l = 0; l < lanes; l++)
+      {
+        if(!settled[l] && wanted[l] <= share)
+        {
+          quota[l] = int(wanted[l]);
+          left -= quota[l];
+          settled[l] = true;
+          changed = true;
+        }
+      }
+      if(!changed)
+        for(int l = 0; l < lanes; l++)
+          if(!settled[l])
+            quota[l] = share;
+    }
+  }
+
+  // The notes heard first, so that a lane over its share keeps those.
+  int shown = 0;
+  std::array<int, max_lanes> used{};
+  for(int heard = 1; heard >= 0; heard--)
+  {
+    for(int i = 0; i < loop.note_count; i++)
+    {
+      const auto& n = loop.notes[i];
+      if(n.pass >= loop.count || loop.heard(n, mode) != bool(heard))
+        continue;
+      const int lane = lane_of(n.pass);
+      const int64_t l = n.length < 0 ? loop.distance(n.start, transport.playbackPos % len)
+                                     : std::min(n.length, len - 1);
+      const int64_t period = period_of(n);
+      for(int64_t on = n.start % period; on < len && used[lane] < quota[lane];
+          on += period)
+      {
+        auto& d = v.note[shown++];
+        used[lane]++;
+        d.start = float(on) / float(len);
+        d.end = float((on + l) % len) / float(len);
+        d.pitch = n.pitch;
+        d.lane = uint8_t(lane);
+        d.velocity = n.velocity;
+        d.heard = uint8_t(heard);
+      }
     }
   }
   v.notes = shown;

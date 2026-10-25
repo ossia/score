@@ -10,24 +10,22 @@ namespace Nodes::Looper
 {
 //! One pass of the loop: the first recording, or an overdub on top of it.
 //!
-//! Its audio is kept apart from the other passes', so that undoing it is
-//! hiding it and its gain can decay with feedback without touching what it
-//! recorded.
+//! Its audio is kept apart from the other passes', so that undoing or erasing
+//! it is hiding it and its gain can decay with feedback without touching what
+//! it recorded.
 inline constexpr int max_audio_layers = 32;
 
 struct audio_layer
 {
   //! Which buffer of the pool holds it.
   int slot{-1};
-  //! Gain it is played with: one, times the feedback of every overdub pass
-  //! that went over it since.
+  //! Gain it is played with: the product of the decays of the passes heard
+  //! over it. Worked out by audio_layers::update_gains().
   float gain{1.f};
-  //! Gains of the passes under it when it started, which undoing it gives
-  //! back, and when it was undone, which redoing it puts back: feedback may
-  //! have taken them down to nothing. One more than the passes kept: an
-  //! overdub goes on top while the two oldest are being merged.
-  std::array<float, max_audio_layers + 1> below_before{};
-  std::array<float, max_audio_layers + 1> below_after{};
+  //! What its feedback took from every pass under it while it was the top
+  //! one: the product of the feedback of each time it went round the loop.
+  //! Hiding the pass, by undo or erase, gives it back to them.
+  float decay{1.f};
   //! Loop position of its first frame.
   int64_t start{};
   //! Frames it was written for. Positions past them are silence until the
@@ -74,6 +72,9 @@ struct audio_layers
   int total{};
   //! Frames in the loop.
   int64_t length{};
+  //! Counts the passes erased, so that what shows them knows it is not
+  //! looking at the same ones although there are as many.
+  uint64_t changes{};
 
   //! Buffers something else still reads, e.g. a take being written: a new
   //! pass goes into another one when there is one.
@@ -87,9 +88,9 @@ struct audio_layers
     bool active{};
     int target{-1};
     int a_slot{-1}, b_slot{-1};
-    //! Gains they are merged with: feedback taking both down meanwhile is
-    //! put on the merged pass when it takes their place.
-    float a_gain{}, b_gain{};
+    //! Gain of the oldest relative to the second one: the decay of the
+    //! second. The merged pass is played with the gain of the second.
+    float a_gain{};
     audio_layer b{};
     int64_t a_len{}, b_len{};
     int64_t merged{};
@@ -185,6 +186,18 @@ struct audio_layers
     return valid_in(l, k, length);
   }
 
+  //! Gives every pass heard its gain: the decays of the passes heard over
+  //! it. Called whenever a decay or the passes heard change.
+  void update_gains() noexcept
+  {
+    float g = 1.f;
+    for(int i = count - 1; i >= 0; i--)
+    {
+      layers[i].gain = g;
+      g *= layers[i].decay;
+    }
+  }
+
   //! What the loop sounds like at position k of channel c.
   float mix(int c, int64_t k) const noexcept
   {
@@ -219,7 +232,7 @@ struct audio_layers
     count = 1;
     total = 1;
     length = 0;
-    layers[0] = audio_layer{.slot = 0, .gain = 1.f, .start = 0, .written = 0};
+    layers[0] = audio_layer{.slot = 0, .gain = 1.f, .decay = 1.f, .start = 0, .written = 0};
     std::fill_n(peaks_of(0), peak_count(), 0.f);
   }
 
@@ -275,16 +288,16 @@ struct audio_layers
     auto& l = layers[count];
     l.slot = slot;
     l.gain = 1.f;
+    l.decay = 1.f;
     l.start = start;
     l.written = 0;
     l.period = 0;
     l.loop_before = length;
     l.loop_after = length;
-    for(int i = 0; i < count; i++)
-      l.below_before[i] = layers[i].gain;
     std::fill_n(peaks_of(slot), peak_count(), 0.f);
     count++;
     total = count;
+    update_gains();
   }
 
   audio_layer* top() noexcept { return count > 0 ? &layers[count - 1] : nullptr; }
@@ -297,8 +310,10 @@ struct audio_layers
     return n;
   }
 
-  //! Starts merging the second pass and both gains into a spare buffer. The
-  //! two passes are heard as they are until the merged one takes their place.
+  //! Starts merging the two oldest passes into a spare buffer, the oldest
+  //! scaled by the decay of the second, so that the merged pass is heard as
+  //! the two were with the gain of the second. The two passes are heard as
+  //! they are until the merged one takes their place.
   void start_merge() noexcept
   {
     if(count < 2 || merging.active)
@@ -313,8 +328,7 @@ struct audio_layers
         .target = target,
         .a_slot = a.slot,
         .b_slot = b.slot,
-        .a_gain = a.gain,
-        .b_gain = b.gain,
+        .a_gain = b.decay,
         .b = b,
         .a_len = std::max<int64_t>(1, period_of(a)),
         .b_len = std::max<int64_t>(1, period_of(b)),
@@ -346,7 +360,7 @@ struct audio_layers
       const float* db = data(m.b_slot, c);
       for(int64_t k = m.pos; k < end; k++)
         dst[k] = m.a_gain * da[k % m.a_len]
-                 + (valid_in(m.b, k, m.b_len) ? m.b_gain * db[k % m.b_len] : 0.f);
+                 + (valid_in(m.b, k, m.b_len) ? db[k % m.b_len] : 0.f);
     }
     {
       float* pt = peaks_of(m.target);
@@ -354,43 +368,25 @@ struct audio_layers
       const float* pb = peaks_of(m.b_slot);
       const int64_t a_bins = std::max<int64_t>(1, (m.a_len + peak_frames - 1) / peak_frames);
       for(int64_t i = m.pos / peak_frames; i < (end + peak_frames - 1) / peak_frames; i++)
-        pt[i] = m.a_gain * pa[i % a_bins] + m.b_gain * pb[i];
+        pt[i] = m.a_gain * pa[i % a_bins] + pb[i];
     }
     m.pos = end;
     if(m.pos < m.merged)
       return;
 
-    // Feedback takes every pass under the top one down alike, so what it took
-    // from the two since the merge started is the same share of each.
-    const float scale = m.a_gain > 0.f   ? layers[0].gain / m.a_gain
-                        : m.b_gain > 0.f ? layers[1].gain / m.b_gain
-                                         : 0.f;
-    // A gain an upper pass gives back on undo or redo, as a gain of the
-    // merged pass.
-    auto merged_gain = [&](float ga, float gb) {
-      return m.a_gain > 0.f ? ga / m.a_gain : m.b_gain > 0.f ? gb / m.b_gain : 0.f;
-    };
-
+    // Nothing is under the merged pass: its own decay takes nothing.
     auto& a = layers[0];
     a.slot = m.target;
-    a.gain = scale;
+    a.decay = 1.f;
     a.start = 0;
     a.period = m.merged == length ? 0 : m.merged;
     a.written = m.merged;
     for(int i = 1; i + 1 < count; i++)
       layers[i] = layers[i + 1];
-    for(int i = 1; i + 1 < count; i++)
-    {
-      for(auto* g : {&layers[i].below_before, &layers[i].below_after})
-      {
-        (*g)[0] = merged_gain((*g)[0], (*g)[1]);
-        for(std::size_t j = 1; j + 1 < g->size(); j++)
-          (*g)[j] = (*g)[j + 1];
-      }
-    }
     count--;
     total = count;
     m.active = false;
+    update_gains();
   }
 
   void finish_merge() noexcept
@@ -404,8 +400,8 @@ struct audio_layers
   {
     if(count < 2 || feedback >= 1.f)
       return;
-    for(int i = 0; i < count - 1; i++)
-      layers[i].gain *= feedback;
+    layers[count - 1].decay *= feedback;
+    update_gains();
   }
 
   bool undo() noexcept
@@ -414,17 +410,13 @@ struct audio_layers
       return false;
     merging.active = false;
     auto& l = layers[count - 1];
-    for(int i = 0; i < count - 1; i++)
-    {
-      l.below_after[i] = layers[i].gain;
-      layers[i].gain = l.below_before[i];
-    }
     if(count > 1)
     {
       l.loop_after = length;
       length = l.loop_before;
     }
     count--;
+    update_gains();
     return true;
   }
 
@@ -434,11 +426,30 @@ struct audio_layers
       return false;
     merging.active = false;
     const auto& l = layers[count];
-    for(int i = 0; i < count; i++)
-      layers[i].gain = l.below_after[i];
     if(count > 0)
       length = l.loop_after;
     count++;
+    update_gains();
+    return true;
+  }
+
+  //! Takes pass k out of the loop, k being heard and not the only one heard:
+  //! the passes over it and the ones redo brings back move down a place, the
+  //! passes under it get back what its feedback took, and the loop keeps its
+  //! length. Its buffer is free for a new pass.
+  bool erase(int k) noexcept
+  {
+    if(k < 0 || k >= count || count < 2)
+      return false;
+    // The merged pass would not be made of the two oldest any more.
+    if(k < 2)
+      merging.active = false;
+    for(int i = k; i + 1 < total; i++)
+      layers[i] = layers[i + 1];
+    count--;
+    total--;
+    changes++;
+    update_gains();
     return true;
   }
 
