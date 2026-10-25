@@ -86,6 +86,12 @@ struct view_message
   float speed;
   //! Lanes of a single pass that is muted.
   std::array<uint8_t, max_lanes> muted;
+  //! The pass Layer says, from the oldest one, which the layer actions act on.
+  int selected;
+  //! Waiting for the grid point besides a mode: back to the loop's start, a
+  //! new pass.
+  bool restart_pending;
+  bool new_pass_pending;
 
   void set_take(std::string_view base, std::string_view ext, bool mix, int layers) noexcept
   {
@@ -162,6 +168,8 @@ struct looper_view
         return {232, 64, 60, 255};
       case LoopMode::Overdub:
         return {255, 150, 40, 255};
+      case LoopMode::Comp:
+        return {240, 200, 60, 255};
       case LoopMode::Play:
         return {88, 200, 112, 255};
       case LoopMode::Stop:
@@ -178,6 +186,8 @@ struct looper_view
         return "Record";
       case LoopMode::Overdub:
         return "Overdub";
+      case LoopMode::Comp:
+        return "Comp";
       case LoopMode::Play:
         return "Play";
       case LoopMode::Stop:
@@ -241,6 +251,11 @@ struct looper_view
         std::snprintf(
             text, sizeof(text), "%s, then %s on the grid", mode_name(s.mode),
             mode_name(s.wanted));
+      else if(s.new_pass_pending || s.restart_pending)
+        std::snprintf(
+            text, sizeof(text), "%s, then %s on the grid", mode_name(s.mode),
+            s.new_pass_pending ? (s.restart_pending ? "new layer from the start" : "new layer")
+                               : "from the start");
       else
         std::snprintf(
             text, sizeof(text), "%s%s%s%s", mode_name(s.mode),
@@ -384,6 +399,32 @@ struct looper_view
     return lane >= 0 && lane < view_message::max_lanes && state.muted[lane];
   }
 
+  //! The lane of the pass Layer says, when it has one of its own, else -1.
+  int selected_lane() const noexcept
+  {
+    const int lane = state.selected - (state.layers - state.lanes);
+    return pass_of_lane(lane) >= 0 && pass_of_lane(lane) == state.selected ? lane : -1;
+  }
+
+  //! The selected lane: a lighter background, and an outline.
+  static constexpr rgba lane_bg{34, 34, 38, 255};
+  static constexpr rgba selected_bg{46, 46, 54, 255};
+  rgba lane_background(int lane) const noexcept
+  {
+    return lane == selected_lane() ? selected_bg : lane_bg;
+  }
+  void outline_selected(auto& ctx, double top, double lh) const
+  {
+    const int l = selected_lane();
+    if(l < 0)
+      return;
+    ctx.set_stroke_color({190, 190, 200, 150});
+    ctx.set_stroke_width(1.);
+    ctx.begin_path();
+    ctx.draw_rect(4.5, top + l * lh + 1.5, width() - 9., lh - 3.);
+    ctx.stroke();
+  }
+
   //! The lane whose erase button is at (x, y), -1 for none.
   int erase_lane_at(double x, double y) const noexcept
   {
@@ -467,7 +508,8 @@ struct looper_view
     {
       const double y = top + l * lh;
       const double mid = y + lh / 2.;
-      ctx.set_fill_color({34, 34, 38, 255});
+      const auto bg = lane_background(l);
+      ctx.set_fill_color({bg.r, bg.g, bg.b, bg.a});
       ctx.begin_path();
       ctx.draw_rect(x0, y + 1., lw, lh - 2.);
       ctx.fill();
@@ -486,6 +528,7 @@ struct looper_view
       }
       ctx.fill();
     }
+    outline_selected(ctx, top, lh);
   }
 
   //! One small piano roll per lane, over the pitches of that lane. Notes
@@ -496,7 +539,6 @@ struct looper_view
     const int lanes = std::max(1, s.lanes);
     const double lh = lanes_h / lanes;
     const double x0 = 4., lw = width() - 8.;
-    constexpr rgba bg{34, 34, 38, 255};
 
     std::array<int, view_message::max_lanes> lo, hi;
     lo.fill(127);
@@ -512,7 +554,8 @@ struct looper_view
     for(int l = 0; l < lanes; l++)
     {
       const double y = top + l * lh;
-      ctx.set_fill_color({bg.r, bg.g, bg.b, bg.a});
+      const auto lbg = lane_background(l);
+      ctx.set_fill_color({lbg.r, lbg.g, lbg.b, lbg.a});
       ctx.begin_path();
       ctx.draw_rect(x0, y + 1., lw, lh - 2.);
       ctx.fill();
@@ -551,6 +594,7 @@ struct looper_view
         ctx.fill();
       }
     }
+    outline_selected(ctx, top, lh);
   }
 
   bool in_send(double x, double y) const noexcept

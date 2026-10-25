@@ -1227,12 +1227,11 @@ TEST_CASE("Looper: an overdub asked for just after a grid point ends a recording
   h.run_bars(0.5);
   REQUIRE(h.node.layers.count == 2);
 
-  // The hit is the pass's from the bar line on, faded in as a pass starts.
+  // The hit is the pass's from the bar line on, at full level: the pass
+  // carries on what the recording was taking in.
   const float* pass = h.node.layer_data(1, 0);
   const int64_t played = int64_t(h.bar_samples() * 0.05) + h.buffer_size;
-  for(int64_t i : {int64_t(0), int64_t(64)})
-    CHECK(pass[i] == Approx(double(i) / Nodes::Looper::audio_layers::fade_frames));
-  for(int64_t i : {int64_t(128), int64_t(1000), int64_t(4799), played - 1})
+  for(int64_t i : {int64_t(0), int64_t(64), int64_t(128), int64_t(1000), int64_t(4799), played - 1})
   {
     INFO(i);
     CHECK(pass[i] == Approx(1.0));
@@ -2726,4 +2725,202 @@ TEST_CASE("Looper: reverse, speed, passes per cycle and mutes allocate nothing",
   }
   CHECK(allocated == 0);
   CHECK(h.node.layers.count > 4);
+}
+
+namespace
+{
+//! The looper of the switch scenarios: a quarter-note grid, ticks of a fifth
+//! of a beat, every frame of input at 0.5 unless `ramp` is set, when frame t
+//! of the timeline is (t % 100000) / 100000: each frame recorded can be told.
+struct switches_harness : musical_harness
+{
+  static constexpr int64_t beat = 24000;
+  static constexpr int64_t frames = 4800;
+  std::string_view shown{};
+  int shown_count{};
+  bool ramp{};
+
+  switches_harness()
+      : musical_harness{int(frames)}
+  {
+    node.inputs.quantif.value = 0.25f;
+    node.inputs.postaction_bars.value = 0;
+    node.inputs.passthrough = Passthrough::None;
+    node.inputs.mode = LoopMode::Stop;
+    node.inputs.mode.update_controller = [this](std::string_view s) {
+      shown = s;
+      shown_count++;
+    };
+    fill_input(0, [](int64_t) { return 0.5; });
+    for(int i = 0; i < 5; i++)
+      tick_once();
+  }
+
+  static double ramp_at(int64_t t) { return double(t % 100000) / 100000.; }
+
+  void tick_once()
+  {
+    if(ramp)
+      for(int64_t i = 0; i < frames; i++)
+        in_buf[0][i] = ramp_at(now + i);
+    run(mtick(frames));
+  }
+  int passes() const { return node.layers.count; }
+  bool muted(int k) const { return node.layers.layers[k].muted; }
+  int64_t length() const { return node.layers.length; }
+  int64_t position() const
+  {
+    return node.transport.playbackPos % std::max<int64_t>(1, node.layers.length);
+  }
+};
+}
+
+#include "LooperSwitchesScenarios.hpp"
+
+TEST_CASE("Looper switches: Rec / Play / Dub, on the grid", "[fx][audio][looper][switches]")
+{
+  switches_harness h;
+  looper_switches::rec_play_dub(h);
+}
+
+TEST_CASE("Looper switches: Record, from any mode", "[fx][audio][looper][switches]")
+{
+  switches_harness h;
+  looper_switches::record_action(h);
+}
+
+TEST_CASE("Looper switches: Overdub pressed while overdubbing does nothing",
+          "[fx][audio][looper][switches]")
+{
+  switches_harness h;
+  looper_switches::overdub_twice(h);
+}
+
+TEST_CASE("Looper switches: Comp next three times is three new layers",
+          "[fx][audio][looper][switches]")
+{
+  switches_harness h;
+  looper_switches::comp_next_three_times(h);
+  // Each layer starts on a beat.
+  for(int k = 1; k < 4; k++)
+    CHECK(h.node.layers.layers[k].start % switches_harness::beat == 0);
+}
+
+TEST_CASE("Looper switches: Comp taken up from Overdub starts a new layer",
+          "[fx][audio][looper][switches]")
+{
+  switches_harness h;
+  looper_switches::comp_from_overdub(h);
+}
+
+TEST_CASE("Looper switches: Restart", "[fx][audio][looper][switches]")
+{
+  switches_harness h;
+  looper_switches::restart(h);
+}
+
+TEST_CASE("Looper switches: Erase last and Mute last", "[fx][audio][looper][switches]")
+{
+  switches_harness h;
+  looper_switches::erase_and_mute_last(h);
+}
+
+TEST_CASE("Looper switches: Previous and Next layer, Solo layer",
+          "[fx][audio][looper][switches]")
+{
+  switches_harness h;
+  looper_switches::select_and_solo(h);
+}
+
+TEST_CASE("Looper switches: Toggle reverse, Half speed, Double speed",
+          "[fx][audio][looper][switches]")
+{
+  switches_harness h;
+  looper_switches::reverse_and_speed(h);
+}
+
+TEST_CASE("Looper switches: a post-action shows the mode it gave way to",
+          "[fx][audio][looper][switches]")
+{
+  switches_harness h;
+  looper_switches::postaction_updates_loop(h);
+}
+
+TEST_CASE("Looper switches: actions on an empty loop, Play / Stop",
+          "[fx][audio][looper][switches]")
+{
+  switches_harness h;
+  looper_switches::empty_loop(h);
+}
+
+TEST_CASE("Looper switches: Stop at", "[fx][audio][looper][switches]")
+{
+  switches_harness h;
+  looper_switches::stop_at(h);
+}
+
+TEST_CASE("Looper switches: a recording ends into an overdub on the frame it ends on",
+          "[fx][audio][looper][switches]")
+{
+  for(auto after : {Nodes::Looper::AfterRecord::Overdub, Nodes::Looper::AfterRecord::Comp})
+  {
+    switches_harness h;
+    h.ramp = true;
+    auto& in = h.node.inputs;
+    in.after_record.value = after;
+    looper_switches::press_off_beat(h, in.rec_play_dub);
+    looper_switches::next_beat(h);
+    const int64_t start = h.now - switches_harness::frames;
+    looper_switches::beats(h, 3);
+    looper_switches::press(h, in.rec_play_dub);
+    looper_switches::next_beat(h);
+    const int64_t end = h.now - switches_harness::frames;
+    REQUIRE(h.length() == end - start);
+    looper_switches::beats(h, 1);
+    looper_switches::press_off_beat(h, in.play);
+    looper_switches::next_beat(h);
+    REQUIRE(h.passes() == 2);
+
+    // Every frame is in the loop once: the recording up to its last frame,
+    // not faded out, and the overdub from the next one, not faded in.
+    const int64_t len = h.length();
+    const float* rec = h.node.layer_data(0, 0);
+    const float* dub = h.node.layer_data(1, 0);
+    for(int64_t k : {int64_t(1000), len - 128, len - 2, len - 1})
+    {
+      INFO(k);
+      CHECK(rec[k] == Approx(switches_harness::ramp_at(start + k)));
+    }
+    for(int64_t k : {int64_t(0), int64_t(1), int64_t(64), int64_t(127), int64_t(20000)})
+    {
+      INFO(k);
+      CHECK(dub[k] == Approx(switches_harness::ramp_at(end + k)));
+    }
+    // What is heard goes on across the end of the loop as it was played.
+    CHECK(h.node.layers.mix(0, len - 1) == Approx(switches_harness::ramp_at(end - 1)));
+    CHECK(
+        h.node.layers.mix(0, 0) - rec[0]
+        == Approx(switches_harness::ramp_at(end)).margin(1e-6));
+  }
+}
+
+TEST_CASE("Looper switches: the actions allocate nothing", "[fx][audio][looper][switches]")
+{
+  switches_harness h;
+  int layer{};
+  bool reverse{};
+  float speed{};
+  h.node.inputs.layer.update_controller = [&layer](int v) { layer = v; };
+  h.node.inputs.reverse.update_controller = [&reverse](bool v) { reverse = v; };
+  h.node.inputs.speed.update_controller = [&speed](float v) { speed = v; };
+  int allocated = -1;
+  {
+    alloc_counter::scope counter;
+    looper_switches::exercise(h);
+    allocated = counter.allocations();
+  }
+  CHECK(allocated == 0);
+  // The last recording, overdubbed.
+  CHECK(h.passes() == 2);
+  CHECK(h.shown_count > 5);
 }

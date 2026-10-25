@@ -1967,3 +1967,200 @@ TEST_CASE("MIDI looper: every note of an overdub started on a bar line is heard,
     }
   }
 }
+
+namespace
+{
+//! The looper of the switch scenarios: a quarter-note grid, ticks of a fifth
+//! of a beat, the ticks carrying their place in the bars.
+struct switches_harness : midi_harness
+{
+  static constexpr int64_t beat = 24000;
+  static constexpr int64_t frames = 4800;
+  std::string_view shown{};
+  int shown_count{};
+
+  switches_harness()
+      : midi_harness{int(frames)}
+  {
+    musical = true;
+    node.inputs.quantif.value = 0.25f;
+    node.inputs.postaction_bars.value = 0;
+    node.inputs.mode = LoopMode::Stop;
+    node.inputs.mode.update_controller = [this](std::string_view s) {
+      shown = s;
+      shown_count++;
+    };
+    for(int i = 0; i < 5; i++)
+      tick_once();
+  }
+
+  void tick_once() { run(frames); }
+  int passes() const { return node.loop.count; }
+  bool muted(int k) const { return node.loop.muted[k]; }
+  int64_t length() const { return node.loop.length; }
+  int64_t position() const
+  {
+    return node.transport.playbackPos % std::max<int64_t>(1, node.loop.length);
+  }
+};
+}
+
+#include "LooperSwitchesScenarios.hpp"
+
+TEST_CASE("MIDI looper switches: Rec / Play / Dub, on the grid", "[fx][midi][looper][switches]")
+{
+  switches_harness h;
+  looper_switches::rec_play_dub(h);
+}
+
+TEST_CASE("MIDI looper switches: Record, from any mode", "[fx][midi][looper][switches]")
+{
+  switches_harness h;
+  looper_switches::record_action(h);
+}
+
+TEST_CASE("MIDI looper switches: Overdub pressed while overdubbing does nothing",
+          "[fx][midi][looper][switches]")
+{
+  switches_harness h;
+  looper_switches::overdub_twice(h);
+}
+
+TEST_CASE("MIDI looper switches: Comp next three times is three new layers",
+          "[fx][midi][looper][switches]")
+{
+  switches_harness h;
+  looper_switches::comp_next_three_times(h);
+}
+
+TEST_CASE("MIDI looper switches: Comp taken up from Overdub starts a new layer",
+          "[fx][midi][looper][switches]")
+{
+  switches_harness h;
+  looper_switches::comp_from_overdub(h);
+}
+
+TEST_CASE("MIDI looper switches: Restart", "[fx][midi][looper][switches]")
+{
+  switches_harness h;
+  looper_switches::restart(h);
+}
+
+TEST_CASE("MIDI looper switches: Erase last and Mute last", "[fx][midi][looper][switches]")
+{
+  switches_harness h;
+  looper_switches::erase_and_mute_last(h);
+}
+
+TEST_CASE("MIDI looper switches: Previous and Next layer, Solo layer",
+          "[fx][midi][looper][switches]")
+{
+  switches_harness h;
+  looper_switches::select_and_solo(h);
+}
+
+TEST_CASE("MIDI looper switches: Toggle reverse, Half speed, Double speed",
+          "[fx][midi][looper][switches]")
+{
+  switches_harness h;
+  looper_switches::reverse_and_speed(h);
+}
+
+TEST_CASE("MIDI looper switches: a post-action shows the mode it gave way to",
+          "[fx][midi][looper][switches]")
+{
+  switches_harness h;
+  looper_switches::postaction_updates_loop(h);
+}
+
+TEST_CASE("MIDI looper switches: actions on an empty loop, Play / Stop",
+          "[fx][midi][looper][switches]")
+{
+  switches_harness h;
+  looper_switches::empty_loop(h);
+}
+
+TEST_CASE("MIDI looper switches: Stop at", "[fx][midi][looper][switches]")
+{
+  switches_harness h;
+  looper_switches::stop_at(h);
+}
+
+TEST_CASE("MIDI looper switches: a recording ends into an overdub on the frame it ends on",
+          "[fx][midi][looper][switches]")
+{
+  for(auto after : {Nodes::Looper::AfterRecord::Overdub, Nodes::Looper::AfterRecord::Comp})
+  {
+    switches_harness h;
+    auto& in = h.node.inputs;
+    in.after_record.value = after;
+    looper_switches::press_off_beat(h, in.rec_play_dub);
+    looper_switches::next_beat(h);
+    // A note held from the second tick of the recording.
+    h.note_on(60, 100);
+    h.tick_once();
+    looper_switches::press(h, in.rec_play_dub);
+    while(h.now % switches_harness::beat != switches_harness::beat - switches_harness::frames)
+      h.tick_once();
+    // One on the last frame of the recording, one on the first of the overdub.
+    h.note_on(64, switches_harness::frames - 1);
+    h.tick_once();
+    REQUIRE(looper_switches::mode(h) == Nodes::Looper::LoopMode::Record);
+    h.note_on(67, 0);
+    h.tick_once();
+    REQUIRE(looper_switches::mode(h) != Nodes::Looper::LoopMode::Record);
+    // The held note let go a tick into the overdub.
+    h.note_off(60, 0);
+    h.note_off(64, 0);
+    h.note_off(67, 10);
+    h.tick_once();
+    looper_switches::press_off_beat(h, in.play);
+    looper_switches::next_beat(h);
+
+    const int64_t len = switches_harness::beat;
+    REQUIRE(h.length() == len);
+    REQUIRE(h.passes() == 2);
+    auto find = [&](int pitch) -> const Nodes::Looper::midi_note& {
+      for(int i = 0; i < h.node.loop.note_count; i++)
+        if(h.node.loop.notes[i].pitch == pitch)
+          return h.node.loop.notes[i];
+      FAIL("no note " << pitch);
+      throw;
+    };
+    int count60 = 0;
+    for(int i = 0; i < h.node.loop.note_count; i++)
+      count60 += h.node.loop.notes[i].pitch == 60;
+    CHECK(count60 == 1);
+    // Held across the end of the loop: one note of the recording, which wraps
+    // round to where it was let go.
+    const auto& held = find(60);
+    CHECK(held.pass == 0);
+    CHECK(held.start == switches_harness::frames + 100);
+    CHECK(held.length == len - (switches_harness::frames + 100) + switches_harness::frames);
+    CHECK(find(64).pass == 0);
+    CHECK(find(64).start == len - 1);
+    CHECK(find(67).pass == 1);
+    CHECK(find(67).start == 0);
+  }
+}
+
+TEST_CASE("MIDI looper switches: the actions allocate nothing", "[fx][midi][looper][switches]")
+{
+  switches_harness h;
+  int layer{};
+  bool reverse{};
+  float speed{};
+  h.node.inputs.layer.update_controller = [&layer](int v) { layer = v; };
+  h.node.inputs.reverse.update_controller = [&reverse](bool v) { reverse = v; };
+  h.node.inputs.speed.update_controller = [&speed](float v) { speed = v; };
+  int allocated = -1;
+  {
+    alloc_counter::scope counter;
+    looper_switches::exercise(h);
+    allocated = counter.allocations();
+  }
+  CHECK(allocated == 0);
+  // The last recording, overdubbed.
+  CHECK(h.passes() == 2);
+  CHECK(h.shown_count > 5);
+}

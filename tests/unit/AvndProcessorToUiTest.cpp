@@ -834,3 +834,61 @@ TEMPLATE_TEST_CASE(
     }
   });
 }
+
+TEMPLATE_TEST_CASE(
+    "Loopers through the binding: an action shows the mode it asks for in Loop",
+    "[avnd][message_bus][execution][looper][switches]", Nodes::AudioLooper::Node,
+    Nodes::MidiLooper::Node)
+{
+  const QString uuid = std::is_same_v<TestType, Nodes::AudioLooper::Node>
+                           ? QStringLiteral("a0ad4227-ac3d-448b-a19b-19581ed4e2c6")
+                           : QStringLiteral("0c0b7d3e-5a52-4b8f-9d1f-6e3a2b8c4f71");
+  with<TestType>(uuid, [](auto& e) {
+    // These ticks are not on a musical grid: modes are taken up at once.
+    e.gui("Quantif", ossia::value{0.f});
+    e.gui("Loop", ossia::value{std::string{"Stop"}});
+    e.tick(512);
+    auto loop = [&] { return ossia::convert<std::string>(e.control("Loop").value()); };
+    auto press = [&](const char* name) {
+      e.gui(name, ossia::impulse{});
+      for(int i = 0; i < 20; i++)
+        e.tick(512);
+    };
+
+    press("Rec / Play / Dub");
+    CHECK(e.object().transport.actualMode == Nodes::Looper::LoopMode::Record);
+    // Nothing reaches the model before the UI thread runs.
+    CHECK(loop() == "Stop");
+    e.ui();
+    CHECK(loop() == "Record");
+
+    press("Rec / Play / Dub");
+    e.ui();
+    CHECK(loop() == "Play");
+    e.gui("Loop", ossia::value{std::string{"Overdub"}});
+    e.tick(512);
+    CHECK(e.object().transport.actualMode == Nodes::Looper::LoopMode::Overdub);
+
+    // Back to Play by the action: Overdub asked again through Loop is a change.
+    press("Rec / Play / Dub");
+    e.ui();
+    CHECK(loop() == "Play");
+    CHECK(e.object().transport.actualMode == Nodes::Looper::LoopMode::Play);
+    e.gui("Loop", ossia::value{std::string{"Overdub"}});
+    e.tick(512);
+    CHECK(e.object().transport.actualMode == Nodes::Looper::LoopMode::Overdub);
+
+    // The UI shows the mode an action asks for without the audio thread
+    // allocating, nor the UI's answer when it reaches the node.
+    e.gui("Rec / Play / Dub", ossia::impulse{});
+    const auto counts = on_audio_thread([&] {
+      e.plug.runAllCommands();
+      e.tick(512);
+    });
+    CHECK(counts.allocations == 0);
+    e.ui();
+    CHECK(loop() == "Play");
+    const auto echo = on_audio_thread([&] { e.plug.runAllCommands(); });
+    CHECK(echo.allocations == 0);
+  });
+}
