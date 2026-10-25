@@ -1,0 +1,436 @@
+#include "Server.hpp"
+
+#include <boost/asio/io_context.hpp>
+#include <boost/asio/ip/tcp.hpp>
+#include <boost/asio/post.hpp>
+#include <boost/asio/write.hpp>
+
+#include <Threedim/TangentUtils.hpp>
+
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
+
+#include <QDebug>
+#include <QString>
+
+#include <array>
+#include <mutex>
+#include <thread>
+
+namespace Threedim::LiveLink
+{
+namespace asio = boost::asio;
+using tcp = asio::ip::tcp;
+
+struct server_state;
+
+namespace
+{
+struct session : std::enable_shared_from_this<session>
+{
+  session(tcp::socket s, server_state& st)
+      : socket{std::move(s)}
+      , state{st}
+  {
+  }
+
+  void start() { read(); }
+  void close()
+  {
+    boost::system::error_code ec;
+    socket.shutdown(tcp::socket::shutdown_both, ec);
+    socket.close(ec);
+  }
+
+  void read();
+  void on_frame(frame_type t, std::string_view body);
+  void answer_hello();
+
+  template <typename Record>
+  static void keep_newest(latest<Record>& map, std::string key, uint64_t seq, Record r)
+  {
+    auto& slot = map[std::move(key)];
+    if(slot.seq <= seq)
+    {
+      slot.seq = seq;
+      slot.record = std::move(r);
+    }
+  }
+
+  template <typename Record, typename Key>
+  void merge(std::string_view body, latest<Record>& map, const char* what, Key key)
+  {
+    if(auto msg = parse_records<Record>(body))
+    {
+      std::lock_guard lock{state_mutex()};
+      for(auto& r : msg->records)
+        keep_newest(map, key(r), msg->seq, std::move(r));
+    }
+    else
+    {
+      qWarning() << "glTF Live Link: ignoring a malformed" << what << "frame";
+    }
+  }
+  std::mutex& state_mutex();
+
+  tcp::socket socket;
+  server_state& state;
+  frame_decoder decoder;
+  std::array<char, 1 << 16> buffer;
+};
+}
+
+// Shared between the network thread (writer) and take() (reader); the mutex
+// guards `box`, everything else is only touched on the network thread.
+struct server_state
+{
+  std::mutex mutex;
+  inbox box;
+  std::weak_ptr<session> current;
+};
+
+struct server::impl
+{
+  // Declared first, destroyed last: the acceptor, the sockets and the
+  // handlers still queued on it must all go before it does.
+  asio::io_context context;
+  tcp::acceptor acceptor{context};
+  server_state state;
+  std::thread thread;
+  uint16_t port{};
+
+  void accept()
+  {
+    acceptor.async_accept([this](boost::system::error_code ec, tcp::socket s) {
+      if(ec)
+      {
+        // Closed by the destructor: stop accepting. Any other error is
+        // transient (e.g. EMFILE); keep listening.
+        if(ec != asio::error::operation_aborted)
+          accept();
+        return;
+      }
+
+      boost::system::error_code opt_ec;
+      s.set_option(tcp::no_delay{true}, opt_ec);
+      const auto remote = s.remote_endpoint(opt_ec);
+
+      auto sess = std::make_shared<session>(std::move(s), state);
+      {
+        std::lock_guard lock{state.mutex};
+        if(auto prev = state.current.lock())
+          prev->close();
+        state.current = sess;
+        state.box.connected = true;
+        state.box.connection_events++;
+      }
+      qDebug() << "glTF Live Link: connection on port" << port << "from"
+               << QString::fromStdString(remote.address().to_string());
+      sess->start();
+      accept();
+    });
+  }
+};
+
+namespace
+{
+std::mutex& session::state_mutex()
+{
+  return state.mutex;
+}
+
+void session::read()
+{
+  socket.async_read_some(
+      asio::buffer(buffer),
+      [self = shared_from_this()](boost::system::error_code ec, std::size_t n) {
+    if(!ec)
+    {
+      const bool ok = self->decoder.feed(
+          std::string_view{self->buffer.data(), n},
+          [&](frame_type t, std::string_view body) { self->on_frame(t, body); });
+      if(ok)
+      {
+        self->read();
+        return;
+      }
+      qWarning() << "glTF Live Link: malformed frame length, dropping the "
+                    "connection";
+    }
+
+    self->close();
+    std::lock_guard lock{self->state.mutex};
+    if(self->state.current.lock() == self)
+    {
+      self->state.current.reset();
+      self->state.box.connected = false;
+      self->state.box.connection_events++;
+    }
+  });
+}
+
+void session::on_frame(frame_type t, std::string_view body)
+{
+  // Frames from a session that a newer connection replaced are ignored: its
+  // socket is closing, but bytes it had already received still drain here.
+  {
+    std::lock_guard lock{state.mutex};
+    if(state.current.lock().get() != this)
+      return;
+  }
+
+  switch(t)
+  {
+    case frame_type::hello:
+    {
+      qDebug() << "glTF Live Link: hello"
+               << QString::fromUtf8(body.data(), qsizetype(body.size()));
+      {
+        std::lock_guard lock{state.mutex};
+        state.box.peer_hello.assign(body.data(), body.size());
+      }
+      // A sender that does not read the answer is not disturbed by it.
+      answer_hello();
+      break;
+    }
+    case frame_type::mesh:
+      if(auto msg = parse_mesh(body))
+      {
+        // Its tangents are generated by the process's worker: this thread
+        // must keep reading, or the sender times out.
+        structural_message m{.seq = msg->seq, .type = frame_type::mesh};
+        m.mesh = std::move(*msg);
+        std::lock_guard lock{state.mutex};
+        state.box.structural.push_back(std::move(m));
+      }
+      else
+      {
+        qWarning() << "glTF Live Link: ignoring a malformed mesh frame";
+      }
+      break;
+    case frame_type::image:
+      if(auto msg = parse_image(body))
+      {
+        structural_message m{.seq = msg->seq, .type = frame_type::image};
+        m.image = std::move(*msg);
+        std::lock_guard lock{state.mutex};
+        state.box.structural.push_back(std::move(m));
+      }
+      else
+      {
+        qWarning() << "glTF Live Link: ignoring a malformed image frame";
+      }
+      break;
+    case frame_type::native_scene:
+      if(auto msg = parse_native_scene(body))
+      {
+        structural_message m{.seq = msg->seq, .type = frame_type::native_scene};
+        m.scene = std::move(*msg);
+        std::lock_guard lock{state.mutex};
+        if(m.is_reset())
+        {
+          if(state.box.scene && state.box.scene->seq < m.seq)
+            state.box.scene.reset();
+          std::erase_if(state.box.structural, [&](const auto& s) {
+            return s.seq < m.seq && !s.is_resource();
+          });
+        }
+        state.box.structural.push_back(std::move(m));
+      }
+      else
+      {
+        qWarning() << "glTF Live Link: ignoring a malformed native scene frame";
+      }
+      break;
+
+    case frame_type::scene:
+      // Parsed outside the lock: copying a large .glb should not stall take().
+      if(auto msg = parse_scene(body))
+      {
+        std::lock_guard lock{state.mutex};
+        if(!state.box.scene || state.box.scene->seq < msg->seq)
+        {
+          std::erase_if(state.box.structural, [&](const auto& s) {
+            return s.seq < msg->seq && !s.is_resource();
+          });
+          state.box.scene = std::move(*msg);
+        }
+      }
+      else
+      {
+        qWarning() << "glTF Live Link: ignoring a scene frame that holds no "
+                      "binary glTF";
+      }
+      break;
+
+    case frame_type::patch:
+      if(auto msg = parse_scene(body))
+      {
+        std::lock_guard lock{state.mutex};
+        state.box.structural.push_back(
+            {.seq = msg->seq, .type = frame_type::patch, .glb = std::move(msg->glb)});
+      }
+      else
+      {
+        qWarning() << "glTF Live Link: ignoring a patch frame that holds no "
+                      "binary glTF";
+      }
+      break;
+    case frame_type::remove:
+      if(auto msg = parse_records<node_name_record>(body))
+      {
+        structural_message m{.seq = msg->seq, .type = frame_type::remove};
+        for(auto& r : msg->records)
+          m.names.push_back(std::move(r.name));
+        std::lock_guard lock{state.mutex};
+        state.box.structural.push_back(std::move(m));
+      }
+      else
+      {
+        qWarning() << "glTF Live Link: ignoring a malformed remove frame";
+      }
+      break;
+    case frame_type::active_camera:
+      // One active camera at a time, whatever the record is named.
+      merge<node_name_record>(body, state.box.active_camera, "active camera",
+                              [](auto&) { return std::string{}; });
+      break;
+    case frame_type::environment:
+      merge<environment_record>(body, state.box.environment, "environment",
+                                [](auto& r) { return r.name; });
+      break;
+
+    case frame_type::transforms:
+      merge<transform_record>(body, state.box.transforms, "transforms",
+                              [](auto& r) { return r.name; });
+      break;
+    case frame_type::joints:
+      if(auto msg = parse_records<armature_pose>(body))
+      {
+        std::lock_guard lock{state.mutex};
+        for(auto& pose : msg->records)
+          for(auto& b : pose.bones)
+            keep_newest(
+                state.box.joints, joint_key(pose.armature, b.name), msg->seq,
+                joint_record{pose.armature, std::move(b)});
+      }
+      else
+      {
+        qWarning() << "glTF Live Link: ignoring a malformed joints frame";
+      }
+      break;
+    case frame_type::weights:
+      merge<weights_record>(body, state.box.weights, "weights",
+                            [](auto& r) { return r.name; });
+      break;
+    case frame_type::visibility:
+      merge<visibility_record>(body, state.box.visibility, "visibility",
+                               [](auto& r) { return r.name; });
+      break;
+    case frame_type::lights:
+      merge<light_record>(body, state.box.lights, "lights",
+                          [](auto& r) { return r.name; });
+      break;
+    case frame_type::cameras:
+      merge<camera_record>(body, state.box.cameras, "cameras",
+                           [](auto& r) { return r.name; });
+      break;
+    case frame_type::materials:
+      merge<material_record>(body, state.box.materials, "materials",
+                             [](auto& r) { return r.name; });
+      break;
+
+    default:
+      // Unknown types are skipped, so that a newer sender can add frames an
+      // older receiver does not understand.
+      break;
+  }
+}
+}
+
+void session::answer_hello()
+{
+  QJsonArray accepts;
+  for(auto f : accepted_frames)
+    accepts.append(QString::fromUtf8(f.data(), qsizetype(f.size())));
+  QJsonObject o;
+  o["protocol"] = protocol_version;
+  o["app"] = "ossia score";
+  o["accepts"] = accepts;
+  const auto json = QJsonDocument(o).toJson(QJsonDocument::Compact);
+  auto frame = std::make_shared<std::string>(
+      encode_frame(frame_type::hello, std::string_view{json.data(), std::size_t(json.size())}));
+  asio::async_write(
+      socket, asio::buffer(*frame),
+      [self = shared_from_this(), frame](boost::system::error_code, std::size_t) {
+    // A failed write shows up on the read side as well.
+  });
+}
+
+std::vector<std::shared_ptr<std::vector<float>>> generate_tangents(const mesh_message& m)
+{
+  std::vector<std::shared_ptr<std::vector<float>>> out;
+  out.reserve(m.primitives.size());
+  for(const auto& p : m.primitives)
+    out.push_back(Threedim::generate_tangents_mikktspace(
+        p.positions, p.normals, p.texcoords, p.indices, p.vertex_count));
+  return out;
+}
+
+server::server(const std::string& bind_address, uint16_t port)
+    : m{std::make_unique<impl>()}
+{
+  const tcp::endpoint ep{asio::ip::make_address(bind_address), port};
+  m->acceptor.open(ep.protocol());
+  m->acceptor.set_option(tcp::acceptor::reuse_address(true));
+  m->acceptor.bind(ep);
+  m->acceptor.listen();
+  m->port = m->acceptor.local_endpoint().port();
+
+  m->accept();
+  m->thread = std::thread{[ctx = &m->context] {
+    try
+    {
+      ctx->run();
+    }
+    catch(const std::exception& e)
+    {
+      qWarning() << "glTF Live Link: network thread stopped:" << e.what();
+    }
+  }};
+}
+
+server::~server()
+{
+  // Once the thread has exited nothing else touches the sockets, so they can
+  // be closed from here; the handlers still queued, and the sessions they
+  // keep alive, are destroyed with the context.
+  m->context.stop();
+  if(m->thread.joinable())
+    m->thread.join();
+
+  boost::system::error_code ec;
+  m->acceptor.close(ec);
+  std::lock_guard lock{m->state.mutex};
+  if(auto cur = m->state.current.lock())
+    cur->close();
+}
+
+inbox server::take()
+{
+  std::lock_guard lock{m->state.mutex};
+  inbox out = std::move(m->state.box);
+  m->state.box = {};
+  // Connection state is a level, not an event: keep reporting it.
+  m->state.box.connected = out.connected;
+  m->state.box.connection_events = out.connection_events;
+  return out;
+}
+
+uint16_t server::port() const noexcept
+{
+  return m->port;
+}
+
+}
