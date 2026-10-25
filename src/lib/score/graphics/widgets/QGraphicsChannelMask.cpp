@@ -22,9 +22,9 @@ namespace score
 {
 namespace
 {
-constexpr qreal cell_w = 16.;
-constexpr qreal cell_h = 14.;
-constexpr qreal gap = 1.;
+constexpr qreal mask_cell_w = 16.;
+constexpr qreal mask_cell_h = 14.;
+constexpr qreal mask_gap = 1.;
 constexpr int per_row = 8;
 }
 
@@ -112,13 +112,13 @@ QRectF QGraphicsChannelMask::cellRect(int channel) const noexcept
 {
   const int row = channel / per_row;
   const int col = channel % per_row;
-  return QRectF{col * (cell_w + gap), row * (cell_h + gap), cell_w, cell_h};
+  return QRectF{col * (mask_cell_w + mask_gap), row * (mask_cell_h + mask_gap), mask_cell_w, mask_cell_h};
 }
 
 int QGraphicsChannelMask::channelAt(QPointF p) const noexcept
 {
   for(int c = 0; c < 16; c++)
-    if(cellRect(c).adjusted(-gap, -gap, gap, gap).contains(p))
+    if(cellRect(c).adjusted(-mask_gap, -mask_gap, mask_gap, mask_gap).contains(p))
       return c;
   return -1;
 }
@@ -219,7 +219,7 @@ void QGraphicsChannelMask::contextMenuEvent(QGraphicsSceneContextMenuEvent* even
 
 QRectF QGraphicsChannelMask::boundingRect() const
 {
-  return QRectF{0., 0., per_row * (cell_w + gap), 2. * (cell_h + gap)};
+  return QRectF{0., 0., per_row * (mask_cell_w + mask_gap), 2. * (mask_cell_h + mask_gap)};
 }
 
 void QGraphicsChannelMask::paint(

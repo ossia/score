@@ -22,8 +22,8 @@ namespace score
 {
 namespace
 {
-constexpr qreal cell_w = 14.;
-constexpr qreal cell_h = 10.;
+constexpr qreal matrix_cell_w = 14.;
+constexpr qreal matrix_cell_h = 10.;
 constexpr qreal label_w = 18.;
 constexpr qreal header_h = 11.;
 
@@ -129,13 +129,13 @@ QRectF QGraphicsNoteMatrix::cellRect(int col, int row) const noexcept
 {
   // Row 0 is at the bottom
   return QRectF{
-      label_w + col * cell_w, header_h + (rows - 1 - row) * cell_h, cell_w, cell_h};
+      label_w + col * matrix_cell_w, header_h + (rows - 1 - row) * matrix_cell_h, matrix_cell_w, matrix_cell_h};
 }
 
 std::pair<int, int> QGraphicsNoteMatrix::cellAt(QPointF p) const noexcept
 {
-  const int col = int(std::floor((p.x() - label_w) / cell_w));
-  const int row = rows - 1 - int(std::floor((p.y() - header_h) / cell_h));
+  const int col = int(std::floor((p.x() - label_w) / matrix_cell_w));
+  const int row = rows - 1 - int(std::floor((p.y() - header_h) / matrix_cell_h));
   if(col < 0 || col >= columns || row < 0 || row >= rows)
     return {-1, -1};
   return {col, row};
@@ -168,7 +168,7 @@ void QGraphicsNoteMatrix::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
   if(m_grabbed < 0)
     return;
   const qreal y = event->pos().y() - header_h;
-  const int row = std::clamp(rows - 1 - int(std::floor(y / cell_h)), 0, rows - 1);
+  const int row = std::clamp(rows - 1 - int(std::floor(y / matrix_cell_h)), 0, rows - 1);
   if(row != m_map[m_grabbed])
   {
     m_map[m_grabbed] = row;
@@ -290,14 +290,14 @@ void QGraphicsNoteMatrix::contextMenuEvent(QGraphicsSceneContextMenuEvent* event
 
 QRectF QGraphicsNoteMatrix::boundingRect() const
 {
-  return QRectF{0., 0., label_w + columns * cell_w + 1., header_h + rows * cell_h + 1.};
+  return QRectF{0., 0., label_w + columns * matrix_cell_w + 1., header_h + rows * matrix_cell_h + 1.};
 }
 
 void QGraphicsNoteMatrix::paint(
     QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
   auto& skin = score::Skin::instance();
-  const QRectF grid{label_w, header_h, columns * cell_w, rows * cell_h};
+  const QRectF grid{label_w, header_h, columns * matrix_cell_w, rows * matrix_cell_h};
 
   // Altered degrees darker, as black keys
   painter->setPen(skin.NoPen);
@@ -307,11 +307,11 @@ void QGraphicsNoteMatrix::paint(
   for(int c = 0; c < columns; c++)
     if(altered(c))
       painter->fillRect(
-          QRectF{label_w + c * cell_w, header_h, cell_w, rows * cell_h}, dark);
+          QRectF{label_w + c * matrix_cell_w, header_h, matrix_cell_w, rows * matrix_cell_h}, dark);
   for(int r = 0; r < rows; r++)
     if(altered(r))
       painter->fillRect(
-          QRectF{label_w, header_h + (rows - 1 - r) * cell_h, columns * cell_w, cell_h},
+          QRectF{label_w, header_h + (rows - 1 - r) * matrix_cell_h, columns * matrix_cell_w, matrix_cell_h},
           dark);
 
   // Grid
@@ -320,10 +320,10 @@ void QGraphicsNoteMatrix::paint(
   painter->setPen(line);
   for(int c = 0; c <= columns; c++)
     painter->drawLine(
-        QPointF{label_w + c * cell_w, header_h}, QPointF{label_w + c * cell_w, grid.bottom()});
+        QPointF{label_w + c * matrix_cell_w, header_h}, QPointF{label_w + c * matrix_cell_w, grid.bottom()});
   for(int r = 0; r <= rows; r++)
     painter->drawLine(
-        QPointF{label_w, header_h + r * cell_h}, QPointF{grid.right(), header_h + r * cell_h});
+        QPointF{label_w, header_h + r * matrix_cell_h}, QPointF{grid.right(), header_h + r * matrix_cell_h});
 
   // The identity, for reference
   for(int c = 0; c < columns; c++)
@@ -342,7 +342,7 @@ void QGraphicsNoteMatrix::paint(
       QPen p{skin.Gray.main.pen1};
       p.setWidthF(1.2);
       painter->setPen(p);
-      const QRectF h{label_w + c * cell_w, 0., cell_w, header_h};
+      const QRectF h{label_w + c * matrix_cell_w, 0., matrix_cell_w, header_h};
       const QPointF m = h.center();
       painter->drawLine(m + QPointF{-2.5, -2.5}, m + QPointF{2.5, 2.5});
       painter->drawLine(m + QPointF{-2.5, 2.5}, m + QPointF{2.5, -2.5});
@@ -359,7 +359,7 @@ void QGraphicsNoteMatrix::paint(
     if(m_map[c] == off)
       continue;
     painter->drawText(
-        QRectF{label_w + c * cell_w, 0., cell_w, header_h}, degree_names[c],
+        QRectF{label_w + c * matrix_cell_w, 0., matrix_cell_w, header_h}, degree_names[c],
         QTextOption{Qt::AlignCenter});
   }
   for(int r = 0; r < rows; r++)
@@ -367,7 +367,7 @@ void QGraphicsNoteMatrix::paint(
     if(altered(r))
       continue;
     painter->drawText(
-        QRectF{0., header_h + (rows - 1 - r) * cell_h - 1., label_w - 3., cell_h + 2.},
+        QRectF{0., header_h + (rows - 1 - r) * matrix_cell_h - 1., label_w - 3., matrix_cell_h + 2.},
         degree_names[r], QTextOption{Qt::AlignRight | Qt::AlignVCenter});
   }
 }

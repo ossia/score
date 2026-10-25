@@ -310,7 +310,7 @@ make_control_in(avnd::field_index<N>, Id<Process::Port>&& id, QObject* parent)
     if constexpr(std::is_integral_v<std::decay_t<decltype(value_type{}.start)>>)
     {
       auto [start, end] = c.init;
-      return new Process::IntRangeSlider{c.min, c.max, {(float)start, (float)end},
+      return new Process::IntRangeSlider{(int)c.min, (int)c.max, {(float)start, (float)end},
                                          qname, id,    parent};
     }
     else
@@ -327,7 +327,7 @@ make_control_in(avnd::field_index<N>, Id<Process::Port>&& id, QObject* parent)
     if constexpr(std::is_integral_v<std::decay_t<decltype(value_type{}.start)>>)
     {
       auto [start, end] = c.init;
-      return new Process::IntRangeSpinBox{c.min, c.max, {(float)start, (float)end},
+      return new Process::IntRangeSpinBox{(int)c.min, (int)c.max, {(float)start, (float)end},
                                           qname, id,    parent};
     }
     else
