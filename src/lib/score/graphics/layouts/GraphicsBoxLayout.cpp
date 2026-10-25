@@ -8,6 +8,8 @@
 #include <QPainter>
 #include <QPen>
 
+#include <algorithm>
+
 namespace score
 {
 
@@ -47,14 +49,32 @@ void GraphicsHBoxLayout::layout()
 
 void GraphicsHBoxLayout::centerContent()
 {
+  const auto items = this->childItems();
+
   // Center things vertically
   double total_h = boundingRect().height();
-  for(auto item : this->childItems())
+  for(auto item : items)
   {
     auto h = item->boundingRect().height();
     double rem = (total_h - h) / 2.;
     item->setPos(item->pos().x(), rem);
   }
+
+  // The row as a whole, in the width a parent may have stretched it to
+  if(!m_alignment || items.isEmpty())
+    return;
+  double left = items.front()->pos().x();
+  double right = left;
+  for(auto item : items)
+  {
+    left = std::min(left, item->pos().x());
+    right = std::max(right, item->pos().x() + item->boundingRect().width());
+  }
+  const double content_w = right - left;
+  const double avail = std::max(content_w, rect().width() - 2. * m_padding);
+  const double dx = m_padding + alignedOffset(m_alignment, avail, content_w) - left;
+  for(auto item : items)
+    item->moveBy(dx, 0.);
 }
 
 GraphicsVBoxLayout::~GraphicsVBoxLayout() { }
@@ -94,14 +114,20 @@ void GraphicsVBoxLayout::layout()
 
 void GraphicsVBoxLayout::centerContent()
 {
-  return;
-  // Center things horizontally
-  double total_w = boundingRect().width();
-  for(auto item : this->childItems())
+  // Default: against the left edge, where layout() put them
+  if(!m_alignment)
+    return;
+
+  // In the width a parent may have stretched the column to
+  const auto items = this->childItems();
+  double max_w = 0.;
+  for(auto item : items)
+    max_w = std::max(max_w, item->boundingRect().width());
+  const double avail = std::max(max_w, rect().width() - 2. * m_padding);
+  for(auto item : items)
   {
-    auto w = item->boundingRect().width();
-    double rem = (total_w - w) / 2.;
-    item->setPos(rem, item->pos().y());
+    const double w = item->boundingRect().width();
+    item->setPos(m_padding + alignedOffset(m_alignment, avail, w), item->pos().y());
   }
 }
 

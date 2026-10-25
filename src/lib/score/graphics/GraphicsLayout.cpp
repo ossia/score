@@ -55,6 +55,20 @@ qreal GraphicsLayout::spacing() const noexcept
   return m_spacing >= 0. ? m_spacing : 2. * m_padding;
 }
 
+void GraphicsLayout::setAlignment(Qt::Alignment a)
+{
+  m_alignment = a & Qt::AlignHorizontal_Mask;
+}
+
+qreal alignedOffset(Qt::Alignment a, qreal avail, qreal w) noexcept
+{
+  if(a & Qt::AlignHCenter)
+    return (avail - w) / 2.;
+  if(a & Qt::AlignRight)
+    return avail - w;
+  return 0.;
+}
+
 void GraphicsLayout::updateChildrenRects(const QList<QGraphicsItem*>& items)
 {
   for(int i = 0; i < items.size(); i++)

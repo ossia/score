@@ -2222,6 +2222,15 @@ score_add_test(test_unit_graphics_layout_rebuild
   SOURCES GraphicsLayoutRebuildTest.cpp
   APP)
 
+# halp_meta(alignment, ...): children aligned in their cell, row or column;
+# grids then size each column to its widest item.
+score_add_test(test_unit_graphics_layout_alignment
+  SOURCES GraphicsLayoutAlignmentTest.cpp
+  APP
+  PLUGINS score_lib_process)
+target_include_directories(test_unit_graphics_layout_alignment PRIVATE
+  "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/include")
+
 # GLX must not be handed to an NVIDIA vendor library whose kernel module and
 # user-space driver are different releases: libglvnd has no fallback, so every
 # GLX context creation fails and score lands on the Null backend.
@@ -2576,6 +2585,20 @@ if(TARGET score_plugin_avnd AND TARGET score_plugin_fx)
     "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/examples")
 endif()
 
+# Every MIDI object preset through the application: box and inspector views,
+# the load-preset command, playback on the audio engine with notes cabled in,
+# a second preset while playing, stop and removal.
+if(TARGET score_plugin_avnd AND TARGET score_plugin_fx AND TARGET score_plugin_midi
+   AND TARGET score_plugin_engine AND TARGET score_lib_inspector)
+  score_add_test(test_unit_preset_app
+    SOURCES PresetAppTest.cpp
+    GUI
+    PLUGINS score_plugin_avnd score_plugin_fx score_plugin_midi score_plugin_dataflow
+            score_plugin_engine score_plugin_scenario score_lib_process
+            score_lib_inspector)
+  set_tests_properties(test_unit_preset_app PROPERTIES TIMEOUT 900)
+endif()
+
 # The preset tests read the copy of the default package's presets kept in the
 # tree; SCORE_PRESETS_ROOT, when set, still overrides it.
 foreach(_preset_test
@@ -2600,7 +2623,8 @@ foreach(_preset_test
     test_unit_fx_midi_scale_presets
     test_unit_fx_looper_presets
     test_unit_fx_lfo_presets
-    test_unit_preset_loader)
+    test_unit_preset_loader
+    test_unit_preset_app)
   if(TARGET ${_preset_test})
     target_compile_definitions(${_preset_test} PRIVATE
       "SCORE_TEST_PRESETS_ROOT=\"${SCORE_ROOT_SOURCE_DIR}/tests/fixtures/presets\"")

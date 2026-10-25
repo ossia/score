@@ -11,8 +11,101 @@
 #include <QPainter>
 #include <QPen>
 
+#include <utility>
+#include <vector>
+
 namespace score
 {
+namespace
+{
+//! Wraps an item of a grid, to place it in its cell
+class GraphicsGridCell final : public EmptyRectItem
+{
+public:
+  using EmptyRectItem::EmptyRectItem;
+};
+}
+
+//! The grid's items, out of the cells of a previous layout, in order:
+//! laying out the cells themselves would grow them by the gap each time.
+static QList<QGraphicsItem*> takeGridItems(QGraphicsItem& grid)
+{
+  const auto children = grid.childItems();
+  QList<QGraphicsItem*> items;
+  items.reserve(children.size());
+  for(auto child : children)
+  {
+    if(auto cell = dynamic_cast<GraphicsGridCell*>(child))
+    {
+      for(auto item : cell->childItems())
+      {
+        item->setParentItem(&grid);
+        items.push_back(item);
+      }
+      delete cell;
+    }
+    else
+    {
+      items.push_back(child);
+    }
+  }
+  return items;
+}
+
+//! Cells of a column as wide as its widest item, of a row as tall as its
+//! tallest, items aligned in their column and centred in their row.
+//! gap: after each cell, as the padding is in the uniform grid.
+template <typename CellOf>
+static void layoutAlignedGridCells(
+    GraphicsLayout& grid, const QList<QGraphicsItem*>& items, qreal padding,
+    qreal gap, CellOf cellOf)
+{
+  std::vector<double> col_w;
+  std::vector<double> row_h;
+  for(int i = 0; i < items.size(); i++)
+  {
+    const auto [row, col] = cellOf(i);
+    if(std::ssize(col_w) <= col)
+      col_w.resize(col + 1, 0.);
+    if(std::ssize(row_h) <= row)
+      row_h.resize(row + 1, 0.);
+    const auto r = items[i]->boundingRect();
+    col_w[col] = std::max(col_w[col], r.width());
+    row_h[row] = std::max(row_h[row], r.height());
+  }
+
+  std::vector<double> col_x(col_w.size(), padding);
+  for(std::size_t c = 1; c < col_w.size(); c++)
+    col_x[c] = col_x[c - 1] + col_w[c - 1] + gap;
+  std::vector<double> row_y(row_h.size(), padding);
+  for(std::size_t r = 1; r < row_h.size(); r++)
+    row_y[r] = row_y[r - 1] + row_h[r - 1] + gap;
+
+  for(int i = 0; i < items.size(); i++)
+  {
+    const auto [row, col] = cellOf(i);
+    auto item = items[i];
+    auto cell = new GraphicsGridCell{&grid};
+    cell->setRect({0., 0., col_w[col] + gap, row_h[row] + gap});
+    cell->setPos(col_x[col], row_y[row]);
+    item->setParentItem(cell);
+
+    const auto r = item->boundingRect();
+    item->setPos(
+        alignedOffset(grid.alignment(), col_w[col], r.width()),
+        (row_h[row] + gap - r.height()) / 2.);
+
+    // Exactly the row span, else it overhangs the cell
+    if(auto it = dynamic_cast<score::GraphicsLayout*>(item))
+    {
+      QRectF cur = it->rect();
+      cur.setTop(-it->pos().y());
+      cur.setHeight(row_h[row] + gap);
+      it->setRect(cur);
+    }
+  }
+}
+
 GraphicsGridColumnsLayout::~GraphicsGridColumnsLayout() { }
 
 void GraphicsGridColumnsLayout::setColumns(int columns)
@@ -25,7 +118,16 @@ void GraphicsGridColumnsLayout::layout()
   double cell_w = 0.;
   double cell_h = 0.;
 
-  const auto items = this->childItems();
+  const auto items = takeGridItems(*this);
+  if(m_alignment)
+  {
+    const int columns = std::max(1, m_columns);
+    const qreal gap = m_spacing >= 0. ? m_spacing : m_padding;
+    layoutAlignedGridCells(*this, items, m_padding, gap, [columns](int i) {
+      return std::pair{i / columns, i % columns};
+    });
+    return;
+  }
 
   // Compute the largest dimensions,
   // which will be the dimensions of a cell
@@ -44,7 +146,7 @@ void GraphicsGridColumnsLayout::layout()
   for(auto item : items)
   {
     // Layout item in a cell
-    auto cell = new score::EmptyRectItem{this};
+    auto cell = new GraphicsGridCell{this};
     cell->setRect({0., 0., cell_w, cell_h});
     cell->setPos(m_padding + col * cell_w, m_padding + row * cell_h);
     item->setParentItem(cell);
@@ -90,7 +192,16 @@ void GraphicsGridRowsLayout::layout()
   double cell_h = 0.;
 
   m_padding = 0;
-  const auto items = this->childItems();
+  const auto items = takeGridItems(*this);
+  if(m_alignment)
+  {
+    const int rows = std::max(1, m_rows);
+    const qreal gap = m_spacing >= 0. ? m_spacing : m_padding;
+    layoutAlignedGridCells(*this, items, m_padding, gap, [rows](int i) {
+      return std::pair{i % rows, i / rows};
+    });
+    return;
+  }
 
   // Compute the largest dimensions,
   // which will be the dimensions of a cell
@@ -109,7 +220,7 @@ void GraphicsGridRowsLayout::layout()
   for(auto item : items)
   {
     // Layout item in a cell
-    auto cell = new score::EmptyRectItem{this};
+    auto cell = new GraphicsGridCell{this};
     cell->setRect({0., 0., cell_w, cell_h});
     cell->setPos(m_padding + col * cell_w, m_padding + row * cell_h);
     item->setParentItem(cell);
@@ -236,7 +347,8 @@ void GraphicsTableLayout::layout()
   const double inset_x = m_rowsSelectable ? 6. : 0.;
   const double inset_y = m_rowsSelectable ? 2. : 0.;
 
-  // Place: cells centred in their column and row
+  // Place: cells centred in their row, and in their column by default
+  const Qt::Alignment align = m_alignment ? m_alignment : Qt::AlignHCenter;
   double y = m_padding + header_h;
   for(int r = 0; r < rows.size(); r++)
   {
@@ -246,13 +358,18 @@ void GraphicsTableLayout::layout()
     {
       const auto cr = cells[c]->boundingRect();
       cells[c]->setPos(
-          inset_x + m_columns[c].first + (m_columns[c].second - cr.width()) / 2.,
+          inset_x + m_columns[c].first
+              + alignedOffset(align, m_columns[c].second, cr.width()),
           inset_y + (row_h[r] - cr.height()) / 2.);
     }
     const double h = row_h[r] + 2. * inset_y;
     row->setPos(m_padding - inset_x, y);
     if(auto lay = dynamic_cast<score::GraphicsLayout*>(row))
+    {
+      // The columns place the cells: a row moving them would break them
+      lay->setAlignment({});
       lay->setRect({0., 0., total_w + 2. * inset_x, h});
+    }
     y += h + (r + 1 < rows.size() ? spacing() : 0.);
   }
 
@@ -290,7 +407,7 @@ void GraphicsTableLayout::paint(
     const auto [cx, cw] = m_columns[c];
     painter->drawText(
         QRectF{m_padding + cx, m_padding, cw, fm.height()}, m_titles[t],
-        QTextOption(Qt::AlignCenter));
+        QTextOption((m_alignment ? m_alignment : Qt::AlignHCenter) | Qt::AlignVCenter));
   }
 }
 

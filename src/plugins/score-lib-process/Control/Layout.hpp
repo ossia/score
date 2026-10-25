@@ -84,6 +84,22 @@ struct SCORE_LIB_PROCESS_EXPORT LayoutBuilderBase
     return skin.Background2.main;
   }
 
+  //! Any enum with left, center and right, like halp::alignments
+  template <typename T>
+  static Qt::Alignment get_alignment(T cur) noexcept
+  {
+    if constexpr(requires { T::left; })
+      if(cur == T::left)
+        return Qt::AlignLeft;
+    if constexpr(requires { T::center; })
+      if(cur == T::center)
+        return Qt::AlignHCenter;
+    if constexpr(requires { T::right; })
+      if(cur == T::right)
+        return Qt::AlignRight;
+    return {};
+  }
+
   template <typename Item>
   void setupLayout(const Item& it, score::GraphicsLayout& item)
   {
@@ -91,6 +107,8 @@ struct SCORE_LIB_PROCESS_EXPORT LayoutBuilderBase
       item.setPadding(Item::padding());
     if constexpr(requires { Item::spacing(); })
       item.setSpacing(Item::spacing());
+    if constexpr(requires { Item::alignment(); })
+      item.setAlignment(get_alignment(Item::alignment()));
 
     if constexpr(requires { Item::background(); })
     {

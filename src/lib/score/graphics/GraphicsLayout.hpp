@@ -24,6 +24,11 @@ public:
   void setSpacing(qreal s);
   qreal spacing() const noexcept;
 
+  //! Where children sit across the free space of their cell, row or column.
+  //! Only the horizontal flags count. None: the layout's own placement.
+  void setAlignment(Qt::Alignment a);
+  Qt::Alignment alignment() const noexcept { return m_alignment; }
+
   void updateChildrenRects(const QList<QGraphicsItem*>&);
 
   //! The layout keeps its children's bounding rect plus these margins as its
@@ -47,6 +52,12 @@ protected:
   qreal m_spacing{-1.};
   qreal m_fitRight{-1.};
   qreal m_fitBottom{-1.};
+  Qt::Alignment m_alignment{};
 };
+
+//! Offset of a box of width w in a span of width avail, for the horizontal
+//! flags of a; left when none is set.
+SCORE_LIB_BASE_EXPORT
+qreal alignedOffset(Qt::Alignment a, qreal avail, qreal w) noexcept;
 
 }
