@@ -1257,6 +1257,12 @@ if(TARGET score_plugin_engine)
     SOURCES DeviceAddressCleanupTest.cpp
     PLUGINS score_plugin_engine)
 
+  # A MIDI device destroyed before the execution is done with it: unregistering
+  # its ports and the next tick never read it again.
+  score_add_test(test_unit_execution_state_stale_midi
+    SOURCES ExecutionStateStaleMidiTest.cpp
+    LIBS ossia)
+
   # The base scenario is released after the audio thread's cleanup of its time
   # syncs, never concurrently with it.
   score_add_test(test_unit_base_scenario_cleanup
@@ -1481,6 +1487,14 @@ if(TARGET score_plugin_avnd AND TARGET score_plugin_engine)
     target_include_directories(test_unit_avnd_stop_tick_exec PRIVATE
       "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish"
       "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/examples")
+
+    # A document closed while it plays: its processes' MIDI inlets are
+    # unregistered before the device explorer destroys the MIDI device.
+    score_add_test(test_unit_execution_close_while_playing
+      SOURCES ExecutionCloseWhilePlayingTest.cpp
+      APP
+      PLUGINS score_plugin_avnd score_plugin_fx score_plugin_audio score_plugin_deviceexplorer
+              score_plugin_engine score_plugin_scenario score_lib_process score_lib_device)
 
     # A looper's take sent to the timeline: a box of the looper's scenario at
     # the take's date, a looping sound or a MIDI clip of the take's length, one

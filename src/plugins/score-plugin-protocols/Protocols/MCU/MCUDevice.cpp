@@ -944,8 +944,10 @@ void MCUDevice::disconnect()
   }
 
   m_callbacks.clear();
-  auto old = m_dev.get();
-  m_dev.reset();
-  deviceChanged(old, nullptr);
+  // The listeners of deviceChanged read the old device (the execution collects
+  // from it the addresses its ports may hold): it is destroyed afterwards.
+  auto old = std::move(m_dev);
+  deviceChanged(old.get(), nullptr);
+  old.reset();
 }
 }

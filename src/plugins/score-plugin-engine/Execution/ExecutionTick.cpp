@@ -2,6 +2,7 @@
 
 #include <Scenario/Document/Interval/IntervalExecution.hpp>
 
+#include <Audio/AudioApplicationPlugin.hpp>
 #include <Audio/AudioTick.hpp>
 #include <Execution/BaseScenarioComponent.hpp>
 #include <Execution/DocumentPlugin.hpp>
@@ -16,6 +17,8 @@
 #include <ossia/editor/scenario/time_interval.hpp>
 
 #include <Transport/TransportInterface.hpp>
+
+#include <QElapsedTimer>
 
 namespace Execution
 {
@@ -36,6 +39,9 @@ struct AudioTickHelper
       , m_itv{*scenar->baseInterval().OSSIAInterval()}
       , m_proto{plug.audioProto()}
       , m_actions{plug.actions()}
+      , m_engine{plug.context()
+                     .doc.app.guiApplicationPlugin<Audio::ApplicationPlugin>()
+                     .audio}
   {
     m_tick = ossia::make_tick(
         opt, *m_context->execState, *m_context->execGraph, m_itv, scenar->baseScenario(),
@@ -88,14 +94,28 @@ struct AudioTickHelper
     q.enqueue([ptr] { *ptr = true; });
     m_scenar.reset();
 
-    int count = 0;
+    // The teardown queued above reads the devices the ports are bound to, and
+    // whoever stops the execution may destroy them as soon as this returns: a
+    // closing document closes its devices right after. The audio thread runs
+    // the queue once per buffer, so the wait is measured in buffers, not in
+    // spins: a fast machine spins through any fixed count within one large
+    // buffer. A stopped engine runs nothing, so there is nothing to wait for.
+    const auto engine = m_engine.lock();
+    if(engine && engine->running())
     {
-      while(!*ptr && count < 1000000)
+      const auto& st = *m_context->execState;
+      const double buffer_ms
+          = st.sampleRate > 0 ? 1000. * st.bufferSize / st.sampleRate : 0.;
+      const qint64 timeout_ms = 1000 + qint64(8. * buffer_ms);
+      QElapsedTimer t;
+      t.start();
+      while(!*ptr && t.elapsed() < timeout_ms && engine->running())
       {
-        ++count;
         std::this_thread::yield();
         m_context->processEditCommands();
       }
+      if(!*ptr)
+        qDebug() << "Execution: the audio thread did not run the teardown in time";
     }
     // The wait gave up: take the release command back from the audio thread,
     // or, if it is running now, let it finish so the drain below sees its gc.
@@ -227,6 +247,8 @@ struct AudioTickHelper
   smallfun::function<void(unsigned long, double), 128> m_tick;
   std::shared_ptr<ossia::audio_protocol> m_proto;
   std::vector<ExecutionAction*> m_actions;
+  //! The engine that runs this tick, to wait for it at teardown
+  std::weak_ptr<ossia::audio_engine> m_engine;
 
   mutable std::optional<uint64_t> m_prev_frame;
 };
