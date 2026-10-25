@@ -501,7 +501,7 @@ RenderResult renderScene(const QTemporaryDir& dir, const QString& name,
   p.setProcessChannelMode(QProcess::MergedChannels);
   p.start(
       appBinary(),
-      {"--no-gui", "--no-restore", "--script", js, "--wait", "30", "--autoplay"});
+      {"--no-gui", "--no-restore", "--script", js, "--wait", "0", "--autoplay"});
   if(!p.waitForStarted(30000))
   {
     r.error = "app did not start";
@@ -558,12 +558,14 @@ RenderResult renderScene(const QTemporaryDir& dir, const QString& name,
 }
 
 //! The default asset->screen pipeline: loader(path) -> ModelDisplay -> Window.
+//! The Window is 1280x720, the size the goldens were validated at: an
+//! unconfigured offscreen Window grabs at the settings default, 1920x1080.
 QString loaderScene(const QString& loaderUuid, const QString& assetPath,
                     int texProj)
 {
   return QStringLiteral(R"JS(
 var UUID_WINDOW = "5a181207-7d40-4ad8-814e-879fcdf8cc31";
-Score.createDevice("Window", UUID_WINDOW, {});
+Score.createDevice("Window", UUID_WINDOW, {"InputWidth": 1280, "InputHeight": 720});
 var s = Score.find("Scenario.1"); if (s) Score.remove(s);
 var root = Score.rootInterval();
 var loader = Score.createProcess(root, "%1", "%2");
@@ -598,7 +600,7 @@ QString fisheyeScene(
 {
   return QStringLiteral(R"JS(
 var UUID_WINDOW = "5a181207-7d40-4ad8-814e-879fcdf8cc31";
-Score.createDevice("Window", UUID_WINDOW, {});
+Score.createDevice("Window", UUID_WINDOW, {"InputWidth": 1280, "InputHeight": 720});
 var s = Score.find("Scenario.1"); if (s) Score.remove(s);
 var root = Score.rootInterval();
 var loader = Score.createProcess(root, "%6", "%1");
@@ -1710,7 +1712,7 @@ TEST_CASE(
 
   const QString js = QStringLiteral(R"JS(
 var UUID_WINDOW = "5a181207-7d40-4ad8-814e-879fcdf8cc31";
-Score.createDevice("Window", UUID_WINDOW, {});
+Score.createDevice("Window", UUID_WINDOW, {"InputWidth": 1280, "InputHeight": 720});
 var s = Score.find("Scenario.1"); if (s) Score.remove(s);
 var root = Score.rootInterval();
 var csf = Score.createProcess(root, "a5bbffe0-93d2-4e70-995c-cf46c2c43520", "%1");
