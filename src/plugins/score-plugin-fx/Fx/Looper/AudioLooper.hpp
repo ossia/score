@@ -225,15 +225,16 @@ struct Node
           "with it, up to Max length.")
     } file;
 
-    struct : Looper::enum_combobox<"Takes", Looper::TakeFiles, Looper::TakeFiles::Mix>
+    struct : Looper::enum_combobox<"Export", Looper::TakeFiles, Looper::TakeFiles::Mix>
     {
       using enum_combobox::operator=;
+      static constexpr std::string_view former_name() noexcept { return "Takes"; }
       halp_meta(
           description,
-          "What a take is written as: the loop as it is heard (Mix), each pass "
-          "in a file of its own (Layers), or both. Sending or dragging a take "
-          "places every file of it, each on a lane of its own.")
-    } takes;
+          "What a take writes: the loop as it is heard (Mix), each pass in a "
+          "file of its own (Layers), or both. Sending or dragging a take places "
+          "every file of it, each on a lane of its own.")
+    } exported;
 
     struct : Looper::enum_combobox<"Past the end", Looper::PastEnd, Looper::PastEnd::Wrap>
     {
@@ -521,6 +522,7 @@ struct Node
 
     sync.set_group(inputs.sync.value);
     apply_buttons();
+    m_switches.follow_merges(inputs, layers.merged_passes);
     if(inputs.capture.value)
       capture(tk);
     load_file();
@@ -546,12 +548,14 @@ struct Node
     // Only a pass that starts with the take closing gets what it cut off.
     m_carried_span = 0;
     Looper::show_loop(inputs.mode, transport, m_loop);
+    m_switches.follow_merges(inputs, layers.merged_passes);
     m_switches.follow(inputs, layers.count);
     keep_input(ossia_state.timings(tk).length);
 
     // About a quarter of a million samples of merging per tick, whatever the
     // number of channels.
     layers.merge_step(std::max<int64_t>(1024, work_per_tick / std::max(1, layers.channels)));
+    m_switches.follow_merges(inputs, layers.merged_passes);
     run_export();
 
     outputs.phase.value = layers.length > 0
@@ -591,7 +595,7 @@ struct Node
         {
           halp_meta(layout, halp::layouts::hbox)
           halp::item<&ins::quantif> quantif;
-          halp::item<&ins::takes> takes;
+          halp::item<&ins::exported> exported;
         } timing;
       } transport;
       struct
@@ -789,9 +793,12 @@ private:
   int64_t latency_frames() const noexcept;
   void shift_pass(Looper::audio_layer& l);
   void mute_pass(int pass);
-  void make_room();
+  int make_room();
   void begin_pass(int64_t start);
   void close_pass(bool cycle = false);
+  void undo_pass();
+  //! The top pass is closed: closing the take does not close it again.
+  bool m_pass_closed{};
   void merge_extra_pass();
 
 public:
@@ -962,9 +969,19 @@ inline void Node::drop_taken_pass()
   }
   else
   {
-    layers.undo(), layers.total = layers.count;
+    undo_pass();
+    layers.drop_redo();
   }
   transport.taking(LoopMode::Stop);
+}
+
+//! Undoes the top pass: a layer it replaced comes back to its place, the one
+//! Layer says keeping its own.
+inline void Node::undo_pass()
+{
+  const int back = layers.returns_on_undo();
+  if(layers.undo() && back >= 0)
+    m_switches.inserted(inputs, back, layers.count);
 }
 
 //! Erasing the pass being taken in is undoing it, and erasing the only pass
@@ -988,12 +1005,13 @@ inline void Node::erase_pass(int pass)
 }
 
 //! There are Max layers, and a pass starts: with Replace a muted layer, the
-//! oldest muted layer goes for it, else the newest.
-inline void Node::make_room()
+//! oldest muted layer goes for it, else the newest. The layer that goes, or
+//! -1 for none.
+inline int Node::make_room()
 {
   if(inputs.at_max_layers.value != Looper::AtMaxLayers::ReplaceMuted
      || layers.count < layers.slots || layers.count < 2)
-    return;
+    return -1;
   int pass = layers.count - 1;
   for(int i = 0; i < layers.count; i++)
     if(layers.layers[i].muted)
@@ -1002,20 +1020,20 @@ inline void Node::make_room()
       break;
     }
   m_switches.soloed.forget();
-  if(layers.erase(pass))
-  {
-    m_switches.removed(inputs, pass);
-    if(pass < m_closed_count)
-      m_closed_count--;
-  }
+  m_switches.removed(inputs, pass);
+  if(pass < m_closed_count)
+    m_closed_count--;
+  return pass;
 }
 
-//! Starts an overdub pass at `start`, room made for it as At max layers says.
+//! Starts an overdub pass at `start`, room made for it as At max layers says:
+//! a layer it replaces is kept for undo until the next pass starts.
 inline void Node::begin_pass(int64_t start)
 {
-  make_room();
+  const int replaced = make_room();
   layers.begin_overdub(
-      start, inputs.at_max_layers.value == Looper::AtMaxLayers::MergeOldest);
+      start, inputs.at_max_layers.value == Looper::AtMaxLayers::MergeOldest, replaced);
+  m_pass_closed = false;
 }
 
 //! The overdub pass is over: its end faded, moved by the latency, written in
@@ -1029,6 +1047,11 @@ inline void Node::close_pass(bool cycle)
   // stop.
   if(!cycle)
     m_extended = false;
+  m_export_pending = true;
+  m_closed_count = layers.count;
+  // The top pass was closed on a cut already, the pass after it dropped.
+  if(std::exchange(m_pass_closed, true))
+    return;
   top->loop_after = layers.length;
   layers.fade_out_top();
   shift_pass(*top);
@@ -1072,11 +1095,19 @@ inline void Node::apply_buttons()
     if(transport.is_taking())
       drop_taken_pass();
     else
-      layers.undo();
+      undo_pass();
   }
 
-  if(inputs.redo.value && !transport.is_taking() && layers.redo())
-    merge_extra_pass();
+  if(inputs.redo.value && !transport.is_taking())
+  {
+    const int out = layers.leaves_on_redo();
+    if(layers.redo())
+    {
+      if(out >= 0)
+        m_switches.removed(inputs, out);
+      merge_extra_pass();
+    }
+  }
 }
 
 inline int64_t Node::looper_run(int64_t start, int64_t length)
@@ -1292,8 +1323,23 @@ inline int64_t Node::looper_trim_extension(int64_t max_frames)
   const int64_t into_last = transport.playbackPos - end;
   if(into_last < 0 || into_last > max_frames || end < m_extend_unit)
     return -1;
-  layers.length = end;
-  top->written = std::clamp<int64_t>(end - top->start, 0, top->written);
+  if(layers.count > 1 && top->start >= end)
+  {
+    // A pass per cycle cut the overdub on the old end: the pass after the cut
+    // has nothing left, and goes as undo takes a pass out. The one before it
+    // ends on the old end, closed already.
+    undo_pass();
+    layers.drop_redo();
+    m_pass_closed = true;
+    layers.length = end;
+    if(auto* t = layers.top())
+      t->loop_after = end;
+  }
+  else
+  {
+    layers.length = end;
+    top->written = std::clamp<int64_t>(end - top->start, 0, top->written);
+  }
   m_extended = false;
   return into_last;
 }
@@ -2083,7 +2129,7 @@ inline void Node::run_export()
     m_job_date = m_export_date;
     m_export_length = layers.length;
     m_export_channels = layers.channels;
-    const auto files = inputs.takes.value;
+    const auto files = inputs.exported.value;
     // The passes as they are now: gains change with feedback, the loop's
     // length with undo, and new passes come while the files are written.
     m_export_count = open ? layers.count : std::clamp(m_closed_count, 1, layers.count);

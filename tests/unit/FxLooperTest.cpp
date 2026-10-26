@@ -1494,7 +1494,7 @@ TEST_CASE("Looper: a take can be written as its mix, its layers, or both",
   h.node.worker.request = [&](Nodes::Looper::take_job job) {
     Looper::worker_t::work(std::move(job))(h.node);
   };
-  h.node.inputs.takes.value = Nodes::Looper::TakeFiles::Both;
+  h.node.inputs.exported.value = Nodes::Looper::TakeFiles::Both;
 
   record_and_overdub(h, 512, 0.25, 0.5);
   for(int i = 0; i < 10; i++)
@@ -1852,7 +1852,7 @@ struct deferred_takes
     h.node.worker.request = [this](Nodes::Looper::take_job job) {
       jobs.push_back(std::move(job));
     };
-    h.node.inputs.takes.value = Nodes::Looper::TakeFiles::Layers;
+    h.node.inputs.exported.value = Nodes::Looper::TakeFiles::Layers;
   }
 
   //! Writes what is queued, the looper flattening the next file of a take in
@@ -2560,7 +2560,7 @@ TEST_CASE("Looper: a take of passes per cycle has a file for each, the muted one
   h.node.worker.request = [&](Nodes::Looper::take_job job) {
     Looper::worker_t::work(std::move(job))(h.node);
   };
-  h.node.inputs.takes.value = Nodes::Looper::TakeFiles::Both;
+  h.node.inputs.exported.value = Nodes::Looper::TakeFiles::Both;
   h.node.inputs.passthrough = Passthrough::None;
   h.node.inputs.passes.value = Nodes::Looper::Passes::PerCycle;
 
@@ -2807,6 +2807,14 @@ struct switches_harness : musical_harness
     node.inputs.keep.value = 10;
     node.allocate_ring(node.layers.channels, 10 * 48000);
   }
+  //! Merges that take several ticks: a merge goes through as many samples a
+  //! tick whatever the channels, and there are sixteen.
+  void slow_merges()
+  {
+    node.inputs.channels.value = 16;
+    node.layers.allocate(16, node.layers.slots, 8 * beat);
+    node.export_audio = Nodes::Looper::export_buffer::make(16, 8 * beat);
+  }
 };
 }
 
@@ -2929,6 +2937,49 @@ TEST_CASE("Looper switches: Per cycle with Extend", "[fx][audio][looper][switche
 {
   switches_harness h;
   looper_switches::per_cycle_extend(h);
+}
+
+TEST_CASE("Looper switches: Layer follows the two oldest layers merging",
+          "[fx][audio][looper][switches]")
+{
+  switches_harness h;
+  looper_switches::layer_follows_merges(h);
+}
+
+TEST_CASE("Looper switches: a layer selected among the two merging names the merged one",
+          "[fx][audio][looper][switches]")
+{
+  switches_harness h;
+  auto& in = h.node.inputs;
+  in.at_max_layers = Nodes::Looper::AtMaxLayers::MergeOldest;
+  h.slow_merges();
+  looper_switches::three_distinct_layers(h);
+  const double s0 = h.signature(0), s1 = h.signature(1);
+  looper_switches::at_beat(h, in.overdub);
+  REQUIRE(h.node.layers.merging.active);
+  // The newer of the two.
+  in.layer.value = 2;
+  h.tick_once();
+  REQUIRE(h.node.layers.merging.active);
+  looper_switches::beats(h, 2);
+  REQUIRE(!h.node.layers.merging.active);
+  REQUIRE(h.passes() == 3);
+  CHECK(in.layer.value == 1);
+  CHECK(looper_switches::same(h.signature(0), s0 + s1));
+}
+
+TEST_CASE("Looper switches: a late stop just after a cycle cut leaves no empty layer",
+          "[fx][audio][looper][switches]")
+{
+  switches_harness h;
+  looper_switches::late_stop_after_cycle_cut(h);
+}
+
+TEST_CASE("Looper switches: undo brings back the layer a pass replaced",
+          "[fx][audio][looper][switches]")
+{
+  switches_harness h;
+  looper_switches::replace_muted_undo(h);
 }
 
 TEST_CASE("Looper switches: the score stopping closes the layer",
@@ -3154,7 +3205,7 @@ TEST_CASE("Looper: a take asked for while overdubbing is the loop of that moment
   auto view = std::make_unique<Nodes::Looper::view_message>();
   h.node.send_message = [&](const Nodes::Looper::view_message& m) { *view = m; };
   h.node.inputs.feedback.value = 1.f;
-  h.node.inputs.takes.value = Nodes::Looper::TakeFiles::Mix;
+  h.node.inputs.exported.value = Nodes::Looper::TakeFiles::Mix;
 
   auto run_to = [&](int64_t frames) {
     for(int64_t done = 0; done < frames; done += h.buffer_size)

@@ -734,6 +734,174 @@ void at_max_layers(H& h)
   }
 }
 
+//! Three layers of three lengths, Max layers being three: the recording, a
+//! pass of one beat and a pass of two, then plays.
+template <typename H>
+void three_distinct_layers(H& h)
+{
+  auto& in = h.node.inputs;
+  h.set_max_layers(3);
+  record_loop(h);
+  at_beat(h, in.overdub);
+  at_beat(h, in.new_layer);
+  beats(h, 1);
+  at_beat(h, in.play);
+  REQUIRE(h.passes() == 3);
+  REQUIRE(h.signature(2) > h.signature(1));
+  REQUIRE(h.signature(1) > 0.);
+}
+
+//! Merge oldest: Layer goes to the pass that made the two oldest layers
+//! merge, and a layer selected while they merge stays the one selected.
+template <typename H>
+void layer_follows_merges(H& h)
+{
+  auto& in = h.node.inputs;
+  in.at_max_layers = AtMaxLayers::MergeOldest;
+  h.slow_merges();
+  three_distinct_layers(h);
+  const double s2 = h.signature(2);
+  in.layer.value = 2;
+  at_beat(h, in.overdub);
+  CHECK(in.layer.value == h.passes());
+  // The layer under the new one.
+  press(h, in.previous_layer);
+  REQUIRE(same(h.signature(in.layer.value - 1), s2));
+  beats(h, 2);
+  REQUIRE(h.passes() == 3);
+  CHECK(in.layer.value == 2);
+  CHECK(same(h.signature(in.layer.value - 1), s2));
+  at_beat(h, in.play);
+  CHECK(in.layer.value == 2);
+}
+
+//! A pass per cycle with Extend, stopped just after the loop grew: the stop
+//! is late, the loop keeps its length, and the layer the cut on the old end
+//! started goes with what it took in. Undo and redo see the layers there are.
+template <typename H>
+void late_stop_after_cycle_cut(H& h)
+{
+  auto& in = h.node.inputs;
+  record_loop(h);
+  in.passes.value = Passes::PerCycle;
+  in.past_end.value = PastEnd::Extend;
+  // The looper's own default: more than a tick.
+  in.late.value = 120;
+  while(h.position() != 0)
+    h.tick_once();
+  in.mode = LoopMode::Overdub;
+  h.tick_once();
+  REQUIRE(mode(h) == LoopMode::Overdub);
+  // A tick past the loop's end: the loop grew, and a layer was cut there.
+  beats(h, 4);
+  REQUIRE(h.length() == 8 * H::beat);
+  REQUIRE(h.passes() == 3);
+  in.mode = LoopMode::Play;
+  h.tick_once();
+  REQUIRE(mode(h) == LoopMode::Play);
+  CHECK(h.length() == 4 * H::beat);
+  CHECK(h.passes() == 2);
+  for(int k = 0; k < h.passes(); k++)
+    CHECK(h.signature(k) > 0.);
+  press(h, in.undo);
+  CHECK(h.passes() == 1);
+  CHECK(h.length() == 4 * H::beat);
+  press(h, in.redo);
+  CHECK(h.passes() == 2);
+  CHECK(h.length() == 4 * H::beat);
+  press(h, in.redo);
+  CHECK(h.passes() == 2);
+}
+
+//! Replace a muted layer: undoing the pass that replaced a layer puts that
+//! layer back, and redo replaces it again; undone while it is taken in, the
+//! pass goes and the layer comes back.
+template <typename H>
+void replace_muted_undo(H& h)
+{
+  auto& in = h.node.inputs;
+  in.at_max_layers = AtMaxLayers::ReplaceMuted;
+  three_distinct_layers(h);
+  const double s0 = h.signature(0), s1 = h.signature(1), s2 = h.signature(2);
+  in.layer.value = 2;
+  at_beat(h, in.mute_layer);
+  REQUIRE(h.muted(1));
+
+  SECTION("undo and redo of the pass")
+  {
+    at_beat(h, in.overdub);
+    beats(h, 2);
+    at_beat(h, in.play);
+    REQUIRE(h.passes() == 3);
+    CHECK(same(h.signature(1), s2));
+    const double s3 = h.signature(2);
+    CHECK(s3 > s2);
+
+    press(h, in.undo);
+    CHECK(h.passes() == 3);
+    CHECK(same(h.signature(0), s0));
+    CHECK(same(h.signature(1), s1));
+    CHECK(same(h.signature(2), s2));
+    CHECK(h.muted(1));
+    CHECK(in.layer.value == 3);
+
+    press(h, in.redo);
+    CHECK(h.passes() == 3);
+    CHECK(same(h.signature(1), s2));
+    CHECK(same(h.signature(2), s3));
+    CHECK(!h.muted(0));
+    CHECK(!h.muted(1));
+
+    // And again, the loop playing on in between.
+    beats(h, 1);
+    press(h, in.undo);
+    CHECK(same(h.signature(1), s1));
+    CHECK(h.muted(1));
+    press(h, in.undo);
+    CHECK(h.passes() == 2);
+    press(h, in.redo);
+    press(h, in.redo);
+    CHECK(h.passes() == 3);
+    CHECK(same(h.signature(2), s3));
+  }
+  SECTION("undo while the pass is taken in")
+  {
+    at_beat(h, in.overdub);
+    beats(h, 1);
+    REQUIRE(h.node.transport.is_taking());
+    // The pass goes, the muted layer comes back, and the overdub goes on in
+    // a new pass, which replaces it again.
+    press(h, in.undo);
+    CHECK(h.node.transport.is_taking());
+    CHECK(h.passes() == 3);
+    CHECK(same(h.signature(1), s2));
+    at_beat(h, in.play);
+    press(h, in.undo);
+    CHECK(h.passes() == 3);
+    CHECK(same(h.signature(1), s1));
+    CHECK(same(h.signature(2), s2));
+    CHECK(h.muted(1));
+  }
+  SECTION("the next pass makes the replacement final")
+  {
+    // The second pass replaces the first, none being muted then.
+    at_beat(h, in.overdub);
+    beats(h, 1);
+    at_beat(h, in.new_layer);
+    beats(h, 1);
+    at_beat(h, in.play);
+    REQUIRE(h.passes() == 3);
+    press(h, in.undo);
+    CHECK(h.passes() == 3);
+    CHECK(same(h.signature(1), s2));
+    // The muted layer the first pass replaced stays gone.
+    press(h, in.undo);
+    CHECK(h.passes() == 2);
+    CHECK(same(h.signature(0), s0));
+    CHECK(same(h.signature(1), s2));
+  }
+}
+
 //! Capture plays the loop it makes, and Loop says so: Stop stops it.
 template <typename H>
 void capture_shows_play(H& h)

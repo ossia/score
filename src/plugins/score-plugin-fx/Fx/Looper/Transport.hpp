@@ -137,6 +137,21 @@ enum class AtMaxLayers
                   ///< of the newest one.
 };
 
+//! The merges of a loop's passes since the looper last read them: each one
+//! made pass `at[i]` and the one over it a single pass, in that order.
+struct merge_log
+{
+  static constexpr int max_merges = 64;
+  std::array<int8_t, max_merges> at{};
+  int count{};
+
+  void add(int pass) noexcept
+  {
+    if(count < max_merges)
+      at[std::size_t(count++)] = int8_t(pass);
+  }
+};
+
 //! The speeds a loop is played at, as a tape: the pitch follows.
 inline constexpr std::array<std::pair<const char*, float>, 5> speeds{
     {{"x1/4", 0.25f}, {"x1/2", 0.5f}, {"x1", 1.f}, {"x2", 2.f}, {"x4", 4.f}}};

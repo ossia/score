@@ -279,3 +279,61 @@ TEST_CASE(
     CHECK(!message_capture::sawPortLoss());
   });
 }
+
+TEST_CASE(
+    "a looper saved when Export was called Takes keeps what it wrote",
+    "[integration][ports][avnd][looper]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    // The audio looper, then the MIDI looper.
+    for(const QString looper_uuid :
+        {QStringLiteral("a0ad4227-ac3d-448b-a19b-19581ed4e2c6"),
+         QStringLiteral("0c0b7d3e-5a52-4b8f-9d1f-6e3a2b8c4f71")})
+    {
+      INFO(looper_uuid.toStdString());
+      auto* doc = score::test::new_document(ctx);
+      REQUIRE(doc != nullptr);
+      auto* proc = score::test::add_process(*doc, looper_uuid, QString{});
+      if(!proc)
+        return; // score-plugin-fx is not in this build
+      auto* exported = inlet_named(*proc, QStringLiteral("Export"));
+      REQUIRE(exported != nullptr);
+      exported->setValue(ossia::value{2});
+      const QByteArray saved = score::test::save_as_json(*doc);
+      ctx.docManager.forceCloseDocument(ctx, *doc);
+      QApplication::processEvents();
+
+      const auto rewritten = rewrite_process(
+          QJsonDocument::fromJson(saved).object(), looper_uuid, [](QJsonObject p) {
+        QJsonArray inlets;
+        for(const auto& v : p.value("Inlets").toArray())
+        {
+          QJsonObject inl = v.toObject();
+          if(inl.value("Custom").toString() == QStringLiteral("Export"))
+            inl["Custom"] = QStringLiteral("Takes");
+          inlets.push_back(inl);
+        }
+        p["Inlets"] = inlets;
+        return p;
+      });
+
+      message_capture capture;
+      auto* reloaded = load(ctx, QJsonDocument{rewritten.toObject()}.toJson());
+      REQUIRE(reloaded != nullptr);
+      Process::ProcessModel* looper{};
+      const auto key = UuidKey<Process::ProcessModel>::fromString(looper_uuid);
+      for(auto& p : score::test::base_interval(*reloaded).processes)
+        if(p.concreteKey() == key)
+          looper = &p;
+      REQUIRE(looper != nullptr);
+      auto* back = inlet_named(*looper, QStringLiteral("Export"));
+      REQUIRE(back != nullptr);
+      // Both, the third of Mix, Layers, Both.
+      CHECK(ossia::convert<int>(back->value()) == 2);
+      CHECK(inlet_named(*looper, QStringLiteral("Takes")) == nullptr);
+      CHECK(!message_capture::sawPortLoss());
+      ctx.docManager.forceCloseDocument(ctx, *reloaded);
+      QApplication::processEvents();
+    }
+  });
+}

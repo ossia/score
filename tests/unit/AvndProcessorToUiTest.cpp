@@ -793,7 +793,7 @@ TEMPLATE_TEST_CASE(
       view.receive(*m);
     };
     e.gui("Quantif", ossia::value{0.f});
-    e.gui("Takes", ossia::value{std::string{"Both"}});
+    e.gui("Export", ossia::value{std::string{"Both"}});
 
     // Plays until the view shows `take` takes.
     auto until_take = [&](int take) {
@@ -965,7 +965,7 @@ TEMPLATE_TEST_CASE(
     std::vector<halp::timeline_clip> sent;
     view.send_to_timeline = [&](halp::timeline_clip c) { sent.push_back(std::move(c)); };
     e.gui("Quantif", ossia::value{0.f});
-    e.gui("Takes", ossia::value{std::string{"Mix"}});
+    e.gui("Export", ossia::value{std::string{"Mix"}});
 
     // The view's requests reach the looper through the execution queue.
     auto play = [&](auto until) {

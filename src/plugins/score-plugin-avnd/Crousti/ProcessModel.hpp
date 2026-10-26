@@ -291,7 +291,11 @@ private:
   {
     if(std::ssize(m_inlets) == expected_input_ports()
        && std::ssize(m_outlets) == expected_output_ports())
+    {
+      rename_former_kept_ports();
+      upgrade_former_values();
       return;
+    }
 
     std::vector<Dataflow::SavedPort> oldInlets, oldOutlets;
     for(auto& port : m_inlets)
@@ -346,6 +350,26 @@ private:
             p.name = now_q;
             break;
           }
+      }
+    });
+  }
+
+  //! A control renamed since a document was saved whose ports are all there:
+  //! the port that has the name it had, `former_name()`, takes its new one.
+  void rename_former_kept_ports()
+  {
+    avnd::input_introspection<Info>::for_all(
+        [this]<std::size_t Idx, typename P>(avnd::field_reflection<Idx, P>) {
+      if constexpr(requires { P::former_name(); } && requires { P::name(); })
+      {
+        auto ports = avnd_input_idx_to_model_ports(Idx);
+        if(ports.size() != 1)
+          return;
+        const auto was = P::former_name();
+        if(ports[0]->name() != QString::fromUtf8(was.data(), qsizetype(was.size())))
+          return;
+        const auto now = P::name();
+        ports[0]->setName(QString::fromUtf8(now.data(), qsizetype(now.size())));
       }
     });
   }

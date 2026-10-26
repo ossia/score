@@ -1,4 +1,6 @@
 #pragma once
+#include <Fx/Looper/Transport.hpp>
+
 #include <boost/container/vector.hpp>
 
 #include <algorithm>
@@ -133,6 +135,23 @@ struct audio_layers
     audio_layer b{};
   } unmerge;
 
+  //! The layer the newest pass took the place of: undoing the pass puts it
+  //! back where it was, redoing the pass takes it out again. Its buffer is
+  //! kept until another pass starts or something else changes the layers.
+  struct aside_state
+  {
+    bool valid{};
+    //! Back in its place, the pass that replaced it being what redo brings
+    //! back.
+    bool returned{};
+    int at{};
+    //! The pass that replaced it.
+    int by{};
+    audio_layer layer{};
+  } aside;
+
+  merge_log merged_passes;
+
   //! Main thread only.
   void allocate(int chans, int layer_count, int64_t frames)
   {
@@ -160,6 +179,8 @@ struct audio_layers
     held = 0;
     merging = {};
     unmerge = {};
+    aside = {};
+    merged_passes = {};
   }
 
   int buffers() const noexcept { return slots + spare_slots; }
@@ -341,6 +362,7 @@ struct audio_layers
   {
     merging.active = false;
     unmerge.valid = false;
+    aside.valid = false;
     count = 0;
     total = 0;
     length = 0;
@@ -356,6 +378,8 @@ struct audio_layers
     if(merging.active && merging.target == s)
       return true;
     if(unmerge.valid && (unmerge.a.slot == s || unmerge.b.slot == s))
+      return true;
+    if(aside.valid && !aside.returned && aside.layer.slot == s)
       return true;
     for(int i = 0; i < count; i++)
       if(layers[i].slot == s)
@@ -387,11 +411,15 @@ struct audio_layers
   //! and `oldest` set, the two oldest start merging into one, so the oldest
   //! undo is lost; the new pass is heard at once, the merge going on in the
   //! following ticks. Without, the pass is one more, merged into the newest
-  //! once it ends.
-  void begin_overdub(int64_t start, bool oldest = true) noexcept
+  //! once it ends. `replace`, a pass heard, makes room for it instead: it is
+  //! set aside, undo putting it back.
+  void begin_overdub(int64_t start, bool oldest = true, int replace = -1) noexcept
   {
     total = count;
     unmerge.valid = false;
+    aside.valid = false;
+    if(replace >= 0)
+      set_aside(replace);
     if(!oldest && count > slots)
     {
       // The pass before it was not merged yet.
@@ -426,7 +454,65 @@ struct audio_layers
     std::fill_n(peaks_of(slot), peak_count(), 0.f);
     count++;
     total = count;
+    aside.by = count - 1;
     update_gains();
+  }
+
+  //! Takes pass k out of the passes heard for a pass about to start, keeping
+  //! it and its buffer for undo.
+  void set_aside(int k) noexcept
+  {
+    if(k < 0 || k >= count || count < 2)
+      return;
+    if(k <= merging.at + 1)
+      merging.active = false;
+    aside = aside_state{.valid = true, .returned = false, .at = k, .by = -1, .layer = layers[k]};
+    for(int i = k; i + 1 < total; i++)
+      layers[i] = layers[i + 1];
+    count--;
+    total--;
+    changes++;
+    update_gains();
+  }
+
+  //! Undoing the top pass puts back the layer it replaced: where it goes.
+  int returns_on_undo() const noexcept
+  {
+    return aside.valid && !aside.returned && count > 0 && aside.by == count - 1 ? aside.at
+                                                                                 : -1;
+  }
+
+  //! Redoing the pass that replaced a layer takes that layer out again: the
+  //! one that goes.
+  int leaves_on_redo() const noexcept
+  {
+    return aside.valid && aside.returned && count + 1 == total && aside.at < count ? aside.at
+                                                                                 : -1;
+  }
+
+  //! The layer set aside goes back to its place, the passes from there on,
+  //! the ones redo brings back included, moving up a place.
+  void put_back() noexcept
+  {
+    if(total + 1 >= int(layers.size()))
+    {
+      aside.valid = false;
+      return;
+    }
+    for(int i = total; i > aside.at; i--)
+      layers[i] = layers[i - 1];
+    layers[aside.at] = aside.layer;
+    count++;
+    total++;
+    aside.returned = true;
+  }
+
+  //! Drops what redo would bring back.
+  void drop_redo() noexcept
+  {
+    total = count;
+    if(aside.returned)
+      aside.valid = false;
   }
 
   audio_layer* top() noexcept { return count > 0 ? &layers[count - 1] : nullptr; }
@@ -530,6 +616,8 @@ struct audio_layers
     count--;
     total = count;
     m.active = false;
+    aside.valid = false;
+    merged_passes.add(m.at);
     changes++;
     update_gains();
   }
@@ -567,6 +655,7 @@ struct audio_layers
       update_gains();
       return true;
     }
+    const bool back = returns_on_undo() >= 0;
     auto& l = layers[count - 1];
     if(count > 1)
     {
@@ -574,6 +663,11 @@ struct audio_layers
       length = l.loop_before;
     }
     count--;
+    if(back)
+    {
+      put_back();
+      changes++;
+    }
     update_gains();
     return true;
   }
@@ -584,6 +678,17 @@ struct audio_layers
       return false;
     merging.active = false;
     unmerge.valid = false;
+    // The pass that replaced a layer takes its place again.
+    if(leaves_on_redo() >= 0)
+    {
+      aside.layer = layers[aside.at];
+      for(int i = aside.at; i + 1 < total; i++)
+        layers[i] = layers[i + 1];
+      count--;
+      total--;
+      aside.returned = false;
+      changes++;
+    }
     const auto& l = layers[count];
     if(count > 0)
       length = l.loop_after;
@@ -604,6 +709,7 @@ struct audio_layers
     if(k <= merging.at + 1)
       merging.active = false;
     unmerge.valid = false;
+    aside.valid = false;
     for(int i = k; i + 1 < total; i++)
       layers[i] = layers[i + 1];
     count--;
@@ -617,6 +723,7 @@ struct audio_layers
   {
     merging.active = false;
     unmerge.valid = false;
+    aside.valid = false;
     count = 0;
     total = 0;
     length = 0;

@@ -476,7 +476,7 @@ void comping_per_round()
 {
   R r{"Comping, a layer per round"};
   auto& in = r.node.inputs;
-  CHECK(in.takes.value == TakeFiles::Both);
+  CHECK(in.exported.value == TakeFiles::Both);
   CHECK(in.at_max_layers.value == AtMaxLayers::ReplaceMuted);
   record_bars(r, 1);
   act(r, in.rec_play_dub);
@@ -542,7 +542,7 @@ template <typename R>
 void takes_for_editing()
 {
   R r{"Takes for editing"};
-  CHECK(r.node.inputs.takes.value == TakeFiles::Both);
+  CHECK(r.node.inputs.exported.value == TakeFiles::Both);
 }
 }
 

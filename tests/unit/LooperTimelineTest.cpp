@@ -294,7 +294,7 @@ struct midi_looper_run
     node.inputs.postaction_bars.value = 0;
     node.inputs.passthrough = MidiLooper::Passthrough::None;
     node.inputs.start_from = Nodes::Looper::StartFrom::WhereItWas;
-    node.inputs.takes.value = files;
+    node.inputs.exported.value = files;
     node.inputs.midi.midi_messages.reserve(64);
     node.outputs.midi.midi_messages.reserve(1024);
 
@@ -409,7 +409,7 @@ TEST_CASE("The MIDI looper's takes in the timeline: each file holds its pass, ea
   using Nodes::Looper::TakeFiles;
   for(const auto files : {TakeFiles::Layers, TakeFiles::Both, TakeFiles::Mix})
   {
-    DYNAMIC_SECTION("Takes " << int(files))
+    DYNAMIC_SECTION("Export " << int(files))
     {
       score::test::run_in_app([&](const score::GUIApplicationContext& ctx) {
         auto* doc = score::test::new_document(ctx);

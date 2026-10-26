@@ -144,6 +144,30 @@ struct midi_loop
     int64_t newest_loop_after{};
   } unmerge;
 
+  //! Where the events of a pass set aside are, past every pass there can be.
+  static constexpr int aside_pass = max_passes;
+
+  //! The pass the newest one took the place of: undoing the newest puts it
+  //! back where it was, redoing the newest takes it out again. Its events are
+  //! kept, as pass aside_pass, until another pass starts or something else
+  //! changes the passes.
+  struct aside_state
+  {
+    bool valid{};
+    //! Back in its place, the pass that replaced it being what redo brings
+    //! back.
+    bool returned{};
+    int at{};
+    //! The pass that replaced it.
+    int by{-1};
+    int64_t period{};
+    int64_t loop_before{};
+    int64_t loop_after{};
+    bool muted{};
+  } aside;
+
+  merge_log merged_passes;
+
   int64_t period_of(int pass) const noexcept
   {
     return period[pass] > 0 ? period[pass] : length;
@@ -262,6 +286,7 @@ struct midi_loop
     full = false;
     taking = false;
     unmerge.valid = false;
+    aside.valid = false;
     edits++;
   }
 
@@ -284,20 +309,136 @@ struct midi_loop
       f(controls[i]);
   }
 
-  //! Drops what redo would have brought back.
+  //! Drops what redo would have brought back. A pass set aside is kept, for
+  //! undo, unless it is back.
   void drop_redo() noexcept
   {
     const int heard_passes = count;
-    remove_events([heard_passes](const auto& e) { return e.pass >= heard_passes; });
-    const uint64_t kept = count >= 64 ? ~uint64_t(0) : (uint64_t(1) << count) - 1;
+    const bool keep_aside = aside.valid && !aside.returned;
+    remove_events([heard_passes, keep_aside](const auto& e) {
+      return e.pass >= heard_passes && !(keep_aside && e.pass == aside_pass);
+    });
+    uint64_t kept = count >= 64 ? ~uint64_t(0) : (uint64_t(1) << count) - 1;
+    if(keep_aside)
+      kept |= uint64_t(1) << aside_pass;
     for_each_event([kept](auto& e) { e.replaced_by &= kept; });
     total = count;
     unmerge.valid = false;
+    if(!keep_aside)
+      aside.valid = false;
+    edits++;
+  }
+
+  //! Forgets the pass set aside: its events go.
+  void forget_aside() noexcept
+  {
+    if(!aside.valid)
+      return;
+    aside.valid = false;
+    if(aside.returned)
+      return;
+    remove_events([](const auto& e) { return e.pass == aside_pass; });
+    const uint64_t bit = uint64_t(1) << aside_pass;
+    for_each_event([bit](auto& e) { e.replaced_by &= ~bit; });
+    edits++;
+  }
+
+  //! Takes pass k out of the passes heard for a pass about to start, its
+  //! events kept for undo: the passes over it move down a place.
+  void set_aside(int k) noexcept
+  {
+    if(k < 0 || k >= count || count < 2 || (taking && k == count - 1))
+      return;
+    forget_aside();
+    edits++;
+    unmerge.valid = false;
+    aside = aside_state{
+        .valid = true,
+        .returned = false,
+        .at = k,
+        .by = -1,
+        .period = period[k],
+        .loop_before = loop_before[k],
+        .loop_after = loop_after[k],
+        .muted = muted[k]};
+    const uint64_t bit_k = uint64_t(1) << k, bit_aside = uint64_t(1) << aside_pass;
+    for_each_event([=](auto& e) {
+      const bool by_k = e.replaced_by & bit_k;
+      e.replaced_by = without_pass(e.replaced_by, k);
+      if(by_k)
+        e.replaced_by |= bit_aside;
+      if(e.pass == k)
+        e.pass = uint8_t(aside_pass);
+      else if(e.pass > k)
+        e.pass--;
+    });
+    for(int p = k; p + 1 < total; p++)
+    {
+      period[p] = period[p + 1];
+      loop_before[p] = loop_before[p + 1];
+      loop_after[p] = loop_after[p + 1];
+      muted[p] = muted[p + 1];
+    }
+    count--;
+    total--;
+  }
+
+  //! Undoing the newest pass puts back the pass it replaced: where it goes.
+  int returns_on_undo() const noexcept
+  {
+    return aside.valid && !aside.returned && count > 0 && aside.by == count - 1 ? aside.at
+                                                                                 : -1;
+  }
+
+  //! Redoing the pass that replaced another takes that one out again: the
+  //! one that goes.
+  int leaves_on_redo() const noexcept
+  {
+    return aside.valid && aside.returned && count + 1 == total && aside.at < count ? aside.at
+                                                                                 : -1;
+  }
+
+  //! The pass set aside goes back to its place, the passes from there on,
+  //! the ones redo brings back included, moving up a place.
+  void put_back() noexcept
+  {
+    const int k = aside.at;
+    if(total >= max_passes)
+    {
+      forget_aside();
+      return;
+    }
+    const uint64_t bit_k = uint64_t(1) << k, bit_aside = uint64_t(1) << aside_pass;
+    for_each_event([=](auto& e) {
+      const bool by_aside = e.replaced_by & bit_aside;
+      e.replaced_by = with_room_at(e.replaced_by & ~bit_aside, k);
+      if(by_aside)
+        e.replaced_by |= bit_k;
+      if(e.pass == aside_pass)
+        e.pass = uint8_t(k);
+      else if(e.pass >= k)
+        e.pass++;
+    });
+    for(int p = total; p > k; p--)
+    {
+      period[p] = period[p - 1];
+      loop_before[p] = loop_before[p - 1];
+      loop_after[p] = loop_after[p - 1];
+      muted[p] = muted[p - 1];
+    }
+    period[k] = aside.period;
+    loop_before[k] = aside.loop_before;
+    loop_after[k] = aside.loop_after;
+    muted[k] = aside.muted;
+    count++;
+    total++;
+    aside.returned = true;
     edits++;
   }
 
   void begin_recording() noexcept
   {
+    forget_aside();
     clear();
     count = 1;
     total = 1;
@@ -308,10 +449,15 @@ struct midi_loop
 
   //! Starts an overdub pass at `start`. With `layers` passes, the two oldest
   //! are merged first when `oldest` is set; else the pass is one more, merged
-  //! into the newest when it ends.
-  void begin_overdub(int64_t start, int layers = max_layers, bool oldest = true) noexcept
+  //! into the newest when it ends. `replace`, a pass heard, makes room for it
+  //! instead: it is set aside, undo putting it back.
+  void begin_overdub(
+      int64_t start, int layers = max_layers, bool oldest = true, int replace = -1) noexcept
   {
     drop_redo();
+    forget_aside();
+    if(replace >= 0)
+      set_aside(replace);
     layers = std::clamp(layers, 2, max_layers);
     if(oldest)
     {
@@ -330,6 +476,7 @@ struct midi_loop
     muted[count] = false;
     count++;
     total = count;
+    aside.by = count - 1;
     begin_pass_state(start);
   }
 
@@ -342,8 +489,10 @@ struct midi_loop
     const int a = at, b = at + 1;
     if(a < 0 || b >= count)
       return;
+    forget_aside();
     edits++;
     merges++;
+    merged_passes.add(a);
     unmerge.valid = false;
     if(muted[a] != muted[b])
     {
@@ -468,6 +617,7 @@ struct midi_loop
     edits = o.edits;
     merges = o.merges;
     unmerge = o.unmerge;
+    aside = o.aside;
     pass_start = o.pass_start;
     pass_written = o.pass_written;
     pass_progress = o.pass_progress;
@@ -486,6 +636,7 @@ struct midi_loop
     // The pass merged into the newest one comes out of it.
     if(std::exchange(unmerge.valid, false) && unmerge.at == count - 1 && !taking)
     {
+      forget_aside();
       const int a = unmerge.at, b = a + 1;
       for_each_event([=](auto& e) {
         e.replaced_by = with_room_at(e.replaced_by, b);
@@ -506,12 +657,15 @@ struct midi_loop
       total = count + 1;
       return true;
     }
+    const bool back = returns_on_undo() >= 0;
     if(count > 1)
     {
       loop_after[count - 1] = length;
       length = loop_before[count - 1];
     }
     count--;
+    if(back)
+      put_back();
     return true;
   }
 
@@ -521,6 +675,16 @@ struct midi_loop
       return false;
     edits++;
     unmerge.valid = false;
+    // The pass that replaced another takes its place again.
+    if(const int k = leaves_on_redo(); k >= 0)
+    {
+      aside.returned = false;
+      aside.valid = false;
+      set_aside(k);
+      // Set aside from among the passes heard: the one redo brings back is
+      // the pass that replaced it, now at `count`.
+      aside.by = count;
+    }
     if(count > 0)
       length = loop_after[count];
     count++;
@@ -534,6 +698,7 @@ struct midi_loop
   {
     if(k < 0 || k >= count || count < 2 || (taking && k == count - 1))
       return false;
+    forget_aside();
     edits++;
     unmerge.valid = false;
     remove_events([k](const auto& e) { return e.pass == k; });

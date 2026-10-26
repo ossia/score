@@ -676,7 +676,7 @@ TEST_CASE("MIDI looper: a take can be written as its mix, its passes, or both",
   h.node.worker.request = [&](Nodes::Looper::midi_take_job job) {
     Looper::worker_t::work(std::move(job))(h.node);
   };
-  h.node.inputs.takes.value = Nodes::Looper::TakeFiles::Layers;
+  h.node.inputs.exported.value = Nodes::Looper::TakeFiles::Layers;
   h.node.inputs.start_from = Nodes::Looper::StartFrom::WhereItWas;
 
   record(h, 640, [](midi_harness& h) {
@@ -963,7 +963,7 @@ TEST_CASE("MIDI looper: the files of a take are the loop as it was when it close
       Looper::worker_t::work(std::move(job))(h.node);
     }
   };
-  h.node.inputs.takes.value = Nodes::Looper::TakeFiles::Layers;
+  h.node.inputs.exported.value = Nodes::Looper::TakeFiles::Layers;
   h.node.inputs.start_from = Nodes::Looper::StartFrom::WhereItWas;
 
   record(h, 640, [](midi_harness& h) {
@@ -1680,7 +1680,7 @@ TEST_CASE("MIDI looper: a take of passes per cycle has a file for each, the mute
   h.node.worker.request = [&](Nodes::Looper::midi_take_job job) {
     Looper::worker_t::work(std::move(job))(h.node);
   };
-  h.node.inputs.takes.value = Nodes::Looper::TakeFiles::Both;
+  h.node.inputs.exported.value = Nodes::Looper::TakeFiles::Both;
   h.node.inputs.passes.value = Nodes::Looper::Passes::PerCycle;
 
   record(h, 640, [](midi_harness&) {});
@@ -2046,6 +2046,8 @@ struct switches_harness : midi_harness
   }
   void set_max_layers(int n) { node.inputs.max_layers.value = n; }
   void enable_capture() { }
+  //! Merges of MIDI passes are done at once.
+  void slow_merges() { }
 };
 }
 
@@ -2151,6 +2153,27 @@ TEST_CASE("MIDI looper switches: Per cycle with Extend", "[fx][midi][looper][swi
 {
   switches_harness h;
   looper_switches::per_cycle_extend(h);
+}
+
+TEST_CASE("MIDI looper switches: Layer follows the two oldest layers merging",
+          "[fx][midi][looper][switches]")
+{
+  switches_harness h;
+  looper_switches::layer_follows_merges(h);
+}
+
+TEST_CASE("MIDI looper switches: a late stop just after a cycle cut leaves no empty layer",
+          "[fx][midi][looper][switches]")
+{
+  switches_harness h;
+  looper_switches::late_stop_after_cycle_cut(h);
+}
+
+TEST_CASE("MIDI looper switches: undo brings back the layer a pass replaced",
+          "[fx][midi][looper][switches]")
+{
+  switches_harness h;
+  looper_switches::replace_muted_undo(h);
 }
 
 TEST_CASE("MIDI looper switches: the score stopping closes the layer", "[fx][midi][looper][switches]")

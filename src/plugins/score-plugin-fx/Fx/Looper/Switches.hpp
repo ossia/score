@@ -565,6 +565,35 @@ struct switches
     if(pass < in.layer.value - 1 && in.layer.value > 1)
       show_control(in.layer, in.layer.value - 1);
   }
+
+  //! Pass `at` and the one over it became one layer: Layer keeps naming the
+  //! layer it named, the merged one when it named either of the two. The
+  //! layers are one fewer, so that a pass added with the merge is followed.
+  template <typename Inputs>
+  void merged(Inputs& in, int at)
+  {
+    seen_passes = std::max(0, seen_passes - 1);
+    if(in.layer.value - 1 > at && in.layer.value > 1)
+      show_control(in.layer, in.layer.value - 1);
+  }
+
+  //! Pass `pass` came back among `passes` layers, e.g. by undo: the one Layer
+  //! says keeps its place.
+  template <typename Inputs>
+  void inserted(Inputs& in, int pass, int passes)
+  {
+    if(pass <= in.layer.value - 1 && in.layer.value < passes)
+      show_control(in.layer, in.layer.value + 1);
+  }
+
+  //! Applies the merges `log` noted since it was last read, in their order.
+  template <typename Inputs, typename Log>
+  void follow_merges(Inputs& in, Log& log)
+  {
+    for(int i = 0; i < log.count; i++)
+      merged(in, log.at[i]);
+    log.count = 0;
+  }
 };
 
 //! The Switches tab of a looper whose inputs are `Ins`: the actions, by what
