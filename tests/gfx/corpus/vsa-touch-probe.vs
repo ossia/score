@@ -1,9 +1,9 @@
 /*{
-  "DESCRIPTION": "Reads the vertexshaderart touch history the ways VSA art does and paints one vertical band per read, left to right. Bands 0-6 show a touch sample as (x * 0.5 + 0.5, y * 0.5 + 0.5, pressure): 0 texture(v = 0), 1 texture(v = 0.01), 2 texture(row 5 centre), 3 texture(v = 1), 4 textureLod(row 5), 5 texelFetch(row 5), 6 column 1 at v = 0. Band 7: red if row 0's time is later than row 5's, green if row 0's time is this frame's, blue if the texture is 32x240. Used by GfxVsaTouch.",
+  "DESCRIPTION": "Reads the vertexshaderart touch history the ways VSA art does and paints one vertical band per read, left to right. Bands 0-6 show a touch sample as (x * 0.5 + 0.5, y * 0.5 + 0.5, pressure): 0 texture(v = 0), 1 texture(v = 0.01), 2 texture(row 5 centre), 3 texture(v = 1), 4 textureLod(row 5), 5 texelFetch(row 5), 6 column 1 at v = 0, 8 texture(v = 5 / 240), the edge between rows 4 and 5, which nearest filtering puts in row 5. Band 7: red if row 0's time is later than row 5's, green if row 0's time is this frame's, blue if the texture is 32x240. Used by GfxVsaTouch.",
   "CREDIT": "test",
   "ISFVSN": "2",
   "MODE": "VERTEX_SHADER_ART",
-  "POINT_COUNT": 48,
+  "POINT_COUNT": 54,
   "PRIMITIVE_MODE": "TRIANGLES",
   "BACKGROUND_COLOR": [0.0, 0.0, 0.0, 1.0],
   "INPUTS": [ { "LABEL": "Touch", "NAME": "touch", "TYPE": "image" } ]
@@ -21,7 +21,7 @@ void main() {
   else if(k < 3.5) c = vec2(0.0, 1.0);
   else if(k < 4.5) c = vec2(1.0, 0.0);
   else c = vec2(1.0, 1.0);
-  float x = -1.0 + 2.0 * (band + c.x) / 8.0;
+  float x = -1.0 + 2.0 * (band + c.x) / 9.0;
   gl_Position = vec4(x, c.y * 2.0 - 1.0, 0.0, 1.0);
 
   vec4 col = vec4(0.0);
@@ -39,6 +39,8 @@ void main() {
     col = show(texelFetch(touch, ivec2(0, 5), 0));
   else if(band < 6.5)
     col = show(texture(touch, vec2(1.5 / 32., 0.)));
+  else if(band > 7.5)
+    col = show(texture(touch, vec2(0., 5. / 240.)));
   else
   {
     float w0 = texture(touch, vec2(0., 0.)).w;

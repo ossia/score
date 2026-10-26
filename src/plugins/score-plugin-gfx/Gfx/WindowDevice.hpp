@@ -100,6 +100,14 @@ public:
   void grabFrame(int frames, const QString& path) const;
   W_SLOT(grabFrame)
 
+  //! Set pointer @p slot over this output, as the window's mouse and touch
+  //! events do: @p x, @p y in clip space ([-1, 1], y up), @p pressure 0 when
+  //! released. Slot 0 is the mouse; it is what vertexshaderart's `touch`
+  //! history records (SimpleRenderedVSANode), so that a script can play a
+  //! gesture into a grab.
+  void setPointer(int slot, double x, double y, double pressure) const;
+  W_SLOT(setPointer)
+
 private:
   gfx_protocol_base* m_protocol{};
   mutable std::unique_ptr<ossia::net::device_base> m_dev;

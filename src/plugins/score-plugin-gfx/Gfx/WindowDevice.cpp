@@ -342,6 +342,22 @@ void WindowDevice::grabFrame(int frames, const QString& path) const
   grabTo(path);
 }
 
+void WindowDevice::setPointer(int slot, double x, double y, double pressure) const
+{
+  score::gfx::OutputNode* out{};
+  if(auto dev = dynamic_cast<offscreen_device*>(m_dev.get()))
+    out = dev->node();
+  else
+    out = screenNode();
+  if(!out)
+  {
+    qWarning() << "setPointer: no output yet";
+    return;
+  }
+  out->pointerState()->move(slot, float(x), float(y));
+  out->pointerState()->press(slot, float(pressure));
+}
+
 bool WindowDevice::reconnect()
 {
   disconnect();

@@ -7469,10 +7469,11 @@ std::string parser::write_isf() const
 // and the top on Vulkan. Route the coordinate of those calls on 2D image inputs
 // through isf_vsa_uv / isf_vsa_texel, which flip it on SPIR-V: v = 0 is then
 // the bottom of the image on every backend, as with IMG_NORM_PIXEL and as in
-// OpenGL.
+// OpenGL. isf_vsa_uv also settles a v on the edge between two rows the same
+// way everywhere (see its definition in parse_vsa).
 //
-//   texture(img, uv[, bias])     -> texture(img, isf_vsa_uv(uv)[, bias])
-//   textureLod(img, uv, lod)     -> textureLod(img, isf_vsa_uv(uv), lod)
+//   texture(img, uv[, bias])     -> texture(img, isf_vsa_uv(uv, textureSize(img, 0).y)[, bias])
+//   textureLod(img, uv, lod)     -> textureLod(img, isf_vsa_uv(uv, textureSize(img, 0).y), lod)
 //   texelFetch(img, p, lod)      -> texelFetch(img, isf_vsa_texel(p, textureSize(img, lod).y), lod)
 //
 // Other sampling functions (textureGrad, textureOffset, textureProj,
@@ -7568,7 +7569,7 @@ static void isf_vsa_orient_image_reads(std::string& src, const descriptor& d)
     }
     else
     {
-      repl = "isf_vsa_uv(" + coord + ")";
+      repl = "isf_vsa_uv(" + coord + ", textureSize(" + name + ", 0).y)";
     }
     src.replace(c0, c1 - c0, repl);
     // Resume inside the replacement: a read nested in the coordinate is
@@ -7784,11 +7785,26 @@ vec2 resolution = RENDERSIZE;
 
 // Raw reads of the image inputs, v = 0 at the bottom on every backend
 // (isf_vsa_orient_image_reads).
+// A v on the edge between two rows, n / h, reads the row above the edge,
+// floor(v * h), as the nearest-filtering formula says. Texture units round
+// coordinates to a few sub-texel bits and land on either side; mirrored on
+// SPIR-V they land on the other one, and VSA art indexes rows as n / 240 all
+// the time. Within 1/512 of a texel of an edge, move 1/128 of a texel up.
+vec2 isf_vsa_uv(vec2 uv, int h)
+{
+  float H = float(h);
+  float y = uv.y * H;
+  float r = round(y);
+  if(abs(y - r) < 1.0 / 512.0)
+    y = r + 1.0 / 128.0;
 #if defined(QSHADER_SPIRV)
-vec2 isf_vsa_uv(vec2 uv) { return vec2(uv.x, 1.0 - uv.y); }
+  y = H - y;
+#endif
+  return vec2(uv.x, y / H);
+}
+#if defined(QSHADER_SPIRV)
 ivec2 isf_vsa_texel(ivec2 p, int h) { return ivec2(p.x, h - 1 - p.y); }
 #else
-vec2 isf_vsa_uv(vec2 uv) { return uv; }
 ivec2 isf_vsa_texel(ivec2 p, int h) { return p; }
 #endif
 )_";

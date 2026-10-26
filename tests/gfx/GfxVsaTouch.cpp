@@ -12,7 +12,9 @@
 // - an unconnected `touch` is that history, fed from the output's pointers;
 //   texture / textureLod / texelFetch read row 0 as the newest and row 5 as
 //   five frames ago, v = 1 as the oldest (still at rest), column 1 the second
-//   finger, w the frame's time, size 32x240;
+//   finger, w the frame's time, size 32x240; a v on the edge between two rows
+//   reads the upper one, as OpenGL's nearest filtering does (VSA art often
+//   indexes rows as n / 240);
 // - a texture cabled into `touch` instead reads with v = 0 at the bottom of the
 //   image, as IMG_NORM_PIXEL does, on every backend.
 #include "IsfTestCommon.hpp"
@@ -84,7 +86,7 @@ TEST_CASE("VSA touch: the history reads as on vertexshaderart", "[gfx][vsa][touc
       out.error = p.error();
       return;
     }
-    const int sink = p.addSink({64, 16});
+    const int sink = p.addSink({72, 16});
     p.wire(p.imageOut(vsa, 0), p.sinkInput(sink));
     if(!p.create(api))
     {
@@ -133,10 +135,11 @@ TEST_CASE("VSA touch: the history reads as on vertexshaderart", "[gfx][vsa][touc
       {"texelFetch(row 5)", A},
       {"texture(column 1, v = 0): second finger", C},
       {"w: row 0 later than row 5, row 0 = this frame's time, 32x240", {255, 255, 255}},
+      {"texture(v = 5 / 240): on the edge of rows 4 and 5, nearest takes row 5", A},
   };
-  for(int b = 0; b < 8; b++)
+  for(int b = 0; b < 9; b++)
   {
-    const Rgb got = bandColor(out.img, b, 8);
+    const Rgb got = bandColor(out.img, b, 9);
     INFO("band " << b << " " << bands[b].what << ": got " << str(got) << ", expected "
                  << str(bands[b].expected));
     CHECK(near(got, bands[b].expected));
