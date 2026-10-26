@@ -31,9 +31,16 @@ public:
 
   void setCard(QComboBox* combo, QString val);
 
+  //! Exact name first, else the same device under another card index:
+  //! "MM-1: USB Audio (hw:3,0)" after the cards enumerated in another order.
+  const PortAudioCard* find(const QString& name) const noexcept;
+
   QWidget* make_settings(
       Audio::Settings::Model& m, Audio::Settings::View& v,
       score::SettingsCommandDispatcher& m_disp, QWidget* parent) override;
+
+private:
+  bool m_scanned{};
 };
 #endif
 }
