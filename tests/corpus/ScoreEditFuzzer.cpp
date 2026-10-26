@@ -4,6 +4,7 @@
 //
 // Usage:
 //   score_edit_fuzzer <file.score> [--seed N] [--ops N] [--warmup-ms N]
+//                     [--timeout S]
 //
 // After loading the document and starting playback, a seeded random sequence
 // of edits runs, each one as its own event-loop turn (a user can't be faster
@@ -85,27 +86,53 @@
 #include <QPointer>
 #include <QTimer>
 
-#include <dirent.h>
-#include <dlfcn.h>
-#include <sys/syscall.h>
-#include <execinfo.h>
-#include <pthread.h>
-#include <signal.h>
-#include <ucontext.h>
-#include <unistd.h>
+#include <QSettings>
 
 #include <algorithm>
 #include <array>
 #include <atomic>
 #include <chrono>
 #include <clocale>
+#include <condition_variable>
+#include <csignal>
+#include <cstdint>
 #include <cstdio>
 #include <cstdlib>
 #include <functional>
 #include <memory>
+#include <mutex>
 #include <random>
 #include <string>
+#include <thread>
 #include <vector>
+
+// Crash and hang reports. The C++ standard has signals (<csignal>) but no
+// stack walker (std::stacktrace is C++23, and libc++ does not ship it), no
+// thread enumeration and no siginfo: those parts are per-platform below, and a
+// platform without them still runs the fuzzer, with shorter reports.
+#if !defined(_WIN32)
+#define SCORE_FUZZ_POSIX_SIGNALS 1
+#include <pthread.h>
+#include <signal.h>
+#include <unistd.h>
+#else
+#include <io.h>
+#endif
+#if __has_include(<execinfo.h>) && __has_include(<dlfcn.h>)
+// glibc and macOS; not musl, not Windows.
+#define SCORE_FUZZ_BACKTRACE 1
+#include <dlfcn.h>
+#include <execinfo.h>
+#endif
+#if defined(__linux__)
+#include <dirent.h>
+#if defined(__x86_64__)
+#define SCORE_FUZZ_STACK_SCAN 1
+#include <ucontext.h>
+#endif
+#elif defined(__APPLE__)
+#include <mach/mach.h>
+#endif
 
 namespace
 {
@@ -151,13 +178,26 @@ inline void handler(QtMsgType t, const QMessageLogContext& c, const QString& m)
 inline void install() { chained = qInstallMessageHandler(&handler); }
 }
 
+// stderr without stdio: the crash and thread-dump handlers run inside signal
+// handlers, where only write(2) is safe.
+void err_write(const char* buf, int len)
+{
+  if(len <= 0)
+    return;
+#if defined(_WIN32)
+  _write(2, buf, unsigned(len));
+#else
+  [[maybe_unused]] auto r = ::write(2, buf, size_t(len));
+#endif
+}
+
 // SCORE_ASSERT is a bare DEBUG_BREAK in debug builds: a SIGTRAP with no
 // message. Print every frame as "BT <module> <offset>" so run-edit-fuzz.sh can
-// symbolize it with llvm-symbolizer (gdb 15 cannot read clang 23's DWARF).
-pthread_t g_main_thread{};
-
+// symbolize it with llvm-symbolizer (gdb 15 cannot read clang 23's DWARF), or
+// atos on macOS.
 void print_backtrace_frames()
 {
+#if defined(SCORE_FUZZ_BACKTRACE)
   void* frames[128];
   const int n = backtrace(frames, 128);
   char buf[1024];
@@ -167,13 +207,27 @@ void print_backtrace_frames()
     int len;
     if(dladdr(frames[i], &info) && info.dli_fname)
       len = snprintf(
-          buf, sizeof(buf), "BT %s 0x%lx\n", info.dli_fname,
-          (unsigned long)((char*)frames[i] - (char*)info.dli_fbase));
+          buf, sizeof(buf), "BT %s 0x%llx\n", info.dli_fname,
+          (unsigned long long)((char*)frames[i] - (char*)info.dli_fbase));
     else
       len = snprintf(buf, sizeof(buf), "BT ? %p\n", frames[i]);
-    write(2, buf, len);
+    err_write(buf, len);
   }
+#endif
 }
+
+// A thread's label in the THREAD lines of a dump: std::thread::id is the only
+// portable handle. Hashing it does not allocate.
+unsigned long long thread_label()
+{
+  return (unsigned long long)std::hash<std::thread::id>{}(std::this_thread::get_id());
+}
+
+#if defined(SCORE_FUZZ_POSIX_SIGNALS)
+pthread_t g_main_thread{};
+// Set by a thread that forwards an external SIGABRT to the GUI thread, so the
+// GUI thread knows the abort it receives is a timeout and not its own assert.
+std::atomic<bool> g_abort_forwarded{false};
 
 // On a timeout, every other thread prints its stack too (SIGUSR2), so a
 // deadlock shows who holds the lock. Serialized by a spin flag.
@@ -183,29 +237,63 @@ void thread_dump_handler(int)
   while(g_thread_dump_busy.test_and_set())
     ;
   char buf[64];
-  int len = snprintf(buf, sizeof(buf), "THREAD %ld\n", (long)syscall(SYS_gettid));
-  write(2, buf, len);
+  const bool main = pthread_equal(pthread_self(), g_main_thread);
+  int len = snprintf(buf, sizeof(buf), "THREAD %llx%s\n", thread_label(), main ? " main" : "");
+  err_write(buf, len);
   print_backtrace_frames();
-  write(2, "ENDTHREAD\n", 10);
+  err_write("ENDTHREAD\n", 10);
   g_thread_dump_busy.clear();
 }
 
-void dump_other_threads()
+// Makes every thread of the process but the calling one print its stack,
+// the GUI thread first. POSIX has no way to list a process's threads: Linux
+// reads /proc, macOS asks the Mach task; elsewhere only the GUI thread is
+// dumped.
+void dump_threads()
 {
-  const long self = syscall(SYS_gettid);
+  using namespace std::chrono_literals;
+  const pthread_t self = pthread_self();
+  if(!pthread_equal(self, g_main_thread))
+  {
+    pthread_kill(g_main_thread, SIGUSR2);
+    std::this_thread::sleep_for(50ms);
+  }
+#if defined(__linux__)
+  // Thread ids are kernel ids here: signalling one needs tgkill (glibc 2.30).
+  const pid_t self_tid = gettid();
+  const pid_t main_tid = getpid();
   if(DIR* d = opendir("/proc/self/task"))
   {
     while(dirent* e = readdir(d))
     {
       const long tid = atol(e->d_name);
-      if(tid <= 0 || tid == self)
+      if(tid <= 0 || tid == self_tid || tid == main_tid)
         continue;
-      syscall(SYS_tgkill, getpid(), tid, SIGUSR2);
-      usleep(20000);
+      tgkill(main_tid, pid_t(tid), SIGUSR2);
+      std::this_thread::sleep_for(20ms);
     }
     closedir(d);
   }
-  usleep(200000);
+#elif defined(__APPLE__)
+  thread_act_array_t list{};
+  mach_msg_type_number_t count{};
+  if(task_threads(mach_task_self(), &list, &count) == KERN_SUCCESS)
+  {
+    for(mach_msg_type_number_t i = 0; i < count; i++)
+    {
+      const pthread_t t = pthread_from_mach_thread_np(list[i]);
+      if(t && !pthread_equal(t, self) && !pthread_equal(t, g_main_thread))
+      {
+        pthread_kill(t, SIGUSR2);
+        std::this_thread::sleep_for(20ms);
+      }
+      mach_port_deallocate(mach_task_self(), list[i]);
+    }
+    vm_deallocate(
+        mach_task_self(), (vm_address_t)list, count * sizeof(thread_act_t));
+  }
+#endif
+  std::this_thread::sleep_for(200ms);
 }
 
 // After a jump to a bad address (a freed vtable or function pointer),
@@ -214,7 +302,7 @@ void dump_other_threads()
 // lines: the first ones are the return addresses of the caller chain.
 void print_stack_scan(void* uctx)
 {
-#if defined(__x86_64__) && defined(__linux__)
+#if defined(SCORE_FUZZ_STACK_SCAN) && defined(SCORE_FUZZ_BACKTRACE)
   auto* uc = static_cast<ucontext_t*>(uctx);
   if(!uc)
     return;
@@ -222,7 +310,7 @@ void print_stack_scan(void* uctx)
   auto sp = (uintptr_t)uc->uc_mcontext.gregs[REG_RSP];
   char buf[1024];
   int len = snprintf(buf, sizeof(buf), "PC %p SP %p\n", pc, (void*)sp);
-  write(2, buf, len);
+  err_write(buf, len);
 
   // Bounds of this thread's stack, so the scan never faults.
   uintptr_t lo = sp, hi = sp + 64 * 1024;
@@ -249,9 +337,9 @@ void print_stack_scan(void* uctx)
     if(w && dladdr(w, &info) && info.dli_fname)
     {
       len = snprintf(
-          buf, sizeof(buf), "STACKWORD %s 0x%lx\n", info.dli_fname,
-          (unsigned long)((char*)w - (char*)info.dli_fbase));
-      write(2, buf, len);
+          buf, sizeof(buf), "STACKWORD %s 0x%llx\n", info.dli_fname,
+          (unsigned long long)((char*)w - (char*)info.dli_fbase));
+      err_write(buf, len);
       found++;
     }
   }
@@ -262,29 +350,30 @@ void print_stack_scan(void* uctx)
 
 void crash_handler(int sig, siginfo_t* info, void* uctx)
 {
-  // timeout(1) sends SIGABRT to the process, and any thread may take it
-  // (often D-Bus's): forward it to the GUI thread, which is the one to trace.
-  // An abort() raised in this process (a failed assert, libc++abi's
-  // "pure virtual function called", malloc's corruption checks) is traced on
-  // the thread that raised it: returning would let abort() kill the process
-  // before the GUI thread prints anything.
+  // An external SIGABRT (the driver's backstop timeout(1), or a user's kill)
+  // may land on any thread (often D-Bus's): forward it to the GUI thread,
+  // which is the one to trace. An abort() raised in this process (a failed
+  // assert, libc++abi's "pure virtual function called", malloc's corruption
+  // checks) is traced on the thread that raised it: returning would let
+  // abort() kill the process before the GUI thread prints anything.
+  const bool on_main = pthread_equal(pthread_self(), g_main_thread);
   const bool external = info && info->si_code == SI_USER && info->si_pid != getpid();
-  const bool forwarded = info && info->si_code == SI_TKILL && info->si_pid == getpid()
-                         && pthread_equal(pthread_self(), g_main_thread);
-  if(sig == SIGABRT && external && !pthread_equal(pthread_self(), g_main_thread))
+  const bool forwarded = on_main && g_abort_forwarded.exchange(false);
+  if(sig == SIGABRT && external && !on_main)
   {
+    g_abort_forwarded = true;
     pthread_kill(g_main_thread, SIGABRT);
     return;
   }
-  // The timeout reaching the GUI thread: dump the others first (a hang); a
-  // real assert/crash only needs this thread.
-  if(sig == SIGABRT && (external || forwarded) && pthread_equal(pthread_self(), g_main_thread))
-    dump_other_threads();
+  // The external abort reaching the GUI thread: a hang, so dump the others
+  // first; a real assert/crash only needs this thread.
+  if(sig == SIGABRT && (external || forwarded) && on_main)
+    dump_threads();
   char buf[64];
   int len = (sig == SIGSEGV || sig == SIGBUS) && info
                 ? snprintf(buf, sizeof(buf), "CRASH signal %d addr %p\n", sig, info->si_addr)
                 : snprintf(buf, sizeof(buf), "CRASH signal %d\n", sig);
-  write(2, buf, len);
+  err_write(buf, len);
   print_backtrace_frames();
   if(sig == SIGSEGV || sig == SIGBUS || sig == SIGILL)
     print_stack_scan(uctx);
@@ -314,6 +403,68 @@ void install_crash_handler()
   sigaction(SIGSEGV, &sa, nullptr);
   signal(SIGUSR2, thread_dump_handler);
 }
+#else
+// Standard C signals only: no siginfo, no other threads' stacks.
+void dump_threads() { }
+
+void crash_handler(int sig)
+{
+  char buf[64];
+  int len = snprintf(buf, sizeof(buf), "CRASH signal %d\n", sig);
+  err_write(buf, len);
+  print_backtrace_frames();
+  std::signal(sig, SIG_DFL);
+  std::raise(sig);
+}
+
+void install_crash_handler()
+{
+  for(int sig : {SIGABRT, SIGILL, SIGFPE, SIGSEGV})
+    std::signal(sig, crash_handler);
+}
+#endif
+
+// In-process timeout (--timeout N seconds), so a hang is reported the same
+// way on every platform, without GNU timeout(1): when the deadline passes
+// before the run ends, the stacks of all threads are printed (the GUI thread
+// first) and the process exits with 124, timeout(1)'s code, which
+// run-edit-fuzz.sh reports as TIMEOUT.
+struct Watchdog
+{
+  std::mutex mutex;
+  std::condition_variable cv;
+  bool done = false;
+  std::thread thread;
+
+  void start(int seconds)
+  {
+    if(seconds <= 0)
+      return;
+    thread = std::thread{[this, seconds] {
+      std::unique_lock lock{mutex};
+      if(cv.wait_for(lock, std::chrono::seconds(seconds), [this] { return done; }))
+        return;
+      char buf[64];
+      int len = snprintf(buf, sizeof(buf), "TIMEOUT after %d s\n", seconds);
+      err_write(buf, len);
+      dump_threads();
+      std::fflush(stdout);
+      std::_Exit(124);
+    }};
+  }
+
+  ~Watchdog()
+  {
+    if(!thread.joinable())
+      return;
+    {
+      std::lock_guard lock{mutex};
+      done = true;
+    }
+    cv.notify_all();
+    thread.join();
+  }
+};
 
 void stage(int n, const char* op, const std::string& what = {})
 {
@@ -472,6 +623,10 @@ void prepare_environment()
                         + QString::number(QCoreApplication::applicationPid());
     QDir{}.mkpath(cfg);
     qputenv("XDG_CONFIG_HOME", cfg.toUtf8());
+    // XDG_CONFIG_HOME only moves the settings on Linux; macOS (plist) and
+    // Windows (registry) native settings would land in the user's own.
+    QSettings::setDefaultFormat(QSettings::IniFormat);
+    QSettings::setPath(QSettings::IniFormat, QSettings::UserScope, cfg);
   }
   QCoreApplication::setOrganizationName("ossia");
   QCoreApplication::setOrganizationDomain("ossia.io");
@@ -937,6 +1092,7 @@ int main(int argc, char** argv)
   uint32_t seed = 1;
   int ops = 400;
   int warmup_ms = 1500;
+  int timeout_s = 0;
   for(int i = 1; i < argc; i++)
   {
     const std::string a = argv[i];
@@ -946,13 +1102,15 @@ int main(int argc, char** argv)
       ops = std::max(0, atoi(argv[++i]));
     else if(a == "--warmup-ms" && i + 1 < argc)
       warmup_ms = std::max(0, atoi(argv[++i]));
+    else if(a == "--timeout" && i + 1 < argc)
+      timeout_s = std::max(0, atoi(argv[++i]));
     else
       file = QString::fromLocal8Bit(argv[i]);
   }
   if(file.isEmpty())
   {
     std::fprintf(
-        stderr, "usage: %s [--seed N] [--ops N] [--warmup-ms N] <file.score>\n",
+        stderr, "usage: %s [--seed N] [--ops N] [--warmup-ms N] [--timeout S] <file.score>\n",
         argv[0]);
     return 2;
   }
@@ -983,6 +1141,8 @@ int main(int argc, char** argv)
 
   msgs::install();
   install_crash_handler();
+  Watchdog watchdog;
+  watchdog.start(timeout_s);
   const Prescan scan = prescan(bytes);
   if(!scan.device_names.isEmpty()
      && !qEnvironmentVariableIsSet("SCORE_FORCE_OFFSCREEN_WINDOW"))

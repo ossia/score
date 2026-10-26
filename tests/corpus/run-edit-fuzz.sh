@@ -6,7 +6,8 @@
 #
 # Usage: run-edit-fuzz.sh <scores-dir> <out-dir> [jobs] [seeds] [fuzzer]
 #   seeds: space-separated list, default "1 2 3"
-#   SCORE_EDIT_FUZZ_OPS (default 400), SCORE_EDIT_FUZZ_TIMEOUT (default 300 s)
+#   SCORE_EDIT_FUZZ_OPS (default 400), SCORE_EDIT_FUZZ_TIMEOUT (default 300 s,
+#   the fuzzer's --timeout)
 #   SCORE_EDIT_FUZZ_SKIP: a previous results.jsonl; its (file, seed) pairs are
 #   not run again (except CRASH_SIG15/TIMEOUT records, i.e. killed runs)
 #
@@ -32,8 +33,17 @@ run_one() {
   name=$(echo "${f#"$DIR"/}" | tr '/' '_')
   local errf="$OUT/logs/$name.$seed.log"
   local out ec
-  # SIGABRT on timeout: the fuzzer's crash handler then prints where it hung.
-  out=$(timeout -s ABRT -k 10 "$TIMEOUT_PER_RUN" "$FUZZER" --seed "$seed" --ops "$OPS" "$f" 2>"$errf")
+  # The fuzzer's own --timeout prints every thread's stack and exits 124.
+  # timeout(1) (GNU coreutils; gtimeout from Homebrew on macOS) is only a
+  # backstop for a process too wedged to run its watchdog: its SIGABRT makes
+  # the crash handler print where it hung.
+  local backstop=()
+  if command -v timeout >/dev/null 2>&1; then
+    backstop=(timeout -s ABRT -k 10 $((TIMEOUT_PER_RUN + 60)))
+  elif command -v gtimeout >/dev/null 2>&1; then
+    backstop=(gtimeout -s ABRT -k 10 $((TIMEOUT_PER_RUN + 60)))
+  fi
+  out=$(${backstop[@]+"${backstop[@]}"} "$FUZZER" --seed "$seed" --ops "$OPS" --timeout "$TIMEOUT_PER_RUN" "$f" 2>"$errf")
   ec=$?
   # Libraries print to stdout too (e.g. the SPZ loader): keep the verdict only.
   out=$(printf '%s\n' "$out" | grep '^{"mode":"edit-fuzz"' | tail -1)
@@ -45,11 +55,21 @@ run_one() {
   if [ $ec -eq 124 ] || [ $ec -eq 137 ]; then status="TIMEOUT"
   elif [ $ec -gt 128 ]; then status="CRASH_SIG$((ec - 128))"
   else status="EXIT_$ec"; fi
-  # Symbolize the fuzzer's "BT <module> <offset>" crash frames in place.
+  # Symbolize the fuzzer's "BT <module> <offset>" crash frames in place:
+  # llvm-symbolizer when there is one, else atos on macOS (offsets are from
+  # the Mach-O header, so any load address L works with the address L+offset).
   if grep -q '^BT ' "$errf"; then
+    local symbolizer="${LLVM_SYMBOLIZER:-llvm-symbolizer}"
+    command -v "$symbolizer" >/dev/null 2>&1 || symbolizer=""
     grep '^BT ' "$errf" | head -40 | while read -r _ mod off; do
       [ "$mod" = "?" ] && { echo "  ?? $off"; continue; }
-      "${LLVM_SYMBOLIZER:-llvm-symbolizer}" --obj="$mod" --functions=short --inlining=false --relativenames "$off" 2>/dev/null | head -2 | paste -sd' ' | sed 's/^/  /'
+      if [ -n "$symbolizer" ]; then
+        "$symbolizer" --obj="$mod" --functions=short --inlining=false --relativenames "$off" 2>/dev/null | head -2 | paste -sd' ' - | sed 's/^/  /'
+      elif command -v atos >/dev/null 2>&1; then
+        atos -o "$mod" -l 0x100000000 "$(printf '0x%x' $((0x100000000 + off)))" 2>/dev/null | head -1 | sed 's/^/  /'
+      else
+        echo "  $mod $off"
+      fi
     done > "$errf.bt"
   fi
   local last
