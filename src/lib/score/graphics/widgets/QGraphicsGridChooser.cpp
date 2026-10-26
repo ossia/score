@@ -38,7 +38,7 @@ int nearestPeriod(double v) noexcept
   return best;
 }
 
-bool near(double a, double b) noexcept
+bool close_to(double a, double b) noexcept
 {
   return std::abs(a - b) <= 1e-4 * std::max(std::abs(a), std::abs(b));
 }
@@ -70,13 +70,13 @@ QString noteLabel(double frac)
   if(!(frac > 0.))
     return QStringLiteral("None");
   const int idx = note_values::nearest(float(frac));
-  if(near(note_values::table[idx].fraction, frac))
+  if(close_to(note_values::table[idx].fraction, frac))
     return QString::fromLatin1(note_values::table[idx].label);
   // Off the table, e.g. from a preset: 1/5, 3/1, or the fraction itself
   const double inv = 1. / frac;
-  if(near(inv, std::round(inv)))
+  if(close_to(inv, std::round(inv)))
     return QStringLiteral("1/%1").arg(std::lround(inv));
-  if(near(frac, std::round(frac)))
+  if(close_to(frac, std::round(frac)))
     return QStringLiteral("%1/1").arg(std::lround(frac));
   return number(frac) + QStringLiteral("/1");
 }
@@ -85,7 +85,7 @@ QString periodLabel(double m, const QString& name)
 {
   if(!(m > 0.))
     return QStringLiteral("None");
-  if(near(m, 1.))
+  if(close_to(m, 1.))
   {
     QString n = name;
     if(!n.isEmpty())
@@ -93,7 +93,7 @@ QString periodLabel(double m, const QString& name)
     return n;
   }
   const double inv = 1. / m;
-  if(m < 1. && near(inv, std::round(inv)))
+  if(m < 1. && close_to(inv, std::round(inv)))
     return QStringLiteral("1/%1 %2").arg(std::lround(inv)).arg(name);
   return number(m) + QStringLiteral("x ") + name;
 }
@@ -311,7 +311,7 @@ QString QGraphicsGridChooser::label(ossia::vec2f v, const QString& periodName)
     case Bars:
       if(!(v[0] > 0.f))
         return QStringLiteral("None");
-      return near(v[0], 1.) ? QStringLiteral("1 bar")
+      return close_to(v[0], 1.) ? QStringLiteral("1 bar")
                             : number(v[0]) + QStringLiteral(" bars");
     case Period:
       return periodLabel(v[0], periodName);
@@ -407,10 +407,21 @@ void QGraphicsGridChooser::paint(
   const bool musical = m_unit != Free;
   const bool glyph = m_unit == Note;
 
+  // The longest readouts ("1/2 loop", "16 bars") are wider than the knob: a
+  // smaller font, then the text narrowed to the chip, keep them whole within
+  // the knob's footprint.
   painter->setFont(skin.Medium8Pt);
-  const double tw = painter->fontMetrics().horizontalAdvance(txt);
+  double tw = painter->fontMetrics().horizontalAdvance(txt);
   const double glyph_w = glyph ? 7. : 0.;
-  const double chip_w = std::min(m_rect.width() - 2., tw + glyph_w + 8.);
+  const double max_chip = m_rect.width() - 2.;
+  const double room = max_chip - glyph_w - 4.;
+  if(tw > room)
+  {
+    painter->setFont(skin.Medium7Pt);
+    tw = painter->fontMetrics().horizontalAdvance(txt);
+  }
+  const double squeeze = tw > room && tw > 0. ? room / tw : 1.;
+  const double chip_w = std::min(max_chip, tw * squeeze + glyph_w + 8.);
   const QRectF chip{
       m_rect.x() + (m_rect.width() - chip_w) / 2., m_rect.y() + 25.5, chip_w, 9.5};
 
@@ -440,8 +451,21 @@ void QGraphicsGridChooser::paint(
   }
 
   painter->setPen(skin.Base4.lighter180.pen1);
-  painter->drawText(
-      chip.adjusted(glyph_w, 0., 0., 0.), txt, QTextOption(Qt::AlignCenter));
+  const QRectF text_rect = chip.adjusted(glyph_w, 0., 0., 0.);
+  if(squeeze < 1.)
+  {
+    painter->save();
+    painter->translate(text_rect.center());
+    painter->scale(squeeze, 1.);
+    painter->drawText(
+        QRectF{-tw / 2. - 1., -text_rect.height() / 2., tw + 2., text_rect.height()},
+        txt, QTextOption(Qt::AlignCenter));
+    painter->restore();
+  }
+  else
+  {
+    painter->drawText(text_rect, txt, QTextOption(Qt::AlignCenter));
+  }
   painter->setRenderHint(QPainter::Antialiasing, false);
 }
 
