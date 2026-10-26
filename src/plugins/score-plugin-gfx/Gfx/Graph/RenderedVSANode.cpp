@@ -3,6 +3,10 @@
 #include <Gfx/Graph/RenderedISFSamplerUtils.hpp>
 #include <Gfx/Graph/RenderedVSANode.hpp>
 #include <Gfx/Graph/ISFVisitors.hpp>
+#include <Gfx/Graph/OutputNode.hpp>
+#include <Gfx/Graph/RenderList.hpp>
+
+#include <QtCore/qfloat16.h>
 
 #include <score/tools/Debug.hpp>
 
@@ -41,11 +45,19 @@ SimpleRenderedVSANode::SimpleRenderedVSANode(const ISFNode& node) noexcept
 void SimpleRenderedVSANode::updateInputSamplerFilter(
     const Port& input, const RenderTargetSpecs& spec)
 {
+  // The touch history is read NEAREST, as on vertexshaderart; the inlet's
+  // filter applies to what is cabled into it.
+  if(&input == m_touchPort && m_touchBound)
+    return;
   score::gfx::updateInputSamplerFilter(m_inputSamplers, node, input, spec);
 }
 
 void SimpleRenderedVSANode::updateInputTexture(const Port& input, QRhiTexture* tex, QRhiTexture* depthTex)
 {
+  // Nothing cabled into `touch`: it keeps sampling the touch history.
+  if(&input == m_touchPort && m_touchBound && input.edges.empty())
+    return;
+
   int sampler_idx = 0;
   for(auto* p : node.input)
   {
@@ -331,7 +343,161 @@ void SimpleRenderedVSANode::initState(RenderList& renderer, QRhiResourceUpdateBa
 
   m_audioSamplers = initAudioTextures(renderer, n.m_audio_textures);
 
+  initTouchHistory(renderer, res);
+
   m_initialized = true;
+}
+
+void SimpleRenderedVSANode::initTouchHistory(
+    RenderList& renderer, QRhiResourceUpdateBatch& res)
+{
+  // The vertexshaderart `touch` input: a 2D image input named so. Its sampler
+  // index counts the image ports before it as updateInputTexture does.
+  m_touchPort = nullptr;
+  m_touchSampler = -1;
+  {
+    int port = 0, sampler = 0;
+    for(const isf::input& inp : n.descriptor().inputs)
+    {
+      const auto counts = ossia::visit(isf_input_port_count_vis{}, inp.data);
+      if(auto* img = ossia::get_if<isf::image_input>(&inp.data);
+         img && inp.name == "touch" && img->dimensions == 2 && !img->is_array
+         && !img->is_static && !img->depth && port < (int)n.input.size())
+      {
+        m_touchPort = n.input[port];
+        m_touchPortIndex = port;
+        m_touchSampler = sampler;
+        break;
+      }
+      port += counts.inlets;
+      sampler += counts.samplers;
+    }
+  }
+  if(!m_touchPort || m_touchSampler >= (int)m_inputSamplers.size())
+  {
+    m_touchPort = nullptr;
+    return;
+  }
+
+  QRhi& rhi = *renderer.state.rhi;
+  // main.js uses FLOAT where the device has it, else bytes; half floats keep
+  // the clip-space positions and the time well enough for the fallback.
+  m_touchHalf = !rhi.isTextureFormatSupported(QRhiTexture::RGBA32F)
+                && rhi.isTextureFormatSupported(QRhiTexture::RGBA16F);
+  m_touchTex = rhi.newTexture(
+      m_touchHalf ? QRhiTexture::RGBA16F : QRhiTexture::RGBA32F,
+      QSize{touchColumns, touchRows}, 1);
+  m_touchTex->setName("SimpleRenderedVSANode::m_touchTex");
+  if(!m_touchTex->create())
+  {
+    delete m_touchTex;
+    m_touchTex = nullptr;
+    m_touchPort = nullptr;
+    return;
+  }
+  m_touchHistory.assign(std::size_t(touchColumns) * touchRows * 4, 0.f);
+  m_touchFrame = -1;
+  m_touchBound = false;
+  uploadTouchHistory(renderer, res);
+  bindTouchSource(renderer);
+}
+
+void SimpleRenderedVSANode::uploadTouchHistory(
+    RenderList& renderer, QRhiResourceUpdateBatch& res)
+{
+  // Raw reads of a VSA image input go through isf_vsa_uv / isf_vsa_texel
+  // (libisf parse_vsa), which put v = 0 at the bottom of an image in the
+  // published row order (RowOrder.hpp): memory row 0 on OpenGL, Metal and
+  // Direct3D, the last one on Vulkan. Row 0 of the history, the newest, is
+  // that bottom row, as it is memory row 0 at v = 0 in WebGL.
+  const bool reversed = !renderer.state.rhi->isYUpInNDC();
+  constexpr int rowFloats = touchColumns * 4;
+  const int texelBytes = m_touchHalf ? 8 : 16;
+  QByteArray bytes(qsizetype(touchColumns) * touchRows * texelBytes, Qt::Uninitialized);
+  for(int r = 0; r < touchRows; r++)
+  {
+    const float* src = m_touchHistory.data() + std::size_t(r) * rowFloats;
+    const int dstRow = reversed ? touchRows - 1 - r : r;
+    char* dst = bytes.data() + qsizetype(dstRow) * touchColumns * texelBytes;
+    if(m_touchHalf)
+      qFloatToFloat16(reinterpret_cast<qfloat16*>(dst), src, rowFloats);
+    else
+      std::memcpy(dst, src, rowFloats * sizeof(float));
+  }
+  QRhiTextureSubresourceUploadDescription desc{bytes};
+  res.uploadTexture(m_touchTex, QRhiTextureUploadDescription{{0, 0, desc}});
+}
+
+void SimpleRenderedVSANode::updateTouchHistory(
+    RenderList& renderer, QRhiResourceUpdateBatch& res)
+{
+  if(!m_touchTex || m_touchFrame == renderer.frame)
+    return;
+  m_touchFrame = renderer.frame;
+
+  // One row per frame: scroll the history down a row, the pointers of this
+  // frame in row 0 with the time in w for every column (main.js
+  // updateSoundAndTouchHistory, then the HistoryTexture / CPUHistoryTexture
+  // update).
+  constexpr int rowFloats = touchColumns * 4;
+  float* h = m_touchHistory.data();
+  std::memmove(h + rowFloats, h, std::size_t(touchRows - 1) * rowFloats * sizeof(float));
+  PointerState::Slot slots[touchColumns]{};
+  if(const auto& ps = renderer.output.pointerState())
+  {
+    const auto snap = ps->snapshot();
+    std::copy_n(snap.begin(), touchColumns, slots);
+  }
+  const float t = n.standardUBO.time;
+  for(int c = 0; c < touchColumns; c++)
+  {
+    h[c * 4 + 0] = slots[c].x;
+    h[c * 4 + 1] = slots[c].y;
+    h[c * 4 + 2] = slots[c].pressure;
+    h[c * 4 + 3] = t;
+  }
+
+  if(m_touchBound)
+    uploadTouchHistory(renderer, res);
+}
+
+void SimpleRenderedVSANode::bindTouchSource(RenderList& renderer)
+{
+  if(!m_touchPort || !m_touchTex)
+    return;
+  const bool history = m_touchPort->edges.empty();
+  if(history == m_touchBound)
+    return;
+
+  auto& s = m_inputSamplers[m_touchSampler];
+  QRhiTexture* tex{};
+  if(history)
+  {
+    // main.js: min / mag NEAREST, CLAMP_TO_EDGE.
+    s.sampler->setMagFilter(QRhiSampler::Nearest);
+    s.sampler->setMinFilter(QRhiSampler::Nearest);
+    s.sampler->setMipmapMode(QRhiSampler::None);
+    s.sampler->setAddressU(QRhiSampler::ClampToEdge);
+    s.sampler->setAddressV(QRhiSampler::ClampToEdge);
+    tex = m_touchTex;
+  }
+  else
+  {
+    const auto spec = n.resolveRenderTargetSpecs(m_touchPortIndex, renderer);
+    s.sampler->setMagFilter(spec.mag_filter);
+    s.sampler->setMinFilter(spec.min_filter);
+    s.sampler->setMipmapMode(spec.mipmap_mode);
+    s.sampler->setAddressU(spec.address_u);
+    s.sampler->setAddressV(spec.address_v);
+    const auto rt = renderer.renderTargetForInputPort(*m_touchPort);
+    tex = rt.texture ? rt.texture : s.fallback;
+  }
+  s.sampler->create();
+  s.texture = tex;
+  for(auto& pass : m_passes)
+    if(pass.main_pass.p.srb)
+      score::gfx::replaceTexture(*pass.main_pass.p.srb, s.sampler, tex);
+  m_touchBound = history;
 }
 
 void SimpleRenderedVSANode::addOutputPass(
@@ -419,6 +585,10 @@ void SimpleRenderedVSANode::update(
   auto sz = renderer.renderSize(edge);
   n.standardUBO.renderSize[0] = sz.width();
   n.standardUBO.renderSize[1] = sz.height();
+
+  // Cabling into or out of `touch` swaps the history for the texture.
+  bindTouchSource(renderer);
+  updateTouchHistory(renderer, res);
 
   // Update audio textures
   if(!n.m_audio_textures.empty() && !m_audioTex)
@@ -546,6 +716,15 @@ void SimpleRenderedVSANode::releaseState(RenderList& r)
 
   delete m_materialUBO;
   m_materialUBO = nullptr;
+
+  if(m_touchTex)
+    m_touchTex->deleteLater();
+  m_touchTex = nullptr;
+  m_touchPort = nullptr;
+  m_touchSampler = -1;
+  m_touchBound = false;
+  m_touchHistory.clear();
+  m_touchFrame = -1;
 
   delete m_mesh;
   m_mesh = nullptr;

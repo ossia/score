@@ -734,6 +734,7 @@ Presets/Vertex Shader Art/mouse/vector_field_demonstration-2.vs	blank
 Presets/Vertex Shader Art/mouse/vector_field_demonstration.vs	blank
 Presets/Vertex Shader Art/mouse/voxels-2.vs	blank
 Presets/Vertex Shader Art/mouse/준석.vs	blank
+Presets/Vertex Shader Art/touch/Spiral-TRIdNCE1.vs	blank
 Presets/Vertex Shader Art/touch/Spiral-TRIdNCE2.vs	blank
 Presets/Vertex Shader Art/touch/dyson-1.vs	blank
 Presets/Vertex Shader Art/touch/dyson-6.vs	blank

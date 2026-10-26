@@ -23,6 +23,7 @@
 #include <string>
 #endif
 #include <QPlatformSurfaceEvent>
+#include <QTouchEvent>
 #include <QTimer>
 #include <QtGui/private/qrhigles2_p.h>
 #if QT_HAS_VULKAN
@@ -599,6 +600,15 @@ bool Window::event(QEvent* e)
     case QEvent::MouseButtonPress:
     case QEvent::MouseButtonRelease:
     case QEvent::MouseButtonDblClick:
+      // vertexshaderart: a button down is pressure 1 on slot 0, up is 0
+      // (main.js recordMouseDown / recordMouseUp).
+      if(pointerState && e->type() != QEvent::MouseButtonDblClick)
+      {
+        auto ev = static_cast<QMouseEvent*>(e);
+        const auto p = PointerState::toClip(ev->scenePosition(), size());
+        pointerState->move(0, p.x(), p.y());
+        pointerState->press(0, e->type() == QEvent::MouseButtonPress ? 1.f : 0.f);
+      }
       e->setAccepted(false);
       this->interactiveEvent(e);
       if(e->isAccepted())
@@ -607,11 +617,44 @@ bool Window::event(QEvent* e)
 
     case QEvent::MouseMove: {
       auto ev = static_cast<QMouseEvent*>(e);
+      if(pointerState)
+      {
+        const auto p = PointerState::toClip(ev->scenePosition(), size());
+        pointerState->move(0, p.x(), p.y());
+      }
       this->mouseMove(ev->globalPosition(), ev->scenePosition());
       e->setAccepted(false);
       this->interactiveEvent(e);
       break;
     }
+    case QEvent::TouchBegin:
+    case QEvent::TouchUpdate:
+    case QEvent::TouchEnd:
+    case QEvent::TouchCancel:
+      // vertexshaderart: one slot per finger, in the order they came down,
+      // pressure the touch force or 1, 0 once lifted (main.js getTouchIndex,
+      // recordTouchStart / recordTouchCancel). Not accepted, so Qt still
+      // synthesizes the mouse events for the rest.
+      if(pointerState)
+      {
+        auto ev = static_cast<QTouchEvent*>(e);
+        for(const auto& pt : ev->points())
+        {
+          const int id = pt.id();
+          if(pt.state() == QEventPoint::Released || e->type() == QEvent::TouchCancel)
+          {
+            pointerState->releaseTouch(id);
+            continue;
+          }
+          const int slot = pointerState->slotForTouch(id);
+          const auto p = PointerState::toClip(pt.scenePosition(), size());
+          pointerState->move(slot, p.x(), p.y());
+          const float force = pt.pressure();
+          pointerState->press(slot, force > 0.f ? force : 1.f);
+        }
+      }
+      break;
+
     case QEvent::KeyPress: {
       auto ev = static_cast<QKeyEvent*>(e);
       e->setAccepted(false);

@@ -18,6 +18,7 @@
 #include <Gfx/Graph/BackgroundNode.hpp>
 #include <Gfx/Graph/Graph.hpp>
 #include <Gfx/Graph/ISFNode.hpp>
+#include <Gfx/Graph/ISFVisitors.hpp>
 #include <Gfx/Graph/ImageNode.hpp>
 #include <Gfx/Graph/ShaderCache.hpp>
 #include <Gfx/Settings/Model.hpp>
@@ -198,9 +199,22 @@ struct Sweeper
         graph.addEdge(
             isf->output[0], output.input[0], Process::CableType::ImmediateGlutton);
 
+        // A VSA `touch` input left uncabled reads the engine's touch history
+        // (SimpleRenderedVSANode), as in a score; a picture there would stand
+        // for pointer positions and times.
+        const score::gfx::Port* vsaTouch{};
+        if(isf->descriptor().mode == isf::descriptor::VSA)
+          score::gfx::walk_descriptor_inputs(
+              isf->descriptor(),
+              [&](const isf::input& inp, score::gfx::port_counts cur,
+                  score::gfx::port_counts) {
+            if(inp.name == "touch" && ossia::get_if<isf::image_input>(&inp.data)
+               && cur.inlets < (int)isf->input.size())
+              vsaTouch = isf->input[cur.inlets];
+          });
         for(auto* port : isf->input)
         {
-          if(port->type != score::gfx::Types::Image)
+          if(port->type != score::gfx::Types::Image || port == vsaTouch)
             continue;
           auto node = new score::gfx::FullScreenImageNode{image};
           images.push_back(std::unique_ptr<score::gfx::Node>(node));

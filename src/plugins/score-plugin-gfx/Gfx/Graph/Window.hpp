@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
 
+#include <Gfx/Graph/PointerState.hpp>
 #include <Gfx/Graph/RenderState.hpp>
 
 #include <score/tools/Events.hpp>
@@ -56,6 +57,10 @@ public:
   //! node's own render(), so a node that recomputes state per tick needs a hook
   //! here or it only ever runs on the timer-driven path.
   std::function<void()> onAboutToRender;
+
+  //! Filled from the mouse and touch events over the window, for the
+  //! vertexshaderart `touch` history of the output showing it.
+  std::shared_ptr<PointerState> pointerState;
   std::function<void(QRhiCommandBuffer&)> onRender;
   std::function<void()> onResize;
   // Invoked when the window is closing or its platform surface is being

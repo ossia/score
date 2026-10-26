@@ -7461,6 +7461,122 @@ std::string parser::write_isf() const
   return oss.str();
 }
 
+// A VSA shader is WebGL GLSL: it reads its image inputs with raw texture(),
+// textureLod() and texelFetch(), not IMG_NORM_PIXEL. A cabled image is in the
+// published row order of score (score-plugin-gfx Gfx/Graph/RowOrder.hpp):
+// bottom row first in memory on OpenGL, Metal and Direct3D, top row first on
+// Vulkan, so the same raw read gave the bottom of the image on the first three
+// and the top on Vulkan. Route the coordinate of those calls on 2D image inputs
+// through isf_vsa_uv / isf_vsa_texel, which flip it on SPIR-V: v = 0 is then
+// the bottom of the image on every backend, as with IMG_NORM_PIXEL and as in
+// OpenGL.
+//
+//   texture(img, uv[, bias])     -> texture(img, isf_vsa_uv(uv)[, bias])
+//   textureLod(img, uv, lod)     -> textureLod(img, isf_vsa_uv(uv), lod)
+//   texelFetch(img, p, lod)      -> texelFetch(img, isf_vsa_texel(p, textureSize(img, lod).y), lod)
+//
+// Other sampling functions (textureGrad, textureOffset, textureProj,
+// textureGather, ...) are left as written.
+static void isf_vsa_orient_image_reads(std::string& src, const descriptor& d)
+{
+  std::vector<std::string> names;
+  for(const auto& in : d.inputs)
+    if(auto* img = ossia::get_if<image_input>(&in.data))
+      if(img->dimensions == 2 && !img->is_array)
+        names.push_back(in.name);
+  if(names.empty())
+    return;
+
+  static constexpr std::string_view funcs[] = {"texture", "textureLod", "texelFetch"};
+  const auto skip_ws = [&](std::size_t i) {
+    while(i < src.size() && std::isspace((unsigned char)src[i]))
+      i++;
+    return i;
+  };
+  // End of the argument starting at i: the next ',' or ')' at depth 0.
+  const auto arg_end = [&](std::size_t i) -> std::size_t {
+    int depth = 0;
+    for(; i < src.size(); i++)
+    {
+      const char c = src[i];
+      if(c == '(' || c == '[')
+        depth++;
+      else if(c == ')' || c == ']')
+      {
+        if(depth == 0)
+          return i;
+        depth--;
+      }
+      else if(c == ',' && depth == 0)
+        return i;
+    }
+    return std::string::npos;
+  };
+
+  for(std::size_t p = 0; p < src.size();)
+  {
+    if(!isf_is_ident_char(src[p]) || (p > 0 && isf_is_ident_char(src[p - 1])))
+    {
+      p++;
+      continue;
+    }
+    std::size_t e = p;
+    while(e < src.size() && isf_is_ident_char(src[e]))
+      e++;
+    const std::string_view word(src.data() + p, e - p);
+    const auto* f = std::find(std::begin(funcs), std::end(funcs), word);
+    if(f == std::end(funcs))
+    {
+      p = e;
+      continue;
+    }
+    std::size_t a = skip_ws(e);
+    if(a >= src.size() || src[a] != '(')
+    {
+      p = e;
+      continue;
+    }
+    a = skip_ws(a + 1);
+    std::size_t b = a;
+    while(b < src.size() && isf_is_ident_char(src[b]))
+      b++;
+    const std::string name = src.substr(a, b - a);
+    std::size_t comma = skip_ws(b);
+    if(std::find(names.begin(), names.end(), name) == names.end()
+       || comma >= src.size() || src[comma] != ',')
+    {
+      p = e;
+      continue;
+    }
+    const std::size_t c0 = comma + 1;
+    const std::size_t c1 = arg_end(c0);
+    if(c1 == std::string::npos)
+      break;
+    const std::string coord = src.substr(c0, c1 - c0);
+    std::string repl;
+    if(*f == "texelFetch")
+    {
+      // The level is the third argument.
+      std::string lod = "0";
+      if(src[c1] == ',')
+      {
+        const std::size_t l1 = arg_end(c1 + 1);
+        if(l1 != std::string::npos)
+          lod = src.substr(c1 + 1, l1 - c1 - 1);
+      }
+      repl = "isf_vsa_texel(" + coord + ", textureSize(" + name + ", " + lod + ").y)";
+    }
+    else
+    {
+      repl = "isf_vsa_uv(" + coord + ")";
+    }
+    src.replace(c0, c1 - c0, repl);
+    // Resume inside the replacement: a read nested in the coordinate is
+    // rewritten too.
+    p = c0 + std::string_view{repl}.find('(') + 1;
+  }
+}
+
 void parser::parse_vsa()
 {
   // VSA shaders are vertex shaders, so we process the vertex source
@@ -7665,6 +7781,16 @@ void parser::parse_vsa()
 // Compatibility defines for VSA
 float time = TIME;
 vec2 resolution = RENDERSIZE;
+
+// Raw reads of the image inputs, v = 0 at the bottom on every backend
+// (isf_vsa_orient_image_reads).
+#if defined(QSHADER_SPIRV)
+vec2 isf_vsa_uv(vec2 uv) { return vec2(uv.x, 1.0 - uv.y); }
+ivec2 isf_vsa_texel(ivec2 p, int h) { return ivec2(p.x, h - 1 - p.y); }
+#else
+vec2 isf_vsa_uv(vec2 uv) { return uv; }
+ivec2 isf_vsa_texel(ivec2 p, int h) { return p; }
+#endif
 )_";
 
   // Add vertex input - using gl_VertexIndex for simplicity
@@ -7675,6 +7801,7 @@ float vertexId = float(gl_VertexIndex);
 layout(location = 0) out vec4 v_color;
 )_";
   // Add the processed VSA code
+  isf_vsa_orient_image_reads(vsaSource, m_desc);
   isf_rewrite_straight_sampling(vsaSource, m_desc);
   m_vertex += vsaSource;
 
