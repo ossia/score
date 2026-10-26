@@ -4,6 +4,7 @@
 #include <Process/Script/ScriptProcess.hpp>
 
 #include <Gfx/CommandFactory.hpp>
+#include <Gfx/ShaderSamplerSource.hpp>
 #include <Gfx/ShaderProgram.hpp>
 
 #include <isf.hpp>
@@ -26,7 +27,9 @@ class Model;
 namespace Gfx::CSF
 {
 
-class SCORE_PLUGIN_GFX_EXPORT Model final : public Process::ProcessModel
+class SCORE_PLUGIN_GFX_EXPORT Model final
+    : public Process::ProcessModel
+    , public Gfx::ShaderSamplerSource
 {
   SCORE_SERIALIZE_FRIENDS
   PROCESS_METADATA_IMPL(Gfx::CSF::Model)
@@ -36,6 +39,9 @@ class SCORE_PLUGIN_GFX_EXPORT Model final : public Process::ProcessModel
   using Process::ProcessModel::m_outlets;
 
 public:
+  const isf::sampler_config*
+  shaderSampler(const Gfx::TextureInlet& inlet) const noexcept override;
+
   Model(const TimeVal& duration, const Id<Process::ProcessModel>& id, QObject* parent);
   Model(
       const TimeVal& duration, const QString& init, const Id<Process::ProcessModel>& id,

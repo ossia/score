@@ -11,6 +11,8 @@
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 
 #include <Gfx/GfxApplicationPlugin.hpp>
+#include <Gfx/Graph/Node.hpp>
+#include <Gfx/Graph/Utils.hpp>
 #include <Gfx/Widgets/RhiPreviewWidget.hpp>
 #include <Inspector/InspectorLayout.hpp>
 
@@ -138,29 +140,42 @@ TextureInlet::TextureInlet(DataStream::Deserializer& vis, QObject* parent)
     : Inlet{vis, parent}
 {
   vis.writeTo(*this);
-  if(m_textureFilter == ossia::texture_filter::NONE)
-    m_textureFilter = ossia::texture_filter::NEAREST;
 }
 TextureInlet::TextureInlet(JSONObject::Deserializer& vis, QObject* parent)
     : Inlet{vis, parent}
 {
   vis.writeTo(*this);
-  if(m_textureFilter == ossia::texture_filter::NONE)
-    m_textureFilter = ossia::texture_filter::NEAREST;
 }
 TextureInlet::TextureInlet(DataStream::Deserializer&& vis, QObject* parent)
     : Inlet{vis, parent}
 {
   vis.writeTo(*this);
-  if(m_textureFilter == ossia::texture_filter::NONE)
-    m_textureFilter = ossia::texture_filter::NEAREST;
 }
 TextureInlet::TextureInlet(JSONObject::Deserializer&& vis, QObject* parent)
     : Inlet{vis, parent}
 {
   vis.writeTo(*this);
-  if(m_textureFilter == ossia::texture_filter::NONE)
-    m_textureFilter = ossia::texture_filter::NEAREST;
+}
+
+ShaderSamplerSource::~ShaderSamplerSource() = default;
+
+const isf::sampler_config*
+declaredSampler(const isf::descriptor& desc, const QString& name) noexcept
+{
+  const auto n = name.toStdString();
+  for(const auto& inp : desc.inputs)
+    if(inp.name == n)
+      if(auto* cfg = score::gfx::inputSamplerConfig(inp);
+         cfg && score::gfx::declaresSampler(*cfg))
+        return cfg;
+  return nullptr;
+}
+
+const isf::sampler_config* TextureInlet::shaderSampler() const noexcept
+{
+  if(auto* src = dynamic_cast<const ShaderSamplerSource*>(parent()))
+    return src->shaderSampler(*this);
+  return nullptr;
 }
 
 std::optional<QSize> TextureInlet::renderSize() const noexcept
@@ -192,12 +207,17 @@ void TextureInlet::setupExecution(
   ossia::texture_inlet& exec = *safe_cast<ossia::texture_inlet*>(&inl);
   if(auto sz = m_renderSize)
     exec.data.size = {(int32_t)sz->width(), (int32_t)sz->height()};
-  exec.data.address_u = m_textureAddressMode;
-  exec.data.address_v = m_textureAddressMode;
-  exec.data.address_w = m_textureAddressMode;
-  exec.data.min_filter = m_textureFilter;
-  exec.data.mag_filter = m_textureFilter;
-  exec.data.mipmap_mode = m_textureMipmapMode;
+  // A field left unset is sent as such: the renderer then takes the
+  // shader's, or the default (score::gfx::resolveSamplerFields).
+  const auto unsetFilter = (ossia::texture_filter)score::gfx::unsetSamplerField;
+  const auto unsetAddress = (ossia::texture_address_mode)score::gfx::unsetSamplerField;
+  const auto address = m_textureAddressMode.value_or(unsetAddress);
+  exec.data.address_u = address;
+  exec.data.address_v = address;
+  exec.data.address_w = address;
+  exec.data.min_filter = m_textureFilter.value_or(unsetFilter);
+  exec.data.mag_filter = m_textureFilter.value_or(unsetFilter);
+  exec.data.mipmap_mode = m_textureMipmapMode.value_or(unsetFilter);
   exec.data.format = m_textureFormat.value_or(ossia::texture_format::RGBA8);
   exec.data.format_set = m_textureFormat.has_value();
 
@@ -219,21 +239,23 @@ void TextureInlet::setupExecution(
 
   connect(
       this, &TextureInlet::textureFilterChanged, exec_context,
-      [&exec](ossia::texture_filter v) {
-    exec.data.min_filter = v;
-    exec.data.mag_filter = v;
+      [&exec, unsetFilter](std::optional<ossia::texture_filter> v) {
+    exec.data.min_filter = v.value_or(unsetFilter);
+    exec.data.mag_filter = v.value_or(unsetFilter);
   });
 
   connect(
       this, &TextureInlet::textureMipmapModeChanged, exec_context,
-      [&exec](ossia::texture_filter v) { exec.data.mipmap_mode = v; });
+      [&exec, unsetFilter](std::optional<ossia::texture_filter> v) {
+    exec.data.mipmap_mode = v.value_or(unsetFilter);
+  });
 
   connect(
       this, &TextureInlet::textureAddressModeChanged, exec_context,
-      [&exec](ossia::texture_address_mode v) {
-    exec.data.address_u = v;
-    exec.data.address_v = v;
-    exec.data.address_w = v;
+      [&exec, unsetAddress](std::optional<ossia::texture_address_mode> v) {
+    exec.data.address_u = v.value_or(unsetAddress);
+    exec.data.address_v = v.value_or(unsetAddress);
+    exec.data.address_w = v.value_or(unsetAddress);
   });
 }
 
@@ -397,16 +419,114 @@ struct TextureSizeWidget : public QWidget
 
 namespace
 {
-// The shader's JSON declares this input's sampler, which wins over these
-// settings (shader board U34): shown, not editable.
-void disableIfSetByShader(const TextureInlet& inlet, QWidget* w)
+// What an inlet's unset sampler fields resolve to: the shader's JSON, where
+// it declares them, else the defaults (shader board U34).
+struct UnsetSampler
 {
-  if(!inlet.samplerFromShader())
+  score::gfx::RenderTargetSpecs resolved;
+  bool filterFromShader{}, addressFromShader{}, mipmapFromShader{}, compare{};
+};
+
+UnsetSampler unsetSampler(const TextureInlet& inlet)
+{
+  UnsetSampler u;
+  u.resolved.address_u = u.resolved.address_v = u.resolved.address_w
+      = QRhiSampler::ClampToEdge;
+  if(auto* cfg = inlet.shaderSampler())
+  {
+    score::gfx::resolveSamplerFields(u.resolved, *cfg);
+    u.filterFromShader
+        = !cfg->filter.empty() || !cfg->min_filter.empty() || !cfg->mag_filter.empty();
+    u.addressFromShader = !cfg->wrap.empty() || !cfg->wrap_s.empty()
+                          || !cfg->wrap_t.empty() || !cfg->wrap_r.empty();
+    u.mipmapFromShader = !cfg->mipmap_mode.empty();
+    u.compare = score::gfx::declaresCompare(*cfg);
+  }
+  return u;
+}
+
+QString filterName(QRhiSampler::Filter f)
+{
+  switch(f)
+  {
+    case QRhiSampler::None:
+      return QObject::tr("None");
+    case QRhiSampler::Nearest:
+      return QObject::tr("Nearest");
+    default:
+      return QObject::tr("Linear");
+  }
+}
+
+QString addressName(QRhiSampler::AddressMode a)
+{
+  switch(a)
+  {
+    case QRhiSampler::Repeat:
+      return QObject::tr("Repeat");
+    case QRhiSampler::Mirror:
+      return QObject::tr("Mirror");
+    default:
+      return QObject::tr("Clamp to edge");
+  }
+}
+
+//! The first entry of a sampler field's combo box: the field left unset,
+//! named after what it resolves to.
+QString autoEntry(bool fromShader, const QString& value)
+{
+  return fromShader ? QObject::tr("Shader: %1").arg(value)
+                    : QObject::tr("Default: %1").arg(value);
+}
+
+//! A comparison sampler is the shader's: its rows are shown, not editable.
+void disableIfCompare(const UnsetSampler& u, QWidget* w)
+{
+  if(!u.compare)
     return;
   w->setEnabled(false);
   w->setToolTip(QObject::tr(
-      "Set by the shader: its WRAP / FILTER / MIPMAP_MODE fields decide how "
-      "this input is sampled."));
+      "Set by the shader: it samples this input with a depth comparison "
+      "(COMPARE)."));
+}
+
+//! A combo box over a sampler field: entry 0 leaves it unset, the others set
+//! it to their value. Picking one submits Command.
+template <typename Command, typename T>
+QComboBox* samplerFieldCombo(
+    const TextureInlet& inlet, const score::DocumentContext& ctx, QWidget* parent,
+    const QString& autoText, std::vector<std::pair<QString, T>> values,
+    std::optional<T> (TextureInlet::*get)() const,
+    void (TextureInlet::*changed)(std::optional<T>))
+{
+  auto combo = new QComboBox{parent};
+  combo->addItem(autoText, -1);
+  for(auto& [text, v] : values)
+    combo->addItem(text, (int)v);
+  combo->setItemData(
+      0,
+      QObject::tr("Leave the setting to the shader, or the default when the "
+                  "shader declares none."),
+      Qt::ToolTipRole);
+  auto indexOf = [combo](std::optional<T> v) {
+    return v ? std::max(0, combo->findData((int)*v)) : 0;
+  };
+  combo->setCurrentIndex(indexOf((inlet.*get)()));
+  QObject::connect(&inlet, changed, combo, [combo, indexOf](std::optional<T> v) {
+    if(int idx = indexOf(v); idx != combo->currentIndex())
+      combo->setCurrentIndex(idx);
+  });
+  QObject::connect(
+      combo, &QComboBox::currentIndexChanged, &inlet,
+      [&ctx, &inlet, combo, get](int idx) {
+    const int data = combo->itemData(idx).toInt();
+    std::optional<T> v;
+    if(data >= 0)
+      v = (T)data;
+    if(v != (inlet.*get)())
+      CommandDispatcher<>{ctx.commandStack}.submit<Command>(inlet, v);
+  });
+  return combo;
 }
 }
 
@@ -461,87 +581,51 @@ void TextureInletFactory::setupInletInspector(
     lay.addRow("Format", combo);
   }
 
+  const auto unset = unsetSampler(inlet);
+
   // Filter
   {
     using enum ossia::texture_filter;
-    auto combo = new QComboBox{parent};
-    combo->addItem("Nearest", ossia::texture_filter::NEAREST);
-    combo->addItem("Linear", ossia::texture_filter::LINEAR);
-    combo->setCurrentIndex((int(inlet.textureFilter()) - 1));
-
-    QObject::connect(
-        &inlet, &TextureInlet::textureFilterChanged, combo,
-        [combo](ossia::texture_filter fmt) {
-      if((int)fmt != combo->currentData())
-        combo->setCurrentIndex((int)fmt - 1);
-    });
-    QObject::connect(
-        combo, &QComboBox::currentIndexChanged, &inlet, [&ctx, &inlet](int idx) {
-      auto mode = (ossia::texture_filter)(idx + 1);
-      if(mode != inlet.textureFilter())
-        CommandDispatcher<>{ctx.commandStack}.submit<ChangeTextureInletFilter>(
-            inlet, mode);
-    });
-
-    disableIfSetByShader(inlet, combo);
+    auto combo = samplerFieldCombo<ChangeTextureInletFilter, ossia::texture_filter>(
+        inlet, ctx, parent,
+        autoEntry(unset.filterFromShader, filterName(unset.resolved.mag_filter)),
+        {{QObject::tr("Nearest"), NEAREST}, {QObject::tr("Linear"), LINEAR}},
+        &TextureInlet::textureFilter, &TextureInlet::textureFilterChanged);
+    disableIfCompare(unset, combo);
     lay.addRow("Filter", combo);
   }
 
   // Address mode
   {
     using enum ossia::texture_address_mode;
-    auto combo = new QComboBox{parent};
-    combo->addItem("Repeat", ossia::texture_address_mode::REPEAT);
-    combo->addItem("Clamp to edge", ossia::texture_address_mode::CLAMP_TO_EDGE);
-    combo->addItem("Mirror", ossia::texture_address_mode::MIRROR);
-    combo->setCurrentIndex((int)inlet.textureAddressMode());
-
-    QObject::connect(
-        &inlet, &TextureInlet::textureAddressModeChanged, combo,
-        [combo](ossia::texture_address_mode fmt) {
-      if((int)fmt != combo->currentData())
-        combo->setCurrentIndex((int)fmt);
-    });
-    QObject::connect(
-        combo, &QComboBox::currentIndexChanged, &inlet, [&ctx, &inlet](int idx) {
-      auto mode = (ossia::texture_address_mode)idx;
-      if(mode != inlet.textureAddressMode())
-        CommandDispatcher<>{ctx.commandStack}.submit<ChangeTextureInletAddressMode>(
-            inlet, (ossia::texture_address_mode)idx);
-    });
-
-    disableIfSetByShader(inlet, combo);
+    auto combo
+        = samplerFieldCombo<ChangeTextureInletAddressMode, ossia::texture_address_mode>(
+            inlet, ctx, parent,
+            autoEntry(unset.addressFromShader, addressName(unset.resolved.address_u)),
+            {{QObject::tr("Repeat"), REPEAT},
+             {QObject::tr("Clamp to edge"), CLAMP_TO_EDGE},
+             {QObject::tr("Mirror"), MIRROR}},
+            &TextureInlet::textureAddressMode, &TextureInlet::textureAddressModeChanged);
+    disableIfCompare(unset, combo);
     lay.addRow("Address mode", combo);
   }
 
   // Mipmaps
   {
-    auto combo = new QComboBox{parent};
-    combo->addItem(QObject::tr("None"), (int)ossia::texture_filter::NONE);
-    combo->addItem(QObject::tr("Nearest"), (int)ossia::texture_filter::NEAREST);
-    combo->addItem(QObject::tr("Linear"), (int)ossia::texture_filter::LINEAR);
+    using enum ossia::texture_filter;
+    auto combo = samplerFieldCombo<ChangeTextureInletMipmapMode, ossia::texture_filter>(
+        inlet, ctx, parent,
+        autoEntry(unset.mipmapFromShader, filterName(unset.resolved.mipmap_mode)),
+        {{QObject::tr("None"), NONE},
+         {QObject::tr("Nearest"), NEAREST},
+         {QObject::tr("Linear"), LINEAR}},
+        &TextureInlet::textureMipmapMode, &TextureInlet::textureMipmapModeChanged);
     score::setHelp(
         combo,
         QObject::tr(
             "When not None, the render target gets a mip chain, regenerated "
             "every frame, and is sampled across its levels."));
-    combo->setCurrentIndex(std::max(0, combo->findData((int)inlet.textureMipmapMode())));
-
-    QObject::connect(
-        &inlet, &TextureInlet::textureMipmapModeChanged, combo,
-        [combo](ossia::texture_filter mode) {
-      if(int idx = combo->findData((int)mode); idx >= 0 && idx != combo->currentIndex())
-        combo->setCurrentIndex(idx);
-    });
-    QObject::connect(
-        combo, &QComboBox::currentIndexChanged, &inlet, [&ctx, &inlet, combo](int idx) {
-      auto mode = (ossia::texture_filter)combo->itemData(idx).toInt();
-      if(mode != inlet.textureMipmapMode())
-        CommandDispatcher<>{ctx.commandStack}.submit<ChangeTextureInletMipmapMode>(
-            inlet, mode);
-    });
-
-    disableIfSetByShader(inlet, combo);
+    disableIfCompare(unset, combo);
     lay.addRow("Mipmaps", combo);
   }
 }
@@ -556,28 +640,58 @@ void TextureOutletFactory::setupOutletInspector(
 }
 }
 
+namespace Gfx
+{
+namespace
+{
+constexpr auto defaultFilter = ossia::texture_filter::LINEAR;
+constexpr auto defaultAddressMode = ossia::texture_address_mode::CLAMP_TO_EDGE;
+constexpr auto defaultMipmapMode = ossia::texture_filter::NONE;
+
+// A filter saved as None is nearest (None is only a mipmap mode).
+ossia::texture_filter savedFilter(ossia::texture_filter f) noexcept
+{
+  return f == ossia::texture_filter::NONE ? ossia::texture_filter::NEAREST : f;
+}
+}
+}
+
 template <>
 void DataStreamReader::read(const Gfx::TextureInlet& p)
 {
   // read((Process::Outlet&)p);
   m_stream << p.m_renderSize
            << p.m_textureFormat.value_or(ossia::texture_format::RGBA8)
-           << p.m_textureAddressMode << p.m_textureFilter
-           << p.m_textureFormat.has_value() << p.m_textureMipmapMode;
+           << p.m_textureAddressMode.value_or(Gfx::defaultAddressMode)
+           << p.m_textureFilter.value_or(Gfx::defaultFilter)
+           << p.m_textureFormat.has_value()
+           << p.m_textureMipmapMode.value_or(Gfx::defaultMipmapMode)
+           << p.m_textureAddressMode.has_value() << p.m_textureFilter.has_value()
+           << p.m_textureMipmapMode.has_value();
 }
 template <>
 void DataStreamWriter::write(Gfx::TextureInlet& p)
 {
   ossia::texture_format fmt{};
   bool fmt_set{};
-  m_stream >> p.m_renderSize >> fmt >> p.m_textureAddressMode >> p.m_textureFilter
-      >> fmt_set >> p.m_textureMipmapMode;
+  ossia::texture_address_mode address{};
+  ossia::texture_filter filter{}, mipmap{};
+  bool address_set{}, filter_set{}, mipmap_set{};
+  m_stream >> p.m_renderSize >> fmt >> address >> filter >> fmt_set >> mipmap
+      >> address_set >> filter_set >> mipmap_set;
   if(fmt_set)
     p.m_textureFormat = fmt;
   else
     p.m_textureFormat = std::nullopt;
+  p.m_textureAddressMode = address_set ? std::optional{address} : std::nullopt;
+  p.m_textureFilter = filter_set ? std::optional{Gfx::savedFilter(filter)} : std::nullopt;
+  p.m_textureMipmapMode = mipmap_set ? std::optional{mipmap} : std::nullopt;
 }
 
+// "Filter", "AddressMode" and "MipmapMode" hold the value used when the shader
+// declares none, as documents always saved them; "FilterSet", ... whether the
+// user set it. A document without those, saved before, set what differs from
+// the default (shader board U34).
 template <>
 void JSONReader::read(const Gfx::TextureInlet& p)
 {
@@ -588,9 +702,12 @@ void JSONReader::read(const Gfx::TextureInlet& p)
   }
   obj["Format"] = p.m_textureFormat.value_or(ossia::texture_format::RGBA8);
   obj["FormatSet"] = p.m_textureFormat.has_value();
-  obj["Filter"] = p.m_textureFilter;
-  obj["AddressMode"] = p.m_textureAddressMode;
-  obj["MipmapMode"] = p.m_textureMipmapMode;
+  obj["Filter"] = p.m_textureFilter.value_or(Gfx::defaultFilter);
+  obj["FilterSet"] = p.m_textureFilter.has_value();
+  obj["AddressMode"] = p.m_textureAddressMode.value_or(Gfx::defaultAddressMode);
+  obj["AddressModeSet"] = p.m_textureAddressMode.has_value();
+  obj["MipmapMode"] = p.m_textureMipmapMode.value_or(Gfx::defaultMipmapMode);
+  obj["MipmapModeSet"] = p.m_textureMipmapMode.has_value();
 }
 template <>
 void JSONWriter::write(Gfx::TextureInlet& p)
@@ -615,11 +732,27 @@ void JSONWriter::write(Gfx::TextureInlet& p)
       fmt_set = set_v->toBool();
     if(fmt_set)
       p.m_textureFormat = fmt;
-    p.m_textureFilter <<= obj["Filter"];
-    p.m_textureAddressMode <<= obj["AddressMode"];
   }
-  if(auto mip = obj.tryGet("MipmapMode"))
-    p.m_textureMipmapMode <<= *mip;
+
+  const auto field = [this]<typename T>(
+                         const char* key, const char* setKey, T def, std::optional<T>& out) {
+    out = std::nullopt;
+    auto v = obj.tryGet(std::string{key});
+    if(!v)
+      return;
+    T value{};
+    value <<= *v;
+    bool set = value != def;
+    if(auto s = obj.tryGet(std::string{setKey}))
+      set = s->toBool();
+    if(set)
+      out = value;
+  };
+  field("Filter", "FilterSet", Gfx::defaultFilter, p.m_textureFilter);
+  if(p.m_textureFilter)
+    p.m_textureFilter = Gfx::savedFilter(*p.m_textureFilter);
+  field("AddressMode", "AddressModeSet", Gfx::defaultAddressMode, p.m_textureAddressMode);
+  field("MipmapMode", "MipmapModeSet", Gfx::defaultMipmapMode, p.m_textureMipmapMode);
 }
 
 template <>

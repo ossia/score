@@ -442,18 +442,34 @@ static constexpr QRhiTexture::Format ossia_format_to_rhi(ossia::texture_format f
   }
 }
 
-static RenderTargetSpecs ossia_specs_to_rhi(const ossia::render_target_spec& in) noexcept
+RenderTargetSpecs toRenderTargetSpecs(const ossia::render_target_spec& in) noexcept
 {
   RenderTargetSpecs spec;
   if(in.size)
     spec.size = QSize{in.size->width, in.size->height};
   spec.format = ossia_format_to_rhi(in.format);
-  spec.address_u = static_cast<decltype(spec.address_u)>(in.address_u);
-  spec.address_v = static_cast<decltype(spec.address_v)>(in.address_v);
-  spec.address_w = static_cast<decltype(spec.address_w)>(in.address_w);
-  spec.mag_filter = static_cast<decltype(spec.mag_filter)>(in.mag_filter);
-  spec.min_filter = static_cast<decltype(spec.min_filter)>(in.min_filter);
-  spec.mipmap_mode = static_cast<decltype(spec.mag_filter)>(in.mipmap_mode);
+  // Unset fields take the inlet's defaults: linear, clamped to the edge, no
+  // mipmaps.
+  spec.address_set = !isUnsetSamplerField(in.address_u);
+  if(spec.address_set)
+  {
+    spec.address_u = static_cast<decltype(spec.address_u)>(in.address_u);
+    spec.address_v = static_cast<decltype(spec.address_v)>(in.address_v);
+    spec.address_w = static_cast<decltype(spec.address_w)>(in.address_w);
+  }
+  else
+  {
+    spec.address_u = spec.address_v = spec.address_w = QRhiSampler::ClampToEdge;
+  }
+  spec.filter_set = !isUnsetSamplerField(in.mag_filter);
+  if(spec.filter_set)
+  {
+    spec.mag_filter = static_cast<decltype(spec.mag_filter)>(in.mag_filter);
+    spec.min_filter = static_cast<decltype(spec.min_filter)>(in.min_filter);
+  }
+  spec.mipmap_set = !isUnsetSamplerField(in.mipmap_mode);
+  if(spec.mipmap_set)
+    spec.mipmap_mode = static_cast<decltype(spec.mag_filter)>(in.mipmap_mode);
   return spec;
 }
 
@@ -463,7 +479,7 @@ Node::resolveRenderTargetSpecs(int32_t port, RenderList& renderer) const noexcep
   RenderTargetSpecs spec;
   auto it = this->renderTargetSpecs.find(port);
   if(it != this->renderTargetSpecs.end())
-    spec = ossia_specs_to_rhi(it->second);
+    spec = toRenderTargetSpecs(it->second);
 
   if(spec.size == QSize{})
     spec.size = {renderer.state.renderSize.width(), renderer.state.renderSize.height()};
@@ -481,7 +497,7 @@ std::optional<RenderTargetSpecs> Node::firstInputRenderTargetSpecs() const noexc
   if(this->renderTargetSpecs.empty())
     return std::nullopt;
 
-  return ossia_specs_to_rhi(this->renderTargetSpecs.begin()->second);
+  return toRenderTargetSpecs(this->renderTargetSpecs.begin()->second);
 }
 
 void ProcessNode::process(

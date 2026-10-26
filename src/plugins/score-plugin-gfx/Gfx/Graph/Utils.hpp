@@ -869,6 +869,12 @@ QRhiSampler* makeSampler(QRhi& rhi, const isf::sampler_config& cfg);
 SCORE_PLUGIN_GFX_EXPORT
 bool declaresSampler(const isf::sampler_config& cfg) noexcept;
 
+//! Sets on `sampler` the fields `spec` says its inlet set (filter, mipmap
+//! mode, address modes); true when that changed it, which then needs
+//! create() again.
+SCORE_PLUGIN_GFX_EXPORT
+bool applySetSamplerFields(QRhiSampler& sampler, const RenderTargetSpecs& spec) noexcept;
+
 //! The sampler fields a sampled image input declares (image, cubemap, or a
 //! compute shader's texture), or null for any other input.
 SCORE_PLUGIN_GFX_EXPORT

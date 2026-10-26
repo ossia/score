@@ -4,6 +4,7 @@
 #include <Process/Script/ScriptProcess.hpp>
 
 #include <Gfx/CommandFactory.hpp>
+#include <Gfx/ShaderSamplerSource.hpp>
 #include <Gfx/GeometryFilter/Metadata.hpp>
 #include <Gfx/ShaderProgram.hpp>
 
@@ -19,13 +20,18 @@ struct ProcessedGeometryProgram
   QString shader;
 };
 
-class SCORE_PLUGIN_GFX_EXPORT Model final : public Process::ProcessModel
+class SCORE_PLUGIN_GFX_EXPORT Model final
+    : public Process::ProcessModel
+    , public Gfx::ShaderSamplerSource
 {
   SCORE_SERIALIZE_FRIENDS
   PROCESS_METADATA_IMPL(Gfx::GeometryFilter::Model)
   W_OBJECT(Model)
 
 public:
+  const isf::sampler_config*
+  shaderSampler(const Gfx::TextureInlet& inlet) const noexcept override;
+
   Model(const TimeVal& duration, const Id<Process::ProcessModel>& id, QObject* parent);
   Model(
       const TimeVal& duration, const QString& init, const Id<Process::ProcessModel>& id,

@@ -683,25 +683,18 @@ void ISFNode::process(int32_t port, const ossia::value& v)
 
 void ISFNode::adjustRenderTargetSpecs(int32_t port, RenderTargetSpecs& spec) const noexcept
 {
+  // The fields the inlet leaves unset are the shader's, when it declares a
+  // sampler (shader board U34); the mipmap mode also decides whether the
+  // input's render target gets a mip chain.
   const int first = m_descriptor.mode == isf::descriptor::RawRaster ? 1 : 0;
-  const std::string* mipmap = nullptr;
   walk_descriptor_inputs(
       m_descriptor, port_counts{first, 0, 0},
       [&](const isf::input& inp, const port_counts& before, const port_counts& delta) {
     if(delta.inlets < 1 || before.inlets != port)
       return;
     if(auto* cfg = inputSamplerConfig(inp))
-      mipmap = &cfg->mipmap_mode;
+      resolveSamplerFields(spec, *cfg);
   });
-  if(!mipmap || mipmap->empty())
-    return;
-  std::string m = *mipmap;
-  for(auto& c : m)
-    c = (char)std::tolower((unsigned char)c);
-  if(m == "linear")
-    spec.mipmap_mode = QRhiSampler::Linear;
-  else if(m == "nearest")
-    spec.mipmap_mode = QRhiSampler::Nearest;
 }
 
 }

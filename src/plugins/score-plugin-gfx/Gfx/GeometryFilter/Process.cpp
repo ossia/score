@@ -19,6 +19,12 @@ W_OBJECT_IMPL(Gfx::GeometryFilter::Model)
 
 namespace Gfx::GeometryFilter
 {
+
+const isf::sampler_config*
+Model::shaderSampler(const Gfx::TextureInlet& inlet) const noexcept
+{
+  return Gfx::declaredSampler(m_processedProgram.descriptor, inlet.name());
+}
 Model::Model(
     const TimeVal& duration, const Id<Process::ProcessModel>& id, QObject* parent)
     : Process::ProcessModel{duration, id, "gfxProcess", parent}

@@ -2204,6 +2204,13 @@ void RenderList::renderImpl(QRhiCommandBuffer& commands, bool force)
             ensureSelfFeedbackTarget(*in);
           }
         }
+        else if(in->type == Types::Image && ownSpecsChanged)
+        {
+          // A grabbed input has no render target of its own; the sampler
+          // fields its inlet sets still apply (shader board U34).
+          renderer->updateInputSamplerFilter(
+              *in, renderer->node.resolveRenderTargetSpecs(cur_port, *this));
+        }
         cur_port++;
       }
 

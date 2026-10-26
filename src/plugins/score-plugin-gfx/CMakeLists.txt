@@ -434,6 +434,7 @@ set(HDRS
     Gfx/TexturePort.hpp
     Gfx/TexturePortBackgroundRenderer.hpp
     Gfx/ShaderProgram.hpp
+    Gfx/ShaderSamplerSource.hpp
     Gfx/SharedInputSettings.hpp
     Gfx/SharedOutputSettings.hpp
 

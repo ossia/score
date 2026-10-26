@@ -3,6 +3,7 @@
 
 #include <Dataflow/PortItem.hpp>
 #include <Gfx/CommandFactory.hpp>
+#include <Gfx/ShaderSamplerSource.hpp>
 
 #include <score/command/PropertyCommand.hpp>
 
@@ -56,32 +57,31 @@ public:
   INLINE_PROPERTY_VALUE(
       std::optional<ossia::texture_format>, textureFormat, = std::nullopt,
       textureFormat, setTextureFormat, textureFormatChanged)
+  // The sampler fields the user set on this inlet. One left unset is the
+  // shader's when its JSON declares a sampler (WRAP, FILTER, MIPMAP_MODE),
+  // otherwise linear, clamped to the edge, without mipmaps (shader board
+  // U34).
   INLINE_PROPERTY_VALUE(
-      ossia::texture_filter, textureFilter, = ossia::texture_filter::LINEAR,
+      std::optional<ossia::texture_filter>, textureFilter, = std::nullopt,
       textureFilter, setTextureFilter, textureFilterChanged)
   INLINE_PROPERTY_VALUE(
-      ossia::texture_address_mode, textureAddressMode,
-      = ossia::texture_address_mode::CLAMP_TO_EDGE, textureAddressMode,
-      setTextureAddressMode, textureAddressModeChanged)
+      std::optional<ossia::texture_address_mode>, textureAddressMode, = std::nullopt,
+      textureAddressMode, setTextureAddressMode, textureAddressModeChanged)
   INLINE_PROPERTY_VALUE(
-      ossia::texture_filter, textureMipmapMode, = ossia::texture_filter::NONE,
+      std::optional<ossia::texture_filter>, textureMipmapMode, = std::nullopt,
       textureMipmapMode, setTextureMipmapMode, textureMipmapModeChanged)
 
-  //! The shader's JSON declares this input's sampler (WRAP, FILTER,
-  //! MIPMAP_MODE...): it wins over the filter, address and mipmap settings
-  //! here, which the inspector then shows read-only (shader board U34). Set
-  //! when the process creates its ports; not saved.
-  bool samplerFromShader() const noexcept { return m_samplerFromShader; }
-  void setSamplerFromShader(bool b) noexcept { m_samplerFromShader = b; }
+  //! The sampler the shader's JSON declares for this input, read from the
+  //! process that owns the inlet (ShaderSamplerSource); null when it
+  //! declares none, or the process has no shader.
+  const isf::sampler_config* shaderSampler() const noexcept;
 
   void setupExecution(ossia::inlet&, QObject* exec_context) const noexcept override;
 
 private:
   std::optional<QSize> m_renderSize;
-
-private:
-  bool m_samplerFromShader{false};
 };
+
 
 class SCORE_PLUGIN_GFX_EXPORT TextureOutlet : public Process::Outlet
 {
@@ -256,6 +256,8 @@ W_REGISTER_ARGTYPE(ossia::texture_format);
 W_REGISTER_ARGTYPE(std::optional<ossia::texture_format>);
 W_REGISTER_ARGTYPE(ossia::texture_filter);
 W_REGISTER_ARGTYPE(ossia::texture_address_mode);
+W_REGISTER_ARGTYPE(std::optional<ossia::texture_filter>);
+W_REGISTER_ARGTYPE(std::optional<ossia::texture_address_mode>);
 
 PROPERTY_COMMAND_T(
     Gfx, ChangeTextureInletRenderSize, TextureInlet::p_renderSize,

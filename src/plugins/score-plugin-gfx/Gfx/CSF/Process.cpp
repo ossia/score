@@ -23,6 +23,12 @@ W_OBJECT_IMPL(Gfx::CSF::Model)
 
 namespace Gfx::CSF
 {
+
+const isf::sampler_config*
+Model::shaderSampler(const Gfx::TextureInlet& inlet) const noexcept
+{
+  return Gfx::declaredSampler(m_processedProgram.descriptor, inlet.name());
+}
 static const auto defaultCSF = QStringLiteral(R"_(/*{
 "DESCRIPTION": "Example compute shader effect",
 "CREDIT": "ossia score", 

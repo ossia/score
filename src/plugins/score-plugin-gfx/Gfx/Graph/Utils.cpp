@@ -1845,6 +1845,11 @@ computeScaleForTexcoordSizing(ScaleMode mode, QSizeF renderSize, QSizeF textureS
   }
 }
 
+namespace
+{
+static QRhiSampler::CompareOp parseCompare(const std::string& s);
+}
+
 std::vector<Sampler> initInputSamplers(
     const score::gfx::Node& node, RenderList& renderer, const std::vector<Port*>& ports,
     const isf::descriptor* desc)
@@ -1940,6 +1945,9 @@ std::vector<Sampler> initInputSamplers(
                 QRhiSampler::ClampToEdge);
             SCORE_ASSERT(sampler->create());
           }
+          // What the user set on the inlet wins, field by field (U34).
+          if(applySetSamplerFields(*sampler, node.resolveRenderTargetSpecs(cur_port, renderer)))
+            sampler->create();
           sampler->setName("initInputSamplers::grabs_sampler");
 
           samplers.push_back({sampler, srcTex, fallback});
@@ -1963,25 +1971,19 @@ std::vector<Sampler> initInputSamplers(
             fallback = &renderer.emptyTexture();
           QRhiTexture* texture = rt.texture ? rt.texture : fallback;
 
-          // The sampler the shader's JSON declares wins over the inlet's
-          // (shader board U34): it was only honoured for grabbed inputs.
+          // Field by field: the inlet's setting, else the shader's JSON
+          // (resolveSamplerFields, through resolveRenderTargetSpecs), else the
+          // defaults (shader board U34). A comparison is the shader's alone.
           const isf::sampler_config* cfg
               = cur_port < (int)port_sampler_cfg.size() ? port_sampler_cfg[cur_port]
                                                         : nullptr;
-          const bool declared = cfg && declaresSampler(*cfg);
-          QRhiSampler* sampler{};
-          if(declared)
-          {
-            sampler = score::gfx::makeSampler(rhi, *cfg);
-          }
-          else
-          {
-            auto spec = node.resolveRenderTargetSpecs(cur_port, renderer);
-            sampler = rhi.newSampler(
-                spec.mag_filter, spec.min_filter, spec.mipmap_mode, spec.address_u,
-                spec.address_v, spec.address_w);
-            SCORE_ASSERT(sampler->create());
-          }
+          auto spec = node.resolveRenderTargetSpecs(cur_port, renderer);
+          QRhiSampler* sampler = rhi.newSampler(
+              spec.mag_filter, spec.min_filter, spec.mipmap_mode, spec.address_u,
+              spec.address_v, spec.address_w);
+          if(cfg)
+            sampler->setTextureCompareOp(parseCompare(cfg->compare));
+          SCORE_ASSERT(sampler->create());
           sampler->setName("initInputSamplers::sampler");
 
           samplers.push_back({sampler, texture, fallback});
@@ -2030,28 +2032,18 @@ void updateInputSamplerFilter(
   if(sampler_idx >= samplers.size())
     return;
 
-  // A sampler the shader's JSON declares is not the inlet's to change (U34).
-  if(auto* isfNode = dynamic_cast<const ISFNode*>(&node))
-  {
-    const auto& desc = isfNode->descriptor();
-    const int first = desc.mode == isf::descriptor::RawRaster ? 1 : 0;
-    const int port = int(std::find(node.input.begin(), node.input.end(), &input)
-                         - node.input.begin());
-    bool declared = false;
-    walk_descriptor_inputs(
-        desc, port_counts{first, 0, 0},
-        [&](const isf::input& inp, const port_counts& before, const port_counts& delta) {
-      if(delta.inlets < 1 || before.inlets != port)
-        return;
-      if(auto* cfg = inputSamplerConfig(inp))
-        declared = declaresSampler(*cfg);
-    });
-    if(declared)
-      return;
-  }
   auto* sampler = samplers[sampler_idx].sampler;
   if(!sampler)
     return;
+  // `spec` is resolved field by field against the shader's JSON (U34). A
+  // grabbed input's sampler is the shader's or the grab default, and only
+  // takes the fields its inlet sets.
+  if((input.flags & Flag::GrabsFromSource) == Flag::GrabsFromSource)
+  {
+    if(applySetSamplerFields(*sampler, spec))
+      sampler->create();
+    return;
+  }
   if(sampler->magFilter() == spec.mag_filter && sampler->minFilter() == spec.min_filter
      && sampler->mipmapMode() == spec.mipmap_mode
      && sampler->addressU() == spec.address_u && sampler->addressV() == spec.address_v
@@ -2570,6 +2562,33 @@ static QRhiSampler::CompareOp parseCompare(const std::string& s)
 }
 }
 
+bool applySetSamplerFields(QRhiSampler& sampler, const RenderTargetSpecs& spec) noexcept
+{
+  bool changed = false;
+  if(spec.filter_set
+     && (sampler.magFilter() != spec.mag_filter || sampler.minFilter() != spec.min_filter))
+  {
+    sampler.setMagFilter(spec.mag_filter);
+    sampler.setMinFilter(spec.min_filter);
+    changed = true;
+  }
+  if(spec.mipmap_set && sampler.mipmapMode() != spec.mipmap_mode)
+  {
+    sampler.setMipmapMode(spec.mipmap_mode);
+    changed = true;
+  }
+  if(spec.address_set
+     && (sampler.addressU() != spec.address_u || sampler.addressV() != spec.address_v
+         || sampler.addressW() != spec.address_w))
+  {
+    sampler.setAddressU(spec.address_u);
+    sampler.setAddressV(spec.address_v);
+    sampler.setAddressW(spec.address_w);
+    changed = true;
+  }
+  return changed;
+}
+
 const isf::sampler_config* inputSamplerConfig(const isf::input& inp) noexcept
 {
   if(auto* im = ossia::get_if<isf::image_input>(&inp.data))
@@ -2611,6 +2630,28 @@ QRhiSampler* makeSampler(QRhi& rhi, const isf::sampler_config& cfg)
   s->setTextureCompareOp(parseCompare(cfg.compare));
   s->create();
   return s;
+}
+
+void resolveSamplerFields(RenderTargetSpecs& spec, const isf::sampler_config& cfg) noexcept
+{
+  if(!declaresSampler(cfg))
+    return;
+  // As makeSampler reads the fields.
+  if(!spec.filter_set)
+  {
+    const auto base = parseFilter(cfg.filter, QRhiSampler::Linear);
+    spec.min_filter = parseFilter(cfg.min_filter, base);
+    spec.mag_filter = parseFilter(cfg.mag_filter, base);
+  }
+  if(!spec.mipmap_set)
+    spec.mipmap_mode = parseFilter(cfg.mipmap_mode, QRhiSampler::None);
+  if(!spec.address_set)
+  {
+    const auto base = parseAddress(cfg.wrap, QRhiSampler::ClampToEdge);
+    spec.address_u = parseAddress(cfg.wrap_s, base);
+    spec.address_v = parseAddress(cfg.wrap_t, base);
+    spec.address_w = parseAddress(cfg.wrap_r, base);
+  }
 }
 
 bool followTextureMips(QRhiSampler& sampler, const QRhiTexture& texture)

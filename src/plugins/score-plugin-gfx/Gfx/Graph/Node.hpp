@@ -70,7 +70,33 @@ struct RenderTargetSpecs
   QRhiSampler::AddressMode address_u = QRhiSampler::Repeat;
   QRhiSampler::AddressMode address_v = QRhiSampler::Repeat;
   QRhiSampler::AddressMode address_w = QRhiSampler::Repeat;
+
+  // Whether the inlet set the filters, the address modes, the mipmap mode.
+  // A field it did not set is the shader's, when its JSON declares one
+  // (resolveSamplerFields, shader board U34).
+  bool filter_set{};
+  bool address_set{};
+  bool mipmap_set{};
 };
+
+//! A sampler field of a render_target_spec that its inlet leaves unset: the
+//! value one past the last of the 2-bit texture_filter / texture_address_mode
+//! fields, which no setting uses.
+inline constexpr int unsetSamplerField = 3;
+inline bool isUnsetSamplerField(auto v) noexcept
+{
+  return (unsigned(v) & 3u) == unsigned(unsetSamplerField);
+}
+
+//! The render-target specs of an inlet, sampler fields it leaves unset
+//! marked so.
+SCORE_PLUGIN_GFX_EXPORT
+RenderTargetSpecs toRenderTargetSpecs(const ossia::render_target_spec& in) noexcept;
+
+//! Fills the sampler fields `spec` leaves unset from the shader's JSON, when
+//! it declares a sampler: as makeSampler() reads it, its defaults included.
+SCORE_PLUGIN_GFX_EXPORT
+void resolveSamplerFields(RenderTargetSpecs& spec, const isf::sampler_config& cfg) noexcept;
 
 /**
  * @brief Root data model for visual nodes.
