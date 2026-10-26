@@ -11,6 +11,7 @@
 #include <QFileSystemWatcher>
 #include <QImage>
 #include <QUrl>
+#include <QUuid>
 
 #include <verdigris>
 
@@ -25,6 +26,11 @@ struct Package
   static std::optional<Package> fromJson(const QJsonObject& obj) noexcept;
 
   UuidKey<score::Addon> key; // Can be the same as plug-in's
+  //! The key as package.json files and the library store it
+  QUuid uuid() const noexcept
+  {
+    return QUuid::fromString(QLatin1String{score::uuids::toByteArray(key.impl())});
+  }
 
   QString raw_name;
   QString name;

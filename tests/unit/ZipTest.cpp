@@ -255,3 +255,69 @@ TEST_CASE(
   // Nothing was written: not outside the destination, and not inside it either.
   CHECK(tree(root).isEmpty());
 }
+
+// Extraction of what Unix archives record beyond file contents. The fixtures
+// were made with Info-ZIP's `zip -y`, the way the GPU runtime packages are:
+//   lib/libfoo.so.9.27.0      a file, 0644
+//   lib/libfoo.so.9  -> libfoo.so.9.27.0
+//   lib/chain        -> libfoo.so.9          (a link to a link)
+//   bin/tool                  a file, 0755
+//   up               -> lib/../bin           (".." which stays inside)
+#if !defined(_WIN32)
+TEST_CASE("Symbolic links and permissions are restored", "[unit][zip]")
+{
+  QTemporaryDir tmp;
+  REQUIRE(tmp.isValid());
+  const QString out = tmp.path();
+
+  QString error;
+  const auto files
+      = zdl::unzip_all_files_to_folder(QStringLiteral(SCORE_TEST_ZIP_DIR "/links.zip"), out, error);
+  CHECK(error.isEmpty());
+  CHECK(files.size() == 5);
+
+  const QFileInfo link{out + "/lib/libfoo.so.9"};
+  REQUIRE(link.isSymLink());
+  CHECK(link.symLinkTarget() == QFileInfo{out + "/lib/libfoo.so.9.27.0"}.absoluteFilePath());
+  CHECK(QFileInfo{out + "/lib/chain"}.isSymLink());
+  CHECK(QFileInfo{out + "/up"}.isSymLink());
+
+  // Reading through the links reaches the file
+  QFile f{out + "/lib/chain"};
+  REQUIRE(f.open(QIODevice::ReadOnly));
+  CHECK(f.readAll() == "real\n");
+
+  CHECK(QFileInfo{out + "/bin/tool"}.isExecutable());
+  CHECK(!QFileInfo{out + "/lib/libfoo.so.9.27.0"}.isExecutable());
+}
+
+TEST_CASE("The archive read from a file or from memory extracts the same", "[unit][zip]")
+{
+  QTemporaryDir tmp;
+  REQUIRE(tmp.isValid());
+
+  QFile f{QStringLiteral(SCORE_TEST_ZIP_DIR "/links.zip")};
+  REQUIRE(f.open(QIODevice::ReadOnly));
+  QString error;
+  const auto files = zdl::unzip_all_files_to_folder(f.readAll(), tmp.path(), error);
+  CHECK(error.isEmpty());
+  CHECK(files.size() == 5);
+  CHECK(QFileInfo{tmp.path() + "/lib/libfoo.so.9"}.isSymLink());
+}
+#endif
+
+TEST_CASE("A link pointing outside the destination fails the whole archive", "[unit][zip]")
+{
+  const auto archive = GENERATE(
+      QStringLiteral(SCORE_TEST_ZIP_DIR "/escape.zip"),   // evil -> ../../etc/passwd
+      QStringLiteral(SCORE_TEST_ZIP_DIR "/absolute.zip")); // evil -> /etc/passwd
+
+  QTemporaryDir tmp;
+  REQUIRE(tmp.isValid());
+
+  QString error;
+  const auto files = zdl::unzip_all_files_to_folder(archive, tmp.path(), error);
+  CHECK(files.empty());
+  CHECK(error.contains("evil"));
+  CHECK(QDir{tmp.path()}.isEmpty());
+}

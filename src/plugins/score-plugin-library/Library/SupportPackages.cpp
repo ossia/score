@@ -1,0 +1,212 @@
+#include <Library/SupportPackages.hpp>
+
+#include <QCoreApplication>
+#include <QDebug>
+#include <QDir>
+#include <QDirIterator>
+#include <QFile>
+#include <QFileInfo>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QSet>
+
+#include <map>
+
+#ifdef Q_OS_WIN
+#include <windows.h>
+#else
+#include <dlfcn.h>
+#endif
+
+namespace Library
+{
+// Left in a package folder which could not be removed.
+static constexpr auto removal_marker = ".score-remove";
+
+static QFileInfoList packageFolders(const QString& root)
+{
+  // No QDir::Hidden: ".incoming-<name>" folders are installs in progress.
+  return QDir{root}.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot, QDir::Name);
+}
+
+std::vector<InstalledPackage> installedPackages(const QString& root)
+{
+  std::vector<InstalledPackage> packages;
+  for(const QFileInfo& folder : packageFolders(root))
+  {
+    QFile f{folder.absoluteFilePath() + "/package.json"};
+    if(!f.open(QIODevice::ReadOnly))
+      continue;
+
+    const auto obj = QJsonDocument::fromJson(f.readAll()).object();
+    // The same reading as the package manager's: a version is an integer.
+    InstalledPackage pkg{
+        folder.absoluteFilePath(), QUuid::fromString(obj["key"].toString()),
+        obj["version"].toInt()};
+    if(!pkg.key.isNull())
+      packages.push_back(std::move(pkg));
+  }
+  return packages;
+}
+
+bool removePackageFolder(const QString& path)
+{
+  QDir dir{path};
+  if(!dir.exists() || dir.removeRecursively())
+    return true;
+
+  // Whatever could not be removed stays, along with the marker saying it is not
+  // a package any more.
+  if(QFile marker{dir.absoluteFilePath(removal_marker)}; marker.open(QIODevice::WriteOnly))
+    qDebug() << "Package folder in use, it will be removed at the next start:" << path;
+  else
+    qDebug() << "Could not remove the package folder" << path;
+  return false;
+}
+
+bool isMarkedForRemoval(const QString& path)
+{
+  return QFileInfo::exists(path + '/' + removal_marker);
+}
+
+void removeMarkedPackageFolders(const QString& root)
+{
+  for(const QFileInfo& folder : packageFolders(root))
+  {
+    if(isMarkedForRemoval(folder.absoluteFilePath()))
+    {
+      if(!QDir{folder.absoluteFilePath()}.removeRecursively())
+        qDebug() << "Could not remove the package folder" << folder.absoluteFilePath();
+    }
+  }
+}
+
+QStringList supportFoldersToLoad(const QString& supportDir)
+{
+  // Keyed by the package key: the newest version seen so far.
+  std::map<QUuid, InstalledPackage> newest;
+  for(auto& pkg : installedPackages(supportDir))
+  {
+    if(isMarkedForRemoval(pkg.path))
+      continue;
+
+    auto [it, inserted] = newest.try_emplace(pkg.key, pkg);
+    if(!inserted)
+    {
+      const bool newer = pkg.version > it->second.version;
+      qDebug() << "Support package installed twice, not loading"
+               << (newer ? it->second.path : pkg.path);
+      if(newer)
+        it->second = std::move(pkg);
+    }
+  }
+
+  QSet<QString> keep;
+  for(auto& [key, pkg] : newest)
+    keep.insert(pkg.path);
+
+  QStringList folders;
+  for(const QFileInfo& folder : packageFolders(supportDir))
+  {
+    const QString path = folder.absoluteFilePath();
+    if(isMarkedForRemoval(path))
+      continue;
+    // Folders without a package.json were put there by hand: always loaded.
+    if(keep.contains(path) || !QFileInfo::exists(path + "/package.json"))
+      folders.push_back(path);
+  }
+  return folders;
+}
+
+void loadSupportLibraries(const QStringList& folders)
+{
+#ifdef Q_OS_WIN
+  // On Windows we can extend the DLL search path: register every directory that
+  // contains a .dll, so a later LoadLibrary("foo.dll") from an addon resolves.
+  // AddDllDirectory only extends the search set used by loads that pass
+  // LOAD_LIBRARY_SEARCH_USER_DIRS; a bare LoadLibrary (what the addons do) uses the
+  // legacy order and ignores it. This makes those directories part of the process-wide
+  // default instead.
+  SetDefaultDllDirectories(LOAD_LIBRARY_SEARCH_DEFAULT_DIRS);
+
+  QSet<QString> added;
+
+  for(const QString& folder : folders)
+  {
+    QDirIterator it(folder, {"*.dll"}, QDir::Files, QDirIterator::Subdirectories);
+
+    while(it.hasNext())
+    {
+      it.next();
+      QString dir = it.fileInfo().absolutePath();
+
+      if(added.contains(dir))
+        continue;
+      added.insert(dir);
+
+      AddDllDirectory(reinterpret_cast<PCWSTR>(dir.utf16()));
+    }
+  }
+#else
+  // On Linux/macOS there is no runtime equivalent of AddDllDirectory: the dynamic
+  // loader snapshots LD_LIBRARY_PATH / DYLD_* at process start, so changing them
+  // here would not affect later dlopen() calls. Instead, eagerly dlopen every
+  // support library with RTLD_GLOBAL: a subsequent bare-name dlopen() from an addon
+  // then resolves to the already-loaded object (the loader matches it by soname /
+  // install name). We iterate to a fixpoint so that inter-dependent support
+  // libraries load regardless of their on-disk order (each successful load makes its
+  // symbols / NEEDED entries available to the others). Libraries that never load
+  // (e.g. a missing external dependency) are simply skipped — the addon relying on
+  // them just stays unavailable, exactly as before.
+  //
+  // Symbolic links are skipped: packages ship libraries the way their vendors lay
+  // them out, a real file (libcudnn_graph.so.9.27.0) and links to it under the
+  // names it is looked up by (libcudnn_graph.so.9). The links are what makes the
+  // libraries find each other through their $ORIGIN runpath instead of a system
+  // copy; loading the file once is enough.
+#if defined(Q_OS_MACOS)
+  const QStringList patterns{"*.dylib"};
+#else
+  const QStringList patterns{"*.so", "*.so.*"};
+#endif
+
+#if defined(Q_OS_MACOS)
+  const QDir bundled{QCoreApplication::applicationDirPath() + "/../Frameworks"};
+#else
+  const QDir bundled{QCoreApplication::applicationDirPath() + "/../lib"};
+#endif
+
+  QStringList pending;
+  for(const QString& folder : folders)
+  {
+    for(QDirIterator it(folder, patterns, QDir::Files, QDirIterator::Subdirectories);
+        it.hasNext();)
+    {
+      const QString path = it.next();
+      if(it.fileInfo().isSymLink())
+        continue;
+      if(!bundled.exists(it.fileName()))
+        pending.push_back(path);
+    }
+  }
+
+  bool progress = true;
+  while(progress && !pending.empty())
+  {
+    progress = false;
+    for(auto it = pending.begin(); it != pending.end();)
+    {
+      if(dlopen(it->toUtf8().constData(), RTLD_LAZY | RTLD_GLOBAL))
+      {
+        it = pending.erase(it);
+        progress = true;
+      }
+      else
+      {
+        ++it;
+      }
+    }
+  }
+#endif
+}
+}

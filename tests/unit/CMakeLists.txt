@@ -44,6 +44,8 @@ score_add_test(test_unit_locate_file_path
 # Zip writing (miniz, vendored in 3rdparty/zipdownloader) behind score's API.
 score_add_test(test_unit_zip
   SOURCES ZipTest.cpp)
+target_compile_definitions(test_unit_zip PRIVATE
+  "SCORE_TEST_ZIP_DIR=\"${SCORE_ROOT_SOURCE_DIR}/tests/testdata/zip-links\"")
 
 # The folder index relinking searches with.
 score_add_test(test_unit_file_index
@@ -197,6 +199,11 @@ if(TARGET score_plugin_packagemanager)
     SOURCES PackageInstallTest.cpp
     PLUGINS score_plugin_packagemanager)
 endif()
+
+# Which support package folders get loaded, and package folders removed while in use.
+score_add_test(test_unit_support_packages
+  SOURCES SupportPackagesTest.cpp
+  PLUGINS score_plugin_library)
 
 # The Point2D View's axis mapping: an inverted range is a range.
 if(EXISTS "${SCORE_AVND_SOURCE_DIR}/../../../3rdparty/avendish/examples/Advanced/UI/2DView.hpp")

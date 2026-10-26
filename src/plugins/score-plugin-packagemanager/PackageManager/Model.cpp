@@ -3,6 +3,7 @@
 #include "Model.hpp"
 
 #include <Library/LibrarySettings.hpp>
+#include <Library/SupportPackages.hpp>
 #include <Library/Panel/LibraryPanelDelegate.hpp>
 #include <Library/ProcessWidget.hpp>
 
@@ -414,10 +415,33 @@ void PluginSettingsModel::on_packageInstallSuccess(
     }
   }
 
-  information(
-      tr("Package downloaded"),
-      tr("The package %1 has been successfully installed in the user library.")
-          .arg(addon.name));
+  // An update: the previous version may sit in another folder (packages were not
+  // always installed under the same name), and is no use next to this one.
+  const bool updated = ossia::any_of(
+      localPlugins.addons(), [&](const Package& pkg) { return pkg.key == addon.key; });
+  const auto& lib = score::AppContext().settings<Library::Settings::Model>();
+  removeOtherInstalls(
+      addon.uuid(), destination, {lib.getPackagesPath(), lib.getSupportPath()});
+
+  if(addon.kind == "support" && updated)
+  {
+    // The previous version's libraries may already be loaded in this process, and
+    // loading the new ones next to them would mix two versions of the same library.
+    information(
+        tr("Package updated"),
+        tr("The package %1 has been updated.\nRestart score to use the new version.")
+            .arg(addon.name));
+  }
+  else
+  {
+    if(addon.kind == "support")
+      Library::loadSupportLibraries({dir.absolutePath()});
+
+    information(
+        tr("Package downloaded"),
+        tr("The package %1 has been successfully installed in the user library.")
+            .arg(addon.name));
+  }
 
   localPlugins.registerAddon(dir.absolutePath());
   set_info();
