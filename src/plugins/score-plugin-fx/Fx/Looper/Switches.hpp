@@ -698,8 +698,9 @@ struct switches
   }
 };
 
-//! The Switches tab of a looper whose inputs are `Ins`: the actions, by what
-//! they act on, two to a row, so that the tab is no wider than the others.
+//! The Switches tab of a looper whose inputs are `Ins`: the one button and
+//! the transport side by side, two to a row, so that the tab is no wider
+//! than the others.
 template <typename Ins>
 struct switches_tab
 {
@@ -709,76 +710,43 @@ struct switches_tab
   halp_meta(spacing, 6)
   struct
   {
-    halp_meta(layout, halp::layouts::vbox)
+    halp_meta(name, "One button")
+    halp_meta(layout, halp::layouts::section)
+    halp_meta(alignment, halp::alignments::left)
+    halp_meta(spacing, 6)
     struct
     {
-      halp_meta(name, "One button")
-      halp_meta(layout, halp::layouts::section)
+      halp_meta(layout, halp::layouts::grid)
       halp_meta(alignment, halp::alignments::left)
       halp_meta(spacing, 6)
-      struct
-      {
-        halp_meta(layout, halp::layouts::grid)
-        halp_meta(alignment, halp::alignments::left)
-        halp_meta(spacing, 6)
-        halp_meta(columns, 2)
-        halp::item<&Ins::rec_play_dub> rec_play_dub;
-        halp::item<&Ins::play_stop> play_stop;
-      } buttons;
-      struct
-      {
-        halp_meta(layout, halp::layouts::grid)
-        halp_meta(alignment, halp::alignments::left)
-        halp_meta(spacing, 6)
-        halp_meta(columns, 2)
-        halp::item<&Ins::after_record> after_record;
-        halp::item<&Ins::after_overdub> after_overdub;
-        halp::item<&Ins::stop_at> stop_at;
-      } settings;
-    } one_button;
-    struct
-    {
-      halp_meta(name, "Transport")
-      halp_meta(layout, halp::layouts::section)
-      halp_meta(alignment, halp::alignments::left)
-      halp_meta(spacing, 6)
-      struct
-      {
-        halp_meta(layout, halp::layouts::grid)
-        halp_meta(alignment, halp::alignments::left)
-        halp_meta(spacing, 6)
-        halp_meta(columns, 2)
-        halp::item<&Ins::play> play;
-        halp::item<&Ins::stop> stop;
-        halp::item<&Ins::record> record;
-        halp::item<&Ins::overdub> overdub;
-        halp::item<&Ins::new_layer> new_layer;
-        halp::item<&Ins::retrigger> retrigger;
-      } buttons;
-    } transport;
-  } left;
+      halp_meta(columns, 2)
+      halp::item<&Ins::rec_play_dub> rec_play_dub;
+      halp::item<&Ins::play_stop> play_stop;
+      halp::item<&Ins::after_record> after_record;
+      halp::item<&Ins::after_overdub> after_overdub;
+      halp::item<&Ins::stop_at> stop_at;
+    } buttons;
+  } one_button;
   struct
   {
-    halp_meta(layout, halp::layouts::vbox)
+    halp_meta(name, "Transport")
+    halp_meta(layout, halp::layouts::section)
+    halp_meta(alignment, halp::alignments::left)
+    halp_meta(spacing, 6)
     struct
     {
-      halp_meta(name, "Play")
-      halp_meta(layout, halp::layouts::section)
+      halp_meta(layout, halp::layouts::grid)
       halp_meta(alignment, halp::alignments::left)
       halp_meta(spacing, 6)
-      struct
-      {
-        halp_meta(layout, halp::layouts::grid)
-        halp_meta(alignment, halp::alignments::left)
-        halp_meta(spacing, 6)
-        halp_meta(columns, 2)
-        halp::item<&Ins::reverse_toggle> reverse;
-        halp::item<&Ins::half_speed> half_speed;
-        halp::item<&Ins::double_speed> double_speed;
-        halp::item<&Ins::capture> capture;
-      } buttons;
-    } play;
-  } right;
+      halp_meta(columns, 2)
+      halp::item<&Ins::play> play;
+      halp::item<&Ins::stop> stop;
+      halp::item<&Ins::record> record;
+      halp::item<&Ins::overdub> overdub;
+      halp::item<&Ins::new_layer> new_layer;
+      halp::item<&Ins::retrigger> retrigger;
+    } buttons;
+  } transport;
 };
 
 //! The Layers tab of a looper whose inputs are `Ins`: undo, the layer the
@@ -800,5 +768,37 @@ struct layers_tab
   halp::item<&Ins::mute_layer> mute_layer;
   halp::item<&Ins::erase_layer> erase_layer;
   halp::item<&Ins::solo_layer> solo_layer;
+};
+
+//! The Speed tab of a looper whose inputs are `Ins`: how fast and which way
+//! the loop plays, and whether it follows the tempo, then the switches that
+//! change it.
+template <typename Ins>
+struct speed_tab
+{
+  halp_meta(name, "Speed")
+  halp_meta(layout, halp::layouts::vbox)
+  halp_meta(alignment, halp::alignments::left)
+  halp_meta(spacing, 6)
+  struct
+  {
+    halp_meta(layout, halp::layouts::grid)
+    halp_meta(alignment, halp::alignments::left)
+    halp_meta(spacing, 6)
+    halp_meta(columns, 3)
+    halp::item<&Ins::speed> speed;
+    halp::item<&Ins::reverse> reverse;
+    halp::item<&Ins::follow_tempo> follow_tempo;
+  } controls;
+  struct
+  {
+    halp_meta(layout, halp::layouts::grid)
+    halp_meta(alignment, halp::alignments::left)
+    halp_meta(spacing, 6)
+    halp_meta(columns, 3)
+    halp::item<&Ins::reverse_toggle> reverse;
+    halp::item<&Ins::half_speed> half_speed;
+    halp::item<&Ins::double_speed> double_speed;
+  } switches;
 };
 }

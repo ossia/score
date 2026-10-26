@@ -28,9 +28,10 @@ namespace Nodes::Looper
  *     "tempo": 120,             // what it was played at, and in
  *     "meter": [4, 4],
  *     "components": 1,          // what an automation can play of it: the
- *                               // numbers of each value, or 0 when they
- *                               // are not all numbers or vectors of as
- *                               // many numbers
+ *                               // most numbers a value has, or 0 when the
+ *                               // values are not all numbers, vectors and
+ *                               // lists of numbers, or have more than
+ *                               // max_components
  *     "min": [0.1], "max": [0.9],   // of each component, when there are
  *     "events": [
  *       [0, "float", 0.25],     // [frame, type, value], by frame: a value
@@ -82,8 +83,20 @@ struct value_export
     it.impulse = impulse;
   }
 
+  //! Most numbers of a value an automation plays, each in a curve of its
+  //! own.
+  static constexpr int max_components = 32;
+
+  static bool is_number(const ossia::value& v) noexcept
+  {
+    const auto t = v.get_type();
+    return t == ossia::val_type::FLOAT || t == ossia::val_type::INT
+           || t == ossia::val_type::BOOL;
+  }
+
   //! The numbers of a value an automation plays: 1 for a number, n for a
-  //! vector of n, 0 for anything else.
+  //! vector or a list of n numbers, 0 for a list of none, -1 for anything
+  //! else.
   static int numbers_of(const ossia::value& v) noexcept
   {
     switch(v.get_type())
@@ -98,14 +111,26 @@ struct value_export
         return 3;
       case ossia::val_type::VEC4F:
         return 4;
+      case ossia::val_type::LIST: {
+        const auto& l = v.get<std::vector<ossia::value>>();
+        for(const auto& e : l)
+          if(!is_number(e))
+            return -1;
+        return int(l.size());
+      }
       default:
-        return 0;
+        return -1;
     }
   }
+  //! Number `component` of a value, which it has.
   static double number(const ossia::value& v, int component) noexcept
   {
     switch(v.get_type())
     {
+      case ossia::val_type::LIST: {
+        const auto& l = v.get<std::vector<ossia::value>>();
+        return component >= 0 && component < int(l.size()) ? number(l[component], 0) : 0.;
+      }
       case ossia::val_type::FLOAT:
         return v.get<float>();
       case ossia::val_type::INT:
@@ -124,19 +149,21 @@ struct value_export
   }
 
   //! What an automation can play of the take: see the file's "components".
+  //! A value with fewer numbers than others, a list, leaves the ones it does
+  //! not have where they were.
   int components() const noexcept
   {
-    int n = -1;
+    int n = 0;
     for(int i = 0; i < count; i++)
     {
       if(items[i].impulse)
         return 0;
       const int k = numbers_of(items[i].value.get());
-      if(k == 0 || (n >= 0 && k != n))
+      if(k < 0)
         return 0;
-      n = k;
+      n = std::max(n, k);
     }
-    return std::max(n, 0);
+    return n <= max_components ? n : 0;
   }
 
   std::string to_json() const
@@ -158,16 +185,22 @@ struct value_export
     out += std::to_string(n);
     if(n > 0)
     {
-      std::array<double, 4> lo, hi;
+      std::array<double, max_components> lo, hi;
+      std::array<bool, max_components> seen{};
       lo.fill(0.);
       hi.fill(0.);
       for(int i = 0; i < count; i++)
-        for(int c = 0; c < n; c++)
+      {
+        const auto& v = items[i].value.get();
+        const int k = numbers_of(v);
+        for(int c = 0; c < k; c++)
         {
-          const double x = number(items[i].value.get(), c);
-          lo[c] = i == 0 ? x : std::min(lo[c], x);
-          hi[c] = i == 0 ? x : std::max(hi[c], x);
+          const double x = number(v, c);
+          lo[c] = !seen[c] ? x : std::min(lo[c], x);
+          hi[c] = !seen[c] ? x : std::max(hi[c], x);
+          seen[c] = true;
         }
+      }
       for(const auto& [name, arr] : {std::pair{",\n  \"min\": [", &lo}, {"],\n  \"max\": [", &hi}})
       {
         out += name;
@@ -349,8 +382,10 @@ struct value_take_job
   //! A take of this one file, written whatever the looper does meanwhile,
   //! e.g. when the score stops while a pass is taken in.
   bool alone{};
-  //! What an automation can play of it, worked out by the job.
+  //! What an automation can play of it, worked out by the job, and whether
+  //! it holds nothing, which an automation has nothing to play of either.
   int components{};
+  bool nothing{};
 
   bool run()
   {
@@ -364,6 +399,7 @@ struct value_take_job
     if(!writer || data->length <= 0)
       return false;
     components = data->components();
+    nothing = data->count == 0;
     const std::string bytes = data->to_json();
     const auto& path = writer->next_path(slot, number, layer);
     std::ofstream f{

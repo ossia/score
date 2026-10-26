@@ -34,6 +34,7 @@
 #include <Avnd/Factories.hpp>
 #include <Crousti/Executor.hpp>
 #include <Crousti/MessageBus.hpp>
+#include <Crousti/Painter.hpp>
 #include <Crousti/ProcessModel.hpp>
 #include <AvndProcesses/MIDISync.hpp>
 #include <Fx/Chord.hpp>
@@ -846,12 +847,22 @@ TEMPLATE_TEST_CASE(
       REQUIRE(view.state.take == take);
     };
     auto dragged = [&] {
-      return view.drag_payload(view.width() / 2., view.height() - 10.).files;
+      return view.drag_payload(view.width() - 20., 10.).files;
     };
     auto pass = [&](const char* mode, int take) {
       e.gui("Mode", ossia::value{std::string{mode}});
       for(int i = 0; i < 100; i++)
+      {
+        // A MIDI pass is a layer once a note comes in.
+        if constexpr(std::is_same_v<TestType, Nodes::MidiLooper::Node>)
+        {
+          if(i == 2)
+            e.midi({note_on(60 + take)});
+          if(i == 4)
+            e.midi({note_off(60 + take)});
+        }
         e.tick(256);
+      }
       e.gui("Mode", ossia::value{std::string{"Play"}});
       until_take(take);
     };
@@ -870,6 +881,76 @@ TEMPLATE_TEST_CASE(
       CHECK(QFileInfo::exists(QString::fromStdString(f)));
       CHECK(std::find(first.begin(), first.end(), f) == first.end());
     }
+
+    // A lane drags its pass alone, which the take has a file of.
+    view.erase = [&](Nodes::Looper::erase_request r) {
+      oscr::MessageBusSender{model.from_ui}(r);
+    };
+    auto lane_y = [&](int lane) { return view.lanes_top + (lane + 0.5) * view.lane_height(); };
+    REQUIRE(view.state.lanes == 2);
+    CHECK(view.mouse_press(100., lane_y(1)));
+    CHECK(!view.preparing(1));
+    CHECK(view.drag_payload(100., lane_y(1)).files == std::vector{second[2]});
+    view.mouse_release(100., lane_y(1));
+    CHECK(view.drag_payload(100., lane_y(0)).files == std::vector{second[1]});
+
+    // A take of the mix alone: the lane asks for the file of its pass, shows
+    // it is preparing it, and drags it once it is written.
+    e.gui("Export", ossia::value{std::string{"Mix"}});
+    pass("Overdub", 3);
+    REQUIRE(dragged().size() == 1);
+    REQUIRE(view.state.lanes == 3);
+    CHECK(view.mouse_press(100., lane_y(2)));
+    CHECK(view.preparing(2));
+    CHECK(view.drag_payload(100., lane_y(2)).files.empty());
+    for(int i = 0; i < 2000 && view.preparing(2); i++)
+    {
+      run_exec(e.plug);
+      e.tick(256);
+      e.ui();
+      QThread::msleep(1);
+      QApplication::processEvents();
+    }
+    REQUIRE(!view.preparing(2));
+    const auto layer = view.drag_payload(100., lane_y(2)).files;
+    REQUIRE(layer.size() == 1);
+    CHECK(QFileInfo::exists(QString::fromStdString(layer[0])));
+    const auto ext = std::string{"-layer3."} + view.state.take_ext.data();
+    CHECK(layer[0].ends_with(ext));
+    // It is not the take: the button still drags the mix.
+    CHECK(dragged().size() == 1);
+    CHECK(dragged()[0] != layer[0]);
+    view.mouse_release(100., lane_y(2));
+
+    // While a pass is taken in, as well: the file is of the lane's pass as it
+    // is when the lane was pressed.
+    e.gui("Mode", ossia::value{std::string{"Overdub"}});
+    for(int i = 0; i < 2000 && view.state.mode != int(Nodes::Looper::LoopMode::Overdub); i++)
+    {
+      e.tick(256);
+      e.ui();
+      QApplication::processEvents();
+    }
+    REQUIRE(view.taking_in());
+    CHECK(view.mouse_press(100., lane_y(0)));
+    CHECK(view.preparing(0));
+    for(int i = 0; i < 2000 && view.preparing(0); i++)
+    {
+      run_exec(e.plug);
+      e.tick(256);
+      e.ui();
+      QThread::msleep(1);
+      QApplication::processEvents();
+    }
+    REQUIRE(view.taking_in());
+    const auto taking = view.drag_payload(100., lane_y(0)).files;
+    REQUIRE(taking.size() == 1);
+    CHECK(taking[0].ends_with(std::string{"-layer1."} + view.state.take_ext.data()));
+    CHECK(QFileInfo::exists(QString::fromStdString(taking[0])));
+    view.mouse_release(100., lane_y(0));
+    // The next press asks again.
+    CHECK(view.mouse_press(100., lane_y(0)));
+    CHECK(view.preparing(0));
   });
 }
 
@@ -1017,7 +1098,7 @@ TEMPLATE_TEST_CASE(
       }
     };
     auto dragged = [&] {
-      return view.drag_payload(view.width() / 2., view.height() - 10.).files;
+      return view.drag_payload(view.width() - 20., 10.).files;
     };
 
     e.gui("Mode", ossia::value{std::string{"Record"}});
@@ -1029,8 +1110,8 @@ TEMPLATE_TEST_CASE(
     const auto recording = dragged();
     REQUIRE(recording.size() == 1);
 
-    // A press that would start a drag asks for a take, and the drag waits.
-    CHECK(view.mouse_press(view.width() / 2., view.height() - 10.));
+    // A press on the button asks for a take, and a drag from it waits.
+    CHECK(view.mouse_press(view.width() - 20., 10.));
     CHECK(view.saving());
     CHECK(dragged().empty());
     play([&] { return !view.saving(); });
@@ -1038,16 +1119,37 @@ TEMPLATE_TEST_CASE(
     REQUIRE(overdub.size() == 1);
     CHECK(overdub != recording);
     CHECK(QFileInfo::exists(QString::fromStdString(overdub[0])));
-    view.mouse_release(view.width() / 2., view.height() - 10.);
+    view.mouse_release(view.width() - 20., 10.);
     CHECK(view.state.mode == int(Nodes::Looper::LoopMode::Overdub));
 
-    // Send waits as well, then sends the take it asked for.
+    // A click on it waits as well, then sends the take it asked for.
     CHECK(view.mouse_press(view.width() - 20., 10.));
+    CHECK(sent.empty());
+    view.mouse_release(view.width() - 20., 10.);
     CHECK(sent.empty());
     play([&] { return !sent.empty(); });
     REQUIRE(sent.size() == 1);
     REQUIRE(sent[0].files.size() == 1);
     CHECK(sent[0].files[0] != overdub[0]);
     CHECK(QFileInfo::exists(QString::fromStdString(sent[0].files[0])));
+
+    // The score pauses while the pass is taken in: the looper sends nothing
+    // more, and a drag is of the last take, not of one asked for that would
+    // never come.
+    QThread::msleep(400);
+    QApplication::processEvents();
+    CHECK(view.state.mode == int(Nodes::Looper::LoopMode::Overdub));
+    CHECK(view.mouse_press(view.width() - 20., 10.));
+    CHECK(!view.saving());
+    const auto paused = dragged();
+    REQUIRE(paused == sent[0].files);
+    CHECK(QFileInfo::exists(QString::fromStdString(paused[0])));
+    // What the drag carries: the file, as a file URL.
+    std::unique_ptr<QMimeData> mime{
+        oscr::make_drag_mime(view.drag_payload(view.width() - 20., 10.))};
+    REQUIRE(mime->hasUrls());
+    REQUIRE(mime->urls().size() == 1);
+    CHECK(mime->urls()[0].toLocalFile() == QString::fromStdString(paused[0]));
+    view.mouse_release(view.width() - 20., 10.);
   });
 }

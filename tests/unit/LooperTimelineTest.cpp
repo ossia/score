@@ -299,7 +299,7 @@ TEST_CASE("A dropped take plays with the stretch its drag carries, and a plain d
       m.set_take(base, "wav", true, 0, stretch);
       Nodes::Looper::looper_view view;
       view.receive(m);
-      const auto payload = view.drag_payload(view.width() / 2., view.height() - 10.);
+      const auto payload = view.drag_payload(view.width() - 20., 10.);
       auto mime = std::make_unique<QMimeData>();
       QList<QUrl> urls;
       for(const auto& f : payload.files)
@@ -508,6 +508,110 @@ TEST_CASE("A value take sent to the timeline is an automation for each number, h
         halp::timeline_clip{.files = {text_file.toStdString()}, .date = 1.});
     QApplication::processEvents();
     CHECK(scenario->intervals.size() == after);
+  });
+}
+
+TEST_CASE("A value take of lists of numbers is an automation for each index",
+          "[looper][timeline][app]")
+{
+  score::test::run_in_app([&](const score::GUIApplicationContext& ctx) {
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    auto* scenario = main_scenario(*doc);
+    REQUIRE(scenario);
+    auto* looper = add_looper(*doc, *scenario, midi_looper_uuid);
+    REQUIRE(looper);
+    QTemporaryDir dir;
+    int files = 0;
+
+    using list = std::vector<ossia::value>;
+    // Sends a take of `values`, at 0, a quarter and half of two seconds; the
+    // automations it makes, by name.
+    auto send = [&](std::vector<ossia::value> values) {
+      Nodes::Looper::value_export e;
+      e.rate = 48000.;
+      e.length = 96000;
+      Nodes::Looper::value_slot v;
+      for(std::size_t i = 0; i < values.size(); i++)
+      {
+        v.set(values[i]);
+        e.add(int64_t(i) * 24000, v, false);
+      }
+      const QString file
+          = dir.path() + "/Arraygen-take" + QString::number(++files) + ".values";
+      const auto bytes = e.to_json();
+      std::ofstream f{file.toStdString(), std::ios::binary};
+      f.write(bytes.data(), std::streamsize(bytes.size()));
+      f.close();
+      std::set<const Scenario::IntervalModel*> before;
+      for(auto& itv : scenario->intervals)
+        before.insert(&itv);
+      oscr::sendToTimeline(
+          *looper, doc->context(),
+          halp::timeline_clip{.files = {file.toStdString()}, .date = 10. * files});
+      QApplication::processEvents();
+      std::vector<const Automation::ProcessModel*> autom;
+      const Scenario::IntervalModel* clip{};
+      for(auto& itv : scenario->intervals)
+        if(!before.contains(&itv) && !itv.processes.empty())
+          clip = &itv;
+      if(!clip)
+        return autom;
+      for(auto& p : clip->processes)
+        if(auto a = qobject_cast<const Automation::ProcessModel*>(&p))
+          autom.push_back(a);
+      std::sort(autom.begin(), autom.end(), [](auto* a, auto* b) {
+        return a->metadata().getName() < b->metadata().getName();
+      });
+      return autom;
+    };
+
+    // Lists of four floats, as Arraygen sends: one automation for each.
+    {
+      const auto autom = send(
+          {list{0.f, 10.f, 20.f, 30.f}, list{1.f, 11.f, 22.f, 33.f},
+           list{0.5f, 10.5f, 21.f, 31.5f}});
+      REQUIRE(autom.size() == 4);
+      CHECK(autom[0]->metadata().getName().endsWith(" 0"));
+      CHECK(autom[3]->metadata().getName().endsWith(" 3"));
+      const double lo[]{0., 10., 20., 30.}, hi[]{1., 11., 22., 33.};
+      for(int c = 0; c < 4; c++)
+      {
+        INFO(c);
+        CHECK(autom[c]->min() == Approx(lo[c]));
+        CHECK(autom[c]->max() == Approx(hi[c]));
+        const auto& curve = autom[c]->curve();
+        CHECK(*curve.valueAt(0.1) == Approx(0.));
+        CHECK(*curve.valueAt(0.26) == Approx(1.));
+        CHECK(*curve.valueAt(0.51) == Approx(0.5));
+      }
+    }
+
+    // Lists of varying length: an index a list does not have holds where it
+    // was, and before it first comes, its first value holds. A number counts
+    // as a list of one.
+    {
+      const auto autom = send({list{1, 2.f}, 3.f, list{5.f, 6.f, true}});
+      REQUIRE(autom.size() == 3);
+      CHECK(autom[0]->min() == Approx(1.));
+      CHECK(autom[0]->max() == Approx(5.));
+      CHECK(*autom[0]->curve().valueAt(0.26) == Approx(0.5));
+      CHECK(autom[1]->min() == Approx(2.));
+      CHECK(autom[1]->max() == Approx(6.));
+      CHECK(*autom[1]->curve().valueAt(0.1) == Approx(0.));
+      CHECK(*autom[1]->curve().valueAt(0.26) == Approx(0.));
+      CHECK(*autom[1]->curve().valueAt(0.51) == Approx(1.));
+      // Only the last list has a third number: it holds all along.
+      CHECK(autom[2]->min() == Approx(1.));
+      CHECK(*autom[2]->curve().valueAt(0.1) == Approx(0.));
+      CHECK(*autom[2]->curve().valueAt(0.9) == Approx(0.));
+    }
+
+    // Nested lists, text in a list, more than 32 numbers: a file only.
+    CHECK(send({list{list{1.f, 2.f}, 3.f}}).empty());
+    CHECK(send({list{1.f, std::string{"a"}}}).empty());
+    CHECK(send({list(33, ossia::value{1.f})}).empty());
+    CHECK(send({list(32, ossia::value{1.f}), list(32, ossia::value{2.f})}).size() == 32);
   });
 }
 

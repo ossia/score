@@ -1923,7 +1923,7 @@ TEST_CASE("Looper: a take keeps the Follow tempo the loop played with, for the t
       CHECK(sent->stretch == stretch);
       CHECK(sent->files == last.take_files());
 
-      const auto drag = view.drag_payload(view.width() / 2., view.height() - 10.);
+      const auto drag = view.drag_payload(view.width() - 20., 10.);
       REQUIRE(drag.files == last.take_files());
       CHECK(drag.mime == Process::clip_metadata_mime);
       const auto meta = Process::decode_clip_metadata(drag.data);
@@ -1935,6 +1935,41 @@ TEST_CASE("Looper: a take keeps the Follow tempo the loop played with, for the t
       }
     }
   }
+}
+
+TEST_CASE("Looper view: a lane drags its own file with the take's stretch, the button all",
+          "[fx][looper][view][drag]")
+{
+  Nodes::Looper::view_message m{};
+  m.layers = 3;
+  m.lanes = 3;
+  m.length_seconds = 2.f;
+  m.take = 1;
+  m.set_take("/tmp/Looper-take4", "wav", true, 3, halp::clip_stretch::repitch);
+  m.muted[1] = 1;
+  Nodes::Looper::looper_view v;
+  v.erase = [](Nodes::Looper::erase_request) { };
+  v.receive(m);
+  const double y1 = v.lanes_top + 1.5 * v.lane_height();
+
+  // The muted lane too: it was chosen.
+  CHECK(v.mouse_press(100., y1));
+  const auto lane = v.drag_payload(100., y1);
+  REQUIRE(lane.files == std::vector<std::string>{"/tmp/Looper-take4-layer2.wav"});
+  const auto meta = Process::decode_clip_metadata(lane.data);
+  REQUIRE(meta.size() == 1);
+  CHECK(meta[0].stretch == halp::clip_stretch::repitch);
+  v.mouse_release(100., y1);
+
+  // The button drags every file of the take, and a click on it does not.
+  const auto all = v.drag_payload(v.width() - 20., 10.);
+  CHECK(all.files.size() == 4);
+  CHECK(all.files == m.take_files());
+
+  // The passes changed since the take: its files are not theirs any more.
+  m.version = 1;
+  v.receive(m);
+  CHECK(v.drag_payload(100., y1).files.empty());
 }
 
 TEST_CASE("Clip metadata: what is encoded is decoded, and automatic says nothing",

@@ -127,12 +127,13 @@ struct pass_stack
 
   //! The top pass goes on past the end of the loop: the loop grows by `unit`
   //! frames, and the passes under it play again over the new part. False when
-  //! the loop would be longer than `max_length`.
-  bool extend(int64_t unit, int64_t max_length) noexcept
+  //! the loop would be longer than `max_length`. Without `top_open`, the pass
+  //! going on is not in the stack yet: every pass plays again.
+  bool extend(int64_t unit, int64_t max_length, bool top_open = true) noexcept
   {
     if(count == 0 || unit <= 0 || length + unit > max_length)
       return false;
-    for(int i = 0; i < count - 1; i++)
+    for(int i = 0; i < count - (top_open ? 1 : 0); i++)
       if(layers[i].period == 0)
         layers[i].period = length;
     length += unit;

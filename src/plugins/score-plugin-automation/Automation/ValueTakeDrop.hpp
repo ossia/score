@@ -18,15 +18,20 @@ namespace Automation
  */
 struct SCORE_PLUGIN_AUTOMATION_EXPORT ValueTake
 {
-  //! Numbers of each value: 1 for numbers, n for vectors of n.
+  static constexpr int max_components = 32;
+  //! Numbers of each value: 1 for numbers, n for vectors of n, the most a
+  //! list has for lists. A value that has fewer leaves the others where they
+  //! were; before a number first comes, its first value holds.
   int components{};
+  //! Some values are lists: the curves are named by their index.
+  bool lists{};
   double seconds{};
-  std::array<double, 4> min{}, max{};
+  std::array<double, max_components> min{}, max{};
   struct step
   {
     //! From 0 to 1 over the take.
     double x;
-    std::array<double, 4> value;
+    std::array<double, max_components> value;
   };
   std::vector<step> steps;
 

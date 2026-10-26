@@ -678,6 +678,76 @@ TEST_CASE("Value looper: a take of vectors is a file an automation plays",
   CHECK(events[1].toArray() == QJsonArray{1200, "vec2f", QJsonArray{1., 20.}});
 }
 
+TEST_CASE("Value looper: a take of lists of numbers is a file an automation plays",
+          "[fx][values][looper][takes]")
+{
+  using list = std::vector<ossia::value>;
+  const auto t = written_take([](value_harness& h, int b) {
+    if(b == 0)
+      h.send(list{0.f, 1.f, 2.f, 3.f}, 0);
+    if(b == 12)
+      h.send(list{4.f, 5.f, 6.f, 7.f}, 0);
+    if(b == 24)
+      h.send(list{1, true}, 0);
+  });
+  CHECK(t.placeable);
+  CHECK(t.file["components"].toInt() == 4);
+  CHECK(t.file["min"].toArray() == QJsonArray{0., 1., 2., 3.});
+  CHECK(t.file["max"].toArray() == QJsonArray{4., 5., 6., 7.});
+
+  // A list in a list is not numbers.
+  const auto nested = written_take([](value_harness& h, int b) {
+    if(b == 0)
+      h.send(list{list{0.f, 1.f}, 2.f}, 0);
+  });
+  CHECK(!nested.placeable);
+  CHECK(nested.file["components"].toInt() == 0);
+}
+
+TEST_CASE("Value looper: the file of a layer alone, placeable as its values are",
+          "[fx][values][looper][takes][drag]")
+{
+  QTemporaryDir dir;
+  REQUIRE(dir.isValid());
+  value_harness h;
+  h.node.writer = temp_writer(dir);
+  h.node.worker.request = [&](Nodes::Looper::value_take_job job) {
+    Looper::worker_t::work(std::move(job))(h.node);
+  };
+  Nodes::Looper::view_message view{};
+  h.node.send_message = [&](const Nodes::Looper::view_message& m) { view = m; };
+
+  // Numbers, then an overdub of text.
+  four_steps(h);
+  h.run_frames(4800);
+  h.node.inputs.mode = LoopMode::Overdub;
+  h.send(std::string{"a"}, 0);
+  h.run_frames(4800);
+  h.node.inputs.mode = LoopMode::Play;
+  h.run_frames(4800);
+  REQUIRE(h.node.loop.count == 2);
+
+  h.node.process_message({.pass = 0, .layers = 2, .mute = false, .take = 1, .last = 0});
+  h.run_frames(200);
+  REQUIRE(view.part_answer == 1);
+  REQUIRE(view.part_files().size() == 1);
+  CHECK(view.part_placeable);
+  const auto numbers = QString::fromStdString(view.part_files()[0]);
+  CHECK(numbers.endsWith("-layer1.values"));
+  QFile f{numbers};
+  REQUIRE(f.open(QIODevice::ReadOnly));
+  const auto json = QJsonDocument::fromJson(f.readAll()).object();
+  CHECK(json["components"].toInt() == 1);
+  CHECK(json["events"].toArray().size() == 4);
+
+  // The text alone is a file only: the view drags nothing of it.
+  h.node.process_message({.pass = 1, .layers = 2, .mute = false, .take = 2, .last = 1});
+  h.run_frames(200);
+  REQUIRE(view.part_answer == 2);
+  CHECK(!view.part_placeable);
+  CHECK(QString::fromStdString(view.part_files()[0]).endsWith("-layer2.values"));
+}
+
 TEST_CASE("Value looper: a take of text, lists or impulses is a file only",
           "[fx][values][looper][takes]")
 {
@@ -761,10 +831,33 @@ struct switches_harness : value_harness
   }
   //! Merges of value passes are done at once.
   void slow_merges() { }
+  //! Takes written in a folder of their own, as the worker would; how many
+  //! the view was told of.
+  std::unique_ptr<QTemporaryDir> take_dir;
+  int take_count{};
+  void enable_takes()
+  {
+    take_dir = std::make_unique<QTemporaryDir>();
+    auto w = std::make_shared<Nodes::Looper::take_writer>();
+    w->folder = take_dir->path();
+    w->prefix = "t";
+    w->extension = "take";
+    node.writer = w;
+    node.worker.request = [this](auto job) { Looper::worker_t::work(std::move(job))(node); };
+    node.send_message = [this](const Nodes::Looper::view_message& m) { take_count = m.take; };
+  }
+  int takes() const { return take_count; }
 };
 }
 
 #include "LooperSwitchesScenarios.hpp"
+
+TEST_CASE("Value looper switches: an overdub pass is a layer from its first event on",
+          "[fx][values][looper][switches]")
+{
+  switches_harness h;
+  looper_switches::lazy_layers(h);
+}
 
 TEST_CASE("Value looper switches: recording a loop", "[fx][values][looper][switches]")
 {

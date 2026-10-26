@@ -192,8 +192,9 @@ struct Node : Looper::looper_node<Node>
       halp_meta(
           description,
           "What a take writes: what is heard of the loop (Mix), each pass in a "
-          "MIDI file of its own (Layers), or both. Sending or dragging a take "
-          "places every file of it, each on a lane of its own.")
+          "MIDI file of its own (Layers), or both. Send, or a drag from it, "
+          "places every file of the take, each on a lane of its own; dragging a "
+          "lane places its layer alone.")
     } exported;
 
     struct : Looper::enum_combobox<"Past the end", Looper::PastEnd, Looper::PastEnd::Wrap>
@@ -452,6 +453,8 @@ struct Node : Looper::looper_node<Node>
           halp::item<&ins::postaction_bars> bars;
           halp::item<&ins::late> late;
           halp::item<&ins::grace> grace;
+          halp::item<&ins::capture> capture;
+          halp::item<&ins::capture_bars> capture_bars;
         } length;
         struct
         {
@@ -461,12 +464,10 @@ struct Node : Looper::looper_node<Node>
           halp_meta(spacing, 6)
           halp_meta(columns, 2)
           halp::item<&ins::start_from> start_from;
-          halp::item<&ins::speed> speed;
-          halp::item<&ins::follow_tempo> follow_tempo;
-          halp::item<&ins::reverse> reverse;
         } play;
         Looper::switches_tab<ins> switches;
         Looper::layers_tab<ins> layers;
+        Looper::speed_tab<ins> speed;
         struct
         {
           halp_meta(name, "Overdub")
@@ -501,12 +502,6 @@ struct Node : Looper::looper_node<Node>
           halp::item<&ins::in_channel> in_channel;
           halp::item<&ins::out_channel> out_channel;
         } notes;
-        struct
-        {
-          halp_meta(name, "Capture")
-          halp_meta(layout, halp::layouts::hbox)
-          halp::item<&ins::capture_bars> capture_bars;
-        } capture;
       } settings;
     } controls;
 
@@ -538,6 +533,8 @@ private:
   friend struct Looper::looper_node<Node>;
 
   // looper_node's hooks
+  //! An overdub pass is a layer from its first event on.
+  static constexpr bool passes_wait_for_material = true;
   Looper::midi_loop& stack() noexcept { return loop; }
   const Looper::midi_loop& stack() const noexcept { return loop; }
   //! The notes of the loop end: the ones of a pass that goes would be left
@@ -1174,6 +1171,7 @@ inline void Node::handle_input(
 
 inline void Node::record_control(int64_t pos, const libremidi::message& m, bool backwards)
 {
+  material_arriving();
   const Looper::midi_control c{
       .pos = pos,
       .status = m.bytes[0],
@@ -1205,7 +1203,7 @@ inline void Node::record_control(int64_t pos, const libremidi::message& m, bool 
 //! values last set hold from there.
 inline void Node::close_backwards(int64_t boundary)
 {
-  if(loop.length <= 0)
+  if(loop.length <= 0 || pass_pending())
     return;
   boundary %= loop.length;
   for(int i = 0; i < m_last_ctl_count; i++)
@@ -1217,6 +1215,7 @@ inline void Node::close_backwards(int64_t boundary)
 
 inline void Node::record_note_on(int64_t pos, const libremidi::message& m)
 {
+  material_arriving();
   loop.add_note(pos, mtk::channel_of(m), m.bytes[1], m.bytes[2]);
 }
 
@@ -1250,6 +1249,7 @@ inline void Node::begin_pass_grace(int64_t pos)
     const auto& e = m_early[i];
     if(m_now - e.on > grace)
       continue;
+    material_arriving();
     if(auto* n = loop.add_note(pos, e.channel, e.pitch, e.velocity); n && e.off >= 0)
       n->length = std::max<int64_t>(1, e.off - e.on);
   }
@@ -1272,16 +1272,18 @@ inline void Node::begin_pass_carried(int64_t k)
   {
     const auto& c = m_carried_notes[i];
     const int64_t pos = from_point ? c.start % len : k;
+    material_arriving();
     if(auto* n = loop.add_note(pos, c.channel, c.pitch, c.velocity); n && c.length >= 0)
       n->length = std::max<int64_t>(1, c.length);
   }
   for(int i = 0; i < m_carried_control_count; i++)
   {
     const auto& c = m_carried_controls[i];
+    material_arriving();
     loop.add_control(from_point ? c.pos % len : k, c.status, c.data1, c.data2);
   }
   if(from_point)
-    loop.advance_pass(double(m_carried_span));
+    pass_advanced(double(m_carried_span), false);
   m_carried_note_count = 0;
   m_carried_control_count = 0;
   m_carried_span = 0;
@@ -1423,13 +1425,14 @@ inline void Node::advance(int64_t start, int64_t length, bool overdub)
                               : int64_t(std::ceil(out_end - 1e-9));
     handle_input(from, to, y + (from - out) * r, overdub, r, back);
     if(overdub)
-      loop.advance_pass(b - y, back);
+      pass_advanced(b - y, back);
 
     out += seg_out;
     y = b;
     if(y >= L - 1e-9)
     {
-      if(extend && loop.extend(m_extend_unit, int64_t(max_loop_seconds * m_rate)))
+      if(extend
+         && loop.extend(m_extend_unit, int64_t(max_loop_seconds * m_rate), !pass_pending()))
       {
         // A cycle is the loop's length when the overdub started: the loop
         // growing by one is a cycle gone round as well.
@@ -1695,7 +1698,7 @@ inline void Node::start_export(int passes, bool open, bool)
     m_export_loop.taking = false;
   }
   m_export_pos = loop.length > 0 ? transport.playbackPos % loop.length : 0;
-  write_export_item(m_export_mix ? -1 : 0);
+  write_export_item(m_export_first);
 }
 
 //! Writes one file of the take: what is heard of the loop (item -1), or what

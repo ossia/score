@@ -7,6 +7,7 @@
 
 #include <algorithm>
 #include <array>
+#include <chrono>
 #include <cmath>
 #include <cstdint>
 #include <cstdio>
@@ -43,19 +44,22 @@ struct view_note
 //! With `take` set, it asks instead for a take of the loop as it is heard
 //! now, the pass being taken in included as far as it went: `take` numbers
 //! the request, which view_message::answered gives back once it is written.
+//! With `last` set as well, the take is only the files of passes `pass` to
+//! `last` of the `layers` the view showed, given back as the message's part.
 struct erase_request
 {
   int pass;
   int layers;
   bool mute{};
   int take{};
+  int last{-1};
 };
 
 //! What a looper shows of itself, sent about thirty times a second. Trivial,
 //! so that it is copied as it is to the UI.
 struct view_message
 {
-  static constexpr int max_lanes = 8;
+  static constexpr int max_lanes = 32;
   static constexpr int bins = 192;
   static constexpr int max_notes = 768;
 
@@ -122,6 +126,21 @@ struct view_message
   //! The last take the view asked for that is written, or that there was no
   //! loop to make: the last take is the one it asked for, or a later one.
   int answered;
+  //! Counts the changes of the passes: the last take has the passes as they
+  //! are when the two are the same, and no pass is taken in.
+  int version;
+  int take_version;
+  //! The files of some passes alone, written when the view asked for them:
+  //! <part_base>-layer<k>.<take_ext> for k from part_first + 1 to
+  //! part_last + 1. part_answer is the request they answer, part_answered
+  //! the last request answered, with them or with nothing.
+  std::array<char, 512> part_base;
+  int part_answered;
+  int part_first;
+  int part_last;
+  int part_answer;
+  bool part_placeable;
+  halp::clip_stretch part_stretch;
 
   void set_take(
       std::string_view base, std::string_view ext, bool mix, int layers,
@@ -140,6 +159,32 @@ struct view_message
     take_stretch = stretch;
   }
 
+  void set_part(
+      std::string_view base, int first, int last, int request, halp::clip_stretch stretch,
+      bool placeable) noexcept
+  {
+    const auto n = std::min(base.size(), part_base.size() - 1);
+    std::copy_n(base.data(), n, part_base.data());
+    part_base[n] = 0;
+    part_first = first;
+    part_last = last;
+    part_answer = request;
+    part_stretch = stretch;
+    part_placeable = placeable;
+  }
+
+  //! UI thread: the files of passes `first` to `last` of a take of `base`.
+  std::vector<std::string> layer_files(const char* base_chars, int first, int last) const
+  {
+    std::vector<std::string> files;
+    const std::string base{base_chars}, ext{take_ext.data()};
+    if(base.empty())
+      return files;
+    for(int k = first; k <= last; k++)
+      files.push_back(base + "-layer" + std::to_string(k + 1) + "." + ext);
+    return files;
+  }
+
   //! UI thread: the paths of the last take's files, the mix first.
   std::vector<std::string> take_files() const
   {
@@ -149,16 +194,23 @@ struct view_message
       return files;
     if(take_mix)
       files.push_back(base + "." + ext);
-    for(int k = 0; k < take_layers; k++)
-      files.push_back(base + "-layer" + std::to_string(k + 1) + "." + ext);
+    auto layers = layer_files(take_base.data(), 0, take_layers - 1);
+    files.insert(files.end(), layers.begin(), layers.end());
     return files;
+  }
+
+  //! UI thread: the files of the part last written.
+  std::vector<std::string> part_files() const
+  {
+    return layer_files(part_base.data(), part_first, part_last);
   }
 };
 
 struct looper_view
 {
   static constexpr double width() { return 360.; }
-  //! Tall enough for eight lanes of 26 pixels under the header.
+  //! As tall as the looper's settings next to it. The size does not change
+  //! with the lanes: they share the room under the header.
   static constexpr double height() { return 238.; }
   static constexpr double header = 26.;
   static constexpr double send_w = 56.;
@@ -181,8 +233,31 @@ struct looper_view
   int m_waiting{};
   bool m_send_waiting{};
 
+  //! A running looper sends some thirty messages a second. One that has sent
+  //! none for longer is paused or gone with the score's stop: what it showed
+  //! last is not being taken in any more, and a take asked of it may never
+  //! come, so the last take is the one there is.
+  using clock = std::chrono::steady_clock;
+  static constexpr auto silent_after = std::chrono::milliseconds(300);
+  clock::time_point m_last_message{};
+  bool live() const noexcept
+  {
+    return has_state && clock::now() - m_last_message < silent_after;
+  }
+  //! A take asked for is still awaited from a looper that runs.
+  bool waiting() const noexcept { return m_waiting > 0 && live(); }
+
   void receive(const view_message& m) noexcept
   {
+    // After a silence the looper may be another one, made when the score
+    // played again, which knows nothing of what was asked before.
+    if(!live())
+    {
+      m_waiting = 0;
+      m_send_waiting = false;
+      m_part_waiting = 0;
+    }
+    m_last_message = clock::now();
     state = m;
     has_state = true;
     if(m_waiting > 0 && m.answered >= m_waiting)
@@ -191,8 +266,96 @@ struct looper_view
       if(std::exchange(m_send_waiting, false))
         send_now();
     }
+    if(m_part_waiting > 0 && m.part_answered >= m_part_waiting)
+    {
+      // Answered with the files, or with nothing when the loop changed.
+      if(m.part_answer == m_part_waiting)
+      {
+        m_part_files = m.part_files();
+        m_part_placeable = m.part_placeable;
+        m_part_stretch = m.part_stretch;
+      }
+      else
+        m_part_files.clear();
+      m_part_waiting = 0;
+    }
     if(update)
       update();
+  }
+
+  //! A lane's own drag: the files of its passes alone. The last take has them
+  //! when it has a file per pass and the passes did not change since; else
+  //! the view asks for them, the lane shows it is preparing them, and the
+  //! drag starts with the next move once they are there.
+  int m_part_waiting{};
+  int m_part_lane{-1};
+  int m_part_first{-1};
+  int m_part_last{-1};
+  std::vector<std::string> m_part_files;
+  bool m_part_placeable{};
+  halp::clip_stretch m_part_stretch{};
+  //! A press on the header's button: a click sends the take, a drag from it
+  //! drags all of its files.
+  bool m_button_pressed{};
+  mutable bool m_dragged{};
+
+  //! The passes of a lane, from the oldest: the oldest passes share the
+  //! first lane when there are more passes than lanes.
+  std::pair<int, int> lane_passes(int lane) const noexcept
+  {
+    const auto& s = state;
+    if(!has_state || s.empty || lane < 0 || lane >= s.lanes)
+      return {-1, -1};
+    const int merged = s.layers - s.lanes;
+    if(merged > 0 && lane == 0)
+      return {0, merged};
+    return {lane + std::max(0, merged), lane + std::max(0, merged)};
+  }
+
+  //! The last take has the passes as they are, each in a file.
+  bool take_has_layers() const noexcept
+  {
+    return placeable() && !taking_in() && state.take_layers >= state.layers
+           && state.take_version == state.version && state.take_layers > 0;
+  }
+
+  //! The files a lane drags as it is now: empty while they are to be asked
+  //! for or being written.
+  std::vector<std::string> lane_files(int lane) const
+  {
+    const auto [first, last] = lane_passes(lane);
+    if(first < 0)
+      return {};
+    if(take_has_layers())
+      return state.layer_files(state.take_base.data(), first, last);
+    // Written for the press that asked for them: the next press asks again.
+    if(m_part_waiting == 0 && m_part_first == first && m_part_last == last
+       && m_part_placeable)
+      return m_part_files;
+    return {};
+  }
+
+  //! Asks for the files of a lane's passes, unless they are being asked for.
+  void request_part(int lane)
+  {
+    const auto [first, last] = lane_passes(lane);
+    if(first < 0 || !erase || !live() || m_part_waiting > 0)
+      return;
+    m_requests = std::max({m_requests, state.answered, state.part_answered}) + 1;
+    m_part_waiting = m_requests;
+    m_part_lane = lane;
+    m_part_first = first;
+    m_part_last = last;
+    m_part_files.clear();
+    erase(erase_request{
+        .pass = first, .layers = state.layers, .mute = false, .take = m_part_waiting,
+        .last = last});
+    if(update)
+      update();
+  }
+  bool preparing(int lane) const noexcept
+  {
+    return m_part_waiting > 0 && live() && m_part_lane == lane;
   }
 
   bool has_take() const noexcept { return has_state && state.take > 0 && state.take_base[0]; }
@@ -202,21 +365,23 @@ struct looper_view
   //! A pass is being taken in: the last take does not have it.
   bool taking_in() const noexcept
   {
-    if(!has_state || state.empty)
+    if(!live() || state.empty)
       return false;
     const auto m = LoopMode(state.mode);
     return m == LoopMode::Record || m == LoopMode::Overdub;
   }
-  bool saving() const noexcept { return m_waiting > 0 || (has_state && state.writing); }
+  bool saving() const noexcept { return waiting() || (live() && state.writing); }
 
   //! Asks for a take of the loop as it is now, unless one was asked already.
   void request_take()
   {
-    if(m_waiting > 0 || !erase)
+    if(waiting() || !erase)
       return;
     // Above what the looper answered already: another view of it may have
     // asked before.
-    m_requests = std::max(m_requests, has_state ? state.answered : 0) + 1;
+    m_requests = std::max({m_requests, has_state ? state.answered : 0,
+                           has_state ? state.part_answered : 0})
+                 + 1;
     m_waiting = m_requests;
     erase(erase_request{.pass = -1, .layers = -1, .mute = false, .take = m_waiting});
     if(update)
@@ -378,9 +543,15 @@ struct looper_view
       ctx.fill();
       const rgba label = enabled ? rgba{235, 240, 245, 255} : rgba{110, 110, 116, 255};
       ctx.set_fill_color({label.r, label.g, label.b, label.a});
+      // A grip: the button is also where the whole take is dragged from.
+      ctx.begin_path();
+      for(int row = 0; row < 3; row++)
+        for(int col = 0; col < 2; col++)
+          ctx.draw_rect(w - send_w + 1. + col * 3., cy - 4. + row * 3.5, 1.5, 1.5);
+      ctx.fill();
       ctx.begin_path();
       ctx.draw_text(
-          w - send_w + 6., cy + 4., saving() ? "Saving" : (file_only ? "File" : "Send"));
+          w - send_w + 9., cy + 4., saving() ? "Saving" : (file_only ? "File" : "Send"));
       ctx.fill();
     }
 
@@ -413,7 +584,7 @@ struct looper_view
     ctx.set_stroke_width(2.);
     ctx.begin_path();
     ctx.move_to(x, top);
-    ctx.line_to(x, top + lanes_h);
+    ctx.line_to(x, top + lane_count() * lane_height());
     ctx.stroke();
     ctx.set_stroke_width(1.);
     {
@@ -428,6 +599,24 @@ struct looper_view
     }
 
     paint_erase_boxes(ctx);
+    paint_preparing(ctx);
+  }
+
+  //! The lane whose files are being written for a drag.
+  void paint_preparing(auto& ctx)
+  {
+    if(m_part_waiting <= 0 || !live() || m_part_lane < 0 || m_part_lane >= lane_count())
+      return;
+    const double lh = lane_height();
+    const double y = lanes_top + m_part_lane * lh;
+    ctx.set_fill_color({24, 24, 26, 170});
+    ctx.begin_path();
+    ctx.draw_rect(lanes_x, y + 1., lanes_width(), lh - 2.);
+    ctx.fill();
+    ctx.set_fill_color({235, 240, 245, 255});
+    ctx.begin_path();
+    ctx.draw_text(lanes_x + 8., y + lh / 2. + 4., "Preparing");
+    ctx.fill();
   }
 
   //! The speed the loop plays at, empty at x1.
@@ -446,7 +635,14 @@ struct looper_view
   static double lanes_height() noexcept { return height() - header - 4.; }
   static double lanes_width() noexcept { return width() - 8.; }
   int lane_count() const noexcept { return std::max(1, state.lanes); }
-  double lane_height() const noexcept { return lanes_height() / lane_count(); }
+  //! A lane is not taller than this, so that a few lanes stay a size a lane
+  //! reads at, and not shorter than that, which max_lanes lanes fit in.
+  static constexpr double max_lane_height = 72.;
+  static constexpr double min_lane_height = 6.;
+  double lane_height() const noexcept
+  {
+    return std::clamp(lanes_height() / lane_count(), min_lane_height, max_lane_height);
+  }
 
   //! The pass a lane shows alone, -1 for a lane of several passes or none.
   int pass_of_lane(int lane) const noexcept
@@ -473,7 +669,7 @@ struct looper_view
   box erase_box(int lane) const noexcept
   {
     const double lh = lane_height();
-    const double size = std::clamp(lh - 4., 8., 12.);
+    const double size = std::clamp(lh - 3., 5., 12.);
     const double y = lanes_top + lane * lh + (lh - size) / 2.;
     return {lanes_x + lanes_width() - size - 3., y, size};
   }
@@ -588,11 +784,11 @@ struct looper_view
     }
   }
 
-  void paint_lanes(auto& ctx, double top, double lanes_h)
+  void paint_lanes(auto& ctx, double top, double)
   {
     const auto& s = state;
     const int lanes = std::max(1, s.lanes);
-    const double lh = lanes_h / lanes;
+    const double lh = lane_height();
     const double x0 = 4., lw = width() - 8.;
     const double bw = lw / view_message::bins;
     for(int l = 0; l < lanes; l++)
@@ -624,11 +820,11 @@ struct looper_view
 
   //! One small piano roll per lane, over the pitches of that lane. Notes
   //! that are not heard are dimmed.
-  void paint_notes(auto& ctx, double top, double lanes_h)
+  void paint_notes(auto& ctx, double top, double)
   {
     const auto& s = state;
     const int lanes = std::max(1, s.lanes);
-    const double lh = lanes_h / lanes;
+    const double lh = lane_height();
     const double x0 = 4., lw = width() - 8.;
 
     std::array<int, view_message::max_lanes> lo, hi;
@@ -692,11 +888,11 @@ struct looper_view
   //! lane holds; what is not a number as a line across the lane's middle;
   //! impulses and the start of values that are not numbers as ticks. What is
   //! not heard is dimmed.
-  void paint_values(auto& ctx, double top, double lanes_h)
+  void paint_values(auto& ctx, double top, double)
   {
     const auto& s = state;
     const int lanes = std::max(1, s.lanes);
-    const double lh = lanes_h / lanes;
+    const double lh = lane_height();
     const double x0 = 4., lw = width() - 8.;
     const double bw = lw / view_message::bins;
     for(int l = 0; l < lanes; l++)
@@ -777,11 +973,32 @@ struct looper_view
     return x >= width() - send_w - 4. && x <= width() - 4. && y >= 4. && y <= header - 4.;
   }
 
+  //! The lane at (x, y), -1 for none.
+  int lane_at(double x, double y) const noexcept
+  {
+    if(!has_state || state.empty || x < lanes_x || x > lanes_x + lanes_width())
+      return -1;
+    const double lh = lane_height();
+    if(y < lanes_top || y >= lanes_top + lane_count() * lh)
+      return -1;
+    return std::min(lane_count() - 1, int((y - lanes_top) / lh));
+  }
+
   bool mouse_press(double x, double y)
   {
+    m_dragged = false;
+    m_button_pressed = false;
+    if(m_part_waiting == 0)
+    {
+      m_part_files.clear();
+      m_part_first = m_part_last = -1;
+    }
     if(in_send(x, y))
     {
-      send();
+      // The take is asked for at once: a drag waits for it, a click sends it.
+      m_button_pressed = true;
+      if(taking_in() && erase)
+        request_take();
       return true;
     }
     if(const int lane = erase_lane_at(x, y); lane >= 0)
@@ -794,30 +1011,56 @@ struct looper_view
       erase(erase_request{.pass = pass_of_lane(lane), .layers = state.layers, .mute = true});
       return true;
     }
-    // Pressing elsewhere is the start of a drag of the take.
-    if(taking_in() && erase)
+    // A press on a lane is the start of a drag of its passes.
+    const int lane = lane_at(x, y);
+    if(lane < 0)
+      return false;
+    if(!lane_files(lane).empty())
+      return true;
+    if(live() && erase)
     {
-      request_take();
+      request_part(lane);
       return true;
     }
-    return has_take();
+    return false;
   }
   void mouse_move(double, double) { }
-  void mouse_release(double, double) { }
+  void mouse_release(double x, double y)
+  {
+    if(std::exchange(m_button_pressed, false) && !m_dragged && in_send(x, y))
+      send();
+  }
 
   halp::drag_payload drag_payload(double x, double y) const
   {
     halp::drag_payload p;
-    if(m_waiting > 0)
-      return p;
-    if(placeable() && !in_send(x, y) && erase_lane_at(x, y) < 0 && mute_lane_at(x, y) < 0)
+    halp::clip_stretch stretch = state.take_stretch;
+    if(in_send(x, y))
     {
+      // The whole take.
+      if(waiting() || !placeable())
+        return p;
       p.files = state.take_files();
-      p.data = Process::encode_clip_metadata(p.files, state.take_stretch);
-      if(!p.data.empty())
-        p.mime = Process::clip_metadata_mime;
     }
+    else if(const int lane = lane_at(x, y);
+            lane >= 0 && erase_lane_at(x, y) < 0 && mute_lane_at(x, y) < 0)
+    {
+      if(preparing(lane))
+        return p;
+      p.files = lane_files(lane);
+      if(!take_has_layers())
+        stretch = m_part_stretch;
+    }
+    if(p.files.empty())
+      return p;
+    m_dragged = true;
+    p.data = Process::encode_clip_metadata(p.files, stretch);
+    if(!p.data.empty())
+      p.mime = Process::clip_metadata_mime;
     return p;
   }
 };
+static_assert(
+    view_message::max_lanes * looper_view::min_lane_height
+    <= looper_view::height() - looper_view::header - 4.);
 }

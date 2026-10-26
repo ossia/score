@@ -93,6 +93,19 @@ namespace Nodes::Looper
  *   halp::clip_stretch take_stretch() const;
  *   bool view_full() const;
  *   bool view_writing() const;
+ *
+ * A looper may also say that an overdub pass is a layer only once something
+ * comes in for it:
+ *
+ *   static constexpr bool passes_wait_for_material = true;
+ *
+ * Such a pass starts open but out of the stack: it is not a layer, makes no
+ * room at Max layers, drops nothing redo would bring back, and the overdub
+ * goes on over it. The looper calls material_arriving() before it records
+ * the first thing of a pass, which makes the pass a layer starting where the
+ * overdub began, as far as it went; and pass_advanced() for what the pass
+ * goes over. A pass that never gets anything is no layer, no take, no merge.
+ * A looper that does not say so makes its passes layers as they start.
  */
 template <typename Node>
 struct looper_node
@@ -126,13 +139,71 @@ struct looper_node
   {
     if(stack().layers[pass].muted == muted)
       return;
-    self().layers_changing();
+    passes_changing();
     stack().set_muted(pass, muted);
   }
   void looper_mute(int pass) { mute_pass(pass); }
   void looper_erase(int pass) { erase_pass(pass); }
 
 protected:
+  static constexpr bool lazy_passes() noexcept
+  {
+    if constexpr(requires { Node::passes_wait_for_material; })
+      return Node::passes_wait_for_material;
+    else
+      return false;
+  }
+
+  //! An overdub pass is open that nothing came in for yet: it is not in the
+  //! stack.
+  bool pass_pending() const noexcept { return m_pass_pending; }
+  //! A pass is open in the stack.
+  bool pass_open() const noexcept { return transport.is_taking() && !m_pass_pending; }
+
+  //! Something comes in for the pass being taken in: a pass still waiting
+  //! for it becomes a layer, from where the overdub began.
+  void material_arriving()
+  {
+    if(!std::exchange(m_pass_pending, false))
+      return;
+    begin_pass_now(m_pending_start);
+    // Undoing it gives back the loop as it was when the overdub began, before
+    // it grew.
+    if(auto* top = stack().top())
+      top->loop_before = m_pending_length;
+    if constexpr(lazy_passes())
+      if(m_pending_progress > 0.)
+        stack().advance_pass(m_pending_progress, m_pending_backwards);
+  }
+  //! The pass being taken in went over `frames` more frames of the loop.
+  void pass_advanced(double frames, bool backwards)
+  {
+    if(m_pass_pending)
+    {
+      m_pending_progress += frames;
+      m_pending_backwards = backwards;
+    }
+    else if constexpr(lazy_passes())
+      stack().advance_pass(frames, backwards);
+  }
+  //! The frames the pass being taken in went over.
+  double pass_progress() const noexcept
+  {
+    if(m_pass_pending)
+      return m_pending_progress;
+    if constexpr(lazy_passes())
+      return stack().pass_progress;
+    else
+      return 0.;
+  }
+
+  //! The passes, or what is heard of them, are about to change.
+  void passes_changing()
+  {
+    m_version++;
+    self().layers_changing();
+  }
+
   Node& self() noexcept { return static_cast<Node&>(*this); }
   const Node& self() const noexcept { return static_cast<const Node&>(*this); }
   auto& stack() noexcept { return self().stack(); }
@@ -141,6 +212,11 @@ protected:
   //! From the view: applied at the start of the next tick.
   void view_request(const Looper::erase_request& r) noexcept
   {
+    if(r.take > 0 && r.last >= 0)
+    {
+      m_part_request = r;
+      return;
+    }
     if(r.take > 0)
     {
       m_take_request = std::max(m_take_request, r.take);
@@ -161,6 +237,7 @@ protected:
   void mute_pass(int pass);
   int make_room();
   void begin_pass(int64_t start);
+  void begin_pass_now(int64_t start);
   void close_pass(bool cycle = false);
   void merge_extra_pass();
   void capture(const tick& tk);
@@ -263,6 +340,22 @@ protected:
   //! answers.
   int m_take_request{};
   int m_job_request{};
+  //! The files of some passes alone the view asked for, the take being
+  //! written being those, and the first file of the take.
+  Looper::erase_request m_part_request{.pass = -1, .layers = -1};
+  bool m_job_part{};
+  int m_export_first{};
+  //! Counts the changes of the passes, and what it was when the take being
+  //! written started.
+  int m_version{};
+  int m_job_version{};
+  //! The overdub pass waiting for something to come in: where it began, the
+  //! frames it went over and which way.
+  bool m_pass_pending{};
+  int64_t m_pending_start{};
+  int64_t m_pending_length{};
+  double m_pending_progress{};
+  bool m_pending_backwards{};
   int m_next_take_slot{};
 
   int64_t m_view_countdown{};
@@ -337,18 +430,18 @@ void looper_node<Node>::apply_buttons()
     m_switches.soloed.forget();
   if(in.undo.value)
   {
-    if(transport.is_taking())
+    if(pass_open())
       drop_taken_pass();
     else
     {
-      self().layers_changing();
+      passes_changing();
       undo_pass();
     }
   }
 
-  if(in.redo.value && !transport.is_taking())
+  if(in.redo.value && !pass_open())
   {
-    self().layers_changing();
+    passes_changing();
     const int out = stack().leaves_on_redo();
     if(stack().redo())
     {
@@ -365,9 +458,10 @@ template <typename Node>
 void looper_node<Node>::clear_loop()
 {
   m_switches.soloed.forget();
-  self().layers_changing();
+  passes_changing();
   self().cleared();
   stack().clear();
+  m_pass_pending = false;
   transport.playbackPos = 0;
   // Whatever was being taken in is gone with the rest.
   if(transport.is_taking())
@@ -381,7 +475,7 @@ void looper_node<Node>::clear_loop()
 template <typename Node>
 void looper_node<Node>::drop_taken_pass()
 {
-  self().layers_changing();
+  passes_changing();
   if(transport.actualMode == LoopMode::Record)
   {
     stack().clear();
@@ -418,11 +512,11 @@ void looper_node<Node>::erase_pass(int pass)
   m_switches.soloed.forget();
   if(st.count == 1)
     clear_loop();
-  else if(transport.is_taking() && pass == st.count - 1)
+  else if(pass_open() && pass == st.count - 1)
     drop_taken_pass();
   else
   {
-    self().layers_changing();
+    passes_changing();
     if(st.erase(pass))
       m_switches.removed(self().inputs, pass);
   }
@@ -436,7 +530,7 @@ void looper_node<Node>::mute_pass(int pass)
   if(pass < 0 || pass >= st.count || self().busy())
     return;
   m_switches.soloed.forget();
-  self().layers_changing();
+  passes_changing();
   st.set_muted(pass, !st.layers[pass].muted);
 }
 
@@ -458,7 +552,7 @@ int looper_node<Node>::make_room()
       break;
     }
   m_switches.soloed.forget();
-  self().layers_changing();
+  passes_changing();
   m_switches.removed(self().inputs, pass);
   return pass;
 }
@@ -468,6 +562,22 @@ int looper_node<Node>::make_room()
 template <typename Node>
 void looper_node<Node>::begin_pass(int64_t start)
 {
+  if constexpr(lazy_passes())
+  {
+    m_pass_pending = true;
+    m_pending_start = start;
+    m_pending_length = stack().length;
+    m_pending_progress = 0.;
+    m_pending_backwards = false;
+    return;
+  }
+  begin_pass_now(start);
+}
+
+template <typename Node>
+void looper_node<Node>::begin_pass_now(int64_t start)
+{
+  m_version++;
   const int replaced = make_room();
   self().begin_overdub(
       start, self().inputs.at_max_layers.value == Looper::AtMaxLayers::MergeOldest,
@@ -480,6 +590,13 @@ void looper_node<Node>::begin_pass(int64_t start)
 template <typename Node>
 void looper_node<Node>::close_pass(bool cycle)
 {
+  // Nothing came in: there is no pass to close.
+  if(std::exchange(m_pass_pending, false))
+  {
+    if(!cycle)
+      m_extended = false;
+    return;
+  }
   auto* top = stack().top();
   if(!top)
     return;
@@ -487,6 +604,7 @@ void looper_node<Node>::close_pass(bool cycle)
   // stop.
   if(!cycle)
     m_extended = false;
+  m_version++;
   m_export_pending = true;
   if(!self().pass_closing())
     return;
@@ -501,7 +619,7 @@ void looper_node<Node>::merge_extra_pass()
   if(self().inputs.at_max_layers.value == Looper::AtMaxLayers::MergeIntoNewest
      && stack().count > self().max_layers() && self().can_merge_newest())
   {
-    self().layers_changing();
+    passes_changing();
     self().merge_newest();
   }
 }
@@ -542,8 +660,16 @@ void looper_node<Node>::looper_close_take(
   }
   else
   {
+    // An overdub that got nothing leaves no take.
+    if(m_pass_pending)
+    {
+      self().close_overdub();
+      m_extended = false;
+      return;
+    }
     self().close_overdub();
   }
+  m_version++;
   m_extended = false;
   m_export_pending = true;
 }
@@ -560,7 +686,16 @@ int64_t looper_node<Node>::looper_trim_extension(int64_t max_frames)
   const int64_t into_last = transport.playbackPos - end;
   if(into_last < 0 || into_last > max_frames || end < m_extend_unit)
     return -1;
-  if(st.count > 1 && self().cut_after(end))
+  if(m_pass_pending)
+  {
+    // The pass after the cut got nothing: it was never a layer.
+    m_pass_pending = false;
+    self().cut_pass_dropped();
+    st.length = end;
+    if(auto* t = st.top())
+      t->loop_after = end;
+  }
+  else if(st.count > 1 && self().cut_after(end))
   {
     // A pass per cycle cut the overdub on the old end: the pass after the cut
     // has nothing left, and goes as undo takes a pass out. The one before it
@@ -578,6 +713,7 @@ int64_t looper_node<Node>::looper_trim_extension(int64_t max_frames)
     self().trim_top_pass(end);
     st.length = end;
   }
+  m_version++;
   m_extended = false;
   self().head_moved(into_last);
   return into_last;
@@ -655,7 +791,7 @@ void looper_node<Node>::capture(const tick& tk)
   if(n <= 0)
     return;
 
-  self().layers_changing();
+  passes_changing();
   m_switches.soloed.forget();
   self().capture_into(end, n);
 
@@ -678,7 +814,9 @@ template <typename Node>
 void looper_node<Node>::stop_score()
 {
   auto& st = stack();
-  const bool taking = transport.is_taking();
+  // A pass that got nothing is no take.
+  const bool taking = pass_open();
+  m_pass_pending = false;
   const bool recording = taking && transport.actualMode == LoopMode::Record;
   const double date
       = recording ? transport.recordStartDate.impl / double(ossia::flicks_per_second<int64_t>)
@@ -714,13 +852,47 @@ void looper_node<Node>::run_export()
     m_view.answered = m_take_request;
     m_view_countdown = 0;
   }
+  // Passes asked for alone, of the loop the view showed: one that changed
+  // since has nothing to give.
+  auto& part = m_part_request;
+  const bool part_asked = part.take > m_view.part_answered;
+  if(part_asked
+     && (st.empty() || part.layers != st.count || part.pass < 0 || part.last < part.pass
+         || part.last >= st.count))
+  {
+    m_view.part_answered = part.take;
+    part.take = 0;
+    m_view_countdown = 0;
+  }
+  else if(
+      part_asked && !m_writing && self().writer && self().export_ready())
+  {
+    // The files of the passes as they are now, the one taken in as far as it
+    // went, under a take number of their own.
+    m_job_part = true;
+    m_job_request = part.take;
+    part.take = 0;
+    const bool open = pass_open();
+    const bool recording = open && transport.actualMode == LoopMode::Record;
+    m_job_stretch = self().take_stretch();
+    m_export_tempo = recording ? m_tempo : m_loop_tempo;
+    m_export_signature = m_signature;
+    m_export_mix = false;
+    m_export_first = part.pass;
+    m_export_layers = part.last + 1;
+    m_export_number = 0;
+    m_export_slot = claim_take_slot();
+    self().start_export(st.count, open, recording);
+  }
   else if(
       (m_export_pending || asked) && !m_writing && self().writer && !st.empty()
       && self().export_ready())
   {
     m_export_pending = false;
+    m_job_part = false;
     m_job_request = m_take_request;
-    const bool open = asked && transport.is_taking();
+    m_job_version = m_version;
+    const bool open = asked && pass_open();
     const bool recording = open && transport.actualMode == LoopMode::Record;
     if(recording)
       m_export_date = transport.recordStartDate.impl / double(ossia::flicks_per_second<int64_t>);
@@ -729,10 +901,11 @@ void looper_node<Node>::run_export()
     m_export_tempo = recording ? m_tempo : m_loop_tempo;
     m_export_signature = m_signature;
     const int passes
-        = open || !transport.is_taking() ? st.count : std::max(1, st.count - 1);
+        = open || !pass_open() ? st.count : std::max(1, st.count - 1);
     const auto files = self().inputs.exported.value;
     m_export_mix = files != Looper::TakeFiles::Layers;
     m_export_layers = files != Looper::TakeFiles::Mix ? passes : 0;
+    m_export_first = m_export_mix ? -1 : 0;
     m_export_number = 0;
     m_export_slot = claim_take_slot();
     self().start_export(passes, open, recording);
@@ -754,6 +927,7 @@ void looper_node<Node>::take_written(int slot, int number, bool ok, bool alone)
         writer->take_base(slot), Node::take_extension, true, 0, m_stop_stretch,
         placeable_take());
     m_view.take = m_takes_written;
+    m_view.take_version = -1;
     m_view.take_date = m_stop_date;
     m_view_countdown = 0;
     return;
@@ -764,7 +938,9 @@ void looper_node<Node>::take_written(int slot, int number, bool ok, bool alone)
     // What was being written changed, or the file could not be: the take
     // stops there.
     self().take_released();
-    m_view.answered = std::max(m_view.answered, m_job_request);
+    auto& answered = m_job_part ? m_view.part_answered : m_view.answered;
+    answered = std::max(answered, m_job_request);
+    m_view_countdown = 0;
     return;
   }
 
@@ -776,7 +952,17 @@ void looper_node<Node>::take_written(int slot, int number, bool ok, bool alone)
   }
 
   self().take_released();
+  if(m_job_part)
+  {
+    m_view.set_part(
+        writer->take_base(slot), m_export_first, m_export_layers - 1, m_job_request,
+        m_job_stretch, placeable_take());
+    m_view.part_answered = std::max(m_view.part_answered, m_job_request);
+    m_view_countdown = 0;
+    return;
+  }
   m_takes_written++;
+  m_view.take_version = m_job_version;
   m_view.set_take(
       writer->take_base(slot), Node::take_extension, m_export_mix, m_export_layers,
       m_job_stretch, placeable_take());
@@ -805,6 +991,7 @@ void looper_node<Node>::fill_view(Looper::view_message& v) const noexcept
       = st.length > 0 ? float(transport.playbackPos % st.length) / float(st.length) : 0.f;
   v.tempo = float(m_tempo);
   v.writing = self().view_writing();
+  v.version = m_version;
   v.reverse = m_reverse;
   v.speed = float(m_speed);
   v.selected = self().inputs.layer.value - 1;

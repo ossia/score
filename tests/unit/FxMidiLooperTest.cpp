@@ -909,7 +909,16 @@ TEST_CASE("MIDI looper: an overdub at another tempo goes over the frames the loo
   h.tempo = 156.;
   h.node.inputs.mode = LoopMode::Overdub;
   for(int i = 0; i < 100; i++)
+  {
+    // A note at the start: the pass is a layer.
+    if(i == 0)
+    {
+      h.note_on(64, 0);
+      h.note_off(64, 5);
+    }
     h.run();
+  }
+  REQUIRE(h.node.loop.count == 2);
   CHECK(std::abs(h.node.loop.pass_written - 8320) <= 1);
 }
 
@@ -1155,8 +1164,7 @@ TEST_CASE("MIDI looper: the view shows a lane per pass, and follows an erase",
   CHECK(shown(last) == shown_t{{0, 60, false}, {0, 64, true}, {1, 60, true}});
 }
 
-TEST_CASE("MIDI looper: past eight passes the oldest share the first lane, and the "
-          "notes are shared out between the lanes",
+TEST_CASE("MIDI looper: a lane per pass, and the notes shared out between the lanes",
           "[fx][midi][looper][erase][view]")
 {
   midi_harness h;
@@ -1173,14 +1181,13 @@ TEST_CASE("MIDI looper: past eight passes the oldest share the first lane, and t
   REQUIRE(h.node.loop.count == 10);
   h.run_frames(2000);
 
-  CHECK(last.lanes == 8);
-  std::array<int, 8> per_lane{};
+  CHECK(last.lanes == 10);
+  std::array<int, 10> per_lane{};
   for(int i = 0; i < last.notes; i++)
     per_lane[last.note[i].lane]++;
-  // The first lane holds the three oldest passes and gets what the others
-  // leave of the message.
-  CHECK(per_lane[0] == Nodes::Looper::view_message::max_notes - 7);
-  for(int l = 1; l < 8; l++)
+  // The first pass gets what the others leave of the message.
+  CHECK(per_lane[0] == Nodes::Looper::view_message::max_notes - 9);
+  for(int l = 1; l < 10; l++)
     CHECK(per_lane[l] == 1);
 }
 
@@ -1196,9 +1203,10 @@ TEST_CASE("MIDI looper: erasing the pass being overdubbed is undoing it",
   REQUIRE(h.node.loop.count == 2);
 
   erase_layer(h, 2);
-  // The pass was dropped, and overdubbing carries on in a new one.
-  CHECK(h.node.loop.count == 2);
-  CHECK(h.node.loop.taking);
+  // The pass was dropped, and overdubbing carries on in a new one, a layer
+  // once something comes in.
+  CHECK(h.node.loop.count == 1);
+  CHECK(h.node.transport.is_taking());
   for(int i = 0; i < h.node.loop.note_count; i++)
     CHECK(h.node.loop.notes[i].pitch != 67);
   h.node.inputs.mode = LoopMode::Play;
@@ -1352,10 +1360,24 @@ TEST_CASE("Looper view: the x of a lane asks to erase its pass, and starts no dr
   CHECK(sent[0].pass == 1);
   CHECK(sent[0].layers == 3);
   CHECK(v.drag_payload(cx, cy).files.empty());
-  // Anywhere else, a press is the start of a drag of the take.
-  CHECK(!v.drag_payload(100., 60.).files.empty());
-  v.mouse_press(100., 60.);
-  CHECK(sent.size() == 1);
+  // Elsewhere on a lane, a press is the start of a drag of its pass alone,
+  // which the take, a mix only, does not have a file of: it is asked for.
+  const double lx = 100., ly = v.lanes_top + v.lane_height() / 2.;
+  CHECK(v.drag_payload(lx, ly).files.empty());
+  CHECK(v.mouse_press(lx, ly));
+  REQUIRE(sent.size() == 2);
+  CHECK(sent[1].take > 0);
+  CHECK(sent[1].pass == 0);
+  CHECK(sent[1].last == 0);
+  CHECK(sent[1].layers == 3);
+  CHECK(v.preparing(0));
+  CHECK(v.drag_payload(lx, ly).files.empty());
+  // Answered with nothing: the loop changed meanwhile.
+  m.part_answered = sent[1].take;
+  v.receive(m);
+  CHECK(!v.preparing(0));
+  CHECK(v.drag_payload(lx, ly).files.empty());
+  m.part_answered = 0;
 
   // Ten passes on eight lanes: the first lane holds three, and has no x.
   m.layers = 10;
@@ -1366,18 +1388,23 @@ TEST_CASE("Looper view: the x of a lane asks to erase its pass, and starts no dr
   CHECK(v.pass_of_lane(7) == 9);
   const auto b0 = v.erase_box(0);
   v.mouse_press(b0.x + b0.size / 2., b0.y + b0.size / 2.);
-  CHECK(sent.size() == 1);
+  // A press there is on the lane, which drags its three passes.
+  REQUIRE(sent.size() == 3);
+  CHECK(sent[2].pass == 0);
+  CHECK(sent[2].last == 2);
+  CHECK(sent[2].take > 0);
   const auto b7 = v.erase_box(7);
   v.mouse_press(b7.x + b7.size / 2., b7.y + b7.size / 2.);
-  REQUIRE(sent.size() == 2);
-  CHECK(sent[1].pass == 9);
-  CHECK(sent[1].layers == 10);
+  REQUIRE(sent.size() == 4);
+  CHECK(sent[3].pass == 9);
+  CHECK(sent[3].layers == 10);
+  CHECK(sent[3].take == 0);
 
   // An empty loop has nothing to erase.
   m.empty = true;
   v.receive(m);
   v.mouse_press(b7.x + b7.size / 2., b7.y + b7.size / 2.);
-  CHECK(sent.size() == 2);
+  CHECK(sent.size() == 4);
 }
 
 // ---------------------------------------------------------------------------
@@ -2059,10 +2086,33 @@ struct switches_harness : midi_harness
   }
   //! Merges of MIDI passes are done at once.
   void slow_merges() { }
+  //! Takes written in a folder of their own, as the worker would; how many
+  //! the view was told of.
+  std::unique_ptr<QTemporaryDir> take_dir;
+  int take_count{};
+  void enable_takes()
+  {
+    take_dir = std::make_unique<QTemporaryDir>();
+    auto w = std::make_shared<Nodes::Looper::take_writer>();
+    w->folder = take_dir->path();
+    w->prefix = "t";
+    w->extension = "take";
+    node.writer = w;
+    node.worker.request = [this](auto job) { Looper::worker_t::work(std::move(job))(node); };
+    node.send_message = [this](const Nodes::Looper::view_message& m) { take_count = m.take; };
+  }
+  int takes() const { return take_count; }
 };
 }
 
 #include "LooperSwitchesScenarios.hpp"
+
+TEST_CASE("MIDI looper switches: an overdub pass is a layer from its first event on",
+          "[fx][midi][looper][switches]")
+{
+  switches_harness h;
+  looper_switches::lazy_layers(h);
+}
 
 TEST_CASE("MIDI looper: a muted pass merged into the one under it leaves what that one "
           "plays alone",
@@ -2452,8 +2502,8 @@ TEST_CASE("MIDI looper switches: the actions allocate nothing", "[fx][midi][loop
     allocated = counter.allocations();
   }
   CHECK(allocated == 0);
-  // The last recording, overdubbed.
-  CHECK(h.passes() == 2);
+  // The last recording, overdubbed with nothing: no layer.
+  CHECK(h.passes() == 1);
   CHECK(h.shown_count > 5);
 }
 
@@ -2811,6 +2861,70 @@ TEST_CASE("MIDI looper: a take asked for while a pass is taken in has it as far 
   // Overdubbing goes on into the same pass.
   CHECK(h.node.loop.count == 2);
   CHECK(h.node.loop.taking);
+}
+
+TEST_CASE("MIDI looper: the files of a pass alone, asked for by a lane's drag",
+          "[fx][midi][looper][takes][drag]")
+{
+  QTemporaryDir dir;
+  REQUIRE(dir.isValid());
+  midi_harness h;
+  h.node.writer = temp_writer(dir);
+  h.node.worker.request = [&](Nodes::Looper::midi_take_job job) {
+    Looper::worker_t::work(std::move(job))(h.node);
+  };
+  auto view = std::make_unique<Nodes::Looper::view_message>();
+  h.node.send_message = [&](const Nodes::Looper::view_message& m) { *view = m; };
+
+  // A recording, then an overdub that goes on: the takes are of the mix.
+  h.node.inputs.mode = LoopMode::Record;
+  h.note_on(60, 10);
+  h.run();
+  h.note_off(60, 20);
+  h.run_frames(320);
+  h.node.inputs.mode = LoopMode::Overdub;
+  h.run_frames(320);
+  REQUIRE(view->take == 1);
+  h.note_on(67, 10);
+  h.run();
+  h.note_off(67, 20);
+  h.run_frames(64);
+  REQUIRE(h.node.loop.count == 2);
+
+  // The open pass alone, as far as it went.
+  h.node.process_message({.pass = 1, .layers = 2, .mute = false, .take = 1, .last = 1});
+  h.run_frames(64);
+  REQUIRE(view->part_answered == 1);
+  REQUIRE(view->part_answer == 1);
+  const auto files = view->part_files();
+  REQUIRE(files.size() == 1);
+  CHECK(QFileInfo::exists(QString::fromStdString(files[0])));
+  CHECK(take_pitches(QString::fromStdString(files[0])) == std::vector<int>{67});
+  // Only that file: no mix, no other layer. The last take is still the one.
+  CHECK(files[0] == dir.path().toStdString() + "/m-take2-layer2.mid");
+  CHECK(!QFileInfo::exists(dir.path() + "/m-take2.mid"));
+  CHECK(!QFileInfo::exists(dir.path() + "/m-take2-layer1.mid"));
+  CHECK(view->take == 1);
+  CHECK(view->answered == 0);
+
+  // The first pass alone; a later take does not take the number of a part.
+  h.node.process_message({.pass = 0, .layers = 2, .mute = false, .take = 2, .last = 0});
+  h.run_frames(64);
+  REQUIRE(view->part_answer == 2);
+  REQUIRE(view->part_files().size() == 1);
+  CHECK(take_pitches(QString::fromStdString(view->part_files()[0])) == std::vector<int>{60});
+  CHECK(view->part_files()[0] == dir.path().toStdString() + "/m-take3-layer1.mid");
+  h.node.process_message({.pass = -1, .layers = -1, .mute = false, .take = 3});
+  h.run_frames(64);
+  REQUIRE(view->answered == 3);
+  CHECK(view->take_files()
+        == std::vector<std::string>{dir.path().toStdString() + "/m-take4.mid"});
+
+  // Asked of a loop that changed since: answered with nothing.
+  h.node.process_message({.pass = 0, .layers = 5, .mute = false, .take = 4, .last = 0});
+  h.run_frames(64);
+  CHECK(view->part_answered == 4);
+  CHECK(view->part_answer == 2);
 }
 
 TEST_CASE("MIDI looper: the score stopping while a pass is taken in writes a take of the "

@@ -19,6 +19,12 @@
 //                                does; the next tick starts the score again
 //   h.tempo                      the tempo of the ticks to come
 //
+// The loopers whose overdub passes are layers only from their first event
+// on, the MIDI and the value looper, also have:
+//
+//   h.playing                    whether the input plays
+//   h.enable_takes(), h.takes()  takes written, and how many there are
+//
 // The grid is a quarter note: a mode asked for between two beats is taken up
 // on the tick that starts on the next one.
 
@@ -1540,6 +1546,155 @@ void merge_with_muted_layers(H& h)
     at_beat(h, in.mute_layer);
     CHECK(!h.muted(0));
     CHECK(same(h.signature(0), s0 + s1));
+  }
+}
+
+//! Waits for the tick on the next beat; where the loop is then.
+template <typename H>
+int64_t up_to_beat(H& h)
+{
+  while(h.now % H::beat != 0)
+    h.tick_once();
+  return h.position();
+}
+
+//! An overdub pass is a layer from its first event on: one that gets none
+//! is no layer, no take and no merge, and undo is as it was.
+template <typename H>
+void lazy_layers(H& h)
+{
+  auto& in = h.node.inputs;
+  h.enable_takes();
+  record_loop(h);
+  // The recording, and a layer over it.
+  at_beat(h, in.overdub);
+  beats(h, 1);
+  at_beat(h, in.play);
+  REQUIRE(h.passes() == 2);
+  REQUIRE(h.takes() == 2);
+  const double s0 = h.signature(0), s1 = h.signature(1);
+
+  SECTION("an overdub that gets nothing")
+  {
+    h.playing = false;
+    at_beat(h, in.overdub);
+    REQUIRE(mode(h) == LoopMode::Overdub);
+    beats(h, 6);
+    // It runs, over the whole loop and more, but is no layer.
+    CHECK(h.node.transport.is_taking());
+    CHECK(h.passes() == 2);
+    at_beat(h, in.play);
+    beats(h, 1);
+    CHECK(mode(h) == LoopMode::Play);
+    CHECK(h.passes() == 2);
+    CHECK(h.takes() == 2);
+    CHECK(same(h.signature(1), s1));
+    // Undo takes out the last layer there is.
+    press(h, in.undo);
+    CHECK(h.passes() == 1);
+    CHECK(same(h.signature(0), s0));
+    press(h, in.redo);
+    CHECK(h.passes() == 2);
+  }
+  SECTION("undo while it gets nothing")
+  {
+    h.playing = false;
+    at_beat(h, in.overdub);
+    beats(h, 1);
+    press(h, in.undo);
+    CHECK(h.passes() == 1);
+    CHECK(mode(h) == LoopMode::Overdub);
+    at_beat(h, in.play);
+    CHECK(h.passes() == 1);
+    CHECK(h.takes() == 2);
+  }
+  SECTION("the first event makes the layer, from where the overdub began")
+  {
+    h.playing = false;
+    press_off_beat(h, in.overdub);
+    const int64_t start = up_to_beat(h);
+    h.tick_once();
+    REQUIRE(mode(h) == LoopMode::Overdub);
+    beats(h, 1);
+    CHECK(h.passes() == 2);
+    h.playing = true;
+    h.tick_once();
+    REQUIRE(h.passes() == 3);
+    CHECK(h.node.loop.pass_start == start);
+    // As far as it went since then: a beat and two ticks.
+    CHECK(h.node.loop.pass_written == H::beat + 2 * H::frames);
+    CHECK(h.signature(2) > 0.);
+    at_beat(h, in.play);
+    CHECK(h.passes() == 3);
+    CHECK(h.takes() == 3);
+  }
+  SECTION("Per cycle: a round that gets nothing is no layer")
+  {
+    in.passes.value = Passes::PerCycle;
+    while(h.position() != 0)
+      h.tick_once();
+    in.mode = LoopMode::Overdub;
+    // A round with events, two without, one with.
+    beats(h, 4);
+    h.playing = false;
+    beats(h, 8);
+    CHECK(h.passes() == 3);
+    h.playing = true;
+    beats(h, 4);
+    in.mode = LoopMode::Play;
+    next_beat(h);
+    CHECK(h.passes() == 4);
+    CHECK(h.takes() == 4);
+    for(int k = 0; k < h.passes(); k++)
+      CHECK(h.signature(k) > 0.);
+  }
+  SECTION("at Max layers, room is made on the first event")
+  {
+    h.set_max_layers(2);
+    const auto starve = [&] {
+      h.playing = false;
+      at_beat(h, in.overdub);
+      beats(h, 2);
+    };
+    SECTION("merge oldest")
+    {
+      in.at_max_layers = AtMaxLayers::MergeOldest;
+      starve();
+      CHECK(h.passes() == 2);
+      CHECK(same(h.signature(0), s0));
+      CHECK(same(h.signature(1), s1));
+      h.playing = true;
+      h.tick_once();
+      CHECK(h.passes() == 2);
+      CHECK(same(h.signature(0), s0 + s1));
+    }
+    SECTION("merge into newest: nothing to merge")
+    {
+      in.at_max_layers = AtMaxLayers::MergeIntoNewest;
+      starve();
+      at_beat(h, in.play);
+      beats(h, 1);
+      CHECK(h.passes() == 2);
+      CHECK(same(h.signature(1), s1));
+      // Undo is as it was: the newest layer goes.
+      press(h, in.undo);
+      CHECK(h.passes() == 1);
+    }
+    SECTION("replace a muted layer")
+    {
+      in.at_max_layers = AtMaxLayers::ReplaceMuted;
+      in.layer.value = 1;
+      at_beat(h, in.mute_layer);
+      REQUIRE(h.muted(0));
+      starve();
+      CHECK(h.passes() == 2);
+      CHECK(h.muted(0));
+      h.playing = true;
+      h.tick_once();
+      CHECK(h.passes() == 2);
+      CHECK(!h.muted(0));
+      CHECK(same(h.signature(0), s1));
+    }
   }
 }
 }

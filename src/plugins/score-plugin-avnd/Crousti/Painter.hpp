@@ -16,6 +16,7 @@
 
 #include <avnd/concepts/painter.hpp>
 #include <avnd/wrappers/colors.hpp>
+#include <halp/custom_widgets.hpp>
 
 #include <algorithm>
 #include <cmath>
@@ -23,6 +24,23 @@
 
 namespace oscr
 {
+//! What a drag of `payload` carries: its files as file URLs, and its own
+//! data under its own type.
+inline QMimeData* make_drag_mime(const halp::drag_payload& payload)
+{
+  auto mime = new QMimeData;
+  QList<QUrl> urls;
+  for(const auto& f : payload.files)
+    urls.push_back(QUrl::fromLocalFile(QString::fromStdString(f)));
+  if(!urls.empty())
+    mime->setUrls(urls);
+  if(!payload.mime.empty())
+    mime->setData(
+        QString::fromStdString(payload.mime),
+        QByteArray(payload.data.data(), qsizetype(payload.data.size())));
+  return mime;
+}
+
 struct rgba_color
 {
   uint8_t r, g, b, a;
@@ -512,16 +530,7 @@ protected:
       if(payload.empty())
         return false;
 
-      auto mime = new QMimeData;
-      QList<QUrl> urls;
-      for(const auto& f : payload.files)
-        urls.push_back(QUrl::fromLocalFile(QString::fromStdString(f)));
-      if(!urls.empty())
-        mime->setUrls(urls);
-      if(!payload.mime.empty())
-        mime->setData(
-            QString::fromStdString(payload.mime),
-            QByteArray(payload.data.data(), qsizetype(payload.data.size())));
+      auto mime = make_drag_mime(payload);
 
       QPixmap pixmap(boundingRect().size().toSize());
       pixmap.fill(Qt::transparent);

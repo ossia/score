@@ -19,33 +19,42 @@ namespace Automation
 {
 namespace
 {
-//! The numbers of a [type, value] of the take, or none.
-std::optional<std::array<double, 4>> numbers(const QJsonArray& ev, int components)
+//! A number of the take: a [type, value] of a number type.
+std::optional<double> number(const QString& type, const QJsonValue& v)
 {
-  std::array<double, 4> r{};
+  if((type == QStringLiteral("float") || type == QStringLiteral("int")) && v.isDouble())
+    return v.toDouble();
+  if(type == QStringLiteral("bool") && v.isBool())
+    return v.toBool() ? 1. : 0.;
+  return {};
+}
+
+//! The numbers of an event of the take, by index, or none when it is not
+//! numbers.
+std::optional<std::vector<double>> numbers(const QJsonArray& ev, bool& list)
+{
   const QString type = ev.at(1).toString();
   const QJsonValue v = ev.at(2);
-  if(type == QStringLiteral("float") || type == QStringLiteral("int"))
-  {
-    if(components != 1 || !v.isDouble())
-      return {};
-    r[0] = v.toDouble();
-    return r;
-  }
-  if(type == QStringLiteral("bool"))
-  {
-    if(components != 1 || !v.isBool())
-      return {};
-    r[0] = v.toBool() ? 1. : 0.;
-    return r;
-  }
+  if(auto n = number(type, v))
+    return std::vector<double>{*n};
+  std::vector<double> r;
   if(type.startsWith(QStringLiteral("vec")))
   {
-    const auto a = v.toArray();
-    if(a.size() != components)
-      return {};
-    for(int i = 0; i < components; i++)
-      r[i] = a.at(i).toDouble();
+    for(const auto& e : v.toArray())
+      r.push_back(e.toDouble());
+    return r;
+  }
+  if(type == QStringLiteral("list"))
+  {
+    list = true;
+    for(const auto& e : v.toArray())
+    {
+      const auto pair = e.toArray();
+      auto n = number(pair.at(0).toString(), pair.at(1));
+      if(!n)
+        return {};
+      r.push_back(*n);
+    }
     return r;
   }
   return {};
@@ -62,7 +71,7 @@ std::optional<ValueTake> ValueTake::parse(const QByteArray& json)
   t.components = obj.value(QStringLiteral("components")).toInt();
   const double frames = obj.value(QStringLiteral("frames")).toDouble();
   const double rate = obj.value(QStringLiteral("rate")).toDouble();
-  if(t.components < 1 || t.components > 4 || frames <= 0. || rate <= 0.)
+  if(t.components < 1 || t.components > max_components || frames <= 0. || rate <= 0.)
     return {};
   t.seconds = frames / rate;
   const auto lo = obj.value(QStringLiteral("min")).toArray();
@@ -75,16 +84,30 @@ std::optional<ValueTake> ValueTake::parse(const QByteArray& json)
     if(!(t.max[c] > t.min[c]))
       t.max[c] = t.min[c] + 1.;
   }
+  // A number a value does not have holds where it was, and before it first
+  // comes, its first value holds.
+  std::array<double, max_components> held{};
+  std::array<int, max_components> first_at;
+  first_at.fill(-1);
   for(const auto& e : obj.value(QStringLiteral("events")).toArray())
   {
     const auto ev = e.toArray();
-    auto n = numbers(ev, t.components);
-    if(!n)
+    auto n = numbers(ev, t.lists);
+    if(!n || int(n->size()) > t.components)
       return {};
-    t.steps.push_back({std::clamp(ev.at(0).toDouble() / frames, 0., 1.), *n});
+    for(std::size_t c = 0; c < n->size(); c++)
+    {
+      held[c] = (*n)[c];
+      if(first_at[c] < 0)
+        first_at[c] = int(t.steps.size());
+    }
+    t.steps.push_back({std::clamp(ev.at(0).toDouble() / frames, 0., 1.), held});
   }
   if(t.steps.empty())
     return {};
+  for(int c = 0; c < t.components; c++)
+    for(int i = 0; i < first_at[c]; i++)
+      t.steps[i].value[c] = t.steps[first_at[c]].value[c];
   return t;
 }
 
@@ -153,9 +176,11 @@ void ValueTakeDropHandler::dropData(
   {
     ProcessDrop p;
     p.creation.key = Metadata<ConcreteKey_k, Automation::ProcessModel>::get();
+    // A list's numbers by their index, a vector's by their axis.
     p.creation.prettyName
-        = take->components == 1
-              ? data.filename.basename
+        = take->components == 1 ? data.filename.basename
+          : take->lists || take->components > 4
+              ? data.filename.basename + QStringLiteral(" ") + QString::number(c)
               : data.filename.basename + QStringLiteral(" ") + QString::fromUtf8(names[c]);
     p.duration = TimeVal::fromMsecs(take->seconds * 1000.);
     p.setup = [segs = take->segments(c), lo = take->min[c], hi = take->max[c]](

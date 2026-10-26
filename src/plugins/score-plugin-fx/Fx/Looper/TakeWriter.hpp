@@ -23,6 +23,7 @@
 #include <mutex>
 #include <string>
 #include <string_view>
+#include <vector>
 
 namespace Nodes::Looper
 {
@@ -104,17 +105,33 @@ struct take_writer
     static std::mutex choosing;
     std::lock_guard _{choosing};
 
+    QDir dir{folder};
     QDir{}.mkpath(folder);
     if(number <= 0)
     {
-      for(int n = 1; n < 100000; n++)
+      // A number is free when no file of the folder has it, whichever of a
+      // take's files they are: the files of some passes alone have neither
+      // the mix nor the first layer.
+      const QString head = prefix + QStringLiteral("-take");
+      std::vector<int> used;
+      for(const QString& name :
+          dir.entryList({head + QStringLiteral("*")}, QDir::Files | QDir::Hidden))
       {
-        if(!QFileInfo::exists(file(n, -1)) && !QFileInfo::exists(file(n, 0)))
-        {
-          number = n;
-          break;
-        }
+        int end = int(head.size());
+        while(end < name.size() && name[end].isDigit())
+          end++;
+        bool ok = false;
+        const int n = name.mid(head.size(), end - head.size()).toInt(&ok);
+        if(ok && end < name.size() && (name[end] == '.' || name[end] == '-'))
+          used.push_back(n);
       }
+      std::sort(used.begin(), used.end());
+      number = 1;
+      for(int n : used)
+        if(n == number)
+          number++;
+        else if(n > number)
+          break;
     }
     const QString path = file(number, layer);
     if(QFile f{path}; f.open(QIODevice::WriteOnly))

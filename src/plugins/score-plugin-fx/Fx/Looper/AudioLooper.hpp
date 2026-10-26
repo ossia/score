@@ -237,8 +237,9 @@ struct Node : Looper::looper_node<Node>
       halp_meta(
           description,
           "What a take writes: the loop as it is heard (Mix), each pass in a "
-          "file of its own (Layers), or both. Sending or dragging a take places "
-          "every file of it, each on a lane of its own.")
+          "file of its own (Layers), or both. Send, or a drag from it, places "
+          "every file of the take, each on a lane of its own; dragging a lane "
+          "places its layer alone.")
     } exported;
 
     struct : Looper::enum_combobox<"Past the end", Looper::PastEnd, Looper::PastEnd::Wrap>
@@ -524,10 +525,12 @@ struct Node : Looper::looper_node<Node>
           halp_meta(layout, halp::layouts::grid)
           halp_meta(alignment, halp::alignments::left)
           halp_meta(spacing, 6)
-          halp_meta(columns, 2)
+          halp_meta(columns, 3)
           halp::item<&ins::after_record> after_record;
           halp::item<&ins::postaction_bars> bars;
           halp::item<&ins::late> late;
+          halp::item<&ins::capture> capture;
+          halp::item<&ins::capture_bars> capture_bars;
         } length;
         struct
         {
@@ -538,22 +541,13 @@ struct Node : Looper::looper_node<Node>
           halp_meta(columns, 3)
           halp::item<&ins::passthrough> passthrough;
           halp::item<&ins::start_from> start_from;
-          halp::item<&ins::speed> speed;
+          halp::item<&ins::feedback> feedback;
           halp::item<&ins::past_end> past_end;
           halp::item<&ins::passes> passes;
-          halp::item<&ins::feedback> feedback;
-          halp::item<&ins::follow_tempo> follow_tempo;
-          halp::item<&ins::reverse> reverse;
         } play;
         Looper::switches_tab<ins> switches;
         Looper::layers_tab<ins> layers;
-        struct
-        {
-          halp_meta(name, "Capture")
-          halp_meta(layout, halp::layouts::hbox)
-          halp::item<&ins::capture_bars> capture_bars;
-          halp::item<&ins::keep> keep;
-        } capture;
+        Looper::speed_tab<ins> speed;
         struct
         {
           halp_meta(name, "Memory")
@@ -562,6 +556,7 @@ struct Node : Looper::looper_node<Node>
           halp_meta(spacing, 6)
           halp_meta(columns, 3)
           halp::item<&ins::max_seconds> max_seconds;
+          halp::item<&ins::keep> keep;
           halp::item<&ins::max_layers> max_layers;
           halp::item<&ins::at_max_layers> at_max_layers;
           halp::item<&ins::channels> channels;
@@ -1730,7 +1725,7 @@ inline void Node::start_export(int passes, bool open, bool recording)
   layers.reserved = 0;
   for(int i = 0; i < m_export_count; i++)
     layers.reserved |= uint64_t(1) << m_export_snapshot[i].slot;
-  start_export_item(m_export_mix ? -1 : 0);
+  start_export_item(m_export_first);
   if(open && !recording)
     copy_open_pass();
 }

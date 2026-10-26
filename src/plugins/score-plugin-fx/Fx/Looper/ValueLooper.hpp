@@ -129,10 +129,10 @@ struct Node : Looper::looper_node<Node>
       halp_meta(
           description,
           "What a take writes: what is heard of the loop (Mix), each pass in a "
-          "file of its own (Layers), or both. Sending or dragging a take of "
-          "numbers or vectors places an automation for each number, a box "
-          "for each file; a take with impulses, text, lists or maps is kept "
-          "as a file only.")
+          "file of its own (Layers), or both. Send, or a drag from it, places "
+          "a take of numbers, vectors or lists of numbers as an automation for "
+          "each number, a box for each file; dragging a lane places its layer "
+          "alone. A take with impulses, text or maps is kept as a file only.")
     } exported;
 
     struct : Looper::enum_combobox<"Past the end", Looper::PastEnd, Looper::PastEnd::Wrap>
@@ -254,9 +254,15 @@ struct Node : Looper::looper_node<Node>
     static std::function<void(Node&)> work(Looper::value_take_job&& job)
     {
       const bool ok = job.run();
-      return [slot = job.slot, number = job.number, alone = job.alone,
-              placeable = job.components > 0, ok](Node& self) {
-        self.m_written_placeable = placeable;
+      return [slot = job.slot, number = job.number, alone = job.alone, layer = job.layer,
+              placeable = job.components > 0, nothing = job.nothing, ok](Node& self) {
+        // A take goes in the timeline when each of its files that holds
+        // something does: a layer whose values are all replaced holds none.
+        const bool first = alone || layer == self.m_export_first;
+        if(first)
+          self.m_written_placeable = placeable;
+        else if(!nothing)
+          self.m_written_placeable = self.m_written_placeable && placeable;
         self.take_written(slot, number, ok, alone);
       };
     }
@@ -350,6 +356,8 @@ struct Node : Looper::looper_node<Node>
           halp::item<&ins::after_record> after_record;
           halp::item<&ins::postaction_bars> bars;
           halp::item<&ins::late> late;
+          halp::item<&ins::capture> capture;
+          halp::item<&ins::capture_bars> capture_bars;
         } length;
         struct
         {
@@ -359,13 +367,11 @@ struct Node : Looper::looper_node<Node>
           halp_meta(spacing, 6)
           halp_meta(columns, 2)
           halp::item<&ins::start_from> start_from;
-          halp::item<&ins::speed> speed;
-          halp::item<&ins::follow_tempo> follow_tempo;
-          halp::item<&ins::reverse> reverse;
           halp::item<&ins::passthrough> passthrough;
         } play;
         Looper::switches_tab<ins> switches;
         Looper::layers_tab<ins> layers;
+        Looper::speed_tab<ins> speed;
         struct
         {
           halp_meta(name, "Overdub")
@@ -378,12 +384,6 @@ struct Node : Looper::looper_node<Node>
           halp::item<&ins::max_layers> max_layers;
           halp::item<&ins::at_max_layers> at_max_layers;
         } overdub;
-        struct
-        {
-          halp_meta(name, "Capture")
-          halp_meta(layout, halp::layouts::hbox)
-          halp::item<&ins::capture_bars> capture_bars;
-        } capture;
       } settings;
     } controls;
 
@@ -415,6 +415,8 @@ private:
   friend struct Looper::looper_node<Node>;
 
   // looper_node's hooks
+  //! An overdub pass is a layer from its first value on.
+  static constexpr bool passes_wait_for_material = true;
   Looper::value_loop& stack() noexcept { return loop; }
   const Looper::value_loop& stack() const noexcept { return loop; }
   //! What is heard changes: the playhead sends the value held then, at the
@@ -795,7 +797,7 @@ inline void Node::handle_input(
     {
       const double into = (std::max(ts, from) - from) * rate;
       pos = int64_t(pos0 + into);
-      written = int64_t(loop.pass_progress + into);
+      written = int64_t(pass_progress() + into);
       if(backwards && loop.length > 0)
       {
         pos = (loop.length - pos) % loop.length;
@@ -832,6 +834,7 @@ inline void Node::handle_input(
 inline void Node::record_value(
     int64_t pos, int64_t written, uint16_t key, const ossia::value& v, bool backwards)
 {
+  material_arriving();
   if(v.get_type() == ossia::val_type::IMPULSE)
   {
     loop.add_value(pos, written, key, v);
@@ -855,7 +858,7 @@ inline void Node::record_value(
 //! values last recorded hold from there.
 inline void Node::close_backwards(int64_t boundary)
 {
-  if(loop.length <= 0)
+  if(loop.length <= 0 || pass_pending())
     return;
   boundary %= loop.length;
   for(int key = 0; key < max_keys; key++)
@@ -924,7 +927,7 @@ inline void Node::begin_pass_carried(int64_t k)
     record_value(pos, from_point ? c.pos : 0, c.key, c.value.get(), false);
   }
   if(from_point)
-    loop.advance_pass(double(m_carried_span));
+    pass_advanced(double(m_carried_span), false);
   forget_carried();
 }
 
@@ -1049,7 +1052,7 @@ inline void Node::advance(int64_t start, int64_t length, bool overdub)
 
     // Gone round again, the pass writes over what it recorded a round
     // before.
-    if(overdub && !back)
+    if(overdub && !back && !pass_pending())
       loop.write_over(int64_t(std::ceil(y)), int64_t(std::ceil(b)), loop.pass_progress);
     if(back)
       play_range_reverse(y, b, out, r);
@@ -1063,15 +1066,17 @@ inline void Node::advance(int64_t start, int64_t length, bool overdub)
     send_due(std::numeric_limits<int64_t>::max());
     if(overdub)
     {
-      loop.advance_pass(b - y, back);
-      loop.update_open_stretches();
+      pass_advanced(b - y, back);
+      if(!pass_pending())
+        loop.update_open_stretches();
     }
 
     out += seg_out;
     y = b;
     if(y >= L - 1e-9)
     {
-      if(extend && loop.extend(m_extend_unit, int64_t(max_loop_seconds * m_rate)))
+      if(extend
+         && loop.extend(m_extend_unit, int64_t(max_loop_seconds * m_rate), !pass_pending()))
       {
         // A cycle is the loop's length when the overdub started: the loop
         // growing by one is a cycle gone round as well.
@@ -1257,7 +1262,7 @@ inline void Node::start_export(int passes, bool open, bool)
     m_export_loop.taking = false;
     m_export_loop.edits++;
   }
-  write_export_item(m_export_mix ? -1 : 0);
+  write_export_item(m_export_first);
 }
 
 //! Writes one file of the take: what is heard of the loop (item -1), or what
