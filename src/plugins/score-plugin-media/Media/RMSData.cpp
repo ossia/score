@@ -3,6 +3,7 @@
 #include <Media/MediaFileHandle.hpp>
 #include <Media/RMSData.hpp>
 
+#include <ossia/detail/thread.hpp>
 #include <ossia/detail/math.hpp>
 #include <ossia/detail/ssize.hpp>
 
@@ -49,6 +50,7 @@ void RMSData::load(QString abspath, int channels, int rate, TimeVal duration)
 
     void* data = m_file.map(0, m_file.size());
     assert(data);
+    ossia::unlock_memory(data, m_file.size());
     this->header = reinterpret_cast<Header*>(data);
     this->data
         = reinterpret_cast<rms_sample_t*>(((char*)data) + sizeof(Header));

@@ -1,6 +1,7 @@
 #include <Media/MediaFileHandle.hpp>
 #include <Media/RMSData.hpp>
 
+#include <ossia/detail/thread.hpp>
 #include <ossia/audio/drwav_handle.hpp>
 
 #include <QDebug>
@@ -42,6 +43,8 @@ void AudioFile::load_drwav()
     fail();
     return;
   }
+  // Locked memory would keep every page of the file read so far resident.
+  ossia::unlock_memory(r.data, r.file->size());
   r.wav.open_memory(r.data, r.file->size());
   if(!r.wav || r.wav.channels() == 0 || r.wav.sampleRate() == 0)
   {
