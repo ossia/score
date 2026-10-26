@@ -4,7 +4,6 @@
 #include <score/document/DocumentContext.hpp>
 #include <score/tools/File.hpp>
 
-#include <ossia/detail/thread.hpp>
 #include <ossia/dataflow/exec_state_facade.hpp>
 #include <ossia/dataflow/nodes/media.hpp>
 #include <ossia/network/value/value.hpp>
@@ -136,7 +135,6 @@ using raw_file_handle = std::shared_ptr<raw_file_data>;
     if(mmap)
     {
       auto map = (char*)hdl->file.map(0, hdl->file.size());
-      ossia::unlock_memory(map, hdl->file.size());
       hdl->data = QByteArray::fromRawData(map, hdl->file.size());
     }
     else
