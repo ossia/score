@@ -568,12 +568,14 @@ struct switches
 };
 
 //! The Switches tab of a looper whose inputs are `Ins`: the actions, by what
-//! they act on.
+//! they act on, two to a row, so that the tab is no wider than the others.
 template <typename Ins>
 struct switches_tab
 {
   halp_meta(name, "Switches")
   halp_meta(layout, halp::layouts::hbox)
+  halp_meta(alignment, halp::alignments::left)
+  halp_meta(spacing, 6)
   struct
   {
     halp_meta(layout, halp::layouts::vbox)
@@ -597,7 +599,7 @@ struct switches_tab
         halp_meta(layout, halp::layouts::grid)
         halp_meta(alignment, halp::alignments::left)
         halp_meta(spacing, 6)
-        halp_meta(columns, 3)
+        halp_meta(columns, 2)
         halp::item<&Ins::after_record> after_record;
         halp::item<&Ins::after_overdub> after_overdub;
         halp::item<&Ins::stop_at> stop_at;
@@ -614,7 +616,7 @@ struct switches_tab
         halp_meta(layout, halp::layouts::grid)
         halp_meta(alignment, halp::alignments::left)
         halp_meta(spacing, 6)
-        halp_meta(columns, 3)
+        halp_meta(columns, 2)
         halp::item<&Ins::play> play;
         halp::item<&Ins::stop> stop;
         halp::item<&Ins::record> record;
@@ -638,13 +640,13 @@ struct switches_tab
         halp_meta(layout, halp::layouts::grid)
         halp_meta(alignment, halp::alignments::left)
         halp_meta(spacing, 6)
-        halp_meta(columns, 3)
+        halp_meta(columns, 2)
         halp::item<&Ins::undo> undo;
         halp::item<&Ins::redo> redo;
         halp::item<&Ins::clear> clear;
+        halp::item<&Ins::layer> layer;
         halp::item<&Ins::previous_layer> previous_layer;
         halp::item<&Ins::next_layer> next_layer;
-        halp::item<&Ins::layer> layer;
         halp::item<&Ins::mute_layer> mute_layer;
         halp::item<&Ins::erase_layer> erase_layer;
         halp::item<&Ins::solo_layer> solo_layer;
@@ -661,7 +663,7 @@ struct switches_tab
         halp_meta(layout, halp::layouts::grid)
         halp_meta(alignment, halp::alignments::left)
         halp_meta(spacing, 6)
-        halp_meta(columns, 4)
+        halp_meta(columns, 2)
         halp::item<&Ins::reverse_toggle> reverse;
         halp::item<&Ins::half_speed> half_speed;
         halp::item<&Ins::double_speed> double_speed;
