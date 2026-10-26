@@ -513,6 +513,15 @@ score_add_test(test_unit_midi_message
     SOURCES MidiRowTintsTest.cpp
     APP
     PLUGINS score_plugin_midi score_lib_process)
+
+  # A MIDI file is placed by its quarters whatever its tempo, and a looper's
+  # take keeps the tempo it was played at.
+  if(TARGET score_plugin_fx)
+    score_add_test(test_unit_midi_file_tempo
+      SOURCES MidiFileTempoTest.cpp
+      APP
+      PLUGINS score_plugin_midi score_plugin_fx score_plugin_scenario score_lib_process)
+  endif()
 endif()
 
 if(TARGET score_plugin_media)

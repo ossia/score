@@ -18,7 +18,7 @@ public:
       const score::DocumentContext& ctx) const noexcept override;
 };
 
-struct MidiTrack
+struct SCORE_PLUGIN_MIDI_EXPORT MidiTrack
 {
   QString name;
 
@@ -28,10 +28,14 @@ struct MidiTrack
   struct MidiSong
   {
     std::vector<MidiTrack> tracks;
+    //! Length in ticks.
     double duration{};
+    //! The starting tempo libremidi's reader reports, in BPM; it does not
+    //! change where the file is placed.
     float tempo{};
     float tickPerBeat{};
 
+    //! Length in score's time: the file's quarters, half a second each.
     double durationInMs{};
   };
   static std::vector<MidiTrack::MidiSong>

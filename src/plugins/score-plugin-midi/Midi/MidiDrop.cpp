@@ -9,6 +9,7 @@
 #include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
 
 #include <ossia/detail/algorithms.hpp>
+#include <ossia/detail/flicks.hpp>
 
 #include <QByteArray>
 #include <QDebug>
@@ -435,9 +436,12 @@ MidiTrack::parse(const QByteArray& dat, const score::DocumentContext& ctx)
   m.tempo = reader.startingTempo;
   m.tickPerBeat = reader.ticksPerBeat;
   {
-    double num_beats = m.duration / m.tickPerBeat;
-    double beat_dur = 60. / m.tempo; // in seconds
-    m.durationInMs = 1000. * beat_dur * num_beats;
+    // A file is placed by its quarters, whatever its tempo: score's time is
+    // musical time where a quarter lasts half a second, and the tempo of the
+    // score sets how fast it goes.
+    const double num_beats = m.tickPerBeat > 0 ? m.duration / m.tickPerBeat : 0.;
+    m.durationInMs
+        = num_beats * ossia::quarter_duration<double> / ossia::flicks_per_millisecond<double>;
   }
 
   double delta = 1.;

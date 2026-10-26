@@ -36,12 +36,14 @@ struct midi_export
 
   static constexpr int ticks_per_quarter = 480;
 
-  //! The loop as a Standard MIDI File, at 120 BPM: score reads a file's
-  //! length at the file's tempo, and a quarter lasts half a second of score's
-  //! time whatever the tempo. The file ends exactly at the loop's end.
+  //! The loop as a Standard MIDI File, at the tempo and in the meter it was
+  //! played in. Ticks count quarters, so the tempo only says how fast they
+  //! went: score places a file by its quarters. The file ends exactly at the
+  //! loop's end.
   std::string to_smf() const
   {
-    const double frames_per_quarter = rate * 60. / std::max(1., tempo);
+    const double bpm = std::max(1., tempo);
+    const double frames_per_quarter = rate * 60. / bpm;
     auto to_tick = [&](int64_t frames) {
       return int64_t(std::llround(frames / frames_per_quarter * ticks_per_quarter));
     };
@@ -56,9 +58,16 @@ struct midi_export
     std::vector<event> events;
     events.reserve(std::size_t(note_count) * 4 + std::size_t(control_count) + 4);
 
-    events.push_back({0, 1, libremidi::meta_events::tempo(500000)});
+    // A tempo event holds microseconds per quarter on 24 bits.
+    const int us_per_quarter
+        = int(std::clamp<int64_t>(std::llround(60'000'000. / bpm), 1, 0xFFFFFF));
+    events.push_back({0, 1, libremidi::meta_events::tempo(us_per_quarter)});
+    // 24 MIDI clocks per metronome click and 8 thirty-seconds per quarter are
+    // what every sequencer writes.
     events.push_back(
-        {0, 1, libremidi::meta_events::time_signature(meter_numerator, meter_denominator)});
+        {0, 1, libremidi::meta_events::time_signature(
+                   std::clamp(meter_numerator, 1, 255),
+                   std::clamp(meter_denominator, 1, 128), 24, 8)});
 
     for(int i = 0; i < note_count; i++)
     {
