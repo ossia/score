@@ -43,6 +43,14 @@ public:
     }
   }
 
+  //! Drops pending deferred commands of these types, e.g. values a panel
+  //! queued that no longer apply.
+  template <typename... TheCommands>
+  void discardDeferred()
+  {
+    (deferred.erase(TheCommands::static_key()), ...);
+  }
+
   void commit()
   {
     commands.clear();
