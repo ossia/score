@@ -739,12 +739,13 @@ TEST_CASE(
 
     auto* unset = new Gfx::TextureInlet{"in", Id<Process::Port>{2}, &owner};
     CHECK(!unset->textureFormat());
-    CHECK(unset->textureMipmapMode() == ossia::texture_filter::NONE);
+    // Unset: the shader's mipmap mode, or none (shader board U34).
+    CHECK(!unset->textureMipmapMode());
     for(auto* loaded : {json(*unset, keep), stream(*unset)})
     {
       REQUIRE(loaded);
       CHECK(!loaded->textureFormat());
-      CHECK(loaded->textureMipmapMode() == ossia::texture_filter::NONE);
+      CHECK(!loaded->textureMipmapMode());
     }
 
     auto legacy = [](ossia::texture_format fmt) {
@@ -757,7 +758,7 @@ TEST_CASE(
     auto* old8 = json(*rgba8, legacy(ossia::texture_format::RGBA8));
     REQUIRE(old8);
     CHECK(!old8->textureFormat());
-    CHECK(old8->textureMipmapMode() == ossia::texture_filter::NONE);
+    CHECK(!old8->textureMipmapMode());
     auto* old32 = json(*unset, legacy(ossia::texture_format::RGBA32F));
     REQUIRE(old32);
     CHECK(old32->textureFormat() == std::optional{ossia::texture_format::RGBA32F});
@@ -809,7 +810,7 @@ TEST_CASE(
 
     auto* mips = findField<QComboBox>(*lay, "Mipmaps");
     REQUIRE(mips);
-    CHECK(mips->currentText() == "None");
+    CHECK(mips->currentText() == "Default: None");
     mips->setCurrentIndex(mips->findText("Linear"));
     CHECK(inlet->textureMipmapMode() == ossia::texture_filter::LINEAR);
 
