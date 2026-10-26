@@ -243,10 +243,22 @@ bool sameCurve(
   });
 }
 
+// Not forked on macOS: a child forked from this GUI process without exec()
+// aborts as soon as it touches the file manager, and the edits do -- the
+// document backup's QSettings sync goes QSaveFile -> QFileInfo::isSymLink ->
+// CFURLCopyResourcePropertyForKey -> CarbonCore
+// USING_FORK_WITHOUT_EXEC_IS_NOT_SUPPORTED_BY_FILE_MANAGER ("multi-threaded
+// process forked", crash report of the child). Whether a scenario's child got
+// that far depended on timers, hence 19 or 20 of them "dying with signal 6".
+// In process, as where there is no fork at all.
+#if defined(THREEDIM_HAS_FORK) && !defined(__APPLE__)
+#define CURVE_EDITION_FORKS 1
+#endif
+
 template <typename F>
 bool editSurvives(F&& scenario)
 {
-#if defined(THREEDIM_HAS_FORK)
+#if defined(CURVE_EDITION_FORKS)
   return threedim_test::survives([&] {
     const std::string err = scenario();
     if(!err.empty())
