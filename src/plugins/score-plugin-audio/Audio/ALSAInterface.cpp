@@ -66,8 +66,10 @@ AlsaStream probe(const char* name, snd_pcm_stream_t stream)
 
   snd_pcm_hw_params_t* hw{};
   snd_pcm_hw_params_t* at_rate{};
+  snd_pcm_hw_params_t* at_size{};
   snd_alloca(&hw, snd, pcm_hw_params);
   snd_alloca(&at_rate, snd, pcm_hw_params);
+  snd_alloca(&at_size, snd, pcm_hw_params);
   if(restrict_like_the_engine(snd, pcm, hw))
   {
     unsigned int cmin{}, cmax{};
@@ -75,6 +77,11 @@ AlsaStream probe(const char* name, snd_pcm_stream_t stream)
     snd.pcm_hw_params_get_channels_max(hw, &cmax);
     // Plugins such as plughw report "any count".
     res.channels = {int(cmin), int(std::min(cmax, 64u))};
+
+    // Period sizes can depend on the frame size (HDA: periods of whole
+    // 128 bytes): test with the count the engine will usually ask for.
+    unsigned int two = 2;
+    snd.pcm_hw_params_set_channels_near(pcm, hw, &two);
 
     for(int rate : standard_rates)
     {
@@ -87,11 +94,14 @@ AlsaStream probe(const char* name, snd_pcm_stream_t stream)
       std::vector<int> sizes;
       for(int bs : standard_sizes)
       {
-        if(snd.pcm_hw_params_test_period_size(pcm, at_rate, bs, 0) != 0)
+        // The buffer has to hold whole periods of this size: test both
+        // together, each test alone can pass with another value of the other.
+        snd.pcm_hw_params_copy(at_size, at_rate);
+        if(snd.pcm_hw_params_set_period_size(pcm, at_size, bs, 0) != 0)
           continue;
-        // The engine asks for 2 periods and falls back to 3 or 4.
+        // The engine asks for 2 periods and goes up to 4.
         for(int periods : {2, 3, 4})
-          if(snd.pcm_hw_params_test_buffer_size(pcm, at_rate, bs * periods) == 0)
+          if(snd.pcm_hw_params_test_buffer_size(pcm, at_size, bs * periods) == 0)
           {
             sizes.push_back(bs);
             break;
