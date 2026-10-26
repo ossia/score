@@ -135,8 +135,23 @@ void ApplicationPlugin::showVolume(score::Document& doc)
 void ApplicationPlugin::timerEvent(QTimerEvent*)
 {
   if(audio)
+  {
     audio->gc();
+    if(audio->failed() && !m_updating_audio)
+    {
+      stop_engine();
+      score::warning(
+          context.documentTabWidget, tr("Audio Error"),
+          tr("The audio device stopped working. Check that it is connected and not "
+             "used by another program, then restart the audio engine."));
+    }
+  }
 
+  reap_previous_engines();
+}
+
+void ApplicationPlugin::reap_previous_engines()
+{
   for(auto it = previous_audio.begin(); it != previous_audio.end();)
   {
     auto& engine = **it;
@@ -257,6 +272,9 @@ try
   }
 #else
   stop_engine();
+  // A device can only be opened once: the engine that just stopped has to
+  // release it before the new one opens it.
+  reap_previous_engines();
   start_engine();
 #endif
 }
@@ -326,7 +344,7 @@ void ApplicationPlugin::start_engine()
         SCORE_ASSERT(!audio);
         audio = dev->make_engine(set, this->context);
         if(!audio)
-          throw std::runtime_error{""};
+          throw std::runtime_error{"the driver could not create an audio engine"};
 
         struct updating_guard
         {
@@ -351,6 +369,14 @@ void ApplicationPlugin::start_engine()
           rate = 44100;
         set.setBufferSize(bs);
         set.setRate(rate);
+      }
+      catch(std::exception& e)
+      {
+        score::warning(
+            nullptr, tr("Audio error"),
+            tr("The audio settings could not be applied:\n%1\n\nPlease change "
+               "them.")
+                .arg(QString::fromStdString(e.what())));
       }
       catch(...)
       {
