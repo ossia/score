@@ -3,6 +3,7 @@
 #include "PluginItemModel.hpp"
 
 #include <Library/LibrarySettings.hpp>
+#include <Library/SupportPackages.hpp>
 
 #include <score/application/ApplicationContext.hpp>
 #include <score/tools/File.hpp>
@@ -207,6 +208,10 @@ void LocalPackagesModel::registerAddon(const QString& p)
   if(!path.exists() || !path.isDir())
   {
     // Check for removal of an addon
+  }
+  else if(Library::isMarkedForRemoval(p))
+  {
+    // Uninstalled or replaced while in use: removed at the next start.
   }
   else
   {

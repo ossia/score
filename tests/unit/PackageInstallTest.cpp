@@ -9,6 +9,8 @@
 #include <QDir>
 #include <QFile>
 #include <QFileInfo>
+#include <QJsonDocument>
+#include <QJsonObject>
 #include <QTemporaryDir>
 
 #include <PackageManager/Install.hpp>
@@ -197,4 +199,41 @@ TEST_CASE("a failed install destroys nothing", "[packagemanager]")
   REQUIRE(!err.isEmpty());
 
   REQUIRE(contentsAre(fx.destination + "/addon.json", "previous"));
+}
+
+namespace
+{
+QString writePackage(const QString& root, const QString& name, const QString& key, int version)
+{
+  const QString path = QFileInfo{root + '/' + name}.absoluteFilePath();
+  REQUIRE(QDir{}.mkpath(path));
+  QFile f{path + "/package.json"};
+  REQUIRE(f.open(QIODevice::WriteOnly));
+  f.write(QJsonDocument{QJsonObject{{"key", key}, {"version", version}}}.toJson());
+  return path;
+}
+}
+
+// An update installed under a new folder name: the CUDA runtime went from
+// support/cuda-runtime-129 to support/cuda-runtime with the same key.
+TEST_CASE("an update removes the previous install from its other folder", "[packagemanager]")
+{
+  QTemporaryDir tmp;
+  const QString packages = tmp.path() + "/packages";
+  const QString support = tmp.path() + "/support";
+  const QString key = "28d97cbc-bc84-4e74-9bc2-fe0f0fccf87c";
+
+  const QString old = writePackage(support, "cuda-runtime-129", key, 1);
+  const QString misplaced = writePackage(packages, "cuda-runtime-old", key, 1);
+  const QString other = writePackage(support, "tensorrt-runtime", "6d0f3c0a-6b55-4f0c-9a59-3b6cf4d5b1e2", 1);
+  const QString fresh = writePackage(support, "cuda-runtime", key, 2);
+
+  CHECK(removeOtherInstalls(QUuid::fromString(key), fresh, {packages, support}) == 2);
+  CHECK(!QFileInfo::exists(old));
+  CHECK(!QFileInfo::exists(misplaced));
+  CHECK(QFileInfo::exists(fresh));
+  CHECK(QFileInfo::exists(other));
+
+  // Nothing left to remove
+  CHECK(removeOtherInstalls(QUuid::fromString(key), fresh, {packages, support}) == 0);
 }

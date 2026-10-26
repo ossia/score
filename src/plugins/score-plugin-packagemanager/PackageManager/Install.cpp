@@ -1,5 +1,7 @@
 #include "Install.hpp"
 
+#include <Library/SupportPackages.hpp>
+
 #include <QDir>
 #include <QFile>
 #include <QFileInfo>
@@ -91,11 +93,30 @@ bool moveExtractedPackage(
     return false;
   }
 
-  if(!previous.isEmpty())
-    removePath(previous);
+  // A previous install still in use (its libraries loaded, on Windows) is
+  // removed at the next start instead of being left next to the new one.
+  if(!previous.isEmpty() && !removePath(previous))
+    Library::removePackageFolder(previous);
   if(!folder.isEmpty())
     extractedDir.removeRecursively();
 
   return true;
+}
+
+int removeOtherInstalls(const QUuid& key, const QString& keep, const QStringList& roots)
+{
+  const QString kept = QFileInfo{keep}.absoluteFilePath();
+  int count = 0;
+  for(const QString& root : roots)
+  {
+    for(const auto& pkg : Library::installedPackages(root))
+    {
+      if(pkg.key != key || pkg.path == kept || Library::isMarkedForRemoval(pkg.path))
+        continue;
+      Library::removePackageFolder(pkg.path);
+      count++;
+    }
+  }
+  return count;
 }
 }

@@ -1,0 +1,123 @@
+// Which support package folders have their libraries loaded, and what happens
+// to a package folder which cannot be removed.
+//
+// Two versions of a package may both be on disk: an update installed under a
+// new folder name, or a previous version still in use when it was replaced.
+// Their libraries usually share names (cudnn64_9.dll, libcudnn.so.9), so only
+// the newest may be loaded.
+
+#include <Library/SupportPackages.hpp>
+
+#include <QDir>
+#include <QFile>
+#include <QFileInfo>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QTemporaryDir>
+
+#include <catch2/catch_test_macros.hpp>
+
+using namespace Library;
+
+namespace
+{
+const QString cuda_key = QStringLiteral("28d97cbc-bc84-4e74-9bc2-fe0f0fccf87c");
+const QString trt_key = QStringLiteral("6d0f3c0a-6b55-4f0c-9a59-3b6cf4d5b1e2");
+
+//! A package folder as the package manager leaves it
+QString makePackage(const QString& root, const QString& name, const QString& key, int version)
+{
+  const QString path = QFileInfo{root + '/' + name}.absoluteFilePath();
+  REQUIRE(QDir{}.mkpath(path));
+  QFile f{path + "/package.json"};
+  REQUIRE(f.open(QIODevice::WriteOnly));
+  f.write(QJsonDocument{QJsonObject{{"key", key}, {"version", version}, {"raw_name", name}}}
+              .toJson());
+  return path;
+}
+}
+
+TEST_CASE("Only the newest install of a support package is loaded", "[unit][library]")
+{
+  QTemporaryDir tmp;
+  REQUIRE(tmp.isValid());
+  const QString support = tmp.path();
+
+  makePackage(support, "cuda-runtime-129", cuda_key, 1);
+  const QString cuda = makePackage(support, "cuda-runtime", cuda_key, 2);
+  const QString trt = makePackage(support, "tensorrt-runtime", trt_key, 1);
+
+  const QStringList folders = supportFoldersToLoad(support);
+  CHECK(folders.size() == 2);
+  CHECK(folders.contains(cuda));
+  CHECK(folders.contains(trt));
+}
+
+TEST_CASE("Support folders without a package.json are loaded", "[unit][library]")
+{
+  QTemporaryDir tmp;
+  REQUIRE(tmp.isValid());
+  const QString manual = QFileInfo{tmp.path() + "/my-libs"}.absoluteFilePath();
+  REQUIRE(QDir{}.mkpath(manual));
+  REQUIRE(QDir{}.mkpath(tmp.path() + "/.incoming-cuda-runtime"));
+
+  CHECK(supportFoldersToLoad(tmp.path()) == QStringList{manual});
+}
+
+TEST_CASE("Installed packages are read from their package.json", "[unit][library]")
+{
+  QTemporaryDir tmp;
+  REQUIRE(tmp.isValid());
+  makePackage(tmp.path(), "cuda-runtime", cuda_key, 2);
+  // An install in progress, and a folder without a key, are not packages.
+  makePackage(tmp.path(), ".incoming-cuda-runtime", cuda_key, 3);
+  REQUIRE(QDir{}.mkpath(tmp.path() + "/no-key"));
+
+  const auto packages = installedPackages(tmp.path());
+  REQUIRE(packages.size() == 1);
+  CHECK(packages[0].key == QUuid::fromString(cuda_key));
+  CHECK(packages[0].version == 2);
+}
+
+TEST_CASE("A package folder is removed", "[unit][library]")
+{
+  QTemporaryDir tmp;
+  REQUIRE(tmp.isValid());
+  const QString path = makePackage(tmp.path(), "cuda-runtime", cuda_key, 2);
+
+  CHECK(removePackageFolder(path));
+  CHECK(!QFileInfo::exists(path));
+  CHECK(removePackageFolder(path)); // already gone is gone
+}
+
+#if !defined(_WIN32)
+// A folder whose content cannot be removed stands for a library loaded on
+// Windows: a subfolder without write permission holds a file which cannot go.
+TEST_CASE("A package folder in use is removed at the next start", "[unit][library]")
+{
+  QTemporaryDir tmp;
+  REQUIRE(tmp.isValid());
+  const QString old = makePackage(tmp.path(), "cuda-runtime-129", cuda_key, 1);
+  const QString cuda = makePackage(tmp.path(), "cuda-runtime", cuda_key, 2);
+
+  const QString locked = old + "/lib";
+  REQUIRE(QDir{}.mkpath(locked));
+  {
+    QFile f{locked + "/cudnn64_9.dll"};
+    REQUIRE(f.open(QIODevice::WriteOnly));
+  }
+  REQUIRE(QFile::setPermissions(locked, QFileDevice::ReadOwner | QFileDevice::ExeOwner));
+
+  CHECK(!removePackageFolder(old));
+  CHECK(isMarkedForRemoval(old));
+  // Marked: not loaded, even though it would otherwise be a candidate
+  CHECK(supportFoldersToLoad(tmp.path()) == QStringList{cuda});
+
+  // "Next start": the library is not in use any more
+  REQUIRE(QFile::setPermissions(
+      locked, QFileDevice::ReadOwner | QFileDevice::WriteOwner | QFileDevice::ExeOwner));
+  removeMarkedPackageFolders(tmp.path());
+  CHECK(!QFileInfo::exists(old));
+  CHECK(QFileInfo::exists(cuda));
+}
+#endif

@@ -15,6 +15,7 @@ set(HDRS
     "${CMAKE_CURRENT_SOURCE_DIR}/Library/ItemModelFilterLineEdit.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Library/LibraryInterface.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Library/LibrarySettings.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Library/SupportPackages.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Library/LibraryWidget.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Library/PresetItemModel.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Library/PresetListView.hpp"
@@ -34,6 +35,7 @@ set(SRCS
 
     "${CMAKE_CURRENT_SOURCE_DIR}/Library/LibraryInterface.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Library/LibrarySettings.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Library/SupportPackages.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Library/LibraryWidget.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Library/PresetItemModel.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Library/ProcessesItemModel.cpp"

@@ -2,6 +2,9 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "View.hpp"
 
+#include <Library/SupportPackages.hpp>
+#include <PackageManager/Install.hpp>
+
 #include <score/application/GUIApplicationContext.hpp>
 #include <score/widgets/MessageBox.hpp>
 #include <score/widgets/SetIcons.hpp>
@@ -305,7 +308,15 @@ void PluginSettingsView::uninstall()
     // default-constructed Package, and removing <path>/ would wipe the library.
     const QString& installPath
         = addon.kind == "support" ? library.getSupportPath() : library.getPackagesPath();
-    success = QDir{installPath + '/' + addon.raw_name}.removeRecursively();
+    const QString folder = installPath + '/' + addon.raw_name;
+
+    // A folder still in use is removed at the next start, and is neither loaded
+    // nor listed until then: for the user it is uninstalled.
+    success = Library::removePackageFolder(folder) || Library::isMarkedForRemoval(folder);
+
+    // The list shows a package once, but older versions may sit in other folders.
+    removeOtherInstalls(
+        addon.uuid(), folder, {library.getPackagesPath(), library.getSupportPath()});
   }
 
   if(success)
