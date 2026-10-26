@@ -55,17 +55,18 @@ Presenter::Presenter(Model& m, View& v, QObject* parent)
     }
   });
 
+  // Back to the current value: a value queued before must not be applied.
   con(v, &View::BufferSizeChanged, this, [this, &m](auto val) {
     if(val != m.getBufferSize())
-    {
       m_disp.submitDeferredCommand<SetModelBufferSize>(m, val);
-    }
+    else
+      m_disp.discardDeferred<SetModelBufferSize>();
   });
   con(v, &View::RateChanged, this, [this, &m](auto val) {
     if(val != m.getRate())
-    {
       m_disp.submitDeferredCommand<SetModelRate>(m, val);
-    }
+    else
+      m_disp.discardDeferred<SetModelRate>();
   });
 
   con(m, &Model::changed, this, [&] {

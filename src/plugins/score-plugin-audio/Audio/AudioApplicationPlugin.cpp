@@ -148,6 +148,9 @@ void ApplicationPlugin::timerEvent(QTimerEvent*)
     if(audio->failed() && !m_updating_audio)
     {
       stop_engine();
+      // Its stream died, so no callback will mark it stopped for the
+      // reaper; stop() has closed the stream and joined its thread.
+      previous_audio.pop_back();
       score::warning(
           context.documentTabWidget, tr("Audio Error"),
           tr("The audio device stopped working, or cannot keep up at this buffer "
