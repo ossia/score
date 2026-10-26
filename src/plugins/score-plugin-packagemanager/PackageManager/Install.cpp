@@ -111,7 +111,9 @@ int removeOtherInstalls(const QUuid& key, const QString& keep, const QStringList
   {
     for(const auto& pkg : Library::installedPackages(root))
     {
-      if(pkg.key != key || pkg.path == kept || Library::isMarkedForRemoval(pkg.path))
+      // A folder linked there by hand is the developer's, whatever it holds.
+      if(pkg.key != key || pkg.path == kept || Library::isMarkedForRemoval(pkg.path)
+         || Library::isLinkedPackageFolder(pkg.path))
         continue;
       Library::removePackageFolder(pkg.path);
       count++;

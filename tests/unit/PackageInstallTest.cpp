@@ -237,3 +237,24 @@ TEST_CASE("an update removes the previous install from its other folder", "[pack
   // Nothing left to remove
   CHECK(removeOtherInstalls(QUuid::fromString(key), fresh, {packages, support}) == 0);
 }
+
+#if !defined(_WIN32)
+// packages/foo-dev -> ~/src/foo, a package under development with the key of
+// the one installed from the store: neither the link nor what it points to go.
+TEST_CASE("an update leaves a package folder linked by hand alone", "[packagemanager]")
+{
+  QTemporaryDir tmp;
+  const QString packages = tmp.path() + "/packages";
+  const QString key = "28d97cbc-bc84-4e74-9bc2-fe0f0fccf87c";
+
+  const QString sources = writePackage(tmp.path() + "/src", "foo", key, 1);
+  const QString linked = packages + "/foo-dev";
+  REQUIRE(QDir{}.mkpath(packages));
+  REQUIRE(QFile::link(sources, linked));
+  const QString fresh = writePackage(packages, "foo", key, 2);
+
+  CHECK(removeOtherInstalls(QUuid::fromString(key), fresh, {packages}) == 0);
+  CHECK(QFileInfo{linked}.isSymLink());
+  CHECK(QFileInfo::exists(sources + "/package.json"));
+}
+#endif

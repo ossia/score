@@ -68,12 +68,16 @@ Model::Model(
   }
   initUserLibrary(getUserLibraryPath());
 
-  // Folders the package manager could not remove while they were in use.
-  removeMarkedPackageFolders(getPackagesPath());
-  removeMarkedPackageFolders(getSupportPath());
+  // Folders the package manager could not remove while they were in use, and
+  // what interrupted installs left.
+  for(const QString& root : {getPackagesPath(), getSupportPath()})
+  {
+    removeMarkedPackageFolders(root);
+    removeInterruptedInstalls(root);
+  }
 
   // Make the native libraries shipped by "support" packages loadable by the addons.
-  loadSupportLibraries(supportFoldersToLoad(getSupportPath()));
+  loadSupportPackages(getSupportPath());
 }
 
 QString Model::getPackagesPath() const noexcept

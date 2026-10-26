@@ -5,6 +5,7 @@
 
 #include <score_plugin_library_export.h>
 
+#include <chrono>
 #include <vector>
 
 namespace Library
@@ -39,9 +40,21 @@ bool removePackageFolder(const QString& path);
 SCORE_PLUGIN_LIBRARY_EXPORT
 bool isMarkedForRemoval(const QString& path);
 
+//! Whether @p path is a link to a folder, put there by hand: removing the
+//! package removes the link, not what it points to.
+SCORE_PLUGIN_LIBRARY_EXPORT
+bool isLinkedPackageFolder(const QString& path);
+
 //! Removes the folders under @p root which removePackageFolder marked.
 SCORE_PLUGIN_LIBRARY_EXPORT
 void removeMarkedPackageFolders(const QString& root);
+
+//! Removes what interrupted installs left under @p root (score quit or crashed
+//! mid-download, an extraction failed): ".incoming-*" folders and
+//! ".zdl-download-*" archives not modified for @p age.
+SCORE_PLUGIN_LIBRARY_EXPORT
+void removeInterruptedInstalls(
+    const QString& root, std::chrono::seconds age = std::chrono::hours{1});
 
 /**
  * @brief The support package folders whose libraries are to be loaded.
@@ -54,6 +67,24 @@ void removeMarkedPackageFolders(const QString& root);
  */
 SCORE_PLUGIN_LIBRARY_EXPORT
 QStringList supportFoldersToLoad(const QString& supportDir);
+
+/**
+ * @brief Loads the libraries of the support packages in @p supportDir.
+ *
+ * Those of supportFoldersToLoad(), less the packages of which another version
+ * was loaded in this process already: two versions of a library in one process
+ * is what is avoided here, so a package updated or reinstalled since waits for
+ * a restart. Folders loaded already are loaded again, which loads what failed
+ * then for want of another package.
+ *
+ * @return the folders whose libraries were loaded
+ */
+SCORE_PLUGIN_LIBRARY_EXPORT
+QStringList loadSupportPackages(const QString& supportDir);
+
+//! Whether a version of the support package @p key was loaded in this process.
+SCORE_PLUGIN_LIBRARY_EXPORT
+bool isSupportPackageLoaded(const QUuid& key);
 
 /**
  * @brief Makes the native libraries of the given support package folders
