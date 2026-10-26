@@ -44,6 +44,7 @@ class GenericMiniAudioFactory
     , public AudioFactory
 {
   std::shared_ptr<ossia::miniaudio_context> m_context;
+  bool m_scanned{};
 
 public:
   std::vector<MiniAudioCard> devices;
@@ -72,6 +73,13 @@ public:
   virtual void setDeviceId(ma_device_id& id, const QString& str) const noexcept = 0;
   virtual QString deviceIdToString(const ma_device_id& id) const noexcept = 0;
 
+  //! Lets a backend replace the ids miniaudio enumerates, e.g. with names that
+  //! survive the devices enumerating in another order.
+  virtual void normalizeDeviceId(ma_device_id& id) const noexcept { }
+
+  //! Exclusive access bypasses the system mixer when the backend has one.
+  virtual ma_share_mode shareMode() const noexcept { return ma_share_mode_shared; }
+
   // When true, the factory exposes an extra "Default device" entry mapped to
   // the OS default device. The selection is stored as the "Default" sentinel
   // and make_engine passes a NULL miniaudio device id, so the backend follows
@@ -93,7 +101,7 @@ public:
   void
   initialize(Audio::Settings::Model& set, const score::ApplicationContext& ctx) override
   {
-    acquireContext();
+    ensureScanned();
     // set.setDefaultIn(2);
     // set.setDefaultOut(2);
     // set.setRate(48000);
@@ -241,11 +249,18 @@ public:
     set.changed();
   }
 
+  void ensureScanned()
+  {
+    if(!m_scanned)
+      rescan();
+  }
+
   void rescan()
   {
     auto ctx = acquireContext();
     if(!ctx)
       return;
+    m_scanned = true;
     devices.clear();
 
     devices.resize(1);
@@ -268,13 +283,17 @@ public:
     for(std::size_t i = 1; i < devices.size(); i++)
     {
       auto& dev = devices[i];
+      // miniaudio looks the id up among the ones it enumerated.
       ma_context_get_device_info(&m_context->context, dev.type, &dev.id, &dev.info);
+      normalizeDeviceId(dev.id);
+      dev.info.id = dev.id;
     }
   }
 
   std::shared_ptr<ossia::audio_engine> make_engine(
       const Audio::Settings::Model& set, const score::ApplicationContext& ctx) override
   {
+    ensureScanned();
     ma_device_id info_in;
     ma_device_id info_out;
     memset(&info_in, 0, sizeof(info_in));
@@ -283,17 +302,35 @@ public:
     auto card_in = set.getCardIn().toStdString();
     auto card_out = set.getCardOut().toStdString();
 
+    bool found_in = false, found_out = false;
     for(auto& dev : this->devices)
     {
       if(compareDeviceId(dev.id, card_in))
+      {
         info_in = dev.id;
+        found_in = true;
+      }
       if(compareDeviceId(dev.id, card_out))
+      {
         info_out = dev.id;
+        found_out = true;
+      }
     }
+
+    // A zero id means the system default device: a device that is not
+    // listed (unplugged, busy) is asked for by name, so that it fails rather
+    // than another device playing instead.
+    auto explicit_device = [](const QString& name) {
+      return !name.isEmpty() && name != "Default" && !name.startsWith("No device");
+    };
+    if(!found_in && explicit_device(set.getCardIn()))
+      setDeviceId(info_in, set.getCardIn());
+    if(!found_out && explicit_device(set.getCardOut()))
+      setDeviceId(info_out, set.getCardOut());
 
     return std::make_shared<ossia::miniaudio_engine>(
         acquireContext(), "ossia score", info_in, info_out, set.getDefaultIn(),
-        set.getDefaultOut(), set.getRate(), set.getBufferSize());
+        set.getDefaultOut(), set.getRate(), set.getBufferSize(), shareMode());
   }
 
   void setCard(QComboBox* combo, ma_device_type tp, QString val)
@@ -334,7 +371,7 @@ public:
       Audio::Settings::Model& m, Audio::Settings::View& v,
       score::SettingsCommandDispatcher& m_disp, QWidget* parent) override
   {
-    acquireContext();
+    ensureScanned();
     /* Not useful: hotplug does not seem to work
     struct UpdateWhenVisible : public QWidget
     {
