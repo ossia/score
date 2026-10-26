@@ -2,7 +2,6 @@
 #include <Fx/Looper/AudioLayers.hpp>
 #include <Fx/Looper/LooperView.hpp>
 #include <Fx/Looper/Switches.hpp>
-#include <Fx/Looper/Sync.hpp>
 #include <Fx/Looper/TakeWriter.hpp>
 #include <Fx/Looper/Transport.hpp>
 #include <Fx/Types.hpp>
@@ -57,6 +56,10 @@ struct Node
   halp_meta(recommended_height, 200);
   halp_flag(process_exec);
 
+  //! Inlets that presets which do not name their controls count in their
+  //! indices, and that the looper does not have: Sync.
+  static constexpr std::array<int, 1> removed_inlets() noexcept { return {16}; }
+
   using LoopMode = Looper::LoopMode;
   using Passthrough = Looper::Passthrough;
 
@@ -64,16 +67,17 @@ struct Node
   {
     halp::dynamic_audio_bus<"in", double> audio;
 
-    struct : halp::enum_t<LoopMode, "Loop">
+    struct : halp::enum_t<LoopMode, "Mode">
     {
-      using halp::enum_t<LoopMode, "Loop">::operator=;
+      using halp::enum_t<LoopMode, "Mode">::operator=;
+      static constexpr std::string_view former_name() noexcept { return "Loop"; }
       halp_meta(
           description,
           "What the looper is doing, or about to do on the grid: playing the "
-          "loop, recording a new one over it, overdubbing on top of it, or "
-          "nothing. It follows every change, by an action, a recording's end "
-          "or a full buffer. Overdub on an empty loop records it, then "
-          "overdubs.")
+          "loop, recording it, overdubbing on top of it, or nothing. It follows "
+          "every change, by an action, a recording's end or a full buffer. "
+          "Record on a loop overdubs it: Clear it first to record a new one. "
+          "Overdub on an empty loop records it, then overdubs.")
       //! Shows the mode actions, a recording's end and a full loop change it to.
       std::function<void(std::string_view)> update_controller;
       //! A value came in, from the UI or a cable.
@@ -93,8 +97,9 @@ struct Node
 
     Looper::after_record_selector after_record;
 
-    struct : halp::spinbox_i32<"Bars", halp::irange{0, 64, 4}>
+    struct : halp::spinbox_i32<"Record bars", halp::irange{0, 64, 4}>
     {
+      static constexpr std::string_view former_name() noexcept { return "Bars"; }
       halp_meta(
           description,
           "How long a recording runs before After record takes over, and so "
@@ -168,16 +173,6 @@ struct Node
           "the next start.")
     } channels;
 
-    struct : Looper::enum_combobox<"Sync", Looper::SyncGroup, Looper::SyncGroup::None>
-    {
-      using enum_combobox::operator=;
-      halp_meta(
-          description,
-          "Loopers of one group play together: the first to record sets the "
-          "loop, the loops recorded after it are a whole number of it or a "
-          "half, quarter or eighth of it, in phase with it.")
-    } sync;
-
     struct : halp::spinbox_i32<"Keep last (s)", halp::irange{0, 600, 0}>
     {
       halp_meta(
@@ -244,6 +239,12 @@ struct Node
     struct : Looper::enum_combobox<"Follow tempo", Looper::FollowTempo, Looper::FollowTempo::Off>
     {
       using enum_combobox::operator=;
+      struct range
+      {
+        std::string_view values[5]
+            = {"Off", "Repitch", "Repitch fast", "Timestretch", "Timestretch percussive"};
+        Looper::FollowTempo init = Looper::FollowTempo::Off;
+      };
       halp_meta(
           description,
           "Plays the loop at the tempo of the score, as sound files are: "
@@ -369,7 +370,6 @@ struct Node
   ossia::exec_state_facade ossia_state;
 
   Looper::transport transport;
-  Looper::loop_sync sync;
   Looper::audio_layers layers;
   std::shared_ptr<Looper::take_writer> writer;
   std::shared_ptr<Looper::export_buffer> export_audio;
@@ -380,7 +380,7 @@ struct Node
     export_audio = Looper::export_buffer::make(layers.channels, layers.capacity);
   }
 
-  //! A value came in on Loop.
+  //! A value came in on Mode.
   void loop_arrived() noexcept { m_loop.arrived = true; }
 
   void prepare(halp::setup s)
@@ -515,7 +515,6 @@ struct Node
     m_reverse = inputs.reverse.value;
     m_tick_start = Looper::timeline_start(tk, ossia_state);
 
-    sync.set_group(inputs.sync.value);
     apply_buttons();
     m_switches.follow_merges(inputs, layers.merged_passes);
     if(inputs.capture.value)
@@ -561,7 +560,8 @@ struct Node
   }
 
   //! Stopping the process keeps the loop: only the transport starts over.
-  //! What was being taken in is a pass like any other.
+  //! What was being taken in is a pass like any other, and Mode goes from
+  //! Record or Overdub to Play.
   void stop()
   {
     if(transport.is_taking())
@@ -571,6 +571,8 @@ struct Node
       write_stop_take();
     }
     transport.reset();
+    transport.stopped(layers.empty());
+    Looper::show_loop(inputs.mode, transport, m_loop);
     m_switches.reset();
     m_view_countdown = 0;
   }
@@ -607,7 +609,6 @@ struct Node
           halp_meta(columns, 2)
           halp::item<&ins::after_record> after_record;
           halp::item<&ins::postaction_bars> bars;
-          halp::item<&ins::sync> sync;
           halp::item<&ins::late> late;
         } length;
         struct
@@ -708,7 +709,7 @@ private:
   double m_export_date{};
   //! The mode asked for, as the transport takes it up.
   LoopMode m_mode{LoopMode::Stop};
-  //! What came in on Loop, and what it shows.
+  //! What came in on Mode, and what it shows.
   Looper::loop_input m_loop;
   Looper::switches m_switches;
   double m_job_date{};
@@ -940,7 +941,6 @@ private:
 inline void Node::clear_loop()
 {
   m_switches.soloed.forget();
-  sync.release();
   m_loading = false;
   layers.clear();
   m_seam.base_slot = -1;
@@ -1176,13 +1176,6 @@ inline void Node::looper_close_take(
     if(quantify_length && total_samples < layers.length)
       layers.length = total_samples;
 
-    // In a sync group, the loop fits the group's.
-    const auto synced
-        = sync.close(layers.length, transport.engine_frame(tk), transport.playbackPos);
-    if(synced.length < layers.length)
-      layers.length = synced.length;
-    const int64_t sync_extend = std::min(synced.length, layers.capacity);
-
     if(latency > 0)
       layers.shift_earlier(*top, latency);
 
@@ -1211,14 +1204,6 @@ inline void Node::looper_close_take(
         std::fill(layers.data(top->slot, c) + layers.length, layers.data(top->slot, c) + end, 0.f);
       layers.length = end;
     }
-    if(sync_extend > layers.length)
-    {
-      for(int c = 0; c < layers.channels; c++)
-        std::fill(layers.data(top->slot, c) + layers.length, layers.data(top->slot, c) + sync_extend, 0.f);
-      layers.length = sync_extend;
-    }
-    if(sync.current())
-      transport.playbackPos = synced.position % std::max<int64_t>(1, layers.length);
 
     top->written = layers.length;
     m_export_date = transport.recordStartDate.impl / double(ossia::flicks_per_second<int64_t>);
@@ -1307,7 +1292,7 @@ inline int64_t Node::looper_frames_to_end() const noexcept
   return int64_t(std::ceil((double(len) - y) / rate - 1e-9));
 }
 
-//! The loop as Quantif's Loop: the frames a round of it takes at the rate it
+//! The loop as Quantize's Loop: the frames a round of it takes at the rate it
 //! is heard at, and where the playhead is in it, the way it goes. An extending
 //! overdub's round is the loop as long as it is now. A stopped loop is where
 //! it would be had it kept going since it was made, as In phase has it.

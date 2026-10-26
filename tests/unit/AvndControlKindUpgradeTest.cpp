@@ -400,25 +400,34 @@ make_looper(const score::DocumentContext& dctx, const QString& uuid)
       nullptr)};
 }
 
-//! The looper as it was saved when Quantif was the list of note values: its
-//! port a combobox of them, set to `value`.
-void make_legacy_quantif(Process::ProcessModel& looper, float value)
+//! The port named `name` of the looper becomes a combobox of the note list
+//! named `saved_name`, set to `value`: what the looper saved when that control
+//! was the list.
+void make_legacy_note_list(
+    Process::ProcessModel& looper, const QString& name, const QString& saved_name,
+    float value)
 {
   auto& inlets = InletsAccess::of(looper);
-  auto it = ossia::find_if(inlets, [](auto* in) { return in->name() == "Quantif"; });
+  auto it = ossia::find_if(inlets, [&](auto* in) { return in->name() == name; });
   REQUIRE(it != inlets.end());
   std::vector<std::pair<QString, ossia::value>> notes;
   for(const auto& [name, v] : Control::Widgets::notes)
     notes.emplace_back(QString::fromUtf8(name), ossia::value{v});
-  auto* combo = new Process::ComboBox{notes, 0.25f, "Quantif", (*it)->id(), &looper};
+  auto* combo = new Process::ComboBox{notes, 0.25f, saved_name, (*it)->id(), &looper};
   combo->setValue(value);
   delete *it;
   *it = combo;
 }
 
-ossia::vec2f grid_of(const Process::ProcessModel& looper)
+//! The looper as it was saved when Quantif was the list of note values.
+void make_legacy_quantif(Process::ProcessModel& looper, float value)
 {
-  auto* quantif = qobject_cast<Process::GridChooser*>(inlet_named(looper, "Quantif"));
+  make_legacy_note_list(looper, "Quantize", "Quantif", value);
+}
+
+ossia::vec2f grid_of(const Process::ProcessModel& looper, const QString& name = "Quantize")
+{
+  auto* quantif = qobject_cast<Process::GridChooser*>(inlet_named(looper, name));
   REQUIRE(quantif);
   const auto* v = quantif->value().target<ossia::vec2f>();
   REQUIRE(v);
@@ -441,7 +450,7 @@ const legacy_case legacy_cases[] = {
 };
 }
 
-TEST_CASE("The loopers' Quantif: a score saved with the note list", "[avnd][upgrade][looper]")
+TEST_CASE("The loopers' Quantize: a score saved with the Quantif note list", "[avnd][upgrade][looper]")
 {
   score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
     auto* doc = score::test::new_document(ctx);
@@ -462,7 +471,8 @@ TEST_CASE("The loopers' Quantif: a score saved with the note list", "[avnd][upgr
               roundtrip(*looper, dctx, nullptr)};
           REQUIRE(loaded);
           INFO(uuid.toStdString() << " " << c.saved);
-          CHECK(inlet_named(*loaded, "Quantif")->id() == id);
+          CHECK(inlet_named(*loaded, "Quantize")->id() == id);
+          CHECK(inlet_named(*loaded, "Quantif") == nullptr);
           CHECK(grid_of(*loaded) == c.grid);
         }
       }
@@ -470,7 +480,7 @@ TEST_CASE("The loopers' Quantif: a score saved with the note list", "[avnd][upgr
   });
 }
 
-TEST_CASE("The loopers' Quantif: a preset saved with the note list", "[avnd][upgrade][looper]")
+TEST_CASE("The loopers' Quantize: a preset saved with the Quantif note list", "[avnd][upgrade][looper]")
 {
   score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
     auto* doc = score::test::new_document(ctx);
@@ -481,7 +491,7 @@ TEST_CASE("The loopers' Quantif: a preset saved with the note list", "[avnd][upg
       auto looper = make_looper(dctx, uuid);
       if(!looper)
         SKIP("the loopers are not built");
-      const int id = inlet_named(*looper, "Quantif")->id().val();
+      const int id = inlet_named(*looper, "Quantize")->id().val();
       for(const auto& c : legacy_cases)
       {
         INFO(uuid.toStdString() << " " << c.saved);
@@ -543,5 +553,222 @@ TEST_CASE("The loopers' Quantif: a preset saved with the note list", "[avnd][upg
       }
     }
 #endif
+  });
+}
+
+namespace
+{
+QString name_of(const Process::Port& p)
+{
+  return p.name();
+}
+
+//! A looper as a score saved it before Mode, Quantize, Record bars, Note grid,
+//! Strength and Note ends had those names: Quantif and Grid lists of note
+//! values, and the MIDI looper's strength called Quantize. With `sync`, it has
+//! the Sync port the loopers had then, at `sync_at`, the ports after it one id
+//! further, and it is loaded through the rebuild of its ports.
+std::unique_ptr<Process::ProcessModel> make_renamed_looper(
+    const score::DocumentContext& dctx, const QString& uuid, bool midi, bool sync,
+    int sync_at)
+{
+  auto looper = make_looper(dctx, uuid);
+  if(!looper)
+    return {};
+  inlet_named(*looper, "Mode")->setValue(std::string{"Overdub"});
+  inlet_named(*looper, "Record bars")->setValue(2);
+  make_legacy_quantif(*looper, 0.25f);
+  if(midi)
+  {
+    make_legacy_note_list(*looper, "Note grid", "Grid", 1.f / 16.f);
+    inlet_named(*looper, "Strength")->setValue(0.7f);
+    inlet_named(*looper, "Note ends")->setValue(true);
+  }
+  else
+  {
+    inlet_named(*looper, "Follow tempo")->setValue(2);
+  }
+  // The Quantif list is in place: Quantize is the strength's name from here on.
+  const std::pair<const char*, const char*> renames[]
+      = {{"Mode", "Loop"},
+         {"Record bars", "Bars"},
+         {"Strength", "Quantize"},
+         {"Note ends", "Quantize ends"}};
+  for(auto [now, was] : renames)
+    if(auto* p = inlet_named(*looper, now))
+      p->setName(was);
+
+  if(sync)
+  {
+    auto& inlets = InletsAccess::of(*looper);
+    for(std::size_t i = sync_at; i < inlets.size(); i++)
+      inlets[i]->setId(Id<Process::Port>{inlets[i]->id().val() + 1});
+    std::vector<std::pair<QString, ossia::value>> groups;
+    for(const char* g : {"None", "A", "B", "C", "D"})
+      groups.emplace_back(g, ossia::value{int(groups.size())});
+    auto* combo = new Process::ComboBox{
+        groups, ossia::value{0}, "Sync", Id<Process::Port>{sync_at}, looper.get()};
+    combo->setValue(1);
+    inlets.insert(inlets.begin() + sync_at, combo);
+  }
+  return looper;
+}
+}
+
+TEST_CASE(
+    "The loopers: a score saved before the renames and with Sync loads every value "
+    "where it belongs",
+    "[avnd][upgrade][looper]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    auto& dctx = doc->context();
+    struct looper_case
+    {
+      QString uuid;
+      bool midi;
+      int sync_at;
+    };
+    for(const auto& [uuid, midi, sync_at] :
+        {looper_case{audio_looper_uuid, false, 16}, looper_case{midi_looper_uuid, true, 20}})
+    {
+      auto fresh = make_looper(dctx, uuid);
+      if(!fresh)
+        SKIP("the loopers are not built");
+      for(bool sync : {false, true})
+      {
+        auto old = make_renamed_looper(dctx, uuid, midi, sync, sync_at);
+        REQUIRE(old);
+        REQUIRE(old->inlets().size() == fresh->inlets().size() + (sync ? 1 : 0));
+        // The ids the document's cables point at.
+        const QString kept[] = {"Capture", "Export", "At max layers", "Passes"};
+        std::vector<int> saved_ids;
+        for(const auto& name : kept)
+          saved_ids.push_back(inlet_named(*old, name)->id().val());
+
+        for(auto roundtrip : {&roundtrip_json, &roundtrip_datastream})
+        {
+          INFO(uuid.toStdString() << (sync ? " with Sync" : " kept ports"));
+          std::unique_ptr<Process::ProcessModel> loaded{roundtrip(*old, dctx, nullptr)};
+          REQUIRE(loaded);
+          CHECK(loaded->inlets().size() == fresh->inlets().size());
+          for(const char* gone : {"Sync", "Loop", "Bars", "Quantif", "Grid", "Quantize ends"})
+            CHECK(inlet_named(*loaded, gone) == nullptr);
+          for(std::size_t i = 0; i < loaded->inlets().size(); i++)
+            CHECK(name_of(*loaded->inlets()[i]) == name_of(*fresh->inlets()[i]));
+
+          CHECK(ossia::convert<std::string>(inlet_named(*loaded, "Mode")->value()) == "Overdub");
+          CHECK(ossia::convert<int>(inlet_named(*loaded, "Record bars")->value()) == 2);
+          // Quantif's 4th is a quarter note, and the grid is Quantize, not the
+          // strength that had that name.
+          CHECK(grid_of(*loaded) == ossia::vec2f{0.25f, 1.f});
+          if(midi)
+          {
+            CHECK(grid_of(*loaded, "Note grid") == ossia::vec2f{1.f / 16.f, 1.f});
+            auto* strength = inlet_named(*loaded, "Strength");
+            REQUIRE(strength);
+            CHECK(!qobject_cast<Process::GridChooser*>(strength));
+            CHECK(ossia::convert<float>(strength->value()) == 0.7f);
+            CHECK(ossia::convert<bool>(inlet_named(*loaded, "Note ends")->value()));
+          }
+          else
+          {
+            CHECK(ossia::convert<int>(inlet_named(*loaded, "Follow tempo")->value()) == 2);
+          }
+          for(std::size_t k = 0; k < std::size(kept); k++)
+          {
+            INFO(kept[k].toStdString());
+            CHECK(inlet_named(*loaded, kept[k])->id().val() == saved_ids[k]);
+          }
+        }
+      }
+    }
+  });
+}
+
+TEST_CASE(
+    "The loopers' presets: named controls, and the indices of presets that do not "
+    "name them",
+    "[avnd][upgrade][looper]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    auto& dctx = doc->context();
+    auto load = [](Process::ProcessModel& looper, const char* json) {
+      Process::Preset p;
+      p.key.key = looper.concreteKey();
+      p.data = json;
+      looper.loadPreset(p);
+    };
+    auto as_int = [](Process::ProcessModel& looper, const char* name) {
+      auto* in = inlet_named(looper, name);
+      REQUIRE(in);
+      return ossia::convert<int>(in->value());
+    };
+    auto as_string = [](Process::ProcessModel& looper, const char* name) {
+      auto* in = inlet_named(looper, name);
+      REQUIRE(in);
+      return ossia::convert<std::string>(in->value());
+    };
+
+    {
+      auto looper = make_looper(dctx, audio_looper_uuid);
+      if(!looper)
+        SKIP("the loopers are not built");
+      // A preset of the audio looper of 7 inlets: Quantif Whole, Restart Always.
+      load(*looper, R"([[2,{"Float":1.0}],[6,{"String":"Always"}],[5,{"Int":3}]])");
+      CHECK(grid_of(*looper) == ossia::vec2f{1.f, 2.f});
+      CHECK(as_string(*looper, "Start from") == "Loop start");
+      CHECK(as_int(*looper, "Record bars") == 3);
+
+      // A preset saved with Sync, at 16: what came after it is one index on.
+      load(*looper, R"([[16,{"Int":3}],[17,{"Int":7}],[18,{"Int":5}],[47,{"Int":0}]])");
+      CHECK(as_int(*looper, "Keep last (s)") == 7);
+      CHECK(as_int(*looper, "Capture bars") == 5);
+      CHECK(as_int(*looper, "At max layers") == 0);
+
+      // Named: by its name when the id is another control's, by the name it
+      // had, and its choices by the names they had.
+      load(
+          *looper,
+          R"([[3,{"Int":9},"Record bars"],[40,{"Vec2f":[2.0,2.0]},"Quantif"],[1,{"String":"Recording"},"Restart"]])");
+      CHECK(as_int(*looper, "Record bars") == 9);
+      CHECK(as_int(*looper, "Passthrough") != 9);
+      CHECK(grid_of(*looper) == ossia::vec2f{2.f, 2.f});
+      CHECK(as_string(*looper, "Start from") == "Where it was");
+
+      // What it saves names every control, and loads back.
+      const auto saved = looper->savePreset();
+      CHECK(saved.data.contains(R"("Record bars"])"));
+      load(*looper, R"([[5,{"Int":1}],[2,{"Vec2f":[0.0,0.0]}]])");
+      looper->loadPreset(saved);
+      CHECK(as_int(*looper, "Record bars") == 9);
+      CHECK(grid_of(*looper) == ossia::vec2f{2.f, 2.f});
+    }
+    {
+      auto looper = make_looper(dctx, midi_looper_uuid);
+      REQUIRE(looper);
+      // Sync was at 20; Grid a note list, Quantize the strength.
+      load(
+          *looper,
+          R"([[12,{"Float":0.125}],[13,{"Float":0.5}],[20,{"Int":2}],[21,{"Int":6}],[49,{"Int":5}]])");
+      CHECK(grid_of(*looper, "Note grid") == ossia::vec2f{0.125f, 1.f});
+      CHECK(ossia::convert<float>(inlet_named(*looper, "Strength")->value()) == 0.5f);
+      CHECK(as_int(*looper, "Capture bars") == 6);
+      CHECK(as_int(*looper, "Max layers") == 5);
+      // The note list's None is no note value: the default one, Strength
+      // deciding whether notes move.
+      load(*looper, R"([[12,{"Float":0.0}]])");
+      CHECK(grid_of(*looper, "Note grid") == ossia::vec2f{0.25f, 1.f});
+
+      // Named: Quantize is the grid, Strength the strength.
+      load(
+          *looper,
+          R"([[13,{"Vec2f":[0.5,3.0]},"Quantize"],[2,{"Float":0.25},"Strength"]])");
+      CHECK(grid_of(*looper) == ossia::vec2f{0.5f, 3.f});
+      CHECK(ossia::convert<float>(inlet_named(*looper, "Strength")->value()) == 0.25f);
+    }
   });
 }

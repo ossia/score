@@ -2,7 +2,8 @@
 
 // Loads the presets of an object from a package's Presets folder (the .scp
 // files score saves) and applies them to the object's `inputs`, the way the
-// avnd process maps them: preset entry N is input field N, ports included.
+// avnd process maps them: preset entry N is input field N, ports included,
+// and an entry that names its control names that field.
 //
 // The presets come from tests/fixtures/presets, a copy of the folders of the
 // default package that the tests read; SCORE_PRESETS_ROOT points them at
@@ -268,19 +269,31 @@ QStringList apply(Inputs& inputs, const preset& p, double tempo = 120.)
   for(const auto& entry : p.values)
   {
     const auto pair = entry.toArray();
-    if(pair.size() != 2)
+    if(pair.size() != 2 && pair.size() != 3)
     {
       errors << "malformed entry";
       continue;
     }
     const int idx = pair[0].toInt();
     const auto val = pair[1].toObject();
+    // [index, value, name]: the name is the input's at that index.
+    const QString name = pair.size() == 3 ? pair[2].toString() : QString{};
     bool found = false;
     int n = 0;
     avnd::pfr::for_each_field(inputs, [&](auto& field) {
       if(n++ == idx)
       {
         found = true;
+        using F = std::decay_t<decltype(field)>;
+        if constexpr(requires { F::name(); })
+        {
+          const std::string_view nm = F::name();
+          if(!name.isEmpty() && name != QString::fromUtf8(nm.data(), qsizetype(nm.size())))
+            errors << QStringLiteral("entry %1: named %2, the input is %3")
+                          .arg(idx)
+                          .arg(name)
+                          .arg(QString::fromUtf8(nm.data(), qsizetype(nm.size())));
+        }
         detail::assign(field, val, errors, idx, tempo);
       }
     });

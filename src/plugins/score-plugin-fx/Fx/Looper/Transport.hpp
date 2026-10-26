@@ -60,7 +60,7 @@
  *   // or -1 when it is not going round a loop.
  *   int64_t looper_frames_to_end() const;
  *
- *   // The loop as the period of Quantif's Loop grid, at the start of the
+ *   // The loop as the period of Quantize's Loop grid, at the start of the
  *   // span of `tk`; see loop_period.
  *   Looper::loop_period looper_period(const ossia::token_request& tk) const;
  *
@@ -103,8 +103,8 @@ enum class AfterOverdub
   NewLayer ///< Goes on overdubbing in a new layer, as New layer does.
 };
 
-//! The actions that are not "set Loop to a mode". Each is taken up on the
-//! next grid point, as a change of Loop is.
+//! The actions that are not "set Mode to a mode". Each is taken up on the
+//! next grid point, as a change of Mode is.
 enum class TransportAction
 {
   RecPlayDub, ///< Records an empty loop, then plays, overdubs, plays again.
@@ -209,7 +209,7 @@ enum class FollowTempo
   TimestretchPercussive
 };
 
-//! The units Quantif offers: a time, a note value, bars, or the loop itself.
+//! The units Quantize offers: a time, a note value, bars, or the loop itself.
 inline constexpr halp::grid_setup quantif_grid{
     .units = halp::grid_units::free | halp::grid_units::note | halp::grid_units::bars
              | halp::grid_units::period,
@@ -250,8 +250,8 @@ struct transport_settings
 
 struct transport
 {
-  //! The mode asked for: Loop, or what an action, a recording's end or a full
-  //! buffer changed it to. The looper shows it in Loop, so that what Loop
+  //! The mode asked for: Mode, or what an action, a recording's end or a full
+  //! buffer changed it to. The looper shows it in Mode, so that what Mode
   //! says is what the looper does.
   LoopMode wanted{LoopMode::Stop};
   LoopMode quantizedPlayMode{LoopMode::Stop};
@@ -278,16 +278,6 @@ struct transport
   ossia::time_value recordStartDate{};
   //! Musical position at which the current recording started.
   ossia::quarter_note recordStartPosition{};
-
-  //! The engine's frame count at the start of the span of `tk`: the same
-  //! clock for every looper, which is what keeps loops of a sync group in
-  //! phase.
-  int64_t engine_frame(const ossia::token_request& tk) const noexcept
-  {
-    // The engine's count is at the end of the buffer while the graph runs.
-    return m_facade.samplesSinceStart() - m_facade.bufferSize()
-           + m_facade.timings(tk).start_sample + m_close_offset;
-  }
 
   //! The tempo of a recording that is closing: the quarters it went over for
   //! the frames it kept. A tempo change during the recording is accounted
@@ -350,10 +340,12 @@ struct transport
     m_forced_close = true;
   }
 
-  //! Loop set to `m`, from its port or by Play, Stop, Record or Overdub: what
+  //! Mode set to `m`, from its port or by Play, Stop, Record or Overdub: what
   //! is asked for from now on, whatever was waiting for the grid. Overdubbing
   //! an empty loop records it, as Record does, and the recording then gives
-  //! way to overdubbing. `empty`: there is no loop and none is being recorded.
+  //! way to overdubbing. Recording over a loop overdubs it, as on a looper
+  //! pedal: a new loop is recorded once the loop is cleared. `empty`: there is
+  //! no loop and none is being recorded.
   void ask(LoopMode m, bool empty) noexcept
   {
     m_queued = 0;
@@ -363,6 +355,8 @@ struct transport
       wanted = LoopMode::Record;
       return;
     }
+    if(m == LoopMode::Record && !empty && wanted != LoopMode::Record)
+      m = LoopMode::Overdub;
     if(m != LoopMode::Record)
       m_into_overdub = false;
     wanted = m;
@@ -462,6 +456,16 @@ struct transport
     recordEndBar = -1.;
     m_taking = LoopMode::Stop;
     playbackPos = position;
+  }
+
+  //! The score stopped: a recording or an overdub, going on or waiting for
+  //! the grid, is over, and the next start plays the loop it left rather than
+  //! taking in more over it. `empty`: there is no loop.
+  void stopped(bool empty) noexcept
+  {
+    if(wanted == LoopMode::Record || wanted == LoopMode::Overdub)
+      wanted = empty ? LoopMode::Stop : LoopMode::Play;
+    m_into_overdub = false;
   }
 
   void reset() noexcept
@@ -689,10 +693,10 @@ private:
     m_last_round_position = p.position;
   }
 
-  //! Where the next point of Quantif's grid falls in the span of `tk`, as an
+  //! Where the next point of Quantize's grid falls in the span of `tk`, as an
   //! offset from its first frame. Loop is the loop's own restart while there
   //! is a loop; before there is one, it is the length the recording will have:
-  //! Bars bars, or one bar when Bars is zero.
+  //! Record bars bars, or one bar when Record bars is zero.
   std::optional<int> grid_point(
       const ossia::token_request& tk, const transport_settings& s,
       const loop_period& period, int64_t frames) const noexcept

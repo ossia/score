@@ -1,5 +1,4 @@
 #pragma once
-#include <Fx/Looper/Sync.hpp>
 #include <Fx/Looper/Transport.hpp>
 
 #include <ossia/network/value/value.hpp>
@@ -9,6 +8,9 @@
 #include <halp/grid_chooser.hpp>
 #include <halp/layout.hpp>
 #include <halp/meta.hpp>
+#include <halp/static_string.hpp>
+
+#include <avnd/common/enum_reflection.hpp>
 
 #include <algorithm>
 #include <array>
@@ -21,11 +23,11 @@
  * The actions of the loopers' Switches tab, made for footswitches, and the
  * settings that say what they and the transport do.
  *
- * Loop is the state: it shows what the looper does or is about to do,
+ * Mode is the state: it shows what the looper does or is about to do,
  * whatever changed it. Play, Stop, Record and Overdub set it, as setting it
  * by hand does. The other actions say what no value can: "the next thing",
  * "a new layer", "from the start", "this layer". Everything that changes
- * what is heard waits for the next point of the grid, as a change of Loop
+ * what is heard waits for the next point of the grid, as a change of Mode
  * does; Undo, Redo and Clear act at once, and selecting a layer as well.
  *
  * The looper (the Engine below) provides, besides the transport's engine:
@@ -38,7 +40,7 @@
  */
 namespace Nodes::Looper
 {
-//! The control F of a layout, its choices on `Columns` buttons a row: Loop
+//! The control F of a layout, its choices on `Columns` buttons a row: Mode
 //! keeps its modes on one line.
 template <auto F, int Columns>
 struct item_in_columns
@@ -48,10 +50,33 @@ struct item_in_columns
   decltype(F) model = F;
 };
 
+//! An enumeration shown as a combobox: compact where the choices are many.
+template <halp::static_string Name, typename Enum, Enum Init>
+struct enum_combobox
+{
+  static clang_buggy_consteval auto name() { return std::string_view{Name.value}; }
+  enum widget
+  {
+    combobox
+  };
+  struct range
+  {
+    decltype(avnd::enum_names<Enum>()) values = avnd::enum_names<Enum>();
+    Enum init = Init;
+  };
+  Enum value = Init;
+  operator Enum() const noexcept { return value; }
+  auto& operator=(Enum t) noexcept
+  {
+    value = t;
+    return *this;
+  }
+};
+
 //! What Rec / Play / Dub does while overdubbing until the setting is changed.
 inline constexpr AfterOverdub after_overdub_default = AfterOverdub::Play;
 
-//! The name Loop shows a mode by.
+//! The name Mode shows a mode by.
 inline std::string_view mode_label(LoopMode m) noexcept
 {
   static constexpr std::array<std::string_view, 4> names{
@@ -78,13 +103,13 @@ void show_mode(Field& f, LoopMode m)
 }
 
 /**
- * What came in on Loop, and what it shows.
+ * What came in on Mode, and what it shows.
  *
  * A value that comes in on every tick, as an automation's or a cable's
- * does, asks for its mode once, when it changes: the looper changing Loop
+ * does, asks for its mode once, when it changes: the looper changing Mode
  * by itself, at a recording's end or on a full buffer, does not make the
  * cable ask again and the mode flip back. A value that is what is asked for
- * already asks nothing, so that the looper's own change of Loop, coming back
+ * already asks nothing, so that the looper's own change of Mode, coming back
  * from the UI, is not taken for a request, nor clears what is queued.
  */
 struct loop_input
@@ -115,7 +140,7 @@ void read_loop(Field& f, transport& t, loop_input& l, bool empty)
   l.streamed = arrived;
 }
 
-//! Loop shows what is asked for, once the tick has run.
+//! Mode shows what is asked for, once the tick has run.
 template <typename Field>
 void show_loop(Field& f, const transport& t, loop_input& l)
 {
@@ -156,7 +181,7 @@ struct after_record_selector
       "What a recording gives way to when it ends: when its bars run out, "
       "when the buffer is full, or by Rec / Play / Dub. Play plays the loop; "
       "Overdub overdubs it from the very frame the recording ends on, so that "
-      "what is held goes on without a gap. Setting Loop ends a recording into "
+      "what is held goes on without a gap. Setting Mode ends a recording into "
       "the mode it is set to.")
 };
 
@@ -199,10 +224,11 @@ struct start_from_selector
       "starts at the loop's start.")
 };
 
-//! The grid a change of mode waits for.
-struct quantif_selector : halp::grid_chooser<"Quantif", quantif_grid, "loop">
+//! The grid a change of mode waits for. The Quantif of older scores.
+struct quantif_selector : halp::grid_chooser<"Quantize", quantif_grid, "loop">
 {
   using grid_chooser::operator=;
+  static constexpr std::string_view former_name() noexcept { return "Quantif"; }
 
   //! What the note list of older scores and presets saved: a fraction of a
   //! whole note, 0 for None, where Whole went through the engine's grid as a
@@ -231,8 +257,39 @@ struct quantif_selector : halp::grid_chooser<"Quantif", quantif_grid, "loop">
       "starts and ends in time: a time, a note value (1/1 is a whole note, "
       "four quarters), a number of bars, or the loop itself. Loop waits for "
       "the loop to come round to its start; before there is a loop, for the "
-      "length the recording will have, Bars bars (one bar when Bars is 0). "
-      "None changes at once.")
+      "length the recording will have, Record bars bars (one bar when Record "
+      "bars is 0). None changes at once.")
+};
+
+//! The note values the MIDI looper's notes are pulled to.
+inline constexpr halp::grid_setup note_grid{
+    .units = halp::grid_units::note, .init = halp::grid_value::note(0.25)};
+
+//! The grid the MIDI looper pulls its notes to, as far as Strength says. The
+//! Grid of older scores.
+struct note_grid_selector : halp::grid_chooser<"Note grid", note_grid>
+{
+  using grid_chooser::operator=;
+  static constexpr std::string_view former_name() noexcept { return "Grid"; }
+
+  //! What the note list of older scores and presets saved: a fraction of a
+  //! whole note. Its None, 0, left the notes where they were, as Strength 0
+  //! does now: it comes back as the default note value.
+  static ossia::value upgrade_value(const ossia::value& old)
+  {
+    const auto t = old.get_type();
+    if(t != ossia::val_type::FLOAT && t != ossia::val_type::INT
+       && t != ossia::val_type::BOOL)
+      return old;
+    const float f = ossia::convert<float>(old);
+    const double v = f > 0.f ? f : note_grid.init.value;
+    return ossia::vec2f{float(v), float(int(halp::grid_unit::note))};
+  }
+
+  halp_meta(
+      description,
+      "The note value the notes are pulled towards when played back, as far "
+      "as Strength says.")
 };
 
 struct at_max_layers_selector
@@ -275,7 +332,7 @@ struct stop_at_selector : enum_combobox<"Stop at", StopAt, StopAt::Grid>
   };
   halp_meta(
       description,
-      "When a stop is taken up, from Stop, Play / Stop or Loop: on the next "
+      "When a stop is taken up, from Stop, Play / Stop or Mode: on the next "
       "point of the grid, once the loop has played to its end, or at once.")
 };
 
@@ -303,26 +360,27 @@ struct record_button : halp::impulse_button<"Record">
 {
   halp_meta(
       description,
-      "Sets Loop to Record: records a new loop in place of the one there is. "
-      "Retrigger starts a recording again.")
+      "Sets Mode to Record: records an empty loop, overdubs one that has "
+      "something in it. Clear the loop first to record a new one. Retrigger "
+      "starts a recording again.")
 };
 
 struct overdub_button : halp::impulse_button<"Overdub">
 {
   halp_meta(
       description,
-      "Sets Loop to Overdub. On an empty loop, records it, and the recording "
+      "Sets Mode to Overdub. On an empty loop, records it, and the recording "
       "then gives way to overdubbing.")
 };
 
 struct play_button : halp::impulse_button<"Play">
 {
-  halp_meta(description, "Sets Loop to Play.")
+  halp_meta(description, "Sets Mode to Play.")
 };
 
 struct stop_button : halp::impulse_button<"Stop">
 {
-  halp_meta(description, "Sets Loop to Stop.")
+  halp_meta(description, "Sets Mode to Stop.")
 };
 
 struct new_layer_button : halp::impulse_button<"New layer">

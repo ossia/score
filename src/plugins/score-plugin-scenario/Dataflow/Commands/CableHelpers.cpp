@@ -433,7 +433,8 @@ ossia::small_vector<Process::Cable*, 4> reloadPortsInNewProcess(
 
 QStringList reloadPortsInNewProcess(
     const std::vector<SavedPort>& oldInlets, const std::vector<SavedPort>& oldOutlets,
-    Process::ProcessModel& process)
+    Process::ProcessModel& process, std::vector<int>* inletMatches,
+    std::vector<int>* outletMatches)
 {
   // Values come back here, unlike the overload above. This one exists for a
   // process whose spec drifted -- an add-on gained or lost a port since the
@@ -450,10 +451,14 @@ QStringList reloadPortsInNewProcess(
   // that a port added or removed in the middle of the list does not desync
   // everything after it. Duplicate names stay in their relative order.
   QStringList unmatched;
-  const auto restore = [&](const std::vector<SavedPort>& saved, const auto& ports) {
+  const auto restore = [&](const std::vector<SavedPort>& saved, const auto& ports,
+                           std::vector<int>* matches) {
     std::vector<bool> used(saved.size(), false);
-    for(auto* new_p : ports)
+    if(matches)
+      matches->assign(ports.size(), -1);
+    for(std::size_t i = 0; i < ports.size(); i++)
     {
+      auto* new_p = ports[i];
       for(std::size_t j = 0; j < saved.size(); j++)
       {
         if(used[j])
@@ -462,6 +467,8 @@ QStringList reloadPortsInNewProcess(
           continue;
         new_p->loadData(saved[j].data, flags);
         used[j] = true;
+        if(matches)
+          (*matches)[i] = int(j);
         break;
       }
     }
@@ -471,8 +478,8 @@ QStringList reloadPortsInNewProcess(
         unmatched.push_back(saved[j].name);
   };
 
-  restore(oldInlets, process.inlets());
-  restore(oldOutlets, process.outlets());
+  restore(oldInlets, process.inlets(), inletMatches);
+  restore(oldOutlets, process.outlets(), outletMatches);
 
   return unmatched;
 }

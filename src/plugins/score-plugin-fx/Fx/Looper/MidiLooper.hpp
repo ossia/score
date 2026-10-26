@@ -3,7 +3,6 @@
 #include <Fx/Looper/MidiLoop.hpp>
 #include <Fx/Looper/MidiTake.hpp>
 #include <Fx/Looper/Switches.hpp>
-#include <Fx/Looper/Sync.hpp>
 #include <Fx/Looper/Transport.hpp>
 #include <Fx/Types.hpp>
 
@@ -37,6 +36,10 @@ struct Node
   halp_meta(recommended_height, 200);
   halp_flag(process_exec);
 
+  //! Inlets that presets which do not name their controls count in their
+  //! indices, and that the looper does not have: Sync.
+  static constexpr std::array<int, 1> removed_inlets() noexcept { return {20}; }
+
   using LoopMode = Looper::LoopMode;
   using Passthrough = Looper::Passthrough;
   using OverdubMode = Looper::OverdubMode;
@@ -46,15 +49,17 @@ struct Node
   {
     halp::midi_bus<"in", libremidi::message> midi;
 
-    struct : halp::enum_t<LoopMode, "Loop">
+    struct : halp::enum_t<LoopMode, "Mode">
     {
-      using halp::enum_t<LoopMode, "Loop">::operator=;
+      using halp::enum_t<LoopMode, "Mode">::operator=;
+      static constexpr std::string_view former_name() noexcept { return "Loop"; }
       halp_meta(
           description,
           "What the looper is doing, or about to do on the grid: playing the "
-          "loop, recording a new one, overdubbing on top of it, or nothing. It "
-          "follows every change, by an action or a recording's end. Overdub on "
-          "an empty loop records it, then overdubs.")
+          "loop, recording it, overdubbing on top of it, or nothing. It follows "
+          "every change, by an action or a recording's end. Record on a loop "
+          "overdubs it: Clear it first to record a new one. Overdub on an "
+          "empty loop records it, then overdubs.")
       //! Shows the mode actions and a recording's end change it to.
       std::function<void(std::string_view)> update_controller;
       //! A value came in, from the UI or a cable.
@@ -74,8 +79,9 @@ struct Node
 
     Looper::after_record_selector after_record;
 
-    struct : halp::spinbox_i32<"Bars", halp::irange{0, 64, 4}>
+    struct : halp::spinbox_i32<"Record bars", halp::irange{0, 64, 4}>
     {
+      static constexpr std::string_view former_name() noexcept { return "Bars"; }
       halp_meta(
           description,
           "How long a recording runs before After record takes over. Zero "
@@ -116,22 +122,22 @@ struct Node
           "(Wrap), or ends with the loop (Truncate).")
     } held;
 
-    struct : musical_duration_selector<"Grid">
-    {
-      halp_meta(description, "Grid the notes are pulled towards when played back")
-    } grid;
+    Looper::note_grid_selector grid;
 
-    struct : halp::knob_f32<"Quantize", halp::range{0., 1., 0.}>
+    struct : halp::knob_f32<"Strength", halp::range{0., 1., 0.}>
     {
+      static constexpr std::string_view former_name() noexcept { return "Quantize"; }
       halp_meta(
           description,
-          "How far notes are pulled towards the grid when played back. The "
+          "How far notes are pulled towards Note grid when played back: 0 "
+          "leaves them where they were played, 1 puts them on the grid. The "
           "recording keeps its own timing.")
     } strength;
 
-    struct : halp::toggle<"Quantize ends">
+    struct : halp::toggle<"Note ends">
     {
-      halp_meta(description, "Pulls the ends of the notes to the grid as well")
+      static constexpr std::string_view former_name() noexcept { return "Quantize ends"; }
+      halp_meta(description, "Pulls the ends of the notes to Note grid as well")
     } quantize_ends;
 
     struct : halp::spinbox_i32<"Grace (ms)", halp::irange{0, 250, 60}>
@@ -164,16 +170,6 @@ struct Node
     {
       halp_meta(description, "Channel the loop is played on; 0 keeps the recorded ones")
     } out_channel;
-
-    struct : Looper::enum_combobox<"Sync", Looper::SyncGroup, Looper::SyncGroup::None>
-    {
-      using enum_combobox::operator=;
-      halp_meta(
-          description,
-          "Loopers of one group play together: the first to record sets the "
-          "loop, the loops recorded after it are a whole number of it or a "
-          "half, quarter or eighth of it, in phase with it.")
-    } sync;
 
     struct : halp::spinbox_i32<"Capture bars", halp::irange{1, 64, 4}>
     {
@@ -343,7 +339,6 @@ struct Node
   ossia::exec_state_facade ossia_state;
 
   Looper::transport transport;
-  Looper::loop_sync sync;
   Looper::midi_loop loop;
   std::shared_ptr<Looper::take_writer> writer;
   std::shared_ptr<Looper::midi_export> export_data;
@@ -365,7 +360,7 @@ struct Node
 
   void stop() { m_stop_requested = true; }
 
-  //! A value came in on Loop.
+  //! A value came in on Mode.
   void loop_arrived() noexcept { m_loop.arrived = true; }
 
   int64_t looper_run(int64_t start, int64_t length);
@@ -474,6 +469,8 @@ struct Node
           merge_extra_pass();
         write_stop_take(recording, date, pos);
       }
+      transport.stopped(loop.empty());
+      Looper::show_loop(inputs.mode, transport, m_loop);
     }
 
     if(tk.date == tk.prev_date)
@@ -497,7 +494,6 @@ struct Node
     m_speed = Looper::clamp_speed(inputs.speed.value);
     m_reverse = inputs.reverse.value;
 
-    sync.set_group(inputs.sync.value);
     apply_buttons();
     m_switches.follow_merges(inputs, loop.merged_passes);
     if(inputs.capture.value)
@@ -574,7 +570,6 @@ struct Node
           halp_meta(columns, 3)
           halp::item<&ins::after_record> after_record;
           halp::item<&ins::postaction_bars> bars;
-          halp::item<&ins::sync> sync;
           halp::item<&ins::late> late;
           halp::item<&ins::grace> grace;
         } length;
@@ -607,7 +602,7 @@ struct Node
         } overdub;
         struct
         {
-          halp_meta(name, "Quantize")
+          halp_meta(name, "Note grid")
           halp_meta(layout, halp::layouts::hbox)
           halp::item<&ins::grid> grid;
           halp::item<&ins::strength> strength;
@@ -683,7 +678,7 @@ private:
   std::array<std::array<uint16_t, 128>, 16> m_loop_sounding{};
 
   //! A note of the loop sounding on the output. Where it ends is fixed when
-  //! it starts: Quantize, Grid or Quantize ends changed while it sounds move
+  //! it starts: Strength, Note grid or Note ends changed while it sounds move
   //! its next rounds, not this one, so it neither loses its note-off nor
   //! starts twice.
   struct playing_note
@@ -741,7 +736,7 @@ private:
   double m_loop_tempo{120.};
   //! The mode asked for, as the transport takes it up.
   LoopMode m_mode{LoopMode::Stop};
-  //! What came in on Loop, and what it shows.
+  //! What came in on Mode, and what it shows.
   Looper::loop_input m_loop;
   Looper::switches m_switches;
   double m_job_date{};
@@ -1051,7 +1046,6 @@ inline void Node::push_outputs()
 inline void Node::clear_loop()
 {
   m_switches.soloed.forget();
-  sync.release();
   flush_loop(0);
   loop.clear();
   transport.playbackPos = 0;
@@ -1294,7 +1288,7 @@ inline double Node::grid_frames() const noexcept
 {
   // The loop's own beats: it keeps the speed it was recorded at.
   const double tempo = loop.empty() ? m_tempo : m_loop_tempo;
-  return m_rate * 60. / std::max(1., tempo) * 4. * inputs.grid.value;
+  return m_rate * 60. / std::max(1., tempo) * 4. * inputs.grid.value.value;
 }
 
 //! A position pulled towards the grid by the strength, not wrapped.
@@ -1968,14 +1962,6 @@ inline void Node::looper_close_take(
         looper_trim_recording(loop.length - total);
       loop.length = total;
     }
-    // In a sync group, the loop fits the group's.
-    const auto synced
-        = sync.close(loop.length, transport.engine_frame(tk), transport.playbackPos);
-    if(synced.length != loop.length)
-      looper_trim_recording(std::max<int64_t>(0, loop.length - synced.length));
-    loop.length = synced.length;
-    if(sync.current())
-      transport.playbackPos = synced.position % std::max<int64_t>(1, loop.length);
     loop.pass_written = loop.length;
     m_export_date = transport.recordStartDate.impl / double(ossia::flicks_per_second<int64_t>);
 
@@ -2017,7 +2003,7 @@ inline int64_t Node::looper_frames_to_end() const noexcept
   return int64_t(std::ceil((len - y) / rate() - 1e-9));
 }
 
-//! The loop as Quantif's Loop: the frames a round of it takes at the rate it
+//! The loop as Quantize's Loop: the frames a round of it takes at the rate it
 //! goes, and where the playhead is in it, the way it goes. An extending
 //! overdub's round is the loop as long as it is now. A stopped loop is where
 //! it would be had it kept going since it was made, as In phase has it.

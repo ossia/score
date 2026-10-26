@@ -639,7 +639,7 @@ TEMPLATE_TEST_CASE(
       mode = m.mode;
     };
 
-    e.gui("Loop", ossia::value{std::string{"Record"}});
+    e.gui("Mode", ossia::value{std::string{"Record"}});
     for(int i = 0; i < 100; i++)
       e.tick(512);
     e.ui();
@@ -704,7 +704,7 @@ TEST_CASE("MIDI looper through the binding: passthrough", "[avnd][execution][loo
     CHECK(e.object().inputs.passthrough.value == Nodes::Looper::Passthrough::Full);
     for(const char* mode : {"Stop", "Play", "Record"})
     {
-      e.gui("Loop", ossia::value{std::string{mode}});
+      e.gui("Mode", ossia::value{std::string{mode}});
       e.tick(64);
       e.midi({note_on(60)});
       e.tick(64);
@@ -792,7 +792,7 @@ TEMPLATE_TEST_CASE(
       oscr::MessageBusReader{b}(*m);
       view.receive(*m);
     };
-    e.gui("Quantif", ossia::value{0.f});
+    e.gui("Quantize", ossia::value{0.f});
     e.gui("Export", ossia::value{std::string{"Both"}});
 
     // Plays until the view shows `take` takes.
@@ -811,10 +811,10 @@ TEMPLATE_TEST_CASE(
       return view.drag_payload(view.width() / 2., view.height() - 10.).files;
     };
     auto pass = [&](const char* mode, int take) {
-      e.gui("Loop", ossia::value{std::string{mode}});
+      e.gui("Mode", ossia::value{std::string{mode}});
       for(int i = 0; i < 100; i++)
         e.tick(256);
-      e.gui("Loop", ossia::value{std::string{"Play"}});
+      e.gui("Mode", ossia::value{std::string{"Play"}});
       until_take(take);
     };
 
@@ -845,10 +845,10 @@ TEMPLATE_TEST_CASE(
                            : QStringLiteral("0c0b7d3e-5a52-4b8f-9d1f-6e3a2b8c4f71");
   with<TestType>(uuid, [](auto& e) {
     // These ticks are not on a musical grid: modes are taken up at once.
-    e.gui("Quantif", ossia::value{0.f});
-    e.gui("Loop", ossia::value{std::string{"Stop"}});
+    e.gui("Quantize", ossia::value{0.f});
+    e.gui("Mode", ossia::value{std::string{"Stop"}});
     e.tick(512);
-    auto loop = [&] { return ossia::convert<std::string>(e.control("Loop").value()); };
+    auto loop = [&] { return ossia::convert<std::string>(e.control("Mode").value()); };
     auto press = [&](const char* name) {
       e.gui(name, ossia::impulse{});
       for(int i = 0; i < 20; i++)
@@ -865,7 +865,7 @@ TEMPLATE_TEST_CASE(
     press("Rec / Play / Dub");
     e.ui();
     CHECK(loop() == "Play");
-    e.gui("Loop", ossia::value{std::string{"Overdub"}});
+    e.gui("Mode", ossia::value{std::string{"Overdub"}});
     e.tick(512);
     CHECK(e.object().transport.actualMode == Nodes::Looper::LoopMode::Overdub);
 
@@ -874,7 +874,7 @@ TEMPLATE_TEST_CASE(
     e.ui();
     CHECK(loop() == "Play");
     CHECK(e.object().transport.actualMode == Nodes::Looper::LoopMode::Play);
-    e.gui("Loop", ossia::value{std::string{"Overdub"}});
+    e.gui("Mode", ossia::value{std::string{"Overdub"}});
     e.tick(512);
     CHECK(e.object().transport.actualMode == Nodes::Looper::LoopMode::Overdub);
 
@@ -904,10 +904,10 @@ TEMPLATE_TEST_CASE(
                            : QStringLiteral("0c0b7d3e-5a52-4b8f-9d1f-6e3a2b8c4f71");
   with<TestType>(uuid, [](auto& e) {
     using Nodes::Looper::LoopMode;
-    e.gui("Quantif", ossia::value{0.f});
-    e.gui("Loop", ossia::value{std::string{"Stop"}});
+    e.gui("Quantize", ossia::value{0.f});
+    e.gui("Mode", ossia::value{std::string{"Stop"}});
     e.tick(512);
-    auto loop = [&] { return ossia::convert<std::string>(e.control("Loop").value()); };
+    auto loop = [&] { return ossia::convert<std::string>(e.control("Mode").value()); };
 
     // Two actions from a footswitch, the UI refreshing between them: Loop
     // shows Record while the looper already plays.
@@ -935,7 +935,7 @@ TEMPLATE_TEST_CASE(
     CHECK(e.object().transport.actualMode == LoopMode::Play);
 
     // Loop set in the UI is still a change, the same mode it showed included.
-    e.gui("Loop", ossia::value{std::string{"Stop"}});
+    e.gui("Mode", ossia::value{std::string{"Stop"}});
     e.tick(512);
     CHECK(e.object().transport.actualMode == LoopMode::Stop);
   });
@@ -964,7 +964,7 @@ TEMPLATE_TEST_CASE(
     };
     std::vector<halp::timeline_clip> sent;
     view.send_to_timeline = [&](halp::timeline_clip c) { sent.push_back(std::move(c)); };
-    e.gui("Quantif", ossia::value{0.f});
+    e.gui("Quantize", ossia::value{0.f});
     e.gui("Export", ossia::value{std::string{"Mix"}});
 
     // The view's requests reach the looper through the execution queue.
@@ -982,10 +982,10 @@ TEMPLATE_TEST_CASE(
       return view.drag_payload(view.width() / 2., view.height() - 10.).files;
     };
 
-    e.gui("Loop", ossia::value{std::string{"Record"}});
+    e.gui("Mode", ossia::value{std::string{"Record"}});
     for(int i = 0; i < 100; i++)
       e.tick(256);
-    e.gui("Loop", ossia::value{std::string{"Overdub"}});
+    e.gui("Mode", ossia::value{std::string{"Overdub"}});
     play([&] { return view.state.take == 1 && view.state.mode == int(Nodes::Looper::LoopMode::Overdub); });
     REQUIRE(view.state.take == 1);
     const auto recording = dragged();

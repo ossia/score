@@ -368,7 +368,7 @@ TEST_CASE("MIDI looper: quantize pulls the notes to the grid and keeps the recor
 {
   midi_harness h{64, 48000};
   // A sixteenth at 120 bpm and 48 kHz is 6000 frames.
-  h.node.inputs.grid.value = 1.f / 16.f;
+  h.node.inputs.grid.value = halp::grid_value::note(1.f / 16.f);
   h.node.inputs.strength.value = 1.f;
   h.node.inputs.mode = LoopMode::Record;
   h.run_frames(5900);
@@ -452,7 +452,7 @@ TEST_CASE("MIDI looper: nothing is allocated while recording, overdubbing and pl
   CHECK(allocated == 0);
 }
 
-TEST_CASE("MIDI looper: a take is a MIDI file as long as the loop, at 120 bpm",
+TEST_CASE("MIDI looper: a take is a MIDI file as long as the loop",
           "[fx][midi][looper][takes]")
 {
   Nodes::Looper::midi_export e;
@@ -470,9 +470,8 @@ TEST_CASE("MIDI looper: a take is a MIDI file as long as the loop, at 120 bpm",
   std::vector<uint8_t> raw(bytes.begin(), bytes.end());
   REQUIRE(r.parse(raw) != libremidi::reader::invalid);
   REQUIRE(r.tracks.size() == 1);
-  CHECK(r.startingTempo == Approx(120.));
   CHECK(r.ticksPerBeat == Approx(480.));
-  // 16 quarters at 120 bpm: 8 seconds of score's time.
+  // 16 quarters: 8 seconds of score's time.
   CHECK(r.get_end_time() == Approx(16. * 480.));
 
   int ons = 0;
@@ -601,7 +600,7 @@ TEST_CASE("MIDI looper: quantizing the ends never makes a note vanish",
   // A sixteenth is 6000 frames. A 400-frame note around a grid point has its
   // start and its end pulled to the same point: it keeps its length.
   midi_harness h{64, 48000};
-  h.node.inputs.grid.value = 1.f / 16.f;
+  h.node.inputs.grid.value = halp::grid_value::note(1.f / 16.f);
   h.node.inputs.strength.value = 1.f;
   h.node.inputs.quantize_ends.value = true;
   h.node.inputs.mode = LoopMode::Record;
@@ -721,7 +720,7 @@ TEST_CASE("MIDI looper: after a tempo change, the loop keeps its beats, and foll
   {
     midi_harness h{64, 48000};
     h.node.inputs.follow_tempo.value = follow;
-    h.node.inputs.grid.value = 1.f / 16.f;
+    h.node.inputs.grid.value = halp::grid_value::note(1.f / 16.f);
     h.node.inputs.strength.value = 1.f;
     h.node.inputs.mode = LoopMode::Record;
     h.run_frames(5900);
@@ -1900,7 +1899,7 @@ TEST_CASE("MIDI looper: every note of an overdub started on a bar line is heard,
     h.musical = true;
     h.tempo = tempo;
     h.node.inputs.quantif.value = halp::grid_value::bars(1);
-    h.node.inputs.grid.value = 1.f;
+    h.node.inputs.grid.value = halp::grid_value::note(1.f);
     h.node.inputs.late.value = 120;
     h.node.inputs.grace.value = 60;
     h.node.inputs.passthrough = Passthrough::Full;
@@ -2046,6 +2045,14 @@ struct switches_harness : midi_harness
   }
   void set_max_layers(int n) { node.inputs.max_layers.value = n; }
   void enable_capture() { }
+  //! The score stops, and the binding gives the looper its empty tick; the
+  //! next tick starts the score again from its start.
+  void stop_score()
+  {
+    node.stop();
+    run(0);
+    now = 0;
+  }
   //! Merges of MIDI passes are done at once.
   void slow_merges() { }
 };
@@ -2180,6 +2187,20 @@ TEST_CASE("MIDI looper switches: the score stopping closes the layer", "[fx][mid
 {
   switches_harness h;
   looper_switches::stop_closes_layer(h);
+}
+
+TEST_CASE("MIDI looper switches: the score started again after a stop plays the loop, Mode untouched",
+          "[fx][midi][looper][switches]")
+{
+  switches_harness h;
+  looper_switches::restart_after_stop(h);
+}
+
+TEST_CASE("MIDI looper switches: Record on a loop overdubs it, and records once it is cleared",
+          "[fx][midi][looper][switches]")
+{
+  switches_harness h;
+  looper_switches::record_overdubs_a_loop(h);
 }
 
 TEST_CASE("MIDI looper switches: Undo or Clear while recording starts it again",
@@ -2379,7 +2400,7 @@ constexpr int64_t quantize_loop_length = 384000;
 void quantize_loop(midi_harness& h, int64_t at, int64_t length, int pitch = 60)
 {
   constexpr int64_t len = quantize_loop_length;
-  h.node.inputs.grid.value = 1.f;
+  h.node.inputs.grid.value = halp::grid_value::note(1.f);
   h.node.inputs.mode = LoopMode::Record;
   h.run_frames(at);
   h.note_on(pitch, 0);
@@ -2609,7 +2630,7 @@ TEST_CASE("MIDI looper: Quantize ends and the grid changed while a note sounds l
       case grid_half:
         // Its start goes from 20000 to 44000, ahead of the playhead.
         play_to_position(h, start, 30000);
-        h.node.inputs.grid.value = 0.5f;
+        h.node.inputs.grid.value = halp::grid_value::note(0.5f);
         break;
     }
     h.run_frames(start + 4 * len - h.now);

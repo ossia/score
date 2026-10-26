@@ -824,6 +824,10 @@ TEST_CASE("Looper: overdub can hand over to play without rewinding",
     h.node.inputs.mode = LoopMode::Play;
     h.run(64);
 
+    // Record on a loop overdubs it: a new loop is recorded once it is cleared.
+    h.node.inputs.clear.value.emplace();
+    h.run(64);
+    h.node.inputs.clear.value.reset();
     h.fill_input(0, [](int64_t) { return 9.; });
     h.node.inputs.mode = LoopMode::Record;
     h.run(64);
@@ -1244,67 +1248,6 @@ TEST_CASE("Looper: an overdub asked for just after a grid point ends a recording
   CHECK(pass[played + 10] == Approx(0.0));
 }
 
-TEST_CASE("Looper: loopers of one sync group share the loop and its phase",
-          "[fx][audio][looper][sync]")
-{
-  looper_harness a{1, 100}, b{1, 100};
-  a.node.inputs.sync.value = Nodes::Looper::SyncGroup::B;
-  b.node.inputs.sync.value = Nodes::Looper::SyncGroup::B;
-  a.fill_input(0, [](int64_t) { return 1.; });
-  b.fill_input(0, [](int64_t) { return 1.; });
-
-  auto both = [&](int ticks) {
-    for(int i = 0; i < ticks; i++)
-    {
-      a.run(100);
-      b.run(100);
-    }
-  };
-
-  // a records 1000 frames and leads.
-  a.node.inputs.mode = LoopMode::Record;
-  both(10);
-  a.node.inputs.mode = LoopMode::Play;
-  both(3);
-  REQUIRE(a.node.layers.length == 1000);
-
-  // b records 1900 frames: its loop becomes two of a's.
-  b.node.inputs.mode = LoopMode::Record;
-  both(19);
-  b.node.inputs.mode = LoopMode::Play;
-  both(1);
-  CHECK(b.node.layers.length == 2000);
-
-  // Both go round in phase: b's position is a's, or a's plus one loop of a.
-  for(int i = 0; i < 25; i++)
-  {
-    both(1);
-    CHECK(b.node.transport.playbackPos % 1000 == a.node.transport.playbackPos);
-  }
-
-  // A third, short recording becomes half of the group's loop.
-  looper_harness c{1, 100};
-  c.node.inputs.sync.value = Nodes::Looper::SyncGroup::B;
-  c.fill_input(0, [](int64_t) { return 1.; });
-  c.now = a.now;
-  c.node.inputs.mode = LoopMode::Record;
-  for(int i = 0; i < 6; i++)
-  {
-    a.run(100);
-    c.run(100);
-  }
-  c.node.inputs.mode = LoopMode::Play;
-  a.run(100);
-  c.run(100);
-  CHECK(c.node.layers.length == 500);
-  CHECK(c.node.transport.playbackPos == a.node.transport.playbackPos % 500);
-
-  // Clearing the leader frees the group.
-  a.node.inputs.clear.value.emplace();
-  a.run(100);
-  CHECK(a.node.sync.current()->leader.load() == nullptr);
-}
-
 TEST_CASE("Looper: capture makes a loop of the last bars heard, and plays it",
           "[fx][audio][looper][capture]")
 {
@@ -1426,30 +1369,6 @@ TEST_CASE("Looper: undoing an overdub brings back what feedback took away",
   CHECK(h.node.layers.mix(0, 256) == Approx(0.25));
   press(h.node.inputs.redo, h);
   CHECK(h.node.layers.layers[0].gain == Approx(0.f));
-}
-
-TEST_CASE("Looper: a stop just after the bar line keeps a sync group on the grid",
-          "[fx][audio][looper][sync]")
-{
-  musical_harness h;
-  h.node.inputs.quantif.value = halp::grid_value::bars(1);
-  h.node.inputs.postaction_bars.value = 0;
-  h.node.inputs.late.value = 250;
-  h.node.inputs.sync.value = Nodes::Looper::SyncGroup::C;
-  h.node.inputs.mode = LoopMode::Stop;
-  h.run_bars(1);
-  h.fill_input(0, [](int64_t) { return 1.0; });
-  h.node.inputs.mode = LoopMode::Record;
-  h.run_bars(2);
-  h.run(h.mtick(h.buffer_size));
-  h.node.inputs.mode = LoopMode::Play;
-  h.run(h.mtick(h.buffer_size));
-
-  // The loop restarted on the bar line, one tick before the stop was asked.
-  auto* g = h.node.sync.current();
-  REQUIRE(g);
-  CHECK(g->origin.load() == 3 * h.bar_samples());
-  CHECK(h.node.transport.playbackPos == 2 * h.buffer_size);
 }
 
 TEST_CASE("Looper: overdub on an empty loop hands over to overdubbing after its bars",
@@ -2807,6 +2726,12 @@ struct switches_harness : musical_harness
     node.inputs.keep.value = 10;
     node.allocate_ring(node.layers.channels, 10 * 48000);
   }
+  //! The score stops; the next tick starts it again from its start.
+  void stop_score()
+  {
+    node.stop();
+    now = 0;
+  }
   //! Merges that take several ticks: a merge goes through as many samples a
   //! tick whatever the channels, and there are sixteen.
   void slow_merges()
@@ -2987,6 +2912,20 @@ TEST_CASE("Looper switches: the score stopping closes the layer",
 {
   switches_harness h;
   looper_switches::stop_closes_layer(h);
+}
+
+TEST_CASE("Looper switches: the score started again after a stop plays the loop, Mode untouched",
+          "[fx][audio][looper][switches]")
+{
+  switches_harness h;
+  looper_switches::restart_after_stop(h);
+}
+
+TEST_CASE("Looper switches: Record on a loop overdubs it, and records once it is cleared",
+          "[fx][audio][looper][switches]")
+{
+  switches_harness h;
+  looper_switches::record_overdubs_a_loop(h);
 }
 
 TEST_CASE("Looper switches: Stop at", "[fx][audio][looper][switches]")

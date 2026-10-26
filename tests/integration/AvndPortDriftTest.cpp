@@ -11,9 +11,12 @@
 #include <score_test/Project.hpp>
 
 #include <Process/Dataflow/Port.hpp>
+#include <Process/Dataflow/WidgetInlets.hpp>
 #include <Process/Process.hpp>
 
 #include <State/Address.hpp>
+
+#include <Engine/Node/CommonWidgets.hpp>
 
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 
@@ -78,6 +81,11 @@ struct message_capture
   static bool sawPortLoss() { return messages.filter("ports lost on load").size() > 0; }
 
   QtMessageHandler prev{};
+};
+
+struct InletsAccess : Process::ProcessModel
+{
+  static Process::Inlets& of(Process::ProcessModel& p) { return p.*(&InletsAccess::m_inlets); }
 };
 
 Process::ControlInlet* inlet_named(Process::ProcessModel& proc, const QString& name)
@@ -226,57 +234,102 @@ TEST_CASE(
 {
   score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
     const QString looper_uuid = QStringLiteral("a0ad4227-ac3d-448b-a19b-19581ed4e2c6");
-    auto* doc = score::test::new_document(ctx);
-    REQUIRE(doc != nullptr);
-    auto* proc = score::test::add_process(*doc, looper_uuid, QString{});
-    if(!proc)
-      return; // score-plugin-fx is not in this build
-    // The audio looper as it was saved before After record and Start from had
-    // those names: its first inlets only, Post-action and Restart.
-    inlet_named(*proc, QStringLiteral("After record"))
-        ->setValue(ossia::value{std::string{"Overdub"}});
-    inlet_named(*proc, QStringLiteral("Start from"))
-        ->setValue(ossia::value{std::string{"Recording"}});
-    const QByteArray saved = score::test::save_as_json(*doc);
-    ctx.docManager.forceCloseDocument(ctx, *doc);
-    QApplication::processEvents();
-
-    const auto rewritten = rewrite_process(
-        QJsonDocument::fromJson(saved).object(), looper_uuid, [](QJsonObject p) {
-      QJsonArray kept;
-      for(const auto& v : p.value("Inlets").toArray())
+    // Quantif's None, 4th and Whole: no grid, a quarter note, a bar.
+    const std::pair<float, ossia::vec2f> quantif_cases[]
+        = {{0.f, {0.f, 0.f}}, {0.25f, {0.25f, 1.f}}, {1.f, {1.f, 2.f}}};
+    for(const auto& [quantif, grid] : quantif_cases)
+    {
+      INFO("Quantif " << quantif);
+      auto* doc = score::test::new_document(ctx);
+      REQUIRE(doc != nullptr);
+      auto* proc = score::test::add_process(*doc, looper_uuid, QString{});
+      if(!proc)
+        return; // score-plugin-fx is not in this build
+      // The audio looper as it was saved before After record, Start from,
+      // Mode, Quantize and Record bars had those names: its first inlets
+      // only, Loop, Quantif the list of note values, Post-action, Bars and
+      // Restart.
+      inlet_named(*proc, QStringLiteral("After record"))
+          ->setValue(ossia::value{std::string{"Overdub"}});
+      inlet_named(*proc, QStringLiteral("Start from"))
+          ->setValue(ossia::value{std::string{"Recording"}});
+      inlet_named(*proc, QStringLiteral("Mode"))
+          ->setValue(ossia::value{std::string{"Play"}});
+      inlet_named(*proc, QStringLiteral("Record bars"))->setValue(ossia::value{3});
       {
-        if(kept.size() == 7)
-          break;
-        QJsonObject inl = v.toObject();
-        if(inl.value("Custom").toString() == QStringLiteral("After record"))
-          inl["Custom"] = QStringLiteral("Post-action");
-        if(inl.value("Custom").toString() == QStringLiteral("Start from"))
-          inl["Custom"] = QStringLiteral("Restart");
-        kept.push_back(inl);
+        auto& inlets = InletsAccess::of(*proc);
+        auto it = ossia::find_if(
+            inlets, [](auto* in) { return in->name() == QStringLiteral("Quantize"); });
+        REQUIRE(it != inlets.end());
+        std::vector<std::pair<QString, ossia::value>> notes;
+        for(const auto& [name, v] : Control::Widgets::notes)
+          notes.emplace_back(QString::fromUtf8(name), ossia::value{v});
+        auto* combo
+            = new Process::ComboBox{notes, 0.25f, "Quantif", (*it)->id(), proc};
+        combo->setValue(quantif);
+        delete *it;
+        *it = combo;
       }
-      p["Inlets"] = kept;
-      return p;
-    });
+      const QByteArray saved = score::test::save_as_json(*doc);
+      ctx.docManager.forceCloseDocument(ctx, *doc);
+      QApplication::processEvents();
 
-    message_capture capture;
-    auto* reloaded = load(ctx, QJsonDocument{rewritten.toObject()}.toJson());
-    REQUIRE(reloaded != nullptr);
-    Process::ProcessModel* looper{};
-    const auto key = UuidKey<Process::ProcessModel>::fromString(looper_uuid);
-    for(auto& p : score::test::base_interval(*reloaded).processes)
-      if(p.concreteKey() == key)
-        looper = &p;
-    REQUIRE(looper != nullptr);
+      const auto rewritten = rewrite_process(
+          QJsonDocument::fromJson(saved).object(), looper_uuid, [](QJsonObject p) {
+        const std::pair<const char*, const char*> renames[]
+            = {{"After record", "Post-action"},
+               {"Start from", "Restart"},
+               {"Mode", "Loop"},
+               {"Record bars", "Bars"}};
+        QJsonArray kept;
+        for(const auto& v : p.value("Inlets").toArray())
+        {
+          if(kept.size() == 7)
+            break;
+          QJsonObject inl = v.toObject();
+          for(auto [now, was] : renames)
+            if(inl.value("Custom").toString() == QLatin1String(now))
+              inl["Custom"] = QLatin1String(was);
+          kept.push_back(inl);
+        }
+        p["Inlets"] = kept;
+        return p;
+      });
 
-    auto* after = inlet_named(*looper, QStringLiteral("After record"));
-    REQUIRE(after != nullptr);
-    CHECK(score::test::control_string(*after) == "Overdub");
-    // Restart's Recording is what Where it was is now.
-    auto* from = inlet_named(*looper, QStringLiteral("Start from"));
-    REQUIRE(from != nullptr);
-    CHECK(score::test::control_string(*from) == "Where it was");
-    CHECK(!message_capture::sawPortLoss());
+      message_capture capture;
+      auto* reloaded = load(ctx, QJsonDocument{rewritten.toObject()}.toJson());
+      REQUIRE(reloaded != nullptr);
+      Process::ProcessModel* looper{};
+      const auto key = UuidKey<Process::ProcessModel>::fromString(looper_uuid);
+      for(auto& p : score::test::base_interval(*reloaded).processes)
+        if(p.concreteKey() == key)
+          looper = &p;
+      REQUIRE(looper != nullptr);
+
+      auto* after = inlet_named(*looper, QStringLiteral("After record"));
+      REQUIRE(after != nullptr);
+      CHECK(score::test::control_string(*after) == "Overdub");
+      // Restart's Recording is what Where it was is now.
+      auto* from = inlet_named(*looper, QStringLiteral("Start from"));
+      REQUIRE(from != nullptr);
+      CHECK(score::test::control_string(*from) == "Where it was");
+      auto* mode = inlet_named(*looper, QStringLiteral("Mode"));
+      REQUIRE(mode != nullptr);
+      CHECK(score::test::control_string(*mode) == "Play");
+      auto* bars = inlet_named(*looper, QStringLiteral("Record bars"));
+      REQUIRE(bars != nullptr);
+      CHECK(ossia::convert<int>(bars->value()) == 3);
+      // The grid Quantif waited for, not its value read as seconds.
+      auto* quantize
+          = qobject_cast<Process::GridChooser*>(inlet_named(*looper, QStringLiteral("Quantize")));
+      REQUIRE(quantize != nullptr);
+      CHECK(quantize->value() == ossia::value{grid});
+      for(const char* gone : {"Loop", "Quantif", "Bars", "Post-action", "Restart"})
+        CHECK(inlet_named(*looper, QLatin1String(gone)) == nullptr);
+      CHECK(!message_capture::sawPortLoss());
+      ctx.docManager.forceCloseDocument(ctx, *reloaded);
+      QApplication::processEvents();
+    }
   });
 }
 

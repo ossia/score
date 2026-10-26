@@ -587,8 +587,8 @@ TEST_CASE("Looper presets: every one loads, sets every setting, and none starts 
           "looper",
           "[fx][looper][presets]")
 {
-  REQUIRE(audio_presets().size() == 16);
-  REQUIRE(midi_presets_list().size() == 19);
+  REQUIRE(audio_presets().size() == 15);
+  REQUIRE(midi_presets_list().size() == 18);
   {
     Audio n;
     const auto all = indices(audio_presets().front());
@@ -641,16 +641,6 @@ TEST_CASE("Looper presets: what the names say, the settings", "[fx][looper][pres
     CHECK(n.inputs.quantif.value.none());
   }
   {
-    Audio n;
-    apply(n, "Second loop of group A");
-    CHECK(n.inputs.sync.value == Nodes::Looper::SyncGroup::A);
-  }
-  {
-    Midi n;
-    apply(n, "Second loop of group A");
-    CHECK(n.inputs.sync.value == Nodes::Looper::SyncGroup::A);
-  }
-  {
     Midi n;
     apply(n, "Replace as you play");
     CHECK(n.inputs.overdub_mode.value == Nodes::Looper::OverdubMode::Replace);
@@ -666,7 +656,7 @@ TEST_CASE("Looper presets: what the names say, the settings", "[fx][looper][pres
   {
     Midi n;
     apply(n, "Sixteenths, 70 percent");
-    CHECK(n.inputs.grid.value == Approx(1.f / 16.f));
+    CHECK(n.inputs.grid.value == halp::grid_value::note(1. / 16.));
     CHECK(n.inputs.strength.value == Approx(0.7f));
   }
   {

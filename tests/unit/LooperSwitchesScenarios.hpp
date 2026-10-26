@@ -15,6 +15,8 @@
 //   h.enable_capture()           input kept for Capture
 //   h.shown                      the last mode Loop was shown with
 //   h.shown_count                how many times it was
+//   h.stop_score()               stops the looper as the score stopping
+//                                does; the next tick starts the score again
 //
 // The grid is a quarter note: a mode asked for between two beats is taken up
 // on the tick that starts on the next one.
@@ -414,6 +416,7 @@ void retrigger(H& h)
   }
   SECTION("a recording starts again")
   {
+    press(h, in.clear);
     at_beat(h, in.record);
     beats(h, 2);
     at_beat(h, in.retrigger);
@@ -1099,6 +1102,93 @@ void stop_closes_layer(H& h)
   CHECK(h.passes() == 1);
 }
 
+//! Record on a loop overdubs it, as on a looper pedal: by Record, and by
+//! Mode set to Record. A new loop is recorded once the loop is cleared.
+template <typename H>
+void record_overdubs_a_loop(H& h)
+{
+  auto& in = h.node.inputs;
+  record_loop(h);
+  SECTION("Record")
+  {
+    press_off_beat(h, in.record);
+    CHECK(in.mode.value == LoopMode::Overdub);
+    CHECK(h.shown == "Overdub");
+  }
+  SECTION("Mode set to Record")
+  {
+    if(h.now % H::beat == 0)
+      h.tick_once();
+    in.mode = LoopMode::Record;
+    h.tick_once();
+    CHECK(in.mode.value == LoopMode::Overdub);
+    CHECK(h.shown == "Overdub");
+  }
+  next_beat(h);
+  CHECK(mode(h) == LoopMode::Overdub);
+  beats(h, 1);
+  at_beat(h, in.play);
+  CHECK(mode(h) == LoopMode::Play);
+  CHECK(h.passes() == 2);
+  CHECK(h.length() == 4 * H::beat);
+  CHECK(h.signature(0) > 0.);
+
+  press(h, in.clear);
+  CHECK(h.passes() == 0);
+  press_off_beat(h, in.record);
+  CHECK(in.mode.value == LoopMode::Record);
+  next_beat(h);
+  CHECK(mode(h) == LoopMode::Record);
+  beats(h, 1);
+  at_beat(h, in.play);
+  CHECK(mode(h) == LoopMode::Play);
+  CHECK(h.passes() == 1);
+  CHECK(h.length() == 2 * H::beat);
+}
+
+//! The score stopped while recording or overdubbing, then started again with
+//! Mode left as it is: the loop plays what the take left, and Mode says Play.
+template <typename H>
+void restart_after_stop(H& h)
+{
+  auto& in = h.node.inputs;
+  SECTION("while overdubbing")
+  {
+    record_loop(h);
+    at_beat(h, in.overdub);
+    beats(h, 1);
+    REQUIRE(mode(h) == LoopMode::Overdub);
+  }
+  SECTION("while recording")
+  {
+    at_beat(h, in.record);
+    beats(h, 2);
+    REQUIRE(mode(h) == LoopMode::Record);
+  }
+  SECTION("with a recording asked for on an empty loop")
+  {
+    press_off_beat(h, in.record);
+    REQUIRE(mode(h) == LoopMode::Stop);
+    REQUIRE(in.mode.value == LoopMode::Record);
+  }
+  REQUIRE(in.mode.value != LoopMode::Play);
+  h.stop_score();
+  const int passes = h.passes();
+  const int64_t length = h.length();
+  const auto after_stop = passes > 0 ? LoopMode::Play : LoopMode::Stop;
+  CHECK(in.mode.value == after_stop);
+  CHECK(h.shown == (passes > 0 ? "Play" : "Stop"));
+
+  beats(h, 6);
+  CHECK(mode(h) == after_stop);
+  CHECK(!h.node.transport.is_taking());
+  CHECK(h.passes() == passes);
+  CHECK(h.length() == length);
+  for(int k = 0; k < passes; k++)
+    CHECK(h.signature(k) > 0.);
+  CHECK(in.mode.value == after_stop);
+}
+
 //! Every action, from the modes it acts in, with no check in between: for
 //! counting what they allocate.
 template <typename H>
@@ -1140,6 +1230,7 @@ void exercise(H& h)
   at_beat(h, in.play);
   press(h, in.stop);
   in.after_record.value = AfterRecord::Overdub;
+  press(h, in.clear);
   at_beat(h, in.record);
   beats(h, 1);
   press(h, in.undo);

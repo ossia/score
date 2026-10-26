@@ -202,9 +202,17 @@ public:
 
   ~ProcessModel() override { }
 
-  //! A preset saved when a control was another kind of control holds a value
-  //! of that kind: it goes through the control's `upgrade_value`, as the value
-  //! of a document saved then does (see upgrade_changed_control_types).
+  //! A preset names each control it sets besides giving its id: an entry
+  //! whose id is not a control of that name finds the control by its name, or
+  //! by the name it had (`former_name()`), so that a preset outlives controls
+  //! added, removed or moved. A preset saved before presets named their
+  //! controls gives ids only: an object that has removed inlets since lists
+  //! the ids they had then in `removed_inlets()`, and the ids of such a preset
+  //! are counted without them.
+  //! A value saved when a control was another kind of control goes through the
+  //! control's `upgrade_value`, as the value of a document saved then does
+  //! (see upgrade_changed_control_types), and a choice saved by the name it
+  //! had through `former_values()`.
   void loadPreset(const Process::Preset& preset) override
   {
     const rapidjson::Document doc = readJson(preset.data);
@@ -214,8 +222,13 @@ public:
     {
       if(!arr.IsArray() || arr.Size() < 2 || !arr[0].IsInt())
         continue;
-      auto* ctrl = qobject_cast<Process::ControlInlet*>(
-          this->inlet(Id<Process::Port>{arr[0].GetInt()}));
+      Process::ControlInlet* ctrl{};
+      if(arr.Size() >= 3 && arr[2].IsString())
+        ctrl = preset_control(
+            arr[0].GetInt(),
+            QString::fromUtf8(arr[2].GetString(), qsizetype(arr[2].GetStringLength())));
+      else
+        ctrl = unnamed_preset_control(arr[0].GetInt());
       if(!ctrl)
         continue;
       ossia::value val = JsonValue{arr[1]}.to<ossia::value>();
@@ -224,9 +237,125 @@ public:
     }
   }
 
+  //! [id, value, name] for each control: see loadPreset.
+  Process::Preset savePreset() const noexcept override
+  {
+    Process::Preset p;
+    p.name = this->metadata().getName();
+    p.key.key = this->concreteKey();
+
+    JSONReader r;
+    r.stream.StartArray();
+    for(const auto& inlet : m_inlets)
+    {
+      if(auto ctrl = qobject_cast<Process::ControlInlet*>(inlet))
+      {
+        r.stream.StartArray();
+        r.stream.Int(ctrl->id().val());
+        r.readFrom(ctrl->value());
+        const QByteArray name = ctrl->name().toUtf8();
+        r.stream.String(name.data(), rapidjson::SizeType(name.size()));
+        r.stream.EndArray();
+      }
+    }
+    r.stream.EndArray();
+    p.data = r.toByteArray();
+    return p;
+  }
+
 private:
+  Process::ControlInlet* control_named(const QString& name, int id) const noexcept
+  {
+    Process::ControlInlet* res{};
+    for(auto* in : m_inlets)
+    {
+      if(in->name() != name)
+        continue;
+      if(auto ctrl = qobject_cast<Process::ControlInlet*>(in))
+      {
+        if(ctrl->id().val() == id)
+          return ctrl;
+        if(!res)
+          res = ctrl;
+      }
+    }
+    return res;
+  }
+
+  Process::ControlInlet* preset_control(int id, const QString& name) const noexcept
+  {
+    if(auto ctrl = control_named(name, id))
+      return ctrl;
+    Process::ControlInlet* res{};
+    avnd::input_introspection<Info>::for_all(
+        [&]<std::size_t Idx, typename P>(avnd::field_reflection<Idx, P>) {
+      if constexpr(requires { P::former_name(); } && requires { P::name(); })
+      {
+        const auto was = P::former_name();
+        if(res || name != QString::fromUtf8(was.data(), qsizetype(was.size())))
+          return;
+        const auto now = P::name();
+        res = control_named(QString::fromUtf8(now.data(), qsizetype(now.size())), id);
+      }
+    });
+    return res;
+  }
+
+  Process::ControlInlet* unnamed_preset_control(int id) const noexcept
+  {
+    if constexpr(requires { Info::removed_inlets(); })
+    {
+      // The ports of the process are where the spec declares them, whatever
+      // their ids in this document.
+      static constexpr auto removed = Info::removed_inlets();
+      int position = id;
+      for(int r : removed)
+      {
+        if(r == id)
+          return nullptr;
+        if(r < id)
+          position--;
+      }
+      if(position < 0 || position >= std::ssize(m_inlets))
+        return nullptr;
+      return qobject_cast<Process::ControlInlet*>(m_inlets[position]);
+    }
+    else
+    {
+      return qobject_cast<Process::ControlInlet*>(
+          this->inlet(Id<Process::Port>{id}));
+    }
+  }
+
+  //! The choice a saved name of a choice is now, if it is one of the names in
+  //! `former_values()`.
+  template <typename P>
+  static std::optional<std::string> current_choice(const std::string& saved)
+  {
+    static constexpr auto range = avnd::get_range<P>();
+    const auto names = avnd::to_enum_range(range.values);
+    if(ossia::any_of(names, [&](const auto& n) { return n == saved; }))
+      return std::nullopt;
+    const auto former = P::former_values();
+    for(std::size_t i = 0; i < former.size() && i < names.size(); i++)
+      if(former[i] == saved)
+        return std::string(names[i]);
+    return std::nullopt;
+  }
+
   void upgrade_preset_value(const Process::ControlInlet& ctrl, ossia::value& val)
   {
+    avnd::input_introspection<Info>::for_all(
+        [&]<std::size_t Idx, typename P>(avnd::field_reflection<Idx, P>) {
+      if constexpr(requires { P::former_values(); })
+      {
+        auto ports = avnd_input_idx_to_model_ports(Idx);
+        if(ports.size() == 1 && ports[0] == &ctrl)
+          if(const auto* str = val.target<std::string>())
+            if(auto now = current_choice<P>(*str))
+              val = std::move(*now);
+      }
+    });
     if(val.get_type() == ctrl.value().get_type())
       return;
     avnd::input_introspection<Info>::for_all(
@@ -345,12 +474,19 @@ private:
     }
 
     std::vector<Dataflow::SavedPort> oldInlets, oldOutlets;
+    std::vector<saved_port> oldInletInfo, oldOutletInfo;
     for(auto& port : m_inlets)
+    {
       oldInlets.emplace_back(
           Dataflow::SavedPort{port->name(), port->type(), port->saveData()});
+      oldInletInfo.push_back(saved_port::of(*port));
+    }
     for(auto& port : m_outlets)
+    {
       oldOutlets.emplace_back(
           Dataflow::SavedPort{port->name(), port->type(), port->saveData()});
+      oldOutletInfo.push_back(saved_port::of(*port));
+    }
 
     qDeleteAll(m_inlets);
     m_inlets.clear();
@@ -364,7 +500,12 @@ private:
 
     // A port the spec gained since the save just comes back at its default:
     // only a saved port that matched nothing actually lost its value.
-    const auto lost = Dataflow::reloadPortsInNewProcess(oldInlets, oldOutlets, *this);
+    std::vector<int> inletMatches, outletMatches;
+    const auto lost = Dataflow::reloadPortsInNewProcess(
+        oldInlets, oldOutlets, *this, &inletMatches, &outletMatches);
+    keep_saved_ids(m_inlets, inletMatches, oldInletInfo);
+    keep_saved_ids(m_outlets, outletMatches, oldOutletInfo);
+    upgrade_rebuilt_control_kinds(inletMatches, oldInletInfo);
     upgrade_former_values();
     if(!lost.empty())
     {
@@ -376,29 +517,147 @@ private:
     }
   }
 
+  //! What check_all_ports keeps of a saved port besides its data.
+  struct saved_port
+  {
+    int id{};
+    UuidKey<Process::Port> key;
+    //! A control's value.
+    std::optional<ossia::value> value;
+    bool stable{};
+
+    static saved_port of(const Process::Port& port)
+    {
+      saved_port p{port.id().val(), port.concreteKey(), std::nullopt, port.stableIdentity};
+      if(auto ctrl = qobject_cast<const Process::ControlInlet*>(&port))
+        p.value = ctrl->value();
+      return p;
+    }
+  };
+
+  //! Ports rebuilt from a document keep the ids they were saved with: the
+  //! document's cables find their ends by those ids. A port the document did
+  //! not have takes an id that none of them uses.
+  template <typename Ports>
+  static void keep_saved_ids(
+      Ports& ports, const std::vector<int>& matches, const std::vector<saved_port>& saved)
+  {
+    if(matches.size() != ports.size())
+      return;
+    std::vector<int> ids(ports.size());
+    std::vector<int> taken;
+    int next = 0;
+    for(std::size_t i = 0; i < ports.size(); i++)
+    {
+      next = std::max(next, ports[i]->id().val() + 1);
+      ids[i] = ports[i]->id().val();
+      if(matches[i] >= 0 && !ports[i]->stableIdentity && !saved[matches[i]].stable)
+        ids[i] = saved[matches[i]].id;
+      if(matches[i] >= 0 || ports[i]->stableIdentity)
+        taken.push_back(ids[i]);
+    }
+    for(const auto& p : saved)
+      next = std::max(next, p.id + 1);
+    for(std::size_t i = 0; i < ports.size(); i++)
+    {
+      if(matches[i] < 0 && !ports[i]->stableIdentity)
+      {
+        if(ossia::contains(taken, ids[i]))
+          ids[i] = next++;
+        taken.push_back(ids[i]);
+      }
+      if(ports[i]->id().val() != ids[i])
+        ports[i]->setId(Id<Process::Port>{ids[i]});
+    }
+  }
+
+  //! A control rebuilt from a document that saved it as another kind of
+  //! control gets the value the kept-ports path gives it, see
+  //! upgrade_changed_control_types.
+  void upgrade_rebuilt_control_kinds(
+      const std::vector<int>& matches, const std::vector<saved_port>& saved)
+  {
+    avnd::input_introspection<Info>::for_all(
+        [&]<std::size_t Idx, typename P>(avnd::field_reflection<Idx, P>) {
+      if constexpr(
+          avnd::parameter_port<P> && !oscr::ossia_port<P>
+          && !avnd::dynamic_ports_port<P> && avnd::has_widget<P>
+          && !requires { P::on_controller_interaction(); })
+      {
+        auto ports = avnd_input_idx_to_model_ports(Idx);
+        if(ports.size() != 1)
+          return;
+        const auto pos = std::size_t(ossia::find(m_inlets, ports[0]) - m_inlets.begin());
+        if(pos >= matches.size() || matches[pos] < 0)
+          return;
+        const auto& old = saved[std::size_t(matches[pos])];
+        auto fresh = qobject_cast<Process::ControlInlet*>(ports[0]);
+        if(!fresh || !old.value || old.key == fresh->concreteKey())
+          return;
+        if(auto v = upgraded_value<P>(*old.value, *fresh))
+          fresh->setValue(*v);
+      }
+    });
+  }
+
   //! A control renamed since a document was saved names what it was called,
   //! `former_name()`: the saved port of that name is the control's, unless
-  //! one of its new name was saved as well.
+  //! one of its new name was saved as well. That one is the control's unless
+  //! its name was another control's, renamed as well: then the document is
+  //! from before both, and each saved port goes to the control it was.
   void rename_former_ports(std::vector<Dataflow::SavedPort>& saved)
   {
+    struct rename
+    {
+      QString was, now;
+      bool applies{};
+    };
+    std::vector<rename> renames;
     avnd::input_introspection<Info>::for_all(
         [&]<std::size_t Idx, typename P>(avnd::field_reflection<Idx, P>) {
       if constexpr(requires { P::former_name(); } && requires { P::name(); })
       {
         const auto now = P::name();
         const auto was = P::former_name();
-        const QString now_q = QString::fromUtf8(now.data(), qsizetype(now.size()));
-        const QString was_q = QString::fromUtf8(was.data(), qsizetype(was.size()));
-        if(ossia::any_of(saved, [&](const auto& p) { return p.name == now_q; }))
-          return;
-        for(auto& p : saved)
-          if(p.name == was_q)
-          {
-            p.name = now_q;
-            break;
-          }
+        renames.push_back(
+            {QString::fromUtf8(was.data(), qsizetype(was.size())),
+             QString::fromUtf8(now.data(), qsizetype(now.size()))});
       }
     });
+    const auto was_saved = [&](const QString& name) {
+      return ossia::any_of(saved, [&](const auto& p) { return p.name == name; });
+    };
+    for(bool changed = true; changed;)
+    {
+      changed = false;
+      for(auto& r : renames)
+      {
+        if(r.applies || !was_saved(r.was))
+          continue;
+        const bool taken_by_now = was_saved(r.now)
+                                  && !ossia::any_of(renames, [&](const rename& o) {
+          return o.applies && o.was == r.now;
+        });
+        if(!taken_by_now)
+          changed = r.applies = true;
+      }
+    }
+    // All at once, from the names as they were saved.
+    std::vector<std::pair<std::size_t, QString>> moves;
+    for(const auto& r : renames)
+    {
+      if(!r.applies)
+        continue;
+      for(std::size_t i = 0; i < saved.size(); i++)
+        if(saved[i].name == r.was
+           && !ossia::any_of(moves, [i](const auto& m) { return m.first == i; }))
+        {
+          moves.emplace_back(i, r.now);
+          break;
+        }
+    }
+    for(auto& [i, name] : moves)
+      saved[i].name = name;
   }
 
   //! A control renamed since a document was saved whose ports are all there:
@@ -440,17 +699,8 @@ private:
         const auto* str = value.template target<std::string>();
         if(!str)
           return;
-        static constexpr auto range = avnd::get_range<P>();
-        const auto names = avnd::to_enum_range(range.values);
-        if(ossia::any_of(names, [&](const auto& n) { return n == *str; }))
-          return;
-        const auto former = P::former_values();
-        for(std::size_t i = 0; i < former.size() && i < names.size(); i++)
-          if(former[i] == *str)
-          {
-            inlet->setValue(std::string(names[i]));
-            return;
-          }
+        if(auto now = current_choice<P>(*str))
+          inlet->setValue(std::move(*now));
       }
     });
   }
@@ -535,6 +785,26 @@ private:
     }
   }
 
+  //! What the control P, of another kind than it was saved as, keeps of the
+  //! value it was saved with.
+  template <typename P>
+  static std::optional<ossia::value>
+  upgraded_value(const ossia::value& old_value, const Process::ControlInlet& fresh)
+  {
+    if constexpr(requires(float f) {
+                   { P::upgrade_value(f) } -> std::convertible_to<float>;
+                 })
+    {
+      if(!is_number(old_value))
+        return std::nullopt;
+      return carried_value(float(P::upgrade_value(ossia::convert<float>(old_value))), fresh);
+    }
+    else if constexpr(requires { P::upgrade_value(old_value); })
+      return P::upgrade_value(old_value);
+    else
+      return carried_value(old_value, fresh);
+  }
+
   //! A control saved as another kind of control than the spec now declares
   //! (e.g. a maintained button that became an impulse button, a float slider
   //! that became a time chooser) is rebuilt as the declared kind, with the
@@ -575,19 +845,7 @@ private:
 
         new_inlet->setExposed(old_inlet->exposed());
         new_inlet->setAddress(old_inlet->address());
-        const ossia::value& old_value = old_inlet->value();
-        if constexpr(requires(float f) {
-                       { P::upgrade_value(f) } -> std::convertible_to<float>;
-                     })
-        {
-          if(is_number(old_value))
-            if(auto v = carried_value(
-                   float(P::upgrade_value(ossia::convert<float>(old_value))), *new_inlet))
-              new_inlet->setValue(*v);
-        }
-        else if constexpr(requires { P::upgrade_value(old_value); })
-          new_inlet->setValue(P::upgrade_value(old_value));
-        else if(auto v = carried_value(old_value, *new_inlet))
+        if(auto v = upgraded_value<P>(old_inlet->value(), *new_inlet))
           new_inlet->setValue(*v);
         // The cables into it: the document's cables point at this id, and the
         // port lists them too.

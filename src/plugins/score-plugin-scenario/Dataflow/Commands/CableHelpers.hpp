@@ -119,10 +119,13 @@ reloadPortsInNewProcess(
 //! Same but without the cables.
 //! \returns the names of the saved ports which found no port of the same
 //! name and type in the new process: those are the ones whose data is lost.
+//! `inletMatches` and `outletMatches`, when given, receive for each port of
+//! the process the index of the saved port it was loaded from, or -1.
 SCORE_PLUGIN_SCENARIO_EXPORT
 QStringList reloadPortsInNewProcess(
     const std::vector<SavedPort>& m_oldInlets,
-    const std::vector<SavedPort>& m_oldOutlets, Process::ProcessModel& cmt);
+    const std::vector<SavedPort>& m_oldOutlets, Process::ProcessModel& cmt,
+    std::vector<int>* inletMatches = nullptr, std::vector<int>* outletMatches = nullptr);
 }
 
 template <>
