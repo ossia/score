@@ -22,7 +22,7 @@ struct Node : Looper::looper_node<Node>
 {
   halp_meta(name, "Looper (values)")
   halp_meta(c_name, "value_looper")
-  halp_meta(category, "Midi/Sequencers")
+  halp_meta(category, "Control/Mappings")
   halp_meta(author, "ossia score")
   halp_meta(manual_url, "https://ossia.io/score-docs/processes/value-looper.html")
   halp_meta(
