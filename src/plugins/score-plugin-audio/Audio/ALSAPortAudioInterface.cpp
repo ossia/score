@@ -14,6 +14,10 @@
 #include <QSpinBox>
 #include <QTimer>
 
+#if __has_include(<pa_linux_alsa.h>)
+#include <pa_linux_alsa.h>
+#endif
+
 #include <map>
 #include <optional>
 #include <tuple>
@@ -25,7 +29,9 @@ namespace Audio
 class ALSAPortAudioWidget : public QWidget
 {
   // Initializing PortAudio enumerates every ALSA device: once per panel, and
-  // again on Rescan (an initialized PortAudio keeps its device list).
+  // again on Rescan. PortAudio keeps its device list while any scope or
+  // PortAudio engine is alive, so Rescan only sees new devices when the
+  // engine runs another driver.
   std::optional<PortAudioScope> m_portaudio{std::in_place};
   ALSAPortAudioFactory& m_factory;
   Audio::Settings::Model& m_model;
@@ -83,8 +89,8 @@ public:
 
     connect(rescan, &QPushButton::clicked, this, [this] {
       m_portaudio.reset();
-      m_factory.rescan();
       m_portaudio.emplace();
+      m_factory.rescan();
       m_rates.clear();
       fillDevices();
     });
@@ -229,6 +235,9 @@ private:
       }
       else
       {
+        // Each probe opens the device; a busy one is retried for a second by
+        // default.
+        PaAlsa_SetRetriesBusy(0);
         for(int r : {22050, 32000, 44100, 48000, 88200, 96000, 176400, 192000})
         {
           auto err
@@ -236,8 +245,13 @@ private:
           if(err == paFormatIsSupported)
             rates.push_back(r);
           else if(err == paDeviceUnavailable)
+          {
             busy = true;
+            rates.clear();
+            break;
+          }
         }
+        PaAlsa_SetRetriesBusy(100);
         // A busy device is asked again later.
         if(!busy)
           m_rates[key] = rates;
