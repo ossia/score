@@ -132,6 +132,9 @@ private:
   int64_t m_lastStorageSwapFrame{-1};
 
   int64_t m_frameIndexFrame{-1};
+
+  // initPasses warned that the last pass's depth stays in its own target.
+  bool m_warnedLastPassDepth{};
 };
 
 }

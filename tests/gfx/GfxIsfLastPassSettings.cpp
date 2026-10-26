@@ -170,3 +170,197 @@ void main() { gl_FragColor = vec4(isf_FragNormCoord.x, 0.0, 0.0, 1.0); }
   else
     CHECK(blitted == 0);
 }
+
+namespace
+{
+// One ISF written to `dir`: its PASSES, then a body.
+QString writeIsf(
+    const QTemporaryDir& dir, const char* name, const std::string& passes,
+    const char* body)
+{
+  const QString path = dir.filePath(name);
+  QFile f(path);
+  if(!f.open(QIODevice::WriteOnly))
+    return {};
+  f.write(QByteArray::fromStdString(R"(/*{
+  "ISFVSN": "2.0",
+  "INPUTS": [],
+  "PASSES": )" + passes + R"(
+}*/
+)" + body));
+  return path;
+}
+
+std::string lastPassWith(const std::string& setting, bool single)
+{
+  return single ? "[ { " + setting + " } ]"
+                : R"([ { "TARGET": "first" }, { )" + setting + " } ]";
+}
+
+struct LastPassRender
+{
+  bool skipped = false;
+  bool simple = false;
+  int blitted = -1;
+  std::string err;
+  ReadbackImage img;
+};
+
+LastPassRender renderLastPass(score::gfx::GraphicsApi api, const QString& fs)
+{
+  LastPassRender out;
+  score::test::run_in_gui_app([&](const score::GUIApplicationContext&) {
+    GfxPipeline p;
+    const int node = p.addIsf(fs);
+    const int sink = p.addSink({64, 64});
+    if(node < 0)
+    {
+      out.err = "build failed: " + p.error();
+      return;
+    }
+    p.wire(p.imageOut(node, 0), p.sinkInput(sink));
+    if(!p.create(api))
+    {
+      out.skipped = p.skipped();
+      out.err = out.skipped ? std::string{} : p.error();
+      return;
+    }
+    p.render(3);
+    out.img = p.readback(sink);
+    auto* n = p.isf(node);
+    if(n->renderedNodes.empty())
+    {
+      out.err = "no renderer";
+      return;
+    }
+    auto* r = n->renderedNodes.begin()->second;
+    out.simple = dynamic_cast<score::gfx::SimpleRenderedISFNode*>(r) != nullptr;
+    if(auto* multi = dynamic_cast<score::gfx::RenderedISFNode*>(r))
+      out.blitted = multi->blittedEdges();
+  });
+  return out;
+}
+}
+
+// A four-channel FORMAT at the destination's size changes nothing either:
+// the blit wrote the destination's format whatever the pass held. Such a last
+// pass draws into the destination.
+TEST_CASE(
+    "a last pass with a four-channel FORMAT draws into the destination",
+    "[gfx][isf][passes][F05][F04][perf]")
+{
+  const auto api = GENERATE(from_range(platform_backends()));
+  const std::string format = GENERATE(std::string{"rgba16f"}, std::string{"rgba32f"});
+  const bool single = GENERATE(false, true);
+  CAPTURE(backend_name(api), format, single);
+  QTemporaryDir dir;
+  REQUIRE(dir.isValid());
+  const QString fs = writeIsf(
+      dir, "lastpass-format.fs", lastPassWith(R"("FORMAT": ")" + format + "\"", single),
+      "void main() { gl_FragColor = vec4(isf_FragNormCoord.x, 0.0, 0.0, 1.0); }\n");
+  const auto r = renderLastPass(api, fs);
+  if(r.skipped)
+    SKIP("backend unavailable");
+  INFO(r.err);
+  REQUIRE(r.err.empty());
+  REQUIRE(r.img.valid());
+  CHECK(int(r.img.at(8, 32)[0]) < int(r.img.at(56, 32)[0]));
+  if(single)
+    CHECK(r.simple);
+  else
+    CHECK(r.blitted == 0);
+}
+
+// A single-channel FORMAT does change the pixels: its target keeps only red,
+// which the blit shows as (r, 0, 0, 1). Drawn straight into an RGBA
+// destination it would keep the shader's green.
+TEST_CASE(
+    "a last pass with a single-channel FORMAT keeps its own target",
+    "[gfx][isf][passes][F05][F04]")
+{
+  const auto api = GENERATE(from_range(platform_backends()));
+  const bool single = GENERATE(false, true);
+  CAPTURE(backend_name(api), single);
+  QTemporaryDir dir;
+  REQUIRE(dir.isValid());
+  const QString fs = writeIsf(
+      dir, "lastpass-r16f.fs", lastPassWith(R"("FORMAT": "r16f")", single),
+      "void main() { gl_FragColor = vec4(isf_FragNormCoord.x, 1.0, 0.0, 1.0); }\n");
+  const auto r = renderLastPass(api, fs);
+  if(r.skipped)
+    SKIP("backend unavailable");
+  INFO(r.err);
+  REQUIRE(r.err.empty());
+  REQUIRE(r.img.valid());
+  CHECK(!r.simple);
+  CHECK(r.blitted == 1);
+  CHECK(int(r.img.at(56, 32)[0]) > 128);
+  CHECK(int(r.img.at(32, 32)[1]) <= 2);
+}
+
+// A last pass that writes gl_FragDepth draws into the destination, whose
+// depth attachment then holds its depth: FLOAT, a four-channel FORMAT or
+// FILTER no longer route it through an own target, whose depth the blit
+// does not carry.
+TEST_CASE(
+    "a last pass writing depth draws into the destination's depth attachment",
+    "[gfx][isf][passes][F05][depth]")
+{
+  const auto api = GENERATE(from_range(platform_backends()));
+  const std::string setting = GENERATE(
+      std::string{R"("FLOAT": true)"}, std::string{R"("FORMAT": "rgba16f")"},
+      std::string{R"("FILTER": "NEAREST")"});
+  const bool single = GENERATE(false, true);
+  CAPTURE(backend_name(api), setting, single);
+  QTemporaryDir dir;
+  REQUIRE(dir.isValid());
+  const QString fs = writeIsf(
+      dir, "lastpass-depth.fs", lastPassWith(setting, single),
+      "void main() { gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0); gl_FragDepth = 0.5; }\n");
+  bool skipped = false;
+  bool simple = false;
+  bool targetHasDepth = false;
+  int blitted = -1;
+  std::string err;
+  score::test::run_in_gui_app([&](const score::GUIApplicationContext&) {
+    GfxPipeline p;
+    const int node = p.addIsf(fs);
+    const int view = p.addIsf(score::test::gfx::isf::corpus("layer-view.fs"));
+    const int sink = p.addSink({64, 64});
+    if(node < 0 || view < 0)
+    {
+      err = "build failed: " + p.error();
+      return;
+    }
+    p.wire(p.imageOut(node, 0), p.imageIn(view, 0));
+    p.wire(p.imageOut(view, 0), p.sinkInput(sink));
+    if(!p.create(api))
+    {
+      skipped = p.skipped();
+      err = skipped ? std::string{} : p.error();
+      return;
+    }
+    p.render(3);
+    auto rt = p.sink(sink)->renderer()->renderTargetForInputPort(*p.imageIn(view, 0));
+    targetHasDepth = rt.depthTexture || rt.depthRenderBuffer || rt.msDepthTexture;
+    auto* n = p.isf(node);
+    if(n->renderedNodes.empty())
+    {
+      err = "no renderer";
+      return;
+    }
+    auto* r = n->renderedNodes.begin()->second;
+    simple = dynamic_cast<score::gfx::SimpleRenderedISFNode*>(r) != nullptr;
+    if(auto* multi = dynamic_cast<score::gfx::RenderedISFNode*>(r))
+      blitted = multi->blittedEdges();
+  });
+  if(skipped)
+    SKIP("backend unavailable");
+  INFO(err);
+  REQUIRE(err.empty());
+  CHECK(targetHasDepth);
+  if(single)
+    CHECK(simple);
+  else
+    CHECK(blitted == 0);
+}

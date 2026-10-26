@@ -35,6 +35,11 @@ static QRhiTexture::Format passTextureFormat(const isf::pass& pass)
   return QRhiTexture::RGBA8;
 }
 
+static bool isSingleChannel(QRhiTexture::Format f) noexcept
+{
+  return f == QRhiTexture::R8 || f == QRhiTexture::R16F || f == QRhiTexture::R32F;
+}
+
 RenderedISFNode::~RenderedISFNode() { }
 
 int RenderedISFNode::blittedEdges() const noexcept
@@ -520,11 +525,12 @@ void RenderedISFNode::initPasses(
   SCORE_ASSERT(model_passes.size() > 0);
 
   // A non-persistent last pass renders straight into the provided render
-  // target, unless its own size or FORMAT differs from it: it then takes an
-  // own target, blitted into the destination like a persistent last pass
-  // (shader board F05). FLOAT alone and FILTER at the destination's size
-  // change nothing in the pixels of one draw, and do not cost a target and a
-  // blit.
+  // target, unless its own size differs from it or its FORMAT keeps fewer
+  // channels: it then takes an own target, blitted into the destination like
+  // a persistent last pass (shader board F05). FLOAT, a four-channel FORMAT
+  // and FILTER at the destination's size change nothing in the pixels of one
+  // draw, which the blit would have converted to the destination's format
+  // anyway; drawn into the destination, the pass also keeps its depth there.
   const auto& lastModel = model_passes.back();
   bool lastPassDirect = !lastModel.persistent;
   if(lastPassDirect)
@@ -534,8 +540,17 @@ void RenderedISFNode::initPasses(
     if(!lastModel.width_expression.empty() || !lastModel.height_expression.empty())
       lastPassDirect
           &= n.computeTextureSize(lastModel, mainTexSize, m_inputSamplers) == rtSize;
-    if(!lastModel.format.empty())
-      lastPassDirect &= passTextureFormat(lastModel) == rtFormat;
+    if(const auto fmt = passTextureFormat(lastModel); isSingleChannel(fmt))
+      lastPassDirect &= fmt == rtFormat;
+  }
+  // The blit copies colour only: the depth the last pass writes stays in its
+  // own target.
+  if(!lastPassDirect && n.requiresDepth && !m_warnedLastPassDepth)
+  {
+    m_warnedLastPassDepth = true;
+    qWarning() << "ISF: the last pass renders into its own target (its size, a "
+                  "single-channel FORMAT or PERSISTENT), whose depth does not "
+                  "reach the destination";
   }
 
   for(auto& pass : model_passes)
