@@ -20,6 +20,10 @@ View::View()
 
   // General settings
   SETTINGS_UI_TOGGLE_SETUP("Auto-Stereo", AutoStereo);
+  SETTINGS_UI_TOGGLE_SETUP("Lock memory", LockMemory);
+  m_LockMemory->setToolTip(
+      tr("Keeps score's memory resident so that audio never waits for swapped "
+         "pages.\nNeeds an unlimited memlock limit."));
 
   // Driver combo-box
   m_Driver = new QComboBox{m_widg};
@@ -114,4 +118,5 @@ void View::setBufferSize(int val)
   }
 }
 SETTINGS_UI_TOGGLE_IMPL(AutoStereo)
+SETTINGS_UI_TOGGLE_IMPL(LockMemory)
 }

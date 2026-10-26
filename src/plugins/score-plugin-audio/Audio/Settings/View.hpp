@@ -33,6 +33,7 @@ public:
   void RateChanged(int arg) W_SIGNAL(RateChanged, arg)
 
   SETTINGS_UI_TOGGLE_HPP(AutoStereo)
+  SETTINGS_UI_TOGGLE_HPP(LockMemory)
 
 private:
   QWidget* getWidget() override;
