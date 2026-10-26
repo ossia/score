@@ -65,7 +65,7 @@ struct looper_harness
 
     // Quantification is a quarter note by default; most cases here are about
     // the sample machinery, not the musical grid.
-    node.inputs.quantif.value = 0.f;
+    node.inputs.quantif.value = halp::grid_value{};
     // Most cases here are about what happens on the grid, not just after it.
     node.inputs.late.value = 0;
     // The cases here were written when a change of mode read the loop from
@@ -342,7 +342,7 @@ TEST_CASE("Looper: a post-action of zero bars does not cancel the recording",
           "[fx][audio][looper]")
 {
   looper_harness h{1, 128};
-  h.node.inputs.quantif.value = 0.25f;
+  h.node.inputs.quantif.value = halp::grid_value::note(0.25);
   h.node.inputs.postaction_bars.value = 0;
   h.fill_input(0, [](int64_t i) { return double(i + 1); });
 
@@ -444,7 +444,7 @@ TEST_CASE("Looper: the first buffer, with nothing recorded, is a passthrough",
 {
   looper_harness h;
   h.node.inputs.passthrough = Passthrough::Full;
-  h.node.inputs.quantif.value = 0.25f; // the shipped default
+  h.node.inputs.quantif.value = halp::grid_value::note(0.25); // the shipped default
   h.fill_input(0, [](int64_t i) { return double(i + 1); });
 
   h.run(64);
@@ -502,7 +502,7 @@ TEST_CASE("Looper: a quantized mode change covers both halves of the tick",
 
   // Quarter-note quantification, with a quarter line landing halfway through
   // the next tick.
-  h.node.inputs.quantif.value = 0.25f;
+  h.node.inputs.quantif.value = halp::grid_value::note(0.25);
   h.node.inputs.mode = LoopMode::Play;
 
   auto tk = h.tick(64);
@@ -614,7 +614,7 @@ TEST_CASE("Looper: a recording ended by hand keeps the length it was played for"
   // every loop: a recording stopped by hand is as long as it was played for.
   // Stretching it to the bar count is heard as silence at the end of the loop.
   musical_harness h;
-  h.node.inputs.quantif.value = 0.25f; // 4th
+  h.node.inputs.quantif.value = halp::grid_value::note(0.25); // 4th
   h.node.inputs.postaction_bars.value = 4;
   h.node.inputs.after_record = AfterRecord::Play;
   h.node.inputs.passthrough = Passthrough::None;
@@ -646,7 +646,7 @@ TEST_CASE("Looper: a quantification point on the tick's first sample switches th
   // frames or fewer. Refusing a point there leaves the mode waiting for one
   // that never comes, and the looper never records or plays anything at all.
   musical_harness h;
-  h.node.inputs.quantif.value = 1.0f; // Whole: one bar
+  h.node.inputs.quantif.value = halp::grid_value::bars(1); // Whole: one bar
   h.node.inputs.postaction_bars.value = 0;
   h.node.inputs.passthrough = Passthrough::None;
   REQUIRE(h.bar_samples() % h.buffer_size == 0);
@@ -668,7 +668,7 @@ TEST_CASE("Looper: the post-action takes over after the bars it was given",
   // What the bar count is for: recording hands over to play or overdub on its
   // own, without the mode being touched.
   musical_harness h;
-  h.node.inputs.quantif.value = 1.0f;
+  h.node.inputs.quantif.value = halp::grid_value::bars(1);
   h.node.inputs.postaction_bars.value = 2;
   h.node.inputs.after_record = AfterRecord::Play;
   h.node.inputs.passthrough = Passthrough::None;
@@ -700,7 +700,7 @@ TEST_CASE("Looper: a post-action recording is trimmed to the bars it was given",
   // The other side of the first case: when the post-action does end it, the
   // bar count is the length, give or take the rounding of one bar.
   musical_harness h;
-  h.node.inputs.quantif.value = 1.0f;
+  h.node.inputs.quantif.value = halp::grid_value::bars(1);
   h.node.inputs.postaction_bars.value = 2;
   h.node.inputs.after_record = AfterRecord::Play;
   h.node.inputs.passthrough = Passthrough::None;
@@ -1118,7 +1118,7 @@ TEST_CASE("Looper: a take is written as a looping WAV with its tempo, as it play
 
   musical_harness h{4800};
   h.tempo = 97.;
-  h.node.inputs.quantif.value = 0.f;
+  h.node.inputs.quantif.value = halp::grid_value{};
   h.node.inputs.passthrough = Passthrough::None;
 
   auto writer = std::make_shared<Nodes::Looper::take_writer>();
@@ -1174,7 +1174,7 @@ TEST_CASE("Looper: a stop just after a grid point ends the recording on that poi
   for(const int late_ms : {0, 250})
   {
     musical_harness h;
-    h.node.inputs.quantif.value = 1.0f;
+    h.node.inputs.quantif.value = halp::grid_value::bars(1);
     h.node.inputs.postaction_bars.value = 0;
     h.node.inputs.passthrough = Passthrough::None;
     h.node.inputs.late.value = late_ms;
@@ -1210,7 +1210,7 @@ TEST_CASE("Looper: an overdub asked for just after a grid point ends a recording
           "[fx][audio][looper][musical]")
 {
   musical_harness h{480};
-  h.node.inputs.quantif.value = 1.0f;
+  h.node.inputs.quantif.value = halp::grid_value::bars(1);
   h.node.inputs.postaction_bars.value = 0;
   h.node.inputs.passthrough = Passthrough::None;
   h.node.inputs.late.value = 120;
@@ -1432,7 +1432,7 @@ TEST_CASE("Looper: a stop just after the bar line keeps a sync group on the grid
           "[fx][audio][looper][sync]")
 {
   musical_harness h;
-  h.node.inputs.quantif.value = 1.0f;
+  h.node.inputs.quantif.value = halp::grid_value::bars(1);
   h.node.inputs.postaction_bars.value = 0;
   h.node.inputs.late.value = 250;
   h.node.inputs.sync.value = Nodes::Looper::SyncGroup::C;
@@ -1460,7 +1460,7 @@ TEST_CASE("Looper: overdub on an empty loop hands over to overdubbing after its 
   // next bar line -- which is the middle of the loop, and would have read it
   // from its start again there.
   musical_harness h;
-  h.node.inputs.quantif.value = 1.0f;
+  h.node.inputs.quantif.value = halp::grid_value::bars(1);
   h.node.inputs.postaction_bars.value = 2;
   h.node.inputs.after_record = AfterRecord::Play;
   h.node.inputs.mode = LoopMode::Stop;
@@ -1530,7 +1530,7 @@ TEST_CASE("Looper: a take keeps the tempo it was recorded at, whatever the tempo
   REQUIRE(dir.isValid());
   musical_harness h{4800};
   h.accumulate = true;
-  h.node.inputs.quantif.value = 0.f;
+  h.node.inputs.quantif.value = halp::grid_value{};
   auto writer = std::make_shared<Nodes::Looper::take_writer>();
   writer->folder = dir.path();
   writer->prefix = "t";
@@ -1663,7 +1663,7 @@ TEST_CASE("Looper: an extending overdub stopped just past the end does not add a
   // stop waits for the grid -- a bar, which the overdub has just grown the
   // loop by.
   musical_harness h{4800};
-  h.node.inputs.quantif.value = 1.0f;
+  h.node.inputs.quantif.value = halp::grid_value::bars(1);
   h.node.inputs.postaction_bars.value = 0;
   h.node.inputs.late.value = 120;
   h.node.inputs.past_end.value = Nodes::Looper::PastEnd::Extend;
@@ -2437,7 +2437,7 @@ TEST_CASE("Looper: speed and reverse leave the grid and the loop's length alone"
   // A recording of four bars at x1/2: the recording is the loop, at x1, and
   // the post-action takes over after its bars.
   musical_harness h{4800};
-  h.node.inputs.quantif.value = 1.0f;
+  h.node.inputs.quantif.value = halp::grid_value::bars(1);
   h.node.inputs.postaction_bars.value = 1;
   h.node.inputs.speed.value = 0.5f;
   h.node.inputs.reverse.value = true;
@@ -2663,7 +2663,7 @@ TEST_CASE("Looper: in phase and following the tempo, a loop keeps to the bars ac
 {
   musical_harness h{4800};
   h.accumulate = true;
-  h.node.inputs.quantif.value = 0.f;
+  h.node.inputs.quantif.value = halp::grid_value{};
   h.node.inputs.postaction_bars.value = 0;
   h.node.inputs.start_from = Nodes::Looper::StartFrom::InPhase;
   h.node.inputs.follow_tempo.value = Nodes::Looper::FollowTempo::Repitch;
@@ -2753,7 +2753,7 @@ struct switches_harness : musical_harness
   switches_harness()
       : musical_harness{int(frames)}
   {
-    node.inputs.quantif.value = 0.25f;
+    node.inputs.quantif.value = halp::grid_value::note(0.25);
     node.inputs.postaction_bars.value = 0;
     // The looper's own defaults.
     node.inputs.start_from = decltype(node.inputs.start_from){}.value;
@@ -3338,4 +3338,72 @@ TEST_CASE("Looper: a take asked for while overdubbing allocates nothing",
   }
   CHECK(allocated == 0);
   CHECK(jobs.size() == 1);
+}
+
+TEST_CASE("Looper switches: Quantif on Loop waits for the loop's start", "[fx][audio][looper][switches]")
+{
+  switches_harness h;
+  looper_switches::quantif_loop(h);
+}
+
+TEST_CASE("Looper switches: Quantif on Loop before there is a loop is Bars bars", "[fx][audio][looper][switches]")
+{
+  switches_harness h;
+  looper_switches::quantif_loop_empty(h);
+}
+
+namespace
+{
+//! The frame a recording asked for at `press_at` starts on, with Quantif on
+//! `grid`: ticks of a thousand frames, so the frame can be read from the
+//! length recorded so far.
+int64_t recording_start(halp::grid_value grid, int64_t press_at, int upper = 4)
+{
+  musical_harness h{1000};
+  h.upper = upper;
+  h.node.inputs.quantif.value = grid;
+  h.node.inputs.postaction_bars.value = 0;
+  h.node.inputs.late.value = 0;
+  h.node.inputs.passthrough = Passthrough::None;
+  h.node.inputs.mode = LoopMode::Stop;
+  while(h.now < press_at)
+    h.run(h.mtick(h.buffer_size));
+  h.node.inputs.mode = LoopMode::Record;
+  while(h.node.transport.actualMode != LoopMode::Record && h.now < 20 * h.bar_samples())
+    h.run(h.mtick(h.buffer_size));
+  return h.now - h.loop().size();
+}
+}
+
+TEST_CASE("Looper: Quantif in bars, note values and triplets", "[fx][audio][looper][musical]")
+{
+  // 120 bpm at 48 kHz: a quarter is 24000 frames, a bar of 4/4 96000.
+  SECTION("3 bars: on the third bar, not the next one")
+  {
+    CHECK(recording_start(halp::grid_value::bars(3), 100000) == 288000);
+  }
+  SECTION("1/1 in 3/4 is four quarters, not a bar")
+  {
+    CHECK(recording_start(halp::grid_value::note(1.), 10000, 3) == 96000);
+  }
+  SECTION("1/4 in 3/4 is a quarter, not a quarter of the bar")
+  {
+    CHECK(recording_start(halp::grid_value::note(0.25), 30000, 3) == 48000);
+  }
+  SECTION("1 bar in 3/4 is three quarters")
+  {
+    CHECK(recording_start(halp::grid_value::bars(1), 10000, 3) == 72000);
+  }
+  SECTION("1/8T: three to the quarter")
+  {
+    CHECK(recording_start(halp::grid_value::note(1. / 12.), 10000) == 16000);
+  }
+  SECTION("1/4T: three to the half note")
+  {
+    CHECK(recording_start(halp::grid_value::note(1. / 6.), 20000) == 32000);
+  }
+  SECTION("A time in seconds, from the start of playback before there is a loop")
+  {
+    CHECK(recording_start(halp::grid_value::seconds(0.5), 30000) == 48000);
+  }
 }

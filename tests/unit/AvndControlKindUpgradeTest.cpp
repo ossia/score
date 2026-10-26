@@ -362,3 +362,184 @@ TEST_CASE(
     }
   });
 }
+
+#include <Process/Preset.hpp>
+
+#include <Engine/Node/CommonWidgets.hpp>
+
+#include <QDir>
+#include <QFile>
+
+namespace
+{
+const QString audio_looper_uuid = QStringLiteral("a0ad4227-ac3d-448b-a19b-19581ed4e2c6");
+const QString midi_looper_uuid = QStringLiteral("0c0b7d3e-5a52-4b8f-9d1f-6e3a2b8c4f71");
+
+struct InletsAccess : Process::ProcessModel
+{
+  static Process::Inlets& of(Process::ProcessModel& p) { return p.*(&InletsAccess::m_inlets); }
+};
+
+Process::ControlInlet* inlet_named(const Process::ProcessModel& p, const QString& name)
+{
+  for(auto* in : p.inlets())
+    if(in->name() == name)
+      return qobject_cast<Process::ControlInlet*>(in);
+  return nullptr;
+}
+
+std::unique_ptr<Process::ProcessModel>
+make_looper(const score::DocumentContext& dctx, const QString& uuid)
+{
+  auto& pl = dctx.app.interfaces<Process::ProcessFactoryList>();
+  auto* factory = pl.get(UuidKey<Process::ProcessModel>::fromString(uuid));
+  if(!factory)
+    return {};
+  return std::unique_ptr<Process::ProcessModel>{factory->make(
+      TimeVal::fromMsecs(1000), QString{}, Id<Process::ProcessModel>{4242}, dctx,
+      nullptr)};
+}
+
+//! The looper as it was saved when Quantif was the list of note values: its
+//! port a combobox of them, set to `value`.
+void make_legacy_quantif(Process::ProcessModel& looper, float value)
+{
+  auto& inlets = InletsAccess::of(looper);
+  auto it = ossia::find_if(inlets, [](auto* in) { return in->name() == "Quantif"; });
+  REQUIRE(it != inlets.end());
+  std::vector<std::pair<QString, ossia::value>> notes;
+  for(const auto& [name, v] : Control::Widgets::notes)
+    notes.emplace_back(QString::fromUtf8(name), ossia::value{v});
+  auto* combo = new Process::ComboBox{notes, 0.25f, "Quantif", (*it)->id(), &looper};
+  combo->setValue(value);
+  delete *it;
+  *it = combo;
+}
+
+ossia::vec2f grid_of(const Process::ProcessModel& looper)
+{
+  auto* quantif = qobject_cast<Process::GridChooser*>(inlet_named(looper, "Quantif"));
+  REQUIRE(quantif);
+  const auto* v = quantif->value().target<ossia::vec2f>();
+  REQUIRE(v);
+  return *v;
+}
+
+// {value, unit}: unit 0 seconds (0 is None), 1 a note value, 2 bars
+struct legacy_case
+{
+  float saved;
+  ossia::vec2f grid;
+};
+const legacy_case legacy_cases[] = {
+    {0.f, {0.f, 0.f}},           // None
+    {1.f, {1.f, 2.f}},           // Whole was a bar through the engine's grid
+    {0.25f, {0.25f, 1.f}},       // 4th
+    {0.5f, {0.5f, 1.f}},         // Half
+    {3.f / 16.f, {3.f / 16.f, 1.f}}, // Dotted 8th
+    {0.75f, {0.75f, 1.f}},       // Dotted Half
+};
+}
+
+TEST_CASE("The loopers' Quantif: a score saved with the note list", "[avnd][upgrade][looper]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    auto& dctx = doc->context();
+    for(const auto& uuid : {audio_looper_uuid, midi_looper_uuid})
+    {
+      for(const auto& c : legacy_cases)
+      {
+        auto looper = make_looper(dctx, uuid);
+        if(!looper)
+          SKIP("the loopers are not built");
+        make_legacy_quantif(*looper, c.saved);
+        const auto id = inlet_named(*looper, "Quantif")->id();
+        for(auto roundtrip : {&roundtrip_json, &roundtrip_datastream})
+        {
+          std::unique_ptr<Process::ProcessModel> loaded{
+              roundtrip(*looper, dctx, nullptr)};
+          REQUIRE(loaded);
+          INFO(uuid.toStdString() << " " << c.saved);
+          CHECK(inlet_named(*loaded, "Quantif")->id() == id);
+          CHECK(grid_of(*loaded) == c.grid);
+        }
+      }
+    }
+  });
+}
+
+TEST_CASE("The loopers' Quantif: a preset saved with the note list", "[avnd][upgrade][looper]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    auto& dctx = doc->context();
+    for(const auto& uuid : {audio_looper_uuid, midi_looper_uuid})
+    {
+      auto looper = make_looper(dctx, uuid);
+      if(!looper)
+        SKIP("the loopers are not built");
+      const int id = inlet_named(*looper, "Quantif")->id().val();
+      for(const auto& c : legacy_cases)
+      {
+        INFO(uuid.toStdString() << " " << c.saved);
+        Process::Preset p;
+        p.key.key = looper->concreteKey();
+        p.data = QStringLiteral("[[%1,{\"Float\":%2}]]")
+                     .arg(id)
+                     .arg(double(c.saved), 0, 'g', 9)
+                     .toUtf8();
+        looper->loadPreset(p);
+        CHECK(grid_of(*looper) == c.grid);
+      }
+
+      // A preset saved since keeps what it says, Loop included
+      Process::Preset p;
+      p.key.key = looper->concreteKey();
+      p.data = QStringLiteral("[[%1,{\"Vec2f\":[0.5,3.0]}]]").arg(id).toUtf8();
+      looper->loadPreset(p);
+      CHECK(grid_of(*looper) == ossia::vec2f{0.5f, 3.f});
+      // And what it saves is what it loads
+      looper->loadPreset(looper->savePreset());
+      CHECK(grid_of(*looper) == ossia::vec2f{0.5f, 3.f});
+    }
+
+#if defined(SCORE_TEST_PRESETS_ROOT)
+    // The library's presets: quantized to the bar unless they say otherwise
+    struct expected
+    {
+      const char* folder;
+      const QString& uuid;
+    };
+    for(const auto& [folder, uuid] :
+        {expected{"Looper (audio)", audio_looper_uuid},
+         expected{"Looper (MIDI)", midi_looper_uuid}})
+    {
+      auto looper = make_looper(dctx, uuid);
+      REQUIRE(looper);
+      QDir dir{QStringLiteral(SCORE_TEST_PRESETS_ROOT) + "/" + folder};
+      const auto files = dir.entryList({"*.scp"}, QDir::Files, QDir::Name);
+      REQUIRE(!files.empty());
+      for(const auto& f : files)
+      {
+        QFile file{dir.filePath(f)};
+        REQUIRE(file.open(QIODevice::ReadOnly));
+        auto preset = Process::Preset::fromJson(
+            ctx.interfaces<Process::ProcessFactoryList>(), file.readAll());
+        REQUIRE(preset);
+        looper->loadPreset(*preset);
+        INFO(folder << "/" << f.toStdString());
+        const auto g = grid_of(*looper);
+        if(f.startsWith("Free"))
+          CHECK(g == ossia::vec2f{0.f, 0.f});
+        else if(f.startsWith("Sixteenths"))
+          CHECK(g == ossia::vec2f{0.25f, 1.f});
+        else
+          CHECK(g == ossia::vec2f{1.f, 2.f});
+      }
+    }
+#endif
+  });
+}

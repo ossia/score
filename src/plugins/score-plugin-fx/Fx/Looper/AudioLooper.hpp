@@ -80,13 +80,7 @@ struct Node
       void update(Node& n) noexcept { n.loop_arrived(); }
     } mode;
 
-    struct : quant_selector<"Quantif">
-    {
-      halp_meta(
-          description,
-          "Waits for the next point of this grid before changing mode, so a "
-          "loop starts and ends in time. Whole is a bar. None changes at once.")
-    } quantif;
+    Looper::quantif_selector quantif;
 
     struct : Looper::enum_combobox<"Passthrough", Passthrough, Passthrough::Record>
     {
@@ -490,6 +484,7 @@ struct Node
   int64_t looper_trim_extension(int64_t max_frames);
   void looper_rephase(const ossia::token_request& tk);
   int64_t looper_frames_to_end() const noexcept;
+  Looper::loop_period looper_period(const ossia::token_request& tk) const noexcept;
   void looper_point()
   {
     m_switches.apply(inputs, *this);
@@ -1176,7 +1171,7 @@ inline void Node::looper_close_take(
     // last bar. A recording stopped by hand is as long as it was played for,
     // and stretching it out to that count is how a loop ended early came back
     // with bars of silence at the end of it.
-    const bool quantify_length = ended_by_postaction && transport.quantif > 0.f
+    const bool quantify_length = ended_by_postaction && transport.quantized()
                                  && transport.postaction_bars > 0;
     if(quantify_length && total_samples < layers.length)
       layers.length = total_samples;
@@ -1310,6 +1305,42 @@ inline int64_t Node::looper_frames_to_end() const noexcept
      && m_loop_tempo > 0.)
     rate *= std::max(1., m_tempo) / m_loop_tempo;
   return int64_t(std::ceil((double(len) - y) / rate - 1e-9));
+}
+
+//! The loop as Quantif's Loop: the frames a round of it takes at the rate it
+//! is heard at, and where the playhead is in it, the way it goes. An extending
+//! overdub's round is the loop as long as it is now. A stopped loop is where
+//! it would be had it kept going since it was made, as In phase has it.
+inline Looper::loop_period Node::looper_period(const ossia::token_request& tk) const noexcept
+{
+  const LoopMode m = transport.actualMode;
+  if(layers.empty() || m_loading || layers.length <= 0 || m == LoopMode::Record)
+    return {};
+  const int64_t len = layers.length;
+  const bool stretched
+      = m_stretch_mode != ossia::audio_stretch_mode::None && m_loop_tempo > 0.;
+  double rate = m_speed;
+  if(stretched && m != LoopMode::Overdub)
+    rate *= std::max(1., m_tempo) / m_loop_tempo;
+  const int64_t round = std::max<int64_t>(1, int64_t(std::ceil(double(len) / rate - 1e-9)));
+
+  if(m == LoopMode::Stop)
+  {
+    const auto now = transport.timeline(tk);
+    double cycles{};
+    if(stretched)
+      cycles = (now.quarters - m_origin.quarters)
+               / (double(len) / m_rate * m_loop_tempo / 60.);
+    else
+      cycles = (now.frames - m_origin.frames) / double(len);
+    cycles *= m_speed;
+    return {round, int64_t(std::floor(cycles * double(round) + 1e-6)), false};
+  }
+
+  const double y = head_y(len);
+  const int64_t to_end
+      = y <= 0. ? 0 : int64_t(std::ceil((double(len) - y) / rate - 1e-9));
+  return {round, std::clamp<int64_t>(round - to_end, 0, round), true};
 }
 
 //! An extending pass asked to stop just after the loop grew ends on the old
@@ -1462,7 +1493,7 @@ inline void Node::capture(const tick& tk)
   const double bar = m_rate * 4. * (double(tk.signature.upper) / tk.signature.lower)
                      * (60. / std::max(1., tk.tempo));
   int64_t end = m_ring_written;
-  if(transport.quantif > 0.f && transport.lastPointFrame)
+  if(transport.quantized() && transport.lastPointFrame)
   {
     const int64_t late = transport.frame - *transport.lastPointFrame;
     if(late >= 0 && late <= int64_t(inputs.late.value * m_rate / 1000.))

@@ -2645,7 +2645,8 @@ foreach(_preset_test
     test_unit_fx_looper_presets
     test_unit_fx_lfo_presets
     test_unit_preset_loader
-    test_unit_preset_app)
+    test_unit_preset_app
+    test_unit_avnd_control_kind_upgrade)
   if(TARGET ${_preset_test})
     target_compile_definitions(${_preset_test} PRIVATE
       "SCORE_TEST_PRESETS_ROOT=\"${SCORE_ROOT_SOURCE_DIR}/tests/fixtures/presets\"")

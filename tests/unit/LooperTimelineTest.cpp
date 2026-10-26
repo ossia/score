@@ -288,7 +288,7 @@ struct midi_looper_run
     st.modelToSamplesRatio = 1.;
     st.samplesToModelRatio = 1.;
     node.ossia_state = {&st};
-    node.inputs.quantif.value = 0.f;
+    node.inputs.quantif.value = halp::grid_value{};
     node.inputs.late.value = 0;
     node.inputs.grace.value = 0;
     node.inputs.postaction_bars.value = 0;
@@ -593,7 +593,7 @@ TEST_CASE("A MIDI take recorded in the engine has the loop's quarters at the sco
         const int64_t four_bars = int64_t(std::llround(16. * 60. / tempo * st.sampleRate));
         if(by_hand)
         {
-          looper.inputs.quantif.value = 0.f;
+          looper.inputs.quantif.value = halp::grid_value{};
           looper.inputs.postaction_bars.value = 0;
         }
         else

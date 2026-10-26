@@ -2,7 +2,11 @@
 #include <Fx/Looper/Sync.hpp>
 #include <Fx/Looper/Transport.hpp>
 
+#include <ossia/network/value/value.hpp>
+#include <ossia/network/value/value_conversion.hpp>
+
 #include <halp/controls.hpp>
+#include <halp/grid_chooser.hpp>
 #include <halp/layout.hpp>
 #include <halp/meta.hpp>
 
@@ -193,6 +197,42 @@ struct start_from_selector
       "again after a stop, or when the score starts or jumps, is where it "
       "would be had it kept playing with the timeline. A recording always "
       "starts at the loop's start.")
+};
+
+//! The grid a change of mode waits for.
+struct quantif_selector : halp::grid_chooser<"Quantif", quantif_grid, "loop">
+{
+  using grid_chooser::operator=;
+
+  //! What the note list of older scores and presets saved: a fraction of a
+  //! whole note, 0 for None, where Whole went through the engine's grid as a
+  //! bar.
+  static ossia::value upgrade_value(const ossia::value& old)
+  {
+    const auto t = old.get_type();
+    if(t != ossia::val_type::FLOAT && t != ossia::val_type::INT
+       && t != ossia::val_type::BOOL)
+      return old;
+    const halp::grid_value g = legacy_grid(ossia::convert<float>(old));
+    return ossia::vec2f{float(g.value), float(int(g.unit))};
+  }
+  static constexpr halp::grid_value legacy_grid(float whole_note_fraction) noexcept
+  {
+    if(!(whole_note_fraction > 0.f))
+      return {};
+    if(whole_note_fraction > 1.f - 1e-6f && whole_note_fraction < 1.f + 1e-6f)
+      return halp::grid_value::bars(1.);
+    return halp::grid_value::note(whole_note_fraction);
+  }
+
+  halp_meta(
+      description,
+      "Waits for the next point of this grid before changing mode, so a loop "
+      "starts and ends in time: a time, a note value (1/1 is a whole note, "
+      "four quarters), a number of bars, or the loop itself. Loop waits for "
+      "the loop to come round to its start; before there is a loop, for the "
+      "length the recording will have, Bars bars (one bar when Bars is 0). "
+      "None changes at once.")
 };
 
 struct at_max_layers_selector

@@ -2,6 +2,7 @@
 #include <ossia/dataflow/exec_state_facade.hpp>
 #include <ossia/dataflow/token_request.hpp>
 
+#include <halp/grid.hpp>
 #include <halp/polyfill.hpp>
 #include <halp/static_string.hpp>
 
@@ -58,6 +59,10 @@
  *   // Frames until the playhead reaches the end of the loop, the way it goes,
  *   // or -1 when it is not going round a loop.
  *   int64_t looper_frames_to_end() const;
+ *
+ *   // The loop as the period of Quantif's Loop grid, at the start of the
+ *   // span of `tk`; see loop_period.
+ *   Looper::loop_period looper_period(const ossia::token_request& tk) const;
  *
  * The looper calls transport.taking(mode) whenever it records or overdubs.
  */
@@ -204,10 +209,36 @@ enum class FollowTempo
   TimestretchPercussive
 };
 
+//! The units Quantif offers: a time, a note value, bars, or the loop itself.
+inline constexpr halp::grid_setup quantif_grid{
+    .units = halp::grid_units::free | halp::grid_units::note | halp::grid_units::bars
+             | halp::grid_units::period,
+    .init = halp::grid_value::note(0.25),
+    .max_bars = 16};
+
+//! A grid that never waits: none, or nothing the transport can find points of.
+inline bool no_grid(const halp::grid_value& g) noexcept
+{
+  return g.none() || !(g.value > 0.) || g.unit == halp::grid_unit::parent;
+}
+
+//! The loop as the period of a grid, in frames of the tick: how long the
+//! playhead takes to go round it at the speed it goes, and where it is.
+struct loop_period
+{
+  //! 0: no loop yet (empty, or being recorded).
+  int64_t length{};
+  //! Going round: frames into the current round, in [0; length]. Stopped:
+  //! frames since the loop was made, by the timeline, over all the rounds it
+  //! would have gone.
+  int64_t position{};
+  bool going_round{};
+};
+
 struct transport_settings
 {
   LoopMode mode{LoopMode::Stop};
-  float quantif{};
+  halp::grid_value quantif{};
   AfterRecord after_record{};
   int postaction_bars{};
   StartFrom start_from{};
@@ -228,7 +259,9 @@ struct transport
   int64_t playbackPos{};
   ossia::quarter_note recordStartBar{-1.};
   ossia::quarter_note recordEndBar{-1.};
-  float quantif{0.0};
+  //! The grid of this tick; no_grid() when changes are taken up at once.
+  halp::grid_value quantif{};
+  bool quantized() const noexcept { return !no_grid(quantif); }
   std::optional<ossia::time_value> this_buffer_quantif_time;
   int64_t tickStartSample{};
   int postaction_bars{};
@@ -465,7 +498,9 @@ struct transport
     this_buffer_quantif_time = std::nullopt;
 
     const LoopMode m = s.mode;
-    const float quantif = s.quantif;
+    const bool on_grid = !no_grid(s.quantif) && tk.prev_date != 0_tv;
+    const loop_period period = e.looper_period(tk);
+    count_rounds(period);
 
     // The timeline jumped, e.g. the score was moved to another date: a loop
     // in phase with it goes there as well.
@@ -474,31 +509,22 @@ struct transport
       m_rephase = true;
     m_last_date = tk.date;
 
-    if(quantif != 0 && tk.prev_date != 0_tv)
+    if(on_grid)
     {
-      this->quantif = quantif;
+      this->quantif = s.quantif;
       // A point on the tick's very first sample counts. Bar lines land there
       // whenever the bar divides evenly into the buffer -- which at 120bpm and
       // 48kHz is every buffer of 256 frames or fewer -- and refusing them left
       // the mode waiting for a point that would never come.
-      if(auto pt = tk.get_quantification_point(1. / quantif);
-         pt && pt->date >= tk.prev_date)
+      if(const auto pt = grid_point(tk, s, period, timings.length))
       {
-        this_buffer_quantif_time = pt->date;
-
-        // Through the point's musical position, not its date: the date is
-        // truncated to a whole flick, and flooring that into a sample rounds
-        // twice, so the loop point would land a sample before the metronome
-        // click on the very bar line it is quantized to.
-        const double ratio = st.modelToSamples();
-        const int64_t sample
-            = tk.physical_start(ratio) + tk.physical_position(pt->position, ratio);
-        m_point_this_tick = frame + (sample - tickStartSample);
+        this_buffer_quantif_time = date_at(tk, *pt, timings.length);
+        m_point_this_tick = frame + *pt;
       }
     }
     else
     {
-      this->quantif = 0.0f;
+      this->quantif = {};
     }
 
     if(m != quantizedPlayMode || m_restart || m_retake || m_point_requested)
@@ -538,7 +564,7 @@ struct transport
           preAction(tk, s, e);
         }
       }
-      else if(quantif != 0 && tk.prev_date != 0_tv && !(stopping && s.stop_at == StopAt::Now))
+      else if(on_grid && !(stopping && s.stop_at == StopAt::Now))
       {
         if(late_stop(s, e))
         {
@@ -642,6 +668,72 @@ private:
     wanted = st.mode;
     if(st.new_layer)
       m_retake = true;
+  }
+
+  //! The rounds the loop has gone since it was made, for the multiples of
+  //! Loop above one: "2x loop" is every other restart.
+  int64_t m_rounds{};
+  int64_t m_last_round_position{-1};
+
+  void count_rounds(const loop_period& p) noexcept
+  {
+    if(p.length <= 0 || !p.going_round)
+    {
+      m_rounds = 0;
+      m_last_round_position = -1;
+      return;
+    }
+    // Back past half the loop is a restart: the end reached, or Retrigger.
+    if(m_last_round_position >= 0 && p.position + p.length / 2 < m_last_round_position)
+      m_rounds++;
+    m_last_round_position = p.position;
+  }
+
+  //! Where the next point of Quantif's grid falls in the span of `tk`, as an
+  //! offset from its first frame. Loop is the loop's own restart while there
+  //! is a loop; before there is one, it is the length the recording will have:
+  //! Bars bars, or one bar when Bars is zero.
+  std::optional<int> grid_point(
+      const ossia::token_request& tk, const transport_settings& s,
+      const loop_period& period, int64_t frames) const noexcept
+  {
+    halp::tick_musical t{};
+    t.frames = int(frames);
+    t.tempo = tk.tempo;
+    t.signature.num = tk.signature.upper;
+    t.signature.denom = tk.signature.lower;
+    t.position_in_frames = frame;
+    t.start_position_in_quarters = tk.musical_start_position;
+    t.end_position_in_quarters = tk.musical_end_position;
+    t.last_signature_change = tk.musical_start_last_signature;
+    t.bar_at_start = tk.musical_start_last_bar;
+    t.bar_at_end = tk.musical_end_last_bar;
+
+    halp::grid_value g = s.quantif;
+    halp::grid_period p{};
+    if(period.length > 0)
+    {
+      p.length = period.length;
+      p.position = period.going_round ? m_rounds * period.length + period.position
+                                      : period.position;
+    }
+    else if(g.unit == halp::grid_unit::period)
+    {
+      g = halp::grid_value::bars(g.value * std::max(1, s.postaction_bars));
+    }
+    return halp::next_grid_point(g, t, sampleRate, p);
+  }
+
+  //! The date of frame `f` of the span of `tk`, such that splitting the tick
+  //! there puts the split on that frame.
+  static ossia::time_value
+  date_at(const ossia::token_request& tk, int64_t f, int64_t frames) noexcept
+  {
+    if(f <= 0 || frames <= 0)
+      return tk.prev_date;
+    const double span = double((tk.date - tk.prev_date).impl);
+    return tk.prev_date
+           + ossia::time_value{int64_t(std::llround(span * double(f) / double(frames)))};
   }
 
   LoopMode m_taking{LoopMode::Stop};

@@ -67,7 +67,7 @@ struct midi_harness
     st.modelToSamplesRatio = 1.;
     st.samplesToModelRatio = 1.;
     node.ossia_state = {&st};
-    node.inputs.quantif.value = 0.f;
+    node.inputs.quantif.value = halp::grid_value{};
     node.inputs.late.value = 0;
     node.inputs.grace.value = 0;
     // The cases here were written when a change of mode read the loop from
@@ -818,7 +818,7 @@ TEST_CASE("MIDI looper: an extending overdub stopped just past the end does not 
   // loop by.
   midi_harness h{4800, 48000};
   h.musical = true;
-  h.node.inputs.quantif.value = 1.f;
+  h.node.inputs.quantif.value = halp::grid_value::bars(1);
   h.node.inputs.late.value = 120;
   h.node.inputs.past_end.value = Nodes::Looper::PastEnd::Extend;
   const int64_t bar = 96000;
@@ -1899,7 +1899,7 @@ TEST_CASE("MIDI looper: every note of an overdub started on a bar line is heard,
     // As the object is made in the app.
     h.musical = true;
     h.tempo = tempo;
-    h.node.inputs.quantif.value = 1.f;
+    h.node.inputs.quantif.value = halp::grid_value::bars(1);
     h.node.inputs.grid.value = 1.f;
     h.node.inputs.late.value = 120;
     h.node.inputs.grace.value = 60;
@@ -2003,7 +2003,7 @@ struct switches_harness : midi_harness
   {
     musical = true;
     pending.reserve(64);
-    node.inputs.quantif.value = 0.25f;
+    node.inputs.quantif.value = halp::grid_value::note(0.25);
     node.inputs.postaction_bars.value = 0;
     // The looper's own defaults.
     node.inputs.start_from = decltype(node.inputs.start_from){}.value;
@@ -2818,4 +2818,16 @@ TEST_CASE("MIDI looper: a take asked for allocates nothing", "[fx][midi][looper]
   }
   CHECK(allocated == 0);
   CHECK(jobs.size() == 1);
+}
+
+TEST_CASE("MIDI looper switches: Quantif on Loop waits for the loop's start", "[fx][midi][looper][switches]")
+{
+  switches_harness h;
+  looper_switches::quantif_loop(h);
+}
+
+TEST_CASE("MIDI looper switches: Quantif on Loop before there is a loop is Bars bars", "[fx][midi][looper][switches]")
+{
+  switches_harness h;
+  looper_switches::quantif_loop_empty(h);
 }

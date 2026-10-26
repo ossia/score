@@ -1149,3 +1149,130 @@ void exercise(H& h)
   at_beat(h, in.play);
 }
 }
+
+namespace looper_switches
+{
+//! Runs up to `frame`, the change asked for still waiting, and the tick that
+//! frame falls in: the change is taken up there.
+template <typename H>
+void waits_until(H& h, int64_t frame, LoopMode before, LoopMode after)
+{
+  while(h.now + H::frames <= frame)
+  {
+    h.tick_once();
+    REQUIRE(mode(h) == before);
+  }
+  REQUIRE(h.now <= frame);
+  h.tick_once();
+  CHECK(mode(h) == after);
+}
+
+//! Quantif on Loop: a change waits for the loop to come round to its start,
+//! wherever that falls, and with 1/2 loop and 2x loop for its middle or every
+//! other round. The loop is nineteen sixteenths long: its start falls inside a
+//! tick, off the beats, and moves from one round to the next.
+template <typename H>
+void quantif_loop(H& h)
+{
+  auto& in = h.node.inputs;
+  in.late.value = 0;
+  constexpr int64_t sixteenth = H::beat / 4;
+  constexpr int64_t len = 19 * sixteenth;
+
+  in.quantif.value = halp::grid_value::note(1. / 16.);
+  press_off_beat(h, in.record);
+  // Taken up on the first sixteenth at or after the start of that tick
+  const int64_t rec = (h.now - H::frames + sixteenth - 1) / sixteenth * sixteenth;
+  const int64_t end = rec + len;
+  while(h.now <= end - sixteenth)
+    h.tick_once();
+  press(h, in.play);
+  while(h.now <= end)
+    h.tick_once();
+  REQUIRE(mode(h) == LoopMode::Play);
+  REQUIRE(h.length() == len);
+  // The loop goes round from `end`.
+
+  SECTION("Loop: an overdub waits for the loop's start, past the beats")
+  {
+    in.quantif.value = halp::grid_value::period(1.);
+    beats(h, 1);
+    press(h, in.overdub);
+    const int64_t restart = end + len;
+    REQUIRE(restart % H::beat != 0);
+    REQUIRE(restart % H::frames != 0);
+    REQUIRE(restart - h.now > 2 * H::beat);
+    waits_until(h, restart, LoopMode::Play, LoopMode::Overdub);
+    CHECK(h.position() == h.now - restart);
+  }
+  SECTION("Loop: so does a stop")
+  {
+    in.quantif.value = halp::grid_value::period(1.);
+    beats(h, 2);
+    press(h, in.stop);
+    waits_until(h, end + len, LoopMode::Play, LoopMode::Stop);
+  }
+  SECTION("1/2 loop: its start and its middle")
+  {
+    in.quantif.value = halp::grid_value::period(0.5);
+    // A round in, past the start of the second round
+    while(h.now < end + len)
+      h.tick_once();
+    h.tick_once();
+    press(h, in.overdub);
+    waits_until(h, end + len + len / 2, LoopMode::Play, LoopMode::Overdub);
+    CHECK(h.position() == h.now - (end + len));
+  }
+  SECTION("2x loop: every other round, counted from the first")
+  {
+    in.quantif.value = halp::grid_value::period(2.);
+    beats(h, 1);
+    press(h, in.overdub);
+    // The second round starts without it
+    waits_until(h, end + 2 * len, LoopMode::Play, LoopMode::Overdub);
+  }
+}
+
+//! Quantif on Loop before there is a loop: the length the recording will
+//! have, Bars bars, or one bar when Bars is 0.
+template <typename H>
+void quantif_loop_empty(H& h)
+{
+  auto& in = h.node.inputs;
+  in.late.value = 0;
+  constexpr int64_t bar = 4 * H::beat;
+  in.quantif.value = halp::grid_value::period(1.);
+
+  SECTION("Bars bars")
+  {
+    in.postaction_bars.value = 2;
+    while(h.now < bar + H::beat)
+      h.tick_once();
+    press(h, in.record);
+    // Not on the next bar: on the next two bars
+    waits_until(h, 2 * bar, LoopMode::Stop, LoopMode::Record);
+    while(h.now < 4 * bar)
+      h.tick_once();
+    h.tick_once();
+    CHECK(mode(h) == LoopMode::Play);
+    CHECK(h.length() == 2 * bar);
+  }
+  SECTION("One bar when Bars is 0, while recording as well")
+  {
+    in.postaction_bars.value = 0;
+    press_off_beat(h, in.record);
+    waits_until(h, bar, LoopMode::Stop, LoopMode::Record);
+    beats(h, 5);
+    press(h, in.play);
+    waits_until(h, 3 * bar, LoopMode::Record, LoopMode::Play);
+    CHECK(h.length() == 2 * bar);
+  }
+  SECTION("2x loop: twice Bars")
+  {
+    in.postaction_bars.value = 1;
+    in.quantif.value = halp::grid_value::period(2.);
+    press_off_beat(h, in.record);
+    waits_until(h, 2 * bar, LoopMode::Stop, LoopMode::Record);
+  }
+}
+}

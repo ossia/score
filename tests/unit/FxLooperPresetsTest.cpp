@@ -244,11 +244,29 @@ LoopMode mode(const R& r)
   return r.node.transport.actualMode;
 }
 
-//! Frames of the preset's grid; zero without one.
+//! Frames of the preset's grid; zero without one. 4/4: a whole note is a bar.
 template <typename R>
 int64_t grid(const R& r)
 {
-  return int64_t(std::llround(r.node.inputs.quantif.value * double(R::bar)));
+  const halp::grid_value g = r.node.inputs.quantif.value;
+  if(Nodes::Looper::no_grid(g))
+    return 0;
+  switch(g.unit)
+  {
+    case halp::grid_unit::free:
+      return int64_t(std::llround(g.value * 48000.));
+    case halp::grid_unit::note:
+    case halp::grid_unit::bars:
+      return int64_t(std::llround(g.value * double(R::bar)));
+    case halp::grid_unit::period:
+      // Before there is a loop, the bars a recording is given.
+      if(r.length() > 0)
+        return int64_t(std::llround(g.value * double(r.length())));
+      return int64_t(std::llround(
+          g.value * std::max(1, r.node.inputs.postaction_bars.value) * double(R::bar)));
+    default:
+      return 0;
+  }
 }
 
 template <typename R>
@@ -601,7 +619,7 @@ TEST_CASE("Looper presets: what the names say, the settings", "[fx][looper][pres
     Audio n;
     apply(n, "Free loop");
     CHECK(n.inputs.postaction_bars.value == 0);
-    CHECK(n.inputs.quantif.value == Approx(0.f));
+    CHECK(n.inputs.quantif.value.none());
   }
   {
     Audio n;

@@ -202,7 +202,54 @@ public:
 
   ~ProcessModel() override { }
 
+  //! A preset saved when a control was another kind of control holds a value
+  //! of that kind: it goes through the control's `upgrade_value`, as the value
+  //! of a document saved then does (see upgrade_changed_control_types).
+  void loadPreset(const Process::Preset& preset) override
+  {
+    const rapidjson::Document doc = readJson(preset.data);
+    if(!doc.IsArray())
+      return;
+    for(const auto& arr : doc.GetArray())
+    {
+      if(!arr.IsArray() || arr.Size() < 2 || !arr[0].IsInt())
+        continue;
+      auto* ctrl = qobject_cast<Process::ControlInlet*>(
+          this->inlet(Id<Process::Port>{arr[0].GetInt()}));
+      if(!ctrl)
+        continue;
+      ossia::value val = JsonValue{arr[1]}.to<ossia::value>();
+      upgrade_preset_value(*ctrl, val);
+      ctrl->setValue(val);
+    }
+  }
+
 private:
+  void upgrade_preset_value(const Process::ControlInlet& ctrl, ossia::value& val)
+  {
+    if(val.get_type() == ctrl.value().get_type())
+      return;
+    avnd::input_introspection<Info>::for_all(
+        [&]<std::size_t Idx, typename P>(avnd::field_reflection<Idx, P>) {
+      if constexpr(requires(const ossia::value& v) { P::upgrade_value(v); })
+      {
+        auto ports = avnd_input_idx_to_model_ports(Idx);
+        if(ports.size() == 1 && ports[0] == &ctrl)
+          val = P::upgrade_value(std::as_const(val));
+      }
+      else if constexpr(requires(float f) {
+                          { P::upgrade_value(f) } -> std::convertible_to<float>;
+                        })
+      {
+        auto ports = avnd_input_idx_to_model_ports(Idx);
+        if(ports.size() == 1 && ports[0] == &ctrl && is_number(val))
+          if(auto v = carried_value(
+                 float(P::upgrade_value(ossia::convert<float>(val))), ctrl))
+            val = std::move(*v);
+      }
+    });
+  }
+
   void init_common()
   {
     if constexpr(avnd::tag_loops_by_default<Info>)

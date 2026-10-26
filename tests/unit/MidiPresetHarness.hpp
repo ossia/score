@@ -12,6 +12,10 @@
 #include <avnd/introspection/range.hpp>
 #include <avnd/introspection/widgets.hpp>
 
+#include <ossia/network/value/value.hpp>
+
+#include <halp/grid_chooser.hpp>
+
 #include <catch2/catch_test_macros.hpp>
 
 #include <QDir>
@@ -107,7 +111,31 @@ void assign(
       return 0.;
     };
 
-    if constexpr(requires { field.sync; })
+    if constexpr(std::is_same_v<V, halp::grid_value>)
+    {
+      // Grid chooser: [value, unit]. A plain number is what the control was
+      // before, converted as the avnd process converts it on load.
+      if(v.contains("Vec2f"))
+      {
+        const auto a = v["Vec2f"].toArray();
+        if(a.size() != 2)
+          return fail("expected two numbers for a grid");
+        field.value = {halp::grid_unit(int(a[1].toDouble())), a[0].toDouble(), 0.};
+      }
+      else if constexpr(requires(const ossia::value& o) { Field::upgrade_value(o); })
+      {
+        const ossia::value up = Field::upgrade_value(ossia::value{float(num())});
+        if(auto g = up.template target<ossia::vec2f>())
+          field.value = {halp::grid_unit(int((*g)[1])), double((*g)[0]), 0.};
+        else
+          fail("upgrade_value did not give a grid");
+      }
+      else
+      {
+        field.value = halp::grid_value::seconds(num());
+      }
+    }
+    else if constexpr(requires { field.sync; })
     {
       // Time chooser: [time, synced], or a plain number of seconds
       if(v.contains("Vec2f"))
