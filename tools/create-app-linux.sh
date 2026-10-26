@@ -125,11 +125,16 @@ fi
 # Expand ~ if present (in case the conf file contains a literal ~)
 ROOT_PATH="\${ROOT_PATH/#\~/\$HOME}"
 
-# Build LD_LIBRARY_PATH from subfolders containing shared libs
+# Build LD_LIBRARY_PATH from subfolders containing shared libs. Not those of
+# hidden folders (.incoming-*: an install in progress or interrupted), nor of a
+# package folder which score could not remove and will at its next start.
 SUPPORT_DIR="\$ROOT_PATH/support"
 
 if [[ -d "\$SUPPORT_DIR" ]]; then
     while IFS= read -r -d '' dir; do
+        package="\${dir#"\$SUPPORT_DIR"/}"
+        package="\${package%%/*}"
+        [[ -e "\$SUPPORT_DIR/\$package/.score-remove" ]] && continue
         # Check if this directory directly contains any .so files
         if compgen -G "\$dir"/*.so > /dev/null 2>&1 || \
            compgen -G "\$dir"/*.so.* > /dev/null 2>&1; then
@@ -139,7 +144,7 @@ if [[ -d "\$SUPPORT_DIR" ]]; then
                 LD_LIBRARY_PATH="\$dir:\$LD_LIBRARY_PATH"
             fi
         fi
-    done < <(find "\$SUPPORT_DIR" -mindepth 1 -type d -print0)
+    done < <(find "\$SUPPORT_DIR" -mindepth 1 -name '.*' -prune -o -type d -print0)
 fi
 
 export QML2_IMPORT_PATH="\${APPDIR}/usr/bin/qml/"
