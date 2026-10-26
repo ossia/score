@@ -10,6 +10,7 @@
 #include <QFormLayout>
 #include <QLabel>
 #include <QPushButton>
+#include <QRegularExpression>
 #include <QTimer>
 
 namespace Audio
@@ -141,18 +142,30 @@ public:
   }
   void setCard(QComboBox* combo, QString val)
   {
-    auto dev_it = ossia::find_if(
-        m_factory.devices, [&](const PortAudioCard& d) { return d.raw_name == val; });
-    if(dev_it != m_factory.devices.end())
-    {
-      combo->setCurrentIndex(dev_it->out_index);
-    }
+    if(auto dev = m_factory.find(val))
+      combo->setCurrentIndex(dev->out_index);
   }
 };
 
-ALSAPortAudioFactory::ALSAPortAudioFactory()
+ALSAPortAudioFactory::ALSAPortAudioFactory() { }
+
+const PortAudioCard* ALSAPortAudioFactory::find(const QString& name) const noexcept
 {
-  rescan();
+  if(name.isEmpty())
+    return nullptr;
+  auto without_index = [](const QString& n) {
+    static const QRegularExpression index{R"( \(hw:\d+,\d+\)$)"};
+    return QString{n}.remove(index);
+  };
+  const PortAudioCard* fallback{};
+  for(const auto& dev : devices)
+  {
+    if(dev.raw_name == name)
+      return &dev;
+    if(!fallback && without_index(dev.raw_name) == without_index(name))
+      fallback = &dev;
+  }
+  return fallback;
 }
 
 ALSAPortAudioFactory::~ALSAPortAudioFactory() { }
@@ -160,11 +173,11 @@ ALSAPortAudioFactory::~ALSAPortAudioFactory() { }
 void ALSAPortAudioFactory::initialize(
     Audio::Settings::Model& set, const score::ApplicationContext& ctx)
 {
-  auto device = ossia::find_if(devices, [&](const PortAudioCard& dev) {
-    return dev.raw_name == set.getCardOut() && dev.hostapi != paInDevelopment;
-  });
+  if(!m_scanned)
+    rescan();
 
-  if(device == devices.end())
+  auto device = find(set.getCardOut());
+  if(!device || device->hostapi == paInDevelopment)
   {
     // FIXME check if pipewire / pulse / jack / ... are running
     for(const QString& default_device :
@@ -194,6 +207,7 @@ void ALSAPortAudioFactory::initialize(
 
 void ALSAPortAudioFactory::rescan()
 {
+  m_scanned = true;
   devices.clear();
   PortAudioScope portaudio;
 
@@ -244,6 +258,8 @@ QWidget* ALSAPortAudioFactory::make_settings(
     Audio::Settings::Model& m, Audio::Settings::View& v,
     score::SettingsCommandDispatcher& m_disp, QWidget* parent)
 {
+  if(!m_scanned)
+    rescan();
   return new ALSAPortAudioWidget{*this, m, v, m_disp, parent};
 }
 
