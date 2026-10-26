@@ -1650,7 +1650,7 @@ TEST_CASE("MIDI looper: a pass per cycle makes a pass of each round, and a muted
   // Muted, the second round is not heard, and the first is heard again.
   h.node.inputs.layer.value = 3;
   h.press(h.node.inputs.mute_layer);
-  CHECK(h.node.loop.muted[2]);
+  CHECK(h.node.loop.layers[2].muted);
   CHECK(heard(1));
   CHECK(!heard(2));
   CHECK(round_pitches(h, 640) == std::multiset<int>{60, 64});
@@ -1719,6 +1719,10 @@ TEST_CASE("MIDI looper: a take of passes per cycle has a file for each, the mute
   while(QFileInfo::exists(dir.path() + QString("/m-take%1.mid").arg(last + 1)))
     last++;
   CHECK(last == 4);
+  // A take closing as the next round starts is the passes it closed: the
+  // round just begun is not one of its files.
+  CHECK(QFileInfo::exists(dir.path() + "/m-take2-layer2.mid"));
+  CHECK(!QFileInfo::exists(dir.path() + "/m-take2-layer3.mid"));
   const QString take = QString("m-take%1").arg(last);
   CHECK(pitches(take + ".mid") == std::multiset<int>{60, 64});
   CHECK(pitches(take + "-layer2.mid") == std::multiset<int>{60});
@@ -2027,7 +2031,7 @@ struct switches_harness : midi_harness
     run(frames);
   }
   int passes() const { return node.loop.count; }
-  bool muted(int k) const { return node.loop.muted[k]; }
+  bool muted(int k) const { return node.loop.layers[k].muted; }
   int64_t length() const { return node.loop.length; }
   int64_t position() const
   {
@@ -2059,6 +2063,41 @@ struct switches_harness : midi_harness
 }
 
 #include "LooperSwitchesScenarios.hpp"
+
+TEST_CASE("MIDI looper: a muted pass merged into the one under it leaves what that one "
+          "plays alone",
+          "[fx][midi][looper][layers]")
+{
+  auto loop = std::make_unique<Nodes::Looper::midi_loop>();
+  auto& l = *loop;
+  auto heard_controls = [&] {
+    int n = 0;
+    for(int i = 0; i < l.control_count; i++)
+      n += l.heard(l.controls[i]);
+    return n;
+  };
+  l.begin_recording();
+  l.add_control(100, 0xB0, 7, 10);
+  l.length = 1000;
+  l.pass_written = 1000;
+  l.end_pass(OverdubMode::Merge);
+  // The second pass moves the same controller where the first did.
+  l.begin_overdub(0);
+  l.add_control(100, 0xB0, 7, 90);
+  l.advance_pass(1000.);
+  l.end_pass(OverdubMode::Merge);
+  REQUIRE(heard_controls() == 1);
+  REQUIRE(l.heard(l.controls[1]));
+  // Muted, it replaces nothing; merged, it is lost, and what it replaced is
+  // heard as it was.
+  l.set_muted(1, true);
+  REQUIRE(l.heard(l.controls[0]));
+  l.merge(0);
+  CHECK(l.count == 1);
+  CHECK(heard_controls() == 1);
+  CHECK(l.controls[0].data2 == 10);
+  CHECK(l.heard(l.controls[0]));
+}
 
 TEST_CASE("MIDI looper switches: recording a loop", "[fx][midi][looper][switches]")
 {
@@ -2194,6 +2233,34 @@ TEST_CASE("MIDI looper switches: the score started again after a stop plays the 
 {
   switches_harness h;
   looper_switches::restart_after_stop(h);
+}
+
+TEST_CASE("MIDI looper switches: undo while a pass is taken in over a merge into newest keeps the merge",
+          "[fx][midi][looper][switches][layers]")
+{
+  switches_harness h;
+  looper_switches::undo_while_taking_over_a_merge(h);
+}
+
+TEST_CASE("MIDI looper switches: a solo made while the two oldest layers merge is undone by soloing again",
+          "[fx][midi][looper][switches][layers]")
+{
+  switches_harness h;
+  looper_switches::solo_while_merging(h);
+}
+
+TEST_CASE("MIDI looper switches: what a recording's bars cut off goes into the overdub after it",
+          "[fx][midi][looper][switches][layers]")
+{
+  switches_harness h;
+  looper_switches::bars_cut_carried_into_the_overdub(h);
+}
+
+TEST_CASE("MIDI looper switches: a merge loses a muted layer until it is undone, and keeps two muted ones",
+          "[fx][midi][looper][switches][layers]")
+{
+  switches_harness h;
+  looper_switches::merge_with_muted_layers(h);
 }
 
 TEST_CASE("MIDI looper switches: Record on a loop overdubs it, and records once it is cleared",

@@ -230,7 +230,7 @@ struct midi_rig
     now += frames;
   }
   int passes() const { return node.loop.count; }
-  bool muted(int k) const { return node.loop.muted[k]; }
+  bool muted(int k) const { return node.loop.layers[k].muted; }
   int64_t length() const { return node.loop.length; }
   int64_t position() const
   {

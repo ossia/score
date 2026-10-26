@@ -1,9 +1,6 @@
 #pragma once
 #include <Fx/Looper/AudioLayers.hpp>
-#include <Fx/Looper/LooperView.hpp>
-#include <Fx/Looper/Switches.hpp>
-#include <Fx/Looper/TakeWriter.hpp>
-#include <Fx/Looper/Transport.hpp>
+#include <Fx/Looper/LooperNode.hpp>
 #include <Fx/Types.hpp>
 
 #include <ossia/dataflow/exec_state_facade.hpp>
@@ -42,7 +39,7 @@ inline ossia::audio_stretch_mode stretch_mode(FollowTempo f) noexcept
 
 namespace Nodes::AudioLooper
 {
-struct Node
+struct Node : Looper::looper_node<Node>
 {
   halp_meta(name, "Looper (audio)")
   halp_meta(c_name, "Looper (audio)")
@@ -355,21 +352,11 @@ struct Node
   std::function<void(Looper::view_message)> send_message;
 
   //! From the view: applied at the start of the next tick.
-  void process_message(const Looper::erase_request& r)
-  {
-    if(r.take > 0)
-    {
-      m_take_request = std::max(m_take_request, r.take);
-      return;
-    }
-    m_erase_request = r;
-    m_erase_requested = true;
-  }
+  void process_message(const Looper::erase_request& r) { view_request(r); }
 
   const score::DocumentContext* ossia_document_context{};
   ossia::exec_state_facade ossia_state;
 
-  Looper::transport transport;
   Looper::audio_layers layers;
   std::shared_ptr<Looper::take_writer> writer;
   std::shared_ptr<Looper::export_buffer> export_audio;
@@ -379,9 +366,6 @@ struct Node
     layers.allocate(2, 8, 60 * 48000);
     export_audio = Looper::export_buffer::make(layers.channels, layers.capacity);
   }
-
-  //! A value came in on Mode.
-  void loop_arrived() noexcept { m_loop.arrived = true; }
 
   void prepare(halp::setup s)
   {
@@ -469,8 +453,6 @@ struct Node
 
   // The transport's engine
   int64_t looper_run(int64_t start, int64_t length);
-  void looper_close_take(
-      const ossia::token_request& tk, LoopMode mode, bool ended_by_postaction);
   void looper_trim_recording(int64_t frames)
   {
     // What was recorded past the grid point stays in the buffer, after the
@@ -481,101 +463,17 @@ struct Node
     if(auto* l = layers.top())
       l->written = layers.length;
   }
-  int64_t looper_trim_extension(int64_t max_frames);
-  void looper_rephase(const ossia::token_request& tk);
-  int64_t looper_frames_to_end() const noexcept;
-  Looper::loop_period looper_period(const ossia::token_request& tk) const noexcept;
-  void looper_point()
-  {
-    m_switches.apply(inputs, *this);
-    m_speed = Looper::clamp_speed(inputs.speed.value);
-    m_reverse = inputs.reverse.value;
-  }
 
-  // The switches' engine
-  int looper_passes() const noexcept { return layers.count; }
-
-  bool looper_muted(int pass) const noexcept { return layers.layers[pass].muted; }
-  void looper_set_muted(int pass, bool muted) noexcept { layers.set_muted(pass, muted); }
-  void looper_mute(int pass) { mute_pass(pass); }
-  void looper_erase(int pass) { erase_pass(pass); }
-
-  using tick = ossia::token_request;
   void operator()(const tick& tk)
   {
     if(tk.date == tk.prev_date)
       return;
-
-    m_rate = ossia_state.sampleRate();
-    m_tempo = tk.tempo;
-    m_signature = tk.signature;
-    m_in_chans = std::min<int>(inputs.audio.channels, layers.channels);
-
-    m_speed = Looper::clamp_speed(inputs.speed.value);
-    m_reverse = inputs.reverse.value;
-    m_tick_start = Looper::timeline_start(tk, ossia_state);
-
-    apply_buttons();
-    m_switches.follow_merges(inputs, layers.merged_passes);
-    if(inputs.capture.value)
-      capture(tk);
-    load_file();
-
-    const bool empty = layers.empty() || m_loading;
-    Looper::read_loop(inputs.mode, transport, m_loop, empty);
-    m_switches.read(inputs, transport, *this, empty);
-    // Merging moves the passes under the mutes a solo would give back.
-    if(layers.merging.active)
-      m_switches.soloed.forget();
-    transport.settle(empty);
-
-    m_mode = transport.wanted;
-    const Looper::transport_settings settings{
-        .mode = m_mode,
-        .quantif = inputs.quantif.value,
-        .after_record = inputs.after_record,
-        .postaction_bars = inputs.postaction_bars,
-        .start_from = inputs.start_from,
-        .late_seconds = inputs.late.value / 1000.,
-        .stop_at = inputs.stop_at.value};
-    transport(tk, ossia_state, settings, *this);
-    // Only a pass that starts with the take closing gets what it cut off.
-    m_carried_span = 0;
-    Looper::show_loop(inputs.mode, transport, m_loop);
-    m_switches.follow_merges(inputs, layers.merged_passes);
-    m_switches.follow(inputs, layers.count);
-    keep_input(ossia_state.timings(tk).length);
-
-    // About a quarter of a million samples of merging per tick, whatever the
-    // number of channels.
-    layers.merge_step(std::max<int64_t>(1024, work_per_tick / std::max(1, layers.channels)));
-    m_switches.follow_merges(inputs, layers.merged_passes);
-    run_export();
-
-    outputs.phase.value = layers.length > 0
-                              ? float(transport.playbackPos % layers.length)
-                                    / float(layers.length)
-                              : 0.f;
+    run_tick(tk);
     send_view(ossia_state.timings(tk).length);
   }
 
   //! Stopping the process keeps the loop: only the transport starts over.
-  //! What was being taken in is a pass like any other, and Mode goes from
-  //! Record or Overdub to Play.
-  void stop()
-  {
-    if(transport.is_taking())
-    {
-      if(transport.actualMode == LoopMode::Overdub)
-        close_pass();
-      write_stop_take();
-    }
-    transport.reset();
-    transport.stopped(layers.empty());
-    Looper::show_loop(inputs.mode, transport, m_loop);
-    m_switches.reset();
-    m_view_countdown = 0;
-  }
+  void stop() { stop_score(); }
 
   struct ui
   {
@@ -687,51 +585,125 @@ struct Node
   static constexpr int64_t work_per_tick = 262144;
 
 private:
-  double m_rate{48000.};
-  double m_tempo{120.};
-  ossia::time_signature m_signature{4, 4};
+  friend struct Looper::looper_node<Node>;
+
+  // looper_node's hooks
+  Looper::audio_layers& stack() noexcept { return layers; }
+  const Looper::audio_layers& stack() const noexcept { return layers; }
+  int max_layers() const noexcept { return layers.slots; }
+  void layers_changing() noexcept { }
+  bool busy() const noexcept { return m_loading; }
+  void cleared() noexcept
+  {
+    m_loading = false;
+    m_seam.base_slot = -1;
+    m_full = false;
+  }
+  void pass_dropped() noexcept { }
+  void begin_overdub(int64_t start, bool oldest, int replaced)
+  {
+    layers.begin_overdub(start, oldest, replaced);
+    m_pass_closed = false;
+  }
+  bool can_merge_newest() const noexcept { return !layers.merging.active; }
+  void merge_newest() noexcept { layers.start_merge(layers.count - 2, true); }
+  //! The top pass was closed on a cut already, the pass after it dropped.
+  bool pass_closing() noexcept { return !std::exchange(m_pass_closed, true); }
+  //! Its end faded, moved by the latency.
+  void pass_closed()
+  {
+    layers.fade_out_top();
+    shift_pass(*layers.top());
+  }
+  void tick_started(const tick& tk)
+  {
+    m_in_chans = std::min<int>(inputs.audio.channels, layers.channels);
+    m_tick_start = Looper::timeline_start(tk, ossia_state);
+  }
+  void prepare_loop() { load_file(); }
+  void forget_carried() noexcept { m_carried_span = 0; }
+  void tick_finished(const tick& tk)
+  {
+    keep_input(ossia_state.timings(tk).length);
+    // About a quarter of a million samples of merging per tick, whatever the
+    // number of channels.
+    layers.merge_step(std::max<int64_t>(1024, work_per_tick / std::max(1, layers.channels)));
+  }
+  void close_recording(int64_t bars);
+  void close_overdub() { close_pass(); }
+  bool cut_after(int64_t end) const noexcept
+  {
+    return layers.layers[layers.count - 1].start >= end;
+  }
+  void cut_pass_dropped() noexcept { m_pass_closed = true; }
+  void trim_top_pass(int64_t end) noexcept
+  {
+    auto& top = *layers.top();
+    top.written = std::clamp<int64_t>(end - top.start, 0, top.written);
+  }
+  void head_moved(int64_t) noexcept { }
+  //! Following the tempo, the loop goes at the score's tempo over its own,
+  //! but not while it is overdubbed.
+  double rate_for(LoopMode m) const noexcept
+  {
+    return by_quarters() && m != LoopMode::Overdub
+               ? m_speed * std::max(1., m_tempo) / m_loop_tempo
+               : m_speed;
+  }
+  bool by_quarters() const noexcept
+  {
+    return m_stretch_mode != ossia::audio_stretch_mode::None && m_loop_tempo > 0.;
+  }
+  void set_head(double y, int64_t len) noexcept
+  {
+    set_head_y(y, len);
+    m_stretch_ready = false;
+  }
+  int64_t capture_clock() const noexcept { return m_ring_written; }
+  int64_t capture_limit() const noexcept
+  {
+    return m_ring_capacity > 0 ? std::min(m_ring_capacity, layers.capacity) : 0;
+  }
+  void capture_into(int64_t end, int64_t n);
+  void captured() noexcept { }
+  void stopping() noexcept { }
+  void close_on_stop(bool recording)
+  {
+    if(!recording)
+      close_pass();
+  }
+  bool export_ready() const noexcept
+  {
+    return !m_flattening && !export_audio->in_use && export_audio->capacity >= layers.length
+           && export_audio->channels >= layers.channels;
+  }
+  void start_export(int passes, bool open, bool recording);
+  void continue_export();
+  void export_item(int item) { start_export_item(item); }
+  bool take_cancelled() noexcept { return std::exchange(m_export_cancelled, false); }
+  void take_released() noexcept { layers.reserved = 0; }
+  void stop_take_written() noexcept { layers.held = 0; }
+  static constexpr const char* take_extension = "wav";
+  bool view_full() const noexcept { return m_full; }
+  bool view_writing() const noexcept { return m_flattening || m_writing; }
+
   int m_in_chans{};
   //! Where the timeline is at the start of this tick.
   Looper::transport::timeline_point m_tick_start{};
 
   // Export of a take: the passes are flattened into the export buffer a
   // bounded number of frames per tick, then a worker writes it.
-  bool m_export_pending{};
   bool m_flattening{};
-  bool m_writing{};
   int64_t m_flatten_pos{};
   int64_t m_export_length{};
   int m_export_channels{};
-  double m_export_tempo{120.};
-  //! Tempo the loop was recorded at: the loop keeps its own speed.
-  double m_loop_tempo{120.};
-  ossia::time_signature m_export_signature{4, 4};
-  double m_export_date{};
-  //! The mode asked for, as the transport takes it up.
-  LoopMode m_mode{LoopMode::Stop};
-  //! What came in on Mode, and what it shows.
-  Looper::loop_input m_loop;
-  Looper::switches m_switches;
-  double m_job_date{};
-  // The files of the take being written: the mix (item -1), then the layers,
-  // one after the other under one take number.
-  int m_export_item{};
-  int m_export_layers{};
-  bool m_export_mix{};
   bool m_export_cancelled{};
-  int m_export_number{};
   //! The passes of the take as they were when it closed, which every file of
   //! it is flattened from: their buffers are reserved until it is written.
-  std::array<Looper::audio_layer, Looper::audio_layers::max_layers + 1> m_export_snapshot{};
+  std::array<Looper::audio_layer, Looper::audio_layers::max_passes> m_export_snapshot{};
   int m_export_count{};
-  //! Passes when the take closed: one started in the same tick is not in it.
-  int m_closed_count{};
   void cancel_export() noexcept;
-  int m_takes_written{};
-  double m_last_take_date{};
   bool m_full{};
-  int64_t m_extend_unit{};
-  bool m_extended{};
 
   // Playing the loop at the tempo of the score, with the stretchers of the
   // sound files reading the loop as their source.
@@ -756,8 +728,6 @@ private:
   // m_reverse is set. Its position is transport.playbackPos and the part of a
   // frame m_frac it is past it, which a move of the playhead by anything else
   // than playing drops.
-  double m_speed{1.};
-  bool m_reverse{};
   double m_frac{};
   int64_t m_head_pos{-1};
   //! The input of the last frame, and what came in since the last position
@@ -765,18 +735,12 @@ private:
   std::array<float, Looper::audio_layers::max_channels> m_prev_in{};
   std::array<float, Looper::audio_layers::max_channels> m_acc{};
   int m_acc_n{};
-  //! The overdub went round with a pass per cycle: the next position it
-  //! writes starts a new pass. An overdub that stops there leaves none.
-  bool m_cycle_pending{};
   //! Positions the pass has written, its later rounds included: the first
   //! ones fade it in.
   int64_t m_pass_frames{};
   //! Frames a recording cut back to a grid point had recorded past it.
   int64_t m_carried_span{};
   void begin_pass_carried(int64_t len);
-  //! Where position 0 of the loop was on the timeline: its date in frames and
-  //! its musical position.
-  Looper::transport::timeline_point m_origin{};
   double head_y(int64_t len) const noexcept;
   void set_head_y(double y, int64_t len) noexcept;
   float tape(int c, int64_t k, int64_t len) const noexcept
@@ -788,14 +752,8 @@ private:
   bool cycle_end(int64_t& len, bool extend, float feedback);
   int64_t latency_frames() const noexcept;
   void shift_pass(Looper::audio_layer& l);
-  void mute_pass(int pass);
-  int make_room();
-  void begin_pass(int64_t start);
-  void close_pass(bool cycle = false);
-  void undo_pass();
   //! The top pass is closed: closing the take does not close it again.
   bool m_pass_closed{};
-  void merge_extra_pass();
 
 public:
   //! What the stretchers read: the loop as it is heard, round and round.
@@ -837,9 +795,6 @@ public:
   }
 
 private:
-
-  int64_t m_view_countdown{};
-  Looper::view_message m_view{};
   // The overview of the passes, worked out over as many messages as a long
   // loop needs.
   std::array<float, Looper::view_message::max_lanes * Looper::view_message::bins>
@@ -851,13 +806,6 @@ private:
   int64_t m_scan_length{-1};
   void scan_peaks();
 
-  void apply_buttons();
-  void clear_loop();
-  void drop_taken_pass();
-  void erase_pass(int pass);
-  Looper::erase_request m_erase_request{};
-  bool m_erase_requested{};
-  void capture(const tick& tk);
   void load_file();
 
   // A file being copied into the loop, a part per tick.
@@ -895,27 +843,12 @@ private:
   int m_ring_channels{};
   //! Frames of input seen since the looper was created.
   int64_t m_ring_written{};
-  void run_export();
-  void take_written(int slot, int number, bool ok, bool alone);
   void start_export_item(int item);
   void flatten(
       const Looper::audio_layer* passes, int count, int item, int64_t len, int64_t from,
       int64_t to);
   void copy_open_pass();
-  void write_stop_take();
-  int claim_take_slot() noexcept
-  {
-    const int slot = m_next_take_slot;
-    m_next_take_slot = (slot + 1) % Looper::take_writer::slots;
-    return slot;
-  }
-  //! The last take the view asked for, and the one the take being written
-  //! answers.
-  int m_take_request{};
-  int m_job_request{};
-  int m_next_take_slot{};
-  int m_export_slot{};
-  double m_stop_date{};
+  void write_stop_take(bool recording, double date, int64_t pos);
   //! A take asked for while an overdub goes on: the pass is copied into a
   //! free buffer before the take is flattened, ahead of where the pass
   //! writes, so that the take is the loop of one moment.
@@ -935,175 +868,6 @@ private:
   int64_t record(int64_t first_pos, int64_t samples, bool echo);
   void overdub(int64_t first_pos, int64_t samples, bool echo);
 };
-
-//! A recording going on starts again on the next frame, its bars and tempo
-//! counted from there.
-inline void Node::clear_loop()
-{
-  m_switches.soloed.forget();
-  m_loading = false;
-  layers.clear();
-  m_seam.base_slot = -1;
-  transport.playbackPos = 0;
-  // Whatever was being taken in is gone with the rest.
-  if(transport.is_taking())
-    transport.taking(LoopMode::Stop);
-  transport.restart_recording();
-  m_full = false;
-}
-
-//! The pass in progress is dropped; taking in starts a new one. A recording
-//! starts again on the next frame, its bars and tempo counted from there.
-inline void Node::drop_taken_pass()
-{
-  if(transport.actualMode == LoopMode::Record)
-  {
-    layers.clear();
-    transport.playbackPos = 0;
-    transport.restart_recording();
-  }
-  else
-  {
-    undo_pass();
-    layers.drop_redo();
-  }
-  transport.taking(LoopMode::Stop);
-}
-
-//! Undoes the top pass: a layer it replaced comes back to its place, the one
-//! Layer says keeping its own.
-inline void Node::undo_pass()
-{
-  const int back = layers.returns_on_undo();
-  if(layers.undo() && back >= 0)
-    m_switches.inserted(inputs, back, layers.count);
-}
-
-//! Erasing the pass being taken in is undoing it, and erasing the only pass
-//! heard is clearing the loop.
-inline void Node::erase_pass(int pass)
-{
-  if(pass < 0 || pass >= layers.count || m_loading)
-    return;
-  m_switches.soloed.forget();
-  if(layers.count == 1)
-    clear_loop();
-  else if(transport.is_taking() && pass == layers.count - 1)
-    drop_taken_pass();
-  else if(layers.erase(pass))
-  {
-    m_switches.removed(inputs, pass);
-    // The take that closed last is made of the passes it had then.
-    if(pass < m_closed_count)
-      m_closed_count--;
-  }
-}
-
-//! There are Max layers, and a pass starts: with Replace a muted layer, the
-//! oldest muted layer goes for it, else the newest. The layer that goes, or
-//! -1 for none.
-inline int Node::make_room()
-{
-  if(inputs.at_max_layers.value != Looper::AtMaxLayers::ReplaceMuted
-     || layers.count < layers.slots || layers.count < 2)
-    return -1;
-  int pass = layers.count - 1;
-  for(int i = 0; i < layers.count; i++)
-    if(layers.layers[i].muted)
-    {
-      pass = i;
-      break;
-    }
-  m_switches.soloed.forget();
-  m_switches.removed(inputs, pass);
-  if(pass < m_closed_count)
-    m_closed_count--;
-  return pass;
-}
-
-//! Starts an overdub pass at `start`, room made for it as At max layers says:
-//! a layer it replaces is kept for undo until the next pass starts.
-inline void Node::begin_pass(int64_t start)
-{
-  const int replaced = make_room();
-  layers.begin_overdub(
-      start, inputs.at_max_layers.value == Looper::AtMaxLayers::MergeOldest, replaced);
-  m_pass_closed = false;
-}
-
-//! The overdub pass is over: its end faded, moved by the latency, written in
-//! a take; with Merge into newest, past Max layers, merged into the newest.
-inline void Node::close_pass(bool cycle)
-{
-  auto* top = layers.top();
-  if(!top)
-    return;
-  // A loop grown by the cycle that ended can still be cut back by a late
-  // stop.
-  if(!cycle)
-    m_extended = false;
-  m_export_pending = true;
-  m_closed_count = layers.count;
-  // The top pass was closed on a cut already, the pass after it dropped.
-  if(std::exchange(m_pass_closed, true))
-    return;
-  top->loop_after = layers.length;
-  layers.fade_out_top();
-  shift_pass(*top);
-  m_export_pending = true;
-  m_closed_count = layers.count;
-  merge_extra_pass();
-}
-
-inline void Node::merge_extra_pass()
-{
-  if(inputs.at_max_layers.value == Looper::AtMaxLayers::MergeIntoNewest
-     && layers.count > layers.slots && !layers.merging.active)
-    layers.start_merge(layers.count - 2, true);
-}
-
-//! A muted pass is kept as it is; muting it again lets it be heard.
-inline void Node::mute_pass(int pass)
-{
-  if(pass < 0 || pass >= layers.count || m_loading)
-    return;
-  m_switches.soloed.forget();
-  layers.set_muted(pass, !layers.layers[pass].muted);
-}
-
-inline void Node::apply_buttons()
-{
-  if(inputs.clear.value)
-    clear_loop();
-
-  // The m and x of a lane are layer actions as any: on the grid.
-  if(std::exchange(m_erase_requested, false))
-    m_switches.add(
-        {m_erase_request.mute ? Looper::layer_action::mute : Looper::layer_action::erase,
-         m_erase_request.pass, m_erase_request.layers},
-        transport);
-
-  if(inputs.undo.value || inputs.redo.value)
-    m_switches.soloed.forget();
-  if(inputs.undo.value)
-  {
-    if(transport.is_taking())
-      drop_taken_pass();
-    else
-      undo_pass();
-  }
-
-  if(inputs.redo.value && !transport.is_taking())
-  {
-    const int out = layers.leaves_on_redo();
-    if(layers.redo())
-    {
-      if(out >= 0)
-        m_switches.removed(inputs, out);
-      merge_extra_pass();
-    }
-  }
-}
 
 inline int64_t Node::looper_run(int64_t start, int64_t length)
 {
@@ -1148,82 +912,42 @@ inline int64_t Node::looper_run(int64_t start, int64_t length)
   return length;
 }
 
-inline void Node::looper_close_take(
-    const ossia::token_request& tk, LoopMode mode, bool ended_by_postaction)
+//! The recording is over: moved by the latency, faded, and padded with
+//! silence up to its `bars` when they are longer.
+inline void Node::close_recording(int64_t bars)
 {
   auto* top = layers.top();
   if(!top || layers.length <= 0)
     return;
 
-  const int64_t latency = latency_frames();
+  if(const int64_t latency = latency_frames(); latency > 0)
+    layers.shift_earlier(*top, latency);
 
-  if(mode == LoopMode::Record)
+  // Overdubbing from the frame the recording ends on carries on what was
+  // played: the end of the loop goes on into the first pass over it.
+  m_seamless = transport.actualMode == LoopMode::Overdub;
+  fade_edges(top->slot, !m_seamless);
+  if(m_seamless)
   {
-    m_loop_tempo = transport.loop_tempo(tk, layers.length);
-    const double bar_samples = m_rate * 4.
-                               * (double(tk.signature.upper) / tk.signature.lower)
-                               * (60. / tk.tempo);
-    const int64_t total_samples
-        = int64_t(std::floor(transport.postaction_bars * bar_samples));
-
-    // The bar count says when the post-action takes over, so it is the length
-    // of a recording the post-action ended -- trimming the rounding off the
-    // last bar. A recording stopped by hand is as long as it was played for,
-    // and stretching it out to that count is how a loop ended early came back
-    // with bars of silence at the end of it.
-    const bool quantify_length = ended_by_postaction && transport.quantized()
-                                 && transport.postaction_bars > 0;
-    if(quantify_length && total_samples < layers.length)
-      layers.length = total_samples;
-
-    if(latency > 0)
-      layers.shift_earlier(*top, latency);
-
-    // Overdubbing from the frame the recording ends on carries on what was
-    // played: the end of the loop goes on into the first pass over it.
-    m_seamless = transport.actualMode == LoopMode::Overdub;
-    fade_edges(top->slot, !m_seamless);
-    if(m_seamless)
-    {
-      const int64_t n = std::min<int64_t>(layers.length, Looper::audio_layers::fade_frames);
-      m_seam.base_slot = top->slot;
-      m_seam.pass_slot = -1;
-      m_seam.end = layers.length;
-      m_seam.faded = false;
-      for(int c = 0; c < layers.channels; c++)
-        std::copy_n(
-            layers.data(top->slot, c) + layers.length - n, n,
-            m_seam.kept.data() + c * Looper::audio_layers::fade_frames);
-    }
-
-    // If there are less samples than expected we extend
-    if(quantify_length && total_samples > layers.length)
-    {
-      const int64_t end = std::min(total_samples, layers.capacity);
-      for(int c = 0; c < layers.channels; c++)
-        std::fill(layers.data(top->slot, c) + layers.length, layers.data(top->slot, c) + end, 0.f);
-      layers.length = end;
-    }
-
-    top->written = layers.length;
-    m_export_date = transport.recordStartDate.impl / double(ossia::flicks_per_second<int64_t>);
-
-    // Position 0 of the loop on the timeline: the loop plays on from
-    // playbackPos at the point the take closes.
-    const auto at = double(transport.playbackPos % std::max<int64_t>(1, layers.length));
-    m_origin = transport.timeline(tk);
-    m_origin.frames -= at;
-    m_origin.quarters -= at / m_rate * m_loop_tempo / 60.;
-  }
-  else
-  {
-    close_pass();
+    const int64_t n = std::min<int64_t>(layers.length, Looper::audio_layers::fade_frames);
+    m_seam.base_slot = top->slot;
+    m_seam.pass_slot = -1;
+    m_seam.end = layers.length;
+    m_seam.faded = false;
+    for(int c = 0; c < layers.channels; c++)
+      std::copy_n(
+          layers.data(top->slot, c) + layers.length - n, n,
+          m_seam.kept.data() + c * Looper::audio_layers::fade_frames);
   }
 
-  m_export_tempo = m_loop_tempo;
-  m_export_signature = tk.signature;
-  m_export_pending = true;
-  m_closed_count = layers.count;
+  if(bars > layers.length)
+  {
+    const int64_t end = std::min(bars, layers.capacity);
+    for(int c = 0; c < layers.channels; c++)
+      std::fill(layers.data(top->slot, c) + layers.length, layers.data(top->slot, c) + end, 0.f);
+    layers.length = end;
+  }
+  top->written = layers.length;
 }
 
 inline int64_t Node::latency_frames() const noexcept
@@ -1244,120 +968,6 @@ inline void Node::shift_pass(Looper::audio_layer& l)
     return;
   const int64_t positions = std::llround(double(latency) * m_speed);
   layers.shift_earlier(l, l.backwards ? -positions : positions);
-}
-
-//! The loop is heard again: the playhead goes where it would be had the loop
-//! kept playing at its speed since it was made. Following the tempo, the loop
-//! keeps to the bars: its position comes from the timeline's quarters, which
-//! a tempo change does not move. Else it comes from the timeline's date.
-inline void Node::looper_rephase(const ossia::token_request& tk)
-{
-  if(layers.empty())
-    return;
-  const int64_t len = layers.length;
-  const auto now = transport.timeline(tk);
-  double cycles{};
-  if(m_stretch_mode != ossia::audio_stretch_mode::None && m_loop_tempo > 0.)
-  {
-    const double quarters = double(len) / m_rate * m_loop_tempo / 60.;
-    cycles = (now.quarters - m_origin.quarters) / quarters;
-  }
-  else
-  {
-    cycles = (now.frames - m_origin.frames) / double(len);
-  }
-  cycles *= m_speed;
-  // A whole position: what is left of a frame is rounding.
-  set_head_y(std::floor((cycles - std::floor(cycles)) * double(len) + 1e-6), len);
-  m_stretch_ready = false;
-}
-
-//! An extending overdub grows the loop at its end instead of reaching it.
-inline int64_t Node::looper_frames_to_end() const noexcept
-{
-  const LoopMode m = transport.actualMode;
-  if(layers.empty() || m_loading || (m != LoopMode::Play && m != LoopMode::Overdub))
-    return -1;
-  if(m == LoopMode::Overdub && inputs.past_end.value == Looper::PastEnd::Extend && !m_reverse)
-    return -1;
-  const int64_t len = layers.length;
-  const double y = head_y(len);
-  if(y <= 0.)
-    return 0;
-  // Following the tempo, the loop goes at the score's tempo over its own.
-  double rate = m_speed;
-  if(m == LoopMode::Play && m_stretch_mode != ossia::audio_stretch_mode::None
-     && m_loop_tempo > 0.)
-    rate *= std::max(1., m_tempo) / m_loop_tempo;
-  return int64_t(std::ceil((double(len) - y) / rate - 1e-9));
-}
-
-//! The loop as Quantize's Loop: the frames a round of it takes at the rate it
-//! is heard at, and where the playhead is in it, the way it goes. An extending
-//! overdub's round is the loop as long as it is now. A stopped loop is where
-//! it would be had it kept going since it was made, as In phase has it.
-inline Looper::loop_period Node::looper_period(const ossia::token_request& tk) const noexcept
-{
-  const LoopMode m = transport.actualMode;
-  if(layers.empty() || m_loading || layers.length <= 0 || m == LoopMode::Record)
-    return {};
-  const int64_t len = layers.length;
-  const bool stretched
-      = m_stretch_mode != ossia::audio_stretch_mode::None && m_loop_tempo > 0.;
-  double rate = m_speed;
-  if(stretched && m != LoopMode::Overdub)
-    rate *= std::max(1., m_tempo) / m_loop_tempo;
-  const int64_t round = std::max<int64_t>(1, int64_t(std::ceil(double(len) / rate - 1e-9)));
-
-  if(m == LoopMode::Stop)
-  {
-    const auto now = transport.timeline(tk);
-    double cycles{};
-    if(stretched)
-      cycles = (now.quarters - m_origin.quarters)
-               / (double(len) / m_rate * m_loop_tempo / 60.);
-    else
-      cycles = (now.frames - m_origin.frames) / double(len);
-    cycles *= m_speed;
-    return {round, int64_t(std::floor(cycles * double(round) + 1e-6)), false};
-  }
-
-  const double y = head_y(len);
-  const int64_t to_end
-      = y <= 0. ? 0 : int64_t(std::ceil((double(len) - y) / rate - 1e-9));
-  return {round, std::clamp<int64_t>(round - to_end, 0, round), true};
-}
-
-//! An extending pass asked to stop just after the loop grew ends on the old
-//! end, as a late stop would.
-inline int64_t Node::looper_trim_extension(int64_t max_frames)
-{
-  auto* top = layers.top();
-  if(!top || !m_extended || m_extend_unit <= 0)
-    return -1;
-  const int64_t end = layers.length - m_extend_unit;
-  const int64_t into_last = transport.playbackPos - end;
-  if(into_last < 0 || into_last > max_frames || end < m_extend_unit)
-    return -1;
-  if(layers.count > 1 && top->start >= end)
-  {
-    // A pass per cycle cut the overdub on the old end: the pass after the cut
-    // has nothing left, and goes as undo takes a pass out. The one before it
-    // ends on the old end, closed already.
-    undo_pass();
-    layers.drop_redo();
-    m_pass_closed = true;
-    layers.length = end;
-    if(auto* t = layers.top())
-      t->loop_after = end;
-  }
-  else
-  {
-    layers.length = end;
-    top->written = std::clamp<int64_t>(end - top->start, 0, top->written);
-  }
-  m_extended = false;
-  return into_last;
 }
 
 //! What was taken for a take being written is about to change: the take
@@ -1468,31 +1078,12 @@ inline void Node::keep_input(int64_t frames)
   m_ring_written += frames;
 }
 
-//! The last bars heard become the loop, ending on the last grid point when it
-//! was just passed, as a late stop would.
-inline void Node::capture(const tick& tk)
+//! Capture: the `n` frames of input up to `end` become the loop.
+inline void Node::capture_into(int64_t end, int64_t n)
 {
-  if(transport.is_taking() || m_ring_capacity <= 0)
-    return;
-
-  const double bar = m_rate * 4. * (double(tk.signature.upper) / tk.signature.lower)
-                     * (60. / std::max(1., tk.tempo));
-  int64_t end = m_ring_written;
-  if(transport.quantized() && transport.lastPointFrame)
-  {
-    const int64_t late = transport.frame - *transport.lastPointFrame;
-    if(late >= 0 && late <= int64_t(inputs.late.value * m_rate / 1000.))
-      end -= late;
-  }
-  const int64_t n = std::min<int64_t>(
-      {int64_t(inputs.capture_bars.value * bar), end, m_ring_capacity, layers.capacity});
-  if(n <= 0)
-    return;
-
   cancel_export();
   layers.begin_recording();
   m_seam.base_slot = -1;
-  m_switches.soloed.forget();
   const int slot = layers.layers[0].slot;
   for(int c = 0; c < layers.channels; c++)
   {
@@ -1513,21 +1104,7 @@ inline void Node::capture(const tick& tk)
   layers.length = n;
   layers.layers[0].written = n;
   fade_edges(slot);
-
   m_full = false;
-  transport.play_captured((m_ring_written - end) % n);
-  m_origin = Looper::timeline_start(tk, ossia_state);
-  m_origin.frames -= double(transport.playbackPos);
-  m_origin.quarters -= double(transport.playbackPos) / m_rate * tk.tempo / 60.;
-
-  const double model_per_frame = ossia_state.samplesToModel();
-  m_export_date = (tk.prev_date.impl - (m_ring_written - end + n) * model_per_frame)
-                  / double(ossia::flicks_per_second<int64_t>);
-  m_loop_tempo = tk.tempo;
-  m_export_tempo = m_loop_tempo;
-  m_export_signature = tk.signature;
-  m_export_pending = true;
-  m_closed_count = layers.count;
 }
 
 //! A new file replaces the loop. It is copied about a second per tick so that
@@ -2113,55 +1690,26 @@ inline void Node::start_export_item(int item)
   m_flatten_pos = 0;
 }
 
-inline void Node::run_export()
+//! A take of `passes` passes: their buffers are reserved until it is written,
+//! and a pass still taken in, `open`, is copied as it goes on.
+inline void Node::start_export(int passes, bool open, bool recording)
 {
-  const bool asked = m_take_request > m_view.answered;
-  if(asked && layers.empty())
-  {
-    // Nothing to take: the last take is what there is.
-    m_view.answered = m_take_request;
-    m_view_countdown = 0;
-  }
-  else if(
-      (m_export_pending || asked) && !m_flattening && !m_writing && !layers.empty()
-      && writer && !export_audio->in_use
-      && export_audio->capacity >= layers.length
-      && export_audio->channels >= layers.channels)
-  {
-    m_export_pending = false;
-    m_job_request = m_take_request;
-    // Asked for while a pass is taken in, the take has every pass, that one
-    // as far as it went. A recording is placed where it started, at the
-    // tempo it is played at.
-    const bool open = asked && transport.is_taking();
-    const bool recording = open && transport.actualMode == LoopMode::Record;
-    if(recording)
-    {
-      m_export_date = transport.recordStartDate.impl / double(ossia::flicks_per_second<int64_t>);
-      m_export_tempo = m_tempo;
-      m_export_signature = m_signature;
-    }
-    // A take closing while this one is written must not change its date.
-    m_job_date = m_export_date;
-    m_export_length = layers.length;
-    m_export_channels = layers.channels;
-    const auto files = inputs.exported.value;
-    // The passes as they are now: gains change with feedback, the loop's
-    // length with undo, and new passes come while the files are written.
-    m_export_count = open ? layers.count : std::clamp(m_closed_count, 1, layers.count);
-    m_export_mix = files != Looper::TakeFiles::Layers;
-    m_export_layers = files != Looper::TakeFiles::Mix ? m_export_count : 0;
-    std::copy_n(layers.layers.begin(), layers.count, m_export_snapshot.begin());
-    layers.reserved = 0;
-    for(int i = 0; i < m_export_count; i++)
-      layers.reserved |= uint64_t(1) << m_export_snapshot[i].slot;
-    m_export_number = 0;
-    m_export_slot = claim_take_slot();
-    start_export_item(m_export_mix ? -1 : 0);
-    if(open && !recording)
-      copy_open_pass();
-  }
+  m_export_length = layers.length;
+  m_export_channels = layers.channels;
+  // The passes as they are now: gains change with feedback, the loop's
+  // length with undo, and new passes come while the files are written.
+  m_export_count = passes;
+  std::copy_n(layers.layers.begin(), layers.count, m_export_snapshot.begin());
+  layers.reserved = 0;
+  for(int i = 0; i < m_export_count; i++)
+    layers.reserved |= uint64_t(1) << m_export_snapshot[i].slot;
+  start_export_item(m_export_mix ? -1 : 0);
+  if(open && !recording)
+    copy_open_pass();
+}
 
+inline void Node::continue_export()
+{
   if(!m_flattening)
     return;
 
@@ -2285,7 +1833,7 @@ inline void Node::copy_open_pass()
 //! then. Their buffers are kept from new passes until it is written. A take
 //! being flattened is flattened again afterwards; one being written leaves
 //! no room for it.
-inline void Node::write_stop_take()
+inline void Node::write_stop_take(bool recording, double date, int64_t)
 {
   if(!writer || layers.empty() || m_writing || export_audio->in_use
      || export_audio->capacity < layers.length || export_audio->channels < layers.channels
@@ -2296,10 +1844,7 @@ inline void Node::write_stop_take()
     cancel_export();
     m_export_pending = true;
   }
-  const bool recording = transport.actualMode == LoopMode::Record;
-  m_stop_date = recording
-                    ? transport.recordStartDate.impl / double(ossia::flicks_per_second<int64_t>)
-                    : m_export_date;
+  m_stop_date = date;
 
   auto& src = export_audio->mix_of;
   src.pool = layers.pool;
@@ -2329,88 +1874,13 @@ inline void Node::write_stop_take()
   worker.request(std::move(job));
 }
 
-inline void Node::take_written(int slot, int number, bool ok, bool alone)
-{
-  if(alone)
-  {
-    layers.held = 0;
-    if(!ok || !writer)
-      return;
-    m_takes_written++;
-    m_last_take_date = m_stop_date;
-    m_view.set_take(writer->take_base(slot), "wav", true, 0);
-    m_view.take = m_takes_written;
-    m_view.take_date = m_last_take_date;
-    m_view_countdown = 0;
-    return;
-  }
-  m_writing = false;
-  if(m_export_cancelled || !ok || !writer)
-  {
-    // What was being written changed, or the file could not be: the take
-    // stops there.
-    m_export_cancelled = false;
-    layers.reserved = 0;
-    m_view.answered = std::max(m_view.answered, m_job_request);
-    return;
-  }
-
-  m_export_number = number;
-  if(m_export_item + 1 < m_export_layers)
-  {
-    start_export_item(m_export_item + 1);
-    return;
-  }
-
-  layers.reserved = 0;
-  m_takes_written++;
-  m_last_take_date = m_job_date;
-  m_view.set_take(writer->take_base(slot), "wav", m_export_mix, m_export_layers);
-  m_view.take = m_takes_written;
-  m_view.take_date = m_last_take_date;
-  m_view.answered = std::max(m_view.answered, m_job_request);
-  // Force a view update with the new take.
-  m_view_countdown = 0;
-}
-
 inline void Node::send_view(int64_t frames)
 {
-  if(!send_message)
+  if(!view_due(frames))
     return;
-
-  m_view_countdown -= frames;
-  if(m_view_countdown > 0)
-    return;
-  m_view_countdown = int64_t(m_rate / 30.);
-
   auto& v = m_view;
-  v.empty = layers.empty();
-  v.mode = int(transport.actualMode);
-  v.requested = int(transport.quantizedPlayMode);
-  v.wanted = int(m_mode);
-  v.layers = layers.count;
-  v.redo = layers.total - layers.count;
-  v.full = m_full;
-  v.length_seconds = float(layers.length / m_rate);
+  fill_view(v);
   v.max_seconds = float(layers.capacity / m_rate);
-  v.position = layers.length > 0
-                   ? float(transport.playbackPos % layers.length) / float(layers.length)
-                   : 0.f;
-  v.tempo = float(m_tempo);
-  v.writing = m_flattening || m_writing;
-  v.reverse = m_reverse;
-  v.speed = float(m_speed);
-  v.selected = inputs.layer.value - 1;
-  v.restart_pending = transport.restart_pending();
-  v.new_pass_pending = transport.new_pass_pending();
-  {
-    const int lanes = std::min(layers.count, Looper::view_message::max_lanes);
-    const int merged = layers.count - lanes;
-    v.muted.fill(0);
-    for(int l = merged > 0 ? 1 : 0; l < lanes; l++)
-      v.muted[l] = layers.layers[l + merged].muted;
-  }
-
   scan_peaks();
   send_message(v);
 }

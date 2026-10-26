@@ -1,5 +1,5 @@
 #pragma once
-#include <Fx/Looper/Transport.hpp>
+#include <Fx/Looper/PassStack.hpp>
 
 #include <boost/container/vector.hpp>
 
@@ -12,13 +12,13 @@
 
 namespace Nodes::Looper
 {
+inline constexpr int max_audio_layers = 32;
+
 //! One pass of the loop: the first recording, or an overdub on top of it.
 //!
 //! Its audio is kept apart from the other passes', so that undoing or erasing
 //! it is hiding it and its gain can decay with feedback without touching what
 //! it recorded.
-inline constexpr int max_audio_layers = 32;
-
 struct audio_layer
 {
   //! Which buffer of the pool holds it.
@@ -55,6 +55,7 @@ struct audio_layer
 
 /**
  * The audio of every pass of a loop, in buffers reserved before playback.
+ * The passes are a pass_stack; this is what the audio of each is.
  *
  * `slots` buffers hold the passes, each `capacity` frames long for each
  * channel, and `spare_slots` more are kept for merging: past `slots` passes,
@@ -65,11 +66,10 @@ struct audio_layer
  * shared, so that a take of it written once the looper is gone still reads
  * it.
  */
-struct audio_layers
+struct audio_layers : pass_stack<audio_layers, audio_layer, max_audio_layers>
 {
   using pool_t = boost::container::vector<float>;
 
-  static constexpr int max_layers = max_audio_layers;
   static constexpr int spare_slots = 2;
   static constexpr int max_channels = 16;
   static constexpr int fade_frames = 128;
@@ -82,13 +82,6 @@ struct audio_layers
   int slots{};
   int64_t capacity{};
 
-  std::array<audio_layer, max_layers + 1> layers{};
-  //! Passes heard.
-  int count{};
-  //! Passes kept, the ones past `count` being what redo brings back.
-  int total{};
-  //! Frames in the loop.
-  int64_t length{};
   //! Counts the passes erased, so that what shows them knows it is not
   //! looking at the same ones although there are as many.
   uint64_t changes{};
@@ -119,38 +112,13 @@ struct audio_layers
     bool undoable{};
     audio_layer a{};
     audio_layer b{};
+    //! A muted pass merged with one that is not is lost from the merged
+    //! one.
+    bool lost_a{}, lost_b{};
     int64_t a_len{}, b_len{};
     int64_t merged{};
     int64_t pos{};
   } merging;
-
-  //! The last pass merged into the newest one, and the newest one as it was:
-  //! undo takes the pass out again. Their buffers are kept until something
-  //! else changes the layers.
-  struct unmerge_state
-  {
-    bool valid{};
-    int at{};
-    audio_layer a{};
-    audio_layer b{};
-  } unmerge;
-
-  //! The layer the newest pass took the place of: undoing the pass puts it
-  //! back where it was, redoing the pass takes it out again. Its buffer is
-  //! kept until another pass starts or something else changes the layers.
-  struct aside_state
-  {
-    bool valid{};
-    //! Back in its place, the pass that replaced it being what redo brings
-    //! back.
-    bool returned{};
-    int at{};
-    //! The pass that replaced it.
-    int by{};
-    audio_layer layer{};
-  } aside;
-
-  merge_log merged_passes;
 
   //! Main thread only.
   void allocate(int chans, int layer_count, int64_t frames)
@@ -183,6 +151,35 @@ struct audio_layers
     merged_passes = {};
   }
 
+  // pass_stack's hooks: the buffers of the passes move with them, and a
+  // merge going on is abandoned when the passes it merges move.
+  void passes_changed() noexcept
+  {
+    changes++;
+    update_gains();
+  }
+  bool may_remove(int) const noexcept { return true; }
+  void muting(int k) noexcept
+  {
+    // The merged pass is worked out with the mutes the two passes had.
+    if(k == merging.at || k == merging.at + 1)
+      merging.active = false;
+  }
+  void removing(int k) noexcept
+  {
+    if(k <= merging.at + 1)
+      merging.active = false;
+  }
+  void erased(int) noexcept { }
+  void aside_taken(int) noexcept { }
+  void aside_returned(int) noexcept { }
+  void aside_forgotten() noexcept { }
+  void redo_dropped(bool) noexcept { }
+  void unmerge_dropped() noexcept { }
+  void unmerged(int) noexcept { }
+  void cleared() noexcept { merging.active = false; }
+  void undoing() noexcept { merging.active = false; }
+
   int buffers() const noexcept { return slots + spare_slots; }
 
   bool allocated() const noexcept { return capacity > 0 && pool && !pool->empty(); }
@@ -212,16 +209,6 @@ struct audio_layers
   float* peaks_of(int slot) noexcept
   {
     return peaks.data() + std::size_t(slot) * peak_count();
-  }
-
-  //! The length a pass repeats with in a loop of `loop_length` frames.
-  static int64_t period_in(const audio_layer& l, int64_t loop_length) noexcept
-  {
-    return l.period > 0 ? l.period : loop_length;
-  }
-  int64_t period_of(const audio_layer& l) const noexcept
-  {
-    return period_in(l, length);
   }
 
   //! Where position k of a loop of `loop_length` frames is in the layer's own
@@ -264,21 +251,6 @@ struct audio_layers
       if(!l.muted)
         g *= l.decay;
     }
-  }
-
-  //! Mutes or unmutes pass k, k being heard.
-  bool set_muted(int k, bool m) noexcept
-  {
-    if(k < 0 || k >= count || layers[k].muted == m)
-      return false;
-    layers[k].muted = m;
-    // The merged pass is worked out with the mutes the two passes had.
-    if(k == merging.at || k == merging.at + 1)
-      merging.active = false;
-    unmerge.valid = false;
-    changes++;
-    update_gains();
-    return true;
   }
 
   //! What the loop sounds like at position k of channel c.
@@ -346,31 +318,14 @@ struct audio_layers
   //! The top pass goes on past the end of the loop: the loop grows by `unit`
   //! frames, and the passes under it play again over the new part. False when
   //! the buffers are full.
-  bool extend(int64_t unit) noexcept
-  {
-    if(count == 0 || unit <= 0 || length + unit > capacity)
-      return false;
-    for(int i = 0; i < count - 1; i++)
-      if(layers[i].period == 0)
-        layers[i].period = length;
-    length += unit;
-    return true;
-  }
+  bool extend(int64_t unit) noexcept { return pass_stack::extend(unit, capacity); }
 
   //! Forgets every pass and starts a recording in a free buffer.
   void begin_recording() noexcept
   {
-    merging.active = false;
-    unmerge.valid = false;
-    aside.valid = false;
-    count = 0;
-    total = 0;
-    length = 0;
-    const int slot = std::max(0, take_slot());
-    count = 1;
-    total = 1;
-    layers[0] = audio_layer{.slot = slot, .gain = 1.f, .decay = 1.f, .start = 0, .written = 0};
-    std::fill_n(peaks_of(slot), peak_count(), 0.f);
+    auto& l = begin_first_pass();
+    l.slot = std::max(0, take_slot());
+    std::fill_n(peaks_of(l.slot), peak_count(), 0.f);
   }
 
   bool slot_used(int s) const noexcept
@@ -415,9 +370,8 @@ struct audio_layers
   //! set aside, undo putting it back.
   void begin_overdub(int64_t start, bool oldest = true, int replace = -1) noexcept
   {
-    total = count;
-    unmerge.valid = false;
-    aside.valid = false;
+    drop_redo();
+    forget_aside();
     if(replace >= 0)
       set_aside(replace);
     if(!oldest && count > slots)
@@ -440,82 +394,11 @@ struct audio_layers
     const int slot = take_slot();
     if(slot < 0)
       return;
-    auto& l = layers[count];
+    auto& l = push_pass();
     l.slot = slot;
-    l.gain = 1.f;
-    l.decay = 1.f;
     l.start = start;
-    l.written = 0;
-    l.period = 0;
-    l.loop_before = length;
-    l.loop_after = length;
-    l.muted = false;
-    l.backwards = false;
     std::fill_n(peaks_of(slot), peak_count(), 0.f);
-    count++;
-    total = count;
-    aside.by = count - 1;
-    update_gains();
   }
-
-  //! Takes pass k out of the passes heard for a pass about to start, keeping
-  //! it and its buffer for undo.
-  void set_aside(int k) noexcept
-  {
-    if(k < 0 || k >= count || count < 2)
-      return;
-    if(k <= merging.at + 1)
-      merging.active = false;
-    aside = aside_state{.valid = true, .returned = false, .at = k, .by = -1, .layer = layers[k]};
-    for(int i = k; i + 1 < total; i++)
-      layers[i] = layers[i + 1];
-    count--;
-    total--;
-    changes++;
-    update_gains();
-  }
-
-  //! Undoing the top pass puts back the layer it replaced: where it goes.
-  int returns_on_undo() const noexcept
-  {
-    return aside.valid && !aside.returned && count > 0 && aside.by == count - 1 ? aside.at
-                                                                                 : -1;
-  }
-
-  //! Redoing the pass that replaced a layer takes that layer out again: the
-  //! one that goes.
-  int leaves_on_redo() const noexcept
-  {
-    return aside.valid && aside.returned && count + 1 == total && aside.at < count ? aside.at
-                                                                                 : -1;
-  }
-
-  //! The layer set aside goes back to its place, the passes from there on,
-  //! the ones redo brings back included, moving up a place.
-  void put_back() noexcept
-  {
-    if(total + 1 >= int(layers.size()))
-    {
-      aside.valid = false;
-      return;
-    }
-    for(int i = total; i > aside.at; i--)
-      layers[i] = layers[i - 1];
-    layers[aside.at] = aside.layer;
-    count++;
-    total++;
-    aside.returned = true;
-  }
-
-  //! Drops what redo would bring back.
-  void drop_redo() noexcept
-  {
-    total = count;
-    if(aside.returned)
-      aside.valid = false;
-  }
-
-  audio_layer* top() noexcept { return count > 0 ? &layers[count - 1] : nullptr; }
 
   int take_slot_count() const noexcept
   {
@@ -539,20 +422,24 @@ struct audio_layers
       return;
     const auto& a = layers[at];
     const auto& b = layers[at + 1];
-    // A muted pass is left out of the merged one, and takes nothing from the
-    // pass under it: merging is where it is lost.
+    // A muted pass merged with one that is not is left out of the merged one,
+    // and takes nothing from the pass under it: merging is where it is lost.
+    // Two muted passes make a muted one that has both.
+    const bool lost_a = a.muted && !b.muted, lost_b = b.muted && !a.muted;
     merging = merge_state{
         .active = true,
         .at = at,
         .target = target,
         .a_slot = a.slot,
         .b_slot = b.slot,
-        .a_gain = a.muted ? 0.f : b.muted ? 1.f : b.decay,
-        .b_gain = b.muted ? 0.f : 1.f,
+        .a_gain = lost_a ? 0.f : lost_b ? 1.f : b.decay,
+        .b_gain = lost_b ? 0.f : 1.f,
         .muted = a.muted && b.muted,
         .undoable = undoable,
         .a = a,
         .b = b,
+        .lost_a = lost_a,
+        .lost_b = lost_b,
         .a_len = std::max<int64_t>(1, period_of(a)),
         .b_len = std::max<int64_t>(1, period_of(b)),
         .merged = std::max(period_of(a), period_of(b)),
@@ -599,27 +486,18 @@ struct audio_layers
     if(m.pos < m.merged)
       return;
 
-    if(m.undoable)
-      unmerge = unmerge_state{.valid = true, .at = m.at, .a = m.a, .b = m.b};
+    m.active = false;
+    begin_merge();
     // What the two took from the passes under them, the merged one takes.
-    auto& a = layers[m.at];
+    audio_layer a = merged_pass(layers[m.at], layers[m.at + 1]);
     a.slot = m.target;
-    a.decay = (m.a.muted ? 1.f : m.a.decay) * (m.b.muted ? 1.f : m.b.decay);
+    a.decay = (m.lost_a ? 1.f : m.a.decay) * (m.lost_b ? 1.f : m.b.decay);
     a.start = 0;
     a.period = m.merged == length ? 0 : m.merged;
     a.written = m.merged;
-    a.loop_after = m.b.loop_after;
     a.muted = m.muted;
     a.backwards = false;
-    for(int i = m.at + 1; i + 1 < count; i++)
-      layers[i] = layers[i + 1];
-    count--;
-    total = count;
-    m.active = false;
-    aside.valid = false;
-    merged_passes.add(m.at);
-    changes++;
-    update_gains();
+    merged(m.at, a, m.undoable, m.a, m.b);
   }
 
   void finish_merge() noexcept
@@ -636,97 +514,6 @@ struct audio_layers
       return;
     layers[count - 1].decay *= feedback;
     update_gains();
-  }
-
-  bool undo() noexcept
-  {
-    if(count == 0)
-      return false;
-    merging.active = false;
-    // The pass merged into the newest one comes out of it.
-    if(std::exchange(unmerge.valid, false) && unmerge.at == count - 1)
-    {
-      layers[unmerge.at] = unmerge.a;
-      layers[unmerge.at + 1] = unmerge.b;
-      layers[unmerge.at + 1].loop_after = length;
-      length = unmerge.b.loop_before;
-      total = count + 1;
-      changes++;
-      update_gains();
-      return true;
-    }
-    const bool back = returns_on_undo() >= 0;
-    auto& l = layers[count - 1];
-    if(count > 1)
-    {
-      l.loop_after = length;
-      length = l.loop_before;
-    }
-    count--;
-    if(back)
-    {
-      put_back();
-      changes++;
-    }
-    update_gains();
-    return true;
-  }
-
-  bool redo() noexcept
-  {
-    if(count >= total)
-      return false;
-    merging.active = false;
-    unmerge.valid = false;
-    // The pass that replaced a layer takes its place again.
-    if(leaves_on_redo() >= 0)
-    {
-      aside.layer = layers[aside.at];
-      for(int i = aside.at; i + 1 < total; i++)
-        layers[i] = layers[i + 1];
-      count--;
-      total--;
-      aside.returned = false;
-      changes++;
-    }
-    const auto& l = layers[count];
-    if(count > 0)
-      length = l.loop_after;
-    count++;
-    update_gains();
-    return true;
-  }
-
-  //! Takes pass k out of the loop, k being heard and not the only one heard:
-  //! the passes over it and the ones redo brings back move down a place, the
-  //! passes under it get back what its feedback took, and the loop keeps its
-  //! length. Its buffer is free for a new pass.
-  bool erase(int k) noexcept
-  {
-    if(k < 0 || k >= count || count < 2)
-      return false;
-    // The merged pass would not be made of the two passes any more.
-    if(k <= merging.at + 1)
-      merging.active = false;
-    unmerge.valid = false;
-    aside.valid = false;
-    for(int i = k; i + 1 < total; i++)
-      layers[i] = layers[i + 1];
-    count--;
-    total--;
-    changes++;
-    update_gains();
-    return true;
-  }
-
-  void clear() noexcept
-  {
-    merging.active = false;
-    unmerge.valid = false;
-    aside.valid = false;
-    count = 0;
-    total = 0;
-    length = 0;
   }
 
   void note_peak(int slot, int64_t k, float v) noexcept
@@ -814,7 +601,7 @@ void mix_passes(
 struct audio_snapshot
 {
   std::shared_ptr<audio_layers::pool_t> pool;
-  std::array<audio_layer, audio_layers::max_layers + 1> passes{};
+  std::array<audio_layer, audio_layers::max_passes> passes{};
   int count{};
   int channels{};
   int64_t capacity{};

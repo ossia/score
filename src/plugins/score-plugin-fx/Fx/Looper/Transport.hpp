@@ -235,6 +235,23 @@ struct loop_period
   bool going_round{};
 };
 
+//! Frames a round of a loop of `len` positions takes, its playhead going
+//! `rate` of them a frame.
+inline int64_t loop_round(int64_t len, double rate) noexcept
+{
+  return std::max<int64_t>(1, int64_t(std::ceil(double(len) / rate - 1e-9)));
+}
+
+//! Frames until a playhead at `y` of a loop of `len` positions, going `rate`
+//! of them a frame, reaches the loop's end: none at its start, which is its
+//! end as well.
+inline int64_t frames_to_loop_end(double y, int64_t len, double rate) noexcept
+{
+  if(y <= 0.)
+    return 0;
+  return int64_t(std::ceil((double(len) - y) / rate - 1e-9));
+}
+
 struct transport_settings
 {
   LoopMode mode{LoopMode::Stop};

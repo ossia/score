@@ -17,6 +17,7 @@
 //   h.shown_count                how many times it was
 //   h.stop_score()               stops the looper as the score stopping
 //                                does; the next tick starts the score again
+//   h.tempo                      the tempo of the ticks to come
 //
 // The grid is a quarter note: a mode asked for between two beats is taken up
 // on the tick that starts on the next one.
@@ -1364,6 +1365,181 @@ void quantif_loop_empty(H& h)
     in.quantif.value = halp::grid_value::period(2.);
     press_off_beat(h, in.record);
     waits_until(h, 2 * bar, LoopMode::Stop, LoopMode::Record);
+  }
+}
+}
+
+namespace looper_switches
+{
+//! Merge into newest, then a pass undone while it is taken in: the pass
+//! goes, the newest layer stays as the merge left it, and the merge can still
+//! be undone once the overdub that went on is merged in turn.
+template <typename H>
+void undo_while_taking_over_a_merge(H& h)
+{
+  auto& in = h.node.inputs;
+  h.set_max_layers(3);
+  record_loop(h);
+  at_beat(h, in.overdub);
+  at_beat(h, in.new_layer);
+  at_beat(h, in.play);
+  REQUIRE(h.passes() == 3);
+  const double s2 = h.signature(2);
+  at_beat(h, in.overdub);
+  beats(h, 1);
+  at_beat(h, in.play);
+  beats(h, 1);
+  REQUIRE(h.passes() == 3);
+  const double merged = h.signature(2);
+  REQUIRE(merged > s2);
+
+  at_beat(h, in.overdub);
+  beats(h, 1);
+  REQUIRE(h.node.transport.is_taking());
+  press(h, in.undo);
+  CHECK(h.node.transport.is_taking());
+  CHECK(h.passes() == 4);
+  CHECK(same(h.signature(2), merged));
+  at_beat(h, in.play);
+  beats(h, 1);
+  CHECK(h.passes() == 3);
+  CHECK(h.signature(2) > merged);
+  // The overdub that went on comes out of the newest layer, then the newest
+  // layer goes as a whole: the first merge is not undone a second time.
+  press(h, in.undo);
+  CHECK(h.passes() == 3);
+  CHECK(same(h.signature(2), merged));
+  press(h, in.undo);
+  CHECK(h.passes() == 2);
+}
+
+//! Merge oldest, the two oldest layers muted: a solo made while they merge is
+//! undone by soloing again, whether the merge is done at once or over ticks.
+template <typename H>
+void solo_while_merging(H& h)
+{
+  auto& in = h.node.inputs;
+  in.at_max_layers = AtMaxLayers::MergeOldest;
+  h.set_max_layers(3);
+  // A merge of a loop of eight beats takes more than two beats of ticks.
+  h.slow_merges();
+  press_off_beat(h, in.rec_play_dub);
+  next_beat(h);
+  beats(h, 7);
+  press(h, in.rec_play_dub);
+  next_beat(h);
+  REQUIRE(h.length() == 8 * H::beat);
+  at_beat(h, in.overdub);
+  at_beat(h, in.new_layer);
+  at_beat(h, in.play);
+  REQUIRE(h.passes() == 3);
+  for(int layer : {1, 2})
+  {
+    in.layer.value = layer;
+    at_beat(h, in.mute_layer);
+  }
+  REQUIRE(h.muted(0));
+  REQUIRE(h.muted(1));
+
+  at_beat(h, in.overdub);
+  // The layer under the one being overdubbed.
+  in.layer.value = h.passes() - 1;
+  at_beat(h, in.solo_layer);
+  CHECK(h.muted(h.passes() - 1));
+  CHECK(!h.muted(h.passes() - 2));
+  at_beat(h, in.solo_layer);
+  CHECK(!h.muted(h.passes() - 1));
+  CHECK(!h.muted(h.passes() - 2));
+}
+
+//! A recording ended by its bars, the tempo having dropped while it went on:
+//! it is cut back to the bars at the tempo it ends at, and what it recorded
+//! past them goes into the overdub it gives way to, as a late stop's does.
+template <typename H>
+void bars_cut_carried_into_the_overdub(H& h)
+{
+  auto& in = h.node.inputs;
+  in.postaction_bars.value = 1;
+  in.after_record.value = AfterRecord::Overdub;
+  // From a bar line.
+  while(h.now % (4 * H::beat) != 4 * H::beat - H::frames)
+    h.tick_once();
+  in.mode = LoopMode::Record;
+  next_beat(h);
+  REQUIRE(mode(h) == LoopMode::Record);
+  beats(h, 3);
+  // A bar at 100 is longer than one at 120, and the bar the recording counts
+  // ends later than it would have at 120: more is recorded than the bar.
+  h.tempo = 100.;
+  for(int i = 0; i < 100 && mode(h) == LoopMode::Record; i++)
+    h.tick_once();
+  REQUIRE(mode(h) == LoopMode::Overdub);
+  CHECK(h.length() == 4 * H::beat * 120 / 100);
+  REQUIRE(h.passes() == 2);
+  const double first = h.signature(1);
+  h.tick_once();
+  const double per_tick = h.signature(1) - first;
+  REQUIRE(per_tick > 0.);
+  // The overdub's first tick, and the frames cut from the recording before it.
+  CHECK(first > 2. * per_tick);
+}
+
+//! A layer merged with a muted one: the muted one is lost from what is
+//! heard, and undoing the merge brings it back muted. Two muted layers merged
+//! are one muted layer that has both.
+template <typename H>
+void merge_with_muted_layers(H& h)
+{
+  auto& in = h.node.inputs;
+  h.set_max_layers(3);
+  record_loop(h);
+  at_beat(h, in.overdub);
+  at_beat(h, in.new_layer);
+  at_beat(h, in.play);
+  REQUIRE(h.passes() == 3);
+  const double s0 = h.signature(0), s1 = h.signature(1), s2 = h.signature(2);
+  REQUIRE(s2 > 0.);
+  SECTION("merged into a muted newest layer, and undone")
+  {
+    in.layer.value = 3;
+    at_beat(h, in.mute_layer);
+    REQUIRE(h.muted(2));
+    at_beat(h, in.overdub);
+    beats(h, 1);
+    at_beat(h, in.play);
+    beats(h, 1);
+    REQUIRE(h.passes() == 3);
+    CHECK(!h.muted(2));
+    const double pass = h.signature(2);
+    press(h, in.undo);
+    CHECK(h.passes() == 3);
+    CHECK(h.muted(2));
+    CHECK(same(h.signature(2), s2));
+    press(h, in.redo);
+    beats(h, 1);
+    CHECK(h.passes() == 3);
+    CHECK(!h.muted(2));
+    CHECK(same(h.signature(2), pass));
+  }
+  SECTION("the two oldest muted, merged")
+  {
+    in.at_max_layers = AtMaxLayers::MergeOldest;
+    for(int layer : {1, 2})
+    {
+      in.layer.value = layer;
+      at_beat(h, in.mute_layer);
+    }
+    at_beat(h, in.overdub);
+    beats(h, 1);
+    at_beat(h, in.play);
+    beats(h, 1);
+    REQUIRE(h.passes() == 3);
+    CHECK(h.muted(0));
+    CHECK(same(h.signature(0), s0 + s1));
+    in.layer.value = 1;
+    at_beat(h, in.mute_layer);
+    CHECK(!h.muted(0));
+    CHECK(same(h.signature(0), s0 + s1));
   }
 }
 }

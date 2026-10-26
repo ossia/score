@@ -685,9 +685,13 @@ struct switches
   }
 
   //! Applies the merges `log` noted since it was last read, in their order.
+  //! A merge moves the passes under the mutes a solo would give back: the
+  //! solo is not undone any more.
   template <typename Inputs, typename Log>
   void follow_merges(Inputs& in, Log& log)
   {
+    if(log.count > 0)
+      soloed.forget();
     for(int i = 0; i < log.count; i++)
       merged(in, log.at[i]);
     log.count = 0;

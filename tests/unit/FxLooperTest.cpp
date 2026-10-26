@@ -2921,6 +2921,34 @@ TEST_CASE("Looper switches: the score started again after a stop plays the loop,
   looper_switches::restart_after_stop(h);
 }
 
+TEST_CASE("Looper switches: undo while a pass is taken in over a merge into newest keeps the merge",
+          "[fx][audio][looper][switches][layers]")
+{
+  switches_harness h;
+  looper_switches::undo_while_taking_over_a_merge(h);
+}
+
+TEST_CASE("Looper switches: a solo made while the two oldest layers merge is undone by soloing again",
+          "[fx][audio][looper][switches][layers]")
+{
+  switches_harness h;
+  looper_switches::solo_while_merging(h);
+}
+
+TEST_CASE("Looper switches: what a recording's bars cut off goes into the overdub after it",
+          "[fx][audio][looper][switches][layers]")
+{
+  switches_harness h;
+  looper_switches::bars_cut_carried_into_the_overdub(h);
+}
+
+TEST_CASE("Looper switches: a merge loses a muted layer until it is undone, and keeps two muted ones",
+          "[fx][audio][looper][switches][layers]")
+{
+  switches_harness h;
+  looper_switches::merge_with_muted_layers(h);
+}
+
 TEST_CASE("Looper switches: Record on a loop overdubs it, and records once it is cleared",
           "[fx][audio][looper][switches]")
 {
