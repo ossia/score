@@ -28,9 +28,15 @@ Presenter::Presenter(Model& m, View& v, QObject* parent)
   v.setBufferSize(m.getBufferSize());
   v.setAutoStereo(m.getAutoStereo());
 
-  con(v, &View::DriverChanged, this, [this, &m](auto val) {
+  con(v, &View::DriverChanged, this, [this, &m, &v](auto val) {
     if(val != m.getDriver())
     {
+      // Setting the driver initializes it, which changes the model: the
+      // previous driver's panel must not react to that with values of its own.
+      v.setDriverWidget(nullptr);
+      m_disp.discardDeferred<
+          SetModelCardIn, SetModelCardOut, SetModelDefaultIn, SetModelDefaultOut,
+          SetModelRate, SetModelBufferSize>();
       m_disp.submit<SetModelDriver>(m, val);
       loadDriver(val);
     }
