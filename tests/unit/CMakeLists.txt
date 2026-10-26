@@ -1757,6 +1757,15 @@ if(TARGET score_plugin_gfx)
     LIBS ${QT_PREFIX}::Gui)
 endif()
 
+# Sampling an INPUTS image that ACCESS / FORMAT make a storage image is refused
+# by name, with the fix, before the GLSL compiler sees it. Pure CPU.
+if(TARGET score_plugin_gfx)
+  score_add_test(test_unit_isf_storage_image_sample
+    SOURCES IsfStorageImageSampleTest.cpp
+    PLUGINS score_plugin_gfx
+    LIBS ${QT_PREFIX}::Gui)
+endif()
+
 # ISF v1 PERSISTENT_BUFFERS parses into v2 persistent passes. Pure CPU.
 if(TARGET score_plugin_gfx)
   score_add_test(test_unit_isf_persistent_buffers

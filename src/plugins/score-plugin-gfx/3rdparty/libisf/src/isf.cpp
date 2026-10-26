@@ -4809,6 +4809,58 @@ static bool isf_is_ident_char(char c) noexcept
          || c == '_';
 }
 
+// An INPUTS "image" with ACCESS or FORMAT is a storage image (an image2D read
+// with imageLoad), see the INPUTS parse. Sampling one -- the IMG_* macros,
+// texture(), texelFetch() -- would fail in the GLSL compiler with "no matching
+// overloaded function", which says nothing of the cause: refuse it here, by
+// name, with the fix.
+static void isf_refuse_sampled_storage_images(const std::string& src, const descriptor& d)
+{
+  static constexpr std::string_view reads[]
+      = {"IMG_THIS_NORM_PIXEL", "IMG_THIS_PIXEL", "IMG_NORM_PIXEL", "IMG_PIXEL",
+         "IMG_TEXEL", "IMG_NORM_PIXEL_PREMULTIPLIED", "IMG_PIXEL_PREMULTIPLIED",
+         "texture", "textureLod", "textureGrad", "textureOffset", "texelFetch",
+         "textureSize", "textureProj"};
+  auto ident = [](char c) {
+    return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9')
+           || c == '_';
+  };
+  for(const auto& in : d.inputs)
+  {
+    if(!ossia::get_if<csf_image_input>(&in.data) || in.name.empty())
+      continue;
+    const std::size_t n = src.size();
+    for(std::size_t p = src.find('('); p != std::string::npos; p = src.find('(', p + 1))
+    {
+      // The function name before the parenthesis.
+      std::size_t e = p;
+      while(e > 0 && std::isspace((unsigned char)src[e - 1]))
+        e--;
+      std::size_t b = e;
+      while(b > 0 && ident(src[b - 1]))
+        b--;
+      const std::string_view fun(src.data() + b, e - b);
+      if(std::find(std::begin(reads), std::end(reads), fun) == std::end(reads))
+        continue;
+      // Its first argument.
+      std::size_t a = p + 1;
+      while(a < n && std::isspace((unsigned char)src[a]))
+        a++;
+      std::size_t z = a;
+      while(z < n && ident(src[z]))
+        z++;
+      if(std::string_view(src.data() + a, z - a) != in.name)
+        continue;
+      throw invalid_file{
+          "INPUTS \"" + in.name + "\" is a storage image because it declares ACCESS or "
+          "FORMAT, and " + std::string(fun) + "() samples it. A storage image is read "
+          "with IMG_LOAD(" + in.name + ", pixel) or imageLoad(" + in.name
+          + ", ivec2 pixel). To sample it instead (" + std::string(fun)
+          + ", IMG_NORM_PIXEL, ...), remove ACCESS and FORMAT from its INPUTS entry."};
+    }
+  }
+}
+
 static void isf_rewrite_straight_sampling(std::string& src, const descriptor& d)
 {
   std::vector<std::string_view> names;
@@ -5209,6 +5261,9 @@ void parser::parse_isf()
   {
     m_vertex += m_sourceVertex;
   }
+  isf_refuse_sampled_storage_images(fragWithoutISF, m_desc);
+  if(!simpleVS)
+    isf_refuse_sampled_storage_images(m_sourceVertex, m_desc);
   isf_rewrite_straight_sampling(fragWithoutISF, m_desc);
 
   std::vector<std::string> premultiplied;
@@ -6085,6 +6140,8 @@ void parser::parse_raw_raster_pipeline()
     m_vertex += m_sourceVertex;
   }
   m_vertex += '\n';
+  isf_refuse_sampled_storage_images(fragWithoutISF, m_desc);
+  isf_refuse_sampled_storage_images(m_sourceVertex, m_desc);
   isf_rewrite_straight_sampling(fragWithoutISF, m_desc);
   if(point_quads)
     boost::replace_all(fragWithoutISF, "gl_PointCoord", "ISF_POINT_COORD");
