@@ -88,7 +88,8 @@ namespace Nodes::Looper
  *   bool take_cancelled();
  *   void take_released();
  *   void stop_take_written();
- *   static constexpr const char* take_extension;
+ *   static constexpr const char* take_extension;   // at most 7 characters
+ *   bool take_placeable() const;    // optional: the host can place the take
  *   halp::clip_stretch take_stretch() const;
  *   bool view_full() const;
  *   bool view_writing() const;
@@ -201,6 +202,15 @@ protected:
     return true;
   }
   void fill_view(Looper::view_message& v) const noexcept;
+  //! Whether the host can place the take just written in the timeline: a
+  //! looper says so with take_placeable(), else it can.
+  bool placeable_take() const noexcept
+  {
+    if constexpr(requires(const Node& n) { n.take_placeable(); })
+      return self().take_placeable();
+    else
+      return true;
+  }
 
   double m_rate{48000.};
   double m_tempo{120.};
@@ -741,7 +751,8 @@ void looper_node<Node>::take_written(int slot, int number, bool ok, bool alone)
       return;
     m_takes_written++;
     m_view.set_take(
-        writer->take_base(slot), Node::take_extension, true, 0, m_stop_stretch);
+        writer->take_base(slot), Node::take_extension, true, 0, m_stop_stretch,
+        placeable_take());
     m_view.take = m_takes_written;
     m_view.take_date = m_stop_date;
     m_view_countdown = 0;
@@ -768,7 +779,7 @@ void looper_node<Node>::take_written(int slot, int number, bool ok, bool alone)
   m_takes_written++;
   m_view.set_take(
       writer->take_base(slot), Node::take_extension, m_export_mix, m_export_layers,
-      m_job_stretch);
+      m_job_stretch, placeable_take());
   m_view.take = m_takes_written;
   m_view.take_date = m_job_date;
   m_view.answered = std::max(m_view.answered, m_job_request);

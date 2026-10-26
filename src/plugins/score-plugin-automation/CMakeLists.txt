@@ -13,6 +13,7 @@ set(HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/Automation/AutomationProcessMetadata.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Automation/AutomationView.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Automation/AutomationExecution.hpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Automation/ValueTakeDrop.hpp"
 
   "${CMAKE_CURRENT_SOURCE_DIR}/Color/GradientModel.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Color/GradientPresenter.hpp"
@@ -36,6 +37,7 @@ set(HDRS
 )
 set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Automation/AutomationSerialization.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Automation/ValueTakeDrop.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Automation/AutomationView.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Automation/AutomationModel.cpp"

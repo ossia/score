@@ -45,6 +45,9 @@
 #include <Fx/Looper/LooperView.hpp>
 #include <Fx/Looper/MidiLooper.hpp>
 #include <Fx/Looper/MidiTake.hpp>
+#include <Fx/Looper/ValueTake.hpp>
+#include <Automation/AutomationModel.hpp>
+#include <Curve/CurveModel.hpp>
 
 #include <ossia/dataflow/execution_state.hpp>
 #include <ossia/dataflow/graph/tick_methods.hpp>
@@ -420,6 +423,91 @@ TEST_CASE("A MIDI take sent to the timeline is a MIDI clip as long as the loop",
     CHECK(midi->notes.size() == 4);
     // 16 quarters at score's 120: 8 s.
     CHECK(clip->duration.defaultDuration().msec() == Approx(8000.).margin(20.));
+  });
+}
+
+TEST_CASE("A value take sent to the timeline is an automation for each number, held in steps",
+          "[looper][timeline][app]")
+{
+  score::test::run_in_app([&](const score::GUIApplicationContext& ctx) {
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    auto* scenario = main_scenario(*doc);
+    REQUIRE(scenario);
+    auto* looper = add_looper(*doc, *scenario, midi_looper_uuid);
+    REQUIRE(looper);
+
+    // Two seconds of vectors: (0, 10) from the start, (1, 20) from a
+    // quarter, (0.5, 15) from half of it.
+    auto e = std::make_unique<Nodes::Looper::value_export>();
+    e->rate = 48000.;
+    e->length = 96000;
+    Nodes::Looper::value_slot v;
+    v.set(ossia::vec2f{0.f, 10.f});
+    e->add(0, v, false);
+    v.set(ossia::vec2f{1.f, 20.f});
+    e->add(24000, v, false);
+    v.set(ossia::vec2f{0.5f, 15.f});
+    e->add(48000, v, false);
+
+    QTemporaryDir dir;
+    auto write = [&](const QString& file, const Nodes::Looper::value_export& e) {
+      const auto bytes = e.to_json();
+      std::ofstream f{file.toStdString(), std::ios::binary};
+      f.write(bytes.data(), std::streamsize(bytes.size()));
+    };
+    const QString file = dir.path() + "/Value looper-take1.values";
+    write(file, *e);
+
+    const auto before = scenario->intervals.size();
+    oscr::sendToTimeline(
+        *looper, doc->context(),
+        halp::timeline_clip{.files = {file.toStdString()}, .date = 1.});
+    QApplication::processEvents();
+
+    REQUIRE(scenario->intervals.size() == before + 2);
+    auto* clip = interval_at(*scenario, TimeVal::fromMsecs(3000));
+    REQUIRE(clip);
+    CHECK(clip->duration.defaultDuration().msec() == Approx(2000.).margin(20.));
+    std::vector<const Automation::ProcessModel*> autom;
+    for(auto& p : clip->processes)
+      if(auto a = qobject_cast<const Automation::ProcessModel*>(&p))
+        autom.push_back(a);
+    REQUIRE(autom.size() == 2);
+    std::sort(autom.begin(), autom.end(), [](auto* a, auto* b) {
+      return a->metadata().getName() < b->metadata().getName();
+    });
+    CHECK(autom[0]->min() == 0.);
+    CHECK(autom[0]->max() == 1.);
+    CHECK(autom[1]->min() == 10.);
+    CHECK(autom[1]->max() == 20.);
+    for(auto* a : autom)
+    {
+      // Held between the values, and stepping where they change.
+      const auto& c = a->curve();
+      CHECK(*c.valueAt(0.1) == Approx(0.));
+      CHECK(*c.valueAt(0.24) == Approx(0.));
+      CHECK(*c.valueAt(0.26) == Approx(1.));
+      CHECK(*c.valueAt(0.49) == Approx(1.));
+      CHECK(*c.valueAt(0.51) == Approx(0.5));
+      CHECK(*c.valueAt(0.99) == Approx(0.5));
+      CHECK(a->loops());
+    }
+
+    // Text is a file only: nothing is placed.
+    auto text = std::make_unique<Nodes::Looper::value_export>();
+    text->rate = 48000.;
+    text->length = 96000;
+    v.set(std::string{"hello"});
+    text->add(0, v, false);
+    const QString text_file = dir.path() + "/Value looper-take2.values";
+    write(text_file, *text);
+    const auto after = scenario->intervals.size();
+    oscr::sendToTimeline(
+        *looper, doc->context(),
+        halp::timeline_clip{.files = {text_file.toStdString()}, .date = 1.});
+    QApplication::processEvents();
+    CHECK(scenario->intervals.size() == after);
   });
 }
 

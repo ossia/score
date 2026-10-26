@@ -74,6 +74,10 @@ struct view_message
   bool full;
   bool writing;
   bool midi;
+  //! A value loop: `peaks` holds, for each bin of each lane, the number its
+  //! passes hold there, from 0 to 1 over the numbers the lane holds, and
+  //! `value_flags` what else is there.
+  bool values;
   float position;
   float length_seconds;
   float max_seconds;
@@ -82,12 +86,25 @@ struct view_message
   double take_date;
   std::array<float, max_lanes * bins> peaks;
   std::array<view_note, max_notes> note;
+  enum value_flag : uint8_t
+  {
+    flag_number = 1,     ///< A number is held, at the height in peaks.
+    flag_other = 2,      ///< Something else is held: text, a list, a map.
+    flag_heard = 4,      ///< What is held is what the loop plays there.
+    flag_impulse = 8,    ///< An impulse fires in the bin.
+    flag_mark = 16,      ///< A value that is not a number starts in the bin.
+    flag_heard_mark = 32 ///< The impulse is heard.
+  };
+  std::array<uint8_t, max_lanes * bins> value_flags;
   //! The last take's files: <base>.<ext> for the mix if there is one,
   //! <base>-layer<k>.<ext> for its layers.
   std::array<char, 512> take_base;
-  std::array<char, 4> take_ext;
+  std::array<char, 8> take_ext;
   bool take_mix;
   int take_layers;
+  //! The host places the take in the timeline. A value take that is not all
+  //! numbers is a file only.
+  bool take_placeable;
   //! How the take asks the timeline to follow the tempo: as the audio looper
   //! played it when it was taken.
   halp::clip_stretch take_stretch;
@@ -108,8 +125,10 @@ struct view_message
 
   void set_take(
       std::string_view base, std::string_view ext, bool mix, int layers,
-      halp::clip_stretch stretch = halp::clip_stretch::automatic) noexcept
+      halp::clip_stretch stretch = halp::clip_stretch::automatic,
+      bool placeable = true) noexcept
   {
+    take_placeable = placeable;
     const auto n = std::min(base.size(), take_base.size() - 1);
     std::copy_n(base.data(), n, take_base.data());
     take_base[n] = 0;
@@ -177,6 +196,8 @@ struct looper_view
   }
 
   bool has_take() const noexcept { return has_state && state.take > 0 && state.take_base[0]; }
+  //! The last take can go in the timeline.
+  bool placeable() const noexcept { return has_take() && state.take_placeable; }
 
   //! A pass is being taken in: the last take does not have it.
   bool taking_in() const noexcept
@@ -216,7 +237,7 @@ struct looper_view
 
   void send_now()
   {
-    if(!has_take() || !send_to_timeline)
+    if(!placeable() || !send_to_timeline)
       return;
     std::string_view base{state.take_base.data()};
     if(auto slash = base.find_last_of("/\\"); slash != std::string_view::npos)
@@ -347,8 +368,9 @@ struct looper_view
         ctx.fill();
       }
 
-      // Send to timeline
-      const bool enabled = (has_take() || taking_in()) && bool(send_to_timeline);
+      // Send to timeline. A take the timeline cannot play is a file only.
+      const bool file_only = has_take() && !state.take_placeable && !taking_in();
+      const bool enabled = (placeable() || taking_in()) && bool(send_to_timeline);
       const rgba button = enabled ? rgba{60, 110, 160, 255} : rgba{44, 44, 48, 255};
       ctx.set_fill_color({button.r, button.g, button.b, button.a});
       ctx.begin_path();
@@ -357,7 +379,8 @@ struct looper_view
       const rgba label = enabled ? rgba{235, 240, 245, 255} : rgba{110, 110, 116, 255};
       ctx.set_fill_color({label.r, label.g, label.b, label.a});
       ctx.begin_path();
-      ctx.draw_text(w - send_w + 6., cy + 4., saving() ? "Saving" : "Send");
+      ctx.draw_text(
+          w - send_w + 6., cy + 4., saving() ? "Saving" : (file_only ? "File" : "Send"));
       ctx.fill();
     }
 
@@ -379,6 +402,8 @@ struct looper_view
 
     if(s.midi)
       paint_notes(ctx, top, lanes_h);
+    else if(s.values)
+      paint_values(ctx, top, lanes_h);
     else
       paint_lanes(ctx, top, lanes_h);
 
@@ -663,6 +688,90 @@ struct looper_view
     outline_selected(ctx, top, lh);
   }
 
+  //! One lane per pass: the numbers it holds as steps, over the numbers the
+  //! lane holds; what is not a number as a line across the lane's middle;
+  //! impulses and the start of values that are not numbers as ticks. What is
+  //! not heard is dimmed.
+  void paint_values(auto& ctx, double top, double lanes_h)
+  {
+    const auto& s = state;
+    const int lanes = std::max(1, s.lanes);
+    const double lh = lanes_h / lanes;
+    const double x0 = 4., lw = width() - 8.;
+    const double bw = lw / view_message::bins;
+    for(int l = 0; l < lanes; l++)
+    {
+      const double y = top + l * lh;
+      const auto bg = lane_background(l);
+      ctx.set_fill_color({bg.r, bg.g, bg.b, bg.a});
+      ctx.begin_path();
+      ctx.draw_rect(x0, y + 1., lw, lh - 2.);
+      ctx.fill();
+
+      const float* p = s.peaks.data() + l * view_message::bins;
+      const uint8_t* f = s.value_flags.data() + l * view_message::bins;
+      const auto base = lane_color(l, lanes);
+      const auto quiet = dimmed(base);
+      const double inner = std::max(2., lh - 8.);
+      auto height = [&](int b) {
+        if(f[b] & view_message::flag_number)
+          return y + 4. + (1. - std::clamp(double(p[b]), 0., 1.)) * inner;
+        return y + lh / 2.;
+      };
+      // The heard parts over the others.
+      for(int heard = 0; heard < 2; heard++)
+      {
+        auto c = heard ? base : quiet;
+        if(lane_muted(l))
+          c = dimmed(c);
+        ctx.set_stroke_color({c.r, c.g, c.b, c.a});
+        ctx.set_stroke_width(heard ? 1.5 : 1.);
+        ctx.begin_path();
+        for(int b = 0; b < view_message::bins; b++)
+        {
+          const bool held = f[b] & (view_message::flag_number | view_message::flag_other);
+          if(!held || bool(f[b] & view_message::flag_heard) != bool(heard))
+            continue;
+          const double xa = x0 + b * bw, ya = height(b);
+          ctx.move_to(xa, ya);
+          ctx.line_to(xa + bw, ya);
+          // The step to the next bin's value.
+          if(b + 1 < view_message::bins
+             && (f[b + 1] & (view_message::flag_number | view_message::flag_other)))
+          {
+            const double yb = height(b + 1);
+            if(std::abs(yb - ya) > 0.5)
+            {
+              ctx.move_to(xa + bw, ya);
+              ctx.line_to(xa + bw, yb);
+            }
+          }
+        }
+        ctx.stroke();
+      }
+      ctx.set_stroke_width(1.);
+
+      // Impulses and values that are not numbers: ticks.
+      for(int b = 0; b < view_message::bins; b++)
+      {
+        if(!(f[b] & (view_message::flag_impulse | view_message::flag_mark)))
+          continue;
+        const bool heard = (f[b] & view_message::flag_heard_mark)
+                           || ((f[b] & view_message::flag_mark) && !lane_muted(l));
+        auto c = heard ? base : quiet;
+        ctx.set_fill_color({c.r, c.g, c.b, c.a});
+        ctx.begin_path();
+        const double xa = x0 + b * bw;
+        if(f[b] & view_message::flag_impulse)
+          ctx.draw_rect(xa, y + 2., std::max(1.5, bw), lh - 4.);
+        else
+          ctx.draw_rect(xa, y + lh / 2. - 3., std::max(2., bw), 6.);
+        ctx.fill();
+      }
+    }
+    outline_selected(ctx, top, lh);
+  }
+
   bool in_send(double x, double y) const noexcept
   {
     return x >= width() - send_w - 4. && x <= width() - 4. && y >= 4. && y <= header - 4.;
@@ -701,7 +810,7 @@ struct looper_view
     halp::drag_payload p;
     if(m_waiting > 0)
       return p;
-    if(has_take() && !in_send(x, y) && erase_lane_at(x, y) < 0 && mute_lane_at(x, y) < 0)
+    if(placeable() && !in_send(x, y) && erase_lane_at(x, y) < 0 && mute_lane_at(x, y) < 0)
     {
       p.files = state.take_files();
       p.data = Process::encode_clip_metadata(p.files, state.take_stretch);

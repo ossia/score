@@ -954,6 +954,12 @@ if(TARGET score_plugin_fx)
     SOURCES FxMidiLooperTest.cpp
     PLUGINS score_plugin_fx)
 
+  # The value looper on the same transport: held values and impulses, layers
+  # that hold a value from their first new one, chasing, and its takes.
+  score_add_test(test_unit_fx_value_looper
+    SOURCES FxValueLooperTest.cpp
+    PLUGINS score_plugin_fx)
+
   # The looper presets of the default package.
   score_add_test(test_unit_fx_looper_presets
     SOURCES FxLooperPresetsTest.cpp
@@ -1525,13 +1531,13 @@ if(TARGET score_plugin_avnd AND TARGET score_plugin_engine)
               score_plugin_engine score_plugin_scenario score_lib_process score_lib_device)
 
     # A looper's take sent to the timeline: a box of the looper's scenario at
-    # the take's date, a looping sound or a MIDI clip of the take's length, one
-    # undoable command.
+    # the take's date, a looping sound, a MIDI clip or automations of the take's
+    # length, one undoable command.
     if(TARGET score_plugin_media AND TARGET score_plugin_midi)
       score_add_test(test_unit_looper_timeline
         SOURCES LooperTimelineTest.cpp
         APP
-        PLUGINS score_plugin_avnd score_plugin_fx score_plugin_media score_plugin_midi score_plugin_engine score_plugin_scenario score_lib_process)
+        PLUGINS score_plugin_avnd score_plugin_fx score_plugin_media score_plugin_midi score_plugin_automation score_plugin_curve score_plugin_engine score_plugin_scenario score_lib_process)
       target_include_directories(test_unit_looper_timeline PRIVATE
         "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish"
         "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/examples")

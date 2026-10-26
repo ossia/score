@@ -4,11 +4,26 @@
 #include <algorithm>
 #include <array>
 #include <bit>
+#include <cmath>
 #include <cstdint>
 #include <utility>
 
 namespace Nodes::Looper
 {
+//! What a loop whose material is kept apart keeps of a pass besides it.
+struct tagged_pass
+{
+  //! Length it repeats with: zero while it is the loop's length. A pass made
+  //! before the loop was extended plays again over the longer loop.
+  int64_t period{};
+  //! Length of the loop before and after the pass, for undo and redo.
+  int64_t loop_before{};
+  int64_t loop_after{};
+  //! Kept but not heard: as if erased for what the loop sounds like, so it
+  //! replaces nothing either.
+  bool muted{};
+};
+
 /**
  * The passes of a loop, one over the other, whatever they hold.
  *
@@ -511,5 +526,219 @@ struct tagged_material
       e.pass = uint8_t((e.merged & from_upper) ? b : a);
     e.merged = 0;
   }
+};
+
+/**
+ * A pass_stack whose material is all kept apart and tagged as
+ * tagged_material says: the hooks that move it along with its passes, the
+ * merging of two passes, and where the pass being taken in went. `Store`
+ * gives, besides the pass_stack hooks it wants to do more in:
+ *
+ *   template <typename F> void for_each_material(F&& f);   // every piece
+ *   template <typename F> void remove_material(F&& gone);  // those `gone` says
+ *   void clear_material();       // every pass is gone
+ *   void pass_state_begun();     // a pass starts: what it touched is forgotten
+ */
+template <typename Store, typename Pass, int MaxLayers>
+struct tagged_pass_stack : pass_stack<Store, Pass, MaxLayers>
+{
+  using stack = pass_stack<Store, Pass, MaxLayers>;
+  using tags = tagged_material<stack::max_passes>;
+  //! Where the material of a pass set aside is, past every pass there can be.
+  static constexpr int aside_pass = tags::aside_pass;
+
+  //! Changes each time what is heard of the loop may have changed.
+  uint64_t edits{};
+
+  // The pass being taken in: where it went.
+  int64_t pass_start{};
+  int64_t pass_written{};
+  //! The frames the pass went over, not rounded: at a rate other than one, a
+  //! tick goes over a fraction of a frame more than its whole frames.
+  double pass_progress{};
+  //! The playhead goes backwards: the part the pass went over grows towards
+  //! the loop's start, pass_start being its first position.
+  bool pass_backwards{};
+  bool taking{};
+
+  // pass_stack's hooks: the material moves with its passes.
+  void passes_changed() noexcept { edits++; }
+  bool may_remove(int k) const noexcept { return !(taking && k == this->count - 1); }
+  void muting(int) noexcept { }
+  void removing(int) noexcept { }
+  void erased(int k) noexcept
+  {
+    store().remove_material([k](const auto& e) { return e.pass == k; });
+    store().for_each_material([k](auto& e) { tags::erase(e, k); });
+  }
+  void aside_taken(int k) noexcept
+  {
+    store().for_each_material([k](auto& e) { tags::set_aside(e, k); });
+  }
+  void aside_returned(int k) noexcept
+  {
+    store().for_each_material([k](auto& e) { tags::put_back(e, k); });
+  }
+  void aside_forgotten() noexcept
+  {
+    store().remove_material([](const auto& e) { return e.pass == aside_pass; });
+    store().for_each_material([](auto& e) { e.replaced_by &= ~tags::bit(aside_pass); });
+  }
+  void redo_dropped(bool keep_aside) noexcept
+  {
+    const int heard_passes = this->count;
+    store().remove_material([heard_passes, keep_aside](const auto& e) {
+      return e.pass >= heard_passes && !(keep_aside && e.pass == aside_pass);
+    });
+    uint64_t kept
+        = this->count >= 64 ? ~uint64_t(0) : (uint64_t(1) << this->count) - 1;
+    if(keep_aside)
+      kept |= tags::bit(aside_pass);
+    store().for_each_material([kept](auto& e) { e.replaced_by &= kept; });
+  }
+  void unmerge_dropped() noexcept
+  {
+    store().remove_material([](const auto& e) { return e.pass == tags::lost_pass; });
+  }
+  void unmerged(int at) noexcept
+  {
+    store().for_each_material([at](auto& e) { tags::unmerge(e, at); });
+  }
+  void cleared() noexcept
+  {
+    taking = false;
+    store().clear_material();
+  }
+  void undoing() noexcept { }
+
+  //! Position k is in what the pass being taken in went over.
+  bool in_pass(int64_t k) const noexcept
+  {
+    if(!taking)
+      return false;
+    if(pass_written >= this->length)
+      return true;
+    int64_t d = k - pass_start;
+    if(d < 0)
+      d += this->length;
+    return d < pass_written;
+  }
+
+  //! The pass being taken in replaces what is under it as it goes, unless it
+  //! is muted.
+  bool replacing() const noexcept
+  {
+    return taking && this->count > 0 && !this->layers[this->count - 1].muted;
+  }
+
+  void begin_recording() noexcept
+  {
+    this->begin_first_pass();
+    begin_pass_state(0);
+  }
+
+  //! Starts an overdub pass at `start`. With `layers` passes, the two oldest
+  //! are merged first when `oldest` is set; else the pass is one more, merged
+  //! into the newest when it ends. `replace`, a pass heard, makes room for it
+  //! instead: it is set aside, undo putting it back.
+  void begin_overdub(
+      int64_t start, int max = stack::max_layers, bool oldest = true,
+      int replace = -1) noexcept
+  {
+    this->drop_redo();
+    this->forget_aside();
+    if(replace >= 0)
+      this->set_aside(replace);
+    max = std::clamp(max, 2, stack::max_layers);
+    if(oldest)
+    {
+      while(this->count >= max)
+        merge(0);
+    }
+    else
+    {
+      // The pass before it was not merged yet.
+      while(this->count > max)
+        merge(this->count - 2);
+    }
+    this->push_pass();
+    begin_pass_state(start);
+  }
+
+  //! Merges pass `at` and the one over it into one, heard as the two were.
+  //! A muted pass merged with one that is not is left out of the merged one:
+  //! merging is where it is lost. With `undoable`, undo takes the upper pass
+  //! out again, as long as nothing else changes the passes.
+  void merge(int at, bool undoable = false) noexcept
+  {
+    const int a = at, b = at + 1;
+    if(a < 0 || b >= this->count)
+      return;
+    this->begin_merge();
+    const Pass was_a = this->layers[a], was_b = this->layers[b];
+    const bool lost_a = was_a.muted && !was_b.muted;
+    const bool lost_b = was_b.muted && !was_a.muted;
+    store().for_each_material([=](auto& e) { tags::merge(e, a, lost_a, lost_b); });
+    this->merged(a, this->merged_pass(was_a, was_b), undoable, was_a, was_b);
+  }
+
+  void begin_pass_state(int64_t start) noexcept
+  {
+    pass_start = start;
+    pass_written = 0;
+    pass_progress = 0.;
+    pass_backwards = false;
+    taking = true;
+    store().pass_state_begun();
+  }
+
+  //! The pass went over `frames` more frames of the loop, backwards when
+  //! the playhead goes backwards.
+  void advance_pass(double frames, bool backwards = false) noexcept
+  {
+    pass_progress += frames;
+    const auto written = int64_t(std::floor(pass_progress + 1e-6));
+    if(backwards && this->length > 0)
+    {
+      pass_start = (pass_start - (written - pass_written)) % this->length;
+      if(pass_start < 0)
+        pass_start += this->length;
+    }
+    pass_backwards = backwards;
+    pass_written = written;
+  }
+
+  //! Copies the passes of another loop and where its pass went, not its
+  //! material.
+  void assign_passes(const tagged_pass_stack& o) noexcept
+  {
+    this->count = o.count;
+    this->total = o.total;
+    this->length = o.length;
+    this->layers = o.layers;
+    this->unmerge = o.unmerge;
+    this->aside = o.aside;
+    edits = o.edits;
+    pass_start = o.pass_start;
+    pass_written = o.pass_written;
+    pass_progress = o.pass_progress;
+    pass_backwards = o.pass_backwards;
+    taking = o.taking;
+  }
+
+  //! Frames from `from` to `to` going forwards round the loop, a whole round
+  //! for the same position.
+  int64_t distance(int64_t from, int64_t to) const noexcept
+  {
+    if(this->length <= 0)
+      return std::max<int64_t>(1, to - from);
+    int64_t d = (to - from) % this->length;
+    if(d <= 0)
+      d += this->length;
+    return d;
+  }
+
+private:
+  Store& store() noexcept { return static_cast<Store&>(*this); }
 };
 }

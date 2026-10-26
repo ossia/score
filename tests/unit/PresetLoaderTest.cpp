@@ -24,6 +24,7 @@
 #include <Fx/Arpeggiator_v2.hpp>
 #include <Fx/Chord.hpp>
 #include <Fx/Looper/MidiLooper.hpp>
+#include <Fx/Looper/ValueLooper.hpp>
 #include <avnd/binding/ossia/from_value.hpp>
 #include <avnd/binding/ossia/time_controls.hpp>
 #include <catch2/catch_test_macros.hpp>
@@ -181,7 +182,9 @@ void check_folder(
       avnd::pfr::for_each_field(loaded.inputs, [&](auto& field) {
         if(n++ != idx)
           return;
-        if constexpr(requires { field.value; })
+        // A port that is not a control, e.g. a raw value port, has no value
+        // a preset sets.
+        if constexpr(requires { requires !std::is_pointer_v<decltype(field.value)>; })
         {
           convert(field, ctl->value());
           int k = 0;
@@ -214,5 +217,7 @@ TEST_CASE("Presets load through score as the harnesses apply them", "[presets][l
         *doc, "Chord", "F0904279-EA26-48DB-B0DF-F68FE3091DA1", false);
     check_folder<Nodes::MidiLooper::Node>(
         *doc, "Looper (MIDI)", "0c0b7d3e-5a52-4b8f-9d1f-6e3a2b8c4f71", false);
+    check_folder<Nodes::ValueLooper::Node>(
+        *doc, "Looper (values)", "399796c5-9e86-4a00-8671-3e759ad6fb33", false);
   });
 }

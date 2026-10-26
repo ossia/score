@@ -6,6 +6,7 @@
 
 #include <Fx/Looper/AudioLooper.hpp>
 #include <Fx/Looper/MidiLooper.hpp>
+#include <Fx/Looper/ValueLooper.hpp>
 
 #include <ossia/dataflow/execution_state.hpp>
 
@@ -13,6 +14,7 @@
 #include <catch2/catch_test_macros.hpp>
 
 #include <array>
+#include <memory>
 #include <cmath>
 #include <set>
 #include <string>
@@ -24,6 +26,7 @@ namespace
 {
 using Audio = Nodes::AudioLooper::Node;
 using Midi = Nodes::MidiLooper::Node;
+using Values = Nodes::ValueLooper::Node;
 using LoopMode = Nodes::Looper::LoopMode;
 using AfterRecord = Nodes::Looper::AfterRecord;
 using AfterOverdub = Nodes::Looper::AfterOverdub;
@@ -47,11 +50,20 @@ const std::vector<midi_presets::preset>& midi_presets_list()
   return p;
 }
 
+const std::vector<midi_presets::preset>& value_presets()
+{
+  static const auto p
+      = midi_presets::load("Looper (values)", "399796c5-9e86-4a00-8671-3e759ad6fb33");
+  return p;
+}
+
 template <typename Node>
 const std::vector<midi_presets::preset>& presets_of()
 {
   if constexpr(std::is_same_v<Node, Audio>)
     return audio_presets();
+  else if constexpr(std::is_same_v<Node, Values>)
+    return value_presets();
   else
     return midi_presets_list();
 }
@@ -819,5 +831,124 @@ TEST_CASE("Looper presets: MIDI notes", "[fx][looper][presets]")
     REQUIRE(!r.pitches_out.empty());
     for(int p : r.pitches_out)
       CHECK((p >= 72 && p < 84));
+  }
+}
+
+namespace
+{
+//! The value looper with a preset; a new number comes in on each tick while
+//! `playing`.
+struct value_rig
+{
+  static constexpr int64_t frames = rig_frames;
+  static constexpr int64_t bar = rig_bar;
+  std::unique_ptr<Values> owner{std::make_unique<Values>()};
+  Values& node{*owner};
+  ossia::execution_state st;
+  ossia::value_port in, out;
+  int64_t now{};
+  bool playing{true};
+  int counter{};
+
+  explicit value_rig(const char* preset)
+  {
+    setup_state(st);
+    node.ossia_state = {&st};
+    node.inputs.values.value = &in;
+    node.outputs.values.value = &out;
+    apply(node, preset);
+    node.prepare(halp::setup{.frames = int(frames), .rate = 48000.});
+    node.inputs.mode = LoopMode::Stop;
+    for(int i = 0; i < 5; i++)
+      tick_once();
+  }
+
+  void tick_once()
+  {
+    in.clear();
+    out.clear();
+    if(playing)
+      in.write_value(float(counter++), 100);
+    const auto tk = musical_tick(now, frames);
+    st.samples_since_start = now + frames;
+    node(tk);
+    now += frames;
+  }
+  int passes() const { return node.loop.count; }
+  int64_t length() const { return node.loop.length; }
+  int64_t position() const
+  {
+    return node.transport.playbackPos % std::max<int64_t>(1, node.loop.length);
+  }
+};
+}
+
+TEST_CASE("Looper presets: the value looper's load, set every setting, and none starts it",
+          "[fx][looper][presets][values]")
+{
+  REQUIRE(value_presets().size() == 5);
+  for(auto& p : value_presets())
+  {
+    auto n = std::make_unique<Values>();
+    n->inputs.mode.value = LoopMode::Stop;
+    INFO(p.name.toStdString());
+    CHECK(midi_presets::apply(n->inputs, p).empty());
+    CHECK(indices(p) == indices(value_presets().front()));
+    for(const int f :
+        {index_of(n->inputs, n->inputs.after_record), index_of(n->inputs, n->inputs.passes),
+         index_of(n->inputs, n->inputs.at_max_layers), index_of(n->inputs, n->inputs.max_layers),
+         index_of(n->inputs, n->inputs.exported), index_of(n->inputs, n->inputs.quantif)})
+      CHECK(indices(p).count(f));
+    CHECK(n->inputs.mode.value == LoopMode::Stop);
+    CHECK(!n->inputs.capture.value);
+    CHECK(n->inputs.start_from.value == StartFrom::WhereItWas);
+  }
+}
+
+TEST_CASE("Looper presets: the value looper's, as their names say", "[fx][looper][presets][values]")
+{
+  SECTION("two bar gesture: two bars, then plays")
+  {
+    value_rig r{"Two bar gesture"};
+    act(r, r.node.inputs.record);
+    bars(r, 3);
+    CHECK(mode(r) == LoopMode::Play);
+    CHECK(r.length() == 2 * value_rig::bar);
+  }
+  SECTION("free gesture: as long as it is played")
+  {
+    value_rig r{"Free gesture"};
+    CHECK(r.node.inputs.quantif.value.none());
+    press(r, r.node.inputs.record);
+    ticks(r, 7);
+    press(r, r.node.inputs.play);
+    CHECK(mode(r) == LoopMode::Play);
+    CHECK(r.length() == 8 * value_rig::frames);
+  }
+  SECTION("a layer per round: overdubs a layer each time round")
+  {
+    value_rig r{"A layer per round"};
+    act(r, r.node.inputs.record);
+    bars(r, 2);
+    CHECK(mode(r) == LoopMode::Overdub);
+    bars(r, 4);
+    // The recording, and a layer for each of the two rounds since.
+    CHECK(r.passes() >= 3);
+  }
+  SECTION("capture what moved: the last bars")
+  {
+    value_rig r{"Capture what moved"};
+    bars(r, 5);
+    to_middle(r);
+    press(r, r.node.inputs.capture);
+    CHECK(mode(r) == LoopMode::Play);
+    CHECK(r.length() == r.node.inputs.capture_bars.value * value_rig::bar);
+    CHECK(r.node.loop.event_count > 0);
+  }
+  SECTION("takes for automation: the mix and each layer")
+  {
+    value_rig r{"Takes for automation"};
+    CHECK(r.node.inputs.exported.value == TakeFiles::Both);
+    CHECK(r.node.inputs.postaction_bars.value == 4);
   }
 }

@@ -63,18 +63,7 @@ struct midi_control
 };
 
 //! What the MIDI loop keeps of a pass besides its events.
-struct midi_pass
-{
-  //! Length it repeats with: zero while it is the loop's length. A pass made
-  //! before the loop was extended plays again over the longer loop.
-  int64_t period{};
-  //! Length of the loop before and after the pass, for undo and redo.
-  int64_t loop_before{};
-  int64_t loop_after{};
-  //! Kept but not heard: as if erased for what the loop sounds like, so it
-  //! replaces nothing either.
-  bool muted{};
-};
+using midi_pass = tagged_pass;
 
 /**
  * The notes and controllers of a MIDI loop, in fixed storage.
@@ -87,15 +76,11 @@ struct midi_pass
  * every pass that replaces it, and is heard when none of them is: muting,
  * erasing or merging a pass leaves what the others replace as it is.
  */
-struct midi_loop : pass_stack<midi_loop, midi_pass, 32>
+struct midi_loop : tagged_pass_stack<midi_loop, midi_pass, 32>
 {
   static constexpr int max_notes = 4096;
   static constexpr int max_controls = 8192;
   static constexpr int max_touched = 64;
-
-  using tags = tagged_material<max_passes>;
-  //! Where the events of a pass set aside are, past every pass there can be.
-  static constexpr int aside_pass = tags::aside_pass;
 
   std::array<midi_note, max_notes> notes{};
   std::array<midi_control, max_controls> controls{};
@@ -103,84 +88,32 @@ struct midi_loop : pass_stack<midi_loop, midi_pass, 32>
   int control_count{};
   bool full{};
 
-  //! Changes each time what is heard of the controllers may have changed.
-  uint64_t edits{};
-
-  // The pass being recorded: where it went, and what it touched.
-  int64_t pass_start{};
-  int64_t pass_written{};
-  //! The frames the pass went over, not rounded: at a rate other than one, a
-  //! tick goes over a fraction of a frame more than its whole frames.
-  double pass_progress{};
-  //! The playhead goes backwards: the part the pass went over grows towards
-  //! the loop's start, pass_start being its first position.
-  bool pass_backwards{};
+  // What the pass being recorded touched.
   std::array<bool, 128> touched_pitches{};
   std::array<uint16_t, max_touched> touched_keys{};
   int touched_count{};
-  bool taking{};
 
-  // pass_stack's hooks: the events move with their passes.
-  void passes_changed() noexcept { edits++; }
-  bool may_remove(int k) const noexcept { return !(taking && k == count - 1); }
-  void muting(int) noexcept { }
-  void removing(int) noexcept { }
-  void erased(int k) noexcept
-  {
-    remove_events([k](const auto& e) { return e.pass == k; });
-    for_each_event([k](auto& e) { tags::erase(e, k); });
-  }
-  void aside_taken(int k) noexcept
-  {
-    for_each_event([k](auto& e) { tags::set_aside(e, k); });
-  }
-  void aside_returned(int k) noexcept
-  {
-    for_each_event([k](auto& e) { tags::put_back(e, k); });
-  }
-  void aside_forgotten() noexcept
-  {
-    remove_events([](const auto& e) { return e.pass == aside_pass; });
-    for_each_event([](auto& e) { e.replaced_by &= ~tags::bit(aside_pass); });
-  }
-  void redo_dropped(bool keep_aside) noexcept
-  {
-    const int heard_passes = count;
-    remove_events([heard_passes, keep_aside](const auto& e) {
-      return e.pass >= heard_passes && !(keep_aside && e.pass == aside_pass);
-    });
-    uint64_t kept = count >= 64 ? ~uint64_t(0) : (uint64_t(1) << count) - 1;
-    if(keep_aside)
-      kept |= tags::bit(aside_pass);
-    for_each_event([kept](auto& e) { e.replaced_by &= kept; });
-  }
-  void unmerge_dropped() noexcept
-  {
-    remove_events([](const auto& e) { return e.pass == tags::lost_pass; });
-  }
-  void unmerged(int at) noexcept
-  {
-    for_each_event([at](auto& e) { tags::unmerge(e, at); });
-  }
-  void cleared() noexcept
+  // tagged_pass_stack's hooks: the events are the material.
+  void clear_material() noexcept
   {
     note_count = 0;
     control_count = 0;
     full = false;
-    taking = false;
   }
-  void undoing() noexcept { }
-
-  bool in_pass(int64_t k) const noexcept
+  void pass_state_begun() noexcept
   {
-    if(!taking)
-      return false;
-    if(pass_written >= length)
-      return true;
-    int64_t d = k - pass_start;
-    if(d < 0)
-      d += length;
-    return d < pass_written;
+    touched_pitches.fill(false);
+    touched_count = 0;
+  }
+  template <typename F>
+  void for_each_material(F&& f) noexcept
+  {
+    for_each_event(std::forward<F>(f));
+  }
+  template <typename F>
+  void remove_material(F&& gone) noexcept
+  {
+    remove_events(std::forward<F>(gone));
   }
 
   bool touched(uint16_t key) const noexcept
@@ -189,13 +122,6 @@ struct midi_loop : pass_stack<midi_loop, midi_pass, 32>
       if(touched_keys[i] == key)
         return true;
     return false;
-  }
-
-  //! The pass being taken in replaces what is under it as it goes, unless it
-  //! is muted.
-  bool replacing() const noexcept
-  {
-    return taking && count > 0 && !layers[count - 1].muted;
   }
 
   //! `own_mute` false hears a muted pass's events as if it were not muted.
@@ -239,67 +165,6 @@ struct midi_loop : pass_stack<midi_loop, midi_pass, 32>
       f(controls[i]);
   }
 
-  void begin_recording() noexcept
-  {
-    begin_first_pass();
-    begin_pass_state(0);
-  }
-
-  //! Starts an overdub pass at `start`. With `layers` passes, the two oldest
-  //! are merged first when `oldest` is set; else the pass is one more, merged
-  //! into the newest when it ends. `replace`, a pass heard, makes room for it
-  //! instead: it is set aside, undo putting it back.
-  void begin_overdub(
-      int64_t start, int max = max_layers, bool oldest = true, int replace = -1) noexcept
-  {
-    drop_redo();
-    forget_aside();
-    if(replace >= 0)
-      set_aside(replace);
-    max = std::clamp(max, 2, max_layers);
-    if(oldest)
-    {
-      while(count >= max)
-        merge(0);
-    }
-    else
-    {
-      // The pass before it was not merged yet.
-      while(count > max)
-        merge(count - 2);
-    }
-    push_pass();
-    begin_pass_state(start);
-  }
-
-  //! Merges pass `at` and the one over it into one, heard as the two were.
-  //! A muted pass merged with one that is not is left out of the merged one:
-  //! merging is where it is lost. With `undoable`, undo takes the upper pass
-  //! out again, as long as nothing else changes the passes.
-  void merge(int at, bool undoable = false) noexcept
-  {
-    const int a = at, b = at + 1;
-    if(a < 0 || b >= count)
-      return;
-    begin_merge();
-    const midi_pass was_a = layers[a], was_b = layers[b];
-    const bool lost_a = was_a.muted && !was_b.muted;
-    const bool lost_b = was_b.muted && !was_a.muted;
-    for_each_event([=](auto& e) { tags::merge(e, a, lost_a, lost_b); });
-    merged(a, merged_pass(was_a, was_b), undoable, was_a, was_b);
-  }
-
-  void begin_pass_state(int64_t start) noexcept
-  {
-    pass_start = start;
-    pass_written = 0;
-    pass_progress = 0.;
-    pass_backwards = false;
-    touched_pitches.fill(false);
-    touched_count = 0;
-    taking = true;
-  }
-
   //! The pass is over: what it went over is replaced where it played the
   //! same pitch, with OverdubMode::Replace, or moved the same controller.
   void end_pass(OverdubMode mode) noexcept
@@ -328,22 +193,6 @@ struct midi_loop : pass_stack<midi_loop, midi_pass, 32>
     taking = false;
   }
 
-  //! The pass went over `frames` more frames of the loop, backwards when
-  //! the playhead goes backwards.
-  void advance_pass(double frames, bool backwards = false) noexcept
-  {
-    pass_progress += frames;
-    const auto written = int64_t(std::floor(pass_progress + 1e-6));
-    if(backwards && length > 0)
-    {
-      pass_start = (pass_start - (written - pass_written)) % length;
-      if(pass_start < 0)
-        pass_start += length;
-    }
-    pass_backwards = backwards;
-    pass_written = written;
-  }
-
   //! Copies what another loop holds, without its unused storage.
   void assign(const midi_loop& o) noexcept
   {
@@ -351,22 +200,11 @@ struct midi_loop : pass_stack<midi_loop, midi_pass, 32>
     std::copy_n(o.controls.begin(), o.control_count, controls.begin());
     note_count = o.note_count;
     control_count = o.control_count;
-    count = o.count;
-    total = o.total;
-    length = o.length;
     full = o.full;
-    layers = o.layers;
-    edits = o.edits;
-    unmerge = o.unmerge;
-    aside = o.aside;
-    pass_start = o.pass_start;
-    pass_written = o.pass_written;
-    pass_progress = o.pass_progress;
-    pass_backwards = o.pass_backwards;
+    assign_passes(o);
     touched_pitches = o.touched_pitches;
     touched_keys = o.touched_keys;
     touched_count = o.touched_count;
-    taking = o.taking;
   }
 
   midi_note* add_note(int64_t pos, int channel, int pitch, int velocity) noexcept
@@ -440,16 +278,6 @@ struct midi_loop : pass_stack<midi_loop, midi_pass, 32>
       if(n.length < 0)
         n.length = distance(n.start, pos);
     }
-  }
-
-  int64_t distance(int64_t from, int64_t to) const noexcept
-  {
-    if(length <= 0)
-      return std::max<int64_t>(1, to - from);
-    int64_t d = (to - from) % length;
-    if(d <= 0)
-      d += length;
-    return d;
   }
 };
 }

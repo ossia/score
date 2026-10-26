@@ -39,6 +39,7 @@
 #include <Fx/Chord.hpp>
 #include <Fx/Looper/AudioLooper.hpp>
 #include <Fx/Looper/MidiLooper.hpp>
+#include <Fx/Looper/ValueLooper.hpp>
 #include <Fx/RateLimiter.hpp>
 #include <Fx/RateLimiter_v2.hpp>
 #include <boost/container/static_vector.hpp>
@@ -61,6 +62,7 @@
 #include <new>
 #include <string>
 #include <thread>
+#include <set>
 #include <vector>
 
 TEST_CASE("Edition queue: try_enqueue does not allocate, and fails when full", "[avnd][message_bus]")
@@ -623,11 +625,13 @@ TEST_CASE("Midi life through the binding: every view of the process gets the vie
 TEMPLATE_TEST_CASE(
     "Loopers through the binding: the view reaches the layer",
     "[avnd][message_bus][execution][looper]", Nodes::AudioLooper::Node,
-    Nodes::MidiLooper::Node)
+    Nodes::MidiLooper::Node, Nodes::ValueLooper::Node)
 {
   const QString uuid = std::is_same_v<TestType, Nodes::AudioLooper::Node>
                            ? QStringLiteral("a0ad4227-ac3d-448b-a19b-19581ed4e2c6")
-                           : QStringLiteral("0c0b7d3e-5a52-4b8f-9d1f-6e3a2b8c4f71");
+                       : std::is_same_v<TestType, Nodes::MidiLooper::Node>
+                           ? QStringLiteral("0c0b7d3e-5a52-4b8f-9d1f-6e3a2b8c4f71")
+                           : QStringLiteral("399796c5-9e86-4a00-8671-3e759ad6fb33");
   with<TestType>(uuid, [](auto& e) {
     auto& model = static_cast<oscr::ProcessModel<TestType>&>(e.proc);
     int views = 0;
@@ -714,6 +718,40 @@ TEST_CASE("MIDI looper through the binding: passthrough", "[avnd][execution][loo
       e.tick(64);
       CHECK(e.midi_out() == std::vector<int>{0x80});
     }
+  });
+}
+
+TEST_CASE("Value looper through the binding: what is recorded comes back at the outlet",
+          "[avnd][execution][looper]")
+{
+  with<Nodes::ValueLooper::Node>(QStringLiteral("399796c5-9e86-4a00-8671-3e759ad6fb33"), [](auto& e) {
+    auto* in = e.node.root_inputs()[0]->template target<ossia::value_port>();
+    REQUIRE(in);
+    auto out = [&] {
+      std::vector<float> r;
+      if(auto* port = e.node.root_outputs()[0]->template target<ossia::value_port>())
+        for(auto& v : port->get_data())
+          if(v.value.get_type() == ossia::val_type::FLOAT)
+            r.push_back(v.value.template get<float>());
+      return r;
+    };
+    e.gui("Mode", ossia::value{std::string{"Record"}});
+    for(int i = 0; i < 20; i++)
+    {
+      in->write_value(ossia::value{float(i)}, 10);
+      e.tick(512);
+      in->clear();
+    }
+    e.gui("Mode", ossia::value{std::string{"Play"}});
+    std::set<float> heard;
+    for(int i = 0; i < 40; i++)
+    {
+      e.tick(512);
+      for(float f : out())
+        heard.insert(f);
+    }
+    CHECK(heard.size() >= 18);
+    CHECK(heard.count(5.f) == 1);
   });
 }
 

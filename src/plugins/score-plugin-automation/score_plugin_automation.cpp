@@ -21,6 +21,7 @@
 #include <Automation/Inspector/AutomationStateInspectorFactory.hpp>
 #include <Automation/Inspector/CurvePointInspectorFactory.hpp>
 #include <Automation/LocalTree.hpp>
+#include <Automation/ValueTakeDrop.hpp>
 #include <Inspector/InspectorWidgetFactoryInterface.hpp>
 
 #include <score/plugins/FactorySetup.hpp>
@@ -97,6 +98,7 @@ std::vector<score::InterfaceBase*> score_plugin_automation::factories(
          Gradient::InspectorFactory>,
 
       FW<LocalTree::ProcessComponentFactory, LocalTree::AutomationComponentFactory>,
+      FW<Process::ProcessDropHandler, Automation::ValueTakeDropHandler>,
 
       FW<Execution::ProcessComponentFactory,
          //, Interpolation::Executor::ComponentFactory,
