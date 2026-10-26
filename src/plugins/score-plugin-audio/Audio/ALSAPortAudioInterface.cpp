@@ -14,12 +14,19 @@
 #include <QSpinBox>
 #include <QTimer>
 
+#include <map>
+#include <optional>
+#include <tuple>
+
 namespace Audio
 {
 #if defined(OSSIA_AUDIO_PORTAUDIO) && __has_include(<pa_linux_alsa.h>)
 
 class ALSAPortAudioWidget : public QWidget
 {
+  // Initializing PortAudio enumerates every ALSA device: once per panel, and
+  // again on Rescan (an initialized PortAudio keeps its device list).
+  std::optional<PortAudioScope> m_portaudio{std::in_place};
   ALSAPortAudioFactory& m_factory;
   Audio::Settings::Model& m_model;
   Audio::Settings::View& m_view;
@@ -35,6 +42,9 @@ class ALSAPortAudioWidget : public QWidget
   // Pending values: the model only changes when the dialog is accepted.
   QString m_cardOut;
   QString m_cardIn;
+
+  // Probing a rate opens the device: each combination is probed once.
+  std::map<std::tuple<QString, QString, int, int>, std::vector<int>> m_rates;
 
 public:
   ALSAPortAudioWidget(
@@ -72,7 +82,10 @@ public:
       fillDevices();
 
     connect(rescan, &QPushButton::clicked, this, [this] {
+      m_portaudio.reset();
       m_factory.rescan();
+      m_portaudio.emplace();
+      m_rates.clear();
       fillDevices();
     });
     connect(m_out, SignalUtils::QComboBox_currentIndexChanged_int(), this, [this](int) {
@@ -123,15 +136,20 @@ private:
     QString shown = name;
     if(auto dev = m_factory.find(name))
     {
-      // One device used to be saved for both directions.
-      if((input ? dev->inputChan : dev->outputChan) == 0)
+      // The device may be saved for a direction it does not have, or under
+      // another card index: store what is shown.
+      auto& card = input ? m_cardIn : m_cardOut;
+      const bool usable = (input ? dev->inputChan : dev->outputChan) > 0;
+      card = usable ? dev->raw_name : QString{};
+      if(card != name)
       {
-        auto& card = input ? m_cardIn : m_cardOut;
-        card.clear();
         if(input)
           m_disp.submitDeferredCommand<Audio::Settings::SetModelCardIn>(m_model, card);
         else
           m_disp.submitDeferredCommand<Audio::Settings::SetModelCardOut>(m_model, card);
+      }
+      if(!usable)
+      {
         combo->setCurrentIndex(0);
         return;
       }
@@ -175,7 +193,6 @@ private:
   //! device that is in use, by score or another program, cannot be asked.
   void updateRates()
   {
-    PortAudioScope portaudio;
     auto index_of = [](const QString& name, bool input) -> PaDeviceIndex {
       if(name.isEmpty())
         return paNoDevice;
@@ -203,13 +220,27 @@ private:
     bool busy = false;
     if(use_in || use_out)
     {
-      for(int r : {22050, 32000, 44100, 48000, 88200, 96000, 176400, 192000})
+      const auto key = std::make_tuple(
+          use_in ? m_cardIn : QString{}, use_out ? m_cardOut : QString{},
+          use_in ? in.channelCount : 0, use_out ? out.channelCount : 0);
+      if(auto it = m_rates.find(key); it != m_rates.end())
       {
-        auto err = Pa_IsFormatSupported(use_in ? &in : nullptr, use_out ? &out : nullptr, r);
-        if(err == paFormatIsSupported)
-          rates.push_back(r);
-        else if(err == paDeviceUnavailable)
-          busy = true;
+        rates = it->second;
+      }
+      else
+      {
+        for(int r : {22050, 32000, 44100, 48000, 88200, 96000, 176400, 192000})
+        {
+          auto err
+              = Pa_IsFormatSupported(use_in ? &in : nullptr, use_out ? &out : nullptr, r);
+          if(err == paFormatIsSupported)
+            rates.push_back(r);
+          else if(err == paDeviceUnavailable)
+            busy = true;
+        }
+        // A busy device is asked again later.
+        if(!busy)
+          m_rates[key] = rates;
       }
     }
     if(rates.empty())
