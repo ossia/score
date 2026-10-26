@@ -38,8 +38,6 @@ struct Node
   halp_flag(process_exec);
 
   using LoopMode = Looper::LoopMode;
-  using Postaction = Looper::Postaction;
-  using Restart = Looper::Restart;
   using Passthrough = Looper::Passthrough;
   using OverdubMode = Looper::OverdubMode;
   using HeldNotes = Looper::HeldNotes;
@@ -53,11 +51,14 @@ struct Node
       using halp::enum_t<LoopMode, "Loop">::operator=;
       halp_meta(
           description,
-          "What the looper is doing: playing the loop, recording a new one, "
-          "overdubbing on top of it, or nothing. Comp overdubs as well, in a new "
-          "layer each time it is taken up.")
-      //! Shows the mode actions and post-actions change it to.
+          "What the looper is doing, or about to do on the grid: playing the "
+          "loop, recording a new one, overdubbing on top of it, or nothing. It "
+          "follows every change, by an action or a recording's end. Overdub on "
+          "an empty loop records it, then overdubs.")
+      //! Shows the mode actions and a recording's end change it to.
       std::function<void(std::string_view)> update_controller;
+      //! A value came in, from the UI or a cable.
+      void update(Node& n) noexcept { n.loop_arrived(); }
     } mode;
 
     struct : quant_selector<"Quantif">
@@ -77,37 +78,17 @@ struct Node
           "while recording or overdubbing, or always.")
     } passthrough;
 
-    struct : halp::enum_t<Postaction, "Post-action">
-    {
-      using halp::enum_t<Postaction, "Post-action">::operator=;
-      halp_meta(
-          description, "What recording gives way to once it has run for Bars bars")
-    } postaction;
+    Looper::after_record_selector after_record;
 
     struct : halp::spinbox_i32<"Bars", halp::irange{0, 64, 4}>
     {
       halp_meta(
           description,
-          "How long a recording runs before the post-action takes over. Zero "
+          "How long a recording runs before After record takes over. Zero "
           "leaves it to be ended by hand.")
     } postaction_bars;
 
-    struct : halp::enum_t<Restart, "Restart">
-    {
-      using halp::enum_t<Restart, "Restart">::operator=;
-      struct range
-      {
-        std::string_view values[3] = {"Always", "Recording", "In phase"};
-        Restart init{};
-      };
-      halp_meta(
-          description,
-          "Where the loop is read from when the mode changes: from its "
-          "beginning, or, but for a recording, from where it was. In phase "
-          "carries on as well, and a loop played again after a stop, or when "
-          "the score starts or jumps, is where it would be had it kept playing "
-          "with the timeline.")
-    } restart;
+    Looper::start_from_selector start_from;
 
     struct : halp::impulse_button<"Undo">
     {
@@ -244,22 +225,17 @@ struct Node
           "the tempo changes. Off, it keeps the speed it was recorded at.")
     } follow_tempo;
 
-    struct : halp::impulse_button<"Erase layer">
-    {
-      halp_meta(
-          description,
-          "Removes the pass Layer says from the loop, as the x of its lane does. "
-          "The passes over it stay where they are, and the notes only it "
-          "replaced are heard again.")
-    } erase_layer;
+    Looper::erase_layer_button erase_layer;
 
     struct : halp::spinbox_i32<"Layer", halp::irange{1, 32, 1}>
     {
       halp_meta(
           description,
-          "The pass Erase layer removes, counting from the oldest one: the lane "
-          "of that number from the top while there are no more passes than "
-          "lanes, and the file of that number of a take written as layers.")
+          "The layer Mute layer, Erase layer and Solo layer act on, counting "
+          "from the oldest one: the lane of that number from the top while "
+          "there are no more layers than lanes, and the file of that number of "
+          "a take written as layers. It moves to each new layer as it is "
+          "added.")
       std::function<void(int)> update_controller;
     } layer;
 
@@ -296,41 +272,41 @@ struct Node
       halp_meta(
           description,
           "What an overdub that goes round the loop several times leaves: one "
-          "pass (Whole), or a pass for each time round (Per cycle), to keep the "
-          "best one with Mute layer, erase the others, or splice them in the "
-          "timeline from a take written as layers.")
+          "layer (Whole), or a layer for each time round (Per cycle), cut on "
+          "the loop's start, to keep the best one with Solo layer or Mute "
+          "layer, erase the others, or splice them in the timeline from a take "
+          "written as layers. With Past the end on Extend, a cut is made each "
+          "time the loop grows.")
     } passes;
 
-    struct : halp::impulse_button<"Mute layer">
-    {
-      halp_meta(
-          description,
-          "Mutes the pass Layer says, or unmutes it, as the m of its lane does. "
-          "A muted pass is kept but not heard: it replaces nothing, is not in "
-          "the mix of a take, and still has its file in a take written as "
-          "layers.")
-    } mute_layer;
+    Looper::mute_layer_button mute_layer;
 
     // The Switches tab: actions for footswitches.
     Looper::rec_play_dub_button rec_play_dub;
-    Looper::after_record_selector after_record;
     Looper::after_overdub_selector after_overdub;
     Looper::play_stop_button play_stop;
     Looper::stop_at_selector stop_at;
     Looper::record_button record;
     Looper::overdub_button overdub;
-    Looper::comp_next_button comp_next;
+    Looper::new_layer_button new_layer;
     Looper::play_button play;
     Looper::stop_button stop;
-    Looper::restart_button restart_loop;
-    Looper::erase_last_button erase_last;
-    Looper::mute_last_button mute_last;
+    Looper::retrigger_button retrigger;
     Looper::previous_layer_button previous_layer;
     Looper::next_layer_button next_layer;
     Looper::solo_layer_button solo_layer;
     Looper::reverse_button reverse_toggle;
     Looper::half_speed_button half_speed;
     Looper::double_speed_button double_speed;
+    Looper::at_max_layers_selector at_max_layers;
+
+    struct : halp::spinbox_i32<"Max layers", halp::irange{2, Looper::midi_loop::max_layers, 8}>
+    {
+      halp_meta(
+          description,
+          "Layers kept apart, for undo, mute, solo and erase. What a pass does "
+          "past it is what At max layers says.")
+    } max_layers;
   } inputs;
 
   struct
@@ -393,6 +369,9 @@ struct Node
   }
 
   void stop() { m_stop_requested = true; }
+
+  //! A value came in on Loop.
+  void loop_arrived() noexcept { m_loop.arrived = true; }
 
   int64_t looper_run(int64_t start, int64_t length);
   void looper_close_take(
@@ -491,7 +470,12 @@ struct Node
       m_switches.reset();
       if(loop.taking)
       {
+        // What was being taken in is a pass like any other.
+        if(!recording && loop.count > 0)
+          loop.loop_after[loop.count - 1] = loop.length;
         loop.end_pass(inputs.overdub_mode);
+        if(!recording)
+          merge_extra_pass();
         write_stop_take(recording, date, pos);
       }
     }
@@ -522,35 +506,31 @@ struct Node
     if(inputs.capture.value)
       capture(tk);
 
-    // Loop set from the UI or a cable is what is asked for, until an action
-    // changes it.
-    if(inputs.mode.value != m_loop_shown)
-      transport.wanted = m_loop_shown = inputs.mode.value;
-    m_switches.read(inputs, transport, *this, loop.empty());
-    // Past the most passes, the two oldest merge under the mutes a solo
-    // would give back.
-    if(loop.count >= Looper::midi_loop::max_passes)
-      m_switches.soloed.forget();
+    const bool empty = loop.empty();
+    Looper::read_loop(inputs.mode, transport, m_loop, empty);
+    m_switches.read(inputs, transport, *this, empty);
+    transport.settle(empty);
 
-    m_mode = transport.effective(transport.wanted, loop.empty());
+    m_mode = transport.wanted;
     const Looper::transport_settings settings{
         .mode = m_mode,
         .quantif = inputs.quantif.value,
-        .postaction = inputs.postaction,
+        .after_record = inputs.after_record,
         .postaction_bars = inputs.postaction_bars,
-        .restart = inputs.restart,
+        .start_from = inputs.start_from,
         .late_seconds = inputs.late.value / 1000.,
         .stop_at = inputs.stop_at.value};
+    const uint64_t merges = loop.merges;
     transport(tk, ossia_state, settings, *this);
+    // Merging moves the passes under the mutes a solo would give back.
+    if(loop.merges != merges)
+      m_switches.soloed.forget();
     // Only a pass that starts with the take closing gets what it cut off.
     m_carried_note_count = 0;
     m_carried_control_count = 0;
     m_carried_span = 0;
-    if(transport.wanted != m_loop_shown)
-    {
-      m_loop_shown = transport.wanted;
-      Looper::show_mode(inputs.mode, m_loop_shown);
-    }
+    Looper::show_loop(inputs.mode, transport, m_loop);
+    m_switches.follow(inputs, loop.count);
 
     // Input past the last span, e.g. on a sub-sample tick.
     handle_input(m_tick_frames, m_tick_frames + 1, -1, false);
@@ -574,7 +554,7 @@ struct Node
       struct
       {
         halp_meta(layout, halp::layouts::vbox)
-        Looper::item_in_columns<&ins::mode, 5> mode;
+        Looper::item_in_columns<&ins::mode, 4> mode;
         struct
         {
           halp_meta(layout, halp::layouts::hbox)
@@ -591,8 +571,10 @@ struct Node
         {
           halp_meta(name, "Length")
           halp_meta(layout, halp::layouts::grid)
+          halp_meta(alignment, halp::alignments::left)
+          halp_meta(spacing, 6)
           halp_meta(columns, 3)
-          halp::item<&ins::postaction> postaction;
+          halp::item<&ins::after_record> after_record;
           halp::item<&ins::postaction_bars> bars;
           halp::item<&ins::sync> sync;
           halp::item<&ins::late> late;
@@ -601,78 +583,29 @@ struct Node
         struct
         {
           halp_meta(name, "Play")
-          halp_meta(layout, halp::layouts::vbox)
-          struct
-          {
-            halp_meta(layout, halp::layouts::hbox)
-            halp::item<&ins::restart> restart;
-            halp::item<&ins::speed> speed;
-          } first;
-          struct
-          {
-            halp_meta(layout, halp::layouts::hbox)
-            halp::item<&ins::follow_tempo> follow_tempo;
-            halp::item<&ins::reverse> reverse;
-          } second;
+          halp_meta(layout, halp::layouts::grid)
+          halp_meta(alignment, halp::alignments::left)
+          halp_meta(spacing, 6)
+          halp_meta(columns, 2)
+          halp::item<&ins::start_from> start_from;
+          halp::item<&ins::speed> speed;
+          halp::item<&ins::follow_tempo> follow_tempo;
+          halp::item<&ins::reverse> reverse;
         } play;
-        struct
-        {
-          halp_meta(name, "Switches")
-          halp_meta(layout, halp::layouts::vbox)
-          struct
-          {
-            halp_meta(layout, halp::layouts::grid)
-            halp_meta(columns, 3)
-            halp::item<&ins::after_record> after_record;
-            halp::item<&ins::after_overdub> after_overdub;
-            halp::item<&ins::stop_at> stop_at;
-          } settings;
-          struct
-          {
-            halp_meta(layout, halp::layouts::grid)
-            halp_meta(columns, 3)
-            halp::item<&ins::rec_play_dub> rec_play_dub;
-            halp::item<&ins::play_stop> play_stop;
-            halp::item<&ins::restart_loop> restart_loop;
-            halp::item<&ins::record> record;
-            halp::item<&ins::overdub> overdub;
-            halp::item<&ins::comp_next> comp_next;
-            halp::item<&ins::play> play;
-            halp::item<&ins::stop> stop;
-            halp::item<&ins::clear> clear;
-            halp::item<&ins::undo> undo;
-            halp::item<&ins::redo> redo;
-          } transport;
-          struct
-          {
-            halp_meta(layout, halp::layouts::grid)
-            halp_meta(columns, 3)
-            halp::item<&ins::erase_last> erase_last;
-            halp::item<&ins::mute_last> mute_last;
-            halp::item<&ins::solo_layer> solo_layer;
-            halp::item<&ins::previous_layer> previous_layer;
-            halp::item<&ins::next_layer> next_layer;
-            halp::item<&ins::mute_layer> mute_layer;
-            halp::item<&ins::erase_layer> erase_layer;
-          } layers;
-          struct
-          {
-            halp_meta(layout, halp::layouts::grid)
-            halp_meta(columns, 3)
-            halp::item<&ins::layer> layer;
-            halp::item<&ins::reverse_toggle> reverse;
-            halp::item<&ins::half_speed> half_speed;
-            halp::item<&ins::double_speed> double_speed;
-            halp::item<&ins::capture> capture;
-          } play;
-        } switches;
+        Looper::switches_tab<ins> switches;
         struct
         {
           halp_meta(name, "Overdub")
-          halp_meta(layout, halp::layouts::hbox)
+          halp_meta(layout, halp::layouts::grid)
+          halp_meta(alignment, halp::alignments::left)
+          halp_meta(spacing, 6)
+          halp_meta(columns, 3)
           halp::item<&ins::overdub_mode> overdub_mode;
           halp::item<&ins::held> held;
           halp::item<&ins::past_end> past_end;
+          halp::item<&ins::passes> passes;
+          halp::item<&ins::max_layers> max_layers;
+          halp::item<&ins::at_max_layers> at_max_layers;
         } overdub;
         struct
         {
@@ -684,14 +617,10 @@ struct Node
         } quantize;
         struct
         {
-          halp_meta(name, "Comp")
-          halp_meta(layout, halp::layouts::hbox)
-          halp::item<&ins::passes> passes;
-        } comp;
-        struct
-        {
           halp_meta(name, "Notes")
           halp_meta(layout, halp::layouts::grid)
+          halp_meta(alignment, halp::alignments::left)
+          halp_meta(spacing, 6)
           halp_meta(columns, 2)
           halp::item<&ins::passthrough> passthrough;
           halp::item<&ins::transpose> transpose;
@@ -814,8 +743,8 @@ private:
   double m_loop_tempo{120.};
   //! The mode asked for, as the transport takes it up.
   LoopMode m_mode{LoopMode::Stop};
-  //! What Loop says: a change of it is a mode asked for.
-  LoopMode m_loop_shown{LoopMode::Stop};
+  //! What came in on Loop, and what it shows.
+  Looper::loop_input m_loop;
   Looper::switches m_switches;
   double m_job_date{};
   int m_export_slot{};
@@ -856,7 +785,7 @@ private:
   std::array<uint16_t, Looper::midi_loop::max_controls> m_ctl_sorted{};
   std::array<int16_t, Looper::midi_loop::max_controls> m_ctl_prev{};
   std::array<int64_t, 6> m_ctl_signature{-1};
-  void next_cycle_pass();
+  void next_cycle_pass(int64_t start);
   //! The overdub went round with a pass per cycle: going on starts a new
   //! pass. An overdub that stops there leaves none.
   bool m_cycle_pending{};
@@ -876,6 +805,13 @@ private:
   void record_control(int64_t pos, const libremidi::message& m, bool backwards);
   void close_backwards(int64_t boundary);
   void mute_pass(int pass);
+  void make_room();
+  void begin_pass(int64_t start);
+  void merge_extra_pass();
+  int max_layers() const noexcept
+  {
+    return std::clamp(inputs.max_layers.value, 2, Looper::midi_loop::max_layers);
+  }
   //! The loop plays at m_speed, backwards when m_reverse is set; the playhead
   //! is m_phase, on the loop's own positions.
   double m_speed{1.};
@@ -1111,6 +1047,8 @@ inline void Node::push_outputs()
   m_out_count = 0;
 }
 
+//! A recording going on starts again on the next frame, its bars and tempo
+//! counted from there.
 inline void Node::clear_loop()
 {
   m_switches.soloed.forget();
@@ -1120,9 +1058,12 @@ inline void Node::clear_loop()
   transport.playbackPos = 0;
   if(transport.is_taking())
     transport.taking(LoopMode::Stop);
+  transport.restart_recording();
 }
 
-//! The pass being taken in is dropped; taking in starts a new one.
+//! The pass being taken in is dropped; taking in starts a new one. A
+//! recording starts again on the next frame, its bars and tempo counted from
+//! there.
 inline void Node::drop_taken_pass()
 {
   flush_loop(0);
@@ -1130,6 +1071,7 @@ inline void Node::drop_taken_pass()
   {
     loop.clear();
     transport.playbackPos = 0;
+    transport.restart_recording();
   }
   else
   {
@@ -1155,7 +1097,49 @@ inline void Node::erase_pass(int pass)
   else
   {
     flush_loop(0);
-    loop.erase(pass);
+    if(loop.erase(pass))
+      m_switches.removed(inputs, pass);
+  }
+}
+
+//! There are Max layers, and a pass starts: with Replace a muted layer, the
+//! oldest muted layer goes for it, else the newest.
+inline void Node::make_room()
+{
+  if(inputs.at_max_layers.value != Looper::AtMaxLayers::ReplaceMuted
+     || loop.count < max_layers() || loop.count < 2)
+    return;
+  int pass = loop.count - 1;
+  for(int i = 0; i < loop.count; i++)
+    if(loop.muted[i])
+    {
+      pass = i;
+      break;
+    }
+  m_switches.soloed.forget();
+  flush_loop(0);
+  if(loop.erase(pass))
+    m_switches.removed(inputs, pass);
+}
+
+//! Starts an overdub pass at `start`, room made for it as At max layers says.
+inline void Node::begin_pass(int64_t start)
+{
+  make_room();
+  loop.begin_overdub(
+      start, max_layers(),
+      inputs.at_max_layers.value == Looper::AtMaxLayers::MergeOldest);
+}
+
+//! With Merge into newest, a pass past Max layers that is over goes into the
+//! newest layer.
+inline void Node::merge_extra_pass()
+{
+  if(inputs.at_max_layers.value == Looper::AtMaxLayers::MergeIntoNewest
+     && loop.count > max_layers() && !loop.taking)
+  {
+    flush_loop(0);
+    loop.merge(loop.count - 2, true);
   }
 }
 
@@ -1176,17 +1160,12 @@ inline void Node::apply_buttons()
   if(inputs.clear.value)
     clear_loop();
 
-  if(std::exchange(m_erase_requested, false) && m_erase_request.layers == loop.count)
-  {
-    if(m_erase_request.mute)
-      mute_pass(m_erase_request.pass);
-    else
-      erase_pass(m_erase_request.pass);
-  }
-  if(inputs.erase_layer.value)
-    erase_pass(inputs.layer.value - 1);
-  if(inputs.mute_layer.value)
-    mute_pass(inputs.layer.value - 1);
+  // The m and x of a lane are layer actions as any: on the grid.
+  if(std::exchange(m_erase_requested, false))
+    m_switches.add(
+        {m_erase_request.mute ? Looper::layer_action::mute : Looper::layer_action::erase,
+         m_erase_request.pass, m_erase_request.layers},
+        transport);
 
   if(inputs.undo.value || inputs.redo.value)
     m_switches.soloed.forget();
@@ -1204,7 +1183,8 @@ inline void Node::apply_buttons()
   if(inputs.redo.value && !transport.is_taking())
   {
     flush_loop(0);
-    loop.redo();
+    if(loop.redo())
+      merge_extra_pass();
   }
 }
 
@@ -1443,7 +1423,8 @@ inline void Node::record_control(int64_t pos, const libremidi::message& m, bool 
       .data1 = m.size() > 1 ? m.bytes[1] : uint8_t(0),
       .data2 = m.size() > 2 ? m.bytes[2] : uint8_t(0),
       .pass = 0,
-      .replaced_by = -1};
+      .replaced_by = 0,
+      .merged = 0};
   const uint16_t key = c.key();
   last_control* last = nullptr;
   for(int i = 0; i < m_last_ctl_count; i++)
@@ -1528,7 +1509,7 @@ inline void Node::begin_pass_carried(int64_t k)
   const int64_t len = loop.length;
   const bool from_point
       = m_carried_span > 0 && m_carried_span < len && k == m_carried_span;
-  loop.begin_overdub(from_point ? 0 : k);
+  begin_pass(from_point ? 0 : k);
   begin_pass_grace(from_point ? 0 : k);
   for(int i = 0; i < m_carried_note_count; i++)
   {
@@ -1600,8 +1581,7 @@ inline int64_t Node::looper_run(int64_t start, int64_t length)
       return length;
     }
 
-    case LoopMode::Overdub:
-    case LoopMode::Comp: {
+    case LoopMode::Overdub: {
       if(loop.empty())
       {
         handle_input(start, start + length, -1, false);
@@ -1642,12 +1622,14 @@ inline double Node::rate() const noexcept
 
 //! The overdub went round the loop with a pass per cycle: the pass is over,
 //! and the next round is a pass of its own.
-inline void Node::next_cycle_pass()
+inline void Node::next_cycle_pass(int64_t start)
 {
   if(loop.count > 0)
     loop.loop_after[loop.count - 1] = loop.length;
   loop.end_pass(inputs.overdub_mode);
-  loop.begin_overdub(0);
+  merge_extra_pass();
+  m_export_pending = true;
+  begin_pass(start);
 }
 
 inline void Node::looper_rephase(const ossia::token_request& tk)
@@ -1702,7 +1684,7 @@ inline void Node::advance(int64_t start, int64_t length, bool overdub)
     const double b = std::min(L, y + (out_end - out) * r);
     const double seg_out = (b - y) / r;
     if(overdub && std::exchange(m_cycle_pending, false))
-      next_cycle_pass();
+      next_cycle_pass(back ? 0 : int64_t(y));
 
     if(back)
       play_range_reverse(y, b, out, r);
@@ -1722,7 +1704,11 @@ inline void Node::advance(int64_t start, int64_t length, bool overdub)
     {
       if(extend && loop.extend(m_extend_unit, int64_t(max_loop_seconds * m_rate)))
       {
+        // A cycle is the loop's length when the overdub started: the loop
+        // growing by one is a cycle gone round as well.
         m_extended = true;
+        if(per_cycle)
+          m_cycle_pending = true;
       }
       else
       {
@@ -1993,6 +1979,8 @@ inline void Node::looper_close_take(
   if(loop.count > 0)
     loop.loop_after[loop.count - 1] = loop.length;
   loop.end_pass(inputs.overdub_mode);
+  if(mode == LoopMode::Overdub)
+    merge_extra_pass();
   m_export_pending = true;
 }
 
@@ -2000,9 +1988,9 @@ inline void Node::looper_close_take(
 inline int64_t Node::looper_frames_to_end() const noexcept
 {
   const LoopMode m = transport.actualMode;
-  if(loop.empty() || (m != LoopMode::Play && !Looper::overdubbing(m)))
+  if(loop.empty() || (m != LoopMode::Play && m != LoopMode::Overdub))
     return -1;
-  if(Looper::overdubbing(m) && inputs.past_end.value == Looper::PastEnd::Extend && !m_reverse)
+  if(m == LoopMode::Overdub && inputs.past_end.value == Looper::PastEnd::Extend && !m_reverse)
     return -1;
   const double len = double(loop.length);
   const double ph = std::fmod(std::max(0., m_phase), len);

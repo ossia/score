@@ -5,9 +5,10 @@
 
 #include <algorithm>
 #include <array>
-#include <bitset>
+#include <bit>
 #include <cmath>
 #include <cstdint>
+#include <utility>
 
 namespace Nodes::Looper
 {
@@ -26,6 +27,15 @@ enum class HeldNotes
   Truncate ///< Ends with the loop.
 };
 
+//! What became of an event when the last pass was merged into the newest
+//! one, for undo to take it out again.
+enum merge_mark : uint8_t
+{
+  from_merged = 1,     ///< It is an event of the pass merged.
+  replaced_by_merged = 2, ///< Only the pass merged replaced it.
+  replaced_by_both = 4  ///< The newest pass replaced it as well.
+};
+
 struct midi_note
 {
   //! Loop position of the note-on, in frames.
@@ -36,8 +46,9 @@ struct midi_note
   uint8_t pitch;
   uint8_t velocity;
   uint8_t pass;
-  //! First pass that replaced it, -1 for none.
-  int16_t replaced_by;
+  //! The passes that replace it, a bit each.
+  uint64_t replaced_by;
+  uint8_t merged;
 };
 
 //! A controller, pitch bend or pressure value.
@@ -48,7 +59,8 @@ struct midi_control
   uint8_t data1;
   uint8_t data2;
   uint8_t pass;
-  int16_t replaced_by;
+  uint64_t replaced_by;
+  uint8_t merged;
 
   //! What two values have in common when they move the same thing.
   uint16_t key() const noexcept
@@ -59,6 +71,22 @@ struct midi_control
   }
 };
 
+//! A set of passes, a bit each, without pass k: the passes over it move
+//! down a place.
+inline constexpr uint64_t without_pass(uint64_t m, int k) noexcept
+{
+  const uint64_t low = m & ((uint64_t(1) << k) - 1);
+  return low | ((m >> (k + 1)) << k);
+}
+
+//! A set of passes with room made for a pass at k: the passes from k on move
+//! up a place.
+inline constexpr uint64_t with_room_at(uint64_t m, int k) noexcept
+{
+  const uint64_t low = m & ((uint64_t(1) << k) - 1);
+  return low | ((m >> k) << (k + 1));
+}
+
 /**
  * The notes and controllers of a MIDI loop, in fixed storage.
  *
@@ -66,54 +94,19 @@ struct midi_control
  * its events, redoing shows them again, erasing it removes them. Controllers
  * of a pass replace the same controller of earlier passes where the pass
  * went, so two curves of one controller never fight; notes do as well with
- * OverdubMode::Replace.
+ * OverdubMode::Replace. Each event keeps every pass that replaces it, and is
+ * heard when none of them is: muting, erasing or merging a pass leaves what
+ * the others replace as it is.
  */
 struct midi_loop
 {
   static constexpr int max_notes = 4096;
   static constexpr int max_controls = 8192;
-  static constexpr int max_passes = 255;
+  //! Most layers kept: Max layers is at most this.
+  static constexpr int max_layers = 32;
+  //! A pass past Max layers is one more until it is merged into the newest.
+  static constexpr int max_passes = max_layers + 1;
   static constexpr int max_touched = 64;
-
-  //! Where a pass that is over went and what it touched: what it replaces is
-  //! worked out from it again when a pass under it is erased.
-  struct pass_region
-  {
-    int64_t start{};
-    int64_t written{};
-    //! Length of the loop when the pass ended.
-    int64_t loop{};
-    std::bitset<128> pitches{};
-    std::array<uint16_t, max_touched> keys{};
-    int key_count{};
-    //! It was made with OverdubMode::Replace.
-    bool replaces_notes{};
-
-    bool covers(int64_t k) const noexcept
-    {
-      if(written >= loop)
-        return true;
-      int64_t d = k - start;
-      if(d < 0)
-        d += loop;
-      return d < written;
-    }
-    bool touched(uint16_t key) const noexcept
-    {
-      for(int i = 0; i < key_count; i++)
-        if(keys[i] == key)
-          return true;
-      return false;
-    }
-    bool replaces(const midi_note& n) const noexcept
-    {
-      return replaces_notes && pitches[n.pitch & 127] && covers(n.start);
-    }
-    bool replaces(const midi_control& c) const noexcept
-    {
-      return touched(c.key()) && covers(c.pos);
-    }
-  };
 
   std::array<midi_note, max_notes> notes{};
   std::array<midi_control, max_controls> controls{};
@@ -132,13 +125,24 @@ struct midi_loop
   //! Length of the loop before and after each pass, for undo and redo.
   std::array<int64_t, max_passes + 1> loop_before{};
   std::array<int64_t, max_passes + 1> loop_after{};
-  //! What each pass that is over went over.
-  std::array<pass_region, max_passes + 1> regions{};
   //! Passes kept but not heard: as if erased for what the loop sounds like,
   //! so they replace nothing either.
   std::array<bool, max_passes + 1> muted{};
   //! Changes each time what is heard of the controllers may have changed.
   uint64_t edits{};
+  //! Counts the passes merged, which moves the ones over them down a place.
+  uint64_t merges{};
+
+  //! The last pass merged into the newest one, which undo takes out again.
+  struct unmerge_state
+  {
+    bool valid{};
+    int at{};
+    int64_t period{};
+    int64_t loop_before{};
+    int64_t loop_after{};
+    int64_t newest_loop_after{};
+  } unmerge;
 
   int64_t period_of(int pass) const noexcept
   {
@@ -195,7 +199,22 @@ struct midi_loop
     return false;
   }
 
-  bool replaced(int16_t by) const noexcept { return by >= 0 && by < count; }
+  //! One of the passes of `by` replaces an event of pass `self` now: it is
+  //! heard, not muted, and over. The pass being taken in replaces as it goes,
+  //! not through this; the event's own pass, for a pass made of two merged
+  //! ones, replaces it whatever.
+  bool replaced(uint64_t by, int self) const noexcept
+  {
+    for(uint64_t m = by; m != 0; m &= m - 1)
+    {
+      const int q = std::countr_zero(m);
+      if(q == self)
+        return true;
+      if(q < count && !muted[q] && !(taking && q == count - 1))
+        return true;
+    }
+    return false;
+  }
 
   //! The pass being taken in replaces what is under it as it goes, unless it
   //! is muted.
@@ -204,7 +223,7 @@ struct midi_loop
   //! `own_mute` false hears a muted pass's events as if it were not muted.
   bool heard(const midi_note& n, OverdubMode mode, bool own_mute = true) const noexcept
   {
-    if(n.pass >= count || replaced(n.replaced_by) || (own_mute && muted[n.pass]))
+    if(n.pass >= count || replaced(n.replaced_by, n.pass) || (own_mute && muted[n.pass]))
       return false;
     if(replacing() && n.pass + 1 < count && mode == OverdubMode::Replace
        && touched_pitches[n.pitch] && in_pass(n.start))
@@ -214,46 +233,22 @@ struct midi_loop
 
   bool heard(const midi_control& c, bool own_mute = true) const noexcept
   {
-    if(c.pass >= count || replaced(c.replaced_by) || (own_mute && muted[c.pass]))
+    if(c.pass >= count || replaced(c.replaced_by, c.pass) || (own_mute && muted[c.pass]))
       return false;
     if(replacing() && c.pass + 1 < count && touched(c.key()) && in_pass(c.pos))
       return false;
     return true;
   }
 
-  //! The first pass over the one of `e` that replaces it and is heard, -1
-  //! for none: the pass being taken in replaces as it goes, not through this.
-  template <typename E>
-  int16_t first_replacer(const E& e, int from) const noexcept
-  {
-    for(int q = std::max<int>(from, e.pass + 1); q < total; q++)
-      if(!(taking && q == count - 1) && !muted[q] && regions[q].replaces(e))
-        return int16_t(q);
-    return -1;
-  }
-
-  //! Mutes or unmutes pass k, heard and over: what it replaced is heard again
-  //! while it is muted, unless a later pass replaces it as well.
+  //! Mutes or unmutes pass k: what it replaced is heard while it is muted,
+  //! unless another pass replaces it as well.
   bool set_muted(int k, bool m) noexcept
   {
     if(k < 0 || k >= count || muted[k] == m)
       return false;
     muted[k] = m;
+    unmerge.valid = false;
     edits++;
-    if(taking && k == count - 1)
-      return true;
-    auto update = [&](auto& e) {
-      if(e.pass >= k)
-        return;
-      if(m && e.replaced_by == k)
-        e.replaced_by = first_replacer(e, k + 1);
-      else if(!m && (e.replaced_by < 0 || e.replaced_by > k) && regions[k].replaces(e))
-        e.replaced_by = int16_t(k);
-    };
-    for(int i = 0; i < note_count; i++)
-      update(notes[i]);
-    for(int i = 0; i < control_count; i++)
-      update(controls[i]);
     return true;
   }
 
@@ -266,29 +261,38 @@ struct midi_loop
     length = 0;
     full = false;
     taking = false;
+    unmerge.valid = false;
     edits++;
+  }
+
+  template <typename F>
+  void remove_events(F&& gone) noexcept
+  {
+    note_count = int(
+        std::remove_if(notes.begin(), notes.begin() + note_count, gone) - notes.begin());
+    control_count = int(
+        std::remove_if(controls.begin(), controls.begin() + control_count, gone)
+        - controls.begin());
+  }
+
+  template <typename F>
+  void for_each_event(F&& f) noexcept
+  {
+    for(int i = 0; i < note_count; i++)
+      f(notes[i]);
+    for(int i = 0; i < control_count; i++)
+      f(controls[i]);
   }
 
   //! Drops what redo would have brought back.
   void drop_redo() noexcept
   {
-    note_count = int(
-        std::remove_if(
-            notes.begin(), notes.begin() + note_count,
-            [this](const midi_note& n) { return n.pass >= count; })
-        - notes.begin());
-    control_count = int(
-        std::remove_if(
-            controls.begin(), controls.begin() + control_count,
-            [this](const midi_control& c) { return c.pass >= count; })
-        - controls.begin());
-    for(int i = 0; i < note_count; i++)
-      if(notes[i].replaced_by >= count)
-        notes[i].replaced_by = -1;
-    for(int i = 0; i < control_count; i++)
-      if(controls[i].replaced_by >= count)
-        controls[i].replaced_by = -1;
+    const int heard_passes = count;
+    remove_events([heard_passes](const auto& e) { return e.pass >= heard_passes; });
+    const uint64_t kept = count >= 64 ? ~uint64_t(0) : (uint64_t(1) << count) - 1;
+    for_each_event([kept](auto& e) { e.replaced_by &= kept; });
     total = count;
+    unmerge.valid = false;
     edits++;
   }
 
@@ -302,13 +306,24 @@ struct midi_loop
     begin_pass_state(0);
   }
 
-  //! Starts an overdub pass at `start`. Past the last pass number, the
-  //! oldest passes are merged into the first one.
-  void begin_overdub(int64_t start) noexcept
+  //! Starts an overdub pass at `start`. With `layers` passes, the two oldest
+  //! are merged first when `oldest` is set; else the pass is one more, merged
+  //! into the newest when it ends.
+  void begin_overdub(int64_t start, int layers = max_layers, bool oldest = true) noexcept
   {
     drop_redo();
-    if(count >= max_passes)
-      merge_oldest();
+    layers = std::clamp(layers, 2, max_layers);
+    if(oldest)
+    {
+      while(count >= layers)
+        merge(0);
+    }
+    else
+    {
+      // The pass before it was not merged yet.
+      while(count > layers)
+        merge(count - 2);
+    }
     period[count] = 0;
     loop_before[count] = length;
     loop_after[count] = length;
@@ -318,52 +333,66 @@ struct midi_loop
     begin_pass_state(start);
   }
 
-  void merge_oldest() noexcept
+  //! Merges pass `at` and the one over it into one, heard as the two were.
+  //! A muted pass is left out of the merged one: merging is where it is
+  //! lost. With `undoable`, undo takes the upper pass out again, as long as
+  //! nothing else changes the passes.
+  void merge(int at, bool undoable = false) noexcept
   {
-    // A muted pass is left out of the merged one: merging is where it is lost.
-    if(muted[0] != muted[1])
-    {
-      const int lost = muted[0] ? 0 : 1;
-      note_count = int(
-          std::remove_if(
-              notes.begin(), notes.begin() + note_count,
-              [lost](const midi_note& n) { return n.pass == lost; })
-          - notes.begin());
-      control_count = int(
-          std::remove_if(
-              controls.begin(), controls.begin() + control_count,
-              [lost](const midi_control& c) { return c.pass == lost; })
-          - controls.begin());
-      muted[0] = false;
-    }
+    const int a = at, b = at + 1;
+    if(a < 0 || b >= count)
+      return;
     edits++;
-    for(int i = 0; i < note_count; i++)
+    merges++;
+    unmerge.valid = false;
+    if(muted[a] != muted[b])
     {
-      if(notes[i].pass > 0)
-        notes[i].pass--;
-      if(notes[i].replaced_by > 0)
-        notes[i].replaced_by--;
+      const int lost = muted[a] ? a : b;
+      remove_events([lost](const auto& e) { return e.pass == lost; });
+      muted[a] = false;
+      undoable = false;
     }
-    for(int i = 0; i < control_count; i++)
+    else if(muted[a])
     {
-      if(controls[i].pass > 0)
-        controls[i].pass--;
-      if(controls[i].replaced_by > 0)
-        controls[i].replaced_by--;
+      undoable = false;
     }
-    // The merged pass repeats with the longer of the two periods; notes of
-    // the shorter one are not repeated into it.
-    period[0] = period[0] == 0 || period[1] == 0 ? 0 : std::max(period[0], period[1]);
-    // Nothing is under the merged pass: its region replaces nothing.
-    for(int p = 1; p + 1 < count; p++)
+    if(undoable)
+      unmerge = unmerge_state{
+          .valid = true,
+          .at = a,
+          .period = period[b],
+          .loop_before = loop_before[b],
+          .loop_after = loop_after[b],
+          .newest_loop_after = loop_after[a]};
+
+    const uint64_t bit_a = uint64_t(1) << a, bit_b = uint64_t(1) << b;
+    for_each_event([=](auto& e) {
+      uint8_t mark = 0;
+      if(e.pass == b)
+        mark |= from_merged;
+      if(e.replaced_by & bit_b)
+        mark |= (e.replaced_by & bit_a) ? replaced_by_both : replaced_by_merged;
+      e.merged = mark;
+      // What the upper pass replaces, the merged one does: its own events
+      // under it included, which stay silent.
+      if(e.replaced_by & bit_b)
+        e.replaced_by |= bit_a;
+      e.replaced_by = without_pass(e.replaced_by, b);
+      if(e.pass >= b)
+        e.pass--;
+    });
+
+    period[a] = period[a] == 0 || period[b] == 0 ? 0 : std::max(period[a], period[b]);
+    loop_after[a] = loop_after[b];
+    for(int p = b; p + 1 < count; p++)
     {
       period[p] = period[p + 1];
       loop_before[p] = loop_before[p + 1];
       loop_after[p] = loop_after[p + 1];
-      regions[p] = regions[p + 1];
       muted[p] = muted[p + 1];
     }
     count--;
+    total = count;
   }
 
   void begin_pass_state(int64_t start) noexcept
@@ -377,41 +406,29 @@ struct midi_loop
     taking = true;
   }
 
-  //! The pass is over: what it replaced stays replaced while it is heard.
+  //! The pass is over: what it went over is replaced where it played the
+  //! same pitch, with OverdubMode::Replace, or moved the same controller.
   void end_pass(OverdubMode mode) noexcept
   {
     if(!taking)
       return;
     const int pass = count - 1;
-    if(pass >= 0)
-    {
-      auto& r = regions[pass];
-      r.start = pass_start;
-      r.written = pass_written;
-      r.loop = length;
-      r.replaces_notes = mode == OverdubMode::Replace;
-      r.pitches.reset();
-      for(int p = 0; p < 128; p++)
-        r.pitches[p] = touched_pitches[p];
-      r.keys = touched_keys;
-      r.key_count = touched_count;
-    }
     edits++;
-    // A muted pass replaces nothing until it is unmuted.
-    if(pass > 0 && !muted[pass])
+    if(pass > 0)
     {
+      const uint64_t bit = uint64_t(1) << pass;
       for(int i = 0; i < note_count; i++)
       {
         auto& n = notes[i];
         if(n.pass < pass && mode == OverdubMode::Replace && touched_pitches[n.pitch]
-           && in_pass(n.start) && n.replaced_by < 0)
-          n.replaced_by = int16_t(pass);
+           && in_pass(n.start))
+          n.replaced_by |= bit;
       }
       for(int i = 0; i < control_count; i++)
       {
         auto& c = controls[i];
-        if(c.pass < pass && touched(c.key()) && in_pass(c.pos) && c.replaced_by < 0)
-          c.replaced_by = int16_t(pass);
+        if(c.pass < pass && touched(c.key()) && in_pass(c.pos))
+          c.replaced_by |= bit;
       }
     }
     taking = false;
@@ -447,9 +464,10 @@ struct midi_loop
     period = o.period;
     loop_before = o.loop_before;
     loop_after = o.loop_after;
-    std::copy_n(o.regions.begin(), std::max(0, o.total), regions.begin());
     muted = o.muted;
     edits = o.edits;
+    merges = o.merges;
+    unmerge = o.unmerge;
     pass_start = o.pass_start;
     pass_written = o.pass_written;
     pass_progress = o.pass_progress;
@@ -465,6 +483,29 @@ struct midi_loop
     if(count == 0)
       return false;
     edits++;
+    // The pass merged into the newest one comes out of it.
+    if(std::exchange(unmerge.valid, false) && unmerge.at == count - 1 && !taking)
+    {
+      const int a = unmerge.at, b = a + 1;
+      for_each_event([=](auto& e) {
+        e.replaced_by = with_room_at(e.replaced_by, b);
+        if(e.merged & from_merged)
+          e.pass = uint8_t(b);
+        if(e.merged & replaced_by_merged)
+          e.replaced_by = (e.replaced_by & ~(uint64_t(1) << a)) | (uint64_t(1) << b);
+        if(e.merged & replaced_by_both)
+          e.replaced_by |= uint64_t(1) << b;
+        e.merged = 0;
+      });
+      period[b] = unmerge.period;
+      loop_before[b] = unmerge.loop_before;
+      loop_after[b] = length;
+      loop_after[a] = unmerge.newest_loop_after;
+      muted[b] = false;
+      length = unmerge.loop_before;
+      total = count + 1;
+      return true;
+    }
     if(count > 1)
     {
       loop_after[count - 1] = length;
@@ -479,6 +520,7 @@ struct midi_loop
     if(count >= total)
       return false;
     edits++;
+    unmerge.valid = false;
     if(count > 0)
       length = loop_after[count];
     count++;
@@ -487,51 +529,24 @@ struct midi_loop
 
   //! Takes pass k out of the loop, k being heard, not the only pass heard and
   //! not one being taken in: its events go, the passes over it and the ones
-  //! redo brings back move down a place, and the loop keeps its length. An
-  //! event k replaced is replaced by the first pass over k that replaces it
-  //! too, else heard again.
+  //! redo brings back move down a place, and the loop keeps its length.
   bool erase(int k) noexcept
   {
     if(k < 0 || k >= count || count < 2 || (taking && k == count - 1))
       return false;
-
-    // A pass replaces only what is under it, and the first pass that does is
-    // the one an event keeps: only the events k was first to replace change.
     edits++;
-    for(int i = 0; i < note_count; i++)
-      if(notes[i].replaced_by == k && notes[i].pass != k)
-        notes[i].replaced_by = first_replacer(notes[i], k + 1);
-    for(int i = 0; i < control_count; i++)
-      if(controls[i].replaced_by == k && controls[i].pass != k)
-        controls[i].replaced_by = first_replacer(controls[i], k + 1);
-
-    note_count = int(
-        std::remove_if(
-            notes.begin(), notes.begin() + note_count,
-            [k](const midi_note& n) { return n.pass == k; })
-        - notes.begin());
-    control_count = int(
-        std::remove_if(
-            controls.begin(), controls.begin() + control_count,
-            [k](const midi_control& c) { return c.pass == k; })
-        - controls.begin());
-    auto shift = [k](auto& e) {
+    unmerge.valid = false;
+    remove_events([k](const auto& e) { return e.pass == k; });
+    for_each_event([k](auto& e) {
+      e.replaced_by = without_pass(e.replaced_by, k);
       if(e.pass > k)
         e.pass--;
-      if(e.replaced_by > k)
-        e.replaced_by--;
-    };
-    for(int i = 0; i < note_count; i++)
-      shift(notes[i]);
-    for(int i = 0; i < control_count; i++)
-      shift(controls[i]);
-
+    });
     for(int p = k; p + 1 < total; p++)
     {
       period[p] = period[p + 1];
       loop_before[p] = loop_before[p + 1];
       loop_after[p] = loop_after[p + 1];
-      regions[p] = regions[p + 1];
       muted[p] = muted[p + 1];
     }
     count--;
@@ -555,7 +570,8 @@ struct midi_loop
         .pitch = uint8_t(pitch),
         .velocity = uint8_t(velocity),
         .pass = uint8_t(count - 1),
-        .replaced_by = -1};
+        .replaced_by = 0,
+        .merged = 0};
     return &n;
   }
 
@@ -586,7 +602,8 @@ struct midi_loop
         .data1 = d1,
         .data2 = d2,
         .pass = uint8_t(count - 1),
-        .replaced_by = -1};
+        .replaced_by = 0,
+        .merged = 0};
     const auto key = c.key();
     if(!touched(key) && touched_count < max_touched)
       touched_keys[touched_count++] = key;

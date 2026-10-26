@@ -1,4 +1,6 @@
 #pragma once
+#include <Fx/Looper/AudioLayers.hpp>
+
 #include <score/document/DocumentContext.hpp>
 
 #include <core/document/Document.hpp>
@@ -138,6 +140,10 @@ struct export_buffer
   //! A job is writing it: the processing thread does not write it until the
   //! job is over. The job may outlive the looper that made it.
   std::atomic_bool in_use{};
+  //! The job flattens the loop into it first, from these passes: the
+  //! processing thread did not.
+  bool flatten{};
+  audio_snapshot mix_of;
 
   //! Main thread only. The memory is reserved without being written.
   static std::shared_ptr<export_buffer> make(int channels, int64_t frames)
@@ -182,6 +188,13 @@ struct take_job
       export_buffer& b;
       ~release() { b.in_use = false; }
     } done{*audio};
+    if(audio->flatten)
+    {
+      audio->flatten = false;
+      audio->mix_of.flatten(std::min(channels, audio->channels), [this](int c) {
+        return audio->channel(c);
+      });
+    }
     if(!writer || channels <= 0 || frames <= 0)
       return false;
 

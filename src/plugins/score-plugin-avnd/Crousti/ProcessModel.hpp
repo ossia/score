@@ -309,9 +309,12 @@ private:
     init_all_ports();
     init_dynamic_port_instances();
 
+    rename_former_ports(oldInlets);
+
     // A port the spec gained since the save just comes back at its default:
     // only a saved port that matched nothing actually lost its value.
     const auto lost = Dataflow::reloadPortsInNewProcess(oldInlets, oldOutlets, *this);
+    upgrade_former_values();
     if(!lost.empty())
     {
       const std::string_view type_name = avnd::get_name<Info>();
@@ -320,6 +323,65 @@ private:
                  << ": saved ports lost on load (renamed or removed since):"
                  << lost.join(", ");
     }
+  }
+
+  //! A control renamed since a document was saved names what it was called,
+  //! `former_name()`: the saved port of that name is the control's, unless
+  //! one of its new name was saved as well.
+  void rename_former_ports(std::vector<Dataflow::SavedPort>& saved)
+  {
+    avnd::input_introspection<Info>::for_all(
+        [&]<std::size_t Idx, typename P>(avnd::field_reflection<Idx, P>) {
+      if constexpr(requires { P::former_name(); } && requires { P::name(); })
+      {
+        const auto now = P::name();
+        const auto was = P::former_name();
+        const QString now_q = QString::fromUtf8(now.data(), qsizetype(now.size()));
+        const QString was_q = QString::fromUtf8(was.data(), qsizetype(was.size()));
+        if(ossia::any_of(saved, [&](const auto& p) { return p.name == now_q; }))
+          return;
+        for(auto& p : saved)
+          if(p.name == was_q)
+          {
+            p.name = now_q;
+            break;
+          }
+      }
+    });
+  }
+
+  //! A choice renamed since a document was saved: `former_values()` lists the
+  //! names the choices had, in their order, and a saved one is the choice at
+  //! its place.
+  void upgrade_former_values()
+  {
+    avnd::input_introspection<Info>::for_all(
+        [this]<std::size_t Idx, typename P>(avnd::field_reflection<Idx, P>) {
+      if constexpr(requires { P::former_values(); })
+      {
+        auto ports = avnd_input_idx_to_model_ports(Idx);
+        if(ports.size() != 1)
+          return;
+        auto inlet = qobject_cast<Process::ControlInlet*>(ports[0]);
+        if(!inlet)
+          return;
+        const ossia::value& value = inlet->value();
+        const auto* str = value.template target<std::string>();
+        if(!str)
+          return;
+        static constexpr auto range = avnd::get_range<P>();
+        const auto names = avnd::to_enum_range(range.values);
+        if(ossia::any_of(names, [&](const auto& n) { return n == *str; }))
+          return;
+        const auto former = P::former_values();
+        for(std::size_t i = 0; i < former.size() && i < names.size(); i++)
+          if(former[i] == *str)
+          {
+            inlet->setValue(std::string(names[i]));
+            return;
+          }
+      }
+    });
   }
 
   //! A document saved before the controllers had a port type of their own has

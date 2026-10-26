@@ -30,7 +30,7 @@ namespace
 {
 using Looper = Nodes::AudioLooper::Node;
 using LoopMode = Looper::LoopMode;
-using Postaction = Looper::Postaction;
+using AfterRecord = Nodes::Looper::AfterRecord;
 using Passthrough = Looper::Passthrough;
 
 // Drives a Looper the way avnd's ossia binding does: the sample pointers handed
@@ -68,6 +68,10 @@ struct looper_harness
     node.inputs.quantif.value = 0.f;
     // Most cases here are about what happens on the grid, not just after it.
     node.inputs.late.value = 0;
+    // The cases here were written when a change of mode read the loop from
+    // its start and the two oldest passes merged past Max layers.
+    node.inputs.start_from = Nodes::Looper::StartFrom::LoopStart;
+    node.inputs.at_max_layers = Nodes::Looper::AtMaxLayers::MergeOldest;
 
     for(int i = 0; i < max_channels; i++)
     {
@@ -455,7 +459,7 @@ TEST_CASE("Looper: a post-action bar line inside a tick covers both halves",
 {
   looper_harness h;
   h.node.inputs.postaction_bars.value = 1;
-  h.node.inputs.postaction = Postaction::Play;
+  h.node.inputs.after_record = AfterRecord::Play;
   h.fill_input(0, [](int64_t i) { return double(i + 1); });
 
   h.node.inputs.mode = LoopMode::Record;
@@ -612,7 +616,7 @@ TEST_CASE("Looper: a recording ended by hand keeps the length it was played for"
   musical_harness h;
   h.node.inputs.quantif.value = 0.25f; // 4th
   h.node.inputs.postaction_bars.value = 4;
-  h.node.inputs.postaction = Postaction::Play;
+  h.node.inputs.after_record = AfterRecord::Play;
   h.node.inputs.passthrough = Passthrough::None;
 
   h.node.inputs.mode = LoopMode::Stop;
@@ -666,7 +670,7 @@ TEST_CASE("Looper: the post-action takes over after the bars it was given",
   musical_harness h;
   h.node.inputs.quantif.value = 1.0f;
   h.node.inputs.postaction_bars.value = 2;
-  h.node.inputs.postaction = Postaction::Play;
+  h.node.inputs.after_record = AfterRecord::Play;
   h.node.inputs.passthrough = Passthrough::None;
 
   h.node.inputs.mode = LoopMode::Stop;
@@ -698,7 +702,7 @@ TEST_CASE("Looper: a post-action recording is trimmed to the bars it was given",
   musical_harness h;
   h.node.inputs.quantif.value = 1.0f;
   h.node.inputs.postaction_bars.value = 2;
-  h.node.inputs.postaction = Postaction::Play;
+  h.node.inputs.after_record = AfterRecord::Play;
   h.node.inputs.passthrough = Passthrough::None;
 
   h.node.inputs.mode = LoopMode::Stop;
@@ -763,7 +767,7 @@ TEST_CASE("Looper: overdub can hand over to play without rewinding",
   // when overdubbing gives way to playing. Which of the two happens is the
   // Restart setting's business; a recording always starts its buffer again,
   // there being nothing yet to carry on from.
-  using Restart = Looper::Restart;
+  using StartFrom = Nodes::Looper::StartFrom;
 
   const auto record_two_buffers = [](looper_harness& h) {
     h.node.inputs.passthrough = Passthrough::None;
@@ -777,7 +781,7 @@ TEST_CASE("Looper: overdub can hand over to play without rewinding",
   SECTION("carrying on, the loop is read from where overdubbing left it")
   {
     looper_harness h;
-    h.node.inputs.restart = Restart::Recording;
+    h.node.inputs.start_from = StartFrom::WhereItWas;
     record_two_buffers(h);
 
     h.node.inputs.mode = LoopMode::Overdub;
@@ -796,7 +800,7 @@ TEST_CASE("Looper: overdub can hand over to play without rewinding",
   SECTION("restarting, the loop is read from its beginning")
   {
     looper_harness h;
-    h.node.inputs.restart = Restart::Always;
+    h.node.inputs.start_from = StartFrom::LoopStart;
     record_two_buffers(h);
 
     h.node.inputs.mode = LoopMode::Overdub;
@@ -814,7 +818,7 @@ TEST_CASE("Looper: overdub can hand over to play without rewinding",
   SECTION("a recording always starts its buffer again, whatever the setting")
   {
     looper_harness h;
-    h.node.inputs.restart = Restart::Recording;
+    h.node.inputs.start_from = StartFrom::WhereItWas;
     record_two_buffers(h);
 
     h.node.inputs.mode = LoopMode::Play;
@@ -1458,7 +1462,7 @@ TEST_CASE("Looper: overdub on an empty loop hands over to overdubbing after its 
   musical_harness h;
   h.node.inputs.quantif.value = 1.0f;
   h.node.inputs.postaction_bars.value = 2;
-  h.node.inputs.postaction = Postaction::Play;
+  h.node.inputs.after_record = AfterRecord::Play;
   h.node.inputs.mode = LoopMode::Stop;
   h.run_bars(1);
   h.fill_input(0, [](int64_t) { return 0.5; });
@@ -1556,7 +1560,7 @@ TEST_CASE("Looper: an extending overdub makes the loop longer, by whole loops",
 {
   looper_harness h{1, 64};
   h.node.inputs.past_end.value = Nodes::Looper::PastEnd::Extend;
-  h.node.inputs.restart = Looper::Restart::Recording;
+  h.node.inputs.start_from = Nodes::Looper::StartFrom::WhereItWas;
   for(auto& v : h.in_buf[0])
     v = 0.25;
   h.node.inputs.mode = LoopMode::Record;
@@ -1602,7 +1606,7 @@ TEST_CASE("Looper: an extending overdub stopped just past the end does not add a
 {
   looper_harness h{1, 64};
   h.node.inputs.past_end.value = Nodes::Looper::PastEnd::Extend;
-  h.node.inputs.restart = Looper::Restart::Recording;
+  h.node.inputs.start_from = Nodes::Looper::StartFrom::WhereItWas;
   h.node.inputs.late.value = 1; // 48 frames
   for(auto& v : h.in_buf[0])
     v = 0.25;
@@ -1698,7 +1702,7 @@ TEST_CASE("Looper: following the tempo, the position is the one heard",
     INFO(int(mode));
     looper_harness h{1, 100, 1000};
     h.node.inputs.follow_tempo.value = mode;
-    h.node.inputs.restart = Looper::Restart::Recording;
+    h.node.inputs.start_from = Nodes::Looper::StartFrom::WhereItWas;
     h.node.prepare_stretch(1000, 100);
     h.node.inputs.passthrough = Passthrough::None;
     h.fill_input(0, [](int64_t i) { return std::sin(i * 0.3); });
@@ -2466,8 +2470,9 @@ TEST_CASE("Looper: a pass per cycle makes a pass of each time an overdub goes ro
   CHECK(h.node.layer_data(1, 0)[256] == Approx(0.1));
   CHECK(h.node.layer_data(2, 0)[256] == Approx(0.2));
   CHECK(h.node.layer_data(3, 0)[256] == Approx(0.3));
-  // A round starts on the end of the one before: no fade between them.
-  CHECK(h.node.layer_data(2, 0)[0] == Approx(0.2));
+  // Each round is a pass as any, faded in and out.
+  CHECK(h.node.layer_data(2, 0)[0] == Approx(0.));
+  CHECK(h.node.layer_data(2, 0)[200] == Approx(0.2));
   CHECK(h.node.layers.mix(0, 256) == Approx(0.85));
 
   SECTION("muting a pass takes it out of what is heard, and keeps it")
@@ -2573,13 +2578,17 @@ TEST_CASE("Looper: a take of passes per cycle has a file for each, the muted one
   for(int i = 0; i < 10; i++)
     h.run(64);
 
-  REQUIRE(QFileInfo::exists(dir.path() + "/t-take2.wav"));
+  // A take each time a round's pass closes, the recording's first: the last
+  // one has every pass.
+  const QString last = dir.path() + "/t-take4";
+  REQUIRE(QFileInfo::exists(last + ".wav"));
+  CHECK(!QFileInfo::exists(dir.path() + "/t-take5.wav"));
   for(int k = 1; k <= 4; k++)
-    CHECK(QFileInfo::exists(dir.path() + QString("/t-take2-layer%1.wav").arg(k)));
-  const auto mix = read_wav(QString(dir.path() + "/t-take2.wav").toStdString());
+    CHECK(QFileInfo::exists(last + QString("-layer%1.wav").arg(k)));
+  const auto mix = read_wav(QString(last + ".wav").toStdString());
   REQUIRE(mix.samples.size() == 512 * std::size_t(mix.channels));
   CHECK(mix.samples[256 * mix.channels] == Approx(0.25 + 0.1 + 0.3));
-  const auto muted = read_wav(QString(dir.path() + "/t-take2-layer3.wav").toStdString());
+  const auto muted = read_wav(QString(last + "-layer3.wav").toStdString());
   REQUIRE(muted.samples.size() == 512 * std::size_t(muted.channels));
   CHECK(muted.samples[256 * muted.channels] == Approx(0.2));
 }
@@ -2591,7 +2600,7 @@ TEST_CASE("Looper: in phase, a loop played again is where it would be had it kep
   // 1000 frames a second, a loop of a second.
   looper_harness h{1, 100, 1000};
   h.node.inputs.passthrough = Passthrough::None;
-  h.node.inputs.restart = Looper::Restart::InPhase;
+  h.node.inputs.start_from = Nodes::Looper::StartFrom::InPhase;
   record_with(h, 1000, ramp);
   for(int i = 0; i < 3; i++)
     h.run(100);
@@ -2638,7 +2647,7 @@ TEST_CASE("Looper: in phase, a loop played again is where it would be had it kep
   }
   SECTION("Recording carries on from where it stopped")
   {
-    h.node.inputs.restart = Looper::Restart::Recording;
+    h.node.inputs.start_from = Nodes::Looper::StartFrom::WhereItWas;
     h.node.inputs.mode = LoopMode::Stop;
     for(int i = 0; i < 3; i++)
       h.run(100);
@@ -2656,7 +2665,7 @@ TEST_CASE("Looper: in phase and following the tempo, a loop keeps to the bars ac
   h.accumulate = true;
   h.node.inputs.quantif.value = 0.f;
   h.node.inputs.postaction_bars.value = 0;
-  h.node.inputs.restart = Looper::Restart::InPhase;
+  h.node.inputs.start_from = Nodes::Looper::StartFrom::InPhase;
   h.node.inputs.follow_tempo.value = Nodes::Looper::FollowTempo::Repitch;
   h.node.prepare_stretch(48000, 4800);
   h.node.inputs.passthrough = Passthrough::None;
@@ -2694,7 +2703,7 @@ TEST_CASE("Looper: reverse, speed, passes per cycle and mutes allocate nothing",
   h.fill_input(0, [](int64_t i) { return std::sin(i * 0.1); });
   h.fill_input(1, [](int64_t i) { return std::cos(i * 0.1); });
   h.node.inputs.passes.value = Nodes::Looper::Passes::PerCycle;
-  h.node.inputs.restart = Looper::Restart::InPhase;
+  h.node.inputs.start_from = Nodes::Looper::StartFrom::InPhase;
   int allocated = 0;
   {
     alloc_counter::scope counter;
@@ -2746,6 +2755,9 @@ struct switches_harness : musical_harness
   {
     node.inputs.quantif.value = 0.25f;
     node.inputs.postaction_bars.value = 0;
+    // The looper's own defaults.
+    node.inputs.start_from = decltype(node.inputs.start_from){}.value;
+    node.inputs.at_max_layers = decltype(node.inputs.at_max_layers){}.value;
     node.inputs.passthrough = Passthrough::None;
     node.inputs.mode = LoopMode::Stop;
     node.inputs.mode.update_controller = [this](std::string_view s) {
@@ -2773,64 +2785,95 @@ struct switches_harness : musical_harness
   {
     return node.transport.playbackPos % std::max<int64_t>(1, node.layers.length);
   }
+  //! What layer k holds where it was written, summed.
+  double signature(int k) const
+  {
+    const auto& l = node.layers.layers[k];
+    const int64_t len = node.layers.length;
+    const float* d = node.layer_data(k, 0);
+    double sum = 0.;
+    for(int64_t i = 0; i < len; i++)
+      if(node.layers.valid(l, i))
+        sum += std::abs(d[node.layers.index(l, i)]);
+    return sum;
+  }
+  void set_max_layers(int n)
+  {
+    node.inputs.max_layers.value = n;
+    node.layers.allocate(node.layers.channels, n, node.layers.capacity);
+  }
+  void enable_capture()
+  {
+    node.inputs.keep.value = 10;
+    node.allocate_ring(node.layers.channels, 10 * 48000);
+  }
 };
 }
 
 #include "LooperSwitchesScenarios.hpp"
 
-TEST_CASE("Looper switches: Rec / Play / Dub, on the grid", "[fx][audio][looper][switches]")
+TEST_CASE("Looper switches: recording a loop", "[fx][audio][looper][switches]")
 {
   switches_harness h;
-  looper_switches::rec_play_dub(h);
+  looper_switches::record_a_loop(h);
 }
 
-TEST_CASE("Looper switches: Record, from any mode", "[fx][audio][looper][switches]")
-{
-  switches_harness h;
-  looper_switches::record_action(h);
-}
-
-TEST_CASE("Looper switches: Overdub pressed while overdubbing does nothing",
+TEST_CASE("Looper switches: a recording into an overdub, by After record or by Overdub "
+          "on an empty loop",
           "[fx][audio][looper][switches]")
 {
   switches_harness h;
-  looper_switches::overdub_twice(h);
+  looper_switches::record_then_overdub(h);
 }
 
-TEST_CASE("Looper switches: Comp next three times is three new layers",
+TEST_CASE("Looper switches: play and stop", "[fx][audio][looper][switches]")
+{
+  switches_harness h;
+  looper_switches::play_and_stop(h);
+}
+
+TEST_CASE("Looper switches: overdub", "[fx][audio][looper][switches]")
+{
+  switches_harness h;
+  looper_switches::overdub(h);
+}
+
+TEST_CASE("Looper switches: a new layer while overdubbing, without a jump",
           "[fx][audio][looper][switches]")
 {
   switches_harness h;
-  looper_switches::comp_next_three_times(h);
-  // Each layer starts on a beat.
-  for(int k = 1; k < 4; k++)
-    CHECK(h.node.layers.layers[k].start % switches_harness::beat == 0);
+  looper_switches::new_layer(h);
 }
 
-TEST_CASE("Looper switches: Comp taken up from Overdub starts a new layer",
+TEST_CASE("Looper switches: Retrigger", "[fx][audio][looper][switches]")
+{
+  switches_harness h;
+  looper_switches::retrigger(h);
+}
+
+TEST_CASE("Looper switches: Start from", "[fx][audio][looper][switches]")
+{
+  switches_harness h;
+  looper_switches::start_from(h);
+}
+
+TEST_CASE("Looper switches: Undo and Redo", "[fx][audio][looper][switches]")
+{
+  switches_harness h;
+  looper_switches::undo_redo(h);
+}
+
+TEST_CASE("Looper switches: Mute layer and Erase layer, the newest or a stepped back one",
           "[fx][audio][looper][switches]")
 {
   switches_harness h;
-  looper_switches::comp_from_overdub(h);
+  looper_switches::mute_and_erase(h);
 }
 
-TEST_CASE("Looper switches: Restart", "[fx][audio][looper][switches]")
+TEST_CASE("Looper switches: Solo layer", "[fx][audio][looper][switches]")
 {
   switches_harness h;
-  looper_switches::restart(h);
-}
-
-TEST_CASE("Looper switches: Erase last and Mute last", "[fx][audio][looper][switches]")
-{
-  switches_harness h;
-  looper_switches::erase_and_mute_last(h);
-}
-
-TEST_CASE("Looper switches: Previous and Next layer, Solo layer",
-          "[fx][audio][looper][switches]")
-{
-  switches_harness h;
-  looper_switches::select_and_solo(h);
+  looper_switches::solo(h);
 }
 
 TEST_CASE("Looper switches: Toggle reverse, Half speed, Double speed",
@@ -2840,36 +2883,111 @@ TEST_CASE("Looper switches: Toggle reverse, Half speed, Double speed",
   looper_switches::reverse_and_speed(h);
 }
 
-TEST_CASE("Looper switches: a post-action shows the mode it gave way to",
-          "[fx][audio][looper][switches]")
+TEST_CASE("Looper switches: At max layers", "[fx][audio][looper][switches][layers]")
 {
   switches_harness h;
-  looper_switches::postaction_updates_loop(h);
+  looper_switches::at_max_layers(h);
 }
 
-TEST_CASE("Looper switches: actions on an empty loop, Play / Stop",
+TEST_CASE("Looper switches: Capture shows Play in Loop", "[fx][audio][looper][switches]")
+{
+  switches_harness h;
+  looper_switches::capture_shows_play(h);
+}
+
+TEST_CASE("Looper switches: Undo or Clear while recording starts it again",
+          "[fx][audio][looper][switches]")
+{
+  for(const bool clear : {false, true})
+  {
+    INFO(clear);
+    switches_harness h;
+    looper_switches::undo_while_recording(h, clear);
+  }
+}
+
+TEST_CASE("Looper switches: presses before the grid queue", "[fx][audio][looper][switches]")
+{
+  switches_harness h;
+  looper_switches::presses_queue(h);
+}
+
+TEST_CASE("Looper switches: a cable on Loop asks once", "[fx][audio][looper][switches]")
+{
+  switches_harness h;
+  looper_switches::cable_on_loop(h);
+}
+
+TEST_CASE("Looper switches: the lanes' m and x act on the grid",
           "[fx][audio][looper][switches]")
 {
   switches_harness h;
-  looper_switches::empty_loop(h);
+  looper_switches::lanes_on_the_grid(h);
+}
+
+TEST_CASE("Looper switches: Per cycle with Extend", "[fx][audio][looper][switches]")
+{
+  switches_harness h;
+  looper_switches::per_cycle_extend(h);
+}
+
+TEST_CASE("Looper switches: the score stopping closes the layer",
+          "[fx][audio][looper][switches]")
+{
+  switches_harness h;
+  looper_switches::stop_closes_layer(h);
 }
 
 TEST_CASE("Looper switches: Stop at", "[fx][audio][looper][switches]")
 {
   switches_harness h;
-  looper_switches::stop_at(h);
+  auto& in = h.node.inputs;
+  looper_switches::record_loop(h);
+  // A beat into the loop, and a tick.
+  looper_switches::beats(h, 1);
+  h.tick_once();
+  REQUIRE(h.position() == switches_harness::beat + 2 * switches_harness::frames);
+
+  SECTION("now")
+  {
+    in.stop_at.value = Nodes::Looper::StopAt::Now;
+    looper_switches::press(h, in.stop);
+    CHECK(looper_switches::mode(h) == LoopMode::Stop);
+  }
+  SECTION("at the loop's end, through Loop")
+  {
+    in.stop_at.value = Nodes::Looper::StopAt::LoopEnd;
+    in.mode = LoopMode::Stop;
+    looper_switches::next_beat(h);
+    CHECK(looper_switches::mode(h) == LoopMode::Play);
+    int64_t before = h.position();
+    for(int i = 0; i < 100 && looper_switches::mode(h) == LoopMode::Play; i++)
+    {
+      before = h.position();
+      h.tick_once();
+    }
+    CHECK(looper_switches::mode(h) == LoopMode::Stop);
+    CHECK(before == 0);
+  }
 }
 
 TEST_CASE("Looper switches: a recording ends into an overdub on the frame it ends on",
           "[fx][audio][looper][switches]")
 {
-  for(auto after : {Nodes::Looper::AfterRecord::Overdub, Nodes::Looper::AfterRecord::Comp})
+  for(const bool on_empty : {false, true})
   {
     switches_harness h;
     h.ramp = true;
     auto& in = h.node.inputs;
-    in.after_record.value = after;
-    looper_switches::press_off_beat(h, in.rec_play_dub);
+    if(on_empty)
+    {
+      looper_switches::press_off_beat(h, in.overdub);
+    }
+    else
+    {
+      in.after_record.value = Nodes::Looper::AfterRecord::Overdub;
+      looper_switches::press_off_beat(h, in.rec_play_dub);
+    }
     looper_switches::next_beat(h);
     const int64_t start = h.now - switches_harness::frames;
     looper_switches::beats(h, 3);
@@ -2966,17 +3084,17 @@ TEST_CASE("Looper switches: the recording's end is faded while the overdub it we
         faded();
         break;
       case by_mute:
-        looper_switches::press(h, in.mute_last);
+        looper_switches::press(h, in.mute_layer);
         looper_switches::next_beat(h);
         REQUIRE(h.muted(1));
         faded();
-        looper_switches::press(h, in.mute_last);
+        looper_switches::press(h, in.mute_layer);
         looper_switches::next_beat(h);
         REQUIRE(!h.muted(1));
         unfaded();
         break;
       case by_erase:
-        looper_switches::press(h, in.erase_last);
+        looper_switches::press(h, in.erase_layer);
         looper_switches::next_beat(h);
         REQUIRE(h.passes() == 1);
         faded();
@@ -3108,7 +3226,7 @@ TEST_CASE("Looper: the score stopping while a pass is taken in writes a take of 
         for(auto& v : h->in_buf[0])
           v = 0.5;
         h->node.inputs.mode = LoopMode::Overdub;
-        for(int i = 0; i < 4; i++)
+        for(int i = 0; i < 6; i++)
           h->run(64);
         // The take of the recording: written by the time the score stops.
         REQUIRE(jobs.size() == 1);
@@ -3118,16 +3236,18 @@ TEST_CASE("Looper: the score stopping while a pass is taken in writes a take of 
       REQUIRE(jobs.empty());
       h->node.stop();
     }
-    // Written once the looper is gone.
+    // Flattened and written once the looper is gone: the processing thread
+    // only handed the passes over.
     REQUIRE(jobs.size() == 1);
     CHECK(jobs[0].alone);
+    CHECK(jobs[0].audio->flatten);
     REQUIRE(jobs[0].run());
     const auto name = recording ? "/t-take1.wav" : "/t-take2.wav";
     const auto take = read_wav(QString(dir.path() + name).toStdString());
     REQUIRE(take.channels > 0);
     REQUIRE(take.samples.size() == 512 * std::size_t(take.channels));
     CHECK(take.samples[200 * take.channels] == Approx(recording ? 0.25 : 0.75));
-    CHECK(take.samples[300 * take.channels] == Approx(0.25));
+    CHECK(take.samples[450 * take.channels] == Approx(0.25));
   }
 }
 

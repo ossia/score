@@ -186,7 +186,7 @@ TEST_CASE("A MIDI take sent to the timeline is a MIDI clip as long as the loop",
           .pitch = uint8_t(60 + i),
           .velocity = 100,
           .pass = 0,
-          .replaced_by = -1};
+          .replaced_by = 0};
     e.note_count = 4;
 
     QTemporaryDir dir;
@@ -293,7 +293,7 @@ struct midi_looper_run
     node.inputs.grace.value = 0;
     node.inputs.postaction_bars.value = 0;
     node.inputs.passthrough = MidiLooper::Passthrough::None;
-    node.inputs.restart = MidiLooper::Restart::Recording;
+    node.inputs.start_from = Nodes::Looper::StartFrom::WhereItWas;
     node.inputs.takes.value = files;
     node.inputs.midi.midi_messages.reserve(64);
     node.outputs.midi.midi_messages.reserve(1024);
@@ -667,7 +667,7 @@ TEST_CASE("A MIDI take's clip is one process, and its loop settings survive a re
           .pitch = uint8_t(60 + i),
           .velocity = 100,
           .pass = 0,
-          .replaced_by = -1};
+          .replaced_by = 0};
     e.note_count = 4;
     QTemporaryDir dir;
     const QString file = dir.path() + "/MIDI looper-take1.mid";

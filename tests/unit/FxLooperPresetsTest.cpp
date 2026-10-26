@@ -16,7 +16,7 @@ namespace
 using Audio = Nodes::AudioLooper::Node;
 using Midi = Nodes::MidiLooper::Node;
 using LoopMode = Nodes::Looper::LoopMode;
-using Postaction = Nodes::Looper::Postaction;
+using AfterRecord = Nodes::Looper::AfterRecord;
 
 const std::vector<midi_presets::preset>& audio_presets()
 {
@@ -81,7 +81,7 @@ TEST_CASE("Looper presets: what the names say", "[fx][looper][presets]")
     Audio n;
     apply(n, audio_presets(), "Four bars, then overdub");
     CHECK(n.inputs.postaction_bars.value == 4);
-    CHECK(n.inputs.postaction.value == Postaction::Overdub);
+    CHECK(n.inputs.after_record.value == AfterRecord::Overdub);
     CHECK(n.inputs.quantif.value == Approx(1.f));
   }
   {

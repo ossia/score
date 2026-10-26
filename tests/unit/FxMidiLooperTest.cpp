@@ -6,6 +6,7 @@
 
 #include <QDir>
 #include <QFile>
+#include <QFileInfo>
 #include <QTemporaryDir>
 
 #include <catch2/catch_approx.hpp>
@@ -69,6 +70,10 @@ struct midi_harness
     node.inputs.quantif.value = 0.f;
     node.inputs.late.value = 0;
     node.inputs.grace.value = 0;
+    // The cases here were written when a change of mode read the loop from
+    // its start and the two oldest passes merged past Max layers.
+    node.inputs.start_from = Nodes::Looper::StartFrom::LoopStart;
+    node.inputs.at_max_layers = Nodes::Looper::AtMaxLayers::MergeOldest;
     node.inputs.passthrough = Passthrough::None;
     node.inputs.midi.midi_messages.reserve(64);
     node.outputs.midi.midi_messages.reserve(1024);
@@ -274,7 +279,7 @@ TEST_CASE("MIDI looper: replace silences a pitch of earlier passes where the pas
   {
     midi_harness h;
     h.node.inputs.overdub_mode = mode;
-    h.node.inputs.restart = Looper::Restart::Recording;
+    h.node.inputs.start_from = Nodes::Looper::StartFrom::WhereItWas;
     record(h, 640, [](midi_harness& h) {
       h.note_on(60, 10);
       h.note_off(60, 20);
@@ -303,7 +308,7 @@ TEST_CASE("MIDI looper: an overdub moving one controller leaves the others alone
           "[fx][midi][looper]")
 {
   midi_harness h;
-  h.node.inputs.restart = Looper::Restart::Recording;
+  h.node.inputs.start_from = Nodes::Looper::StartFrom::WhereItWas;
   record(h, 640, [](midi_harness& h) {
     h.cc(1, 10, 5);
     h.cc(74, 20, 6);
@@ -334,7 +339,7 @@ TEST_CASE("MIDI looper: an overdub moving one controller leaves the others alone
 TEST_CASE("MIDI looper: undo hides a pass and redo brings it back", "[fx][midi][looper]")
 {
   midi_harness h;
-  h.node.inputs.restart = Looper::Restart::Recording;
+  h.node.inputs.start_from = Nodes::Looper::StartFrom::WhereItWas;
   record(h, 640, [](midi_harness& h) {
     h.note_on(60, 10);
     h.note_off(60, 20);
@@ -456,8 +461,8 @@ TEST_CASE("MIDI looper: a take is a MIDI file as long as the loop, at 120 bpm",
   // Four bars at 90 bpm: 16 quarters.
   const double fpq = 48000. * 60. / 90.;
   e.length = int64_t(16 * fpq);
-  e.notes[0] = {.start = 0, .length = int64_t(fpq), .channel = 1, .pitch = 60, .velocity = 100, .pass = 0, .replaced_by = -1};
-  e.notes[1] = {.start = int64_t(15.5 * fpq), .length = int64_t(fpq), .channel = 2, .pitch = 62, .velocity = 90, .pass = 0, .replaced_by = -1};
+  e.notes[0] = {.start = 0, .length = int64_t(fpq), .channel = 1, .pitch = 60, .velocity = 100, .pass = 0, .replaced_by = 0};
+  e.notes[1] = {.start = int64_t(15.5 * fpq), .length = int64_t(fpq), .channel = 2, .pitch = 62, .velocity = 90, .pass = 0, .replaced_by = 0};
   e.note_count = 2;
 
   const auto bytes = e.to_smf();
@@ -567,7 +572,7 @@ TEST_CASE("MIDI looper: a note replaced while it sounds still ends",
 {
   midi_harness h;
   h.node.inputs.overdub_mode = OverdubMode::Replace;
-  h.node.inputs.restart = Looper::Restart::Recording;
+  h.node.inputs.start_from = Nodes::Looper::StartFrom::WhereItWas;
   record(h, 640, [](midi_harness& h) {
     h.note_on(60, 10);
     h.note_off(60, 50);
@@ -672,7 +677,7 @@ TEST_CASE("MIDI looper: a take can be written as its mix, its passes, or both",
     Looper::worker_t::work(std::move(job))(h.node);
   };
   h.node.inputs.takes.value = Nodes::Looper::TakeFiles::Layers;
-  h.node.inputs.restart = Looper::Restart::Recording;
+  h.node.inputs.start_from = Nodes::Looper::StartFrom::WhereItWas;
 
   record(h, 640, [](midi_harness& h) {
     h.note_on(60, 10);
@@ -769,7 +774,7 @@ TEST_CASE("MIDI looper: an extending overdub makes the loop longer, the first pa
 {
   midi_harness h;
   h.node.inputs.past_end.value = Nodes::Looper::PastEnd::Extend;
-  h.node.inputs.restart = Looper::Restart::Recording;
+  h.node.inputs.start_from = Nodes::Looper::StartFrom::WhereItWas;
   record(h, 640, [](midi_harness& h) {
     h.note_on(60, 10);
     h.note_off(60, 20);
@@ -848,7 +853,7 @@ TEST_CASE("MIDI looper: an extending overdub cut back to the loop replaces only 
 {
   midi_harness h;
   h.node.inputs.past_end.value = Nodes::Looper::PastEnd::Extend;
-  h.node.inputs.restart = Looper::Restart::Recording;
+  h.node.inputs.start_from = Nodes::Looper::StartFrom::WhereItWas;
   h.node.inputs.overdub_mode = OverdubMode::Replace;
   h.node.inputs.late.value = 50; // 2400 frames
 
@@ -885,9 +890,9 @@ TEST_CASE("MIDI looper: an extending overdub cut back to the loop replaces only 
       continue;
     INFO(n.start);
     if(n.start == 10)
-      CHECK(n.replaced_by == -1);
+      CHECK(n.replaced_by == 0);
     else if(n.start == 330)
-      CHECK(n.replaced_by == 1);
+      CHECK(n.replaced_by == (uint64_t(1) << 1));
     checked++;
   }
   CHECK(checked == 2);
@@ -914,7 +919,7 @@ TEST_CASE("MIDI looper: an extending overdub stops growing the loop at an hour",
 {
   midi_harness h{100, 100}; // an hour is 360000 frames
   h.node.inputs.past_end.value = Nodes::Looper::PastEnd::Extend;
-  h.node.inputs.restart = Looper::Restart::Recording;
+  h.node.inputs.start_from = Nodes::Looper::StartFrom::WhereItWas;
   record(h, 1000, [](midi_harness& h) {
     h.note_on(60, 10);
     h.note_off(60, 20);
@@ -959,7 +964,7 @@ TEST_CASE("MIDI looper: the files of a take are the loop as it was when it close
     }
   };
   h.node.inputs.takes.value = Nodes::Looper::TakeFiles::Layers;
-  h.node.inputs.restart = Looper::Restart::Recording;
+  h.node.inputs.start_from = Nodes::Looper::StartFrom::WhereItWas;
 
   record(h, 640, [](midi_harness& h) {
     h.note_on(60, 10);
@@ -1065,7 +1070,7 @@ void short_note(midi_harness& h, int pitch, int at)
 void three_replacing_passes(midi_harness& h)
 {
   h.node.inputs.overdub_mode = OverdubMode::Replace;
-  h.node.inputs.restart = Looper::Restart::Recording;
+  h.node.inputs.start_from = Nodes::Looper::StartFrom::WhereItWas;
   record(h, 640, [](midi_harness& h) {
     short_note(h, 60, 10);
     short_note(h, 64, 30);
@@ -1109,9 +1114,9 @@ TEST_CASE("MIDI looper: erasing the middle pass brings back what only it replace
     const auto& n = h.node.loop.notes[i];
     CHECK(n.pass < 2);
     if(n.pass == 0 && n.pitch == 60)
-      CHECK(n.replaced_by == 1);
+      CHECK(n.replaced_by == (uint64_t(1) << 1));
     if(n.pass == 0 && n.pitch == 64)
-      CHECK(n.replaced_by == -1);
+      CHECK(n.replaced_by == 0);
   }
 
   // Undo and redo go on with the passes left.
@@ -1158,7 +1163,8 @@ TEST_CASE("MIDI looper: past eight passes the oldest share the first lane, and t
   midi_harness h;
   Nodes::Looper::view_message last{};
   h.node.send_message = [&](Nodes::Looper::view_message v) { last = v; };
-  h.node.inputs.restart = Looper::Restart::Recording;
+  h.node.inputs.start_from = Nodes::Looper::StartFrom::WhereItWas;
+  h.node.inputs.max_layers.value = 12;
   // A first pass with far more notes than the view holds, then nine with one.
   record(h, 6400, [](midi_harness&) { });
   for(int i = 0; i < 2000; i++)
@@ -1183,7 +1189,7 @@ TEST_CASE("MIDI looper: erasing the pass being overdubbed is undoing it",
           "[fx][midi][looper][erase]")
 {
   midi_harness h;
-  h.node.inputs.restart = Looper::Restart::Recording;
+  h.node.inputs.start_from = Nodes::Looper::StartFrom::WhereItWas;
   record(h, 640, [](midi_harness& h) { short_note(h, 60, 10); });
   h.node.inputs.mode = LoopMode::Overdub;
   short_note(h, 67, 10);
@@ -1205,7 +1211,7 @@ TEST_CASE("MIDI looper: erasing the only pass empties the loop and ends its note
           "[fx][midi][looper][erase]")
 {
   midi_harness h;
-  h.node.inputs.restart = Looper::Restart::Recording;
+  h.node.inputs.start_from = Nodes::Looper::StartFrom::WhereItWas;
   h.node.inputs.mode = LoopMode::Record;
   h.note_on(60, 10);
   h.run_frames(576);
@@ -1225,7 +1231,7 @@ TEST_CASE("MIDI looper: the notes of an erased pass that are sounding end at onc
           "[fx][midi][looper][erase]")
 {
   midi_harness h;
-  h.node.inputs.restart = Looper::Restart::Recording;
+  h.node.inputs.start_from = Nodes::Looper::StartFrom::WhereItWas;
   record(h, 640, [](midi_harness& h) { short_note(h, 60, 10); });
   // A pass with a note held over most of the loop.
   h.node.inputs.mode = LoopMode::Overdub;
@@ -1248,7 +1254,7 @@ TEST_CASE("MIDI looper: erasing a pass keeps what redo brings back",
           "[fx][midi][looper][erase]")
 {
   midi_harness h;
-  h.node.inputs.restart = Looper::Restart::Recording;
+  h.node.inputs.start_from = Nodes::Looper::StartFrom::WhereItWas;
   record(h, 640, [](midi_harness& h) { short_note(h, 60, 10); });
   overdub(h, 640, [](midi_harness& h) { short_note(h, 64, 10); });
   overdub(h, 640, [](midi_harness& h) { short_note(h, 67, 10); });
@@ -1269,7 +1275,7 @@ TEST_CASE("MIDI looper: the view asks for a pass to be erased, a changed loop is
           "[fx][midi][looper][erase]")
 {
   midi_harness h;
-  h.node.inputs.restart = Looper::Restart::Recording;
+  h.node.inputs.start_from = Nodes::Looper::StartFrom::WhereItWas;
   record(h, 640, [](midi_harness& h) { short_note(h, 60, 10); });
   overdub(h, 640, [](midi_harness& h) { short_note(h, 64, 10); });
 
@@ -1289,7 +1295,7 @@ TEST_CASE("MIDI looper: erasing a pass allocates nothing", "[fx][midi][looper][e
   h.out.reserve(100000);
   h.controls_out.reserve(100000);
   h.node.inputs.overdub_mode = OverdubMode::Replace;
-  h.node.inputs.restart = Looper::Restart::Recording;
+  h.node.inputs.start_from = Nodes::Looper::StartFrom::WhereItWas;
   h.node.send_message = [](const Nodes::Looper::view_message&) { };
 
   int allocated = 0;
@@ -1708,10 +1714,17 @@ TEST_CASE("MIDI looper: a take of passes per cycle has a file for each, the mute
         res.insert(ev.m.bytes[1]);
     return res;
   };
-  CHECK(pitches("m-take2.mid") == std::multiset<int>{60, 64});
-  CHECK(pitches("m-take2-layer2.mid") == std::multiset<int>{60});
-  CHECK(pitches("m-take2-layer3.mid") == std::multiset<int>{62});
-  CHECK(pitches("m-take2-layer4.mid") == std::multiset<int>{64});
+  // A take each time a round's pass closes, the recording's first: the last
+  // one has every pass.
+  int last = 1;
+  while(QFileInfo::exists(dir.path() + QString("/m-take%1.mid").arg(last + 1)))
+    last++;
+  CHECK(last == 4);
+  const QString take = QString("m-take%1").arg(last);
+  CHECK(pitches(take + ".mid") == std::multiset<int>{60, 64});
+  CHECK(pitches(take + "-layer2.mid") == std::multiset<int>{60});
+  CHECK(pitches(take + "-layer3.mid") == std::multiset<int>{62});
+  CHECK(pitches(take + "-layer4.mid") == std::multiset<int>{64});
 }
 
 TEST_CASE("MIDI looper: in phase, a loop played again is where it would be had it kept "
@@ -1722,7 +1735,7 @@ TEST_CASE("MIDI looper: in phase, a loop played again is where it would be had i
   // Following the tempo, as by default: at one tempo, the timeline's
   // quarters go as its frames.
   h.musical = true;
-  h.node.inputs.restart = Looper::Restart::InPhase;
+  h.node.inputs.start_from = Nodes::Looper::StartFrom::InPhase;
   h.node.inputs.mode = LoopMode::Record;
   h.run_frames(512);
   short_note(h, 72, 18); // at 530
@@ -1756,7 +1769,7 @@ TEST_CASE("MIDI looper: in phase and following the tempo, a loop keeps to the ba
           "[fx][midi][looper][phase][tempo]")
 {
   midi_harness h{4800, 48000};
-  h.node.inputs.restart = Looper::Restart::InPhase;
+  h.node.inputs.start_from = Nodes::Looper::StartFrom::InPhase;
   double quarters = 0.;
   h.node.inputs.mode = LoopMode::Stop;
   for(int i = 0; i < 20; i++)
@@ -1791,7 +1804,7 @@ TEST_CASE("MIDI looper: reverse, speed, passes per cycle and mutes allocate noth
   h.controls_out.reserve(100000);
   h.node.inputs.passes.value = Nodes::Looper::Passes::PerCycle;
   h.node.inputs.overdub_mode = OverdubMode::Replace;
-  h.node.inputs.restart = Looper::Restart::InPhase;
+  h.node.inputs.start_from = Nodes::Looper::StartFrom::InPhase;
 
   int allocated = 0;
   {
@@ -1973,20 +1986,28 @@ TEST_CASE("MIDI looper: every note of an overdub started on a bar line is heard,
 namespace
 {
 //! The looper of the switch scenarios: a quarter-note grid, ticks of a fifth
-//! of a beat, the ticks carrying their place in the bars.
+//! of a beat, the ticks carrying their place in the bars. Unless `playing` is
+//! unset, a short note is played on each tick, its pitch going round an
+//! octave.
 struct switches_harness : midi_harness
 {
   static constexpr int64_t beat = 24000;
   static constexpr int64_t frames = 4800;
   std::string_view shown{};
   int shown_count{};
+  bool playing{true};
+  int pitch{};
 
   switches_harness()
       : midi_harness{int(frames)}
   {
     musical = true;
+    pending.reserve(64);
     node.inputs.quantif.value = 0.25f;
     node.inputs.postaction_bars.value = 0;
+    // The looper's own defaults.
+    node.inputs.start_from = decltype(node.inputs.start_from){}.value;
+    node.inputs.at_max_layers = decltype(node.inputs.at_max_layers){}.value;
     node.inputs.mode = LoopMode::Stop;
     node.inputs.mode.update_controller = [this](std::string_view s) {
       shown = s;
@@ -1996,7 +2017,16 @@ struct switches_harness : midi_harness
       tick_once();
   }
 
-  void tick_once() { run(frames); }
+  void tick_once()
+  {
+    if(playing)
+    {
+      note_on(84 + pitch, 100);
+      note_off(84 + pitch, 1000);
+      pitch = (pitch + 1) % 12;
+    }
+    run(frames);
+  }
   int passes() const { return node.loop.count; }
   bool muted(int k) const { return node.loop.muted[k]; }
   int64_t length() const { return node.loop.length; }
@@ -2004,99 +2034,247 @@ struct switches_harness : midi_harness
   {
     return node.transport.playbackPos % std::max<int64_t>(1, node.loop.length);
   }
+  //! The events of layer k.
+  double signature(int k) const
+  {
+    int n = 0;
+    for(int i = 0; i < node.loop.note_count; i++)
+      n += node.loop.notes[i].pass == k;
+    for(int i = 0; i < node.loop.control_count; i++)
+      n += node.loop.controls[i].pass == k;
+    return n;
+  }
+  void set_max_layers(int n) { node.inputs.max_layers.value = n; }
+  void enable_capture() { }
 };
 }
 
 #include "LooperSwitchesScenarios.hpp"
 
-TEST_CASE("MIDI looper switches: Rec / Play / Dub, on the grid", "[fx][midi][looper][switches]")
+TEST_CASE("MIDI looper switches: recording a loop", "[fx][midi][looper][switches]")
 {
   switches_harness h;
-  looper_switches::rec_play_dub(h);
+  looper_switches::record_a_loop(h);
 }
 
-TEST_CASE("MIDI looper switches: Record, from any mode", "[fx][midi][looper][switches]")
+TEST_CASE("MIDI looper switches: a recording into an overdub, by After record or by Overdub on an empty loop", "[fx][midi][looper][switches]")
 {
   switches_harness h;
-  looper_switches::record_action(h);
+  looper_switches::record_then_overdub(h);
 }
 
-TEST_CASE("MIDI looper switches: Overdub pressed while overdubbing does nothing",
-          "[fx][midi][looper][switches]")
+TEST_CASE("MIDI looper switches: play and stop", "[fx][midi][looper][switches]")
 {
   switches_harness h;
-  looper_switches::overdub_twice(h);
+  looper_switches::play_and_stop(h);
 }
 
-TEST_CASE("MIDI looper switches: Comp next three times is three new layers",
-          "[fx][midi][looper][switches]")
+TEST_CASE("MIDI looper switches: overdub", "[fx][midi][looper][switches]")
 {
   switches_harness h;
-  looper_switches::comp_next_three_times(h);
+  looper_switches::overdub(h);
 }
 
-TEST_CASE("MIDI looper switches: Comp taken up from Overdub starts a new layer",
-          "[fx][midi][looper][switches]")
+TEST_CASE("MIDI looper switches: a new layer while overdubbing, without a jump", "[fx][midi][looper][switches]")
 {
   switches_harness h;
-  looper_switches::comp_from_overdub(h);
+  looper_switches::new_layer(h);
 }
 
-TEST_CASE("MIDI looper switches: Restart", "[fx][midi][looper][switches]")
+TEST_CASE("MIDI looper switches: Retrigger", "[fx][midi][looper][switches]")
 {
   switches_harness h;
-  looper_switches::restart(h);
+  looper_switches::retrigger(h);
 }
 
-TEST_CASE("MIDI looper switches: Erase last and Mute last", "[fx][midi][looper][switches]")
+TEST_CASE("MIDI looper switches: Start from", "[fx][midi][looper][switches]")
 {
   switches_harness h;
-  looper_switches::erase_and_mute_last(h);
+  looper_switches::start_from(h);
 }
 
-TEST_CASE("MIDI looper switches: Previous and Next layer, Solo layer",
-          "[fx][midi][looper][switches]")
+TEST_CASE("MIDI looper switches: Undo and Redo", "[fx][midi][looper][switches]")
 {
   switches_harness h;
-  looper_switches::select_and_solo(h);
+  looper_switches::undo_redo(h);
 }
 
-TEST_CASE("MIDI looper switches: Toggle reverse, Half speed, Double speed",
-          "[fx][midi][looper][switches]")
+TEST_CASE("MIDI looper switches: Mute layer and Erase layer, the newest or a stepped back one", "[fx][midi][looper][switches]")
+{
+  switches_harness h;
+  looper_switches::mute_and_erase(h);
+}
+
+TEST_CASE("MIDI looper switches: Solo layer", "[fx][midi][looper][switches]")
+{
+  switches_harness h;
+  looper_switches::solo(h);
+}
+
+TEST_CASE("MIDI looper switches: Toggle reverse, Half speed, Double speed", "[fx][midi][looper][switches]")
 {
   switches_harness h;
   looper_switches::reverse_and_speed(h);
 }
 
-TEST_CASE("MIDI looper switches: a post-action shows the mode it gave way to",
-          "[fx][midi][looper][switches]")
+TEST_CASE("MIDI looper switches: At max layers", "[fx][midi][looper][switches]")
 {
   switches_harness h;
-  looper_switches::postaction_updates_loop(h);
+  looper_switches::at_max_layers(h);
 }
 
-TEST_CASE("MIDI looper switches: actions on an empty loop, Play / Stop",
-          "[fx][midi][looper][switches]")
+TEST_CASE("MIDI looper switches: Capture shows Play in Loop", "[fx][midi][looper][switches]")
 {
   switches_harness h;
-  looper_switches::empty_loop(h);
+  looper_switches::capture_shows_play(h);
 }
 
-TEST_CASE("MIDI looper switches: Stop at", "[fx][midi][looper][switches]")
+TEST_CASE("MIDI looper switches: presses before the grid queue", "[fx][midi][looper][switches]")
 {
   switches_harness h;
-  looper_switches::stop_at(h);
+  looper_switches::presses_queue(h);
+}
+
+TEST_CASE("MIDI looper switches: a cable on Loop asks once", "[fx][midi][looper][switches]")
+{
+  switches_harness h;
+  looper_switches::cable_on_loop(h);
+}
+
+TEST_CASE("MIDI looper switches: the lanes' m and x act on the grid", "[fx][midi][looper][switches]")
+{
+  switches_harness h;
+  looper_switches::lanes_on_the_grid(h);
+}
+
+TEST_CASE("MIDI looper switches: Per cycle with Extend", "[fx][midi][looper][switches]")
+{
+  switches_harness h;
+  looper_switches::per_cycle_extend(h);
+}
+
+TEST_CASE("MIDI looper switches: the score stopping closes the layer", "[fx][midi][looper][switches]")
+{
+  switches_harness h;
+  looper_switches::stop_closes_layer(h);
+}
+
+TEST_CASE("MIDI looper switches: Undo or Clear while recording starts it again",
+          "[fx][midi][looper][switches]")
+{
+  for(const bool clear : {false, true})
+  {
+    INFO(clear);
+    switches_harness h;
+    looper_switches::undo_while_recording(h, clear);
+  }
+}
+
+TEST_CASE("MIDI looper switches: Layer reaches every layer, and Next layer stops at the "
+          "newest",
+          "[fx][midi][looper][switches][layers]")
+{
+  switches_harness h;
+  auto& in = h.node.inputs;
+  h.set_max_layers(12);
+  looper_switches::record_loop(h);
+  looper_switches::at_beat(h, in.overdub);
+  for(int i = 0; i < 9; i++)
+    looper_switches::at_beat(h, in.new_layer);
+  looper_switches::at_beat(h, in.play);
+  REQUIRE(h.passes() == 11);
+  CHECK(in.layer.value == 11);
+  in.layer.value = 1;
+  for(int i = 0; i < 20; i++)
+    looper_switches::press(h, in.next_layer);
+  CHECK(in.layer.value == 11);
+  looper_switches::at_beat(h, in.mute_layer);
+  CHECK(h.muted(10));
+  // Past the most layers there can be, a new one merges into the newest.
+  for(int i = 0; i < 3; i++)
+  {
+    looper_switches::at_beat(h, in.overdub);
+    looper_switches::at_beat(h, in.play);
+  }
+  CHECK(h.passes() == 12);
+}
+
+TEST_CASE("MIDI looper switches: a merged layer keeps what it replaced, muted or not",
+          "[fx][midi][looper][switches][layers]")
+{
+  switches_harness h;
+  h.playing = false;
+  auto& in = h.node.inputs;
+  in.overdub_mode.value = Looper::OverdubMode::Replace;
+  h.set_max_layers(2);
+  // A note on each beat, the same pitch over every pass: each pass replaces
+  // the ones under it where it went.
+  auto beat_note = [&] {
+    while(h.now % switches_harness::beat != 0)
+      h.tick_once();
+    h.note_on(60, 10);
+    h.note_off(60, 2000);
+  };
+  looper_switches::press_off_beat(h, in.rec_play_dub);
+  for(int i = 0; i < 4; i++)
+  {
+    beat_note();
+    h.tick_once();
+  }
+  looper_switches::press(h, in.rec_play_dub);
+  looper_switches::next_beat(h);
+  REQUIRE(h.length() == 4 * switches_harness::beat);
+  auto heard = [&] {
+    int n = 0;
+    for(int i = 0; i < h.node.loop.note_count; i++)
+      n += h.node.loop.heard(h.node.loop.notes[i], Looper::OverdubMode::Replace);
+    return n;
+  };
+  REQUIRE(heard() == 4);
+  // Two overdubs over the first beat: the second is past Max layers and goes
+  // into the first.
+  for(int k = 0; k < 2; k++)
+  {
+    while(h.position() != 0)
+      h.tick_once();
+    in.mode = LoopMode::Overdub;
+    beat_note();
+    h.tick_once();
+    in.mode = LoopMode::Play;
+    looper_switches::next_beat(h);
+  }
+  REQUIRE(h.passes() == 2);
+  CHECK(heard() == 4);
+  // Muted, the merged layer replaces nothing; unmuted, it replaces again what
+  // both of its passes did.
+  in.layer.value = 2;
+  looper_switches::at_beat(h, in.mute_layer);
+  CHECK(heard() == 4);
+  looper_switches::at_beat(h, in.mute_layer);
+  CHECK(heard() == 4);
+  // Erased, what it replaced is heard again.
+  looper_switches::at_beat(h, in.erase_layer);
+  CHECK(h.passes() == 1);
+  CHECK(heard() == 4);
 }
 
 TEST_CASE("MIDI looper switches: a recording ends into an overdub on the frame it ends on",
           "[fx][midi][looper][switches]")
 {
-  for(auto after : {Nodes::Looper::AfterRecord::Overdub, Nodes::Looper::AfterRecord::Comp})
+  for(const bool on_empty : {false, true})
   {
     switches_harness h;
+    h.playing = false;
     auto& in = h.node.inputs;
-    in.after_record.value = after;
-    looper_switches::press_off_beat(h, in.rec_play_dub);
+    if(on_empty)
+    {
+      looper_switches::press_off_beat(h, in.overdub);
+    }
+    else
+    {
+      in.after_record.value = Nodes::Looper::AfterRecord::Overdub;
+      looper_switches::press_off_beat(h, in.rec_play_dub);
+    }
     looper_switches::next_beat(h);
     // A note held from the second tick of the recording.
     h.note_on(60, 100);
@@ -2149,6 +2327,7 @@ TEST_CASE("MIDI looper switches: a recording ends into an overdub on the frame i
 TEST_CASE("MIDI looper switches: the actions allocate nothing", "[fx][midi][looper][switches]")
 {
   switches_harness h;
+  h.playing = false;
   int layer{};
   bool reverse{};
   float speed{};

@@ -20,7 +20,7 @@
  * The loopers ask for a mode; the transport waits for the next point of the
  * quantification grid before taking it up, splits the tick there, and hands
  * the looper the spans of the tick with the mode each of them is in. A
- * recording can end on its own after a number of bars (the post-action).
+ * recording can end on its own after a number of bars, into After record.
  *
  * The looper (the Engine below) provides:
  *
@@ -46,7 +46,7 @@
  *   // dropped and the frames the playhead is into it are returned, else -1.
  *   int64_t looper_trim_extension(int64_t max_frames);
  *
- *   // Restart::InPhase: the loop starts being heard again, at the start of
+ *   // StartFrom::InPhase: the loop starts being heard again, at the start of
  *   // the span of `tk`; the looper puts the playhead where the loop would be
  *   // had it kept playing since it was made, by the timeline's clock.
  *   void looper_rephase(const ossia::token_request& tk);
@@ -69,24 +69,18 @@ enum class LoopMode
   Play,
   Record,
   Overdub,
-  Stop,
-  //! Overdubs, and taking it up starts a new pass, whatever the mode before.
-  Comp
+  Stop
 };
 
-//! The modes that lay passes over the loop.
-inline constexpr bool overdubbing(LoopMode m) noexcept
-{
-  return m == LoopMode::Overdub || m == LoopMode::Comp;
-}
-
-//! What Rec / Play / Dub and Record go to when they end a recording. The
-//! overdub starts on the frame the recording ends on.
+//! What a recording gives way to when it ends: its bars running out, a full
+//! buffer, Rec / Play / Dub. An overdub starts on the frame the recording ends
+//! on.
+//!
+//! Order matters: this is the Post-action of older scores.
 enum class AfterRecord
 {
   Play,
-  Overdub,
-  Comp
+  Overdub
 };
 
 //! When a stop is taken up.
@@ -97,42 +91,32 @@ enum class StopAt
   Now      ///< At once.
 };
 
-//! What Rec / Play / Dub does while overdubbing or comping.
+//! What Rec / Play / Dub does while overdubbing.
 enum class AfterOverdub
 {
   Play,    ///< Plays the loop.
-  NewLayer ///< Goes on in a new pass, as Comp next does.
+  NewLayer ///< Goes on overdubbing in a new layer, as New layer does.
 };
 
-//! The actions that always act on the transport, where setting Loop to the
-//! mode it already has does nothing. Each is taken up on the next grid point,
-//! as a change of Loop is.
+//! The actions that are not "set Loop to a mode". Each is taken up on the
+//! next grid point, as a change of Loop is.
 enum class TransportAction
 {
   RecPlayDub, ///< Records an empty loop, then plays, overdubs, plays again.
   PlayStop,   ///< Plays a stopped loop, stops anything else.
-  Record,     ///< Records a new loop; while recording, ends the recording.
-  Overdub,
-  CompNext, ///< Ends the pass and starts a new one, overdubbing on.
-  Play,
-  Stop,
-  Restart ///< Back to the loop's start, in the same mode.
-};
-
-enum class Postaction
-{
-  Play,
-  Overdub
+  NewLayer,   ///< While overdubbing, ends the layer and starts another.
+  Retrigger   ///< Back to the loop's start, in the same mode.
 };
 
 //! Where the loop is read from when the mode changes.
 //!
-//! Order matters: the first is what the object did before there was a choice.
-enum class Restart
+//! Order matters: this is the Restart of older scores, whose Always,
+//! Recording and In phase these are.
+enum class StartFrom
 {
-  Always,    ///< Every change of mode reads the loop from its beginning again.
-  Recording, ///< Only a recording does; playing and overdubbing carry straight on.
-  InPhase    ///< As Recording, and a loop heard again after a stop, a transport
+  LoopStart, ///< Every change of mode reads the loop from its beginning again.
+  WhereItWas, ///< Only a recording does; playing and overdubbing carry straight on.
+  InPhase    ///< As WhereItWas, and a loop heard again after a stop, a transport
              ///< start or a jump of the timeline is where it would be had it
              ///< kept playing.
 };
@@ -141,7 +125,16 @@ enum class Restart
 enum class Passes
 {
   Whole,   ///< One pass, from when the overdub starts to when it stops.
-  PerCycle ///< A pass for each time it goes round, starting on the loop's start.
+  PerCycle ///< A pass for each time it goes round, cut on the loop's start.
+};
+
+//! What a pass that would make more layers than Max layers does.
+enum class AtMaxLayers
+{
+  MergeOldest,    ///< The two oldest layers are merged into one.
+  MergeIntoNewest, ///< The pass is merged into the newest layer once it ends.
+  ReplaceMuted    ///< The pass takes the place of the oldest muted layer, else
+                  ///< of the newest one.
 };
 
 //! The speeds a loop is played at, as a tape: the pitch follows.
@@ -200,9 +193,9 @@ struct transport_settings
 {
   LoopMode mode{LoopMode::Stop};
   float quantif{};
-  Postaction postaction{};
+  AfterRecord after_record{};
   int postaction_bars{};
-  Restart restart{};
+  StartFrom start_from{};
   //! A recording asked to stop at most this long after a grid point ends on
   //! that point instead of waiting for the next one.
   double late_seconds{};
@@ -211,7 +204,7 @@ struct transport_settings
 
 struct transport
 {
-  //! The mode asked for: Loop, or what an action, a post-action or a full
+  //! The mode asked for: Loop, or what an action, a recording's end or a full
   //! buffer changed it to. The looper shows it in Loop, so that what Loop
   //! says is what the looper does.
   LoopMode wanted{LoopMode::Stop};
@@ -225,7 +218,7 @@ struct transport
   int64_t tickStartSample{};
   int postaction_bars{};
   double sampleRate{48000.};
-  //! Whether the post-action is what ended the recording, rather than the
+  //! Whether its bars running out is what ended the recording, rather than the
   //! mode being changed by hand.
   bool endedByPostaction{false};
 
@@ -288,117 +281,135 @@ struct transport
   void taking(LoopMode m) noexcept { m_taking = m; }
   bool is_taking() const noexcept { return m_taking != LoopMode::Stop; }
 
-  //! A recording reaching the end of its buffer gives way to the post-action
-  //! as if its bars had run out.
-  void end_recording(Postaction postaction) noexcept
+  //! What the recording going on, or about to start, gives way to when it
+  //! ends by itself or by Rec / Play / Dub: overdubbing when it was asked for
+  //! as an overdub of an empty loop, else After record.
+  LoopMode end_of_recording(AfterRecord after) const noexcept
+  {
+    return m_into_overdub || after == AfterRecord::Overdub ? LoopMode::Overdub
+                                                           : LoopMode::Play;
+  }
+
+  //! A recording reaching the end of its buffer ends as if its bars had run
+  //! out.
+  void end_recording(AfterRecord after) noexcept
   {
     recordStartBar = -1.;
     recordEndBar = -1.;
     endedByPostaction = false;
-    actualMode = postaction == Postaction::Overdub ? LoopMode::Overdub : LoopMode::Play;
-    overdub_after_recording();
+    actualMode = end_of_recording(after);
     recording_handed_over();
     m_forced_close = true;
   }
 
-  //! The mode to take up for the one the looper is asked for. Overdubbing an
-  //! empty loop records it: the first pass has nothing to go over, and a
-  //! performer who starts with Overdub expects to be heard. The recording
-  //! then goes on until the mode changes, or the post-action takes over after
-  //! its bars, after which overdubbing proper starts at once, on the sample
-  //! the recording ended on.
-  LoopMode effective(LoopMode asked, bool empty) noexcept
+  //! Loop set to `m`, from its port or by Play, Stop, Record or Overdub: what
+  //! is asked for from now on, whatever was waiting for the grid. Overdubbing
+  //! an empty loop records it, as Record does, and the recording then gives
+  //! way to overdubbing. `empty`: there is no loop and none is being recorded.
+  void ask(LoopMode m, bool empty) noexcept
   {
-    if(!overdubbing(asked))
-      m_overdub_records = false;
-    else if(empty && !is_taking())
-      m_overdub_records = true;
-    else if(m_overdub_records && actualMode != LoopMode::Record && !empty)
-      m_overdub_records = false;
-    m_overdub_as = asked;
-    return m_overdub_records ? LoopMode::Record : asked;
+    m_queued = 0;
+    if(m == LoopMode::Overdub && empty)
+    {
+      m_into_overdub = true;
+      wanted = LoopMode::Record;
+      return;
+    }
+    if(m != LoopMode::Record)
+      m_into_overdub = false;
+    wanted = m;
   }
 
-  //! An action: changes what is asked for from what the looper does once
-  //! what it waits for is taken up. `empty`: there is no loop to play.
-  void press(
-      TransportAction a, bool empty, AfterRecord after_record,
-      AfterOverdub after) noexcept
+  //! A loop emptied while Overdub is asked for, e.g. by Clear: it is recorded.
+  void settle(bool empty) noexcept
   {
-    // Overdubbing an empty loop records it: that is what the looper does.
-    const LoopMode now = m_overdub_records ? LoopMode::Record : wanted;
-    const LoopMode after_recording = after_record == AfterRecord::Overdub ? LoopMode::Overdub
-                                     : after_record == AfterRecord::Comp  ? LoopMode::Comp
-                                                                          : LoopMode::Play;
-    auto ask = [this](LoopMode m) {
-      // A recording Overdub or Comp started ends when anything else is asked.
-      m_overdub_records = false;
-      wanted = m;
-    };
-    auto comp_next = [&] {
-      if(now == LoopMode::Comp)
-        m_retake = true;
-      else
-        ask(LoopMode::Comp);
-    };
+    if(wanted == LoopMode::Overdub && empty && m_queued == 0)
+      ask(LoopMode::Overdub, true);
+  }
+
+  //! An action. Rec / Play / Dub and Play / Stop act on the mode the looper
+  //! will be in once what waits for the grid is taken up: pressed again
+  //! before the grid point, they queue their change after it, and each change
+  //! is taken up on a grid point of its own. `empty`: there is no loop and
+  //! none is being recorded.
+  void press(TransportAction a, bool empty, AfterRecord after_record, AfterOverdub after) noexcept
+  {
+    const LoopMode now = m_queued > 0 ? m_queue[m_queued - 1].mode : wanted;
+    // A recording waiting makes the loop that the next change acts on.
+    bool none = empty && now != LoopMode::Record;
+    for(int i = 0; i < m_queued; i++)
+      none = none && m_queue[i].mode != LoopMode::Record;
+    none = none && wanted != LoopMode::Record;
 
     switch(a)
     {
       case TransportAction::RecPlayDub:
         if(now == LoopMode::Record)
-          ask(after_recording);
-        else if(empty)
-          ask(LoopMode::Record);
+          push({end_of_recording(after_record), false});
+        else if(none)
+          push({LoopMode::Record, false});
         else if(now == LoopMode::Play)
-          ask(LoopMode::Overdub);
-        else if(overdubbing(now))
-          after == AfterOverdub::Play ? ask(LoopMode::Play) : comp_next();
+          push({LoopMode::Overdub, false});
+        else if(now == LoopMode::Overdub)
+          push({after == AfterOverdub::Play ? LoopMode::Play : LoopMode::Overdub,
+                after == AfterOverdub::NewLayer});
         else
-          ask(LoopMode::Play);
+          push({LoopMode::Play, false});
         break;
       case TransportAction::PlayStop:
         if(now != LoopMode::Stop)
-          ask(LoopMode::Stop);
-        else if(!empty)
-          ask(LoopMode::Play);
+          push({LoopMode::Stop, false});
+        else if(!none)
+          push({LoopMode::Play, false});
         break;
-      case TransportAction::Record:
-        ask(now == LoopMode::Record ? after_recording : LoopMode::Record);
+      case TransportAction::NewLayer:
+        if(now == LoopMode::Overdub && !empty)
+          push({LoopMode::Overdub, true});
         break;
-      case TransportAction::Overdub:
-        if(wanted != LoopMode::Overdub)
-          ask(LoopMode::Overdub);
-        break;
-      case TransportAction::CompNext:
-        comp_next();
-        break;
-      case TransportAction::Play:
-        if(wanted != LoopMode::Play)
-          ask(LoopMode::Play);
-        break;
-      case TransportAction::Stop:
-        ask(LoopMode::Stop);
-        break;
-      case TransportAction::Restart:
-        if(!empty || now == LoopMode::Record)
+      case TransportAction::Retrigger:
+        if(!empty || wanted == LoopMode::Record)
           m_restart = true;
         break;
     }
+  }
+
+  //! Undo or Clear dropped the recording going on: it starts again on the
+  //! next frame, with its bars, start and tempo counted from there.
+  void restart_recording() noexcept
+  {
+    if(actualMode == LoopMode::Record)
+      m_rerecord = true;
   }
 
   //! The looper has something to do on the next grid point: the transport
   //! calls its looper_point() there.
   void request_point() noexcept { m_point_requested = true; }
 
+  //! Changes queued after the one waiting for the grid.
+  bool queued() const noexcept { return m_queued > 0; }
+
   //! What waits for the next grid point besides a change of mode.
   bool restart_pending() const noexcept { return m_restart; }
-  bool new_pass_pending() const noexcept { return m_retake; }
+  bool new_pass_pending() const noexcept
+  {
+    if(m_retake)
+      return true;
+    for(int i = 0; i < m_queued; i++)
+      if(m_queue[i].new_layer)
+        return true;
+    return false;
+  }
 
   //! The looper made a loop out of what it heard before, without recording:
-  //! it plays it from `position` until the mode is changed.
+  //! it plays it from `position`, and Play is what is asked for.
   void play_captured(int64_t position) noexcept
   {
     actualMode = LoopMode::Play;
+    quantizedPlayMode = LoopMode::Play;
+    wanted = LoopMode::Play;
+    m_queued = 0;
+    m_into_overdub = false;
+    m_retake = false;
     recordStartBar = -1.;
     recordEndBar = -1.;
     m_taking = LoopMode::Stop;
@@ -417,6 +428,8 @@ struct transport
     m_rephase = false;
     m_restart = false;
     m_retake = false;
+    m_rerecord = false;
+    m_queued = 0;
     m_point_requested = false;
     m_last_date.reset();
   }
@@ -441,7 +454,7 @@ struct transport
 
     // The timeline jumped, e.g. the score was moved to another date: a loop
     // in phase with it goes there as well.
-    if(s.restart == Restart::InPhase && m_last_date && tk.prev_date != *m_last_date
+    if(s.start_from == StartFrom::InPhase && m_last_date && tk.prev_date != *m_last_date
        && actualMode == LoopMode::Play && m_taking == LoopMode::Stop)
       m_rephase = true;
     m_last_date = tk.date;
@@ -576,13 +589,52 @@ struct transport
       m_point_this_tick.reset();
     }
     frame += timings.length;
+
+    // What was asked for is taken up: the change queued after it waits for
+    // the next grid point.
+    if(m_queued > 0 && wanted == quantizedPlayMode && !m_retake)
+    {
+      const step next = m_queue[0];
+      std::move(m_queue.begin() + 1, m_queue.begin() + m_queued, m_queue.begin());
+      m_queued--;
+      take_step(next);
+    }
   }
 
 private:
+  //! A change asked for by Rec / Play / Dub or Play / Stop: a mode, and for a
+  //! new layer, a new pass in it.
+  struct step
+  {
+    LoopMode mode;
+    bool new_layer;
+  };
+  static constexpr int max_queued = 4;
+  std::array<step, max_queued> m_queue{};
+  int m_queued{};
+
+  //! Takes the step up, or queues it after what still waits for the grid.
+  void push(step st) noexcept
+  {
+    const bool pending = wanted != quantizedPlayMode || m_retake || m_queued > 0;
+    if(!pending)
+      take_step(st);
+    else if(m_queued < max_queued)
+      m_queue[m_queued++] = st;
+  }
+  void take_step(step st) noexcept
+  {
+    wanted = st.mode;
+    if(st.new_layer)
+      m_retake = true;
+  }
+
   LoopMode m_taking{LoopMode::Stop};
-  bool m_overdub_records{};
-  //! What a recording that overdubbing an empty loop started gives way to.
-  LoopMode m_overdub_as{LoopMode::Overdub};
+  //! The recording asked for, or going on, was asked for as an overdub of an
+  //! empty loop: it gives way to overdubbing.
+  bool m_into_overdub{};
+  //! Undo or Clear dropped the recording: the next span starts it again.
+  bool m_rerecord{};
   //! Waiting for the next grid point: back to the loop's start, a new pass,
   //! something the looper asked for.
   bool m_restart{};
@@ -631,7 +683,7 @@ private:
   template <typename Engine>
   bool late_extension_stop(const transport_settings& s, Engine& e)
   {
-    if(!overdubbing(actualMode) || m_taking != LoopMode::Overdub)
+    if(actualMode != LoopMode::Overdub || m_taking != LoopMode::Overdub)
       return false;
     // Only the end of the pass is late: a restart carries it on.
     if(s.mode == quantizedPlayMode && !m_retake)
@@ -644,42 +696,32 @@ private:
     return true;
   }
 
-  //! A recording that Overdub started on an empty loop gives way to
-  //! overdubbing, whatever the post-action: Overdub is still what is asked
-  //! for, and taking it up now rather than on the next grid point keeps the
-  //! loop going round from where the recording closed it.
-  void overdub_after_recording() noexcept
-  {
-    if(!m_overdub_records)
-      return;
-    m_overdub_records = false;
-    actualMode = m_overdub_as;
-    quantizedPlayMode = m_overdub_as;
-  }
-
   //! The transport ended a recording itself: what it took up is what is
   //! asked for now, unless something else was asked for in the meantime.
   void recording_handed_over() noexcept
   {
     quantizedPlayMode = actualMode;
+    m_into_overdub = false;
     if(wanted == LoopMode::Record)
       wanted = actualMode;
   }
 
   //! Taking up a mode. A recording always starts its buffer again -- there is
   //! nothing yet to carry on from. Whether playing and overdubbing do is what
-  //! the Restart setting is for: reading the loop from the top on every change
+  //! the Start from setting is for: reading the loop from the top on every change
   //! jumps, which is heard when overdubbing hands over to playing.
-  void enterMode(LoopMode m, Restart restart)
+  void enterMode(LoopMode m, StartFrom from)
   {
     const LoopMode was = actualMode;
     quantizedPlayMode = m;
     actualMode = m;
-    if(m == LoopMode::Record || restart == Restart::Always)
+    if(m != LoopMode::Record)
+      m_into_overdub = false;
+    if(m == LoopMode::Record || from == StartFrom::LoopStart)
       playbackPos = 0;
     else if(
-        restart == Restart::InPhase && was == LoopMode::Stop
-        && (m == LoopMode::Play || overdubbing(m)))
+        from == StartFrom::InPhase && was == LoopMode::Stop
+        && (m == LoopMode::Play || m == LoopMode::Overdub))
       m_rephase = true;
   }
 
@@ -697,7 +739,7 @@ private:
     const bool retake = std::exchange(m_retake, false);
     const bool restart = std::exchange(m_restart, false);
     if(change)
-      enterMode(s.mode, s.restart);
+      enterMode(s.mode, s.start_from);
     // A recording that starts again drops what it had: nothing to close.
     const bool rerecord = restart && !change && actualMode == LoopMode::Record;
     if(position)
@@ -728,31 +770,41 @@ private:
     e.looper_close_take(tk, was, endedByPostaction);
   }
 
-  template <typename Engine>
-  void changeAction(const ossia::token_request& tk, Engine& e)
+  //! A recording starts at the start of the span of `tk`: its bars, its
+  //! date and the quarters its tempo is worked out from count from there.
+  void begin_recording_window(const ossia::token_request& tk) noexcept
   {
-    // Zero bars means no automatic post-action: the end bar would otherwise be
-    // the start bar and preAction() would leave Record on its first tick.
-    if(quantizedPlayMode == LoopMode::Record && postaction_bars > 0)
+    // Zero bars means no automatic end: the end bar would otherwise be the
+    // start bar and preAction() would leave Record on its first tick.
+    if(postaction_bars > 0)
     {
       recordStartBar = tk.musical_start_position;
       recordEndBar = tk.musical_start_position
                      + (4. * double(tk.signature.upper) / tk.signature.lower)
                            * postaction_bars;
-      endedByPostaction = false;
     }
     else
     {
       recordStartBar = -1.;
       recordEndBar = -1.;
     }
+    endedByPostaction = false;
+    recordStartDate = tk.prev_date;
+    recordStartPosition = tk.musical_start_position;
+  }
 
+  template <typename Engine>
+  void changeAction(const ossia::token_request& tk, Engine& e)
+  {
     if(quantizedPlayMode == LoopMode::Record)
     {
-      recordStartDate = tk.prev_date;
-      recordStartPosition = tk.musical_start_position;
+      begin_recording_window(tk);
     }
-
+    else
+    {
+      recordStartBar = -1.;
+      recordEndBar = -1.;
+    }
     close(tk, e);
   }
 
@@ -769,24 +821,12 @@ private:
       // If we are in the token request which steps into the bar in which
       // we change because we are e.g. 4 bars after the recording started
       auto switch_to_main_mode = [&] {
-        switch(s.postaction)
-        {
-          case Postaction::Play:
-            actualMode = LoopMode::Play;
-            break;
-          case Postaction::Overdub:
-            actualMode = LoopMode::Overdub;
-            break;
-          default:
-            actualMode = LoopMode::Stop;
-            break;
-        }
-        overdub_after_recording();
+        actualMode = end_of_recording(s.after_record);
         recording_handed_over();
 
         recordStartBar = -1.;
         endedByPostaction = true;
-        if(s.restart == Restart::Always)
+        if(s.start_from == StartFrom::LoopStart)
           playbackPos = 0;
       };
 
@@ -857,9 +897,11 @@ private:
     const int64_t first = start - tickStartSample;
     if(std::exchange(m_rephase, false))
       e.looper_rephase(tk);
+    if(std::exchange(m_rerecord, false) && actualMode == LoopMode::Record)
+      begin_recording_window(tk);
     const int64_t done = e.looper_run(first, length);
     // The engine ended the recording itself (its buffer is full): the take is
-    // closed, then the rest of the span is the post-action's.
+    // closed, then the rest of the span is After record's.
     if(m_forced_close)
     {
       m_forced_close = false;

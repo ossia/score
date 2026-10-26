@@ -176,7 +176,7 @@ struct looper_view
     if(!has_state || state.empty)
       return false;
     const auto m = LoopMode(state.mode);
-    return m == LoopMode::Record || m == LoopMode::Overdub || m == LoopMode::Comp;
+    return m == LoopMode::Record || m == LoopMode::Overdub;
   }
   bool saving() const noexcept { return m_waiting > 0 || (has_state && state.writing); }
 
@@ -227,8 +227,6 @@ struct looper_view
         return {232, 64, 60, 255};
       case LoopMode::Overdub:
         return {255, 150, 40, 255};
-      case LoopMode::Comp:
-        return {240, 200, 60, 255};
       case LoopMode::Play:
         return {88, 200, 112, 255};
       case LoopMode::Stop:
@@ -245,8 +243,6 @@ struct looper_view
         return "Record";
       case LoopMode::Overdub:
         return "Overdub";
-      case LoopMode::Comp:
-        return "Comp";
       case LoopMode::Play:
         return "Play";
       case LoopMode::Stop:

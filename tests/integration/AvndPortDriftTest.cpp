@@ -219,3 +219,63 @@ TEST_CASE(
         message_capture::messages.filter("in_from_an_older_spec").size() > 0);
   });
 }
+
+TEST_CASE(
+    "a control renamed since the save gets its value back, its choices by their place",
+    "[integration][ports][avnd][looper]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    const QString looper_uuid = QStringLiteral("a0ad4227-ac3d-448b-a19b-19581ed4e2c6");
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc != nullptr);
+    auto* proc = score::test::add_process(*doc, looper_uuid, QString{});
+    if(!proc)
+      return; // score-plugin-fx is not in this build
+    // The audio looper as it was saved before After record and Start from had
+    // those names: its first inlets only, Post-action and Restart.
+    inlet_named(*proc, QStringLiteral("After record"))
+        ->setValue(ossia::value{std::string{"Overdub"}});
+    inlet_named(*proc, QStringLiteral("Start from"))
+        ->setValue(ossia::value{std::string{"Recording"}});
+    const QByteArray saved = score::test::save_as_json(*doc);
+    ctx.docManager.forceCloseDocument(ctx, *doc);
+    QApplication::processEvents();
+
+    const auto rewritten = rewrite_process(
+        QJsonDocument::fromJson(saved).object(), looper_uuid, [](QJsonObject p) {
+      QJsonArray kept;
+      for(const auto& v : p.value("Inlets").toArray())
+      {
+        if(kept.size() == 7)
+          break;
+        QJsonObject inl = v.toObject();
+        if(inl.value("Custom").toString() == QStringLiteral("After record"))
+          inl["Custom"] = QStringLiteral("Post-action");
+        if(inl.value("Custom").toString() == QStringLiteral("Start from"))
+          inl["Custom"] = QStringLiteral("Restart");
+        kept.push_back(inl);
+      }
+      p["Inlets"] = kept;
+      return p;
+    });
+
+    message_capture capture;
+    auto* reloaded = load(ctx, QJsonDocument{rewritten.toObject()}.toJson());
+    REQUIRE(reloaded != nullptr);
+    Process::ProcessModel* looper{};
+    const auto key = UuidKey<Process::ProcessModel>::fromString(looper_uuid);
+    for(auto& p : score::test::base_interval(*reloaded).processes)
+      if(p.concreteKey() == key)
+        looper = &p;
+    REQUIRE(looper != nullptr);
+
+    auto* after = inlet_named(*looper, QStringLiteral("After record"));
+    REQUIRE(after != nullptr);
+    CHECK(score::test::control_string(*after) == "Overdub");
+    // Restart's Recording is what Where it was is now.
+    auto* from = inlet_named(*looper, QStringLiteral("Start from"));
+    REQUIRE(from != nullptr);
+    CHECK(score::test::control_string(*from) == "Where it was");
+    CHECK(!message_capture::sawPortLoss());
+  });
+}
