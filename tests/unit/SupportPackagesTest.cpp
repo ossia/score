@@ -212,3 +212,29 @@ TEST_CASE("What interrupted installs left is removed", "[unit][library]")
   CHECK(QFileInfo::exists(current));
   CHECK(QFileInfo::exists(installed));
 }
+
+#if !defined(_WIN32)
+// koaia bundles cuDNN in its lib folder as libcudnn_graph.so.9; the cuda-runtime
+// package ships libcudnn_graph.so.9.27.0 and a libcudnn_graph.so.9 link to it.
+TEST_CASE("Libraries the application bundles are not loaded from a package", "[unit][library]")
+{
+  QTemporaryDir tmp;
+  REQUIRE(tmp.isValid());
+  const QString bundled = tmp.path() + "/app/lib";
+  const QString pkg = makePackage(tmp.path() + "/support", "cuda-runtime", cuda_key, 2);
+  REQUIRE(QDir{}.mkpath(bundled));
+
+  auto touch = [](const QString& path) {
+    QFile f{path};
+    REQUIRE(f.open(QIODevice::WriteOnly));
+  };
+  touch(bundled + "/libcudnn_graph.so.9");
+  touch(pkg + "/libcudnn_graph.so.9.27.0");
+  REQUIRE(QFile::link("libcudnn_graph.so.9.27.0", pkg + "/libcudnn_graph.so.9"));
+  touch(pkg + "/libcublas.so.13.4.3");
+  REQUIRE(QFile::link("libcublas.so.13.4.3", pkg + "/libcublas.so.13"));
+
+  CHECK(supportLibraryFiles({pkg}, bundled) == QStringList{pkg + "/libcublas.so.13.4.3"});
+  CHECK(supportLibraryFiles({pkg}, tmp.path() + "/nothing").size() == 2);
+}
+#endif

@@ -202,6 +202,52 @@ bool isSupportPackageLoaded(const QUuid& key)
   return g_loadedKeys.contains(key);
 }
 
+QStringList supportLibraryFiles(const QStringList& folders, const QString& bundledDir)
+{
+#if defined(Q_OS_MACOS)
+  const QStringList patterns{"*.dylib"};
+#else
+  const QStringList patterns{"*.so", "*.so.*"};
+#endif
+  const QDir bundled{bundledDir};
+
+  // Symbolic links are not loaded: packages ship libraries the way their vendors
+  // lay them out, a real file (libcudnn_graph.so.9.27.0) and links to it under
+  // the names it is looked up by (libcudnn_graph.so.9). The links are what makes
+  // the libraries find each other through their $ORIGIN runpath instead of a
+  // system copy; loading the file once is enough.
+  //
+  // What the application bundles wins: a custom app (koaia) ships CUDA, cuDNN
+  // and TensorRT in its lib folder under their sonames, so a package's file is
+  // skipped when any of its names, its links' included, is bundled.
+  QStringList candidates;
+  QSet<QString> bundledFiles;
+  for(const QString& folder : folders)
+  {
+    for(QDirIterator it(folder, patterns, QDir::Files, QDirIterator::Subdirectories);
+        it.hasNext();)
+    {
+      const QString path = it.next();
+      const bool isBundled = bundled.exists(it.fileName());
+      if(it.fileInfo().isSymLink())
+      {
+        if(isBundled)
+          bundledFiles.insert(it.fileInfo().canonicalFilePath());
+      }
+      else if(!isBundled)
+      {
+        candidates.push_back(path);
+      }
+    }
+  }
+
+  QStringList files;
+  for(const QString& path : candidates)
+    if(!bundledFiles.contains(QFileInfo{path}.canonicalFilePath()))
+      files.push_back(path);
+  return files;
+}
+
 void loadSupportLibraries(const QStringList& folders)
 {
   if(folders.isEmpty())
@@ -246,37 +292,12 @@ void loadSupportLibraries(const QStringList& folders)
   // symbols / NEEDED entries available to the others). Libraries that never load
   // (e.g. a missing external dependency) are simply skipped — the addon relying on
   // them just stays unavailable, exactly as before.
-  //
-  // Symbolic links are skipped: packages ship libraries the way their vendors lay
-  // them out, a real file (libcudnn_graph.so.9.27.0) and links to it under the
-  // names it is looked up by (libcudnn_graph.so.9). The links are what makes the
-  // libraries find each other through their $ORIGIN runpath instead of a system
-  // copy; loading the file once is enough.
 #if defined(Q_OS_MACOS)
-  const QStringList patterns{"*.dylib"};
+  const QString bundled = QCoreApplication::applicationDirPath() + "/../Frameworks";
 #else
-  const QStringList patterns{"*.so", "*.so.*"};
+  const QString bundled = QCoreApplication::applicationDirPath() + "/../lib";
 #endif
-
-#if defined(Q_OS_MACOS)
-  const QDir bundled{QCoreApplication::applicationDirPath() + "/../Frameworks"};
-#else
-  const QDir bundled{QCoreApplication::applicationDirPath() + "/../lib"};
-#endif
-
-  QStringList pending;
-  for(const QString& folder : folders)
-  {
-    for(QDirIterator it(folder, patterns, QDir::Files, QDirIterator::Subdirectories);
-        it.hasNext();)
-    {
-      const QString path = it.next();
-      if(it.fileInfo().isSymLink())
-        continue;
-      if(!bundled.exists(it.fileName()))
-        pending.push_back(path);
-    }
-  }
+  QStringList pending = supportLibraryFiles(folders, bundled);
 
   bool progress = true;
   while(progress && !pending.empty())

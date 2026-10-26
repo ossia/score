@@ -87,6 +87,14 @@ SCORE_PLUGIN_LIBRARY_EXPORT
 bool isSupportPackageLoaded(const QUuid& key);
 
 /**
+ * @brief The library files of @p folders which loadSupportLibraries loads on
+ * Linux and macOS: not the symbolic links to them, and not those the
+ * application bundles in @p bundledDir under any of their names.
+ */
+SCORE_PLUGIN_LIBRARY_EXPORT
+QStringList supportLibraryFiles(const QStringList& folders, const QString& bundledDir);
+
+/**
  * @brief Makes the native libraries of the given support package folders
  * loadable by the addons which dlopen / LoadLibrary them by bare name.
  *
