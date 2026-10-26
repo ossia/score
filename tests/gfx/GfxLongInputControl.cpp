@@ -10,8 +10,16 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/generators/catch_generators.hpp>
 
+#include <score/model/EntitySerialization.hpp>
+#include <score/plugins/SerializableHelpers.hpp>
+#include <score/serialization/JSONVisitor.hpp>
+
+#include <Gfx/Filter/Process.hpp>
+
 #include <QFile>
 #include <QTemporaryDir>
+
+#include <memory>
 
 using namespace score::test;
 using namespace score::test::gfxproc;
@@ -85,5 +93,72 @@ TEST_CASE("a long input without VALUES is a spin box", "[gfx][process][U11]")
     CHECK(ossia::convert<int>(bare->value()) == 5);
     CHECK(ossia::convert<int>(atleast->value()) == 7);
     CHECK(ossia::convert<int>(choice->value()) == 20);
+  });
+}
+
+// A document saved before the spin box keeps the 0 / 1 / 2 combo box it was
+// saved with, and its value: loading restores the saved ports, it does not
+// rebuild them from the shader. Re-reading the shader then makes it a spin
+// box, carrying the value over.
+TEST_CASE("an old document keeps its long combo box until the shader is re-read", "[gfx][process][U11]")
+{
+  QTemporaryDir dir;
+  REQUIRE(dir.isValid());
+  const QString path = dir.path() + "/f.fs";
+  {
+    QFile f{path};
+    REQUIRE(f.open(QIODevice::WriteOnly));
+    f.write(R"_(/*{ "ISFVSN": "2.0", "INPUTS": [ { "NAME": "bare", "TYPE": "long", "DEFAULT": 5 } ] }*/
+void main() { gl_FragColor = vec4(float(bare)); }
+)_");
+  }
+
+  run_in_gui_app([&](const score::GUIApplicationContext& ctx) {
+    score::Document* doc = new_document(ctx);
+    REQUIRE(doc != nullptr);
+    auto* proc = add_process(ctx, *doc, UUID_FILTER, path);
+    REQUIRE(proc != nullptr);
+    auto* bare = control(*proc, "bare");
+    REQUIRE(bare);
+
+    // What the old code made of this input, and saved: a combo box over
+    // 0 / 1 / 2 whose DEFAULT was clamped to 2.
+    Process::ComboBox old{
+        {{"0", 0}, {"1", 1}, {"2", 2}}, 2, "bare", bare->id(), nullptr};
+    JSONReader portReader;
+    portReader.readFrom(old);
+    const rapidjson::Document portJson = readJson(portReader.toByteArray());
+
+    JSONReader reader;
+    reader.readFrom(*proc);
+    rapidjson::Document json = readJson(reader.toByteArray());
+    auto& saved = json["Inlets"];
+    REQUIRE(saved.IsArray());
+    bool replaced = false;
+    for(auto& inl : saved.GetArray())
+      if(inl.HasMember("Custom") && inl["Custom"] == "bare")
+      {
+        inl.CopyFrom(portJson, json.GetAllocator());
+        replaced = true;
+      }
+    REQUIRE(replaced);
+
+    auto& pl = ctx.interfaces<Process::ProcessFactoryList>();
+    JSONObject::Deserializer des{json};
+    std::unique_ptr<Process::ProcessModel> loaded{
+        deserialize_interface(pl, des, doc->context(), &doc->model())};
+    REQUIRE(loaded);
+    auto* loadedBare = control(*loaded, "bare");
+    REQUIRE(loadedBare);
+    CHECK(dynamic_cast<Process::ComboBox*>(loadedBare));
+    CHECK(ossia::convert<int>(loadedBare->value()) == 2);
+
+    auto* filter = dynamic_cast<Gfx::Filter::Model*>(loaded.get());
+    REQUIRE(filter);
+    (void)filter->setProgram(filter->program());
+    auto* reread = control(*loaded, "bare");
+    REQUIRE(reread);
+    CHECK(dynamic_cast<Process::IntSpinBox*>(reread));
+    CHECK(ossia::convert<int>(reread->value()) == 2);
   });
 }
