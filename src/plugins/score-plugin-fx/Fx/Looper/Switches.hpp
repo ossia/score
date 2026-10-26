@@ -762,29 +762,6 @@ struct switches_tab
     halp_meta(layout, halp::layouts::vbox)
     struct
     {
-      halp_meta(name, "Layers")
-      halp_meta(layout, halp::layouts::section)
-      halp_meta(alignment, halp::alignments::left)
-      halp_meta(spacing, 6)
-      struct
-      {
-        halp_meta(layout, halp::layouts::grid)
-        halp_meta(alignment, halp::alignments::left)
-        halp_meta(spacing, 6)
-        halp_meta(columns, 2)
-        halp::item<&Ins::undo> undo;
-        halp::item<&Ins::redo> redo;
-        halp::item<&Ins::clear> clear;
-        halp::item<&Ins::layer> layer;
-        halp::item<&Ins::previous_layer> previous_layer;
-        halp::item<&Ins::next_layer> next_layer;
-        halp::item<&Ins::mute_layer> mute_layer;
-        halp::item<&Ins::erase_layer> erase_layer;
-        halp::item<&Ins::solo_layer> solo_layer;
-      } buttons;
-    } layers;
-    struct
-    {
       halp_meta(name, "Play")
       halp_meta(layout, halp::layouts::section)
       halp_meta(alignment, halp::alignments::left)
@@ -802,5 +779,26 @@ struct switches_tab
       } buttons;
     } play;
   } right;
+};
+
+//! The Layers tab of a looper whose inputs are `Ins`: undo, the layer the
+//! actions apply to, and what they do to it.
+template <typename Ins>
+struct layers_tab
+{
+  halp_meta(name, "Layers")
+  halp_meta(layout, halp::layouts::grid)
+  halp_meta(alignment, halp::alignments::left)
+  halp_meta(spacing, 6)
+  halp_meta(columns, 3)
+  halp::item<&Ins::undo> undo;
+  halp::item<&Ins::redo> redo;
+  halp::item<&Ins::clear> clear;
+  halp::item<&Ins::layer> layer;
+  halp::item<&Ins::previous_layer> previous_layer;
+  halp::item<&Ins::next_layer> next_layer;
+  halp::item<&Ins::mute_layer> mute_layer;
+  halp::item<&Ins::erase_layer> erase_layer;
+  halp::item<&Ins::solo_layer> solo_layer;
 };
 }

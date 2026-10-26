@@ -365,6 +365,7 @@ struct Node : Looper::looper_node<Node>
           halp::item<&ins::passthrough> passthrough;
         } play;
         Looper::switches_tab<ins> switches;
+        Looper::layers_tab<ins> layers;
         struct
         {
           halp_meta(name, "Overdub")

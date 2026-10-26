@@ -466,6 +466,7 @@ struct Node : Looper::looper_node<Node>
           halp::item<&ins::reverse> reverse;
         } play;
         Looper::switches_tab<ins> switches;
+        Looper::layers_tab<ins> layers;
         struct
         {
           halp_meta(name, "Overdub")
