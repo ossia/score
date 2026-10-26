@@ -4,6 +4,8 @@
 #include <Process/Process.hpp>
 #include <Process/Commands/Properties.hpp>
 #include <Process/ProcessList.hpp>
+#include <Process/Drop/ClipMetadata.hpp>
+#include <Process/Drop/ProcessDropHandler.hpp>
 
 #include <Scenario/Commands/CommandAPI.hpp>
 #include <Scenario/Commands/Interval/AddProcessToInterval.hpp>
@@ -24,6 +26,8 @@
 #include <QApplication>
 #include <QDir>
 #include <QFile>
+#include <QMimeData>
+#include <QUrl>
 #include <QTemporaryDir>
 
 #include <Avnd/Factories.hpp>
@@ -158,6 +162,207 @@ TEST_CASE("An audio take sent to the timeline is a looping sound at its date",
     doc->commandStack().undo();
     QApplication::processEvents();
     CHECK(scenario->intervals.size() == before);
+  });
+}
+
+namespace
+{
+//! Two bars at 97 bpm, as the audio looper writes a take: 4.948 s, said to
+//! be 8 beats at 97 bpm.
+QString write_take_97(const QTemporaryDir& dir, const QString& name = "Looper-take1.wav")
+{
+  const QString file = dir.path() + "/" + name;
+  const int rate = 48000;
+  const int64_t frames = int64_t(std::round(8. * 60. / 97. * rate));
+  std::vector<float> l(frames), r(frames);
+  for(int64_t i = 0; i < frames; i++)
+    l[i] = r[i] = 0.25f * std::sin(i * 0.01f);
+  const float* data[2]{l.data(), r.data()};
+  ossia::wav_loop_info info;
+  info.tempo = 97.;
+  info.beats = 8;
+  if(!ossia::write_loop_wav(file.toStdString(), 2, rate, frames, data, info))
+    return {};
+  return file;
+}
+
+const double take_97_real_msecs = 1000. * std::round(8. * 60. / 97. * 48000) / 48000.;
+
+std::vector<const Media::Sound::ProcessModel*> sounds_in(const Scenario::ProcessModel& scenario)
+{
+  std::vector<const Media::Sound::ProcessModel*> res;
+  for(auto& itv : scenario.intervals)
+    for(auto& p : itv.processes)
+      if(auto s = qobject_cast<const Media::Sound::ProcessModel*>(&p))
+        res.push_back(s);
+  return res;
+}
+}
+
+TEST_CASE("An audio take sent to the timeline plays with the Follow tempo it was made with",
+          "[looper][timeline][app][sound]")
+{
+  using mode = ossia::audio_stretch_mode;
+  const std::pair<halp::clip_stretch, mode> cases[]{
+      // Without a word from the take, the name says nothing melodic: rhythm.
+      {halp::clip_stretch::automatic, mode::RubberBandPercussive},
+      {halp::clip_stretch::timestretch, mode::RubberBandStandard},
+      {halp::clip_stretch::timestretch_percussive, mode::RubberBandPercussive},
+      {halp::clip_stretch::repitch, mode::Repitch},
+      {halp::clip_stretch::repitch_fast, mode::RepitchFastestQ},
+      {halp::clip_stretch::none, mode::None}};
+  for(const auto& [stretch, expected] : cases)
+  {
+    DYNAMIC_SECTION("stretch " << int(stretch))
+    {
+      score::test::run_in_app([&](const score::GUIApplicationContext& ctx) {
+        auto* doc = score::test::new_document(ctx);
+        REQUIRE(doc);
+        auto* scenario = main_scenario(*doc);
+        REQUIRE(scenario);
+        auto* looper = add_looper(*doc, *scenario, audio_looper_uuid);
+        REQUIRE(looper);
+
+        QTemporaryDir dir;
+        const QString file = write_take_97(dir);
+        REQUIRE(!file.isEmpty());
+
+        const auto before = scenario->intervals.size();
+        oscr::sendToTimeline(
+            *looper, doc->context(),
+            halp::timeline_clip{
+                .files = {file.toStdString()}, .date = 1.5, .stretch = stretch});
+        QApplication::processEvents();
+
+        REQUIRE(scenario->intervals.size() == before + 2);
+        auto* clip = interval_at(*scenario, TimeVal::fromMsecs(3500));
+        REQUIRE(clip);
+        REQUIRE(clip->processes.size() == 1);
+        auto* sound
+            = qobject_cast<const Media::Sound::ProcessModel*>(&*clip->processes.begin());
+        REQUIRE(sound);
+        CHECK(sound->stretchMode() == expected);
+        CHECK(sound->loops());
+        if(expected == mode::None)
+        {
+          // Unstretched, it lasts as long as it was recorded: score's time
+          // is the clock's at the tempo of a score without a tempo curve.
+          CHECK(clip->duration.defaultDuration().msec()
+                == Approx(take_97_real_msecs).margin(1.));
+          CHECK(sound->loopDuration().msec() == Approx(take_97_real_msecs).margin(1.));
+        }
+        else
+        {
+          // Its 8 beats at the score's 120 bpm.
+          CHECK(clip->duration.defaultDuration().msec() == Approx(4000.).margin(20.));
+          CHECK(sound->loopDuration().msec() == Approx(4000.).margin(20.));
+        }
+
+        // One undoable step for the box, the file and its mode.
+        doc->commandStack().undo();
+        QApplication::processEvents();
+        CHECK(scenario->intervals.size() == before);
+        CHECK(sounds_in(*scenario).empty());
+
+        doc->commandStack().redo();
+        QApplication::processEvents();
+        auto again = sounds_in(*scenario);
+        REQUIRE(again.size() == 1);
+        CHECK(again[0]->stretchMode() == expected);
+      });
+    }
+  }
+}
+
+TEST_CASE("A dropped take plays with the stretch its drag carries, and a plain drop guesses",
+          "[looper][timeline][app][sound]")
+{
+  using mode = ossia::audio_stretch_mode;
+  score::test::run_in_app([&](const score::GUIApplicationContext& ctx) {
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    auto* scenario = main_scenario(*doc);
+    REQUIRE(scenario);
+
+    QTemporaryDir dir;
+    const QString file = write_take_97(dir);
+    REQUIRE(!file.isEmpty());
+
+    // What the looper's view drags: the file, and how it is to be played.
+    auto drag = [&](halp::clip_stretch stretch) {
+      Nodes::Looper::view_message m{};
+      m.take = 1;
+      const auto base = QString(dir.path() + "/Looper-take1").toStdString();
+      m.set_take(base, "wav", true, 0, stretch);
+      Nodes::Looper::looper_view view;
+      view.receive(m);
+      const auto payload = view.drag_payload(view.width() / 2., view.height() - 10.);
+      auto mime = std::make_unique<QMimeData>();
+      QList<QUrl> urls;
+      for(const auto& f : payload.files)
+        urls.push_back(QUrl::fromLocalFile(QString::fromStdString(f)));
+      mime->setUrls(urls);
+      if(!payload.mime.empty())
+        mime->setData(
+            QString::fromStdString(payload.mime),
+            QByteArray(payload.data.data(), qsizetype(payload.data.size())));
+      return mime;
+    };
+
+    // Dropped in the scenario as DropProcessInScenario does: a box as long as
+    // the drop says, the process made in it.
+    auto drop = [&](const QMimeData& mime) -> const Media::Sound::ProcessModel* {
+      const auto& handlers = ctx.interfaces<Process::ProcessDropHandlerList>();
+      auto res = handlers.getDrop(mime, doc->context());
+      if(res.size() != 1)
+        return nullptr;
+      const auto t = handlers.getMaxDuration(res).value_or(TimeVal::fromMsecs(10000.));
+      Scenario::Command::Macro m{
+          new Scenario::Command::AddProcessInNewBoxMacro, doc->context()};
+      auto& box = m.createBox(*scenario, TimeVal::fromMsecs(1000), TimeVal::fromMsecs(1000) + t, 0.5);
+      score::Dispatcher_T disp{m};
+      auto* p = m.createProcessInNewSlot(box, res.front().creation);
+      if(p && res.front().setup)
+        res.front().setup(*p, disp);
+      m.commit();
+      QApplication::processEvents();
+      return qobject_cast<const Media::Sound::ProcessModel*>(p);
+    };
+    auto box_of = [](const Media::Sound::ProcessModel& s) {
+      return qobject_cast<const Scenario::IntervalModel*>(s.parent());
+    };
+
+    {
+      auto mime = drag(halp::clip_stretch::timestretch);
+      REQUIRE(mime->hasFormat(QString::fromUtf8(Process::clip_metadata_mime.data())));
+      auto* s = drop(*mime);
+      REQUIRE(s);
+      CHECK(s->stretchMode() == mode::RubberBandStandard);
+      CHECK(box_of(*s)->duration.defaultDuration().msec() == Approx(4000.).margin(20.));
+      doc->commandStack().undo();
+      QApplication::processEvents();
+      CHECK(sounds_in(*scenario).empty());
+    }
+    {
+      auto* s = drop(*drag(halp::clip_stretch::none));
+      REQUIRE(s);
+      CHECK(s->stretchMode() == mode::None);
+      CHECK(box_of(*s)->duration.defaultDuration().msec()
+            == Approx(take_97_real_msecs).margin(1.));
+      CHECK(s->loopDuration().msec() == Approx(take_97_real_msecs).margin(1.));
+      doc->commandStack().undo();
+      QApplication::processEvents();
+      CHECK(sounds_in(*scenario).empty());
+    }
+    {
+      // A MIDI looper's take, or any file: nothing carried, the name guessed.
+      auto mime = drag(halp::clip_stretch::automatic);
+      CHECK(!mime->hasFormat(QString::fromUtf8(Process::clip_metadata_mime.data())));
+      auto* s = drop(*mime);
+      REQUIRE(s);
+      CHECK(s->stretchMode() == mode::RubberBandPercussive);
+      CHECK(box_of(*s)->duration.defaultDuration().msec() == Approx(4000.).margin(20.));
+    }
   });
 }
 

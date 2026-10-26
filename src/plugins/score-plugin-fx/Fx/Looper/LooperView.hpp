@@ -1,4 +1,6 @@
 #pragma once
+#include <Process/Drop/ClipMetadata.hpp>
+
 #include <Fx/Looper/Transport.hpp>
 
 #include <halp/custom_widgets.hpp>
@@ -86,6 +88,9 @@ struct view_message
   std::array<char, 4> take_ext;
   bool take_mix;
   int take_layers;
+  //! How the take asks the timeline to follow the tempo: as the audio looper
+  //! played it when it was taken.
+  halp::clip_stretch take_stretch;
   //! The loop plays backwards, and at this speed.
   bool reverse;
   float speed;
@@ -101,7 +106,9 @@ struct view_message
   //! loop to make: the last take is the one it asked for, or a later one.
   int answered;
 
-  void set_take(std::string_view base, std::string_view ext, bool mix, int layers) noexcept
+  void set_take(
+      std::string_view base, std::string_view ext, bool mix, int layers,
+      halp::clip_stretch stretch = halp::clip_stretch::automatic) noexcept
   {
     const auto n = std::min(base.size(), take_base.size() - 1);
     std::copy_n(base.data(), n, take_base.data());
@@ -111,6 +118,7 @@ struct view_message
     take_ext[e] = 0;
     take_mix = mix;
     take_layers = layers;
+    take_stretch = stretch;
   }
 
   //! UI thread: the paths of the last take's files, the mix first.
@@ -214,7 +222,10 @@ struct looper_view
     if(auto slash = base.find_last_of("/\\"); slash != std::string_view::npos)
       base.remove_prefix(slash + 1);
     send_to_timeline(halp::timeline_clip{
-        .files = state.take_files(), .date = state.take_date, .name = std::string{base}});
+        .files = state.take_files(),
+        .date = state.take_date,
+        .name = std::string{base},
+        .stretch = state.take_stretch});
   }
 
   static rgba mode_color(int mode, bool empty) noexcept
@@ -691,7 +702,12 @@ struct looper_view
     if(m_waiting > 0)
       return p;
     if(has_take() && !in_send(x, y) && erase_lane_at(x, y) < 0 && mute_lane_at(x, y) < 0)
+    {
       p.files = state.take_files();
+      p.data = Process::encode_clip_metadata(p.files, state.take_stretch);
+      if(!p.data.empty())
+        p.mime = Process::clip_metadata_mime;
+    }
     return p;
   }
 };

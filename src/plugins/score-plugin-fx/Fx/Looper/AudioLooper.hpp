@@ -35,6 +35,25 @@ inline ossia::audio_stretch_mode stretch_mode(FollowTempo f) noexcept
       return ossia::audio_stretch_mode::None;
   }
 }
+
+//! How a take made with `f` asks the timeline to play it: as the loop was.
+inline halp::clip_stretch clip_stretch(FollowTempo f) noexcept
+{
+  switch(f)
+  {
+    case FollowTempo::Repitch:
+      return halp::clip_stretch::repitch;
+    case FollowTempo::RepitchFast:
+      return halp::clip_stretch::repitch_fast;
+    case FollowTempo::Timestretch:
+      return halp::clip_stretch::timestretch;
+    case FollowTempo::TimestretchPercussive:
+      return halp::clip_stretch::timestretch_percussive;
+    case FollowTempo::Off:
+    default:
+      return halp::clip_stretch::none;
+  }
+}
 }
 
 namespace Nodes::AudioLooper
@@ -389,7 +408,8 @@ struct Node : Looper::looper_node<Node>
   //! on its first run are sized before the audio thread runs it.
   void prepare_stretch(double rate, int frames)
   {
-    m_stretch_mode = Looper::stretch_mode(inputs.follow_tempo.value);
+    m_follow_tempo = inputs.follow_tempo.value;
+    m_stretch_mode = Looper::stretch_mode(m_follow_tempo);
     const auto chans = std::size_t(layers.channels);
     m_stretcher.reset(0, m_stretch_mode, chans, std::size_t(rate), std::size_t(rate));
     const auto longest = std::size_t(std::max(frames, 8192));
@@ -684,6 +704,11 @@ private:
   void take_released() noexcept { layers.reserved = 0; }
   void stop_take_written() noexcept { layers.held = 0; }
   static constexpr const char* take_extension = "wav";
+  //! The Follow tempo the loop plays with, which takes keep.
+  halp::clip_stretch take_stretch() const noexcept
+  {
+    return Looper::clip_stretch(m_follow_tempo);
+  }
   bool view_full() const noexcept { return m_full; }
   bool view_writing() const noexcept { return m_flattening || m_writing; }
 
@@ -708,6 +733,7 @@ private:
   // Playing the loop at the tempo of the score, with the stretchers of the
   // sound files reading the loop as their source.
   ossia::resampler m_stretcher;
+  Looper::FollowTempo m_follow_tempo{Looper::FollowTempo::Off};
   ossia::audio_stretch_mode m_stretch_mode{ossia::audio_stretch_mode::None};
   std::vector<std::vector<double>> m_stretch_out;
   //! Views on m_stretch_out, made once: more channels than the container

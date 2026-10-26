@@ -1,6 +1,7 @@
 #include "HostServices.hpp"
 
 #include <Process/Commands/Properties.hpp>
+#include <Process/Drop/ClipMetadata.hpp>
 #include <Process/Drop/ProcessDropHandler.hpp>
 #include <Process/Process.hpp>
 
@@ -113,6 +114,13 @@ void sendToTimeline(
   {
     QMimeData mime;
     mime.setUrls({QUrl::fromLocalFile(file)});
+    if(const auto meta = Process::encode_clip_metadata({file.toStdString()}, clip.stretch);
+       !meta.empty())
+      mime.setData(
+          QString::fromUtf8(
+              Process::clip_metadata_mime.data(),
+              qsizetype(Process::clip_metadata_mime.size())),
+          QByteArray(meta.data(), qsizetype(meta.size())));
     auto d = handlers.getDrop(mime, ctx);
     if(d.empty())
     {

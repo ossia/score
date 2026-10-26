@@ -89,6 +89,7 @@ namespace Nodes::Looper
  *   void take_released();
  *   void stop_take_written();
  *   static constexpr const char* take_extension;
+ *   halp::clip_stretch take_stretch() const;
  *   bool view_full() const;
  *   bool view_writing() const;
  */
@@ -243,6 +244,10 @@ protected:
   int m_export_number{};
   int m_export_slot{};
   double m_stop_date{};
+  //! How the take being written, and the one written on the score's stop,
+  //! ask the timeline to follow the tempo.
+  halp::clip_stretch m_job_stretch{};
+  halp::clip_stretch m_stop_stretch{};
   int m_takes_written{};
   //! The last take the view asked for, and the one the take being written
   //! answers.
@@ -673,6 +678,7 @@ void looper_node<Node>::stop_score()
   if(taking)
   {
     self().close_on_stop(recording);
+    m_stop_stretch = self().take_stretch();
     self().write_stop_take(recording, date, pos);
   }
   transport.reset();
@@ -709,6 +715,7 @@ void looper_node<Node>::run_export()
     if(recording)
       m_export_date = transport.recordStartDate.impl / double(ossia::flicks_per_second<int64_t>);
     m_job_date = m_export_date;
+    m_job_stretch = self().take_stretch();
     m_export_tempo = recording ? m_tempo : m_loop_tempo;
     m_export_signature = m_signature;
     const int passes
@@ -733,7 +740,8 @@ void looper_node<Node>::take_written(int slot, int number, bool ok, bool alone)
     if(!ok || !writer)
       return;
     m_takes_written++;
-    m_view.set_take(writer->take_base(slot), Node::take_extension, true, 0);
+    m_view.set_take(
+        writer->take_base(slot), Node::take_extension, true, 0, m_stop_stretch);
     m_view.take = m_takes_written;
     m_view.take_date = m_stop_date;
     m_view_countdown = 0;
@@ -758,7 +766,9 @@ void looper_node<Node>::take_written(int slot, int number, bool ok, bool alone)
 
   self().take_released();
   m_takes_written++;
-  m_view.set_take(writer->take_base(slot), Node::take_extension, m_export_mix, m_export_layers);
+  m_view.set_take(
+      writer->take_base(slot), Node::take_extension, m_export_mix, m_export_layers,
+      m_job_stretch);
   m_view.take = m_takes_written;
   m_view.take_date = m_job_date;
   m_view.answered = std::max(m_view.answered, m_job_request);

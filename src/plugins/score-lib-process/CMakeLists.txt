@@ -70,6 +70,7 @@ set(PROCESS_HDRS
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Dataflow/WidgetInlets.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Dataflow/MinMaxFloatPort.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/OfflineAction/OfflineAction.hpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Process/Drop/ClipMetadata.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Drop/ProcessDropHandler.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/State/MessageNode.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/State/ProcessStateDataInterface.hpp"

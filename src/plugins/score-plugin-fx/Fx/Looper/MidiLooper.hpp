@@ -641,6 +641,11 @@ private:
   void take_released() noexcept { }
   void stop_take_written() noexcept { }
   static constexpr const char* take_extension = "mid";
+  //! A MIDI clip follows the tempo by its beats.
+  static constexpr halp::clip_stretch take_stretch() noexcept
+  {
+    return halp::clip_stretch::automatic;
+  }
   bool view_full() const noexcept { return loop.full; }
   bool view_writing() const noexcept { return m_writing; }
 

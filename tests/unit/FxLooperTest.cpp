@@ -18,6 +18,7 @@
 #include <cstdlib>
 #include <cmath>
 #include <memory>
+#include <optional>
 #include <new>
 #include <string>
 
@@ -1879,6 +1880,81 @@ TEST_CASE("Looper: the files of a take are its passes as they were when it close
     CHECK(QString::fromStdString(paths.back()).endsWith(
         QString("-layer%1.wav").arg(paths.size())));
   }
+}
+
+TEST_CASE("Looper: a take keeps the Follow tempo the loop played with, for the timeline",
+          "[fx][audio][looper][takes][timeline]")
+{
+  using Nodes::Looper::FollowTempo;
+  const std::pair<FollowTempo, halp::clip_stretch> modes[]{
+      {FollowTempo::Off, halp::clip_stretch::none},
+      {FollowTempo::Repitch, halp::clip_stretch::repitch},
+      {FollowTempo::RepitchFast, halp::clip_stretch::repitch_fast},
+      {FollowTempo::Timestretch, halp::clip_stretch::timestretch},
+      {FollowTempo::TimestretchPercussive, halp::clip_stretch::timestretch_percussive}};
+  for(const auto& [follow, stretch] : modes)
+  {
+    DYNAMIC_SECTION("Follow tempo " << int(follow))
+    {
+      looper_harness h{1, 64};
+      h.node.layers.allocate(1, 3, 48000);
+      h.node.inputs.follow_tempo.value = follow;
+      h.node.prepare_stretch(48000, 64);
+      deferred_takes takes{h};
+      Nodes::Looper::view_message last{};
+      h.node.send_message = [&](Nodes::Looper::view_message v) { last = v; };
+
+      // Changed after the start, the setting applies from the next one: the
+      // take is played as the loop was.
+      h.node.inputs.follow_tempo.value
+          = follow == FollowTempo::Off ? FollowTempo::Timestretch : FollowTempo::Off;
+      take_in(h, LoopMode::Record, 0.25, 8);
+      takes.finish(h);
+      REQUIRE(last.take > 0);
+      CHECK(last.take_stretch == stretch);
+
+      // The view hands it on with Send, and with a drag.
+      Nodes::Looper::looper_view view;
+      view.receive(last);
+      std::optional<halp::timeline_clip> sent;
+      view.send_to_timeline = [&](halp::timeline_clip c) { sent = std::move(c); };
+      view.send();
+      REQUIRE(sent);
+      CHECK(sent->stretch == stretch);
+      CHECK(sent->files == last.take_files());
+
+      const auto drag = view.drag_payload(view.width() / 2., view.height() - 10.);
+      REQUIRE(drag.files == last.take_files());
+      CHECK(drag.mime == Process::clip_metadata_mime);
+      const auto meta = Process::decode_clip_metadata(drag.data);
+      REQUIRE(meta.size() == drag.files.size());
+      for(std::size_t i = 0; i < meta.size(); i++)
+      {
+        CHECK(meta[i].path == drag.files[i]);
+        CHECK(meta[i].stretch == stretch);
+      }
+    }
+  }
+}
+
+TEST_CASE("Clip metadata: what is encoded is decoded, and automatic says nothing",
+          "[fx][looper][timeline]")
+{
+  const std::vector<std::string> files{"/a/b c/take1.wav", "C:\\x\\take1-layer1.wav"};
+  CHECK(Process::encode_clip_metadata(files, halp::clip_stretch::automatic).empty());
+  const auto data
+      = Process::encode_clip_metadata(files, halp::clip_stretch::timestretch_percussive);
+  const auto meta = Process::decode_clip_metadata(data);
+  REQUIRE(meta.size() == 2);
+  CHECK(meta[0].path == files[0]);
+  CHECK(meta[1].path == files[1]);
+  CHECK(meta[0].stretch == halp::clip_stretch::timestretch_percussive);
+  CHECK(meta[1].stretch == halp::clip_stretch::timestretch_percussive);
+  // Unknown keys and values are left alone.
+  const auto other = Process::decode_clip_metadata("/f.wav\tcolor=red\tstretch=sideways\r\n");
+  REQUIRE(other.size() == 1);
+  CHECK(other[0].path == "/f.wav");
+  CHECK(other[0].stretch == halp::clip_stretch::automatic);
 }
 
 // ---------------------------------------------------------------------------
