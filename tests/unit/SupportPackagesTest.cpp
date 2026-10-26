@@ -17,6 +17,12 @@
 
 #include <catch2/catch_test_macros.hpp>
 
+#include <filesystem>
+
+#if !defined(_WIN32)
+#include <unistd.h>
+#endif
+
 using namespace Library;
 
 namespace
@@ -95,6 +101,9 @@ TEST_CASE("A package folder is removed", "[unit][library]")
 // Windows: a subfolder without write permission holds a file which cannot go.
 TEST_CASE("A package folder in use is removed at the next start", "[unit][library]")
 {
+  if(::geteuid() == 0)
+    SKIP("Permissions do not stop root from removing the folder");
+
   QTemporaryDir tmp;
   REQUIRE(tmp.isValid());
   const QString old = makePackage(tmp.path(), "cuda-runtime-129", cuda_key, 1);
@@ -121,3 +130,85 @@ TEST_CASE("A package folder in use is removed at the next start", "[unit][librar
   CHECK(QFileInfo::exists(cuda));
 }
 #endif
+
+#if !defined(_WIN32)
+TEST_CASE("Removing a package folder linked by hand removes the link only", "[unit][library]")
+{
+  QTemporaryDir tmp;
+  REQUIRE(tmp.isValid());
+  const QString sources = makePackage(tmp.path() + "/src", "foo", cuda_key, 1);
+  const QString linked = tmp.path() + "/packages/foo-dev";
+  REQUIRE(QDir{}.mkpath(tmp.path() + "/packages"));
+  REQUIRE(QFile::link(sources, linked));
+
+  CHECK(isLinkedPackageFolder(linked));
+  CHECK(!isLinkedPackageFolder(sources));
+  CHECK(removePackageFolder(linked));
+  CHECK(!QFileInfo{linked}.isSymLink());
+  CHECK(QFileInfo::exists(sources + "/package.json"));
+  CHECK(!isMarkedForRemoval(sources));
+}
+#endif
+
+TEST_CASE("A support package is loaded once per process", "[unit][library]")
+{
+  // The keys loaded are remembered for the whole process: keys of its own.
+  const QString key = QUuid::createUuid().toString(QUuid::WithoutBraces);
+  const QString other = QUuid::createUuid().toString(QUuid::WithoutBraces);
+
+  QTemporaryDir tmp;
+  REQUIRE(tmp.isValid());
+  const QString first = makePackage(tmp.path(), "runtime", key, 1);
+
+  CHECK(!isSupportPackageLoaded(QUuid::fromString(key)));
+  CHECK(loadSupportPackages(tmp.path()).contains(first));
+  CHECK(isSupportPackageLoaded(QUuid::fromString(key)));
+
+  // Uninstalled, then installed again, or updated: not before a restart.
+  REQUIRE(removePackageFolder(first));
+  const QString second = makePackage(tmp.path(), "runtime-2", key, 2);
+  // Installed since, another package is loaded; the loaded one again, to load
+  // what may have been waiting for it.
+  const QString third = makePackage(tmp.path(), "other", other, 1);
+  const QStringList loaded = loadSupportPackages(tmp.path());
+  CHECK(!loaded.contains(second));
+  CHECK(loaded.contains(third));
+
+  CHECK(loadSupportPackages(tmp.path()).contains(third));
+}
+
+TEST_CASE("What interrupted installs left is removed", "[unit][library]")
+{
+  QTemporaryDir tmp;
+  REQUIRE(tmp.isValid());
+  const QString root = tmp.path();
+
+  auto make = [&](const QString& name, bool folder, bool old) {
+    const QString path = root + '/' + name;
+    if(folder)
+      REQUIRE(QDir{}.mkpath(path + "/lib"));
+    {
+      QFile f{folder ? path + "/lib/libfoo.so" : path};
+      REQUIRE(f.open(QIODevice::WriteOnly));
+    }
+    if(old)
+    {
+      const std::filesystem::path p{path.toStdU16String()};
+      std::filesystem::last_write_time(
+          p, std::filesystem::last_write_time(p) - std::chrono::hours{48});
+    }
+    return path;
+  };
+
+  const QString oldFolder = make(".incoming-cuda-runtime", true, true);
+  const QString oldDownload = make(".zdl-download-abcdef.zip", false, true);
+  // Another score installing right now
+  const QString current = make(".incoming-tensorrt-runtime", true, false);
+  const QString installed = makePackage(root, "cuda-runtime", cuda_key, 2);
+
+  removeInterruptedInstalls(root);
+  CHECK(!QFileInfo::exists(oldFolder));
+  CHECK(!QFileInfo::exists(oldDownload));
+  CHECK(QFileInfo::exists(current));
+  CHECK(QFileInfo::exists(installed));
+}

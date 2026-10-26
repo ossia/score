@@ -204,6 +204,7 @@ void PluginSettingsModel::firstTimeLibraryDownload()
         auto& lib = score::GUIAppContext().settings<Library::Settings::Model>();
         if(QString err; !moveExtractedPackage(incoming, res, lib_folder, err))
         {
+          QDir{incoming}.removeRecursively();
           qDebug() << "user library:" << err;
           return;
         }
@@ -212,7 +213,10 @@ void PluginSettingsModel::firstTimeLibraryDownload()
       }, [](qint64 bytesReceived, qint64 bytesTotal) {
         qDebug() << (((bytesReceived / 1024.) / (bytesTotal / 1024.)) * 100)
                  << "% downloaded";
-      }, [](const QString& err) { qDebug() << "user library:" << err; });
+      }, [incoming](const QString& err) {
+        QDir{incoming}.removeRecursively();
+        qDebug() << "user library:" << err;
+      });
     }
   }
   else
@@ -377,6 +381,7 @@ void PluginSettingsModel::downloadPackage(
 
       if(QString err; !moveExtractedPackage(incoming, res, destination, err))
       {
+        QDir{incoming}.removeRecursively();
         on_packageInstallFailure(addon, err);
         return;
       }
@@ -387,7 +392,12 @@ void PluginSettingsModel::downloadPackage(
       if(total < received)
         total = sz_bytes;
       progress_from_bytes(received, total);
-    }, [this, addon](const QString& err) { on_packageInstallFailure(addon, err); });
+    }, [this, addon, incoming](const QString& err) {
+      // What was extracted before the failure is not a package: left there, it
+      // would be loaded as a folder put in support/ by hand.
+      QDir{incoming}.removeRecursively();
+      on_packageInstallFailure(addon, err);
+    });
 }
 
 void PluginSettingsModel::on_packageInstallSuccess(
@@ -417,16 +427,15 @@ void PluginSettingsModel::on_packageInstallSuccess(
 
   // An update: the previous version may sit in another folder (packages were not
   // always installed under the same name), and is no use next to this one.
-  const bool updated = ossia::any_of(
-      localPlugins.addons(), [&](const Package& pkg) { return pkg.key == addon.key; });
   const auto& lib = score::AppContext().settings<Library::Settings::Model>();
   removeOtherInstalls(
       addon.uuid(), destination, {lib.getPackagesPath(), lib.getSupportPath()});
 
-  if(addon.kind == "support" && updated)
+  if(addon.kind == "support" && Library::isSupportPackageLoaded(addon.uuid()))
   {
-    // The previous version's libraries may already be loaded in this process, and
-    // loading the new ones next to them would mix two versions of the same library.
+    // A previous version's libraries are loaded in this process (an update, or a
+    // reinstall after an uninstall), and loading the new ones next to them would
+    // mix two versions of the same library.
     information(
         tr("Package updated"),
         tr("The package %1 has been updated.\nRestart score to use the new version.")
@@ -435,7 +444,7 @@ void PluginSettingsModel::on_packageInstallSuccess(
   else
   {
     if(addon.kind == "support")
-      Library::loadSupportLibraries({dir.absolutePath()});
+      Library::loadSupportPackages(lib.getSupportPath());
 
     information(
         tr("Package downloaded"),

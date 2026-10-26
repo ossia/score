@@ -304,7 +304,82 @@ TEST_CASE("The archive read from a file or from memory extracts the same", "[uni
   CHECK(files.size() == 5);
   CHECK(QFileInfo{tmp.path() + "/lib/libfoo.so.9"}.isSymLink());
 }
+
+// alias/libfoo.so -> ../lib/libfoo.so.1: a folder holding nothing but a link
+TEST_CASE("A link which is the only entry of its folder is created", "[unit][zip]")
+{
+  QTemporaryDir tmp;
+  REQUIRE(tmp.isValid());
+
+  QString error;
+  const auto files = zdl::unzip_all_files_to_folder(
+      QStringLiteral(SCORE_TEST_ZIP_DIR "/linkonly.zip"), tmp.path(), error);
+  CHECK(error.isEmpty());
+  CHECK(files.size() == 2);
+
+  QFile f{tmp.path() + "/alias/libfoo.so"};
+  REQUIRE(f.open(QIODevice::ReadOnly));
+  CHECK(f.readAll() == "real\n");
+}
+
+// w: 0666, s: 04777
+TEST_CASE("Nobody but the owner can write what is extracted", "[unit][zip]")
+{
+  QTemporaryDir tmp;
+  REQUIRE(tmp.isValid());
+
+  QString error;
+  zdl::unzip_all_files_to_folder(
+      QStringLiteral(SCORE_TEST_ZIP_DIR "/modes.zip"), tmp.path(), error);
+  REQUIRE(error.isEmpty());
+
+  for(const char* name : {"w", "s"})
+  {
+    const auto p = QFileInfo{tmp.path() + '/' + name}.permissions();
+    CHECK((p & QFileDevice::WriteOwner));
+    CHECK(!(p & (QFileDevice::WriteGroup | QFileDevice::WriteOther)));
+  }
+}
 #endif
+
+// Links which only point inside the destination as long as the links before
+// them are read as text. Created in the archive's order, each one is followed
+// by those after it:
+//   chain.zip:   s/t/u -> ..,  s/t/u/k -> ../../../x,  s/t/u/k/victim.txt -> pwned
+//   through.zip: d/u -> ..,  e -> d/u/../x
+//   case.zip:    d/Lib -> ..,  d/lib/k -> ../../x  (d/lib is d/Lib on macOS and Windows)
+// The destination is a folder of its own, next to an x/victim.txt which must
+// stay as it is.
+TEST_CASE("A link reaching outside through another link fails the whole archive", "[unit][zip]")
+{
+  const auto archive = GENERATE(
+      QStringLiteral(SCORE_TEST_ZIP_DIR "/chain.zip"),
+      QStringLiteral(SCORE_TEST_ZIP_DIR "/through.zip"),
+      QStringLiteral(SCORE_TEST_ZIP_DIR "/case.zip"));
+
+  QTemporaryDir tmp;
+  REQUIRE(tmp.isValid());
+  const QString dest = tmp.path() + "/a/b/dest";
+  REQUIRE(QDir{}.mkpath(dest));
+  write_file(tmp.path() + "/a/b/x/victim.txt", "intact");
+  write_file(tmp.path() + "/a/x/victim.txt", "intact");
+  write_file(tmp.path() + "/x/victim.txt", "intact");
+
+  QString error;
+  const auto files = zdl::unzip_all_files_to_folder(archive, dest, error);
+  CHECK(files.empty());
+  CHECK_FALSE(error.isEmpty());
+  CHECK(QDir{dest}.isEmpty());
+
+  for(const char* victim : {"/a/b/x/victim.txt", "/a/x/victim.txt", "/x/victim.txt"})
+  {
+    const QFileInfo info{tmp.path() + victim};
+    CHECK(!info.isSymLink());
+    QFile f{info.filePath()};
+    REQUIRE(f.open(QIODevice::ReadOnly));
+    CHECK(f.readAll() == "intact");
+  }
+}
 
 TEST_CASE("A link pointing outside the destination fails the whole archive", "[unit][zip]")
 {

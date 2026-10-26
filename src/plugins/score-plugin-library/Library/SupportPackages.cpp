@@ -1,6 +1,7 @@
 #include <Library/SupportPackages.hpp>
 
 #include <QCoreApplication>
+#include <QDateTime>
 #include <QDebug>
 #include <QDir>
 #include <QDirIterator>
@@ -23,10 +24,27 @@ namespace Library
 // Left in a package folder which could not be removed.
 static constexpr auto removal_marker = ".score-remove";
 
+// The support packages loaded in this process: their keys, and the folders.
+static QSet<QUuid> g_loadedKeys;
+static QSet<QString> g_loadedFolders;
+
 static QFileInfoList packageFolders(const QString& root)
 {
-  // No QDir::Hidden: ".incoming-<name>" folders are installs in progress.
-  return QDir{root}.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot, QDir::Name);
+  // ".incoming-<name>" folders are installs in progress, or interrupted. Not
+  // QDir::Hidden: a leading dot is not what makes a file hidden on Windows.
+  QFileInfoList folders
+      = QDir{root}.entryInfoList(QDir::Dirs | QDir::Hidden | QDir::NoDotAndDotDot, QDir::Name);
+  folders.removeIf([](const QFileInfo& f) { return f.fileName().startsWith('.'); });
+  return folders;
+}
+
+static bool isLink(const QFileInfo& info)
+{
+#if defined(Q_OS_WIN)
+  return info.isSymLink() || info.isJunction();
+#else
+  return info.isSymLink();
+#endif
 }
 
 std::vector<InstalledPackage> installedPackages(const QString& root)
@@ -51,6 +69,11 @@ std::vector<InstalledPackage> installedPackages(const QString& root)
 
 bool removePackageFolder(const QString& path)
 {
+  // A folder linked there by hand (a package under development): the link goes,
+  // what it points to is not ours.
+  if(const QFileInfo info{path}; isLink(info))
+    return QFile::remove(path) || QDir{}.rmdir(path);
+
   QDir dir{path};
   if(!dir.exists() || dir.removeRecursively())
     return true;
@@ -69,15 +92,40 @@ bool isMarkedForRemoval(const QString& path)
   return QFileInfo::exists(path + '/' + removal_marker);
 }
 
+bool isLinkedPackageFolder(const QString& path)
+{
+  return isLink(QFileInfo{path});
+}
+
 void removeMarkedPackageFolders(const QString& root)
 {
   for(const QFileInfo& folder : packageFolders(root))
   {
-    if(isMarkedForRemoval(folder.absoluteFilePath()))
+    if(!isLink(folder) && isMarkedForRemoval(folder.absoluteFilePath()))
     {
       if(!QDir{folder.absoluteFilePath()}.removeRecursively())
         qDebug() << "Could not remove the package folder" << folder.absoluteFilePath();
     }
+  }
+}
+
+void removeInterruptedInstalls(const QString& root, std::chrono::seconds age)
+{
+  const QDateTime before = QDateTime::currentDateTimeUtc().addSecs(-age.count());
+  const auto entries = QDir{root}.entryInfoList(
+      {".incoming-*", ".zdl-download-*"},
+      QDir::Dirs | QDir::Files | QDir::Hidden | QDir::NoDotAndDotDot | QDir::System);
+  for(const QFileInfo& entry : entries)
+  {
+    // Another score running may be installing there right now; an install
+    // that has not been written to for that long is not going anywhere.
+    if(entry.lastModified().toUTC() > before)
+      continue;
+    const bool removed = (entry.isDir() && !isLink(entry))
+                             ? QDir{entry.absoluteFilePath()}.removeRecursively()
+                             : QFile::remove(entry.absoluteFilePath());
+    if(!removed)
+      qDebug() << "Could not remove the interrupted install" << entry.absoluteFilePath();
   }
 }
 
@@ -118,8 +166,46 @@ QStringList supportFoldersToLoad(const QString& supportDir)
   return folders;
 }
 
+static QUuid packageKey(const QString& folder)
+{
+  QFile f{folder + "/package.json"};
+  if(!f.open(QIODevice::ReadOnly))
+    return {};
+  return QUuid::fromString(QJsonDocument::fromJson(f.readAll()).object()["key"].toString());
+}
+
+QStringList loadSupportPackages(const QString& supportDir)
+{
+  QStringList folders;
+  for(const QString& folder : supportFoldersToLoad(supportDir))
+  {
+    // Loaded already: loading again retries what failed then, typically for
+    // want of a package installed since. Another version of a loaded package
+    // waits for a restart.
+    const QUuid key = packageKey(folder);
+    if(g_loadedFolders.contains(folder) || key.isNull() || !g_loadedKeys.contains(key))
+      folders.push_back(folder);
+  }
+
+  for(const QString& folder : folders)
+  {
+    g_loadedFolders.insert(folder);
+    if(const QUuid key = packageKey(folder); !key.isNull())
+      g_loadedKeys.insert(key);
+  }
+  loadSupportLibraries(folders);
+  return folders;
+}
+
+bool isSupportPackageLoaded(const QUuid& key)
+{
+  return g_loadedKeys.contains(key);
+}
+
 void loadSupportLibraries(const QStringList& folders)
 {
+  if(folders.isEmpty())
+    return;
 #ifdef Q_OS_WIN
   // On Windows we can extend the DLL search path: register every directory that
   // contains a .dll, so a later LoadLibrary("foo.dll") from an addon resolves.
@@ -127,8 +213,6 @@ void loadSupportLibraries(const QStringList& folders)
   // LOAD_LIBRARY_SEARCH_USER_DIRS; a bare LoadLibrary (what the addons do) uses the
   // legacy order and ignores it. This makes those directories part of the process-wide
   // default instead.
-  SetDefaultDllDirectories(LOAD_LIBRARY_SEARCH_DEFAULT_DIRS);
-
   QSet<QString> added;
 
   for(const QString& folder : folders)
@@ -142,6 +226,10 @@ void loadSupportLibraries(const QStringList& folders)
 
       if(added.contains(dir))
         continue;
+      // Not before there is a folder to add: it takes PATH out of the search for
+      // every library the process loads afterwards, addons' dependencies included.
+      if(added.isEmpty())
+        SetDefaultDllDirectories(LOAD_LIBRARY_SEARCH_DEFAULT_DIRS);
       added.insert(dir);
 
       AddDllDirectory(reinterpret_cast<PCWSTR>(dir.utf16()));
