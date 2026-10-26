@@ -734,6 +734,83 @@ struct TimeChooserT
 //! Every time chooser: short times get most of the knob's travel.
 using TimeChooser = TimeChooserT<MappedNormalizer<halp::time_chooser_mapper>>;
 
+//! The value goes to the model as is, {value, unit}: free times are in
+//! seconds, the widget does its own taper.
+struct GridChooser
+{
+  static Process::PortItemLayout layout() noexcept
+  {
+    using namespace Process;
+    return DefaultControlLayouts::knob();
+  }
+
+  template <typename T>
+  static auto make_widget(
+      T& inlet, const score::DocumentContext& ctx, QWidget* parent, QObject* context)
+  {
+    return nullptr;
+  }
+
+  //! Any value a port can hold, as the widget's {value, unit}
+  static ossia::vec2f toGrid(const ossia::value& v)
+  {
+    switch(v.get_type())
+    {
+      case ossia::val_type::FLOAT:
+      case ossia::val_type::INT:
+      case ossia::val_type::BOOL:
+        return {ossia::convert<float>(v), 0.f};
+      case ossia::val_type::VEC3F: {
+        auto& v3 = *v.target<ossia::vec3f>();
+        return {v3[0], v3[1]};
+      }
+      default:
+        return ossia::convert<ossia::vec2f>(v);
+    }
+  }
+
+  template <typename T, typename Control_T>
+  static auto make_item(
+      const T& slider, Control_T& inlet, const score::DocumentContext& ctx,
+      QGraphicsItem* parent, QObject* context)
+  {
+    auto sl = new score::QGraphicsGridChooser{nullptr};
+    initWidgetProperties(inlet, *sl);
+    sl->setUnits(slider.units);
+    sl->setMaxBars(slider.maxBars);
+    sl->setMaxSeconds(slider.maxSeconds);
+    sl->setPeriodName(slider.periodName);
+    sl->init = toGrid(slider.init());
+    sl->setValue(toGrid(inlet.value()));
+
+    QObject::connect(
+        sl, &score::QGraphicsGridChooser::sliderMoved, context, [sl, &inlet, &ctx] {
+      sl->moving = true;
+      ctx.dispatcher.submit<SetControlValue<Control_T>>(inlet, sl->value());
+    });
+    QObject::connect(
+        sl, &score::QGraphicsGridChooser::sliderReleased, context, [sl, &inlet, &ctx] {
+      ctx.dispatcher.submit<SetControlValue<Control_T>>(inlet, sl->value());
+      ctx.dispatcher.commit();
+      sl->moving = false;
+    });
+
+    QObject::connect(
+        &inlet, &Control_T::valueChanged, sl, [sl](const ossia::value& val) {
+      if(!sl->moving)
+        sl->setValue(toGrid(val));
+    });
+    QObject::connect(
+        &inlet, &Control_T::executionValueChanged, sl,
+        [sl](const ossia::value& val) { sl->setExecutionValue(toGrid(val)); });
+    QObject::connect(
+        &inlet, &Control_T::executionReset, sl,
+        &score::QGraphicsGridChooser::resetExecution);
+
+    return sl;
+  }
+};
+
 struct Toggle
 {
   static Process::PortItemLayout layout() noexcept

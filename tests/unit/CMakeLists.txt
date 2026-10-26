@@ -631,6 +631,14 @@ score_add_test(test_unit_quantification_parity
 target_include_directories(test_unit_quantification_parity SYSTEM PRIVATE
   "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/include")
 
+# halp::next_grid_point: the next point of a grid chooser's grid in a buffer,
+# for bars, note values, periods, free times and none.
+score_add_test(test_unit_halp_grid
+  SOURCES HalpGridTest.cpp
+  PLUGINS score_lib_process)
+target_include_directories(test_unit_halp_grid SYSTEM PRIVATE
+  "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/include")
+
 # --- audio DSP value-asserting tests ---------------------------------------
 score_add_test(test_unit_avnd_audio_effects
   SOURCES AvndAudioEffectsTest.cpp)
@@ -2173,6 +2181,19 @@ if(TARGET score_plugin_avnd AND TARGET score_plugin_fx AND TARGET score_plugin_e
     APP
     PLUGINS score_plugin_avnd score_plugin_fx score_plugin_dataflow score_plugin_engine score_plugin_scenario score_lib_process)
   target_include_directories(test_unit_avnd_control_kind_upgrade PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish"
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-avnd")
+endif()
+
+# The grid chooser: a halp::grid_chooser's port saved and loaded with its
+# {value, unit} and what it allows, a time chooser's value read as a grid, the
+# values the object receives, and the knob's readouts, unit menu and detents.
+if(TARGET score_plugin_avnd AND TARGET score_plugin_engine)
+  score_add_test(test_unit_grid_chooser
+    SOURCES GridChooserTest.cpp
+    APP
+    PLUGINS score_plugin_avnd score_plugin_dataflow score_plugin_engine score_plugin_scenario score_lib_process)
+  target_include_directories(test_unit_grid_chooser PRIVATE
     "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish"
     "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-avnd")
 endif()

@@ -22,6 +22,7 @@ struct FloatRangeSpinBox;
 struct IntSpinBox;
 struct FloatSpinBox;
 struct TimeChooser;
+struct GridChooser;
 struct Toggle;
 struct ChooserToggle;
 struct ComboBox;
@@ -92,6 +93,9 @@ UUID_METADATA(
 UUID_METADATA(
     SCORE_LIB_PROCESS_EXPORT, Process::Port, Process::TimeChooser,
     "b631d9b7-cbe3-4d9c-b470-f139e348aecb")
+UUID_METADATA(
+    SCORE_LIB_PROCESS_EXPORT, Process::Port, Process::GridChooser,
+    "4d2fd8a6-012f-4b04-bb02-7a48c37a30bb")
 
 UUID_METADATA(
     SCORE_LIB_PROCESS_EXPORT, Process::Port, Process::LineEdit,
@@ -354,6 +358,39 @@ public:
   //! where the time is musical. Returns whether it did.
   bool preferSynced(double tempo = 120.);
   using Process::ControlInlet::ControlInlet;
+};
+
+//! A quantization grid, see halp::grid_chooser and score::QGraphicsGridChooser.
+//! The value is vec2f{value, unit}: unit 0 is seconds (0: no grid), 1 a
+//! fraction of a whole note, 2 bars, 3 a multiple of the process's period,
+//! -1 the parent's grid. What the user may pick is saved with the port.
+struct SCORE_LIB_PROCESS_EXPORT GridChooser : public Process::ControlInlet
+{
+  W_OBJECT(GridChooser)
+public:
+  MODEL_METADATA_IMPL(GridChooser)
+  GridChooser(
+      ossia::vec2f init, uint32_t units, int maxBars, double maxSeconds,
+      QString periodName, const QString& name, Id<Process::Port> id, QObject* parent);
+  ~GridChooser();
+
+  //! The units offered, as halp::grid_units: free 1, note 2, bars 4, period 8,
+  //! parent 16.
+  uint32_t units{1u | 2u | 4u};
+  int maxBars{16};
+  double maxSeconds{8.};
+  //! Lower case: "loop" reads "2x loop".
+  QString periodName{QStringLiteral("loop")};
+
+  //! A number is seconds, as for the time chooser; vec3f carries an offset.
+  void setValue(const ossia::value& value) override;
+  void setupExecution(ossia::inlet& inl, QObject* exec_context) const noexcept override;
+
+  using Process::ControlInlet::ControlInlet;
+  GridChooser(DataStream::Deserializer& vis, QObject* parent);
+  GridChooser(JSONObject::Deserializer& vis, QObject* parent);
+  GridChooser(DataStream::Deserializer&& vis, QObject* parent);
+  GridChooser(JSONObject::Deserializer&& vis, QObject* parent);
 };
 
 struct SCORE_LIB_PROCESS_EXPORT Toggle : public Process::ControlInlet

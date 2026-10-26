@@ -56,6 +56,7 @@ std::vector<score::InterfaceBase*> score_plugin_dataflow::factories(
          Dataflow::WidgetInletFactory<
              Process::FloatSpinBox, WidgetFactory::FloatSpinBox>,
          Dataflow::WidgetInletFactory<Process::TimeChooser, WidgetFactory::TimeChooser>,
+         Dataflow::WidgetInletFactory<Process::GridChooser, WidgetFactory::GridChooser>,
          Dataflow::WidgetInletFactory<Process::Toggle, WidgetFactory::Toggle>,
          Dataflow::WidgetInletFactory<Process::Button, WidgetFactory::Button>,
          Dataflow::WidgetInletFactory<

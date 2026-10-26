@@ -43,6 +43,7 @@ W_OBJECT_IMPL(Process::FloatRangeSpinBox)
 W_OBJECT_IMPL(Process::IntSpinBox)
 W_OBJECT_IMPL(Process::FloatSpinBox)
 W_OBJECT_IMPL(Process::TimeChooser)
+W_OBJECT_IMPL(Process::GridChooser)
 W_OBJECT_IMPL(Process::Toggle)
 W_OBJECT_IMPL(Process::ChooserToggle)
 W_OBJECT_IMPL(Process::LineEdit)
@@ -649,6 +650,65 @@ void TimeChooser::setupExecution(ossia::inlet& inl, QObject* exec_context) const
   port.type = ossia::val_type::VEC2F;
   // port.type = ossia::second_u{};
   // port.domain = domain().get();
+}
+
+GridChooser::GridChooser(
+    ossia::vec2f init, uint32_t units, int maxBars, double maxSeconds,
+    QString periodName, const QString& name, Id<Port> id, QObject* parent)
+    : ControlInlet{name, id, parent}
+    , units{units}
+    , maxBars{maxBars}
+    , maxSeconds{maxSeconds}
+    , periodName{std::move(periodName)}
+{
+  displayHandledExplicitly = true;
+  setValue(init);
+  setInit(value());
+  // No domain: a range would clamp the value of one unit with another's bounds
+}
+
+GridChooser::~GridChooser() { }
+
+GridChooser::GridChooser(DataStream::Deserializer& vis, QObject* parent)
+    : ControlInlet{vis, parent}
+{
+  vis.writeTo(*this);
+}
+GridChooser::GridChooser(JSONObject::Deserializer& vis, QObject* parent)
+    : ControlInlet{vis, parent}
+{
+  vis.writeTo(*this);
+}
+GridChooser::GridChooser(DataStream::Deserializer&& vis, QObject* parent)
+    : ControlInlet{vis, parent}
+{
+  vis.writeTo(*this);
+}
+GridChooser::GridChooser(JSONObject::Deserializer&& vis, QObject* parent)
+    : ControlInlet{vis, parent}
+{
+  vis.writeTo(*this);
+}
+
+void GridChooser::setValue(const ossia::value& value)
+{
+  switch(value.get_type())
+  {
+    case ossia::val_type::FLOAT:
+    case ossia::val_type::INT:
+    case ossia::val_type::BOOL:
+      ControlInlet::setValue(ossia::vec2f{ossia::convert<float>(value), 0.f});
+      break;
+    default:
+      ControlInlet::setValue(value);
+      break;
+  }
+}
+
+void GridChooser::setupExecution(ossia::inlet& inl, QObject* exec_context) const noexcept
+{
+  auto& port = **safe_cast<ossia::value_inlet*>(&inl);
+  port.type = ossia::val_type::VEC2F;
 }
 
 Toggle::Toggle(bool init, const QString& name, Id<Port> id, QObject* parent)
@@ -1452,6 +1512,39 @@ template <>
 SCORE_LIB_PROCESS_EXPORT void
 JSONWriter::write(Process::TimeChooser& p)
 {
+}
+
+template <>
+SCORE_LIB_PROCESS_EXPORT void
+DataStreamReader::read(const Process::GridChooser& p)
+{
+  read((const Process::ControlInlet&)p);
+  m_stream << p.units << p.maxBars << p.maxSeconds << p.periodName;
+}
+template <>
+SCORE_LIB_PROCESS_EXPORT void
+DataStreamWriter::write(Process::GridChooser& p)
+{
+  m_stream >> p.units >> p.maxBars >> p.maxSeconds >> p.periodName;
+}
+template <>
+SCORE_LIB_PROCESS_EXPORT void
+JSONReader::read(const Process::GridChooser& p)
+{
+  read((const Process::ControlInlet&)p);
+  obj["Units"] = p.units;
+  obj["MaxBars"] = p.maxBars;
+  obj["MaxSeconds"] = p.maxSeconds;
+  obj["Period"] = p.periodName;
+}
+template <>
+SCORE_LIB_PROCESS_EXPORT void
+JSONWriter::write(Process::GridChooser& p)
+{
+  p.units = uint32_t(obj["Units"].toUInt64());
+  p.maxBars = obj["MaxBars"].toInt();
+  p.maxSeconds = obj["MaxSeconds"].toDouble();
+  p.periodName <<= obj["Period"];
 }
 
 template <>

@@ -275,6 +275,38 @@ make_control_in(avnd::field_index<N>, Id<Process::Port>&& id, QObject* parent)
     static constexpr auto c = avnd::get_range<T>();
     return new Process::TimeChooser{c.min, c.max, c.init, qname, id, parent};
   }
+  else if constexpr(widg.widget == avnd::widget_type::grid_chooser)
+  {
+    // halp::grid_chooser declares grid() and period_name(); a hand-written
+    // grid control gets the defaults of halp::grid_setup.
+    uint32_t units = 1u | 2u | 4u;
+    int max_bars = 16;
+    double max_seconds = 8.;
+    if constexpr(requires { T::grid(); })
+    {
+      static constexpr auto g = T::grid();
+      units = g.units;
+      max_bars = g.max_bars;
+      if constexpr(requires { g.max_seconds; })
+        max_seconds = g.max_seconds;
+    }
+    QString period = QStringLiteral("loop");
+    if constexpr(requires { T::period_name(); })
+    {
+      static constexpr std::string_view p = T::period_name();
+      period = QString::fromUtf8(p.data(), qsizetype(p.size()));
+    }
+    const auto init = T{}.value;
+    return new Process::GridChooser{
+        ossia::vec2f{float(init.value), float(int(init.unit))},
+        units,
+        max_bars,
+        max_seconds,
+        std::move(period),
+        qname,
+        id,
+        parent};
+  }
   else if constexpr(widg.widget == avnd::widget_type::folder)
   {
     if constexpr(avnd::has_range<T>) {

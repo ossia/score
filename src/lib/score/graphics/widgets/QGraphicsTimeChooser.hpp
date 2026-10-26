@@ -1,6 +1,7 @@
 #pragma once
 #include <functional>
 #include <score/graphics/widgets/Constants.hpp>
+#include <score/graphics/widgets/NoteValues.hpp>
 
 #include <ossia/network/value/vec.hpp>
 
@@ -61,12 +62,7 @@ public:
   void cycleMode();
 
   //! Synced values the knob steps through (Alt or Shift: all of them).
-  enum class Feel : uint8_t
-  {
-    Straight,
-    Dotted,
-    Triplet
-  };
+  using Feel = note_values::Feel;
   [[nodiscard]] bool synced() const noexcept { return m_sync; }
   //! The readout in free mode: seconds, milliseconds, one decimal under 10 ms.
   [[nodiscard]] QString freeText() const;
