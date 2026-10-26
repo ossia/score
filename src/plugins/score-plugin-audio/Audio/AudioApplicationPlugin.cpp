@@ -27,6 +27,7 @@
 #include <ossia/audio/audio_protocol.hpp>
 
 #include <QTimer>
+#include <QLabel>
 #include <QToolBar>
 
 SCORE_DECLARE_ACTION(RestartAudio, "Restart Audio", Common, QKeySequence::UnknownKey)
@@ -148,6 +149,28 @@ void ApplicationPlugin::timerEvent(QTimerEvent*)
   }
 
   reap_previous_engines();
+  updateXruns();
+}
+
+void ApplicationPlugin::updateXruns()
+{
+  if(!m_xruns)
+    return;
+  const int64_t n = audio ? audio->xruns.load(std::memory_order_relaxed) : 0;
+  if(n == m_shownXruns)
+    return;
+  m_shownXruns = n;
+  m_xrunsAction->setVisible(n > 0);
+  m_xruns->setText(n == 1 ? tr("1 dropout") : tr("%1 dropouts").arg(n));
+  if(audio)
+    m_xruns->setToolTip(
+        tr("Buffer under- or overruns reported by the audio driver since the engine "
+           "started.\nPeriod: %1 frames at %2 Hz.\nLatency: %3 frames in, %4 frames "
+           "out.\nA larger buffer size makes them less likely.")
+            .arg(audio->effective_buffer_size)
+            .arg(audio->effective_sample_rate)
+            .arg(audio->effective_input_latency.load())
+            .arg(audio->effective_output_latency.load()));
 }
 
 void ApplicationPlugin::reap_previous_engines()
@@ -197,6 +220,10 @@ score::GUIElements ApplicationPlugin::makeGUIElements()
     score::setHelp(sl, "Change the master volume");
     bar->addWidget(sl);
     bar->addAction(m_audioEngineAct);
+    m_xruns = new QLabel{bar};
+    // A toolbar shows and hides its widgets through their actions.
+    m_xrunsAction = bar->addWidget(m_xruns);
+    m_xrunsAction->setVisible(false);
     connect(sl, &score::VolumeSlider::valueChanged, this, [this](double v) {
       if(!this->audio)
         return;
