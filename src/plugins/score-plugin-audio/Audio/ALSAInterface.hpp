@@ -68,6 +68,7 @@ public:
       score::SettingsCommandDispatcher& m_disp, QWidget* parent) override;
 
 private:
+  //! Per direction, what each PCM offered when it was last free.
   std::map<QString, AlsaCard> m_lastFree;
   bool m_scanned{};
 };
