@@ -337,8 +337,7 @@ score_add_gfx_test(review_graph_lifecycle GfxReviewGraphLifecycle.cpp)
 # oracle of 2026/test-cubemap-output.score (+X red, -X cyan, +Y green,
 # -Y magenta, +Z blue, -Z yellow), through the MULTIVIEW-6 + CUBEMAP
 # array-then-copy shim; samplerCube viewer probes each face exactly once.
-# GL follows GfxMultiview's headless-layered-raster precedent (structural
-# half + SUCCEED with the reason); Null asserts the shim selection only.
+# Null asserts the shim selection only.
 score_add_gfx_test(cubemap_six_faces GfxCubemapSixFaces.cpp)
 score_add_gfx_test(cube_depth_attachment_size GfxCubeDepthAttachmentSize.cpp)
 score_add_gfx_test(provoking_vertex GfxProvokingVertex.cpp)

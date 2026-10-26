@@ -98,9 +98,8 @@ void SimpleRenderedISFNode::updateInputTexture(const Port& input, QRhiTexture* t
   if(sampler_idx < (int)m_inputSamplers.size())
   {
     auto& sampl = m_inputSamplers[sampler_idx];
-    if(sampl.texture != tex)
+    if(score::gfx::retargetSampler(sampl, tex))
     {
-      sampl.texture = tex;
       for(auto& [e, pass] : m_passes)
         if(pass.p.srb)
           score::gfx::replaceTexture(*pass.p.srb, sampl.sampler, tex);
@@ -873,7 +872,8 @@ void SimpleRenderedISFNode::update(
       // Texture changed -> material changed
       audioChanged = true;
 
-      auto& [rhiSampler, tex, fb_] = *sampl;
+      auto& rhiSampler = (*sampl).sampler;
+      auto& tex = (*sampl).texture;
       // Keep m_audioSamplers[i].texture in sync with the live GPU texture so
       // any later pipeline rebuild (e.g. rt_changed path in RenderList::render
       // triggering removeOutputPass + addOutputPass) uses the live binding

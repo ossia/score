@@ -662,9 +662,8 @@ void RenderedCSFNode::bindInputSampler(std::size_t samplerIndex, QRhiTexture* t)
   if(samplerIndex >= m_inputSamplers.size())
     return;
   auto& sampl = m_inputSamplers[samplerIndex];
-  if(sampl.texture == t)
+  if(!score::gfx::retargetSampler(sampl, t))
     return;
-  sampl.texture = t;
   for(auto& [e, cp] : m_computePasses)
     if(cp.srb)
       score::gfx::replaceTexture(*cp.srb, sampl.sampler, t);
@@ -4516,7 +4515,8 @@ void RenderedCSFNode::buildComputeSrbBindings(
       // Regular sampled textures from m_inputSamplers
       if(input_image_index < m_inputSamplers.size())
       {
-        auto [sampler, tex, fb_] = m_inputSamplers[input_image_index];
+        auto sampler = m_inputSamplers[input_image_index].sampler;
+        auto tex = m_inputSamplers[input_image_index].texture;
         if(sampler && tex)
         {
           bindings.append(
@@ -4554,7 +4554,8 @@ void RenderedCSFNode::buildComputeSrbBindings(
         {
           if(input_image_index < m_inputSamplers.size())
           {
-            auto [sampler, tex, fb_] = m_inputSamplers[input_image_index];
+            auto sampler = m_inputSamplers[input_image_index].sampler;
+            auto tex = m_inputSamplers[input_image_index].texture;
             if(tex)
             {
               bindings.append(
@@ -5111,7 +5112,8 @@ void RenderedCSFNode::buildComputeSrbBindings(
     {
       if(audio_index < m_audioSamplers.size())
       {
-        auto [sampler, tex, fb_] = m_audioSamplers[audio_index];
+        auto sampler = m_audioSamplers[audio_index].sampler;
+        auto tex = m_audioSamplers[audio_index].texture;
         bindings.append(QRhiShaderResourceBinding::sampledTexture(
             bindingIndex, QRhiShaderResourceBinding::ComputeStage,
             tex ? tex : &renderer.emptyTexture(), sampler));
@@ -6025,7 +6027,8 @@ void RenderedCSFNode::update(
       if(std::optional<Sampler> sampl
          = m_audioTex.updateAudioTexture(audio, renderer, n.m_material_data.get(), res))
       {
-        auto& [rhiSampler, tex, fb_] = *sampl;
+        auto& rhiSampler = (*sampl).sampler;
+        auto& tex = (*sampl).texture;
         if(audio_idx < m_audioSamplers.size())
           m_audioSamplers[audio_idx].texture = tex;
         for(auto& [e, cp] : m_computePasses)
@@ -6084,8 +6087,9 @@ void RenderedCSFNode::update(
     (void)n.resetEventPortsAfterFrame();
   }
 
-  for(auto& [sampler, texture, fb_] : this->m_inputSamplers)
+  for(auto& input_sampler : this->m_inputSamplers)
   {
+    auto* texture = input_sampler.texture;
     // Skip generateMips on textures that have not yet been written to.
     // Their Vulkan layout is still VK_IMAGE_LAYOUT_PREINITIALIZED, and Qt RHI's
     // GenMips path (qrhivulkan.cpp ~4685) transitions FROM TRANSFER_*_OPTIMAL

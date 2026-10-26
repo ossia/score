@@ -807,9 +807,8 @@ void RenderedRawRasterPipelineNode::updateInputTexture(const Port& input, QRhiTe
   if(sampler_idx < (int)m_inputSamplers.size())
   {
     auto& sampl = m_inputSamplers[sampler_idx];
-    if(sampl.texture != tex)
+    if(score::gfx::retargetSampler(sampl, tex))
     {
-      sampl.texture = tex;
       auto* key = srbKey(sampler_idx);
       for(auto& [e, pass] : m_passes)
         if(pass.p.srb)
@@ -3896,7 +3895,8 @@ bool RenderedRawRasterPipelineNode::updateMaterials(
     {
       audioChanged = true;
 
-      auto& [rhiSampler, tex, fb_] = *sampl;
+      auto& rhiSampler = (*sampl).sampler;
+      auto& tex = (*sampl).texture;
       // Keep m_audioSamplers[i].texture in sync with the live GPU texture so
       // any later pipeline rebuild (rt_changed path in RenderList::render
       // calling removeOutputPass + addOutputPass) uses the live binding
@@ -4702,7 +4702,7 @@ bool RenderedRawRasterPipelineNode::rebindAuxTextures(RenderList& renderer)
       {
         if(slot.texture == b.applied)
         {
-          slot.texture = portTexture(renderer, b.sampler_idx);
+          score::gfx::retargetSampler(slot, portTexture(renderer, b.sampler_idx));
           changed = true;
         }
         b.applied = nullptr;
@@ -4716,9 +4716,8 @@ bool RenderedRawRasterPipelineNode::rebindAuxTextures(RenderList& renderer)
       continue;
     }
     b.applied = tex;
-    if(slot.texture != tex)
+    if(score::gfx::retargetSampler(slot, tex))
     {
-      slot.texture = tex;
       changed = true;
     }
     // The override is non-owning: the bucket in GpuResourceRegistry owns the

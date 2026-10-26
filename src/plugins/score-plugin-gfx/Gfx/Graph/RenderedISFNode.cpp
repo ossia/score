@@ -196,9 +196,8 @@ void RenderedISFNode::updateInputTexture(const Port& input, QRhiTexture* tex, QR
   if(sampler_idx < (int)m_inputSamplers.size())
   {
     auto& sampl = m_inputSamplers[sampler_idx];
-    if(sampl.texture != tex)
+    if(score::gfx::retargetSampler(sampl, tex))
     {
-      sampl.texture = tex;
       for(auto& [e, passes] : m_passes)
       {
         for(auto& pass : passes.passes)
@@ -902,7 +901,8 @@ void RenderedISFNode::update(
       // Audio texture changed, this means the material needs update
       audioChanged = true;
 
-      auto& [rhiSampler, tex, fb_] = *sampl;
+      auto& rhiSampler = (*sampl).sampler;
+      auto& tex = (*sampl).texture;
       // Keep m_audioSamplers[i].texture in sync with the live GPU texture so
       // any later pipeline rebuild (rt_changed path in RenderList::render
       // calling removeOutputPass + addOutputPass) uses the live binding
@@ -1513,7 +1513,8 @@ std::optional<Sampler> AudioTextureUpload::updateAudioTexture(
     return {};
   }
 
-  auto& [rhiSampler, rhiTexture, fb_] = it->second;
+  auto& rhiSampler = it->second.sampler;
+  auto& rhiTexture = it->second.texture;
 
   // The texture the shader wants for the current (mode, samples, channels)
   // triple. Comparing `curSz.w * curSz.h` against `audio.data.size()` only

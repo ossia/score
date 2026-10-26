@@ -170,7 +170,18 @@ struct Sampler
   QRhiSampler* sampler{};
   QRhiTexture* texture{};
   QRhiTexture* fallback{};
+  //! The sampler's mipmap mode is the texture's (followTextureMips) unless
+  //! the inlet sets one: a cubemap input whose shader leaves MIPMAP_MODE out.
+  bool mips_follow_texture{};
+  //! The inlet sets the mipmap mode (U34), which then wins over following.
+  bool mipmap_set{};
 };
+
+//! Points `s` at `tex`, re-creating its sampler first when its mipmap mode
+//! follows the texture. Returns false when `s` already samples `tex`; the
+//! caller then has no SRB to patch.
+SCORE_PLUGIN_GFX_EXPORT
+bool retargetSampler(Sampler& s, QRhiTexture* tex);
 
 /**
  * @brief Data model for audio data being sent to the GPU
@@ -1139,6 +1150,6 @@ std::vector<Sampler> initInputSamplers(
  */
 SCORE_PLUGIN_GFX_EXPORT
 void updateInputSamplerFilter(
-    std::span<const Sampler> samplers, const score::gfx::Node& node, const Port& input,
+    std::span<Sampler> samplers, const score::gfx::Node& node, const Port& input,
     const RenderTargetSpecs& spec);
 }

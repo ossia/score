@@ -62,9 +62,8 @@ void SimpleRenderedVSANode::updateInputTexture(const Port& input, QRhiTexture* t
   if(sampler_idx < (int)m_inputSamplers.size())
   {
     auto& sampl = m_inputSamplers[sampler_idx];
-    if(sampl.texture != tex)
+    if(score::gfx::retargetSampler(sampl, tex))
     {
-      sampl.texture = tex;
       for(auto& pd : m_passes)
         if(pd.main_pass.p.srb)
           score::gfx::replaceTexture(*pd.main_pass.p.srb, sampl.sampler, tex);
@@ -437,7 +436,8 @@ void SimpleRenderedVSANode::update(
       // Texture changed -> material changed
       audioChanged = true;
 
-      auto& [rhiSampler, tex, fb_] = *sampl;
+      auto& rhiSampler = (*sampl).sampler;
+      auto& tex = (*sampl).texture;
       QRhiTexture* boundTex = tex ? tex : &renderer.emptyTexture();
 
       // Keep m_audioSamplers[i].texture in sync with the live GPU texture: when a pass

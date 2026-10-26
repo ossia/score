@@ -525,7 +525,8 @@ private:
     if(n.tileMode != tile)
     {
       tile = n.tileMode;
-      auto [s, tex, fb_] = m_samplers[0];
+      auto s = m_samplers[0].sampler;
+      auto tex = m_samplers[0].texture;
       m_samplers.clear();
 
       // Create a new sampler
@@ -905,7 +906,8 @@ private:
     if(n.tileMode != tile)
     {
       tile = n.tileMode;
-      auto [s, tex, fb_] = m_samplers[0];
+      auto s = m_samplers[0].sampler;
+      auto tex = m_samplers[0].texture;
 
       m_samplers.clear();
 

@@ -24,13 +24,13 @@
 //    the same wiring csf-cube-image-write.cs -> csf-cube-image-read.fs proves
 //    for compute producers (CsfCubeArray.cpp).
 //
-// Backend scope (GfxMultiview.cpp precedent):
-//  * Vulkan / D3D12 / Metal (caps.multiview true): full pixel oracle.
-//  * OpenGL: the offscreen GL context on a headless box does not render a
-//    procedural MULTIVIEW layered raster at all (GfxMultiview.cpp documents
-//    layer 0 reading back black), so the pixel guard
-//    is not expressible; the crash-free-build guard plus the structural
-//    cube-handle guard below still run, then SUCCEED() with the reason.
+// Backend scope:
+//  * Vulkan / D3D12 / Metal / OpenGL (caps.multiview true): full pixel oracle.
+//    OpenGL was exempted as "headless GL does not render a layered multiview
+//    raster"; the black faces were the viewer's sampler instead: a cubemap
+//    input sampled the one-level cube with linear mips, which GL treats as
+//    mipmap-incomplete. With the input following the texture's mips the
+//    oracle passes on the RTX 4090 and on llvmpipe.
 //  * Null / no-multiview-caps fallback: the structural half — the
 //    producer's public output handle must be a QRhiTexture::CubeMap, and when
 //    multiview caps are present it must be the shim's cube
@@ -208,26 +208,22 @@ TEST_CASE(
   }
 
   // ---- Pixel half: the six-face oracle.
-  // Backend scope (GfxMultiview.cpp precedent): the offscreen OpenGL
-  // context does not render a procedural MULTIVIEW layered raster
-  // headless — layers read back black — so the pixel
-  // oracle is not expressible on GL; nor on Null (no rasterization), nor
-  // where multiview caps are absent (the one-draw-six-views amplification
-  // cannot happen). The crash-free build + structural guards above still ran.
-  const bool isGL = f.backend == "OpenGL";
+  // Not expressible on Null (no rasterization), nor where multiview caps are
+  // absent (the one-draw-six-views amplification cannot happen). The
+  // crash-free build + structural guards above still ran.
   const bool isNull = f.backend == "Null";
   // ... unless the pass-index fallback is active, in which case the six
   // faces ARE written -- as N explicit passes rather than one amplified
   // draw -- so the oracle is expressible and must run. Skipping it on a
   // backend without caps.multiview (d3d11) makes the case pass vacuously,
   // on a handful of assertions, while a missing face goes unnoticed.
-  if(isGL || isNull || (!f.multiview_caps && !f.multiview_lowered))
+  if(isNull || (!f.multiview_caps && !f.multiview_lowered))
   {
     SUCCEED(
         f.backend
-        + ": procedural MULTIVIEW layered raster not renderable headless here "
-          "(GfxMultiview.cpp precedent); crash-free build and cube-handle "
-          "selection asserted, six-face pixel oracle runs on Vulkan/D3D12/Metal");
+        + ": no rasterization or no multiview here; crash-free build and "
+          "cube-handle selection asserted, six-face pixel oracle runs where "
+          "multiview does");
     return;
   }
 

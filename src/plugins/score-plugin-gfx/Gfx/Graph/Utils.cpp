@@ -1928,11 +1928,16 @@ std::vector<Sampler> initInputSamplers(
           // the historical Linear+ClampToEdge sampler when the
           // descriptor wasn't passed or the input had no sampler block.
           QRhiSampler* sampler = nullptr;
+          // A cubemap input that declares no MIPMAP_MODE reads its texture's
+          // mips when it has some (textureLod on a prefiltered cube), and none
+          // otherwise: a raw raster CUBEMAP output has one level, and GL reads
+          // a mip-filtered sampler on it as incomplete, i.e. black.
+          bool mips_follow = false;
           if(cur_port < (int)port_sampler_cfg.size() && port_sampler_cfg[cur_port])
           {
-            isf::sampler_config cfg = *port_sampler_cfg[cur_port];
-            if(cfg.mipmap_mode.empty() && (in->flags & Flag::Cubemap) == Flag::Cubemap)
-              cfg.mipmap_mode = "linear";
+            const isf::sampler_config& cfg = *port_sampler_cfg[cur_port];
+            mips_follow = cfg.mipmap_mode.empty()
+                          && (in->flags & Flag::Cubemap) == Flag::Cubemap;
             sampler = score::gfx::makeSampler(rhi, cfg);
           }
           else
@@ -1946,11 +1951,14 @@ std::vector<Sampler> initInputSamplers(
             SCORE_ASSERT(sampler->create());
           }
           // What the user set on the inlet wins, field by field (U34).
-          if(applySetSamplerFields(*sampler, node.resolveRenderTargetSpecs(cur_port, renderer)))
+          const auto spec = node.resolveRenderTargetSpecs(cur_port, renderer);
+          if(mips_follow && !spec.mipmap_set)
+            followTextureMips(*sampler, *srcTex);
+          if(applySetSamplerFields(*sampler, spec))
             sampler->create();
           sampler->setName("initInputSamplers::grabs_sampler");
 
-          samplers.push_back({sampler, srcTex, fallback});
+          samplers.push_back({sampler, srcTex, fallback, mips_follow, spec.mipmap_set});
         }
         else
         {
@@ -2013,7 +2021,7 @@ std::vector<Sampler> initInputSamplers(
 }
 
 void updateInputSamplerFilter(
-    std::span<const Sampler> samplers, const score::gfx::Node& node, const Port& input,
+    std::span<Sampler> samplers, const score::gfx::Node& node, const Port& input,
     const RenderTargetSpecs& spec)
 {
   std::size_t sampler_idx = 0;
@@ -2040,6 +2048,12 @@ void updateInputSamplerFilter(
   // takes the fields its inlet sets.
   if((input.flags & Flag::GrabsFromSource) == Flag::GrabsFromSource)
   {
+    auto& s = samplers[sampler_idx];
+    s.mipmap_set = spec.mipmap_set;
+    // An inlet whose mipmap mode goes back to unset reads the texture's mips
+    // again; followTextureMips re-creates the sampler itself.
+    if(s.mips_follow_texture && !s.mipmap_set && s.texture)
+      followTextureMips(*sampler, *s.texture);
     if(applySetSamplerFields(*sampler, spec))
       sampler->create();
     return;
@@ -2652,6 +2666,16 @@ void resolveSamplerFields(RenderTargetSpecs& spec, const isf::sampler_config& cf
     spec.address_v = parseAddress(cfg.wrap_t, base);
     spec.address_w = parseAddress(cfg.wrap_r, base);
   }
+}
+
+bool retargetSampler(Sampler& s, QRhiTexture* tex)
+{
+  if(s.texture == tex)
+    return false;
+  s.texture = tex;
+  if(tex && s.sampler && s.mips_follow_texture && !s.mipmap_set)
+    followTextureMips(*s.sampler, *tex);
+  return true;
 }
 
 bool followTextureMips(QRhiSampler& sampler, const QRhiTexture& texture)

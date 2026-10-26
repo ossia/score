@@ -1977,7 +1977,8 @@ struct texture_inputs_storage<T>
 template <avnd::cpu_texture Tex>
 static QRhiTexture* updateTexture(auto& self, score::gfx::RenderList& renderer, int k, const Tex& cpu_tex)
 {
-  auto& [sampler, texture, fb_] = self.m_samplers[k];
+  auto& sampler = self.m_samplers[k].sampler;
+  auto& texture = self.m_samplers[k].texture;
   if(texture)
   {
     auto sz = texture->pixelSize();
