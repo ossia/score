@@ -39,9 +39,9 @@ std::atomic<uint64_t>& iterationAttachmentAllocations() noexcept
 namespace
 {
 // baseColorArray<k>, metalRoughDyn<s>, ...: the per-channel aliases of the
-// Scene Preprocessor's texture pool, removed in favour of materialArray<k> /
-// materialDyn<s> (shader board P32).
-bool isRemovedSceneTextureAlias(std::string_view name) noexcept
+// Scene Preprocessor's texture pool, deprecated in favour of materialArray<k>
+// / materialDyn<s> (shader board P32).
+bool isDeprecatedSceneTextureAlias(std::string_view name) noexcept
 {
   for(std::string_view channel :
       {"baseColor", "metalRough", "normal", "emissive", "occlusion"})
@@ -4680,17 +4680,16 @@ bool RenderedRawRasterPipelineNode::rebindAuxTextures(RenderList& renderer)
     const auto* aux = mesh ? mesh->find_auxiliary_texture(b.name) : nullptr;
     auto* tex = aux ? static_cast<QRhiTexture*>(aux->native_handle) : nullptr;
     auto& slot = m_inputSamplers[b.sampler_idx];
-    if(!aux && mesh && !b.removedAliasWarned && isRemovedSceneTextureAlias(b.name))
+    if(aux && !b.aliasWarned && isDeprecatedSceneTextureAlias(b.name))
     {
-      // The Scene Preprocessor published its texture pool under per-channel
-      // aliases too; they are removed (shader board P32): say why the input
-      // stays empty.
-      b.removedAliasWarned = true;
+      // The Scene Preprocessor still publishes its texture pool under the
+      // per-channel aliases saved shaders declare (shader board P32).
+      b.aliasWarned = true;
       qWarning().noquote()
           << QStringLiteral(
-                 "Raw raster: input \"%1\" is a scene texture name that is no longer "
-                 "published; the Scene Preprocessor's texture pool is materialArray<k> "
-                 "/ materialDyn<s>. The input stays empty.")
+                 "Raw raster: input \"%1\" is a deprecated name of the Scene "
+                 "Preprocessor's texture pool; use materialArray<k> / "
+                 "materialDyn<s>.")
                  .arg(QString::fromStdString(b.name));
     }
     if(!tex)

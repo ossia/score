@@ -220,6 +220,27 @@ void main()
 }
 )__";
 
+// The same probe through the per-channel alias a saved document's shader
+// declares as an INPUTS image: baseColorArray0 is bucket 0 of the shared
+// pool, materialArray0 (shader board P32).
+constexpr const char* kFsAliasArr = R"__(/*{
+  "DESCRIPTION": "bucket-array probe through the deprecated per-channel alias baseColorArray0.",
+  "CREDIT": "test",
+  "ISFVSN": "2.0",
+  "MODE": "RAW_RASTER_PIPELINE",
+  "CATEGORIES": ["TEST-SYNTHETIC", "TEST-SCENE"],
+  "VERTEX_INPUTS": [ { "TYPE": "vec4", "NAME": "position" } ],
+  "VERTEX_OUTPUTS": [ { "TYPE": "vec2", "NAME": "v_uv" } ],
+  "FRAGMENT_INPUTS": [ { "TYPE": "vec2", "NAME": "v_uv" } ],
+  "FRAGMENT_OUTPUTS": [ { "TYPE": "vec4", "NAME": "isf_FragColor" } ],
+  "INPUTS": [ { "NAME": "baseColorArray0", "TYPE": "image", "IS_ARRAY": true } ]
+}*/
+void main()
+{
+    isf_FragColor = vec4(texture(baseColorArray0, vec3(v_uv, 0.0)).rgb, 1.0);
+}
+)__";
+
 // Same bucket, read from the last mip level only. Level 0 is the only level
 // ever uploaded, so this colour exists only if generateMips derived it from
 // a level 0 that was already written. An AUXILIARY texture is sampled through
@@ -1160,6 +1181,33 @@ TEST_CASE(
   // blue (or garbage / a validation abort) here.
   CHECK(near(r.mid2, kYellow, kTol));
   CHECK(r.framesDiffer);
+}
+
+// =============================================================================
+// A saved document's shader that names the pool through a per-channel alias
+// (baseColorArray<k>) samples the same bucket as materialArray<k>, and
+// follows its reallocation.
+TEST_CASE(
+    "a per-channel texture pool alias samples the shared bucket",
+    "[gfx][scene][material][texture-array][P32]")
+{
+  const auto api = GENERATE(from_range(platform_backends()));
+  CAPTURE(backend_name(api));
+
+  const auto r = run_static_phases(
+      api, kFsAliasArr, {makeStaticMaterial(QColor(0, 0, 255, 255), 0xC1)},
+      {makeStaticMaterial(QColor(255, 255, 0, 255), 0xC2),
+       makeStaticMaterial(QColor(255, 0, 255, 255), 0xC3)});
+  if(r.skipped)
+    SKIP(r.backend + ": " + r.skip_reason);
+
+  INFO("backend=" << r.backend << " error=" << r.error);
+  REQUIRE(r.error.empty());
+  REQUIRE(r.valid1);
+  REQUIRE(r.valid2);
+  INFO("phase1 mid=" << rgba(r.mid1) << " phase2 mid=" << rgba(r.mid2));
+  CHECK(near(r.mid1, kBlue, kTol));
+  CHECK(near(r.mid2, kYellow, kTol));
 }
 
 // =============================================================================

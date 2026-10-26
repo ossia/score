@@ -1301,10 +1301,10 @@ TEST_CASE(
   CHECK(left[0] < 32);
 }
 
-// The Scene Preprocessor publishes its texture pool as materialArray<k> /
-// materialDyn<s> only (P32): the per-channel aliases baseColorArray<k>,
-// metalRoughDyn<s>, ... are gone, so a saved shader that declares one samples
-// an empty texture. That is said, once, naming the input and its replacement.
+// The Scene Preprocessor's texture pool is materialArray<k> / materialDyn<s>
+// (P32). The per-channel aliases baseColorArray<k>, metalRoughDyn<s>, ...
+// that saved shaders declare still name the same textures, and are said to
+// be deprecated, once, naming the input and its replacement.
 namespace
 {
 QStringList g_p32Warnings;
@@ -1316,7 +1316,7 @@ void captureP32(QtMsgType type, const QMessageLogContext&, const QString& msg)
 }
 
 TEST_CASE(
-    "a shader input named like a removed scene texture alias is warned about",
+    "a shader input naming a deprecated scene texture alias is warned about",
     "[gfx][scene][P32]")
 {
   const auto api = GENERATE(from_range(platform_backends()));

@@ -234,9 +234,9 @@ private:
     // The geometry texture last written into the slot, null when the slot is
     // the port's own.
     QRhiTexture* applied{};
-    // Named like one of the Scene Preprocessor's removed per-channel texture
-    // aliases (P32), and said so once.
-    bool removedAliasWarned{};
+    // Named like one of the Scene Preprocessor's deprecated per-channel
+    // texture aliases (P32), and said so once.
+    bool aliasWarned{};
   };
   std::vector<AuxTextureBinding> m_auxTextureBindings;
 

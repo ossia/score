@@ -197,6 +197,39 @@ channelRef(MaterialChannel ch, const ossia::material_component& m) noexcept
   }
 }
 
+// Shader-visible name for each channel — matches the INPUT entries consuming
+// shaders declare (sampler2DArray baseColorArray; etc). Names follow the
+// existing classic_pbr_textured convention (camelCase) so the aux-texture
+// auto-resolve path slots in without shader edits.
+inline const char* channelName(MaterialChannel ch) noexcept
+{
+  switch(ch)
+  {
+    case ChannelBaseColor:  return "baseColorArray";
+    case ChannelMetalRough: return "metalRoughArray";
+    case ChannelNormal:     return "normalArray";
+    case ChannelEmissive:   return "emissiveArray";
+    case ChannelOcclusion:  return "occlusionArray";
+    default:                return "";
+  }
+}
+
+// Dynamic-slot aux-texture name base. The full name is
+// `<base><slot_index>` (e.g., "baseColorDyn0"), matching the uniform
+// names consumer shaders declare for the dynamic branch.
+inline const char* channelDynBaseName(MaterialChannel ch) noexcept
+{
+  switch(ch)
+  {
+    case ChannelBaseColor:  return "baseColorDyn";
+    case ChannelMetalRough: return "metalRoughDyn";
+    case ChannelNormal:     return "normalDyn";
+    case ChannelEmissive:   return "emissiveDyn";
+    case ChannelOcclusion:  return "occlusionDyn";
+    default:                return "";
+  }
+}
+
 // The dynamic-slot cap is GpuResourceRegistry::kMaxDynamicSlots; that value
 // is what resolveDynamicSlot gates on, so no local copy is kept here.
 
@@ -4676,6 +4709,40 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
               {.name = std::string(GpuResourceRegistry::kSharedDynName)
                        + std::to_string(s),
                .native_handle = tex});
+        }
+      }
+
+      // Deprecated per-channel aliases onto the same buckets (P32), for
+      // shaders that name baseColorArray<k> / metalRoughDyn<s> and friends as
+      // INPUTS images: those are real ports, so renaming them would shift the
+      // inlet indices a saved document resolves its cables against.
+      //
+      // The aliasing is exact: a ref's bucket field indexes the shared pool,
+      // and such a shader switches on that field before sampling its
+      // <channel>Array<k>. A shader declaring fewer rungs than the pool holds
+      // falls through to its own fallback for the high buckets. Unreferenced
+      // names cost a vector entry here and nothing in the SRB.
+      for(int i = 0; i < ChannelCount; ++i)
+      {
+        const auto ch = static_cast<MaterialChannel>(i);
+        for(std::size_t bi = 0; bi < pool.buckets.size(); ++bi)
+        {
+          auto* tex = pool.buckets[bi].array;
+          if(!tex)
+            continue;
+          g.auxiliary_textures.push_back(
+              {.name = std::string(channelName(ch)) + std::to_string((int)bi),
+               .native_handle = tex,
+               .sampler_handle = static_cast<void*>(pool.buckets[bi].sampler)});
+        }
+        for(int s = 0; s < (int)dyn.size(); ++s)
+        {
+          if(auto* tex = dyn[s])
+          {
+            g.auxiliary_textures.push_back(
+                {.name = std::string(channelDynBaseName(ch)) + std::to_string(s),
+                 .native_handle = tex});
+          }
         }
       }
     }
