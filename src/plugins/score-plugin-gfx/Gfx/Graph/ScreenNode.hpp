@@ -64,6 +64,8 @@ struct SCORE_PLUGIN_GFX_EXPORT ScreenNode : OutputNode
   std::function<void(QPointF)> onWindowMove;
   std::function<void(QPointF, QPointF)> onMouseMove;
   std::function<void(QTabletEvent*)> onTabletMove;
+  //! The window's pointerState() changed (mouse or touch).
+  std::function<void()> onPointersChanged;
   std::function<void(int, const QString&)> onKey;
   std::function<void(int, const QString&)> onKeyRelease;
   std::function<void(float)> onFps;

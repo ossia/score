@@ -344,18 +344,38 @@ void WindowDevice::grabFrame(int frames, const QString& path) const
 
 void WindowDevice::setPointer(int slot, double x, double y, double pressure) const
 {
-  score::gfx::OutputNode* out{};
-  if(auto dev = dynamic_cast<offscreen_device*>(m_dev.get()))
-    out = dev->node();
-  else
-    out = screenNode();
-  if(!out)
+  // Through the addresses, as any other writer: touch/points, and for slot 0,
+  // the mouse, cursor/clip and cursor/gl.
+  if(!m_dev || slot < 0 || slot >= score::gfx::PointerState::slots)
   {
-    qWarning() << "setPointer: no output yet";
+    qWarning() << "setPointer: no device, or no slot" << slot;
     return;
   }
-  out->pointerState()->move(slot, float(x), float(y));
-  out->pointerState()->press(slot, float(pressure));
+  auto& root = m_dev->get_root_node();
+  auto* points_node = ossia::net::find_node(root, "/touch/points");
+  auto* points = points_node ? points_node->get_parameter() : nullptr;
+  if(!points)
+  {
+    qWarning() << "setPointer: this output has no touch/points";
+    return;
+  }
+  ossia::value cur = points->value();
+  std::vector<ossia::value> list;
+  if(auto* l = cur.target<std::vector<ossia::value>>())
+    list = *l;
+  list.resize(score::gfx::PointerState::slots, ossia::vec3f{0.f, 0.f, 0.f});
+  list[slot] = ossia::vec3f{float(x), float(y), float(pressure)};
+  points->push_value(std::move(list));
+
+  if(slot == 0)
+  {
+    if(auto* n = ossia::net::find_node(root, "/cursor/clip"))
+      if(auto* p = n->get_parameter())
+        p->push_value(ossia::vec2f{float(x), float(y)});
+    if(auto* n = ossia::net::find_node(root, "/cursor/gl"))
+      if(auto* p = n->get_parameter())
+        p->push_value(ossia::vec2f{float(x * 0.5 + 0.5), float(y * 0.5 + 0.5)});
+  }
 }
 
 bool WindowDevice::reconnect()

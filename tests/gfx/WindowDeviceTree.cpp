@@ -26,6 +26,7 @@
 #include <ossia/network/base/parameter.hpp>
 
 #include <QKeyEvent>
+#include <QMouseEvent>
 
 #include <catch2/catch_approx.hpp>
 #include <catch2/catch_test_macros.hpp>
@@ -102,6 +103,9 @@ TEST_CASE("Window device parameter tree", "[gfx][window][device]")
   std::string keyText;
   int releaseCode{-1};
   ossia::vec2f posParamAfterMove{};
+  ossia::vec2f clipAfterMove{9.f, 9.f}, glAfterMove{9.f, 9.f};
+  std::vector<ossia::value> pointsAfterMove, pointsAfterPress, pointsAfterRelease;
+  bool historyIsTexture{};
 
   run_in_gui_app([&](const score::GUIApplicationContext& ctx) {
     if(!can_present())
@@ -132,7 +136,8 @@ TEST_CASE("Window device parameter tree", "[gfx][window][device]")
     // The published address surface.
     for(const char* p :
         {"/screen", "/position", "/size", "/rendersize", "/fullscreen", "/fps",
-         "/cursor/scaled", "/cursor/gl", "/cursor/absolute", "/cursor/visible",
+         "/cursor/scaled", "/cursor/gl", "/cursor/clip", "/cursor/absolute",
+         "/cursor/visible", "/touch/points", "/touch/history",
          "/tablet/scaled", "/tablet/absolute", "/tablet/z", "/tablet/pressure",
          "/tablet/tangential", "/tablet/rotation", "/tablet/tilt_x", "/tablet/tilt_y",
          "/key/press/code", "/key/press/text", "/key/release/code",
@@ -201,6 +206,56 @@ TEST_CASE("Window device parameter tree", "[gfx][window][device]")
         releaseCode = *v;
     }
 
+    // The pointer, as vertexshaderart reads it (main.js recordMouseMove /
+    // recordMouseDown / recordMouseUp): a quarter of the way right and down
+    // is (-0.5, 0.5) in clip space, y up; the button is pressure 1 on slot 0.
+    {
+      const QSizeF sz = screen->size();
+      const QPointF at{sz.width() / 4., sz.height() / 4.};
+      auto points = [&] {
+        std::vector<ossia::value> r;
+        if(auto* p = param(*d, "/touch/points"))
+        {
+          const ossia::value v = p->value();
+          if(auto* l = v.target<std::vector<ossia::value>>())
+            r = *l;
+        }
+        return r;
+      };
+      QMouseEvent move{
+          QEvent::MouseMove, at, screen->mapToGlobal(at), Qt::NoButton, Qt::NoButton,
+          Qt::NoModifier};
+      QCoreApplication::sendEvent(screen, &move);
+      pump_for(120);
+      if(auto* p = param(*d, "/cursor/clip"))
+      {
+        const ossia::value cur = p->value();
+        if(auto* v = cur.target<ossia::vec2f>())
+          clipAfterMove = *v;
+      }
+      if(auto* p = param(*d, "/cursor/gl"))
+      {
+        const ossia::value cur = p->value();
+        if(auto* v = cur.target<ossia::vec2f>())
+          glAfterMove = *v;
+      }
+      pointsAfterMove = points();
+      QMouseEvent press{
+          QEvent::MouseButtonPress, at, screen->mapToGlobal(at), Qt::LeftButton,
+          Qt::LeftButton, Qt::NoModifier};
+      QCoreApplication::sendEvent(screen, &press);
+      pump_for(120);
+      pointsAfterPress = points();
+      QMouseEvent release{
+          QEvent::MouseButtonRelease, at, screen->mapToGlobal(at), Qt::LeftButton,
+          Qt::NoButton, Qt::NoModifier};
+      QCoreApplication::sendEvent(screen, &release);
+      pump_for(120);
+      pointsAfterRelease = points();
+      if(auto* p = param(*d, "/touch/history"))
+        historyIsTexture = p->get_type() == ossia::parameter_type::TEXTURE;
+    }
+
     dev.disconnect();
     pump_for(120);
   });
@@ -209,6 +264,25 @@ TEST_CASE("Window device parameter tree", "[gfx][window][device]")
     SKIP(o.skipReason);
 
   REQUIRE(connected);
+  CHECK(clipAfterMove[0] == Approx(-0.5f).margin(0.02f));
+  CHECK(clipAfterMove[1] == Approx(0.5f).margin(0.02f));
+  CHECK(glAfterMove[0] == Approx(0.25f).margin(0.01f));
+  CHECK(glAfterMove[1] == Approx(0.75f).margin(0.01f));
+  auto slot0 = [](const std::vector<ossia::value>& pts) {
+    ossia::vec3f r{9.f, 9.f, 9.f};
+    if(!pts.empty())
+      if(auto* v = pts[0].target<ossia::vec3f>())
+        r = *v;
+    return r;
+  };
+  CHECK(pointsAfterMove.size() == 32);
+  CHECK(slot0(pointsAfterMove)[0] == Approx(-0.5f).margin(0.02f));
+  CHECK(slot0(pointsAfterMove)[1] == Approx(0.5f).margin(0.02f));
+  CHECK(slot0(pointsAfterMove)[2] == Approx(0.f));
+  CHECK(slot0(pointsAfterPress)[2] == Approx(1.f));
+  CHECK(slot0(pointsAfterRelease)[0] == Approx(-0.5f).margin(0.02f));
+  CHECK(slot0(pointsAfterRelease)[2] == Approx(0.f));
+  CHECK(historyIsTexture);
   INFO("missing addresses: " << missing.size());
   for(auto& m : missing)
     UNSCOPED_INFO("  missing " << m);

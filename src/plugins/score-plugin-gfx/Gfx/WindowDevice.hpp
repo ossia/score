@@ -102,9 +102,9 @@ public:
 
   //! Set pointer @p slot over this output, as the window's mouse and touch
   //! events do: @p x, @p y in clip space ([-1, 1], y up), @p pressure 0 when
-  //! released. Slot 0 is the mouse; it is what vertexshaderart's `touch`
-  //! history records (SimpleRenderedVSANode), so that a script can play a
-  //! gesture into a grab.
+  //! released. Writes the device's touch/points (what touch/history records)
+  //! and, for slot 0, the mouse, cursor/clip and cursor/gl, so that a script
+  //! can play a gesture into a grab (Window/PointerAddresses.hpp).
   void setPointer(int slot, double x, double y, double pressure) const;
   W_SLOT(setPointer)
 

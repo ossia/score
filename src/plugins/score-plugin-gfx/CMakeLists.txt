@@ -220,6 +220,7 @@ set(HDRS
     Gfx/Graph/NodeRenderer.hpp
     Gfx/Graph/OutputNode.hpp
     Gfx/Graph/PointerState.hpp
+    Gfx/Graph/TouchHistoryNode.hpp
     Gfx/Graph/RenderClock.hpp
     Gfx/Graph/DMACaptureInputNode.hpp
     Gfx/Graph/DirectVideoOutputBackend.hpp
@@ -414,6 +415,7 @@ set(HDRS
     Gfx/Window/DesktopLayout.hpp
     Gfx/Window/MultiWindowDevice.hpp
     Gfx/Window/OffscreenDevice.hpp
+    Gfx/Window/PointerAddresses.hpp
     Gfx/Window/OutputMapping.hpp
     Gfx/Window/OutputPreview.hpp
     Gfx/Window/TestCard.hpp

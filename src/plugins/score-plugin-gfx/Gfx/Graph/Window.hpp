@@ -58,9 +58,12 @@ public:
   //! here or it only ever runs on the timer-driven path.
   std::function<void()> onAboutToRender;
 
-  //! Filled from the mouse and touch events over the window, for the
-  //! vertexshaderart `touch` history of the output showing it.
+  //! Filled from the mouse and touch events over the window: slot 0 the
+  //! mouse or first finger, in clip space (PointerState). The window device
+  //! publishes it as its `touch/points` address.
   std::shared_ptr<PointerState> pointerState;
+  //! Called on the GUI thread after each change of pointerState.
+  std::function<void()> onPointersChanged;
   std::function<void(QRhiCommandBuffer&)> onRender;
   std::function<void()> onResize;
   // Invoked when the window is closing or its platform surface is being

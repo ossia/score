@@ -39,11 +39,6 @@ private:
 
   std::vector<Sampler> allSamplers() const noexcept;
 
-  void initTouchHistory(RenderList& renderer, QRhiResourceUpdateBatch& res);
-  void updateTouchHistory(RenderList& renderer, QRhiResourceUpdateBatch& res);
-  void uploadTouchHistory(RenderList& renderer, QRhiResourceUpdateBatch& res);
-  void bindTouchSource(RenderList& renderer);
-
   struct PassData
   {
     Edge* edge;
@@ -83,20 +78,5 @@ private:
 
   int m_prevFormat{};
   int64_t m_frameIndexFrame{-1};
-
-  // vertexshaderart's `touch` history (greggman/vertexshaderart, main.js):
-  // 32 columns, one per pointer, 240 rows of (x, y, pressure, time), the
-  // newest in row 0. Bound to the `touch` image input while nothing is cabled
-  // into it. m_touchRows is newest first.
-  static constexpr int touchColumns = 32;
-  static constexpr int touchRows = 240;
-  const Port* m_touchPort{};
-  int m_touchPortIndex{-1};
-  int m_touchSampler{-1};
-  QRhiTexture* m_touchTex{};
-  bool m_touchHalf{};
-  bool m_touchBound{};
-  std::vector<float> m_touchHistory;
-  int64_t m_touchFrame{-1};
 };
 }

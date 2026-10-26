@@ -172,9 +172,10 @@ public:
   void handleDeviceLost(const char* output) noexcept;
 
   /**
-   * @brief The mouse and touch points over this output, for the
-   *        vertexshaderart `touch` history. A window output fills it from its
-   *        events; it stays at rest on the others unless set by hand.
+   * @brief The mouse and touch points over this output, decoded from the
+   *        window's events into vertexshaderart's slots (PointerState). The
+   *        window device publishes them as its `touch/points` address; nothing
+   *        reads them here.
    */
   const std::shared_ptr<PointerState>& pointerState() const noexcept
   {

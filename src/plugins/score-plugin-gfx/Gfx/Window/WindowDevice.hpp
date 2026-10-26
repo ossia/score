@@ -4,6 +4,7 @@
 #include <Gfx/Graph/ScreenNode.hpp>
 #include <Gfx/Graph/Window.hpp>
 #include <Gfx/Settings/Model.hpp>
+#include <Gfx/Window/PointerAddresses.hpp>
 
 #include <core/application/ApplicationSettings.hpp>
 #include <score/application/ApplicationContext.hpp>
@@ -59,6 +60,7 @@ class window_device : public ossia::net::device_base
   ossia::net::parameter_base* abs_tablet_win{};
   ossia::net::parameter_base* size_param{};
   ossia::net::parameter_base* rendersize_param{};
+  pointer_addresses m_pointers;
 
   void update_viewport()
   {
@@ -114,6 +116,7 @@ public:
     m_screen->onWindowMove = [](QPointF) { };
     m_screen->onMouseMove = [](QPointF, QPointF) { };
     m_screen->onTabletMove = [](QTabletEvent*) { };
+    m_screen->onPointersChanged = [] { };
     m_screen->onKey = [](int, const QString&) { };
     m_screen->onKeyRelease = [](int, const QString&) { };
     m_screen->onFps = [](float) { };
@@ -217,7 +220,7 @@ public:
         node->add_child(std::move(scale_node));
       }
       {
-        // Same as scaled but with y down like opengl
+        // Same as scaled but with y up, as OpenGL's texture coordinates
         auto scale_node = std::make_unique<ossia::net::generic_node>("gl", *this, *node);
         gl_win = scale_node->create_parameter(ossia::val_type::VEC2F);
         gl_win->set_domain(ossia::make_domain(0.f, 1.f));
@@ -233,6 +236,7 @@ public:
         abs_win->push_value(ossia::vec2f{0.f, 0.f});
         node->add_child(std::move(abs_node));
       }
+      m_pointers.add_clip(*this, *node);
       {
         auto visible
             = std::make_unique<ossia::net::generic_node>("visible", *this, *node);
@@ -257,12 +261,22 @@ public:
           gl_win->push_value(
               ossia::vec2f{
                   float(win.x() / sz.width()), 1.f - float(win.y() / sz.height())});
+          const auto clip = score::gfx::PointerState::toClip(win, sz);
+          m_pointers.set_clip(float(clip.x()), float(clip.y()));
           abs_win->push_value(ossia::vec2f{float(win.x()), float(win.y())});
         }
       };
 
       m_root.add_child(std::move(node));
     }
+
+    // Touch input: touch/points, touch/history
+    m_pointers.add_touch(
+        *this, m_root, static_cast<gfx_protocol_base*>(m_protocol.get())->context);
+    m_screen->onPointersChanged = [this] {
+      if(const auto& st = m_screen->pointerState())
+        m_pointers.publish(*st);
+    };
 
     // Tablet input
     ossia::net::parameter_base* scaled_tablet_win{};

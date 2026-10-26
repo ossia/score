@@ -608,6 +608,8 @@ bool Window::event(QEvent* e)
         const auto p = PointerState::toClip(ev->scenePosition(), size());
         pointerState->move(0, p.x(), p.y());
         pointerState->press(0, e->type() == QEvent::MouseButtonPress ? 1.f : 0.f);
+        if(onPointersChanged)
+          onPointersChanged();
       }
       e->setAccepted(false);
       this->interactiveEvent(e);
@@ -621,6 +623,8 @@ bool Window::event(QEvent* e)
       {
         const auto p = PointerState::toClip(ev->scenePosition(), size());
         pointerState->move(0, p.x(), p.y());
+        if(onPointersChanged)
+          onPointersChanged();
       }
       this->mouseMove(ev->globalPosition(), ev->scenePosition());
       e->setAccepted(false);
@@ -652,6 +656,8 @@ bool Window::event(QEvent* e)
           const float force = pt.pressure();
           pointerState->press(slot, force > 0.f ? force : 1.f);
         }
+        if(onPointersChanged)
+          onPointersChanged();
       }
       break;
 

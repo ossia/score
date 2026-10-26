@@ -8,18 +8,32 @@
 // (CPUHistoryTexture: upload, then copyWithin one row down; HistoryTexture: the
 // previous rows drawn one row up, the new one into row 0).
 //
+// In score that history is a texture source, TouchHistoryNode, which the
+// window devices publish as the address `touch/history` (fed from their
+// `touch/points`); an image input named `touch` is bound to it by default,
+// with a 32x240 RGBA32F NEAREST target, in every shader format
+// (ISFProcess.hpp). Nothing is implicit: a `touch` input bound or cabled to
+// nothing reads nothing.
+//
 // Pinned here, on every backend:
-// - an unconnected `touch` is that history, fed from the output's pointers;
-//   texture / textureLod / texelFetch read row 0 as the newest and row 5 as
-//   five frames ago, v = 1 as the oldest (still at rest), column 1 the second
-//   finger, w the frame's time, size 32x240; a v on the edge between two rows
-//   reads the upper one, as OpenGL's nearest filtering does (VSA art often
-//   indexes rows as n / 240);
+// - the history read by a VSA through that target: texture / textureLod /
+//   texelFetch read row 0 as the newest and row 5 as five frames ago, v = 1 as
+//   the oldest (still at rest), column 1 the second finger, w a time that grows
+//   with the rows, size 32x240; a v on the edge between two rows reads the
+//   upper one, as OpenGL's nearest filtering does (VSA art often indexes rows
+//   as n / 240);
+// - the same history read by an ISF gives the same samples: v = 0 is the
+//   newest in both formats. The ISF reads it with IMG_NORM_PIXEL_PREMULTIPLIED
+//   / IMG_PIXEL_PREMULTIPLIED, the raw reads: IMG_NORM_PIXEL returns straight
+//   colour, dividing by alpha, which holds the time here;
+// - a VSA `touch` with nothing connected samples the empty placeholder, not a
+//   history;
 // - a texture cabled into `touch` instead reads with v = 0 at the bottom of the
 //   image, as IMG_NORM_PIXEL does, on every backend.
 #include "IsfTestCommon.hpp"
 
 #include <Gfx/Graph/BackgroundNode.hpp>
+#include <Gfx/Graph/TouchHistoryNode.hpp>
 
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/generators/catch_generators.hpp>
@@ -64,6 +78,34 @@ std::string str(const Rgb& c)
          + std::to_string(c[2]) + ")";
 }
 
+// What the default binding of a `touch` input asks for (ISFProcess.hpp).
+ossia::render_target_spec historyTarget()
+{
+  ossia::render_target_spec spec;
+  spec.size = ossia::texture_size{32, 240};
+  spec.format = ossia::texture_format::RGBA32F;
+  spec.format_set = true;
+  spec.mag_filter = spec.min_filter = ossia::texture_filter::NEAREST;
+  spec.address_u = spec.address_v = spec.address_w
+      = ossia::texture_address_mode::CLAMP_TO_EDGE;
+  return spec;
+}
+
+// Ten frames at A, pressed, then five at B, released, with a second finger at
+// C: rows 0-4 are B, row 5 is A, row 239 was never written.
+template <typename Render>
+void playGesture(score::gfx::PointerState& pointer, Render render)
+{
+  pointer.move(0, -0.5f, 0.5f);
+  pointer.press(0, 1.f);
+  render(10);
+  pointer.move(0, 0.25f, -0.75f);
+  pointer.press(0, 0.f);
+  pointer.move(1, 0.75f, 0.f);
+  pointer.press(1, 0.5f);
+  render(5);
+}
+
 struct Shot
 {
   bool skipped{};
@@ -80,14 +122,18 @@ TEST_CASE("VSA touch: the history reads as on vertexshaderart", "[gfx][vsa][touc
   Shot out;
   score::test::run_in_gui_app([&](const score::GUIApplicationContext&) {
     GfxPipeline p;
+    auto pointers = std::make_shared<score::gfx::PointerState>();
+    const int history = p.addNode(std::make_unique<score::gfx::TouchHistoryNode>(pointers));
     const int vsa = p.addVsa(corpus("vsa-touch-probe.vs"));
-    if(vsa < 0)
+    if(vsa < 0 || history < 0)
     {
       out.error = p.error();
       return;
     }
     const int sink = p.addSink({72, 16});
+    p.wire(p.nodeImageOut(history, 0), p.imageIn(vsa, 0));
     p.wire(p.imageOut(vsa, 0), p.sinkInput(sink));
+    setRenderTargetSpec(*p.isf(vsa), first_image_input(*p.isf(vsa)), historyTarget());
     if(!p.create(api))
     {
       out.skipped = p.skipped();
@@ -97,18 +143,7 @@ TEST_CASE("VSA touch: the history reads as on vertexshaderart", "[gfx][vsa][touc
       return;
     }
     out.backend = p.backend();
-
-    auto& pointer = *p.sink(sink)->pointerState();
-    // Ten frames at A, pressed, then five at B, released, with a second
-    // finger at C: rows 0-4 are B, row 5 is A, row 239 was never written.
-    pointer.move(0, -0.5f, 0.5f);
-    pointer.press(0, 1.f);
-    p.render(10);
-    pointer.move(0, 0.25f, -0.75f);
-    pointer.press(0, 0.f);
-    pointer.move(1, 0.75f, 0.f);
-    pointer.press(1, 0.5f);
-    p.render(5);
+    playGesture(*pointers, [&](int n) { p.render(n); });
     out.img = p.readback(sink);
   });
 
@@ -134,7 +169,7 @@ TEST_CASE("VSA touch: the history reads as on vertexshaderart", "[gfx][vsa][touc
       {"textureLod(row 5)", A},
       {"texelFetch(row 5)", A},
       {"texture(column 1, v = 0): second finger", C},
-      {"w: row 0 later than row 5, row 0 = this frame's time, 32x240", {255, 255, 255}},
+      {"w: row 0 later than row 5, row 0 positive, 32x240", {255, 255, 255}},
       {"texture(v = 5 / 240): on the edge of rows 4 and 5, nearest takes row 5", A},
   };
   for(int b = 0; b < 9; b++)
@@ -144,6 +179,115 @@ TEST_CASE("VSA touch: the history reads as on vertexshaderart", "[gfx][vsa][touc
                  << str(bands[b].expected));
     CHECK(near(got, bands[b].expected));
   }
+}
+
+TEST_CASE("ISF touch: the same history reads the same in an ISF", "[gfx][isf][touch]")
+{
+  const auto api = GENERATE(from_range(platform_backends()));
+  CAPTURE(backend_name(api));
+
+  Shot out;
+  score::test::run_in_gui_app([&](const score::GUIApplicationContext&) {
+    GfxPipeline p;
+    auto pointers = std::make_shared<score::gfx::PointerState>();
+    const int history = p.addNode(std::make_unique<score::gfx::TouchHistoryNode>(pointers));
+    const int isf = p.addIsf(corpus("isf-touch-probe.fs"));
+    if(isf < 0 || history < 0)
+    {
+      out.error = p.error();
+      return;
+    }
+    const int sink = p.addSink({64, 16});
+    p.wire(p.nodeImageOut(history, 0), p.imageIn(isf, 0));
+    p.wire(p.imageOut(isf, 0), p.sinkInput(sink));
+    setRenderTargetSpec(*p.isf(isf), first_image_input(*p.isf(isf)), historyTarget());
+    if(!p.create(api))
+    {
+      out.skipped = p.skipped();
+      out.skip_reason = p.skipReason();
+      out.backend = p.backend();
+      out.error = out.skipped ? std::string{} : p.error();
+      return;
+    }
+    out.backend = p.backend();
+    playGesture(*pointers, [&](int n) { p.render(n); });
+    out.img = p.readback(sink);
+  });
+
+  if(out.skipped)
+    SKIP(out.backend + ": " + out.skip_reason);
+  INFO("backend=" << out.backend << " error=" << out.error);
+  REQUIRE(out.error.empty());
+  REQUIRE(out.img.valid());
+
+  const Rgb A = shown(-0.5f, 0.5f, 1.f);
+  const Rgb B = shown(0.25f, -0.75f, 0.f);
+  const Rgb C = shown(0.75f, 0.f, 0.5f);
+  const struct
+  {
+    const char* what;
+    Rgb expected;
+  } bands[] = {
+      {"IMG_NORM_PIXEL_PREMULTIPLIED(v = 0): newest", B},
+      {"IMG_NORM_PIXEL_PREMULTIPLIED(row 5)", A},
+      {"IMG_PIXEL_PREMULTIPLIED(row 5)", A},
+      {"IMG_NORM_PIXEL_PREMULTIPLIED(column 1, v = 0): second finger", C},
+  };
+  for(int b = 0; b < 4; b++)
+  {
+    const Rgb got = bandColor(out.img, b, 4);
+    INFO("band " << b << " " << bands[b].what << ": got " << str(got) << ", expected "
+                 << str(bands[b].expected));
+    CHECK(near(got, bands[b].expected));
+  }
+}
+
+TEST_CASE("VSA touch: nothing connected is no history", "[gfx][vsa][touch]")
+{
+  const auto api = GENERATE(from_range(platform_backends()));
+  CAPTURE(backend_name(api));
+
+  Shot out;
+  score::test::run_in_gui_app([&](const score::GUIApplicationContext&) {
+    GfxPipeline p;
+    const int vsa = p.addVsa(corpus("vsa-touch-probe.vs"));
+    if(vsa < 0)
+    {
+      out.error = p.error();
+      return;
+    }
+    const int sink = p.addSink({72, 16});
+    p.wire(p.imageOut(vsa, 0), p.sinkInput(sink));
+    if(!p.create(api))
+    {
+      out.skipped = p.skipped();
+      out.skip_reason = p.skipReason();
+      out.backend = p.backend();
+      out.error = out.skipped ? std::string{} : p.error();
+      return;
+    }
+    out.backend = p.backend();
+    p.render(10);
+    out.img = p.readback(sink);
+  });
+
+  if(out.skipped)
+    SKIP(out.backend + ": " + out.skip_reason);
+  INFO("backend=" << out.backend << " error=" << out.error);
+  REQUIRE(out.error.empty());
+  REQUIRE(out.img.valid());
+
+  // Every read is the empty placeholder's (0, 0, 0, 0), and it is not 32x240.
+  const Rgb zero = shown(0.f, 0.f, 0.f);
+  for(int b : {0, 2, 5, 6})
+  {
+    const Rgb got = bandColor(out.img, b, 9);
+    INFO("band " << b << ": got " << str(got) << ", expected " << str(zero));
+    CHECK(near(got, zero));
+  }
+  const Rgb w = bandColor(out.img, 7, 9);
+  INFO("band 7 (time / size): got " << str(w));
+  CHECK(near(w, {0, 0, 0}));
 }
 
 TEST_CASE(

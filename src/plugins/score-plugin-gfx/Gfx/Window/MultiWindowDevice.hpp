@@ -46,6 +46,7 @@ class multiwindow_device : public ossia::net::device_base
   {
     ossia::net::parameter_base* scaled_cursor{};
     ossia::net::parameter_base* gl_cursor{};
+    ossia::net::parameter_base* clip_cursor{};
     ossia::net::parameter_base* abs_cursor{};
     ossia::net::parameter_base* size_param{};
     ossia::net::parameter_base* pos_param{};
@@ -165,6 +166,15 @@ public:
           pw.gl_cursor->set_domain(ossia::make_domain(0.f, 1.f));
           pw.gl_cursor->push_value(ossia::vec2f{0.f, 0.f});
           cursor_node->add_child(std::move(scale_node));
+        }
+        {
+          // Clip space, [-1, 1], y up: vertexshaderart's mouse.
+          auto clip_node
+              = std::make_unique<ossia::net::generic_node>("clip", *this, *cursor_node);
+          pw.clip_cursor = clip_node->create_parameter(ossia::val_type::VEC2F);
+          pw.clip_cursor->set_domain(ossia::make_domain(-1.f, 1.f));
+          pw.clip_cursor->push_value(ossia::vec2f{0.f, 0.f});
+          cursor_node->add_child(std::move(clip_node));
         }
         {
           auto abs_node = std::make_unique<ossia::net::generic_node>(
@@ -539,6 +549,10 @@ public:
           pw.gl_cursor->push_value(
               ossia::vec2f{
                   float(win.x() / sz.width()), 1.f - float(win.y() / sz.height())});
+          pw.clip_cursor->push_value(
+              ossia::vec2f{
+                  float(win.x() / sz.width()) * 2.f - 1.f,
+                  float(win.y() / sz.height()) * -2.f + 1.f});
           pw.abs_cursor->push_value(ossia::vec2f{float(win.x()), float(win.y())});
         }
       }));

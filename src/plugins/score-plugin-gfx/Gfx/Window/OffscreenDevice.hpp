@@ -2,6 +2,7 @@
 
 #include <Gfx/GfxParameter.hpp>
 #include <Gfx/Graph/BackgroundNode.hpp>
+#include <Gfx/Window/PointerAddresses.hpp>
 
 #include <ossia/network/base/device.hpp>
 #include <ossia/network/base/protocol.hpp>
@@ -15,9 +16,11 @@ namespace Gfx
 // Headless device used when SCORE_FORCE_OFFSCREEN_WINDOW selects this
 // window device by name. Wraps a BackgroundNode — which already drives
 // beginOffscreenFrame/endOffscreenFrame — without the ScenarioDocumentView
-// dependency of background_device. Exposes only the parameters required by
-// offscreen tests (size, rendersize) and holds the shared_readback used by
-// WindowDevice::grabTo to write frames to disk.
+// dependency of background_device. Exposes the parameters required by
+// offscreen tests (size, rendersize), the pointer addresses shaders bind to by
+// default (cursor/gl, cursor/clip, touch/points, touch/history; set from
+// scripts with WindowDevice::setPointer), and holds the shared_readback used
+// by WindowDevice::grabTo to write frames to disk.
 class offscreen_device : public ossia::net::device_base
 {
   // unique_ptr ownership: BackgroundNode is not a QObject child of any
@@ -31,6 +34,7 @@ class offscreen_device : public ossia::net::device_base
 
   ossia::net::parameter_base* size_param{};
   ossia::net::parameter_base* rendersize_param{};
+  pointer_addresses m_pointers;
 
 public:
   offscreen_device(std::unique_ptr<gfx_protocol_base> proto, std::string name)
@@ -74,6 +78,22 @@ public:
       });
       m_root.add_child(std::move(size_node));
     }
+
+    // No window events: the pointers move when their addresses are written.
+    {
+      auto node = std::make_unique<ossia::net::generic_node>("cursor", *this, m_root);
+      {
+        auto gl_node = std::make_unique<ossia::net::generic_node>("gl", *this, *node);
+        auto gl = gl_node->create_parameter(ossia::val_type::VEC2F);
+        gl->set_domain(ossia::make_domain(0.f, 1.f));
+        gl->push_value(ossia::vec2f{0.f, 0.f});
+        node->add_child(std::move(gl_node));
+      }
+      m_pointers.add_clip(*this, *node);
+      m_root.add_child(std::move(node));
+    }
+    m_pointers.add_touch(
+        *this, m_root, static_cast<gfx_protocol_base*>(m_protocol.get())->context);
   }
 
   ~offscreen_device()

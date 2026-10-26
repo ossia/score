@@ -24,6 +24,18 @@ namespace Gfx
 {
 struct ISFHelpers
 {
+  //! The first window device of the document holding @p self, or empty.
+  template <typename T>
+  static QString firstWindowDeviceName(T& self)
+  {
+    auto& ctx = score::IDocument::documentContext(self);
+    auto& device_plug = ctx.template plugin<Explorer::DeviceDocumentPlugin>();
+    for(auto dev : device_plug.list().devices())
+      if(auto win = qobject_cast<WindowDevice*>(dev))
+        return win->name();
+    return {};
+  }
+
   template <typename T>
   static Process::Descriptor descriptorFromISFFile(QString path)
   {
@@ -91,6 +103,8 @@ struct ISFHelpers
       // a high base so it never collides with inlet ids (input index `i`), the
       // default "Texture Out" outlet (id 1), or the MRT outlet base (10000).
       int& outlet_id;
+      //! A VERTEX_SHADER_ART shader: its `mouse` is vertexshaderart's.
+      bool vsa;
 
       Process::Inlet* operator()(const float_input& v)
       {
@@ -164,29 +178,23 @@ struct ISFHelpers
         auto port = new Process::XYSpinboxes{
             min, max, init, false, nm, Id<Process::Port>(i), &self};
 
-        auto& ctx = score::IDocument::documentContext(self);
-        auto& device_plug = ctx.template plugin<Explorer::DeviceDocumentPlugin>();
-        const Device::DeviceList& list = device_plug.list();
-        QString firstWindowDeviceName;
-        for(auto dev : list.devices())
-        {
-          if(auto win = qobject_cast<WindowDevice*>(dev))
-          {
-            firstWindowDeviceName = win->name();
-            break;
-          }
-        }
-
-        if(!firstWindowDeviceName.isEmpty())
+        // The pointer addresses of the first window device (PointerAddresses.hpp),
+        // set as any other address: shown on the inlet, changeable there.
+        // vertexshaderart's `mouse` is clip space, -1..1, y up (src/js/main.js
+        // recordMouseMove; src/index.html "mouse position normalized (-1 to
+        // 1)"); in an ISF a `mouse` is 0..1, y up, an `iMouse` (Shadertoy) in
+        // pixels.
+        if(const QString win = ISFHelpers::firstWindowDeviceName(self); !win.isEmpty())
         {
           if(nm.contains("iMouse"))
             port->setAddress(
-                State::AddressAccessor{
-                    State::Address{firstWindowDeviceName, {"cursor", "absolute"}}});
+                State::AddressAccessor{State::Address{win, {"cursor", "absolute"}}});
+          else if(vsa && nm == QStringLiteral("mouse"))
+            port->setAddress(
+                State::AddressAccessor{State::Address{win, {"cursor", "clip"}}});
           else if(nm.contains("mouse", Qt::CaseInsensitive))
             port->setAddress(
-                State::AddressAccessor{
-                    State::Address{firstWindowDeviceName, {"cursor", "gl"}}});
+                State::AddressAccessor{State::Address{win, {"cursor", "gl"}}});
         }
 
         if(auto it = previous_values.find(nm);
@@ -248,6 +256,25 @@ struct ISFHelpers
       {
         auto port = new Gfx::TextureInlet(
             QString::fromStdString(input.name), Id<Process::Port>(i), &self);
+
+        // vertexshaderart's `touch`, in any shader format: the window's touch
+        // history (PointerAddresses.hpp, TouchHistoryNode), read through a
+        // target of its own size and format, NEAREST, clamped
+        // (src/js/main.js: 32 x 240, FLOAT, NEAREST, CLAMP_TO_EDGE). All of it
+        // is set on the inlet, where it shows and can be changed.
+        if(input.name == "touch" && v.dimensions == 2 && !v.is_array && !v.is_static
+           && !v.depth)
+        {
+          if(const QString win = ISFHelpers::firstWindowDeviceName(self); !win.isEmpty())
+          {
+            port->setAddress(
+                State::AddressAccessor{State::Address{win, {"touch", "history"}}});
+            port->setRenderSize(QSize{32, 240});
+            port->setTextureFormat(ossia::texture_format::RGBA32F);
+            port->setTextureFilter(ossia::texture_filter::NEAREST);
+            port->setTextureAddressMode(ossia::texture_address_mode::CLAMP_TO_EDGE);
+          }
+        }
 
         self.m_inlets.push_back(port);
         return port;
@@ -379,7 +406,11 @@ struct ISFHelpers
 
     for(const isf::input& input : desc.inputs)
     {
-      ossia::visit(input_vis{previous_values, input, i, self, outlet_id}, input.data);
+      ossia::visit(
+          input_vis{
+              previous_values, input, i, self, outlet_id,
+              desc.mode == isf::descriptor::VSA},
+          input.data);
       i++;
     }
 

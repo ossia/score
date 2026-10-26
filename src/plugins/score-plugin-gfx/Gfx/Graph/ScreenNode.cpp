@@ -1053,6 +1053,10 @@ void ScreenNode::createOutput(score::gfx::OutputConfiguration conf)
   }
 
   m_window->pointerState = m_pointerState;
+  m_window->onPointersChanged = [this] {
+    if(onPointersChanged)
+      onPointersChanged();
+  };
   m_window->onAboutToRender = [this] { onRendererChange(); };
   m_window->onUpdate = this->m_vsyncCallback;
   m_window->onWindowReady = [this, graphicsApi=conf.graphicsApi, onReady = std::move(conf.onReady)] {

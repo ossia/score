@@ -2152,6 +2152,14 @@ if(TARGET score_plugin_gfx)
     APP
     PLUGINS score_plugin_gfx score_lib_process
     LIBS ${QT_PREFIX}::Gui)
+
+  # mouse / touch shader inputs default to the window device's pointer
+  # addresses, the same way in ISF and VSA.
+  score_add_test(test_unit_shader_pointer_binding
+    SOURCES ShaderPointerBindingTest.cpp
+    APP
+    PLUGINS score_plugin_gfx score_lib_process score_plugin_deviceexplorer
+    LIBS ${QT_PREFIX}::Gui)
 endif()
 
 # The CPU twin of the CSF attribute scatter decodes like the shader (C40).

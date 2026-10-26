@@ -5,6 +5,7 @@
 #include <Gfx/GfxApplicationPlugin.hpp>
 #include <Gfx/GfxParameter.hpp>
 #include <Gfx/Graph/BackgroundNode.hpp>
+#include <Gfx/Window/PointerAddresses.hpp>
 
 #include <score/graphics/BackgroundRenderer.hpp>
 
@@ -68,6 +69,7 @@ class background_device : public ossia::net::device_base
   ossia::net::parameter_base* abs_tablet_win{};
   ossia::net::parameter_base* size_param{};
   ossia::net::parameter_base* rendersize_param{};
+  pointer_addresses m_pointers;
   ossia::net::parameter_base* press_param{};
   ossia::net::parameter_base* text_param{};
 
@@ -208,6 +210,7 @@ public:
         abs_win->push_value(ossia::vec2f{0.f, 0.f});
         node->add_child(std::move(abs_node));
       }
+      m_pointers.add_clip(*this, *node);
 
       con.push_back(
           QObject::connect(
@@ -222,12 +225,18 @@ public:
           gl_win->push_value(
               ossia::vec2f{
                   float(win.x() / sz.width()), 1.f - float(win.y() / sz.height())});
+          const auto clip = score::gfx::PointerState::toClip(win, QSizeF(sz));
+          m_pointers.set_clip(float(clip.x()), float(clip.y()));
+          // The view sends hovers only: slot 0 moves, never pressed.
+          m_pointers.move_slot(0, float(clip.x()), float(clip.y()));
           abs_win->push_value(ossia::vec2f{float(win.x()), float(win.y())});
         }
       }, Qt::DirectConnection));
 
       m_root.add_child(std::move(node));
     }
+    m_pointers.add_touch(
+        *this, m_root, static_cast<gfx_protocol_base*>(m_protocol.get())->context);
 
     // Tablet input
     ossia::net::parameter_base* scaled_tablet_win{};
