@@ -368,7 +368,8 @@ private:
                                                  : m_model.getRate()};
     fill(m_rate, rates, m_rate->currentText().toInt() > 0 ? m_rate->currentText().toInt()
                                                           : m_model.getRate());
-    m_view.RateChanged(m_rate->currentData().toInt());
+    if(int r = m_rate->currentData().toInt(); r > 0)
+      m_view.RateChanged(r);
     updateBufferSizes();
 
     auto channels = [](QSpinBox* sb, const AlsaStream* s, bool used) {
@@ -405,8 +406,8 @@ private:
     if(sizes.empty())
       sizes = {keep};
     fill(m_bs, sizes, keep);
-    m_view.BufferSizeChanged(m_bs->currentData().toInt());
-    m_view.RateChanged(rate);
+    if(int bs = m_bs->currentData().toInt(); bs > 0)
+      m_view.BufferSizeChanged(bs);
   }
 
   void updateInfo(const AlsaStream* out, const AlsaStream* in)
@@ -520,23 +521,28 @@ void ALSAFactory::rescan()
     card.capture = probe(name.c_str(), SND_PCM_STREAM_CAPTURE);
 
     // A busy direction keeps what it offered when it was last free.
-    if(auto it = m_lastFree.find(card.raw_name); it != m_lastFree.end())
+    auto& last = m_lastFree[card.raw_name];
+    for(auto stream : {&AlsaCard::playback, &AlsaCard::capture})
     {
-      for(auto stream : {&AlsaCard::playback, &AlsaCard::capture})
+      auto& now = card.*stream;
+      auto& before = last.*stream;
+      if(!now.busy)
+        before = now;
+      else if(before.present)
       {
-        if((card.*stream).busy && (it->second.*stream).present)
-        {
-          card.*stream = it->second.*stream;
-          (card.*stream).busy = true;
-        }
+        now = before;
+        now.busy = true;
       }
     }
-    if(!card.playback.busy && !card.capture.busy)
-      m_lastFree[card.raw_name] = card;
 
     if(card.playback.present || card.capture.present)
       devices.push_back(std::move(card));
   };
+
+  snd_ctl_card_info_t* info{};
+  snd_alloca(&info, snd, ctl_card_info);
+  snd_pcm_info_t* pcm_info{};
+  snd_alloca(&pcm_info, snd, pcm_info);
 
   int idx = -1;
   while(snd.card_next(&idx) == 0 && idx >= 0)
@@ -545,8 +551,6 @@ void ALSAFactory::rescan()
     if(snd.ctl_open(&ctl, ("hw:" + std::to_string(idx)).c_str(), SND_CTL_NONBLOCK) < 0)
       continue;
 
-    snd_ctl_card_info_t* info{};
-    snd_alloca(&info, snd, ctl_card_info);
     if(snd.ctl_card_info(ctl, info) < 0)
     {
       snd.ctl_close(ctl);
@@ -555,8 +559,6 @@ void ALSAFactory::rescan()
     const QString id = snd.ctl_card_info_get_id(info);
     const QString card_name = snd.ctl_card_info_get_name(info);
 
-    snd_pcm_info_t* pcm_info{};
-    snd_alloca(&pcm_info, snd, pcm_info);
     int dev = -1;
     while(snd.ctl_pcm_next_device(ctl, &dev) == 0 && dev >= 0)
     {
