@@ -45,6 +45,9 @@ class SCORE_PLUGIN_AUDIO_EXPORT Model : public score::SettingsDelegateModel
   // Auto connect ports to system i/o (mostly relevant for jack)
   bool m_AutoConnect{true};
 
+  // Keep the process's memory resident (mlockall)
+  bool m_LockMemory{true};
+
   // Use JACK Transport
   ExternalTransport m_JackTransport{ExternalTransport::None};
 
@@ -66,6 +69,7 @@ public:
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_AUDIO_EXPORT, int, DefaultOut)
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_AUDIO_EXPORT, bool, AutoStereo)
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_AUDIO_EXPORT, bool, AutoConnect)
+  SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_AUDIO_EXPORT, bool, LockMemory)
   SCORE_SETTINGS_PARAMETER_HPP(
       SCORE_PLUGIN_AUDIO_EXPORT, Audio::Settings::ExternalTransport, JackTransport)
 };
@@ -81,6 +85,7 @@ SCORE_SETTINGS_DEFERRED_PARAMETER(Model, DefaultIn)
 SCORE_SETTINGS_DEFERRED_PARAMETER(Model, DefaultOut)
 SCORE_SETTINGS_DEFERRED_PARAMETER(Model, AutoStereo)
 SCORE_SETTINGS_DEFERRED_PARAMETER(Model, AutoConnect)
+SCORE_SETTINGS_DEFERRED_PARAMETER(Model, LockMemory)
 SCORE_SETTINGS_DEFERRED_PARAMETER(Model, JackTransport)
 }
 

@@ -41,6 +41,7 @@ SETTINGS_PARAMETER_IMPL(DefaultIn){QStringLiteral("Audio/DefaultIn"), 2};
 SETTINGS_PARAMETER_IMPL(DefaultOut){QStringLiteral("Audio/DefaultOut"), 2};
 SETTINGS_PARAMETER_IMPL(AutoStereo){QStringLiteral("Audio/AutoStereo"), true};
 SETTINGS_PARAMETER_IMPL(AutoConnect){QStringLiteral("Audio/AutoConnect"), true};
+SETTINGS_PARAMETER_IMPL(LockMemory){QStringLiteral("Audio/LockMemory"), true};
 SETTINGS_PARAMETER_IMPL(JackTransport){
     QStringLiteral("Audio/JackTransport"), ExternalTransport::None};
 
@@ -48,7 +49,7 @@ static auto list()
 {
   return std::tie(
       Rate, InputNames, OutputNames, CardIn, CardOut, BufferSize, DefaultIn, DefaultOut,
-      AutoStereo, AutoConnect, JackTransport, Driver);
+      AutoStereo, AutoConnect, LockMemory, JackTransport, Driver);
 }
 }
 
@@ -304,6 +305,7 @@ SCORE_SETTINGS_PARAMETER_CPP(QString, Model, CardOut)
 SCORE_SETTINGS_PARAMETER_CPP(int, Model, DefaultIn)
 SCORE_SETTINGS_PARAMETER_CPP(int, Model, DefaultOut)
 SCORE_SETTINGS_PARAMETER_CPP(bool, Model, AutoStereo)
+SCORE_SETTINGS_PARAMETER_CPP(bool, Model, LockMemory)
 SCORE_SETTINGS_PARAMETER_CPP(bool, Model, AutoConnect)
 SCORE_SETTINGS_PARAMETER_CPP(Audio::Settings::ExternalTransport, Model, JackTransport)
 }

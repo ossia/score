@@ -27,6 +27,7 @@ Presenter::Presenter(Model& m, View& v, QObject* parent)
   v.setRate(m.getRate());
   v.setBufferSize(m.getBufferSize());
   v.setAutoStereo(m.getAutoStereo());
+  v.setLockMemory(m.getLockMemory());
 
   con(v, &View::DriverChanged, this, [this, &m, &v](auto val) {
     if(val != m.getDriver())
@@ -45,6 +46,12 @@ Presenter::Presenter(Model& m, View& v, QObject* parent)
     if(val != m.getAutoStereo())
     {
       m_disp.submitDeferredCommand<SetModelAutoStereo>(m, val);
+    }
+  });
+  con(v, &View::LockMemoryChanged, this, [this, &m](auto val) {
+    if(val != m.getLockMemory())
+    {
+      m_disp.submitDeferredCommand<SetModelLockMemory>(m, val);
     }
   });
 

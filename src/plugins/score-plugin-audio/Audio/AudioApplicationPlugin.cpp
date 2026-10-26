@@ -23,6 +23,7 @@
 #include <core/document/Document.hpp>
 #include <core/presenter/DocumentManager.hpp>
 
+#include <ossia/detail/thread.hpp>
 #include <ossia/audio/audio_engine.hpp>
 #include <ossia/audio/audio_protocol.hpp>
 
@@ -54,6 +55,12 @@ void ApplicationPlugin::initialize()
 
   con(set, &Audio::Settings::Model::changed, this, &ApplicationPlugin::restart_engine,
       Qt::QueuedConnection);
+
+#if !defined(__EMSCRIPTEN__)
+  ossia::lock_process_memory(set.getLockMemory());
+  con(set, &Audio::Settings::Model::LockMemoryChanged, this,
+      [](bool lock) { ossia::lock_process_memory(lock); });
+#endif
 }
 
 ApplicationPlugin::~ApplicationPlugin() { }
