@@ -706,6 +706,44 @@ TEST_CASE("mtk::MidiHumanizer is reproducible for a given seed", "[avnd][midi][h
   CHECK(differs);
 }
 
+TEST_CASE("mtk::MidiHumanizer with seed 0 plays a new take each time", "[avnd][midi][humanize]")
+{
+  driver d;
+  auto& in = d.fx.inputs;
+  in.timing.value = 0.02f;
+  in.early.value = 1.f;
+  in.velocity.value = 20;
+  in.seed.value = 0;
+
+  const auto play = [&] {
+    const int64_t start = d.now;
+    const std::size_t first = d.out.size();
+    for(int i = 0; i < 40; i++)
+    {
+      d.note_on(60, 100, 0);
+      d.note_off(60, 400);
+      d.tick(8192);
+    }
+    d.drain();
+    std::vector<event> take(d.out.begin() + first, d.out.end());
+    for(auto& e : take)
+      e.at -= start;
+    return take;
+  };
+
+  const auto a = play();
+  d.fx.stop();
+  d.tick(0);
+  const auto b = play();
+
+  REQUIRE(a.size() == b.size());
+  bool differs = false;
+  for(std::size_t i = 0; i < a.size(); i++)
+    if(a[i].at != b[i].at || a[i].velocity != b[i].velocity)
+      differs = true;
+  CHECK(differs);
+}
+
 namespace
 {
 //! Per pitch, note-ons and note-offs alternate, starting with a note-on, and
