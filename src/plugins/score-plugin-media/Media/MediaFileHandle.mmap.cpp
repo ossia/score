@@ -8,6 +8,8 @@
 #include <QFileInfo>
 #include <QStorageInfo>
 
+#include <thread>
+
 namespace Media
 {
 void AudioFile::load_drwav()
@@ -43,8 +45,18 @@ void AudioFile::load_drwav()
     fail();
     return;
   }
-  // Locked memory would keep every page of the file read so far resident.
-  ossia::unlock_memory(r.data, r.file->size());
+  // The audio thread reads the samples straight from this mapping: read the
+  // file in now, as a sampler loads its samples, so that playback does not
+  // wait for the disk. With "Lock memory" on, the pages then stay resident,
+  // as the decoded formats do. The thread keeps the file, hence the mapping,
+  // alive until it is done.
+#if !defined(__EMSCRIPTEN__)
+  // (On WebAssembly the files are in memory already.)
+  std::thread{[file = r.file, data = r.data, size = r.file->size()] {
+    ossia::set_thread_name("ossia preload");
+    ossia::preload_memory(data, size);
+  }}.detach();
+#endif
   r.wav.open_memory(r.data, r.file->size());
   if(!r.wav || r.wav.channels() == 0 || r.wav.sampleRate() == 0)
   {
