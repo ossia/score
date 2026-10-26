@@ -586,7 +586,9 @@ void main() { gl_FragColor = IMG_THIS_NORM_PIXEL(inputImage); }
   bool skipped = false;
   std::string err, backend;
   double msPerFrame = 0.;
-  QRhiStats after{};
+  // QRhi::statistics() and QRhiStats arrived in Qt 6.6; CI builds the tests
+  // against 6.4.2. Below 6.6 the allocation columns print 0.
+  quint64 allocCount = 0, usedBytes = 0;
   bool depth = false;
   int blitted = -1;
   score::test::run_in_gui_app([&](const score::GUIApplicationContext&) {
@@ -608,9 +610,12 @@ void main() { gl_FragColor = IMG_THIS_NORM_PIXEL(inputImage); }
       return;
     }
     backend = p.backend();
-    auto& rhi = *p.sink(sink)->renderState()->rhi;
     p.render(20);
-    after = rhi.statistics();
+#if QT_VERSION >= QT_VERSION_CHECK(6, 6, 0)
+    const QRhiStats after = p.sink(sink)->renderState()->rhi->statistics();
+    allocCount = after.allocCount;
+    usedBytes = after.usedBytes;
+#endif
     QElapsedTimer t;
     t.start();
     p.render(frames);
@@ -630,8 +635,8 @@ void main() { gl_FragColor = IMG_THIS_NORM_PIXEL(inputImage); }
   std::printf(
       "PERF %s | %-26s | %.3f ms/frame | allocs %u | used %.2f MiB | depth "
       "attachment on the reader's port %d | blitted %d\n",
-      backend.c_str(), c.name, msPerFrame, unsigned(after.allocCount),
-      after.usedBytes / (1024. * 1024.), int(depth), blitted);
+      backend.c_str(), c.name, msPerFrame, unsigned(allocCount),
+      usedBytes / (1024. * 1024.), int(depth), blitted);
   std::fflush(stdout);
   CHECK(true);
 }
