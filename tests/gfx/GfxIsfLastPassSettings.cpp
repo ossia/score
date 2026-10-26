@@ -173,10 +173,11 @@ void main() { gl_FragColor = vec4(isf_FragNormCoord.x, 0.0, 0.0, 1.0); }
 
 namespace
 {
-// One ISF written to `dir`: its PASSES, then a body.
+// One ISF written to `dir`: its PASSES, then a body. `header` goes in the JSON
+// before INPUTS and ends with a comma.
 QString writeIsf(
     const QTemporaryDir& dir, const char* name, const std::string& passes,
-    const char* body)
+    const char* body, const std::string& header = {})
 {
   const QString path = dir.filePath(name);
   QFile f(path);
@@ -184,6 +185,7 @@ QString writeIsf(
     return {};
   f.write(QByteArray::fromStdString(R"(/*{
   "ISFVSN": "2.0",
+  )" + header + R"(
   "INPUTS": [],
   "PASSES": )" + passes + R"(
 }*/
@@ -300,8 +302,9 @@ TEST_CASE(
 
 // A last pass that writes gl_FragDepth draws into the destination, whose
 // depth attachment then holds its depth: FLOAT, a four-channel FORMAT or
-// FILTER no longer route it through an own target, whose depth the blit
-// does not carry.
+// FILTER no longer route it through an own target. The shader declares its
+// depth state, without which Vulkan and OpenGL write no depth from the ISF
+// quad, and layer-view.fs shows that depth (0.25) as grey on its right half.
 TEST_CASE(
     "a last pass writing depth draws into the destination's depth attachment",
     "[gfx][isf][passes][F05][depth]")
@@ -316,12 +319,14 @@ TEST_CASE(
   REQUIRE(dir.isValid());
   const QString fs = writeIsf(
       dir, "lastpass-depth.fs", lastPassWith(setting, single),
-      "void main() { gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0); gl_FragDepth = 0.5; }\n");
+      "void main() { gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0); gl_FragDepth = 0.25; }\n",
+      R"("PIPELINE_STATE": { "DEPTH_TEST": true, "DEPTH_COMPARE": "always", "DEPTH_WRITE": true },)");
   bool skipped = false;
   bool simple = false;
   bool targetHasDepth = false;
   int blitted = -1;
   std::string err;
+  ReadbackImage img;
   score::test::run_in_gui_app([&](const score::GUIApplicationContext&) {
     GfxPipeline p;
     const int node = p.addIsf(fs);
@@ -341,6 +346,7 @@ TEST_CASE(
       return;
     }
     p.render(3);
+    img = p.readback(sink);
     auto rt = p.sink(sink)->renderer()->renderTargetForInputPort(*p.imageIn(view, 0));
     targetHasDepth = rt.depthTexture || rt.depthRenderBuffer || rt.msDepthTexture;
     auto* n = p.isf(node);
@@ -363,4 +369,11 @@ TEST_CASE(
     CHECK(simple);
   else
     CHECK(blitted == 0);
+  REQUIRE(img.valid());
+  const auto colour = img.at(16, 32);
+  const auto depth = img.at(48, 32);
+  CAPTURE(int(colour[0]), int(colour[1]), int(depth[0]));
+  CHECK(int(colour[0]) >= 253);
+  CHECK(int(colour[1]) <= 2);
+  CHECK(std::abs(int(depth[0]) - 64) <= 2);
 }

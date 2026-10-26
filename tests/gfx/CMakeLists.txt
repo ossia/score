@@ -1629,6 +1629,7 @@ score_add_gfx_test(raster_ubo_extent GfxRasterUboExtent.cpp)
 score_add_gfx_test(csf_uniform_input_range GfxCsfUniformInputRange.cpp)
 score_add_gfx_test(isf_output_size_expression GfxIsfOutputSizeExpression.cpp)
 score_add_gfx_test(isf_last_pass_settings GfxIsfLastPassSettings.cpp)
+score_add_gfx_test(isf_depth_travel GfxIsfDepthTravel.cpp)
 score_add_gfx_test(isf_storage_image_size GfxIsfStorageImageSize.cpp)
 
 # PIPELINE_STATE.VERTEX_COUNT / INSTANCE_COUNT expressions reading an input
