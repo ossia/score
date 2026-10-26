@@ -143,8 +143,9 @@ void ApplicationPlugin::timerEvent(QTimerEvent*)
       stop_engine();
       score::warning(
           context.documentTabWidget, tr("Audio Error"),
-          tr("The audio device stopped working. Check that it is connected and not "
-             "used by another program, then restart the audio engine."));
+          tr("The audio device stopped working, or cannot keep up at this buffer "
+             "size. Check that it is connected and not used by another program, or "
+             "choose a larger buffer size, then restart the audio engine."));
     }
   }
 
