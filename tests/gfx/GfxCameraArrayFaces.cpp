@@ -120,17 +120,14 @@
 // MULTIVIEW is a Vulkan / D3D12 (/Metal) feature.
 //   * Vulkan / D3D12 / Metal with caps.multiview: the full six-colour pixel
 //     oracle runs.
-//   * OpenGL: GfxMultiview.cpp records that the offscreen GL context does not
-//     render a procedural MULTIVIEW layered raster at all — layer 0 reads back
-//     black even on the FIXED engine — and Qt applies
-//     ovr_multiview_view_count to the vertex stage only, so these cases must
-//     not assume multiview bakes on GL.
-//     GfxCubemapSixFaces.cpp turns that into the "structural lane": assert the
-//     decision logic (a cube handle is published, the array-then-copy shim was
+//   * OpenGL: MULTIVIEW shaders compile and render there since 54c793fd61
+//     (test_gfx_multiview runs its pixel cases on GL), so the six-colour
+//     oracle runs on OpenGL too.
+//   * Null / no multiview caps (and no per-view lowering) / no usable RHI:
+//     the "structural lane" of GfxCubemapSixFaces.cpp -- assert the decision
+//     logic (a cube handle is published, the array-then-copy shim was
 //     selected) and SUCCEED with the reason instead of pretending to have
-//     pixels. Same here, plus the CPU lane, which is the strongest part of
-//     this case that is hardware-independent.
-//   * Null / no multiview caps / no usable RHI: SKIP or structural lane only.
+//     pixels -- plus the CPU lane, the hardware-independent part of this case.
 //     Never a pixel verdict: do not fall back to Null for a case whose
 //     verdict is a pixel.
 //
@@ -598,23 +595,20 @@ TEST_CASE(
   }
 
   // ---- Pixel half, gated exactly as the header's backend scope says.
-  const bool isGL = f.backend.find("OpenGL") != std::string::npos;
   const bool isNull = f.backend.find("Null") != std::string::npos;
   // ... unless the pass-index fallback is active, in which case the six
   // faces ARE written -- as N explicit passes rather than one amplified
   // draw -- so the oracle is expressible and must run. Without this branch a
   // backend with caps.multiview == 0 (d3d11) passes on a fraction of the
   // assertions, and that vacuous green hides a missing-faces fault.
-  if(isGL || isNull || (!f.multiview_caps && !f.multiview_lowered))
+  if(isNull || (!f.multiview_caps && !f.multiview_lowered))
   {
     SUCCEED(
         f.backend
-        + ": procedural MULTIVIEW layered raster is not renderable here "
-          "(GfxMultiview.cpp:64-77 measured it black even post-fix on headless "
-          "GL; Qt bakes ovr_multiview_view_count into the vertex stage only, "
-          "qspirvshader.cpp:954). Structural lane asserted above, the six "
-          "camera directions are pinned by this file's CPU lane, and the "
-          "six-colour pixel oracle runs on Vulkan/D3D12/Metal.");
+        + ": no multiview and no per-view lowering on this backend. Structural "
+          "lane asserted above, the six camera directions are pinned by this "
+          "file's CPU lane, and the six-colour pixel oracle runs where "
+          "MULTIVIEW renders.");
     return;
   }
 

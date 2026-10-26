@@ -11,7 +11,9 @@
 //     position with face row 0 at NDC y = -1 (cube-dir-ndc.*), the way the
 //     csf-examples IBL presets fill a cube.
 // Each is rendered once with MULTIVIEW:6 and once with EXECUTION_MODEL
-// PER_CUBE_FACE, the lane that runs on OpenGL. cube-dir-probe.fs samples 24
+// PER_CUBE_FACE, on every backend (MULTIVIEW renders on OpenGL since
+// 54c793fd61; a backend without multiview runs PER_CUBE_FACE only).
+// cube-dir-probe.fs samples 24
 // off-centre directions (four per face) and a correct cube returns each
 // direction's own encoding.
 //
@@ -199,13 +201,12 @@ TEST_CASE(
   if(out.skipped)
     SKIP(out.skip_reason);
   REQUIRE(out.error.empty());
-  if(cap.multiview && (!out.multiview_caps || api == score::gfx::OpenGL))
+  if(cap.multiview && !out.multiview_caps)
   {
     SUCCEED(
         out.backend
-        + ": a MULTIVIEW layered raster is not renderable here (on OpenGL it "
-          "reads back black offscreen, see GfxCameraArrayFaces.cpp); the "
-          "PER_CUBE_FACE captures cover this backend");
+        + ": a MULTIVIEW layered raster is not renderable here (no "
+          "multiview); the PER_CUBE_FACE captures cover this backend");
     return;
   }
 
@@ -242,7 +243,7 @@ TEST_CASE(
     SKIP(out.skip_reason);
   REQUIRE(out.error.empty());
   REQUIRE(out.view.width == sinkSize.width());
-  if(cap.multiview && (!out.multiview_caps || api == score::gfx::OpenGL))
+  if(cap.multiview && !out.multiview_caps)
   {
     SUCCEED(out.backend + ": MULTIVIEW layered raster not renderable here");
     return;
