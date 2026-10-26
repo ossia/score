@@ -5,6 +5,12 @@
 //
 // A halp object publishes a 4x4 cube with three mips, every face of level 0
 // red, level 1 green, level 2 blue.
+//
+// The same object with one level (no MipMapped flag, the shape of a raw
+// raster CUBEMAP output) must sample its level 0: an input that declares no
+// MIPMAP_MODE follows its texture's mips. A mip-filtered sampler on a
+// one-level texture reads black on OpenGL (the texture is mipmap-incomplete)
+// while Vulkan and Metal clamp to the view's levels.
 #include "IsfTestCommon.hpp"
 
 #include <score_test/Document.hpp>
@@ -31,12 +37,16 @@ using score::test::gfx::isf::corpus;
 
 namespace
 {
-struct MippedCube
+template <int Levels>
+struct TestCube
 {
-  halp_meta(name, "Mipped cube")
-  halp_meta(c_name, "test_mipped_cube")
+  static constexpr bool mipped = Levels > 1;
+  halp_meta(name, mipped ? "Mipped cube" : "Single-level cube")
+  halp_meta(c_name, mipped ? "test_mipped_cube" : "test_single_level_cube")
   halp_meta(category, "Test")
-  halp_meta(uuid, "0f3b8a52-61d4-4c7e-b2a9-5e7d13c4f8a6")
+  halp_meta(
+      uuid, mipped ? "0f3b8a52-61d4-4c7e-b2a9-5e7d13c4f8a6"
+                   : "7c1d2e94-3a5b-4f86-9e0c-b4a6d8f21357")
 
   struct
   {
@@ -57,14 +67,15 @@ struct MippedCube
       return;
     m_tex = renderer.state.rhi->newTexture(
         QRhiTexture::RGBA8, QSize{4, 4}, 1,
-        QRhiTexture::CubeMap | QRhiTexture::MipMapped);
+        mipped ? QRhiTexture::CubeMap | QRhiTexture::MipMapped
+               : QRhiTexture::Flags{QRhiTexture::CubeMap});
     m_tex->create();
 
     static constexpr std::array<std::array<uint8_t, 4>, 3> colours{
         {{255, 0, 0, 255}, {0, 255, 0, 255}, {0, 0, 255, 255}}};
     QList<QRhiTextureUploadEntry> entries;
     std::vector<std::vector<uint8_t>> storage;
-    for(int level = 0; level < 3; ++level)
+    for(int level = 0; level < Levels; ++level)
     {
       const int side = 4 >> level;
       auto& px = storage.emplace_back(side * side * 4);
@@ -105,14 +116,11 @@ struct MippedCube
 
 }
 
-TEST_CASE(
-    "textureLod on an ISF cubemap input reads the requested mip",
-    "[gfx][avnd][cubemap][mip]")
+namespace
 {
-  const auto api = GENERATE(from_range(platform_backends()));
-  const int mip = GENERATE(0, 1, 2);
-  CAPTURE(backend_name(api), mip);
-
+template <typename Cube>
+void check_cube_lod(score::gfx::GraphicsApi api, int mip)
+{
   bool skipped = false;
   std::string err;
   ReadbackImage img;
@@ -125,14 +133,14 @@ TEST_CASE(
       return;
     }
     const auto& ctx = doc->context();
-    auto model = std::make_unique<oscr::ProcessModel<MippedCube>>(
+    auto model = std::make_unique<oscr::ProcessModel<Cube>>(
         TimeVal::fromMsecs(1000), Id<Process::ProcessModel>{1}, ctx, nullptr);
     auto* raw = model.get();
     models.push_back(std::move(model));
 
     GfxPipeline p;
     const int producer = p.addNode(std::unique_ptr<score::gfx::Node>{
-        new oscr::GfxNode<MippedCube>{*raw, {}, Gfx::exec_controls{}, 1, ctx}});
+        new oscr::GfxNode<Cube>{*raw, {}, Gfx::exec_controls{}, 1, ctx}});
     const int view = p.addIsf(corpus("isf-cube-lod.fs"));
     if(producer < 0 || view < 0)
     {
@@ -163,4 +171,24 @@ TEST_CASE(
   CHECK(int(px[0]) == (mip == 0 ? 255 : 0));
   CHECK(int(px[1]) == (mip == 1 ? 255 : 0));
   CHECK(int(px[2]) == (mip == 2 ? 255 : 0));
+}
+}
+
+TEST_CASE(
+    "textureLod on an ISF cubemap input reads the requested mip",
+    "[gfx][avnd][cubemap][mip]")
+{
+  const auto api = GENERATE(from_range(platform_backends()));
+  const int mip = GENERATE(0, 1, 2);
+  CAPTURE(backend_name(api), mip);
+  check_cube_lod<TestCube<3>>(api, mip);
+}
+
+TEST_CASE(
+    "an ISF cubemap input reads a single-level cube",
+    "[gfx][avnd][cubemap][mip]")
+{
+  const auto api = GENERATE(from_range(platform_backends()));
+  CAPTURE(backend_name(api));
+  check_cube_lod<TestCube<1>>(api, 0);
 }
