@@ -536,6 +536,8 @@ TEST_CASE("The loopers' Quantif: a preset saved with the note list", "[avnd][upg
           CHECK(g == ossia::vec2f{0.f, 0.f});
         else if(f.startsWith("Sixteenths"))
           CHECK(g == ossia::vec2f{0.25f, 1.f});
+        else if(f.contains("song form", Qt::CaseInsensitive))
+          CHECK(g == ossia::vec2f{1.f, 3.f});
         else
           CHECK(g == ossia::vec2f{1.f, 2.f});
       }

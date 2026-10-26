@@ -260,13 +260,24 @@ int64_t grid(const R& r)
       return int64_t(std::llround(g.value * double(R::bar)));
     case halp::grid_unit::period:
       // Before there is a loop, the bars a recording is given.
-      if(r.length() > 0)
+      if(r.length() > 0 && mode(r) != LoopMode::Record)
         return int64_t(std::llround(g.value * double(r.length())));
       return int64_t(std::llround(
           g.value * std::max(1, r.node.inputs.postaction_bars.value) * double(R::bar)));
     default:
       return 0;
   }
+}
+
+//! Where the grid counts from: the loop's playhead for a grid of the loop,
+//! the start of the run otherwise. Recordings start on a grid point.
+template <typename R>
+int64_t phase(const R& r)
+{
+  const halp::grid_value g = r.node.inputs.quantif.value;
+  if(g.unit == halp::grid_unit::period && r.length() > 0 && mode(r) != LoopMode::Record)
+    return r.position();
+  return r.now;
 }
 
 template <typename R>
@@ -295,7 +306,7 @@ template <typename R>
 void to_middle(R& r)
 {
   if(const int64_t g = grid(r); g > 0)
-    while(r.now % g != g / 2)
+    while(phase(r) % g != g / 2)
       r.tick_once();
 }
 
@@ -304,7 +315,7 @@ template <typename R>
 void to_point(R& r)
 {
   if(const int64_t g = grid(r); g > 0)
-    while(r.now % g != 0)
+    while(phase(r) % g != 0)
       r.tick_once();
   r.tick_once();
 }
@@ -337,10 +348,16 @@ void song_form()
 {
   R r{"Song form"};
   auto& in = r.node.inputs;
+  // Before there is a loop, a bar.
   CHECK(grid(r) == R::bar);
   record_bars(r, 2);
   CHECK(mode(r) == LoopMode::Play);
-  act(r, in.rec_play_dub);
+  // Then every change waits for the loop to come round.
+  CHECK(grid(r) == 2 * R::bar);
+  to_middle(r);
+  press(r, in.rec_play_dub);
+  CHECK(mode(r) == LoopMode::Play);
+  to_point(r);
   CHECK(mode(r) == LoopMode::Overdub);
   CHECK(r.passes() == 2);
   act(r, in.rec_play_dub);
@@ -348,9 +365,10 @@ void song_form()
   CHECK(r.passes() == 2);
   // A stop asked for in the first bar of the loop lets it play to its end.
   CHECK(r.position() == R::frames);
-  act(r, in.play_stop);
-  CHECK(mode(r) == LoopMode::Play);
+  press(r, in.play_stop);
   bars(r, 1);
+  CHECK(mode(r) == LoopMode::Play);
+  to_point(r);
   CHECK(mode(r) == LoopMode::Stop);
 }
 
@@ -534,12 +552,13 @@ void grows_as_you_overdub()
 }
 
 //! Stopped for a bar, a two bar loop comes back a bar on with In phase, where
-//! it stopped otherwise.
+//! it stopped otherwise. On a grid of a bar, so that it stops mid-loop.
 template <typename R>
 int64_t played_again_at(const char* name)
 {
   R r{name};
   auto& in = r.node.inputs;
+  in.quantif.value = halp::grid_value::bars(1);
   record_bars(r, 2);
   act(r, in.stop);
   REQUIRE(mode(r) == LoopMode::Stop);
