@@ -50,6 +50,8 @@ private:
 
   void timerEvent(QTimerEvent*) override;
 
+  void reap_previous_engines();
+
   std::vector<std::shared_ptr<ossia::audio_engine>> previous_audio;
 };
 
