@@ -1734,6 +1734,10 @@ score_add_gfx_test(selffb_limits GfxSelfFeedbackLimits.cpp)
 # every backend.
 score_add_gfx_test(vsa_clip_depth GfxVsaClipDepth.cpp)
 
+# The vertexshaderart touch history: an unconnected `touch` scrolls the output's
+# pointers, row 0 newest at v = 0; a cabled one reads v = 0 at the bottom.
+score_add_gfx_test(vsa_touch GfxVsaTouch.cpp)
+
 # CSF storage bindings at the published range; read_write on a static GPU upstream.
 score_add_gfx_test(csf_buffer_range GfxCsfBufferRange.cpp)
 

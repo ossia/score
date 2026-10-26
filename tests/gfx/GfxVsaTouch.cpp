@@ -1,0 +1,202 @@
+// The vertexshaderart `touch` input, as VSA art reads it.
+//
+// On vertexshaderart.com (greggman/vertexshaderart, src/js/main.js) `touch` is
+// a 32x240 RGBA float texture, NEAREST: column c is touch point c (column 0 the
+// mouse or first finger), each texel (x, y, pressure, time) with x, y in clip
+// space, y up. Every frame the history scrolls one row: the newest sample is
+// row 0, at v = 0 of a raw texture() read, and v = 1 is 239 frames ago
+// (CPUHistoryTexture: upload, then copyWithin one row down; HistoryTexture: the
+// previous rows drawn one row up, the new one into row 0).
+//
+// Pinned here, on every backend:
+// - an unconnected `touch` is that history, fed from the output's pointers;
+//   texture / textureLod / texelFetch read row 0 as the newest and row 5 as
+//   five frames ago, v = 1 as the oldest (still at rest), column 1 the second
+//   finger, w the frame's time, size 32x240;
+// - a texture cabled into `touch` instead reads with v = 0 at the bottom of the
+//   image, as IMG_NORM_PIXEL does, on every backend.
+#include "IsfTestCommon.hpp"
+
+#include <Gfx/Graph/BackgroundNode.hpp>
+
+#include <catch2/catch_test_macros.hpp>
+#include <catch2/generators/catch_generators.hpp>
+#include <catch2/generators/catch_generators_range.hpp>
+
+#include <array>
+#include <cstdlib>
+#include <string>
+
+using namespace score::test::gfx;
+using score::test::gfx::isf::corpus;
+
+namespace
+{
+using Rgb = std::array<int, 3>;
+
+// A touch sample as vsa-touch-probe.vs paints it.
+constexpr Rgb shown(float x, float y, float pressure)
+{
+  return {int((x * 0.5f + 0.5f) * 255.f + 0.5f), int((y * 0.5f + 0.5f) * 255.f + 0.5f),
+          int(pressure * 255.f + 0.5f)};
+}
+
+Rgb bandColor(const ReadbackImage& img, int band, int bands)
+{
+  const int x = int((band + 0.5) * img.width / bands);
+  const auto p = img.at(x, img.height / 2);
+  return {p[0], p[1], p[2]};
+}
+
+bool near(const Rgb& a, const Rgb& b, int tol = 3)
+{
+  for(int i = 0; i < 3; i++)
+    if(std::abs(a[i] - b[i]) > tol)
+      return false;
+  return true;
+}
+
+std::string str(const Rgb& c)
+{
+  return "(" + std::to_string(c[0]) + ", " + std::to_string(c[1]) + ", "
+         + std::to_string(c[2]) + ")";
+}
+
+struct Shot
+{
+  bool skipped{};
+  std::string skip_reason, backend, error;
+  ReadbackImage img;
+};
+}
+
+TEST_CASE("VSA touch: the history reads as on vertexshaderart", "[gfx][vsa][touch]")
+{
+  const auto api = GENERATE(from_range(platform_backends()));
+  CAPTURE(backend_name(api));
+
+  Shot out;
+  score::test::run_in_gui_app([&](const score::GUIApplicationContext&) {
+    GfxPipeline p;
+    const int vsa = p.addVsa(corpus("vsa-touch-probe.vs"));
+    if(vsa < 0)
+    {
+      out.error = p.error();
+      return;
+    }
+    const int sink = p.addSink({64, 16});
+    p.wire(p.imageOut(vsa, 0), p.sinkInput(sink));
+    if(!p.create(api))
+    {
+      out.skipped = p.skipped();
+      out.skip_reason = p.skipReason();
+      out.backend = p.backend();
+      out.error = out.skipped ? std::string{} : p.error();
+      return;
+    }
+    out.backend = p.backend();
+
+    auto& pointer = *p.sink(sink)->pointerState();
+    // Ten frames at A, pressed, then five at B, released, with a second
+    // finger at C: rows 0-4 are B, row 5 is A, row 239 was never written.
+    pointer.move(0, -0.5f, 0.5f);
+    pointer.press(0, 1.f);
+    p.render(10);
+    pointer.move(0, 0.25f, -0.75f);
+    pointer.press(0, 0.f);
+    pointer.move(1, 0.75f, 0.f);
+    pointer.press(1, 0.5f);
+    p.render(5);
+    out.img = p.readback(sink);
+  });
+
+  if(out.skipped)
+    SKIP(out.backend + ": " + out.skip_reason);
+  INFO("backend=" << out.backend << " error=" << out.error);
+  REQUIRE(out.error.empty());
+  REQUIRE(out.img.valid());
+
+  const Rgb A = shown(-0.5f, 0.5f, 1.f);
+  const Rgb B = shown(0.25f, -0.75f, 0.f);
+  const Rgb C = shown(0.75f, 0.f, 0.5f);
+  const Rgb rest = shown(0.f, 0.f, 0.f);
+  const struct
+  {
+    const char* what;
+    Rgb expected;
+  } bands[] = {
+      {"texture(v = 0): newest", B},
+      {"texture(v = 0.01): row 2", B},
+      {"texture(row 5)", A},
+      {"texture(v = 1): oldest, never written", rest},
+      {"textureLod(row 5)", A},
+      {"texelFetch(row 5)", A},
+      {"texture(column 1, v = 0): second finger", C},
+      {"w: row 0 later than row 5, row 0 = this frame's time, 32x240", {255, 255, 255}},
+  };
+  for(int b = 0; b < 8; b++)
+  {
+    const Rgb got = bandColor(out.img, b, 8);
+    INFO("band " << b << " " << bands[b].what << ": got " << str(got) << ", expected "
+                 << str(bands[b].expected));
+    CHECK(near(got, bands[b].expected));
+  }
+}
+
+TEST_CASE(
+    "VSA touch: a cabled texture reads with v = 0 at the bottom on every backend",
+    "[gfx][vsa][touch]")
+{
+  const auto api = GENERATE(from_range(platform_backends()));
+  CAPTURE(backend_name(api));
+
+  Shot out;
+  score::test::run_in_gui_app([&](const score::GUIApplicationContext&) {
+    GfxPipeline p;
+    const int up = p.addIsf(corpus("isf-orient-quadrants.fs"));
+    const int vsa = p.addVsa(corpus("vsa-touch-raw.vs"));
+    if(up < 0 || vsa < 0)
+    {
+      out.error = p.error();
+      return;
+    }
+    const int sink = p.addSink({48, 16});
+    p.wire(p.imageOut(up, 0), p.imageIn(vsa, 0));
+    p.wire(p.imageOut(vsa, 0), p.sinkInput(sink));
+    if(!p.create(api))
+    {
+      out.skipped = p.skipped();
+      out.skip_reason = p.skipReason();
+      out.backend = p.backend();
+      out.error = out.skipped ? std::string{} : p.error();
+      return;
+    }
+    out.backend = p.backend();
+    p.render(3);
+    out.img = p.readback(sink);
+  });
+
+  if(out.skipped)
+    SKIP(out.backend + ": " + out.skip_reason);
+  INFO("backend=" << out.backend << " error=" << out.error);
+  REQUIRE(out.error.empty());
+  REQUIRE(out.img.valid());
+
+  const Rgb blue{0, 0, 255}, red{255, 0, 0};
+  const struct
+  {
+    const char* what;
+    Rgb expected;
+  } bands[] = {
+      {"texture(0.25, 0.25): bottom-left", blue},
+      {"texture(0.25, 0.75): top-left", red},
+      {"texelFetch(0, 0): bottom-left", blue},
+  };
+  for(int b = 0; b < 3; b++)
+  {
+    const Rgb got = bandColor(out.img, b, 3);
+    INFO("band " << b << " " << bands[b].what << ": got " << str(got) << ", expected "
+                 << str(bands[b].expected));
+    CHECK(near(got, bands[b].expected));
+  }
+}

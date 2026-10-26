@@ -1,6 +1,7 @@
 #pragma once
 #include <Gfx/Graph/Node.hpp>
 #include <Gfx/Graph/NodeRenderer.hpp>
+#include <Gfx/Graph/PointerState.hpp>
 #include <Gfx/Graph/RenderState.hpp>
 #include <Gfx/Graph/Uniforms.hpp>
 
@@ -170,6 +171,16 @@ public:
    */
   void handleDeviceLost(const char* output) noexcept;
 
+  /**
+   * @brief The mouse and touch points over this output, for the
+   *        vertexshaderart `touch` history. A window output fills it from its
+   *        events; it stays at rest on the others unless set by hand.
+   */
+  const std::shared_ptr<PointerState>& pointerState() const noexcept
+  {
+    return m_pointerState;
+  }
+
 protected:
   /**
    * @brief Calls handleDeviceLost when the frame or the QRhi report a lost
@@ -201,6 +212,8 @@ protected:
   // its destructor needs the full type, hence the out-of-line ~OutputNode
   // implementation in OutputNode.cpp.
   std::unique_ptr<GpuResourceRegistry> m_registry;
+
+  std::shared_ptr<PointerState> m_pointerState{std::make_shared<PointerState>()};
 
   bool m_deviceLost{};
 };
