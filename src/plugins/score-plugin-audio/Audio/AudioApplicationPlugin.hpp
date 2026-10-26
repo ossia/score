@@ -5,6 +5,7 @@
 
 #include <memory>
 
+class QLabel;
 namespace ossia
 {
 class audio_engine;
@@ -39,6 +40,9 @@ private:
   void showVolume(score::Document& doc);
 
   QAction* m_audioEngineAct{};
+  QLabel* m_xruns{};
+  QAction* m_xrunsAction{};
+  int64_t m_shownXruns{-1};
   score::VolumeSlider* m_volume{};
 
   bool m_updating_audio = false;
@@ -51,6 +55,7 @@ private:
   void timerEvent(QTimerEvent*) override;
 
   void reap_previous_engines();
+  void updateXruns();
 
   std::vector<std::shared_ptr<ossia::audio_engine>> previous_audio;
 };
