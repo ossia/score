@@ -516,39 +516,116 @@ void main() { color = vec4(1.0); }
 }
 
 // A COMPUTE_SHADER declares its controls and resources in RESOURCES (shader
-// board C07). INPUTS, the older spelling of the same list, is still read the
-// same way, silently: the published libraries and saved documents use it.
-TEST_CASE("a COMPUTE_SHADER reads INPUTS as RESOURCES", "[isf][header][csf][C07]")
+// board C07): there "image" is a storage image and "texture" a sampled one.
+// INPUTS, the ISF list, is still read with its ISF meaning ("image" is a
+// sampled texture unless it has an ACCESS or a FORMAT), with a deprecation
+// warning: the published libraries' saved documents embed it.
+namespace
 {
-  const auto csf = [](const std::string& list) {
-    return isf::parser{
-        {},
-        R"_(/*{
+isf::parser csfWith(const std::string& list, const std::string& entries)
+{
+  return isf::parser{
+      {},
+      R"_(/*{
   "ISFVSN": "2.0",
   "MODE": "COMPUTE_SHADER",
   )_" + list + R"_(: [
-    { "NAME": "gain", "TYPE": "float", "DEFAULT": 1.0 },
-    { "NAME": "src", "TYPE": "image" },
+    )_" + entries + R"_(,
     { "NAME": "outputImage", "TYPE": "image", "ACCESS": "write_only", "FORMAT": "rgba8", "WIDTH": 8, "HEIGHT": 8 }
   ],
   "PASSES": [ { "LOCAL_SIZE": [8, 8, 1], "EXECUTION_MODEL": { "TYPE": "2D_IMAGE", "TARGET": "outputImage" } } ]
 }*/
-void main() { imageStore(outputImage, ivec2(gl_GlobalInvocationID.xy), vec4(gain) * IMG_NORM_PIXEL(src, vec2(0.5))); }
+void main() { imageStore(outputImage, ivec2(gl_GlobalInvocationID.xy), vec4(1.0)); }
 )_",
-        450, isf::parser::ShaderType::CSF};
-  };
-  for(const char* list : {R"("RESOURCES")", R"("INPUTS")"})
-  {
-    CAPTURE(list);
-    const auto d = csf(list).data();
-    REQUIRE(d.inputs.size() == 3);
-    // An image with neither ACCESS nor FORMAT is a sampled texture; with them,
-    // a storage image.
-    CHECK(ossia::get_if<isf::float_input>(&d.inputs[0].data));
-    CHECK(ossia::get_if<isf::texture_input>(&d.inputs[1].data));
-    CHECK(ossia::get_if<isf::csf_image_input>(&d.inputs[2].data));
-    CHECK(d.warnings.empty());
-  }
+      450, isf::parser::ShaderType::CSF};
+}
+
+bool warnsAboutInputs(const isf::descriptor& d)
+{
+  for(const auto& w : d.warnings)
+    if(w.find("INPUTS is deprecated") != std::string::npos
+       && w.find("RESOURCES") != std::string::npos)
+      return true;
+  return false;
+}
+}
+
+TEST_CASE("in a COMPUTE_SHADER's RESOURCES an image is a storage image", "[isf][header][csf][C07]")
+{
+  const auto d = csfWith(R"("RESOURCES")", R"({ "NAME": "gain", "TYPE": "float", "DEFAULT": 1.0 },
+    { "NAME": "src", "TYPE": "image" },
+    { "NAME": "tex", "TYPE": "texture" },
+    { "NAME": "cube", "TYPE": "cubemap" })").data();
+  REQUIRE(d.inputs.size() == 5);
+  CHECK(ossia::get_if<isf::float_input>(&d.inputs[0].data));
+  CHECK(ossia::get_if<isf::csf_image_input>(&d.inputs[1].data));
+  CHECK(ossia::get_if<isf::texture_input>(&d.inputs[2].data));
+  CHECK(ossia::get_if<isf::cubemap_input>(&d.inputs[3].data));
+  CHECK(ossia::get_if<isf::csf_image_input>(&d.inputs[4].data));
+  CHECK(!warnsAboutInputs(d));
+}
+
+TEST_CASE("a COMPUTE_SHADER still reads INPUTS the ISF way, and warns", "[isf][header][csf][C07]")
+{
+  const auto d = csfWith(R"("INPUTS")", R"({ "NAME": "gain", "TYPE": "float", "DEFAULT": 1.0 },
+    { "NAME": "src", "TYPE": "image" },
+    { "NAME": "layers", "TYPE": "image", "IS_ARRAY": true })").data();
+  REQUIRE(d.inputs.size() == 4);
+  CHECK(ossia::get_if<isf::float_input>(&d.inputs[0].data));
+  auto* src = ossia::get_if<isf::texture_input>(&d.inputs[1].data);
+  REQUIRE(src);
+  CHECK(!src->is_array);
+  auto* layers = ossia::get_if<isf::texture_input>(&d.inputs[2].data);
+  REQUIRE(layers);
+  CHECK(layers->is_array);
+  CHECK(ossia::get_if<isf::csf_image_input>(&d.inputs[3].data));
+  CHECK(warnsAboutInputs(d));
+}
+
+TEST_CASE("a texture takes IS_ARRAY, STATIC and CUBE", "[isf][header][csf][C07]")
+{
+  const auto p = csfWith(R"("RESOURCES")", R"({ "NAME": "layers", "TYPE": "texture", "IS_ARRAY": true },
+    { "NAME": "lut", "TYPE": "texture", "STATIC": true },
+    { "NAME": "env", "TYPE": "texture", "CUBE": true })");
+  const auto& d = p.data();
+  REQUIRE(d.inputs.size() == 4);
+  auto* layers = ossia::get_if<isf::texture_input>(&d.inputs[0].data);
+  REQUIRE(layers);
+  CHECK(layers->is_array);
+  auto* lut = ossia::get_if<isf::texture_input>(&d.inputs[1].data);
+  REQUIRE(lut);
+  CHECK(lut->is_static);
+  auto* env = ossia::get_if<isf::texture_input>(&d.inputs[2].data);
+  REQUIRE(env);
+  CHECK(env->cube);
+  CHECK_THAT(p.compute_shader(), Catch::Matchers::ContainsSubstring("sampler2DArray layers"));
+  CHECK_THAT(p.compute_shader(), Catch::Matchers::ContainsSubstring("samplerCube env"));
+
+  // A depth companion is an ISF image input's.
+  CHECK_THROWS_WITH(
+      csfWith(R"("RESOURCES")", R"({ "NAME": "d", "TYPE": "texture", "IS_DEPTH": true })"),
+      Catch::Matchers::ContainsSubstring("IS_DEPTH"));
+}
+
+TEST_CASE("write_isf writes a compute shader's RESOURCES", "[isf][header][csf][C07][write_isf]")
+{
+  const auto p = csfWith(R"("RESOURCES")", R"({ "NAME": "tex", "TYPE": "texture", "IS_ARRAY": true },
+    { "NAME": "lut", "TYPE": "texture", "STATIC": true })");
+  const std::string written = p.write_isf();
+  CAPTURE(written);
+  CHECK_THAT(written, Catch::Matchers::ContainsSubstring("\"RESOURCES\""));
+  CHECK_THAT(written, !Catch::Matchers::ContainsSubstring("\"INPUTS\""));
+  const isf::parser again{{}, written, 450, isf::parser::ShaderType::CSF};
+  const auto& d = again.data();
+  REQUIRE(d.inputs.size() == 3);
+  auto* tex = ossia::get_if<isf::texture_input>(&d.inputs[0].data);
+  REQUIRE(tex);
+  CHECK(tex->is_array);
+  auto* lut = ossia::get_if<isf::texture_input>(&d.inputs[1].data);
+  REQUIRE(lut);
+  CHECK(lut->is_static);
+  CHECK(ossia::get_if<isf::csf_image_input>(&d.inputs[2].data));
+  CHECK(!warnsAboutInputs(d));
 }
 
 // A blend entry has one spelling per field: SRC_COLOR / SRC_ALPHA, DST_COLOR /

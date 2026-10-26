@@ -996,9 +996,38 @@ static void parse_input(texture_input& inp, const sajson::value& v)
       inp.dimensions = d;
     }
   }
+  if(auto k = v.find_object_key_insensitive(sajson::literal("IS_ARRAY"));
+     k != v.get_length())
+    inp.is_array = v.get_object_value(k).get_type() == sajson::TYPE_TRUE;
+  else if(auto k2 = v.find_object_key_insensitive(sajson::literal("ARRAY"));
+          k2 != v.get_length())
+    inp.is_array = v.get_object_value(k2).get_type() == sajson::TYPE_TRUE;
+  if(auto k = v.find_object_key_insensitive(sajson::literal("STATIC"));
+     k != v.get_length())
+    inp.is_static = v.get_object_value(k).get_type() == sajson::TYPE_TRUE;
+  if(auto k = v.find_object_key_insensitive(sajson::literal("CUBE"));
+     k != v.get_length())
+    inp.cube = v.get_object_value(k).get_type() == sajson::TYPE_TRUE;
+  if(inp.cube && (inp.dimensions == 3 || inp.is_array))
+    throw invalid_file{
+        "texture input: CUBE is a 2D cubemap, without DIMENSIONS: 3 or IS_ARRAY "
+        "(no QRhi backend binds a cube array)."};
+  // A depth companion (<name>_depth) is only bound for an ISF image input.
+  bool depth{};
+  parse_is_depth(v, depth);
+  if(depth)
+    throw invalid_file{
+        "texture input: IS_DEPTH is not supported on a texture; in an ISF, "
+        "declare an \"image\" input with IS_DEPTH."};
   parse_sampler_config(inp.sampler, v);
   if(inp.dimensions == 3)
+  {
     drop_unsupported_compare_3d(inp.sampler, "texture input (DIMENSIONS: 3)");
+    if(inp.is_array)
+      throw invalid_file{
+          "texture input: DIMENSIONS: 3 with IS_ARRAY: true is not supported -- "
+          "sampler3DArray is not a core GLSL type."};
+  }
 }
 
 // Parse a COPY_FROM JSON object.
@@ -2235,6 +2264,13 @@ input parse(const sajson::value& v)
   return i;
 }
 
+// TYPE "texture", a sampled texture: the one spelling of one in a compute
+// shader's RESOURCES, where "image" is a storage image (shader board C07).
+static input parse_texture(const sajson::value& v)
+{
+  return parse<texture_input>(v);
+}
+
 // --- PIPELINE_STATE / MULTIVIEW parsing helpers ---------------------------
 
 static bool get_bool(const sajson::value& v, bool& out)
@@ -2926,7 +2962,7 @@ static const ossia::string_map<root_fun>& root_parse{[] {
     // CSF-specific types - note: 'image' in CSF context is csf_image_input, not image_input
     i.insert({"storage", [](const auto& s) { return parse<storage_input>(s); }});
     i.insert({"uniform", [](const auto& s) { return parse<uniform_input>(s); }});
-    i.insert({"texture", [](const auto& s) { return parse<texture_input>(s); }});
+    i.insert({"texture", [](const auto& s) { return parse_texture(s); }});
     i.insert({"geometry", [](const auto& s) { return parse<geometry_input>(s); }});
 
     return i;
@@ -3236,16 +3272,10 @@ static const ossia::string_map<root_fun>& root_parse{[] {
             // Handle special cases for CSF image types
             //   "image"      → 2D / 3D storage image (image2D / image3D)
             //   "image_cube" → writable cubemap storage image (imageCube)
-            // except an image with neither ACCESS nor FORMAT, a sampled
-            // texture, as it was in INPUTS, the list RESOURCES replaces
-            // (shader board C07).
-            const bool sampled_image
-                = type_str == "image"
-                  && obj.find_object_key_insensitive(sajson::literal("ACCESS"))
-                         == obj.get_length()
-                  && obj.find_object_key_insensitive(sajson::literal("FORMAT"))
-                         == obj.get_length();
-            if(!sampled_image && (type_str == "image" || type_str == "image_cube"))
+            // A sampled texture is "texture" or "cubemap" here; "image" means
+            // a sampled texture only in INPUTS, the ISF list (shader board
+            // C07).
+            if(type_str == "image" || type_str == "image_cube")
             {
               input inp;
               parse_input_base(inp, obj);
@@ -4029,6 +4059,10 @@ struct create_val_visitor_450
     const bool cmp = isf_is_comparison_sampler(i.sampler);
     if(i.dimensions == 3)
       return {"uniform sampler3D", true};
+    if(i.cube)
+      return {cmp ? "uniform samplerCubeShadow" : "uniform samplerCube", true};
+    if(i.is_array)
+      return {cmp ? "uniform sampler2DArrayShadow" : "uniform sampler2DArray", true};
     return {cmp ? "uniform sampler2DShadow" : "uniform sampler2D", true};
   }
   return_type operator()(const csf_image_input& i)
@@ -4169,6 +4203,18 @@ std::pair<int, descriptor> parser::parse_isf_header(std::string_view source)
       }
     }
   }
+
+  // A compute shader declares its controls and resources in RESOURCES.
+  // INPUTS is still read, with its ISF meaning (shader board C07).
+  if(d.mode == descriptor::CSF)
+    if(auto k = root.find_object_key_insensitive(sajson::literal("INPUTS"));
+       k != root.get_length()
+       && root.get_object_value(k).get_type() == sajson::TYPE_ARRAY
+       && root.get_object_value(k).get_length() > 0)
+      header_warning(
+          "INPUTS is deprecated in a COMPUTE_SHADER: declare its entries in "
+          "RESOURCES, where \"image\" is a storage image and \"texture\" a "
+          "sampled one");
 
   // After the loop: PASSES may come after PERSISTENT_BUFFERS in the object.
   if(auto k = root.find_object_key_insensitive(sajson::literal("PERSISTENT_BUFFERS"));
@@ -4753,7 +4799,7 @@ bool is_premultiplied_render_target(const input& in) noexcept
   if(auto* img = ossia::get_if<image_input>(&in.data))
     return img->dimensions == 2 && !img->is_array && !img->is_static;
   if(auto* tex = ossia::get_if<texture_input>(&in.data))
-    return tex->dimensions == 2;
+    return tex->dimensions == 2 && !tex->is_array && !tex->is_static && !tex->cube;
   return false;
 }
 
@@ -6866,7 +6912,10 @@ std::string parser::write_isf() const
   // Add inputs
   if(!m_desc.inputs.empty())
   {
-    oss << "  \"INPUTS\": [\n";
+    // A compute shader's list is RESOURCES, where a sampled image is a
+    // "texture" (shader board C07).
+    const bool compute = m_desc.mode == descriptor::CSF;
+    oss << (compute ? "  \"RESOURCES\": [\n" : "  \"INPUTS\": [\n");
 
     for(size_t i = 0; i < m_desc.inputs.size(); ++i)
     {
@@ -6883,6 +6932,7 @@ std::string parser::write_isf() const
       struct input_serializer
       {
         std::ostringstream& oss;
+        bool compute{};
 
         void operator()(const float_input& f)
         {
@@ -7020,7 +7070,9 @@ std::string parser::write_isf() const
         }
 
         void operator()(const image_input& img) {
-          oss << "      \"TYPE\": \"image\"";
+          oss << (compute ? "      \"TYPE\": \"texture\"" : "      \"TYPE\": \"image\"");
+          if(img.is_static)
+            oss << ",\n      \"STATIC\": true";
           if(img.depth)
             oss << ",\n      \"IS_DEPTH\": true";
           if(img.is_array)
@@ -7120,7 +7172,19 @@ std::string parser::write_isf() const
           oss << "\n";
         }
 
-        void operator()(const texture_input&) { oss << "      \"TYPE\": \"texture\"\n"; }
+        void operator()(const texture_input& t)
+        {
+          oss << "      \"TYPE\": \"texture\"";
+          if(t.dimensions != 2)
+            oss << ",\n      \"DIMENSIONS\": " << t.dimensions;
+          if(t.is_array)
+            oss << ",\n      \"IS_ARRAY\": true";
+          if(t.is_static)
+            oss << ",\n      \"STATIC\": true";
+          if(t.cube)
+            oss << ",\n      \"CUBE\": true";
+          oss << "\n";
+        }
 
         void operator()(const csf_image_input& img)
         {
@@ -7272,7 +7336,7 @@ std::string parser::write_isf() const
         }
       };
 
-      ossia::visit(input_serializer{oss}, input.data);
+      ossia::visit(input_serializer{oss, compute}, input.data);
 
       oss << "    }";
       if(i < m_desc.inputs.size() - 1)
@@ -7679,14 +7743,17 @@ void parser::parse_csf()
   {
     if(auto* img = ossia::get_if<image_input>(&inp.data))
     {
-      if(img->is_array || img->depth || img->is_static)
+      // An INPUTS image without ACCESS / FORMAT, the ISF meaning still read
+      // in a compute shader: a sampled texture.
+      if(img->depth)
         throw invalid_file{
             "CSF input \"" + inp.name
             + "\": TYPE image without ACCESS/FORMAT is a sampled texture; "
-              "IS_ARRAY, DEPTH and STATIC are not supported on it in a compute "
-              "shader. Use TYPE texture, or give it an ACCESS for a storage image."};
+              "IS_DEPTH is not supported on it in a compute shader."};
       texture_input tex;
       tex.dimensions = img->dimensions;
+      tex.is_array = img->is_array;
+      tex.is_static = img->is_static;
       tex.sampler = img->sampler;
       inp.data = std::move(tex);
     }
@@ -8104,8 +8171,10 @@ void parser::parse_csf()
     else if(auto* tex_ptr = ossia::get_if<texture_input>(&inp.data))
     {
       m_fragment += "layout(binding = " + std::to_string(binding) + ") ";
-      m_fragment += tex_ptr->dimensions == 3
-          ? "uniform sampler3D " : "uniform sampler2D ";
+      m_fragment += tex_ptr->dimensions == 3 ? "uniform sampler3D "
+                    : tex_ptr->cube            ? "uniform samplerCube "
+                    : tex_ptr->is_array        ? "uniform sampler2DArray "
+                                               : "uniform sampler2D ";
       m_fragment += inp.name + ";\n";
       binding++;
     }

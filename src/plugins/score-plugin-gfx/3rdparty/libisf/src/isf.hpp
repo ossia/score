@@ -268,6 +268,12 @@ struct storage_input
 struct texture_input
 {
   int dimensions{2}; // 2 or 3
+  // IS_ARRAY: sampler2DArray; STATIC: bound straight from the producer's
+  // texture. Same meaning as on image_input. CUBE: samplerCube, as a
+  // cubemap_input (shader board C07).
+  bool is_array{false};
+  bool is_static{false};
+  bool cube{false};
   sampler_config sampler;
 };
 

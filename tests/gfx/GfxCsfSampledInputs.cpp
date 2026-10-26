@@ -1,7 +1,8 @@
-// CSF inputs that are sampled textures in fragment ISF: TYPE image with no
-// ACCESS / FORMAT and the audio inputs. Pins that both are declared as
-// samplers and bake, that an image input the compute path cannot sample is rejected at
-// parse time, and that the sampled image reaches the shader on every backend.
+// CSF inputs that are sampled textures: TYPE texture in RESOURCES (where
+// "image" is a storage image, shader board C07) and the audio inputs. Pins
+// that both are declared as samplers and bake, that a texture the compute
+// path cannot sample is rejected at parse time, and that the sampled texture
+// reaches the shader on every backend.
 #include <Gfx/Graph/ShaderCache.hpp>
 
 #include <score_test/Gfx.hpp>
@@ -55,10 +56,10 @@ void check_bakes(const isf::parser& p)
 }
 }
 
-TEST_CASE("a CSF TYPE image input without ACCESS is a sampled texture", "[gfx][csf][isf]")
+TEST_CASE("a CSF TYPE texture input is a sampled texture", "[gfx][csf][isf]")
 {
   isf::parser p{
-      csf(R"_({ "NAME": "src", "TYPE": "image" })_"), isf::parser::ShaderType::CSF};
+      csf(R"_({ "NAME": "src", "TYPE": "texture" })_"), isf::parser::ShaderType::CSF};
   const auto desc = p.data();
   REQUIRE(!desc.inputs.empty());
   REQUIRE(desc.inputs[0].name == "src");
@@ -67,19 +68,27 @@ TEST_CASE("a CSF TYPE image input without ACCESS is a sampled texture", "[gfx][c
   check_bakes(p);
 }
 
-TEST_CASE("a CSF TYPE image input with DIMENSIONS 3 is a sampler3D", "[gfx][csf][isf]")
+TEST_CASE("a CSF TYPE texture input with DIMENSIONS 3 is a sampler3D", "[gfx][csf][isf]")
 {
   isf::parser p{
-      csf(R"_({ "NAME": "src", "TYPE": "image", "DIMENSIONS": 3 })_"),
+      csf(R"_({ "NAME": "src", "TYPE": "texture", "DIMENSIONS": 3 })_"),
       isf::parser::ShaderType::CSF};
   CHECK(p.compute_shader().find("uniform sampler3D src;") != std::string::npos);
 }
 
-TEST_CASE("a CSF sampled image input the compute path cannot bind is rejected", "[gfx][csf][isf]")
+TEST_CASE("a CSF TYPE texture input with IS_ARRAY is a sampler2DArray", "[gfx][csf][isf]")
+{
+  isf::parser p{
+      csf(R"_({ "NAME": "src", "TYPE": "texture", "IS_ARRAY": true })_"),
+      isf::parser::ShaderType::CSF};
+  CHECK(p.compute_shader().find("uniform sampler2DArray src;") != std::string::npos);
+}
+
+TEST_CASE("a CSF texture the compute path cannot bind is rejected", "[gfx][csf][isf]")
 {
   CHECK_THROWS_AS(
       (isf::parser{
-          csf(R"_({ "NAME": "src", "TYPE": "image", "IS_ARRAY": true })_"),
+          csf(R"_({ "NAME": "src", "TYPE": "texture", "IS_DEPTH": true })_"),
           isf::parser::ShaderType::CSF}),
       isf::invalid_file);
 }

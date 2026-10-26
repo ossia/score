@@ -4,7 +4,7 @@
   "ISFVSN": "2.0",
   "MODE": "COMPUTE_SHADER",
   "RESOURCES": [
-    { "NAME": "inputImage", "TYPE": "image" },
+    { "NAME": "inputImage", "TYPE": "texture" },
     { "NAME": "outputImage", "TYPE": "image", "ACCESS": "write_only", "FORMAT": "RGBA8", "WIDTH": "64", "HEIGHT": "64" }
   ],
   "PASSES": [ { "LOCAL_SIZE": [8, 8, 1], "EXECUTION_MODEL": { "TYPE": "2D_IMAGE", "TARGET": "outputImage" } } ]

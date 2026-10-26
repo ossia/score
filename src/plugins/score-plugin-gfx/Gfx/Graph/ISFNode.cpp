@@ -236,9 +236,16 @@ struct isf_input_port_vis
 
   void operator()(const isf::texture_input& in) noexcept
   {
-    auto flags = in.dimensions == 3
-                     ? (Flag::GrabsFromSource | Flag::ThreeDimensional)
+    // The same flags as an image or cubemap input's (above).
+    auto flags = (in.dimensions == 3 || in.is_array || in.is_static || in.cube)
+                     ? Flag::GrabsFromSource
                      : Flag{};
+    if(in.cube)
+      flags = flags | Flag::Cubemap;
+    if(in.is_array)
+      flags = flags | Flag::TextureArray;
+    if(in.dimensions == 3)
+      flags = flags | Flag::ThreeDimensional;
     self.input.push_back(new Port{&self, {}, Types::Image, flags, {}});
   }
 

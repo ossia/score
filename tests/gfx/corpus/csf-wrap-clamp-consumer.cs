@@ -5,7 +5,7 @@
   "MODE": "COMPUTE_SHADER",
   "CATEGORIES": ["TEST-SAMPLER"],
   "RESOURCES": [
-    { "NAME": "src", "TYPE": "image", "WRAP": "clamp_to_edge" },
+    { "NAME": "src", "TYPE": "texture", "WRAP": "clamp_to_edge" },
     { "NAME": "outImage", "TYPE": "image", "ACCESS": "write_only", "FORMAT": "RGBA8", "WIDTH": "32", "HEIGHT": "32" }
   ],
   "PASSES": [ { "LOCAL_SIZE": [8, 8, 1], "EXECUTION_MODEL": { "TYPE": "2D_IMAGE", "TARGET": "outImage" } } ]
