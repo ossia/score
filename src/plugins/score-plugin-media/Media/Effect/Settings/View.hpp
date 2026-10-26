@@ -36,7 +36,8 @@ public:
   virtual QWidget* make(const score::ApplicationContext& ctx) = 0;
 };
 
-class PluginSettingsFactoryList final : public score::InterfaceList<PluginSettingsTab>
+class SCORE_PLUGIN_MEDIA_EXPORT PluginSettingsFactoryList final
+    : public score::InterfaceList<PluginSettingsTab>
 {
 };
 }
