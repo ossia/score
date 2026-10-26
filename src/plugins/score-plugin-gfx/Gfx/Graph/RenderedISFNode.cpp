@@ -40,7 +40,25 @@ static bool isSingleChannel(QRhiTexture::Format f) noexcept
   return f == QRhiTexture::R8 || f == QRhiTexture::R16F || f == QRhiTexture::R32F;
 }
 
+static bool hasDepthAttachment(const TextureRenderTarget& rt) noexcept
+{
+  return rt.depthTexture || rt.depthRenderBuffer || rt.msDepthTexture;
+}
+
 RenderedISFNode::~RenderedISFNode() { }
+
+isf::pipeline_state RenderedISFNode::lastPassState() const
+{
+  const auto& model = n.descriptor().passes;
+  return model.empty()
+             ? n.descriptor().default_state
+             : mergeState(n.descriptor().default_state, model.back().override_state);
+}
+
+bool RenderedISFNode::lastPassCarriesDepth() const
+{
+  return n.requiresDepth && declaresDepthWrite(lastPassState());
+}
 
 int RenderedISFNode::blittedEdges() const noexcept
 {
@@ -312,6 +330,47 @@ void main ()
 }
 )_";
 
+  // The same two copies, carrying the depth the last pass wrote into its own
+  // target as well. Depth is never filtered: y_depth has a nearest sampler.
+  static const constexpr auto fragment_shader_depth = R"_(#version 450
+layout(std140, binding = 0) uniform renderer_t {
+  mat4 clipSpaceCorrMatrix;
+  vec2 renderSize;
+} renderer;
+
+layout(binding = 3) uniform sampler2D y_tex;
+layout(binding = 4) uniform sampler2D y_depth;
+
+layout(location = 0) in vec2 v_texcoord;
+layout(location = 0) out vec4 fragColor;
+
+void main ()
+{
+  fragColor = texture(y_tex, v_texcoord);
+  gl_FragDepth = texture(y_depth, v_texcoord).r;
+}
+)_";
+
+  static const constexpr auto fragment_shader_depth_premultiply = R"_(#version 450
+layout(std140, binding = 0) uniform renderer_t {
+  mat4 clipSpaceCorrMatrix;
+  vec2 renderSize;
+} renderer;
+
+layout(binding = 3) uniform sampler2D y_tex;
+layout(binding = 4) uniform sampler2D y_depth;
+
+layout(location = 0) in vec2 v_texcoord;
+layout(location = 0) out vec4 fragColor;
+
+void main ()
+{
+  fragColor = texture(y_tex, v_texcoord);
+  fragColor.rgb *= fragColor.a;
+  gl_FragDepth = texture(y_depth, v_texcoord).r;
+}
+)_";
+
   const auto& desc = n.descriptor();
   bool declaresBlend = isf::declares_blend(desc.default_state);
   for(const auto& pass : desc.passes)
@@ -324,38 +383,82 @@ void main ()
       renderer.state, vertex_shader, QShader::VertexStage);
   SCORE_ASSERT(vertexError.isEmpty());
 
+  SCORE_ASSERT(!m_passSamplers.empty());
+  auto last_sampler = ossia::get_if<PersistSampler>(&m_passSamplers.back());
+  SCORE_ASSERT(last_sampler);
+  SCORE_ASSERT(last_sampler->textures[0]);
+  SCORE_ASSERT(last_sampler->textures[1]);
+
+  // The blit comes after every pass: it shows what the persistent last pass
+  // rendered this frame.
+  const int lastPass = (int)m_passSamplers.size() - 1;
+  const int blitPass = lastPass + 1;
+  QRhiTexture* colour[2] = {
+      last_sampler->textures[persistentTextureIndex(lastPass, blitPass, 0)],
+      last_sampler->textures[persistentTextureIndex(lastPass, blitPass, 1)]};
+
+  // The depth the last pass wrote into its own target, for each half of the
+  // ping-pong: the copy writes it into the destination, so that the shader's
+  // depth arrives as if the pass had drawn there.
+  QRhiTexture* depth[2]{};
+  if(lastPassCarriesDepth() && hasDepthAttachment(renderTarget))
+  {
+    for(int i = 0; i < 2; i++)
+      if(auto rt = ossia::find_if(
+             m_innerPassTargets,
+             [tex = colour[i]](const TextureRenderTarget& t) { return t.texture == tex; });
+         rt != m_innerPassTargets.end())
+        depth[i] = rt->depthTexture;
+    if(!depth[0] || !depth[1])
+      depth[0] = depth[1] = nullptr;
+  }
+  const bool copyDepth = depth[0] != nullptr;
+
+  const bool premultiply = isf::premultiplied_by_engine(alpha, composite);
   auto [fragmentS, fragmentError] = score::gfx::ShaderCache::get(
       renderer.state,
-      isf::premultiplied_by_engine(alpha, composite) ? fragment_shader_premultiply
-                                                     : fragment_shader,
+      copyDepth ? (premultiply ? fragment_shader_depth_premultiply : fragment_shader_depth)
+                : (premultiply ? fragment_shader_premultiply : fragment_shader),
       QShader::FragmentStage);
   SCORE_ASSERT(fragmentError.isEmpty());
 
   SCORE_ASSERT(vertexS.isValid() && fragmentS.isValid());
 
+  if(copyDepth)
   {
-    SCORE_ASSERT(!m_passSamplers.empty());
-    auto last_sampler = ossia::get_if<PersistSampler>(&m_passSamplers.back());
-    SCORE_ASSERT(last_sampler);
-    SCORE_ASSERT(last_sampler->textures[0]);
-    SCORE_ASSERT(last_sampler->textures[1]);
+    if(!m_depthCopySampler)
+    {
+      m_depthCopySampler = renderer.state.rhi->newSampler(
+          QRhiSampler::Nearest, QRhiSampler::Nearest, QRhiSampler::None,
+          QRhiSampler::ClampToEdge, QRhiSampler::ClampToEdge);
+      m_depthCopySampler->setName("RenderedISFNode::depthCopySampler");
+      m_depthCopySampler->create();
+    }
+    const auto blend = blendFor(alpha, composite);
+    Sampler samplers1[2] = {
+        Sampler{last_sampler->sampler, colour[0]}, Sampler{m_depthCopySampler, depth[0]}};
+    auto pip = score::gfx::buildPipelineWithState(
+        renderer, renderer.defaultTriangle(), vertexS, fragmentS, renderTarget, nullptr,
+        m_materialUBO, samplers1, {}, depthCopyState(lastPassState()), 0, false, 3,
+        {&blend, 1});
+    ret.first = Pass{renderTarget, pip, nullptr};
+    ret.second = ret.first;
 
-    // The blit comes after every pass: it shows what the persistent last pass
-    // rendered this frame.
-    const int lastPass = (int)m_passSamplers.size() - 1;
-    const int blitPass = lastPass + 1;
-    Sampler samplers1[1] = {Sampler{
-        last_sampler->sampler,
-        last_sampler->textures[persistentTextureIndex(lastPass, blitPass, 0)]}};
+    Sampler samplers2[2] = {
+        Sampler{last_sampler->sampler, colour[1]}, Sampler{m_depthCopySampler, depth[1]}};
+    ret.second.p.srb = score::gfx::createDefaultBindings(
+        renderer, ret.second.renderTarget, nullptr, m_materialUBO, samplers2);
+  }
+  else
+  {
+    Sampler samplers1[1] = {Sampler{last_sampler->sampler, colour[0]}};
     auto pip = score::gfx::buildPipeline(
         renderer, renderer.defaultTriangle(), vertexS, fragmentS, renderTarget, nullptr,
         m_materialUBO, samplers1, blendFor(alpha, composite));
     ret.first = Pass{renderTarget, pip, nullptr};
     ret.second = ret.first;
 
-    Sampler samplers2[1] = {Sampler{
-        last_sampler->sampler,
-        last_sampler->textures[persistentTextureIndex(lastPass, blitPass, 1)]}};
+    Sampler samplers2[1] = {Sampler{last_sampler->sampler, colour[1]}};
     ret.second.p.srb = score::gfx::createDefaultBindings(
         renderer, ret.second.renderTarget, nullptr, m_materialUBO, samplers2);
   }
@@ -369,6 +472,7 @@ std::pair<Pass, Pass> RenderedISFNode::createPass(
 {
   std::pair<Pass, Pass> ret;
   QRhi& rhi = *renderer.state.rhi;
+  const bool lastPass = passIndex + 1 == (int)n.descriptor().passes.size();
 
   QRhiBuffer* pubo{};
   pubo = rhi.newBuffer(
@@ -416,9 +520,12 @@ std::pair<Pass, Pass> RenderedISFNode::createPass(
         // Depth attachment on the same terms as the node's final target: a
         // shader that writes gl_FragDepth needs one in every pass it runs in,
         // or Metal refuses the pipeline.
+        // The last pass's own target, copied into the destination with its
+        // depth (createFinalPass): that depth is sampled, so with MSAA it
+        // needs the single-sample resolve a samplable depth gets.
         renderTarget = score::gfx::createRenderTarget(
             renderer.state, psampler->textures[0], renderer.samples(),
-            n.requiresDepth);
+            n.requiresDepth, lastPass && lastPassCarriesDepth());
         m_innerPassTargets.push_back(renderTarget);
         // createRenderTarget returns a default-constructed (null) target when
         // the backend refuses one -- renderTargetFailed() releases what it made
@@ -485,7 +592,7 @@ std::pair<Pass, Pass> RenderedISFNode::createPass(
       {
         ret.second.renderTarget = score::gfx::createRenderTarget(
             renderer.state, psampler->textures[1], renderer.samples(),
-            n.requiresDepth);
+            n.requiresDepth, lastPass && lastPassCarriesDepth());
         m_innerPassTargets.push_back(ret.second.renderTarget);
         // Same null-on-refusal contract as the intermediary pass above.
         if(ret.second.renderTarget.texture)
@@ -542,14 +649,15 @@ void RenderedISFNode::initPasses(
     if(const auto fmt = passTextureFormat(lastModel); isSingleChannel(fmt))
       lastPassDirect &= fmt == rtFormat;
   }
-  // The blit copies colour only: the depth the last pass writes stays in its
-  // own target.
-  if(!lastPassDirect && n.requiresDepth && !m_warnedLastPassDepth)
+  // Such a last pass's depth reaches the destination through the copy
+  // (createFinalPass), which needs a depth attachment there.
+  if(!lastPassDirect && lastPassCarriesDepth() && !hasDepthAttachment(rt)
+     && !m_warnedLastPassDepth)
   {
     m_warnedLastPassDepth = true;
     qWarning() << "ISF: the last pass renders into its own target (its size, a "
-                  "single-channel FORMAT or PERSISTENT), whose depth does not "
-                  "reach the destination";
+                  "single-channel FORMAT or PERSISTENT) and its destination has "
+                  "no depth attachment: its depth does not reach it";
   }
 
   for(auto& pass : model_passes)
@@ -1054,6 +1162,9 @@ void RenderedISFNode::releaseState(RenderList& r)
   for(auto rt : m_innerPassTargets)
     rt.release();
   m_innerPassTargets.clear();
+
+  delete m_depthCopySampler;
+  m_depthCopySampler = nullptr;
 
   for(auto sampler : m_inputSamplers)
   {

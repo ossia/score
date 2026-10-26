@@ -63,6 +63,9 @@ private:
   std::vector<int> m_storageImageSamplers;
   std::vector<Sampler> m_audioSamplers;
   ossia::small_flat_map<Edge*, QRhiSampler*, 4> m_blitSamplersByEdge;
+  // Nearest sampler of the depth OUTPUT the colour copies carry
+  // (initMRTBlitPass); only made for a shader whose depth travels.
+  QRhiSampler* m_depthCopySampler{};
 
   const Mesh* m_mesh{};
   MeshBuffers m_meshBuffer{};

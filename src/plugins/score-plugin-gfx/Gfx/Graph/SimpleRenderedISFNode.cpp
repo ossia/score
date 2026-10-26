@@ -53,6 +53,27 @@ layout(location = 0) out vec4 fragColor;
 void main() { fragColor = texture(blitTexture, v_texcoord); }
 )_";
 
+// The copy of a colour output that also carries the node's depth OUTPUT into
+// the consumer's depth attachment, so that a reader's `_depth` companion sees
+// it. Depth is never filtered: blitDepth has a nearest sampler.
+static const constexpr auto blit_depth_fs = R"_(#version 450
+layout(std140, binding = 0) uniform renderer_t {
+  mat4 clipSpaceCorrMatrix;
+  vec2 renderSize;
+} renderer;
+
+layout(binding = 3) uniform sampler2D blitTexture;
+layout(binding = 4) uniform sampler2D blitDepth;
+layout(location = 0) in vec2 v_texcoord;
+layout(location = 0) out vec4 fragColor;
+
+void main()
+{
+  fragColor = texture(blitTexture, v_texcoord);
+  gl_FragDepth = texture(blitDepth, v_texcoord).r;
+}
+)_";
+
 // Same copy, for an output declared with LAYERS > 1. The attachment is then a
 // QRhiTexture created with newTextureArray, i.e. a VK_IMAGE_VIEW_TYPE_2D_ARRAY
 // view, and binding it to the sampler2D above is a descriptor-type violation:
@@ -480,8 +501,25 @@ void SimpleRenderedISFNode::initMRTBlitPass(RenderList& renderer, QRhiResourceUp
   // Pick the blit shader by the texture KIND, not by assuming 2D: a LAYERS > 1
   // output is a texture array and needs a sampler2DArray descriptor.
   const bool isArray = srcTex->flags().testFlag(QRhiTexture::TextureArray);
+
+  // A colour output's copy carries the depth OUTPUT along, when the shader
+  // writes it on every backend (it declares DEPTH_TEST and DEPTH_WRITE) and
+  // the consumer has a depth attachment. A layered depth OUTPUT is not
+  // carried: the copy shows layer 0 of the colour only.
+  const auto mrtState = mergeState(
+      n.descriptor().default_state,
+      n.descriptor().passes.empty() ? isf::pipeline_state{}
+                                    : n.descriptor().passes[0].override_state);
+  QRhiTexture* depthTex = m_mrtRenderTarget.depthTexture;
+  const bool copyDepth
+      = srcTex != depthTex && depthTex && !isArray
+        && !depthTex->flags().testFlag(QRhiTexture::TextureArray)
+        && depthTex->sampleCount() <= 1 && declaresDepthWrite(mrtState)
+        && (rt.depthTexture || rt.depthRenderBuffer || rt.msDepthTexture);
+
   auto [vertexS, fragmentS] = score::gfx::makeShaders(
-      renderer.state, blit_vs, isArray ? blit_array_fs : blit_fs);
+      renderer.state, blit_vs,
+      isArray ? blit_array_fs : copyDepth ? blit_depth_fs : blit_fs);
 
   QRhiSampler* sampler = renderer.state.rhi->newSampler(
       QRhiSampler::Linear, QRhiSampler::Linear, QRhiSampler::None,
@@ -494,9 +532,29 @@ void SimpleRenderedISFNode::initMRTBlitPass(RenderList& renderer, QRhiResourceUp
       n.descriptor(), colorOutputDeclaration(n.descriptor(), n, *edge.source));
   if(rt.texture && !formatSupportsBlending(rt.texture->format()))
     blend = {};
-  auto pip = score::gfx::buildPipeline(
-      renderer, *m_mesh, vertexS, fragmentS, rt, nullptr, nullptr,
-      std::array<Sampler, 1>{Sampler{sampler, srcTex}}, blend);
+  Pipeline pip;
+  if(copyDepth)
+  {
+    if(!m_depthCopySampler)
+    {
+      m_depthCopySampler = renderer.state.rhi->newSampler(
+          QRhiSampler::Nearest, QRhiSampler::Nearest, QRhiSampler::None,
+          QRhiSampler::ClampToEdge, QRhiSampler::ClampToEdge);
+      m_depthCopySampler->setName("SimpleRenderedISFNode::MRT::depthCopySampler");
+      m_depthCopySampler->create();
+    }
+    pip = score::gfx::buildPipelineWithState(
+        renderer, *m_mesh, vertexS, fragmentS, rt, nullptr, nullptr,
+        std::array<Sampler, 2>{
+            Sampler{sampler, srcTex}, Sampler{m_depthCopySampler, depthTex}},
+        {}, depthCopyState(mrtState), 0, false, 3, {&blend, 1});
+  }
+  else
+  {
+    pip = score::gfx::buildPipeline(
+        renderer, *m_mesh, vertexS, fragmentS, rt, nullptr, nullptr,
+        std::array<Sampler, 1>{Sampler{sampler, srcTex}}, blend);
+  }
 
   if(pip.pipeline)
   {
@@ -780,6 +838,8 @@ void SimpleRenderedISFNode::releaseState(RenderList& r)
     delete sampler;
   }
   m_blitSamplersByEdge.clear();
+  delete m_depthCopySampler;
+  m_depthCopySampler = nullptr;
 
   delete m_materialUBO;
   m_materialUBO = nullptr;

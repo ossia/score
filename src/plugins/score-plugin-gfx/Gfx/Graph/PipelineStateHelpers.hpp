@@ -178,6 +178,19 @@ bool formatSupportsBlending(QRhiTexture::Format f) noexcept;
 SCORE_PLUGIN_GFX_EXPORT
 isf::pipeline_state mergeState(isf::pipeline_state base, const isf::pipeline_state& over);
 
+// Whether a pipeline built from `state` writes depth on every backend: it
+// declares DEPTH_TEST and DEPTH_WRITE. With the test off, Vulkan and OpenGL
+// write no depth (Metal does), and the ISF quad has it off unless declared.
+SCORE_PLUGIN_GFX_EXPORT
+bool declaresDepthWrite(const isf::pipeline_state& state) noexcept;
+
+// The state of a copy that carries the depth a pass wrote with `source` into
+// another target: test and write on, with the source's compare, so that the
+// copy depth-tests against the other producers of that target as drawing the
+// pass there would have.
+SCORE_PLUGIN_GFX_EXPORT
+isf::pipeline_state depthCopyState(const isf::pipeline_state& source);
+
 // Returns true if the state has any field set (i.e. would affect a pipeline).
 SCORE_PLUGIN_GFX_EXPORT
 bool stateAffectsPipeline(const isf::pipeline_state&) noexcept;

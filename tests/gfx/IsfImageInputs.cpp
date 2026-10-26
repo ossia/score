@@ -135,10 +135,11 @@ TEST_CASE(
 // isf-image-depth: image input declared DEPTH:true, fed by the depth+color MRT
 // producer. Left half samples the color (IMG_NORM_PIXEL), right half samples
 // the depth (IMG_DEPTH_NORM_PIXEL). Assert it renders and the color (left) half
-// is non-degenerate and agrees across backends. The DEPTH (right) half reads
-// back black through this linear chain — the fixture wires only output[0]
-// (color) upstream, so the sibling depth attachment is not delivered to the
-// depth sampler; that gap is documented (needs a depth-aware chain edge).
+// is non-degenerate and agrees across backends. The DEPTH (right) half is not
+// asserted: the producer declares no PIPELINE_STATE, so its depth OUTPUT is
+// not written on Vulkan and OpenGL, and the copy of its colour output carries
+// that OUTPUT's depth only for a shader that declares DEPTH_TEST and
+// DEPTH_WRITE. GfxIsfDepthTravel.cpp checks the depth value of that case.
 // -----------------------------------------------------------------------------
 TEST_CASE(
     "isf-image-depth samples a color+depth producer", "[gfx][l3][isf][image][depth]")

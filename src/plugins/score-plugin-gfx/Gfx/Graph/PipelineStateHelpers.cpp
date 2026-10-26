@@ -503,6 +503,20 @@ bool stateAffectsPipeline(const isf::pipeline_state& s) noexcept
   // intentionally absent from this check.
 }
 
+bool declaresDepthWrite(const isf::pipeline_state& state) noexcept
+{
+  return state.depth_test.value_or(false) && state.depth_write.value_or(false);
+}
+
+isf::pipeline_state depthCopyState(const isf::pipeline_state& source)
+{
+  isf::pipeline_state copy;
+  copy.depth_test = true;
+  copy.depth_write = true;
+  copy.depth_compare = source.depth_compare;
+  return copy;
+}
+
 void dropStencilWithoutAttachment(
     QRhiGraphicsPipeline& pip, bool stencilAttachmentAvailable,
     std::string_view what) noexcept

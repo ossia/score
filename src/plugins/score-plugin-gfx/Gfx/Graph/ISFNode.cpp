@@ -1,5 +1,6 @@
 #include <Gfx/Graph/ISFNode.hpp>
 #include <Gfx/Graph/ISFVisitors.hpp>
+#include <Gfx/Graph/PipelineStateHelpers.hpp>
 #include <Gfx/Graph/RenderedCSFNode.hpp>
 #include <Gfx/Graph/RenderedISFNode.hpp>
 #include <Gfx/Graph/RenderedRawRasterPipelineNode.hpp>
@@ -10,7 +11,11 @@
 
 #include <boost/algorithm/string/replace.hpp>
 
+#include <ossia/detail/algorithms.hpp>
+#include <ossia/detail/hash_map.hpp>
+
 #include <algorithm>
+#include <mutex>
 
 namespace score::gfx
 {
@@ -354,6 +359,31 @@ bool writesFragDepth(QStringView frag) noexcept
   }
   return false;
 }
+
+//! A fragment ISF that writes depth, gl_FragDepth or a depth OUTPUT, has its
+//! depth written on every backend only when its last pass declares DEPTH_TEST
+//! and DEPTH_WRITE: the ISF quad's pipeline has the test off otherwise, and
+//! Vulkan and OpenGL write no depth with the test off (Metal does). The
+//! engine does not turn it on by itself, as a shader that asks for nothing
+//! pays for no depth: say so once per shader.
+void warnUndeclaredDepthWrite(const isf::descriptor& desc, const QString& frag)
+{
+  const auto state = desc.passes.empty()
+                         ? desc.default_state
+                         : score::gfx::mergeState(
+                               desc.default_state, desc.passes.back().override_state);
+  if(score::gfx::declaresDepthWrite(state))
+    return;
+  static std::mutex mutex;
+  static ossia::hash_set<std::size_t> warned;
+  std::lock_guard lock{mutex};
+  if(!warned.insert(qHash(frag)).second)
+    return;
+  qWarning() << "ISF: the shader writes depth but its PIPELINE_STATE does not "
+                "declare DEPTH_TEST and DEPTH_WRITE: Vulkan and OpenGL drop that "
+                "depth. Declare e.g. \"PIPELINE_STATE\": { \"DEPTH_TEST\": true, "
+                "\"DEPTH_WRITE\": true, \"DEPTH_COMPARE\": \"always\" }";
+}
 }
 
 struct ISFNode::SizeExpressions
@@ -387,8 +417,15 @@ ISFNode::ISFNode(const isf::descriptor& desc, const QString& vert, const QString
     this->requiresDepth = true;
   }
 
+  const bool writesDepth = desc.mode == isf::descriptor::ISF
+                           && (writesFragDepth(frag)
+                               || ossia::any_of(desc.outputs, [](const auto& out) {
+                                    return out.type == "depth";
+                                  }));
   if(writesFragDepth(frag))
     this->requiresDepth = true;
+  if(writesDepth)
+    warnUndeclaredDepthWrite(desc, frag);
 
   // Size of the inputs
   for(const isf::input& input : desc.inputs)

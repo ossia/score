@@ -64,6 +64,13 @@ private:
       const TextureRenderTarget& rt, RenderList& renderer, Edge& edge, QSize mainTexSize,
       QRhiResourceUpdateBatch& res);
 
+  //! The last pass's merged pipeline state.
+  isf::pipeline_state lastPassState() const;
+  //! Whether the last pass writes a depth that a copy from its own target
+  //! carries into the destination: the shader writes depth and declares
+  //! DEPTH_TEST and DEPTH_WRITE for that pass.
+  bool lastPassCarriesDepth() const;
+
   //! Whether a pass sized by an expression would now get another size.
   bool passSizesChanged(RenderList& renderer);
 
@@ -132,6 +139,10 @@ private:
   int64_t m_lastStorageSwapFrame{-1};
 
   int64_t m_frameIndexFrame{-1};
+
+  // Nearest sampler of the depth the copy of a last pass with its own target
+  // carries (createFinalPass); only made for a shader whose depth travels.
+  QRhiSampler* m_depthCopySampler{};
 
   // initPasses warned that the last pass's depth stays in its own target.
   bool m_warnedLastPassDepth{};
