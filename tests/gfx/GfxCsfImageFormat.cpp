@@ -14,6 +14,8 @@
 #include <QFile>
 #include <QTemporaryDir>
 
+#include <vector>
+
 using namespace score::test::gfx;
 
 namespace
@@ -44,13 +46,18 @@ struct Case
 TEST_CASE("a CSF storage image is allocated in its FORMAT", "[gfx][csf][format][C15]")
 {
   const auto be = GENERATE(from_range(platform_backends()));
-  const auto c = GENERATE(
+  // The integer formats arrived in Qt 6.10; below it the engine falls back
+  // for them (Utils.cpp), so only the float formats are asked of it.
+  const auto c = GENERATE(from_range(std::vector<Case>{
       Case{"rgba16f", "vec4(1.0)", QRhiTexture::RGBA16F},
       Case{"rgb10_a2", "vec4(1.0)", QRhiTexture::RGB10A2},
       Case{"rg16", "vec4(1.0)", QRhiTexture::RG16},
+#if QT_VERSION >= QT_VERSION_CHECK(6, 10, 0)
       Case{"r32i", "ivec4(1)", QRhiTexture::R32SI},
       Case{"rg32i", "ivec4(1)", QRhiTexture::RG32SI},
-      Case{"r32ui", "uvec4(1u)", QRhiTexture::R32UI});
+      Case{"r32ui", "uvec4(1u)", QRhiTexture::R32UI},
+#endif
+  }));
   CAPTURE(backend_name(be), c.format);
 
   QTemporaryDir dir;

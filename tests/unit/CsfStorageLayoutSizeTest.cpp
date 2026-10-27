@@ -21,7 +21,7 @@
 #include <catch2/generators/catch_generators.hpp>
 
 #include <QString>
-#include <rhi/qshader.h>
+#include <QtGui/private/qshader_p.h>
 
 #include <string>
 #include <vector>

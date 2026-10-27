@@ -37,9 +37,11 @@ struct Fixture
     rhi.reset(QRhi::create(QRhi::Null, &params));
     state.rhi = rhi.get();
     state.api = GraphicsApi::Null;
-    commands.reset(rhi->newBuffer(
-        QRhiBuffer::Static, QRhiBuffer::StorageBuffer | QRhiBuffer::IndirectBuffer,
-        slots * 20));
+    QRhiBuffer::UsageFlags usage = QRhiBuffer::StorageBuffer;
+#if QT_VERSION >= QT_VERSION_CHECK(6, 12, 0)
+    usage |= QRhiBuffer::IndirectBuffer;
+#endif
+    commands.reset(rhi->newBuffer(QRhiBuffer::Static, usage, slots * 20));
     count.reset(rhi->newBuffer(QRhiBuffer::Static, QRhiBuffer::StorageBuffer, 4));
     commands->create();
     count->create();

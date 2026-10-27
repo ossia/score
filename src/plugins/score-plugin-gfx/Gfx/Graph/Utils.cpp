@@ -25,6 +25,11 @@
 #if QT_HAS_VULKAN
 #include <QVulkanFunctions>
 #include <QVulkanInstance>
+#if __has_include(<QtGui/rhi/qrhi_platform.h>)
+#include <QtGui/rhi/qrhi_platform.h>
+#else
+#include <QtGui/private/qrhivulkan_p.h>
+#endif
 #endif
 #include <QRegularExpression>
 
@@ -2714,6 +2719,21 @@ int storageImageUnitLimit(QRhi& rhi)
   return units > 0 ? units : 8;
 }
 
+#if QT_HAS_VULKAN
+//! The instance the Vulkan QRhi was created with. The native handles carry it
+//! from Qt 6.6; below that it is the process's shared instance, as in
+//! HWAccelSetup.cpp.
+static QVulkanInstance* rhiVulkanInstance(const QRhiVulkanNativeHandles& nh) noexcept
+{
+#if QT_VERSION >= QT_VERSION_CHECK(6, 6, 0)
+  return nh.inst;
+#else
+  (void)nh;
+  return staticVulkanInstance(false);
+#endif
+}
+#endif
+
 int64_t storageBufferSizeLimit(QRhi& rhi)
 {
   constexpr int64_t rhi_limit = std::numeric_limits<quint32>::max();
@@ -2722,10 +2742,11 @@ int64_t storageBufferSizeLimit(QRhi& rhi)
   if(rhi.backend() == QRhi::Vulkan)
   {
     auto* nh = static_cast<const QRhiVulkanNativeHandles*>(rhi.nativeHandles());
-    if(nh && nh->inst && nh->physDev)
+    QVulkanInstance* const inst = nh ? rhiVulkanInstance(*nh) : nullptr;
+    if(inst && nh->physDev)
     {
       VkPhysicalDeviceProperties props{};
-      nh->inst->functions()->vkGetPhysicalDeviceProperties(nh->physDev, &props);
+      inst->functions()->vkGetPhysicalDeviceProperties(nh->physDev, &props);
       device = props.limits.maxStorageBufferRange;
     }
   }
@@ -2767,10 +2788,11 @@ int64_t bufferOffsetAlignment(QRhi& rhi, bool uniform)
   if(rhi.backend() == QRhi::Vulkan)
   {
     auto* nh = static_cast<const QRhiVulkanNativeHandles*>(rhi.nativeHandles());
-    if(nh && nh->inst && nh->physDev)
+    QVulkanInstance* const inst = nh ? rhiVulkanInstance(*nh) : nullptr;
+    if(inst && nh->physDev)
     {
       VkPhysicalDeviceProperties props{};
-      nh->inst->functions()->vkGetPhysicalDeviceProperties(nh->physDev, &props);
+      inst->functions()->vkGetPhysicalDeviceProperties(nh->physDev, &props);
       align = (int64_t)props.limits.minStorageBufferOffsetAlignment;
     }
   }
@@ -2923,7 +2945,7 @@ QRhiTexture* createStorageImagePlaceholder(
   QList<QRhiTextureUploadEntry> entries;
   for(int layer = 0; layer < layers; layer++)
   {
-    QRhiTextureSubresourceUploadDescription sub{zero.constData(), quint32(zero.size())};
+    QRhiTextureSubresourceUploadDescription sub{zero};
     sub.setSourceSize(size);
     entries.push_back(QRhiTextureUploadEntry{layer, 0, sub});
   }

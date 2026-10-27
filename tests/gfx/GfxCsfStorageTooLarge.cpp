@@ -22,7 +22,10 @@
 #include <QVulkanFunctions>
 #include <QVulkanInstance>
 #endif
-#include <rhi/qrhi.h>
+#include <QtGui/private/qrhi_p.h>
+#if QT_CONFIG(vulkan) && __has_include(<QtGui/rhi/qrhi_platform.h>)
+#include <QtGui/rhi/qrhi_platform.h>
+#endif
 
 using namespace score::test::gfx;
 
@@ -30,10 +33,11 @@ namespace
 {
 // The device's largest bindable storage buffer, queried here independently of
 // the engine: Vulkan maxStorageBufferRange, GL MAX_SHADER_STORAGE_BLOCK_SIZE.
-// -1 where the backend does not expose it.
+// -1 where the backend does not expose it. The Vulkan native handles carry
+// the instance from Qt 6.6 (and live in qrhi_platform.h from 6.6 too).
 int64_t deviceStorageBufferLimit(QRhi& rhi)
 {
-#if QT_CONFIG(vulkan)
+#if QT_CONFIG(vulkan) && QT_VERSION >= QT_VERSION_CHECK(6, 6, 0)
   if(rhi.backend() == QRhi::Vulkan)
   {
     auto* nh = static_cast<const QRhiVulkanNativeHandles*>(rhi.nativeHandles());

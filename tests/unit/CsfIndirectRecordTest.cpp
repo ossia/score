@@ -11,7 +11,7 @@
 #include <catch2/catch_test_macros.hpp>
 
 #include <QString>
-#include <rhi/qshader.h>
+#include <QtGui/private/qshader_p.h>
 
 #include <map>
 #include <string>
