@@ -121,6 +121,12 @@ bool same_field(const Field& a, const Field& b)
   return same(a.value, b.value);
 }
 
+//! A field a preset gives a value to: raw ports hold a pointer, not a value.
+template <typename F>
+concept preset_settable
+    = requires(F& f) { f.value; }
+      && !std::is_pointer_v<std::remove_cvref_t<decltype(std::declval<F&>().value)>>;
+
 template <typename Info>
 void check_folder(
     score::Document& doc, const QString& folder, const QString& uuid, bool as_host)
@@ -184,10 +190,7 @@ void check_folder(
           return;
         // A port that is not a control, e.g. a raw value port, has no value
         // a preset sets.
-        using field_type = std::decay_t<decltype(field)>;
-        if constexpr(requires(field_type& f) {
-                       requires !std::is_pointer_v<decltype(f.value)>;
-                     })
+        if constexpr(preset_settable<std::decay_t<decltype(field)>>)
         {
           convert(field, ctl->value());
           int k = 0;
