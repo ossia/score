@@ -400,7 +400,8 @@ BufferRange bindableRange(
                                                     : BufferRange{};
   // blockRefusal refuses an offset the device cannot bind at, so a refused
   // buffer never reaches here; this is the safety net, warned once per buffer.
-  const int64_t alignment = buf->rhi() ? bufferOffsetAlignment(*buf->rhi(), uniform) : 256;
+  QRhi* const bufRhi = resourceRhi(*buf);
+  const int64_t alignment = bufRhi ? bufferOffsetAlignment(*bufRhi, uniform) : 256;
   if(offset % alignment != 0)
   {
     static std::unordered_set<std::size_t> warned;
@@ -437,9 +438,9 @@ QString blockRefusal(
         "is declared storage but the producer publishes a buffer without "
         "StorageBuffer usage; the block keeps its zero-filled placeholder. Declare "
         "it as uniform, or have the producer publish a storage buffer.");
-  if(offset > 0 && buf->rhi())
+  if(QRhi* const bufRhi = resourceRhi(*buf); offset > 0 && bufRhi)
   {
-    const int64_t alignment = bufferOffsetAlignment(*buf->rhi(), uniform);
+    const int64_t alignment = bufferOffsetAlignment(*bufRhi, uniform);
     if(offset % alignment != 0)
       return QStringLiteral(
                  "is published at byte offset %1, which this device cannot bind a "

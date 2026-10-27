@@ -1147,7 +1147,9 @@ void RenderList::dropAdoptedBuffer(QRhi& rhi, QRhiBuffer* buf)
     // QRhi), as the direct release path asserts.
     if(free)
     {
+#if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
       SCORE_ASSERT(buf->rhi() == &rhi);
+#endif
       recordRetirement(buf, &rhi);
     }
   }

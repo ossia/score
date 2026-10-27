@@ -257,7 +257,9 @@ QRhiShaderResourceBinding storageBufferBinding(
   // A refused offset never reaches here (blockRefusal at adoption); this is
   // the safety net.
   const int64_t alignment
-      = buf && buf->rhi() ? score::gfx::bufferOffsetAlignment(*buf->rhi(), false) : 256;
+      = buf && score::gfx::resourceRhi(*buf)
+            ? score::gfx::bufferOffsetAlignment(*score::gfx::resourceRhi(*buf), false)
+            : 256;
   const bool aligned = offset % alignment == 0;
   const bool ranged = size > 0 && offset >= 0 && offset < capacity && aligned
                       && (offset > 0 || size < capacity);

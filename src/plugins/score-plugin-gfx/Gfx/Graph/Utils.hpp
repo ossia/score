@@ -1126,6 +1126,19 @@ int64_t storageBufferSizeLimit(QRhi& rhi);
 SCORE_PLUGIN_GFX_EXPORT
 int64_t bufferOffsetAlignment(QRhi& rhi, bool uniform);
 
+//! The QRhi a resource was created with. QRhiResource::rhi() arrived in Qt
+//! 6.5; below it this is null and callers take their device-independent
+//! fallback.
+inline QRhi* resourceRhi(const QRhiResource& r) noexcept
+{
+#if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
+  return r.rhi();
+#else
+  (void)r;
+  return nullptr;
+#endif
+}
+
 //! Highest binding of a storage image declared in `glsl`, -1 if none.
 SCORE_PLUGIN_GFX_EXPORT
 int maxStorageImageBinding(QStringView glsl);

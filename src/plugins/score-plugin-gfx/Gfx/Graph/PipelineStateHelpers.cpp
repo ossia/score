@@ -144,7 +144,8 @@ std::unordered_set<quint64> g_unsupportedFans;
 void setSupportedTopology(
     QRhiGraphicsPipeline& ps, QRhiGraphicsPipeline::Topology requested) noexcept
 {
-  const auto t = ps.rhi() ? supportedTopology(*ps.rhi(), requested) : requested;
+  QRhi* rhi = resourceRhi(ps);
+  const auto t = rhi ? supportedTopology(*rhi, requested) : requested;
   ps.setTopology(t);
   const bool demoted = t != requested;
   std::lock_guard lock{g_unsupportedFansMutex};
@@ -156,7 +157,7 @@ void setSupportedTopology(
   if(g_unsupportedFans.insert(ps.globalResourceId()).second)
     qWarning().noquote()
         << "score.gfx: triangle fans are not supported by this graphics backend ("
-        << (ps.rhi() ? ps.rhi()->backendName() : "?")
+        << (resourceRhi(ps) ? resourceRhi(ps)->backendName() : "?")
         << ") and this triangle fan cannot be converted to a triangle list (a "
            "procedural draw, a GPU index buffer or an indirect draw): it is not "
            "drawn." << ps.name();
