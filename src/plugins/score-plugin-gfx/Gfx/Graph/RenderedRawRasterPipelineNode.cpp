@@ -2353,6 +2353,9 @@ void RenderedRawRasterPipelineNode::initMRTPass(
         publishedDepthAttached = true;
         return nullptr;
       }
+#if QT_VERSION >= QT_VERSION_CHECK(6, 12, 0)
+      // Below 6.12 there is no setDepthLayer: a layered iteration falls
+      // through to a scratch depth, as the per-layer path below does.
       if(array && layer >= 0 && depthTex->arraySize() == layerCount)
       {
         desc.setDepthTexture(depthTex);
@@ -2360,6 +2363,7 @@ void RenderedRawRasterPipelineNode::initMRTPass(
         publishedDepthAttached = true;
         return nullptr;
       }
+#endif
     }
     // One scratch depth per size serves every iteration of that size; the
     // first iteration's entry owns it.
