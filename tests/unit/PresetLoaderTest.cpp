@@ -184,7 +184,10 @@ void check_folder(
           return;
         // A port that is not a control, e.g. a raw value port, has no value
         // a preset sets.
-        if constexpr(requires { requires !std::is_pointer_v<decltype(field.value)>; })
+        using field_type = std::decay_t<decltype(field)>;
+        if constexpr(requires(field_type& f) {
+                       requires !std::is_pointer_v<decltype(f.value)>;
+                     })
         {
           convert(field, ctl->value());
           int k = 0;
