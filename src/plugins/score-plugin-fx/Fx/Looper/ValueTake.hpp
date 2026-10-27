@@ -4,10 +4,11 @@
 
 #include <ossia/network/value/value.hpp>
 
+#include <fmt/format.h>
+
 #include <algorithm>
 #include <array>
 #include <atomic>
-#include <charconv>
 #include <cmath>
 #include <filesystem>
 #include <fstream>
@@ -238,9 +239,7 @@ struct value_export
       out += "0";
       return;
     }
-    char buf[64];
-    auto r = std::to_chars(buf, buf + sizeof(buf), x);
-    out.append(buf, r.ptr);
+    fmt::format_to(std::back_inserter(out), "{}", x);
   }
   static void write_number(std::string& out, float x)
   {
@@ -249,9 +248,7 @@ struct value_export
       out += "0";
       return;
     }
-    char buf[64];
-    auto r = std::to_chars(buf, buf + sizeof(buf), x);
-    out.append(buf, r.ptr);
+    fmt::format_to(std::back_inserter(out), "{}", x);
   }
   static void write_string(std::string& out, std::string_view s)
   {
