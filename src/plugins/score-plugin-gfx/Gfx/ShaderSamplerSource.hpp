@@ -1,7 +1,13 @@
 #pragma once
-#include <isf.hpp>
-
 #include <score_plugin_gfx_export.h>
+
+// Forward declarations only: TexturePort.hpp includes this header, and
+// addons build against TexturePort.hpp without libisf on their include path.
+namespace isf
+{
+struct descriptor;
+struct sampler_config;
+}
 
 class QString;
 namespace Gfx

@@ -15,6 +15,7 @@
 #include <Gfx/Graph/Utils.hpp>
 #include <Gfx/Widgets/RhiPreviewWidget.hpp>
 #include <Inspector/InspectorLayout.hpp>
+#include <isf.hpp>
 
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/command/Dispatchers/SingleOngoingCommandDispatcher.hpp>

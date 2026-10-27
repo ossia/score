@@ -17,6 +17,8 @@
 #include <Gfx/Graph/Utils.hpp>
 #include <Gfx/TexturePort.hpp>
 
+#include <isf.hpp>
+
 #include <score/model/EntitySerialization.hpp>
 #include <score/plugins/SerializableHelpers.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
