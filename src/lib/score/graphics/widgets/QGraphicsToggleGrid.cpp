@@ -23,10 +23,10 @@ namespace score
 {
 namespace
 {
-constexpr qreal cell_h = 14.;
-constexpr qreal gap = 1.;
-constexpr qreal min_cell_w = 16.;
-constexpr qreal text_margin = 6.;
+constexpr qreal toggle_cell_h = 14.;
+constexpr qreal toggle_gap = 1.;
+constexpr qreal toggle_min_cell_w = 16.;
+constexpr qreal toggle_text_margin = 6.;
 }
 
 QGraphicsToggleGrid::QGraphicsToggleGrid(QGraphicsItem* parent)
@@ -47,9 +47,9 @@ void QGraphicsToggleGrid::setLabels(QStringList labels, int perRow)
   m_perRow = std::max(1, perRow);
 
   const QFontMetricsF metrics{score::Skin::instance().Medium7Pt};
-  m_cellWidth = min_cell_w;
+  m_cellWidth = toggle_min_cell_w;
   for(const auto& l : m_labels)
-    m_cellWidth = std::max(m_cellWidth, metrics.horizontalAdvance(l) + text_margin);
+    m_cellWidth = std::max(m_cellWidth, metrics.horizontalAdvance(l) + toggle_text_margin);
   update();
 }
 
@@ -132,13 +132,13 @@ QRectF QGraphicsToggleGrid::cellRect(int cell) const noexcept
   const int row = cell / m_perRow;
   const int col = cell % m_perRow;
   return QRectF{
-      col * (m_cellWidth + gap), row * (cell_h + gap), m_cellWidth, cell_h};
+      col * (m_cellWidth + toggle_gap), row * (toggle_cell_h + toggle_gap), m_cellWidth, toggle_cell_h};
 }
 
 int QGraphicsToggleGrid::cellAt(QPointF p) const noexcept
 {
   for(int c = 0; c < std::ssize(m_on); c++)
-    if(cellRect(c).adjusted(-gap, -gap, gap, gap).contains(p))
+    if(cellRect(c).adjusted(-toggle_gap, -toggle_gap, toggle_gap, toggle_gap).contains(p))
       return c;
   return -1;
 }
@@ -239,7 +239,7 @@ QRectF QGraphicsToggleGrid::boundingRect() const
   const int n = std::max<int>(1, m_on.size());
   const int cols = std::min(n, m_perRow);
   const int rows = (n + m_perRow - 1) / m_perRow;
-  return QRectF{0., 0., cols * (m_cellWidth + gap), rows * (cell_h + gap)};
+  return QRectF{0., 0., cols * (m_cellWidth + toggle_gap), rows * (toggle_cell_h + toggle_gap)};
 }
 
 void QGraphicsToggleGrid::paint(
