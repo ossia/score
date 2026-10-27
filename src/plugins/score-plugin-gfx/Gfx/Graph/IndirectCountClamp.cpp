@@ -124,9 +124,11 @@ QRhiBuffer* IndirectCountClamp::run(
   }
   if(!m_clamped)
   {
-    m_clamped = rhi.newBuffer(
-        QRhiBuffer::Static,
-        QRhiBuffer::StorageBuffer | QRhiBuffer::IndirectBuffer, clampedSize);
+    QRhiBuffer::UsageFlags usage = QRhiBuffer::StorageBuffer;
+#if QT_VERSION >= QT_VERSION_CHECK(6, 12, 0)
+    usage |= QRhiBuffer::IndirectBuffer;
+#endif
+    m_clamped = rhi.newBuffer(QRhiBuffer::Static, usage, clampedSize);
     m_clamped->setName("IndirectCountClamp_commands");
     if(!m_clamped->create())
     {
