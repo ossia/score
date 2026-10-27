@@ -11,8 +11,11 @@
 #include <halp/layout.hpp>
 #include <halp/meta.hpp>
 #include <halp/midi.hpp>
+#include <halp/string_list.hpp>
 #include <halp/value_list.hpp>
 #include <libremidi/message.hpp>
+
+#include <ossia/network/value/value.hpp>
 
 #include <algorithm>
 #include <array>
@@ -23,6 +26,7 @@
 #include <random>
 #include <string>
 #include <string_view>
+#include <vector>
 
 namespace Nodes
 {
@@ -164,7 +168,19 @@ struct Node
   //! chord.
   static constexpr int max_voices = 12;
   static constexpr int max_intervals = 8;
-  static constexpr int max_memory_text = 4096;
+  //! The memory rows the audio thread reads, as text: 128 keys of up to 12
+  //! intervals.
+  static constexpr int max_memory_text = 128 * 64;
+  //! Identity of the row of a learned key, in the Memory list.
+  static constexpr int memory_row_id = 10000;
+
+  struct learned_chord
+  {
+    int8_t count{};
+    std::array<int8_t, max_voices> offsets{};
+  };
+  //! The learned chord of each key.
+  using memory_table = std::array<learned_chord, 128>;
 
   using midi_out = halp::midi_out_bus<"out", libremidi::message>;
   struct ins
@@ -305,16 +321,33 @@ struct Node
           "will trigger it")
     } learn;
 
-    struct : halp::lineedit<"Memory", "">
+    struct : halp::string_list<"Memory">
     {
       halp_meta(
           description,
-          "Learned chords: key, then semitones from the key, e.g. 60: 0 4 7; "
-          "C3: 12 15 19. Keys may be note names")
-      // Learning writes the table back here from the audio thread: the
-      // binding hands the text over to the UI without allocating.
-      static constexpr std::size_t max_length() { return max_memory_text; }
-      std::function<void(std::string_view)> update_controller;
+          "Learned chords, one row per key: the key, then semitones from the "
+          "key, e.g. C4: 0 4 7 or 62: 0 3 7")
+      // Learning sends the table from the audio thread: the binding copies it
+      // into storage made beforehand, and controller_value makes the rows on
+      // the UI thread.
+      std::function<void(const memory_table&)> update_controller;
+      static halp::string_list_value controller_value(const memory_table& t)
+      {
+        return memory_rows(t);
+      }
+
+      //! Documents and presets saved when the memory was one line of text,
+      //! "60: 0 4 7; 62: 0 3 7", get a row for each entry.
+      static ossia::value upgrade_value(const ossia::value& old)
+      {
+        if(auto text = old.target<std::string>())
+          return rows_value(memory_rows_from_text(*text));
+        return old;
+      }
+      static ossia::value migrate_value(const ossia::value& v)
+      {
+        return upgrade_value(v);
+      }
     } memory;
 
     struct : halp::toggle<"MPE">
@@ -436,12 +469,6 @@ struct Node
   static constexpr std::array<const std::array<int, 5>*, legacy_chord_count> legacy_chords{
       &major7, &minor7, &sus2, &sus4, &dim, &aug};
 
-  struct learned_chord
-  {
-    int8_t count{};
-    std::array<int8_t, max_voices> offsets{};
-  };
-
   Node()
   {
     std::random_device rd;
@@ -556,25 +583,50 @@ private:
 
   // ---------------------------------------------------------------- memory
 
-  //! Parses the memory text when it changed since the last tick. Learning
-  //! edits the table directly, and the text it sends to the control comes
+  //! Parses the memory rows when they changed since the last tick. Learning
+  //! edits the table directly, and the rows it sends to the control come
   //! back here as an ordinary change.
-  void update_memory(std::string_view text) noexcept
+  void update_memory(const halp::string_list_value& rows) noexcept
   {
-    if(text.size() > max_memory_text)
-      text = text.substr(0, max_memory_text);
-    if(m_memory_parsed && text == std::string_view{m_memory_text.data(), m_memory_size})
+    // The rows as one text, a row per line, compared with the last one
+    // without copying it.
+    std::size_t n = 0;
+    bool same = m_memory_parsed;
+    for_each_memory_char(rows, [&](char c) {
+      same = same && n < m_memory_size && m_memory_text[n] == c;
+      n++;
+    });
+    if(same && n == m_memory_size)
       return;
-    std::copy(text.begin(), text.end(), m_memory_text.begin());
-    m_memory_size = text.size();
+    m_memory_size = 0;
+    for_each_memory_char(rows, [&](char c) { m_memory_text[m_memory_size++] = c; });
     m_memory_parsed = true;
-    parse_memory(text, m_memory);
+    parse_memory({m_memory_text.data(), m_memory_size}, m_memory);
+  }
+
+  //! Each character of the rows then a new line, up to max_memory_text.
+  static void
+  for_each_memory_char(const halp::string_list_value& rows, auto&& f) noexcept
+  {
+    std::size_t n = 0;
+    for(const auto& [id, text] : rows)
+    {
+      for(char c : text)
+      {
+        if(n++ >= max_memory_text)
+          return;
+        f(c);
+      }
+      if(n++ >= max_memory_text)
+        return;
+      f('\n');
+    }
   }
 
 public:
   //! "60: 0 4 7; C3: 12 15 19". Entries are separated by ';' or new lines;
   //! an entry that does not parse is skipped.
-  static void parse_memory(std::string_view s, std::array<learned_chord, 128>& table) noexcept
+  static void parse_memory(std::string_view s, memory_table& table) noexcept
   {
     table = {};
     std::size_t start = 0;
@@ -588,41 +640,92 @@ public:
     }
   }
 
-  //! The table as text, in key order. Returns the length written.
-  static std::size_t
-  print_memory(const std::array<learned_chord, 128>& table, char* buf, std::size_t size) noexcept
+  //! "C4: 0 4 7": the key as a note name, then its intervals. Returns the
+  //! length written, at most 64.
+  static std::size_t print_memory_entry(int key, const learned_chord& c, char* buf) noexcept
   {
-    std::size_t n = 0;
+    static constexpr std::string_view names[12]
+        = {"C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"};
+    char* const end = buf + 64;
+    char* p = buf;
+    const auto name = names[key % 12];
+    p = std::copy(name.begin(), name.end(), p);
+    p = std::to_chars(p, end, key / 12 - 1).ptr;
+    *p++ = ':';
+    for(int i = 0; i < c.count; i++)
+    {
+      *p++ = ' ';
+      p = std::to_chars(p, end, int(c.offsets[i])).ptr;
+    }
+    return std::size_t(p - buf);
+  }
+
+  //! The rows of the Memory list for a table: one per learned key, in key
+  //! order.
+  static halp::string_list_value memory_rows(const memory_table& table)
+  {
+    halp::string_list_value rows;
     for(int key = 0; key < 128; key++)
     {
-      const auto& c = table[key];
-      if(c.count <= 0)
+      if(table[key].count <= 0)
         continue;
-      char entry[128];
-      std::size_t k = 0;
-      if(n > 0)
-      {
-        entry[k++] = ';';
-        entry[k++] = ' ';
-      }
-      k = std::size_t(std::to_chars(entry + k, entry + sizeof(entry), key).ptr - entry);
-      entry[k++] = ':';
-      for(int i = 0; i < c.count; i++)
-      {
-        entry[k++] = ' ';
-        k = std::size_t(
-            std::to_chars(entry + k, entry + sizeof(entry), int(c.offsets[i])).ptr - entry);
-      }
-      if(n + k > size)
-        break;
-      std::copy_n(entry, k, buf + n);
-      n += k;
+      char buf[64];
+      rows.emplace_back(
+          memory_row_id + key, std::string(buf, print_memory_entry(key, table[key], buf)));
     }
-    return n;
+    return rows;
+  }
+
+  //! A row for each entry of a memory text, in its order: an entry that parses
+  //! is written as learning writes it, another one is kept as it is.
+  static halp::string_list_value memory_rows_from_text(std::string_view s)
+  {
+    halp::string_list_value rows;
+    std::size_t start = 0;
+    while(start <= s.size())
+    {
+      std::size_t end = start;
+      while(end < s.size() && s[end] != ';' && s[end] != '\n')
+        end++;
+      auto entry = s.substr(start, end - start);
+      start = end + 1;
+      while(!entry.empty() && (entry.front() == ' ' || entry.front() == '\t'))
+        entry.remove_prefix(1);
+      while(!entry.empty()
+            && (entry.back() == ' ' || entry.back() == '\t' || entry.back() == '\r'))
+        entry.remove_suffix(1);
+      if(entry.empty())
+        continue;
+
+      const int id = memory_row_id + int(rows.size());
+      memory_table one{};
+      parse_memory_entry(entry, one);
+      auto it = std::find_if(one.begin(), one.end(), [](auto& c) { return c.count > 0; });
+      if(it != one.end())
+      {
+        char buf[64];
+        rows.emplace_back(
+            id, std::string(buf, print_memory_entry(int(it - one.begin()), *it, buf)));
+      }
+      else
+      {
+        rows.emplace_back(id, std::string(entry));
+      }
+    }
+    return rows;
+  }
+
+  static ossia::value rows_value(const halp::string_list_value& rows)
+  {
+    std::vector<ossia::value> res;
+    res.reserve(rows.size());
+    for(const auto& [id, text] : rows)
+      res.emplace_back(std::vector<ossia::value>{id, text});
+    return res;
   }
 
 private:
-  static void parse_memory_entry(std::string_view e, std::array<learned_chord, 128>& table) noexcept
+  static void parse_memory_entry(std::string_view e, memory_table& table) noexcept
   {
     const auto colon = e.find(':');
     if(colon == std::string_view::npos)
@@ -716,13 +819,10 @@ private:
     for(int i = 0; i < m_captured_count; i++)
       c.offsets[i] = int8_t(m_captured[i] - key);
 
-    // The text sent to the control is what saves the learned chord with the
+    // The rows sent to the control are what saves the learned chord with the
     // document.
     if(inputs.memory.update_controller)
-    {
-      const auto n = print_memory(m_memory, m_print_buffer.data(), m_print_buffer.size());
-      inputs.memory.update_controller(std::string_view(m_print_buffer.data(), n));
-    }
+      inputs.memory.update_controller(m_memory);
   }
 
   // ---------------------------------------------------------------- voices
@@ -1147,11 +1247,10 @@ private:
   mtk::channel_allocator m_alloc;
   int_list<max_intervals> m_intervals;
 
-  std::array<learned_chord, 128> m_memory{};
+  memory_table m_memory{};
   std::array<char, max_memory_text> m_memory_text{};
   std::size_t m_memory_size{};
   bool m_memory_parsed{};
-  std::array<char, max_memory_text> m_print_buffer{};
 
   std::array<bool, 128> m_learn_down{};
   int m_learn_down_count{};

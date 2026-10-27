@@ -12,6 +12,19 @@ using Filter = mtk::MidiFilter;
 namespace
 {
 using bytes = std::vector<int>;
+//! The controls set as their old texts were.
+auto kinds_of(const char* text)
+{
+  return Filter::ins::kinds_grid::from_text(text);
+}
+auto notes_of(const char* text)
+{
+  return Filter::ins::notes_list::from_text(text);
+}
+auto ccs_of(const char* text)
+{
+  return Filter::ins::ccs_list::from_text(text);
+}
 
 struct out_msg
 {
@@ -190,7 +203,7 @@ TEST_CASE("Midi filter kinds list", "[midi_filter]")
   d.in(off(1, 60));
 
   auto run = [&](const char* kinds) {
-    d.fx.inputs.kinds.value = kinds;
+    d.fx.inputs.kinds.value = kinds_of(kinds);
     auto saved = d.fx.inputs.midi.midi_messages;
     d.run();
     d.fx.inputs.midi.midi_messages = saved;
@@ -214,13 +227,13 @@ TEST_CASE("Midi filter kinds list", "[midi_filter]")
 TEST_CASE("Midi filter range lists and values", "[midi_filter]")
 {
   driver d;
-  d.fx.inputs.kinds.value = "all";
+  d.fx.inputs.kinds.value = kinds_of("all");
 
   SECTION("Channels, notes and CCs")
   {
     d.fx.inputs.channels.value = midi_test::channels_on({1, 2, 3, 4, 6});
-    d.fx.inputs.notes.value = "C4-B4";
-    d.fx.inputs.ccs.value = "7";
+    d.fx.inputs.notes.value = notes_of("C4-B4");
+    d.fx.inputs.ccs.value = ccs_of("7");
     d.in(on(1, 60, 100));
     d.in(on(5, 60, 100));
     d.in(on(6, 72, 100));
@@ -238,7 +251,7 @@ TEST_CASE("Midi filter range lists and values", "[midi_filter]")
 
   SECTION("Invert ranges splits a keyboard")
   {
-    d.fx.inputs.notes.value = "C-1-B3";
+    d.fx.inputs.notes.value = notes_of("C-1-B3");
     d.fx.inputs.drop_in_range.value = true;
     d.in(on(1, 59, 100));
     d.in(on(1, 60, 100));
@@ -274,7 +287,7 @@ TEST_CASE("Midi filter range lists and values", "[midi_filter]")
 TEST_CASE("Midi filter remap", "[midi_filter]")
 {
   driver d;
-  d.fx.inputs.kinds.value = "all";
+  d.fx.inputs.kinds.value = kinds_of("all");
 
   SECTION("Linear maps with rounding")
   {
@@ -313,7 +326,7 @@ TEST_CASE("Midi filter remap", "[midi_filter]")
 
     d.fx.inputs.note_map.value = {{48, 60, 72, 84}};
     d.fx.inputs.channel_map.value = {};
-    d.fx.inputs.notes.value = "C8";
+    d.fx.inputs.notes.value = notes_of("C8");
     d.in(on(1, 50, 0));
     d.run();
     CHECK(driver::b(d.main) == std::vector<bytes>{{0x91, 62, 0}});
@@ -322,7 +335,7 @@ TEST_CASE("Midi filter remap", "[midi_filter]")
 
   SECTION("Selected note-offs go to the main output, even those of notes rejected by kind")
   {
-    d.fx.inputs.kinds.value = "noteoff";
+    d.fx.inputs.kinds.value = kinds_of("noteoff");
     d.fx.inputs.note_map.value = {{0, 126, 1, 127}};
     d.in(on(1, 60, 100));
     d.in(on(1, 70, 100));
@@ -355,11 +368,11 @@ TEST_CASE("Midi filter remap", "[midi_filter]")
 
   SECTION("Selected note-offs of notes rejected by the criteria stay on Rejected")
   {
-    d.fx.inputs.kinds.value = "noteoff";
-    d.fx.inputs.notes.value = "C8";
+    d.fx.inputs.kinds.value = kinds_of("noteoff");
+    d.fx.inputs.notes.value = notes_of("C8");
     d.in(on(1, 50, 100));
     d.run();
-    d.fx.inputs.notes.value = "";
+    d.fx.inputs.notes.value = notes_of("");
     d.in(off(1, 50));
     d.run();
     CHECK(d.main.empty());
@@ -368,11 +381,11 @@ TEST_CASE("Midi filter remap", "[midi_filter]")
 
   SECTION("A rejected note keeps its note-off on Rejected")
   {
-    d.fx.inputs.notes.value = "C8";
+    d.fx.inputs.notes.value = notes_of("C8");
     d.in(on(1, 50, 100));
     d.run();
     CHECK(driver::b(d.rejected) == std::vector<bytes>{{0x90, 50, 100}});
-    d.fx.inputs.notes.value = "";
+    d.fx.inputs.notes.value = notes_of("");
     d.in(off(1, 50));
     d.run();
     CHECK(d.main.empty());
@@ -383,9 +396,9 @@ TEST_CASE("Midi filter remap", "[midi_filter]")
 TEST_CASE("Midi filter releases held notes", "[midi_filter]")
 {
   driver d;
-  d.fx.inputs.kinds.value = "all";
+  d.fx.inputs.kinds.value = kinds_of("all");
   d.fx.inputs.note_map.value = {{0, 126, 1, 127}};
-  d.fx.inputs.notes.value = "C4";
+  d.fx.inputs.notes.value = notes_of("C4");
 
   SECTION("CC 123 sends the note-offs and passes")
   {
@@ -449,4 +462,132 @@ TEST_CASE("Midi filter kind parser", "[midi_filter]")
   CHECK(k.contains(mtk::midi_kind::control_change));
   k.parse("");
   CHECK(k.empty);
+}
+
+TEST_CASE("Midi filter Types toggles", "[midi_filter]")
+{
+  using Kinds = Filter::ins::kinds_grid;
+  STATIC_REQUIRE(Kinds::labels().size() == std::size_t(mtk::midi_kind_count - 1));
+  // One toggle per kind, in the order of midi_kind
+  CHECK(Kinds::labels()[int(mtk::midi_kind::program_change)] == "Program");
+  CHECK(Kinds::labels()[int(mtk::midi_kind::reset)] == "Reset");
+
+  driver d;
+  d.in(on(1, 60, 100));
+  d.in(raw({0xC0, 5}));
+  d.in(raw({0xF0, 1, 2, 0xF7}));
+  d.in(raw({0xF8}));
+  // Undefined status byte: of no kind
+  d.in(raw({0xF4}));
+  d.in(off(1, 60));
+  auto run = [&](auto kinds) {
+    d.fx.inputs.kinds.value = kinds;
+    auto saved = d.fx.inputs.midi.midi_messages;
+    d.run();
+    d.fx.inputs.midi.midi_messages = saved;
+    return driver::b(d.main);
+  };
+
+  std::array<bool, mtk::midi_kind_count - 1> on_off{};
+  on_off[int(mtk::midi_kind::program_change)] = true;
+  on_off[int(mtk::midi_kind::sysex)] = true;
+  CHECK(run(on_off) == std::vector<bytes>{{0xC0, 5}, {0xF0, 1, 2, 0xF7}});
+  CHECK(driver::b(d.rejected)
+        == std::vector<bytes>{{0x90, 60, 100}, {0xF8}, {0xF4}, {0x80, 60, 0}});
+
+  // Every toggle on keeps what has no kind too, as "all" did
+  on_off.fill(true);
+  CHECK(run(on_off).size() == 6);
+  // All but one: what has no kind is rejected
+  on_off[int(mtk::midi_kind::clock)] = false;
+  CHECK(
+      run(on_off)
+      == std::vector<bytes>{{0x90, 60, 100}, {0xC0, 5}, {0xF0, 1, 2, 0xF7}, {0x80, 60, 0}});
+
+  // None on: the Filter type (CC by default) decides
+  on_off.fill(false);
+  CHECK(run(on_off).empty());
+  d.fx.inputs.filter.value = Filter::NoteAny;
+  CHECK(run(on_off) == std::vector<bytes>{{0x90, 60, 100}, {0x80, 60, 0}});
+}
+
+TEST_CASE("Midi filter Notes and CCs rows", "[midi_filter]")
+{
+  driver d;
+  d.fx.inputs.kinds.value.fill(true);
+  // Two ranges, one given backwards
+  d.fx.inputs.notes.value = {{60, 62}, {72, 70}};
+  d.fx.inputs.ccs.value = {{64, 64}};
+  for(int n : {59, 60, 62, 63, 69, 70, 71, 72, 73})
+    d.in(on(1, n, 100));
+  for(int c : {1, 64, 65})
+    d.in(cc(1, c, 10));
+  d.run();
+  CHECK(
+      driver::b(d.main)
+      == std::vector<bytes>{
+          {0x90, 60, 100}, {0x90, 62, 100}, {0x90, 70, 100}, {0x90, 71, 100},
+          {0x90, 72, 100}, {0xB0, 64, 10}});
+
+  // No rows: every note and controller
+  d.fx.inputs.notes.value.clear();
+  d.fx.inputs.ccs.value.clear();
+  d.in(on(1, 20, 100));
+  d.in(cc(1, 1, 10));
+  d.run();
+  CHECK(driver::b(d.main) == std::vector<bytes>{{0x90, 20, 100}, {0xB0, 1, 10}});
+}
+
+TEST_CASE("Midi filter: the texts Types, Notes and CCs were", "[midi_filter][upgrade]")
+{
+  using Kinds = Filter::ins::kinds_grid;
+  using Notes = Filter::ins::notes_list;
+  using CCs = Filter::ins::ccs_list;
+  auto bools = [](const ossia::value& v) {
+    std::vector<bool> res;
+    for(const auto& b : *v.target<std::vector<ossia::value>>())
+      res.push_back(*b.target<bool>());
+    return res;
+  };
+  auto rows = [](const ossia::value& v) {
+    std::vector<std::pair<int, int>> res;
+    for(const auto& r : *v.target<std::vector<ossia::value>>())
+    {
+      const auto& l = *r.target<std::vector<ossia::value>>();
+      res.emplace_back(*l[0].target<int>(), *l[1].target<int>());
+    }
+    return res;
+  };
+
+  {
+    const auto v = bools(Kinds::upgrade_value(std::string{"-sysex, -clock"}));
+    REQUIRE(v.size() == 18);
+    for(int i = 0; i < 18; i++)
+      CHECK(v[i] == (i != int(mtk::midi_kind::sysex) && i != int(mtk::midi_kind::clock)));
+  }
+  {
+    const auto v = bools(Kinds::upgrade_value(std::string{"transport, cc"}));
+    std::vector<bool> expected(18, false);
+    for(auto k : {mtk::midi_kind::start, mtk::midi_kind::continue_, mtk::midi_kind::stop,
+                  mtk::midi_kind::control_change})
+      expected[int(k)] = true;
+    CHECK(v == expected);
+  }
+  // Empty: no toggle on, the Filter type decides as it did
+  CHECK(bools(Kinds::upgrade_value(std::string{})) == std::vector<bool>(18, false));
+  // What is already toggles is kept
+  const ossia::value grid = std::vector<ossia::value>(18, ossia::value{true});
+  CHECK(Kinds::upgrade_value(grid) == grid);
+
+  CHECK(
+      rows(Notes::upgrade_value(std::string{"C-1-B2, C4, F#5-60"}))
+      == std::vector<std::pair<int, int>>{{0, 47}, {60, 60}, {60, 78}});
+  CHECK(
+      rows(CCs::upgrade_value(std::string{"1, 7, 64-69"}))
+      == std::vector<std::pair<int, int>>{{1, 1}, {7, 7}, {64, 69}});
+  // A text that did not parse restricted nothing: no rows
+  CHECK(rows(Notes::upgrade_value(std::string{"C4-"})).empty());
+  CHECK(rows(CCs::upgrade_value(std::string{"200"})).empty());
+  // Note names are only notes
+  CHECK(rows(CCs::upgrade_value(std::string{"C4"})).empty());
 }

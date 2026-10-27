@@ -380,7 +380,8 @@ make_control_in(avnd::field_index<N>, Id<Process::Port>&& id, QObject* parent)
   else if constexpr(
       widg.widget == avnd::widget_type::value_list
       || widg.widget == avnd::widget_type::note_matrix
-      || widg.widget == avnd::widget_type::channel_mask)
+      || widg.widget == avnd::widget_type::channel_mask
+      || widg.widget == avnd::widget_type::toggle_grid)
   {
     // An empty domain: the port must not clamp the list
     auto p

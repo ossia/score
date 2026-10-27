@@ -16,6 +16,7 @@
 #include <ossia/network/value/value.hpp>
 
 #include <halp/grid_chooser.hpp>
+#include <halp/string_list.hpp>
 
 #include <catch2/catch_test_macros.hpp>
 
@@ -167,6 +168,48 @@ void assign(
     else if constexpr(std::is_same_v<V, bool>)
     {
       field.value = num() > 0.5;
+    }
+    else if constexpr(std::is_same_v<V, halp::string_list_value>)
+    {
+      // List of strings: {"Tuple":[{"Tuple":[{"Int":id},{"String":text}]}]}.
+      // A text saved before the control was a list goes through the field's
+      // upgrade_value, as the avnd process does on load.
+      ossia::value list;
+      if(v.contains("Tuple"))
+      {
+        std::vector<ossia::value> rows;
+        for(const auto& elt : v["Tuple"].toArray())
+        {
+          const auto pair = elt.toObject()["Tuple"].toArray();
+          if(pair.size() != 2 || !pair[0].toObject().contains("Int")
+             || !pair[1].toObject().contains("String"))
+            return fail("expected [Int, String] rows");
+          rows.push_back(std::vector<ossia::value>{
+              pair[0].toObject()["Int"].toInt(),
+              pair[1].toObject()["String"].toString().toStdString()});
+        }
+        list = std::move(rows);
+      }
+      else if(v.contains("String"))
+      {
+        if constexpr(requires(const ossia::value& o) { Field::upgrade_value(o); })
+          list = Field::upgrade_value(
+              ossia::value{v["String"].toString().toStdString()});
+        else
+          return fail("expected Tuple");
+      }
+      else
+      {
+        return fail("expected Tuple");
+      }
+      field.value.clear();
+      if(auto rows = list.template target<std::vector<ossia::value>>())
+        for(const auto& row : *rows)
+          if(auto pair = row.template target<std::vector<ossia::value>>();
+             pair && pair->size() == 2)
+            if(auto id = (*pair)[0].template target<int>())
+              if(auto text = (*pair)[1].template target<std::string>())
+                field.value.emplace_back(*id, *text);
     }
     else if constexpr(requires { field.value.size(); typename V::value_type; }
                       && !std::is_same_v<V, std::string>)

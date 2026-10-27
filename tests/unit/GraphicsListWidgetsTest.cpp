@@ -6,6 +6,7 @@
 #include <score/graphics/layouts/GraphicsBoxLayout.hpp>
 #include <score/graphics/widgets/QGraphicsChannelMask.hpp>
 #include <score/graphics/widgets/QGraphicsNoteMatrix.hpp>
+#include <score/graphics/widgets/QGraphicsToggleGrid.hpp>
 #include <score/graphics/widgets/QGraphicsValueList.hpp>
 
 #include <ossia/network/value/value_conversion.hpp>
@@ -393,5 +394,49 @@ TEST_CASE("Channel mask: a drag that loses the mouse ends", "[graphics][channel_
     CHECK(m->toText() == "1-2, 5-16");
     mouse(scene, *m, QEvent::GraphicsSceneMouseRelease, cell(5), Qt::NoButton);
     CHECK(released == 1);
+  });
+}
+
+TEST_CASE("Toggle grid: named cells, clicks, drags and text", "[graphics][toggle_grid]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext&) {
+    Scene scene;
+    auto g = new score::QGraphicsToggleGrid{nullptr};
+    scene.addItem(g);
+    g->setLabels({"Note on", "Note off", "CC", "Clock", "Start"}, 3);
+    // Every cell starts off; two rows of three cells at most
+    CHECK(ints(g->value()) == std::vector<int>{0, 0, 0, 0, 0});
+    const QRectF r = g->boundingRect();
+    const qreal w = (r.width() + 1.) / 3.;
+    CHECK(r.height() == 2. * 15.);
+    auto cell = [w](int c) { return QPointF{(c % 3) * w + w / 2., (c / 3) * 15. + 7.}; };
+
+    int moved = 0, released = 0;
+    QObject::connect(g, &score::QGraphicsToggleGrid::sliderMoved, [&] { moved++; });
+    QObject::connect(g, &score::QGraphicsToggleGrid::sliderReleased, [&] { released++; });
+
+    click(scene, *g, cell(2));
+    CHECK(ints(g->value()) == std::vector<int>{0, 0, 1, 0, 0});
+    CHECK(g->toText() == "CC");
+    CHECK(released == 1);
+
+    // A drag paints the state of the first cell over the others
+    mouse(scene, *g, QEvent::GraphicsSceneMousePress, cell(3), Qt::LeftButton);
+    mouse(scene, *g, QEvent::GraphicsSceneMouseMove, cell(4), Qt::LeftButton);
+    mouse(scene, *g, QEvent::GraphicsSceneMouseRelease, cell(4), Qt::NoButton);
+    CHECK(g->toText() == "CC, Clock, Start");
+    CHECK(released == 2);
+
+    CHECK(g->setText("note ON;start"));
+    CHECK(ints(g->value()) == std::vector<int>{1, 0, 0, 0, 1});
+    CHECK(!g->setText("Note on, Sysex"));
+    CHECK(g->toText() == "Note on, Start");
+    CHECK(g->setText(""));
+    CHECK(ints(g->value()) == std::vector<int>{0, 0, 0, 0, 0});
+
+    // A value of another length: the cells it names, the rest off
+    g->setValue(std::vector<ossia::value>{true, true});
+    CHECK(ints(g->value()) == std::vector<int>{1, 1, 0, 0, 0});
+    CHECK(moved > 0);
   });
 }

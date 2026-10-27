@@ -265,3 +265,204 @@ TEST_CASE("Midi glide: random play pairs every note and does not allocate", "[av
   CHECK(r.out.errors.empty());
   CHECK(r.allocations == 0);
 }
+
+namespace
+{
+//! The notes of the last tick, in order: +pitch for a note-on, -pitch for a
+//! note-off.
+std::vector<int> events(const std::vector<libremidi::message>& t)
+{
+  std::vector<int> r;
+  for(auto& m : t)
+    if(is_on(m))
+      r.push_back(m.bytes[1]);
+    else if(is_off(m))
+      r.push_back(-int(m.bytes[1]));
+  return r;
+}
+using ev = std::vector<int>;
+}
+
+TEST_CASE("Midi glide: note priority", "[avnd][midi][glide]")
+{
+  SECTION("Last: the last key pressed")
+  {
+    Rig r;
+    r.tick({on(1, 60)});
+    CHECK(events(r.tick({on(1, 55)})) == ev{-60, 55});
+    CHECK(events(r.tick({on(1, 65)})) == ev{-55, 65});
+  }
+  SECTION("Low: a higher key does not take over, a lower one does")
+  {
+    Rig r;
+    r.node.inputs.priority.value = Glide::Low;
+    r.tick({on(1, 60)});
+    CHECK(r.tick({on(1, 64)}).empty());
+    CHECK(events(r.tick({on(1, 55)})) == ev{-60, 55});
+    // The keys that did not win are remembered: releasing them does nothing
+    CHECK(r.tick({off(1, 64)}).empty());
+    CHECK(r.out.still_sounding() == 1);
+  }
+  SECTION("High: a lower key does not take over, a higher one does")
+  {
+    Rig r;
+    r.node.inputs.priority.value = Glide::High;
+    r.tick({on(1, 60)});
+    CHECK(r.tick({on(1, 55)}).empty());
+    CHECK(events(r.tick({on(1, 67)})) == ev{-60, 67});
+  }
+}
+
+TEST_CASE("Midi glide: on release, stop or return to the held keys", "[avnd][midi][glide]")
+{
+  SECTION("Stop: the keys still held do not come back")
+  {
+    Rig r;
+    r.tick({on(1, 60), on(1, 64)});
+    CHECK(events(r.tick({off(1, 64)})) == ev{-64});
+    CHECK(r.out.still_sounding() == 0);
+    // Nor does releasing them do anything
+    CHECK(r.tick({off(1, 60)}).empty());
+  }
+  SECTION("Return, last priority: back to the previous key, at its velocity")
+  {
+    Rig r;
+    r.node.inputs.release.value = Glide::Return;
+    r.tick({on(1, 60, 90), on(1, 64, 100), on(1, 67, 110)});
+    auto& t = r.tick({off(1, 67, 0, 5)});
+    CHECK(events(t) == ev{-67, 64});
+    CHECK(t[1].bytes[2] == 100);
+    CHECK(t[1].timestamp == 5);
+    // A key released that does not sound leaves the note as it is
+    CHECK(r.tick({off(1, 60)}).empty());
+    CHECK(events(r.tick({off(1, 64)})) == ev{-64});
+    CHECK(r.out.still_sounding() == 0);
+  }
+  SECTION("Return, low priority: back to the lowest key held")
+  {
+    Rig r;
+    r.node.inputs.priority.value = Glide::Low;
+    r.node.inputs.release.value = Glide::Return;
+    r.tick({on(1, 64), on(1, 67), on(1, 60)});
+    CHECK(events(r.tick({off(1, 60)})) == ev{-60, 64});
+  }
+  SECTION("Return across channels: each note on its own channel")
+  {
+    Rig r;
+    r.node.inputs.release.value = Glide::Return;
+    r.tick({on(2, 60), on(3, 64)});
+    r.tick({off(3, 64)});
+    REQUIRE(r.last.size() == 2);
+    CHECK(r.last[0].get_channel() == 3);
+    CHECK(r.last[1].get_channel() == 2);
+  }
+}
+
+TEST_CASE("Midi glide: retrigger or legato transitions", "[avnd][midi][glide]")
+{
+  Rig r;
+  r.node.inputs.transition.value = Glide::Legato;
+  r.node.inputs.release.value = Glide::Return;
+  r.tick({on(1, 60)});
+  // The next note starts before the previous ends
+  CHECK(events(r.tick({on(1, 64, 100, 3)})) == ev{64, -60});
+  CHECK(r.last[0].timestamp == 3);
+  CHECK(r.last[1].timestamp == 3);
+  CHECK(events(r.tick({off(1, 64)})) == ev{60, -64});
+  // The same key again cannot overlap itself
+  CHECK(events(r.tick({on(1, 60)})) == ev{-60, 60});
+  CHECK(events(r.tick({off(1, 60)})) == ev{-60});
+  CHECK(r.out.still_sounding() == 0);
+  CHECK(r.out.errors.empty());
+}
+
+TEST_CASE("Midi glide: latch", "[avnd][midi][glide]")
+{
+  SECTION("Toggle: the last note keeps sounding until another key")
+  {
+    Rig r;
+    r.node.inputs.latch.value = Glide::LatchToggle;
+    r.tick({on(1, 60)});
+    CHECK(r.tick({off(1, 60)}).empty());
+    CHECK(r.node.sounding());
+    CHECK(events(r.tick({on(1, 62)})) == ev{-60, 62});
+    CHECK(r.tick({off(1, 62)}).empty());
+    r.node.stop();
+    CHECK(events(r.tick()) == ev{-62});
+    CHECK(r.out.still_sounding() == 0);
+  }
+  SECTION("Toggle with Return: the held keys take over first")
+  {
+    Rig r;
+    r.node.inputs.latch.value = Glide::LatchToggle;
+    r.node.inputs.release.value = Glide::Return;
+    r.tick({on(1, 60), on(1, 64)});
+    CHECK(events(r.tick({off(1, 64)})) == ev{-64, 60});
+    CHECK(r.tick({off(1, 60)}).empty());
+    CHECK(r.out.still_sounding() == 1);
+  }
+  SECTION("Momentary: while Hold is down, and the latched note ends when it goes up")
+  {
+    Rig r;
+    r.node.inputs.latch.value = Glide::LatchMomentary;
+    r.tick({on(1, 60)});
+    // Hold up: no latch
+    CHECK(events(r.tick({off(1, 60)})) == ev{-60});
+    r.node.inputs.hold.value = true;
+    r.tick({on(1, 62)});
+    CHECK(r.tick({off(1, 62)}).empty());
+    CHECK(r.node.sounding());
+    r.node.inputs.hold.value = false;
+    CHECK(events(r.tick()) == ev{-62});
+    // A key still down when Hold goes up keeps its note
+    r.node.inputs.hold.value = true;
+    r.tick({on(1, 64)});
+    r.node.inputs.hold.value = false;
+    CHECK(r.tick().empty());
+    CHECK(events(r.tick({off(1, 64)})) == ev{-64});
+    CHECK(r.out.still_sounding() == 0);
+  }
+}
+
+TEST_CASE("Midi glide: random play in every mode pairs every note", "[avnd][midi][glide]")
+{
+  for(int priority = 0; priority < 3; priority++)
+    for(int release = 0; release < 2; release++)
+      for(int transition = 0; transition < 2; transition++)
+        for(int latch = 0; latch < 3; latch++)
+        {
+          INFO(priority << " " << release << " " << transition << " " << latch);
+          Rig r;
+          r.node.inputs.priority.value = Glide::Priority(priority);
+          r.node.inputs.release.value = Glide::Release(release);
+          r.node.inputs.transition.value = Glide::Transition(transition);
+          r.node.inputs.latch.value = Glide::Latch(latch);
+          std::mt19937 rng{unsigned(42 + priority * 100 + release * 10 + transition + latch * 1000)};
+          std::uniform_int_distribution<int> ch{1, 3}, pitch{58, 63}, kind{0, 11}, count{0, 5};
+          std::vector<libremidi::message> in;
+          in.reserve(16);
+          for(int t = 0; t < 500; t++)
+          {
+            in.clear();
+            for(int i = 0, n = count(rng); i < n; i++)
+            {
+              const int k = kind(rng);
+              if(k < 5)
+                in.push_back(on(ch(rng), pitch(rng), 100, i));
+              else if(k < 9)
+                in.push_back(off(ch(rng), pitch(rng), 0, i));
+              else if(k < 10)
+                in.push_back(on(ch(rng), pitch(rng), 0, i));
+              else
+                r.node.inputs.hold.value = !r.node.inputs.hold.value;
+            }
+            r.tick(in);
+            CHECK(r.out.still_sounding() <= 1);
+          }
+          r.node.stop();
+          r.tick();
+          CHECK(r.out.still_sounding() == 0);
+          CHECK(r.out.errors.empty());
+          CHECK(r.allocations == 0);
+        }
+}

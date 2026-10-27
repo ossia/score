@@ -367,3 +367,93 @@ TEST_CASE("Midi transform note-offs follow their note-on when What changes", "[m
   d.run();
   CHECK(d.held() == 0);
 }
+
+namespace
+{
+//! A driver that also records the Value output.
+struct value_driver : driver
+{
+  std::vector<std::pair<int64_t, float>> values;
+  value_driver()
+  {
+    fx.outputs.value.call.context = this;
+    fx.outputs.value.call.function = [](void* ctx, int64_t ts, float v) {
+      static_cast<value_driver*>(ctx)->values.emplace_back(ts, v);
+    };
+  }
+};
+using values_t = std::vector<std::pair<int64_t, float>>;
+}
+
+TEST_CASE("Midi transform Value: the value of each produced message", "[midi_transform]")
+{
+  value_driver d;
+  SECTION("Channel pressure into a controller: the pressure, at its time")
+  {
+    d.fx.inputs.what.value = T::ChannelPressure;
+    d.fx.inputs.into.value = T::CC;
+    d.fx.inputs.byte1_source.value = T::Arg1;
+    d.fx.inputs.arg1.value = 1;
+    d.fx.inputs.byte2_source.value = T::DataByte1;
+    d.in(msg({0xD0, 77}, 7));
+    d.in(msg({0xD0, 12}, 20));
+    // Not what is transformed: no value
+    d.in(msg({0xB0, 7, 99}, 30));
+    CHECK(d.run() == std::vector<bytes>{{0xB0, 1, 77}, {0xB0, 1, 12}, {0xB0, 7, 99}});
+    CHECK(d.values == values_t{{7, 77.f}, {20, 12.f}});
+  }
+  SECTION("A controller into pitch bend: -1 to 1")
+  {
+    d.fx.inputs.what.value = T::CC;
+    d.fx.inputs.into.value = T::PitchBend;
+    d.fx.inputs.byte1_source.value = T::Arg1;
+    d.fx.inputs.byte2_source.value = T::DataByte2;
+    d.in(msg({0xB0, 1, 0}, 1));
+    d.in(msg({0xB0, 1, 64}, 2));
+    d.in(msg({0xB0, 1, 127}, 3));
+    d.run();
+    REQUIRE(d.values.size() == 3);
+    CHECK(d.values[0] == std::pair<int64_t, float>{1, -1.f});
+    CHECK(d.values[1] == std::pair<int64_t, float>{2, 0.f});
+    CHECK(d.values[2].first == 3);
+    CHECK(d.values[2].second == float(127 * 128 - 8192) / 8191.f);
+  }
+  SECTION("Inserted: the original passes without a value")
+  {
+    d.fx.inputs.what.value = T::CC;
+    d.fx.inputs.into.value = T::ProgramChange;
+    d.fx.inputs.mode.value = T::InsertAfter;
+    d.fx.inputs.byte1_source.value = T::DataByte2;
+    d.in(msg({0xB0, 32, 5}, 4));
+    CHECK(d.run() == std::vector<bytes>{{0xB0, 32, 5}, {0xC0, 5}});
+    CHECK(d.values == values_t{{4, 5.f}});
+  }
+  SECTION("Into notes: the velocity, and 0 when the produced note ends")
+  {
+    d.fx.inputs.what.value = T::CC;
+    d.fx.inputs.into.value = T::NoteOn;
+    d.in(msg({0xB0, 36, 90}, 5));
+    d.in(msg({0xB0, 36, 0}, 9));
+    CHECK(d.run() == std::vector<bytes>{{0x90, 36, 90}, {0x80, 36, 0}});
+    CHECK(d.values == values_t{{5, 90.f}, {9, 0.f}});
+  }
+  SECTION("Into a real-time message: none")
+  {
+    d.fx.inputs.what.value = T::NoteOn;
+    d.fx.inputs.into.value = T::Clock;
+    d.in(msg({0x90, 60, 100}, 1));
+    CHECK(d.run() == std::vector<bytes>{{0xF8}});
+    CHECK(d.values.empty());
+  }
+  SECTION("A stop sends note-offs without values")
+  {
+    d.fx.inputs.what.value = T::CC;
+    d.fx.inputs.into.value = T::NoteOn;
+    d.in(msg({0xB0, 36, 90}, 5));
+    d.run();
+    d.values.clear();
+    d.fx.stop();
+    CHECK(d.run() == std::vector<bytes>{{0x80, 36, 0}});
+    CHECK(d.values.empty());
+  }
+}

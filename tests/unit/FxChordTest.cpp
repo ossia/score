@@ -28,6 +28,28 @@ namespace
 {
 using Chord = Nodes::Chord::Node;
 
+//! The rows of the Memory list joined by "; ".
+std::string rows_text(const halp::string_list_value& rows)
+{
+  std::string res;
+  for(const auto& [id, text] : rows)
+  {
+    if(!res.empty())
+      res += "; ";
+    res += text;
+  }
+  return res;
+}
+
+//! Memory rows from texts, with the identities the list editor gives.
+halp::string_list_value rows(std::vector<std::string> texts)
+{
+  halp::string_list_value res;
+  for(auto& t : texts)
+    res.emplace_back(10000 + int(res.size()), std::move(t));
+  return res;
+}
+
 libremidi::message note_on(int chan, int pitch, int vel, int64_t ts = 0)
 {
   auto m = libremidi::channel_events::note_on(chan, pitch, vel);
@@ -92,13 +114,18 @@ struct Rig
   //! Absolute frame of each message of the last tick.
   std::vector<int64_t> last_at;
   int64_t now{};
+  //! The rows the last learned chord wrote to the Memory control.
+  halp::string_list_value learned_rows;
   std::string learned;
 
   Rig()
   {
     node.prepare(halp::setup{.rate = 48000.});
     node.inputs.seed.value = 1;
-    node.inputs.memory.update_controller = [this](std::string_view s) { learned = std::string(s); };
+    node.inputs.memory.update_controller = [this](const Chord::memory_table& t) {
+      learned_rows = decltype(node.inputs.memory)::controller_value(t);
+      learned = rows_text(learned_rows);
+    };
   }
 
   const std::vector<libremidi::message>& tick(std::vector<libremidi::message> in = {}, int frames = 64)
@@ -446,18 +473,22 @@ TEST_CASE("Chord: chord memory, learned and written", "[fx][midi][chord]")
   CHECK(r.learned.empty());
   // The next key alone is the trigger.
   r.tick({note_on(1, 48, 100)});
-  CHECK(r.learned == "48: 12 16 19");
+  CHECK(r.learned == "C3: 12 16 19");
   r.tick({note_off(1, 48)});
   // A single key with nothing captured learns nothing.
   r.tick({note_on(1, 50, 100)});
   r.tick({note_off(1, 50)});
-  CHECK(r.learned == "48: 12 16 19");
+  CHECK(r.learned == "C3: 12 16 19");
   // A second chord adds to the table.
   r.tick({note_on(1, 62, 100), note_on(1, 65, 100), note_on(1, 69, 100), note_on(1, 72, 100)});
   r.tick({note_off(1, 62), note_off(1, 65), note_off(1, 69), note_off(1, 72)});
   r.tick({note_on(1, 50, 100)});
   r.tick({note_off(1, 50)});
-  CHECK(r.learned == "48: 12 16 19; 50: 12 15 19 22");
+  CHECK(r.learned == "C3: 12 16 19; D3: 12 15 19 22");
+  // One row per key, identified by its key.
+  REQUIRE(r.learned_rows.size() == 2);
+  CHECK(r.learned_rows[0].first == 10048);
+  CHECK(r.learned_rows[1].first == 10050);
 
   r.node.inputs.learn.value = false;
   r.node.inputs.mode.value = Chord::Memory;
@@ -468,8 +499,8 @@ TEST_CASE("Chord: chord memory, learned and written", "[fx][midi][chord]")
   r.tick({note_off(1, 48), note_off(1, 50), note_off(1, 40)});
   CHECK(r.out.still_sounding() == 0);
 
-  // The text comes back from the control: same table.
-  r.node.inputs.memory.value = r.learned;
+  // The rows come back from the control: same table.
+  r.node.inputs.memory.value = r.learned_rows;
   CHECK(pitches_on(r.tick({note_on(1, 48, 100)})) == std::vector<int>{60, 64, 67});
   r.tick({note_off(1, 48)});
   CHECK(r.out.errors.empty());
@@ -478,13 +509,10 @@ TEST_CASE("Chord: chord memory, learned and written", "[fx][midi][chord]")
 TEST_CASE("Chord: learning a chord does not allocate", "[fx][midi][chord]")
 {
   Rig r;
-  // What the binding does with the text: copy it into storage made beforehand.
-  std::array<char, Chord::max_memory_text> sent{};
-  std::size_t sent_size = 0;
-  r.node.inputs.memory.update_controller = [&](std::string_view s) {
-    std::copy(s.begin(), s.end(), sent.begin());
-    sent_size = s.size();
-  };
+  // What the binding does with the table: copy it into storage made
+  // beforehand. The rows are made from it on the UI thread.
+  Chord::memory_table sent{};
+  r.node.inputs.memory.update_controller = [&](const Chord::memory_table& t) { sent = t; };
   r.node.inputs.learn.value = true;
 
   auto learn = [&](std::vector<libremidi::message> chord, int key) {
@@ -514,8 +542,7 @@ TEST_CASE("Chord: learning a chord does not allocate", "[fx][midi][chord]")
   learn({note_on(1, 62, 100), note_on(1, 65, 100), note_on(1, 69, 100)}, 50);
   learn({note_on(1, 64, 100), note_on(1, 67, 100), note_on(1, 71, 100)}, 52);
   CHECK(
-      std::string_view(sent.data(), sent_size)
-      == "48: 12 16 19; 50: 12 15 19; 52: 12 15 19");
+      rows_text(Chord::memory_rows(sent)) == "C3: 12 16 19; D3: 12 15 19; E3: 12 15 19");
 }
 
 TEST_CASE("Chord: chord memory text", "[fx][midi][chord]")
@@ -533,16 +560,78 @@ TEST_CASE("Chord: chord memory text", "[fx][midi][chord]")
     total += c.count > 0;
   CHECK(total == 3);
 
-  char buf[256];
-  const auto n = Chord::print_memory(t, buf, sizeof(buf));
-  CHECK(std::string_view(buf, n) == "48: 12 15 19; 60: 0 4 7; 62: 0 3 7 10");
+  // Rows in key order, keys as note names (C4 is 60).
+  CHECK(rows_text(Chord::memory_rows(t)) == "C3: 12 15 19; C4: 0 4 7; D4: 0 3 7 10");
+  Chord::memory_table low{};
+  Chord::parse_memory("0: 0 12; 127: -12 0; 61: -1", low);
+  CHECK(rows_text(Chord::memory_rows(low)) == "C-1: 0 12; C#4: -1; G9: -12 0");
 
   Chord c;
   c.inputs.mode.value = Chord::Memory;
-  c.inputs.memory.value = "60: 0 4 7; C3: -12 0";
+  c.inputs.memory.value = rows({"60: 0 4 7", "C3: -12 0"});
   CHECK(voices(c, 60) == std::vector<int>{0, 4, 7});
   CHECK(voices(c, 48) == std::vector<int>{-12, 0});
   CHECK(voices(c, 61) == std::vector<int>{0});
+}
+
+TEST_CASE("Chord: memory rows edited by hand", "[fx][midi][chord]")
+{
+  Chord c;
+  c.inputs.mode.value = Chord::Memory;
+  // A row that does not parse plays nothing; a row may hold several entries.
+  c.inputs.memory.value = rows({"C4: 0 4 7", "nonsense", "D4: 0 3 7; E4: 0 3 7 10", ""});
+  CHECK(voices(c, 60) == std::vector<int>{0, 4, 7});
+  CHECK(voices(c, 62) == std::vector<int>{0, 3, 7});
+  CHECK(voices(c, 64) == std::vector<int>{0, 3, 7, 10});
+
+  // Editing a row changes that key only.
+  c.inputs.memory.value[0].second = "C4: 0 3 7";
+  CHECK(voices(c, 60) == std::vector<int>{0, 3, 7});
+  CHECK(voices(c, 62) == std::vector<int>{0, 3, 7});
+
+  // Removing a row forgets its key.
+  c.inputs.memory.value.erase(c.inputs.memory.value.begin() + 2);
+  CHECK(voices(c, 62) == std::vector<int>{0});
+  CHECK(voices(c, 60) == std::vector<int>{0, 3, 7});
+
+  // Adding one: the last row of a key wins.
+  c.inputs.memory.value.emplace_back(10010, "60: -12 0");
+  CHECK(voices(c, 60) == std::vector<int>{-12, 0});
+
+  // The text of a row moved to the next one: the same text overall, not the
+  // same rows.
+  c.inputs.memory.value = rows({"C4: 0 4", "7"});
+  CHECK(voices(c, 60) == std::vector<int>{0, 4});
+  c.inputs.memory.value = rows({"C4: 0 4 7"});
+  CHECK(voices(c, 60) == std::vector<int>{0, 4, 7});
+
+  c.inputs.memory.value.clear();
+  CHECK(voices(c, 60) == std::vector<int>{0});
+}
+
+TEST_CASE("Chord: a memory saved as text becomes rows", "[fx][midi][chord]")
+{
+  using Memory = decltype(Chord::ins::memory);
+  const auto up = Memory::upgrade_value(
+      ossia::value{std::string{"60: 0 4 7; C3: 12, 15 19\n 62:0 3 7 10 ; bad; ;"}});
+  const ossia::value expected = std::vector<ossia::value>{
+      std::vector<ossia::value>{10000, std::string{"C4: 0 4 7"}},
+      std::vector<ossia::value>{10001, std::string{"C3: 12 15 19"}},
+      std::vector<ossia::value>{10002, std::string{"D4: 0 3 7 10"}},
+      std::vector<ossia::value>{10003, std::string{"bad"}}};
+  CHECK(up == expected);
+  CHECK(Memory::upgrade_value(ossia::value{std::string{}}) == std::vector<ossia::value>{});
+  // A list is already rows.
+  CHECK(Memory::upgrade_value(expected) == expected);
+
+  // The rows play what the text played.
+  Chord c;
+  c.inputs.mode.value = Chord::Memory;
+  oscr::from_ossia_value(c.inputs.memory, up, c.inputs.memory.value);
+  REQUIRE(c.inputs.memory.value.size() == 4);
+  CHECK(voices(c, 60) == std::vector<int>{0, 4, 7});
+  CHECK(voices(c, 48) == std::vector<int>{12, 15, 19});
+  CHECK(voices(c, 62) == std::vector<int>{0, 3, 7, 10});
 }
 
 TEST_CASE("Chord: MPE voices on their own channels", "[fx][midi][chord]")
@@ -736,7 +825,7 @@ TEST_CASE("Chord: random playing and control changes never leave a note behind",
         case 6: n.strum.value = pick(0, 1) ? 0.f : 0.003f; break;
         case 7: n.strum_direction.value = Chord::StrumDirection(pick(0, 2)); break;
         case 8: n.mpe.value = !n.mpe.value; break;
-        case 9: n.memory.value = "60: 0 4 7; 62: -12 0 12 24"; break;
+        case 9: n.memory.value = rows({"60: 0 4 7", "62: -12 0 12 24"}); break;
         case 10: n.learn.value = !n.learn.value; break;
         case 11: r.node.stop(); break;
         case 12: n.root.value = !n.root.value; break;

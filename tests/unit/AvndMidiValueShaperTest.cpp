@@ -465,3 +465,52 @@ TEST_CASE("mtk::MidiValueShaper keeps note pairs whatever the controls do", "[av
   REQUIRE(ons == 500);
   REQUIRE(offs == 500);
 }
+
+TEST_CASE("mtk::MidiValueShaper Value: each shaped value, at its time", "[avnd][midi][shaper]")
+{
+  driver d;
+  std::vector<std::pair<int64_t, float>> values;
+  d.fx.outputs.value.call.context = &values;
+  d.fx.outputs.value.call.function = [](void* ctx, int64_t ts, float v) {
+    static_cast<std::vector<std::pair<int64_t, float>>*>(ctx)->emplace_back(ts, v);
+  };
+  using values_t = std::vector<std::pair<int64_t, float>>;
+
+  SECTION("Controllers: 0 - 127, after the shaping")
+  {
+    d.fx.inputs.kind.value = Shaper::CC;
+    d.fx.inputs.gain.value = 2.f;
+    auto out = d.run(
+        {at(libremidi::channel_events::control_change(1, 1, 30), 9),
+         at(libremidi::channel_events::control_change(1, 1, 100), 12),
+         // Not selected: passes, without a value
+         at(libremidi::channel_events::note_on(1, 60, 100), 13)});
+    REQUIRE(out.size() == 3);
+    CHECK(values == values_t{{9, 60.f}, {12, 127.f}});
+  }
+  SECTION("Velocities: the note-ons only")
+  {
+    d.fx.inputs.offset.value = 10.f;
+    d.run(
+        {at(libremidi::channel_events::note_on(1, 60, 100), 3),
+         at(libremidi::channel_events::note_off(1, 60, 64), 4)});
+    CHECK(values == values_t{{3, 110.f}});
+  }
+  SECTION("Pitch bend: -1 to 1")
+  {
+    d.fx.inputs.kind.value = Shaper::PitchBend;
+    d.run(
+        {at(libremidi::channel_events::pitch_bend(1, 8192), 1),
+         at(libremidi::channel_events::pitch_bend(1, 0), 2),
+         at(libremidi::channel_events::pitch_bend(1, 16383), 3)});
+    CHECK(values == values_t{{1, 0.f}, {2, -1.f}, {3, 1.f}});
+  }
+  SECTION("Pressure")
+  {
+    d.fx.inputs.kind.value = Shaper::Pressure;
+    d.fx.inputs.fixed.value = true;
+    d.fx.inputs.fixed_value.value = 42.f;
+    d.run({at(libremidi::message{0xD0, 99}, 6)});
+    CHECK(values == values_t{{6, 42.f}});
+  }
+}

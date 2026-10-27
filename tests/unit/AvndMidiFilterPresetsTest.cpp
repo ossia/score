@@ -15,6 +15,10 @@ using Filter = mtk::MidiFilter;
 namespace
 {
 using bytes = std::vector<int>;
+auto kinds_of(const char* text)
+{
+  return Filter::ins::kinds_grid::from_text(text);
+}
 using list = std::vector<bytes>;
 
 libremidi::message msg(std::initializer_list<unsigned char> b, int ts = 0)
@@ -299,7 +303,7 @@ TEST_CASE("Midi filter presets keep notes paired", "[presets][midi_filter]")
 TEST_CASE("Midi filter: Types noteon keeps note-offs paired", "[presets][midi_filter]")
 {
   driver d{"Notes only"};
-  d.fx.inputs.kinds.value = "noteon";
+  d.fx.inputs.kinds.value = kinds_of("noteon");
   d.run({on(1, 60, 100), off(1, 60)});
   CHECK(d.main == list{on(1, 60, 100), off(1, 60)});
   CHECK(d.rejected.empty());

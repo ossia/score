@@ -763,12 +763,6 @@ target_include_directories(test_unit_avnd_midi_transform SYSTEM PRIVATE
   "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/include"
   "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/examples")
 
-score_add_test(test_unit_avnd_midi_cc_snapshot
-  SOURCES AvndMidiCCSnapshotTest.cpp)
-target_include_directories(test_unit_avnd_midi_cc_snapshot SYSTEM PRIVATE
-  "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/include"
-  "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/examples")
-
 score_add_test(test_unit_avnd_midi_filter_presets
   SOURCES AvndMidiFilterPresetsTest.cpp)
 target_include_directories(test_unit_avnd_midi_filter_presets SYSTEM PRIVATE
@@ -778,12 +772,6 @@ target_include_directories(test_unit_avnd_midi_filter_presets SYSTEM PRIVATE
 score_add_test(test_unit_avnd_midi_transform_presets
   SOURCES AvndMidiTransformPresetsTest.cpp)
 target_include_directories(test_unit_avnd_midi_transform_presets SYSTEM PRIVATE
-  "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/include"
-  "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/examples")
-
-score_add_test(test_unit_avnd_midi_cc_snapshot_presets
-  SOURCES AvndMidiCCSnapshotPresetsTest.cpp)
-target_include_directories(test_unit_avnd_midi_cc_snapshot_presets SYSTEM PRIVATE
   "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/include"
   "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/examples")
 
@@ -2200,6 +2188,18 @@ if(TARGET score_plugin_avnd AND TARGET score_plugin_fx AND TARGET score_plugin_e
     "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-avnd")
 endif()
 
+# The MIDI objects whose controls changed kind, loaded from older scores and
+# presets, and a score with an object that is no more.
+if(TARGET score_plugin_avnd AND TARGET score_plugin_engine)
+  score_add_test(test_unit_avnd_midi_control_upgrade
+    SOURCES AvndMidiControlUpgradeTest.cpp
+    APP
+    PLUGINS score_plugin_avnd score_plugin_dataflow score_plugin_engine score_plugin_scenario score_lib_process)
+  target_include_directories(test_unit_avnd_midi_control_upgrade PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish"
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-avnd")
+endif()
+
 # The grid chooser: a halp::grid_chooser's port saved and loaded with its
 # {value, unit} and what it allows, a time chooser's value read as a grid, the
 # values the object receives, and the knob's readouts, unit menu and detents.
@@ -2648,7 +2648,6 @@ foreach(_preset_test
     test_unit_avnd_midi_random_sequencer_presets
     test_unit_avnd_midi_filter_presets
     test_unit_avnd_midi_transform_presets
-    test_unit_avnd_midi_cc_snapshot_presets
     test_unit_avnd_midi_value_shaper_presets
     test_unit_avnd_midi_sync_in_presets
     test_unit_avnd_midi_sync_out_presets
@@ -2661,7 +2660,9 @@ foreach(_preset_test
     test_unit_fx_lfo_presets
     test_unit_preset_loader
     test_unit_preset_app
-    test_unit_avnd_control_kind_upgrade)
+    test_unit_avnd_control_kind_upgrade
+    test_unit_avnd_midi_control_upgrade
+    test_unit_avnd_processor_to_ui)
   if(TARGET ${_preset_test})
     target_compile_definitions(${_preset_test} PRIVATE
       "SCORE_TEST_PRESETS_ROOT=\"${SCORE_ROOT_SOURCE_DIR}/tests/fixtures/presets\"")

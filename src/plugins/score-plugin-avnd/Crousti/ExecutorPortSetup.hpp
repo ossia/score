@@ -81,11 +81,13 @@ ossia::value resolveControlPath(const ossia::value& v, const score::DocumentCont
  * A value from the UI on its way to the audio thread. A value that owns memory
  * (a text, a list) is converted on the UI thread into a block of its own; the
  * audio thread swaps it into the object and sends the block, which then holds
- * the previous value, back to be freed on the main thread. Other values travel
- * as they are.
+ * the previous value, back to be freed on the main thread. So does a value too
+ * large for the closures of the execution queue, such as a list of fixed
+ * capacity. Other values travel as they are.
  */
 template <typename T>
-inline constexpr bool control_value_owns_memory = !std::is_trivially_destructible_v<T>;
+inline constexpr bool control_value_owns_memory
+    = !std::is_trivially_destructible_v<T> || sizeof(T) > 64;
 
 /**
  * A value a processor wrote to one of its own controls, while the UI thread
@@ -288,6 +290,9 @@ struct setup_control_for_exec : setup_control_for_exec_base<Node, Field>
    * taken yet are replaced by newer ones. A text control's update_controller
    * takes a std::string_view and passes at most Field::max_length()
    * characters, 4096 when the field does not say.
+   * A value the control does not hold as is (e.g. a fixed-size table for a
+   * list of strings) is turned into the control's value on the UI thread by
+   * `static auto controller_value(const arg_type&)`, which may allocate.
    */
   void update_controller(Field& param, Process::ControlInlet* inlet)
   {
@@ -331,7 +336,10 @@ struct setup_control_for_exec : setup_control_for_exec_base<Node, Field>
           const auto previous = std::exchange(
               control_written_by_processor,
               processor_write_back{field, v->second, written.get()});
-          inlet->setValue(v->first);
+          if constexpr(requires { Field::controller_value(v->first); })
+            inlet->setValue(oscr::to_ossia_value(Field::controller_value(v->first)));
+          else
+            inlet->setValue(v->first);
           control_written_by_processor = previous;
         }))
           return true;

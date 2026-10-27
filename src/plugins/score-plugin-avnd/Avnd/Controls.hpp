@@ -3,6 +3,7 @@
 #include <Process/Dataflow/StringListEditor.hpp>
 
 #include <halp/value_list.hpp>
+#include <halp/toggle_grid.hpp>
 
 #include <Scenario/Commands/SetControllerControlValue.hpp>
 
@@ -187,6 +188,9 @@ concept note_matrix_field = requires { Field::widget::note_matrix; };
 template <typename Field>
 concept channel_mask_field = requires { Field::widget::channel_mask; };
 
+template <typename Field>
+concept toggle_grid_field = requires { Field::widget::toggle_grid; };
+
 template <typename Node, typename Refl>
 struct CustomControlFactory;
 
@@ -194,7 +198,7 @@ template <typename Node, std::size_t N, typename Field>
   requires(
       !avnd::controller_interaction_port<Field> && !string_list_field<Field>
       && !value_list_field<Field> && !note_matrix_field<Field>
-      && !channel_mask_field<Field>)
+      && !channel_mask_field<Field> && !toggle_grid_field<Field>)
 struct CustomControlFactory<Node, avnd::field_reflection<N, Field>>
     : public Dataflow::WidgetInletFactory<
           oscr::CustomFloatControl<Node, avnd::field_index<N>>,
@@ -528,6 +532,32 @@ struct CustomControlFactory<Node, avnd::field_reflection<N, Field>>
 {
 };
 
+//! The cell names and row length of a halp::toggle_grid
+template <typename Field>
+struct ToggleGridConfig
+{
+  static void configure(score::QGraphicsToggleGrid& grid)
+  {
+    QStringList labels;
+    for(std::string_view l : Field::labels())
+      labels.push_back(QString::fromUtf8(l.data(), qsizetype(l.size())));
+    int per_row = 8;
+    if constexpr(requires { Field::items_per_line(); })
+      per_row = Field::items_per_line();
+    grid.setLabels(std::move(labels), per_row);
+  }
+};
+
+template <typename Node, std::size_t N, typename Field>
+  requires toggle_grid_field<Field>
+struct CustomControlFactory<Node, avnd::field_reflection<N, Field>>
+    : public Dataflow::WidgetInletFactory<
+          CustomGenericControl<Process::MultiSlider, Node, Field, avnd::field_index<N>>,
+          WidgetFactory::GraphicsListControl<
+              score::QGraphicsToggleGrid, ToggleGridConfig<Field>>>
+{
+};
+
 template <typename Node, std::size_t N, typename Field>
   requires controller_spinbox_field<Field>
 struct CustomControlFactory<Node, avnd::field_reflection<N, Field>>
@@ -555,7 +585,8 @@ struct controller_needs_factory<avnd::field_reflection<N, Field>>
     : std::bool_constant<
           controller_spinbox_field<Field> || controller_lineedit_field<Field>
           || string_list_field<Field> || value_list_field<Field>
-          || note_matrix_field<Field> || channel_mask_field<Field>>
+          || note_matrix_field<Field> || channel_mask_field<Field>
+          || toggle_grid_field<Field>>
 {
 };
 

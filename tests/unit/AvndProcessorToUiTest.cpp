@@ -11,6 +11,8 @@
 #include <Process/Dataflow/WidgetInlets.hpp>
 #include <Process/ExecutionContext.hpp>
 #include <Process/ExecutionSetup.hpp>
+#include <Process/Preset.hpp>
+#include <Process/ProcessList.hpp>
 
 #include <Scenario/Document/Interval/IntervalExecution.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
@@ -28,6 +30,7 @@
 #include <ossia/detail/thread.hpp>
 
 #include <QApplication>
+#include <QFile>
 #include <QFileInfo>
 #include <QThread>
 
@@ -38,6 +41,7 @@
 #include <Crousti/ProcessModel.hpp>
 #include <AvndProcesses/MIDISync.hpp>
 #include <Fx/Chord.hpp>
+#include <Fx/MidiUtil.hpp>
 #include <Fx/Looper/AudioLooper.hpp>
 #include <Fx/Looper/MidiLooper.hpp>
 #include <Fx/Looper/ValueLooper.hpp>
@@ -361,6 +365,17 @@ struct exec
     }
   }
 
+  //! The pitches of the note-ons written to outlet `o` by the last tick.
+  std::vector<int> notes_out(int o = 0)
+  {
+    std::vector<int> r;
+    if(auto* port = node.root_outputs()[o]->template target<ossia::midi_port>())
+      for(auto& u : port->messages)
+        if(((u.data[0] >> 16) & 0xF0) == 0x90)
+          r.push_back(int((u.data[0] >> 8) & 0x7F));
+    return r;
+  }
+
   //! Status bytes of the MIDI written to outlet `o` by the last tick.
   std::vector<int> midi_out(int o = 0)
   {
@@ -438,6 +453,15 @@ libremidi::message note_off(int pitch)
   return libremidi::channel_events::note_off(1, pitch, 0);
 }
 
+//! The value of Chord's Memory control: a row [identity, text] per key.
+ossia::value memory_rows(std::vector<std::pair<int, std::string>> rows)
+{
+  std::vector<ossia::value> res;
+  for(auto& [id, text] : rows)
+    res.push_back(std::vector<ossia::value>{id, text});
+  return res;
+}
+
 //! Plays a chord then the key it is learned on, a tick for each.
 template <typename E>
 void learn_chord(E& e, std::vector<int> chord, int key)
@@ -486,16 +510,28 @@ TEST_CASE("Chord through the binding: a learned chord reaches the Memory control
     learn({60, 64, 67}, 48);
     learn({62, 65, 69}, 50);
     // Nothing reaches the model before the UI thread runs.
-    CHECK(e.control("Memory").value() == ossia::value{std::string{}});
+    CHECK(e.control("Memory").value() == memory_rows({}));
     e.ui();
-    // Only the latest text is applied.
-    CHECK(e.control("Memory").value() == ossia::value{std::string{"48: 12 16 19; 50: 12 15 19"}});
+    // Only the latest table is applied, a row per learned key.
+    CHECK(
+        e.control("Memory").value()
+        == memory_rows({{10048, "C3: 12 16 19"}, {10050, "D3: 12 15 19"}}));
 
     learn({64, 67, 71}, 52);
     e.ui();
     CHECK(
         e.control("Memory").value()
-        == ossia::value{std::string{"48: 12 16 19; 50: 12 15 19; 52: 12 15 19"}});
+        == memory_rows(
+            {{10048, "C3: 12 16 19"}, {10050, "D3: 12 15 19"}, {10052, "E3: 12 15 19"}}));
+
+    // The rows come back to the processor, which keeps the same chords.
+    run_exec(e.plug);
+    CHECK(e.object().inputs.memory.value.size() == 3);
+    e.gui("Learn", false);
+    e.gui("Mode", ossia::value{std::string{"Memory"}});
+    e.midi({note_on(52)});
+    e.tick();
+    CHECK(e.midi_out() == std::vector<int>{0x90, 0x90, 0x90});
   });
 }
 
@@ -517,12 +553,12 @@ TEST_CASE("Chord through the binding: a learned chord reaches the Memory control
     // The chord is learned once, and nothing writes the Memory again.
     learn_chord(e, {60, 64, 67}, 48);
     e.ui();
-    CHECK(e.control("Memory").value() == ossia::value{std::string{}});
+    CHECK(e.control("Memory").value() == memory_rows({}));
 
     // The next tick sends the wake-up the full queue refused.
     e.tick();
     e.ui();
-    CHECK(e.control("Memory").value() == ossia::value{std::string{"48: 12 16 19"}});
+    CHECK(e.control("Memory").value() == memory_rows({{10048, "C3: 12 16 19"}}));
   });
 }
 
@@ -756,27 +792,33 @@ TEST_CASE("Value looper through the binding: what is recorded comes back at the 
   });
 }
 
-TEST_CASE("Chord through the binding: a text set in the UI is neither allocated nor freed on the audio thread", "[avnd][message_bus][execution][gc]")
+TEST_CASE("Chord through the binding: memory rows set in the UI are neither allocated nor freed on the audio thread", "[avnd][message_bus][execution][gc]")
 {
   with<Nodes::Chord::Node>(
       QStringLiteral("F0904279-EA26-48DB-B0DF-F68FE3091DA1"), [](auto& e) {
     // Longer than a short string: each lives in a heap block.
-    const std::string first = "60: 0 4 7; 62: 0 3 7; 64: 0 3 7";
-    const std::string second = "48: 12 16 19; 50: 12 15 19; 52: 12 15 19";
-    const std::string third = "36: 0 4 7 11; 38: 0 3 7 10; 40: 0 3 7 10";
+    const auto first = memory_rows(
+        {{10000, "C4: 0 4 7 11 14 17 21"}, {10001, "D4: 0 3 7 10 14 17 21"}});
+    const auto second = memory_rows(
+        {{10000, "C3: 12 16 19 23 26 29"}, {10001, "D3: 12 15 19 22 26 29"}});
+    const auto third = memory_rows(
+        {{10000, "C2: 0 4 7 11 14 17 21"}, {10001, "D2: 0 3 7 10 14 17 21"}});
+    auto text_of = [&](int row) { return e.object().inputs.memory.value[row].second; };
 
     // The first command of a thread registers it as a producer of the GC queue.
-    e.gui("Memory", ossia::value{first});
+    e.gui("Memory", first);
     e.plug.contextData()->processEditCommands();
-    REQUIRE(e.object().inputs.memory.value == first);
+    REQUIRE(e.object().inputs.memory.value.size() == 2);
+    REQUIRE(text_of(0) == "C4: 0 4 7 11 14 17 21");
 
-    e.control("Memory").setValue(ossia::value{second});
-    e.control("Memory").setValue(ossia::value{third});
+    e.control("Memory").setValue(second);
+    e.control("Memory").setValue(third);
     const auto counts = on_audio_thread([&] { e.plug.runAllCommands(); });
     CHECK(counts.allocations == 0);
     CHECK(counts.frees == 0);
-    // The latest text wins.
-    CHECK(e.object().inputs.memory.value == third);
+    // The latest rows win.
+    CHECK(text_of(0) == "C2: 0 4 7 11 14 17 21");
+    CHECK(text_of(1) == "D2: 0 3 7 10 14 17 21");
 
     // The previous texts are freed when the main thread runs the GC queue.
     int frees = 0;
@@ -1153,3 +1195,35 @@ TEMPLATE_TEST_CASE(
     view.mouse_release(view.width() - 20., 10.);
   });
 }
+
+#if defined(SCORE_TEST_PRESETS_ROOT)
+// A Midi scale preset dropped on the object in the application, then played:
+// the notes come out where the preset's name says.
+TEST_CASE("Midi scale through the binding: Fifth up above C4 only", "[avnd][execution][midi_scale][presets]")
+{
+  with<Nodes::MidiUtil::Node>(
+      QStringLiteral("06b33b83-bb67-4f7a-9980-f5d66e4266c5"), [](auto& e) {
+    QFile f{QStringLiteral(SCORE_TEST_PRESETS_ROOT) + "/Midi scale/Fifth up above C4 only.scp"};
+    REQUIRE(f.open(QIODevice::ReadOnly));
+    auto preset = Process::Preset::fromJson(
+        score::GUIAppContext().interfaces<Process::ProcessFactoryList>(), f.readAll());
+    REQUIRE(preset);
+    e.proc.loadPreset(*preset);
+    run_exec(e.plug);
+
+    auto play = [&](int pitch) {
+      e.midi({note_on(pitch)});
+      e.tick();
+      auto res = e.notes_out();
+      e.midi({note_off(pitch)});
+      e.tick();
+      return res;
+    };
+    CHECK(play(48) == std::vector<int>{48});
+    CHECK(play(59) == std::vector<int>{59});
+    CHECK(play(60) == std::vector<int>{67});
+    CHECK(play(64) == std::vector<int>{71});
+    CHECK(play(72) == std::vector<int>{79});
+  });
+}
+#endif

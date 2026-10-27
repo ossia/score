@@ -370,3 +370,32 @@ TEST_CASE("event queue tags and note tracker lookup", "[midi_common]")
   CHECK(t.sounding(2, 64) == 1);
   CHECK(t.find(2, 60) == nullptr);
 }
+
+TEST_CASE("message value", "[midi_common]")
+{
+  auto value = [](std::initializer_list<unsigned char> b) {
+    return message_value(libremidi::message{b});
+  };
+  CHECK(value({0x90, 60, 100}) == 100.f);
+  CHECK(value({0x80, 60, 30}) == 30.f);
+  CHECK(value({0x90, 60, 0}) == 0.f);
+  CHECK(value({0xA3, 60, 50}) == 50.f);
+  CHECK(value({0xB0, 7, 127}) == 127.f);
+  CHECK(value({0xC0, 12}) == 12.f);
+  CHECK(value({0xD5, 77}) == 77.f);
+  CHECK(value({0xF1, 0x35}) == float(0x35));
+  CHECK(value({0xF3, 4}) == 4.f);
+  // Pitch bend: -1 to 1 around the center
+  CHECK(value({0xE0, 0, 64}) == 0.f);
+  CHECK(value({0xE0, 0, 0}) == -1.f);
+  CHECK(value({0xE0, 127, 127}) == 1.f);
+  CHECK(*value({0xE0, 0, 96}) == float(4096) / 8191.f);
+  // Song position: 14 bits, LSB first
+  CHECK(value({0xF2, 1, 2}) == float(2 * 128 + 1));
+  // No value
+  CHECK(!value({0xF8}));
+  CHECK(!value({0xFA}));
+  CHECK(!value({0xF6}));
+  CHECK(!value({0xF0, 1, 0xF7}));
+  CHECK(!value({0xF4}));
+}

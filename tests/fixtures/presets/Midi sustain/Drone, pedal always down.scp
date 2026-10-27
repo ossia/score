@@ -1,1 +1,1 @@
-{"Key":{"Uuid":"943f891c-e56f-4e60-a270-3420657fe368","Effect":""},"Name":"Drone, pedal always down","Category":"Always on","Preset":[[1,{"String":"All"}],[2,{"Bool":true}],[3,{"Bool":true}]]}
+{"Key":{"Uuid":"943f891c-e56f-4e60-a270-3420657fe368","Effect":""},"Name":"Drone, pedal always down","Category":"Always on","Preset":[[1,{"String":"All"},"Mode"],[2,{"Bool":true},"Pedal"],[3,{"Bool":true},"Pass CC 64"]]}

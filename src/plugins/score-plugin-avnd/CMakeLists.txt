@@ -164,7 +164,6 @@ add_library(
   "${AVND_FOLDER}/examples/Advanced/MidiScaler/MidiLife.hpp"
   "${AVND_FOLDER}/examples/Advanced/MidiScaler/MidiSustain.hpp"
   "${AVND_FOLDER}/examples/Advanced/MidiScaler/MidiTransform.hpp"
-  "${AVND_FOLDER}/examples/Advanced/MidiScaler/MidiCCSnapshot.hpp"
   "${AVND_FOLDER}/examples/Advanced/MidiScaler/MidiValueShaper.hpp"
   "${AVND_FOLDER}/examples/Advanced/MidiScaler/MidiRandomSequencer.hpp"
   "${AVND_FOLDER}/examples/Advanced/MidiScaler/MidiProgressionPlayer.hpp"
@@ -693,13 +692,6 @@ avnd_make_score(
   SOURCES "${AVND_FOLDER}/examples/Advanced/MidiScaler/MidiTransform.hpp"
   TARGET miditransform
   MAIN_CLASS MidiTransform
-  NAMESPACE mtk
-)
-
-avnd_make_score(
-  SOURCES "${AVND_FOLDER}/examples/Advanced/MidiScaler/MidiCCSnapshot.hpp"
-  TARGET midiccsnapshot
-  MAIN_CLASS MidiCCSnapshot
   NAMESPACE mtk
 )
 

@@ -772,3 +772,91 @@ TEST_CASE(
     }
   });
 }
+
+namespace
+{
+const QString chord_uuid = QStringLiteral("F0904279-EA26-48DB-B0DF-F68FE3091DA1");
+
+//! Chord's Memory as rows [identity, text].
+ossia::value chord_rows(std::vector<std::pair<int, std::string>> rows)
+{
+  std::vector<ossia::value> res;
+  for(auto& [id, text] : rows)
+    res.push_back(std::vector<ossia::value>{id, text});
+  return res;
+}
+}
+
+TEST_CASE("Chord's Memory: a score saved when it was one line of text", "[avnd][upgrade][chord]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    auto& dctx = doc->context();
+    auto chord = make_looper(dctx, chord_uuid);
+    if(!chord)
+      SKIP("Chord is not built");
+
+    // The Memory port as it was: a line edit with the learned chords.
+    auto& inlets = InletsAccess::of(*chord);
+    auto it = ossia::find_if(inlets, [](auto* in) { return in->name() == "Memory"; });
+    REQUIRE(it != inlets.end());
+    const auto id = (*it)->id();
+    auto* line = new Process::LineEdit{
+        QStringLiteral("60: 0 4 7; 62: 0 3 7; C3: 12 15 19"), "Memory", id, chord.get()};
+    const State::AddressAccessor address{State::Address{"dev", {"chord", "memory"}}};
+    line->setAddress(address);
+    delete *it;
+    *it = line;
+
+    for(auto roundtrip : {&roundtrip_json, &roundtrip_datastream})
+    {
+      std::unique_ptr<Process::ProcessModel> loaded{roundtrip(*chord, dctx, nullptr)};
+      REQUIRE(loaded);
+      auto* memory = inlet_named(*loaded, "Memory");
+      REQUIRE(memory);
+      CHECK(qobject_cast<Process::LineEdit*>(memory) == nullptr);
+      CHECK(memory->id() == id);
+      CHECK(memory->address() == address);
+      CHECK(
+          memory->value()
+          == chord_rows(
+              {{10000, "C4: 0 4 7"}, {10001, "D4: 0 3 7"}, {10002, "C3: 12 15 19"}}));
+    }
+  });
+}
+
+TEST_CASE("Chord's Memory: a preset saved when it was one line of text", "[avnd][upgrade][chord]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    auto chord = make_looper(doc->context(), chord_uuid);
+    if(!chord)
+      SKIP("Chord is not built");
+    auto load = [&](const char* json) {
+      Process::Preset p;
+      p.key.key = chord->concreteKey();
+      p.data = json;
+      chord->loadPreset(p);
+    };
+    auto* memory = inlet_named(*chord, "Memory");
+    REQUIRE(memory);
+
+    // By index, as the presets of the default package were saved.
+    load(R"([[15,{"String":"60: 0 4 7; 71: 0 3 6"}]])");
+    CHECK(memory->value() == chord_rows({{10000, "C4: 0 4 7"}, {10001, "B4: 0 3 6"}}));
+
+    // By name, and empty.
+    load(R"([[15,{"String":""},"Memory"]])");
+    CHECK(memory->value() == chord_rows({}));
+
+    // As rows, as it saves them now; and what it saves loads back.
+    load(R"([[15,{"Tuple":[{"Tuple":[{"Int":10062},{"String":"D4: 0 3 7"}]}]},"Memory"]])");
+    CHECK(memory->value() == chord_rows({{10062, "D4: 0 3 7"}}));
+    const auto saved = chord->savePreset();
+    load(R"([[15,{"String":"60: 0 4 7"}]])");
+    chord->loadPreset(saved);
+    CHECK(memory->value() == chord_rows({{10062, "D4: 0 3 7"}}));
+  });
+}

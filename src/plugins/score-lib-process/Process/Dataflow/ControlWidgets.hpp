@@ -2125,8 +2125,10 @@ struct ValueList
 };
 
 //! A graphics item editing a whole list value at once, with the signals of
-//! the sliders: score::QGraphicsNoteMatrix, score::QGraphicsChannelMask.
-template <typename Item_T>
+//! the sliders: score::QGraphicsNoteMatrix, score::QGraphicsChannelMask,
+//! score::QGraphicsToggleGrid. Config::configure(Item_T&), when given, sets the
+//! item up before it takes the value.
+template <typename Item_T, typename Config = void>
 struct GraphicsListControl
 {
   static Process::PortItemLayout layout() noexcept
@@ -2147,6 +2149,8 @@ struct GraphicsListControl
       QGraphicsItem* parent, QObject* context)
   {
     auto sl = new Item_T{nullptr};
+    if constexpr(!std::is_void_v<Config>)
+      Config::configure(*sl);
     sl->setValue(inlet.value());
 
     QObject::connect(sl, &Item_T::sliderMoved, context, [=, &inlet, &ctx] {

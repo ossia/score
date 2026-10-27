@@ -24,6 +24,7 @@
 #include <Fx/Arpeggiator_v2.hpp>
 #include <Fx/Chord.hpp>
 #include <Fx/Looper/MidiLooper.hpp>
+#include <Fx/MidiUtil.hpp>
 #include <Fx/Looper/ValueLooper.hpp>
 #include <avnd/binding/ossia/from_value.hpp>
 #include <avnd/binding/ossia/time_controls.hpp>
@@ -221,6 +222,8 @@ TEST_CASE("Presets load through score as the harnesses apply them", "[presets][l
         *doc, "Midi delay", "5ba4e20c-8936-43ab-aee5-8ac4555e05c1", true);
     check_folder<Nodes::Chord::Node>(
         *doc, "Chord", "F0904279-EA26-48DB-B0DF-F68FE3091DA1", false);
+    check_folder<Nodes::MidiUtil::Node>(
+        *doc, "Midi scale", "06b33b83-bb67-4f7a-9980-f5d66e4266c5", false);
     check_folder<Nodes::MidiLooper::Node>(
         *doc, "Looper (MIDI)", "0c0b7d3e-5a52-4b8f-9d1f-6e3a2b8c4f71", false);
     check_folder<Nodes::ValueLooper::Node>(
