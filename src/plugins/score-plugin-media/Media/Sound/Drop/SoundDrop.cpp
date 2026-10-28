@@ -1,7 +1,7 @@
 #include "SoundDrop.hpp"
 
 #include <Process/Commands/Properties.hpp>
-#include <Process/Drop/ClipMetadata.hpp>
+#include <Process/Drop/TakeDrop.hpp>
 #include <Process/TimeValueSerialization.hpp>
 
 #include <Scenario/Commands/Interval/ResizeInterval.hpp>
@@ -50,18 +50,12 @@ std::optional<ossia::audio_stretch_mode> stretch_mode(halp::clip_stretch s) noex
   }
 }
 
-//! The mode the drop asks for `file`, matched by path, else by name: a drop
-//! may hand a copy of the file it was given.
+//! The mode the drop asks for `file`.
 std::optional<ossia::audio_stretch_mode> requested_mode(
     const std::vector<Process::clip_file_metadata>& meta, const QString& file)
 {
-  for(const auto& m : meta)
-    if(QString::fromStdString(m.path) == file)
-      return stretch_mode(m.stretch);
-  const QString name = QFileInfo{file}.fileName();
-  for(const auto& m : meta)
-    if(QFileInfo{QString::fromStdString(m.path)}.fileName() == name)
-      return stretch_mode(m.stretch);
+  if(const auto* m = Process::find_clip_metadata(meta, file.toStdString()))
+    return stretch_mode(m->stretch);
   return std::nullopt;
 }
 
@@ -122,14 +116,9 @@ void DropHandler::dropCustom(
   if(!drop.valid())
     return;
 
-  std::vector<Process::clip_file_metadata> meta;
-  if(const auto fmt = QString::fromUtf8(
-         Process::clip_metadata_mime.data(), qsizetype(Process::clip_metadata_mime.size()));
-     mime.hasFormat(fmt))
-  {
-    const QByteArray data = mime.data(fmt);
-    meta = Process::decode_clip_metadata({data.constData(), std::size_t(data.size())});
-  }
+  // A sound file loops by itself, at its own length: only how it follows
+  // the tempo is read here.
+  const auto meta = Process::clip_metadata_of(mime);
 
   for(auto&& file : drop.files)
   {

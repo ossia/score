@@ -7,6 +7,8 @@
 #include <Process/Drop/ClipMetadata.hpp>
 #include <Process/Drop/ProcessDropHandler.hpp>
 
+#include <Scenario/Application/Drops/DropProcessInInterval.hpp>
+
 #include <Scenario/Commands/CommandAPI.hpp>
 #include <Scenario/Commands/Interval/AddProcessToInterval.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
@@ -33,6 +35,7 @@
 #include <Avnd/Factories.hpp>
 #include <Crousti/Executor.hpp>
 #include <Crousti/HostServices.hpp>
+#include <Crousti/Painter.hpp>
 #include <libremidi/detail/conversion.hpp>
 #include <score_test/Execution.hpp>
 #include <Midi/MidiProcess.hpp>
@@ -63,6 +66,7 @@
 #include <fstream>
 #include <map>
 #include <memory>
+#include <optional>
 #include <set>
 #include <vector>
 
@@ -81,14 +85,14 @@ Scenario::ProcessModel* main_scenario(score::Document& doc)
   return nullptr;
 }
 
-//! A box from 2 s to 10 s of the main scenario, with a looper in it.
-Process::ProcessModel*
-add_looper(score::Document& doc, Scenario::ProcessModel& scenario, const QString& uuid)
+//! A box from 2 s to `end` of the main scenario, with a looper in it.
+Process::ProcessModel* add_looper(
+    score::Document& doc, Scenario::ProcessModel& scenario, const QString& uuid,
+    TimeVal end = TimeVal::fromMsecs(10000))
 {
   Scenario::Command::Macro m{
       new Scenario::Command::AddProcessInNewBoxMacro, doc.context()};
-  auto& box = m.createBox(
-      scenario, TimeVal::fromMsecs(2000), TimeVal::fromMsecs(10000), 0.2);
+  auto& box = m.createBox(scenario, TimeVal::fromMsecs(2000), end, 0.2);
   auto* p = m.createProcessInNewSlot(
       box, UuidKey<Process::ProcessModel>::fromString(uuid), QString{});
   m.commit();
@@ -358,9 +362,15 @@ TEST_CASE("A dropped take plays with the stretch its drag carries, and a plain d
       CHECK(sounds_in(*scenario).empty());
     }
     {
-      // A MIDI looper's take, or any file: nothing carried, the name guessed.
+      // A take with no stretch of its own: it carries only that it is a
+      // loop, and the stretch is guessed from the name.
       auto mime = drag(halp::clip_stretch::automatic);
-      CHECK(!mime->hasFormat(QString::fromUtf8(Process::clip_metadata_mime.data())));
+      const auto data = mime->data(QString::fromUtf8(Process::clip_metadata_mime.data()));
+      const auto meta
+          = Process::decode_clip_metadata({data.constData(), std::size_t(data.size())});
+      REQUIRE(meta.size() == 1);
+      CHECK(meta[0].stretch == halp::clip_stretch::automatic);
+      CHECK(meta[0].loop);
       auto* s = drop(*mime);
       REQUIRE(s);
       CHECK(s->stretchMode() == mode::RubberBandPercussive);
@@ -674,6 +684,8 @@ struct midi_looper_run
   int buffer_size{500};
   int64_t now{0};
   double tempo{90.};
+  //! Quarters in a bar.
+  int meter{4};
   std::vector<libremidi::message> pending;
   std::unique_ptr<Nodes::Looper::view_message> last = std::make_unique<Nodes::Looper::view_message>();
   Nodes::Looper::looper_view view;
@@ -730,8 +742,9 @@ struct midi_looper_run
     const double qps = tempo / 60. / st.sampleRate;
     tk.musical_start_position = now * qps;
     tk.musical_end_position = (now + buffer_size) * qps;
-    tk.musical_start_last_bar = std::floor(tk.musical_start_position / 4.) * 4.;
-    tk.musical_end_last_bar = std::floor(tk.musical_end_position / 4.) * 4.;
+    tk.signature = {uint16_t(meter), 4};
+    tk.musical_start_last_bar = std::floor(tk.musical_start_position / meter) * meter;
+    tk.musical_end_last_bar = std::floor(tk.musical_end_position / meter) * meter;
     st.samples_since_start = now + buffer_size;
 
     auto& in = node.inputs.midi.midi_messages;
@@ -1103,4 +1116,510 @@ TEST_CASE("A MIDI take's clip is one process, and its loop settings survive a re
     CHECK(again[0]->duration().msec() == Approx(16000.).margin(1.));
     CHECK(again[0]->notes.size() == 4);
   });
+}
+
+namespace
+{
+//! A MIDI looper in a box of the main scenario, run by the engine at `tempo`
+//! in `meter`/4 with the looper's defaults, as in the app: its view gets the
+//! looper's messages, and asks it for the files of a lane.
+struct engine_midi_looper
+{
+  score::Document& doc;
+  Scenario::ProcessModel& scenario;
+  Execution::DocumentPlugin& plug;
+  double tempo{};
+  int meter{};
+  TimeVal box_start{};
+  Process::ProcessModel* proc{};
+  Scenario::IntervalModel* box{};
+  MidiLooper* looper{};
+  ossia::midi_port* in{};
+  std::optional<ossia::buffer_tick> ticker;
+  int64_t frames{};
+  //! Where the recording started in the timeline.
+  TimeVal record_date{};
+  Nodes::Looper::looper_view view;
+  QTemporaryDir dir;
+
+  static TimeVal box_duration() { return TimeVal::fromMsecs(600000); }
+
+  engine_midi_looper(
+      score::Document& d, Scenario::ProcessModel& s, double tempo, int meter,
+      TimeVal box_start)
+      : doc{d}
+      , scenario{s}
+      , plug{d.context().plugin<Execution::DocumentPlugin>()}
+      , tempo{tempo}
+      , meter{meter}
+      , box_start{box_start}
+  {
+    {
+      Scenario::Command::Macro m{
+          new Scenario::Command::AddProcessInNewBoxMacro, doc.context()};
+      auto& from = m.createState(scenario, scenario.startEvent().id(), 0.2);
+      Id<Scenario::StateModel> start = from.id();
+      if(box_start > TimeVal::zero())
+        start = m.createIntervalAfter(scenario, from.id(), {box_start, 0.2}).endState();
+      box = &m.createIntervalAfter(scenario, start, {box_start + box_duration(), 0.2});
+      proc = m.createProcessInNewSlot(
+          *box, UuidKey<Process::ProcessModel>::fromString(midi_looper_uuid), QString{});
+      m.commit();
+    }
+    REQUIRE(proc);
+
+    plug.reload(true, score::test::base_interval(doc));
+    score::test::run_exec(plug);
+    REQUIRE(plug.baseScenario());
+    Execution::IntervalComponent* comp{};
+    for(auto* c : box->components())
+      if(auto ic = dynamic_cast<Execution::IntervalComponent*>(c))
+        comp = ic;
+    REQUIRE(comp);
+    auto it = comp->processes().find(proc->id());
+    REQUIRE(it != comp->processes().end());
+    auto& node = static_cast<oscr::safe_node<MidiLooper>&>(*it->second->node);
+    looper = &node.impl.effect;
+    in = node.root_inputs()[0]->template target<ossia::midi_port>();
+    REQUIRE(in);
+
+    auto writer = std::make_shared<Nodes::Looper::take_writer>();
+    writer->folder = dir.path();
+    writer->prefix = "MIDI looper";
+    writer->extension = "mid";
+    looper->writer = writer;
+    looper->worker.request = [this](Nodes::Looper::midi_take_job job) {
+      MidiLooper::worker_t::work(std::move(job))(*looper);
+    };
+    looper->send_message
+        = [this](const Nodes::Looper::view_message& m) { view.receive(m); };
+    view.erase = [this](Nodes::Looper::erase_request r) { looper->process_message(r); };
+    view.send_to_timeline = [this](halp::timeline_clip clip) {
+      oscr::sendToTimeline(*proc, doc.context(), clip);
+    };
+
+    auto& itv = *plug.baseScenario()->baseInterval().OSSIAInterval();
+    {
+      ossia::tempo_curve curve;
+      curve.set_x0(0);
+      curve.set_y0(tempo);
+      curve.add_point(
+          [](double, double a, double b) { return a + 0. * b; },
+          int64_t(1e6 * ossia::flicks_per_second<double>), tempo);
+      itv.set_tempo_curve(std::move(curve));
+    }
+    itv.set_time_signature_map(ossia::time_signature_map{
+        {ossia::time_value{}, ossia::time_signature{uint16_t(meter), 4}}});
+    const ossia::time_value end{int64_t(1e5 * ossia::flicks_per_second<double>)};
+    itv.set_min_duration(end);
+    itv.set_nominal_duration(end);
+    itv.set_max_duration(end);
+    itv.start_and_tick();
+    auto& ectx = plug.context();
+    ticker.emplace(ossia::buffer_tick{
+        *ectx.execState, *ectx.execGraph, plug.baseScenario()->baseScenario(), {}});
+  }
+
+  double rate() const { return plug.context().execState->sampleRate; }
+  int64_t quarter() const { return std::llround(60. / tempo * rate()); }
+  int64_t bar() const { return meter * quarter(); }
+  //! Four bars of timeline time: a quarter is half a second of it.
+  TimeVal four_bars() const { return TimeVal::fromMsecs(4. * meter * 500.); }
+
+  //! Runs `n` frames, the messages at their frame from now.
+  void run(int64_t n, std::vector<std::pair<int64_t, libremidi::message>> msgs = {})
+  {
+    ossia::set_thread_pinned(ossia::thread_type::Audio, 0);
+    const int buffer = plug.context().execState->bufferSize;
+    for(int64_t i = 0; i < n; i += buffer)
+    {
+      for(auto& [at, m] : msgs)
+        if(at >= i && at < i + buffer)
+        {
+          auto u = libremidi::ump_from_midi1(m);
+          u.timestamp = at - i;
+          in->messages.push_back(u);
+        }
+      (*ticker)(buffer, double(frames) / rate());
+      frames += buffer;
+      in->messages.clear();
+    }
+    ossia::set_thread_pinned(ossia::thread_type::Ui, 0);
+    QApplication::processEvents();
+  }
+
+  //! Four bars recorded with the defaults, from a bar of the timeline: Record
+  //! pressed just before it starts there, on the grid, and the post-action
+  //! ends it four bars on. A short note on the first beat of each bar,
+  //! pitch 60 + bar.
+  void record_four_bars()
+  {
+    run(int64_t(box_start.msec() / 1000. * 120. / tempo * rate()) + bar() / 2);
+    int64_t bar_at = (frames / bar() + 1) * bar();
+    if(bar_at - quarter() / 2 <= frames)
+      bar_at += bar();
+    run(bar_at - quarter() / 2 - frames);
+    looper->inputs.mode = MidiLooper::LoopMode::Record;
+    std::vector<std::pair<int64_t, libremidi::message>> notes;
+    const int64_t to_bar = bar_at - frames;
+    for(int b = 0; b < 4; b++)
+    {
+      notes.push_back(
+          {to_bar + b * bar() + 100, libremidi::channel_events::note_on(1, 60 + b, 100)});
+      notes.push_back(
+          {to_bar + b * bar() + quarter() / 2,
+           libremidi::channel_events::note_off(1, 60 + b, 0)});
+    }
+    run(to_bar + 5 * bar(), notes);
+    record_date = TimeVal::fromMsecs(double(bar_at / bar()) * meter * 500.);
+  }
+
+  double lane_y(int lane) const
+  {
+    return view.lanes_top + (lane + 0.5) * view.lane_height();
+  }
+
+  //! What a drag of the take from the Send button carries.
+  std::unique_ptr<QMimeData> drag_take()
+  {
+    return std::unique_ptr<QMimeData>{
+        oscr::make_drag_mime(view.drag_payload(view.width() - 20., 10.))};
+  }
+
+  //! What a drag of the first lane carries, once the looper wrote its file.
+  std::unique_ptr<QMimeData> drag_lane()
+  {
+    REQUIRE(view.mouse_press(100., lane_y(0)));
+    for(int i = 0; i < 64 && view.preparing(0); i++)
+      run(quarter());
+    REQUIRE(!view.preparing(0));
+    auto payload = view.drag_payload(100., lane_y(0));
+    view.mouse_release(100., lane_y(0));
+    REQUIRE(payload.files.size() == 1);
+    return std::unique_ptr<QMimeData>{oscr::make_drag_mime(payload)};
+  }
+
+  //! Dropped in the scenario as DropProcessInScenario does: a box at 1 s as
+  //! long as the drop says, a process in it for each of what it holds.
+  void drop_in_scenario(const QMimeData& mime)
+  {
+    const auto& handlers = doc.context().app.interfaces<Process::ProcessDropHandlerList>();
+    auto res = handlers.getDrop(mime, doc.context());
+    REQUIRE(!res.empty());
+    const auto t = handlers.getMaxDuration(res).value_or(TimeVal::fromMsecs(10000.));
+    Scenario::Command::Macro m{new Scenario::Command::AddProcessInNewBoxMacro, doc.context()};
+    auto& b = m.createBox(scenario, TimeVal::fromMsecs(1000), TimeVal::fromMsecs(1000) + t, 0.6);
+    score::Dispatcher_T disp{m};
+    for(auto& r : res)
+    {
+      auto* p = m.createProcessInNewSlot(b, r.creation);
+      if(p && r.setup)
+        r.setup(*p, disp);
+    }
+    m.commit();
+    QApplication::processEvents();
+  }
+
+  //! Dropped on the box of the looper itself, where a drag from its view
+  //! ends when it does not go far.
+  void drop_on_looper_box(const QMimeData& mime)
+  {
+    Scenario::DropProcessInInterval{}.drop(doc.context(), *box, {}, mime);
+    QApplication::processEvents();
+  }
+};
+
+//! How a take is placed in the timeline.
+enum class Placing
+{
+  Send,
+  DragTake,
+  DragLane,
+  DragTakeOnBox,
+  DragLaneOnBox
+};
+const char* name(Placing p)
+{
+  switch(p)
+  {
+    case Placing::Send:
+      return "Send";
+    case Placing::DragTake:
+      return "take dragged";
+    case Placing::DragLane:
+      return "lane dragged";
+    case Placing::DragTakeOnBox:
+      return "take dragged on the looper's box";
+    case Placing::DragLaneOnBox:
+      return "lane dragged on the looper's box";
+  }
+  return "";
+}
+}
+
+TEST_CASE(
+    "A MIDI loop of four bars recorded in a box is a clip looping at four bars, "
+    "sent or dragged, whole or a layer",
+    "[looper][timeline][app][midi][exec]")
+{
+  struct setup
+  {
+    double tempo;
+    int meter;
+    double box_start;
+  };
+  for(const auto [tempo, meter, box_start] :
+      {setup{120., 4, 0.}, setup{90., 4, 0.}, setup{120., 3, 0.}, setup{120., 4, 7000.},
+       setup{90., 3, 7000.}})
+  for(const auto placing :
+      {Placing::Send, Placing::DragTake, Placing::DragLane, Placing::DragTakeOnBox,
+       Placing::DragLaneOnBox})
+  {
+    DYNAMIC_SECTION(
+        tempo << " bpm in " << meter << "/4, looper's box at " << box_start << " ms, "
+              << name(placing))
+    {
+      score::test::run_in_app([&](const score::GUIApplicationContext& ctx) {
+        auto* doc = score::test::new_document(ctx);
+        REQUIRE(doc);
+        auto* scenario = main_scenario(*doc);
+        REQUIRE(scenario);
+        engine_midi_looper e{
+            *doc, *scenario, tempo, meter, TimeVal::fromMsecs(box_start)};
+        // A take of the mix and of the pass: Send places both.
+        if(placing == Placing::Send)
+          e.looper->inputs.exported.value = Nodes::Looper::TakeFiles::Both;
+        e.record_four_bars();
+
+        INFO("loop of " << e.looper->loop.length << " frames, a bar is " << e.bar());
+        REQUIRE(std::abs(double(e.looper->loop.length - 4 * e.bar())) <= 1.);
+        REQUIRE(e.view.state.take == 1);
+
+        // The take's files hold the four bars' quarters.
+        for(const auto& f : e.view.state.take_files())
+        {
+          INFO(f);
+          QFile file{QString::fromStdString(f)};
+          REQUIRE(file.open(QIODevice::ReadOnly));
+          const auto bytes = file.readAll();
+          libremidi::reader r;
+          std::vector<uint8_t> raw(bytes.begin(), bytes.end());
+          r.parse(raw);
+          CHECK(double(r.get_end_time()) / r.ticksPerBeat == Approx(4. * meter).margin(0.01));
+        }
+
+        const auto before = midi_clips(*scenario);
+        CHECK(before.empty());
+        switch(placing)
+        {
+          case Placing::Send:
+            e.view.send();
+            break;
+          case Placing::DragTake:
+            e.drop_in_scenario(*e.drag_take());
+            break;
+          case Placing::DragLane:
+            e.drop_in_scenario(*e.drag_lane());
+            break;
+          case Placing::DragTakeOnBox:
+            e.drop_on_looper_box(*e.drag_take());
+            break;
+          case Placing::DragLaneOnBox:
+            e.drop_on_looper_box(*e.drag_lane());
+            break;
+        }
+        QApplication::processEvents();
+
+        const auto clips = midi_clips(*scenario);
+        const bool on_box
+            = placing == Placing::DragTakeOnBox || placing == Placing::DragLaneOnBox;
+        const bool lane = placing == Placing::DragLane || placing == Placing::DragLaneOnBox;
+        std::set<QString> names;
+        for(const auto& [n, _] : clips)
+          names.insert(n);
+        if(placing == Placing::Send)
+          CHECK(names == std::set<QString>{"MIDI looper-take1", "MIDI looper-take1-layer1"});
+        else if(lane)
+          REQUIRE(names.size() == 1);
+        else
+          CHECK(names == std::set<QString>{"MIDI looper-take1"});
+        REQUIRE(!clips.empty());
+
+        const double bars4 = e.four_bars().msec();
+        for(const auto& [n, midi] : clips)
+        {
+          INFO(n.toStdString());
+          const auto& clip_box = *qobject_cast<const Scenario::IntervalModel*>(midi->parent());
+          if(on_box)
+          {
+            // In the looper's box, the clip is as long as the box and plays
+            // the four bars round.
+            CHECK(&clip_box == e.box);
+            CHECK(midi->duration() == e.box_duration());
+          }
+          else
+          {
+            CHECK(clip_box.duration.defaultDuration().msec() == Approx(bars4).margin(1.));
+            CHECK(midi->duration().msec() == Approx(bars4).margin(1.));
+          }
+          CHECK(midi->loops());
+          CHECK(midi->loopDuration().msec() == Approx(bars4).margin(1.));
+          if(placing == Placing::Send)
+            CHECK(clip_box.date().msec() == Approx(e.record_date.msec()).margin(1.));
+
+          // A note on the first beat of each bar of the loop.
+          std::map<int, double> starts;
+          for(const auto& note : midi->notes)
+            starts[note.pitch()] = note.start() * midi->duration().msec();
+          REQUIRE(starts.size() == 4);
+          for(int b = 0; b < 4; b++)
+          {
+            INFO("bar " << b);
+            REQUIRE(starts.contains(60 + b));
+            CHECK(starts[60 + b] == Approx(b * bars4 / 4.).margin(10.));
+          }
+        }
+
+        e.plug.clear();
+        QApplication::processEvents();
+      });
+    }
+  }
+}
+
+TEST_CASE("Audio and value takes loop at their length, sent, dragged, or dropped on a box",
+          "[looper][timeline][app][sound]")
+{
+  enum class where
+  {
+    send,
+    new_box,
+    on_box
+  };
+  for(const auto w : {where::send, where::new_box, where::on_box})
+  for(const bool audio : {true, false})
+  {
+    DYNAMIC_SECTION(
+        (audio ? "audio take, " : "value take, ")
+        << (w == where::send ? "sent" : w == where::new_box ? "dragged" : "dropped on a box"))
+    {
+      score::test::run_in_app([&](const score::GUIApplicationContext& ctx) {
+        auto* doc = score::test::new_document(ctx);
+        REQUIRE(doc);
+        auto* scenario = main_scenario(*doc);
+        REQUIRE(scenario);
+        // The looper's box, from 2 s to 22 s.
+        auto* looper = add_looper(
+            *doc, *scenario, audio ? audio_looper_uuid : midi_looper_uuid,
+            TimeVal::fromMsecs(22000));
+        REQUIRE(looper);
+        auto& looper_box = *qobject_cast<Scenario::IntervalModel*>(looper->parent());
+
+        QTemporaryDir dir;
+        // Audio: two bars at 97 bpm, 4 s of score's time. Values: four bars at
+        // 90 bpm, 10.7 s, 8 s of score's time; 0 then 1 from half of it.
+        QString file;
+        double length{};
+        const auto stretch
+            = audio ? halp::clip_stretch::timestretch : halp::clip_stretch::automatic;
+        if(audio)
+        {
+          file = write_take_97(dir);
+          length = 4000.;
+        }
+        else
+        {
+          auto e = std::make_unique<Nodes::Looper::value_export>();
+          e->rate = 48000.;
+          e->tempo = 90.;
+          e->length = std::llround(16. * 60. / 90. * 48000.);
+          Nodes::Looper::value_slot v;
+          v.set(0.f);
+          e->add(0, v, false);
+          v.set(1.f);
+          e->add(e->length / 2, v, false);
+          file = dir.path() + "/Value looper-take1.values";
+          const auto bytes = e->to_json();
+          std::ofstream f{file.toStdString(), std::ios::binary};
+          f.write(bytes.data(), std::streamsize(bytes.size()));
+          length = 8000.;
+        }
+        REQUIRE(!file.isEmpty());
+
+        // What the looper's view drags.
+        Nodes::Looper::view_message m{};
+        m.take = 1;
+        const QString base = QFileInfo{file}.path() + "/" + QFileInfo{file}.completeBaseName();
+        m.set_take(base.toStdString(), QFileInfo{file}.suffix().toStdString(), true, 0, stretch);
+        Nodes::Looper::looper_view view;
+        view.receive(m);
+        std::unique_ptr<QMimeData> mime{
+            oscr::make_drag_mime(view.drag_payload(view.width() - 20., 10.))};
+
+        switch(w)
+        {
+          case where::send:
+            oscr::sendToTimeline(
+                *looper, doc->context(),
+                halp::timeline_clip{
+                    .files = {file.toStdString()}, .date = 1., .stretch = stretch});
+            break;
+          case where::new_box: {
+            const auto& handlers = ctx.interfaces<Process::ProcessDropHandlerList>();
+            auto res = handlers.getDrop(*mime, doc->context());
+            REQUIRE(!res.empty());
+            const auto t = handlers.getMaxDuration(res).value_or(TimeVal::fromMsecs(10000.));
+            Scenario::Command::Macro mc{
+                new Scenario::Command::AddProcessInNewBoxMacro, doc->context()};
+            auto& b = mc.createBox(
+                *scenario, TimeVal::fromMsecs(1000), TimeVal::fromMsecs(1000) + t, 0.6);
+            score::Dispatcher_T disp{mc};
+            for(auto& r : res)
+              if(auto* p = mc.createProcessInNewSlot(b, r.creation); p && r.setup)
+                r.setup(*p, disp);
+            mc.commit();
+            break;
+          }
+          case where::on_box:
+            Scenario::DropProcessInInterval{}.drop(doc->context(), looper_box, {}, *mime);
+            break;
+        }
+        QApplication::processEvents();
+
+        std::vector<const Process::ProcessModel*> placed;
+        for(auto& itv : scenario->intervals)
+          for(auto& p : itv.processes)
+            if(qobject_cast<const Media::Sound::ProcessModel*>(&p)
+               || qobject_cast<const Automation::ProcessModel*>(&p))
+              placed.push_back(&p);
+        REQUIRE(placed.size() == 1);
+        const auto& proc = *placed.front();
+        const auto& box = *qobject_cast<const Scenario::IntervalModel*>(proc.parent());
+        CHECK(proc.loops());
+        CHECK(proc.loopDuration().msec() == Approx(length).margin(20.));
+        if(w == where::on_box)
+        {
+          CHECK(&box == &looper_box);
+          CHECK(proc.duration().msec() == Approx(20000.).margin(1.));
+        }
+        else
+        {
+          CHECK(box.duration.defaultDuration().msec() == Approx(length).margin(20.));
+          CHECK(proc.duration().msec() == Approx(length).margin(20.));
+        }
+
+        if(auto* a = qobject_cast<const Automation::ProcessModel*>(&proc))
+        {
+          // The curve holds the take over the loop, from the start of the
+          // process.
+          const double loop = length / proc.duration().msec();
+          const auto& c = a->curve();
+          CHECK(*c.valueAt(0.1 * loop) == Approx(0.));
+          CHECK(*c.valueAt(0.45 * loop) == Approx(0.));
+          CHECK(*c.valueAt(0.55 * loop) == Approx(1.));
+          CHECK(*c.valueAt(0.95 * loop) == Approx(1.));
+        }
+      });
+    }
+  }
 }

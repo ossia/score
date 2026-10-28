@@ -16,6 +16,11 @@ public:
   void dropData(
       std::vector<ProcessDrop>& drops, const DroppedFile& data,
       const score::DocumentContext& ctx) const noexcept override;
+
+private:
+  void dropCustom(
+      std::vector<ProcessDrop>& drops, const QMimeData& mime,
+      const score::DocumentContext& ctx) const override;
 };
 
 struct SCORE_PLUGIN_MIDI_EXPORT MidiTrack

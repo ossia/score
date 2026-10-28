@@ -7,6 +7,14 @@
 #include <Automation/AutomationModel.hpp>
 #include <Automation/Commands/SetAutomationMax.hpp>
 
+#include <Process/Drop/TakeDrop.hpp>
+
+#include <ossia/detail/flicks.hpp>
+
+#include <QFile>
+#include <QFileInfo>
+#include <QUrl>
+
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
@@ -14,6 +22,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <memory>
 
 namespace Automation
 {
@@ -74,6 +83,8 @@ std::optional<ValueTake> ValueTake::parse(const QByteArray& json)
   if(t.components < 1 || t.components > max_components || frames <= 0. || rate <= 0.)
     return {};
   t.seconds = frames / rate;
+  if(const double tempo = obj.value(QStringLiteral("tempo")).toDouble(); tempo > 0.)
+    t.seconds *= tempo / ossia::root_tempo;
   const auto lo = obj.value(QStringLiteral("min")).toArray();
   const auto hi = obj.value(QStringLiteral("max")).toArray();
   for(int c = 0; c < t.components; c++)
@@ -111,10 +122,10 @@ std::optional<ValueTake> ValueTake::parse(const QByteArray& json)
   return t;
 }
 
-std::vector<Curve::SegmentData> ValueTake::segments(int component) const
+std::vector<Curve::SegmentData> ValueTake::segments(int component, double span) const
 {
   std::vector<Curve::SegmentData> segs;
-  if(steps.empty() || component < 0 || component >= components)
+  if(steps.empty() || component < 0 || component >= components || !(span > 0.))
     return segs;
   const double lo = min[component], hi = max[component];
   auto y = [&](const step& s) {
@@ -139,11 +150,14 @@ std::vector<Curve::SegmentData> ValueTake::segments(int component) const
   double x = 0., held = y(steps.back());
   for(const auto& s : steps)
   {
+    const double at = s.x * span;
+    if(at >= 1.)
+      break;
     const double v = y(s);
-    if(s.x > x)
+    if(at > x)
     {
-      add(x, held, s.x, held);
-      x = s.x;
+      add(x, held, at, held);
+      x = at;
     }
     if(v != held)
     {
@@ -164,33 +178,88 @@ QSet<QString> ValueTakeDropHandler::fileExtensions() const noexcept
   return {QStringLiteral("values")};
 }
 
+namespace
+{
+//! An automation for each number of the take, its curve over the take's
+//! length from the start of the process. A loop's automation plays it round
+//! at that length.
+void add_take(
+    std::vector<Process::ProcessDropHandler::ProcessDrop>& drops, ValueTake&& t,
+    const QString& basename, bool loop)
+{
+  const auto shared = std::make_shared<const ValueTake>(std::move(t));
+  const ValueTake& take = *shared;
+  static constexpr const char* names[4]{"x", "y", "z", "w"};
+  for(int c = 0; c < take.components; c++)
+  {
+    Process::ProcessDropHandler::ProcessDrop p;
+    p.creation.key = Metadata<ConcreteKey_k, Automation::ProcessModel>::get();
+    // A list's numbers by their index, a vector's by their axis.
+    p.creation.prettyName
+        = take.components == 1 ? basename
+          : take.lists || take.components > 4
+              ? basename + QStringLiteral(" ") + QString::number(c)
+              : basename + QStringLiteral(" ") + QString::fromUtf8(names[c]);
+    const auto length = TimeVal::fromMsecs(take.seconds * 1000.);
+    p.duration = length;
+    p.setup = [shared, c, length, loop](Process::ProcessModel& m, score::Dispatcher& disp) {
+      const ValueTake& take = *shared;
+      auto& autom = static_cast<Automation::ProcessModel&>(m);
+      // A loop dropped in a box of another length keeps its own: the curve
+      // spans the loop from the start of the process.
+      const double span = loop && m.duration() > TimeVal::zero()
+                              ? double(length.impl) / double(m.duration().impl)
+                              : 1.;
+      disp.submit(new Automation::SetMin{autom, take.min[c]});
+      disp.submit(new Automation::SetMax{autom, take.max[c]});
+      disp.submit(new Curve::UpdateCurve{autom.curve(), take.segments(c, span)});
+      if(loop)
+        Process::loop_clip(m, length, disp);
+    };
+    drops.push_back(std::move(p));
+  }
+}
+}
+
 void ValueTakeDropHandler::dropData(
     std::vector<ProcessDrop>& drops, const DroppedFile& data,
     const score::DocumentContext& ctx) const noexcept
 {
-  const auto take = ValueTake::parse(data.data);
-  if(!take)
+  if(auto take = ValueTake::parse(data.data))
+    add_take(drops, std::move(*take), data.filename.basename, false);
+}
+
+void ValueTakeDropHandler::dropCustom(
+    std::vector<ProcessDrop>& drops, const QMimeData& mime,
+    const score::DocumentContext& ctx) const
+{
+  // Only a drop that says how its files are to be played, e.g. a looper's
+  // take, is handled here; any other is made file by file.
+  const auto meta = Process::clip_metadata_of(mime);
+  if(meta.empty())
     return;
-  static constexpr const char* names[4]{"x", "y", "z", "w"};
-  for(int c = 0; c < take->components; c++)
+
+  bool described = false;
+  QStringList files;
+  for(const auto& url : mime.urls())
   {
-    ProcessDrop p;
-    p.creation.key = Metadata<ConcreteKey_k, Automation::ProcessModel>::get();
-    // A list's numbers by their index, a vector's by their axis.
-    p.creation.prettyName
-        = take->components == 1 ? data.filename.basename
-          : take->lists || take->components > 4
-              ? data.filename.basename + QStringLiteral(" ") + QString::number(c)
-              : data.filename.basename + QStringLiteral(" ") + QString::fromUtf8(names[c]);
-    p.duration = TimeVal::fromMsecs(take->seconds * 1000.);
-    p.setup = [segs = take->segments(c), lo = take->min[c], hi = take->max[c]](
-                  Process::ProcessModel& m, score::Dispatcher& disp) {
-      auto& autom = static_cast<Automation::ProcessModel&>(m);
-      disp.submit(new Automation::SetMin{autom, lo});
-      disp.submit(new Automation::SetMax{autom, hi});
-      disp.submit(new Curve::UpdateCurve{autom.curve(), segs});
-    };
-    drops.push_back(std::move(p));
+    const QString path = url.toLocalFile();
+    if(QFileInfo{path}.suffix().toLower() != QStringLiteral("values"))
+      continue;
+    files.push_back(path);
+    described = described || Process::find_clip_metadata(meta, path.toStdString());
+  }
+  if(!described)
+    return;
+
+  for(const auto& path : files)
+  {
+    QFile f{path};
+    if(!f.open(QIODevice::ReadOnly))
+      continue;
+    const auto* m = Process::find_clip_metadata(meta, path.toStdString());
+    if(auto take = ValueTake::parse(f.readAll()))
+      add_take(drops, std::move(*take), QFileInfo{path}.baseName(), m && m->loop);
   }
 }
 }

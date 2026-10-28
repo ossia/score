@@ -73,6 +73,7 @@ set(PROCESS_HDRS
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/OfflineAction/OfflineAction.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Drop/ClipMetadata.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Drop/ProcessDropHandler.hpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Process/Drop/TakeDrop.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/State/MessageNode.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/State/ProcessStateDataInterface.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Style/ScenarioStyle.hpp"

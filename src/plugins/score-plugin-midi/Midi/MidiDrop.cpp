@@ -6,6 +6,8 @@
 #include <Midi/Commands/SetOutput.hpp>
 #include <Midi/MidiProcess.hpp>
 
+#include <Process/Drop/TakeDrop.hpp>
+
 #include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
 
 #include <ossia/detail/algorithms.hpp>
@@ -34,49 +36,106 @@ QSet<QString> DropHandler::fileExtensions() const noexcept
   return {"mid", "midi", "MID", "MIDI", "gm", "smf"};
 }
 
+namespace
+{
+//! A process for each track of `song`, its notes over the song's length from
+//! the start of the process. A loop's process plays it round at that length.
+void add_song(
+    std::vector<Process::ProcessDropHandler::ProcessDrop>& vec, MidiTrack::MidiSong&& song,
+    const QString& basename, bool loop)
+{
+  for(MidiTrack& t : song.tracks)
+  {
+    Process::ProcessDropHandler::ProcessDrop p;
+    p.creation.key = Metadata<ConcreteKey_k, Midi::ProcessModel>::get();
+
+    if(t.name.isEmpty())
+      p.creation.prettyName = basename;
+    else
+      p.creation.prettyName = t.name;
+
+    p.duration = TimeVal::fromMsecs(song.durationInMs);
+    p.setup = [track = std::move(t), song_t = song.durationInMs, loop](
+                  Process::ProcessModel& m, score::Dispatcher& disp) mutable {
+      auto& midi = static_cast<Midi::ProcessModel&>(m);
+
+      // Dropped in a box of another length, the notes keep their place from
+      // the start of the process: their positions are relative to its length.
+      TimeVal actualDuration = m.duration();
+      const double ratio = song_t / actualDuration.msec();
+      if(ratio != 1.)
+      {
+        for(auto& note : track.notes)
+        {
+          note.setStart(ratio * note.start());
+          note.setDuration(ratio * note.duration());
+        }
+      }
+      disp.submit(new Midi::ReplaceNotes{
+          midi, track.notes, track.min, track.max, actualDuration});
+      if(loop)
+        Process::loop_clip(m, TimeVal::fromMsecs(song_t), disp);
+    };
+    vec.push_back(std::move(p));
+  }
+}
+
+bool is_midi_file(const QString& path)
+{
+  const auto suffix = QFileInfo{path}.suffix().toLower();
+  return suffix.contains("mid") || suffix == "gm" || suffix == "smf";
+}
+}
+
 void DropHandler::dropData(
     std::vector<ProcessDrop>& vec, const DroppedFile& data,
     const score::DocumentContext& ctx) const noexcept
 {
-  std::vector<MidiTrack::MidiSong> songs;
   const auto& [filename, file] = data;
+  try
   {
+    if(auto song = MidiTrack::parse(file, ctx); !song.tracks.empty())
+      add_song(vec, std::move(song), filename.basename, false);
+  }
+  catch(std::exception& e)
+  {
+    qDebug() << e.what();
+  }
+}
+
+void DropHandler::dropCustom(
+    std::vector<ProcessDrop>& vec, const QMimeData& mime,
+    const score::DocumentContext& ctx) const
+{
+  // Only a drop that says how its files are to be played, e.g. a looper's
+  // take, is handled here; any other is made file by file.
+  const auto meta = Process::clip_metadata_of(mime);
+  if(meta.empty())
+    return;
+
+  bool described = false;
+  QStringList files;
+  for(const auto& url : mime.urls())
+  {
+    const QString path = url.toLocalFile();
+    if(!is_midi_file(path))
+      continue;
+    files.push_back(path);
+    described = described || Process::find_clip_metadata(meta, path.toStdString());
+  }
+  if(!described)
+    return;
+
+  for(const auto& path : files)
+  {
+    QFile f{path};
+    if(!f.open(QIODevice::ReadOnly))
+      continue;
+    const auto* m = Process::find_clip_metadata(meta, path.toStdString());
     try
     {
-      if(auto song = MidiTrack::parse(file, ctx); !song.tracks.empty())
-      {
-        for(MidiTrack& t : song.tracks)
-        {
-          Process::ProcessDropHandler::ProcessDrop p;
-          p.creation.key = Metadata<ConcreteKey_k, Midi::ProcessModel>::get();
-
-          if(t.name.isEmpty())
-            p.creation.prettyName = filename.basename;
-          else
-            p.creation.prettyName = t.name;
-
-          p.duration = TimeVal::fromMsecs(song.durationInMs);
-          p.setup = [track = std::move(t), song_t = song.durationInMs](
-                        Process::ProcessModel& m, score::Dispatcher& disp) mutable {
-            auto& midi = static_cast<Midi::ProcessModel&>(m);
-
-            // If we drop in an existing interval, time must be rescaled
-            TimeVal actualDuration = m.duration();
-            const double ratio = song_t / actualDuration.msec();
-            if(ratio != 1.)
-            {
-              for(auto& note : track.notes)
-              {
-                note.setStart(ratio * note.start());
-                note.setDuration(ratio * note.duration());
-              }
-            }
-            disp.submit(new Midi::ReplaceNotes{
-                midi, track.notes, track.min, track.max, actualDuration});
-          };
-          vec.push_back(std::move(p));
-        }
-      }
+      if(auto song = MidiTrack::parse(f.readAll(), ctx); !song.tracks.empty())
+        add_song(vec, std::move(song), QFileInfo{path}.baseName(), m && m->loop);
     }
     catch(std::exception& e)
     {
@@ -106,8 +165,7 @@ MidiTrack::parse(const QMimeData& mime, const score::DocumentContext& ctx)
     for(auto& url : mime.urls())
     {
       QFile f(url.toLocalFile());
-      if(auto suffix = QFileInfo{f}.suffix().toLower();
-         !suffix.contains("mid") && suffix != "gm" && suffix != "smf")
+      if(!is_midi_file(f.fileName()))
         continue;
 
       if(!f.open(QIODevice::ReadOnly))

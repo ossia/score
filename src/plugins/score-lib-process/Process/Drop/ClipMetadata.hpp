@@ -14,7 +14,7 @@ namespace Process
  * pairs. A drop without it, or a file it does not name, is made as any
  * dropped file is.
  *
- *   /path/to/Looper-take3.wav\tstretch=timestretch\n
+ *   /path/to/Looper-take3.wav\tstretch=timestretch\tloop=1\n
  */
 inline constexpr std::string_view clip_metadata_mime = "application/x-ossia-take";
 
@@ -22,6 +22,9 @@ struct clip_file_metadata
 {
   std::string path;
   halp::clip_stretch stretch{halp::clip_stretch::automatic};
+  //! The file is a loop, e.g. a looper's take: its clip plays it round, as
+  //! long as the file is, for as long as its box lasts.
+  bool loop{};
 };
 
 inline constexpr std::string_view clip_stretch_names[]{
@@ -43,17 +46,22 @@ inline halp::clip_stretch clip_stretch_from_string(std::string_view s) noexcept
 }
 
 //! Empty when there is nothing to say: every file is left to the host.
-inline std::string
-encode_clip_metadata(const std::vector<std::string>& files, halp::clip_stretch stretch)
+inline std::string encode_clip_metadata(
+    const std::vector<std::string>& files, halp::clip_stretch stretch, bool loop = false)
 {
   std::string res;
-  if(stretch == halp::clip_stretch::automatic)
+  if(stretch == halp::clip_stretch::automatic && !loop)
     return res;
   for(const auto& f : files)
   {
     res += f;
-    res += "\tstretch=";
-    res += to_string(stretch);
+    if(stretch != halp::clip_stretch::automatic)
+    {
+      res += "\tstretch=";
+      res += to_string(stretch);
+    }
+    if(loop)
+      res += "\tloop=1";
     res += '\n';
   }
   return res;
@@ -83,11 +91,34 @@ inline std::vector<clip_file_metadata> decode_clip_metadata(std::string_view dat
       const auto eq = field.find('=');
       if(eq == std::string_view::npos)
         continue;
-      if(field.substr(0, eq) == "stretch")
-        m.stretch = clip_stretch_from_string(field.substr(eq + 1));
+      const auto key = field.substr(0, eq);
+      const auto value = field.substr(eq + 1);
+      if(key == "stretch")
+        m.stretch = clip_stretch_from_string(value);
+      else if(key == "loop")
+        m.loop = value == "1";
     }
     res.push_back(std::move(m));
   }
   return res;
+}
+
+//! What `meta` says of the file at `path`: matched by path, else by name, as
+//! a drop may hand a copy of the file it was given. Null when it says nothing.
+inline const clip_file_metadata*
+find_clip_metadata(const std::vector<clip_file_metadata>& meta, std::string_view path)
+{
+  for(const auto& m : meta)
+    if(m.path == path)
+      return &m;
+  auto name = [](std::string_view p) {
+    const auto sep = p.find_last_of("/\\");
+    return sep == std::string_view::npos ? p : p.substr(sep + 1);
+  };
+  const auto file = name(path);
+  for(const auto& m : meta)
+    if(name(m.path) == file)
+      return &m;
+  return nullptr;
 }
 }

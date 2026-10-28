@@ -25,6 +25,9 @@ struct SCORE_PLUGIN_AUTOMATION_EXPORT ValueTake
   int components{};
   //! Some values are lists: the curves are named by their index.
   bool lists{};
+  //! Its length in score's time: its quarters, half a second each, so that it
+  //! keeps to the bars it was played over; its seconds when it does not say
+  //! its tempo.
   double seconds{};
   std::array<double, max_components> min{}, max{};
   struct step
@@ -40,8 +43,9 @@ struct SCORE_PLUGIN_AUTOMATION_EXPORT ValueTake
 
   //! The curve of `component`, its values from 0 to 1 between min and max:
   //! each value held to the next, the last one from the take's start up to
-  //! the first when it does not start there.
-  std::vector<Curve::SegmentData> segments(int component) const;
+  //! the first when it does not start there. The take spans `span` of the
+  //! curve, which holds its last value after it and is cut at 1.
+  std::vector<Curve::SegmentData> segments(int component, double span = 1.) const;
 };
 
 class ValueTakeDropHandler final : public Process::ProcessDropHandler
@@ -53,5 +57,10 @@ public:
   void dropData(
       std::vector<ProcessDrop>& drops, const DroppedFile& data,
       const score::DocumentContext& ctx) const noexcept override;
+
+private:
+  void dropCustom(
+      std::vector<ProcessDrop>& drops, const QMimeData& mime,
+      const score::DocumentContext& ctx) const override;
 };
 }

@@ -1,6 +1,5 @@
 #include "HostServices.hpp"
 
-#include <Process/Commands/Properties.hpp>
 #include <Process/Drop/ClipMetadata.hpp>
 #include <Process/Drop/ProcessDropHandler.hpp>
 #include <Process/Process.hpp>
@@ -112,9 +111,12 @@ void sendToTimeline(
   std::optional<TimeVal> longest;
   for(const auto& file : files)
   {
+    // A clip sent to the timeline is a loop: it is made as a drop of it,
+    // with what that drop would carry, so that its clip loops at its length.
     QMimeData mime;
     mime.setUrls({QUrl::fromLocalFile(file)});
-    if(const auto meta = Process::encode_clip_metadata({file.toStdString()}, clip.stretch);
+    if(const auto meta
+       = Process::encode_clip_metadata({file.toStdString()}, clip.stretch, true);
        !meta.empty())
       mime.setData(
           QString::fromUtf8(
@@ -160,13 +162,6 @@ void sendToTimeline(
         continue;
       if(drop.setup)
         drop.setup(*p, disp);
-      // A take is a loop: its clip plays it round for as long as its box is
-      // made longer. A sound file loops by itself; a MIDI clip is set to.
-      if(!p->loops())
-      {
-        m.submit(new Process::SetLoop{*p, true});
-        m.submit(new Process::SetLoopDuration{*p, drop.duration.value_or(duration)});
-      }
     }
   }
   const QString name = clip.name.empty() ? QFileInfo{files.front()}.completeBaseName()

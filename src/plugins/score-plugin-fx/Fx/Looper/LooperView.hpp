@@ -1054,7 +1054,8 @@ struct looper_view
     if(p.files.empty())
       return p;
     m_dragged = true;
-    p.data = Process::encode_clip_metadata(p.files, stretch);
+    // A take is a loop wherever it is dropped.
+    p.data = Process::encode_clip_metadata(p.files, stretch, true);
     if(!p.data.empty())
       p.mime = Process::clip_metadata_mime;
     return p;

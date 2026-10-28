@@ -3,6 +3,7 @@
 // is placed by its quarters whatever its tempo, and a looper's take keeps the
 // tempo it was played at.
 
+#include <Process/Drop/ClipMetadata.hpp>
 #include <Process/Drop/ProcessDropHandler.hpp>
 #include <Process/Process.hpp>
 
@@ -16,7 +17,10 @@
 
 #include <core/document/Document.hpp>
 
+#include <QFile>
 #include <QMimeData>
+#include <QTemporaryDir>
+#include <QUrl>
 
 #include <Fx/Looper/MidiTake.hpp>
 #include <Midi/MidiDrop.hpp>
@@ -32,6 +36,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <memory>
 #include <sstream>
 #include <vector>
 
@@ -288,5 +293,94 @@ TEST_CASE("A looper take at 90 bpm is placed by its quarters",
     REQUIRE(placed.notes.size() == 1);
     CHECK(placed.notes[0].start_ms == Approx(2000.).margin(1.));
     CHECK(placed.notes[0].duration_ms == Approx(1000.).margin(1.));
+  });
+}
+
+TEST_CASE("A MIDI file from a file browser is not looped; a looper's take loops at its length",
+          "[midi][drop][looper][app]")
+{
+  score::test::run_in_app([&](const score::GUIApplicationContext& ctx) {
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    auto* scenario = main_scenario(*doc);
+    REQUIRE(scenario);
+
+    QTemporaryDir dir;
+    const QString path = dir.path() + "/song.mid";
+    {
+      QFile f{path};
+      REQUIRE(f.open(QIODevice::WriteOnly));
+      f.write(two_bars(90.));
+    }
+    auto mime_of = [&](bool take) {
+      auto mime = std::make_unique<QMimeData>();
+      mime->setUrls({QUrl::fromLocalFile(path)});
+      if(take)
+      {
+        const auto meta = Process::encode_clip_metadata(
+            {path.toStdString()}, halp::clip_stretch::automatic, true);
+        mime->setData(
+            QString::fromUtf8(Process::clip_metadata_mime.data()),
+            QByteArray(meta.data(), qsizetype(meta.size())));
+      }
+      return mime;
+    };
+
+    // In a new box as long as the drop says, or in a box of 10 s already there.
+    auto place = [&](const QMimeData& mime, bool in_long_box) -> Midi::ProcessModel* {
+      const auto& handlers = ctx.interfaces<Process::ProcessDropHandlerList>();
+      auto drops = handlers.getDrop(mime, doc->context());
+      REQUIRE(drops.size() == 1);
+      REQUIRE(drops[0].duration);
+      const TimeVal length = in_long_box ? TimeVal::fromMsecs(10000) : *drops[0].duration;
+      Scenario::Command::Macro m{
+          new Scenario::Command::AddProcessInNewBoxMacro, doc->context()};
+      auto& box = m.createBox(
+          *scenario, TimeVal::fromMsecs(1000), TimeVal::fromMsecs(1000) + length, 0.4);
+      auto* p = m.createProcessInNewSlot(box, drops[0].creation);
+      REQUIRE(p);
+      score::Dispatcher_T disp{m};
+      drops[0].setup(*p, disp);
+      m.commit();
+      return qobject_cast<Midi::ProcessModel*>(p);
+    };
+    auto starts_ms = [](const Midi::ProcessModel& midi) {
+      std::vector<double> res;
+      for(const auto& n : midi.notes)
+        res.push_back(n.start() * midi.duration().msec());
+      std::sort(res.begin(), res.end());
+      return res;
+    };
+    auto near = [](const std::vector<double>& a, const std::vector<double>& b) {
+      if(a.size() != b.size())
+        return false;
+      for(std::size_t i = 0; i < a.size(); i++)
+        if(std::abs(a[i] - b[i]) > 1.)
+          return false;
+      return true;
+    };
+    const std::vector<double> expected{0., 2000., 3500.};
+
+    for(const bool in_long_box : {false, true})
+    {
+      INFO((in_long_box ? "in a box of 10 s" : "in a new box"));
+      {
+        INFO("a file");
+        auto* midi = place(*mime_of(false), in_long_box);
+        REQUIRE(midi);
+        CHECK(!midi->loops());
+        CHECK(midi->duration().msec() == Approx(in_long_box ? 10000. : 4000.).margin(1.));
+        CHECK(near(starts_ms(*midi), expected));
+      }
+      {
+        INFO("a take");
+        auto* midi = place(*mime_of(true), in_long_box);
+        REQUIRE(midi);
+        CHECK(midi->loops());
+        CHECK(midi->loopDuration().msec() == Approx(4000.).margin(1.));
+        CHECK(midi->duration().msec() == Approx(in_long_box ? 10000. : 4000.).margin(1.));
+        CHECK(near(starts_ms(*midi), expected));
+      }
+    }
   });
 }

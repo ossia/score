@@ -637,6 +637,12 @@ endif()
 score_add_test(test_unit_quantification_parity
   SOURCES QuantificationParityTest.cpp
   PLUGINS score_lib_process)
+
+# A tick split at a date keeps the musical positions of its dates, wherever
+# the item ticked starts.
+score_add_test(test_unit_token_request_split
+  SOURCES TokenRequestSplitTest.cpp
+  PLUGINS score_lib_process)
 target_include_directories(test_unit_quantification_parity SYSTEM PRIVATE
   "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/include")
 
