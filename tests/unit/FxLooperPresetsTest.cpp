@@ -399,6 +399,7 @@ void one_footswitch_song_form()
   {
     R r{"One footswitch, song form"};
     auto& in = r.node.inputs;
+    CHECK(in.stop_at.value == StopAt::LoopEnd);
     late_press(r);
     CHECK(mode(r) == LoopMode::Play);
     CHECK(r.length() == R::bar);
@@ -491,6 +492,7 @@ void comping_per_press()
 {
   R r{"Comping, a layer per press"};
   auto& in = r.node.inputs;
+  CHECK(in.exported.value == TakeFiles::Both);
   const int max = in.max_layers.value;
   CHECK(max == 16);
   record_bars(r, 1);
@@ -584,7 +586,7 @@ template <typename R>
 void in_phase()
 {
   CHECK(played_again_at<R>("In phase with the timeline") == 0);
-  CHECK(played_again_at<R>("One footswitch, song form") == R::bar);
+  CHECK(played_again_at<R>("Four bars, then play") == R::bar);
 }
 
 template <typename R>
@@ -600,7 +602,7 @@ TEST_CASE("Looper presets: every one loads, sets every setting, and none starts 
           "[fx][looper][presets]")
 {
   REQUIRE(audio_presets().size() == 15);
-  REQUIRE(midi_presets_list().size() == 18);
+  REQUIRE(midi_presets_list().size() == 17);
   {
     Audio n;
     const auto all = indices(audio_presets().front());
@@ -644,6 +646,29 @@ TEST_CASE("Looper presets: every one loads, sets every setting, and none starts 
   }
 }
 
+TEST_CASE("Looper presets: grids in the grid chooser's format, channels left to the "
+          "set-up",
+          "[fx][looper][presets]")
+{
+  const auto check = [](const std::vector<midi_presets::preset>& ps) {
+    for(auto& p : ps)
+    {
+      INFO(p.name.toStdString());
+      for(const auto& e : p.values)
+      {
+        const auto a = e.toArray();
+        const auto name = a[2].toString();
+        CHECK(name != "Channels");
+        if(name == "Quantize" || name == "Note grid")
+          CHECK(a[1].toObject().contains("Vec2f"));
+      }
+    }
+  };
+  check(audio_presets());
+  check(midi_presets_list());
+  check(value_presets());
+}
+
 TEST_CASE("Looper presets: what the names say, the settings", "[fx][looper][presets]")
 {
   {
@@ -657,6 +682,7 @@ TEST_CASE("Looper presets: what the names say, the settings", "[fx][looper][pres
     apply(n, "Replace as you play");
     CHECK(n.inputs.overdub_mode.value == Nodes::Looper::OverdubMode::Replace);
     CHECK(n.inputs.after_record.value == AfterRecord::Overdub);
+    CHECK(n.inputs.passes.value == Passes::PerCycle);
   }
   {
     Midi n;
@@ -715,14 +741,14 @@ TEST_CASE("Looper presets: four bars, then play or overdub", "[fx][looper][prese
 {
   four_bars_then<audio_rig>("Four bars, then play", LoopMode::Play);
   four_bars_then<audio_rig>("Four bars, then overdub", LoopMode::Overdub);
-  four_bars_then<midi_rig>("Four bar phrase", LoopMode::Play);
+  four_bars_then<midi_rig>("Four bars, then play", LoopMode::Play);
   four_bars_then<midi_rig>("Four bars, then overdub", LoopMode::Overdub);
 }
 
 TEST_CASE("Looper presets: free length", "[fx][looper][presets]")
 {
   free_length<audio_rig>("Free loop");
-  free_length<midi_rig>("Free phrase");
+  free_length<midi_rig>("Free loop");
 }
 
 TEST_CASE("Looper presets: comping", "[fx][looper][presets]")
@@ -782,26 +808,13 @@ TEST_CASE("Looper presets: ambient decay goes straight into a fading overdub",
 
 TEST_CASE("Looper presets: capture what I played", "[fx][looper][presets]")
 {
-  SECTION("audio")
-  {
-    audio_rig r{"Capture what I played"};
-    CHECK(r.node.inputs.keep.value > 0);
-    bars(r, 5);
-    to_middle(r);
-    press(r, r.node.inputs.capture);
-    CHECK(mode(r) == LoopMode::Play);
-    CHECK(r.length() == r.node.inputs.capture_bars.value * audio_rig::bar);
-  }
-  SECTION("MIDI")
-  {
-    midi_rig r{"Capture what I played"};
-    bars(r, 5);
-    to_middle(r);
-    press(r, r.node.inputs.capture);
-    CHECK(mode(r) == LoopMode::Play);
-    CHECK(r.length() == r.node.inputs.capture_bars.value * midi_rig::bar);
-    CHECK(r.node.loop.note_count > 0);
-  }
+  audio_rig r{"Capture what I played"};
+  CHECK(r.node.inputs.keep.value > 0);
+  bars(r, 5);
+  to_middle(r);
+  press(r, r.node.inputs.capture);
+  CHECK(mode(r) == LoopMode::Play);
+  CHECK(r.length() == r.node.inputs.capture_bars.value * audio_rig::bar);
 }
 
 TEST_CASE("Looper presets: MIDI notes", "[fx][looper][presets]")
@@ -820,6 +833,21 @@ TEST_CASE("Looper presets: MIDI notes", "[fx][looper][presets]")
       CHECK(mode(r) == LoopMode::Overdub);
       CHECK((r.node.loop.note_count > 0) == (ch == 10));
     }
+  }
+  SECTION("replace as you play: each round replaces the one before")
+  {
+    midi_rig r{"Replace as you play"};
+    record_bars(r, 4);
+    REQUIRE(mode(r) == LoopMode::Overdub);
+    // Three rounds of overdub, the same pitches played in each.
+    bars(r, 12);
+    act(r, r.node.inputs.play);
+    REQUIRE(mode(r) == LoopMode::Play);
+    r.playing = false;
+    r.pitches_out.clear();
+    bars(r, 4);
+    // Only the last round is heard: a note per tick, as it was played.
+    CHECK(r.pitches_out.size() == 4 * (midi_rig::bar / midi_rig::frames));
   }
   SECTION("octave up: the loop plays an octave above what was recorded")
   {
@@ -886,7 +914,7 @@ struct value_rig
 TEST_CASE("Looper presets: the value looper's load, set every setting, and none starts it",
           "[fx][looper][presets][values]")
 {
-  REQUIRE(value_presets().size() == 5);
+  REQUIRE(value_presets().size() == 4);
   for(auto& p : value_presets())
   {
     auto n = std::make_unique<Values>();
@@ -934,16 +962,6 @@ TEST_CASE("Looper presets: the value looper's, as their names say", "[fx][looper
     bars(r, 4);
     // The recording, and a layer for each of the two rounds since.
     CHECK(r.passes() >= 3);
-  }
-  SECTION("capture what moved: the last bars")
-  {
-    value_rig r{"Capture what moved"};
-    bars(r, 5);
-    to_middle(r);
-    press(r, r.node.inputs.capture);
-    CHECK(mode(r) == LoopMode::Play);
-    CHECK(r.length() == r.node.inputs.capture_bars.value * value_rig::bar);
-    CHECK(r.node.loop.event_count > 0);
   }
   SECTION("takes for automation: the mix and each layer")
   {
