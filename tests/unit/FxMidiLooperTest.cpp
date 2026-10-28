@@ -2837,7 +2837,12 @@ TEST_CASE("MIDI looper: a take asked for while a pass is taken in has it as far 
   CHECK(h.node.transport.actualMode == LoopMode::Record);
   REQUIRE(view->answered == 1);
   CHECK(take_pitches(dir.path() + "/m-take1.mid") == std::vector<int>{60});
-  CHECK(view->take_files() == std::vector<std::string>{QString(dir.path() + "/m-take1.mid").toStdString()});
+  // Every file: Export only chooses which of them Send places.
+  CHECK(
+      view->take_files()
+      == std::vector<std::string>{
+          QString(dir.path() + "/m-take1.mid").toStdString(),
+          QString(dir.path() + "/m-take1-layer1.mid").toStdString()});
 
   // The recording closes with a take of its own.
   h.node.inputs.mode = LoopMode::Play;
@@ -2917,8 +2922,12 @@ TEST_CASE("MIDI looper: the files of a pass alone, asked for by a lane's drag",
   h.node.process_message({.pass = -1, .layers = -1, .mute = false, .take = 3});
   h.run_frames(64);
   REQUIRE(view->answered == 3);
-  CHECK(view->take_files()
-        == std::vector<std::string>{dir.path().toStdString() + "/m-take4.mid"});
+  CHECK(
+      view->take_files()
+      == std::vector<std::string>{
+          dir.path().toStdString() + "/m-take4.mid",
+          dir.path().toStdString() + "/m-take4-layer1.mid",
+          dir.path().toStdString() + "/m-take4-layer2.mid"});
 
   // Asked of a loop that changed since: answered with nothing.
   h.node.process_message({.pass = 0, .layers = 5, .mute = false, .take = 4, .last = 0});
@@ -2928,7 +2937,7 @@ TEST_CASE("MIDI looper: the files of a pass alone, asked for by a lane's drag",
 }
 
 TEST_CASE("MIDI looper: the score stopping while a pass is taken in writes a take of the "
-          "loop as it is heard",
+          "loop as it is heard and of each pass",
           "[fx][midi][looper][takes]")
 {
   for(const bool recording : {false, true})
@@ -2974,10 +2983,110 @@ TEST_CASE("MIDI looper: the score stopping while a pass is taken in writes a tak
     CHECK(jobs[0].alone);
     REQUIRE(jobs[0].run());
     const auto files = QDir{dir.path()}.entryList({"*.mid"}, QDir::Files, QDir::Name);
-    CHECK(files == QStringList{"m-take1.mid"});
+    if(recording)
+      CHECK(files == QStringList{"m-take1-layer1.mid", "m-take1.mid"});
+    else
+      CHECK(
+          files == QStringList{"m-take1-layer1.mid", "m-take1-layer2.mid", "m-take1.mid"});
     CHECK(
         take_pitches(dir.path() + "/m-take1.mid")
         == (recording ? std::vector<int>{60} : std::vector<int>{60, 67}));
+    CHECK(take_pitches(dir.path() + "/m-take1-layer1.mid") == std::vector<int>{60});
+    if(!recording)
+      CHECK(take_pitches(dir.path() + "/m-take1-layer2.mid") == std::vector<int>{67});
+  }
+}
+
+TEST_CASE("MIDI looper: the score stopping leaves a take of the mix and of each pass "
+          "unless the last take has them, without allocating; the views are told",
+          "[fx][midi][looper][takes][stopped]")
+{
+  for(const auto files : {Nodes::Looper::TakeFiles::Mix, Nodes::Looper::TakeFiles::Both})
+  {
+    INFO(int(files));
+    QTemporaryDir dir;
+    REQUIRE(dir.isValid());
+    std::vector<Nodes::Looper::midi_take_job> jobs;
+    jobs.reserve(16);
+    std::vector<Nodes::Looper::view_message> told;
+    {
+      auto h = std::make_unique<midi_harness>();
+      h->node.inputs.exported.value = files;
+      h->node.writer = temp_writer(dir);
+      h->node.writer->tell_views
+          = [&](const Nodes::Looper::view_message& m) { told.push_back(m); };
+      h->node.worker.request = [&](Nodes::Looper::midi_take_job job) {
+        jobs.push_back(std::move(job));
+      };
+      auto write = [&] {
+        for(int i = 0; i < 8 && !jobs.empty(); i++)
+        {
+          auto done = std::move(jobs);
+          jobs.clear();
+          jobs.reserve(16);
+          for(auto& j : done)
+            Looper::worker_t::work(std::move(j))(h->node);
+        }
+      };
+      h->pending.reserve(64);
+      h->out.reserve(10000);
+      record(*h, 640, [](midi_harness& h) {
+        h.note_on(60, 10);
+        h.note_off(60, 20);
+      });
+      h->run_frames(640);
+      write();
+      h->node.inputs.mode = LoopMode::Overdub;
+      h->note_on(67, 10);
+      h->run();
+      h->note_off(67, 20);
+      h->run_frames(640);
+      h->node.inputs.mode = LoopMode::Play;
+      h->run_frames(640);
+      write();
+      REQUIRE(h->node.loop.count == 2);
+      REQUIRE(jobs.empty());
+
+      // Played, the score stops: the looper is gone after it.
+      int allocated = -1;
+      {
+        alloc_counter::scope counter;
+        h->node.stop();
+        h->node(h->tick(0));
+        allocated = counter.allocations();
+      }
+      CHECK(allocated == 0);
+    }
+
+    if(files == Nodes::Looper::TakeFiles::Both)
+    {
+      // The last take has the mix and each pass as they are.
+      CHECK(jobs.empty());
+      continue;
+    }
+
+    REQUIRE(jobs.size() == 1);
+    REQUIRE(jobs[0].stop);
+    REQUIRE(jobs[0].run());
+    const QString base = dir.path() + "/m-take3";
+    CHECK(take_pitches(base + ".mid") == std::vector<int>{60, 67});
+    CHECK(take_pitches(base + "-layer1.mid") == std::vector<int>{60});
+    CHECK(take_pitches(base + "-layer2.mid") == std::vector<int>{67});
+
+    REQUIRE(told.size() == 1);
+    const auto& m = told[0];
+    CHECK(m.stopped);
+    CHECK(m.take == 3);
+    CHECK(m.take_mix);
+    CHECK(m.take_layers == 2);
+    CHECK(m.layers == 2);
+    CHECK(m.take_version == m.version);
+    CHECK(m.mode == int(LoopMode::Stop));
+    CHECK(
+        m.take_files()
+        == std::vector<std::string>{
+            QString(base + ".mid").toStdString(), QString(base + "-layer1.mid").toStdString(),
+            QString(base + "-layer2.mid").toStdString()});
   }
 }
 

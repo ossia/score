@@ -368,24 +368,83 @@ struct value_export
   }
 };
 
+//! What is heard of `snap` (item -1), or of one of its passes, into `e`: the
+//! held values where they change, and the impulses. `tl` and `scratch` are
+//! where it is worked out.
+inline void fill_value_export(
+    const value_loop& snap, int item, held_timeline& tl, held_scratch& scratch,
+    value_export& e)
+{
+  e.clear();
+  tl.update(snap, 0, scratch, item, item, item < 0, true);
+  // The held values, then the impulses, by position.
+  for(int i = 0; i < tl.count; i++)
+    if(tl.points[i].event >= 0)
+      e.add(tl.points[i].pos, snap.events[tl.points[i].event].value, false);
+  for(int i = 0; i < snap.event_count; i++)
+  {
+    const auto& ev = snap.events[i];
+    if(!ev.impulse || !snap.heard(ev, item < 0) || (item >= 0 && ev.pass != item))
+      continue;
+    const int64_t period = snap.period_for(ev.pass);
+    for(int64_t q = ev.pos % period; q < snap.length; q += period)
+      e.add(q, ev.value, true);
+  }
+  std::sort(e.items.begin(), e.items.begin() + e.count, [](const auto& a, const auto& b) {
+    return a.pos != b.pos ? a.pos < b.pos : a.impulse < b.impulse;
+  });
+  e.length = snap.length;
+}
+
+//! What the value looper hands over for the take its stop leaves: the loop
+//! as it was, and how its files are written. Made on the main thread; the
+//! processing thread fills it only while no job has it.
+struct value_stop_take
+{
+  value_loop loop;
+  double rate{48000.};
+  double tempo{120.};
+  int meter_numerator{4};
+  int meter_denominator{4};
+  stop_take_notice notice;
+  std::atomic_bool in_use{};
+};
+
 struct value_take_job
 {
   std::shared_ptr<take_writer> writer;
   std::shared_ptr<value_export> data;
+  //! The take the score's stop leaves: every file of it, written whatever
+  //! the looper does meanwhile, from `stop` rather than from `data`.
+  std::shared_ptr<value_stop_take> stop;
   int slot{};
   //! Number of the take, 0 for a new one; -1 for the mix, else the pass.
   int number{};
   int layer{-1};
-  //! A take of this one file, written whatever the looper does meanwhile,
-  //! e.g. when the score stops while a pass is taken in.
   bool alone{};
   //! What an automation can play of it, worked out by the job, and whether
   //! it holds nothing, which an automation has nothing to play of either.
+  //! For the take the score's stop leaves, 1 when an automation can play
+  //! each of its files that holds something, else 0.
   int components{};
   bool nothing{};
 
+  bool write(const value_export& e)
+  {
+    const std::string bytes = e.to_json();
+    const auto& path = writer->next_path(slot, number, layer);
+    std::ofstream f{
+        std::filesystem::path{std::u8string_view{
+            reinterpret_cast<const char8_t*>(path.data()), path.size()}},
+        std::ios::binary | std::ios::trunc};
+    f.write(bytes.data(), std::streamsize(bytes.size()));
+    return bool(f);
+  }
+
   bool run()
   {
+    if(stop)
+      return run_stop();
     if(!data)
       return false;
     struct release
@@ -397,14 +456,51 @@ struct value_take_job
       return false;
     components = data->components();
     nothing = data->count == 0;
-    const std::string bytes = data->to_json();
-    const auto& path = writer->next_path(slot, number, layer);
-    std::ofstream f{
-        std::filesystem::path{std::u8string_view{
-            reinterpret_cast<const char8_t*>(path.data()), path.size()}},
-        std::ios::binary | std::ios::trunc};
-    f.write(bytes.data(), std::streamsize(bytes.size()));
-    return bool(f);
+    return write(*data);
+  }
+
+  //! The mix, then each pass, under one take number. The values of the loop
+  //! as it was are let go of here.
+  bool run_stop()
+  {
+    auto& s = *stop;
+    struct release
+    {
+      value_stop_take& s;
+      ~release()
+      {
+        s.loop.clear();
+        s.in_use = false;
+      }
+    } done{s};
+    bool ok = writer && s.loop.length > 0;
+    bool placeable = true;
+    if(ok)
+    {
+      auto e = std::make_unique<value_export>();
+      auto tl = std::make_unique<held_timeline>();
+      auto scratch = std::make_unique<held_scratch>();
+      e->rate = s.rate;
+      e->tempo = s.tempo;
+      e->meter_numerator = s.meter_numerator;
+      e->meter_denominator = s.meter_denominator;
+      number = 0;
+      for(layer = -1; ok && layer < s.loop.count; layer++)
+      {
+        fill_value_export(s.loop, layer, *tl, *scratch, *e);
+        // A take goes in the timeline when each of its files that holds
+        // something does: a layer whose values are all replaced holds none.
+        if(layer < 0 || e->count > 0)
+          placeable = placeable && e->components() > 0;
+        ok = write(*e);
+      }
+      e->clear();
+    }
+    components = placeable ? 1 : 0;
+    nothing = false;
+    if(writer)
+      s.notice.written(*writer, slot, ok, s.loop.count, placeable);
+    return ok;
   }
 };
 }

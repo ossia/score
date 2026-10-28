@@ -748,6 +748,62 @@ TEST_CASE("Value looper: the file of a layer alone, placeable as its values are"
   CHECK(QString::fromStdString(view.part_files()[0]).endsWith("-layer2.values"));
 }
 
+TEST_CASE("Value looper: the score stopping leaves a take of the mix and of each pass, "
+          "placeable as its values are; the views are told",
+          "[fx][values][looper][takes][stopped]")
+{
+  for(const bool text : {false, true})
+  {
+    INFO(text);
+    QTemporaryDir dir;
+    REQUIRE(dir.isValid());
+    std::vector<Nodes::Looper::value_take_job> jobs;
+    std::vector<Nodes::Looper::view_message> told;
+    {
+      auto h = std::make_unique<value_harness>();
+      h->node.writer = temp_writer(dir);
+      h->node.writer->tell_views
+          = [&](const Nodes::Looper::view_message& m) { told.push_back(m); };
+      h->node.worker.request = [&](Nodes::Looper::value_take_job job) {
+        jobs.push_back(std::move(job));
+      };
+      // Numbers, then an overdub taken in as the score stops.
+      four_steps(*h);
+      h->run_frames(4800);
+      for(auto& j : jobs)
+        Looper::worker_t::work(std::move(j))(h->node);
+      jobs.clear();
+      h->node.inputs.mode = LoopMode::Overdub;
+      if(text)
+        h->send(std::string{"a"}, 0);
+      else
+        h->send(5.f, 0);
+      h->run_frames(2400);
+      REQUIRE(h->node.loop.count == 2);
+      REQUIRE(jobs.empty());
+      // The score stops: the looper is gone after it.
+      h->node.stop();
+      h->run(0);
+    }
+    REQUIRE(jobs.size() == 1);
+    REQUIRE(jobs[0].stop);
+    REQUIRE(jobs[0].run());
+    for(const char* f : {"/v-take2.values", "/v-take2-layer1.values", "/v-take2-layer2.values"})
+    {
+      INFO(f);
+      CHECK(QFile::exists(dir.path() + f));
+    }
+    REQUIRE(told.size() == 1);
+    const auto& m = told[0];
+    CHECK(m.stopped);
+    CHECK(m.take == 2);
+    CHECK(m.take_mix);
+    CHECK(m.take_layers == 2);
+    CHECK(m.take_placeable == !text);
+    CHECK(m.take_version == m.version);
+  }
+}
+
 TEST_CASE("Value looper: a take of text, lists or impulses is a file only",
           "[fx][values][looper][takes]")
 {

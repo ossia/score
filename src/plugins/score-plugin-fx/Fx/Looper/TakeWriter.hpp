@@ -1,5 +1,6 @@
 #pragma once
 #include <Fx/Looper/AudioLayers.hpp>
+#include <Fx/Looper/LooperView.hpp>
 
 #include <score/document/DocumentContext.hpp>
 
@@ -19,6 +20,7 @@
 #include <array>
 #include <atomic>
 #include <cmath>
+#include <functional>
 #include <memory>
 #include <mutex>
 #include <string>
@@ -38,15 +40,6 @@ namespace Nodes::Looper
  * Every take gets a name of its own: a sound file is cached by its path, and
  * a take written over an earlier one would play the earlier one's audio.
  */
-//! What a take is written as: the loop as it is heard, or each of its passes
-//! in a file of its own, or both.
-enum class TakeFiles
-{
-  Mix,
-  Layers,
-  Both
-};
-
 struct take_writer
 {
   //! Takes in flight at once: a slot's path is written by the worker and read
@@ -58,6 +51,10 @@ struct take_writer
   QString extension;
   std::array<std::string, slots> paths;
   std::array<std::string, slots> bases;
+  //! Set on the main thread before any take is written. Called by a worker,
+  //! the looper maybe gone: tells the looper's views what it left when it
+  //! stopped.
+  std::function<void(const view_message&)> tell_views;
 
   static QString folder_for(const score::DocumentContext& ctx)
   {
@@ -146,6 +143,40 @@ struct take_writer
   const std::string& path(int slot) const noexcept { return paths[slot]; }
 };
 
+/**
+ * The take the score's stop leaves: the mix and every pass of the loop, so
+ * that any of them can still be placed once the looper is gone. A worker
+ * writes it from what the looper handed over, which it owns, and then tells
+ * the views with the looper's last view message, the take in it.
+ */
+struct stop_take_notice
+{
+  //! What the looper showed when it stopped, with its last take.
+  view_message view{};
+  //! The number the take gets among the looper's takes, the date it was
+  //! recorded at and how it asks the timeline to follow the tempo.
+  int take{};
+  double date{};
+  halp::clip_stretch stretch{};
+  const char* extension{};
+
+  //! Worker thread: the files of take `number` in `slot` are written, `mix`
+  //! and `layers` of them, all of them when `ok`. The views are told either
+  //! way: of the take, or of what the looper showed alone.
+  void written(take_writer& w, int slot, bool ok, int layers, bool placeable)
+  {
+    if(ok)
+    {
+      view.set_take(w.take_base(slot), extension, true, layers, stretch, placeable);
+      view.take = take;
+      view.take_date = date;
+      view.take_version = view.version;
+    }
+    if(w.tell_views)
+      w.tell_views(view);
+  }
+};
+
 //! Where a looper flattens a loop for a worker to write it. Shared with the
 //! worker, so that a looper removed while its take is being written does not
 //! take the audio away from under it.
@@ -157,10 +188,6 @@ struct export_buffer
   //! A job is writing it: the processing thread does not write it until the
   //! job is over. The job may outlive the looper that made it.
   std::atomic_bool in_use{};
-  //! The job flattens the loop into it first, from these passes: the
-  //! processing thread did not.
-  bool flatten{};
-  audio_snapshot mix_of;
 
   //! Main thread only. The memory is reserved without being written.
   static std::shared_ptr<export_buffer> make(int channels, int64_t frames)
@@ -175,6 +202,16 @@ struct export_buffer
   float* channel(int c) noexcept { return data.data() + std::size_t(c) * std::size_t(capacity); }
 };
 
+//! What the audio looper hands over for the take its stop leaves: the
+//! passes and the memory they are in, which the job flattens itself. Made on
+//! the main thread; the processing thread fills it only while no job has it.
+struct audio_stop_take
+{
+  audio_snapshot passes;
+  stop_take_notice notice;
+  std::atomic_bool in_use{};
+};
+
 //! A flattened audio loop to write, prepared on the processing thread and run
 //! by a worker. The processing thread does not touch the buffer again until
 //! the worker's result has come back.
@@ -182,44 +219,24 @@ struct take_job
 {
   std::shared_ptr<take_writer> writer;
   std::shared_ptr<export_buffer> audio;
+  //! The take the score's stop leaves: every file of it, written whatever
+  //! the looper does meanwhile, from `stop` rather than from `audio`.
+  std::shared_ptr<audio_stop_take> stop;
+  // Kept small: a job is posted to the workers in fixed storage.
   int slot{};
   //! Number of the take, 0 for a new one; -1 for the mix, else the layer.
   int number{};
   int layer{-1};
-  //! A take of this one file, written whatever the looper does meanwhile,
-  //! e.g. when the score stops while a pass is taken in.
-  bool alone{};
   int channels{};
-  int64_t frames{};
   int rate{};
+  bool alone{};
+  int64_t frames{};
   double tempo{};
   int meter_numerator{4};
   int meter_denominator{4};
 
-  bool run()
+  bool write(const float* const* data)
   {
-    if(!audio)
-      return false;
-    struct release
-    {
-      export_buffer& b;
-      ~release() { b.in_use = false; }
-    } done{*audio};
-    if(audio->flatten)
-    {
-      audio->flatten = false;
-      audio->mix_of.flatten(std::min(channels, audio->channels), [this](int c) {
-        return audio->channel(c);
-      });
-    }
-    if(!writer || channels <= 0 || frames <= 0)
-      return false;
-
-    std::array<const float*, 16> data{};
-    channels = std::min<int>({channels, audio->channels, int(data.size())});
-    for(int c = 0; c < channels; c++)
-      data[c] = audio->channel(c);
-
     const auto& path = writer->next_path(slot, number, layer);
     const double quarters = tempo > 0 ? frames / double(rate) * tempo / 60. : 0.;
     ossia::wav_loop_info info;
@@ -228,7 +245,64 @@ struct take_job
     info.meter_numerator = meter_numerator;
     info.meter_denominator = meter_denominator;
     info.loop = true;
-    return ossia::write_loop_wav(path, channels, rate, frames, data.data(), info);
+    return ossia::write_loop_wav(path, channels, rate, frames, data, info);
+  }
+
+  bool run()
+  {
+    if(stop)
+      return run_stop();
+    if(!audio)
+      return false;
+    struct release
+    {
+      export_buffer& b;
+      ~release() { b.in_use = false; }
+    } done{*audio};
+    if(!writer || channels <= 0 || frames <= 0)
+      return false;
+
+    std::array<const float*, 16> data{};
+    channels = std::min<int>({channels, audio->channels, int(data.size())});
+    for(int c = 0; c < channels; c++)
+      data[c] = audio->channel(c);
+    return write(data.data());
+  }
+
+  //! The mix, then each pass, under one take number, flattened here. The
+  //! pool is let go of here as well, so that the processing thread never
+  //! frees it.
+  bool run_stop()
+  {
+    auto& s = *stop;
+    struct release
+    {
+      audio_stop_take& s;
+      ~release()
+      {
+        s.passes.pool.reset();
+        s.in_use = false;
+      }
+    } done{s};
+    std::array<const float*, 16> data{};
+    channels = std::min<int>({channels, s.passes.channels, int(data.size())});
+    bool ok = writer && s.passes.pool && channels > 0 && frames > 0;
+    if(ok)
+    {
+      std::vector<float> buffer(std::size_t(channels) * std::size_t(frames));
+      const auto channel = [&](int c) { return buffer.data() + std::size_t(c) * frames; };
+      for(int c = 0; c < channels; c++)
+        data[c] = channel(c);
+      number = 0;
+      for(layer = -1; ok && layer < s.passes.count; layer++)
+      {
+        s.passes.flatten(channels, channel, layer);
+        ok = write(data.data());
+      }
+    }
+    if(writer)
+      s.notice.written(*writer, slot, ok, s.passes.count, true);
+    return ok;
   }
 };
 }

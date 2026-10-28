@@ -4,6 +4,7 @@
 #include <Fx/Looper/Transport.hpp>
 
 #include <halp/custom_widgets.hpp>
+#include <halp/layout.hpp>
 
 #include <algorithm>
 #include <array>
@@ -15,6 +16,7 @@
 #include <functional>
 #include <string>
 #include <string_view>
+#include <tuple>
 #include <utility>
 #include <vector>
 
@@ -36,6 +38,15 @@ struct view_note
   uint8_t velocity;
   //! Zero when the note is not heard, e.g. replaced by a later pass.
   uint8_t heard;
+};
+
+//! The files of a take Send places: the loop as it is heard, each of its
+//! passes in a file of its own, or both.
+enum class TakeFiles
+{
+  Mix,
+  Layers,
+  Both
 };
 
 //! Sent by the view to the looper: erase pass `pass`, counting from the
@@ -141,6 +152,13 @@ struct view_message
   int part_answer;
   bool part_placeable;
   halp::clip_stretch part_stretch;
+  //! Sent once the looper stopped with the score, from the worker that wrote
+  //! the take its stop left: what it showed then, that take in it. Messages
+  //! the looper sent before, `stops` being lower, may come after it: they are
+  //! older. `looper` tells the looper that sent a message.
+  bool stopped;
+  uint64_t looper;
+  int stops;
 
   void set_take(
       std::string_view base, std::string_view ext, bool mix, int layers,
@@ -225,13 +243,33 @@ struct looper_view
   //! take.
   std::function<void(erase_request)> erase;
 
-  //! While a pass is taken in, the last take lacks it: a drag or a Send asks
-  //! for a take of the loop as it is now, and waits for it. A drag starts
-  //! with the next move of the mouse once it is there, if the button is still
-  //! held; else the take is the one the next drag or Send gives.
+  //! While a pass is taken in, the last take lacks it, and it may lack the
+  //! files Export says: a drag or a Send asks for a take of the loop as it is
+  //! now, and waits for it. A drag starts with the next move of the mouse
+  //! once it is there, if the button is still held; else the take is the one
+  //! the next drag or Send gives.
   int m_requests{};
   int m_waiting{};
   bool m_send_waiting{};
+
+  //! The files Send and the Send grip place, as the Export control says.
+  //! The view follows the control itself: it is changed while the looper
+  //! does not run as well.
+  TakeFiles m_export{TakeFiles::Mix};
+  void watch(const auto& exported)
+  {
+    const auto files = TakeFiles(exported.value);
+    if(files == m_export)
+      return;
+    m_export = files;
+    if(update)
+      update();
+  }
+
+  //! The looper that stopped last, and how many times it had: what it sent
+  //! before is older than what its stop left.
+  uint64_t m_stopped_looper{};
+  int m_stopped_stops{-1};
 
   //! A running looper sends some thirty messages a second. One that has sent
   //! none for longer is paused or gone with the score's stop: what it showed
@@ -249,6 +287,23 @@ struct looper_view
 
   void receive(const view_message& m) noexcept
   {
+    if(m.looper == m_stopped_looper && m.stops < m_stopped_stops)
+      return;
+    if(m.stopped)
+    {
+      // The looper does not run any more: nothing asked of it will come.
+      m_stopped_looper = m.looper;
+      m_stopped_stops = m.stops;
+      m_last_message = {};
+      m_waiting = 0;
+      m_send_waiting = false;
+      m_part_waiting = 0;
+      state = m;
+      has_state = true;
+      if(update)
+        update();
+      return;
+    }
     // After a silence the looper may be another one, made when the score
     // played again, which knows nothing of what was asked before.
     if(!live())
@@ -372,6 +427,42 @@ struct looper_view
   }
   bool saving() const noexcept { return waiting() || (live() && state.writing); }
 
+  //! The last take has the files Export says, a take asked for having all
+  //! of them.
+  bool take_has_export() const noexcept
+  {
+    return (m_export == TakeFiles::Layers || state.take_mix)
+           && (m_export == TakeFiles::Mix || state.take_layers > 0);
+  }
+
+  //! Send places a take the looper is asked for: one of the loop as it is
+  //! now, a pass being taken in, or one with the files Export says. A looper
+  //! that does not run is asked nothing: the take its stop left has them all.
+  bool needs_take() const noexcept
+  {
+    return erase && live() && !state.empty && (taking_in() || !take_has_export());
+  }
+
+  //! The files of the last take Send places, the mix first: the ones Export
+  //! says, or all it has when it has none of them.
+  std::vector<std::string> send_files() const
+  {
+    if(!take_has_export())
+      return state.take_files();
+    std::vector<std::string> files;
+    const std::string base{state.take_base.data()}, ext{state.take_ext.data()};
+    if(base.empty())
+      return files;
+    if(m_export != TakeFiles::Layers)
+      files.push_back(base + "." + ext);
+    if(m_export != TakeFiles::Mix)
+    {
+      auto layers = state.layer_files(state.take_base.data(), 0, state.take_layers - 1);
+      files.insert(files.end(), layers.begin(), layers.end());
+    }
+    return files;
+  }
+
   //! Asks for a take of the loop as it is now, unless one was asked already.
   void request_take()
   {
@@ -391,7 +482,7 @@ struct looper_view
   //! The take in one box named after it, a slot per file, the mix first.
   void send()
   {
-    if(taking_in() && erase)
+    if(needs_take())
     {
       m_send_waiting = true;
       request_take();
@@ -408,7 +499,7 @@ struct looper_view
     if(auto slash = base.find_last_of("/\\"); slash != std::string_view::npos)
       base.remove_prefix(slash + 1);
     send_to_timeline(halp::timeline_clip{
-        .files = state.take_files(),
+        .files = send_files(),
         .date = state.take_date,
         .name = std::string{base},
         .stretch = state.take_stretch});
@@ -499,6 +590,8 @@ struct looper_view
       char text[160];
       if(!has_state)
         std::snprintf(text, sizeof(text), "Play to start looping");
+      else if(s.stopped)
+        std::snprintf(text, sizeof(text), "Stopped with the score");
       else if(s.wanted != s.requested)
         std::snprintf(
             text, sizeof(text), "%s, then %s on the grid", mode_name(s.mode),
@@ -997,7 +1090,7 @@ struct looper_view
     {
       // The take is asked for at once: a drag waits for it, a click sends it.
       m_button_pressed = true;
-      if(taking_in() && erase)
+      if(needs_take())
         request_take();
       return true;
     }
@@ -1037,10 +1130,10 @@ struct looper_view
     halp::clip_stretch stretch = state.take_stretch;
     if(in_send(x, y))
     {
-      // The whole take.
+      // The take, as Send places it.
       if(waiting() || !placeable())
         return p;
-      p.files = state.take_files();
+      p.files = send_files();
     }
     else if(const int lane = lane_at(x, y);
             lane >= 0 && erase_lane_at(x, y) < 0 && mute_lane_at(x, y) < 0)
@@ -1061,6 +1154,15 @@ struct looper_view
     return p;
   }
 };
+
+//! The view in a looper's UI, `Inputs` being the looper's inputs: it follows
+//! the looper's Export control.
+template <typename Inputs>
+struct looper_view_item : halp::custom_actions_item<looper_view>
+{
+  static constexpr auto watched() { return std::tuple{&Inputs::exported}; }
+};
+
 static_assert(
     view_message::max_lanes * looper_view::min_lane_height
     <= looper_view::height() - looper_view::header - 4.);

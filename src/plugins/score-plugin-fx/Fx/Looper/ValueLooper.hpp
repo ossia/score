@@ -134,11 +134,14 @@ struct Node : Looper::looper_node<Node>
       using enum_combobox::operator=;
       halp_meta(
           description,
-          "What a take writes: what is heard of the loop (Mix), each pass in a "
-          "file of its own (Layers), or both. Send, or a drag from it, places "
-          "a take of numbers, vectors or lists of numbers as an automation for "
-          "each number, a box for each file; dragging a lane places its layer "
-          "alone. A take with impulses, text or maps is kept as a file only.")
+          "What Send, or a drag from it, places: what is heard of the loop "
+          "(Mix), each pass in a file of its own (Layers), or both, a take of "
+          "numbers, vectors or lists of numbers as an automation for each "
+          "number, a box for each file. A take written as a pass closes has "
+          "these files; one Send or a drag asks for, or the score's stop "
+          "leaves, has them all, so that Export can still be changed once the "
+          "score is stopped. Dragging a lane places its layer alone. A take "
+          "with impulses, text or maps is kept as a file only.")
     } exported;
 
     struct : Looper::enum_combobox<"Past the end", Looper::PastEnd, Looper::PastEnd::Wrap>
@@ -257,6 +260,8 @@ struct Node : Looper::looper_node<Node>
   struct worker_t
   {
     std::function<void(Looper::value_take_job)> request;
+    //! The take the score's stop leaves is written once the looper is gone.
+    static bool must_run(const Looper::value_take_job& job) noexcept { return job.alone; }
     static std::function<void(Node&)> work(Looper::value_take_job&& job)
     {
       const bool ok = job.run();
@@ -275,6 +280,9 @@ struct Node : Looper::looper_node<Node>
   } worker;
 
   std::function<void(Looper::view_message)> send_message;
+  //! What the take the score's stop leaves is told to the views with, from
+  //! its worker.
+  std::function<void(Looper::view_message)> send_message_from_worker;
 
   //! From the view: applied at the start of the next tick.
   void process_message(const Looper::erase_request& r) { view_request(r); }
@@ -285,25 +293,34 @@ struct Node : Looper::looper_node<Node>
   Looper::value_loop loop;
   std::shared_ptr<Looper::take_writer> writer;
   std::shared_ptr<Looper::value_export> export_data;
-  //! What the take written when the score stops is made of: the node may be
-  //! gone before it is written.
-  std::shared_ptr<Looper::value_export> stop_data;
+  //! What the take the score's stop leaves is made of: the node may be gone
+  //! before it is written.
+  std::shared_ptr<Looper::value_stop_take> stop_take;
 
   Node()
   {
     export_data = std::make_shared<Looper::value_export>();
-    stop_data = std::make_shared<Looper::value_export>();
+    stop_take = std::make_shared<Looper::value_stop_take>();
   }
 
   void prepare(halp::setup)
   {
     if(ossia_document_context)
       writer = Looper::take_writer::make(*ossia_document_context, "Value looper", "values");
+    if(writer)
+      writer->tell_views = send_message_from_worker;
   }
 
-  //! The score stops: the take of a pass being taken in is written on the
-  //! next tick, which the score stopping still runs.
+  //! The score stops: the take it leaves is written on the next tick, which a
+  //! box ending still runs.
   void stop() { m_stop_requested = true; }
+  //! The score stopping takes the looper away before that tick: it stops as
+  //! it goes, and leaves its take.
+  ~Node()
+  {
+    if(std::exchange(m_stop_requested, false))
+      stop_score();
+  }
 
   int64_t looper_run(int64_t start, int64_t length);
   void looper_trim_recording(int64_t frames);
@@ -397,7 +414,7 @@ struct Node : Looper::looper_node<Node>
     {
       halp_meta(layout, halp::layouts::container)
       halp_meta(background, halp::colors::background_mid)
-      halp::custom_actions_item<Looper::looper_view> view;
+      Looper::looper_view_item<ins> view;
     } view;
 
     struct bus
@@ -532,6 +549,7 @@ private:
   bool take_cancelled() noexcept { return false; }
   void take_released() noexcept { }
   void stop_take_written() noexcept { }
+  const Looper::stop_take_notice& stop_notice() const noexcept { return stop_take->notice; }
   //! An automation can play the take written last.
   bool take_placeable() const noexcept { return m_written_placeable; }
   static constexpr const char* take_extension = "values";
@@ -693,6 +711,7 @@ private:
   Looper::value_loop m_export_loop;
   Looper::held_timeline m_export_timeline;
   void send_view(int64_t frames);
+  void fill_message(Looper::view_message& v);
 };
 
 inline int64_t Node::input_ts(int i) const noexcept
@@ -1345,26 +1364,27 @@ inline void Node::write_export_item(int item)
   worker.request(std::move(job));
 }
 
-//! The score stopped while a pass was taken in: the loop as it is heard is a
-//! take of its own, the mix, whose job owns all it needs. It is skipped when
-//! the one before it is still being written.
+//! The take the score's stop leaves: the loop as it is, handed over to a job
+//! that writes the mix and each pass. It is skipped when the one before it is
+//! still being written.
 inline void Node::write_stop_take(bool recording, double date, int64_t)
 {
-  if(!writer || loop.empty() || stop_data->in_use)
+  auto& s = *stop_take;
+  if(!writer || loop.empty() || s.in_use)
     return;
-  m_export_tempo = recording ? m_tempo : m_loop_tempo;
-  m_export_signature = m_signature;
-  fill_export(loop, -1, *stop_data);
-  m_stop_date = date;
+  s.loop.assign(loop);
+  s.rate = m_rate;
+  s.tempo = recording ? m_tempo : m_loop_tempo;
+  s.meter_numerator = m_signature.upper;
+  s.meter_denominator = m_signature.lower;
+  prepare_stop_notice(s.notice, date);
 
   Looper::value_take_job job;
   job.writer = writer;
-  job.data = stop_data;
+  job.stop = stop_take;
   job.slot = claim_take_slot();
-  job.number = 0;
-  job.layer = -1;
   job.alone = true;
-  stop_data->in_use = true;
+  s.in_use = true;
   worker.request(std::move(job));
 }
 
@@ -1373,26 +1393,7 @@ inline void Node::write_stop_take(bool recording, double date, int64_t)
 inline void Node::fill_export(
     const Looper::value_loop& snap, int item, Looper::value_export& e)
 {
-  e.clear();
-  auto& tl = m_export_timeline;
-  tl.update(snap, 0, m_scratch, item, item, item < 0, true);
-  // The held values, then the impulses, by position.
-  for(int i = 0; i < tl.count; i++)
-    if(tl.points[i].event >= 0)
-      e.add(tl.points[i].pos, snap.events[tl.points[i].event].value, false);
-  for(int i = 0; i < snap.event_count; i++)
-  {
-    const auto& ev = snap.events[i];
-    if(!ev.impulse || !snap.heard(ev, item < 0) || (item >= 0 && ev.pass != item))
-      continue;
-    const int64_t period = snap.period_for(ev.pass);
-    for(int64_t q = ev.pos % period; q < snap.length; q += period)
-      e.add(q, ev.value, true);
-  }
-  std::sort(e.items.begin(), e.items.begin() + e.count, [](const auto& a, const auto& b) {
-    return a.pos != b.pos ? a.pos < b.pos : a.impulse < b.impulse;
-  });
-  e.length = snap.length;
+  Looper::fill_value_export(snap, item, m_export_timeline, m_scratch, e);
   e.rate = m_rate;
   e.tempo = m_export_tempo;
   e.meter_numerator = m_export_signature.upper;
@@ -1403,8 +1404,13 @@ inline void Node::send_view(int64_t frames)
 {
   if(!view_due(frames))
     return;
+  fill_message(m_view);
+  send_message(m_view);
+}
 
-  auto& v = m_view;
+//! What the view is sent of the loop: what each lane holds, bin by bin.
+inline void Node::fill_message(Looper::view_message& v)
+{
   fill_view(v);
   v.values = true;
   v.lanes = std::min(loop.count, Looper::view_message::max_lanes);
@@ -1418,10 +1424,7 @@ inline void Node::send_view(int64_t frames)
   v.peaks.fill(-1.f);
   v.value_flags.fill(0);
   if(loop.empty())
-  {
-    send_message(v);
     return;
-  }
   update_timeline();
 
   // What each lane holds, sampled at the start of each bin: its passes
@@ -1486,6 +1489,5 @@ inline void Node::send_view(int64_t frames)
         f |= Looper::view_message::flag_heard_mark;
     }
   }
-  send_message(v);
 }
 }

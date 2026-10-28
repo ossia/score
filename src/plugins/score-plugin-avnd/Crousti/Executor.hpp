@@ -165,6 +165,14 @@ struct node_with_deferred_stop : exec_base_node_t<Node>
   //! Set by the process when it stops, from whichever thread stops it.
   std::atomic_bool stop_pending{};
 
+  //! The score stopping takes the node away without ticking it again: the
+  //! object is stopped as it goes, nothing being processed then.
+  ~node_with_deferred_stop()
+  {
+    if(stop_pending.exchange(false))
+      this->impl.effect.stop();
+  }
+
   void
   run(const ossia::token_request& tk, ossia::exec_state_facade st) noexcept override
   {
@@ -971,6 +979,24 @@ public:
           qed->try_enqueue([proc]() mutable {
             if(proc && proc->to_ui)
               MessageBusSender{proc->to_ui}();
+          });
+        };
+      }
+
+      // A message sent by a worker, from its thread: it may be sent once the
+      // node is gone, e.g. by a job the score's stop started. It is posted to
+      // the UI thread, where it reaches the views of the process if the
+      // process is still there. It allocates: never from the processing
+      // thread.
+      if constexpr(requires { eff.send_message_from_worker = [](auto&&) { }; })
+      {
+        using send_type = std::remove_cvref_t<decltype(eff.send_message_from_worker)>;
+        using message_type
+            = std::remove_cvref_t<typename function_argument<send_type>::type>;
+        eff.send_message_from_worker = [proc = QPointer{&this->process()}](message_type m) {
+          ossia::qt::run_async(qApp, [proc, m = std::move(m)]() mutable {
+            if(proc && proc->to_ui)
+              MessageBusSender{proc->to_ui}(std::move(m));
           });
         };
       }

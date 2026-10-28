@@ -198,10 +198,12 @@ struct Node : Looper::looper_node<Node>
       static constexpr std::string_view former_name() noexcept { return "Takes"; }
       halp_meta(
           description,
-          "What a take writes: what is heard of the loop (Mix), each pass in a "
-          "MIDI file of its own (Layers), or both. Send, or a drag from it, "
-          "places every file of the take, each on a lane of its own; dragging a "
-          "lane places its layer alone.")
+          "What Send, or a drag from it, places: what is heard of the loop "
+          "(Mix), each pass in a MIDI file of its own (Layers), or both, each "
+          "on a lane of its own. A take written as a pass closes has these "
+          "files; one Send or a drag asks for, or the score's stop leaves, has "
+          "them all, so that Export can still be changed once the score is "
+          "stopped. Dragging a lane places its layer alone.")
     } exported;
 
     struct : Looper::enum_combobox<"Past the end", Looper::PastEnd, Looper::PastEnd::Wrap>
@@ -319,6 +321,8 @@ struct Node : Looper::looper_node<Node>
   struct worker_t
   {
     std::function<void(Looper::midi_take_job)> request;
+    //! The take the score's stop leaves is written once the looper is gone.
+    static bool must_run(const Looper::midi_take_job& job) noexcept { return job.alone; }
     static std::function<void(Node&)> work(Looper::midi_take_job&& job)
     {
       const bool ok = job.run();
@@ -329,6 +333,9 @@ struct Node : Looper::looper_node<Node>
   } worker;
 
   std::function<void(Looper::view_message)> send_message;
+  //! What the take the score's stop leaves is told to the views with, from
+  //! its worker.
+  std::function<void(Looper::view_message)> send_message_from_worker;
 
   //! From the view: applied at the start of the next tick.
   void process_message(const Looper::erase_request& r) { view_request(r); }
@@ -343,21 +350,30 @@ struct Node : Looper::looper_node<Node>
   Node()
   {
     export_data = std::make_shared<Looper::midi_export>();
-    stop_data = std::make_shared<Looper::midi_export>();
+    stop_take = std::make_shared<Looper::midi_stop_take>();
   }
-  //! What the take written when the score stops is made of: the node may be
-  //! gone before it is written.
-  std::shared_ptr<Looper::midi_export> stop_data;
+  //! What the take the score's stop leaves is made of: the node may be gone
+  //! before it is written.
+  std::shared_ptr<Looper::midi_stop_take> stop_take;
 
   void prepare(halp::setup s)
   {
     if(ossia_document_context)
       writer = Looper::take_writer::make(*ossia_document_context, "MIDI looper", "mid");
+    if(writer)
+      writer->tell_views = send_message_from_worker;
   }
 
-  //! The notes the loop plays end on the next tick, which the score stopping
-  //! still runs.
+  //! The notes the loop plays end on the next tick, which a box ending still
+  //! runs.
   void stop() { m_stop_requested = true; }
+  //! The score stopping takes the looper away before that tick: it stops as
+  //! it goes, and leaves its take.
+  ~Node()
+  {
+    if(std::exchange(m_stop_requested, false))
+      stop_score();
+  }
 
   int64_t looper_run(int64_t start, int64_t length);
   void looper_trim_recording(int64_t frames)
@@ -516,7 +532,7 @@ struct Node : Looper::looper_node<Node>
     {
       halp_meta(layout, halp::layouts::container)
       halp_meta(background, halp::colors::background_mid)
-      halp::custom_actions_item<Looper::looper_view> view;
+      Looper::looper_view_item<ins> view;
     } view;
 
     struct bus
@@ -647,6 +663,7 @@ private:
   bool take_cancelled() noexcept { return false; }
   void take_released() noexcept { }
   void stop_take_written() noexcept { }
+  const Looper::stop_take_notice& stop_notice() const noexcept { return stop_take->notice; }
   static constexpr const char* take_extension = "mid";
   //! A MIDI clip follows the tempo by its beats.
   static constexpr halp::clip_stretch take_stretch() noexcept
@@ -828,6 +845,7 @@ private:
   Looper::midi_loop m_export_loop;
   int64_t m_export_pos{};
   void send_view(int64_t frames);
+  void fill_message(Looper::view_message& v);
 };
 
 inline void Node::note_on(int ch, int pitch, int vel, int64_t ts, bool from_loop)
@@ -1802,27 +1820,40 @@ inline void Node::write_export_item(int item)
   worker.request(std::move(job));
 }
 
-//! The score stopped while a pass was taken in: the loop as it is heard is a
-//! take of its own, the mix, whose job owns all it needs. It is skipped when
-//! the one before it is still being written.
+//! The take the score's stop leaves: the loop as it is, each note where it
+//! plays, a note still held lasting until the stop, handed over to a job
+//! that writes the mix and each pass. It is skipped when the one before it
+//! is still being written.
 inline void Node::write_stop_take(bool recording, double date, int64_t pos)
 {
-  if(!writer || loop.empty() || stop_data->in_use)
+  auto& s = *stop_take;
+  if(!writer || loop.empty() || s.in_use)
     return;
-  fill_export(loop, -1, pos, *stop_data);
-  stop_data->tempo = recording ? m_tempo : m_loop_tempo;
-  stop_data->meter_numerator = m_signature.upper;
-  stop_data->meter_denominator = m_signature.lower;
-  m_stop_date = date;
+  s.loop.assign(loop);
+  for(int i = 0; i < s.loop.note_count; i++)
+  {
+    auto& n = s.loop.notes[i];
+    if(n.length < 0)
+      n.length = s.loop.distance(n.start, pos);
+    const auto placed
+        = place(n, std::clamp<int64_t>(s.loop.period_of(n.pass), 1, s.loop.length));
+    n.start = placed.start;
+    n.length = placed.length;
+  }
+  s.mode = inputs.overdub_mode.value;
+  s.rate = m_rate;
+  s.tempo = recording ? m_tempo : m_loop_tempo;
+  s.meter_numerator = m_signature.upper;
+  s.meter_denominator = m_signature.lower;
+  s.wrap = inputs.held.value == HeldNotes::Wrap;
+  prepare_stop_notice(s.notice, date);
 
   Looper::midi_take_job job;
   job.writer = writer;
-  job.data = stop_data;
+  job.stop = stop_take;
   job.slot = claim_take_slot();
-  job.number = 0;
-  job.layer = -1;
   job.alone = true;
-  stop_data->in_use = true;
+  s.in_use = true;
   worker.request(std::move(job));
 }
 
@@ -1831,44 +1862,9 @@ inline void Node::write_stop_take(bool recording, double date, int64_t pos)
 inline void Node::fill_export(
     const Looper::midi_loop& snap, int item, int64_t pos, Looper::midi_export& e) const
 {
-  e.note_count = 0;
-  e.control_count = 0;
-  const auto mode = inputs.overdub_mode.value;
-  for(int i = 0; i < snap.note_count; i++)
-  {
-    // A muted pass has its file, as it would be heard.
-    auto n = snap.notes[i];
-    if(!snap.heard(n, mode, item < 0) || (item >= 0 && n.pass != item))
-      continue;
-    if(n.length < 0)
-      n.length = snap.distance(n.start, pos);
-    // A pass shorter than the loop is in the file as many times as it plays.
-    const int64_t period = std::clamp<int64_t>(snap.period_of(n.pass), 1, snap.length);
-    const auto placed = place(n, period);
-    for(int64_t on = placed.start; on < snap.length; on += period)
-    {
-      if(e.note_count >= Looper::midi_loop::max_notes)
-        break;
-      n.start = on;
-      n.length = placed.length;
-      e.notes[e.note_count++] = n;
-    }
-  }
-  for(int i = 0; i < snap.control_count; i++)
-  {
-    const auto& c = snap.controls[i];
-    if(!snap.heard(c, item < 0) || (item >= 0 && c.pass != item))
-      continue;
-    const int64_t period = std::max<int64_t>(1, std::min<int64_t>(snap.period_of(c.pass), snap.length));
-    for(int64_t q = c.pos % period; q < snap.length; q += period)
-    {
-      if(e.control_count >= Looper::midi_loop::max_controls)
-        break;
-      e.controls[e.control_count] = c;
-      e.controls[e.control_count++].pos = q;
-    }
-  }
-  e.length = snap.length;
+  Looper::fill_midi_export(
+      snap, item, pos, inputs.overdub_mode.value,
+      [this](const Looper::midi_note& n, int64_t period) { return place(n, period); }, e);
   e.rate = m_rate;
   e.tempo = m_export_tempo;
   e.meter_numerator = m_export_signature.upper;
@@ -1880,8 +1876,13 @@ inline void Node::send_view(int64_t frames)
 {
   if(!view_due(frames))
     return;
+  fill_message(m_view);
+  send_message(m_view);
+}
 
-  auto& v = m_view;
+//! What the view is sent of the loop: its notes, in a lane per pass.
+inline void Node::fill_message(Looper::view_message& v)
+{
   fill_view(v);
   v.midi = true;
   v.lanes = std::min(loop.count, Looper::view_message::max_lanes);
@@ -1980,6 +1981,5 @@ inline void Node::send_view(int64_t frames)
     }
   }
   v.notes = shown;
-  send_message(v);
 }
 }

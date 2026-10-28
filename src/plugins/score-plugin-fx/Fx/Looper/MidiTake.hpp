@@ -131,20 +131,100 @@ struct midi_export
   }
 };
 
+//! What is heard of `snap` (item -1), or of one of its passes, into `e`:
+//! each note where `place(note, period)` puts it, a note still held lasting
+//! until `pos`.
+template <typename Place>
+void fill_midi_export(
+    const midi_loop& snap, int item, int64_t pos, OverdubMode mode, Place&& place,
+    midi_export& e)
+{
+  e.note_count = 0;
+  e.control_count = 0;
+  for(int i = 0; i < snap.note_count; i++)
+  {
+    // A muted pass has its file, as it would be heard.
+    auto n = snap.notes[i];
+    if(!snap.heard(n, mode, item < 0) || (item >= 0 && n.pass != item))
+      continue;
+    if(n.length < 0)
+      n.length = snap.distance(n.start, pos);
+    // A pass shorter than the loop is in the file as many times as it plays.
+    const int64_t period = std::clamp<int64_t>(snap.period_of(n.pass), 1, snap.length);
+    const auto placed = place(n, period);
+    for(int64_t on = placed.start; on < snap.length; on += period)
+    {
+      if(e.note_count >= midi_loop::max_notes)
+        break;
+      n.start = on;
+      n.length = placed.length;
+      e.notes[e.note_count++] = n;
+    }
+  }
+  for(int i = 0; i < snap.control_count; i++)
+  {
+    const auto& c = snap.controls[i];
+    if(!snap.heard(c, item < 0) || (item >= 0 && c.pass != item))
+      continue;
+    const int64_t period
+        = std::max<int64_t>(1, std::min<int64_t>(snap.period_of(c.pass), snap.length));
+    for(int64_t q = c.pos % period; q < snap.length; q += period)
+    {
+      if(e.control_count >= midi_loop::max_controls)
+        break;
+      e.controls[e.control_count] = c;
+      e.controls[e.control_count++].pos = q;
+    }
+  }
+  e.length = snap.length;
+}
+
+//! What the MIDI looper hands over for the take its stop leaves: the loop
+//! as it was, each note already where it plays, and how its files are
+//! written. Made on the main thread; the processing thread fills it only
+//! while no job has it.
+struct midi_stop_take
+{
+  midi_loop loop;
+  OverdubMode mode{};
+  double rate{48000.};
+  double tempo{120.};
+  int meter_numerator{4};
+  int meter_denominator{4};
+  bool wrap{true};
+  stop_take_notice notice;
+  std::atomic_bool in_use{};
+};
+
 struct midi_take_job
 {
   std::shared_ptr<take_writer> writer;
   std::shared_ptr<midi_export> data;
+  //! The take the score's stop leaves: every file of it, written whatever
+  //! the looper does meanwhile, from `stop` rather than from `data`.
+  std::shared_ptr<midi_stop_take> stop;
   int slot{};
   //! Number of the take, 0 for a new one; -1 for the mix, else the pass.
   int number{};
   int layer{-1};
-  //! A take of this one file, written whatever the looper does meanwhile,
-  //! e.g. when the score stops while a pass is taken in.
   bool alone{};
+
+  bool write(const midi_export& e)
+  {
+    const std::string bytes = e.to_smf();
+    const auto& path = writer->next_path(slot, number, layer);
+    std::ofstream f{
+        std::filesystem::path{std::u8string_view{
+            reinterpret_cast<const char8_t*>(path.data()), path.size()}},
+        std::ios::binary | std::ios::trunc};
+    f.write(bytes.data(), std::streamsize(bytes.size()));
+    return bool(f);
+  }
 
   bool run()
   {
+    if(stop)
+      return run_stop();
     if(!data)
       return false;
     struct release
@@ -154,14 +234,44 @@ struct midi_take_job
     } done{*data};
     if(!writer || data->length <= 0)
       return false;
-    const std::string bytes = data->to_smf();
-    const auto& path = writer->next_path(slot, number, layer);
-    std::ofstream f{
-        std::filesystem::path{std::u8string_view{
-            reinterpret_cast<const char8_t*>(path.data()), path.size()}},
-        std::ios::binary | std::ios::trunc};
-    f.write(bytes.data(), std::streamsize(bytes.size()));
-    return bool(f);
+    return write(*data);
+  }
+
+  //! The mix, then each pass, under one take number.
+  bool run_stop()
+  {
+    auto& s = *stop;
+    struct release
+    {
+      midi_stop_take& s;
+      ~release() { s.in_use = false; }
+    } done{s};
+    bool ok = writer && s.loop.length > 0;
+    if(ok)
+    {
+      auto e = std::make_unique<midi_export>();
+      e->rate = s.rate;
+      e->tempo = s.tempo;
+      e->meter_numerator = s.meter_numerator;
+      e->meter_denominator = s.meter_denominator;
+      e->wrap = s.wrap;
+      const auto where = [](const midi_note& n, int64_t) {
+        struct
+        {
+          int64_t start, length;
+        } placed{n.start, n.length};
+        return placed;
+      };
+      number = 0;
+      for(layer = -1; ok && layer < s.loop.count; layer++)
+      {
+        fill_midi_export(s.loop, layer, 0, s.mode, where, *e);
+        ok = write(*e);
+      }
+    }
+    if(writer)
+      s.notice.written(*writer, slot, ok, s.loop.count, true);
+    return ok;
   }
 };
 }

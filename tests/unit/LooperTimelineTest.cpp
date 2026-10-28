@@ -2,6 +2,9 @@
 // holds the looper, at the date the take was recorded, in one undoable step.
 
 #include <Process/Process.hpp>
+#include <Process/ProcessContext.hpp>
+#include <Process/Focus/FocusDispatcher.hpp>
+#include <Process/DocumentPlugin.hpp>
 #include <Process/Commands/Properties.hpp>
 #include <Process/ProcessList.hpp>
 #include <Process/Drop/ClipMetadata.hpp>
@@ -26,11 +29,15 @@
 #include <ossia/audio/write_loop_wav.hpp>
 
 #include <QApplication>
+#include <QGraphicsRectItem>
+#include <QGraphicsScene>
+#include <QGraphicsSceneMouseEvent>
 #include <QDir>
 #include <QFile>
 #include <QMimeData>
 #include <QUrl>
 #include <QTemporaryDir>
+#include <QThread>
 
 #include <Avnd/Factories.hpp>
 #include <Crousti/Executor.hpp>
@@ -62,7 +69,9 @@
 
 #include <libremidi/reader.hpp>
 
+#include <algorithm>
 #include <cmath>
+#include <iterator>
 #include <fstream>
 #include <map>
 #include <memory>
@@ -719,6 +728,8 @@ struct midi_looper_run
       *last = m;
       view.receive(m);
     };
+    // As the layer's view follows the control.
+    view.watch(node.inputs.exported);
   }
 
   void note(int pitch, int at, int len)
@@ -1141,6 +1152,9 @@ struct engine_midi_looper
   TimeVal record_date{};
   Nodes::Looper::looper_view view;
   QTemporaryDir dir;
+  Execution::ProcessComponent* exec_proc{};
+  //! The view's place among the views of the process.
+  QObject listener;
 
   static TimeVal box_duration() { return TimeVal::fromMsecs(600000); }
 
@@ -1178,6 +1192,7 @@ struct engine_midi_looper
     REQUIRE(comp);
     auto it = comp->processes().find(proc->id());
     REQUIRE(it != comp->processes().end());
+    exec_proc = it->second.get();
     auto& node = static_cast<oscr::safe_node<MidiLooper>&>(*it->second->node);
     looper = &node.impl.effect;
     in = node.root_inputs()[0]->template target<ossia::midi_port>();
@@ -1193,6 +1208,15 @@ struct engine_midi_looper
     };
     looper->send_message
         = [this](const Nodes::Looper::view_message& m) { view.receive(m); };
+    // What the looper's stop leaves reaches the views of the process through
+    // the host, from the worker, as in the app.
+    writer->tell_views = looper->send_message_from_worker;
+    static_cast<oscr::ProcessModel<MidiLooper>&>(*proc).add_to_ui_listener(
+        &listener, [this](QByteArray b) {
+      auto m = std::make_unique<Nodes::Looper::view_message>();
+      oscr::MessageBusReader{b}(*m);
+      view.receive(*m);
+    });
     view.erase = [this](Nodes::Looper::erase_request r) { looper->process_message(r); };
     view.send_to_timeline = [this](halp::timeline_clip clip) {
       oscr::sendToTimeline(*proc, doc.context(), clip);
@@ -1218,6 +1242,13 @@ struct engine_midi_looper
     auto& ectx = plug.context();
     ticker.emplace(ossia::buffer_tick{
         *ectx.execState, *ectx.execGraph, plug.baseScenario()->baseScenario(), {}});
+  }
+
+  //! Export, set in the looper, which the view follows as the layer's does.
+  void set_export(Nodes::Looper::TakeFiles files)
+  {
+    looper->inputs.exported.value = files;
+    view.watch(looper->inputs.exported);
   }
 
   double rate() const { return plug.context().execState->sampleRate; }
@@ -1272,6 +1303,18 @@ struct engine_midi_looper
     }
     run(to_bar + 5 * bar(), notes);
     record_date = TimeVal::fromMsecs(double(bar_at / bar()) * meter * 500.);
+  }
+
+  //! The score stops, as in the app: the looper's process stops, and its
+  //! node goes with the execution without being ticked again. The looper is
+  //! gone after it.
+  void stop_score()
+  {
+    exec_proc->OSSIAProcess().stop();
+    plug.clear();
+    looper = nullptr;
+    for(int i = 0; i < 10; i++)
+      QApplication::processEvents();
   }
 
   double lane_y(int lane) const
@@ -1388,7 +1431,7 @@ TEST_CASE(
             *doc, *scenario, tempo, meter, TimeVal::fromMsecs(box_start)};
         // A take of the mix and of the pass: Send places both.
         if(placing == Placing::Send)
-          e.looper->inputs.exported.value = Nodes::Looper::TakeFiles::Both;
+          e.set_export(Nodes::Looper::TakeFiles::Both);
         e.record_four_bars();
 
         INFO("loop of " << e.looper->loop.length << " frames, a bar is " << e.bar());
@@ -1485,6 +1528,206 @@ TEST_CASE(
       });
     }
   }
+}
+
+namespace
+{
+//! The names of the MIDI clips of the timeline, each as many times as it is
+//! there.
+std::multiset<QString> midi_clip_names(const Scenario::ProcessModel& scenario)
+{
+  std::multiset<QString> res;
+  for(auto& itv : scenario.intervals)
+    for(auto& p : itv.processes)
+      if(auto m = qobject_cast<const Midi::ProcessModel*>(&p))
+        res.insert(m->metadata().getName());
+  return res;
+}
+
+//! What a set of names gained.
+std::multiset<QString>
+added(const std::multiset<QString>& before, const std::multiset<QString>& after)
+{
+  std::multiset<QString> res;
+  std::set_difference(
+      after.begin(), after.end(), before.begin(), before.end(),
+      std::inserter(res, res.end()));
+  return res;
+}
+
+//! Export as a control gives it to the view.
+struct export_field
+{
+  Nodes::Looper::TakeFiles value;
+};
+
+//! The looper's view among the items of its layer.
+using midi_view_item
+    = oscr::CustomItem<Nodes::Looper::looper_view_item<MidiLooper::ins>&>;
+midi_view_item* find_view_item(QGraphicsItem* item)
+{
+  if(auto v = dynamic_cast<midi_view_item*>(item))
+    return v;
+  for(auto* c : item->childItems())
+    if(auto v = find_view_item(c))
+      return v;
+  return nullptr;
+}
+
+void click(QGraphicsScene& scene, QGraphicsItem& item, QPointF at)
+{
+  QGraphicsSceneMouseEvent press{QEvent::GraphicsSceneMousePress};
+  press.setPos(at);
+  press.setScenePos(item.mapToScene(at));
+  press.setButton(Qt::LeftButton);
+  press.setButtons(Qt::LeftButton);
+  scene.sendEvent(&item, &press);
+  QGraphicsSceneMouseEvent release{QEvent::GraphicsSceneMouseRelease};
+  release.setPos(at);
+  release.setScenePos(item.mapToScene(at));
+  release.setButton(Qt::LeftButton);
+  scene.sendEvent(&item, &release);
+}
+}
+
+TEST_CASE(
+    "A MIDI loop of two layers, the score stopped: each lane drags its layer, and Send "
+    "places what Export says now",
+    "[looper][timeline][app][midi][exec][stopped]")
+{
+  score::test::run_in_app([&](const score::GUIApplicationContext& ctx) {
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    auto* scenario = main_scenario(*doc);
+    REQUIRE(scenario);
+    engine_midi_looper e{*doc, *scenario, 120., 4, TimeVal::zero()};
+
+    // The looper's layer, as the process box shows it: its view follows the
+    // controls of the process, and gets what the looper sends.
+    Process::DataflowManager dfm;
+    FocusDispatcher fd;
+    Process::Context pctx{doc->context(), dfm, fd};
+    QGraphicsScene scene;
+    auto* root = new QGraphicsRectItem{QRectF{0., 0., 2000., 1000.}};
+    scene.addItem(root);
+    auto* factory = ctx.interfaces<Process::LayerFactoryList>().findDefaultFactory(*e.proc);
+    REQUIRE(factory);
+    REQUIRE(factory->makeItem(*e.proc, pctx, root));
+    auto* layer_view = find_view_item(root);
+    REQUIRE(layer_view);
+
+    // Export is on Mix: the takes the passes close with are their mix alone.
+    e.record_four_bars();
+    {
+      int64_t bar_at = (e.frames / e.bar() + 1) * e.bar();
+      e.run(bar_at - e.quarter() / 2 - e.frames);
+      e.looper->inputs.mode = MidiLooper::LoopMode::Overdub;
+      const int64_t to_bar = bar_at - e.frames;
+      e.run(
+          to_bar + 4 * e.bar() - e.quarter(),
+          {{to_bar + 100, libremidi::channel_events::note_on(1, 72, 100)},
+           {to_bar + e.quarter() / 2, libremidi::channel_events::note_off(1, 72, 0)}});
+      e.looper->inputs.mode = MidiLooper::LoopMode::Play;
+      e.run(2 * e.bar());
+    }
+    REQUIRE(e.looper->loop.count == 2);
+    REQUIRE(e.view.state.take == 2);
+    CHECK(e.view.state.take_layers == 0);
+
+    e.stop_score();
+
+    // The looper is gone; the take its stop left has the mix and each pass.
+    const auto& s = e.view.state;
+    CHECK(!e.view.live());
+    CHECK(s.stopped);
+    REQUIRE(s.layers == 2);
+    REQUIRE(s.lanes == 2);
+    CHECK(s.take == 3);
+    CHECK(s.take_mix);
+    CHECK(s.take_layers == 2);
+    for(const auto& f : s.take_files())
+    {
+      INFO(f);
+      CHECK(QFileInfo::exists(QString::fromStdString(f)));
+    }
+
+    // Each lane drags its layer.
+    for(int lane = 0; lane < 2; lane++)
+    {
+      INFO("lane " << lane);
+      REQUIRE(e.view.mouse_press(100., e.lane_y(lane)));
+      CHECK(!e.view.preparing(lane));
+      const auto payload = e.view.drag_payload(100., e.lane_y(lane));
+      e.view.mouse_release(100., e.lane_y(lane));
+      REQUIRE(payload.files.size() == 1);
+      CHECK(payload.files[0].ends_with("-take3-layer" + std::to_string(lane + 1) + ".mid"));
+    }
+    {
+      REQUIRE(e.view.mouse_press(100., e.lane_y(1)));
+      std::unique_ptr<QMimeData> mime{
+          oscr::make_drag_mime(e.view.drag_payload(100., e.lane_y(1)))};
+      e.view.mouse_release(100., e.lane_y(1));
+      const auto before = midi_clip_names(*scenario);
+      e.drop_in_scenario(*mime);
+      CHECK(
+          added(before, midi_clip_names(*scenario))
+          == std::multiset<QString>{"MIDI looper-take3-layer2"});
+      const auto clips = midi_clips(*scenario);
+      REQUIRE(clips.contains("MIDI looper-take3-layer2"));
+      CHECK(pitches_in(*clips.at("MIDI looper-take3-layer2")) == std::set<int>{72});
+    }
+
+    // Send, and the Send grip, with Export on Both: the mix and each layer.
+    e.view.watch(export_field{Nodes::Looper::TakeFiles::Both});
+    CHECK(
+        e.view.drag_payload(e.view.width() - 20., 10.).files.size() == 3);
+    {
+      const auto before = midi_clip_names(*scenario);
+      e.view.send();
+      QApplication::processEvents();
+      CHECK(
+          added(before, midi_clip_names(*scenario))
+          == std::multiset<QString>{
+              "MIDI looper-take3", "MIDI looper-take3-layer1", "MIDI looper-take3-layer2"});
+    }
+
+    // Export changed to Layers while stopped: the layers alone.
+    e.view.watch(export_field{Nodes::Looper::TakeFiles::Layers});
+    {
+      const auto before = midi_clip_names(*scenario);
+      e.view.send();
+      QApplication::processEvents();
+      CHECK(
+          added(before, midi_clip_names(*scenario))
+          == std::multiset<QString>{"MIDI looper-take3-layer1", "MIDI looper-take3-layer2"});
+    }
+
+    // The layer's own view: it got the take from the looper's stop, and
+    // follows the Export control of the process.
+    Process::ControlInlet* exported{};
+    for(auto* in : e.proc->inlets())
+      if(auto c = qobject_cast<Process::ControlInlet*>(in); c && c->name() == "Export")
+        exported = c;
+    REQUIRE(exported);
+    for(const auto& [value, expected] :
+        {std::pair{"Mix", std::multiset<QString>{"MIDI looper-take3"}},
+         std::pair{
+             "Layers",
+             std::multiset<QString>{"MIDI looper-take3-layer1", "MIDI looper-take3-layer2"}}})
+    {
+      INFO(value);
+      exported->setValue(ossia::value{std::string{value}});
+      // The same files sent again at once are taken as another view's send.
+      QThread::msleep(600);
+      const auto before = midi_clip_names(*scenario);
+      click(scene, *layer_view, {Nodes::Looper::looper_view::width() - 20., 10.});
+      QApplication::processEvents();
+      CHECK(added(before, midi_clip_names(*scenario)) == expected);
+    }
+
+    scene.removeItem(root);
+    delete root;
+  });
 }
 
 TEST_CASE("Audio and value takes loop at their length, sent, dragged, or dropped on a box",

@@ -3,6 +3,7 @@
 #include <ossia/dataflow/execution_state.hpp>
 
 #include <QDir>
+#include <QFile>
 #include <QFileInfo>
 #include <QTemporaryDir>
 
@@ -1937,7 +1938,8 @@ TEST_CASE("Looper: a take keeps the Follow tempo the loop played with, for the t
   }
 }
 
-TEST_CASE("Looper view: a lane drags its own file with the take's stretch, the button all",
+TEST_CASE("Looper view: a lane drags its own file with the take's stretch, the button "
+          "what Export says",
           "[fx][looper][view][drag]")
 {
   Nodes::Looper::view_message m{};
@@ -1961,7 +1963,24 @@ TEST_CASE("Looper view: a lane drags its own file with the take's stretch, the b
   CHECK(meta[0].stretch == halp::clip_stretch::repitch);
   v.mouse_release(100., y1);
 
-  // The button drags every file of the take, and a click on it does not.
+  // The button drags the files of the take Export says, and a click on it
+  // does not.
+  struct
+  {
+    Nodes::Looper::TakeFiles value;
+  } exported{Nodes::Looper::TakeFiles::Mix};
+  CHECK(
+      v.drag_payload(v.width() - 20., 10.).files
+      == std::vector<std::string>{"/tmp/Looper-take4.wav"});
+  exported.value = Nodes::Looper::TakeFiles::Layers;
+  v.watch(exported);
+  CHECK(
+      v.drag_payload(v.width() - 20., 10.).files
+      == std::vector<std::string>{
+          "/tmp/Looper-take4-layer1.wav", "/tmp/Looper-take4-layer2.wav",
+          "/tmp/Looper-take4-layer3.wav"});
+  exported.value = Nodes::Looper::TakeFiles::Both;
+  v.watch(exported);
   const auto all = v.drag_payload(v.width() - 20., 10.);
   CHECK(all.files.size() == 4);
   CHECK(all.files == m.take_files());
@@ -3330,7 +3349,7 @@ TEST_CASE("Looper: a take asked for while overdubbing is the loop of that moment
 }
 
 TEST_CASE("Looper: the score stopping while a pass is taken in writes a take of the loop "
-          "as it is heard",
+          "as it is heard and of each pass, which the views are told of",
           "[fx][audio][looper][takes]")
 {
   for(const bool recording : {false, true})
@@ -3339,9 +3358,12 @@ TEST_CASE("Looper: the score stopping while a pass is taken in writes a take of 
     QTemporaryDir dir;
     REQUIRE(dir.isValid());
     std::vector<Nodes::Looper::take_job> jobs;
+    std::vector<Nodes::Looper::view_message> told;
     {
       auto h = std::make_unique<looper_harness>(1, 64);
       h->node.writer = temp_take_writer(dir);
+      h->node.writer->tell_views
+          = [&](const Nodes::Looper::view_message& m) { told.push_back(m); };
       h->node.worker.request = [&](Nodes::Looper::take_job job) {
         jobs.push_back(std::move(job));
       };
@@ -3369,14 +3391,41 @@ TEST_CASE("Looper: the score stopping while a pass is taken in writes a take of 
     // only handed the passes over.
     REQUIRE(jobs.size() == 1);
     CHECK(jobs[0].alone);
-    CHECK(jobs[0].audio->flatten);
+    REQUIRE(jobs[0].stop);
+    CHECK(told.empty());
     REQUIRE(jobs[0].run());
-    const auto name = recording ? "/t-take1.wav" : "/t-take2.wav";
-    const auto take = read_wav(QString(dir.path() + name).toStdString());
+    const QString base = dir.path() + (recording ? "/t-take1" : "/t-take2");
+    const auto take = read_wav(QString(base + ".wav").toStdString());
     REQUIRE(take.channels > 0);
     REQUIRE(take.samples.size() == 512 * std::size_t(take.channels));
     CHECK(take.samples[200 * take.channels] == Approx(recording ? 0.25 : 0.75));
     CHECK(take.samples[450 * take.channels] == Approx(0.25));
+
+    // Each pass in a file of its own.
+    const auto first = read_wav(QString(base + "-layer1.wav").toStdString());
+    REQUIRE(first.samples.size() == 512 * std::size_t(first.channels));
+    CHECK(first.samples[200 * first.channels] == Approx(0.25));
+    CHECK(first.samples[450 * first.channels] == Approx(0.25));
+    CHECK(QFile::exists(base + "-layer2.wav") == !recording);
+    if(!recording)
+    {
+      const auto second = read_wav(QString(base + "-layer2.wav").toStdString());
+      REQUIRE(second.samples.size() == 512 * std::size_t(second.channels));
+      CHECK(second.samples[200 * second.channels] == Approx(0.5));
+      CHECK(second.samples[450 * second.channels] == Approx(0.));
+    }
+
+    // The views are told, the looper gone: the take has every file, and is
+    // the loop as the message shows it.
+    REQUIRE(told.size() == 1);
+    const auto& m = told[0];
+    CHECK(m.stopped);
+    CHECK(m.take_mix);
+    CHECK(m.take_layers == (recording ? 1 : 2));
+    CHECK(m.layers == m.take_layers);
+    CHECK(m.take_version == m.version);
+    CHECK(m.take == (recording ? 1 : 2));
+    CHECK(std::string{m.take_base.data()} == base.toStdString());
   }
 }
 

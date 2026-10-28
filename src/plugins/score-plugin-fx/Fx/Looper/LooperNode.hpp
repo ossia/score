@@ -7,6 +7,7 @@
 #include <ossia/dataflow/token_request.hpp>
 
 #include <algorithm>
+#include <atomic>
 #include <cmath>
 #include <cstdint>
 #include <utility>
@@ -84,7 +85,7 @@ namespace Nodes::Looper
  *   // Takes: whether one can start, starting one of `passes` passes, the
  *   // work it does a tick, writing its file `item`, whether what it was made
  *   // of changed while it was written, its memory let go of, and the take
- *   // written on the score's stop.
+ *   // the score's stop leaves: written, and what its views are told of it.
  *   bool export_ready() const;
  *   void start_export(int passes, bool open, bool recording);
  *   void continue_export();
@@ -92,11 +93,14 @@ namespace Nodes::Looper
  *   bool take_cancelled();
  *   void take_released();
  *   void stop_take_written();
+ *   const Looper::stop_take_notice& stop_notice() const;
  *   static constexpr const char* take_extension;   // at most 7 characters
  *   bool take_placeable() const;    // optional: the host can place the take
  *   halp::clip_stretch take_stretch() const;
  *   bool view_full() const;
  *   bool view_writing() const;
+ *   // What the view is sent: fill_view() and what is the looper's own.
+ *   void fill_message(Looper::view_message& v);
  *
  * A looper may also say that an overdub pass is a layer only once something
  * comes in for it:
@@ -314,6 +318,19 @@ protected:
 
   void run_export();
   void take_written(int slot, int number, bool ok, bool alone);
+  //! The last take has the mix and every pass as they are now.
+  bool last_take_whole() const noexcept
+  {
+    return m_view.take > 0 && m_view.take_mix && m_view.take_layers >= stack().count
+           && m_view.take_version == m_version && !m_export_pending
+           && !self().view_writing();
+  }
+  void prepare_stop_notice(Looper::stop_take_notice& n, double date);
+  static uint64_t next_looper_id() noexcept
+  {
+    static std::atomic<uint64_t> ids{};
+    return ++ids;
+  }
   int claim_take_slot() noexcept
   {
     const int slot = m_next_take_slot;
@@ -384,7 +401,6 @@ protected:
   bool m_export_mix{};
   int m_export_number{};
   int m_export_slot{};
-  double m_stop_date{};
   //! How the take being written, and the one written on the score's stop,
   //! ask the timeline to follow the tempo.
   halp::clip_stretch m_job_stretch{};
@@ -413,6 +429,9 @@ protected:
   int m_next_take_slot{};
 
   int64_t m_view_countdown{};
+  //! Tells this looper's messages from another's, and counts its stops.
+  uint64_t m_id{next_looper_id()};
+  int m_stops{};
   Looper::view_message m_view{};
   Looper::erase_request m_erase_request{};
   bool m_erase_requested{};
@@ -922,9 +941,11 @@ void looper_node<Node>::capture_layer(const tick& tk, int64_t now, int64_t end)
   }
 }
 
-//! The score stops: what was being taken in is a pass like any other, written
-//! in a take of its own, and Mode goes from Record or Overdub to Play. The
-//! loop is kept: only the transport starts over.
+//! The score stops: what was being taken in is a pass like any other, and
+//! Mode goes from Record or Overdub to Play. The loop is kept: only the
+//! transport starts over. The looper is most often gone with the score's
+//! stop, and its views with nothing to ask of it: the take it leaves has the
+//! mix and every pass as they are, unless the last take has them already.
 template <typename Node>
 void looper_node<Node>::stop_score()
 {
@@ -939,16 +960,33 @@ void looper_node<Node>::stop_score()
   const int64_t pos = st.length > 0 ? transport.playbackPos % st.length : 0;
   self().stopping();
   if(taking)
-  {
     self().close_on_stop(recording);
-    m_stop_stretch = self().take_stretch();
-    self().write_stop_take(recording, date, pos);
-  }
+  const bool take = !st.empty() && (taking || !last_take_whole());
   transport.reset();
   m_switches.reset();
   transport.stopped(st.empty());
   Looper::show_loop(self().inputs.mode, transport, m_loop);
+  m_stops++;
+  if(take)
+  {
+    m_stop_stretch = self().take_stretch();
+    self().write_stop_take(recording, date, pos);
+  }
   m_view_countdown = 0;
+}
+
+//! What the views are told once the take the score's stop leaves is
+//! written: what the looper shows now, its last take until then.
+template <typename Node>
+void looper_node<Node>::prepare_stop_notice(Looper::stop_take_notice& n, double date)
+{
+  n.view = m_view;
+  self().fill_message(n.view);
+  n.view.stopped = true;
+  n.take = m_takes_written + 1;
+  n.date = date;
+  n.stretch = m_stop_stretch;
+  n.extension = Node::take_extension;
 }
 
 //! A take starts once the last one is written, when a pass closed or the view
@@ -1017,9 +1055,11 @@ void looper_node<Node>::run_export()
     m_export_signature = m_signature;
     const int passes
         = open || !pass_open() ? st.count : std::max(1, st.count - 1);
+    // A take the view asks for has every file, which Export only chooses
+    // from; one a pass closing makes has the ones Export says.
     const auto files = self().inputs.exported.value;
-    m_export_mix = files != Looper::TakeFiles::Layers;
-    m_export_layers = files != Looper::TakeFiles::Mix ? passes : 0;
+    m_export_mix = asked || files != Looper::TakeFiles::Layers;
+    m_export_layers = asked || files != Looper::TakeFiles::Mix ? passes : 0;
     m_export_first = m_export_mix ? -1 : 0;
     m_export_number = 0;
     m_export_slot = claim_take_slot();
@@ -1037,13 +1077,16 @@ void looper_node<Node>::take_written(int slot, int number, bool ok, bool alone)
     self().stop_take_written();
     if(!ok || !writer)
       return;
+    // The views were told of it from the worker: a looper that plays on
+    // after its stop shows it in its own messages as well.
+    const auto& v = self().stop_notice().view;
     m_takes_written++;
     m_view.set_take(
-        writer->take_base(slot), Node::take_extension, true, 0, m_stop_stretch,
-        placeable_take());
+        v.take_base.data(), v.take_ext.data(), v.take_mix, v.take_layers, v.take_stretch,
+        v.take_placeable);
     m_view.take = m_takes_written;
-    m_view.take_version = -1;
-    m_view.take_date = m_stop_date;
+    m_view.take_version = v.take_version;
+    m_view.take_date = v.take_date;
     m_view_countdown = 0;
     return;
   }
@@ -1110,6 +1153,9 @@ void looper_node<Node>::fill_view(Looper::view_message& v) const noexcept
   v.reverse = m_reverse;
   v.speed = float(m_speed);
   v.selected = self().inputs.layer.value - 1;
+  v.stopped = false;
+  v.looper = m_id;
+  v.stops = m_stops;
   v.restart_pending = transport.restart_pending();
   v.new_pass_pending = transport.new_pass_pending();
   const int lanes = std::min(st.count, Looper::view_message::max_lanes);

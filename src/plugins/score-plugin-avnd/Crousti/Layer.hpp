@@ -716,6 +716,33 @@ struct LayoutBuilder final : Process::LayoutBuilderBase
     }
     auto res = new oscr::CustomItem<Item&>{item};
     setupItem(item, *res);
+    if constexpr(requires { Item::watched(); })
+      std::apply([&](auto... m) { (watchControl(item, m), ...); }, Item::watched());
+  }
+
+  //! A custom item that shows a control without editing it: its watch() is
+  //! given the control's field, with the value the control has, at once and
+  //! each time it changes, whether the process runs or not.
+  template <typename Item>
+  void watchControl(Item& item, auto member)
+  {
+    using field_type = std::remove_cvref_t<decltype(temp_inputs.*member)>;
+    const int index = avnd::index_in_struct(temp_inputs, member);
+    auto& proc = static_cast<const ProcessModel<Info>&>(this->proc);
+    for(auto* p : proc.avnd_input_idx_to_model_ports(index))
+    {
+      if(auto* port = qobject_cast<Process::ControlInlet*>(p))
+      {
+        auto show = [&item, &doc = this->doc](const ossia::value& v) {
+          field_type field{};
+          SetGUIValue<field_type>{doc}(v, field.value);
+          item.watch(field);
+        };
+        show(port->value());
+        QObject::connect(port, &Process::ControlInlet::valueChanged, connections, show);
+        return;
+      }
+    }
   }
 
   template <typename Item>

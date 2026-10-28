@@ -607,21 +607,33 @@ struct audio_snapshot
   int64_t capacity{};
   int64_t length{};
 
-  //! Worker thread: the mix, `channels` channels into `out(c)`. The pool is
-  //! let go of there, so that the processing thread never frees it.
+  //! Worker thread: what is heard of the passes (item -1), or of pass
+  //! `item` alone, as a muted pass would be heard, `channels` channels into
+  //! `out(c)`.
   template <typename Out>
-  void flatten(int out_channels, Out&& out)
+  void flatten(int out_channels, Out&& out, int item = -1) const
   {
-    if(pool)
+    if(!pool)
+      return;
+    auto& p = *pool;
+    const auto data = [&](int slot, int c) -> const float* {
+      return audio_layers::data_in(p, channels, capacity, slot, c);
+    };
+    for(int c = 0; c < std::min(out_channels, channels); c++)
     {
-      auto& p = *pool;
-      const auto data = [&](int slot, int c) -> const float* {
-        return audio_layers::data_in(p, channels, capacity, slot, c);
-      };
-      for(int c = 0; c < std::min(out_channels, channels); c++)
-        mix_passes(data, passes.data(), count, c, length, 0, length, out(c));
+      float* dst = out(c);
+      if(item < 0)
+      {
+        mix_passes(data, passes.data(), count, c, length, 0, length, dst);
+        continue;
+      }
+      const auto& l = passes[item];
+      const float* src = data(l.slot, c);
+      for(int64_t k = 0; k < length; k++)
+        dst[k] = audio_layers::valid_in(l, k, length)
+                     ? l.unmuted_gain * src[audio_layers::index_in(l, k, length)]
+                     : 0.f;
     }
-    pool.reset();
   }
 };
 }

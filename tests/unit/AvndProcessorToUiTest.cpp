@@ -874,7 +874,17 @@ TEMPLATE_TEST_CASE(
       view.receive(*m);
     };
     e.gui("Quantize", ossia::value{0.f});
-    e.gui("Export", ossia::value{std::string{"Both"}});
+    // The view follows Export as the layer's does.
+    auto set_export = [&](Nodes::Looper::TakeFiles f) {
+      static constexpr const char* names[]{"Mix", "Layers", "Both"};
+      e.gui("Export", ossia::value{std::string{names[int(f)]}});
+      struct
+      {
+        Nodes::Looper::TakeFiles value;
+      } exported{f};
+      view.watch(exported);
+    };
+    set_export(Nodes::Looper::TakeFiles::Both);
 
     // Plays until the view shows `take` takes.
     auto until_take = [&](int take) {
@@ -938,7 +948,7 @@ TEMPLATE_TEST_CASE(
 
     // A take of the mix alone: the lane asks for the file of its pass, shows
     // it is preparing it, and drags it once it is written.
-    e.gui("Export", ossia::value{std::string{"Mix"}});
+    set_export(Nodes::Looper::TakeFiles::Mix);
     pass("Overdub", 3);
     REQUIRE(dragged().size() == 1);
     REQUIRE(view.state.lanes == 3);

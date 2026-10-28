@@ -14,6 +14,7 @@
 #include <halp/soundfile_port.hpp>
 
 #include <functional>
+#include <limits>
 #include <memory>
 
 namespace Nodes::Looper
@@ -243,10 +244,12 @@ struct Node : Looper::looper_node<Node>
       static constexpr std::string_view former_name() noexcept { return "Takes"; }
       halp_meta(
           description,
-          "What a take writes: the loop as it is heard (Mix), each pass in a "
-          "file of its own (Layers), or both. Send, or a drag from it, places "
-          "every file of the take, each on a lane of its own; dragging a lane "
-          "places its layer alone.")
+          "What Send, or a drag from it, places: the loop as it is heard "
+          "(Mix), each pass in a file of its own (Layers), or both, each on a "
+          "lane of its own. A take written as a pass closes has these files; "
+          "one Send or a drag asks for, or the score's stop leaves, has them "
+          "all, so that Export can still be changed once the score is "
+          "stopped. Dragging a lane places its layer alone.")
     } exported;
 
     struct : Looper::enum_combobox<"Past the end", Looper::PastEnd, Looper::PastEnd::Wrap>
@@ -367,6 +370,8 @@ struct Node : Looper::looper_node<Node>
   struct worker_t
   {
     std::function<void(Looper::take_job)> request;
+    //! The take the score's stop leaves is written once the looper is gone.
+    static bool must_run(const Looper::take_job& job) noexcept { return job.alone; }
     static std::function<void(Node&)> work(Looper::take_job&& job)
     {
       const bool ok = job.run();
@@ -377,6 +382,9 @@ struct Node : Looper::looper_node<Node>
   } worker;
 
   std::function<void(Looper::view_message)> send_message;
+  //! What the take the score's stop leaves is told to the views with, from
+  //! its worker.
+  std::function<void(Looper::view_message)> send_message_from_worker;
 
   //! From the view: applied at the start of the next tick.
   void process_message(const Looper::erase_request& r) { view_request(r); }
@@ -387,11 +395,15 @@ struct Node : Looper::looper_node<Node>
   Looper::audio_layers layers;
   std::shared_ptr<Looper::take_writer> writer;
   std::shared_ptr<Looper::export_buffer> export_audio;
+  //! What the take the score's stop leaves is made of: the node may be gone
+  //! before it is written.
+  std::shared_ptr<Looper::audio_stop_take> stop_take;
 
   Node()
   {
     layers.allocate(2, 8, 60 * 48000);
     export_audio = Looper::export_buffer::make(layers.channels, layers.capacity);
+    stop_take = std::make_shared<Looper::audio_stop_take>();
   }
 
   void prepare(halp::setup s)
@@ -409,6 +421,8 @@ struct Node : Looper::looper_node<Node>
     prepare_stretch(rate, s.frames);
     if(ossia_document_context)
       writer = Looper::take_writer::make(*ossia_document_context, "Looper", "wav");
+    if(writer)
+      writer->tell_views = send_message_from_worker;
   }
 
   //! Main thread only: the stretcher allocates. It is run once here over the
@@ -577,7 +591,7 @@ struct Node : Looper::looper_node<Node>
     {
       halp_meta(layout, halp::layouts::container)
       halp_meta(background, halp::colors::background_mid)
-      halp::custom_actions_item<Looper::looper_view> view;
+      Looper::looper_view_item<ins> view;
     } view;
 
     struct bus
@@ -717,6 +731,7 @@ private:
   bool take_cancelled() noexcept { return std::exchange(m_export_cancelled, false); }
   void take_released() noexcept { layers.reserved = 0; }
   void stop_take_written() noexcept { layers.held = 0; }
+  const Looper::stop_take_notice& stop_notice() const noexcept { return stop_take->notice; }
   static constexpr const char* take_extension = "wav";
   //! The Follow tempo the loop plays with, which takes keep.
   halp::clip_stretch take_stretch() const noexcept
@@ -844,7 +859,7 @@ private:
   int m_scan_count{-1};
   uint64_t m_scan_changes{};
   int64_t m_scan_length{-1};
-  void scan_peaks();
+  void scan_peaks(bool whole = false);
 
   void load_file();
 
@@ -899,6 +914,7 @@ private:
   int64_t m_copy_period{};
   int m_copy_dir{1};
   void send_view(int64_t frames);
+  void fill_message(Looper::view_message& v);
 
   void play(int64_t first_pos, int64_t samples);
   void play_tape(int64_t first_pos, int64_t samples);
@@ -1916,26 +1932,18 @@ inline void Node::copy_open_pass()
   m_copy_pos = ((head - m_copy_dir * behind) % period + period) % period;
 }
 
-//! The score stopped while a pass was taken in: the loop as it is heard is a
-//! take of its own, the mix. Its job flattens it, from the passes as they are
-//! now and the memory they are in, which it keeps: the looper may be gone by
-//! then. Their buffers are kept from new passes until it is written. A take
-//! being flattened is flattened again afterwards; one being written leaves
-//! no room for it.
+//! The take the score's stop leaves: the mix and each pass, which its job
+//! flattens from the passes as they are now and the memory they are in,
+//! which it keeps: the looper may be gone by then. Their buffers are kept
+//! from new passes until it is written. It is skipped when the one before it
+//! is still being written.
 inline void Node::write_stop_take(bool recording, double date, int64_t)
 {
-  if(!writer || layers.empty() || m_writing || export_audio->in_use
-     || export_audio->capacity < layers.length || export_audio->channels < layers.channels
-     || export_audio->mix_of.pool)
+  auto& s = *stop_take;
+  if(!writer || layers.empty() || s.in_use)
     return;
-  if(m_flattening)
-  {
-    cancel_export();
-    m_export_pending = true;
-  }
-  m_stop_date = date;
 
-  auto& src = export_audio->mix_of;
+  auto& src = s.passes;
   src.pool = layers.pool;
   std::copy_n(layers.layers.begin(), layers.count, src.passes.begin());
   src.count = layers.count;
@@ -1944,13 +1952,14 @@ inline void Node::write_stop_take(bool recording, double date, int64_t)
   src.length = layers.length;
   for(int i = 0; i < layers.count; i++)
     layers.held |= uint64_t(1) << layers.layers[i].slot;
+  // The views are shown every pass, as the take has them.
+  scan_peaks(true);
+  prepare_stop_notice(s.notice, date);
 
   Looper::take_job job;
   job.writer = writer;
-  job.audio = export_audio;
+  job.stop = stop_take;
   job.slot = claim_take_slot();
-  job.number = 0;
-  job.layer = -1;
   job.alone = true;
   job.channels = layers.channels;
   job.frames = layers.length;
@@ -1958,8 +1967,7 @@ inline void Node::write_stop_take(bool recording, double date, int64_t)
   job.tempo = recording ? m_tempo : m_loop_tempo;
   job.meter_numerator = m_signature.upper;
   job.meter_denominator = m_signature.lower;
-  export_audio->flatten = true;
-  export_audio->in_use = true;
+  s.in_use = true;
   worker.request(std::move(job));
 }
 
@@ -1967,17 +1975,29 @@ inline void Node::send_view(int64_t frames)
 {
   if(!view_due(frames))
     return;
-  auto& v = m_view;
+  fill_message(m_view);
+  send_message(m_view);
+}
+
+//! What the view is sent of the loop: the peaks of its passes, in a lane
+//! per pass, from the last complete scan of them.
+inline void Node::fill_message(Looper::view_message& v)
+{
   fill_view(v);
   v.max_seconds = float(layers.capacity / m_rate);
   scan_peaks();
-  send_message(v);
+  if(&v != &m_view)
+  {
+    v.lanes = m_view.lanes;
+    v.peaks = m_view.peaks;
+  }
 }
 
 //! The overview: one lane per pass, the oldest merged into the first when
 //! there are more passes than lanes. A long loop of many passes is gone
-//! through over several messages, the view keeping the last complete one.
-inline void Node::scan_peaks()
+//! through over several messages, the view keeping the last complete one,
+//! unless the scan is `whole`.
+inline void Node::scan_peaks(bool whole)
 {
   using layers_t = Looper::audio_layers;
   constexpr int bins = Looper::view_message::bins;
@@ -1995,7 +2015,7 @@ inline void Node::scan_peaks()
   }
 
   const int64_t micro = (len + layers_t::peak_frames - 1) / layers_t::peak_frames;
-  int64_t budget = work_per_tick / 8;
+  int64_t budget = whole ? std::numeric_limits<int64_t>::max() / 2 : work_per_tick / 8;
   while(m_scan_layer < count && budget > 0)
   {
     const int i = m_scan_layer;

@@ -37,8 +37,13 @@ void bind_worker(Object& obj, std::weak_ptr<Object> obj_wp, Delivery deliver)
                         deliver = std::move(deliver)]<typename... Args>(Args&&... f) mutable {
     tq.post([obj_wp, job = deliver.begin(), ... ff = std::forward<Args>(f)]() mutable {
       auto deliver = std::move(job);
-      // The object was removed meanwhile: not much reason to perform the work.
-      if(!obj_wp.lock())
+      // The object was removed meanwhile: not much reason to perform the work,
+      // unless the worker says this job must be done whatever, e.g. a file
+      // the object leaves as it stops: static bool must_run(args...).
+      bool needed = bool(obj_wp.lock());
+      if constexpr(requires { worker_type::must_run(ff...); })
+        needed = needed || worker_type::must_run(ff...);
+      if(!needed)
         return;
 
       using type_of_result = decltype(worker_type::work(std::forward<decltype(ff)>(ff)...));
