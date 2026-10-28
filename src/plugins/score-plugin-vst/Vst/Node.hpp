@@ -2,6 +2,7 @@
 #include <Process/Dataflow/TimeSignature.hpp>
 
 #include <Vst/EffectModel.hpp>
+#include <Vst/MidiEvents.hpp>
 
 #include <ossia/dataflow/fx_node.hpp>
 #include <ossia/dataflow/graph_node.hpp>
@@ -302,7 +303,6 @@ public:
     const auto sz = sizeof(VstEvents) + sizeof(void*) * n_mess * 2;
     VstEvents* events = (VstEvents*)alloca(sz);
     std::memset(events, 0, sz);
-    events->numEvents = n_mess;
 
     ossia::small_vector<std::pair<const libremidi::ump*, int64_t>, 16> to_send;
     for(const libremidi::ump& mess : m_deferred)
@@ -312,39 +312,26 @@ public:
           {&mess, std::clamp<int64_t>(
                mess.timestamp - offset, 0, samples > 0 ? samples - 1 : 0)});
 
+    // The plug-in may read the events, sysex bytes included, until f() has
+    // returned.
     ossia::small_vector<VstMidiEvent, 16> vec;
     vec.resize(n_mess);
+    m_sysexArena.clear();
+    std::size_t sysex_count = 0;
     std::size_t i = 0;
     for(const auto& [mess_ptr, delta] : to_send)
     {
-      const libremidi::ump& mess = *mess_ptr;
-      if(auto type = mess.get_type();
-         (type == libremidi::midi2::message_type::SYSEX7)
-         || (type == libremidi::midi2::message_type::SYSEX8_MDS))
-      {
-        events->numEvents--;
+      VstMidiSysexEvent* sysex
+          = sysex_count < m_sysexEvents.size() ? &m_sysexEvents[sysex_count] : nullptr;
+      VstEvent* e = toVstEvent(
+          *mess_ptr, int32_t(delta), vec[i], sysex, m_sysexArena, m_sysexStream);
+      if(!e)
         continue;
-      }
-
-      VstMidiEvent& e = vec[i];
-      std::memset(&e, 0, sizeof(VstMidiEvent));
-      e.type = kVstMidiType;
-      e.byteSize = sizeof(VstMidiEvent);
-      e.deltaFrames = delta;
-      e.flags = kVstMidiEventIsRealtime;
-
-      if(auto n = cmidi2_convert_single_ump_to_midi1(
-             (uint8_t*)e.midiData, 4, (cmidi2_ump*)mess.data);
-         n > 0)
-      {
-        events->events[i] = reinterpret_cast<VstEvent*>(&e);
-        i++;
-      }
-      else
-      {
-        events->numEvents--;
-      }
+      if(e == reinterpret_cast<VstEvent*>(sysex))
+        sysex_count++;
+      events->events[i++] = e;
     }
+    events->numEvents = int32_t(i);
     m_deferred.clear();
     dispatch(effProcessEvents, 0, 0, events, 0.f);
     f();
@@ -511,6 +498,12 @@ public:
   //! Events from ticks that covered no whole sample, waiting for the next block
   //! that does cover one.
   ossia::small_vector<libremidi::ump, 8> m_deferred;
+
+  //! The system-exclusive messages of one process call: the VST 2 events and
+  //! the bytes they point at stay put until the plug-in has processed them.
+  Process::MidiSysexArena::stream m_sysexStream;
+  Process::MidiSysexArena m_sysexArena;
+  std::array<VstMidiSysexEvent, 128> m_sysexEvents{};
 };
 
 template <bool b1, bool b2, typename... Args>

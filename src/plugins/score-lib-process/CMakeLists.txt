@@ -53,6 +53,7 @@ set(PROCESS_HDRS
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Dataflow/PortSerialization.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Dataflow/PrettyPortName.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Dataflow/TimeSignature.hpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Process/Dataflow/MidiSysexArena.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Dataflow/PortItem.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Dataflow/PortFactory.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Dataflow/PortType.hpp"

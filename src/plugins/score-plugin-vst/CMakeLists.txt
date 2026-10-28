@@ -20,6 +20,7 @@ set(HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/Vst/Executor.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Vst/Control.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Vst/Node.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Vst/MidiEvents.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Vst/Library.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Vst/vst-compat.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Vst/Commands.hpp"

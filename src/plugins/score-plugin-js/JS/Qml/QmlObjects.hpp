@@ -742,18 +742,25 @@ public:
   void setMidi(const T& arr)
   {
     m_midi.clear();
+    const auto push = [this](const auto& bytes) {
+      QVector<int> m;
+      m.resize(bytes.size());
+      for(std::size_t i = 0; i < std::size_t(bytes.size()); i++)
+        m[i] = bytes[i];
+      m_midi.push_back(QVariant::fromValue(m));
+    };
     for(const libremidi::ump& mess : arr)
     {
-      const auto m1 = libremidi::midi1_from_ump(mess);
-      if(m1.bytes.empty())
+      if(mess.get_type() == libremidi::midi2::message_type::SYSEX7)
+      {
+        if(const auto sysex = m_sysex.feed(mess); !sysex.empty())
+          push(sysex);
         continue;
+      }
 
-      QVector<int> m;
-      m.resize(m1.bytes.size());
-      for(std::size_t i = 0; i < m1.bytes.size(); i++)
-        m[i] = m1.bytes[i];
-
-      m_midi.push_back(QVariant::fromValue(m));
+      const auto m1 = libremidi::midi1_from_ump(mess);
+      if(!m1.bytes.empty())
+        push(m1.bytes);
     }
   }
 
@@ -767,6 +774,9 @@ public:
 
 private:
   QVariantList m_midi;
+  //! Joins the SysEx7 packets of a system-exclusive message, which a script
+  //! gets as one message, F0 to F7.
+  libremidi::ump_to_midi1_stream<> m_sysex;
 };
 
 class SCORE_PLUGIN_JS_EXPORT MidiOutlet : public Outlet

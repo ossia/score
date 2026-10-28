@@ -6,8 +6,10 @@
 #include <catch2/catch_test_macros.hpp>
 
 #include <cmath>
+#include <initializer_list>
 #include <map>
 #include <string_view>
+#include <utility>
 #include <vector>
 
 using Catch::Approx;
@@ -490,6 +492,86 @@ TEST_CASE("Midi scaler: MTS sysex", "[midi_scaler]")
   d.fx.stop();
   d.tick(0);
   CHECK(d.total_sounding() == 0);
+}
+
+TEST_CASE("Midi scaler: MTS selects the tuning program on every channel", "[midi_scaler]")
+{
+  driver d;
+  d.load_scale(pythagorean);
+  d.fx.inputs.output_mode.value = Scaler::output_mode_control::mts_sysex;
+  const auto capacity = d.fx.outputs.midi.midi_messages.capacity();
+  d.note_on(62, 90, 5);
+  d.tick();
+
+  // Within what prepare() reserved: the tuning does not allocate on the audio
+  // thread.
+  CHECK(d.out.size() == std::size_t(Scaler::mts_tuning_messages + 1));
+  CHECK(d.fx.outputs.midi.midi_messages.capacity() == capacity);
+
+  // The 32 tuning messages, then per channel: tuning bank 0 (RPN 0 4), tuning
+  // program 0 (RPN 0 3), null RPN; then the note.
+  const int n_sysex = 128 / Scaler::mts_keys_per_message;
+  for(int i = 0; i < n_sysex; i++)
+    CHECK(mtk::classify(d.out[i].msg) == mtk::midi_kind::sysex);
+
+  std::vector<std::vector<uint8_t>> expected;
+  for(int ch = 0; ch < 16; ch++)
+  {
+    const uint8_t cc = uint8_t(0xB0 | ch);
+    for(auto [num, val] : std::initializer_list<std::pair<int, int>>{
+            {101, 0}, {100, 4}, {6, 0}, {101, 0}, {100, 3}, {6, 0}, {101, 127}, {100, 127}})
+      expected.push_back({cc, uint8_t(num), uint8_t(val)});
+  }
+  REQUIRE(int(expected.size()) == 16 * Scaler::mts_select_messages_per_channel);
+  for(std::size_t i = 0; i < expected.size(); i++)
+  {
+    const auto& m = d.out[n_sysex + i];
+    INFO("message " << i);
+    CHECK(std::vector<uint8_t>(m.msg.bytes.begin(), m.msg.bytes.end()) == expected[i]);
+    CHECK(m.at == 0);
+  }
+  CHECK(mtk::is_note_on(d.out.back().msg));
+  CHECK(d.out.back().at == 5);
+}
+
+TEST_CASE("Midi scaler: MTS tuning is sent again on start and on Send tuning", "[midi_scaler]")
+{
+  driver d;
+  d.load_scale(edo19);
+  d.fx.inputs.output_mode.value = Scaler::output_mode_control::mts_sysex;
+  d.tick();
+  CHECK(d.out.size() == std::size_t(Scaler::mts_tuning_messages));
+
+  d.out.clear();
+  d.tick();
+  CHECK(d.out.empty());
+
+  // Playback starts: the receiver may be fresh.
+  d.fx.start();
+  d.tick();
+  CHECK(d.of_kind(mtk::midi_kind::sysex).size() == 32);
+  CHECK(d.out.size() == std::size_t(Scaler::mts_tuning_messages));
+  d.out.clear();
+  d.tick();
+  CHECK(d.out.empty());
+
+  // The button.
+  d.fx.inputs.send_tuning.update(d.fx);
+  d.tick();
+  CHECK(d.of_kind(mtk::midi_kind::sysex).size() == 32);
+  CHECK(d.out.size() == std::size_t(Scaler::mts_tuning_messages));
+  d.out.clear();
+  d.tick();
+  CHECK(d.out.empty());
+
+  // Neither sends anything in pitch bend mode.
+  d.fx.inputs.output_mode.value = Scaler::output_mode_control::pitch_bend;
+  d.tick();
+  d.out.clear();
+  d.fx.start();
+  d.fx.inputs.send_tuning.update(d.fx);
+  d.tick();
+  CHECK(d.out.empty());
 }
 
 TEST_CASE("Midi scaler: switching mode ends held notes", "[midi_scaler]")

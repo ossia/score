@@ -41,7 +41,9 @@ struct voice
 
   std::vector<AtomBuffer> midi_atom_ins;
   std::vector<AtomBuffer> midi_atom_outs;
-  std::vector<libremidi::midi2_to_midi1> midi_2to1;
+  //! A system-exclusive message reaches the plug-in as one MIDI event, F0 to
+  //! F7, once the last of its SysEx7 packets is in.
+  std::vector<libremidi::midi2_to_midi1_assembler<>> midi_2to1;
   std::vector<libremidi::midi1_to_midi2> midi_1to2;
   std::vector<ossia::small_vector<Message, 2>> message_for_midi_atom_ins;
 
@@ -617,7 +619,8 @@ struct lv2_node final : public ossia::graph_node
             msg.timestamp - m_span.start, 0,
             m_span.samples > 0 ? m_span.samples - 1 : 0);
         conv.convert(
-            msg.data, msg.size(), frame, [&](unsigned char* midi1, int bytes, int64_t) {
+            msg.data, msg.size(), frame,
+            [&](const unsigned char* midi1, std::size_t bytes, int64_t) {
           if(bytes > 0)
             it.write(frame, 0, data.host.midi_event_id, bytes, midi1);
           return stdx::error{};

@@ -1,5 +1,6 @@
 #include "Executor.hpp"
 
+#include "MidiEvents.hpp"
 #include "Transport.hpp"
 
 #include <Process/Dataflow/Port.hpp>
@@ -190,6 +191,8 @@ public:
   {
     set_not_fp_safe();
     midi_ins.reserve(m_midi_ins.size());
+    m_sysex_streams.resize(m_midi_ins.size());
+    m_input_events.sysex_events.reserve(max_sysex_events);
     midi_outs.reserve(m_midi_outs.size());
     parameter_ins.reserve(m_param_ins.size());
     parameter_outs.reserve(m_param_outs.size());
@@ -442,6 +445,20 @@ public:
       // traffic as raw MIDI, otherwise the CLAP branch below silently drops
       // everything that is not a note on/off.
       const auto push_midi1 = [&](const libremidi::ump& m, uint32_t m_time) {
+        if(Process::MidiSysexArena::isSysex(m))
+        {
+          auto& sysex_events = m_input_events.sysex_events;
+          auto ev = toSysexEvent(
+              m, m_time, midi_port_index, m_sysex_arena,
+              m_sysex_streams[midi_port_index]);
+          if(!ev || sysex_events.size() >= sysex_events.capacity())
+            return;
+          sysex_events.push_back(*ev);
+          m_input_events.all_events.push_back(
+              reinterpret_cast<clap_event_header_t*>(&sysex_events.back()));
+          return;
+        }
+
         uint8_t midi_bytes[16];
         const auto bytes_written = cmidi2_convert_single_ump_to_midi1(
             midi_bytes, sizeof(midi_bytes), (cmidi2_ump*)m.data);
@@ -491,6 +508,12 @@ public:
         for(const auto& [m_ptr, m_time] : to_send)
         {
           const auto& m = *m_ptr;
+          if(Process::MidiSysexArena::isSysex(m))
+          {
+            if(spec.supported_dialects & clap_note_dialect::CLAP_NOTE_DIALECT_MIDI)
+              push_midi1(m, m_time);
+            continue;
+          }
           if(m.get_type() != libremidi::midi2::message_type::MIDI_2_CHANNEL)
             continue;
           clap_event_note_t ev{};
@@ -552,7 +575,6 @@ public:
         for(const auto& [m_ptr, m_time] : to_send)
           push_midi1(*m_ptr, m_time);
       }
-      // FIXME sysex
       midi_port_index++;
     }
     // Not cleared here: converting an event is not delivering it. run() can
@@ -584,6 +606,7 @@ public:
     m_tick_frames = samples;
     m_input_events.clear();
     m_output_events.clear();
+    m_sysex_arena.clear();
 
     int param_event_count = 0;
     // all_events holds pointers into the per-kind vectors, so these
@@ -702,6 +725,13 @@ public:
   //! Events from ticks that covered no whole sample, with the port they came in
   //! on, waiting for the next block that does cover one.
   ossia::small_vector<std::pair<uint16_t, libremidi::ump>, 8> m_deferred_midi;
+
+  //! The bytes of the system-exclusive messages of one process call, until
+  //! the next; one stream per MIDI input port. The sysex events of a call stay
+  //! within the capacity reserved up front, since all_events points at them.
+  static constexpr std::size_t max_sysex_events = 128;
+  Process::MidiSysexArena m_sysex_arena;
+  std::vector<Process::MidiSysexArena::stream> m_sysex_streams;
 
   event_storage m_input_events;
   event_storage m_output_events;

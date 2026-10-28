@@ -2,6 +2,7 @@
 #include <Process/Dataflow/TimeSignature.hpp>
 
 #include <Vst3/EffectModel.hpp>
+#include <Vst3/MidiEvents.hpp>
 
 #include <ossia/dataflow/fx_node.hpp>
 #include <ossia/dataflow/graph_node.hpp>
@@ -202,6 +203,7 @@ protected:
 
     m_inputEvents.setMaxSize(17 * 128 * m_totalEventIns);
     m_outputEvents.setMaxSize(128 * m_totalEventOuts);
+    m_sysexStreams.resize(m_totalEventIns);
 
     // Give every MIDI-mapped parameter a queue up front.
     //
@@ -314,6 +316,7 @@ public:
   void dispatchMidi(int64_t tick_start, int64_t samples)
   {
     m_inputEvents.clear();
+    m_sysexArena.clear();
     m_outputEvents.clear();
 
     for(auto idx : m_midi_only_queues)
@@ -406,6 +409,14 @@ public:
     for(const auto& [mess_ptr, sample_offset] : to_send)
     {
       const libremidi::ump& mess = *mess_ptr;
+      if(Process::MidiSysexArena::isSysex(mess))
+      {
+        if(auto sysex = toSysexEvent(
+               mess, index, Steinberg::int32(sample_offset), m_sysexArena,
+               m_sysexStreams[index]))
+          m_inputEvents.addEvent(*sysex);
+        continue;
+      }
       if(mess.get_type() != libremidi::midi2::message_type::MIDI_2_CHANNEL)
         continue;
 
@@ -587,6 +598,11 @@ public:
   //! Events from ticks that covered no whole sample, with the bus they came in
   //! on, waiting for the next block that does cover one.
   ossia::small_vector<std::pair<int, libremidi::ump>, 8> m_deferred;
+
+  //! The bytes of the system-exclusive messages m_inputEvents points at, kept
+  //! until the next block; one stream per event input bus.
+  Process::MidiSysexArena m_sysexArena;
+  std::vector<Process::MidiSysexArena::stream> m_sysexStreams;
 };
 
 template <bool UseDouble>

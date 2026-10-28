@@ -8,6 +8,7 @@ set(HDRS
   Clap/Settings.hpp
   Clap/EffectModel.hpp
   Clap/Transport.hpp
+  Clap/MidiEvents.hpp
   Clap/Executor.hpp
   Clap/Library.hpp
   Clap/Window.hpp

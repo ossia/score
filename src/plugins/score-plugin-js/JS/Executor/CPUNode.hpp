@@ -62,6 +62,7 @@ public:
   std::vector<std::pair<AudioOutlet*, ossia::outlet_ptr>> m_audOutlets;
   std::vector<std::pair<MidiInlet*, ossia::inlet_ptr>> m_midInlets;
   std::vector<std::pair<MidiOutlet*, ossia::outlet_ptr>> m_midOutlets;
+  libremidi::midi1_to_midi2 m_sysexToUmp;
   JS::Script* m_object{};
   ossia::qt::qml_engine_functions* m_execFuncs{};
   //! Replaced from the GUI thread through the execution queue

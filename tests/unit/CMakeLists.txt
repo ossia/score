@@ -1117,6 +1117,13 @@ if(TARGET score_plugin_vst)
     SOURCES VstMissingPluginControlTest.cpp
     GUI
     PLUGINS score_plugin_scenario score_lib_process score_plugin_vst)
+
+  # A system-exclusive message reaches a VST 2 synth as one VstMidiSysexEvent.
+  score_add_test(test_unit_vst_midi_events
+    SOURCES VstMidiEventsTest.cpp
+    PLUGINS score_lib_process)
+  target_include_directories(test_unit_vst_midi_events PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-vst")
 endif()
 
 if(TARGET score_plugin_vst3)
@@ -1125,6 +1132,14 @@ if(TARGET score_plugin_vst3)
     PLUGINS score_plugin_vst3
     LIBS sdk_common sdk_hosting)
   target_include_directories(test_unit_vst3_scan_reply PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-vst3")
+
+  # A system-exclusive message reaches a VST 3 plug-in as one kMidiSysEx event.
+  score_add_test(test_unit_vst3_midi_events
+    SOURCES Vst3MidiEventsTest.cpp
+    PLUGINS score_lib_process
+    LIBS sdk_common)
+  target_include_directories(test_unit_vst3_midi_events PRIVATE
     "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-vst3")
 endif()
 
@@ -1145,6 +1160,15 @@ if(TARGET score_plugin_clap)
     SOURCES ClapTransportTest.cpp
     PLUGINS score_lib_process)
   target_include_directories(test_unit_clap_transport PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-clap"
+    "${SCORE_ROOT_SOURCE_DIR}/3rdparty/clap/include")
+
+  # A system-exclusive message reaches a CLAP plug-in taking the MIDI dialect
+  # as one CLAP_EVENT_MIDI_SYSEX.
+  score_add_test(test_unit_clap_midi_events
+    SOURCES ClapMidiEventsTest.cpp
+    PLUGINS score_lib_process)
+  target_include_directories(test_unit_clap_midi_events PRIVATE
     "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-clap"
     "${SCORE_ROOT_SOURCE_DIR}/3rdparty/clap/include")
 endif()
@@ -1221,6 +1245,12 @@ score_add_test(test_unit_midi_malformed_message
 # SysEx7 packet it is made of, kept away from ports bound to a channel.
 score_add_test(test_unit_midi_sysex_input
   SOURCES MidiSysexInputTest.cpp)
+
+# System-exclusive to a MIDI 1 destination: the SysEx7 packets a graph port
+# carries, sent one per call, leave a MIDI device output and reach an LV2
+# plug-in as one F0 ... F7 message.
+score_add_test(test_unit_midi_sysex_output
+  SOURCES MidiSysexOutputTest.cpp)
 
 # The tracking protocols addon as devices: every protocol can be added to a
 # document and coexists with the others (what the "Add device" dialog checks).

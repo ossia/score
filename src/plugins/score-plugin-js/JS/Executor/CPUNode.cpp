@@ -348,6 +348,15 @@ void js_node::run(
       {
         m.bytes[j] = mess[j];
       }
+      if(!m.bytes.empty() && m.bytes[0] == 0xF0)
+      {
+        // A system-exclusive message is the sequence of SysEx7 packets it is
+        // made of.
+        m_sysexToUmp.convert_packets(
+            m.bytes.data(), m.bytes.size(), m.timestamp,
+            [&dat](const libremidi::ump& packet) { dat.messages.push_back(packet); });
+        continue;
+      }
       dat.messages.push_back(libremidi::ump_from_midi1(std::move(m)));
     }
     m_midOutlets[i].first->clear();

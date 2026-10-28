@@ -29,6 +29,7 @@ set(HDRS
   Vst3/EffectModel.hpp
   Vst3/Executor.hpp
   Vst3/Node.hpp
+  Vst3/MidiEvents.hpp
   Vst3/Plugin.hpp
   Vst3/Library.hpp
   Vst3/Settings.hpp
