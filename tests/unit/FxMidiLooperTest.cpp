@@ -3033,3 +3033,364 @@ TEST_CASE("MIDI looper switches: Quantif on Loop before there is a loop is Bars 
   switches_harness h;
   looper_switches::quantif_loop_empty(h);
 }
+
+// ---------------------------------------------------------------------------
+// Replace over three layers.
+// ---------------------------------------------------------------------------
+
+namespace
+{
+constexpr int64_t replace_len = 1280;
+
+//! Replace's overdub settings, without a grid: a loop of replace_len
+//! frames, Replace per pitch, notes wrapping, passes whole.
+void replace_preset(midi_harness& h)
+{
+  h.node.inputs.overdub_mode = OverdubMode::Replace;
+  h.node.inputs.held = HeldNotes::Wrap;
+  h.node.inputs.strength.value = 0.f;
+  h.node.inputs.start_from = Nodes::Looper::StartFrom::WhereItWas;
+  h.node.inputs.at_max_layers = Nodes::Looper::AtMaxLayers::MergeIntoNewest;
+  h.node.inputs.max_layers.value = 8;
+}
+
+struct played
+{
+  int64_t at; //!< frames from the start of `perform`
+  int pitch;
+  int channel{1};
+};
+
+//! Runs `len` frames, playing each note 20 frames long at its time.
+void perform(midi_harness& h, int64_t len, std::vector<played> notes)
+{
+  struct ev
+  {
+    int64_t at;
+    bool on;
+    int pitch, ch;
+  };
+  std::vector<ev> evs;
+  for(auto& n : notes)
+  {
+    evs.push_back({n.at, true, n.pitch, n.channel});
+    evs.push_back({n.at + 20, false, n.pitch, n.channel});
+  }
+  int64_t t = 0;
+  while(t < len)
+  {
+    const int64_t n = std::min<int64_t>(h.buffer_size, len - t);
+    for(auto& e : evs)
+      if(e.at >= t && e.at < t + n)
+      {
+        if(e.on)
+          h.note_on(e.pitch, int(e.at - t), 100, e.ch);
+        else
+          h.note_off(e.pitch, int(e.at - t), e.ch);
+      }
+    h.run(n);
+    t += n;
+  }
+}
+
+//! Four notes a quarter of the loop apart, from 100 on.
+std::vector<played> melody(std::array<int, 4> pitches, int ch = 1)
+{
+  std::vector<played> r;
+  for(int i = 0; i < 4; i++)
+    r.push_back({100 + i * replace_len / 4, pitches[i], ch});
+  return r;
+}
+
+std::multiset<std::pair<int, int>> round_notes(midi_harness& h)
+{
+  h.out.clear();
+  h.run_frames(replace_len);
+  std::multiset<std::pair<int, int>> r;
+  for(auto& n : h.ons())
+    r.insert({n.channel, n.pitch});
+  return r;
+}
+
+std::multiset<int> pitches_of(const std::multiset<std::pair<int, int>>& notes)
+{
+  std::multiset<int> r;
+  for(auto& [ch, p] : notes)
+    r.insert(p);
+  return r;
+}
+}
+
+TEST_CASE("MIDI looper Replace: a third layer silences the pitches it plays, of both "
+          "layers under it, and only those",
+          "[fx][midi][looper][replace]")
+{
+  struct variant
+  {
+    const char* name;
+    std::array<int, 4> third;
+    std::multiset<int> heard;
+  };
+  // Layer 1: 60 62 64 65. Layer 2: 60 62 67 69, replacing the 60 and the 62
+  // of layer 1.
+  const variant variants[] = {
+      // Pitches only layer 1 had, still heard: layer 3 replaces them.
+      {"layer 1's unreplaced pitches", {64, 65, 64, 65}, {60, 62, 67, 69, 64, 65, 64, 65}},
+      // Pitches layer 2 replaced in layer 1 already: they do not come back.
+      {"layer 1's replaced pitches", {60, 62, 60, 62}, {67, 69, 64, 65, 60, 62, 60, 62}},
+      // Pitches only layer 2 had.
+      {"layer 2's pitches", {67, 69, 67, 69}, {60, 62, 64, 65, 67, 69, 67, 69}},
+      // New pitches replace nothing: every earlier note is still heard.
+      {"new pitches", {72, 74, 76, 77}, {60, 62, 67, 69, 64, 65, 72, 74, 76, 77}},
+  };
+  for(const auto& v : variants)
+  {
+    DYNAMIC_SECTION(v.name)
+    {
+      midi_harness h;
+      replace_preset(h);
+      h.node.inputs.mode = LoopMode::Record;
+      perform(h, replace_len, melody({60, 62, 64, 65}));
+      h.node.inputs.mode = LoopMode::Play;
+      REQUIRE(h.node.loop.length == replace_len);
+
+      h.node.inputs.mode = LoopMode::Overdub;
+      perform(h, replace_len, melody({60, 62, 67, 69}));
+      h.node.inputs.mode = LoopMode::Play;
+      h.run();
+      REQUIRE(h.node.loop.count == 2);
+      CHECK(pitches_of(round_notes(h)) == std::multiset<int>{60, 62, 64, 65, 67, 69});
+
+      h.node.inputs.mode = LoopMode::Overdub;
+      perform(h, replace_len, melody(v.third));
+      h.node.inputs.mode = LoopMode::Play;
+      h.run();
+      REQUIRE(h.node.loop.count == 3);
+      CHECK(pitches_of(round_notes(h)) == v.heard);
+      // And the round after.
+      CHECK(pitches_of(round_notes(h)) == v.heard);
+    }
+  }
+}
+
+TEST_CASE("MIDI looper Replace: an overdub going on round the loop is one layer, which "
+          "replaces nothing of its own first round",
+          "[fx][midi][looper][replace]")
+{
+  // The preset's flow: four bars of recording, then overdubbing until told
+  // otherwise. What is played on the second round of that overdub is in the
+  // same layer as the first round.
+  midi_harness h;
+  replace_preset(h);
+  h.node.inputs.mode = LoopMode::Record;
+  perform(h, replace_len, melody({60, 62, 64, 65}));
+  h.node.inputs.mode = LoopMode::Overdub;
+  perform(h, replace_len, melody({60, 62, 67, 69}));
+  perform(h, replace_len, melody({67, 69, 71, 72}));
+  h.node.inputs.mode = LoopMode::Play;
+  h.run();
+  REQUIRE(h.node.loop.length == replace_len);
+  CHECK(h.node.loop.count == 2);
+  // 60 and 62 of layer 1 replaced; 64 and 65 heard; both rounds of the
+  // overdub heard together.
+  CHECK(
+      pitches_of(round_notes(h))
+      == std::multiset<int>{64, 65, 60, 62, 67, 69, 67, 69, 71, 72});
+}
+
+TEST_CASE("MIDI looper Replace: a pass replaces only where it went, from where the "
+          "overdub started, not from its first note",
+          "[fx][midi][looper][replace]")
+{
+  SECTION("started at the loop's start, first note half way")
+  {
+    midi_harness h;
+    replace_preset(h);
+    h.node.inputs.mode = LoopMode::Record;
+    perform(h, replace_len, melody({60, 60, 60, 60}));
+    h.node.inputs.mode = LoopMode::Overdub;
+    // Stops three quarters of the way round: the 60 at 3/4 + 100 is past it.
+    perform(h, replace_len * 3 / 4, {{replace_len / 2 + 200, 60}});
+    h.node.inputs.mode = LoopMode::Play;
+    h.run();
+    REQUIRE(h.node.loop.count == 2);
+    int replaced = 0;
+    for(int i = 0; i < h.node.loop.note_count; i++)
+    {
+      const auto& n = h.node.loop.notes[i];
+      if(n.pass == 0)
+      {
+        CHECK(bool(n.replaced_by) == (n.start < replace_len * 3 / 4));
+        replaced += bool(n.replaced_by);
+      }
+    }
+    CHECK(replaced == 3);
+    CHECK(pitches_of(round_notes(h)) == std::multiset<int>{60, 60});
+  }
+  SECTION("started half way, once round")
+  {
+    midi_harness h;
+    replace_preset(h);
+    h.node.inputs.mode = LoopMode::Record;
+    perform(h, replace_len, melody({60, 60, 60, 60}));
+    h.node.inputs.mode = LoopMode::Play;
+    h.run_frames(replace_len / 2);
+    h.node.inputs.mode = LoopMode::Overdub;
+    perform(h, replace_len, {{10, 60}});
+    h.node.inputs.mode = LoopMode::Play;
+    h.run();
+    REQUIRE(h.node.loop.count == 2);
+    CHECK(pitches_of(round_notes(h)) == std::multiset<int>{60});
+  }
+}
+
+TEST_CASE("MIDI looper Replace: a pitch replaces that pitch on every channel",
+          "[fx][midi][looper][replace]")
+{
+  midi_harness h;
+  replace_preset(h);
+  h.node.inputs.mode = LoopMode::Record;
+  perform(h, replace_len, melody({60, 62, 64, 65}, 1));
+  h.node.inputs.mode = LoopMode::Play;
+  h.node.inputs.mode = LoopMode::Overdub;
+  perform(h, replace_len, melody({60, 72, 74, 76}, 2));
+  h.node.inputs.mode = LoopMode::Play;
+  h.run();
+  REQUIRE(h.node.loop.count == 2);
+  const auto heard = round_notes(h);
+  CHECK(heard.count({1, 60}) == 0);
+  CHECK(heard.count({2, 60}) == 1);
+  CHECK(heard.count({1, 62}) == 1);
+}
+
+TEST_CASE("MIDI looper Replace: on the round a pass is played, the notes under it still "
+          "sound; they are silent from the next round",
+          "[fx][midi][looper][replace]")
+{
+  midi_harness h;
+  replace_preset(h);
+  h.node.inputs.mode = LoopMode::Record;
+  perform(h, replace_len, melody({60, 62, 64, 65}));
+  h.node.inputs.mode = LoopMode::Play;
+  h.run_frames(replace_len);
+  // The pass plays 64 and 65 before layer 1 plays them: layer 1's are still
+  // ahead of the pass when the playhead reaches them.
+  h.node.inputs.mode = LoopMode::Overdub;
+  h.out.clear();
+  perform(h, replace_len, {{340, 64}, {840, 65}});
+  CHECK(pitches_of([&] {
+          std::multiset<std::pair<int, int>> r;
+          for(auto& n : h.ons())
+            r.insert({n.channel, n.pitch});
+          return r;
+        }()) == std::multiset<int>{60, 62, 64, 65});
+  h.node.inputs.mode = LoopMode::Play;
+  h.run();
+  CHECK(pitches_of(round_notes(h)) == std::multiset<int>{60, 62, 64, 65});
+  REQUIRE(h.node.loop.count == 2);
+}
+
+TEST_CASE("MIDI looper switches: Capture on an empty loop, undone as a first recording",
+          "[fx][midi][looper][switches][capture]")
+{
+  switches_harness h;
+  looper_switches::capture_on_empty(h);
+}
+
+TEST_CASE("MIDI looper switches: Capture over a loop adds its last round as a layer",
+          "[fx][midi][looper][switches][capture]")
+{
+  switches_harness h;
+  looper_switches::capture_adds_layer(h);
+}
+
+TEST_CASE("MIDI looper switches: Capture over a stopped loop", "[fx][midi][looper][switches][capture]")
+{
+  switches_harness h;
+  looper_switches::capture_over_stopped_loop(h);
+}
+
+TEST_CASE("MIDI looper switches: a captured layer at Max layers", "[fx][midi][looper][switches][capture]")
+{
+  switches_harness h;
+  looper_switches::capture_at_max_layers(h);
+}
+
+TEST_CASE("MIDI looper switches: Capture keeps the mutes", "[fx][midi][looper][switches][capture]")
+{
+  switches_harness h;
+  looper_switches::capture_keeps_mutes(h);
+}
+
+TEST_CASE("MIDI looper switches: Capture while taking in does nothing",
+          "[fx][midi][looper][switches][capture]")
+{
+  switches_harness h;
+  looper_switches::capture_while_taking(h);
+}
+
+TEST_CASE("MIDI looper switches: a round with nothing played captures no layer",
+          "[fx][midi][looper][switches][capture]")
+{
+  switches_harness h;
+  looper_switches::capture_lazy_layers(h);
+}
+
+TEST_CASE("MIDI looper switches: Capture allocates nothing", "[fx][midi][looper][switches][capture]")
+{
+  switches_harness h;
+  h.enable_capture();
+  h.out.reserve(1 << 16);
+  int allocated = -1;
+  {
+    alloc_counter::scope counter;
+    looper_switches::capture_exercise(h);
+    allocated = counter.allocations();
+  }
+  CHECK(allocated == 0);
+  CHECK(h.passes() >= 2);
+}
+
+TEST_CASE("MIDI looper: Capture over a loop lays its last round where it was played",
+          "[fx][midi][looper][capture]")
+{
+  using H = switches_harness;
+  for(const bool late : {false, true})
+  {
+    CAPTURE(late);
+    H h;
+    auto& in = h.node.inputs;
+    looper_switches::record_loop(h);
+    in.late.value = late ? 150 : 0;
+    looper_switches::beats(h, 3);
+    // One tick past a grid point: with Late, the round ends on that point.
+    while(h.now % H::beat != H::frames)
+      h.tick_once();
+    const int64_t now = h.now, p0 = h.position(), len = h.length();
+    const int next_pitch = h.pitch;
+    looper_switches::press(h, in.capture);
+    REQUIRE(h.passes() == 2);
+    REQUIRE(h.length() == len);
+
+    const int64_t end = late ? now - H::frames : now;
+    std::multiset<std::pair<int64_t, int>> expected, got;
+    for(int j = 1; j <= 30; j++)
+    {
+      const int64_t t = now - j * H::frames + 100;
+      if(t < end - len || t >= end)
+        continue;
+      const int64_t pos = ((p0 - (now - t)) % len + len) % len;
+      expected.insert({pos, 84 + ((next_pitch - j) % 12 + 12) % 12});
+    }
+    for(int i = 0; i < h.node.loop.note_count; i++)
+    {
+      const auto& n = h.node.loop.notes[i];
+      if(n.pass != 1)
+        continue;
+      got.insert({n.start, n.pitch});
+      CHECK(n.length == 900);
+    }
+    CHECK(expected.size() == 20);
+    CHECK(got == expected);
+  }
+}

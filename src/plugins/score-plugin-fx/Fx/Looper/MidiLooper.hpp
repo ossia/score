@@ -172,15 +172,22 @@ struct Node : Looper::looper_node<Node>
 
     struct : halp::spinbox_i32<"Capture bars", halp::irange{1, 64, 4}>
     {
-      halp_meta(description, "How many bars Capture takes")
+      halp_meta(
+          description,
+          "How many bars Capture makes a loop of when there is none. Over a "
+          "loop, Capture takes one round of it, whatever this says.")
     } capture_bars;
 
     struct : halp::impulse_button<"Capture">
     {
       halp_meta(
           description,
-          "Makes a loop of the last bars played, recorded or not, and plays it "
-          "at once.")
+          "Takes what was played lately, recorded or not, without having to "
+          "press Record first. With no loop, the last Capture bars become the "
+          "loop, played at once. Over a loop, what was played over its last "
+          "round becomes a new layer, where it was played in the loop. Undo "
+          "takes it out. Pressed just after a grid point, it ends there, as "
+          "Late says.")
     } capture;
 
     // Controls added after the first presets go last: presets address the
@@ -618,7 +625,9 @@ private:
   int64_t capture_clock() const noexcept { return m_now; }
   int64_t capture_limit() const noexcept { return std::numeric_limits<int64_t>::max(); }
   void capture_into(int64_t end, int64_t n);
-  void captured() noexcept { m_expected_pos = transport.playbackPos; }
+  void captured() noexcept { head_moved(transport.playbackPos); }
+  bool capture_layer_ready(const Looper::capture_window& w) const noexcept;
+  void capture_layer_into(const Looper::capture_window& w);
   void stopping()
   {
     flush_loop(0);
@@ -729,6 +738,18 @@ private:
   static constexpr int history_size = 8192;
   std::array<played, history_size> m_history{};
   int64_t m_history_count{};
+  //! An entry of the history as a message: false when it is none Capture
+  //! takes.
+  static bool history_message(const played& h, libremidi::message& m) noexcept
+  {
+    if(h.size == 3)
+      m = libremidi::message{h.bytes[0], h.bytes[1], h.bytes[2]};
+    else if(h.size == 2)
+      m = libremidi::message{h.bytes[0], h.bytes[1]};
+    else
+      return false;
+    return true;
+  }
   void handle_input(
       int64_t from, int64_t to, double pos0, bool taking, double rate = 1.,
       bool backwards = false);
@@ -987,11 +1008,7 @@ inline void Node::capture_into(int64_t end, int64_t n)
       continue;
     const int64_t pos = h.frame - from;
     libremidi::message m;
-    if(h.size == 3)
-      m = libremidi::message{h.bytes[0], h.bytes[1], h.bytes[2]};
-    else if(h.size == 2)
-      m = libremidi::message{h.bytes[0], h.bytes[1]};
-    else
+    if(!history_message(h, m))
       continue;
     switch(mtk::classify(m))
     {
@@ -1027,6 +1044,73 @@ inline void Node::capture_into(int64_t end, int64_t n)
 
   loop.pass_written = n;
   loop.end_pass(inputs.overdub_mode);
+}
+
+//! A layer is only made of notes and controllers: note-offs alone are none.
+inline bool Node::capture_layer_ready(const Looper::capture_window& w) const noexcept
+{
+  const int64_t count = std::min<int64_t>(m_history_count, history_size);
+  for(int64_t i = m_history_count - count; i < m_history_count; i++)
+  {
+    const auto& h = m_history[i % history_size];
+    libremidi::message m;
+    if(!w.contains(h.frame) || !history_message(h, m))
+      continue;
+    switch(mtk::classify(m))
+    {
+      case mtk::midi_kind::note_on:
+      case mtk::midi_kind::control_change:
+      case mtk::midi_kind::pitch_bend:
+      case mtk::midi_kind::channel_pressure:
+      case mtk::midi_kind::poly_pressure:
+        return true;
+      default:
+        break;
+    }
+  }
+  return false;
+}
+
+//! What was played over the window, recorded into the pass just begun as an
+//! overdub would have recorded it then. Notes let go after the window, e.g.
+//! when it was moved back to a grid point, end there; the ones still held end
+//! when they are let go.
+inline void Node::capture_layer_into(const Looper::capture_window& w)
+{
+  m_last_ctl_count = 0;
+  const int64_t count = std::min<int64_t>(m_history_count, history_size);
+  for(int64_t i = m_history_count - count; i < m_history_count; i++)
+  {
+    const auto& h = m_history[i % history_size];
+    libremidi::message m;
+    if(h.frame < w.end - w.n || !history_message(h, m))
+      continue;
+    const int64_t pos = w.position(h.frame);
+    switch(mtk::classify(m))
+    {
+      case mtk::midi_kind::note_on:
+        if(w.contains(h.frame))
+          record_note_on(pos, m);
+        break;
+      case mtk::midi_kind::note_off:
+        record_note_off(pos, m);
+        break;
+      case mtk::midi_kind::control_change:
+      case mtk::midi_kind::pitch_bend:
+      case mtk::midi_kind::channel_pressure:
+      case mtk::midi_kind::poly_pressure:
+        if(w.contains(h.frame))
+          record_control(pos, m, w.backwards);
+        break;
+      default:
+        break;
+    }
+  }
+  loop.pass_written = w.positions();
+  loop.pass_progress = double(loop.pass_written);
+  loop.pass_backwards = w.backwards;
+  if(w.backwards)
+    close_backwards(w.position(w.end));
 }
 
 inline double Node::grid_frames() const noexcept

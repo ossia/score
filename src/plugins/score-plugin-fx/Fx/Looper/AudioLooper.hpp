@@ -199,15 +199,22 @@ struct Node : Looper::looper_node<Node>
 
     struct : halp::spinbox_i32<"Capture bars", halp::irange{1, 64, 4}>
     {
-      halp_meta(description, "How many bars Capture takes")
+      halp_meta(
+          description,
+          "How many bars Capture makes a loop of when there is none. Over a "
+          "loop, Capture takes one round of it, whatever this says.")
     } capture_bars;
 
     struct : halp::impulse_button<"Capture">
     {
       halp_meta(
           description,
-          "Makes a loop of the last bars of the input, recorded or not, and plays "
-          "it at once. Needs Keep last.")
+          "Takes the input of the last moments, recorded or not, without having "
+          "to press Record first. With no loop, the last Capture bars become "
+          "the loop, played at once. Over a loop, the input over its last round "
+          "becomes a new layer, where it was played in the loop. Undo takes it "
+          "out. Pressed just after a grid point, it ends there, as Late says. "
+          "Needs Keep last.")
     } capture;
 
     // Controls added after the first presets go last: presets address the
@@ -682,6 +689,17 @@ private:
   }
   void capture_into(int64_t end, int64_t n);
   void captured() noexcept { }
+  //! A layer is captured from the input kept, in a buffer that may be one a
+  //! take being written still reads.
+  bool capture_layer_ready(const Looper::capture_window&) noexcept
+  {
+    if(m_ring_capacity <= 0)
+      return false;
+    layers.reserved_overwritten = false;
+    update_seam(true);
+    return true;
+  }
+  void capture_layer_into(const Looper::capture_window& w);
   void stopping() noexcept { }
   void close_on_stop(bool recording)
   {
@@ -1127,6 +1145,55 @@ inline void Node::capture_into(int64_t end, int64_t n)
   layers.layers[0].written = n;
   fade_edges(slot);
   m_full = false;
+}
+
+//! The input over the window, written into the pass just begun as an overdub
+//! would have written it then: each position of the loop takes what came in
+//! when the playhead went over it, faded in as a pass starts; its end is
+//! faded and moved by the latency as the pass closes. Going over the loop's
+//! end, the passes under it fade by the feedback.
+inline void Node::capture_layer_into(const Looper::capture_window& w)
+{
+  if(layers.reserved_overwritten)
+    cancel_export();
+  auto* top = layers.top();
+  if(!top)
+    return;
+  const int64_t len = layers.length;
+  const int64_t positions = w.positions();
+  const auto y_last = int64_t(std::floor(w.y_end));
+  const int64_t first = w.end - w.n;
+  const int fade = Looper::audio_layers::fade_frames;
+  const auto input = [&](int c, double t) {
+    if(c >= m_ring_channels)
+      return 0.f;
+    const float* ring = m_ring.data() + std::size_t(c) * std::size_t(m_ring_capacity);
+    const auto at = [&](int64_t f) {
+      return ring[std::clamp<int64_t>(f, first, w.end - 1) % m_ring_capacity];
+    };
+    const auto f = int64_t(std::floor(t));
+    const float a = float(t - double(f));
+    return at(f) + a * (at(f + 1) - at(f));
+  };
+  for(int64_t i = 0; i < positions; i++)
+  {
+    const int64_t y = y_last - positions + i;
+    const double t = double(w.end) - (w.y_end - double(y)) / w.rate;
+    const int64_t yw = Looper::capture_window::wrap(y, len);
+    const int64_t k = w.backwards ? len - 1 - yw : yw;
+    const float ramp = i < fade ? float(i) / float(fade) : 1.f;
+    for(int c = 0; c < layers.channels; c++)
+    {
+      const float v = input(c, t) * ramp;
+      layers.data(top->slot, c)[k] = v;
+      layers.note_peak(top->slot, k, v);
+    }
+  }
+  top->start = w.start();
+  top->written = positions;
+  top->backwards = w.backwards;
+  if(y_last - positions < 0)
+    layers.decay(std::clamp(inputs.feedback.value, 0.f, 1.f));
 }
 
 //! A new file replaces the loop. It is copied about a second per tick so that

@@ -77,6 +77,9 @@ struct pass_stack
   int total{};
   //! Frames in the loop.
   int64_t length{};
+  //! Counts the passes added over the ones heard: whether a pass asked for
+  //! got a place.
+  uint64_t pushes{};
 
   //! The last pass merged into the newest one, and the two as they were:
   //! undo takes the pass out again, as long as nothing else changes the
@@ -182,6 +185,7 @@ struct pass_stack
     l.loop_after = length;
     count++;
     total = count;
+    pushes++;
     aside.by = count - 1;
     self().passes_changed();
     return l;

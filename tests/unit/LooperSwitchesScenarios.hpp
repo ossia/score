@@ -1698,3 +1698,300 @@ void lazy_layers(H& h)
   }
 }
 }
+
+namespace looper_switches
+{
+//! What the transport and Loop show of a looper.
+struct shown_state
+{
+  LoopMode actual;
+  LoopMode wanted;
+  LoopMode input;
+  int passes;
+  bool empty;
+  bool operator==(const shown_state&) const = default;
+};
+template <typename H>
+shown_state state_of(const H& h)
+{
+  return {
+      h.node.transport.actualMode, h.node.transport.wanted, h.node.inputs.mode.value,
+      h.passes(), h.length() == 0 || h.passes() == 0};
+}
+
+//! Capture on an empty loop makes a loop of Capture bars and plays it; undo
+//! and redo act on it as on a first recording.
+template <typename H>
+void capture_on_empty(H& h)
+{
+  auto& in = h.node.inputs;
+  h.enable_capture();
+  in.capture_bars.value = 2;
+  beats(h, 10);
+  press(h, in.capture);
+  REQUIRE(h.passes() == 1);
+  CHECK(h.length() == 8 * H::beat);
+  CHECK(mode(h) == LoopMode::Play);
+  const double s = h.signature(0);
+  CHECK(s > 0.);
+  beats(h, 1);
+
+  press(h, in.undo);
+  CHECK(h.passes() == 0);
+  const auto captured = state_of(h);
+
+  // A first recording undone.
+  H r;
+  record_loop(r);
+  beats(r, 1);
+  press(r, r.node.inputs.undo);
+  CHECK(captured == state_of(r));
+  CHECK(h.shown == r.shown);
+
+  press(h, in.redo);
+  CHECK(h.passes() == 1);
+  CHECK(h.length() == 8 * H::beat);
+  CHECK(same(h.signature(0), s));
+  press(r, r.node.inputs.redo);
+  CHECK(state_of(h).actual == state_of(r).actual);
+}
+
+//! Capture over a loop: its last round becomes a layer on top, the loop
+//! keeping its length and playing on; undo takes the layer out and redo
+//! brings it back, as for an overdub pass.
+template <typename H>
+void capture_adds_layer(H& h)
+{
+  auto& in = h.node.inputs;
+  h.enable_capture();
+  // Bars that are not the loop's length: they say nothing over a loop.
+  in.capture_bars.value = 2;
+  record_loop(h);
+  beats(h, 5);
+  const double s0 = h.signature(0);
+  const int64_t len = h.length();
+  press_off_beat(h, in.capture);
+  REQUIRE(h.passes() == 2);
+  CHECK(h.length() == len);
+  CHECK(mode(h) == LoopMode::Play);
+  CHECK(in.layer.value == 2);
+  CHECK(same(h.signature(0), s0));
+  const double s1 = h.signature(1);
+  // A round of the same input as the recording.
+  CHECK(s1 > 0.8 * s0);
+  CHECK(s1 < 1.2 * s0);
+
+  press(h, in.undo);
+  CHECK(h.passes() == 1);
+  CHECK(h.length() == len);
+  CHECK(same(h.signature(0), s0));
+  CHECK(mode(h) == LoopMode::Play);
+  press(h, in.redo);
+  CHECK(h.passes() == 2);
+  CHECK(same(h.signature(1), s1));
+  press(h, in.undo);
+  CHECK(h.passes() == 1);
+
+  // Another capture drops what redo would bring back, as a pass does.
+  beats(h, 2);
+  press_off_beat(h, in.capture);
+  CHECK(h.passes() == 2);
+  press(h, in.redo);
+  CHECK(h.passes() == 2);
+}
+
+//! A stopped loop goes round where it would be, as In phase has it: the
+//! layer is captured over that round, and the loop plays from there.
+template <typename H>
+void capture_over_stopped_loop(H& h)
+{
+  auto& in = h.node.inputs;
+  h.enable_capture();
+  record_loop(h);
+  at_beat(h, in.stop);
+  REQUIRE(mode(h) == LoopMode::Stop);
+  beats(h, 5);
+  press_off_beat(h, in.capture);
+  CHECK(h.passes() == 2);
+  CHECK(mode(h) == LoopMode::Play);
+  CHECK(in.mode.value == LoopMode::Play);
+  press(h, in.undo);
+  CHECK(h.passes() == 1);
+}
+
+//! A captured layer past Max layers makes room as any pass does.
+template <typename H>
+void capture_at_max_layers(H& h)
+{
+  auto& in = h.node.inputs;
+  h.enable_capture();
+  h.set_max_layers(3);
+  record_loop(h);
+  at_beat(h, in.overdub);
+  at_beat(h, in.new_layer);
+  at_beat(h, in.play);
+  REQUIRE(h.passes() == 3);
+  const double s0 = h.signature(0), s1 = h.signature(1), s2 = h.signature(2);
+  REQUIRE(s2 > 0.);
+  beats(h, 4);
+
+  SECTION("merge into newest, and its undo")
+  {
+    press_off_beat(h, in.capture);
+    beats(h, 1);
+    CHECK(h.passes() == 3);
+    CHECK(same(h.signature(0), s0));
+    CHECK(same(h.signature(1), s1));
+    CHECK(h.signature(2) > s2);
+    press(h, in.undo);
+    CHECK(h.passes() == 3);
+    CHECK(same(h.signature(2), s2));
+    press(h, in.undo);
+    CHECK(h.passes() == 2);
+  }
+  SECTION("merge oldest")
+  {
+    in.at_max_layers = AtMaxLayers::MergeOldest;
+    press_off_beat(h, in.capture);
+    beats(h, 1);
+    CHECK(h.passes() == 3);
+    CHECK(same(h.signature(0), s0 + s1));
+    CHECK(same(h.signature(1), s2));
+  }
+  SECTION("replace a muted layer, which undo puts back")
+  {
+    in.at_max_layers = AtMaxLayers::ReplaceMuted;
+    in.layer.value = 2;
+    at_beat(h, in.mute_layer);
+    REQUIRE(h.muted(1));
+    press_off_beat(h, in.capture);
+    CHECK(h.passes() == 3);
+    CHECK(!h.muted(0));
+    CHECK(!h.muted(1));
+    CHECK(!h.muted(2));
+    CHECK(same(h.signature(1), s2));
+    press(h, in.undo);
+    CHECK(h.passes() == 3);
+    CHECK(h.muted(1));
+    CHECK(same(h.signature(1), s1));
+    CHECK(same(h.signature(2), s2));
+  }
+}
+
+//! Mutes are kept: the captured layer is heard over them.
+template <typename H>
+void capture_keeps_mutes(H& h)
+{
+  auto& in = h.node.inputs;
+  h.enable_capture();
+  record_loop(h);
+  at_beat(h, in.overdub);
+  at_beat(h, in.play);
+  in.layer.value = 1;
+  at_beat(h, in.mute_layer);
+  REQUIRE(h.muted(0));
+  beats(h, 4);
+  press_off_beat(h, in.capture);
+  REQUIRE(h.passes() == 3);
+  CHECK(h.muted(0));
+  CHECK(!h.muted(1));
+  CHECK(!h.muted(2));
+}
+
+//! Capture while a pass is taken in does nothing.
+template <typename H>
+void capture_while_taking(H& h)
+{
+  auto& in = h.node.inputs;
+  h.enable_capture();
+  beats(h, 6);
+  at_beat(h, in.record);
+  beats(h, 2);
+  REQUIRE(mode(h) == LoopMode::Record);
+  const int64_t len = h.length();
+  press(h, in.capture);
+  CHECK(mode(h) == LoopMode::Record);
+  CHECK(h.node.transport.is_taking());
+  CHECK(h.passes() == 1);
+  CHECK(h.length() > len);
+  at_beat(h, in.overdub);
+  beats(h, 1);
+  REQUIRE(mode(h) == LoopMode::Overdub);
+  const int passes = h.passes();
+  press(h, in.capture);
+  CHECK(mode(h) == LoopMode::Overdub);
+  CHECK(h.node.transport.is_taking());
+  CHECK(h.passes() == passes);
+}
+
+//! Over a loop, nothing played over its last round is no layer: Capture does
+//! nothing. A layer that is one closes as a pass, with a take.
+template <typename H>
+void capture_lazy_layers(H& h)
+{
+  auto& in = h.node.inputs;
+  h.enable_takes();
+  record_loop(h);
+  beats(h, 1);
+  const int takes = h.takes();
+  REQUIRE(takes == 1);
+  const double s0 = h.signature(0);
+
+  SECTION("nothing played")
+  {
+    h.playing = false;
+    beats(h, 5);
+    press_off_beat(h, in.capture);
+    beats(h, 1);
+    CHECK(h.passes() == 1);
+    CHECK(same(h.signature(0), s0));
+    CHECK(h.takes() == takes);
+    CHECK(mode(h) == LoopMode::Play);
+    // Undo has nothing of Capture's to take out.
+    press(h, in.undo);
+    CHECK(h.passes() == 0);
+  }
+  SECTION("something played")
+  {
+    beats(h, 5);
+    press_off_beat(h, in.capture);
+    beats(h, 1);
+    CHECK(h.passes() == 2);
+    CHECK(h.takes() == takes + 1);
+  }
+}
+
+//! Capture, on an empty loop and over one, undone, redone and made room for:
+//! for counting what it allocates.
+template <typename H>
+void capture_exercise(H& h)
+{
+  auto& in = h.node.inputs;
+  in.capture_bars.value = 1;
+  beats(h, 5);
+  press(h, in.capture);
+  press(h, in.undo);
+  press(h, in.redo);
+  beats(h, 5);
+  press_off_beat(h, in.capture);
+  press(h, in.undo);
+  press(h, in.redo);
+  for(int i = 0; i < 4; i++)
+  {
+    beats(h, 2);
+    press_off_beat(h, in.capture);
+  }
+  in.at_max_layers = AtMaxLayers::ReplaceMuted;
+  at_beat(h, in.mute_layer);
+  press_off_beat(h, in.capture);
+  press(h, in.undo);
+  in.reverse.value = true;
+  beats(h, 2);
+  press_off_beat(h, in.capture);
+  in.reverse.value = false;
+  at_beat(h, in.stop);
+  beats(h, 2);
+  press_off_beat(h, in.capture);
+  beats(h, 2);
+}
+}

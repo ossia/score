@@ -3485,3 +3485,114 @@ TEST_CASE("Looper: Quantif in bars, note values and triplets", "[fx][audio][loop
     CHECK(recording_start(halp::grid_value::seconds(0.5), 30000) == 48000);
   }
 }
+
+TEST_CASE("Looper switches: Capture on an empty loop, undone as a first recording",
+          "[fx][audio][looper][switches][capture]")
+{
+  switches_harness h;
+  looper_switches::capture_on_empty(h);
+}
+
+TEST_CASE("Looper switches: Capture over a loop adds its last round as a layer",
+          "[fx][audio][looper][switches][capture]")
+{
+  switches_harness h;
+  looper_switches::capture_adds_layer(h);
+}
+
+TEST_CASE("Looper switches: Capture over a stopped loop", "[fx][audio][looper][switches][capture]")
+{
+  switches_harness h;
+  looper_switches::capture_over_stopped_loop(h);
+}
+
+TEST_CASE("Looper switches: a captured layer at Max layers", "[fx][audio][looper][switches][capture]")
+{
+  switches_harness h;
+  looper_switches::capture_at_max_layers(h);
+}
+
+TEST_CASE("Looper switches: Capture keeps the mutes", "[fx][audio][looper][switches][capture]")
+{
+  switches_harness h;
+  looper_switches::capture_keeps_mutes(h);
+}
+
+TEST_CASE("Looper switches: Capture while taking in does nothing",
+          "[fx][audio][looper][switches][capture]")
+{
+  switches_harness h;
+  looper_switches::capture_while_taking(h);
+}
+
+TEST_CASE("Looper switches: Capture over a loop without Keep last does nothing",
+          "[fx][audio][looper][switches][capture]")
+{
+  switches_harness h;
+  auto& in = h.node.inputs;
+  looper_switches::record_loop(h);
+  looper_switches::beats(h, 5);
+  const double s0 = h.signature(0);
+  looper_switches::press_off_beat(h, in.capture);
+  CHECK(h.passes() == 1);
+  CHECK(looper_switches::same(h.signature(0), s0));
+}
+
+TEST_CASE("Looper switches: Capture allocates nothing", "[fx][audio][looper][switches][capture]")
+{
+  switches_harness h;
+  h.enable_capture();
+  int allocated = -1;
+  {
+    alloc_counter::scope counter;
+    looper_switches::capture_exercise(h);
+    allocated = counter.allocations();
+  }
+  CHECK(allocated == 0);
+  CHECK(h.passes() >= 2);
+}
+
+TEST_CASE("Looper: Capture over a loop lays its last round where it was played",
+          "[fx][audio][looper][capture]")
+{
+  using H = switches_harness;
+  for(const bool late : {false, true})
+  {
+    CAPTURE(late);
+    H h;
+    auto& in = h.node.inputs;
+    in.latency.value = 0;
+    in.engine_latency.value = false;
+    in.feedback.value = 1.f;
+    h.enable_capture();
+    looper_switches::record_loop(h);
+    in.late.value = late ? 150 : 0;
+    h.ramp = true;
+    looper_switches::beats(h, 5);
+    while(h.now % H::beat != H::frames)
+      h.tick_once();
+    const int64_t now = h.now, p0 = h.position(), len = h.length();
+    looper_switches::press(h, in.capture);
+    REQUIRE(h.passes() == 2);
+    REQUIRE(h.length() == len);
+
+    const int64_t end = late ? now - H::frames : now;
+    const int64_t p_end = ((p0 - (now - end)) % len + len) % len;
+    const auto& l = h.node.layers.layers[1];
+    const float* d = h.node.layer_data(1, 0);
+    int checked = 0;
+    for(int64_t k = 0; k < len; k += 97)
+    {
+      int64_t back = ((p_end - k) % len + len) % len;
+      if(back == 0)
+        back = len;
+      // Away from the fades at its two ends.
+      if(back < 400 || back > len - 400)
+        continue;
+      CHECK(h.node.layers.valid(l, k));
+      CHECK(d[h.node.layers.index(l, k)] == Approx(H::ramp_at(end - back)).margin(1e-6));
+      checked++;
+    }
+    CHECK(checked > 900);
+  }
+}

@@ -66,11 +66,15 @@ namespace Nodes::Looper
  *   void set_head(double y, int64_t len);
  *
  *   // Capture: the count of input frames, the most it can take, making the
- *   // loop of the `n` frames up to `end` on that count, and after.
+ *   // loop of the `n` frames up to `end` on that count, and after the loop
+ *   // plays. Over a loop: whether what came in over the window makes a
+ *   // layer, preparing for it, and writing it into the pass just begun.
  *   int64_t capture_clock() const;
  *   int64_t capture_limit() const;
  *   void capture_into(int64_t end, int64_t n);
  *   void captured();
+ *   bool capture_layer_ready(const capture_window& w);
+ *   void capture_layer_into(const capture_window& w);
  *
  *   // The score stops while a pass is taken in.
  *   void stopping();
@@ -107,6 +111,55 @@ namespace Nodes::Looper
  * goes over. A pass that never gets anything is no layer, no take, no merge.
  * A looper that does not say so makes its passes layers as they start.
  */
+/**
+ * What Capture takes over a loop: input frames [end - n; end[ of the capture
+ * clock, as the pass an overdub over them would have been. Frame `end` is at
+ * `y_end` in the coordinates the playhead goes forward in, which it goes
+ * over `rate` positions a frame; `backwards`, they are the loop read from its
+ * end.
+ */
+struct capture_window
+{
+  int64_t end{};
+  int64_t n{};
+  int64_t length{};
+  double y_end{};
+  double rate{1.};
+  bool backwards{};
+
+  static int64_t wrap(int64_t k, int64_t len) noexcept
+  {
+    k %= len;
+    return k < 0 ? k + len : k;
+  }
+  //! Positions of the loop the window goes over, a round at most.
+  int64_t positions() const noexcept
+  {
+    return std::clamp<int64_t>(std::llround(double(n) * rate), 0, length);
+  }
+  //! The first position of what it goes over, in the loop's own order.
+  int64_t start() const noexcept
+  {
+    const auto y = int64_t(std::floor(y_end));
+    return backwards ? wrap(length - y, length) : wrap(y - positions(), length);
+  }
+  //! The loop position input frame t falls on, as an overdub records it.
+  int64_t position(int64_t t) const noexcept
+  {
+    double y = std::fmod(y_end - double(end - t) * rate, double(length));
+    if(y < 0.)
+      y += double(length);
+    const int64_t k = std::min(int64_t(y), length - 1);
+    return backwards ? wrap(length - k, length) : k;
+  }
+  //! The positions gone over from the window's start to input frame t.
+  int64_t progress(int64_t t) const noexcept
+  {
+    return std::clamp<int64_t>(int64_t(double(t - (end - n)) * rate), 0, positions());
+  }
+  bool contains(int64_t t) const noexcept { return t >= end - n && t < end; }
+};
+
 template <typename Node>
 struct looper_node
 {
@@ -241,6 +294,7 @@ protected:
   void close_pass(bool cycle = false);
   void merge_extra_pass();
   void capture(const tick& tk);
+  void capture_layer(const tick& tk, int64_t now, int64_t end);
   void stop_score();
 
   //! Where the loop would be had it kept going since it was made: the rounds
@@ -768,12 +822,13 @@ void looper_node<Node>::looper_rephase(const ossia::token_request& tk)
       std::floor((rounds - std::floor(rounds)) * double(st.length) + 1e-6), st.length);
 }
 
-//! The last bars heard become the loop, ending on the last grid point when it
-//! was just passed, as a late stop would.
+//! What was heard lately, ending on the last grid point when it was just
+//! passed, as a late stop would: the last bars of it become the loop, or,
+//! over a loop, its last round becomes a layer.
 template <typename Node>
 void looper_node<Node>::capture(const tick& tk)
 {
-  if(transport.is_taking())
+  if(transport.is_taking() || self().busy())
     return;
   auto& in = self().inputs;
   const double bar = m_rate * 4. * (double(tk.signature.upper) / tk.signature.lower)
@@ -785,6 +840,11 @@ void looper_node<Node>::capture(const tick& tk)
     const int64_t late = transport.frame - *transport.lastPointFrame;
     if(late >= 0 && late <= int64_t(in.late.value * m_rate / 1000.))
       end -= late;
+  }
+  if(!stack().empty())
+  {
+    capture_layer(tk, now, end);
+    return;
   }
   const int64_t n = std::min<int64_t>(
       {int64_t(in.capture_bars.value * bar), end, self().capture_limit()});
@@ -805,6 +865,61 @@ void looper_node<Node>::capture(const tick& tk)
                   / double(ossia::flicks_per_second<int64_t>);
   m_export_pending = true;
   self().captured();
+}
+
+//! The last round of the loop up to `end`, played over it, becomes a layer
+//! on top, as an overdub pass of that round would have: where it was played
+//! in the loop, room made for it as for any pass, undone and redone as one,
+//! written in a take when it closes. The loop keeps its length. A stopped
+//! loop goes round where it would be had it kept going, as In phase has it,
+//! and plays from there.
+template <typename Node>
+void looper_node<Node>::capture_layer(const tick& tk, int64_t now, int64_t end)
+{
+  auto& st = stack();
+  const int64_t len = st.length;
+  const LoopMode m = transport.actualMode;
+  const bool stopped = m != LoopMode::Play;
+  const double rate = self().rate_for(m);
+  if(len <= 0 || !(rate > 0.))
+    return;
+  double y_now{};
+  if(stopped)
+  {
+    const double rounds = rounds_since_made(tk);
+    y_now = std::floor((rounds - std::floor(rounds)) * double(len) + 1e-6);
+  }
+  else
+    y_now = self().head_y(len);
+
+  const auto round = int64_t(std::ceil(double(len) / rate - 1e-9));
+  double y_end = std::fmod(y_now - double(now - end) * rate, double(len));
+  if(y_end < 0.)
+    y_end += double(len);
+  Looper::capture_window w{
+      .end = end,
+      .n = std::min<int64_t>({round, end, self().capture_limit()}),
+      .length = len,
+      .y_end = y_end,
+      .rate = rate,
+      .backwards = m_reverse};
+  if(w.n <= 0 || w.positions() <= 0 || !self().capture_layer_ready(w))
+    return;
+
+  passes_changing();
+  const auto pushes = st.pushes;
+  begin_pass_now(w.start());
+  if(st.pushes == pushes)
+    return;
+  self().capture_layer_into(w);
+  close_pass();
+
+  if(stopped)
+  {
+    self().set_head(y_now, len);
+    transport.play_captured(transport.playbackPos);
+    self().captured();
+  }
 }
 
 //! The score stops: what was being taken in is a pass like any other, written

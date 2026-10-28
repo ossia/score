@@ -1079,3 +1079,106 @@ TEST_CASE("Value looper switches: the actions allocate nothing with numbers comi
   CHECK(allocated == 0);
   CHECK(h.passes() == 2);
 }
+
+TEST_CASE("Value looper switches: Capture on an empty loop, undone as a first recording",
+          "[fx][values][looper][switches][capture]")
+{
+  switches_harness h;
+  looper_switches::capture_on_empty(h);
+}
+
+TEST_CASE("Value looper switches: Capture over a loop adds its last round as a layer",
+          "[fx][values][looper][switches][capture]")
+{
+  switches_harness h;
+  looper_switches::capture_adds_layer(h);
+}
+
+TEST_CASE("Value looper switches: Capture over a stopped loop",
+          "[fx][values][looper][switches][capture]")
+{
+  switches_harness h;
+  looper_switches::capture_over_stopped_loop(h);
+}
+
+TEST_CASE("Value looper switches: a captured layer at Max layers",
+          "[fx][values][looper][switches][capture]")
+{
+  switches_harness h;
+  looper_switches::capture_at_max_layers(h);
+}
+
+TEST_CASE("Value looper switches: Capture keeps the mutes", "[fx][values][looper][switches][capture]")
+{
+  switches_harness h;
+  looper_switches::capture_keeps_mutes(h);
+}
+
+TEST_CASE("Value looper switches: Capture while taking in does nothing",
+          "[fx][values][looper][switches][capture]")
+{
+  switches_harness h;
+  looper_switches::capture_while_taking(h);
+}
+
+TEST_CASE("Value looper switches: a round with nothing new captures no layer",
+          "[fx][values][looper][switches][capture]")
+{
+  switches_harness h;
+  looper_switches::capture_lazy_layers(h);
+}
+
+TEST_CASE("Value looper switches: Capture allocates nothing", "[fx][values][looper][switches][capture]")
+{
+  switches_harness h;
+  h.enable_capture();
+  int allocated = -1;
+  {
+    alloc_counter::scope counter;
+    looper_switches::capture_exercise(h);
+    allocated = counter.allocations();
+  }
+  CHECK(allocated == 0);
+  CHECK(h.passes() >= 2);
+}
+
+TEST_CASE("Value looper: Capture over a loop lays its last round where it came",
+          "[fx][values][looper][capture]")
+{
+  using H = switches_harness;
+  for(const bool late : {false, true})
+  {
+    CAPTURE(late);
+    H h;
+    auto& in = h.node.inputs;
+    looper_switches::record_loop(h);
+    in.late.value = late ? 150 : 0;
+    looper_switches::beats(h, 3);
+    while(h.now % H::beat != H::frames)
+      h.tick_once();
+    const int64_t now = h.now, p0 = h.position(), len = h.length();
+    const int next = h.counter;
+    looper_switches::press(h, in.capture);
+    REQUIRE(h.passes() == 2);
+    REQUIRE(h.length() == len);
+
+    const int64_t end = late ? now - H::frames : now;
+    std::vector<std::pair<int64_t, float>> expected;
+    for(int j = 1; j <= 30; j++)
+    {
+      const int64_t t = now - j * H::frames + 100;
+      if(t < end - len || t >= end)
+        continue;
+      expected.emplace_back(((p0 - (now - t)) % len + len) % len, float(next - j));
+    }
+    std::sort(expected.begin(), expected.end());
+    const auto e = h.events(1);
+    REQUIRE(e.size() == expected.size());
+    CHECK(expected.size() == 20);
+    for(std::size_t i = 0; i < e.size(); i++)
+    {
+      CHECK(e[i].first == expected[i].first);
+      CHECK(same(e[i].second, expected[i].second));
+    }
+  }
+}

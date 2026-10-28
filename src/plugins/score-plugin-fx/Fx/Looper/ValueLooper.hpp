@@ -111,16 +111,22 @@ struct Node : Looper::looper_node<Node>
 
     struct : halp::spinbox_i32<"Capture bars", halp::irange{1, 64, 4}>
     {
-      halp_meta(description, "How many bars Capture takes")
+      halp_meta(
+          description,
+          "How many bars Capture makes a loop of when there is none. Over a "
+          "loop, Capture takes one round of it, whatever this says.")
     } capture_bars;
 
     struct : halp::impulse_button<"Capture">
     {
       halp_meta(
           description,
-          "Makes a loop of the last bars of values that came in, recorded or "
-          "not, starting from the value held before them, and plays it at "
-          "once.")
+          "Takes the values that came in lately, recorded or not, without having "
+          "to press Record first. With no loop, the last Capture bars become "
+          "the loop, starting from the value held before them, played at once. "
+          "Over a loop, the values of its last round become a new layer, where "
+          "they came in the loop. Undo takes it out. Pressed just after a grid "
+          "point, it ends there, as Late says.")
     } capture;
 
     struct : Looper::enum_combobox<"Export", Looper::TakeFiles, Looper::TakeFiles::Mix>
@@ -496,7 +502,13 @@ private:
   int64_t capture_clock() const noexcept { return m_now; }
   int64_t capture_limit() const noexcept { return std::numeric_limits<int64_t>::max(); }
   void capture_into(int64_t end, int64_t n);
-  void captured() noexcept { m_expected_pos = transport.playbackPos; }
+  void captured() noexcept { head_moved(transport.playbackPos); }
+  bool capture_layer_ready(const Looper::capture_window& w) const noexcept;
+  void capture_layer_into(const Looper::capture_window& w);
+  //! Calls f(entry) for each value of the history that came in over `w` and
+  //! is new: not the one its key held before it.
+  template <typename F>
+  void for_each_captured(const Looper::capture_window& w, F&& f) const;
   //! What goes out is sent again once the score starts again.
   void stopping() noexcept
   {
@@ -1236,6 +1248,57 @@ inline void Node::capture_into(int64_t end, int64_t n)
   loop.pass_written = n;
   loop.pass_progress = double(n);
   loop.end_pass();
+}
+
+template <typename F>
+void Node::for_each_captured(const Looper::capture_window& w, F&& f) const
+{
+  const int64_t count = std::min<int64_t>(m_history_count, history_size);
+  std::array<const Looper::value_slot*, max_keys> held{};
+  for(int key = 0; key < max_keys; key++)
+    if(!m_history_floor[key].empty())
+      held[key] = &m_history_floor[key];
+  for(int64_t i = m_history_count - count; i < m_history_count; i++)
+  {
+    const auto& h = m_history[i % history_size];
+    if(h.frame >= w.end)
+      break;
+    const bool impulse = h.value.impulse();
+    const bool fresh = impulse || !held[h.key] || !held[h.key]->same(h.value);
+    if(!impulse)
+      held[h.key] = &h.value;
+    if(fresh && w.contains(h.frame))
+      if(!f(h))
+        return;
+  }
+}
+
+//! A layer is only made of values that are new.
+inline bool Node::capture_layer_ready(const Looper::capture_window& w) const noexcept
+{
+  bool any = false;
+  for_each_captured(w, [&any](const played&) {
+    any = true;
+    return false;
+  });
+  return any;
+}
+
+//! What came in over the window, recorded into the pass just begun as an
+//! overdub would have recorded it then: each key it moved holds from its
+//! first new value to the window's end.
+inline void Node::capture_layer_into(const Looper::capture_window& w)
+{
+  for_each_captured(w, [&](const played& h) {
+    record_value(
+        w.position(h.frame), w.progress(h.frame), h.key, h.value.get(), w.backwards);
+    return true;
+  });
+  loop.pass_written = w.positions();
+  loop.pass_progress = double(loop.pass_written);
+  loop.pass_backwards = w.backwards;
+  if(w.backwards)
+    close_backwards(w.position(w.end));
 }
 
 //! An extending pass cut back to `end`: what it recorded since is dropped.
