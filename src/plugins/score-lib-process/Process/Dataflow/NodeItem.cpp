@@ -653,10 +653,7 @@ void NodeItem::updateSize()
   if(m_model.flags() & Process::ProcessFlags::FullyCustomItem)
   {
     if(m_presenter)
-    {
-      m_presenter->setWidth(m_contentSize.width(), m_contentSize.width());
-      m_presenter->setHeight(m_contentSize.height());
-    }
+      resizePresenter();
     // A fully-custom item lays out its own ports, so the node has to be at
     // least as wide as that item: keeping the width the title asked for draws
     // the border inside the item, and the ports it placed on its own right
@@ -717,10 +714,7 @@ void NodeItem::updateSize()
     }
 
     if(m_presenter)
-    {
-      m_presenter->setWidth(m_contentSize.width(), m_contentSize.width());
-      m_presenter->setHeight(m_contentSize.height());
-    }
+      resizePresenter();
 
     if(m_scriptButton)
     {
@@ -787,9 +781,7 @@ void NodeItem::setSize(QSizeF sz)
       m_uiButton->setParentItem(nullptr);
     }
 
-    m_presenter->setWidth(sz.width(), sz.width());
-    m_presenter->setHeight(sz.height());
-    updateZoomRatio();
+    resizePresenter();
 
     resetInlets();
     resetOutlets();
@@ -906,6 +898,13 @@ void NodeItem::initConnections()
 const ProcessModel& NodeItem::model() const noexcept
 {
   return m_model;
+}
+
+void NodeItem::resizePresenter()
+{
+  m_presenter->setWidth(m_contentSize.width(), m_contentSize.width());
+  m_presenter->setHeight(m_contentSize.height());
+  updateZoomRatio();
 }
 
 void NodeItem::updateZoomRatio() const noexcept

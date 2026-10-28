@@ -100,6 +100,9 @@ private:
   void createWithoutDecorations();
 
   void updateZoomRatio() const noexcept;
+  //! Lays the layer out over the content's size, at the zoom of what it
+  //! shows: a width alone would draw the whole process over it.
+  void resizePresenter();
   void updateSize();
   void setSize(QSizeF sz);
   void publishSize();
