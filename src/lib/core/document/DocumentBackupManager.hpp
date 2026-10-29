@@ -53,7 +53,7 @@ public:
   void updateBackupData();
 
   //! Where the commands are saved as they are made.
-  SCORE_LIB_BASE_EXPORT QString commandFileName();
+  SCORE_LIB_BASE_TEST_EXPORT QString commandFileName();
 
 private:
   void storeModelData(const QByteArray& data);

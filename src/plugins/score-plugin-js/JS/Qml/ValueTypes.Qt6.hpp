@@ -169,7 +169,7 @@ public:
   Q_PROPERTY(qreal w READ w WRITE setW FINAL)
 };
 
-struct SCORE_PLUGIN_JS_EXPORT TokenRequestValueType
+struct SCORE_PLUGIN_JS_TEST_EXPORT TokenRequestValueType
 {
   Q_GADGET
 public:
@@ -260,7 +260,7 @@ public:
   Q_PROPERTY(int length READ length FINAL)
 };
 
-struct SCORE_PLUGIN_JS_EXPORT ExecutionStateValueType
+struct SCORE_PLUGIN_JS_TEST_EXPORT ExecutionStateValueType
 {
   Q_GADGET
   QML_VALUE_TYPE(ExecutionStateValueType)

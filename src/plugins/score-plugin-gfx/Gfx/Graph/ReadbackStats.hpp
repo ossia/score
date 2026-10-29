@@ -20,5 +20,5 @@ struct ReadbackStats
   std::atomic<uint64_t> flush{0};
 };
 
-SCORE_PLUGIN_GFX_EXPORT ReadbackStats& readbackStats() noexcept;
+SCORE_PLUGIN_GFX_TEST_EXPORT ReadbackStats& readbackStats() noexcept;
 }

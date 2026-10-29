@@ -26,7 +26,7 @@ class DropNodesMacro final : public score::AggregateCommand
   SCORE_COMMAND_DECL(CommandFactoryName(), DropNodesMacro, "Drop nodes")
 };
 
-class SCORE_PLUGIN_NODAL_EXPORT CreateNode final : public score::Command
+class SCORE_PLUGIN_NODAL_TEST_EXPORT CreateNode final : public score::Command
 {
   SCORE_COMMAND_DECL(CommandFactoryName(), CreateNode, "Create a node")
 public:

@@ -18,7 +18,7 @@ struct GUIApplicationContext;
 namespace LocalTree
 {
 //! Lists the broken references of a document, to locate or retarget them
-class SCORE_PLUGIN_ENGINE_EXPORT ReferencesDialog final : public QDialog
+class SCORE_PLUGIN_ENGINE_TEST_EXPORT ReferencesDialog final : public QDialog
 {
 public:
   explicit ReferencesDialog(const score::GUIApplicationContext& ctx, QWidget* parent);

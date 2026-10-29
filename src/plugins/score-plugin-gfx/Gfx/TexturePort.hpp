@@ -110,7 +110,7 @@ public:
   ossia::gfx::port_index graphicsPort() const noexcept;
 };
 
-struct SCORE_PLUGIN_GFX_EXPORT TextureInletFactory final
+struct SCORE_PLUGIN_GFX_TEST_EXPORT TextureInletFactory final
     : public Dataflow::AutomatablePortFactory
 {
   using Model_T = TextureInlet;

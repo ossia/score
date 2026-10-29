@@ -16,7 +16,7 @@ namespace Explorer
 {
 class DeviceExplorerFilterProxyModel;
 class DeviceExplorerModel;
-class SCORE_PLUGIN_DEVICEEXPLORER_EXPORT DeviceExplorerView final : public QTreeView
+class SCORE_PLUGIN_DEVICEEXPLORER_TEST_EXPORT DeviceExplorerView final : public QTreeView
 {
   W_OBJECT(DeviceExplorerView)
 

@@ -38,7 +38,7 @@ struct AvailablePlugin
 
 //! Build an AvailablePlugin from a vst3puppet scan reply. The path is the
 //! scanned module, not whatever the reply claims.
-SCORE_PLUGIN_VST3_EXPORT
+SCORE_PLUGIN_VST3_TEST_EXPORT
 AvailablePlugin parseVst3Reply(const QString& path, const QJsonObject& obj);
 
 struct HostApp final : public Steinberg::Vst::IHostApplication

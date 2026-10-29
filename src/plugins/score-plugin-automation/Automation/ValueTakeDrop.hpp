@@ -16,7 +16,7 @@ namespace Automation
  * of steps for each number of its values. The file format is described with
  * Nodes::Looper::value_export.
  */
-struct SCORE_PLUGIN_AUTOMATION_EXPORT ValueTake
+struct SCORE_PLUGIN_AUTOMATION_TEST_EXPORT ValueTake
 {
   static constexpr int max_components = 32;
   //! Numbers of each value: 1 for numbers, n for vectors of n, the most a

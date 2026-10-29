@@ -17,7 +17,7 @@ class QGraphicsRectItem;
 namespace Scenario
 {
 class IntervalModel;
-class SCORE_PLUGIN_SCENARIO_EXPORT NodalIntervalView final
+class SCORE_PLUGIN_SCENARIO_TEST_EXPORT NodalIntervalView final
     : public score::EmptyRectItem
     , public Nano::Observer
 {

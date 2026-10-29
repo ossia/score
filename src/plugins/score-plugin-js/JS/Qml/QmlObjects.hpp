@@ -855,7 +855,7 @@ private:
 };
 #endif
 
-class SCORE_PLUGIN_JS_EXPORT Script : public QObject
+class SCORE_PLUGIN_JS_TEST_EXPORT Script : public QObject
 {
   W_OBJECT(Script)
   W_CLASSINFO("DefaultProperty", "data")

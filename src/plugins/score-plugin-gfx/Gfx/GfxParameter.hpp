@@ -11,7 +11,7 @@
 
 namespace Gfx
 {
-class SCORE_PLUGIN_GFX_EXPORT gfx_parameter_base : public ossia::gfx::texture_parameter
+class SCORE_PLUGIN_GFX_TEST_EXPORT gfx_parameter_base : public ossia::gfx::texture_parameter
 {
 protected:
   GfxExecutionAction* context{};

@@ -38,7 +38,7 @@
 namespace score::gfx::interop
 {
 
-class SCORE_PLUGIN_GFX_EXPORT HostFramePool
+class SCORE_PLUGIN_GFX_TEST_EXPORT HostFramePool
 {
 public:
   HostFramePool();

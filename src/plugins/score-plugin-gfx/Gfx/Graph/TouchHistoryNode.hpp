@@ -42,7 +42,7 @@ namespace score::gfx
  * w is the seconds since this node was created, the same clock for every
  * output; on vertexshaderart it is the art's `time` uniform.
  */
-struct SCORE_PLUGIN_GFX_EXPORT TouchHistoryNode : NodeModel
+struct SCORE_PLUGIN_GFX_TEST_EXPORT TouchHistoryNode : NodeModel
 {
   static constexpr int columns = 32;
   static constexpr int rows = 240;

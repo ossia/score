@@ -67,7 +67,7 @@ namespace Gfx
  * (parser worker threads stage, render threads acquire/release,
  * GUI tick trims) — the mutex is held for microseconds at a time.
  */
-class SCORE_PLUGIN_GFX_EXPORT AssetTable
+class SCORE_PLUGIN_GFX_TEST_EXPORT AssetTable
 {
 public:
   /// Decoded image or raw byte payload. `image` is preferred for 2D

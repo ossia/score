@@ -14,13 +14,13 @@
 #include <QString>
 
 template <>
-SCORE_PLUGIN_JS_EXPORT void DataStreamReader::read(const JS::QmlSource& p)
+SCORE_PLUGIN_JS_TEST_EXPORT void DataStreamReader::read(const JS::QmlSource& p)
 {
   m_stream << p.execution << p.ui;
 }
 
 template <>
-SCORE_PLUGIN_JS_EXPORT void DataStreamWriter::write(JS::QmlSource& p)
+SCORE_PLUGIN_JS_TEST_EXPORT void DataStreamWriter::write(JS::QmlSource& p)
 {
   m_stream >> p.execution >> p.ui;
 }

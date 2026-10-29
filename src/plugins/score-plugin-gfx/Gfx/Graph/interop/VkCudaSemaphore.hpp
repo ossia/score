@@ -45,7 +45,7 @@ namespace score::gfx::vkinterop
 
 /** A live exportable timeline semaphore on the Vulkan side, paired
  *  with a CUDA-imported handle on the CUDA side. Move-only. */
-class SCORE_PLUGIN_GFX_EXPORT VkCudaTimelineSemaphore
+class SCORE_PLUGIN_GFX_TEST_EXPORT VkCudaTimelineSemaphore
 {
 public:
   VkCudaTimelineSemaphore() = default;

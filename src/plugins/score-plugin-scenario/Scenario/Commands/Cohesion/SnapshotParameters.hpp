@@ -7,5 +7,5 @@ struct DocumentContext;
 }
 namespace Scenario
 {
-SCORE_PLUGIN_SCENARIO_EXPORT void SnapshotParametersInStates(const score::DocumentContext& doc);
+SCORE_PLUGIN_SCENARIO_TEST_EXPORT void SnapshotParametersInStates(const score::DocumentContext& doc);
 }

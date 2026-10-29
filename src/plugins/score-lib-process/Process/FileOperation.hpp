@@ -77,7 +77,7 @@ struct FileEntry
   QString note;
 };
 
-struct SCORE_LIB_PROCESS_EXPORT FileReport
+struct SCORE_LIB_PROCESS_TEST_EXPORT FileReport
 {
   QString projectFolder;
   std::vector<FileEntry> entries;

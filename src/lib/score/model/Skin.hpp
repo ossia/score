@@ -341,7 +341,7 @@ private:
 
 //! Application font size before any skin has loaded; the "application" role
 //! replaces it.
-SCORE_LIB_BASE_EXPORT int uiFontSize() noexcept;
+SCORE_LIB_BASE_TEST_EXPORT int uiFontSize() noexcept;
 
 //! The font size every hardcoded pixel length in the widget UI was drawn
 //! against.
@@ -397,7 +397,7 @@ SCORE_LIB_BASE_EXPORT void setSnappedPixelSize(QFont& f, int px) noexcept;
 
 //! Idempotent, and called by the Skin itself, so tests and alternate hosts
 //! get the fonts without the application bootstrap.
-SCORE_LIB_BASE_EXPORT void registerApplicationFonts();
+SCORE_LIB_BASE_TEST_EXPORT void registerApplicationFonts();
 
 //! Does not touch Skin::instance(), so it is callable before the application
 //! context exists.

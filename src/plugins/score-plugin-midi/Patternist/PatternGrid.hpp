@@ -52,7 +52,7 @@ struct StepSlot
 //! The steps that fall in [0; width[ pixels, on the grid the engine walks:
 //! `division` points per whole note, restarting at every bar line, the steps
 //! looping every `length`. Empty when there would be more than `maxSlots`.
-SCORE_PLUGIN_MIDI_EXPORT
+SCORE_PLUGIN_MIDI_TEST_EXPORT
 std::vector<StepSlot> timelineSlots(
     int length, int division, const TimeGrid& grid, ZoomRatio zoom, double width,
     std::size_t maxSlots = 100000);
@@ -80,7 +80,7 @@ SCORE_PLUGIN_MIDI_EXPORT double longestLoop(const Pattern& p) noexcept;
 //! The steps of one lane over [x0; x1[, where x1 - x0 is `span` quarters: a
 //! lane with a shorter loop repeats, a slower one has wider steps, so that the
 //! lanes line up in time.
-SCORE_PLUGIN_MIDI_EXPORT
+SCORE_PLUGIN_MIDI_TEST_EXPORT
 std::vector<StepSlot> fitLaneSlots(
     int length, int division, ossia::time_signature sig, double span, double x0,
     double x1);
@@ -95,19 +95,19 @@ struct FitLayout
 
 //! The lanes line up in time, as long as every step stays at least `minStep`
 //! wide: past that, each lane spreads its own loop over the whole width.
-SCORE_PLUGIN_MIDI_EXPORT
+SCORE_PLUGIN_MIDI_TEST_EXPORT
 FitLayout fitLayout(
     const Pattern& p, ossia::time_signature sig, double x0, double x1, double minStep);
 
 //! Position in `slots` of the step a lane plays, given how many steps it played
 //! before it, or -1. On repeats, the one the time falls on when it shows that
 //! step.
-SCORE_PLUGIN_MIDI_EXPORT
+SCORE_PLUGIN_MIDI_TEST_EXPORT
 int playingSlot(
     const std::vector<StepSlot>& slots, int64_t played, int length, int division,
     double span) noexcept;
 
 //! Position in `slots` of the slot with that index, or -1.
-SCORE_PLUGIN_MIDI_EXPORT
+SCORE_PLUGIN_MIDI_TEST_EXPORT
 int slotWithIndex(const std::vector<StepSlot>& slots, int64_t index) noexcept;
 }

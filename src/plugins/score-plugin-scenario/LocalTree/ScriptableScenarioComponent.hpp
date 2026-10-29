@@ -20,7 +20,7 @@ class time_sync;
 namespace LocalTree
 {
 //! score:/triggers/<name>: an impulse that fires the sync.
-class SCORE_PLUGIN_SCENARIO_EXPORT ScriptableTimeSync final
+class SCORE_PLUGIN_SCENARIO_TEST_EXPORT ScriptableTimeSync final
     : public score::GenericComponent<const score::DocumentContext>
 {
   COMMON_COMPONENT_METADATA("eeb9acf5-466a-473d-baf9-861427364dcf")

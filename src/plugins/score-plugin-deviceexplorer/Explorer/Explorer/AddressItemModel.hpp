@@ -32,7 +32,7 @@ class DeviceExplorerModel;
  * * Tags
  * * Extended attributes
  */
-class SCORE_PLUGIN_DEVICEEXPLORER_EXPORT AddressItemModel final
+class SCORE_PLUGIN_DEVICEEXPLORER_TEST_EXPORT AddressItemModel final
     : public QAbstractItemModel
 {
   W_OBJECT(AddressItemModel)
@@ -80,7 +80,7 @@ private:
   Device::FullAddressSettings m_settings;
 };
 
-class SCORE_PLUGIN_DEVICEEXPLORER_EXPORT AddressItemDelegate final
+class SCORE_PLUGIN_DEVICEEXPLORER_TEST_EXPORT AddressItemDelegate final
     : public QStyledItemDelegate
 {
 public:

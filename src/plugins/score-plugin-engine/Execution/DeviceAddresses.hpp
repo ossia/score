@@ -19,7 +19,7 @@ namespace Execution
  * Taken while the device is alive. A node and a parameter are distinct
  * objects, so one set holds both.
  */
-SCORE_PLUGIN_ENGINE_EXPORT
+SCORE_PLUGIN_ENGINE_TEST_EXPORT
 ossia::hash_set<const void*> deviceAddresses(ossia::net::device_base& d);
 
 /**
@@ -28,7 +28,7 @@ ossia::hash_set<const void*> deviceAddresses(ossia::net::device_base& d);
  * Pointer identity only: the stored address may already dangle, and must
  * never be dereferenced here.
  */
-SCORE_PLUGIN_ENGINE_EXPORT
+SCORE_PLUGIN_ENGINE_TEST_EXPORT
 bool addressBelongsTo(
     const ossia::destination_t& dest,
     const ossia::hash_set<const void*>& owned) noexcept;
@@ -39,7 +39,7 @@ bool addressBelongsTo(
  * Runs on the execution thread. Ports addressed to another device are left
  * alone.
  */
-SCORE_PLUGIN_ENGINE_EXPORT
+SCORE_PLUGIN_ENGINE_TEST_EXPORT
 void clearAddresses(
     std::span<ossia::graph_node* const> nodes,
     const ossia::hash_set<const void*>& owned) noexcept;

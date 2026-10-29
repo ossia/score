@@ -30,7 +30,7 @@ namespace Settings
  * you edit. Fonts are per-role: a global size cannot coexist with per-skin
  * fonts, since the skin's "fonts" block is applied over it and wins.
  */
-class SCORE_PLUGIN_SCENARIO_EXPORT SkinEditorWidget final : public QWidget
+class SCORE_PLUGIN_SCENARIO_TEST_EXPORT SkinEditorWidget final : public QWidget
 {
   W_OBJECT(SkinEditorWidget)
 public:

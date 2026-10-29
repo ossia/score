@@ -27,7 +27,7 @@ struct PresetDropChoices
 };
 
 //! withState serializes the processes to find whether they have a state.
-SCORE_PLUGIN_SCENARIO_EXPORT PresetDropChoices presetDropChoices(
+SCORE_PLUGIN_SCENARIO_TEST_EXPORT PresetDropChoices presetDropChoices(
     const std::vector<const Process::ProcessModel*>& processes, bool copy,
     bool withState = true);
 

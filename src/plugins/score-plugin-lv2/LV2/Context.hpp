@@ -205,7 +205,7 @@ struct EffectContext
   ossia::mpmc_queue<std::vector<char>> worker_datas;
 };
 
-struct SCORE_PLUGIN_LV2_EXPORT GlobalContext
+struct SCORE_PLUGIN_LV2_TEST_EXPORT GlobalContext
 {
 public:
   GlobalContext(int buffer_size, LV2::HostContext& host);
@@ -264,7 +264,7 @@ public:
   const LV2_Feature data_feature{LV2_DATA_ACCESS_URI, &ext_data};
 };
 
-struct SCORE_PLUGIN_LV2_EXPORT LV2Data
+struct SCORE_PLUGIN_LV2_TEST_EXPORT LV2Data
 {
   LV2Data(LV2::HostContext& h, LV2::EffectContext& ctx);
 
@@ -309,7 +309,7 @@ struct Message
   ossia::small_vector<uint8_t, 32> body;
 };
 
-SCORE_PLUGIN_LV2_EXPORT QString get_lv2_plugin_name(const Lilv::Plugin& node);
+SCORE_PLUGIN_LV2_TEST_EXPORT QString get_lv2_plugin_name(const Lilv::Plugin& node);
 }
 
 #if defined(__clang__) && defined(__has_warning)

@@ -31,7 +31,7 @@ struct RenderState;
  *
  * Call it outside a pass, before the render pass that draws.
  */
-class SCORE_PLUGIN_GFX_EXPORT IndirectCountClamp
+class SCORE_PLUGIN_GFX_TEST_EXPORT IndirectCountClamp
 {
 public:
   struct Input

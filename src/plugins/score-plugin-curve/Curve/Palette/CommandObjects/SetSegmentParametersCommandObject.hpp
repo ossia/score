@@ -23,7 +23,7 @@ namespace Curve
 class Model;
 class Presenter;
 class StateBase;
-class SCORE_PLUGIN_CURVE_EXPORT SetSegmentParametersCommandObject
+class SCORE_PLUGIN_CURVE_TEST_EXPORT SetSegmentParametersCommandObject
 {
 public:
   SetSegmentParametersCommandObject(const Model&, const score::CommandStackFacade&);

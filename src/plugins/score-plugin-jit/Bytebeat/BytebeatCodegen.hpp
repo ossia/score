@@ -44,6 +44,6 @@ struct Generated
 // One formula per line: several lines are mixed together.
 // A line continues the previous formula when its brackets are not balanced, or
 // when it starts or the previous one ends with a binary operator.
-SCORE_PLUGIN_JIT_EXPORT
+SCORE_PLUGIN_JIT_TEST_EXPORT
 Generated generate(std::string_view source, Language lang);
 }

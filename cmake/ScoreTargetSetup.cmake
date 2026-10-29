@@ -5,6 +5,38 @@ include(DebugMode)
 include(ScoreStaticQt)
 include(GenerateStaticExport)
 
+# The targets whose headers make up the plug-in API: those the JIT compiles
+# add-ons against (src_include_dirs in score-plugin-jit/JitCpp/JitPlatform.hpp),
+# and those that their headers include.
+set(SCORE_PLUGIN_API_TARGETS
+  score_lib_base
+  score_lib_state
+  score_lib_device
+  score_lib_process
+  score_lib_inspector
+  score_lib_localtree
+  score_plugin_audio
+  score_plugin_automation
+  score_plugin_avnd
+  score_plugin_curve
+  score_plugin_dataflow
+  score_plugin_deviceexplorer
+  score_plugin_engine
+  score_plugin_gfx
+  score_plugin_jit
+  score_plugin_js
+  score_plugin_library
+  score_plugin_mapping
+  score_plugin_media
+  score_plugin_midi
+  score_plugin_nodal
+  score_plugin_protocols
+  score_plugin_recording
+  score_plugin_remotecontrol
+  score_plugin_scenario
+  score_plugin_transport
+)
+
 function(score_pch TheTarget)
   disable_qt_plugins("${TheTarget}")
 
@@ -163,11 +195,43 @@ function(setup_score_common_lib_features TheTarget)
     target_compile_definitions(${TheTarget} PRIVATE "${Target_upper}_EXPORTS")
   endif()
 
-  if(OSSIA_STATIC_EXPORT)
-    generate_export_header(${TheTarget} ALWAYS_EXPORT)
-    target_compile_definitions(${TheTarget} PRIVATE "${Target_upper}_EXPORTS=1")
+  # <TARGET>_TEST_EXPORT marks what only the test suite reaches from outside the
+  # target, after Q_AUTOTEST_EXPORT. It is <TARGET>_EXPORT when the tests are
+  # built or the plug-ins are shared libraries, and empty otherwise.
+  # <TARGET>_TEST_EXPORTS mirrors <TARGET>_EXPORTS so that verdigris' E_SIGNAL
+  # accepts the test macro too.
+  if(SCORE_TESTING OR NOT SCORE_STATIC_PLUGINS)
+    set(_test_export_value "${Target_upper}_EXPORT")
   else()
-    generate_export_header(${TheTarget})
+    set(_test_export_value "")
+  endif()
+  set(_test_export_content "
+#ifndef ${Target_upper}_TEST_EXPORT
+#  define ${Target_upper}_TEST_EXPORT ${_test_export_value}
+#endif
+
+#ifndef ${Target_upper}_TEST_EXPORTS
+#  define ${Target_upper}_TEST_EXPORTS ${Target_upper}_EXPORTS
+#endif
+")
+
+  # A static build exports its symbols from the executable, for the C++ that the
+  # JIT compiles and for the add-ons loaded as shared libraries. Without tests,
+  # only the targets in SCORE_PLUGIN_API_TARGETS need to do so.
+  set(_always_export OFF)
+  if(OSSIA_STATIC_EXPORT)
+    if(SCORE_TESTING OR "${TheTarget}" IN_LIST SCORE_PLUGIN_API_TARGETS)
+      set(_always_export ON)
+    endif()
+    target_compile_definitions(${TheTarget} PRIVATE "${Target_upper}_EXPORTS=1")
+  endif()
+
+  if(_always_export)
+    generate_export_header(${TheTarget} ALWAYS_EXPORT
+      CUSTOM_CONTENT_FROM_VARIABLE _test_export_content)
+  else()
+    generate_export_header(${TheTarget}
+      CUSTOM_CONTENT_FROM_VARIABLE _test_export_content)
   endif()
 
   ossia_set_visibility(${TheTarget})

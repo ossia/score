@@ -56,7 +56,7 @@ SCORE_LIB_STATE_EXPORT bool convert(const ossia::value& orig, ossia::value& toCo
 // Whether a string is text at all: valid UTF-8 with no control character
 // beyond tab, CR and LF. ossia's STRING is a std::string, so a device may put
 // a PNG in one, and decoding that as text destroys it.
-SCORE_LIB_STATE_EXPORT bool isBinary(const QByteArray& bytes) noexcept;
+SCORE_LIB_STATE_TEST_EXPORT bool isBinary(const QByteArray& bytes) noexcept;
 
 // What a cell shows for bytes that are not text: the first few in hex, and the
 // count.
@@ -98,7 +98,7 @@ SCORE_LIB_STATE_EXPORT QString stringCellToolTip(const QByteArray& bytes);
 // The body of a quoted string literal: backslash, double quote and the
 // whitespace a single line cannot carry become escapes, so that what
 // toPrettyString writes is what parseValue reads back.
-SCORE_LIB_STATE_EXPORT QString escapeStringLiteral(const QString& s);
+SCORE_LIB_STATE_TEST_EXPORT QString escapeStringLiteral(const QString& s);
 
 // Adornishments to allow to differentiate between different value types, e.g.
 // 'a', ['a', 12], or "str" for a string.

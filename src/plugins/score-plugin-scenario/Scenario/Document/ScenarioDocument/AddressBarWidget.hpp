@@ -23,7 +23,7 @@ class IntervalModel;
  * it is available whatever the central view shows (timeline, nodal display,
  * a code editor, a process UI...).
  */
-class SCORE_PLUGIN_SCENARIO_EXPORT AddressBarWidget final : public QWidget
+class SCORE_PLUGIN_SCENARIO_TEST_EXPORT AddressBarWidget final : public QWidget
 {
   W_OBJECT(AddressBarWidget)
 public:
@@ -35,7 +35,7 @@ public:
 
 public:
   void intervalSelected(IntervalModel* itv)
-      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, intervalSelected, itv)
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_TEST_EXPORT, intervalSelected, itv)
 
 private:
   void clear();

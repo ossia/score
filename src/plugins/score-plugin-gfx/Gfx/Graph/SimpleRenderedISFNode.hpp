@@ -11,7 +11,7 @@ namespace score::gfx
 {
 // Used for the simple case of a single, non-persistent pass (the most common case)
 
-struct SCORE_PLUGIN_GFX_EXPORT SimpleRenderedISFNode : score::gfx::NodeRenderer
+struct SCORE_PLUGIN_GFX_TEST_EXPORT SimpleRenderedISFNode : score::gfx::NodeRenderer
 {
   SimpleRenderedISFNode(const ISFNode& node) noexcept;
 

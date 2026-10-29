@@ -17,7 +17,7 @@ namespace score
  * A QPointer, so that a box torn down by its own control leaves nothing
  * dangling here.
  */
-SCORE_LIB_BASE_EXPORT QPointer<QGraphicsProxyWidget>& currentRightClickWidget();
+SCORE_LIB_BASE_TEST_EXPORT QPointer<QGraphicsProxyWidget>& currentRightClickWidget();
 
 //! Takes down whatever right-click box is open, if any.
 inline void closeRightClickWidget()

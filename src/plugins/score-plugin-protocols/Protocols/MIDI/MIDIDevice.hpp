@@ -29,7 +29,7 @@ class MIDIDevice;
  *
  * This must be asked, not asserted: which backends exist is external state.
  */
-SCORE_PLUGIN_PROTOCOLS_EXPORT
+SCORE_PLUGIN_PROTOCOLS_TEST_EXPORT
 bool midiApiAvailable(libremidi::API api) noexcept;
 
 /**
@@ -44,7 +44,7 @@ bool midiApiAvailable(libremidi::API api) noexcept;
  * backend that is not compiled in, and it must degrade to the generic
  * configuration instead of asserting, whatever API is asked for.
  */
-SCORE_PLUGIN_PROTOCOLS_EXPORT
+SCORE_PLUGIN_PROTOCOLS_TEST_EXPORT
 std::pair<libremidi::input_configuration, libremidi::input_api_configuration>
 makeInputConfiguration(MIDIDevice* self, MIDISpecificSettings& set);
 

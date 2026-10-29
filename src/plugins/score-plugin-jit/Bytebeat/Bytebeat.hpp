@@ -39,7 +39,7 @@ struct BytebeatProgram
   Bytebeat::Function* function{};
   int state_size{};
 };
-class SCORE_PLUGIN_JIT_EXPORT BytebeatModel : public Process::ProcessModel
+class SCORE_PLUGIN_JIT_TEST_EXPORT BytebeatModel : public Process::ProcessModel
 {
   friend class JitUI;
   friend class JitUpdateUI;
@@ -60,7 +60,7 @@ public:
 
   const QString& script() const noexcept { return m_text; }
   [[nodiscard]] Process::ScriptChangeResult setScript(const QString& txt);
-  void scriptChanged(const QString& txt) E_SIGNAL(SCORE_PLUGIN_JIT_EXPORT, scriptChanged, txt);
+  void scriptChanged(const QString& txt) E_SIGNAL(SCORE_PLUGIN_JIT_TEST_EXPORT, scriptChanged, txt);
 
   bool validate(const QString& txt) const noexcept;
 
@@ -70,11 +70,11 @@ public:
   int rate() const noexcept;
 
   QString prettyName() const noexcept override;
-  void programChanged() E_SIGNAL(SCORE_PLUGIN_JIT_EXPORT, programChanged);
+  void programChanged() E_SIGNAL(SCORE_PLUGIN_JIT_TEST_EXPORT, programChanged);
 
   std::shared_ptr<const BytebeatProgram> program;
 
-  void errorMessage(int line, const QString& e) E_SIGNAL(SCORE_PLUGIN_JIT_EXPORT, errorMessage, line, e);
+  void errorMessage(int line, const QString& e) E_SIGNAL(SCORE_PLUGIN_JIT_TEST_EXPORT, errorMessage, line, e);
 
   PROPERTY(QString, script READ script WRITE setScript NOTIFY scriptChanged)
 private:

@@ -35,7 +35,7 @@ struct VSTInfo
 
 //! Build a VSTInfo from a vstpuppet scan reply. The path is the scanned
 //! file, not whatever the reply claims.
-SCORE_PLUGIN_VST_EXPORT
+SCORE_PLUGIN_VST_TEST_EXPORT
 VSTInfo parseVstReply(const QString& path, const QJsonObject& obj);
 
 class Model;

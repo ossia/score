@@ -9,7 +9,7 @@ class QByteArray;
 
 namespace Patternist
 {
-SCORE_PLUGIN_MIDI_EXPORT
+SCORE_PLUGIN_MIDI_TEST_EXPORT
 std::vector<Pattern> parsePatterns(const QByteArray& data) noexcept;
 std::vector<std::vector<Pattern>> parsePatternFiles(const QMimeData& mime) noexcept;
 }

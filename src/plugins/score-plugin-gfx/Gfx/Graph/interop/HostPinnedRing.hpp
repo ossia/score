@@ -63,7 +63,7 @@ enum class HostPinnedRingBackend : uint8_t
 };
 
 /// Short name for logs and harness rows.
-SCORE_PLUGIN_GFX_EXPORT const char*
+SCORE_PLUGIN_GFX_TEST_EXPORT const char*
 hostPinnedBackendName(HostPinnedRingBackend) noexcept;
 
 /** Direction of the per-slot transfer. */
@@ -117,7 +117,7 @@ struct HostPinnedRingConfig
  *          slot i for transmission.
  *   5. `destroy()` tears down backend resources + frees host buffers.
  */
-class SCORE_PLUGIN_GFX_EXPORT HostPinnedRing
+class SCORE_PLUGIN_GFX_TEST_EXPORT HostPinnedRing
 {
 public:
   HostPinnedRing() noexcept;

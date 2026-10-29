@@ -49,7 +49,7 @@ namespace score::gfx::interop
  *        instance, signal it after the per-frame compute dispatch, wait
  *        on it from CUDA before peer DMA.
  */
-struct SCORE_PLUGIN_GFX_EXPORT InteropFence
+struct SCORE_PLUGIN_GFX_TEST_EXPORT InteropFence
 {
   virtual ~InteropFence() = default;
 

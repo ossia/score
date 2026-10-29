@@ -23,7 +23,7 @@ namespace score::gfx
  * Usage: init() once per QRhi, prepare() per operation, updateParams() with a
  * live batch before the compute pass, dispatch() inside it.
  */
-class SCORE_PLUGIN_GFX_EXPORT GPUStridedCopy
+class SCORE_PLUGIN_GFX_TEST_EXPORT GPUStridedCopy
 {
 public:
   struct Params

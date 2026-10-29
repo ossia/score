@@ -64,7 +64,7 @@ public:
    * `p.element_count` elements of `src` (`src_size` bytes) into `dst`, laid out
    * like the shader's output. `dst` is the destination buffer's bytes.
    */
-  SCORE_PLUGIN_GFX_EXPORT static void scatterOnCpu(
+  SCORE_PLUGIN_GFX_TEST_EXPORT static void scatterOnCpu(
       const Params& p, const char* src, int64_t src_size, char* dst, int64_t dst_size);
 
   bool init(RenderState& state);

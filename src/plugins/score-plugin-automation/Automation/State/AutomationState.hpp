@@ -19,7 +19,7 @@ struct Address;
 namespace Automation
 {
 class ProcessModel;
-class SCORE_PLUGIN_AUTOMATION_EXPORT ProcessState final : public ProcessStateDataInterface
+class SCORE_PLUGIN_AUTOMATION_TEST_EXPORT ProcessState final : public ProcessStateDataInterface
 {
 public:
   // watchedPoint : something between 0 and 1

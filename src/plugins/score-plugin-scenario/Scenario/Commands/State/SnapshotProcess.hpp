@@ -30,7 +30,7 @@ class SnapshotInState final : public score::AggregateCommand
 
 //! One message per control plus one for the internal state, if any;
 //! unpublished controls and processes get flagged scriptable.
-SCORE_PLUGIN_SCENARIO_EXPORT void snapshotProcessInState(
+SCORE_PLUGIN_SCENARIO_TEST_EXPORT void snapshotProcessInState(
     const StateModel& state, const Process::ProcessModel& process,
     const score::DocumentContext& ctx);
 
@@ -41,7 +41,7 @@ SCORE_PLUGIN_SCENARIO_EXPORT State::MessageList snapshotMessages(
     const std::vector<const Process::ProcessModel*>& processes, Macro& m,
     bool withState = true);
 
-SCORE_PLUGIN_SCENARIO_EXPORT void snapshotProcessesInState(
+SCORE_PLUGIN_SCENARIO_TEST_EXPORT void snapshotProcessesInState(
     const StateModel& state, const std::vector<const Process::ProcessModel*>& processes,
     const score::DocumentContext& ctx, bool withState = true);
 

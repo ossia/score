@@ -36,7 +36,7 @@ namespace Threedim
 //
 // Extensions match case-insensitively on the suffix after the final '.'. A
 // duplicate registration replaces the prior one. Calls are thread-safe.
-class SCORE_PLUGIN_THREEDIM_EXPORT AssetLoaderRegistry
+class SCORE_PLUGIN_THREEDIM_TEST_EXPORT AssetLoaderRegistry
 {
 public:
   using ParseFn = std::shared_ptr<const ossia::scene_state> (*)(

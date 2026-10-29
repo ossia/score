@@ -8,7 +8,7 @@
 
 namespace Library
 {
-class SCORE_PLUGIN_LIBRARY_EXPORT RecursiveFilterProxy : public QSortFilterProxyModel
+class SCORE_PLUGIN_LIBRARY_TEST_EXPORT RecursiveFilterProxy : public QSortFilterProxyModel
 {
 public:
   using QSortFilterProxyModel::QSortFilterProxyModel;
@@ -26,7 +26,7 @@ protected:
   bool hasAcceptedChildren(int srcRow, const QModelIndex& srcParent) const;
 };
 
-class SCORE_PLUGIN_LIBRARY_EXPORT ProcessFilterProxy : public RecursiveFilterProxy
+class SCORE_PLUGIN_LIBRARY_TEST_EXPORT ProcessFilterProxy : public RecursiveFilterProxy
 {
 public:
   using RecursiveFilterProxy::RecursiveFilterProxy;

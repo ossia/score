@@ -26,7 +26,7 @@ namespace Process
  * The host follows its two widgets: it closes when its editor goes away,
  * and shows the editor opaque again if the preview does.
  */
-class SCORE_LIB_PROCESS_EXPORT EditorOverlayHost final : public QWidget
+class SCORE_LIB_PROCESS_TEST_EXPORT EditorOverlayHost final : public QWidget
 {
   W_OBJECT(EditorOverlayHost)
 public:
@@ -55,7 +55,7 @@ private:
  * Background device, a watched texture port): the same picture, so that the
  * editor shows the actual output rather than a private render of the process.
  */
-class SCORE_LIB_PROCESS_EXPORT DocumentBackgroundPreview final : public QWidget
+class SCORE_LIB_PROCESS_TEST_EXPORT DocumentBackgroundPreview final : public QWidget
 {
   W_OBJECT(DocumentBackgroundPreview)
 public:

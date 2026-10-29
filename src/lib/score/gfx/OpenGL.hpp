@@ -29,12 +29,12 @@ enum class NvidiaGlxVendorState
 //! Driver release from /proc/driver/nvidia/version, empty if absent. Takes the
 //! first dotted number on the NVRM line: the field position differs between the
 //! proprietary and open modules.
-SCORE_LIB_BASE_EXPORT QString
+SCORE_LIB_BASE_TEST_EXPORT QString
 nvidiaKernelDriverVersion(const QString& procVersionText) noexcept;
 
 //! Driver release from a GLX vendor library name, e.g.
 //! "libGLX_nvidia.so.615.71.09" -> "615.71.09". Empty for a bare ".so.0".
-SCORE_LIB_BASE_EXPORT QString
+SCORE_LIB_BASE_TEST_EXPORT QString
 nvidiaGlxLibraryVersion(const QString& libraryPath) noexcept;
 
 //! Pure function of the two versions, so it is testable without an NVIDIA card.

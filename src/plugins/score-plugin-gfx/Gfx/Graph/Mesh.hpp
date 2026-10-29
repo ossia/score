@@ -89,7 +89,7 @@ inline bool drawCommandPaints(const ossia::geometry::draw_command& cmd) noexcept
 // first session consumes the only line and every later one sees nothing. A
 // test brackets a session and asserts the delta.
 SCORE_PLUGIN_GFX_EXPORT void noteZeroCountSlotsSkipped(int skipped) noexcept;
-SCORE_PLUGIN_GFX_EXPORT uint64_t zeroCountSlotsSkippedTotal() noexcept;
+SCORE_PLUGIN_GFX_TEST_EXPORT uint64_t zeroCountSlotsSkippedTotal() noexcept;
 
 struct MeshBuffers
 {

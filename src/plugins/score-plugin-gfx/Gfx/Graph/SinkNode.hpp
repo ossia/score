@@ -20,7 +20,7 @@ namespace score::gfx
  * two due ones are skipped, so the rate can change while playing without
  * rebuilding the clocks. It is capped by the application's rate.
  */
-class SCORE_PLUGIN_GFX_EXPORT SinkNode final : public OutputNode
+class SCORE_PLUGIN_GFX_TEST_EXPORT SinkNode final : public OutputNode
 {
 public:
   explicit SinkNode(double rate);

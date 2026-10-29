@@ -17,13 +17,13 @@
 
 namespace Gfx
 {
-SCORE_PLUGIN_GFX_EXPORT std::vector<score::gfx::Image>
+SCORE_PLUGIN_GFX_TEST_EXPORT std::vector<score::gfx::Image>
 getImages(const ossia::value& val, const score::DocumentContext& ctx);
-SCORE_PLUGIN_GFX_EXPORT ossia::value
+SCORE_PLUGIN_GFX_TEST_EXPORT ossia::value
 fromImageSet(const std::span<score::gfx::Image>& images);
-SCORE_PLUGIN_GFX_EXPORT void releaseImages(std::vector<score::gfx::Image>& imgs);
+SCORE_PLUGIN_GFX_TEST_EXPORT void releaseImages(std::vector<score::gfx::Image>& imgs);
 
-struct SCORE_PLUGIN_GFX_EXPORT ImageCache
+struct SCORE_PLUGIN_GFX_TEST_EXPORT ImageCache
 {
 public:
   std::optional<score::gfx::Image> acquire(const QString& path);

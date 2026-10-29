@@ -104,7 +104,7 @@ std::vector<QString> libraryPaths();
  * Process-wide and read-only: one scan, wanted by every settings widget.
  * Exported so the tests can reach it.
  */
-class SCORE_PLUGIN_PROTOCOLS_EXPORT Database
+class SCORE_PLUGIN_PROTOCOLS_TEST_EXPORT Database
 {
 public:
   static Database& instance();

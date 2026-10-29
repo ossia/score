@@ -127,7 +127,7 @@ struct FlipEvent
   bool valid{};
 };
 
-class SCORE_PLUGIN_GFX_EXPORT KmsDevice
+class SCORE_PLUGIN_GFX_TEST_EXPORT KmsDevice
 {
 public:
   KmsDevice();
@@ -234,9 +234,9 @@ private:
 
 /// Human-readable DRM format modifier ("LINEAR", "NVIDIA(...)", "INVALID"),
 /// for harness output where a raw 64-bit code is unreadable.
-SCORE_PLUGIN_GFX_EXPORT std::string modifierName(std::uint64_t modifier);
+SCORE_PLUGIN_GFX_TEST_EXPORT std::string modifierName(std::uint64_t modifier);
 
 /// "AR24" etc.
-SCORE_PLUGIN_GFX_EXPORT std::string fourccName(std::uint32_t fourcc);
+SCORE_PLUGIN_GFX_TEST_EXPORT std::string fourccName(std::uint32_t fourcc);
 
 } // namespace score::gfx::drm

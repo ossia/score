@@ -56,7 +56,7 @@ struct NoteComparator
  * Allocate the Notes on a vector<Note> and allow them to be copied.
  * Don't allow signals in some way.
  */
-class SCORE_PLUGIN_MIDI_EXPORT Note final : public IdentifiedObject<Note>
+class SCORE_PLUGIN_MIDI_TEST_EXPORT Note final : public IdentifiedObject<Note>
 {
   W_OBJECT(Note)
   SCORE_SERIALIZE_FRIENDS

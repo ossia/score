@@ -44,7 +44,7 @@ FileReport scanMissingFiles(const score::DocumentContext& ctx);
  */
 class FileScan;
 
-class SCORE_LIB_PROCESS_EXPORT FileIndex
+class SCORE_LIB_PROCESS_TEST_EXPORT FileIndex
 {
 public:
   //! Walk `folder` recursively and exhaustively. A cancelled `progress` stops
@@ -71,7 +71,7 @@ private:
  * the walk reads the cancel flag. Held by shared_ptr on both sides so the state
  * outlives a window closed mid-search.
  */
-class SCORE_LIB_PROCESS_EXPORT FileScan
+class SCORE_LIB_PROCESS_TEST_EXPORT FileScan
 {
 public:
   //! Called on `context`'s thread when the walk ends, cancelled or not.

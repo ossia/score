@@ -9,7 +9,7 @@ class ProcessModel;
 
 //! Whether a cue can recall what the process holds beyond its controls;
 //! false for a process laid out in time, whose content is not a setting.
-SCORE_LIB_PROCESS_EXPORT bool recallsState(const ProcessModel& proc) noexcept;
+SCORE_LIB_PROCESS_TEST_EXPORT bool recallsState(const ProcessModel& proc) noexcept;
 
 //! The state of a process beyond its controls (script, shader...) as JSON;
 //! empty when there is none or a cue cannot recall it.

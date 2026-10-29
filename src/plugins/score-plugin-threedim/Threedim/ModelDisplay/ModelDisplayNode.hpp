@@ -40,7 +40,7 @@ namespace score::gfx
 /**
  * @brief A node that renders a model to screen.
  */
-struct SCORE_PLUGIN_THREEDIM_EXPORT ModelDisplayNode : NodeModel
+struct SCORE_PLUGIN_THREEDIM_TEST_EXPORT ModelDisplayNode : NodeModel
 {
 public:
   explicit ModelDisplayNode();

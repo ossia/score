@@ -49,7 +49,7 @@ namespace LocalTree
 class DocumentPlugin;
 
 //! Scope of a state played from the UI: an undoable edit while stopped.
-struct SCORE_PLUGIN_ENGINE_EXPORT StateRecall
+struct SCORE_PLUGIN_ENGINE_TEST_EXPORT StateRecall
 {
   StateRecall(const score::DocumentContext& ctx, const Execution::DocumentPlugin& exec);
   ~StateRecall();

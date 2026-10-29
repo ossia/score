@@ -38,8 +38,8 @@ namespace score::gfx::interop
 
 /// Page-aligned slot storage. Plain new/vector alignment is not enough for
 /// VK_EXT_external_memory_host.
-SCORE_PLUGIN_GFX_EXPORT void* alignedSlotAlloc(std::size_t bytes, std::size_t alignment);
-SCORE_PLUGIN_GFX_EXPORT void alignedSlotFree(void* p);
+SCORE_PLUGIN_GFX_TEST_EXPORT void* alignedSlotAlloc(std::size_t bytes, std::size_t alignment);
+SCORE_PLUGIN_GFX_TEST_EXPORT void alignedSlotFree(void* p);
 
 /// Storage a *graphics API* can import directly, as opposed to merely being
 /// page-aligned.
@@ -74,15 +74,15 @@ struct VkHostImportedBuffer
 /// the caller must own that much. With `requireHostCoherent`, only
 /// HOST_COHERENT memory types are accepted (CPU reads then need no
 /// vkInvalidateMappedMemoryRanges), preferring HOST_CACHED ones.
-SCORE_PLUGIN_GFX_EXPORT bool importHostPointerBuffer(
+SCORE_PLUGIN_GFX_TEST_EXPORT bool importHostPointerBuffer(
     QRhi& rhi, void* host, std::size_t bytes, unsigned bufferUsage,
     bool requireHostCoherent, VkHostImportedBuffer& out);
 
 /// GPU must be done with the buffer (e.g. after QRhi::finish()).
-SCORE_PLUGIN_GFX_EXPORT void
+SCORE_PLUGIN_GFX_TEST_EXPORT void
 releaseHostImportedBuffer(QRhi& rhi, VkHostImportedBuffer& buf);
 
-class SCORE_PLUGIN_GFX_EXPORT VkHostImportUpload
+class SCORE_PLUGIN_GFX_TEST_EXPORT VkHostImportUpload
 {
 public:
   ~VkHostImportUpload();

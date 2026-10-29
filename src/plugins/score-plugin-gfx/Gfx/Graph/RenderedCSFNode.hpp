@@ -38,7 +38,7 @@ QString csfAttributeRefusal(
     const isf::descriptor& d);
 
 
-struct SCORE_PLUGIN_GFX_EXPORT RenderedCSFNode : score::gfx::NodeRenderer
+struct SCORE_PLUGIN_GFX_TEST_EXPORT RenderedCSFNode : score::gfx::NodeRenderer
 {
   explicit RenderedCSFNode(const ISFNode& node) noexcept;
 

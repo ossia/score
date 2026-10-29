@@ -19,14 +19,14 @@ namespace Gfx
 {
 //! Whether all the framerates a camera announces must be listed, instead of
 //! only the highest one of each resolution.
-SCORE_PLUGIN_GFX_EXPORT bool cameraShowAllFramerates() noexcept;
+SCORE_PLUGIN_GFX_TEST_EXPORT bool cameraShowAllFramerates() noexcept;
 
 //! Keeps, for each (device, codec, pixel format, color range, resolution),
 //! only the mode with the highest framerate.
-SCORE_PLUGIN_GFX_EXPORT void
+SCORE_PLUGIN_GFX_TEST_EXPORT void
 keepHighestFramerates(std::vector<std::pair<CameraSettings, QString>>& modes);
 
-SCORE_PLUGIN_GFX_EXPORT CameraSettings
+SCORE_PLUGIN_GFX_TEST_EXPORT CameraSettings
 findBestCameraMode(const std::vector<CameraSettings>& candidates);
 
 class CameraProtocolFactory final : public Device::ProtocolFactory

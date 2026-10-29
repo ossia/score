@@ -20,7 +20,7 @@ class QQmlEngine;
 namespace JS
 {
 // Hosts trusted generated QML in an independent engine on this item's thread.
-class SCORE_PLUGIN_JS_EXPORT ImportedUi : public QQuickItem
+class SCORE_PLUGIN_JS_TEST_EXPORT ImportedUi : public QQuickItem
 {
   Q_OBJECT
   Q_PROPERTY(QUrl source READ source WRITE setSource NOTIFY sourceChanged)

@@ -8,7 +8,7 @@ class QWindow;
 namespace score
 {
 //! Relative ("locked") mouse motion, when the platform provides it.
-struct SCORE_LIB_BASE_EXPORT PointerLock
+struct SCORE_LIB_BASE_TEST_EXPORT PointerLock
 {
   using MotionCallback = void (*)(QPointF);
   using ReleaseCallback = void (*)();

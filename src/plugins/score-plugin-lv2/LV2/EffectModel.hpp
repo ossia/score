@@ -29,7 +29,7 @@ SCORE_PLUGIN_LV2_EXPORT void clearPluginCache();
 // Resolve a plug-in URI, bundle path or (legacy) display name against the
 // loaded world, loading its bundle on demand. Main thread only.
 // (get_lv2_plugin_name is declared in LV2/Context.hpp.)
-SCORE_PLUGIN_LV2_EXPORT std::optional<Lilv::Plugin>
+SCORE_PLUGIN_LV2_TEST_EXPORT std::optional<Lilv::Plugin>
 find_lv2_plugin(Lilv::World& world, QString path);
 }
 PROCESS_METADATA(

@@ -155,7 +155,7 @@ struct Pattern
 //! Brings a pattern into the range the editor and the engine rely on: every lane
 //! has at least `length` steps. Steps past `length` are kept, so that shortening
 //! a pattern then lengthening it again gives the same steps back.
-SCORE_PLUGIN_MIDI_EXPORT void normalize(Pattern& p) noexcept;
+SCORE_PLUGIN_MIDI_TEST_EXPORT void normalize(Pattern& p) noexcept;
 
 inline bool anySolo(const Pattern& p) noexcept
 {

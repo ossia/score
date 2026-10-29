@@ -48,7 +48,7 @@ class SCORE_PLUGIN_GFX_EXPORT DropHandler final : public Process::ProcessDropHan
       const score::DocumentContext& ctx) const override;
 };
 
-struct SCORE_PLUGIN_GFX_EXPORT VideoTextureDropHandler
+struct SCORE_PLUGIN_GFX_TEST_EXPORT VideoTextureDropHandler
     : public Process::ProcessDropHandler
 {
   SCORE_CONCRETE("e9bf6cf8-c872-4638-b98a-ed76edc8e2dd")

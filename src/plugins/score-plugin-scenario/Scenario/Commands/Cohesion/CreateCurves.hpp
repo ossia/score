@@ -31,7 +31,7 @@ std::vector<Process::ProcessModel*> CreateCurvesFromAddresses(
     const Scenario::IntervalModel& interval,
     const std::vector<Device::FullAddressSettings>& a, Scenario::Command::Macro& m);
 
-SCORE_PLUGIN_SCENARIO_EXPORT void CreateCurves(
+SCORE_PLUGIN_SCENARIO_TEST_EXPORT void CreateCurves(
     const std::vector<const Scenario::IntervalModel*>& selected_intervals,
     const score::CommandStackFacade& stack);
 void CreateCurvesFromAddresses(

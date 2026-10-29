@@ -155,6 +155,8 @@ foreach(_lib ${SCORE_PLUGINS})
     CONTENT "#pragma once
 #define SCORE_${_lib}_EXPORT
 #define SCORE_${_lib}_EXPORTS 0
+#define SCORE_${_lib}_TEST_EXPORT
+#define SCORE_${_lib}_TEST_EXPORTS 0
 ")
   add_library(score_${_lib_lc} INTERFACE)
   target_include_directories(score_${_lib_lc} INTERFACE "${SCORE_SOURCE_DIR}/src/plugins/score-${_lib_folder}")

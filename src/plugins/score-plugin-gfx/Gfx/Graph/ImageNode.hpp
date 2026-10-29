@@ -18,7 +18,7 @@ enum ImageMode
 /**
  * @brief A node that renders an image to screen.
  */
-struct SCORE_PLUGIN_GFX_EXPORT ImagesNode : NodeModel
+struct SCORE_PLUGIN_GFX_TEST_EXPORT ImagesNode : NodeModel
 {
 public:
   explicit ImagesNode(const score::DocumentContext& ctx);
@@ -54,7 +54,7 @@ private:
   std::vector<score::gfx::Image> images;
   std::vector<image_type> linearImages;
 };
-struct SCORE_PLUGIN_GFX_EXPORT FullScreenImageNode : NodeModel
+struct SCORE_PLUGIN_GFX_TEST_EXPORT FullScreenImageNode : NodeModel
 {
 public:
   explicit FullScreenImageNode(QImage dec);

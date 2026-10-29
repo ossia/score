@@ -85,7 +85,7 @@ struct NodeObserver : public QObject
 };
 
 //! The control that best fits what the device says about a parameter.
-SCORE_PLUGIN_CONTROLSURFACE_EXPORT
+SCORE_PLUGIN_CONTROLSURFACE_TEST_EXPORT
 Process::ControlInlet* makeControlFromType(
     const Id<Process::Port>& id, const Device::FullAddressAccessorSettings& addr,
     QObject* parent);

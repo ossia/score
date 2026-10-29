@@ -13,7 +13,7 @@ namespace Scenario
 {
 class MessageItemModel;
 class StateModel;
-class SCORE_PLUGIN_SCENARIO_EXPORT MessageTreeView final : public QTreeView
+class SCORE_PLUGIN_SCENARIO_TEST_EXPORT MessageTreeView final : public QTreeView
 {
 public:
   MessageTreeView(const StateModel& model, QWidget* parent);

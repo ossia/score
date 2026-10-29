@@ -37,7 +37,7 @@ class OutputNode;
  * byte-identical behaviour. Nothing is gated behind a flag: this is a pure
  * refactor.
  */
-class SCORE_PLUGIN_GFX_EXPORT RenderClock
+class SCORE_PLUGIN_GFX_TEST_EXPORT RenderClock
 {
 public:
   enum class Kind
@@ -73,7 +73,7 @@ public:
  * closure that GfxContext hands to start(), exactly as the old on_manual_timer
  * did.
  */
-class SCORE_PLUGIN_GFX_EXPORT TimerClock final : public RenderClock
+class SCORE_PLUGIN_GFX_TEST_EXPORT TimerClock final : public RenderClock
 {
 public:
   /**
@@ -124,7 +124,7 @@ private:
  * start(tick) forwards @p tick straight into OutputNode::setVSyncCallback, so
  * the compositor drives the render exactly as before; stop() clears it.
  */
-class SCORE_PLUGIN_GFX_EXPORT DisplayVSyncClock final : public RenderClock
+class SCORE_PLUGIN_GFX_TEST_EXPORT DisplayVSyncClock final : public RenderClock
 {
 public:
   explicit DisplayVSyncClock(OutputNode& output);
@@ -165,7 +165,7 @@ private:
  * owner's event queue so that in-flight invoke drains instead of dead-locking
  * the join.
  */
-class SCORE_PLUGIN_GFX_EXPORT ExternalGenlockClock final : public RenderClock
+class SCORE_PLUGIN_GFX_TEST_EXPORT ExternalGenlockClock final : public RenderClock
 {
 public:
   /**

@@ -51,7 +51,7 @@
 namespace score::gfx::interop
 {
 
-class SCORE_PLUGIN_GFX_EXPORT PacedFramePump
+class SCORE_PLUGIN_GFX_TEST_EXPORT PacedFramePump
 {
 public:
   struct Hooks

@@ -34,7 +34,7 @@ struct ScriptableSnapshot;
 }
 namespace JS
 {
-class SCORE_PLUGIN_JS_EXPORT js_node final : public ossia::graph_node
+class SCORE_PLUGIN_JS_TEST_EXPORT js_node final : public ossia::graph_node
 {
 public:
   js_node(

@@ -39,7 +39,7 @@ namespace score::gfx
 // payload the spec can carry.
 //
 // Not thread-safe: designed for single-threaded render-thread access.
-class SCORE_PLUGIN_GFX_EXPORT VertexFallbackPool
+class SCORE_PLUGIN_GFX_TEST_EXPORT VertexFallbackPool
 {
 public:
   // Replication floor, in instances. A draw whose instance count the CPU

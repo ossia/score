@@ -23,7 +23,7 @@ private:
       const score::DocumentContext& ctx) const override;
 };
 
-struct SCORE_PLUGIN_MIDI_EXPORT MidiTrack
+struct SCORE_PLUGIN_MIDI_TEST_EXPORT MidiTrack
 {
   QString name;
 

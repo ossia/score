@@ -22,7 +22,7 @@ namespace oscr
 //! Does nothing, and says
 //! why in the log, when the process is not inside a scenario or nothing knows
 //! how to make a process of the file.
-SCORE_PLUGIN_AVND_EXPORT
+SCORE_PLUGIN_AVND_TEST_EXPORT
 void sendToTimeline(
     const Process::ProcessModel& proc, const score::DocumentContext& ctx,
     const halp::timeline_clip& clip);

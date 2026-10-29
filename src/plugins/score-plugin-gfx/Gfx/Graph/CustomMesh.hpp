@@ -15,7 +15,7 @@ namespace score::gfx
 
 // Opt-in (SCORE_BUFTRACE=1) trace of CustomMesh::reload, the point where a
 // geometry change reaches the GPU vertex / index buffers.
-SCORE_PLUGIN_GFX_EXPORT bool buftrace_enabled();
+SCORE_PLUGIN_GFX_TEST_EXPORT bool buftrace_enabled();
 #define BUFTRACE()                        \
   if(!::score::gfx::buftrace_enabled()) \
   {                                       \

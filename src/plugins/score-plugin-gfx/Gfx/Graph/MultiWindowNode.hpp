@@ -7,7 +7,7 @@ namespace score::gfx
 {
 class Window;
 
-struct SCORE_PLUGIN_GFX_EXPORT MultiWindowNode : OutputNode
+struct SCORE_PLUGIN_GFX_TEST_EXPORT MultiWindowNode : OutputNode
 {
   explicit MultiWindowNode(
       Configuration conf, const std::vector<Gfx::OutputMapping>& mappings);

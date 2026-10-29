@@ -6,7 +6,7 @@
 namespace Explorer
 {
 class AddressSettingsWidget;
-class SCORE_PLUGIN_DEVICEEXPLORER_EXPORT AddressSettingsFactory
+class SCORE_PLUGIN_DEVICEEXPLORER_TEST_EXPORT AddressSettingsFactory
 {
 public:
   AddressSettingsWidget* operator()(ossia::val_type valueType) const;

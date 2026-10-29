@@ -14,19 +14,19 @@ namespace Patternist
 //! a copy that the caller then commits with UpdatePattern.
 
 //! The state a click on a step gives it: a note on a rest, a rest otherwise.
-SCORE_PLUGIN_MIDI_EXPORT Note toggledNote(Note current) noexcept;
+SCORE_PLUGIN_MIDI_TEST_EXPORT Note toggledNote(Note current) noexcept;
 
-SCORE_PLUGIN_MIDI_EXPORT bool setStep(Pattern& p, int lane, int step, Note n) noexcept;
+SCORE_PLUGIN_MIDI_TEST_EXPORT bool setStep(Pattern& p, int lane, int step, Note n) noexcept;
 
-SCORE_PLUGIN_MIDI_EXPORT void clear(Pattern& p) noexcept;
+SCORE_PLUGIN_MIDI_TEST_EXPORT void clear(Pattern& p) noexcept;
 
 //! Moves the first `length` steps of every lane by `steps`, wrapping around;
 //! positive moves them later.
-SCORE_PLUGIN_MIDI_EXPORT void rotate(Pattern& p, int steps) noexcept;
+SCORE_PLUGIN_MIDI_TEST_EXPORT void rotate(Pattern& p, int steps) noexcept;
 
 //! Fills lane `lane`, or every lane when it is -1, with notes at random, more
 //! of them on the beats.
-SCORE_PLUGIN_MIDI_EXPORT void
+SCORE_PLUGIN_MIDI_TEST_EXPORT void
 randomize(Pattern& p, std::mt19937& rng, int lane = -1) noexcept;
 
 //! How generated steps combine with those already written.
@@ -41,24 +41,24 @@ enum class Combine : uint8_t
 
 //! Writes `hits` notes spread as evenly as possible over the steps the lane
 //! plays, turned `rotation` steps later.
-SCORE_PLUGIN_MIDI_EXPORT void euclidean(
+SCORE_PLUGIN_MIDI_TEST_EXPORT void euclidean(
     const Pattern& p, Lane& l, int hits, int rotation, Combine c = Combine::Replace) noexcept;
 
 //! Moves the note of every lane by `semitones`, within the MIDI range; the
 //! accent and slide lanes stay. False when nothing could move.
-SCORE_PLUGIN_MIDI_EXPORT bool transpose(Pattern& p, int semitones) noexcept;
+SCORE_PLUGIN_MIDI_TEST_EXPORT bool transpose(Pattern& p, int semitones) noexcept;
 
 //! A copy of the last note lane, before the accent and slide lanes.
-SCORE_PLUGIN_MIDI_EXPORT void addLane(Pattern& p);
+SCORE_PLUGIN_MIDI_TEST_EXPORT void addLane(Pattern& p);
 //! The accent or slide lane, at the bottom: false when the pattern has it.
-SCORE_PLUGIN_MIDI_EXPORT bool addControlLane(Pattern& p, uint8_t note) noexcept;
-SCORE_PLUGIN_MIDI_EXPORT bool hasLane(const Pattern& p, uint8_t note) noexcept;
-SCORE_PLUGIN_MIDI_EXPORT void removeLane(Pattern& p, int lane);
-SCORE_PLUGIN_MIDI_EXPORT void setLength(Pattern& p, int length);
+SCORE_PLUGIN_MIDI_TEST_EXPORT bool addControlLane(Pattern& p, uint8_t note) noexcept;
+SCORE_PLUGIN_MIDI_TEST_EXPORT bool hasLane(const Pattern& p, uint8_t note) noexcept;
+SCORE_PLUGIN_MIDI_TEST_EXPORT void removeLane(Pattern& p, int lane);
+SCORE_PLUGIN_MIDI_TEST_EXPORT void setLength(Pattern& p, int length);
 
-SCORE_PLUGIN_MIDI_EXPORT
+SCORE_PLUGIN_MIDI_TEST_EXPORT
 QMimeData* patternToMime(const Pattern& p);
-SCORE_PLUGIN_MIDI_EXPORT
+SCORE_PLUGIN_MIDI_TEST_EXPORT
 std::optional<Pattern> patternFromMime(const QMimeData& mime);
 
 //! Steps picked in consecutive lanes from `lane0` on, each lane's in the order
@@ -81,24 +81,24 @@ struct StepSelection
 
 //! The selected steps, notes and parameters, as a pattern with a lane for each
 //! selected one, as long as its selection; their notes are left at 0.
-SCORE_PLUGIN_MIDI_EXPORT Pattern copySteps(const Pattern& p, const StepSelection& s);
+SCORE_PLUGIN_MIDI_TEST_EXPORT Pattern copySteps(const Pattern& p, const StepSelection& s);
 //! Writes copied steps on consecutive lanes from `lane`, each from its step in
 //! `starts` and looping over the lane, a loop at most; lanes past the last are
 //! dropped.
-SCORE_PLUGIN_MIDI_EXPORT void
+SCORE_PLUGIN_MIDI_TEST_EXPORT void
 pasteSteps(Pattern& p, const Pattern& steps, int lane, const std::vector<int>& starts);
-SCORE_PLUGIN_MIDI_EXPORT void clearSteps(Pattern& p, const StepSelection& s) noexcept;
-SCORE_PLUGIN_MIDI_EXPORT QMimeData* stepsToMime(const Pattern& steps);
-SCORE_PLUGIN_MIDI_EXPORT std::optional<Pattern> stepsFromMime(const QMimeData& mime);
+SCORE_PLUGIN_MIDI_TEST_EXPORT void clearSteps(Pattern& p, const StepSelection& s) noexcept;
+SCORE_PLUGIN_MIDI_TEST_EXPORT QMimeData* stepsToMime(const Pattern& steps);
+SCORE_PLUGIN_MIDI_TEST_EXPORT std::optional<Pattern> stepsFromMime(const QMimeData& mime);
 
 //! Whole lanes, in the order given: what they play, without the note.
-SCORE_PLUGIN_MIDI_EXPORT Pattern copyLanes(const Pattern& p, const std::vector<int>& lanes);
+SCORE_PLUGIN_MIDI_TEST_EXPORT Pattern copyLanes(const Pattern& p, const std::vector<int>& lanes);
 //! Writes copied lanes over `targets`, in order, as far as both go; each
 //! target keeps its note, mute, solo and velocity. False when nothing changed.
-SCORE_PLUGIN_MIDI_EXPORT bool
+SCORE_PLUGIN_MIDI_TEST_EXPORT bool
 pasteLanes(Pattern& p, const Pattern& lanes, const std::vector<int>& targets);
 //! Rests on every step of `lanes`, with the default parameters.
-SCORE_PLUGIN_MIDI_EXPORT void clearLanes(Pattern& p, const std::vector<int>& lanes);
+SCORE_PLUGIN_MIDI_TEST_EXPORT void clearLanes(Pattern& p, const std::vector<int>& lanes);
 SCORE_PLUGIN_MIDI_EXPORT QMimeData* lanesToMime(const Pattern& lanes);
 SCORE_PLUGIN_MIDI_EXPORT std::optional<Pattern> lanesFromMime(const QMimeData& mime);
 
@@ -124,26 +124,26 @@ struct FieldRange
   //! Bars start from this value: 0 for most, the middle for offsets and pitch.
   float origin;
 };
-SCORE_PLUGIN_MIDI_EXPORT FieldRange fieldRange(StepField f) noexcept;
+SCORE_PLUGIN_MIDI_TEST_EXPORT FieldRange fieldRange(StepField f) noexcept;
 SCORE_PLUGIN_MIDI_EXPORT QString fieldName(StepField f);
-SCORE_PLUGIN_MIDI_EXPORT float stepField(const StepParams& p, StepField f) noexcept;
-SCORE_PLUGIN_MIDI_EXPORT void setStepField(StepParams& p, StepField f, float v) noexcept;
+SCORE_PLUGIN_MIDI_TEST_EXPORT float stepField(const StepParams& p, StepField f) noexcept;
+SCORE_PLUGIN_MIDI_TEST_EXPORT void setStepField(StepParams& p, StepField f, float v) noexcept;
 //! The value as the editor writes it next to its bar.
 SCORE_PLUGIN_MIDI_EXPORT QString fieldText(StepField f, float v);
 
 //! Sets one parameter of the steps of `lane`, or of every lane when it is -1,
 //! to random values in a musical range: humanized velocities and timings,
 //! mostly single hits with a few ratchets.
-SCORE_PLUGIN_MIDI_EXPORT void
+SCORE_PLUGIN_MIDI_TEST_EXPORT void
 randomizeField(Pattern& p, std::mt19937& rng, StepField f, int lane = -1) noexcept;
 //! A random value of one parameter, in the range randomizeField uses.
 SCORE_PLUGIN_MIDI_EXPORT float randomFieldValue(StepField f, std::mt19937& rng) noexcept;
 //! A random value anywhere in a parameter's range: what an Alt-drag in the
 //! parameter bars heads for when dragged all the way.
-SCORE_PLUGIN_MIDI_EXPORT float anyFieldValue(StepField f, std::mt19937& rng) noexcept;
+SCORE_PLUGIN_MIDI_TEST_EXPORT float anyFieldValue(StepField f, std::mt19937& rng) noexcept;
 //! Puts one parameter back to its default.
-SCORE_PLUGIN_MIDI_EXPORT void resetField(Pattern& p, StepField f, int lane = -1) noexcept;
+SCORE_PLUGIN_MIDI_TEST_EXPORT void resetField(Pattern& p, StepField f, int lane = -1) noexcept;
 
 //! What a lane header shows for a note.
-SCORE_PLUGIN_MIDI_EXPORT QString laneLabel(int note, LaneLabels mode);
+SCORE_PLUGIN_MIDI_TEST_EXPORT QString laneLabel(int note, LaneLabels mode);
 }

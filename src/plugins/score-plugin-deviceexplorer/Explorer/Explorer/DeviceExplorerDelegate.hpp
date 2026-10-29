@@ -14,7 +14,7 @@ struct AddressSettings;
 namespace Explorer
 {
 //! Per-type editors for the Value column of the device explorer tree.
-class SCORE_PLUGIN_DEVICEEXPLORER_EXPORT DeviceExplorerDelegate final
+class SCORE_PLUGIN_DEVICEEXPLORER_TEST_EXPORT DeviceExplorerDelegate final
     : public QStyledItemDelegate
 {
 public:

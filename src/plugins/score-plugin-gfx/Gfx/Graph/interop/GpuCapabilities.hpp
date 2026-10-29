@@ -102,7 +102,7 @@ struct AmdGlExtensions
 };
 
 /** Result of the capability probe. */
-struct SCORE_PLUGIN_GFX_EXPORT GpuCapabilities
+struct SCORE_PLUGIN_GFX_TEST_EXPORT GpuCapabilities
 {
   // -- Identity --------------------------------------------------------
   GpuVendor vendor{GpuVendor::Unknown};

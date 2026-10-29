@@ -60,7 +60,7 @@ class CaptureSyncGroup;
  * handle and the capture thread; the renderer owns the chosen strategy (passed
  * back to the backend by raw pointer via `setStrategy`).
  */
-struct SCORE_PLUGIN_GFX_EXPORT DMACaptureBackend
+struct SCORE_PLUGIN_GFX_TEST_EXPORT DMACaptureBackend
 {
   virtual ~DMACaptureBackend();
 
@@ -172,7 +172,7 @@ struct SCORE_PLUGIN_GFX_EXPORT DMACaptureBackend
  * Vendor subclass overrides `makeCaptureBackend` to supply the vendor backend
  * bound to the renderer's slot ring.
  */
-struct SCORE_PLUGIN_GFX_EXPORT DMACaptureInputNode : ProcessNode
+struct SCORE_PLUGIN_GFX_TEST_EXPORT DMACaptureInputNode : ProcessNode
 {
   DMACaptureInputNode();
   ~DMACaptureInputNode() override;

@@ -23,7 +23,7 @@ namespace JS
 //!
 //! Every method degrades gracefully when there is no GUI (`--no-gui`): the
 //! view/presenter accessors return nullptr and the methods become no-ops.
-class SCORE_PLUGIN_JS_EXPORT JsViewContext : public QObject
+class SCORE_PLUGIN_JS_TEST_EXPORT JsViewContext : public QObject
 {
   W_OBJECT(JsViewContext)
 public:

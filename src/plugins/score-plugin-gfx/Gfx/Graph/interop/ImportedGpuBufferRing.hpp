@@ -99,7 +99,7 @@ struct ImportedGpuBufferRingConfig
  *   //            then ring.advance() rotates; peer DMAs from the just-written slot.
  * @endcode
  */
-class SCORE_PLUGIN_GFX_EXPORT ImportedGpuBufferRing
+class SCORE_PLUGIN_GFX_TEST_EXPORT ImportedGpuBufferRing
 {
 public:
   ImportedGpuBufferRing() = default;

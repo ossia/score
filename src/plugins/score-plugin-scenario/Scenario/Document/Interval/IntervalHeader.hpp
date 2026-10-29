@@ -10,7 +10,7 @@ class QGraphicsSceneMouseEvent;
 namespace Scenario
 {
 class IntervalView;
-class SCORE_PLUGIN_SCENARIO_EXPORT IntervalHeader
+class SCORE_PLUGIN_SCENARIO_TEST_EXPORT IntervalHeader
     : public QObject
     , public QGraphicsItem
 {

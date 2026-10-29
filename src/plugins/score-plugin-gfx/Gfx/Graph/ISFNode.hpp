@@ -33,7 +33,7 @@ struct isf_input_port_vis;
  */
 //! Size expressions (pass and OUTPUTS WIDTH / HEIGHT) ISFNode has compiled,
 //! process-wide. For tests: each is compiled once per node, then evaluated.
-SCORE_PLUGIN_GFX_EXPORT std::atomic<uint64_t>& sizeExpressionCompilations() noexcept;
+SCORE_PLUGIN_GFX_TEST_EXPORT std::atomic<uint64_t>& sizeExpressionCompilations() noexcept;
 
 class SCORE_PLUGIN_GFX_EXPORT ISFNode : public score::gfx::ProcessNode
 {

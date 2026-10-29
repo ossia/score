@@ -46,7 +46,7 @@ struct PixelFormatInfo;
  * for the current RHI backend, falls back to av_hwframe_transfer_data() which
  * still avoids software decode CPU cost.
  */
-class SCORE_PLUGIN_GFX_EXPORT DirectVideoNodeRenderer : public NodeRenderer
+class SCORE_PLUGIN_GFX_TEST_EXPORT DirectVideoNodeRenderer : public NodeRenderer
 {
 public:
   explicit DirectVideoNodeRenderer(

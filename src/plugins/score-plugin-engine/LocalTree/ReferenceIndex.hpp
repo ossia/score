@@ -28,7 +28,7 @@ class DocumentPlugin;
 //! Two-way index between addresses held by states, ports, conditions and
 //! triggers and the objects they resolve to. A reference outliving its target
 //! keeps the last address.
-class SCORE_PLUGIN_ENGINE_EXPORT ReferenceIndex final : public QObject
+class SCORE_PLUGIN_ENGINE_TEST_EXPORT ReferenceIndex final : public QObject
 {
   W_OBJECT(ReferenceIndex)
 public:
@@ -56,7 +56,7 @@ public:
   void recover(const ::State::Address& published);
   void unpublished(const QObject* target);
 
-  void changed() E_SIGNAL(SCORE_PLUGIN_ENGINE_EXPORT, changed)
+  void changed() E_SIGNAL(SCORE_PLUGIN_ENGINE_TEST_EXPORT, changed)
 
 public:
   using Mapping = std::function<std::optional<::State::AddressAccessor>(

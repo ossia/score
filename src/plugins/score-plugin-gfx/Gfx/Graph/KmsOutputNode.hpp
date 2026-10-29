@@ -78,7 +78,7 @@ struct KmsOutputSettings
 /**
  * @brief OutputNode scanning out directly through DRM/KMS.
  */
-class SCORE_PLUGIN_GFX_EXPORT KmsOutputNode : public score::gfx::OutputNode
+class SCORE_PLUGIN_GFX_TEST_EXPORT KmsOutputNode : public score::gfx::OutputNode
 {
 public:
   explicit KmsOutputNode(KmsOutputSettings settings);

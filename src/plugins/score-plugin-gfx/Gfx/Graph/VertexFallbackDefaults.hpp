@@ -51,7 +51,7 @@ struct VertexFallbackSpec
 // Returns `std::nullopt` when neither a user DEFAULT nor a whitelisted
 // semantic default applies — the caller is expected to fail the pipeline
 // build with a clear error referencing the input name.
-SCORE_PLUGIN_GFX_EXPORT std::optional<VertexFallbackSpec> resolveVertexFallback(
+SCORE_PLUGIN_GFX_TEST_EXPORT std::optional<VertexFallbackSpec> resolveVertexFallback(
     ossia::attribute_semantic semantic,
     std::string_view decl_type,
     const std::vector<double>& user_default) noexcept;

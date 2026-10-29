@@ -43,14 +43,14 @@ struct PluginInfo
 
 //! The plug-ins contained in one .clap file, from a clappuppet scan reply.
 //! The path is the scanned file, not whatever the reply claims.
-SCORE_PLUGIN_CLAP_EXPORT
+SCORE_PLUGIN_CLAP_TEST_EXPORT
 std::vector<PluginInfo> parseClapReply(const QString& path, const QJsonObject& obj);
 
 //! On macOS a .clap can be a bundle directory; the actual binary to scan
 //! lives inside. Must be applied *before* comparing against known paths:
 //! resolving after the known-check made every startup rescan (and
 //! re-append) every bundle.
-SCORE_PLUGIN_CLAP_EXPORT
+SCORE_PLUGIN_CLAP_TEST_EXPORT
 QString resolveClapEntry(const QString& path);
 
 class SCORE_PLUGIN_CLAP_EXPORT ApplicationPlugin

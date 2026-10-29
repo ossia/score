@@ -100,7 +100,7 @@ QRhiTexture* loadAndUploadTexture(
 // Keys: a file path OR a stable content hash (for embedded glTF/FBX blobs).
 // Two entries with the same origin but different sRGB flags coexist.
 // =============================================================================
-class SCORE_PLUGIN_GFX_EXPORT TextureCache
+class SCORE_PLUGIN_GFX_TEST_EXPORT TextureCache
 {
 public:
   TextureCache() = default;

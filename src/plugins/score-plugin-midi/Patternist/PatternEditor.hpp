@@ -29,7 +29,7 @@ class Controller;
 
 //! The full editor: the pattern bank, the pattern tools and the grid with mute
 //! and solo per lane. Opens as the process's UI, in a window or docked.
-class SCORE_PLUGIN_MIDI_EXPORT Editor final : public QWidget
+class SCORE_PLUGIN_MIDI_TEST_EXPORT Editor final : public QWidget
 {
 public:
   Editor(ProcessModel& model, const score::DocumentContext& ctx, QWidget* parent);

@@ -11,21 +11,21 @@ namespace score::gfx
  * uint16 indices are copied two bytes at a time into the low half of each
  * slot, which Metal on macOS refuses: it only blits 4-byte-aligned ranges.
  */
-SCORE_PLUGIN_GFX_EXPORT bool
+SCORE_PLUGIN_GFX_TEST_EXPORT bool
 copiesGpuIndices(QRhi::Implementation backend, ossia::index_format format) noexcept;
 
 /**
  * @brief Whether GPU indices of this size are widened to uint32 by a compute
  *        pass instead of copied: uint16 ones where copiesGpuIndices refuses.
  */
-SCORE_PLUGIN_GFX_EXPORT bool
+SCORE_PLUGIN_GFX_TEST_EXPORT bool
 widensGpuIndices(QRhi::Implementation backend, ossia::index_format format) noexcept;
 
 /**
  * @brief Widen uint16 GPU indices with the compute pass on every backend, so
  *        that the Metal path can be tested elsewhere.
  */
-SCORE_PLUGIN_GFX_EXPORT void forceGpuIndexWidening(bool force) noexcept;
+SCORE_PLUGIN_GFX_TEST_EXPORT void forceGpuIndexWidening(bool force) noexcept;
 
 /**
  * @brief Bridge from `scene_spec` (hierarchical, CPU) to `geometry_spec`

@@ -27,7 +27,7 @@ struct RefcountedFrame
   std::atomic_int use_count{};
 };
 
-struct SCORE_PLUGIN_GFX_EXPORT VideoFrameShare
+struct SCORE_PLUGIN_GFX_TEST_EXPORT VideoFrameShare
 {
   VideoFrameShare();
   ~VideoFrameShare();

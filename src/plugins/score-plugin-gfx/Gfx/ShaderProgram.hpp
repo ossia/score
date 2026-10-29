@@ -152,11 +152,11 @@ SCORE_PLUGIN_GFX_EXPORT QString fragmentShaderSibling(const QString& vsPath) noe
 SCORE_PLUGIN_GFX_EXPORT
 QString locateShaderPath(const QString& path, const QObject& process) noexcept;
 
-SCORE_PLUGIN_GFX_EXPORT ShaderSource
+SCORE_PLUGIN_GFX_TEST_EXPORT ShaderSource
 programFromISFFragmentShaderPath(
     const QString& fsFilename, QByteArray fsData,
     ShaderSource::ProgramType type = ShaderSource::ProgramType::ISF);
-SCORE_PLUGIN_GFX_EXPORT ShaderSource
+SCORE_PLUGIN_GFX_TEST_EXPORT ShaderSource
 programFromVSAVertexShaderPath(const QString& vertexFilename, QByteArray vertexData);
 
 // Textual `#include` resolution for a single GLSL buffer. Used by

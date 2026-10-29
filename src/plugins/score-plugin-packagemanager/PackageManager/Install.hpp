@@ -19,7 +19,7 @@ namespace PM
  * @param extracted the paths the extraction wrote
  * @return the wrapping folder's name, empty if the archive has no single root
  */
-SCORE_PLUGIN_PACKAGEMANAGER_EXPORT
+SCORE_PLUGIN_PACKAGEMANAGER_TEST_EXPORT
 QString
 archiveRootFolder(const QString& extractedIn, const std::vector<QString>& extracted);
 
@@ -31,7 +31,7 @@ archiveRootFolder(const QString& extractedIn, const std::vector<QString>& extrac
  * install is only removed once the new one is in place; if anything fails,
  * both @p destination and @p extractedIn are left as they were.
  */
-SCORE_PLUGIN_PACKAGEMANAGER_EXPORT
+SCORE_PLUGIN_PACKAGEMANAGER_TEST_EXPORT
 bool moveExtractedPackage(
     const QString& extractedIn, const std::vector<QString>& extracted,
     const QString& destination, QString& error);
@@ -47,6 +47,6 @@ bool moveExtractedPackage(
  *
  * @return how many other installs there were
  */
-SCORE_PLUGIN_PACKAGEMANAGER_EXPORT
+SCORE_PLUGIN_PACKAGEMANAGER_TEST_EXPORT
 int removeOtherInstalls(const QUuid& key, const QString& keep, const QStringList& roots);
 }

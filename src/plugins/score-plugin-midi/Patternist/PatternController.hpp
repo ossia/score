@@ -17,7 +17,7 @@ class View;
 
 //! Turns edits of the current pattern into commands. Shared by the layer, the
 //! node and the editor window.
-class SCORE_PLUGIN_MIDI_EXPORT Controller final : public QObject
+class SCORE_PLUGIN_MIDI_TEST_EXPORT Controller final : public QObject
 {
 public:
   Controller(

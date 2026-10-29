@@ -17,7 +17,7 @@ namespace Curve
 {
 //! The lowest and highest y over any range of a sequence, in O(log N): each
 //! level holds the extremes of pairs of blocks of the level below.
-class SCORE_PLUGIN_CURVE_EXPORT MinMaxPyramid
+class SCORE_PLUGIN_CURVE_TEST_EXPORT MinMaxPyramid
 {
 public:
   float value(std::size_t i) const noexcept { return m_y[i]; }

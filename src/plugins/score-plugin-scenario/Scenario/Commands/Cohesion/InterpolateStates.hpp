@@ -24,7 +24,7 @@ namespace Scenario
 class IntervalModel;
 namespace Command
 {
-SCORE_PLUGIN_SCENARIO_EXPORT void InterpolateStates(
+SCORE_PLUGIN_SCENARIO_TEST_EXPORT void InterpolateStates(
     const std::vector<const IntervalModel*>&, const score::CommandStackFacade&);
 }
 

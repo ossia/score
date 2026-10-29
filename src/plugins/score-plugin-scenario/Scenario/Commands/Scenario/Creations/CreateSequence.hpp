@@ -25,7 +25,7 @@ class ProcessModel;
 namespace Command
 {
 
-class SCORE_PLUGIN_SCENARIO_EXPORT CreateSequence final : public score::AggregateCommand
+class SCORE_PLUGIN_SCENARIO_TEST_EXPORT CreateSequence final : public score::AggregateCommand
 {
   SCORE_COMMAND_DECL(CommandFactoryName(), CreateSequence, "CreateSequence")
 

@@ -60,7 +60,7 @@ public:
       const Scenario::StateModel& state, const State::MessageList& messages);
 };
 
-class SCORE_PLUGIN_SCENARIO_EXPORT RenameAddressInState final : public score::Command
+class SCORE_PLUGIN_SCENARIO_TEST_EXPORT RenameAddressInState final : public score::Command
 {
   SCORE_COMMAND_DECL(
       CommandFactoryName(), RenameAddressInState, "Rename address in a state")
@@ -92,7 +92,7 @@ private:
   std::vector<State::AddressAccessor> m_oldAnchors, m_newAnchors;
 };
 
-class SCORE_PLUGIN_SCENARIO_EXPORT RenameAddressesInState final : public ReplaceStateBase
+class SCORE_PLUGIN_SCENARIO_TEST_EXPORT RenameAddressesInState final : public ReplaceStateBase
 {
   SCORE_COMMAND_DECL(
       CommandFactoryName(), RenameAddressesInState, "Rename address in a state")

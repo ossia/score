@@ -97,7 +97,7 @@ class SCORE_LIB_PROCESS_EXPORT RecallState final : public score::AggregateComman
   SCORE_COMMAND_DECL(CommandFactoryName(), RecallState, "Play state")
 };
 
-class SCORE_LIB_PROCESS_EXPORT RenameProcess final : public score::Command
+class SCORE_LIB_PROCESS_TEST_EXPORT RenameProcess final : public score::Command
 {
   SCORE_COMMAND_DECL(Process::CommandFactoryName(), RenameProcess, "Rename process")
 public:

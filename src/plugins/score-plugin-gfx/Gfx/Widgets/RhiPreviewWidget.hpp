@@ -42,7 +42,7 @@ using port_index = ossia::gfx::port_index;
  *     render; the widget only triggers QWidget::update() to refresh the
  *     painted image. Used by GraphPreviewWidget (texture-port preview).
  */
-class SCORE_PLUGIN_GFX_EXPORT RhiPreviewWidget : public QWidget
+class SCORE_PLUGIN_GFX_TEST_EXPORT RhiPreviewWidget : public QWidget
 {
 public:
   explicit RhiPreviewWidget(QWidget* parent = nullptr);

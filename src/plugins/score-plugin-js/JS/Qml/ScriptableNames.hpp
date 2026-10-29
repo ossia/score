@@ -13,7 +13,7 @@ namespace JS
 {
 //! Names published under score:/controls, triggers and conditions.
 //! Reads only the given snapshot, so it is safe on the script's thread.
-class SCORE_PLUGIN_JS_EXPORT ScriptableNames : public QObject
+class SCORE_PLUGIN_JS_TEST_EXPORT ScriptableNames : public QObject
 {
   W_OBJECT(ScriptableNames)
 public:

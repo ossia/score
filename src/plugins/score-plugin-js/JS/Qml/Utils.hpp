@@ -14,7 +14,7 @@
 #include <verdigris>
 namespace JS
 {
-class SCORE_PLUGIN_JS_EXPORT JsUtils : public QObject
+class SCORE_PLUGIN_JS_TEST_EXPORT JsUtils : public QObject
 {
   W_OBJECT(JsUtils)
 public:

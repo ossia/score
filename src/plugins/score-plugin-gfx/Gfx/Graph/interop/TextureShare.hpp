@@ -15,7 +15,7 @@ namespace score::gfx
 /**
  * @brief GPU-only triple-buffered texture sharing between two QRhi instances in different threads.
  */
-class SCORE_PLUGIN_GFX_EXPORT TextureShare
+class SCORE_PLUGIN_GFX_TEST_EXPORT TextureShare
 {
 public:
   TextureShare();

@@ -137,13 +137,13 @@ TimeVal ProcessModel::contentDuration() const noexcept
 }
 
 template <>
-SCORE_PLUGIN_MIDI_EXPORT void DataStreamReader::read(const Midi::NoteData& n)
+SCORE_PLUGIN_MIDI_TEST_EXPORT void DataStreamReader::read(const Midi::NoteData& n)
 {
   m_stream << n.m_start << n.m_duration << n.m_pitch << n.m_velocity;
 }
 
 template <>
-SCORE_PLUGIN_MIDI_EXPORT void DataStreamWriter::write(Midi::NoteData& n)
+SCORE_PLUGIN_MIDI_TEST_EXPORT void DataStreamWriter::write(Midi::NoteData& n)
 {
   m_stream >> n.m_start >> n.m_duration >> n.m_pitch >> n.m_velocity;
 }

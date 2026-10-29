@@ -57,7 +57,7 @@ private:
 };
 
 // Note: see ScriptEditCommand.hpp which is very similar!
-class SCORE_PLUGIN_SCENARIO_EXPORT LoadPresetWithCablesBackup final : public score::Command
+class SCORE_PLUGIN_SCENARIO_TEST_EXPORT LoadPresetWithCablesBackup final : public score::Command
 {
   SCORE_COMMAND_DECL(
       Scenario::Command::CommandFactoryName(), LoadPresetWithCablesBackup,
