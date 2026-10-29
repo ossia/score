@@ -28,8 +28,10 @@ REM (Necessary for multi-scale images, etc.)
 makepri.exe createconfig /cf priconfig.xml /dq en-US
 makepri.exe new /pr %cd% /cf %cd%\priconfig.xml /mn %cd%\manifests\Package.appxmanifest
 
-REM Embed manifest inside score.exe
-mt.exe -nologo -manifest score.exe.manifest -outputresource:"score.exe;#1"
+REM Embed manifest inside score.exe and the plug-in puppets (UTF-8 code page)
+for %%f in (score.exe ossia-score-vstpuppet.exe ossia-score-vst3puppet.exe ossia-score-clappuppet.exe ossia-score-lv2puppet.exe) do (
+  if exist %%f mt.exe -nologo -manifest score.exe.manifest -outputresource:"%%f;#1"
+)
 
 REM Sign every binary file
 signtool sign /fd sha256 /a /f %OSSIA_WIN32_CERTIFICATE% /p %OSSIA_WIN32_CERT_PASSWORD% score.exe

@@ -116,6 +116,13 @@ endfunction()
 ### Initialization of common stuff ###
 function(setup_score_common_exe_features TheTarget)
   setup_score_common_features(${TheTarget})
+
+  # Every program of ours gets UTF-8 as its ANSI code page, not only the app:
+  # the plugin puppets load plugins through narrow paths (LoadLibraryA,
+  # std::filesystem), and the tests have to see strings the way the app does.
+  if(WIN32)
+    target_enable_utf8(${TheTarget})
+  endif()
 endfunction()
 
 # A batch program runs start to finish without ever handing control back to the

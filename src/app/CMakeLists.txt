@@ -238,7 +238,6 @@ if(APPLE)
 endif()
 
 if(WIN32)
-  target_enable_utf8(${APPNAME})
   # shell32: the AppUserModelID calls in main.cpp
   target_link_libraries(${APPNAME} PRIVATE ntdll shell32)
   if(SCORE_HAS_CPP_WINRT)
