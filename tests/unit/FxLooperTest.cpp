@@ -2072,6 +2072,9 @@ TEST_CASE("Looper: erasing a pass keeps the feedback of the ones over it",
   record_and_overdub(h, 512, 0.25, 0.5);
   h.node.inputs.feedback.value = 0.5f;
   overdub_pass(h, 512, 0.125);
+  // The gains glide to what the feedback left over the frames after the
+  // overdub went round.
+  h.run(128);
   REQUIRE(h.node.layers.mix(0, 320) == Approx(0.25 * 0.5 + 0.5 * 0.5 + 0.125));
 
   // The third pass took half of both passes under it: the first keeps it.
@@ -2519,8 +2522,10 @@ TEST_CASE("Looper: a pass per cycle makes a pass of each time an overdub goes ro
   CHECK(h.node.layer_data(1, 0)[256] == Approx(0.1));
   CHECK(h.node.layer_data(2, 0)[256] == Approx(0.2));
   CHECK(h.node.layer_data(3, 0)[256] == Approx(0.3));
-  // Each round is a pass as any, faded in and out.
-  CHECK(h.node.layer_data(2, 0)[0] == Approx(0.));
+  // Each round goes on from the one before it: neither is faded where they
+  // meet, the loop's start.
+  CHECK(h.node.layer_data(2, 0)[0] == Approx(0.2));
+  CHECK(h.node.layer_data(1, 0)[511] == Approx(0.1));
   CHECK(h.node.layer_data(2, 0)[200] == Approx(0.2));
   CHECK(h.node.layers.mix(0, 256) == Approx(0.85));
 
@@ -2584,9 +2589,11 @@ TEST_CASE("Looper: a muted pass takes nothing from the passes under it",
   run_with(h, 1536, [](int64_t i) { return 0.1 * double(i / 512 + 1); });
   h.node.inputs.mode = LoopMode::Play;
   h.run(64);
+  h.run(128);
   REQUIRE(h.node.layers.count == 4);
 
-  // As one overdub of three rounds: each round fades what is under it.
+  // As one overdub of three rounds: each round fades what is under it, once
+  // the gains have glided there.
   CHECK(h.node.layers.mix(0, 256) == Approx(0.25 / 8 + 0.1 / 4 + 0.2 / 2 + 0.3));
 
   h.node.inputs.layer.value = 3;
@@ -3644,4 +3651,382 @@ TEST_CASE("Looper: Capture over a loop lays its last round where it was played",
     }
     CHECK(checked > 900);
   }
+}
+
+// ---------------------------------------------------------------------------
+// Passes per cycle: the seams where one round's pass hands over to the next.
+// ---------------------------------------------------------------------------
+
+namespace
+{
+//! Frames in a period of the sine played: the loop is a whole number of them,
+//! so that every pass is in phase with the others and they add up.
+constexpr double seam_period = 48.;
+constexpr int64_t seam_loop = 4800;
+
+//! At its peak on the loop's seam: a step there is as large as it gets.
+double seam_sine(int64_t t)
+{
+  return 0.2 * std::cos(2. * M_PI * double(t) / seam_period);
+}
+
+//! Runs `frames` frames of the sine, the timeline's frame giving its phase so
+//! that what is played goes on across every tick, and keeps what comes out.
+void run_sine(looper_harness& h, int64_t frames, std::vector<double>* out = nullptr)
+{
+  for(int64_t done = 0; done < frames; done += h.buffer_size)
+  {
+    const int64_t n = std::min<int64_t>(h.buffer_size, frames - done);
+    for(int64_t i = 0; i < n; i++)
+      h.in_buf[0][i] = seam_sine(h.now + i);
+    h.reset_output();
+    h.run(n);
+    if(out)
+      out->insert(out->end(), h.out_buf[0].begin(), h.out_buf[0].begin() + n);
+  }
+}
+
+//! The steepest step from a frame to the next, relative to the steepest a
+//! sine of `period` frames allows at the level around it: above one is a
+//! click.
+double worst_step(const std::vector<double>& v, double period)
+{
+  const double w = 2. * M_PI / period;
+  const auto span = std::size_t(period);
+  double worst = 0.;
+  for(std::size_t n = 1; n < v.size(); n++)
+  {
+    double peak = 0.;
+    const std::size_t to = std::min(v.size(), n + span);
+    for(std::size_t m = n > span ? n - span : 0; m < to; m++)
+      peak = std::max(peak, std::abs(v[m]));
+    worst = std::max(worst, std::abs(v[n] - v[n - 1]) / (w * peak * 1.05 + 1e-4));
+  }
+  return worst;
+}
+
+//! How quiet a 256-frame window of `v` gets, relative to the quieter of the
+//! two windows 384 frames either side of it: under one, a dip, which a level
+//! going from one value to another never makes.
+double worst_dip(const std::vector<double>& v)
+{
+  std::vector<double> sq(v.size() + 1, 0.);
+  for(std::size_t i = 0; i < v.size(); i++)
+    sq[i + 1] = sq[i] + v[i] * v[i];
+  const auto rms = [&](std::size_t c) { return std::sqrt((sq[c + 128] - sq[c - 128]) / 256.); };
+  double worst = 1.;
+  for(std::size_t c = 512; c + 512 < v.size(); c += 8)
+  {
+    const double around = std::min(rms(c - 384), rms(c + 384));
+    if(around > 1e-3)
+      worst = std::min(worst, rms(c) / around);
+  }
+  return worst;
+}
+
+//! How the overdub of a seam case is made.
+struct seam_case
+{
+  bool reverse{};
+  float speed{1.f};
+  float feedback{1.f};
+  bool extend{};
+  int latency_ms{};
+  //! Recorded into the overdub on the same frame: the loop is the sine as
+  //! well, which the first pass goes on from.
+  bool from_recording{};
+  //! One pass for the whole overdub, going round over its own start.
+  bool whole{};
+};
+
+//! What came out while a pass per cycle was overdubbed, and over the two
+//! rounds of the loop played after.
+struct seam_run
+{
+  std::vector<double> live, played;
+};
+
+//! A loop of `seam_loop` frames, silent, overdubbed with the sine from its
+//! middle for three rounds and a quarter, a pass per cycle, then played: a
+//! pass from the middle to the end, two whole ones, one from the start to
+//! three quarters, each going on from the one before.
+seam_run overdub_per_cycle(looper_harness& h, const seam_case& c)
+{
+  auto& in = h.node.inputs;
+  in.passthrough = Passthrough::None;
+  in.passes.value = c.whole ? Nodes::Looper::Passes::Whole : Nodes::Looper::Passes::PerCycle;
+  in.feedback.value = c.feedback;
+  in.latency.value = c.latency_ms;
+  in.past_end.value = c.extend ? Nodes::Looper::PastEnd::Extend : Nodes::Looper::PastEnd::Wrap;
+  in.start_from = Nodes::Looper::StartFrom::WhereItWas;
+
+  seam_run r;
+  in.mode = LoopMode::Record;
+  if(c.from_recording)
+  {
+    run_sine(h, seam_loop);
+  }
+  else
+  {
+    for(int64_t done = 0; done < seam_loop; done += h.buffer_size)
+    {
+      h.reset_input();
+      h.run(std::min<int64_t>(h.buffer_size, seam_loop - done));
+    }
+    in.mode = LoopMode::Play;
+    run_sine(h, seam_loop / 2);
+  }
+  in.reverse.value = c.reverse;
+  in.speed.value = c.speed;
+  // The playhead goes over a round of the loop in seam_loop / speed frames.
+  const auto round = int64_t(std::llround(double(seam_loop) / c.speed));
+  in.mode = LoopMode::Overdub;
+  run_sine(h, 3 * round + round / 4, &r.live);
+  in.mode = LoopMode::Play;
+  // An extended loop is four of the loop it started from.
+  run_sine(h, 2 * (c.extend ? 4 : 1) * round, &r.played);
+  return r;
+}
+
+//! The loop as a take flattens it: what is heard of every pass, round once,
+//! then once more from its start to see it go on across its end.
+std::vector<double> flattened(const Looper& node)
+{
+  const auto& l = node.layers;
+  std::vector<float> one(std::size_t(l.length), 0.f);
+  const auto data = [&](int slot, int c) -> const float* { return l.data(slot, c); };
+  Nodes::Looper::mix_passes(data, l.layers.data(), l.count, 0, l.length, 0, l.length, one.data());
+  std::vector<double> v;
+  for(int k = 0; k < 2; k++)
+    v.insert(v.end(), one.begin(), one.end());
+  return v;
+}
+
+void check_seamless(const seam_run& r, double period = seam_period)
+{
+  CHECK(worst_step(r.live, period) <= 1.);
+  CHECK(worst_step(r.played, period) <= 1.);
+  CHECK(worst_dip(r.live) >= 0.9);
+  CHECK(worst_dip(r.played) >= 0.9);
+}
+
+//! Plays two rounds of the loop and gives back what came out.
+std::vector<double> play_rounds(looper_harness& h, double speed = 1.)
+{
+  std::vector<double> out;
+  run_sine(h, 2 * int64_t(std::llround(double(seam_loop) / speed)), &out);
+  return out;
+}
+}
+
+TEST_CASE("Looper: passes per cycle play on across the loop's seam",
+          "[fx][audio][looper][comp][seam]")
+{
+  looper_harness h{1, 64};
+  const auto r = overdub_per_cycle(h, {});
+  REQUIRE(h.node.layers.count == 5);
+  check_seamless(r);
+  const auto take = flattened(h.node);
+  CHECK(worst_step(take, seam_period) <= 1.);
+  CHECK(worst_dip(take) >= 0.9);
+}
+
+TEST_CASE("Looper: a whole pass going round over its start ends where it stopped",
+          "[fx][audio][looper][seam]")
+{
+  looper_harness h{1, 64};
+  const auto r = overdub_per_cycle(h, {.whole = true});
+  REQUIRE(h.node.layers.count == 2);
+  check_seamless(r);
+}
+
+TEST_CASE("Looper: passes per cycle going on from a recording play on across the seam",
+          "[fx][audio][looper][comp][seam]")
+{
+  looper_harness h{1, 64};
+  const auto r = overdub_per_cycle(h, {.from_recording = true});
+  REQUIRE(h.node.layers.count == 5);
+  check_seamless(r);
+}
+
+TEST_CASE("Looper: passes per cycle with feedback play on across the seam",
+          "[fx][audio][looper][comp][seam]")
+{
+  looper_harness h{1, 64};
+  const auto r = overdub_per_cycle(h, {.feedback = 0.7f});
+  REQUIRE(h.node.layers.count == 5);
+  check_seamless(r);
+  const auto take = flattened(h.node);
+  CHECK(worst_step(take, seam_period) <= 1.);
+}
+
+TEST_CASE("Looper: passes per cycle overdubbed backwards play on across the seam",
+          "[fx][audio][looper][comp][seam][reverse]")
+{
+  looper_harness h{1, 64};
+  const auto r = overdub_per_cycle(h, {.reverse = true});
+  REQUIRE(h.node.layers.count == 5);
+  check_seamless(r);
+  // Forwards, what was played backwards is heard backwards, as continuous.
+  h.node.inputs.reverse.value = false;
+  const auto forwards = play_rounds(h);
+  CHECK(worst_step(forwards, seam_period) <= 1.);
+  CHECK(worst_dip(forwards) >= 0.9);
+}
+
+TEST_CASE("Looper: passes per cycle at half speed play on across the seam",
+          "[fx][audio][looper][comp][seam][speed]")
+{
+  looper_harness h{1, 64};
+  const auto r = overdub_per_cycle(h, {.speed = 0.5f});
+  REQUIRE(h.node.layers.count == 5);
+  check_seamless(r);
+}
+
+TEST_CASE("Looper: passes per cycle moved by the latency play on across the seam",
+          "[fx][audio][looper][comp][seam]")
+{
+  looper_harness h{1, 64};
+  const auto r = overdub_per_cycle(h, {.latency_ms = 5});
+  REQUIRE(h.node.layers.count == 5);
+  check_seamless(r);
+}
+
+TEST_CASE("Looper: passes per cycle growing the loop play on across each growth",
+          "[fx][audio][looper][comp][seam]")
+{
+  looper_harness h{1, 64};
+  const auto r = overdub_per_cycle(h, {.extend = true});
+  REQUIRE(h.node.layers.count == 5);
+  REQUIRE(h.node.layers.length == 4 * seam_loop);
+  check_seamless(r);
+}
+
+TEST_CASE("Looper: passes per cycle following the tempo play on across the seam",
+          "[fx][audio][looper][comp][seam][tempo]")
+{
+  looper_harness h{1, 64};
+  h.node.inputs.follow_tempo.value = Nodes::Looper::FollowTempo::Repitch;
+  h.node.prepare_stretch(48000, 64);
+  const auto r = overdub_per_cycle(h, {});
+  REQUIRE(h.node.layers.count == 5);
+  // The stretcher starts with the play, from silence: what it plays once
+  // started.
+  check_seamless({r.live, {r.played.begin() + 2048, r.played.end()}});
+}
+
+TEST_CASE("Looper: a pass per cycle undone fades the end of the one before it, redone "
+          "it does not",
+          "[fx][audio][looper][comp][seam]")
+{
+  looper_harness h{1, 64};
+  overdub_per_cycle(h, {});
+  REQUIRE(h.node.layers.count == 5);
+  // The third round's pass goes on into the last one at the loop's end.
+  const float* third = h.node.layer_data(3, 0);
+  const float end_before = third[seam_loop - 1];
+  CHECK(std::abs(end_before) > 0.05);
+
+  press(h.node.inputs.undo, h);
+  REQUIRE(h.node.layers.count == 4);
+  CHECK(std::abs(third[seam_loop - 1]) < 0.01);
+  const auto undone = play_rounds(h);
+  CHECK(worst_step(undone, seam_period) <= 1.);
+  CHECK(worst_dip(undone) >= 0.9);
+
+  press(h.node.inputs.redo, h);
+  REQUIRE(h.node.layers.count == 5);
+  CHECK(third[seam_loop - 1] == Approx(end_before));
+  const auto redone = play_rounds(h);
+  CHECK(worst_step(redone, seam_period) <= 1.);
+  CHECK(worst_dip(redone) >= 0.9);
+}
+
+TEST_CASE("Looper: a pass per cycle muted or erased fades the passes either side of it "
+          "where they met it",
+          "[fx][audio][looper][comp][seam]")
+{
+  for(const bool erase : {false, true})
+  {
+    CAPTURE(erase);
+    looper_harness h{1, 64};
+    overdub_per_cycle(h, {});
+    REQUIRE(h.node.layers.count == 5);
+    // The second round's pass: the first goes on into it, it into the third.
+    const float* first = h.node.layer_data(1, 0);
+    const float* third = h.node.layer_data(3, 0);
+    const float end_before = first[seam_loop - 1];
+    const float start_before = third[1];
+    CHECK(std::abs(end_before) > 0.05);
+    CHECK(std::abs(start_before) > 0.01);
+
+    h.node.inputs.layer.value = 3;
+    if(erase)
+      press(h.node.inputs.erase_layer, h);
+    else
+      press(h.node.inputs.mute_layer, h);
+    CHECK(std::abs(first[seam_loop - 1]) < 0.01);
+    CHECK(std::abs(third[1]) < std::abs(start_before) * 0.05);
+    // A hole where the pass was, faded on both sides: no click.
+    CHECK(worst_step(play_rounds(h), seam_period) <= 1.);
+
+    if(!erase)
+    {
+      press(h.node.inputs.mute_layer, h);
+      CHECK(first[seam_loop - 1] == Approx(end_before));
+      CHECK(third[1] == Approx(start_before));
+      const auto back = play_rounds(h);
+      CHECK(worst_step(back, seam_period) <= 1.);
+      CHECK(worst_dip(back) >= 0.9);
+    }
+  }
+}
+
+TEST_CASE("Looper: passes per cycle merged past Max layers play on across the seam",
+          "[fx][audio][looper][comp][seam][layers]")
+{
+  using Nodes::Looper::AtMaxLayers;
+  for(const auto at_max : {AtMaxLayers::MergeOldest, AtMaxLayers::MergeIntoNewest})
+  {
+    CAPTURE(int(at_max));
+    looper_harness h{1, 64};
+    h.node.layers.allocate(1, 3, 48000);
+    h.node.inputs.at_max_layers = at_max;
+    const auto r = overdub_per_cycle(h, {});
+    for(int i = 0; i < 4; i++)
+      h.run(64);
+    REQUIRE(h.node.layers.count <= 4);
+    check_seamless(r);
+    const auto after = play_rounds(h);
+    CHECK(worst_step(after, seam_period) <= 1.);
+    CHECK(worst_dip(after) >= 0.9);
+    // Undoing what the last merge put in the newest layer.
+    press(h.node.inputs.undo, h);
+    const auto undone = play_rounds(h);
+    CHECK(worst_step(undone, seam_period) <= 1.);
+    CHECK(worst_dip(undone) >= 0.9);
+  }
+}
+
+TEST_CASE("Looper: passes per cycle with Record passthrough play on across the seam while "
+          "overdubbing",
+          "[fx][audio][looper][comp][seam]")
+{
+  looper_harness h{1, 64};
+  h.node.inputs.passes.value = Nodes::Looper::Passes::PerCycle;
+  h.node.inputs.start_from = Nodes::Looper::StartFrom::WhereItWas;
+  h.node.inputs.passthrough = Passthrough::None;
+  h.node.inputs.mode = LoopMode::Record;
+  for(int64_t done = 0; done < seam_loop; done += h.buffer_size)
+    h.run(h.buffer_size);
+  h.node.inputs.mode = LoopMode::Play;
+  run_sine(h, seam_loop / 2);
+  h.node.inputs.passthrough = Passthrough::Record;
+  h.node.inputs.mode = LoopMode::Overdub;
+  std::vector<double> live;
+  run_sine(h, 3 * seam_loop + seam_loop / 4, &live);
+  // The input and the loop under it, from the first frame of the overdub to
+  // its last.
+  CHECK(worst_step(live, seam_period) <= 1.);
+  CHECK(worst_dip(live) >= 0.9);
 }

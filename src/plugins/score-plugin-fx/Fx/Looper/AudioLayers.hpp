@@ -14,6 +14,29 @@ namespace Nodes::Looper
 {
 inline constexpr int max_audio_layers = 32;
 
+//! Where a pass meets, across a cut, the pass it went on from (its head) or
+//! the one that went on from it (its tail): what was played there goes on
+//! from one into the other, so neither is faded while the other is heard.
+struct audio_seam_end
+{
+  //! The pass on the other side is not there yet.
+  static constexpr int pending = -2;
+
+  //! Index in the pass's buffer of its frame next to the seam, -1 for none.
+  int64_t at{-1};
+  //! For a tail: loop position of the other side's frame next to the seam.
+  int64_t meet{-1};
+  //! Buffer of the pass on the other side, which a merge forwards to the
+  //! buffer of the merged pass; -1 for none.
+  int partner{-1};
+  //! Frames from `at` on, going `dir` into the pass, that the seam weighs.
+  int n{};
+  int dir{1};
+  //! Weight given to the frame next to the seam, the next ones going to one
+  //! across the n frames: one as recorded, zero faded.
+  float rho{1.f};
+};
+
 //! One pass of the loop: the first recording, or an overdub on top of it.
 //!
 //! Its audio is kept apart from the other passes', so that undoing or erasing
@@ -51,6 +74,9 @@ struct audio_layer
   //! The playhead went backwards over it last: its last frames are the first
   //! of the part it wrote.
   bool backwards{};
+  //! Gain it was heard with when the gains last started to glide.
+  float from{1.f};
+  audio_seam_end head, tail;
 };
 
 /**
@@ -97,6 +123,21 @@ struct audio_layers : pass_stack<audio_layers, audio_layer, max_audio_layers>
 
   //! Two passes heard one over the other, `at` and the one over it, being
   //! merged into a spare buffer.
+  //! The samples of the ends of passes at a seam as recorded, for each
+  //! buffer, end and channel: what the buffer holds there without weight
+  //! (orig), and the part of it that the pass's own end is (part), which is
+  //! all of it but in a merged pass. Allocated with the buffers.
+  pool_t kept;
+  //! The buffer each buffer was merged into, -1 for none: a seam's partner
+  //! is the merged pass, until the merge is undone.
+  std::array<int, max_layers + spare_slots> merged_into{};
+
+  //! Frame counter of the processing: gains glide over frames of it.
+  int64_t now{};
+  //! Gains glide from `from` to `gain` until ramp_end, over ramp_len frames.
+  int64_t ramp_end{};
+  int64_t ramp_len{1};
+
   struct merge_state
   {
     bool active{};
@@ -140,6 +181,11 @@ struct audio_layers : pass_stack<audio_layers, audio_layer, max_audio_layers>
     peaks.clear();
     peaks.shrink_to_fit();
     peaks.resize(std::size_t(buffers()) * peak_count(), 0.f);
+    kept.clear();
+    kept.shrink_to_fit();
+    kept.resize(std::size_t(buffers()) * 4 * std::size_t(channels) * fade_frames, 0.f);
+    merged_into.fill(-1);
+    ramp_end = 0;
     count = 0;
     total = 0;
     length = 0;
@@ -176,8 +222,17 @@ struct audio_layers : pass_stack<audio_layers, audio_layer, max_audio_layers>
   void aside_forgotten() noexcept { }
   void redo_dropped(bool) noexcept { }
   void unmerge_dropped() noexcept { }
-  void unmerged(int) noexcept { }
-  void cleared() noexcept { merging.active = false; }
+  void unmerged(int) noexcept
+  {
+    for(int s : {unmerge.a.slot, unmerge.b.slot})
+      if(s >= 0 && s < buffers())
+        merged_into[s] = -1;
+  }
+  void cleared() noexcept
+  {
+    merging.active = false;
+    merged_into.fill(-1);
+  }
   void undoing() noexcept { merging.active = false; }
 
   int buffers() const noexcept { return slots + spare_slots; }
@@ -253,6 +308,14 @@ struct audio_layers : pass_stack<audio_layers, audio_layer, max_audio_layers>
     }
   }
 
+  //! Gain pass l is heard with at frame `now`.
+  float heard_gain(const audio_layer& l) const noexcept
+  {
+    if(now >= ramp_end)
+      return l.gain;
+    return l.gain + (l.from - l.gain) * float(ramp_end - now) / float(ramp_len);
+  }
+
   //! What the loop sounds like at position k of channel c.
   float mix(int c, int64_t k) const noexcept
   {
@@ -260,10 +323,53 @@ struct audio_layers : pass_stack<audio_layers, audio_layer, max_audio_layers>
     for(int i = 0; i < count; i++)
     {
       const auto& l = layers[i];
-      if(!l.muted && valid(l, k))
-        sum += l.gain * data(l.slot, c)[index(l, k)];
+      if(l.muted || !valid(l, k))
+        continue;
+      const int64_t p = period_of(l);
+      float v = data(l.slot, c)[k % p];
+      if(p < length)
+        v *= repeat_weight(l, k, p, length);
+      sum += heard_gain(l) * v;
     }
     return sum;
+  }
+
+  //! Weight of frame d of an end of n frames at a seam, d = 0 being the one
+  //! next to it: `rho` there, one past the end.
+  static float seam_weight(bool tail, float rho, int64_t d, int n) noexcept
+  {
+    const float f = float(tail ? d + 1 : d) / float(n);
+    return rho + (1.f - rho) * f;
+  }
+
+  //! A pass shorter than the loop plays again over the rest of it: its ends
+  //! at a seam meet the other side only where they were played, and are
+  //! faded wherever else they are heard. What position k of a loop of `len`
+  //! frames is weighed with, `p` being the pass's period.
+  static float
+  repeat_weight(const audio_layer& l, int64_t k, int64_t p, int64_t len) noexcept
+  {
+    float w = 1.f;
+    for(const bool tail : {false, true})
+    {
+      const auto& e = tail ? l.tail : l.head;
+      if(e.at < 0 || e.n <= 0 || e.rho <= 0.f || (tail && e.meet < 0))
+        continue;
+      int64_t d = ((k % p - e.at) * e.dir) % p;
+      if(d < 0)
+        d += p;
+      if(d >= e.n)
+        continue;
+      int64_t seam = (k - e.dir * d) % len;
+      if(seam < 0)
+        seam += len;
+      int64_t met = tail ? (e.meet + e.dir) % len : e.at;
+      if(met < 0)
+        met += len;
+      if(seam != met)
+        w *= seam_weight(tail, 0.f, d, e.n) / seam_weight(tail, e.rho, d, e.n);
+    }
+    return w;
   }
 
   //! Position k of the loop was written by the pass: the part it wrote, which
@@ -353,13 +459,178 @@ struct audio_layers : pass_stack<audio_layers, audio_layer, max_audio_layers>
       if(slot_used(s))
         continue;
       if(!is_reserved(s))
+      {
+        buffer_reused(s);
         return s;
+      }
       if(fallback < 0)
         fallback = s;
     }
     if(fallback >= 0)
+    {
       reserved_overwritten = true;
+      buffer_reused(fallback);
+    }
     return fallback;
+  }
+
+  //! Every pass kept: heard, brought back by redo, set aside or merged.
+  template <typename F>
+  void for_each_kept(F&& f) noexcept
+  {
+    for(int i = 0; i < total; i++)
+      f(layers[i]);
+    if(aside.valid)
+      f(aside.layer);
+    if(unmerge.valid)
+    {
+      f(unmerge.a);
+      f(unmerge.b);
+    }
+  }
+
+  //! The buffer a merge forwarded buffer `s` to.
+  int resolve(int s) const noexcept
+  {
+    for(int i = 0; s >= 0 && s < buffers() && merged_into[s] >= 0 && i < buffers(); i++)
+      s = merged_into[s];
+    return s;
+  }
+
+  //! Index of the pass heard in buffer `s`, or the buffer it was merged
+  //! into; -1 for none.
+  int heard_in(int s) const noexcept
+  {
+    s = resolve(s);
+    if(s < 0)
+      return -1;
+    for(int i = 0; i < count; i++)
+      if(layers[i].slot == s)
+        return layers[i].muted ? -1 : i;
+    return -1;
+  }
+
+  //! Buffer `s` takes a new pass: the one it held is gone for good, and the
+  //! seams that met it meet nothing now.
+  void buffer_reused(int s) noexcept
+  {
+    for_each_kept([&](audio_layer& l) {
+      for(auto* e : {&l.head, &l.tail})
+      {
+        if(e->partner == s)
+          e->partner = merged_into[s];
+        else if(e->partner >= 0 && resolve(e->partner) == s)
+          e->partner = -1;
+      }
+    });
+    for(auto& m : merged_into)
+      if(m == s)
+        m = -1;
+    merged_into[s] = -1;
+  }
+
+  float* kept_of(int slot, bool tail, bool part, int c) noexcept
+  {
+    return kept.data()
+           + ((std::size_t(slot) * 4 + (tail ? 2 : 0) + (part ? 1 : 0)) * std::size_t(channels)
+              + std::size_t(c))
+                 * fade_frames;
+  }
+
+  //! Where frame d of an end of pass l is in its buffer.
+  int64_t seam_index(const audio_layer& l, const audio_seam_end& e, int64_t d) const noexcept
+  {
+    const int64_t p = period_of(l);
+    int64_t k = (e.at + e.dir * d) % p;
+    return k < 0 ? k + p : k;
+  }
+
+  //! The first frames (head) or last frames (tail) pass l wrote meet a seam
+  //! with the pass in buffer `partner`: they are kept as they are now, as
+  //! recorded, to be weighed from.
+  void open_seam(audio_layer& l, bool tail, int partner) noexcept
+  {
+    const int64_t p = period_of(l);
+    const int64_t written = std::min(l.written, p);
+    auto& e = tail ? l.tail : l.head;
+    e = {};
+    if(p <= 0 || written <= 0 || !allocated() || kept.empty())
+      return;
+    const int64_t first = l.start % p;
+    const int64_t last = (l.start + written - 1) % p;
+    // Backwards, the part written grows towards the loop's start: its first
+    // frame is its last position.
+    const bool at_last = tail != l.backwards;
+    e.at = at_last ? last : first;
+    e.dir = at_last ? -1 : 1;
+    e.n = int(std::min<int64_t>(fade_frames, written));
+    e.partner = partner;
+    e.rho = 1.f;
+    for(int c = 0; c < channels; c++)
+    {
+      const float* d = data(l.slot, c);
+      float* orig = kept_of(l.slot, tail, false, c);
+      float* part = kept_of(l.slot, tail, true, c);
+      for(int i = 0; i < e.n; i++)
+        orig[i] = part[i] = d[seam_index(l, e, i)];
+    }
+  }
+
+  //! Writes an end of pass l with weight `rho` next to its seam.
+  void weigh_seam(audio_layer& l, bool tail, float rho) noexcept
+  {
+    auto& e = tail ? l.tail : l.head;
+    e.rho = rho;
+    for(int c = 0; c < channels; c++)
+    {
+      float* d = data(l.slot, c);
+      const float* orig = kept_of(l.slot, tail, false, c);
+      const float* part = kept_of(l.slot, tail, true, c);
+      for(int i = 0; i < e.n; i++)
+        d[seam_index(l, e, i)] = orig[i] - part[i] * (1.f - seam_weight(tail, rho, i, e.n));
+    }
+  }
+
+  //! Gain a pass is heard with once the gains stop gliding, or the one they
+  //! glide from: a seam is weighed for what is heard over it, which only
+  //! changes once the playhead has left it.
+  float settled_gain(const audio_layer& l) const noexcept
+  {
+    return now < ramp_end ? l.from : l.gain;
+  }
+
+  //! Each end of a pass heard at a seam is faded when the other side is not
+  //! heard, as recorded when it is; the louder side starts at the level of
+  //! the other, so that a pass with feedback over the one it went on from
+  //! goes on from it at its level.
+  void update_seams() noexcept
+  {
+    for(int i = 0; i < count; i++)
+    {
+      auto& l = layers[i];
+      if(l.muted)
+        continue;
+      for(const bool tail : {false, true})
+      {
+        auto& e = tail ? l.tail : l.head;
+        if(e.at < 0 || e.partner == audio_seam_end::pending)
+          continue;
+        const int j = e.partner >= 0 ? heard_in(e.partner) : -1;
+        if(j == i)
+          continue;
+        float rho = 0.f;
+        if(j >= 0)
+        {
+          const float mine = settled_gain(l);
+          const float theirs = settled_gain(layers[j]);
+          rho = mine > 0.f ? std::min(1.f, theirs / mine) : 1.f;
+          if(tail && layers[j].head.at >= 0)
+            e.meet = layers[j].head.at;
+        }
+        if(std::abs(rho - e.rho) > 1e-6f)
+          weigh_seam(l, tail, rho);
+      }
+    }
   }
 
   //! Starts an overdub pass at position `start`. With `slots` passes kept
@@ -376,10 +647,13 @@ struct audio_layers : pass_stack<audio_layers, audio_layer, max_audio_layers>
       set_aside(replace);
     if(!oldest && count > slots)
     {
-      // The pass before it was not merged yet.
+      // The pass before it was not merged yet. Once merged, it can no more
+      // be taken out than when its merge ended before this pass: the two
+      // buffers kept for that are free for this one.
       if(!merging.active)
         start_merge(count - 2, true);
       finish_merge();
+      drop_unmerge();
     }
     if(oldest && count >= slots && !merging.active)
       start_merge(0);
@@ -470,8 +744,7 @@ struct audio_layers : pass_stack<audio_layers, audio_layer, max_audio_layers>
       const float* da = data(m.a_slot, c);
       const float* db = data(m.b_slot, c);
       for(int64_t k = m.pos; k < end; k++)
-        dst[k] = (valid_in(m.a, k, m.a_len) ? m.a_gain * da[k % m.a_len] : 0.f)
-                 + (valid_in(m.b, k, m.b_len) ? m.b_gain * db[k % m.b_len] : 0.f);
+        dst[k] = merged_at(da, db, k);
     }
     {
       float* pt = peaks_of(m.target);
@@ -490,6 +763,8 @@ struct audio_layers : pass_stack<audio_layers, audio_layer, max_audio_layers>
     begin_merge();
     // What the two took from the passes under them, the merged one takes.
     audio_layer a = merged_pass(layers[m.at], layers[m.at + 1]);
+    merge_seams(a);
+    a.from = layers[m.at + 1].from;
     a.slot = m.target;
     a.decay = (m.lost_a ? 1.f : m.a.decay) * (m.lost_b ? 1.f : m.b.decay);
     a.start = 0;
@@ -505,15 +780,108 @@ struct audio_layers : pass_stack<audio_layers, audio_layer, max_audio_layers>
     merge_step(merging.merged);
   }
 
+  //! Position k of the merged pass, from the buffers of the two.
+  float merged_at(const float* da, const float* db, int64_t k) const noexcept
+  {
+    const auto& m = merging;
+    const auto& a = layers[m.at];
+    const auto& b = layers[m.at + 1];
+    float va = 0.f, vb = 0.f;
+    if(valid_in(m.a, k, m.a_len))
+    {
+      va = da[k % m.a_len];
+      if(m.a_len < m.merged)
+        va *= repeat_weight(a, k, m.a_len, length);
+    }
+    if(valid_in(m.b, k, m.b_len))
+    {
+      vb = db[k % m.b_len];
+      if(m.b_len < m.merged)
+        vb *= repeat_weight(b, k, m.b_len, length);
+    }
+    return m.a_gain * va + m.b_gain * vb;
+  }
+
+  //! The seams of the two passes merged into `into`, which takes their ends
+  //! at a seam with another pass: the lower pass's head, the upper one's
+  //! tail. Where they meet each other is in it as it is heard now.
+  void merge_seams(audio_layer& into) noexcept
+  {
+    auto& m = merging;
+    const auto& a = layers[m.at];
+    const auto& b = layers[m.at + 1];
+    // The ends of the two are merged again from their buffers as they are
+    // now: a seam may have been weighed while the merge went on.
+    for(int c = 0; c < channels; c++)
+    {
+      float* dst = data(m.target, c);
+      const float* da = data(m.a_slot, c);
+      const float* db = data(m.b_slot, c);
+      for(const auto* l : {&a, &b})
+      {
+        const int64_t p = std::max<int64_t>(1, period_of(*l));
+        for(const auto* e : {&l->head, &l->tail})
+          if(e->at >= 0)
+            for(int i = 0; i < e->n; i++)
+              for(int64_t k = seam_index(*l, *e, i); k < m.merged; k += p)
+                dst[k] = merged_at(da, db, k);
+      }
+    }
+
+    into.head = {};
+    into.tail = {};
+    const auto outer = [&](const audio_layer& l, bool tail, const audio_layer& other,
+                           int64_t len, bool lost) {
+      const auto& e = tail ? l.tail : l.head;
+      return e.at >= 0 && !lost && len == m.merged
+             && (e.partner < 0 || resolve(e.partner) != other.slot);
+    };
+    const auto take = [&](const audio_layer& l, bool tail, float gain) {
+      const auto& e = tail ? l.tail : l.head;
+      (tail ? into.tail : into.head) = e;
+      for(int c = 0; c < channels; c++)
+      {
+        const float* dst = data(m.target, c);
+        const float* part = kept_of(l.slot, tail, true, c);
+        float* to_orig = kept_of(m.target, tail, false, c);
+        float* to_part = kept_of(m.target, tail, true, c);
+        for(int i = 0; i < e.n; i++)
+        {
+          to_part[i] = gain * part[i];
+          to_orig[i] = dst[seam_index(l, e, i)]
+                       + to_part[i] * (1.f - seam_weight(tail, e.rho, i, e.n));
+        }
+      }
+    };
+    // One end a side: another one there is kept in the merged pass as it is
+    // heard now.
+    if(outer(a, false, b, m.a_len, m.lost_a))
+      take(a, false, m.a_gain);
+    else if(outer(b, false, a, m.b_len, m.lost_b))
+      take(b, false, m.b_gain);
+    if(outer(b, true, a, m.b_len, m.lost_b))
+      take(b, true, m.b_gain);
+    else if(outer(a, true, b, m.a_len, m.lost_a))
+      take(a, true, m.a_gain);
+
+    merged_into[m.a_slot] = m.lost_a ? -1 : m.target;
+    merged_into[m.b_slot] = m.lost_b ? -1 : m.target;
+  }
+
   //! Applies feedback to every pass under the top one, as one overdub pass
   //! goes round the loop. A muted pass takes nothing, but keeps what it
-  //! would take for when it is heard again.
-  void decay(float feedback) noexcept
+  //! would take for when it is heard again. The gains glide to their new
+  //! values over `glide` frames from `now`: a step would click.
+  void decay(float feedback, int64_t glide = fade_frames) noexcept
   {
     if(count < 2 || feedback >= 1.f)
       return;
+    for(int i = 0; i < count; i++)
+      layers[i].from = heard_gain(layers[i]);
     layers[count - 1].decay *= feedback;
     update_gains();
+    ramp_len = std::max<int64_t>(1, glide);
+    ramp_end = now + ramp_len;
   }
 
   void note_peak(int slot, int64_t k, float v) noexcept
@@ -573,6 +941,9 @@ struct audio_layers : pass_stack<audio_layers, audio_layer, max_audio_layers>
     l.start -= frames;
     if(l.start < 0)
       l.start += len;
+    for(auto* e : {&l.head, &l.tail})
+      if(e->at >= 0)
+        e->at = ((e->at - frames) % len + len) % len;
   }
 };
 
@@ -588,9 +959,11 @@ void mix_passes(
   {
     const auto& l = passes[i];
     const float* src = data(l.slot, c);
+    const int64_t p = audio_layers::period_in(l, len);
     for(int64_t k = from; k < to; k++)
       if(audio_layers::valid_in(l, k, len))
-        dst[k] += l.gain * src[audio_layers::index_in(l, k, len)];
+        dst[k] += l.gain * src[audio_layers::index_in(l, k, len)]
+                  * (p < len ? audio_layers::repeat_weight(l, k, p, len) : 1.f);
   }
 }
 
@@ -629,9 +1002,11 @@ struct audio_snapshot
       }
       const auto& l = passes[item];
       const float* src = data(l.slot, c);
+      const int64_t p = audio_layers::period_in(l, length);
       for(int64_t k = 0; k < length; k++)
         dst[k] = audio_layers::valid_in(l, k, length)
                      ? l.unmuted_gain * src[audio_layers::index_in(l, k, length)]
+                           * (p < length ? audio_layers::repeat_weight(l, k, p, length) : 1.f)
                      : 0.f;
     }
   }

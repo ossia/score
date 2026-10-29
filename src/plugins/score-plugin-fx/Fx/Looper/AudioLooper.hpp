@@ -495,6 +495,7 @@ struct Node : Looper::looper_node<Node>
 
   // The transport's engine
   int64_t looper_run(int64_t start, int64_t length);
+  int64_t run_mode(int64_t start, int64_t length);
   void looper_trim_recording(int64_t frames)
   {
     // What was recorded past the grid point stays in the buffer, after the
@@ -633,7 +634,7 @@ private:
   void cleared() noexcept
   {
     m_loading = false;
-    m_seam.base_slot = -1;
+    m_tail_open = -1;
     m_full = false;
   }
   void pass_dropped() noexcept { }
@@ -641,21 +642,46 @@ private:
   {
     layers.begin_overdub(start, oldest, replaced);
     m_pass_closed = false;
+    m_head_from = -1;
+    m_lapped = false;
+    m_pass_in_place = false;
+    m_last_n = 0;
   }
   bool can_merge_newest() const noexcept { return !layers.merging.active; }
   void merge_newest() noexcept { layers.start_merge(layers.count - 2, true); }
   //! The top pass was closed on a cut already, the pass after it dropped.
   bool pass_closing() noexcept { return !std::exchange(m_pass_closed, true); }
-  //! Its end faded, moved by the latency.
+  //! Its end faded, unless a cut hands it over to the next pass, and moved
+  //! by the latency. Where it meets the pass before it or after it across a
+  //! cut is kept as recorded, to be faded only while the other is not heard.
   void pass_closed()
   {
-    layers.fade_out_top();
-    shift_pass(*layers.top());
+    auto& top = *layers.top();
+    if(!m_cutting)
+    {
+      if(m_pass_in_place)
+        fade_out_written();
+      else
+        layers.fade_out_top();
+    }
+    if(!m_pass_in_place)
+      shift_pass(top);
+    // A pass that went round over its own start has its start under what it
+    // wrote after.
+    if(m_head_from >= 0 && !m_lapped)
+      layers.open_seam(top, false, m_head_from);
+    if(m_cutting)
+    {
+      layers.open_seam(top, true, Looper::audio_seam_end::pending);
+      m_tail_open = top.slot;
+    }
+    layers.update_seams();
   }
   void tick_started(const tick& tk)
   {
     m_in_chans = std::min<int>(inputs.audio.channels, layers.channels);
     m_tick_start = Looper::timeline_start(tk, ossia_state);
+    m_write_shift = std::llround(double(latency_frames()) * m_speed);
   }
   void prepare_loop() { load_file(); }
   void forget_carried() noexcept { m_carried_span = 0; }
@@ -667,7 +693,11 @@ private:
     layers.merge_step(std::max<int64_t>(1024, work_per_tick / std::max(1, layers.channels)));
   }
   void close_recording(int64_t bars);
-  void close_overdub() { close_pass(); }
+  void close_overdub()
+  {
+    end_open_tail();
+    close_pass();
+  }
   bool cut_after(int64_t end) const noexcept
   {
     return layers.layers[layers.count - 1].start >= end;
@@ -710,7 +740,6 @@ private:
     if(m_ring_capacity <= 0)
       return false;
     layers.reserved_overwritten = false;
-    update_seam(true);
     return true;
   }
   void capture_layer_into(const Looper::capture_window& w);
@@ -718,7 +747,7 @@ private:
   void close_on_stop(bool recording)
   {
     if(!recording)
-      close_pass();
+      close_overdub();
   }
   bool export_ready() const noexcept
   {
@@ -793,6 +822,46 @@ private:
   //! Positions the pass has written, its later rounds included: the first
   //! ones fade it in.
   int64_t m_pass_frames{};
+  //! Frames the looper went through, which gains glide over.
+  int64_t m_clock{};
+  //! The pass being closed is cut for the next one to go on from it.
+  bool m_cutting{};
+  //! The pass taken in wrote over a part it had written.
+  bool m_lapped{};
+  //! Buffer of the pass the one taken in goes on from, -1 for none.
+  int m_head_from{-1};
+  //! Buffer of the pass whose end waits for the next pass to go on from it.
+  int m_tail_open{-1};
+  //! Positions an overdub writes behind the playhead, the way it goes: the
+  //! input reaches the looper that late. Each position of a pass is where it
+  //! belongs as it is written, so that it is heard there from the next time
+  //! the playhead comes, the cut to the next pass included.
+  int64_t m_write_shift{};
+  //! The pass taken in was written where it belongs: closing it does not
+  //! move it.
+  bool m_pass_in_place{};
+  int64_t written_at(int64_t k, int64_t len) const noexcept
+  {
+    const int64_t w = (k - (m_reverse ? -m_write_shift : m_write_shift)) % len;
+    return w < 0 ? w + len : w;
+  }
+  //! The last position an overdub wrote, and what that changed in what is
+  //! heard there: the loop under the playhead is read as it was before, the
+  //! playhead reading it again when slower than x1.
+  int64_t m_fresh_k{-1};
+  std::array<float, Looper::audio_layers::max_channels> m_fresh_delta{};
+  bool m_hide_fresh{};
+  //! What the last positions written added to the pass, newest last in a
+  //! ring: an end is what was written last, wherever the pass went round
+  //! over itself, and fading it leaves what earlier rounds wrote there.
+  static constexpr int last_frames = Looper::audio_layers::fade_frames;
+  std::array<int64_t, last_frames> m_last_k{};
+  std::array<float, Looper::audio_layers::max_channels * last_frames> m_last_v{};
+  int m_last_n{};
+  int m_last_i{};
+  void fade_out_written();
+  bool continue_seam();
+  void end_open_tail();
   //! Frames a recording cut back to a grid point had recorded past it.
   int64_t m_carried_span{};
   void begin_pass_carried(int64_t len);
@@ -800,7 +869,9 @@ private:
   void set_head_y(double y, int64_t len) noexcept;
   float tape(int c, int64_t k, int64_t len) const noexcept
   {
-    return layers.mix(c, m_reverse ? len - 1 - k : k);
+    const int64_t at = m_reverse ? len - 1 - k : k;
+    const float v = layers.mix(c, at);
+    return m_hide_fresh && at == m_fresh_k ? v - m_fresh_delta[c] : v;
   }
   float read_span(int c, double y, double s, int64_t len) const noexcept;
   void write_tape(int64_t y, const float* v, float feedback);
@@ -874,23 +945,6 @@ private:
   //! A recording closed into an overdub on the same frame: the pass carries
   //! on what it was taking in, so neither is faded where they meet.
   bool m_seamless{};
-  //! The end of such a recording, faded while the overdub that went on from
-  //! it is not heard, as it is when a recording simply ends. The samples the
-  //! fade changes are kept to give them back.
-  struct seam
-  {
-    //! Buffers of the recording and of the overdub, -1 for none.
-    int base_slot{-1};
-    int pass_slot{-1};
-    //! Frames of the recording.
-    int64_t end{};
-    bool faded{};
-    std::array<
-        float, Looper::audio_layers::max_channels * Looper::audio_layers::fade_frames>
-        kept{};
-  } m_seam;
-  void update_seam(bool new_pass);
-  void fade_seam(bool faded);
 
   // The input of the last seconds, for Capture.
   boost::container::vector<float> m_ring;
@@ -927,7 +981,20 @@ private:
 
 inline int64_t Node::looper_run(int64_t start, int64_t length)
 {
-  update_seam(false);
+  const int64_t done = run_mode(start, length);
+  m_clock += done;
+  layers.now = m_clock;
+  return done;
+}
+
+inline int64_t Node::run_mode(int64_t start, int64_t length)
+{
+  layers.now = m_clock;
+  // A pass cut on the last frame of an overdub that ended has nothing going
+  // on from it.
+  if(m_tail_open >= 0 && transport.actualMode != LoopMode::Overdub)
+    end_open_tail();
+  layers.update_seams();
   // Stretching starts again from where the loop is, the next time it plays.
   if(transport.actualMode != LoopMode::Play)
     m_stretch_ready = false;
@@ -976,24 +1043,20 @@ inline void Node::close_recording(int64_t bars)
   if(!top || layers.length <= 0)
     return;
 
-  if(const int64_t latency = latency_frames(); latency > 0)
-    layers.shift_earlier(*top, latency);
-
   // Overdubbing from the frame the recording ends on carries on what was
-  // played: the end of the loop goes on into the first pass over it.
+  // played: the end of the loop goes on into the first pass over it. The
+  // edges are those of what was recorded, wherever the latency puts them.
   m_seamless = transport.actualMode == LoopMode::Overdub;
   fade_edges(top->slot, !m_seamless);
+  top->start = 0;
+  top->written = layers.length;
+  if(const int64_t latency = latency_frames(); latency > 0)
+    layers.shift_earlier(*top, latency);
+  m_tail_open = -1;
   if(m_seamless)
   {
-    const int64_t n = std::min<int64_t>(layers.length, Looper::audio_layers::fade_frames);
-    m_seam.base_slot = top->slot;
-    m_seam.pass_slot = -1;
-    m_seam.end = layers.length;
-    m_seam.faded = false;
-    for(int c = 0; c < layers.channels; c++)
-      std::copy_n(
-          layers.data(top->slot, c) + layers.length - n, n,
-          m_seam.kept.data() + c * Looper::audio_layers::fade_frames);
+    layers.open_seam(*top, true, Looper::audio_seam_end::pending);
+    m_tail_open = top->slot;
   }
 
   if(bars > layers.length)
@@ -1037,53 +1100,61 @@ inline void Node::cancel_export() noexcept
   layers.reserved = 0;
 }
 
-//! The recording's end is faded unless the overdub that went on from it is
-//! heard over it. Once that overdub is gone for good, redo or not, the fade
-//! stays. `new_pass`: a pass is about to start, which drops what redo would
-//! bring back.
-inline void Node::update_seam(bool new_pass)
+//! The pass just begun goes on from the one whose end waited for it: the
+//! two meet across the cut. False when there was none, or no pass began.
+inline bool Node::continue_seam()
 {
-  auto& s = m_seam;
-  if(s.base_slot < 0 || s.pass_slot < 0)
-    return;
-  // Merged into another pass, or erased: what is in that buffer is not the
-  // recording any more.
-  if(layers.count == 0 || layers.layers[0].slot != s.base_slot)
-  {
-    s.base_slot = -1;
-    return;
-  }
-  const int kept = new_pass ? layers.count : layers.total;
-  bool there = false;
-  for(int i = 1; i < kept; i++)
-    there = there || layers.layers[i].slot == s.pass_slot;
-  if(!there)
-  {
-    fade_seam(true);
-    s.base_slot = -1;
-    return;
-  }
-  const auto& over = layers.layers[1];
-  fade_seam(!(layers.count > 1 && over.slot == s.pass_slot && !over.muted));
+  const int from = std::exchange(m_tail_open, -1);
+  auto* top = layers.top();
+  if(from < 0 || !top)
+    return false;
+  const int s = layers.resolve(from);
+  bool met = false;
+  layers.for_each_kept([&](Looper::audio_layer& l) {
+    if(l.slot == s && &l != top && l.tail.partner == Looper::audio_seam_end::pending)
+    {
+      l.tail.partner = top->slot;
+      l.tail.meet = top->start;
+      met = true;
+    }
+  });
+  if(met)
+    m_head_from = s;
+  else
+    end_open_tail();
+  return met;
 }
 
-inline void Node::fade_seam(bool faded)
+//! The end of the pass taken in: what it wrote last, faded out.
+inline void Node::fade_out_written()
 {
-  auto& s = m_seam;
-  if(s.faded == faded)
+  auto* top = layers.top();
+  if(!top)
     return;
-  s.faded = faded;
-  constexpr int fade = Looper::audio_layers::fade_frames;
-  const int64_t n = std::min<int64_t>(s.end, fade);
-  if(n <= 0 || s.end > layers.capacity)
-    return;
-  for(int c = 0; c < layers.channels; c++)
+  const int n = m_last_n;
+  for(int i = 0; i < n; i++)
   {
-    float* d = layers.data(s.base_slot, c) + s.end - n;
-    const float* k = s.kept.data() + c * fade;
-    for(int64_t i = 0; i < n; i++)
-      d[i] = faded ? k[i] * (1.f - float(i) / float(n)) : k[i];
+    const int j = (m_last_i - 1 - i + last_frames) % last_frames;
+    const float cut = 1.f - float(i) / float(n);
+    for(int c = 0; c < layers.channels; c++)
+      layers.data(top->slot, c)[m_last_k[j]] -= m_last_v[c * last_frames + j] * cut;
   }
+  m_last_n = 0;
+}
+
+//! The end that waited for a pass to go on from it is an end: nothing came.
+inline void Node::end_open_tail()
+{
+  m_cycle_pending = false;
+  const int from = std::exchange(m_tail_open, -1);
+  if(from < 0)
+    return;
+  const int s = layers.resolve(from);
+  layers.for_each_kept([&](Looper::audio_layer& l) {
+    if(l.slot == s && l.tail.partner == Looper::audio_seam_end::pending)
+      l.tail.partner = -1;
+  });
+  layers.update_seams();
 }
 
 //! A small fade on the first and last samples of a recorded pass.
@@ -1139,7 +1210,7 @@ inline void Node::capture_into(int64_t end, int64_t n)
 {
   cancel_export();
   layers.begin_recording();
-  m_seam.base_slot = -1;
+  m_tail_open = -1;
   const int slot = layers.layers[0].slot;
   for(int c = 0; c < layers.channels; c++)
   {
@@ -1233,7 +1304,7 @@ inline void Node::load_file()
       return;
     cancel_export();
     layers.begin_recording();
-    m_seam.base_slot = -1;
+    m_tail_open = -1;
     m_switches.soloed.forget();
     // Nothing is heard until the whole file is in.
     layers.count = 0;
@@ -1420,6 +1491,7 @@ inline void Node::play_tape(int64_t first_pos, int64_t samples)
 
   for(int64_t j = first_pos; j < last; j++)
   {
+    layers.now = m_clock + (j - first_pos);
     for(int i = 0; i < loop_chans; i++)
       p2.samples[i][j] = read_span(i, y, s, len);
     y += s;
@@ -1450,6 +1522,7 @@ inline void Node::play(int64_t first_pos, int64_t samples)
     int64_t k = start;
     for(int64_t j = first_pos; j < last; j++)
     {
+      layers.now = m_clock + (j - first_pos);
       out[j] = layers.mix(i, k);
       if(++k == len)
         k = 0;
@@ -1527,7 +1600,7 @@ inline int64_t Node::record(int64_t first_pos, int64_t samples, bool echo)
     // being flattened would read the new one.
     cancel_export();
     layers.begin_recording();
-    m_seam.base_slot = -1;
+    m_tail_open = -1;
     m_switches.soloed.forget();
     m_seamless = false;
     transport.playbackPos = 0;
@@ -1585,34 +1658,46 @@ inline void Node::write_tape(int64_t y, const float* v, float feedback)
 {
   if(std::exchange(m_cycle_pending, false))
   {
-    // The pass of the cycle that ended is closed as any pass is.
+    // The pass of the cycle that ended is closed as any pass is, but for its
+    // end: the next one goes on from it.
+    m_cutting = true;
     close_pass(true);
+    m_cutting = false;
     layers.reserved_overwritten = false;
-    update_seam(true);
-    begin_pass(m_reverse ? layers.length - 1 - y : y);
+    begin_pass(written_at(m_reverse ? layers.length - 1 - y : y, layers.length));
+    m_pass_in_place = true;
     if(layers.reserved_overwritten)
       cancel_export();
-    // Faded in as any pass.
-    m_pass_frames = 0;
+    // It is not faded in where it meets the one before it.
+    m_pass_frames = continue_seam() ? Looper::audio_layers::fade_frames : 0;
   }
   auto* t = layers.top();
   if(!t)
     return;
   auto& top = *t;
   const int64_t len = layers.length;
-  const int64_t k = m_reverse ? len - 1 - y : y;
+  const int64_t k = written_at(m_reverse ? len - 1 - y : y, len);
   const bool first_time = !layers.valid(top, k);
   const int fade = Looper::audio_layers::fade_frames;
   const float ramp
       = m_pass_frames < fade ? float(m_pass_frames) / fade : 1.f;
   m_pass_frames++;
+  const float g = layers.heard_gain(top);
   for(int c = 0; c < layers.channels; c++)
   {
     float& d = layers.data(top.slot, c)[k];
+    const float before = first_time ? 0.f : d;
     // Later laps of the pass fade what it laid down on the earlier ones.
-    d = (first_time ? 0.f : d * feedback) + v[c] * ramp;
+    d = before * feedback + v[c] * ramp;
     layers.note_peak(top.slot, k, d);
+    m_fresh_delta[c] = top.muted ? 0.f : g * (d - before);
+    m_last_v[c * last_frames + m_last_i] = v[c] * ramp;
   }
+  m_fresh_k = k;
+  m_last_k[m_last_i] = k;
+  m_last_i = (m_last_i + 1) % last_frames;
+  m_last_n = std::min(m_last_n + 1, last_frames);
+  m_lapped = m_lapped || !first_time;
   layers.cover(top, k);
   top.backwards = m_reverse;
 }
@@ -1634,7 +1719,10 @@ inline bool Node::cycle_end(int64_t& len, bool extend, float feedback)
       m_cycle_pending = true;
     return false;
   }
-  layers.decay(feedback);
+  // The gains glide while the playhead goes over the frames the seams weigh.
+  layers.decay(
+      feedback,
+      int64_t(std::ceil(double(Looper::audio_layers::fade_frames) / std::max(1e-3, m_speed))));
   if(per_cycle)
     m_cycle_pending = true;
   return true;
@@ -1657,24 +1745,28 @@ inline void Node::begin_pass_carried(int64_t len)
   const bool carried = span > 0 && span < len && k == span && layers.count == 1
                        && m_speed == 1. && !m_reverse
                        && len + span <= layers.capacity;
-  update_seam(true);
-  begin_pass(carried ? 0 : k);
+  m_fresh_k = -1;
+  begin_pass(written_at(carried ? 0 : k, len));
+  m_pass_in_place = true;
+  if(seamless)
+    continue_seam();
+  else
+    end_open_tail();
   auto* top = layers.top();
-  if(seamless && top)
-    m_seam.pass_slot = top->slot;
   if(!carried || !top || layers.count != 2)
     return;
   const auto& base = layers.layers[0];
   for(int64_t i = 0; i < span; i++)
   {
     const float ramp = i < fade ? float(i) / fade : 1.f;
+    const int64_t at = written_at(i, len);
     for(int c = 0; c < layers.channels; c++)
     {
       const float v = layers.data(base.slot, c)[len + i] * ramp;
-      layers.data(top->slot, c)[i] = v;
-      layers.note_peak(top->slot, i, v);
+      layers.data(top->slot, c)[at] = v;
+      layers.note_peak(top->slot, at, v);
     }
-    layers.cover(*top, i);
+    layers.cover(*top, at);
   }
   m_pass_frames = std::max<int64_t>(m_pass_frames, span);
 }
@@ -1734,6 +1826,8 @@ inline void Node::overdub(int64_t first_pos, int64_t samples, bool echo)
 
   for(int64_t j = first_pos; j < last; j++)
   {
+    layers.now = m_clock + (j - first_pos);
+    m_hide_fresh = true;
     for(int c = 0; c < layers.channels; c++)
     {
       const float in = input(c, j);
@@ -1741,6 +1835,7 @@ inline void Node::overdub(int64_t first_pos, int64_t samples, bool echo)
       if(c < out_chans)
         p2.samples[c][j] = echo ? before + in : before;
     }
+    m_hide_fresh = false;
     for(int c = layers.channels; c < out_chans; c++)
       p2.samples[c][j] = 0.;
 
@@ -1927,7 +2022,9 @@ inline void Node::copy_open_pass()
   m_copy_period = period;
   m_copy_left = period;
   m_copy_dir = m_reverse ? -1 : 1;
-  const int64_t head = transport.playbackPos % std::max<int64_t>(1, m_export_length) % period;
+  const int64_t head
+      = written_at(transport.playbackPos % std::max<int64_t>(1, m_export_length), std::max<int64_t>(1, m_export_length))
+        % period;
   const int64_t behind = std::min<int64_t>(period / 2, 8192);
   m_copy_pos = ((head - m_copy_dir * behind) % period + period) % period;
 }
