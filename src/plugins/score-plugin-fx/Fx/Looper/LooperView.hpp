@@ -613,16 +613,17 @@ struct looper_view
 
       if(has_state)
       {
+        // Against the Send button, whatever its length.
         char info[160];
-        if(s.full)
-          std::snprintf(info, sizeof(info), "%.1f s, full", s.length_seconds);
-        else
-          std::snprintf(
-              info, sizeof(info), "%.1f s  %d %s%s", s.length_seconds, s.layers,
-              s.layers == 1 ? "layer" : "layers", s.redo > 0 ? "  (redo)" : "");
+        std::snprintf(
+            info, sizeof(info), "%.1f s%s%s", s.length_seconds, s.full ? ", full" : "",
+            s.redo > 0 ? "  (redo)" : "");
+        double info_w = 6.5 * std::strlen(info);
+        if constexpr(requires { ctx.text_width(std::string_view{}); })
+          info_w = ctx.text_width(info);
         ctx.set_fill_color({170, 170, 176, 255});
         ctx.begin_path();
-        ctx.draw_text(170., cy + 4., info);
+        ctx.draw_text(w - send_w - 10. - info_w, cy + 4., info);
         ctx.fill();
       }
 
@@ -651,14 +652,11 @@ struct looper_view
     const double top = header, lanes_h = h - header - 4.;
     if(!has_state || s.empty)
     {
-      ctx.set_fill_color({120, 120, 126, 255});
-      ctx.begin_path();
-      ctx.draw_text(10., top + lanes_h / 2., "Empty. Record to make a loop.");
-      ctx.fill();
       if(has_take())
       {
+        ctx.set_fill_color({120, 120, 126, 255});
         ctx.begin_path();
-        ctx.draw_text(10., top + lanes_h / 2. + 16., "The last take can still be sent.");
+        ctx.draw_text(10., top + lanes_h / 2., "The last take can still be sent.");
         ctx.fill();
       }
       return;

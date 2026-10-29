@@ -287,6 +287,13 @@ struct QPainterAdapter
     path.addText(x, y, painter.font(), QString::fromUtf8(str.data(), str.size()));
   }
 
+  //! The width the text takes in the current font.
+  double text_width(std::string_view str) const
+  {
+    return painter.fontMetrics().horizontalAdvance(
+        QString::fromUtf8(str.data(), str.size()));
+  }
+
   void draw_text(double x, double y, double w, double h, std::string_view str)
   {
     QRectF rect{x, y, w, h};
