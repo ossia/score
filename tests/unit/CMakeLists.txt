@@ -1962,6 +1962,12 @@ score_add_test(test_unit_recursive_watch_rescan
   SOURCES RecursiveWatchRescanTest.cpp
   PLUGINS score_lib_base)
 
+# for_all_files follows directory links (and Windows junctions) out of the
+# walked folder, UTF-8 throughout, and a link back up the tree is walked once.
+score_add_test(test_unit_recursive_watch_symlink
+  SOURCES RecursiveWatchSymlinkTest.cpp
+  PLUGINS score_lib_base)
+
 # LAYER / QUEUE raw raster keys: parsing, generated draw and resolve stages, and
 # the resolve fixtures baked for every backend's language.
 if(TARGET score_plugin_gfx)
