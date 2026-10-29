@@ -731,6 +731,21 @@ void ISFNode::adjustRenderTargetSpecs(int32_t port, RenderTargetSpecs& spec) con
       return;
     if(auto* cfg = inputSamplerConfig(inp))
       resolveSamplerFields(spec, *cfg);
+
+    // A compute shader's read-only image declares the format it reads, and
+    // its inlet is a render target the upstream node draws into: without
+    // this, an R32F depth or an RGBA32F position map arriving there was
+    // clamped to RGBA8. A format set on the inlet still wins.
+    if(auto* img = ossia::get_if<isf::csf_image_input>(&inp.data);
+       img && img->access == "read_only" && !img->format.empty())
+    {
+      auto it = this->renderTargetSpecs.find(port);
+      const bool inletSetsFormat
+          = it != this->renderTargetSpecs.end()
+            && (it->second.format_set || it->second.format != ossia::texture_format::RGBA8);
+      if(!inletSetsFormat)
+        spec.format = parseOutputFormat(img->format, spec.format);
+    }
   });
 }
 
