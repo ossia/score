@@ -11,6 +11,7 @@
 #include <cstddef>
 #include <mutex>
 #include <iostream>
+#include <set>
 
 #if __has_include(<version>)
 #include <version>
@@ -64,19 +65,63 @@
 namespace score
 {
 #if SCORE_HAS_LLFIO
-void for_all_files(std::string_view root, std::function<void(std::string_view)> f)
+static QString to_qstring(const std::filesystem::path& p)
+{
+#if !defined(_WIN32)
+  return QString::fromStdString(p.native());
+#else
+  return QString::fromStdWString(p.native());
+#endif
+}
+
+// root is a std::filesystem::path rather than a string so that recursing into a
+// symlink keeps the native (wide, on Windows) path llfio handed us: a narrow
+// round-trip would be read back as UTF-8 by llfio but as the ANSI code page by
+// std::filesystem.
+static void for_all_files(
+    const std::filesystem::path& root, std::function<void(std::string_view)>& f,
+    std::set<std::filesystem::path>& visited)
 {
   using namespace LLFIO_V2_NAMESPACE;
   {
     std::error_code ec;
-    const std::filesystem::path rootp{root};
-    if(!std::filesystem::is_directory(rootp, ec) || ec)
+    if(!std::filesystem::is_directory(root, ec) || ec)
+      return;
+
+    // llfio never descends into symlinks (nor, on Windows, junctions): we follow
+    // them ourselves below, so a link pointing back up the tree must not send us
+    // around forever. Windows profiles ship such junctions, e.g.
+    // AppData/Local/Application Data -> AppData/Local.
+    auto canonical = std::filesystem::canonical(root, ec);
+    if(ec || !visited.insert(std::move(canonical)).second)
       return;
   }
 
-  auto pp = path_handle::path(path_view(root, path_view::zero_terminated));
+  auto pp = path_handle::path(root);
   if(!pp)
     return;
+
+#if defined(_WIN32)
+  // llfio gives the entries directly in root as root's own path, in NT form
+  // ("\!!\Device\HarddiskVolume3\..."), plus their name, and the deeper ones
+  // relative to root: bring both back under root. Joined as-is, the former
+  // would come out as "C:\!!\Device\...", which does not exist.
+  std::filesystem::path root_nt;
+  if(auto cp = pp.value().current_path())
+    root_nt = std::move(cp).value();
+  const auto under_root = [&](const std::filesystem::path& e) {
+    const auto& rn = root_nt.native();
+    const auto& en = e.native();
+    if(!rn.empty() && en.size() > rn.size() && en.starts_with(rn)
+       && (en[rn.size()] == L'\\' || en[rn.size()] == L'/'))
+      return root / std::wstring_view{en}.substr(rn.size() + 1);
+    return root / e;
+  };
+#else
+  // llfio gives absolute paths, which replace root when joined.
+  const auto under_root = [&](const std::filesystem::path& e) { return root / e; };
+#endif
+
   algorithm::contents_visitor vis;
   vis.contents_include_symlinks = true;
   try
@@ -97,24 +142,24 @@ void for_all_files(std::string_view root, std::function<void(std::string_view)> 
         try {
         switch(p.second.st_type)
         {
-#if !defined(_WIN32)
           case std::filesystem::file_type::symlink:
-            for_all_files(p.first.native(), f);
+            for_all_files(under_root(p.first), f, visited);
             break;
-#endif
           case std::filesystem::file_type::regular: {
-            std::filesystem::path r{root};
-            r /= p.first;
+            const std::filesystem::path r = under_root(p.first);
 
 #if !defined(_WIN32)
             f(r.native());
 #else
             try {
-              f(r.generic_string());
+              // UTF-8 whatever the process code page: generic_string() would
+              // be in the ANSI one, which only the app's manifest makes UTF-8.
+              const auto s = r.generic_u8string();
+              f(std::string_view{reinterpret_cast<const char*>(s.data()), s.size()});
             }
             catch(...)
             {
-              // Very inefficient but r.generic_string() sometimes throws
+              // Very inefficient but the conversion sometimes throws
               // filesystem error: in __wide_to_char: Illegal byte sequence
               // on windows
               auto s = QString::fromStdWString(r.native()).toStdString();
@@ -147,8 +192,7 @@ void for_all_files(std::string_view root, std::function<void(std::string_view)> 
     {
       // A failure here yields no files at all, which is indistinguishable from an empty
       // library unless we say so.
-      qWarning() << "for_all_files: could not enumerate"
-                 << QString::fromUtf8(root.data(), root.size()) << ':'
+      qWarning() << "for_all_files: could not enumerate" << to_qstring(root) << ':'
                  << QString::fromStdString(make_error_code(res.error()).message());
     }
   }
@@ -158,6 +202,20 @@ void for_all_files(std::string_view root, std::function<void(std::string_view)> 
   catch(...)
   {
   }
+}
+
+void for_all_files(std::string_view root, std::function<void(std::string_view)> f)
+try
+{
+  // root is UTF-8: spell it out, as a narrow string is otherwise read with the
+  // ANSI code page on Windows.
+  const std::filesystem::path rootp{std::u8string_view{
+      reinterpret_cast<const char8_t*>(root.data()), root.size()}};
+  std::set<std::filesystem::path> visited;
+  for_all_files(rootp, f, visited);
+}
+catch(...)
+{
 }
 #endif
 
