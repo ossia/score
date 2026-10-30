@@ -3503,3 +3503,126 @@ TEST_CASE("MIDI looper: Capture over a loop lays its last round where it was pla
     CHECK(got == expected);
   }
 }
+
+TEST_CASE("MIDI looper: a key held when a quantized recording starts is recorded from "
+          "its start",
+          "[fx][midi][looper][grace]")
+{
+  for(const auto pt : {Passthrough::None, Passthrough::Record, Passthrough::Full})
+  {
+    CAPTURE(int(pt));
+    midi_harness h{512, 48000};
+    h.musical = true;
+    h.node.inputs.quantif.value = halp::grid_value::bars(1);
+    h.node.inputs.grace.value = 60;
+    h.node.inputs.passthrough = pt;
+    const int64_t bar = 96000; // 4 beats at 120 bpm
+
+    // Pressed half a bar before the bar line, far outside the grace window,
+    // and Record asked for while it is held.
+    h.run_frames(bar / 2);
+    h.note_on(60, 0);
+    h.run_frames(bar / 4);
+    h.node.inputs.mode = LoopMode::Record;
+    h.run_frames(bar / 4 + 4096);
+    REQUIRE(h.node.transport.actualMode == LoopMode::Record);
+    REQUIRE(h.node.loop.note_count == 1);
+    CHECK(h.node.loop.notes[0].start == 0);
+
+    // Heard from the bar line when the passthrough kept it silent before;
+    // once only when it was already heard.
+    const auto ons = h.ons();
+    if(pt == Passthrough::None)
+      CHECK(ons.empty());
+    else if(pt == Passthrough::Record)
+    {
+      REQUIRE(ons.size() == 1);
+      CHECK(ons[0].pitch == 60);
+      CHECK(ons[0].at >= bar);
+      CHECK(ons[0].at < bar + 512);
+    }
+    else
+    {
+      REQUIRE(ons.size() == 1);
+      CHECK(ons[0].at == bar / 2);
+    }
+
+    // Let go during the recording: it ends there, and is not left sounding.
+    h.out.clear();
+    h.note_off(60, 0);
+    h.run();
+    CHECK(h.node.loop.notes[0].length > 0);
+    if(pt != Passthrough::None)
+    {
+      REQUIRE(h.offs().size() == 1);
+      CHECK(h.offs()[0].pitch == 60);
+    }
+    else
+      CHECK(h.offs().empty());
+  }
+}
+
+TEST_CASE("MIDI looper: a key held when an overdub starts is recorded from its start",
+          "[fx][midi][looper][grace]")
+{
+  midi_harness h{64, 1000};
+  h.node.inputs.grace.value = 60;
+  record(h, 640, [](midi_harness& h) {
+    h.note_on(48, 10);
+    h.note_off(48, 40);
+  });
+  h.run_frames(100);
+  h.note_on(60, 0);
+  h.run_frames(300); // 300 ms before the overdub starts
+  h.node.inputs.mode = LoopMode::Overdub;
+  h.run_frames(64);
+  h.note_off(60, 0);
+  h.run();
+
+  REQUIRE(h.node.loop.note_count == 2);
+  const auto& n = h.node.loop.notes[1];
+  CHECK(n.pitch == 60);
+  CHECK(n.pass == 1);
+  CHECK(n.length > 0);
+}
+
+TEST_CASE("MIDI looper: a note let go long before the recording is not in it",
+          "[fx][midi][looper][grace]")
+{
+  midi_harness h{64, 1000};
+  h.node.inputs.grace.value = 60;
+  h.note_on(60, 0);
+  h.run();
+  h.note_off(60, 0);
+  h.run_frames(200);
+  h.node.inputs.mode = LoopMode::Record;
+  h.run_frames(640);
+  CHECK(h.node.loop.note_count == 0);
+}
+
+TEST_CASE("MIDI looper: a held key outlasts the notes played over it before the "
+          "recording",
+          "[fx][midi][looper][grace]")
+{
+  midi_harness h{64, 1000};
+  h.node.inputs.grace.value = 60;
+  h.note_on(36, 0);
+  h.run();
+  // More notes than the looper keeps from before a recording.
+  for(int i = 0; i < 40; i++)
+  {
+    h.note_on(60 + i, 0);
+    h.note_off(60 + i, 10);
+    h.run();
+  }
+  h.run_frames(200);
+  h.node.inputs.mode = LoopMode::Record;
+  h.run_frames(128);
+  h.note_off(36, 0);
+  h.run();
+
+  REQUIRE(h.node.loop.note_count == 1);
+  CHECK(h.node.loop.notes[0].pitch == 36);
+  CHECK(h.node.loop.notes[0].start == 0);
+  CHECK(h.node.loop.notes[0].length >= 128);
+}
