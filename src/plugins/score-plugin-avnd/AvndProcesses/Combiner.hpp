@@ -1,5 +1,9 @@
 #pragma once
+#include <ossia/network/base/osc_address.hpp>
+
 #include <AvndProcesses/AddressTools.hpp>
+
+#include <limits>
 
 namespace avnd_tools
 {
@@ -20,7 +24,7 @@ struct PatternCombiner : PatternObject
 
     struct
     {
-      halp__enum("Mode", List, List, Average, Sum, Min, Max);
+      halp__enum("Mode", List, List, Average, Sum, Min, Max, Map);
     } mode{};
 
   } inputs;
@@ -66,55 +70,48 @@ struct PatternCombiner : PatternObject
     {
       if(e.get_type() != t0)
         return std::nullopt;
-      if(e.apply(value_size{}) != n0)
+      // Maps are reduced key by key: they do not need to share their keys
+      if(t0 != ossia::val_type::MAP && e.apply(value_size{}) != n0)
         return std::nullopt;
     }
 
     return t0;
   }
 
+  // init: the identity of the operation; n: how many values were mapped
   struct average
   {
-    PatternCombiner& self;
-    static double map(double res, double other) noexcept { return res = res + other; }
-    double reduce(double res) const noexcept
-    {
-      return res = res / self.current_values.size();
-    }
+    static constexpr double init = 0.;
+    static double map(double res, double other) noexcept { return res + other; }
+    static double reduce(double res, std::size_t n) noexcept { return res / n; }
   };
   struct sum
   {
-    PatternCombiner& self;
-    static double map(double res, double other) noexcept { return res = res + other; }
-    static double reduce(double res) noexcept { return res; }
+    static constexpr double init = 0.;
+    static double map(double res, double other) noexcept { return res + other; }
+    static double reduce(double res, std::size_t) noexcept { return res; }
   };
   struct minimum
   {
-    PatternCombiner& self;
-    static double map(double res, double other) noexcept
-    {
-      return res = std::min(res, other);
-    }
-    static double reduce(double res) noexcept { return res; }
+    static constexpr double init = std::numeric_limits<double>::infinity();
+    static double map(double res, double other) noexcept { return std::min(res, other); }
+    static double reduce(double res, std::size_t) noexcept { return res; }
   };
   struct maximum
   {
-    PatternCombiner& self;
-    static double map(double res, double other) noexcept
-    {
-      return res = std::max(res, other);
-    }
-    static double reduce(double res) noexcept { return res; }
+    static constexpr double init = -std::numeric_limits<double>::infinity();
+    static double map(double res, double other) noexcept { return std::max(res, other); }
+    static double reduce(double res, std::size_t) noexcept { return res; }
   };
 
   void process_various(auto func)
   {
-    double res{};
+    double res = func.init;
     for(const auto& val : current_values)
     {
       res = func.map(res, ossia::convert<double>(val));
     }
-    res = func.reduce(res);
+    res = func.reduce(res, current_values.size());
     outputs.output.value = float(res);
   }
 
@@ -126,51 +123,53 @@ struct PatternCombiner : PatternObject
     void operator()(ossia::impulse) const noexcept { }
     void operator()(int) const noexcept
     {
-      float res{};
+      float res = func.init;
       for(const auto& val : self.current_values)
       {
         res = func.map(res, float(*val.template target<int>()));
       }
-      res = func.reduce(res);
+      res = func.reduce(res, self.current_values.size());
       self.outputs.output.value = res;
     }
     void operator()(float) const noexcept
     {
-      float res{};
+      float res = func.init;
       for(const auto& val : self.current_values)
       {
         res = func.map(res, *val.template target<float>());
       }
-      res = func.reduce(res);
+      res = func.reduce(res, self.current_values.size());
       self.outputs.output.value = res;
     }
     void operator()(bool) const noexcept
     {
-      float res{};
+      float res = func.init;
       for(const auto& val : self.current_values)
       {
         res = func.map(res, (*val.template target<bool>() ? 1.f : 0.f));
       }
-      res = func.reduce(res);
+      res = func.reduce(res, self.current_values.size());
       self.outputs.output.value = res;
     }
     void operator()(const std::string&) const noexcept { }
     void operator()(ossia::vec2f) const noexcept
     {
-      ossia::vec2f res{};
+      ossia::vec2f res;
+      res.fill(func.init);
       for(const auto& val : self.current_values)
       {
         const auto& in = *val.template target<ossia::vec2f>();
         res[0] = func.map(res[0], in[0]);
         res[1] = func.map(res[1], in[1]);
       }
-      res[0] = func.reduce(res[0]);
-      res[1] = func.reduce(res[1]);
+      res[0] = func.reduce(res[0], self.current_values.size());
+      res[1] = func.reduce(res[1], self.current_values.size());
       self.outputs.output.value = res;
     }
     void operator()(ossia::vec3f) const noexcept
     {
-      ossia::vec3f res{};
+      ossia::vec3f res;
+      res.fill(func.init);
       for(const auto& val : self.current_values)
       {
         const auto& in = *val.template target<ossia::vec3f>();
@@ -178,14 +177,15 @@ struct PatternCombiner : PatternObject
         res[1] = func.map(res[1], in[1]);
         res[2] = func.map(res[2], in[2]);
       }
-      res[0] = func.reduce(res[0]);
-      res[1] = func.reduce(res[1]);
-      res[2] = func.reduce(res[2]);
+      res[0] = func.reduce(res[0], self.current_values.size());
+      res[1] = func.reduce(res[1], self.current_values.size());
+      res[2] = func.reduce(res[2], self.current_values.size());
       self.outputs.output.value = res;
     }
     void operator()(ossia::vec4f) const noexcept
     {
-      ossia::vec4f res{};
+      ossia::vec4f res;
+      res.fill(func.init);
       for(const auto& val : self.current_values)
       {
         const auto& in = *val.template target<ossia::vec4f>();
@@ -194,17 +194,17 @@ struct PatternCombiner : PatternObject
         res[2] = func.map(res[2], in[2]);
         res[3] = func.map(res[3], in[3]);
       }
-      res[0] = func.reduce(res[0]);
-      res[1] = func.reduce(res[1]);
-      res[2] = func.reduce(res[2]);
-      res[3] = func.reduce(res[3]);
+      res[0] = func.reduce(res[0], self.current_values.size());
+      res[1] = func.reduce(res[1], self.current_values.size());
+      res[2] = func.reduce(res[2], self.current_values.size());
+      res[3] = func.reduce(res[3], self.current_values.size());
       self.outputs.output.value = res;
     }
     void operator()(const std::vector<ossia::value>& v) const noexcept
     {
       boost::container::small_vector<float, 250> res;
       const int N = v.size();
-      res.resize(N);
+      res.assign(N, func.init);
       for(const auto& val : self.current_values)
       {
         const auto& in = *val.template target<std::vector<ossia::value>>();
@@ -215,14 +215,43 @@ struct PatternCombiner : PatternObject
       }
 
       std::vector<ossia::value> rres;
+      rres.reserve(N);
       for(int i = 0; i < N; i++)
-        rres[i] = (float)func.reduce(res[i]);
+        rres.emplace_back((float)func.reduce(res[i], self.current_values.size()));
 
       self.outputs.output.value = std::move(rres);
     }
-    void
-    operator()(const std::vector<std::pair<std::string, ossia::value>>& v) const noexcept
+    void operator()(const ossia::value_map_type&) const noexcept
     {
+      // A key missing from some inputs is reduced over the inputs that have it
+      ossia::value_map_type rres;
+      boost::container::small_vector<double, 64> res;
+      boost::container::small_vector<std::size_t, 64> count;
+      for(const auto& val : self.current_values)
+      {
+        for(const auto& [k, v] : *val.template target<ossia::value_map_type>())
+        {
+          auto it = ossia::find_if(rres, [&k](const auto& e) { return e.first == k; });
+          const std::size_t i = it - rres.begin();
+          if(it == rres.end())
+          {
+            rres.emplace_back(k, ossia::value{});
+            res.push_back(func.init);
+            count.push_back(0);
+          }
+          res[i] = func.map(res[i], ossia::convert<double>(v));
+          count[i]++;
+        }
+      }
+
+      std::size_t i = 0;
+      for(auto& [k, v] : rres)
+      {
+        v = (float)func.reduce(res[i], count[i]);
+        i++;
+      }
+
+      self.outputs.output.value = std::move(rres);
     }
     void operator()() const noexcept { }
   };
@@ -258,32 +287,43 @@ struct PatternCombiner : PatternObject
       case mode::List:
         outputs.output.value = current_values;
         break;
+      case mode::Map: {
+        ossia::value_map_type res;
+        res.reserve(current_values.size());
+        for(auto in : this->roots)
+        {
+          if(auto p = in->get_parameter())
+            res.emplace_back(ossia::net::address_string_from_node(*in), p->value());
+        }
+        outputs.output.value = std::move(res);
+        break;
+      }
       case mode::Average: {
         if(auto t = all_have_same_type(current_values))
-          process_fixed(average{*this});
+          process_fixed(average{});
         else
-          process_various(average{*this});
+          process_various(average{});
         break;
       }
       case mode::Sum: {
         if(auto t = all_have_same_type(current_values))
-          process_fixed(sum{*this});
+          process_fixed(sum{});
         else
-          process_various(sum{*this});
+          process_various(sum{});
         break;
       }
       case mode::Min: {
         if(auto t = all_have_same_type(current_values))
-          process_fixed(minimum{*this});
+          process_fixed(minimum{});
         else
-          process_various(minimum{*this});
+          process_various(minimum{});
         break;
       }
       case mode::Max: {
         if(auto t = all_have_same_type(current_values))
-          process_fixed(maximum{*this});
+          process_fixed(maximum{});
         else
-          process_various(maximum{*this});
+          process_various(maximum{});
         break;
       }
     }
