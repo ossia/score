@@ -333,6 +333,7 @@ else() # Linux
     COMPONENT OssiaScore)
 endif()
 
+include(ScoreDevDesktopFile)
 include(ScoreDeployment)
 
 if(EMSCRIPTEN)
