@@ -311,10 +311,11 @@ private:
   };
   import_options current_options() const noexcept;
   std::optional<import_options> m_options;
-  // Meshes without their materials (Materials off), by source mesh: kept
-  // so that the same mesh comes out as the same pointer on every rebuild.
+  // Meshes without their materials (Materials off) or their skin (Skinning
+  // off), by source mesh: kept so that the same mesh comes out as the same
+  // pointer on every rebuild. Emptied when the toggles change.
   std::unordered_map<const ossia::mesh_component*, ossia::mesh_component_ptr>
-      m_unmaterialed;
+      m_stripped;
   int64_t m_version_counter{0};
 
   score::gfx::GpuResourceRegistry::Slot raw_transform_slot;

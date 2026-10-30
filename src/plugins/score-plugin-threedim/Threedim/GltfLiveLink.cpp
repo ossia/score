@@ -973,18 +973,27 @@ GltfLiveLink::filter_components(std::shared_ptr<const ossia::scene_state> st)
   const bool skinning = inputs.skinning.value;
   if(!st || (cameras && lights && materials && skinning))
   {
-    m_unmaterialed.clear();
+    m_stripped.clear();
     return st;
   }
 
-  std::unordered_map<const ossia::mesh_component*, ossia::mesh_component_ptr> unmaterialed;
+  // Skinning off: the meshes lose their skin as well, since the renderer
+  // still skins a mesh by the skin it points at when scene_state does not
+  // list it (flattenScene's FlatScene::skins).
+  auto strips = [&](const ossia::mesh_component& mesh) {
+    return !materials || (!skinning && mesh.skin);
+  };
+  std::unordered_map<const ossia::mesh_component*, ossia::mesh_component_ptr> stripped;
   auto strip = [&](const ossia::mesh_component_ptr& mesh) -> ossia::mesh_component_ptr {
-    auto& out = unmaterialed[mesh.get()];
-    if(auto it = m_unmaterialed.find(mesh.get()); it != m_unmaterialed.end())
+    auto& out = stripped[mesh.get()];
+    if(auto it = m_stripped.find(mesh.get()); it != m_stripped.end())
       return out = it->second;
     auto m = std::make_shared<ossia::mesh_component>(*mesh);
-    for(auto& p : m->primitives)
-      p.material.reset(); // the renderer's default material
+    if(!materials)
+      for(auto& p : m->primitives)
+        p.material.reset(); // the renderer's default material
+    if(!skinning)
+      m->skin.reset(); // drawn unskinned, in its bind pose
     m->dirty_index = mesh->dirty_index + 1;
     return out = std::move(m);
   };
@@ -1008,7 +1017,8 @@ GltfLiveLink::filter_components(std::shared_ptr<const ossia::scene_state> st)
         changed = true;
         continue;
       }
-      if(auto* mesh = ossia::get_if<ossia::mesh_component_ptr>(&c); mesh && *mesh && !materials)
+      if(auto* mesh = ossia::get_if<ossia::mesh_component_ptr>(&c);
+         mesh && *mesh && strips(**mesh))
       {
         children.push_back(strip(*mesh));
         changed = true;
@@ -1048,7 +1058,7 @@ GltfLiveLink::filter_components(std::shared_ptr<const ossia::scene_state> st)
     out->active_camera_id = {};
   }
   out->version = ++m_version_counter;
-  m_unmaterialed = std::move(unmaterialed);
+  m_stripped = std::move(stripped);
   return out;
 }
 
@@ -1350,6 +1360,7 @@ void GltfLiveLink::operator()()
   if(const auto opts = current_options(); opts != m_options)
   {
     m_scene_dirty |= m_options.has_value();
+    m_stripped.clear(); // stripped under the previous toggles
     m_options = opts;
   }
 

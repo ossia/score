@@ -18,6 +18,8 @@
 #include <Threedim/GltfLiveLink.hpp>
 #include <Threedim/LiveLink/Protocol.hpp>
 
+#include <Gfx/Graph/SceneGPUState.hpp>
+
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
@@ -1013,6 +1015,80 @@ TEST_CASE("live link import toggles", "[livelink]")
   CHECK(st().skeletons->size() == 1);
   CHECK(x_of(node, "Bone") == 7.f);
   CHECK(blob()->morph_weights[0] == 0.5f);
+}
+
+// The renderer packs a skin that a mesh points at even when scene_state does
+// not list it (flattenScene's FlatScene::skins), so Skinning off has to take
+// the skin off the meshes too, or the mesh is still skinned.
+TEST_CASE("live link skinning off reaches the renderer unskinned", "[livelink]")
+{
+  GltfLiveLink node;
+  quiet(node);
+  auto scene = make_rich_scene();
+  {
+    // Blob's mesh skinned by the scene's skeleton, as GltfParser emits it.
+    auto roots = *scene.state->roots;
+    auto& blob_node = roots[3];
+    auto children = *blob_node->children;
+    for(auto& c : children)
+      if(auto* m = ossia::get_if<ossia::mesh_component_ptr>(&c))
+      {
+        auto skinned = std::make_shared<ossia::mesh_component>(**m);
+        skinned->skin = (*scene.state->skeletons)[0];
+        *m = std::move(skinned);
+      }
+    auto n = std::make_shared<ossia::scene_node>(*blob_node);
+    n->children = std::make_shared<const std::vector<ossia::scene_payload>>(std::move(children));
+    blob_node = std::move(n);
+    scene.state->roots
+        = std::make_shared<std::vector<ossia::scene_node_ptr>>(std::move(roots));
+  }
+  node.set_scene(scene.state, 1, {"Mat"});
+
+  auto flatten = [&] {
+    ossia::scene_spec spec;
+    spec.state = node.outputs.scene_out.scene.state;
+    score::gfx::FlatScene flat;
+    score::gfx::flattenScene(spec, flat, 1.f);
+    return flat;
+  };
+  auto blob = [&] {
+    return component<ossia::mesh_component>(*find(*node.outputs.scene_out.scene.state, "Blob"));
+  };
+
+  node();
+  {
+    const auto flat = flatten();
+    REQUIRE(flat.draws.size() == 1);
+    CHECK(flat.draws[0].skinIndex == 0);
+    CHECK(flat.skins.size() == 1);
+  }
+
+  // Materials off first: the mesh comes out without its material but skinned.
+  node.inputs.materials.value = false;
+  node();
+  CHECK_FALSE(blob()->primitives[0].material);
+  CHECK(blob()->skin);
+
+  // Then Skinning off as well, and alone: no skin reaches the renderer.
+  node.inputs.skinning.value = false;
+  node();
+  CHECK_FALSE(blob()->skin);
+  node.inputs.materials.value = true;
+  node();
+  CHECK(blob()->primitives[0].material);
+  CHECK_FALSE(blob()->skin);
+  {
+    const auto flat = flatten();
+    REQUIRE(flat.draws.size() == 1);
+    CHECK(flat.draws[0].skinIndex == -1);
+    CHECK(flat.skins.empty());
+  }
+
+  node.inputs.skinning.value = true;
+  node();
+  CHECK(blob()->skin);
+  CHECK(flatten().draws[0].skinIndex == 0);
 }
 
 TEST_CASE("live link reads Blender files with negative texCoord indices", "[livelink]")
