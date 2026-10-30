@@ -37,6 +37,14 @@ jobs:
     - name: Fetch add-ons
       run: ./ci/common.deps.sh LINUX
 
+    # flatpak retires the deploy it replaces by renaming it aside, which
+    # overlayfs refuses for anything that came from the image's lower layer.
+    - name: Put the flatpak installation on the writable layer
+      run: |
+        cp -a /var/lib/flatpak /var/lib/flatpak.rw
+        rm -rf /var/lib/flatpak
+        mv /var/lib/flatpak.rw /var/lib/flatpak
+
     - uses: flatpak/flatpak-github-actions/flatpak-builder@v6
       with:
         bundle: io.ossia.score.${{ matrix.arch }}.flatpak
