@@ -742,7 +742,7 @@ TEST_CASE("live link overrides lights, cameras, materials, shape keys, bones, vi
       put_record(b.visibility, "Lamp", seq, visibility_record{"Lamp", 0});
     });
     CHECK(x_of(node, "Blob") == 3.f);
-    CHECK(pointers() == std::tuple{lamp0, cam0, mat0, mesh0});
+    CHECK((pointers() == std::tuple{lamp0, cam0, mat0, mesh0}));
 
     // Another material value: a new material, and with it a new mesh using
     // it, but the same blend (and so the same vertex buffer).
