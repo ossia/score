@@ -144,7 +144,8 @@ struct Node : Looper::looper_node<Node>
       halp_meta(
           description,
           "A note played this long before a recording or an overdub starts "
-          "belongs to its first beat.")
+          "belongs to its first beat. A note still held when it starts always "
+          "does.")
     } grace;
 
     struct : halp::spinbox_i32<"Late stop (ms)", halp::irange{0, 500, 120}>
@@ -718,7 +719,8 @@ private:
   std::array<playing_note, max_playing> m_playing{};
   int m_playing_count{};
 
-  // Note-ons played just before a pass started, for the grace window.
+  // Note-ons played before a pass started: the ones still held, and the
+  // ones of the grace window.
   struct early_note
   {
     int64_t on;  //!< frame of the note-on, on m_now's count
@@ -806,8 +808,8 @@ private:
   void advance(int64_t start, int64_t length, bool overdub);
   double rate() const noexcept;
   double m_phase{};
-  void begin_pass_grace(int64_t pos);
-  void begin_pass_carried(int64_t k);
+  void begin_pass_grace(int64_t pos, int64_t ts);
+  void begin_pass_carried(int64_t k, int64_t ts);
 
   struct placed_note
   {
@@ -1228,13 +1230,21 @@ inline void Node::handle_input(
         {
           if(taking && pos >= 0)
             record_note_on(pos, m);
-          else if(m_early_count < int(m_early.size()))
-            m_early[m_early_count++]
-                = {m_now + ts, -1, uint8_t(ch), m.bytes[1], m.bytes[2]};
           else
           {
-            std::rotate(m_early.begin(), m_early.begin() + 1, m_early.end());
-            m_early.back() = {m_now + ts, -1, uint8_t(ch), m.bytes[1], m.bytes[2]};
+            // Full: the oldest note let go makes room, as a key still held
+            // is recorded whenever it was pressed.
+            if(m_early_count == int(m_early.size()))
+            {
+              auto it = std::find_if(
+                  m_early.begin(), m_early.end(), [](const early_note& e) { return e.off >= 0; });
+              if(it == m_early.end())
+                it = m_early.begin();
+              std::rotate(it, it + 1, m_early.end());
+              m_early_count--;
+            }
+            m_early[m_early_count++]
+                = {m_now + ts, -1, uint8_t(ch), m.bytes[1], m.bytes[2]};
           }
         }
         if(echo)
@@ -1342,18 +1352,26 @@ inline void Node::record_note_off(int64_t pos, const libremidi::message& m)
     n->length = loop.distance(n->start, pos);
 }
 
-//! Notes played just before the pass started belong to its first frame.
-inline void Node::begin_pass_grace(int64_t pos)
+//! Notes played just before the pass started, and the ones still held
+//! however long ago they were pressed, belong to its first frame. A held one
+//! the passthrough kept silent is heard from there on, as the loop will play
+//! it.
+inline void Node::begin_pass_grace(int64_t pos, int64_t ts)
 {
   const int64_t grace = int64_t(inputs.grace.value * m_rate / 1000.);
+  const bool echo = inputs.passthrough != Passthrough::None;
   for(int i = 0; i < m_early_count; i++)
   {
     const auto& e = m_early[i];
-    if(m_now - e.on > grace)
+    const bool held = e.off < 0;
+    if(!held && m_now - e.on > grace)
       continue;
     material_arriving();
-    if(auto* n = loop.add_note(pos, e.channel, e.pitch, e.velocity); n && e.off >= 0)
+    if(auto* n = loop.add_note(pos, e.channel, e.pitch, e.velocity); n && !held)
       n->length = std::max<int64_t>(1, e.off - e.on);
+    if(held && echo
+       && m_sounding[e.channel - 1][e.pitch] <= m_loop_sounding[e.channel - 1][e.pitch])
+      note_on(e.channel, e.pitch, e.velocity, ts, false);
   }
   m_early_count = 0;
 }
@@ -1363,13 +1381,13 @@ inline void Node::begin_pass_grace(int64_t pos)
 //! the playhead went on from the grid point, the pass starts there and what
 //! was played is where it was played; else it is played at the start of the
 //! pass, as the grace window does.
-inline void Node::begin_pass_carried(int64_t k)
+inline void Node::begin_pass_carried(int64_t k, int64_t ts)
 {
   const int64_t len = loop.length;
   const bool from_point
       = m_carried_span > 0 && m_carried_span < len && k == m_carried_span;
   begin_pass(from_point ? 0 : k);
-  begin_pass_grace(from_point ? 0 : k);
+  begin_pass_grace(from_point ? 0 : k, ts);
   for(int i = 0; i < m_carried_note_count; i++)
   {
     const auto& c = m_carried_notes[i];
@@ -1429,7 +1447,7 @@ inline int64_t Node::looper_run(int64_t start, int64_t length)
         m_switches.soloed.forget();
         transport.playbackPos = 0;
         m_export_pending = false;
-        begin_pass_grace(0);
+        begin_pass_grace(0, start);
       }
       transport.taking(LoopMode::Record);
       const int64_t pos0 = loop.length;
@@ -1451,7 +1469,7 @@ inline int64_t Node::looper_run(int64_t start, int64_t length)
       if(!transport.is_taking())
       {
         const int64_t k = int64_t(m_phase) % loop.length;
-        begin_pass_carried(k);
+        begin_pass_carried(k, start);
         m_cycle_pending = false;
         m_last_ctl_count = 0;
         // An extending pass grows the loop by the loop it started over.
