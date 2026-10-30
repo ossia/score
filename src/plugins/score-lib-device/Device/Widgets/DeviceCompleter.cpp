@@ -53,7 +53,7 @@ QStringList DeviceCompleter::splitPath(const QString& path) const
 {
   QString p2 = path;
 
-  if(p2.at(0) == QChar('/'))
+  if(p2.startsWith(QChar('/')))
   {
     p2.remove(0, 1);
   }
