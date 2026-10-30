@@ -2404,6 +2404,16 @@ if(TARGET score_plugin_avnd)
     "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/include")
 endif()
 
+# Pattern combiner: every mode over float, list and map inputs.
+if(TARGET score_plugin_avnd)
+  score_add_test(test_unit_avnd_pattern_combiner
+    SOURCES AvndPatternCombinerTest.cpp
+    PLUGINS score_plugin_avnd)
+  target_include_directories(test_unit_avnd_pattern_combiner PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-avnd"
+    "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/include")
+endif()
+
 # The %t / %n placeholders of recorder and save-file paths, resolved where the
 # file is written.
 if(TARGET score_plugin_avnd)
