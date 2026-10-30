@@ -2240,5 +2240,7 @@ score_add_gfx_test(isf_vertex_count GfxIsfVertexCount.cpp)
 
 # A CSF storage image is allocated in the format its FORMAT qualifier names.
 score_add_gfx_test(csf_image_format GfxCsfImageFormat.cpp)
+# A CSF read-only image's inlet render target takes the FORMAT it declares.
+score_add_gfx_test(csf_read_only_image_format GfxCsfReadOnlyImageFormat.cpp)
 score_add_gfx_test(library_parse GfxLibraryParse.cpp)
 score_add_gfx_test(shader_include_invalidation GfxShaderIncludeInvalidation.cpp)
