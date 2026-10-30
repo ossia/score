@@ -742,7 +742,7 @@ TEST_CASE("live link overrides lights, cameras, materials, shape keys, bones, vi
       put_record(b.visibility, "Lamp", seq, visibility_record{"Lamp", 0});
     });
     CHECK(x_of(node, "Blob") == 3.f);
-    CHECK(pointers() == std::tuple{lamp0, cam0, mat0, mesh0});
+    CHECK((pointers() == std::tuple{lamp0, cam0, mat0, mesh0}));
 
     // Another material value: a new material, and with it a new mesh using
     // it, but the same blend (and so the same vertex buffer).
@@ -772,7 +772,7 @@ TEST_CASE("live link overrides lights, cameras, materials, shape keys, bones, vi
     const auto [lamp2, cam2, mat2, mesh2] = pointers();
     CHECK(lamp2 != lamp1);
     CHECK(lamp2->intensity == 2.f);
-    CHECK(std::tuple{cam2, mat2, mesh2} == std::tuple{cam1, mat1, mesh1});
+    CHECK((std::tuple{cam2, mat2, mesh2} == std::tuple{cam1, mat1, mesh1}));
   }
 
   SECTION("a new scene drops the overrides it contains")
