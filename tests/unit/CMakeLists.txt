@@ -203,6 +203,13 @@ score_add_test(test_unit_library_preset_preview
   APP
   PLUGINS score_plugin_library score_lib_process)
 
+# The preset button's Forward / Back buttons: the menu's order, from the
+# preset loaded last.
+score_add_test(test_unit_preset_step
+  SOURCES PresetStepTest.cpp
+  APP
+  PLUGINS score_plugin_fx score_plugin_scenario score_lib_process)
+
 # Where a downloaded package lands: unwrapping the folder archives are built
 # with, over a previous install and over entries a listing does not show.
 if(TARGET score_plugin_packagemanager)

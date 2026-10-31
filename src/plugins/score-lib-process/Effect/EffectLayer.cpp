@@ -32,6 +32,7 @@
 #include <core/view/Window.hpp>
 
 #include <ossia/detail/algorithms.hpp>
+#include <ossia/detail/hash_map.hpp>
 #include <ossia/detail/thread.hpp>
 
 #include <QActionGroup>
@@ -761,14 +762,145 @@ QGraphicsItem* makeExternalUIButton(
   return nullptr;
 }
 
-// Order presets the way the menu displays them: grouped by category so each
-// submenu's entries stay together, then alphabetically by name within a category.
-static bool
-presetMenuOrder(const Process::Preset* lhs, const Process::Preset* rhs) noexcept
+namespace
 {
-  if(lhs->category != rhs->category)
-    return lhs->category < rhs->category;
+//! "Foo / Bar//Baz" -> {"Foo", "Bar", "Baz"}: a category as the menu nests it
+QStringList categoryPath(const QString& category)
+{
+  QStringList path;
+  for(const QString& part : category.split('/', Qt::SkipEmptyParts))
+    if(auto p = part.trimmed(); !p.isEmpty())
+      path.push_back(std::move(p));
+  return path;
+}
+
+// Grouped by category, each submenu's entries together, then by name: a
+// category sorts before its own subcategories, as the menu shows them
+bool presetMenuOrder(const Process::Preset* lhs, const Process::Preset* rhs) noexcept
+{
+  const auto a = categoryPath(lhs->category), b = categoryPath(rhs->category);
+  if(a != b)
+    return std::lexicographical_compare(a.begin(), a.end(), b.begin(), b.end());
   return lhs->name < rhs->name;
+}
+
+// The presets of a process as its preset menu shows them. The menu is built
+// from this tree and the Forward / Back buttons walk it depth-first, so that
+// stepping goes through the presets in exactly the order the menu lists them,
+// built-in presets that land in a library preset's submenu included.
+struct PresetTree
+{
+  struct Node
+  {
+    QString name;
+    struct Entry
+    {
+      const Process::Preset* preset{}; // a preset,
+      int child = -1;                  // or a submenu,
+      bool separator{};                // or a separator
+    };
+    std::vector<Entry> entries;
+    std::vector<std::unique_ptr<Node>> children;
+    ossia::hash_map<QString, int> childIndex;
+  };
+  Node root;
+
+  //! The library's presets of this process, then its built-in ones: both
+  //! must outlive the tree
+  PresetTree(
+      const Process::ProcessModel& proc, const std::vector<Process::Preset>& library,
+      const std::vector<Process::Preset>& builtins)
+  {
+    std::vector<const Process::Preset*> files;
+    for(auto& preset : library)
+      if(proc.presetMatches(preset))
+        files.push_back(&preset);
+    std::sort(files.begin(), files.end(), presetMenuOrder);
+    for(auto* preset : files)
+      add(*preset);
+
+    if(!builtins.empty() && !files.empty())
+      root.entries.push_back({nullptr, -1, true});
+    for(auto& preset : builtins)
+      add(preset);
+  }
+
+  std::vector<const Process::Preset*> ordered() const
+  {
+    std::vector<const Process::Preset*> out;
+    flatten(root, out);
+    return out;
+  }
+
+private:
+  Node& node(const QString& category)
+  {
+    Node* current = &root;
+    for(const QString& part : categoryPath(category))
+    {
+      auto it = current->childIndex.find(part);
+      if(it == current->childIndex.end())
+      {
+        auto child = std::make_unique<Node>();
+        child->name = part;
+        const int index = int(current->children.size());
+        current->children.push_back(std::move(child));
+        current->entries.push_back({nullptr, index, false});
+        it = current->childIndex.emplace(part, index).first;
+      }
+      current = current->children[std::size_t(it->second)].get();
+    }
+    return *current;
+  }
+
+  void add(const Process::Preset& preset)
+  {
+    node(preset.category).entries.push_back({&preset, -1, false});
+  }
+
+  static void flatten(const Node& n, std::vector<const Process::Preset*>& out)
+  {
+    for(auto& e : n.entries)
+    {
+      if(e.preset)
+        out.push_back(e.preset);
+      else if(e.child >= 0)
+        flatten(*n.children[std::size_t(e.child)], out);
+    }
+  }
+};
+
+// The preset last loaded from the preset button, kept on the process so that
+// it outlives the button: headers are rebuilt on zoom, resize, selection...
+// Loading a preset does not rename the process, so its name says nothing
+// about which preset is current.
+constexpr auto presetCursorProperty = "score_presetCursor";
+
+void rememberPreset(const Process::ProcessModel& proc, const Process::Preset& preset)
+{
+  const_cast<Process::ProcessModel&>(proc).setProperty(
+      presetCursorProperty, QStringList{preset.category, preset.name});
+}
+
+bool isCurrentPreset(const Process::ProcessModel& proc, const Process::Preset& preset)
+{
+  const auto cursor = proc.property(presetCursorProperty).toStringList();
+  return cursor.size() == 2 && cursor[0] == preset.category && cursor[1] == preset.name;
+}
+
+void loadPresetFromButton(
+    const Process::ProcessModel& proc, const Process::Preset& preset,
+    const score::DocumentContext& context)
+{
+  auto& load_preset_ifaces = context.app.interfaces<LoadPresetCommandFactoryList>();
+  if(auto cmd
+     = load_preset_ifaces.make(&LoadPresetCommandFactory::make, proc, preset, context))
+  {
+    rememberPreset(proc, preset);
+    CommandDispatcher<> c{context.commandStack};
+    c.submit(cmd);
+  }
+}
 }
 
 score::QGraphicsDraggablePixmap* makePresetButton(
@@ -783,7 +915,8 @@ score::QGraphicsDraggablePixmap* makePresetButton(
           "Presets\nDrag to the library to save the current preset. Drag to a "
           "scenario or a state for a cue of the current values of the controls; "
           "hold Ctrl when dropping to choose what to drop. If there are "
-          "existing presets, they will be shown in a menu."));
+          "existing presets, they will be shown in a menu. The mouse's Forward "
+          "and Back buttons step through them in the menu's order."));
   ui_btn->createDrag = [&proc, &context](QMimeData& mime) {
     // Dropped on a state or in a scenario it makes a cue; elsewhere a copy
     std::vector<const ProcessModel*> dragged{&proc};
@@ -814,7 +947,8 @@ score::QGraphicsDraggablePixmap* makePresetButton(
 
   ui_btn->click = [&proc, &context](Qt::MouseButton btn, QPointF screenPos) {
     auto& pplug = context.app.applicationPlugin<Process::ApplicationPlugin>();
-    const auto& presets = pplug.presets;
+    const auto builtins = proc.builtinPresets();
+    const PresetTree tree{proc, pplug.presets, builtins};
 
     switch(btn)
     {
@@ -826,82 +960,37 @@ score::QGraphicsDraggablePixmap* makePresetButton(
         menu->setToolTipsVisible(true);
         menu->addAction(
             "Save current preset", menu, [&proc, &pplug] { pplug.savePreset(&proc); });
-
-        auto loadPreset = [&proc, &context](const Process::Preset& preset) {
-          auto& load_preset_ifaces
-              = context.app.interfaces<LoadPresetCommandFactoryList>();
-
-          auto cmd = load_preset_ifaces.make(
-              &LoadPresetCommandFactory::make, proc, preset, context);
-          if(cmd)
-          {
-            CommandDispatcher<> c{context.commandStack};
-            c.submit(cmd);
-          }
-        };
-
-        // Resolve a "Foo/Bar/Baz" category path to the submenu it designates,
-        // creating (and caching) the intermediate submenus on the way.
-        // An empty category resolves to the root menu.
-        QHash<QString, QMenu*> submenus;
-        auto categoryMenu = [&](const QString& category) -> QMenu* {
-          QMenu* current = menu;
-          QString path;
-          const auto parts = category.split('/', Qt::SkipEmptyParts);
-          for(const QString& rawPart : parts)
-          {
-            const QString part = rawPart.trimmed();
-            if(part.isEmpty())
-              continue;
-            if(!path.isEmpty())
-              path += '/';
-            path += part;
-
-            auto it = submenus.find(path);
-            if(it != submenus.end())
-              current = it.value();
-            else
-            {
-              current = *submenus.insert(path, current->addMenu(part));
-              current->setToolTipsVisible(true);
-            }
-          }
-          return current;
-        };
-
-        std::vector<const Process::Preset*> goodPresets;
-        for(auto& preset : presets)
-        {
-          if(proc.presetMatches(preset))
-            goodPresets.push_back(&preset);
-        }
-        std::sort(goodPresets.begin(), goodPresets.end(), presetMenuOrder);
-
         menu->addSeparator();
 
-        for(auto p : goodPresets)
-        {
-          auto act = categoryMenu(p->category)->addAction(p->name, menu, [p, loadPreset] {
-            loadPreset(*p);
-          });
-          if(!p->description.isEmpty())
-            act->setToolTip(p->description);
-        }
-
-        if(auto proc_builtins = proc.builtinPresets(); !proc_builtins.empty())
-        {
-          if(!goodPresets.empty())
-            menu->addSeparator();
-
-          for(auto& p : proc_builtins)
+        // The actions hold a copy of their preset: the library's list can
+        // grow, and reallocate, while the menu is open
+        auto fill = [&](auto& recurse, QMenu* m, const PresetTree::Node& n) -> void {
+          for(auto& e : n.entries)
           {
-            // FIXME try to understand why just p.name does not work here
-            categoryMenu(p.category)
-                ->addAction("" + p.name, menu, [p = std::move(p), loadPreset] {
-              loadPreset(p);
-            });
+            if(e.separator)
+              m->addSeparator();
+            else if(e.child >= 0)
+            {
+              auto& child = *n.children[std::size_t(e.child)];
+              auto sub = m->addMenu(child.name);
+              sub->setToolTipsVisible(true);
+              recurse(recurse, sub, child);
+            }
+            else if(e.preset)
+            {
+              auto act = m->addAction(
+                  e.preset->name, menu,
+                  [&proc, &context, preset = *e.preset] {
+                loadPresetFromButton(proc, preset, context);
+              });
+              if(!e.preset->description.isEmpty())
+                act->setToolTip(e.preset->description);
+              act->setCheckable(true);
+              act->setChecked(isCurrentPreset(proc, *e.preset));
+            }
           }
-        }
+        };
+        fill(fill, menu, tree.root);
 
         menu->exec(screenPos.toPoint());
         menu->deleteLater();
@@ -910,52 +999,29 @@ score::QGraphicsDraggablePixmap* makePresetButton(
 
       case Qt::ForwardButton:
       case Qt::BackButton: {
-        std::vector<const Process::Preset*> goodPresets;
-        for(auto& preset : presets)
-          if(proc.presetMatches(preset))
-            goodPresets.push_back(&preset);
-        auto bps = proc.builtinPresets();
-        for(auto& bp : bps)
-          goodPresets.push_back(&bp);
-
-        // Cycle in the same order the menu displays them.
-        std::sort(goodPresets.begin(), goodPresets.end(), presetMenuOrder);
-
-        if(goodPresets.size() < 2)
+        // Step from the current preset, in the menu's order
+        const auto ordered = tree.ordered();
+        const int n = std::ssize(ordered);
+        if(n < 2)
           return;
 
-        // loadPreset() renames the process to the preset's name, so the
-        // currently-loaded preset is the one whose name matches.
-        const QString cur = proc.metadata().getName();
         int i = -1;
-        for(int j = 0; j < std::ssize(goodPresets); j++)
-        {
-          if(goodPresets[j]->name == cur)
+        for(int j = 0; j < n; j++)
+          if(isCurrentPreset(proc, *ordered[std::size_t(j)]))
           {
             i = j;
             break;
           }
-        }
 
-        const int n = std::ssize(goodPresets);
         if(i < 0)
-          // Nothing matches (renamed / never loaded): start at the relevant end.
+          // None loaded from here yet: start at the relevant end
           i = (btn == Qt::ForwardButton) ? 0 : (n - 1);
         else if(btn == Qt::ForwardButton)
           i = (i + 1) % n;
         else
           i = (i - 1 + n) % n;
 
-        auto& load_preset_ifaces
-            = context.app.interfaces<LoadPresetCommandFactoryList>();
-
-        auto cmd = load_preset_ifaces.make(
-            &LoadPresetCommandFactory::make, proc, *goodPresets[i], context);
-        if(cmd)
-        {
-          CommandDispatcher<> c{context.commandStack};
-          c.submit(cmd);
-        }
+        loadPresetFromButton(proc, *ordered[std::size_t(i)], context);
         break;
       }
     }
