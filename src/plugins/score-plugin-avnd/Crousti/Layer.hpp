@@ -1056,7 +1056,20 @@ struct LayoutBuilder final : Process::LayoutBuilderBase
     {
       // Widget with some metadata.. FIXME
       // Auto-generated item for a control
-      createWidget(item, recursive_members..., item.model);
+      if constexpr(
+          sizeof...(recursive_members) > 0
+          && !requires { ((inputs_type{}).*....*recursive_members).*item.model; }
+          && requires { (inputs_type{}).*item.model; })
+      {
+        // In a recursive group, a control of the processor itself rather than
+        // of the group, e.g. one added after all the groups so as to keep the
+        // ids of their ports
+        createWidget(item, item.model);
+      }
+      else
+      {
+        createWidget(item, recursive_members..., item.model);
+      }
     }
     else if constexpr(avnd::custom_multi_control_layout<Item>)
     {
