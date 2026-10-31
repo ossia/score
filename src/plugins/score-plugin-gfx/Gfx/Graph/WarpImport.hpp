@@ -26,7 +26,7 @@ struct WarpImport
 //! "x y u v intensity", x in [-aspect, aspect], y in [-1, 1] up, v up, a
 //! negative intensity drops the node), rasterised at width x height. The
 //! intensity becomes the alpha map. A width or height <= 0 picks 1024 wide at
-//! the mesh's aspect.
+//! the mesh's aspect, at most 4096 high; at most 16384 per side otherwise.
 SCORE_PLUGIN_GFX_EXPORT
 WarpImport importBourkeMesh(
     const QByteArray& text, int width, int height, QString* error = nullptr);

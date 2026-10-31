@@ -3,10 +3,12 @@
 // shader's DEPTH_COMPARE.
 //
 // rr-cube-depth-implicit draws a green quad at window depth 0.8, then a red one
-// at 0.2, into every face. The default reverse-Z compare (greater) keeps green;
-// DEPTH_COMPARE "less" keeps red. Before the fix the pipeline was built against
-// the node's layered target, which has no depth attachment, so depth testing
-// was off and every face showed the last quad drawn (red) whatever the compare.
+// at 0.2, into every face: the default reverse-Z compare (greater) keeps green.
+// rr-cube-depth-implicit-less draws red at 0.2, then green at 0.8: DEPTH_COMPARE
+// "less" keeps red. In both the quad that must win is drawn first, so a pass
+// without depth testing shows the other one. Before the fix the pipeline was
+// built against the node's layered target, which has no depth attachment, so
+// depth testing was off and every face showed the last quad drawn.
 // The six faces are read through syn-cube-six-probe.fs (3x2 grid of axis
 // probes).
 #include <score_test/Gfx.hpp>

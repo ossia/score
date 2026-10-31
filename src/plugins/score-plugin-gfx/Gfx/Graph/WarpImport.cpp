@@ -40,19 +40,7 @@ FloatImage decodeImageBytes(const QByteArray& bytes, const QString& name)
 {
   if(name.endsWith(QStringLiteral(".pfm"), Qt::CaseInsensitive))
     return toRGBA(parsePFM(bytes));
-  QImage img = QImage::fromData(bytes);
-  if(img.isNull())
-    return {};
-  img = img.convertToFormat(QImage::Format_RGBA32FPx4);
-  FloatImage out;
-  out.width = img.width();
-  out.height = img.height();
-  out.channels = 4;
-  out.data.resize(std::size_t(out.width) * out.height * 4);
-  for(int y = 0; y < out.height; y++)
-    std::copy_n(
-        reinterpret_cast<const float*>(img.constScanLine(y)), out.width * 4, out.row(y));
-  return out;
+  return toFloatImageRGBA(QImage::fromData(bytes));
 }
 }
 
@@ -73,12 +61,15 @@ WarpImport importBourkeMesh(const QByteArray& text, int width, int height, QStri
     warpSetError(error, QStringLiteral("truncated warp mesh"));
     return res;
   }
+  constexpr int maxNodes = 4096;
+  constexpr int maxSize = 16384;
+  constexpr qsizetype maxPixels = qsizetype(8192) * 8192;
   bool ok1{}, ok2{}, ok3{};
   const int type = tok[0].toInt(&ok1);
   const int nx = tok[1].toInt(&ok2);
   const int ny = tok[2].toInt(&ok3);
-  if(!ok1 || !ok2 || !ok3 || nx < 2 || ny < 2 || type != 2
-     || tok.size() < 3 + qsizetype(nx) * ny * 5)
+  if(!ok1 || !ok2 || !ok3 || nx < 2 || ny < 2 || nx > maxNodes || ny > maxNodes
+     || type != 2 || qsizetype(nx) * ny > (tok.size() - 3) / 5)
   {
     warpSetError(error, QStringLiteral("not a rectangular Bourke warp mesh"));
     return res;
@@ -89,14 +80,75 @@ WarpImport importBourkeMesh(const QByteArray& text, int width, int height, QStri
   for(std::size_t k = 0; k < nodes.size(); k++)
   {
     auto num = [&](int f) { return tok[3 + qsizetype(k) * 5 + f].toDouble(); };
-    nodes[k] = {num(0), num(1), num(2), num(3), num(4)};
-    maxX = std::max(maxX, std::abs(nodes[k].x));
+    auto& n = nodes[k];
+    n = {num(0), num(1), num(2), num(3), num(4)};
+    if(!(std::abs(n.x) <= 1e6) || !(std::abs(n.y) <= 1e6) || !std::isfinite(n.u)
+       || !std::isfinite(n.v) || !std::isfinite(n.i))
+    {
+      n = {0., 0., 0., 0., -1.};
+      continue;
+    }
+    maxX = std::max(maxX, std::abs(n.x));
   }
-  const double aspect = maxX > 0. ? maxX : 1.;
+  const double aspect = maxX > 0. ? std::clamp(maxX, 1e-3, 1e3) : 1.;
   if(width <= 0 || height <= 0)
   {
     width = 1024;
-    height = std::max(1, int(std::lround(1024. / aspect)));
+    height = int(std::clamp(std::round(1024. / aspect), 1., 4096.));
+  }
+  if(width > maxSize || height > maxSize || qsizetype(width) * height > maxPixels)
+  {
+    warpSetError(error, QStringLiteral("warp mesh raster too large"));
+    return res;
+  }
+
+  auto toPixel = [&](const MeshNode& n) {
+    return std::pair<double, double>{
+        (n.x / aspect + 1.) * 0.5 * width, (1. - n.y) * 0.5 * height};
+  };
+
+  struct Box
+  {
+    int x0, x1, y0, y1;
+  };
+  auto bounds = [&](double a, double b, double c, int size) {
+    const double lo = std::clamp(std::floor(std::min({a, b, c})), 0., double(size));
+    const double hi = std::clamp(std::ceil(std::max({a, b, c})), -1., double(size - 1));
+    return std::pair<int, int>{int(lo), int(hi)};
+  };
+  auto box = [&](const MeshNode& a, const MeshNode& b, const MeshNode& c) -> Box {
+    if(a.i < 0. || b.i < 0. || c.i < 0.)
+      return {0, -1, 0, -1};
+    const auto [ax, ay] = toPixel(a);
+    const auto [bx, by] = toPixel(b);
+    const auto [cx, cy] = toPixel(c);
+    const auto [x0, x1] = bounds(ax, bx, cx, width);
+    const auto [y0, y1] = bounds(ay, by, cy, height);
+    return {x0, x1, y0, y1};
+  };
+  auto forEachTriangle = [&](auto&& f) {
+    for(int j = 0; j + 1 < ny; j++)
+      for(int i = 0; i + 1 < nx; i++)
+      {
+        const auto& n00 = nodes[std::size_t(j) * nx + i];
+        const auto& n10 = nodes[std::size_t(j) * nx + i + 1];
+        const auto& n01 = nodes[std::size_t(j + 1) * nx + i];
+        const auto& n11 = nodes[std::size_t(j + 1) * nx + i + 1];
+        f(n00, n10, n11);
+        f(n00, n11, n01);
+      }
+  };
+
+  double work = 0.;
+  forEachTriangle([&](const MeshNode& a, const MeshNode& b, const MeshNode& c) {
+    const Box bb = box(a, b, c);
+    if(bb.x1 >= bb.x0 && bb.y1 >= bb.y0)
+      work += double(bb.x1 - bb.x0 + 1) * (bb.y1 - bb.y0 + 1);
+  });
+  if(work > 64. * width * height)
+  {
+    warpSetError(error, QStringLiteral("warp mesh folds over itself"));
+    return res;
   }
 
   res.width = width;
@@ -109,26 +161,18 @@ WarpImport importBourkeMesh(const QByteArray& text, int width, int height, QStri
   for(std::size_t k = 3; k < res.alpha.data.size(); k += 4)
     res.alpha.data[k] = 1.f;
 
-  auto toPixel = [&](const MeshNode& n) {
-    return std::pair<double, double>{
-        (n.x / aspect + 1.) * 0.5 * width, (1. - n.y) * 0.5 * height};
-  };
-
-  auto raster = [&](const MeshNode& a, const MeshNode& b, const MeshNode& c) {
-    if(a.i < 0. || b.i < 0. || c.i < 0.)
+  forEachTriangle([&](const MeshNode& a, const MeshNode& b, const MeshNode& c) {
+    const Box bb = box(a, b, c);
+    if(bb.x1 < bb.x0 || bb.y1 < bb.y0)
       return;
     const auto [ax, ay] = toPixel(a);
     const auto [bx, by] = toPixel(b);
     const auto [cx, cy] = toPixel(c);
     const double area = (bx - ax) * (cy - ay) - (cx - ax) * (by - ay);
-    if(std::abs(area) < 1e-12)
+    if(!(std::abs(area) >= 1e-12))
       return;
-    const int x0 = std::max(0, int(std::floor(std::min({ax, bx, cx}))));
-    const int x1 = std::min(width - 1, int(std::ceil(std::max({ax, bx, cx}))));
-    const int y0 = std::max(0, int(std::floor(std::min({ay, by, cy}))));
-    const int y1 = std::min(height - 1, int(std::ceil(std::max({ay, by, cy}))));
-    for(int y = y0; y <= y1; y++)
-      for(int x = x0; x <= x1; x++)
+    for(int y = bb.y0; y <= bb.y1; y++)
+      for(int x = bb.x0; x <= bb.x1; x++)
       {
         const double px = x + 0.5, py = y + 0.5;
         const double w0 = ((bx - px) * (cy - py) - (cx - px) * (by - py)) / area;
@@ -146,18 +190,7 @@ WarpImport importBourkeMesh(const QByteArray& text, int width, int height, QStri
         float* al = res.alpha.row(y) + x * 4;
         al[0] = al[1] = al[2] = in;
       }
-  };
-
-  for(int j = 0; j + 1 < ny; j++)
-    for(int i = 0; i + 1 < nx; i++)
-    {
-      const auto& n00 = nodes[std::size_t(j) * nx + i];
-      const auto& n10 = nodes[std::size_t(j) * nx + i + 1];
-      const auto& n01 = nodes[std::size_t(j + 1) * nx + i];
-      const auto& n11 = nodes[std::size_t(j + 1) * nx + i + 1];
-      raster(n00, n10, n11);
-      raster(n00, n11, n01);
-    }
+  });
   return res;
 }
 
@@ -204,8 +237,9 @@ std::vector<WarpImport> loadMPCDI(const QString& path, QString* error)
   QString profile;
 
   QXmlStreamReader r{xml};
-  FileSet* cur{};
-  MapFile* curMap{};
+  std::size_t cur = 0;
+  bool inSet = false;
+  MapFile FileSet::*curMap{};
   while(!r.atEnd())
   {
     const auto tt = r.readNext();
@@ -222,22 +256,24 @@ std::vector<WarpImport> loadMPCDI(const QString& path, QString* error)
       else if(name == QLatin1String("fileset"))
       {
         filesets.push_back({attrs.value("region").toString(), {}, {}, {}});
-        cur = &filesets.back();
+        cur = filesets.size() - 1;
+        inSet = true;
+        curMap = nullptr;
       }
-      else if(cur && name == QLatin1String("geometryWarpFile"))
-        curMap = &cur->warp;
-      else if(cur && name == QLatin1String("alphaMap"))
-        curMap = &cur->alpha;
-      else if(cur && name == QLatin1String("betaMap"))
-        curMap = &cur->beta;
-      else if(curMap && name == QLatin1String("path"))
-        curMap->path = r.readElementText().trimmed();
-      else if(curMap && name == QLatin1String("gammaEmbedded"))
-        curMap->gamma = r.readElementText().trimmed().toDouble();
-      else if(curMap && name == QLatin1String("originOf2DData"))
-        curMap->topLeft = r.readElementText().trimmed().compare(
-                              QLatin1String("topLeft"), Qt::CaseInsensitive)
-                          == 0;
+      else if(inSet && name == QLatin1String("geometryWarpFile"))
+        curMap = &FileSet::warp;
+      else if(inSet && name == QLatin1String("alphaMap"))
+        curMap = &FileSet::alpha;
+      else if(inSet && name == QLatin1String("betaMap"))
+        curMap = &FileSet::beta;
+      else if(inSet && curMap && name == QLatin1String("path"))
+        (filesets[cur].*curMap).path = r.readElementText().trimmed();
+      else if(inSet && curMap && name == QLatin1String("gammaEmbedded"))
+        (filesets[cur].*curMap).gamma = r.readElementText().trimmed().toDouble();
+      else if(inSet && curMap && name == QLatin1String("originOf2DData"))
+        (filesets[cur].*curMap).topLeft = r.readElementText().trimmed().compare(
+                                              QLatin1String("topLeft"), Qt::CaseInsensitive)
+                                          == 0;
     }
     else if(tt == QXmlStreamReader::EndElement)
     {
@@ -246,7 +282,10 @@ std::vector<WarpImport> loadMPCDI(const QString& path, QString* error)
          || name == QLatin1String("betaMap"))
         curMap = nullptr;
       else if(name == QLatin1String("fileset"))
-        cur = nullptr;
+      {
+        inSet = false;
+        curMap = nullptr;
+      }
     }
   }
   if(r.hasError())

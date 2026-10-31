@@ -26,6 +26,10 @@ namespace score::gfx::led
 {
 using Vec3 = Eigen::Vector3d;
 
+//! Largest raster side and pixel count rasterize() accepts.
+inline constexpr int maxRasterSide = 16384;
+inline constexpr long long maxRasterPixels = 8192LL * 8192;
+
 struct Module
 {
   //! Origin and size in the output raster, pixels.
@@ -70,6 +74,16 @@ inline std::vector<Module> parseModules(std::string_view csv, std::string* error
                  + " numbers, 16 expected (x y w h, then TL TR BL BR xyz)";
       continue;
     }
+    const bool inRange = std::all_of(v.begin(), v.begin() + 4, [](double d) {
+      return std::abs(d) <= 65536.;
+    }) && std::all_of(v.begin() + 4, v.begin() + 16, [](double d) { return std::isfinite(d); });
+    if(!inRange)
+    {
+      if(error)
+        *error = "line " + std::to_string(line)
+                 + ": raster coordinates beyond 65536 or non-finite corners";
+      continue;
+    }
     Module m;
     m.x = int(v[0]);
     m.y = int(v[1]);
@@ -87,23 +101,28 @@ inline std::vector<Module> parseModules(std::string_view csv, std::string* error
 
 //! The world point of each LED pixel: bilinear over the module corners at the
 //! pixel centres. RGBA, rows top to bottom, w = 1 on module pixels, 0 in gaps.
+//! Empty when W x H is beyond maxRasterSide / maxRasterPixels.
 inline std::vector<float>
 rasterize(const std::vector<Module>& modules, int W, int H)
 {
+  if(W <= 0 || H <= 0 || W > maxRasterSide || H > maxRasterSide
+     || (long long)W * H > maxRasterPixels)
+    return {};
   std::vector<float> xyz(std::size_t(W) * H * 4, 0.f);
   for(const auto& m : modules)
-    for(int j = 0; j < m.h; j++)
+  {
+    const long long j0 = std::max(0LL, -(long long)m.y);
+    const long long j1 = std::min<long long>(m.h, (long long)H - m.y);
+    const long long i0 = std::max(0LL, -(long long)m.x);
+    const long long i1 = std::min<long long>(m.w, (long long)W - m.x);
+    for(long long j = j0; j < j1; j++)
     {
-      const int y = m.y + j;
-      if(y < 0 || y >= H)
-        continue;
+      const int y = int(m.y + j);
       const double t = (j + 0.5) / m.h;
       const Vec3 left = m.tl + t * (m.bl - m.tl), right = m.tr + t * (m.br - m.tr);
-      for(int i = 0; i < m.w; i++)
+      for(long long i = i0; i < i1; i++)
       {
-        const int x = m.x + i;
-        if(x < 0 || x >= W)
-          continue;
+        const int x = int(m.x + i);
         const double s = (i + 0.5) / m.w;
         const Vec3 p = left + s * (right - left);
         float* q = xyz.data() + (std::size_t(y) * W + x) * 4;
@@ -113,19 +132,20 @@ rasterize(const std::vector<Module>& modules, int W, int H)
         q[3] = 1.f;
       }
     }
+  }
   return xyz;
 }
 
-//! The bounding raster of the modules.
+//! The bounding raster of the modules, at most maxRasterSide on each side.
 inline std::array<int, 2> rasterSize(const std::vector<Module>& modules)
 {
-  int w = 0, h = 0;
+  long long w = 0, h = 0;
   for(const auto& m : modules)
   {
-    w = std::max(w, m.x + m.w);
-    h = std::max(h, m.y + m.h);
+    w = std::max(w, (long long)m.x + m.w);
+    h = std::max(h, (long long)m.y + m.h);
   }
-  return {w, h};
+  return {int(std::min<long long>(w, maxRasterSide)), int(std::min<long long>(h, maxRasterSide))};
 }
 
 struct Screen
@@ -186,10 +206,11 @@ struct BlinkCode
   int count{};
   int bits{};
 
+  //! Count clamped to [1, 2^24].
   static BlinkCode make(int count) noexcept
   {
     BlinkCode c;
-    c.count = std::max(1, count);
+    c.count = std::clamp(count, 1, 1 << 24);
     c.bits = 1;
     while((1 << c.bits) < c.count + 1)
       c.bits++;
@@ -241,9 +262,14 @@ inline std::vector<Found> decode(
     const DecodeOptions& opt, const std::vector<float>* positions = nullptr)
 {
   std::vector<Found> out;
-  if(int(frames.size()) < code.frames())
+  if(W <= 0 || H <= 0 || code.count < 1 || int(frames.size()) < code.frames())
     return out;
   const std::size_t n = std::size_t(W) * H;
+  for(int k = 0; k < code.frames(); k++)
+    if(frames[k].size() < n)
+      return out;
+  if(positions && positions->size() < n * 4)
+    positions = nullptr;
   struct Acc
   {
     double w{}, u{}, v{}, c{};

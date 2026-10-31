@@ -25,6 +25,15 @@ W_OBJECT_IMPL(Gfx::FlatHeaderButton)
 W_OBJECT_IMPL(Gfx::CollapsibleSection)
 namespace Gfx
 {
+namespace
+{
+//! Whether `s` shows `v` as setValue(v) would: rounded to its decimals, clamped.
+bool showsValue(const QDoubleSpinBox& s, double v)
+{
+  const double r = QString::number(v, 'f', s.decimals()).toDouble();
+  return s.value() == std::clamp(r, s.minimum(), s.maximum());
+}
+}
 
 WindowSettingsWidget::WindowSettingsWidget(QWidget* parent)
     : ProtocolSettingsWidget(parent)
@@ -416,7 +425,7 @@ WindowSettingsWidget::WindowSettingsWidget(QWidget* parent)
       auto* mapsLayout = new QFormLayout;
 
       auto makeFileRow = [&](const QString& label, const QString& tooltip,
-                             QLineEdit*& edit) {
+                             const QString& filter, QLineEdit*& edit) {
         edit = new QLineEdit;
         edit->setToolTip(tooltip);
         auto* browse = new QPushButton(tr("..."));
@@ -425,15 +434,14 @@ WindowSettingsWidget::WindowSettingsWidget(QWidget* parent)
         row->addWidget(edit, 1);
         row->addWidget(browse);
         mapsLayout->addRow(label, row);
-        connect(browse, &QPushButton::clicked, this, [this, e = edit] {
+        connect(browse, &QPushButton::clicked, this, [this, e = edit, filter] {
           const QString f = QFileDialog::getOpenFileName(
               this, tr("Calibration map"), e->text(),
-              tr("Calibration maps (*.pfm *.png *.tif *.tiff *.exr *.data *.mpcdi);;All "
-                 "files (*)"));
+              filter + QStringLiteral(";;") + tr("All files (*)"));
           if(!f.isEmpty())
           {
             e->setText(f);
-            applyPropertiesToSelection();
+            Q_EMIT e->editingFinished();
           }
         });
       };
@@ -462,31 +470,33 @@ WindowSettingsWidget::WindowSettingsWidget(QWidget* parent)
         });
       }
 
+      const QString imageMaps
+          = tr("Maps (*.pfm *.png *.tif *.tiff *.exr *.data *.mpcdi)");
       makeFileRow(
           tr("UV warp"),
-          tr("UV lookup map: xy = source UV (v down), w = valid. Applied before "
-             "the corner warp."),
-          m_warpMapEdit);
+          tr("UV lookup map, in output pixels: xy = source UV (v down), w = valid. "
+             "Rotation, mirror and corner warp then move the UV it gives."),
+          imageMaps, m_warpMapEdit);
       makeFileRow(
           tr("Alpha"), tr("Blend weight map (RGB, a grey map applies to all three), in output pixels"),
-          m_alphaMapEdit);
+          imageMaps, m_alphaMapEdit);
       makeFileRow(
           tr("Beta"), tr("Black level map (RGB, a grey map applies to all three), added after the alpha"),
-          m_betaMapEdit);
+          imageMaps, m_betaMapEdit);
       makeFileRow(
           tr("Colour LUT"),
           tr("3D or 1D lookup table (.cube, Adobe Cube LUT 1.0), applied last"),
-          m_lutEdit);
+          tr("Cube LUTs (*.cube)"), m_lutEdit);
       makeFileRow(
           tr("Response"),
-          tr("Measured projector response (.response.json or 1D .cube): its inverse "
-             "replaces the 2.2 encode of Linear blend"),
-          m_responseEdit);
+          tr("Measured projector response (.response.json or 1D .cube): blending runs "
+             "in linear light, and its inverse encodes back to projector codes"),
+          tr("Projector responses (*.response.json *.cube *.json)"), m_responseEdit);
       makeFileRow(
           tr("Compensation"),
           tr("Radiometric compensation of the surface colour (.comp.json), applied to "
              "the linear content before the alpha"),
-          m_compensationEdit);
+          tr("Compensations (*.comp.json *.json)"), m_compensationEdit);
 
       section->setContentLayout(mapsLayout);
       section->setExpanded(false);
@@ -515,11 +525,11 @@ WindowSettingsWidget::WindowSettingsWidget(QWidget* parent)
         row->addStretch(1);
         colorLayout->addRow(label, row);
       };
-      makeRgbRow(tr("Gain"), m_gain, 0., 4., 1.);
-      makeRgbRow(tr("Offset"), m_offset, -1., 1., 0.);
+      makeRgbRow(tr("Gain"), m_gain, 0., 16., 1.);
+      makeRgbRow(tr("Offset"), m_offset, -4., 4., 0.);
 
       m_gamma = new QDoubleSpinBox;
-      m_gamma->setRange(0.1, 4.0);
+      m_gamma->setRange(0.01, 10.0);
       m_gamma->setSingleStep(0.05);
       m_gamma->setDecimals(3);
       m_gamma->setValue(1.0);
@@ -1127,12 +1137,16 @@ void WindowSettingsWidget::applyPropertiesToSelection()
             = Gfx::WarpInterpolation(m_warpInterpCombo->currentIndex());
         mi->quality.dither = Gfx::OutputDither(m_ditherCombo->currentIndex());
         mi->quality.maxAnisotropy = m_maxAnisotropy->value();
+        auto edited = [](const QDoubleSpinBox* s, float& v) {
+          if(!showsValue(*s, v))
+            v = (float)s->value();
+        };
         for(int c = 0; c < 3; c++)
         {
-          mi->color.gain[c] = (float)m_gain[c]->value();
-          mi->color.offset[c] = (float)m_offset[c]->value();
+          edited(m_gain[c], mi->color.gain[c]);
+          edited(m_offset[c], mi->color.offset[c]);
         }
-        mi->color.gamma = (float)m_gamma->value();
+        edited(m_gamma, mi->color.gamma);
         mi->color.linearBlend = m_linearBlendCheck->isChecked();
         mi->update(); // Repaint to show blend zones
         // NOTE: caller is responsible for calling syncPreview with the correct flag

@@ -2342,6 +2342,9 @@ endforeach()
 # with its DEPTH_COMPARE.
 score_add_gfx_test(cube_face_implicit_depth GfxCubeFaceImplicitDepth.cpp)
 
+# A raw raster's own storage images are clamped to the device's TextureSizeMax.
+score_add_gfx_test(raw_raster_size_clamp GfxRawRasterSizeClamp.cpp)
+
 # CSF: a write-only image after a PERSISTENT one publishes its own content; a
 # TYPE cubemap resource is a samplerCube.
 score_add_gfx_test(csf_resource_fixes GfxCsfResourceFixes.cpp)
@@ -2354,5 +2357,10 @@ score_add_gfx_test(multi_window_quality MultiWindowQuality.cpp)
 score_add_gfx_test(gpu_selection GfxGpuSelection.cpp)
 
 # Script values convert to a texture inlet's optional sampler settings.
-score_add_gfx_test(texture_port_converters GfxTexturePortConverters.cpp)
+score_add_test(test_gfx_texture_port_converters
+  SOURCES GfxTexturePortConverters.cpp
+  PLUGINS score_plugin_gfx)
 
+# Crafted calibration files: truncated / CRLF PFM, oversized Bourke meshes,
+# nested MPCDI filesets, bad 1D .cube and response.json tables.
+score_add_gfx_test(calibration_file_hardening CalibrationFileHardening.cpp)

@@ -161,20 +161,6 @@ inline CameraFrustum frustumFromIntrinsics(
       .top = (cy + 0.5f) / fy};
 }
 
-//! Vertical FOV, aspect W/H and lens shift (fractions of the image, +y up) to
-//! the equivalent frustum tangents.
-inline CameraFrustum frustumFromFov(
-    float fovYDeg, float aspect, float shiftX, float shiftY) noexcept
-{
-  const float t = std::tan(fovYDeg * 0.5f * float(M_PI / 180.0));
-  const float h = t * aspect;
-  return CameraFrustum{
-      .left = h * (-1.f + 2.f * shiftX),
-      .right = h * (1.f + 2.f * shiftX),
-      .bottom = t * (-1.f + 2.f * shiftY),
-      .top = t * (1.f + 2.f * shiftY)};
-}
-
 //! Turns a standard OpenGL projection (near -> -1) into the reverse-Z one
 //! (near -> +1) and back.
 inline void flipProjectionDepth(QMatrix4x4& m) noexcept

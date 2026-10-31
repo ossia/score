@@ -449,7 +449,8 @@ bool WindowDevice::reconnect()
         case WindowMode::MultiWindow: {
           m_dev = std::make_unique<multiwindow_device>(
               set.outputs, std::unique_ptr<gfx_protocol_base>(m_protocol),
-              m_settings.name.toStdString(), set.flag, set.format);
+              m_settings.name.toStdString(), set.flag, set.format,
+              score::pathRoots(m_ctx));
           break;
         }
         case WindowMode::Single:

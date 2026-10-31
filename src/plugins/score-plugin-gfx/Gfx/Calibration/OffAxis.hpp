@@ -71,8 +71,8 @@ inline Frustum kooima(const Vec3& pa, const Vec3& pb, const Vec3& pc, const Vec3
   if(r.norm() < 1e-12 || u.norm() < 1e-12 || r.cross(u).norm() < 1e-12)
     return f;
   f.vr = r.normalized();
-  f.vu = u.normalized();
-  f.vn = f.vr.cross(f.vu).normalized();
+  f.vn = f.vr.cross(u).normalized();
+  f.vu = f.vn.cross(f.vr);
   const Vec3 va = pa - pe, vb = pb - pe, vc = pc - pe;
   f.d = -f.vn.dot(va);
   if(!(f.d > 1e-12))
@@ -109,6 +109,11 @@ inline ViewerFrustum fitViewerFrustum(
     double oversampling, double percentile = 0.1, int maxSize = 16384)
 {
   ViewerFrustum out;
+  if(W <= 0 || H <= 0 || xyz.size() < std::size_t(W) * H * 4)
+  {
+    out.error = "the XYZ map does not match its size";
+    return out;
+  }
   std::vector<Vec3> pts;
   const int step = std::max(1, int(std::sqrt(double(W) * H / 200000.)));
   for(int v = 0; v < H; v += step)
@@ -212,6 +217,7 @@ inline ViewerFrustum fitViewerFrustum(
 
   // Pixel footprints in tangent space, along each axis of the projector.
   std::vector<double> dx, dy, ang;
+  const double minX = 1e-6 * (r - l), minY = 1e-6 * (t - b);
   const int s2 = std::max(1, step / 2);
   for(int v = 0; v + 1 < H; v += s2)
     for(int u = 0; u + 1 < W; u += s2)
@@ -229,13 +235,16 @@ inline ViewerFrustum fitViewerFrustum(
       const double fx = std::max(std::abs(x1 - x0), std::abs(x2 - x0));
       const double fy = std::max(std::abs(y1 - y0), std::abs(y2 - y0));
       const double z2 = 1. + x0 * x0 + y0 * y0;
-      dx.push_back(fx);
-      dy.push_back(fy);
-      ang.push_back(std::sqrt(fx * fx + fy * fy) / std::sqrt(2.) / z2);
+      if(fx > minX)
+        dx.push_back(fx);
+      if(fy > minY)
+        dy.push_back(fy);
+      if(fx > minX || fy > minY)
+        ang.push_back(std::sqrt(fx * fx + fy * fy) / std::sqrt(2.) / z2);
     }
-  if(dx.empty())
+  if(dx.empty() || dy.empty())
   {
-    out.error = "no pair of neighbouring lit pixels";
+    out.error = "no pair of distinct neighbouring lit pixels";
     return out;
   }
   auto quantile = [](std::vector<double> v, double q) {
@@ -247,8 +256,12 @@ inline ViewerFrustum fitViewerFrustum(
   const double py = std::max(1e-9, quantile(dy, percentile));
   out.pixelMedian = quantile(ang, 0.5);
   out.pixelPercentile = quantile(ang, percentile);
-  out.width = std::clamp(int(std::ceil(oversampling * (r - l) / px)), 1, maxSize);
-  out.height = std::clamp(int(std::ceil(oversampling * (t - b) / py)), 1, maxSize);
+  const double os = oversampling > 0. ? oversampling : 1.;
+  auto size = [&](double v) {
+    return int(std::clamp(std::ceil(v), 1., double(std::max(1, maxSize))));
+  };
+  out.width = size(os * (r - l) / px);
+  out.height = size(os * (t - b) / py);
   out.ok = true;
   return out;
 }

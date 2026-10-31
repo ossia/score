@@ -54,6 +54,30 @@ struct Model
   }
 
   Vec3 position() const noexcept { return -R.transpose() * t; }
+
+  //! Pixel -> undistorted normalised image coordinates (fixed point on k1 k2).
+  Vec2 normalise(const Vec2& px) const noexcept
+  {
+    const Vec2 xd((px.x() - cx) / fx, (px.y() - cy) / fy);
+    if(k1 == 0. && k2 == 0.)
+      return xd;
+    Vec2 xn = xd;
+    for(int it = 0; it < 20; it++)
+    {
+      const double r2 = xn.squaredNorm();
+      const double d = 1. + k1 * r2 + k2 * r2 * r2;
+      if(!(std::abs(d) > 1e-9))
+        break;
+      const Vec2 next = xd / d;
+      if(!next.allFinite())
+        break;
+      const bool done = (next - xn).squaredNorm() < 1e-24;
+      xn = next;
+      if(done)
+        break;
+    }
+    return xn;
+  }
 };
 
 struct Options
@@ -192,7 +216,9 @@ inline double rms(
   for(int i : idx)
   {
     const double e = reprojectionError(m, X[i], x[i]);
-    s += std::isfinite(e) ? e * e : 1e12;
+    if(!std::isfinite(e))
+      return std::numeric_limits<double>::infinity();
+    s += e * e;
   }
   return std::sqrt(s / double(idx.size()));
 }
@@ -426,7 +452,7 @@ inline Result solve(
   res.rms = rms(res.model, X, x, inl);
   res.ok = std::isfinite(res.rms) && res.model.fx > 0. && res.model.fy > 0.;
   if(!res.ok)
-    res.error = "the refinement diverged";
+    res.error = "the refinement diverged or left a point behind the projector";
   return res;
 }
 
@@ -570,7 +596,7 @@ inline Result solvePose(
 
   std::vector<Vec2> xn(N);
   for(int i = 0; i < N; i++)
-    xn[i] = Vec2((x[i].x() - known.cx) / known.fx, (x[i].y() - known.cy) / known.fy);
+    xn[i] = known.normalise(x[i]);
 
   auto estimate = [&](const std::vector<int>& idx, Model& m) {
     m = known;
@@ -649,7 +675,7 @@ inline Result solvePose(
   res.rms = rms(res.model, X, x, inl);
   res.ok = std::isfinite(res.rms);
   if(!res.ok)
-    res.error = "the refinement diverged";
+    res.error = "the refinement diverged or left a point behind the projector";
   return res;
 }
 

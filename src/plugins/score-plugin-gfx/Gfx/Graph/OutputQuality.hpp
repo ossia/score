@@ -36,7 +36,7 @@ CubeLut parseCubeLut(const QByteArray& text, QString* error = nullptr);
 //! A size x size threshold matrix by the void-and-cluster method (Ulichney,
 //! "The void-and-cluster method for dither array generation", Proc. SPIE 1913,
 //! 1993): the rank of each pixel, as (rank + 0.5) / size^2. Deterministic, and
-//! computed once per size.
+//! computed once per size; size 64 is a built-in table, so that no frame waits for it.
 SCORE_PLUGIN_GFX_EXPORT
 const std::vector<float>& blueNoise(int size);
 }

@@ -8,6 +8,8 @@
 #include <cmath>
 #include <cstdint>
 #include <limits>
+#include <memory>
+#include <queue>
 #include <string>
 #include <thread>
 #include <unordered_map>
@@ -121,14 +123,6 @@ inline void edt1d(const float* f, int n, float* d, int* v, float* z)
         k--;
       else
         break;
-    }
-    if(s <= z[k])
-    {
-      v[0] = q;
-      z[0] = -std::numeric_limits<float>::infinity();
-      z[1] = std::numeric_limits<float>::infinity();
-      k = 0;
-      continue;
     }
     k++;
     v[k] = q;
@@ -252,8 +246,10 @@ inline float sampleBilinear(
     const std::vector<float>& m, int W, int H, double u, double v, int C = 1,
     int c = 0) noexcept
 {
+  if(W <= 0 || H <= 0 || !std::isfinite(u) || !std::isfinite(v))
+    return 0.f;
   const double x = std::clamp(u, 0., double(W - 1)), y = std::clamp(v, 0., double(H - 1));
-  const int x0 = std::min(int(x), W - 2 < 0 ? 0 : W - 2), y0 = std::min(int(y), H - 2 < 0 ? 0 : H - 2);
+  const int x0 = std::min(int(x), std::max(0, W - 2)), y0 = std::min(int(y), std::max(0, H - 2));
   const int x1 = std::min(x0 + 1, W - 1), y1 = std::min(y0 + 1, H - 1);
   const float fx = float(x - x0), fy = float(y - y0);
   auto at = [&](int x, int y) { return m[(std::size_t(y) * W + x) * C + c]; };
@@ -397,9 +393,11 @@ public:
 private:
   std::array<int64_t, 3> cell(const Vec3& X) const noexcept
   {
-    return {
-        int64_t(std::floor(X.x() / m_cell)), int64_t(std::floor(X.y() / m_cell)),
-        int64_t(std::floor(X.z() / m_cell))};
+    auto c = [&](double v) {
+      const double q = std::floor(v / m_cell);
+      return q > -1e15 ? int64_t(std::min(q, 1e15)) : int64_t(-1e15);
+    };
+    return {c(X.x()), c(X.y()), c(X.z())};
   }
   static uint64_t pack(int64_t x, int64_t y, int64_t z) noexcept
   {
@@ -498,7 +496,8 @@ struct Link
 
 //! Bounds |log f(p) - log f(q)| by slope * dist(p, q) on each projector's
 //! 8-connected grid and keeps f equal across the links: the largest f below
-//! (upper = true: the smallest f above) the input.
+//! (upper = true: the smallest f above) the input, exactly, as a multi-source
+//! shortest path in log f.
 inline void constrainSlope(
     std::vector<std::vector<float>>& f, const std::vector<Projector>& P,
     const std::vector<std::vector<Link>>& links, double slope, const Options& opt,
@@ -512,79 +511,77 @@ inline void constrainSlope(
       return d;
     return d / std::max(1e-6, (0.5 * (Xa + Xb) - opt.viewer).norm());
   };
-  for(auto& fi : f)
-    for(float& v : fi)
-      v = v > 0.f ? std::log(v) : -30.f;
+  std::vector<std::size_t> base(N + 1, 0);
+  for(std::size_t i = 0; i < N; i++)
+    base[i + 1] = base[i] + f[i].size();
+  const std::size_t total = base[N];
+  const float sign = upper ? -1.f : 1.f;
+  std::vector<float> h(total);
+  using Item = std::pair<float, std::size_t>;
+  std::vector<Item> seeds;
+  for(std::size_t i = 0; i < N; i++)
+    for(std::size_t k = 0; k < f[i].size(); k++)
+    {
+      const float v = f[i][k];
+      h[base[i] + k] = sign * (v > 0.f ? std::log(v) : -30.f);
+      if(P[i].valid(int(k)))
+        seeds.push_back({h[base[i] + k], base[i] + k});
+    }
 
-  for(int iter = 0; iter < 64; iter++)
+  std::vector<std::size_t> linkStart(total + 1, 0), linkTo;
+  for(std::size_t i = 0; i < N; i++)
+    for(const auto& l : links[i])
+      if(l.projector < N && l.other < f[l.projector].size() && l.pixel < f[i].size())
+        linkStart[base[l.projector] + l.other + 1]++;
+  for(std::size_t k = 0; k < total; k++)
+    linkStart[k + 1] += linkStart[k];
+  linkTo.resize(linkStart[total]);
   {
-    double changed = 0.;
-    parallelFor(int(N), opt.threads, [&](int pi) {
-      const Projector& p = P[pi];
-      auto& g = f[pi];
-      const int W = p.width, H = p.height;
-      auto relax = [&](int a, int b) {
-        if(!p.valid(b))
-          return;
-        const float lim = float(slope * dist(p, a, b));
-        if(upper)
-          g[a] = std::max(g[a], g[b] - lim);
-        else
-          g[a] = std::min(g[a], g[b] + lim);
-      };
-      for(int pass = 0; pass < 2; pass++)
-      {
-        for(int y = 0; y < H; y++)
-          for(int x = 0; x < W; x++)
-          {
-            const int a = y * W + x;
-            if(!p.valid(a))
-              continue;
-            if(x > 0)
-              relax(a, a - 1);
-            if(y > 0)
-            {
-              relax(a, a - W);
-              if(x > 0)
-                relax(a, a - W - 1);
-              if(x + 1 < W)
-                relax(a, a - W + 1);
-            }
-          }
-        for(int y = H - 1; y >= 0; y--)
-          for(int x = W - 1; x >= 0; x--)
-          {
-            const int a = y * W + x;
-            if(!p.valid(a))
-              continue;
-            if(x + 1 < W)
-              relax(a, a + 1);
-            if(y + 1 < H)
-            {
-              relax(a, a + W);
-              if(x + 1 < W)
-                relax(a, a + W + 1);
-              if(x > 0)
-                relax(a, a + W - 1);
-            }
-          }
-      }
-    });
+    std::vector<std::size_t> fill(linkStart.begin(), linkStart.end() - 1);
     for(std::size_t i = 0; i < N; i++)
       for(const auto& l : links[i])
-      {
-        float& a = f[i][l.pixel];
-        const float b = f[l.projector][l.other];
-        const float n = upper ? std::max(a, b) : std::min(a, b);
-        changed = std::max(changed, double(std::abs(n - a)));
-        a = n;
-      }
-    if(changed < 1e-5)
-      break;
+        if(l.projector < N && l.other < f[l.projector].size() && l.pixel < f[i].size())
+          linkTo[fill[base[l.projector] + l.other]++] = base[i] + l.pixel;
   }
-  for(auto& fi : f)
-    for(float& v : fi)
-      v = std::exp(v);
+
+  std::priority_queue<Item, std::vector<Item>, std::greater<>> queue(
+      std::greater<>{}, std::move(seeds));
+  std::vector<uint8_t> done(total, 0);
+  while(!queue.empty())
+  {
+    const auto [d, id] = queue.top();
+    queue.pop();
+    if(done[id] || d > h[id])
+      continue;
+    done[id] = 1;
+    auto push = [&](std::size_t to, float v) {
+      if(!done[to] && v < h[to])
+      {
+        h[to] = v;
+        queue.push({v, to});
+      }
+    };
+    const std::size_t pi
+        = std::size_t(std::upper_bound(base.begin(), base.end(), id) - base.begin()) - 1;
+    const Projector& p = P[pi];
+    const int a = int(id - base[pi]);
+    const int W = p.width, H = p.height, x = a % W, y = a / W;
+    for(int dy = -1; dy <= 1; dy++)
+      for(int dx = -1; dx <= 1; dx++)
+      {
+        const int nx = x + dx, ny = y + dy;
+        if((dx == 0 && dy == 0) || nx < 0 || ny < 0 || nx >= W || ny >= H)
+          continue;
+        const int b = ny * W + nx;
+        if(p.valid(b))
+          push(base[pi] + b, d + float(slope * dist(p, a, b)));
+      }
+    for(std::size_t e = linkStart[id]; e < linkStart[id + 1]; e++)
+      push(linkTo[e], d);
+  }
+  for(std::size_t i = 0; i < N; i++)
+    for(std::size_t k = 0; k < f[i].size(); k++)
+      f[i][k] = std::exp(sign * h[base[i] + k]);
 }
 }
 
@@ -602,6 +599,19 @@ inline Result compute(std::vector<Projector>& P, const Options& opt)
     return r;
   }
 
+  for(const auto& p : P)
+    if(p.width <= 0 || p.height <= 0 || p.xyz.size() != std::size_t(p.width) * p.height * 4)
+    {
+      for(std::size_t i = 0; i < N; i++)
+      {
+        const std::size_t n = std::size_t(std::max(0, P[i].width)) * std::max(0, P[i].height);
+        r.alpha[i].assign(n, 0.f);
+        r.beta[i].assign(n, 0.f);
+      }
+      r.status = "Failed: an XYZ map does not match its size";
+      return r;
+    }
+
   bool rgbAll = opt.photometric && opt.perChannel;
   for(auto& p : P)
     rgbAll &= p.lum.size() == std::size_t(p.width) * p.height * 3;
@@ -614,7 +624,7 @@ inline Result compute(std::vector<Projector>& P, const Options& opt)
     auto& p = P[i];
     const std::size_t n = std::size_t(p.width) * p.height;
     lum[i].assign(n * C, 1.f);
-    black[i].assign(n * C, opt.blackLevel);
+    black[i].assign(n * C, std::max(0.f, opt.blackLevel));
     const bool hasLum = opt.photometric && p.lum.size() == n * 3;
     const bool hasBlack = opt.photometric && p.black.size() == n * 3;
     for(std::size_t k = 0; k < n; k++)
@@ -627,7 +637,7 @@ inline Result compute(std::vector<Projector>& P, const Options& opt)
           black[i][k * C + c] = std::max(
               0.f, C == 1 ? detail::luma(p.black.data() + k * 3) : p.black[k * 3 + c]);
         else if(hasLum)
-          black[i][k * C + c] = opt.blackLevel * l;
+          black[i][k * C + c] = std::max(0.f, opt.blackLevel) * l;
       }
     rep[i] = std::make_unique<Reprojector>(p);
   });
@@ -801,7 +811,7 @@ inline Result compute(std::vector<Projector>& P, const Options& opt)
     detail::constrainSlope(Y, P, links, std::max(0., opt.maxLogSlope), opt, false);
   for(std::size_t i = 0; i < N; i++)
     Bt[i] = B[i];
-  if(opt.blackCompensation && opt.blackLevel >= 0.f)
+  if(opt.blackCompensation)
   {
     bool anyBlack = false;
     for(auto& b : B)

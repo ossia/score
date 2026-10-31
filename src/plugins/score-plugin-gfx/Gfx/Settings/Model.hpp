@@ -6,6 +6,7 @@
 
 #include <score_plugin_gfx_export.h>
 
+#include <optional>
 #include <vector>
 
 #include <verdigris>
@@ -63,7 +64,7 @@ public:
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_GFX_EXPORT, int, Samples)
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_GFX_EXPORT, bool, VSync)
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_GFX_EXPORT, int, Buffers)
-  //! Vulkan physical device / DXGI adapter index, -1 for the default.
+  //! Index in availableVulkanGpus(), -1 for the default.
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_GFX_EXPORT, int, GpuIndex)
 
 public:
@@ -89,16 +90,19 @@ SCORE_SETTINGS_PARAMETER(Model, VSync)
 SCORE_SETTINGS_PARAMETER(Model, Buffers)
 SCORE_SETTINGS_PARAMETER(Model, GpuIndex)
 
-/**
- * @brief Selects the GPU the outputs created from now on use.
- *
- * Through QT_VK_PHYSICAL_DEVICE_INDEX (read by QRhi's Vulkan backend and by
- * createSharedVulkanDevice) and QT_D3D_ADAPTER_INDEX (read by QRhi's D3D11 and
- * D3D12 backends). -1 restores what the environment held at startup. A
- * variable set in the environment at startup wins over the setting.
- */
+//! Selects the GPU, by index in availableVulkanGpus(), the outputs created from
+//! now on use; -1 for the backend's default. Never touches the environment.
 SCORE_PLUGIN_GFX_EXPORT
 void applyGpuIndex(int index) noexcept;
+
+SCORE_PLUGIN_GFX_EXPORT
+int requestedGpuIndex() noexcept;
+
+struct GpuLuid
+{
+  quint32 low{};
+  qint32 high{};
+};
 
 struct GpuDescription
 {
@@ -108,10 +112,17 @@ struct GpuDescription
   //! VK_NV_present_barrier is exposed: swap chains on this device can join a
   //! present barrier (frame lock across outputs and, with Quadro Sync, hosts).
   bool presentBarrier{};
+  //! Only reported on Windows: the DXGI adapter of the same GPU.
+  std::optional<GpuLuid> luid;
 };
-//! The Vulkan physical devices, in the order QT_VK_PHYSICAL_DEVICE_INDEX counts.
+//! The Vulkan physical devices, in vkEnumeratePhysicalDevices order.
 SCORE_PLUGIN_GFX_EXPORT
 std::vector<GpuDescription> availableVulkanGpus();
+
+//! The adapter of the selected GPU, unless none is selected, it is unavailable
+//! or QT_D3D_ADAPTER_INDEX was set at startup.
+SCORE_PLUGIN_GFX_EXPORT
+std::optional<GpuLuid> requestedD3DAdapterLuid();
 
 SCORE_PLUGIN_GFX_EXPORT
 QShaderVersion shaderVersionForAPI(score::gfx::GraphicsApi) noexcept;

@@ -9,11 +9,6 @@ namespace score::gfx
 {
 class Window;
 
-//! std140 ColorParams block of the multi-window blit shader.
-SCORE_PLUGIN_GFX_EXPORT
-std::array<float, 12> packOutputColorUBO(
-    const Gfx::OutputColor& c, bool warpMap, bool alphaMap, bool betaMap) noexcept;
-
 struct SCORE_PLUGIN_GFX_TEST_EXPORT MultiWindowNode : OutputNode
 {
   explicit MultiWindowNode(
@@ -62,7 +57,7 @@ struct SCORE_PLUGIN_GFX_TEST_EXPORT MultiWindowNode : OutputNode
     bool mirrorY{false};
 
     std::shared_ptr<QRhiReadbackResult> readback{std::make_shared<QRhiReadbackResult>()};
-    mutable bool readbackRequested{};
+    int readbackRequests{};
 
     Gfx::OutputColor color;
     Gfx::OutputQuality quality;
@@ -74,13 +69,33 @@ struct SCORE_PLUGIN_GFX_TEST_EXPORT MultiWindowNode : OutputNode
     std::shared_ptr<const FloatImage> responseMap;
     //! Rows of the compensation matrix, rgba = (M_k0, M_k1, M_k2, o_k).
     std::array<std::shared_ptr<const FloatImage>, 3> compensationMaps;
-    int mapsVersion{};
+
+    //! Bumped when the texture of a slot changes: MapSlot order, then the LUT.
+    std::array<int, 8> mapVersions{};
+    //! What each map field was loaded from: path, modification time and size.
+    std::array<QString, 6> mapStamps;
+    bool responseWithMixing{};
+  };
+
+  enum MapSlot
+  {
+    WarpSlot,
+    AlphaSlot,
+    BetaSlot,
+    ResponseSlot,
+    Comp0Slot,
+    Comp1Slot,
+    Comp2Slot,
+    MapSlotCount,
+    LutSlot = MapSlotCount
   };
 
   const std::vector<WindowOutput>& windowOutputs() const noexcept
   {
     return m_windowOutputs;
   }
+  //! The mappings the outputs are (re)built from, live changes included.
+  const std::vector<Gfx::OutputMapping>& mappings() const noexcept { return m_mappings; }
 
   // Stable offscreen render target used as the input target for the upstream
   // graph. Owned by the node so it exists independently of any window being
@@ -98,7 +113,9 @@ struct SCORE_PLUGIN_GFX_TEST_EXPORT MultiWindowNode : OutputNode
   void setTransform(int windowIndex, int rotation, bool mirrorX, bool mirrorY);
   void setColor(int windowIndex, const Gfx::OutputColor& color);
   //! Arms a readback of the window's next presented frame into windowOutputs()[i].readback.
+  //! Needs setReadbackSupport(true) before createOutput().
   void requestReadback(int windowIndex);
+  void setReadbackSupport(bool b) noexcept { m_readbackSupport = b; }
   void setMaps(int windowIndex, const Gfx::OutputMaps& maps);
   void setQuality(int windowIndex, const Gfx::OutputQuality& quality);
 
@@ -116,6 +133,7 @@ struct SCORE_PLUGIN_GFX_TEST_EXPORT MultiWindowNode : OutputNode
   EffectiveQuality effectiveQuality(const WindowOutput& wo) const noexcept;
   //! The canvas format and whether it needs mips, for the current settings.
   std::pair<QRhiTexture::Format, bool> canvasSpec() const noexcept;
+
   void setSwapchainFlag(Gfx::SwapchainFlag flag);
   void setSwapchainFormat(Gfx::SwapchainFormat format);
 
@@ -137,8 +155,15 @@ private:
   void recreateOffscreenTarget();
   //! Queues a canvas rebuild when canvasSpec() changed.
   void updateCanvasSpec();
+  //! canvasSpec() that never drops precision or mips while the output lives:
+  //! a flip rebuilds the whole render list.
+  std::pair<QRhiTexture::Format, bool> upgradedCanvas() const noexcept;
+  //! Reloads the fields whose path or file changed; a failed reload of the
+  //! same path keeps the map it had.
+  void loadMaps(int windowIndex, const Gfx::OutputMaps& maps);
   bool m_canvasMips{};
   bool m_canvasUpdateQueued{};
+  bool m_readbackSupport{};
 
   Configuration m_conf;
   std::vector<Gfx::OutputMapping> m_mappings;

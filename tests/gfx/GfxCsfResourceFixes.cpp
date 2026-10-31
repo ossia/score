@@ -15,7 +15,6 @@
 #include <catch2/generators/catch_generators_range.hpp>
 
 #include <array>
-#include <set>
 #include <string>
 
 using namespace score::test::gfx;
@@ -116,14 +115,23 @@ TEST_CASE(
   INFO(error);
   REQUIRE(error.empty());
   REQUIRE(img.valid());
-  std::set<std::array<int, 3>> seen;
+  // gl_GlobalInvocationID.y == 0 is the top row on every backend: IMG_STORE
+  // flips Y on the non-SPIR-V targets, where the render target is bottom-up.
+  static constexpr std::array<std::array<int, 3>, 6> expected{{
+      {1, 0, 0}, // +X red
+      {0, 1, 1}, // -X cyan
+      {0, 1, 0}, // +Y green
+      {1, 0, 1}, // -Y magenta
+      {0, 0, 1}, // +Z blue
+      {1, 1, 0}, // -Z yellow
+  }};
   for(int cy = 0; cy < 2; cy++)
     for(int cx = 0; cx < 3; cx++)
     {
       const auto px = img.at(cx * img.width / 3 + img.width / 6, cy * img.height / 2 + img.height / 4);
-      seen.insert({px[0] > 128, px[1] > 128, px[2] > 128});
+      const std::array<int, 3> got{px[0] > 128, px[1] > 128, px[2] > 128};
+      INFO("cell " << cx << "," << cy << " = " << int(px[0]) << "," << int(px[1]) << ","
+                   << int(px[2]));
+      CHECK(got == expected[cy * 3 + cx]);
     }
-  const std::set<std::array<int, 3>> expected{
-      {1, 0, 0}, {0, 1, 1}, {0, 1, 0}, {1, 0, 1}, {0, 0, 1}, {1, 1, 0}};
-  CHECK(seen == expected);
 }

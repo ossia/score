@@ -5,7 +5,7 @@
 //
 // Content is tests/gfx/corpus/isf-gradient-x.fs: red = x, green = blue = 0.2.
 
-#include "WindowedOutputCommon.hpp"
+#include "MultiWindowTestCommon.hpp"
 
 #include <Gfx/Graph/FloatImageIO.hpp>
 #include <Gfx/Graph/PhotometricMaps.hpp>
@@ -19,6 +19,7 @@
 #include <QJsonObject>
 #include <QTemporaryDir>
 
+#include <catch2/catch_approx.hpp>
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/generators/catch_generators_range.hpp>
 
@@ -27,61 +28,15 @@
 using namespace score::test;
 using namespace score::test::gfx;
 
+using namespace score::test::gfx::multiwindow;
+
 namespace
 {
-struct Frame
+Gfx::OutputMapping undithered()
 {
-  int width{}, height{};
-  bool bgra{};
-  QByteArray data;
-
-  std::array<int, 3> at(double fx, double fy) const
-  {
-    const int x = std::clamp(int(fx * width), 0, width - 1);
-    const int y = std::clamp(int(fy * height), 0, height - 1);
-    const auto* p = reinterpret_cast<const uint8_t*>(data.constData()) + (y * width + x) * 4;
-    if(bgra)
-      return {p[2], p[1], p[0]};
-    return {p[0], p[1], p[2]};
-  }
-};
-
-struct Outcome
-{
-  bool skipped{};
-  std::string skipReason;
-  std::string error;
-  std::string backend;
-};
-
-Gfx::OutputMapping single()
-{
-  Gfx::OutputMapping m;
-  m.windowPosition = {20, 40};
-  m.windowSize = {128, 64};
+  auto m = single();
   m.quality.dither = Gfx::OutputDither::Off;
   return m;
-}
-
-bool grab(MultiWindowRig& rig, Frame& out)
-{
-  rig.render(2);
-  rig.node->requestReadback(0);
-  const auto& rb = rig.node->windowOutputs()[0].readback;
-  for(int i = 0; i < 30 && rb->data.isEmpty(); i++)
-    rig.render(1);
-  if(rb->data.isEmpty())
-    return false;
-  out.width = rb->pixelSize.width();
-  out.height = rb->pixelSize.height();
-  out.bgra = rb->format == QRhiTexture::BGRA8;
-  out.data = rb->data;
-  return out.data.size() >= out.width * out.height * 4;
-}
-
-int u8(double v)
-{
-  return int(std::lround(std::clamp(v, 0., 1.) * 255.));
 }
 
 void writeMap(const QString& path, int w, int h, std::vector<float> rgbOrGrey)
@@ -124,23 +79,6 @@ void writeResponse(const QString& path, double codeGamma, double mixGain = 0.)
   f.write(QJsonDocument(o).toJson());
 }
 
-template <typename F>
-Outcome runRig(score::gfx::GraphicsApi api, Gfx::OutputMapping mapping, F&& body)
-{
-  Outcome o;
-  run_in_gui_app([&](const score::GUIApplicationContext&) {
-    MultiWindowRig rig;
-    if(!rig.build(api, {mapping}))
-    {
-      o = {rig.skipped(), rig.skipReason(), rig.error(), rig.backend()};
-      return;
-    }
-    o.backend = rig.backend();
-    body(rig, o);
-  });
-  return o;
-}
-
 double lin(double v)
 {
   return std::pow(v, 2.2);
@@ -161,7 +99,7 @@ TEST_CASE("multi-window RGB alpha and beta maps; a grey map broadcasts", "[gfx][
   writeMap(dir.filePath("rgb.alpha.pfm"), 32, 16, {1.f, 0.5f, 0.25f});
   writeMap(dir.filePath("rgb.beta.pfm"), 8, 8, {0.f, 0.02f, 0.05f});
 
-  auto m = single();
+  auto m = undithered();
   m.color.linearBlend = true;
   m.maps.alpha = dir.filePath("grey.alpha.pfm");
 
@@ -214,7 +152,7 @@ TEST_CASE("multi-window measured response replaces the 2.2 encode", "[gfx][windo
     cube.write("LUT_1D_SIZE 2\n0 0 0\n1 1 1\n");
   }
 
-  auto m = single();
+  auto m = undithered();
   Frame none, p22, p18, linear;
   bool ok[4]{};
   auto o = runRig(api, m, [&](MultiWindowRig& rig, Outcome&) {
@@ -270,7 +208,7 @@ TEST_CASE("multi-window radiometric compensation matrix", "[gfx][window][multiwi
   REQUIRE(back.valid());
   CHECK(back.rows[2].data[3] == 0.1f);
 
-  auto m = single();
+  auto m = undithered();
   m.maps.compensation = dir.filePath("swap.comp.json");
   Frame f;
   bool ok{};
@@ -308,7 +246,7 @@ TEST_CASE("multi-window compensation keeps the hue of out-of-range colours", "[g
   }
   REQUIRE(score::gfx::writeCompensation(dir.filePath("gain"), comp, {}));
 
-  auto m = single();
+  auto m = undithered();
   m.maps.compensation = dir.filePath("gain.comp.json");
   Frame f;
   bool ok{};
@@ -355,17 +293,32 @@ TEST_CASE("multi-window compensation inverts the projector colour mixing", "[gfx
   }
   REQUIRE(score::gfx::writeCompensation(dir.filePath("id"), comp, {}));
 
-  auto m = single();
+  auto m = undithered();
   m.maps.response = dir.filePath("half.response.json");
   m.maps.compensation = dir.filePath("id.comp.json");
   Frame f;
   bool ok{};
-  auto o = runRig(api, m, [&](MultiWindowRig& rig, Outcome&) { ok = grab(rig, f); });
+  int rowsWithComp{}, rowsWithout{}, rowsBack{};
+  auto o = runRig(api, m, [&](MultiWindowRig& rig, Outcome&) {
+    ok = grab(rig, f);
+    const auto& wo = rig.node->windowOutputs()[0];
+    rowsWithComp = wo.responseMap ? wo.responseMap->height : 0;
+    auto maps = m.maps;
+    maps.compensation.clear();
+    rig.node->setMaps(0, maps);
+    rowsWithout = wo.responseMap ? wo.responseMap->height : 0;
+    rig.node->setMaps(0, m.maps);
+    rowsBack = wo.responseMap ? wo.responseMap->height : 0;
+  });
   if(o.skipped)
     SKIP(o.backend << ": " << o.skipReason);
   REQUIRE(o.error.empty());
   INFO("backend: " << o.backend);
   REQUIRE(ok);
+  // The mixing table is only packed when a compensation map can use it.
+  CHECK(rowsWithComp > 1);
+  CHECK(rowsWithout == 1);
+  CHECK(rowsBack == rowsWithComp);
   for(double x : {0.25, 0.75})
   {
     const double r = (std::floor(x * 128) + 0.5) / 128.;
@@ -378,24 +331,59 @@ TEST_CASE("multi-window compensation inverts the projector colour mixing", "[gfx
   }
 }
 
-TEST_CASE("OutputMapping response and compensation files round-trip", "[gfx][window][photometric]")
+TEST_CASE("multi-window response of a large 1D cube is resampled", "[gfx][window][multiwindow][photometric]")
 {
-  run_in_gui_app([&](const score::GUIApplicationContext&) {
-    Gfx::OutputMapping m;
-    m.maps.response = "/tmp/p.response.json";
-    m.maps.compensation = "/tmp/p.comp.json";
-    JSONReader r;
-    r.readFrom(m);
-    const auto json = r.toByteArray();
-    CHECK(json.contains("ResponseFile"));
-    CHECK(json.contains("CompensationFile"));
-    const auto back = fromJson<Gfx::OutputMapping>(json);
-    CHECK(back.maps.response == m.maps.response);
-    CHECK(back.maps.compensation == m.maps.compensation);
-    const auto ds
-        = DataStreamWriter::unmarshall<Gfx::OutputMapping>(DataStreamReader::marshall(m));
-    CHECK(ds.maps.response == m.maps.response);
-    CHECK(ds.maps.compensation == m.maps.compensation);
-    CHECK(!m.maps.empty());
+  const auto api = GENERATE(from_range(platform_backends()));
+  QTemporaryDir dir;
+  REQUIRE(dir.isValid());
+  const int N = 65536;
+  {
+    QByteArray cube = "LUT_1D_SIZE 65536\n";
+    cube.reserve(N * 30);
+    for(int i = 0; i < N; i++)
+    {
+      const QByteArray v = QByteArray::number(enc(double(i) / (N - 1)), 'f', 6);
+      cube += v + ' ' + v + ' ' + v + '\n';
+    }
+    QFile f{dir.filePath("big.cube")};
+    REQUIRE(f.open(QIODevice::WriteOnly));
+    f.write(cube);
+  }
+  auto m = undithered();
+  m.maps.response = dir.filePath("big.cube");
+  Frame f;
+  bool ok{};
+  int width{}, height{};
+  auto o = runRig(api, m, [&](MultiWindowRig& rig, Outcome&) {
+    const auto& wo = rig.node->windowOutputs()[0];
+    width = wo.responseMap ? wo.responseMap->width : 0;
+    height = wo.responseMap ? wo.responseMap->height : 0;
+    ok = grab(rig, f);
   });
+  if(o.skipped)
+    SKIP(o.backend << ": " << o.skipReason);
+  REQUIRE(o.error.empty());
+  INFO("backend: " << o.backend);
+  REQUIRE(ok);
+  CHECK(width >= 2);
+  CHECK(width <= 4096);
+  CHECK(height == 1);
+  const double r = (std::floor(0.75 * 128) + 0.5) / 128.;
+  CHECK(std::abs(f.at(0.75, 0.5)[0] - u8(r)) <= 3);
+}
+
+TEST_CASE("projector response files load with their colour mixing", "[gfx][photometric]")
+{
+  QTemporaryDir dir;
+  REQUIRE(dir.isValid());
+  writeResponse(dir.filePath("plain.response.json"), 1. / 2.2);
+  writeResponse(dir.filePath("mixed.response.json"), 1. / 2.2, 0.5);
+  const auto plain = score::gfx::loadResponseTable(dir.filePath("plain.response.json"));
+  const auto mixed = score::gfx::loadResponseTable(dir.filePath("mixed.response.json"));
+  REQUIRE(plain.valid());
+  REQUIRE(mixed.valid());
+  CHECK(plain.size == 256);
+  CHECK_FALSE(plain.mixing.valid());
+  CHECK(mixed.mixing.valid());
+  CHECK(plain.inverse[255 * 3] == Catch::Approx(1.f));
 }

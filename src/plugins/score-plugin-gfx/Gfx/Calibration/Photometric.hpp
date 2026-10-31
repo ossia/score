@@ -41,7 +41,7 @@ struct CameraResponse
   double linear(int c, double v) const noexcept
   {
     const auto& gc = g[c];
-    const double z = std::clamp(v, 0., 1.) * (levels - 1);
+    const double z = (v > 0. ? std::min(v, 1.) : 0.) * (levels - 1);
     const int z0 = std::min(int(z), levels - 2);
     const double t = z - z0;
     const double gz = gc[z0] * (1. - t) + gc[z0 + 1] * t;
@@ -57,12 +57,15 @@ inline double hatWeight(int z, int levels) noexcept
 }
 
 //! One channel. Z[i * P + j]: code of sample i at exposure j, < 0 = missing.
-//! Returns g (levels values, g(levels / 2) = 0), and the ln E of each sample.
+//! Returns g (levels values, g(levels / 2) = 0), and the ln E of each sample;
+//! empty when the input is inconsistent or the solve fails.
 inline std::vector<double> solveCameraResponse(
     const std::vector<int>& Z, int samples, const std::vector<double>& lnDt, int levels,
     double lambda, std::vector<double>* lnE = nullptr)
 {
   const int P = int(lnDt.size());
+  if(levels < 2 || samples < 0 || Z.size() < std::size_t(samples) * P)
+    return {};
   const int n = levels + samples;
   Eigen::MatrixXd AtA = Eigen::MatrixXd::Zero(n, n);
   Eigen::VectorXd Atb = Eigen::VectorXd::Zero(n);
@@ -78,7 +81,7 @@ inline std::vector<double> solveCameraResponse(
     for(int j = 0; j < P; j++)
     {
       const int z = Z[std::size_t(i) * P + j];
-      if(z < 0 || z >= levels)
+      if(z < 0 || z >= levels || !std::isfinite(lnDt[j]))
         continue;
       const double w = hatWeight(z, levels);
       if(w <= 0.)
@@ -101,6 +104,8 @@ inline std::vector<double> solveCameraResponse(
   }
   AtA.diagonal().array() += 1e-9;
   const Eigen::VectorXd x = AtA.ldlt().solve(Atb);
+  if(!x.allFinite())
+    return {};
   std::vector<double> g(levels);
   for(int z = 0; z < levels; z++)
     g[z] = x[z];
@@ -152,7 +157,9 @@ public:
       : m_x{std::move(x)}
       , m_y{std::move(y)}
   {
-    const std::size_t n = m_x.size();
+    const std::size_t n = std::min(m_x.size(), m_y.size());
+    m_x.resize(n);
+    m_y.resize(n);
     m_m.assign(n, 0.);
     if(n < 2)
       return;
@@ -186,7 +193,7 @@ public:
     const std::size_t n = m_x.size();
     if(n == 0)
       return x;
-    if(x <= m_x.front())
+    if(!(x > m_x.front()))
       return m_y.front();
     if(x >= m_x.back())
       return m_y.back();
@@ -215,6 +222,8 @@ struct ChannelResponse
   //! Best single power y = x ^ gamma.
   double gamma{2.2};
   MonotoneCubic curve;
+  //! False when the measurements could not be fitted: the curve is then the identity.
+  bool valid{};
 
   double operator()(double v) const noexcept { return curve(std::clamp(v, 0., 1.)); }
   //! Code giving the normalised output t, by bisection.
@@ -236,9 +245,22 @@ struct ChannelResponse
 inline ChannelResponse fitChannelResponse(const std::vector<double>& x, const std::vector<double>& m)
 {
   ChannelResponse r;
+  const bool usable = !x.empty() && m.size() == x.size() && m.back() > 0.
+                      && std::isfinite(m.back())
+                      && std::all_of(x.begin(), x.end(), [](double v) { return v > 0. && v <= 1.; })
+                      && std::is_sorted(x.begin(), x.end())
+                      && std::all_of(m.begin(), m.end(), [](double v) { return std::isfinite(v); });
+  if(!usable)
+  {
+    r.x = r.measured = r.fitted = {0., 1.};
+    r.gamma = 1.;
+    r.curve = MonotoneCubic(r.x, r.fitted);
+    return r;
+  }
+  r.valid = true;
   r.x.push_back(0.);
   r.measured.push_back(0.);
-  const double top = m.empty() ? 1. : std::max(1e-12, m.back());
+  const double top = m.back();
   for(std::size_t k = 0; k < x.size(); k++)
   {
     r.x.push_back(x[k]);
@@ -293,7 +315,12 @@ inline bool compensationMatrix(
     return false;
   }
   M = V.inverse() * Eigen::Vector3d(k[0], k[1], k[2]).asDiagonal();
-  return M.allFinite();
+  if(!M.allFinite())
+  {
+    M.setIdentity();
+    return false;
+  }
+  return true;
 }
 
 //! The largest s with s M (1, 1, 1) <= 1: the brightest white this pixel can
@@ -324,27 +351,32 @@ struct ColourMixing
            && shown.size() == std::size_t(N) * N * N;
   }
 
-  std::array<double, 3> forward(const std::array<double, 3>& l) const noexcept
+  //! J: the derivative of the result in l, on the tetrahedron l lies in.
+  std::array<double, 3>
+  forward(const std::array<double, 3>& l, Eigen::Matrix3d* J = nullptr) const noexcept
   {
     const int N = n();
     int k[3];
-    double t[3];
+    double t[3], dt[3];
     for(int c = 0; c < 3; c++)
     {
       const auto& a = axis[c];
-      const double v = std::clamp(l[c], a.front(), a.back());
+      const double v = l[c] > a.front() ? std::min(l[c], a.back()) : a.front();
       k[c] = std::clamp(
           int(std::upper_bound(a.begin(), a.end(), v) - a.begin()) - 1, 0, N - 2);
-      t[c] = (v - a[k[c]]) / std::max(1e-12, a[k[c] + 1] - a[k[c]]);
+      const double span = std::max(1e-12, a[k[c] + 1] - a[k[c]]);
+      t[c] = (v - a[k[c]]) / span;
+      dt[c] = l[c] >= a.front() && l[c] <= a.back() ? 1. / span : 0.;
     }
     int o[3]{0, 1, 2};
     std::sort(o, o + 3, [&](int a, int b) { return t[a] > t[b]; });
     int d[3]{0, 0, 0};
-    auto at = [&] {
+    auto at = [&]() -> const std::array<double, 3>& {
       return shown[(std::size_t(k[2] + d[2]) * N + (k[1] + d[1])) * N + (k[0] + d[0])];
     };
     const double w[4]{1. - t[o[0]], t[o[0]] - t[o[1]], t[o[1]] - t[o[2]], t[o[2]]};
     std::array<double, 3> r{};
+    const std::array<double, 3>* prev{};
     for(int v = 0; v < 4; v++)
     {
       if(v > 0)
@@ -352,37 +384,51 @@ struct ColourMixing
       const auto& s = at();
       for(int c = 0; c < 3; c++)
         r[c] += w[v] * s[c];
+      if(J && prev)
+        for(int c = 0; c < 3; c++)
+          (*J)(c, o[v - 1]) = (s[c] - (*prev)[c]) * dt[o[v - 1]];
+      prev = &s;
     }
     return r;
   }
 
-  //! l in [0, 1]^3 whose forward() is closest to e, by projected Gauss-Newton.
+  //! l in [0, 1]^3 whose forward() is closest to e, by Gauss-Newton with the
+  //! bounds as an active set.
   std::array<double, 3> closest(const std::array<double, 3>& e) const noexcept
   {
     std::array<double, 3> l;
     for(int c = 0; c < 3; c++)
-      l[c] = std::clamp(e[c], 0., 1.);
-    auto err = [&](const std::array<double, 3>& x, Eigen::Vector3d& f) {
-      const auto y = forward(x);
+      l[c] = e[c] > 0. ? std::min(e[c], 1.) : 0.;
+    auto err = [&](const std::array<double, 3>& x, Eigen::Vector3d& f, Eigen::Matrix3d& J) {
+      const auto y = forward(x, &J);
       for(int c = 0; c < 3; c++)
         f[c] = y[c] - e[c];
       return f.squaredNorm();
     };
     Eigen::Vector3d f;
-    double cost = err(l, f);
+    Eigen::Matrix3d J;
+    double cost = err(l, f, J);
     for(int it = 0; it < 40 && cost > 1e-16; it++)
     {
-      Eigen::Matrix3d J;
-      for(int c = 0; c < 3; c++)
+      Eigen::Matrix3d Ja = J;
+      bool active[3]{};
+      Eigen::Vector3d step;
+      for(int pass = 0; pass < 3; pass++)
       {
-        auto x = l;
-        const double h = x[c] > 0.5 ? -1e-5 : 1e-5;
-        x[c] += h;
-        Eigen::Vector3d g;
-        err(x, g);
-        J.col(c) = (g - f) / h;
+        step = Ja.colPivHouseholderQr().solve(-f);
+        for(int c = 0; c < 3; c++)
+          if(active[c])
+            step[c] = 0.;
+        bool clipped = false;
+        for(int c = 0; c < 3; c++)
+          if(!active[c] && ((l[c] <= 0. && step[c] < 0.) || (l[c] >= 1. && step[c] > 0.)))
+          {
+            active[c] = clipped = true;
+            Ja.col(c).setZero();
+          }
+        if(!clipped)
+          break;
       }
-      const Eigen::Vector3d step = J.colPivHouseholderQr().solve(-f);
       if(!step.allFinite())
         break;
       bool better = false;
@@ -392,10 +438,12 @@ struct ColourMixing
         for(int c = 0; c < 3; c++)
           x[c] = std::clamp(l[c] + a * step[c], 0., 1.);
         Eigen::Vector3d g;
-        if(const double cg = err(x, g); cg < cost)
+        Eigen::Matrix3d Jx;
+        if(const double cg = err(x, g, Jx); cg < cost)
         {
           l = x;
           f = g;
+          J = Jx;
           cost = cg;
           better = true;
         }
@@ -407,37 +455,65 @@ struct ColourMixing
   }
 
   //! The exact l with forward(l) = e, if e is shown at all.
-  bool solve(const std::array<double, 3>& e, std::array<double, 3>& l) const noexcept
+  bool solve(const std::array<double, 3>& e, std::array<double, 3>& l) const;
+
+  //! Axes finite and strictly increasing, samples finite, at most maxLevels
+  //! codes per axis.
+  bool wellFormed(int maxLevels = 17) const noexcept
   {
-    const int N = n();
+    if(!valid() || n() > maxLevels)
+      return false;
+    for(auto& a : axis)
+    {
+      if(!std::isfinite(a.front()))
+        return false;
+      for(std::size_t k = 1; k < a.size(); k++)
+        if(!std::isfinite(a[k]) || !(a[k] > a[k - 1]))
+          return false;
+    }
+    for(auto& v : shown)
+      if(!std::isfinite(v[0]) || !std::isfinite(v[1]) || !std::isfinite(v[2]))
+        return false;
+    return true;
+  }
+};
+
+//! The tetrahedra of a ColourMixing with their barycentric inverses and a
+//! uniform grid over the shown colours, for many solves.
+class MixingTetrahedra
+{
+public:
+  explicit MixingTetrahedra(const ColourMixing& m)
+  {
+    const int N = m.n();
+    if(!m.valid())
+      return;
     static constexpr int perms[6][3]{{0, 1, 2}, {0, 2, 1}, {1, 0, 2}, {1, 2, 0}, {2, 0, 1}, {2, 1, 0}};
-    constexpr double eps = 1e-9;
+    m_lo.setConstant(1e30);
+    m_hi.setConstant(-1e30);
     for(int z = 0; z + 1 < N; z++)
       for(int y = 0; y + 1 < N; y++)
         for(int x = 0; x + 1 < N; x++)
         {
-          const int base[3]{x, y, z};
-          auto value = [&](const int* d) -> const std::array<double, 3>& {
-            return shown[(std::size_t(z + d[2]) * N + (y + d[1])) * N + (x + d[0])];
+          auto value = [&](const int* d) {
+            const auto& v = m.shown[(std::size_t(z + d[2]) * N + (y + d[1])) * N + (x + d[0])];
+            return Eigen::Vector3d(v[0], v[1], v[2]);
           };
+          auto code = [&](const int* d) {
+            return Eigen::Vector3d(
+                m.axis[0][x + d[0]], m.axis[1][y + d[1]], m.axis[2][z + d[2]]);
+          };
+          Cell cell;
+          cell.lo.setConstant(1e30);
+          cell.hi.setConstant(-1e30);
+          for(int c = 0; c < 8; c++)
           {
-            std::array<double, 3> lo{1e30, 1e30, 1e30}, hi{-1e30, -1e30, -1e30};
-            for(int c = 0; c < 8; c++)
-            {
-              const int d[3]{c & 1, (c >> 1) & 1, (c >> 2) & 1};
-              const auto& v = value(d);
-              for(int a = 0; a < 3; a++)
-              {
-                lo[a] = std::min(lo[a], v[a]);
-                hi[a] = std::max(hi[a], v[a]);
-              }
-            }
-            bool inside = true;
-            for(int a = 0; a < 3; a++)
-              inside &= e[a] >= lo[a] - 1e-7 && e[a] <= hi[a] + 1e-7;
-            if(!inside)
-              continue;
+            const int d[3]{c & 1, (c >> 1) & 1, (c >> 2) & 1};
+            const Eigen::Vector3d v = value(d);
+            cell.lo = cell.lo.cwiseMin(v);
+            cell.hi = cell.hi.cwiseMax(v);
           }
+          cell.first = int(m_tets.size());
           for(auto& o : perms)
           {
             int d[4][3]{};
@@ -446,46 +522,133 @@ struct ColourMixing
               std::copy(d[v - 1], d[v - 1] + 3, d[v]);
               d[v][o[v - 1]] = 1;
             }
-            const auto& s0 = value(d[0]);
+            Tet t;
+            t.s0 = value(d[0]);
+            t.l0 = code(d[0]);
             Eigen::Matrix3d A;
             for(int v = 1; v < 4; v++)
             {
-              const auto& sv = value(d[v]);
-              for(int a = 0; a < 3; a++)
-                A(a, v - 1) = sv[a] - s0[a];
+              A.col(v - 1) = value(d[v]) - t.s0;
+              t.dl.col(v - 1) = code(d[v]) - t.l0;
             }
             Eigen::FullPivLU<Eigen::Matrix3d> lu(A);
             if(!lu.isInvertible())
               continue;
-            const Eigen::Vector3d w
-                = lu.solve(Eigen::Vector3d(e[0] - s0[0], e[1] - s0[1], e[2] - s0[2]));
-            const double w0 = 1. - w.sum();
-            if(w0 < -eps || w.minCoeff() < -eps)
-              continue;
-            for(int a = 0; a < 3; a++)
-            {
-              const auto& ax = axis[a];
-              double v = 0.;
-              for(int k = 0; k < 4; k++)
-              {
-                const double wk = k == 0 ? w0 : w[k - 1];
-                v += wk * ax[base[a] + d[k][a]];
-              }
-              l[a] = std::clamp(v, 0., 1.);
-            }
-            return true;
+            t.inv = lu.inverse();
+            m_tets.push_back(t);
           }
+          cell.count = int(m_tets.size()) - cell.first;
+          m_lo = m_lo.cwiseMin(cell.lo);
+          m_hi = m_hi.cwiseMax(cell.hi);
+          m_cells.push_back(cell);
         }
-    return false;
+    if(m_cells.empty())
+      return;
+    m_bins = std::clamp(N - 1, 1, 16);
+    m_lo.array() -= 1e-6;
+    m_hi.array() += 1e-6;
+    m_grid.resize(std::size_t(m_bins) * m_bins * m_bins);
+    for(int k = 0; k < int(m_cells.size()); k++)
+    {
+      const auto& c = m_cells[k];
+      int b0[3], b1[3];
+      for(int a = 0; a < 3; a++)
+      {
+        b0[a] = bin(a, c.lo[a] - 1e-7);
+        b1[a] = bin(a, c.hi[a] + 1e-7);
+      }
+      for(int z = b0[2]; z <= b1[2]; z++)
+        for(int y = b0[1]; y <= b1[1]; y++)
+          for(int x = b0[0]; x <= b1[0]; x++)
+            m_grid[(std::size_t(z) * m_bins + y) * m_bins + x].push_back(k);
+    }
   }
+
+  //! Among the tetrahedra holding e, the solution closest to hint, or the
+  //! first one without a hint.
+  bool solve(
+      const std::array<double, 3>& e, std::array<double, 3>& l,
+      const std::array<double, 3>* hint = nullptr) const noexcept
+  {
+    constexpr double eps = 1e-9;
+    if(m_grid.empty())
+      return false;
+    const Eigen::Vector3d ev(e[0], e[1], e[2]);
+    if(!ev.allFinite() || (ev.array() < m_lo.array()).any() || (ev.array() > m_hi.array()).any())
+      return false;
+    const auto& list
+        = m_grid[(std::size_t(bin(2, e[2])) * m_bins + bin(1, e[1])) * m_bins + bin(0, e[0])];
+    bool found = false;
+    double bestDist = 0.;
+    for(int k : list)
+    {
+      const auto& c = m_cells[k];
+      if(((ev.array() < c.lo.array() - 1e-7) || (ev.array() > c.hi.array() + 1e-7)).any())
+        continue;
+      for(int t = c.first; t < c.first + c.count; t++)
+      {
+        const auto& tet = m_tets[t];
+        const Eigen::Vector3d w = tet.inv * (ev - tet.s0);
+        if(1. - w.sum() < -eps || w.minCoeff() < -eps)
+          continue;
+        const Eigen::Vector3d v = (tet.l0 + tet.dl * w).cwiseMax(0.).cwiseMin(1.);
+        const std::array<double, 3> cand{v[0], v[1], v[2]};
+        if(!hint)
+        {
+          l = cand;
+          return true;
+        }
+        const double dist = (v - Eigen::Vector3d((*hint)[0], (*hint)[1], (*hint)[2])).squaredNorm();
+        if(!found || dist < bestDist)
+        {
+          l = cand;
+          bestDist = dist;
+          found = true;
+        }
+      }
+    }
+    return found;
+  }
+
+private:
+  int bin(int a, double v) const noexcept
+  {
+    const double t = (v - m_lo[a]) / (m_hi[a] - m_lo[a]) * m_bins;
+    return t > 0. ? std::min(int(t), m_bins - 1) : 0;
+  }
+
+  struct Tet
+  {
+    Eigen::Matrix3d inv, dl;
+    Eigen::Vector3d s0, l0;
+  };
+  struct Cell
+  {
+    Eigen::Vector3d lo, hi;
+    int first{}, count{};
+  };
+  std::vector<Tet> m_tets;
+  std::vector<Cell> m_cells;
+  std::vector<std::vector<int>> m_grid;
+  Eigen::Vector3d m_lo, m_hi;
+  int m_bins{};
 };
 
+inline bool ColourMixing::solve(const std::array<double, 3>& e, std::array<double, 3>& l) const
+{
+  return MixingTetrahedra(*this).solve(e, l);
+}
+
 //! ColourMixing::solve on a K^3 grid of shown light e = D (j / (K - 1))^2 per
-//! axis, red fastest. A colour just out of reach takes the closest reachable
-//! one; one further out is scaled towards black until reachable, which keeps
-//! its hue.
+//! axis, red fastest. A colour just out of reach (within 3 %) takes the
+//! closest reachable one; one further out is scaled towards black until it is
+//! shown exactly, which keeps its hue when a darker colour of that hue is shown
+//! at all, and takes the closest reachable one otherwise. Where several
+//! branches of a non-injective mixing show e, each node takes the one nearest
+//! its already solved neighbour.
 struct MixingInverse
 {
+  static constexpr int maxK = 65;
   int K{};
   double D{2.};
   std::vector<float> l;
@@ -496,7 +659,7 @@ struct MixingInverse
   static MixingInverse build(const ColourMixing& m, int K = 33, double D = 0.)
   {
     MixingInverse r;
-    if(!m.valid())
+    if(!m.wellFormed() || K < 2 || K > maxK || !std::isfinite(D))
       return r;
     if(D <= 0.)
     {
@@ -504,12 +667,14 @@ struct MixingInverse
         D = std::max({D, v[0], v[1], v[2]});
       D = std::max(1e-3, 1.02 * D);
     }
+    const MixingTetrahedra tets{m};
     r.K = K;
     r.D = D;
     r.l.resize(std::size_t(K) * K * K * 3);
     auto node = [&](int j) { return D * double(j) * j / double((K - 1) * (K - 1)); };
-    auto fit = [&](const std::array<double, 3>& e, std::array<double, 3>& l) {
-      if(m.solve(e, l))
+    auto fit = [&](const std::array<double, 3>& e, std::array<double, 3>& l,
+                   const std::array<double, 3>* hint) {
+      if(tets.solve(e, l, hint))
         return true;
       l = m.closest(e);
       const auto y = m.forward(l);
@@ -519,15 +684,24 @@ struct MixingInverse
         miss += (y[c] - e[c]) * (y[c] - e[c]);
         norm += e[c] * e[c];
       }
-      return std::sqrt(miss) <= 0.03 * std::sqrt(norm) + 0.005 * D;
+      return std::sqrt(miss) <= 0.03 * std::sqrt(norm) + 1e-4 * D;
     };
     for(int b = 0; b < K; b++)
       for(int g = 0; g < K; g++)
         for(int x = 0; x < K; x++)
         {
+          const std::size_t idx = (std::size_t(b) * K + g) * K + x;
+          std::array<double, 3> prev;
+          const std::array<double, 3>* hint = nullptr;
+          if(const std::size_t back = x > 0 ? 1 : g > 0 ? K : b > 0 ? std::size_t(K) * K : 0)
+          {
+            const float* p = r.l.data() + (idx - back) * 3;
+            prev = {p[0], p[1], p[2]};
+            hint = &prev;
+          }
           const std::array<double, 3> e{node(x), node(g), node(b)};
           std::array<double, 3> l{};
-          if(!fit(e, l))
+          if(!fit(e, l, hint))
           {
             double lo = 0., hi = 1.;
             std::array<double, 3> best = l;
@@ -535,7 +709,7 @@ struct MixingInverse
             {
               const double k = 0.5 * (lo + hi);
               std::array<double, 3> lk;
-              if(fit({k * e[0], k * e[1], k * e[2]}, lk))
+              if(tets.solve({k * e[0], k * e[1], k * e[2]}, lk, hint))
               {
                 lo = k;
                 best = lk;
@@ -545,7 +719,7 @@ struct MixingInverse
             }
             l = best;
           }
-          float* o = r.l.data() + ((std::size_t(b) * K + g) * K + x) * 3;
+          float* o = r.l.data() + idx * 3;
           for(int c = 0; c < 3; c++)
             o[c] = float(l[c]);
         }
@@ -554,6 +728,9 @@ struct MixingInverse
 
   std::array<double, 3> operator()(std::array<double, 3> e) const noexcept
   {
+    for(auto& v : e)
+      if(!std::isfinite(v))
+        v = 0.;
     if(const double top = std::max({e[0], e[1], e[2]}); top > D)
       for(auto& v : e)
         v *= D / top;

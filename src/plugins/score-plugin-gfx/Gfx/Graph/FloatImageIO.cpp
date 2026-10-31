@@ -73,11 +73,18 @@ FloatImage parsePFM(const QByteArray& b, QString* error)
     pfmSetError(error, QStringLiteral("invalid PFM header"));
     return {};
   }
+  if(pos + 1 < b.size() && b[pos] == '\r' && b[pos + 1] == '\n')
+    pos++;
+  if(pos >= b.size() || !pfmIsSpace(b[pos]))
+  {
+    pfmSetError(error, QStringLiteral("truncated PFM data"));
+    return {};
+  }
   pos++;
 
   const bool littleEndian = s < 0.;
   const std::size_t count = std::size_t(img.width) * img.height * img.channels;
-  if(std::size_t(b.size() - pos) < count * sizeof(float))
+  if(std::size_t(b.size() - pos) / sizeof(float) < count)
   {
     pfmSetError(error, QStringLiteral("truncated PFM data"));
     return {};
@@ -161,11 +168,8 @@ QString validMapPath(const QString& pfmPath)
   QString base = pfmPath;
   if(base.endsWith(QStringLiteral(".pfm"), Qt::CaseInsensitive))
     base.chop(4);
-  const QFileInfo info{base};
-  const QString name = info.fileName();
-  const int dot = name.lastIndexOf('.');
-  if(dot > 0)
-    base.chop(name.size() - dot);
+  if(base.endsWith(QStringLiteral(".xyz"), Qt::CaseInsensitive))
+    base.chop(4);
   return base + QStringLiteral(".valid.pfm");
 }
 
@@ -239,7 +243,14 @@ FloatImage loadFloatImageRGBA(const QString& path, QString* error)
     pfmSetError(error, QStringLiteral("cannot read %1").arg(path));
     return {};
   }
-  qimg = qimg.convertToFormat(QImage::Format_RGBA32FPx4);
+  return toFloatImageRGBA(qimg);
+}
+
+FloatImage toFloatImageRGBA(const QImage& src)
+{
+  if(src.isNull())
+    return {};
+  const QImage qimg = src.convertToFormat(QImage::Format_RGBA32FPx4);
   FloatImage out;
   out.width = qimg.width();
   out.height = qimg.height();

@@ -3,8 +3,12 @@
 
 #include <QDateTime>
 #include <QDir>
+#include <QFile>
 #include <QFileInfo>
 #include <QFileSystemWatcher>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
 #include <QRegularExpression>
 #include <QString>
 #include <QStringList>
@@ -13,6 +17,7 @@
 #include <functional>
 #include <initializer_list>
 #include <memory>
+#include <optional>
 #include <vector>
 
 namespace Gfx
@@ -23,6 +28,8 @@ struct CalibrationFileSlot
 {
   QString OutputMaps::* member;
   std::vector<QString> suffixes;
+  //! Written by a calibration process, which then lists it (calibrationListing).
+  bool listed{true};
 };
 
 inline const std::vector<CalibrationFileSlot>& calibrationFileSlots()
@@ -30,7 +37,7 @@ inline const std::vector<CalibrationFileSlot>& calibrationFileSlots()
   static const std::vector<CalibrationFileSlot> slots{
       {&OutputMaps::alpha, {QStringLiteral(".alpha.pfm")}},
       {&OutputMaps::beta, {QStringLiteral(".beta.pfm")}},
-      {&OutputMaps::lut, {QStringLiteral(".cube"), QStringLiteral(".lut.cube")}},
+      {&OutputMaps::lut, {QStringLiteral(".cube"), QStringLiteral(".lut.cube")}, false},
       {&OutputMaps::response, {QStringLiteral(".response.json")}},
       {&OutputMaps::compensation, {QStringLiteral(".comp.json")}}};
   return slots;
@@ -74,13 +81,49 @@ inline QString calibrationSetBase(const QString& path)
   return base;
 }
 
-inline QString findCalibrationFile(const QString& base, const CalibrationFileSlot& slot)
+//! The file names the last run of the calibration `base` wrote: the "files" of
+//! name.json, and the alphaMap / betaMap of a name.blend.json at least as
+//! recent. Empty when name.json lists nothing: then any file on disk counts.
+inline std::optional<QStringList> calibrationListing(const QString& base)
+{
+  if(base.isEmpty())
+    return {};
+  QFile f{base + QStringLiteral(".json")};
+  if(!f.open(QIODevice::ReadOnly))
+    return {};
+  const auto o = QJsonDocument::fromJson(f.readAll()).object();
+  const auto files = o.value(QStringLiteral("files"));
+  if(!files.isArray())
+    return {};
+  QStringList out;
+  for(const auto& v : files.toArray())
+    out.push_back(v.toString());
+  const QFileInfo json{base + QStringLiteral(".json")};
+  const QFileInfo blend{base + QStringLiteral(".blend.json")};
+  if(QFile b{blend.filePath()};
+     blend.lastModified() >= json.lastModified() && b.open(QIODevice::ReadOnly))
+  {
+    const auto bo = QJsonDocument::fromJson(b.readAll()).object();
+    for(const char* k : {"alphaMap", "betaMap"})
+      if(const auto v = bo.value(QLatin1String(k)).toString(); !v.isEmpty())
+        out.push_back(v);
+  }
+  return out;
+}
+
+inline QString findCalibrationFile(
+    const QString& base, const CalibrationFileSlot& slot,
+    const std::optional<QStringList>& listing = {})
 {
   if(base.isEmpty())
     return {};
   for(const auto& s : slot.suffixes)
     if(QFileInfo f{base + s}; f.isFile())
+    {
+      if(slot.listed && listing && !listing->contains(f.fileName(), Qt::CaseInsensitive))
+        continue;
       return f.filePath();
+    }
   return {};
 }
 
@@ -90,8 +133,10 @@ inline bool isCalibrationFileOf(
   if(file.isEmpty() || base.isEmpty())
     return false;
   const QString f = QDir::fromNativeSeparators(file);
+  if(!f.startsWith(base))
+    return false;
   for(const auto& s : slot.suffixes)
-    if(f == base + s)
+    if(f.size() == base.size() + s.size() && f.endsWith(s, Qt::CaseInsensitive))
       return true;
   return false;
 }
@@ -109,15 +154,8 @@ inline bool calibrationExists(const QString& base)
   return false;
 }
 
-inline bool sameMaps(const OutputMaps& a, const OutputMaps& b) noexcept
-{
-  return a.warp == b.warp && a.alpha == b.alpha && a.beta == b.beta && a.lut == b.lut
-         && a.response == b.response && a.compensation == b.compensation
-         && a.calibration == b.calibration;
-}
-
 //! Points `m` at the calibration of `path` and fills every slot that has a
-//! file for it. A slot without a file is cleared when it held the previous
+//! file for it, among those its last run wrote (calibrationListing). A slot without a file is cleared when it held the previous
 //! calibration's file, kept otherwise. An empty path detaches the calibration.
 //! Returns the number of files assigned.
 inline int applyCalibration(OutputMaps& m, const QString& path)
@@ -125,11 +163,12 @@ inline int applyCalibration(OutputMaps& m, const QString& path)
   const QString oldBase = calibrationBase(m.calibration);
   const QString base = calibrationBase(path);
   m.calibration = base.isEmpty() ? QString{} : base + QStringLiteral(".json");
+  const auto listing = calibrationListing(base);
   int n = 0;
   for(const auto& slot : calibrationFileSlots())
   {
     QString& v = m.*slot.member;
-    if(const QString f = findCalibrationFile(base, slot); !f.isEmpty())
+    if(const QString f = findCalibrationFile(base, slot, listing); !f.isEmpty())
     {
       v = f;
       n++;
@@ -150,12 +189,13 @@ inline bool refreshCalibration(OutputMaps& m)
   if(base.isEmpty())
     return false;
   bool changed = false;
+  const auto listing = calibrationListing(base);
   for(const auto& slot : calibrationFileSlots())
   {
     QString& v = m.*slot.member;
     if(!v.isEmpty() && !isCalibrationFileOf(v, base, slot))
       continue;
-    const QString f = findCalibrationFile(base, slot);
+    const QString f = findCalibrationFile(base, slot, listing);
     if(f != v)
     {
       v = f;
@@ -261,6 +301,7 @@ inline QStringList watchedCalibrationFiles(const std::vector<OutputMaps>& maps)
     if(const QString base = calibrationBase(m.calibration); !base.isEmpty())
     {
       out.push_back(base + QStringLiteral(".json"));
+      out.push_back(base + QStringLiteral(".blend.json"));
       for(const auto& slot : calibrationFileSlots())
         for(const auto& s : slot.suffixes)
           out.push_back(base + s);

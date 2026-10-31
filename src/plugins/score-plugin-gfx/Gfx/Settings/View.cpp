@@ -12,12 +12,30 @@
 #include <QCheckBox>
 #include <QComboBox>
 #include <QFormLayout>
+#include <QSignalBlocker>
 #include <QSpinBox>
+
+#include <functional>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Gfx::Settings::View)
 namespace Gfx::Settings
 {
+namespace
+{
+struct GpuComboBox final : QComboBox
+{
+  using QComboBox::QComboBox;
+  std::function<void()> populate;
+  void showPopup() override
+  {
+    if(populate)
+      populate();
+    QComboBox::showPopup();
+  }
+};
+}
+
 View::View()
 {
   m_widg = new score::FormWidget{tr("Graphics")};
@@ -54,30 +72,70 @@ View::View()
   SETTINGS_UI_NUM_COMBOBOX_SETUP("Buffer count", Buffers, buffers_values);
 
   {
-    m_GpuIndex = new QComboBox{m_widg};
+    auto gpuCombo = new GpuComboBox{m_widg};
+    gpuCombo->populate = [this] { populateGpus(); };
+    m_GpuIndex = gpuCombo;
     m_GpuIndex->addItem(tr("Default"), -1);
-    const auto gpus = availableVulkanGpus();
-    for(const auto& g : gpus)
-      m_GpuIndex->addItem(
-          QStringLiteral("%1: %2 (%3%4)")
-              .arg(g.index)
-              .arg(g.name)
-              .arg(g.type)
-              .arg(g.presentBarrier ? QStringLiteral(", present barrier") : QString{}),
-          g.index);
-    if(gpus.empty())
-      for(int i = 0; i < 4; i++)
-        m_GpuIndex->addItem(QString::number(i), i);
     m_GpuIndex->setToolTip(
-        tr("GPU used by the outputs created from now on: the Vulkan physical device "
-           "(QT_VK_PHYSICAL_DEVICE_INDEX) or the Direct3D adapter "
-           "(QT_D3D_ADAPTER_INDEX) of this index. The environment variables win when "
-           "set at startup."));
+        tr("GPU used by the outputs created from now on. On Vulkan, the physical "
+           "device; on Direct3D 11 and 12, the adapter of that same GPU. No effect "
+           "on OpenGL and Metal. QT_VK_PHYSICAL_DEVICE_INDEX or QT_D3D_ADAPTER_INDEX "
+           "set at startup win over this setting."));
     lay->addRow(tr("GPU"), m_GpuIndex);
     connect(
         m_GpuIndex, SignalUtils::QComboBox_currentIndexChanged_int(), this,
         [this](int i) { GpuIndexChanged(m_GpuIndex->itemData(i).toInt()); });
   }
+}
+
+static QString gpuLabel(const GpuDescription& g)
+{
+  QString features = g.type;
+  if(g.presentBarrier)
+    features += features.isEmpty() ? QStringLiteral("present barrier")
+                                   : QStringLiteral(", present barrier");
+  const QString label = QString::number(g.index) + QStringLiteral(": ") + g.name;
+  return features.isEmpty() ? label : label + QStringLiteral(" (") + features + ')';
+}
+
+void View::populateGpus()
+{
+  if(m_gpusPopulated)
+    return;
+  m_gpusPopulated = true;
+
+  const QSignalBlocker block{m_GpuIndex};
+  const int current = m_GpuIndex->currentData().toInt();
+  while(m_GpuIndex->count() > 1)
+    m_GpuIndex->removeItem(1);
+
+  const auto gpus = availableVulkanGpus();
+  bool currentFound = current < 0;
+  for(const auto& g : gpus)
+  {
+    m_GpuIndex->addItem(gpuLabel(g), g.index);
+    if(g.index == current)
+      currentFound = true;
+  }
+  if(!currentFound)
+    m_GpuIndex->addItem(tr("%1 (unavailable)").arg(current), current);
+  m_GpuIndex->setCurrentIndex(std::max(0, m_GpuIndex->findData(current)));
+}
+
+void View::setGpuIndex(int val)
+{
+  if(val < 0)
+    val = -1;
+  if(val >= 0)
+    populateGpus();
+  int idx = m_GpuIndex->findData(val);
+  if(idx == -1)
+  {
+    m_GpuIndex->addItem(tr("%1 (unavailable)").arg(val), val);
+    idx = m_GpuIndex->count() - 1;
+  }
+  if(idx != m_GpuIndex->currentIndex())
+    m_GpuIndex->setCurrentIndex(idx);
 }
 
 QWidget* View::getWidget()
@@ -92,5 +150,4 @@ SETTINGS_UI_NUM_COMBOBOX_IMPL(Samples)
 SETTINGS_UI_DOUBLE_SPINBOX_IMPL(Rate)
 SETTINGS_UI_TOGGLE_IMPL(VSync)
 SETTINGS_UI_NUM_COMBOBOX_IMPL(Buffers)
-SETTINGS_UI_NUM_COMBOBOX_IMPL(GpuIndex)
 }

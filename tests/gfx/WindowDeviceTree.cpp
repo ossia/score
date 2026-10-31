@@ -17,6 +17,7 @@
 #include <Gfx/Graph/MultiWindowNode.hpp>
 #include <Gfx/Graph/ScreenNode.hpp>
 #include <Gfx/GfxParameter.hpp>
+#include <Gfx/Window/MultiWindowDevice.hpp>
 #include <Gfx/WindowDevice.hpp>
 
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
@@ -27,6 +28,8 @@
 #include <ossia/network/base/node_functions.hpp>
 #include <ossia/network/base/parameter.hpp>
 
+#include <QDateTime>
+#include <QFile>
 #include <QKeyEvent>
 #include <QTemporaryDir>
 #include <QMouseEvent>
@@ -443,6 +446,7 @@ TEST_CASE("Multi-window device warp, color and maps parameters", "[gfx][window][
   QPointF tl, br;
   Gfx::OutputColor color;
   bool alphaLoaded{};
+  float storedGain{};
 
   QTemporaryDir dir;
   REQUIRE(dir.isValid());
@@ -497,11 +501,8 @@ TEST_CASE("Multi-window device warp, color and maps parameters", "[gfx][window][
         missing.emplace_back(p);
 
     auto* node = sinkOf<score::gfx::MultiWindowNode>(*d);
-    if(!node)
-    {
-      o = {true, "the device is not in multi-window mode"};
-      return;
-    }
+    REQUIRE(node);
+    REQUIRE(!node->windowOutputs().empty());
 
     if(auto* p = param(*d, "/0/warp/br"))
     {
@@ -519,13 +520,13 @@ TEST_CASE("Multi-window device warp, color and maps parameters", "[gfx][window][
     push(param(*d, "/0/color/linear"), true);
     push(param(*d, "/0/maps/alpha"), alpha.toStdString());
 
-    if(!node->windowOutputs().empty())
     {
       const auto& wo = node->windowOutputs()[0];
       tl = wo.cornerWarp.topLeft;
       br = wo.cornerWarp.bottomRight;
       color = wo.color;
       alphaLoaded = wo.alphaMap && wo.alphaMap->width == 4;
+      storedGain = node->mappings()[0].color.gain[1];
     }
 
     dev.disconnect();
@@ -548,6 +549,29 @@ TEST_CASE("Multi-window device warp, color and maps parameters", "[gfx][window][
   CHECK(color.gamma == Approx(2.2f));
   CHECK(color.linearBlend);
   CHECK(alphaLoaded);
+  // Kept by the node across an output rebuild.
+  CHECK(storedGain == Approx(0.6f));
+}
+
+TEST_CASE("Multi-window device locates map files and matches calibration suffixes", "[gfx][window][device][calibration]")
+{
+  score::PathRoots roots;
+  roots.documentFile = QStringLiteral("/shows/hall/hall.score");
+  OutputMaps m;
+  m.alpha = QStringLiteral("cal/room.alpha.pfm");
+  m.warp = QStringLiteral("<PROJECT>:/cal/room.mpcdi#proj1");
+  m.lut = QStringLiteral("/abs/grade.cube");
+  const auto l = locatedMaps(m, roots);
+  CHECK(l.alpha == QStringLiteral("/shows/hall/cal/room.alpha.pfm"));
+  CHECK(l.warp == QStringLiteral("/shows/hall/cal/room.mpcdi#proj1"));
+  CHECK(l.lut == m.lut);
+  CHECK(l.beta.isEmpty());
+
+  const auto& slots = calibrationFileSlots();
+  CHECK(isCalibrationFileOf("/a/room.ALPHA.pfm", "/a/room", slots[0]));
+  CHECK(calibrationBase("/a/room.ALPHA.pfm") == "/a/room");
+  CHECK_FALSE(isCalibrationFileOf("/a/Room.alpha.pfm", "/a/room", slots[0]));
+  CHECK_FALSE(isCalibrationFileOf("/a/room.beta.pfm", "/a/room", slots[0]));
 }
 
 TEST_CASE("Multi-window device follows its calibration files on disk", "[gfx][window][device][calibration]")
@@ -610,11 +634,8 @@ TEST_CASE("Multi-window device follows its calibration files on disk", "[gfx][wi
     REQUIRE(d != nullptr);
     pump_for(400);
     auto* node = sinkOf<score::gfx::MultiWindowNode>(*d);
-    if(!node || node->windowOutputs().empty())
-    {
-      o = {true, "the device is not in multi-window mode"};
-      return;
-    }
+    REQUIRE(node);
+    REQUIRE(!node->windowOutputs().empty());
     auto alphaWidth = [&] {
       const auto& a = node->windowOutputs()[0].alphaMap;
       return a ? a->width : 0;
@@ -625,14 +646,15 @@ TEST_CASE("Multi-window device follows its calibration files on disk", "[gfx][wi
     };
     alphaAtStart = alphaWidth();
 
+    // The watcher debounces 300 ms, and polls once a second without inotify.
     QFile::remove(base + ".alpha.pfm");
     pump_for(50);
     writeGrey(base + ".alpha.pfm", 8, 0.5f);
-    pump_for(1200);
+    pump_until([&] { return alphaWidth() == 8; }, 5000);
     alphaAfterRewrite = alphaWidth();
 
     writeGrey(base + ".beta.pfm", 5, 0.01f);
-    pump_for(1200);
+    pump_until([&] { return betaWidth() == 5; }, 5000);
     betaAfterCreate = betaWidth();
 
     push(param(*d, "/0/maps/calibration"), QString(other + ".json").toStdString());
@@ -656,4 +678,50 @@ TEST_CASE("Multi-window device follows its calibration files on disk", "[gfx][wi
   CHECK(alphaOther == 6);
   CHECK(alphaParam == QString(other + ".alpha.pfm").toStdString());
   CHECK(calibrationParam == QString(other + ".json").toStdString());
+}
+
+TEST_CASE("A calibration fills only the slots its last run wrote", "[gfx][window][calibration]")
+{
+  QTemporaryDir dir;
+  REQUIRE(dir.isValid());
+  const QString base = dir.filePath("room");
+  auto write = [](const QString& path, const QByteArray& bytes) {
+    QFile f{path};
+    REQUIRE(f.open(QIODevice::WriteOnly));
+    f.write(bytes);
+  };
+  auto setTime = [](const QString& path, const QDateTime& t) {
+    QFile f{path};
+    REQUIRE(f.open(QIODevice::ReadWrite));
+    REQUIRE(f.setFileTime(t, QFileDevice::FileModificationTime));
+  };
+  for(const char* s : {".response.json", ".comp.json", ".alpha.pfm", ".beta.pfm", ".cube"})
+    write(base + s, "x");
+  write(base + ".json", R"({"files":["room.xyz.pfm","room.response.json"]})");
+  write(base + ".blend.json", R"({"alphaMap":"room.alpha.pfm","betaMap":"room.beta.pfm"})");
+  const auto t0 = QDateTime::currentDateTime().addSecs(-60);
+  setTime(base + ".json", t0);
+  setTime(base + ".blend.json", t0.addSecs(10));
+
+  OutputMaps m;
+  applyCalibration(m, base + ".json");
+  CHECK(m.response == base + ".response.json");
+  CHECK(m.compensation.isEmpty());
+  CHECK(m.alpha == base + ".alpha.pfm");
+  CHECK(m.beta == base + ".beta.pfm");
+  CHECK(m.lut == base + ".cube");
+
+  // A newer run without a blend: the old blend maps are no longer its own.
+  setTime(base + ".json", t0.addSecs(20));
+  CHECK(refreshCalibration(m));
+  CHECK(m.alpha.isEmpty());
+  CHECK(m.beta.isEmpty());
+  CHECK(m.response == base + ".response.json");
+  CHECK(m.compensation.isEmpty());
+
+  // A calibration that lists nothing takes what it finds.
+  write(base + ".json", "{}");
+  CHECK(refreshCalibration(m));
+  CHECK(m.compensation == base + ".comp.json");
+  CHECK(m.alpha == base + ".alpha.pfm");
 }

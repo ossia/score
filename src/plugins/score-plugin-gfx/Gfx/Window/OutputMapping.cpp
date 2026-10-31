@@ -1276,6 +1276,7 @@ SCORE_PLUGIN_GFX_TEST_EXPORT void DataStreamReader::read(const Gfx::OutputMappin
            << int(n.quality.dither) << n.quality.maxAnisotropy;
   m_stream << n.maps.response << n.maps.compensation;
   m_stream << n.maps.calibration;
+  insertDelimiter();
 }
 
 template <>
@@ -1306,6 +1307,7 @@ SCORE_PLUGIN_GFX_TEST_EXPORT void DataStreamWriter::write(Gfx::OutputMapping& n)
   }
   m_stream >> n.maps.response >> n.maps.compensation;
   m_stream >> n.maps.calibration;
+  checkDelimiter();
 }
 namespace
 {

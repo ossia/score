@@ -547,6 +547,8 @@ void Window::exposeEvent(QExposeEvent* ev)
   if(isExposed())
   {
     m_closed = false;
+    if(isTopLevel())
+      m_idleInhibitor.acquire();
   }
 
   if(isExposed() && !surfaceSize.isEmpty())
@@ -697,6 +699,7 @@ bool Window::event(QEvent* e)
         m_hasSwapChain = false;
         m_notExposed = true;
         m_closed = true;
+        m_idleInhibitor.release();
         if(onClose)
           onClose();
 #if defined(__EMSCRIPTEN__)
@@ -705,11 +708,12 @@ bool Window::event(QEvent* e)
       }
       break;
 
-#if defined(__EMSCRIPTEN__)
     case QEvent::Hide:
+      m_idleInhibitor.release();
+#if defined(__EMSCRIPTEN__)
       score::reclaimMainWindowFocus();
-      break;
 #endif
+      break;
 
       default:
         break;
