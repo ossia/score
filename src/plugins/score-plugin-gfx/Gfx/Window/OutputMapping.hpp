@@ -42,6 +42,10 @@ public:
   bool mirrorX{false};
   bool mirrorY{false};
 
+  OutputMaps maps;
+  OutputColor color;
+  OutputQuality quality;
+
   void applyLockedState();
 
   // Called when item is moved or resized in the canvas

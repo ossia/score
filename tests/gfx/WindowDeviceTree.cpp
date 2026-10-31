@@ -13,6 +13,8 @@
 
 #include "WindowedOutputCommon.hpp"
 
+#include <Gfx/Graph/FloatImageIO.hpp>
+#include <Gfx/Graph/MultiWindowNode.hpp>
 #include <Gfx/Graph/ScreenNode.hpp>
 #include <Gfx/GfxParameter.hpp>
 #include <Gfx/WindowDevice.hpp>
@@ -26,6 +28,7 @@
 #include <ossia/network/base/parameter.hpp>
 
 #include <QKeyEvent>
+#include <QTemporaryDir>
 #include <QMouseEvent>
 
 #include <catch2/catch_approx.hpp>
@@ -430,4 +433,227 @@ TEST_CASE("Multi-window device parameter tree", "[gfx][window][device]")
 
   CHECK(offscreenAfter == QSize{640, 360});
   CHECK(win0SizeAfter == QSize{260, 200});
+}
+
+TEST_CASE("Multi-window device warp, color and maps parameters", "[gfx][window][device]")
+{
+  Outcome o;
+  bool connected{};
+  std::vector<std::string> missing;
+  QPointF tl, br;
+  Gfx::OutputColor color;
+  bool alphaLoaded{};
+
+  QTemporaryDir dir;
+  REQUIRE(dir.isValid());
+  const QString alpha = dir.filePath("alpha.pfm");
+  {
+    score::gfx::FloatImage img;
+    img.width = 4;
+    img.height = 4;
+    img.channels = 1;
+    img.data.assign(16, 0.5f);
+    REQUIRE(score::gfx::writePFM(alpha, img));
+  }
+
+  run_in_gui_app([&](const score::GUIApplicationContext& ctx) {
+    if(!can_present())
+    {
+      o = {true, "no windowing system able to expose a native window"};
+      return;
+    }
+    auto* doc = score::test::new_document(ctx);
+    if(!doc)
+    {
+      o = {true, "no document delegate"};
+      return;
+    }
+
+    OutputMapping m;
+    m.windowPosition = {20, 40};
+    m.windowSize = {192, 144};
+    m.cornerWarp.bottomRight = {0.9, 0.95};
+
+    WindowSettings ws;
+    ws.mode = WindowMode::MultiWindow;
+    ws.outputs = {m};
+
+    WindowDevice dev{makeSettings(ws, "MultiWinCal"), doc->context()};
+    if(!dev.reconnect())
+    {
+      o = {true, "the multi-window device could not connect"};
+      return;
+    }
+    connected = true;
+    auto* d = dev.getDevice();
+    REQUIRE(d != nullptr);
+    pump_for(400);
+
+    for(const char* p :
+        {"/0/warp/tl", "/0/warp/tr", "/0/warp/bl", "/0/warp/br", "/0/color/gain",
+         "/0/color/offset", "/0/color/gamma", "/0/color/linear", "/0/maps/warp",
+         "/0/maps/alpha", "/0/maps/beta"})
+      if(!hasNode(*d, p))
+        missing.emplace_back(p);
+
+    auto* node = sinkOf<score::gfx::MultiWindowNode>(*d);
+    if(!node)
+    {
+      o = {true, "the device is not in multi-window mode"};
+      return;
+    }
+
+    if(auto* p = param(*d, "/0/warp/br"))
+    {
+      const auto val = p->value();
+      const auto v = val.target<ossia::vec2f>();
+      CHECK(v);
+      if(v)
+        CHECK((*v)[0] == Approx(0.9f));
+    }
+
+    push(param(*d, "/0/warp/tl"), vec2(0.1f, 0.2f));
+    push(param(*d, "/0/color/gain"), ossia::vec3f{0.5f, 0.6f, 0.7f});
+    push(param(*d, "/0/color/offset"), ossia::vec3f{0.01f, 0.02f, 0.03f});
+    push(param(*d, "/0/color/gamma"), 2.2f);
+    push(param(*d, "/0/color/linear"), true);
+    push(param(*d, "/0/maps/alpha"), alpha.toStdString());
+
+    if(!node->windowOutputs().empty())
+    {
+      const auto& wo = node->windowOutputs()[0];
+      tl = wo.cornerWarp.topLeft;
+      br = wo.cornerWarp.bottomRight;
+      color = wo.color;
+      alphaLoaded = wo.alphaMap && wo.alphaMap->width == 4;
+    }
+
+    dev.disconnect();
+    pump_for(200);
+  });
+
+  if(o.skipped)
+    SKIP(o.skipReason);
+
+  REQUIRE(connected);
+  for(auto& m : missing)
+    UNSCOPED_INFO("  missing " << m);
+  CHECK(missing.empty());
+  CHECK(tl.x() == Approx(0.1).margin(1e-4));
+  CHECK(tl.y() == Approx(0.2).margin(1e-4));
+  CHECK(br.x() == Approx(0.9).margin(1e-4));
+  CHECK(br.y() == Approx(0.95).margin(1e-4));
+  CHECK(color.gain[1] == Approx(0.6f));
+  CHECK(color.offset[2] == Approx(0.03f));
+  CHECK(color.gamma == Approx(2.2f));
+  CHECK(color.linearBlend);
+  CHECK(alphaLoaded);
+}
+
+TEST_CASE("Multi-window device follows its calibration files on disk", "[gfx][window][device][calibration]")
+{
+  Outcome o;
+  bool connected{};
+  int alphaAtStart{}, alphaAfterRewrite{}, betaAfterCreate{}, alphaOther{};
+  std::string alphaParam, calibrationParam;
+
+  QTemporaryDir dir;
+  REQUIRE(dir.isValid());
+  const QString base = dir.filePath("room");
+  const QString other = dir.filePath("other");
+  auto writeGrey = [](const QString& path, int size, float v) {
+    score::gfx::FloatImage img;
+    img.width = size;
+    img.height = size;
+    img.channels = 1;
+    img.data.assign(size * size, v);
+    REQUIRE(score::gfx::writePFM(path, img));
+  };
+  writeGrey(base + ".alpha.pfm", 4, 0.5f);
+  writeGrey(other + ".alpha.pfm", 6, 0.25f);
+  {
+    QFile f{base + ".json"};
+    REQUIRE(f.open(QIODevice::WriteOnly));
+    f.write("{}");
+  }
+
+  run_in_gui_app([&](const score::GUIApplicationContext& ctx) {
+    if(!can_present())
+    {
+      o = {true, "no windowing system able to expose a native window"};
+      return;
+    }
+    auto* doc = score::test::new_document(ctx);
+    if(!doc)
+    {
+      o = {true, "no document delegate"};
+      return;
+    }
+
+    OutputMapping m;
+    m.windowPosition = {20, 40};
+    m.windowSize = {160, 120};
+    m.maps.calibration = base + ".json";
+
+    WindowSettings ws;
+    ws.mode = WindowMode::MultiWindow;
+    ws.outputs = {m};
+
+    WindowDevice dev{makeSettings(ws, "MultiWinLive"), doc->context()};
+    if(!dev.reconnect())
+    {
+      o = {true, "the multi-window device could not connect"};
+      return;
+    }
+    connected = true;
+    auto* d = dev.getDevice();
+    REQUIRE(d != nullptr);
+    pump_for(400);
+    auto* node = sinkOf<score::gfx::MultiWindowNode>(*d);
+    if(!node || node->windowOutputs().empty())
+    {
+      o = {true, "the device is not in multi-window mode"};
+      return;
+    }
+    auto alphaWidth = [&] {
+      const auto& a = node->windowOutputs()[0].alphaMap;
+      return a ? a->width : 0;
+    };
+    auto betaWidth = [&] {
+      const auto& b = node->windowOutputs()[0].betaMap;
+      return b ? b->width : 0;
+    };
+    alphaAtStart = alphaWidth();
+
+    QFile::remove(base + ".alpha.pfm");
+    pump_for(50);
+    writeGrey(base + ".alpha.pfm", 8, 0.5f);
+    pump_for(1200);
+    alphaAfterRewrite = alphaWidth();
+
+    writeGrey(base + ".beta.pfm", 5, 0.01f);
+    pump_for(1200);
+    betaAfterCreate = betaWidth();
+
+    push(param(*d, "/0/maps/calibration"), QString(other + ".json").toStdString());
+    pump_for(200);
+    alphaOther = alphaWidth();
+    if(auto* p = param(*d, "/0/maps/alpha"))
+      alphaParam = ossia::convert<std::string>(p->value());
+    if(auto* p = param(*d, "/0/maps/calibration"))
+      calibrationParam = ossia::convert<std::string>(p->value());
+
+    dev.disconnect();
+    pump_for(200);
+  });
+
+  if(o.skipped)
+    SKIP(o.skipReason);
+  REQUIRE(connected);
+  CHECK(alphaAtStart == 4);
+  CHECK(alphaAfterRewrite == 8);
+  CHECK(betaAfterCreate == 5);
+  CHECK(alphaOther == 6);
+  CHECK(alphaParam == QString(other + ".alpha.pfm").toStdString());
+  CHECK(calibrationParam == QString(other + ".json").toStdString());
 }

@@ -14,6 +14,9 @@ endif()
 score_common_setup()
 
 find_package(${QT_VERSION} REQUIRED Gui)
+if(UNIX AND NOT APPLE AND NOT EMSCRIPTEN)
+  find_package(${QT_VERSION} OPTIONAL_COMPONENTS DBus)
+endif()
 
 add_subdirectory(3rdparty/nv-dvp-bridge)
 
@@ -218,6 +221,7 @@ set(HDRS
     Gfx/Graph/ImageNode.hpp
     Gfx/Graph/Mesh.hpp
     Gfx/Graph/MultiWindowNode.hpp
+    Gfx/Graph/OutputQuality.hpp
     Gfx/Graph/Node.hpp
     Gfx/Graph/NodeRenderer.hpp
     Gfx/Graph/OutputNode.hpp
@@ -239,6 +243,16 @@ set(HDRS
     Gfx/Graph/GpuTiming.hpp
     Gfx/Graph/ScenePreprocessorNode.hpp
     Gfx/Graph/CameraMath.hpp
+    Gfx/Graph/FloatImageIO.hpp
+    Gfx/Calibration/ProjectorModel.hpp
+    Gfx/Calibration/PlaneFitting.hpp
+    Gfx/Calibration/Blending.hpp
+    Gfx/Calibration/Photometric.hpp
+    Gfx/Calibration/Registration.hpp
+    Gfx/Calibration/OffAxis.hpp
+    Gfx/Calibration/LedMapping.hpp
+    Gfx/Graph/WarpImport.hpp
+    Gfx/Graph/PhotometricMaps.hpp
     Gfx/Graph/SceneFilterNode.hpp
     Gfx/Graph/FlattenedSceneFilterNode.hpp
     Gfx/Graph/MergeGeometriesNode.hpp
@@ -265,6 +279,7 @@ set(HDRS
     Gfx/Graph/HWAccelSetup.hpp
     Gfx/Graph/DirectVideoNodeRenderer.hpp
     Gfx/Graph/Window.hpp
+    Gfx/Graph/IdleInhibitor.hpp
     
     Gfx/Graph/decoders/DXV.hpp
     Gfx/Graph/interop/DMABufImport.hpp
@@ -528,6 +543,7 @@ set(SRCS
     Gfx/Graph/ImageNode.cpp
     Gfx/Graph/Mesh.cpp
     Gfx/Graph/MultiWindowNode.cpp
+    Gfx/Graph/OutputQuality.cpp
     Gfx/Graph/Node.cpp
     Gfx/Graph/NodeRenderer.cpp
     Gfx/Graph/OutputNode.cpp
@@ -544,6 +560,9 @@ set(SRCS
     Gfx/Graph/GpuTiming.cpp
     Gfx/Graph/ScenePreprocessorNode.cpp
     Gfx/Graph/CameraMath.cpp
+    Gfx/Graph/FloatImageIO.cpp
+    Gfx/Graph/WarpImport.cpp
+    Gfx/Graph/PhotometricMaps.cpp
     Gfx/Graph/SceneFilterNode.cpp
     Gfx/Graph/FlattenedSceneFilterNode.cpp
     Gfx/Graph/MergeGeometriesNode.cpp
@@ -571,6 +590,7 @@ set(SRCS
     Gfx/Graph/HWAccelSetup.cpp
     Gfx/Graph/DirectVideoNodeRenderer.cpp
     Gfx/Graph/Window.cpp
+    Gfx/Graph/IdleInhibitor.cpp
 
     Gfx/AssetTable.cpp
     Gfx/FormatRegistry.cpp
@@ -664,6 +684,14 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
 # nv-dvp-bridge: HostPinnedRing's DVP backend uses the bridge C API
 # directly; needs the include path and the static lib.
 target_link_libraries(${PROJECT_NAME} PRIVATE score_nv_dvp_bridge)
+set_source_files_properties(Gfx/Graph/IdleInhibitor.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON)
+if(APPLE AND NOT IOS)
+  target_link_libraries(${PROJECT_NAME} PRIVATE "-framework IOKit")
+endif()
+if(TARGET ${QT_PREFIX}::DBus AND UNIX AND NOT APPLE)
+  target_link_libraries(${PROJECT_NAME} PRIVATE ${QT_PREFIX}::DBus)
+  target_compile_definitions(${PROJECT_NAME} PRIVATE SCORE_GFX_HAS_DBUS)
+endif()
 if(TARGET ${QT_PREFIX}::Svg)
   target_link_libraries(${PROJECT_NAME} PUBLIC "${QT_PREFIX}::Svg")
 endif()

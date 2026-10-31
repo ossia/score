@@ -5142,16 +5142,17 @@ void RenderedCSFNode::buildComputeSrbBindings(
                 if(!gp.pipeline.srb || !gp.outputSampler)
                   continue;
                 bool mine = false;
+                bool own = false;
                 for(const auto& [port, index] : m_outStorageImages)
                 {
                   if(port == e2->source)
                   {
                     mine = (index == myIndex);
+                    own = true;
                     break;
                   }
                 }
-                // Fallback-path passes sample m_outputTexture.
-                if(mine || m_outputTexture == oldTex)
+                if(mine || (!own && m_outputTexture == oldTex))
                   score::gfx::replaceTexture(
                       *gp.pipeline.srb, gp.outputSampler, newTex);
               }
@@ -7766,6 +7767,7 @@ void RenderedCSFNode::runInitialPasses(
         if(!gp.pipeline.srb || !gp.outputSampler)
           continue;
         QRhiTexture* newTex = nullptr;
+        bool ownImage = false;
         for(const auto& [port, index] : m_outStorageImages)
         {
           if(port == e->source && index < (int)m_storageImages.size())
@@ -7773,10 +7775,11 @@ void RenderedCSFNode::runInitialPasses(
             const auto& si = m_storageImages[index];
             if(si.persistent)
               newTex = si.read_texture;
+            ownImage = true;
             break;
           }
         }
-        if(!newTex)
+        if(!ownImage)
         {
           // Fallback path — graphics pass uses m_outputTexture, one of a pair.
           if(auto it = written.find(m_outputTexture); it != written.end())

@@ -1,8 +1,10 @@
 #pragma once
+#include <algorithm>
 #include <Gfx/GfxParameter.hpp>
 #include <Gfx/Graph/MultiWindowNode.hpp>
 #include <Gfx/Graph/Window.hpp>
 #include <Gfx/Settings/Model.hpp>
+#include <Gfx/Window/CalibrationSet.hpp>
 
 #include <ossia/network/base/device.hpp>
 #include <ossia/network/base/protocol.hpp>
@@ -60,6 +62,65 @@ class multiwindow_device : public ossia::net::device_base
     std::vector<QMetaObject::Connection> connections;
   };
   std::vector<PerWindowParams> m_perWindow;
+  std::vector<OutputMaps> m_maps;
+
+  struct MapParam
+  {
+    QString OutputMaps::* member;
+    ossia::net::parameter_base* param;
+  };
+  std::vector<std::vector<MapParam>> m_mapParams;
+  std::vector<ossia::net::parameter_base*> m_calibrationParams;
+  std::vector<QString> m_mapSignatures;
+  std::unique_ptr<CalibrationWatcher> m_calibrationWatcher;
+
+  void syncMapParams(int i)
+  {
+    if(i < (int)m_mapParams.size())
+      for(auto& [member, p] : m_mapParams[i])
+        p->set_value_quiet((m_maps[i].*member).toStdString());
+    if(i < (int)m_calibrationParams.size() && m_calibrationParams[i])
+      m_calibrationParams[i]->set_value_quiet(m_maps[i].calibration.toStdString());
+  }
+
+  void watchCalibrations()
+  {
+    for(int i = 0; i < (int)m_maps.size(); i++)
+      m_mapSignatures[i] = mapsSignature(m_maps[i]);
+    if(m_calibrationWatcher)
+      m_calibrationWatcher->setFiles(watchedCalibrationFiles(m_maps));
+  }
+
+  void setOutputMaps(int i, const OutputMaps& maps)
+  {
+    m_maps[i] = maps;
+    m_node->setMaps(i, m_maps[i]);
+    syncMapParams(i);
+    watchCalibrations();
+  }
+
+public:
+  //! Reloads the maps whose files changed on disk, following their calibration.
+  void reloadCalibrations()
+  {
+    for(int i = 0; i < (int)m_maps.size(); i++)
+    {
+      const bool moved = refreshCalibration(m_maps[i]);
+      if(moved || mapsSignature(m_maps[i]) != m_mapSignatures[i])
+      {
+        m_node->setMaps(i, m_maps[i]);
+        syncMapParams(i);
+      }
+    }
+    watchCalibrations();
+  }
+  const std::vector<OutputMaps>& outputMaps() const noexcept { return m_maps; }
+  QStringList watchedFiles() const
+  {
+    return m_calibrationWatcher ? m_calibrationWatcher->watched() : QStringList{};
+  }
+
+private:
 
   void update_viewport(PerWindowParams& pw)
   {
@@ -138,6 +199,15 @@ public:
 
     // Per-window subtrees: /0, /1, /2, ...
     m_perWindow.resize(mappings.size());
+    m_maps.reserve(mappings.size());
+    for(const auto& m : mappings)
+      m_maps.push_back(m.maps);
+    m_mapParams.resize(mappings.size());
+    m_calibrationParams.resize(mappings.size());
+    m_mapSignatures.resize(mappings.size());
+    for(int i = 0; i < (int)m_maps.size(); i++)
+      if(refreshCalibration(m_maps[i]))
+        m_node->setMaps(i, m_maps[i]);
 
     for(int i = 0; i < (int)mappings.size(); ++i)
     {
@@ -473,6 +543,240 @@ public:
         win_node->add_child(std::move(blend_node));
       }
 
+      // /i/warp (corner pin, output UV space, y down)
+      {
+        auto warp_node
+            = std::make_unique<ossia::net::generic_node>("warp", *this, *win_node);
+        struct Corner
+        {
+          const char* name;
+          QPointF Gfx::CornerWarp::* member;
+        };
+        const Corner corners[]
+            = {{"tl", &Gfx::CornerWarp::topLeft},
+               {"tr", &Gfx::CornerWarp::topRight},
+               {"bl", &Gfx::CornerWarp::bottomLeft},
+               {"br", &Gfx::CornerWarp::bottomRight}};
+        for(const auto& [cname, member] : corners)
+        {
+          auto c_node
+              = std::make_unique<ossia::net::generic_node>(cname, *this, *warp_node);
+          ossia::net::set_description(
+              *c_node, "Corner position in output UV space (0-1, y down)");
+          auto c_param = c_node->create_parameter(ossia::val_type::VEC2F);
+          const QPointF init = mapping.cornerWarp.*member;
+          c_param->push_value(ossia::vec2f{(float)init.x(), (float)init.y()});
+          c_param->add_callback([this, i, member](const ossia::value& v) {
+            if(auto val = v.target<ossia::vec2f>())
+            {
+              const auto& outputs = m_node->windowOutputs();
+              if(i < (int)outputs.size())
+              {
+                auto w = outputs[i].cornerWarp;
+                w.*member = QPointF{(*val)[0], (*val)[1]};
+                m_node->setCornerWarp(i, w);
+              }
+            }
+          });
+          warp_node->add_child(std::move(c_node));
+        }
+        win_node->add_child(std::move(warp_node));
+      }
+
+      // /i/color (applied last, after the blend)
+      {
+        auto color_node
+            = std::make_unique<ossia::net::generic_node>("color", *this, *win_node);
+        auto setColor = [this, i](auto&& f) {
+          const auto& outputs = m_node->windowOutputs();
+          if(i < (int)outputs.size())
+          {
+            auto c = outputs[i].color;
+            f(c);
+            m_node->setColor(i, c);
+          }
+        };
+        {
+          auto n = std::make_unique<ossia::net::generic_node>("gain", *this, *color_node);
+          ossia::net::set_description(*n, "RGB gain");
+          auto p = n->create_parameter(ossia::val_type::VEC3F);
+          p->set_domain(ossia::make_domain(0.f, 4.f));
+          p->push_value(
+              ossia::vec3f{
+                  mapping.color.gain[0], mapping.color.gain[1], mapping.color.gain[2]});
+          p->add_callback([setColor](const ossia::value& v) {
+            if(auto val = v.target<ossia::vec3f>())
+              setColor([&](Gfx::OutputColor& c) {
+                c.gain = {(*val)[0], (*val)[1], (*val)[2]};
+              });
+          });
+          color_node->add_child(std::move(n));
+        }
+        {
+          auto n
+              = std::make_unique<ossia::net::generic_node>("offset", *this, *color_node);
+          ossia::net::set_description(*n, "RGB offset");
+          auto p = n->create_parameter(ossia::val_type::VEC3F);
+          p->set_domain(ossia::make_domain(-1.f, 1.f));
+          p->push_value(
+              ossia::vec3f{
+                  mapping.color.offset[0], mapping.color.offset[1],
+                  mapping.color.offset[2]});
+          p->add_callback([setColor](const ossia::value& v) {
+            if(auto val = v.target<ossia::vec3f>())
+              setColor([&](Gfx::OutputColor& c) {
+                c.offset = {(*val)[0], (*val)[1], (*val)[2]};
+              });
+          });
+          color_node->add_child(std::move(n));
+        }
+        {
+          auto n
+              = std::make_unique<ossia::net::generic_node>("gamma", *this, *color_node);
+          ossia::net::set_description(*n, "Output gamma: out = pow(c, 1 / gamma)");
+          auto p = n->create_parameter(ossia::val_type::FLOAT);
+          p->set_domain(ossia::make_domain(0.1f, 4.f));
+          p->push_value(mapping.color.gamma);
+          p->add_callback([setColor](const ossia::value& v) {
+            if(auto val = v.target<float>(); val && *val > 0.f)
+              setColor([&](Gfx::OutputColor& c) { c.gamma = *val; });
+          });
+          color_node->add_child(std::move(n));
+        }
+        {
+          auto n
+              = std::make_unique<ossia::net::generic_node>("linear", *this, *color_node);
+          ossia::net::set_description(
+              *n, "Apply the blend ramps, alpha and beta maps in linear light");
+          auto p = n->create_parameter(ossia::val_type::BOOL);
+          p->push_value(mapping.color.linearBlend);
+          p->add_callback([setColor](const ossia::value& v) {
+            if(auto val = v.target<bool>())
+              setColor([&](Gfx::OutputColor& c) { c.linearBlend = *val; });
+          });
+          color_node->add_child(std::move(n));
+        }
+        win_node->add_child(std::move(color_node));
+      }
+
+      // /i/maps (calibration files, reloaded on change)
+      {
+        auto maps_node
+            = std::make_unique<ossia::net::generic_node>("maps", *this, *win_node);
+        struct MapField
+        {
+          const char* name;
+          const char* description;
+          QString Gfx::OutputMaps::* member;
+        };
+        const MapField fields[] = {
+            {"warp", "UV lookup map file (PFM, 16-bit PNG)", &Gfx::OutputMaps::warp},
+            {"alpha", "Blend weight map file", &Gfx::OutputMaps::alpha},
+            {"beta", "Black level map file", &Gfx::OutputMaps::beta},
+            {"lut", "Colour lookup table file (.cube), applied last", &Gfx::OutputMaps::lut},
+            {"response", "Measured projector response (.response.json, 1D .cube)",
+             &Gfx::OutputMaps::response},
+            {"compensation", "Radiometric compensation (.comp.json)",
+             &Gfx::OutputMaps::compensation}};
+        for(const auto& [fname, fdesc, member] : fields)
+        {
+          auto f_node
+              = std::make_unique<ossia::net::generic_node>(fname, *this, *maps_node);
+          ossia::net::set_description(*f_node, fdesc);
+          auto f_param = f_node->create_parameter(ossia::val_type::STRING);
+          f_param->push_value((m_maps[i].*member).toStdString());
+          f_param->add_callback([this, i, member](const ossia::value& v) {
+            if(auto val = v.target<std::string>())
+            {
+              ossia::qt::run_async(&m_qtContext, [this, i, member, path = *val] {
+                if(i >= (int)m_maps.size())
+                  return;
+                auto m = m_maps[i];
+                m.*member = QString::fromStdString(path);
+                setOutputMaps(i, m);
+              });
+            }
+          });
+          m_mapParams[i].push_back({member, f_param});
+          maps_node->add_child(std::move(f_node));
+        }
+        {
+          auto c_node
+              = std::make_unique<ossia::net::generic_node>("calibration", *this, *maps_node);
+          ossia::net::set_description(
+              *c_node, "Calibration name.json: fills the maps that exist for that name and "
+                       "follows them on disk");
+          auto c_param = c_node->create_parameter(ossia::val_type::STRING);
+          c_param->push_value(m_maps[i].calibration.toStdString());
+          c_param->add_callback([this, i](const ossia::value& v) {
+            if(auto val = v.target<std::string>())
+            {
+              ossia::qt::run_async(&m_qtContext, [this, i, path = *val] {
+                if(i >= (int)m_maps.size())
+                  return;
+                auto m = m_maps[i];
+                applyCalibration(m, QString::fromStdString(path));
+                setOutputMaps(i, m);
+              });
+            }
+          });
+          m_calibrationParams[i] = c_param;
+          maps_node->add_child(std::move(c_node));
+        }
+        win_node->add_child(std::move(maps_node));
+      }
+
+      // /i/quality
+      {
+        auto quality_node
+            = std::make_unique<ossia::net::generic_node>("quality", *this, *win_node);
+        auto setQuality = [this, i](auto&& f) {
+          const auto& outputs = m_node->windowOutputs();
+          if(i < (int)outputs.size())
+          {
+            auto q = outputs[i].quality;
+            f(q);
+            m_node->setQuality(i, q);
+          }
+        };
+        auto addInt = [&](const char* name, const char* desc, int min, int max, int init,
+                          auto apply) {
+          auto n = std::make_unique<ossia::net::generic_node>(name, *this, *quality_node);
+          ossia::net::set_description(*n, desc);
+          auto p = n->create_parameter(ossia::val_type::INT);
+          p->set_domain(ossia::make_domain(min, max));
+          p->set_bounding(ossia::bounding_mode::CLIP);
+          p->push_value(init);
+          p->add_callback([setQuality, apply, min, max](const ossia::value& v) {
+            if(auto val = v.target<int>())
+            {
+              const int x = std::clamp(*val, min, max);
+              setQuality([&](Gfx::OutputQuality& q) { apply(q, x); });
+            }
+          });
+          quality_node->add_child(std::move(n));
+        };
+        addInt(
+            "sampling",
+            "Canvas sampling: 0 auto, 1 linear, 2 mipmapped, 3 anisotropic", 0, 3,
+            int(mapping.quality.sampling),
+            [](Gfx::OutputQuality& q, int x) { q.sampling = Gfx::OutputSampling(x); });
+        addInt(
+            "warp_interpolation", "Warp map interpolation: 0 bilinear, 1 bicubic", 0, 1,
+            int(mapping.quality.warpInterpolation), [](Gfx::OutputQuality& q, int x) {
+          q.warpInterpolation = Gfx::WarpInterpolation(x);
+        });
+        addInt(
+            "dither", "Dither before quantization: 0 auto, 1 off, 2 on", 0, 2,
+            int(mapping.quality.dither),
+            [](Gfx::OutputQuality& q, int x) { q.dither = Gfx::OutputDither(x); });
+        addInt(
+            "max_anisotropy", "Most taps of anisotropic sampling", 1, 16,
+            mapping.quality.maxAnisotropy,
+            [](Gfx::OutputQuality& q, int x) { q.maxAnisotropy = x; });
+        win_node->add_child(std::move(quality_node));
+      }
+
       // /i/key
       {
         auto key_node
@@ -521,6 +825,10 @@ public:
 
       m_root.add_child(std::move(win_node));
     }
+
+    m_calibrationWatcher
+        = std::make_unique<CalibrationWatcher>([this] { reloadCalibrations(); });
+    watchCalibrations();
   }
 
   // Called after windows are created by createOutput() to connect Qt signals
@@ -584,6 +892,7 @@ public:
 
   ~multiwindow_device()
   {
+    m_calibrationWatcher.reset();
     // Disconnect all window signals
     for(auto& pw : m_perWindow)
       for(auto& c : pw.connections)

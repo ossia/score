@@ -6,6 +6,8 @@
 
 #include <score_plugin_gfx_export.h>
 
+#include <vector>
+
 #include <verdigris>
 namespace Gfx::Settings
 {
@@ -48,6 +50,7 @@ class SCORE_PLUGIN_GFX_EXPORT Model : public score::SettingsDelegateModel
   int m_Samples{1};
   bool m_VSync{};
   int m_Buffers{3};
+  int m_GpuIndex{-1};
 
 public:
   Model(
@@ -60,6 +63,8 @@ public:
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_GFX_EXPORT, int, Samples)
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_GFX_EXPORT, bool, VSync)
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_GFX_EXPORT, int, Buffers)
+  //! Vulkan physical device / DXGI adapter index, -1 for the default.
+  SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_GFX_EXPORT, int, GpuIndex)
 
 public:
   score::gfx::GraphicsApi graphicsApiEnum() const noexcept;
@@ -82,6 +87,31 @@ SCORE_SETTINGS_PARAMETER(Model, Rate)
 SCORE_SETTINGS_PARAMETER(Model, Samples)
 SCORE_SETTINGS_PARAMETER(Model, VSync)
 SCORE_SETTINGS_PARAMETER(Model, Buffers)
+SCORE_SETTINGS_PARAMETER(Model, GpuIndex)
+
+/**
+ * @brief Selects the GPU the outputs created from now on use.
+ *
+ * Through QT_VK_PHYSICAL_DEVICE_INDEX (read by QRhi's Vulkan backend and by
+ * createSharedVulkanDevice) and QT_D3D_ADAPTER_INDEX (read by QRhi's D3D11 and
+ * D3D12 backends). -1 restores what the environment held at startup. A
+ * variable set in the environment at startup wins over the setting.
+ */
+SCORE_PLUGIN_GFX_EXPORT
+void applyGpuIndex(int index) noexcept;
+
+struct GpuDescription
+{
+  int index{};
+  QString name;
+  QString type;
+  //! VK_NV_present_barrier is exposed: swap chains on this device can join a
+  //! present barrier (frame lock across outputs and, with Quadro Sync, hosts).
+  bool presentBarrier{};
+};
+//! The Vulkan physical devices, in the order QT_VK_PHYSICAL_DEVICE_INDEX counts.
+SCORE_PLUGIN_GFX_EXPORT
+std::vector<GpuDescription> availableVulkanGpus();
 
 SCORE_PLUGIN_GFX_EXPORT
 QShaderVersion shaderVersionForAPI(score::gfx::GraphicsApi) noexcept;

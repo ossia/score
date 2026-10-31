@@ -1032,6 +1032,16 @@ score_add_test(test_gfx_window_layout
 score_add_gfx_test(screen_output      ScreenOutput.cpp)
 score_add_gfx_test(multi_window       MultiWindowOutput.cpp)
 
+# The per-output calibration stage: UV warp map, alpha / beta maps, colour,
+# blending in linear light and the live corner warp, read back from the
+# presented swap chain.
+score_add_gfx_test(multi_window_calibration MultiWindowCalibration.cpp)
+score_add_gfx_test(multi_window_photometric MultiWindowPhotometric.cpp)
+
+# Calibration map files: PFM layout and the xyz + valid split, 16-bit images,
+# Paul Bourke warp meshes and MPCDI archives.
+score_add_gfx_test(float_map_files FloatMapFiles.cpp)
+
 # Randomised sequences of the window disruptions a user can inflict -- hide,
 # re-show, resize, render-size override, full screen -- across all three output
 # modes and both clocks. The paths that set m_running / m_hasSwapChain /
@@ -2320,9 +2330,29 @@ score_add_gfx_test(csf_read_only_image_format GfxCsfReadOnlyImageFormat.cpp)
 score_add_gfx_test(library_parse GfxLibraryParse.cpp)
 score_add_gfx_test(shader_include_invalidation GfxShaderIncludeInvalidation.cpp)
 
+
 # They change the library's root in the test profile they share: one at a time
 foreach(_t test_gfx_shader_include_path)
   if(TEST ${_t})
     set_property(TEST ${_t} APPEND PROPERTY RESOURCE_LOCK score_library_root)
   endif()
 endforeach()
+
+# A PER_CUBE_FACE raw raster without a depth output depth-tests every face,
+# with its DEPTH_COMPARE.
+score_add_gfx_test(cube_face_implicit_depth GfxCubeFaceImplicitDepth.cpp)
+
+# CSF: a write-only image after a PERSISTENT one publishes its own content; a
+# TYPE cubemap resource is a samplerCube.
+score_add_gfx_test(csf_resource_fixes GfxCsfResourceFixes.cpp)
+
+# Output-stage quality of the multi-window output: colour LUT, blue-noise
+# dither, Catmull-Rom warp maps, mip / anisotropic canvas sampling.
+score_add_gfx_test(multi_window_quality MultiWindowQuality.cpp)
+
+# The Graphics settings' GPU index selects the Vulkan physical device.
+score_add_gfx_test(gpu_selection GfxGpuSelection.cpp)
+
+# Script values convert to a texture inlet's optional sampler settings.
+score_add_gfx_test(texture_port_converters GfxTexturePortConverters.cpp)
+

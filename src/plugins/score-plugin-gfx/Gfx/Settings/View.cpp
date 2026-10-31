@@ -52,6 +52,32 @@ View::View()
 
   static constexpr int buffers_values[]{1, 2, 3};
   SETTINGS_UI_NUM_COMBOBOX_SETUP("Buffer count", Buffers, buffers_values);
+
+  {
+    m_GpuIndex = new QComboBox{m_widg};
+    m_GpuIndex->addItem(tr("Default"), -1);
+    const auto gpus = availableVulkanGpus();
+    for(const auto& g : gpus)
+      m_GpuIndex->addItem(
+          QStringLiteral("%1: %2 (%3%4)")
+              .arg(g.index)
+              .arg(g.name)
+              .arg(g.type)
+              .arg(g.presentBarrier ? QStringLiteral(", present barrier") : QString{}),
+          g.index);
+    if(gpus.empty())
+      for(int i = 0; i < 4; i++)
+        m_GpuIndex->addItem(QString::number(i), i);
+    m_GpuIndex->setToolTip(
+        tr("GPU used by the outputs created from now on: the Vulkan physical device "
+           "(QT_VK_PHYSICAL_DEVICE_INDEX) or the Direct3D adapter "
+           "(QT_D3D_ADAPTER_INDEX) of this index. The environment variables win when "
+           "set at startup."));
+    lay->addRow(tr("GPU"), m_GpuIndex);
+    connect(
+        m_GpuIndex, SignalUtils::QComboBox_currentIndexChanged_int(), this,
+        [this](int i) { GpuIndexChanged(m_GpuIndex->itemData(i).toInt()); });
+  }
 }
 
 QWidget* View::getWidget()
@@ -66,4 +92,5 @@ SETTINGS_UI_NUM_COMBOBOX_IMPL(Samples)
 SETTINGS_UI_DOUBLE_SPINBOX_IMPL(Rate)
 SETTINGS_UI_TOGGLE_IMPL(VSync)
 SETTINGS_UI_NUM_COMBOBOX_IMPL(Buffers)
+SETTINGS_UI_NUM_COMBOBOX_IMPL(GpuIndex)
 }

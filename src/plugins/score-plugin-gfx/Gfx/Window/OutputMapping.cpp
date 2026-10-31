@@ -613,6 +613,9 @@ void OutputMappingCanvas::setMappings(const std::vector<OutputMapping>& mappings
     item->rotation = m.rotation;
     item->mirrorX = m.mirrorX;
     item->mirrorY = m.mirrorY;
+    item->maps = m.maps;
+    item->color = m.color;
+    item->quality = m.quality;
     item->applyLockedState();
     setupItemCallbacks(item);
     m_scene.addItem(item);
@@ -655,6 +658,9 @@ std::vector<OutputMapping> OutputMappingCanvas::getMappings() const
     m.rotation = item->rotation;
     m.mirrorX = item->mirrorX;
     m.mirrorY = item->mirrorY;
+    m.maps = item->maps;
+    m.color = item->color;
+    m.quality = item->quality;
     result.push_back(m);
   }
   return result;
@@ -1173,6 +1179,77 @@ SCORE_PLUGIN_GFX_TEST_EXPORT void JSONReader::read(const Gfx::OutputMapping& n)
     stream.Bool(n.mirrorY);
   }
 
+  if(!n.maps.warp.isEmpty())
+  {
+    stream.Key("WarpMap");
+    stream.String(n.maps.warp.toStdString());
+  }
+  if(!n.maps.alpha.isEmpty())
+  {
+    stream.Key("AlphaMap");
+    stream.String(n.maps.alpha.toStdString());
+  }
+  if(!n.maps.beta.isEmpty())
+  {
+    stream.Key("BetaMap");
+    stream.String(n.maps.beta.toStdString());
+  }
+  if(!n.maps.lut.isEmpty())
+  {
+    stream.Key("LutFile");
+    stream.String(n.maps.lut.toStdString());
+  }
+  if(!n.maps.response.isEmpty())
+  {
+    stream.Key("ResponseFile");
+    stream.String(n.maps.response.toStdString());
+  }
+  if(!n.maps.compensation.isEmpty())
+  {
+    stream.Key("CompensationFile");
+    stream.String(n.maps.compensation.toStdString());
+  }
+  if(!n.maps.calibration.isEmpty())
+  {
+    stream.Key("Calibration");
+    stream.String(n.maps.calibration.toStdString());
+  }
+  if(!n.quality.isDefault())
+  {
+    stream.Key("Quality");
+    stream.StartObject();
+    stream.Key("Sampling");
+    stream.Int(int(n.quality.sampling));
+    stream.Key("WarpInterpolation");
+    stream.Int(int(n.quality.warpInterpolation));
+    stream.Key("Dither");
+    stream.Int(int(n.quality.dither));
+    stream.Key("MaxAnisotropy");
+    stream.Int(n.quality.maxAnisotropy);
+    stream.EndObject();
+  }
+
+  if(!n.color.isIdentity())
+  {
+    stream.Key("Color");
+    stream.StartObject();
+    stream.Key("Gain");
+    stream.StartArray();
+    for(float v : n.color.gain)
+      stream.Double(v);
+    stream.EndArray();
+    stream.Key("Offset");
+    stream.StartArray();
+    for(float v : n.color.offset)
+      stream.Double(v);
+    stream.EndArray();
+    stream.Key("Gamma");
+    stream.Double(n.color.gamma);
+    stream.Key("LinearBlend");
+    stream.Bool(n.color.linearBlend);
+    stream.EndObject();
+  }
+
   stream.EndObject();
 }
 
@@ -1189,6 +1266,16 @@ SCORE_PLUGIN_GFX_TEST_EXPORT void DataStreamReader::read(const Gfx::OutputMappin
            << n.cornerWarp.bottomRight;
   m_stream << int(n.lockMode);
   m_stream << n.rotation << n.mirrorX << n.mirrorY;
+  m_stream << n.maps.warp << n.maps.alpha << n.maps.beta;
+  for(float v : n.color.gain)
+    m_stream << v;
+  for(float v : n.color.offset)
+    m_stream << v;
+  m_stream << n.color.gamma << n.color.linearBlend;
+  m_stream << n.maps.lut << int(n.quality.sampling) << int(n.quality.warpInterpolation)
+           << int(n.quality.dither) << n.quality.maxAnisotropy;
+  m_stream << n.maps.response << n.maps.compensation;
+  m_stream << n.maps.calibration;
 }
 
 template <>
@@ -1204,6 +1291,21 @@ SCORE_PLUGIN_GFX_TEST_EXPORT void DataStreamWriter::write(Gfx::OutputMapping& n)
       >> n.cornerWarp.bottomRight;
   { int lm{}; m_stream >> lm; n.lockMode = Gfx::OutputLockMode(lm); }
   m_stream >> n.rotation >> n.mirrorX >> n.mirrorY;
+  m_stream >> n.maps.warp >> n.maps.alpha >> n.maps.beta;
+  for(float& v : n.color.gain)
+    m_stream >> v;
+  for(float& v : n.color.offset)
+    m_stream >> v;
+  m_stream >> n.color.gamma >> n.color.linearBlend;
+  {
+    int sampling{}, warp{}, dither{};
+    m_stream >> n.maps.lut >> sampling >> warp >> dither >> n.quality.maxAnisotropy;
+    n.quality.sampling = Gfx::OutputSampling(sampling);
+    n.quality.warpInterpolation = Gfx::WarpInterpolation(warp);
+    n.quality.dither = Gfx::OutputDither(dither);
+  }
+  m_stream >> n.maps.response >> n.maps.compensation;
+  m_stream >> n.maps.calibration;
 }
 namespace
 {
@@ -1278,4 +1380,41 @@ SCORE_PLUGIN_GFX_TEST_EXPORT void JSONWriter::write(Gfx::OutputMapping& n)
   score::parseJsonField(obj, "Rotation", n.rotation);
   score::parseJsonField(obj, "MirrorX", n.mirrorX);
   score::parseJsonField(obj, "MirrorY", n.mirrorY);
+
+  score::parseJsonField(obj, "WarpMap", n.maps.warp);
+  score::parseJsonField(obj, "AlphaMap", n.maps.alpha);
+  score::parseJsonField(obj, "BetaMap", n.maps.beta);
+  score::parseJsonField(obj, "LutFile", n.maps.lut);
+  score::parseJsonField(obj, "ResponseFile", n.maps.response);
+  score::parseJsonField(obj, "CompensationFile", n.maps.compensation);
+  score::parseJsonField(obj, "Calibration", n.maps.calibration);
+
+  if(auto q = obj.tryGet("Quality"); q && q->obj.IsObject())
+  {
+    JSONWriter qw{q->obj};
+    int v{};
+    if(score::parseJsonField(qw.obj, "Sampling", v) && v >= 0 && v <= 3)
+      n.quality.sampling = Gfx::OutputSampling(v);
+    if(score::parseJsonField(qw.obj, "WarpInterpolation", v) && v >= 0 && v <= 1)
+      n.quality.warpInterpolation = Gfx::WarpInterpolation(v);
+    if(score::parseJsonField(qw.obj, "Dither", v) && v >= 0 && v <= 2)
+      n.quality.dither = Gfx::OutputDither(v);
+    if(score::parseJsonField(qw.obj, "MaxAnisotropy", v))
+      n.quality.maxAnisotropy = std::clamp(v, 1, 16);
+  }
+
+  if(auto c = obj.tryGet("Color"); c && c->obj.IsObject())
+  {
+    JSONWriter cw{c->obj};
+    if(std::array<double, 3> g; readNumbers(cw.obj, "Gain", g))
+      for(int i = 0; i < 3; i++)
+        n.color.gain[i] = float(g[i]);
+    if(std::array<double, 3> o; readNumbers(cw.obj, "Offset", o))
+      for(int i = 0; i < 3; i++)
+        n.color.offset[i] = float(o[i]);
+    score::parseJsonField(cw.obj, "Gamma", n.color.gamma);
+    score::parseJsonField(cw.obj, "LinearBlend", n.color.linearBlend);
+    if(!(n.color.gamma > 0.f))
+      n.color.gamma = 1.f;
+  }
 }

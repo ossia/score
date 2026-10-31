@@ -1,5 +1,6 @@
 #include <Gfx/Graph/SceneGPUState.hpp>
 
+#include <Gfx/Graph/CameraMath.hpp>
 #include <Gfx/Graph/GpuResourceRegistry.hpp>
 
 #include <ossia/detail/hash_map.hpp>
@@ -1084,9 +1085,8 @@ void flattenScene(
     out.cameraFov = cam.yfov * (180.f / float(M_PI));
     out.cameraNear = cam.znear;
     out.cameraFar = cam.zfar;
-    out.projectionMatrix.setToIdentity();
-    out.projectionMatrix.perspective(
-        out.cameraFov, aspectRatio, out.cameraNear, out.cameraFar);
+    cameraProjection(out.projectionMatrix, cam, aspectRatio);
+    flipProjectionDepth(out.projectionMatrix);
     out.hasCamera = true;
   }
   else

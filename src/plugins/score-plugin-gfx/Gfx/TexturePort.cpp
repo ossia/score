@@ -38,6 +38,66 @@ W_OBJECT_IMPL(Gfx::TextureOutlet)
 
 namespace Gfx
 {
+
+namespace
+{
+template <typename E, std::size_t N>
+std::optional<E> textureEnumFromName(
+    const QString& name, const std::pair<const char*, E> (&names)[N])
+{
+  for(const auto& [n, v] : names)
+    if(name.compare(QLatin1String(n), Qt::CaseInsensitive) == 0)
+      return v;
+  if(!name.isEmpty() && name.compare(QLatin1String("Auto"), Qt::CaseInsensitive) != 0)
+    qWarning() << "Score: unknown texture sampler value" << name;
+  return std::nullopt;
+}
+
+template <typename E, int Max>
+std::optional<E> textureEnumFromInt(int v)
+{
+  if(v < 0 || v > Max)
+    return std::nullopt;
+  return E(v);
+}
+
+template <typename From, typename To, typename F>
+void registerOptionalConverter(F f)
+{
+  if(!QMetaType::hasRegisteredConverterFunction<From, To>())
+    QMetaType::registerConverter<From, To>(f);
+}
+}
+
+void registerTexturePortConverters()
+{
+  using filter = std::optional<ossia::texture_filter>;
+  using address = std::optional<ossia::texture_address_mode>;
+  static constexpr std::pair<const char*, ossia::texture_filter> filters[]{
+      {"None", ossia::texture_filter::NONE},
+      {"Nearest", ossia::texture_filter::NEAREST},
+      {"Linear", ossia::texture_filter::LINEAR}};
+  static constexpr std::pair<const char*, ossia::texture_address_mode> addresses[]{
+      {"Repeat", ossia::texture_address_mode::REPEAT},
+      {"Clamp", ossia::texture_address_mode::CLAMP_TO_EDGE},
+      {"ClampToEdge", ossia::texture_address_mode::CLAMP_TO_EDGE},
+      {"Mirror", ossia::texture_address_mode::MIRROR}};
+
+  constexpr auto filterFromInt
+      = textureEnumFromInt<ossia::texture_filter, ossia::texture_filter::LINEAR>;
+  constexpr auto addressFromInt = textureEnumFromInt<
+      ossia::texture_address_mode, ossia::texture_address_mode::MIRROR>;
+  registerOptionalConverter<int, filter>(filterFromInt);
+  registerOptionalConverter<double, filter>([](double v) { return filterFromInt(int(v)); });
+  registerOptionalConverter<QString, filter>(
+      [](const QString& s) { return textureEnumFromName(s, filters); });
+  registerOptionalConverter<int, address>(addressFromInt);
+  registerOptionalConverter<double, address>(
+      [](double v) { return addressFromInt(int(v)); });
+  registerOptionalConverter<QString, address>(
+      [](const QString& s) { return textureEnumFromName(s, addresses); });
+}
+
 MODEL_METADATA_IMPL_CPP(TextureInlet);
 MODEL_METADATA_IMPL_CPP(TextureOutlet);
 

@@ -6026,6 +6026,7 @@ void parser::parse_raw_raster_pipeline()
   if(mv_fragment_plumbing)
   {
     m_vertex += "#extension GL_EXT_multiview : require\n";
+    m_vertex += "#define gl_ViewIndex int(uint(gl_ViewIndex))\n";
   }
 
   {
@@ -8695,6 +8696,17 @@ void parser::parse_csf()
       tex.is_array = img->is_array;
       tex.is_static = img->is_static;
       tex.sampler = img->sampler;
+      inp.data = std::move(tex);
+    }
+    else if(auto* cube = ossia::get_if<cubemap_input>(&inp.data))
+    {
+      if(cube->depth)
+        throw invalid_file{
+            "CSF input \"" + inp.name
+            + "\": TYPE cubemap with IS_DEPTH is not supported in a compute shader."};
+      texture_input tex;
+      tex.cube = true;
+      tex.sampler = cube->sampler;
       inp.data = std::move(tex);
     }
     else if(auto* st = ossia::get_if<storage_input>(&inp.data); st && st->layout.empty())

@@ -22,6 +22,7 @@ public:
   SETTINGS_UI_NUM_COMBOBOX_HPP(Samples)
   SETTINGS_UI_TOGGLE_HPP(VSync)
   SETTINGS_UI_NUM_COMBOBOX_HPP(Buffers)
+  SETTINGS_UI_NUM_COMBOBOX_HPP(GpuIndex)
 
 private:
   QWidget* getWidget() override;
