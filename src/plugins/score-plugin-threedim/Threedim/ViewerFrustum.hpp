@@ -1,9 +1,12 @@
 #pragma once
+#include <Threedim/CalibrationFiles.hpp>
+
 #include <halp/controls.hpp>
 #include <halp/meta.hpp>
 #include <halp/texture.hpp>
 
 #include <array>
+#include <cstdint>
 #include <optional>
 #include <string>
 #include <vector>
@@ -68,7 +71,13 @@ public:
 
   void operator()();
 
+  //! The calibration of `path`, read again only when the file changes.
+  const CalibrationFile& calibration(const std::string& path);
+
 private:
   int m_wait{};
+  std::string m_cachedPath;
+  std::int64_t m_cachedTime{}, m_cachedSize{-1};
+  CalibrationFile m_cached;
 };
 }

@@ -1,10 +1,11 @@
 #include "ViewerFrustum.hpp"
 
 #include <Gfx/Calibration/OffAxis.hpp>
-#include <Threedim/CalibrationFiles.hpp>
+#include <Threedim/FloatTextureIO.hpp>
 
 #include <cmath>
 #include <cstdio>
+#include <filesystem>
 
 namespace Threedim
 {
@@ -52,13 +53,32 @@ bool ProjectorViewerFrustum::solve(const std::vector<float>& xyz, int w, int h)
   return true;
 }
 
+const CalibrationFile& ProjectorViewerFrustum::calibration(const std::string& path)
+{
+  std::error_code ec;
+  const std::filesystem::path p = std::filesystem::u8path(
+      SaveFloatTexture::basePath(path) + ".xyz.pfm");
+  const auto size = std::int64_t(std::filesystem::file_size(p, ec));
+  const std::int64_t time
+      = ec ? 0 : std::int64_t(std::filesystem::last_write_time(p, ec).time_since_epoch().count());
+  if(ec || path != m_cachedPath || time != m_cachedTime || size != m_cachedSize
+     || !m_cached.ok())
+  {
+    m_cached = loadCalibration(path);
+    m_cachedPath = path;
+    m_cachedTime = ec ? 0 : time;
+    m_cachedSize = ec ? -1 : size;
+  }
+  return m_cached;
+}
+
 void ProjectorViewerFrustum::operator()()
 {
   outputs.done.value.reset();
   const bool trigger = bool(inputs.compute) || inputs.continuous.value;
   if(trigger && !inputs.file.value.empty())
   {
-    const auto c = loadCalibration(inputs.file.value);
+    const auto& c = calibration(inputs.file.value);
     if(!c.ok())
       outputs.status.value = "Failed: " + c.error;
     else

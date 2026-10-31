@@ -7,6 +7,7 @@
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QSaveFile>
 #include <QString>
 
 #include <cstring>
@@ -83,9 +84,24 @@ SaveFloatTexture::extract(const float* rgba, int width, int height, Channels cha
 
 void SaveFloatTexture::operator()()
 {
-  if(!inputs.save)
+  if(inputs.save)
+  {
+    outputs.saved.value = false;
+    inputs.image.request_readback = true;
+    m_framesSinceRequest = 0;
     return;
-  outputs.saved.value = false;
+  }
+  if(m_framesSinceRequest < 0)
+    return;
+  if(++m_framesSinceRequest < 2 || !inputs.image.texture.bytes)
+    return;
+  m_framesSinceRequest = -1;
+  inputs.image.request_readback = false;
+  write();
+}
+
+void SaveFloatTexture::write()
+{
 
   const auto& tex = inputs.image.texture;
   const std::string base = basePath(inputs.file.value);
@@ -124,9 +140,12 @@ void SaveFloatTexture::operator()()
       files.append(QFileInfo(qbase + ".pfm").fileName());
     }
     o["files"] = files;
-    QFile f{qbase + ".json"};
-    if(f.open(QIODevice::WriteOnly | QIODevice::Truncate))
-      f.write(QJsonDocument(o).toJson());
+    QSaveFile f{qbase + ".json"};
+    if(!f.open(QIODevice::WriteOnly))
+      return;
+    f.write(QJsonDocument(o).toJson());
+    if(!f.commit())
+      return;
   }
 
   outputs.written.value = img.channels == 4 ? base + ".xyz.pfm" : base + ".pfm";

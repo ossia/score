@@ -88,6 +88,11 @@ ProjectorBlendMaps::compute(std::vector<CalibrationFile> cals, const Settings& s
   auto res = blend::compute(P, opt);
   const double secs
       = std::chrono::duration<double>(std::chrono::steady_clock::now() - t0).count();
+  if(res.status.starts_with("Failed"))
+  {
+    r.status = res.status;
+    return r;
+  }
 
   if(s.encodeGamma != 1.f && s.encodeGamma > 0.f)
     for(std::size_t i = 0; i < P.size(); i++)
@@ -192,18 +197,7 @@ ProjectorBlendMaps::Settings ProjectorBlendMaps::settings() const
 
 void ProjectorBlendMaps::start()
 {
-  std::vector<CalibrationFile> cals;
-  std::string failed;
-  for(const auto& path : splitPaths(inputs.files.value))
-  {
-    auto c = loadCalibration(path);
-    if(!c.ok())
-    {
-      failed += (failed.empty() ? "" : ", ") + c.error;
-      continue;
-    }
-    cals.push_back(std::move(c));
-  }
+  std::vector<CalibrationFile> textures;
   int k = 0;
   auto take = [&](auto& in) {
     k++;
@@ -217,19 +211,40 @@ void ProjectorBlendMaps::start()
     c.xyz.assign(t.bytes, t.bytes + std::size_t(t.width) * t.height * 4);
     if(!inputs.prefix.value.empty())
       c.base = inputs.prefix.value + "_" + std::to_string(k);
-    cals.push_back(std::move(c));
+    textures.push_back(std::move(c));
   };
   take(inputs.xyz1);
   take(inputs.xyz2);
   take(inputs.xyz3);
   take(inputs.xyz4);
-  if(!failed.empty() && cals.empty())
-  {
-    outputs.status.value = "Failed: " + failed;
-    return;
-  }
-  outputs.status.value = "Computing " + std::to_string(cals.size()) + " projectors";
-  m_future = std::async(std::launch::async, &compute, std::move(cals), settings());
+  const auto paths = splitPaths(inputs.files.value);
+  outputs.status.value = "Computing "
+                         + std::to_string(paths.size() + textures.size()) + " projectors";
+  m_future = std::async(
+      std::launch::async,
+      [paths, textures = std::move(textures), s = settings()]() mutable {
+    std::vector<CalibrationFile> cals;
+    std::string failed;
+    for(const auto& path : paths)
+    {
+      auto c = loadCalibration(path);
+      if(!c.ok())
+      {
+        failed += (failed.empty() ? "" : ", ") + c.error;
+        continue;
+      }
+      cals.push_back(std::move(c));
+    }
+    for(auto& c : textures)
+      cals.push_back(std::move(c));
+    if(!failed.empty() && cals.empty())
+    {
+      Result r;
+      r.status = "Failed: " + failed;
+      return r;
+    }
+    return compute(std::move(cals), s);
+  });
 }
 
 void ProjectorBlendMaps::publish(const Result& r)

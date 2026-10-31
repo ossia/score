@@ -155,7 +155,10 @@ bool run(StructuredLightCalibration& obj, Bench& b)
     if(!obj.running())
       return false;
     if(obj.outputs.status.value == "Decoding")
+    {
       std::this_thread::sleep_for(std::chrono::milliseconds(2));
+      i--;
+    }
   }
   return false;
 }

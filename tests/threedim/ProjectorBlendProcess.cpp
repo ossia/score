@@ -83,7 +83,8 @@ TEST_CASE("Projector Blend Maps writes alpha and beta PFMs for each calibration"
   obj.inputs.black_level.value = 0.03f;
   obj.inputs.compute.value = halp::impulse_type{};
   bool done = false;
-  for(int i = 0; i < 2000 && !done; i++)
+  const auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(120);
+  while(!done && std::chrono::steady_clock::now() < deadline)
   {
     obj();
     obj.inputs.compute.value.reset();
@@ -98,10 +99,12 @@ TEST_CASE("Projector Blend Maps writes alpha and beta PFMs for each calibration"
 
   const auto alphaL = score::gfx::readPFM(QString::fromStdString(a + ".alpha.pfm"));
   const auto alphaR = score::gfx::readPFM(QString::fromStdString(b + ".alpha.pfm"));
-  const auto betaL = score::gfx::readPFM(QString::fromStdString(b + ".beta.pfm"));
+  const auto betaL = score::gfx::readPFM(QString::fromStdString(a + ".beta.pfm"));
+  const auto betaR = score::gfx::readPFM(QString::fromStdString(b + ".beta.pfm"));
   REQUIRE(alphaL.valid());
   REQUIRE(alphaR.valid());
   REQUIRE(betaL.valid());
+  REQUIRE(betaR.valid());
   CHECK(alphaL.channels == 1);
   CHECK(alphaL.width == PW);
 

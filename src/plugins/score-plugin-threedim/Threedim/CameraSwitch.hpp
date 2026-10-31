@@ -155,6 +155,65 @@ public:
     return gotXform && gotCam;
   }
 
+  //! Tangents at unit distance (left, right, bottom, top) of a perspective
+  //! camera, from its frustum or its FOV, aspect and lens shift.
+  static bool frustumTangents(const ossia::camera_component& c, float out[4]) noexcept
+  {
+    if(c.projection != ossia::camera_projection::perspective)
+      return false;
+    if(c.frustum_set)
+    {
+      std::copy_n(c.frustum, 4, out);
+      return true;
+    }
+    if(!c.aspect_ratio_set || !(c.aspect_ratio > 0.f) || !(c.yfov > 0.f))
+      return false;
+    const float ty = std::tan(c.yfov * 0.5f);
+    const float tx = ty * c.aspect_ratio;
+    const float cx = 2.f * c.shift[0] * tx, cy = 2.f * c.shift[1] * ty;
+    out[0] = cx - tx;
+    out[1] = cx + tx;
+    out[2] = cy - ty;
+    out[3] = cy + ty;
+    return true;
+  }
+
+  //! Off-axis frusta and raw projection matrices are blended when every
+  //! weighted camera has one, so that a crossfade does not jump.
+  static void blendProjection(
+      const ossia::camera_component (&cams)[4], const float (&w)[4],
+      ossia::camera_component& out) noexcept
+  {
+    bool anyFrustum = false, allTangents = true, allMatrices = true;
+    float sum[4]{};
+    float mat[16]{};
+    for(int i = 0; i < 4; ++i)
+    {
+      if(w[i] <= 0.f)
+        continue;
+      anyFrustum |= cams[i].frustum_set;
+      allMatrices &= cams[i].projection_matrix_set;
+      float t[4];
+      if(frustumTangents(cams[i], t))
+        for(int k = 0; k < 4; k++)
+          sum[k] += t[k] * w[i];
+      else
+        allTangents = false;
+      for(int k = 0; k < 16; k++)
+        mat[k] += cams[i].projection_matrix[k] * w[i];
+    }
+    if(anyFrustum && allTangents && out.projection == ossia::camera_projection::perspective)
+    {
+      std::copy_n(sum, 4, out.frustum);
+      out.frustum_set = true;
+    }
+    if(allMatrices)
+    {
+      std::copy_n(mat, 16, out.projection_matrix);
+      out.projection_matrix_set = true;
+    }
+  }
+
   void rebuild()
   {
     const int mode = inputs.mode.value;
@@ -277,6 +336,7 @@ public:
       std::copy_n(cams[dominant].projection_matrix, 16, outCam.projection_matrix);
       outCam.projection_matrix_set = cams[dominant].projection_matrix_set;
     }
+    blendProjection(cams, effWeights, outCam);
     for(int i = 0; i < 4; ++i)
     {
       if(effWeights[i] <= 0.f) continue;

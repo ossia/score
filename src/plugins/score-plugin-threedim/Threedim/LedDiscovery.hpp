@@ -28,8 +28,9 @@ public:
       "an index; an LED's position is the brightness-weighted centroid of its pixels, "
       "and its world point the mean of a depth camera's positions there. Drive the LEDs "
       "with LED values (one per LED) or LED colours (r, g, b 0..255 per LED, for Art-Net "
-      "/ sACN), or the Pattern texture (N x 1). Positions are x, y, z, w per LED for LED "
-      "Sampler; w = 0 for an LED not found.")
+      "/ sACN), sent when they change, or the Pattern texture (N x 1, in rows of 4096 above "
+      "4096 LEDs). Positions are x, y, z, w per LED, sent once a discovery ends; w = 0 for "
+      "an LED not found.")
   halp_meta(uuid, "f2a6c9e4-3b18-47d5-8e61-0c4b7d93a2f5")
 
   struct ins
@@ -59,12 +60,12 @@ public:
 
   struct
   {
-    halp::val_port<"LED values", std::vector<float>> values;
-    halp::val_port<"LED colours", std::vector<float>> colours;
+    halp::val_port<"LED values", std::optional<std::vector<float>>> values;
+    halp::val_port<"LED colours", std::optional<std::vector<float>>> colours;
     halp::texture_output<"Pattern"> pattern;
     //! Normalized camera coordinates (v = 0 at the top), z = 0.
-    halp::val_port<"Positions (camera)", std::vector<float>> uv;
-    halp::val_port<"Positions (world)", std::vector<float>> world;
+    halp::val_port<"Positions (camera)", std::optional<std::vector<float>>> uv;
+    halp::val_port<"Positions (world)", std::optional<std::vector<float>>> world;
     halp::val_port<"Found", int> found;
     halp::val_port<"Progress", float> progress;
     halp::val_port<"Status", std::string> status;
@@ -81,6 +82,10 @@ public:
     float confidence{};
   };
   const std::vector<Led>& leds() const noexcept { return m_leds; }
+  //! The LED values and colours shown now.
+  const std::vector<float>& values() const noexcept { return m_values; }
+  const std::vector<float>& colours() const noexcept { return m_colours; }
+  static constexpr int patternWidth = 4096;
 
   bool running() const noexcept { return m_frame >= 0; }
   void operator()();
@@ -89,6 +94,7 @@ public:
 
 private:
   void show(int frame);
+  void stop(const std::string& status);
   void finish();
 
   int m_frame{-1};
@@ -102,5 +108,6 @@ private:
   std::vector<float> m_positions;
   int m_positionFrames{};
   std::vector<Led> m_leds;
+  std::vector<float> m_values, m_colours;
 };
 }

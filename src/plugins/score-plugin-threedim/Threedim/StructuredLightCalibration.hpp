@@ -9,6 +9,7 @@
 #include <halp/texture.hpp>
 
 #include <array>
+#include <atomic>
 #include <functional>
 #include <future>
 #include <memory>
@@ -203,7 +204,8 @@ public:
     } canvas_size;
     //! Save to Save file when a run is done.
     halp::toggle<"Auto save"> auto_save;
-    //! Bound on the log-slope of the compensated white per projector pixel; 0 = one white everywhere.
+    //! Bound on the log-slope of the compensated white per projector pixel; 0, and with
+    //! several projectors, = one white everywhere.
     halp::hslider_f32<"Compensation gradient", halp::range{0., 0.05, 0.}> comp_gradient;
     //! Uniform colours per axis measuring the projector's own colour mixing,
     //! with Surface compensation and Response levels; 0 = assume additive.
@@ -282,6 +284,10 @@ public:
     //! Per projector pixel: black / ambient (3), linear camera units.
     std::vector<float> compBlack;
     std::vector<uint8_t> compValid;
+    //! Per projector pixel: the largest white s M (1, 1, 1) it can show; 0 where invalid.
+    std::vector<float> compWhite;
+    //! The target white's chroma folded into M, max component 1.
+    std::array<double, 3> compTarget{1., 1., 1.};
     //! Largest white the given fraction of the pixels reaches.
     float compScale{};
     float compGamut{0.85f}, compStrength{1.f}, compGradient{};
@@ -318,6 +324,7 @@ public:
 
   struct Job
   {
+    std::shared_ptr<const std::atomic_bool> cancel;
     sl::Decoder decoder;
     sl::GraySequence seq;
     std::vector<float> positions;
@@ -361,6 +368,8 @@ public:
   loadCameraResponse(const std::string& path);
   //! The compensation matrices of r at its scale, strength and black option.
   static score::gfx::CompensationMaps compensationMaps(const Result& r);
+  //! Per projector pixel, the white scale applied by compensationMaps.
+  static std::vector<float> compensationScale(const Result& r);
   //! Runs compute on every job, the camera response solved once from the
   //! first, the compensation brought to one common target.
   static std::vector<Result> computeAll(std::vector<Job> jobs);
@@ -425,9 +434,11 @@ private:
   void showFrame(int k);
   void saveAll();
   int frameCount() const noexcept { return m_seq.count() + int(m_extras.size()); }
+  int m_framesBefore{}, m_framesTotal{1};
   void updateCanvas();
   void showIdle();
   void publish(const Result& r);
+  void cancelComputation() noexcept;
   void stop(const std::string& status);
   bool captureFrame();
   void mirror();
@@ -449,8 +460,9 @@ private:
   std::vector<float> m_frameSum;
   int m_camW{}, m_camH{};
   std::future<std::vector<Result>> m_future;
-  std::shared_ptr<Result> m_result;
-  std::vector<std::shared_ptr<Result>> m_results;
+  std::shared_ptr<std::atomic_bool> m_cancel;
+  std::shared_ptr<const Result> m_result;
+  std::vector<std::shared_ptr<const Result>> m_results;
   std::vector<Job> m_pendingJobs;
   std::vector<float> m_rgbSum;
   int m_projector{};

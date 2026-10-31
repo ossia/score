@@ -199,7 +199,10 @@ int run(StructuredLightCalibration& obj, Bench& b)
     if(!obj.running())
       return shown;
     if(obj.outputs.status.value == "Decoding")
+    {
       std::this_thread::sleep_for(std::chrono::milliseconds(2));
+      i--;
+    }
   }
   return shown;
 }
@@ -361,7 +364,10 @@ TEST_CASE("Structured light: one driver per process instance", "[threedim][struc
        || second.outputs.status.value != a.outputs.status.value)
       mirrored = false;
     if(a.outputs.status.value == "Decoding")
+    {
       std::this_thread::sleep_for(std::chrono::milliseconds(2));
+      i--;
+    }
   }
   REQUIRE(a.outputs.done.value);
   CHECK(mirrored);

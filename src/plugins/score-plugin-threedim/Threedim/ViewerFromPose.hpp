@@ -114,13 +114,13 @@ public:
     w[2] += inputs.offset.value.z;
     outputs.raw.value = {w[0], w[1], w[2]};
 
-    const double t = now();
-    const bool fresh = w[0] != last[0] || w[1] != last[1] || w[2] != last[2];
     if(inputs.bypass.value)
     {
       outputs.viewer.value = outputs.raw.value;
       return;
     }
+    const double t = now();
+    const bool fresh = w[0] != last[0] || w[1] != last[1] || w[2] != last[2];
     if(!fresh && filters[0].primed)
       return;
     last = {w[0], w[1], w[2]};

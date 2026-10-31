@@ -12,6 +12,7 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QRegularExpression>
+#include <QSaveFile>
 
 #include <algorithm>
 #include <chrono>
@@ -20,6 +21,8 @@
 #include <limits>
 #include <map>
 #include <mutex>
+#include <stdexcept>
+#include <thread>
 
 namespace Threedim
 {
@@ -39,6 +42,17 @@ std::array<float, 3> slMul(const Eigen::Matrix4d& m, float x, float y, float z, 
 }
 }
 
+namespace
+{
+constexpr float clipLevel = 0.985f;
+
+void throwIfCancelled(const StructuredLightCalibration::Job& job)
+{
+  if(job.cancel && job.cancel->load(std::memory_order_relaxed))
+    throw std::runtime_error("cancelled");
+}
+}
+
 StructuredLightCalibration::Result StructuredLightCalibration::compute(Job job)
 {
   Result r;
@@ -49,7 +63,8 @@ StructuredLightCalibration::Result StructuredLightCalibration::compute(Job job)
   r.camWidth = cw;
   r.camHeight = ch;
 
-  const auto dec = job.decoder.decode(job.minSignal, job.minBits);
+  auto dec = job.decoder.decode(job.minSignal, job.minBits);
+  throwIfCancelled(job);
   r.decoded.assign(std::size_t(cw) * ch * 4, 0);
   r.seq = job.seq;
   int decodedCount = 0, phaseCount = 0;
@@ -348,7 +363,7 @@ StructuredLightCalibration::Result StructuredLightCalibration::compute(Job job)
       return false;
     if(rgb)
       for(int c = 0; c < 3; c++)
-        if(job.whiteRGB[i * 3 + c] >= 0.985f)
+        if(job.whiteRGB[i * 3 + c] >= clipLevel)
           return false;
     return true;
   };
@@ -551,9 +566,13 @@ StructuredLightCalibration::Result StructuredLightCalibration::compute(Job job)
           photoNote += nb2;
         }
       }
-      r.response = std::move(pr);
+      if(pr.channels[0].valid && pr.channels[1].valid && pr.channels[2].valid)
+        r.response = std::move(pr);
+      else
+        photoNote += ", projector response not fitted: a channel gave no light";
     }
 
+    throwIfCancelled(job);
     // Surface compensation: V per camera pixel from the full primaries.
     const Extra* prim[3]{};
     for(auto& e : job.extras)
@@ -564,9 +583,16 @@ StructuredLightCalibration::Result StructuredLightCalibration::compute(Job job)
       std::array<sl::SparseMap, 4> cols;
       for(auto& m : cols)
         m.reset(r.width, r.height);
+      auto clipped = [&](std::size_t i) {
+        for(int p = 0; p < 3; p++)
+          for(int c = 0; c < 3; c++)
+            if(prim[p]->rgbCapture[i * 3 + c] >= clipLevel)
+              return true;
+        return false;
+      };
       for(std::size_t i = 0; i < dec.size(); i++)
       {
-        if(!usable(i))
+        if(!usable(i) || clipped(i))
           continue;
         std::array<float, 3> b;
         for(int c = 0; c < 3; c++)
@@ -584,6 +610,7 @@ StructuredLightCalibration::Result StructuredLightCalibration::compute(Job job)
       std::array<std::vector<float>, 4> filled;
       for(int p = 0; p < 4; p++)
         filled[p] = sl::pushPullFill(cols[p], radius, 0.f, true);
+      cols = {};
       const std::size_t n = std::size_t(r.width) * r.height;
       r.compInverse.assign(n * 9, 0.f);
       r.compBlack.assign(n * 3, 0.f);
@@ -623,6 +650,8 @@ StructuredLightCalibration::Result StructuredLightCalibration::compute(Job job)
             t /= m;
         }
       }
+      r.compTarget = target;
+      r.compWhite.assign(n, 0.f);
       std::vector<float> scales;
       for(std::size_t i = 0; i < n; i++)
       {
@@ -643,8 +672,10 @@ StructuredLightCalibration::Result StructuredLightCalibration::compute(Job job)
         for(int c = 0; c < 3; c++)
           r.compBlack[i * 3 + c] = filled[3][i * 4 + c];
         r.compValid[i] = 1;
-        scales.push_back(float(score::gfx::photometric::maxWhiteScale(M, mixing, mixInv)));
+        r.compWhite[i] = float(score::gfx::photometric::maxWhiteScale(M, mixing, mixInv));
+        scales.push_back(r.compWhite[i]);
       }
+      filled = {};
       if(!scales.empty())
       {
         std::array<sl::SparseMap, 4> known;
@@ -676,12 +707,14 @@ StructuredLightCalibration::Result StructuredLightCalibration::compute(Job job)
             if(r.compValid[i] || f[0][i * 4 + 3] <= 0.f)
               continue;
             float* Mi = r.compInverse.data() + i * 9;
+            Eigen::Matrix3d M;
             for(int a = 0; a < 3; a++)
               for(int b = 0; b < 3; b++)
-                Mi[a * 3 + b] = f[a][i * 4 + b];
+                M(a, b) = Mi[a * 3 + b] = f[a][i * 4 + b];
             for(int c = 0; c < 3; c++)
               r.compBlack[i * 3 + c] = f[3][i * 4 + c];
             r.compValid[i] = 1;
+            r.compWhite[i] = float(score::gfx::photometric::maxWhiteScale(M, mixing, mixInv));
           }
         }
       }
@@ -707,10 +740,12 @@ StructuredLightCalibration::Result StructuredLightCalibration::compute(Job job)
         r.compInverse.clear();
         r.compBlack.clear();
         r.compValid.clear();
+        r.compWhite.clear();
       }
     }
   }
 
+  throwIfCancelled(job);
   std::size_t covered = 0;
   for(std::size_t i = 3; i < r.xyz.size(); i += 4)
     covered += r.xyz[i] > 0.f;
@@ -750,7 +785,7 @@ StructuredLightCalibration::Result StructuredLightCalibration::compute(Job job)
   if(job.crf)
     r.status += ", camera response linearised";
   r.status += photoNote;
-  r.pixels = dec;
+  r.pixels = std::move(dec);
   return r;
 }
 
@@ -964,33 +999,11 @@ StructuredLightCalibration::loadCameraResponse(const std::string& path)
   return r->valid() ? r : nullptr;
 }
 
-score::gfx::CompensationMaps StructuredLightCalibration::compensationMaps(const Result& r)
+std::vector<float> StructuredLightCalibration::compensationScale(const Result& r)
 {
-  score::gfx::CompensationMaps m;
   const std::size_t n = std::size_t(r.width) * r.height;
-  if(r.compInverse.size() != n * 9 || !(r.compScale > 0.f))
-    return m;
-  m.width = r.width;
-  m.height = r.height;
-  for(auto& row : m.rows)
-  {
-    row.width = r.width;
-    row.height = r.height;
-    row.channels = 4;
-    row.data.assign(n * 4, 0.f);
-  }
-  std::array<float, 3> top{0.f, 0.f, 0.f};
-  if(r.compBlackOn)
-    for(std::size_t i = 0; i < n; i++)
-      if(r.compValid[i])
-        for(int c = 0; c < 3; c++)
-          top[c] = std::max(top[c], r.compBlack[i * 3 + c]);
-  const float k = std::clamp(r.compStrength, 0.f, 1.f);
-  const score::gfx::photometric::ColourMixing noMixing;
-  const auto& mixing = r.response ? r.response->mixing : noMixing;
-  const auto mixInv = score::gfx::photometric::MixingInverse::build(mixing);
   std::vector<float> scale(n, r.compScale);
-  if(r.compGradient > 0.f)
+  if(r.compGradient > 0.f && r.compWhite.size() == n && r.compValid.size() == n)
   {
     constexpr int B = 16;
     const int w = r.width, h = r.height;
@@ -1006,13 +1019,8 @@ score::gfx::CompensationMaps StructuredLightCalibration::compensationMaps(const 
           for(int x = bx * B; x < std::min(w, (bx + 1) * B); x++)
           {
             const std::size_t i = std::size_t(y) * w + x;
-            if(!r.compValid[i])
-              continue;
-            Eigen::Matrix3d M;
-            for(int a = 0; a < 3; a++)
-              for(int b = 0; b < 3; b++)
-                M(a, b) = r.compInverse[i * 9 + a * 3 + b];
-            cell.push_back(float(score::gfx::photometric::maxWhiteScale(M, mixing, mixInv)));
+            if(r.compValid[i])
+              cell.push_back(r.compWhite[i]);
           }
         if(cell.size() < B * B / 4)
           continue;
@@ -1021,7 +1029,6 @@ score::gfx::CompensationMaps StructuredLightCalibration::compensationMaps(const 
         L[std::size_t(by) * bw + bx] = std::log(std::max(cell[q], r.compScale));
       }
     const float g = r.compGradient * B, gd = g * std::sqrt(2.f);
-    for(int it = 0; it < 2; it++)
     {
       for(int y = 0; y < bh; y++)
         for(int x = 0; x < bw; x++)
@@ -1072,6 +1079,32 @@ score::gfx::CompensationMaps StructuredLightCalibration::compensationMaps(const 
         scale[std::size_t(y) * w + x] = std::exp(a * (1 - ty) + b * ty);
       }
   }
+  return scale;
+}
+
+score::gfx::CompensationMaps StructuredLightCalibration::compensationMaps(const Result& r)
+{
+  score::gfx::CompensationMaps m;
+  const std::size_t n = std::size_t(r.width) * r.height;
+  if(r.compInverse.size() != n * 9 || !(r.compScale > 0.f))
+    return m;
+  m.width = r.width;
+  m.height = r.height;
+  for(auto& row : m.rows)
+  {
+    row.width = r.width;
+    row.height = r.height;
+    row.channels = 4;
+    row.data.assign(n * 4, 0.f);
+  }
+  std::array<float, 3> top{0.f, 0.f, 0.f};
+  if(r.compBlackOn)
+    for(std::size_t i = 0; i < n; i++)
+      if(r.compValid[i])
+        for(int c = 0; c < 3; c++)
+          top[c] = std::max(top[c], r.compBlack[i * 3 + c]);
+  const float k = std::clamp(r.compStrength, 0.f, 1.f);
+  const auto scale = compensationScale(r);
   for(std::size_t i = 0; i < n; i++)
   {
     const float* Mi = r.compInverse.data() + i * 9;
@@ -1109,6 +1142,7 @@ StructuredLightCalibration::computeAll(std::vector<Job> jobs)
       exposures.push_back(e.exposure);
   for(auto& j : jobs)
   {
+    throwIfCancelled(j);
     if(crf)
       j.crf = crf;
     for(auto& e : j.extras)
@@ -1124,7 +1158,11 @@ StructuredLightCalibration::computeAll(std::vector<Job> jobs)
       common = common > 0.f ? std::min(common, r.compScale) : r.compScale;
   for(auto& r : out)
     if(r.compScale > 0.f)
+    {
       r.compScale = common;
+      if(out.size() > 1)
+        r.compGradient = 0.f;
+    }
   return out;
 }
 
@@ -1168,13 +1206,16 @@ bool StructuredLightCalibration::saveFile(const std::string& path, const Result&
   o["mode"] = QString::fromStdString(slModeName(r.mode));
   o["width"] = r.width;
   o["height"] = r.height;
-  QJsonArray k, pose;
-  for(float v : r.intrinsics)
-    k.append(v);
-  for(float v : r.pose)
-    pose.append(v);
-  o["intrinsics"] = k;
-  o["worldFromProjector"] = pose;
+  if(r.intrinsics[0] > 0.f)
+  {
+    QJsonArray k, pose;
+    for(float v : r.intrinsics)
+      k.append(v);
+    for(float v : r.pose)
+      pose.append(v);
+    o["intrinsics"] = k;
+    o["worldFromProjector"] = pose;
+  }
   o["rms"] = r.rms;
   o["coverage"] = r.coverage;
   o["intrinsicsMode"] = r.intrinsicsMode == LockIntrinsics      ? "lock"
@@ -1235,27 +1276,22 @@ bool StructuredLightCalibration::saveFile(const std::string& path, const Result&
   }
   if(const auto comp = compensationMaps(r); comp.valid())
   {
-    const score::gfx::photometric::ColourMixing noMixing;
-    const auto& mixing = r.response ? r.response->mixing : noMixing;
-    const auto mixInv = score::gfx::photometric::MixingInverse::build(mixing);
     score::gfx::CompensationInfo info;
-    info.target = {r.compScale, r.compScale, r.compScale};
+    for(int c = 0; c < 3; c++)
+      info.target[c] = r.compScale * r.compTarget[c];
     info.scale = r.compScale;
-    info.mixing = mixing.valid();
+    info.mixing = r.response && r.response->mixing.valid();
     info.strength = r.compStrength;
     info.percentile = r.compGamut;
     info.black = r.compBlackOn;
+    const auto scale = compensationScale(r);
     std::size_t valid = 0, in = 0;
-    for(std::size_t i = 0; i < r.compValid.size(); i++)
+    for(std::size_t i = 0; i < r.compValid.size() && i < r.compWhite.size(); i++)
     {
       if(!r.compValid[i])
         continue;
       valid++;
-      Eigen::Matrix3d M;
-      for(int a = 0; a < 3; a++)
-        for(int b = 0; b < 3; b++)
-          M(a, b) = r.compInverse[i * 9 + a * 3 + b];
-      in += score::gfx::photometric::maxWhiteScale(M, mixing, mixInv) >= r.compScale;
+      in += r.compWhite[i] >= scale[i];
     }
     info.inGamut = valid ? double(in) / double(valid) : 0.;
     if(score::gfx::writeCompensation(qbase, comp, info))
@@ -1263,11 +1299,11 @@ bool StructuredLightCalibration::saveFile(const std::string& path, const Result&
   }
   o["projectorIndex"] = r.projectorIndex;
   o["files"] = files;
-  QFile f{qbase + ".json"};
-  if(!f.open(QIODevice::WriteOnly | QIODevice::Truncate))
+  QSaveFile f{qbase + ".json"};
+  if(!f.open(QIODevice::WriteOnly))
     return false;
   f.write(QJsonDocument(o).toJson());
-  return true;
+  return f.commit();
 }
 
 StructuredLightCalibration::Result StructuredLightCalibration::loadFile(const std::string& path)
@@ -1351,11 +1387,12 @@ struct StructuredLightCalibration::Shared
 {
   std::mutex mutex;
   const StructuredLightCalibration* driver{};
+  bool running{};
   int shown{-1};
   sl::GraySequence seq;
   float level{1.f};
-  std::shared_ptr<Result> result;
-  std::vector<std::shared_ptr<Result>> results;
+  std::shared_ptr<const Result> result;
+  std::vector<std::shared_ptr<const Result>> results;
   int projector{};
   int projectors{1};
   int resultVersion{};
@@ -1387,6 +1424,7 @@ void StructuredLightCalibration::prepare(setup s)
   if(s.instance == 0)
     return;
   std::lock_guard l{slRegistryMutex()};
+  std::erase_if(slRegistry(), [](const auto& kv) { return kv.second.expired(); });
   auto& w = slRegistry()[s.instance];
   m_shared = w.lock();
   if(!m_shared)
@@ -1398,14 +1436,31 @@ void StructuredLightCalibration::prepare(setup s)
 
 StructuredLightCalibration::~StructuredLightCalibration()
 {
-  if(m_future.valid())
-    m_future.wait();
+  cancelComputation();
   if(m_shared)
   {
     std::lock_guard l{m_shared->mutex};
     if(m_shared->driver == this)
       m_shared->driver = nullptr;
   }
+}
+
+void StructuredLightCalibration::cancelComputation() noexcept
+{
+  if(m_cancel)
+    m_cancel->store(true, std::memory_order_relaxed);
+  if(!m_future.valid())
+    return;
+  try
+  {
+    std::thread([f = std::move(m_future)]() mutable { f.wait(); }).detach();
+  }
+  catch(...)
+  {
+    if(m_future.valid())
+      m_future.wait();
+  }
+  m_future = {};
 }
 
 void StructuredLightCalibration::mirror()
@@ -1436,6 +1491,7 @@ void StructuredLightCalibration::mirror()
   {
     m_seenResult = m_shared->resultVersion;
     m_results = m_shared->results;
+    m_result = m_results.empty() ? nullptr : m_results[0];
     for(std::size_t i = m_results.size(); i-- > 0;)
       publish(*m_results[i]);
   }
@@ -1552,6 +1608,7 @@ void StructuredLightCalibration::finishProjector(double now)
   m_job = Job{};
   if(m_projector + 1 < m_projectors)
   {
+    m_framesBefore += frameCount();
     m_projector++;
     m_job.seq = m_seq;
     m_extras = makeExtras(
@@ -1566,6 +1623,13 @@ void StructuredLightCalibration::finishProjector(double now)
     m_frameSum.clear();
     m_rgbSum.clear();
     blankOthers(m_projector);
+    m_settleMs = inputs.settle.value;
+    if(inputs.capture_exposure.value > 0.f && m_exposureSent != inputs.capture_exposure.value)
+    {
+      outputs.camera_exposure.value = inputs.capture_exposure.value;
+      m_exposureSent = inputs.capture_exposure.value;
+      m_settleMs = std::max(m_settleMs, double(inputs.exposure_settle.value));
+    }
     m_shown = -2;
     showPattern(0);
     m_shownAt = now;
@@ -1584,9 +1648,38 @@ void StructuredLightCalibration::finishProjector(double now)
     outputs.camera_exposure.value = inputs.capture_exposure.value;
     m_exposureSent = inputs.capture_exposure.value;
   }
-  m_future = std::async(std::launch::async, [jobs = std::move(m_pendingJobs)]() mutable {
-    return computeAll(std::move(jobs));
-  });
+  m_cancel = std::make_shared<std::atomic_bool>(false);
+  for(auto& j : m_pendingJobs)
+    j.cancel = m_cancel;
+  try
+  {
+    m_future = std::async(
+        std::launch::async,
+        [jobs = std::move(m_pendingJobs)]() mutable -> std::vector<Result> {
+      try
+      {
+        return computeAll(std::move(jobs));
+      }
+      catch(const std::exception& e)
+      {
+        Result r;
+        r.status = std::string("Failed: ") + e.what();
+        return {std::move(r)};
+      }
+      catch(...)
+      {
+        Result r;
+        r.status = "Failed: unknown error";
+        return {std::move(r)};
+      }
+    });
+  }
+  catch(const std::exception& e)
+  {
+    m_pendingJobs.clear();
+    stop(std::string("Failed: ") + e.what());
+    return;
+  }
   m_pendingJobs.clear();
   m_phase = Phase::Computing;
   outputs.status.value = "Decoding";
@@ -1765,7 +1858,6 @@ void StructuredLightCalibration::publish(const Result& r)
   }
   if(r.projectorIndex > 0)
     return;
-  m_result = std::make_shared<Result>(r);
   auto rgba = [&](auto& port, const std::vector<float>& v) {
     if(v.size() != std::size_t(r.width) * r.height * 4)
       return;
@@ -1781,16 +1873,19 @@ void StructuredLightCalibration::publish(const Result& r)
     std::memcpy(outputs.decoded.texture.bytes, r.decoded.data(), r.decoded.size());
     outputs.decoded.upload();
   }
-  outputs.intrinsics.value = r.intrinsics;
-  outputs.pose.value = r.pose;
-  for(int c = 0; c < 4; c++)
+  if(r.intrinsics[0] > 0.f)
   {
-    auto& col = c == 0   ? outputs.m0.value
-                : c == 1 ? outputs.m1.value
-                : c == 2 ? outputs.m2.value
-                         : outputs.m3.value;
-    for(int k = 0; k < 4; k++)
-      col[k] = r.pose[c * 4 + k];
+    outputs.intrinsics.value = r.intrinsics;
+    outputs.pose.value = r.pose;
+    for(int c = 0; c < 4; c++)
+    {
+      auto& col = c == 0   ? outputs.m0.value
+                  : c == 1 ? outputs.m1.value
+                  : c == 2 ? outputs.m2.value
+                           : outputs.m3.value;
+      for(int k = 0; k < 4; k++)
+        col[k] = r.pose[c * 4 + k];
+    }
   }
   outputs.rms.value = r.rms;
   outputs.coverage.value = r.coverage;
@@ -1799,21 +1894,26 @@ void StructuredLightCalibration::publish(const Result& r)
 
 void StructuredLightCalibration::saveAll()
 {
-  std::vector<std::shared_ptr<Result>> all = m_results;
+  std::vector<std::shared_ptr<const Result>> all = m_results;
   if(all.empty())
     all.push_back(m_result);
-  bool ok = true;
-  std::string saved;
+  std::string saved, failed;
   for(std::size_t i = 0; i < all.size(); i++)
   {
     const auto path = projectorPath(inputs.save_path.value, int(i), int(all.size()));
-    if(all[i] && saveFile(path, *all[i]))
-      saved += (saved.empty() ? "" : ", ") + SaveFloatTexture::basePath(path) + ".xyz.pfm";
+    const auto name = SaveFloatTexture::basePath(path);
+    const auto& r = all[i];
+    if(r && r->ok && !r->fromFile && saveFile(path, *r))
+      saved += (saved.empty() ? "" : ", ") + name + ".json";
     else
-      ok = false;
+      failed += (failed.empty() ? "" : ", ") + name
+                + (!r || !r->ok    ? " (no result)"
+                   : r->fromFile ? " (loaded from a file, not re-saved)"
+                                 : " (cannot write)");
   }
-  outputs.status.value
-      = ok ? "Saved " + saved : "Failed: cannot save to " + inputs.save_path.value;
+  outputs.status.value = failed.empty() ? "Saved " + saved
+                         : saved.empty() ? "Failed: " + failed
+                                         : "Saved " + saved + "; failed: " + failed;
 }
 
 void StructuredLightCalibration::stop(const std::string& status)
@@ -1825,6 +1925,8 @@ void StructuredLightCalibration::stop(const std::string& status)
     m_exposureSent = inputs.capture_exposure.value;
   }
   m_phase = Phase::Idle;
+  m_pendingJobs.clear();
+  m_job = Job{};
   inputs.camera.request_readback = false;
   inputs.positions.request_readback = false;
   outputs.status.value = status;
@@ -1910,7 +2012,14 @@ void StructuredLightCalibration::tick(double now)
   {
     sharedLock = std::unique_lock{m_shared->mutex};
     if(!m_shared->driver)
+    {
       m_shared->driver = this;
+      if(m_shared->running)
+      {
+        m_shared->running = false;
+        outputs.status.value = "Aborted: the instance running the calibration was removed";
+      }
+    }
     if(m_shared->driver != this)
     {
       mirror();
@@ -1938,6 +2047,7 @@ void StructuredLightCalibration::tick(double now)
         sh.autoExposure = *self.outputs.auto_exposure.value;
         sh.autoVersion++;
       }
+      sh.running = self.m_phase != Phase::Idle;
       sh.shown = self.m_shown;
       sh.seq = self.m_seq;
       sh.level = self.m_shownLevel;
@@ -1959,9 +2069,9 @@ void StructuredLightCalibration::tick(double now)
   if(m_loaded)
   {
     m_loaded->projectorIndex = 0;
-    publish(*m_loaded);
+    m_result = std::move(m_loaded);
     m_results = {m_result};
-    m_loaded.reset();
+    publish(*m_result);
   }
 
   if(inputs.save && m_result)
@@ -1969,8 +2079,7 @@ void StructuredLightCalibration::tick(double now)
 
   if(inputs.abort && m_phase != Phase::Idle)
   {
-    if(m_phase == Phase::Computing)
-      m_future.wait();
+    cancelComputation();
     stop("Aborted");
   }
 
@@ -1986,12 +2095,20 @@ void StructuredLightCalibration::tick(double now)
     m_job = Job{};
     m_job.seq = m_seq;
     m_pendingJobs.clear();
+    m_result.reset();
+    m_results.clear();
     m_projectors = std::clamp(inputs.projector_count.value, 1, 4);
     std::vector<float> exposures;
     for(const auto& t : QString::fromStdString(inputs.exposures.value)
                             .split(QRegularExpression("[\\s,;]+"), Qt::SkipEmptyParts))
       if(const float v = t.toFloat(); v > 0.f)
         exposures.push_back(v);
+    if(!exposures.empty() && !(inputs.capture_exposure.value > 0.f))
+    {
+      outputs.status.value
+          = "Failed: an exposure bracket needs a Capture exposure to return the camera to";
+      return;
+    }
     m_extras = makeExtras(
         inputs.response_levels.value, inputs.compensation.value, exposures, 0,
         inputs.mix_levels.value);
@@ -2025,6 +2142,15 @@ void StructuredLightCalibration::tick(double now)
     inputs.camera.request_readback = true;
     inputs.positions.request_readback = inputs.mode.value == DepthCamera;
     showPattern(0);
+    m_framesBefore = 0;
+    m_framesTotal = frameCount()
+                    + (m_projectors - 1)
+                          * (m_seq.count()
+                             + int(makeExtras(
+                                       inputs.response_levels.value,
+                                       inputs.compensation.value, {}, 1,
+                                       inputs.mix_levels.value)
+                                       .size()));
     outputs.status.value = "Capturing pattern 1 / " + std::to_string(frameCount());
     if(m_projectors > 1)
       outputs.status.value += " of projector 1 / " + std::to_string(m_projectors);
@@ -2176,22 +2302,22 @@ void StructuredLightCalibration::tick(double now)
       {
         auto all = m_future.get();
         m_results.clear();
-        std::string status;
-        bool ok = !all.empty();
-        for(std::size_t i = all.size(); i-- > 0;)
-        {
-          publish(all[i]);
-          ok &= all[i].ok;
-          if(all.size() > 1)
-            status = "P" + std::to_string(i + 1) + ": " + all[i].status
-                     + (status.empty() ? "" : " | " + status);
-          else
-            status = all[i].status;
-        }
         for(auto& r : all)
           m_results.push_back(std::make_shared<Result>(std::move(r)));
-        if(!m_results.empty())
-          m_result = m_results[0];
+        m_result = m_results.empty() ? nullptr : m_results[0];
+        std::string status;
+        bool ok = !m_results.empty();
+        for(std::size_t i = m_results.size(); i-- > 0;)
+        {
+          const auto& r = *m_results[i];
+          publish(r);
+          ok &= r.ok;
+          if(m_results.size() > 1)
+            status = "P" + std::to_string(i + 1) + ": " + r.status
+                     + (status.empty() ? "" : " | " + status);
+          else
+            status = r.status;
+        }
         outputs.status.value = status;
         m_phase = Phase::Idle;
         if(ok && inputs.auto_save.value && !inputs.save_path.value.empty())
@@ -2205,13 +2331,13 @@ void StructuredLightCalibration::tick(double now)
       break;
   }
 
-  const int n = std::max(1, frameCount());
   const float within = m_phase == Phase::Capturing
                            ? float(m_framesTaken) / std::max(1, inputs.frames.value)
                            : 0.f;
   outputs.progress.value
       = m_phase == Phase::Computing
             ? 0.99f
-            : std::min(0.99f, (m_projector * n + m_k + within) / float(n * m_projectors));
+            : std::min(
+                0.99f, (m_framesBefore + m_k + within) / float(std::max(1, m_framesTotal)));
 }
 }

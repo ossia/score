@@ -644,6 +644,7 @@ score_add_test(test_threedim_structured_light_photometric
   PLUGINS score_plugin_gfx)
 threedim_test_includes(test_threedim_structured_light_photometric)
 
+# Projector Blend Maps as a process: loads calibrations, writes alpha and beta.
 score_add_test(test_threedim_projector_blend_process
   SOURCES ProjectorBlendProcess.cpp
     "${THREEDIM_DIR}/ProjectorBlend.cpp"
@@ -717,3 +718,20 @@ threedim_test_includes(test_threedim_camera_array_cube_basis)
 score_add_test(test_threedim_scene_merge_skeletons
   SOURCES SceneMergeSkeletons.cpp)
 threedim_test_includes(test_threedim_scene_merge_skeletons)
+
+# Calibration maths on hostile input: NaN, invalid fits, oversized LED rasters,
+# duplicated XYZ samples, the slope constraint without links.
+score_add_test(test_threedim_calibration_math_hardening
+  SOURCES CalibrationMathHardening.cpp
+  PLUGINS score_plugin_gfx)
+threedim_test_includes(test_threedim_calibration_math_hardening)
+
+# Projector to Viewer Frustum's calibration cache; Camera Switch blending
+# off-axis frusta.
+score_add_test(test_threedim_immersive_processes
+  SOURCES ImmersiveProcesses.cpp
+    "${THREEDIM_DIR}/ViewerFrustum.cpp"
+    "${THREEDIM_DIR}/CalibrationFiles.cpp"
+    "${THREEDIM_DIR}/FloatTextureIO.cpp"
+  PLUGINS score_plugin_gfx)
+threedim_test_includes(test_threedim_immersive_processes)

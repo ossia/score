@@ -1,5 +1,6 @@
 #pragma once
 #include <halp/controls.hpp>
+#include <halp/file_port.hpp>
 #include <halp/meta.hpp>
 #include <halp/texture.hpp>
 
@@ -70,7 +71,7 @@ public:
     struct Raster : halp::xy_spinboxes_i32<"Raster size", halp::range{0, 16384, 0}>
     {
     } raster;
-    halp::lineedit<"Save file", ""> save_path;
+    halp::save_file_path<"Save file"> save_path;
     halp::impulse_button<"Save"> save;
     halp::impulse_button<"Update"> update;
   } inputs;
@@ -83,8 +84,6 @@ public:
     halp::val_port<"Screen upper left", halp::xyz_type<float>> pc;
     //! Per cabinet: pa, pb, pc, 9 floats each.
     halp::val_port<"Cabinet screens", std::vector<float>> screens;
-    //! x, y, z, w per LED pixel, rows top to bottom, for LED Sampler.
-    halp::val_port<"Positions", std::vector<float>> positions;
     halp::val_port<"Size", halp::xy_type<int>> out_size;
     halp::val_port<"Status", std::string> status;
   } outputs;

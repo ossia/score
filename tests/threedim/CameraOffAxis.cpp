@@ -241,11 +241,86 @@ TEST_CASE("Camera process: lens shift reaches the component", "[threedim][camera
   cam.inputs.shift.value = {0.f, 0.5f};
   cam.rebuild();
   const auto& node = (*cam.m_state->roots)[0];
+  int found = 0;
   for(const auto& c : *node->children)
     if(auto* p = ossia::get_if<ossia::camera_component_ptr>(&c))
     {
+      found++;
       CHECK((*p)->shift[1] == 0.5f);
       CHECK(!(*p)->frustum_set);
       CHECK(!(*p)->projection_matrix_set);
     }
+  CHECK(found == 1);
+}
+
+TEST_CASE("Camera process: matrix text parsing", "[threedim][camera]")
+{
+  const auto m = Threedim::parseMatrix("[1, 2e-1, -3.5, +4; 5 6 7 8 9 10 11 12 13 14 15 1.5E2]");
+  CHECK(m[0] == 1.f);
+  CHECK(std::abs(m[1] - 0.2f) < 1e-7f);
+  CHECK(m[2] == -3.5f);
+  CHECK(m[3] == 4.f);
+  CHECK(m[15] == 150.f);
+  const auto id = Threedim::parseMatrix("1 2 3");
+  CHECK(id[0] == 1.f);
+  CHECK(id[1] == 0.f);
+  CHECK(id[15] == 1.f);
+
+  Threedim::ParsedMatrix cache;
+  CHECK(cache("2 0 0 0 0 2 0 0 0 0 2 0 0 0 0 1")[0] == 2.f);
+  CHECK(cache("3 0 0 0 0 3 0 0 0 0 3 0 0 0 0 1")[0] == 3.f);
+}
+
+TEST_CASE("Camera process: OpenGL world-from-camera and view poses", "[threedim][camera]")
+{
+  QMatrix4x4 worldFromGl;
+  worldFromGl.translate(1.f, 2.f, 3.f);
+  worldFromGl.rotate(30.f, 0.f, 1.f, 0.f);
+  worldFromGl.rotate(-20.f, 1.f, 0.f, 0.f);
+  auto text = [](const QMatrix4x4& m) {
+    std::string t;
+    for(int i = 0; i < 16; i++)
+      t += std::to_string(m.constData()[i]) + " ";
+    return t;
+  };
+
+  Threedim::Camera gl;
+  gl.inputs.pose.value = Threedim::Camera::ins::WorldFromCameraGL;
+  gl.inputs.pose_matrix.value = text(worldFromGl);
+  CHECK(sameMatrix(gl.worldTransform(), worldFromGl, 1e-4f));
+  CHECK((gl.position() - QVector3D(1.f, 2.f, 3.f)).length() < 1e-4f);
+
+  Threedim::Camera view;
+  view.inputs.pose.value = Threedim::Camera::ins::ViewGL;
+  view.inputs.pose_matrix.value = text(worldFromGl.inverted());
+  CHECK(sameMatrix(view.worldTransform(), worldFromGl, 1e-4f));
+
+  const QVector3D fwd = view.orientation().rotatedVector(QVector3D(0.f, 0.f, -1.f));
+  const QVector3D want = worldFromGl.mapVector(QVector3D(0.f, 0.f, -1.f));
+  CHECK((fwd - want).length() < 1e-4f);
+}
+
+TEST_CASE("Camera process: a Screen behind the eye falls back to Look at", "[threedim][camera][offaxis]")
+{
+  Threedim::Camera cam;
+  cam.inputs.projection.value = Threedim::Camera::ins::Screen;
+  cam.inputs.eye.value = {0.f, 1.f, -5.f};
+  cam.inputs.target.value = {0.f, 1.f, -10.f};
+  cam.inputs.screen_pa.value = {-1.f, 0.f, -1.f};
+  cam.inputs.screen_pb.value = {1.f, 0.f, -1.f};
+  cam.inputs.screen_pc.value = {-1.f, 2.f, -1.f};
+  CHECK(cam.screenMode());
+  CHECK_FALSE(cam.screenValid());
+
+  ossia::camera_component c;
+  cam.fillProjection(c);
+  CHECK_FALSE(c.frustum_set);
+
+  Threedim::Camera lookAt;
+  lookAt.inputs.eye.value = cam.inputs.eye.value;
+  lookAt.inputs.target.value = cam.inputs.target.value;
+  CHECK(sameMatrix(cam.worldTransform(), lookAt.worldTransform()));
+
+  cam.inputs.eye.value = {0.f, 1.f, 2.f};
+  CHECK(cam.screenValid());
 }

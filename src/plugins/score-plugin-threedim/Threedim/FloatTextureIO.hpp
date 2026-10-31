@@ -90,7 +90,10 @@ public:
 
   struct ins
   {
-    halp::texture_input<"In", halp::rgba32f_texture> image;
+    struct : halp::texture_input<"In", halp::rgba32f_texture>
+    {
+      bool request_readback{};
+    } image;
     halp::save_file_path<"File"> file;
     halp::enum_t<Channels, "Channels"> channels;
     halp::impulse_button<"Save"> save;
@@ -116,5 +119,9 @@ public:
   extract(const float* rgba, int width, int height, Channels channels);
 
   void operator()();
+
+private:
+  void write();
+  int m_framesSinceRequest{-1};
 };
 }
