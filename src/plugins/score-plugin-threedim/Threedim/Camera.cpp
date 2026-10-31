@@ -45,9 +45,10 @@ void Camera::update(
   if(raw_transform_slot.valid())
   {
     score::gfx::RawLocalTransform xform{};
-    xform.translation[0] = inputs.eye.value.x;
-    xform.translation[1] = inputs.eye.value.y;
-    xform.translation[2] = inputs.eye.value.z;
+    const QVector3D t = position();
+    xform.translation[0] = t.x();
+    xform.translation[1] = t.y();
+    xform.translation[2] = t.z();
     const QQuaternion q = orientation();
     xform.rotation[0] = q.x();
     xform.rotation[1] = q.y();
@@ -63,19 +64,28 @@ void Camera::update(
     return;
 
   score::gfx::RawCameraData raw{};
-  raw.eye[0] = inputs.eye.value.x;
-  raw.eye[1] = inputs.eye.value.y;
-  raw.eye[2] = inputs.eye.value.z;
-  raw.target[0] = inputs.target.value.x;
-  raw.target[1] = inputs.target.value.y;
-  raw.target[2] = inputs.target.value.z;
-  const QVector3D up = orientation().rotatedVector(QVector3D(0.f, 1.f, 0.f));
+  const QVector3D eye = position();
+  const QQuaternion q = orientation();
+  const QVector3D target = inputs.pose.value == ins::LookAt && !screenMode()
+                               ? QVector3D(
+                                   inputs.target.value.x, inputs.target.value.y,
+                                   inputs.target.value.z)
+                               : eye + q.rotatedVector(QVector3D(0.f, 0.f, -1.f));
+  raw.eye[0] = eye.x();
+  raw.eye[1] = eye.y();
+  raw.eye[2] = eye.z();
+  raw.target[0] = target.x();
+  raw.target[1] = target.y();
+  raw.target[2] = target.z();
+  const QVector3D up = q.rotatedVector(QVector3D(0.f, 1.f, 0.f));
   raw.up[0] = up.x();
   raw.up[1] = up.y();
   raw.up[2] = up.z();
-  raw.yfov = inputs.fov.value * float(M_PI) / 180.f;
-  raw.znear = inputs.near_plane.value;
-  raw.zfar = inputs.far_plane.value;
+  ossia::camera_component cam;
+  fillProjection(cam);
+  raw.yfov = cam.yfov;
+  raw.znear = cam.znear;
+  raw.zfar = cam.zfar;
   raw.projection = 0u;  // perspective
   r.registry().updateSlot(res, raw_camera_slot, &raw, sizeof(raw));
 }

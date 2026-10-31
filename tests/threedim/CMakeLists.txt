@@ -200,7 +200,8 @@ threedim_test_includes(test_threedim_transform3d)
 # light choice, the light slot it records and the no-camera fallback volume.
 score_add_test(test_threedim_shadow_cascades
   SOURCES ShadowCascades.cpp "${THREEDIM_DIR}/ShadowCascadeSetup.cpp"
-  LIBS ${QT_PREFIX}::Gui)
+  LIBS ${QT_PREFIX}::Gui
+  PLUGINS score_plugin_gfx)
 threedim_test_includes(test_threedim_shadow_cascades)
 
 # EnvironmentLoader's fog mode and density controls reach scene_environment.
@@ -581,6 +582,117 @@ score_add_test(test_threedim_camera_roll_pole
   SOURCES CameraRollPole.cpp "${THREEDIM_DIR}/Camera.cpp"
   PLUGINS score_plugin_gfx)
 threedim_test_includes(test_threedim_camera_roll_pole)
+
+# Off-axis camera: lens shift, OpenCV intrinsics, raw pose and projection.
+score_add_test(test_threedim_camera_off_axis
+  SOURCES CameraOffAxis.cpp "${THREEDIM_DIR}/Camera.cpp"
+  PLUGINS score_plugin_gfx)
+threedim_test_includes(test_threedim_camera_off_axis)
+
+# Save / Load Float Texture: PFM files and the json sidecar.
+score_add_test(test_threedim_float_texture_io
+  SOURCES FloatTextureIO.cpp "${THREEDIM_DIR}/FloatTextureIO.cpp"
+  PLUGINS score_plugin_gfx)
+threedim_test_includes(test_threedim_float_texture_io)
+
+# Structured Light Calibration end to end on a simulated projector + camera.
+score_add_test(test_threedim_structured_light
+  SOURCES StructuredLightCalibration.cpp
+    "${THREEDIM_DIR}/StructuredLight.cpp"
+    "${THREEDIM_DIR}/StructuredLightCalibration.cpp"
+    "${THREEDIM_DIR}/FloatTextureIO.cpp"
+  PLUGINS score_plugin_gfx)
+threedim_test_includes(test_threedim_structured_light)
+
+# Gray code + phase shift against Gray code alone on a resolution-limited bench.
+score_add_test(test_threedim_structured_light_phase
+  SOURCES StructuredLightPhase.cpp
+    "${THREEDIM_DIR}/StructuredLight.cpp"
+    "${THREEDIM_DIR}/StructuredLightCalibration.cpp"
+    "${THREEDIM_DIR}/FloatTextureIO.cpp"
+  PLUGINS score_plugin_gfx)
+threedim_test_includes(test_threedim_structured_light_phase)
+
+# Structured light with two projectors in one run, and the photometric maps.
+score_add_test(test_threedim_structured_light_multi
+  SOURCES StructuredLightMulti.cpp
+    "${THREEDIM_DIR}/StructuredLight.cpp"
+    "${THREEDIM_DIR}/StructuredLightCalibration.cpp"
+    "${THREEDIM_DIR}/CalibrationFiles.cpp"
+    "${THREEDIM_DIR}/FloatTextureIO.cpp"
+  PLUGINS score_plugin_gfx)
+threedim_test_includes(test_threedim_structured_light_multi)
+
+# Multi-projector blend and black-level maps on simulated walls and a CAVE.
+score_add_test(test_threedim_projector_blend
+  SOURCES ProjectorBlend.cpp
+  PLUGINS score_plugin_gfx)
+threedim_test_includes(test_threedim_projector_blend)
+
+# Camera response, projector response and radiometric compensation math.
+score_add_test(test_threedim_photometric
+  SOURCES Photometric.cpp
+  PLUGINS score_plugin_gfx)
+threedim_test_includes(test_threedim_photometric)
+
+# Structured Light Calibration photometric phases end to end on a simulated bench.
+score_add_test(test_threedim_structured_light_photometric
+  SOURCES StructuredLightPhotometric.cpp
+    "${THREEDIM_DIR}/StructuredLight.cpp"
+    "${THREEDIM_DIR}/StructuredLightCalibration.cpp"
+    "${THREEDIM_DIR}/FloatTextureIO.cpp"
+  PLUGINS score_plugin_gfx)
+threedim_test_includes(test_threedim_structured_light_photometric)
+
+score_add_test(test_threedim_projector_blend_process
+  SOURCES ProjectorBlendProcess.cpp
+    "${THREEDIM_DIR}/ProjectorBlend.cpp"
+    "${THREEDIM_DIR}/CalibrationFiles.cpp"
+    "${THREEDIM_DIR}/FloatTextureIO.cpp"
+  PLUGINS score_plugin_gfx)
+threedim_test_includes(test_threedim_projector_blend_process)
+
+# Register Calibrations: the transform between two camera frames.
+score_add_test(test_threedim_calibration_registration
+  SOURCES CalibrationRegistration.cpp
+    "${THREEDIM_DIR}/CalibrationRegistration.cpp"
+    "${THREEDIM_DIR}/CalibrationFiles.cpp"
+    "${THREEDIM_DIR}/FloatTextureIO.cpp"
+  PLUGINS score_plugin_gfx)
+threedim_test_includes(test_threedim_calibration_registration)
+
+# Manual Projector Calibration: DLT + LM and EPnP from hand-picked pairs.
+score_add_test(test_threedim_manual_projector_calibration
+  SOURCES ManualProjectorCalibration.cpp
+    "${THREEDIM_DIR}/ManualProjectorCalibration.cpp"
+    "${THREEDIM_DIR}/CalibrationFiles.cpp"
+    "${THREEDIM_DIR}/FloatTextureIO.cpp"
+  PLUGINS score_plugin_gfx)
+threedim_test_includes(test_threedim_manual_projector_calibration)
+
+# The calibration wizard's plan: canvas layout, names, output stage bypass.
+score_add_test(test_threedim_calibration_plan
+  SOURCES CalibrationPlan.cpp
+    "${THREEDIM_DIR}/CalibrationPlan.cpp"
+    "${THREEDIM_DIR}/StructuredLight.cpp"
+  PLUGINS score_plugin_gfx)
+threedim_test_includes(test_threedim_calibration_plan)
+
+# Kooima screen projection, Camera Screen mode, viewer frustum of a projector.
+score_add_test(test_threedim_offaxis_screen
+  SOURCES OffAxisScreen.cpp
+  PLUGINS score_plugin_gfx)
+threedim_test_includes(test_threedim_offaxis_screen)
+
+# LED walls, LED discovery by binary blinking, head-tracked viewer filter.
+score_add_test(test_threedim_led_mapping
+  SOURCES LedMapping.cpp
+    "${THREEDIM_DIR}/LedWall.cpp"
+    "${THREEDIM_DIR}/LedDiscovery.cpp"
+    "${THREEDIM_DIR}/CalibrationFiles.cpp"
+    "${THREEDIM_DIR}/FloatTextureIO.cpp"
+  PLUGINS score_plugin_gfx)
+threedim_test_includes(test_threedim_led_mapping)
 
 # FBX: a non-bone node between two bones is part of the joint chain, so the
 # bind pose skins vertices in place.

@@ -7,6 +7,7 @@
 #include <QQuaternion>
 #include <QVector3D>
 
+#include <algorithm>
 #include <cmath>
 #include <cstdint>
 #include <memory>
@@ -271,12 +272,18 @@ public:
         }
       }
       outCam.projection = cams[dominant].projection;
+      std::copy_n(cams[dominant].frustum, 4, outCam.frustum);
+      outCam.frustum_set = cams[dominant].frustum_set;
+      std::copy_n(cams[dominant].projection_matrix, 16, outCam.projection_matrix);
+      outCam.projection_matrix_set = cams[dominant].projection_matrix_set;
     }
     for(int i = 0; i < 4; ++i)
     {
       if(effWeights[i] <= 0.f) continue;
       const float wi = effWeights[i];
       outCam.yfov         += cams[i].yfov         * wi;
+      outCam.shift[0]     += cams[i].shift[0]     * wi;
+      outCam.shift[1]     += cams[i].shift[1]     * wi;
       outCam.aspect_ratio += cams[i].aspect_ratio * wi;
       outCam.xmag         += cams[i].xmag         * wi;
       outCam.ymag         += cams[i].ymag         * wi;
