@@ -4,6 +4,8 @@
 #include <QSize>
 #include <QStringList>
 
+#include <functional>
+#include <optional>
 #include <vector>
 
 namespace Threedim
@@ -30,8 +32,54 @@ CalibrationPlan planCalibration(
 //! patterns reach the projector pixels as they are.
 Gfx::WindowSettings neutralOutputs(Gfx::WindowSettings ws);
 
-//! `ws` with output k following calibration names[k], blended in linear light.
-Gfx::WindowSettings assignCalibrations(Gfx::WindowSettings ws, const QStringList& names);
+//! The neutral outputs of `ws` with output k following calibration names[k],
+//! blended in linear light. Files of a calibration older than `sinceMs` (ms
+//! since epoch) are left out.
+Gfx::WindowSettings
+assignCalibrations(Gfx::WindowSettings ws, const QStringList& names, qint64 sinceMs = 0);
+
+//! What a capture of the plan takes, for each projector: the frames after the
+//! Gray code and the camera exposure changes among them.
+struct CaptureTiming
+{
+  double settleMs{};
+  double exposureSettleMs{};
+  int framesToAverage{1};
+  double cameraFrameMs{1000. / 30.};
+  std::vector<int> extraFrames;
+  std::vector<int> exposureChanges;
+};
+double estimateCaptureMs(const CalibrationPlan& plan, const CaptureTiming& t);
+
+//! A device whose output stage is off for a calibration: keeps its settings
+//! from the first begin() until restore() or finish().
+class CalibrationSession
+{
+public:
+  using Apply = std::function<bool(const QString& device, const Gfx::WindowSettings&)>;
+  explicit CalibrationSession(Apply apply)
+      : m_apply{std::move(apply)}
+  {
+  }
+
+  bool active() const noexcept { return m_original.has_value(); }
+  const QString& device() const noexcept { return m_device; }
+  const std::optional<Gfx::WindowSettings>& original() const noexcept { return m_original; }
+
+  //! Turns the output stage of `device` off; false when a session is active.
+  bool begin(const QString& device, const Gfx::WindowSettings& current);
+  //! Puts the device back as it was; false when it could not be updated.
+  bool restore();
+  //! Assigns the calibrations over the device's neutral settings.
+  bool finish(const QStringList& names, qint64 sinceMs);
+  //! Forgets the session without touching the device.
+  void drop() noexcept;
+
+private:
+  Apply m_apply;
+  QString m_device;
+  std::optional<Gfx::WindowSettings> m_original;
+};
 
 struct CalibrationReport
 {

@@ -5,6 +5,7 @@
 #include <halp/meta.hpp>
 
 #include <array>
+#include <future>
 #include <optional>
 #include <string>
 #include <vector>
@@ -74,6 +75,31 @@ public:
   //! Applies a reference-from-other transform to a calibration.
   static void apply(CalibrationFile& c, const std::array<float, 16>& transform);
 
+  struct Job
+  {
+    std::string reference, other, move, suffix;
+    double threshold{0.02};
+    bool allowScale{};
+    int step{4};
+  };
+  struct Outcome
+  {
+    Result result;
+    std::vector<std::string> written;
+    std::string status;
+  };
+  //! Loads, registers and writes the moved calibrations.
+  static Outcome run(const Job& job);
+
+  RegisterCalibrations() = default;
+  RegisterCalibrations(const RegisterCalibrations&) = delete;
+  RegisterCalibrations& operator=(const RegisterCalibrations&) = delete;
+  ~RegisterCalibrations();
+
   void operator()();
+  bool busy() const noexcept { return m_future.valid(); }
+
+private:
+  std::future<Outcome> m_future;
 };
 }

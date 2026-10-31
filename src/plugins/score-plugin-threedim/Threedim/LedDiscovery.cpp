@@ -5,6 +5,7 @@
 
 #include <QFile>
 
+#include <algorithm>
 #include <chrono>
 #include <cmath>
 #include <cstdio>
@@ -19,11 +20,14 @@ void LedDiscovery::show(int frame)
   const int n = std::max(1, inputs.count.value);
   const auto code = led::BlinkCode::make(n);
   const float level = std::clamp(inputs.level.value, 0.f, 1.f);
-  auto& vals = outputs.values.value;
-  auto& cols = outputs.colours.value;
+  auto& vals = m_values;
+  auto& cols = m_colours;
   vals.resize(n);
   cols.resize(std::size_t(n) * 3);
-  outputs.pattern.create(n, 1);
+  const int pw = std::min(n, patternWidth);
+  const int ph = (n + pw - 1) / pw;
+  outputs.pattern.create(pw, ph);
+  std::fill_n(outputs.pattern.texture.bytes, std::size_t(pw) * ph * 4, uint8_t(0));
   for(int i = 0; i < n; i++)
   {
     const bool on = frame >= 0 && code.on(frame, i);
@@ -35,12 +39,24 @@ void LedDiscovery::show(int frame)
     px[3] = 255;
   }
   outputs.pattern.upload();
+  outputs.values.value = vals;
+  outputs.colours.value = cols;
 }
 
 void LedDiscovery::operator()()
 {
   using namespace std::chrono;
   tick(duration<double, std::milli>(steady_clock::now().time_since_epoch()).count());
+}
+
+void LedDiscovery::stop(const std::string& status)
+{
+  m_frame = -1;
+  m_captures.clear();
+  inputs.camera.request_readback = false;
+  inputs.positions.request_readback = false;
+  outputs.status.value = status;
+  show(1);
 }
 
 void LedDiscovery::finish()
@@ -99,21 +115,20 @@ void LedDiscovery::finish()
       l.z = float(f.world.z());
     }
   }
-  outputs.uv.value.assign(std::size_t(n) * 4, 0.f);
-  outputs.world.value.assign(std::size_t(n) * 4, 0.f);
+  std::vector<float> uv(std::size_t(n) * 4, 0.f), worldOut(std::size_t(n) * 4, 0.f);
   int nWorld = 0;
   for(int i = 0; i < n; i++)
   {
     const auto& l = m_leds[i];
     if(!l.found)
       continue;
-    float* q = outputs.uv.value.data() + std::size_t(i) * 4;
+    float* q = uv.data() + std::size_t(i) * 4;
     q[0] = l.nu;
     q[1] = l.nv;
     q[3] = 1.f;
     if(l.hasWorld)
     {
-      float* w = outputs.world.value.data() + std::size_t(i) * 4;
+      float* w = worldOut.data() + std::size_t(i) * 4;
       w[0] = l.x;
       w[1] = l.y;
       w[2] = l.z;
@@ -121,6 +136,8 @@ void LedDiscovery::finish()
       nWorld++;
     }
   }
+  outputs.uv.value = std::move(uv);
+  outputs.world.value = std::move(worldOut);
   outputs.found.value = int(found.size());
   char buf[200];
   std::snprintf(
@@ -137,18 +154,16 @@ void LedDiscovery::finish()
 void LedDiscovery::tick(double now)
 {
   outputs.done.value.reset();
+  outputs.values.value.reset();
+  outputs.colours.value.reset();
+  outputs.uv.value.reset();
+  outputs.world.value.reset();
   if(inputs.save && !m_leds.empty())
     outputs.status.value = writeCsv(inputs.csv.value, m_leds)
                                ? "Saved " + inputs.csv.value
                                : "Failed: cannot write " + inputs.csv.value;
   if(inputs.abort && running())
-  {
-    m_frame = -1;
-    inputs.camera.request_readback = false;
-    inputs.positions.request_readback = false;
-    outputs.status.value = "Aborted";
-    show(1);
-  }
+    stop("Aborted");
   if(inputs.start && !running())
   {
     m_frame = 0;
@@ -169,7 +184,7 @@ void LedDiscovery::tick(double now)
   }
   if(!running())
   {
-    if(outputs.values.value.size() != std::size_t(std::max(1, inputs.count.value)))
+    if(m_values.size() != std::size_t(std::max(1, inputs.count.value)))
       show(1);
     return;
   }
@@ -195,8 +210,7 @@ void LedDiscovery::tick(double now)
   }
   if(t.width != m_camW || t.height != m_camH)
   {
-    m_frame = -1;
-    outputs.status.value = "Aborted: the camera size changed";
+    stop("Aborted: the camera size changed");
     return;
   }
   m_lastAt = now;

@@ -51,6 +51,13 @@ bool LedWallMap::build()
   width = sz[0];
   height = sz[1];
   map = led::rasterize(modules, width, height);
+  if(map.empty())
+  {
+    outputs.status.value = "Failed: a " + std::to_string(width) + " x " + std::to_string(height)
+                           + " raster is too large";
+    width = height = 0;
+    return false;
+  }
 
   const auto s = led::boundingScreen(modules);
   auto out3 = [](const led::Vec3& p) {
@@ -67,7 +74,6 @@ bool LedWallMap::build()
       for(int c = 0; c < 3; c++)
         outputs.screens.value.push_back(float((*p)[c]));
   }
-  outputs.positions.value.assign(map.begin(), map.end());
   outputs.out_size.value = {width, height};
   std::size_t lit = 0;
   for(std::size_t i = 3; i < map.size(); i += 4)

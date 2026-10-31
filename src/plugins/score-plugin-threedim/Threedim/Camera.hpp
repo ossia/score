@@ -19,8 +19,21 @@
 #include <cmath>
 #include <cstdint>
 #include <memory>
+#include <string>
 #include <string_view>
 #include <vector>
+
+#if !defined(SCORE_HAS_STD_FLOAT_FROM_CHARS)
+#if defined(__cpp_lib_to_chars) && !defined(_LIBCPP_VERSION)
+#define SCORE_HAS_STD_FLOAT_FROM_CHARS 1
+#else
+#define SCORE_HAS_STD_FLOAT_FROM_CHARS 0
+#endif
+#endif
+
+#if !SCORE_HAS_STD_FLOAT_FROM_CHARS
+#include <boost/lexical_cast/try_lexical_convert.hpp>
+#endif
 
 class QRhiResourceUpdateBatch;
 
@@ -57,32 +70,64 @@ cameraOrientation(QVector3D eye, QVector3D target, float roll_degrees) noexcept
   return QQuaternion::fromAxes(right, trueUp, back) * roll;
 }
 
+inline bool parseMatrixNumber(std::string_view token, float& out) noexcept
+{
+  if(!token.empty() && token.front() == '+')
+    token.remove_prefix(1);
+#if SCORE_HAS_STD_FLOAT_FROM_CHARS
+  const auto [next, ec] = std::from_chars(token.data(), token.data() + token.size(), out);
+  return ec == std::errc{} && next == token.data() + token.size();
+#else
+  return boost::conversion::try_lexical_convert(token.data(), token.size(), out);
+#endif
+}
+
 inline std::array<float, 16> parseMatrix(std::string_view text) noexcept
 {
   std::array<float, 16> m{1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1};
   std::array<float, 16> r{};
   int n = 0;
-  const char* p = text.data();
-  const char* end = p + text.size();
-  while(p < end && n < 16)
+  auto isNumberChar = [](char c) {
+    return std::isdigit((unsigned char)c) || c == '-' || c == '+' || c == '.' || c == 'e'
+           || c == 'E';
+  };
+  std::size_t i = 0;
+  while(i < text.size() && n < 16)
   {
-    if(!(std::isdigit((unsigned char)*p) || *p == '-' || *p == '+' || *p == '.'))
+    if(!isNumberChar(text[i]))
     {
-      ++p;
+      ++i;
       continue;
     }
+    std::size_t j = i;
+    while(j < text.size() && isNumberChar(text[j]))
+      ++j;
     float v{};
-    auto [next, ec] = std::from_chars(p, end, v);
-    if(ec != std::errc{})
-    {
-      ++p;
-      continue;
-    }
-    r[n++] = v;
-    p = next;
+    if(parseMatrixNumber(text.substr(i, j - i), v))
+      r[n++] = v;
+    i = j;
   }
   return n == 16 ? r : m;
 }
+
+//! parseMatrix of a text, parsed again only when the text changes.
+struct ParsedMatrix
+{
+  std::string text;
+  std::array<float, 16> matrix{1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1};
+  bool parsed{};
+
+  const std::array<float, 16>& operator()(const std::string& t)
+  {
+    if(!parsed || t != text)
+    {
+      text = t;
+      matrix = parseMatrix(t);
+      parsed = true;
+    }
+    return matrix;
+  }
+};
 
 // Scene-producing camera node. Emits a scene_spec containing:
 //   - a scene_node with an id derived from this node's uuid (so the flatten
@@ -326,16 +371,20 @@ public:
       }
       case ins::ProjectionMatrix:
       {
-        const auto pm = parseMatrix(inputs.projection_matrix.value);
+        const auto& pm = m_projectionMatrix(inputs.projection_matrix.value);
         std::copy_n(pm.begin(), 16, cam.projection_matrix);
-      }
         cam.projection_matrix_set = true;
         break;
+      }
       case ins::Screen:
       {
         const auto f = screenFrustum();
         if(!f.ok)
+        {
+          cam.shift[0] = inputs.shift.value.x;
+          cam.shift[1] = inputs.shift.value.y;
           break;
+        }
         cam.frustum[0] = float(f.l);
         cam.frustum[1] = float(f.r);
         cam.frustum[2] = float(f.b);
@@ -351,6 +400,10 @@ public:
 
   bool screenMode() const noexcept { return inputs.projection.value == ins::Screen; }
 
+  //! Screen mode with a solvable screen: the eye in front of non-degenerate
+  //! corners. Otherwise the camera falls back to Look at and FOV.
+  bool screenValid() const noexcept { return screenMode() && screenFrustum().ok; }
+
   score::gfx::offaxis::Frustum screenFrustum() const noexcept
   {
     auto v = [](const auto& p) {
@@ -364,25 +417,15 @@ public:
   QMatrix4x4 worldTransform() const noexcept
   {
     QMatrix4x4 m;
-    if(screenMode())
-    {
-      m.translate(QVector3D(inputs.eye.value.x, inputs.eye.value.y, inputs.eye.value.z));
-      m.rotate(orientation());
-      return m;
-    }
-    if(inputs.pose.value == ins::LookAt)
+    if(screenMode() || inputs.pose.value == ins::LookAt)
     {
       m.translate(
           QVector3D(inputs.eye.value.x, inputs.eye.value.y, inputs.eye.value.z));
-      m.rotate(cameraOrientation(
-          QVector3D(inputs.eye.value.x, inputs.eye.value.y, inputs.eye.value.z),
-          QVector3D(
-              inputs.target.value.x, inputs.target.value.y, inputs.target.value.z),
-          inputs.roll.value));
+      m.rotate(orientation());
       return m;
     }
 
-    const auto pm = parseMatrix(inputs.pose_matrix.value);
+    const auto& pm = m_poseMatrix(inputs.pose_matrix.value);
     std::copy_n(pm.begin(), 16, m.data());
     switch(inputs.pose.value)
     {
@@ -409,15 +452,15 @@ public:
   {
     if(screenMode())
     {
-      const auto f = screenFrustum();
-      if(!f.ok)
-        return {};
-      auto q = [](const score::gfx::offaxis::Vec3& v) {
-        return QVector3D(float(v.x()), float(v.y()), float(v.z()));
-      };
-      return QQuaternion::fromAxes(q(f.vr), q(f.vu), q(f.vn)).normalized();
+      if(const auto f = screenFrustum(); f.ok)
+      {
+        auto q = [](const score::gfx::offaxis::Vec3& v) {
+          return QVector3D(float(v.x()), float(v.y()), float(v.z()));
+        };
+        return QQuaternion::fromAxes(q(f.vr), q(f.vu), q(f.vn)).normalized();
+      }
     }
-    if(inputs.pose.value == ins::LookAt)
+    if(screenMode() || inputs.pose.value == ins::LookAt)
       return cameraOrientation(
           QVector3D(inputs.eye.value.x, inputs.eye.value.y, inputs.eye.value.z),
           QVector3D(
@@ -461,6 +504,8 @@ public:
   // GPU bytes via isLive() + offset. Written once in init().
   ossia::gpu_slot_ref m_camera_ref{};
   ossia::gpu_slot_ref m_xform_ref{};
+
+  mutable ParsedMatrix m_poseMatrix, m_projectionMatrix;
 };
 
 }

@@ -45,7 +45,7 @@ TEST_CASE("LED wall: flat wall from its corners", "[led]")
   CHECK(w.outputs.pa.value.y == Approx(0.f).margin(1e-6));
   CHECK(w.outputs.pc.value.y == Approx(2.25f));
   CHECK(w.outputs.pb.value.x == Approx(2.f));
-  CHECK(w.outputs.positions.value.size() == 64 * 36 * 4);
+  CHECK(w.map.size() == 64 * 36 * 4);
 }
 
 TEST_CASE("LED wall: curved wall of cabinets with gaps", "[led]")
@@ -230,7 +230,7 @@ TEST_CASE("LED discovery: binary blink decode on a noisy camera", "[led]")
   bool done = false;
   for(int i = 0; i < 5000 && !done; i++)
   {
-    b.render(d.outputs.values.value);
+    b.render(d.values());
     d.inputs.camera.texture.bytes = d.inputs.camera.request_readback ? b.image.data() : nullptr;
     d.inputs.camera.texture.width = b.W;
     d.inputs.camera.texture.height = b.H;
@@ -265,8 +265,14 @@ TEST_CASE("LED discovery: binary blink decode on a noisy camera", "[led]")
   CHECK(maxErr < 0.5);
   CHECK(sumErr / found < 0.2);
   CHECK(maxWorld < 1e-4);
-  CHECK(d.outputs.uv.value.size() == std::size_t(b.N) * 4);
-  CHECK(d.outputs.colours.value.size() == std::size_t(b.N) * 3);
+  REQUIRE(d.outputs.uv.value);
+  CHECK(d.outputs.uv.value->size() == std::size_t(b.N) * 4);
+  REQUIRE(d.outputs.world.value);
+  CHECK(d.outputs.world.value->size() == std::size_t(b.N) * 4);
+  CHECK(d.colours().size() == std::size_t(b.N) * 3);
+  d.tick(now + 16.7);
+  CHECK_FALSE(d.outputs.uv.value);
+  CHECK_FALSE(d.outputs.values.value);
 
   QTemporaryDir dir;
   const auto csv = dir.filePath("leds.csv").toStdString();
@@ -274,6 +280,42 @@ TEST_CASE("LED discovery: binary blink decode on a noisy camera", "[led]")
   QFile f{QString::fromStdString(csv)};
   REQUIRE(f.open(QIODevice::ReadOnly));
   CHECK(f.readAll().count('\n') == b.N + 1);
+}
+
+TEST_CASE("LED discovery: large fixtures and an aborted run", "[led]")
+{
+  Threedim::LedDiscovery d;
+  d.inputs.count.value = 20000;
+  d.inputs.settle.value = 0;
+  d.inputs.frames.value = 1;
+  d.tick(0.);
+  CHECK(d.outputs.pattern.texture.width == Threedim::LedDiscovery::patternWidth);
+  CHECK(d.outputs.pattern.texture.height == 5);
+  REQUIRE(d.outputs.values.value);
+  CHECK(d.outputs.values.value->size() == 20000);
+  d.tick(16.);
+  CHECK_FALSE(d.outputs.values.value);
+
+  std::vector<float> image(8 * 8 * 4, 0.5f), other(4 * 4 * 4, 0.5f);
+  d.inputs.start.value = halp::impulse_type{};
+  d.tick(100.);
+  d.inputs.start.value.reset();
+  REQUIRE(d.running());
+  CHECK(d.inputs.camera.request_readback);
+  d.inputs.camera.texture.bytes = image.data();
+  d.inputs.camera.texture.width = 8;
+  d.inputs.camera.texture.height = 8;
+  d.tick(200.);
+  d.inputs.camera.texture.bytes = other.data();
+  d.inputs.camera.texture.width = 4;
+  d.inputs.camera.texture.height = 4;
+  for(double t = 300.; t < 1000. && d.running(); t += 50.)
+    d.tick(t);
+  CHECK_FALSE(d.running());
+  CHECK(d.outputs.status.value.rfind("Aborted", 0) == 0);
+  CHECK_FALSE(d.inputs.camera.request_readback);
+  CHECK_FALSE(d.inputs.positions.request_readback);
+  CHECK(d.values()[0] == d.values()[1]);
 }
 
 TEST_CASE("Viewer from pose: transform, then the 1 euro filter", "[viewer]")

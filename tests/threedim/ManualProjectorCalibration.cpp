@@ -15,6 +15,7 @@
 #include <catch2/catch_approx.hpp>
 #include <catch2/catch_test_macros.hpp>
 
+#include <numeric>
 #include <random>
 
 namespace procam = score::gfx::procam;
@@ -266,6 +267,20 @@ TEST_CASE("Manual calibration file round trip", "[manualcal]")
   }
   CHECK(valid > c.width * c.height * 9 / 10);
   CHECK(worst < 1e-3);
+
+  ManualProjectorCalibration obj;
+  obj.inputs.projector_size.value = {640, 360};
+  halp::mmap_file_view view{};
+  const std::string path = base + ".json";
+  view.filename = path;
+  ManualProjectorCalibration::ins::load_t::process(view)(obj);
+  obj();
+  INFO(obj.outputs.status.value);
+  REQUIRE(obj.pairs().size() == pairs.size());
+  CHECK(obj.pairs()[0].u == Approx((pairs[0].u + 0.5) * 2. - 0.5));
+  CHECK(obj.pairs()[0].v == Approx((pairs[0].v + 0.5) * 2. - 0.5));
+  REQUIRE(obj.solution().ok);
+  CHECK(obj.solution().intrinsics[0] == Approx(2. * sol.intrinsics[0]).epsilon(1e-3));
 }
 
 TEST_CASE("Manual calibration process records pairs and draws them", "[manualcal]")
@@ -281,11 +296,13 @@ TEST_CASE("Manual calibration process records pairs and draws them", "[manualcal
   obj.inputs.locked_intrinsics.value = {float(m.fx), float(m.fy), float(m.cx), float(m.cy)};
 
   const auto pts = venuePoints();
+  procam::Vec2 px4;
   for(int i = 0; i < 5; i++)
   {
     procam::Vec2 px;
     REQUIRE(m.project(pts[i], px));
-    obj.inputs.crosshair.value = {float((px.x() + 0.5) / 320.), float((px.y() + 0.5) / 180.)};
+    obj.inputs.crosshair.value
+        = {float((px.x() + 0.5) / 320.), float(1. - (px.y() + 0.5) / 180.)};
     obj.inputs.world.value = {float(pts[i].x()), float(pts[i].y()), float(pts[i].z())};
     obj.inputs.record.value.emplace();
     obj();
@@ -293,6 +310,11 @@ TEST_CASE("Manual calibration process records pairs and draws them", "[manualcal
     obj();
   }
   CHECK(obj.outputs.count.value == 5);
+  {
+    REQUIRE(m.project(pts[4], px4));
+    CHECK(std::abs(obj.pairs().back().u - px4.x()) < 1e-3);
+    CHECK(std::abs(obj.pairs().back().v - px4.y()) < 1e-3);
+  }
   CHECK(obj.solution().ok);
   CHECK(obj.outputs.rms.value < 0.05f);
   CHECK((procam::fromColumnMajor(obj.outputs.pose.value).topRightCorner<3, 1>()

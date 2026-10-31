@@ -4,6 +4,7 @@
 #include <Gfx/Calibration/Registration.hpp>
 #include <Threedim/FloatTextureIO.hpp>
 
+#include <chrono>
 #include <cstdio>
 
 namespace Threedim
@@ -90,23 +91,17 @@ void RegisterCalibrations::apply(CalibrationFile& c, const std::array<float, 16>
   }
 }
 
-void RegisterCalibrations::operator()()
+RegisterCalibrations::Outcome RegisterCalibrations::run(const Job& job)
 {
-  outputs.done.value.reset();
-  if(!inputs.run)
-    return;
-  const auto a = loadCalibration(inputs.reference.value);
-  const auto b = loadCalibration(inputs.other.value);
-  const auto r = solve(a, b, inputs.threshold.value, inputs.scale.value, inputs.step.value);
-  outputs.status.value = r.status;
-  if(!r.ok)
-    return;
-  outputs.transform.value = r.transform;
-  outputs.rms.value = float(r.rms);
-  outputs.inliers.value = r.inliers;
-  outputs.written.value.clear();
+  Outcome o;
+  const auto a = loadCalibration(job.reference);
+  const auto b = loadCalibration(job.other);
+  o.result = solve(a, b, job.threshold, job.allowScale, job.step);
+  o.status = o.result.status;
+  if(!o.result.ok)
+    return o;
   int failed = 0;
-  for(const auto& path : splitPaths(inputs.move.value))
+  for(const auto& path : splitPaths(job.move))
   {
     auto c = loadCalibration(path);
     if(!c.ok())
@@ -115,18 +110,56 @@ void RegisterCalibrations::operator()()
       continue;
     }
     const std::string src = c.base;
-    apply(c, r.transform);
-    c.base = src + inputs.suffix.value;
+    apply(c, o.result.transform);
+    c.base = src + job.suffix;
     if(c.base == src || !saveCalibration(c, src))
     {
       failed++;
       continue;
     }
-    outputs.written.value.push_back(c.base + ".xyz.pfm");
+    o.written.push_back(c.base + ".xyz.pfm");
   }
-  outputs.status.value += "; " + std::to_string(outputs.written.value.size()) + " written";
+  o.status += "; " + std::to_string(o.written.size()) + " written";
   if(failed)
-    outputs.status.value += ", " + std::to_string(failed) + " failed";
-  outputs.done.value = halp::impulse{};
+    o.status += ", " + std::to_string(failed) + " failed";
+  return o;
+}
+
+RegisterCalibrations::~RegisterCalibrations()
+{
+  if(m_future.valid())
+    m_future.wait();
+}
+
+void RegisterCalibrations::operator()()
+{
+  outputs.done.value.reset();
+  if(m_future.valid())
+  {
+    if(m_future.wait_for(std::chrono::seconds(0)) != std::future_status::ready)
+      return;
+    const auto o = m_future.get();
+    outputs.status.value = o.status;
+    if(!o.result.ok)
+      return;
+    outputs.transform.value = o.result.transform;
+    outputs.rms.value = float(o.result.rms);
+    outputs.inliers.value = o.result.inliers;
+    outputs.written.value = o.written;
+    outputs.done.value = halp::impulse{};
+    return;
+  }
+  if(!inputs.run)
+    return;
+  Job job;
+  job.reference = inputs.reference.value;
+  job.other = inputs.other.value;
+  job.move = inputs.move.value;
+  job.suffix = inputs.suffix.value;
+  job.threshold = inputs.threshold.value;
+  job.allowScale = inputs.scale.value;
+  job.step = inputs.step.value;
+  outputs.status.value = "Registering";
+  m_future = std::async(std::launch::async, &run, std::move(job));
 }
 }

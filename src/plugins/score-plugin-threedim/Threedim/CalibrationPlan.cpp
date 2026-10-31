@@ -9,6 +9,7 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 
+#include <algorithm>
 #include <cmath>
 
 namespace Threedim
@@ -96,14 +97,72 @@ Gfx::WindowSettings neutralOutputs(Gfx::WindowSettings ws)
   return ws;
 }
 
-Gfx::WindowSettings assignCalibrations(Gfx::WindowSettings ws, const QStringList& names)
+Gfx::WindowSettings
+assignCalibrations(Gfx::WindowSettings ws, const QStringList& names, qint64 sinceMs)
 {
+  ws = neutralOutputs(std::move(ws));
   for(int k = 0; k < (int)ws.outputs.size() && k < names.size(); k++)
   {
-    Gfx::applyCalibration(ws.outputs[k].maps, names[k] + QStringLiteral(".json"));
+    auto& maps = ws.outputs[k].maps;
+    Gfx::applyCalibration(maps, names[k] + QStringLiteral(".json"));
+    for(const auto& slot : Gfx::calibrationFileSlots())
+    {
+      QString& f = maps.*slot.member;
+      if(const QFileInfo fi{f};
+         !f.isEmpty() && fi.lastModified().toMSecsSinceEpoch() + 1000 < sinceMs)
+        f.clear();
+    }
     ws.outputs[k].color.linearBlend = true;
   }
   return ws;
+}
+
+double estimateCaptureMs(const CalibrationPlan& plan, const CaptureTiming& t)
+{
+  const double frame = t.settleMs + std::max(1, t.framesToAverage) * t.cameraFrameMs;
+  double ms = 0.;
+  for(int k = 0; k < plan.projectors; k++)
+  {
+    const int extra = k < int(t.extraFrames.size()) ? t.extraFrames[k] : 0;
+    const int changes = k < int(t.exposureChanges.size()) ? t.exposureChanges[k] : 0;
+    ms += (plan.patternsPerProjector + extra) * frame
+          + changes * std::max(0., t.exposureSettleMs - t.settleMs);
+  }
+  return ms;
+}
+
+bool CalibrationSession::begin(const QString& device, const Gfx::WindowSettings& current)
+{
+  if(m_original)
+    return false;
+  if(!m_apply || !m_apply(device, neutralOutputs(current)))
+    return false;
+  m_device = device;
+  m_original = current;
+  return true;
+}
+
+bool CalibrationSession::restore()
+{
+  if(!m_original)
+    return true;
+  const bool ok = m_apply && m_apply(m_device, *m_original);
+  m_original.reset();
+  return ok;
+}
+
+bool CalibrationSession::finish(const QStringList& names, qint64 sinceMs)
+{
+  if(!m_original)
+    return false;
+  const bool ok = m_apply && m_apply(m_device, assignCalibrations(*m_original, names, sinceMs));
+  m_original.reset();
+  return ok;
+}
+
+void CalibrationSession::drop() noexcept
+{
+  m_original.reset();
 }
 
 CalibrationReport readCalibrationResults(const QStringList& names, qint64 sinceMs)
@@ -120,9 +179,16 @@ CalibrationReport readCalibrationResults(const QStringList& names, qint64 sinceM
       continue;
     }
     QFile f{fi.filePath()};
-    if(!f.open(QIODevice::ReadOnly))
+    QJsonParseError err{};
+    const auto doc = f.open(QIODevice::ReadOnly) ? QJsonDocument::fromJson(f.readAll(), &err)
+                                                 : QJsonDocument{};
+    if(err.error != QJsonParseError::NoError || !doc.isObject())
+    {
+      r.rms.push_back(-1.);
+      r.coverage.push_back(-1.);
       continue;
-    const auto o = QJsonDocument::fromJson(f.readAll()).object();
+    }
+    const auto o = doc.object();
     r.saved++;
     r.rms.push_back(o["rms"].toDouble());
     r.coverage.push_back(o["coverage"].toDouble());

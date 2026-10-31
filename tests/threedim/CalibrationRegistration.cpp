@@ -12,8 +12,10 @@
 #include <catch2/catch_approx.hpp>
 #include <catch2/catch_test_macros.hpp>
 
+#include <chrono>
 #include <cmath>
 #include <random>
+#include <thread>
 
 namespace reg = score::gfx::registration;
 namespace procam = score::gfx::procam;
@@ -109,6 +111,7 @@ TEST_CASE("Umeyama recovers a similarity exactly", "[registration]")
 TEST_CASE("Register Calibrations: shared projector, noise and outliers", "[registration]")
 {
   QTemporaryDir dir;
+  REQUIRE(dir.isValid());
   const auto T = knownTransform();
   // Frame B = T^-1 (reference): the transform to recover is T.
   reg::Transform Tinv;
@@ -130,8 +133,18 @@ TEST_CASE("Register Calibrations: shared projector, noise and outliers", "[regis
   obj.inputs.move.value = other.base + ".json";
   obj.inputs.run.value = halp::impulse_type{};
   obj();
+  obj.inputs.run.value.reset();
+  CHECK(obj.busy());
+  bool done = false;
+  const auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(120);
+  while(!done && std::chrono::steady_clock::now() < deadline)
+  {
+    std::this_thread::sleep_for(std::chrono::milliseconds(2));
+    obj();
+    done = bool(obj.outputs.done.value);
+  }
   INFO(obj.outputs.status.value);
-  REQUIRE(obj.outputs.done.value);
+  REQUIRE(done);
   const Eigen::Matrix4d M = procam::fromColumnMajor(obj.outputs.transform.value);
   const double angErr
       = Eigen::AngleAxisd(Eigen::Matrix3d(M.topLeftCorner<3, 3>() * T.R.transpose())).angle();

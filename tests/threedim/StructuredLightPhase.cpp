@@ -287,7 +287,10 @@ Metrics runConfig(const Config& c, Sim& sim)
     if(!obj.running() && !obj.outputs.done.value)
       break;
     if(obj.outputs.status.value == "Decoding")
+    {
       std::this_thread::sleep_for(std::chrono::milliseconds(5));
+      i--;
+    }
   }
   INFO(obj.outputs.status.value);
   REQUIRE(obj.outputs.done.value);

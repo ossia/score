@@ -391,13 +391,27 @@ void ManualProjectorCalibration::operator()()
     if(l->ok)
     {
       m_recorded = l->pairs;
+      std::string status = l->status;
+      const bool resized = l->width > 0 && l->height > 0
+                           && (l->width != s.width || l->height != s.height);
+      if(resized)
+      {
+        const float sx = float(s.width) / l->width, sy = float(s.height) / l->height;
+        for(auto& p : m_recorded)
+        {
+          p.u = (p.u + 0.5f) * sx - 0.5f;
+          p.v = (p.v + 0.5f) * sy - 0.5f;
+        }
+        status += "; points scaled from " + std::to_string(l->width) + " x "
+                  + std::to_string(l->height) + " to the projector size";
+      }
       m_typed.clear();
       rebuild();
-      m_solution = l->solution;
+      m_solution = resized ? Solution{} : l->solution;
       m_dirty = false;
       if(auto fresh = solve(m_all, s); fresh.ok)
         m_solution = std::move(fresh);
-      m_solution.status = l->status + (m_solution.ok ? "; " + m_solution.status : "");
+      m_solution.status = status + (m_solution.ok ? "; " + m_solution.status : "");
       publish();
     }
     else
@@ -411,8 +425,8 @@ void ManualProjectorCalibration::operator()()
     rebuild();
   }
 
-  const float cu = inputs.crosshair.value.x * s.width - 0.5f;
-  const float cv = inputs.crosshair.value.y * s.height - 0.5f;
+  const auto [cu, cv] = crosshairPixel(
+      {inputs.crosshair.value.x, inputs.crosshair.value.y}, s.width, s.height);
   if(inputs.record)
   {
     const auto& wp = inputs.world.value;

@@ -79,7 +79,7 @@ public:
     {
       ProjectorSize() { value = {1920, 1080}; }
     } projector_size;
-    //! Normalised, (0, 0) top-left.
+    //! Normalised, (0, 0) bottom-left as score's XY pad: y goes up.
     struct Crosshair : halp::xy_pad_f32<"Crosshair", halp::range{0., 1., 0.5}>
     {
       Crosshair() { value = {0.5f, 0.5f}; }
@@ -158,6 +158,12 @@ public:
       const std::vector<Pair>& pairs, const Solution& sol, uint8_t* rgba);
 
   void operator()();
+
+  //! The projector pixel (pixel centres at integers, v down) of a crosshair.
+  static std::array<float, 2> crosshairPixel(std::array<float, 2> xy, int w, int h) noexcept
+  {
+    return {xy[0] * w - 0.5f, (1.f - xy[1]) * h - 0.5f};
+  }
 
   const std::vector<Pair>& pairs() const noexcept { return m_all; }
   const Solution& solution() const noexcept { return m_solution; }

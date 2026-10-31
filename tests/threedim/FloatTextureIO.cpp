@@ -50,9 +50,16 @@ TEST_CASE("Save then Load Float Texture round-trips an RGBA map", "[threedim][fl
   save();
   CHECK_FALSE(save.outputs.saved.value);
 
+  CHECK_FALSE(save.inputs.image.request_readback);
   save.inputs.save.value = halp::impulse_type{};
   save();
+  CHECK(save.inputs.image.request_readback);
+  CHECK_FALSE(save.outputs.saved.value);
+  save.inputs.save.value.reset();
+  save();
+  save();
   REQUIRE(save.outputs.saved.value);
+  CHECK_FALSE(save.inputs.image.request_readback);
   CHECK(save.outputs.written.value == dir.filePath("proj0.xyz.pfm").toStdString());
   CHECK(QFile::exists(dir.filePath("proj0.valid.pfm")));
 
@@ -94,6 +101,9 @@ TEST_CASE("Save Float Texture writes the red channel alone", "[threedim][floatte
   save.inputs.file.value = dir.filePath("alpha").toStdString();
   save.inputs.channels.value = SaveFloatTexture::Channels::Red;
   save.inputs.save.value = halp::impulse_type{};
+  save();
+  save.inputs.save.value.reset();
+  save();
   save();
   REQUIRE(save.outputs.saved.value);
   const auto grey = score::gfx::readPFM(dir.filePath("alpha.pfm"));

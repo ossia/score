@@ -308,7 +308,7 @@ std::vector<DecodedPixel> Decoder::decode(float minSignal, int minBits) const
       o.phaseU = unwrap(o.u, m_u.known[i], m_seq.bitsX, m_sinU[i], m_cosU[i], o.u);
       o.phaseV = unwrap(o.v, m_v.known[i], m_seq.bitsY, m_sinV[i], m_cosV[i], o.v);
     }
-    if(o.u >= m_seq.width || o.v >= m_seq.height)
+    if(o.u < -0.5f || o.v < -0.5f || o.u >= m_seq.width || o.v >= m_seq.height)
       continue;
     o.confidence = std::min(m_u.minContrast[i], m_v.minContrast[i]);
     if(!std::isfinite(o.confidence))

@@ -1952,8 +1952,8 @@ if(TARGET score_plugin_threedim AND TARGET score_plugin_media AND TARGET score_p
     "${SCORE_ROOT_SOURCE_DIR}/3rdparty/eigen")
 endif()
 
-# Score.setValue against the kind of port it lands on (Bool/Int/VecN coercion,
-# plain value inlets), and a texture inlet's renderSize written from a script.
+# Structured Light Calibration and Projector Blend Maps have the ports the
+# calibration wizard addresses by name.
 if(TARGET score AND NOT EMSCRIPTEN)
   score_add_test(test_integration_structured_light_process
     SOURCES StructuredLightProcessTest.cpp)
@@ -1963,6 +1963,8 @@ if(TARGET score AND NOT EMSCRIPTEN)
     TIMEOUT 300 RUN_SERIAL TRUE)
 endif()
 
+# Score.setValue against the kind of port it lands on (Bool/Int/VecN coercion,
+# plain value inlets), and a texture inlet's renderSize written from a script.
 if(TARGET score AND NOT EMSCRIPTEN)
   score_add_test(test_integration_js_setvalue_port_kinds
     SOURCES JsSetValuePortKindsTest.cpp)
