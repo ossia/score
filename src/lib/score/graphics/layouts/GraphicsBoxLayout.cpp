@@ -12,6 +12,19 @@
 
 namespace score
 {
+namespace
+{
+constexpr int layout_stretch_key = 0x5c0e;
+bool isLayoutStretch(const QGraphicsItem* item)
+{
+  return item->data(layout_stretch_key).toBool();
+}
+}
+
+void setLayoutStretch(QGraphicsItem& item)
+{
+  item.setData(layout_stretch_key, true);
+}
 
 GraphicsHBoxLayout::~GraphicsHBoxLayout() { }
 
@@ -60,8 +73,7 @@ void GraphicsHBoxLayout::centerContent()
     item->setPos(item->pos().x(), rem);
   }
 
-  // The row as a whole, in the width a parent may have stretched it to
-  if(!m_alignment || items.isEmpty())
+  if(items.isEmpty())
     return;
   double left = items.front()->pos().x();
   double right = left;
@@ -70,6 +82,25 @@ void GraphicsHBoxLayout::centerContent()
     left = std::min(left, item->pos().x());
     right = std::max(right, item->pos().x() + item->boundingRect().width());
   }
+
+  // A stretch takes the width a parent may have stretched the row to: what
+  // comes after it goes to the right edge. Once done, there is none left, so
+  // centering again does not move anything.
+  if(auto st = std::find_if(items.begin(), items.end(), isLayoutStretch);
+     st != items.end())
+  {
+    const double extra = rect().width() - 2. * m_padding - (right - left);
+    if(extra > 0.)
+    {
+      for(auto it = std::next(st); it != items.end(); ++it)
+        (*it)->moveBy(extra, 0.);
+      right += extra;
+    }
+  }
+
+  // The row as a whole, in the width a parent may have stretched it to
+  if(!m_alignment)
+    return;
   const double content_w = right - left;
   const double avail = std::max(content_w, rect().width() - 2. * m_padding);
   const double dx = m_padding + alignedOffset(m_alignment, avail, content_w) - left;

@@ -9,6 +9,11 @@
 namespace score
 {
 
+//! Marks an item of a GraphicsHBoxLayout as a stretch: it takes whatever
+//! width the row has beyond its content, which puts the items after it at
+//! the row's right edge.
+SCORE_LIB_BASE_EXPORT void setLayoutStretch(QGraphicsItem& item);
+
 class SCORE_LIB_BASE_EXPORT GraphicsHBoxLayout : public GraphicsLayout
 {
 public:

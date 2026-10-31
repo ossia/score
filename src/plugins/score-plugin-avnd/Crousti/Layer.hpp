@@ -1042,6 +1042,10 @@ struct LayoutBuilder final : Process::LayoutBuilderBase
       else if constexpr(requires { item.height; })
         h = item.height;
       widg->setRect({0, 0, w, h});
+      // A spacing that fills its row: static constexpr bool stretch() { return true; }
+      if constexpr(requires { Item::stretch(); })
+        if(Item::stretch())
+          score::setLayoutStretch(*widg);
     }
     else if constexpr(recursive_container_layout<Item>)
     {
