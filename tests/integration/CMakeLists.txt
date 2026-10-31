@@ -1955,6 +1955,15 @@ endif()
 # Score.setValue against the kind of port it lands on (Bool/Int/VecN coercion,
 # plain value inlets), and a texture inlet's renderSize written from a script.
 if(TARGET score AND NOT EMSCRIPTEN)
+  score_add_test(test_integration_structured_light_process
+    SOURCES StructuredLightProcessTest.cpp)
+  target_compile_definitions(test_integration_structured_light_process PRIVATE
+    "SCORE_APP_BINARY=\"$<TARGET_FILE:score>\"")
+  set_tests_properties(test_integration_structured_light_process PROPERTIES
+    TIMEOUT 300 RUN_SERIAL TRUE)
+endif()
+
+if(TARGET score AND NOT EMSCRIPTEN)
   score_add_test(test_integration_js_setvalue_port_kinds
     SOURCES JsSetValuePortKindsTest.cpp)
   target_compile_definitions(test_integration_js_setvalue_port_kinds PRIVATE
