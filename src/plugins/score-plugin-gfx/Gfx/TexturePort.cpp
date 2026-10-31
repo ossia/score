@@ -33,6 +33,9 @@
 
 #include <wobjectimpl.h>
 
+#include <cmath>
+#include <limits>
+
 W_OBJECT_IMPL(Gfx::TextureInlet)
 W_OBJECT_IMPL(Gfx::TextureOutlet)
 
@@ -49,7 +52,7 @@ std::optional<E> textureEnumFromName(
     if(name.compare(QLatin1String(n), Qt::CaseInsensitive) == 0)
       return v;
   if(!name.isEmpty() && name.compare(QLatin1String("Auto"), Qt::CaseInsensitive) != 0)
-    qWarning() << "Score: unknown texture sampler value" << name;
+    qWarning() << "Score: unknown texture setting" << name;
   return std::nullopt;
 }
 
@@ -59,6 +62,17 @@ std::optional<E> textureEnumFromInt(int v)
   if(v < 0 || v > Max)
     return std::nullopt;
   return E(v);
+}
+
+template <typename F>
+auto fromDouble(F f)
+{
+  return [f](double v) -> decltype(f(0)) {
+    if(!std::isfinite(v) || v < double(std::numeric_limits<int>::min())
+       || v > double(std::numeric_limits<int>::max()))
+      return std::nullopt;
+    return f(int(v));
+  };
 }
 
 template <typename From, typename To, typename F>
@@ -73,6 +87,7 @@ void registerTexturePortConverters()
 {
   using filter = std::optional<ossia::texture_filter>;
   using address = std::optional<ossia::texture_address_mode>;
+  using format = std::optional<ossia::texture_format>;
   static constexpr std::pair<const char*, ossia::texture_filter> filters[]{
       {"None", ossia::texture_filter::NONE},
       {"Nearest", ossia::texture_filter::NEAREST},
@@ -82,20 +97,32 @@ void registerTexturePortConverters()
       {"Clamp", ossia::texture_address_mode::CLAMP_TO_EDGE},
       {"ClampToEdge", ossia::texture_address_mode::CLAMP_TO_EDGE},
       {"Mirror", ossia::texture_address_mode::MIRROR}};
+  using enum ossia::texture_format;
+  static constexpr std::pair<const char*, ossia::texture_format> formats[]{
+      {"RGBA8", RGBA8},     {"BGRA8", BGRA8},     {"R8", R8},
+      {"RG8", RG8},         {"R16", R16},         {"RG16", RG16},
+      {"RED_OR_ALPHA8", RED_OR_ALPHA8},           {"RGBA16F", RGBA16F},
+      {"RGBA32F", RGBA32F}, {"R16F", R16F},       {"R32F", R32F},
+      {"RGB10A2", RGB10A2}, {"D16", D16},         {"D24", D24},
+      {"D24S8", D24S8},     {"D32F", D32F}};
 
   constexpr auto filterFromInt
       = textureEnumFromInt<ossia::texture_filter, ossia::texture_filter::LINEAR>;
   constexpr auto addressFromInt = textureEnumFromInt<
       ossia::texture_address_mode, ossia::texture_address_mode::MIRROR>;
+  constexpr auto formatFromInt = textureEnumFromInt<ossia::texture_format, D32F>;
   registerOptionalConverter<int, filter>(filterFromInt);
-  registerOptionalConverter<double, filter>([](double v) { return filterFromInt(int(v)); });
+  registerOptionalConverter<double, filter>(fromDouble(filterFromInt));
   registerOptionalConverter<QString, filter>(
       [](const QString& s) { return textureEnumFromName(s, filters); });
   registerOptionalConverter<int, address>(addressFromInt);
-  registerOptionalConverter<double, address>(
-      [](double v) { return addressFromInt(int(v)); });
+  registerOptionalConverter<double, address>(fromDouble(addressFromInt));
   registerOptionalConverter<QString, address>(
       [](const QString& s) { return textureEnumFromName(s, addresses); });
+  registerOptionalConverter<int, format>(formatFromInt);
+  registerOptionalConverter<double, format>(fromDouble(formatFromInt));
+  registerOptionalConverter<QString, format>(
+      [](const QString& s) { return textureEnumFromName(s, formats); });
 }
 
 MODEL_METADATA_IMPL_CPP(TextureInlet);

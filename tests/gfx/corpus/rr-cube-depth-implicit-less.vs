@@ -14,7 +14,7 @@ void main()
       vec2(-1.0, -1.0), vec2(1.0, -1.0), vec2(1.0, 1.0),
       vec2(-1.0, -1.0), vec2(1.0, 1.0), vec2(-1.0, 1.0));
   bool first = gl_VertexIndex < 6;
-  v_color = first ? vec4(0.0, 1.0, 0.0, 1.0) : vec4(1.0, 0.0, 0.0, 1.0);
-  gl_Position = vec4(corners[gl_VertexIndex % 6], cubeWindowDepth(first ? 0.8 : 0.2), 1.0);
+  v_color = first ? vec4(1.0, 0.0, 0.0, 1.0) : vec4(0.0, 1.0, 0.0, 1.0);
+  gl_Position = vec4(corners[gl_VertexIndex % 6], cubeWindowDepth(first ? 0.2 : 0.8), 1.0);
   isf_vertShaderFinish();
 }

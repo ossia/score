@@ -270,7 +270,7 @@ inline Result solvePoseAny(
   }
   std::vector<Vec2> xn(N);
   for(int i = 0; i < N; i++)
-    xn[i] = Vec2((x[i].x() - known.cx) / known.fx, (x[i].y() - known.cy) / known.fy);
+    xn[i] = known.normalise(x[i]);
   res.model = known;
   if(!epnp::solve(X, xn, all, res.model.R, res.model.t))
   {
@@ -285,7 +285,7 @@ inline Result solvePoseAny(
   res.rms = rms(res.model, X, x, all);
   res.ok = std::isfinite(res.rms);
   if(!res.ok)
-    res.error = "the refinement diverged";
+    res.error = "the refinement diverged or left a point behind the projector";
   if(dlt.ok && (!res.ok || dlt.rms < res.rms))
     return dlt;
   return res;

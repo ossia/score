@@ -98,7 +98,8 @@ inline Result ransac(
   std::uniform_int_distribution<int> pick(0, n - 1);
   const double th2 = threshold * threshold;
   std::vector<int> best;
-  for(int it = 0; it < iterations; it++)
+  double need = iterations;
+  for(int it = 0; it < iterations && it < need; it++)
   {
     int a = pick(rng), b = pick(rng), c = pick(rng);
     if(a == b || b == c || a == c)
@@ -117,9 +118,7 @@ inline Result ransac(
     {
       best = std::move(in);
       const double w = double(best.size()) / n;
-      const double need = std::log(1. - 0.999) / std::log(std::max(1e-12, 1. - w * w * w));
-      if(it > need)
-        break;
+      need = it + 1 + std::log(1. - 0.999) / std::log(std::max(1e-12, 1. - w * w * w));
     }
   }
   if(best.size() < 3)

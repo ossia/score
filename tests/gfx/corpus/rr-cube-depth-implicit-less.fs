@@ -1,5 +1,5 @@
 /*{
-  "DESCRIPTION": "PER_CUBE_FACE raw raster without a depth OUTPUT: two full-screen quads per face, green at window depth 0.8 then red at 0.2. DEPTH_COMPARE less: every face ends red.",
+  "DESCRIPTION": "PER_CUBE_FACE raw raster without a depth OUTPUT: two full-screen quads per face, red at window depth 0.2 then green at 0.8. DEPTH_COMPARE less: every face stays red; without a depth test the last quad, green, shows.",
   "ISFVSN": "2.0",
   "MODE": "RAW_RASTER_PIPELINE",
   "VERTEX_INPUTS": [],

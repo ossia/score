@@ -20,7 +20,8 @@
 #elif defined(SCORE_GFX_HAS_DBUS)
 #include <QDBusConnection>
 #include <QDBusMessage>
-#include <QDBusReply>
+#include <QDBusPendingCallWatcher>
+#include <QDBusPendingReply>
 #endif
 
 namespace score::gfx
@@ -53,38 +54,67 @@ void release()
   g_assertion = kIOPMNullAssertionID;
 }
 #elif defined(SCORE_GFX_HAS_DBUS)
+enum class Inhibit
+{
+  None,
+  Pending,
+  Held
+};
+Inhibit g_state = Inhibit::None;
 uint32_t g_cookie = 0;
-bool g_hasCookie = false;
+bool g_wanted = false;
+
+QDBusMessage screenSaverCall(const QString& method)
+{
+  return QDBusMessage::createMethodCall(
+      "org.freedesktop.ScreenSaver", "/org/freedesktop/ScreenSaver",
+      "org.freedesktop.ScreenSaver", method);
+}
+
+void unInhibit()
+{
+  auto msg = screenSaverCall(QStringLiteral("UnInhibit"));
+  msg << g_cookie;
+  QDBusConnection::sessionBus().send(msg);
+  g_state = Inhibit::None;
+}
+
 void acquire()
 {
-  auto bus = QDBusConnection::sessionBus();
-  if(!bus.isConnected())
+  g_wanted = true;
+  if(g_state != Inhibit::None)
     return;
-  auto msg = QDBusMessage::createMethodCall(
-      "org.freedesktop.ScreenSaver", "/org/freedesktop/ScreenSaver",
-      "org.freedesktop.ScreenSaver", "Inhibit");
+  auto* app = QCoreApplication::instance();
+  auto bus = QDBusConnection::sessionBus();
+  if(!app || !bus.isConnected())
+    return;
+  auto msg = screenSaverCall(QStringLiteral("Inhibit"));
   msg << QCoreApplication::applicationName() << QStringLiteral("Output window");
-  QDBusReply<uint32_t> reply = bus.call(msg, QDBus::Block, 2000);
-  if(reply.isValid())
-  {
+  g_state = Inhibit::Pending;
+  auto* watcher = new QDBusPendingCallWatcher{bus.asyncCall(msg), app};
+  QObject::connect(
+      watcher, &QDBusPendingCallWatcher::finished, app,
+      [](QDBusPendingCallWatcher* w) {
+    w->deleteLater();
+    const QDBusPendingReply<uint32_t> reply = *w;
+    if(reply.isError())
+    {
+      g_state = Inhibit::None;
+      qDebug() << "Could not inhibit the screen saver:" << reply.error().message();
+      return;
+    }
     g_cookie = reply.value();
-    g_hasCookie = true;
-  }
-  else
-  {
-    qDebug() << "Could not inhibit the screen saver:" << reply.error().message();
-  }
+    g_state = Inhibit::Held;
+    if(!g_wanted)
+      unInhibit();
+  });
 }
+
 void release()
 {
-  if(!g_hasCookie)
-    return;
-  auto msg = QDBusMessage::createMethodCall(
-      "org.freedesktop.ScreenSaver", "/org/freedesktop/ScreenSaver",
-      "org.freedesktop.ScreenSaver", "UnInhibit");
-  msg << g_cookie;
-  QDBusConnection::sessionBus().call(msg, QDBus::NoBlock);
-  g_hasCookie = false;
+  g_wanted = false;
+  if(g_state == Inhibit::Held)
+    unInhibit();
 }
 #else
 void acquire() { }
@@ -92,20 +122,26 @@ void release() { }
 #endif
 }
 
-IdleInhibitor::IdleInhibitor()
-{
-  if(g_count++ == 0)
-    acquire();
-}
-
 IdleInhibitor::~IdleInhibitor()
 {
-  if(--g_count == 0)
-    release();
+  release();
 }
 
-int IdleInhibitor::activeCount() noexcept
+void IdleInhibitor::acquire()
 {
-  return g_count;
+  if(m_held)
+    return;
+  m_held = true;
+  if(g_count++ == 0)
+    score::gfx::acquire();
+}
+
+void IdleInhibitor::release()
+{
+  if(!m_held)
+    return;
+  m_held = false;
+  if(--g_count == 0)
+    score::gfx::release();
 }
 }

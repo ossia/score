@@ -23,6 +23,14 @@
 #include <string>
 #include <vector>
 
+#include <score_plugin_gfx_export.h>
+
+namespace Gfx::Settings
+{
+SCORE_PLUGIN_GFX_EXPORT
+int requestedGpuIndex() noexcept;
+}
+
 namespace score::gfx
 {
 /// Extensions every Qt Quick window's VkDevice asks for (Spout import into a TextureSource); the head of sharedVulkanDeviceExtensions().
@@ -244,8 +252,10 @@ inline std::vector<const char*> sharedVulkanDeviceExtensions()
 /**
  * @brief Resolve which GPU the shared VkDevice must be created on.
  *
- * Mirrors QRhi's own selection: an explicit caller request wins, else
- * QT_VK_PHYSICAL_DEVICE_INDEX, else the first enumerated device. Split out of
+ * An explicit caller request wins, else QT_VK_PHYSICAL_DEVICE_INDEX from the
+ * startup environment, else the Graphics settings' GPU, else the first
+ * enumerated device; an index past the device count is the first. Every
+ * Vulkan QRhi score creates imports this device. Split out of
  * createSharedVulkanDevice so the device cache can key on the resolved GPU
  * without creating anything.
  */
@@ -269,10 +279,18 @@ inline VkPhysicalDevice resolveSharedVulkanPhysicalDevice(
   std::vector<VkPhysicalDevice> physDevs(devCount);
   funcs->vkEnumeratePhysicalDevices(inst->vkInstance(), &devCount, physDevs.data());
 
-  bool ok = false;
-  const int idx = qEnvironmentVariableIntValue("QT_VK_PHYSICAL_DEVICE_INDEX", &ok);
-  if(ok && idx >= 0 && uint32_t(idx) < devCount)
+  static const int envIdx = [] {
+    bool ok = false;
+    const int idx = qEnvironmentVariableIntValue("QT_VK_PHYSICAL_DEVICE_INDEX", &ok);
+    return ok && idx >= 0 ? idx : -1;
+  }();
+  const int idx = envIdx >= 0 ? envIdx : Gfx::Settings::requestedGpuIndex();
+  if(idx < 0)
+    return physDevs[0];
+  if(uint32_t(idx) < devCount)
     return physDevs[uint32_t(idx)];
+  qWarning() << "score::gfx: GPU" << idx << "is not one of the" << devCount
+             << "Vulkan devices; using GPU 0";
   return physDevs[0];
 }
 

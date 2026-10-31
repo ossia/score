@@ -9,6 +9,10 @@
 #include <Gfx/Graph/VulkanVideoDevice.hpp>
 
 #include <QDebug>
+#include <QVersionNumber>
+
+#include <atomic>
+#include <cstring>
 #include <string_view>
 #include <vector>
 #include <QGuiApplication>
@@ -313,25 +317,37 @@ Model::Model(
   });
 }
 
+static std::atomic_int g_gpuIndex{-1};
+
 void applyGpuIndex(int index) noexcept
 {
-  static const bool vkFromEnv = qEnvironmentVariableIsSet("QT_VK_PHYSICAL_DEVICE_INDEX");
+  g_gpuIndex.store(index < 0 ? -1 : index, std::memory_order_relaxed);
+}
+
+int requestedGpuIndex() noexcept
+{
+  return g_gpuIndex.load(std::memory_order_relaxed);
+}
+
+std::optional<GpuLuid> requestedD3DAdapterLuid()
+{
   static const bool d3dFromEnv = qEnvironmentVariableIsSet("QT_D3D_ADAPTER_INDEX");
-  const QByteArray value = QByteArray::number(index);
-  if(!vkFromEnv)
+  const int index = requestedGpuIndex();
+  if(d3dFromEnv || index < 0)
+    return std::nullopt;
+  for(const auto& g : availableVulkanGpus())
   {
-    if(index >= 0)
-      qputenv("QT_VK_PHYSICAL_DEVICE_INDEX", value);
-    else
-      qunsetenv("QT_VK_PHYSICAL_DEVICE_INDEX");
+    if(g.index != index)
+      continue;
+    if(g.luid)
+      return g.luid;
+    qWarning() << "score::gfx: GPU" << index << g.name
+               << "has no adapter LUID; Direct3D uses the default adapter";
+    return std::nullopt;
   }
-  if(!d3dFromEnv)
-  {
-    if(index >= 0)
-      qputenv("QT_D3D_ADAPTER_INDEX", value);
-    else
-      qunsetenv("QT_D3D_ADAPTER_INDEX");
-  }
+  qWarning() << "score::gfx: GPU" << index
+             << "is not available; Direct3D uses the default adapter";
+  return std::nullopt;
 }
 
 std::vector<GpuDescription> availableVulkanGpus()
@@ -369,6 +385,27 @@ std::vector<GpuDescription> availableVulkanGpus()
       default:
         break;
     }
+    std::optional<GpuLuid> luid;
+    if(props.apiVersion >= VK_API_VERSION_1_1 && inst->apiVersion() >= QVersionNumber(1, 1))
+    {
+      if(auto getProps2 = reinterpret_cast<PFN_vkGetPhysicalDeviceProperties2>(
+             inst->getInstanceProcAddr("vkGetPhysicalDeviceProperties2")))
+      {
+        VkPhysicalDeviceIDProperties id{};
+        id.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ID_PROPERTIES;
+        VkPhysicalDeviceProperties2 props2{};
+        props2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2;
+        props2.pNext = &id;
+        getProps2(devs[i], &props2);
+        if(id.deviceLUIDValid)
+        {
+          GpuLuid l;
+          std::memcpy(&l.low, id.deviceLUID, 4);
+          std::memcpy(&l.high, id.deviceLUID + 4, 4);
+          luid = l;
+        }
+      }
+    }
     bool presentBarrier = false;
     uint32_t extCount = 0;
     if(f->vkEnumerateDeviceExtensionProperties(devs[i], nullptr, &extCount, nullptr)
@@ -381,7 +418,7 @@ std::vector<GpuDescription> availableVulkanGpus()
           presentBarrier = true;
     }
     res.push_back(
-        {int(i), QString::fromUtf8(props.deviceName), type, presentBarrier});
+        {int(i), QString::fromUtf8(props.deviceName), type, presentBarrier, luid});
   }
 #endif
   return res;

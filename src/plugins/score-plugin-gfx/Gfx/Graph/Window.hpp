@@ -81,6 +81,8 @@ public:
   std::function<void()> onDeviceLost;
 
   bool deviceLost() const noexcept { return m_deviceLost; }
+  //! Held while the window is a shown top-level window: an output, not a preview.
+  bool inhibitsIdle() const noexcept { return m_idleInhibitor.held(); }
 
   void tabletMove(QTabletEvent* ev) W_SIGNAL(tabletMove, ev);
 

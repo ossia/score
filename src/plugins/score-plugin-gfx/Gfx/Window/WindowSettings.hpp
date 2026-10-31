@@ -85,8 +85,9 @@ struct OutputColor
 //! Calibration files of an output, in its screen space (v = 0 at the top).
 struct OutputMaps
 {
-  //! UV lookup (xy = source UV in the output's source rect, w = valid),
-  //! applied before the corner warp.
+  //! UV lookup per output pixel, like alpha and beta (xy = source UV in the
+  //! output's source rect, w = valid); rotation, mirror and corner warp then
+  //! move the UV it gives.
   QString warp;
   //! Blend weight per RGB channel (a grey map broadcasts), multiplied with the edge ramps.
   QString alpha;
@@ -94,8 +95,8 @@ struct OutputMaps
   QString beta;
   //! Colour lookup table (.cube, Adobe Cube LUT 1.0), applied last.
   QString lut;
-  //! Measured projector response (.response.json or 1D .cube): its inverse
-  //! replaces the 2.2 encode of Linear blend.
+  //! Measured projector response (.response.json or 1D .cube): blending then
+  //! runs in linear light, and its inverse is the encode back to projector codes.
   QString response;
   //! Radiometric compensation (.comp.json): per pixel 3x3 matrix and offset
   //! applied to the linear content before the alpha.

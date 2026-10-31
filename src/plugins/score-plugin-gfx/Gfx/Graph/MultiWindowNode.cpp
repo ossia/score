@@ -6,6 +6,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <map>
 #include <tuple>
 
 #include <Gfx/Graph/NodeRenderer.hpp>
@@ -17,6 +18,7 @@
 #include <score/application/GUIApplicationContext.hpp>
 #include <score/gfx/OpenGL.hpp>
 
+#include <QFileInfo>
 #include <QFloat16>
 #include <QGuiApplication>
 #include <QScreen>
@@ -103,106 +105,182 @@ static std::array<float, 12> computeHomographyUBO(const Gfx::CornerWarp& warp)
   };
 }
 
-static std::shared_ptr<const FloatImage>
-loadOutputMap(const QString& path, WarpMapKind kind)
+namespace
 {
-  if(path.isEmpty())
-    return {};
-  QString err;
-  auto img = loadWarpMap(path, kind, &err);
-  if(!img.valid())
-  {
-    qWarning() << "MultiWindowNode: cannot load" << path << err;
-    return {};
-  }
-  return std::make_shared<const FloatImage>(std::move(img));
+QString mapArchivePath(const QString& spec)
+{
+  if(const int hash = spec.lastIndexOf('#');
+     hash > 0 && spec.left(hash).endsWith(QStringLiteral(".mpcdi"), Qt::CaseInsensitive))
+    return spec.left(hash);
+  return spec;
 }
 
-static std::shared_ptr<const FloatImage> loadOutputResponse(const QString& path)
+QString fileStamp(const QString& spec)
 {
-  if(path.isEmpty())
+  if(spec.isEmpty())
     return {};
-  QString err;
-  const auto t = loadResponseTable(path, &err);
-  if(!t.valid())
+  const QFileInfo fi{mapArchivePath(spec)};
+  return spec + QLatin1Char('|')
+         + (fi.exists() ? QString::number(fi.lastModified().toMSecsSinceEpoch())
+                              + QLatin1Char(':') + QString::number(fi.size())
+                        : QStringLiteral("-"));
+}
+
+void zeroNonFinite(FloatImage& img) noexcept
+{
+  const int c = img.channels;
+  for(std::size_t k = 0; k + c <= img.data.size(); k += c)
   {
-    qWarning() << "MultiWindowNode: cannot load response" << path << err;
-    return {};
+    float* p = img.data.data() + k;
+    if(!std::all_of(p, p + c, [](float v) { return std::isfinite(v); }))
+      std::fill_n(p, c, 0.f);
   }
-  FloatImage img;
-  img.width = t.size;
-  const auto& mx = t.mixing;
-  const int K = mx.valid() ? mx.K : 0;
-  img.width = K ? K * K : t.size;
-  img.height = 1 + K;
-  img.channels = 4;
-  img.data.assign(std::size_t(img.width) * img.height * 4, 1.f);
-  for(int i = 0; i < img.width; i++)
+}
+
+struct MapLoader
+{
+  int maxSize{};
+  std::map<QString, std::vector<WarpImport>> archives;
+  std::map<QString, QString> archiveErrors;
+
+  bool fits(const FloatImage& img, QString& err) const
   {
-    const double f = double(i) / (img.width - 1) * (t.size - 1);
-    const int i0 = std::min(int(f), t.size - 2);
-    const double a = f - i0;
-    for(int c = 0; c < 3; c++)
-      img.data[i * 4 + c]
-          = float(t.inverse[i0 * 3 + c] * (1. - a) + t.inverse[(i0 + 1) * 3 + c] * a);
+    if(!img.valid() || img.channels != 4)
+    {
+      if(err.isEmpty())
+        err = QStringLiteral("not an RGBA image");
+      return false;
+    }
+    if(img.width > maxSize || img.height > maxSize)
+    {
+      err = QStringLiteral("%1x%2 is above the %3 texture size limit")
+                .arg(img.width)
+                .arg(img.height)
+                .arg(maxSize);
+      return false;
+    }
+    return true;
   }
-  if(K)
-    img.data[3] = float(mx.D);
-  for(int b = 0; b < K; b++)
-    for(int g = 0; g < K; g++)
-      for(int r = 0; r < K; r++)
+
+  std::shared_ptr<const FloatImage> finish(FloatImage img, QString& err) const
+  {
+    if(!fits(img, err))
+      return {};
+    zeroNonFinite(img);
+    return std::make_shared<const FloatImage>(std::move(img));
+  }
+
+  std::shared_ptr<const FloatImage>
+  map(const QString& spec, WarpMapKind kind, QString& err)
+  {
+    const QString path = mapArchivePath(spec);
+    if(path.size() == spec.size() && !path.endsWith(QStringLiteral(".mpcdi"), Qt::CaseInsensitive))
+      return finish(loadWarpMap(spec, kind, &err), err);
+
+    const QString region = spec.mid(path.size() + 1);
+    auto it = archives.find(path);
+    if(it == archives.end())
+    {
+      QString e;
+      it = archives.emplace(path, loadMPCDI(path, &e)).first;
+      archiveErrors[path] = e;
+    }
+    for(auto& w : it->second)
+    {
+      if(!region.isEmpty() && w.region != region)
+        continue;
+      if(kind == WarpMapKind::Map && w.threeD)
       {
-        const float* src = mx.l.data() + ((std::size_t(b) * K + g) * K + r) * 3;
-        float* dst = img.data.data() + ((std::size_t(1 + g) * img.width) + b * K + r) * 4;
-        for(int c = 0; c < 3; c++)
-          dst[c] = src[c];
+        err = QStringLiteral(
+            "an Advanced 3D region holds world points, not a 2D UV warp");
+        return {};
       }
-  return std::make_shared<const FloatImage>(std::move(img));
-}
-
-static std::array<std::shared_ptr<const FloatImage>, 3>
-loadOutputCompensation(const QString& path)
-{
-  if(path.isEmpty())
-    return {};
-  QString err;
-  auto m = loadCompensation(path, &err);
-  if(!m.valid())
-  {
-    qWarning() << "MultiWindowNode: cannot load compensation" << path << err;
+      auto& img = kind == WarpMapKind::Map     ? w.map
+                  : kind == WarpMapKind::Alpha ? w.alpha
+                                               : w.beta;
+      return finish(std::move(img), err);
+    }
+    err = archiveErrors[path];
+    if(err.isEmpty())
+      err = QStringLiteral("no region %1").arg(region);
     return {};
   }
-  auto all = std::make_shared<const CompensationMaps>(std::move(m));
-  return {
-      std::shared_ptr<const FloatImage>(all, &all->rows[0]),
-      std::shared_ptr<const FloatImage>(all, &all->rows[1]),
-      std::shared_ptr<const FloatImage>(all, &all->rows[2])};
-}
 
-static std::shared_ptr<const CubeLut> loadOutputLut(const QString& path)
-{
-  if(path.isEmpty())
-    return {};
-  QString err;
-  auto lut = loadCubeLut(path, &err);
-  if(!lut.valid())
+  std::shared_ptr<const FloatImage> response(const QString& path, bool withMixing, QString& err)
   {
-    qWarning() << "MultiWindowNode: cannot load LUT" << path << err;
-    return {};
+    const auto t = loadResponseTable(path, &err);
+    if(!t.valid())
+      return {};
+    const auto& mx = t.mixing;
+    const int K = withMixing && mx.valid() ? mx.K : 0;
+    FloatImage img;
+    img.width = K ? K * K : std::min(t.size, maxResponseSize);
+    img.height = 1 + K;
+    img.channels = 4;
+    img.data.assign(std::size_t(img.width) * img.height * 4, 1.f);
+    for(int i = 0; i < img.width; i++)
+    {
+      const double f = double(i) / (img.width - 1) * (t.size - 1);
+      const int i0 = std::min(int(f), t.size - 2);
+      const double a = f - i0;
+      for(int c = 0; c < 3; c++)
+        img.data[i * 4 + c]
+            = float(t.inverse[i0 * 3 + c] * (1. - a) + t.inverse[(i0 + 1) * 3 + c] * a);
+    }
+    if(K)
+      img.data[3] = float(mx.D);
+    for(int b = 0; b < K; b++)
+      for(int g = 0; g < K; g++)
+        for(int r = 0; r < K; r++)
+        {
+          const float* src = mx.l.data() + ((std::size_t(b) * K + g) * K + r) * 3;
+          float* dst = img.data.data() + ((std::size_t(1 + g) * img.width) + b * K + r) * 4;
+          for(int c = 0; c < 3; c++)
+            dst[c] = src[c];
+        }
+    return finish(std::move(img), err);
   }
-  return std::make_shared<const CubeLut>(std::move(lut));
-}
 
-static bool calibrationActive(const MultiWindowNode::WindowOutput& wo) noexcept
+  std::array<std::shared_ptr<const FloatImage>, 3>
+  compensation(const QString& path, QString& err) const
+  {
+    auto m = loadCompensation(path, &err);
+    if(!m.valid())
+      return {};
+    for(auto& row : m.rows)
+    {
+      if(!fits(row, err))
+        return {};
+      zeroNonFinite(row);
+    }
+    auto all = std::make_shared<const CompensationMaps>(std::move(m));
+    return {
+        std::shared_ptr<const FloatImage>(all, &all->rows[0]),
+        std::shared_ptr<const FloatImage>(all, &all->rows[1]),
+        std::shared_ptr<const FloatImage>(all, &all->rows[2])};
+  }
+
+  static std::shared_ptr<const CubeLut> lut(const QString& path, QString& err)
+  {
+    auto lut = loadCubeLut(path, &err);
+    if(!lut.valid())
+      return {};
+    return std::make_shared<const CubeLut>(std::move(lut));
+  }
+
+  static constexpr int maxResponseSize = 4096;
+};
+
+bool calibrationActive(const MultiWindowNode::WindowOutput& wo) noexcept
 {
   return wo.blendLeft.width > 0.f || wo.blendRight.width > 0.f || wo.blendTop.width > 0.f
          || wo.blendBottom.width > 0.f || wo.alphaMap || wo.betaMap || wo.lut
          || wo.responseMap || wo.compensationMaps[0] || !wo.color.isIdentity();
 }
 
-static constexpr int blueNoiseSize = 64;
+constexpr int blueNoiseSize = 64;
 
-static std::array<const std::shared_ptr<const FloatImage>*, 7>
+std::array<const std::shared_ptr<const FloatImage>*, MultiWindowNode::MapSlotCount>
 outputMaps(const MultiWindowNode::WindowOutput& wo) noexcept
 {
   return {&wo.warpMap,           &wo.alphaMap,          &wo.betaMap,
@@ -210,13 +288,31 @@ outputMaps(const MultiWindowNode::WindowOutput& wo) noexcept
           &wo.compensationMaps[2]};
 }
 
+constexpr int mapBindings[MultiWindowNode::MapSlotCount]{7, 8, 9, 13, 14, 15, 16};
+
 std::array<float, 12> packOutputColorUBO(
-    const Gfx::OutputColor& c, bool warpMap, bool alphaMap, bool betaMap) noexcept
+    const Gfx::OutputColor& c, bool warpMap, bool alphaMap, bool betaMap,
+    bool compensation) noexcept
 {
   return {
       c.gain[0],   c.gain[1],   c.gain[2],   c.gamma,
       c.offset[0], c.offset[1], c.offset[2], c.linearBlend ? 1.f : 0.f,
-      warpMap ? 1.f : 0.f, alphaMap ? 1.f : 0.f, betaMap ? 1.f : 0.f, 0.f};
+      warpMap ? 1.f : 0.f, alphaMap ? 1.f : 0.f, betaMap ? 1.f : 0.f,
+      compensation ? 1.f : 0.f};
+}
+
+int canvasRank(QRhiTexture::Format f) noexcept
+{
+  switch(f)
+  {
+    case QRhiTexture::RGBA32F:
+      return 2;
+    case QRhiTexture::RGBA16F:
+      return 1;
+    default:
+      return 0;
+  }
+}
 }
 
 // --- MultiWindowRenderer ---
@@ -235,20 +331,23 @@ public:
     QRhiBuffer* blendUBO{};
     QRhiBuffer* warpUBO{};
     QRhiBuffer* colorUBO{};
-    QRhiSampler* mapSampler{};
-    std::array<QRhiTexture*, 7> mapTextures{};
-    int uploadedMapsVersion{-1};
     QRhiBuffer* qualityUBO{};
+    std::array<QRhiTexture*, MultiWindowNode::MapSlotCount> mapTextures{};
+    std::array<bool, MultiWindowNode::MapSlotCount> mapOk{};
     QRhiTexture* lutTexture{};
-    QRhiSampler* lutSampler{};
-    QRhiTexture* noiseTexture{};
-    QRhiSampler* noiseSampler{};
-    bool noiseUploaded{};
+    bool lutOk{};
+    std::array<int, 8> uploadedVersions{};
+    int readbackServed{};
     std::array<score::gfx::Sampler, 1> samplers{};
-    QRhiShaderResourceBindings* srb{};
     QRectF sourceRect{0, 0, 1, 1};
   };
   std::vector<PerWindowData> m_perWindow;
+
+  QRhiSampler* m_mapSampler{};
+  QRhiSampler* m_warpSampler{};
+  QRhiSampler* m_lutSampler{};
+  QRhiSampler* m_noiseSampler{};
+  QRhiTexture* m_noiseTexture{};
 
   const MultiWindowNode& m_multiNode;
   bool m_initialized{false};
@@ -454,8 +553,8 @@ public:
 
       vec3 unmix(vec3 e)
       {
-          const float K = 33.0;
           vec2 sz = vec2(textureSize(responseMap, 0));
+          float K = sz.y - 1.0;
           float D = texelFetch(responseMap, ivec2(0, 0), 0).a;
           float top = max(e.r, max(e.g, e.b));
           if(top > D)
@@ -469,59 +568,48 @@ public:
           return mix(a, b, tz);
       }
 
+      bool place(inout vec2 tc)
+      {
+          vec2 c = tc - 0.5;
+          // Clockwise in screen space
+          if(rotationDeg > 225.0)
+              c = vec2(c.y, -c.x);
+          else if(rotationDeg > 135.0)
+              c = vec2(-c.x, -c.y);
+          else if(rotationDeg > 45.0)
+              c = vec2(-c.y, c.x);
+          if(mirrorX > 0.5)
+              c.x = -c.x;
+          if(mirrorY > 0.5)
+              c.y = -c.y;
+          tc = c + 0.5;
+
+          if(warpEnabled < 0.5)
+              return true;
+          // The homography is in Y-down space, as in the GUI.
+          vec3 p = vec3(tc.x, 1.0 - tc.y, 1.0);
+          vec3 warped = vec3(
+              dot(vec3(homographyCol0.xyz), p),
+              dot(vec3(homographyCol1.xyz), p),
+              dot(vec3(homographyCol2.xyz), p));
+          tc = warped.xy / warped.z;
+          bool inside = tc.x >= 0.0 && tc.x <= 1.0 && tc.y >= 0.0 && tc.y <= 1.0;
+          tc.y = 1.0 - tc.y;
+          return inside;
+      }
+
       void main()
       {
-          vec2 tc = v_texcoord;
-          bool inside = true;
-
-          // Apply rotation + mirror transform (in screen UV space)
-          {
-              vec2 c = tc - 0.5;
-
-              // Rotation (clockwise in screen space)
-              if(rotationDeg > 225.0)       // 270
-                  c = vec2(c.y, -c.x);
-              else if(rotationDeg > 135.0)  // 180
-                  c = vec2(-c.x, -c.y);
-              else if(rotationDeg > 45.0)   // 90
-                  c = vec2(-c.y, c.x);
-
-              if(mirrorX > 0.5)
-                  c.x = -c.x;
-              if(mirrorY > 0.5)
-                  c.y = -c.y;
-
-              tc = c + 0.5;
-          }
-
-          // Apply inverse homography if corner warp is active
-          if(warpEnabled > 0.5)
-          {
-              // Homography is computed in Y-down space (matching GUI).
-              // v_texcoord.y is flipped, so convert to Y-down first.
-              tc.y = 1.0 - tc.y;
-              vec3 p = vec3(tc, 1.0);
-              vec3 warped = vec3(
-                  dot(vec3(homographyCol0.xyz), p),
-                  dot(vec3(homographyCol1.xyz), p),
-                  dot(vec3(homographyCol2.xyz), p)
-              );
-              tc = warped.xy / warped.z;
-
-              if(tc.x < 0.0 || tc.x > 1.0 || tc.y < 0.0 || tc.y > 1.0)
-                  inside = false;
-
-              tc.y = 1.0 - tc.y;
-          }
-
-          vec2 rampTc = tc;
+          vec2 screenUv = vec2(v_texcoord.x, 1.0 - v_texcoord.y);
+          vec2 rampTc = v_texcoord;
+          bool inside = place(rampTc);
+          vec2 tc = rampTc;
 
           if(mapFlags.x > 0.5)
           {
-              vec3 m = sampleWarp(vec2(tc.x, 1.0 - tc.y));
-              if(m.z < 0.5)
-                  inside = false;
+              vec3 m = sampleWarp(screenUv);
               tc = vec2(m.x, 1.0 - m.y);
+              inside = place(tc) && m.z > 0.5;
           }
 
           vec2 uv;
@@ -558,7 +646,6 @@ public:
           if(blendWidths.w > 0.0 && rampTc.y < blendWidths.w)
               alpha *= pow(clamp(rampTc.y / blendWidths.w, 0.0, 1.0), blendGammas.w);
 
-          vec2 screenUv = vec2(v_texcoord.x, 1.0 - v_texcoord.y);
           vec3 alphaRgb = vec3(alpha);
           if(mapFlags.y > 0.5)
               alphaRgb *= texture(alphaMap, screenUv).rgb;
@@ -622,9 +709,38 @@ public:
     std::tie(m_vertexS, m_fragmentS)
         = score::gfx::makeShaders(renderer.state, mesh.defaultVertexShader(), frag_shader);
 
-    // Reserve per-window slots. Pipelines are built lazily below for
-    // windows that already have a swap chain; others will be built when
-    // their swap chain becomes ready (via buildWindowPipeline()).
+    auto& rhi = *renderer.state.rhi;
+    m_mapSampler = rhi.newSampler(
+        QRhiSampler::Linear, QRhiSampler::Linear, QRhiSampler::None,
+        QRhiSampler::ClampToEdge, QRhiSampler::ClampToEdge);
+    m_mapSampler->setName("MultiWindowRenderer::mapSampler");
+    m_mapSampler->create();
+    m_warpSampler = rhi.newSampler(
+        QRhiSampler::Nearest, QRhiSampler::Nearest, QRhiSampler::None,
+        QRhiSampler::ClampToEdge, QRhiSampler::ClampToEdge);
+    m_warpSampler->setName("MultiWindowRenderer::warpSampler");
+    m_warpSampler->create();
+    m_lutSampler = rhi.newSampler(
+        QRhiSampler::Linear, QRhiSampler::Linear, QRhiSampler::None,
+        QRhiSampler::ClampToEdge, QRhiSampler::ClampToEdge, QRhiSampler::ClampToEdge);
+    m_lutSampler->setName("MultiWindowRenderer::lutSampler");
+    m_lutSampler->create();
+    m_noiseSampler = rhi.newSampler(
+        QRhiSampler::Nearest, QRhiSampler::Nearest, QRhiSampler::None,
+        QRhiSampler::Repeat, QRhiSampler::Repeat);
+    m_noiseSampler->setName("MultiWindowRenderer::noiseSampler");
+    m_noiseSampler->create();
+    m_noiseTexture
+        = rhi.newTexture(QRhiTexture::R32F, QSize{blueNoiseSize, blueNoiseSize}, 1);
+    m_noiseTexture->setName("MultiWindowRenderer::blueNoise");
+    m_noiseTexture->create();
+    {
+      const auto& noise = blueNoise(blueNoiseSize);
+      QRhiTextureSubresourceUploadDescription sub{
+          noise.data(), quint32(noise.size() * sizeof(float))};
+      res.uploadTexture(m_noiseTexture, QRhiTextureUploadDescription{{0, 0, sub}});
+    }
+
     const auto& outputs = m_multiNode.windowOutputs();
     m_perWindow.resize(outputs.size());
 
@@ -632,6 +748,29 @@ public:
       buildWindowPipeline(i, renderer, &res);
 
     m_initialized = true;
+  }
+
+  static QSize mapSize(const std::shared_ptr<const FloatImage>& img) noexcept
+  {
+    return img ? QSize{img->width, img->height} : QSize{1, 1};
+  }
+
+  //! Creates `tex` at `sz`, or at 1x1 (and false) when the device refuses it.
+  static bool createTexture(QRhiTexture& tex, QSize sz, int depth = 0)
+  {
+    tex.destroy();
+    tex.setPixelSize(sz);
+    if(depth > 0)
+      tex.setDepth(depth);
+    if(tex.create())
+      return true;
+    qWarning() << "MultiWindowNode: cannot create a" << sz << "texture"
+               << tex.name();
+    tex.setPixelSize({1, 1});
+    if(depth > 0)
+      tex.setDepth(1);
+    tex.create();
+    return false;
   }
 
   // Build (or rebuild) the per-window GPU resources for a single window.
@@ -692,26 +831,19 @@ public:
         QByteArray("MultiWindowRenderer::colorUBO_") + QByteArray::number(index));
     pw.colorUBO->create();
 
-    pw.mapSampler = rhi.newSampler(
-        QRhiSampler::Linear, QRhiSampler::Linear, QRhiSampler::None,
-        QRhiSampler::ClampToEdge, QRhiSampler::ClampToEdge);
-    pw.mapSampler->setName("MultiWindowRenderer::mapSampler");
-    pw.mapSampler->create();
-
     {
       const auto maps = outputMaps(wo);
-      for(int m = 0; m < 7; m++)
+      for(int m = 0; m < MultiWindowNode::MapSlotCount; m++)
       {
-        const auto& img = *maps[m];
-        const QSize sz = img ? QSize{img->width, img->height} : QSize{1, 1};
-        auto tex = rhi.newTexture(QRhiTexture::RGBA32F, sz, 1);
+        auto tex = rhi.newTexture(
+            m == MultiWindowNode::WarpSlot ? QRhiTexture::RGBA32F : QRhiTexture::RGBA16F,
+            QSize{1, 1}, 1);
         tex->setName(
             QByteArray("MultiWindowRenderer::map_") + QByteArray::number(index) + '_'
             + QByteArray::number(m));
-        tex->create();
+        pw.mapOk[m] = createTexture(*tex, mapSize(*maps[m])) && *maps[m];
         pw.mapTextures[m] = tex;
       }
-      pw.uploadedMapsVersion = -1;
     }
 
     pw.qualityUBO = rhi.newBuffer(
@@ -722,27 +854,12 @@ public:
 
     {
       const int n = wo.lut ? wo.lut->size : 1;
-      pw.lutTexture = rhi.newTexture(
-          QRhiTexture::RGBA16F, n, n, n, 1, QRhiTexture::ThreeDimensional);
+      pw.lutTexture
+          = rhi.newTexture(QRhiTexture::RGBA16F, 1, 1, 1, 1, QRhiTexture::ThreeDimensional);
       pw.lutTexture->setName("MultiWindowRenderer::lut");
-      pw.lutTexture->create();
-      pw.lutSampler = rhi.newSampler(
-          QRhiSampler::Linear, QRhiSampler::Linear, QRhiSampler::None,
-          QRhiSampler::ClampToEdge, QRhiSampler::ClampToEdge, QRhiSampler::ClampToEdge);
-      pw.lutSampler->setName("MultiWindowRenderer::lutSampler");
-      pw.lutSampler->create();
-
-      pw.noiseTexture
-          = rhi.newTexture(QRhiTexture::R32F, QSize{blueNoiseSize, blueNoiseSize}, 1);
-      pw.noiseTexture->setName("MultiWindowRenderer::blueNoise");
-      pw.noiseTexture->create();
-      pw.noiseSampler = rhi.newSampler(
-          QRhiSampler::Nearest, QRhiSampler::Nearest, QRhiSampler::None,
-          QRhiSampler::Repeat, QRhiSampler::Repeat);
-      pw.noiseSampler->setName("MultiWindowRenderer::noiseSampler");
-      pw.noiseSampler->create();
-      pw.noiseUploaded = false;
+      pw.lutOk = createTexture(*pw.lutTexture, {n, n}, n) && wo.lut;
     }
+    pw.uploadedVersions.fill(-1);
 
     // Seed initial UBO contents if we were given a batch to piggy-back on.
     // When `res` is null (lazy build from initWindowSwapChain) we skip the
@@ -790,47 +907,25 @@ public:
       score::gfx::TextureRenderTarget rt;
       rt.renderPass = wo.renderPassDescriptor;
 
-      QRhiShaderResourceBinding extraBindings[13] = {
-          QRhiShaderResourceBinding::uniformBuffer(
-              4, QRhiShaderResourceBinding::FragmentStage, pw.blendUBO),
-          QRhiShaderResourceBinding::uniformBuffer(
-              5, QRhiShaderResourceBinding::FragmentStage, pw.warpUBO),
-          QRhiShaderResourceBinding::uniformBuffer(
-              6, QRhiShaderResourceBinding::FragmentStage, pw.colorUBO),
-          QRhiShaderResourceBinding::sampledTexture(
-              7, QRhiShaderResourceBinding::FragmentStage, pw.mapTextures[0],
-              pw.mapSampler),
-          QRhiShaderResourceBinding::sampledTexture(
-              8, QRhiShaderResourceBinding::FragmentStage, pw.mapTextures[1],
-              pw.mapSampler),
-          QRhiShaderResourceBinding::sampledTexture(
-              9, QRhiShaderResourceBinding::FragmentStage, pw.mapTextures[2],
-              pw.mapSampler),
-          QRhiShaderResourceBinding::sampledTexture(
-              10, QRhiShaderResourceBinding::FragmentStage, pw.lutTexture,
-              pw.lutSampler),
-          QRhiShaderResourceBinding::sampledTexture(
-              11, QRhiShaderResourceBinding::FragmentStage, pw.noiseTexture,
-              pw.noiseSampler),
-          QRhiShaderResourceBinding::uniformBuffer(
-              12, QRhiShaderResourceBinding::FragmentStage, pw.qualityUBO),
-          QRhiShaderResourceBinding::sampledTexture(
-              13, QRhiShaderResourceBinding::FragmentStage, pw.mapTextures[3],
-              pw.mapSampler),
-          QRhiShaderResourceBinding::sampledTexture(
-              14, QRhiShaderResourceBinding::FragmentStage, pw.mapTextures[4],
-              pw.mapSampler),
-          QRhiShaderResourceBinding::sampledTexture(
-              15, QRhiShaderResourceBinding::FragmentStage, pw.mapTextures[5],
-              pw.mapSampler),
-          QRhiShaderResourceBinding::sampledTexture(
-              16, QRhiShaderResourceBinding::FragmentStage, pw.mapTextures[6],
-              pw.mapSampler)};
+      using B = QRhiShaderResourceBinding;
+      constexpr auto F = B::FragmentStage;
+      std::vector<B> extraBindings{
+          B::uniformBuffer(4, F, pw.blendUBO),
+          B::uniformBuffer(5, F, pw.warpUBO),
+          B::uniformBuffer(6, F, pw.colorUBO),
+          B::sampledTexture(10, F, pw.lutTexture, m_lutSampler),
+          B::sampledTexture(11, F, m_noiseTexture, m_noiseSampler),
+          B::uniformBuffer(12, F, pw.qualityUBO)};
+      for(int m = 0; m < MultiWindowNode::MapSlotCount; m++)
+        extraBindings.push_back(B::sampledTexture(
+            mapBindings[m], F, pw.mapTextures[m],
+            m == MultiWindowNode::WarpSlot ? m_warpSampler : m_mapSampler));
 
       const auto& mesh = renderer.defaultTriangle();
       pw.pipeline = score::gfx::buildPipeline(
           renderer, mesh, m_vertexS, m_fragmentS, rt, nullptr, pw.uvRectUBO,
-          pw.samplers, score::gfx::premultipliedOverBlend(), {extraBindings, 13});
+          pw.samplers, score::gfx::premultipliedOverBlend(),
+          {extraBindings.data(), extraBindings.size()});
     }
   }
 
@@ -852,24 +947,16 @@ public:
     pw.warpUBO = nullptr;
     delete pw.colorUBO;
     pw.colorUBO = nullptr;
-    delete pw.mapSampler;
-    pw.mapSampler = nullptr;
     delete pw.qualityUBO;
     pw.qualityUBO = nullptr;
     delete pw.lutTexture;
     pw.lutTexture = nullptr;
-    delete pw.lutSampler;
-    pw.lutSampler = nullptr;
-    delete pw.noiseTexture;
-    pw.noiseTexture = nullptr;
-    delete pw.noiseSampler;
-    pw.noiseSampler = nullptr;
     for(auto& t : pw.mapTextures)
     {
       delete t;
       t = nullptr;
     }
-    pw.uploadedMapsVersion = -1;
+    pw.uploadedVersions.fill(-1);
   }
 
   void update(
@@ -883,6 +970,11 @@ public:
     for(int i = 0; i < (int)m_perWindow.size(); ++i)
       releaseWindowPipeline(i);
     m_perWindow.clear();
+    for(auto* s : {m_mapSampler, m_warpSampler, m_lutSampler, m_noiseSampler})
+      delete s;
+    m_mapSampler = m_warpSampler = m_lutSampler = m_noiseSampler = nullptr;
+    delete m_noiseTexture;
+    m_noiseTexture = nullptr;
     m_initialized = false;
     // m_offscreenTarget is owned by MultiWindowNode; do NOT release it here.
   }
@@ -915,6 +1007,86 @@ public:
   }
 
 private:
+  void uploadMaps(
+      const MultiWindowNode::WindowOutput& wo, PerWindowData& pw,
+      score::gfx::RenderList& renderer, QRhiResourceUpdateBatch*& res)
+  {
+    const auto maps = outputMaps(wo);
+    for(int m = 0; m < MultiWindowNode::MapSlotCount; m++)
+    {
+      if(pw.uploadedVersions[m] == wo.mapVersions[m])
+        continue;
+      pw.uploadedVersions[m] = wo.mapVersions[m];
+      const auto& img = *maps[m];
+      auto& tex = *pw.mapTextures[m];
+      const QSize sz = mapSize(img);
+      bool ok = true;
+      if(tex.pixelSize() != sz)
+        ok = createTexture(tex, sz);
+      pw.mapOk[m] = ok && img;
+
+      const bool half = tex.format() == QRhiTexture::RGBA16F;
+      QByteArray bytes;
+      if(pw.mapOk[m])
+      {
+        const auto n = qsizetype(img->data.size());
+        if(half)
+        {
+          bytes.resize(n * qsizetype(sizeof(qfloat16)));
+          qFloatToFloat16(
+              reinterpret_cast<qfloat16*>(bytes.data()), img->data.data(), n);
+        }
+        else
+        {
+          bytes = QByteArray(
+              reinterpret_cast<const char*>(img->data.data()),
+              n * qsizetype(sizeof(float)));
+        }
+      }
+      else
+      {
+        bytes = QByteArray(4 * (half ? sizeof(qfloat16) : sizeof(float)), 0);
+      }
+      if(!res)
+        res = renderer.state.rhi->nextResourceUpdateBatch();
+      res->uploadTexture(
+          &tex, QRhiTextureUploadDescription{
+                    {0, 0, QRhiTextureSubresourceUploadDescription{bytes}}});
+    }
+
+    if(pw.uploadedVersions[MultiWindowNode::LutSlot] == wo.mapVersions[MultiWindowNode::LutSlot])
+      return;
+    pw.uploadedVersions[MultiWindowNode::LutSlot] = wo.mapVersions[MultiWindowNode::LutSlot];
+    const int want = wo.lut ? wo.lut->size : 1;
+    bool ok = true;
+    if(pw.lutTexture->depth() != want || pw.lutTexture->pixelSize() != QSize{want, want})
+      ok = createTexture(*pw.lutTexture, {want, want}, want);
+    pw.lutOk = ok && wo.lut;
+    const int n = pw.lutTexture->depth();
+    const auto N = std::size_t(n) * n * n;
+    std::vector<qfloat16> half(N * 4, qfloat16(0.f));
+    if(pw.lutOk)
+      for(std::size_t i = 0; i < N; i++)
+      {
+        for(int c = 0; c < 3; c++)
+          half[i * 4 + c] = qfloat16(wo.lut->rgb[i * 3 + c]);
+        half[i * 4 + 3] = qfloat16(1.f);
+      }
+    QList<QRhiTextureUploadEntry> entries;
+    const quint32 slice = quint32(n) * n * 4 * sizeof(qfloat16);
+    for(int z = 0; z < n; z++)
+      entries.append(QRhiTextureUploadEntry{
+          z, 0,
+          QRhiTextureSubresourceUploadDescription{QByteArray(
+              reinterpret_cast<const char*>(half.data()) + std::size_t(z) * slice,
+              slice)}});
+    QRhiTextureUploadDescription desc;
+    desc.setEntries(entries.begin(), entries.end());
+    if(!res)
+      res = renderer.state.rhi->nextResourceUpdateBatch();
+    res->uploadTexture(pw.lutTexture, desc);
+  }
+
   void renderSubRegion(
       int index, score::gfx::RenderList& renderer, QRhiCommandBuffer& cb,
       QRhiResourceUpdateBatch*& res)
@@ -939,27 +1111,7 @@ private:
     if(!rt)
       return;
 
-    const auto maps = outputMaps(wo);
-    if(pw.uploadedMapsVersion != wo.mapsVersion)
-    {
-      bool sizesMatch = true;
-      for(int m = 0; m < 7; m++)
-      {
-        const auto& img = *maps[m];
-        const QSize sz = img ? QSize{img->width, img->height} : QSize{1, 1};
-        if(!pw.mapTextures[m] || pw.mapTextures[m]->pixelSize() != sz)
-          sizesMatch = false;
-      }
-      const int lutSize = wo.lut ? wo.lut->size : 1;
-      if(!pw.lutTexture || pw.lutTexture->depth() != lutSize)
-        sizesMatch = false;
-      if(!sizesMatch)
-      {
-        buildWindowPipeline(index, renderer, nullptr);
-        if(!pw.pipeline.pipeline || !pw.pipeline.srb)
-          return;
-      }
-    }
+    uploadMaps(wo, pw, renderer, res);
 
     // Update UBOs from live data (may have changed via device parameters)
     if(pw.uvRectUBO)
@@ -1004,9 +1156,10 @@ private:
     {
       if(!res)
         res = renderer.state.rhi->nextResourceUpdateBatch();
-      auto colorData = packOutputColorUBO(
-          wo.color, bool(wo.warpMap), bool(wo.alphaMap), bool(wo.betaMap));
-      colorData[11] = wo.compensationMaps[0] ? 1.f : 0.f;
+      using S = MultiWindowNode::MapSlot;
+      const auto colorData = packOutputColorUBO(
+          wo.color, pw.mapOk[S::WarpSlot], pw.mapOk[S::AlphaSlot], pw.mapOk[S::BetaSlot],
+          pw.mapOk[S::Comp0Slot] && pw.mapOk[S::Comp1Slot] && pw.mapOk[S::Comp2Slot]);
       res->updateDynamicBuffer(
           pw.colorUBO, 0, sizeof(float) * colorData.size(), colorData.data());
     }
@@ -1026,9 +1179,11 @@ private:
           wo.quality.warpInterpolation == Gfx::WarpInterpolation::Bicubic ? 1.f : 0.f,
           float(q.ditherLevels),
           float(q.transfer),
-          wo.lut ? 1.f : 0.f,
+          pw.lutOk ? 1.f : 0.f,
           float(m_frame % 4096u),
-          wo.responseMap ? (wo.responseMap->height > 1 ? 2.f : 1.f) : 0.f,
+          pw.mapOk[MultiWindowNode::ResponseSlot]
+              ? (wo.responseMap->height > 1 ? 2.f : 1.f)
+              : 0.f,
           wo.lut ? wo.lut->domainMin[0] : 0.f,
           wo.lut ? wo.lut->domainMin[1] : 0.f,
           wo.lut ? wo.lut->domainMin[2] : 0.f,
@@ -1039,60 +1194,6 @@ private:
           0.f};
       res->updateDynamicBuffer(pw.qualityUBO, 0, sizeof(qualityData), qualityData);
       m_frame++;
-    }
-
-    if(!pw.noiseUploaded && pw.noiseTexture)
-    {
-      if(!res)
-        res = renderer.state.rhi->nextResourceUpdateBatch();
-      const auto& noise = blueNoise(blueNoiseSize);
-      QRhiTextureSubresourceUploadDescription sub{
-          noise.data(), quint32(noise.size() * sizeof(float))};
-      res->uploadTexture(pw.noiseTexture, QRhiTextureUploadDescription{{0, 0, sub}});
-      pw.noiseUploaded = true;
-    }
-
-    if(pw.uploadedMapsVersion != wo.mapsVersion)
-    {
-      if(!res)
-        res = renderer.state.rhi->nextResourceUpdateBatch();
-      {
-        const int n = wo.lut ? wo.lut->size : 1;
-        std::vector<qfloat16> half(std::size_t(n) * n * n * 4);
-        for(std::size_t i = 0, N = std::size_t(n) * n * n; i < N; i++)
-        {
-          half[i * 4 + 0] = qfloat16(wo.lut ? wo.lut->rgb[i * 3 + 0] : 0.f);
-          half[i * 4 + 1] = qfloat16(wo.lut ? wo.lut->rgb[i * 3 + 1] : 0.f);
-          half[i * 4 + 2] = qfloat16(wo.lut ? wo.lut->rgb[i * 3 + 2] : 0.f);
-          half[i * 4 + 3] = qfloat16(1.f);
-        }
-        QList<QRhiTextureUploadEntry> entries;
-        const quint32 slice = quint32(n) * n * 4 * sizeof(qfloat16);
-        for(int z = 0; z < n; z++)
-          entries.append(QRhiTextureUploadEntry{
-              z, 0,
-              QRhiTextureSubresourceUploadDescription{
-                  QByteArray(
-                      reinterpret_cast<const char*>(half.data()) + std::size_t(z) * slice,
-                      slice)}});
-        QRhiTextureUploadDescription desc;
-        desc.setEntries(entries.begin(), entries.end());
-        res->uploadTexture(pw.lutTexture, desc);
-      }
-      static const float placeholder[4]{0.f, 0.f, 0.f, 0.f};
-      for(int m = 0; m < 7; m++)
-      {
-        const auto& img = *maps[m];
-        QRhiTextureSubresourceUploadDescription sub;
-        if(img)
-          sub = QRhiTextureSubresourceUploadDescription{
-              img->data.data(), quint32(img->data.size() * sizeof(float))};
-        else
-          sub = QRhiTextureSubresourceUploadDescription{placeholder, sizeof(placeholder)};
-        res->uploadTexture(
-            pw.mapTextures[m], QRhiTextureUploadDescription{{0, 0, sub}});
-      }
-      pw.uploadedMapsVersion = wo.mapsVersion;
     }
 
     cb.beginPass(rt, Qt::black, {0.0f, 0}, res);
@@ -1106,9 +1207,9 @@ private:
       const auto& mesh = renderer.defaultTriangle();
       mesh.draw(m_mesh, cb);
     }
-    if(wo.readbackRequested)
+    if(pw.readbackServed != wo.readbackRequests)
     {
-      wo.readbackRequested = false;
+      pw.readbackServed = wo.readbackRequests;
       auto* rb = renderer.state.rhi->nextResourceUpdateBatch();
       rb->readBackTexture(QRhiReadbackDescription{}, wo.readback.get());
       cb.endPass(rb);
@@ -1177,32 +1278,35 @@ void MultiWindowNode::setRenderSize(QSize sz)
 
 void MultiWindowNode::setSourceRect(int windowIndex, QRectF rect)
 {
+  if(windowIndex >= 0 && windowIndex < (int)m_mappings.size())
+    m_mappings[windowIndex].sourceRect = rect;
   if(windowIndex >= 0 && windowIndex < (int)m_windowOutputs.size())
     m_windowOutputs[windowIndex].sourceRect = rect;
 }
 
 void MultiWindowNode::setEdgeBlend(int windowIndex, int side, float width, float gamma)
 {
+  if(side < 0 || side > 3)
+    return;
+  if(windowIndex >= 0 && windowIndex < (int)m_mappings.size())
+  {
+    auto& m = m_mappings[windowIndex];
+    Gfx::EdgeBlend* sides[4]{&m.blendLeft, &m.blendRight, &m.blendTop, &m.blendBottom};
+    *sides[side] = {width, gamma};
+  }
   if(windowIndex < 0 || windowIndex >= (int)m_windowOutputs.size())
     return;
 
   auto& wo = m_windowOutputs[windowIndex];
-  EdgeBlendData* target{};
-  switch(side)
-  {
-    case 0: target = &wo.blendLeft; break;
-    case 1: target = &wo.blendRight; break;
-    case 2: target = &wo.blendTop; break;
-    case 3: target = &wo.blendBottom; break;
-    default: return;
-  }
-  target->width = width;
-  target->gamma = gamma;
+  EdgeBlendData* sides[4]{&wo.blendLeft, &wo.blendRight, &wo.blendTop, &wo.blendBottom};
+  *sides[side] = {width, gamma};
   updateCanvasSpec();
 }
 
 void MultiWindowNode::setCornerWarp(int windowIndex, const Gfx::CornerWarp& warp)
 {
+  if(windowIndex >= 0 && windowIndex < (int)m_mappings.size())
+    m_mappings[windowIndex].cornerWarp = warp;
   if(windowIndex >= 0 && windowIndex < (int)m_windowOutputs.size())
   {
     m_windowOutputs[windowIndex].cornerWarp = warp;
@@ -1212,6 +1316,13 @@ void MultiWindowNode::setCornerWarp(int windowIndex, const Gfx::CornerWarp& warp
 
 void MultiWindowNode::setTransform(int windowIndex, int rotation, bool mirrorX, bool mirrorY)
 {
+  if(windowIndex >= 0 && windowIndex < (int)m_mappings.size())
+  {
+    auto& m = m_mappings[windowIndex];
+    m.rotation = rotation;
+    m.mirrorX = mirrorX;
+    m.mirrorY = mirrorY;
+  }
   if(windowIndex >= 0 && windowIndex < (int)m_windowOutputs.size())
   {
     auto& wo = m_windowOutputs[windowIndex];
@@ -1223,22 +1334,125 @@ void MultiWindowNode::setTransform(int windowIndex, int rotation, bool mirrorX, 
 
 void MultiWindowNode::requestReadback(int windowIndex)
 {
+  if(!m_readbackSupport)
+  {
+    qWarning("MultiWindowNode: readback requested without setReadbackSupport(true)");
+    return;
+  }
   if(windowIndex >= 0 && windowIndex < (int)m_windowOutputs.size())
   {
     auto& wo = m_windowOutputs[windowIndex];
     wo.readback->data.clear();
     wo.readback->pixelSize = {};
-    wo.readbackRequested = true;
+    wo.readbackRequests++;
   }
 }
 
 void MultiWindowNode::setColor(int windowIndex, const Gfx::OutputColor& color)
 {
+  if(windowIndex >= 0 && windowIndex < (int)m_mappings.size())
+    m_mappings[windowIndex].color = color;
   if(windowIndex >= 0 && windowIndex < (int)m_windowOutputs.size())
   {
     m_windowOutputs[windowIndex].color = color;
     updateCanvasSpec();
   }
+}
+
+namespace
+{
+template <typename T>
+bool loaded(const T& v) noexcept
+{
+  return bool(v);
+}
+bool loaded(const std::array<std::shared_ptr<const FloatImage>, 3>& v) noexcept
+{
+  return bool(v[0]);
+}
+}
+
+void MultiWindowNode::loadMaps(int windowIndex, const Gfx::OutputMaps& maps)
+{
+  auto& wo = m_windowOutputs[windowIndex];
+  MapLoader loader;
+  loader.maxSize = m_renderState && m_renderState->rhi
+                       ? m_renderState->rhi->resourceLimit(QRhi::TextureSizeMax)
+                       : 16384;
+
+  enum Field
+  {
+    Warp,
+    Alpha,
+    Beta,
+    Lut,
+    Response,
+    Compensation
+  };
+  const QString* paths[6]{&maps.warp,     &maps.alpha,    &maps.beta,
+                          &maps.lut,      &maps.response, &maps.compensation};
+  static const char* const names[6]{"warp map", "alpha map", "beta map",
+                                    "LUT",      "response",  "compensation"};
+  std::array<QString, 6> stamps;
+  for(int k = 0; k < 6; k++)
+    stamps[k] = fileStamp(*paths[k]);
+
+  auto update = [&](int k, auto& field, auto&& load, bool force = false) -> bool {
+    using T = std::decay_t<decltype(field)>;
+    if(!force && stamps[k] == wo.mapStamps[k])
+      return false;
+    const QString& path = *paths[k];
+    if(path.isEmpty())
+    {
+      wo.mapStamps[k].clear();
+      const bool had = loaded(field);
+      field = T{};
+      return had;
+    }
+    QString err;
+    T v = load(path, err);
+    if(loaded(v))
+    {
+      field = std::move(v);
+      wo.mapStamps[k] = stamps[k];
+      return true;
+    }
+    qWarning() << "MultiWindowNode: cannot load the" << names[k] << path << err;
+    if(wo.mapStamps[k].startsWith(path + QLatin1Char('|')))
+      return false;
+    wo.mapStamps[k].clear();
+    const bool had = loaded(field);
+    field = T{};
+    return had;
+  };
+
+  auto image = [&](WarpMapKind kind) {
+    return [&loader, kind](const QString& p, QString& e) { return loader.map(p, kind, e); };
+  };
+  if(update(Warp, wo.warpMap, image(WarpMapKind::Map)))
+    wo.mapVersions[WarpSlot]++;
+  if(update(Alpha, wo.alphaMap, image(WarpMapKind::Alpha)))
+    wo.mapVersions[AlphaSlot]++;
+  if(update(Beta, wo.betaMap, image(WarpMapKind::Beta)))
+    wo.mapVersions[BetaSlot]++;
+  if(update(Lut, wo.lut, [](const QString& p, QString& e) { return MapLoader::lut(p, e); }))
+    wo.mapVersions[LutSlot]++;
+  if(update(Compensation, wo.compensationMaps, [&](const QString& p, QString& e) {
+       return loader.compensation(p, e);
+     }))
+  {
+    wo.mapVersions[Comp0Slot]++;
+    wo.mapVersions[Comp1Slot]++;
+    wo.mapVersions[Comp2Slot]++;
+  }
+  const bool withMixing = bool(wo.compensationMaps[0]);
+  const bool mixingChanged = withMixing != wo.responseWithMixing;
+  wo.responseWithMixing = withMixing;
+  if(update(
+         Response, wo.responseMap,
+         [&](const QString& p, QString& e) { return loader.response(p, withMixing, e); },
+         mixingChanged))
+    wo.mapVersions[ResponseSlot]++;
 }
 
 void MultiWindowNode::setMaps(int windowIndex, const Gfx::OutputMaps& maps)
@@ -1247,14 +1461,7 @@ void MultiWindowNode::setMaps(int windowIndex, const Gfx::OutputMaps& maps)
     m_mappings[windowIndex].maps = maps;
   if(windowIndex < 0 || windowIndex >= (int)m_windowOutputs.size())
     return;
-  auto& wo = m_windowOutputs[windowIndex];
-  wo.warpMap = loadOutputMap(maps.warp, WarpMapKind::Map);
-  wo.alphaMap = loadOutputMap(maps.alpha, WarpMapKind::Alpha);
-  wo.betaMap = loadOutputMap(maps.beta, WarpMapKind::Beta);
-  wo.lut = loadOutputLut(maps.lut);
-  wo.responseMap = loadOutputResponse(maps.response);
-  wo.compensationMaps = loadOutputCompensation(maps.compensation);
-  wo.mapsVersion++;
+  loadMaps(windowIndex, maps);
   updateCanvasSpec();
 }
 
@@ -1332,12 +1539,16 @@ std::pair<QRhiTexture::Format, bool> MultiWindowNode::canvasSpec() const noexcep
     precise = precise || calibrationActive(wo) || wo.warpMap;
     mips = mips || effectiveQuality(wo).sampling > 0;
   }
-  QRhiTexture::Format fmt = QRhiTexture::RGBA8;
-  if(m_swapchainFormat != Gfx::SwapchainFormat::SDR)
-    fmt = QRhiTexture::RGBA32F;
-  else if(precise)
-    fmt = QRhiTexture::RGBA16F;
-  return {fmt, mips};
+  const bool hdr = m_swapchainFormat != Gfx::SwapchainFormat::SDR;
+  return {hdr || precise ? QRhiTexture::RGBA16F : QRhiTexture::RGBA8, mips};
+}
+
+std::pair<QRhiTexture::Format, bool> MultiWindowNode::upgradedCanvas() const noexcept
+{
+  auto [fmt, mips] = canvasSpec();
+  if(m_renderState && canvasRank(m_renderState->renderFormat) >= canvasRank(fmt))
+    fmt = m_renderState->renderFormat;
+  return {fmt, mips || m_canvasMips};
 }
 
 void MultiWindowNode::updateCanvasSpec()
@@ -1345,7 +1556,7 @@ void MultiWindowNode::updateCanvasSpec()
   if(!m_renderState || m_canvasUpdateQueued || m_windowOutputs.empty()
      || !m_windowOutputs[0].window)
     return;
-  const auto [fmt, mips] = canvasSpec();
+  const auto [fmt, mips] = upgradedCanvas();
   if(fmt == m_renderState->renderFormat && mips == m_canvasMips)
     return;
   m_canvasUpdateQueued = true;
@@ -1355,7 +1566,7 @@ void MultiWindowNode::updateCanvasSpec()
     m_canvasUpdateQueued = false;
     if(!m_renderState)
       return;
-    const auto [fmt, mips] = canvasSpec();
+    const auto [fmt, mips] = upgradedCanvas();
     if(fmt == m_renderState->renderFormat && mips == m_canvasMips)
       return;
     releaseOwnedRenderList();
@@ -1624,7 +1835,6 @@ void MultiWindowNode::initWindowSwapChain(int index)
   // closed window is re-exposed.
   releaseWindowSwapChain(index);
 
-  auto& mapping = m_mappings[index];
   auto rhi = m_renderState->rhi;
 
   wo.swapChain = rhi->newSwapChain();
@@ -1639,8 +1849,9 @@ void MultiWindowNode::initWindowSwapChain(int index)
   wo.swapChain->setDepthStencil(wo.depthStencil);
   wo.swapChain->setSampleCount(m_renderState->samples);
 
-  QRhiSwapChain::Flags flags
-      = QRhiSwapChain::MinimalBufferCount | QRhiSwapChain::UsedAsTransferSource;
+  QRhiSwapChain::Flags flags = QRhiSwapChain::MinimalBufferCount;
+  if(m_readbackSupport)
+    flags |= QRhiSwapChain::UsedAsTransferSource;
   // With multi-window we drive rendering from the node's timer and don't
   // rely on swap-chain vsync. Keep NoVSync on every window so no single
   // swap chain blocks the others.
@@ -1664,11 +1875,6 @@ void MultiWindowNode::initWindowSwapChain(int index)
   }
   wo.swapChain->setRenderPassDescriptor(wo.renderPassDescriptor);
 
-  // Note: mapping-derived fields (sourceRect, blend*, cornerWarp,
-  // rotation, mirror*) are seeded once from `m_mappings[index]` in
-  // createOutput(). They are deliberately not touched here so that
-  // live parameter changes survive a close + re-expose cycle.
-  (void)mapping;
 
   wo.hasSwapChain = wo.swapChain->createOrResize();
   if(wo.hasSwapChain)
@@ -1758,9 +1964,6 @@ void MultiWindowNode::createOutput(score::gfx::OutputConfiguration conf)
   if(!m_renderState || !m_renderState->rhi)
     return;
 
-  m_renderState->renderFormat = (m_swapchainFormat != Gfx::SwapchainFormat::SDR)
-                                    ? QRhiTexture::RGBA32F
-                                    : QRhiTexture::RGBA8;
   m_renderState->outputSize = m_renderState->renderSize;
 
   // Stash onResize so per-window events (re-expose, close+reopen) can
@@ -1771,39 +1974,12 @@ void MultiWindowNode::createOutput(score::gfx::OutputConfiguration conf)
   //    for the upstream graph. This must exist BEFORE the render list is
   //    built because the renderer queries offscreenTarget() in its init.
   m_windowOutputs.resize(m_mappings.size());
-  for(std::size_t i = 0; i < m_mappings.size(); ++i)
-  {
-    auto& wo = m_windowOutputs[i];
-    const auto& mapping = m_mappings[i];
-    wo.blendLeft = {mapping.blendLeft.width, mapping.blendLeft.gamma};
-    wo.blendRight = {mapping.blendRight.width, mapping.blendRight.gamma};
-    wo.blendTop = {mapping.blendTop.width, mapping.blendTop.gamma};
-    wo.blendBottom = {mapping.blendBottom.width, mapping.blendBottom.gamma};
-    wo.cornerWarp = mapping.cornerWarp;
-    wo.color = mapping.color;
-    wo.quality = mapping.quality;
-    wo.lut = loadOutputLut(mapping.maps.lut);
-    wo.warpMap = loadOutputMap(mapping.maps.warp, WarpMapKind::Map);
-    wo.alphaMap = loadOutputMap(mapping.maps.alpha, WarpMapKind::Alpha);
-    wo.betaMap = loadOutputMap(mapping.maps.beta, WarpMapKind::Beta);
-    wo.responseMap = loadOutputResponse(mapping.maps.response);
-    wo.compensationMaps = loadOutputCompensation(mapping.maps.compensation);
-  }
-  std::tie(m_renderState->renderFormat, m_canvasMips) = canvasSpec();
-  recreateOffscreenTarget();
-
-  // 2. Create every window. Their swap chains will be created lazily
-  //    per-window in onWindowReady as each platform surface becomes
-  //    available — we no longer wait on window 0 to drive all of them.
   for(int i = 0; i < (int)m_mappings.size(); ++i)
   {
+    // Parameter callbacks mutate these afterwards and write through to
+    // m_mappings; initWindowSwapChain() never touches them.
     auto& wo = m_windowOutputs[i];
-    auto& mapping = m_mappings[i];
-
-    // Seed the live per-window state from the mapping exactly once.
-    // Parameter callbacks mutate these fields afterwards, and we want
-    // those mutations to survive a close+re-expose cycle, so
-    // initWindowSwapChain() never touches them.
+    const auto& mapping = m_mappings[i];
     wo.sourceRect = mapping.sourceRect;
     wo.blendLeft = {mapping.blendLeft.width, mapping.blendLeft.gamma};
     wo.blendRight = {mapping.blendRight.width, mapping.blendRight.gamma};
@@ -1815,7 +1991,19 @@ void MultiWindowNode::createOutput(score::gfx::OutputConfiguration conf)
     wo.mirrorY = mapping.mirrorY;
     wo.color = mapping.color;
     wo.quality = mapping.quality;
-    wo.mapsVersion++;
+    loadMaps(i, mapping.maps);
+  }
+  m_canvasUpdateQueued = false;
+  std::tie(m_renderState->renderFormat, m_canvasMips) = canvasSpec();
+  recreateOffscreenTarget();
+
+  // 2. Create every window. Their swap chains will be created lazily
+  //    per-window in onWindowReady as each platform surface becomes
+  //    available — we no longer wait on window 0 to drive all of them.
+  for(int i = 0; i < (int)m_mappings.size(); ++i)
+  {
+    auto& wo = m_windowOutputs[i];
+    auto& mapping = m_mappings[i];
 
     wo.window = std::make_shared<Window>(conf.graphicsApi);
     wo.window->setTitle(QString("Output %1").arg(i));
@@ -1894,6 +2082,7 @@ void MultiWindowNode::createOutput(score::gfx::OutputConfiguration conf)
 void MultiWindowNode::destroyOutput()
 {
   // Nothing to clean up if the rhi was never successfully created.
+  m_canvasUpdateQueued = false;
   if(!m_renderState || !m_renderState->rhi)
   {
     // Still release any windows that may have been created before init failed.

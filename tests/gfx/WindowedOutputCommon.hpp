@@ -464,6 +464,7 @@ struct MultiWindowRig
             .manualRenderingRate = 1000. / 60., .supportsVSync = false},
         mappings);
     node->nodeId = 2;
+    node->setReadbackSupport(true);
     node->onFps = [this](float f) { ++fpsCount; };
     node->onWindowsCreated = [this] { ++windowsCreatedCount; };
 

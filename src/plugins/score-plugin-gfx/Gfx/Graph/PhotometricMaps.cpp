@@ -34,9 +34,20 @@ QString stripSuffix(QString base, std::initializer_list<const char*> suffixes)
 
 ResponseTable parseCube1D(const QByteArray& bytes, QString* error)
 {
+  constexpr int maxSize = 65536;
   ResponseTable t;
   std::vector<float> v;
   float dmin[3]{0.f, 0.f, 0.f}, dmax[3]{1.f, 1.f, 1.f};
+  auto finite3 = [](const QList<QByteArray>& parts, float* out) {
+    bool ok = true;
+    for(int c = 0; c < 3; c++)
+    {
+      bool okc{};
+      out[c] = parts[c + 1].toFloat(&okc);
+      ok &= okc && std::isfinite(out[c]);
+    }
+    return ok;
+  };
   for(const QByteArray& raw : bytes.split('\n'))
   {
     const QByteArray line = raw.trimmed();
@@ -44,25 +55,56 @@ ResponseTable parseCube1D(const QByteArray& bytes, QString* error)
       continue;
     const auto parts = line.simplified().split(' ');
     if(parts[0] == "LUT_1D_SIZE" && parts.size() > 1)
+    {
       t.size = parts[1].toInt();
+      if(t.size < 2 || t.size > maxSize)
+      {
+        photoSetError(error, QStringLiteral("LUT_1D_SIZE out of range"));
+        return {};
+      }
+    }
     else if(parts[0] == "LUT_3D_SIZE")
     {
       photoSetError(error, QStringLiteral("a 3D .cube is not a response curve"));
       return {};
     }
-    else if(parts[0] == "DOMAIN_MIN" && parts.size() > 3)
-      for(int c = 0; c < 3; c++)
-        dmin[c] = parts[c + 1].toFloat();
-    else if(parts[0] == "DOMAIN_MAX" && parts.size() > 3)
-      for(int c = 0; c < 3; c++)
-        dmax[c] = parts[c + 1].toFloat();
+    else if(parts[0] == "LUT_1D_INPUT_RANGE" && parts.size() > 2)
+    {
+      bool ok0{}, ok1{};
+      const float lo = parts[1].toFloat(&ok0), hi = parts[2].toFloat(&ok1);
+      if(!ok0 || !ok1 || !std::isfinite(lo) || !std::isfinite(hi))
+      {
+        photoSetError(error, QStringLiteral("invalid LUT_1D_INPUT_RANGE"));
+        return {};
+      }
+      std::fill_n(dmin, 3, lo);
+      std::fill_n(dmax, 3, hi);
+    }
+    else if((parts[0] == "DOMAIN_MIN" || parts[0] == "DOMAIN_MAX") && parts.size() > 3)
+    {
+      if(!finite3(parts, parts[0] == "DOMAIN_MIN" ? dmin : dmax))
+      {
+        photoSetError(error, QStringLiteral("invalid %1").arg(QString::fromLatin1(parts[0])));
+        return {};
+      }
+    }
     else if(parts.size() == 3)
     {
       bool ok[3];
+      float f[3];
       for(int c = 0; c < 3; c++)
-        v.push_back(parts[c].toFloat(&ok[c]));
-      if(!ok[0] || !ok[1] || !ok[2])
-        v.resize(v.size() - 3);
+        f[c] = parts[c].toFloat(&ok[c]);
+      if(ok[0] && ok[1] && ok[2])
+      {
+        if(!std::isfinite(f[0]) || !std::isfinite(f[1]) || !std::isfinite(f[2]))
+        {
+          photoSetError(error, QStringLiteral("non-finite .cube entry"));
+          return {};
+        }
+        v.insert(v.end(), f, f + 3);
+        if(v.size() > std::size_t(maxSize) * 3)
+          break;
+      }
     }
   }
   if(t.size < 2 || v.size() != std::size_t(t.size) * 3)
@@ -70,6 +112,12 @@ ResponseTable parseCube1D(const QByteArray& bytes, QString* error)
     photoSetError(error, QStringLiteral("not a 1D .cube with LUT_1D_SIZE entries"));
     return {};
   }
+  for(int c = 0; c < 3; c++)
+    if(!(dmax[c] > dmin[c]))
+    {
+      photoSetError(error, QStringLiteral("empty .cube domain"));
+      return {};
+    }
   if(dmin[0] != 0.f || dmin[1] != 0.f || dmin[2] != 0.f || dmax[0] != 1.f || dmax[1] != 1.f
      || dmax[2] != 1.f)
   {
@@ -80,8 +128,8 @@ ResponseTable parseCube1D(const QByteArray& bytes, QString* error)
       for(int c = 0; c < 3; c++)
       {
         const float x = float(i) / float(r.size - 1);
-        const float f = std::clamp((x - dmin[c]) / std::max(1e-9f, dmax[c] - dmin[c]), 0.f, 1.f)
-                        * float(t.size - 1);
+        const float f
+            = std::clamp((x - dmin[c]) / (dmax[c] - dmin[c]), 0.f, 1.f) * float(t.size - 1);
         const int i0 = std::min(int(f), t.size - 2);
         const float a = f - i0;
         r.inverse[i * 3 + c] = v[i0 * 3 + c] * (1.f - a) + v[(i0 + 1) * 3 + c] * a;
@@ -120,9 +168,10 @@ ResponseTable loadResponseTable(const QString& path, QString* error)
     return {};
   }
   t.size = int(inv[0].toArray().size());
-  if(t.size < 2 || inv[1].toArray().size() != t.size || inv[2].toArray().size() != t.size)
+  if(t.size < 2 || t.size > 65536 || inv[1].toArray().size() != t.size
+     || inv[2].toArray().size() != t.size)
   {
-    photoSetError(error, QStringLiteral("the \"inverse\" arrays differ in size"));
+    photoSetError(error, QStringLiteral("the \"inverse\" arrays differ in size or exceed 65536"));
     return {};
   }
   t.inverse.resize(std::size_t(t.size) * 3);
@@ -132,19 +181,32 @@ ResponseTable loadResponseTable(const QString& path, QString* error)
     for(int i = 0; i < t.size; i++)
       t.inverse[std::size_t(i) * 3 + c] = float(a[i].toDouble());
   }
-  const auto mo = o["mixing"].toObject();
-  photometric::ColourMixing mix;
-  const auto axes = mo["axis"].toArray();
-  for(int c = 0; c < 3 && c < axes.size(); c++)
-    for(const auto& v : axes[c].toArray())
-      mix.axis[c].push_back(v.toDouble());
-  for(const auto& v : mo["shown"].toArray())
+  if(o.contains("mixing"))
   {
-    const auto a = v.toArray();
-    mix.shown.push_back({a[0].toDouble(), a[1].toDouble(), a[2].toDouble()});
+    const auto mo = o["mixing"].toObject();
+    const auto axes = mo["axis"].toArray();
+    const auto shown = mo["shown"].toArray();
+    const qsizetype N = axes.size() == 3 ? axes[0].toArray().size() : 0;
+    photometric::ColourMixing mix;
+    if(N >= 2 && N <= 17 && shown.size() == N * N * N)
+    {
+      for(int c = 0; c < 3; c++)
+        for(const auto& v : axes[c].toArray())
+          mix.axis[c].push_back(v.toDouble());
+      mix.shown.reserve(shown.size());
+      for(const auto& v : shown)
+      {
+        const auto a = v.toArray();
+        if(a.size() != 3)
+          break;
+        mix.shown.push_back({a[0].toDouble(), a[1].toDouble(), a[2].toDouble()});
+      }
+    }
+    if(mix.wellFormed())
+      t.mixing = photometric::MixingInverse::build(mix);
+    else
+      photoSetError(error, QStringLiteral("ignored an invalid \"mixing\" table"));
   }
-  if(mix.valid())
-    t.mixing = photometric::MixingInverse::build(mix);
   return t;
 }
 
@@ -236,9 +298,10 @@ bool writeProjectorResponse(const QString& base, const ProjectorResponseFile& r)
   o["inverse"] = inv;
 
   QFile f{base + QStringLiteral(".response.json")};
-  if(!f.open(QIODevice::WriteOnly | QIODevice::Truncate))
+  const QByteArray json = QJsonDocument(o).toJson();
+  if(!f.open(QIODevice::WriteOnly | QIODevice::Truncate) || f.write(json) != json.size()
+     || !f.flush())
     return false;
-  f.write(QJsonDocument(o).toJson());
   f.close();
 
   QFile cube{base + QStringLiteral(".response.cube")};
@@ -251,7 +314,8 @@ bool writeProjectorResponse(const QString& base, const ProjectorResponseFile& r)
   ts.setRealNumberPrecision(7);
   for(int i = 0; i < N; i++)
     ts << table[i][0] << ' ' << table[i][1] << ' ' << table[i][2] << '\n';
-  return true;
+  ts.flush();
+  return ts.status() == QTextStream::Ok && cube.flush();
 }
 
 bool writeCompensation(
@@ -306,10 +370,9 @@ bool writeCompensation(
   if(info.mixing)
     o["mixing"] = true;
   QFile f{base + QStringLiteral(".comp.json")};
-  if(!f.open(QIODevice::WriteOnly | QIODevice::Truncate))
-    return false;
-  f.write(QJsonDocument(o).toJson());
-  return true;
+  const QByteArray json = QJsonDocument(o).toJson();
+  return f.open(QIODevice::WriteOnly | QIODevice::Truncate) && f.write(json) == json.size()
+         && f.flush();
 }
 
 CompensationMaps loadCompensation(const QString& path, QString* error)

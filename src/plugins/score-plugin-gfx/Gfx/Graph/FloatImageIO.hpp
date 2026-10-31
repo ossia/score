@@ -6,6 +6,8 @@
 
 #include <vector>
 
+class QImage;
+
 namespace score::gfx
 {
 
@@ -60,4 +62,8 @@ bool writeFloatImageSplit(
 
 SCORE_PLUGIN_GFX_EXPORT
 FloatImage toRGBA(const FloatImage& img);
+
+//! Any QImage as RGBA32F, normalised to [0, 1].
+SCORE_PLUGIN_GFX_EXPORT
+FloatImage toFloatImageRGBA(const QImage& img);
 }

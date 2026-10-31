@@ -487,12 +487,15 @@ struct GfxRenderer<Node_T> final
           || avnd::cpu_buffer_input_introspection<Node_T>::size > 0
           || avnd::geometry_input_introspection<Node_T>::size > 0)
       {
-        // FIXME: for geometry, here we should optimize if we know we aren't going to need them on the CPU, OR if it is a type ?
-        // Insert a synchronisation point to allow readbacks to complete
+        // FIXME: buffer and geometry inputs always sync, even when not needed on the CPU
         bool needFinish = true;
         if constexpr(
             avnd::buffer_input_introspection<Node_T>::size == 0
-            && avnd::geometry_input_introspection<Node_T>::size == 0)
+            && avnd::geometry_input_introspection<Node_T>::size == 0
+            && !requires {
+                 state->inputAboutToFinish(
+                     renderer, std::declval<const score::gfx::Port&>(), res);
+               } && !requires { state->runInitialPasses(renderer, commands, res, edge); })
           needFinish = texture_ins.takeReadbackQueued();
         if(needFinish)
           rhi.finish();

@@ -1,6 +1,8 @@
 #pragma once
 #include <score/plugins/settingsdelegate/SettingsDelegateView.hpp>
 
+#include <score_plugin_gfx_export.h>
+
 #include <verdigris>
 
 namespace score
@@ -9,7 +11,7 @@ class FormWidget;
 }
 namespace Gfx::Settings
 {
-class View : public score::GlobalSettingsView
+class SCORE_PLUGIN_GFX_EXPORT View : public score::GlobalSettingsView
 {
   W_OBJECT(View)
 public:
@@ -26,7 +28,9 @@ public:
 
 private:
   QWidget* getWidget() override;
+  void populateGpus();
   score::FormWidget* m_widg{};
+  bool m_gpusPopulated{};
 };
 
 }

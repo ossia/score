@@ -3,7 +3,7 @@
 // map interpolation and mip / anisotropic sampling of the canvas, plus the
 // CPU-side pieces (Cube parser, void-and-cluster matrix, settings round trip).
 
-#include "WindowedOutputCommon.hpp"
+#include "MultiWindowTestCommon.hpp"
 
 #include <Gfx/Graph/FloatImageIO.hpp>
 #include <Gfx/Graph/OutputQuality.hpp>
@@ -15,6 +15,7 @@
 #include <QTemporaryDir>
 
 #include <catch2/catch_test_macros.hpp>
+#include <catch2/generators/catch_generators.hpp>
 #include <catch2/generators/catch_generators_range.hpp>
 
 #include <cmath>
@@ -23,89 +24,10 @@
 using namespace score::test;
 using namespace score::test::gfx;
 
+using namespace score::test::gfx::multiwindow;
+
 namespace
 {
-struct Frame
-{
-  int width{}, height{};
-  bool bgra{};
-  QByteArray data;
-
-  std::array<int, 3> px(int x, int y) const
-  {
-    const auto* p = reinterpret_cast<const uint8_t*>(data.constData()) + (y * width + x) * 4;
-    if(bgra)
-      return {p[2], p[1], p[0]};
-    return {p[0], p[1], p[2]};
-  }
-  std::array<int, 3> at(double fx, double fy) const
-  {
-    return px(std::clamp(int(fx * width), 0, width - 1),
-              std::clamp(int(fy * height), 0, height - 1));
-  }
-};
-
-struct Outcome
-{
-  bool skipped{};
-  std::string skipReason;
-  std::string error;
-  std::string backend;
-};
-
-Gfx::OutputMapping single()
-{
-  Gfx::OutputMapping m;
-  m.windowPosition = {20, 40};
-  m.windowSize = {128, 64};
-  return m;
-}
-
-bool grab(MultiWindowRig& rig, Frame& out)
-{
-  rig.render(3);
-  rig.node->requestReadback(0);
-  const auto& rb = rig.node->windowOutputs()[0].readback;
-  for(int i = 0; i < 30 && rb->data.isEmpty(); i++)
-    rig.render(1);
-  if(rb->data.isEmpty())
-    return false;
-  out.width = rb->pixelSize.width();
-  out.height = rb->pixelSize.height();
-  out.bgra = rb->format == QRhiTexture::BGRA8;
-  out.data = rb->data;
-  return out.data.size() >= out.width * out.height * 4;
-}
-
-template <typename F>
-Outcome runRig(
-    score::gfx::GraphicsApi api, Gfx::OutputMapping mapping, F&& body,
-    const QString& shader = QStringLiteral(GFX_TEST_CORPUS_DIR "/isf-gradient-x.fs"))
-{
-  Outcome o;
-  run_in_gui_app([&](const score::GUIApplicationContext&) {
-    MultiWindowRig rig;
-    if(!rig.build(api, {mapping}, shader))
-    {
-      o = {rig.skipped(), rig.skipReason(), rig.error(), rig.backend()};
-      return;
-    }
-    o.backend = rig.backend();
-    body(rig, o);
-  });
-  return o;
-}
-
-void writeGrey(const QString& path, int w, int h, float v)
-{
-  score::gfx::FloatImage img;
-  img.width = w;
-  img.height = h;
-  img.channels = 1;
-  img.data.assign(std::size_t(w) * h, v);
-  REQUIRE(score::gfx::writePFM(path, img));
-}
-
 //! A UV warp map of W x H texels: u' = f((x + 0.5) / W), v' = v.
 void writeWarp(const QString& base, int W, int H, float (*f)(float))
 {
@@ -159,59 +81,33 @@ TEST_CASE("Cube LUT files parse as the Adobe 1.0 specification", "[gfx][calibrat
 
 TEST_CASE("the void-and-cluster matrix is a blue-noise permutation", "[gfx][calibration][dither]")
 {
-  const auto& n = score::gfx::blueNoise(64);
-  REQUIRE(n.size() == 64 * 64);
+  // 64 is the built-in table, 32 runs the generator.
+  const int size = GENERATE(64, 32);
+  INFO("size " << size);
+  const int N = size * size;
+  const auto& n = score::gfx::blueNoise(size);
+  REQUIRE(int(n.size()) == N);
   std::set<int> ranks;
   for(float v : n)
-    ranks.insert(int(std::floor(v * 4096.f)));
-  CHECK(ranks.size() == 4096);
+    ranks.insert(int(std::floor(v * float(N))));
+  CHECK(int(ranks.size()) == N);
 
   // Low-pass content: 8x8 block averages stay closer to 0.5 than white noise's
   // (standard deviation sqrt(1/12/64) = 0.036).
+  const int blocks = size / 8;
   double sq = 0.;
-  for(int by = 0; by < 8; by++)
-    for(int bx = 0; bx < 8; bx++)
+  for(int by = 0; by < blocks; by++)
+    for(int bx = 0; bx < blocks; bx++)
     {
       double s = 0.;
       for(int y = 0; y < 8; y++)
         for(int x = 0; x < 8; x++)
-          s += n[(by * 8 + y) * 64 + bx * 8 + x];
+          s += n[(by * 8 + y) * size + bx * 8 + x];
       sq += (s / 64. - 0.5) * (s / 64. - 0.5);
     }
-  const double rms = std::sqrt(sq / 64.);
+  const double rms = std::sqrt(sq / (blocks * blocks));
   INFO("8x8 block mean rms " << rms << ", white noise " << std::sqrt(1. / 12. / 64.));
   CHECK(rms < 0.5 * std::sqrt(1. / 12. / 64.));
-}
-
-TEST_CASE("OutputMapping quality fields round-trip", "[gfx][window][calibration]")
-{
-  Gfx::OutputMapping m;
-  m.maps.lut = "/x/y.cube";
-  m.quality.sampling = Gfx::OutputSampling::Mipmapped;
-  m.quality.warpInterpolation = Gfx::WarpInterpolation::Bilinear;
-  m.quality.dither = Gfx::OutputDither::Off;
-  m.quality.maxAnisotropy = 4;
-
-  run_in_gui_app([&](const score::GUIApplicationContext&) {
-    JSONReader r;
-    r.readFrom(m);
-    const auto j = fromJson<Gfx::OutputMapping>(r.toByteArray());
-    CHECK(j.maps.lut == m.maps.lut);
-    CHECK(j.quality.sampling == m.quality.sampling);
-    CHECK(j.quality.warpInterpolation == m.quality.warpInterpolation);
-    CHECK(j.quality.dither == m.quality.dither);
-    CHECK(j.quality.maxAnisotropy == 4);
-
-    const auto d
-        = DataStreamWriter::unmarshall<Gfx::OutputMapping>(DataStreamReader::marshall(m));
-    CHECK(d.maps.lut == m.maps.lut);
-    CHECK(d.quality.sampling == m.quality.sampling);
-    CHECK(d.quality.dither == m.quality.dither);
-
-    JSONReader r2;
-    r2.readFrom(Gfx::OutputMapping{});
-    CHECK(!r2.toByteArray().contains("Quality"));
-  });
 }
 
 TEST_CASE("multi-window colour LUT", "[gfx][window][multiwindow][calibration][lut]")

@@ -2001,8 +2001,8 @@ struct texture_inputs_storage<T>
     }
   }
 
-  //! False only when every CPU texture input asked not to be read back since
-  //! the last call (request_readback), so the frame needs no QRhi::finish.
+  //! False when a request_readback input was seen and no CPU texture input
+  //! queued a readback since the last call (declined or not wired).
   bool takeReadbackQueued() noexcept
   {
     return std::exchange(m_readbackQueued, !m_readbackGated);

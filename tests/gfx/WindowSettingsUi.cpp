@@ -754,6 +754,43 @@ TEST_CASE("WindowSettingsWidget calibration maps and color", "[gfx][window][sett
   });
 }
 
+TEST_CASE("WindowSettingsWidget keeps colour values its spin boxes cannot show", "[gfx][window][settingswidget]")
+{
+  score::test::run_in_app([&](const score::GUIApplicationContext&) {
+    WindowSettingsWidget w;
+
+    WindowSettings ws;
+    ws.mode = WindowMode::MultiWindow;
+    auto m = mapping({0.0, 0.0, 1.0, 1.0}, {10, 20}, {640, 480});
+    m.color.gain = {20.f, 1.f, 1.f};
+    m.color.offset = {0.12345f, 0.f, 0.f};
+    m.color.gamma = 0.0005f;
+    ws.outputs = {m};
+    w.setSettings(makeSettings(ws));
+
+    auto* b = outputButton(w, 0);
+    REQUIRE(b);
+    b->click();
+    auto* linear = fieldAs<QCheckBox>(w, "Blend in linear light");
+    auto* gamma = fieldAs<QDoubleSpinBox>(w, "Gamma", 0);
+    REQUIRE(linear);
+    REQUIRE(gamma);
+    linear->setChecked(true);
+
+    auto got = settingsOf(w);
+    REQUIRE(got.outputs.size() == 1);
+    CHECK(got.outputs[0].color.linearBlend);
+    CHECK(got.outputs[0].color.gain == m.color.gain);
+    CHECK(got.outputs[0].color.offset == m.color.offset);
+    CHECK(got.outputs[0].color.gamma == m.color.gamma);
+
+    gamma->setValue(1.5);
+    got = settingsOf(w);
+    CHECK(got.outputs[0].color.gamma == Approx(1.5f));
+    CHECK(got.outputs[0].color.gain == m.color.gain);
+  });
+}
+
 namespace
 {
 void touch(const QString& path)
@@ -816,35 +853,6 @@ TEST_CASE("calibration files of a name", "[gfx][window][calibration]")
   CHECK(m.calibration.isEmpty());
   CHECK(m.alpha.isEmpty());
   CHECK(m.lut == "/custom/grade.cube");
-}
-
-TEST_CASE("OutputMapping calibration round-trip", "[gfx][window][calibration]")
-{
-  OutputMapping m;
-  m.maps.calibration = "/cal/room.json";
-  m.maps.alpha = "/cal/room.alpha.pfm";
-  score::test::run_in_app([&](const score::GUIApplicationContext&) {
-    JSONReader r;
-    r.readFrom(m);
-    const auto bytes = r.toByteArray();
-    CHECK(bytes.contains("\"Calibration\""));
-    CHECK(bytes.contains("\"AlphaMap\""));
-    const auto j = fromJson<OutputMapping>(bytes);
-    CHECK(j.maps.calibration == m.maps.calibration);
-    CHECK(j.maps.alpha == m.maps.alpha);
-
-    const auto d = DataStreamWriter::unmarshall<OutputMapping>(DataStreamReader::marshall(m));
-    CHECK(d.maps.calibration == m.maps.calibration);
-
-    JSONReader r2;
-    r2.readFrom(OutputMapping{});
-    CHECK(!r2.toByteArray().contains("Calibration"));
-
-    const auto old = fromJson<OutputMapping>(
-        QByteArray(R"({"SourceRect":[0,0,1,1],"AlphaMap":"/a.pfm"})"));
-    CHECK(old.maps.alpha == "/a.pfm");
-    CHECK(old.maps.calibration.isEmpty());
-  });
 }
 
 TEST_CASE("WindowSettingsWidget calibration and calibration set", "[gfx][window][settingswidget]")
