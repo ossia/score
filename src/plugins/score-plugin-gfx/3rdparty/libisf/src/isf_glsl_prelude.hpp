@@ -225,6 +225,10 @@ vec4 isf_unpremultiply(vec4 c) { return c.a > 0.0 ? vec4(c.rgb / c.a, c.a) : vec
 #define IMG_TEXEL(tex, coord) IMG_TEXEL_PREMULTIPLIED(tex, coord)
 #define ISF_STRAIGHT_TEXEL(tex, coord) isf_unpremultiply(IMG_TEXEL_PREMULTIPLIED(tex, coord))
 #define IMG_CUBE(tex, dir) texture(tex, dir)
+#define IMG_NORM_PIXEL_LOD_PREMULTIPLIED(tex, coord, lod) textureLod(tex, ISF_FIXUP_COMPUTE_TEXCOORD(coord), lod)
+#define IMG_NORM_PIXEL_LOD(tex, coord, lod) IMG_NORM_PIXEL_LOD_PREMULTIPLIED(tex, coord, lod)
+#define ISF_STRAIGHT_NORM_PIXEL_LOD(tex, coord, lod) isf_unpremultiply(IMG_NORM_PIXEL_LOD_PREMULTIPLIED(tex, coord, lod))
+#define IMG_CUBE_LOD(tex, dir, lod) textureLod(tex, dir, lod)
 )_";
 
   static constexpr auto defaultFunctions =

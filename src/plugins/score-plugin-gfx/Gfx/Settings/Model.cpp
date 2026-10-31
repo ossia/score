@@ -9,6 +9,8 @@
 #include <Gfx/Graph/VulkanVideoDevice.hpp>
 
 #include <QDebug>
+#include <string_view>
+#include <vector>
 #include <QGuiApplication>
 #include <QOpenGLContext>
 #include <QPlatformSurfaceEvent>
@@ -62,11 +64,13 @@ SETTINGS_PARAMETER_IMPL(DecodingThreads){
     QStringLiteral("score_plugin_gfx/VideoDecodingThreads"), 0};
 SETTINGS_PARAMETER_IMPL(VSync){QStringLiteral("score_plugin_gfx/VSync"), true};
 SETTINGS_PARAMETER_IMPL(Buffers){QStringLiteral("score_plugin_gfx/Buffers"), 3};
+SETTINGS_PARAMETER_IMPL(GpuIndex){QStringLiteral("score_plugin_gfx/GpuIndex"), -1};
 
 static auto list()
 {
   return std::tie(
-      GraphicsApi, HardwareDecode, DecodingThreads, Samples, Rate, VSync, Buffers);
+      GraphicsApi, HardwareDecode, DecodingThreads, Samples, Rate, VSync, Buffers,
+      GpuIndex);
 }
 }
 
@@ -302,6 +306,85 @@ Model::Model(
 
   // Runs before afterStartup(), where --ui creates its windows.
   install_qtquick_device_extensions();
+
+  applyGpuIndex(m_GpuIndex);
+  ::bind(*this, Gfx::Settings::Model::p_GpuIndex{}, this, [](int index) {
+    applyGpuIndex(index);
+  });
+}
+
+void applyGpuIndex(int index) noexcept
+{
+  static const bool vkFromEnv = qEnvironmentVariableIsSet("QT_VK_PHYSICAL_DEVICE_INDEX");
+  static const bool d3dFromEnv = qEnvironmentVariableIsSet("QT_D3D_ADAPTER_INDEX");
+  const QByteArray value = QByteArray::number(index);
+  if(!vkFromEnv)
+  {
+    if(index >= 0)
+      qputenv("QT_VK_PHYSICAL_DEVICE_INDEX", value);
+    else
+      qunsetenv("QT_VK_PHYSICAL_DEVICE_INDEX");
+  }
+  if(!d3dFromEnv)
+  {
+    if(index >= 0)
+      qputenv("QT_D3D_ADAPTER_INDEX", value);
+    else
+      qunsetenv("QT_D3D_ADAPTER_INDEX");
+  }
+}
+
+std::vector<GpuDescription> availableVulkanGpus()
+{
+  std::vector<GpuDescription> res;
+#if QT_HAS_VULKAN
+  auto* inst = score::gfx::staticVulkanInstance();
+  if(!inst || !inst->isValid())
+    return res;
+  auto* f = inst->functions();
+  uint32_t count = 0;
+  if(f->vkEnumeratePhysicalDevices(inst->vkInstance(), &count, nullptr) != VK_SUCCESS)
+    return res;
+  std::vector<VkPhysicalDevice> devs(count);
+  f->vkEnumeratePhysicalDevices(inst->vkInstance(), &count, devs.data());
+  for(uint32_t i = 0; i < count; i++)
+  {
+    VkPhysicalDeviceProperties props{};
+    f->vkGetPhysicalDeviceProperties(devs[i], &props);
+    QString type;
+    switch(props.deviceType)
+    {
+      case VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU:
+        type = QStringLiteral("integrated");
+        break;
+      case VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU:
+        type = QStringLiteral("discrete");
+        break;
+      case VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU:
+        type = QStringLiteral("virtual");
+        break;
+      case VK_PHYSICAL_DEVICE_TYPE_CPU:
+        type = QStringLiteral("cpu");
+        break;
+      default:
+        break;
+    }
+    bool presentBarrier = false;
+    uint32_t extCount = 0;
+    if(f->vkEnumerateDeviceExtensionProperties(devs[i], nullptr, &extCount, nullptr)
+       == VK_SUCCESS)
+    {
+      std::vector<VkExtensionProperties> exts(extCount);
+      f->vkEnumerateDeviceExtensionProperties(devs[i], nullptr, &extCount, exts.data());
+      for(const auto& e : exts)
+        if(std::string_view{e.extensionName} == "VK_NV_present_barrier")
+          presentBarrier = true;
+    }
+    res.push_back(
+        {int(i), QString::fromUtf8(props.deviceName), type, presentBarrier});
+  }
+#endif
+  return res;
 }
 
 int Model::resolveSamples(score::gfx::GraphicsApi api) const noexcept
@@ -489,4 +572,5 @@ SCORE_SETTINGS_PARAMETER_CPP(int, Model, Samples)
 SCORE_SETTINGS_PARAMETER_CPP(int, Model, DecodingThreads)
 SCORE_SETTINGS_PARAMETER_CPP(bool, Model, VSync)
 SCORE_SETTINGS_PARAMETER_CPP(int, Model, Buffers)
+SCORE_SETTINGS_PARAMETER_CPP(int, Model, GpuIndex)
 }

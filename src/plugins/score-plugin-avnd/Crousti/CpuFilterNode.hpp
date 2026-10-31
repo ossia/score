@@ -489,7 +489,13 @@ struct GfxRenderer<Node_T> final
       {
         // FIXME: for geometry, here we should optimize if we know we aren't going to need them on the CPU, OR if it is a type ?
         // Insert a synchronisation point to allow readbacks to complete
-        rhi.finish();
+        bool needFinish = true;
+        if constexpr(
+            avnd::buffer_input_introspection<Node_T>::size == 0
+            && avnd::geometry_input_introspection<Node_T>::size == 0)
+          needFinish = texture_ins.takeReadbackQueued();
+        if(needFinish)
+          rhi.finish();
       }
 
       if constexpr(avnd::texture_input_introspection<Node_T>::size > 0)

@@ -1961,11 +1961,20 @@ struct texture_inputs_storage<T>
       avnd::texture_input_introspection<T>::for_all_n2(
           avnd::get_inputs<T>(*self.state),
           [&]<typename F, std::size_t K, std::size_t N>(
-              F&, avnd::predicate_index<K>, avnd::field_index<N>) {
+              F& field, avnd::predicate_index<K>, avnd::field_index<N>) {
         if constexpr(avnd::cpu_texture_port<F>)
         {
           if(N >= inputs.size() || inputs[N] != &p)
             return;
+          if constexpr(requires { bool(field.request_readback); })
+          {
+            m_readbackGated = true;
+            if(!field.request_readback)
+            {
+              m_readbacks[K] = {};
+              return;
+            }
+          }
           auto rt_it = m_rts.find(&p);
           if(rt_it == m_rts.end())
             return;
@@ -1986,10 +1995,20 @@ struct texture_inputs_storage<T>
           readback = {};
           m_readbackPremultiplied[K] = tex == rt_it->second.texture;
           res->readBackTexture(QRhiReadbackDescription{tex}, &readback);
+          m_readbackQueued = true;
         }
       });
     }
   }
+
+  //! False only when every CPU texture input asked not to be read back since
+  //! the last call (request_readback), so the frame needs no QRhi::finish.
+  bool takeReadbackQueued() noexcept
+  {
+    return std::exchange(m_readbackQueued, !m_readbackGated);
+  }
+  bool m_readbackQueued{true};
+  bool m_readbackGated{};
 
 };
 template<typename T>
@@ -1998,6 +2017,7 @@ struct texture_inputs_storage<T>
 {
   static void init(auto&&...) { }
   static void runInitialPasses(auto&&...) { }
+  static bool takeReadbackQueued() noexcept { return true; }
   static void release(auto&&...) { }
   static void inputAboutToFinish(auto&&...) { }
 };

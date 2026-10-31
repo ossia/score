@@ -1,9 +1,12 @@
 #include <Gfx/Graph/MultiWindowNode.hpp>
+#include <Gfx/Graph/PhotometricMaps.hpp>
+#include <Gfx/Graph/WarpImport.hpp>
 #include <Gfx/Graph/RhiIndirectCompat.hpp>
 #include <Gfx/Graph/PipelineStateHelpers.hpp>
 
 #include <algorithm>
 #include <cmath>
+#include <tuple>
 
 #include <Gfx/Graph/NodeRenderer.hpp>
 #include <Gfx/Graph/RenderList.hpp>
@@ -14,6 +17,7 @@
 #include <score/application/GUIApplicationContext.hpp>
 #include <score/gfx/OpenGL.hpp>
 
+#include <QFloat16>
 #include <QGuiApplication>
 #include <QScreen>
 
@@ -99,6 +103,122 @@ static std::array<float, 12> computeHomographyUBO(const Gfx::CornerWarp& warp)
   };
 }
 
+static std::shared_ptr<const FloatImage>
+loadOutputMap(const QString& path, WarpMapKind kind)
+{
+  if(path.isEmpty())
+    return {};
+  QString err;
+  auto img = loadWarpMap(path, kind, &err);
+  if(!img.valid())
+  {
+    qWarning() << "MultiWindowNode: cannot load" << path << err;
+    return {};
+  }
+  return std::make_shared<const FloatImage>(std::move(img));
+}
+
+static std::shared_ptr<const FloatImage> loadOutputResponse(const QString& path)
+{
+  if(path.isEmpty())
+    return {};
+  QString err;
+  const auto t = loadResponseTable(path, &err);
+  if(!t.valid())
+  {
+    qWarning() << "MultiWindowNode: cannot load response" << path << err;
+    return {};
+  }
+  FloatImage img;
+  img.width = t.size;
+  const auto& mx = t.mixing;
+  const int K = mx.valid() ? mx.K : 0;
+  img.width = K ? K * K : t.size;
+  img.height = 1 + K;
+  img.channels = 4;
+  img.data.assign(std::size_t(img.width) * img.height * 4, 1.f);
+  for(int i = 0; i < img.width; i++)
+  {
+    const double f = double(i) / (img.width - 1) * (t.size - 1);
+    const int i0 = std::min(int(f), t.size - 2);
+    const double a = f - i0;
+    for(int c = 0; c < 3; c++)
+      img.data[i * 4 + c]
+          = float(t.inverse[i0 * 3 + c] * (1. - a) + t.inverse[(i0 + 1) * 3 + c] * a);
+  }
+  if(K)
+    img.data[3] = float(mx.D);
+  for(int b = 0; b < K; b++)
+    for(int g = 0; g < K; g++)
+      for(int r = 0; r < K; r++)
+      {
+        const float* src = mx.l.data() + ((std::size_t(b) * K + g) * K + r) * 3;
+        float* dst = img.data.data() + ((std::size_t(1 + g) * img.width) + b * K + r) * 4;
+        for(int c = 0; c < 3; c++)
+          dst[c] = src[c];
+      }
+  return std::make_shared<const FloatImage>(std::move(img));
+}
+
+static std::array<std::shared_ptr<const FloatImage>, 3>
+loadOutputCompensation(const QString& path)
+{
+  if(path.isEmpty())
+    return {};
+  QString err;
+  auto m = loadCompensation(path, &err);
+  if(!m.valid())
+  {
+    qWarning() << "MultiWindowNode: cannot load compensation" << path << err;
+    return {};
+  }
+  auto all = std::make_shared<const CompensationMaps>(std::move(m));
+  return {
+      std::shared_ptr<const FloatImage>(all, &all->rows[0]),
+      std::shared_ptr<const FloatImage>(all, &all->rows[1]),
+      std::shared_ptr<const FloatImage>(all, &all->rows[2])};
+}
+
+static std::shared_ptr<const CubeLut> loadOutputLut(const QString& path)
+{
+  if(path.isEmpty())
+    return {};
+  QString err;
+  auto lut = loadCubeLut(path, &err);
+  if(!lut.valid())
+  {
+    qWarning() << "MultiWindowNode: cannot load LUT" << path << err;
+    return {};
+  }
+  return std::make_shared<const CubeLut>(std::move(lut));
+}
+
+static bool calibrationActive(const MultiWindowNode::WindowOutput& wo) noexcept
+{
+  return wo.blendLeft.width > 0.f || wo.blendRight.width > 0.f || wo.blendTop.width > 0.f
+         || wo.blendBottom.width > 0.f || wo.alphaMap || wo.betaMap || wo.lut
+         || wo.responseMap || wo.compensationMaps[0] || !wo.color.isIdentity();
+}
+
+static constexpr int blueNoiseSize = 64;
+
+static std::array<const std::shared_ptr<const FloatImage>*, 7>
+outputMaps(const MultiWindowNode::WindowOutput& wo) noexcept
+{
+  return {&wo.warpMap,           &wo.alphaMap,          &wo.betaMap,
+          &wo.responseMap,       &wo.compensationMaps[0], &wo.compensationMaps[1],
+          &wo.compensationMaps[2]};
+}
+
+std::array<float, 12> packOutputColorUBO(
+    const Gfx::OutputColor& c, bool warpMap, bool alphaMap, bool betaMap) noexcept
+{
+  return {
+      c.gain[0],   c.gain[1],   c.gain[2],   c.gamma,
+      c.offset[0], c.offset[1], c.offset[2], c.linearBlend ? 1.f : 0.f,
+      warpMap ? 1.f : 0.f, alphaMap ? 1.f : 0.f, betaMap ? 1.f : 0.f, 0.f};
+}
+
 // --- MultiWindowRenderer ---
 // Renders the input texture's sub-regions to multiple swap chains.
 
@@ -114,6 +234,16 @@ public:
     QRhiBuffer* uvRectUBO{};
     QRhiBuffer* blendUBO{};
     QRhiBuffer* warpUBO{};
+    QRhiBuffer* colorUBO{};
+    QRhiSampler* mapSampler{};
+    std::array<QRhiTexture*, 7> mapTextures{};
+    int uploadedMapsVersion{-1};
+    QRhiBuffer* qualityUBO{};
+    QRhiTexture* lutTexture{};
+    QRhiSampler* lutSampler{};
+    QRhiTexture* noiseTexture{};
+    QRhiSampler* noiseSampler{};
+    bool noiseUploaded{};
     std::array<score::gfx::Sampler, 1> samplers{};
     QRhiShaderResourceBindings* srb{};
     QRectF sourceRect{0, 0, 1, 1};
@@ -122,6 +252,7 @@ public:
 
   const MultiWindowNode& m_multiNode;
   bool m_initialized{false};
+  uint32_t m_frame{};
 
   explicit MultiWindowRenderer(
       const MultiWindowNode& node, const score::gfx::RenderState& state)
@@ -176,13 +307,175 @@ public:
           float mirrorY;      // 0.0 or 1.0
       };
 
+      layout(std140, binding = 6) uniform ColorParams {
+          vec4 colorGain;   // rgb gain, w = gamma
+          vec4 colorOffset; // rgb offset, w = blend in linear light
+          vec4 mapFlags;    // x = warp map, y = alpha map, z = beta map, w = compensation
+      };
+
+      layout(binding = 7) uniform sampler2D warpMap;
+      layout(binding = 8) uniform sampler2D alphaMap;
+      layout(binding = 9) uniform sampler2D betaMap;
+      layout(binding = 10) uniform sampler3D lut;
+      layout(binding = 11) uniform sampler2D blueNoise;
+      layout(binding = 13) uniform sampler2D responseMap;
+      layout(binding = 14) uniform sampler2D compMap0;
+      layout(binding = 15) uniform sampler2D compMap1;
+      layout(binding = 16) uniform sampler2D compMap2;
+
+      layout(std140, binding = 12) uniform QualityParams {
+          vec4 quality;  // x = sampling (0 linear, 1 trilinear, 2 anisotropic), y = max taps, z = bicubic warp, w = dither levels
+          vec4 quality2; // x = transfer (0 gamma 2.2, 1 linear, 2 PQ), y = LUT on, z = frame, w = measured response
+          vec4 lutMin;
+          vec4 lutMax;
+      };
+
+      vec3 warpTexel(ivec2 p, ivec2 size)
+      {
+          vec4 m = texelFetch(warpMap, clamp(p, ivec2(0), size - 1), 0);
+          return vec3(m.xy, m.w > 0.5 ? 1.0 : 0.0);
+      }
+
+      // xy = source UV, z = 1 when valid.
+      vec3 sampleWarp(vec2 uv)
+      {
+          ivec2 size = textureSize(warpMap, 0);
+          vec2 f = uv * vec2(size) - 0.5;
+          vec2 fl = floor(f);
+          vec2 t = f - fl;
+          ivec2 b = ivec2(fl);
+          if(quality.z > 0.5)
+          {
+              vec2 w0 = t * (-0.5 + t * (1.0 - 0.5 * t));
+              vec2 w1 = 1.0 + t * t * (-2.5 + 1.5 * t);
+              vec2 w2 = t * (0.5 + t * (2.0 - 1.5 * t));
+              vec2 w3 = t * t * (-0.5 + 0.5 * t);
+              float wx[4] = float[4](w0.x, w1.x, w2.x, w3.x);
+              float wy[4] = float[4](w0.y, w1.y, w2.y, w3.y);
+              vec2 acc = vec2(0.0);
+              float valid = 0.0;
+              for(int j = 0; j < 4; j++)
+                  for(int i = 0; i < 4; i++)
+                  {
+                      vec3 s = warpTexel(b + ivec2(i - 1, j - 1), size);
+                      acc += wx[i] * wy[j] * s.xy;
+                      valid += s.z;
+                  }
+              if(valid > 15.5)
+                  return vec3(acc, 1.0);
+          }
+          vec3 s00 = warpTexel(b, size);
+          vec3 s10 = warpTexel(b + ivec2(1, 0), size);
+          vec3 s01 = warpTexel(b + ivec2(0, 1), size);
+          vec3 s11 = warpTexel(b + ivec2(1, 1), size);
+          float w00 = (1.0 - t.x) * (1.0 - t.y) * s00.z;
+          float w10 = t.x * (1.0 - t.y) * s10.z;
+          float w01 = (1.0 - t.x) * t.y * s01.z;
+          float w11 = t.x * t.y * s11.z;
+          float w = w00 + w10 + w01 + w11;
+          if(w < 0.5)
+              return vec3(0.0);
+          return vec3((w00 * s00.xy + w10 * s10.xy + w01 * s01.xy + w11 * s11.xy) / w, 1.0);
+      }
+
+      vec3 sampleSource(vec2 uv, vec2 dx, vec2 dy)
+      {
+          if(quality.x < 0.5)
+              return textureLod(tex, uv, 0.0).rgb;
+          vec2 sz = vec2(textureSize(tex, 0));
+          vec2 px = dx * sz;
+          vec2 py = dy * sz;
+          float lx = length(px);
+          float ly = length(py);
+          float limit = 0.25 * max(sz.x, sz.y);
+          if(lx > limit) { dx *= limit / lx; lx = limit; }
+          if(ly > limit) { dy *= limit / ly; ly = limit; }
+          if(quality.x < 1.5)
+              return textureLod(tex, uv, max(log2(max(max(lx, ly), 1e-6)), 0.0)).rgb;
+          float pmax = max(lx, ly);
+          float pmin = max(min(lx, ly), 1e-6);
+          float n = clamp(ceil(pmax / pmin), 1.0, quality.y);
+          float lod = max(log2(max(pmax / n, 1e-6)), 0.0);
+          vec2 axis = lx >= ly ? dx : dy;
+          int taps = int(n);
+          vec3 acc = vec3(0.0);
+          for(int i = 0; i < 16; i++)
+          {
+              if(i >= taps)
+                  break;
+              acc += textureLod(tex, uv + axis * ((float(i) + 0.5) / n - 0.5), lod).rgb;
+          }
+          return acc / n;
+      }
+
+      vec3 pqToLinear(vec3 e)
+      {
+          const float m1 = 0.1593017578125, m2 = 78.84375;
+          const float c1 = 0.8359375, c2 = 18.8515625, c3 = 18.6875;
+          vec3 p = pow(clamp(e, 0.0, 1.0), vec3(1.0 / m2));
+          return pow(max(p - c1, 0.0) / (c2 - c3 * p), vec3(1.0 / m1));
+      }
+
+      vec3 linearToPq(vec3 y)
+      {
+          const float m1 = 0.1593017578125, m2 = 78.84375;
+          const float c1 = 0.8359375, c2 = 18.8515625, c3 = 18.6875;
+          vec3 p = pow(clamp(y, 0.0, 1.0), vec3(m1));
+          return pow((c1 + c2 * p) / (1.0 + c3 * p), vec3(m2));
+      }
+
+      vec3 decodeLinear(vec3 c)
+      {
+          if(quality2.x > 1.5)
+              return pqToLinear(c);
+          if(quality2.x > 0.5)
+              return c;
+          return pow(max(c, vec3(0.0)), vec3(2.2));
+      }
+
+      vec3 encodeLinear(vec3 c)
+      {
+          if(quality2.w > 0.5)
+          {
+              float n = float(textureSize(responseMap, 0).x);
+              vec3 t = clamp(c, 0.0, 1.0) * ((n - 1.0) / n) + 0.5 / n;
+              float y = 0.5 / float(textureSize(responseMap, 0).y);
+              return vec3(
+                  textureLod(responseMap, vec2(t.r, y), 0.0).r,
+                  textureLod(responseMap, vec2(t.g, y), 0.0).g,
+                  textureLod(responseMap, vec2(t.b, y), 0.0).b);
+          }
+          if(quality2.x > 1.5)
+              return linearToPq(c);
+          if(quality2.x > 0.5)
+              return c;
+          return pow(max(c, vec3(0.0)), vec3(1.0 / 2.2));
+      }
+
+      vec3 unmix(vec3 e)
+      {
+          const float K = 33.0;
+          vec2 sz = vec2(textureSize(responseMap, 0));
+          float D = texelFetch(responseMap, ivec2(0, 0), 0).a;
+          float top = max(e.r, max(e.g, e.b));
+          if(top > D)
+              e *= D / top;
+          vec3 g = sqrt(clamp(e / D, 0.0, 1.0)) * (K - 1.0);
+          float z0 = min(floor(g.b), K - 2.0);
+          float tz = g.b - z0;
+          vec2 uv = vec2(g.r + 0.5, 1.5 + g.g);
+          vec3 a = textureLod(responseMap, vec2(z0 * K + uv.x, uv.y) / sz, 0.0).rgb;
+          vec3 b = textureLod(responseMap, vec2((z0 + 1.0) * K + uv.x, uv.y) / sz, 0.0).rgb;
+          return mix(a, b, tz);
+      }
+
       void main()
       {
           vec2 tc = v_texcoord;
+          bool inside = true;
 
           // Apply rotation + mirror transform (in screen UV space)
           {
-              // Center at 0.5, 0.5
               vec2 c = tc - 0.5;
 
               // Rotation (clockwise in screen space)
@@ -193,7 +486,6 @@ public:
               else if(rotationDeg > 45.0)   // 90
                   c = vec2(-c.y, c.x);
 
-              // Mirror (after rotation)
               if(mirrorX > 0.5)
                   c.x = -c.x;
               if(mirrorY > 0.5)
@@ -216,16 +508,22 @@ public:
               );
               tc = warped.xy / warped.z;
 
-              // Discard pixels outside the warped quad
               if(tc.x < 0.0 || tc.x > 1.0 || tc.y < 0.0 || tc.y > 1.0)
-              {
-                  fragColor = vec4(0.0, 0.0, 0.0, 1.0);
-                  return;
-              }
+                  inside = false;
 
-              // Convert back to native texture coord space for sourceRect lookup
               tc.y = 1.0 - tc.y;
           }
+
+          vec2 rampTc = tc;
+
+          if(mapFlags.x > 0.5)
+          {
+              vec3 m = sampleWarp(vec2(tc.x, 1.0 - tc.y));
+              if(m.z < 0.5)
+                  inside = false;
+              tc = vec2(m.x, 1.0 - m.y);
+          }
+
           vec2 uv;
           uv.x = sourceRect.x + tc.x * sourceRect.z;
 #if defined(QSHADER_SPIRV)
@@ -234,15 +532,13 @@ public:
           float texSrcY = 1.0 - sourceRect.y - sourceRect.w;
           uv.y = texSrcY + tc.y * sourceRect.w;
 #endif
+          vec2 uvDx = dFdx(uv);
+          vec2 uvDy = dFdy(uv);
 
-          if(uv.x < 0.0 || uv.x > 1.0 || uv.y < 0.0 || uv.y > 1.0)
-          {
-            fragColor = vec4(0.0, 0.0, 0.0, 1.0);
-          }
-          else
-          {
-            fragColor = texture(tex, uv);
-          }
+          vec3 rgb = vec3(0.0);
+          if(inside && uv.x >= 0.0 && uv.x <= 1.0 && uv.y >= 0.0 && uv.y <= 1.0)
+              rgb = sampleSource(uv, uvDx, uvDy);
+
           // Soft-edge blending
           // v_texcoord.y is Y-up on both GL and Vulkan (Qt RHI normalizes this),
           // so tc.y=0 is screen bottom and tc.y=1 is screen top.
@@ -253,21 +549,73 @@ public:
           // whenever the fragment centre of an edge pixel falls outside the
           // triangle, which multisampling makes routine, so it is clamped.
           float alpha = 1.0;
-          // Left edge
-          if(blendWidths.x > 0.0 && tc.x < blendWidths.x)
-              alpha *= pow(clamp(tc.x / blendWidths.x, 0.0, 1.0), blendGammas.x);
-          // Right edge
-          if(blendWidths.y > 0.0 && tc.x > 1.0 - blendWidths.y)
-              alpha *= pow(clamp((1.0 - tc.x) / blendWidths.y, 0.0, 1.0), blendGammas.y);
-          // Top edge (tc.y near 1.0 = screen top)
-          if(blendWidths.z > 0.0 && tc.y > 1.0 - blendWidths.z)
-              alpha *= pow(clamp((1.0 - tc.y) / blendWidths.z, 0.0, 1.0), blendGammas.z);
-          // Bottom edge (tc.y near 0.0 = screen bottom)
-          if(blendWidths.w > 0.0 && tc.y < blendWidths.w)
-              alpha *= pow(clamp(tc.y / blendWidths.w, 0.0, 1.0), blendGammas.w);
+          if(blendWidths.x > 0.0 && rampTc.x < blendWidths.x)
+              alpha *= pow(clamp(rampTc.x / blendWidths.x, 0.0, 1.0), blendGammas.x);
+          if(blendWidths.y > 0.0 && rampTc.x > 1.0 - blendWidths.y)
+              alpha *= pow(clamp((1.0 - rampTc.x) / blendWidths.y, 0.0, 1.0), blendGammas.y);
+          if(blendWidths.z > 0.0 && rampTc.y > 1.0 - blendWidths.z)
+              alpha *= pow(clamp((1.0 - rampTc.y) / blendWidths.z, 0.0, 1.0), blendGammas.z);
+          if(blendWidths.w > 0.0 && rampTc.y < blendWidths.w)
+              alpha *= pow(clamp(rampTc.y / blendWidths.w, 0.0, 1.0), blendGammas.w);
 
-          alpha = clamp(alpha, 0.0, 1.0);
-          fragColor = vec4(fragColor.rgb * alpha, alpha);
+          vec2 screenUv = vec2(v_texcoord.x, 1.0 - v_texcoord.y);
+          vec3 alphaRgb = vec3(alpha);
+          if(mapFlags.y > 0.5)
+              alphaRgb *= texture(alphaMap, screenUv).rgb;
+          alphaRgb = clamp(alphaRgb, 0.0, 1.0);
+          alpha = (alphaRgb.r + alphaRgb.g + alphaRgb.b) / 3.0;
+
+          bool linearLight = colorOffset.w > 0.5 || mapFlags.w > 0.5 || quality2.w > 0.5;
+          if(linearLight)
+              rgb = decodeLinear(rgb);
+          if(mapFlags.w > 0.5)
+          {
+              vec4 m0 = texture(compMap0, screenUv);
+              vec4 m1 = texture(compMap1, screenUv);
+              vec4 m2 = texture(compMap2, screenUv);
+              vec3 p = vec3(dot(m0.rgb, rgb) + m0.a, dot(m1.rgb, rgb) + m1.a, dot(m2.rgb, rgb) + m2.a);
+              float lo = min(p.r, min(p.g, p.b));
+              float mean = (p.r + p.g + p.b) / 3.0;
+              if(lo < 0.0 && mean > 0.0)
+                  p = mix(vec3(mean), p, mean / (mean - lo));
+              if(quality2.w > 1.5)
+                  p = unmix(p);
+              float hi = max(p.r, max(p.g, p.b));
+              if(hi > 1.0)
+                  p /= hi;
+              rgb = clamp(p, 0.0, 1.0);
+          }
+          rgb *= alphaRgb;
+          if(mapFlags.z > 0.5)
+              rgb += texture(betaMap, screenUv).rgb;
+          if(linearLight)
+              rgb = encodeLinear(rgb);
+
+          rgb = rgb * colorGain.rgb + colorOffset.rgb;
+          if(colorGain.w != 1.0 && colorGain.w > 0.0)
+              rgb = pow(max(rgb, vec3(0.0)), vec3(1.0 / colorGain.w));
+
+          if(quality2.y > 0.5)
+          {
+              float n = float(textureSize(lut, 0).x);
+              vec3 c = clamp((rgb - lutMin.xyz) / (lutMax.xyz - lutMin.xyz), 0.0, 1.0);
+              rgb = textureLod(lut, c * ((n - 1.0) / n) + 0.5 / n, 0.0).rgb;
+          }
+
+          if(quality.w > 0.5)
+          {
+              float levels = quality.w;
+              ivec2 p = ivec2(gl_FragCoord.xy);
+              float r1 = fract(texelFetch(blueNoise, p & 63, 0).r + quality2.z * 0.618034);
+              float r2 = fract(texelFetch(blueNoise, (p + ivec2(32, 21)) & 63, 0).r + quality2.z * 0.754878);
+              vec3 v = clamp(rgb, 0.0, 1.0);
+              vec3 lo = clamp(v * (2.0 * levels), 0.0, 1.0);
+              vec3 hi = 1.0 - clamp((v - (levels - 0.5) / levels) * (2.0 * levels), 0.0, 1.0);
+              vec3 noise = mix(vec3(r1 - 0.5), vec3(r1 + r2 - 1.0), min(lo, hi));
+              rgb = v + noise / levels;
+          }
+
+          fragColor = vec4(rgb, alpha);
       }
       )_";
 
@@ -338,6 +686,64 @@ public:
         QByteArray("MultiWindowRenderer::warpUBO_") + QByteArray::number(index));
     pw.warpUBO->create();
 
+    pw.colorUBO = rhi.newBuffer(
+        QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, 12 * sizeof(float));
+    pw.colorUBO->setName(
+        QByteArray("MultiWindowRenderer::colorUBO_") + QByteArray::number(index));
+    pw.colorUBO->create();
+
+    pw.mapSampler = rhi.newSampler(
+        QRhiSampler::Linear, QRhiSampler::Linear, QRhiSampler::None,
+        QRhiSampler::ClampToEdge, QRhiSampler::ClampToEdge);
+    pw.mapSampler->setName("MultiWindowRenderer::mapSampler");
+    pw.mapSampler->create();
+
+    {
+      const auto maps = outputMaps(wo);
+      for(int m = 0; m < 7; m++)
+      {
+        const auto& img = *maps[m];
+        const QSize sz = img ? QSize{img->width, img->height} : QSize{1, 1};
+        auto tex = rhi.newTexture(QRhiTexture::RGBA32F, sz, 1);
+        tex->setName(
+            QByteArray("MultiWindowRenderer::map_") + QByteArray::number(index) + '_'
+            + QByteArray::number(m));
+        tex->create();
+        pw.mapTextures[m] = tex;
+      }
+      pw.uploadedMapsVersion = -1;
+    }
+
+    pw.qualityUBO = rhi.newBuffer(
+        QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, 16 * sizeof(float));
+    pw.qualityUBO->setName(
+        QByteArray("MultiWindowRenderer::qualityUBO_") + QByteArray::number(index));
+    pw.qualityUBO->create();
+
+    {
+      const int n = wo.lut ? wo.lut->size : 1;
+      pw.lutTexture = rhi.newTexture(
+          QRhiTexture::RGBA16F, n, n, n, 1, QRhiTexture::ThreeDimensional);
+      pw.lutTexture->setName("MultiWindowRenderer::lut");
+      pw.lutTexture->create();
+      pw.lutSampler = rhi.newSampler(
+          QRhiSampler::Linear, QRhiSampler::Linear, QRhiSampler::None,
+          QRhiSampler::ClampToEdge, QRhiSampler::ClampToEdge, QRhiSampler::ClampToEdge);
+      pw.lutSampler->setName("MultiWindowRenderer::lutSampler");
+      pw.lutSampler->create();
+
+      pw.noiseTexture
+          = rhi.newTexture(QRhiTexture::R32F, QSize{blueNoiseSize, blueNoiseSize}, 1);
+      pw.noiseTexture->setName("MultiWindowRenderer::blueNoise");
+      pw.noiseTexture->create();
+      pw.noiseSampler = rhi.newSampler(
+          QRhiSampler::Nearest, QRhiSampler::Nearest, QRhiSampler::None,
+          QRhiSampler::Repeat, QRhiSampler::Repeat);
+      pw.noiseSampler->setName("MultiWindowRenderer::noiseSampler");
+      pw.noiseSampler->create();
+      pw.noiseUploaded = false;
+    }
+
     // Seed initial UBO contents if we were given a batch to piggy-back on.
     // When `res` is null (lazy build from initWindowSwapChain) we skip the
     // initial upload; renderSubRegion() re-uploads every frame anyway.
@@ -367,9 +773,12 @@ public:
 
     // Create sampler reading from the node's offscreen target.
     {
+      const bool mips = m_multiNode.offscreenTarget().texture->flags().testFlag(
+          QRhiTexture::MipMapped);
       auto sampler = rhi.newSampler(
-          QRhiSampler::Linear, QRhiSampler::Linear, QRhiSampler::None,
-          QRhiSampler::ClampToEdge, QRhiSampler::ClampToEdge);
+          QRhiSampler::Linear, QRhiSampler::Linear,
+          mips ? QRhiSampler::Linear : QRhiSampler::None, QRhiSampler::ClampToEdge,
+          QRhiSampler::ClampToEdge);
       sampler->setName("MultiWindowRenderer::sampler");
       sampler->create();
 
@@ -381,16 +790,47 @@ public:
       score::gfx::TextureRenderTarget rt;
       rt.renderPass = wo.renderPassDescriptor;
 
-      QRhiShaderResourceBinding extraBindings[2] = {
+      QRhiShaderResourceBinding extraBindings[13] = {
           QRhiShaderResourceBinding::uniformBuffer(
               4, QRhiShaderResourceBinding::FragmentStage, pw.blendUBO),
           QRhiShaderResourceBinding::uniformBuffer(
-              5, QRhiShaderResourceBinding::FragmentStage, pw.warpUBO)};
+              5, QRhiShaderResourceBinding::FragmentStage, pw.warpUBO),
+          QRhiShaderResourceBinding::uniformBuffer(
+              6, QRhiShaderResourceBinding::FragmentStage, pw.colorUBO),
+          QRhiShaderResourceBinding::sampledTexture(
+              7, QRhiShaderResourceBinding::FragmentStage, pw.mapTextures[0],
+              pw.mapSampler),
+          QRhiShaderResourceBinding::sampledTexture(
+              8, QRhiShaderResourceBinding::FragmentStage, pw.mapTextures[1],
+              pw.mapSampler),
+          QRhiShaderResourceBinding::sampledTexture(
+              9, QRhiShaderResourceBinding::FragmentStage, pw.mapTextures[2],
+              pw.mapSampler),
+          QRhiShaderResourceBinding::sampledTexture(
+              10, QRhiShaderResourceBinding::FragmentStage, pw.lutTexture,
+              pw.lutSampler),
+          QRhiShaderResourceBinding::sampledTexture(
+              11, QRhiShaderResourceBinding::FragmentStage, pw.noiseTexture,
+              pw.noiseSampler),
+          QRhiShaderResourceBinding::uniformBuffer(
+              12, QRhiShaderResourceBinding::FragmentStage, pw.qualityUBO),
+          QRhiShaderResourceBinding::sampledTexture(
+              13, QRhiShaderResourceBinding::FragmentStage, pw.mapTextures[3],
+              pw.mapSampler),
+          QRhiShaderResourceBinding::sampledTexture(
+              14, QRhiShaderResourceBinding::FragmentStage, pw.mapTextures[4],
+              pw.mapSampler),
+          QRhiShaderResourceBinding::sampledTexture(
+              15, QRhiShaderResourceBinding::FragmentStage, pw.mapTextures[5],
+              pw.mapSampler),
+          QRhiShaderResourceBinding::sampledTexture(
+              16, QRhiShaderResourceBinding::FragmentStage, pw.mapTextures[6],
+              pw.mapSampler)};
 
       const auto& mesh = renderer.defaultTriangle();
       pw.pipeline = score::gfx::buildPipeline(
           renderer, mesh, m_vertexS, m_fragmentS, rt, nullptr, pw.uvRectUBO,
-          pw.samplers, score::gfx::premultipliedOverBlend(), {extraBindings, 2});
+          pw.samplers, score::gfx::premultipliedOverBlend(), {extraBindings, 13});
     }
   }
 
@@ -410,6 +850,26 @@ public:
     pw.blendUBO = nullptr;
     delete pw.warpUBO;
     pw.warpUBO = nullptr;
+    delete pw.colorUBO;
+    pw.colorUBO = nullptr;
+    delete pw.mapSampler;
+    pw.mapSampler = nullptr;
+    delete pw.qualityUBO;
+    pw.qualityUBO = nullptr;
+    delete pw.lutTexture;
+    pw.lutTexture = nullptr;
+    delete pw.lutSampler;
+    pw.lutSampler = nullptr;
+    delete pw.noiseTexture;
+    pw.noiseTexture = nullptr;
+    delete pw.noiseSampler;
+    pw.noiseSampler = nullptr;
+    for(auto& t : pw.mapTextures)
+    {
+      delete t;
+      t = nullptr;
+    }
+    pw.uploadedMapsVersion = -1;
   }
 
   void update(
@@ -479,6 +939,28 @@ private:
     if(!rt)
       return;
 
+    const auto maps = outputMaps(wo);
+    if(pw.uploadedMapsVersion != wo.mapsVersion)
+    {
+      bool sizesMatch = true;
+      for(int m = 0; m < 7; m++)
+      {
+        const auto& img = *maps[m];
+        const QSize sz = img ? QSize{img->width, img->height} : QSize{1, 1};
+        if(!pw.mapTextures[m] || pw.mapTextures[m]->pixelSize() != sz)
+          sizesMatch = false;
+      }
+      const int lutSize = wo.lut ? wo.lut->size : 1;
+      if(!pw.lutTexture || pw.lutTexture->depth() != lutSize)
+        sizesMatch = false;
+      if(!sizesMatch)
+      {
+        buildWindowPipeline(index, renderer, nullptr);
+        if(!pw.pipeline.pipeline || !pw.pipeline.srb)
+          return;
+      }
+    }
+
     // Update UBOs from live data (may have changed via device parameters)
     if(pw.uvRectUBO)
     {
@@ -518,6 +1000,101 @@ private:
       res->updateDynamicBuffer(pw.warpUBO, 0, sizeof(warpData), warpData);
     }
 
+    if(pw.colorUBO)
+    {
+      if(!res)
+        res = renderer.state.rhi->nextResourceUpdateBatch();
+      auto colorData = packOutputColorUBO(
+          wo.color, bool(wo.warpMap), bool(wo.alphaMap), bool(wo.betaMap));
+      colorData[11] = wo.compensationMaps[0] ? 1.f : 0.f;
+      res->updateDynamicBuffer(
+          pw.colorUBO, 0, sizeof(float) * colorData.size(), colorData.data());
+    }
+
+    if(pw.qualityUBO)
+    {
+      if(!res)
+        res = renderer.state.rhi->nextResourceUpdateBatch();
+      const auto q = m_multiNode.effectiveQuality(wo);
+      const bool canvasMips = m_multiNode.offscreenTarget().texture
+                              && m_multiNode.offscreenTarget().texture->flags().testFlag(
+                                  QRhiTexture::MipMapped);
+      const int sampling = canvasMips ? q.sampling : 0;
+      float qualityData[16] = {
+          float(sampling),
+          float(std::clamp(wo.quality.maxAnisotropy, 1, 16)),
+          wo.quality.warpInterpolation == Gfx::WarpInterpolation::Bicubic ? 1.f : 0.f,
+          float(q.ditherLevels),
+          float(q.transfer),
+          wo.lut ? 1.f : 0.f,
+          float(m_frame % 4096u),
+          wo.responseMap ? (wo.responseMap->height > 1 ? 2.f : 1.f) : 0.f,
+          wo.lut ? wo.lut->domainMin[0] : 0.f,
+          wo.lut ? wo.lut->domainMin[1] : 0.f,
+          wo.lut ? wo.lut->domainMin[2] : 0.f,
+          0.f,
+          wo.lut ? wo.lut->domainMax[0] : 1.f,
+          wo.lut ? wo.lut->domainMax[1] : 1.f,
+          wo.lut ? wo.lut->domainMax[2] : 1.f,
+          0.f};
+      res->updateDynamicBuffer(pw.qualityUBO, 0, sizeof(qualityData), qualityData);
+      m_frame++;
+    }
+
+    if(!pw.noiseUploaded && pw.noiseTexture)
+    {
+      if(!res)
+        res = renderer.state.rhi->nextResourceUpdateBatch();
+      const auto& noise = blueNoise(blueNoiseSize);
+      QRhiTextureSubresourceUploadDescription sub{
+          noise.data(), quint32(noise.size() * sizeof(float))};
+      res->uploadTexture(pw.noiseTexture, QRhiTextureUploadDescription{{0, 0, sub}});
+      pw.noiseUploaded = true;
+    }
+
+    if(pw.uploadedMapsVersion != wo.mapsVersion)
+    {
+      if(!res)
+        res = renderer.state.rhi->nextResourceUpdateBatch();
+      {
+        const int n = wo.lut ? wo.lut->size : 1;
+        std::vector<qfloat16> half(std::size_t(n) * n * n * 4);
+        for(std::size_t i = 0, N = std::size_t(n) * n * n; i < N; i++)
+        {
+          half[i * 4 + 0] = qfloat16(wo.lut ? wo.lut->rgb[i * 3 + 0] : 0.f);
+          half[i * 4 + 1] = qfloat16(wo.lut ? wo.lut->rgb[i * 3 + 1] : 0.f);
+          half[i * 4 + 2] = qfloat16(wo.lut ? wo.lut->rgb[i * 3 + 2] : 0.f);
+          half[i * 4 + 3] = qfloat16(1.f);
+        }
+        QList<QRhiTextureUploadEntry> entries;
+        const quint32 slice = quint32(n) * n * 4 * sizeof(qfloat16);
+        for(int z = 0; z < n; z++)
+          entries.append(QRhiTextureUploadEntry{
+              z, 0,
+              QRhiTextureSubresourceUploadDescription{
+                  QByteArray(
+                      reinterpret_cast<const char*>(half.data()) + std::size_t(z) * slice,
+                      slice)}});
+        QRhiTextureUploadDescription desc;
+        desc.setEntries(entries.begin(), entries.end());
+        res->uploadTexture(pw.lutTexture, desc);
+      }
+      static const float placeholder[4]{0.f, 0.f, 0.f, 0.f};
+      for(int m = 0; m < 7; m++)
+      {
+        const auto& img = *maps[m];
+        QRhiTextureSubresourceUploadDescription sub;
+        if(img)
+          sub = QRhiTextureSubresourceUploadDescription{
+              img->data.data(), quint32(img->data.size() * sizeof(float))};
+        else
+          sub = QRhiTextureSubresourceUploadDescription{placeholder, sizeof(placeholder)};
+        res->uploadTexture(
+            pw.mapTextures[m], QRhiTextureUploadDescription{{0, 0, sub}});
+      }
+      pw.uploadedMapsVersion = wo.mapsVersion;
+    }
+
     cb.beginPass(rt, Qt::black, {0.0f, 0}, res);
     res = nullptr;
     {
@@ -529,7 +1106,17 @@ private:
       const auto& mesh = renderer.defaultTriangle();
       mesh.draw(m_mesh, cb);
     }
-    cb.endPass();
+    if(wo.readbackRequested)
+    {
+      wo.readbackRequested = false;
+      auto* rb = renderer.state.rhi->nextResourceUpdateBatch();
+      rb->readBackTexture(QRhiReadbackDescription{}, wo.readback.get());
+      cb.endPass(rb);
+    }
+    else
+    {
+      cb.endPass();
+    }
   }
 };
 
@@ -611,12 +1198,16 @@ void MultiWindowNode::setEdgeBlend(int windowIndex, int side, float width, float
   }
   target->width = width;
   target->gamma = gamma;
+  updateCanvasSpec();
 }
 
 void MultiWindowNode::setCornerWarp(int windowIndex, const Gfx::CornerWarp& warp)
 {
   if(windowIndex >= 0 && windowIndex < (int)m_windowOutputs.size())
+  {
     m_windowOutputs[windowIndex].cornerWarp = warp;
+    updateCanvasSpec();
+  }
 }
 
 void MultiWindowNode::setTransform(int windowIndex, int rotation, bool mirrorX, bool mirrorY)
@@ -628,6 +1219,153 @@ void MultiWindowNode::setTransform(int windowIndex, int rotation, bool mirrorX, 
     wo.mirrorX = mirrorX;
     wo.mirrorY = mirrorY;
   }
+}
+
+void MultiWindowNode::requestReadback(int windowIndex)
+{
+  if(windowIndex >= 0 && windowIndex < (int)m_windowOutputs.size())
+  {
+    auto& wo = m_windowOutputs[windowIndex];
+    wo.readback->data.clear();
+    wo.readback->pixelSize = {};
+    wo.readbackRequested = true;
+  }
+}
+
+void MultiWindowNode::setColor(int windowIndex, const Gfx::OutputColor& color)
+{
+  if(windowIndex >= 0 && windowIndex < (int)m_windowOutputs.size())
+  {
+    m_windowOutputs[windowIndex].color = color;
+    updateCanvasSpec();
+  }
+}
+
+void MultiWindowNode::setMaps(int windowIndex, const Gfx::OutputMaps& maps)
+{
+  if(windowIndex >= 0 && windowIndex < (int)m_mappings.size())
+    m_mappings[windowIndex].maps = maps;
+  if(windowIndex < 0 || windowIndex >= (int)m_windowOutputs.size())
+    return;
+  auto& wo = m_windowOutputs[windowIndex];
+  wo.warpMap = loadOutputMap(maps.warp, WarpMapKind::Map);
+  wo.alphaMap = loadOutputMap(maps.alpha, WarpMapKind::Alpha);
+  wo.betaMap = loadOutputMap(maps.beta, WarpMapKind::Beta);
+  wo.lut = loadOutputLut(maps.lut);
+  wo.responseMap = loadOutputResponse(maps.response);
+  wo.compensationMaps = loadOutputCompensation(maps.compensation);
+  wo.mapsVersion++;
+  updateCanvasSpec();
+}
+
+void MultiWindowNode::setQuality(int windowIndex, const Gfx::OutputQuality& quality)
+{
+  if(windowIndex >= 0 && windowIndex < (int)m_mappings.size())
+    m_mappings[windowIndex].quality = quality;
+  if(windowIndex < 0 || windowIndex >= (int)m_windowOutputs.size())
+    return;
+  m_windowOutputs[windowIndex].quality = quality;
+  updateCanvasSpec();
+}
+
+MultiWindowNode::EffectiveQuality
+MultiWindowNode::effectiveQuality(const WindowOutput& wo) const noexcept
+{
+  EffectiveQuality q;
+  switch(wo.quality.sampling)
+  {
+    case Gfx::OutputSampling::Auto:
+      q.sampling = (wo.warpMap || !wo.cornerWarp.isIdentity()) ? 2 : 0;
+      break;
+    case Gfx::OutputSampling::Linear:
+      q.sampling = 0;
+      break;
+    case Gfx::OutputSampling::Mipmapped:
+      q.sampling = 1;
+      break;
+    case Gfx::OutputSampling::Anisotropic:
+      q.sampling = 2;
+      break;
+  }
+
+  using F = Gfx::SwapchainFormat;
+  const bool srgbFlag = m_swapchainFlag == Gfx::SwapchainFlag::sRGB;
+  int levels = 0;
+  if(m_swapchainFormat == F::SDR)
+    levels = 255;
+  else if(m_swapchainFormat == F::HDR10)
+    levels = 1023;
+  switch(wo.quality.dither)
+  {
+    case Gfx::OutputDither::Auto:
+      q.ditherLevels = (calibrationActive(wo) && !srgbFlag) ? levels : 0;
+      break;
+    case Gfx::OutputDither::Off:
+      q.ditherLevels = 0;
+      break;
+    case Gfx::OutputDither::On:
+      q.ditherLevels = levels;
+      break;
+  }
+
+  switch(m_swapchainFormat)
+  {
+    case F::SDR:
+      q.transfer = 0;
+      break;
+    case F::HDR10:
+      q.transfer = 2;
+      break;
+    default:
+      q.transfer = 1;
+      break;
+  }
+  return q;
+}
+
+std::pair<QRhiTexture::Format, bool> MultiWindowNode::canvasSpec() const noexcept
+{
+  bool precise = false;
+  bool mips = false;
+  for(const auto& wo : m_windowOutputs)
+  {
+    precise = precise || calibrationActive(wo) || wo.warpMap;
+    mips = mips || effectiveQuality(wo).sampling > 0;
+  }
+  QRhiTexture::Format fmt = QRhiTexture::RGBA8;
+  if(m_swapchainFormat != Gfx::SwapchainFormat::SDR)
+    fmt = QRhiTexture::RGBA32F;
+  else if(precise)
+    fmt = QRhiTexture::RGBA16F;
+  return {fmt, mips};
+}
+
+void MultiWindowNode::updateCanvasSpec()
+{
+  if(!m_renderState || m_canvasUpdateQueued || m_windowOutputs.empty()
+     || !m_windowOutputs[0].window)
+    return;
+  const auto [fmt, mips] = canvasSpec();
+  if(fmt == m_renderState->renderFormat && mips == m_canvasMips)
+    return;
+  m_canvasUpdateQueued = true;
+  QMetaObject::invokeMethod(
+      m_windowOutputs[0].window.get(),
+      [this] {
+    m_canvasUpdateQueued = false;
+    if(!m_renderState)
+      return;
+    const auto [fmt, mips] = canvasSpec();
+    if(fmt == m_renderState->renderFormat && mips == m_canvasMips)
+      return;
+    releaseOwnedRenderList();
+    m_renderState->renderFormat = fmt;
+    m_canvasMips = mips;
+    recreateOffscreenTarget();
+    if(m_onResize)
+      m_onResize();
+      },
+      Qt::QueuedConnection);
 }
 
 void MultiWindowNode::setSwapchainFlag(Gfx::SwapchainFlag flag)
@@ -754,6 +1492,13 @@ void MultiWindowNode::render()
 
     rl->render(frame.commands());
 
+    if(m_canvasMips && m_offscreenTarget.texture)
+    {
+      auto* mipBatch = rhi->nextResourceUpdateBatch();
+      mipBatch->generateMips(m_offscreenTarget.texture);
+      frame.commands().resourceUpdate(mipBatch);
+    }
+
     frame.end();
     if(checkDeviceLost(frame, *rhi, "MultiWindowNode"))
       return;
@@ -850,7 +1595,9 @@ void MultiWindowNode::recreateOffscreenTarget()
 
   m_offscreenTarget = score::gfx::createRenderTarget(
       *m_renderState, m_renderState->renderFormat, sz, m_renderState->samples,
-      /*depth*/ true);
+      /*depth*/ true, false,
+      m_canvasMips ? (QRhiTexture::MipMapped | QRhiTexture::UsedWithGenerateMips)
+                   : QRhiTexture::Flags{});
 
   // Publish the RPD so that any code path that reads
   // state.renderPassDescriptor (ScaledRenderer-style renderers) sees a
@@ -892,7 +1639,8 @@ void MultiWindowNode::initWindowSwapChain(int index)
   wo.swapChain->setDepthStencil(wo.depthStencil);
   wo.swapChain->setSampleCount(m_renderState->samples);
 
-  QRhiSwapChain::Flags flags = QRhiSwapChain::MinimalBufferCount;
+  QRhiSwapChain::Flags flags
+      = QRhiSwapChain::MinimalBufferCount | QRhiSwapChain::UsedAsTransferSource;
   // With multi-window we drive rendering from the node's timer and don't
   // rely on swap-chain vsync. Keep NoVSync on every window so no single
   // swap chain blocks the others.
@@ -1022,9 +1770,27 @@ void MultiWindowNode::createOutput(score::gfx::OutputConfiguration conf)
   // 1. Create the offscreen target that is the stable render target
   //    for the upstream graph. This must exist BEFORE the render list is
   //    built because the renderer queries offscreenTarget() in its init.
-  recreateOffscreenTarget();
-
   m_windowOutputs.resize(m_mappings.size());
+  for(std::size_t i = 0; i < m_mappings.size(); ++i)
+  {
+    auto& wo = m_windowOutputs[i];
+    const auto& mapping = m_mappings[i];
+    wo.blendLeft = {mapping.blendLeft.width, mapping.blendLeft.gamma};
+    wo.blendRight = {mapping.blendRight.width, mapping.blendRight.gamma};
+    wo.blendTop = {mapping.blendTop.width, mapping.blendTop.gamma};
+    wo.blendBottom = {mapping.blendBottom.width, mapping.blendBottom.gamma};
+    wo.cornerWarp = mapping.cornerWarp;
+    wo.color = mapping.color;
+    wo.quality = mapping.quality;
+    wo.lut = loadOutputLut(mapping.maps.lut);
+    wo.warpMap = loadOutputMap(mapping.maps.warp, WarpMapKind::Map);
+    wo.alphaMap = loadOutputMap(mapping.maps.alpha, WarpMapKind::Alpha);
+    wo.betaMap = loadOutputMap(mapping.maps.beta, WarpMapKind::Beta);
+    wo.responseMap = loadOutputResponse(mapping.maps.response);
+    wo.compensationMaps = loadOutputCompensation(mapping.maps.compensation);
+  }
+  std::tie(m_renderState->renderFormat, m_canvasMips) = canvasSpec();
+  recreateOffscreenTarget();
 
   // 2. Create every window. Their swap chains will be created lazily
   //    per-window in onWindowReady as each platform surface becomes
@@ -1047,6 +1813,9 @@ void MultiWindowNode::createOutput(score::gfx::OutputConfiguration conf)
     wo.rotation = mapping.rotation;
     wo.mirrorX = mapping.mirrorX;
     wo.mirrorY = mapping.mirrorY;
+    wo.color = mapping.color;
+    wo.quality = mapping.quality;
+    wo.mapsVersion++;
 
     wo.window = std::make_shared<Window>(conf.graphicsApi);
     wo.window->setTitle(QString("Output %1").arg(i));

@@ -1,11 +1,18 @@
 #pragma once
+#include <Gfx/Graph/FloatImageIO.hpp>
 #include <Gfx/Graph/OutputNode.hpp>
+#include <Gfx/Graph/OutputQuality.hpp>
 #include <Gfx/Graph/Utils.hpp>
 #include <Gfx/WindowDevice.hpp>
 
 namespace score::gfx
 {
 class Window;
+
+//! std140 ColorParams block of the multi-window blit shader.
+SCORE_PLUGIN_GFX_EXPORT
+std::array<float, 12> packOutputColorUBO(
+    const Gfx::OutputColor& c, bool warpMap, bool alphaMap, bool betaMap) noexcept;
 
 struct SCORE_PLUGIN_GFX_TEST_EXPORT MultiWindowNode : OutputNode
 {
@@ -53,6 +60,21 @@ struct SCORE_PLUGIN_GFX_TEST_EXPORT MultiWindowNode : OutputNode
     int rotation{0};
     bool mirrorX{false};
     bool mirrorY{false};
+
+    std::shared_ptr<QRhiReadbackResult> readback{std::make_shared<QRhiReadbackResult>()};
+    mutable bool readbackRequested{};
+
+    Gfx::OutputColor color;
+    Gfx::OutputQuality quality;
+    std::shared_ptr<const CubeLut> lut;
+    std::shared_ptr<const FloatImage> warpMap;
+    std::shared_ptr<const FloatImage> alphaMap;
+    std::shared_ptr<const FloatImage> betaMap;
+    //! size x 1, rgb = projector code for linear light i / (size - 1).
+    std::shared_ptr<const FloatImage> responseMap;
+    //! Rows of the compensation matrix, rgba = (M_k0, M_k1, M_k2, o_k).
+    std::array<std::shared_ptr<const FloatImage>, 3> compensationMaps;
+    int mapsVersion{};
   };
 
   const std::vector<WindowOutput>& windowOutputs() const noexcept
@@ -74,6 +96,26 @@ struct SCORE_PLUGIN_GFX_TEST_EXPORT MultiWindowNode : OutputNode
   void setEdgeBlend(int windowIndex, int side, float width, float gamma);
   void setCornerWarp(int windowIndex, const Gfx::CornerWarp& warp);
   void setTransform(int windowIndex, int rotation, bool mirrorX, bool mirrorY);
+  void setColor(int windowIndex, const Gfx::OutputColor& color);
+  //! Arms a readback of the window's next presented frame into windowOutputs()[i].readback.
+  void requestReadback(int windowIndex);
+  void setMaps(int windowIndex, const Gfx::OutputMaps& maps);
+  void setQuality(int windowIndex, const Gfx::OutputQuality& quality);
+
+  //! What the per-window blit does with a window's settings.
+  struct EffectiveQuality
+  {
+    //! 0 linear, 1 trilinear, 2 anisotropic.
+    int sampling{};
+    //! Quantization levels the dither targets (255, 1023), 0 = off.
+    int ditherLevels{};
+    //! Encoding of the canvas for blending in linear light: 0 = gamma 2.2,
+    //! 1 = linear (scRGB / linear P3 swap chains), 2 = SMPTE ST 2084 (HDR10).
+    int transfer{};
+  };
+  EffectiveQuality effectiveQuality(const WindowOutput& wo) const noexcept;
+  //! The canvas format and whether it needs mips, for the current settings.
+  std::pair<QRhiTexture::Format, bool> canvasSpec() const noexcept;
   void setSwapchainFlag(Gfx::SwapchainFlag flag);
   void setSwapchainFormat(Gfx::SwapchainFormat format);
 
@@ -93,6 +135,10 @@ private:
   // renderSize / renderFormat / samples in m_renderState. The
   // offscreen RPD is also assigned to m_renderState->renderPassDescriptor.
   void recreateOffscreenTarget();
+  //! Queues a canvas rebuild when canvasSpec() changed.
+  void updateCanvasSpec();
+  bool m_canvasMips{};
+  bool m_canvasUpdateQueued{};
 
   Configuration m_conf;
   std::vector<Gfx::OutputMapping> m_mappings;

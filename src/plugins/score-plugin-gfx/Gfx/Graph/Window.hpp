@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
 
+#include <Gfx/Graph/IdleInhibitor.hpp>
 #include <Gfx/Graph/PointerState.hpp>
 #include <Gfx/Graph/RenderState.hpp>
 
@@ -102,6 +103,7 @@ private:
   double m_fps{0.};
 
   bool m_closed = false;
+  IdleInhibitor m_idleInhibitor;
   bool m_canRender = false;
   bool m_running = false;
   bool m_notExposed = false;

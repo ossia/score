@@ -81,6 +81,7 @@
 #include <score_plugin_gfx_commands_files.hpp>
 score_plugin_gfx::score_plugin_gfx()
 {
+  Gfx::registerTexturePortConverters();
   qRegisterMetaType<Gfx::SharedInputSettings>();
   qRegisterMetaType<Gfx::SharedOutputSettings>();
   qRegisterMetaType<Gfx::CameraSettings>();

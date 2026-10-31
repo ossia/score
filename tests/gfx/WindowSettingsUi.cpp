@@ -12,6 +12,7 @@
 // run_in_app: offscreen QPA, no GPU. The widget creates preview QWidgets, which
 // the offscreen platform serves fine.
 
+#include <Gfx/Window/CalibrationSet.hpp>
 #include <Gfx/Window/OutputMapping.hpp>
 #include <Gfx/Window/OutputPreview.hpp>
 #include <Gfx/Window/WindowSettingsWidget.hpp>
@@ -19,7 +20,12 @@
 
 #include <score_test/App.hpp>
 
+#include <score/serialization/DataStreamVisitor.hpp>
+#include <score/serialization/JSONVisitor.hpp>
+
 #include <QApplication>
+#include <QFile>
+#include <QTemporaryDir>
 #include <QCheckBox>
 #include <QComboBox>
 #include <QDoubleSpinBox>
@@ -694,5 +700,208 @@ TEST_CASE("a new output window does not land on the origin", "[gfx][window][sett
     CHECK(windowPositionForSource({0, 0}) == defaultWindowPosition);
     CHECK(windowPositionForSource({0, 40}) == QPoint{0, 40});
     CHECK(windowPositionForSource({1920, 0}) == QPoint{1920, 0});
+  });
+}
+
+TEST_CASE("WindowSettingsWidget calibration maps and color", "[gfx][window][settingswidget]")
+{
+  score::test::run_in_app([&](const score::GUIApplicationContext&) {
+    WindowSettingsWidget w;
+
+    WindowSettings ws;
+    ws.mode = WindowMode::MultiWindow;
+    auto m = mapping({0.0, 0.0, 1.0, 1.0}, {10, 20}, {640, 480});
+    m.maps.warp = "/maps/out0.xyz.pfm";
+    m.maps.alpha = "/maps/out0.alpha.pfm";
+    m.color.gain = {0.9f, 1.f, 1.1f};
+    m.color.offset = {0.f, 0.05f, 0.f};
+    m.color.gamma = 1.5f;
+    m.color.linearBlend = true;
+    ws.outputs = {m};
+    w.setSettings(makeSettings(ws));
+
+    auto got = settingsOf(w);
+    REQUIRE(got.outputs.size() == 1);
+    CHECK(got.outputs[0].maps.warp == m.maps.warp);
+    CHECK(got.outputs[0].maps.alpha == m.maps.alpha);
+    CHECK(got.outputs[0].maps.beta.isEmpty());
+    CHECK(got.outputs[0].color.gain == m.color.gain);
+    CHECK(got.outputs[0].color.offset == m.color.offset);
+    CHECK(got.outputs[0].color.gamma == Approx(1.5f));
+    CHECK(got.outputs[0].color.linearBlend);
+
+    auto* b = outputButton(w, 0);
+    REQUIRE(b);
+    b->click();
+
+    auto* warpEdit = fieldAs<QLineEdit>(w, "UV warp");
+    auto* gamma = fieldAs<QDoubleSpinBox>(w, "Gamma", 0);
+    auto* linear = fieldAs<QCheckBox>(w, "Blend in linear light");
+    REQUIRE(warpEdit);
+    REQUIRE(gamma);
+    REQUIRE(linear);
+    CHECK(warpEdit->text() == m.maps.warp);
+
+    warpEdit->setText("/maps/other.pfm");
+    Q_EMIT warpEdit->editingFinished();
+    gamma->setValue(2.2);
+    linear->setChecked(false);
+
+    got = settingsOf(w);
+    CHECK(got.outputs[0].maps.warp == QStringLiteral("/maps/other.pfm"));
+    CHECK(got.outputs[0].color.gamma == Approx(2.2f));
+    CHECK_FALSE(got.outputs[0].color.linearBlend);
+  });
+}
+
+namespace
+{
+void touch(const QString& path)
+{
+  QFile f{path};
+  REQUIRE(f.open(QIODevice::WriteOnly));
+  f.write("x");
+}
+}
+
+TEST_CASE("calibration files of a name", "[gfx][window][calibration]")
+{
+  CHECK(calibrationBase("/a/b/room.json") == "/a/b/room");
+  CHECK(calibrationBase("/a/b/room.xyz.pfm") == "/a/b/room");
+  CHECK(calibrationBase("/a/b/room_p1.alpha.pfm") == "/a/b/room_p1");
+  CHECK(calibrationBase("/a/b/room.blend.json") == "/a/b/room");
+  CHECK(calibrationBase("/a/b/room.response.json") == "/a/b/room");
+  CHECK(calibrationBase("/a/b/room") == "/a/b/room");
+  CHECK(calibrationBase({}).isEmpty());
+  CHECK(calibrationSetName("/a/room", 0) == "/a/room");
+  CHECK(calibrationSetName("/a/room", 2) == "/a/room_p2");
+  CHECK(calibrationSetBase("/a/room_p2.json") == "/a/room");
+  CHECK(calibrationSetBase("/a/room.alpha.pfm") == "/a/room");
+
+  QTemporaryDir dir;
+  REQUIRE(dir.isValid());
+  const QString base = dir.filePath("room");
+  touch(base + ".json");
+  touch(base + ".alpha.pfm");
+
+  OutputMaps m;
+  m.lut = "/custom/grade.cube";
+  CHECK(applyCalibration(m, base + ".json") == 1);
+  CHECK(m.calibration == base + ".json");
+  CHECK(m.alpha == base + ".alpha.pfm");
+  CHECK(m.beta.isEmpty());
+  CHECK(m.lut == "/custom/grade.cube");
+
+  touch(base + ".beta.pfm");
+  touch(base + ".response.json");
+  CHECK(refreshCalibration(m));
+  CHECK(m.beta == base + ".beta.pfm");
+  CHECK(m.response == base + ".response.json");
+  CHECK(m.lut == "/custom/grade.cube");
+  CHECK_FALSE(refreshCalibration(m));
+
+  QFile::remove(base + ".alpha.pfm");
+  CHECK(refreshCalibration(m));
+  CHECK(m.alpha.isEmpty());
+
+  const QString other = dir.filePath("other");
+  touch(other + ".json");
+  touch(other + ".alpha.pfm");
+  CHECK(applyCalibration(m, other + ".xyz.pfm") == 1);
+  CHECK(m.alpha == other + ".alpha.pfm");
+  CHECK(m.beta.isEmpty());
+  CHECK(m.response.isEmpty());
+
+  applyCalibration(m, {});
+  CHECK(m.calibration.isEmpty());
+  CHECK(m.alpha.isEmpty());
+  CHECK(m.lut == "/custom/grade.cube");
+}
+
+TEST_CASE("OutputMapping calibration round-trip", "[gfx][window][calibration]")
+{
+  OutputMapping m;
+  m.maps.calibration = "/cal/room.json";
+  m.maps.alpha = "/cal/room.alpha.pfm";
+  score::test::run_in_app([&](const score::GUIApplicationContext&) {
+    JSONReader r;
+    r.readFrom(m);
+    const auto bytes = r.toByteArray();
+    CHECK(bytes.contains("\"Calibration\""));
+    CHECK(bytes.contains("\"AlphaMap\""));
+    const auto j = fromJson<OutputMapping>(bytes);
+    CHECK(j.maps.calibration == m.maps.calibration);
+    CHECK(j.maps.alpha == m.maps.alpha);
+
+    const auto d = DataStreamWriter::unmarshall<OutputMapping>(DataStreamReader::marshall(m));
+    CHECK(d.maps.calibration == m.maps.calibration);
+
+    JSONReader r2;
+    r2.readFrom(OutputMapping{});
+    CHECK(!r2.toByteArray().contains("Calibration"));
+
+    const auto old = fromJson<OutputMapping>(
+        QByteArray(R"({"SourceRect":[0,0,1,1],"AlphaMap":"/a.pfm"})"));
+    CHECK(old.maps.alpha == "/a.pfm");
+    CHECK(old.maps.calibration.isEmpty());
+  });
+}
+
+TEST_CASE("WindowSettingsWidget calibration and calibration set", "[gfx][window][settingswidget]")
+{
+  QTemporaryDir dir;
+  REQUIRE(dir.isValid());
+  const QString base = dir.filePath("hall");
+  for(const QString& n : QStringList{base, base + "_p1", base + "_p2"})
+  {
+    touch(n + ".json");
+    touch(n + ".alpha.pfm");
+    touch(n + ".beta.pfm");
+  }
+
+  score::test::run_in_app([&](const score::GUIApplicationContext&) {
+    WindowSettingsWidget w;
+    WindowSettings ws;
+    ws.mode = WindowMode::MultiWindow;
+    ws.outputs
+        = {mapping({0.0, 0.0, 0.25, 1.0}, {0, 0}, {320, 240}),
+           mapping({0.25, 0.0, 0.25, 1.0}, {320, 0}, {320, 240}),
+           mapping({0.5, 0.0, 0.25, 1.0}, {640, 0}, {320, 240}),
+           mapping({0.75, 0.0, 0.25, 1.0}, {960, 0}, {320, 240})};
+    ws.outputs[3].maps.alpha = "/keep/me.pfm";
+    w.setSettings(makeSettings(ws));
+
+    CHECK(w.assignCalibrationSet(base + "_p1.json") == 3);
+    auto got = settingsOf(w);
+    REQUIRE(got.outputs.size() == 4);
+    CHECK(got.outputs[0].maps.calibration == base + ".json");
+    CHECK(got.outputs[0].maps.alpha == base + ".alpha.pfm");
+    CHECK(got.outputs[1].maps.beta == base + "_p1.beta.pfm");
+    CHECK(got.outputs[2].maps.alpha == base + "_p2.alpha.pfm");
+    CHECK(got.outputs[3].maps.calibration.isEmpty());
+    CHECK(got.outputs[3].maps.alpha == "/keep/me.pfm");
+
+    auto* b = outputButton(w, 1);
+    REQUIRE(b);
+    b->click();
+    auto* calEdit = fieldAs<QLineEdit>(w, "Calibration");
+    auto* alphaEdit = fieldAs<QLineEdit>(w, "Alpha");
+    REQUIRE(calEdit);
+    REQUIRE(alphaEdit);
+    CHECK(calEdit->text() == base + "_p1.json");
+    CHECK(alphaEdit->text() == base + "_p1.alpha.pfm");
+
+    calEdit->setText(base + "_p2.json");
+    Q_EMIT calEdit->editingFinished();
+    CHECK(alphaEdit->text() == base + "_p2.alpha.pfm");
+    got = settingsOf(w);
+    CHECK(got.outputs[1].maps.calibration == base + "_p2.json");
+    CHECK(got.outputs[1].maps.beta == base + "_p2.beta.pfm");
+
+    alphaEdit->setText("/manual.pfm");
+    Q_EMIT alphaEdit->editingFinished();
+    got = settingsOf(w);
+    CHECK(got.outputs[1].maps.alpha == "/manual.pfm");
+    CHECK(got.outputs[1].maps.calibration == base + "_p2.json");
   });
 }

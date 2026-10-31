@@ -5,25 +5,10 @@
 namespace score::gfx
 {
 
-void packCameraUBO(
-    CameraUBOData& out, const ossia::camera_component& cam,
-    const QMatrix4x4& worldTransform, QSize renderSize, float timeSeconds,
-    float aspectOverride)
+CameraProjectionMode cameraProjection(
+    QMatrix4x4& proj, const ossia::camera_component& cam, float aspect)
 {
-  const QVector3D eye = worldTransform.column(3).toVector3D();
-
-  QMatrix4x4 view = worldTransform.inverted();
-
   const float fovYDeg = cam.yfov * (180.f / float(M_PI));
-  float aspect = aspectOverride;
-  if(aspect <= 0.f && cam.aspect_ratio_set && cam.aspect_ratio > 0.f)
-    aspect = cam.aspect_ratio;
-  if(aspect <= 0.f)
-  {
-    aspect = (renderSize.height() > 0)
-        ? (float(renderSize.width()) / float(renderSize.height()))
-        : (cam.aspect_ratio > 0.f ? cam.aspect_ratio : 1.f);
-  }
 
   // The projection KIND the asset authored. glTF (GltfParser.cpp) and FBX
   // (FbxParser.cpp) both emit orthographic cameras, and camera_component
@@ -31,7 +16,6 @@ void packCameraUBO(
   // camera reaches a scene shader, so a frustum built unconditionally as
   // perspective here would render an orthographic or fulldome camera as a
   // perspective one.
-  QMatrix4x4 proj;
   auto mode = CameraProjectionMode::Perspective;
   switch(cam.projection)
   {
@@ -65,9 +49,50 @@ void packCameraUBO(
     }
     case ossia::camera_projection::perspective:
     default:
-      setReverseZPerspective(proj, fovYDeg, aspect, cam.znear, cam.zfar);
+      if(cam.frustum_set)
+      {
+        setReverseZFrustum(
+            proj, cam.frustum[0], cam.frustum[1], cam.frustum[2], cam.frustum[3],
+            cam.znear, cam.zfar);
+      }
+      else
+      {
+        setReverseZPerspective(proj, fovYDeg, aspect, cam.znear, cam.zfar);
+        proj(0, 2) = 2.f * cam.shift[0];
+        proj(1, 2) = 2.f * cam.shift[1];
+      }
       break;
   }
+
+  if(cam.projection_matrix_set)
+  {
+    std::memcpy(proj.data(), cam.projection_matrix, 16 * sizeof(float));
+    flipProjectionDepth(proj);
+  }
+  return mode;
+}
+
+void packCameraUBO(
+    CameraUBOData& out, const ossia::camera_component& cam,
+    const QMatrix4x4& worldTransform, QSize renderSize, float timeSeconds,
+    float aspectOverride)
+{
+  const QVector3D eye = worldTransform.column(3).toVector3D();
+
+  QMatrix4x4 view = worldTransform.inverted();
+
+  float aspect = aspectOverride;
+  if(aspect <= 0.f && cam.aspect_ratio_set && cam.aspect_ratio > 0.f)
+    aspect = cam.aspect_ratio;
+  if(aspect <= 0.f)
+  {
+    aspect = (renderSize.height() > 0)
+        ? (float(renderSize.width()) / float(renderSize.height()))
+        : (cam.aspect_ratio > 0.f ? cam.aspect_ratio : 1.f);
+  }
+
+  QMatrix4x4 proj;
+  const auto mode = cameraProjection(proj, cam, aspect);
 
   QMatrix4x4 vp = proj * view;
 

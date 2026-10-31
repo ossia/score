@@ -120,6 +120,69 @@ inline void setReverseZOrthographic(
   out(3, 3) = 1.f;
 }
 
+// Reverse-Z off-axis perspective, same depth convention as
+// setReverseZPerspective. left/right/bottom/top are view-space tangents at
+// unit distance (glFrustum's bounds divided by near).
+inline void setReverseZFrustum(
+    QMatrix4x4& out, float left, float right, float bottom, float top,
+    float nearPlane, float farPlane)
+{
+  out.setToIdentity();
+  if(nearPlane == farPlane || right == left || top == bottom)
+    return;
+
+  const float clip = farPlane - nearPlane;
+  out(0, 0) = 2.f / (right - left);
+  out(0, 2) = (right + left) / (right - left);
+  out(1, 1) = 2.f / (top - bottom);
+  out(1, 2) = (top + bottom) / (top - bottom);
+  out(2, 2) = (farPlane + nearPlane) / clip;
+  out(2, 3) = (2.f * farPlane * nearPlane) / clip;
+  out(3, 2) = -1.f;
+  out(3, 3) = 0.f;
+}
+
+struct CameraFrustum
+{
+  float left{-1.f}, right{1.f}, bottom{-1.f}, top{1.f};
+};
+
+//! OpenCV intrinsics of a W x H image (pixel centres at integers, v down) to
+//! the view-space tangents of the frustum through the image borders.
+inline CameraFrustum frustumFromIntrinsics(
+    float fx, float fy, float cx, float cy, float width, float height) noexcept
+{
+  if(fx == 0.f || fy == 0.f)
+    return {};
+  return CameraFrustum{
+      .left = (-0.5f - cx) / fx,
+      .right = (width - 0.5f - cx) / fx,
+      .bottom = (cy - height + 0.5f) / fy,
+      .top = (cy + 0.5f) / fy};
+}
+
+//! Vertical FOV, aspect W/H and lens shift (fractions of the image, +y up) to
+//! the equivalent frustum tangents.
+inline CameraFrustum frustumFromFov(
+    float fovYDeg, float aspect, float shiftX, float shiftY) noexcept
+{
+  const float t = std::tan(fovYDeg * 0.5f * float(M_PI / 180.0));
+  const float h = t * aspect;
+  return CameraFrustum{
+      .left = h * (-1.f + 2.f * shiftX),
+      .right = h * (1.f + 2.f * shiftX),
+      .bottom = t * (-1.f + 2.f * shiftY),
+      .top = t * (1.f + 2.f * shiftY)};
+}
+
+//! Turns a standard OpenGL projection (near -> -1) into the reverse-Z one
+//! (near -> +1) and back.
+inline void flipProjectionDepth(QMatrix4x4& m) noexcept
+{
+  for(int c = 0; c < 4; c++)
+    m(2, c) = -m(2, c);
+}
+
 // The value packCameraUBO writes into CameraUBOData::params[3] (`camera.params.w`
 // in a scene shader) so the shader can tell which projection the author asked
 // for. Perspective is 0, so a shader that ignores the field still reads the
@@ -130,6 +193,12 @@ enum class CameraProjectionMode : int
   Orthographic = 1,
   Fulldome = 2,
 };
+
+// The reverse-Z projection of a camera_component; `aspect` is used only by the
+// forms that do not carry their own (yfov, orthographic magnifications).
+SCORE_PLUGIN_GFX_EXPORT
+CameraProjectionMode cameraProjection(
+    QMatrix4x4& out, const ossia::camera_component& cam, float aspect);
 
 // Pack a camera_component's view/projection/position into a CameraUBOData.
 // `worldTransform` is the camera node's accumulated world matrix (its

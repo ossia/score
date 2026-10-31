@@ -4,6 +4,8 @@
 #include <QSize>
 #include <QString>
 
+#include <array>
+
 namespace Gfx
 {
 
@@ -62,6 +64,95 @@ struct CornerWarp
   }
 };
 
+struct OutputColor
+{
+  std::array<float, 3> gain{1.f, 1.f, 1.f};
+  std::array<float, 3> offset{0.f, 0.f, 0.f};
+  //! Applied last: out = pow(c, 1 / gamma).
+  float gamma{1.f};
+  //! Decode the content with a 2.2 power before the blend ramps, alpha and
+  //! beta maps, re-encode after.
+  bool linearBlend{false};
+
+  bool isIdentity() const noexcept
+  {
+    return gain == std::array<float, 3>{1.f, 1.f, 1.f}
+           && offset == std::array<float, 3>{0.f, 0.f, 0.f} && gamma == 1.f
+           && !linearBlend;
+  }
+};
+
+//! Calibration files of an output, in its screen space (v = 0 at the top).
+struct OutputMaps
+{
+  //! UV lookup (xy = source UV in the output's source rect, w = valid),
+  //! applied before the corner warp.
+  QString warp;
+  //! Blend weight per RGB channel (a grey map broadcasts), multiplied with the edge ramps.
+  QString alpha;
+  //! Black level per RGB channel, added after the alpha.
+  QString beta;
+  //! Colour lookup table (.cube, Adobe Cube LUT 1.0), applied last.
+  QString lut;
+  //! Measured projector response (.response.json or 1D .cube): its inverse
+  //! replaces the 2.2 encode of Linear blend.
+  QString response;
+  //! Radiometric compensation (.comp.json): per pixel 3x3 matrix and offset
+  //! applied to the linear content before the alpha.
+  QString compensation;
+  //! name.json of the calibration the files above follow (CalibrationSet.hpp).
+  QString calibration;
+
+  bool empty() const noexcept
+  {
+    return warp.isEmpty() && alpha.isEmpty() && beta.isEmpty() && lut.isEmpty()
+           && response.isEmpty() && compensation.isEmpty();
+  }
+};
+
+//! How the output reads the canvas.
+enum class OutputSampling : int
+{
+  //! Anisotropic when a warp map or a corner warp is active, else Linear.
+  Auto = 0,
+  Linear = 1,
+  //! Trilinear, at the level of detail of the warp's screen-space Jacobian.
+  Mipmapped = 2,
+  //! Up to maxAnisotropy trilinear taps along the footprint's major axis.
+  Anisotropic = 3
+};
+
+enum class WarpInterpolation : int
+{
+  //! Bilinear, weighted by the valid flag of each texel.
+  Bilinear = 0,
+  //! Catmull-Rom where the 16 texels are valid, else Bilinear.
+  Bicubic = 1
+};
+
+enum class OutputDither : int
+{
+  //! On for an 8 or 10-bit output when blending, a map or the colour stage is active.
+  Auto = 0,
+  Off = 1,
+  On = 2
+};
+
+struct OutputQuality
+{
+  OutputSampling sampling{OutputSampling::Auto};
+  WarpInterpolation warpInterpolation{WarpInterpolation::Bicubic};
+  OutputDither dither{OutputDither::Auto};
+  int maxAnisotropy{8};
+
+  bool isDefault() const noexcept
+  {
+    return sampling == OutputSampling::Auto
+           && warpInterpolation == WarpInterpolation::Bicubic
+           && dither == OutputDither::Auto && maxAnisotropy == 8;
+  }
+};
+
 enum class OutputLockMode : int
 {
   Free = 0,       // No constraints
@@ -111,6 +202,10 @@ struct OutputMapping
   int rotation{0};     // 0, 90, 180, 270 degrees clockwise
   bool mirrorX{false}; // Flip output horizontally (after rotation)
   bool mirrorY{false}; // Flip output vertically (after rotation)
+
+  OutputMaps maps;
+  OutputColor color;
+  OutputQuality quality;
 };
 
 }
