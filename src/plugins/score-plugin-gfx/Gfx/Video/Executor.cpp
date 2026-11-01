@@ -97,40 +97,25 @@ class video_process final : public ossia::node_process
 public:
   using node_process::node_process;
 
-  void offset_impl(ossia::time_value date) override
+  // libossia passes two kinds of time: the interval gives offset_impl and
+  // transport_impl the date of the parent, and a loop wrap in state() gives
+  // the time in the media where the next loop starts. The parent's date maps
+  // to the media the way the tokens of state() do.
+  void state(const ossia::token_request& tok) override
   {
-    auto& vnode = static_cast<video_node&>(*node);
-    // TODO should be a "seek" info in what goes from decoder to renderer instead...
-
-    if(auto dec = vnode.decoder())
-    {
-      if(!this->m_loops || this->m_loop_duration.impl <= 0)
-      {
-        dec->seek(this->m_start_offset.impl + date.impl);
-      }
-      else
-      {
-        dec->seek(
-            this->m_start_offset.impl
-            + ((date.impl - this->m_start_offset.impl) % this->m_loop_duration.impl));
-      }
-    }
-
-    //vnode.impl->m_seeked = true;
+    if(!this->m_loops)
+      return node_process::state(tok);
+    tok.loop(
+        this->m_start_offset, this->m_loop_duration,
+        [this](const ossia::token_request& tr) { state_impl(tr); },
+        [this](ossia::time_value t) { seek(t); });
   }
 
-  void transport_impl(ossia::time_value date) override { offset_impl(date); }
+  void offset_impl(ossia::time_value date) override { seek(mediaTime(date)); }
+  void transport_impl(ossia::time_value date) override { seek(mediaTime(date)); }
 
-  void start() override
-  {
-    if(auto dec = static_cast<video_node&>(*node).decoder())
-      dec->seek(this->m_start_offset.impl);
-  }
-  void stop() override
-  {
-    if(auto dec = static_cast<video_node&>(*node).decoder())
-      dec->seek(this->m_start_offset.impl);
-  }
+  void start() override { seek(this->m_start_offset); }
+  void stop() override { seek(this->m_start_offset); }
   void pause() override
   {
     auto& vnode = static_cast<video_node&>(*node);
@@ -140,6 +125,23 @@ public:
   {
     auto& vnode = static_cast<video_node&>(*node);
     vnode.impl->pause(false);
+  }
+
+private:
+  //! Where a date of the parent falls in the media
+  ossia::time_value mediaTime(ossia::time_value date) const noexcept
+  {
+    const int64_t loop = this->m_loop_duration.impl;
+    if(!this->m_loops || loop <= 0)
+      return this->m_start_offset + date;
+    const int64_t in_loop = ((date.impl % loop) + loop) % loop;
+    return this->m_start_offset + ossia::time_value{in_loop};
+  }
+
+  void seek(ossia::time_value media)
+  {
+    if(auto dec = static_cast<video_node&>(*node).decoder())
+      dec->seek(media.impl);
   }
 };
 
