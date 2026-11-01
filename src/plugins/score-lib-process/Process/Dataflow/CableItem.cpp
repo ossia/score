@@ -17,6 +17,8 @@
 
 #include <QApplication>
 #include <QCursor>
+#include <Process/Dataflow/PortProbe.hpp>
+
 #include <QGraphicsSceneHoverEvent>
 #include <QGraphicsSceneMouseEvent>
 #include <QKeyEvent>
@@ -457,12 +459,33 @@ void CableItem::hoverMoveEvent(QGraphicsSceneHoverEvent* event)
         && endNear(event->scenePos(), m_p1->sceneCenter(), m_p2->sceneCenter())
                != GrabbedEnd::None;
   setCursor(onEnd ? Qt::PointingHandCursor : Qt::CrossCursor);
+  probe(event->scenePos());
   event->accept();
+}
+
+void CableItem::hoverEnterEvent(QGraphicsSceneHoverEvent* event)
+{
+  probe(event->scenePos());
+  event->accept();
+}
+
+void CableItem::probe(QPointF scenePos)
+{
+  // Near its end, a cable shows what the process there receives, all its
+  // cables merged; elsewhere, what its source produces
+  auto* s = scene();
+  if(!s || !m_p1 || !m_p2)
+    return;
+  const bool sink
+      = endNear(scenePos, m_p1->sceneCenter(), m_p2->sceneCenter()) == GrabbedEnd::Sink;
+  const Process::Port& port = sink ? m_p2->port() : m_p1->port();
+  Process::PortProbeHover::instance().enter(port, m_context, *s, scenePos);
 }
 
 void CableItem::hoverLeaveEvent(QGraphicsSceneHoverEvent* event)
 {
   setCursor(Qt::CrossCursor);
+  Process::PortProbeHover::instance().leave();
   event->accept();
 }
 

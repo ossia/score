@@ -30,6 +30,8 @@
 #include <QCursor>
 #include <QDrag>
 #include <QGraphicsScene>
+#include <Process/Dataflow/PortProbe.hpp>
+
 #include <QGraphicsSceneHoverEvent>
 #include <QGraphicsSceneMouseEvent>
 #include <QGraphicsView>
@@ -1016,6 +1018,8 @@ void PortItem::hoverEnterEvent(QGraphicsSceneHoverEvent* event)
   prepareGeometryChange();
   m_diam = 8.;
   update();
+  if(auto* s = scene())
+    Process::PortProbeHover::instance().enter(m_port, m_context, *s, sceneBoundingRect().center());
   event->accept();
 }
 
@@ -1029,6 +1033,7 @@ void PortItem::hoverLeaveEvent(QGraphicsSceneHoverEvent* event)
   prepareGeometryChange();
   m_diam = 8.;
   update();
+  Process::PortProbeHover::instance().leave();
   event->accept();
 }
 

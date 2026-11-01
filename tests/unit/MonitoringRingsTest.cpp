@@ -1,12 +1,16 @@
 // Monitoring rings: what the execution thread hands to the views.
 // SampleRing returns only one continuous stream, EventRing keeps events
-// while they fit and counts the rest.
+// while they fit and counts the rest, and the tap ticker gives its nodes one
+// token whether or not they run.
 
 #include "AllocCounter.hpp"
 
+#include <Process/Execution/PortTap.hpp>
 #include <Process/Monitoring/EventRing.hpp>
 #include <Process/Monitoring/Monitor.hpp>
 #include <Process/Monitoring/SampleRing.hpp>
+
+#include <ossia/dataflow/graph_node.hpp>
 
 #include <catch2/catch_test_macros.hpp>
 
@@ -21,6 +25,11 @@ void writeConstant(Process::SampleRing& ring, int channels, int frames, float v)
   ring.write(channels, frames, [&](int) { return data.data(); });
 }
 
+struct counting_node final : ossia::nonowning_graph_node
+{
+  void run(const ossia::token_request&, ossia::exec_state_facade) noexcept override { }
+  std::string label() const noexcept override { return "test"; }
+};
 }
 
 TEST_CASE("SampleRing: a channel provisioned mid-stream has no past", "[monitoring]")
@@ -161,4 +170,36 @@ TEST_CASE("LatestValue: the newest frame, once", "[monitoring]")
   REQUIRE(v.consume(out));
   REQUIRE(out == 2);
   REQUIRE_FALSE(v.consume(out));
+}
+
+TEST_CASE("TapTicker: one token per node, none after removal", "[monitoring]")
+{
+  Execution::TapTicker ticker;
+  REQUIRE(Execution::TapTicker::instance() == &ticker);
+  auto node = std::make_shared<counting_node>();
+  std::weak_ptr<counting_node> weak = node;
+
+  ticker.add(node);
+  node.reset();
+  // Held by the ticker while it may tick it
+  REQUIRE(!weak.expired());
+
+  ossia::audio_tick_state st{};
+  ticker.startTick(st);
+  REQUIRE(weak.lock()->requested_tokens.size() == 1);
+
+  // Not in a running graph: nothing clears its token, it does not pile up
+  ticker.startTick(st);
+  ticker.startTick(st);
+  REQUIRE(weak.lock()->requested_tokens.size() == 1);
+
+  // A graph that ran it clears it, and the next tick gives it a new one
+  weak.lock()->disable();
+  ticker.startTick(st);
+  REQUIRE(weak.lock()->requested_tokens.size() == 1);
+
+  // Not ticked anymore: the list that held it is freed, and the node with it
+  ticker.remove(weak.lock().get());
+  REQUIRE(weak.expired());
+  ticker.startTick(st);
 }
