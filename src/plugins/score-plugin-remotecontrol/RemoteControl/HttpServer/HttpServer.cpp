@@ -297,7 +297,11 @@ void HttpServer::set_address(const std::string& str)
   bool is_running{running()};
   if(is_running)
     stop_thread();
-  m_endpoint.address(net::ip::make_address(str.c_str()));
+
+  try
+  { m_endpoint.address(net::ip::make_address(str.c_str())); }
+  catch (...) { }
+
   if(is_running)
     start_thread();
 }
