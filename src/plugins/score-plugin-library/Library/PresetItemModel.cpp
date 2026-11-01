@@ -21,6 +21,7 @@
 
 #include <QApplication>
 #include <QDir>
+#include <QFont>
 #include <QFile>
 #include <QFileInfo>
 #include <QMimeData>
@@ -38,6 +39,8 @@ struct PresetItemModel::Node
   QString name;
   //! Its row in `presets`; -1 for a folder
   int preset = -1;
+  //! Or its index in the target's own presets
+  int builtin = -1;
   Node* parent{};
   int row{};
   std::vector<std::unique_ptr<Node>> children;
@@ -116,8 +119,59 @@ void PresetItemModel::setFilterText(const QString& text)
   rebuild();
 }
 
+void PresetItemModel::setTarget(const Process::ProcessModel* proc)
+{
+  if(proc == m_target)
+    return;
+  if(m_target)
+    disconnect(m_target, nullptr, this, nullptr);
+  m_target = proc;
+  if(proc)
+    connect(proc, &QObject::destroyed, this, [this] {
+      // Emitted by ~QObject: the process is no longer one to ask anything
+      m_target = nullptr;
+      rebuild();
+    });
+  rebuild();
+}
+
+void PresetItemModel::refreshCurrent()
+{
+  const auto visit = [&](auto& self, const Node& n) -> void {
+    for(auto& c : n.children)
+    {
+      if(c->preset >= 0 || c->builtin >= 0)
+      {
+        const auto idx = indexOf(c.get());
+        dataChanged(idx, idx, {Qt::FontRole});
+      }
+      self(self, *c);
+    }
+  };
+  visit(visit, *m_root);
+}
+
+QModelIndex PresetItemModel::currentPresetIndex() const
+{
+  if(!m_target)
+    return {};
+  const auto find = [&](auto& self, const Node& n) -> const Node* {
+    for(auto& c : n.children)
+    {
+      if(auto p = preset(indexOf(c.get())); p && Process::isCurrentPreset(*m_target, *p))
+        return c.get();
+      if(auto found = self(self, *c))
+        return found;
+    }
+    return nullptr;
+  };
+  return indexOf(find(find, *m_root));
+}
+
 bool PresetItemModel::shows(const Process::Preset& p) const noexcept
 {
+  if(m_target)
+    return m_target->presetMatches(p);
   return m_process && p.key.key == m_process->key
          && (m_process->effect.isEmpty() || p.key.effect == m_process->effect);
 }
@@ -132,10 +186,16 @@ void PresetItemModel::rebuild()
 void PresetItemModel::build()
 {
   m_root = std::make_unique<Node>();
-  if(!m_process)
+  m_builtins.clear();
+  if(!m_process && !m_target)
     return;
 
-  const Process::PresetTree tree{*m_process, presets};
+  // A plug-in's own presets, read from it as it is now
+  if(m_target)
+    m_builtins = m_target->builtinPresets();
+  const auto tree = m_target
+                        ? Process::PresetTree{*m_target, presets, m_builtins}
+                        : Process::PresetTree{*m_process, presets};
   const auto matches = [this](const Process::Preset& p) {
     return m_filter.isEmpty() || p.name.contains(m_filter, Qt::CaseInsensitive)
            || p.category.contains(m_filter, Qt::CaseInsensitive);
@@ -151,7 +211,10 @@ void PresetItemModel::build()
         if(!matches(*e.preset))
           continue;
         n->name = e.preset->name;
-        n->preset = int(e.preset - presets.data());
+        if(e.preset >= presets.data() && e.preset < presets.data() + presets.size())
+          n->preset = int(e.preset - presets.data());
+        else
+          n->builtin = int(e.preset - m_builtins.data());
       }
       else
       {
@@ -215,8 +278,12 @@ int PresetItemModel::presetRow(const QModelIndex& index) const
 
 const Process::Preset* PresetItemModel::preset(const QModelIndex& index) const
 {
-  const int row = presetRow(index);
-  return row >= 0 ? &presets[row] : nullptr;
+  if(const int row = presetRow(index); row >= 0)
+    return &presets[row];
+  if(index.isValid())
+    if(const int b = node(index)->builtin; ossia::valid_index(b, m_builtins))
+      return &m_builtins[b];
+  return nullptr;
 }
 
 QModelIndex PresetItemModel::indexOfPreset(int presetRow) const
@@ -238,7 +305,7 @@ QStringList PresetItemModel::folderPath(const QModelIndex& index) const
 {
   QStringList path;
   for(auto* n = node(index); n && n != m_root.get(); n = n->parent)
-    if(n->preset < 0)
+    if(n->preset < 0 && n->builtin < 0)
       path.prepend(n->name);
   return path;
 }
@@ -249,7 +316,7 @@ QModelIndex PresetItemModel::indexOfFolder(const QStringList& path) const
   for(const auto& part : path)
   {
     auto it = std::find_if(n->children.begin(), n->children.end(), [&](auto& c) {
-      return c->preset < 0 && c->name == part;
+      return c->preset < 0 && c->builtin < 0 && c->name == part;
     });
     if(it == n->children.end())
       return {};
@@ -269,8 +336,16 @@ QVariant PresetItemModel::data(const QModelIndex& index, int role) const
     case Qt::EditRole:
       return n->name;
     case Qt::DecorationRole:
-      if(n->preset < 0)
+      if(n->preset < 0 && n->builtin < 0)
         return qApp->style()->standardIcon(QStyle::SP_DirIcon);
+      break;
+    case Qt::FontRole:
+      if(auto p = preset(index); p && m_target && Process::isCurrentPreset(*m_target, *p))
+      {
+        QFont f;
+        f.setBold(true);
+        return f;
+      }
       break;
     case Qt::ToolTipRole:
       if(auto p = preset(index); p && !p->description.isEmpty())
@@ -286,12 +361,10 @@ Qt::ItemFlags PresetItemModel::flags(const QModelIndex& index) const
   if(!index.isValid())
     return f;
   f |= Qt::ItemIsSelectable;
-  if(const int row = presetRow(index); row >= 0)
-  {
+  if(preset(index))
     f |= Qt::ItemIsDragEnabled;
-    if(canEdit(row))
-      f |= Qt::ItemIsEditable;
-  }
+  if(const int row = presetRow(index); row >= 0 && canEdit(row))
+    f |= Qt::ItemIsEditable;
   return f;
 }
 

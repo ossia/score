@@ -20,6 +20,13 @@ public:
 
   void savePreset(const Process::ProcessModel* proc)
       E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, savePreset, proc)
+  //! The preset button of this process was clicked: the library shows its
+  //! presets
+  void showPresets(const Process::ProcessModel* proc)
+      E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, showPresets, proc)
+  //! Another preset was loaded into this process (Process::loadPreset)
+  void currentPresetChanged(const Process::ProcessModel* proc)
+      E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, currentPresetChanged, proc)
 
   //! Emitted around the sorted insertion done by addPreset, so item models
   //! over `presets` (Library::PresetItemModel) can emit exact insert ranges.

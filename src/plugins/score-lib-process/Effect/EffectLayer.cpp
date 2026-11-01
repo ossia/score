@@ -763,23 +763,6 @@ QGraphicsItem* makeExternalUIButton(
   return nullptr;
 }
 
-namespace
-{
-void loadPresetFromButton(
-    const Process::ProcessModel& proc, const Process::Preset& preset,
-    const score::DocumentContext& context)
-{
-  auto& load_preset_ifaces = context.app.interfaces<LoadPresetCommandFactoryList>();
-  if(auto cmd
-     = load_preset_ifaces.make(&LoadPresetCommandFactory::make, proc, preset, context))
-  {
-    rememberPreset(proc, preset);
-    CommandDispatcher<> c{context.commandStack};
-    c.submit(cmd);
-  }
-}
-}
-
 score::QGraphicsDraggablePixmap* makePresetButton(
     const ProcessModel& proc, const score::DocumentContext& context, QObject* self,
     QGraphicsItem* root)
@@ -789,11 +772,12 @@ score::QGraphicsDraggablePixmap* makePresetButton(
       = new score::QGraphicsDraggablePixmap{pixmaps.preset_on, pixmaps.preset_off, root};
   ui_btn->setToolTip(
       QObject::tr(
-          "Presets\nDrag to the library to save the current preset. Drag to a "
-          "scenario or a state for a cue of the current values of the controls; "
-          "hold Ctrl when dropping to choose what to drop. If there are "
-          "existing presets, they will be shown in a menu. The mouse's Forward "
-          "and Back buttons step through them in the menu's order."));
+          "Presets\nClick to browse them in the library, where they load into "
+          "this process. Drag to the library to save the current preset. Drag "
+          "to a scenario or a state for a cue of the current values of the "
+          "controls; hold Ctrl when dropping to choose what to drop. The mouse's "
+          "Forward and Back buttons step through the presets in the library's "
+          "order."));
   ui_btn->createDrag = [&proc, &context](QMimeData& mime) {
     // Dropped on a state or in a scenario it makes a cue; elsewhere a copy
     std::vector<const ProcessModel*> dragged{&proc};
@@ -824,57 +808,20 @@ score::QGraphicsDraggablePixmap* makePresetButton(
 
   ui_btn->click = [&proc, &context](Qt::MouseButton btn, QPointF screenPos) {
     auto& pplug = context.app.applicationPlugin<Process::ApplicationPlugin>();
-    const auto builtins = proc.builtinPresets();
-    const PresetTree tree{proc, pplug.presets, builtins};
 
     switch(btn)
     {
       default:
         break;
-      case Qt::LeftButton: {
-        // Preset menu
-        auto menu = new QMenu;
-        menu->setToolTipsVisible(true);
-        menu->addAction(
-            "Save current preset", menu, [&proc, &pplug] { pplug.savePreset(&proc); });
-        menu->addSeparator();
-
-        // The actions hold a copy of their preset: the library's list can
-        // grow, and reallocate, while the menu is open
-        auto fill = [&](auto& recurse, QMenu* m, const PresetTree::Node& n) -> void {
-          for(auto& e : n.entries)
-          {
-            if(e.child >= 0)
-            {
-              auto& child = *n.children[std::size_t(e.child)];
-              auto sub = m->addMenu(child.name);
-              sub->setToolTipsVisible(true);
-              recurse(recurse, sub, child);
-            }
-            else if(e.preset)
-            {
-              auto act = m->addAction(
-                  e.preset->name, menu,
-                  [&proc, &context, preset = *e.preset] {
-                loadPresetFromButton(proc, preset, context);
-              });
-              if(!e.preset->description.isEmpty())
-                act->setToolTip(e.preset->description);
-              act->setCheckable(true);
-              act->setChecked(isCurrentPreset(proc, *e.preset));
-            }
-          }
-        };
-        fill(fill, menu, tree.root);
-
-        menu->exec(screenPos.toPoint());
-        menu->deleteLater();
+      case Qt::LeftButton:
+        pplug.showPresets(&proc);
         break;
-      }
 
       case Qt::ForwardButton:
       case Qt::BackButton: {
-        // Step from the current preset, in the menu's order
+        const auto builtins = proc.builtinPresets();
+        const PresetTree tree{proc, pplug.presets, builtins};
+        // Step from the current preset, in the library's order
         const auto ordered = tree.ordered();
         const int n = std::ssize(ordered);
         if(n < 2)
@@ -896,7 +843,7 @@ score::QGraphicsDraggablePixmap* makePresetButton(
         else
           i = (i - 1 + n) % n;
 
-        loadPresetFromButton(proc, *ordered[std::size_t(i)], context);
+        loadPreset(proc, *ordered[std::size_t(i)], context);
         break;
       }
     }

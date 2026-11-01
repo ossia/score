@@ -1,6 +1,8 @@
 #include "ProcessWidget.hpp"
 
 #include <Process/ApplicationPlugin.hpp>
+#include <Process/PresetTree.hpp>
+#include <Process/Process.hpp>
 #include <Process/PreviewSettings.hpp>
 #include <Process/ProcessList.hpp>
 
@@ -11,9 +13,13 @@
 #include <Library/RecursiveFilterProxy.hpp>
 
 #include <score/application/GUIApplicationContext.hpp>
+#include <score/document/DocumentInterface.hpp>
 #include <score/tools/File.hpp>
 #include <score/widgets/HelpInteraction.hpp>
 #include <score/widgets/MarginLess.hpp>
+
+#include <core/view/FixedTabWidget.hpp>
+#include <core/view/Window.hpp>
 
 #include <ossia/detail/math.hpp>
 
@@ -24,6 +30,8 @@
 #include <QScrollArea>
 #include <QTimer>
 #include <QShortcut>
+#include <QSortFilterProxyModel>
+#include <QToolButton>
 #include <QVBoxLayout>
 
 namespace Library
@@ -168,12 +176,37 @@ ProcessWidget::ProcessWidget(const score::GUIApplicationContext& ctx, QWidget* p
     processFilterProxy->setSourceModel(m_processModel);
     processFilterProxy->setFilterKeyColumn(0);
     filter = new ItemModelFilterLineEdit{*processFilterProxy, m_tv, this};
+    m_processFilter = filter;
     slay->addWidget(filter);
     slay->addWidget(&m_tv, 3);
     m_tv.setModel(processFilterProxy);
     m_tv.setStatusTip(statusTip());
     m_tv.setUniformRowHeights(true);
     setup_treeview(m_tv);
+  }
+
+  {
+    auto lay = new score::MarginLess<QHBoxLayout>{&m_targetBar};
+    lay->setContentsMargins(4, 2, 2, 2);
+    m_targetLabel.setTextFormat(Qt::PlainText);
+    lay->addWidget(&m_targetLabel, 1);
+    auto save = new QToolButton{&m_targetBar};
+    save->setText(tr("Save"));
+    save->setToolTip(
+        tr("Save the process's current state as a preset, in the selected folder"));
+    connect(save, &QToolButton::clicked, this, [this] {
+      if(auto proc = m_presetModel->target())
+        m_presetModel->savePreset(
+            *proc, m_presetModel->folderPath(m_presets.currentIndex()).join('/'));
+    });
+    lay->addWidget(save);
+    auto close = new QToolButton{&m_targetBar};
+    close->setText(QStringLiteral("x"));
+    close->setToolTip(tr("Stop loading the presets into this process"));
+    connect(close, &QToolButton::clicked, this, &ProcessWidget::clearTarget);
+    lay->addWidget(close);
+    m_targetBar.hide();
+    slay->addWidget(&m_targetBar);
   }
 
   {
@@ -220,6 +253,12 @@ ProcessWidget::ProcessWidget(const score::GUIApplicationContext& ctx, QWidget* p
 
     // Update info widget
     infoWidg->setData(pdata);
+
+    // Another process chosen by the user: its presets no longer load into
+    // the one whose button opened them
+    if(!m_choosingTarget)
+      if(auto t = m_presetModel->target(); t && (!pdata || pdata->key != t->concreteKey()))
+        clearTarget();
 
     // Its presets
     if(pdata)
@@ -311,6 +350,78 @@ ProcessWidget::ProcessWidget(const score::GUIApplicationContext& ctx, QWidget* p
     SCORE_ASSERT(proc);
     this->m_presetModel->savePreset(*proc);
   });
+  con(presetLib, &Process::ApplicationPlugin::showPresets, this,
+      [this](const Process::ProcessModel* proc) {
+    if(proc)
+      showPresets(*proc);
+  });
+  con(presetLib, &Process::ApplicationPlugin::currentPresetChanged, this,
+      [this](const Process::ProcessModel* proc) {
+    if(proc && proc == m_presetModel->target())
+    {
+      m_presetModel->refreshCurrent();
+      m_presets.showCurrentPreset();
+    }
+  });
+  connect(
+      &m_presets, &PresetTreeView::loadRequested, this,
+      [this](const Process::Preset& preset) {
+    if(auto proc = m_presetModel->target())
+      Process::loadPreset(*proc, preset, score::IDocument::documentContext(*proc));
+  });
+}
+
+void ProcessWidget::raisePanel()
+{
+  // Wherever the panel is docked
+  if(auto view = qobject_cast<score::View*>(score::GUIAppContext().mainWindow))
+    for(auto tabs : {view->leftTabs, view->rightTabs, view->bottomTabs})
+      if(tabs)
+        tabs->showTab(this);
+}
+
+void ProcessWidget::showPresets(const Process::ProcessModel& proc)
+{
+  raisePanel();
+
+  // Its entry in the process tree, which a search there could hide
+  auto idx = m_processModel->find(proc.concreteKey(), proc.effect());
+  if(auto proxy = qobject_cast<QSortFilterProxyModel*>(m_tv.model()))
+  {
+    if(!proxy->mapFromSource(idx).isValid() && m_processFilter)
+      m_processFilter->clear();
+    idx = proxy->mapFromSource(idx);
+  }
+  m_choosingTarget = true;
+  if(idx.isValid())
+  {
+    for(auto p = idx.parent(); p.isValid(); p = p.parent())
+      m_tv.expand(p);
+    m_tv.setCurrentIndex(idx);
+    // Once the rows just opened are laid out
+    QTimer::singleShot(0, &m_tv, [this] {
+      m_tv.scrollTo(m_tv.currentIndex(), QAbstractItemView::PositionAtCenter);
+    });
+  }
+  m_choosingTarget = false;
+
+  // The presets are those of this very process: its script, its plug-in
+  m_presetModel->setTarget(&proc);
+  disconnect(m_targetGone);
+  m_targetGone = connect(&proc, &QObject::destroyed, this, [this] { clearTarget(); });
+  const auto name = proc.metadata().getLabel().isEmpty() ? proc.metadata().getName()
+                                                         : proc.metadata().getLabel();
+  m_targetLabel.setText(tr("Presets of %1").arg(name));
+  m_targetBar.show();
+  m_presets.showCurrentPreset();
+  m_presets.setFocus();
+}
+
+void ProcessWidget::clearTarget()
+{
+  disconnect(m_targetGone);
+  m_presetModel->setTarget(nullptr);
+  m_targetBar.hide();
 }
 
 void ProcessWidget::setNotice(const QString& html, std::function<void()> onActivated)

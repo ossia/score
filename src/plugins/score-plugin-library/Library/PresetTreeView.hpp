@@ -28,8 +28,15 @@ public:
   //! The current item became this preset, or a folder / nothing
   void selected(std::optional<Process::Preset> p)
       E_SIGNAL(SCORE_PLUGIN_LIBRARY_EXPORT, selected, p)
+  //! Without a target process: create a process from it
   void doubleClicked(Process::Preset p)
       E_SIGNAL(SCORE_PLUGIN_LIBRARY_EXPORT, doubleClicked, p)
+  //! With one: load it into it (double-click, Enter)
+  void loadRequested(Process::Preset p)
+      E_SIGNAL(SCORE_PLUGIN_LIBRARY_EXPORT, loadRequested, p)
+
+  //! Makes the target's current preset the current item, opening its folder
+  void showCurrentPreset();
 
 protected:
   void mouseDoubleClickEvent(QMouseEvent* event) override;
@@ -42,6 +49,7 @@ private:
   QString expansionKey() const;
   void saveState();
   void restoreState();
+  void scrollToCurrentLater();
 
   PresetItemModel* m_model{};
   //! The folders open for each kind of process, for the session

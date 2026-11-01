@@ -41,6 +41,10 @@ public:
 
   void rescan();
   QModelIndex find(const Process::ProcessModelFactory::ConcreteKey& k);
+  //! A process's entry: the one of its plug-in or script if there is one,
+  //! else the one of its kind
+  QModelIndex find(
+      const Process::ProcessModelFactory::ConcreteKey& k, const QString& customData);
 
   //! Queue one scanned entry for publication into the tree. The only way the
   //! tree changes outside rescan()/replaceChildren(). Entries are buffered

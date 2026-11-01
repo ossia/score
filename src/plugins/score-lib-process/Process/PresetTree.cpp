@@ -1,6 +1,11 @@
 #include "PresetTree.hpp"
 
+#include <Process/ApplicationPlugin.hpp>
+#include <Process/Commands/LoadPresetCommandFactory.hpp>
 #include <Process/Process.hpp>
+
+#include <score/command/Dispatchers/CommandDispatcher.hpp>
+#include <score/document/DocumentContext.hpp>
 
 #include <QObject>
 
@@ -145,5 +150,19 @@ bool isCurrentPreset(const Process::ProcessModel& proc, const Process::Preset& p
 {
   const auto cursor = proc.property(presetCursorProperty).toStringList();
   return cursor.size() == 2 && cursor[0] == preset.category && cursor[1] == preset.name;
+}
+
+bool loadPreset(
+    const Process::ProcessModel& proc, const Process::Preset& preset,
+    const score::DocumentContext& ctx)
+{
+  auto& factories = ctx.app.interfaces<LoadPresetCommandFactoryList>();
+  auto cmd = factories.make(&LoadPresetCommandFactory::make, proc, preset, ctx);
+  if(!cmd)
+    return false;
+  rememberPreset(proc, preset);
+  CommandDispatcher<>{ctx.commandStack}.submit(cmd);
+  ctx.app.applicationPlugin<Process::ApplicationPlugin>().currentPresetChanged(&proc);
+  return true;
 }
 }

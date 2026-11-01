@@ -10,6 +10,11 @@
 #include <memory>
 #include <vector>
 
+namespace score
+{
+struct DocumentContext;
+}
+
 namespace Process
 {
 class ProcessModel;
@@ -68,4 +73,10 @@ SCORE_LIB_PROCESS_EXPORT void
 rememberPreset(const Process::ProcessModel& proc, const Process::Preset& preset);
 SCORE_LIB_PROCESS_EXPORT bool
 isCurrentPreset(const Process::ProcessModel& proc, const Process::Preset& preset);
+
+//! Loads a preset into a process as the user does: one undo step, and it
+//! becomes the process's current preset
+SCORE_LIB_PROCESS_EXPORT bool loadPreset(
+    const Process::ProcessModel& proc, const Process::Preset& preset,
+    const score::DocumentContext& ctx);
 }
