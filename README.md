@@ -42,6 +42,16 @@ ossia score uses [CppDepend](https://www.cppdepend.com/) to ensure consistent co
 
 In order to build score, follow the [documentation](https://ossia.io/score-docs/development/build-from-source.html).
 
+When building with Faust support, score link-checks the selected libfaust's
+`llvm_dsp::compute` overload to determine whether its C++ interfaces use `float`
+or `double`. The Faust plug-in and its generated DSPs use that same precision,
+including with older libfaust versions that have mixed-precision UI symbol
+collisions. Selection does not depend on the installation prefix or LLVM linker
+flags. The check does not execute target code and works when cross-compiling.
+To select another Faust installation, set both `FAUST_LIBRARY` and
+`FAUST_INCLUDE_DIR`; configuration fails if neither or both precision overloads
+link, rather than guessing a sample type.
+
 ## Packaging status
 
 [![Packaging status](https://repology.org/badge/vertical-allrepos/ossia-score.svg?columns=3&header=ossia-score)](https://repology.org/project/ossia-score/versions)

@@ -29,6 +29,10 @@ if(UNIX AND NOT APPLE)
   find_package(ZLIB QUIET)
 endif()
 
+include("${CMAKE_CURRENT_SOURCE_DIR}/Faust/DetectFloatType.cmake")
+score_faust_detect_float_type(SCORE_FAUST_FLOAT_TYPE)
+message(STATUS "Faust sample type: ${SCORE_FAUST_FLOAT_TYPE}")
+
 # Files & main target
 set(HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/Faust/DSPWrapper.hpp"
@@ -49,12 +53,10 @@ add_library(${PROJECT_NAME}
 
 score_generate_command_list_file(${PROJECT_NAME} "${HDRS}")
 
-if(NOT "${FAUST_LIBRARIES}" MATCHES "/usr/l.*")
-  target_compile_definitions(${PROJECT_NAME}
-    PUBLIC
-      FAUSTFLOAT=double
-  )
-endif()
+target_compile_definitions(${PROJECT_NAME}
+  PUBLIC
+    FAUSTFLOAT=${SCORE_FAUST_FLOAT_TYPE}
+)
 
 target_link_libraries(${PROJECT_NAME} PUBLIC
                      score_plugin_media
