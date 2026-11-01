@@ -129,15 +129,20 @@ TEST_CASE(
     Library::ProcessesItemModel processes{ctx, nullptr};
     lib.waitFor({"Packaged", "Mine"});
     Library::PresetItemModel presets{ctx, nullptr};
+    presets.setProcess(Process::ProcessIdentifier{
+        UuidKey<Process::ProcessModel>::fromString(pattern_uuid), {}});
     QAbstractItemModel& model = presets;
 
-    int changed = 0;
-    QObject::connect(
-        &model, &QAbstractItemModel::dataChanged, [&](auto&&...) { changed++; });
+    // Where the renamed preset is now, for the view to keep it current
+    QModelIndex renamedTo;
+    QObject::connect(&presets, &Library::PresetItemModel::renamed, [&](const QModelIndex& i) {
+      renamedTo = i;
+    });
 
     // An installed package's preset: not editable, its file untouched
     {
-      const auto idx = model.index(lib.row("Packaged"), 0, {});
+      const auto idx = presets.indexOfPreset(lib.row("Packaged"));
+      REQUIRE(idx.isValid());
       CHECK(!(model.flags(idx) & Qt::ItemIsEditable));
       CHECK(!model.setData(idx, "Renamed", Qt::EditRole));
       CHECK(QFile::exists(lib.package));
@@ -146,7 +151,8 @@ TEST_CASE(
 
     // The user's: renamed beside where it was, the old file gone
     {
-      const auto idx = model.index(lib.row("Mine"), 0, {});
+      const auto idx = presets.indexOfPreset(lib.row("Mine"));
+      REQUIRE(idx.isValid());
       CHECK(model.flags(idx) & Qt::ItemIsEditable);
       REQUIRE(model.setData(idx, "Yours", Qt::EditRole));
       const QString renamed = lib.root + "/packages/user/presets/Pattern/Yours.scp";
@@ -154,7 +160,8 @@ TEST_CASE(
       CHECK(!QFile::exists(lib.user));
       REQUIRE(lib.row("Yours") >= 0);
       CHECK(lib.presets()[lib.row("Yours")].path == renamed);
-      CHECK(changed == 1);
+      REQUIRE(presets.preset(renamedTo));
+      CHECK(presets.preset(renamedTo)->name == "Yours");
 
       // The file says its new name too: read again, it is the same preset
       QFile f{renamed};
@@ -168,7 +175,8 @@ TEST_CASE(
     // Onto a name a file already has: the new one gets a number
     {
       writePreset(lib.root + "/packages/user/presets/Pattern/Taken.scp", "Taken");
-      const auto idx = model.index(lib.row("Yours"), 0, {});
+      const auto idx = presets.indexOfPreset(lib.row("Yours"));
+      REQUIRE(idx.isValid());
       REQUIRE(model.setData(idx, "Taken", Qt::EditRole));
       CHECK(QFile::exists(lib.root + "/packages/user/presets/Pattern/Taken.scp"));
       REQUIRE(lib.row("Taken (1)") >= 0);
@@ -186,10 +194,10 @@ TEST_CASE(
     Library::ProcessesItemModel processes{ctx, nullptr};
     lib.waitFor({"Packaged", "Mine"});
     Library::PresetItemModel model{ctx, nullptr};
-
-    int removed = 0;
-    QObject::connect(
-        &model, &QAbstractItemModel::rowsRemoved, [&](auto&&...) { removed++; });
+    model.setProcess(Process::ProcessIdentifier{
+        UuidKey<Process::ProcessModel>::fromString(pattern_uuid), {}});
+    QAbstractItemModel& m = model;
+    CHECK(m.rowCount({}) == 2);
 
     CHECK(!model.removePreset(lib.row("Packaged")));
     CHECK(QFile::exists(lib.package));
@@ -198,7 +206,7 @@ TEST_CASE(
     REQUIRE(model.removePreset(lib.row("Mine")));
     CHECK(!QFile::exists(lib.user));
     CHECK(lib.count("Mine") == 0);
-    CHECK(removed == 1);
+    CHECK(m.rowCount({}) == 1);
 
     // Gone for good from the library: a rescan does not bring it back
     ctx.settings<Library::Settings::Model>().rescanLibrary();

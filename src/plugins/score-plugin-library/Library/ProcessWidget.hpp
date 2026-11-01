@@ -2,7 +2,7 @@
 #include <Process/Preset.hpp>
 
 #include <Library/LibraryInterface.hpp>
-#include <Library/PresetListView.hpp>
+#include <Library/PresetTreeView.hpp>
 #include <Library/ProcessTreeView.hpp>
 
 #include <score/tools/std/Optional.hpp>
@@ -61,8 +61,8 @@ public:
   const ProcessTreeView& processView() const noexcept { return m_tv; }
   ProcessTreeView& processView() noexcept { return m_tv; }
 
-  const PresetListView& presetView() const noexcept { return m_lv; }
-  PresetListView& presetView() noexcept { return m_lv; }
+  const PresetTreeView& presetView() const noexcept { return m_presets; }
+  PresetTreeView& presetView() noexcept { return m_presets; }
 
   //! Put a line of rich text above the process list, or take it away when the
   //! text is empty. Anything the user has to be told about the library itself
@@ -74,7 +74,7 @@ private:
   ProcessesItemModel* m_processModel{};
   PresetItemModel* m_presetModel{};
   ProcessTreeView m_tv;
-  PresetListView m_lv;
+  PresetTreeView m_presets;
   QLabel m_notice;
   std::function<void()> m_noticeAction;
 

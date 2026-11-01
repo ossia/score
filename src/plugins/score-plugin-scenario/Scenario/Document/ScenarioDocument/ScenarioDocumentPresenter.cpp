@@ -274,7 +274,7 @@ ScenarioDocumentPresenter::ScenarioDocumentPresenter(
         &Library::ProcessTreeView::doubleClicked, this,
         &ScenarioDocumentPresenter::on_addProcessFromLibrary);
     con(processLib->processWidget().presetView(),
-        &Library::PresetListView::doubleClicked, this,
+        &Library::PresetTreeView::doubleClicked, this,
         &ScenarioDocumentPresenter::on_addPresetFromLibrary);
   }
 

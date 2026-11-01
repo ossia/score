@@ -19,6 +19,7 @@
 
 #include <QApplication>
 #include <QLabel>
+#include <QLineEdit>
 #include <QMainWindow>
 #include <QScrollArea>
 #include <QTimer>
@@ -175,13 +176,14 @@ ProcessWidget::ProcessWidget(const score::GUIApplicationContext& ctx, QWidget* p
     setup_treeview(m_tv);
   }
 
-  auto presetFilterProxy = new PresetFilterProxy{this};
   {
-    presetFilterProxy->setSourceModel(m_presetModel);
-    m_lv.setModel(presetFilterProxy);
-    m_lv.setAcceptDrops(true);
-    m_lv.setDragEnabled(true);
-    slay->addWidget(&m_lv, 1);
+    auto search = new QLineEdit{this};
+    search->setPlaceholderText(tr("Search presets"));
+    search->setClearButtonEnabled(true);
+    connect(search, &QLineEdit::textChanged, m_presetModel, &PresetItemModel::setFilterText);
+    slay->addWidget(search);
+    m_presets.setPresetModel(m_presetModel);
+    slay->addWidget(&m_presets, 2);
   }
 
   slay->addWidget(&m_preview);
@@ -197,8 +199,7 @@ ProcessWidget::ProcessWidget(const score::GUIApplicationContext& ctx, QWidget* p
   // destroy a preset preview and clear state nothing asked to clear.
   con(Process::PreviewSettings::instance(), &Process::PreviewSettings::enabledChanged,
       this, [this](bool) {
-    if(auto* sm = m_lv.selectionModel();
-       sm && sm->currentIndex().isValid() && m_refreshPresetPreview)
+    if(m_presetModel->preset(m_presets.currentIndex()) && m_refreshPresetPreview)
       m_refreshPresetPreview();
     else if(auto* sm = m_tv.selectionModel(); sm && !sm->selectedIndexes().isEmpty())
       m_tv.reselect();
@@ -210,8 +211,7 @@ ProcessWidget::ProcessWidget(const score::GUIApplicationContext& ctx, QWidget* p
 
   connect(
       &m_tv, &ProcessTreeView::selected, this,
-      [this, infoWidg, filter,
-       presetFilterProxy](const std::optional<Library::ProcessData>& pdata) {
+      [this, infoWidg, filter](const std::optional<Library::ProcessData>& pdata) {
 #if defined(_WIN32)
     const bool filter_had_focus = filter->hasFocus();
     const bool tree_had_focus = m_tv.hasFocus();
@@ -221,16 +221,11 @@ ProcessWidget::ProcessWidget(const score::GUIApplicationContext& ctx, QWidget* p
     // Update info widget
     infoWidg->setData(pdata);
 
-    // Update the filter
+    // Its presets
     if(pdata)
-    {
-      presetFilterProxy->currentFilter = {pdata->key, pdata->customData};
-    }
+      m_presetModel->setProcess(Process::ProcessIdentifier{pdata->key, pdata->customData});
     else
-    {
-      presetFilterProxy->currentFilter = {};
-    }
-    presetFilterProxy->invalidate();
+      m_presetModel->setProcess(std::nullopt);
 
     // Update the preview
     delete m_previewChild;
@@ -264,17 +259,10 @@ ProcessWidget::ProcessWidget(const score::GUIApplicationContext& ctx, QWidget* p
 #endif
   });
 
-  auto preset_sel = m_lv.selectionModel();
   connect(
-      preset_sel, &QItemSelectionModel::currentRowChanged, this,
-      [this, filter, presetFilterProxy](const QModelIndex& idx, const QModelIndex&) {
-    if(!idx.isValid())
-      return;
-    auto midx = presetFilterProxy->mapToSource(idx);
-    if(!midx.isValid())
-      return;
-
-    if(!ossia::valid_index(midx.row(), m_presetModel->presets))
+      &m_presets, &PresetTreeView::selected, this,
+      [this, filter](const std::optional<Process::Preset>& selected) {
+    if(!selected)
       return;
 
 #if defined(_WIN32)
@@ -286,7 +274,7 @@ ProcessWidget::ProcessWidget(const score::GUIApplicationContext& ctx, QWidget* p
     delete m_previewChild;
     m_previewChild = nullptr;
 
-    const auto& preset = m_presetModel->presets[midx.row()];
+    const auto& preset = *selected;
 
     const auto buildPreview = [this](const Process::Preset& p) {
       delete m_previewChild;
@@ -315,7 +303,7 @@ ProcessWidget::ProcessWidget(const score::GUIApplicationContext& ctx, QWidget* p
     }
 #endif
   });
-  m_lv.setMinimumHeight(100);
+  m_presets.setMinimumHeight(100);
 
   auto& presetLib = ctx.applicationPlugin<Process::ApplicationPlugin>();
   con(presetLib, &Process::ApplicationPlugin::savePreset, this,
