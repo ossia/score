@@ -26,6 +26,8 @@ add_library(
   "${CMAKE_CURRENT_SOURCE_DIR}/Ui/ValueDisplay.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Ui/VUMeter.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Ui/VUMeter.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Ui/PortProbe.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Ui/PortProbe.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Ui/TextureView.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Ui/TextureView.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Ui/VideoScope.hpp"

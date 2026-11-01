@@ -4,12 +4,15 @@
 
 #include <Engine/Node/SimpleApi.hpp>
 
+#include <Process/Execution/PortTap.hpp>
+
 #include <score/plugins/FactorySetup.hpp>
 
 #include <Avnd/Factories.hpp>
 #include <Ui/AudioScope.hpp>
 #include <Ui/Loudness.hpp>
 #include <Ui/MidiDisplay.hpp>
+#include <Ui/PortProbe.hpp>
 #include <Ui/SignalDisplay.hpp>
 #include <Ui/Spectrum.hpp>
 #include <Ui/Tuner.hpp>
@@ -39,6 +42,13 @@ std::vector<score::InterfaceBase*> score_plugin_ui::factories(
   oscr::instantiate_fx<Ui::ValueDisplay::Node>(fx, ctx, key);
   oscr::instantiate_fx<Ui::VUMeter::Node>(fx, ctx, key);
   oscr::instantiate_fx<Ui::VideoScope::Node>(fx, ctx, key);
+
+  auto probes = instantiate_factories<
+      score::ApplicationContext, FW<Process::PortProbeFactory, Ui::ProbeFactory>,
+      FW<Execution::ExecutionAction, Execution::TapTicker>>(ctx, key);
+  fx.insert(
+      fx.end(), std::make_move_iterator(probes.begin()),
+      std::make_move_iterator(probes.end()));
   return fx;
 }
 

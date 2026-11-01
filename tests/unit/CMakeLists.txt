@@ -260,7 +260,8 @@ score_add_test(test_unit_audio_meter
   SOURCES AudioMeterTest.cpp
   PLUGINS score_plugin_ui score_lib_process)
 
-# Monitoring rings: one continuous stream, events counted when dropped.
+# Monitoring rings: one continuous stream, events counted when dropped,
+# taps ticked without piling up tokens.
 score_add_test(test_unit_monitoring_rings
   SOURCES MonitoringRingsTest.cpp
   PLUGINS score_lib_process)
