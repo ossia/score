@@ -131,8 +131,11 @@ private:
   std::optional<double> m_nativeTempo;
   Timings m_lastToken{};
   QElapsedTimer m_timer;
-  //! Playback seconds per wall-clock second, between the last two messages.
+  //! Playback seconds per wall-clock second, measured over m_rateTimer.
   double m_rate{1.};
+  //! Since the message the rate is measured from, at date m_rateFrom.
+  QElapsedTimer m_rateTimer;
+  int64_t m_rateFrom{};
   std::atomic_bool m_pause{};
 };
 }

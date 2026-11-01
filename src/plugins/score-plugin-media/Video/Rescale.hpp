@@ -88,6 +88,11 @@ struct SCORE_PLUGIN_MEDIA_EXPORT LibAVDecoder
   //! The largest pts - dts seen: a seek for a time asks for that much earlier,
   //! the demuxer seeking on dts.
   int64_t m_ptsLead{};
+  //! While set, enqueue_frame decodes the frames that end before this pts
+  //! and drops them, unconverted: a seek lands on the keyframe before its
+  //! target, and the frames up to the target are references, not pictures.
+  //! The first frame kept clears it.
+  int64_t m_skipBefore{AV_NOPTS_VALUE};
   //! Set by the decoding thread, polled by the owner waiting for the end.
   std::atomic_bool m_finished{};
 };
