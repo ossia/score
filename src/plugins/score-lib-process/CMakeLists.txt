@@ -93,6 +93,7 @@ set(PROCESS_HDRS
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Tools/ProcessPanelGraphicsProxy.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Preset.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/PresetHelpers.hpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Process/PresetTree.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/ProcessState.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/ZoomHelper.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Layer/LayerContextMenu.hpp"
@@ -201,6 +202,7 @@ set(PROCESS_SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/OfflineAction/OfflineAction.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Preset.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Process/PresetTree.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/ProcessState.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/State/MessageNode.cpp"

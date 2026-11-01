@@ -203,6 +203,12 @@ score_add_test(test_unit_library_preset_preview
   APP
   PLUGINS score_plugin_library score_lib_process)
 
+# The preset tree the library shows and Forward / Back walk: folders from the
+# categories, a plug-in's own presets last.
+score_add_test(test_unit_preset_tree
+  SOURCES PresetTreeTest.cpp
+  PLUGINS score_lib_process)
+
 # The preset button's Forward / Back buttons: the menu's order, from the
 # preset loaded last.
 score_add_test(test_unit_preset_step
