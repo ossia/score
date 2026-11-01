@@ -73,6 +73,10 @@ SCORE_LIB_PROCESS_EXPORT void
 rememberPreset(const Process::ProcessModel& proc, const Process::Preset& preset);
 SCORE_LIB_PROCESS_EXPORT bool
 isCurrentPreset(const Process::ProcessModel& proc, const Process::Preset& preset);
+//! {category, name} of the current preset, empty if none: to put it back
+SCORE_LIB_PROCESS_EXPORT QStringList presetCursor(const Process::ProcessModel& proc);
+SCORE_LIB_PROCESS_EXPORT void
+setPresetCursor(const Process::ProcessModel& proc, const QStringList& cursor);
 
 //! Loads a preset into a process as the user does: one undo step, and it
 //! becomes the process's current preset

@@ -304,6 +304,11 @@ ProcessWidget::ProcessWidget(const score::GUIApplicationContext& ctx, QWidget* p
     if(!selected)
       return;
 
+    // Heard at once in the process the presets load into
+    if(auto proc = m_presetModel->target())
+      if(m_audition.preview(*proc, *selected))
+        m_presetModel->refreshCurrent();
+
 #if defined(_WIN32)
     const bool filter_had_focus = filter->hasFocus();
     const bool tree_had_focus = m_tv.hasFocus();
@@ -366,8 +371,31 @@ ProcessWidget::ProcessWidget(const score::GUIApplicationContext& ctx, QWidget* p
   connect(
       &m_presets, &PresetTreeView::loadRequested, this,
       [this](const Process::Preset& preset) {
-    if(auto proc = m_presetModel->target())
+    auto proc = m_presetModel->target();
+    if(!proc)
+      return;
+    // The one being heard is kept; another is loaded as it is
+    if(m_audition.active() && Process::isCurrentPreset(*proc, preset))
+      m_audition.commit();
+    else
+    {
+      m_audition.commit();
       Process::loadPreset(*proc, preset, score::IDocument::documentContext(*proc));
+    }
+    m_presetModel->refreshCurrent();
+  });
+  connect(&m_presets, &PresetTreeView::cancelRequested, this, [this] {
+    if(!m_audition.active())
+      return;
+    m_audition.rollback();
+    m_presetModel->refreshCurrent();
+    m_presets.showCurrentPreset();
+  });
+  // Doing anything else keeps what is heard: a click elsewhere takes the
+  // focus before it acts
+  con(*qApp, &QApplication::focusChanged, this, [this](QWidget*, QWidget* now) {
+    if(m_audition.active() && now != &m_presets && !m_presets.isAncestorOf(now))
+      m_audition.commit();
   });
 }
 
@@ -382,6 +410,7 @@ void ProcessWidget::raisePanel()
 
 void ProcessWidget::showPresets(const Process::ProcessModel& proc)
 {
+  m_audition.commit();
   raisePanel();
 
   // Its entry in the process tree, which a search there could hide
@@ -419,6 +448,7 @@ void ProcessWidget::showPresets(const Process::ProcessModel& proc)
 
 void ProcessWidget::clearTarget()
 {
+  m_audition.commit();
   disconnect(m_targetGone);
   m_presetModel->setTarget(nullptr);
   m_targetBar.hide();

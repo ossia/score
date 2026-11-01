@@ -125,6 +125,19 @@ void PresetTreeView::currentChanged(const QModelIndex& current, const QModelInde
     selected(std::nullopt);
 }
 
+void PresetTreeView::focusInEvent(QFocusEvent* event)
+{
+  // Qt makes the first row current when the view gets the focus with none:
+  // not a preset the user chose, which would load it, and which a click on
+  // it would then not load
+  const bool none = !currentIndex().isValid();
+  m_restoring = true;
+  QTreeView::focusInEvent(event);
+  if(none && currentIndex().isValid())
+    selectionModel()->clearCurrentIndex();
+  m_restoring = false;
+}
+
 void PresetTreeView::mouseDoubleClickEvent(QMouseEvent* event)
 {
   const auto idx = indexAt(event->pos());
@@ -200,6 +213,12 @@ void PresetTreeView::scrollToCurrentLater()
 
 void PresetTreeView::keyPressEvent(QKeyEvent* event)
 {
+  if(event->key() == Qt::Key_Escape && state() != QAbstractItemView::EditingState)
+  {
+    cancelRequested();
+    event->accept();
+    return;
+  }
   if(m_model && m_model->target() && state() != QAbstractItemView::EditingState
      && (event->key() == Qt::Key_Return || event->key() == Qt::Key_Enter))
   {

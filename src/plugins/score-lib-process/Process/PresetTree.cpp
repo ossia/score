@@ -146,6 +146,16 @@ void rememberPreset(const Process::ProcessModel& proc, const Process::Preset& pr
       presetCursorProperty, QStringList{preset.category, preset.name});
 }
 
+QStringList presetCursor(const Process::ProcessModel& proc)
+{
+  return proc.property(presetCursorProperty).toStringList();
+}
+
+void setPresetCursor(const Process::ProcessModel& proc, const QStringList& cursor)
+{
+  const_cast<Process::ProcessModel&>(proc).setProperty(presetCursorProperty, cursor);
+}
+
 bool isCurrentPreset(const Process::ProcessModel& proc, const Process::Preset& preset)
 {
   const auto cursor = proc.property(presetCursorProperty).toStringList();

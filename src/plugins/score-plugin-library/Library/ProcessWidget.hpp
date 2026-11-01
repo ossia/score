@@ -2,6 +2,7 @@
 #include <Process/Preset.hpp>
 
 #include <Library/LibraryInterface.hpp>
+#include <Library/PresetAudition.hpp>
 #include <Library/PresetTreeView.hpp>
 #include <Library/ProcessTreeView.hpp>
 
@@ -91,6 +92,8 @@ private:
   QWidget m_targetBar;
   QLabel m_targetLabel;
   QMetaObject::Connection m_targetGone;
+  //! Presets loaded live into the target as the user moves through them
+  PresetAudition m_audition;
   //! Set while the process tree is moved to the target's entry
   bool m_choosingTarget{};
 
