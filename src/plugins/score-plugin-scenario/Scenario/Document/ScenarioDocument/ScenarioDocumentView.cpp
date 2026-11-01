@@ -227,6 +227,9 @@ void ProcessGraphicsView::wheelEvent(QWheelEvent* event)
     wheelEvent.setAccepted(false);
     wheelEvent.setTimestamp(event->timestamp());
     QCoreApplication::sendEvent(this->scene(), &wheelEvent);
+    // An item used it
+    if(wheelEvent.isAccepted())
+      return;
   }
 
   const auto pressedModifier = qApp->keyboardModifiers();
