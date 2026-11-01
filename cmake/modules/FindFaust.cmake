@@ -64,6 +64,20 @@ if(FAUST_FOUND)
       execute_process(COMMAND ${LLVM_CONFIG} "--libs" OUTPUT_VARIABLE LLVM_LIBS)
       string(STRIP "${LLVM_LIBS}" LLVM_LIBS)
 
+      # --libs omits LLVM's platform and compression dependencies. Include
+      # them in both the plug-in link and the standalone precision probes.
+      execute_process(COMMAND ${LLVM_CONFIG} "--system-libs"
+          OUTPUT_VARIABLE _FAUST_LLVM_SYSTEM_LIBS
+          OUTPUT_STRIP_TRAILING_WHITESPACE
+          COMMAND_ERROR_IS_FATAL ANY
+      )
+      separate_arguments(_FAUST_LLVM_SYSTEM_LIBS NATIVE_COMMAND "${_FAUST_LLVM_SYSTEM_LIBS}")
+      if("-lz" IN_LIST _FAUST_LLVM_SYSTEM_LIBS)
+        # The SDK's zlib need not be in the compiler's default search path.
+        find_package(ZLIB REQUIRED)
+        list(TRANSFORM _FAUST_LLVM_SYSTEM_LIBS REPLACE "^-lz$" "ZLIB::ZLIB")
+      endif()
+
       execute_process(COMMAND ${LLVM_CONFIG} "--version" OUTPUT_VARIABLE LLVM_VERSION)
       string(STRIP "${LLVM_VERSION}" LLVM_VERSION)
 
@@ -94,6 +108,7 @@ if(FAUST_FOUND)
         string(REGEX REPLACE " " ";" LLVM_LIBS ${LLVM_LIBS})
         set(FAUST_LIBRARIES ${FAUST_LIBRARIES} ${LLVM_LIBS})
       endif()
+      list(APPEND FAUST_LIBRARIES ${_FAUST_LLVM_SYSTEM_LIBS})
     endif()
   endif()
 else()

@@ -51,6 +51,8 @@ flags. The check does not execute target code and works when cross-compiling.
 To select another Faust installation, set both `FAUST_LIBRARY` and
 `FAUST_INCLUDE_DIR`; configuration fails if neither or both precision overloads
 link, rather than guessing a sample type.
+Static libfaust links also include the system libraries reported by `llvm-config`;
+SDK zlib is resolved through CMake rather than the compiler's default search path.
 
 ## Packaging status
 
