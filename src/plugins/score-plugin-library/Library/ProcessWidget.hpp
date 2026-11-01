@@ -92,8 +92,10 @@ private:
   QWidget m_targetBar;
   QLabel m_targetLabel;
   QMetaObject::Connection m_targetGone;
+  QMetaObject::Connection m_targetDeselected;
   //! Presets loaded live into the target as the user moves through them
   PresetAudition m_audition;
+  bool m_auditionEnabled{true};
   //! Set while the process tree is moved to the target's entry
   bool m_choosingTarget{};
 

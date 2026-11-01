@@ -4,6 +4,8 @@
 
 #include <score/plugins/application/GUIApplicationPlugin.hpp>
 
+#include <QPointer>
+
 #include <Process/Layer/LayerContextMenu.hpp>
 
 namespace Process
@@ -27,6 +29,12 @@ public:
   //! Another preset was loaded into this process (Process::loadPreset)
   void currentPresetChanged(const Process::ProcessModel* proc)
       E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, currentPresetChanged, proc)
+
+  //! The process the library's presets load into, if any: drawn as such
+  const Process::ProcessModel* presetTarget() const noexcept { return m_presetTarget; }
+  void setPresetTarget(const Process::ProcessModel* proc);
+  void presetTargetChanged(const Process::ProcessModel* proc)
+      E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, presetTargetChanged, proc)
 
   //! Emitted around the sorted insertion done by addPreset, so item models
   //! over `presets` (Library::PresetItemModel) can emit exact insert ranges.
@@ -58,6 +66,9 @@ public:
 
   std::vector<Process::Preset> presets;
   Process::LayerContextMenuManager m_layerCtxMenuManager;
+
+private:
+  QPointer<const Process::ProcessModel> m_presetTarget;
 };
 
 }

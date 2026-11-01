@@ -14,6 +14,9 @@
 
 #include <score/application/GUIApplicationContext.hpp>
 #include <score/document/DocumentInterface.hpp>
+#include <score/selection/SelectionDispatcher.hpp>
+#include <score/selection/SelectionStack.hpp>
+#include <score/widgets/Pixmap.hpp>
 #include <score/tools/File.hpp>
 #include <score/widgets/HelpInteraction.hpp>
 #include <score/widgets/MarginLess.hpp>
@@ -21,6 +24,7 @@
 #include <core/view/FixedTabWidget.hpp>
 #include <core/view/Window.hpp>
 
+#include <ossia/detail/algorithms.hpp>
 #include <ossia/detail/math.hpp>
 
 #include <QApplication>
@@ -29,6 +33,8 @@
 #include <QMainWindow>
 #include <QScrollArea>
 #include <QTimer>
+#include <QPushButton>
+#include <QSettings>
 #include <QShortcut>
 #include <QSortFilterProxyModel>
 #include <QToolButton>
@@ -189,6 +195,34 @@ ProcessWidget::ProcessWidget(const score::GUIApplicationContext& ctx, QWidget* p
     auto lay = new score::MarginLess<QHBoxLayout>{&m_targetBar};
     lay->setContentsMargins(4, 2, 2, 2);
     m_targetLabel.setTextFormat(Qt::PlainText);
+    // Like the play / stop of a sound file's preview
+    auto audition = new QPushButton{&m_targetBar};
+    audition->setCheckable(true);
+    audition->setFlat(true);
+    audition->setMinimumWidth(24);
+    audition->setMaximumWidth(24);
+    const auto playIcon = QIcon{score::get_pixmap(":/icons/play_off.png")};
+    const auto stopIcon = QIcon{score::get_pixmap(":/icons/stop_off.png")};
+    const auto showAudition = [=, this](bool on) {
+      audition->setIcon(on ? stopIcon : playIcon);
+      audition->setToolTip(
+          on ? tr("Presets load as you move through them. Click to only load "
+                  "one on Enter or a double-click.")
+             : tr("Presets load on Enter or a double-click. Click to load them "
+                  "as you move through them."));
+    };
+    m_auditionEnabled = QSettings{}.value("Library/AuditionPresets", true).toBool();
+    audition->setChecked(m_auditionEnabled);
+    showAudition(m_auditionEnabled);
+    connect(audition, &QPushButton::toggled, this, [this, showAudition](bool on) {
+      m_auditionEnabled = on;
+      QSettings{}.setValue("Library/AuditionPresets", on);
+      showAudition(on);
+      // What is heard is kept
+      m_audition.commit();
+      m_presetModel->refreshCurrent();
+    });
+    lay->addWidget(audition);
     lay->addWidget(&m_targetLabel, 1);
     auto save = new QToolButton{&m_targetBar};
     save->setText(tr("Save"));
@@ -305,7 +339,7 @@ ProcessWidget::ProcessWidget(const score::GUIApplicationContext& ctx, QWidget* p
       return;
 
     // Heard at once in the process the presets load into
-    if(auto proc = m_presetModel->target())
+    if(auto proc = m_presetModel->target(); proc && m_auditionEnabled)
       if(m_audition.preview(*proc, *selected))
         m_presetModel->refreshCurrent();
 
@@ -436,8 +470,31 @@ void ProcessWidget::showPresets(const Process::ProcessModel& proc)
 
   // The presets are those of this very process: its script, its plug-in
   m_presetModel->setTarget(&proc);
+  score::GUIAppContext().applicationPlugin<Process::ApplicationPlugin>().setPresetTarget(
+      &proc);
   disconnect(m_targetGone);
   m_targetGone = connect(&proc, &QObject::destroyed, this, [this] { clearTarget(); });
+
+  // It is the one selected while its presets load into it; deselected, the
+  // library is browsed for any process again
+  auto& sel = score::IDocument::documentContext(proc).selectionStack;
+  score::SelectionDispatcher{sel}.select(proc);
+  disconnect(m_targetDeselected);
+  m_targetDeselected = connect(
+      &sel, &score::SelectionStack::currentSelectionChanged, this,
+      [this](const Selection&, const Selection&) {
+    // Once what deselected it is done: undoing its creation deselects it on
+    // the way, which must not put anything in the history meanwhile
+    QTimer::singleShot(0, this, [this] {
+      auto t = m_presetModel->target();
+      if(!t)
+        return;
+      const auto now
+          = score::IDocument::documentContext(*t).selectionStack.currentSelection();
+      if(!ossia::any_of(now, [t](const auto& obj) { return obj.data() == t; }))
+        clearTarget();
+    });
+  });
   const auto name = proc.metadata().getLabel().isEmpty() ? proc.metadata().getName()
                                                          : proc.metadata().getLabel();
   m_targetLabel.setText(tr("Presets of %1").arg(name));
@@ -450,6 +507,9 @@ void ProcessWidget::clearTarget()
 {
   m_audition.commit();
   disconnect(m_targetGone);
+  disconnect(m_targetDeselected);
+  score::GUIAppContext().applicationPlugin<Process::ApplicationPlugin>().setPresetTarget(
+      nullptr);
   m_presetModel->setTarget(nullptr);
   m_targetBar.hide();
 }

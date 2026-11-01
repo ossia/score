@@ -19,13 +19,11 @@
 
 #include <ossia/detail/ssize.hpp>
 
-#include <QApplication>
 #include <QDir>
 #include <QFont>
 #include <QFile>
 #include <QFileInfo>
 #include <QMimeData>
-#include <QStyle>
 
 #include <wobjectimpl.h>
 
@@ -335,10 +333,6 @@ QVariant PresetItemModel::data(const QModelIndex& index, int role) const
     case Qt::DisplayRole:
     case Qt::EditRole:
       return n->name;
-    case Qt::DecorationRole:
-      if(n->preset < 0 && n->builtin < 0)
-        return qApp->style()->standardIcon(QStyle::SP_DirIcon);
-      break;
     case Qt::FontRole:
       if(auto p = preset(index); p && m_target && Process::isCurrentPreset(*m_target, *p))
       {

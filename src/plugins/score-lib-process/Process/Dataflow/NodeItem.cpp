@@ -141,6 +141,21 @@ void NodeItem::createWithDecorations()
   con(process.selection, &Selectable::changed, this, &NodeItem::setSelected);
   m_selected = process.selection.get();
 
+  // Its presets browsed in the library, loading into it
+  {
+    auto& presets = ctx.app.applicationPlugin<Process::ApplicationPlugin>();
+    m_presetTarget = presets.presetTarget() == &process;
+    con(presets, &Process::ApplicationPlugin::presetTargetChanged, this,
+        [this](const Process::ProcessModel* proc) {
+      const bool target = proc == &m_model;
+      if(target != m_presetTarget)
+      {
+        m_presetTarget = target;
+        update();
+      }
+    });
+  }
+
   if(!m_folded)
     createContentItem();
   else
@@ -1036,8 +1051,10 @@ void NodeItem::paint(
   const auto& brush = m_selected ? skin.Base2.darker
                       : m_hover  ? bset.lighter
                                  : bset.main;
-  const auto& pen = m_dropping ? skin.Warn2.main.pen3_solid_round_round
-                               : brush.pen2_solid_round_round;
+  // Dashed while its presets load into it from the library
+  const auto& pen = m_dropping       ? skin.Warn2.main.pen3_solid_round_round
+                    : m_presetTarget ? skin.Base2.darker.pen3_dashed_flat_miter
+                                     : brush.pen2_solid_round_round;
 
   painter->setRenderHint(QPainter::Antialiasing, true);
 

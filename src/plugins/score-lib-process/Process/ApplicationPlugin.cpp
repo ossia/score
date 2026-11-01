@@ -27,6 +27,14 @@ void ApplicationPlugin::addPreset(Preset&& p)
   presetAdded(row);
 }
 
+void ApplicationPlugin::setPresetTarget(const Process::ProcessModel* proc)
+{
+  if(proc == m_presetTarget)
+    return;
+  m_presetTarget = proc;
+  presetTargetChanged(proc);
+}
+
 void ApplicationPlugin::removePreset(int index)
 {
   if(index < 0 || index >= int(presets.size()))

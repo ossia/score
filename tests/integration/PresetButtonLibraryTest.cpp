@@ -16,6 +16,7 @@
 #include <Library/ProcessWidget.hpp>
 
 #include <score/application/GUIApplicationContext.hpp>
+#include <score/selection/SelectionDispatcher.hpp>
 #include <score/graphics/widgets/QGraphicsSelectablePixmapToggle.hpp>
 
 #include <core/command/CommandStack.hpp>
@@ -28,6 +29,7 @@
 #include <QFont>
 #include <QKeyEvent>
 #include <QLineEdit>
+#include <QPushButton>
 
 #include <ossia/network/value/value_conversion.hpp>
 
@@ -352,5 +354,56 @@ TEST_CASE("a preset of another script is not auditioned", "[integration][presets
     CHECK(Library::PresetAudition::canAudition(*a.proc, p));
     p.key.effect = "another script";
     CHECK(!Library::PresetAudition::canAudition(*a.proc, p));
+  });
+}
+
+TEST_CASE(
+    "the process stays selected while its presets load into it, deselected it is let go",
+    "[integration][presets][gui]")
+{
+  score::test::run_in_gui_app([](const score::GUIApplicationContext& ctx) {
+    Audition a{ctx};
+    auto& plug = ctx.applicationPlugin<Process::ApplicationPlugin>();
+    // Selected, and known as the target: its node draws it
+    CHECK(a.proc->selection.get());
+    CHECK(plug.presetTarget() == a.proc);
+
+    // Something else selected: the library is browsed for any process again
+    score::SelectionDispatcher{a.doc->context().selectionStack}.deselect();
+    spin(5);
+    CHECK(a.widget.presetModel().target() == nullptr);
+    CHECK(plug.presetTarget() == nullptr);
+  });
+}
+
+TEST_CASE("audition can be turned off", "[integration][presets][gui]")
+{
+  score::test::run_in_gui_app([](const score::GUIApplicationContext& ctx) {
+    Audition a{ctx};
+    QPushButton* toggle{};
+    for(auto* b : a.widget.findChildren<QPushButton*>())
+      if(b->isCheckable())
+        toggle = b;
+    REQUIRE(toggle);
+    toggle->setChecked(true);
+    const int steps = a.steps();
+
+    toggle->setChecked(false);
+    a.select("a");
+    CHECK(value(*a.ampl) == 0.5f);
+    CHECK(a.steps() == steps);
+    // Loaded only when asked
+    a.key(Qt::Key_Return);
+    CHECK(value(*a.ampl) == 0.1f);
+    CHECK(a.steps() == steps + 1);
+
+    // Turned off while one is heard: it is kept
+    toggle->setChecked(true);
+    a.select("c");
+    CHECK(value(*a.ampl) == 0.3f);
+    toggle->setChecked(false);
+    CHECK(a.steps() == steps + 2);
+    CHECK(value(*a.ampl) == 0.3f);
+    toggle->setChecked(true);
   });
 }
