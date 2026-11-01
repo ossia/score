@@ -191,6 +191,8 @@ private:
   bool m_hover : 1 {false};
   bool m_selected : 1 {false};
   bool m_dropping : 1 {};
+  //! The library's presets load into it
+  bool m_presetTarget : 1 {};
   bool m_needResize : 1 {};
   bool m_folded : 1 {};
 };
