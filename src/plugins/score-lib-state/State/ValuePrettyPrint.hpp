@@ -31,13 +31,19 @@ struct PrettyPrintOptions
  *  - a list or map whose elements are all scalars stays on one line:
  *        list: [int: 0, int: 1, int: 2]
  *    unless it is long, in which case it is wrapped, a few elements per line;
- *  - a list or map with at least one nested container puts each element on its
- *    own line, indented one level deeper:
+ *  - a list or map with at least one nested container or vector puts each
+ *    element on its own line, indented one level deeper; a vector itself
+ *    stays on its line:
+ *        list: [
+ *          vec2f: [0.00, 1.00],
+ *          vec2f: [0.50, 0.25]
+ *        ]
  *        list: [
  *          list: [int: 0, int: 1, int: 2],
  *          list: [int: 3, int: 4, int: 5]
  *        ]
- *    so that a matrix reads row by row rather than one number per line.
+ *    so that a matrix reads row by row rather than one number per line,
+ *    and a list of points one point per line.
  *
  * Nesting depth is unbounded. Appends to `out` without clearing it and does not
  * allocate beyond `out`'s own growth; reuse the same string across calls to

@@ -223,6 +223,16 @@ score_add_test(test_unit_support_packages
   SOURCES SupportPackagesTest.cpp
   PLUGINS score_plugin_library)
 
+# The LED View's decoding: orders, ranges, gamma, wiring and universes.
+if(EXISTS "${SCORE_AVND_SOURCE_DIR}/../../../3rdparty/avendish/examples/Advanced/UI/LEDView.hpp")
+  score_add_test(test_unit_led_view
+    SOURCES LEDViewTest.cpp
+    APP
+    PLUGINS score_lib_process)
+  target_include_directories(test_unit_led_view
+    PRIVATE "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/examples/Advanced")
+endif()
+
 # The Point2D View's axis mapping: an inverted range is a range.
 if(EXISTS "${SCORE_AVND_SOURCE_DIR}/../../../3rdparty/avendish/examples/Advanced/UI/2DView.hpp")
   score_add_test(test_unit_point2d_view
@@ -238,6 +248,12 @@ score_add_test(test_unit_midi_display_window
   SOURCES MidiDisplayWindowTest.cpp
   APP
   PLUGINS score_plugin_ui score_lib_process)
+
+# Monitoring views: the mode switch's stepping, the node resize corner.
+score_add_test(test_unit_monitor_interaction
+  SOURCES MonitorInteractionTest.cpp
+  GUI
+  PLUGINS score_plugin_scenario score_lib_process score_plugin_fx score_plugin_avnd)
 
 # Audio meter: ballistics per standard, scales, no allocation while running.
 score_add_test(test_unit_audio_meter

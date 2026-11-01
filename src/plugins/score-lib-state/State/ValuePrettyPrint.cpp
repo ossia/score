@@ -23,15 +23,30 @@ bool isContainer(const ossia::value& v) noexcept
   }
 }
 
+//! Elements that get a line of their own: containers, and vectors, which
+//! are points or colours one reads one at a time.
+bool isCompound(const ossia::value& v) noexcept
+{
+  switch(v.get_type())
+  {
+    case ossia::val_type::VEC2F:
+    case ossia::val_type::VEC3F:
+    case ossia::val_type::VEC4F:
+      return true;
+    default:
+      return isContainer(v);
+  }
+}
+
 bool isFlat(const std::vector<ossia::value>& l) noexcept
 {
-  return std::none_of(l.begin(), l.end(), isContainer);
+  return std::none_of(l.begin(), l.end(), isCompound);
 }
 
 bool isFlat(const ossia::value_map_type& m) noexcept
 {
   return std::none_of(
-      m.begin(), m.end(), [](const auto& kv) { return isContainer(kv.second); });
+      m.begin(), m.end(), [](const auto& kv) { return isCompound(kv.second); });
 }
 
 void newline(std::string& out, int depth, const PrettyPrintOptions& o)
