@@ -40,8 +40,8 @@ struct Spectrum : Analysis::GistState
 struct MelSpectrum : Analysis::GistState
 {
 
-  halp_meta(name, "Complex Spectral Difference")
-  halp_meta(c_name, "CSD")
+  halp_meta(name, "Mel spectrum")
+  halp_meta(c_name, "MelSpectrum")
   halp_meta(category, "Analysis/Spectrum")
   halp_meta(author, "ossia score, Gist library")
   halp_meta(manual_url, "https://ossia.io/score-docs/processes/analysis.html#spectrum-extraction")
