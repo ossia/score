@@ -108,6 +108,11 @@ private:
   void publishSize();
 
   bool isInSelectionCorner(QPointF f, QRectF r) const;
+  //! Outlets take a strip on the right, which also holds the resize corner.
+  bool hasRightSide() const noexcept;
+  //! Without that strip, the corner goes over the content.
+  void updateResizeCorner();
+  friend class NodeResizeCorner;
   void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
       override;
 
@@ -172,6 +177,8 @@ private:
   QGraphicsItem* m_fx{};
   score::QGraphicsPixmapToggle* m_fold{};
   Process::LayerPresenter* m_presenter{};
+  QGraphicsItem* m_resizeCorner{};
+  bool m_resizeFromCorner{};
 
   std::vector<Dataflow::PortItem*> m_inlets, m_outlets;
   const Process::Context& m_context;
