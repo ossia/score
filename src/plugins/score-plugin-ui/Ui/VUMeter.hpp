@@ -1,423 +1,466 @@
 #pragma once
-#include <Process/Dataflow/Port.hpp>
-#include <Process/Dataflow/PortFactory.hpp>
-#include <Process/Dataflow/PortItem.hpp>
-#include <Process/Process.hpp>
+#include <Process/Monitoring/MonitorLink.hpp>
 
 #include <Effect/EffectLayer.hpp>
-#include <Effect/EffectLayout.hpp>
 
-#include <score/application/GUIApplicationContext.hpp>
-#include <score/model/Skin.hpp>
+#include <ossia/audio/meters.hpp>
+#include <Process/Monitoring/Monitor.hpp>
 
-#include <ossia/network/value/format_value.hpp>
-#include <ossia/network/value/value_conversion.hpp>
-
-#include <QPainter>
-
+#include <Ui/Monitor/ChannelLayout.hpp>
+#include <Ui/Monitor/Paint.hpp>
 #include <halp/audio.hpp>
-#include <halp/callback.hpp>
 #include <halp/controls.hpp>
 #include <halp/meta.hpp>
+#include <score_plugin_ui_export.h>
 
-#include <algorithm>
+#include <array>
 #include <cmath>
+#include <memory>
+#include <optional>
 #include <vector>
+
+namespace Process
+{
+class ControlInlet;
+}
 
 namespace Ui::VUMeter
 {
+enum class Mode
+{
+  PeakRms,
+  TruePeak,
+  VU,
+  PpmDin,
+  PpmNordic,
+  PpmBbc,
+  PpmEbu,
+  K20,
+  K14,
+  K12,
+  Surround,
+  Bits
+};
+
+static constexpr int max_channels = 64;
+
+//! What the meter shows at one instant, for every channel. Levels are
+//! linear; the view converts them to the scale of the mode.
+struct Frame
+{
+  int channels{};
+  Mode mode{};
+  //! The level the bar shows
+  std::array<float, max_channels> level{};
+  //! A second, thinner bar: RMS under the peak, peak beside the RMS
+  std::array<float, max_channels> secondary{};
+  std::array<float, max_channels> hold{};
+  //! Correlation of each channel with the next one around the listener
+  std::array<float, max_channels> ring_correlation{};
+  //! Bits used by the samples of each channel, as 24-bit integers
+  std::array<uint32_t, max_channels> bits{};
+  std::array<float, max_channels> dc{};
+  uint64_t clipped{};
+};
+
+struct MeterMonitor final : Process::Monitor
+{
+  Process::LatestValue<Frame> frames;
+  //! Set by the view to clear the clip indicators
+  std::atomic_bool reset_clips{};
+};
+
+//! Offset of the K-System scales: their 0 is at -k dBFS.
+inline constexpr double kOffset(Mode m) noexcept
+{
+  return m == Mode::K20 ? 20 : m == Mode::K14 ? 14 : m == Mode::K12 ? 12 : 0;
+}
+
+//! From a linear level to the units of a mode's scale: what the bars show
+//! and the outlet sends.
+inline double toScale(Mode m, double lin, double reference) noexcept
+{
+  const double db = ossia::detail::LinearGainToDecibels(std::max(lin, 1e-10));
+  switch(m)
+  {
+    case Mode::VU:
+    case Mode::PpmNordic:
+    case Mode::PpmEbu:
+      return db - reference;
+    case Mode::PpmDin:
+      // Alignment level reads -9 on a DIN meter
+      return db - reference - 9.;
+    case Mode::PpmBbc:
+      // Marks 1 to 7, 4 dB apart, 4 at alignment level
+      return 4. + (db - reference) / 4.;
+    default:
+      return db + kOffset(m);
+  }
+}
+
+//! The scale a mode is read on: values in its own units, with the colour
+//! zones and the marks its standard prints.
+struct Scale
+{
+  double lo{}, hi{};
+  double warn{}, over{};
+  QString unit;
+  std::vector<Ui::Monitor::Tick> ticks;
+  Mode mode{};
+
+  double value(double lin, double reference) const noexcept
+  {
+    return toScale(mode, lin, reference);
+  }
+};
+
+SCORE_PLUGIN_UI_EXPORT Scale scaleFor(Mode m, double floor, double ceiling);
+
+inline constexpr std::string_view mode_names[]{
+    "Peak + RMS", "True peak", "VU",   "PPM DIN", "PPM Nordic", "PPM BBC",
+    "PPM EBU",    "K-20",      "K-14", "K-12",    "Surround",   "Bits"};
+
+struct Layer;
+
 struct Node
 {
-  halp_meta(name, "VU Meter")
+  halp_meta(name, "Audio meter")
   halp_meta(c_name, "VUMeter")
-  halp_meta(category, "Monitoring")
+  halp_meta(category, "Monitoring/Audio")
   halp_meta(author, "ossia score")
   halp_meta(manual_url, "")
-  halp_meta(description, "Multi-channel audio level meter with peak and RMS display")
+  halp_meta(
+      description,
+      "Multichannel level meter: sample peak and RMS, true peak, VU, IEC "
+      "programme meters (DIN, Nordic, BBC, EBU), K-System, surround and bit "
+      "usage")
   halp_meta(uuid, "0d0a3152-8ee9-4472-8a97-457b8bd6e56a")
   halp_flag(fully_custom_item);
+  using Layer = Ui::VUMeter::Layer;
 
   struct
   {
     halp::dynamic_audio_bus<"Audio", double> audio;
+
+    struct : halp::combobox_t<"Mode", Mode>
+    {
+      halp_meta(description, "Which meter: each follows its own standard's ballistics and scale.")
+      struct range
+      {
+        std::string_view values[std::size(mode_names)]{
+            mode_names[0], mode_names[1], mode_names[2], mode_names[3],
+            mode_names[4], mode_names[5], mode_names[6], mode_names[7],
+            mode_names[8], mode_names[9], mode_names[10], mode_names[11]};
+        Mode init{Mode::PeakRms};
+      };
+    } mode;
+
+    struct : halp::spinbox_f32<"Reference", halp::range{-40., 0., -18.}>
+    {
+      halp_meta(
+          description,
+          "Alignment level in dBFS: what reads 0 VU, TEST on Nordic and EBU "
+          "meters, 4 on BBC meters and -9 on DIN meters.")
+    } reference;
+
+    struct : halp::spinbox_f32<"Floor", halp::range{-140., -6., -60.}>
+    {
+      halp_meta(description, "Bottom of the dBFS scale")
+    } floor;
+    struct : halp::spinbox_f32<"Ceiling", halp::range{-6., 24., 0.}>
+    {
+      halp_meta(description, "Top of the dBFS scale")
+    } ceiling;
+
+    struct : halp::spinbox_f32<"Hold", halp::range{0., 30., 1.5}>
+    {
+      halp_meta(description, "Seconds a peak stays marked before falling")
+    } hold;
+    struct : halp::spinbox_f32<"Fall", halp::range{1., 60., 20.}>
+    {
+      halp_meta(description, "Fall rate of sample and true peak bars, in dB/s")
+    } fall;
+
+    halp::impulse_button<"Reset clips"> reset;
+
+    struct : halp::combobox_t<"Layout", Ui::Monitor::ChannelLayout>
+    {
+      halp_meta(description, "Speaker layout: channel names and surround positions")
+      struct range
+      {
+        std::string_view values[7]{
+            Ui::Monitor::channel_layout_names[0], Ui::Monitor::channel_layout_names[1],
+            Ui::Monitor::channel_layout_names[2], Ui::Monitor::channel_layout_names[3],
+            Ui::Monitor::channel_layout_names[4], Ui::Monitor::channel_layout_names[5],
+            Ui::Monitor::channel_layout_names[6]};
+        Ui::Monitor::ChannelLayout init{Ui::Monitor::ChannelLayout::Auto};
+      };
+    } layout;
   } inputs;
 
   struct
   {
-    // Levels output: interleaved [peak0, rms0, peak1, rms1, ...]
-    struct : halp::val_port<"Levels", std::vector<float>>
+    //! Set about 30 times a second only: each message is a new list
+    struct : halp::val_port<"Levels", std::optional<std::vector<float>>>
     {
-      enum widget
-      {
-        control
-      };
+      halp_meta(description, "Level of each channel on the current scale, about 30 times a second")
     } levels;
+    struct : halp::val_port<"Clip", bool>
+    {
+      halp_meta(description, "Whether any channel went over full scale since the last reset")
+    } clip;
   } outputs;
 
-  halp::setup setup_info{};
+  std::shared_ptr<MeterMonitor> monitor = std::make_shared<MeterMonitor>();
 
-  // Per-channel envelope state
-  struct ChannelState
+  struct Channel
   {
-    double peak_env = 0.0;
-    double rms_env = 0.0;
-    double peak_hold = 0.0;
-    int peak_hold_counter = 0;
+    ossia::meters::sample_peak peak;
+    ossia::meters::rms rms;
+    ossia::meters::vu vu;
+    ossia::meters::ppm ppm;
+    ossia::meters::true_peak tp;
+    ossia::meters::peak_hold hold;
+    ossia::meters::correlation ring_corr;
+    double tp_level{};
+    double dc{};
+    uint32_t bits{};
   };
-  std::vector<ChannelState> channel_states;
+  std::vector<Channel> channels = std::vector<Channel>(max_channels);
+  //! What every channel's followers start from: their coefficients depend
+  //! on the rate only, and are computed once for it
+  ossia::meters::ppm ppm_type_i, ppm_type_ii;
+  ossia::meters::true_peak tp_proto;
 
-  // Release time in seconds — controls how fast the bars fall.
-  // Decrease for snappier response, increase for smoother visuals.
-  static constexpr double release_time = 0.150;  // 150ms release
-  static constexpr int peak_hold_buffers = 20;    // ~20 buffers hold time
-  static constexpr double peak_hold_decay = 0.90; // decay factor after hold expires
+  double rate{};
+  Mode current{Mode::PeakRms};
+  float current_hold{-1}, current_fall{-1};
+  double tp_fall{};
+  uint64_t clipped{};
+  double since_output{};
+  Frame frame;
 
-  void prepare(halp::setup s) noexcept
+  //! Also called on the execution thread when the channel count changes:
+  //! the followers only need preparing again for a new rate.
+  void prepare(halp::setup s)
   {
-    setup_info = s;
-    channel_states.clear();
+    const double r = s.rate > 0 ? s.rate : 48000.;
+    if(r == rate)
+      return;
+    rate = r;
+    ppm_type_i.prepare(rate, ossia::meters::ppm::type_i);
+    ppm_type_ii.prepare(rate, ossia::meters::ppm::type_ii);
+    tp_proto.prepare(rate);
+    reset_followers();
+  }
+
+  void reset_followers() noexcept
+  {
+    const auto& ppm_proto
+        = (current == Mode::PpmDin || current == Mode::PpmNordic) ? ppm_type_i
+                                                                     : ppm_type_ii;
+    const bool k = current == Mode::K20 || current == Mode::K14 || current == Mode::K12;
+    for(auto& c : channels)
+    {
+      c.rms.prepare(rate, k ? 0.6 : 0.3, k);
+      c.vu.prepare(rate);
+      c.ppm = ppm_proto;
+      c.ppm.env = 0;
+      c.tp = tp_proto;
+      c.ring_corr.prepare(rate, 0.3);
+      c.peak.level = 0;
+      c.hold.value = 0;
+      c.hold.since = 0;
+      c.tp_level = 0;
+      c.dc = 0;
+      c.bits = 0;
+    }
+    set_ballistics();
+  }
+
+  //! Hold time and fall rate: the peak followers keep their level.
+  void set_ballistics() noexcept
+  {
+    const double fall = ossia::meters::fall_coefficient(inputs.fall.value, rate);
+    for(auto& c : channels)
+    {
+      c.peak.fall = fall;
+      c.hold.hold_frames = inputs.hold.value * rate;
+      c.hold.fall_per_frame = fall;
+    }
+    tp_fall = fall;
+    current_hold = inputs.hold.value;
+    current_fall = inputs.fall.value;
   }
 
   void operator()(int frames)
   {
-    const int channels = inputs.audio.channels;
-    if(channels == 0)
+    const int nch = std::min(inputs.audio.channels, max_channels);
+    if(nch == 0 || frames <= 0)
       return;
 
-    // Resize state if channel count changed
-    if(std::ssize(channel_states) != channels)
-      channel_states.resize(channels);
-
-    // Per-buffer release coefficient: accounts for buffer size so decay
-    // speed is independent of buffer size and sample rate.
-    const double rate = setup_info.rate > 0 ? setup_info.rate : 48000.0;
-    const double release = std::exp(-frames / (release_time * rate));
-
-    std::vector<float> level_data;
-    level_data.reserve(channels * 3);
-
-    for(int c = 0; c < channels; c++)
+    if(inputs.mode.value != current)
     {
-      auto in = inputs.audio.channel(c, frames);
-      auto& state = channel_states[c];
+      current = inputs.mode.value;
+      reset_followers();
+    }
+    else if(inputs.hold.value != current_hold || inputs.fall.value != current_fall)
+    {
+      set_ballistics();
+    }
+    if(inputs.reset || monitor->reset_clips.exchange(false, std::memory_order_relaxed))
+      clipped = 0;
 
-      // Compute peak and RMS for this buffer
-      double buf_peak = 0.0;
-      double buf_rms_sum = 0.0;
+    const double dc_coef = 1. - std::exp(-frames / (1. * rate));
+
+    for(int c = 0; c < nch; c++)
+    {
+      auto& ch = channels[c];
+      const double* in = inputs.audio[c];
+      ch.peak.process(in, frames);
+      double block_peak = 0;
       for(int i = 0; i < frames; i++)
+        block_peak = std::max(block_peak, std::abs(in[i]));
+
+      float level{}, secondary{};
+      double clip_level = block_peak;
+      switch(current)
       {
-        const double s = std::abs(in[i]);
-        buf_peak = std::max(buf_peak, s);
-        buf_rms_sum += in[i] * in[i];
-      }
-      const double buf_rms = std::sqrt(buf_rms_sum / frames);
-
-      // Envelope following: instant attack, exponential release
-      if(buf_peak >= state.peak_env)
-        state.peak_env = buf_peak;
-      else
-        state.peak_env *= release;
-
-      if(buf_rms >= state.rms_env)
-        state.rms_env = buf_rms;
-      else
-        state.rms_env *= release;
-
-      // Peak hold with timed decay
-      if(buf_peak >= state.peak_hold)
-      {
-        state.peak_hold = buf_peak;
-        state.peak_hold_counter = peak_hold_buffers;
-      }
-      else if(state.peak_hold_counter > 0)
-      {
-        state.peak_hold_counter--;
-      }
-      else
-      {
-        state.peak_hold *= peak_hold_decay;
-      }
-
-      level_data.push_back(static_cast<float>(state.peak_env));
-      level_data.push_back(static_cast<float>(state.rms_env));
-      level_data.push_back(static_cast<float>(state.peak_hold));
-    }
-
-    outputs.levels.value = std::move(level_data);
-  }
-
-  // dB conversion utilities used by the Layer
-  static double to_dB(double linear) noexcept
-  {
-    if(linear <= 1e-10)
-      return -100.0;
-    return 20.0 * std::log10(linear);
-  }
-
-  static double dB_to_y(double dB, double height, double min_dB = -60.0) noexcept
-  {
-    // Map dB range [min_dB, 0] to y range [height, 0]
-    const double clamped = std::clamp(dB, min_dB, 0.0);
-    return height * (1.0 - (clamped - min_dB) / (0.0 - min_dB));
-  }
-
-  struct Layer : public Process::EffectLayerView
-  {
-  public:
-    static constexpr double min_dB = -60.0;
-    static constexpr double preferred_strip_width = 16.0;
-    static constexpr double min_strip_spacing = 1.0;
-    static constexpr double preferred_strip_spacing = 3.0;
-    static constexpr double label_width = 30.0;
-    static constexpr double top_margin = 4.0;
-    static constexpr double bottom_margin = 12.0;
-    // Hide channel labels when strips are narrower than this
-    static constexpr double min_width_for_labels = 8.0;
-
-    // Per-channel display data: peak, rms, peak_hold (linear)
-    struct ChannelDisplay
-    {
-      float peak = 0.f;
-      float rms = 0.f;
-      float peak_hold = 0.f;
-    };
-    std::vector<ChannelDisplay> m_channels;
-
-    Layer(
-        const Process::ProcessModel& process, const Process::Context& doc,
-        QGraphicsItem* parent)
-        : Process::EffectLayerView{parent}
-    {
-      setAcceptedMouseButtons({});
-
-      const Process::PortFactoryList& portFactory
-          = doc.app.interfaces<Process::PortFactoryList>();
-
-      auto* audio_inlet = process.inlets().front();
-      auto fact = portFactory.get(audio_inlet->concreteKey());
-      auto port = fact->makePortItem(*audio_inlet, doc, this, this);
-      port->setPos(0, 5);
-
-      // Find the levels outlet (last outlet)
-      auto* levels_outlet
-          = static_cast<Process::ControlOutlet*>(process.outlets().back());
-      connect(
-          levels_outlet, &Process::ControlOutlet::valueChanged, this,
-          [this](const ossia::value& v) {
-        if(auto* list = v.target<std::vector<ossia::value>>())
-        {
-          const int entries = list->size();
-          // Data is interleaved: [peak0, rms0, hold0, peak1, rms1, hold1, ...]
-          const int num_channels = entries / 3;
-          m_channels.resize(num_channels);
-          for(int c = 0; c < num_channels; c++)
+        case Mode::PeakRms:
+        case Mode::Surround:
+          ch.rms.process(in, frames);
+          level = ch.peak.level;
+          secondary = ch.rms.level();
+          ch.hold.feed(block_peak, frames);
+          break;
+        case Mode::TruePeak:
+          ch.tp.process(in, frames);
+          ch.tp_level = std::max(ch.tp.block_peak, ch.tp_level * std::pow(tp_fall, frames));
+          level = ch.tp_level;
+          secondary = ch.peak.level;
+          clip_level = ch.tp.block_peak;
+          ch.hold.feed(ch.tp.block_peak, frames);
+          break;
+        case Mode::VU:
+          ch.vu.process(in, frames);
+          level = ch.vu.level();
+          ch.hold.feed(level, frames);
+          break;
+        case Mode::PpmDin:
+        case Mode::PpmNordic:
+        case Mode::PpmBbc:
+        case Mode::PpmEbu:
+          ch.ppm.process(in, frames);
+          level = ch.ppm.level();
+          ch.hold.feed(level, frames);
+          break;
+        case Mode::K20:
+        case Mode::K14:
+        case Mode::K12:
+          ch.rms.process(in, frames);
+          level = ch.rms.level();
+          secondary = ch.peak.level;
+          ch.hold.feed(block_peak, frames);
+          break;
+        case Mode::Bits: {
+          level = ch.peak.level;
+          double sum = 0;
+          uint32_t bits = 0;
+          for(int i = 0; i < frames; i++)
           {
-            m_channels[c].peak = ossia::convert<float>((*list)[c * 3 + 0]);
-            m_channels[c].rms = ossia::convert<float>((*list)[c * 3 + 1]);
-            m_channels[c].peak_hold = ossia::convert<float>((*list)[c * 3 + 2]);
+            sum += in[i];
+            const auto q = (int64_t)std::llround(std::clamp(in[i], -1., 1.) * 8388607.);
+            bits |= uint32_t(q < 0 ? -q : q);
           }
-          update();
-        }
-      });
-    }
-
-    void reset()
-    {
-      m_channels.clear();
-      update();
-    }
-
-    static QColor level_color(double dB) noexcept
-    {
-      // Green below -12dB, yellow from -12 to -3dB, red above -3dB
-      if(dB < -12.0)
-        return QColor(76, 175, 80);   // green
-      else if(dB < -3.0)
-      {
-        // Interpolate green -> yellow
-        const double t = (dB + 12.0) / 9.0;
-        return QColor(
-            76 + static_cast<int>(179 * t),
-            175 + static_cast<int>(80 * t - 80 * t * t * 0.3),
-            80 - static_cast<int>(60 * t));
-      }
-      else
-      {
-        // Interpolate yellow -> red
-        const double t = std::min(1.0, (dB + 3.0) / 3.0);
-        return QColor(
-            255,
-            static_cast<int>(235 * (1.0 - t)),
-            static_cast<int>(20 * (1.0 - t)));
-      }
-    }
-
-    void paint_impl(QPainter* p) const override
-    {
-      const int num_ch = m_channels.size();
-      if(num_ch == 0)
-        return;
-
-      const auto bounds = boundingRect();
-      const double total_h = bounds.height();
-      const double meter_h = total_h - top_margin - bottom_margin;
-      if(meter_h <= 0)
-        return;
-
-      p->save();
-      p->setRenderHint(QPainter::Antialiasing, false);
-
-      const double start_x = label_width + 4.0;
-      const double avail_w = bounds.width() - start_x;
-
-      // Compute adaptive strip width and spacing
-      double sw = preferred_strip_width;
-      double sp = preferred_strip_spacing;
-      const double ideal_w = num_ch * sw + (num_ch - 1) * sp;
-      if(ideal_w > avail_w && num_ch > 0)
-      {
-        // Shrink spacing first, then strip width
-        sp = min_strip_spacing;
-        sw = (avail_w - (num_ch - 1) * sp) / num_ch;
-        if(sw < 1.0)
-        {
-          sp = 0.0;
-          sw = avail_w / num_ch;
+          ch.bits = bits;
+          ch.dc += dc_coef * (sum / frames - ch.dc);
+          ch.hold.feed(block_peak, frames);
+          break;
         }
       }
+      if(clip_level >= 1.)
+        clipped |= (uint64_t(1) << c);
 
-      if(sw <= 0)
-      {
-        p->restore();
-        return;
-      }
-
-      // Draw dB scale on left
-      draw_scale(p, start_x - 2.0, meter_h);
-
-      const bool show_labels = sw >= min_width_for_labels;
-
-      // Draw each channel strip
-      for(int c = 0; c < num_ch; c++)
-      {
-        const double x = start_x + c * (sw + sp);
-        draw_channel_strip(p, x, sw, meter_h, m_channels[c]);
-
-        if(show_labels)
-        {
-          p->setPen(QColor(180, 180, 180));
-          QFont f = p->font();
-          f.setPixelSize(9);
-          p->setFont(f);
-          const auto label = QString::number(c);
-          p->drawText(
-              QRectF(x, top_margin + meter_h + 1, sw, bottom_margin - 1),
-              Qt::AlignHCenter | Qt::AlignTop, label);
-        }
-      }
-
-      p->restore();
+      frame.level[c] = level;
+      frame.secondary[c] = secondary;
+      frame.hold[c] = ch.hold.value;
+      frame.bits[c] = ch.bits;
+      frame.dc[c] = ch.dc;
     }
 
-  private:
-    void draw_scale(QPainter* p, double right_x, double meter_h) const
+    if(current == Mode::Surround)
     {
-      p->setPen(QColor(120, 120, 120));
-      QFont f = p->font();
-      f.setPixelSize(8);
-      p->setFont(f);
-
-      static constexpr double dB_marks[]
-          = {0, -3, -6, -12, -18, -24, -36, -48, -60};
-      for(double dB : dB_marks)
+      const auto r = Ui::Monitor::ring(inputs.layout.value, nch);
+      for(int i = 0; i < r.size; i++)
       {
-        const double y = top_margin + dB_to_y(dB, meter_h, min_dB);
-        const auto label = (dB == 0) ? QStringLiteral(" 0")
-                                     : QString::number(static_cast<int>(dB));
-
-        p->drawText(
-            QRectF(0, y - 5, right_x - 2, 10), Qt::AlignRight | Qt::AlignVCenter,
-            label);
-
-        // Tick mark
-        p->drawLine(QPointF(right_x - 1, y), QPointF(right_x + 1, y));
+        const int a = r.channel[i], b = r.channel[(i + 1) % r.size];
+        auto& corr = channels[a].ring_corr;
+        corr.process(inputs.audio[a], inputs.audio[b], frames);
+        frame.ring_correlation[i] = corr.value();
       }
     }
 
-    void draw_channel_strip(
-        QPainter* p, double x, double sw, double meter_h,
-        const ChannelDisplay& ch) const
+    frame.channels = nch;
+    frame.mode = current;
+    frame.clipped = clipped;
+    if(monitor->watched())
+      monitor->frames.produce(frame);
+
+    outputs.clip.value = clipped != 0;
+
+    // The levels are for patching: a few lists a second are plenty, and
+    // each one is a new message
+    since_output += frames;
+    if(since_output >= rate / 30.)
     {
-      // Background
-      p->fillRect(
-          QRectF(x, top_margin, sw, meter_h), QColor(20, 20, 20));
-
-      const double peak_dB = Node::to_dB(ch.peak);
-      const double rms_dB = Node::to_dB(ch.rms);
-      const double hold_dB = Node::to_dB(ch.peak_hold);
-
-      // Draw RMS bar (full strip width minus 2px margin)
-      const double rms_w = std::max(1.0, sw - 2);
-      draw_level_bar(p, x + 1, meter_h, rms_dB, 0.6, rms_w);
-
-      // Draw peak bar (narrower, overlaid) — only if strip is wide enough
-      if(sw >= 6.0)
-      {
-        const double peak_bar_w = std::max(1.0, sw - 6);
-        const double peak_x = x + 3;
-        draw_level_bar(p, peak_x, meter_h, peak_dB, 1.0, peak_bar_w);
-      }
-      else
-      {
-        // Strip too narrow for two layers, just draw peak
-        draw_level_bar(p, x, meter_h, peak_dB, 1.0, sw);
-      }
-
-      // Draw peak hold indicator
-      if(hold_dB > min_dB)
-      {
-        const double hold_y = top_margin + dB_to_y(hold_dB, meter_h, min_dB);
-        p->setPen(Qt::NoPen);
-        const double hold_margin = std::min(1.0, sw * 0.1);
-        p->fillRect(
-            QRectF(x + hold_margin, hold_y - 1, sw - 2 * hold_margin, 2),
-            level_color(hold_dB));
-      }
+      since_output = 0;
+      auto& out = outputs.levels.value.emplace(nch);
+      for(int c = 0; c < nch; c++)
+        out[c] = float(toScale(current, frame.level[c], inputs.reference.value));
     }
+  }
+};
 
-    void draw_level_bar(
-        QPainter* p, double x, double meter_h, double level_dB, double alpha,
-        double bar_w) const
-    {
-      if(level_dB <= min_dB)
-        return;
+struct Layer : public Process::EffectLayerView
+{
+  static constexpr double label_width = 30.;
+  //! The mode switch, then the clip indicators
+  static constexpr double header = 18.;
+  static constexpr double top_margin = 28.;
+  static constexpr double bottom_margin = 12.;
 
-      // Draw in segments for color gradient effect
-      static constexpr double segment_dB_step = 1.5;
-      double current_dB = min_dB;
+  Layer(
+      const Process::ProcessModel& process, const Process::Context& doc,
+      QGraphicsItem* parent);
 
-      p->setPen(Qt::NoPen);
-      while(current_dB < level_dB)
-      {
-        const double seg_top_dB = std::min(current_dB + segment_dB_step, level_dB);
-        const double y_bottom
-            = top_margin + dB_to_y(current_dB, meter_h, min_dB);
-        const double y_top
-            = top_margin + dB_to_y(seg_top_dB, meter_h, min_dB);
+  void mousePressEvent(QGraphicsSceneMouseEvent* ev) override;
+  void paint_impl(QPainter* p) const override;
 
-        QColor col = level_color(seg_top_dB);
-        col.setAlphaF(alpha);
-        p->fillRect(QRectF(x, y_top, bar_w, y_bottom - y_top), col);
-
-        current_dB = seg_top_dB;
-      }
-    }
-
-    static double dB_to_y(double dB, double height, double min_dB) noexcept
-    {
-      const double clamped = std::clamp(dB, min_dB, 0.0);
-      return height * (1.0 - (clamped - min_dB) / (0.0 - min_dB));
-    }
+private:
+  struct StripGeometry
+  {
+    double start{}, width{}, spacing{};
   };
+
+  Mode mode() const noexcept;
+  double reference() const noexcept;
+  Ui::Monitor::ChannelLayout layout() const noexcept;
+  void updateScale();
+
+  StripGeometry strips(const QRectF& area, int nch) const;
+  void drawBars(QPainter* p, const QRectF& area) const;
+  void drawNeedles(QPainter* p, const QRectF& area) const;
+  void drawBits(QPainter* p, const QRectF& area) const;
+  void drawSurround(QPainter* p, const QRectF& r) const;
+
+  const Process::ControlInlet* m_mode{};
+  const Process::ControlInlet* m_reference{};
+  const Process::ControlInlet* m_floor{};
+  const Process::ControlInlet* m_ceiling{};
+  const Process::ControlInlet* m_layout{};
+  Process::MonitorLink* m_link{};
+  Frame m_frame;
+  //! Rebuilt when the mode or the range change
+  Scale m_scale;
 };
 }

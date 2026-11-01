@@ -239,6 +239,11 @@ score_add_test(test_unit_midi_display_window
   APP
   PLUGINS score_plugin_ui score_lib_process)
 
+# Audio meter: ballistics per standard, scales, no allocation while running.
+score_add_test(test_unit_audio_meter
+  SOURCES AudioMeterTest.cpp
+  PLUGINS score_plugin_ui score_lib_process)
+
 # Monitoring rings: one continuous stream, events counted when dropped.
 score_add_test(test_unit_monitoring_rings
   SOURCES MonitoringRingsTest.cpp

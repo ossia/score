@@ -7,18 +7,33 @@ endif()
 
 add_library(
   score_plugin_ui
+  "${CMAKE_CURRENT_SOURCE_DIR}/Ui/AudioScope.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Ui/AudioScope.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Ui/Monitor/ChannelLayout.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Ui/Monitor/LayerHelpers.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Ui/Monitor/Paint.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Ui/Loudness.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Ui/Loudness.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Ui/MidiDisplay.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Ui/SignalDisplay.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Ui/Spectrum.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Ui/Spectrum.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Ui/Tuner.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Ui/Tuner.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Ui/Monitor/SpectrumAnalysis.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Ui/TextBox.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Ui/ValueDisplay.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Ui/VUMeter.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Ui/VUMeter.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/score_plugin_ui.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/score_plugin_ui.cpp"
 )
 
-target_link_libraries(score_plugin_ui PUBLIC score_plugin_avnd)
+include("${3RDPARTY_FOLDER}/ebur128.cmake")
+if(NOT TARGET Gist)
+  include("${3RDPARTY_FOLDER}/gist.cmake")
+endif()
+target_link_libraries(score_plugin_ui PUBLIC score_plugin_avnd ebur128 Gist)
+score_register_license(libebur128 URL "https://github.com/jiixyj/libebur128" FILES "${3RDPARTY_FOLDER}/libebur128/COPYING" NOTICES "${3RDPARTY_FOLDER}/libebur128/ebur128/queue/sys/queue.h")
 
 setup_score_plugin(score_plugin_ui)

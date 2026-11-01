@@ -69,6 +69,10 @@ deps:
     upstream: adamstark/Gist
     upstream_version: "1.0.7"
 
+  - name: libebur128
+    upstream: jiixyj/libebur128
+    upstream_version: "v1.2.6"
+
   - name: Syphon-Framework
     upstream: Syphon/Syphon-Framework
     upstream_version: "5"
