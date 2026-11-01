@@ -272,7 +272,7 @@ void QGraphicsIntSpinbox::paint(
 
   painter->setPen(skin.Base4.main.pen1);
   painter->setFont(skin.Medium8Pt);
-  const auto textrect = m_rect.adjusted(2, 3, -2 - score::Stepper::width, -2);
+  const auto textrect = m_rect.adjusted(2, 3, -2 - score::Stepper::stripWidth(m_rect), -2);
   painter->drawText(textrect, score::toNumber(val), QTextOption(Qt::AlignLeft));
   painter->setRenderHint(QPainter::Antialiasing, false);
 

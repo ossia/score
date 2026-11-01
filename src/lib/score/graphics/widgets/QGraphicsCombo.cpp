@@ -86,10 +86,7 @@ struct DefaultComboImpl
 
     if(!self.stepperVisible())
       return 0;
-    const QRectF r = self.stepperRect();
-    if(!r.contains(pos))
-      return 0;
-    return pos.y() < r.center().y() ? +1 : -1;
+    return score::Stepper::stepAt(self.m_rect.adjusted(1, 1, -1, -1), pos);
   }
 
   static void mousePressEvent(QGraphicsCombo& self, QGraphicsSceneMouseEvent* event)
@@ -228,16 +225,27 @@ void QGraphicsCombo::init()
 {
   prepareGeometryChange();
 
-  auto& skin = score::Skin::instance();
-  QFontMetricsF metrics{skin.Medium10Pt};
+  QFontMetricsF metrics{font()};
   double maxW = m_rect.width();
+  const double strip = score::Stepper::stripWidth(m_rect);
 
   for(auto& value : this->array)
   {
     auto r = metrics.boundingRect(value);
-    maxW = std::max(r.width() + 16. + stepperWidth, maxW);
+    maxW = std::max(r.width() + 16. + strip, maxW);
   }
   m_rect.setWidth(maxW);
+}
+
+const QFont& QGraphicsCombo::font() const noexcept
+{
+  return m_font ? *m_font : score::Skin::instance().Medium10Pt;
+}
+
+void QGraphicsCombo::setFont(const QFont& f)
+{
+  m_font = f;
+  update();
 }
 
 static_assert(QGraphicsCombo::stepperWidth == score::Stepper::width);
@@ -250,7 +258,7 @@ QRectF QGraphicsCombo::stepperRect() const noexcept
 bool QGraphicsCombo::stepperVisible() const noexcept
 {
   // Below this the strip takes the whole box and leaves the text nowhere.
-  return array.size() > 1 && m_rect.width() > 3. * stepperWidth;
+  return array.size() > 1 && score::Stepper::visible(m_rect.adjusted(1, 1, -1, -1));
 }
 
 void QGraphicsCombo::step(int n)
@@ -520,12 +528,12 @@ void QGraphicsCombo::paint(
 
   const bool hasStepper = stepperVisible();
   const QRectF textRect
-      = hasStepper ? brect.adjusted(0, 0, -stepperWidth, 0) : brect;
+      = hasStepper ? brect.adjusted(0, 0, -score::Stepper::stripWidth(brect), 0) : brect;
 
   // Draw text
   painter->setPen(skin.Base4.main.pen2);
   painter->setRenderHint(QPainter::Antialiasing, false);
-  painter->setFont(skin.Medium10Pt);
+  painter->setFont(font());
   if(int n = value(); n >= 0 && n < array.size())
   {
     painter->drawText(textRect, array[value()], QTextOption(Qt::AlignCenter));
