@@ -46,11 +46,14 @@ void LayerView::hoverEnterEvent(QGraphicsSceneHoverEvent* event)
 {
   if(auto p = parentItem())
     p->unsetCursor();
+  // Views may show more while the cursor is over them
+  update();
 }
 void LayerView::hoverLeaveEvent(QGraphicsSceneHoverEvent* event)
 {
   if(auto p = parentItem())
     p->unsetCursor();
+  update();
 }
 
 QRectF LayerView::boundingRect() const

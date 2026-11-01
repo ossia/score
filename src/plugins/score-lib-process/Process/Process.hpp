@@ -25,6 +25,7 @@
 #include <score_lib_process_export.h>
 #include <smallfun.hpp>
 
+#include <memory>
 #include <optional>
 #include <vector>
 #include <verdigris>
@@ -61,6 +62,7 @@ class AudioInlet;
 class AudioOutlet;
 class MidiInlet;
 class MidiOutlet;
+struct Monitor;
 class ProcessModelFactory;
 class LayerFactory;
 class ProcessModel;
@@ -299,6 +301,12 @@ public:
   void flagsChanged() const
       E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, flagsChanged)
 
+  //! What the running process shares with its views (see Process::Monitor):
+  //! set by its executor while it runs, null otherwise.
+  const std::shared_ptr<Monitor>& monitor() const noexcept { return m_monitor; }
+  void setMonitor(std::shared_ptr<Monitor> m);
+  void monitorChanged() const E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, monitorChanged)
+
 protected:
   // Used to scale the process.
   // This should be commutative :
@@ -325,6 +333,7 @@ private:
   QSizeF m_size{};
   QString m_scriptEditorPlacement;
   QString m_processUIPlacement;
+  std::shared_ptr<Monitor> m_monitor;
   bool m_loops{};
   bool m_scriptable{};
   bool m_executing{};

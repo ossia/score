@@ -270,6 +270,21 @@ public:
   [[no_unique_address]] ossia::type_if<int, is_gpu<Node>> node_id = score::gfx::invalid_node_index;
 #endif
 
+  //! What follows the execution update setting; cut at cleanup.
+  std::vector<QMetaObject::Connection> m_executionUpdate;
+
+  //! Calls f(enabled) now, and each time the user turns the updates of the
+  //! views by the execution on or off.
+  template <typename F>
+  void followExecutionUpdate(F f)
+  {
+    auto& settings = score::AppContext().settings<Scenario::Settings::Model>();
+    f(settings.getExecutionUpdate());
+    m_executionUpdate.push_back(QObject::connect(
+        &settings, &Scenario::Settings::Model::ExecutionUpdateChanged, this,
+        std::move(f)));
+  }
+
   Executor(ProcessModel<Node>& element, const ::Execution::Context& ctx, QObject* p)
       : Execution::ProcessComponent_T<ProcessModel<Node>, ossia::node_process>{
           element, ctx, "Executor::ProcessModel<Info>", p}
@@ -322,6 +337,14 @@ public:
       {
         connect_message_bus(element, ctx, ptr->impl.effect, node->wakeups);
         connect_dynamic_items(element, ptr->impl.effect);
+        // Views follow execution only when the user lets them, as for every
+        // execution-to-UI update: without a monitor they stop being viewers,
+        // and the node stops writing for them
+        if constexpr(requires { element.setMonitor(ptr->impl.effect.monitor); })
+          followExecutionUpdate(
+              [&element, monitor = ptr->impl.effect.monitor](bool enabled) {
+            element.setMonitor(enabled ? monitor : nullptr);
+          });
       }
     connect_worker(ptr);
 
@@ -782,26 +805,27 @@ public:
     // Engine to ui controls
     if constexpr(control_inputs_type::size > 0 || control_outputs_type::size > 0)
     {
-      auto& settings = score::AppContext().settings<Scenario::Settings::Model>();
+      std::weak_ptr<safe_node<Node>> weak_node = ptr;
+      update_control_value_in_ui<Node> timer_action{weak_node, &element};
+      followExecutionUpdate(
+          [this, weak_node, timer_action, &ctx,
+           timer = std::make_shared<QMetaObject::Connection>()](bool enabled) {
+        // The node enqueues its control outputs for the UI every tick; with
+        // no reader, that queue grows without bound and allocates in the
+        // audio callback. Tell it not to bother.
+        if constexpr(control_outputs_type::size > 0)
+          if(auto n = weak_node.lock())
+            n->control.notify_ui.store(enabled, std::memory_order_relaxed);
 
-      // The node enqueues its control outputs for the UI every tick; with no
-      // reader installed below, that queue grows without bound and allocates in
-      // the audio callback. Tell it not to bother.
-      if constexpr(control_outputs_type::size > 0)
-        ptr->control.notify_ui.store(
-            settings.getExecutionUpdate(), std::memory_order_relaxed);
-
-      if(settings.getExecutionUpdate())
-      {
-        // Update the value in the UI
-        std::weak_ptr<safe_node<Node>> weak_node = ptr;
-        update_control_value_in_ui<Node> timer_action{weak_node, &element};
-        timer_action();
-
-        con(ctx.doc.coarseUpdateTimer, &QTimer::timeout, this,
-            [timer_action = std::move(timer_action)] { timer_action(); },
-            Qt::QueuedConnection);
-      }
+        QObject::disconnect(*timer);
+        if(enabled)
+        {
+          timer_action();
+          *timer = QObject::connect(
+              &ctx.doc.coarseUpdateTimer, &QTimer::timeout, this,
+              [timer_action] { timer_action(); }, Qt::QueuedConnection);
+        }
+      });
     }
   }
 
@@ -1045,6 +1069,11 @@ public:
       this->process().from_ui = [](QByteArray arr) {};
     }
     // FIXME cleanup eff.effect.send_message too ?
+    for(auto& c : m_executionUpdate)
+      QObject::disconnect(c);
+    m_executionUpdate.clear();
+    if constexpr(requires { Node::monitor; })
+      this->process().setMonitor({});
 
 #if SCORE_PLUGIN_GFX
     if constexpr(is_gpu<Node>)

@@ -391,6 +391,14 @@ void ProcessModel::setExecuting(bool e)
   m_executing = e;
 }
 
+void ProcessModel::setMonitor(std::shared_ptr<Monitor> m)
+{
+  if(m == m_monitor)
+    return;
+  m_monitor = std::move(m);
+  monitorChanged();
+}
+
 std::optional<Process::MagneticInfo>
 ProcessModel::magneticPosition(const QObject* o, const TimeVal t) const noexcept
 {

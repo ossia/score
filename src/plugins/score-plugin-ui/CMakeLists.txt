@@ -7,6 +7,9 @@ endif()
 
 add_library(
   score_plugin_ui
+  "${CMAKE_CURRENT_SOURCE_DIR}/Ui/Monitor/ChannelLayout.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Ui/Monitor/LayerHelpers.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Ui/Monitor/Paint.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Ui/MidiDisplay.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Ui/SignalDisplay.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Ui/TextBox.hpp"
