@@ -161,3 +161,22 @@ TEST_CASE("the int spinbox steps on a large range", "[widgets][stepper]")
     }
   });
 }
+
+TEST_CASE("a short box puts the halves of the strip side by side", "[widgets][stepper]")
+{
+  using score::Stepper;
+  // As tall as the strips of the inspector: one above the other
+  const QRectF tall{0, 0, 80, 23};
+  CHECK_FALSE(Stepper::sideBySide(tall));
+  CHECK(Stepper::stepAt(tall, {75, 4}) == +1);
+  CHECK(Stepper::stepAt(tall, {75, 19}) == -1);
+
+  // Too short for that: - on the left, + on the right, each the full height
+  const QRectF shortBox{0, 0, 80, 16};
+  CHECK(Stepper::sideBySide(shortBox));
+  CHECK(Stepper::rect(shortBox).width() == 2 * Stepper::width);
+  CHECK(Stepper::stepAt(shortBox, {60, 8}) == -1);
+  CHECK(Stepper::stepAt(shortBox, {75, 8}) == +1);
+  CHECK(Stepper::stepAt(shortBox, {75, 2}) == +1);
+  CHECK(Stepper::stepAt(shortBox, {30, 8}) == 0);
+}

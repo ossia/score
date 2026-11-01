@@ -1,6 +1,7 @@
 #pragma once
 #include <score/graphics/widgets/Constants.hpp>
 
+#include <QFont>
 #include <QGraphicsItem>
 #include <QObject>
 #include <QPointer>
@@ -9,6 +10,7 @@
 #include <score_lib_base_export.h>
 
 #include <array>
+#include <optional>
 #include <verdigris>
 
 class QGraphicsProxyWidget;
@@ -49,6 +51,8 @@ private:
   //! before the first editor appears would leave two of them stacked up.
   QPointer<QGraphicsProxyWidget> m_editor;
 
+  std::optional<QFont> m_font;
+
 public:
   template <std::size_t N>
   QGraphicsCombo(const std::array<const char*, N>& arr, QGraphicsItem* parent)
@@ -85,6 +89,11 @@ public:
 
   //! Move the selection by n entries, wrapping, and report it as an edit.
   void step(int n);
+
+  //! The text of the box; the skin's Medium10Pt unless set.
+  const QFont& font() const noexcept;
+  //! Then init() again to fit the width to the entries.
+  void setFont(const QFont& f);
 
   //! Whether a value that is not in the list may be entered.
   void setEditable(bool b);
