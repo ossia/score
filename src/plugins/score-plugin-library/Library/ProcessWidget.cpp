@@ -349,6 +349,8 @@ void PresetLibraryHandler::setup(
 {
   presetLib = &ctx.applicationPlugin<Process::ApplicationPlugin>();
   processes = &ctx.interfaces<Process::ProcessFactoryList>();
+  // Called at each scan of the library, which reads every preset again
+  presetLib->clearPresets();
 }
 
 void PresetLibraryHandler::addPath(std::string_view path)
@@ -360,6 +362,7 @@ void PresetLibraryHandler::addPath(std::string_view path)
 
   if(auto p = Process::Preset::fromJson(*processes, score::mapAsByteArray(f)))
   {
+    p->path = f.fileName();
     presetLib->addPreset(std::move(*p));
   }
 }

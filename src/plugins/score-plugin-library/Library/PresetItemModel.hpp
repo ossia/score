@@ -4,6 +4,8 @@
 #include <QAbstractItemModel>
 #include <QSortFilterProxyModel>
 
+#include <score_plugin_library_export.h>
+
 namespace score
 {
 struct GUIApplicationContext;
@@ -17,7 +19,7 @@ class ApplicationPlugin;
 namespace Library
 {
 class PresetFilterProxy;
-class PresetItemModel final : public QAbstractItemModel
+class SCORE_PLUGIN_LIBRARY_EXPORT PresetItemModel final : public QAbstractItemModel
 {
 public:
   PresetItemModel(const score::GUIApplicationContext& ctx, QObject* parent);
@@ -25,6 +27,10 @@ public:
   std::vector<Process::Preset>& presets;
 
   bool savePreset(const Process::ProcessModel& proc);
+  //! Only a preset in the user library can be renamed or deleted
+  bool canEdit(int row) const;
+  //! Moves its file to the trash
+  bool removePreset(int row);
 
 private:
   QModelIndex index(int row, int column, const QModelIndex& parent) const override;
