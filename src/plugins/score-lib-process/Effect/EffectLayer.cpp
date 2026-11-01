@@ -8,6 +8,7 @@
 #include <Process/Process.hpp>
 #include <Process/ProcessList.hpp>
 #include <Process/ProcessMimeSerialization.hpp>
+#include <Process/PresetTree.hpp>
 #include <Process/Script/EditorOverlay.hpp>
 #include <Process/Style/Pixmaps.hpp>
 #include <Process/UIPlacement.hpp>
@@ -764,130 +765,6 @@ QGraphicsItem* makeExternalUIButton(
 
 namespace
 {
-//! "Foo / Bar//Baz" -> {"Foo", "Bar", "Baz"}: a category as the menu nests it
-QStringList categoryPath(const QString& category)
-{
-  QStringList path;
-  for(const QString& part : category.split('/', Qt::SkipEmptyParts))
-    if(auto p = part.trimmed(); !p.isEmpty())
-      path.push_back(std::move(p));
-  return path;
-}
-
-// Grouped by category, each submenu's entries together, then by name: a
-// category sorts before its own subcategories, as the menu shows them
-bool presetMenuOrder(const Process::Preset* lhs, const Process::Preset* rhs) noexcept
-{
-  const auto a = categoryPath(lhs->category), b = categoryPath(rhs->category);
-  if(a != b)
-    return std::lexicographical_compare(a.begin(), a.end(), b.begin(), b.end());
-  return lhs->name < rhs->name;
-}
-
-// The presets of a process as its preset menu shows them. The menu is built
-// from this tree and the Forward / Back buttons walk it depth-first, so that
-// stepping goes through the presets in exactly the order the menu lists them,
-// built-in presets that land in a library preset's submenu included.
-struct PresetTree
-{
-  struct Node
-  {
-    QString name;
-    struct Entry
-    {
-      const Process::Preset* preset{}; // a preset,
-      int child = -1;                  // or a submenu,
-      bool separator{};                // or a separator
-    };
-    std::vector<Entry> entries;
-    std::vector<std::unique_ptr<Node>> children;
-    ossia::hash_map<QString, int> childIndex;
-  };
-  Node root;
-
-  //! The library's presets of this process, then its built-in ones: both
-  //! must outlive the tree
-  PresetTree(
-      const Process::ProcessModel& proc, const std::vector<Process::Preset>& library,
-      const std::vector<Process::Preset>& builtins)
-  {
-    std::vector<const Process::Preset*> files;
-    for(auto& preset : library)
-      if(proc.presetMatches(preset))
-        files.push_back(&preset);
-    std::sort(files.begin(), files.end(), presetMenuOrder);
-    for(auto* preset : files)
-      add(*preset);
-
-    if(!builtins.empty() && !files.empty())
-      root.entries.push_back({nullptr, -1, true});
-    for(auto& preset : builtins)
-      add(preset);
-  }
-
-  std::vector<const Process::Preset*> ordered() const
-  {
-    std::vector<const Process::Preset*> out;
-    flatten(root, out);
-    return out;
-  }
-
-private:
-  Node& node(const QString& category)
-  {
-    Node* current = &root;
-    for(const QString& part : categoryPath(category))
-    {
-      auto it = current->childIndex.find(part);
-      if(it == current->childIndex.end())
-      {
-        auto child = std::make_unique<Node>();
-        child->name = part;
-        const int index = int(current->children.size());
-        current->children.push_back(std::move(child));
-        current->entries.push_back({nullptr, index, false});
-        it = current->childIndex.emplace(part, index).first;
-      }
-      current = current->children[std::size_t(it->second)].get();
-    }
-    return *current;
-  }
-
-  void add(const Process::Preset& preset)
-  {
-    node(preset.category).entries.push_back({&preset, -1, false});
-  }
-
-  static void flatten(const Node& n, std::vector<const Process::Preset*>& out)
-  {
-    for(auto& e : n.entries)
-    {
-      if(e.preset)
-        out.push_back(e.preset);
-      else if(e.child >= 0)
-        flatten(*n.children[std::size_t(e.child)], out);
-    }
-  }
-};
-
-// The preset last loaded from the preset button, kept on the process so that
-// it outlives the button: headers are rebuilt on zoom, resize, selection...
-// Loading a preset does not rename the process, so its name says nothing
-// about which preset is current.
-constexpr auto presetCursorProperty = "score_presetCursor";
-
-void rememberPreset(const Process::ProcessModel& proc, const Process::Preset& preset)
-{
-  const_cast<Process::ProcessModel&>(proc).setProperty(
-      presetCursorProperty, QStringList{preset.category, preset.name});
-}
-
-bool isCurrentPreset(const Process::ProcessModel& proc, const Process::Preset& preset)
-{
-  const auto cursor = proc.property(presetCursorProperty).toStringList();
-  return cursor.size() == 2 && cursor[0] == preset.category && cursor[1] == preset.name;
-}
-
 void loadPresetFromButton(
     const Process::ProcessModel& proc, const Process::Preset& preset,
     const score::DocumentContext& context)
@@ -967,9 +844,7 @@ score::QGraphicsDraggablePixmap* makePresetButton(
         auto fill = [&](auto& recurse, QMenu* m, const PresetTree::Node& n) -> void {
           for(auto& e : n.entries)
           {
-            if(e.separator)
-              m->addSeparator();
-            else if(e.child >= 0)
+            if(e.child >= 0)
             {
               auto& child = *n.children[std::size_t(e.child)];
               auto sub = m->addMenu(child.name);
