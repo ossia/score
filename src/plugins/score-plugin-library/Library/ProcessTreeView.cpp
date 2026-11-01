@@ -1,6 +1,5 @@
 #include "ProcessTreeView.hpp"
 
-#include <Library/PresetListView.hpp>
 
 #include <score/widgets/Pixmap.hpp>
 #if defined(__EMSCRIPTEN__)
@@ -18,7 +17,6 @@
 #include <wobjectimpl.h>
 
 W_OBJECT_IMPL(Library::ProcessTreeView)
-W_OBJECT_IMPL(Library::PresetListView)
 namespace Library
 {
 Library::ProcessData* ProcessTreeView::dataFromViewIndex(QModelIndex idx)

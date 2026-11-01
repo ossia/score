@@ -13,3 +13,10 @@ score_add_test(test_library_preset_files
   APP
   SANDBOXED
   PLUGINS score_plugin_library score_plugin_fx score_plugin_scenario score_lib_process)
+
+# The library's presets of a process in folders: the model, its search, and the
+# view keeping open folders and the current preset across changes.
+score_add_test(test_library_preset_tree
+  SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/LibraryPresetTreeTest.cpp"
+  APP
+  PLUGINS score_plugin_library score_lib_process)
