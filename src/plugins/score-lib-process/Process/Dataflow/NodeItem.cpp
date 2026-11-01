@@ -191,6 +191,20 @@ void NodeItem::createWithoutDecorations()
 
   createContentItem();
 
+  // The item shows the inlets it wants; the outlets go on the right side
+  ossia::qt::run_async(this, [this] {
+    resetOutlets();
+    resizeAsync();
+  });
+  connect(
+      &process, &Process::ProcessModel::controlOutletAdded, this,
+      &NodeItem::resetOutlets);
+  connect(
+      &process, &Process::ProcessModel::controlOutletRemoved, this,
+      &NodeItem::resetOutlets);
+  connect(
+      &process, &Process::ProcessModel::outletsChanged, this, &NodeItem::resetOutlets);
+
   updateTooltip();
 }
 
@@ -241,6 +255,8 @@ void NodeItem::resetItem()
   qDeleteAll(m_outlets);
   m_outlets.clear();
 
+  delete m_resizeCorner;
+  m_resizeCorner = nullptr;
   if(m_presenter)
   {
     QPointer<Process::LayerView> oldView = static_cast<Process::LayerView*>(m_fx);
@@ -305,7 +321,8 @@ void NodeItem::resetOutlets()
     return updateTitlePos();
 
   const qreal x = m_contentSize.width() + OutletX0;
-  qreal y = m_label ? OutletY0 : OutletY0 - 10.;
+  // Next to the inlet a fully custom item shows at its top-left
+  qreal y = m_label ? OutletY0 : 5.;
 
   auto& portFactory = score::AppContext().interfaces<Process::PortFactoryList>();
   for(Process::Outlet* port : m_model.outlets())
@@ -398,7 +415,7 @@ QRectF NodeItem::contentRect() const noexcept
   if(!m_label)
   {
     return {
-        0, 0, m_contentSize.width() + RightSideWidth,
+        0, 0, m_contentSize.width() + (hasRightSide() ? RightSideWidth : 0.),
         m_contentSize.height() + FooterHeight};
   }
   else
@@ -412,21 +429,97 @@ QRectF NodeItem::contentRect() const noexcept
       x -= LeftSideWidth;
       w += LeftSideWidth;
     }
-    if(!m_outlets.empty() || m_presenter)
-    { // FIXME make the redimension handle an item instead
+    if(hasRightSide())
       w += RightSideWidth;
-    }
     return {x, y, w, h};
   }
 }
 
 void NodeItem::updateContentRect()
 {
+  updateResizeCorner();
   const QRectF r = contentRect().adjusted(-2., -2., 2., 2.);
   if(r == m_contentRect)
     return;
   m_contentRect = r;
   geometryChanged();
+}
+
+bool NodeItem::hasRightSide() const noexcept
+{
+  // A fully custom item lays out the outlets it does not draw itself in that
+  // strip, possibly before m_outlets is filled
+  return !m_outlets.empty()
+         || ((m_model.flags() & Process::ProcessFlags::FullyCustomItem)
+             && ossia::any_of(m_model.outlets(), [](const Process::Outlet* o) {
+                  return !o->displayHandledExplicitly;
+                }));
+}
+
+class NodeResizeCorner final : public QGraphicsItem
+{
+public:
+  explicit NodeResizeCorner(NodeItem& node)
+      : QGraphicsItem{&node}
+      , m_node{node}
+  {
+    setAcceptedMouseButtons(Qt::LeftButton);
+    setZValue(1000.);
+    setCursor(score::Skin::instance().CursorScaleFDiag);
+  }
+
+  QRectF boundingRect() const override { return {-10., -10., 10., 10.}; }
+  void paint(QPainter* p, const QStyleOptionGraphicsItem*, QWidget*) override
+  {
+    p->setPen(Process::Style::instance().IntervalWarning().main.pen0_solid_round);
+    p->drawLine(QPointF{-6., -2.}, QPointF{-2., -2.});
+    p->drawLine(QPointF{-2., -6.}, QPointF{-2., -2.});
+  }
+
+protected:
+  // The node does the resizing, as from its own corner
+  void mousePressEvent(QGraphicsSceneMouseEvent* ev) override
+  {
+    ev->setPos(mapToParent(ev->pos()));
+    m_node.m_resizeFromCorner = true;
+    m_node.mousePressEvent(ev);
+    m_node.m_resizeFromCorner = false;
+  }
+  void mouseMoveEvent(QGraphicsSceneMouseEvent* ev) override
+  {
+    ev->setPos(mapToParent(ev->pos()));
+    m_node.mouseMoveEvent(ev);
+  }
+  void mouseReleaseEvent(QGraphicsSceneMouseEvent* ev) override
+  {
+    ev->setPos(mapToParent(ev->pos()));
+    m_node.mouseReleaseEvent(ev);
+  }
+  // The corner holds the grab: a release the scene drops must still end the
+  // node's gesture
+  bool sceneEvent(QEvent* ev) override
+  {
+    if(ev->type() == QEvent::UngrabMouse)
+      m_node.sceneEvent(ev);
+    return QGraphicsItem::sceneEvent(ev);
+  }
+
+private:
+  NodeItem& m_node;
+};
+
+void NodeItem::updateResizeCorner()
+{
+  const bool wanted = m_presenter && !hasRightSide();
+  if(!wanted)
+  {
+    delete m_resizeCorner;
+    m_resizeCorner = nullptr;
+    return;
+  }
+  if(!m_resizeCorner)
+    m_resizeCorner = new NodeResizeCorner{*this};
+  m_resizeCorner->setPos(m_contentSize.width(), m_contentSize.height());
 }
 
 QRectF NodeItem::boundingRect() const
@@ -569,6 +662,7 @@ void NodeItem::recreate()
 {
   resetItem();
   qDeleteAll(this->childItems());
+  m_resizeCorner = nullptr;
   m_scriptButton = nullptr;
   m_uiButton = nullptr;
   m_presetButton = nullptr;
@@ -654,11 +748,11 @@ void NodeItem::updateSize()
   {
     if(m_presenter)
       resizePresenter();
-    // A fully-custom item lays out its own ports, so the node has to be at
+    // A fully-custom item lays out its own inlets, so the node has to be at
     // least as wide as that item: keeping the width the title asked for draws
-    // the border inside the item, and the ports it placed on its own right
-    // edge end up outside the node. Short titles are where this shows, since
-    // that is when the title is not what decides the width.
+    // the border inside the item, and the outlets end up inside it. Short
+    // titles are where this shows, since that is when the title is not what
+    // decides the width.
     QSizeF sz{minimalContentWidth(), minimalContentHeight()};
     if(m_fx)
     {
@@ -672,6 +766,8 @@ void NodeItem::updateSize()
       m_contentSize = sz;
       publishSize();
     }
+    for(auto& outlet : m_outlets)
+      outlet->setPos(m_contentSize.width() + OutletX0, outlet->pos().y());
     updateContentRect();
     update();
     if(auto sc = this->scene())
@@ -974,12 +1070,11 @@ void NodeItem::paint(
           QPointF{12., 0.}, QPointF{12. + (width() - 24.) * m_playPercentage, 0.});
     }
 
-  // Resizing handle
-  if(m_presenter)
+  // Resizing handle, in the right strip; NodeResizeCorner draws it otherwise
+  if(m_presenter && hasRightSide())
   {
     const auto h = m_contentSize.height();
-    const auto w = m_contentSize.width()
-                   + ((!m_outlets.empty() || m_presenter) ? RightSideWidth : 0);
+    const auto w = m_contentSize.width() + RightSideWidth;
     painter->setPen(style.IntervalWarning().main.pen0_solid_round);
     double start_x = w - 6.;
     double start_y = h - 6.;
@@ -1010,7 +1105,9 @@ void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
   if(event->button() == Qt::LeftButton)
   {
     nodeDidMove = false;
-    if(m_presenter && isInSelectionCorner(event->pos(), m_contentRect))
+    if(m_presenter
+       && (isInSelectionCorner(event->pos(), m_contentRect)
+           || m_resizeFromCorner))
     {
       nodeItemInteraction = Interaction::Resize;
       origNodeSize = m_model.size();

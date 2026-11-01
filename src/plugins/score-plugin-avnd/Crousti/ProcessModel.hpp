@@ -104,12 +104,14 @@ struct MessageBusWrapperFromUi<Info>
   std::function<void(QByteArray)> from_ui = dummy_ui_callback{};
 };
 
-inline void hideAllInlets(Process::ProcessModel& proc)
+//! A fully custom item shows the inlets it wants; the node shows its outlets.
+inline void hideAllInlets(Process::ProcessModel& proc, bool outlets)
 {
   for(auto& p : proc.inlets())
     p->displayHandledExplicitly = true;
-  for(auto& p : proc.outlets())
-    p->displayHandledExplicitly = true;
+  if(outlets)
+    for(auto& p : proc.outlets())
+      p->displayHandledExplicitly = true;
 }
 
 template <typename Info>
@@ -194,6 +196,11 @@ public:
     init_before_port_creation();
     vis.writeTo(*this);
     check_all_ports();
+    // What is hidden follows the object, not what was saved
+    if constexpr(oscr::has_ossia_layer<Info> && avnd::tag_fully_custom_item<Info>)
+      if(!requires { Info::ossia_show_ports_by_default; })
+        for(auto& p : this->outlets())
+          p->displayHandledExplicitly = false;
     upgrade_value_inlets_to_controls();
     upgrade_controls_to_value_inlets();
     upgrade_changed_control_types();
@@ -1378,7 +1385,7 @@ private:
 
     if(!requires { Info::ossia_show_ports_by_default; })
       if constexpr(oscr::has_ossia_layer<Info>)
-        hideAllInlets(*this);
+        hideAllInlets(*this, !avnd::tag_fully_custom_item<Info>);
   }
 
 public:
