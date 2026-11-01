@@ -33,7 +33,9 @@ add_library(
   score_plugin_analysis.cpp
 )
 
-include("${3RDPARTY_FOLDER}/gist.cmake")
+if(NOT TARGET Gist)
+  include("${3RDPARTY_FOLDER}/gist.cmake")
+endif()
 
 target_link_libraries(score_plugin_analysis PUBLIC score_plugin_engine score_plugin_avnd Gist)
 if(OSSIA_ENABLE_KFR AND TARGET kfr)
