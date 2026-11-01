@@ -23,6 +23,7 @@
 
 #if SCORE_HAS_LIBAV
 
+#include <Video/PlaybackTime.hpp>
 #include <Video/VideoDecoder.hpp>
 
 #include <ossia/detail/libav.hpp>
@@ -658,6 +659,148 @@ TEST_CASE(
 
   std::error_code ec;
   fs::remove_all(dir, ec);
+}
+
+TEST_CASE(
+    "a seek between two distant keyframes comes out at its target, not at the "
+    "keyframe before it",
+    "[video][decoder]")
+{
+  namespace fs = std::filesystem;
+  constexpr int N = 100;
+
+  // One keyframe for the whole clip, with B-frames: every seek lands on the
+  // first frame, and the frames from there to the target are decoded, some
+  // of them several per packet.
+  const auto path = (uniqueTempPath("score_videodecoder_seek") += ".mp4").string();
+  {
+    Packets p;
+    AVCodecContext* enc{};
+    encode(
+        {.codec = AV_CODEC_ID_MPEG4, .frames = N, .gop_size = 1000, .max_b_frames = 2,
+         .global_header = true},
+        p, &enc);
+
+    AVFormatContext* mux{};
+    REQUIRE(avformat_alloc_output_context2(&mux, nullptr, "mp4", path.c_str()) >= 0);
+    AVStream* st = avformat_new_stream(mux, nullptr);
+    REQUIRE(st);
+    REQUIRE(avcodec_parameters_from_context(st->codecpar, enc) == 0);
+    st->time_base = enc->time_base;
+    REQUIRE(avio_open(&mux->pb, path.c_str(), AVIO_FLAG_WRITE) >= 0);
+    REQUIRE(avformat_write_header(mux, nullptr) >= 0);
+    for(auto* pkt : p.pkts)
+    {
+      av_packet_rescale_ts(pkt, enc->time_base, st->time_base);
+      pkt->stream_index = st->index;
+      REQUIRE(av_interleaved_write_frame(mux, pkt) >= 0);
+    }
+    REQUIRE(av_write_trailer(mux) >= 0);
+    avio_closep(&mux->pb);
+    avformat_free_context(mux);
+    avcodec_free_context(&enc);
+  }
+
+  using namespace std::chrono;
+  using namespace std::chrono_literals;
+
+  Video::VideoDecoder dec{Video::DecoderConfiguration{}};
+  REQUIRE(dec.load(path));
+  CHECK(dec.frame_access == Video::FrameAccess::LongGop);
+
+  // The clip's timestamps, played from its start.
+  std::vector<int64_t> all;
+  {
+    const auto deadline = steady_clock::now() + 30s;
+    int idle_after_finish = 0;
+    while(steady_clock::now() < deadline)
+    {
+      if(AVFrame* f = dec.dequeue_frame())
+      {
+        all.push_back(f->pts);
+        dec.release_frame(f);
+        idle_after_finish = 0;
+      }
+      else
+      {
+        if(dec.m_finished && ++idle_after_finish > 100)
+          break;
+        std::this_thread::sleep_for(1ms);
+      }
+    }
+  }
+  REQUIRE(all.size() == N);
+
+  // The frames the decoder gives after a seek to `flicks`, the ones queued
+  // before it left out.
+  auto framesAfterSeek = [&](int64_t flicks) {
+    const int before = dec.seek_generation.load();
+    dec.seek(flicks);
+    const auto deadline = steady_clock::now() + 30s;
+    while(dec.seek_generation.load() == before && steady_clock::now() < deadline)
+      std::this_thread::sleep_for(1ms);
+    REQUIRE(dec.seek_generation.load() != before);
+    const int generation = dec.seek_generation.load();
+
+    std::vector<int64_t> pts;
+    int idle = 0;
+    while(steady_clock::now() < deadline && idle < 200)
+    {
+      if(AVFrame* f = dec.dequeue_frame())
+      {
+        if(Video::frameGeneration(*f) >= generation)
+          pts.push_back(f->pts);
+        dec.release_frame(f);
+        idle = 0;
+      }
+      else
+      {
+        idle++;
+        std::this_thread::sleep_for(1ms);
+      }
+    }
+    return pts;
+  };
+  auto timeOf = [&](int64_t pts) {
+    return Video::ptsToFlicks(pts, dec.time_base, dec.start_pts);
+  };
+
+  SECTION("mid-clip, halfway through a frame")
+  {
+    const int64_t frame = timeOf(all[63]) - timeOf(all[62]);
+    const auto pts = framesAfterSeek(timeOf(all[62]) + frame / 2);
+    REQUIRE(!pts.empty());
+    CHECK(pts.front() == all[62]);
+    CHECK(pts == std::vector<int64_t>(all.begin() + 62, all.end()));
+  }
+
+  SECTION("past the end: the last frame")
+  {
+    // Back at the start first: a target just after the last frame taken is
+    // reached by the frames queued, without a seek.
+    const int before = dec.seek_generation.load();
+    dec.seek(0);
+    const auto deadline = steady_clock::now() + 30s;
+    bool taken = false;
+    while(!taken && steady_clock::now() < deadline)
+    {
+      if(AVFrame* f = dec.dequeue_frame())
+      {
+        taken = Video::frameGeneration(*f) > before;
+        dec.release_frame(f);
+      }
+      else
+        std::this_thread::sleep_for(1ms);
+    }
+    REQUIRE(taken);
+
+    const auto pts = framesAfterSeek(timeOf(all.back()) + 10 * timeOf(all[1]));
+    REQUIRE(!pts.empty());
+    CHECK(pts.front() == all.back());
+  }
+
+  std::error_code ec;
+  fs::remove(path, ec);
 }
 
 #else

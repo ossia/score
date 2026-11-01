@@ -97,15 +97,26 @@ void VideoNode::seeked()
 void VideoNode::process(Message&& msg)
 {
   // The rate time moves at, for update() to carry it on between messages:
-  // backwards when playing backwards, faster or slower with the speed. A
-  // jump (transport, loop) is not a rate: the previous one is kept.
-  if(m_timer.isValid())
+  // backwards when playing backwards, faster or slower with the speed.
+  // Messages come at the audio buffer's pace and are handled at the
+  // render's, several at once or none: measured from one to the next, the
+  // rate swings with the phase between the two clocks, and the time carried
+  // on with it overshoots. It is measured over a quarter second instead. A
+  // jump (transport, loop) is not a rate: the measure starts again after it,
+  // and the previous rate is kept meanwhile.
+  const int64_t date = msg.token.date.impl;
+  const double step
+      = double(date - m_lastToken.date.impl) / ossia::flicks_per_second<double>;
+  if(!m_rateTimer.isValid() || std::abs(step) >= 0.5)
   {
-    const double wall = m_timer.nsecsElapsed() / 1e9;
-    const double moved = double(msg.token.date.impl - m_lastToken.date.impl)
-                         / ossia::flicks_per_second<double>;
-    if(wall > 1e-4 && std::abs(moved) < 0.5)
-      m_rate = moved / wall;
+    m_rateTimer.start();
+    m_rateFrom = date;
+  }
+  else if(const double wall = m_rateTimer.nsecsElapsed() / 1e9; wall >= 0.25)
+  {
+    m_rate = double(date - m_rateFrom) / ossia::flicks_per_second<double> / wall;
+    m_rateTimer.start();
+    m_rateFrom = date;
   }
   m_lastToken = msg.token;
 
@@ -117,6 +128,7 @@ void VideoNode::update()
   if(m_pause)
   {
     m_timer.restart();
+    m_rateTimer.invalidate();
     return;
   }
 
@@ -305,8 +317,14 @@ void VideoFrameReader::readNextFrame(VideoNode& node)
   // a time (a new one once seek_generation shows the last was done). Not
   // before the earliest frame: a video starting after its container shows it
   // from time 0.
-  if(m_showing && node.standardUBO.time < m_lastFrameTime - 1e-6
-     && m_lastFrameTime > m_earliestFrameTime)
+  // Playing forwards, a time a little before the frame on screen is the time
+  // carried on between two messages overshooting, then brought back by the
+  // next one: the frame is kept. A seek lands on a keyframe, possibly
+  // seconds back, and decodes from there.
+  constexpr double carried_time_jitter = 0.2;
+  const double behind = m_lastFrameTime - double(node.standardUBO.time);
+  if(m_showing && m_lastFrameTime > m_earliestFrameTime
+     && (behind > carried_time_jitter || (node.m_rate < 0. && behind > 1e-6)))
   {
     const int generation = decoder.seek_generation.load(std::memory_order_acquire);
     if(generation != m_backwardSeekGeneration)
