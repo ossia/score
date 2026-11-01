@@ -12,6 +12,7 @@ add_library(
   "${CMAKE_CURRENT_SOURCE_DIR}/Ui/Monitor/ChannelLayout.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Ui/Monitor/LayerHelpers.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Ui/Monitor/Paint.hpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Ui/Monitor/Ring.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Ui/Loudness.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Ui/Loudness.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Ui/MidiDisplay.hpp"

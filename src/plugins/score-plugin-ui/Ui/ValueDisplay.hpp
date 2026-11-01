@@ -31,6 +31,8 @@
 #include <halp/polyfill.hpp>
 #include <halp/static_string.hpp>
 
+#include <Ui/Monitor/LayerHelpers.hpp>
+
 #include <cmath>
 
 #include <algorithm>
@@ -53,7 +55,7 @@ struct Node
 {
   halp_meta(name, "Value display")
   halp_meta(c_name, "Display")
-  halp_meta(category, "Monitoring")
+  halp_meta(category, "Monitoring/Control")
   halp_meta(author, "ossia score")
   halp_meta(manual_url, "")
   halp_meta(description, "Visualize an input value")
@@ -168,7 +170,10 @@ struct Node
     {
       halp_meta(
           description,
-          "Ordinary text, indented Pretty text, or Hex bytes. Hex shows raw "
+          "Ordinary text, indented Pretty text, or Hex bytes. Pretty puts each "
+          "element of a list or map that holds lists, maps or vectors on its "
+          "own line, indented by depth: a list of vec2f reads one point per "
+          "line; long lists of numbers wrap eight per line. Hex shows raw "
           "string bytes, including UTF-8 bytes, NUL and high-bit bytes. Numbers "
           "must be exact integers from 0 to 255; booleans are 00 or 01. Flat "
           "numeric lists and vectors use one byte per element. Empty strings "
@@ -305,13 +310,8 @@ struct Node
     {
       setAcceptedMouseButtons(Qt::NoButton);
 
-      const Process::PortFactoryList& portFactory
-          = doc.app.interfaces<Process::PortFactoryList>();
-
-      auto& value_inlet = *process.inlets()[0];
-      if(auto* fact = portFactory.get(value_inlet.concreteKey()))
-        if(auto* port = fact->makePortItem(value_inlet, doc, this, this))
-          port->setPos(0, 9); // under the arrival light
+      // Under the arrival light
+      Ui::Monitor::showInlet(process, 0, doc, this, this, 9.);
 
       log_inlet = static_cast<Process::ControlInlet*>(process.inlets()[1]);
       if(process.inlets().size() > 2)

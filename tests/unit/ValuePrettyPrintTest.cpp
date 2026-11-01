@@ -92,6 +92,26 @@ TEST_CASE("Pretty: a matrix is one row per line", "[state][pretty]")
          "]");
 }
 
+TEST_CASE("Pretty: a list of points is one point per line", "[state][pretty]")
+{
+  const auto v = list({ossia::vec2f{0, 1}, ossia::vec2f{0.5f, 0.25f}});
+  CHECK(
+      pretty(v)
+      == "list: [\n"
+         "  vec2f: [0.00, 1.00],\n"
+         "  vec2f: [0.50, 0.25]\n"
+         "]");
+
+  // Colours in a map too
+  const auto m = map({{"a", ossia::vec4f{1, 0, 0, 1}}, {"b", 2}});
+  CHECK(
+      pretty(m)
+      == "map: {\n"
+         "  \"a\": vec4f: [1.00, 0.00, 0.00, 1.00],\n"
+         "  \"b\": int: 2\n"
+         "}");
+}
+
 TEST_CASE("Pretty: mixed scalars and containers spread out", "[state][pretty]")
 {
   const auto v = list({1, ints(0, 2), std::string{"x"}});
