@@ -14,8 +14,10 @@
 #include <Ui/Spectrum.hpp>
 #include <Ui/Tuner.hpp>
 #include <Ui/TextBox.hpp>
+#include <Ui/TextureView.hpp>
 #include <Ui/ValueDisplay.hpp>
 #include <Ui/VUMeter.hpp>
+#include <Ui/VideoScope.hpp>
 
 #include <score_plugin_engine.hpp>
 
@@ -33,8 +35,10 @@ std::vector<score::InterfaceBase*> score_plugin_ui::factories(
   oscr::instantiate_fx<Ui::Spectrum::Node>(fx, ctx, key);
   oscr::instantiate_fx<Ui::Tuner::Node>(fx, ctx, key);
   oscr::instantiate_fx<Ui::TextBox::Node>(fx, ctx, key);
+  oscr::instantiate_fx<Ui::TextureView::Node>(fx, ctx, key);
   oscr::instantiate_fx<Ui::ValueDisplay::Node>(fx, ctx, key);
   oscr::instantiate_fx<Ui::VUMeter::Node>(fx, ctx, key);
+  oscr::instantiate_fx<Ui::VideoScope::Node>(fx, ctx, key);
   return fx;
 }
 

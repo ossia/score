@@ -6,6 +6,7 @@
 #include <Gfx/Graph/RenderList.hpp>
 #include <ossia/detail/algorithms.hpp>
 #include <Gfx/Graph/RenderState.hpp>
+#include <Gfx/Graph/RhiComputeBarrier.hpp>
 #include <boost/algorithm/string.hpp>
 #include <ossia/detail/fmt.hpp>
 #include <ossia/detail/math.hpp>
@@ -17,6 +18,9 @@
 #include <score/tools/SafeCast.hpp>
 
 #include <QPainter>
+
+#include <cstring>
+#include <optional>
 
 #if defined(near)
 #undef near
@@ -848,6 +852,55 @@ void main ()
 }
 )_";
 
+// The guides: lines in world space, and the background in clip space
+const constexpr auto model_display_guide_vertex_shader = R"_(#version 450
+layout(location = 0) in vec3 position;
+layout(location = 1) in vec4 color;
+layout(location = 0) out vec4 v_color;
+
+)_" model_display_default_uniforms R"_(
+
+out gl_PerVertex { vec4 gl_Position; };
+
+void main()
+{
+  v_color = color;
+  gl_Position = renderer.clipSpaceCorrMatrix * camera.matrixProjection * camera.matrixView * vec4(position, 1.0);
+#if defined(QSHADER_HLSL) || defined(QSHADER_MSL)
+  gl_Position.y = -gl_Position.y;
+#endif
+}
+)_";
+
+const constexpr auto model_display_guide_background_vertex_shader = R"_(#version 450
+layout(location = 0) in vec3 position;
+layout(location = 1) in vec4 color;
+layout(location = 0) out vec4 v_color;
+
+)_" model_display_default_uniforms R"_(
+
+out gl_PerVertex { vec4 gl_Position; };
+
+void main()
+{
+  v_color = color;
+  gl_Position = renderer.clipSpaceCorrMatrix * vec4(position.xy, 0.0, 1.0);
+#if defined(QSHADER_HLSL) || defined(QSHADER_MSL)
+  gl_Position.y = -gl_Position.y;
+#endif
+}
+)_";
+
+const constexpr auto model_display_guide_fragment_shader = R"_(#version 450
+layout(location = 0) in vec4 v_color;
+layout(location = 0) out vec4 fragColor;
+
+void main()
+{
+  fragColor = v_color;
+}
+)_";
+
 ModelDisplayNode::ModelDisplayNode()
 {
   this->requiresDepth = true;
@@ -863,6 +916,108 @@ ModelDisplayNode::ModelDisplayNode()
 ModelDisplayNode::~ModelDisplayNode()
 {
   m_materialData.release();
+}
+
+namespace
+{
+// Bounds of positions on the GPU: floats mapped to unsigned integers in the
+// same order, for atomic min and max
+const constexpr auto model_display_bounds_shader = R"_(#version 450
+layout(local_size_x = 256) in;
+
+layout(std140, binding = 0) uniform Params
+{
+  uint count;
+  uint first;  // floats
+  uint stride; // floats
+  uint pad;
+};
+layout(std430, binding = 1) readonly buffer Positions { float positions[]; };
+layout(std430, binding = 2) buffer Box { uint lo[3]; uint hi[3]; };
+
+uint ordered(float f)
+{
+  const uint u = floatBitsToUint(f);
+  return (u & 0x80000000u) != 0u ? ~u : (u | 0x80000000u);
+}
+
+void main()
+{
+  const uint i = gl_GlobalInvocationID.x + gl_GlobalInvocationID.y * gl_NumWorkGroups.x * 256u;
+  if(i >= count)
+    return;
+  const uint at = first + i * stride;
+  const vec3 p = vec3(positions[at], positions[at + 1u], positions[at + 2u]);
+  if(any(isnan(p)) || any(isinf(p)))
+    return;
+  for(int k = 0; k < 3; k++)
+  {
+    atomicMin(lo[k], ordered(p[k]));
+    atomicMax(hi[k], ordered(p[k]));
+  }
+}
+)_";
+
+float unordered(uint32_t u)
+{
+  const uint32_t bits = (u & 0x80000000u) ? (u & 0x7fffffffu) : ~u;
+  float f;
+  std::memcpy(&f, &bits, sizeof(f));
+  return f;
+}
+
+//! Bounds of the geometries, from their producers or else from positions held
+//! in memory; empty when neither tells
+ossia::aabb measureBounds(const ossia::geometry_spec& spec) noexcept
+{
+  ossia::aabb box{{1.f, 1.f, 1.f}, {-1.f, -1.f, -1.f}};
+  if(!spec.meshes)
+    return box;
+  for(const auto& g : spec.meshes->meshes)
+  {
+    const auto& b = g.bounds;
+    if(b.max[0] > b.min[0] || b.max[1] > b.min[1] || b.max[2] > b.min[2])
+    {
+      box.expand(b.min[0], b.min[1], b.min[2]);
+      box.expand(b.max[0], b.max[1], b.max[2]);
+      continue;
+    }
+
+    using attribute = ossia::geometry::attribute;
+    auto attr = ossia::find_if(g.attributes, [](const attribute& a) {
+      return a.semantic == ossia::attribute_semantic::position;
+    });
+    if(attr == g.attributes.end())
+      attr = ossia::find_if(g.attributes, [](const attribute& a) { return a.location == 0; });
+    if(attr == g.attributes.end()
+       || (attr->format != attribute::float3 && attr->format != attribute::float4)
+       || attr->binding < 0 || attr->binding >= int(g.input.size())
+       || attr->binding >= int(g.bindings.size()))
+      continue;
+    const auto& in = g.input[attr->binding];
+    if(in.buffer < 0 || in.buffer >= int(g.buffers.size()))
+      continue;
+    const auto* cpu = ossia::get_if<ossia::geometry::cpu_buffer>(&g.buffers[in.buffer].data);
+    if(!cpu || !cpu->raw_data)
+      continue;
+    const int64_t element = attr->format == attribute::float3 ? 12 : 16;
+    const int64_t stride = g.bindings[attr->binding].byte_stride > 0
+                               ? g.bindings[attr->binding].byte_stride
+                               : element;
+    const int64_t first = in.byte_offset + attr->byte_offset;
+    const auto* bytes = static_cast<const char*>(cpu->raw_data.get());
+    for(int64_t i = 0; i < g.vertices; i++)
+    {
+      const int64_t at = first + i * stride;
+      if(at < 0 || at + 12 > cpu->byte_size)
+        break;
+      float p[3];
+      std::memcpy(p, bytes + at, sizeof(p));
+      box.expand(p[0], p[1], p[2]);
+    }
+  }
+  return box;
+}
 }
 
 class ModelDisplayNode::Renderer : public GenericNodeRenderer
@@ -942,6 +1097,10 @@ public:
   }
 
   int m_curShader{0};
+  //! The fallback patterns of an unconnected texture inlet, by pattern
+  std::array<QRhiTexture*, 3> m_patterns{};
+  //! Created and not uploaded yet
+  std::array<bool, 3> m_patternPending{};
   int m_draw_mode{0};
   int m_camera_mode{0};
   int m_blend_color_src{0};
@@ -951,8 +1110,464 @@ public:
   int m_blend_alpha_dst{0};
   int m_blend_alpha_op{0};
   bool m_blend_enabled{false};
+  bool m_prefer_vertex_colors{false};
   // The render size the projection's aspect ratio was computed for.
   QSize m_projectionSize{};
+
+  //! The bounds of a geometry held only on the GPU, measured by a compute
+  //! pass and read back a few frames later
+  struct BoundsMeasure
+  {
+    QShader shader;
+    QRhiComputePipeline* pipeline{};
+    QRhiShaderResourceBindings* srb{};
+    QRhiBuffer* params{};
+    QRhiBuffer* box{};
+    QRhiBuffer* source{};
+    QRhiBufferReadbackResult result;
+    bool failed{};
+    bool requested{};
+    bool inFlight{};
+  } m_bounds;
+  int64_t m_fitRequest{-1};
+  int64_t m_boundsMeshIndex{-1};
+
+  void releaseBounds(RenderList& renderer)
+  {
+    // The readback writes into the result when its frame completes
+    if(m_bounds.inFlight && renderer.state.rhi)
+      renderer.state.rhi->finish();
+    delete m_bounds.pipeline;
+    delete m_bounds.srb;
+    delete m_bounds.params;
+    delete m_bounds.box;
+    m_bounds.pipeline = nullptr;
+    m_bounds.srb = nullptr;
+    m_bounds.params = nullptr;
+    m_bounds.box = nullptr;
+    m_bounds.source = nullptr;
+    m_bounds.inFlight = false;
+    m_bounds.requested = false;
+  }
+
+  //! Measures in memory when it can, else asks the compute pass
+  void measure(ModelDisplayNode& n)
+  {
+    if(const auto box = measureBounds(this->geometry); !box.empty())
+    {
+      m_bounds.requested = false;
+      if(n.fitBounds(box))
+        this->materialChanged = true;
+    }
+    else
+      m_bounds.requested = true;
+  }
+
+  //! A result of the compute pass, once its frame completed
+  void collectBounds(ModelDisplayNode& n)
+  {
+    if(!m_bounds.inFlight || m_bounds.result.data.size() < qsizetype(6 * sizeof(uint32_t)))
+      return;
+    m_bounds.inFlight = false;
+    uint32_t words[6];
+    std::memcpy(words, m_bounds.result.data.constData(), sizeof(words));
+    m_bounds.result.data.clear();
+    ossia::aabb box{
+        {unordered(words[0]), unordered(words[1]), unordered(words[2])},
+        {unordered(words[3]), unordered(words[4]), unordered(words[5])}};
+    // Nothing finite was found: the box stays at its reset values
+    if(words[0] == 0xffffffffu || box.empty())
+      return;
+    if(n.fitBounds(box))
+      this->materialChanged = true;
+  }
+
+  //! The positions of the geometry as the compute pass reads them: the buffer,
+  //! then the first float, the stride in floats and the count
+  struct PositionSource
+  {
+    QRhiBuffer* buffer{};
+    uint32_t first{}, stride{}, count{};
+  };
+  PositionSource gpuPositions() const noexcept
+  {
+    const auto& spec = this->geometry;
+    // The buffers of the mesh follow those of a single geometry
+    if(!spec.meshes || spec.meshes->meshes.size() != 1)
+      return {};
+    const auto& g = spec.meshes->meshes.front();
+    using attribute = ossia::geometry::attribute;
+    auto attr = ossia::find_if(g.attributes, [](const attribute& a) {
+      return a.semantic == ossia::attribute_semantic::position;
+    });
+    if(attr == g.attributes.end())
+      attr = ossia::find_if(g.attributes, [](const attribute& a) { return a.location == 0; });
+    if(attr == g.attributes.end()
+       || (attr->format != attribute::float3 && attr->format != attribute::float4)
+       || attr->binding < 0 || attr->binding >= int(g.input.size())
+       || attr->binding >= int(g.bindings.size()))
+      return {};
+    const auto& in = g.input[attr->binding];
+    if(in.buffer < 0 || in.buffer >= int(m_meshbufs.buffers.size()))
+      return {};
+    QRhiBuffer* buf = m_meshbufs.buffers[in.buffer].handle;
+    if(!buf || !buf->usage().testFlag(QRhiBuffer::StorageBuffer)
+       || buf->type() == QRhiBuffer::Dynamic)
+      return {};
+    const int64_t element = attr->format == attribute::float3 ? 12 : 16;
+    const int64_t stride = g.bindings[attr->binding].byte_stride > 0
+                               ? g.bindings[attr->binding].byte_stride
+                               : element;
+    const int64_t first = in.byte_offset + attr->byte_offset;
+    if(first % 4 != 0 || stride % 4 != 0 || first < 0)
+      return {};
+    const int64_t size = buf->size();
+    int64_t count = g.vertices;
+    if(first + 12 > size)
+      return {};
+    count = std::min<int64_t>(count, (size - first - 12) / stride + 1);
+    if(count <= 0)
+      return {};
+    return {buf, uint32_t(first / 4), uint32_t(stride / 4), uint32_t(count)};
+  }
+
+  bool ensureBoundsPipeline(RenderList& renderer)
+  {
+    if(m_bounds.pipeline)
+      return true;
+    if(m_bounds.failed)
+      return false;
+    auto& rhi = *renderer.state.rhi;
+    if(!rhi.isFeatureSupported(QRhi::Compute))
+    {
+      m_bounds.failed = true;
+      return false;
+    }
+    try
+    {
+      m_bounds.shader = score::gfx::makeCompute(renderer.state, model_display_bounds_shader);
+    }
+    catch(const std::exception& e)
+    {
+      qWarning() << "ModelDisplay: the bounds shader did not compile:" << e.what();
+      m_bounds.failed = true;
+      return false;
+    }
+    m_bounds.params = rhi.newBuffer(QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, 16);
+    m_bounds.params->setName("ModelDisplay::bounds_params");
+    m_bounds.box = rhi.newBuffer(QRhiBuffer::Static, QRhiBuffer::StorageBuffer, 24);
+    m_bounds.box->setName("ModelDisplay::bounds");
+    if(!m_bounds.params->create() || !m_bounds.box->create())
+    {
+      m_bounds.failed = true;
+      return false;
+    }
+    m_bounds.pipeline = rhi.newComputePipeline();
+    m_bounds.pipeline->setShaderStage({QRhiShaderStage::Compute, m_bounds.shader});
+    return true;
+  }
+
+  void runInitialPasses(
+      RenderList& renderer, QRhiCommandBuffer& cb, QRhiResourceUpdateBatch*& res,
+      Edge& edge) override
+  {
+    if(!m_bounds.requested || m_bounds.inFlight)
+      return;
+    const auto src = gpuPositions();
+    if(!src.buffer || !ensureBoundsPipeline(renderer))
+      return;
+    auto& rhi = *renderer.state.rhi;
+
+    if(m_bounds.source != src.buffer || !m_bounds.srb)
+    {
+      delete m_bounds.srb;
+      m_bounds.srb = rhi.newShaderResourceBindings();
+      m_bounds.srb->setBindings(
+          {QRhiShaderResourceBinding::uniformBuffer(
+               0, QRhiShaderResourceBinding::ComputeStage, m_bounds.params),
+           QRhiShaderResourceBinding::bufferLoad(
+               1, QRhiShaderResourceBinding::ComputeStage, src.buffer),
+           QRhiShaderResourceBinding::bufferLoadStore(
+               2, QRhiShaderResourceBinding::ComputeStage, m_bounds.box)});
+      if(!m_bounds.srb->create())
+        return;
+      m_bounds.source = src.buffer;
+      if(!m_bounds.pipeline->shaderResourceBindings())
+      {
+        m_bounds.pipeline->setShaderResourceBindings(m_bounds.srb);
+        if(!m_bounds.pipeline->create())
+        {
+          qWarning() << "ModelDisplay: the bounds pipeline could not be created";
+          delete m_bounds.pipeline;
+          m_bounds.pipeline = nullptr;
+          m_bounds.failed = true;
+          return;
+        }
+      }
+    }
+
+    if(!res)
+      res = rhi.nextResourceUpdateBatch();
+    const uint32_t params[4]{src.count, src.first, src.stride, 0};
+    res->updateDynamicBuffer(m_bounds.params, 0, sizeof(params), params);
+    const uint32_t reset[6]{0xffffffffu, 0xffffffffu, 0xffffffffu, 0u, 0u, 0u};
+    res->uploadStaticBuffer(m_bounds.box, 0, sizeof(reset), reset);
+
+    // Wider than a dimension allows: the rows of groups go on y
+    const int64_t groups = (int64_t(src.count) + 255) / 256;
+    const int64_t maxDim = std::max(1, rhi.resourceLimit(QRhi::MaxThreadGroupsPerDimension));
+    const int x = int(std::min<int64_t>(groups, maxDim));
+    const int y = int((groups + x - 1) / x);
+
+    const bool gl = rhi.backend() == QRhi::OpenGLES2;
+    cb.beginComputePass(
+        res, gl ? QRhiCommandBuffer::BeginPassFlag::ExternalContent
+                : QRhiCommandBuffer::BeginPassFlags{});
+    res = nullptr;
+    cb.setComputePipeline(m_bounds.pipeline);
+    cb.setShaderResources(m_bounds.srb);
+    cb.dispatch(x, y, 1);
+    if(gl)
+    {
+      cb.beginExternal();
+      score::gfx::insertComputeBarrier(rhi, cb);
+      cb.endExternal();
+    }
+    auto* readback = rhi.nextResourceUpdateBatch();
+    m_bounds.result.data.clear();
+    readback->readBackBuffer(m_bounds.box, 0, 24, &m_bounds.result);
+    cb.endComputePass(readback);
+    m_bounds.requested = false;
+    m_bounds.inFlight = true;
+  }
+
+  //! The background, the plane and the axes, drawn in the passes of the model
+  struct GuidePass
+  {
+    Edge* edge{};
+    QRhiRenderPassDescriptor* renderPass{};
+    QRhiShaderResourceBindings* srb{};
+    QRhiGraphicsPipeline* background{};
+    QRhiGraphicsPipeline* lines{};
+
+    void release()
+    {
+      delete background;
+      delete lines;
+      delete srb;
+      *this = {};
+    }
+  };
+  ossia::small_vector<GuidePass, 2> m_guidePasses;
+  QRhiBuffer* m_guideVertices{};
+  //! The background quad, then the lines
+  static constexpr int guide_background_vertices = 4;
+  static constexpr int guide_grid_cells = 10;
+  static constexpr int guide_max_vertices
+      = guide_background_vertices + 2 * 2 * (2 * guide_grid_cells + 1) + 2 * 6;
+  static constexpr int guide_vertex_floats = 7;
+  int m_guideLineVertices{};
+  std::optional<ModelDisplayNode::Guides> m_guidesUploaded;
+  QShader m_guideVS, m_guideBackgroundVS, m_guideFS;
+
+  void releaseGuides()
+  {
+    for(auto& g : m_guidePasses)
+      g.release();
+    m_guidePasses.clear();
+    delete m_guideVertices;
+    m_guideVertices = nullptr;
+    m_guidesUploaded.reset();
+    m_guideLineVertices = 0;
+  }
+
+  void uploadGuides(const ModelDisplayNode::Guides& g, QRhiResourceUpdateBatch& res)
+  {
+    std::array<float, guide_max_vertices * guide_vertex_floats> v{};
+    int k = 0;
+    auto vertex = [&](float x, float y, float z, const std::array<float, 4>& c) {
+      float* p = v.data() + k * guide_vertex_floats;
+      p[0] = x, p[1] = y, p[2] = z;
+      std::copy(c.begin(), c.end(), p + 3);
+      k++;
+    };
+    vertex(-1, 1, 0, g.top);
+    vertex(1, 1, 0, g.top);
+    vertex(-1, -1, 0, g.bottom);
+    vertex(1, -1, 0, g.bottom);
+
+    const float s = g.spacing > 0.f ? g.spacing : 1.f;
+    constexpr int n = guide_grid_cells;
+    if(g.plane)
+    {
+      // Snapped to the cells, so that the grid stays put when the origin moves
+      const float ox = std::round(g.origin[0] / s) * s, oz = std::round(g.origin[2] / s) * s;
+      const float y = g.origin[1];
+      for(int i = -n; i <= n; i++)
+      {
+        const std::array<float, 4> c{0.6f, 0.6f, 0.6f, i % 5 == 0 ? 0.45f : 0.2f};
+        vertex(ox + i * s, y, oz - n * s, c);
+        vertex(ox + i * s, y, oz + n * s, c);
+        vertex(ox - n * s, y, oz + i * s, c);
+        vertex(ox + n * s, y, oz + i * s, c);
+      }
+    }
+    if(g.axes)
+    {
+      const float len = n * s;
+      const std::array<float, 3> colors[3]{
+          {0.92f, 0.27f, 0.24f}, {0.35f, 0.78f, 0.35f}, {0.31f, 0.55f, 0.94f}};
+      for(int a = 0; a < 3; a++)
+      {
+        const auto& c = colors[a];
+        float e[3]{};
+        e[a] = len;
+        vertex(0, 0, 0, {c[0], c[1], c[2], 1.f});
+        vertex(e[0], e[1], e[2], {c[0], c[1], c[2], 1.f});
+        vertex(0, 0, 0, {c[0], c[1], c[2], 0.35f});
+        vertex(-e[0], -e[1], -e[2], {c[0], c[1], c[2], 0.35f});
+      }
+    }
+    m_guideLineVertices = k - guide_background_vertices;
+    res.updateDynamicBuffer(m_guideVertices, 0, k * guide_vertex_floats * sizeof(float), v.data());
+  }
+
+  QRhiGraphicsPipeline* makeGuidePipeline(
+      RenderList& renderer, const TextureRenderTarget& rt, QRhiShaderResourceBindings* srb,
+      bool background)
+  {
+    auto& rhi = *renderer.state.rhi;
+    auto* ps = rhi.newGraphicsPipeline();
+    ps->setName("ModelDisplay::guides");
+    QRhiGraphicsPipeline::TargetBlend blend;
+    blend.enable = !background;
+    blend.srcColor = QRhiGraphicsPipeline::SrcAlpha;
+    blend.dstColor = QRhiGraphicsPipeline::OneMinusSrcAlpha;
+    blend.srcAlpha = QRhiGraphicsPipeline::One;
+    blend.dstAlpha = QRhiGraphicsPipeline::OneMinusSrcAlpha;
+    ps->setTargetBlends({blend});
+    const int samples = rt.sampleCount();
+    ps->setSampleCount(samples > 0 ? samples : renderer.samples());
+    ps->setTopology(
+        background ? QRhiGraphicsPipeline::TriangleStrip : QRhiGraphicsPipeline::Lines);
+    // Behind everything; the lines are hidden by the model but do not hide it
+    const bool depth = !background
+                       && (rt.depthTexture || rt.depthRenderBuffer || rt.msDepthTexture);
+    ps->setDepthTest(depth);
+    ps->setDepthWrite(false);
+    ps->setDepthOp(QRhiGraphicsPipeline::Greater);
+    ps->setShaderStages(
+        {{QRhiShaderStage::Vertex, background ? m_guideBackgroundVS : m_guideVS},
+         {QRhiShaderStage::Fragment, m_guideFS}});
+    QRhiVertexInputLayout layout;
+    layout.setBindings({{guide_vertex_floats * sizeof(float)}});
+    layout.setAttributes(
+        {{0, 0, QRhiVertexInputAttribute::Float3, 0},
+         {0, 1, QRhiVertexInputAttribute::Float4, 3 * sizeof(float)}});
+    ps->setVertexInputLayout(layout);
+    ps->setShaderResourceBindings(srb);
+    ps->setRenderPassDescriptor(rt.renderPass);
+    if(!ps->create())
+    {
+      delete ps;
+      return nullptr;
+    }
+    return ps;
+  }
+
+  //! The guides follow the passes of the model
+  void updateGuides(RenderList& renderer, QRhiResourceUpdateBatch& res)
+  {
+    const auto& g = static_cast<const ModelDisplayNode&>(this->node).guides;
+    if(!g.any())
+    {
+      if(m_guideVertices)
+        releaseGuides();
+      return;
+    }
+
+    auto& rhi = *renderer.state.rhi;
+    if(!m_guideFS.isValid())
+    {
+      std::tie(m_guideVS, m_guideFS) = score::gfx::makeShaders(
+          renderer.state, model_display_guide_vertex_shader,
+          model_display_guide_fragment_shader);
+      m_guideBackgroundVS = score::gfx::makeShaders(
+                                renderer.state, model_display_guide_background_vertex_shader,
+                                model_display_guide_fragment_shader)
+                                .first;
+    }
+    if(!m_guideVertices)
+    {
+      m_guideVertices = rhi.newBuffer(
+          QRhiBuffer::Dynamic, QRhiBuffer::VertexBuffer,
+          guide_max_vertices * guide_vertex_floats * sizeof(float));
+      m_guideVertices->setName("ModelDisplay::guides");
+      if(!m_guideVertices->create())
+      {
+        delete m_guideVertices;
+        m_guideVertices = nullptr;
+        return;
+      }
+    }
+    if(m_guidesUploaded != g)
+    {
+      uploadGuides(g, res);
+      m_guidesUploaded = g;
+    }
+
+    // Pipelines for the passes the model has, on their render pass
+    for(auto it = m_guidePasses.begin(); it != m_guidePasses.end();)
+    {
+      auto pass = ossia::find_if(m_p, [&](const auto& p) { return p.first == it->edge; });
+      if(pass == m_p.end() || pass->second.renderTarget.renderPass != it->renderPass)
+      {
+        it->release();
+        it = m_guidePasses.erase(it);
+      }
+      else
+        ++it;
+    }
+    for(auto& [edge, pass] : m_p)
+    {
+      if(ossia::any_of(m_guidePasses, [e = edge](const auto& gp) { return gp.edge == e; }))
+        continue;
+      const auto& rt = pass.renderTarget;
+      if(!rt.renderPass || !m_material.buffer)
+        continue;
+      GuidePass gp{.edge = edge, .renderPass = rt.renderPass};
+      gp.srb = score::gfx::createDefaultBindings(
+          renderer, rt, m_processUBO, m_material.buffer, {});
+      gp.background = makeGuidePipeline(renderer, rt, gp.srb, true);
+      gp.lines = makeGuidePipeline(renderer, rt, gp.srb, false);
+      m_guidePasses.push_back(gp);
+    }
+  }
+
+  void drawGuides(
+      RenderList& renderer, QRhiCommandBuffer& cb, Edge& edge, bool background)
+  {
+    if(!m_guideVertices || !m_guidesUploaded)
+      return;
+    auto gp = ossia::find_if(m_guidePasses, [&](const auto& g) { return g.edge == &edge; });
+    if(gp == m_guidePasses.end())
+      return;
+    const auto& g = *m_guidesUploaded;
+    QRhiGraphicsPipeline* ps = background ? gp->background : gp->lines;
+    const int count = background ? (g.top[3] > 0.f || g.bottom[3] > 0.f
+                                        ? guide_background_vertices
+                                        : 0)
+                                 : m_guideLineVertices;
+    if(!ps || count == 0)
+      return;
+    const auto sz = renderer.renderSize(&edge);
+    cb.setGraphicsPipeline(ps);
+    cb.setShaderResources(gp->srb);
+    cb.setViewport(QRhiViewport(0, 0, sz.width(), sz.height()));
+    const QRhiCommandBuffer::VertexInput input{m_guideVertices, 0};
+    cb.setVertexInput(0, 1, &input);
+    cb.draw(count, 1, background ? 0 : guide_background_vertices, 0);
+  }
 
 private:
   ~Renderer() = default;
@@ -1001,7 +1616,7 @@ private:
       }
     }
 
-    if(has_colors && n.texture_projection == 7)
+    if(has_colors && (n.texture_projection == 7 || n.prefer_vertex_colors))
     {
       defaultPassesInit(
           renderer, mesh, shaders.colorVS, shaders.colorFS, additional_bindings);
@@ -1203,6 +1818,7 @@ private:
     m_blend_alpha_dst = n.blend_alpha_dst;
     m_blend_alpha_op = n.blend_alpha_op;
     m_blend_enabled = n.blend_enabled;
+    m_prefer_vertex_colors = n.prefer_vertex_colors;
 
     // Pick triangle- vs point-topology shader set, then index by
     // camera_mode. Values outside [0, CAMERA_MODE_COUNT) clamp to
@@ -1428,13 +2044,82 @@ private:
   // With no cable, the texture inlet's render target is never drawn into and
   // reads black, which hides the mesh in every projection mode: sample white
   // instead, so an untextured model shows its shape.
-  QRhiTexture* inputTexture(RenderList& renderer) const noexcept
+  QRhiTexture* inputTexture(RenderList& renderer) noexcept
   {
     auto& in = *this->node.input[0];
     if(in.edges.empty())
+    {
+      const int pattern = static_cast<const ModelDisplayNode&>(this->node).fallback_pattern;
+      if(auto* tex = patternTexture(renderer, pattern))
+        return tex;
       return &renderer.whiteTexture();
+    }
     auto inputRT = renderer.renderTargetForInputPort(in);
     return inputRT.texture ? inputRT.texture : &renderer.emptyTexture();
+  }
+
+  //! A checker of 8 by 8 squares, and a texture lit near u = 0, v = 0 and
+  //! u + v = 1: sampled at barycentric coordinates, the edges of triangles.
+  //! Drawn once for the process.
+  static const QImage& patternImage(int pattern)
+  {
+    static const std::array<QImage, 3> images = [] {
+      constexpr int size = 256;
+      std::array<QImage, 3> res;
+      for(int p = 1; p < 3; p++)
+      {
+        QImage img(size, size, QImage::Format_RGBA8888);
+        for(int y = 0; y < size; y++)
+        {
+          auto* line = reinterpret_cast<uint8_t*>(img.scanLine(y));
+          for(int x = 0; x < size; x++)
+          {
+            std::array<uint8_t, 4> c;
+            if(p == 1)
+            {
+              const bool odd = ((x * 8 / size) + (y * 8 / size)) % 2;
+              c = odd ? std::array<uint8_t, 4>{235, 235, 235, 255}
+                      : std::array<uint8_t, 4>{70, 120, 200, 255};
+            }
+            else
+            {
+              const double u = (x + 0.5) / size, v = (y + 0.5) / size;
+              const double edge = std::min({u, v, std::abs(1. - u - v)});
+              c = edge < 0.04 ? std::array<uint8_t, 4>{255, 255, 255, 255}
+                              : std::array<uint8_t, 4>{25, 30, 40, 255};
+            }
+            std::copy(c.begin(), c.end(), line + 4 * x);
+          }
+        }
+        res[p] = std::move(img);
+      }
+      return res;
+    }();
+    return images[pattern];
+  }
+
+  //! The texture of a fallback pattern, created the first time a renderer
+  //! shows it and uploaded with the next update
+  QRhiTexture* patternTexture(RenderList& renderer, int pattern)
+  {
+    if(pattern <= 0 || pattern >= int(m_patterns.size()))
+      return nullptr;
+    if(!m_patterns[pattern])
+    {
+      // Mipmapped: the input sampler filters between mip levels
+      auto* tex = renderer.state.rhi->newTexture(
+          QRhiTexture::RGBA8, patternImage(pattern).size(), 1,
+          QRhiTexture::MipMapped | QRhiTexture::UsedWithGenerateMips);
+      tex->setName("ModelDisplayNode::pattern");
+      if(!tex->create())
+      {
+        delete tex;
+        return nullptr;
+      }
+      m_patterns[pattern] = tex;
+      m_patternPending[pattern] = true;
+    }
+    return m_patterns[pattern];
   }
 
   void initState(RenderList& renderer, QRhiResourceUpdateBatch& res) override
@@ -1478,6 +2163,8 @@ private:
 
     m_renderer = nullptr;
 
+    releaseGuides();
+    releaseBounds(r);
     for(auto& pass : m_p)
       pass.second.release();
     m_p.clear();
@@ -1487,6 +2174,13 @@ private:
       delete sampler.sampler;
     }
     m_samplers.clear();
+    for(auto*& tex : m_patterns)
+    {
+      if(tex)
+        tex->deleteLater();
+      tex = nullptr;
+    }
+    m_patternPending = {};
 
     delete m_processUBO;
     m_processUBO = nullptr;
@@ -1526,12 +2220,31 @@ private:
   void update(RenderList& renderer, QRhiResourceUpdateBatch& res, Edge* edge) override
   {
     auto& n = static_cast<const ModelDisplayNode&>(this->node);
+    // Before the camera, which may frame the geometry
+    {
+      auto& model = const_cast<ModelDisplayNode&>(n);
+      collectBounds(model);
+      if(this->geometryChanged || m_fitRequest != n.fit_request)
+      {
+        m_fitRequest = n.fit_request;
+        measure(model);
+      }
+    }
 
     // A cable added or removed on the texture inlet does not always
     // re-initialise this renderer.
     if(!m_samplers.empty())
       if(auto* tex = inputTexture(renderer); m_samplers[0].texture != tex)
         GenericNodeRenderer::updateInputTexture(*n.input[0], tex);
+
+    // After the lookup above, which may create one
+    for(std::size_t i = 0; i < m_patterns.size(); i++)
+      if(m_patterns[i] && m_patternPending[i])
+      {
+        res.uploadTexture(m_patterns[i], patternImage(int(i)));
+        res.generateMips(m_patterns[i]);
+        m_patternPending[i] = false;
+      }
 
     bool mustRecreatePasses = false;
     // A resize of the output changes the aspect ratio without re-initialising
@@ -1570,7 +2283,7 @@ private:
       view.lookAt(
           QVector3D{n.position[0], n.position[1], n.position[2]},
           QVector3D{n.center[0], n.center[1], n.center[2]},
-          QVector3D{0, 1, 0});
+          QVector3D{n.up[0], n.up[1], n.up[2]});
       QMatrix4x4 mv = view * model;
       QMatrix4x4 mvp = projection * view * model;
       QMatrix3x3 norm = model.normalMatrix();
@@ -1617,6 +2330,8 @@ private:
         mustRecreatePasses = true;
       if(m_blend_enabled != n.blend_enabled)
         mustRecreatePasses = true;
+      if(m_prefer_vertex_colors != n.prefer_vertex_colors)
+        mustRecreatePasses = true;
     }
     this->materialChanged = false;
 
@@ -1648,6 +2363,12 @@ private:
       m_meshbufs = renderer.initMeshBuffer(mesh, res);
       mustRecreatePasses = true;
     }
+    // New contents in the same buffers
+    if(m_mesh && m_mesh->dirtyGeometryIndex != m_boundsMeshIndex)
+    {
+      m_boundsMeshIndex = m_mesh->dirtyGeometryIndex;
+      measure(const_cast<ModelDisplayNode&>(n));
+    }
     // FIXME is that neeeded?
     if(mesh.hasGeometryChanged(meshChangedIndex)) {
       mustRecreatePasses = true;
@@ -1678,12 +2399,16 @@ private:
         // Qt Vulkan build. Sampling mip 0 is correct when no mip chain
         // exists, so skip the request rather than abort.
         score::gfx::generateMipsIfAny(res, inputRT.texture);
+
+    updateGuides(renderer, res);
   }
 
   void runRenderPass(RenderList& renderer, QRhiCommandBuffer& cb, Edge& edge) override
   {
     const auto& mesh = m_mesh ? *m_mesh : renderer.defaultQuad();
+    drawGuides(renderer, cb, edge, true);
     defaultRenderPass(renderer, mesh, cb, edge);
+    drawGuides(renderer, cb, edge, false);
   }
 
   void removeInputEdge(RenderList& r, Edge& edge) override
@@ -1715,6 +2440,8 @@ private:
     m_mesh = nullptr;
     m_meshbufs = {};
     this->geometryChanged = true;
+    releaseGuides();
+    releaseBounds(r);
     defaultRelease(r);
   }
 };
@@ -1722,6 +2449,89 @@ private:
 NodeRenderer* ModelDisplayNode::createRenderer(RenderList& r) const noexcept
 {
   return new Renderer{*this};
+}
+
+void ModelDisplayNode::processControl(int32_t p, const ossia::value& v)
+{
+  const ossia::value* val = &v;
+  switch(p)
+  {
+    case 2: {
+      this->position = ossia::convert<ossia::vec3f>(*val);
+      this->materialChange();
+      break;
+    }
+    case 3: {
+      this->center = ossia::convert<ossia::vec3f>(*val);
+      this->materialChange();
+      break;
+    }
+    case 4: {
+      this->fov = ossia::convert<float>(*val);
+      this->materialChange();
+      break;
+    }
+    case 5: {
+      this->near = ossia::convert<float>(*val);
+      this->materialChange();
+      break;
+    }
+    case 6: {
+      this->far = ossia::convert<float>(*val);
+      this->materialChange();
+      break;
+    }
+    case 7: {
+      this->texture_projection = ossia::convert<int>(*val);
+      this->materialChange();
+      break;
+    }
+    case 8: {
+      this->draw_mode = ossia::convert<int>(*val);
+      this->materialChange();
+      break;
+    }
+    case 9: {
+      this->camera_mode = ossia::convert<int>(*val);
+      this->materialChange();
+      break;
+    }
+    case 10: {
+      this->blend_enabled = ossia::convert<bool>(*val);
+      this->materialChange();
+      break;
+    }
+    case 11: {
+      this->blend_color_src = ossia::convert<int>(*val);
+      this->materialChange();
+      break;
+    }
+    case 12: {
+      this->blend_color_dst = ossia::convert<int>(*val);
+      this->materialChange();
+      break;
+    }
+    case 13: {
+      this->blend_color_op = ossia::convert<int>(*val);
+      this->materialChange();
+      break;
+    }
+    case 14: {
+      this->blend_alpha_src = ossia::convert<int>(*val);
+      this->materialChange();
+      break;
+    }
+    case 15: {
+      this->blend_alpha_dst = ossia::convert<int>(*val);
+      this->materialChange();
+      break;
+    }
+    case 16: {
+      this->blend_alpha_op = ossia::convert<int>(*val);
+      this->materialChange();
+      break;
+    }
+  }
 }
 
 void ModelDisplayNode::process(Message&& msg)
@@ -1733,92 +2543,7 @@ void ModelDisplayNode::process(Message&& msg)
   {
     if (auto val = ossia::get_if<ossia::value>(&m))
     {
-      switch (p)
-      {
-        case 2:
-        {
-          this->position = ossia::convert<ossia::vec3f>(*val);
-          this->materialChange();
-          break;
-        }
-        case 3:
-        {
-          this->center = ossia::convert<ossia::vec3f>(*val);
-          this->materialChange();
-          break;
-        }
-        case 4:
-        {
-          this->fov = ossia::convert<float>(*val);
-          this->materialChange();
-          break;
-        }
-        case 5:
-        {
-          this->near = ossia::convert<float>(*val);
-          this->materialChange();
-          break;
-        }
-        case 6:
-        {
-          this->far = ossia::convert<float>(*val);
-          this->materialChange();
-          break;
-        }
-        case 7:
-        {
-          this->texture_projection = ossia::convert<int>(*val);
-          this->materialChange();
-          break;
-        }
-        case 8:
-        {
-          this->draw_mode = ossia::convert<int>(*val);
-          this->materialChange();
-          break;
-        }
-        case 9: {
-          this->camera_mode = ossia::convert<int>(*val);
-          this->materialChange();
-          break;
-        }
-        case 10: {
-          this->blend_enabled = ossia::convert<bool>(*val);
-          this->materialChange();
-          break;
-        }
-        case 11: {
-          this->blend_color_src = ossia::convert<int>(*val);
-          this->materialChange();
-          break;
-        }
-        case 12: {
-          this->blend_color_dst = ossia::convert<int>(*val);
-          this->materialChange();
-          break;
-        }
-        case 13: {
-          this->blend_color_op = ossia::convert<int>(*val);
-          this->materialChange();
-          break;
-        }
-        case 14: {
-          this->blend_alpha_src = ossia::convert<int>(*val);
-          this->materialChange();
-          break;
-        }
-        case 15: {
-          this->blend_alpha_dst = ossia::convert<int>(*val);
-          this->materialChange();
-          break;
-        }
-        case 16: {
-          this->blend_alpha_op = ossia::convert<int>(*val);
-          this->materialChange();
-          break;
-        }
-      }
-
+      processControl(p, *val);
       p++;
     }
     else if(auto val = ossia::get_if<ossia::render_target_spec>(&m))
