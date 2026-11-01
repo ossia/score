@@ -21,6 +21,8 @@ public:
   void undo(const score::DocumentContext& ctx) const final override;
   void redo(const score::DocumentContext& ctx) const final override;
   void update(const Process::ControlInlet& obj, ossia::value newval);
+  //! Only a change of the same control merges into this one
+  bool compatible(const Process::ControlInlet& obj, const ossia::value&) const;
 
 protected:
   void serializeImpl(DataStreamInput& stream) const final override;

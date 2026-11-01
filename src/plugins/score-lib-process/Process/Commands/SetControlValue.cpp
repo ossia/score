@@ -34,6 +34,11 @@ void SetControlValue::update(const ControlInlet& obj, ossia::value newval)
   m_new = std::move(newval);
 }
 
+bool SetControlValue::compatible(const ControlInlet& obj, const ossia::value&) const
+{
+  return m_path == Path<ControlInlet>{obj};
+}
+
 void SetControlValue::serializeImpl(DataStreamInput& stream) const
 {
   stream << m_path << m_old << m_new;
