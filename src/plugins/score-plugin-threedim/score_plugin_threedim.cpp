@@ -21,6 +21,9 @@
 #include <Threedim/GeometryPacker.hpp>
 #include <Threedim/GltfLiveLink.hpp>
 #include <Threedim/GeometryToBuffer.hpp>
+#include <Threedim/GeometryViewer/Executor.hpp>
+#include <Threedim/GeometryViewer/Layer.hpp>
+#include <Threedim/GeometryViewer/Process.hpp>
 #include <Threedim/ModelDisplay/Executor.hpp>
 #include <Threedim/ModelDisplay/Process.hpp>
 #include <Threedim/ConfigurePrimitive.hpp>
@@ -441,12 +444,14 @@ std::vector<score::InterfaceBase*> score_plugin_threedim::factories(
   auto add = instantiate_factories<
       score::ApplicationContext,
       FW<Process::ProcessModelFactory, Gfx::ModelDisplay::ProcessFactory,
+         Gfx::GeometryViewer::ProcessFactory,
          Gfx::RenderPipeline::ProcessFactory, Gfx::Splat::ProcessFactory,
          Gfx::ScenePreprocessor::ProcessFactory,
          Gfx::SceneFilter::ProcessFactory,
          Gfx::FlattenedSceneFilter::ProcessFactory,
          Gfx::MergeGeometries::ProcessFactory>,
-      FW<Process::LayerFactory, Gfx::RenderPipeline::LayerFactory>,
+      FW<Process::LayerFactory, Gfx::RenderPipeline::LayerFactory,
+         Gfx::GeometryViewer::LayerFactory>,
       FW<Library::LibraryInterface, Threedim::SSynthLibraryHandler,
          Threedim::AssetLibraryHandler, Gfx::RawRasterLibraryHandler,
          Threedim::VoxLibraryHandler>,
@@ -455,6 +460,7 @@ std::vector<score::InterfaceBase*> score_plugin_threedim::factories(
          Gfx::RawRasterDropHandler>,
       FW<Execution::ProcessComponentFactory,
          Gfx::ModelDisplay::ProcessExecutorComponentFactory,
+         Gfx::GeometryViewer::ProcessExecutorComponentFactory,
          Gfx::RenderPipeline::ProcessExecutorComponentFactory,
          Gfx::Splat::ProcessExecutorComponentFactory,
          Gfx::ScenePreprocessor::ProcessExecutorComponentFactory,

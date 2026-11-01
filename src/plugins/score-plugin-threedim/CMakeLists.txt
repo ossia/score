@@ -259,7 +259,15 @@ add_library(
   Threedim/Vox.cpp
   Threedim/VoxelLoader.hpp
   Threedim/VoxelLoader.cpp
-  Threedim/ModelDisplay/Executor.hpp
+  Threedim/GeometryViewer/Executor.hpp
+Threedim/GeometryViewer/Executor.cpp
+Threedim/GeometryViewer/Layer.hpp
+Threedim/GeometryViewer/Node.hpp
+Threedim/GeometryViewer/Node.cpp
+Threedim/GeometryViewer/Metadata.hpp
+Threedim/GeometryViewer/Process.hpp
+Threedim/GeometryViewer/Process.cpp
+Threedim/ModelDisplay/Executor.hpp
   Threedim/ModelDisplay/Executor.cpp
   Threedim/ModelDisplay/Metadata.hpp
   Threedim/ModelDisplay/Process.hpp
