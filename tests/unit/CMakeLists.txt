@@ -239,6 +239,11 @@ score_add_test(test_unit_midi_display_window
   APP
   PLUGINS score_plugin_ui score_lib_process)
 
+# Monitoring rings: one continuous stream, events counted when dropped.
+score_add_test(test_unit_monitoring_rings
+  SOURCES MonitoringRingsTest.cpp
+  PLUGINS score_lib_process)
+
 # Signal display: a fixed range for its rows.
 score_add_test(test_unit_signal_display_range
   SOURCES SignalDisplayRangeTest.cpp
