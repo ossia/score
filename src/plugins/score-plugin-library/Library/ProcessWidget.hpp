@@ -21,6 +21,7 @@ struct GUIApplicationContext;
 namespace Process
 {
 class ApplicationPlugin;
+class ProcessModel;
 }
 namespace Library
 {
@@ -70,13 +71,28 @@ public:
   //! A link in the text calls @p onActivated instead of opening a browser.
   void setNotice(const QString& html, std::function<void()> onActivated = {});
 
+  //! The presets of this process, which load into it: what its preset button
+  //! opens
+  void showPresets(const Process::ProcessModel& proc);
+  void clearTarget();
+
 private:
+  void raisePanel();
+
   ProcessesItemModel* m_processModel{};
   PresetItemModel* m_presetModel{};
   ProcessTreeView m_tv;
   PresetTreeView m_presets;
   QLabel m_notice;
   std::function<void()> m_noticeAction;
+  QLineEdit* m_processFilter{};
+
+  //! "Presets of <process>", above them while they load into it
+  QWidget m_targetBar;
+  QLabel m_targetLabel;
+  QMetaObject::Connection m_targetGone;
+  //! Set while the process tree is moved to the target's entry
+  bool m_choosingTarget{};
 
   QWidget m_preview;
   QWidget* m_previewChild{};

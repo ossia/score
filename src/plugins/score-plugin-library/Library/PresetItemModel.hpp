@@ -1,7 +1,9 @@
 #pragma once
 #include <Process/Preset.hpp>
+#include <Process/Process.hpp>
 
 #include <QAbstractItemModel>
+#include <QPointer>
 
 #include <score_plugin_library_export.h>
 
@@ -43,11 +45,21 @@ public:
     return m_process;
   }
 
+  //! The process its presets load into, opened from its preset button: its
+  //! own presets are shown too, in a "Built-in" folder, and its current one
+  void setTarget(const Process::ProcessModel* proc);
+  const Process::ProcessModel* target() const noexcept { return m_target; }
+  //! The target's current preset changed
+  void refreshCurrent();
+  //! The target's current preset, if it is a row
+  QModelIndex currentPresetIndex() const;
+
   //! Only the presets whose name or category contains it
   void setFilterText(const QString& text);
   const QString& filterText() const noexcept { return m_filter; }
 
-  //! The row in `presets` of a preset's index; -1 for a folder
+  //! The row in `presets` of a preset's index; -1 for a folder or a
+  //! built-in preset
   int presetRow(const QModelIndex& index) const;
   const Process::Preset* preset(const QModelIndex& index) const;
   QModelIndex indexOfPreset(int presetRow) const;
@@ -94,6 +106,8 @@ private:
 
   Process::ApplicationPlugin* m_plugin{};
   std::optional<Process::ProcessIdentifier> m_process;
+  QPointer<const Process::ProcessModel> m_target;
+  std::vector<Process::Preset> m_builtins;
   QString m_filter;
   std::unique_ptr<Node> m_root;
   //! Whether the preset being removed was one of the rows

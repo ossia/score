@@ -6,6 +6,7 @@
 #include <QKeyEvent>
 #include <QMenu>
 #include <QPainter>
+#include <QTimer>
 
 #include <wobjectimpl.h>
 
@@ -107,11 +108,10 @@ void PresetTreeView::restoreState()
     }
   }
   if(current.isValid())
-  {
     setCurrentIndex(current);
-    scrollTo(current);
-  }
   m_restoring = false;
+  if(current.isValid())
+    scrollToCurrentLater();
 }
 
 void PresetTreeView::currentChanged(const QModelIndex& current, const QModelIndex& previous)
@@ -130,7 +130,10 @@ void PresetTreeView::mouseDoubleClickEvent(QMouseEvent* event)
   const auto idx = indexAt(event->pos());
   if(auto p = m_model ? m_model->preset(idx) : nullptr)
   {
-    doubleClicked(*p);
+    if(m_model->target())
+      loadRequested(*p);
+    else
+      doubleClicked(*p);
     event->accept();
     return;
   }
@@ -172,8 +175,41 @@ void PresetTreeView::contextMenuEvent(QContextMenuEvent* event)
   event->accept();
 }
 
+void PresetTreeView::showCurrentPreset()
+{
+  if(!m_model)
+    return;
+  const auto idx = m_model->currentPresetIndex();
+  if(!idx.isValid())
+    return;
+  m_restoring = true;
+  for(auto p = idx.parent(); p.isValid(); p = p.parent())
+    expand(p);
+  setCurrentIndex(idx);
+  m_restoring = false;
+  scrollToCurrentLater();
+}
+
+void PresetTreeView::scrollToCurrentLater()
+{
+  // Once the rows just opened are laid out
+  QTimer::singleShot(0, this, [this] {
+    scrollTo(currentIndex(), QAbstractItemView::PositionAtCenter);
+  });
+}
+
 void PresetTreeView::keyPressEvent(QKeyEvent* event)
 {
+  if(m_model && m_model->target() && state() != QAbstractItemView::EditingState
+     && (event->key() == Qt::Key_Return || event->key() == Qt::Key_Enter))
+  {
+    if(auto p = m_model->preset(currentIndex()))
+    {
+      loadRequested(*p);
+      event->accept();
+      return;
+    }
+  }
   if(m_model && event->key() == Qt::Key_Delete
      && state() != QAbstractItemView::EditingState)
   {

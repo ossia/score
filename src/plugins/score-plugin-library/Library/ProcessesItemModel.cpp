@@ -233,6 +233,22 @@ QModelIndex ProcessesItemModel::find(const Process::ProcessModelFactory::Concret
   return QModelIndex{};
 }
 
+QModelIndex ProcessesItemModel::find(
+    const Process::ProcessModelFactory::ConcreteKey& k, const QString& customData)
+{
+  if(!customData.isEmpty())
+  {
+    const ProcessNode* found{};
+    m_root.visit([&](const ProcessNode& n) {
+      if(!found && n.key == k && n.customData == customData)
+        found = &n;
+    });
+    if(found)
+      return indexFromNode(const_cast<ProcessNode&>(*found));
+  }
+  return find(k);
+}
+
 QModelIndex ProcessesItemModel::indexFromNode(ProcessNode& n)
 {
   if(&n == &m_root)
