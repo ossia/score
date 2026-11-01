@@ -1,16 +1,13 @@
 // Opening a texture port's preview must not restart what is already rendering.
 //
 // Selecting a process with a texture outlet builds a GraphPreviewWidget in the
-// inspector, which is a Gfx::RhiPreviewWidget on its "context backend": it puts
-// a score::gfx::BackgroundNode into the DOCUMENT's GfxContext and wires the
-// outlet to it. That node is an OutputNode, and GfxContext::updateGraph asked
-// for a full rebuild the moment an output appeared -- Graph::createAllRenderLists
-// stops every output, releases every renderer and builds the lot again.
-//
-// So the window that was already rendering went black for the length of the
-// rebuild, every time a preview opened, and again when it closed. That is the
-// blink reported on the rect-mapper patch, whose inspector carries such a
-// preview; nothing about the patch is special, any texture outlet does it.
+// inspector, which is a Gfx::RhiPreviewWidget on its "context backend": it
+// previews the outlet through the DOCUMENT's GfxContext. When an output already
+// renders the outlet, that output's render list reads it back; otherwise the
+// preview brings an output of its own up. Either must leave the outputs that are
+// rendering alone: a full rebuild (Graph::createAllRenderLists) stops every
+// output, releases every renderer and builds the lot again, and the window goes
+// black for its length, every time a preview opens and again when it closes.
 //
 // Observable: OutputNode::stopRendering() on the output that was ALREADY live.
 // A full rebuild calls it; bringing the new output up on its own does not. The
@@ -62,9 +59,8 @@ TEST_CASE(
   const void* rlBaseline{};
   const void* rlAfterAttach{};
   const void* rlAfterDetach{};
-  bool previewHasRenderer{};
-  bool previewInOutputs{};
-  int previewRendererCount{-1};
+  bool previewTapped{};
+  bool previewHasImage{};
 
   score::test::run_in_gui_app([&](const score::GUIApplicationContext& ctx) {
     score::Document* doc = score::test::new_document(ctx);
@@ -113,23 +109,17 @@ TEST_CASE(
     afterAttach = sink->stops;
     rlAfterAttach = sink->renderer();
 
-    // Does the preview have anything to draw? Not pixels, but the thing that
-    // decides whether there will be any: an output whose render list carries
-    // renderers. A preview brought up without its edge wired has a render list
-    // with nothing in it, and clears to black every frame.
-    if(auto* n = preview->liveNode())
+    // The output renders the producer: the preview reads it back in that
+    // output's render list, with nothing of its own to bring up. It gets a
+    // picture once the output renders.
+    previewTapped = preview->contextPreview().tapped();
+    for(int i = 0; i < 3; i++)
     {
-      previewHasRenderer = n->renderer() != nullptr;
-      if(auto* r = n->renderer())
-        previewRendererCount = int(r->renderers.size());
-
-      // And the other half of "there will be a picture": the render clocks
-      // only drive what is in the graph's output list, so a preview missing
-      // from it is built, wired, and never rendered again.
-      for(auto* out : g.outputs())
-        if(out == static_cast<score::gfx::OutputNode*>(n))
-          previewInOutputs = true;
+      sink->render();
+      if(auto rs = sink->renderState(); rs && rs->rhi)
+        rs->rhi->finish();
     }
+    previewHasImage = !preview->contextPreview().image().isNull();
 
     // ... and closes again.
     delete preview;
@@ -157,10 +147,6 @@ TEST_CASE(
   CHECK(rlAfterDetach == rlBaseline);
 
   // The point of the optimisation is that the preview still WORKS afterwards.
-  INFO(
-      "preview renderer " << previewHasRenderer << ", renderers in its list "
-                          << previewRendererCount);
-  CHECK(previewHasRenderer);
-  CHECK(previewRendererCount > 0);
-  CHECK(previewInOutputs);
+  CHECK(previewTapped);
+  CHECK(previewHasImage);
 }

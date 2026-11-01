@@ -379,6 +379,18 @@ public:
     const int64_t id
         = std::hash<ObjectPath>{}(Path<Process::ProcessModel>{element}.unsafePath());
 
+    // The monitor its views share with every renderer of the node: they take
+    // it from the process when they are made, while the user lets execution
+    // update the views
+    if constexpr(requires { Node::monitor; })
+    {
+      using monitor_type = typename decltype(Node::monitor)::element_type;
+      followExecutionUpdate(
+          [&element, monitor = std::make_shared<monitor_type>()](bool enabled) {
+        element.setMonitor(enabled ? monitor : nullptr);
+      });
+    }
+
     auto& gfx_exec = ctx.doc.plugin<Gfx::DocumentPlugin>().exec;
 
     // Create the executor in the audio thread
@@ -459,7 +471,6 @@ public:
       else if(auto out = qobject_cast<Gfx::TextureOutlet*>(outlet))
       {
         node->add_texture_out();
-        out->nodeId = node_id;
       }
       else if(auto out = qobject_cast<Gfx::GeometryOutlet*>(outlet))
       {
@@ -501,6 +512,38 @@ public:
     }
     node->id = gfx_exec.ui->register_node(std::move(ptr));
     node_id = node->id;
+
+    // Control outputs reach the model's outlets, for the views and the
+    // inspector, at the UI rate
+    if(!node->control_outs.empty())
+    {
+      std::vector<Process::ControlOutlet*> ui_outlets;
+      for(auto* outlet : element.outlets())
+        if(auto ctl = qobject_cast<Process::ControlOutlet*>(outlet))
+          ui_outlets.push_back(ctl);
+        else if(qobject_cast<Process::ValueOutlet*>(outlet))
+          ui_outlets.push_back(nullptr);
+      followExecutionUpdate([weak = std::weak_ptr{node}](bool enabled) {
+        if(auto n = weak.lock())
+          n->notify_ui.store(enabled, std::memory_order_relaxed);
+      });
+      con(ctx.doc.coarseUpdateTimer, &QTimer::timeout, this,
+          [weak = std::weak_ptr{node}, ui_outlets = std::move(ui_outlets),
+           v = ossia::value{}]() mutable {
+        auto n = weak.lock();
+        if(!n || !n->notify_ui.load(std::memory_order_relaxed))
+          return;
+        const int count = std::min(int(ui_outlets.size()), int(n->ui_control_outs.size()));
+        for(int i = 0; i < count; i++)
+          if(ui_outlets[i] && n->ui_control_outs[i]->latest.consume(v))
+            ui_outlets[i]->setValue(v);
+      }, Qt::QueuedConnection);
+    }
+
+    // Only known once registered: previews of the outlets connect to it
+    for(auto* outlet : element.outlets())
+      if(auto out = qobject_cast<Gfx::TextureOutlet*>(outlet))
+        out->nodeId = node_id;
 #endif
   }
 

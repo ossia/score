@@ -428,10 +428,31 @@ struct GpuControlOuts
 
   int64_t instance{};
 
-  template <typename Node_T>
-  void processControlOut(Node_T& state) const noexcept
+  //! Each render list showing the node runs it, but its control outputs
+  //! follow one of them: a list that renders an output of the patch, else a
+  //! preview, the one with the lowest address in renderedNodes (a flat_map
+  //! ordered by pointer, so the choice is stable but arbitrary). Otherwise
+  //! they would alternate between the sizes the lists render at.
+  static bool
+  drivesControlOuts(const score::gfx::RenderList& r, const score::gfx::Node& n) noexcept
   {
-    if(!this->control_outs.empty())
+    const score::gfx::RenderList* first{};
+    for(const auto& [rl, renderer] : n.renderedNodes)
+    {
+      if(!rl->output.preview)
+        return rl == &r;
+      if(!first)
+        first = rl;
+    }
+    return !first || first == &r;
+  }
+
+  template <typename Node_T>
+  void processControlOut(
+      Node_T& state, const score::gfx::RenderList& r,
+      const score::gfx::Node& n) const noexcept
+  {
+    if(!this->control_outs.empty() && drivesControlOuts(r, n))
     {
       auto q = this->queue.lock();
       if(!q)
@@ -568,6 +589,15 @@ void prepareNewState(std::shared_ptr<Node_T>& eff, const Node& parent)
   }
 
   avnd::init_controls(*eff);
+
+  // The monitor of the process, shared by every renderer of the node
+  if constexpr(requires { eff->monitor; parent.processModel; })
+  {
+    using monitor_type = typename decltype(Node_T::monitor)::element_type;
+    if(parent.processModel)
+      if(auto m = std::dynamic_pointer_cast<monitor_type>(parent.processModel->monitor()))
+        eff->monitor = std::move(m);
+  }
 
   if constexpr(avnd::can_prepare<Node_T>)
   {

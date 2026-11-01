@@ -82,6 +82,14 @@ public:
   virtual void destroyOutput() = 0;
   virtual std::shared_ptr<RenderState> renderState() const = 0;
 
+  //! Shows a texture in the editor (a process view, an inspector, a probe)
+  //! rather than being an output of the patch.
+  bool preview{};
+  //! The output that renders the nodes previewed in the editor which no output
+  //! of the patch renders: its list reads their previews back. See
+  //! PreviewHubNode.
+  bool previewHub{};
+
   struct Configuration
   {
     // If set, the host is responsible for calling render() at this

@@ -8,6 +8,7 @@
 #include <ossia/detail/flat_set.hpp>
 #include <ossia/detail/hash_map.hpp>
 
+#include <chrono>
 #include <memory>
 
 namespace Gfx
@@ -244,6 +245,28 @@ public:
    * This is done by looking for the render target which corresponds to a given port.
    */
   TextureRenderTarget renderTargetForOutput(const Edge& edge) const noexcept;
+
+  /**
+   * @brief The texture a preview of @p port of @p node reads in this list.
+   *
+   * What the node's renderer exposes for the port, else the target it renders
+   * into for one of its edges, one it renders alone into if there is one.
+   * Null when there is none to sample.
+   */
+  QRhiTexture* previewSource(const Node& node, int port) const noexcept;
+
+  /**
+   * @brief The list that reads back the previews of @p port of @p node.
+   *
+   * The first output of the patch rendering the node that can sample the port
+   * and has rendered lately (rendersLive), else the preview hub if it renders
+   * the node, else none.
+   */
+  static const RenderList* previewHost(const Node& node, int port) noexcept;
+
+  //! Whether this list rendered a frame lately. A hidden window or a slow
+  //! output does not: its previews move to the hub meanwhile.
+  bool rendersLive() const noexcept;
 
   /**
    * @brief Look up the render target for a given input port.
@@ -487,6 +510,14 @@ public:
    */
   [[nodiscard]] bool outputTargetsStale() const noexcept { return m_outputTargetsStale; }
 
+  //! The output's targets are rebuilt on the next frame, with the passes
+  //! drawing into them; the renderers keep their state.
+  void markOutputTargetsStale() noexcept
+  {
+    if(m_built)
+      m_outputTargetsStale = true;
+  }
+
   /// Set the "any node requires depth" flag computed from the node graph.
   /// Either direction makes the output's targets stale: a rise leaves them
   /// without depth, a fall leaves every sink carrying a depth attachment
@@ -646,6 +677,37 @@ private:
    * the texture the node renders into.
    */
   ossia::small_flat_map<const Port*, QRhiTexture*, 2> m_selfFeedbackGrabs;
+
+  //! Reads back the taps of the nodes this list renders, after they have
+  //! rendered: see PreviewTap.
+  void renderPreviewTaps(QRhiCommandBuffer& commands, QRhiResourceUpdateBatch*& res);
+  void releasePreviewTaps();
+  //! What a tap draws into and reads back from, on this list's QRhi.
+  struct PreviewTapTarget
+  {
+    std::weak_ptr<PreviewTap> tap;
+    TextureRenderTarget rt;
+    QRhiSampler* sampler{};
+    Pipeline pipeline;
+    MeshBuffers mesh;
+    QRhiTexture* source{};
+    //! What the last readback recorded writes into, when its frame completes
+    std::shared_ptr<QRhiReadbackResult> readback;
+    //! The last frame of the list that hosted the tap
+    int64_t visited{-1};
+    void release();
+  };
+  std::vector<PreviewTapTarget> m_previewTaps;
+  //! The readbacks of taps gone away, kept until the frames that may still
+  //! complete them have: on a swapchain a readback completes frames later.
+  struct RetiredPreviewReadback
+  {
+    std::shared_ptr<QRhiReadbackResult> readback;
+    int64_t until{};
+  };
+  std::vector<RetiredPreviewReadback> m_retiredPreviewReadbacks;
+  void retirePreviewTap(PreviewTapTarget& t);
+  std::chrono::steady_clock::time_point m_lastRender{std::chrono::steady_clock::now()};
   ossia::small_flat_map<const Port*, QRhiTexture*, 2> m_selfFeedbackPlaceholders;
   ossia::flat_set<const Port*> m_selfFeedbackWarned;
 

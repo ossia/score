@@ -11,6 +11,7 @@
 #include <ossia/dataflow/nodes/media.hpp>
 #include <ossia/dataflow/token_request.hpp>
 #include <ossia/detail/buffer_pool.hpp>
+#include <ossia/detail/flat_map.hpp>
 #include <ossia/detail/flat_set.hpp>
 #include <ossia/detail/hash_map.hpp>
 #include <ossia/detail/mutex.hpp>
@@ -26,8 +27,12 @@ namespace score {
 class HighResolutionTimer;
 class Timers;
 }
+struct QRhiReadbackResult;
 namespace score::gfx
 {
+struct PreviewTap;
+struct PreviewHubNode;
+struct BackgroundNode;
 struct Graph;
 class OutputNode;
 }
@@ -76,11 +81,35 @@ public:
   ~GfxContext();
 
   int32_t register_node(NodePtr node);
-  int32_t register_preview_node(NodePtr node);
+  int32_t register_preview_node(std::unique_ptr<score::gfx::OutputNode> node);
   void connect_preview_node(EdgeSpec e);
   void disconnect_preview_node(EdgeSpec e);
   void unregister_node(int32_t idx);
   void unregister_preview_node(int32_t idx);
+
+  /**
+   * @brief Previews what @p producer outputs, into @p readback, at most @p size.
+   *
+   * When an output of the patch renders the producer, its render list reads
+   * the port back (score::gfx::PreviewTap): nothing is rendered twice and the
+   * preview shows what the output shows. Otherwise the preview gets an
+   * offscreen output of its own, which renders the producer's chain, until an
+   * output of the patch renders it. Returns an id for the calls below.
+   */
+  int32_t add_preview(
+      port_index producer, QSize size, std::shared_ptr<QRhiReadbackResult> readback);
+  void set_preview_producer(int32_t id, port_index producer);
+  void set_preview_size(int32_t id, QSize size);
+  void remove_preview(int32_t id);
+  //! Whether the preview reads from a render list of the patch.
+  bool preview_is_tapped(int32_t id) const noexcept;
+  //! Whether the preview reads from the shared output of the previews.
+  bool preview_is_on_hub(int32_t id) const noexcept;
+  //! The consumer took the latest image: the next frame of the list reading
+  //! the preview back reads it again. See score::gfx::PreviewTap::wanted.
+  void want_preview_frame(int32_t id) const noexcept;
+  //! The largest a preview renders and reads back at, on either side.
+  static constexpr int max_preview_size = 1024;
 
   // Synchronously tear down an output node's render list and drop it from the
   // graph. Used by device-owned outputs (e.g. the offscreen BackgroundNode)
@@ -168,6 +197,39 @@ public:
   const AssetTable& assets() const noexcept { return m_assets; }
 
 private:
+  //! Moves each preview to a render list of the patch, or to its own output.
+  void updatePreviews();
+  struct Preview
+  {
+    port_index producer{-1, -1};
+    QSize size;
+    std::shared_ptr<QRhiReadbackResult> readback;
+    std::shared_ptr<score::gfx::PreviewTap> tap;
+    //! The node whose previewTaps holds the tap
+    int32_t tappedNode{-1};
+    //! Its input on the hub, while no output of the patch renders the producer
+    int hubInput{-1};
+    port_index hubProducer{-1, -1};
+    //! The hub rendered the producer into nothing it could read: the preview
+    //! keeps its own output until it shows another producer
+    bool hubUnreadable{};
+    //! An output of its own, when neither can read the producer
+    int32_t fallbackId{-1};
+    score::gfx::BackgroundNode* fallback{};
+    port_index fallbackProducer{-1, -1};
+  };
+  bool joinPreviewHub(Preview& p);
+  void releaseUnusedPreviewHub();
+  void leavePreviewHub(Preview& p);
+  void startPreviewFallback(Preview& p);
+  void stopPreviewFallback(Preview& p);
+  //! Renders the producers of the previews no output of the patch renders,
+  //! while there are previews
+  score::gfx::PreviewHubNode* m_previewHub{};
+  int32_t m_previewHubId{-1};
+  ossia::flat_map<int32_t, Preview> m_previews;
+  int32_t m_nextPreview{1};
+
   void run_commands();
   void add_preview_output(score::gfx::OutputNode& out);
   void remove_preview_output();

@@ -1,4 +1,6 @@
 #pragma once
+#include <Gfx/Widgets/TexturePreview.hpp>
+
 #include <ossia/gfx/port_index.hpp>
 
 #include <QPointer>
@@ -64,9 +66,10 @@ public:
   void useContext(GfxContext* ctx, port_index producer);
   void setProducer(port_index producer);
 
-  //! The attached node, or null once its owner is gone. See the note on
-  //! m_node below for why this is not simply the pointer.
+  //! The attached node of the Graph backend, or null once its owner is gone.
   score::gfx::BackgroundNode* liveNode() const noexcept;
+  //! The preview of the Context backend.
+  const TexturePreview& contextPreview() const noexcept { return m_preview; }
 
   //! Stop rendering and hand the BackgroundNode back. Idempotent, and leaves
   //! the widget reusable through useGraph()/useContext(). Callers that own the
@@ -94,36 +97,13 @@ private:
   std::function<void(score::gfx::BackgroundNode&)> m_onAttached;
   std::function<void(score::gfx::BackgroundNode&)> m_onAboutToDetach;
 
-  // Context backend
-  // QPointer, not a raw pointer: an inspector widget can be destroyed after
-  // the GfxContext (a queued DeferredDelete outliving ~DocumentPlugin), and
-  // detach() then calls into it. QPointer makes the existing null check hold.
-  QPointer<GfxContext> m_ctx;
-  port_index m_producer{-1, -1};
-  int32_t m_screenNodeId{-1};
-  bool m_edgeConnected{false};
+  // Context backend: the preview output and its readback
+  TexturePreview m_preview;
 
+  // Graph backend
   std::shared_ptr<QRhiReadbackResult> m_readback;
-  score::gfx::BackgroundNode* m_node{};  // owned by m_graph or m_ctx after attach
+  score::gfx::BackgroundNode* m_node{};  // owned by m_graph after attach
 
-  //! m_node, but only while its OWNER is still alive.
-  //!
-  //! m_node cannot be a QPointer -- BackgroundNode is not a QObject -- and it
-  //! is not owned by this widget in the Context backend: GfxContext owns it via
-  //! its command queue, so it dies with the context. detach() nulls m_node on
-  //! every path, but detach() runs when the WIDGET goes away, and the ordering
-  //! this class already documents for m_ctx is the other one: the GfxContext
-  //! can be destroyed first, with the widget outliving it on a queued
-  //! DeferredDelete. Between those two deaths m_node dangles, and resizeEvent()
-  //! dereferences it. Ask the owner instead of trusting the pointer. (W2.)
-  score::gfx::BackgroundNode* liveNodeImpl() const noexcept
-  {
-    if(!m_node)
-      return nullptr;
-    if(m_backend == Backend::Context && !m_ctx)
-      return nullptr; // owner already gone; m_node is dangling
-    return m_node;
-  }
   int m_timerId{};
 };
 }

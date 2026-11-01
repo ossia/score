@@ -20,12 +20,12 @@
 // first follow the size of what the probe draws into, so a resize of that
 // target starts them over by design; the storage buffer of the second does not.
 //
-// The inspector's texture-port preview is an output of its own, rendering the
-// producer's chain again in its own render list. It is built at whatever size
-// the widget has when the process is selected, and resized when the inspector
-// lays it out: right away, or only once the inspector is shown again when the
-// selection happened behind a side-panel script editor. That resize must not
-// start the chain it shows over either.
+// The inspector's texture-port preview of a node no output renders is rendered
+// by the shared output of the previews, into a target of the widget's size. It
+// is built at whatever size the widget has when the process is selected, and
+// resized when the inspector lays it out: right away, or only once the
+// inspector is shown again when the selection happened behind a side-panel
+// script editor. That resize must not start the chain it shows over either.
 
 #include <score_test/App.hpp>
 #include <score_test/Document.hpp>
@@ -357,17 +357,10 @@ Outcome runPreviewResize(score::gfx::GraphicsApi backend)
     preview->useContext(&g, Gfx::port_index{p, 0});
 
     const auto level = [&]() -> int {
-      auto* node = preview->liveNode();
-      if(!node || !node->shared_readback)
+      const QImage img = preview->contextPreview().image();
+      if(img.isNull())
         return -1;
-      const auto& rb = *node->shared_readback;
-      score::test::gfx::ReadbackImage img;
-      img.width = rb.pixelSize.width();
-      img.height = rb.pixelSize.height();
-      img.bytes = rb.data;
-      if(!img.valid())
-        return -1;
-      return img.center()[0];
+      return img.pixelColor(img.width() / 2, img.height() / 2).red();
     };
 
     g.renderFrames(3);
