@@ -567,11 +567,12 @@ score_add_test(test_integration_nodal_type_in
   PLUGINS score_plugin_scenario score_lib_process)
 
 # A process's preset button opens the library at that process, whose presets
-# then load into it.
+# then load into it, auditioned as the user moves through them.
 score_add_test(test_integration_preset_button_library
   SOURCES PresetButtonLibraryTest.cpp
   GUI
-  PLUGINS score_plugin_scenario score_plugin_library score_plugin_fx score_lib_process)
+  PLUGINS score_plugin_scenario score_plugin_library score_plugin_fx score_plugin_avnd
+          score_lib_process)
 
 # Where nodes land when score picks the position itself (library double-click,
 # "create after this process", drops on a cable).

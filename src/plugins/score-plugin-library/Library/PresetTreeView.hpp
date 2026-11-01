@@ -34,6 +34,8 @@ public:
   //! With one: load it into it (double-click, Enter)
   void loadRequested(Process::Preset p)
       E_SIGNAL(SCORE_PLUGIN_LIBRARY_EXPORT, loadRequested, p)
+  //! Escape: back to the preset before the ones auditioned
+  void cancelRequested() E_SIGNAL(SCORE_PLUGIN_LIBRARY_EXPORT, cancelRequested)
 
   //! Makes the target's current preset the current item, opening its folder
   void showCurrentPreset();
@@ -44,6 +46,7 @@ protected:
   void contextMenuEvent(QContextMenuEvent* event) override;
   void keyPressEvent(QKeyEvent* event) override;
   void currentChanged(const QModelIndex& current, const QModelIndex& previous) override;
+  void focusInEvent(QFocusEvent* event) override;
 
 private:
   QString expansionKey() const;
