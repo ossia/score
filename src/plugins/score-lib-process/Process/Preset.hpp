@@ -41,6 +41,11 @@ struct SCORE_LIB_PROCESS_EXPORT Preset
   // Optional text shown as the preset's tooltip.
   QString description;
 
+  // The file the library read it from or saved it to; empty for a preset in
+  // no file (a plug-in's own, one being dragged). Not part of its contents:
+  // neither saved nor compared.
+  QString path;
+
   static std::shared_ptr<Process::Preset>
   fromJson(const Process::ProcessFactoryList& procs, const QByteArray& obj) noexcept;
 

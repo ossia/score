@@ -13,13 +13,18 @@
 #include <score/model/path/PathSerialization.hpp>
 #include <score/tools/Bind.hpp>
 #include <score/tools/File.hpp>
+#include <score/tools/FilePath.hpp>
 
 #include <core/document/Document.hpp>
 #include <core/presenter/DocumentManager.hpp>
 
 #include <ossia/detail/ssize.hpp>
 
+#include <QContextMenuEvent>
 #include <QFile>
+#include <QFileInfo>
+#include <QKeyEvent>
+#include <QMenu>
 #include <QPainter>
 
 namespace Library
@@ -37,6 +42,18 @@ PresetItemModel::PresetItemModel(
       [this](int row) { beginInsertRows(QModelIndex{}, row, row); });
   con(*m_plugin, &Process::ApplicationPlugin::presetAdded, this,
       [this](int) { endInsertRows(); });
+  con(*m_plugin, &Process::ApplicationPlugin::presetAboutToBeRemoved, this,
+      [this](int row) { beginRemoveRows(QModelIndex{}, row, row); });
+  con(*m_plugin, &Process::ApplicationPlugin::presetRemoved, this,
+      [this](int) { endRemoveRows(); });
+  con(*m_plugin, &Process::ApplicationPlugin::presetChanged, this, [this](int row) {
+    const auto idx = index(row, 0, {});
+    dataChanged(idx, idx);
+  });
+  con(*m_plugin, &Process::ApplicationPlugin::presetsAboutToBeCleared, this,
+      [this] { beginResetModel(); });
+  con(*m_plugin, &Process::ApplicationPlugin::presetsCleared, this,
+      [this] { endResetModel(); });
 }
 
 QModelIndex PresetItemModel::index(int row, int column, const QModelIndex& parent) const
@@ -110,6 +127,53 @@ void PresetListView::paintEvent(QPaintEvent* e)
   p.drawText(rect(), Qt::AlignLeft, "<No presets>");
 }
 
+int PresetListView::presetRow(const QModelIndex& proxy_index) const
+{
+  if(!proxy_index.isValid())
+    return -1;
+  auto proxy = static_cast<QSortFilterProxyModel*>(this->model());
+  return proxy->mapToSource(proxy_index).row();
+}
+
+void PresetListView::contextMenuEvent(QContextMenuEvent* event)
+{
+  const int row = presetRow(indexAt(event->pos()));
+  if(row < 0)
+    return;
+  auto proxy = static_cast<QSortFilterProxyModel*>(this->model());
+  auto& self = *safe_cast<PresetItemModel*>(proxy->sourceModel());
+
+  QMenu menu;
+  auto rename = menu.addAction(tr("Rename"));
+  rename->setEnabled(self.canEdit(row));
+  connect(rename, &QAction::triggered, this, [this, idx = indexAt(event->pos())] {
+    edit(idx);
+  });
+  auto remove = menu.addAction(tr("Delete"));
+  remove->setEnabled(self.canEdit(row));
+  connect(remove, &QAction::triggered, this, [&self, row] { self.removePreset(row); });
+  if(!self.canEdit(row))
+    menu.addAction(tr("Presets of installed packages cannot be changed"))
+        ->setEnabled(false);
+  menu.exec(event->globalPos());
+  event->accept();
+}
+
+void PresetListView::keyPressEvent(QKeyEvent* event)
+{
+  if(event->key() == Qt::Key_Delete && state() != QAbstractItemView::EditingState)
+  {
+    if(const int row = presetRow(currentIndex()); row >= 0)
+    {
+      auto proxy = static_cast<QSortFilterProxyModel*>(this->model());
+      safe_cast<PresetItemModel*>(proxy->sourceModel())->removePreset(row);
+      event->accept();
+      return;
+    }
+  }
+  QListView::keyPressEvent(event);
+}
+
 static bool isValidForFilename(const QString& name)
 {
   if(name.isEmpty())
@@ -122,7 +186,24 @@ static bool isValidForFilename(const QString& name)
   return true;
 }
 
-static bool updatePresetFilename(Process::Preset& preset, QString old = {})
+//! Writes the preset to `path`, made unique, under the name of the file
+static bool writePresetFile(Process::Preset& preset, const QString& path)
+{
+  const QString unique = score::addUniqueSuffix(path);
+  Process::Preset written = preset;
+  written.name = QFileInfo{unique}.completeBaseName();
+  written.path = unique;
+
+  QFile f{unique};
+  if(!f.open(QIODevice::WriteOnly))
+    return false;
+  f.write(written.toJson());
+  preset = std::move(written);
+  return true;
+}
+
+//! A new preset goes in the user folder, under its process (and plug-in)
+static bool writeNewPreset(Process::Preset& preset)
 {
   const auto& ctx = score::GUIAppContext();
 
@@ -138,33 +219,30 @@ static bool updatePresetFilename(Process::Preset& preset, QString old = {})
     presetFolder += "/" + desc.prettyName;
 
   QDir{}.mkpath(presetFolder);
-  QString presetPath = presetFolder + "/" + preset.name + ".scp";
+  return writePresetFile(preset, presetFolder + "/" + preset.name + ".scp");
+}
 
-  // FIXME refactor with score::addUniqueSuffix
-  if(QFile::exists(presetPath))
-  {
-    presetPath = presetFolder + "/" + preset.name + " (%1).scp";
-
-    int idx = 1;
-    while(QFile::exists(presetPath.arg(idx)))
-      idx++;
-    presetPath = presetPath.arg(idx);
-    preset.name = preset.name + QString("(%1)").arg(idx);
-  }
-
-  QFile f{presetPath};
-  if(!f.open(QIODevice::WriteOnly))
+bool PresetItemModel::canEdit(int row) const
+{
+  if(!ossia::valid_index(row, presets))
     return false;
+  const auto& path = presets[row].path;
+  if(path.isEmpty())
+    return false;
+  // Packages are replaced when they are updated: only the user's own files
+  const QString user = QDir::cleanPath(
+      score::GUIAppContext().settings<Library::Settings::Model>().getUserLibraryPath());
+  return QDir::cleanPath(QFileInfo{path}.absoluteFilePath()).startsWith(user + "/");
+}
 
-  f.write(preset.toJson());
-
-  if(!old.isEmpty())
-  {
-    // Remove the old file
-    const QString oldPath = presetFolder + "/" + old + ".scp";
-    QFile::remove(oldPath);
-  }
-
+bool PresetItemModel::removePreset(int row)
+{
+  if(!canEdit(row))
+    return false;
+  // To the trash, not deleted: there is no undo in the library
+  if(!QFile::moveToTrash(presets[row].path))
+    return false;
+  m_plugin->removePreset(row);
   return true;
 }
 
@@ -180,16 +258,22 @@ bool PresetItemModel::setData(const QModelIndex& index, const QVariant& value, i
   if(!isValidForFilename(str))
     return false;
 
-  auto& preset = presets[index.row()];
-
-  auto old = preset.name;
-  preset.name = str;
-  if(!updatePresetFilename(preset, old))
-  {
-    preset.name = old;
+  const int row = index.row();
+  if(!canEdit(row))
     return false;
-  }
+  auto& preset = presets[row];
+  if(str == preset.name)
+    return true;
 
+  // In its own folder, wherever that is in the user library
+  const QString old = preset.path;
+  auto renamed = preset;
+  renamed.name = str;
+  if(!writePresetFile(renamed, QFileInfo{old}.absolutePath() + "/" + str + ".scp"))
+    return false;
+  QFile::remove(old);
+  preset = std::move(renamed);
+  m_plugin->presetChanged(row);
   return true;
 }
 
@@ -215,7 +299,7 @@ bool PresetItemModel::dropMimeData(
 bool PresetItemModel::savePreset(const Process::ProcessModel& proc)
 {
   auto preset = proc.savePreset();
-  if(!updatePresetFilename(preset))
+  if(!writeNewPreset(preset))
     return false;
 
   // Sorted insertion + exact insert signals through the connections made in
@@ -263,7 +347,8 @@ Qt::ItemFlags PresetItemModel::flags(const QModelIndex& index) const
   Qt::ItemFlags f = QAbstractItemModel::flags(index);
   f |= Qt::ItemIsDragEnabled;
   f |= Qt::ItemIsDropEnabled;
-  f |= Qt::ItemIsEditable;
+  if(canEdit(index.row()))
+    f |= Qt::ItemIsEditable;
   return f;
 }
 

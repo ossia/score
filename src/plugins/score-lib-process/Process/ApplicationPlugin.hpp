@@ -26,8 +26,18 @@ public:
   void presetAboutToBeAdded(int index)
       E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, presetAboutToBeAdded, index)
   void presetAdded(int index) E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, presetAdded, index)
+  void presetAboutToBeRemoved(int index)
+      E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, presetAboutToBeRemoved, index)
+  void presetRemoved(int index) E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, presetRemoved, index)
+  //! Its name or file changed; it keeps its place, sorted by key only
+  void presetChanged(int index) E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, presetChanged, index)
+  void presetsAboutToBeCleared() E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, presetsAboutToBeCleared)
+  void presetsCleared() E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, presetsCleared)
 
   void addPreset(Process::Preset&& p);
+  void removePreset(int index);
+  //! Before the library reads its folders again
+  void clearPresets();
 
   Process::LayerContextMenuManager& layerContextMenuRegistrar()
   {

@@ -27,4 +27,20 @@ void ApplicationPlugin::addPreset(Preset&& p)
   presetAdded(row);
 }
 
+void ApplicationPlugin::removePreset(int index)
+{
+  if(index < 0 || index >= int(presets.size()))
+    return;
+  presetAboutToBeRemoved(index);
+  presets.erase(presets.begin() + index);
+  presetRemoved(index);
+}
+
+void ApplicationPlugin::clearPresets()
+{
+  presetsAboutToBeCleared();
+  presets.clear();
+  presetsCleared();
+}
+
 }
