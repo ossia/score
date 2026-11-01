@@ -11,6 +11,12 @@
 #include <ossia/dataflow/graph_edge.hpp>
 #include <ossia/dataflow/graph_node.hpp>
 #include <ossia/dataflow/port.hpp>
+#include <ossia/detail/lockfree_queue.hpp>
+#include <ossia/detail/triple_buffer.hpp>
+
+#include <atomic>
+#include <memory>
+#include <vector>
 
 #include <score_plugin_gfx_export.h>
 
@@ -44,6 +50,19 @@ public:
   exec_controls controls;
   exec_controls control_outs;
 
+  //! The latest value of a control output, on its way to the views.
+  struct ui_control_out
+  {
+    ossia::triple_buffer<ossia::value> latest;
+    //! Execution thread: swapped with the buffer, so that the storage of the
+    //! values goes round between the two threads instead of being allocated
+    ossia::value scratch;
+  };
+  //! One per control_outs, made with it. Only written while notify_ui is set,
+  //! which the host keeps on while something reads them.
+  std::vector<std::unique_ptr<ui_control_out>> ui_control_outs;
+  std::atomic_bool notify_ui{};
+
   GfxExecutionAction* exec_context{};
   gfx_exec_node(GfxExecutionAction& e_ctx)
       : exec_context{&e_ctx}
@@ -68,6 +87,7 @@ public:
     auto port = new ossia::value_outlet;
     m_outlets.push_back(port);
 
+    ui_control_outs.push_back(std::make_unique<ui_control_out>());
     control_outs.push_back(std::make_shared<control>());
     auto& c = control_outs.back();
     c->port = &**port;

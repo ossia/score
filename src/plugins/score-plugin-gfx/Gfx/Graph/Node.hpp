@@ -1,4 +1,5 @@
 #pragma once
+#include <memory>
 #include <Gfx/Graph/CommonUBOs.hpp>
 #include <Gfx/Graph/Mesh.hpp>
 #include <Gfx/Graph/RenderState.hpp>
@@ -19,6 +20,11 @@
 
 #include <algorithm>
 #include <vector>
+
+namespace score::gfx
+{
+struct PreviewTap;
+}
 
 namespace score::gfx
 {
@@ -143,6 +149,12 @@ public:
    * @brief Map associating each RenderList to a Renderer for this model.
    */
   ossia::flat_map<RenderList*, score::gfx::NodeRenderer*> renderedNodes;
+
+  /**
+   * @brief Previews of the outputs of this node, read back by a render list
+   *        of the patch that renders it. See PreviewTap.
+   */
+  std::vector<std::shared_ptr<PreviewTap>> previewTaps;
 
   /**
    * @brief Render target info

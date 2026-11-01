@@ -225,7 +225,7 @@ struct GfxRenderer<Node_T> final
     parent.clearControlIn(*state);
 
     // Copy the data to the model node
-    parent.processControlOut(*this->state);
+    parent.processControlOut(*this->state, renderer, parent);
   }
 };
 

@@ -231,6 +231,9 @@ score_add_gfx_test(execmodel GfxExecutionModel.cpp)
 # every backend. Green on OpenGL and Vulkan.
 score_add_gfx_test(orientation GfxOrientation.cpp)
 
+# Previews read back by the render list of an output of the patch.
+score_add_gfx_test(preview_tap GfxPreviewTap.cpp)
+
 # Which way up each video output hands its pixels over: the InvertYRenderer
 # readback that Libav/GStreamer/Shmdata/Sh4lt/NDI/PipeWire share, against the
 # GPU encoders that Libav and GStreamer use for yuv420p, nv12 and friends.
@@ -1328,6 +1331,10 @@ score_add_gfx_process_test(renderers_before_passes GfxRenderersBeforePasses.cpp)
 # list, so whatever was already on screen blinked. Drives the real preview
 # widget against the real document GfxContext.
 score_add_gfx_process_test(preview_output_rebuild GfxPreviewOutputRebuild.cpp)
+
+# A preview reads back where an output of the patch renders its outlet, else
+# on the shared output of the previews.
+score_add_gfx_process_test(preview_hub GfxPreviewHub.cpp)
 
 # Inserting a node into a running graph keeps the state of the nodes already
 # rendering (persistent passes, persistent storage buffers).

@@ -3,7 +3,10 @@
 #include <Gfx/GfxContext.hpp>
 #include <Gfx/Graph/Graph.hpp>
 #include <Gfx/Graph/Node.hpp>
+#include <Gfx/Graph/BackgroundNode.hpp>
 #include <Gfx/Graph/OutputNode.hpp>
+#include <Gfx/Graph/PreviewHubNode.hpp>
+#include <Gfx/Graph/PreviewTap.hpp>
 #include <Gfx/Graph/RenderList.hpp>
 #include <Gfx/Settings/Model.hpp>
 
@@ -153,7 +156,7 @@ int32_t GfxContext::register_node(std::unique_ptr<score::gfx::Node> node)
   return next;
 }
 
-int32_t GfxContext::register_preview_node(std::unique_ptr<score::gfx::Node> node)
+int32_t GfxContext::register_preview_node(std::unique_ptr<score::gfx::OutputNode> node)
 {
   OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
   auto next = index++;
@@ -161,6 +164,7 @@ int32_t GfxContext::register_preview_node(std::unique_ptr<score::gfx::Node> node
     next = index++;
 
   node->nodeId = next;
+  node->preview = true;
   tick_commands.enqueue(
       NodeCommand{NodeCommand::ADD_PREVIEW_NODE, next, std::move(node)});
 
@@ -239,6 +243,290 @@ void GfxContext::unregister_preview_node(int32_t idx)
   OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
   if(idx != score::gfx::invalid_node_index)
     tick_commands.enqueue(NodeCommand{NodeCommand::REMOVE_PREVIEW_NODE, idx, {}});
+}
+
+namespace
+{
+//! A preview is a thumbnail: at most max_preview_size, with the aspect asked
+QSize boundedPreviewSize(QSize size) noexcept
+{
+  constexpr int m = GfxContext::max_preview_size;
+  if(size.width() > m || size.height() > m)
+    size = size.scaled(QSize{m, m}, Qt::KeepAspectRatio).expandedTo({1, 1});
+  return size;
+}
+}
+
+int32_t GfxContext::add_preview(
+    port_index producer, QSize size, std::shared_ptr<QRhiReadbackResult> readback)
+{
+  OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
+  size = boundedPreviewSize(size);
+  const int32_t id = m_nextPreview++;
+  Preview p;
+  p.producer = producer;
+  p.size = size;
+  p.readback = readback;
+  p.tap = std::make_shared<score::gfx::PreviewTap>();
+  p.tap->readback = std::move(readback);
+  m_previews.emplace(id, std::move(p));
+  // Right away: with no output yet, nothing would tick to bring the preview's
+  // own output up
+  updatePreviews();
+  return id;
+}
+
+void GfxContext::set_preview_producer(int32_t id, port_index producer)
+{
+  OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
+  if(auto it = m_previews.find(id); it != m_previews.end() && it->second.producer != producer)
+  {
+    it->second.producer = producer;
+    updatePreviews();
+  }
+}
+
+void GfxContext::set_preview_size(int32_t id, QSize size)
+{
+  OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
+  if(size.width() <= 0 || size.height() <= 0)
+    return;
+  size = boundedPreviewSize(size);
+  if(auto it = m_previews.find(id); it != m_previews.end() && it->second.size != size)
+  {
+    auto& p = it->second;
+    p.size = size;
+    p.tap->size = size;
+    if(p.hubInput >= 0 && m_previewHub)
+      m_previewHub->setInputSize(p.hubInput, size);
+    if(p.fallback)
+      p.fallback->setSize(size);
+  }
+}
+
+void GfxContext::remove_preview(int32_t id)
+{
+  OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
+  auto it = m_previews.find(id);
+  if(it == m_previews.end())
+    return;
+  auto& p = it->second;
+  stopPreviewFallback(p);
+  leavePreviewHub(p);
+  if(auto n = nodes.find(p.tappedNode); n != nodes.end())
+    std::erase(n->second->previewTaps, p.tap);
+  m_previews.erase(it);
+  releaseUnusedPreviewHub();
+}
+
+void GfxContext::releaseUnusedPreviewHub()
+{
+  // An output more takes the windows off their display's vsync: the hub only
+  // exists while a preview needs it
+  if(m_previewHub && !m_previewHub->anyInputUsed())
+  {
+    unregister_preview_node(m_previewHubId);
+    m_previewHub = nullptr;
+    m_previewHubId = -1;
+  }
+}
+
+void GfxContext::want_preview_frame(int32_t id) const noexcept
+{
+  if(auto it = m_previews.find(id); it != m_previews.end())
+    it->second.tap->wanted.store(true, std::memory_order_relaxed);
+}
+
+bool GfxContext::preview_is_on_hub(int32_t id) const noexcept
+{
+  auto it = m_previews.find(id);
+  return it != m_previews.end() && it->second.hubInput >= 0 && it->second.tap->active;
+}
+
+bool GfxContext::joinPreviewHub(Preview& p)
+{
+  if(!m_previewHub)
+  {
+    auto hub = std::make_unique<score::gfx::PreviewHubNode>();
+    m_previewHub = hub.get();
+    m_previewHubId = register_preview_node(std::move(hub));
+    if(m_previewHubId == score::gfx::invalid_node_index)
+    {
+      m_previewHub = nullptr;
+      return false;
+    }
+  }
+  if(p.hubInput < 0)
+  {
+    p.hubInput = m_previewHub->acquireInput();
+    if(p.hubInput < 0)
+      return false;
+    m_previewHub->setInputSize(p.hubInput, p.size);
+  }
+  if(p.hubProducer != p.producer)
+  {
+    if(p.hubProducer.node != score::gfx::invalid_node_index)
+      disconnect_preview_node(EdgeSpec{p.hubProducer, {m_previewHubId, p.hubInput}});
+    p.hubProducer = p.producer;
+    connect_preview_node(EdgeSpec{p.producer, {m_previewHubId, p.hubInput}});
+  }
+  return true;
+}
+
+void GfxContext::leavePreviewHub(Preview& p)
+{
+  if(p.hubInput < 0 || !m_previewHub)
+  {
+    p.hubInput = -1;
+    p.hubProducer = {-1, -1};
+    return;
+  }
+  if(p.hubProducer.node != score::gfx::invalid_node_index)
+    disconnect_preview_node(EdgeSpec{p.hubProducer, {m_previewHubId, p.hubInput}});
+  m_previewHub->releaseInput(p.hubInput);
+  p.hubInput = -1;
+  p.hubProducer = {-1, -1};
+}
+
+bool GfxContext::preview_is_tapped(int32_t id) const noexcept
+{
+  auto it = m_previews.find(id);
+  return it != m_previews.end() && it->second.tap->active && it->second.hubInput < 0;
+}
+
+void GfxContext::startPreviewFallback(Preview& p)
+{
+  if(!p.fallback)
+  {
+    // Previews come and go with the selection: share the process-wide device
+    // instead of creating one each time
+    auto node = std::make_unique<score::gfx::BackgroundNode>(
+        score::gfx::SharedDeviceMode::Cached);
+    node->shared_readback = p.readback;
+    if(p.size.width() > 0 && p.size.height() > 0)
+      node->setSize(p.size);
+    p.fallback = node.get();
+    // The preview path brings this output up on its own, without rebuilding
+    // the render lists of the other outputs
+    p.fallbackId = register_preview_node(std::move(node));
+    if(p.fallbackId == score::gfx::invalid_node_index)
+    {
+      p.fallback = nullptr;
+      return;
+    }
+  }
+  if(p.fallbackProducer != p.producer)
+  {
+    if(p.fallbackProducer.node != score::gfx::invalid_node_index)
+      disconnect_preview_node(EdgeSpec{p.fallbackProducer, {p.fallbackId, 0}});
+    p.fallbackProducer = p.producer;
+    if(p.producer.node != score::gfx::invalid_node_index)
+      connect_preview_node(EdgeSpec{p.producer, {p.fallbackId, 0}});
+  }
+}
+
+void GfxContext::stopPreviewFallback(Preview& p)
+{
+  if(!p.fallback)
+    return;
+  if(p.fallbackProducer.node != score::gfx::invalid_node_index)
+    disconnect_preview_node(EdgeSpec{p.fallbackProducer, {p.fallbackId, 0}});
+  unregister_preview_node(p.fallbackId);
+  p.fallback = nullptr;
+  p.fallbackId = -1;
+  p.fallbackProducer = {-1, -1};
+}
+
+void GfxContext::updatePreviews()
+{
+  static const bool trace = qEnvironmentVariableIsSet("SCORE_GFX_TRACE");
+  for(auto& [id, p] : m_previews)
+  {
+    const int before = p.fallback ? 3 : p.hubInput >= 0 ? 2 : p.tap->active ? 1 : 0;
+    score::gfx::Node* node{};
+    if(auto n = nodes.find(p.producer.node); n != nodes.end())
+      node = n->second.get();
+
+    // The tap stays on the producer whether it reads or not: the list that
+    // renders it says whether it could
+    if(p.tappedNode != p.producer.node || p.tap->port != p.producer.port)
+    {
+      if(auto n = nodes.find(p.tappedNode); n != nodes.end())
+        std::erase(n->second->previewTaps, p.tap);
+      p.tappedNode = -1;
+      if(node)
+      {
+        node->previewTaps.push_back(p.tap);
+        p.tappedNode = p.producer.node;
+      }
+      // Another producer: the hub may read this one
+      p.tap->readable = true;
+      p.hubUnreadable = false;
+    }
+    p.tap->port = p.producer.port;
+    p.tap->size = p.size;
+
+    if(!node || p.producer.port < 0)
+    {
+      p.tap->active = false;
+      leavePreviewHub(p);
+      stopPreviewFallback(p);
+      continue;
+    }
+
+    // An output of the patch that renders the producer, can read the port and
+    // keeps rendering: the same list RenderList::renderPreviewTaps reads from
+    const auto* host = score::gfx::RenderList::previewHost(*node, p.producer.port);
+    const bool tapped = host && !host->output.preview;
+    bool renderedLive = tapped;
+    if(!renderedLive)
+      for(const auto& [rl, rn] : node->renderedNodes)
+        if(rl && !rl->output.preview && rl->rendersLive())
+        {
+          renderedLive = true;
+          break;
+        }
+
+    // The hub rendered it and could not read it
+    if(p.hubInput >= 0 && !p.tap->readable && host && host->output.previewHub)
+      p.hubUnreadable = true;
+
+    if(tapped)
+    {
+      // Read back where the patch renders it
+      p.tap->active = true;
+      leavePreviewHub(p);
+      stopPreviewFallback(p);
+    }
+    else if(!renderedLive && !p.hubUnreadable && joinPreviewHub(p))
+    {
+      // Rendered for the previews, read back there
+      p.tap->active = true;
+      stopPreviewFallback(p);
+    }
+    else
+    {
+      // The patch renders it into nothing a preview can read, the hub cannot
+      // read it either, or the hub is full: an output of its own
+      p.tap->active = false;
+      leavePreviewHub(p);
+      startPreviewFallback(p);
+    }
+
+    if(trace)
+    {
+      const int after = p.fallback ? 3 : p.hubInput >= 0 ? 2 : p.tap->active ? 1 : 0;
+      if(after != before)
+        fprintf(
+            stderr, "GFX-PREVIEW %d producer=%d:%d %s\n", id, p.producer.node,
+            p.producer.port,
+            after == 1   ? "tap in the patch"
+            : after == 2 ? "hub"
+            : after == 3 ? "own output"
+                         : "idle");
+    }
+  }
+  releaseUnusedPreviewHub();
 }
 
 void GfxContext::connect_preview_node(EdgeSpec e)
@@ -1075,6 +1363,8 @@ void GfxContext::updateGraph()
     return;
   }
 
+  updatePreviews();
+
   // DATE goes back to the wall clock with the next update after a step, not
   // right after the step: an output whose render() only schedules a frame (a
   // vsync'd window) draws it later, and has to see the step's date too.
@@ -1288,6 +1578,10 @@ void GfxContext::renderFrames(int frames)
       }
       m_stepFrame++;
     }
+
+    // Each frame of a step is read back: the previews show the last one
+    for(auto& [id, p] : m_previews)
+      p.tap->wanted.store(true, std::memory_order_relaxed);
 
     for(auto output : m_graph->outputs())
     {

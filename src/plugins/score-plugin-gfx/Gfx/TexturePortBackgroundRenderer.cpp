@@ -4,77 +4,51 @@
 
 #include <Gfx/GfxApplicationPlugin.hpp>
 #include <Gfx/GfxParameter.hpp>
-#include <Gfx/Graph/BackgroundNode.hpp>
 #include <Gfx/Settings/Model.hpp>
+#include <Gfx/Widgets/TexturePreview.hpp>
+
+#include <QPaintDevice>
+#include <QPainter>
 
 namespace Gfx
 {
 
+//! What a selected texture outlet produces, behind the editor.
 class TextureOutletBackgroundRenderer : public score::BackgroundRenderer
 {
 public:
   TextureOutletBackgroundRenderer(Gfx::TextureOutlet& target, QObject* parent)
       : score::BackgroundRenderer{parent}
+      , m_target{&target}
   {
     auto& ctx = score::IDocument::documentContext(target);
-    plug = ctx.findPlugin<Gfx::DocumentPlugin>();
-    if(plug)
-    {
-      GfxExecutionAction& exec = plug->exec;
-      auto node = new score::gfx::BackgroundNode{};
-      this->shared_readback = std::make_shared<QRhiReadbackResult>();
-      node->shared_readback = this->shared_readback;
-
-      screenId = exec.ui->register_node(std::unique_ptr<score::gfx::Node>{node});
-      if(screenId != -1)
-      {
-        const auto source = target.graphicsPort();
-        if(source.node != -1)
-        {
-          e = {source, {screenId, 0}};
-          plug->context.connect_preview_node(*e);
-        }
-      }
-    }
+    if(auto* plug = ctx.findPlugin<Gfx::DocumentPlugin>())
+      m_preview.attach(&plug->context, target.graphicsPort(), QSize{512, 512});
 
     connect(&target, &Gfx::TextureOutlet::destroyed, this, &QObject::deleteLater);
   }
 
-  ~TextureOutletBackgroundRenderer() override
-  {
-    if(plug)
-    {
-      if(e)
-      {
-        plug->context.disconnect_preview_node(*e);
-      }
-      plug->context.unregister_node(screenId);
-    }
-  }
-
   bool render(QPainter* painter, const QRectF& rect) override
   {
-    auto& m_readback = *shared_readback;
-    const auto w = m_readback.pixelSize.width();
-    const auto h = m_readback.pixelSize.height();
-    int sz = w * h * 4;
-    int bytes = m_readback.data.size();
-    if(bytes > 0 && bytes >= sz)
-    {
-      QImage img{
-          (const unsigned char*)m_readback.data.data(), w, h, w * 4,
-          QImage::Format_RGBA8888};
-      painter->drawImage(rect, img);
-      return true;
-    }
-    return false;
+    if(!m_target || !m_preview.attached())
+      return false;
+    // The outlet has a producer only while the process runs, and gets
+    // another one when it is instantiated again
+    m_preview.setProducer(m_target->graphicsPort());
+    // In device pixels; the context bounds it to a thumbnail
+    const qreal dpr = painter->device() ? painter->device()->devicePixelRatioF() : 1.;
+    m_preview.setSize((rect.size() * dpr).toSize());
+
+    const QImage img = m_preview.image();
+    if(img.isNull())
+      return false;
+    painter->drawImage(TexturePreview::fit(rect, img.size()), img);
+    return true;
   }
 
 private:
-  QPointer<Gfx::DocumentPlugin> plug;
-  std::optional<Gfx::EdgeSpec> e;
-  std::shared_ptr<QRhiReadbackResult> shared_readback;
-  int32_t screenId{-1};
+  QPointer<Gfx::TextureOutlet> m_target;
+  TexturePreview m_preview;
 };
 
 bool TextureOutletBackgroundRendererFactory::matches(

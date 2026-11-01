@@ -9,6 +9,7 @@
 #include <Gfx/Graph/NodeRenderer.hpp>
 #include <Gfx/Graph/OutputNode.hpp>
 #include <Gfx/Graph/PipelineStateHelpers.hpp>
+#include <Gfx/Graph/PreviewTap.hpp>
 #include <Gfx/Graph/RenderList.hpp>
 
 #include <Gfx/Graph/RhiIndirectCompat.hpp>
@@ -877,6 +878,7 @@ TextureRenderTarget RenderList::renderTargetForInputPort(const Port& p) const no
 
 void RenderList::release()
 {
+  releasePreviewTaps();
   for(auto node : renderers)
   {
     node->release(*this);
@@ -1550,6 +1552,252 @@ TextureRenderTarget RenderList::renderTargetForOutput(const Edge& edge) const no
   return {};
 }
 
+QRhiTexture* RenderList::previewSource(const Node& node, int port) const noexcept
+{
+  if(port < 0 || port >= int(node.output.size()))
+    return nullptr;
+  // Not only image ports: what an edge of the port draws into is what the
+  // preview shows, as it would in an output of its own
+  const Port& out = *node.output[port];
+  auto rn = node.renderedNodes.find(const_cast<RenderList*>(this));
+  if(rn == node.renderedNodes.end() || !rn->second)
+    return nullptr;
+  if(auto* tex = rn->second->textureForOutput(out))
+    return tex;
+
+  // A target the node renders into alone shows only it; one it shares with
+  // other cables into the same inlet shows what that inlet receives
+  QRhiTexture* shared{};
+  for(Edge* edge : out.edges)
+  {
+    if(!edge || !edge->sink || !edge->sink->node || edge->sink->node == &node)
+      continue;
+    if(edge->sink->node->renderedNodes.find(const_cast<RenderList*>(this))
+       == edge->sink->node->renderedNodes.end())
+      continue;
+    const auto rt = renderTargetForOutput(*edge);
+    if(!rt.texture || rt.arrayLayers > 1 || rt.multiViewCount > 1)
+      continue;
+    if(edge->sink->edges.size() == 1)
+      return rt.texture;
+    if(!shared)
+      shared = rt.texture;
+  }
+  return shared;
+}
+
+bool RenderList::rendersLive() const noexcept
+{
+  using namespace std::chrono_literals;
+  return std::chrono::steady_clock::now() - m_lastRender < 1s;
+}
+
+const RenderList* RenderList::previewHost(const Node& node, int port) noexcept
+{
+  const RenderList* hub{};
+  for(const auto& [rl, rn] : node.renderedNodes)
+  {
+    if(!rl || !rn)
+      continue;
+    if(!rl->output.preview)
+    {
+      if(rl->rendersLive() && rl->previewSource(node, port))
+        return rl;
+    }
+    else if(rl->output.previewHub && !hub)
+      hub = rl;
+  }
+  return hub;
+}
+
+void RenderList::PreviewTapTarget::release()
+{
+  pipeline.release();
+  if(sampler)
+    sampler->deleteLater();
+  sampler = nullptr;
+  rt.release();
+  source = nullptr;
+  readback.reset();
+}
+
+void RenderList::retirePreviewTap(PreviewTapTarget& t)
+{
+  if(t.readback && state.rhi)
+    m_retiredPreviewReadbacks.push_back(
+        {t.readback, frame + state.rhi->resourceLimit(QRhi::FramesInFlight) + 1});
+  t.release();
+}
+
+void RenderList::releasePreviewTaps()
+{
+  // A readback recorded in a frame still in flight writes its result when that
+  // frame completes, whoever else still holds the result
+  const bool pending
+      = !m_retiredPreviewReadbacks.empty()
+        || std::any_of(m_previewTaps.begin(), m_previewTaps.end(), [](const auto& t) {
+             return t.readback != nullptr;
+           });
+  if(pending && state.rhi)
+    state.rhi->finish();
+  for(auto& t : m_previewTaps)
+    t.release();
+  m_previewTaps.clear();
+  m_retiredPreviewReadbacks.clear();
+}
+
+void RenderList::renderPreviewTaps(QRhiCommandBuffer& commands, QRhiResourceUpdateBatch*& res)
+{
+  // Of the editor's own outputs, only the hub hosts taps: for the nodes no
+  // output of the patch renders
+  if(output.preview && !output.previewHub)
+  {
+    if(!m_previewTaps.empty() || !m_retiredPreviewReadbacks.empty())
+      releasePreviewTaps();
+    return;
+  }
+
+  std::erase_if(m_retiredPreviewReadbacks, [this](const auto& r) { return r.until <= frame; });
+
+  bool tapsTookBatch = false;
+
+  for(Node* node : nodes)
+  {
+    for(const auto& tap : node->previewTaps)
+    {
+      // Several lists may render the node: exactly one reads each tap back
+      if(previewHost(*node, tap->port) != this)
+        continue;
+      QRhiTexture* src = previewSource(*node, tap->port);
+      tap->readable = src != nullptr;
+      if(!src || !tap->active || !tap->readback)
+        continue;
+
+      auto it = std::find_if(m_previewTaps.begin(), m_previewTaps.end(), [&](const auto& t) {
+        return t.tap.lock() == tap;
+      });
+      if(it == m_previewTaps.end())
+      {
+        m_previewTaps.push_back({});
+        it = m_previewTaps.end() - 1;
+        it->tap = tap;
+      }
+      auto& t = *it;
+      t.visited = frame;
+
+      // Read back only once the consumer took the previous image
+      if(!tap->wanted.load(std::memory_order_relaxed))
+        continue;
+
+      // As large as asked, with the aspect of the texture
+      const QSize in = src->pixelSize();
+      QSize sz = in.scaled(tap->size, Qt::KeepAspectRatio);
+      sz = sz.expandedTo({1, 1}).boundedTo(in.expandedTo({1, 1}));
+
+      if(!res)
+        res = state.rhi->nextResourceUpdateBatch();
+      if(!res)
+        break;
+
+      // The pipeline is built once: a target of another size has the same
+      // format, so its render pass is compatible with the pipeline's
+      if(!t.rt.texture || t.rt.texture->pixelSize() != sz)
+      {
+        t.rt.release();
+        t.rt = createRenderTarget(state, QRhiTexture::RGBA8, sz, 1, false);
+        if(!t.rt.texture)
+          continue;
+      }
+      if(!t.pipeline.pipeline)
+      {
+        const auto& mesh = defaultTriangle();
+        t.mesh = initMeshBuffer(mesh, *res);
+        // The orientation of the preview outputs (InvertYRenderer)
+        static constexpr auto frag = R"_(#version 450
+          layout(location = 0) in vec2 v_texcoord;
+          layout(location = 0) out vec4 fragColor;
+          layout(binding = 3) uniform sampler2D tex;
+          void main()
+          {
+#if defined(QSHADER_MSL) || defined(QSHADER_HLSL)
+            fragColor = texture(tex, v_texcoord);
+#else
+            fragColor = texture(tex, vec2(v_texcoord.x, 1. - v_texcoord.y));
+#endif
+          }
+          )_";
+        try
+        {
+          auto [vs, fs] = makeShaders(state, mesh.defaultVertexShader(), frag);
+          if(!t.sampler)
+          {
+            t.sampler = state.rhi->newSampler(
+                QRhiSampler::Linear, QRhiSampler::Linear, QRhiSampler::None,
+                QRhiSampler::ClampToEdge, QRhiSampler::ClampToEdge);
+            t.sampler->setName("RenderList::previewTap");
+            t.sampler->create();
+          }
+          const Sampler samplers[]{{t.sampler, src}};
+          t.pipeline = buildPipeline(*this, mesh, vs, fs, t.rt, nullptr, nullptr, samplers);
+        }
+        catch(...)
+        {
+        }
+        t.source = src;
+        if(!t.pipeline.pipeline)
+          continue;
+      }
+      else if(t.source != src)
+      {
+        replaceTexture(*t.pipeline.srb, t.sampler, src);
+        t.source = src;
+      }
+
+      commands.beginPass(t.rt.renderTarget, Qt::black, {1.0f, 0}, res);
+      res = nullptr;
+      tapsTookBatch = true;
+      commands.setGraphicsPipeline(t.pipeline.pipeline);
+      commands.setShaderResources(t.pipeline.srb);
+      commands.setViewport(QRhiViewport(0, 0, sz.width(), sz.height()));
+      defaultTriangle().draw(t.mesh, commands);
+      auto* rb = state.rhi->nextResourceUpdateBatch();
+      if(rb)
+      {
+        rb->readBackTexture(QRhiReadbackDescription{t.rt.texture}, tap->readback.get());
+        // Kept alive until the frame completes the readback
+        if(t.readback != tap->readback)
+        {
+          if(t.readback)
+            m_retiredPreviewReadbacks.push_back(
+                {std::move(t.readback),
+                 frame + state.rhi->resourceLimit(QRhi::FramesInFlight) + 1});
+          t.readback = tap->readback;
+        }
+        tap->wanted.store(false, std::memory_order_relaxed);
+        tap->frames++;
+      }
+      commands.endPass(rb);
+    }
+  }
+
+  // The taps that went away, went inactive or moved to another list
+  for(auto it = m_previewTaps.begin(); it != m_previewTaps.end();)
+  {
+    if(it->visited != frame || it->tap.expired())
+    {
+      retirePreviewTap(*it);
+      it = m_previewTaps.erase(it);
+    }
+    else
+      ++it;
+  }
+
+  // The output records into the batch it was handed, if any: the taps took
+  // it. Null when the pool is exhausted, which the output's own pass handles.
+  if(!res && tapsTookBatch)
+    res = state.rhi->nextResourceUpdateBatch();
+}
+
 BufferView RenderList::bufferForInput(const Edge& edge) const noexcept
 {
   if(auto source_node = edge.source->node)
@@ -1921,6 +2169,7 @@ static void update_date_for_shaders(float (&date)[4]) noexcept {
 
 void RenderList::render(QRhiCommandBuffer& commands, bool force) noexcept
 {
+  m_lastRender = std::chrono::steady_clock::now();
   if(m_rendering)
   {
     if((m_nestedRenders++ % 600) == 0)
@@ -2601,6 +2850,8 @@ void RenderList::renderImpl(QRhiCommandBuffer& commands, bool force)
       }
     }
   }
+
+  renderPreviewTaps(commands, updateBatch);
 
   // Finally the output node may have some rendering to do too
   {

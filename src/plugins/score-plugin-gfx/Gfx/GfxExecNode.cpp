@@ -158,10 +158,23 @@ void gfx_exec_node::run(
   exec_context->ui->send_message(std::move(msg));
 
   // Finally: if there are any new output controls, handle them
-  for(auto& out_ctl : control_outs)
+  const bool notify = notify_ui.load(std::memory_order_relaxed);
+  for(int i = 0, n = int(control_outs.size()); i < n; i++)
   {
+    auto& out_ctl = control_outs[i];
     if(std::exchange(out_ctl->changed, false))
+    {
+      // The views only show the latest value: it replaces the one they did
+      // not take yet. The copy reuses the storage of a value of the same
+      // type that came back from the views.
+      if(notify)
+      {
+        auto& ui = *ui_control_outs[i];
+        ui.scratch = out_ctl->value;
+        ui.latest.produce(ui.scratch);
+      }
       out_ctl->port->write_value(std::move(out_ctl->value), 0);
+    }
   }
 }
 

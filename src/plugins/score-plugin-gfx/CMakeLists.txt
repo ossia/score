@@ -158,6 +158,8 @@ set(HDRS
 
     Gfx/Widgets/CameraPreviewWidget.hpp
     Gfx/Widgets/RhiPreviewWidget.hpp
+    Gfx/Widgets/TexturePreview.hpp
+    Gfx/Widgets/OutletPreviewLayer.hpp
 
     Gfx/GeometryFilter/Executor.hpp
     Gfx/GeometryFilter/Metadata.hpp
@@ -225,7 +227,9 @@ set(HDRS
     Gfx/Graph/DMACaptureInputNode.hpp
     Gfx/Graph/DirectVideoOutputBackend.hpp
     Gfx/Graph/DirectVideoOutputNode.hpp
+    Gfx/Graph/PreviewHubNode.hpp
     Gfx/Graph/PreviewNode.hpp
+    Gfx/Graph/PreviewTap.hpp
     Gfx/Graph/SceneGPUState.hpp
     Gfx/Graph/GpuResourceRegistry.hpp
     Gfx/Graph/VertexFallbackDefaults.hpp
@@ -469,6 +473,8 @@ set(SRCS
 
     Gfx/Widgets/CameraPreviewWidget.cpp
     Gfx/Widgets/RhiPreviewWidget.cpp
+    Gfx/Widgets/TexturePreview.cpp
+    Gfx/Widgets/OutletPreviewLayer.cpp
 
     Gfx/GeometryFilter/Executor.cpp
     Gfx/GeometryFilter/Process.cpp
@@ -529,6 +535,7 @@ set(SRCS
     Gfx/Graph/DMACaptureInputNode.cpp
     Gfx/Graph/DirectVideoOutputBackend.cpp
     Gfx/Graph/DirectVideoOutputNode.cpp
+    Gfx/Graph/PreviewHubNode.cpp
     Gfx/Graph/PreviewNode.cpp
     Gfx/Graph/SceneGPUState.cpp
     Gfx/Graph/GpuResourceRegistry.cpp

@@ -479,9 +479,12 @@ struct GfxRenderer<Node_T> final
     {
       m_last_frame = renderer.frame;
 
+      // Only what is read back to the CPU waits for the previous frame:
+      // GPU textures and buffers are bound as they are. A geometry input may
+      // carry GPU buffers its CPU mesh is read back from.
       if constexpr(
-          avnd::texture_input_introspection<Node_T>::size > 0
-          || avnd::buffer_input_introspection<Node_T>::size > 0
+          avnd::cpu_texture_input_introspection<Node_T>::size > 0
+          || avnd::cpu_buffer_input_introspection<Node_T>::size > 0
           || avnd::geometry_input_introspection<Node_T>::size > 0)
       {
         // FIXME: for geometry, here we should optimize if we know we aren't going to need them on the CPU, OR if it is a type ?
@@ -525,7 +528,7 @@ struct GfxRenderer<Node_T> final
       }
 
       // Copy the data to the model node
-      parent.processControlOut(*this->state);
+      parent.processControlOut(*this->state, renderer, parent);
     }
 
     // Per-edge uploads: these target the specific downstream sink
