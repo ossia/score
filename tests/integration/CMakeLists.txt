@@ -441,6 +441,15 @@ score_add_test(test_integration_nodal_controls
 
 # A cable never lands on a port of another type.
 if(TARGET score_plugin_fx)
+  # A preset loads into a process whose presets keep its ports without
+  # touching its ports or cables; only a load that can move them does.
+  score_add_test(test_integration_preset_ports
+    SOURCES PresetPortsTest.cpp
+    APP
+    PLUGINS score_plugin_fx score_plugin_scenario score_lib_process)
+endif()
+
+if(TARGET score_plugin_fx)
   score_add_test(test_integration_invalid_cable
     SOURCES InvalidCableTest.cpp
     APP

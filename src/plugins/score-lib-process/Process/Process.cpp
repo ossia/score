@@ -257,6 +257,13 @@ bool ProcessModel::presetMatches(const Preset& preset) const noexcept
   return preset.key.key == concreteKey() && preset.key.effect == effect();
 }
 
+bool ProcessModel::presetChangesPorts(const Preset& preset) const noexcept
+{
+  if(flags() & ProcessFlags::DynamicPorts)
+    return true;
+  return !preset.key.effect.isEmpty() && preset.key.effect != effect();
+}
+
 void ProcessModel::ancestorStartDateChanged() { }
 
 void ProcessModel::ancestorTempoChanged() { }

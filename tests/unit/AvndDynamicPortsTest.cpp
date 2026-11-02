@@ -871,9 +871,9 @@ TEST_CASE("Loading a preset rebuilds a tabbed UI in place", "[avnd][preset][ui]"
     auto* source = score::test::add_process(*doc, beat_tracker_uuid, {});
     if(!proc || !source)
       SKIP("Beat Tracker is not built");
-    // A wired process gets the command that backs the cables up, which
-    // announces inletsChanged() whatever the preset holds and so rebuilds the
-    // UI, as in an example where the process is connected.
+    // The command that backs the cables up announces inletsChanged() whatever
+    // the preset holds, and so rebuilds the UI, as a load that moves the ports
+    // of a connected process does.
     const Process::Outlet* from{};
     const Process::Inlet* to{};
     for(auto* o : source->outlets())
@@ -911,11 +911,9 @@ TEST_CASE("Loading a preset rebuilds a tabbed UI in place", "[avnd][preset][ui]"
 
     // Twice, as a second load used to crash too
     const Process::Preset preset = proc->savePreset();
-    auto& presets = ctx.interfaces<Process::LoadPresetCommandFactoryList>();
     for(int i = 0; i < 2; i++)
     {
-      auto* cmd = presets.make(&Process::LoadPresetCommandFactory::make, *proc, preset, dctx);
-      REQUIRE(dynamic_cast<Scenario::Command::LoadPresetWithCablesBackup*>(cmd));
+      auto* cmd = new Scenario::Command::LoadPresetWithCablesBackup{*proc, preset, dctx};
       CommandDispatcher<>{dctx.commandStack}.submit(cmd);
       spin();
       CHECK(tabBars() == 1);
