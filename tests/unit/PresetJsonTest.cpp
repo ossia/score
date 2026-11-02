@@ -52,3 +52,22 @@ TEST_CASE("a preset's data survives its file, JSON or not", "[presets]")
     }
   });
 }
+
+TEST_CASE("a preset's name and category are kept in any script", "[presets]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    auto& procs = ctx.interfaces<Process::ProcessFactoryList>();
+    if(!procs.get(lfo))
+      SKIP("Fx not built");
+
+    auto p = preset(QByteArray("[]"));
+    p.name = QStringLiteral("鼓声 ü 🥁");
+    p.category = QStringLiteral("打击乐/低音");
+    p.description = QStringLiteral("一个预设");
+    auto back = Process::Preset::fromJson(procs, p.toJson());
+    REQUIRE(back);
+    CHECK(back->name == p.name);
+    CHECK(back->category == p.category);
+    CHECK(back->description == p.description);
+  });
+}
