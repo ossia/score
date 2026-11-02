@@ -23,6 +23,7 @@
 #include <ossia/detail/pod_vector.hpp>
 #include <ossia/network/domain/domain.hpp>
 
+#include <QRegularExpression>
 #include <QCoreApplication>
 #include <QDialogButtonBox>
 #include <QFile>
@@ -453,6 +454,7 @@ std::vector<Process::Preset> Model::builtinPresets() const noexcept
   if(LilvNodes* presets = lilv_plugin_get_related(plugin, pset_node))
   {
     result.reserve(lilv_nodes_size(presets));
+    int unlabelled = 0;
     LILV_FOREACH(nodes, it, presets)
     {
       const LilvNode* preset_node = lilv_nodes_get(presets, it);
@@ -473,8 +475,17 @@ std::vector<Process::Preset> Model::builtinPresets() const noexcept
       }
 
       Process::Preset p;
-      p.name = label.isEmpty() ? QString::fromUtf8(lilv_node_as_uri(preset_node))
-                               : label;
+      if(label.isEmpty())
+      {
+        // What ends its URI, "preset1" rather than the whole URI
+        const QString uri = QString::fromUtf8(lilv_node_as_uri(preset_node));
+        p.name = uri.mid(uri.lastIndexOf(QRegularExpression{"[:#/]"}) + 1);
+        unlabelled++;
+      }
+      else
+      {
+        p.name = label;
+      }
       p.key.key = this->concreteKey();
       p.key.effect = m_effectPath;
       // Store the URI; loadPreset resolves via lilv_state_new_from_world
@@ -489,6 +500,10 @@ std::vector<Process::Preset> Model::builtinPresets() const noexcept
       result.push_back(std::move(p));
     }
     lilv_nodes_free(presets);
+    // A lone unlabelled preset is a plug-in's only program, not a preset:
+    // what JUCE writes for a plug-in without presets. A labelled one is kept.
+    if(result.size() == 1 && unlabelled == 1)
+      result.clear();
   }
 
   lilv_node_free(rdfs_label_node);

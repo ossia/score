@@ -344,7 +344,9 @@ void Model::reloadPrograms()
     // programs to choose from
     if(effName[0] != '\0')
       m_programs.emplace_back(effName, i);
-    else
+    // A lone unnamed program is a plug-in's only state, not a preset: JUCE
+    // gives one to every plug-in without presets. A named one is kept.
+    else if(fx->fx->numPrograms > 1)
       m_programs.emplace_back("Program " + std::to_string(i + 1), i);
   }
 }
