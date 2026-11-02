@@ -346,6 +346,68 @@ TEST_CASE(
 }
 
 TEST_CASE(
+    "pipewire: a quantum smaller than the block size, then a rate change, mid-run",
+    "[pipewire][integration]")
+{
+  // What a second client of the same graph does to a running engine: it
+  // imposes its own quantum and rate.
+  daemon_fixture daemon;
+  if (!daemon.start())
+    SKIP("cannot start a private pipewire daemon");
+
+  auto inst = libremidi::pipewire::shared_instance();
+  if (!inst)
+    SKIP("libpipewire is unavailable");
+  auto ctx = libremidi::pipewire::context::make(inst);
+  if (!ctx || !ctx->ok())
+    SKIP("cannot connect to the private pipewire daemon");
+
+  ossia::audio_setup setup;
+  setup.name = "ossia-live-change-test";
+  setup.inputs = {"in_l", "in_r"};
+  setup.outputs = {"out_l", "out_r"};
+  setup.rate = 48000;
+  setup.buffer_size = 1024;
+
+  auto engine = std::make_shared<ossia::pipewire_audio_protocol>(ctx, setup);
+  REQUIRE(engine->running());
+  engine->stall_timeout_ms.store(60000);
+
+  auto rec = std::make_shared<tick_recorder>();
+  engine->set_tick([rec](const ossia::audio_tick_state& st) {
+    rec->push(static_cast<std::uint32_t>(st.frames));
+  });
+  REQUIRE(wait_for([&] { return rec->count.load() >= 8; }, 5s));
+  REQUIRE(engine->observed_sample_rate.load() == 48000);
+
+  // Smaller: one tick per cycle, of the graph's quantum.
+  if (!daemon.force_quantum(512))
+    SKIP("pw-metadata is unavailable");
+  const auto before = rec->stored();
+  REQUIRE(wait_for(
+      [&] {
+        const auto n = rec->stored();
+        if (n < before + 16)
+          return false;
+        for (auto i = n - 16; i < n; i++)
+          if (rec->sizes[i].load() != 512)
+            return false;
+        return true;
+      },
+      5s));
+
+  // The rate: the engine keeps the one it was set up for, and reports the
+  // one it is now played at, for the host to restart at it.
+  REQUIRE(daemon.force_rate(44100));
+  REQUIRE(wait_for(
+      [&] { return engine->observed_sample_rate.load() == 44100; }, 5s));
+  CHECK(engine->effective_sample_rate == 48000);
+
+  REQUIRE(engine->stalls_detected.load() == 0);
+  engine->stop();
+}
+
+TEST_CASE(
     "pipewire: the requested rate is granted when nothing overrides it",
     "[pipewire][integration]")
 {

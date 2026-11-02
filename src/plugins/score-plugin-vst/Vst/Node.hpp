@@ -390,14 +390,36 @@ public:
     }
   }
 
+  //! The plug-in was told at most m_bs frames per call (effSetBlockSize), but
+  //! the engine's ticks can outgrow the block size it had then.
+  template <typename F>
+  void forEachBlock(int64_t offset, int64_t samples, F&& f)
+  {
+    const int64_t block = std::max(m_bs, 1);
+    for(int64_t done = 0; done < samples;)
+    {
+      const int64_t n = std::min(block, samples - done);
+      f(offset + done, n);
+      done += n;
+    }
+  }
+
   void processFloat(int64_t offset, int64_t samples)
+  {
+    forEachBlock(offset, samples, [this](int64_t o, int64_t n) { processFloatBlock(o, n); });
+  }
+
+  void processDouble(int64_t offset, int64_t samples)
+  {
+    forEachBlock(offset, samples, [this](int64_t o, int64_t n) { processDoubleBlock(o, n); });
+  }
+
+  void processFloatBlock(int64_t offset, int64_t samples)
   {
     if constexpr(!UseDouble)
     {
       if(samples <= 0)
         return;
-
-      SCORE_ASSERT(m_bs >= offset + samples);
 
       const auto max_i = std::max(2, this->fx->fx->numInputs);
       const auto max_o = std::max(2, this->fx->fx->numOutputs);
@@ -446,14 +468,12 @@ public:
     }
   }
 
-  void processDouble(int64_t offset, int64_t samples)
+  void processDoubleBlock(int64_t offset, int64_t samples)
   {
     if constexpr(UseDouble)
     {
       if(samples <= 0)
         return;
-
-      SCORE_ASSERT(m_bs >= offset + samples);
 
       const auto max_i = std::max(2, this->fx->fx->numInputs);
       const auto max_o = std::max(2, this->fx->fx->numOutputs);

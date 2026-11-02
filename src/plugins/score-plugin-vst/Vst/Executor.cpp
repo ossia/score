@@ -98,20 +98,21 @@ Executor::Executor(vst::Model& proc, const Execution::Context& ctx, QObject* par
     throw std::runtime_error("Unable to load VST");
 
   AEffect& fx = *proc.fx->fx;
+  int block_size = ctx.execState->setupBufferSize();
 
   if(fx.flags & effFlagsCanDoubleReplacing)
   {
     if(fx.flags & effFlagsIsSynth)
     {
       auto n = vst::make_vst_fx<true, true>(
-          *ctx.execState, proc.fx, ctx.execState->sampleRate, ctx.execState->bufferSize);
+          *ctx.execState, proc.fx, ctx.execState->sampleRate, block_size);
       setupNode(n);
       node = std::move(n);
     }
     else
     {
       auto n = vst::make_vst_fx<true, false>(
-          *ctx.execState, proc.fx, ctx.execState->sampleRate, ctx.execState->bufferSize);
+          *ctx.execState, proc.fx, ctx.execState->sampleRate, block_size);
       setupNode(n);
       node = std::move(n);
     }
@@ -121,14 +122,14 @@ Executor::Executor(vst::Model& proc, const Execution::Context& ctx, QObject* par
     if(fx.flags & effFlagsIsSynth)
     {
       auto n = vst::make_vst_fx<false, true>(
-          *ctx.execState, proc.fx, ctx.execState->sampleRate, ctx.execState->bufferSize);
+          *ctx.execState, proc.fx, ctx.execState->sampleRate, block_size);
       setupNode(n);
       node = std::move(n);
     }
     else
     {
       auto n = vst::make_vst_fx<false, false>(
-          *ctx.execState, proc.fx, ctx.execState->sampleRate, ctx.execState->bufferSize);
+          *ctx.execState, proc.fx, ctx.execState->sampleRate, block_size);
       setupNode(n);
       node = std::move(n);
     }

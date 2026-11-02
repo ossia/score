@@ -2060,7 +2060,7 @@ Executor::Executor(Clap::Model& proc, const Execution::Context& ctx, QObject* pa
     {
       qDebug() << "CLAP: clap_node_mono_64";
       auto node = ossia::make_node<clap_node_mono_64>(
-          *ctx.execState, proc, *h, e.sampleRate, e.bufferSize);
+          *ctx.execState, proc, *h, e.sampleRate, e.setupBufferSize());
       clap = node;
       this->node = node;
       m_ossia_process = std::make_shared<clap_mono_process>(node);
@@ -2069,7 +2069,7 @@ Executor::Executor(Clap::Model& proc, const Execution::Context& ctx, QObject* pa
     {
       qDebug() << "CLAP: clap_node_mono_32";
       auto node = ossia::make_node<clap_node_mono_32>(
-          *ctx.execState, proc, *h, e.sampleRate, e.bufferSize);
+          *ctx.execState, proc, *h, e.sampleRate, e.setupBufferSize());
       clap = node;
       this->node = node;
       m_ossia_process = std::make_shared<clap_mono_process>(node);
@@ -2082,7 +2082,7 @@ Executor::Executor(Clap::Model& proc, const Execution::Context& ctx, QObject* pa
     // init / activate / state.load to all run there).
     constexpr std::size_t kInitialPoly = 8;
     m_pool_sample_rate = e.sampleRate;
-    m_pool_buffer_size = e.bufferSize;
+    m_pool_buffer_size = e.setupBufferSize();
     m_pool_pushed = kInitialPoly;
     m_pool_max_requested = kInitialPoly;
     m_grow_timer = new QTimer(this);
@@ -2096,7 +2096,7 @@ Executor::Executor(Clap::Model& proc, const Execution::Context& ctx, QObject* pa
     {
       qDebug() << "CLAP: clap_node_64";
       auto node = ossia::make_node<clap_node_64>(
-          *ctx.execState, proc, *h, e.sampleRate, e.bufferSize);
+          *ctx.execState, proc, *h, e.sampleRate, e.setupBufferSize());
       clap = node;
       this->node = node;
       m_ossia_process = std::make_shared<clap_process>(node);
@@ -2105,7 +2105,7 @@ Executor::Executor(Clap::Model& proc, const Execution::Context& ctx, QObject* pa
     {
       qDebug() << "CLAP: clap_node_32";
       auto node = ossia::make_node<clap_node_32>(
-          *ctx.execState, proc, *h, e.sampleRate, e.bufferSize);
+          *ctx.execState, proc, *h, e.sampleRate, e.setupBufferSize());
       clap = node;
       this->node = node;
       m_ossia_process = std::make_shared<clap_process>(node);

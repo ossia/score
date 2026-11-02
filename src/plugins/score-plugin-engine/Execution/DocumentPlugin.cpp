@@ -348,6 +348,7 @@ void DocumentPlugin::makeGraph()
   initExecState();
 
   execState->bufferSize = audiosettings.getBufferSize();
+  execState->maxBufferSize = execState->bufferSize;
   execState->sampleRate = audiosettings.getRate();
   if(auto& audio = m_context.app.guiApplicationPlugin<Audio::ApplicationPlugin>().audio)
   {
