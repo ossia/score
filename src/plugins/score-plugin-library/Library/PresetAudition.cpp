@@ -3,6 +3,7 @@
 #include <Process/Commands/LoadPresetCommandFactory.hpp>
 #include <Process/PresetTree.hpp>
 
+#include <score/application/GUIApplicationContext.hpp>
 #include <score/command/Command.hpp>
 #include <score/document/DocumentContext.hpp>
 #include <score/document/DocumentInterface.hpp>
