@@ -74,6 +74,9 @@ private:
   void recreatePorts();
   QString effect() const noexcept override;
   void loadPreset(const Process::Preset&) override;
+  //! A preset of its bank, or of the same script, sets sliders: only another
+  //! script makes other ports
+  bool presetChangesPorts(const Process::Preset& preset) const noexcept override;
   Process::Preset savePreset() const noexcept override;
   [[nodiscard]] Process::ScriptChangeResult reload();
 
