@@ -464,3 +464,38 @@ TEST_CASE(
     CHECK(lib.row("AAA") >= 0);
   });
 }
+
+TEST_CASE(
+    "a preset is renamed and moved with a name and category in any script",
+    "[library][presets]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    TestLibrary lib{ctx};
+    Library::ProcessesItemModel processes{ctx, nullptr};
+    lib.waitFor({"Packaged", "Mine"});
+    Library::PresetItemModel presets{ctx, nullptr};
+    presets.setProcess(Process::ProcessIdentifier{
+        UuidKey<Process::ProcessModel>::fromString(pattern_uuid), {}});
+    QAbstractItemModel& model = presets;
+
+    const QString name = QStringLiteral("鼓声 🥁");
+    const QString category = QStringLiteral("打击乐/低音");
+
+    REQUIRE(model.setData(presets.indexOfPreset(lib.row("Mine")), name, Qt::EditRole));
+    const QString file = lib.root + "/packages/user/presets/Pattern/" + name + ".scp";
+    CHECK(QFile::exists(file));
+    REQUIRE(lib.row(name) >= 0);
+
+    REQUIRE(presets.movePreset(lib.row(name), category));
+    CHECK(presets.folderPath(presets.indexOfPreset(lib.row(name)))
+          == (QStringList{QStringLiteral("打击乐"), QStringLiteral("低音")}));
+    CHECK(presets.categories().contains(category));
+
+    // Read again from its file: the same name and category
+    ctx.settings<Library::Settings::Model>().rescanLibrary();
+    lib.waitFor({"Packaged", name});
+    CHECK(lib.count(name) == 1);
+    CHECK(lib.presets()[lib.row(name)].category == category);
+    CHECK(lib.presets()[lib.row(name)].path == file);
+  });
+}
