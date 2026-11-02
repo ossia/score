@@ -27,6 +27,7 @@
 #include <catch2/catch_test_macros.hpp>
 
 #include <map>
+#include <set>
 
 namespace
 {
@@ -74,11 +75,21 @@ TEST_CASE(
       if(auto* p = in->target<ossia::midi_port>())
         midi = p;
     ossia::audio_port* audio{};
+    ossia::midi_port* echo{};
+    ossia::value_port* last_key{};
     for(auto* out : node.root_outputs())
+    {
       if(auto* p = out->target<ossia::audio_port>())
         audio = p;
+      else if(auto* p = out->target<ossia::midi_port>())
+        echo = p;
+      else if(auto* p = out->target<ossia::value_port>())
+        last_key = p;
+    }
     REQUIRE(midi);
     REQUIRE(audio);
+    REQUIRE(echo);
+    REQUIRE(last_key);
 
     auto& state = *plug.contextData()->execState;
     const int block = state.setupBufferSize();
@@ -130,5 +141,15 @@ TEST_CASE(
               {63, frames - 2},
               {64, 0},
               {65, frames - 1}}));
+
+    // What it sends is dated in the tick, not in the call that sent it
+    const std::multiset<int64_t> expected{10, block, block + 3, frames - 2, 0, frames - 1};
+    std::multiset<int64_t> values, sysex;
+    for(const auto& v : last_key->get_data())
+      values.insert(v.timestamp);
+    for(const auto& m : echo->messages)
+      sysex.insert(m.timestamp);
+    CHECK(values == expected);
+    CHECK(sysex == expected);
   });
 }

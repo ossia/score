@@ -1,6 +1,8 @@
 // A CLAP instrument that shows the host's process calls in its output: the
 // left channel holds, at each frame, how many frames the call computing it
-// had; the right one the key of each note received, at its frame.
+// had; the right one the key of each note received, at its frame. Each note
+// also comes out, at its frame, as the value of a read-only parameter and as
+// a system-exclusive message holding its key.
 
 #include <clap/clap.h>
 
@@ -42,21 +44,64 @@ bool audio_get(const clap_plugin_t*, uint32_t index, bool is_input, clap_audio_p
 }
 const clap_plugin_audio_ports_t audio_ports = {audio_count, audio_get};
 
-uint32_t note_count(const clap_plugin_t*, bool is_input)
+uint32_t note_count(const clap_plugin_t*, bool)
 {
-  return is_input ? 1 : 0;
+  return 1;
 }
 bool note_get(const clap_plugin_t*, uint32_t index, bool is_input, clap_note_port_info_t* info)
 {
-  if(!is_input || index > 0)
+  if(index > 0)
     return false;
   info->id = 0;
-  info->supported_dialects = CLAP_NOTE_DIALECT_CLAP | CLAP_NOTE_DIALECT_MIDI;
-  info->preferred_dialect = CLAP_NOTE_DIALECT_CLAP;
-  std::strcpy(info->name, "Notes");
+  info->supported_dialects = is_input ? (CLAP_NOTE_DIALECT_CLAP | CLAP_NOTE_DIALECT_MIDI)
+                                      : CLAP_NOTE_DIALECT_MIDI;
+  info->preferred_dialect = is_input ? CLAP_NOTE_DIALECT_CLAP : CLAP_NOTE_DIALECT_MIDI;
+  std::strcpy(info->name, is_input ? "Notes" : "Echo");
   return true;
 }
 const clap_plugin_note_ports_t note_ports = {note_count, note_get};
+
+constexpr clap_id last_key_param = 7;
+uint32_t params_count(const clap_plugin_t*)
+{
+  return 1;
+}
+bool params_info(const clap_plugin_t*, uint32_t index, clap_param_info_t* info)
+{
+  if(index > 0)
+    return false;
+  *info = {};
+  info->id = last_key_param;
+  info->flags = CLAP_PARAM_IS_READONLY;
+  std::strcpy(info->name, "Last key");
+  info->min_value = 0;
+  info->max_value = 127;
+  return true;
+}
+bool params_value(const clap_plugin_t*, clap_id id, double* value)
+{
+  *value = 0;
+  return id == last_key_param;
+}
+bool params_to_text(const clap_plugin_t*, clap_id, double, char* out, uint32_t size)
+{
+  if(size > 0)
+    out[0] = 0;
+  return true;
+}
+bool params_from_text(const clap_plugin_t*, clap_id, const char*, double*)
+{
+  return false;
+}
+void params_flush(const clap_plugin_t*, const clap_input_events_t*, const clap_output_events_t*)
+{
+}
+const clap_plugin_params_t params
+    = {params_count, params_info, params_value, params_to_text, params_from_text,
+       params_flush};
+
+//! The system-exclusive message of each key: F0 7D key F7
+uint8_t sysex[128][4];
 
 bool init(const clap_plugin_t*)
 {
@@ -88,6 +133,29 @@ void mark(const clap_process_t* process, uint32_t time, int key)
     else if(out.data64)
       out.data64[1][time] = double(key);
   }
+
+  key &= 127;
+  clap_event_param_value_t value{};
+  value.header = {
+      sizeof(value), time, CLAP_CORE_EVENT_SPACE_ID, CLAP_EVENT_PARAM_VALUE, 0};
+  value.param_id = last_key_param;
+  value.note_id = -1;
+  value.port_index = -1;
+  value.channel = -1;
+  value.key = -1;
+  value.value = key;
+  process->out_events->try_push(process->out_events, &value.header);
+
+  sysex[key][0] = 0xF0;
+  sysex[key][1] = 0x7D;
+  sysex[key][2] = uint8_t(key);
+  sysex[key][3] = 0xF7;
+  clap_event_midi_sysex_t sx{};
+  sx.header = {sizeof(sx), time, CLAP_CORE_EVENT_SPACE_ID, CLAP_EVENT_MIDI_SYSEX, 0};
+  sx.port_index = 0;
+  sx.buffer = sysex[key];
+  sx.size = 4;
+  process->out_events->try_push(process->out_events, &sx.header);
 }
 
 clap_process_status process(const clap_plugin_t*, const clap_process_t* process)
@@ -131,6 +199,8 @@ const void* get_extension(const clap_plugin_t*, const char* id)
     return &audio_ports;
   if(!std::strcmp(id, CLAP_EXT_NOTE_PORTS))
     return &note_ports;
+  if(!std::strcmp(id, CLAP_EXT_PARAMS))
+    return &params;
   return nullptr;
 }
 void on_main_thread(const clap_plugin_t*) { }
