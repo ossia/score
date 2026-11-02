@@ -4,6 +4,8 @@
 
 #include <ossia/detail/algorithms.hpp>
 
+#include <optional>
+
 namespace Process
 {
 
@@ -30,6 +32,9 @@ void loadFixedControls(
 {
   for(const auto& arr : ctrls)
   {
+    // [id, value]; anything else in a preset file is skipped
+    if(!arr.IsArray() || arr.Size() < 2 || !arr[0].IsInt())
+      continue;
     const auto& id = arr[0].GetInt();
     ossia::value val = JsonValue{arr[1]}.to<ossia::value>();
 
@@ -44,6 +49,27 @@ void loadFixedControls(
       }
     }
   }
+}
+
+//! A string in a preset's data; none if it is missing or not a string
+inline std::optional<QString> presetString(const rapidjson::Value& obj, const char* key)
+{
+  if(!obj.IsObject())
+    return {};
+  const auto it = obj.FindMember(key);
+  if(it == obj.MemberEnd() || !it->value.IsString())
+    return {};
+  return QString::fromUtf8(it->value.GetString(), it->value.GetStringLength());
+}
+
+//! The "Controls" of a preset's data, if it has them
+inline void loadPresetControls(const rapidjson::Value& obj, Process::ProcessModel& proc)
+{
+  if(!obj.IsObject())
+    return;
+  if(const auto it = obj.FindMember("Controls");
+     it != obj.MemberEnd() && it->value.IsArray())
+    loadFixedControls(it->value.GetArray(), proc);
 }
 
 template <typename T>
