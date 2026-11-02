@@ -17,6 +17,7 @@ set(HDRS
     "${CMAKE_CURRENT_SOURCE_DIR}/Library/LibrarySettings.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Library/SupportPackages.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Library/LibraryWidget.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Library/PresetFile.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Library/PresetItemModel.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Library/PresetTreeView.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Library/PresetAudition.hpp"

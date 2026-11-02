@@ -7,6 +7,7 @@
 #include <Process/ProcessMimeSerialization.hpp>
 
 #include <Library/LibrarySettings.hpp>
+#include <Library/PresetFile.hpp>
 
 #include <score/application/GUIApplicationContext.hpp>
 #include <score/model/path/PathSerialization.hpp>
@@ -334,11 +335,8 @@ bool PresetItemModel::movePreset(int row, const QString& category)
 
   auto moved = preset;
   moved.category = category;
-  QFile f{preset.path};
-  if(!f.open(QIODevice::WriteOnly | QIODevice::Truncate))
+  if(!writePresetData(preset.path, moved.toJson()))
     return false;
-  f.write(moved.toJson());
-  f.close();
   preset = std::move(moved);
   m_plugin->presetChanged(row);
   return true;
@@ -482,25 +480,29 @@ static bool isValidForFilename(const QString& name)
   if(name.isEmpty())
     return false;
 
-  for(QChar c : QStringLiteral(",^@=+{}[]~!?:&*\"|#%<>$\"';`'"))
+  for(QChar c : QStringLiteral(",^@=+{}[]~!?:&*\"|#%<>$\"';`'/\\"))
     if(name.contains(c))
       return false;
 
   return true;
 }
 
-//! Writes the preset to `path`, made unique, under the name of the file
-static bool writePresetFile(Process::Preset& preset, const QString& path)
+//! Writes the preset to `path`, made unique, under the name of the file. The
+//! file `replaced`, if `path` is it (a rename that only changes the case of
+//! its name on a file system that ignores it), is written over.
+static bool writePresetFile(
+    Process::Preset& preset, const QString& path, const QString& replaced = {})
 {
-  const QString unique = score::addUniqueSuffix(path);
+  const bool same = !replaced.isEmpty() && QFileInfo::exists(path)
+                    && QFileInfo{path}.canonicalFilePath()
+                           == QFileInfo{replaced}.canonicalFilePath();
+  const QString unique = same ? path : score::addUniqueSuffix(path);
   Process::Preset written = preset;
   written.name = QFileInfo{unique}.completeBaseName();
   written.path = unique;
 
-  QFile f{unique};
-  if(!f.open(QIODevice::WriteOnly))
+  if(!writePresetData(unique, written.toJson()))
     return false;
-  f.write(written.toJson());
   preset = std::move(written);
   return true;
 }
@@ -511,7 +513,10 @@ static bool writeNewPreset(Process::Preset& preset)
   const auto& ctx = score::GUIAppContext();
 
   const auto& procs = ctx.interfaces<Process::ProcessFactoryList>();
-  auto& factory = *procs.get(preset.key.key);
+  auto* f = procs.get(preset.key.key);
+  if(!f)
+    return false;
+  auto& factory = *f;
   const auto& desc = factory.descriptor(preset.key.effect); // TODO
   QString presetFolder = ctx.settings<Library::Settings::Model>().getUserPresetsPath();
 
@@ -568,9 +573,11 @@ bool PresetItemModel::setData(const QModelIndex& index, const QVariant& value, i
   const QString old = preset.path;
   auto renamed = preset;
   renamed.name = str;
-  if(!writePresetFile(renamed, QFileInfo{old}.absolutePath() + "/" + str + ".scp"))
+  if(!writePresetFile(renamed, QFileInfo{old}.absolutePath() + "/" + str + ".scp", old))
     return false;
-  QFile::remove(old);
+  // Only once the new file is there, and unless it is the same one
+  if(QFileInfo{renamed.path}.canonicalFilePath() != QFileInfo{old}.canonicalFilePath())
+    QFile::remove(old);
   preset = std::move(renamed);
   m_plugin->presetChanged(row);
   this->renamed(indexOfPreset(row));

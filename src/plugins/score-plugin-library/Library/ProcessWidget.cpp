@@ -6,6 +6,7 @@
 #include <Process/PreviewSettings.hpp>
 #include <Process/ProcessList.hpp>
 
+#include <Library/PresetFile.hpp>
 #include <Library/ItemModelFilterLineEdit.hpp>
 #include <Library/LibraryWidget.hpp>
 #include <Library/PresetItemModel.hpp>
@@ -586,20 +587,18 @@ bool PresetLibraryHandler::onDrop(
   if(!mime.hasFormat(score::mime::processpreset()))
     return false;
 
-  auto json = readJson(mime.data(score::mime::processpreset()));
-  if(!json.HasMember("Name"))
+  const auto data = mime.data(score::mime::processpreset());
+  auto json = readJson(data);
+  if(!json.IsObject() || !json.HasMember("Name") || !json["Name"].IsString())
     return true;
 
-  auto basename = JsonValue{json["Name"]}.toString();
+  // A name, not a path out of the folder it is dropped in
+  const auto basename = QFileInfo{JsonValue{json["Name"]}.toString()}.fileName();
+  if(basename.isEmpty())
+    return false;
   const QString filename
       = score::addUniqueSuffix(parent.absolutePath() + "/" + basename + ".scp");
-
-  QFile f{filename};
-  if(!f.open(QIODevice::WriteOnly))
-    return false;
-
-  f.write(mime.data(score::mime::processpreset()));
-  return true;
+  return writePresetData(filename, data);
 }
 
 }
