@@ -83,6 +83,8 @@ public:
 
 private:
   void loadPreset(const Process::Preset& preset) override;
+  //! One of the plug-in's own programs (builtinPresets)
+  void loadProgram(int index);
   //! Its ports are made once, from the plug-in; a program or a state may
   //! expose more of its parameters as controls, never fewer
   bool presetChangesPorts(const Process::Preset&) const noexcept override
