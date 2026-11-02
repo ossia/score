@@ -340,10 +340,12 @@ void Model::reloadPrograms()
   {
     char effName[128] = {0};
     fx->dispatch(effGetProgramNameIndexed, i, 0, effName);
+    // Some name their programs only once a bank is loaded (Dexed): still
+    // programs to choose from
     if(effName[0] != '\0')
-    {
       m_programs.emplace_back(effName, i);
-    }
+    else
+      m_programs.emplace_back("Program " + std::to_string(i + 1), i);
   }
 }
 
