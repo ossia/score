@@ -30,6 +30,7 @@ set(HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/YSFX/ProcessFactory.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/YSFX/ProcessMetadata.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/YSFX/ProcessModel.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/YSFX/StateGuard.hpp"
 )
 set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/YSFX/ProcessModel.cpp"

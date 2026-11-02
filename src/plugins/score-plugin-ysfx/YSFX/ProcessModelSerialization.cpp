@@ -15,11 +15,16 @@
 
 namespace YSFX
 {
-QByteArray readYSFXState(ysfx_t& fx)
+QByteArray readYSFXState(ysfx_t& fx, StateGuard& guard)
 {
   QByteArray dat;
   {
-    if(auto state = ysfx_save_state(&fx))
+    ysfx_state_t* state{};
+    {
+      StateLock lock{guard};
+      state = ysfx_save_state(&fx);
+    }
+    if(state)
     {
       int64_t sz = state->data_size;
       int64_t sliders = state->slider_count;
@@ -42,7 +47,7 @@ QByteArray readYSFXState(ysfx_t& fx)
   return dat;
 }
 
-void loadYSFXState(ysfx_t& fx, const QByteArray& state)
+void loadYSFXState(ysfx_t& fx, StateGuard& guard, const QByteArray& state)
 {
   if(state.isEmpty())
     return;
@@ -70,6 +75,7 @@ void loadYSFXState(ysfx_t& fx, const QByteArray& state)
   s.slider_count = sliders;
   s.sliders = sliders_data.data();
 
+  StateLock lock{guard};
   ysfx_load_state(&fx, &s);
 }
 }
@@ -79,7 +85,7 @@ void DataStreamReader::read(const YSFX::ProcessModel& proc)
 {
   m_stream << proc.m_jsfx_path << proc.m_text;
   if(proc.fx)
-    m_stream << YSFX::readYSFXState(*proc.fx.get());
+    m_stream << YSFX::readYSFXState(*proc.fx.get(), *proc.stateGuard);
   else
     m_stream << proc.m_saved_state;
 
@@ -112,7 +118,7 @@ void DataStreamWriter::write(YSFX::ProcessModel& proc)
   }
 
   if(proc.fx)
-    YSFX::loadYSFXState(*proc.fx.get(), dat);
+    YSFX::loadYSFXState(*proc.fx.get(), *proc.stateGuard, dat);
   else
     proc.m_saved_state = dat;
 
@@ -128,7 +134,9 @@ void JSONReader::read(const YSFX::ProcessModel& proc)
 {
   obj["Script"] = proc.script();
   obj["Text"] = proc.m_text;
-  obj["Chunk"] = YSFX::readYSFXState(*proc.fx.get()).toBase64();
+  obj["Chunk"] = (proc.fx ? YSFX::readYSFXState(*proc.fx, *proc.stateGuard)
+                          : proc.m_saved_state)
+                     .toBase64();
   readPorts(*this, proc.m_inlets, proc.m_outlets);
 }
 
@@ -155,7 +163,7 @@ void JSONWriter::write(YSFX::ProcessModel& proc)
 
   auto dat = QByteArray::fromBase64(obj["Chunk"].toByteArray());
   if(proc.fx)
-    YSFX::loadYSFXState(*proc.fx.get(), dat);
+    YSFX::loadYSFXState(*proc.fx.get(), *proc.stateGuard, dat);
   else
     proc.m_saved_state = dat;
 
