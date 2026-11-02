@@ -19,7 +19,8 @@ Preset::fromJson(const ProcessFactoryList& procs, const QByteArray& obj) noexcep
   if(!doc.IsObject())
     return {};
 
-  if(!doc.GetObject().HasMember("Key") || !doc.GetObject().HasMember("Preset"))
+  if(!doc.GetObject().HasMember("Key")
+     || !(doc.GetObject().HasMember("Preset") || doc.GetObject().HasMember("PresetData")))
     return {};
 
   JSONWriter wr{doc};
@@ -30,10 +31,17 @@ Preset::fromJson(const ProcessFactoryList& procs, const QByteArray& obj) noexcep
   if(!procs.get(p.key.key))
     return {};
 
-  rapidjson::StringBuffer buf;
-  JsonWriter writer(buf);
-  wr.obj["Preset"].obj.Accept(writer);
-  p.data = QByteArray(buf.GetString(), buf.GetSize());
+  if(auto raw = wr.obj.tryGet("PresetData"))
+  {
+    p.data = QByteArray::fromBase64(raw->toByteArray());
+  }
+  else
+  {
+    rapidjson::StringBuffer buf;
+    JsonWriter writer(buf);
+    wr.obj["Preset"].obj.Accept(writer);
+    p.data = QByteArray(buf.GetString(), buf.GetSize());
+  }
   p.name = wr.obj["Name"].toString();
 
   // Optional: old presets do not have a category
@@ -92,8 +100,17 @@ SCORE_LIB_PROCESS_EXPORT void JSONReader::read(const Process::Preset& p)
     rapidjson::Document doc;
     doc.Parse(p.data.data(), p.data.size());
 
-    stream.Key("Preset");
-    doc.Accept(stream);
+    if(!doc.HasParseError())
+    {
+      stream.Key("Preset");
+      doc.Accept(stream);
+    }
+    else
+    {
+      // A process whose data is not JSON would otherwise be saved as null
+      stream.Key("PresetData");
+      readFrom(QString::fromLatin1(p.data.toBase64()));
+    }
   }
   stream.EndObject();
 }
@@ -106,6 +123,11 @@ SCORE_LIB_PROCESS_EXPORT void JSONWriter::write(Process::Preset& p)
   p.key.key <<= k["Uuid"];
   p.key.effect = k["Effect"].toString();
 
+  if(auto raw = obj.tryGet("PresetData"))
+  {
+    p.data = QByteArray::fromBase64(raw->toByteArray());
+  }
+  else
   {
     // TODO not very optimal...
     rapidjson::StringBuffer buf;

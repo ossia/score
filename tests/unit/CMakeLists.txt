@@ -2731,6 +2731,14 @@ endif()
 # A preset of the library through score's own loader (Preset::fromJson, the
 # load-preset command, the avnd binding's conversion) gives the object the
 # values the preset harnesses give it.
+if(TARGET score_plugin_fx)
+  # A preset file keeps data that is not JSON byte for byte.
+  score_add_test(test_unit_preset_json
+    SOURCES PresetJsonTest.cpp
+    APP
+    PLUGINS score_plugin_fx score_lib_process)
+endif()
+
 if(TARGET score_plugin_avnd AND TARGET score_plugin_fx)
   score_add_test(test_unit_preset_loader
     SOURCES PresetLoaderTest.cpp
