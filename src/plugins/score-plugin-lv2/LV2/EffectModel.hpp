@@ -86,6 +86,8 @@ public:
       to_process_events; // from score to process
 
   ossia::hash_map<uint32_t, std::pair<Process::ControlInlet*, bool>> control_map;
+  //! A port value handed to lilv while it saves a state, which copies it
+  mutable float portValueForState{};
   ossia::hash_map<uint32_t, Process::ControlOutlet*> control_out_map;
 
 private:
