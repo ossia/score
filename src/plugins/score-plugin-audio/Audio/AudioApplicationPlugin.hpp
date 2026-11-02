@@ -42,6 +42,8 @@ private:
   QAction* m_audioEngineAct{};
   QLabel* m_xruns{};
   QAction* m_xrunsAction{};
+  QLabel* m_deviceRate{};
+  QAction* m_deviceRateAction{};
   int64_t m_shownXruns{-1};
   score::VolumeSlider* m_volume{};
 
@@ -56,6 +58,7 @@ private:
 
   void reap_previous_engines();
   void updateXruns();
+  void updateDeviceRate();
   void followDeviceRate();
 
   //! A device rate seen differing from the settings, and for how many timer
