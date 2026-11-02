@@ -147,22 +147,37 @@ void RenderList::init()
   //     qrhivulkan.cpp:6336, from QRhiVulkan::setShaderResources
   // The flag only widens the usage bits the backend requests at creation, so it
   // costs nothing when the texture is merely sampled.
-  constexpr auto emptyFlags = QRhiTexture::UsedWithLoadStore;
+  // Image load/store comes with compute: a backend without it cannot create a
+  // texture asking for it.
+  const QRhiTexture::Flags emptyFlags = rhi.isFeatureSupported(QRhi::Compute)
+                                            ? QRhiTexture::UsedWithLoadStore
+                                            : QRhiTexture::Flags{};
 
   m_emptyTexture = rhi.newTexture(QRhiTexture::RGBA8, QSize{1, 1}, 1, emptyFlags);
   m_emptyTexture->setName("RenderList::m_emptyTexture");
   SCORE_ASSERT(m_emptyTexture->create());
 
+  // A placeholder the backend cannot create (no 3D textures or texture arrays
+  // on OpenGL ES 2 or on the context of the offscreen platform) is the 2D one:
+  // no shader declaring that kind of sampler runs there, and a binding still
+  // never gets a null texture.
+  auto createdOr2D = [&](QRhiTexture* tex) -> QRhiTexture* {
+    if(tex->create())
+      return tex;
+    delete tex;
+    return m_emptyTexture;
+  };
+
   m_emptyTexture3D = rhi.newTexture(
       QRhiTexture::RGBA8, 1, 1, 1, 1,
       QRhiTexture::ThreeDimensional | emptyFlags);
   m_emptyTexture3D->setName("RenderList::m_emptyTexture3D");
-  SCORE_ASSERT(m_emptyTexture3D->create());
+  m_emptyTexture3D = createdOr2D(m_emptyTexture3D);
 
   m_emptyTextureCube = rhi.newTexture(
       QRhiTexture::RGBA8, QSize{1, 1}, 1, QRhiTexture::CubeMap | emptyFlags);
   m_emptyTextureCube->setName("RenderList::m_emptyTextureCube");
-  SCORE_ASSERT(m_emptyTextureCube->create());
+  m_emptyTextureCube = createdOr2D(m_emptyTextureCube);
 
   // Must use newTextureArray — the 6-arg newTexture() overload is for 3D
   // textures (depth > 1 is a volume slice count, not an array layer count),
@@ -171,7 +186,7 @@ void RenderList::init()
   m_emptyTextureArray = rhi.newTextureArray(
       QRhiTexture::RGBA8, /*arraySize*/ 1, QSize(1, 1), 1, emptyFlags);
   m_emptyTextureArray->setName("RenderList::m_emptyTextureArray");
-  SCORE_ASSERT(m_emptyTextureArray->create());
+  m_emptyTextureArray = createdOr2D(m_emptyTextureArray);
 
   m_whiteTexture = rhi.newTexture(QRhiTexture::RGBA8, QSize{1, 1}, 1, emptyFlags);
   m_whiteTexture->setName("RenderList::m_whiteTexture");
@@ -197,16 +212,19 @@ void RenderList::init()
       m_initialBatch->uploadTexture(m_emptyTexture, {e});
     }
     // 3D — one slice
+    if(m_emptyTexture3D != m_emptyTexture)
     {
       QRhiTextureUploadEntry e(0, 0, src);
       m_initialBatch->uploadTexture(m_emptyTexture3D, {e});
     }
     // 2D Array — one layer
+    if(m_emptyTextureArray != m_emptyTexture)
     {
       QRhiTextureUploadEntry e(0, 0, src);
       m_initialBatch->uploadTexture(m_emptyTextureArray, {e});
     }
     // Cube — six faces
+    if(m_emptyTextureCube != m_emptyTexture)
     {
       QRhiTextureUploadDescription cubeDesc;
       QVarLengthArray<QRhiTextureUploadEntry, 6> entries;
@@ -933,17 +951,16 @@ void RenderList::release()
     delete ubo;
   m_outputUBOBySamples.clear();
 
+  // Placeholders the backend could not create are the 2D one
+  for(QRhiTexture** tex : {&m_emptyTexture3D, &m_emptyTextureCube, &m_emptyTextureArray})
+  {
+    if(*tex != m_emptyTexture)
+      delete *tex;
+    *tex = nullptr;
+  }
+
   delete m_emptyTexture;
   m_emptyTexture = nullptr;
-
-  delete m_emptyTexture3D;
-  m_emptyTexture3D = nullptr;
-
-  delete m_emptyTextureCube;
-  m_emptyTextureCube = nullptr;
-
-  delete m_emptyTextureArray;
-  m_emptyTextureArray = nullptr;
 
   delete m_whiteTexture;
   m_whiteTexture = nullptr;
