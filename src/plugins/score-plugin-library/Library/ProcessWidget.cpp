@@ -260,7 +260,8 @@ ProcessWidget::ProcessWidget(const score::GUIApplicationContext& ctx, QWidget* p
     });
     lay->addWidget(save);
     auto close = new QToolButton{&m_targetBar};
-    close->setText(QStringLiteral("x"));
+    close->setIcon(QIcon{score::get_pixmap(":/icons/close_off.png")});
+    close->setAutoRaise(true);
     close->setToolTip(tr("Stop loading the presets into this process"));
     connect(close, &QToolButton::clicked, this, &ProcessWidget::clearTarget);
     lay->addWidget(close);

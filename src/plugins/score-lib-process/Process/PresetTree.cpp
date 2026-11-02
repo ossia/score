@@ -143,7 +143,7 @@ constexpr auto presetCursorProperty = "score_presetCursor";
 void rememberPreset(const Process::ProcessModel& proc, const Process::Preset& preset)
 {
   const_cast<Process::ProcessModel&>(proc).setProperty(
-      presetCursorProperty, QStringList{preset.category, preset.name});
+      presetCursorProperty, QStringList{preset.category, preset.name, preset.path});
 }
 
 QStringList presetCursor(const Process::ProcessModel& proc)
@@ -159,7 +159,9 @@ void setPresetCursor(const Process::ProcessModel& proc, const QStringList& curso
 bool isCurrentPreset(const Process::ProcessModel& proc, const Process::Preset& preset)
 {
   const auto cursor = proc.property(presetCursorProperty).toStringList();
-  return cursor.size() == 2 && cursor[0] == preset.category && cursor[1] == preset.name;
+  // The file tells a library preset from a plug-in's own one of the same name
+  return cursor.size() >= 2 && cursor[0] == preset.category && cursor[1] == preset.name
+         && (cursor.size() < 3 || cursor[2] == preset.path);
 }
 
 bool loadPreset(

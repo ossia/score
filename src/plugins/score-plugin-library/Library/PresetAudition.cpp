@@ -68,7 +68,9 @@ bool PresetAudition::preview(const Process::ProcessModel& proc, const Process::P
   m_cmd.reset(factories.make(&Process::LoadPresetCommandFactory::make, proc, p, ctx));
   if(!m_cmd)
   {
-    rollback();
+    // Back to before the session: its previous preset was undone already
+    Process::setPresetCursor(proc, m_cursorBefore);
+    end();
     return false;
   }
   m_cmd->redo(ctx);

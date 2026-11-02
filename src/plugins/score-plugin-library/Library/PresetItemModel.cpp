@@ -48,6 +48,8 @@ struct PresetItemModel::Node
   int builtin = -1;
   //! A folder of the target's own presets
   bool builtins = false;
+  //! A preset of the user's library, which can be renamed, moved, deleted
+  bool editable = false;
   Node* parent{};
   int row{};
   std::vector<std::unique_ptr<Node>> children;
@@ -89,6 +91,7 @@ PresetItemModel::PresetItemModel(
     {
       build();
       endResetModel();
+      m_current = currentPresetIndex();
     }
     else
     {
@@ -105,6 +108,7 @@ PresetItemModel::PresetItemModel(
   con(*m_plugin, &Process::ApplicationPlugin::presetsCleared, this, [this] {
     build();
     endResetModel();
+    m_current = currentPresetIndex();
   });
 }
 
@@ -155,18 +159,12 @@ void PresetItemModel::setTarget(const Process::ProcessModel* proc)
 
 void PresetItemModel::refreshCurrent()
 {
-  const auto visit = [&](auto& self, const Node& n) -> void {
-    for(auto& c : n.children)
-    {
-      if(c->preset >= 0 || c->builtin >= 0)
-      {
-        const auto idx = indexOf(c.get());
-        dataChanged(idx, idx, {Qt::FontRole});
-      }
-      self(self, *c);
-    }
-  };
-  visit(visit, *m_root);
+  // Only the row that was current and the one that is now are drawn again
+  const QModelIndex now = currentPresetIndex();
+  for(const QModelIndex& idx : {QModelIndex{m_current}, now})
+    if(idx.isValid())
+      dataChanged(idx, idx, {Qt::FontRole});
+  m_current = now;
 }
 
 QModelIndex PresetItemModel::currentPresetIndex() const
@@ -199,6 +197,7 @@ void PresetItemModel::rebuild()
   beginResetModel();
   build();
   endResetModel();
+  m_current = currentPresetIndex();
 }
 
 void PresetItemModel::rebuildSoon()
@@ -255,7 +254,10 @@ void PresetItemModel::build()
           continue;
         n->name = e.preset->name;
         if(e.preset >= presets.data() && e.preset < presets.data() + presets.size())
+        {
           n->preset = int(e.preset - presets.data());
+          n->editable = canEdit(n->preset);
+        }
         else
           n->builtin = int(e.preset - m_builtins.data());
       }
@@ -515,7 +517,7 @@ Qt::ItemFlags PresetItemModel::flags(const QModelIndex& index) const
   f |= Qt::ItemIsSelectable;
   if(preset(index))
     f |= Qt::ItemIsDragEnabled;
-  if(const int row = presetRow(index); row >= 0 && canEdit(row))
+  if(node(index)->editable)
     f |= Qt::ItemIsEditable;
   return f;
 }
@@ -585,7 +587,12 @@ bool PresetItemModel::canEdit(int row) const
   // Packages are replaced when they are updated: only the user's own files
   const QString user = QDir::cleanPath(
       score::GUIAppContext().settings<Library::Settings::Model>().getUserLibraryPath());
-  return QDir::cleanPath(QFileInfo{path}.absoluteFilePath()).startsWith(user + "/");
+#if defined(Q_OS_WIN) || defined(Q_OS_MACOS)
+  constexpr auto cs = Qt::CaseInsensitive;
+#else
+  constexpr auto cs = Qt::CaseSensitive;
+#endif
+  return QDir::cleanPath(QFileInfo{path}.absoluteFilePath()).startsWith(user + "/", cs);
 }
 
 bool PresetItemModel::removePreset(int row)
