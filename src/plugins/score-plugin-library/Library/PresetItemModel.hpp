@@ -113,6 +113,9 @@ private:
   QString categoryKey() const;
   Node& folder(const QStringList& path);
   void rebuild();
+  //! A rebuild for a change that comes with others (a scan adding presets):
+  //! the first now, the rest once at the end of the event loop turn
+  void rebuildSoon();
   void build();
   Node* node(const QModelIndex& index) const;
   QModelIndex indexOf(const Node* n) const;
@@ -127,7 +130,12 @@ private:
   bool m_removingShown{};
   //! Categories created empty, by kind of process (categoryKey)
   std::vector<std::pair<QString, QStringList>> m_emptyCategories;
-  //! The preset being dragged out of the view, to move it within
-  mutable int m_dragged{-1};
+  //! The file of the preset being dragged out of the view, to move it within
+  mutable QString m_dragged;
+  //! The target whose own presets m_builtins are
+  QPointer<const Process::ProcessModel> m_builtinsOf;
+  //! Rebuilt once this event loop turn, and to be again at its end
+  bool m_coalescing{};
+  bool m_stale{};
 };
 }

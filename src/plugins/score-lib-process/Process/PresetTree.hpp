@@ -64,7 +64,7 @@ struct SCORE_LIB_PROCESS_EXPORT PresetTree
 private:
   void addLibrary(std::vector<const Process::Preset*> presets);
   void addBuiltins(const std::vector<Process::Preset>& builtins);
-  static Node& folder(Node& from, const QString& category);
+  static Node& folder(Node& from, const QStringList& path);
 };
 
 //! The preset last loaded into a process, kept on it for the session so that

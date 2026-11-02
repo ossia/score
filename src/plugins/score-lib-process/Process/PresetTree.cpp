@@ -25,17 +25,6 @@ QStringList presetCategoryPath(const QString& category)
 
 namespace
 {
-// By category, then by name: a folder's own presets sort before those of its
-// subfolders, so they come first in it
-bool presetOrder(const Process::Preset* lhs, const Process::Preset* rhs) noexcept
-{
-  const auto a = presetCategoryPath(lhs->category),
-             b = presetCategoryPath(rhs->category);
-  if(a != b)
-    return std::lexicographical_compare(a.begin(), a.end(), b.begin(), b.end());
-  return lhs->name < rhs->name;
-}
-
 void flatten(const PresetTree::Node& n, std::vector<const Process::Preset*>& out)
 {
   for(auto& e : n.entries)
@@ -85,28 +74,39 @@ void PresetTree::addBuiltins(const std::vector<Process::Preset>& builtins)
   root.children.push_back(std::move(node));
   auto& builtin = *root.children.back();
 
-  std::vector<const Process::Preset*> own;
+  std::vector<std::pair<QStringList, const Process::Preset*>> own;
+  own.reserve(builtins.size());
   for(auto& preset : builtins)
-    own.push_back(&preset);
-  std::stable_sort(own.begin(), own.end(), [](auto* lhs, auto* rhs) {
-    return presetCategoryPath(lhs->category) < presetCategoryPath(rhs->category);
+    own.emplace_back(presetCategoryPath(preset.category), &preset);
+  std::stable_sort(own.begin(), own.end(), [](const auto& lhs, const auto& rhs) {
+    return lhs.first < rhs.first;
   });
   // A plug-in's presets keep the order it gives them, within their category
-  for(auto* preset : own)
-    folder(builtin, preset->category).entries.push_back({preset, -1});
+  for(auto& [path, preset] : own)
+    folder(builtin, path).entries.push_back({preset, -1});
 }
 
 void PresetTree::addLibrary(std::vector<const Process::Preset*> presets)
 {
-  std::sort(presets.begin(), presets.end(), presetOrder);
+  // Each category split once, not at each comparison
+  std::vector<std::pair<QStringList, const Process::Preset*>> sorted;
+  sorted.reserve(presets.size());
   for(auto* preset : presets)
-    folder(root, preset->category).entries.push_back({preset, -1});
+    sorted.emplace_back(presetCategoryPath(preset->category), preset);
+  std::sort(sorted.begin(), sorted.end(), [](const auto& lhs, const auto& rhs) {
+    if(lhs.first != rhs.first)
+      return std::lexicographical_compare(
+          lhs.first.begin(), lhs.first.end(), rhs.first.begin(), rhs.first.end());
+    return lhs.second->name < rhs.second->name;
+  });
+  for(auto& [path, preset] : sorted)
+    folder(root, path).entries.push_back({preset, -1});
 }
 
-PresetTree::Node& PresetTree::folder(Node& from, const QString& category)
+PresetTree::Node& PresetTree::folder(Node& from, const QStringList& path)
 {
   Node* current = &from;
-  for(const QString& part : presetCategoryPath(category))
+  for(const QString& part : path)
   {
     auto it = current->childIndex.find(part);
     if(it == current->childIndex.end())
