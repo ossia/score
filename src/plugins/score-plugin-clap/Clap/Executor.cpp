@@ -753,7 +753,7 @@ public:
       const auto idx = it->second;
       if(idx < parameter_outs.size())
         parameter_outs[idx]->data.write_value(
-            ossia::value{ev.value}, static_cast<int64_t>(ev.header.time));
+            ossia::value{ev.value}, m_tick_start + static_cast<int64_t>(ev.header.time));
     }
   }
 
@@ -1045,7 +1045,7 @@ public:
             // sysex7 packets are 64-bit; libremidi::ump.data[0..1] holds it.
             msg.data[0] = static_cast<uint32_t>(r1 >> 32);
             msg.data[1] = static_cast<uint32_t>(r1 & 0xFFFFFFFFu);
-            msg.timestamp = sx.header.time;
+            msg.timestamp = m_tick_start + sx.header.time;
             port_messages.push_back(msg);
           }
         }
