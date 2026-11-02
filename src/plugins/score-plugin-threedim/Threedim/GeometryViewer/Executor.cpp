@@ -8,7 +8,10 @@
 #include <Gfx/GfxExecNode.hpp>
 #include <Gfx/TexturePort.hpp>
 
+#include <score/application/ApplicationContext.hpp>
 #include <score/document/DocumentContext.hpp>
+
+#include <Scenario/Settings/ScenarioSettingsModel.hpp>
 
 #include <ossia/dataflow/port.hpp>
 
@@ -23,7 +26,12 @@ class viewer_node final : public gfx_exec_node
 {
 public:
   using gfx_exec_node::gfx_exec_node;
-  void init() { id = exec_context->ui->register_node(std::make_unique<GeometryViewerNode>()); }
+  void init(std::shared_ptr<SceneMonitor> monitor)
+  {
+    auto node = std::make_unique<GeometryViewerNode>();
+    node->monitor = std::move(monitor);
+    id = exec_context->ui->register_node(std::move(node));
+  }
   ~viewer_node() { exec_context->ui->unregister_node(id); }
   std::string label() const noexcept override { return "Gfx::GeometryViewer_node"; }
 };
@@ -49,7 +57,18 @@ ProcessExecutorComponent::ProcessExecutorComponent(
         con_unvalidated{ctx, i - 2, 0, n});
   }
   n->add_texture_out();
-  n->init();
+
+  // The renderers write the summary of the scene into the monitor; the views
+  // read it while the user lets execution update them
+  auto monitor = std::make_shared<SceneMonitor>();
+  n->init(monitor);
+  auto& settings = score::AppContext().settings<Scenario::Settings::Model>();
+  auto follow = [&element, monitor](bool enabled) {
+    element.setMonitor(enabled ? monitor : nullptr);
+  };
+  follow(settings.getExecutionUpdate());
+  m_executionUpdate = connect(
+      &settings, &Scenario::Settings::Model::ExecutionUpdateChanged, this, follow);
 
   for(auto* outlet : element.outlets())
     if(auto out = qobject_cast<Gfx::TextureOutlet*>(outlet))
@@ -61,6 +80,8 @@ ProcessExecutorComponent::ProcessExecutorComponent(
 
 void ProcessExecutorComponent::cleanup()
 {
+  disconnect(m_executionUpdate);
+  process().setMonitor({});
   for(auto* outlet : this->process().outlets())
     if(auto out = qobject_cast<TextureOutlet*>(outlet))
       out->nodeId = score::gfx::invalid_node_index;

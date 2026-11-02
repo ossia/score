@@ -1,6 +1,9 @@
 #pragma once
 #include <Threedim/ModelDisplay/ModelDisplayNode.hpp>
 
+#include <Threedim/GeometryViewer/SceneMonitor.hpp>
+
+#include <memory>
 #include <optional>
 
 namespace Gfx::GeometryViewer
@@ -9,7 +12,9 @@ namespace Gfx::GeometryViewer
  * Model Display driven by an orbiting camera and viewing modes. Its ports
  * are those of the Geometry viewer process: texture, geometry, mode, yaw,
  * pitch, zoom, centre, field of view, auto-rotate, auto-fit, background,
- * plane, axes.
+ * plane, axes, gizmos.
+ *
+ * A scene arriving on its geometry inlet is drawn in full, see SceneDrawer.
  */
 struct GeometryViewerNode final : score::gfx::ModelDisplayNode
 {
@@ -17,6 +22,14 @@ struct GeometryViewerNode final : score::gfx::ModelDisplayNode
   void processControl(int32_t port, const ossia::value& v) override;
   void process(int32_t port, const ossia::transform3d& v) override;
   bool fitBounds(const ossia::aabb& box) override;
+  std::unique_ptr<score::gfx::ModelSceneDrawer> createSceneDrawer() const override;
+
+  //! Render thread, for the scene drawer
+  int sceneMode() const noexcept { return m_mode; }
+  bool sceneGizmos() const noexcept { return m_gizmos; }
+
+  //! Shared with the views of the process; null when nothing shows it
+  std::shared_ptr<SceneMonitor> monitor;
 
 private:
   //! Frames m_box where the model matrix puts it. Returns whether that moved
@@ -33,6 +46,7 @@ private:
   bool m_autofit{true};
   int m_background{5};
   bool m_plane{true}, m_axes{true};
+  bool m_gizmos{true};
 
   //! The geometry last measured, in its own space, then in world space
   std::optional<ossia::aabb> m_box;

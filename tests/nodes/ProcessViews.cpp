@@ -7,7 +7,9 @@
 // The monitoring processes are also swept while the document plays, each fed
 // by a source of the kind of its first inlet, or by a compute shader's storage
 // buffer for those that read buffers, so that their views refresh from a
-// running node and paint what goes through it.
+// running node and paint what goes through it. A geometry inlet further down
+// gets the geometry source too: a scene of two nodes moving one mesh, which
+// the Geometry viewer summarises for its views.
 //
 // What a view looks like is checked in the running application; this checks
 // that every view builds and paints at all, in every mode and size.
@@ -37,6 +39,8 @@
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Scenario/Settings/ScenarioSettingsModel.hpp>
+
+#include <Threedim/GeometryViewer/SceneMonitor.hpp>
 
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/document/DocumentInterface.hpp>
@@ -403,8 +407,18 @@ TEST_CASE(
       midi = add(*f, f->customConstructionData());
     if(auto* f = factoryNamed(pl, QStringLiteral("ISF Shader")))
       texture = add(*f, QStringLiteral(GFX_TEST_CORPUS_DIR "/isf-xy-pattern.fs"));
-    if(auto* f = factoryNamed(pl, QStringLiteral("Torus")))
+    // A scene rather than a plain geometry: what plain geometry shows is the
+    // single mesh of a scene
+    if(auto* f = factoryNamed(pl, QStringLiteral("Asset Loader")))
+    {
       geometry = add(*f, f->customConstructionData());
+      if(geometry && !geometry->inlets().empty())
+        if(auto* file = qobject_cast<Process::ControlInlet*>(geometry->inlets()[0]))
+          file->setValue(std::string(THREEDIM_TEST_DIR "/shared-mesh-two-nodes.gltf"));
+    }
+    if(!geometry)
+      if(auto* f = factoryNamed(pl, QStringLiteral("Torus")))
+        geometry = add(*f, f->customConstructionData());
     if(auto* f = factoryNamed(pl, QStringLiteral("Compute Shader")))
       buffer = add(*f, QStringLiteral(GFX_TEST_CORPUS_DIR "/csf-storage-items.cs"));
 
@@ -460,6 +474,13 @@ TEST_CASE(
           connect(buffer ? firstOutlet(*buffer, t) : nullptr, proc->inlets()[0]);
         else
           connect(source(t), proc->inlets()[0]);
+        if(t != Process::PortType::Geometry)
+          for(auto* inlet : proc->inlets())
+            if(inlet->type() == Process::PortType::Geometry)
+            {
+              connect(source(Process::PortType::Geometry), inlet);
+              break;
+            }
       }
       monitors.emplace_back(results.size() - 1, proc);
     }
@@ -484,6 +505,20 @@ TEST_CASE(
       r.monitored = proc->monitor() != nullptr;
       if(!sweep::guarded([&] { paintViews(*proc, doc->context(), duration, r, 60); }, r.detail))
         r.crashed = true;
+
+      // The viewer drew the scene in full: both nodes, each with the mesh
+      if(r.name == "Geometry viewer" && proc->monitor())
+      {
+        auto& m = static_cast<Gfx::GeometryViewer::SceneMonitor&>(*proc->monitor());
+        const auto summary = m.latest();
+        CHECK(summary);
+        if(summary)
+        {
+          CHECK(summary->counts.meshes == 2);
+          CHECK(summary->counts.primitives == 2);
+          CHECK(summary->counts.vertices == 6);
+        }
+      }
     }
 
     exec.request_stop();

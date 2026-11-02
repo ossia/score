@@ -17,6 +17,8 @@
 #include <score/tools/Debug.hpp>
 #include <score/tools/SafeCast.hpp>
 
+#include <Threedim/ModelDisplay/ModelSceneDrawer.hpp>
+
 #include <QPainter>
 
 #include <cstring>
@@ -982,38 +984,10 @@ ossia::aabb measureBounds(const ossia::geometry_spec& spec) noexcept
       box.expand(b.max[0], b.max[1], b.max[2]);
       continue;
     }
-
-    using attribute = ossia::geometry::attribute;
-    auto attr = ossia::find_if(g.attributes, [](const attribute& a) {
-      return a.semantic == ossia::attribute_semantic::position;
-    });
-    if(attr == g.attributes.end())
-      attr = ossia::find_if(g.attributes, [](const attribute& a) { return a.location == 0; });
-    if(attr == g.attributes.end()
-       || (attr->format != attribute::float3 && attr->format != attribute::float4)
-       || attr->binding < 0 || attr->binding >= int(g.input.size())
-       || attr->binding >= int(g.bindings.size()))
-      continue;
-    const auto& in = g.input[attr->binding];
-    if(in.buffer < 0 || in.buffer >= int(g.buffers.size()))
-      continue;
-    const auto* cpu = ossia::get_if<ossia::geometry::cpu_buffer>(&g.buffers[in.buffer].data);
-    if(!cpu || !cpu->raw_data)
-      continue;
-    const int64_t element = attr->format == attribute::float3 ? 12 : 16;
-    const int64_t stride = g.bindings[attr->binding].byte_stride > 0
-                               ? g.bindings[attr->binding].byte_stride
-                               : element;
-    const int64_t first = in.byte_offset + attr->byte_offset;
-    const auto* bytes = static_cast<const char*>(cpu->raw_data.get());
-    for(int64_t i = 0; i < g.vertices; i++)
+    if(const auto p = geometryPositionBounds(g); !p.empty())
     {
-      const int64_t at = first + i * stride;
-      if(at < 0 || at + 12 > cpu->byte_size)
-        break;
-      float p[3];
-      std::memcpy(p, bytes + at, sizeof(p));
-      box.expand(p[0], p[1], p[2]);
+      box.expand(p.min[0], p.min[1], p.min[2]);
+      box.expand(p.max[0], p.max[1], p.max[2]);
     }
   }
   return box;
@@ -1150,9 +1124,24 @@ public:
     m_bounds.requested = false;
   }
 
+  //! Draws the scene in full, for the nodes that have one
+  std::unique_ptr<ModelSceneDrawer> m_scene;
+  //! The camera of the last frame, for the scene drawer
+  ModelSceneView m_view;
+
+  bool drawsScene() const noexcept { return m_scene && m_scene->active(); }
+
   //! Measures in memory when it can, else asks the compute pass
   void measure(ModelDisplayNode& n)
   {
+    // A scene: the bounds of everything it draws, where it draws it
+    if(drawsScene())
+    {
+      m_bounds.requested = false;
+      if(const auto& box = m_scene->bounds(); !box.empty() && n.fitBounds(box))
+        this->materialChanged = true;
+      return;
+    }
     if(const auto box = measureBounds(this->geometry); !box.empty())
     {
       m_bounds.requested = false;
@@ -1271,7 +1260,7 @@ public:
       RenderList& renderer, QRhiCommandBuffer& cb, QRhiResourceUpdateBatch*& res,
       Edge& edge) override
   {
-    if(!m_bounds.requested || m_bounds.inFlight)
+    if(!m_bounds.requested || m_bounds.inFlight || drawsScene())
       return;
     const auto src = gpuPositions();
     if(!src.buffer || !ensureBoundsPipeline(renderer))
@@ -1479,7 +1468,7 @@ public:
   void updateGuides(RenderList& renderer, QRhiResourceUpdateBatch& res)
   {
     const auto& g = static_cast<const ModelDisplayNode&>(this->node).guides;
-    if(!g.any())
+    if(!g.any() && !(drawsScene() && m_scene->hasLines()))
     {
       if(m_guideVertices)
         releaseGuides();
@@ -2163,6 +2152,8 @@ private:
 
     m_renderer = nullptr;
 
+    if(m_scene)
+      m_scene->release();
     releaseGuides();
     releaseBounds(r);
     for(auto& pass : m_p)
@@ -2224,7 +2215,9 @@ private:
     {
       auto& model = const_cast<ModelDisplayNode&>(n);
       collectBounds(model);
-      if(this->geometryChanged || m_fitRequest != n.fit_request)
+      const bool sceneChanged = m_scene && m_scene->setScene(this->scene);
+      if(this->geometryChanged || m_fitRequest != n.fit_request
+         || (sceneChanged && drawsScene()))
       {
         m_fitRequest = n.fit_request;
         measure(model);
@@ -2284,6 +2277,11 @@ private:
           QVector3D{n.position[0], n.position[1], n.position[2]},
           QVector3D{n.center[0], n.center[1], n.center[2]},
           QVector3D{n.up[0], n.up[1], n.up[2]});
+      m_view.model = model;
+      m_view.view = view;
+      m_view.eye = QVector3D{n.position[0], n.position[1], n.position[2]};
+      m_view.changed = true;
+
       QMatrix4x4 mv = view * model;
       QMatrix4x4 mvp = projection * view * model;
       QMatrix3x3 norm = model.normalMatrix();
@@ -2400,6 +2398,11 @@ private:
         // exists, so skip the request rather than abort.
         score::gfx::generateMipsIfAny(res, inputRT.texture);
 
+    if(m_scene)
+    {
+      m_scene->update(renderer, res, m_p, m_processUBO, m_material.buffer, m_view);
+      m_view.changed = false;
+    }
     updateGuides(renderer, res);
   }
 
@@ -2407,8 +2410,22 @@ private:
   {
     const auto& mesh = m_mesh ? *m_mesh : renderer.defaultQuad();
     drawGuides(renderer, cb, edge, true);
-    defaultRenderPass(renderer, mesh, cb, edge);
+    if(drawsScene())
+      m_scene->draw(renderer, cb, edge);
+    else
+      defaultRenderPass(renderer, mesh, cb, edge);
     drawGuides(renderer, cb, edge, false);
+    drawSceneLines(renderer, cb, edge);
+  }
+
+  //! The gizmos of the scene, with the line pipeline of the guides
+  void drawSceneLines(RenderList& renderer, QRhiCommandBuffer& cb, Edge& edge)
+  {
+    if(!drawsScene() || !m_guideVertices)
+      return;
+    auto gp = ossia::find_if(m_guidePasses, [&](const auto& g) { return g.edge == &edge; });
+    if(gp != m_guidePasses.end())
+      m_scene->drawLines(renderer, cb, edge, gp->lines, gp->srb);
   }
 
   void removeInputEdge(RenderList& r, Edge& edge) override
@@ -2421,6 +2438,7 @@ private:
     // passes on the next update, once the upstream renderers are gone from
     // the list.
     geometry = {};
+    scene = {};
     m_mesh = nullptr;
     m_meshbufs = {};
     this->geometryChanged = true;
@@ -2440,6 +2458,8 @@ private:
     m_mesh = nullptr;
     m_meshbufs = {};
     this->geometryChanged = true;
+    if(m_scene)
+      m_scene->release();
     releaseGuides();
     releaseBounds(r);
     defaultRelease(r);
@@ -2448,7 +2468,14 @@ private:
 
 NodeRenderer* ModelDisplayNode::createRenderer(RenderList& r) const noexcept
 {
-  return new Renderer{*this};
+  auto* renderer = new Renderer{*this};
+  renderer->m_scene = createSceneDrawer();
+  return renderer;
+}
+
+std::unique_ptr<ModelSceneDrawer> ModelDisplayNode::createSceneDrawer() const
+{
+  return nullptr;
 }
 
 void ModelDisplayNode::processControl(int32_t p, const ossia::value& v)

@@ -3,6 +3,7 @@
 #include <ossia/network/value/value_conversion.hpp>
 
 #include <Threedim/GeometryViewer/Process.hpp>
+#include <Threedim/GeometryViewer/SceneDrawer.hpp>
 
 #include <QMatrix4x4>
 #include <QVector3D>
@@ -93,6 +94,9 @@ void GeometryViewerNode::processControl(int32_t port, const ossia::value& v)
     case 12:
       m_axes = ossia::convert<bool>(v);
       break;
+    case 13:
+      m_gizmos = ossia::convert<bool>(v);
+      break;
     default:
       return;
   }
@@ -104,6 +108,11 @@ void GeometryViewerNode::process(int32_t port, const ossia::transform3d& v)
   ModelDisplayNode::process(port, v);
   if(fit())
     updateCamera();
+}
+
+std::unique_ptr<score::gfx::ModelSceneDrawer> GeometryViewerNode::createSceneDrawer() const
+{
+  return std::make_unique<SceneDrawer>(*this);
 }
 
 bool GeometryViewerNode::fitBounds(const ossia::aabb& box)

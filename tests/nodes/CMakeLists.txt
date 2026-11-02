@@ -15,7 +15,11 @@ score_add_test(test_nodes_process_views
   APP
   PLUGINS score_plugin_scenario score_plugin_engine score_plugin_audio score_lib_process score_lib_inspector)
 target_compile_definitions(test_nodes_process_views PRIVATE
-  GFX_TEST_CORPUS_DIR="${SCORE_ROOT_SOURCE_DIR}/tests/gfx/corpus")
+  GFX_TEST_CORPUS_DIR="${SCORE_ROOT_SOURCE_DIR}/tests/gfx/corpus"
+  THREEDIM_TEST_DIR="${SCORE_ROOT_SOURCE_DIR}/tests/threedim")
+# The monitor of the Geometry viewer, header only
+target_include_directories(test_nodes_process_views PRIVATE
+  "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-threedim")
 
 score_add_test(test_nodes_curves
   SOURCES Curves.cpp

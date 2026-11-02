@@ -8,6 +8,7 @@
 #include <QPen>
 
 #include <array>
+#include <memory>
 
 // clang-format off
 #if defined(_MSC_VER)
@@ -39,6 +40,8 @@
 
 namespace score::gfx
 {
+class ModelSceneDrawer;
+
 /**
  * @brief A node that renders a model to screen.
  */
@@ -57,6 +60,9 @@ public:
   //! The bounds of the geometry, in its own space, when a renderer receives
   //! one it can measure. Returns whether the camera moved.
   virtual bool fitBounds(const ossia::aabb& box) { return false; }
+  //! What draws a scene in full, for each renderer; null: the renderers draw
+  //! the first geometry of the scene only
+  virtual std::unique_ptr<ModelSceneDrawer> createSceneDrawer() const;
   class Renderer;
   ModelCameraUBO ubo;
 

@@ -90,6 +90,7 @@ add_library(
   score_plugin_threedim
   Threedim/ModelDisplay/ModelDisplayNode.hpp
   Threedim/ModelDisplay/ModelDisplayNode.cpp
+  Threedim/ModelDisplay/ModelSceneDrawer.hpp
 
   Threedim/RenderPipeline/RenderPipelineNode.hpp
   Threedim/RenderPipeline/RenderPipelineNode.cpp
@@ -267,6 +268,13 @@ Threedim/GeometryViewer/Node.cpp
 Threedim/GeometryViewer/Metadata.hpp
 Threedim/GeometryViewer/Process.hpp
 Threedim/GeometryViewer/Process.cpp
+Threedim/GeometryViewer/Inspector.hpp
+Threedim/GeometryViewer/Inspector.cpp
+Threedim/GeometryViewer/SceneDrawer.hpp
+Threedim/GeometryViewer/SceneDrawer.cpp
+Threedim/GeometryViewer/SceneMonitor.hpp
+Threedim/GeometryViewer/SceneSummary.hpp
+Threedim/GeometryViewer/SceneSummary.cpp
 Threedim/ModelDisplay/Executor.hpp
   Threedim/ModelDisplay/Executor.cpp
   Threedim/ModelDisplay/Metadata.hpp
@@ -291,6 +299,24 @@ Threedim/ModelDisplay/Executor.hpp
   "${3RDPARTY_FOLDER}/ufbx/ufbx.c"
   score_plugin_threedim.hpp
   score_plugin_threedim.cpp)
+
+# The shaderlib headers the built-in renderers include, as C++ strings.
+# shaderlib/include holds copies of the score-csf-testers package's own,
+# unchanged, so that both shade scenes alike.
+set(_threedim_shaderlib "${CMAKE_CURRENT_SOURCE_DIR}/shaderlib/include")
+set(_threedim_shaderlib_header "// Generated from shaderlib/include by CMakeLists.txt\n#pragma once\nnamespace Threedim::shaderlib\n{\n")
+foreach(_glsl score_scene_common score_pbr_brdf)
+  file(READ "${_threedim_shaderlib}/${_glsl}.glsl" _glsl_source)
+  string(APPEND _threedim_shaderlib_header
+    "inline constexpr const char ${_glsl}[] = R\"_glsl_(${_glsl_source})_glsl_\";\n")
+  set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS
+    "${_threedim_shaderlib}/${_glsl}.glsl")
+endforeach()
+string(APPEND _threedim_shaderlib_header "}\n")
+file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/ShaderLib.hpp.in" "${_threedim_shaderlib_header}")
+configure_file(
+  "${CMAKE_CURRENT_BINARY_DIR}/ShaderLib.hpp.in"
+  "${CMAKE_CURRENT_BINARY_DIR}/Threedim/ShaderLib.hpp" COPYONLY)
 
 set_property(TARGET score_plugin_threedim PROPERTY SCORE_CUSTOM_PCH 1)
 setup_score_plugin(score_plugin_threedim)
