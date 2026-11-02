@@ -17,6 +17,7 @@
 #include <QElapsedTimer>
 #include <QAction>
 #include <QFile>
+#include <QTemporaryDir>
 #include <QMenu>
 #include <QMimeData>
 
@@ -47,7 +48,9 @@ void writePreset(const QString& file, const QString& name)
 struct TestLibrary
 {
   const score::GUIApplicationContext& ctx;
-  QString root = QDir::tempPath() + "/score-tests/library-preset-files";
+  // Its own folder: test runs in parallel do not share one
+  QTemporaryDir dir;
+  QString root = dir.path() + "/library";
   QString package = root + "/packages/somepack/presets/Packaged.scp";
   QString user = root + "/packages/user/presets/Pattern/Mine.scp";
   QString oldRoot;

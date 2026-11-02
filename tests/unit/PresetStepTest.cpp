@@ -11,6 +11,7 @@
 #include <Process/ApplicationPlugin.hpp>
 #include <Process/Preset.hpp>
 #include <Process/Process.hpp>
+#include <Process/PresetTree.hpp>
 
 #include <Effect/EffectLayer.hpp>
 
@@ -34,7 +35,7 @@ const QString pattern_uuid = QStringLiteral("49047204-5c1e-4b54-9f43-2b583f664b2
 QString current(const Process::ProcessModel& proc)
 {
   const auto c = proc.property("score_presetCursor").toStringList();
-  return c.size() == 2 ? c[1] : QString{};
+  return c.size() >= 2 ? c[1] : QString{};
 }
 }
 
@@ -103,5 +104,35 @@ TEST_CASE("the preset button steps through the presets in the menu's order", "[p
     CHECK(current(*proc) == expected[std::size_t(n - 1)]);
 
     pplug.presets = library;
+  });
+}
+
+TEST_CASE(
+    "a library preset is not current for a plug-in's own one of the same name",
+    "[presets]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    auto doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    auto* proc = score::test::add_process(*doc, pattern_uuid, {});
+    REQUIRE(proc);
+
+    Process::Preset library = proc->savePreset();
+    library.name = "Init";
+    library.path = "/some/library/Init.scp";
+    Process::Preset own = library;
+    own.path.clear();
+
+    Process::rememberPreset(*proc, own);
+    CHECK(Process::isCurrentPreset(*proc, own));
+    CHECK(!Process::isCurrentPreset(*proc, library));
+
+    Process::rememberPreset(*proc, library);
+    CHECK(Process::isCurrentPreset(*proc, library));
+    CHECK(!Process::isCurrentPreset(*proc, own));
+
+    // A cursor without a file matches by name
+    Process::setPresetCursor(*proc, {library.category, library.name});
+    CHECK(Process::isCurrentPreset(*proc, library));
   });
 }

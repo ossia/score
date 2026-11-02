@@ -3,6 +3,7 @@
 #include <Process/Process.hpp>
 
 #include <QAbstractItemModel>
+#include <QPersistentModelIndex>
 #include <QPointer>
 
 #include <score_plugin_library_export.h>
@@ -134,6 +135,8 @@ private:
   mutable QString m_dragged;
   //! The target whose own presets m_builtins are
   QPointer<const Process::ProcessModel> m_builtinsOf;
+  //! The row shown as the target's current preset
+  QPersistentModelIndex m_current;
   //! Rebuilt once this event loop turn, and to be again at its end
   bool m_coalescing{};
   bool m_stale{};

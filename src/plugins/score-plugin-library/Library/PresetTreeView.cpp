@@ -166,7 +166,7 @@ void PresetTreeView::paintEvent(QPaintEvent* e)
     return;
 
   QPainter p{this->viewport()};
-  p.drawText(rect(), Qt::AlignLeft, "<No presets>");
+  p.drawText(rect(), Qt::AlignLeft, tr("No presets"));
 }
 
 //! A category's path as typed: "A/B" is B in A

@@ -55,7 +55,7 @@ void spin(int ms)
 QString cursor(const Process::ProcessModel& proc)
 {
   const auto c = proc.property("score_presetCursor").toStringList();
-  return c.size() == 2 ? c[1] : QString{};
+  return c.size() >= 2 ? c[1] : QString{};
 }
 }
 
