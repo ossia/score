@@ -14,6 +14,8 @@
 
 #include <verdigris>
 
+#include <optional>
+
 #include <public.sdk/source/vst/utility/uid.h>
 #define VST_DEFAULT_PARAM_NUMBER_CUTOFF 10
 
@@ -98,6 +100,11 @@ private:
   void create();
   void load();
   void mapAllControls(int numParams);
+  //! The parameter a host changes the plug-in's program with, if it has
+  //! programs and one
+  std::optional<Steinberg::Vst::ParameterInfo> programChangeParameter() const;
+  //! Made with the other controls, so that loading a program only sets it
+  void addProgramChangeControl();
   QByteArray readProcessorState() const;
   QByteArray readControllerState() const;
   void writeState();

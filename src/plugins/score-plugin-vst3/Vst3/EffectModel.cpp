@@ -566,6 +566,7 @@ void Model::create()
     {
       mapAllControls(numParams);
     }
+    addProgramChangeControl();
   }
 }
 
@@ -594,6 +595,9 @@ void Model::load()
       initControl(ctl, nullptr);
     }
   }
+
+  // A document saved before the control was made with the others
+  addProgramChangeControl();
 }
 
 QByteArray Model::readProcessorState() const
@@ -697,30 +701,55 @@ void Model::loadPreset(const Process::Preset& preset)
   }
 }
 
+std::optional<Steinberg::Vst::ParameterInfo> Model::programChangeParameter() const
+{
+  if(!fx.controller || fx.programs.programCount <= 0)
+    return {};
+  Steinberg::Vst::ParameterInfo info{};
+  const int count = fx.controller->getParameterCount();
+  for(int i = 0; i < count; i++)
+    if(fx.controller->getParameterInfo(i, info) == Steinberg::kResultOk
+       && (info.flags & Steinberg::Vst::ParameterInfo::kIsProgramChange))
+      return info;
+  return {};
+}
+
+void Model::addProgramChangeControl()
+{
+  const auto info = programChangeParameter();
+  if(!info || controls.find(info->id) != controls.end())
+    return;
+
+  // Its id follows the others' rather than being random: every peer of a
+  // shared document makes the same one when loading it
+  int id = 0;
+  for(auto* inlet : m_inlets)
+    id = std::max(id, inlet->id().val() + 1);
+  auto ctrl = new ControlInlet{Id<Process::Port>(id), this};
+  ctrl->displayHandledExplicitly = true;
+  ctrl->fxNum = info->id;
+  ctrl->setValue(info->defaultNormalizedValue);
+  ctrl->setName(fromString(info->title));
+  on_addControl_impl(ctrl, &*info);
+}
+
 void Model::loadProgram(int index)
 {
-  if(!fx.controller || index < 0 || index >= fx.programs.programCount)
+  if(index < 0 || index >= fx.programs.programCount)
     return;
 
   // A plug-in changes program through its program-change parameter, the one
   // a host automates: as a control, it reaches the processor too
-  Steinberg::Vst::ParameterInfo info{};
-  bool found = false;
-  const int count = fx.controller->getParameterCount();
-  for(int i = 0; i < count && !found; i++)
-    if(fx.controller->getParameterInfo(i, info) == Steinberg::kResultOk
-       && (info.flags & Steinberg::Vst::ParameterInfo::kIsProgramChange))
-      found = true;
-  if(!found)
+  const auto info = programChangeParameter();
+  if(!info)
+    return;
+  const auto it = controls.find(info->id);
+  if(it == controls.end())
     return;
 
   const int steps
-      = info.stepCount > 0 ? info.stepCount : fx.programs.programCount - 1;
-  const double value = steps > 0 ? std::clamp(double(index) / steps, 0., 1.) : 0.;
-
-  on_addControl(info);
-  if(auto it = controls.find(info.id); it != controls.end())
-    it->second->setValue(value);
+      = info->stepCount > 0 ? info->stepCount : fx.programs.programCount - 1;
+  it->second->setValue(steps > 0 ? std::clamp(double(index) / steps, 0., 1.) : 0.);
 }
 
 Process::Preset Model::savePreset() const noexcept
