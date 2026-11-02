@@ -7,6 +7,7 @@
 #include <Control/DefaultEffectItem.hpp>
 #include <Effect/EffectFactory.hpp>
 #include <YSFX/ProcessMetadata.hpp>
+#include <YSFX/StateGuard.hpp>
 
 #include <score/widgets/PluginWindow.hpp>
 
@@ -24,9 +25,10 @@
 
 namespace YSFX
 {
-//! The script's sliders and its @serialize data
-QByteArray readYSFXState(ysfx_t& fx);
-void loadYSFXState(ysfx_t& fx, const QByteArray& state);
+//! The script's sliders and its @serialize data, while the guard keeps the
+//! audio thread out of the script
+QByteArray readYSFXState(ysfx_t& fx, StateGuard& guard);
+void loadYSFXState(ysfx_t& fx, StateGuard& guard, const QByteArray& state);
 
 class ProcessModel;
 class Window;
@@ -68,6 +70,8 @@ public:
       W_SIGNAL(errorMessage, arg_1, arg_2);
 
   std::shared_ptr<ysfx_t> fx;
+  //! Shared with the executor's node, which runs the same script
+  std::shared_ptr<StateGuard> stateGuard{std::make_shared<StateGuard>()};
 
   std::vector<Process::Preset> builtinPresets() const noexcept override;
 

@@ -317,7 +317,10 @@ void ProcessModel::loadPreset(const Process::Preset& preset)
       auto idx = JsonValue{it->value}.toInt();
       if(idx >= 0 && idx < int(m_bank->preset_count))
       {
-        ysfx_load_state(this->fx.get(), this->m_bank->presets[idx].state);
+        {
+          StateLock lock{*stateGuard};
+          ysfx_load_state(this->fx.get(), this->m_bank->presets[idx].state);
+        }
         // The sliders it set, shown and saved as the controls
         for(uint32_t i = 0; i < ysfx_max_sliders; ++i)
         {
@@ -345,7 +348,7 @@ void ProcessModel::loadPreset(const Process::Preset& preset)
         (void)setText(preset.key.effect);
       if(auto st = obj.FindMember("State"); st != obj.MemberEnd() && fx)
         loadYSFXState(
-            *fx, QByteArray::fromBase64(JsonValue{st->value}.toByteArray()));
+            *fx, *stateGuard, QByteArray::fromBase64(JsonValue{st->value}.toByteArray()));
       if(it->value.IsArray())
         Process::loadFixedControls(it->value.GetArray(), *this);
     }
@@ -379,7 +382,7 @@ Process::Preset ProcessModel::savePreset() const noexcept
   r.stream.StartObject();
   r.stream.Key("Controls");
   Process::saveFixedControls(r, *this);
-  r.obj["State"] = (fx ? readYSFXState(*fx) : m_saved_state).toBase64();
+  r.obj["State"] = (fx ? readYSFXState(*fx, *stateGuard) : m_saved_state).toBase64();
   r.stream.EndObject();
   p.data = r.toByteArray();
   return p;

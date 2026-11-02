@@ -479,6 +479,14 @@ if(TARGET score_plugin_ysfx)
     SOURCES YsfxPresetStateTest.cpp
     APP
     PLUGINS score_plugin_ysfx score_plugin_scenario score_lib_process)
+
+  # A script's state and its audio code never run at once.
+  score_add_test(test_integration_ysfx_state_guard
+    SOURCES YsfxStateGuardTest.cpp
+    APP
+    PLUGINS score_plugin_ysfx score_plugin_engine score_plugin_scenario score_lib_process)
+  target_include_directories(test_integration_ysfx_state_guard PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-ysfx")
 endif()
 
 if(TARGET score_plugin_fx)

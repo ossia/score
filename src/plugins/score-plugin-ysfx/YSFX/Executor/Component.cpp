@@ -26,6 +26,8 @@
 #include <ossia/editor/state/state.hpp>
 
 #include <QEventLoop>
+
+#include <utility>
 #include <QQmlComponent>
 #include <QQmlContext>
 #include <QTimer>
@@ -44,7 +46,7 @@ class ysfx_node final : public ossia::graph_node
 public:
   ysfx_node(
       bool audio_in, bool midi_in, bool audio_out, bool midi_out,
-      std::shared_ptr<ysfx_t>, ossia::execution_state& st);
+      std::shared_ptr<ysfx_t>, std::shared_ptr<StateGuard>, ossia::execution_state& st);
 
   void run(const ossia::token_request& t, ossia::exec_state_facade) noexcept override;
   [[nodiscard]] std::string label() const noexcept override
@@ -53,6 +55,8 @@ public:
   }
 
   void all_notes_off() noexcept override;
+  void release_notes() noexcept;
+  void stash_midi() noexcept;
   void clear() noexcept override
   {
     graph_node::clear();
@@ -60,6 +64,7 @@ public:
   }
 
   std::shared_ptr<ysfx_t> fx;
+  std::shared_ptr<StateGuard> m_guard;
   ossia::execution_state& m_st;
 
   ossia::audio_inlet* audio_in{};
@@ -72,6 +77,8 @@ public:
   ossia::audio_outlet* audio_out{};
   std::vector<ossia::value_port*> sliders;
   int generation = 0;
+  //! An all-notes-off that came while the script's state was in use
+  bool m_pendingNotesOff{};
 };
 
 Component::Component(
@@ -142,7 +149,7 @@ void Component::reload(Execution::Transaction& transaction)
 
   std::shared_ptr<ysfx_node> node = ossia::make_node<ysfx_node>(
       *ctx.execState, has_audio_in, has_midi_in, has_audio_out, has_midi_out, proc.fx,
-      *ctx.execState);
+      proc.stateGuard, *ctx.execState);
   node->generation = this->generation;
   this->node = node;
 
@@ -211,16 +218,24 @@ Component::~Component() { }
 
 ysfx_node::ysfx_node(
     bool has_audio_in, bool has_midi_in, bool has_audio_out, bool has_midi_out,
-    std::shared_ptr<ysfx_t> ffx, ossia::execution_state& st)
+    std::shared_ptr<ysfx_t> ffx, std::shared_ptr<StateGuard> guard,
+    ossia::execution_state& st)
     : fx{std::move(ffx)}
+    , m_guard{std::move(guard)}
     , m_st{st}
 {
   auto y = this->fx.get();
 
-  ysfx_set_block_size(y, st.bufferSize);
-  ysfx_set_sample_rate(y, st.sampleRate);
-  ysfx_set_midi_capacity(y, 512, true);
-  ysfx_init(y);
+  m_deferred_midi.reserve(1024);
+
+  // The node it replaces may still be running the same script
+  {
+    StateLock lock{*m_guard};
+    ysfx_set_block_size(y, st.bufferSize);
+    ysfx_set_sample_rate(y, st.sampleRate);
+    ysfx_set_midi_capacity(y, 512, true);
+    ysfx_init(y);
+  }
 
   if(has_audio_in)
     this->m_inlets.push_back(audio_in = new ossia::audio_inlet);
@@ -271,17 +286,32 @@ void ysfx_node::run(
   {
     // Nothing to render, but the tick's events still belong to the sample the
     // span starts on, which is offset 0 of the next block that covers one.
-    if(this->midi_in)
-    {
-      for(const auto& mess : this->midi_in->data.messages)
-      {
-        if(m_deferred_midi.size() >= 1024)
-          break;
-        m_deferred_midi.push_back(mess);
-      }
-    }
+    stash_midi();
     return;
   }
+
+  // A preset, an undo or a save is reading or writing the script's state:
+  // this tick is silent, its events go to the next one.
+  if(!m_guard->try_enter())
+  {
+    stash_midi();
+    if(audio_out)
+      for(auto& chan : audio_out->data)
+      {
+        if(chan.size() < std::size_t(tick_start + d))
+          chan.resize(tick_start + d);
+        std::fill_n(chan.data() + tick_start, d, 0.);
+      }
+    return;
+  }
+  struct leave_guard
+  {
+    StateGuard& guard;
+    ~leave_guard() { guard.leave(); }
+  } leave{*m_guard};
+
+  if(std::exchange(m_pendingNotesOff, false))
+    release_notes();
 
   // Setup audio input
   double** ins{};
@@ -422,7 +452,30 @@ void ysfx_node::run(
   }
 }
 
+void ysfx_node::stash_midi() noexcept
+{
+  if(!this->midi_in)
+    return;
+  for(const auto& mess : this->midi_in->data.messages)
+  {
+    if(m_deferred_midi.size() >= 1024)
+      break;
+    m_deferred_midi.push_back(mess);
+  }
+}
+
 void ysfx_node::all_notes_off() noexcept
+{
+  if(!m_guard->try_enter())
+  {
+    m_pendingNotesOff = true;
+    return;
+  }
+  release_notes();
+  m_guard->leave();
+}
+
+void ysfx_node::release_notes() noexcept
 {
   auto y = this->fx.get();
   for(int channel = 0; channel < 16; channel++)
