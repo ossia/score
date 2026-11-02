@@ -18,6 +18,9 @@
 #include <ossia/detail/thread.hpp>
 #include <ossia/network/domain/domain.hpp>
 
+#include <QDir>
+#include <QDirIterator>
+#include <QFileInfo>
 #include <QDebug>
 #include <QMenu>
 #include <QThread>
@@ -1663,35 +1666,10 @@ void Model::loadPreset(const Process::Preset& preset)
           return static_cast<int64_t>(to_read);
         };
 
-        // Load the state
+        // Load the state, then show the values it set: the controls are in
+        // the order of the parameters, their ids are score's
         if(state->load(m_plugin->plugin, &stream))
-        {
-          // Update parameters after loading state
-          auto params = (const clap_plugin_params_t*)m_plugin->plugin->get_extension(
-              m_plugin->plugin, CLAP_EXT_PARAMS);
-          if(params)
-          {
-            for(auto& inlet : m_inlets)
-            {
-              if(auto ctl = qobject_cast<Process::ControlInlet*>(inlet))
-              {
-                // Find parameter by ID and update inlet value
-                for(const auto& param_info : m_plugin->m_parameters_ins)
-                {
-                  if(param_info.id == ctl->id().val())
-                  {
-                    double value;
-                    if(params->get_value(m_plugin->plugin, param_info.id, &value))
-                    {
-                      ctl->setValue(value);
-                    }
-                    break;
-                  }
-                }
-              }
-            }
-          }
-        }
+          refreshParamValues();
       }
     }
   }
@@ -1720,16 +1698,18 @@ void Model::loadPreset(const Process::Preset& preset)
         load_key = JsonValue{key_it->value}.toString();
       }
 
-      // For builtin presets, location should be null/empty
-      const char* location_str = "";
-      if(location_kind == CLAP_PRESET_DISCOVERY_LOCATION_FILE && !location.isEmpty())
-      {
-        location_str = location.toUtf8().constData();
-      }
+      // A file's path; nothing for a preset inside the plug-in
+      const QByteArray location_utf8 = location.toUtf8();
+      const QByteArray key_utf8 = load_key.toUtf8();
+      const char* location_str
+          = location_kind == CLAP_PRESET_DISCOVERY_LOCATION_FILE && !location.isEmpty()
+                ? location_utf8.constData()
+                : nullptr;
 
-      preset_load->from_location(
-          m_plugin->plugin, location_kind, location_str,
-          load_key.isEmpty() ? "" : load_key.toUtf8().constData());
+      if(preset_load->from_location(
+             m_plugin->plugin, location_kind, location_str,
+             load_key.isEmpty() ? nullptr : key_utf8.constData()))
+        refreshParamValues();
     }
   }
 }
@@ -1760,36 +1740,48 @@ Process::Preset Model::savePreset() const noexcept
 
 std::vector<Process::Preset> Model::builtinPresets() const noexcept
 {
+  // A plug-in can index thousands of preset files: once per instance
+  if(!m_builtinPresets)
+    m_builtinPresets = discoverPresets();
+  return *m_builtinPresets;
+}
+
+std::vector<Process::Preset> Model::discoverPresets() const noexcept
+{
   std::vector<Process::Preset> presets;
 
   if(!m_plugin || !m_plugin->plugin || !m_plugin->entry)
     return presets;
 
-  // Get the preset discovery factory from the plugin entry
   auto preset_discovery_factory = static_cast<const clap_preset_discovery_factory_t*>(
       m_plugin->entry->get_factory(CLAP_PRESET_DISCOVERY_FACTORY_ID));
-  
   if(!preset_discovery_factory)
-  {
-    // Try the compatibility ID as fallback
     preset_discovery_factory = static_cast<const clap_preset_discovery_factory_t*>(
         m_plugin->entry->get_factory("clap.preset-discovery-factory/draft-2"));
-  }
-
   if(!preset_discovery_factory)
     return presets;
 
-  // Create a temporary indexer to receive preset metadata
-  struct preset_metadata_collector
+  // What the providers declare, copied: their structs only live during the
+  // call that declares them
+  struct location
   {
-    std::vector<Process::Preset>* target_presets;
-    QString plugin_name;
+    uint32_t kind{};
+    QString name;
+    QString path;
+  };
+  struct collector_t
+  {
+    std::vector<Process::Preset>* target_presets{};
     UuidKey<Process::ProcessModel> process_key;
     QString effect_name;
-    std::vector<const clap_preset_discovery_location_t*> locations;
+    std::vector<location> locations;
+    QStringList extensions;
+    // The location being read, for the presets it gives
+    uint32_t kind{};
+    QString path;
+    QString category;
   };
-
-  preset_metadata_collector collector{&presets, this->prettyName(), this->concreteKey(), this->effect()};
+  collector_t collector{&presets, this->concreteKey(), this->effect()};
 
   clap_preset_discovery_indexer_t indexer{};
   indexer.clap_version = CLAP_VERSION;
@@ -1799,133 +1791,143 @@ std::vector<Process::Preset> Model::builtinPresets() const noexcept
   indexer.version = SCORE_TAG_NO_V;
   indexer.indexer_data = &collector;
 
-  // Implement required indexer callbacks
   indexer.declare_filetype = [](const clap_preset_discovery_indexer_t* indexer,
                                 const clap_preset_discovery_filetype_t* filetype) -> bool {
-    return true; // Accept all filetypes for builtin presets
-  };
-
-  indexer.declare_location
-      = [](const clap_preset_discovery_indexer_t* indexer,
-           const clap_preset_discovery_location_t* location) -> bool {
-    auto& self = *(preset_metadata_collector*)indexer->indexer_data;
-    self.locations.push_back(location);
-    return true; // Accept all locations for builtin presets
-  };
-
-  indexer.declare_soundpack = [](const clap_preset_discovery_indexer_t* indexer,
-                                 const clap_preset_discovery_soundpack_t* soundpack) -> bool {
-    return true; // Accept all soundpacks
-  };
-
-  indexer.get_extension = [](const clap_preset_discovery_indexer_t* indexer,
-                             const char* extension_id) -> const void* {
-    return nullptr; // No extensions needed for basic preset discovery
-  };
-
-  // Create metadata receiver to collect preset information
-  clap_preset_discovery_metadata_receiver_t metadata_receiver{};
-  metadata_receiver.receiver_data = &collector;
-
-  metadata_receiver.on_error = [](const clap_preset_discovery_metadata_receiver_t* receiver,
-                                  int32_t os_error,
-                                  const char* error_message) {
-    qWarning() << "CLAP preset discovery error:" << (error_message ? error_message : "Unknown error");
-  };
-
-  metadata_receiver.begin_preset = [](const clap_preset_discovery_metadata_receiver_t* receiver,
-                                      const char* name,
-                                      const char* load_key) -> bool {
-    auto* collector = static_cast<preset_metadata_collector*>(receiver->receiver_data);
-    
-    Process::Preset preset;
-    preset.name = QString::fromUtf8(name ? name : "Unnamed Preset");
-    preset.key.key = collector->process_key;
-    preset.key.effect = collector->effect_name;
-
-    // Store preset location information for loading later
-    JSONReader r;
-    r.stream.StartObject();
-    r.obj["LocationKind"] = static_cast<int>(CLAP_PRESET_DISCOVERY_LOCATION_PLUGIN);
-    r.obj["PresetLocation"] = QString{}; // Empty for builtin presets
-    if(load_key)
-      r.obj["LoadKey"] = QString::fromUtf8(load_key);
-    r.stream.EndObject();
-    preset.data = r.toByteArray();
-
-    collector->target_presets->push_back(std::move(preset));
+    auto& self = *(collector_t*)indexer->indexer_data;
+    if(filetype && filetype->file_extension && *filetype->file_extension)
+      self.extensions.push_back(QString::fromUtf8(filetype->file_extension));
     return true;
   };
-
-  metadata_receiver.add_plugin_id
-      = [](const clap_preset_discovery_metadata_receiver_t* receiver,
-           const clap_universal_plugin_id_t* plugin_id) { SCORE_TODO; };
-
-  metadata_receiver.set_soundpack_id
-      = [](const clap_preset_discovery_metadata_receiver_t* receiver,
-           const char* soundpack_id) { SCORE_TODO; };
-
-  metadata_receiver.set_flags
-      = [](const clap_preset_discovery_metadata_receiver_t* receiver, uint32_t flags) {
-    SCORE_TODO;
+  indexer.declare_location = [](const clap_preset_discovery_indexer_t* indexer,
+                                const clap_preset_discovery_location_t* loc) -> bool {
+    auto& self = *(collector_t*)indexer->indexer_data;
+    if(!loc)
+      return false;
+    self.locations.push_back(
+        {loc->kind, QString::fromUtf8(loc->name ? loc->name : ""),
+         QString::fromUtf8(loc->location ? loc->location : "")});
+    return true;
+  };
+  indexer.declare_soundpack
+      = [](const clap_preset_discovery_indexer_t*,
+           const clap_preset_discovery_soundpack_t*) -> bool { return true; };
+  indexer.get_extension
+      = [](const clap_preset_discovery_indexer_t*, const char*) -> const void* {
+    return nullptr;
   };
 
-  metadata_receiver.add_creator
-      = [](const clap_preset_discovery_metadata_receiver_t* receiver,
-           const char* creator) { SCORE_TODO; };
+  clap_preset_discovery_metadata_receiver_t receiver{};
+  receiver.receiver_data = &collector;
+  receiver.on_error = [](const clap_preset_discovery_metadata_receiver_t*, int32_t,
+                         const char* error_message) {
+    qWarning() << "CLAP preset discovery error:"
+               << (error_message ? error_message : "Unknown error");
+  };
+  receiver.begin_preset = [](const clap_preset_discovery_metadata_receiver_t* r,
+                             const char* name, const char* load_key) -> bool {
+    auto& self = *static_cast<collector_t*>(r->receiver_data);
 
-  metadata_receiver.set_description
-      = [](const clap_preset_discovery_metadata_receiver_t* receiver,
-           const char* description) { SCORE_TODO; };
+    Process::Preset preset;
+    preset.name = QString::fromUtf8(name && *name ? name : "Unnamed Preset");
+    preset.category = self.category;
+    preset.key.key = self.process_key;
+    preset.key.effect = self.effect_name;
 
-  metadata_receiver.set_timestamps =
-      [](const clap_preset_discovery_metadata_receiver_t* receiver,
-         clap_timestamp creation_time, clap_timestamp modification_time) { SCORE_TODO; };
+    // What preset-load needs to find it again
+    JSONReader w;
+    w.stream.StartObject();
+    w.obj["LocationKind"] = static_cast<int>(self.kind);
+    w.obj["PresetLocation"] = self.path;
+    if(load_key)
+      w.obj["LoadKey"] = QString::fromUtf8(load_key);
+    w.stream.EndObject();
+    preset.data = w.toByteArray();
 
-  metadata_receiver.add_feature
-      = [](const clap_preset_discovery_metadata_receiver_t* receiver,
-           const char* feature) { SCORE_TODO; };
+    self.target_presets->push_back(std::move(preset));
+    return true;
+  };
+  // Metadata score does not show
+  receiver.add_plugin_id
+      = [](const clap_preset_discovery_metadata_receiver_t*,
+           const clap_universal_plugin_id_t*) { };
+  receiver.set_soundpack_id
+      = [](const clap_preset_discovery_metadata_receiver_t*, const char*) { };
+  receiver.set_flags = [](const clap_preset_discovery_metadata_receiver_t*, uint32_t) { };
+  receiver.add_creator = [](const clap_preset_discovery_metadata_receiver_t*, const char*) { };
+  receiver.set_description = [](const clap_preset_discovery_metadata_receiver_t* r,
+                                const char* description) {
+    auto& self = *static_cast<collector_t*>(r->receiver_data);
+    if(description && !self.target_presets->empty())
+      self.target_presets->back().description = QString::fromUtf8(description);
+  };
+  receiver.set_timestamps
+      = [](const clap_preset_discovery_metadata_receiver_t*, clap_timestamp,
+           clap_timestamp) { };
+  receiver.add_feature = [](const clap_preset_discovery_metadata_receiver_t*, const char*) { };
+  receiver.add_extra_info
+      = [](const clap_preset_discovery_metadata_receiver_t*, const char*, const char*) { };
 
-  metadata_receiver.add_extra_info
-      = [](const clap_preset_discovery_metadata_receiver_t* receiver, const char* key,
-           const char* value) { SCORE_TODO; };
-
-  // Enumerate all preset providers
-  uint32_t provider_count = preset_discovery_factory->count(preset_discovery_factory);
+  const uint32_t provider_count = preset_discovery_factory->count(preset_discovery_factory);
   for(uint32_t i = 0; i < provider_count; ++i)
   {
-    auto provider_desc = preset_discovery_factory->get_descriptor(preset_discovery_factory, i);
-    if(!provider_desc)
+    auto desc = preset_discovery_factory->get_descriptor(preset_discovery_factory, i);
+    if(!desc)
       continue;
-
-    auto provider = preset_discovery_factory->create(preset_discovery_factory, &indexer, provider_desc->id);
+    collector.locations.clear();
+    collector.extensions.clear();
+    auto provider
+        = preset_discovery_factory->create(preset_discovery_factory, &indexer, desc->id);
     if(!provider)
       continue;
 
-    // Initialize the provider
-    if(provider->init && provider->init(provider))
+    if(provider->init && provider->init(provider) && provider->get_metadata)
     {
-      for(auto loc : collector.locations)
+      for(const auto& loc : collector.locations)
       {
-        if(provider->get_metadata)
+        if(loc.kind == CLAP_PRESET_DISCOVERY_LOCATION_PLUGIN)
         {
-          if(loc->location && strlen(loc->location))
-          {
-            provider->get_metadata(
-                provider, CLAP_PRESET_DISCOVERY_LOCATION_FILE, loc->location,
-                &metadata_receiver);
-          }
-          else
-          {
-            provider->get_metadata(
-                provider, CLAP_PRESET_DISCOVERY_LOCATION_PLUGIN, nullptr,
-                &metadata_receiver);
-          }
+          collector.kind = loc.kind;
+          collector.path.clear();
+          collector.category.clear();
+          provider->get_metadata(provider, loc.kind, nullptr, &receiver);
+          continue;
+        }
+
+        // A file location is a file, or a folder the host walks: each file
+        // of a declared type is asked about, in a folder named after where it is
+        const auto read = [&](const QString& file, const QString& category) {
+          collector.kind = CLAP_PRESET_DISCOVERY_LOCATION_FILE;
+          collector.path = file;
+          collector.category = category;
+          const QByteArray utf8 = file.toUtf8();
+          provider->get_metadata(provider, loc.kind, utf8.constData(), &receiver);
+        };
+        const QFileInfo root{loc.path};
+        if(root.isFile())
+        {
+          read(root.absoluteFilePath(), loc.name);
+          continue;
+        }
+        if(!root.isDir())
+          continue;
+        QStringList filters;
+        for(const auto& ext : collector.extensions)
+          filters.push_back("*." + ext);
+        QDirIterator it{
+            root.absoluteFilePath(), filters, QDir::Files | QDir::Readable,
+            QDirIterator::Subdirectories | QDirIterator::FollowSymlinks};
+        const QDir base{root.absoluteFilePath()};
+        while(it.hasNext())
+        {
+          const QString file = it.next();
+          QString sub = QFileInfo{base.relativeFilePath(file)}.path();
+          if(sub == ".")
+            sub.clear();
+          read(file, sub.isEmpty() ? loc.name : loc.name + "/" + sub);
         }
       }
     }
 
-    // Clean up the provider
     if(provider->destroy)
       provider->destroy(provider);
   }
