@@ -9,6 +9,7 @@
 #include <QPolygonF>
 
 #include <Ui/Monitor/BufferDecode.hpp>
+#include <Ui/Monitor/BufferGather.hpp>
 #include <Ui/Monitor/LayerHelpers.hpp>
 #include <halp/buffer.hpp>
 #include <halp/controls.hpp>
@@ -34,11 +35,16 @@ struct Port;
  *
  * While a view shows it, the node reads the buffer back at most at the rate
  * the views refresh at, and decodes it into floats on the render thread.
+ * A compute pass first gathers the elements read into a buffer of their own,
+ * so that a readback holds them and nothing between them, at most 16 MiB;
+ * without compute shaders or for a buffer that is not a storage buffer, the
+ * range from the first to the last element is read, cut to 16 MiB.
  */
 namespace Ui::BufferView
 {
 using Ui::Monitor::Buffer::ElementType;
 using Ui::Monitor::Buffer::Layout;
+using Ui::Monitor::Buffer::Fallback;
 
 enum class Mode
 {
@@ -61,9 +67,23 @@ struct Frame
   int64_t count{};
   //! Elements the buffer holds under the layout, read back or not
   int64_t available{};
+  //! Index of the element `values` starts with
+  int64_t first{};
+  //! Elements of the buffer from one in `values` to the next
+  int64_t step{1};
   //! Size of the buffer; 0 without one
   int64_t buffer_bytes{};
+  //! Bytes the readback held
+  int64_t read_bytes{};
   Layout layout{};
+  //! Why the elements were read as one contiguous range
+  Fallback fallback{};
+  //! Whether the 16 MiB a readback holds kept `count` below what was asked
+  bool capped{};
+  //! Whether `range` holds the extent of every element from `first` to the
+  //! end, not only of those in `values`
+  bool exact{};
+  Ui::Monitor::Buffer::GatherRange range{};
 };
 
 struct BufferMonitor final : Process::Monitor
@@ -122,9 +142,9 @@ struct Node
     {
       halp_meta(description, "Bytes from one element to the next; 0 when they follow each other")
     } stride;
-    struct : halp::spinbox_i32<"Offset", halp::range{0, 1073741824, 0}>
+    struct : halp::spinbox_i32<"Offset", halp::range{0, 2147483647, 0}>
     {
-      halp_meta(description, "Bytes before the first element")
+      halp_meta(description, "Bytes before element 0")
     } offset;
     struct : halp::spinbox_i32<"Width", halp::range{0, 16384, 0}>
     {
@@ -134,10 +154,24 @@ struct Node
     {
       halp_meta(description, "Fit the scales to the values; off, values are shown from 0 to 1")
     } autoscale;
-    struct : halp::spinbox_i32<"Max elements", halp::range{1, 4194304, 65536}>
+    struct : halp::spinbox_i32<"Max elements", halp::range{1, 1048576, 65536}>
     {
-      halp_meta(description, "Elements read back at most, from the first")
+      halp_meta(
+          description,
+          "Elements read back at most, from the first shown; a readback holds 16 MiB at most")
     } max_elements;
+    // An int control: past 2^31 elements, Offset moves element 0 further
+    struct : halp::spinbox_i32<"First element", halp::range{0, 2147483647, 0}>
+    {
+      halp_meta(description, "Index of the first element shown")
+    } first;
+    struct : halp::toggle_t<bool, "Overview", halp::toggle_setup{.init = false}>
+    {
+      halp_meta(
+          description,
+          "When more elements follow the first than Max elements, show elements spread "
+          "evenly over all of them, and the extent of every one")
+    } overview;
   } inputs;
 
   struct
@@ -160,7 +194,7 @@ struct Node
 private:
   struct Readback;
   void decodeReadback();
-  void publishEmpty(int64_t buffer_bytes, const Layout& l);
+  void publishEmpty(int64_t buffer_bytes, int64_t available, int64_t first, const Layout& l);
 
   std::shared_ptr<Readback> m_readback;
 };
@@ -201,6 +235,8 @@ private:
   QRectF imageRect(QSize& size) const;
   void buildImage() const;
   QString formatValue(float v) const;
+  //! Index in the buffer of the element `i` of the frame
+  int64_t indexOf(int64_t i) const noexcept;
 
   const Process::ControlInlet* m_mode{};
   const Process::ControlInlet* m_width{};
