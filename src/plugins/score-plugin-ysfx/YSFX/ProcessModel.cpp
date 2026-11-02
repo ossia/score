@@ -344,6 +344,14 @@ Process::ScriptChangeResult ProcessModel::setText(const QString& text)
   auto res = reload();
   scriptChanged(m_text);
   return res;
+bool ProcessModel::presetChangesPorts(const Process::Preset& preset) const noexcept
+{
+  const rapidjson::Document doc = readJson(preset.data);
+  if(doc.IsObject() && doc.GetObject().HasMember("ProgramIndex"))
+    return false;
+  return preset.key.effect != effect();
+}
+
 }
 
 Process::ScriptChangeResult ProcessModel::reload()

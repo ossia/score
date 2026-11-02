@@ -17,22 +17,37 @@
 
 #include <QDebug>
 
+#include <algorithm>
 #include <vector>
 
 #include <score_plugin_scenario_export.h>
 
 namespace Scenario::Command
 {
-//! The ids and types of a process's ports, in order
-inline std::vector<std::pair<int, Process::PortType>>
-portSignature(const Process::ProcessModel& proc)
+//! The ids and types of a process's inlets and outlets, in order
+struct PortSignature
 {
-  std::vector<std::pair<int, Process::PortType>> sig;
+  std::vector<std::pair<int, Process::PortType>> inlets, outlets;
+  bool operator==(const PortSignature&) const noexcept = default;
+
+  //! Every port of `before` is still there, in its place, of its type: the
+  //! cables on them are still valid. A plug-in may expose more controls.
+  bool keeps(const PortSignature& before) const noexcept
+  {
+    const auto prefix = [](const auto& now, const auto& old) {
+      return now.size() >= old.size() && std::equal(old.begin(), old.end(), now.begin());
+    };
+    return prefix(inlets, before.inlets) && prefix(outlets, before.outlets);
+  }
+};
+
+inline PortSignature portSignature(const Process::ProcessModel& proc)
+{
+  PortSignature sig;
   for(auto* p : proc.inlets())
-    sig.emplace_back(p->id().val(), p->type());
-  sig.emplace_back(-1, Process::PortType{});
+    sig.inlets.emplace_back(p->id().val(), p->type());
   for(auto* p : proc.outlets())
-    sig.emplace_back(p->id().val(), p->type());
+    sig.outlets.emplace_back(p->id().val(), p->type());
   return sig;
 }
 
@@ -66,7 +81,7 @@ private:
   {
     const auto before = portSignature(proc);
     proc.loadPreset(p);
-    if(portSignature(proc) != before)
+    if(!portSignature(proc).keeps(before))
     {
       // Its cables may now be on ports of another type
       qWarning() << "Loading a preset changed the ports of" << proc.prettyName()

@@ -141,10 +141,11 @@ public:
 
   // Preset functionality
   void loadPreset(const Process::Preset& preset) override;
-  //! The plug-in decides what its state does to its ports
+  //! Its ports are made once, from the plug-in: a state sets parameter
+  //! values, and a parameter layout changing at runtime does not rebuild them
   bool presetChangesPorts(const Process::Preset&) const noexcept override
   {
-    return true;
+    return false;
   }
   Process::Preset savePreset() const noexcept override;
   std::vector<Process::Preset> builtinPresets() const noexcept override;
