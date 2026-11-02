@@ -27,6 +27,7 @@
 #include <ossia/audio/audio_engine.hpp>
 #include <ossia/audio/audio_protocol.hpp>
 
+#include <QDebug>
 #include <QTimer>
 #include <QLabel>
 #include <QToolBar>
@@ -161,6 +162,45 @@ void ApplicationPlugin::timerEvent(QTimerEvent*)
 
   reap_previous_engines();
   updateXruns();
+  followDeviceRate();
+}
+
+void ApplicationPlugin::followDeviceRate()
+{
+  if(!audio || m_updating_audio)
+    return;
+
+  // The device can change rate under a running engine: on PipeWire the rate is
+  // global to the graph and the last client to force one wins. Every node, sound
+  // file and time conversion was set up for the settings' rate, so the engine
+  // has to run again at the device's; asking for ours back instead would take
+  // the rate from the other client, which would then do the same.
+  const int seen = audio->observed_sample_rate.load(std::memory_order_relaxed);
+  auto& set = context.settings<Audio::Settings::Model>();
+  if(seen <= 0 || seen == set.getRate())
+  {
+    m_pendingRate = 0;
+    m_pendingRatePeriods = 0;
+    return;
+  }
+
+  // A graph being reconfigured can go through several rates in a row.
+  if(seen != m_pendingRate)
+  {
+    m_pendingRate = seen;
+    m_pendingRatePeriods = 0;
+    return;
+  }
+  if(++m_pendingRatePeriods < 4)
+    return;
+
+  qWarning() << "Audio: the device now runs at" << seen << "Hz instead of"
+             << set.getRate() << "Hz; restarting the audio engine at" << seen << "Hz";
+  m_pendingRate = 0;
+  m_pendingRatePeriods = 0;
+  set.adoptRate(seen);
+  // Stops the playback, then restarts the engine.
+  set.changed();
 }
 
 void ApplicationPlugin::updateXruns()
@@ -405,8 +445,10 @@ void ApplicationPlugin::start_engine()
           rate = set.getRate();
         if(rate <= 0)
           rate = 44100;
-        set.setBufferSize(bs);
-        set.setRate(rate);
+        // What the device gave, not what was asked: other clients of the
+        // same graph (PipeWire, JACK) may have chosen it.
+        set.adoptBufferSize(bs);
+        set.adoptRate(rate);
       }
       catch(std::exception& e)
       {

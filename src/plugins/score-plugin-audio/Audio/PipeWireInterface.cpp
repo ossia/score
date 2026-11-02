@@ -147,8 +147,8 @@ void PipeWireAudioFactory::setupSettingsWidget(
         int rate = ss[1].toInt(&ok);
         if(ok)
         {
-          m.setBufferSize(buffer_size);
-          m.setRate(rate);
+          m.adoptBufferSize(buffer_size);
+          m.adoptRate(rate);
         }
       }
     }

@@ -56,6 +56,12 @@ private:
 
   void reap_previous_engines();
   void updateXruns();
+  void followDeviceRate();
+
+  //! A device rate seen differing from the settings, and for how many timer
+  //! periods in a row.
+  int m_pendingRate{};
+  int m_pendingRatePeriods{};
 
   std::vector<std::shared_ptr<ossia::audio_engine>> previous_audio;
 };

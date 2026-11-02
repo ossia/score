@@ -56,6 +56,11 @@ public:
       const UuidKey<score::SettingsDelegateFactory>& k, QSettings& set,
       const score::ApplicationContext& ctx);
 
+  //! What the device runs at, for this session: unlike the setters, the
+  //! user's preference stays saved and is asked for at the next start.
+  void adoptRate(int val);
+  void adoptBufferSize(int val);
+
   void changed() E_SIGNAL(SCORE_PLUGIN_AUDIO_EXPORT, changed)
   SCORE_SETTINGS_PARAMETER_HPP(
       SCORE_PLUGIN_AUDIO_EXPORT, Audio::AudioFactory::ConcreteKey, Driver)
