@@ -751,6 +751,14 @@ std::vector<Process::Preset> Model::builtinPresets() const noexcept
     this->fx.units->getProgramName(this->fx.programs.id, i, progName);
 
     p.name = fromString(progName);
+    if(p.name.trimmed().isEmpty())
+    {
+      // A lone unnamed program is a plug-in's only state, not a preset: JUCE
+      // gives one to every plug-in without presets. A named one is kept.
+      if(this->fx.programs.programCount == 1)
+        return {};
+      p.name = QStringLiteral("Program %1").arg(i + 1);
+    }
     p.data = QStringLiteral(R"({ "ProgramIndex": %1 } )").arg(i).toLatin1();
     presets.push_back(p);
   }
