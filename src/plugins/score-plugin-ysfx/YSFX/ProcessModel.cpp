@@ -337,10 +337,22 @@ void ProcessModel::loadPreset(const Process::Preset& preset)
         }
       }
     }
+    if(auto it = obj.FindMember("Controls"); it != obj.MemberEnd())
+    {
+      // A preset saved by savePreset: the script, what it keeps in @serialize,
+      // and its controls
+      if(!preset.key.effect.isEmpty() && preset.key.effect != effect())
+        (void)setText(preset.key.effect);
+      if(auto st = obj.FindMember("State"); st != obj.MemberEnd() && fx)
+        loadYSFXState(
+            *fx, QByteArray::fromBase64(JsonValue{st->value}.toByteArray()));
+      if(it->value.IsArray())
+        Process::loadFixedControls(it->value.GetArray(), *this);
+    }
     return;
   }
 
-  // A preset saved by savePreset: the script and its controls
+  // A preset saved before the state was: the script and its controls
   Process::loadScriptProcessPreset<ProcessModel::p_script>(*this, preset);
 }
 
@@ -359,7 +371,18 @@ QString ProcessModel::effect() const noexcept
 
 Process::Preset ProcessModel::savePreset() const noexcept
 {
-  return Process::saveScriptProcessPreset(*this, this->m_text);
+  auto p = Process::saveScriptProcessPreset(*this, this->m_text);
+
+  // The controls alone do not restore a script that keeps more in @serialize
+  // (a bank preset does load it, so undoing one has to put it back)
+  JSONReader r;
+  r.stream.StartObject();
+  r.stream.Key("Controls");
+  Process::saveFixedControls(r, *this);
+  r.obj["State"] = (fx ? readYSFXState(*fx) : m_saved_state).toBase64();
+  r.stream.EndObject();
+  p.data = r.toByteArray();
+  return p;
 }
 
 Process::ScriptChangeResult ProcessModel::setText(const QString& text)

@@ -13,7 +13,9 @@
 #include <QIODevice>
 #include <QString>
 
-static QByteArray readYSFXState(ysfx_t& fx)
+namespace YSFX
+{
+QByteArray readYSFXState(ysfx_t& fx)
 {
   QByteArray dat;
   {
@@ -40,7 +42,7 @@ static QByteArray readYSFXState(ysfx_t& fx)
   return dat;
 }
 
-static void loadYSFXState(ysfx_t& fx, const QByteArray& state)
+void loadYSFXState(ysfx_t& fx, const QByteArray& state)
 {
   if(state.isEmpty())
     return;
@@ -70,13 +72,14 @@ static void loadYSFXState(ysfx_t& fx, const QByteArray& state)
 
   ysfx_load_state(&fx, &s);
 }
+}
 
 template <>
 void DataStreamReader::read(const YSFX::ProcessModel& proc)
 {
   m_stream << proc.m_jsfx_path << proc.m_text;
   if(proc.fx)
-    m_stream << readYSFXState(*proc.fx.get());
+    m_stream << YSFX::readYSFXState(*proc.fx.get());
   else
     m_stream << proc.m_saved_state;
 
@@ -109,7 +112,7 @@ void DataStreamWriter::write(YSFX::ProcessModel& proc)
   }
 
   if(proc.fx)
-    loadYSFXState(*proc.fx.get(), dat);
+    YSFX::loadYSFXState(*proc.fx.get(), dat);
   else
     proc.m_saved_state = dat;
 
@@ -125,7 +128,7 @@ void JSONReader::read(const YSFX::ProcessModel& proc)
 {
   obj["Script"] = proc.script();
   obj["Text"] = proc.m_text;
-  obj["Chunk"] = readYSFXState(*proc.fx.get()).toBase64();
+  obj["Chunk"] = YSFX::readYSFXState(*proc.fx.get()).toBase64();
   readPorts(*this, proc.m_inlets, proc.m_outlets);
 }
 
@@ -152,7 +155,7 @@ void JSONWriter::write(YSFX::ProcessModel& proc)
 
   auto dat = QByteArray::fromBase64(obj["Chunk"].toByteArray());
   if(proc.fx)
-    loadYSFXState(*proc.fx.get(), dat);
+    YSFX::loadYSFXState(*proc.fx.get(), dat);
   else
     proc.m_saved_state = dat;
 

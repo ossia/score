@@ -24,6 +24,10 @@
 
 namespace YSFX
 {
+//! The script's sliders and its @serialize data
+QByteArray readYSFXState(ysfx_t& fx);
+void loadYSFXState(ysfx_t& fx, const QByteArray& state);
+
 class ProcessModel;
 class Window;
 class SCORE_PLUGIN_YSFX_EXPORT ProcessModel final : public Process::ProcessModel

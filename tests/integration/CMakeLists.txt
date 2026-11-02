@@ -448,6 +448,15 @@ if(TARGET score_plugin_fx)
     PLUGINS score_plugin_fx score_plugin_avnd score_plugin_scenario score_lib_process)
 endif()
 
+if(TARGET score_plugin_ysfx)
+  # A JSFX preset restores what the script keeps in @serialize, and so does
+  # undoing it.
+  score_add_test(test_integration_ysfx_preset_state
+    SOURCES YsfxPresetStateTest.cpp
+    APP
+    PLUGINS score_plugin_ysfx score_plugin_scenario score_lib_process)
+endif()
+
 if(TARGET score_plugin_fx)
   # A preset loads into a process whose presets keep its ports without
   # touching its ports or cables; only a load that can move them does.
