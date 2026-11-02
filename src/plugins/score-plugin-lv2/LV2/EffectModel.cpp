@@ -11,6 +11,7 @@
 #include <LV2/Node.hpp>
 #include <LV2/Window.hpp>
 
+#include <score/serialization/JSONVisitor.hpp>
 #include <score/tools/Bind.hpp>
 #include <score/tools/DeleteAll.hpp>
 #include <score/tools/std/StringHash.hpp>
@@ -37,6 +38,34 @@
 W_OBJECT_IMPL(LV2::Model)
 namespace LV2
 {
+// state:port-save callback: the values of the control inputs, as the user set
+// them, go in a saved state, as the ones a preset restores
+static const void* lv2_get_port_value(
+    const char* port_symbol, void* user_data, uint32_t* size, uint32_t* type)
+{
+  auto* self = static_cast<const LV2::Model*>(user_data);
+  if(!self || !self->plugin || !self->hostContext || !port_symbol)
+    return nullptr;
+
+  LilvWorld* world = self->hostContext->world.me;
+  LilvNode* sym_node = lilv_new_string(world, port_symbol);
+  if(!sym_node)
+    return nullptr;
+  const LilvPort* port = lilv_plugin_get_port_by_symbol(self->plugin, sym_node);
+  lilv_node_free(sym_node);
+  if(!port)
+    return nullptr;
+
+  auto it = self->control_map.find(lilv_port_get_index(self->plugin, port));
+  if(it == self->control_map.end() || !it->second.first)
+    return nullptr;
+
+  self->portValueForState = ossia::convert<float>(it->second.first->value());
+  *size = sizeof(float);
+  *type = self->hostContext->atom_Float_id;
+  return &self->portValueForState;
+}
+
 // state:port-restore callback; canonical type dispatch in Ardour lv2_plugin.cc:313
 static void lv2_set_port_value(
     const char* port_symbol, void* user_data, const void* value,
@@ -47,7 +76,8 @@ static void lv2_set_port_value(
     return;
 
   LilvWorld* world = self->hostContext->world.me;
-  LilvNode* sym_node = lilv_new_uri(world, port_symbol);
+  // A symbol, not a URI: lilv matches ports by node type too
+  LilvNode* sym_node = lilv_new_string(world, port_symbol);
   if(!sym_node)
     return;
 
@@ -448,7 +478,14 @@ std::vector<Process::Preset> Model::builtinPresets() const noexcept
       p.key.key = this->concreteKey();
       p.key.effect = m_effectPath;
       // Store the URI; loadPreset resolves via lilv_state_new_from_world
-      p.data = QByteArray(lilv_node_as_uri(preset_node));
+      // JSON, as a preset's data is stored in files and drags
+      {
+        JSONReader w;
+        w.stream.StartObject();
+        w.obj["Uri"] = QString::fromUtf8(lilv_node_as_uri(preset_node));
+        w.stream.EndObject();
+        p.data = w.toByteArray();
+      }
       result.push_back(std::move(p));
     }
     lilv_nodes_free(presets);
@@ -471,16 +508,38 @@ void Model::loadPreset(const Process::Preset& preset)
   LilvWorld* world = hostContext->world.me;
   auto& map = hostContext->global->map;
 
-  // Built-in path: data is a URI; saved projects may reference unenumerated presets
-  LilvState* state = nullptr;
-  if(LilvNode* uri = lilv_new_uri(world, preset.data.constData()))
+  // {"Uri": a preset of the plug-in} or {"State": a state saved in Turtle};
+  // presets from before were the URI or the Turtle itself
+  QByteArray uri_str, turtle;
   {
-    lilv_world_load_resource(world, uri);
-    state = lilv_state_new_from_world(world, &map, uri);
-    lilv_node_free(uri);
+    rapidjson::Document doc;
+    doc.Parse(preset.data.constData(), preset.data.size());
+    if(!doc.HasParseError() && doc.IsObject())
+    {
+      auto obj = doc.GetObject();
+      if(auto it = obj.FindMember("Uri"); it != obj.MemberEnd() && it->value.IsString())
+        uri_str = it->value.GetString();
+      if(auto it = obj.FindMember("State"); it != obj.MemberEnd() && it->value.IsString())
+        turtle = it->value.GetString();
+    }
+    else
+    {
+      uri_str = turtle = preset.data;
+    }
   }
-  if(!state)
-    state = lilv_state_new_from_string(world, &map, preset.data.constData());
+
+  LilvState* state = nullptr;
+  if(!uri_str.isEmpty())
+  {
+    if(LilvNode* uri = lilv_new_uri(world, uri_str.constData()))
+    {
+      lilv_world_load_resource(world, uri);
+      state = lilv_state_new_from_world(world, &map, uri);
+      lilv_node_free(uri);
+    }
+  }
+  if(!state && !turtle.isEmpty())
+    state = lilv_state_new_from_string(world, &map, turtle.constData());
 
   if(state)
   {
@@ -503,7 +562,8 @@ Process::Preset Model::savePreset() const noexcept
   auto& global = *hostContext->global;
   LilvState* state = lilv_state_new_from_instance(
       plugin, effectContext.instance, &global.map, nullptr, nullptr, nullptr,
-      nullptr, nullptr, nullptr, LV2_STATE_IS_PORTABLE, nullptr);
+      nullptr, lv2_get_port_value, const_cast<Model*>(this), LV2_STATE_IS_PORTABLE,
+      nullptr);
   if(!state)
     return p;
 
@@ -512,7 +572,11 @@ Process::Preset Model::savePreset() const noexcept
       "urn:io.ossia:lv2preset", nullptr);
   if(str)
   {
-    p.data = QByteArray(str);
+    JSONReader w;
+    w.stream.StartObject();
+    w.obj["State"] = QString::fromUtf8(str);
+    w.stream.EndObject();
+    p.data = w.toByteArray();
     free(str);
   }
   lilv_state_free(state);

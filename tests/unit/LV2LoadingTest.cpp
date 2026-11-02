@@ -21,6 +21,8 @@
 #include <Media/AudioPluginCache.hpp>
 
 #include <Process/Dataflow/WidgetInlets.hpp>
+#include <Process/Preset.hpp>
+#include <Process/ProcessList.hpp>
 
 #include <score/model/EntitySerialization.hpp>
 #include <score/serialization/JSONVisitor.hpp>
@@ -898,5 +900,45 @@ TEST_CASE("LV2 CV outputs are outlets, missing ranges are filled in", "[lv2]")
       }
       QCoreApplication::processEvents();
     }
+  });
+}
+
+TEST_CASE("an LV2 preset keeps its control values, through a file or a drag", "[lv2][presets]")
+{
+  prepare_lv2_test_environment();
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    setupLV2(ctx);
+
+    QObject parent;
+    auto* model = new LV2::Model{
+        TimeVal::fromMsecs(1000), gain_name, Id<Process::ProcessModel>{1}, &parent};
+    REQUIRE(model->plugin);
+    REQUIRE(model->effectContext.instance);
+    auto* gain = dynamic_cast<Process::ControlInlet*>(model->inlets()[1]);
+    REQUIRE(gain);
+
+    gain->setValue(0.25f);
+    const auto saved = model->savePreset();
+
+    // Its data is JSON: a preset file or a drag carries it whole
+    const auto read = Process::Preset::fromJson(
+        ctx.interfaces<Process::ProcessFactoryList>(), saved.toJson());
+    REQUIRE(read);
+    rapidjson::Document doc;
+    doc.Parse(read->data.constData(), read->data.size());
+    REQUIRE(doc.IsObject());
+    REQUIRE(doc.HasMember("State"));
+
+    // The value it saved comes back, set on the control by its port symbol
+    gain->setValue(0.75f);
+    model->loadPreset(*read);
+    CHECK(ossia::convert<float>(gain->value()) == Catch::Approx(0.25f));
+
+    // A preset from before, its data the Turtle itself, still loads
+    gain->setValue(0.75f);
+    Process::Preset legacy = *read;
+    legacy.data = QByteArray{doc["State"].GetString()};
+    model->loadPreset(legacy);
+    CHECK(ossia::convert<float>(gain->value()) == Catch::Approx(0.25f));
   });
 }
