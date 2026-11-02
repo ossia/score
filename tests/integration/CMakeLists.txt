@@ -448,6 +448,24 @@ if(TARGET score_plugin_fx)
     PLUGINS score_plugin_fx score_plugin_avnd score_plugin_scenario score_lib_process)
 endif()
 
+if(TARGET score_plugin_clap)
+  # A CLAP instrument that writes its process calls to its output.
+  add_library(clap_block_recorder MODULE clap-block-recorder/BlockRecorder.cpp)
+  target_include_directories(clap_block_recorder PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/3rdparty/clap/include")
+  set_target_properties(clap_block_recorder PROPERTIES PREFIX "" SUFFIX ".clap")
+
+  # A tick longer than a CLAP plug-in's activated block size reaches it in
+  # blocks, each with the notes dated in it.
+  score_add_test(test_integration_clap_tick_blocks
+    SOURCES ClapTickBlocksTest.cpp
+    APP
+    PLUGINS score_plugin_clap score_plugin_engine score_plugin_scenario score_lib_process)
+  add_dependencies(test_integration_clap_tick_blocks clap_block_recorder)
+  target_compile_definitions(test_integration_clap_tick_blocks PRIVATE
+    CLAP_BLOCK_RECORDER_PATH="$<TARGET_FILE:clap_block_recorder>")
+endif()
+
 if(TARGET score_plugin_ysfx)
   # A JSFX preset restores what the script keeps in @serialize, and so does
   # undoing it.

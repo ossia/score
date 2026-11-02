@@ -11,6 +11,8 @@
 
 #include <ossia/detail/hash_map.hpp>
 
+#include <score_plugin_vst_export.h>
+
 #include <verdigris>
 namespace vst
 {
@@ -28,7 +30,7 @@ DESCRIPTION_METADATA(, vst::Model, "")
 namespace vst
 {
 #define VST_FIRST_CONTROL_INDEX(synth) ((synth) ? 2 : 1)
-struct AEffectWrapper
+struct SCORE_PLUGIN_VST_EXPORT AEffectWrapper
 {
   AEffect* fx{};
   VstTimeInfo info;
