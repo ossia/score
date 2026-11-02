@@ -255,15 +255,24 @@ void Model::setRate(int val)
 {
   if(val <= 0)
     val = 44100;
+
+  // Saved even when it is what runs already: the device may have given that
+  // one while the preference was another.
+#if !defined(__EMSCRIPTEN__)
+  QSettings s;
+  s.setValue(Parameters::Rate.key, QVariant::fromValue(val));
+#endif
+  adoptRate(val);
+}
+
+void Model::adoptRate(int val)
+{
+  if(val <= 0)
+    val = 44100;
   if(val == m_Rate)
     return;
 
   m_Rate = val;
-
-#if !defined(__EMSCRIPTEN__)
-  QSettings s;
-  s.setValue(Parameters::Rate.key, QVariant::fromValue(m_Rate));
-#endif
   RateChanged(val);
 }
 
@@ -286,15 +295,24 @@ void Model::setBufferSize(int val)
 {
   if(val <= 0)
     val = 512;
+
+  // Saved even when it is what runs already: the device may have given that
+  // one while the preference was another.
+#if !defined(__EMSCRIPTEN__)
+  QSettings s;
+  s.setValue(Parameters::BufferSize.key, QVariant::fromValue(val));
+#endif
+  adoptBufferSize(val);
+}
+
+void Model::adoptBufferSize(int val)
+{
+  if(val <= 0)
+    val = 512;
   if(val == m_BufferSize)
     return;
 
   m_BufferSize = val;
-
-#if !defined(__EMSCRIPTEN__)
-  QSettings s;
-  s.setValue(Parameters::BufferSize.key, QVariant::fromValue(m_BufferSize));
-#endif
   BufferSizeChanged(val);
 }
 

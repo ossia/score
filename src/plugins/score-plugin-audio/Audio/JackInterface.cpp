@@ -201,14 +201,14 @@ void JackFactory::setupSettingsWidget(
     auto rate_label = new QLabel{QString::number(rate)};
     rate_label->setObjectName("Rate");
     lay->addRow(QObject::tr("Rate"), rate_label);
-    m.setRate(rate);
+    m.adoptRate(rate);
   }
   {
     auto bs = jack_get_buffer_size(clt);
     auto bs_label = new QLabel{QString::number(bs)};
     bs_label->setObjectName("BufferSize");
     lay->addRow(QObject::tr("Buffer size"), bs_label);
-    m.setBufferSize(bs);
+    m.adoptBufferSize(bs);
   }
 
   auto autoconnect = new QCheckBox{w};
