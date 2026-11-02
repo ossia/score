@@ -656,6 +656,61 @@ TEST_CASE(
 }
 
 TEST_CASE(
+    "patternist: a pattern joining mid-bar plays the step of the bar it is on",
+    "[midi][pattern][notes]")
+{
+  // A pattern dropped or added while the document plays, or a box that starts
+  // mid-bar: its steps count from the bar line, not from where it joined.
+  auto node = std::make_shared<pattern_node>();
+  pattern_node_process proc{node};
+  fixture f; // for its execution state
+  auto& port = *node->out.target<ossia::midi_port>();
+  std::vector<Note> kick(16, Note::Rest);
+  kick[0] = Note::Note;
+  std::vector<Note> hat(16, Note::Rest);
+  hat[6] = Note::Note;
+  Pattern p;
+  p.length = 16;
+  p.division = 16;
+  p.lanes = {lane(36, kick), lane(42, hat)};
+  node->patterns = {p};
+
+  const auto struck = [&](int64_t a, int64_t b) {
+    port.messages.clear();
+    ossia::exec_state_facade fac{&f.st};
+    static_cast<ossia::graph_node&>(*node).run(f.musical(a, b), fac);
+    std::set<int> notes;
+    for(auto& m : port.messages)
+      if(cmidi2_ump_get_status_code(m.data) == note_on)
+        notes.insert(cmidi2_ump_get_midi2_note_note(m.data));
+    return notes;
+  };
+
+  SECTION("its first tick is 1.5 quarters into the bar")
+  {
+    CHECK(struck(1500, 1750) == std::set<int>{42});
+  }
+  SECTION("a transport reaches it before its first tick")
+  {
+    // What a process added to a running interval receives.
+    proc.transport(ossia::time_value{1500});
+    CHECK(struck(1500, 1750) == std::set<int>{42});
+  }
+  SECTION("in a later bar")
+  {
+    CHECK(struck(9500, 9750) == std::set<int>{42});
+    CHECK(struck(9750, 12000).empty());
+    CHECK(struck(12000, 12250) == std::set<int>{36});
+  }
+  SECTION("starting on a bar line it starts at step 0")
+  {
+    CHECK(struck(4000, 4250) == std::set<int>{36});
+    CHECK(struck(4250, 5500).empty());
+    CHECK(struck(5500, 5750) == std::set<int>{42});
+  }
+}
+
+TEST_CASE(
     "patternist: controls are held to their range, and NaN ignored",
     "[midi][pattern][notes]")
 {

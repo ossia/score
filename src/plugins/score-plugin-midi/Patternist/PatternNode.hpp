@@ -420,14 +420,29 @@ public:
     const bool timed = !rewinding
                        && tk.musical_end_position > tk.musical_start_position;
 
+    // The steps follow the bar grid wherever the pattern joins it: dropped or
+    // added while the document plays, or in a box that starts mid-bar, it
+    // plays the step it would be on had it started on the last bar line.
+    // Before the transport below, which a process added to a running
+    // interval receives ahead of its first tick.
+    const bool joining
+        = !std::isfinite(origin) && std::isfinite(tk.musical_start_position);
+    if(joining)
+      origin = std::isfinite(tk.musical_start_last_bar)
+                       && tk.musical_start_last_bar <= tk.musical_start_position
+                   ? tk.musical_start_last_bar
+                   : tk.musical_start_position;
+
     if(transport_requested)
     {
       transport_requested = false;
       release_all(tick_start);
       reposition(tk);
     }
-    if(!std::isfinite(origin) && std::isfinite(tk.musical_start_position))
-      origin = tk.musical_start_position;
+    else if(joining && timed)
+    {
+      reposition(tk);
+    }
     if(timed)
       resync(tk);
 

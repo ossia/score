@@ -159,7 +159,7 @@ TEST_CASE("patternist: lane labels", "[midi][pattern]")
 }
 
 TEST_CASE(
-    "patternist: timeline steps start on the first grid point of the process",
+    "patternist: timeline steps count from the bar line the process starts in",
     "[midi][pattern]")
 {
   const auto p = pattern({lane(36, {N, R, R, R})}, 4);
@@ -182,16 +182,34 @@ TEST_CASE(
 
   SECTION("a process starting between two grid points")
   {
-    // 2.5 sixteenths in: the first step is at the third sixteenth.
+    // 2.5 sixteenths in: the first point is the bar's fourth sixteenth, step 3.
     TimeGrid g;
     g.origin = TimeVal{int64_t(2.5 * sixteenth)};
     g.playStart = g.origin;
     const auto s = timelineSlots(p, g, sixteenth, 6.);
     REQUIRE(s.size() == 6);
     CHECK(s[0].x0 == Catch::Approx(0.5));
-    CHECK(s[0].step == 0);
+    CHECK(s[0].step == 3);
+    CHECK(s[0].index == 3);
     CHECK_FALSE(s[0].repeat);
-    CHECK(s[1].step == 1);
+    CHECK(s[1].step == 0);
+    CHECK(s[1].repeat);
+  }
+
+  SECTION("a process starting mid-bar in a later bar")
+  {
+    // Bar 2, beat 2 and a half: six sixteenths into the bar.
+    const auto q = pattern({lane(36, {N})}, 16);
+    TimeGrid g;
+    g.origin = TimeVal{int64_t(22 * sixteenth)};
+    g.playStart = g.origin;
+    const auto s = timelineSlots(q, g, sixteenth, 12.);
+    REQUIRE(s.size() == 12);
+    CHECK(s[0].step == 6);
+    CHECK(s[0].index == 6);
+    CHECK(s[10].step == 0);
+    CHECK(s[10].barStart);
+    CHECK(s[10].repeat);
   }
 
   SECTION("a start offset shows the steps before the process starts as repeats")
@@ -201,9 +219,10 @@ TEST_CASE(
     g.origin = TimeVal{0};
     const auto s = timelineSlots(p, g, sixteenth, 4.);
     REQUIRE(s.size() == 4);
-    CHECK(s[0].step == 2);
+    CHECK(s[0].step == 0);
     CHECK(s[0].repeat);
-    CHECK(s[2].step == 0);
+    CHECK(s[2].step == 2);
+    CHECK(s[2].index == 2);
     CHECK_FALSE(s[2].repeat);
   }
 }

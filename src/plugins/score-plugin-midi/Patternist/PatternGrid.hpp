@@ -20,8 +20,8 @@ struct TimeGrid
 {
   //! Date of the layer's left edge.
   TimeVal origin{};
-  //! Date the process starts playing at: its first step is the first grid
-  //! point from there on.
+  //! Date the process starts playing at: the first grid point from there on
+  //! plays the step of its bar, the steps counting from the bar line.
   TimeVal playStart{};
   //! Sorted by date. Empty, or before the first entry, is 4/4 from 0.
   std::vector<std::pair<TimeVal, ossia::time_signature>> signatures;
@@ -41,8 +41,8 @@ struct StepSlot
   bool beatStart{};
   //! Index of the beat the step falls in, counted from its bar line.
   int beat{};
-  //! Steps between the first one and this one: negative before the process
-  //! starts.
+  //! Steps from the bar line the process starts in to this one, as the engine
+  //! counts them: lower than the first step's before the process starts.
   int64_t index{};
   //! Which of two tones the cell takes: beats alternate, or bars when a step
   //! lasts a beat or more.
