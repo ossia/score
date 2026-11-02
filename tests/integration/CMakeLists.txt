@@ -439,7 +439,15 @@ score_add_test(test_integration_nodal_controls
   GUI
   PLUGINS score_plugin_scenario score_lib_process)
 
-# A cable never lands on a port of another type.
+if(TARGET score_plugin_fx)
+  # Inspector widgets make no command for a value they are shown: one user
+  # action, one undo step.
+  score_add_test(test_integration_inspector_widget_commands
+    SOURCES InspectorWidgetCommandsTest.cpp
+    APP
+    PLUGINS score_plugin_fx score_plugin_avnd score_plugin_scenario score_lib_process)
+endif()
+
 if(TARGET score_plugin_fx)
   # A preset loads into a process whose presets keep its ports without
   # touching its ports or cables; only a load that can move them does.
@@ -449,6 +457,7 @@ if(TARGET score_plugin_fx)
     PLUGINS score_plugin_fx score_plugin_scenario score_lib_process)
 endif()
 
+# A cable never lands on a port of another type.
 if(TARGET score_plugin_fx)
   score_add_test(test_integration_invalid_cable
     SOURCES InvalidCableTest.cpp

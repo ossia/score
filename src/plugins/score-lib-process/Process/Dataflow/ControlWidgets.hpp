@@ -33,6 +33,7 @@
 
 #include <halp/mappers.hpp>
 
+#include <QSignalBlocker>
 #include <QAction>
 #include <QApplication>
 #include <QCheckBox>
@@ -520,7 +521,9 @@ struct IntSpinBox
       CommandDispatcher<>{ctx.commandStack}.submit<SetControlValue<T>>(inlet, val);
     });
 
+    // Showing the value is not editing it: no command from the spin box
     QObject::connect(&inlet, &T::valueChanged, sl, [sl](const ossia::value& val) {
+      QSignalBlocker block{sl};
       sl->setValue(ossia::convert<int>(val));
     });
 
@@ -588,7 +591,9 @@ struct FloatSpinBox
       CommandDispatcher<>{ctx.commandStack}.submit<SetControlValue<T>>(inlet, val);
     });
 
+    // Showing the value is not editing it: no command from the spin box
     QObject::connect(&inlet, &T::valueChanged, sl, [sl](const ossia::value& val) {
+      QSignalBlocker block{sl};
       sl->setValue(ossia::convert<float>(val));
     });
 
@@ -828,7 +833,9 @@ struct Toggle
       CommandDispatcher<>{ctx.commandStack}.submit<SetControlValue<T>>(inlet, val);
     });
 
+    // Showing the value is not editing it: no command from the check box
     QObject::connect(&inlet, &T::valueChanged, sl, [sl](const ossia::value& val) {
+      QSignalBlocker block{sl};
       sl->setChecked(ossia::convert<bool>(val));
     });
 
@@ -987,8 +994,10 @@ struct ChooserToggle
       CommandDispatcher<>{ctx.commandStack}.submit<SetControlValue<T>>(inlet, val);
     });
 
+    // Showing the value is not editing it: no command from the button
     QObject::connect(
         &inlet, &T::valueChanged, toggleBtn, [toggleBtn](const ossia::value& val) {
+      QSignalBlocker block{toggleBtn};
       bool b = ossia::convert<bool>(val);
       if(b && !toggleBtn->isChecked())
         toggleBtn->toggle();
@@ -1041,9 +1050,11 @@ struct LineEdit
     sl->setText(QString::fromStdString(ossia::convert<std::string>(inlet.value())));
     sl->setContentsMargins(0, 0, 0, 0);
     sl->setMinimumWidth(70);
+    // Also emitted when the field loses the focus unchanged
     QObject::connect(sl, &QLineEdit::editingFinished, context, [sl, &inlet, &ctx]() {
-      CommandDispatcher<>{ctx.commandStack}.submit<SetControlValue<T>>(
-          inlet, sl->text().toStdString());
+      ossia::value v{sl->text().toStdString()};
+      if(v != inlet.value())
+        CommandDispatcher<>{ctx.commandStack}.submit<SetControlValue<T>>(inlet, std::move(v));
     });
 
     QObject::connect(&inlet, &T::valueChanged, sl, [sl](const ossia::value& val) {
@@ -1278,10 +1289,11 @@ struct FileChooser
     sl->setContentsMargins(0, 0, 0, 0);
     //sl->setMaximumWidth(70);
 
+    // Also emitted when the field loses the focus unchanged
     QObject::connect(sl, &QLineEdit::editingFinished, context, [sl, &inlet, &ctx]() {
-      auto path = score::relativizeFilePath(sl->text(), ctx);
-      CommandDispatcher<>{ctx.commandStack}.submit<SetControlValue<T>>(
-          inlet, path.toStdString());
+      ossia::value v{score::relativizeFilePath(sl->text(), ctx).toStdString()};
+      if(v != inlet.value())
+        CommandDispatcher<>{ctx.commandStack}.submit<SetControlValue<T>>(inlet, std::move(v));
     });
     QObject::connect(&inlet, &T::valueChanged, sl, [sl](const ossia::value& val) {
       sl->setText(QString::fromStdString(ossia::convert<std::string>(val)));
@@ -1388,10 +1400,11 @@ struct FolderChooser
     sl->setContentsMargins(0, 0, 0, 0);
     //sl->setMaximumWidth(70);
 
+    // Also emitted when the field loses the focus unchanged
     QObject::connect(sl, &QLineEdit::editingFinished, context, [sl, &inlet, &ctx]() {
-      auto path = score::relativizeFilePath(sl->text(), ctx);
-      CommandDispatcher<>{ctx.commandStack}.submit<SetControlValue<T>>(
-          inlet, path.toStdString());
+      ossia::value v{score::relativizeFilePath(sl->text(), ctx).toStdString()};
+      if(v != inlet.value())
+        CommandDispatcher<>{ctx.commandStack}.submit<SetControlValue<T>>(inlet, std::move(v));
     });
     QObject::connect(&inlet, &T::valueChanged, sl, [sl](const ossia::value& val) {
       sl->setText(QString::fromStdString(ossia::convert<std::string>(val)));
