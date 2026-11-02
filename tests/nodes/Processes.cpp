@@ -31,7 +31,7 @@
 // engine state behind — every result has already been collected by then, so the
 // report is still produced.
 //
-// The denylist below is ONLY for factories whose construction cannot be guarded
+// The denylist (SweepGuard.hpp) is ONLY for factories whose construction cannot be guarded
 // at all: LV2 blocks forever scanning the system plugin dirs, and VST/VST3 spawn
 // an off-main-thread module scan that segfaults where siglongjmp cannot recover.
 // All need an external plugin. Every other host/script node (CLAP, Faust,
@@ -59,109 +59,14 @@
 
 #include <catch2/catch_test_macros.hpp>
 
-#include <unistd.h>
+#include "SweepGuard.hpp"
 
-#include <csetjmp>
-#include <csignal>
-
-// Windows shim: no sigsetjmp/siglongjmp, SIGBUS/SIGTRAP/SIGALRM or alarm().
-#if defined(_WIN32)
-#include <csetjmp>
-using sigjmp_buf = std::jmp_buf;
-#define sigsetjmp(buf, save) setjmp(buf)
-#define siglongjmp(buf, val) longjmp(buf, val)
-static inline unsigned int alarm(unsigned int) noexcept { return 0; }
-#define SIGALRM (-1)
-#endif
-
-#include <cstdlib>
 #include <set>
 #include <string>
 #include <vector>
 
 namespace
 {
-// --- crash guard ---------------------------------------------------------
-// Several node constructors can hard-crash (SIGSEGV/SIGABRT) when built with
-// the empty default construction data (e.g. an out-of-bounds registry lookup).
-// We cannot catch those as C++ exceptions, so we install signal handlers and
-// siglongjmp back to a per-factory checkpoint, recording the crash as a RED
-// result and letting the sweep continue to the next factory.
-sigjmp_buf g_crash_jmp;      // per-factory checkpoint
-sigjmp_buf g_teardown_jmp;   // whole-run (document/app teardown) checkpoint
-volatile sig_atomic_t g_in_guard = 0;
-volatile sig_atomic_t g_teardown_guard = 0;
-volatile sig_atomic_t g_last_signal = 0;
-// Triage: when set (SWEEP_NOGUARD), skip the signal handlers entirely so a fault
-// surfaces to a debugger instead of being caught and turned into a RED result.
-bool g_no_guard = false;
-
-extern "C" void sweep_crash_handler(int sig)
-{
-  if(g_in_guard)
-  {
-    g_in_guard = 0;
-    g_last_signal = sig;
-    siglongjmp(g_crash_jmp, sig);
-  }
-  // Some host/gfx nodes leave global or threaded engine state that segfaults at
-  // document teardown, *after* every per-factory result has been collected.
-  // Escape that so the results can still be reported.
-  if(g_teardown_guard)
-  {
-    g_teardown_guard = 0;
-    g_last_signal = sig;
-    siglongjmp(g_teardown_jmp, sig);
-  }
-  // Not inside a guarded region: restore default and re-raise (real crash).
-  std::signal(sig, SIG_DFL);
-  std::raise(sig);
-}
-
-constexpr int g_guarded_signals[]
-    = {SIGSEGV, SIGABRT, SIGFPE, SIGILL
-#if !defined(_WIN32)
-       , SIGBUS, SIGTRAP, SIGALRM
-#endif
-};
-
-void install_crash_handlers()
-{
-  for(int s : g_guarded_signals)
-    std::signal(s, sweep_crash_handler);
-}
-
-void restore_crash_handlers()
-{
-  for(int s : g_guarded_signals)
-    std::signal(s, SIG_DFL);
-}
-
-// UUIDs that cannot be constructed headlessly without crashing the process.
-// Empty by default — populate only if the sweep proves a node hard-crashes on
-// construction (segfault/abort), with a human-readable reason.
-const std::set<std::string> g_construction_denylist = {
-    // LV2: constructing the model spins up the lilv "world" and scans the
-    // system LV2 plugin directories, which blocks indefinitely headlessly.
-    // Needs an external plugin; not sweepable as a bare model.
-    "fd5243ba-70b5-4164-b44a-ecb0dcdc0494", // LV2
-    // VST: constructing with an empty plugin path dereferences a null effect
-    // (crashes in-thread). Needs an external plugin.
-    "be8e6bd3-75f2-4102-8895-8a4eb4ea545a", // VST (2.x)
-    // VST3: construction spawns an asynchronous module-scan on a worker thread
-    // that segfaults off the guarded main thread (longjmp cannot recover a
-    // crash on another thread). Needs an external plugin.
-    "4cc30435-3237-4e94-a79e-1c2bd6b724a1", // VST 3
-    // CLAP: constructing the model with no plugin file loads the host runtime
-    // and traps (SIGTRAP) with no plugin present. Needs an external plugin.
-    "10e8d26d-1d82-4bfc-a9fb-d85ffdf04e5f", // CLAP
-};
-
-// Per-factory watchdog: a construction/round-trip that runs longer than this
-// is aborted via SIGALRM (caught by the crash guard) and recorded as a timeout,
-// so a hanging host-plugin scan cannot wedge the whole sweep.
-constexpr unsigned g_watchdog_seconds = 20;
-
 struct SweepResult
 {
   std::string uuid;
@@ -289,25 +194,8 @@ TEST_CASE("Every process factory instantiates and round-trips", "[nodes][l1][ser
 {
   std::vector<SweepResult> results;
 
-  // Optional triage filter: restrict the sweep to a comma-separated list of
-  // UUIDs. Combined with SWEEP_NOGUARD (below) it lets a debugger stop on the
-  // real crash of a single factory instead of the guard's siglongjmp.
-  std::set<std::string> only;
-  if(const char* v = std::getenv("SWEEP_ONLY"))
-  {
-    std::string s{v}, tok;
-    for(char c : s + ",")
-    {
-      if(c == ',')
-      {
-        if(!tok.empty())
-          only.insert(tok);
-        tok.clear();
-      }
-      else
-        tok.push_back(c);
-    }
-  }
+  // SWEEP_ONLY restricts the sweep to some factories (SweepGuard.hpp)
+  const std::set<std::string> only = sweep::only();
 
   auto sweep = [&](const score::GUIApplicationContext& ctx) {
     score::Document* doc = score::test::new_document(ctx);
@@ -347,7 +235,7 @@ TEST_CASE("Every process factory instantiates and round-trips", "[nodes][l1][ser
         continue;
       }
 
-      if(g_construction_denylist.contains(results[idx].uuid))
+      if(sweep::construction_denylist.contains(results[idx].uuid))
       {
         results[idx].skipped = true;
         results[idx].skip_reason
@@ -355,40 +243,13 @@ TEST_CASE("Every process factory instantiates and round-trips", "[nodes][l1][ser
         continue;
       }
 
-      // SWEEP_NOGUARD: run the factory raw (no crash guard, no watchdog) so a
-      // debugger can stop on the real fault instead of the guard's siglongjmp.
-      if(g_no_guard)
-      {
+      if(!sweep::guarded(
+             [&] {
         sweep_one(
             factory, pl, doc->context(), sweepParent, duration,
             Id<Process::ProcessModel>{id_counter++}, results[idx]);
-        continue;
-      }
-
-      g_in_guard = 1;
-      g_last_signal = 0;
-      if(sigsetjmp(g_crash_jmp, 1) == 0)
-      {
-        alarm(g_watchdog_seconds);
-        sweep_one(
-            factory, pl, doc->context(), sweepParent, duration,
-            Id<Process::ProcessModel>{id_counter++}, results[idx]);
-        alarm(0);
-        g_in_guard = 0;
-      }
-      else
-      {
-        alarm(0);
-        g_in_guard = 0;
+      }, results[idx].detail))
         results[idx].crashed = true;
-        if(g_last_signal == SIGALRM)
-          results[idx].detail += " [TIMEOUT: construction/round-trip exceeded "
-                                 + std::to_string(g_watchdog_seconds) + "s watchdog]";
-        else
-          results[idx].detail
-              += " [CRASHED: fatal signal " + std::to_string((int)g_last_signal)
-                 + " during construction/round-trip]";
-      }
     }
 
     // Detach from the document and intentionally leak: half-constructed models
@@ -396,32 +257,14 @@ TEST_CASE("Every process factory instantiates and round-trips", "[nodes][l1][ser
     sweepParent->setParent(nullptr);
   };
 
-  // Run the sweep under two nested crash guards:
-  //  * per-factory (inside the lambda): a construction/round-trip crash is
-  //    recorded and the sweep continues;
-  //  * teardown (here): if closing the document / tearing down the app
-  //    segfaults on the main thread because a node left global engine state
-  //    behind, escape it — every result has already been collected.
-  g_no_guard = qEnvironmentVariableIsSet("SWEEP_NOGUARD");
-  if(g_no_guard)
-  {
-    // Raw run for debugging: no handlers, no teardown guard.
-    score::test::run_in_app(sweep);
-  }
-  else if(install_crash_handlers(), sigsetjmp(g_teardown_jmp, 1) == 0)
-  {
-    g_teardown_guard = 1;
-    score::test::run_in_app(sweep);
-    g_teardown_guard = 0;
-  }
-  else
-  {
+  // A construction or round-trip crash is recorded per factory and the sweep
+  // goes on; a crash at document or application teardown, once every result is
+  // collected, is escaped.
+  if(!sweep::run_with_teardown_guard([&] { score::test::run_in_app(sweep); }))
     WARN(
         "Document/app teardown crashed (fatal signal "
-        << (int)g_last_signal
+        << (int)sweep::last_signal
         << ") after the sweep completed; results were collected before teardown.");
-  }
-  restore_crash_handlers();
 
   // Optional machine-readable dump (one line per factory) for triage.
   if(qEnvironmentVariableIsSet("SWEEP_DUMP"))
