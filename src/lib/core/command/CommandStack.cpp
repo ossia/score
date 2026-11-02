@@ -113,6 +113,7 @@ void CommandStack::endPendingEdit()
 
 void CommandStack::setIndexQuiet(int index)
 {
+  aboutToChange();
   while(index >= 0 && currentIndex() != index)
   {
     if(index < currentIndex())
@@ -150,6 +151,7 @@ struct Replaying
 
 void CommandStack::undoQuiet()
 {
+  aboutToChange();
   updateStack([&]() {
     auto cmd = m_undoable.pop();
     {
@@ -166,6 +168,7 @@ void CommandStack::undoQuiet()
 
 void CommandStack::redoQuiet()
 {
+  aboutToChange();
   updateStack([&]() {
     auto cmd = m_redoable.pop();
     {
@@ -183,6 +186,7 @@ void CommandStack::redoQuiet()
 
 void CommandStack::redoAndPush(Command* cmd)
 {
+  aboutToChange();
   {
     SelectionStack::Batch b{m_ctx.selectionStack};
     cmd->redo(m_ctx);
@@ -192,6 +196,7 @@ void CommandStack::redoAndPush(Command* cmd)
 
 void CommandStack::push(Command* cmd)
 {
+  aboutToChange();
   updateStack([&]() {
     localCommand(cmd);
 
@@ -215,6 +220,7 @@ void CommandStack::push(Command* cmd)
 
 void CommandStack::redoAndPushQuiet(Command* cmd)
 {
+  aboutToChange();
   {
     SelectionStack::Batch b{m_ctx.selectionStack};
     cmd->redo(m_ctx);
@@ -224,6 +230,7 @@ void CommandStack::redoAndPushQuiet(Command* cmd)
 
 void CommandStack::pushQuiet(Command* cmd)
 {
+  aboutToChange();
   updateStack([&]() {
     // We lose the state we saved
     if(currentIndex() < m_savedIndex)

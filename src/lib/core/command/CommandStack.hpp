@@ -120,6 +120,9 @@ public:
   void sig_redo() E_SIGNAL(SCORE_LIB_BASE_EXPORT, sig_redo)
   void sig_push() E_SIGNAL(SCORE_LIB_BASE_EXPORT, sig_push)
   void sig_indexChanged() E_SIGNAL(SCORE_LIB_BASE_EXPORT, sig_indexChanged)
+  //! Before a command is pushed, undone or redone, while the stack is still
+  //! as it was: what holds an uncommitted edit commits it there
+  void aboutToChange() E_SIGNAL(SCORE_LIB_BASE_EXPORT, aboutToChange)
 
   void setIndex(int index);
   W_INVOKABLE(setIndex)

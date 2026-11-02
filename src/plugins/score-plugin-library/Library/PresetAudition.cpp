@@ -45,9 +45,10 @@ bool PresetAudition::preview(const Process::ProcessModel& proc, const Process::P
     m_doc = &ctx.document;
     m_cursorBefore = Process::presetCursor(proc);
     ctx.commandStack.disableActions();
-    // Anything else that reaches the history ends the session first
+    // Anything else that changes the history (a command, an undo, a jump in
+    // the history) ends the session first, so that its step comes before
     m_pushed = connect(
-        &ctx.document.commandStack(), &score::CommandStack::sig_push, this,
+        &ctx.document.commandStack(), &score::CommandStack::aboutToChange, this,
         [this] { commit(); });
     m_gone = connect(&proc, &QObject::destroyed, this, [this] {
       // Its document went with it: nothing to undo or to keep
