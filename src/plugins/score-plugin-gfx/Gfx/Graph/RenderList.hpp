@@ -3,11 +3,13 @@
 #include <Gfx/Graph/GpuTiming.hpp>
 #include <Gfx/Graph/Node.hpp>
 #include <Gfx/Graph/Quirks.hpp>
+#include <Gfx/Graph/TextureKind.hpp>
 
 #include <ossia/detail/flat_map.hpp>
 #include <ossia/detail/flat_set.hpp>
 #include <ossia/detail/hash_map.hpp>
 
+#include <array>
 #include <chrono>
 #include <memory>
 
@@ -691,6 +693,8 @@ private:
     Pipeline pipeline;
     MeshBuffers mesh;
     QRhiTexture* source{};
+    //! The kind of texture the pipeline samples
+    TextureKind kind{};
     //! What the last readback recorded writes into, when its frame completes
     std::shared_ptr<QRhiReadbackResult> readback;
     //! The last frame of the list that hosted the tap
@@ -698,6 +702,8 @@ private:
     void release();
   };
   std::vector<PreviewTapTarget> m_previewTaps;
+  //! The shaders the taps draw with, per kind of texture, compiled once
+  std::array<std::pair<QShader, QShader>, texture_kind_count> m_previewShaders;
   //! The readbacks of taps gone away, kept until the frames that may still
   //! complete them have: on a swapchain a readback completes frames later.
   struct RetiredPreviewReadback

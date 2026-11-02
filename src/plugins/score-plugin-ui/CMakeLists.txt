@@ -25,6 +25,8 @@ add_library(
   "${CMAKE_CURRENT_SOURCE_DIR}/Ui/Tuner.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Ui/Tuner.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Ui/Monitor/SpectrumAnalysis.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Ui/Monitor/TextureLayers.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Ui/Monitor/TextureShapeMonitor.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Ui/TextBox.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Ui/ValueDisplay.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Ui/VUMeter.hpp"

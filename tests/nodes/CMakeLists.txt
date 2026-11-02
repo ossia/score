@@ -17,9 +17,10 @@ score_add_test(test_nodes_process_views
 target_compile_definitions(test_nodes_process_views PRIVATE
   GFX_TEST_CORPUS_DIR="${SCORE_ROOT_SOURCE_DIR}/tests/gfx/corpus"
   THREEDIM_TEST_DIR="${SCORE_ROOT_SOURCE_DIR}/tests/threedim")
-# The monitor of the Geometry viewer, header only
+# The monitors of the Geometry viewer and of the texture views, header only
 target_include_directories(test_nodes_process_views PRIVATE
-  "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-threedim")
+  "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-threedim"
+  "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-ui")
 
 score_add_test(test_nodes_curves
   SOURCES Curves.cpp

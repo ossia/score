@@ -2,12 +2,14 @@
 #include <QGraphicsSceneHoverEvent>
 
 #include <Ui/Monitor/LayerHelpers.hpp>
+#include <Ui/Monitor/TextureLayers.hpp>
 #include <Gfx/Widgets/OutletPreviewLayer.hpp>
 #include <halp/controls.hpp>
 #include <halp/meta.hpp>
 #include <halp/texture.hpp>
 
 #include <array>
+#include <memory>
 #include <optional>
 
 class QRhi;
@@ -33,6 +35,10 @@ struct Edge;
  * One compute pass writes the inspected image, which is the texture output
  * and what the node shows. False colour, zebra and gamut follow the Video
  * Monitor shader of the library.
+ *
+ * A 3D texture, an array or a cube map shows one slice, layer or face, or all
+ * of them side by side: see Ui::Monitor::Layout. The pass has a variant for
+ * each kind of texture, built the first time the input is one.
  */
 namespace Ui::TextureView
 {
@@ -146,6 +152,9 @@ struct Node
     {
       halp_meta(description, "Where the reference starts, from the left, in Wipe mode")
     } wipe;
+    Ui::Monitor::LayoutControl layout;
+    Ui::Monitor::SliceControl slice;
+    Ui::Monitor::LayerControl layer;
   } inputs;
 
   struct
@@ -161,6 +170,9 @@ struct Node
     } resolution;
   } outputs;
 
+  std::shared_ptr<Ui::Monitor::TextureShapeMonitor> monitor
+      = std::make_shared<Ui::Monitor::TextureShapeMonitor>();
+
   Node();
   ~Node();
 
@@ -174,13 +186,17 @@ struct Node
 private:
   void setBindings(QRhiTexture* input, QRhiTexture* reference);
   bool resizeOutput(QSize sz);
+  //! The pass for an input of `kind`, built the first time it is asked for.
+  QRhiComputePipeline* pipeline(score::gfx::RenderList& r, score::gfx::TextureKind kind);
 
   QRhi* m_rhi{};
   QRhiBuffer* m_params{};
   QRhiTexture* m_out{};
   QRhiSampler* m_sampler{};
   QRhiShaderResourceBindings* m_srb{};
-  QRhiComputePipeline* m_pipeline{};
+  std::array<QRhiComputePipeline*, score::gfx::texture_kind_count> m_pipelines{};
+  //! The kinds whose shader did not build, not tried again
+  std::array<bool, score::gfx::texture_kind_count> m_failed{};
   void* m_boundInput{};
   void* m_boundReference{};
   int m_frame{};
@@ -199,6 +215,8 @@ protected:
 
 private:
   std::array<float, 2> resolution() const;
+  score::gfx::TextureShape textureShape() const;
+  const Process::ProcessModel& m_process;
   const Process::ControlOutlet* m_resolution{};
   std::optional<QPointF> m_hover;
 };
