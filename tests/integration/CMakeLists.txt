@@ -2011,3 +2011,10 @@ score_add_test(test_integration_piano_roll_selection_scale
   SOURCES PianoRollSelectionScaleTest.cpp
   GUI
   PLUGINS score_plugin_scenario score_lib_process score_plugin_midi)
+
+# They change the library's root in the test profile they share: one at a time
+foreach(_t test_integration_faust_library_path_saving test_integration_consolidation)
+  if(TEST ${_t})
+    set_property(TEST ${_t} APPEND PROPERTY RESOURCE_LOCK score_library_root)
+  endif()
+endforeach()

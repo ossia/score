@@ -2251,3 +2251,10 @@ score_add_gfx_test(csf_image_format GfxCsfImageFormat.cpp)
 score_add_gfx_test(csf_read_only_image_format GfxCsfReadOnlyImageFormat.cpp)
 score_add_gfx_test(library_parse GfxLibraryParse.cpp)
 score_add_gfx_test(shader_include_invalidation GfxShaderIncludeInvalidation.cpp)
+
+# They change the library's root in the test profile they share: one at a time
+foreach(_t test_gfx_shader_include_path)
+  if(TEST ${_t})
+    set_property(TEST ${_t} APPEND PROPERTY RESOURCE_LOCK score_library_root)
+  endif()
+endforeach()

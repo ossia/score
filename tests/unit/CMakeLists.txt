@@ -2798,3 +2798,10 @@ foreach(_preset_test
       "SCORE_TEST_PRESETS_ROOT=\"${SCORE_ROOT_SOURCE_DIR}/tests/fixtures/presets\"")
   endif()
 endforeach()
+
+# They change the library's root in the test profile they share: one at a time
+foreach(_t test_unit_locate_file_path test_unit_midi_device_picker test_unit_packagemanager_firstrun)
+  if(TEST ${_t})
+    set_property(TEST ${_t} APPEND PROPERTY RESOURCE_LOCK score_library_root)
+  endif()
+endforeach()

@@ -20,3 +20,10 @@ score_add_test(test_library_preset_tree
   SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/LibraryPresetTreeTest.cpp"
   APP
   PLUGINS score_plugin_library score_lib_process)
+
+# They change the library's root in the test profile they share: one at a time
+foreach(_t test_library_publish)
+  if(TEST ${_t})
+    set_property(TEST ${_t} APPEND PROPERTY RESOURCE_LOCK score_library_root)
+  endif()
+endforeach()
