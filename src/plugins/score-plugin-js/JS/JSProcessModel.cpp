@@ -975,6 +975,19 @@ void ProcessModel::loadPreset(const Process::Preset& preset)
   setState(st);
 }
 
+bool ProcessModel::presetChangesPorts(const Process::Preset& preset) const noexcept
+{
+  if(scriptPresetChangesPorts(preset))
+    return true;
+  // A script edited from its file is still named after the file
+  const rapidjson::Document doc = readJson(preset.data);
+  if(doc.IsObject())
+    if(auto it = doc.FindMember("Script"); it != doc.MemberEnd() && it->value.IsString())
+      return QString::fromUtf8(it->value.GetString(), it->value.GetStringLength())
+             != m_program.execution;
+  return false;
+}
+
 Process::Preset ProcessModel::savePreset() const noexcept
 {
   auto p = Process::saveScriptProcessPreset(*this, effect());

@@ -218,12 +218,25 @@ void Model::loadPreset(const Process::Preset& preset)
   if(!obj.HasMember("Shader"))
     return;
 
-  (void)this->setScript(obj["Shader"].GetString());
+  // The same shader keeps its ports: only its controls change
+  const QString shader = obj["Shader"].GetString();
+  const bool changed = shader != m_script;
+  if(changed)
+    (void)this->setScript(shader);
 
   auto controls = obj["Controls"].GetArray();
   Process::loadFixedControls(controls, *this);
 
-  programChanged();
+  if(changed)
+    programChanged();
+}
+
+bool Model::presetChangesPorts(const Process::Preset& preset) const noexcept
+{
+  const rapidjson::Document doc = readJson(preset.data);
+  if(!doc.IsObject() || !doc.HasMember("Shader"))
+    return false;
+  return QString{doc["Shader"].GetString()} != m_script;
 }
 
 Process::Preset Model::savePreset() const noexcept

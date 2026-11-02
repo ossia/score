@@ -264,6 +264,11 @@ bool ProcessModel::presetChangesPorts(const Preset& preset) const noexcept
   return !preset.key.effect.isEmpty() && preset.key.effect != effect();
 }
 
+bool ProcessModel::scriptPresetChangesPorts(const Preset& preset) const noexcept
+{
+  return !preset.key.effect.isEmpty() && preset.key.effect != effect();
+}
+
 void ProcessModel::ancestorStartDateChanged() { }
 
 void ProcessModel::ancestorTempoChanged() { }

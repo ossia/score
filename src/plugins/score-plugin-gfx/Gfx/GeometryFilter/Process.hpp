@@ -70,6 +70,7 @@ public:
 private:
   void loadPreset(const Process::Preset& preset) override;
   Process::Preset savePreset() const noexcept override;
+  bool presetChangesPorts(const Process::Preset& preset) const noexcept override;
   void setupIsf(const isf::descriptor& d);
   //void setupNormalShader();
   QString prettyName() const noexcept override;

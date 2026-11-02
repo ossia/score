@@ -230,12 +230,25 @@ void Model::loadPreset(const Process::Preset& preset)
   if(!obj.HasMember("Compute"))
     return;
 
-  (void)this->setScript(obj["Compute"].GetString());
+  // The same shader keeps its ports: only its controls change
+  const QString compute = obj["Compute"].GetString();
+  const bool changed = compute != m_compute;
+  if(changed)
+    (void)this->setScript(compute);
 
   auto controls = obj["Controls"].GetArray();
   Process::loadFixedControls(controls, *this);
 
-  programChanged(); // FIXME make sure this is done like EditScript
+  if(changed)
+    programChanged(); // FIXME make sure this is done like EditScript
+}
+
+bool Model::presetChangesPorts(const Process::Preset& preset) const noexcept
+{
+  const rapidjson::Document doc = readJson(preset.data);
+  if(!doc.IsObject() || !doc.HasMember("Compute"))
+    return false;
+  return QString{doc["Compute"].GetString()} != m_compute;
 }
 
 Process::Preset Model::savePreset() const noexcept

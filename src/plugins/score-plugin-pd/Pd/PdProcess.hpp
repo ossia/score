@@ -96,6 +96,10 @@ private:
   QString effect() const noexcept override;
   void loadPreset(const Process::Preset& preset) override;
   Process::Preset savePreset() const noexcept override;
+  bool presetChangesPorts(const Process::Preset& p) const noexcept override
+  {
+    return scriptPresetChangesPorts(p);
+  }
   void init();
   QString m_script;
   PatchSpec m_spec;

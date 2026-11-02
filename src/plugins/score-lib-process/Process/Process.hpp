@@ -169,6 +169,9 @@ public:
   //! script or controls (DynamicPorts), or a preset of another script, do;
   //! controls only given values do not.
   virtual bool presetChangesPorts(const Preset& preset) const noexcept;
+  //! presetChangesPorts for a process whose ports come from its script
+  //! (effect()) alone: a preset of the same script keeps them.
+  bool scriptPresetChangesPorts(const Preset& preset) const noexcept;
 
   // Called when an ancestor was moved in the timeline
   virtual void ancestorStartDateChanged();
