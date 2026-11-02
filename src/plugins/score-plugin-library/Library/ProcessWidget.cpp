@@ -46,8 +46,15 @@ class InfoWidget final : public QScrollArea
 {
 public:
   InfoWidget(QWidget* parent)
+      : QScrollArea{parent}
   {
-    auto lay = new score::MarginLess<QVBoxLayout>{this};
+    // A long description scrolls rather than taking the presets' room
+    setWidgetResizable(true);
+    setFrameShape(QFrame::NoFrame);
+    setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    setMaximumHeight(160);
+    auto content = new QWidget;
+    auto lay = new score::MarginLess<QVBoxLayout>{content};
     lay->setAlignment(Qt::AlignTop);
     lay->setContentsMargins(6, 6, 6, 6);
     QFont f;
@@ -68,11 +75,28 @@ public:
     m_documentationLink.setAlignment(Qt::AlignBottom);
     lay->addStretch(2);
     lay->addWidget(&m_documentationLink);
+    setWidget(content);
     setVisible(false);
+  }
+
+  //! As tall as its text, up to its maximum, past which it scrolls
+  QSize sizeHint() const override
+  {
+    int h = 0;
+    if(auto w = widget())
+    {
+      // Wrapped text is as tall as the width it wraps in
+      const int width = viewport()->width();
+      h = w->hasHeightForWidth() && width > 0 ? w->heightForWidth(width)
+                                               : w->sizeHint().height();
+      h += 2 * frameWidth();
+    }
+    return {QScrollArea::sizeHint().width(), std::min(h, maximumHeight())};
   }
 
   void setData(const std::optional<ProcessData>& d)
   {
+    updateGeometry();
     m_author.setText(QString{});
     m_description.setText(QString{});
     m_io.setText(QString{});
@@ -274,7 +298,7 @@ ProcessWidget::ProcessWidget(const score::GUIApplicationContext& ctx, QWidget* p
 
   auto infoWidg = new InfoWidget{this};
   score::setHelp(infoWidg, statusTip());
-  slay->addWidget(infoWidg, 1);
+  slay->addWidget(infoWidg);
 
   connect(
       &m_tv, &ProcessTreeView::selected, this,
