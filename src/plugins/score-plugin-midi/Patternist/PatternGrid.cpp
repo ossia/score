@@ -86,13 +86,30 @@ std::vector<StepSlot> timelineSlots(
     }
   }
 
-  // The engine starts on step 0 at the first point from playStart on.
+  // The engine counts its steps from the bar line the process starts in: the
+  // first point from playStart on is the step after those of its bar that
+  // came before it.
   std::ptrdiff_t first = points.size();
   for(std::size_t i = 0; i < points.size(); i++)
   {
     if(points[i].t >= grid.playStart.impl - eps)
     {
       first = i;
+      break;
+    }
+  }
+  std::ptrdiff_t before = 0;
+  {
+    const double ps = grid.playStart.impl;
+    for(const auto& sec : sections)
+    {
+      if(ps < sec.start || ps >= sec.end)
+        continue;
+      const double bar = 4. * sec.sig.upper / sec.sig.lower * quarter;
+      const double bar_line = sec.start + std::floor((ps - sec.start) / bar) * bar;
+      const auto per_bar = std::ptrdiff_t(std::ceil(bar / unit - 1e-9));
+      before = std::min(
+          per_bar, std::ptrdiff_t(std::ceil((ps - bar_line) / unit - 1e-9)));
       break;
     }
   }
@@ -104,11 +121,11 @@ std::vector<StepSlot> timelineSlots(
     const double x0 = (pt.t - t0) / zoom;
     const double x1 = i + 1 < points.size() ? (points[i + 1].t - t0) / zoom
                                             : std::min(width, x0 + unit / zoom);
-    const std::ptrdiff_t n = std::ptrdiff_t(i) - first;
+    const std::ptrdiff_t n = std::ptrdiff_t(i) - first + before;
     const int step = int(((n % length) + length) % length);
     res.push_back(
-        {x0, x1, step, n < 0 || n >= length, pt.bar, pt.beat, pt.beatIndex, n,
-         pt.shade});
+        {x0, x1, step, std::ptrdiff_t(i) < first || n >= length, pt.bar, pt.beat,
+         pt.beatIndex, n, pt.shade});
   }
   return res;
 }
