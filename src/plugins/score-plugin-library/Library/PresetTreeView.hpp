@@ -39,6 +39,8 @@ public:
 
   //! Makes the target's current preset the current item, opening its folder
   void showCurrentPreset();
+  //! Asks for the name of a new category, in the folder `in`
+  void newCategory(const QStringList& in);
 
 protected:
   void mouseDoubleClickEvent(QMouseEvent* event) override;

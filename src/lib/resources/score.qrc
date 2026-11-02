@@ -45,6 +45,10 @@
         <file>icons/net_session_off@2x.png</file>
         <file>icons/net_session_on.png</file>
         <file>icons/net_session_on@2x.png</file>
+        <file>icons/headphones_off.png</file>
+        <file>icons/headphones_off@2x.png</file>
+        <file>icons/headphones_on.png</file>
+        <file>icons/headphones_on@2x.png</file>
         <file>icons/learn_off.png</file>
         <file>icons/learn_off@2x.png</file>
         <file>icons/learn_on.png</file>
