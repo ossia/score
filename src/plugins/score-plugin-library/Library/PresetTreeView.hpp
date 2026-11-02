@@ -4,7 +4,10 @@
 #include <ossia/detail/hash_map.hpp>
 
 #include <QSet>
+#include <QMenu>
 #include <QTreeView>
+
+#include <memory>
 
 #include <score_plugin_library_export.h>
 
@@ -41,6 +44,8 @@ public:
   void showCurrentPreset();
   //! Asks for the name of a new category, in the folder `in`
   void newCategory(const QStringList& in);
+  //! What a right-click on it shows; none where there is nothing to do
+  std::unique_ptr<QMenu> contextMenu(const QModelIndex& index);
 
 protected:
   void mouseDoubleClickEvent(QMouseEvent* event) override;

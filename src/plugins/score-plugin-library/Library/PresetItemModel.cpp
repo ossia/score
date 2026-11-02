@@ -18,6 +18,7 @@
 #include <core/document/Document.hpp>
 #include <core/presenter/DocumentManager.hpp>
 
+#include <ossia/detail/algorithms.hpp>
 #include <ossia/detail/ssize.hpp>
 
 #include <QDir>
@@ -410,6 +411,14 @@ QModelIndex PresetItemModel::indexOfPreset(int presetRow) const
     return nullptr;
   };
   return presetRow >= 0 ? indexOf(find(find, *m_root)) : QModelIndex{};
+}
+
+int PresetItemModel::presetRowOf(const QString& path) const
+{
+  if(path.isEmpty())
+    return -1;
+  const auto it = ossia::find_if(presets, [&](const auto& p) { return p.path == path; });
+  return it == presets.end() ? -1 : int(it - presets.begin());
 }
 
 QStringList PresetItemModel::folderPath(const QModelIndex& index) const

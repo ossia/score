@@ -202,67 +202,85 @@ void PresetTreeView::newCategory(const QStringList& in)
   scrollToCurrentLater();
 }
 
-void PresetTreeView::contextMenuEvent(QContextMenuEvent* event)
+std::unique_ptr<QMenu> PresetTreeView::contextMenu(const QModelIndex& idx)
 {
   if(!m_model || (!m_model->process() && !m_model->target()))
-    return;
-  const auto idx = indexAt(event->pos());
+    return {};
   const int row = m_model->presetRow(idx);
-  QMenu menu;
+  auto menu = std::make_unique<QMenu>();
 
   if(row < 0)
   {
     // On a folder, or beside the presets
     if(m_model->preset(idx) || m_model->isBuiltin(idx))
-      return;
+      return {};
     const auto in = m_model->folderPath(idx);
-    auto add = menu.addAction(
+    auto add = menu->addAction(
         in.isEmpty() ? tr("New category") : tr("New category in %1").arg(in.join('/')));
     connect(add, &QAction::triggered, this, [this, in] { newCategory(in); });
-    menu.exec(event->globalPos());
-    event->accept();
-    return;
+    return menu;
   }
 
   const bool editable = m_model->canEdit(row);
   if(!editable)
   {
-    menu.addAction(tr("Presets of installed packages cannot be changed"))
+    menu->addAction(tr("Presets of installed packages cannot be changed"))
         ->setEnabled(false);
-    menu.addSeparator();
+    menu->addSeparator();
   }
-  auto rename = menu.addAction(tr("Rename"));
-  rename->setEnabled(editable);
-  connect(rename, &QAction::triggered, this, [this, idx] { edit(idx); });
-  auto remove = menu.addAction(tr("Delete"));
-  remove->setEnabled(editable);
-  connect(remove, &QAction::triggered, this, [this, row] { m_model->removePreset(row); });
 
-  auto move = menu.addMenu(tr("Move to"));
+  // The library can change while the menu is open (a scan adding presets
+  // shifts the rows): each action finds its preset again by its file
+  const QString path = m_model->presets[row].path;
+  const auto rowNow = [this, path] { return m_model->presetRowOf(path); };
+
+  auto rename = menu->addAction(tr("Rename"));
+  rename->setEnabled(editable);
+  connect(rename, &QAction::triggered, this, [this, rowNow] {
+    if(const auto i = m_model->indexOfPreset(rowNow()); i.isValid())
+      edit(i);
+  });
+  auto remove = menu->addAction(tr("Delete"));
+  remove->setEnabled(editable);
+  connect(remove, &QAction::triggered, this, [this, rowNow] {
+    if(const int r = rowNow(); r >= 0)
+      m_model->removePreset(r);
+  });
+
+  auto move = menu->addMenu(tr("Move to"));
   move->setEnabled(editable);
-  const QString current = m_model->presets[row].category;
+  const QString current
+      = Process::presetCategoryPath(m_model->presets[row].category).join('/');
   const auto addTarget = [&](const QString& label, const QString& category) {
     auto act = move->addAction(label);
     act->setCheckable(true);
-    act->setChecked(Process::presetCategoryPath(current).join('/') == category);
-    connect(act, &QAction::triggered, this, [this, row, category] {
-      m_model->movePreset(row, category);
+    act->setChecked(current == category);
+    connect(act, &QAction::triggered, this, [this, rowNow, category] {
+      if(const int r = rowNow(); r >= 0)
+        m_model->movePreset(r, category);
     });
   };
   addTarget(tr("No category"), {});
   for(const auto& category : m_model->categories())
     addTarget(category, category);
   move->addSeparator();
-  connect(move->addAction(tr("New category")), &QAction::triggered, this, [this, row] {
+  connect(move->addAction(tr("New category")), &QAction::triggered, this, [this, rowNow] {
     bool ok{};
     const auto name = typedCategory(QInputDialog::getText(
         this, tr("New category"), tr("Name:"), QLineEdit::Normal, {}, &ok));
-    if(ok && !name.isEmpty())
-      m_model->movePreset(row, name.join('/'));
+    if(const int r = rowNow(); ok && r >= 0 && !name.isEmpty())
+      m_model->movePreset(r, name.join('/'));
   });
+  return menu;
+}
 
-  menu.exec(event->globalPos());
-  event->accept();
+void PresetTreeView::contextMenuEvent(QContextMenuEvent* event)
+{
+  if(auto menu = contextMenu(indexAt(event->pos())))
+  {
+    menu->exec(event->globalPos());
+    event->accept();
+  }
 }
 
 void PresetTreeView::showCurrentPreset()

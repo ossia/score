@@ -63,6 +63,8 @@ public:
   int presetRow(const QModelIndex& index) const;
   const Process::Preset* preset(const QModelIndex& index) const;
   QModelIndex indexOfPreset(int presetRow) const;
+  //! The row in `presets` of the preset in this file; -1 if none is
+  int presetRowOf(const QString& path) const;
   //! A folder's path, or the folder a preset is in
   QStringList folderPath(const QModelIndex& index) const;
   QModelIndex indexOfFolder(const QStringList& path) const;
