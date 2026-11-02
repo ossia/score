@@ -14,6 +14,7 @@
 #include <libremidi/detail/conversion.hpp>
 
 #include <algorithm>
+#include <cmath>
 namespace vst
 {
 
@@ -414,8 +415,9 @@ public:
   void forEachBlock(int64_t offset, int64_t samples, F&& f)
   {
     auto& time_info = fx->info;
-    const double ppq_per_frame
-        = time_info.sampleRate > 0 ? time_info.tempo / (60. * time_info.sampleRate) : 0.;
+    const double ppq_per_frame = time_info.sampleRate > 0 && time_info.tempo > 0
+                                     ? time_info.tempo / (60. * time_info.sampleRate)
+                                     : 0.;
     const int64_t block = std::max(m_bs, 1);
     for(int64_t done = 0; done < samples;)
     {
@@ -425,7 +427,18 @@ public:
       if(done < samples)
       {
         time_info.samplePos += n;
-        time_info.ppqPos += n * ppq_per_frame;
+        if(ppq_per_frame > 0.)
+        {
+          time_info.ppqPos += n * ppq_per_frame;
+          // The bar the block starts in
+          const double bar = time_info.timeSigDenominator > 0
+                                 ? 4. * time_info.timeSigNumerator
+                                       / time_info.timeSigDenominator
+                                 : 0.;
+          if(bar > 0. && time_info.ppqPos >= time_info.barStartPos + bar)
+            time_info.barStartPos
+                += std::floor((time_info.ppqPos - time_info.barStartPos) / bar) * bar;
+        }
       }
     }
   }

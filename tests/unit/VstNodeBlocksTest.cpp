@@ -13,6 +13,7 @@
 
 #include <catch2/catch_test_macros.hpp>
 
+#include <cmath>
 #include <vector>
 
 namespace
@@ -21,6 +22,8 @@ struct call
 {
   int32_t frames{};
   double sample_pos{};
+  double ppq{};
+  double bar_start{};
   std::vector<std::pair<int, int32_t>> notes; // pitch, deltaFrames
 };
 
@@ -49,7 +52,9 @@ struct fake_plugin
   static void process(AEffect* e, float**, float**, int32_t frames)
   {
     auto& s = self(e);
-    s.calls.push_back({frames, s.wrapper->info.samplePos, std::move(s.pending)});
+    s.calls.push_back(
+        {frames, s.wrapper->info.samplePos, s.wrapper->info.ppqPos,
+         s.wrapper->info.barStartPos, std::move(s.pending)});
     s.pending.clear();
   }
   static void setParameter(AEffect*, int32_t, float) { }
@@ -154,5 +159,57 @@ TEST_CASE("VST 2: a tick within the block size is one call", "[vst][buffer_size]
   REQUIRE(plugin.calls.size() == 1);
   CHECK(plugin.calls[0].frames == 512);
   CHECK(plugin.calls[0].notes == (std::vector<std::pair<int, int32_t>>{{60, 100}}));
+  wrapper->fx = nullptr;
+}
+
+TEST_CASE(
+    "VST 2: each block of a split tick sees the bar it starts in",
+    "[vst][buffer_size][transport]")
+{
+  fake_plugin plugin;
+  auto wrapper = std::make_shared<vst::AEffectWrapper>(&plugin.effect);
+  plugin.wrapper = wrapper.get();
+
+  constexpr int block = 256;
+  ossia::execution_state state;
+  state.sampleRate = 48000;
+  state.bufferSize = 1000;
+  {
+    vst::vst_node<false, false> node{wrapper, 48000, block};
+    // Just before the second bar of 4/4: a block is 256 / 24000 quarters
+    ossia::token_request tk;
+    tk.prev_date = ossia::time_value{0};
+    tk.date = ossia::time_value{1000};
+    tk.start_sample = 0;
+    tk.length_sample = 1000;
+    tk.tempo = 120.;
+    tk.signature = {4, 4};
+    tk.musical_start_position = 3.995;
+    tk.musical_start_last_bar = 0.;
+    node.run(tk, ossia::exec_state_facade{&state});
+  }
+  REQUIRE(plugin.calls.size() == 4);
+  const double quarters = 256. / 24000.;
+  CHECK(plugin.calls[0].ppq == 3.995);
+  CHECK(plugin.calls[0].bar_start == 0.);
+  CHECK(std::abs(plugin.calls[1].ppq - (3.995 + quarters)) < 1e-9);
+  CHECK(plugin.calls[1].bar_start == 4.);
+  CHECK(plugin.calls[3].bar_start == 4.);
+
+  // Without a tempo, the position does not move
+  plugin.calls.clear();
+  {
+    vst::vst_node<false, false> node{wrapper, 48000, block};
+    ossia::token_request tk;
+    tk.prev_date = ossia::time_value{0};
+    tk.date = ossia::time_value{1000};
+    tk.start_sample = 0;
+    tk.length_sample = 1000;
+    tk.tempo = 0.;
+    tk.musical_start_position = 2.;
+    node.run(tk, ossia::exec_state_facade{&state});
+  }
+  REQUIRE(plugin.calls.size() == 4);
+  CHECK(plugin.calls[3].ppq == 2.);
   wrapper->fx = nullptr;
 }
