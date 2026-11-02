@@ -324,3 +324,57 @@ TEST_CASE(
     }
   });
 }
+
+TEST_CASE(
+    "a preset whose file cannot be written stays as it was",
+    "[library][presets]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    TestLibrary lib{ctx};
+    Library::ProcessesItemModel processes{ctx, nullptr};
+    lib.waitFor({"Packaged", "Mine"});
+    Library::PresetItemModel presets{ctx, nullptr};
+    presets.setProcess(Process::ProcessIdentifier{
+        UuidKey<Process::ProcessModel>::fromString(pattern_uuid), {}});
+    QAbstractItemModel& model = presets;
+
+    // A name is not a path
+    {
+      const auto idx = presets.indexOfPreset(lib.row("Mine"));
+      CHECK(!model.setData(idx, "../Out", Qt::EditRole));
+      CHECK(!model.setData(idx, "a\\b", Qt::EditRole));
+      CHECK(QFile::exists(lib.user));
+    }
+
+    QFile before{lib.user};
+    REQUIRE(before.open(QIODevice::ReadOnly));
+    const QByteArray contents = before.readAll();
+    before.close();
+
+    // Its folder read-only: nothing can be written in it
+    const QString folder = QFileInfo{lib.user}.absolutePath();
+    const auto perms = QFile::permissions(folder);
+    REQUIRE(QFile::setPermissions(
+        folder, QFileDevice::ReadOwner | QFileDevice::ExeOwner));
+    if(QFile f{folder + "/probe"}; f.open(QIODevice::WriteOnly))
+    {
+      f.remove();
+      QFile::setPermissions(folder, perms);
+      SKIP("the folder stays writable (running as root?)");
+    }
+
+    CHECK(!presets.movePreset(lib.row("Mine"), "Elsewhere"));
+    CHECK(lib.presets()[lib.row("Mine")].category.isEmpty());
+
+    const auto idx = presets.indexOfPreset(lib.row("Mine"));
+    CHECK(!model.setData(idx, "Renamed", Qt::EditRole));
+    CHECK(lib.row("Renamed") < 0);
+
+    REQUIRE(QFile::setPermissions(folder, perms));
+
+    // The file is whole, where it was
+    QFile after{lib.user};
+    REQUIRE(after.open(QIODevice::ReadOnly));
+    CHECK(after.readAll() == contents);
+  });
+}
