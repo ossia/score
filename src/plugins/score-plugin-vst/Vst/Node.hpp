@@ -7,6 +7,7 @@
 #include <ossia/dataflow/fx_node.hpp>
 #include <ossia/dataflow/graph_node.hpp>
 #include <ossia/dataflow/port.hpp>
+#include <ossia/detail/algorithms.hpp>
 #include <ossia/detail/pod_vector.hpp>
 #include <ossia/editor/scenario/time_signature.hpp>
 
@@ -286,13 +287,20 @@ public:
     }
   }
 
+  //! Sends the events dated in [offset, offset + samples), then calls f. The
+  //! first block of a tick also takes the earlier ones and those held back
+  //! from a tick that covered no whole sample, at its start; the last also
+  //! takes the later ones, at its end.
   template <typename Fun>
-  void dispatchMidi(int64_t offset, int64_t samples, Fun&& f)
+  void dispatchMidi(int64_t offset, int64_t samples, bool first, bool last, Fun&& f)
   {
-    // copy midi data. Anything held back from a tick that covered no whole
-    // sample goes first, at offset 0.
     auto& ip = static_cast<ossia::midi_inlet*>(m_inlets[1])->data.messages;
-    const auto n_mess = ip.size() + m_deferred.size();
+    const auto in_block = [=](const libremidi::ump& mess) {
+      return (first || mess.timestamp >= offset)
+             && (last || mess.timestamp < offset + samples);
+    };
+    const auto n_mess
+        = (first ? m_deferred.size() : 0) + ossia::count_if(ip, in_block);
     if(n_mess == 0)
     {
       f();
@@ -305,12 +313,14 @@ public:
     std::memset(events, 0, sz);
 
     ossia::small_vector<std::pair<const libremidi::ump*, int64_t>, 16> to_send;
-    for(const libremidi::ump& mess : m_deferred)
-      to_send.push_back({&mess, 0});
+    if(first)
+      for(const libremidi::ump& mess : m_deferred)
+        to_send.push_back({&mess, 0});
     for(const libremidi::ump& mess : ip)
-      to_send.push_back(
-          {&mess, std::clamp<int64_t>(
-               mess.timestamp - offset, 0, samples > 0 ? samples - 1 : 0)});
+      if(in_block(mess))
+        to_send.push_back(
+            {&mess, std::clamp<int64_t>(
+                 mess.timestamp - offset, 0, samples > 0 ? samples - 1 : 0)});
 
     // The plug-in may read the events, sysex bytes included, until f() has
     // returned.
@@ -332,7 +342,8 @@ public:
       events->events[i++] = e;
     }
     events->numEvents = int32_t(i);
-    m_deferred.clear();
+    if(first)
+      m_deferred.clear();
     dispatch(effProcessEvents, 0, 0, events, 0.f);
     f();
   }
@@ -358,8 +369,11 @@ public:
       {
         if constexpr(IsSynth)
         {
-          dispatchMidi(timings.start_sample, timings.length, [this, timings] {
-            processDouble(timings.start_sample, timings.length);
+          const int64_t end = timings.start_sample + timings.length;
+          forEachBlock(timings.start_sample, timings.length, [&](int64_t o, int64_t n) {
+            dispatchMidi(o, n, o == timings.start_sample, o + n == end, [&] {
+              processDoubleBlock(o, n);
+            });
           });
         }
         else
@@ -371,8 +385,11 @@ public:
       {
         if constexpr(IsSynth)
         {
-          dispatchMidi(timings.start_sample, timings.length, [this, timings] {
-            processFloat(timings.start_sample, timings.length);
+          const int64_t end = timings.start_sample + timings.length;
+          forEachBlock(timings.start_sample, timings.length, [&](int64_t o, int64_t n) {
+            dispatchMidi(o, n, o == timings.start_sample, o + n == end, [&] {
+              processFloatBlock(o, n);
+            });
           });
         }
         else
@@ -391,16 +408,25 @@ public:
   }
 
   //! The plug-in was told at most m_bs frames per call (effSetBlockSize), but
-  //! the engine's ticks can outgrow the block size it had then.
+  //! the engine's ticks can outgrow the block size it had then. Each block
+  //! sees the transport where it starts.
   template <typename F>
   void forEachBlock(int64_t offset, int64_t samples, F&& f)
   {
+    auto& time_info = fx->info;
+    const double ppq_per_frame
+        = time_info.sampleRate > 0 ? time_info.tempo / (60. * time_info.sampleRate) : 0.;
     const int64_t block = std::max(m_bs, 1);
     for(int64_t done = 0; done < samples;)
     {
       const int64_t n = std::min(block, samples - done);
       f(offset + done, n);
       done += n;
+      if(done < samples)
+      {
+        time_info.samplePos += n;
+        time_info.ppqPos += n * ppq_per_frame;
+      }
     }
   }
 

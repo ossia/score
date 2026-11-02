@@ -391,6 +391,8 @@ public:
         // plug-in only sees [m_tick_start; m_tick_start + samples[ of it, so
         // rebase first; anything outside still clamps into the block.
         const int64_t t = tv.timestamp - m_tick_start;
+        if(!in_block(t))
+          continue;
         const uint32_t time
             = t <= 0 ? 0u
                      : static_cast<uint32_t>(
@@ -433,11 +435,13 @@ public:
       // Anything held back from a tick that covered no whole sample belongs to
       // the first sample of this block.
       ossia::small_vector<std::pair<const libremidi::ump*, uint32_t>, 16> to_send;
-      for(const auto& [port, held] : m_deferred_midi)
-        if(port == midi_port_index)
-          to_send.push_back({&held, 0u});
+      if(m_first_block)
+        for(const auto& [port, held] : m_deferred_midi)
+          if(port == midi_port_index)
+            to_send.push_back({&held, 0u});
       for(const auto& m : msgs)
-        to_send.push_back({&m, stamp(m.timestamp)});
+        if(in_block(m.timestamp - m_tick_start))
+          to_send.push_back({&m, stamp(m.timestamp)});
 
       // Notes exist in all three dialects; control changes, pitch bend and
       // channel pressure exist only in the MIDI one. A plug-in advertising
@@ -600,6 +604,49 @@ public:
     }
   }
 
+  //! The plug-in was activated for at most m_buffer_size frames per process
+  //! call, but the engine's ticks can outgrow the block size it had then: a
+  //! longer one runs as consecutive ticks of at most that many frames, each
+  //! with the transport where it starts. Returns whether it did.
+  bool run_in_blocks(const ossia::token_request& t, ossia::exec_state_facade e) noexcept
+  {
+    const auto [offset, samples] = e.timings(t);
+    if(m_buffer_size == 0 || samples <= int64_t(m_buffer_size))
+      return false;
+
+    const bool moves = t.date != t.prev_date;
+    for(int64_t done = 0; done < samples;)
+    {
+      const int64_t n = std::min<int64_t>(m_buffer_size, samples - done);
+      ossia::token_request sub = t;
+      if(moves)
+      {
+        const auto span = t.date - t.prev_date;
+        if(done + n < samples)
+          sub.set_end_time(t.prev_date + span * (double(done + n) / samples));
+        if(done > 0)
+          sub.set_start_time(t.prev_date + span * (double(done) / samples));
+      }
+      sub.start_sample = offset + done;
+      sub.length_sample = n;
+      m_first_block = done == 0;
+      m_last_block = done + n == samples;
+      this->run(sub, e);
+      done += n;
+    }
+    m_first_block = true;
+    m_last_block = true;
+    return true;
+  }
+
+  //! Whether an event dated `t` frames from the start of the block goes in
+  //! it: a tick run in blocks gives the earlier ones to its first and the
+  //! later ones to its last.
+  bool in_block(int64_t t) const noexcept
+  {
+    return (m_first_block || t >= 0) && (m_last_block || t < m_tick_frames);
+  }
+
   void prepare_input_events(int64_t offset, int samples)
   {
     m_tick_start = offset;
@@ -721,6 +768,8 @@ public:
   // Buffer span this tick was given, as reported by exec_state_facade::timings().
   int64_t m_tick_start{};
   int64_t m_tick_frames{};
+  bool m_first_block{true};
+  bool m_last_block{true};
 
   //! Events from ticks that covered no whole sample, with the port they came in
   //! on, waiting for the next block that does cover one.
@@ -902,7 +951,8 @@ public:
       if(auto midi_out = m_outlets[i]->target<ossia::midi_port>())
       {
         auto& port_messages = midi_out->messages;
-        port_messages.clear();
+        if(m_first_block)
+          port_messages.clear();
 
         // CLAP_EVENT_MIDI: MIDI 1.0 → UMP via cmidi2.
         for(const auto& midi_event : m_output_events.midi_events)
@@ -1030,6 +1080,8 @@ public:
   {
     if(!m_instance.plugin)
       return;
+    if(run_in_blocks(t, e))
+      return;
 
     // Activate plugin if needed
     if(!m_activated)
@@ -1089,8 +1141,9 @@ public:
         out_idx++;
       }
       // Also clear any midi outlets so we don't repeat last block's MIDI.
-      for(ossia::midi_outlet* midi_out : midi_outs)
-        midi_out->data.messages.clear();
+      if(m_first_block)
+        for(ossia::midi_outlet* midi_out : midi_outs)
+          midi_out->data.messages.clear();
       return;
     }
 
@@ -1255,6 +1308,8 @@ public:
   {
     if(!m_instance.plugin)
       return;
+    if(run_in_blocks(t, e))
+      return;
 
     // Activate plugin if needed
     if(!m_activated)
@@ -1305,8 +1360,9 @@ public:
         }
         out_idx++;
       }
-      for(ossia::midi_outlet* midi_out : midi_outs)
-        midi_out->data.messages.clear();
+      if(m_first_block)
+        for(ossia::midi_outlet* midi_out : midi_outs)
+          midi_out->data.messages.clear();
       return;
     }
 
@@ -1782,6 +1838,8 @@ public:
   {
     if(!m_instance.plugin)
       return;
+    if(run_in_blocks(t, e))
+      return;
 
     auto [offset, samples] = e.timings(t);
     if(samples == 0)
@@ -1899,6 +1957,8 @@ public:
   void run(const ossia::token_request& t, ossia::exec_state_facade e) noexcept override
   {
     if(!m_instance.plugin)
+      return;
+    if(run_in_blocks(t, e))
       return;
 
     auto [offset, samples] = e.timings(t);

@@ -862,6 +862,10 @@ score_add_test(test_unit_avnd_midi_sync_out
 target_include_directories(test_unit_avnd_midi_sync_out SYSTEM PRIVATE
   "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-avnd")
 
+# An FFT following the tick size gets back the plans of the sizes it had.
+score_add_test(test_unit_fft_plan_cache
+  SOURCES FftPlanCacheTest.cpp)
+
 # Ticks smaller or larger than the block size the nodes were prepared with.
 score_add_test(test_unit_audio_tick_size_change
   SOURCES AudioTickSizeChangeTest.cpp)
@@ -1170,6 +1174,13 @@ if(TARGET score_plugin_vst)
     SOURCES VstMissingPluginControlTest.cpp
     GUI
     PLUGINS score_plugin_scenario score_lib_process score_plugin_vst)
+
+  # A tick longer than a VST 2 plug-in's block size reaches it in blocks.
+  score_add_test(test_unit_vst_node_blocks
+    SOURCES VstNodeBlocksTest.cpp
+    PLUGINS score_lib_process score_plugin_vst)
+  target_include_directories(test_unit_vst_node_blocks PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-vst")
 
   # A system-exclusive message reaches a VST 2 synth as one VstMidiSysexEvent.
   score_add_test(test_unit_vst_midi_events
