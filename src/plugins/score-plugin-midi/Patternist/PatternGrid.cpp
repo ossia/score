@@ -86,9 +86,8 @@ std::vector<StepSlot> timelineSlots(
     }
   }
 
-  // The engine counts its steps from the bar line the process starts in: the
-  // first point from playStart on is the step after those of its bar that
-  // came before it.
+  // The engine counts its steps from the bar line at or before the start of
+  // the process, the date its content starts at: the layer's left edge.
   std::ptrdiff_t first = points.size();
   for(std::size_t i = 0; i < points.size(); i++)
   {
@@ -99,19 +98,22 @@ std::vector<StepSlot> timelineSlots(
     }
   }
   std::ptrdiff_t before = 0;
+  for(std::size_t k = 0; k < sections.size(); k++)
   {
-    const double ps = grid.playStart.impl;
-    for(const auto& sec : sections)
-    {
-      if(ps < sec.start || ps >= sec.end)
-        continue;
-      const double bar = 4. * sec.sig.upper / sec.sig.lower * quarter;
-      const double bar_line = sec.start + std::floor((ps - sec.start) / bar) * bar;
-      const auto per_bar = std::ptrdiff_t(std::ceil(bar / unit - 1e-9));
+    const auto& sec = sections[k];
+    if(t0 >= sec.end || (t0 < sec.start && k > 0))
+      continue;
+    const double bar = 4. * sec.sig.upper / sec.sig.lower * quarter;
+    const double bar_line = sec.start + std::floor((t0 - sec.start) / bar) * bar;
+    const auto per_bar = std::ptrdiff_t(std::ceil(bar / unit - 1e-9));
+    // Content starting before the first bar of the timeline: no point is laid
+    // out before it, the first one is on its bar line.
+    if(t0 < sec.start)
+      before = std::ptrdiff_t(std::round((sec.start - bar_line) / bar)) * per_bar;
+    else
       before = std::min(
-          per_bar, std::ptrdiff_t(std::ceil((ps - bar_line) / unit - 1e-9)));
-      break;
-    }
+          per_bar, std::ptrdiff_t(std::ceil((t0 - bar_line) / unit - 1e-9)));
+    break;
   }
 
   res.reserve(points.size());
@@ -121,7 +123,7 @@ std::vector<StepSlot> timelineSlots(
     const double x0 = (pt.t - t0) / zoom;
     const double x1 = i + 1 < points.size() ? (points[i + 1].t - t0) / zoom
                                             : std::min(width, x0 + unit / zoom);
-    const std::ptrdiff_t n = std::ptrdiff_t(i) - first + before;
+    const std::ptrdiff_t n = std::ptrdiff_t(i) + before;
     const int step = int(((n % length) + length) % length);
     res.push_back(
         {x0, x1, step, std::ptrdiff_t(i) < first || n >= length, pt.bar, pt.beat,

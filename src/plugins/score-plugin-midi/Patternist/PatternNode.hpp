@@ -420,18 +420,15 @@ public:
     const bool timed = !rewinding
                        && tk.musical_end_position > tk.musical_start_position;
 
-    // The steps follow the bar grid wherever the pattern joins it: dropped or
-    // added while the document plays, or in a box that starts mid-bar, it
-    // plays the step it would be on had it started on the last bar line.
-    // Before the transport below, which a process added to a running
-    // interval receives ahead of its first tick.
+    // Wherever the pattern joins - dropped or added while the document plays,
+    // or played from the middle of its box - it plays what it would had it
+    // been playing from the start of its process. Before the transport below,
+    // which a process added to a running interval receives ahead of its first
+    // tick.
     const bool joining
         = !std::isfinite(origin) && std::isfinite(tk.musical_start_position);
     if(joining)
-      origin = std::isfinite(tk.musical_start_last_bar)
-                       && tk.musical_start_last_bar <= tk.musical_start_position
-                   ? tk.musical_start_last_bar
-                   : tk.musical_start_position;
+      origin = start_bar_line(tk);
 
     if(transport_requested)
     {
@@ -625,6 +622,35 @@ public:
              + std::min(per_bar, int64_t(std::ceil(within / unit - 1e-9)));
     };
     return before(to) - before(from);
+  }
+
+  //! The bar line at or before the musical position the process starts at,
+  //! date 0 of its tokens, which the steps count from. That position is not
+  //! in the token: it is worked back from this tick's quarters per date unit,
+  //! so it holds as long as the tempo and the signature have not changed
+  //! since the process started.
+  static double start_bar_line(const ossia::token_request& tk) noexcept
+  {
+    const double at = tk.musical_start_position;
+    const double last_bar
+        = std::isfinite(tk.musical_start_last_bar) && tk.musical_start_last_bar <= at
+              ? tk.musical_start_last_bar
+              : at;
+    const double span = double(tk.date.impl - tk.prev_date.impl);
+    const double quarters = tk.musical_end_position - tk.musical_start_position;
+    if(span == 0. || !std::isfinite(quarters))
+      return last_bar;
+    const double per_unit = quarters / span;
+    if(!(per_unit > 0.) || !std::isfinite(per_unit))
+      return last_bar;
+    const double start = at - double(tk.prev_date.impl) * per_unit;
+    const auto& sig = tk.signature;
+    const double bar = (sig.upper > 0 && sig.lower > 0)
+                           ? 4. * sig.upper / sig.lower
+                           : 4.;
+    if(!std::isfinite(start) || start >= last_bar)
+      return last_bar;
+    return last_bar + std::floor((start - last_bar) / bar + 1e-9) * bar;
   }
 
   //! After a transport: the counters as if the pattern had played from its
