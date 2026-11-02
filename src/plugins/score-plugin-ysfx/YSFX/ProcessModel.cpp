@@ -316,13 +316,40 @@ void ProcessModel::loadPreset(const Process::Preset& preset)
     {
       auto idx = JsonValue{it->value}.toInt();
       if(idx >= 0 && idx < int(m_bank->preset_count))
+      {
         ysfx_load_state(this->fx.get(), this->m_bank->presets[idx].state);
+        // The sliders it set, shown and saved as the controls
+        for(uint32_t i = 0; i < ysfx_max_sliders; ++i)
+        {
+          if(!ysfx_slider_exists(fx.get(), i))
+            continue;
+          // See recreatePorts: slider i is inlet 4 + i
+          if(auto inl = qobject_cast<Process::ControlInlet*>(
+                 inlet(Id<Process::Port>(4 + int(i)))))
+          {
+            const auto v = ysfx_slider_get_value(fx.get(), i);
+            const bool choice
+                = ysfx_slider_is_enum(fx.get(), i) || ysfx_slider_is_path(fx.get(), i);
+            m_sliderBeingChanged.set(i, true);
+            inl->setValue(choice ? ossia::value{int(v)} : ossia::value{float(v)});
+            m_sliderBeingChanged.set(i, false);
+          }
+        }
+      }
     }
     return;
   }
 
   // A preset saved by savePreset: the script and its controls
   Process::loadScriptProcessPreset<ProcessModel::p_script>(*this, preset);
+}
+
+bool ProcessModel::presetChangesPorts(const Process::Preset& preset) const noexcept
+{
+  const rapidjson::Document doc = readJson(preset.data);
+  if(doc.IsObject() && doc.GetObject().HasMember("ProgramIndex"))
+    return false;
+  return preset.key.effect != effect();
 }
 
 QString ProcessModel::effect() const noexcept
@@ -344,14 +371,6 @@ Process::ScriptChangeResult ProcessModel::setText(const QString& text)
   auto res = reload();
   scriptChanged(m_text);
   return res;
-bool ProcessModel::presetChangesPorts(const Process::Preset& preset) const noexcept
-{
-  const rapidjson::Document doc = readJson(preset.data);
-  if(doc.IsObject() && doc.GetObject().HasMember("ProgramIndex"))
-    return false;
-  return preset.key.effect != effect();
-}
-
 }
 
 Process::ScriptChangeResult ProcessModel::reload()
