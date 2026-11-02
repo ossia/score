@@ -1,4 +1,5 @@
 #pragma once
+#include <optional>
 #include <Process/GenericProcessFactory.hpp>
 #include <Process/Process.hpp>
 #include <Process/ProcessMetadata.hpp>
@@ -187,6 +188,9 @@ private:
   void createControls(bool loading);
 
   void refreshParamValues();
+  //! The plug-in's presets, from its preset-discovery providers
+  std::vector<Process::Preset> discoverPresets() const noexcept;
+  mutable std::optional<std::vector<Process::Preset>> m_builtinPresets;
   // Returns false on structural mismatch — caller should treat as RESCAN_ALL.
   bool refreshParamInfoIfStable();
   void setupControlInlet(
