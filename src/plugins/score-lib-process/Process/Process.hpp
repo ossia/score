@@ -164,6 +164,11 @@ public:
   virtual std::vector<Process::Preset> builtinPresets() const noexcept;
   //! Whether the preset applies to this process: same process key and same effect
   virtual bool presetMatches(const Preset& preset) const noexcept;
+  //! Whether loading it can add, remove or change ports: cables are then
+  //! saved and matched again around the load. Ports that follow the process's
+  //! script or controls (DynamicPorts), or a preset of another script, do;
+  //! controls only given values do not.
+  virtual bool presetChangesPorts(const Preset& preset) const noexcept;
 
   // Called when an ancestor was moved in the timeline
   virtual void ancestorStartDateChanged();

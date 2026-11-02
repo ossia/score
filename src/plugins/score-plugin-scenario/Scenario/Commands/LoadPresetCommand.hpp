@@ -11,13 +11,33 @@
 #include <Dataflow/Commands/CableHelpers.hpp>
 
 #include <score/model/path/PathSerialization.hpp>
+#include <score/tools/Debug.hpp>
 
 #include <ossia/detail/algorithms.hpp>
+
+#include <QDebug>
+
+#include <vector>
 
 #include <score_plugin_scenario_export.h>
 
 namespace Scenario::Command
 {
+//! The ids and types of a process's ports, in order
+inline std::vector<std::pair<int, Process::PortType>>
+portSignature(const Process::ProcessModel& proc)
+{
+  std::vector<std::pair<int, Process::PortType>> sig;
+  for(auto* p : proc.inlets())
+    sig.emplace_back(p->id().val(), p->type());
+  sig.emplace_back(-1, Process::PortType{});
+  for(auto* p : proc.outlets())
+    sig.emplace_back(p->id().val(), p->type());
+  return sig;
+}
+
+//! For a process whose presets do not change its ports: only the values
+//! change, the cables stay where they are
 class LoadPreset final : public score::Command
 {
   SCORE_COMMAND_DECL(
@@ -34,12 +54,25 @@ public:
 private:
   void undo(const score::DocumentContext& ctx) const final override
   {
-    m_path.find(ctx).loadPreset(m_old);
+    load(m_path.find(ctx), m_old);
   }
 
   void redo(const score::DocumentContext& ctx) const final override
   {
-    m_path.find(ctx).loadPreset(m_new);
+    load(m_path.find(ctx), m_new);
+  }
+
+  static void load(Process::ProcessModel& proc, const Process::Preset& p)
+  {
+    const auto before = portSignature(proc);
+    proc.loadPreset(p);
+    if(portSignature(proc) != before)
+    {
+      // Its cables may now be on ports of another type
+      qWarning() << "Loading a preset changed the ports of" << proc.prettyName()
+                 << ": its presetChangesPorts() must say so";
+      SCORE_SOFT_ASSERT(false);
+    }
   }
 
   void serializeImpl(DataStreamInput& stream) const final override
@@ -173,13 +206,9 @@ public:
       const Process::ProcessModel& obj, Process::Preset newval,
       const score::DocumentContext& ctx) const override
   {
-    // A preset holding another script rebuilds the ports of the process
-    const bool otherScript
-        = !newval.key.effect.isEmpty() && newval.key.effect != obj.effect();
-    // Only the backup path checks existing cables against the preset's ports.
-    const bool wired = ossia::any_of(obj.inlets(), [](auto* p) { return !p->cables().empty(); })
-                       || ossia::any_of(obj.outlets(), [](auto* p) { return !p->cables().empty(); });
-    if((obj.flags() & Process::ProcessFlags::DynamicPorts) || otherScript || wired)
+    // Cables are taken off and matched again only around a load that can
+    // move the ports they are on
+    if(obj.presetChangesPorts(newval))
       return new LoadPresetWithCablesBackup{obj, std::move(newval), ctx};
     else
       return new LoadPreset{obj, std::move(newval)};

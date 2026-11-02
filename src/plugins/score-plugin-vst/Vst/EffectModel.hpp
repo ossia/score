@@ -126,6 +126,11 @@ public:
 
 private:
   void loadPreset(const Process::Preset& preset) override;
+  //! The plug-in decides what its state does to its ports
+  bool presetChangesPorts(const Process::Preset&) const noexcept override
+  {
+    return true;
+  }
   Process::Preset savePreset() const noexcept override;
   std::vector<Process::Preset> builtinPresets() const noexcept override;
 
