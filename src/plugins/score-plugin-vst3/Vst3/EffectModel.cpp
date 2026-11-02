@@ -1,6 +1,8 @@
 
 #include "EffectModel.hpp"
 
+#include <algorithm>
+
 #include "Node.hpp"
 
 #include <Process/Dataflow/Port.hpp>
@@ -673,10 +675,8 @@ void Model::loadPreset(const Process::Preset& preset)
 
   if(auto it = obj.FindMember("ProgramIndex"); it != obj.MemberEnd())
   {
-    // FIXME
+    loadProgram(JsonValue{it->value}.toInt());
     return;
-    // auto idx = JsonValue{it->value}.toInt();
-    //    this->fx.units->getProgramInfo();
   }
   else
   {
@@ -695,6 +695,32 @@ void Model::loadPreset(const Process::Preset& preset)
       ctl->setValue(fx.controller->getParamNormalized(ctl->fxNum));
     }
   }
+}
+
+void Model::loadProgram(int index)
+{
+  if(!fx.controller || index < 0 || index >= fx.programs.programCount)
+    return;
+
+  // A plug-in changes program through its program-change parameter, the one
+  // a host automates: as a control, it reaches the processor too
+  Steinberg::Vst::ParameterInfo info{};
+  bool found = false;
+  const int count = fx.controller->getParameterCount();
+  for(int i = 0; i < count && !found; i++)
+    if(fx.controller->getParameterInfo(i, info) == Steinberg::kResultOk
+       && (info.flags & Steinberg::Vst::ParameterInfo::kIsProgramChange))
+      found = true;
+  if(!found)
+    return;
+
+  const int steps
+      = info.stepCount > 0 ? info.stepCount : fx.programs.programCount - 1;
+  const double value = steps > 0 ? std::clamp(double(index) / steps, 0., 1.) : 0.;
+
+  on_addControl(info);
+  if(auto it = controls.find(info.id); it != controls.end())
+    it->second->setValue(value);
 }
 
 Process::Preset Model::savePreset() const noexcept
@@ -720,7 +746,7 @@ std::vector<Process::Preset> Model::builtinPresets() const noexcept
   {
     Process::Preset p;
     p.key.key = this->static_concreteKey();
-    // FIXME p.key.effect = m_uid;
+    p.key.effect = this->effect();
     Steinberg::Vst::String128 progName = {};
     this->fx.units->getProgramName(this->fx.programs.id, i, progName);
 
