@@ -6,6 +6,7 @@
 #include <Process/PresetTree.hpp>
 #include <Process/Process.hpp>
 
+#include <Process/Commands/SetControlValue.hpp>
 #include <Process/Dataflow/Port.hpp>
 
 #include <Library/Panel/LibraryPanelDelegate.hpp>
@@ -328,12 +329,67 @@ TEST_CASE("doing something else keeps the preset auditioned", "[integration][pre
   });
 }
 
+TEST_CASE(
+    "a command that edits the auditioned process goes in after the preset",
+    "[integration][presets][gui]")
+{
+  score::test::run_in_gui_app([](const score::GUIApplicationContext& ctx) {
+    Audition a{ctx};
+    const int steps = a.steps();
+
+    // A script or a remote changing the same control while a preset is
+    // auditioned, with the focus still in the presets
+    a.select("c");
+    CHECK(value(*a.ampl) == 0.3f);
+    a.doc->commandStack().redoAndPush(new Process::SetControlValue{*a.ampl, 0.9f});
+    CHECK(a.steps() == steps + 2);
+    CHECK(value(*a.ampl) == 0.9f);
+
+    // Undone in the order they were done
+    a.doc->commandStack().undo();
+    CHECK(value(*a.ampl) == 0.3f);
+    a.doc->commandStack().undo();
+    CHECK(value(*a.ampl) == 0.5f);
+  });
+}
+
+TEST_CASE(
+    "a jump in the history while auditioning keeps the preset as a step",
+    "[integration][presets][gui]")
+{
+  score::test::run_in_gui_app([](const score::GUIApplicationContext& ctx) {
+    Audition a{ctx};
+    auto& stack = a.doc->commandStack();
+    stack.redoAndPush(new Process::SetControlValue{*a.ampl, 0.6f});
+    const int steps = a.steps();
+    const int before = stack.currentIndex();
+
+    // The Undo panel going back one step before the preset: the preset is
+    // a step of its own, undone with it
+    a.select("b");
+    stack.setIndex(before - 1);
+    CHECK(value(*a.ampl) == 0.5f);
+    CHECK(stack.currentIndex() == before - 1);
+    CHECK(a.steps() == steps + 1);
+
+    // And both can be redone, in order
+    stack.redo();
+    CHECK(value(*a.ampl) == 0.6f);
+    stack.redo();
+    CHECK(value(*a.ampl) == 0.2f);
+  });
+}
+
 TEST_CASE("a process deleted while auditioned ends it", "[integration][presets][gui]")
 {
   score::test::run_in_gui_app([](const score::GUIApplicationContext& ctx) {
     Audition a{ctx};
     QPointer<Process::ProcessModel> guard = a.proc;
     a.select("a");
+    // An undo keeps the preset as a step first, and undoes it
+    a.doc->commandStack().undo();
+    REQUIRE(guard);
+    CHECK(value(*a.ampl) == 0.5f);
     // The process goes: undoing its creation
     a.doc->commandStack().undo();
     spin(10);
@@ -342,7 +398,7 @@ TEST_CASE("a process deleted while auditioned ends it", "[integration][presets][
     // Nothing of it left to keep
     a.key(Qt::Key_Return);
     a.doc->commandStack().redo();
-    CHECK(a.doc->commandStack().size() == 1);
+    CHECK(a.doc->commandStack().size() == 2);
   });
 }
 
