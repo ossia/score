@@ -64,3 +64,44 @@ TEST_CASE("an FFT gets back the plan of a size it had", "[fft][buffer_size]")
   f.reset(2048);
   check_impulse(f);
 }
+
+TEST_CASE("an FFT prepared ahead plans nothing for nearby sizes", "[fft][buffer_size]")
+{
+  ossia::fft f{16};
+  f.prepare(512);
+  CHECK(f.size() == 512);
+  check_impulse(f);
+  auto* const p512 = f.input();
+
+  // A quarter, half and double of it were planned too
+  f.reset(128);
+  auto* const p128 = f.input();
+  check_impulse(f);
+  f.reset(256);
+  auto* const p256 = f.input();
+  check_impulse(f);
+  f.reset(1024);
+  auto* const p1024 = f.input();
+  check_impulse(f);
+
+  for(int i = 0; i < 3; i++)
+  {
+    f.reset(512);
+    CHECK(f.input() == p512);
+    f.reset(256);
+    CHECK(f.input() == p256);
+    f.reset(1024);
+    CHECK(f.input() == p1024);
+  }
+
+  // A new size replaces the plan unused for the longest: 128
+  f.reset(512);
+  f.reset(256);
+  f.reset(2048);
+  check_impulse(f);
+  f.reset(256);
+  CHECK(f.input() == p256);
+  f.reset(512);
+  CHECK(f.input() == p512);
+  (void)p128;
+}
