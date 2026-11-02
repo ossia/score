@@ -163,6 +163,7 @@ void ApplicationPlugin::timerEvent(QTimerEvent*)
   reap_previous_engines();
   updateXruns();
   followDeviceRate();
+  updateDeviceRate();
 }
 
 void ApplicationPlugin::followDeviceRate()
@@ -201,6 +202,26 @@ void ApplicationPlugin::followDeviceRate()
   set.adoptRate(seen);
   // Stops the playback, then restarts the engine.
   set.changed();
+}
+
+void ApplicationPlugin::updateDeviceRate()
+{
+  if(!m_deviceRate)
+    return;
+  const auto& set = context.settings<Audio::Settings::Model>();
+  const int rate = set.getRate(), saved = set.savedRate();
+  const bool shown = audio && saved > 0 && rate != saved;
+  if(shown == m_deviceRateAction->isVisible() && (!shown || m_deviceRate->property("rate").toInt() == rate))
+    return;
+  m_deviceRateAction->setVisible(shown);
+  m_deviceRate->setProperty("rate", rate);
+  m_deviceRate->setText(tr("%1 Hz").arg(rate));
+  m_deviceRate->setToolTip(
+      tr("The audio device runs at %1 Hz, set by another program using it: "
+         "the engine follows it. Your setting, %2 Hz, is asked for again at the "
+         "next start.")
+          .arg(rate)
+          .arg(saved));
 }
 
 void ApplicationPlugin::updateXruns()
@@ -275,6 +296,9 @@ score::GUIElements ApplicationPlugin::makeGUIElements()
     // A toolbar shows and hides its widgets through their actions.
     m_xrunsAction = bar->addWidget(m_xruns);
     m_xrunsAction->setVisible(false);
+    m_deviceRate = new QLabel{bar};
+    m_deviceRateAction = bar->addWidget(m_deviceRate);
+    m_deviceRateAction->setVisible(false);
     connect(sl, &score::VolumeSlider::valueChanged, this, [this](double v) {
       if(!this->audio)
         return;

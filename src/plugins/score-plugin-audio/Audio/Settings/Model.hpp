@@ -34,6 +34,7 @@ class SCORE_PLUGIN_AUDIO_EXPORT Model : public score::SettingsDelegateModel
   QString m_CardOut{};
   int m_BufferSize{};
   int m_Rate{};
+  int m_savedRate{};
 
   // How many i/o to create if possible
   int m_DefaultIn{};
@@ -60,6 +61,8 @@ public:
   //! user's preference stays saved and is asked for at the next start.
   void adoptRate(int val);
   void adoptBufferSize(int val);
+  //! The rate the user chose, which the device may not be running at
+  int savedRate() const noexcept { return m_savedRate; }
 
   void changed() E_SIGNAL(SCORE_PLUGIN_AUDIO_EXPORT, changed)
   SCORE_SETTINGS_PARAMETER_HPP(

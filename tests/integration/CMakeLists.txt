@@ -448,6 +448,14 @@ if(TARGET score_plugin_fx)
     PLUGINS score_plugin_fx score_plugin_avnd score_plugin_scenario score_lib_process)
 endif()
 
+if(TARGET score_plugin_audio)
+  # The device's rate is used for the session; only a chosen one is saved.
+  score_add_test(test_integration_audio_rate_policy
+    SOURCES AudioRatePolicyTest.cpp
+    APP
+    PLUGINS score_plugin_audio score_plugin_engine)
+endif()
+
 if(TARGET score_plugin_clap)
   # A CLAP instrument that writes its process calls to its output.
   add_library(clap_block_recorder MODULE clap-block-recorder/BlockRecorder.cpp)

@@ -245,6 +245,7 @@ void Model::initRate(int val)
 {
   if(val <= 0)
     val = 44100;
+  m_savedRate = val;
   if(val == m_Rate)
     return;
 
@@ -255,6 +256,7 @@ void Model::setRate(int val)
 {
   if(val <= 0)
     val = 44100;
+  m_savedRate = val;
 
   // Saved even when it is what runs already: the device may have given that
   // one while the preference was another.
