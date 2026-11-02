@@ -19,6 +19,8 @@
 #include <QLineEdit>
 #include <QSpinBox>
 
+#include <score/widgets/ControlWidgets.hpp>
+
 #include <catch2/catch_test_macros.hpp>
 
 namespace
@@ -93,6 +95,27 @@ TEST_CASE(
       CHECK(steps() == n);
       w->setChecked(!w->isChecked());
       CHECK(steps() == n + 1);
+    }
+
+    SECTION("a toggle with two labels")
+    {
+      // A control of a process in the document, so that its command finds it
+      auto* proc = findControl<Process::IntSpinBox>(*doc)->parent();
+      REQUIRE(proc);
+      auto* c = new Process::ChooserToggle{
+          {"Off", "On"}, false, "Mode", Id<Process::Port>{4242}, proc};
+      auto* w = static_cast<score::ToggleButton*>(
+          WidgetFactory::ChooserToggle::make_widget(*c, dc, &parent, &context));
+      const int n = steps();
+      const bool next = !w->isChecked();
+      c->setValue(next);
+      CHECK(steps() == n);
+      CHECK(w->isChecked() == next);
+      // Its label follows
+      CHECK(w->text() == w->alternatives[next ? 1 : 0]);
+      w->toggle();
+      CHECK(steps() == n + 1);
+      CHECK(w->text() == w->alternatives[next ? 0 : 1]);
     }
 
     SECTION("a text field")

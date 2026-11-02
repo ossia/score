@@ -989,15 +989,17 @@ struct ChooserToggle
     else if(!b && toggleBtn->isChecked())
       toggleBtn->toggle();
 
+    // Showing the value is not editing it: the button also toggles for a
+    // value set elsewhere, and shows its label for it, without a command
     QObject::connect(
         toggleBtn, &score::ToggleButton::toggled, context, [&inlet, &ctx](bool val) {
+      if(ossia::convert<bool>(inlet.value()) == val)
+        return;
       CommandDispatcher<>{ctx.commandStack}.submit<SetControlValue<T>>(inlet, val);
     });
 
-    // Showing the value is not editing it: no command from the button
     QObject::connect(
         &inlet, &T::valueChanged, toggleBtn, [toggleBtn](const ossia::value& val) {
-      QSignalBlocker block{toggleBtn};
       bool b = ossia::convert<bool>(val);
       if(b && !toggleBtn->isChecked())
         toggleBtn->toggle();
