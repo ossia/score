@@ -219,20 +219,17 @@ Process::ScriptChangeResult Model::setProgram(ShaderSource f)
 void Model::loadPreset(const Process::Preset& preset)
 {
   const rapidjson::Document doc = readJson(preset.data);
-  if(!doc.IsObject())
+  const auto text = Process::presetString(doc, "Vertex");
+  if(!text)
     return;
-  auto obj = doc.GetObject();
-  if(!obj.HasMember("Vertex"))
-    return;
-  // The same shader keeps its inlets: only its controls change
-  const QString vert = obj["Vertex"].GetString();
-  const bool changed = vert != m_program.vertex;
+
+  // The same shader keeps its ports: only its controls change
+  const bool changed = *text != m_program.vertex;
   if(changed)
     (void)this->setProgram(
-        ShaderSource{ShaderSource::ProgramType::VertexShaderArt, vert, ""});
+        ShaderSource{ShaderSource::ProgramType::VertexShaderArt, *text, ""});
 
-  auto controls = obj["Controls"].GetArray();
-  Process::loadFixedControls(controls, *this);
+  Process::loadPresetControls(doc, *this);
 
   // See Filter::Model::loadPreset: the executor rebuilds on programChanged.
   if(changed)
@@ -241,10 +238,8 @@ void Model::loadPreset(const Process::Preset& preset)
 
 bool Model::presetChangesPorts(const Process::Preset& preset) const noexcept
 {
-  const rapidjson::Document doc = readJson(preset.data);
-  if(!doc.IsObject() || !doc.HasMember("Vertex"))
-    return false;
-  return QString{doc["Vertex"].GetString()} != m_program.vertex;
+  const auto text = Process::presetString(readJson(preset.data), "Vertex");
+  return text && *text != m_program.vertex;
 }
 
 Process::Preset Model::savePreset() const noexcept

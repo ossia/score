@@ -113,3 +113,50 @@ TEST_CASE("a shader preset keeps the kind of shader it is", "[integration][prese
     CHECK(preset.data.contains("\"Type\""));
   });
 }
+
+TEST_CASE(
+    "a malformed shader preset is not loaded, and does not crash",
+    "[integration][presets][gfx]")
+{
+  // Filter, compute shader, vertex shader art, geometry filter
+  const char* uuids[] = {
+      "74ca45ff-92c9-44a0-8f1a-754dea05ee1b", "a5bbffe0-93d2-4e70-995c-cf46c2c43520",
+      "ea13ed06-d21c-4c84-8d0f-83ce0027b81c", "27d3cc85-a4b0-4924-8fde-71c337b40f59"};
+  const QByteArray malformed[] = {
+      R"([[1]])",
+      R"({"Fragment":5,"Vertex":[],"Compute":{},"Shader":null,"Controls":[]})",
+      R"({"Fragment":"","Vertex":"","Compute":"","Shader":"","Controls":"x"})",
+      R"({"Controls":[["a",1],5,[],[1]]})",
+      R"(not json)",
+  };
+
+  score::test::run_in_app([&](const score::GUIApplicationContext& ctx) {
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    int tested = 0;
+    for(const char* uuid : uuids)
+    {
+      INFO(uuid);
+      auto* proc = score::test::add_process(*doc, QString::fromLatin1(uuid), {});
+      if(!proc)
+        continue;
+      tested++;
+      Process::ProcessModel& base = *proc;
+      for(const auto& data : malformed)
+      {
+        INFO(data.toStdString());
+        auto preset = base.savePreset();
+        preset.data = data;
+        const bool moves = base.presetChangesPorts(preset);
+        const auto ports = portObjects(*proc);
+        base.loadPreset(preset);
+        // What a shader preset holds is all strings: none here is a whole
+        // shader but the empty one, which moves the ports if anything does
+        if(!moves)
+          CHECK(portObjects(*proc) == ports);
+      }
+    }
+    if(tested == 0)
+      SKIP("Gfx not built");
+  });
+}

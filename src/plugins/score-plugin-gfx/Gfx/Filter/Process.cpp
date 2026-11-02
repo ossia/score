@@ -150,31 +150,31 @@ Process::ScriptChangeResult Model::setProgram(const ShaderSource& f)
   return {};
 }
 
-//! The shader a preset loads
-static ShaderSource presetProgram(const rapidjson::Value::ConstObject& obj)
+//! The shader a preset loads, if it has one
+static std::optional<ShaderSource> presetProgram(const rapidjson::Value& obj)
 {
+  const auto vert = Process::presetString(obj, "Vertex");
+  const auto frag = Process::presetString(obj, "Fragment");
+  if(!vert || !frag)
+    return {};
   ShaderSource::ProgramType type = ShaderSource::ProgramType::ISF;
   if(auto it = obj.FindMember("Type"); it != obj.MemberEnd() && it->value.IsInt())
     type = (ShaderSource::ProgramType)it->value.GetInt();
-  return ShaderSource{type, obj["Vertex"].GetString(), obj["Fragment"].GetString()};
+  return ShaderSource{type, *vert, *frag};
 }
 
 void Model::loadPreset(const Process::Preset& preset)
 {
   const rapidjson::Document doc = readJson(preset.data);
-  if(!doc.IsObject())
-    return;
-  auto obj = doc.GetObject();
-  if(!obj.HasMember("Fragment") || !obj.HasMember("Vertex"))
+  const auto program = presetProgram(doc);
+  if(!program)
     return;
   // The same shader keeps its inlets: only its controls change
-  const auto program = presetProgram(obj);
-  const bool changed = program != m_program;
+  const bool changed = *program != m_program;
   if(changed)
-    (void)this->setProgram(program);
+    (void)this->setProgram(*program);
 
-  auto controls = obj["Controls"].GetArray();
-  Process::loadFixedControls(controls, *this);
+  Process::loadPresetControls(doc, *this);
 
   // The executor only rebuilds its node and ports on programChanged: without
   // it, a preset loaded while playing would leave the old shader running on
@@ -185,13 +185,8 @@ void Model::loadPreset(const Process::Preset& preset)
 
 bool Model::presetChangesPorts(const Process::Preset& preset) const noexcept
 {
-  const rapidjson::Document doc = readJson(preset.data);
-  if(!doc.IsObject())
-    return false;
-  auto obj = doc.GetObject();
-  if(!obj.HasMember("Fragment") || !obj.HasMember("Vertex"))
-    return false;
-  return presetProgram(obj) != m_program;
+  const auto program = presetProgram(readJson(preset.data));
+  return program && *program != m_program;
 }
 
 Process::Preset Model::savePreset() const noexcept
