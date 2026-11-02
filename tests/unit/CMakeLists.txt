@@ -278,6 +278,11 @@ score_add_test(test_unit_signal_display_range
   APP
   PLUGINS score_plugin_ui score_lib_process)
 
+# Buffer view: bytes read as elements, by type, components, stride and offset.
+score_add_test(test_unit_buffer_decode
+  SOURCES BufferDecodeTest.cpp
+  PLUGINS score_plugin_ui)
+
 # The comment box: trailing spaces and reflow, both QTextDocument behaviour.
 score_add_test(test_unit_textbox_layout
   SOURCES TextBoxLayoutTest.cpp

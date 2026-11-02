@@ -5,8 +5,9 @@
 // ending the sweep.
 //
 // The monitoring processes are also swept while the document plays, each fed
-// by a source of the kind of its first inlet, so that their views refresh from
-// a running node and paint what goes through it.
+// by a source of the kind of its first inlet, or by a compute shader's storage
+// buffer for those that read buffers, so that their views refresh from a
+// running node and paint what goes through it.
 //
 // What a view looks like is checked in the running application; this checks
 // that every view builds and paints at all, in every mode and size.
@@ -353,6 +354,10 @@ const Process::Outlet* firstOutlet(const Process::ProcessModel& p, Process::Port
   return nullptr;
 }
 
+//! A texture port carries textures or GPU buffers, and the model does not say
+//! which: the monitoring processes that read buffers.
+const std::set<QString> buffer_sinks{QStringLiteral("Buffer view")};
+
 const Process::ProcessModelFactory*
 factoryNamed(const Process::ProcessFactoryList& pl, const QString& name)
 {
@@ -389,6 +394,7 @@ TEST_CASE(
     Process::ProcessModel* midi{};
     Process::ProcessModel* texture{};
     Process::ProcessModel* geometry{};
+    Process::ProcessModel* buffer{};
     if(auto* f = factoryNamed(pl, QStringLiteral("Expression Audio Generator")))
       audio = add(*f, f->customConstructionData());
     if(auto* f = factoryNamed(pl, QStringLiteral("LFO")))
@@ -399,6 +405,8 @@ TEST_CASE(
       texture = add(*f, QStringLiteral(GFX_TEST_CORPUS_DIR "/isf-xy-pattern.fs"));
     if(auto* f = factoryNamed(pl, QStringLiteral("Torus")))
       geometry = add(*f, f->customConstructionData());
+    if(auto* f = factoryNamed(pl, QStringLiteral("Compute Shader")))
+      buffer = add(*f, QStringLiteral(GFX_TEST_CORPUS_DIR "/csf-storage-items.cs"));
 
     int cable_id = 1;
     auto connect = [&](const Process::Port* source, const Process::Port* sink) {
@@ -446,7 +454,13 @@ TEST_CASE(
         continue;
       r.constructed = true;
       if(!proc->inlets().empty())
-        connect(source(proc->inlets()[0]->type()), proc->inlets()[0]);
+      {
+        const auto t = proc->inlets()[0]->type();
+        if(t == Process::PortType::Texture && buffer_sinks.contains(factory.prettyName()))
+          connect(buffer ? firstOutlet(*buffer, t) : nullptr, proc->inlets()[0]);
+        else
+          connect(source(t), proc->inlets()[0]);
+      }
       monitors.emplace_back(results.size() - 1, proc);
     }
     // SWEEP_ONLY may leave none of them

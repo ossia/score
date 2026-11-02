@@ -10,6 +10,7 @@
 
 #include <Avnd/Factories.hpp>
 #include <Ui/AudioScope.hpp>
+#include <Ui/BufferView.hpp>
 #include <Ui/Loudness.hpp>
 #include <Ui/MidiDisplay.hpp>
 #include <Ui/PortProbe.hpp>
@@ -32,6 +33,7 @@ std::vector<score::InterfaceBase*> score_plugin_ui::factories(
 {
   std::vector<score::InterfaceBase*> fx;
   oscr::instantiate_fx<Ui::AudioScope::Node>(fx, ctx, key);
+  oscr::instantiate_fx<Ui::BufferView::Node>(fx, ctx, key);
   oscr::instantiate_fx<Ui::Loudness::Node>(fx, ctx, key);
   oscr::instantiate_fx<Ui::MidiDisplay::Node>(fx, ctx, key);
   oscr::instantiate_fx<Ui::SignalDisplay::Node>(fx, ctx, key);

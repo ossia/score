@@ -9,6 +9,9 @@ add_library(
   score_plugin_ui
   "${CMAKE_CURRENT_SOURCE_DIR}/Ui/AudioScope.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Ui/AudioScope.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Ui/BufferView.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Ui/BufferView.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Ui/Monitor/BufferDecode.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Ui/Monitor/ChannelLayout.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Ui/Monitor/LayerHelpers.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Ui/Monitor/Paint.hpp"
