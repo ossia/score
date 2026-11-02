@@ -233,8 +233,9 @@ struct fixture
     return out;
   }
 
-  //! [prev; date[ in model units, 1000 per quarter, with its musical positions.
-  ossia::token_request musical(int64_t prev, int64_t date)
+  //! [prev; date[ in model units, 1000 per quarter, with its musical positions:
+  //! the process starts `start` quarters into the document.
+  ossia::token_request musical(int64_t prev, int64_t date, double start = 0.)
   {
     ossia::token_request tk{
         ossia::time_value{prev},
@@ -244,8 +245,8 @@ struct fixture
         date >= prev ? 1. : -1.,
         ossia::time_signature{4, 4},
         120.};
-    tk.musical_start_position = prev / 1000.;
-    tk.musical_end_position = date / 1000.;
+    tk.musical_start_position = start + prev / 1000.;
+    tk.musical_end_position = start + date / 1000.;
     tk.musical_start_last_bar = std::floor(tk.musical_start_position / 4.) * 4.;
     tk.musical_end_last_bar = std::floor(tk.musical_end_position / 4.) * 4.;
     return tk;
@@ -707,6 +708,95 @@ TEST_CASE(
     CHECK(struck(4000, 4250) == std::set<int>{36});
     CHECK(struck(4250, 5500).empty());
     CHECK(struck(5500, 5750) == std::set<int>{42});
+  }
+}
+
+TEST_CASE(
+    "patternist: a pattern joining late plays what it would had it played from "
+    "its start",
+    "[midi][pattern][notes]")
+{
+  // Two bars of sixteenths, each step striking its index in binary over five
+  // lanes: the notes struck tell which step played.
+  auto node = std::make_shared<pattern_node>();
+  pattern_node_process proc{node};
+  fixture f; // for its execution state
+  auto& port = *node->out.target<ossia::midi_port>();
+  Pattern p;
+  p.length = 32;
+  p.division = 16;
+  for(int bit = 0; bit < 5; bit++)
+  {
+    std::vector<Note> steps(32, Note::Rest);
+    for(int i = 0; i < 32; i++)
+      if(i & (1 << bit))
+        steps[i] = Note::Note;
+    p.lanes.push_back(lane(uint8_t(60 + bit), steps));
+  }
+  node->patterns = {p};
+
+  const auto step_struck = [&](pattern_node& n, int64_t a, int64_t b, double start) {
+    auto& out = *n.out.target<ossia::midi_port>();
+    out.messages.clear();
+    ossia::exec_state_facade fac{&f.st};
+    static_cast<ossia::graph_node&>(n).run(f.musical(a, b, start), fac);
+    int step = 0;
+    for(auto& m : out.messages)
+      if(cmidi2_ump_get_status_code(m.data) == note_on)
+        step |= 1 << (cmidi2_ump_get_midi2_note_note(m.data) - 60);
+    return step;
+  };
+  (void)port;
+
+  // The process starts a quarter into the document: its bar line is at 0.
+  // It joins a bar and a half later, 7 quarters into the document: 28
+  // sixteenths from the bar line, in the second bar of the pattern.
+  SECTION("its first tick is a bar and a half after its start")
+  {
+    CHECK(step_struck(*node, 6000, 6250, 1.) == 28);
+  }
+  SECTION("a transport reaches it before its first tick")
+  {
+    proc.transport(ossia::time_value{6000});
+    CHECK(step_struck(*node, 6000, 6250, 1.) == 28);
+  }
+  SECTION("stopping and playing it from its start gives the same")
+  {
+    pattern_node from_start;
+    from_start.channel = to_midi_channel(1);
+    from_start.in_flight_channel = from_start.channel;
+    from_start.patterns = {p};
+    int64_t t = 0;
+    std::vector<int> played;
+    for(; t < 8000; t += 250)
+      played.push_back(step_struck(from_start, t, t + 250, 1.));
+    // Joined 5.5 quarters into the process, 6.5 into the document, in the
+    // second bar of the pattern.
+    const int joined = step_struck(*node, 5500, 5750, 1.);
+    CHECK(joined == played[5500 / 250]);
+    CHECK(joined == 26);
+    CHECK(step_struck(*node, 5750, 6000, 1.) == played[5750 / 250]);
+  }
+  SECTION("the timeline highlights the step it plays")
+  {
+    // The layer of the same process, one pixel per sixteenth, its content
+    // starting a quarter into the document.
+    constexpr double sixteenth = ossia::quarter_duration<double> / 4.;
+    TimeGrid g;
+    g.origin = TimeVal{int64_t(4 * sixteenth)};
+    g.playStart = g.origin;
+    const auto slots = timelineSlots(p, g, sixteenth, 64.);
+    REQUIRE(slots.size() == 64);
+    CHECK(step_struck(*node, 5500, 5750, 1.) == 26);
+    // 5.5 quarters into the process: its 22nd sixteenth.
+    const int64_t last = node->lanes[1].last;
+    CHECK(slotWithIndex(slots, last) == 22);
+    CHECK(slots[22].step == 26);
+  }
+  SECTION("on a bar line from its start it starts at step 0")
+  {
+    CHECK(step_struck(*node, 0, 250, 4.) == 0);
+    CHECK(step_struck(*node, 250, 500, 4.) == 1);
   }
 }
 

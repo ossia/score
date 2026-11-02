@@ -212,6 +212,23 @@ TEST_CASE(
     CHECK(s[10].repeat);
   }
 
+  SECTION("a start offset counts from the bar line the content starts in")
+  {
+    // The content starts two sixteenths into the bar, the process plays from
+    // the sixth.
+    const auto q = pattern({lane(36, {N})}, 16);
+    TimeGrid g;
+    g.origin = TimeVal{int64_t(2 * sixteenth)};
+    g.playStart = TimeVal{int64_t(6 * sixteenth)};
+    const auto s = timelineSlots(q, g, sixteenth, 8.);
+    REQUIRE(s.size() == 8);
+    CHECK(s[0].step == 2);
+    CHECK(s[0].repeat);
+    CHECK(s[4].step == 6);
+    CHECK(s[4].index == 6);
+    CHECK_FALSE(s[4].repeat);
+  }
+
   SECTION("a start offset shows the steps before the process starts as repeats")
   {
     TimeGrid g;
