@@ -14,6 +14,9 @@
 #include <QDir>
 #include <QElapsedTimer>
 #include <QFile>
+#include <QMimeData>
+
+#include <memory>
 
 #include <catch2/catch_test_macros.hpp>
 #include <score_test/App.hpp>
@@ -243,5 +246,81 @@ TEST_CASE("a saved preset knows its file", "[library][presets]")
     CHECK(QFile::exists(saved.path));
     CHECK(saved.path.startsWith(lib.root + "/packages/user/presets/"));
     CHECK(model.canEdit(row));
+  });
+}
+
+TEST_CASE(
+    "a preset is moved to another category, by its menu or by dragging it",
+    "[library][presets]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    TestLibrary lib{ctx};
+    Library::ProcessesItemModel processes{ctx, nullptr};
+    lib.waitFor({"Packaged", "Mine"});
+    Library::PresetItemModel presets{ctx, nullptr};
+    presets.setProcess(Process::ProcessIdentifier{
+        UuidKey<Process::ProcessModel>::fromString(pattern_uuid), {}});
+    QAbstractItemModel& model = presets;
+
+    // An installed package's preset stays where it is
+    CHECK(!presets.movePreset(lib.row("Packaged"), "Elsewhere"));
+
+    // A new category is shown empty, among the folders, until something
+    // goes in it
+    const auto drums = presets.addCategory({"Drums"});
+    REQUIRE(drums.isValid());
+    CHECK(model.rowCount(drums) == 0);
+    CHECK(presets.categories().contains("Drums"));
+    const auto sub = presets.addCategory({"Drums", "Kicks"});
+    REQUIRE(sub.isValid());
+    CHECK(presets.folderPath(sub) == (QStringList{"Drums", "Kicks"}));
+    CHECK(!presets.addCategory({}).isValid());
+
+    // Moved by its menu: the file says so, and a rescan keeps it there
+    REQUIRE(presets.movePreset(lib.row("Mine"), "Drums/Kicks"));
+    CHECK(presets.folderPath(presets.indexOfPreset(lib.row("Mine")))
+          == (QStringList{"Drums", "Kicks"}));
+    {
+      QFile f{lib.user};
+      REQUIRE(f.open(QIODevice::ReadOnly));
+      auto p = Process::Preset::fromJson(
+          ctx.interfaces<Process::ProcessFactoryList>(), f.readAll());
+      REQUIRE(p);
+      CHECK(p->category == "Drums/Kicks");
+      CHECK(p->name == "Mine");
+    }
+    ctx.settings<Library::Settings::Model>().rescanLibrary();
+    lib.waitFor({"Packaged", "Mine"});
+    CHECK(lib.count("Mine") == 1);
+    CHECK(lib.presets()[lib.row("Mine")].category == "Drums/Kicks");
+
+    // Dragged onto another folder: moved there
+    {
+      const auto from = presets.indexOfPreset(lib.row("Mine"));
+      std::unique_ptr<QMimeData> mime{model.mimeData({from})};
+      REQUIRE(mime);
+      const auto to = presets.indexOfFolder({"Drums"});
+      REQUIRE(to.isValid());
+      CHECK(model.canDropMimeData(mime.get(), Qt::MoveAction, -1, 0, to));
+      REQUIRE(model.dropMimeData(mime.get(), Qt::MoveAction, -1, 0, to));
+      CHECK(lib.presets()[lib.row("Mine")].category == "Drums");
+    }
+
+    // And onto the top level: no category
+    {
+      std::unique_ptr<QMimeData> mime{
+          model.mimeData({presets.indexOfPreset(lib.row("Mine"))})};
+      REQUIRE(model.dropMimeData(mime.get(), Qt::MoveAction, 0, 0, {}));
+      CHECK(lib.presets()[lib.row("Mine")].category.isEmpty());
+    }
+
+    // A package's preset dragged is not moved
+    {
+      std::unique_ptr<QMimeData> mime{
+          model.mimeData({presets.indexOfPreset(lib.row("Packaged"))})};
+      REQUIRE(mime);
+      CHECK(!model.canDropMimeData(
+          mime.get(), Qt::MoveAction, -1, 0, presets.indexOfFolder({"Drums"})));
+    }
   });
 }

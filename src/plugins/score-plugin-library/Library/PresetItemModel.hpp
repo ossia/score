@@ -73,6 +73,15 @@ public:
   bool canEdit(int presetRow) const;
   //! Moves its file to the trash
   bool removePreset(int presetRow);
+  //! Puts a preset in another category ("" for none, "A/B" for a subfolder)
+  bool movePreset(int presetRow, const QString& category);
+  //! An empty category of the shown process's presets, to move or save some
+  //! into; kept until the application quits, or as long as presets are in it
+  QModelIndex addCategory(const QStringList& path);
+  //! Every category of the library's presets shown, as "A/B" paths
+  QStringList categories() const;
+  //! Whether it is the folder of the target's own presets, or in it
+  bool isBuiltin(const QModelIndex& index) const;
 
   //! After a rename, where the preset now is
   void renamed(QModelIndex index) E_SIGNAL(SCORE_PLUGIN_LIBRARY_EXPORT, renamed, index)
@@ -99,6 +108,8 @@ public:
 
 private:
   bool shows(const Process::Preset& p) const noexcept;
+  QString categoryKey() const;
+  Node& folder(const QStringList& path);
   void rebuild();
   void build();
   Node* node(const QModelIndex& index) const;
@@ -112,5 +123,9 @@ private:
   std::unique_ptr<Node> m_root;
   //! Whether the preset being removed was one of the rows
   bool m_removingShown{};
+  //! Categories created empty, by kind of process (categoryKey)
+  std::vector<std::pair<QString, QStringList>> m_emptyCategories;
+  //! The preset being dragged out of the view, to move it within
+  mutable int m_dragged{-1};
 };
 }

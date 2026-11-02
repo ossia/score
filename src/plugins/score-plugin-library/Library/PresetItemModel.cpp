@@ -25,6 +25,8 @@
 #include <QFileInfo>
 #include <QMimeData>
 
+#include <utility>
+
 #include <wobjectimpl.h>
 
 W_OBJECT_IMPL(Library::PresetItemModel)
@@ -227,6 +229,119 @@ void PresetItemModel::build()
     }
   };
   copy(copy, tree.root, *m_root);
+
+  if(m_filter.isEmpty())
+    for(const auto& [key, path] : m_emptyCategories)
+      if(key == categoryKey())
+        folder(path);
+}
+
+QString PresetItemModel::categoryKey() const
+{
+  if(m_target)
+    return QString::fromLatin1(score::uuids::toByteArray(m_target->concreteKey().impl()))
+           + m_target->effect();
+  if(m_process)
+    return QString::fromLatin1(score::uuids::toByteArray(m_process->key.impl()))
+           + m_process->effect;
+  return {};
+}
+
+PresetItemModel::Node& PresetItemModel::folder(const QStringList& path)
+{
+  // Among the folders, by name, and before the target's own presets
+  Node* current = m_root.get();
+  for(const auto& part : path)
+  {
+    auto& cs = current->children;
+    auto it = std::find_if(cs.begin(), cs.end(), [&](auto& c) {
+      return c->preset < 0 && c->builtin < 0 && c->name == part
+             && !isBuiltin(indexOf(c.get()));
+    });
+    if(it == cs.end())
+    {
+      auto pos = std::find_if(cs.begin(), cs.end(), [&](auto& c) {
+        return (c->preset < 0 && c->builtin < 0 && part < c->name)
+               || isBuiltin(indexOf(c.get()));
+      });
+      auto n = std::make_unique<Node>();
+      n->name = part;
+      n->parent = current;
+      it = cs.insert(pos, std::move(n));
+      for(int i = 0; i < int(cs.size()); i++)
+        cs[std::size_t(i)]->row = i;
+    }
+    current = it->get();
+  }
+  return *current;
+}
+
+bool PresetItemModel::isBuiltin(const QModelIndex& index) const
+{
+  const Node* n = index.isValid() ? node(index) : nullptr;
+  if(!n)
+    return false;
+  const auto visit = [](auto& self, const Node& n) -> bool {
+    if(n.builtin >= 0)
+      return true;
+    for(auto& c : n.children)
+      if(self(self, *c))
+        return true;
+    return false;
+  };
+  // Folders hold one kind of preset: the top-level one says which
+  while(n->parent && n->parent != m_root.get())
+    n = n->parent;
+  return visit(visit, *n);
+}
+
+QStringList PresetItemModel::categories() const
+{
+  QStringList res;
+  const auto visit = [&](auto& self, const Node& n, const QString& prefix) -> void {
+    for(auto& c : n.children)
+    {
+      if(c->preset >= 0 || c->builtin >= 0 || isBuiltin(indexOf(c.get())))
+        continue;
+      const QString path = prefix.isEmpty() ? c->name : prefix + "/" + c->name;
+      res.push_back(path);
+      self(self, *c, path);
+    }
+  };
+  visit(visit, *m_root, {});
+  return res;
+}
+
+QModelIndex PresetItemModel::addCategory(const QStringList& path)
+{
+  if(path.isEmpty() || categoryKey().isEmpty())
+    return {};
+  for(const auto& part : path)
+    if(part.trimmed().isEmpty() || part.contains('/'))
+      return {};
+  m_emptyCategories.emplace_back(categoryKey(), path);
+  rebuild();
+  return indexOfFolder(path);
+}
+
+bool PresetItemModel::movePreset(int row, const QString& category)
+{
+  if(!canEdit(row))
+    return false;
+  auto& preset = presets[row];
+  if(preset.category == category)
+    return true;
+
+  auto moved = preset;
+  moved.category = category;
+  QFile f{preset.path};
+  if(!f.open(QIODevice::WriteOnly | QIODevice::Truncate))
+    return false;
+  f.write(moved.toJson());
+  f.close();
+  preset = std::move(moved);
+  m_plugin->presetChanged(row);
+  return true;
 }
 
 PresetItemModel::Node* PresetItemModel::node(const QModelIndex& index) const
@@ -466,6 +581,14 @@ bool PresetItemModel::dropMimeData(
     const QMimeData* data, Qt::DropAction act, int row, int col,
     const QModelIndex& parent)
 {
+  // One of its presets, dragged to another folder
+  if(!data->hasFormat(score::mime::layerdata()))
+  {
+    const bool ok = canDropMimeData(data, act, row, col, parent);
+    const int dragged = std::exchange(m_dragged, -1);
+    return ok && movePreset(dragged, folderPath(parent).join('/'));
+  }
+
   const auto& ctx = score::GUIAppContext();
   const rapidjson::Document jsondoc = readJson(data->data(score::mime::layerdata()));
   if(!jsondoc.HasMember("Path"))
@@ -497,7 +620,14 @@ bool PresetItemModel::canDropMimeData(
     const QMimeData* data, Qt::DropAction act, int row, int col,
     const QModelIndex& parent) const
 {
-  return data->hasFormat(score::mime::layerdata());
+  if(isBuiltin(parent))
+    return false;
+  if(data->hasFormat(score::mime::layerdata()))
+    return true;
+  // The preset dragged out of this view, if that is what comes back
+  return ossia::valid_index(m_dragged, presets) && canEdit(m_dragged)
+         && data->hasFormat(score::mime::processpreset())
+         && data->data(score::mime::processpreset()) == presets[m_dragged].toJson();
 }
 
 QMimeData* PresetItemModel::mimeData(const QModelIndexList& indexes) const
@@ -508,6 +638,7 @@ QMimeData* PresetItemModel::mimeData(const QModelIndexList& indexes) const
   if(!p)
     return nullptr;
 
+  m_dragged = presetRow(indexes.front());
   auto mime = new QMimeData;
   mime->setData(score::mime::processpreset(), p->toJson());
   return mime;
@@ -515,7 +646,7 @@ QMimeData* PresetItemModel::mimeData(const QModelIndexList& indexes) const
 
 Qt::DropActions PresetItemModel::supportedDragActions() const
 {
-  return Qt::CopyAction;
+  return Qt::CopyAction | Qt::MoveAction;
 }
 
 Qt::DropActions PresetItemModel::supportedDropActions() const

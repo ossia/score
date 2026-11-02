@@ -1,8 +1,11 @@
 #include "PresetTreeView.hpp"
 
+#include <Process/PresetTree.hpp>
+
 #include <Library/PresetItemModel.hpp>
 
 #include <QContextMenuEvent>
+#include <QInputDialog>
 #include <QKeyEvent>
 #include <QMenu>
 #include <QPainter>
@@ -166,24 +169,98 @@ void PresetTreeView::paintEvent(QPaintEvent* e)
   p.drawText(rect(), Qt::AlignLeft, "<No presets>");
 }
 
+//! A category's path as typed: "A/B" is B in A
+static QStringList typedCategory(const QString& text)
+{
+  QStringList path;
+  for(const auto& part : text.split('/', Qt::SkipEmptyParts))
+    if(auto p = part.trimmed(); !p.isEmpty())
+      path.push_back(p);
+  return path;
+}
+
+void PresetTreeView::newCategory(const QStringList& in)
+{
+  if(!m_model)
+    return;
+  bool ok{};
+  const auto text = QInputDialog::getText(
+      this, tr("New category"),
+      in.isEmpty() ? tr("Name:") : tr("Name, in %1:").arg(in.join('/')),
+      QLineEdit::Normal, {}, &ok);
+  const auto name = typedCategory(text);
+  if(!ok || name.isEmpty())
+    return;
+  const auto idx = m_model->addCategory(in + name);
+  if(!idx.isValid())
+    return;
+  for(auto p = idx.parent(); p.isValid(); p = p.parent())
+    expand(p);
+  m_restoring = true;
+  setCurrentIndex(idx);
+  m_restoring = false;
+  scrollToCurrentLater();
+}
+
 void PresetTreeView::contextMenuEvent(QContextMenuEvent* event)
 {
-  const auto idx = indexAt(event->pos());
-  const int row = m_model ? m_model->presetRow(idx) : -1;
-  if(row < 0)
+  if(!m_model || (!m_model->process() && !m_model->target()))
     return;
-
+  const auto idx = indexAt(event->pos());
+  const int row = m_model->presetRow(idx);
   QMenu menu;
+
+  if(row < 0)
+  {
+    // On a folder, or beside the presets
+    if(m_model->preset(idx) || m_model->isBuiltin(idx))
+      return;
+    const auto in = m_model->folderPath(idx);
+    auto add = menu.addAction(
+        in.isEmpty() ? tr("New category") : tr("New category in %1").arg(in.join('/')));
+    connect(add, &QAction::triggered, this, [this, in] { newCategory(in); });
+    menu.exec(event->globalPos());
+    event->accept();
+    return;
+  }
+
   const bool editable = m_model->canEdit(row);
+  if(!editable)
+  {
+    menu.addAction(tr("Presets of installed packages cannot be changed"))
+        ->setEnabled(false);
+    menu.addSeparator();
+  }
   auto rename = menu.addAction(tr("Rename"));
   rename->setEnabled(editable);
   connect(rename, &QAction::triggered, this, [this, idx] { edit(idx); });
   auto remove = menu.addAction(tr("Delete"));
   remove->setEnabled(editable);
   connect(remove, &QAction::triggered, this, [this, row] { m_model->removePreset(row); });
-  if(!editable)
-    menu.addAction(tr("Presets of installed packages cannot be changed"))
-        ->setEnabled(false);
+
+  auto move = menu.addMenu(tr("Move to"));
+  move->setEnabled(editable);
+  const QString current = m_model->presets[row].category;
+  const auto addTarget = [&](const QString& label, const QString& category) {
+    auto act = move->addAction(label);
+    act->setCheckable(true);
+    act->setChecked(Process::presetCategoryPath(current).join('/') == category);
+    connect(act, &QAction::triggered, this, [this, row, category] {
+      m_model->movePreset(row, category);
+    });
+  };
+  addTarget(tr("No category"), {});
+  for(const auto& category : m_model->categories())
+    addTarget(category, category);
+  move->addSeparator();
+  connect(move->addAction(tr("New category")), &QAction::triggered, this, [this, row] {
+    bool ok{};
+    const auto name = typedCategory(QInputDialog::getText(
+        this, tr("New category"), tr("Name:"), QLineEdit::Normal, {}, &ok));
+    if(ok && !name.isEmpty())
+      m_model->movePreset(row, name.join('/'));
+  });
+
   menu.exec(event->globalPos());
   event->accept();
 }

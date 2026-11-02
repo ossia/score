@@ -219,16 +219,16 @@ ProcessWidget::ProcessWidget(const score::GUIApplicationContext& ctx, QWidget* p
     auto lay = new score::MarginLess<QHBoxLayout>{&m_targetBar};
     lay->setContentsMargins(4, 2, 2, 2);
     m_targetLabel.setTextFormat(Qt::PlainText);
-    // Like the play / stop of a sound file's preview
+    // A browser's preview toggle: lit while presets load as they are browsed
     auto audition = new QPushButton{&m_targetBar};
     audition->setCheckable(true);
     audition->setFlat(true);
     audition->setMinimumWidth(24);
     audition->setMaximumWidth(24);
-    const auto playIcon = QIcon{score::get_pixmap(":/icons/play_off.png")};
-    const auto stopIcon = QIcon{score::get_pixmap(":/icons/stop_off.png")};
+    const auto onIcon = QIcon{score::get_pixmap(":/icons/headphones_on.png")};
+    const auto offIcon = QIcon{score::get_pixmap(":/icons/headphones_off.png")};
     const auto showAudition = [=, this](bool on) {
-      audition->setIcon(on ? stopIcon : playIcon);
+      audition->setIcon(on ? onIcon : offIcon);
       audition->setToolTip(
           on ? tr("Presets load as you move through them. Click to only load "
                   "one on Enter or a double-click.")
@@ -521,7 +521,7 @@ void ProcessWidget::showPresets(const Process::ProcessModel& proc)
   });
   const auto name = proc.metadata().getLabel().isEmpty() ? proc.metadata().getName()
                                                          : proc.metadata().getLabel();
-  m_targetLabel.setText(tr("Presets of %1").arg(name));
+  m_targetLabel.setText(tr("Presets: %1").arg(name));
   m_targetBar.show();
   m_presets.showCurrentPreset();
   m_presets.setFocus();
