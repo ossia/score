@@ -233,6 +233,8 @@ score_add_gfx_test(orientation GfxOrientation.cpp)
 
 # Previews read back by the render list of an output of the patch.
 score_add_gfx_test(preview_tap GfxPreviewTap.cpp)
+# The same previews of 3D textures, arrays and cube maps: every image, tiled.
+score_add_gfx_test(preview_tap_kinds GfxPreviewTapKinds.cpp)
 
 # Which way up each video output hands its pixels over: the InvertYRenderer
 # readback that Libav/GStreamer/Shmdata/Sh4lt/NDI/PipeWire share, against the

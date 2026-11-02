@@ -25,12 +25,14 @@ struct Params
   float view2[4];
   //! width, height
   int32_t sizes[4];
+  //! layout, slice, layer or face, rows reversed: see shownTextureGlsl
+  int32_t shown[4];
 };
-static_assert(sizeof(Params) == 80);
+static_assert(sizeof(Params) == 96);
 
 constexpr int max_size = 8192;
 
-const char* const shader = R"_(#version 450
+const char* const shader_header = R"_(#version 450
 layout(local_size_x = 16, local_size_y = 16) in;
 layout(std140, binding = 0) uniform Params
 {
@@ -39,8 +41,12 @@ layout(std140, binding = 0) uniform Params
   vec4 view;
   vec4 view2;
   ivec4 sizes;
+  ivec4 shown;
 };
-layout(binding = 1) uniform sampler2D inTex;
+)_";
+
+// The input, of any kind, is read through shownTexel: binding 1
+const char* const shader_main = R"_(
 layout(binding = 2) uniform sampler2D refTex;
 layout(binding = 3, rgba8) uniform writeonly image2D outImage;
 
@@ -63,10 +69,16 @@ vec3 false_color(float L)
   return vec3(1.0, 0.0, 1.0);
 }
 
+vec4 inputAt(ivec2 p, out bool inside)
+{
+  return shownTexel(p, sizes.xy, shown.x, shown.y, shown.z != 0, inside);
+}
+
 float lumaAt(ivec2 p)
 {
   p = clamp(p, ivec2(0), sizes.xy - 1);
-  return dot(texelFetch(inTex, p, 0).rgb * view.x, luma.rgb);
+  bool inside;
+  return dot(inputAt(p, inside).rgb * view.x, luma.rgb);
 }
 
 void main()
@@ -74,7 +86,14 @@ void main()
   ivec2 p = ivec2(gl_GlobalInvocationID.xy);
   if(p.x >= sizes.x || p.y >= sizes.y)
     return;
-  vec4 src = texelFetch(inTex, p, 0);
+  bool inside;
+  vec4 src = inputAt(p, inside);
+  // Between the tiles of an overview
+  if(!inside)
+  {
+    imageStore(outImage, p, vec4(0.12, 0.12, 0.12, 1.0));
+    return;
+  }
   vec3 c = src.rgb * view.x;
   float a = src.a;
   float L = dot(c, luma.rgb);
@@ -195,23 +214,39 @@ void Node::init(score::gfx::RenderList& r, QRhiResourceUpdateBatch& res)
     m_srb = nullptr;
     return;
   }
+  pipeline(r, score::gfx::TextureKind::Texture2D);
+}
+
+QRhiComputePipeline* Node::pipeline(score::gfx::RenderList& r, score::gfx::TextureKind kind)
+{
+  // The variants differ only in the type of binding 1: all of them work with
+  // the bindings, whatever texture these point at
+  const int k = int(kind);
+  if(m_pipelines[k] || m_failed[k] || !m_srb)
+    return m_pipelines[k];
+  QRhiComputePipeline* pl{};
   try
   {
-    m_pipeline = rhi.newComputePipeline();
-    m_pipeline->setShaderStage(
-        {QRhiShaderStage::Compute, score::gfx::makeCompute(r.state, shader)});
-    m_pipeline->setShaderResourceBindings(m_srb);
-    if(!m_pipeline->create())
+    QString src = shader_header;
+    src += score::gfx::shownTextureGlsl(kind, 1, "inTex");
+    src += shader_main;
+    pl = m_rhi->newComputePipeline();
+    pl->setShaderStage({QRhiShaderStage::Compute, score::gfx::makeCompute(r.state, src)});
+    pl->setShaderResourceBindings(m_srb);
+    if(!pl->create())
     {
-      delete m_pipeline;
-      m_pipeline = nullptr;
+      delete pl;
+      pl = nullptr;
     }
   }
   catch(...)
   {
-    delete m_pipeline;
-    m_pipeline = nullptr;
+    delete pl;
+    pl = nullptr;
   }
+  m_pipelines[k] = pl;
+  m_failed[k] = !pl;
+  return pl;
 }
 
 bool Node::resizeOutput(QSize sz)
@@ -242,15 +277,31 @@ void Node::runInitialPasses(
     score::gfx::RenderList& r, QRhiCommandBuffer& cb, QRhiResourceUpdateBatch*& res,
     score::gfx::Edge& e)
 {
-  if(!m_rhi || !m_pipeline || !m_srb || !m_out)
+  using namespace score::gfx;
+  auto* input = static_cast<QRhiTexture*>(inputs.image.texture.handle);
+  const TextureShape shape = input ? TextureShape::of(*input) : TextureShape{};
+  if(monitor)
+    Ui::Monitor::publish(*monitor, shape);
+
+  if(!m_rhi || !m_srb || !m_out)
     return;
   auto& rhi = *m_rhi;
 
-  auto* input = static_cast<QRhiTexture*>(inputs.image.texture.handle);
   auto* reference = static_cast<QRhiTexture*>(inputs.reference.texture.handle);
+  // The reference is compared as a 2D image
+  if(reference && TextureShape::of(*reference).kind != TextureKind::Texture2D)
+    reference = nullptr;
+  auto* const pl = pipeline(r, shape.kind);
+  if(!pl)
+    return;
+
   const QSize in_size = input ? input->pixelSize() : QSize{16, 16};
-  const QSize out_size{
-      std::clamp(in_size.width(), 1, max_size), std::clamp(in_size.height(), 1, max_size)};
+  const ShownTexture shown = Ui::Monitor::shownTexture(
+      shape, inputs.layout.value, inputs.slice.value, inputs.layer.value);
+  const QSize out_size = shown.layered() ? shown.size(max_size)
+                                         : QSize{
+                                             std::clamp(in_size.width(), 1, max_size),
+                                             std::clamp(in_size.height(), 1, max_size)};
 
   const bool resized = resizeOutput(out_size);
   QRhiTexture* const empty = &r.emptyTexture();
@@ -271,12 +322,13 @@ void Node::runInitialPasses(
       .config = {int(inputs.mode.value), inputs.nan.value ? 1 : 0, int(inputs.background.value), reference ? 1 : 0},
       .view = {std::exp2(inputs.exposure.value), inputs.zebra_high.value, inputs.zebra_low.value, inputs.peaking.value},
       .view2 = {inputs.blend.value, inputs.wipe.value, float(m_frame++), 0.f},
-      .sizes = {out_size.width(), out_size.height(), 0, 0}};
+      .sizes = {out_size.width(), out_size.height(), 0, 0},
+      .shown = {shown.overview() ? 1 : 0, shown.index, rhi.isYUpInNDC() ? 1 : 0, 0}};
   res->updateDynamicBuffer(m_params, 0, sizeof(Params), &params);
 
   cb.beginComputePass(res);
   res = rhi.nextResourceUpdateBatch();
-  cb.setComputePipeline(m_pipeline);
+  cb.setComputePipeline(pl);
   cb.setShaderResources(m_srb);
   cb.dispatch((out_size.width() + 15) / 16, (out_size.height() + 15) / 16, 1);
   cb.endComputePass();
@@ -288,11 +340,17 @@ void Node::runInitialPasses(
 
 void Node::release(score::gfx::RenderList& r)
 {
+  for(auto*& pl : m_pipelines)
+  {
+    if(pl)
+      pl->deleteLater();
+    pl = nullptr;
+  }
+  m_failed = {};
   for(QRhiResource* res : std::initializer_list<QRhiResource*>{
-          m_pipeline, m_srb, m_params, m_out, m_sampler})
+          m_srb, m_params, m_out, m_sampler})
     if(res)
       res->deleteLater();
-  m_pipeline = nullptr;
   m_srb = nullptr;
   m_params = nullptr;
   m_out = nullptr;
@@ -307,6 +365,7 @@ Layer::Layer(
     const Process::ProcessModel& process, const Process::Context& doc,
     QGraphicsItem* parent)
     : Gfx::OutletPreviewLayer{process, doc, parent}
+    , m_process{process}
 {
   setAcceptedMouseButtons({});
   setAcceptHoverEvents(true);
@@ -326,6 +385,13 @@ std::array<float, 2> Layer::resolution() const
   return {v[0], v[1]};
 }
 
+score::gfx::TextureShape Layer::textureShape() const
+{
+  if(auto* m = dynamic_cast<const Ui::Monitor::TextureShapeMonitor*>(m_process.monitor().get()))
+    return Ui::Monitor::latestShape(*m);
+  return {};
+}
+
 void Layer::hoverMoveEvent(QGraphicsSceneHoverEvent* ev)
 {
   m_hover = ev->pos();
@@ -341,15 +407,14 @@ void Layer::paintOverlay(QPainter* p, const QRectF& r) const
 {
   using namespace Ui::Monitor;
   const auto res = resolution();
-  QStringList info;
-  if(res[0] > 0)
-    info << QStringLiteral("rendered at %1 x %2").arg(res[0]).arg(res[1]);
-  if(m_hover && r.contains(*m_hover) && res[0] > 0)
+  const auto shown = Ui::Monitor::shownTexture(m_process, textureShape());
+  const bool hovered = m_hover && r.contains(*m_hover) && res[0] > 0;
+  const double u = hovered ? (m_hover->x() - r.left()) / r.width() : 0.;
+  const double v = hovered ? (m_hover->y() - r.top()) / r.height() : 0.;
+  QString value;
+  if(hovered)
   {
-    const double u = (m_hover->x() - r.left()) / r.width();
-    const double v = (m_hover->y() - r.top()) / r.height();
     const QImage img = preview().image();
-    QString value;
     if(!img.isNull())
     {
       const QColor c = img.pixelColor(
@@ -357,7 +422,23 @@ void Layer::paintOverlay(QPainter* p, const QRectF& r) const
           std::clamp(int(v * img.height()), 0, img.height() - 1));
       value = QStringLiteral("  shown %1 %2 %3").arg(c.red()).arg(c.green()).arg(c.blue());
     }
-    info << QStringLiteral("%1, %2").arg(int(u * res[0])).arg(int(v * res[1])) + value;
+  }
+
+  QStringList info;
+  if(shown.layered() && res[0] > 0)
+  {
+    // A texture of its producer: its own size, and where the pointer is in it
+    info = Ui::Monitor::describeShown(
+        shown, hovered ? std::optional<QPointF>{QPointF{u, v}} : std::nullopt);
+    if(hovered && info.size() > 1)
+      info.back() += value;
+  }
+  else
+  {
+    if(res[0] > 0)
+      info << QStringLiteral("rendered at %1 x %2").arg(res[0]).arg(res[1]);
+    if(hovered)
+      info << QStringLiteral("%1, %2").arg(int(u * res[0])).arg(int(v * res[1])) + value;
   }
   if(!info.isEmpty() && isUnderMouse())
     // Under the mode switch, right of the inlets

@@ -1663,6 +1663,51 @@ void RenderList::releasePreviewTaps()
   m_retiredPreviewReadbacks.clear();
 }
 
+namespace
+{
+//! What a preview tap draws its texture with, in the orientation of the
+//! preview outputs (InvertYRenderer).
+QString previewTapShader(TextureKind kind, const QRhi& rhi)
+{
+  if(kind == TextureKind::Texture2D)
+    return QStringLiteral(R"_(#version 450
+          layout(location = 0) in vec2 v_texcoord;
+          layout(location = 0) out vec4 fragColor;
+          layout(binding = 3) uniform sampler2D tex;
+          void main()
+          {
+#if defined(QSHADER_MSL) || defined(QSHADER_HLSL)
+            fragColor = texture(tex, v_texcoord);
+#else
+            fragColor = texture(tex, vec2(v_texcoord.x, 1. - v_texcoord.y));
+#endif
+          }
+          )_");
+
+  // Everything it holds, tiled: see ShownTexture
+  QString s = QStringLiteral(R"_(#version 450
+layout(location = 0) in vec2 v_texcoord;
+layout(location = 0) out vec4 fragColor;
+)_");
+  s += shownTextureGlsl(kind, 3, "tex");
+  s += QStringLiteral(R"_(
+void main()
+{
+#if defined(QSHADER_MSL) || defined(QSHADER_HLSL)
+  vec2 uv = v_texcoord;
+#else
+  vec2 uv = vec2(v_texcoord.x, 1. - v_texcoord.y);
+#endif
+  bool inside;
+  vec4 c = shownSample(uv, 1, 0, %1, inside);
+  fragColor = inside ? c : vec4(0.12, 0.12, 0.12, 1.0);
+}
+)_")
+           .arg(rhi.isYUpInNDC() ? QStringLiteral("true") : QStringLiteral("false"));
+  return s;
+}
+}
+
 void RenderList::renderPreviewTaps(QRhiCommandBuffer& commands, QRhiResourceUpdateBatch*& res)
 {
   // Of the editor's own outputs, only the hub hosts taps: for the nodes no
@@ -1706,8 +1751,13 @@ void RenderList::renderPreviewTaps(QRhiCommandBuffer& commands, QRhiResourceUpda
       if(!tap->wanted.load(std::memory_order_relaxed))
         continue;
 
-      // As large as asked, with the aspect of the texture
-      const QSize in = src->pixelSize();
+      // As large as asked, with the aspect of the texture; a texture of
+      // several images shows them all, tiled as the views' Overview does
+      const TextureShape shape = TextureShape::of(*src);
+      const QSize in
+          = shape.kind == TextureKind::Texture2D
+                ? src->pixelSize()
+                : ShownTexture::of(shape, TextureLayout::Overview, 0., 0).size(4096);
       QSize sz = in.scaled(tap->size, Qt::KeepAspectRatio);
       sz = sz.expandedTo({1, 1}).boundedTo(in.expandedTo({1, 1}));
 
@@ -1716,8 +1766,8 @@ void RenderList::renderPreviewTaps(QRhiCommandBuffer& commands, QRhiResourceUpda
       if(!res)
         break;
 
-      // The pipeline is built once: a target of another size has the same
-      // format, so its render pass is compatible with the pipeline's
+      // The pipeline is built once per kind of texture: a target of another
+      // size has the same format, so its render pass is compatible with it
       if(!t.rt.texture || t.rt.texture->pixelSize() != sz)
       {
         t.rt.release();
@@ -1725,42 +1775,36 @@ void RenderList::renderPreviewTaps(QRhiCommandBuffer& commands, QRhiResourceUpda
         if(!t.rt.texture)
           continue;
       }
+      if(t.pipeline.pipeline && t.kind != shape.kind)
+        t.pipeline.release();
       if(!t.pipeline.pipeline)
       {
         const auto& mesh = defaultTriangle();
         t.mesh = initMeshBuffer(mesh, *res);
-        // The orientation of the preview outputs (InvertYRenderer)
-        static constexpr auto frag = R"_(#version 450
-          layout(location = 0) in vec2 v_texcoord;
-          layout(location = 0) out vec4 fragColor;
-          layout(binding = 3) uniform sampler2D tex;
-          void main()
-          {
-#if defined(QSHADER_MSL) || defined(QSHADER_HLSL)
-            fragColor = texture(tex, v_texcoord);
-#else
-            fragColor = texture(tex, vec2(v_texcoord.x, 1. - v_texcoord.y));
-#endif
-          }
-          )_";
         try
         {
-          auto [vs, fs] = makeShaders(state, mesh.defaultVertexShader(), frag);
+          auto& shaders = m_previewShaders[int(shape.kind)];
+          if(!shaders.first.isValid() || !shaders.second.isValid())
+            shaders = makeShaders(
+                state, mesh.defaultVertexShader(), previewTapShader(shape.kind, *state.rhi));
           if(!t.sampler)
           {
             t.sampler = state.rhi->newSampler(
                 QRhiSampler::Linear, QRhiSampler::Linear, QRhiSampler::None,
-                QRhiSampler::ClampToEdge, QRhiSampler::ClampToEdge);
+                QRhiSampler::ClampToEdge, QRhiSampler::ClampToEdge,
+                QRhiSampler::ClampToEdge);
             t.sampler->setName("RenderList::previewTap");
             t.sampler->create();
           }
           const Sampler samplers[]{{t.sampler, src}};
-          t.pipeline = buildPipeline(*this, mesh, vs, fs, t.rt, nullptr, nullptr, samplers);
+          t.pipeline = buildPipeline(
+              *this, mesh, shaders.first, shaders.second, t.rt, nullptr, nullptr, samplers);
         }
         catch(...)
         {
         }
         t.source = src;
+        t.kind = shape.kind;
         if(!t.pipeline.pipeline)
           continue;
       }

@@ -8,12 +8,15 @@
 #include <Ui/Monitor/LayerHelpers.hpp>
 #include <Gfx/Widgets/OutletPreviewLayer.hpp>
 #include <Ui/Monitor/Paint.hpp>
+#include <Ui/Monitor/TextureLayers.hpp>
 #include <halp/controls.hpp>
 #include <halp/meta.hpp>
 #include <halp/texture.hpp>
 
+#include <array>
 #include <atomic>
 #include <memory>
+#include <optional>
 
 class QRhi;
 class QRhiBuffer;
@@ -38,6 +41,8 @@ struct Edge;
  * persistence, every sampled input pixel adds to the bins of the mode, and
  * the bins are tone-mapped into the scope image, which is the texture output.
  * The labelled graticule is drawn on the CPU and composited on the GPU.
+ * Of a 3D texture, an array or a cube map, the scope analyses what the Layout
+ * shows: one slice, layer or face, or all of them side by side.
  *
  * The view shows that output through a preview of the outlet: being an output
  * of the graph, the preview pulls the scope, which renders whenever it is
@@ -101,8 +106,9 @@ inline QPointF diamondLower(double r, double g) noexcept
 
 struct Layer;
 
-//! What the views tell the scope, whichever list renders it: start over.
-struct ScopeMonitor final : Process::Monitor
+//! What the views tell the scope, whichever list renders it: start over;
+//! and what the scope tells them: the texture it analyses.
+struct ScopeMonitor final : Ui::Monitor::TextureShapeMonitor
 {
   std::atomic<uint32_t> clears{};
 };
@@ -183,6 +189,9 @@ struct Node
     {
       halp_meta(description, "Vectorscope magnification")
     } zoom;
+    Ui::Monitor::LayoutControl layout;
+    Ui::Monitor::SliceControl slice;
+    Ui::Monitor::LayerControl layer;
   } inputs;
 
   struct
@@ -204,6 +213,9 @@ struct Node
 
 private:
   bool createPipelines(score::gfx::RenderList& r);
+  //! The accumulation of an input of `kind`, built the first time it is
+  //! asked for, under the transfer function the other passes were built for.
+  QRhiComputePipeline* accumulate(score::gfx::RenderList& r, score::gfx::TextureKind kind);
   //! The bins, the scope and its graticule, at `sz` pixels square.
   void allocate(int sz);
   bool rebuildBindings(QRhiTexture* input);
@@ -221,7 +233,8 @@ private:
   QRhiSampler* m_sampler{};
   QRhiShaderResourceBindings* m_srb{};
   QRhiComputePipeline* m_decay{};
-  QRhiComputePipeline* m_accumulate{};
+  std::array<QRhiComputePipeline*, score::gfx::texture_kind_count> m_accumulate{};
+  std::array<bool, score::gfx::texture_kind_count> m_accumulateFailed{};
   QRhiComputePipeline* m_render{};
   void* m_boundInput{};
   Ui::Monitor::Color::Transfer m_builtTransfer{};
@@ -245,6 +258,11 @@ struct Layer : public Gfx::OutletPreviewLayer
 
   //! A double click clears what the scope has accumulated
   void mousePressEvent(QGraphicsSceneMouseEvent* ev) override;
+
+protected:
+  void hoverMoveEvent(QGraphicsSceneHoverEvent* ev) override;
+  void hoverLeaveEvent(QGraphicsSceneHoverEvent* ev) override;
+  void paintOverlay(QPainter* p, const QRectF& image) const override;
 
 private:
   const Process::ProcessModel& m_scope;

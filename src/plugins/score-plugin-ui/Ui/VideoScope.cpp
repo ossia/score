@@ -5,6 +5,7 @@
 #include <Gfx/Graph/Utils.hpp>
 #include <Gfx/Graph/decoders/ColorSpace.hpp>
 
+#include <QGraphicsSceneHoverEvent>
 #include <QPainterPath>
 #include <QtGui/private/qrhi_p.h>
 
@@ -27,8 +28,10 @@ struct Params
   float view[4];
   //! linear RGB to XYZ, column-major
   float rgb2xyz[16];
+  //! layout, slice, layer or face, rows reversed: see shownTextureGlsl
+  int32_t shown[4];
 };
-static_assert(sizeof(Params) == 144);
+static_assert(sizeof(Params) == 160);
 
 //! The input is sampled at most at this size, in both directions
 constexpr int max_analysis_size = 1024;
@@ -42,8 +45,9 @@ layout(std140, binding = 0) uniform Params
   ivec4 sizes;
   vec4 view;
   mat4 rgb2xyz;
+  ivec4 shown;
 };
-layout(binding = 1) uniform sampler2D inTex;
+// Binding 1, the input, only the accumulation reads: through shownSample
 layout(std430, binding = 2) buffer Bins { uint bins[]; };
 layout(binding = 3, rgba8) uniform writeonly image2D outImage;
 layout(binding = 4) uniform sampler2D overlayTex;
@@ -103,7 +107,11 @@ void main()
   if(p.x >= sizes.x || p.y >= sizes.y)
     return;
   vec2 uv = (vec2(p) + 0.5) / vec2(sizes.xy);
-  vec3 rgb = textureLod(inTex, uv, 0.0).rgb;
+  bool inside;
+  vec3 rgb = shownSample(uv, shown.x, shown.y, shown.z != 0, inside).rgb;
+  // Between the tiles of an overview
+  if(!inside)
+    return;
   int W = sizes.z, H = sizes.w;
   int mode = config.x;
   float y = dot(rgb, luma.rgb);
@@ -222,9 +230,13 @@ void main()
 }
 )_";
 
-QString shaderFor(const char* main, Ui::Monitor::Color::Transfer t)
+QString shaderFor(
+    const char* main, Ui::Monitor::Color::Transfer t,
+    std::optional<score::gfx::TextureKind> input = {})
 {
   QString s = shader_header;
+  if(input)
+    s += score::gfx::shownTextureGlsl(*input, 1, "inTex");
   switch(t)
   {
     case Ui::Monitor::Color::Transfer::PQ:
@@ -457,11 +469,11 @@ bool Node::createPipelines(score::gfx::RenderList& r)
 {
   auto& rhi = *r.state.rhi;
   const auto t = inputs.transfer.value;
-  // All three or none: a node left with some of them would dispatch the rest
-  QRhiComputePipeline* made[3]{};
-  const char* const mains[3]{decay_main, accumulate_main, render_main};
+  // Both or none: a node left with one of them would dispatch it alone
+  QRhiComputePipeline* made[2]{};
+  const char* const mains[2]{decay_main, render_main};
   bool ok = true;
-  for(int i = 0; i < 3 && ok; i++)
+  for(int i = 0; i < 2 && ok; i++)
   {
     try
     {
@@ -484,9 +496,40 @@ bool Node::createPipelines(score::gfx::RenderList& r)
     return false;
   }
   m_decay = made[0];
-  m_accumulate = made[1];
-  m_render = made[2];
+  m_render = made[1];
   return true;
+}
+
+QRhiComputePipeline* Node::accumulate(score::gfx::RenderList& r, score::gfx::TextureKind kind)
+{
+  // The variants differ only in the type of binding 1: all of them work with
+  // the bindings, whatever texture these point at
+  const int k = int(kind);
+  if(m_accumulate[k] || m_accumulateFailed[k] || !m_srb)
+    return m_accumulate[k];
+  QRhiComputePipeline* pl{};
+  try
+  {
+    pl = r.state.rhi->newComputePipeline();
+    pl->setShaderStage(
+        {QRhiShaderStage::Compute,
+         score::gfx::makeCompute(
+             r.state, shaderFor(accumulate_main, m_builtTransfer, kind))});
+    pl->setShaderResourceBindings(m_srb);
+    if(!pl->create())
+    {
+      delete pl;
+      pl = nullptr;
+    }
+  }
+  catch(...)
+  {
+    delete pl;
+    pl = nullptr;
+  }
+  m_accumulate[k] = pl;
+  m_accumulateFailed[k] = !pl;
+  return pl;
 }
 
 void Node::init(score::gfx::RenderList& r, QRhiResourceUpdateBatch& res)
@@ -562,6 +605,12 @@ void Node::runInitialPasses(
     score::gfx::RenderList& r, QRhiCommandBuffer& cb, QRhiResourceUpdateBatch*& res,
     score::gfx::Edge& e)
 {
+  using namespace score::gfx;
+  auto* input = static_cast<QRhiTexture*>(inputs.image.texture.handle);
+  const TextureShape shape = input ? TextureShape::of(*input) : TextureShape{};
+  if(monitor)
+    Ui::Monitor::publish(*monitor, shape);
+
   if(!m_out || !m_rhi)
     return;
   auto& rhi = *m_rhi;
@@ -582,9 +631,10 @@ void Node::runInitialPasses(
   }
 
   QRhiTexture* const empty = &r.emptyTexture();
-  auto* input = static_cast<QRhiTexture*>(inputs.image.texture.handle);
   if(!input)
     input = empty;
+  const ShownTexture shown = Ui::Monitor::shownTexture(
+      shape, inputs.layout.value, inputs.slice.value, inputs.layer.value);
 
   // Bindings follow the input texture; pipelines follow the transfer
   // function, which is compiled in
@@ -599,10 +649,17 @@ void Node::runInitialPasses(
     // A transfer whose shaders did not build is not tried again every frame
     if(!m_decay && m_pipelinesFailed && m_builtTransfer == inputs.transfer.value)
       return;
-    for(auto* pl : {m_decay, m_accumulate, m_render})
+    for(auto* pl : {m_decay, m_render})
       if(pl)
         pl->deleteLater();
-    m_decay = m_accumulate = m_render = nullptr;
+    for(auto*& pl : m_accumulate)
+    {
+      if(pl)
+        pl->deleteLater();
+      pl = nullptr;
+    }
+    m_accumulateFailed = {};
+    m_decay = m_render = nullptr;
     m_builtTransfer = inputs.transfer.value;
     m_pipelinesFailed = !createPipelines(r);
     if(m_pipelinesFailed)
@@ -647,7 +704,10 @@ void Node::runInitialPasses(
   params.config[0] = int(mode);
   params.config[1] = score::gfx::uploadReversesRows(rhi) ? 1 : 0;
   params.config[2] = 1;
-  const int iw = std::max(1, inputs.image.texture.width), ih = std::max(1, inputs.image.texture.height);
+  // What the layout shows of a texture of several images
+  const QSize shown_size = shown.size(max_analysis_size * 4);
+  const int iw = shown.layered() ? shown_size.width() : std::max(1, inputs.image.texture.width);
+  const int ih = shown.layered() ? shown_size.height() : std::max(1, inputs.image.texture.height);
   QSize analysed{iw, ih};
   if(iw > max_analysis_size || ih > max_analysis_size)
     analysed = analysed.scaled(max_analysis_size, max_analysis_size, Qt::KeepAspectRatio);
@@ -671,9 +731,13 @@ void Node::runInitialPasses(
     for(int row = 0; row < 3; row++)
       params.rgb2xyz[col * 4 + row] = float(xyz[row][col]);
   params.rgb2xyz[15] = 1.f;
+  params.shown[0] = shown.overview() ? 1 : 0;
+  params.shown[1] = shown.index;
+  params.shown[2] = rhi.isYUpInNDC() ? 1 : 0;
   res->updateDynamicBuffer(m_params, 0, sizeof(Params), &params);
 
-  const bool has_input = input != empty;
+  QRhiComputePipeline* const acc = accumulate(r, shape.kind);
+  const bool has_input = input != empty && acc;
   auto pass = [&](QRhiComputePipeline* pl, int x, int y) {
     cb.beginComputePass(res);
     res = rhi.nextResourceUpdateBatch();
@@ -684,19 +748,25 @@ void Node::runInitialPasses(
   };
   pass(m_decay, size / 16, size / 16);
   if(has_input)
-    pass(m_accumulate, (aw + 15) / 16, (ah + 15) / 16);
+    pass(acc, (aw + 15) / 16, (ah + 15) / 16);
   pass(m_render, size / 16, size / 16);
 
 }
 
 void Node::release(score::gfx::RenderList& r)
 {
+  for(auto*& pl : m_accumulate)
+  {
+    if(pl)
+      pl->deleteLater();
+    pl = nullptr;
+  }
+  m_accumulateFailed = {};
   for(QRhiResource* res : std::initializer_list<QRhiResource*>{
-          m_decay, m_accumulate, m_render, m_srb, m_params, m_bins, m_out, m_overlay,
-          m_sampler})
+          m_decay, m_render, m_srb, m_params, m_bins, m_out, m_overlay, m_sampler})
     if(res)
       res->deleteLater();
-  m_decay = m_accumulate = m_render = nullptr;
+  m_decay = m_render = nullptr;
   m_srb = nullptr;
   m_params = m_bins = nullptr;
   m_out = m_overlay = nullptr;
@@ -715,6 +785,7 @@ Layer::Layer(
 {
   // For the double click; a press goes on to the node
   setAcceptedMouseButtons(Qt::LeftButton);
+  setAcceptHoverEvents(true);
   Ui::Monitor::showInlet(process, 0, doc, this, this);
   Ui::Monitor::ModeSwitch::make(process, doc, this, this);
   aspect = [] { return std::optional<double>{1.}; };
@@ -731,5 +802,37 @@ void Layer::mousePressEvent(QGraphicsSceneMouseEvent* ev)
   ev->accept();
   if(auto m = std::dynamic_pointer_cast<ScopeMonitor>(m_scope.monitor()))
     m->clears.fetch_add(1, std::memory_order_relaxed);
+}
+
+void Layer::hoverMoveEvent(QGraphicsSceneHoverEvent*)
+{
+  update();
+}
+
+void Layer::hoverLeaveEvent(QGraphicsSceneHoverEvent*)
+{
+  update();
+}
+
+void Layer::paintOverlay(QPainter* p, const QRectF& r) const
+{
+  if(!isUnderMouse())
+    return;
+  auto* m = dynamic_cast<const ScopeMonitor*>(m_scope.monitor().get());
+  if(!m)
+    return;
+  const auto shown = Ui::Monitor::shownTexture(m_scope, Ui::Monitor::latestShape(*m));
+  QStringList info = Ui::Monitor::describeShown(shown);
+  if(shown.overview())
+  {
+    using K = score::gfx::TextureKind;
+    const auto k = shown.shape.kind;
+    info << QStringLiteral("overview, %1 %2")
+                .arg(shown.tiles())
+                .arg(k == K::Cube ? "faces" : k == K::Array ? "layers" : "slices");
+  }
+  // Under the mode switch, right of the inlet
+  Ui::Monitor::drawReadout(
+      *p, QPointF{std::max(r.left() + 2, 14.), std::max(r.top() + 2, 18.)}, info);
 }
 }

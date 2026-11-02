@@ -9,7 +9,9 @@
 // buffer for those that read buffers, so that their views refresh from a
 // running node and paint what goes through it. A geometry inlet further down
 // gets the geometry source too: a scene of two nodes moving one mesh, which
-// the Geometry viewer summarises for its views.
+// the Geometry viewer summarises for its views. The views of textures are
+// also fed a 3D texture, an array and a cube map, each written by a compute
+// shader.
 //
 // What a view looks like is checked in the running application; this checks
 // that every view builds and paints at all, in every mode and size.
@@ -41,6 +43,7 @@
 #include <Scenario/Settings/ScenarioSettingsModel.hpp>
 
 #include <Threedim/GeometryViewer/SceneMonitor.hpp>
+#include <Ui/Monitor/TextureShapeMonitor.hpp>
 
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/document/DocumentInterface.hpp>
@@ -362,6 +365,24 @@ const Process::Outlet* firstOutlet(const Process::ProcessModel& p, Process::Port
 //! which: the monitoring processes that read buffers.
 const std::set<QString> buffer_sinks{QStringLiteral("Buffer view")};
 
+//! The views that show textures of every kind, whose node tells them which
+//! one it got (Ui::Monitor::TextureShapeMonitor)
+const std::set<QString> texture_kind_sinks{
+    QStringLiteral("Texture view"), QStringLiteral("Video scope")};
+
+//! The compute shaders writing a texture of each kind but 2D, and the kind,
+//! as score::gfx::TextureKind numbers it in the low bits of the packed shape
+struct LayeredSource
+{
+  const char* file;
+  const char* kind;
+  uint64_t packed_kind;
+};
+const LayeredSource layered_sources[]{
+    {"csf-3d-image-write.cs", "3D", 1},
+    {"csf-array-image-write.cs", "array", 2},
+    {"csf-cube-image-write.cs", "cube", 3}};
+
 const Process::ProcessModelFactory*
 factoryNamed(const Process::ProcessFactoryList& pl, const QString& name)
 {
@@ -419,8 +440,13 @@ TEST_CASE(
     if(!geometry)
       if(auto* f = factoryNamed(pl, QStringLiteral("Torus")))
         geometry = add(*f, f->customConstructionData());
+    std::vector<Process::ProcessModel*> layered;
     if(auto* f = factoryNamed(pl, QStringLiteral("Compute Shader")))
+    {
       buffer = add(*f, QStringLiteral(GFX_TEST_CORPUS_DIR "/csf-storage-items.cs"));
+      for(const auto& src : layered_sources)
+        layered.push_back(add(*f, QStringLiteral(GFX_TEST_CORPUS_DIR "/") + src.file));
+    }
 
     int cable_id = 1;
     auto connect = [&](const Process::Port* source, const Process::Port* sink) {
@@ -452,6 +478,14 @@ TEST_CASE(
     };
 
     std::vector<std::pair<std::size_t, Process::ProcessModel*>> monitors;
+    //! The views fed a texture of several images, and the kind they must see
+    struct Kind
+    {
+      std::size_t result;
+      Process::ProcessModel* view;
+      uint64_t kind;
+    };
+    std::vector<Kind> kinds;
     for(auto& factory : pl)
     {
       if(!factory.category().startsWith(QStringLiteral("Monitoring")))
@@ -483,6 +517,22 @@ TEST_CASE(
             }
       }
       monitors.emplace_back(results.size() - 1, proc);
+
+      if(texture_kind_sinks.contains(factory.prettyName()))
+        for(std::size_t i = 0; i < layered.size(); i++)
+        {
+          if(!layered[i])
+            continue;
+          auto& lr = results.emplace_back(resultFor(factory));
+          lr.name += std::string(" (") + layered_sources[i].kind + ")";
+          auto* view = add(factory, factory.customConstructionData());
+          if(!view)
+            continue;
+          lr.constructed = true;
+          connect(firstOutlet(*layered[i], Process::PortType::Texture), view->inlets()[0]);
+          monitors.emplace_back(results.size() - 1, view);
+          kinds.push_back({results.size() - 1, view, layered_sources[i].packed_kind});
+        }
     }
     // SWEEP_ONLY may leave none of them
     if(monitors.empty() && !only.empty())
@@ -519,6 +569,23 @@ TEST_CASE(
           CHECK(summary->counts.vertices == 6);
         }
       }
+    }
+
+    // The node saw the texture itself, not a 2D image of it
+    for(const auto& k : kinds)
+    {
+      INFO("Process: " << results[k.result].name);
+      if(!k.view->monitor())
+        continue;
+      const uint64_t shape
+          = static_cast<Ui::Monitor::TextureShapeMonitor&>(*k.view->monitor()).shape.load();
+      // Without compute shaders, as on the OpenGL fallback of a display
+      // without Vulkan, the source writes no image: the view gets the 2D
+      // target its inlet renders into, or nothing
+      if((shape & 0xF) == 0)
+        WARN(results[k.result].name << " got no texture of several images");
+      else
+        CHECK((shape & 0xF) == k.kind);
     }
 
     exec.request_stop();

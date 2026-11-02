@@ -230,6 +230,7 @@ set(HDRS
     Gfx/Graph/PreviewHubNode.hpp
     Gfx/Graph/PreviewNode.hpp
     Gfx/Graph/PreviewTap.hpp
+    Gfx/Graph/TextureKind.hpp
     Gfx/Graph/SceneGPUState.hpp
     Gfx/Graph/GpuResourceRegistry.hpp
     Gfx/Graph/VertexFallbackDefaults.hpp
@@ -550,6 +551,7 @@ set(SRCS
     Gfx/Graph/Quirks.cpp
     Gfx/Graph/ReadbackStats.cpp
     Gfx/Graph/RenderList.cpp
+    Gfx/Graph/TextureKind.cpp
     Gfx/Graph/RenderedISFNode.cpp
     Gfx/Graph/RenderedRawRasterPipelineNode.cpp
     Gfx/Graph/RenderedVSANode.cpp
