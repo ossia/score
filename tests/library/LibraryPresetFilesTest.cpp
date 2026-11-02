@@ -4,6 +4,7 @@
 #include <Process/ApplicationPlugin.hpp>
 #include <Process/Preset.hpp>
 #include <Process/ProcessList.hpp>
+#include <Process/ProcessMimeSerialization.hpp>
 
 #include <Library/LibrarySettings.hpp>
 #include <Library/PresetItemModel.hpp>
@@ -315,6 +316,31 @@ TEST_CASE(
           model.mimeData({presets.indexOfPreset(lib.row("Mine"))})};
       REQUIRE(model.dropMimeData(mime.get(), Qt::MoveAction, 0, 0, {}));
       CHECK(lib.presets()[lib.row("Mine")].category.isEmpty());
+    }
+
+    // Dragged, then the library changes before the drop: the same preset
+    // moves
+    {
+      std::unique_ptr<QMimeData> mime{
+          model.mimeData({presets.indexOfPreset(lib.row("Mine"))})};
+      Process::Preset earlier = lib.presets()[lib.row("Mine")];
+      earlier.name = "AAA";
+      earlier.path.clear();
+      ctx.applicationPlugin<Process::ApplicationPlugin>().addPreset(std::move(earlier));
+      REQUIRE(model.dropMimeData(
+          mime.get(), Qt::MoveAction, -1, 0, presets.indexOfFolder({"Drums"})));
+      CHECK(lib.presets()[lib.row("Mine")].category == "Drums");
+      CHECK(lib.presets()[lib.row("AAA")].category.isEmpty());
+      ctx.applicationPlugin<Process::ApplicationPlugin>().removePreset(lib.row("AAA"));
+    }
+
+    // A preset that was not dragged from here is not moved
+    {
+      QMimeData mime;
+      mime.setData(
+          score::mime::processpreset(), lib.presets()[lib.row("Mine")].toJson());
+      CHECK(!model.canDropMimeData(
+          &mime, Qt::MoveAction, -1, 0, presets.indexOfFolder({"Drums"})));
     }
 
     // A package's preset dragged is not moved

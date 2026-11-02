@@ -26,6 +26,7 @@
 #include <QFile>
 #include <QFileInfo>
 #include <QMimeData>
+#include <QTimer>
 
 #include <utility>
 
@@ -35,6 +36,8 @@ W_OBJECT_IMPL(Library::PresetItemModel)
 
 namespace Library
 {
+//! Which file a preset dragged within the library comes from
+static constexpr auto presetFileMime = "application/x-score-preset-file";
 
 struct PresetItemModel::Node
 {
@@ -43,6 +46,8 @@ struct PresetItemModel::Node
   int preset = -1;
   //! Or its index in the target's own presets
   int builtin = -1;
+  //! A folder of the target's own presets
+  bool builtins = false;
   Node* parent{};
   int row{};
   std::vector<std::unique_ptr<Node>> children;
@@ -70,7 +75,7 @@ PresetItemModel::PresetItemModel(
       [this, shift](int row) {
     shift(row, 1);
     if(shows(presets[row]))
-      rebuild();
+      rebuildSoon();
   });
   con(*m_plugin, &Process::ApplicationPlugin::presetAboutToBeRemoved, this,
       [this](int row) {
@@ -93,7 +98,7 @@ PresetItemModel::PresetItemModel(
   });
   con(*m_plugin, &Process::ApplicationPlugin::presetChanged, this, [this](int row) {
     if(shows(presets[row]))
-      rebuild();
+      rebuildSoon();
   });
   con(*m_plugin, &Process::ApplicationPlugin::presetsAboutToBeCleared, this,
       [this] { beginResetModel(); });
@@ -128,6 +133,17 @@ void PresetItemModel::setTarget(const Process::ProcessModel* proc)
   if(m_target)
     disconnect(m_target, nullptr, this, nullptr);
   m_target = proc;
+  m_builtinsOf = nullptr;
+  if(proc)
+  {
+    // Another script, or a plug-in reloaded: its own presets may be others
+    const auto stale = [this] {
+      m_builtinsOf = nullptr;
+      rebuildSoon();
+    };
+    connect(proc, &Process::ProcessModel::inletsChanged, this, stale);
+    connect(proc, &Process::ProcessModel::outletsChanged, this, stale);
+  }
   if(proc)
     connect(proc, &QObject::destroyed, this, [this] {
       // Emitted by ~QObject: the process is no longer one to ask anything
@@ -185,16 +201,41 @@ void PresetItemModel::rebuild()
   endResetModel();
 }
 
+void PresetItemModel::rebuildSoon()
+{
+  if(m_coalescing)
+  {
+    m_stale = true;
+    return;
+  }
+  rebuild();
+  m_coalescing = true;
+  QTimer::singleShot(0, this, [this] {
+    m_coalescing = false;
+    if(std::exchange(m_stale, false))
+      rebuild();
+  });
+}
+
 void PresetItemModel::build()
 {
   m_root = std::make_unique<Node>();
-  m_builtins.clear();
   if(!m_process && !m_target)
+  {
+    m_builtins.clear();
+    m_builtinsOf = nullptr;
     return;
+  }
 
-  // A plug-in's own presets, read from it as it is now
-  if(m_target)
+  // A plug-in's own presets, read from it once: asking can be slow (a
+  // plug-in's programs one by one, thousands of preset files)
+  if(!m_target)
+    m_builtins.clear();
+  else if(m_builtinsOf != m_target)
+  {
     m_builtins = m_target->builtinPresets();
+    m_builtinsOf = m_target;
+  }
   const auto tree = m_target
                         ? Process::PresetTree{*m_target, presets, m_builtins}
                         : Process::PresetTree{*m_process, presets};
@@ -225,6 +266,9 @@ void PresetItemModel::build()
         self(self, child, *n);
         if(n->children.empty())
           continue;
+        n->builtins = std::any_of(n->children.begin(), n->children.end(), [](auto& c) {
+          return c->builtin >= 0 || c->builtins;
+        });
       }
       n->row = int(to.children.size());
       to.children.push_back(std::move(n));
@@ -257,14 +301,12 @@ PresetItemModel::Node& PresetItemModel::folder(const QStringList& path)
   {
     auto& cs = current->children;
     auto it = std::find_if(cs.begin(), cs.end(), [&](auto& c) {
-      return c->preset < 0 && c->builtin < 0 && c->name == part
-             && !isBuiltin(indexOf(c.get()));
+      return c->preset < 0 && c->builtin < 0 && c->name == part && !c->builtins;
     });
     if(it == cs.end())
     {
       auto pos = std::find_if(cs.begin(), cs.end(), [&](auto& c) {
-        return (c->preset < 0 && c->builtin < 0 && part < c->name)
-               || isBuiltin(indexOf(c.get()));
+        return (c->preset < 0 && c->builtin < 0 && part < c->name) || c->builtins;
       });
       auto n = std::make_unique<Node>();
       n->name = part;
@@ -283,18 +325,12 @@ bool PresetItemModel::isBuiltin(const QModelIndex& index) const
   const Node* n = index.isValid() ? node(index) : nullptr;
   if(!n)
     return false;
-  const auto visit = [](auto& self, const Node& n) -> bool {
-    if(n.builtin >= 0)
-      return true;
-    for(auto& c : n.children)
-      if(self(self, *c))
-        return true;
-    return false;
-  };
+  if(n->builtin >= 0)
+    return true;
   // Folders hold one kind of preset: the top-level one says which
   while(n->parent && n->parent != m_root.get())
     n = n->parent;
-  return visit(visit, *n);
+  return n->builtins || n->builtin >= 0;
 }
 
 QStringList PresetItemModel::categories() const
@@ -303,7 +339,7 @@ QStringList PresetItemModel::categories() const
   const auto visit = [&](auto& self, const Node& n, const QString& prefix) -> void {
     for(auto& c : n.children)
     {
-      if(c->preset >= 0 || c->builtin >= 0 || isBuiltin(indexOf(c.get())))
+      if(c->preset >= 0 || c->builtin >= 0 || c->builtins)
         continue;
       const QString path = prefix.isEmpty() ? c->name : prefix + "/" + c->name;
       res.push_back(path);
@@ -601,7 +637,7 @@ bool PresetItemModel::dropMimeData(
   if(!data->hasFormat(score::mime::layerdata()))
   {
     const bool ok = canDropMimeData(data, act, row, col, parent);
-    const int dragged = std::exchange(m_dragged, -1);
+    const int dragged = presetRowOf(std::exchange(m_dragged, {}));
     return ok && movePreset(dragged, folderPath(parent).join('/'));
   }
 
@@ -640,10 +676,13 @@ bool PresetItemModel::canDropMimeData(
     return false;
   if(data->hasFormat(score::mime::layerdata()))
     return true;
-  // The preset dragged out of this view, if that is what comes back
-  return ossia::valid_index(m_dragged, presets) && canEdit(m_dragged)
-         && data->hasFormat(score::mime::processpreset())
-         && data->data(score::mime::processpreset()) == presets[m_dragged].toJson();
+  // The preset dragged out of this view, if that is what comes back: its
+  // file says which, as the rows can have moved since
+  if(m_dragged.isEmpty() || !data->hasFormat(presetFileMime))
+    return false;
+  if(QString::fromUtf8(data->data(presetFileMime)) != m_dragged)
+    return false;
+  return canEdit(presetRowOf(m_dragged));
 }
 
 QMimeData* PresetItemModel::mimeData(const QModelIndexList& indexes) const
@@ -654,9 +693,11 @@ QMimeData* PresetItemModel::mimeData(const QModelIndexList& indexes) const
   if(!p)
     return nullptr;
 
-  m_dragged = presetRow(indexes.front());
   auto mime = new QMimeData;
   mime->setData(score::mime::processpreset(), p->toJson());
+  m_dragged = p->path;
+  if(!m_dragged.isEmpty())
+    mime->setData(presetFileMime, m_dragged.toUtf8());
   return mime;
 }
 

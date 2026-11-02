@@ -7,6 +7,8 @@
 #include <Library/PresetItemModel.hpp>
 #include <Library/PresetTreeView.hpp>
 
+#include <QCoreApplication>
+
 #include <score/application/GUIApplicationContext.hpp>
 
 #include <catch2/catch_test_macros.hpp>
@@ -197,5 +199,37 @@ TEST_CASE(
     model.setFilterText({});
     CHECK(!view.isExpanded(model.indexOfFolder({"A", "B"})));
     CHECK(view.isExpanded(model.indexOfFolder({"A"})));
+  });
+}
+
+TEST_CASE(
+    "presets added together rebuild the tree once more, at the end",
+    "[library][presets]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    Presets lib{ctx};
+    Library::PresetItemModel model{ctx, nullptr};
+    model.setProcess(Process::ProcessIdentifier{pattern, {}});
+    int resets = 0;
+    QObject::connect(&model, &QAbstractItemModel::modelReset, [&] { resets++; });
+
+    // As a scan delivers them: in one turn of the event loop
+    lib.plug.addPreset(preset("n1", "N"));
+    CHECK(resets == 1);
+    lib.plug.addPreset(preset("n2", "N"));
+    lib.plug.addPreset(preset("n3", "N"));
+    CHECK(resets == 1);
+    // What is shown is consistent meanwhile: rows refer to their presets
+    CHECK(rows(model, model.indexOfFolder({"N"})) == QStringList{"n1"});
+    CHECK(model.preset(model.index(0, 0, model.indexOfFolder({"N"})))->name == "n1");
+
+    QCoreApplication::processEvents();
+    CHECK(resets == 2);
+    CHECK(rows(model, model.indexOfFolder({"N"})) == (QStringList{"n1", "n2", "n3"}));
+
+    // And a lone one later is shown at once again
+    QCoreApplication::processEvents();
+    lib.plug.addPreset(preset("n4", "N"));
+    CHECK(resets == 3);
   });
 }
