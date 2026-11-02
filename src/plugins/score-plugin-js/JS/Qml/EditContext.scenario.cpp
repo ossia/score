@@ -430,6 +430,15 @@ void EditJsContext::loadPreset(QObject* process, QString json)
   }
 }
 
+QStringList EditJsContext::builtinPresets(QObject* process)
+{
+  QStringList res;
+  if(auto* proc = qobject_cast<Process::ProcessModel*>(process))
+    for(const auto& p : proc->builtinPresets())
+      res.push_back(QString::fromUtf8(p.toJson()));
+  return res;
+}
+
 QString EditJsContext::savePreset(QObject* process)
 {
   auto* proc = qobject_cast<Process::ProcessModel*>(process);

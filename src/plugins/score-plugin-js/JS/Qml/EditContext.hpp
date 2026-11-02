@@ -167,6 +167,10 @@ public:
   W_SLOT(loadPreset)
   QString savePreset(QObject* process);
   W_SLOT(savePreset)
+  //! The process's own presets (a plug-in's programs, a script's bank), as
+  //! JSON that loadPreset takes
+  QStringList builtinPresets(QObject* process);
+  W_SLOT(builtinPresets)
 
   void setName(QObject* sel, QString new_name);
   W_SLOT(setName)
