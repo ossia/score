@@ -320,7 +320,7 @@ public:
 
     auto st = ossia::exec_state_facade{ctx.execState.get()};
     std::shared_ptr<safe_node<Node>> ptr;
-    auto node = new exec_node_t<Node>{st.bufferSize(), (double)st.sampleRate(), id};
+    auto node = new exec_node_t<Node>{st.setupBufferSize(), (double)st.sampleRate(), id};
     node->root_inputs().reserve(element.inlets().size());
     node->root_outputs().reserve(element.outlets().size());
 

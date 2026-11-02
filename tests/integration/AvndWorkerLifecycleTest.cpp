@@ -1291,7 +1291,9 @@ TEST_CASE(
     // (setup_cpu ends with audio_configuration_changed). Start small so a
     // later, larger buffer size is representable.
     const int small = 128;
+    const int engine_max_buffer = st.maxBufferSize;
     st.bufferSize = small;
+    st.maxBufferSize = small;
 
     mounted<PrepareProbe> m{*doc, plug, 8830};
     auto& obj = m.object();
@@ -1359,6 +1361,7 @@ TEST_CASE(
       CHECK(s.rate == engine_rate);
 
     st.bufferSize = engine_buffer;
+    st.maxBufferSize = engine_max_buffer;
   });
 }
 
@@ -1372,7 +1375,9 @@ TEST_CASE(
 
     auto& st = *plug.context().execState;
     const int engine_buffer = st.bufferSize;
+    const int engine_max_buffer = st.maxBufferSize;
     const double engine_rate = st.sampleRate;
+    st.maxBufferSize = 256;
 
     // safe_node takes the sample rate in its constructor and
     // audio_configuration_changed never changes it, so a rate change reaches
@@ -1404,6 +1409,7 @@ TEST_CASE(
 
     st.sampleRate = engine_rate;
     st.bufferSize = engine_buffer;
+    st.maxBufferSize = engine_max_buffer;
   });
 }
 

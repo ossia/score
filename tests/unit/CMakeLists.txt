@@ -862,6 +862,13 @@ score_add_test(test_unit_avnd_midi_sync_out
 target_include_directories(test_unit_avnd_midi_sync_out SYSTEM PRIVATE
   "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-avnd")
 
+# Ticks smaller or larger than the block size the nodes were prepared with.
+score_add_test(test_unit_audio_tick_size_change
+  SOURCES AudioTickSizeChangeTest.cpp)
+target_include_directories(test_unit_audio_tick_size_change SYSTEM PRIVATE
+  "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/include"
+  "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/examples")
+
 score_add_test(test_unit_avnd_midi_sync_in
   SOURCES AvndMidiSyncInTest.cpp)
 target_include_directories(test_unit_avnd_midi_sync_in SYSTEM PRIVATE

@@ -466,23 +466,26 @@ void ysfx_node::all_notes_off() noexcept
     ysfx_send_midi(y, &note_off);
   }
 
+  // Silence in, output discarded, for 16 * 4096 frames: long enough for the
+  // releases to finish. Small blocks keep the stack bounded with many channels.
+  constexpr int block = 256;
   int ins = ysfx_get_num_inputs(y);
   auto ins_p = (double**)alloca(sizeof(double*) * (ins + 1));
   for(int i = 0; i < ins + 1; i++)
   {
-    ins_p[i] = (double*)alloca(sizeof(double) * 4096);
-    std::fill_n(ins_p[i], 8, 0.);
+    ins_p[i] = (double*)alloca(sizeof(double) * block);
+    std::fill_n(ins_p[i], block, 0.);
   }
   int outs = ysfx_get_num_outputs(y);
   auto outs_p = (double**)alloca(sizeof(double*) * (outs + 1));
   for(int i = 0; i < outs + 1; i++)
   {
-    outs_p[i] = (double*)alloca(sizeof(double) * 4096);
-    std::fill_n(outs_p[i], 8, 0.);
+    outs_p[i] = (double*)alloca(sizeof(double) * block);
+    std::fill_n(outs_p[i], block, 0.);
   }
 
-  for(int i = 0; i < 16; i++)
-    ysfx_process_double(y, ins_p, outs_p, ins, outs, 4096);
+  for(int i = 0; i < 16 * 4096 / block; i++)
+    ysfx_process_double(y, ins_p, outs_p, ins, outs, block);
 }
 }
 }
