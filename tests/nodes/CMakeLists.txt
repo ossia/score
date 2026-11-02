@@ -7,6 +7,16 @@ score_add_test(test_nodes_processes
   APP
   PLUGINS score_plugin_scenario score_lib_process)
 
+# The views of every process: layers in every mode and size, nodes,
+# inspectors; then the monitoring views while the document plays.
+score_add_test(test_nodes_process_views
+  SOURCES ProcessViews.cpp
+  GUI
+  APP
+  PLUGINS score_plugin_scenario score_plugin_engine score_plugin_audio score_lib_process score_lib_inspector)
+target_compile_definitions(test_nodes_process_views PRIVATE
+  GFX_TEST_CORPUS_DIR="${SCORE_ROOT_SOURCE_DIR}/tests/gfx/corpus")
+
 score_add_test(test_nodes_curves
   SOURCES Curves.cpp
   APP
