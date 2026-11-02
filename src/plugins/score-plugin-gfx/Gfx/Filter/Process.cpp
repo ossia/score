@@ -150,6 +150,15 @@ Process::ScriptChangeResult Model::setProgram(const ShaderSource& f)
   return {};
 }
 
+//! The shader a preset loads
+static ShaderSource presetProgram(const rapidjson::Value::ConstObject& obj)
+{
+  ShaderSource::ProgramType type = ShaderSource::ProgramType::ISF;
+  if(auto it = obj.FindMember("Type"); it != obj.MemberEnd() && it->value.IsInt())
+    type = (ShaderSource::ProgramType)it->value.GetInt();
+  return ShaderSource{type, obj["Vertex"].GetString(), obj["Fragment"].GetString()};
+}
+
 void Model::loadPreset(const Process::Preset& preset)
 {
   const rapidjson::Document doc = readJson(preset.data);
@@ -158,12 +167,11 @@ void Model::loadPreset(const Process::Preset& preset)
   auto obj = doc.GetObject();
   if(!obj.HasMember("Fragment") || !obj.HasMember("Vertex"))
     return;
-  ShaderSource::ProgramType type = ShaderSource::ProgramType::ISF;
-  if(obj.HasMember("Type"))
-    type = (ShaderSource::ProgramType)obj["Type"].GetInt();
-  auto frag = obj["Fragment"].GetString();
-  auto vert = obj["Vertex"].GetString();
-  (void)this->setProgram(ShaderSource{type, vert, frag});
+  // The same shader keeps its inlets: only its controls change
+  const auto program = presetProgram(obj);
+  const bool changed = program != m_program;
+  if(changed)
+    (void)this->setProgram(program);
 
   auto controls = obj["Controls"].GetArray();
   Process::loadFixedControls(controls, *this);
@@ -171,7 +179,19 @@ void Model::loadPreset(const Process::Preset& preset)
   // The executor only rebuilds its node and ports on programChanged: without
   // it, a preset loaded while playing would leave the old shader running on
   // unregistered inlets.
-  programChanged();
+  if(changed)
+    programChanged();
+}
+
+bool Model::presetChangesPorts(const Process::Preset& preset) const noexcept
+{
+  const rapidjson::Document doc = readJson(preset.data);
+  if(!doc.IsObject())
+    return false;
+  auto obj = doc.GetObject();
+  if(!obj.HasMember("Fragment") || !obj.HasMember("Vertex"))
+    return false;
+  return presetProgram(obj) != m_program;
 }
 
 Process::Preset Model::savePreset() const noexcept
@@ -183,6 +203,7 @@ Process::Preset Model::savePreset() const noexcept
   JSONReader r;
   {
     r.stream.StartObject();
+    r.obj["Type"] = (int)this->m_program.type;
     r.obj["Fragment"] = this->m_program.fragment;
     r.obj["Vertex"] = this->m_program.vertex;
 

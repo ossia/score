@@ -224,15 +224,27 @@ void Model::loadPreset(const Process::Preset& preset)
   auto obj = doc.GetObject();
   if(!obj.HasMember("Vertex"))
     return;
-  auto vert = obj["Vertex"].GetString();
-  (void)this->setProgram(
-      ShaderSource{ShaderSource::ProgramType::VertexShaderArt, vert, ""});
+  // The same shader keeps its inlets: only its controls change
+  const QString vert = obj["Vertex"].GetString();
+  const bool changed = vert != m_program.vertex;
+  if(changed)
+    (void)this->setProgram(
+        ShaderSource{ShaderSource::ProgramType::VertexShaderArt, vert, ""});
 
   auto controls = obj["Controls"].GetArray();
   Process::loadFixedControls(controls, *this);
 
   // See Filter::Model::loadPreset: the executor rebuilds on programChanged.
-  programChanged();
+  if(changed)
+    programChanged();
+}
+
+bool Model::presetChangesPorts(const Process::Preset& preset) const noexcept
+{
+  const rapidjson::Document doc = readJson(preset.data);
+  if(!doc.IsObject() || !doc.HasMember("Vertex"))
+    return false;
+  return QString{doc["Vertex"].GetString()} != m_program.vertex;
 }
 
 Process::Preset Model::savePreset() const noexcept

@@ -466,6 +466,12 @@ if(TARGET score_plugin_clap)
     CLAP_BLOCK_RECORDER_PATH="$<TARGET_FILE:clap_block_recorder>")
 endif()
 
+# A preset of the script a process already runs keeps its ports.
+score_add_test(test_integration_script_preset_ports
+  SOURCES ScriptPresetPortsTest.cpp
+  GUI
+  PLUGINS score_plugin_scenario score_lib_process)
+
 if(TARGET score_plugin_ysfx)
   # A JSFX preset restores what the script keeps in @serialize, and so does
   # undoing it.

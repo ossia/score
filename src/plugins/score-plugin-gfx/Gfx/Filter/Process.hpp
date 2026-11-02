@@ -83,6 +83,7 @@ public:
 private:
   void loadPreset(const Process::Preset& preset) override;
   Process::Preset savePreset() const noexcept override;
+  bool presetChangesPorts(const Process::Preset& preset) const noexcept override;
 
   ShaderSource m_program;
   ProcessedProgram m_processedProgram;
