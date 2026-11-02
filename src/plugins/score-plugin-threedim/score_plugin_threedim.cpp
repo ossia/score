@@ -22,6 +22,7 @@
 #include <Threedim/GltfLiveLink.hpp>
 #include <Threedim/GeometryToBuffer.hpp>
 #include <Threedim/GeometryViewer/Executor.hpp>
+#include <Threedim/GeometryViewer/Inspector.hpp>
 #include <Threedim/GeometryViewer/Layer.hpp>
 #include <Threedim/GeometryViewer/Process.hpp>
 #include <Threedim/ModelDisplay/Executor.hpp>
@@ -452,6 +453,7 @@ std::vector<score::InterfaceBase*> score_plugin_threedim::factories(
          Gfx::MergeGeometries::ProcessFactory>,
       FW<Process::LayerFactory, Gfx::RenderPipeline::LayerFactory,
          Gfx::GeometryViewer::LayerFactory>,
+      FW<Inspector::InspectorWidgetFactory, Gfx::GeometryViewer::InspectorFactory>,
       FW<Library::LibraryInterface, Threedim::SSynthLibraryHandler,
          Threedim::AssetLibraryHandler, Gfx::RawRasterLibraryHandler,
          Threedim::VoxLibraryHandler>,

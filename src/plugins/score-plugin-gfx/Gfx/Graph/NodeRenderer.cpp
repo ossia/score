@@ -35,6 +35,12 @@ inline void drawWithPlan(
 
 namespace score::gfx
 {
+void drawMeshWithPlan(
+    const Mesh& mesh, const MeshBuffers& bufs, QRhiCommandBuffer& cb,
+    const FallbackBindingPlan& plan) noexcept
+{
+  drawWithPlan(mesh, bufs, cb, plan);
+}
 
 TextureRenderTarget NodeRenderer::renderTargetForInput(const Port& p)
 {

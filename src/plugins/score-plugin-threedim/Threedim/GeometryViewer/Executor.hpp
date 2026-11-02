@@ -13,6 +13,9 @@ class ProcessExecutorComponent final
 public:
   ProcessExecutorComponent(Model& element, const Execution::Context& ctx, QObject* parent);
   void cleanup() override;
+
+private:
+  QMetaObject::Connection m_executionUpdate;
 };
 
 using ProcessExecutorComponentFactory

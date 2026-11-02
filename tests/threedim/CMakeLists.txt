@@ -156,6 +156,14 @@ score_add_test(test_threedim_camera_release
   PLUGINS score_plugin_gfx)
 threedim_test_includes(test_threedim_camera_release)
 
+# The Geometry viewer's walk of a scene: draws, framed bounds, gizmos and the
+# summary of its views. Pure logic, no GPU.
+score_add_test(test_threedim_geometry_viewer_scene
+  SOURCES GeometryViewerScene.cpp "${THREEDIM_DIR}/GeometryViewer/SceneSummary.cpp"
+  PLUGINS score_plugin_gfx score_lib_process
+  LIBS ${QT_PREFIX}::Gui fmt::fmt)
+threedim_test_includes(test_threedim_geometry_viewer_scene)
+
 # -----------------------------------------------------------------------------
 # The pure scene_state -> scene_state algebra, plus TagAs. Header-inline nodes
 # need no engine .cpp; the rest compile theirs in. score_plugin_gfx supplies

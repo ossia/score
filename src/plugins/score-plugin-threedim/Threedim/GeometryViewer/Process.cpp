@@ -67,6 +67,8 @@ void Model::init()
       int(Background::Gradient), "Background", Id<Process::Port>(10), this});
   m_inlets.push_back(new Process::Toggle{true, "Plane", Id<Process::Port>(11), this});
   m_inlets.push_back(new Process::Toggle{true, "Axes", Id<Process::Port>(12), this});
+  // The lights and cameras of a scene
+  m_inlets.push_back(new Process::Toggle{true, "Gizmos", Id<Process::Port>(13), this});
 
   m_outlets.push_back(new TextureOutlet{"Texture Out", Id<Process::Port>(0), this});
 }

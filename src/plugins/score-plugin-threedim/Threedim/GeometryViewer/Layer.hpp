@@ -4,6 +4,7 @@
 #include <Process/Dataflow/PortItem.hpp>
 #include <Process/Dataflow/WidgetInlets.hpp>
 #include <Process/Monitoring/ModeSwitch.hpp>
+#include <Process/Monitoring/MonitorLink.hpp>
 #include <Process/ProcessFactory.hpp>
 
 #include <score/command/Dispatchers/MultiOngoingCommandDispatcher.hpp>
@@ -27,6 +28,9 @@
 #include <score/application/GUIApplicationContext.hpp>
 
 #include <Threedim/GeometryViewer/Process.hpp>
+#include <Threedim/GeometryViewer/SceneMonitor.hpp>
+
+#include <score/model/Skin.hpp>
 
 namespace Gfx::GeometryViewer
 {
@@ -207,14 +211,20 @@ private:
   double m_startYaw{}, m_startPitch{};
 };
 
-//! The node shows what the viewer renders.
+//! The node shows what the viewer renders, and on hover what its scene holds.
 class Layer final : public Gfx::OutletPreviewLayer
 {
 public:
   Layer(const Process::ProcessModel& process, const Process::Context& doc, QGraphicsItem* parent)
       : Gfx::OutletPreviewLayer{process, doc, parent}
+      , m_link{process, *this, [this](Process::Monitor& m) { refresh(m); },
+               [this](Process::Monitor*) {
+                 m_counts.reset();
+                 update();
+               }}
   {
     setAcceptedMouseButtons({});
+    setAcceptHoverEvents(true);
     placeholder = QStringLiteral("Geometry viewer\nno image");
     // The geometry, then the texture shown on it
     const auto& factories = doc.app.interfaces<Process::PortFactoryList>();
@@ -233,8 +243,63 @@ public:
 
 protected:
   void heightChanged(qreal) override { placeOrbit(); }
+  void hoverEnterEvent(QGraphicsSceneHoverEvent*) override { update(); }
+  void hoverLeaveEvent(QGraphicsSceneHoverEvent*) override { update(); }
+
+  //! Top right, on hover: what the scene holds
+  void paintOverlay(QPainter* p, const QRectF& image) const override
+  {
+    if(!m_counts || !isUnderMouse())
+      return;
+    const auto& c = *m_counts;
+    auto n = [](uint64_t v, const char* one, const char* many) {
+      return QStringLiteral("%1 %2").arg(v).arg(QLatin1String(v == 1 ? one : many));
+    };
+    QStringList lines{
+        n(c.nodes, "node", "nodes") + QStringLiteral(", ")
+            + n(c.meshes, "mesh", "meshes") + QStringLiteral(", ")
+            + n(c.primitives, "primitive", "primitives"),
+        n(c.vertices, "vertex", "vertices") + QStringLiteral(", ")
+            + n(c.materials, "material", "materials"),
+        n(c.lights, "light", "lights") + QStringLiteral(", ")
+            + n(c.cameras, "camera", "cameras")};
+    if(c.instances > 0)
+      lines.back() += QStringLiteral(", ") + n(c.instances, "instance", "instances");
+
+    static const QFont font = [] {
+      QFont f = score::Skin::instance().SansFontSmall;
+      f.setPixelSize(9);
+      return f;
+    }();
+    p->setFont(font);
+    const QFontMetricsF fm{font};
+    double w = 0;
+    for(const auto& l : lines)
+      w = std::max(w, fm.horizontalAdvance(l));
+    const double lh = fm.height();
+    const QRectF bounds = boundingRect();
+    QRectF box{0., 0., w + 6., lh * lines.size() + 4.};
+    box.moveTopRight(QPointF{bounds.right() - 2., std::max(bounds.top() + 2., image.top() + 2.)});
+    p->fillRect(box, QColor(0, 0, 0, 150));
+    p->setPen(QColor(170, 170, 175));
+    for(int i = 0; i < lines.size(); i++)
+      p->drawText(QPointF{box.left() + 3., box.top() + 2. + fm.ascent() + i * lh}, lines[i]);
+  }
 
 private:
+  void refresh(Process::Monitor& m)
+  {
+    const auto& s = static_cast<SceneMonitor&>(m).latest();
+    if(!s)
+      return;
+    if(!m_counts || *m_counts != s->counts)
+    {
+      m_counts = s->counts;
+      if(isUnderMouse())
+        update();
+    }
+  }
+
   //! Bottom left
   void placeOrbit()
   {
@@ -242,6 +307,8 @@ private:
   }
 
   OrbitHandle* m_orbit{};
+  std::optional<SceneCounts> m_counts;
+  Process::MonitorLink m_link;
 };
 
 class LayerFactory final : public Process::LayerFactory

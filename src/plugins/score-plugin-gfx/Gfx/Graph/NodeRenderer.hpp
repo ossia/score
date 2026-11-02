@@ -315,6 +315,13 @@ void defaultRenderPass(
     RenderList& renderer, const Mesh& mesh, const MeshBuffers& bufs,
     QRhiCommandBuffer& cb, Edge& edge, PassMap& passes);
 
+//! Draws a mesh with the vertex bindings a pipeline built for it kept (see
+//! Pipeline::plan).
+SCORE_PLUGIN_GFX_EXPORT
+void drawMeshWithPlan(
+    const Mesh& mesh, const MeshBuffers& bufs, QRhiCommandBuffer& cb,
+    const FallbackBindingPlan& plan) noexcept;
+
 SCORE_PLUGIN_GFX_EXPORT
 void quadRenderPass(
     RenderList& renderer, const MeshBuffers& bufs, QRhiCommandBuffer& cb, Edge& edge,
