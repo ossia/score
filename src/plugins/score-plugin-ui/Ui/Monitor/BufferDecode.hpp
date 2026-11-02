@@ -79,6 +79,71 @@ constexpr int64_t elementCount(const Layout& l, int64_t bytes) noexcept
   return (room - e) / strideOf(l) + 1;
 }
 
+//! Bytes one readback holds at most, whatever the layout and the controls
+inline constexpr int64_t max_readback_bytes = int64_t(16) << 20;
+
+//! Elements a view reads at most
+inline constexpr int64_t max_view_elements = int64_t(1) << 20;
+
+//! Which elements of a buffer a view reads.
+struct Sampling
+{
+  //! Index of the first element read
+  int64_t first{};
+  //! Elements from one read to the next: 1 reads them all
+  int64_t step{1};
+  //! Elements read
+  int64_t count{};
+  //! Elements from the first to the end of the buffer
+  int64_t window{};
+  //! Whether the bytes a readback holds kept `count` below what was asked
+  bool capped{};
+
+  bool operator==(const Sampling&) const noexcept = default;
+};
+
+/**
+ * The elements to read of `available`, from `first`: as many as `max_elements`
+ * and `cap_bytes` allow. With `overview`, a window holding more than that is
+ * read at an even step over its whole length instead of from its start.
+ */
+constexpr Sampling sampleElements(
+    int64_t available, int64_t first, int64_t max_elements, int64_t element_bytes,
+    int64_t cap_bytes, bool overview) noexcept
+{
+  Sampling s;
+  s.first = std::clamp<int64_t>(first, 0, std::max<int64_t>(available, 0));
+  s.window = std::max<int64_t>(available, 0) - s.first;
+  if(s.window <= 0)
+    return s;
+  const int64_t fit = std::max<int64_t>(1, cap_bytes / std::max<int64_t>(element_bytes, 1));
+  const int64_t asked = std::max<int64_t>(1, max_elements);
+  const int64_t limit = std::min(asked, fit);
+  s.capped = fit < asked && s.window > fit;
+  if(overview && s.window > limit)
+  {
+    s.step = (s.window + limit - 1) / limit;
+    s.count = (s.window + s.step - 1) / s.step;
+  }
+  else
+    s.count = std::min(s.window, limit);
+  return s;
+}
+
+/**
+ * Elements, `stride` bytes apart, that one contiguous read of at most
+ * `cap_bytes` holds when it starts on a 4-byte boundary `misalign` bytes
+ * before the first and ends on one too.
+ */
+constexpr int64_t contiguousFit(
+    int64_t stride, int64_t element_bytes, int64_t misalign, int64_t cap_bytes) noexcept
+{
+  const int64_t room = cap_bytes - element_bytes - misalign - 3;
+  if(room < 0)
+    return 0;
+  return room / std::max<int64_t>(stride, 1) + 1;
+}
+
 //! Whether the values are integers, to print them as such.
 constexpr bool integral(ElementType t) noexcept
 {

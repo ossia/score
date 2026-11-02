@@ -5,13 +5,16 @@
 #include <Gfx/Graph/Utils.hpp>
 
 #include <QGraphicsSceneMouseEvent>
+#include <QLocale>
 #include <QPainter>
 #include <QtGui/private/qrhi_p.h>
 
+#include <Ui/Monitor/BufferGatherPass.hpp>
 #include <Ui/Monitor/Paint.hpp>
 
 #include <chrono>
 #include <cmath>
+#include <cstring>
 #include <limits>
 
 namespace Ui::BufferView
@@ -29,19 +32,59 @@ bool finite(float v) noexcept
 {
   return std::isfinite(v);
 }
+
+QString ordinal(int64_t n)
+{
+  const int64_t tens = n % 100;
+  const char* suffix = "th";
+  if(tens < 11 || tens > 13)
+    switch(n % 10)
+    {
+      case 1:
+        suffix = "st";
+        break;
+      case 2:
+        suffix = "nd";
+        break;
+      case 3:
+        suffix = "rd";
+        break;
+    }
+  return QString::number(n) + QLatin1String(suffix);
+}
+
+QString fallbackReason(Fallback f)
+{
+  switch(f)
+  {
+    case Fallback::NoCompute:
+      return QStringLiteral("read as one range: no compute shaders");
+    case Fallback::NotStorage:
+      return QStringLiteral("read as one range: not a storage buffer");
+    case Fallback::TooLarge:
+      return QStringLiteral("read as one range: too large to bind");
+    case Fallback::Failed:
+      return QStringLiteral("read as one range: the gather pass failed");
+    case Fallback::None:
+      break;
+  }
+  return {};
+}
 }
 
 struct Node::Readback
 {
   QRhiBufferReadbackResult result;
-  //! The elements in `result`, which starts on a 4-byte boundary at or
-  //! before the first element
+  //! How the elements lie in `result`
   Layout local;
   //! The layout as the controls give it
   Layout layout;
-  int64_t count{};
+  Ui::Monitor::Buffer::Sampling sampling;
   int64_t available{};
   int64_t buffer_bytes{};
+  Fallback fallback{};
+  //! Whether `result` starts with the header of a measure
+  bool measured{};
   bool pending{};
   std::chrono::steady_clock::time_point requested{};
 
@@ -52,7 +95,11 @@ struct Node::Readback
   int64_t byte_size{};
   Layout read_layout{};
   int64_t max_elements{};
+  int64_t first{};
+  bool overview{};
   bool empty{};
+
+  Ui::Monitor::Buffer::GatherPass gather;
 
   //! Swapped with the monitor's: the vectors keep their storage
   Frame frame;
@@ -74,15 +121,22 @@ Layout Node::layout() const noexcept
       .offset = std::max(0, inputs.offset.value)};
 }
 
-void Node::publishEmpty(int64_t buffer_bytes, const Layout& l)
+void Node::publishEmpty(
+    int64_t buffer_bytes, int64_t available, int64_t first, const Layout& l)
 {
   auto& rb = *m_readback;
   auto& f = rb.frame;
   f.values.clear();
   f.count = 0;
-  f.available = 0;
+  f.available = available;
+  f.first = first;
+  f.step = 1;
   f.buffer_bytes = buffer_bytes;
+  f.read_bytes = 0;
   f.layout = l;
+  f.fallback = Fallback::None;
+  f.capped = false;
+  f.exact = false;
   if(monitor)
     monitor->frames.produce(f);
   rb.empty = true;
@@ -94,7 +148,7 @@ void Node::inputAboutToFinish(
   using namespace Ui::Monitor::Buffer;
   using clock = std::chrono::steady_clock;
   auto& rb = *m_readback;
-  if(!res || !monitor || !monitor->watched())
+  if(!monitor || !monitor->watched() || !r.state.rhi)
     return;
   const auto now = clock::now();
   if(rb.pending)
@@ -114,15 +168,19 @@ void Node::inputAboutToFinish(
      || buf.byte_offset >= int64_t(buf.handle->size()))
   {
     if(!rb.empty || rb.handle)
-      publishEmpty(0, l);
+      publishEmpty(0, 0, 0, l);
     rb.handle = nullptr;
     return;
   }
 
-  const int64_t max_elements = std::max(1, inputs.max_elements.value);
+  const int64_t max_elements
+      = std::clamp<int64_t>(inputs.max_elements.value, 1, max_view_elements);
+  const int64_t first = std::max(0, inputs.first.value);
+  const bool overview = inputs.overview.value;
   const bool changed = buf.handle != rb.handle || buf.byte_offset != rb.byte_offset
                        || buf.byte_size != rb.byte_size || !(l == rb.read_layout)
-                       || max_elements != rb.max_elements;
+                       || max_elements != rb.max_elements || first != rb.first
+                       || overview != rb.overview;
   if(!changed
      && now - rb.requested < std::chrono::milliseconds{
             monitor->interval.load(std::memory_order_relaxed)})
@@ -132,33 +190,91 @@ void Node::inputAboutToFinish(
   rb.byte_size = buf.byte_size;
   rb.read_layout = l;
   rb.max_elements = max_elements;
+  rb.first = first;
+  rb.overview = overview;
   rb.requested = now;
 
   // The range a producer publishes may run past the end of its buffer
-  const int64_t bytes
-      = std::min<int64_t>(buf.byte_size, int64_t(buf.handle->size()) - buf.byte_offset);
+  const int64_t buffer_size = int64_t(buf.handle->size());
+  const int64_t bytes = std::min<int64_t>(buf.byte_size, buffer_size - buf.byte_offset);
   const int64_t available = elementCount(l, bytes);
-  const int64_t count = std::min(available, max_elements);
-  if(count == 0)
+  const int64_t e = elementBytes(l);
+  const int64_t origin = buf.byte_offset + l.offset;
+
+  rb.layout = l;
+  rb.available = available;
+  rb.buffer_bytes = buf.byte_size;
+  rb.result.completed = [this] { decodeReadback(); };
+
+  auto& rhi = *r.state.rhi;
+  auto* cb = r.currentCommandBuffer();
+  Fallback fallback = cb ? rb.gather.check(rhi, *buf.handle) : Fallback::Failed;
+  if(fallback == Fallback::None)
   {
-    publishEmpty(buf.byte_size, l);
-    return;
+    // An element in the last bytes of a buffer whose size is not a multiple
+    // of 4 is out of the shader's reach
+    const int64_t readable = std::min(
+        bytes, gatherReadable(buffer_size) - buf.byte_offset);
+    const int64_t gathered = elementCount(l, readable);
+    const int64_t cap = max_readback_bytes - (overview ? gather_header_bytes : 0);
+    const Sampling s = sampleElements(gathered, first, max_elements, e, cap, overview);
+    if(s.count == 0)
+    {
+      publishEmpty(buf.byte_size, available, s.first, l);
+      return;
+    }
+    const GatherPlan plan = planGather(
+        l, origin, buffer_size, s, overview, r.state.caps.maxStorageBufferSize,
+        rhi.resourceLimit(QRhi::MaxThreadGroupsPerDimension));
+    if(!plan.valid)
+      fallback = Fallback::TooLarge;
+    else if(!rb.gather.record(r.state, *cb, res, *buf.handle, plan, rb.result))
+      fallback = Fallback::Failed;
+    else
+    {
+      rb.local = Layout{
+          .type = l.type,
+          .components = l.components,
+          .stride = 0,
+          .offset = overview ? gather_header_bytes : 0};
+      rb.sampling = s;
+      rb.available = gathered;
+      rb.fallback = Fallback::None;
+      rb.measured = overview;
+      rb.pending = true;
+      return;
+    }
   }
 
+  // One range from the first element read to the last, as much of it as a
+  // readback holds
+  if(!res)
+    return;
+  Sampling s = sampleElements(available, first, max_elements, e, max_readback_bytes, false);
+  if(s.count == 0)
+  {
+    publishEmpty(buf.byte_size, available, s.first, l);
+    return;
+  }
+  const int64_t stride = strideOf(l);
+  const int64_t start = origin + s.first * stride;
   // From and to 4-byte boundaries: some backends copy buffers by words
-  const int64_t first = buf.byte_offset + l.offset;
-  const int64_t last = first + (count - 1) * strideOf(l) + elementBytes(l);
-  const int64_t begin = first & ~int64_t(3);
+  const int64_t begin = start & ~int64_t(3);
+  const int64_t fit = contiguousFit(stride, e, start - begin, max_readback_bytes);
+  if(fit < s.count)
+  {
+    s.count = std::max<int64_t>(fit, 1);
+    s.capped = true;
+  }
+  const int64_t last = start + (s.count - 1) * stride + e;
   const int64_t end = std::min(buf.byte_offset + bytes, (last + 3) & ~int64_t(3));
 
   rb.local = l;
-  rb.local.offset = first - begin;
-  rb.layout = l;
-  rb.count = count;
-  rb.available = available;
-  rb.buffer_bytes = buf.byte_size;
+  rb.local.offset = start - begin;
+  rb.sampling = s;
+  rb.fallback = fallback;
+  rb.measured = false;
   rb.pending = true;
-  rb.result.completed = [this] { decodeReadback(); };
   res->readBackBuffer(buf.handle, quint32(begin), quint32(end - begin), &rb.result);
 }
 
@@ -169,27 +285,41 @@ void Node::decodeReadback()
   rb.pending = false;
   auto& f = rb.frame;
   const int n = components(rb.layout);
-  f.values.resize(std::size_t(rb.count * n));
   const QByteArray& data = rb.result.data;
-  f.count = decode(
-      rb.local,
-      {reinterpret_cast<const unsigned char*>(data.constData()), std::size_t(data.size())},
-      f.values);
+  const std::span<const unsigned char> bytes{
+      reinterpret_cast<const unsigned char*>(data.constData()), std::size_t(data.size())};
+  f.values.resize(std::size_t(rb.sampling.count * n));
+  f.count = decode(rb.local, bytes, f.values);
   f.values.resize(std::size_t(f.count * n));
+  f.exact = rb.measured && bytes.size() >= std::size_t(gather_header_bytes);
+  if(f.exact)
+  {
+    uint32_t header[gather_header_words];
+    std::memcpy(header, bytes.data(), sizeof(header));
+    f.range = readGatherHeader(header, n);
+  }
   f.available = rb.available;
+  f.first = rb.sampling.first;
+  f.step = rb.sampling.step;
+  f.capped = rb.sampling.capped;
+  f.fallback = rb.fallback;
   f.buffer_bytes = rb.buffer_bytes;
+  f.read_bytes = data.size();
   f.layout = rb.layout;
   rb.empty = false;
   if(monitor)
     monitor->frames.produce(f);
 }
 
-void Node::release(score::gfx::RenderList&)
+void Node::release(score::gfx::RenderList& r)
 {
-  // Frames are offscreen and synchronous: no readback outlives the frame
-  // that made it. The next list reads the buffer at once.
-  m_readback->pending = false;
-  m_readback->handle = nullptr;
+  auto& rb = *m_readback;
+  // The readback writes into the result when its frame completes
+  if(rb.pending && r.state.rhi)
+    r.state.rhi->finish();
+  rb.pending = false;
+  rb.handle = nullptr;
+  rb.gather.release();
 }
 
 Layer::Layer(
@@ -311,6 +441,13 @@ void Layer::refresh(BufferMonitor& mon)
 
 void Layer::measure()
 {
+  if(m_frame.exact)
+  {
+    m_frameLo = m_frame.range.lo;
+    m_frameHi = m_frame.range.hi;
+    m_nonFinite = m_frame.range.non_finite;
+    return;
+  }
   m_frameLo.fill(std::numeric_limits<float>::max());
   m_frameHi.fill(std::numeric_limits<float>::lowest());
   m_nonFinite = 0;
@@ -357,6 +494,11 @@ void Layer::hoverLeaveEvent(QGraphicsSceneHoverEvent*)
   update();
 }
 
+int64_t Layer::indexOf(int64_t i) const noexcept
+{
+  return m_frame.first + i * m_frame.step;
+}
+
 QString Layer::formatValue(float v) const
 {
   if(!finite(v))
@@ -391,6 +533,12 @@ void Layer::paint_impl(QPainter* p) const
   p->fillRect(boundingRect(), background());
   if(!m_has || m_frame.buffer_bytes == 0)
     drawLabel(*p, boundingRect(), Qt::AlignCenter, QStringLiteral("Buffer view\nno buffer"));
+  else if(m_frame.count == 0 && m_frame.available > 0)
+    drawLabel(
+        *p, boundingRect(), Qt::AlignCenter,
+        QStringLiteral("%1 elements\nnone from element %2")
+            .arg(m_frame.available)
+            .arg(m_frame.first));
   else if(m_frame.count == 0)
     drawLabel(
         *p, boundingRect(), Qt::AlignCenter,
@@ -424,8 +572,23 @@ void Layer::paintInfo(
   lines << QStringLiteral("%1 bytes, %2 elements")
                .arg(m_frame.buffer_bytes)
                .arg(m_frame.available);
-  if(m_frame.count < m_frame.available)
-    lines << QStringLiteral("first %1 read").arg(m_frame.count);
+  const int64_t last = m_frame.first + (m_frame.count - 1) * m_frame.step;
+  if(m_frame.step > 1)
+    lines << QStringLiteral("every %1 element, %2 to %3")
+                 .arg(ordinal(m_frame.step))
+                 .arg(m_frame.first)
+                 .arg(last);
+  else if(m_frame.count < m_frame.available)
+    lines << QStringLiteral("elements %1 to %2").arg(m_frame.first).arg(last);
+  if(m_frame.capped)
+    lines << QStringLiteral("fewer elements: 16 MiB per readback");
+  if(m_frame.fallback != Fallback::None)
+    lines << fallbackReason(m_frame.fallback);
+  lines << QStringLiteral("%1 read back")
+               .arg(QLocale::c().formattedDataSize(m_frame.read_bytes, 1));
+  if(m_frame.exact && m_frame.step > 1)
+    lines << QStringLiteral("extents of all %1 elements")
+                 .arg(m_frame.available - m_frame.first);
   const int n = components();
   for(int c = 0; c < n; c++)
     if(m_frameLo[c] <= m_frameHi[c])
@@ -536,12 +699,13 @@ void Layer::paintCurves(QPainter* p) const
           component_names[c], channelColor(c));
   }
 
-  // Element indices, whole ones only
+  // Element indices in the buffer, whole ones only
+  const double first = double(m_frame.first), step = double(m_frame.step);
   std::vector<Tick> ticks;
-  for(auto& t : linearTicks(0., double(count - 1), area.width(), 50.))
+  for(auto& t : linearTicks(first, first + double(count - 1) * step, area.width(), 50.))
     if(t.value == std::floor(t.value))
       ticks.push_back({t.value, QString::number(qint64(t.value)), true});
-  drawXAxisLabels(*p, area, ticks, xOf);
+  drawXAxisLabels(*p, area, ticks, [&](double v) { return xOf((v - first) / step); });
 
   QStringList extra;
   if(m_hover && area.contains(*m_hover))
@@ -554,7 +718,7 @@ void Layer::paintCurves(QPainter* p) const
     p->setRenderHint(QPainter::Antialiasing, false);
     p->setPen(QPen(textColor(), 1, Qt::DotLine));
     p->drawLine(QPointF{xOf(i), area.top()}, QPointF{xOf(i), area.bottom()});
-    QString s = QStringLiteral("element %1:").arg(i);
+    QString s = QStringLiteral("element %1:").arg(indexOf(i));
     for(int c = 0; c < n; c++)
       s += QLatin1Char(' ') + formatValue(values[i * n + c]);
     extra << s;
@@ -596,7 +760,8 @@ void Layer::paintTable(QPainter* p) const
 
   // The first elements that fit, and a line for those that do not
   int64_t shown = std::min<int64_t>(m_frame.count, rows);
-  if(m_frame.available > shown && shown == rows)
+  const auto more = [&] { return m_frame.available - 1 - indexOf(shown - 1); };
+  if(more() > 0 && shown == rows)
     shown = rows - 1;
   const float* values = m_frame.values.data();
   for(int64_t i = 0; i < shown; i++)
@@ -605,18 +770,17 @@ void Layer::paintTable(QPainter* p) const
     if(i % 2)
       p->fillRect(QRectF(area.left(), y, area.width(), lh), QColor(255, 255, 255, 8));
     drawLabel(
-        *p, at(cell(-1), y), Qt::AlignRight | Qt::AlignVCenter, QString::number(i),
-        QColor(120, 120, 125));
+        *p, at(cell(-1), y), Qt::AlignRight | Qt::AlignVCenter,
+        QString::number(indexOf(i)), QColor(120, 120, 125));
     for(int c = 0; c < n; c++)
       drawLabel(
           *p, at(cell(c), y), Qt::AlignRight | Qt::AlignVCenter,
           formatValue(values[i * n + c]));
   }
-  if(m_frame.available > shown)
+  if(more() > 0)
     drawLabel(
         *p, QRectF(area.left(), area.top() + lh * (shown + 1), area.width(), lh),
-        Qt::AlignLeft | Qt::AlignVCenter,
-        QStringLiteral("%1 more").arg(m_frame.available - shown));
+        Qt::AlignLeft | Qt::AlignVCenter, QStringLiteral("%1 more").arg(more()));
 
   // The values start at the top left
   paintInfo(p, area, {}, true);
@@ -722,7 +886,7 @@ void Layer::paintImage(QPainter* p) const
     if(i < m_frame.count)
     {
       const int n = components();
-      QString s = QStringLiteral("element %1:").arg(i);
+      QString s = QStringLiteral("element %1:").arg(indexOf(i));
       for(int c = 0; c < n; c++)
         s += QLatin1Char(' ') + formatValue(m_frame.values[i * n + c]);
       extra << s;

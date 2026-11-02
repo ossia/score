@@ -1737,6 +1737,16 @@ score_gfx_test_offset_allocator(test_gfx_stale_slot_flatten)
 # GPUStridedCopy matches the per-element copy regions it replaces.
 score_add_gfx_test(strided_copy GfxStridedCopy.cpp)
 
+# The buffer view's gather pass reads back the elements asked for, packed, and
+# in an overview the extents of every element.
+if(TARGET score_plugin_ui)
+  score_add_gfx_plugin_test(buffer_view_gather
+    SOURCES
+      GfxBufferViewGather.cpp
+      "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-ui/Ui/Monitor/BufferGatherPass.cpp"
+    HEADERS_FROM score_plugin_ui)
+endif()
+
 # Self-feedback target limits (depth, mips, GrabsFromSource ports).
 score_add_gfx_test(selffb_limits GfxSelfFeedbackLimits.cpp)
 
