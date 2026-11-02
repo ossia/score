@@ -7,13 +7,16 @@
 
 #include <Library/LibrarySettings.hpp>
 #include <Library/PresetItemModel.hpp>
+#include <Library/PresetTreeView.hpp>
 #include <Library/ProcessesItemModel.hpp>
 
 #include <score/application/GUIApplicationContext.hpp>
 
 #include <QDir>
 #include <QElapsedTimer>
+#include <QAction>
 #include <QFile>
+#include <QMenu>
 #include <QMimeData>
 
 #include <memory>
@@ -376,5 +379,59 @@ TEST_CASE(
     QFile after{lib.user};
     REQUIRE(after.open(QIODevice::ReadOnly));
     CHECK(after.readAll() == contents);
+  });
+}
+
+TEST_CASE(
+    "a preset's menu acts on that preset when the library changed meanwhile",
+    "[library][presets]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    TestLibrary lib{ctx};
+    Library::ProcessesItemModel processes{ctx, nullptr};
+    lib.waitFor({"Packaged", "Mine"});
+    Library::PresetItemModel presets{ctx, nullptr};
+    presets.setProcess(Process::ProcessIdentifier{
+        UuidKey<Process::ProcessModel>::fromString(pattern_uuid), {}});
+    Library::PresetTreeView view;
+    view.setPresetModel(&presets);
+    REQUIRE(presets.addCategory({"Drums"}).isValid());
+
+    auto menu = view.contextMenu(presets.indexOfPreset(lib.row("Mine")));
+    REQUIRE(menu);
+    const auto action = [&](QMenu& m, const QString& text) -> QAction* {
+      for(auto* a : m.actions())
+        if(a->text() == text)
+          return a;
+      return nullptr;
+    };
+
+    // While it is open, a scan brings a preset that sorts before it
+    const int mine = lib.row("Mine");
+    auto& plug = ctx.applicationPlugin<Process::ApplicationPlugin>();
+    Process::Preset earlier = lib.presets()[mine];
+    earlier.name = "AAA";
+    earlier.path.clear();
+    plug.addPreset(std::move(earlier));
+    REQUIRE(lib.row("Mine") != mine);
+
+    auto* move = action(*menu, "Move to");
+    REQUIRE(move);
+    REQUIRE(move->menu());
+    auto* drums = action(*move->menu(), "Drums");
+    REQUIRE(drums);
+    drums->trigger();
+    CHECK(lib.presets()[lib.row("Mine")].category == "Drums");
+    CHECK(lib.presets()[lib.row("AAA")].category.isEmpty());
+
+    // Gone from the library while the menu was open: nothing is done
+    auto again = view.contextMenu(presets.indexOfPreset(lib.row("Mine")));
+    REQUIRE(again);
+    plug.removePreset(lib.row("Mine"));
+    auto* remove = action(*again, "Delete");
+    REQUIRE(remove);
+    remove->trigger();
+    CHECK(QFile::exists(lib.user));
+    CHECK(lib.row("AAA") >= 0);
   });
 }
