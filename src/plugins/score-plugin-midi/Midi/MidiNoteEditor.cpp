@@ -102,7 +102,8 @@ bool NoteEditor::paste(
   return true;
 }
 
-bool NoteEditor::remove(const Selection& s, const score::DocumentContext& ctx)
+bool NoteEditor::remove(
+    const Selection& s, const score::DocumentContext& ctx, score::RemovalLinks)
 {
   if(!s.empty())
   {

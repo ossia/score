@@ -96,18 +96,37 @@ SCORE_DECLARE_ACTION(PlayTool, "Tool &Play", Scenario, Qt::Key_P)
 SCORE_DECLARE_ACTION(LockMode, "&Lock", Scenario, QKeySequence{})
 SCORE_DECLARE_ACTION(Scale, "&Scale mode", Scenario, QKeySequence{})
 
-// Object
-#if defined(__APPLE__)
-SCORE_DECLARE_ACTION(RemoveElements, "&Remove elements", Scenario, Qt::Key_Backspace)
-SCORE_DECLARE_ACTION(
-    RemoveElementsKeepLinked, "&Remove cable (keep link)", Scenario,
-    QKeySequence(QObject::tr("Shift+Backspace")))
-#else
-SCORE_DECLARE_ACTION(RemoveElements, "&Remove elements", Scenario, Qt::Key_Delete)
-SCORE_DECLARE_ACTION(
-    RemoveElementsKeepLinked, "&Remove cable (keep link)", Scenario,
-    QKeySequence(QObject::tr("Shift+Delete")))
-#endif
+// Object: Delete and Backspace both remove, on every platform. A process
+// removed from a chain leaves what it linked connected; with Shift, its cables
+// go with it.
+SCORE_DECLARE_ACTION_2S(
+    RemoveElements, "&Remove elements", Scenario, QKeySequence{Qt::Key_Delete},
+    QKeySequence{Qt::Key_Backspace})
+// Its key is "RemoveElementsKeepLinked" so that the shortcuts users saved for
+// it keep applying.
+namespace Actions
+{
+struct RemoveElementsAndCables;
+}
+namespace score
+{
+template <>
+struct MetaAction<Actions::RemoveElementsAndCables>
+{
+  static score::Action make(QAction* ptr)
+  {
+    return score::Action{
+        ptr,
+        QObject::tr("Remove elements and their &cables"),
+        key(),
+        score::ActionGroupKey{"Scenario"},
+        QKeySequence(QObject::tr("Shift+Delete")),
+        QKeySequence(QObject::tr("Shift+Backspace"))};
+  }
+
+  static score::ActionKey key() { return score::ActionKey{"RemoveElementsKeepLinked"}; }
+};
+}
 SCORE_DECLARE_ACTION(CopyContent, "C&opy", Scenario, QKeySequence::Copy)
 SCORE_DECLARE_ACTION(CutContent, "C&ut", Scenario, QKeySequence::Cut)
 SCORE_DECLARE_ACTION(PasteElements, "&Paste (elements)", Scenario, QKeySequence::Paste)

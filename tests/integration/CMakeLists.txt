@@ -1594,6 +1594,14 @@ score_add_test(test_integration_audio_outlet_chaining
   GUI
   PLUGINS score_plugin_scenario score_lib_process score_plugin_media)
 
+# Delete and Shift+Delete on processes in chains: sub-chains relinked as a
+# whole, no duplicate cable, the tail's propagation and address handed back.
+score_add_test(test_integration_process_removal
+  SOURCES ProcessRemovalTest.cpp
+  GUI
+  PLUGINS score_plugin_scenario score_lib_process score_plugin_media
+          score_plugin_dataflow)
+
 # The ports in the inspector and in the audio output panel: their cables, when
 # those cables keep the address from being used, the texture settings drawer.
 set(_port_inspector_plugins

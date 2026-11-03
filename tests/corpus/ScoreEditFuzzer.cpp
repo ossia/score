@@ -9,10 +9,11 @@
 // After loading the document and starting playback, a seeded random sequence
 // of edits runs, each one as its own event-loop turn (a user can't be faster
 // than that), with 0-30 ms between them:
-//  - remove a process            (ObjectEditorList::remove, as the Delete key)
-//  - remove a process, keep link (same, with Shift held: the "translate the
-//                                 connections across the removed node" path,
-//                                 ScenarioEditor.cpp RemoveProcessAndKeepLinked)
+//  - remove one to three processes (ObjectEditorList::remove, as the Delete
+//                                 key: what they linked is reconnected, the
+//                                 ScenarioEditor.cpp removeIntervalProcesses
+//                                 path)
+//  - the same, with their cables (as Shift+Delete)
 //  - remove a cable              (ObjectEditorList::remove on a cable)
 //  - remove scenario elements    (interval / state / event / sync / comment,
 //                                 with the parent scenario focused)
@@ -37,10 +38,6 @@
 //
 // Verdicts: OK / LOADFAIL / UNKNOWN_UUID:<uuid> / UNDO_MISMATCH /
 // REDO_MISMATCH / NOT_PLAYING, plus CRASH_SIG<n> / TIMEOUT from the driver.
-
-// First: score's Process/ExecutionContext.hpp defines an `in_exec` macro that
-// collides with a QCoreApplicationPrivate member.
-#include <QtGui/private/qguiapplication_p.h>
 
 #include <Process/Dataflow/Cable.hpp>
 #include <Process/Dataflow/Port.hpp>
@@ -740,21 +737,19 @@ struct Fuzzer
 
   // Goes through every ObjectEditor exactly like
   // ObjectMenuActions::removeSelectedElements.
-  bool remove_via_editors(const Selection& sel, bool shift)
+  bool remove_via_editors(const Selection& sel, score::RemovalLinks links)
   {
     auto& c = ctx();
     c.selectionStack.pushNewSelection(sel);
-    QGuiApplicationPrivate::modifier_buttons
-        = shift ? Qt::ShiftModifier : Qt::NoModifier;
-    bool done = false;
     for(auto& iface : c.app.interfaces<score::ObjectEditorList>())
-      if(iface.remove(c.selectionStack.currentSelection(), c))
-      {
-        done = true;
-        break;
-      }
-    QGuiApplicationPrivate::modifier_buttons = Qt::NoModifier;
-    return done;
+      if(iface.remove(c.selectionStack.currentSelection(), c, links))
+        return true;
+    return false;
+  }
+
+  score::RemovalLinks any_links()
+  {
+    return rnd(2) ? score::RemovalLinks::Reconnect : score::RemovalLinks::Disconnect;
   }
 
   void count(const char* name, bool did)
@@ -763,7 +758,7 @@ struct Fuzzer
       v.ops[name]++;
   }
 
-  void op_remove_process(bool keep_link)
+  void op_remove_process(score::RemovalLinks links)
   {
     auto procs = doc->model().findChildren<Process::ProcessModel*>();
     // Never the root scenario: removing it is not a user operation.
@@ -771,13 +766,24 @@ struct Fuzzer
       return qobject_cast<Scenario::ScenarioDocumentModel*>(p->parent())
              || !p->parent();
     });
-    auto* p = pick(procs);
-    if(!p)
+    if(procs.isEmpty())
       return;
-    stage(op, keep_link ? "remove-keep-link" : "remove", path_of(p) + " " + p->metaObject()->className());
+
+    const bool reconnect = links == score::RemovalLinks::Reconnect;
     Selection s;
-    s.append(p);
-    count(keep_link ? "remove_keep_link" : "remove", remove_via_editors(s, keep_link));
+    std::string what;
+    for(int i = 0, n = 1 + rnd(3); i < n; i++)
+    {
+      auto* p = pick(procs);
+      if(s.contains(p))
+        continue;
+      s.append(p);
+      what += path_of(p) + " " + p->metaObject()->className() + " ";
+    }
+    stage(op, reconnect ? "remove-reconnect" : "remove-disconnect", what);
+    count(
+        reconnect ? "remove_reconnect" : "remove_disconnect",
+        remove_via_editors(s, links));
   }
 
   void op_remove_cable()
@@ -789,7 +795,7 @@ struct Fuzzer
     stage(op, "remove-cable", path_of(c));
     Selection s;
     s.append(c);
-    count("remove_cable", remove_via_editors(s, rnd(2)));
+    count("remove_cable", remove_via_editors(s, any_links()));
   }
 
   void op_remove_scenario_element()
@@ -825,7 +831,7 @@ struct Fuzzer
     }
     stage(op, "remove-scenario-elements", what);
     doc->focusManager().set(QPointer<Scenario::ProcessModel>{sm});
-    count("remove_scenario_elements", remove_via_editors(s, false));
+    count("remove_scenario_elements", remove_via_editors(s, any_links()));
     doc->focusManager().set(nullptr);
   }
 
@@ -927,9 +933,9 @@ struct Fuzzer
 
     const int r = rnd(100);
     if(r < 18)
-      op_remove_process(false);
+      op_remove_process(score::RemovalLinks::Reconnect);
     else if(r < 36)
-      op_remove_process(true);
+      op_remove_process(score::RemovalLinks::Disconnect);
     else if(r < 48)
       op_remove_cable();
     else if(r < 58)
