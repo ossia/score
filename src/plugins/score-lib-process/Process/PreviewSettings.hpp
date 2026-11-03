@@ -26,9 +26,18 @@ public:
 
   void enabledChanged(bool b) E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, enabledChanged, b)
 
+  //! Whether hovering a port or a cable shows what goes through it. Kept
+  //! between sessions.
+  bool hoverProbes() const noexcept { return m_hoverProbes; }
+  void setHoverProbes(bool b);
+
+  void hoverProbesChanged(bool b)
+      E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, hoverProbesChanged, b)
+
 private:
   PreviewSettings();
 
   bool m_enabled{true};
+  bool m_hoverProbes{true};
 };
 }

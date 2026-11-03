@@ -56,11 +56,31 @@ score::GUIElements ApplicationPlugin::makeGUIElements()
     Process::PreviewSettings::instance().setEnabled(checked);
   });
 
-  // The toggle is a view switch, not an edition tool: it takes the far end of
-  // the row instead of sitting in the tools' run.
+  auto probe_act = new QAction{QObject::tr("Show what goes through a port on hover"), bar};
+  probe_act->setCheckable(true);
+  probe_act->setChecked(Process::PreviewSettings::instance().hoverProbes());
+  score::setHelp(
+      probe_act,
+      QObject::tr("Hovering a port or a cable shows what goes through it"));
+  setIcons(
+      probe_act, QStringLiteral(":/icons/hover_probe_on.png"),
+      QStringLiteral(":/icons/hover_probe_hover.png"),
+      QStringLiteral(":/icons/hover_probe_off.png"),
+      QStringLiteral(":/icons/hover_probe_disabled.png"));
+
+  QObject::connect(probe_act, &QAction::toggled, probe_act, [](bool checked) {
+    Process::PreviewSettings::instance().setHoverProbes(checked);
+  });
+  QObject::connect(
+      &Process::PreviewSettings::instance(), &Process::PreviewSettings::hoverProbesChanged,
+      probe_act, &QAction::setChecked);
+
+  // The toggles are view switches, not edition tools: they take the far end
+  // of the row instead of sitting in the tools' run.
   auto spacer = new QWidget{bar};
   spacer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
   bar->addWidget(spacer);
+  bar->addAction(probe_act);
   bar->addAction(preview_act);
   bar->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
   score::setSkinIconSize(bar, 24);
