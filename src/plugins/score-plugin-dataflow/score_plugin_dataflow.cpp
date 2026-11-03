@@ -11,7 +11,6 @@
 #include <Dataflow/ControlOutletItem.hpp>
 #include <Dataflow/CurveInlet.hpp>
 #include <Dataflow/DropPortInScenario.hpp>
-#include <Dataflow/MappingPanel/ConnectionsCommands.hpp>
 #include <Dataflow/MappingPanel/ConnectionsPanel.hpp>
 #include <Dataflow/MidiInletItem.hpp>
 #include <Dataflow/MidiOutletItem.hpp>
@@ -22,10 +21,6 @@
 #include <Dataflow/WidgetInletFactory.hpp>
 
 #include <score/plugins/FactorySetup.hpp>
-
-#include <ossia/detail/for_each.hpp>
-
-#include <score_plugin_dataflow_commands_files.hpp>
 
 score_plugin_dataflow::score_plugin_dataflow() { }
 
@@ -91,20 +86,6 @@ std::vector<score::InterfaceBase*> score_plugin_dataflow::factories(
              Dataflow::CurveInlet, WidgetFactory::CurveInletItems>,
          Dataflow::WidgetOutletFactory<Process::Bargraph, WidgetFactory::Bargraph>>>(
       ctx, key);
-}
-
-std::pair<const CommandGroupKey, CommandGeneratorMap>
-score_plugin_dataflow::make_commands()
-{
-  using namespace Dataflow;
-  std::pair<const CommandGroupKey, CommandGeneratorMap> cmds{
-      Dataflow::CommandFactoryName(), CommandGeneratorMap{}};
-
-  ossia::for_each_type<
-#include <score_plugin_dataflow_commands.hpp>
-      >(score::commands::FactoryInserter{cmds.second});
-
-  return cmds;
 }
 
 #include <score/plugins/PluginInstances.hpp>

@@ -14,6 +14,7 @@
 #include <score/document/DocumentContext.hpp>
 #include <score/model/ModelMetadata.hpp>
 
+#include <ossia/detail/hash_map.hpp>
 #include <ossia/detail/small_vector.hpp>
 #include <ossia/network/base/device.hpp>
 #include <ossia/network/base/node_functions.hpp>
@@ -32,13 +33,6 @@ QString tr(const char* s)
 const score::ModelMetadata* metadataOf(const QObject& obj)
 {
   return obj.findChild<score::ModelMetadata*>({}, Qt::FindDirectChildrenOnly);
-}
-
-QString processName(const Process::ProcessModel* p)
-{
-  if(!p)
-    return tr("Unknown");
-  return p->metadata().getName();
 }
 
 //! The explorer's children of the root hold device settings, not address
@@ -133,33 +127,77 @@ QString statusName(ConnectionRow::Status s)
   return {};
 }
 
+namespace
+{
+//! Labels of the ports of a process, in one pass over each port list: named
+//! as their node shows them; ports sharing their name with another are told
+//! apart by their position in the process.
+using PortLabels = ossia::hash_map<const Process::Port*, QString>;
+PortLabels portLabels(const Process::ProcessModel& proc)
+{
+  PortLabels res;
+  auto label = [&](const auto& ports) {
+    ossia::hash_map<QString, int> counts;
+    for(auto p : ports)
+      counts[Process::displayName(*p)]++;
+    int index = 1;
+    for(auto p : ports)
+    {
+      QString name = Process::displayName(*p);
+      if(counts[name] > 1)
+        name = QStringLiteral("%1 %2").arg(name).arg(index);
+      res.emplace(p, std::move(name));
+      index++;
+    }
+  };
+  label(proc.inlets());
+  label(proc.outlets());
+  return res;
+}
+
+//! The process or interval a port belongs to
+const QObject* portOwner(const Process::Port& port)
+{
+  if(auto proc = Process::parentProcess(&port))
+    return proc;
+  for(auto p = port.parent(); p; p = p->parent())
+    if(qobject_cast<const Scenario::IntervalModel*>(p))
+      return p;
+  return nullptr;
+}
+
+QString ownerName(const QObject* owner)
+{
+  if(!owner)
+    return tr("Unknown");
+  if(auto m = metadataOf(*owner))
+    return m->getName();
+  return tr("Unknown");
+}
+
+QString describePort(const Process::Port& port, const PortLabels* labels)
+{
+  QString name;
+  if(labels)
+    if(auto it = labels->find(&port); it != labels->end())
+      name = it->second;
+  if(name.isEmpty())
+    name = Process::displayName(port);
+  auto owner = portOwner(port);
+  if(!owner)
+    return name;
+  return QStringLiteral("%1: %2").arg(ownerName(owner), name);
+}
+}
+
 QString describePort(const Process::Port& port)
 {
-  QString name = port.visualName();
-  auto proc = Process::parentProcess(&port);
-  if(proc)
+  if(auto proc = Process::parentProcess(&port))
   {
-    // Unnamed ports, and ports sharing their name with another, are told apart
-    // by their position in the process
-    auto disambiguate = [&](const auto& ports, const QString& unnamed) {
-      auto it = std::find(ports.begin(), ports.end(), &port);
-      if(it == ports.end())
-        return false;
-      const int index = 1 + std::distance(ports.begin(), it);
-      if(name.isEmpty())
-        name = unnamed.arg(index);
-      else if(std::count_if(ports.begin(), ports.end(), [&](auto p) {
-                return p->visualName() == name;
-              }) > 1)
-        name = QStringLiteral("%1 %2").arg(name).arg(index);
-      return true;
-    };
-    if(!disambiguate(proc->inlets(), tr("Inlet %1")))
-      disambiguate(proc->outlets(), tr("Outlet %1"));
+    const auto labels = portLabels(*proc);
+    return describePort(port, &labels);
   }
-  if(!proc)
-    return name;
-  return QStringLiteral("%1: %2").arg(processName(proc), name);
+  return describePort(port, nullptr);
 }
 
 QString hierarchyPath(const QObject& obj)
@@ -190,6 +228,18 @@ std::vector<ConnectionRow> collectConnections(
   std::vector<ConnectionRow> rows;
   rows.reserve(doc.cables.size());
 
+  // Labels are computed once per process
+  ossia::hash_map<const Process::ProcessModel*, PortLabels> labels;
+  auto describe = [&](const Process::Port& port) {
+    auto proc = Process::parentProcess(&port);
+    if(!proc)
+      return describePort(port, nullptr);
+    auto it = labels.find(proc);
+    if(it == labels.end())
+      it = labels.emplace(proc, portLabels(*proc)).first;
+    return describePort(port, &it->second);
+  };
+
   for(auto& cable : doc.cables)
   {
     auto source = cable.source().try_find(ctx);
@@ -204,22 +254,23 @@ std::vector<ConnectionRow> collectConnections(
     r.sinkPort = sink;
     r.sourceProcess = Process::parentProcess(source);
     r.sinkProcess = Process::parentProcess(sink);
+    r.sourceOwner = const_cast<QObject*>(portOwner(*source));
+    r.sinkOwner = const_cast<QObject*>(portOwner(*sink));
     r.portType = source->type();
-    r.from = describePort(*source);
-    r.to = describePort(*sink);
-    r.fromGroup = processName(r.sourceProcess);
-    r.toGroup = processName(r.sinkProcess);
+    r.from = describe(*source);
+    r.to = describe(*sink);
+    r.fromGroup = ownerName(r.sourceOwner);
+    r.toGroup = ownerName(r.sinkOwner);
     r.mode = cableTypeName(int(cable.type()));
 
-    const QString srcPath = r.sourceProcess ? hierarchyPath(*r.sourceProcess) : QString{};
-    const QString sinkPath = r.sinkProcess ? hierarchyPath(*r.sinkProcess) : QString{};
+    const QString srcPath = r.sourceOwner ? hierarchyPath(*r.sourceOwner) : QString{};
+    const QString sinkPath = r.sinkOwner ? hierarchyPath(*r.sinkOwner) : QString{};
     r.location = srcPath == sinkPath ? srcPath : tr("%1 to %2").arg(srcPath, sinkPath);
     rows.push_back(std::move(r));
   }
 
   auto devices = ctx.findPlugin<Explorer::DeviceDocumentPlugin>();
-  const auto processes = doc.findChildren<Process::ProcessModel*>();
-  auto addPort = [&](Process::Port& port, Process::ProcessModel& proc, bool inlet) {
+  auto addPort = [&](Process::Port& port, QObject& owner, bool inlet) {
     const auto& addr = port.address();
     if(!addr.address.isSet())
       return;
@@ -228,37 +279,45 @@ std::vector<ConnectionRow> collectConnections(
     r.kind = ConnectionRow::Address;
     r.addressIsSource = inlet;
     r.sourcePort = &port;
-    r.sourceProcess = &proc;
+    r.sourceProcess = qobject_cast<Process::ProcessModel*>(&owner);
+    r.sourceOwner = &owner;
     r.portType = port.type();
     r.address = addr.toString();
     r.device = addr.address.device;
     r.status = addressStatus(addr.address, devices);
     r.mode = statusName(r.status);
-    r.location = hierarchyPath(proc);
-    const QString portName = describePort(port);
+    r.location = hierarchyPath(owner);
+    const QString portName = describe(port);
     if(inlet)
     {
       r.from = r.address;
       r.to = portName;
       r.fromGroup = r.device;
-      r.toGroup = proc.metadata().getName();
+      r.toGroup = ownerName(&owner);
     }
     else
     {
       r.from = portName;
       r.to = r.address;
-      r.fromGroup = proc.metadata().getName();
+      r.fromGroup = ownerName(&owner);
       r.toGroup = r.device;
     }
     rows.push_back(std::move(r));
   };
 
-  for(auto proc : processes)
+  for(auto proc : doc.findChildren<Process::ProcessModel*>())
   {
     for(auto inlet : proc->inlets())
       addPort(*inlet, *proc, true);
     for(auto outlet : proc->outlets())
       addPort(*outlet, *proc, false);
+  }
+  for(auto itv : doc.findChildren<Scenario::IntervalModel*>())
+  {
+    if(itv->inlet)
+      addPort(*itv->inlet, *itv, true);
+    if(itv->outlet)
+      addPort(*itv->outlet, *itv, false);
   }
   return rows;
 }

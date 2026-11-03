@@ -15,7 +15,6 @@
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentView.hpp>
 
 #include <Dataflow/Commands/EditConnection.hpp>
-#include <Dataflow/MappingPanel/ConnectionsCommands.hpp>
 
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
@@ -41,6 +40,7 @@
 #include <QHeaderView>
 #include <QLabel>
 #include <QLineEdit>
+#include <QScrollBar>
 #include <QMenu>
 #include <QKeyEvent>
 #include <QSortFilterProxyModel>
@@ -131,6 +131,7 @@ ConnectionsWidget::ConnectionsWidget(QWidget* parent)
   connect(m_search, &QLineEdit::textChanged, this, [this](const QString& txt) {
     m_proxy->setFilterFixedString(txt);
     m_view->expandAll();
+    updateCounts();
   });
   connect(m_kinds, &QComboBox::currentIndexChanged, this, [this] { populate(); });
   connect(m_grouping, &QComboBox::currentIndexChanged, this, [this] { populate(); });
@@ -162,8 +163,6 @@ void ConnectionsWidget::setDocument(const score::DocumentContext* ctx)
   // once the event loop runs again: setModel comes while the document is
   // still being set up.
   m_rows.clear();
-  delete m_tracking;
-  m_tracking = nullptr;
   populate({});
   schedule();
 }
@@ -179,11 +178,8 @@ void ConnectionsWidget::watchDocument()
   doc->cables.added.connect<&ConnectionsWidget::on_cableAdded>(this);
   doc->cables.removed.connect<&ConnectionsWidget::on_cableRemoved>(this);
 
-  // Creating or removing processes anywhere in the hierarchy goes through a
-  // command, as do undo and redo
-  m_documentConnections.push_back(connect(
-      &m_ctx->document.commandStack(), &score::CommandStack::indexChanged, this,
-      [this] { schedule(); }));
+  // Processes and intervals created or removed anywhere in the hierarchy are
+  // seen as children of the tracked intervals and processes, see track()
 
   if(auto devices = m_ctx->findPlugin<Explorer::DeviceDocumentPlugin>())
   {
@@ -213,6 +209,14 @@ void ConnectionsWidget::unwatchDocument()
     doc->cables.removed.disconnect<&ConnectionsWidget::on_cableRemoved>(this);
   }
   m_watchedScenario.clear();
+  untrack();
+}
+
+void ConnectionsWidget::untrack()
+{
+  for(auto obj : m_tracked)
+    obj->removeEventFilter(this);
+  m_tracked.clear();
   delete m_tracking;
   m_tracking = nullptr;
 }
@@ -241,11 +245,20 @@ void ConnectionsWidget::schedule()
 
 bool ConnectionsWidget::eventFilter(QObject* obj, QEvent* ev)
 {
-  if(obj == m_view
-     && (ev->type() == QEvent::KeyPress || ev->type() == QEvent::ShortcutOverride))
+  if(obj != m_view)
+  {
+    // A tracked interval or process gained or lost a child: a process, an
+    // interval, a port
+    if(ev->type() == QEvent::ChildAdded || ev->type() == QEvent::ChildRemoved)
+      schedule();
+    return false;
+  }
+
+  if(ev->type() == QEvent::KeyPress || ev->type() == QEvent::ShortcutOverride)
   {
     auto key = static_cast<QKeyEvent*>(ev);
-    if(key->key() == Qt::Key_Delete || key->key() == Qt::Key_Backspace)
+    if((key->key() == Qt::Key_Delete || key->key() == Qt::Key_Backspace)
+       && !selectedRows().empty())
     {
       // Overriding keeps the application's own Delete action from removing
       // the document selection instead
@@ -263,6 +276,11 @@ void ConnectionsWidget::showEvent(QShowEvent* ev)
   QWidget::showEvent(ev);
   if(m_dirty)
     rebuild();
+  if(m_selectionPending && alive())
+  {
+    m_selectionPending = false;
+    setSelection(m_ctx->selectionStack.currentSelection());
+  }
 }
 
 void ConnectionsWidget::refresh()
@@ -285,30 +303,61 @@ void ConnectionsWidget::rebuild()
   }
   track();
   populate(keep);
+  if(m_selectionPending && isVisible() && alive())
+    setSelection(m_ctx->selectionStack.currentSelection());
 }
 
 void ConnectionsWidget::track()
 {
-  delete m_tracking;
-  m_tracking = new QObject{this};
   if(!m_watchedScenario)
     return;
+  if(!m_tracking)
+    m_tracking = new QObject{this};
 
   auto changed = [this] { schedule(); };
   auto ctx = m_tracking;
+  // True the first time an object is seen; it is forgotten when destroyed
+  auto add = [&](QObject* obj) {
+    if(!m_tracked.insert(obj).second)
+      return false;
+    connect(obj, &QObject::destroyed, ctx, [this, obj] {
+      m_tracked.erase(obj);
+      schedule();
+    });
+    return true;
+  };
+  auto watchPort = [&](Process::Port* port) {
+    if(!port || !add(port))
+      return;
+    connect(port, &Process::Port::addressChanged, ctx, changed);
+    connect(port, &Process::Port::nameChanged, ctx, changed);
+    connect(port, &Process::Port::cablesChanged, ctx, changed);
+  };
+
   for(auto& cable : static_cast<Scenario::ScenarioDocumentModel&>(*m_watchedScenario).cables)
-    connect(&cable, &Process::Cable::typeChanged, ctx, changed);
+    if(add(&cable))
+      connect(&cable, &Process::Cable::typeChanged, ctx, changed);
+
+  for(auto itv : m_watchedScenario->findChildren<Scenario::IntervalModel*>())
+  {
+    if(add(itv))
+    {
+      itv->installEventFilter(this);
+      connect(&itv->metadata(), &score::ModelMetadata::NameChanged, ctx, changed);
+    }
+    watchPort(itv->inlet.get());
+    watchPort(itv->outlet.get());
+  }
 
   for(auto proc : m_watchedScenario->findChildren<Process::ProcessModel*>())
   {
-    connect(proc, &Process::ProcessModel::inletsChanged, ctx, changed);
-    connect(proc, &Process::ProcessModel::outletsChanged, ctx, changed);
-    connect(&proc->metadata(), &score::ModelMetadata::NameChanged, ctx, changed);
-    auto watchPort = [&](Process::Port* port) {
-      connect(port, &Process::Port::addressChanged, ctx, changed);
-      connect(port, &Process::Port::nameChanged, ctx, changed);
-      connect(port, &Process::Port::cablesChanged, ctx, changed);
-    };
+    if(add(proc))
+    {
+      proc->installEventFilter(this);
+      connect(proc, &Process::ProcessModel::inletsChanged, ctx, changed);
+      connect(proc, &Process::ProcessModel::outletsChanged, ctx, changed);
+      connect(&proc->metadata(), &score::ModelMetadata::NameChanged, ctx, changed);
+    }
     for(auto p : proc->inlets())
       watchPort(p);
     for(auto p : proc->outlets())
@@ -332,24 +381,46 @@ void ConnectionsWidget::populate()
 
 void ConnectionsWidget::populate(const ossia::hash_set<const QObject*>& selected)
 {
+  // Clearing the model empties the view's selection: that is not the user
+  // deselecting
+  m_syncingSelection = true;
+
+  // What the user collapsed and where the list was scrolled survive a rebuild
+  for(const auto& [g, key] : m_groups)
+  {
+    auto idx = m_proxy->mapFromSource(g->index());
+    if(!idx.isValid())
+      continue;
+    if(m_view->isExpanded(idx))
+      m_collapsed.erase(key);
+    else
+      m_collapsed.insert(key);
+  }
+  const int vscroll = m_view->verticalScrollBar()->value();
+  const int hscroll = m_view->horizontalScrollBar()->value();
+
   m_model->clear();
+  m_groups.clear();
+  m_items.assign(m_rows.size(), nullptr);
+  m_rowsOf.clear();
   m_model->setHorizontalHeaderLabels(
-      {tr("Kind"), tr("From"), tr("To"), tr("Type"), tr("Mode"), tr("Location")});
+      {tr("Kind"), tr("From"), tr("To"), tr("Type"), tr("Mode"), tr("Status"),
+       tr("Location")});
+  m_model->horizontalHeaderItem(ModeColumn)->setToolTip(tr("Mode of the cable"));
+  m_model->horizontalHeaderItem(StatusColumn)
+      ->setToolTip(tr("Whether the bound address exists in the device explorer"));
 
   const auto grouping = Grouping(m_grouping->currentIndex());
   const auto kinds = KindFilter(m_kinds->currentIndex());
   ossia::hash_map<QString, QStandardItem*> groups;
-  ossia::hash_map<QStandardItem*, int> groupCounts;
   auto& skin = score::Skin::instance();
 
-  int cables = 0, addresses = 0;
   for(int i = 0, n = std::ssize(m_rows); i < n; i++)
   {
     const auto& r = m_rows[i];
     const bool isCable = r.kind == ConnectionRow::Cable;
     if((kinds == CablesOnly && !isCable) || (kinds == AddressesOnly && isCable))
       continue;
-    (isCable ? cables : addresses)++;
 
     QList<QStandardItem*> items;
     items.reserve(ColumnCount);
@@ -357,7 +428,8 @@ void ConnectionsWidget::populate(const ossia::hash_set<const QObject*>& selected
     items.push_back(new QStandardItem{r.from});
     items.push_back(new QStandardItem{r.to});
     items.push_back(new QStandardItem{portTypeName(r.portType)});
-    items.push_back(new QStandardItem{r.mode});
+    items.push_back(new QStandardItem{isCable ? r.mode : QString{}});
+    items.push_back(new QStandardItem{isCable ? QString{} : r.mode});
     items.push_back(new QStandardItem{r.location});
     items[KindColumn]->setData(i, RowRole);
     items[TypeColumn]->setData(
@@ -373,7 +445,7 @@ void ConnectionsWidget::populate(const ossia::hash_set<const QObject*>& selected
         const QBrush warn = skin.Warn1.color();
         for(auto it : items)
           it->setForeground(warn);
-        items[ModeColumn]->setToolTip(
+        items[StatusColumn]->setToolTip(
             r.status == ConnectionRow::Pattern
                 ? tr("The address is a pattern, it may match several nodes")
                 : tr("The device explorer does not have this address"));
@@ -381,6 +453,9 @@ void ConnectionsWidget::populate(const ossia::hash_set<const QObject*>& selected
     }
     for(auto it : items)
       it->setEditable(false);
+    m_items[i] = items[KindColumn];
+    if(auto obj = selectable(r))
+      m_rowsOf[obj].push_back(i);
 
     QString group;
     switch(grouping)
@@ -412,6 +487,7 @@ void ConnectionsWidget::populate(const ossia::hash_set<const QObject*>& selected
       {
         g = new QStandardItem{group};
         g->setEditable(false);
+        g->setData(group, GroupRole);
         QList<QStandardItem*> row{g};
         for(int c = 1; c < ColumnCount; c++)
         {
@@ -420,33 +496,68 @@ void ConnectionsWidget::populate(const ossia::hash_set<const QObject*>& selected
           row.push_back(filler);
         }
         m_model->appendRow(row);
+        m_groups.emplace_back(g, group);
       }
       g->appendRow(items);
-      groupCounts[g]++;
     }
   }
-  for(auto& [g, count] : groupCounts)
-    g->setText(QStringLiteral("%1 (%2)").arg(g->text()).arg(count));
+
+  updateCounts();
 
   m_view->expandAll();
+  for(const auto& [g, key] : m_groups)
+    if(m_collapsed.contains(key))
+      m_view->collapse(m_proxy->mapFromSource(g->index()));
   for(int c = 0; c < ColumnCount - 1; c++)
     m_view->resizeColumnToContents(c);
-
-  m_summary->setText(
-      alive() ? tr("%1 cable(s), %2 address binding(s)").arg(cables).arg(addresses)
-            : tr("No document"));
+  m_view->doItemsLayout();
+  m_view->verticalScrollBar()->setValue(vscroll);
+  m_view->horizontalScrollBar()->setValue(hscroll);
 
   if(!selected.empty())
   {
-    m_syncingSelection = true;
     QItemSelection sel;
-    for(int i = 0, n = std::ssize(m_rows); i < n; i++)
-      if(auto obj = selectable(m_rows[i]); obj && selected.contains(obj))
-        if(auto idx = viewIndexOf(i); idx.isValid())
-          sel.select(idx, idx.siblingAtColumn(ColumnCount - 1));
+    for(auto obj : selected)
+      if(auto it = m_rowsOf.find(obj); it != m_rowsOf.end())
+        for(int i : it->second)
+          if(auto idx = viewIndexOf(i); idx.isValid())
+            sel.select(idx, idx.siblingAtColumn(ColumnCount - 1));
     m_view->selectionModel()->select(sel, QItemSelectionModel::ClearAndSelect);
-    m_syncingSelection = false;
   }
+  m_syncingSelection = false;
+}
+
+void ConnectionsWidget::updateCounts()
+{
+  if(!alive())
+  {
+    m_summary->setText(tr("No document"));
+    return;
+  }
+
+  // What the search shows, which is everything when it is empty
+  int cables = 0, addresses = 0;
+  for(int i = 0, n = std::ssize(m_items); i < n; i++)
+    if(m_items[i] && m_proxy->mapFromSource(m_items[i]->index()).isValid())
+      (m_rows[i].kind == ConnectionRow::Cable ? cables : addresses)++;
+
+  for(const auto& [g, key] : m_groups)
+  {
+    int shown = 0;
+    for(int c = 0; c < g->rowCount(); c++)
+      if(m_proxy->mapFromSource(g->child(c)->index()).isValid())
+        shown++;
+    const QString text = QStringLiteral("%1 (%2)").arg(key).arg(shown);
+    if(g->text() != text)
+      g->setText(text);
+  }
+
+  const QString c = cables == 1 ? tr("1 cable") : tr("%1 cables").arg(cables);
+  const QString a = addresses == 1 ? tr("1 address binding")
+                                   : tr("%1 address bindings").arg(addresses);
+  m_summary->setText(
+      m_search->text().isEmpty() ? tr("%1, %2").arg(c, a)
+                                 : tr("%1, %2 shown").arg(c, a));
 }
 
 int ConnectionsWidget::rowAt(const QModelIndex& viewIndex) const
@@ -463,12 +574,9 @@ int ConnectionsWidget::rowAt(const QModelIndex& viewIndex) const
 
 QModelIndex ConnectionsWidget::viewIndexOf(int row) const
 {
-  const auto matches = m_model->match(
-      m_model->index(0, KindColumn), RowRole, row, 1,
-      Qt::MatchExactly | Qt::MatchRecursive);
-  if(matches.isEmpty())
+  if(row < 0 || row >= std::ssize(m_items) || !m_items[row])
     return {};
-  return m_proxy->mapFromSource(matches.front());
+  return m_proxy->mapFromSource(m_items[row]->index());
 }
 
 std::vector<int> ConnectionsWidget::selectedRows() const
@@ -483,9 +591,17 @@ std::vector<int> ConnectionsWidget::selectedRows() const
 
 void ConnectionsWidget::onViewSelectionChanged()
 {
-  if(m_syncingSelection)
+  if(m_syncingSelection || !alive())
     return;
-  selectInDocument(selectedRows());
+  const auto rows = selectedRows();
+  if(rows.empty())
+  {
+    m_syncingSelection = true;
+    score::SelectionDispatcher{m_ctx->selectionStack}.deselect();
+    m_syncingSelection = false;
+    return;
+  }
+  selectInDocument(rows);
 }
 
 void ConnectionsWidget::selectInDocument(const std::vector<int>& rows)
@@ -520,15 +636,20 @@ void ConnectionsWidget::setSelection(const Selection& s)
 {
   if(m_syncingSelection)
     return;
+  if(!isVisible() || refreshPending())
+  {
+    // Mirrored from the document's selection once shown and rebuilt
+    m_selectionPending = true;
+    return;
+  }
+  m_selectionPending = false;
   m_syncingSelection = true;
   QItemSelection sel;
-  for(int i = 0, n = std::ssize(m_rows); i < n; i++)
-  {
-    auto obj = selectable(m_rows[i]);
-    if(obj && s.contains(obj))
-      if(auto idx = viewIndexOf(i); idx.isValid())
-        sel.select(idx, idx.siblingAtColumn(ColumnCount - 1));
-  }
+  for(const auto& obj : s)
+    if(auto it = m_rowsOf.find(obj.data()); it != m_rowsOf.end())
+      for(int i : it->second)
+        if(auto idx = viewIndexOf(i); idx.isValid())
+          sel.select(idx, idx.siblingAtColumn(ColumnCount - 1));
   m_view->selectionModel()->select(sel, QItemSelectionModel::ClearAndSelect);
   m_syncingSelection = false;
 }
@@ -543,10 +664,10 @@ void ConnectionsWidget::reveal(const ConnectionRow& r)
     return;
 
   ossia::small_vector<const QObject*, 2> objects;
-  if(r.sourceProcess)
-    objects.push_back(r.sourceProcess);
-  if(r.sinkProcess)
-    objects.push_back(r.sinkProcess);
+  if(r.sourceOwner)
+    objects.push_back(r.sourceOwner);
+  if(r.sinkOwner)
+    objects.push_back(r.sinkOwner);
   if(objects.empty())
     return;
 
@@ -591,7 +712,7 @@ void ConnectionsWidget::reveal(const ConnectionRow& r)
       }
     }
     else if(auto n = qgraphicsitem_cast<Process::NodeItem*>(item);
-            n && &n->model() == r.sourceProcess.data())
+            n && r.sourceProcess && &n->model() == r.sourceProcess.data())
     {
       target = n;
       break;
@@ -629,7 +750,7 @@ void ConnectionsWidget::removeConnections(const std::vector<ConnectionRow>& rows
   }
   else if(!cmds.empty())
   {
-    RedoMacroCommandDispatcher<RemoveConnections> macro{m_ctx->commandStack};
+    RedoMacroCommandDispatcher<Dataflow::RemoveConnections> macro{m_ctx->commandStack};
     for(auto cmd : cmds)
       macro.submit(cmd);
     macro.commit();
@@ -641,11 +762,22 @@ void ConnectionsWidget::setCableType(
 {
   if(!alive())
     return;
-  CommandDispatcher<> disp{m_ctx->commandStack};
+  std::vector<const Process::Cable*> cables;
   for(const auto& r : rows)
-  {
     if(r.cable && r.cable->type() != t)
-      disp.submit<Dataflow::UpdateCable>(*r.cable, t);
+      cables.push_back(r.cable.data());
+
+  if(cables.size() == 1)
+  {
+    CommandDispatcher<>{m_ctx->commandStack}.submit<Dataflow::UpdateCable>(
+        *cables.front(), t);
+  }
+  else if(!cables.empty())
+  {
+    RedoMacroCommandDispatcher<Dataflow::UpdateCables> macro{m_ctx->commandStack};
+    for(auto c : cables)
+      macro.submit(new Dataflow::UpdateCable{*c, t});
+    macro.commit();
   }
 }
 
@@ -653,6 +785,16 @@ void ConnectionsWidget::contextMenu(const QPoint& pos)
 {
   const int clicked = rowAt(m_view->indexAt(pos));
   if(clicked < 0)
+    return;
+  QMenu menu{this};
+  fillContextMenu(menu, clicked);
+  if(!menu.isEmpty())
+    menu.exec(m_view->viewport()->mapToGlobal(pos));
+}
+
+void ConnectionsWidget::fillContextMenu(QMenu& menu, int clicked)
+{
+  if(clicked < 0 || clicked >= std::ssize(m_rows))
     return;
   // Copies: the menu runs an event loop during which the list may be rebuilt
   const auto rows = rowsAt(selectedRows());
@@ -664,17 +806,19 @@ void ConnectionsWidget::contextMenu(const QPoint& pos)
   for(const auto& r : rows)
     (r.kind == ConnectionRow::Cable ? anyCable : anyAddress) = true;
 
-  QMenu menu{this};
   auto show = menu.addAction(tr("Show in view"));
+  show->setObjectName(QStringLiteral("ShowInView"));
   connect(show, &QAction::triggered, this, [this, clickedRow] { reveal(clickedRow); });
 
   if(anyCable)
   {
     auto modes = menu.addMenu(tr("Cable mode"));
+    modes->setObjectName(QStringLiteral("CableMode"));
     const auto& r = clickedRow;
     for(int t = 0; t <= int(Process::CableType::DelayedStrict); t++)
     {
       auto act = modes->addAction(cableTypeName(t));
+      act->setData(t);
       act->setCheckable(true);
       act->setChecked(r.cable && int(r.cable->type()) == t);
       connect(act, &QAction::triggered, this, [this, rows, t] {
@@ -685,7 +829,8 @@ void ConnectionsWidget::contextMenu(const QPoint& pos)
   if(anyAddress)
   {
     auto copy = menu.addAction(tr("Copy address"));
-    connect(copy, &QAction::triggered, this, [this, rows] {
+    copy->setObjectName(QStringLiteral("CopyAddress"));
+    connect(copy, &QAction::triggered, this, [rows] {
       QStringList addrs;
       for(const auto& r : rows)
         if(r.kind == ConnectionRow::Address)
@@ -698,9 +843,8 @@ void ConnectionsWidget::contextMenu(const QPoint& pos)
                              : anyCable             ? tr("Remove cable")
                                                     : tr("Unbind address");
   auto remove = menu.addAction(removeText);
+  remove->setObjectName(QStringLiteral("Remove"));
   remove->setShortcut(QKeySequence::Delete);
   connect(remove, &QAction::triggered, this, [this, rows] { removeConnections(rows); });
-
-  menu.exec(m_view->viewport()->mapToGlobal(pos));
 }
 }

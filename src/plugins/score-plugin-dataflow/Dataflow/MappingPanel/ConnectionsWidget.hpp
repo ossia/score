@@ -4,6 +4,7 @@
 #include <Dataflow/MappingPanel/ConnectionsList.hpp>
 
 #include <ossia/detail/hash_map.hpp>
+#include <ossia/detail/small_vector.hpp>
 
 #include <QPointer>
 #include <QWidget>
@@ -17,8 +18,10 @@
 class QComboBox;
 class QLabel;
 class QLineEdit;
+class QMenu;
 class QModelIndex;
 class QSortFilterProxyModel;
+class QStandardItem;
 class QStandardItemModel;
 class QTreeView;
 class Selection;
@@ -44,6 +47,7 @@ public:
     ToColumn,
     TypeColumn,
     ModeColumn,
+    StatusColumn,
     LocationColumn,
     ColumnCount
   };
@@ -63,6 +67,8 @@ public:
   };
   //! Item data role holding the index in rows() of a connection item
   static constexpr int RowRole = Qt::UserRole + 1;
+  //! Item data role holding the name of a group item, without its count
+  static constexpr int GroupRole = Qt::UserRole + 2;
 
   explicit ConnectionsWidget(QWidget* parent = nullptr);
   ~ConnectionsWidget() override;
@@ -96,7 +102,10 @@ public:
   void reveal(const ConnectionRow& row);
   //! Cables are removed, address bindings cleared, in one command
   void removeConnections(const std::vector<ConnectionRow>& rows);
+  //! Sets the mode of the cables of the rows in one command
   void setCableType(const std::vector<ConnectionRow>& rows, Process::CableType t);
+  //! Builds the context menu of the selection, the clicked row first
+  void fillContextMenu(QMenu& menu, int clickedRow);
 
 private:
   void schedule();
@@ -105,7 +114,10 @@ private:
   //! Keeps selected the rows of these objects, which designate a row across rebuilds
   void populate(const ossia::hash_set<const QObject*>& selected);
   ossia::hash_set<const QObject*> selectedObjects() const;
+  //! Connects to the objects of the document not followed yet
   void track();
+  void untrack();
+  void updateCounts();
   void watchDocument();
   void unwatchDocument();
   void onViewSelectionChanged();
@@ -121,6 +133,14 @@ private:
   const score::DocumentContext* m_ctx{};
   QPointer<const score::Document> m_document;
   std::vector<ConnectionRow> m_rows;
+  //! First-column item of each row in the model, null when filtered by kind
+  std::vector<QStandardItem*> m_items;
+  //! Rows of each selectable object
+  ossia::hash_map<const QObject*, ossia::small_vector<int, 1>> m_rowsOf;
+  //! Group items and their names
+  std::vector<std::pair<QStandardItem*, QString>> m_groups;
+  //! Names of the groups the user collapsed
+  ossia::hash_set<QString> m_collapsed;
 
   QLineEdit* m_search{};
   QComboBox* m_grouping{};
@@ -130,13 +150,17 @@ private:
   QStandardItemModel* m_model{};
   QSortFilterProxyModel* m_proxy{};
 
-  //! Parent of the per-object connections, replaced on each rebuild
+  //! Parent of the per-object connections
   QObject* m_tracking{};
+  //! Objects of the document whose changes are followed
+  ossia::hash_set<QObject*> m_tracked;
   std::vector<QMetaObject::Connection> m_documentConnections;
   QPointer<QObject> m_watchedScenario;
 
   bool m_scheduled{};
   bool m_dirty{true};
   bool m_syncingSelection{};
+  //! A selection made elsewhere while hidden, mirrored when shown
+  bool m_selectionPending{};
 };
 }

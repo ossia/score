@@ -45,7 +45,13 @@
 #include <score/plugins/documentdelegate/DocumentDelegateFactory.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 
+#include <QAction>
+#include <QClipboard>
 #include <QComboBox>
+#include <QKeyEvent>
+#include <QLabel>
+#include <QMenu>
+#include <QScrollBar>
 #include <QLineEdit>
 #include <QSortFilterProxyModel>
 #include <QTreeView>
@@ -461,8 +467,8 @@ Device::AddressSettings parameter(const QString& name)
 }
 }
 
-// The explorer's top-level nodes are devices, which a lookup of address nodes
-// misreads; a document opened with devices and bound ports crashed the panel.
+// The explorer's top-level nodes hold device settings, not address settings:
+// looking addresses up has to start below them.
 TEST_CASE(
     "Connections panel: documents with devices", "[integration][gui][dataflow]")
 {
@@ -562,5 +568,268 @@ TEST_CASE(
     spin();
     CHECK(rowOfPort(w, *p.inlets()[0]) >= 0);
     w.setDocument(nullptr);
+  });
+}
+
+namespace
+{
+QAction* menuAction(QMenu& menu, const QString& name)
+{
+  for(auto a : menu.findChildren<QAction*>())
+    if(a->objectName() == name)
+      return a;
+  for(auto a : menu.actions())
+    if(a->objectName() == name)
+      return a;
+  return nullptr;
+}
+
+void selectRows(ConnectionsWidget& w, std::initializer_list<int> rows)
+{
+  QItemSelection sel;
+  for(int r : rows)
+  {
+    auto idx = w.viewIndexOf(r);
+    REQUIRE(idx.isValid());
+    sel.select(idx, idx.siblingAtColumn(ConnectionsWidget::ColumnCount - 1));
+  }
+  w.view().selectionModel()->select(sel, QItemSelectionModel::ClearAndSelect);
+  spin();
+}
+}
+
+TEST_CASE(
+    "Connections panel: context menu, cable modes and deselection",
+    "[integration][gui][dataflow][undo]")
+{
+  score::test::run_in_gui_app([](const score::GUIApplicationContext& ctx) {
+    score::Document* doc = score::test::new_document(ctx);
+    REQUIRE(doc != nullptr);
+    auto& dm
+        = static_cast<Scenario::ScenarioDocumentModel&>(doc->model().modelDelegate());
+    auto& itv = dm.baseInterval();
+    auto& stack = doc->commandStack();
+    auto& sel = doc->context().selectionStack;
+
+    auto& a = addMerger(*doc, itv);
+    auto& b = addMerger(*doc, itv);
+    CommandDispatcher<> disp{doc->context().commandStack};
+    const auto c1 = getStrongId(dm.cables);
+    disp.submit<Dataflow::CreateCable>(
+        dm, c1, Process::CableType::ImmediateGlutton, *a.outlets().front(),
+        *b.inlets()[0]);
+    const auto c2 = getStrongId(dm.cables);
+    disp.submit<Dataflow::CreateCable>(
+        dm, c2, Process::CableType::ImmediateGlutton, *a.outlets().front(),
+        *b.inlets()[1]);
+    auto& bound = *b.inlets()[2];
+    disp.submit<Process::ChangePortAddress>(
+        bound, State::AddressAccessor{State::Address{"nodevice", {"x"}}});
+
+    ConnectionsWidget w;
+    w.resize(900, 400);
+    w.setDocument(&doc->context());
+    score::test::showAndActivate(w);
+    spin();
+
+    const int r1 = rowOfCable(w, dm.cables.at(c1));
+    const int r2 = rowOfCable(w, dm.cables.at(c2));
+    const int rp = rowOfPort(w, bound);
+    REQUIRE(r1 >= 0);
+    REQUIRE(r2 >= 0);
+    REQUIRE(rp >= 0);
+
+    // Mode and binding status are separate columns
+    {
+      auto& m = *w.view().model();
+      auto cableIdx = w.viewIndexOf(r1);
+      auto portIdx = w.viewIndexOf(rp);
+      CHECK(m.data(cableIdx.siblingAtColumn(ConnectionsWidget::ModeColumn)).toString()
+            == Dataflow::cableTypeName(int(Process::CableType::ImmediateGlutton)));
+      CHECK(m.data(cableIdx.siblingAtColumn(ConnectionsWidget::StatusColumn))
+                .toString()
+                .isEmpty());
+      CHECK(m.data(portIdx.siblingAtColumn(ConnectionsWidget::ModeColumn))
+                .toString()
+                .isEmpty());
+      CHECK(m.data(portIdx.siblingAtColumn(ConnectionsWidget::StatusColumn)).toString()
+            == Dataflow::statusName(ConnectionRow::MissingDevice));
+    }
+
+    // The mode of both selected cables, from the menu: one undo step
+    selectRows(w, {r1, r2});
+    {
+      QMenu menu;
+      w.fillContextMenu(menu, r1);
+      auto modes = menu.findChild<QMenu*>("CableMode");
+      REQUIRE(modes);
+      QAction* delayed{};
+      for(auto act : modes->actions())
+        if(act->data().toInt() == int(Process::CableType::DelayedStrict))
+          delayed = act;
+      REQUIRE(delayed);
+      CHECK(!menuAction(menu, "CopyAddress"));
+      const int before = stack.currentIndex();
+      delayed->trigger();
+      spin();
+      CHECK(stack.currentIndex() == before + 1);
+      CHECK(dm.cables.at(c1).type() == Process::CableType::DelayedStrict);
+      CHECK(dm.cables.at(c2).type() == Process::CableType::DelayedStrict);
+      stack.undo();
+      spin();
+      CHECK(dm.cables.at(c1).type() == Process::CableType::ImmediateGlutton);
+      CHECK(dm.cables.at(c2).type() == Process::CableType::ImmediateGlutton);
+    }
+
+    // Copy address and Unbind on a binding
+    selectRows(w, {rowOfPort(w, bound)});
+    {
+      QMenu menu;
+      w.fillContextMenu(menu, rowOfPort(w, bound));
+      CHECK(!menu.findChild<QMenu*>("CableMode"));
+      auto copy = menuAction(menu, "CopyAddress");
+      REQUIRE(copy);
+      copy->trigger();
+      CHECK(QApplication::clipboard()->text() == "nodevice:/x");
+
+      auto remove = menuAction(menu, "Remove");
+      REQUIRE(remove);
+      const int before = stack.currentIndex();
+      remove->trigger();
+      spin();
+      CHECK(stack.currentIndex() == before + 1);
+      CHECK(!bound.address().address.isSet());
+      stack.undo();
+      spin();
+      CHECK(bound.address().address.isSet());
+    }
+
+    // Deselecting every row clears the document's selection
+    selectRows(w, {rowOfCable(w, dm.cables.at(c1))});
+    CHECK(sel.currentSelection().contains(&dm.cables.at(c1)));
+    w.view().selectionModel()->clearSelection();
+    spin();
+    CHECK(sel.currentSelection().empty());
+
+    // Delete with nothing selected is left to the application
+    {
+      QKeyEvent ev{QEvent::ShortcutOverride, Qt::Key_Delete, Qt::NoModifier};
+      ev.ignore();
+      QApplication::sendEvent(&w.view(), &ev);
+      CHECK(!ev.isAccepted());
+    }
+  });
+}
+
+TEST_CASE(
+    "Connections panel: interval ports, counts, and what a rebuild keeps",
+    "[integration][gui][dataflow]")
+{
+  score::test::run_in_gui_app([](const score::GUIApplicationContext& ctx) {
+    score::Document* doc = score::test::new_document(ctx);
+    REQUIRE(doc != nullptr);
+    auto& dm
+        = static_cast<Scenario::ScenarioDocumentModel&>(doc->model().modelDelegate());
+    auto& itv = dm.baseInterval();
+    CommandDispatcher<> disp{doc->context().commandStack};
+
+    auto& a = addMerger(*doc, itv);
+    auto& b = addMerger(*doc, itv);
+    a.metadata().setName("Alpha");
+    b.metadata().setName("Beta");
+    for(int i = 0; i < 6; i++)
+    {
+      const auto id = getStrongId(dm.cables);
+      disp.submit<Dataflow::CreateCable>(
+          dm, id, Process::CableType::ImmediateGlutton, *a.outlets().front(),
+          *b.inlets()[i]);
+    }
+
+    ConnectionsWidget w;
+    w.resize(900, 120);
+    w.setDocument(&doc->context());
+    w.show();
+    spin();
+
+    // The interval's own ports are listed when bound
+    REQUIRE(itv.outlet);
+    disp.submit<Process::ChangePortAddress>(
+        *itv.outlet, State::AddressAccessor{State::Address{"audio", {"out", "main"}}});
+    spin();
+    {
+      const int row = rowOfPort(w, *itv.outlet);
+      REQUIRE(row >= 0);
+      const auto& r = w.rows()[row];
+      CHECK(r.sourceOwner == &itv);
+      CHECK(r.sourceProcess == nullptr);
+      CHECK(r.from.startsWith(itv.metadata().getName() + ": "));
+    }
+
+    // An edit that changes no connection does not rebuild
+    CHECK(!w.refreshPending());
+    disp.submit<Process::SetGain>(
+        *static_cast<Process::AudioOutlet*>(a.outlets().front()), 0.5);
+    CHECK(!w.refreshPending());
+
+    // A process created after the panel was built is followed
+    auto& c = addMerger(*doc, itv);
+    spin();
+    disp.submit<Process::ChangePortAddress>(
+        *c.inlets()[0], State::AddressAccessor{State::Address{"nodevice", {"y"}}});
+    CHECK(w.refreshPending());
+    spin();
+    CHECK(rowOfPort(w, *c.inlets()[0]) >= 0);
+
+    // Counts follow the search
+    auto summary = w.findChildren<QLabel*>().front();
+    for(auto l : w.findChildren<QLabel*>())
+      if(l->text().contains("cable"))
+        summary = l;
+    const int cables = count(w, ConnectionRow::Cable);
+    CHECK(summary->text().startsWith(QString("%1 cables").arg(cables)));
+    w.searchField().setText(b.inlets()[0]->visualName().isEmpty() ? "Inlet 1" : "Beta");
+    spin();
+    CHECK(summary->text().endsWith("shown"));
+    w.searchField().clear();
+    spin();
+    CHECK(!summary->text().endsWith("shown"));
+
+    // Group counts follow the search too
+    w.groupingBox().setCurrentIndex(ConnectionsWidget::ByKind);
+    spin();
+    auto& m = *w.view().model();
+    QModelIndex cablesGroup;
+    for(int i = 0; i < m.rowCount(); i++)
+      if(m.index(i, 0).data(ConnectionsWidget::GroupRole).toString() == "Cables")
+        cablesGroup = m.index(i, 0);
+    REQUIRE(cablesGroup.isValid());
+    CHECK(cablesGroup.data().toString() == QString("Cables (%1)").arg(cables));
+
+    // A collapsed group and the scroll position survive a rebuild
+    w.view().collapse(cablesGroup);
+    w.groupingBox().setCurrentIndex(ConnectionsWidget::NoGrouping);
+    w.groupingBox().setCurrentIndex(ConnectionsWidget::ByKind);
+    spin();
+    for(int i = 0; i < m.rowCount(); i++)
+      if(m.index(i, 0).data(ConnectionsWidget::GroupRole).toString() == "Cables")
+        cablesGroup = m.index(i, 0);
+    CHECK(!w.view().isExpanded(cablesGroup));
+    w.refresh();
+    for(int i = 0; i < m.rowCount(); i++)
+      if(m.index(i, 0).data(ConnectionsWidget::GroupRole).toString() == "Cables")
+        cablesGroup = m.index(i, 0);
+    CHECK(!w.view().isExpanded(cablesGroup));
+
+    w.view().expandAll();
+    w.groupingBox().setCurrentIndex(ConnectionsWidget::NoGrouping);
+    spin();
+    auto bar = w.view().verticalScrollBar();
+    REQUIRE(bar->maximum() > 0);
+    bar->setValue(bar->maximum());
+    const int scrolled = bar->value();
+    a.metadata().setName("Alpha renamed");
+    spin();
+    CHECK(!w.refreshPending());
+    CHECK(bar->value() == scrolled);
   });
 }

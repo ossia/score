@@ -19,7 +19,6 @@ set(HDRS
     Dataflow/ValueOutletItem.hpp
     Dataflow/DropPortInScenario.hpp
     Dataflow/WidgetInletFactory.hpp
-    Dataflow/MappingPanel/ConnectionsCommands.hpp
     Dataflow/MappingPanel/ConnectionsList.hpp
     Dataflow/MappingPanel/ConnectionsPanel.hpp
     Dataflow/MappingPanel/ConnectionsWidget.hpp

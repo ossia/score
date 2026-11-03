@@ -56,6 +56,9 @@ struct SCORE_PLUGIN_DATAFLOW_EXPORT ConnectionRow
   QPointer<Process::Port> sinkPort;
   QPointer<Process::ProcessModel> sourceProcess;
   QPointer<Process::ProcessModel> sinkProcess;
+  //! The process or interval holding each port
+  QPointer<QObject> sourceOwner;
+  QPointer<QObject> sinkOwner;
 
   QString from;
   QString to;
@@ -64,6 +67,7 @@ struct SCORE_PLUGIN_DATAFLOW_EXPORT ConnectionRow
   QString toGroup;
   QString device;
   QString address;
+  //! Cable mode, or how the address resolves
   QString mode;
   QString location;
 };
