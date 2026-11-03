@@ -131,10 +131,13 @@ merge(Device::Node base, const State::MessageList& other);
 
 SCORE_LIB_DEVICE_EXPORT void merge(Device::Node& base, const State::Message& message);
 
+//! The child address of `node` named `name`. The children of the root are
+//! devices, which are never matched: look them up by Device::DeviceSettings.
 inline auto findChildNode_it(const Device::Node& node, const QString& name)
 {
   return std::find_if(node.begin(), node.end(), [&](const Device::Node& n) {
-    return n.get<Device::AddressSettings>().name == name;
+    return n.is<Device::AddressSettings>()
+           && n.get<Device::AddressSettings>().name == name;
   });
 }
 
