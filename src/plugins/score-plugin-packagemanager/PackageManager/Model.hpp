@@ -37,6 +37,8 @@ public:
   void handleAddon(const QJsonObject&);
   void on_message(QNetworkReply* rep);
   void firstTimeLibraryDownload();
+  //! Installs the default library from its repository, without the package list.
+  void downloadDefaultLibrary();
   void checkAll();
 
   void show_progress() W_SIGNAL(show_progress);
@@ -46,8 +48,9 @@ public:
   void progress_from_bytes(qint64 received, qint64 total)
       W_SIGNAL(progress_from_bytes, received, total);
   void information(QString title, QString description)
-      W_SIGNAL(information, title, description);
-  void warning(QString title, QString description) W_SIGNAL(warning, title, description);
+      E_SIGNAL(SCORE_PLUGIN_PACKAGEMANAGER_EXPORT, information, title, description);
+  void warning(QString title, QString description)
+      E_SIGNAL(SCORE_PLUGIN_PACKAGEMANAGER_EXPORT, warning, title, description);
 
   void downloadPackage(
       const Package& addon, const QString& installPath,
