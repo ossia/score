@@ -1,6 +1,6 @@
 #include "MidiOutletItem.hpp"
 
-#include <Process/Dataflow/PortAddressComboBox.hpp>
+#include <Process/Dataflow/PortListWidget.hpp>
 
 #include <Inspector/InspectorLayout.hpp>
 
@@ -10,6 +10,6 @@ void MidiOutletFactory::setupOutletInspector(
     const Process::Outlet& port, const score::DocumentContext& ctx, QWidget* parent,
     Inspector::Layout& lay, QObject* context)
 {
-  lay.addRow(port.name(), Process::makePortAddressCombo(port, ctx, parent));
+  Process::PortWidgetSetup::setupAddressPort(port, ctx, lay, parent);
 }
 }

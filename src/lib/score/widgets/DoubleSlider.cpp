@@ -166,6 +166,16 @@ void DoubleSlider::createPopup(QPoint pos)
   w->show();
   w->move(pos.x(), pos.y());
   QTimer::singleShot(5, w, [w] { w->setFocus(); });
+  // Typing a value is one gesture: every value is submitted as it changes and
+  // the edit is committed once, when the spin box is done (Enter, Escape or
+  // focus loss, each of which may emit editingFinished more than once).
+  QObject::connect(
+      w, &DoubleSpinboxWithEnter::editingFinished, this, [this, done = false]() mutable {
+    if(done)
+      return;
+    done = true;
+    sliderReleased();
+  });
   QObject::connect(
       w, &DoubleSpinboxWithEnter::editingFinished, w, &QObject::deleteLater);
 }

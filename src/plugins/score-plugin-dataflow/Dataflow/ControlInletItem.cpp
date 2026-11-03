@@ -68,7 +68,7 @@ void ControlInletFactory::setupInletInspector(
   }
   else
   {
-    PortWidgetSetup::setupInLayout(port, ctx, lay, parent);
+    PortWidgetSetup::setupAlone(port, ctx, lay, parent);
   }
 }
 

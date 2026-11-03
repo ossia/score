@@ -26,6 +26,11 @@ QGraphicsSlider::~QGraphicsSlider()
     sliderReleased();
 }
 
+void QGraphicsSlider::setRect(const QRectF& r)
+{
+  QGraphicsSliderBase::setRect(r);
+}
+
 void QGraphicsSlider::setRange(double min, double max, double init)
 {
   this->min = min;

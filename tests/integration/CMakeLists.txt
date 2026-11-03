@@ -1584,6 +1584,19 @@ score_add_test(test_integration_audio_outlet_chaining
   GUI
   PLUGINS score_plugin_scenario score_lib_process score_plugin_media)
 
+# The ports in the inspector and in the audio output panel: their cables, when
+# those cables keep the address from being used, the texture settings drawer.
+set(_port_inspector_plugins
+    score_plugin_scenario score_lib_process score_plugin_media score_plugin_dataflow
+    score_plugin_engine)
+if(TARGET score_plugin_gfx)
+  list(APPEND _port_inspector_plugins score_plugin_gfx)
+endif()
+score_add_test(test_integration_port_inspector
+  SOURCES PortInspectorTest.cpp
+  GUI
+  PLUGINS ${_port_inspector_plugins})
+
 # score's video output against gstreamer consumers of several shapes. Needs the
 # PipewirePublish tool, which only exists when the pipewire tester is built.
 if(SCORE_HAS_SHELL_HARNESS AND TARGET PipewirePublish)

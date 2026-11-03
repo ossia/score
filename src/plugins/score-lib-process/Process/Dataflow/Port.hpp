@@ -125,6 +125,7 @@ public:
   void removeCable(const Path<Process::Cable>& c);
   void takeCables(Process::Port&& c);
 
+  //! The name, or what the port is published as when it has none
   const QString& visualName() const noexcept;
   const QString& visualDescription() const noexcept;
 
@@ -211,6 +212,10 @@ protected:
   State::Unit m_unit;
   bool m_scriptable{};
 };
+
+//! How the port is named wherever it is shown: visualName(), or what kind of
+//! port it is when it has no name at all (ports of some older documents)
+SCORE_LIB_PROCESS_EXPORT QString displayName(const Port& port);
 
 class SCORE_LIB_PROCESS_EXPORT Inlet : public Port
 {
