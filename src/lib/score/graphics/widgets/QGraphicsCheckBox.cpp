@@ -10,6 +10,7 @@ W_OBJECT_IMPL(score::QGraphicsCheckBox);
 namespace score
 {
 QGraphicsCheckBox::QGraphicsCheckBox(QGraphicsItem* parent)
+    : QGraphicsItem{parent}
 {
   auto& skin = score::Skin::instance();
   setCursor(skin.CursorPointingHand);

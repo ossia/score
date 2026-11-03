@@ -539,10 +539,16 @@ ComputeInput runGppCompute(score::gfx::GraphicsApi api, QSize size)
 }
 
 template <typename T>
-T* findField(Inspector::Layout& lay, const QString& label)
+T* findField(QFormLayout& lay, const QString& label)
 {
   for(int r = 0; r < lay.rowCount(); r++)
   {
+    // The settings of a port are in the drawer under its row
+    if(auto* span = lay.itemAt(r, QFormLayout::SpanningRole); span && span->widget())
+      for(auto* inner : span->widget()->findChildren<QFormLayout*>())
+        if(auto* w = findField<T>(*inner, label))
+          return w;
+
     auto* l = lay.itemAt(r, QFormLayout::LabelRole);
     auto* f = lay.itemAt(r, QFormLayout::FieldRole);
     if(!l || !f || !l->widget() || !f->widget())
