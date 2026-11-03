@@ -87,6 +87,7 @@ set(HDRS ${HDRS}
     "${CMAKE_CURRENT_SOURCE_DIR}/Video/VideoPixelFormat.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Video/VideoDecoder.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Video/CameraInput.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Video/CameraPermission.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Video/WebCameraInput.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Video/LibavStreamInput.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Video/GStreamerCompatibility.hpp"
@@ -154,6 +155,7 @@ set(SRCS
 
     "${CMAKE_CURRENT_SOURCE_DIR}/Video/VideoDecoder.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Video/CameraInput.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Video/CameraPermission.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Video/WebCameraInput.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Video/LibavStreamInput.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Video/Thumbnailer.cpp"
@@ -211,6 +213,10 @@ elseif(TARGET avcodec)
   endif()
 
   if(APPLE)
+      target_sources(${PROJECT_NAME} PRIVATE
+          "${CMAKE_CURRENT_SOURCE_DIR}/Video/CameraPermission.mm"
+      )
+
       find_library(QuartzCore_FK QuartzCore)
       find_library(AppKit_FK AppKit)
       find_library(OpenGL_FK OpenGL)

@@ -171,80 +171,39 @@ if [[ -n "$SCORE_FILE" ]]; then
     cp -r "$SCORE_DIR"/* "$BUNDLE_RESOURCES/" 2>/dev/null || true
 fi
 
-# Rename the original binary
-if [[ -f "$BUNDLE_MACOS/ossia score" ]]; then
-    mv "$BUNDLE_MACOS/ossia score" "$BUNDLE_MACOS/app-bin"
-elif [[ -f "$BUNDLE_MACOS/ossia-score" ]]; then
-    mv "$BUNDLE_MACOS/ossia-score" "$BUNDLE_MACOS/app-bin"
-elif [[ -f "$BUNDLE_MACOS/score" ]]; then
-    mv "$BUNDLE_MACOS/score" "$BUNDLE_MACOS/app-bin"
-else
+# macOS only shows privacy prompts (camera, microphone...) for the bundle's main
+# executable: a launcher script in its place gets them refused without any prompt.
+# So score itself is the main executable, and reads from Info.plist what a launcher
+# would have passed it: LSEnvironment and ScoreArguments.
+INFO_PLIST="$BUNDLE_CONTENTS/Info.plist"
+if [[ "$(/usr/libexec/PlistBuddy -c "Print :ScoreCustomAppVersion" "$INFO_PLIST" 2>/dev/null)" != 1 ]]; then
+    echo "Error: this ossia score cannot be packaged as a macOS custom app: it does"
+    echo "       not read its settings from Info.plist (no ScoreCustomAppVersion = 1)."
+    echo "       Use a more recent score release or build."
+    exit 1
+fi
+
+# Find the original binary
+SCORE_BINARY=""
+for candidate in "ossia score" "ossia-score" "score"; do
+    if [[ -f "$BUNDLE_MACOS/$candidate" ]]; then
+        SCORE_BINARY="$BUNDLE_MACOS/$candidate"
+        break
+    fi
+done
+if [[ -z "$SCORE_BINARY" ]]; then
     echo "Error: Could not find ossia score binary in app bundle"
     exit 1
+fi
+MAIN_EXECUTABLE="$APP_NAME"
+if [[ "$SCORE_BINARY" != "$BUNDLE_MACOS/$MAIN_EXECUTABLE" ]]; then
+    mv "$SCORE_BINARY" "$BUNDLE_MACOS/$MAIN_EXECUTABLE"
 fi
 
 # Create rcc
 if [[ -n "$APP_QRC" ]]; then
     rcc "$APP_QRC" -o "$BUNDLE_MACOS/resources.rcc"
 fi
-
-# Create launcher script
-echo "Creating custom launcher..."
-
-cat > "$BUNDLE_MACOS/$APP_NAME" << LAUNCHER_EOF
-#!/bin/bash
-
-export SCORE_CUSTOM_APP_ORGANIZATION_NAME="$APP_ORGANIZATION"
-export SCORE_CUSTOM_APP_ORGANIZATION_DOMAIN="$APP_DOMAIN"
-export SCORE_CUSTOM_APP_APPLICATION_NAME="$APP_NAME"
-export SCORE_CUSTOM_APP_APPLICATION_VERSION="$APP_VERSION"
-
-SCRIPT_DIR="\$(cd "\$(dirname "\${BASH_SOURCE[0]}")" && pwd)"
-RESOURCES_DIR="\$(cd "\$SCRIPT_DIR/../Resources" && pwd)"
-export QML2_IMPORT_PATH="\${RESOURCES_DIR}/qml/"
-
-LAUNCHER_EOF
-
-if [[ -n "$APP_ENVIRONMENT" ]]; then
-    cat "$APP_ENVIRONMENT" >> "$BUNDLE_MACOS/$APP_NAME" 
-fi
-
-cat >> "$BUNDLE_MACOS/$APP_NAME" << 'LAUNCHER_EOF'
-
-# --debug opens the score editor window alongside the custom UI
-UI_FLAG="--ui"
-SCORE_ARGS=()
-for arg in "$@"; do
-    if [[ "$arg" == "--debug" ]]; then
-        UI_FLAG="--ui-debug"
-    else
-        SCORE_ARGS+=("$arg")
-    fi
-done
-LAUNCHER_EOF
-
-if [[ -n "$SCORE_BASENAME" ]]; then
-    # With score
-    cat >> "$BUNDLE_MACOS/$APP_NAME" << LAUNCHER_EOF
-
-exec "\$SCRIPT_DIR/app-bin" \
-    ${AUTOPLAY} \
-    "\${UI_FLAG}" "\${RESOURCES_DIR}/qml/${MAIN_QML}" \
-    "\${RESOURCES_DIR}/${SCORE_BASENAME}" \
-    "\${SCORE_ARGS[@]}"
-LAUNCHER_EOF
-else
-    # Without autoplay
-    cat >> "$BUNDLE_MACOS/$APP_NAME" << LAUNCHER_EOF
-
-exec "\$SCRIPT_DIR/app-bin" \
-    ${AUTOPLAY} \
-    "\${UI_FLAG}" "\${RESOURCES_DIR}/qml/${MAIN_QML}" \
-    "\${SCORE_ARGS[@]}"
-LAUNCHER_EOF
-fi
-
-chmod +x "$BUNDLE_MACOS/$APP_NAME"
 
 # Update Info.plist
 echo "Updating app metadata..."
@@ -278,6 +237,107 @@ if [[ -f "$BUNDLE_CONTENTS/Info.plist" ]]; then
     fi
     sed -i '' "s/ossia score/${APP_NAME}/g" "$BUNDLE_CONTENTS/Info.plist"
 fi
+
+# What score reads at startup. $RESOURCES_DIR is replaced by Contents/Resources.
+echo "Writing the custom app settings..."
+set_env() {
+    plutil -replace "LSEnvironment.$1" -string "$2" "$INFO_PLIST"
+}
+plutil -replace LSEnvironment -xml '<dict/>' "$INFO_PLIST"
+set_env SCORE_CUSTOM_APP_ORGANIZATION_NAME "$APP_ORGANIZATION"
+set_env SCORE_CUSTOM_APP_ORGANIZATION_DOMAIN "$APP_DOMAIN"
+set_env SCORE_CUSTOM_APP_APPLICATION_NAME "$APP_NAME"
+set_env SCORE_CUSTOM_APP_APPLICATION_VERSION "$APP_VERSION"
+set_env QML2_IMPORT_PATH '$RESOURCES_DIR/qml/'
+
+# The environment file has the syntax the Windows launcher reads: KEY=VALUE lines,
+# optionally after "export", values optionally quoted, # or ; starting comments.
+# Nothing runs it through a shell, so whatever a shell would have expanded is
+# refused rather than passed on literally.
+if [[ -n "$APP_ENVIRONMENT" ]]; then
+    line_number=0
+    while IFS= read -r line || [[ -n "$line" ]]; do
+        line_number=$((line_number + 1))
+        line="${line%$'\r'}"
+        line="${line#"${line%%[![:space:]]*}"}"
+        line="${line%"${line##*[![:space:]]}"}"
+        if [[ -z "$line" || "$line" == \#* || "$line" == \;* ]]; then
+            continue
+        fi
+        if [[ "$line" =~ ^export[[:space:]]+(.*)$ ]]; then
+            line="${BASH_REMATCH[1]}"
+        fi
+        if [[ ! "$line" =~ ^([A-Za-z_][A-Za-z0-9_]*)[[:space:]]*=[[:space:]]*(.*)$ ]]; then
+            echo "Error: $APP_ENVIRONMENT:$line_number: expected KEY=VALUE: $line"
+            exit 1
+        fi
+        name="${BASH_REMATCH[1]}"
+        value="${BASH_REMATCH[2]}"
+        if [[ "$value" =~ ^\"(.*)\"$ || "$value" =~ ^\'(.*)\'$ ]]; then
+            value="${BASH_REMATCH[1]}"
+        fi
+        rest="${value//\$\{RESOURCES_DIR\}/}"
+        rest="${rest//\$RESOURCES_DIR/}"
+        if [[ "$rest" == *'$'* || "$rest" == *'`'* ]]; then
+            echo "Error: $APP_ENVIRONMENT:$line_number: only \$RESOURCES_DIR is expanded: $line"
+            exit 1
+        fi
+        set_env "$name" "$value"
+    done < "$APP_ENVIRONMENT"
+fi
+
+# --debug on the command line turns --ui into --ui-debug
+SCORE_ARGUMENTS=()
+if [[ -n "$AUTOPLAY" ]]; then
+    SCORE_ARGUMENTS+=("$AUTOPLAY")
+fi
+SCORE_ARGUMENTS+=(--ui "\$RESOURCES_DIR/qml/${MAIN_QML}")
+if [[ -n "$SCORE_BASENAME" ]]; then
+    SCORE_ARGUMENTS+=("\$RESOURCES_DIR/${SCORE_BASENAME}")
+fi
+plutil -replace ScoreArguments -xml '<array/>' "$INFO_PLIST"
+for i in "${!SCORE_ARGUMENTS[@]}"; do
+    plutil -insert "ScoreArguments.$i" -string "${SCORE_ARGUMENTS[$i]}" "$INFO_PLIST"
+done
+
+# The app's own Info.plist entries. They replace score's, except that LSEnvironment
+# is merged variable by variable. The keys that describe the score binary, or that
+# the options above set, are refused, and so is removing a usage description:
+# macOS kills an app that asks for a permission it has no description for.
+if [[ -n "$APP_INFO_PLIST" ]]; then
+    echo "Merging $APP_INFO_PLIST..."
+    for key in CFBundleExecutable CFBundlePackageType CFBundleInfoDictionaryVersion \
+               LSMinimumSystemVersion LSRequiresNativeExecution NSPrincipalClass \
+               ScoreCustomAppVersion CFBundleName CFBundleDisplayName CFBundleIdentifier \
+               CFBundleShortVersionString CFBundleVersion CFBundleLongVersionString \
+               CFBundleIconFile; do
+        if /usr/libexec/PlistBuddy -c "Print :$key" "$APP_INFO_PLIST" > /dev/null 2>&1; then
+            echo "Error: $APP_INFO_PLIST must not set $key"
+            exit 1
+        fi
+    done
+    USAGE_KEYS=$(plutil -convert xml1 -o - "$INFO_PLIST" | sed -n 's/.*<key>\(NS[A-Za-z]*UsageDescription\)<\/key>.*/\1/p')
+
+    # PlistBuddy's Merge keeps existing entries: merge score's into the app's.
+    # Its commands split on spaces, which the bundle's path may contain.
+    MERGED_PLIST="$WORK_DIR/Info.merged.plist"
+    BASE_PLIST="$WORK_DIR/Info.base.plist"
+    BASE_ENVIRONMENT="$WORK_DIR/Info.environment.plist"
+    cp "$APP_INFO_PLIST" "$MERGED_PLIST"
+    cp "$INFO_PLIST" "$BASE_PLIST"
+    plutil -extract LSEnvironment xml1 -o "$BASE_ENVIRONMENT" "$BASE_PLIST"
+    /usr/libexec/PlistBuddy -c "Merge $BASE_PLIST" "$MERGED_PLIST" > /dev/null
+    /usr/libexec/PlistBuddy -c "Merge $BASE_ENVIRONMENT :LSEnvironment" "$MERGED_PLIST" > /dev/null
+    plutil -convert xml1 -o "$INFO_PLIST" "$MERGED_PLIST"
+
+    for key in $USAGE_KEYS; do
+        if [[ -z "$(/usr/libexec/PlistBuddy -c "Print :$key" "$INFO_PLIST" 2>/dev/null)" ]]; then
+            echo "Error: $APP_INFO_PLIST must not empty $key"
+            exit 1
+        fi
+    done
+fi
+plutil -lint "$INFO_PLIST"
 
 # Code signing (optional - requires certificates)
 if [[ -n "${MAC_CODESIGN_IDENTITY:-}" ]]; then
@@ -331,8 +391,8 @@ ENTITLEMENTS_EOF
     find "$BUNDLE_MACOS" -type f -perm +111 ! -name "*.qml" ! -name "*.qmlc" ! -name "*.js" ! -name "*.mjs" ! -name "*.txt" ! -name "*.sh" | while read executable; do
         # Check if it's actually a Mach-O binary
         if file "$executable" | grep -q "Mach-O"; then
-            # Sign app-bin with entitlements and hardened runtime
-            if [[ "$(basename "$executable")" == "app-bin" ]]; then
+            # Sign score, the main executable, with entitlements and hardened runtime
+            if [[ "$(basename "$executable")" == "$MAIN_EXECUTABLE" ]]; then
                 echo "    Signing main binary with entitlements and hardened runtime..."
                 codesign \
                     --entitlements "$WORK_DIR/entitlements.plist" \
