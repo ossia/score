@@ -173,7 +173,8 @@ bool CurveEditor::paste(
   return true;
 }
 
-bool CurveEditor::remove(const Selection& s, const score::DocumentContext& ctx)
+bool CurveEditor::remove(
+    const Selection& s, const score::DocumentContext& ctx, score::RemovalLinks)
 {
   // Check if we are focusing a curve
   auto focused_process

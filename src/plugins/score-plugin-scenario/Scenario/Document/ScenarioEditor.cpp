@@ -37,6 +37,9 @@
 #include <score/graphics/GraphicsItem.hpp>
 #include <score/model/path/ObjectIdentifier.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
+#include <score/tools/SafeCast.hpp>
+
+#include <ossia/detail/algorithms.hpp>
 
 #include <QApplication>
 #include <QClipboard>
@@ -498,37 +501,290 @@ bool ScenarioEditor::paste(
   return false;
 }
 
-bool ScenarioEditor::remove(const Selection& s, const score::DocumentContext& ctx)
+namespace
+{
+//! The ports through which a process sits in a chain: its first inlet and
+//! first outlet, when they carry the same kind of data.
+const Process::Inlet* chainInlet(const Process::ProcessModel& p) noexcept
+{
+  auto& is = p.inlets();
+  auto& os = p.outlets();
+  if(is.empty() || os.empty() || is[0]->type() != os[0]->type())
+    return nullptr;
+  return is[0];
+}
+
+const Process::Outlet* chainOutlet(const Process::ProcessModel& p) noexcept
+{
+  auto& is = p.inlets();
+  auto& os = p.outlets();
+  if(is.empty() || os.empty() || is[0]->type() != os[0]->type())
+    return nullptr;
+  return os[0];
+}
+
+struct RemovalGraph
+{
+  const score::DocumentContext& ctx;
+  const std::vector<const Process::ProcessModel*>& removed;
+
+  bool isRemoved(const Process::ProcessModel* p) const noexcept
+  {
+    return ossia::contains(removed, p);
+  }
+
+  //! Whether the object goes away with one of the removed processes, as a
+  //! port of it or of a process it contains.
+  bool goesAway(const QObject* obj) const noexcept
+  {
+    for(; obj; obj = obj->parent())
+      if(auto p = qobject_cast<const Process::ProcessModel*>(obj); p && isRemoved(p))
+        return true;
+    return false;
+  }
+
+  //! The removed process whose chain inlet this is.
+  const Process::ProcessModel* removedThroughInlet(const Process::Port& port) const noexcept
+  {
+    auto p = qobject_cast<const Process::ProcessModel*>(port.parent());
+    return p && isRemoved(p) && chainInlet(*p) == &port ? p : nullptr;
+  }
+
+  const Process::ProcessModel* removedThroughOutlet(const Process::Port& port) const noexcept
+  {
+    auto p = qobject_cast<const Process::ProcessModel*>(port.parent());
+    return p && isRemoved(p) && chainOutlet(*p) == &port ? p : nullptr;
+  }
+
+  struct Sink
+  {
+    const Process::Inlet* inlet{};
+    Process::CableType type{};
+  };
+
+  //! The inlets that stay and that `p` fed, through the removed processes
+  //! chained after it.
+  void sinksAfter(
+      const Process::ProcessModel& p, std::vector<const Process::ProcessModel*>& visited,
+      std::vector<Sink>& out) const
+  {
+    for(auto& path : chainOutlet(p)->cables())
+    {
+      auto& cbl = path.find(ctx);
+      auto& sink = cbl.sink().find(ctx);
+      if(auto next = removedThroughInlet(sink))
+      {
+        if(!ossia::contains(visited, next))
+        {
+          visited.push_back(next);
+          sinksAfter(*next, visited, out);
+        }
+      }
+      else if(!goesAway(&sink))
+      {
+        if(auto in = qobject_cast<const Process::Inlet*>(&sink))
+          if(!ossia::any_of(out, [in](const Sink& s) { return s.inlet == in; }))
+            out.push_back({in, cbl.type()});
+      }
+    }
+  }
+
+  //! The outlets that stay and that fed `p`, through the removed processes
+  //! chained before it.
+  void sourcesBefore(
+      const Process::ProcessModel& p, std::vector<const Process::ProcessModel*>& visited,
+      std::vector<const Process::Outlet*>& out) const
+  {
+    for(auto& path : chainInlet(p)->cables())
+    {
+      auto& src = path.find(ctx).source().find(ctx);
+      if(auto prev = removedThroughOutlet(src))
+      {
+        if(!ossia::contains(visited, prev))
+        {
+          visited.push_back(prev);
+          sourcesBefore(*prev, visited, out);
+        }
+      }
+      else if(!goesAway(&src))
+      {
+        if(auto o = qobject_cast<const Process::Outlet*>(&src))
+          if(!ossia::contains(out, o))
+            out.push_back(o);
+      }
+    }
+  }
+
+  //! Whether a cable from `src` to `sink` stays once the processes are gone.
+  bool linked(const Process::Outlet& src, const Process::Inlet& sink) const
+  {
+    for(auto& path : src.cables())
+      if(&path.find(ctx).sink().find(ctx) == &sink)
+        return true;
+    return false;
+  }
+
+  //! Whether `src` still has a cable once the processes are gone.
+  bool keepsACable(const Process::Outlet& src) const
+  {
+    for(auto& path : src.cables())
+      if(!goesAway(&path.find(ctx).sink().find(ctx)))
+        return true;
+    return false;
+  }
+};
+}
+
+void removeIntervalProcesses(
+    const std::vector<const Process::ProcessModel*>& selected, RemovalLinks links,
+    const score::DocumentContext& ctx)
+{
+  // A process inside another removed one goes away with it
+  std::vector<const Process::ProcessModel*> procs;
+  for(auto* p : selected)
+  {
+    bool nested = false;
+    for(auto* o = p->parent(); o && !nested; o = o->parent())
+      nested = ossia::contains(selected, qobject_cast<const Process::ProcessModel*>(o));
+    if(!nested && !ossia::contains(procs, p))
+      procs.push_back(p);
+  }
+  if(procs.empty())
+    return;
+
+  auto& doc = score::IDocument::get<ScenarioDocumentModel>(ctx.document);
+  const bool reconnect = links == RemovalLinks::Reconnect;
+  const RemovalGraph g{ctx, procs};
+
+  struct NewCable
+  {
+    const Process::Outlet* source{};
+    const Process::Inlet* sink{};
+    Process::CableType type{};
+  };
+  std::vector<NewCable> cables;
+  std::vector<std::pair<const Process::Inlet*, State::AddressAccessor>> addresses;
+  std::vector<std::pair<const Process::Outlet*, OutletRouting>> routings;
+
+  if(reconnect)
+  {
+    for(auto* p : procs)
+    {
+      auto* in = chainInlet(*p);
+      if(!in)
+        continue;
+
+      std::vector<const Process::ProcessModel*> visited{p};
+      std::vector<RemovalGraph::Sink> sinks;
+      g.sinksAfter(*p, visited, sinks);
+      if(sinks.empty())
+        continue;
+
+      if(in->cables().empty())
+      {
+        // The head of a chain gives its address to what it fed
+        if(in->address().isSet())
+          for(auto& s : sinks)
+            if(!ossia::any_of(addresses, [&](auto& a) { return a.first == s.inlet; }))
+              addresses.emplace_back(s.inlet, in->address());
+        continue;
+      }
+
+      // What fed the removed sub-chain now feeds what it fed
+      for(auto& path : in->cables())
+      {
+        auto& src_port = path.find(ctx).source().find(ctx);
+        auto* src = qobject_cast<const Process::Outlet*>(&src_port);
+        if(!src || g.goesAway(src))
+          continue;
+        for(auto& s : sinks)
+        {
+          if(g.linked(*src, *s.inlet))
+            continue;
+          if(ossia::any_of(cables, [&](const NewCable& c) {
+               return c.source == src && c.sink == s.inlet;
+             }))
+            continue;
+          cables.push_back({src, s.inlet, s.type});
+        }
+      }
+    }
+  }
+
+  // The tail of a chain going away hands its routing back to what fed it.
+  for(auto* p : procs)
+  {
+    auto* out = chainOutlet(*p);
+    if(!out || !out->cables().empty())
+      continue;
+
+    auto routing = outletRouting(*out);
+    if(!reconnect)
+      routing.address = State::AddressAccessor{};
+    if(routing.address == State::AddressAccessor{} && !routing.propagate)
+      continue;
+
+    std::vector<const Process::ProcessModel*> visited{p};
+    std::vector<const Process::Outlet*> sources;
+    g.sourcesBefore(*p, visited, sources);
+    for(auto* src : sources)
+    {
+      if(g.keepsACable(*src))
+        continue;
+      if(ossia::any_of(cables, [src](const NewCable& c) { return c.source == src; }))
+        continue;
+      if(ossia::any_of(routings, [src](auto& r) { return r.first == src; }))
+        continue;
+      routings.emplace_back(src, routing);
+    }
+  }
+
+  if(procs.size() == 1 && cables.empty() && addresses.empty() && routings.empty())
+  {
+    auto& itv = *safe_cast<IntervalModel*>(procs.front()->parent());
+    CommandDispatcher<> d{ctx.commandStack};
+    d.submit<Command::RemoveProcessFromInterval>(itv, procs.front()->id());
+    return;
+  }
+
+  Command::Macro m{
+      procs.size() == 1
+          ? static_cast<score::AggregateCommand*>(new Command::RemoveProcessAndKeepLinked)
+          : new Command::RemoveMultipleProcessesFromInterval,
+      ctx};
+  for(auto& c : cables)
+    m.createCable(doc, *c.source, *c.sink, c.type);
+  for(auto& [inlet, addr] : addresses)
+    m.setProperty<Process::Port::p_address>(*inlet, addr);
+  for(auto& [outlet, routing] : routings)
+    applyOutletRouting(m, *outlet, routing);
+  for(auto* p : procs)
+    m.removeProcess(*safe_cast<IntervalModel*>(p->parent()), p->id());
+  m.commit();
+}
+
+bool ScenarioEditor::remove(
+    const Selection& s, const score::DocumentContext& ctx, RemovalLinks links)
 {
   if(s.size() > 1)
   {
-    std::vector<std::pair<IntervalModel*, const Process::ProcessModel*>> procs;
+    std::vector<const Process::ProcessModel*> procs;
     procs.reserve(s.size());
     bool only_interval_processes = true;
     for(auto& elt : s)
     {
       auto proc = qobject_cast<const Process::ProcessModel*>(elt.data());
-      if(!proc)
+      if(!proc || !qobject_cast<IntervalModel*>(proc->parent()))
       {
         only_interval_processes = false;
         break;
       }
-      auto itv = qobject_cast<IntervalModel*>(proc->parent());
-      if(!itv)
-      {
-        only_interval_processes = false;
-        break;
-      }
-      procs.push_back({itv, proc});
+      procs.push_back(proc);
     }
 
     if(only_interval_processes && !procs.empty())
     {
-      Scenario::Command::Macro m{
-          new Scenario::Command::RemoveMultipleProcessesFromInterval, ctx};
-      for(auto& [itv, proc] : procs)
-        m.removeProcess(*itv, proc->id());
-      m.commit();
+      removeIntervalProcesses(procs, links, ctx);
       return true;
     }
   }
@@ -547,84 +803,10 @@ bool ScenarioEditor::remove(const Selection& s, const score::DocumentContext& ct
     {
       using namespace Command;
       auto p = proc->parent();
-      if(auto itv = qobject_cast<IntervalModel*>(p))
+      if(qobject_cast<IntervalModel*>(p))
       {
-        auto& doc = score::IDocument::get<ScenarioDocumentModel>(ctx.document);
-        if(qApp->keyboardModifiers() & Qt::ShiftModifier)
-        {
-          // 1. Is the process part of a chain
-          auto& is = proc->inlets();
-          auto& os = proc->outlets();
-          if(is.empty() || os.empty() || is[0]->type() != os[0]->type())
-          {
-            // Not a mapping, we don't copy anything
-            CommandDispatcher<> d{ctx.commandStack};
-            d.submit<RemoveProcessFromInterval>(*itv, proc->id());
-            return true;
-          }
-          else
-          {
-            Scenario::Command::Macro m{
-                new Scenario::Command::RemoveProcessAndKeepLinked, ctx};
-
-            const int inbound_cables = !is[0]->cables().empty();
-            const int outbound_cables = !os[0]->cables().empty();
-
-            if(inbound_cables && outbound_cables)
-            {
-              // Copy the cables
-              for(auto& in_cbl : is[0]->cables())
-              {
-                auto& src = in_cbl.find(ctx).source().find(ctx);
-                for(auto& out_cbl : os[0]->cables())
-                {
-                  auto& sink = out_cbl.find(ctx).sink().find(ctx);
-                  m.createCable(doc, src, sink, out_cbl.find(ctx).type());
-                }
-              }
-            }
-            else if(inbound_cables && !outbound_cables)
-            {
-              // The tail of the chain goes away: its routing moves back onto
-              // whatever fed it.
-              const auto routing = outletRouting(*os[0]);
-              for(auto& in_cbl : is[0]->cables())
-              {
-                auto& port = in_cbl.find(ctx).source().find(ctx);
-                if(auto* src = qobject_cast<Process::Outlet*>(&port))
-                  applyOutletRouting(m, *src, routing);
-              }
-            }
-            else if(!inbound_cables && outbound_cables)
-            {
-              if(is[0]->address().isSet())
-              {
-                // Copy in address to next outputs
-                auto& addr = is[0]->address();
-                for(auto& out_cbl : os[0]->cables())
-                {
-                  auto& src = out_cbl.find(ctx).sink().find(ctx);
-                  m.setProperty<Process::Port::p_address>(src, addr);
-                }
-              }
-            }
-            else if(!inbound_cables && !outbound_cables)
-            {
-              // nothing to do
-            }
-
-            // Remove the process
-            m.removeProcess(*itv, proc->id());
-            m.commit();
-          }
-          return true;
-        }
-        else
-        {
-          CommandDispatcher<> d{ctx.commandStack};
-          d.submit<RemoveProcessFromInterval>(*itv, proc->id());
-          return true;
-        }
+        removeIntervalProcesses({proc}, links, ctx);
+        return true;
       }
       else if(auto st = qobject_cast<StateModel*>(p))
       {

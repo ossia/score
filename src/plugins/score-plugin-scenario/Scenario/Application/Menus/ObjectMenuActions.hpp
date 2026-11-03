@@ -5,6 +5,7 @@
 #include <score/actions/Action.hpp>
 #include <score/actions/Menu.hpp>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
+#include <score/model/ObjectEditor.hpp>
 #include <score/selection/Selection.hpp>
 
 #include <ossia/detail/json.hpp>
@@ -29,7 +30,7 @@ public:
 
 private:
   void copySelectedElementsToJson(JSONReader& r);
-  void removeSelectedElements();
+  void removeSelectedElements(score::RemovalLinks links);
   void cutSelectedElementsToJson(JSONReader& r);
 
   void pasteElements(QPoint);
@@ -49,7 +50,7 @@ private:
   IntervalActions m_cstrActions;
 
   QAction* m_removeElements{};
-  QAction* m_removeElementsKeepLinked{};
+  QAction* m_removeElementsAndCables{};
   QAction* m_copyContent{};
   QAction* m_cutContent{};
   QAction* m_pasteElements{};

@@ -1,6 +1,8 @@
 // Routing follows the end of an audio chain. Appending a process moves the
 // explicit address and the propagation flag forward onto the new tail;
-// shift-deleting the tail moves them back onto whatever fed it. The gain trim
+// removing the tail moves them back onto whatever fed it: the propagation
+// flag whatever the removal does with cables, the address only when it
+// reconnects. The gain trim
 // never moves: chained outlets are in series. The cable commands are covered
 // too: they must restore the propagation they saved, never assume it was on.
 
@@ -18,6 +20,7 @@
 #include <Scenario/Document/ScenarioDocument/ProcessCreation.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
+#include <Scenario/Document/ScenarioEditor.hpp>
 
 #include <Dataflow/Commands/EditConnection.hpp>
 
@@ -31,10 +34,6 @@
 #include <core/command/CommandStack.hpp>
 #include <core/document/Document.hpp>
 #include <core/document/DocumentModel.hpp>
-
-#include <QGuiApplication>
-
-#include <qpa/qwindowsysteminterface.h>
 
 #include <algorithm>
 
@@ -86,22 +85,13 @@ Process::AudioOutlet& audioOut(Process::ProcessModel& p)
   return *out;
 }
 
-// ScenarioEditor::remove reads qApp->keyboardModifiers(), which only the
-// platform layer writes: a synthesized QKeyEvent would not reach it.
-void holdShift(bool held)
-{
-  const auto mods = held ? Qt::ShiftModifier : Qt::NoModifier;
-  QWindowSystemInterface::handleKeyEvent(
-      nullptr, held ? QEvent::KeyPress : QEvent::KeyRelease, Qt::Key_Shift, mods);
-  QWindowSystemInterface::flushWindowSystemEvents();
-  REQUIRE(QGuiApplication::keyboardModifiers() == mods);
-}
-
-bool removeSelected(const score::DocumentContext& ctx, Process::ProcessModel& proc)
+bool removeSelected(
+    const score::DocumentContext& ctx, Process::ProcessModel& proc,
+    score::RemovalLinks links = score::RemovalLinks::Reconnect)
 {
   const Selection sel{&proc};
   for(auto& iface : ctx.app.interfaces<score::ObjectEditorList>())
-    if(iface.remove(sel, ctx))
+    if(iface.remove(sel, ctx, links))
       return true;
   return false;
 }
@@ -195,7 +185,10 @@ TEST_CASE(
     stack.undo();
     CHECK(out.propagate() == true);
 
-    // ---- Shift-deleting the tail moves the routing back, whatever its value.
+    // ---- Removing the tail moves the propagation back, whatever its value,
+    // and whether the removal reconnects or not; the address only moves back
+    // when it reconnects.
+    for(const auto links : {score::RemovalLinks::Disconnect, score::RemovalLinks::Reconnect})
     for(const bool propagating : {false, true})
     {
       auto& a = addMerger(*doc, itv);
@@ -211,12 +204,13 @@ TEST_CASE(
       REQUIRE(audioOut(*b).propagate() == propagating);
       REQUIRE(aOut.address() == State::AddressAccessor{});
 
-      holdShift(true);
-      REQUIRE(removeSelected(doc->context(), *b));
-      holdShift(false);
+      REQUIRE(removeSelected(doc->context(), *b, links));
 
       CHECK(newMerger(itv, before) == nullptr);
-      CHECK(aOut.address() == testAddress);
+      if(links == score::RemovalLinks::Reconnect)
+        CHECK(aOut.address() == testAddress);
+      else
+        CHECK(aOut.address() == State::AddressAccessor{});
       CHECK(aOut.propagate() == propagating);
 
       stack.undo();
@@ -242,9 +236,7 @@ TEST_CASE(
       audioOut(*b).setPropagate(false);
       aOut.setPropagate(true);
 
-      holdShift(true);
       REQUIRE(removeSelected(doc->context(), *b));
-      holdShift(false);
 
       CHECK(aOut.propagate() == false);
 

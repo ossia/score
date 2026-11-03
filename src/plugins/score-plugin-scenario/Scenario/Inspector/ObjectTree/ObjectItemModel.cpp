@@ -1237,9 +1237,8 @@ void ObjectWidget::contextMenuEvent(QContextMenuEvent* ev)
       {
         auto deleteact = new QAction{tr("Remove"), m};
         m->addAction(deleteact);
-        connect(deleteact, &QAction::triggered, this, [this, itv, proc] {
-          CommandDispatcher<> c{m_ctx.commandStack};
-          c.submit<Scenario::Command::RemoveProcessFromInterval>(*itv, proc->id());
+        connect(deleteact, &QAction::triggered, this, [this, proc] {
+          Scenario::removeIntervalProcesses({proc}, score::RemovalLinks::Reconnect, m_ctx);
         });
         auto duplicate = new QAction{tr("Duplicate"), m};
         m->addAction(duplicate);
