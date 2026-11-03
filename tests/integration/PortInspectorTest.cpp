@@ -208,6 +208,9 @@ TEST_CASE("the inspector lists the cables of each port", "[integration][inspecto
     {
       auto btn = visible<QToolButton>(*list, "SelectCable");
       REQUIRE(btn.size() == 1);
+      CHECK(!btn.front()->icon().isNull());
+      CHECK(btn.front()->text().isEmpty());
+      CHECK(!visible<QLabel>(*list, "PortCable").front()->text().startsWith("From"));
       btn.front()->click();
       settle();
       CHECK(dc.selectionStack.currentSelection().contains(&c));

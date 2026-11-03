@@ -323,7 +323,7 @@ public:
       , m_layout{new score::MarginLess<QVBoxLayout>{this}}
   {
     setObjectName(QStringLiteral("PortCables"));
-    m_layout->setContentsMargins(24, 0, 0, 2);
+    m_layout->setContentsMargins(0, 0, 0, 2);
     m_layout->setSpacing(0);
     refresh();
   }
@@ -347,19 +347,37 @@ private:
       auto hl = new score::MarginLess<QHBoxLayout>{row};
       hl->setSpacing(4);
 
+      auto sel = new QToolButton{row};
+      sel->setObjectName(QStringLiteral("SelectCable"));
+      sel->setIcon(makeIcons(
+          QStringLiteral(":/icons/show_cables_on.png"),
+          QStringLiteral(":/icons/show_cables_hover.png"),
+          QStringLiteral(":/icons/show_cables_off.png"),
+          QStringLiteral(":/icons/show_cables_disabled.png")));
+      sel->setIconSize(QSize{16, 16});
+      sel->setAutoRaise(true);
+      score::setHelp(
+          sel, inlet ? tr("Select the cable coming from %1").arg(displayName(*other))
+                     : tr("Select the cable going to %1").arg(displayName(*other)));
+      connect(
+          sel, &QToolButton::clicked, sel,
+          [&ctx = m_ctx, c = QPointer<const IdentifiedObjectAbstract>{&cable}] {
+        selectLater(ctx, c);
+      });
+      hl->addWidget(sel);
+
       auto text = new QLabel{row};
       text->setObjectName(QStringLiteral("PortCable"));
       text->setTextFormat(Qt::RichText);
       text->setTextInteractionFlags(Qt::LinksAccessibleByMouse);
-      QString str = (inlet ? tr("From %1") : tr("To %1"));
-      QString end;
+      QString str;
       if(owner)
-        end = QStringLiteral("<a href=\"owner\">%1</a>: ")
+        str = QStringLiteral("<a href=\"owner\">%1</a>: ")
                   .arg(ownerName(*owner).toHtmlEscaped());
-      end += displayName(*other).toHtmlEscaped();
+      str += displayName(*other).toHtmlEscaped();
       if(auto t = cableTypeName(cable.type()); !t.isEmpty())
-        end += QStringLiteral(" (%1)").arg(t);
-      text->setText(str.arg(end));
+        str += QStringLiteral(" (%1)").arg(t);
+      text->setText(str);
       if(owner)
         text->setToolTip(tr("Click to select %1").arg(ownerName(*owner)));
       connect(
@@ -368,18 +386,6 @@ private:
         selectLater(ctx, o);
       });
       hl->addWidget(text, 1);
-
-      auto sel = new QToolButton{row};
-      sel->setObjectName(QStringLiteral("SelectCable"));
-      sel->setText(tr("Select"));
-      sel->setAutoRaise(true);
-      score::setHelp(sel, tr("Select this cable"));
-      connect(
-          sel, &QToolButton::clicked, sel,
-          [&ctx = m_ctx, c = QPointer<const IdentifiedObjectAbstract>{&cable}] {
-        selectLater(ctx, c);
-      });
-      hl->addWidget(sel);
       m_layout->addWidget(row);
       shown++;
     });
@@ -495,7 +501,7 @@ PortWidgetSetup::Drawer PortWidgetSetup::setupWithDrawer(
   });
 
   lay.addRow(header, main);
-  lay.addRow(makeCablesWidget(port, ctx, parent));
+  lay.addRow(static_cast<QWidget*>(nullptr), makeCablesWidget(port, ctx, parent));
 
   Drawer d{sw, inner, advBtn};
   d.setOpen(false);
@@ -515,7 +521,7 @@ void PortWidgetSetup::setupAddressPort(
     score::setHelp(edit, desc);
   }
   lay.addRow(lab, edit);
-  lay.addRow(makeCablesWidget(port, ctx, parent));
+  lay.addRow(static_cast<QWidget*>(nullptr), makeCablesWidget(port, ctx, parent));
 }
 
 void PortWidgetSetup::setupAlone(
@@ -608,7 +614,7 @@ QLabel* PortWidgetSetup::setupImpl(
   }
   lay.addRow(widg, port_widg);
   if(withCables)
-    lay.addRow(makeCablesWidget(port, ctx, parent));
+    lay.addRow(static_cast<QWidget*>(nullptr), makeCablesWidget(port, ctx, parent));
 
   switch(port.type())
   {
