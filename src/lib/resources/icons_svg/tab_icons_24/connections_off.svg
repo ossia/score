@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Connections panel: a list of links, each from a source port to a sink port -->
+<svg
+   xmlns="http://www.w3.org/2000/svg"
+   width="24"
+   height="24"
+   viewBox="0 0 24 24"
+   version="1.1"
+   id="connections_off">
+  <g
+     id="layer1"
+     style="fill:none;stroke:#f0f0f0;stroke-width:1.5;stroke-linecap:square;stroke-linejoin:miter">
+    <circle cx="6" cy="5.5" r="1.5" style="fill:#f0f0f0" />
+    <path d="M 8,5.5 H 16" />
+    <circle cx="18" cy="5.5" r="1.5" />
+    <circle cx="6" cy="12" r="1.5" style="fill:#f0f0f0" />
+    <path d="M 8,12 C 12,12 12,18.5 16,18.5" />
+    <circle cx="18" cy="18.5" r="1.5" />
+    <circle cx="6" cy="18.5" r="1.5" style="fill:#f0f0f0" />
+    <path d="M 8,18.5 C 10.5,18.5 11,16.25 11.5,15.5" />
+    <path d="M 12.5,14 C 13,12.75 13.5,12 16,12" />
+    <circle cx="18" cy="12" r="1.5" />
+  </g>
+</svg>

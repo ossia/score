@@ -522,6 +522,16 @@ if(TARGET score_plugin_fx)
     PLUGINS score_plugin_fx score_plugin_scenario score_lib_process)
 endif()
 
+# The Connections panel lists cables and address bindings, follows edits,
+# selects and reveals on click, removes through undoable commands.
+if(TARGET score_plugin_media AND TARGET score_plugin_dataflow)
+  score_add_test(test_integration_mapping_panel
+    SOURCES MappingPanelTest.cpp
+    GUI
+    PLUGINS score_plugin_scenario score_plugin_dataflow score_plugin_deviceexplorer score_lib_device
+            score_lib_process score_plugin_media)
+endif()
+
 # An interval's nodal slot goes with its last node.
 if(TARGET score_plugin_fx)
   score_add_test(test_integration_interval_nodal_slot
