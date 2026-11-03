@@ -279,6 +279,14 @@
         <file>icons/shader_preview_off@2x.png</file>
         <file>icons/shader_preview_on.png</file>
         <file>icons/shader_preview_on@2x.png</file>
+        <file>icons/hover_probe_disabled.png</file>
+        <file>icons/hover_probe_disabled@2x.png</file>
+        <file>icons/hover_probe_hover.png</file>
+        <file>icons/hover_probe_hover@2x.png</file>
+        <file>icons/hover_probe_off.png</file>
+        <file>icons/hover_probe_off@2x.png</file>
+        <file>icons/hover_probe_on.png</file>
+        <file>icons/hover_probe_on@2x.png</file>
         <file>icons/show_cables_disabled.png</file>
         <file>icons/show_cables_disabled@2x.png</file>
         <file>icons/show_cables_off.png</file>
@@ -1058,6 +1066,10 @@
         <file>icons_svg/toolbutton_24/shader_preview_hover.svg</file>
         <file>icons_svg/toolbutton_24/shader_preview_off.svg</file>
         <file>icons_svg/toolbutton_24/shader_preview_on.svg</file>
+        <file>icons_svg/toolbutton_24/hover_probe_disabled.svg</file>
+        <file>icons_svg/toolbutton_24/hover_probe_hover.svg</file>
+        <file>icons_svg/toolbutton_24/hover_probe_off.svg</file>
+        <file>icons_svg/toolbutton_24/hover_probe_on.svg</file>
         <file>icons_svg/toolbutton_24/show_cables_disabled.svg</file>
         <file>icons_svg/toolbutton_24/show_cables_hover.svg</file>
         <file>icons_svg/toolbutton_24/show_cables_off.svg</file>
