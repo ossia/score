@@ -103,13 +103,22 @@ else
     echo "<< downloading sdk >>"
     fetch "$BASE_SDK/$SDK_ARCHIVE" "$SDK_ARCHIVE" || exit 1
 
-    echo "<< downloading 7z >>"
-    fetch "https://www.7-zip.org/a/7zr.exe" 7z.exe || exit 1
+    # GitHub's Windows runners ship 7-Zip; www.7-zip.org is the least reliable
+    # host this script depends on, so it is only the last resort.
+    if command -v 7z >/dev/null 2>&1; then
+      SEVENZIP=7z
+    else
+      echo "<< downloading 7z >>"
+      fetch "https://github.com/ip7z/7zip/releases/latest/download/7zr.exe" 7zr.exe \
+        || fetch "https://www.7-zip.org/a/7zr.exe" 7zr.exe \
+        || exit 1
+      SEVENZIP=./7zr.exe
+    fi
 
     echo "<< extracting sdk >>"
-    ./7z.exe x sdk-mingw-x86_64.7z || exit 1
+    "$SEVENZIP" x sdk-mingw-x86_64.7z || exit 1
 
-    rm "sdk-mingw-x86_64.7z" "7z.exe"
+    rm -f "sdk-mingw-x86_64.7z" "7zr.exe"
   ) || exit 1
   fi
   ls "$SDK_DIR"
