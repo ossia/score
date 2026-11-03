@@ -422,6 +422,18 @@ void NodeItem::setSelected(bool s)
   else
     clearFocus();
 
+  // Some processes draw their own ports: the dataflow plug-in knows them all
+  auto& items = m_context.dataflow.ports();
+  auto highlight = [&](const Process::Port* port) {
+    if(auto it = items.find(port); it != items.end() && it->second)
+      for(auto& cable : it->second->connectedCables())
+        if(cable)
+          cable->updateHighlight();
+  };
+  for(auto* port : m_model.inlets())
+    highlight(port);
+  for(auto* port : m_model.outlets())
+    highlight(port);
   update();
 }
 

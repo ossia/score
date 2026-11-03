@@ -12,7 +12,7 @@ class QGraphicsRectItem;
 
 namespace Nodal
 {
-class View final : public Process::LayerView
+class SCORE_PLUGIN_NODAL_TEST_EXPORT View final : public Process::LayerView
 {
   W_OBJECT(View)
 public:
@@ -28,6 +28,7 @@ private:
   void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
+  void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event) override;
 
   void dragEnterEvent(QGraphicsSceneDragDropEvent* event) override;
   void dragLeaveEvent(QGraphicsSceneDragDropEvent* event) override;

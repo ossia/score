@@ -95,6 +95,18 @@ void View::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
   }
 }
 
+void View::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event)
+{
+  // Nodes take their own double clicks: this one is on the background
+  if(event->button() != Qt::LeftButton || event->modifiers() != Qt::NoModifier)
+  {
+    event->ignore();
+    return;
+  }
+  event->accept();
+  doubleClicked(event->pos());
+}
+
 void View::dragEnterEvent(QGraphicsSceneDragDropEvent* event) { }
 
 void View::dragLeaveEvent(QGraphicsSceneDragDropEvent* event) { }

@@ -2049,3 +2049,12 @@ foreach(_t test_integration_faust_library_path_saving test_integration_consolida
     set_property(TEST ${_t} APPEND PROPERTY RESOURCE_LOCK score_library_root)
   endif()
 endforeach()
+
+# Editing a patch in a nodal slot: cables over nodes, highlighting, the
+# background's process picker, cables dropped away, reconnecting removal, learn.
+score_add_test(test_integration_nodal_editing
+  SOURCES NodalEditingTest.cpp
+  GUI
+  PLUGINS score_plugin_scenario score_lib_process score_plugin_dataflow
+          score_plugin_deviceexplorer score_lib_device score_plugin_nodal
+          score_plugin_ui)

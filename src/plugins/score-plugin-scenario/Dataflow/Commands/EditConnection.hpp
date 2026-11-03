@@ -86,6 +86,13 @@ class SCORE_PLUGIN_SCENARIO_EXPORT ReplaceCable final : public score::AggregateC
 public:
 };
 
+class SCORE_PLUGIN_SCENARIO_EXPORT RemoveCables final : public score::AggregateCommand
+{
+  SCORE_COMMAND_DECL(
+      Scenario::Command::CommandFactoryName(), RemoveCables, "Remove cables")
+public:
+};
+
 //! Orients a pair of ports into {outlet, sink} if they can legally be cabled
 //! together; {nullptr, nullptr} otherwise.
 SCORE_PLUGIN_SCENARIO_EXPORT
@@ -108,4 +115,9 @@ SCORE_PLUGIN_SCENARIO_EXPORT
 void moveCableEndpoints(
     const score::DocumentContext& ctx, std::span<Process::Cable* const> cables,
     const Process::Port& newPort);
+
+//! Removes those of the cables the document has, as a single undoable step.
+SCORE_PLUGIN_SCENARIO_EXPORT
+void removeCablesInOneStep(
+    const score::DocumentContext& ctx, std::span<Process::Cable* const> cables);
 }

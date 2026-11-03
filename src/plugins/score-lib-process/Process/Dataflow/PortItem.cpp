@@ -3,6 +3,8 @@
 
 #include <Device/Node/NodeListMimeSerialization.hpp>
 
+#include <Process/Commands/EditPort.hpp>
+#include <Process/Dataflow/AddressAccessorEditWidget.hpp>
 #include <Process/Dataflow/CableDragAutoScroller.hpp>
 #include <Process/Dataflow/CableItem.hpp>
 #include <Process/Dataflow/PortItem.hpp>
@@ -15,6 +17,7 @@
 
 #include <score/application/ApplicationContext.hpp>
 #include <score/document/DocumentContext.hpp>
+#include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/document/DocumentInterface.hpp>
 #include <score/graphics/TextItem.hpp>
 #include <score/model/path/PathSerialization.hpp>
@@ -37,6 +40,7 @@
 #include <QGraphicsView>
 #include <QKeyEvent>
 #include <QMenu>
+#include <QPointer>
 #include <QMimeData>
 #include <QPainter>
 
@@ -61,6 +65,7 @@ enum PortDragDirection
 static QLineF portDragLineCoords{};
 static PortItem* magneticDropPort{};
 static std::vector<Process::Cable*> portDragCables{};
+static DroppedAwayCablesHandler dropped_away_cables{};
 
 struct PortStyle
 {
@@ -558,7 +563,10 @@ PortItem::PortItem(
 
     for(const auto& cable : cables)
     {
-      cable->setZValue(b || cable->model().selection.get() ? 999999 : -1);
+      cable->setZValue(
+          b || cable->model().selection.get() || cable->linksSelectedNode()
+              ? CableItem::selectedZ
+              : cable->restingZ());
     }
   });
   {
@@ -618,6 +626,7 @@ PortItem::PortItem(
         [&](QPointF sp, QPoint p) {
       auto menu = new QMenu{};
       setupMenu(*menu, ctx);
+      addLearnAction(*menu, ctx);
       if(!menu->actions().empty())
         menu->exec(p);
       menu->deleteLater();
@@ -653,6 +662,22 @@ PortItem::~PortItem()
 }
 
 void PortItem::setupMenu(QMenu&, const score::DocumentContext& ctx) { }
+
+void PortItem::addLearnAction(QMenu& menu, const score::DocumentContext& ctx)
+{
+  if(!menu.actions().empty())
+    menu.addSeparator();
+  auto act = menu.addAction(QObject::tr("Learn address"));
+  QObject::connect(act, &QAction::triggered, &m_port, [port = &m_port, &ctx] {
+    // The dialog runs its own event loop: the port may go away meanwhile.
+    QPointer<const Process::Port> guard = port;
+    auto res = Process::learnAddress(ctx, QApplication::activeWindow());
+    if(!res || !guard || res->address == port->address())
+      return;
+    CommandDispatcher<>{ctx.commandStack}.submit(
+        new Process::ChangePortAddress{*port, std::move(res->address)});
+  }, Qt::QueuedConnection);
+}
 
 void PortItem::setPortVisible(bool b)
 {
@@ -855,6 +880,33 @@ public:
 
 static QGraphicsLineItem* portDragLine{};
 
+//! Whether a port is within a few pixels of the drop, as seen on screen
+static bool nearAnyPort(const QGraphicsSceneDragDropEvent& ev)
+{
+  constexpr double margin_px = 16.;
+  auto* scene = portDragLine->scene();
+  auto* view = ev.widget() ? qobject_cast<QGraphicsView*>(ev.widget()->parentWidget())
+                           : nullptr;
+  const QPoint at = view ? view->mapFromScene(ev.scenePos()) : QPoint{};
+  const QRectF around
+      = view ? view->mapToScene(QRect{at - QPoint(margin_px, margin_px),
+                                      QSize(2 * margin_px, 2 * margin_px)})
+                   .boundingRect()
+             : QRectF{ev.scenePos() - QPointF{margin_px, margin_px},
+                      QSizeF{2 * margin_px, 2 * margin_px}};
+  for(auto* item : scene->items(around))
+  {
+    if(item->type() != QGraphicsItem::UserType + 700)
+      continue;
+    const auto* port = static_cast<PortItem*>(item);
+    const QPointF d = view ? QPointF{view->mapFromScene(port->sceneCenter()) - at}
+                           : port->sceneCenter() - ev.scenePos();
+    if(std::hypot(d.x(), d.y()) <= margin_px)
+      return true;
+  }
+  return false;
+}
+
 struct DragMoveFilter : QObject
 {
 public:
@@ -906,6 +958,23 @@ public:
         portDragType = std::nullopt;
         return true;
       }
+
+      if(!portDragCables.empty())
+      {
+        // Cables pulled off their port and let go of away from any port go
+        // away. Whatever is under the cursor does not get the drop: a scenario
+        // would make an automation of it. A drop that only just missed a port
+        // keeps them, the margin being on screen whatever the zoom.
+        if(!nearAnyPort(*ev) && PortItem::clickedPort && dropped_away_cables)
+        {
+          const auto cables = portDragCables;
+          dropped_away_cables(
+              score::IDocument::documentContext(PortItem::clickedPort->port()), cables);
+        }
+        ev->accept();
+        portDragType = std::nullopt;
+        return true;
+      }
     }
 
     return QObject::eventFilter(watched, event);
@@ -913,6 +982,11 @@ public:
 };
 
 static DragMoveFilter* drag_move_filter{};
+
+void setDroppedAwayCablesHandler(DroppedAwayCablesHandler h) noexcept
+{
+  dropped_away_cables = h;
+}
 
 std::span<Process::Cable* const> portDragMovedCables() noexcept
 {
