@@ -4,6 +4,7 @@
 
 #include <core/document/DocumentTemplates.hpp>
 
+#include <QCryptographicHash>
 #include <QDir>
 #include <QFile>
 #include <QFileInfo>
@@ -24,6 +25,7 @@
 #include <zipdownloader.hpp>
 
 #include <algorithm>
+#include <set>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(score::OnlineExamples)
@@ -57,6 +59,59 @@ QString jsonString(const QJsonObject& obj, const char* key)
 {
   const auto v = obj.value(QLatin1String{key});
   return v.isString() ? v.toString() : QString{};
+}
+
+// The id becomes a path under the library: only folder names that mean the
+// same on every platform, none of which is "." or "..".
+bool isSafeId(const QString& id)
+{
+  if(id.isEmpty())
+    return false;
+
+  for(const auto part : QStringView{id}.tokenize(u'/', Qt::KeepEmptyParts))
+  {
+    if(part.isEmpty() || part == u"." || part == u"..")
+      return false;
+    // Windows drops trailing dots and spaces: "a." and "a" are the same folder.
+    if(part.endsWith(u'.') || part.endsWith(u' '))
+      return false;
+    for(const QChar c : part)
+    {
+      if(c.unicode() < 0x20)
+        return false;
+      switch(c.unicode())
+      {
+        case '\\':
+        case ':':
+        case '*':
+        case '?':
+        case '"':
+        case '<':
+        case '>':
+        case '|':
+          return false;
+        default:
+          break;
+      }
+    }
+  }
+  return true;
+}
+
+// What identifies the file to download: the entry without what only presents
+// the example. QJsonObject keeps its keys sorted, which makes the text stable.
+QString fingerprint(QJsonObject entry)
+{
+  for(const char* key :
+      {"name", "description", "section", "group", "category", "page", "image",
+       "platforms"})
+    entry.remove(QLatin1String{key});
+  return QStringLiteral("sha256:")
+         + QString::fromLatin1(
+             QCryptographicHash::hash(
+                 QJsonDocument{entry}.toJson(QJsonDocument::Compact),
+                 QCryptographicHash::Sha256)
+                 .toHex());
 }
 }
 
@@ -92,9 +147,26 @@ QString OnlineExamples::cacheFolder()
 QString OnlineExamples::installFolder(const OnlineExample& ex)
 {
   const auto root = installRoot();
-  if(root.isEmpty() || ex.id.isEmpty())
+  if(root.isEmpty() || !isSafeId(ex.id))
     return {};
-  return root + "/" + ex.id;
+
+  const auto cleanRoot = QDir::cleanPath(root);
+  auto folder = QDir::cleanPath(cleanRoot + "/" + ex.id);
+  if(!folder.startsWith(cleanRoot + "/"))
+    return {};
+  return folder;
+}
+
+QString OnlineExamples::contentFolder(const QString& folder)
+{
+  // The site publishes each zip example with its files in a folder of the
+  // example's name
+  const QDir dir{folder};
+  const auto entries = dir.entryList(QDir::AllEntries | QDir::NoDotAndDotDot | QDir::Hidden);
+  if(entries.size() == 1)
+    if(const QFileInfo only{dir.filePath(entries.front())}; only.isDir())
+      return only.absoluteFilePath();
+  return folder;
 }
 
 QString OnlineExamples::localPath(const OnlineExample& ex)
@@ -104,11 +176,41 @@ QString OnlineExamples::localPath(const OnlineExample& ex)
     return {};
 
   if(ex.format != QLatin1String{"zip"})
-    return folder + "." + ex.format;
+  {
+    auto path = folder + "." + ex.format;
+    return QFile::exists(path) ? path : QString{};
+  }
 
-  const auto scores
-      = QDir{folder}.entryList({"*.score", "*.scorejson"}, QDir::Files, QDir::Name);
-  return scores.isEmpty() ? QString{} : QDir{folder}.filePath(scores.front());
+  // Copies installed with the archive's own folder kept have the score one
+  // level down
+  const QDir dir{contentFolder(folder)};
+  const auto scores = dir.entryList({"*.score", "*.scorejson"}, QDir::Files, QDir::Name);
+  return scores.isEmpty() ? QString{} : dir.filePath(scores.front());
+}
+
+namespace
+{
+// What was downloaded is recorded in the settings rather than next to the copy:
+// the library folder is the user's, and every file in it shows in the library.
+QString downloadRecordKey(const OnlineExample& ex)
+{
+  return QStringLiteral("score-docs/downloaded/") + ex.id;
+}
+}
+
+bool OnlineExamples::changedOnline(const OnlineExample& ex)
+{
+  const auto recorded = QSettings{}.value(downloadRecordKey(ex)).toString();
+  if(recorded.isEmpty() || localPath(ex).isEmpty())
+    return false;
+
+  if(recorded.startsWith(QLatin1String{"sha256:"}))
+    return recorded != ex.fingerprint;
+
+  // Copies downloaded before fingerprints were recorded have their size.
+  bool ok{};
+  const auto size = recorded.toLongLong(&ok);
+  return ok && ex.size > 0 && size != ex.size;
 }
 
 void OnlineExamples::parse(const QByteArray& json)
@@ -135,10 +237,11 @@ void OnlineExamples::parse(const QByteArray& json)
     ex.id = jsonString(e, "id");
     ex.file = jsonString(e, "file");
     ex.format = jsonString(e, "format");
-    if(ex.id.isEmpty() || ex.file.isEmpty() || ex.format.isEmpty())
+    if(ex.file.isEmpty() || !isSafeId(ex.id))
       continue;
-    // The id becomes a path under the library.
-    if(ex.id.contains("..") || ex.id.startsWith('/'))
+    // Also the extension of the copy.
+    if(ex.format != QLatin1String{"score"} && ex.format != QLatin1String{"scorejson"}
+       && ex.format != QLatin1String{"zip"})
       continue;
 
     ex.name = jsonString(e, "name");
@@ -157,8 +260,20 @@ void OnlineExamples::parse(const QByteArray& json)
       continue;
 
     ex.size = qint64(e.value("size").toDouble());
+    ex.fingerprint = fingerprint(e);
     out.push_back(std::move(ex));
   }
+
+  // A zip example is replaced as a whole folder: one whose folder holds
+  // another example would take that one with it.
+  std::set<QString> ids;
+  for(const auto& ex : out)
+    ids.insert(ex.id);
+  std::erase_if(out, [&](const OnlineExample& ex) {
+    const auto prefix = ex.id + '/';
+    const auto it = ids.lower_bound(prefix);
+    return it != ids.end() && it->startsWith(prefix);
+  });
 
   m_examples = std::move(out);
 }
@@ -276,26 +391,61 @@ QString OnlineExamples::write(const OnlineExample& ex, const QByteArray& data)
     return writeFile(path, data) ? path : QString{};
   }
 
-  QString score;
-  for(const auto& [name, bytes] : zdl::unzip_all_files_to_memory(data))
+  // Extracted next to the copy, then swapped with it: until the new version is
+  // completely written the copy stays as it was, and stays on any failure.
+  const QFileInfo target{folder};
+  const auto parent = target.absolutePath();
+  const auto incoming = parent + "/." + target.fileName() + ".incoming";
+  const auto previous = parent + "/." + target.fileName() + ".previous";
+  // Left over by an interrupted install.
+  QDir{incoming}.removeRecursively();
+  QDir{previous}.removeRecursively();
+
+  const auto fail = [&] {
+    QDir{incoming}.removeRecursively();
+    return QString{};
+  };
+
+  if(!QDir{}.mkpath(incoming))
+    return fail();
+
+  // Refuses an archive with entries that would land outside of the folder.
+  QString error;
+  const auto files = zdl::unzip_all_files_to_folder(data, incoming, error);
+  if(files.empty() || !error.isEmpty())
+    return fail();
+
+  // What goes in place of the copy: the archive's own folder when it has one
+  const auto content = contentFolder(incoming);
+  const auto scores
+      = QDir{content}.entryList({"*.score", "*.scorejson"}, QDir::Files, QDir::Name);
+  if(scores.isEmpty())
+    return fail();
+
+  const bool hadCopy = target.exists();
+  if(hadCopy && !QDir{}.rename(folder, previous))
+    return fail();
+
+  if(!QDir{}.rename(content, folder))
   {
-    // Entry names become paths under the library.
-    if(name.isEmpty() || name.contains("..") || QDir::isAbsolutePath(name))
-      continue;
-
-    const auto path = folder + "/" + name;
-    if(!writeFile(path, bytes))
-      continue;
-
-    if(score.isEmpty()
-       && (name.endsWith(".score", Qt::CaseInsensitive)
-           || name.endsWith(".scorejson", Qt::CaseInsensitive)))
-      score = path;
+    if(hadCopy)
+      QDir{}.rename(previous, folder);
+    return fail();
   }
-  return score;
+  QDir{incoming}.removeRecursively();
+
+  if(hadCopy)
+    QDir{previous}.removeRecursively();
+  return QDir{folder}.filePath(scores.front());
 }
 
-void OnlineExamples::install(const OnlineExample& ex, std::function<void(QString)> done)
+bool OnlineExamples::isDownloading(const OnlineExample& ex) const
+{
+  return m_downloads.contains(ex.id);
+}
+
+void OnlineExamples::install(
+    const OnlineExample& ex, std::function<void(QString)> done, bool replace)
 {
   if(installFolder(ex).isEmpty())
   {
@@ -303,17 +453,22 @@ void OnlineExamples::install(const OnlineExample& ex, std::function<void(QString
     return;
   }
 
-  if(const auto existing = localPath(ex);
-     !existing.isEmpty() && QFile::exists(existing))
+  if(auto it = m_downloads.find(ex.id); it != m_downloads.end())
+  {
+    it->second.push_back(std::move(done));
+    return;
+  }
+
+  if(const auto existing = localPath(ex); !existing.isEmpty() && !replace)
   {
     done(existing);
     return;
   }
 
+  m_downloads[ex.id].push_back(std::move(done));
+
   auto reply = network().get(makeRequest(QUrl{ex.file}));
-  connect(
-      reply, &QNetworkReply::finished, this,
-      [this, reply, ex, done = std::move(done)]() mutable {
+  connect(reply, &QNetworkReply::finished, this, [this, reply, ex] {
     reply->deleteLater();
     QByteArray data;
     if(reply->error() == QNetworkReply::NoError)
@@ -321,9 +476,17 @@ void OnlineExamples::install(const OnlineExample& ex, std::function<void(QString
 
     // Writing suspends when the filesystem is backed by IndexedDB, which the
     // stack of a network callback does not allow; a queued call gets one that does.
-    QTimer::singleShot(
-        0, this, [ex, data = std::move(data), done = std::move(done)]() mutable {
-      done(write(ex, data));
+    QTimer::singleShot(0, this, [this, ex, data = std::move(data)] {
+      auto path = write(ex, data);
+      if(!path.isEmpty())
+        QSettings{}.setValue(downloadRecordKey(ex), ex.fingerprint);
+
+      // A callback may destroy this object.
+      auto node = m_downloads.extract(ex.id);
+      if(node.empty())
+        return;
+      for(auto& done : node.mapped())
+        done(path);
     });
   });
 }

@@ -7,6 +7,7 @@
 #include <Library/Panel/LibraryPanelDelegate.hpp>
 #include <Library/ProcessWidget.hpp>
 
+#include <core/document/DefaultLibrary.hpp>
 #include <core/presenter/CoreApplicationPlugin.hpp>
 
 #include <score/application/ApplicationContext.hpp>
@@ -71,11 +72,17 @@ PluginSettingsModel::PluginSettingsModel(
   connect(
       &mgr, &QNetworkAccessManager::finished, this, &PluginSettingsModel::on_message);
 
+  // Replaced by the package list's version once it has been fetched.
+  score::DefaultLibrary::instance().setInstaller([this] { downloadDefaultLibrary(); });
+
   if(ctx.applicationSettings.gui)
     QTimer::singleShot(3000, this, &PluginSettingsModel::refresh);
 }
 
-PluginSettingsModel::~PluginSettingsModel() { }
+PluginSettingsModel::~PluginSettingsModel()
+{
+  score::DefaultLibrary::instance().setInstaller({});
+}
 
 void PluginSettingsModel::refresh()
 {
@@ -117,6 +124,13 @@ void PluginSettingsModel::handleAddon(const QJsonObject& obj)
     return;
 
   auto& add = *addon;
+
+  if(add.uuid() == score::DefaultLibrary::key())
+  {
+    auto& lib = score::DefaultLibrary::instance();
+    lib.setInstaller([this, pkg = add] { installLibrary(pkg); });
+    lib.setAvailable(add.version, sizeToInt(add.size));
+  }
 
   // Load images
   if(!add.smallImagePath.isEmpty())
@@ -178,51 +192,60 @@ void PluginSettingsModel::firstTimeLibraryDownload()
   if(!score::interactiveSession())
     return;
 
-  const auto& lib = score::GUIAppContext().settings<Library::Settings::Model>();
-  const QString lib_folder = lib.getPackagesPath() + "/default";
-  const QString lib_info = lib_folder + "/package.json";
-  if(QFile file{lib_info}; !file.exists())
+  auto& defaultLibrary = score::DefaultLibrary::instance();
+  if(defaultLibrary.installedVersion() < 0)
   {
+    // The start screen shows it with its install action.
+    if(defaultLibrary.offeredInView())
+      return;
+
     auto dl = score::question(
-        qApp->activeWindow(), tr("Download the user library ?"),
-        tr("The user library has not been found. \n"
-           "Do you want to download it from the internet ? \n\n"
-           "Note: you can always download it later from : \n"
-           "https://github.com/ossia/score-user-library"));
+        qApp->activeWindow(), tr("Download the default library?"),
+        tr("The default library is not installed. It provides the templates, and "
+           "the presets and media that many examples use.\n"
+           "Do you want to download it from the internet?\n\n"
+           "It can also be installed later from the Packages page of the settings."));
 
     if(dl == QMessageBox::Yes)
-    {
-      const QString incoming
-          = QDir{lib.getPackagesPath()}.absoluteFilePath(".incoming-default");
-      if(QDir dir{incoming}; dir.exists())
-        dir.removeRecursively();
-      QDir{}.mkpath(incoming);
-
-      zdl::download_and_extract(
-          QUrl{"https://github.com/ossia/score-user-library/archive/master.zip"},
-          incoming, [incoming, lib_folder](const std::vector<QString>& res) {
-        auto& lib = score::GUIAppContext().settings<Library::Settings::Model>();
-        if(QString err; !moveExtractedPackage(incoming, res, lib_folder, err))
-        {
-          QDir{incoming}.removeRecursively();
-          qDebug() << "user library:" << err;
-          return;
-        }
-
-        lib.rescanLibrary();
-      }, [](qint64 bytesReceived, qint64 bytesTotal) {
-        qDebug() << (((bytesReceived / 1024.) / (bytesTotal / 1024.)) * 100)
-                 << "% downloaded";
-      }, [incoming](const QString& err) {
-        QDir{incoming}.removeRecursively();
-        qDebug() << "user library:" << err;
-      });
-    }
+      defaultLibrary.install();
   }
   else
   {
     checkAll();
   }
+}
+
+void PluginSettingsModel::downloadDefaultLibrary()
+{
+  const auto& lib = score::GUIAppContext().settings<Library::Settings::Model>();
+  const QString lib_folder = lib.getDefaultLibraryPath();
+  const QString incoming
+      = QDir{lib.getPackagesPath()}.absoluteFilePath(".incoming-default");
+  if(QDir dir{incoming}; dir.exists())
+    dir.removeRecursively();
+  QDir{}.mkpath(incoming);
+
+  zdl::download_and_extract(
+      QUrl{"https://github.com/ossia/score-user-library/archive/master.zip"}, incoming,
+      [incoming, lib_folder](const std::vector<QString>& res) {
+    auto& lib = score::GUIAppContext().settings<Library::Settings::Model>();
+    if(QString err; !moveExtractedPackage(incoming, res, lib_folder, err))
+    {
+      QDir{incoming}.removeRecursively();
+      qDebug() << "user library:" << err;
+      score::DefaultLibrary::instance().setFinished(false, err);
+      return;
+    }
+
+    lib.rescanLibrary();
+    score::DefaultLibrary::instance().setFinished(true);
+  }, [](qint64 bytesReceived, qint64 bytesTotal) {
+    score::DefaultLibrary::instance().setProgress(bytesReceived, bytesTotal);
+  }, [incoming](const QString& err) {
+    QDir{incoming}.removeRecursively();
+    qDebug() << "user library:" << err;
+    score::DefaultLibrary::instance().setFinished(false, err);
+  });
 }
 
 void PluginSettingsModel::checkAll()
@@ -353,6 +376,8 @@ void PluginSettingsModel::downloadPackage(
   if(addon.files.empty())
   {
     reset_progress();
+    if(addon.uuid() == score::DefaultLibrary::key())
+      score::DefaultLibrary::instance().setFinished(false, tr("Nothing to download"));
     return;
   }
 
@@ -377,7 +402,12 @@ void PluginSettingsModel::downloadPackage(
          installed](const std::vector<QString>& res) {
       reset_progress();
       if(res.empty())
+      {
+        if(addon.uuid() == score::DefaultLibrary::key())
+          score::DefaultLibrary::instance().setFinished(
+              false, tr("The archive is empty"));
         return;
+      }
 
       if(QString err; !moveExtractedPackage(incoming, res, destination, err))
       {
@@ -388,10 +418,13 @@ void PluginSettingsModel::downloadPackage(
 
       installed(destination);
     },
-        [this, sz_bytes](qint64 received, qint64 total) {
+        [this, sz_bytes, isDefault = addon.uuid() == score::DefaultLibrary::key()](
+            qint64 received, qint64 total) {
       if(total < received)
         total = sz_bytes;
       progress_from_bytes(received, total);
+      if(isDefault)
+        score::DefaultLibrary::instance().setProgress(received, total);
     }, [this, addon, incoming](const QString& err) {
       // What was extracted before the failure is not a package: left there, it
       // would be loaded as a folder put in support/ by hand.
@@ -431,6 +464,16 @@ void PluginSettingsModel::on_packageInstallSuccess(
   removeOtherInstalls(
       addon.uuid(), destination, {lib.getPackagesPath(), lib.getSupportPath()});
 
+  // Before the message below, which waits for the user.
+  bool reportedInView = false;
+  if(addon.uuid() == score::DefaultLibrary::key())
+  {
+    auto& defaultLibrary = score::DefaultLibrary::instance();
+    reportedInView = defaultLibrary.reportedInView();
+    score::GUIAppContext().settings<Library::Settings::Model>().rescanLibrary();
+    defaultLibrary.setFinished(true);
+  }
+
   if(addon.kind == "support" && Library::isSupportPackageLoaded(addon.uuid()))
   {
     // A previous version's libraries are loaded in this process (an update, or a
@@ -446,10 +489,11 @@ void PluginSettingsModel::on_packageInstallSuccess(
     if(addon.kind == "support")
       Library::loadSupportPackages(lib.getSupportPath());
 
-    information(
-        tr("Package downloaded"),
-        tr("The package %1 has been successfully installed in the user library.")
-            .arg(addon.name));
+    if(!reportedInView)
+      information(
+          tr("Package downloaded"),
+          tr("The package %1 has been successfully installed in the user library.")
+              .arg(addon.name));
   }
 
   localPlugins.registerAddon(dir.absolutePath());
@@ -460,6 +504,15 @@ void PluginSettingsModel::on_packageInstallFailure(
     const Package& addon, const QString& error)
 {
   reset_progress();
+  if(addon.uuid() == score::DefaultLibrary::key())
+  {
+    auto& defaultLibrary = score::DefaultLibrary::instance();
+    const bool reportedInView = defaultLibrary.reportedInView();
+    defaultLibrary.setFinished(false, error);
+    // The view shows the error, with an action to try again.
+    if(reportedInView)
+      return;
+  }
   // What went wrong, not just that something did: a package that fails to
   // download on one machine and not another is only diagnosable from here.
   warning(

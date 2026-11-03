@@ -2,8 +2,10 @@
 #include <score/application/GUIApplicationContext.hpp>
 #include <score/model/Skin.hpp>
 #include <score/tools/ThreadPool.hpp>
+#include <score/widgets/MessageBox.hpp>
 #include <score/widgets/Pixmap.hpp>
 
+#include <core/document/DefaultLibrary.hpp>
 #include <core/document/DocumentTemplates.hpp>
 #include <core/document/OnlineExamples.hpp>
 #include <core/document/ProjectInfo.hpp>
@@ -34,6 +36,8 @@
 #include <QPlainTextEdit>
 #include <QPointer>
 #include <QMainWindow>
+#include <QMenu>
+#include <QMessageBox>
 #include <QScreen>
 #include <QScrollArea>
 #include <QSettings>
@@ -714,9 +718,19 @@ public:
 
   void setDownloadSize(qint64 bytes)
   {
-    m_size = bytes > 0 ? QLocale{}.formattedDataSize(bytes) : QString{};
+    setBadge(
+        bytes > 0 ? QLocale{}.formattedDataSize(bytes) : QString{},
+        StartScreenColors::Muted);
+  }
+
+  //! A short text in the top right corner of the thumbnail.
+  void setBadge(const QString& text, const QColor& color)
+  {
+    m_badge = text;
+    m_badgeColor = color;
     update();
   }
+  const QString& badge() const noexcept { return m_badge; }
 
   void setThumbnailImage(const QImage& img)
   {
@@ -762,6 +776,8 @@ public:
 
   //! Ctrl (Cmd on macOS): the file is opened itself; Alt: no web page.
   std::function<void(const QString& path, Qt::KeyboardModifiers mods)> onActivated;
+  //! Right click; the card has no menu without it.
+  std::function<void(const QPoint& globalPos)> onContextMenu;
 
 protected:
   void paintEvent(QPaintEvent*) override
@@ -794,15 +810,15 @@ protected:
       p.setOpacity(1.);
     }
 
-    if(!m_size.isEmpty() && !m_hovered)
+    if(!m_badge.isEmpty() && !m_hovered)
     {
       p.setFont(m_subFont);
       const QFontMetrics fm{m_subFont};
-      const int w = fm.horizontalAdvance(m_size) + 10;
+      const int w = fm.horizontalAdvance(m_badge) + 10;
       const QRect box{Width - w - 6, 6, w, fm.height() + 4};
       p.fillRect(box, StartScreenColors::Scrim);
-      p.setPen(StartScreenColors::Muted);
-      p.drawText(box, Qt::AlignCenter, m_size);
+      p.setPen(m_badgeColor);
+      p.drawText(box, Qt::AlignCenter, m_badge);
     }
 
     if(m_hovered && !m_description.isEmpty())
@@ -870,6 +886,13 @@ protected:
     if(activate && onActivated)
       onActivated(m_path, e->modifiers());
   }
+  void contextMenuEvent(QContextMenuEvent* e) override
+  {
+    if(!onContextMenu)
+      return QWidget::contextMenuEvent(e);
+    e->accept();
+    onContextMenu(e->globalPos());
+  }
 
 private:
   QFont m_titleFont;
@@ -878,7 +901,8 @@ private:
   QString m_subtitle;
   QString m_description;
   QString m_keywords;
-  QString m_size;
+  QString m_badge;
+  QColor m_badgeColor{StartScreenColors::Muted};
   QString m_path;
   QPixmap m_thumbnail;
   bool m_hovered{};
@@ -1025,6 +1049,7 @@ class StartScreen : public QWidget
   W_OBJECT(StartScreen)
 public:
   StartScreen(const QPointer<QRecentFilesMenu>& recentFiles, QWidget* parent = nullptr);
+  ~StartScreen() override;
 
   void openNewDocument() W_SIGNAL(openNewDocument)
   void openFile(const QString& file) W_SIGNAL(openFile, file)
@@ -1057,6 +1082,7 @@ protected:
   void keyPressEvent(QKeyEvent* event) override;
   void closeEvent(QCloseEvent* event) override;
   void showEvent(QShowEvent* event) override;
+  void hideEvent(QHideEvent* event) override;
 
 private:
   struct Link
@@ -1089,7 +1115,7 @@ private:
   {
     QString name;
     QString category;    //!< Path of the drawers it goes under, "a / b"
-    QString path;        //!< Local file; empty until an online one is installed
+    QString path;        //!< Local file; for an online one, its downloaded copy if any
     const OnlineExample* online{};
   };
 
@@ -1101,6 +1127,11 @@ private:
   //! `direct` opens the file itself rather than an untitled copy of it;
   //! `openPage` also opens the web page of the example.
   void openOnlineExample(const OnlineExample& ex, bool direct, bool openPage);
+  void showOnlineExampleMenu(const OnlineExample& ex, const QPoint& globalPos);
+  //! Downloads the example again over the local copy, once the user agreed.
+  void replaceLocalCopy(const OnlineExample& ex);
+  //! Examples whose replacement is being confirmed.
+  std::set<QString> m_replaceAsked;
   void refreshExamplesPage();
   void refreshExamplesPage(int index, bool online);
   void requestThumbnail(const OnlineExample& ex, ExampleCard* card);
@@ -1144,6 +1175,28 @@ private:
 
   void checkForNewVersion();
   void showUpdateAvailable(const QString& version);
+
+  //! What the default library lacks, and the action that installs it; hidden
+  //! when it is installed and current.
+  //! `linksToTemplates`: once installed, it offers to show the templates.
+  QWidget*
+  makeLibraryNotice(QWidget* parent, const QMargins& margins, bool linksToTemplates);
+  void updateLibraryNotices();
+  void onLibraryChanged();
+  void rebuildTemplatesPage();
+
+  struct LibraryNotice
+  {
+    QPointer<QWidget> box;
+    QPointer<QLabel> hint;
+    QPointer<InteractiveLabel> action;
+    bool linksToTemplates{};
+  };
+  std::vector<LibraryNotice> m_libraryNotices;
+  DefaultLibrary::State m_libraryState{DefaultLibrary::State::Current};
+  //! Shown after an install that this start screen saw, until it closes.
+  bool m_libraryInstalled{};
+  bool m_libraryViewRegistered{};
 
   QFont m_navFont;
   QFont m_sectionFont;
@@ -1197,6 +1250,11 @@ StartScreen::StartScreen(const QPointer<QRecentFilesMenu>& recentFiles, QWidget*
     m_firstRun = !s.value("score/StartScreenSeen", false).toBool();
     s.setValue("score/StartScreenSeen", true);
   }
+
+  m_libraryState = DefaultLibrary::instance().state();
+  connect(
+      &DefaultLibrary::instance(), &DefaultLibrary::changed, this,
+      &StartScreen::onLibraryChanged);
 
   // px, not pt: pt would shrink on macOS' 72 DPI.
   m_navFont = QFont("Montserrat");
@@ -1307,8 +1365,15 @@ StartScreen::StartScreen(const QPointer<QRecentFilesMenu>& recentFiles, QWidget*
   m_preview = new ThumbnailPopup{m_itemFont, m_smallFont, this};
 
   setCurrentPage(0);
+  updateLibraryNotices();
 
   checkForNewVersion();
+}
+
+StartScreen::~StartScreen()
+{
+  if(std::exchange(m_libraryViewRegistered, false))
+    DefaultLibrary::instance().removeView();
 }
 
 QWidget* StartScreen::createHeader()
@@ -1436,7 +1501,7 @@ StartScreen::makeTitleWithFilter(const QString& title, QVBoxLayout* lay, QWidget
 
   auto filter = new FilterEdit{page};
   filter->setFont(m_smallFont);
-  filter->setPlaceholderText(tr("Filter..."));
+  filter->setPlaceholderText(tr("Filter"));
   filter->setClearButtonEnabled(true);
   filter->setFixedWidth(220);
   row->addWidget(filter);
@@ -1525,13 +1590,13 @@ QWidget* StartScreen::createHomePage(const QPointer<QRecentFilesMenu>& recentFil
     });
     col->addWidget(newLabel);
 
-    auto templatesLabel = makeItem(tr("Start from a template..."), "new_file", "", page);
+    auto templatesLabel = makeItem(tr("Start from a template"), "new_file", "", page);
     connect(templatesLabel, &InteractiveLabel::labelPressed, this, [this] {
       setCurrentPage(m_templatesPage);
     });
     col->addWidget(templatesLabel);
 
-    auto openLabel = makeItem(tr("Open a score file..."), "load", "", page);
+    auto openLabel = makeItem(tr("Open a score file"), "load", "", page);
     connect(openLabel, &InteractiveLabel::labelPressed, this, [this] {
       choose([this] { openFileDialog(); });
     });
@@ -1545,6 +1610,8 @@ QWidget* StartScreen::createHomePage(const QPointer<QRecentFilesMenu>& recentFil
       choose([this] { joinSession(); });
     });
     col->addWidget(m_joinLabel);
+
+    col->addWidget(makeLibraryNotice(page, {0, 18, 0, 0}, true));
 
     col->addSpacing(18);
     col->addWidget(makeSectionTitle(tr("New to ossia score?"), page));
@@ -1663,7 +1730,15 @@ void StartScreen::refreshRecentFiles()
 
 QWidget* StartScreen::createTemplatesPage()
 {
-  return createCardsPage(
+  auto page = new QWidget;
+  auto lay = new QVBoxLayout{page};
+  lay->setContentsMargins(0, 0, 0, 0);
+  lay->setSpacing(0);
+
+  // Same side margins as the page below it.
+  lay->addWidget(makeLibraryNotice(page, {28, 20, 28, 0}, false));
+
+  lay->addWidget(createCardsPage(
       tr("Templates"),
       tr("A template opens as a new untitled score with devices, processes and a "
          "structure already in place."),
@@ -1675,7 +1750,10 @@ QWidget* StartScreen::createTemplatesPage()
       {tr("Learn how to write your own templates"),
        "https://ossia.io/score-docs/",
        "learn",
-       {}});
+       {}}), 1);
+
+  updateLibraryNotices();
+  return page;
 }
 
 QWidget* StartScreen::createAboutPage()
@@ -1732,7 +1810,8 @@ QWidget* StartScreen::createExamplesPage(bool online)
   lay->addWidget(makeHint(
       online ? tr("Each example is downloaded into your library the first time it "
                   "is opened, then opens as a new, untitled score. Ctrl-click opens "
-                  "the example file itself, Alt-click does not open its web page.")
+                  "the example file itself, Alt-click does not open its web page. "
+                  "Right-click an example to download it again.")
              : tr("Each example opens as a new, untitled score. Ctrl-click opens the "
                   "example file itself, Alt-click does not open its web page."),
       page));
@@ -1852,24 +1931,17 @@ std::vector<StartScreen::ExampleEntry> StartScreen::gatherExamples() const
 {
   std::vector<ExampleEntry> out;
 
-  std::set<QString> installed;
   for(const auto& doc : availableExampleDocuments())
-  {
-    installed.insert(QFileInfo{doc.path}.absoluteFilePath());
     out.push_back({doc.name, doc.category, doc.path, nullptr});
-  }
 
+  // A downloaded example is listed on both pages: online, its entry tells that
+  // there is a copy, and whether the online version changed since.
   for(const auto& ex : m_online.examples())
   {
-    // Once downloaded it is in the library, where the scan above finds it.
-    const auto local = OnlineExamples::localPath(ex);
-    if(!local.isEmpty() && installed.count(QFileInfo{local}.absoluteFilePath()))
-      continue;
-
     QString category = ex.section;
     if(!ex.group.isEmpty())
       category += " / " + ex.group;
-    out.push_back({ex.name, category, {}, &ex});
+    out.push_back({ex.name, category, OnlineExamples::localPath(ex), &ex});
   }
 
   return out;
@@ -1899,6 +1971,99 @@ void StartScreen::openOnlineExample(const OnlineExample& ex, bool direct, bool o
   });
 }
 
+void StartScreen::showOnlineExampleMenu(const OnlineExample& ex, const QPoint& globalPos)
+{
+  if(m_actionTaken)
+    return;
+  m_preview->hide();
+
+  const bool local = !OnlineExamples::localPath(ex).isEmpty();
+
+  // Not exec(): its event loop would keep the card's contextMenuEvent on the
+  // stack, while a new manifest or an installed library rebuilds the cards.
+  // The menu belongs to the start screen and its actions hold a copy of the
+  // example, so that they still work when the card is gone. They run once the
+  // menu has returned to the event loop, as they may ask with a dialog.
+  auto menu = new QMenu{this};
+  menu->setAttribute(Qt::WA_DeleteOnClose);
+  const auto add = [this, menu](const QString& text, auto&& f) {
+    auto action = menu->addAction(text);
+    connect(action, &QAction::triggered, this, std::forward<decltype(f)>(f),
+            Qt::QueuedConnection);
+    return action;
+  };
+
+  add(local ? tr("Open your copy as a new score") : tr("Download and open as a new score"),
+      [this, ex] { openOnlineExample(ex, false, false); });
+  add(local ? tr("Open the example file itself")
+            : tr("Download and open the example file itself"),
+      [this, ex] { openOnlineExample(ex, true, false); });
+  if(!ex.page.isEmpty())
+  {
+    add(tr("Open its web page"), [ex] {
+      if(const QUrl url{ex.page}; url.isValid() && !url.scheme().isEmpty())
+        QDesktopServices::openUrl(url);
+    });
+  }
+  if(local)
+  {
+    menu->addSeparator();
+    if(m_online.isDownloading(ex))
+    {
+      menu->addAction(tr("Downloading the online version"))->setEnabled(false);
+    }
+    else
+    {
+      add(OnlineExamples::changedOnline(ex) ? tr("Download the new online version")
+                                            : tr("Download the online version again"),
+          [this, ex] { replaceLocalCopy(ex); });
+    }
+  }
+  menu->popup(globalPos);
+}
+
+void StartScreen::replaceLocalCopy(const OnlineExample& ex)
+{
+  // Asked again while the dialog below or the download is under way.
+  if(m_online.isDownloading(ex) || m_replaceAsked.contains(ex.id))
+    return;
+
+  const auto path = OnlineExamples::localPath(ex);
+  if(!path.isEmpty())
+  {
+    const bool folder = ex.format == QLatin1String{"zip"};
+    const auto copy = folder ? OnlineExamples::installFolder(ex) : path;
+
+    m_replaceAsked.insert(ex.id);
+    const auto answer = score::question(
+        this, tr("Download again"),
+        (folder ? tr("Replace your copy of %1 with the online version? The whole "
+                     "folder of your copy is replaced: changes made to it and files "
+                     "added to it are lost.\n\n%2")
+                : tr("Replace your copy of %1 with the online version? Changes made "
+                     "to your copy are lost.\n\n%2"))
+            .arg(ex.name, QDir::toNativeSeparators(copy)));
+    m_replaceAsked.erase(ex.id);
+    if(answer != QMessageBox::Yes)
+      return;
+  }
+
+  m_online.install(ex, [self = QPointer{this}](const QString& path) {
+    if(!self)
+      return;
+    if(path.isEmpty())
+    {
+      score::warning(
+          self, tr("Download failed"),
+          tr("This example could not be downloaded. Your copy was kept as it was. "
+             "Check your connection and try again."));
+      return;
+    }
+    self->m_infos.erase(path);
+    self->refreshExamplesPage();
+  }, true);
+}
+
 void StartScreen::requestThumbnail(const OnlineExample& ex, ExampleCard* card)
 {
   new HTTPGet{
@@ -1914,7 +2079,7 @@ void StartScreen::requestThumbnail(const OnlineExample& ex, ExampleCard* card)
 
 void StartScreen::refreshExamplesPage()
 {
-  // An online example that got installed moves to the local page.
+  // An online example that got installed shows on the local page too.
   refreshExamplesPage(m_examplesPage, false);
   refreshExamplesPage(m_onlineExamplesPage, true);
 }
@@ -1966,9 +2131,34 @@ QWidget* StartScreen::makeCardGrid(
       info.description = online->description;
       info.url = online->page;
       card->setInfo(info);
-      card->setDownloadSize(online->size);
+
+      QString tip = online->name;
+      if(!online->description.isEmpty())
+        tip += "\n\n" + online->description;
+      if(doc.path.isEmpty())
+      {
+        card->setDownloadSize(online->size);
+      }
+      else
+      {
+        const bool changed = OnlineExamples::changedOnline(*online);
+        card->setBadge(
+            changed ? tr("Updated online") : tr("In your library"),
+            changed ? StartScreenColors::Accent : StartScreenColors::Muted);
+        tip += "\n\n"
+               + (changed ? tr("The online version changed since it was downloaded. "
+                               "Right-click to download it again.")
+                          : tr("Opens the copy in your library. Right-click to "
+                               "download the online version again."))
+               + "\n" + QDir::toNativeSeparators(doc.path);
+      }
+      card->setToolTip(tip);
       if(!online->image.isEmpty())
         requestThumbnail(*online, card);
+
+      card->onContextMenu = [this, ex = *online](const QPoint& pos) {
+        showOnlineExampleMenu(ex, pos);
+      };
 
       card->onActivated
           = [this, ex = *online](const QString&, Qt::KeyboardModifiers mods) {
@@ -2232,6 +2422,133 @@ void StartScreen::showUpdateAvailable(const QString& version)
   m_updateLabel->show();
 }
 
+QWidget* StartScreen::makeLibraryNotice(
+    QWidget* parent, const QMargins& margins, bool linksToTemplates)
+{
+  auto box = new QWidget{parent};
+  auto lay = new QVBoxLayout{box};
+  lay->setContentsMargins(margins);
+  lay->setSpacing(6);
+  lay->addWidget(makeSectionTitle(tr("Default library"), box));
+
+  auto hint = makeHint({}, box);
+  lay->addWidget(hint);
+
+  auto action = makeAccentItem({}, "library", "", box);
+  connect(action, &InteractiveLabel::labelPressed, this, [this] {
+    if(m_libraryInstalled)
+      setCurrentPage(m_templatesPage);
+    else
+      DefaultLibrary::instance().install();
+  });
+  lay->addWidget(action);
+
+  box->hide();
+  m_libraryNotices.push_back({box, hint, action, linksToTemplates});
+  return box;
+}
+
+void StartScreen::onLibraryChanged()
+{
+  const auto previous = std::exchange(m_libraryState, DefaultLibrary::instance().state());
+  if(previous == DefaultLibrary::State::Installing
+     && m_libraryState == DefaultLibrary::State::Current)
+  {
+    m_libraryInstalled = true;
+    // The templates and examples it brings are on disk now.
+    rebuildTemplatesPage();
+    refreshExamplesPage();
+  }
+  else if(m_libraryState != DefaultLibrary::State::Current)
+  {
+    m_libraryInstalled = false;
+  }
+  updateLibraryNotices();
+}
+
+void StartScreen::updateLibraryNotices()
+{
+  using State = DefaultLibrary::State;
+  const auto& lib = DefaultLibrary::instance();
+  const auto state = m_libraryState;
+
+  QString hint;
+  QString action;
+  switch(state)
+  {
+    case State::Current:
+      if(m_libraryInstalled)
+      {
+        hint = tr("The default library is installed.");
+        action = tr("Show the templates");
+      }
+      break;
+    case State::Missing:
+      hint = tr("The default library is not installed. It provides the templates, "
+                "and the presets and media that many examples use.");
+      action = lib.downloadSize() > 0
+                   ? tr("Install the default library (%1)")
+                         .arg(QLocale{}.formattedDataSize(lib.downloadSize()))
+                   : tr("Install the default library");
+      break;
+    case State::UpdateAvailable:
+      hint = tr("A new version of the default library is available, with its "
+                "templates, presets and media.");
+      action = lib.downloadSize() > 0
+                   ? tr("Update the default library (%1)")
+                         .arg(QLocale{}.formattedDataSize(lib.downloadSize()))
+                   : tr("Update the default library");
+      break;
+    case State::Installing:
+      hint = lib.progress() >= 0.
+                 ? tr("Downloading the default library: %1%")
+                       .arg(int(lib.progress() * 100.))
+                 : tr("Downloading the default library");
+      break;
+    case State::Failed:
+      hint = lib.error().isEmpty()
+                 ? tr("The default library could not be installed.")
+                 : tr("The default library could not be installed: %1").arg(lib.error());
+      action = tr("Try again");
+      break;
+  }
+
+  const bool installAction = state == State::Missing || state == State::UpdateAvailable
+                             || state == State::Failed;
+  if(installAction && !lib.canInstall())
+  {
+    hint += " " + tr("It can be installed from the Packages page of the settings.");
+    action.clear();
+  }
+
+  std::erase_if(m_libraryNotices, [](const LibraryNotice& n) { return !n.box; });
+  for(auto& n : m_libraryNotices)
+  {
+    const bool showAction
+        = !action.isEmpty() && (n.linksToTemplates || !m_libraryInstalled);
+    n.hint->setText(hint);
+    n.action->setText(action);
+    n.action->setVisible(showAction);
+    n.box->setVisible(!hint.isEmpty());
+  }
+}
+
+void StartScreen::rebuildTemplatesPage()
+{
+  // Not yet built: it will find the new templates when it first opens.
+  if(m_templatesPage <= 0 || m_pageFactories[m_templatesPage])
+    return;
+
+  auto host = m_pages->widget(m_templatesPage);
+  std::erase_if(m_cards, [host](auto* card) { return host->isAncestorOf(card); });
+  for(auto* w : host->findChildren<QWidget*>(Qt::FindDirectChildrenOnly))
+  {
+    w->hide();
+    w->deleteLater();
+  }
+  host->layout()->addWidget(createTemplatesPage());
+}
+
 void StartScreen::paintEvent(QPaintEvent* event)
 {
   QPainter painter(this);
@@ -2300,10 +2617,19 @@ void StartScreen::paintEvent(QPaintEvent* event)
 void StartScreen::showEvent(QShowEvent* event)
 {
   QWidget::showEvent(event);
+  if(!std::exchange(m_libraryViewRegistered, true))
+    DefaultLibrary::instance().addView();
   if(auto* p = parentWidget())
     setGeometry(p->rect());
   raise();
   setFocus();
+}
+
+void StartScreen::hideEvent(QHideEvent* event)
+{
+  QWidget::hideEvent(event);
+  if(std::exchange(m_libraryViewRegistered, false))
+    DefaultLibrary::instance().removeView();
 }
 
 bool StartScreen::eventFilter(QObject* watched, QEvent* event)
