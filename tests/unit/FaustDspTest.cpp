@@ -23,6 +23,12 @@ using Catch::Approx;
 
 namespace
 {
+// The precision libfaust was built with, which the plugin also uses.
+constexpr bool faust_single = sizeof(FAUSTFLOAT) == 4;
+
+//! Rounding of a product or a sum in that precision
+constexpr double rounding = faust_single ? 1e-6 : 1e-15;
+
 struct Jit
 {
   llvm_dsp_factory* fac{};
@@ -34,7 +40,7 @@ struct Jit
     // https://github.com/grame-cncm/faust/issues/1117 (mirrors the plugin)
     ossia::reset_default_fpu_state();
 
-    const char* args[] = {"-double", "-vec"};
+    const char* args[] = {faust_single ? "-single" : "-double", "-vec"};
     fac = createDSPFactoryFromString("score_test", code, 2, args, "", err, -1);
     if(fac)
     {
@@ -60,20 +66,21 @@ struct Jit
   // mono in -> mono out
   std::vector<double> run1(const std::vector<double>& in)
   {
-    std::vector<double> out(in.size(), 0.0);
-    double* ins[1] = {const_cast<double*>(in.data())};
-    double* outs[1] = {out.data()};
+    std::vector<FAUSTFLOAT> fin(in.begin(), in.end());
+    std::vector<FAUSTFLOAT> out(in.size(), 0);
+    FAUSTFLOAT* ins[1] = {fin.data()};
+    FAUSTFLOAT* outs[1] = {out.data()};
     dsp->compute((int)in.size(), ins, outs);
-    return out;
+    return {out.begin(), out.end()};
   }
 
   // generator (0 in) -> mono out
   std::vector<double> gen1(int frames)
   {
-    std::vector<double> out(frames, 0.0);
-    double* outs[1] = {out.data()};
+    std::vector<FAUSTFLOAT> out(frames, 0);
+    FAUSTFLOAT* outs[1] = {out.data()};
     dsp->compute(frames, nullptr, outs);
-    return out;
+    return {out.begin(), out.end()};
   }
 };
 
@@ -134,7 +141,7 @@ std::vector<double> ramp(int n)
 {
   std::vector<double> v(n);
   for(int i = 0; i < n; i++)
-    v[i] = 0.001 * i - 0.25;
+    v[i] = FAUSTFLOAT(0.001 * i - 0.25);
   return v;
 }
 }
@@ -205,7 +212,7 @@ TEST_CASE(
   std::uniform_real_distribution<double> dist{-1.0, 1.0};
   std::vector<double> in(512);
   for(auto& s : in)
-    s = dist(rng);
+    s = FAUSTFLOAT(dist(rng));
 
   const auto out = fx.run1(in);
 
@@ -213,7 +220,7 @@ TEST_CASE(
   for(int i = 0; i < 512; i++)
   {
     y = in[i] + 0.5 * y;
-    REQUIRE(out[i] == Approx(y).margin(1e-12));
+    REQUIRE(out[i] == Approx(y).margin(rounding * 1e3));
   }
 }
 
@@ -229,15 +236,16 @@ TEST_CASE("Faust JIT: multi-channel routing is independent", "[faust][jit]")
   for(auto& s : in1)
     s = -s + 0.125;
 
-  std::vector<double> out0(256), out1(256);
-  double* ins[2] = {const_cast<double*>(in0.data()), in1.data()};
-  double* outs[2] = {out0.data(), out1.data()};
+  std::vector<FAUSTFLOAT> fin0(in0.begin(), in0.end()), fin1(in1.begin(), in1.end());
+  std::vector<FAUSTFLOAT> out0(256), out1(256);
+  FAUSTFLOAT* ins[2] = {fin0.data(), fin1.data()};
+  FAUSTFLOAT* outs[2] = {out0.data(), out1.data()};
   fx.dsp->compute(256, ins, outs);
 
   for(int i = 0; i < 256; i++)
   {
     REQUIRE(out0[i] == Approx(2.0 * in0[i]).margin(1e-15));
-    REQUIRE(out1[i] == Approx(3.0 * in1[i]).margin(1e-15));
+    REQUIRE(out1[i] == Approx(3.0 * in1[i]).margin(rounding));
   }
 }
 
