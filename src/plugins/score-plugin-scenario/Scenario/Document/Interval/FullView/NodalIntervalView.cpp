@@ -3,6 +3,9 @@
 #include <Scenario/Application/Drops/DropOnCable.hpp>
 #include <Scenario/Application/Drops/DropProcessInInterval.hpp>
 #include <Scenario/Application/Drops/ScenarioDropHandler.hpp>
+#include <Scenario/Commands/CommandAPI.hpp>
+#include <Scenario/Commands/Interval/AddProcessToInterval.hpp>
+#include <Scenario/DialogWidget/AddProcessDialog.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/Interval/IntervalPresenter.hpp>
 #include <Scenario/Document/ScenarioDocument/ProcessCreation.hpp>
@@ -23,7 +26,9 @@
 
 #include <ossia/detail/math.hpp>
 
+#include <QApplication>
 #include <QGraphicsRectItem>
+#include <QPointer>
 #include <QGraphicsSceneDragDropEvent>
 #include <QGraphicsView>
 #include <QPainter>
@@ -495,6 +500,38 @@ void NodalIntervalView::mouseReleaseEvent(QGraphicsSceneMouseEvent* e)
   e->accept();
 }
 
+void NodalIntervalView::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* e)
+{
+  // Items on the canvas take their own double clicks: this one is on the
+  // background.
+  if(e->button() != Qt::LeftButton || e->modifiers() != Qt::NoModifier)
+  {
+    e->ignore();
+    return;
+  }
+  e->accept();
+  openProcessPicker(m_container->mapFromParent(e->pos()));
+}
+
+void NodalIntervalView::openProcessPicker(QPointF nodePos)
+{
+  auto& fact = m_context.app.interfaces<Process::ProcessFactoryList>();
+  auto dialog = new AddProcessDialog{
+      fact, Process::ProcessFlags::SupportsTemporal, QApplication::activeWindow()};
+
+  // The dialog runs its own event loop, which may close the document.
+  QPointer<NodalIntervalView> self = this;
+  dialog->on_okPressed = [self, nodePos](const AddProcessDialog::Key& key, QString data) {
+    if(!self)
+      return;
+    Command::Macro m{new Command::DropProcessInIntervalMacro, self->m_context};
+    if(m.createProcessInNewSlot(self->m_model, key, data, nodePos))
+      m.commit();
+  };
+
+  dialog->launchWindow();
+  dialog->deleteLater();
+}
 
 void NodalIntervalView::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
 {

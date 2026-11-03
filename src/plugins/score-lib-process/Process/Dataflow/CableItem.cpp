@@ -1,6 +1,7 @@
 #include "CableItem.hpp"
 
 #include <Process/Dataflow/Cable.hpp>
+#include <Process/Dataflow/NodeItem.hpp>
 #include <Process/Dataflow/PortItem.hpp>
 #include <Process/DocumentPlugin.hpp>
 #include <Process/Process.hpp>
@@ -57,14 +58,14 @@ CableItem::CableItem(
     {
       if(b)
       {
-        setZValue(999999);
+        setZValue(selectedZ);
         m_p1->setHighlight(true);
         m_p2->setHighlight(true);
         this->setFocus(Qt::OtherFocusReason);
       }
       else
       {
-        setZValue(-1);
+        updateHighlight();
         m_p1->setHighlight(false);
         m_p2->setHighlight(false);
         this->clearFocus();
@@ -150,7 +151,7 @@ bool CableItem::contains(const QPointF& point) const
 void CableItem::setPen(QPainter& painter, const Process::Style& style)
 {
   auto& brush = [&]() -> score::BrushSet& {
-    if(!m_cable.selection.get())
+    if(!m_cable.selection.get() && !m_highlight)
     {
       [[likely]];
       switch(m_type)
@@ -356,6 +357,47 @@ static CableDisplayMode cableMustBeShown(CableItem& self, PortItem* p1, PortItem
   }
 }
 
+static const Process::NodeItem* nodeOf(const QGraphicsItem* item) noexcept
+{
+  for(; item; item = item->parentItem())
+    if(item->type() == Process::NodeItem::Type)
+      return static_cast<const Process::NodeItem*>(item);
+  return nullptr;
+}
+
+bool CableItem::linksSelectedNode() const noexcept
+{
+  for(const PortItem* p : {m_p1.data(), m_p2.data()})
+    if(auto* node = nodeOf(p); node && node->isNodeSelected())
+      return true;
+  return false;
+}
+
+void CableItem::updateHighlight()
+{
+  const bool h = linksSelectedNode();
+  if(h != m_highlight)
+  {
+    m_highlight = h;
+    update();
+  }
+  const bool raised = h || m_cable.selection.get()
+                     || (m_p1 && m_p1->port().selection.get())
+                     || (m_p2 && m_p2->port().selection.get());
+  setZValue(raised ? selectedZ : restingZ());
+}
+
+qreal CableItem::restingZ() const noexcept
+{
+  // In a nodal view a cable goes over the nodes it links, which would
+  // otherwise hide where it goes; in the timeline it stays under the boxes.
+  if(m_p1 && m_p2)
+    if(auto* n1 = nodeOf(m_p1), *n2 = nodeOf(m_p2);
+       n1 && n2 && n1->parentItem() == n2->parentItem())
+      return nodalZ;
+  return -1.;
+}
+
 void CableItem::check()
 {
   if(g_cables_enabled)
@@ -375,6 +417,7 @@ void CableItem::check()
       m_type = m_p1->port().type();
       if(auto c_o = m_p1->commonAncestorItem(m_p2))
         setParentItem(c_o);
+      updateHighlight();
       resize();
     }
   }

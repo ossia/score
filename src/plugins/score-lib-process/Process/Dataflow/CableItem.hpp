@@ -67,6 +67,17 @@ public:
   //! PortItem::hitRadius by enough to be aimed at without magnifying the view.
   static double grabZoneRadius(QPointF p1, QPointF p2) noexcept;
 
+  //! Above every other item of a view while the cable or one of its ports is selected
+  static constexpr qreal selectedZ = 999999.;
+  //! Above the nodes of a nodal view, below its selection rectangle
+  static constexpr qreal nodalZ = 500.;
+  //! Where the cable sits when nothing makes it stand out
+  qreal restingZ() const noexcept;
+
+  //! A cable of a selected node is drawn as selected and over the others
+  bool linksSelectedNode() const noexcept;
+  void updateHighlight();
+
   void resize();
   void check();
   PortItem* source() const noexcept;
@@ -120,6 +131,7 @@ private:
   mutable QPainterPath m_stroke;
   Process::PortType m_type : 4 {};
   bool m_dropping : 1 {};
+  bool m_highlight : 1 {};
   CableDisplayMode m_mode : 2 {CableDisplayMode::None};
 };
 }

@@ -9,6 +9,7 @@
 #include <score/model/path/PathSerialization.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
 
+#include <ossia/detail/algorithms.hpp>
 #include <ossia/detail/flat_set.hpp>
 namespace Dataflow
 {
@@ -200,6 +201,28 @@ void moveCableEndpoints(
   {
     if(cable)
       any |= moveCableEndpoint(m, plug, ctx, *cable, newPort);
+  }
+
+  if(any)
+    m.commit();
+}
+
+void removeCablesInOneStep(
+    const score::DocumentContext& ctx, std::span<Process::Cable* const> cables)
+{
+  auto& plug = ctx.model<Scenario::ScenarioDocumentModel>();
+
+  Scenario::Command::Macro m{new RemoveCables, ctx};
+  bool any = false;
+  // Only the cables the document still has: the caller may have kept the
+  // pointers through an event loop
+  for(auto& cable : plug.cables)
+  {
+    if(ossia::contains(cables, &cable))
+    {
+      m.removeCable(plug, cable);
+      any = true;
+    }
   }
 
   if(any)

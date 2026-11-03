@@ -26,6 +26,7 @@
 #include <QDialog>
 #include <QDialogButtonBox>
 #include <QListWidget>
+#include <QPointer>
 #include <QMenuView/qmenuview.h>
 #include <QVBoxLayout>
 
@@ -231,7 +232,7 @@ public:
     auto selected = m_learn.currentRow();
     if(ossia::valid_index(selected, m_learn.messages))
     {
-      selectedAddress = &m_learn.messages.tree().get_sequence_cref()[selected].first;
+      selectedAddress = m_learn.messages.tree().get_sequence_cref()[selected].first;
       accept();
     }
     else
@@ -240,22 +241,50 @@ public:
     }
   }
 
-  const State::Address* selectedAddress{};
+  std::optional<State::Address> selectedAddress;
 };
 }
+static std::optional<Device::FullAddressAccessorSettings>
+learnAddress(Device::NodeBasedItemModel& model, QWidget* parent)
+{
+  // On the heap: its parent, or the document the model belongs to, may be
+  // deleted while the dialog runs its own event loop
+  QPointer<Device::NodeBasedItemModel> modelGuard = &model;
+  QPointer<LearnDialog> dialog = new LearnDialog{model, parent};
+  dialog->setWindowTitle(QObject::tr("Learn"));
+  dialog->exec();
+  if(!dialog)
+    return std::nullopt;
+  const auto picked = dialog->selectedAddress;
+  delete dialog;
+
+  // The explorer may have lost the node while the dialog was open
+  if(picked && modelGuard)
+    if(auto node = Device::try_getNodeFromAddress(model.rootNode(), *picked))
+      return makeFullAddressAccessorSettings(*node);
+  return std::nullopt;
+}
+
+std::optional<Device::FullAddressAccessorSettings>
+learnAddress(const score::DocumentContext& ctx, QWidget* parent)
+{
+  auto& plist = ctx.app.interfaces<Device::DeviceModelProviderList>();
+  if(auto provider = plist.getBestProvider(ctx))
+    if(auto model = provider->getNodeModel(ctx))
+      return learnAddress(*model, parent);
+  return std::nullopt;
+}
+
 void AddressAccessorEditWidget::startLearn()
 {
-  auto dialog = new LearnDialog{*m_model};
-  dialog->exec();
-  // The explorer may have lost the node while the dialog was open
-  if(dialog->selectedAddress)
+  QPointer<AddressAccessorEditWidget> self = this;
+  auto res = learnAddress(*m_model, this);
+  if(!self)
+    return;
+  if(res)
   {
-    if(auto node
-       = Device::try_getNodeFromAddress(m_model->rootNode(), *dialog->selectedAddress))
-    {
-      setFullAddress(makeFullAddressAccessorSettings(*node));
-      addressChanged(m_address);
-    }
+    setFullAddress(std::move(*res));
+    addressChanged(m_address);
   }
 }
 

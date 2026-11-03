@@ -3,6 +3,8 @@
 
 #include <QWidget>
 
+#include <optional>
+
 #include <score_lib_process_export.h>
 
 #include <verdigris>
@@ -22,6 +24,12 @@ class NodeBasedItemModel;
 }
 namespace Process
 {
+//! Shows the addresses of the document's devices as their values change, and
+//! returns the one the user picks; nothing if they cancel.
+SCORE_LIB_PROCESS_EXPORT
+std::optional<Device::FullAddressAccessorSettings>
+learnAddress(const score::DocumentContext& ctx, QWidget* parent = nullptr);
+
 template <typename Parent_T>
 class AddressAccessorLineEdit;
 class SCORE_LIB_PROCESS_EXPORT AddressAccessorEditWidget final : public QWidget
