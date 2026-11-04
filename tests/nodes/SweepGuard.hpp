@@ -4,7 +4,8 @@
 // that cannot be built headlessly at all, and the SWEEP_ONLY filter.
 //
 // SWEEP_NOGUARD disables the guard so a debugger stops on the real fault;
-// SWEEP_ONLY=<uuid>,<uuid> restricts a sweep to those factories.
+// SWEEP_ONLY=<uuid>,<uuid> restricts a sweep to those factories;
+// SWEEP_SHARD=<i>/<n> to the i-th of n disjoint parts of them.
 
 #include <QtGlobal>
 
@@ -12,6 +13,8 @@
 
 #include <csetjmp>
 #include <csignal>
+#include <cstdint>
+#include <cstdio>
 #include <cstdlib>
 #include <set>
 #include <string>
@@ -81,7 +84,8 @@ inline void restore_crash_handlers()
 inline constexpr unsigned watchdog_seconds = 20;
 
 //! Factories that cannot be constructed headlessly without blocking or crashing
-//! outside of the guard; all of them need an external plug-in.
+//! outside of the guard; all of them need an external plug-in. The exec sweep
+//! gives them one (ValidationPlugins.hpp) when it is installed.
 inline const std::set<std::string> construction_denylist = {
     // LV2: the lilv world scans the system plug-in directories, forever
     "fd5243ba-70b5-4164-b44a-ecb0dcdc0494",
@@ -120,6 +124,25 @@ inline std::set<std::string> only()
     }
   }
   return res;
+}
+
+//! SWEEP_SHARD=<i>/<n>: whether the factory `uuid` belongs to shard i of n,
+//! numbered from 1. The shard follows from the uuid alone, so a factory is in
+//! the same shard on every run and every platform, whatever the order the
+//! factories are registered in. Without SWEEP_SHARD every factory is in.
+inline bool in_shard(const std::string& uuid)
+{
+  const char* v = std::getenv("SWEEP_SHARD");
+  if(!v)
+    return true;
+  unsigned i = 0, n = 0;
+  if(std::sscanf(v, "%u/%u", &i, &n) != 2 || n == 0 || i == 0 || i > n)
+    return true;
+  // FNV-1a
+  uint32_t h = 2166136261u;
+  for(unsigned char c : uuid)
+    h = (h ^ c) * 16777619u;
+  return h % n == i - 1;
 }
 
 //! Runs f under the crash guard and the watchdog. Returns false, with what

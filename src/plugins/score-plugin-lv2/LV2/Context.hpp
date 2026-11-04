@@ -209,7 +209,10 @@ struct SCORE_PLUGIN_LV2_TEST_EXPORT GlobalContext
 {
 public:
   GlobalContext(int buffer_size, LV2::HostContext& host);
+  //! Sets LV2_PATH to the system plug-in directories, then mapHostUrids
   void loadPlugins();
+  //! The URIDs every instance is run with: atom, MIDI and time
+  void mapHostUrids();
   LV2_Feature const* const* features() const { return lv2_features.data(); }
 
   using urid_map_t = boost::bimap<std::string, LV2_URID>;
