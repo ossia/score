@@ -1,102 +1,10 @@
-Presets/GLSL_shaders/basic/filter/3d Rotate.vs	parse
-Presets/GLSL_shaders/basic/filter/5-Color Gradient.vs	parse
-Presets/GLSL_shaders/basic/filter/Circular Screen.vs	parse
-Presets/GLSL_shaders/basic/filter/Color Blowout.vs	parse
-Presets/GLSL_shaders/basic/filter/Dot Screen.vs	parse
-Presets/GLSL_shaders/basic/filter/Edge Distort.vs	parse
-Presets/GLSL_shaders/basic/filter/Edge Trace.vs	parse
-Presets/GLSL_shaders/basic/filter/Edges.vs	parse
-Presets/GLSL_shaders/basic/filter/Emboss.vs	parse
-Presets/GLSL_shaders/basic/filter/Halftone Multi.vs	parse
-Presets/GLSL_shaders/basic/filter/Line Screen.vs	parse
-Presets/GLSL_shaders/basic/filter/Mirror Edge.vs	parse
-Presets/GLSL_shaders/basic/filter/Neon.vs	parse
-Presets/GLSL_shaders/basic/filter/Sharpen Luminance.vs	parse
-Presets/GLSL_shaders/basic/filter/Sharpen RGB.vs	parse
-Presets/GLSL_shaders/basic/filter/Sketch.vs	parse
-Presets/GLSL_shaders/basic/filter/Sorting Smear.vs	parse
-Presets/GLSL_shaders/basic/filter/Strojobal.vs	parse
-Presets/GLSL_shaders/basic/filter/Thermal Camera.vs	parse
-Presets/GLSL_shaders/basic/filter/Unsharp Mask.vs	parse
-Presets/GLSL_shaders/basic/filter/Vertex Manipulator.vs	parse
-Presets/GLSL_shaders/basic/filter/v002 Dilate.vs	parse
-Presets/GLSL_shaders/basic/filter/v002 Erode.vs	parse
-Presets/GLSL_shaders/basic/filter/v002 Light Leak.vs	parse
-Presets/GLSL_shaders/basic/multipass/Auto Levels.vs	parse
-Presets/GLSL_shaders/basic/multipass/Bloom.vs	parse
-Presets/GLSL_shaders/basic/multipass/City Lights.vs	parse
-Presets/GLSL_shaders/basic/multipass/Color Blowout.vs	parse
-Presets/GLSL_shaders/basic/multipass/Edge Blur.vs	parse
-Presets/GLSL_shaders/basic/multipass/Fast Blur.vs	parse
-Presets/GLSL_shaders/basic/multipass/FastMosh.vs	parse
-Presets/GLSL_shaders/basic/multipass/Gloom.vs	parse
-Presets/GLSL_shaders/basic/multipass/Glow-Fast.vs	parse
-Presets/GLSL_shaders/basic/multipass/Glow.vs	parse
-Presets/GLSL_shaders/basic/multipass/Lens Flare.vs	parse
-Presets/GLSL_shaders/basic/multipass/Life.vs	parse
-Presets/GLSL_shaders/basic/multipass/Multi Pass Gaussian Blur.vs	parse
-Presets/GLSL_shaders/basic/multipass/Optical Flow Distort.vs	parse
-Presets/GLSL_shaders/basic/multipass/Saturation Bleed.vs	parse
-Presets/GLSL_shaders/basic/multipass/Smudged Lens.vs	parse
-Presets/GLSL_shaders/basic/multipass/Soft Blur.vs	parse
-Presets/GLSL_shaders/basic/multipass/Sorting Smear.vs	parse
-Presets/GLSL_shaders/gitizenme/52.24.vs	parse
-Presets/GLSL_shaders/gitizenme/ALifeLEDWall.vs	parse
-Presets/GLSL_shaders/gitizenme/Audio Bars.vs	parse
-Presets/GLSL_shaders/gitizenme/CloudVortex.vs	parse
-Presets/GLSL_shaders/gitizenme/Cosplay.vs	parse
-Presets/GLSL_shaders/gitizenme/CubicMatrixModulatorRedux.vs	parse
-Presets/GLSL_shaders/gitizenme/FractilianSpongeOfDoom .vs	parse
-Presets/GLSL_shaders/gitizenme/GuidingStar.vs	parse
-Presets/GLSL_shaders/gitizenme/GuidingStar_2.vs	parse
-Presets/GLSL_shaders/gitizenme/InversionFlow.vs	parse
-Presets/GLSL_shaders/gitizenme/Linescape.vs	parse
-Presets/GLSL_shaders/gitizenme/MoireSpirograph.vs	parse
-Presets/GLSL_shaders/gitizenme/Plasma Sparkle.vs	parse
-Presets/GLSL_shaders/gitizenme/PrimeWaves.vs	parse
-Presets/GLSL_shaders/gitizenme/RainbowGlowRing.vs	parse
-Presets/GLSL_shaders/gitizenme/SimplyNebulous.vs	parse
-Presets/GLSL_shaders/gitizenme/SpaceSpore.vs	parse
-Presets/GLSL_shaders/gitizenme/SpirographSpectrum.vs	parse
-Presets/GLSL_shaders/gitizenme/Trigonometric2.vs	parse
-Presets/GLSL_shaders/gitizenme/Vortex-V2.vs	parse
-Presets/GLSL_shaders/gitizenme/WaveLines.vs	parse
-Presets/GLSL_shaders/gitizenme/WaveShapes.vs	parse
-Presets/GLSL_shaders/gitizenme/ZenFlames.vs	parse
-Presets/GLSL_shaders/gitizenme/gum.vs	parse
-Presets/GLSL_shaders/grigm/BBC 70's Globerizer.vs	parse
-Presets/GLSL_shaders/grigm/Bar Transition.vs	parse
-Presets/GLSL_shaders/grigm/Default.vs	parse
-Presets/GLSL_shaders/grigm/Dither floyd-steinberg-ish.vs	parse
-Presets/GLSL_shaders/grigm/Extend.vs	parse
-Presets/GLSL_shaders/grigm/FeedBackGlitch/FeedBackGlitch.vs	parse
-Presets/GLSL_shaders/grigm/Fractal Dots.vs	parse
-Presets/GLSL_shaders/grigm/GlitchTransition.vs	parse
-Presets/GLSL_shaders/grigm/IQ_PolygonDeformation.vs	parse
-Presets/GLSL_shaders/grigm/Matrix/Matrix.vs	parse
-Presets/GLSL_shaders/grigm/Mitti/Rotate.vs	parse
-Presets/GLSL_shaders/grigm/SmoothXORi.vs	parse
-Presets/GLSL_shaders/grigm/Soft Borders.vs	parse
-Presets/GLSL_shaders/grigm/SphericalCubeMapper1.vs	parse
-Presets/GLSL_shaders/grigm/Vertex Noise.vs	parse
-Presets/GLSL_shaders/grigm/Video Heightfield.vs	parse
-Presets/GLSL_shaders/grigm/circle/Default.vs	parse
-Presets/GLSL_shaders/grigm/circle/Soft Borders.vs	parse
-Presets/GLSL_shaders/grigm/shaders/lines/Default.vs	parse
-Presets/GLSL_shaders/grigm/shaders/mask/Default.vs	parse
-Presets/GLSL_shaders/grigm/shaders/surface3D/Default.vs	parse
-Presets/GLSL_shaders/grigm/shaders/surface3D/Vertex Noise.vs	parse
-Presets/GLSL_shaders/grigm/shaders/triangle/Default.vs	parse
-Presets/GLSL_shaders/grigm/shaders/triangle/Soft Borders.vs	parse
-Presets/GLSL_shaders/sophia-digital-art/edges.vs	parse
-Presets/GLSL_shaders/utility/Video Mapper.vs	parse
-Presets/Javascript/rect-mapper/edgeblend.vert	parse
 Presets/Vertex Shader Art/audioreactive/150bpm.vs	blank
 Presets/Vertex Shader Art/audioreactive/1903-GridCircles.vs	blank
 Presets/Vertex Shader Art/audioreactive/1903-GridHexagons.vs	blank
 Presets/Vertex Shader Art/audioreactive/3D_Soundscape.vs	blank
-Presets/Vertex Shader Art/audioreactive/A_series_of_oddities.vs	blank
+Presets/Vertex Shader Art/audioreactive/80smovielogo.vs	blank
 Presets/Vertex Shader Art/audioreactive/Alert-2.vs	blank
+Presets/Vertex Shader Art/audioreactive/Amoeba_V3-1.vs	blank
 Presets/Vertex Shader Art/audioreactive/Amoeba_V3.vs	blank
 Presets/Vertex Shader Art/audioreactive/Animated_Cross_Hatching-1.vs	blank
 Presets/Vertex Shader Art/audioreactive/Audio_Reactive_Art_-_Tweaks.vs	blank
@@ -120,6 +28,8 @@ Presets/Vertex Shader Art/audioreactive/Circles_From_Triangles.vs	blank
 Presets/Vertex Shader Art/audioreactive/Circles_from_Triangles-1.vs	blank
 Presets/Vertex Shader Art/audioreactive/Circles_from_Triangles-10.vs	blank
 Presets/Vertex Shader Art/audioreactive/Circles_from_Triangles-11.vs	blank
+Presets/Vertex Shader Art/audioreactive/Circles_from_Triangles-13.vs	blank
+Presets/Vertex Shader Art/audioreactive/Circles_from_Triangles-13.vs	blank-mid
 Presets/Vertex Shader Art/audioreactive/Circles_from_Triangles-15.vs	blank
 Presets/Vertex Shader Art/audioreactive/Circles_from_Triangles-16.vs	blank
 Presets/Vertex Shader Art/audioreactive/Circles_from_Triangles-19.vs	blank
@@ -148,6 +58,7 @@ Presets/Vertex Shader Art/audioreactive/Circles_from_Triangles_Own_variation.vs	
 Presets/Vertex Shader Art/audioreactive/Circles_from_Triangles_Variation.vs	blank
 Presets/Vertex Shader Art/audioreactive/Circles_from_Triangles_by_Jaeyeong_An.vs	blank
 Presets/Vertex Shader Art/audioreactive/Circles_from_Triangles_donga.choi.vs	blank
+Presets/Vertex Shader Art/audioreactive/Circles_from_Triangles_extra.vs	blank-mid
 Presets/Vertex Shader Art/audioreactive/Circles_from_Triangles_minseok_kim.vs	blank
 Presets/Vertex Shader Art/audioreactive/Circles_from_Triangles_new_1.vs	blank
 Presets/Vertex Shader Art/audioreactive/Circles_from_Triangles_own_variation_1.vs	blank
@@ -167,6 +78,7 @@ Presets/Vertex Shader Art/audioreactive/Galaxy_dance-1.vs	blank
 Presets/Vertex Shader Art/audioreactive/Galaxy_dance.vs	blank
 Presets/Vertex Shader Art/audioreactive/HexGrid-1.vs	blank
 Presets/Vertex Shader Art/audioreactive/HexGrid-3.vs	blank
+Presets/Vertex Shader Art/audioreactive/HexGrid-5.vs	blank
 Presets/Vertex Shader Art/audioreactive/HexGrid-8.vs	blank
 Presets/Vertex Shader Art/audioreactive/HexGrid_4_Km.vs	blank
 Presets/Vertex Shader Art/audioreactive/Hippie_Spiral-1.vs	blank
@@ -230,6 +142,9 @@ Presets/Vertex Shader Art/audioreactive/bhatsu-2.vs	blank
 Presets/Vertex Shader Art/audioreactive/bhatsu.vs	blank
 Presets/Vertex Shader Art/audioreactive/bhatsux-2.vs	blank
 Presets/Vertex Shader Art/audioreactive/bhatsux.vs	blank
+Presets/Vertex Shader Art/audioreactive/blorp-1.vs	blank
+Presets/Vertex Shader Art/audioreactive/blorp-2.vs	blank
+Presets/Vertex Shader Art/audioreactive/blorp.vs	blank
 Presets/Vertex Shader Art/audioreactive/bound.vs	blank
 Presets/Vertex Shader Art/audioreactive/bounder2_far.vs	blank
 Presets/Vertex Shader Art/audioreactive/bugs.vs	blank
@@ -265,6 +180,8 @@ Presets/Vertex Shader Art/audioreactive/crystal_dancer_mouse.xy-4.vs	blank
 Presets/Vertex Shader Art/audioreactive/crystal_dancer_mouse.xy.vs	blank
 Presets/Vertex Shader Art/audioreactive/crystal_dancer_mouse.xy_2.vs	blank
 Presets/Vertex Shader Art/audioreactive/crystal_dancer_mouse.xy_3-1.vs	blank
+Presets/Vertex Shader Art/audioreactive/crystal_dancer_mouse.xy_3-2.vs	blank
+Presets/Vertex Shader Art/audioreactive/crystal_dancer_mouse.xy_3-3.vs	blank
 Presets/Vertex Shader Art/audioreactive/crystal_dancer_mouse.xy_3.vs	blank
 Presets/Vertex Shader Art/audioreactive/crystal_irisz_1-1.vs	blank
 Presets/Vertex Shader Art/audioreactive/crystal_irisz_1-2.vs	blank
@@ -278,7 +195,6 @@ Presets/Vertex Shader Art/audioreactive/crystal_irisz_1xxx-2.vs	blank
 Presets/Vertex Shader Art/audioreactive/crystal_irisz_1xxx-3.vs	blank
 Presets/Vertex Shader Art/audioreactive/crystal_irisz_1xxx-4.vs	blank
 Presets/Vertex Shader Art/audioreactive/crystal_irisz_1xxx-5.vs	blank
-Presets/Vertex Shader Art/audioreactive/crystal_irisz_1xxx-6.vs	blank
 Presets/Vertex Shader Art/audioreactive/crystal_irisz_1xxx-7.vs	blank
 Presets/Vertex Shader Art/audioreactive/crystal_irisz_1xxx-8.vs	blank
 Presets/Vertex Shader Art/audioreactive/crystal_irisz_1xxx-9.vs	blank
@@ -295,6 +211,7 @@ Presets/Vertex Shader Art/audioreactive/crystal_irisz_mouse.xy-1.vs	blank
 Presets/Vertex Shader Art/audioreactive/crystal_irisz_mouse.xy.vs	blank
 Presets/Vertex Shader Art/audioreactive/crystal_iriszhr_1.vs	blank
 Presets/Vertex Shader Art/audioreactive/crystalsnds.vs	blank
+Presets/Vertex Shader Art/audioreactive/cs230_2.vs	blank
 Presets/Vertex Shader Art/audioreactive/csop.vs	blank
 Presets/Vertex Shader Art/audioreactive/cube.vs	blank
 Presets/Vertex Shader Art/audioreactive/cubes-3.vs	blank
@@ -306,7 +223,6 @@ Presets/Vertex Shader Art/audioreactive/deliver03.vs	blank
 Presets/Vertex Shader Art/audioreactive/deliver04.vs	blank
 Presets/Vertex Shader Art/audioreactive/discus.vs	blank
 Presets/Vertex Shader Art/audioreactive/dot_art.vs	blank
-Presets/Vertex Shader Art/audioreactive/dotp-1.vs	blank
 Presets/Vertex Shader Art/audioreactive/dotp-2.vs	blank
 Presets/Vertex Shader Art/audioreactive/dotp.vs	blank
 Presets/Vertex Shader Art/audioreactive/dotqyub-1.vs	blank
@@ -373,7 +289,6 @@ Presets/Vertex Shader Art/audioreactive/moduloi_kanssani2.vs	blank
 Presets/Vertex Shader Art/audioreactive/morp-2.vs	blank
 Presets/Vertex Shader Art/audioreactive/msh_conveyor.vs	blank
 Presets/Vertex Shader Art/audioreactive/msh_jellyfish.vs	blank
-Presets/Vertex Shader Art/audioreactive/murf.vs	blank
 Presets/Vertex Shader Art/audioreactive/music.vs	blank
 Presets/Vertex Shader Art/audioreactive/musicBox.vs	blank
 Presets/Vertex Shader Art/audioreactive/netflix_lines.vs	blank
@@ -387,7 +302,6 @@ Presets/Vertex Shader Art/audioreactive/old_greg_kmachine_wip.vs	blank
 Presets/Vertex Shader Art/audioreactive/old_greg_kmachine_wip22.vs	blank
 Presets/Vertex Shader Art/audioreactive/old_greg_kmachine_wip224.vs	blank
 Presets/Vertex Shader Art/audioreactive/omg-2.vs	blank
-Presets/Vertex Shader Art/audioreactive/orbit.vs	blank
 Presets/Vertex Shader Art/audioreactive/outty.vs	blank
 Presets/Vertex Shader Art/audioreactive/papipupepo-1.vs	blank
 Presets/Vertex Shader Art/audioreactive/papipupepo-2.vs	blank
@@ -416,7 +330,6 @@ Presets/Vertex Shader Art/audioreactive/perc2-8.vs	blank
 Presets/Vertex Shader Art/audioreactive/perc2.vs	blank
 Presets/Vertex Shader Art/audioreactive/perc2_2_stripp.vs	blank
 Presets/Vertex Shader Art/audioreactive/perc2_stripp.vs	blank
-Presets/Vertex Shader Art/audioreactive/perc2xxx.vs	blank
 Presets/Vertex Shader Art/audioreactive/petl-2.vs	blank
 Presets/Vertex Shader Art/audioreactive/petl.vs	blank
 Presets/Vertex Shader Art/audioreactive/ping.vs	blank
@@ -449,7 +362,6 @@ Presets/Vertex Shader Art/audioreactive/residuallines.vs	blank
 Presets/Vertex Shader Art/audioreactive/residuallinesJV.vs	blank
 Presets/Vertex Shader Art/audioreactive/residuallines_White.vs	blank
 Presets/Vertex Shader Art/audioreactive/rgblur.vs	blank
-Presets/Vertex Shader Art/audioreactive/rip.vs	blank
 Presets/Vertex Shader Art/audioreactive/rpl.vs	blank
 Presets/Vertex Shader Art/audioreactive/saucer_attack_bug_mouse.xy-1.vs	blank
 Presets/Vertex Shader Art/audioreactive/saucer_attack_bug_mouse.xy.vs	blank
@@ -463,7 +375,6 @@ Presets/Vertex Shader Art/audioreactive/shader_template_useful_functions_sound_v
 Presets/Vertex Shader Art/audioreactive/shock-1.vs	blank
 Presets/Vertex Shader Art/audioreactive/shwoom.vs	blank
 Presets/Vertex Shader Art/audioreactive/simple-1.vs	blank
-Presets/Vertex Shader Art/audioreactive/sirp.vs	blank
 Presets/Vertex Shader Art/audioreactive/sketch001.vs	blank
 Presets/Vertex Shader Art/audioreactive/sketch002.vs	blank
 Presets/Vertex Shader Art/audioreactive/slash.vs	blank
@@ -489,28 +400,18 @@ Presets/Vertex Shader Art/audioreactive/sphere-5.vs	blank
 Presets/Vertex Shader Art/audioreactive/spiky-z.vs	blank
 Presets/Vertex Shader Art/audioreactive/spiky.vs	blank
 Presets/Vertex Shader Art/audioreactive/spirals.vs	blank
+Presets/Vertex Shader Art/audioreactive/spirogyro.vs	blank-mid
 Presets/Vertex Shader Art/audioreactive/splot.vs	blank
 Presets/Vertex Shader Art/audioreactive/sqd.vs	blank
 Presets/Vertex Shader Art/audioreactive/squiro-2.vs	blank
 Presets/Vertex Shader Art/audioreactive/squiro.vs	blank
-Presets/Vertex Shader Art/audioreactive/statc_space.vs	blank
 Presets/Vertex Shader Art/audioreactive/stranded.vs	blank
-Presets/Vertex Shader Art/audioreactive/strg.vs	blank
 Presets/Vertex Shader Art/audioreactive/swooneer.vs	blank
 Presets/Vertex Shader Art/audioreactive/swooneer2-2.vs	blank
 Presets/Vertex Shader Art/audioreactive/swooneer2.vs	blank
 Presets/Vertex Shader Art/audioreactive/technokokoro-1.vs	blank
 Presets/Vertex Shader Art/audioreactive/technokokoro.vs	blank
 Presets/Vertex Shader Art/audioreactive/tehland.vs	blank
-Presets/Vertex Shader Art/audioreactive/terrain-1.vs	blank
-Presets/Vertex Shader Art/audioreactive/terrain-2.vs	blank
-Presets/Vertex Shader Art/audioreactive/terrain-3.vs	blank
-Presets/Vertex Shader Art/audioreactive/terrain-4.vs	blank
-Presets/Vertex Shader Art/audioreactive/terrain-5.vs	blank
-Presets/Vertex Shader Art/audioreactive/terrain-6.vs	blank
-Presets/Vertex Shader Art/audioreactive/terrain-7.vs	blank
-Presets/Vertex Shader Art/audioreactive/terrain-8.vs	blank
-Presets/Vertex Shader Art/audioreactive/terrain_k.vs	blank
 Presets/Vertex Shader Art/audioreactive/toon_chaos1-1.vs	blank
 Presets/Vertex Shader Art/audioreactive/toon_chaos1-2.vs	blank
 Presets/Vertex Shader Art/audioreactive/toon_chaos1.vs	blank
@@ -565,40 +466,34 @@ Presets/Vertex Shader Art/audioreactive/volum.vs	blank
 Presets/Vertex Shader Art/audioreactive/wav.vs	blank
 Presets/Vertex Shader Art/audioreactive/wet.vs	blank
 Presets/Vertex Shader Art/audioreactive/wibbly.vs	blank
+Presets/Vertex Shader Art/audioreactive/widr-2.vs	blank-mid
 Presets/Vertex Shader Art/audioreactive/wip3.vs	blank
 Presets/Vertex Shader Art/audioreactive/xduel-1.vs	blank
 Presets/Vertex Shader Art/audioreactive/xduel.vs	blank
 Presets/Vertex Shader Art/audioreactive/xercise_-_Vertexshaderart_Circles_from_Triangles.vs	blank
 Presets/Vertex Shader Art/audioreactive/测试.vs	blank
-Presets/Vertex Shader Art/basic/124b_sin_city.vs	blank
+Presets/Vertex Shader Art/basic/124b_sin_city.vs	blank-mid
 Presets/Vertex Shader Art/basic/Africa.vs	bake
 Presets/Vertex Shader Art/basic/Colors-4.vs	blank
 Presets/Vertex Shader Art/basic/Experiment003-1.vs	blank
 Presets/Vertex Shader Art/basic/Hello_GLSL-1.vs	blank
 Presets/Vertex Shader Art/basic/Hello_GLSL.vs	blank
-Presets/Vertex Shader Art/basic/Hello_wobbly_triangle.vs	blank
 Presets/Vertex Shader Art/basic/Learn_Vertex_Shaders.vs	blank
 Presets/Vertex Shader Art/basic/Lines_Experiment_1.vs	blank
+Presets/Vertex Shader Art/basic/Making_A_Grid_Own_variation.vs	blank-mid
+Presets/Vertex Shader Art/basic/Making_A_Grid_by_Jaeyeong_An_own_variation.vs	blank-mid
+Presets/Vertex Shader Art/basic/Making_A_Grid_myunghyun_kim.vs	blank-mid
+Presets/Vertex Shader Art/basic/Making_a_Grid-5_1.vs	blank-mid
 Presets/Vertex Shader Art/basic/Motion-28.vs	blank
+Presets/Vertex Shader Art/basic/Motion_myunghyun.kim.vs	blank-mid
 Presets/Vertex Shader Art/basic/PixelSearching.vs	blank
-Presets/Vertex Shader Art/basic/Quad-1.vs	blank
-Presets/Vertex Shader Art/basic/Quad-2.vs	blank
-Presets/Vertex Shader Art/basic/Quad-3.vs	blank
-Presets/Vertex Shader Art/basic/Quad-4.vs	blank
-Presets/Vertex Shader Art/basic/Quad-5.vs	blank
-Presets/Vertex Shader Art/basic/Quad.vs	blank
-Presets/Vertex Shader Art/basic/Sphere_Cube_Distribution-3.vs	blank
 Presets/Vertex Shader Art/basic/Spiral-7.vs	blank
-Presets/Vertex Shader Art/basic/Spiral2.vs	blank
 Presets/Vertex Shader Art/basic/Test-1.vs	blank
 Presets/Vertex Shader Art/basic/Test.vs	blank
-Presets/Vertex Shader Art/basic/Triangle_Tessellation.vs	blank
 Presets/Vertex Shader Art/basic/Tut_5.vs	bake
-Presets/Vertex Shader Art/basic/Y_geo.vs	blank
 Presets/Vertex Shader Art/basic/black_eye-1.vs	blank
 Presets/Vertex Shader Art/basic/black_eye2.vs	blank
 Presets/Vertex Shader Art/basic/blocksfix.vs	blank
-Presets/Vertex Shader Art/basic/camera_transform_vs_vertex_position_logic_exercise.vs	blank
 Presets/Vertex Shader Art/basic/circle-2_1.vs	blank
 Presets/Vertex Shader Art/basic/circñe_grid.vs	blank
 Presets/Vertex Shader Art/basic/cube-1.vs	bake
@@ -614,16 +509,10 @@ Presets/Vertex Shader Art/basic/kga2uesxPaH3HJqyT.vs	blank
 Presets/Vertex Shader Art/basic/learning.vs	blank
 Presets/Vertex Shader Art/basic/lesson01_1.vs	blank
 Presets/Vertex Shader Art/basic/lesson1-2.vs	blank
-Presets/Vertex Shader Art/basic/nice_shape.vs	blank
 Presets/Vertex Shader Art/basic/overdraw.vs	bake
 Presets/Vertex Shader Art/basic/point_cloud_vs_spheres-31.vs	blank
-Presets/Vertex Shader Art/basic/points-1.vs	blank
-Presets/Vertex Shader Art/basic/pointsprite_plasma-1.vs	blank
+Presets/Vertex Shader Art/basic/point_cloud_vs_spheres-34.vs	blank
 Presets/Vertex Shader Art/basic/projection.vs	blank
-Presets/Vertex Shader Art/basic/quad_test-2.vs	blank
-Presets/Vertex Shader Art/basic/quad_test-3.vs	blank
-Presets/Vertex Shader Art/basic/quad_test.vs	blank
-Presets/Vertex Shader Art/basic/rectangle.vs	blank
 Presets/Vertex Shader Art/basic/shapeshift.vs	blank
 Presets/Vertex Shader Art/basic/sloncePawel3.vs	blank
 Presets/Vertex Shader Art/basic/study01.vs	blank
@@ -633,10 +522,11 @@ Presets/Vertex Shader Art/basic/test-1_1.vs	blank
 Presets/Vertex Shader Art/basic/test-4.vs	blank
 Presets/Vertex Shader Art/basic/test0-1.vs	blank
 Presets/Vertex Shader Art/basic/test0-2.vs	blank
-Presets/Vertex Shader Art/basic/test_pos.vs	blank
 Presets/Vertex Shader Art/basic/tests.vs	blank
-Presets/Vertex Shader Art/basic/tetra.vs	blank
+Presets/Vertex Shader Art/basic/the_tangled_webs_we_weave-1.vs	blank
+Presets/Vertex Shader Art/basic/the_tangled_webs_we_weave-2.vs	blank
 Presets/Vertex Shader Art/basic/triangle.vs	blank
+Presets/Vertex Shader Art/basic/tutorial1.vs	blank-mid
 Presets/Vertex Shader Art/basic/unnamed-1.vs	blank
 Presets/Vertex Shader Art/basic/unnamed-105.vs	blank
 Presets/Vertex Shader Art/basic/unnamed-109.vs	blank
@@ -647,30 +537,29 @@ Presets/Vertex Shader Art/basic/unnamed-133.vs	blank
 Presets/Vertex Shader Art/basic/unnamed-143.vs	blank
 Presets/Vertex Shader Art/basic/unnamed-147.vs	blank
 Presets/Vertex Shader Art/basic/unnamed-148.vs	blank
-Presets/Vertex Shader Art/basic/unnamed-159.vs	blank
 Presets/Vertex Shader Art/basic/unnamed-167.vs	blank
 Presets/Vertex Shader Art/basic/unnamed-170.vs	blank
 Presets/Vertex Shader Art/basic/unnamed-178.vs	blank
 Presets/Vertex Shader Art/basic/unnamed-181.vs	blank
 Presets/Vertex Shader Art/basic/unnamed-187.vs	blank
+Presets/Vertex Shader Art/basic/unnamed-20.vs	blank
 Presets/Vertex Shader Art/basic/unnamed-26.vs	blank
 Presets/Vertex Shader Art/basic/unnamed-27.vs	blank
 Presets/Vertex Shader Art/basic/unnamed-28.vs	blank
 Presets/Vertex Shader Art/basic/unnamed-41.vs	blank
 Presets/Vertex Shader Art/basic/unnamed-48.vs	blank
+Presets/Vertex Shader Art/basic/unnamed-59.vs	blank
 Presets/Vertex Shader Art/basic/unnamed-63.vs	blank
 Presets/Vertex Shader Art/basic/unnamed-71.vs	blank
 Presets/Vertex Shader Art/basic/unnamed-72.vs	blank
-Presets/Vertex Shader Art/basic/unnamed-80.vs	blank
 Presets/Vertex Shader Art/basic/unnamed-82.vs	blank
+Presets/Vertex Shader Art/basic/unnamed-90.vs	blank
 Presets/Vertex Shader Art/basic/unnamed-93.vs	blank
 Presets/Vertex Shader Art/basic/waves_1.vs	blank
 Presets/Vertex Shader Art/mouse/BigSwingingSnake-3.vs	blank
 Presets/Vertex Shader Art/mouse/BigSwingingSnake-4.vs	blank
 Presets/Vertex Shader Art/mouse/BigSwingingSnake.vs	blank
-Presets/Vertex Shader Art/mouse/Bilinear_Patch.vs	blank
 Presets/Vertex Shader Art/mouse/JJEONDA.vs	blank
-Presets/Vertex Shader Art/mouse/Rainbow_Menger.vs	blank
 Presets/Vertex Shader Art/mouse/Simple_Sphere.vs	blank
 Presets/Vertex Shader Art/mouse/Torus_Bulb4.vs	blank
 Presets/Vertex Shader Art/mouse/Torus_Bulb4xx.vs	blank
@@ -678,8 +567,6 @@ Presets/Vertex Shader Art/mouse/chulseung.lee.vs	blank
 Presets/Vertex Shader Art/mouse/circling-1.vs	blank
 Presets/Vertex Shader Art/mouse/circling-4.vs	blank
 Presets/Vertex Shader Art/mouse/circling.vs	blank
-Presets/Vertex Shader Art/mouse/color_charge.vs	blank
-Presets/Vertex Shader Art/mouse/delicoban.vs	blank
 Presets/Vertex Shader Art/mouse/disruptive_D.vs	blank
 Presets/Vertex Shader Art/mouse/disruptive_D2.vs	blank
 Presets/Vertex Shader Art/mouse/disruptive_D_robots_hail.vs	blank
@@ -688,32 +575,7 @@ Presets/Vertex Shader Art/mouse/hypercuber-2.vs	blank
 Presets/Vertex Shader Art/mouse/hypercuber_tesserX.vs	blank
 Presets/Vertex Shader Art/mouse/jp.vs	blank
 Presets/Vertex Shader Art/mouse/kreeture_KMachine_WIP-1.vs	blank
-Presets/Vertex Shader Art/mouse/mostly_harmless-10.vs	blank
-Presets/Vertex Shader Art/mouse/mostly_harmless-10.vs	warning
-Presets/Vertex Shader Art/mouse/mostly_harmless-11.vs	blank
-Presets/Vertex Shader Art/mouse/mostly_harmless-11.vs	warning
-Presets/Vertex Shader Art/mouse/mostly_harmless-5.vs	blank
-Presets/Vertex Shader Art/mouse/mostly_harmless-5.vs	warning
-Presets/Vertex Shader Art/mouse/mostly_harmless-6.vs	blank
-Presets/Vertex Shader Art/mouse/mostly_harmless-6.vs	warning
-Presets/Vertex Shader Art/mouse/mostly_harmless-7.vs	blank
-Presets/Vertex Shader Art/mouse/mostly_harmless-7.vs	warning
-Presets/Vertex Shader Art/mouse/mostly_harmless-8.vs	blank
-Presets/Vertex Shader Art/mouse/mostly_harmless-8.vs	warning
 Presets/Vertex Shader Art/mouse/mostly_harmless-9.vs	blank
-Presets/Vertex Shader Art/mouse/mostly_harmless-9.vs	warning
-Presets/Vertex Shader Art/mouse/mostly_harmless_4_Kmaachine_WIP-1.vs	blank
-Presets/Vertex Shader Art/mouse/mostly_harmless_4_Kmaachine_WIP-1.vs	warning
-Presets/Vertex Shader Art/mouse/mostly_harmless_4_Kmaachine_WIP-2.vs	blank
-Presets/Vertex Shader Art/mouse/mostly_harmless_4_Kmaachine_WIP-2.vs	warning
-Presets/Vertex Shader Art/mouse/mostly_harmless_4_Kmaachine_WIP-3.vs	blank
-Presets/Vertex Shader Art/mouse/mostly_harmless_4_Kmaachine_WIP-3.vs	warning
-Presets/Vertex Shader Art/mouse/mostly_harmless_4_Kmaachine_WIP-4.vs	blank
-Presets/Vertex Shader Art/mouse/mostly_harmless_4_Kmaachine_WIP-4.vs	warning
-Presets/Vertex Shader Art/mouse/mostly_harmless_4_Kmaachine_WIP-5.vs	blank
-Presets/Vertex Shader Art/mouse/mostly_harmless_4_Kmaachine_WIP-5.vs	warning
-Presets/Vertex Shader Art/mouse/mostly_harmless_4_Kmaachine_WIP.vs	blank
-Presets/Vertex Shader Art/mouse/mostly_harmless_4_Kmaachine_WIP.vs	warning
 Presets/Vertex Shader Art/mouse/neurovelho2.vs	blank
 Presets/Vertex Shader Art/mouse/omgb3-1.vs	blank
 Presets/Vertex Shader Art/mouse/omgb3-2.vs	blank
@@ -724,11 +586,13 @@ Presets/Vertex Shader Art/mouse/plasma_waves-2.vs	blank
 Presets/Vertex Shader Art/mouse/point_cloud_vs_spheres-6.vs	blank
 Presets/Vertex Shader Art/mouse/point_cloud_vs_spheres_rmx-1.vs	blank
 Presets/Vertex Shader Art/mouse/point_cloud_vs_spheres_rmx-6.vs	blank
+Presets/Vertex Shader Art/mouse/sangmin.kim.vs	blank-mid
+Presets/Vertex Shader Art/mouse/sphere_create.vs	blank
 Presets/Vertex Shader Art/mouse/squarePlanet.vs	blank
 Presets/Vertex Shader Art/mouse/unnamed-110.vs	blank
+Presets/Vertex Shader Art/mouse/unnamed-134.vs	blank-mid
 Presets/Vertex Shader Art/mouse/unnamed-186.vs	blank
 Presets/Vertex Shader Art/mouse/unnamed-2.vs	blank
-Presets/Vertex Shader Art/mouse/unnamed-76.vs	blank
 Presets/Vertex Shader Art/mouse/vector_field_demonstration-1.vs	blank
 Presets/Vertex Shader Art/mouse/vector_field_demonstration-2.vs	blank
 Presets/Vertex Shader Art/mouse/vector_field_demonstration.vs	blank
@@ -738,7 +602,8 @@ Presets/Vertex Shader Art/touch/Spiral-TRIdNCE1.vs	blank
 Presets/Vertex Shader Art/touch/Spiral-TRIdNCE2.vs	blank
 Presets/Vertex Shader Art/touch/dyson-1.vs	blank
 Presets/Vertex Shader Art/touch/dyson-6.vs	blank
+Presets/Vertex Shader Art/touch/mouse-wip-1.vs	blank
+Presets/Vertex Shader Art/touch/mouse-wip-2.vs	blank
 Presets/Vertex Shader Art/touch/mouse-wip-3.vs	blank
-Presets/Vertex Shader Art/touch/t-grid.vs	blank
-Presets/Vertex Shader Art/touch/tmh-grid.vs	blank
+Presets/Vertex Shader Art/touch/mouse-wip.vs	blank
 Presets/Vertex Shader Art/touch/trailmix.vs	blank
