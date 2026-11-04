@@ -49,6 +49,7 @@ public:
   InfoWidget(QWidget* parent)
       : QScrollArea{parent}
   {
+    setObjectName(QStringLiteral("ProcessInfo"));
     // A long description scrolls rather than taking the presets' room
     setWidgetResizable(true);
     setFrameShape(QFrame::NoFrame);
@@ -304,7 +305,13 @@ ProcessWidget::ProcessWidget(const score::GUIApplicationContext& ctx, QWidget* p
 
   connect(
       &m_tv, &ProcessTreeView::selected, this,
-      [this, infoWidg, filter](const std::optional<Library::ProcessData>& pdata) {
+      [this, infoWidg, filter](const std::optional<Library::ProcessData>& selected) {
+    // Folders (categories, preset and file groups) carry the nil key: they are
+    // no process. A factory registered under that key, such as an addon whose
+    // uuid is still the template's placeholder, must not stand in for them.
+    const auto pdata = selected && selected->key != Process::ProcessModelFactory::ConcreteKey{}
+                           ? selected
+                           : std::nullopt;
 #if defined(_WIN32)
     const bool filter_had_focus = filter->hasFocus();
     const bool tree_had_focus = m_tv.hasFocus();

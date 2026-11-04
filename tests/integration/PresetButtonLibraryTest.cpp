@@ -15,10 +15,12 @@
 #include <Library/PresetTreeView.hpp>
 #include <Library/ProcessTreeView.hpp>
 #include <Library/ProcessWidget.hpp>
+#include <Library/ProcessesItemModel.hpp>
 
 #include <score/application/GUIApplicationContext.hpp>
 #include <score/selection/SelectionDispatcher.hpp>
 #include <score/graphics/widgets/QGraphicsSelectablePixmapToggle.hpp>
+#include <score/widgets/SearchLineEdit.hpp>
 
 #include <core/command/CommandStack.hpp>
 #include <core/document/Document.hpp>
@@ -135,6 +137,60 @@ TEST_CASE(
     CHECK(model.target() == nullptr);
 
     plug.clearPresets();
+  });
+}
+
+namespace
+{
+//! Every row of a tree, however deep
+int rowsUnder(const QAbstractItemModel& m, const QModelIndex& parent = {})
+{
+  int n = m.rowCount(parent);
+  for(int i = 0, rows = n; i < rows; i++)
+    n += rowsUnder(m, m.index(i, 0, parent));
+  return n;
+}
+}
+
+TEST_CASE(
+    "the preset button clearing the process search shows the whole list again",
+    "[integration][presets][gui]")
+{
+  score::test::run_in_gui_app([](const score::GUIApplicationContext& ctx) {
+    auto panel = ctx.findPanel<Library::ProcessPanel>();
+    REQUIRE(panel);
+    auto& widget = panel->processWidget();
+    auto& tree = widget.processView();
+    const auto filters = widget.findChildren<score::SearchLineEdit*>();
+    REQUIRE(filters.size() == 1);
+    auto& filter = *filters.front();
+    const int all = rowsUnder(widget.processModel());
+    REQUIRE(rowsUnder(*tree.model()) == all);
+
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    auto* proc = score::test::add_process(*doc, pattern_uuid, {});
+    REQUIRE(proc);
+
+    // A search that hides the process, typed by the user
+    filter.setText(QStringLiteral("LFO"));
+    Q_EMIT filter.textEdited(filter.text());
+    spin(10);
+    const int filtered = rowsUnder(*tree.model());
+    REQUIRE(filtered > 0);
+    REQUIRE(filtered < all);
+
+    auto btn = std::unique_ptr<score::QGraphicsDraggablePixmap>(
+        Process::makePresetButton(*proc, doc->context(), nullptr, nullptr));
+    btn->click(Qt::LeftButton, {});
+    spin(20);
+
+    // The search is empty and nothing is hidden any more
+    CHECK(filter.text().isEmpty());
+    CHECK(rowsUnder(*tree.model()) == all);
+    CHECK(tree.currentIndex().data().toString() == "Pattern sequencer");
+
+    widget.clearTarget();
   });
 }
 
