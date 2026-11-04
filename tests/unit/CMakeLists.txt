@@ -1470,6 +1470,16 @@ if(TARGET score_plugin_media)
     PLUGINS score_plugin_media
     LIBS avutil avcodec avformat)
 
+  # score::gfx::VideoFrameReader::nextFrame(): the queued frame the frame-queue
+  # renderer shows at a time, the last one starting at or before it, also when
+  # a rounded time base ends a frame's duration before the next frame starts.
+  if(TARGET score_plugin_gfx)
+    score_add_test(test_unit_video_frame_reader
+      SOURCES VideoFrameReaderTest.cpp
+      PLUGINS score_plugin_gfx score_plugin_media
+      LIBS avutil avcodec avformat)
+  endif()
+
   # Video::chooseDecoderThreading(): frame vs slice threads vs the codec's own
   # pool, per consumer, checked against the linked libavcodec's real decoders.
   score_add_test(test_unit_decoder_threading

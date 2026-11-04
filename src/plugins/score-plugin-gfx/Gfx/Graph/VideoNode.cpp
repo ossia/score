@@ -314,7 +314,7 @@ void VideoFrameReader::readNextFrame(VideoNode& node)
   }
 
   // Going backwards: the queue only decodes forward, so seek, one request at
-  // a time (a new one once seek_generation shows the last was done). Not
+  // a time (a new one once seeks_done shows the last was taken). Not
   // before the earliest frame: a video starting after its container shows it
   // from time 0.
   // Playing forwards, a time a little before the frame on screen is the time
@@ -326,10 +326,10 @@ void VideoFrameReader::readNextFrame(VideoNode& node)
   if(m_showing && m_lastFrameTime > m_earliestFrameTime
      && (behind > carried_time_jitter || (node.m_rate < 0. && behind > 1e-6)))
   {
-    const int generation = decoder.seek_generation.load(std::memory_order_acquire);
-    if(generation != m_backwardSeekGeneration)
+    const int done = decoder.seeks_done.load(std::memory_order_acquire);
+    if(done != m_backwardSeeksDone)
     {
-      m_backwardSeekGeneration = generation;
+      m_backwardSeeksDone = done;
       decoder.seek(int64_t(
           std::max(0., double(node.standardUBO.time)) * ossia::flicks_per_second<double>));
     }
@@ -465,10 +465,14 @@ AVFrame* VideoFrameReader::nextFrame(
     }
     else if(d < 0.)
     {
-      //current_time < frame_time: its time has not come, keep showing the current frame
+      // Its time has not come: it is held back. A frame passed over before it
+      // started before the current time and is still the one shown, its
+      // duration ending before this frame starts in a rounded time base.
       m_nextFrame = frame;
-      m_framesToFree.insert(m_framesToFree.end(), prev.begin(), prev.end());
-      return nullptr;
+      if(prev.empty())
+        return nullptr;
+      m_framesToFree.insert(m_framesToFree.end(), prev.begin(), prev.end() - 1);
+      return prev.back();
     }
     else
     {

@@ -82,6 +82,14 @@ void FreeAVFrame::operator()(AVFrame* f) const noexcept
 }
 AVFramePointer FrameQueue::newFrame() noexcept
 {
+  auto f = newFrameImpl();
+  if(f.get() == m_watched)
+    m_watched = nullptr;
+  return f;
+}
+
+AVFramePointer FrameQueue::newFrameImpl() noexcept
+{
   // We were working on a frame in this thread (e.g. during a seek, when retrying with EAGAIN..)
   if(!m_decodeThreadFrameBuffer.empty())
   {
@@ -241,6 +249,7 @@ void FrameQueue::drain()
     frames_to_free.insert(frame);
   }
   m_decodeThreadFrameBuffer.clear();
+  m_watched = nullptr;
 
   for(auto frame : frames_to_free)
     av_frame_free(&frame);

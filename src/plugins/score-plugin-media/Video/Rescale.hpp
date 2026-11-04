@@ -88,11 +88,25 @@ struct SCORE_PLUGIN_MEDIA_EXPORT LibAVDecoder
   //! The largest pts - dts seen: a seek for a time asks for that much earlier,
   //! the demuxer seeking on dts.
   int64_t m_ptsLead{};
-  //! While set, enqueue_frame decodes the frames that end before this pts
-  //! and drops them, unconverted: a seek lands on the keyframe before its
-  //! target, and the frames up to the target are references, not pictures.
-  //! The first frame kept clears it.
+  //! While set, enqueue_frame holds back the frames that start at or before
+  //! this pts, unconverted: a seek lands on the keyframe before its target,
+  //! and the frames up to the target are references, not pictures. The first
+  //! frame starting after it clears it, and goes out after the last frame held
+  //! back, the one shown at the target. Frame durations do not decide it: in
+  //! a rounded time base (matroska's milliseconds at 30 fps) a frame can end
+  //! before the next one starts.
   int64_t m_skipBefore{AV_NOPTS_VALUE};
+  //! The last frame held back while m_skipBefore is set.
+  AVFrame* m_skipCandidate{};
+  //! The pts of the first frame given out when m_skipBefore was cleared,
+  //! queued or returned by enqueue_frame: where the seek landed. The frame
+  //! itself is m_frames.watched() while the consumer has not given it back.
+  int64_t m_skipLandingPts{AV_NOPTS_VALUE};
+  void landSkip(AVFrame* f) noexcept;
+  //! Gives the held-back frame back to the frame pool.
+  void dropSkipCandidate() noexcept;
+  //! The held-back frame, converted as enqueue_frame converts its frames.
+  ReadFrame takeSkipCandidate() noexcept;
   //! Set by the decoding thread, polled by the owner waiting for the end.
   std::atomic_bool m_finished{};
 };

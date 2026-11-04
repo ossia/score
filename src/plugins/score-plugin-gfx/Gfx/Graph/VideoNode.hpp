@@ -72,9 +72,9 @@ private:
   double m_lastPlaybackTime{-1.};
   bool m_readFrame{};
   bool m_showing{};
-  //! The seek generation a backward seek was last asked at: none other is
-  //! asked until the decoder has done it.
-  int m_backwardSeekGeneration{-1};
+  //! VideoInterface::seeks_done when a backward seek was last asked: none
+  //! other is asked until the decoder has taken it.
+  int m_backwardSeeksDone{-1};
   double m_earliestFrameTime{std::numeric_limits<double>::infinity()};
 };
 
