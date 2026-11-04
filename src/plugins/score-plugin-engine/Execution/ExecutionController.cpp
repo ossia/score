@@ -729,6 +729,7 @@ void ExecutionController::on_record(::TimeVal t)
 
       if(auto transport_plug = scenar->context().findPlugin<Transport::DocumentPlugin>())
         transport_plug->play();
+      playStarted();
     }
   }
 }
@@ -754,6 +755,9 @@ void ExecutionController::on_stop()
 
   if(tree)
     tree->endRecall(LocalTree::Recall::Stop);
+
+  if(wasplaying)
+    playStopped();
 }
 
 void ExecutionController::stop_clock()

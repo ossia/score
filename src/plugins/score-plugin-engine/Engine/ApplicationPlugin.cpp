@@ -390,7 +390,6 @@ void ApplicationPlugin::prepareNewDocument()
 
 void ApplicationPlugin::initLocalTreeNodes(LocalTree::DocumentPlugin& lt)
 {
-  auto& appplug = *this;
   auto& root = lt.device().get_root_node();
 
   {
@@ -399,16 +398,12 @@ void ApplicationPlugin::initLocalTreeNodes(LocalTree::DocumentPlugin& lt)
     p->set_value(false);
     p->set_access(ossia::access_mode::GET);
 
-    if(context.applicationSettings.gui)
-    {
-      auto& play_action = appplug.context.actions.action<Actions::Play>();
-      connect(
-          play_action.action(), &QAction::toggled, &lt, [p] { p->push_value(true); });
-
-      auto& stop_action = context.actions.action<Actions::Stop>();
-      connect(
-          stop_action.action(), &QAction::toggled, &lt, [p] { p->push_value(false); });
-    }
+    connect(
+        &execution(), &Execution::ExecutionController::playStarted, &lt,
+        [p] { p->push_value(true); });
+    connect(
+        &execution(), &Execution::ExecutionController::playStopped, &lt,
+        [p] { p->push_value(false); });
   }
   {
     auto local_play_node = root.create_child("play");
