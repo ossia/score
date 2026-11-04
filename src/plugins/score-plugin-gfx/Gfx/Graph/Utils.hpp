@@ -473,6 +473,17 @@ TextureRenderTarget
 createRenderTarget(const RenderState& state, QRhiTexture* tex, int samples, bool depth, bool samplableDepth = false);
 
 /**
+ * @brief Queue zeros into every level, layer, face and slice of a texture.
+ *
+ * A new QRhiTexture holds whatever memory the driver hands out: zeros on most
+ * desktop drivers, the previous owner's pixels on lavapipe and others. Use
+ * this on a texture that can be sampled or loaded before anything writes it.
+ * Returns false and queues nothing for depth and block-compressed formats.
+ */
+SCORE_PLUGIN_GFX_EXPORT
+bool zeroTexture(QRhi& rhi, QRhiResourceUpdateBatch& res, QRhiTexture& tex);
+
+/**
  * @brief Create a render target from a texture format and size.
  *
  * This function will also create a texture.

@@ -56,6 +56,75 @@ int center_level(const ReadbackImage& img)
   return int(img.center()[0]);
 }
 
+// Renders full-scale magenta into targets the size of the cycle's, then frees
+// them: on a driver that recycles memory without clearing it (lavapipe, most
+// mobile drivers) the textures the cycle allocates next start out holding it.
+void leave_garbage_behind(score::gfx::GraphicsApi be)
+{
+  GfxPipeline p;
+  const int a = p.addIsf(corpus("isf-solid-color.fs"));
+  const int b = p.addIsf(corpus("isf-solid-color.fs"));
+  const int sink = p.addSink({32, 32});
+  if(a < 0 || b < 0)
+    return;
+  p.wire(p.imageOut(a, 0), p.sinkInput(sink));
+  p.wire(p.imageOut(b, 0), p.sinkInput(sink));
+  if(p.create(be))
+    p.render(2);
+}
+
+//! The level at the sink after each of the first `frames` frames
+struct FirstFrames
+{
+  bool skipped = false;
+  std::string skip_reason, backend, error;
+  std::vector<int> levels;
+};
+
+FirstFrames render_first_frames(score::gfx::GraphicsApi be, Topology t, int frames)
+{
+  FirstFrames r;
+  score::test::run_in_gui_app([&](const score::GUIApplicationContext&) {
+    leave_garbage_behind(be);
+
+    GfxPipeline p;
+    const int a = p.addIsf(corpus("feedback-step-add.fs"));
+    const bool pair = t == Topology::DelayedPair || t == Topology::ImmediatePair;
+    const int b = pair ? p.addIsf(corpus("feedback-step-add.fs")) : a;
+    const int sink = p.addSink({32, 32});
+    if(a < 0 || b < 0)
+    {
+      r.error = p.error();
+      return;
+    }
+    const auto back = (t == Topology::DelayedPair || t == Topology::DelayedSelf)
+                          ? Process::CableType::DelayedGlutton
+                          : Process::CableType::ImmediateGlutton;
+    if(pair)
+      p.wire(p.imageOut(a, 0), p.imageIn(b, 0));
+    p.wire(p.imageOut(b, 0), p.imageIn(a, 0), back);
+    p.wire(p.imageOut(b, 0), p.sinkInput(sink));
+
+    if(!p.create(be))
+    {
+      r.skipped = p.skipped();
+      r.skip_reason = p.skipReason();
+      r.backend = p.backend();
+      r.error = p.error();
+      return;
+    }
+    r.backend = p.backend();
+    for(int f = 0; f < frames; ++f)
+    {
+      p.render(1);
+      r.levels.push_back(center_level(p.readback(sink)));
+    }
+    if(r.error.empty())
+      r.error = p.error();
+  });
+  return r;
+}
+
 CycleShot render_cycle(score::gfx::GraphicsApi be, Topology t)
 {
   CycleShot r;
@@ -198,4 +267,37 @@ TEST_CASE("a self-cable added live carries its state", "[gfx][feedback]")
   CHECK(s.late >= s.early + 24);
   CHECK(after >= 6);
   CHECK(after <= 10);
+}
+
+// The textures a cycle reads before anything has drawn into them -- the input
+// of the node the loop re-enters, the front of a self-fed port -- start out
+// black, so the level is exact from the first frame on: one step of 8 (1/32 of
+// 255, rounded) per pass. Memory left over from an earlier pipeline is put
+// there first; a target not cleared at creation reads it.
+TEST_CASE("a feedback loop starts from black", "[gfx][feedback]")
+{
+  const auto backend = GENERATE(from_range(platform_backends()));
+  const auto topo = GENERATE(
+      Topology::DelayedPair, Topology::ImmediatePair, Topology::DelayedSelf,
+      Topology::ImmediateSelf);
+  CAPTURE(backend_name(backend), topology_name(topo));
+
+  const FirstFrames s = render_first_frames(backend, topo, 4);
+  if(s.skipped)
+    SKIP(s.skip_reason);
+  REQUIRE(s.error.empty());
+  CAPTURE(s.backend, s.levels);
+  REQUIRE(s.levels.size() == 4);
+
+  // A self-cable: one pass per frame, the first one reading black.
+  // A pair: B draws one pass per outgoing cable, each when its consumer's
+  // input is prepared. In the first frame B -> A reads B's black input (8),
+  // A reads that (16), B -> sink reads A's (24); every later frame adds the
+  // two steps of A and B.
+  const bool pair = topo == Topology::DelayedPair || topo == Topology::ImmediatePair;
+  for(int f = 0; f < 4; ++f)
+  {
+    CAPTURE(f);
+    CHECK(s.levels[f] == (pair ? 8 + 16 * (f + 1) : 8 * (f + 1)));
+  }
 }

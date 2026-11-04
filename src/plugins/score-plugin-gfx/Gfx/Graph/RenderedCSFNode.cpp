@@ -4646,6 +4646,9 @@ void RenderedCSFNode::buildComputeSrbBindings(
               delete t;
               return nullptr;
             }
+            // A read_write or persistent image is loaded before the first
+            // dispatch stores into it.
+            score::gfx::zeroTexture(rhi, res, *t);
             return t;
           };
 
@@ -5634,6 +5637,9 @@ void RenderedCSFNode::initState(RenderList& renderer, QRhiResourceUpdateBatch& r
                 ("CSF::auxStorageImage::" + atx.name).c_str());
             if(alloc->create())
             {
+              // Loaded by the shader before its first store, like the
+              // storage images above.
+              score::gfx::zeroTexture(rhi, res, *alloc);
               at.texture = alloc;
               at.owned = true;
             }
