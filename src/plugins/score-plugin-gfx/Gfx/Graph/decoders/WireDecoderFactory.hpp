@@ -294,10 +294,10 @@ makeWireDecoder(Video::VideoPixelFormat fmt, Video::ImageFormat& d)
       return std::make_unique<YUV444P12Decoder>(d);
     case F::P210:
       return std::make_unique<P210Decoder>(d);
-    // P216 is P210's layout with every bit used rather than ten of them at the
-    // top, which is the scale argument and the only difference.
+    // P216 is P210's layout with sixteen significant bits rather than ten, and
+    // the same MSB-aligned scale.
     case F::P216:
-      return std::make_unique<P210Decoder>(d, "1.0");
+      return std::make_unique<P210Decoder>(d);
 
     // NDI's two alpha layouts: a picture followed by its own alpha plane.
     case F::UYVA422A:

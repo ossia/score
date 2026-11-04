@@ -48,9 +48,13 @@ struct P216PackedEncoder : GPUVideoEncoder
     #endif
     }
 
-    // One 16-bit value as two RGBA8 bytes, little endian.
+    // One 16-bit sample as two RGBA8 bytes, little endian. The sample is the
+    // 8-bit code shifted left by 8 (see SCORE_GFX_MSB_ALIGNED_SCALE), so
+    // limited-range white is 235 << 8 == 60160. Rounded before the split: a
+    // fractional low byte would be rounded on its own by the UNORM write and
+    // could carry into nothing.
     vec2 split16(float v) {
-      float u = clamp(v, 0.0, 1.0) * 65535.0;
+      float u = floor(clamp(v, 0.0, 1.0) * 65280.0 + 0.5);
       float hi = floor(u / 256.0);
       float lo = u - hi * 256.0;
       return vec2(lo / 255.0, hi / 255.0);

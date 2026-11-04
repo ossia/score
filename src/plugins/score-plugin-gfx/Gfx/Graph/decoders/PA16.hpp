@@ -1,4 +1,5 @@
 #pragma once
+#include <Gfx/Graph/decoders/ColorSpace.hpp>
 #include <Gfx/Graph/decoders/GPUVideoDecoder.hpp>
 
 namespace score::gfx
@@ -39,9 +40,12 @@ vec4 processTexture(vec4 tex) {
 
 void main() {
   vec2 tc = score_tc(v_texcoord);
-  float y = texture(y_tex, tc).r;
-  float u = texture(uv_tex, tc).r;
-  float v = texture(uv_tex, tc).g;
+  // The colour planes are P216's, MSB-aligned 8-bit codes; the alpha plane is
+  // full range for its data type, so it is already 0..1.
+  const float s = )_" SCORE_GFX_MSB_ALIGNED_SCALE R"_(;
+  float y = s * texture(y_tex, tc).r;
+  float u = s * texture(uv_tex, tc).r;
+  float v = s * texture(uv_tex, tc).g;
   float a = texture(a_tex, tc).r;
 
   vec4 rgb = processTexture(vec4(y, u, v, 1.));
