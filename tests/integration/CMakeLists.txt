@@ -229,6 +229,13 @@ if(TARGET score_plugin_media)
     GUI
     PLUGINS score_plugin_scenario score_plugin_media score_lib_process)
 
+  # Processes this build cannot provide are left out of a loaded document, and
+  # the document keeps a list of them for the missing-files window.
+  score_add_test(test_integration_missing_processes
+    SOURCES MissingProcessesTest.cpp
+    GUI
+    PLUGINS score_plugin_scenario score_plugin_automation score_lib_process)
+
   # Trimming is the one operation here that can destroy audio: it runs with
   # the filesystem read-only outside /tmp so a regression cannot reach any
   # real file. See tests/tools/sandboxed-test.sh.
@@ -638,6 +645,14 @@ score_add_test(test_integration_nodal_type_in
 # then load into it, auditioned as the user moves through them.
 score_add_test(test_integration_preset_button_library
   SOURCES PresetButtonLibraryTest.cpp
+  GUI
+  PLUGINS score_plugin_scenario score_plugin_library score_plugin_fx score_plugin_avnd
+          score_lib_process)
+
+# A folder of the process library describes no process, even with one
+# registered under the nil uuid.
+score_add_test(test_integration_library_category_info
+  SOURCES LibraryCategoryInfoTest.cpp
   GUI
   PLUGINS score_plugin_scenario score_plugin_library score_plugin_fx score_plugin_avnd
           score_lib_process)
@@ -1789,6 +1804,23 @@ if(TARGET score AND TARGET score_plugin_js AND TARGET score_plugin_gfx AND NOT E
     TIMEOUT 300 RUN_SERIAL TRUE LABELS "gui")
 endif()
 
+# A GPU Javascript scene is placed the same in an on-screen output window at
+# every device pixel ratio.
+if(TARGET score AND TARGET score_plugin_js AND TARGET score_plugin_gfx AND NOT EMSCRIPTEN)
+  score_add_test(test_integration_js_gpu_device_pixel_ratio
+    SOURCES JsGpuDevicePixelRatioTest.cpp
+    GUI
+    LIBS ${QT_PREFIX}::Gui)
+  target_compile_definitions(test_integration_js_gpu_device_pixel_ratio PRIVATE
+    "SCORE_APP_BINARY=\"$<TARGET_FILE:score>\"")
+  get_target_property(_js_definitions_dpr score_plugin_js COMPILE_DEFINITIONS)
+  if("SCORE_HAS_GPU_JS" IN_LIST _js_definitions_dpr)
+    target_compile_definitions(test_integration_js_gpu_device_pixel_ratio PRIVATE SCORE_HAS_GPU_JS)
+  endif()
+  set_tests_properties(test_integration_js_gpu_device_pixel_ratio PROPERTIES
+    TIMEOUT 300 RUN_SERIAL TRUE LABELS "gui")
+endif()
+
 # A text-mode avnd file port hands the object exactly the bytes that were read
 # (QIODevice::Text drops '\r'), both through oscr::executePortPreprocess and
 # through oscr::raw_file_storage::load.
@@ -2058,3 +2090,13 @@ score_add_test(test_integration_nodal_editing
   PLUGINS score_plugin_scenario score_lib_process score_plugin_dataflow
           score_plugin_deviceexplorer score_lib_device score_plugin_nodal
           score_plugin_ui)
+
+# Cables between nodal slots of the timeline end on their ports whatever the
+# scroll, zoom and slot heights; scrolling up or down never moves the nodes.
+if(TARGET score_plugin_fx)
+  score_add_test(test_integration_timeline_cable_endpoints
+    SOURCES TimelineCableEndpointsTest.cpp
+    GUI
+    PLUGINS score_plugin_fx score_plugin_scenario score_lib_process
+            score_plugin_dataflow)
+endif()

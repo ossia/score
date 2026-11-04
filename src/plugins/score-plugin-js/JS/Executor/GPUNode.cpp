@@ -43,6 +43,15 @@ namespace JS
 {
 namespace
 {
+// The output window stands in for the offscreen QQuickWindow where Qt Quick
+// needs a real one: keyboard focus, cursor shape, shortcuts, input method.
+//
+// While the scene is polished, synchronized and rendered it must not: Qt Quick
+// takes the device pixel ratio from the render window when there is one
+// (QQuickWindow::effectiveDevicePixelRatio), while the scene is laid out in
+// render-size units that map 1:1 to the pixels of a render-size texture,
+// whatever screen the output window is on. Without a render window the ratio
+// is the render target's, 1.
 class WindowRenderControl final : public QQuickRenderControl
 {
 public:
@@ -55,11 +64,25 @@ public:
   {
     if(offset)
       *offset = {};
+    if(m_drawing)
+      return nullptr;
     return m_window.data();
   }
 
+  struct DrawingScope
+  {
+    explicit DrawingScope(WindowRenderControl& rc)
+        : rc{rc}
+    {
+      rc.m_drawing = true;
+    }
+    ~DrawingScope() { rc.m_drawing = false; }
+    WindowRenderControl& rc;
+  };
+
 private:
   QPointer<QWindow> m_window;
+  bool m_drawing{};
 };
 }
 
@@ -383,8 +406,8 @@ void main ()
     }
 
     SCORE_ASSERT(!m_engine->m_quickWindow);
-    // renderWindow() has to answer with the real window: Qt Quick reads it for
-    // the device pixel ratio and for delivering input to the scene.
+    // renderWindow() answers with the real window so that input reaches the
+    // scene; see WindowRenderControl for why it does not while drawing.
     const auto win = renderer.state.window.lock();
     m_engine->m_quickRenderControl = new WindowRenderControl{win.get()};
     m_engine->m_quickWindow = new QQuickWindow{m_engine->m_quickRenderControl};
@@ -636,6 +659,9 @@ void main ()
     rc->cb = &cb;
 
     cd->deliveryAgentPrivate()->flushFrameSynchronousEvents(m_window);
+
+    const WindowRenderControl::DrawingScope drawing{
+        static_cast<WindowRenderControl&>(*m_renderControl)};
     cd->polishItems();
     m_window->afterRendering();
     m_window->afterAnimating();
