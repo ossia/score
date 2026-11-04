@@ -37,6 +37,7 @@ public:
   ~ExecutionController();
 
   void playStarted() E_SIGNAL(SCORE_PLUGIN_ENGINE_EXPORT, playStarted)
+  void playStopped() E_SIGNAL(SCORE_PLUGIN_ENGINE_EXPORT, playStopped)
 
   TransportInterface& transport() const noexcept;
   void init_transport();
