@@ -37,6 +37,11 @@ if [[ -z "${SCORE_EXTRA_CMAKE_ARGS-}" ]]; then
    export SCORE_EXTRA_CMAKE_ARGS=
 fi
 
+# GitHub's macOS runners: 3 cores, 7 GB. See SCORE_HEAVY_COMPILE_JOBS in CMakeLists.txt.
+if [[ -n "${GITHUB_ACTIONS:-}" ]]; then
+  SCORE_EXTRA_CMAKE_ARGS="-DSCORE_COMPILE_JOBS=2 -DSCORE_HEAVY_COMPILE_JOBS=1 $SCORE_EXTRA_CMAKE_ARGS"
+fi
+
 if [[ -z "${SCORE_CMAKE_CACHE-}" ]]; then
   xcrun /usr/local/bin/cninja -S "$PWD" -B build \
     macos-release-12.0 -- \

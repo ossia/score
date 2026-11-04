@@ -43,11 +43,73 @@ export LIBGL_ALWAYS_SOFTWARE=1
 export SCORE_AUDIO_BACKEND=dummy
 export ASAN_OPTIONS=detect_leaks=0
 
+# >>> software Vulkan (lavapipe)
+# The container has no GPU: lavapipe is the one Vulkan driver the loader may
+# pick, so it never tries the hardware drivers mesa-vulkan-drivers installs
+# next to it, and no implicit layer (Mesa's device-select) wraps the device.
+# OpenGL stays on llvmpipe, which is all GLX has under Xvfb.
+export VK_LOADER_DRIVERS_SELECT='lvp*'
+export VK_LOADER_LAYERS_DISABLE='~implicit~'
+export GALLIUM_DRIVER=llvmpipe
+vulkaninfo --summary 2>&1 | sed -n '/^Devices:/,$p' || true
+# <<< software Vulkan (lavapipe)
+
+# >>> validation audio plug-ins
+# Where the exec sweep finds the plug-ins it runs the CLAP, LV2, VST 2 and
+# VST 3 hosts with: <dir>/{clap,lv2,vst,vst3}, as the dpf-plugins-* and
+# lv2-examples packages install them (.github/workflows/coverage.yml). A
+# missing one is skipped by the sweep, which is what the warning is for.
+export SCORE_VALIDATION_PLUGINS="${SCORE_VALIDATION_PLUGINS:-/usr/lib}"
+for p in clap/MaFreeverb.clap clap/Kars.clap \
+         vst/MaFreeverb-vst.so vst/Kars-vst.so \
+         vst3/MaFreeverb.vst3 vst3/Kars.vst3 \
+         lv2/MaFreeverb.lv2 lv2/Kars.lv2 lv2/eg-amp.lv2 lv2/eg-midigate.lv2; do
+  [ -e "$SCORE_VALIDATION_PLUGINS/$p" ] \
+    || echo "::warning::validation plug-in $SCORE_VALIDATION_PLUGINS/$p is missing; the exec sweep skips it."
+done
+# <<< validation audio plug-ins
+
+# >>> shader sweeps against the user library
+# The test_integration_shader_sweep_* harnesses render every shader of the
+# library in SCORE_SHADER_LIBRARY_DIR and diff the failures against
+# tests/testdata/shader_sweep_baseline_*.txt. SCORE_USER_LIBRARY_REF pins a
+# commit or branch; the default branch otherwise.
+# They run in a ctest pass of their own: test_integration_object_csf_sweep reads
+# the same variable as a csf-testers corpus, and handed the whole library it
+# would render two thousand shaders twice over, one process each. A sweep is
+# one test that renders the whole library on a software rasteriser, hence its
+# own timeout.
+sweep_library="$PWD/build/score-user-library"
+if [ ! -d "$sweep_library/.git" ]; then
+  git clone --depth 1 https://github.com/ossia/score-user-library.git "$sweep_library"
+fi
+if [ -n "${SCORE_USER_LIBRARY_REF:-}" ]; then
+  git -C "$sweep_library" fetch --depth 1 origin "$SCORE_USER_LIBRARY_REF" \
+    && git -C "$sweep_library" checkout --detach FETCH_HEAD
+fi
+git -C "$sweep_library" log -1 --format='score-user-library at %H' || true
+sweep_tests='^test_integration_shader_sweep_'
+# <<< shader sweeps against the user library
+
 (
   cd build
-  xvfb-run -a ctest --output-on-failure --timeout 240
+  xvfb-run -a ctest --output-on-failure --timeout 240 -E "$sweep_tests"
 )
 test_rc=$?
+
+# >>> shader sweeps against the user library
+if [ -d "$sweep_library/Presets" ]; then
+  (
+    cd build
+    SCORE_SHADER_LIBRARY_DIR="$sweep_library" \
+      xvfb-run -a ctest --output-on-failure --timeout 1800 -R "$sweep_tests"
+  )
+  sweep_rc=$?
+  [ "$test_rc" -eq 0 ] && test_rc=$sweep_rc
+else
+  echo "::warning::score-user-library could not be fetched; the shader sweeps did not run."
+fi
+# <<< shader sweeps against the user library
 
 # gcov data (.gcno/.gcda) live under build/; report source paths relative to the
 # repo root so Coveralls can match them against tracked files.

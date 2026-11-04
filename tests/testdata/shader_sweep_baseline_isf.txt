@@ -20,6 +20,7 @@ Presets/GLSL_shaders/basic/multipass/Circle Trails.fs	blank
 Presets/GLSL_shaders/basic/multipass/Digital Clock.fs	blank
 Presets/GLSL_shaders/basic/multipass/Duotone From Histogram.fs	blank
 Presets/GLSL_shaders/basic/multipass/FFT Spectrogram.fs	blank
+Presets/GLSL_shaders/basic/multipass/Life.fs	blank-mid
 Presets/GLSL_shaders/basic/multipass/Micro Buffer.fs	blank
 Presets/GLSL_shaders/basic/multipass/Optical Flow Generator.fs	blank
 Presets/GLSL_shaders/basic/multipass/RE RGB Gradient Generator.fs	blank
@@ -55,6 +56,7 @@ Presets/GLSL_shaders/gitizenme/gum.fs	bake
 Presets/GLSL_shaders/grigm/01_Strobosphere.fs	blank
 Presets/GLSL_shaders/grigm/04_SmoothStep.fs	blank
 Presets/GLSL_shaders/grigm/07_4tSXWt.fs	bake
+Presets/GLSL_shaders/grigm/07_4tSXWt.fs	blank
 Presets/GLSL_shaders/grigm/20_FractalDots.fs	blank
 Presets/GLSL_shaders/grigm/23_DiscSpin.fs	blank
 Presets/GLSL_shaders/grigm/2D_Fast_Clouds_XsjSRt.fs	bake
@@ -70,6 +72,7 @@ Presets/GLSL_shaders/grigm/Bumped_Sinusoidal_Warp_4l2XWK.fs	bake
 Presets/GLSL_shaders/grigm/Camera_Blur_butno_its_abberation_wddGDS.fs	bake
 Presets/GLSL_shaders/grigm/Cheap_Clouds_MsG3Rc.fs	bake
 Presets/GLSL_shaders/grigm/Chimera's_Breath_4tGfDW.fs	bake
+Presets/GLSL_shaders/grigm/Chimera's_Breath_4tGfDW.fs	blank
 Presets/GLSL_shaders/grigm/Chromatic_Delay_2_4tySWh.fs	bake
 Presets/GLSL_shaders/grigm/Circle_bullshit2_4lfBzX.fs	blank
 Presets/GLSL_shaders/grigm/Cloud_Flight_XtlfDn.fs	bake
@@ -112,6 +115,7 @@ Presets/GLSL_shaders/grigm/Hilbert_scrambler_XdSGRR.fs	bake
 Presets/GLSL_shaders/grigm/Holiday_moon_Xds3zB.fs	bake
 Presets/GLSL_shaders/grigm/HyperbolicSpace.fs	bake
 Presets/GLSL_shaders/grigm/Hyperbolic_Truchet_tiles_3llXR4.fs	bake
+Presets/GLSL_shaders/grigm/Hyperellipse_visual_XtG3Ry.fs	blank
 Presets/GLSL_shaders/grigm/Hyperellipse_visual_XtG3Ry.fs	parse
 Presets/GLSL_shaders/grigm/IQ_PolygonDeformation.fs	bake
 Presets/GLSL_shaders/grigm/Ice_lake_MtlSz8.fs	bake
@@ -144,6 +148,7 @@ Presets/GLSL_shaders/grigm/Motion_Dilation_Test_3sB3Wz.fs	blank
 Presets/GLSL_shaders/grigm/Multi Gradient.fs	blank
 Presets/GLSL_shaders/grigm/Multiscale_MIP_Fluid_tsKXR3.fs	bake
 Presets/GLSL_shaders/grigm/Mystery_Mountains_llsGW7.fs	bake
+Presets/GLSL_shaders/grigm/Mystery_Mountains_llsGW7.fs	blank
 Presets/GLSL_shaders/grigm/NEON_TUNNEL_WdV3DW.fs	parse
 Presets/GLSL_shaders/grigm/Nightfall_MlfXWH.fs	bake
 Presets/GLSL_shaders/grigm/Noise_Holes_XdyXz3.fs	bake
@@ -155,15 +160,19 @@ Presets/GLSL_shaders/grigm/Pixellate Smooth.fs	bake
 Presets/GLSL_shaders/grigm/Polygonal_Terrain_Md23RK.fs	parse
 Presets/GLSL_shaders/grigm/Rasterizer-Object_4slGzn.fs	bake
 Presets/GLSL_shaders/grigm/Rave_Sickness-Oropendola_VIZU_3lXXWX.fs	bake
+Presets/GLSL_shaders/grigm/Rave_Sickness-Oropendola_VIZU_3lXXWX.fs	blank
 Presets/GLSL_shaders/grigm/Re_Cypher_MlGSzW.fs	blank
 Presets/GLSL_shaders/grigm/Reconstitution image.fs	bake
 Presets/GLSL_shaders/grigm/Reflect_Learning_MsdyW2.fs	bake
+Presets/GLSL_shaders/grigm/Reflect_Learning_MsdyW2.fs	blank
 Presets/GLSL_shaders/grigm/Reflect_inputLearing.fs	bake
+Presets/GLSL_shaders/grigm/RetroTechicolorComputer.fs	blank
 Presets/GLSL_shaders/grigm/SDF_2D_demo_WdfSRM.fs	blank
 Presets/GLSL_shaders/grigm/Sample_Pinning_XdfXzn.fs	bake
 Presets/GLSL_shaders/grigm/Sculpture_III_XtjSDK.fs	bake
 Presets/GLSL_shaders/grigm/Sea_of_fog_tsdSzn.fs	bake
 Presets/GLSL_shaders/grigm/Shaderdough_4tc3WB.fs	bake
+Presets/GLSL_shaders/grigm/Shatter_MsfGz7.fs	blank
 Presets/GLSL_shaders/grigm/Shatter_MsfGz7.fs	parse
 Presets/GLSL_shaders/grigm/Simple_Cube_Rotation_+_Twist_MlGGDh.fs	parse
 Presets/GLSL_shaders/grigm/Simple_RippleRadialDistortion_llGXzR.fs	parse
@@ -172,6 +181,7 @@ Presets/GLSL_shaders/grigm/Snek_2_ls2cWz.fs	blank
 Presets/GLSL_shaders/grigm/Soft Borders.fs	bake
 Presets/GLSL_shaders/grigm/Soulstone_pt1_llSBRD.fs	bake
 Presets/GLSL_shaders/grigm/Space_Curvature_Planet_+_MoonÂ²_XddXWf.fs	bake
+Presets/GLSL_shaders/grigm/Space_Curvature_Planet_+_MoonÂ²_XddXWf.fs	blank
 Presets/GLSL_shaders/grigm/Space_fungus_lslcWj.fs	blank
 Presets/GLSL_shaders/grigm/SphereBubble.fs	bake
 Presets/GLSL_shaders/grigm/SphericalCubeMapper1.fs	bake
@@ -179,6 +189,8 @@ Presets/GLSL_shaders/grigm/Split_Shift_MlcXRB.fs	bake
 Presets/GLSL_shaders/grigm/Squares_layer_4dBXzW.fs	bake
 Presets/GLSL_shaders/grigm/Study_7-Tunnel_Effect_lsj3Wy.fs	bake
 Presets/GLSL_shaders/grigm/Sun_surface_XlSSzK.fs	bake
+Presets/GLSL_shaders/grigm/Test-Audio.fs	blank
+Presets/GLSL_shaders/grigm/Test-Bool.fs	blank
 Presets/GLSL_shaders/grigm/Test-Functionality.fs	blank
 Presets/GLSL_shaders/grigm/Test-ImportedImage.fs	bake
 Presets/GLSL_shaders/grigm/TextileMutationLattice.fs	blank
@@ -188,6 +200,7 @@ Presets/GLSL_shaders/grigm/Tiny_Clouds-Unpacked_&_No_Tex_4tlBz8.fs	bake
 Presets/GLSL_shaders/grigm/ToyDivision_MlG3zm.fs	bake
 Presets/GLSL_shaders/grigm/Trails_MsKGWR.fs	bake
 Presets/GLSL_shaders/grigm/Triangular_Voronoi_Lighted_ltK3WD.fs	bake
+Presets/GLSL_shaders/grigm/Triangular_Voronoi_Lighted_ltK3WD.fs	blank
 Presets/GLSL_shaders/grigm/Type_2_Supernova_lsyXDK.fs	bake
 Presets/GLSL_shaders/grigm/UltimateSpiral.fs	bake
 Presets/GLSL_shaders/grigm/Unwraveling_Inward_llGSDd.fs	bake
@@ -195,6 +208,7 @@ Presets/GLSL_shaders/grigm/Vertex Noise.fs	parse
 Presets/GLSL_shaders/grigm/Video Heightfield.fs	bake
 Presets/GLSL_shaders/grigm/Viscous_Fingering_Xst3Dj.fs	parse
 Presets/GLSL_shaders/grigm/Voro_Tri_Tunnel_XtGGWy.fs	bake
+Presets/GLSL_shaders/grigm/Voro_Tri_Tunnel_XtGGWy.fs	blank
 Presets/GLSL_shaders/grigm/WaperVave_3sGSDm.fs	parse
 Presets/GLSL_shaders/grigm/Water_blobs_ldySDh.fs	parse
 Presets/GLSL_shaders/grigm/XY_oscilloscope_stochastic_XttSzf.fs	bake
@@ -208,9 +222,11 @@ Presets/GLSL_shaders/grigm/circle/Soft Borders.fs	bake
 Presets/GLSL_shaders/grigm/computer_grid_wtB3zw.fs	blank
 Presets/GLSL_shaders/grigm/crystaline_growth_4lXyRM.fs	blank
 Presets/GLSL_shaders/grigm/font_morph_ltcXzs.fs	bake
+Presets/GLSL_shaders/grigm/font_morph_ltcXzs.fs	blank
 Presets/GLSL_shaders/grigm/fx_Contiguous_Image_Warping.fs	parse
 Presets/GLSL_shaders/grigm/fx_Curl_noise_Image_transition_tdj3W3.fs	bake
 Presets/GLSL_shaders/grigm/fx_Fisheye___antifisheye_4s2GRR.fs	parse
+Presets/GLSL_shaders/grigm/fx_Fluid_Warp_ltKfR1.fs	blank-mid
 Presets/GLSL_shaders/grigm/fx_Fluid_Warp_ltKfR1.fs	parse
 Presets/GLSL_shaders/grigm/fx_Image_Diffusion_Warp_Msd3W2.fs	parse
 Presets/GLSL_shaders/grigm/fx_Indented_glass_WltSWM.fs	parse
@@ -260,20 +276,28 @@ Presets/GLSL_shaders/grigm/gs_34489.0.fs	bake
 Presets/GLSL_shaders/grigm/gs_34631.0.fs	blank
 Presets/GLSL_shaders/grigm/gs_3465.0.fs	bake
 Presets/GLSL_shaders/grigm/gs_34774.0.fs	parse
+Presets/GLSL_shaders/grigm/gs_34940.0.fs	blank
 Presets/GLSL_shaders/grigm/gs_34973.5.fs	blank
+Presets/GLSL_shaders/grigm/gs_35137.0.fs	blank-mid
 Presets/GLSL_shaders/grigm/gs_35376.3.fs	parse
 Presets/GLSL_shaders/grigm/gs_36074.0.fs	bake
 Presets/GLSL_shaders/grigm/gs_36473.0.fs	blank
+Presets/GLSL_shaders/grigm/gs_36473.0.fs	blank-mid
 Presets/GLSL_shaders/grigm/gs_36477.0.fs	bake
 Presets/GLSL_shaders/grigm/gs_36955.1.fs	parse
+Presets/GLSL_shaders/grigm/gs_37458.1.fs	blank-mid
 Presets/GLSL_shaders/grigm/gs_37459.3.fs	bake
 Presets/GLSL_shaders/grigm/gs_38016.0.fs	parse
 Presets/GLSL_shaders/grigm/gs_3877.3.fs	bake
+Presets/GLSL_shaders/grigm/gs_39196.0.fs	blank
 Presets/GLSL_shaders/grigm/gs_39393.0.fs	bake
 Presets/GLSL_shaders/grigm/gs_39446.1.fs	blank
 Presets/GLSL_shaders/grigm/gs_39620.0.fs	bake
 Presets/GLSL_shaders/grigm/gs_39651.0.fs	bake
+Presets/GLSL_shaders/grigm/gs_39651.0.fs	blank
+Presets/GLSL_shaders/grigm/gs_39881.0.fs	blank
 Presets/GLSL_shaders/grigm/gs_39890.0.fs	parse
+Presets/GLSL_shaders/grigm/gs_39891.0.fs	blank
 Presets/GLSL_shaders/grigm/gs_39893.2.fs	blank
 Presets/GLSL_shaders/grigm/gs_4024.0.fs	bake
 Presets/GLSL_shaders/grigm/gs_41868.9.fs	bake
@@ -330,10 +354,12 @@ Presets/GLSL_shaders/grigm/gs_52203.0.fs	warning
 Presets/GLSL_shaders/grigm/gs_52218.0.fs	blank
 Presets/GLSL_shaders/grigm/gs_52218.0.fs	warning
 Presets/GLSL_shaders/grigm/gs_52534.0.fs	bake
+Presets/GLSL_shaders/grigm/gs_52534.0.fs	blank
 Presets/GLSL_shaders/grigm/gs_52901.1.fs	bake
 Presets/GLSL_shaders/grigm/gs_53367.0.fs	bake
 Presets/GLSL_shaders/grigm/gs_53505.0.fs	bake
 Presets/GLSL_shaders/grigm/gs_53580.2.fs	parse
+Presets/GLSL_shaders/grigm/gs_5359.8.fs	blank
 Presets/GLSL_shaders/grigm/gs_5359.8.fs	parse
 Presets/GLSL_shaders/grigm/gs_5361.0.fs	bake
 Presets/GLSL_shaders/grigm/gs_53619.0.fs	bake
@@ -347,6 +373,7 @@ Presets/GLSL_shaders/grigm/gs_54208.0.fs	bake
 Presets/GLSL_shaders/grigm/gs_54343.0.fs	parse
 Presets/GLSL_shaders/grigm/gs_54364.0.fs	bake
 Presets/GLSL_shaders/grigm/gs_54370.0.fs	bake
+Presets/GLSL_shaders/grigm/gs_54370.0.fs	blank
 Presets/GLSL_shaders/grigm/gs_55484.1.fs	parse
 Presets/GLSL_shaders/grigm/gs_5550.0.fs	bake
 Presets/GLSL_shaders/grigm/gs_55915.1.fs	bake
@@ -409,10 +436,21 @@ Presets/GLSL_shaders/grigm/willstall_015_test.fs	bake
 Presets/GLSL_shaders/grigm/willstall_023.fs	parse
 Presets/GLSL_shaders/icalvin102/GradientDisplace.fs	bake
 Presets/GLSL_shaders/icalvin102/RadialSpectrogram.fs	blank
+Presets/GLSL_shaders/new/FFT Color Lines.fs	blank
 Presets/GLSL_shaders/sophia-digital-art/NovaFractal.fs	blank
 Presets/GLSL_shaders/sophia-digital-art/PlasmaGlobe.fs	blank
 Presets/GLSL_shaders/sophia-digital-art/Template.fs	blank
 Presets/GLSL_shaders/sophia-digital-art/edges.fs	bake
 Presets/GLSL_shaders/utility/Crop Edges.fs	blank
 Presets/GLSL_shaders/utility/Crop.fs	bake
+Presets/GLSL_shaders/volumetric/18-viewers/18-01_slice_viewer.fs	blank
+Presets/GLSL_shaders/volumetric/18-viewers/18-02_slice_grid.fs	blank
+Presets/GLSL_shaders/volumetric/18-viewers/18-03_mip_raymarch.fs	blank
+Presets/GLSL_shaders/volumetric/18-viewers/18-04_emission_raymarch.fs	blank
+Presets/GLSL_shaders/volumetric/18-viewers/18-05_iso_raymarch.fs	blank
+Presets/GLSL_shaders/volumetric/18-viewers/18-06_orbit_raymarch.fs	blank
+Presets/GLSL_shaders/volumetric/18-viewers/18-07_triplanar_quad.fs	blank
+Presets/GLSL_shaders/volumetric/18-viewers/18-08_volume_lit.fs	blank
+Presets/GLSL_shaders/volumetric/18-viewers/18-09_raymarch_palette.fs	blank
 Presets/Javascript/rect-mapper/edgeblend.frag	parse
+Presets/Javascript/video-mapper/video-mapper-warp.frag	parse

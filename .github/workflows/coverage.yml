@@ -44,6 +44,22 @@ jobs:
             gcovr clang lld llvm \
             libgl1-mesa-dri libglx-mesa0 mesa-utils xvfb \
             qml6-module-qtqml-workerscript
+          # >>> software Vulkan (lavapipe)
+          # So that the gfx tests run on Vulkan as well as on OpenGL, and the
+          # ones comparing two backends run at all. vulkan-tools is for the
+          # device summary coverage.build.sh logs.
+          apt-get install -y --no-install-recommends \
+            mesa-vulkan-drivers libvulkan1 vulkan-tools
+          # <<< software Vulkan (lavapipe)
+          # >>> validation audio plug-ins
+          # The exec sweep (test_nodes_process_views_exec_*) runs the CLAP,
+          # LV2, VST 2 and VST 3 hosts with DPF-Plugins' MaFreeverb and Kars,
+          # and LV2's eg-amp and eg-midigate (tests/nodes/ValidationPlugins.hpp).
+          apt-get install -y --no-install-recommends \
+            dpf-plugins-clap=1.7+ds-2build3 dpf-plugins-lv2=1.7+ds-2build3 \
+            dpf-plugins-vst=1.7+ds-2build3 dpf-plugins-vst3=1.7+ds-2build3 \
+            lv2-examples=1.18.10-2build1
+          # <<< validation audio plug-ins
 
       - name: Build, run tests, generate Coveralls report
         env:
