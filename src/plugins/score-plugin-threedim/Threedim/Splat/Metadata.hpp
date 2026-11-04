@@ -18,5 +18,10 @@ PROCESS_METADATA(
     {},                                  // Inputs
     {},                                  // Outputs
     QUrl{},                              // Doc url
-    Process::ProcessFlags::SupportsAll | Process::ProcessFlags::ControlSurface // Flags
+    // Replaced by the Asset Loader -> Scene Preprocessor -> Flattened Scene
+    // Filter -> Compute Shader -> Render Pipeline chain (examples/3d/3dgs.score).
+    // Deprecated keeps documents that use it loading and running, and hides it
+    // from the library and the Add Process dialog.
+    Process::ProcessFlags::SupportsAll | Process::ProcessFlags::ControlSurface
+        | Process::ProcessFlags::Deprecated // Flags
 )
