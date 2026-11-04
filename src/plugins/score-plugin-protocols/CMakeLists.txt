@@ -197,6 +197,20 @@ set(JOYSTICK_SRCS
   "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Joystick/JoystickSpecificSettingsSerialization.cpp"
 )
 
+set(HID_HDRS
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/HID/HIDDevice.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/HID/HIDProtocolFactory.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/HID/HIDProtocolSettingsWidget.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/HID/HIDSpecificSettings.hpp"
+)
+
+set(HID_SRCS
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/HID/HIDDevice.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/HID/HIDProtocolFactory.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/HID/HIDProtocolSettingsWidget.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/HID/HIDSpecificSettingsSerialization.cpp"
+)
+
 set(WIIMOTE_HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Wiimote/WiimoteDevice.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Wiimote/WiimoteProtocolFactory.hpp"
@@ -382,6 +396,11 @@ endif()
 if(OSSIA_PROTOCOL_JOYSTICK)
     target_sources(${PROJECT_NAME} PRIVATE ${JOYSTICK_HDRS} ${JOYSTICK_SRCS})
     score_declare_feature(protocol_joystick)
+endif()
+
+if(OSSIA_PROTOCOL_HID)
+    target_sources(${PROJECT_NAME} PRIVATE ${HID_HDRS} ${HID_SRCS})
+    score_declare_feature(protocol_hid)
 endif()
 
 if(OSSIA_PROTOCOL_LEAPMOTION)

@@ -51,6 +51,9 @@
 #if defined(OSSIA_PROTOCOL_JOYSTICK)
 #include <Protocols/Joystick/JoystickProtocolFactory.hpp>
 #endif
+#if defined(OSSIA_PROTOCOL_HID)
+#include <Protocols/HID/HIDProtocolFactory.hpp>
+#endif
 #if defined(OSSIA_PROTOCOL_WIIMOTE)
 #include <Protocols/Wiimote/WiimoteProtocolFactory.hpp>
 #endif
@@ -152,6 +155,10 @@ std::vector<score::InterfaceBase*> score_plugin_protocols::factories(
 #if defined(OSSIA_PROTOCOL_JOYSTICK)
          ,
          Protocols::JoystickProtocolFactory
+#endif
+#if defined(OSSIA_PROTOCOL_HID)
+         ,
+         Protocols::HIDProtocolFactory
 #endif
 #if defined(OSSIA_PROTOCOL_WIIMOTE)
          ,
