@@ -5251,6 +5251,10 @@ void parser::parse_isf()
       }
 
       m_fragment += material_ubos;
+      // isf_vertShaderInit writes isf_FragNormCoord from the quad; IMG_THIS_PIXEL
+      // reads through it so that the image follows the shader's vertex warp.
+      if(simpleVS || m_sourceVertex.find("isf_vertShaderInit()") != std::string::npos)
+        m_fragment += "#define ISF_THIS_PIXEL_FROM_NORM_COORD 1\n";
       m_fragment += GLSL45.defaultFunctions;
       break;
     }
@@ -5259,7 +5263,15 @@ void parser::parse_isf()
   // Add the actual vert / frag code
   if(!simpleVS)
   {
+    // A shader built on isf_vertShaderInit writes gl_Position in OpenGL's clip
+    // space; the generated entry point maps it to the backend's after the
+    // shader's main has returned.
+    const bool wrapUserMain = m_sourceVertex.find("isf_vertShaderInit()") != std::string::npos;
+    if(wrapUserMain)
+      m_vertex += GLSL45.vertexUserMainRename;
     m_vertex += m_sourceVertex;
+    if(wrapUserMain)
+      m_vertex += GLSL45.vertexUserMainWrapper;
   }
   isf_refuse_sampled_storage_images(fragWithoutISF, m_desc);
   if(!simpleVS)
@@ -6221,7 +6233,8 @@ void parser::parse_raw_raster_pipeline()
   // runs the user's (renamed) main. See the VIEW_INDEX plumbing note above.
   // Generated entry point for every raw-raster vertex shader. Two jobs:
   //   1. multiview: publish gl_ViewIndex to the fragment stage;
-  //   2. the Y correction that ISF-mode shaders get from isf_vertShaderFinish().
+  //   2. the Y correction that ISF-mode shaders get from
+  //      isf_vertShaderApplyClipSpace().
   //      That prelude is only injected for an EMPTY vertex source or one calling
   //      isf_vertShaderInit(), so a RAW_RASTER shader -- which always writes its
   //      own main() -- never received it. Every node class lands its picture in

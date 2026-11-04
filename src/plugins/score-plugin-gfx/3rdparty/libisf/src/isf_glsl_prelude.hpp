@@ -24,21 +24,36 @@ layout(location = 1) in vec2 texcoord;
 layout(location = 0) out vec2 isf_FragNormCoord;
 
 )_";
+  // The vertex stage works in OpenGL's clip space, as in VVISF: init sets
+  // gl_Position to the quad in [-1, 1] with z = 0 and w = 1, and
+  // isf_FragNormCoord to the same position in [0, 1]. Whatever the shader then
+  // does to gl_Position (a rotation, a projection of its own) is the same math
+  // on every backend: isf_vertShaderApplyClipSpace maps the result to the
+  // backend's clip space once, after the shader's main has returned. The
+  // generated entry point calls it, so a shader never does.
   static constexpr auto vertexInitFunc = R"_(
 void isf_vertShaderInit()
 {
-  gl_Position = clipSpaceCorrMatrix * vec4(position, 0.0, 1.0);
-  isf_FragNormCoord = vec2((gl_Position.x+1.0)/2.0, (gl_Position.y+1.0)/2.0);
+  gl_Position = vec4(position, 0.0, 1.0);
+  isf_FragNormCoord = vec2((position.x+1.0)/2.0, (position.y+1.0)/2.0);
 }
 
-// The one clip-space Y negation for the whole vertex stage. It has to run
-// last, after any transform the shader applies, and it must not sit in
-// isf_vertShaderInit: a shader that reads gl_Position back after calling init
-// would then see the opposite polarity on Vulkan. Every ISF vertex shader ends
-// its main with a call to this.
+// Kept for the ISF vertex shaders that end their main with it; the clip-space
+// mapping is isf_vertShaderApplyClipSpace, run by the entry point.
 void isf_vertShaderFinish()
 {
-#if defined(QSHADER_SPIRV) || defined(QSHADER_HLSL) || defined(QSHADER_MSL)
+}
+
+// OpenGL clip space to the backend's, so that OpenGL's y = +1 lands on the
+// picture's top row in the row order of RowOrder.hpp: clipSpaceCorrMatrix
+// (Z to [0, 1] on Vulkan, Metal and D3D; Y negated on Vulkan, whose render
+// targets are top row first), then a Y negation on Metal and D3D, whose
+// render targets are bottom row first behind a top-left framebuffer origin.
+// Both are linear in homogeneous coordinates, so they hold for any w.
+void isf_vertShaderApplyClipSpace()
+{
+  gl_Position = clipSpaceCorrMatrix * gl_Position;
+#if defined(QSHADER_HLSL) || defined(QSHADER_MSL)
   gl_Position.y = -gl_Position.y;
 #endif
 }
@@ -48,7 +63,19 @@ void isf_vertShaderFinish()
 void main()
 {
   isf_vertShaderInit();
-  isf_vertShaderFinish();
+  isf_vertShaderApplyClipSpace();
+}
+)_";
+
+  // Entry point around a shader's own vertex main, renamed by
+  // vertexUserMainRename.
+  static constexpr auto vertexUserMainRename = "#define main isf_user_vertex_main\n";
+  static constexpr auto vertexUserMainWrapper = R"_(
+#undef main
+void main()
+{
+  isf_user_vertex_main();
+  isf_vertShaderApplyClipSpace();
 }
 )_";
 
@@ -204,12 +231,29 @@ vec4 isf_unpremultiply(vec4 c) { return c.a > 0.0 ? vec4(c.rgb / c.a, c.a) : vec
 
 // Pixel-unit reads are in the sampled image's own pixels, as in the ISF spec:
 // IMG_PIXEL(image, coord) is coord / size(image), IMG_THIS_PIXEL(image) is
-// IMG_PIXEL(image, gl_FragCoord.xy), pixel-aligned. IMG_THIS_NORM_PIXEL is the
-// one that stretches the image over the frame.
+// IMG_PIXEL(image, isf_ThisPixelCoord), pixel-aligned. IMG_THIS_NORM_PIXEL is
+// the one that stretches the image over the frame.
+//
+// isf_ThisPixelCoord is the quad's position in output pixels, in the ISF
+// (Y-up) convention. Where the vertex stage is isf_vertShaderInit, it comes
+// from the interpolated isf_FragNormCoord, which init sets from the quad
+// before the shader's own vertex code moves gl_Position: the image then
+// follows a warped or rotated quad, as in VVISF. On an unwarped quad it is
+// isf_FragCoord.xy -- the vertices map to 0 and RENDERSIZE, so the value
+// interpolated at a pixel centre is that centre, (i + 0.5) -- on every
+// backend. Stages without that varying (RAW_RASTER, its resolve pass, a vertex
+// shader that does not call isf_vertShaderInit) leave
+// ISF_THIS_PIXEL_FROM_NORM_COORD undefined and use the fragment's position.
+#if defined(ISF_THIS_PIXEL_FROM_NORM_COORD)
+#define isf_ThisPixelCoord (isf_FragNormCoord * RENDERSIZE)
+#else
+#define isf_ThisPixelCoord (isf_FragCoord.xy)
+#endif
+
 #if defined(QSHADER_SPIRV)
 #define isf_FragCoord vec4(gl_FragCoord.x, RENDERSIZE.y - gl_FragCoord.y, gl_FragCoord.z, gl_FragCoord.w)
 #define ISF_FIXUP_TEXCOORD(coord) vec2((coord).x, 1. - (coord).y)
-#define IMG_THIS_PIXEL_PREMULTIPLIED(tex) IMG_PIXEL_PREMULTIPLIED(tex, isf_FragCoord.xy)
+#define IMG_THIS_PIXEL_PREMULTIPLIED(tex) IMG_PIXEL_PREMULTIPLIED(tex, isf_ThisPixelCoord)
 #define IMG_THIS_NORM_PIXEL_PREMULTIPLIED(tex) texture(tex, ISF_FIXUP_TEXCOORD(isf_FragNormCoord))
 #define IMG_PIXEL_PREMULTIPLIED(tex, coord) texture(tex, ISF_FIXUP_TEXCOORD((coord) / vec2(textureSize(tex, 0))))
 #define IMG_NORM_PIXEL_PREMULTIPLIED(tex, coord) texture(tex, ISF_FIXUP_TEXCOORD(coord))
@@ -220,7 +264,7 @@ vec4 isf_unpremultiply(vec4 c) { return c.a > 0.0 ? vec4(c.rgb / c.a, c.a) : vec
 #define IMG_NORM_PIXEL_LOD_PREMULTIPLIED(tex, coord, lod) textureLod(tex, ISF_FIXUP_TEXCOORD(coord), lod)
 #else
 #define isf_FragCoord gl_FragCoord
-#define IMG_THIS_PIXEL_PREMULTIPLIED(tex) IMG_PIXEL_PREMULTIPLIED(tex, isf_FragCoord.xy)
+#define IMG_THIS_PIXEL_PREMULTIPLIED(tex) IMG_PIXEL_PREMULTIPLIED(tex, isf_ThisPixelCoord)
 #define IMG_THIS_NORM_PIXEL_PREMULTIPLIED(tex) texture(tex, isf_FragNormCoord)
 #define IMG_PIXEL_PREMULTIPLIED(tex, coord) texture(tex, (coord) / vec2(textureSize(tex, 0)))
 #define IMG_NORM_PIXEL_PREMULTIPLIED(tex, coord) texture(tex, coord)
