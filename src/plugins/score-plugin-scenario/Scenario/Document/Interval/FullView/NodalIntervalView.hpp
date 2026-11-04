@@ -40,8 +40,8 @@ public:
   //! Fits all the nodes in the view.
   void recenter();
   /**
-   * @brief Places the canvas so that the model's nodal center is at the
-   * center of the visible part of this item, at the model's scale.
+   * @brief Places the canvas so that the model's nodal center is at
+   * viewportCenter(), at the model's scale.
    *
    * Called whenever the view's geometry changes; what is at the center stays
    * there. The first time, when the model has no center yet (new or older
@@ -70,7 +70,8 @@ public:
 
 private:
   void setupNode(Process::NodeItem* item);
-  //! Shows all the nodes when `item` is outside of the visible part.
+  //! Brings `item` into the visible part by panning as little as possible,
+  //! zooming out only when it is larger than that part.
   void showNode(const Process::NodeItem& item);
   //! Rebuilds the rubber band's pen and brush from the current skin.
   void updateSelectionRectStyle();
@@ -81,7 +82,9 @@ private:
 
   //! Part of this item shown in its view, in its coordinates; empty if none.
   QRectF visibleRect() const;
-  //! Center of the visible part of this item, in its coordinates.
+  //! Where the canvas is anchored, in this item's coordinates: the middle of
+  //! what is shown for the nodal display; for a slot, the middle of the part
+  //! of its width that the view spans, at half its height.
   QPointF viewportCenter() const;
   //! Chooses and stores the model's nodal center (and scale) the first time
   //! the canvas is shown.

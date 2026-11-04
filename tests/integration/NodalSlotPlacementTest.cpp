@@ -460,7 +460,7 @@ TEST_CASE(
 }
 
 TEST_CASE(
-    "A node added outside of what an interval's nodal slot shows brings everything into view",
+    "A node added outside of what an interval's nodal slot shows is scrolled into view",
     "[integration][nodal][gui]")
 {
   score::test::run_in_gui_app([](const score::GUIApplicationContext& app) {
@@ -492,8 +492,10 @@ TEST_CASE(
                     << visible.height());
     INFO("second " << n2->sceneBoundingRect().x() << "," << n2->sceneBoundingRect().y());
     CHECK(visible.contains(n2->sceneBoundingRect()));
-    CHECK(visible.contains(n1->sceneBoundingRect()));
-    CHECK(nodal->nodeContainer().scale() < 1.);
+    // It fits at this zoom: the view only scrolls to it, it does not zoom
+    // out to show every node.
+    CHECK(nodal->nodeContainer().scale() == 1.);
+    CHECK(!visible.intersects(n1->sceneBoundingRect()));
   });
 }
 

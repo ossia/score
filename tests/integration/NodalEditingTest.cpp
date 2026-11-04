@@ -37,6 +37,7 @@
 #include <Scenario/DialogWidget/AddProcessDialog.hpp>
 #include <Scenario/Document/Interval/FullView/NodalIntervalView.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <Scenario/Document/ScenarioDocument/ProcessCreation.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentView.hpp>
@@ -423,6 +424,176 @@ TEST_CASE(
       run_events_for(50);
       CHECK(cables.find(cableId) != cables.end());
     }
+  });
+}
+
+namespace
+{
+//! Part of `view` shown in the document's view, in `view` coordinates
+QRectF shownPart(score::Document& doc, Scenario::NodalIntervalView& view)
+{
+  auto& gv = score::IDocument::try_presenterDelegate<Scenario::ScenarioDocumentPresenter>(doc)
+                 ->view()
+                 .view();
+  const QRectF r{
+      view.mapFromScene(gv.mapToScene(0, 0)),
+      view.mapFromScene(gv.mapToScene(gv.width(), gv.height()))};
+  return r.intersected(view.boundingRect());
+}
+
+QRectF nodeRectIn(Scenario::NodalIntervalView& view, Process::NodeItem& node)
+{
+  return view.mapRectFromScene(node.sceneBoundingRect());
+}
+
+//! A node at the origin and another one far away from it, in a canvas pinned
+//! at 1:1.
+struct FarApartNodes
+{
+  score::Document* doc{};
+  Scenario::IntervalModel* itv{};
+  Process::ProcessModel* a{};
+  Process::ProcessModel* far{};
+  Scenario::NodalIntervalView* view{};
+
+  explicit FarApartNodes(const score::GUIApplicationContext& app)
+  {
+    doc = score::test::new_document(app);
+    REQUIRE(doc);
+    itv = &newInterval(*doc);
+    a = addFloat(*doc, *itv, {0., 0.});
+    REQUIRE(a);
+    far = addFloat(*doc, *itv, {5000., 3000.});
+    REQUIRE(far);
+    view = nodalViewOf(*doc, *a);
+    REQUIRE(view);
+    view->rescale();
+    run_events_for(50);
+  }
+
+  //! Pans so that the center of `a` is at `at` (view coordinates)
+  void putAAt(QPointF at)
+  {
+    auto* na = nodeOf(*doc, *a);
+    REQUIRE(na);
+    view->panBy(at - nodeRectIn(*view, *na).center());
+    run_events_for(50);
+  }
+
+  Process::ProcessModel& addAfterA()
+  {
+    auto pr = score::IDocument::try_presenterDelegate<Scenario::ScenarioDocumentPresenter>(*doc);
+    REQUIRE(pr);
+    const auto before = itv->processes.size();
+    // What picking a process in the inspector or the library does with `a`
+    // selected
+    Scenario::createProcessAfterPort(
+        *pr, Process::ProcessData{float_key, "Float", {}}, {}, {}, *a, *a->outlets()[0],
+        true);
+    run_events_for(300);
+    REQUIRE(itv->processes.size() == before + 1);
+    for(auto& p : itv->processes)
+      if(&p != a && &p != far && p.concreteKey() == float_key)
+        return p;
+    FAIL("no process added");
+    return *a;
+  }
+};
+}
+
+TEST_CASE(
+    "Adding a node next to a visible one does not move the view",
+    "[integration][nodal][gui][reveal]")
+{
+  score::test::run_in_gui_app([](const score::GUIApplicationContext& app) {
+    FarApartNodes t{app};
+    const QRectF shown = shownPart(*t.doc, *t.view);
+    REQUIRE(!shown.isEmpty());
+    t.putAAt({shown.left() + 0.25 * shown.width(), shown.center().y()});
+
+    const QPointF pos = t.view->nodeContainer().pos();
+    const double scale = t.view->nodeContainer().scale();
+
+    auto& added = t.addAfterA();
+    auto* node = nodeOf(*t.doc, added);
+    REQUIRE(node);
+    REQUIRE(shown.contains(nodeRectIn(*t.view, *node)));
+
+    CHECK(t.view->nodeContainer().scale() == scale);
+    CHECK(QLineF{t.view->nodeContainer().pos(), pos}.length() < 0.5);
+  });
+}
+
+TEST_CASE(
+    "Adding a node outside of the view scrolls just enough to show it",
+    "[integration][nodal][gui][reveal]")
+{
+  score::test::run_in_gui_app([](const score::GUIApplicationContext& app) {
+    FarApartNodes t{app};
+    const QRectF shown = shownPart(*t.doc, *t.view);
+    REQUIRE(!shown.isEmpty());
+    // `a` right at the right edge: what is added after it lands outside
+    auto* na = nodeOf(*t.doc, *t.a);
+    REQUIRE(na);
+    const QRectF ra = nodeRectIn(*t.view, *na);
+    t.putAAt({shown.right() - ra.width() / 2. - 2., shown.center().y()});
+
+    const double scale = t.view->nodeContainer().scale();
+    const QPointF pos = t.view->nodeContainer().pos();
+
+    auto& added = t.addAfterA();
+    auto* node = nodeOf(*t.doc, added);
+    REQUIRE(node);
+    const QRectF r = nodeRectIn(*t.view, *node);
+    INFO("shown " << shown.x() << " " << shown.y() << " " << shown.width() << "x"
+                  << shown.height() << ", node " << r.x() << " " << r.y() << " "
+                  << r.width() << "x" << r.height());
+
+    CHECK(t.view->nodeContainer().scale() == scale);
+    CHECK(shown.contains(r));
+    // Only as far as needed: the node ends up against the edge it came from,
+    // and the view did not move on the axis where the node was already shown.
+    CHECK(r.right() <= shown.right());
+    CHECK(r.right() > shown.right() - 10.);
+    const QPointF moved = t.view->nodeContainer().pos() - pos;
+    CHECK(moved.x() < 0.);
+    CHECK(std::abs(moved.y()) < 0.5);
+  });
+}
+
+TEST_CASE(
+    "Adding a node larger than the view zooms out just enough to show it",
+    "[integration][nodal][gui][reveal]")
+{
+  score::test::run_in_gui_app([](const score::GUIApplicationContext& app) {
+    FarApartNodes t{app};
+    // A thin slot and a large zoom: a node does not fit in it
+    for(std::size_t i = 0; i < t.itv->smallView().size(); i++)
+      t.itv->setSlotHeight(Scenario::SlotId{i, Scenario::Slot::SmallView}, 40.);
+    t.view->zoomTo(5.0);
+    run_events_for(100);
+    const QRectF shown = shownPart(*t.doc, *t.view);
+    REQUIRE(!shown.isEmpty());
+    t.putAAt(shown.center());
+
+    const double scale = t.view->nodeContainer().scale();
+
+    auto& added = t.addAfterA();
+    auto* node = nodeOf(*t.doc, added);
+    REQUIRE(node);
+    const QRectF r = nodeRectIn(*t.view, *node);
+    const QRectF shownAfter = shownPart(*t.doc, *t.view);
+    INFO("shown " << shownAfter.width() << "x" << shownAfter.height() << ", node "
+                  << r.width() << "x" << r.height() << ", scale "
+                  << t.view->nodeContainer().scale() << " from " << scale);
+
+    CHECK(t.view->nodeContainer().scale() < scale);
+    CHECK(shownAfter.adjusted(-0.5, -0.5, 0.5, 0.5).contains(r));
+    // No further than needed: the node still fills the view in one direction,
+    // which fitting every node (5000 units apart) would not.
+    CHECK(
+        std::max(r.width() / shownAfter.width(), r.height() / shownAfter.height())
+        > 0.8);
   });
 }
 
