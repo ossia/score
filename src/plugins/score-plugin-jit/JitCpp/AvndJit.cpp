@@ -307,17 +307,18 @@ std::shared_ptr<NodeFactory> Model::getJitFactory()
 #include <avnd/binding/ossia/poly_audio_node.hpp>
 #include <avnd/binding/ossia/configure.hpp>
 __attribute__ ((visibility("default")))
-extern "C" ossia::graph_node* avnd_factory(int buffersize, double rate) {{
+extern "C" ossia::graph_node* avnd_factory(int buffersize, double rate, ossia::execution_state* st) {{
   using type = decltype(avnd::configure<oscr::config, Node>())::type;
   auto n = new oscr::safe_node<type>(buffersize, rate, 0);
   n->set_not_fp_safe();
   n->finish_init();
-  n->audio_configuration_changed();
+  if(st)
+    n->audio_configuration_changed(ossia::exec_state_facade{st});
   return n;
 }}
 )_";
     jit_factory = std::make_shared<NodeFactory>(
-        (*m_compiler).operator()<ossia::graph_node*(int, double)>(str, {}, Jit::CompilerOptions{false}));
+        (*m_compiler).operator()<NodeFunction>(str, {}, Jit::CompilerOptions{false}));
 
     if(!(*jit_factory))
       return nullptr;
@@ -346,7 +347,7 @@ Process::ScriptChangeResult Model::reload()
     return res;
   auto& jit_factory = *jit_fac;
 
-  std::unique_ptr<ossia::graph_node> jit_object{jit_factory(512, 44100)};
+  std::unique_ptr<ossia::graph_node> jit_object{jit_factory(512, 44100, nullptr)};
   if(!jit_object)
   {
     jit_factory = {};
@@ -499,7 +500,8 @@ Executor::Executor(AvndJit::Model& proc, const Execution::Context& ctx, QObject*
   auto reset = [this, &ctx, &proc] {
     if(proc.factory && *proc.factory)
     {
-      auto pf = (*proc.factory)(ctx.execState->bufferSize, ctx.execState->sampleRate);
+      auto pf = (*proc.factory)(
+          ctx.execState->bufferSize, ctx.execState->sampleRate, ctx.execState.get());
       this->node.reset(pf);
       if(this->node)
       {

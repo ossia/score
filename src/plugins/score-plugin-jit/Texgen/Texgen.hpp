@@ -120,6 +120,8 @@ public:
 
   TexgenExecutor(Jit::TexgenModel& proc, const Execution::Context& ctx, QObject* parent);
   ~TexgenExecutor() override;
+
+  void cleanup() override;
 };
 using TexgenExecutorFactory = Execution::ProcessComponentFactory_T<TexgenExecutor>;
 }
