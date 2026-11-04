@@ -62,6 +62,32 @@ TEST_CASE(
   });
 }
 
+// The C++ Splat process is replaced by the Asset Loader -> Scene Preprocessor
+// -> Compute Shader -> Render Pipeline chain: it is deprecated, so the library
+// and the Add Process dialog no longer offer it, while documents that use it
+// still create and load it.
+TEST_CASE(
+    "Splat is deprecated and still loads", "[integration][regression][threedim][gui]")
+{
+  score::test::run_in_gui_app([](const score::GUIApplicationContext& ctx) {
+    auto& factories = ctx.interfaces<Process::ProcessFactoryList>();
+    auto* factory = factories.get(splat_key);
+    REQUIRE(factory != nullptr);
+    CHECK(bool(factory->flags() & Process::ProcessFlags::Deprecated));
+
+    score::Document* doc = score::test::new_document(ctx);
+    REQUIRE(doc != nullptr);
+    CommandDispatcher<> disp{doc->context().commandStack};
+    disp.submit<Scenario::Command::AddOnlyProcessToInterval>(
+        base_interval(*doc), factory->concreteKey(), QString{}, QPointF{});
+    REQUIRE(find_splat(*doc) != nullptr);
+
+    score::Document* reloaded = score::test::reload_via_json(ctx, *doc);
+    REQUIRE(reloaded != nullptr);
+    CHECK(find_splat(*reloaded) != nullptr);
+  });
+}
+
 TEST_CASE(
     "Splat process ports stay stable across save/reload cycles",
     "[integration][regression][threedim][gui]")
