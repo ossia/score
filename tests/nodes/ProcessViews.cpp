@@ -13,13 +13,22 @@
 // also fed a 3D texture, an array and a cube map, each written by a compute
 // shader.
 //
+// Every process is also run, in a test case hidden from the default run, which
+// ctest runs in shards (see CMakeLists.txt): added to a document whose sources
+// feed each of its inlets that is not a control, the document is played for
+// some buffers, ticked from the test thread rather than from an audio thread so
+// that the crash guard catches what the nodes do, its texture outlets are
+// previewed until they render, and its node is painted while it runs.
+//
 // What a view looks like is checked in the running application; this checks
 // that every view builds and paints at all, in every mode and size.
 
 #include "SweepGuard.hpp"
+#include "ValidationPlugins.hpp"
 
 #include <score_test/App.hpp>
 #include <score_test/Document.hpp>
+#include <score_test/Execution.hpp>
 #include <score_test/Project.hpp>
 
 #include <Process/Dataflow/NodeItem.hpp>
@@ -33,10 +42,27 @@
 #include <Process/ProcessContext.hpp>
 #include <Process/ProcessList.hpp>
 
+#include <Process/Execution/ProcessComponent.hpp>
+#include <Process/ExecutionAction.hpp>
+#include <Process/ExecutionTransaction.hpp>
+
 #include <Dataflow/Commands/EditConnection.hpp>
+#include <Audio/AudioApplicationPlugin.hpp>
 #include <Audio/Settings/Model.hpp>
+
+#include <ossia/audio/audio_engine.hpp>
 #include <Engine/ApplicationPlugin.hpp>
+#include <Execution/BaseScenarioComponent.hpp>
+#include <Execution/Clock/DefaultClock.hpp>
+#include <Execution/DocumentPlugin.hpp>
 #include <Execution/ExecutionController.hpp>
+#include <Gfx/GfxApplicationPlugin.hpp>
+#include <Gfx/GfxContext.hpp>
+#include <Gfx/Graph/RenderState.hpp>
+#include <Gfx/TexturePort.hpp>
+#include <Gfx/Widgets/TexturePreview.hpp>
+#include <Scenario/Document/Interval/IntervalExecution.hpp>
+#include <Library/LibrarySettings.hpp>
 #include <Inspector/InspectorWidgetList.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
@@ -53,6 +79,8 @@
 #include <core/document/DocumentModel.hpp>
 
 #include <QApplication>
+#include <QDir>
+#include <QFileInfo>
 #include <QElapsedTimer>
 #include <QGraphicsRectItem>
 #include <QGraphicsScene>
@@ -61,8 +89,20 @@
 #include <QThread>
 #include <QWidget>
 
+#include <ossia/audio/audio_protocol.hpp>
+#include <ossia/dataflow/execution_state.hpp>
+#include <ossia/dataflow/graph/graph_interface.hpp>
+#include <ossia/dataflow/graph/tick_setup.hpp>
+#include <ossia/dataflow/graph_node.hpp>
+#include <ossia/detail/thread.hpp>
+#include <ossia/editor/scenario/scenario.hpp>
+#include <ossia/editor/scenario/time_interval.hpp>
+#include <ossia/editor/scenario/time_sync.hpp>
+
 #include <catch2/catch_test_macros.hpp>
 
+#include <map>
+#include <memory>
 #include <set>
 #include <string>
 #include <vector>
@@ -365,6 +405,56 @@ const Process::Outlet* firstOutlet(const Process::ProcessModel& p, Process::Port
 //! which: the monitoring processes that read buffers.
 const std::set<QString> buffer_sinks{QStringLiteral("Buffer view")};
 
+//! The processes whose texture inlet takes the gaussian splats of a Splat
+//! loader, and nothing else: a texture or a generic storage buffer there
+//! gives them no splat to draw.
+const std::set<QString> splat_sinks{QStringLiteral("Splat")};
+
+//! The Splat loader process (Threedim::SplatLoader)
+constexpr auto splat_loader_uuid = "bab30770-d6d7-4727-ad43-38eacdd910a7";
+
+//! A 3DGS PLY of eight splats on the corners of a cube around the origin,
+//! which the Splat process's default camera, at (-1, -1, -1) looking at the
+//! origin, has in view. The properties are those of the reference 3DGS
+//! exporter: colour as the degree-0 SH coefficient (0.5 + 0.2821 * f_dc),
+//! opacity as a logit, scale as a log, rotation as a (w, x, y, z) quaternion.
+QString splat_fixture()
+{
+  const QString path
+      = QDir::temp().filePath(QStringLiteral("process-exec-media/splats.ply"));
+  QByteArray ply
+      = "ply\n"
+        "format ascii 1.0\n"
+        "element vertex 8\n"
+        "property float x\nproperty float y\nproperty float z\n"
+        "property float f_dc_0\nproperty float f_dc_1\nproperty float f_dc_2\n"
+        "property float opacity\n"
+        "property float scale_0\nproperty float scale_1\nproperty float scale_2\n"
+        "property float rot_0\nproperty float rot_1\nproperty float rot_2\n"
+        "property float rot_3\n"
+        "end_header\n";
+  for(int i = 0; i < 8; i++)
+  {
+    const float x = (i & 1) ? 0.25f : -0.25f;
+    const float y = (i & 2) ? 0.25f : -0.25f;
+    const float z = (i & 4) ? 0.25f : -0.25f;
+    // Pure red, green or blue, saturated: f_dc = (1 - 0.5) / 0.2821
+    const float r = (i % 3 == 0) ? 1.77f : -1.77f;
+    const float g = (i % 3 == 1) ? 1.77f : -1.77f;
+    const float b = (i % 3 == 2) ? 1.77f : -1.77f;
+    ply += QStringLiteral("%1 %2 %3 %4 %5 %6 4 -2 -2 -2 1 0 0 0\n")
+               .arg(x)
+               .arg(y)
+               .arg(z)
+               .arg(r)
+               .arg(g)
+               .arg(b)
+               .toLatin1();
+  }
+  score::test::write_file(path, ply);
+  return path;
+}
+
 //! The views that show textures of every kind, whose node tells them which
 //! one it got (Ui::Monitor::TextureShapeMonitor)
 const std::set<QString> texture_kind_sinks{
@@ -391,35 +481,31 @@ factoryNamed(const Process::ProcessFactoryList& pl, const QString& name)
       return &f;
   return nullptr;
 }
-}
 
-TEST_CASE(
-    "Monitoring views paint what runs through them", "[nodes][views][monitoring]")
+//! Processes in the base interval of a document that produce data of each
+//! kind, and the cables that feed it to the processes under test.
+struct Sources
 {
-  std::vector<ViewResult> results;
-  const std::set<std::string> only = sweep::only();
+  score::Document& doc;
+  Process::ProcessModel* audio{};
+  Process::ProcessModel* value{};
+  Process::ProcessModel* midi{};
+  Process::ProcessModel* texture{};
+  Process::ProcessModel* geometry{};
+  //! A compute shader writing a storage buffer
+  Process::ProcessModel* buffer{};
+  //! A Splat loader with splat_fixture() loaded
+  Process::ProcessModel* splats{};
+  int cable_id = 1;
 
-  auto run = [&](const score::GUIApplicationContext& ctx) {
-    score::Document* doc = score::test::new_document(ctx);
-    REQUIRE(doc != nullptr);
-    auto& interval = score::test::base_interval(*doc);
-    const auto duration = interval.duration.defaultDuration();
-    auto& pl = ctx.interfaces<Process::ProcessFactoryList>();
-    auto& model = score::IDocument::get<Scenario::ScenarioDocumentModel>(*doc);
-
+  Sources(score::Document& d, const Process::ProcessFactoryList& pl)
+      : doc{d}
+  {
     auto add = [&](const Process::ProcessModelFactory& f, const QString& data) {
       return score::test::add_process(
-          *doc, QString::fromLatin1(score::uuids::toByteArray(f.concreteKey().impl())),
+          doc, QString::fromLatin1(score::uuids::toByteArray(f.concreteKey().impl())),
           data);
     };
-
-    // Sources of each kind of data
-    Process::ProcessModel* audio{};
-    Process::ProcessModel* value{};
-    Process::ProcessModel* midi{};
-    Process::ProcessModel* texture{};
-    Process::ProcessModel* geometry{};
-    Process::ProcessModel* buffer{};
     if(auto* f = factoryNamed(pl, QStringLiteral("Expression Audio Generator")))
       audio = add(*f, f->customConstructionData());
     if(auto* f = factoryNamed(pl, QStringLiteral("LFO")))
@@ -440,42 +526,87 @@ TEST_CASE(
     if(!geometry)
       if(auto* f = factoryNamed(pl, QStringLiteral("Torus")))
         geometry = add(*f, f->customConstructionData());
-    std::vector<Process::ProcessModel*> layered;
     if(auto* f = factoryNamed(pl, QStringLiteral("Compute Shader")))
-    {
       buffer = add(*f, QStringLiteral(GFX_TEST_CORPUS_DIR "/csf-storage-items.cs"));
-      for(const auto& src : layered_sources)
-        layered.push_back(add(*f, QStringLiteral(GFX_TEST_CORPUS_DIR "/") + src.file));
-    }
+    if(auto* f = factoryNamed(pl, QStringLiteral("Splat loader")))
+      splats = add(*f, splat_fixture());
 
-    int cable_id = 1;
-    auto connect = [&](const Process::Port* source, const Process::Port* sink) {
-      if(!source || !sink)
-        return;
-      CommandDispatcher<>{doc->context().commandStack}.submit<Dataflow::CreateCable>(
-          model, Id<Process::Cable>{cable_id++}, Process::CableType::ImmediateGlutton,
-          *source, *sink);
-    };
     // The LFO's pulses become notes
     if(value && midi && !midi->inlets().empty())
       connect(firstOutlet(*value, Process::PortType::Message), midi->inlets()[0]);
+  }
 
-    auto source = [&](Process::PortType t) -> const Process::Outlet* {
-      switch(t)
-      {
-        case Process::PortType::Audio:
-          return audio ? firstOutlet(*audio, t) : nullptr;
-        case Process::PortType::Message:
-          return value ? firstOutlet(*value, t) : nullptr;
-        case Process::PortType::Midi:
-          return midi ? firstOutlet(*midi, t) : nullptr;
-        case Process::PortType::Texture:
-          return texture ? firstOutlet(*texture, t) : nullptr;
-        case Process::PortType::Geometry:
-          return geometry ? firstOutlet(*geometry, t) : nullptr;
-      }
-      return nullptr;
+  const Process::Outlet* outlet(Process::PortType t) const
+  {
+    switch(t)
+    {
+      case Process::PortType::Audio:
+        return audio ? firstOutlet(*audio, t) : nullptr;
+      case Process::PortType::Message:
+        return value ? firstOutlet(*value, t) : nullptr;
+      case Process::PortType::Midi:
+        return midi ? firstOutlet(*midi, t) : nullptr;
+      case Process::PortType::Texture:
+        return texture ? firstOutlet(*texture, t) : nullptr;
+      case Process::PortType::Geometry:
+        return geometry ? firstOutlet(*geometry, t) : nullptr;
+    }
+    return nullptr;
+  }
+
+  //! What feeds the inlet `in` of a process made by `factory`
+  const Process::Outlet* outletFor(const QString& factory, const Process::Inlet& in) const
+  {
+    const auto t = in.type();
+    if(t == Process::PortType::Texture && buffer_sinks.contains(factory))
+      return buffer ? firstOutlet(*buffer, t) : nullptr;
+    if(t == Process::PortType::Texture && splat_sinks.contains(factory))
+      return splats ? firstOutlet(*splats, t) : nullptr;
+    return outlet(t);
+  }
+
+  void connect(const Process::Port* source, const Process::Port* sink)
+  {
+    if(!source || !sink)
+      return;
+    auto& model = score::IDocument::get<Scenario::ScenarioDocumentModel>(doc);
+    CommandDispatcher<>{doc.context().commandStack}.submit<Dataflow::CreateCable>(
+        model, Id<Process::Cable>{cable_id++}, Process::CableType::ImmediateGlutton,
+        *source, *sink);
+  }
+};
+}
+
+TEST_CASE(
+    "Monitoring views paint what runs through them", "[nodes][views][monitoring]")
+{
+  std::vector<ViewResult> results;
+  const std::set<std::string> only = sweep::only();
+
+  auto run = [&](const score::GUIApplicationContext& ctx) {
+    score::Document* doc = score::test::new_document(ctx);
+    REQUIRE(doc != nullptr);
+    auto& interval = score::test::base_interval(*doc);
+    const auto duration = interval.duration.defaultDuration();
+    auto& pl = ctx.interfaces<Process::ProcessFactoryList>();
+
+    auto add = [&](const Process::ProcessModelFactory& f, const QString& data) {
+      return score::test::add_process(
+          *doc, QString::fromLatin1(score::uuids::toByteArray(f.concreteKey().impl())),
+          data);
     };
+
+    Sources sources{*doc, pl};
+    std::vector<Process::ProcessModel*> layered;
+    if(auto* f = factoryNamed(pl, QStringLiteral("Compute Shader")))
+      for(const auto& src : layered_sources)
+        layered.push_back(add(*f, QStringLiteral(GFX_TEST_CORPUS_DIR "/") + src.file));
+
+    auto connect = [&](const Process::Port* source, const Process::Port* sink) {
+      sources.connect(source, sink);
+    };
+    auto source = [&](Process::PortType t) { return sources.outlet(t); };
+    auto* buffer = sources.buffer;
 
     std::vector<std::pair<std::size_t, Process::ProcessModel*>> monitors;
     //! The views fed a texture of several images, and the kind they must see
@@ -610,4 +741,477 @@ TEST_CASE(
   WARN(monitored << " monitoring processes read from a running node:" << names);
   if(only.empty())
     CHECK(monitored > 0);
+}
+
+namespace
+{
+//! A document's execution, ticked from this thread in the place of the audio
+//! thread: a crash or a hang of a node then happens under the crash guard of
+//! the process being swept, which reports it by name and goes on with the next.
+//! It is what Execution::makeExecutionTick runs, without an audio engine.
+struct ManualExecution
+{
+  Execution::DocumentPlugin& plug;
+  std::shared_ptr<Execution::BaseScenarioElement> base;
+  smallfun::function<void(unsigned long, double), 128> tick;
+  std::vector<Execution::ExecutionAction*> actions;
+  std::shared_ptr<ossia::audio_protocol> proto;
+  int64_t frames{};
+
+  explicit ManualExecution(score::Document& doc)
+      : plug{doc.context().plugin<Execution::DocumentPlugin>()}
+  {
+    // A new document stops the execution through queued requests: they must
+    // not stop this one
+    settle();
+    plug.reload(false, score::test::base_interval(doc));
+    base = plug.baseScenario();
+    if(!base)
+      return;
+
+    auto& data = *plug.contextData();
+    tick = ossia::make_tick(
+        ossia::tick_setup_options{}, *data.execState, *data.execGraph,
+        *base->baseInterval().OSSIAInterval(), base->baseScenario(), {});
+    actions = plug.actions();
+    for(Execution::ExecutionAction& act :
+        doc.context().app.interfaces<Execution::ExecutionActionList>())
+      actions.push_back(&act);
+    if(plug.audio_device)
+      proto = plug.audioProto();
+
+    Execution::DefaultClock{plug.context()}.play(TimeVal::zero(), *base);
+  }
+
+  //! The pending execution commands; what they hold is released on the UI
+  //! thread, through the GC queue
+  void runCommands()
+  {
+    auto& data = *plug.contextData();
+    Execution::ExecutionCommand c;
+    while(data.m_execQueue.try_dequeue(c))
+    {
+      c();
+      data.m_gcQueue.enqueue(Execution::gc(std::move(c)));
+    }
+  }
+
+  //! One buffer, as the audio thread runs it
+  void run(int buffer)
+  {
+    if(!base)
+      return;
+    auto& st = *plug.contextData()->execState;
+    const ossia::audio_tick_state t{
+        nullptr, nullptr, 0, 0, uint64_t(buffer), double(frames) / st.sampleRate};
+
+    ossia::set_thread_pinned(ossia::thread_type::Audio, 0);
+    runCommands();
+    if(proto)
+      proto->setup_buffers(t);
+    for(auto* act : actions)
+      act->startTick(t);
+    tick(t.frames, t.seconds);
+    for(auto* act : actions)
+      act->endTick(t);
+    ossia::set_thread_pinned(ossia::thread_type::Ui, 0);
+    frames += buffer;
+  }
+
+  //! The component of `proc` in the running document
+  Execution::ProcessComponent* component(const Process::ProcessModel& proc) const
+  {
+    if(!base)
+      return nullptr;
+    auto& procs = base->baseInterval().processes();
+    auto it = procs.find(proc.id());
+    return it != procs.end() ? it->second.get() : nullptr;
+  }
+
+  //! As a stop of the clock does, then the release of the graph
+  void stop()
+  {
+    if(!base)
+      return;
+    Execution::DefaultClock{plug.context()}.stop(*base);
+    ossia::set_thread_pinned(ossia::thread_type::Audio, 0);
+    runCommands();
+    ossia::set_thread_pinned(ossia::thread_type::Ui, 0);
+    base->cleanup();
+    if(auto g = plug.contextData()->execGraph)
+    {
+      ossia::set_thread_pinned(ossia::thread_type::Audio, 0);
+      g->clear();
+      ossia::set_thread_pinned(ossia::thread_type::Ui, 0);
+    }
+    tick = {};
+    base.reset();
+    plug.finished();
+  }
+};
+
+//! What running a process did
+struct ExecResult
+{
+  //! Its component exists in the running document
+  bool executed = false;
+  //! It has a node of the graph, and the node processed frames
+  bool has_node = false;
+  bool node_ran = false;
+  //! Texture outlets, and those a preview got an image of
+  int textures = 0;
+  int rendered = 0;
+  //! It hosts a validation plug-in, and the loudest sample its audio outlets had
+  bool plugin = false;
+  double peak = 0.;
+};
+
+//! Processes that cannot run headless, and why. Kept as short as possible:
+//! a process that needs something gets it from the sweep instead.
+const std::map<std::string, std::string> execution_denylist = {
+};
+
+//! Processes that run with no component of their own, and why. They are still
+//! made, added and played; the sweep does not require them to have an
+//! executor.
+const std::map<std::string, std::string> no_component = {
+    {"14bcc6d2-cb34-4bc6-8c70-e512f11d1ceb",
+     "the tempo curve of an interval: the interval executes it"},
+};
+
+//! What the processes that are made from a file or a name get
+struct Media
+{
+  QString wav;
+  QString pd_patch;
+  QString splats = splat_fixture();
+
+  explicit Media(const score::GUIApplicationContext& ctx)
+  {
+    const QString dir = QDir::temp().filePath(QStringLiteral("process-exec-media"));
+    wav = dir + QStringLiteral("/tone.wav");
+    score::test::write_wav(wav, 0.5);
+
+    // Audio through, and a bang on every message
+    pd_patch = dir + QStringLiteral("/through.pd");
+    score::test::write_file(
+        pd_patch, "#N canvas 0 0 450 300 12;\n"
+                  "#X obj 30 30 inlet~;\n"
+                  "#X obj 30 80 outlet~;\n"
+                  "#X obj 150 30 inlet;\n"
+                  "#X obj 150 80 outlet;\n"
+                  "#X connect 0 0 1 0;\n"
+                  "#X connect 2 0 3 0;\n");
+
+    // The metronome plays the sounds of the default library, which the
+    // private profile of the tests does not have
+    const QString util
+        = ctx.settings<Library::Settings::Model>().getDefaultLibraryPath()
+          + QStringLiteral("/Util/");
+    for(auto name : {"metro_tick.wav", "metro_tock.wav"})
+      if(!QFileInfo::exists(util + name))
+        score::test::write_wav(util + name, 0.05, 0x40);
+  }
+
+  //! The data `f` is made from
+  QString constructionData(const Process::ProcessModelFactory& f) const
+  {
+    const auto uuid = score::uuids::toByteArray(f.concreteKey().impl());
+    if(uuid == score::test::sound_process_uuid.toLatin1())
+      return wav;
+    if(uuid == "7b3b18ea-311b-40f9-b04e-60ec1fe05786") // PureData
+      return pd_patch;
+    if(uuid == splat_loader_uuid)
+      return splats;
+    if(uuid == "415785fe-a7d8-4e62-a85f-9dfccf7dcd96") // Airwindows: the effect
+      return QStringLiteral("Galactic");
+    return f.customConstructionData();
+  }
+};
+}
+
+TEST_CASE("Every process runs with each inlet fed", "[.][nodes][exec]")
+{
+  std::vector<ViewResult> results;
+  std::vector<ExecResult> runs;
+  const std::set<std::string> only = sweep::only();
+  const bool trace = qEnvironmentVariableIsSet("SWEEP_TRACE");
+
+  auto run = [&](const score::GUIApplicationContext& ctx) {
+    auto& pl = ctx.interfaces<Process::ProcessFactoryList>();
+    ctx.settings<Scenario::Settings::Model>().setExecutionUpdate(true);
+    const Media media{ctx};
+
+    score::Document* doc{};
+    std::unique_ptr<Sources> sources;
+    auto open = [&] {
+      doc = score::test::new_document(ctx);
+      REQUIRE(doc != nullptr);
+      sources = std::make_unique<Sources>(*doc, pl);
+      // This thread is the only one to tick: the audio engine, which a new
+      // document starts, would run the execution actions on the pause tick
+      // at the same time
+      settle();
+      if(auto& engine = ctx.guiApplicationPlugin<Audio::ApplicationPlugin>().audio)
+        engine->stop();
+    };
+    open();
+
+    // The hosts of audio plug-ins run once for each validation plug-in
+    const auto selected = [&](const std::string& uuid) {
+      return (only.empty() || only.contains(uuid)) && sweep::in_shard(uuid);
+    };
+    std::unique_ptr<sweep::ValidationPlugins> plugins;
+    for(auto& factory : pl)
+    {
+      const auto uuid = score::uuids::toByteArray(factory.concreteKey().impl()).toStdString();
+      if(sweep::hosts_plugins(uuid) && selected(uuid))
+      {
+        plugins = std::make_unique<sweep::ValidationPlugins>(ctx, selected);
+        break;
+      }
+    }
+    std::vector<std::pair<const Process::ProcessModelFactory*, const sweep::ValidationPlugins::Found*>> jobs;
+    for(auto& factory : pl)
+    {
+      const auto uuid = score::uuids::toByteArray(factory.concreteKey().impl()).toStdString();
+      std::vector<const sweep::ValidationPlugins::Found*> found;
+      if(plugins)
+        found = plugins->forHost(uuid);
+      if(found.empty())
+        jobs.emplace_back(&factory, nullptr);
+      for(auto* f : found)
+        jobs.emplace_back(&factory, f);
+    }
+
+    for(auto [factory_ptr, plugin] : jobs)
+    {
+      auto& factory = *factory_ptr;
+      auto& r = results.emplace_back(resultFor(factory));
+      auto& x = runs.emplace_back();
+      if(plugin)
+      {
+        r.name += " (" + plugin->label() + ")";
+        x.plugin = true;
+      }
+      if(!only.empty() && !only.contains(r.uuid))
+      {
+        r.skipped = true;
+        r.skip_reason = "not selected (SWEEP_ONLY)";
+        continue;
+      }
+      if(!sweep::in_shard(r.uuid))
+      {
+        r.skipped = true;
+        r.skip_reason = "in another shard (SWEEP_SHARD)";
+        continue;
+      }
+      if(plugin && !plugin->skip.empty())
+      {
+        r.skipped = true;
+        r.skip_reason = plugin->skip;
+        continue;
+      }
+      if(!plugin && sweep::construction_denylist.contains(r.uuid))
+      {
+        r.skipped = true;
+        r.skip_reason = "construction denylist: needs an external plug-in";
+        continue;
+      }
+      if(auto it = execution_denylist.find(r.uuid); it != execution_denylist.end())
+      {
+        r.skipped = true;
+        r.skip_reason = it->second;
+        continue;
+      }
+      if(trace)
+        qWarning().noquote() << "SWEEP exec" << QString::fromStdString(r.uuid)
+                             << QString::fromStdString(r.name);
+
+      auto& stack = doc->commandStack();
+      const int mark = stack.currentIndex();
+      std::unique_ptr<ManualExecution> exec;
+      // Added, fed, played, previewed and painted
+      auto runOne = [&] {
+        auto* proc = score::test::add_process(
+            *doc, QString::fromStdString(r.uuid),
+            plugin ? plugin->data : media.constructionData(factory));
+        if(!proc)
+          return;
+        r.constructed = true;
+
+        for(auto* in : proc->inlets())
+          if(!qobject_cast<Process::ControlInlet*>(in))
+            sources->connect(sources->outletFor(factory.prettyName(), *in), in);
+
+        exec = std::make_unique<ManualExecution>(*doc);
+        constexpr int buffer = 512;
+        for(int i = 0; i < 32; i++)
+        {
+          exec->run(buffer);
+          if(auto* comp = x.plugin ? exec->component(*proc) : nullptr; comp && comp->node)
+            x.peak = std::max(x.peak, sweep::audio_peak(*comp->node));
+          settle();
+        }
+
+        // What each texture outlet renders, as its preview shows it
+        std::vector<std::unique_ptr<Gfx::TexturePreview>> previews;
+        auto* gfx = doc->context().findPlugin<Gfx::DocumentPlugin>();
+        for(auto* out : proc->outlets())
+          if(auto* tex = qobject_cast<Gfx::TextureOutlet*>(out))
+          {
+            x.textures++;
+            if(gfx && tex->graphicsPort().node != score::gfx::invalid_node_index)
+            {
+              auto& p = previews.emplace_back(std::make_unique<Gfx::TexturePreview>());
+              p->attach(&gfx->context, tex->graphicsPort(), QSize{64, 64});
+            }
+          }
+        if(!previews.empty())
+        {
+          QElapsedTimer t;
+          t.start();
+          while(t.elapsed() < 2000)
+          {
+            exec->run(buffer);
+            settle();
+            QThread::msleep(4);
+            x.rendered = 0;
+            for(auto& p : previews)
+              x.rendered += !p->image().isNull();
+            if(x.rendered == int(previews.size()) && t.elapsed() > 100)
+              break;
+          }
+        }
+
+        if(auto* comp = exec->component(*proc))
+        {
+          x.executed = true;
+          if(comp->node)
+          {
+            x.has_node = true;
+            x.node_ran = comp->node->processed_frames() > 0;
+          }
+        }
+        r.monitored = proc->monitor() != nullptr;
+
+        // Its node while it runs
+        {
+          Surfaces s{doc->context()};
+          auto* node = new Process::NodeItem{
+              *proc, s.pctx, score::test::base_interval(*doc).duration.defaultDuration(),
+              &s.root};
+          settle();
+          s.paint(*node);
+          r.paints++;
+          r.node = true;
+        }
+
+        previews.clear();
+        exec->stop();
+        exec.reset();
+        settle();
+      };
+      const bool ok = sweep::guarded(
+          [&] {
+        try
+        {
+          runOne();
+        }
+        catch(const std::exception& e)
+        {
+          r.detail += std::string(" [EXCEPTION: ") + e.what() + "]";
+          r.crashed = true;
+        }
+        while(stack.currentIndex() > mark)
+          stack.undo();
+        settle();
+      }, r.detail);
+
+      if(!ok)
+      {
+        r.crashed = true;
+        ossia::set_thread_pinned(ossia::thread_type::Ui, 0);
+        // What the crash left is not trusted: the next process gets a new
+        // document, and this one is left as it is
+        (void)exec.release();
+        open();
+      }
+    }
+  };
+
+  if(!sweep::run_with_teardown_guard([&] { score::test::run_in_gui_app(run); }))
+    WARN("Teardown crashed (signal " << (int)sweep::last_signal << ") after the sweep");
+
+  REQUIRE(!results.empty());
+  int swept = 0, executed = 0, nodes = 0, ran = 0, textures = 0, rendered = 0;
+  std::string skipped, crashed, idle, unrendered, without, hosted;
+  for(std::size_t i = 0; i < results.size(); i++)
+  {
+    const auto& r = results[i];
+    const auto& x = runs[i];
+    INFO("Process: " << r.name << "  {" << r.uuid << "}");
+    if(!r.detail.empty())
+      INFO("detail:" << r.detail);
+    if(r.skipped)
+    {
+      if(!r.skip_reason.starts_with("not selected") && !r.skip_reason.starts_with("in another"))
+        skipped += "\n  " + r.name + " {" + r.uuid + "}: " + r.skip_reason;
+      continue;
+    }
+    ++swept;
+    if(r.crashed)
+      crashed += "\n  " + r.name + " {" + r.uuid + "}:" + r.detail;
+    executed += x.executed;
+    nodes += x.has_node;
+    ran += x.node_ran;
+    textures += x.textures;
+    rendered += x.rendered;
+    if(x.has_node && !x.node_ran)
+      idle += " " + r.name + ",";
+    if(x.rendered < x.textures)
+      unrendered += " " + r.name + ",";
+    if(trace)
+      qWarning().noquote() << "SWEEP exec result" << QString::fromStdString(r.name)
+                           << "executed" << x.executed << "node" << x.has_node << "ran"
+                           << x.node_ran << "textures" << x.rendered << "/" << x.textures;
+
+    CHECK(r.constructed);
+    CHECK_FALSE(r.crashed);
+    // Every process gets a component when its document runs
+    if(auto it = no_component.find(r.uuid); it != no_component.end())
+    {
+      if(!x.executed)
+        without += "\n  " + r.name + " {" + r.uuid + "}: " + it->second;
+    }
+    else if(r.constructed && !r.crashed)
+      CHECK(x.executed);
+    // A validation plug-in loaded, and made sound of what it was fed
+    if(x.plugin)
+    {
+      hosted += "\n  " + r.name + ": peak " + std::to_string(x.peak);
+      CHECK(x.node_ran);
+      CHECK(x.peak > 0.);
+    }
+  }
+  WARN(
+      "Processes running: " << results.size() << " factories, " << swept << " run, "
+                            << executed << " executed, " << ran << " of " << nodes
+                            << " nodes processed frames, " << rendered << " of "
+                            << textures << " texture outlets rendered.");
+  if(!hosted.empty())
+    WARN("Audio plug-ins hosted:" << hosted);
+  if(!skipped.empty())
+    WARN("Skipped:" << skipped);
+  if(!without.empty())
+    WARN("Run with no component of their own:" << without);
+  // A crash can leave state shared by the whole application broken, a lock
+  // held or a queue marked busy, and the processes after it crash in turn: the
+  // first one listed is the one to look at.
+  if(!crashed.empty())
+    WARN("Crashed, in the order they ran:" << crashed);
+  if(!idle.empty())
+    WARN("Nodes that processed no frame:" << idle);
+  if(!unrendered.empty())
+    WARN("Texture outlets with no image:" << unrendered);
 }

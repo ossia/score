@@ -323,7 +323,11 @@ void LV2::GlobalContext::loadPlugins()
   }
 #endif
 
-  // Atom stuff
+  mapHostUrids();
+}
+
+void LV2::GlobalContext::mapHostUrids()
+{
   host.null_id = map.map(map.handle, "");
   host.midi_event_id = map.map(map.handle, LILV_URI_MIDI_EVENT);
   host.atom_sequence_id = map.map(map.handle, LV2_ATOM__Sequence);

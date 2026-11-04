@@ -121,11 +121,14 @@ ApplicationPlugin::ApplicationPlugin(const score::ApplicationContext& app)
       this, &ApplicationPlugin::descriptorsChanged, this,
       [] { LV2::clearPluginCache(); });
 
-  if(!qEnvironmentVariableIsEmpty("SCORE_DISABLE_AUDIOPLUGINS"))
+  // Disabled means no discovery and no scan. A plug-in a document names by
+  // its bundle is still loaded, and runs with the URIDs of the host.
+  if(!qEnvironmentVariableIsEmpty("SCORE_DISABLE_AUDIOPLUGINS")
+     || !qEnvironmentVariableIsEmpty("SCORE_DISABLE_LV2"))
+  {
+    lv2_context->mapHostUrids();
     return;
-
-  if(!qEnvironmentVariableIsEmpty("SCORE_DISABLE_LV2"))
-    return;
+  }
 
   lv2_context->loadPlugins();
 
