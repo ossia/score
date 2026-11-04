@@ -226,4 +226,50 @@ protected:
 
   bool m_deviceLost{};
 };
+
+//! The depth attachment of an output's render target.
+enum class OutputDepth
+{
+  None,
+  //! D32F texture, the format reverse-Z wants.
+  Texture,
+  //! Depth-stencil render buffer, as a window's swap chain has.
+  DepthStencil
+};
+
+/**
+ * @brief The render target an offscreen output's input is drawn into.
+ *
+ * `texture` is the output's picture: single-sample, and what its encoders,
+ * readbacks, previews and texture sharing read. When `samples` is above one
+ * the passes draw into a multisample colour buffer instead, which QRhi resolves
+ * into `texture` at the end of every pass, so the output gets the anti-aliasing
+ * a window's multisampled swap chain gets. A backend or format that cannot
+ * multisample falls back to drawing into `texture` directly, with a warning:
+ * the passes drawing into the target take their sample count from
+ * TextureRenderTarget::sampleCount(), so they follow either way.
+ *
+ * `samples` < 1 means RenderState::samples, the count the render list renders
+ * at. An output whose renderer draws into this target with a pass of its own
+ * at one sample (a scaling blit, say) passes 1.
+ *
+ * Sets state.renderPassDescriptor to the target's descriptor. Returns an empty
+ * target when the backend refuses even the single-sample one. The caller keeps
+ * owning `texture`; releaseOutputRenderTarget frees the rest.
+ */
+SCORE_PLUGIN_GFX_EXPORT
+TextureRenderTarget createOutputRenderTarget(
+    RenderState& state, QRhiTexture& texture, OutputDepth depth = OutputDepth::None,
+    int samples = 0);
+
+/**
+ * @brief Frees what createOutputRenderTarget allocated, but not the texture.
+ *
+ * Clears state.renderPassDescriptor when it is this target's. @p deferred
+ * releases through deleteLater(), for a target replaced while the QRhi keeps
+ * rendering.
+ */
+SCORE_PLUGIN_GFX_EXPORT
+void releaseOutputRenderTarget(
+    RenderState& state, TextureRenderTarget& target, bool deferred = false) noexcept;
 }

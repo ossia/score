@@ -128,7 +128,7 @@ struct GStreamerOutputNode : score::gfx::OutputNode
 
   std::weak_ptr<score::gfx::RenderList> m_renderer{};
   QRhiTexture* m_texture{};
-  QRhiTextureRenderTarget* m_renderTarget{};
+  score::gfx::TextureRenderTarget m_renderTarget;
   std::shared_ptr<score::gfx::RenderState> m_renderState{};
   QRhiReadbackResult m_readback[2];
   QRhiReadbackResult* m_currentReadback{&m_readback[0]};
@@ -720,12 +720,7 @@ struct GStreamerOutputNode : score::gfx::OutputNode
         m_renderState->renderFormat, m_renderState->renderSize, 1,
         QRhiTexture::RenderTarget | QRhiTexture::UsedAsTransferSource);
     m_texture->create();
-    m_renderTarget = rhi->newTextureRenderTarget({m_texture});
-    m_renderState->renderPassDescriptor
-        = m_renderTarget->newCompatibleRenderPassDescriptor();
-    m_renderTarget->setRenderPassDescriptor(
-        m_renderState->renderPassDescriptor);
-    m_renderTarget->create();
+    m_renderTarget = score::gfx::createOutputRenderTarget(*m_renderState, *m_texture);
 
     // Create GPU encoder if a YUV target format was detected
     if(pipeline_ok && !m_detectedFormat.isEmpty() && rhi)
@@ -840,11 +835,7 @@ struct GStreamerOutputNode : score::gfx::OutputNode
     // RenderState::destroy() (called below) frees the device.
     releaseRegistry();
 
-    delete m_renderTarget;
-    m_renderTarget = nullptr;
-
-    delete m_renderState->renderPassDescriptor;
-    m_renderState->renderPassDescriptor = nullptr;
+    score::gfx::releaseOutputRenderTarget(*m_renderState, m_renderTarget);
 
     delete m_texture;
     m_texture = nullptr;
@@ -861,10 +852,7 @@ struct GStreamerOutputNode : score::gfx::OutputNode
   score::gfx::OutputNodeRenderer*
   createRenderer(score::gfx::RenderList& r) const noexcept override
   {
-    score::gfx::TextureRenderTarget rt{
-        .texture = m_texture,
-        .renderPass = m_renderState->renderPassDescriptor,
-        .renderTarget = m_renderTarget};
+    score::gfx::TextureRenderTarget rt = m_renderTarget;
 
     if(m_encoder[0])
     {

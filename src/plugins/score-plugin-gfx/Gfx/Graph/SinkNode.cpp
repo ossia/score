@@ -115,11 +115,7 @@ void SinkNode::createOutput(OutputConfiguration conf)
       QRhiTexture::RGBA8, m_renderState->renderSize, 1, QRhiTexture::RenderTarget);
   m_texture->setName("SinkNode::m_texture");
   m_texture->create();
-  m_renderTarget = rhi->newTextureRenderTarget({m_texture});
-  m_renderState->renderPassDescriptor
-      = m_renderTarget->newCompatibleRenderPassDescriptor();
-  m_renderTarget->setRenderPassDescriptor(m_renderState->renderPassDescriptor);
-  m_renderTarget->create();
+  m_renderTarget = createOutputRenderTarget(*m_renderState, *m_texture);
 
   if(conf.onReady)
     conf.onReady();
@@ -136,10 +132,7 @@ void SinkNode::destroyOutput()
   // The registry outlives the render list: release it while the QRhi lives.
   releaseRegistry();
 
-  delete m_renderTarget;
-  m_renderTarget = nullptr;
-  delete m_renderState->renderPassDescriptor;
-  m_renderState->renderPassDescriptor = nullptr;
+  releaseOutputRenderTarget(*m_renderState, m_renderTarget);
   delete m_texture;
   m_texture = nullptr;
 
@@ -162,10 +155,7 @@ TextureRenderTarget SinkNode::currentRenderTarget() const noexcept
 {
   if(!m_renderState)
     return {};
-  return TextureRenderTarget{
-      .texture = m_texture,
-      .renderPass = m_renderState->renderPassDescriptor,
-      .renderTarget = m_renderTarget};
+  return m_renderTarget;
 }
 
 OutputNodeRenderer* SinkNode::createRenderer(RenderList& r) const noexcept

@@ -56,7 +56,7 @@ private:
   std::weak_ptr<RenderList> m_renderer;
   std::shared_ptr<RenderState> m_renderState;
   QRhiTexture* m_texture{};
-  QRhiTextureRenderTarget* m_renderTarget{};
+  TextureRenderTarget m_renderTarget;
 
   double m_rate{30.};
   // The rate of the clock that drives render(), as of the last configuration()

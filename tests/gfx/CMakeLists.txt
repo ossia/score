@@ -1528,6 +1528,11 @@ score_add_csf_test(sampled_inputs GfxCsfSampledInputs.cpp)
 # reported at warning level.
 score_add_gfx_test(raw_raster_output_and_vertex_input GfxRawRasterOutputAndVertexInput.cpp)
 score_add_gfx_test(msaa_samples_uniform GfxMsaaSamplesUniform.cpp)
+# Offscreen outputs (previews, SinkNode, the encoder outputs) render at the
+# Samples setting and resolve into the texture their readers read.
+score_add_gfx_plugin_test(offscreen_output_msaa
+  SOURCES GfxOffscreenOutputMsaa.cpp
+  PLUGINS score_plugin_media)
 
 # Merge Geometries bakes each input's transform into its meshes. No device:
 # the renderer runs on a RenderList without a QRhi (GfxCpuRenderList.hpp).
@@ -2253,6 +2258,13 @@ score_add_gfx_test(process_uniforms GfxProcessUniforms.cpp)
 
 # ISF IMG_PIXEL / IMG_THIS_PIXEL sample in the image's own pixels.
 score_add_gfx_test(isf_img_pixel GfxIsfImgPixel.cpp)
+
+# A vertex shader's own projection lands on the same pixels on every backend.
+score_add_gfx_test(isf_vertex_projection GfxIsfVertexProjection.cpp)
+
+# ISF-mode CULL_MODE none/back/front and gl_FrontFacing follow OpenGL, with
+# and without a vertex shader of the shader's own.
+score_add_gfx_test(isf_front_facing GfxIsfFrontFacing.cpp)
 
 # Classic ISF refuses PIPELINE_STATE VERTEX_COUNT (F16).
 score_add_gfx_test(isf_vertex_count GfxIsfVertexCount.cpp)

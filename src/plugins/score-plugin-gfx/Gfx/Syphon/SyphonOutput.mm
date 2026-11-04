@@ -204,11 +204,7 @@ struct SyphonNode final : score::gfx::OutputNode
                   QRhiTexture::RGBA8, m_renderState->renderSize, 1,
                   QRhiTexture::RenderTarget | QRhiTexture::UsedAsTransferSource);
     m_texture->create();
-    m_renderTarget = rhi->newTextureRenderTarget({m_texture});
-    m_renderState->renderPassDescriptor
-        = m_renderTarget->newCompatibleRenderPassDescriptor();
-    m_renderTarget->setRenderPassDescriptor(m_renderState->renderPassDescriptor);
-    m_renderTarget->create();
+    m_renderTarget = score::gfx::createOutputRenderTarget(*m_renderState, *m_texture);
 
     if (!m_usingMetal)
     {
@@ -245,11 +241,7 @@ struct SyphonNode final : score::gfx::OutputNode
     // RenderState::destroy() (called below) frees the device.
     releaseRegistry();
 
-    delete m_renderTarget;
-    m_renderTarget = nullptr;
-
-    delete m_renderState->renderPassDescriptor;
-    m_renderState->renderPassDescriptor = nullptr;
+    score::gfx::releaseOutputRenderTarget(*m_renderState, m_renderTarget);
 
     delete m_texture;
     m_texture = nullptr;
@@ -270,10 +262,8 @@ struct SyphonNode final : score::gfx::OutputNode
     public:
       SyphonRenderer(const score::gfx::RenderState& state, const SyphonNode& parent)
         : score::gfx::OutputNodeRenderer{parent}
+        , m_rt{parent.m_renderTarget}
       {
-        m_rt.texture = parent.m_texture;
-        m_rt.renderTarget = parent.m_renderTarget;
-        m_rt.renderPass = state.renderPassDescriptor;
       }
 
       score::gfx::TextureRenderTarget renderTargetForInput(const score::gfx::Port& p) override { return m_rt; }
@@ -300,7 +290,7 @@ private:
 
   std::weak_ptr<score::gfx::RenderList> m_renderer{};
   QRhiTexture* m_texture{};
-  QRhiTextureRenderTarget* m_renderTarget{};
+  score::gfx::TextureRenderTarget m_renderTarget;
   std::shared_ptr<score::gfx::RenderState> m_renderState{};
 
   // OpenGL Syphon server

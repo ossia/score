@@ -43,11 +43,7 @@ DirectVideoOutputNode::createRenderer(RenderList& r) const noexcept
 {
   // The encoder reads m_texture directly (no Y-flip / readback here; the encoder
   // shader handles both cross-backend), so BasicRenderer is the right fit.
-  score::gfx::TextureRenderTarget rt{
-      .texture = m_texture,
-      .renderPass = m_renderState->renderPassDescriptor,
-      .renderTarget = m_renderTarget};
-  return new Gfx::BasicRenderer{rt, *m_renderState, *this};
+  return new Gfx::BasicRenderer{m_renderTarget, *m_renderState, *this};
 }
 
 void DirectVideoOutputNode::startRendering()
@@ -183,11 +179,8 @@ void DirectVideoOutputNode::createOutput(OutputConfiguration conf)
     return;
   }
 
-  m_renderTarget = m_rhi->newTextureRenderTarget({m_texture});
-  m_renderState->renderPassDescriptor
-      = m_renderTarget->newCompatibleRenderPassDescriptor();
-  m_renderTarget->setRenderPassDescriptor(m_renderState->renderPassDescriptor);
-  if(!m_renderTarget->create())
+  m_renderTarget = createOutputRenderTarget(*m_renderState, *m_texture);
+  if(!m_renderTarget)
   {
     qWarning() << "DirectVideoOutput: failed to create render target";
     destroyOutput();
@@ -315,10 +308,7 @@ void DirectVideoOutputNode::destroyOutput()
     // they leak every teardown and re-create asserts boundRhi()==&rhi.
     releaseRegistry();
 
-    delete m_renderTarget;
-    m_renderTarget = nullptr;
-    delete m_renderState->renderPassDescriptor;
-    m_renderState->renderPassDescriptor = nullptr;
+    releaseOutputRenderTarget(*m_renderState, m_renderTarget);
     delete m_texture;
     m_texture = nullptr;
     m_renderState->destroy();
