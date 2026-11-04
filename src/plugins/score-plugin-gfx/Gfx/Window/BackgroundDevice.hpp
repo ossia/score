@@ -411,12 +411,18 @@ public:
 
   ~background_device()
   {
+    // The view's signals go first. Device::DeviceInterface::disconnect() has
+    // usually cleared the tree already, so every parameter pointer the slots
+    // hold is dangling, and taking the renderer off the view below swaps its
+    // viewport, which resizes it and emits sizeChanged synchronously.
+    for(auto& c : con)
+      QObject::disconnect(c);
+    con.clear();
+
     if(m_view)
     {
       m_view->removeBackgroundRenderer(m_renderer);
     }
-    for(auto& c : con)
-      QObject::disconnect(c);
     delete m_renderer;
     m_protocol->stop();
 

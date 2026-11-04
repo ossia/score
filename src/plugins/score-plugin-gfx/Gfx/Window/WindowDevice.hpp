@@ -110,9 +110,9 @@ public:
   score::gfx::ScreenNode* screen() const noexcept { return m_screen; }
   ~window_device()
   {
-    if(auto w = m_screen->window())
-      w->close();
-
+    // The callbacks go before the window closes: the tree, and with it every
+    // parameter they push to, is usually cleared by then, and closing the
+    // window can still deliver move, pointer and key events.
     m_screen->onWindowMove = [](QPointF) { };
     m_screen->onMouseMove = [](QPointF, QPointF) { };
     m_screen->onTabletMove = [](QTabletEvent*) { };
@@ -120,6 +120,10 @@ public:
     m_screen->onKey = [](int, const QString&) { };
     m_screen->onKeyRelease = [](int, const QString&) { };
     m_screen->onFps = [](float) { };
+
+    if(auto w = m_screen->window())
+      w->close();
+
     m_protocol->stop();
 
     m_root.clear_children();
