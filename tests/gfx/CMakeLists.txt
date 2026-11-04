@@ -1149,6 +1149,9 @@ score_add_gfx_test(window_device_tree WindowDeviceTree.cpp)
 # window that has stopped presenting in the running app still reads as healthy.
 score_add_gfx_test(window_device_lifecycle WindowDeviceLifecycle.cpp)
 target_link_libraries(test_gfx_window_device_lifecycle PRIVATE score_plugin_deviceexplorer score_plugin_engine score_plugin_js)
+# Closing a document whose Window device draws into the scenario view.
+score_add_gfx_test(window_background_device_close WindowBackgroundDeviceClose.cpp)
+target_link_libraries(test_gfx_window_background_device_close PRIVATE score_plugin_deviceexplorer score_plugin_engine score_plugin_js)
 target_link_libraries(test_gfx_window_device_tree PRIVATE score_plugin_deviceexplorer)
 
 
