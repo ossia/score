@@ -37,6 +37,12 @@ if [[ -z "${SCORE_EXTRA_CMAKE_ARGS-}" ]]; then
    export SCORE_EXTRA_CMAKE_ARGS=
 fi
 
+# x86_64 on an Apple-silicon runner: CMake takes the host for x86_64
+# (CMAKE_SYSTEM_PROCESSOR, try_run through Rosetta) while the tools stay native.
+if [[ "$CMAKE_OSX_ARCH" = "x86_64" && "$(sysctl -n hw.optional.arm64 2>/dev/null)" == 1 ]]; then
+  SCORE_EXTRA_CMAKE_ARGS="-DCMAKE_APPLE_SILICON_PROCESSOR=x86_64 $SCORE_EXTRA_CMAKE_ARGS"
+fi
+
 # GitHub's macOS runners: 3 cores, 7 GB. See SCORE_HEAVY_COMPILE_JOBS in CMakeLists.txt.
 if [[ -n "${GITHUB_ACTIONS:-}" ]]; then
   SCORE_EXTRA_CMAKE_ARGS="-DSCORE_COMPILE_JOBS=2 -DSCORE_HEAVY_COMPILE_JOBS=1 $SCORE_EXTRA_CMAKE_ARGS"
