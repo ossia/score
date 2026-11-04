@@ -51,6 +51,11 @@ struct options
   //! Window devices rendered offscreen (SCORE_FORCE_OFFSCREEN_WINDOW), on the
   //! inherited display. Empty: no display at all, the offscreen platform.
   QString offscreen_windows;
+  //! With no offscreen_windows: keep the inherited display, so that Window
+  //! devices open real windows on it.
+  bool on_screen{};
+  //! Added to the child's environment.
+  QList<QPair<QString, QString>> environment;
   int timeout_ms{180000};
 };
 
@@ -66,16 +71,18 @@ struct result
 inline result run_script(const QString& script, const options& opts = {})
 {
   auto env = QProcessEnvironment::systemEnvironment();
-  if(opts.offscreen_windows.isEmpty())
+  if(opts.offscreen_windows.isEmpty() && !opts.on_screen)
   {
     env.remove("DISPLAY");
     env.remove("WAYLAND_DISPLAY");
     env.insert("QT_QPA_PLATFORM", "offscreen");
   }
-  else
+  else if(!opts.offscreen_windows.isEmpty())
   {
     env.insert("SCORE_FORCE_OFFSCREEN_WINDOW", opts.offscreen_windows);
   }
+  for(const auto& [k, v] : opts.environment)
+    env.insert(k, v);
   env.insert("SCORE_AUDIO_BACKEND", "dummy");
   env.insert("SCORE_DISABLE_AUDIOPLUGINS", "1");
   // Not the 6666 / 9999 of the developer's own session (see App.hpp).
