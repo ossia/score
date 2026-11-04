@@ -130,12 +130,16 @@ struct Node : Looper::looper_node<Node>
     {
       halp_meta(
           description,
-          "Removes the last pass: the overdub in progress, else the last one "
-          "made. Undoing the first recording empties the loop.")
+          "Takes back what was done to the layers, the last first: a pass, the "
+          "overdub in progress included, an erased layer, which comes back "
+          "with its audio, or a mute. Undoing the first recording empties the "
+          "loop.")
     } undo;
     struct : halp::impulse_button<"Redo">
     {
-      halp_meta(description, "Brings back the last pass undone")
+      halp_meta(
+          description,
+          "Does again what Undo took back last, until something else is done")
     } redo;
     struct : halp::impulse_button<"Clear">
     {
