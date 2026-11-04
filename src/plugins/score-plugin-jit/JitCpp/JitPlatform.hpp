@@ -23,6 +23,7 @@
 #include <iostream>
 #include <stdexcept>
 #include <string>
+#include <string_view>
 #include <vector>
 #include <version>
 #if __has_include(<llvm/Config/llvm-config-64.h>)
@@ -50,6 +51,7 @@
 #include <JitCpp/JitOptions.hpp>
 
 #include <score_git_info.hpp>
+#include <score_plugin_jit_build_tree.hpp>
 
 namespace Jit
 {
@@ -193,6 +195,13 @@ inline located_sdk locateSDKWithFallback()
     }
   }
   return ret;
+}
+
+//! Whether the code is compiled against the headers of the source and build
+//! trees score was built from, rather than those an SDK installs
+inline bool compilesAgainstBuildTree(const located_sdk& sdk)
+{
+  return !(sdk.sdk_kind == located_sdk::official && sdk.deploying);
 }
 
 // Locate the SDK's LLVM ORC runtime archive (compiler-rt orc_rt), if shipped.
@@ -548,12 +557,10 @@ populateCompileOptions(std::vector<std::string>& args, CompilerOptions opts)
   args.push_back("-vectorize-slp");
 }
 
-static inline void populateDefinitions(std::vector<std::string>& args)
+//! The definitions of the JIT plug-in that change what the headers of an SDK
+//! declare
+static inline void populateSDKDefinitions(std::vector<std::string>& args)
 {
-#if defined(__APPLE__)
-  // needed because otherwise readerwriterqueue includes CoreFoundation.h ...
-  args.push_back("-DMOODYCAMEL_MAYBE_ALIGN_TO_CACHELINE=");
-#endif
 #define XSTR(s) STR(s)
 #define STR(s) #s
 
@@ -776,6 +783,29 @@ static inline void populateDefinitions(std::vector<std::string>& args)
 #if defined(SCORE_DEBUG)
   args.push_back("-DSCORE_DEBUG");
 #endif
+}
+
+static inline void populateDefinitions(std::vector<std::string>& args)
+{
+#if defined(__APPLE__)
+  // needed because otherwise readerwriterqueue includes CoreFoundation.h ...
+  args.push_back("-DMOODYCAMEL_MAYBE_ALIGN_TO_CACHELINE=");
+#endif
+
+  if(compilesAgainstBuildTree(locateSDKWithFallback()))
+  {
+    // All the definitions the JIT plug-in is compiled with
+    for(std::string_view def : build_tree::definitions)
+      if(!def.empty())
+        args.push_back("-D" + std::string(def));
+    for(std::string_view flag : build_tree::flags)
+      if(!flag.empty())
+        args.push_back(std::string(flag));
+  }
+  else
+  {
+    populateSDKDefinitions(args);
+  }
 
   // args.push_back("-DSCORE_STATIC_PLUGINS");
   args.push_back("-D_GNU_SOURCE=1");
@@ -1025,6 +1055,28 @@ static inline void populateIncludeDirs(std::vector<std::string>& args)
 #endif
 #endif
 
+  if(compilesAgainstBuildTree(sdk_location))
+  {
+    // The include directories of score's libraries and plug-ins, among which
+    // those of the Qt and the third-party libraries score was built with
+    const std::string source_tree = std::string(SCORE_ROOT_SOURCE_DIR) + "/src/";
+    const std::string binary_tree = std::string(SCORE_ROOT_BINARY_DIR);
+    for(std::string_view dir : build_tree::include_dirs)
+    {
+      if(dir.empty())
+        continue;
+      std::string path(dir);
+      if(QDir::cleanPath(QString::fromStdString(path))
+         == QDir::cleanPath(QString::fromStdString(sdk + "/include")))
+        continue;
+      if(path.starts_with(source_tree) || path.starts_with(binary_tree))
+        args.push_back("-I" + path);
+      else
+        args.push_back("-isystem" + path);
+    }
+    return;
+  }
+
   // include(""); // /usr/include
   std::string qt_folder = "qt";
   if(QFile::exists(qsdk + "/include/qt6/QtCore"))
@@ -1067,107 +1119,7 @@ static inline void populateIncludeDirs(std::vector<std::string>& args)
   include(qt_folder + "/QtShaderTools/" + qt_version + "/QtShaderTools");
   include(qt_folder + "/QtSerialPort");
 
-  if(sdk_location.sdk_kind == located_sdk::official && sdk_location.deploying)
-  {
-    include("score");
-  }
-  else
-  {
-    auto thirdparty_include_dirs = {
-        "/3rdparty/libossia/3rdparty/boost_1_88_0",
-        "/3rdparty/libossia/3rdparty/nano-signal-slot/include",
-        "/3rdparty/libossia/3rdparty/spdlog/include",
-        "/3rdparty/libossia/3rdparty/dr_libs",
-        "/3rdparty/libossia/3rdparty/Flicks",
-        "/3rdparty/libossia/3rdparty/fmt/include",
-        "/3rdparty/libossia/3rdparty/magic_enum/include",
-        "/3rdparty/libossia/3rdparty/readerwriterqueue",
-        "/3rdparty/libossia/3rdparty/concurrentqueue",
-        "/3rdparty/libossia/3rdparty/SmallFunction/smallfun/include",
-        "/3rdparty/libossia/3rdparty/websocketpp",
-        "/3rdparty/libossia/3rdparty/rapidjson/include",
-        "/3rdparty/libossia/3rdparty/libremidi/include",
-        "/3rdparty/libossia/3rdparty/oscpack",
-        "/3rdparty/libossia/3rdparty/rnd/include",
-        "/3rdparty/libossia/3rdparty/span/include",
-        "/3rdparty/libossia/3rdparty/tuplet/include",
-        "/3rdparty/libossia/3rdparty/unordered_dense/include",
-        "/3rdparty/libossia/3rdparty/multi_index/include",
-        "/3rdparty/libossia/3rdparty/verdigris/src",
-        "/3rdparty/libossia/3rdparty/weakjack",
-    };
-    for(auto path : thirdparty_include_dirs)
-    {
-      args.push_back("-isystem" + std::string(SCORE_ROOT_SOURCE_DIR) + path);
-    }
-    auto src_include_dirs
-        = {"/3rdparty/libossia/src",
-           "/3rdparty/avendish/include",
-           "/src/lib",
-           "/src/plugins/score-lib-state",
-           "/src/plugins/score-lib-device",
-           "/src/plugins/score-lib-process",
-           "/src/plugins/score-lib-inspector",
-           "/src/plugins/score-plugin-avnd",
-           "/src/plugins/score-plugin-gfx",
-           "/src/plugins/score-plugin-jit",
-           "/src/plugins/score-plugin-nodal",
-           "/src/plugins/score-plugin-remotecontrol",
-           "/src/plugins/score-plugin-audio",
-           "/src/plugins/score-plugin-curve",
-           "/src/plugins/score-plugin-dataflow",
-           "/src/plugins/score-plugin-engine",
-           "/src/plugins/score-plugin-scenario",
-           "/src/plugins/score-plugin-library",
-           "/src/plugins/score-plugin-deviceexplorer",
-           "/src/plugins/score-plugin-media",
-           "/src/plugins/score-plugin-loop",
-           "/src/plugins/score-plugin-midi",
-           "/src/plugins/score-plugin-protocols",
-           "/src/plugins/score-plugin-recording",
-           "/src/plugins/score-plugin-automation",
-           "/src/plugins/score-plugin-js",
-           "/src/plugins/score-plugin-mapping"};
-
-    for(auto path : src_include_dirs)
-    {
-      args.push_back("-I" + std::string(SCORE_ROOT_SOURCE_DIR) + path);
-    }
-
-    auto src_build_dirs
-        = {"/.",
-           "/src/lib",
-           "/src/plugins/score-lib-state",
-           "/src/plugins/score-lib-device",
-           "/src/plugins/score-lib-process",
-           "/src/plugins/score-lib-inspector",
-           "/src/plugins/score-plugin-avnd",
-           "/src/plugins/score-plugin-gfx",
-           "/src/plugins/score-plugin-jit",
-           "/src/plugins/score-plugin-nodal",
-           "/src/plugins/score-plugin-remotecontrol",
-           "/src/plugins/score-plugin-audio",
-           "/src/plugins/score-plugin-curve",
-           "/src/plugins/score-plugin-dataflow",
-           "/src/plugins/score-plugin-engine",
-           "/src/plugins/score-plugin-scenario",
-           "/src/plugins/score-plugin-library",
-           "/src/plugins/score-plugin-deviceexplorer",
-           "/src/plugins/score-plugin-media",
-           "/src/plugins/score-plugin-loop",
-           "/src/plugins/score-plugin-midi",
-           "/src/plugins/score-plugin-protocols",
-           "/src/plugins/score-plugin-recording",
-           "/src/plugins/score-plugin-automation",
-           "/src/plugins/score-plugin-js",
-           "/src/plugins/score-plugin-mapping",
-           "/3rdparty/libossia/src"};
-
-    for(auto path : src_build_dirs)
-    {
-      args.push_back("-I" + std::string(SCORE_ROOT_BINARY_DIR) + path);
-    }
-  }
+  include("score");
 }
 
 }
