@@ -969,6 +969,13 @@ TEST_CASE("Value looper switches: Mute layer and Erase layer, the newest or a st
   looper_switches::mute_and_erase(h);
 }
 
+TEST_CASE("Value looper switches: Undo takes back the last action, an erase or a mute as a pass",
+          "[fx][values][looper][switches]")
+{
+  switches_harness h;
+  looper_switches::undo_actions(h);
+}
+
 TEST_CASE("Value looper switches: Solo layer", "[fx][values][looper][switches]")
 {
   switches_harness h;

@@ -191,6 +191,7 @@ struct looper_node
 
   // The switches' engine
   int looper_passes() const noexcept { return stack().count; }
+  int looper_pass_of(uint32_t id) const noexcept { return stack().index_of(id); }
   bool looper_muted(int pass) const noexcept { return stack().layers[pass].muted; }
   void looper_set_muted(int pass, bool muted)
   {
@@ -199,8 +200,10 @@ struct looper_node
     passes_changing();
     stack().set_muted(pass, muted);
   }
-  void looper_mute(int pass) { mute_pass(pass); }
+  void looper_mute(int pass, int muted = -1) { mute_pass(pass, muted); }
   void looper_erase(int pass) { erase_pass(pass); }
+  void looper_begin_actions() noexcept { stack().begin_group(); }
+  void looper_end_actions() noexcept { stack().end_group(); }
 
 protected:
   static constexpr bool lazy_passes() noexcept
@@ -279,8 +282,8 @@ protected:
       m_take_request = std::max(m_take_request, r.take);
       return;
     }
-    m_erase_request = r;
-    m_erase_requested = true;
+    if(m_erase_count < int(m_erase_requests.size()))
+      m_erase_requests[std::size_t(m_erase_count++)] = r;
   }
 
   void run_tick(const tick& tk);
@@ -290,8 +293,9 @@ protected:
   void clear_loop();
   void drop_taken_pass();
   void undo_pass();
+  void drop_top_pass();
   void erase_pass(int pass);
-  void mute_pass(int pass);
+  void mute_pass(int pass, int muted = -1);
   int make_room();
   void begin_pass(int64_t start);
   void begin_pass_now(int64_t start);
@@ -433,8 +437,9 @@ protected:
   uint64_t m_id{next_looper_id()};
   int m_stops{};
   Looper::view_message m_view{};
-  Looper::erase_request m_erase_request{};
-  bool m_erase_requested{};
+  //! The m and x the view sent since the last tick.
+  std::array<Looper::erase_request, 16> m_erase_requests{};
+  int m_erase_count{};
 };
 
 template <typename Node>
@@ -493,17 +498,25 @@ void looper_node<Node>::apply_buttons()
     clear_loop();
 
   // The m and x of a lane are layer actions as any: on the grid.
-  if(std::exchange(m_erase_requested, false))
+  for(int i = 0, n = std::exchange(m_erase_count, 0); i < n; i++)
+  {
+    const auto& r = m_erase_requests[std::size_t(i)];
     m_switches.add(
-        {m_erase_request.mute ? Looper::layer_action::mute : Looper::layer_action::erase,
-         m_erase_request.pass, m_erase_request.layers},
+        {.kind = r.mute ? Looper::layer_action::mute : Looper::layer_action::erase,
+         .pass = r.pass,
+         .layers = r.layers,
+         .id = r.id,
+         .muted = r.muted},
         transport);
+  }
 
   if(in.undo.value || in.redo.value)
     m_switches.soloed.forget();
   if(in.undo.value)
   {
-    if(pass_open())
+    // While a pass is taken in, undo drops it, unless what was done last is
+    // an action, done since it started.
+    if(pass_open() && !stack().undoes_action())
       drop_taken_pass();
     else
     {
@@ -515,11 +528,11 @@ void looper_node<Node>::apply_buttons()
   if(in.redo.value && !pass_open())
   {
     passes_changing();
-    const int out = stack().leaves_on_redo();
-    if(stack().redo())
+    const auto step = stack().redo();
+    if(step.done)
     {
-      if(out >= 0)
-        m_switches.removed(in, out);
+      if(step.removed >= 0)
+        m_switches.removed(in, step.removed);
       merge_extra_pass();
     }
   }
@@ -558,20 +571,29 @@ void looper_node<Node>::drop_taken_pass()
   else
   {
     self().pass_dropped();
-    undo_pass();
-    stack().drop_redo();
+    drop_top_pass();
   }
   transport.taking(LoopMode::Stop);
 }
 
-//! Undoes the top pass: a layer it replaced comes back to its place, the one
-//! Layer says keeping its own.
+//! Undoes the last action: a pass is hidden, a layer it replaced coming back
+//! to its place, an erased pass comes back, a mute is taken back. The layer
+//! Layer says keeps its place.
 template <typename Node>
 void looper_node<Node>::undo_pass()
 {
-  const int back = stack().returns_on_undo();
-  if(stack().undo() && back >= 0)
-    m_switches.inserted(self().inputs, back, stack().count);
+  const auto step = stack().undo();
+  if(step.inserted >= 0)
+    m_switches.inserted(self().inputs, step.inserted, stack().count);
+}
+
+//! The newest pass goes, as undo hides it, and redo does not bring it back.
+template <typename Node>
+void looper_node<Node>::drop_top_pass()
+{
+  const auto step = stack().drop_top();
+  if(step.inserted >= 0)
+    m_switches.inserted(self().inputs, step.inserted, stack().count);
 }
 
 //! Erasing the pass being taken in is undoing it, and erasing the only pass
@@ -595,16 +617,19 @@ void looper_node<Node>::erase_pass(int pass)
   }
 }
 
-//! A muted pass is kept as it is; muting it again lets it be heard.
+//! Mutes a pass, or lets it be heard: `muted` says which, or it toggles.
 template <typename Node>
-void looper_node<Node>::mute_pass(int pass)
+void looper_node<Node>::mute_pass(int pass, int muted)
 {
   auto& st = stack();
   if(pass < 0 || pass >= st.count || self().busy())
     return;
+  const bool m = muted < 0 ? !st.layers[pass].muted : muted > 0;
+  if(m == st.layers[pass].muted)
+    return;
   m_switches.soloed.forget();
   passes_changing();
-  st.set_muted(pass, !st.layers[pass].muted);
+  st.set_muted(pass, m);
 }
 
 //! There are Max layers, and a pass starts: with Replace a muted layer, the
@@ -774,8 +799,7 @@ int64_t looper_node<Node>::looper_trim_extension(int64_t max_frames)
     // has nothing left, and goes as undo takes a pass out. The one before it
     // ends on the old end, closed already.
     self().pass_dropped();
-    undo_pass();
-    st.drop_redo();
+    drop_top_pass();
     self().cut_pass_dropped();
     st.length = end;
     if(auto* t = st.top())
@@ -1142,7 +1166,7 @@ void looper_node<Node>::fill_view(Looper::view_message& v) const noexcept
   v.requested = int(transport.quantizedPlayMode);
   v.wanted = int(m_mode);
   v.layers = st.count;
-  v.redo = st.total - st.count;
+  v.redo = st.can_redo() ? std::max(1, st.total - st.count) : 0;
   v.full = self().view_full();
   v.length_seconds = float(st.length / m_rate);
   v.position
@@ -1161,7 +1185,11 @@ void looper_node<Node>::fill_view(Looper::view_message& v) const noexcept
   const int lanes = std::min(st.count, Looper::view_message::max_lanes);
   const int merged = st.count - lanes;
   v.muted.fill(0);
+  v.lane_id.fill(0);
   for(int l = merged > 0 ? 1 : 0; l < lanes; l++)
+  {
     v.muted[l] = st.layers[l + merged].muted;
+    v.lane_id[l] = st.layers[l + merged].id;
+  }
 }
 }
