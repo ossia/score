@@ -21,8 +21,7 @@ struct LibavEncoderNode : score::gfx::OutputNode
 
   std::weak_ptr<score::gfx::RenderList> m_renderer{};
   QRhiTexture* m_texture{};
-  QRhiRenderBuffer* m_depthStencil{};
-  QRhiTextureRenderTarget* m_renderTarget{};
+  score::gfx::TextureRenderTarget m_renderTarget;
   std::shared_ptr<score::gfx::RenderState> m_renderState{};
 
   // GPU encoder for YUV conversion (if target is not RGBA)

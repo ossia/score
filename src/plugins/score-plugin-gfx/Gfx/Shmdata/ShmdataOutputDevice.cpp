@@ -65,7 +65,7 @@ struct ShmdataOutputNode : score::gfx::OutputNode
 
   std::weak_ptr<score::gfx::RenderList> m_renderer{};
   QRhiTexture* m_texture{};
-  QRhiTextureRenderTarget* m_renderTarget{};
+  score::gfx::TextureRenderTarget m_renderTarget;
   std::shared_ptr<score::gfx::RenderState> m_renderState{};
   std::shared_ptr<shmdata::Writer> m_writer{};
   bool m_hasSender{};
@@ -203,11 +203,7 @@ void ShmdataOutputNode::createOutput(score::gfx::OutputConfiguration conf)
       QRhiTexture::RGBA8, m_renderState->renderSize, 1,
       QRhiTexture::RenderTarget | QRhiTexture::UsedAsTransferSource);
   m_texture->create();
-  m_renderTarget = rhi->newTextureRenderTarget({m_texture});
-  m_renderState->renderPassDescriptor
-      = m_renderTarget->newCompatibleRenderPassDescriptor();
-  m_renderTarget->setRenderPassDescriptor(m_renderState->renderPassDescriptor);
-  m_renderTarget->create();
+  m_renderTarget = score::gfx::createOutputRenderTarget(*m_renderState, *m_texture);
 
   conf.onReady();
 }
@@ -224,11 +220,7 @@ void ShmdataOutputNode::destroyOutput()
   // RenderState::destroy() (called below) frees the device.
   releaseRegistry();
 
-  delete m_renderTarget;
-  m_renderTarget = nullptr;
-
-  delete m_renderState->renderPassDescriptor;
-  m_renderState->renderPassDescriptor = nullptr;
+  score::gfx::releaseOutputRenderTarget(*m_renderState, m_renderTarget);
 
   delete m_texture;
   m_texture = nullptr;
@@ -245,10 +237,7 @@ std::shared_ptr<score::gfx::RenderState> ShmdataOutputNode::renderState() const
 score::gfx::OutputNodeRenderer*
 ShmdataOutputNode::createRenderer(score::gfx::RenderList& r) const noexcept
 {
-  score::gfx::TextureRenderTarget rt{
-      .texture = m_texture,
-      .renderPass = m_renderState->renderPassDescriptor,
-      .renderTarget = m_renderTarget};
+  score::gfx::TextureRenderTarget rt = m_renderTarget;
   return new Gfx::InvertYRenderer{
       *this, rt, const_cast<QRhiReadbackResult&>(m_readback)};
 }

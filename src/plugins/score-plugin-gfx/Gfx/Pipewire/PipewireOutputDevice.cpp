@@ -1450,11 +1450,11 @@ struct PwWireRenderer final : score::gfx::OutputNodeRenderer
 
   void init(score::gfx::RenderList& renderer, QRhiResourceUpdateBatch& res) override
   {
+    // One sample and no depth: this pass copies the input target's resolved
+    // picture, and the pipeline built against this target also draws into the
+    // single-sample pipewire buffers of the dma-buf path.
     m_renderTarget = score::gfx::createRenderTarget(
-        renderer.state, m_wireFormat, m_inputTarget.texture->pixelSize(),
-        renderer.samples(),
-        renderer.requiresDepth(*this->node.input[0])
-            || renderer.anyNodeRequiresDepth());
+        renderer.state, m_wireFormat, m_inputTarget.texture->pixelSize(), 1, false);
 
     const auto& mesh = renderer.defaultTriangle();
     m_mesh = renderer.initMeshBuffer(mesh, res);
@@ -1585,7 +1585,7 @@ struct PipewireOutputNode : score::gfx::OutputNode
   // the render list; refreshed whenever the graph rebuilds renderers.
   mutable PwWireRenderer* m_wireRenderer{};
   QRhiTexture* m_texture{};
-  QRhiTextureRenderTarget* m_renderTarget{};
+  score::gfx::TextureRenderTarget m_renderTarget;
   std::shared_ptr<score::gfx::RenderState> m_renderState{};
   std::unique_ptr<PipewireProducer> m_producer;
 
@@ -2034,11 +2034,7 @@ void PipewireOutputNode::createOutput(score::gfx::OutputConfiguration conf)
       formats::toQRhi(tag), m_renderState->renderSize, 1,
       QRhiTexture::RenderTarget | QRhiTexture::UsedAsTransferSource);
   m_texture->create();
-  m_renderTarget = rhi->newTextureRenderTarget({m_texture});
-  m_renderState->renderPassDescriptor
-      = m_renderTarget->newCompatibleRenderPassDescriptor();
-  m_renderTarget->setRenderPassDescriptor(m_renderState->renderPassDescriptor);
-  m_renderTarget->create();
+  m_renderTarget = score::gfx::createOutputRenderTarget(*m_renderState, *m_texture);
 
 #if defined(SCORE_PIPEWIRE_OUT_DMABUF)
   // DMA-BUF output mode: requires Vulkan QRhi. Enable on the producer
@@ -2219,10 +2215,7 @@ void PipewireOutputNode::destroyOutput()
   // dtor releases libEGL; the m_display + entry pointers are non-owning.
 #endif
 
-  delete m_renderTarget;
-  m_renderTarget = nullptr;
-  delete m_renderState->renderPassDescriptor;
-  m_renderState->renderPassDescriptor = nullptr;
+  score::gfx::releaseOutputRenderTarget(*m_renderState, m_renderTarget);
   delete m_texture;
   m_texture = nullptr;
 
@@ -2239,10 +2232,7 @@ PipewireOutputNode::renderState() const
 score::gfx::OutputNodeRenderer* PipewireOutputNode::createRenderer(
     score::gfx::RenderList& /*r*/) const noexcept
 {
-  score::gfx::TextureRenderTarget rt{
-      .texture = m_texture,
-      .renderPass = m_renderState->renderPassDescriptor,
-      .renderTarget = m_renderTarget};
+  score::gfx::TextureRenderTarget rt = m_renderTarget;
   // BGRA8 renders/reads back through an RGBA8 target: GL has no true BGRA
   // storage (QRhi readback yields R,G,B,A component order regardless), so
   // the wire byte order is produced by a CPU swizzle in render() instead.
