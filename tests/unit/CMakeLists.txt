@@ -224,6 +224,11 @@ if(TARGET score_plugin_packagemanager)
     PLUGINS score_plugin_packagemanager)
 endif()
 
+# The online examples' manifest, downloads and replaced copies, through file:// URLs.
+score_add_test(test_unit_online_examples
+  SOURCES OnlineExamplesTest.cpp
+  LIBS ${QT_PREFIX}::Network)
+
 # Which support package folders get loaded, and package folders removed while in use.
 score_add_test(test_unit_support_packages
   SOURCES SupportPackagesTest.cpp
@@ -2066,6 +2071,19 @@ if(TARGET score_plugin_packagemanager AND TARGET score_plugin_library)
     "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-library")
 endif()
 
+# The start screen's default library notice and its online examples page, with
+# the package manager's handling of the default library in the package list.
+if(TARGET score_plugin_packagemanager AND TARGET score_plugin_library)
+  score_add_test(test_unit_startscreen_library
+    SOURCES StartScreenLibraryTest.cpp
+    APP
+    PLUGINS score_plugin_packagemanager score_plugin_library)
+  target_include_directories(test_unit_startscreen_library PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/src/app"
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-packagemanager"
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-library")
+endif()
+
 # Video::Rescale on its own: the swscale fallback taken by every format without
 # a GPU decoder. Its source geometry comes from two places that can disagree --
 # the stream metadata handed to open() and the AVFrame handed to rescale() --
@@ -2805,7 +2823,8 @@ foreach(_preset_test
 endforeach()
 
 # They change the library's root in the test profile they share: one at a time
-foreach(_t test_unit_locate_file_path test_unit_midi_device_picker test_unit_packagemanager_firstrun)
+foreach(_t test_unit_locate_file_path test_unit_midi_device_picker test_unit_packagemanager_firstrun
+           test_unit_startscreen_library)
   if(TEST ${_t})
     set_property(TEST ${_t} APPEND PROPERTY RESOURCE_LOCK score_library_root)
   endif()

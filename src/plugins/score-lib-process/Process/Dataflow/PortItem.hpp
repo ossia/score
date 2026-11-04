@@ -47,6 +47,7 @@ class SCORE_LIB_PROCESS_EXPORT PortItem
   W_OBJECT(PortItem)
   Q_INTERFACES(QGraphicsItem)
 public:
+  const std::vector<QPointer<CableItem>>& connectedCables() const noexcept { return cables; }
   PortItem(const Process::Port& p, const Process::Context& ctx, QGraphicsItem* parent);
   ~PortItem() override;
   const Process::Port& port() const { return m_port; }
@@ -54,6 +55,9 @@ public:
   static PortItem* clickedPort;
 
   virtual void setupMenu(QMenu&, const score::DocumentContext& ctx);
+  //! "Learn address": lists the device addresses whose value changes while it
+  //! is open; the port takes the one the user picks
+  void addLearnAction(QMenu&, const score::DocumentContext& ctx);
   void setPortVisible(bool b);
   void resetPortVisible();
 
@@ -160,6 +164,13 @@ void beginPortDrag(
 //! creates a new cable.
 SCORE_LIB_PROCESS_EXPORT
 std::span<Process::Cable* const> portDragMovedCables() noexcept;
+
+//! What becomes of the cables a drag moved off their port when it lets go of
+//! them away from any port. Set by the plug-in that owns the cable commands.
+using DroppedAwayCablesHandler
+    = void (*)(const score::DocumentContext&, std::span<Process::Cable* const>);
+SCORE_LIB_PROCESS_EXPORT
+void setDroppedAwayCablesHandler(DroppedAwayCablesHandler) noexcept;
 
 //! Whether the ongoing drag is looking for an outlet, i.e. it is moving a
 //! cable's source end. Only meaningful while portDragMovedCables() is non-empty.

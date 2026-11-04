@@ -13,7 +13,9 @@ class CurveEditor : public score::ObjectEditor
   bool paste(
       QPoint pos, QObject* focusedObject, const QMimeData& mime,
       const score::DocumentContext& ctx) override;
-  bool remove(const Selection& s, const score::DocumentContext& ctx) override;
+  bool remove(
+      const Selection& s, const score::DocumentContext& ctx,
+      score::RemovalLinks) override;
 };
 
 }

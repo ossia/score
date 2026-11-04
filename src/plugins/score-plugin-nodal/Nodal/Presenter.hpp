@@ -36,6 +36,8 @@ public:
   void on_created(Process::ProcessModel& n);
   void on_removing(const Process::ProcessModel& n);
   void on_drop(const QPointF& pos, const QMimeData& mime);
+  //! Asks which process to add, and adds it as a node at `pos`
+  void openProcessPicker(QPointF pos);
   void on_areaSelect(QRectF rect, bool cumulation);
 
 private:

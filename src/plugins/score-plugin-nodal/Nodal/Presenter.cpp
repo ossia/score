@@ -1,6 +1,7 @@
 #include <Process/Drop/ProcessDropHandler.hpp>
 #include <Process/ProcessMimeSerialization.hpp>
 
+#include <Scenario/DialogWidget/AddProcessDialog.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 
 #include <Nodal/CommandFactory.hpp>
@@ -20,6 +21,8 @@
 
 #include <ossia/detail/math.hpp>
 
+#include <QApplication>
+#include <QPointer>
 #include <QTimer>
 
 namespace Nodal
@@ -35,6 +38,7 @@ Presenter::Presenter(
 
   connect(view, &View::dropReceived, this, &Presenter::on_drop);
   connect(view, &View::areaSelectRequested, this, &Presenter::on_areaSelect);
+  connect(view, &View::doubleClicked, this, &Presenter::openProcessPicker);
 
   if(auto itv = Scenario::closestParentInterval(m_model.parent()))
   {
@@ -145,6 +149,27 @@ void Presenter::on_drop(const QPointF& pos, const QMimeData& mime)
       cmd.commit();
     }
   }
+}
+
+void Presenter::openProcessPicker(QPointF pos)
+{
+  const auto& ctx = context().context;
+  auto& fact = ctx.app.interfaces<Process::ProcessFactoryList>();
+  auto dialog = new Scenario::AddProcessDialog{
+      fact, Process::ProcessFlags::SupportsTemporal, QApplication::activeWindow()};
+
+  // The dialog runs its own event loop, which may close the document.
+  QPointer<Presenter> self = this;
+  dialog->on_okPressed = [self, pos](const Scenario::AddProcessDialog::Key& key, QString data) {
+    if(!self)
+      return;
+    auto& layer = self->m_model;
+    CommandDispatcher<>{self->context().context.commandStack}.submit(
+        new CreateNode(layer, pos, key, data, getStrongId(layer.nodes)));
+  };
+
+  dialog->launchWindow();
+  dialog->deleteLater();
 }
 
 void Presenter::on_created(Process::ProcessModel& n)

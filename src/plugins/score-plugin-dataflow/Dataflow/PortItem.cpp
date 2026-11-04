@@ -34,6 +34,11 @@
 
 namespace Dataflow
 {
+[[maybe_unused]] static const bool dropped_away_cables_registered = [] {
+  setDroppedAwayCablesHandler(&removeCablesInOneStep);
+  return true;
+}();
+
 void onCreateCable(
     const score::DocumentContext& ctx, Dataflow::PortItem* p1, Dataflow::PortItem* p2)
 {

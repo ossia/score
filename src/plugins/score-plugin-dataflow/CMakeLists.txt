@@ -19,6 +19,9 @@ set(HDRS
     Dataflow/ValueOutletItem.hpp
     Dataflow/DropPortInScenario.hpp
     Dataflow/WidgetInletFactory.hpp
+    Dataflow/MappingPanel/ConnectionsList.hpp
+    Dataflow/MappingPanel/ConnectionsPanel.hpp
+    Dataflow/MappingPanel/ConnectionsWidget.hpp
     score_plugin_dataflow.hpp
 )
 set(SRCS
@@ -33,6 +36,9 @@ set(SRCS
     Dataflow/CableInspector.cpp
     Dataflow/DropPortInScenario.cpp
     Dataflow/WidgetInletFactory.cpp
+    Dataflow/MappingPanel/ConnectionsList.cpp
+    Dataflow/MappingPanel/ConnectionsPanel.cpp
+    Dataflow/MappingPanel/ConnectionsWidget.cpp
     score_plugin_dataflow.cpp
 )
 

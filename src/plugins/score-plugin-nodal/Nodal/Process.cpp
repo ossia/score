@@ -87,7 +87,8 @@ bool NodeEditor::paste(
   return false;
 }
 
-bool NodeEditor::remove(const Selection& s, const score::DocumentContext& ctx)
+bool NodeEditor::remove(
+    const Selection& s, const score::DocumentContext& ctx, score::RemovalLinks)
 {
   std::vector<std::pair<Process::ProcessModel*, Model*>> nodes;
   for(auto& elt : s)

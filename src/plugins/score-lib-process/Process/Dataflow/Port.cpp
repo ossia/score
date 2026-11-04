@@ -121,6 +121,28 @@ const QString& Port::visualName() const noexcept
     return m_exposed;
 }
 
+QString displayName(const Port& port)
+{
+  if(const auto& name = port.visualName(); !name.isEmpty())
+    return name;
+
+  const bool in = qobject_cast<const Inlet*>(&port);
+  switch(port.type())
+  {
+    case PortType::Audio:
+      return in ? QStringLiteral("Audio In") : QStringLiteral("Audio Out");
+    case PortType::Midi:
+      return in ? QStringLiteral("MIDI In") : QStringLiteral("MIDI Out");
+    case PortType::Texture:
+      return in ? QStringLiteral("Texture In") : QStringLiteral("Texture Out");
+    case PortType::Geometry:
+      return in ? QStringLiteral("Geometry In") : QStringLiteral("Geometry Out");
+    case PortType::Message:
+    default:
+      return in ? QStringLiteral("Value In") : QStringLiteral("Value Out");
+  }
+}
+
 const QString& Port::visualDescription() const noexcept
 {
   if(!m_description.isEmpty())

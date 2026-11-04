@@ -310,8 +310,7 @@ struct Node
     {
       setAcceptedMouseButtons(Qt::NoButton);
 
-      // Under the arrival light
-      Ui::Monitor::showInlet(process, 0, doc, this, this, 9.);
+      Ui::Monitor::showInlet(process, 0, doc, this, this);
 
       log_inlet = static_cast<Process::ControlInlet*>(process.inlets()[1]);
       if(process.inlets().size() > 2)
@@ -378,8 +377,8 @@ struct Node
       rebuildText();
     }
 
-    //! In the gutter left of the text, above the input port.
-    static QRectF flashRect() noexcept { return {2., 0., 6., 6.}; }
+    //! The arrival light, in the top-right corner: the inlet takes the top-left
+    QRectF flashRect() const noexcept { return {boundingRect().right() - 8., 2., 6., 6.}; }
 
     //! 1 when values just arrived, 0 once the flash has faded.
     double flashLevel() const noexcept
@@ -417,7 +416,8 @@ struct Node
       p->setFont(skin.MonoFontSmall);
       p->setRenderHint(QPainter::Antialiasing, true);
       p->setPen(skin.Light.main.pen1_solid_flat_miter);
-      p->drawText(boundingRect().adjusted(10, 0, 0, 0), txt_cache);
+      // Between the inlet and the arrival light
+      p->drawText(boundingRect().adjusted(12, 0, -10, 0), txt_cache);
       p->setRenderHint(QPainter::Antialiasing, false);
     }
   };

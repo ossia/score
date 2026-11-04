@@ -6,6 +6,7 @@
 #include <Device/Protocol/DeviceInterface.hpp>
 
 #include <Process/Dataflow/PortAddressComboBox.hpp>
+#include <Process/Dataflow/PortListWidget.hpp>
 #include <Process/Process.hpp>
 
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
@@ -535,11 +536,17 @@ void TextureInletFactory::setupInletInspector(
     const Process::Inlet& port, const score::DocumentContext& ctx, QWidget* parent,
     Inspector::Layout& lay, QObject* context)
 {
-  lay.addRow(port.name(), Process::makePortAddressCombo(port, ctx, parent));
-
   auto& inlet = safe_cast<const TextureInlet&>(port);
+  auto drawer = Process::PortWidgetSetup::setupWithDrawer(
+      port,
+      Process::PortWidgetSetup::withAddressStatus(
+          port, Process::makePortAddressCombo(port, ctx, parent), ctx, parent),
+      ctx, lay, parent);
+  parent = drawer.widget;
+  auto& settings = *drawer.layout;
+
   // Size
-  lay.addRow("Size", new TextureSizeWidget{inlet, ctx, parent});
+  settings.addRow(QObject::tr("Size"), new TextureSizeWidget{inlet, ctx, parent});
 
   // Format
   {
@@ -579,7 +586,7 @@ void TextureInletFactory::setupInletInspector(
             inlet, fmt);
     });
 
-    lay.addRow("Format", combo);
+    settings.addRow(QObject::tr("Format"), combo);
   }
 
   const auto unset = unsetSampler(inlet);
@@ -593,7 +600,7 @@ void TextureInletFactory::setupInletInspector(
         {{QObject::tr("Nearest"), NEAREST}, {QObject::tr("Linear"), LINEAR}},
         &TextureInlet::textureFilter, &TextureInlet::textureFilterChanged);
     disableIfCompare(unset, combo);
-    lay.addRow("Filter", combo);
+    settings.addRow(QObject::tr("Filter"), combo);
   }
 
   // Address mode
@@ -608,7 +615,7 @@ void TextureInletFactory::setupInletInspector(
              {QObject::tr("Mirror"), MIRROR}},
             &TextureInlet::textureAddressMode, &TextureInlet::textureAddressModeChanged);
     disableIfCompare(unset, combo);
-    lay.addRow("Address mode", combo);
+    settings.addRow(QObject::tr("Address mode"), combo);
   }
 
   // Mipmaps
@@ -627,14 +634,21 @@ void TextureInletFactory::setupInletInspector(
             "When not None, the render target gets a mip chain, regenerated "
             "every frame, and is sampled across its levels."));
     disableIfCompare(unset, combo);
-    lay.addRow("Mipmaps", combo);
+    settings.addRow(QObject::tr("Mipmaps"), combo);
   }
+
+  lay.addRow(drawer.widget);
+  // Open when the inlet does not leave everything to the shader
+  drawer.setOpen(
+      inlet.renderSize() || inlet.textureFormat() || inlet.textureFilter()
+      || inlet.textureAddressMode() || inlet.textureMipmapMode());
 }
+
 void TextureOutletFactory::setupOutletInspector(
     const Process::Outlet& port, const score::DocumentContext& ctx, QWidget* parent,
     Inspector::Layout& lay, QObject* context)
 {
-  lay.addRow(port.name(), Process::makePortAddressCombo(port, ctx, parent));
+  Process::PortWidgetSetup::setupAddressPort(port, ctx, lay, parent);
 
   auto& outlet = safe_cast<const TextureOutlet&>(port);
   lay.addRow(new GraphPreviewWidget{outlet, ctx.plugin<Gfx::DocumentPlugin>()});
@@ -889,13 +903,13 @@ void GeometryInletFactory::setupInletInspector(
     const Process::Inlet& port, const score::DocumentContext& ctx, QWidget* parent,
     Inspector::Layout& lay, QObject* context)
 {
-  lay.addRow(port.name(), Process::makePortAddressCombo(port, ctx, parent));
+  Process::PortWidgetSetup::setupAddressPort(port, ctx, lay, parent);
 }
 
 void GeometryOutletFactory::setupOutletInspector(
     const Process::Outlet& port, const score::DocumentContext& ctx, QWidget* parent,
     Inspector::Layout& lay, QObject* context)
 {
-  lay.addRow(port.name(), Process::makePortAddressCombo(port, ctx, parent));
+  Process::PortWidgetSetup::setupAddressPort(port, ctx, lay, parent);
 }
 }

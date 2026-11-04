@@ -13,7 +13,7 @@ void ControlOutletFactory::setupOutletInspector(
     Inspector::Layout& lay, QObject* context)
 {
   using namespace Process;
-  PortWidgetSetup::setupInLayout(port, ctx, lay, parent);
+  PortWidgetSetup::setupAlone(port, ctx, lay, parent);
 }
 
 }

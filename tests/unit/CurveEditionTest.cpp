@@ -2361,7 +2361,7 @@ TEST_CASE("Deleting from the editor removes points and fills the hole", "[curve]
     // No focused process: nothing to delete from.
     Selection first;
     first.append(d.curve().points()[1]);
-    CHECK(!editor.remove(first, d.context()));
+    CHECK(!editor.remove(first, d.context(), score::RemovalLinks::Reconnect));
     // The event loop may move the focus: set before each call.
     auto focus = [&] { d.doc->focusManager().set(QPointer<Automation::ProcessModel>{d.autom}); };
 
@@ -2369,21 +2369,21 @@ TEST_CASE("Deleting from the editor removes points and fills the hole", "[curve]
     Selection other;
     other.append(d.autom);
     focus();
-    CHECK(!editor.remove(other, d.context()));
+    CHECK(!editor.remove(other, d.context(), score::RemovalLinks::Reconnect));
 
     // An end point, a segment, and nothing to delete.
     Selection ends;
     ends.append(d.curve().points().front());
     ends.append(d.curve().sortedSegments().front());
     focus();
-    CHECK(editor.remove(ends, d.context()));
+    CHECK(editor.remove(ends, d.context(), score::RemovalLinks::Reconnect));
     settle();
     CHECK(d.curve().points().size() == 5);
 
     Selection mid;
     mid.append(d.curve().points()[2]);
     focus();
-    CHECK(editor.remove(mid, d.context()));
+    CHECK(editor.remove(mid, d.context(), score::RemovalLinks::Reconnect));
     settle();
     CHECK(!hasPointAtX(d.curve(), 0.5));
     CHECK(curveError(d.curve()) == "");
@@ -2393,7 +2393,7 @@ TEST_CASE("Deleting from the editor removes points and fills the hole", "[curve]
     for(auto p : d.curve().points())
       all.append(p);
     focus();
-    CHECK(editor.remove(all, d.context()));
+    CHECK(editor.remove(all, d.context(), score::RemovalLinks::Reconnect));
     settle();
     CHECK(curveError(d.curve()) == "");
   });
@@ -3651,7 +3651,7 @@ TEST_CASE("Copy and paste refuse what is not theirs", "[curve][edition]")
     // The focused process holds no curve.
     Curve::Model standalone{Id<Curve::Model>{3}, nullptr};
     d.doc->focusManager().set(QPointer<Scenario::IntervalModel>{&baseInterval(*d.doc)});
-    CHECK(!ed.remove(points, d.context()));
+    CHECK(!ed.remove(points, d.context(), score::RemovalLinks::Reconnect));
   });
 }
 

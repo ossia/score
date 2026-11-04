@@ -522,6 +522,16 @@ if(TARGET score_plugin_fx)
     PLUGINS score_plugin_fx score_plugin_scenario score_lib_process)
 endif()
 
+# The Connections panel lists cables and address bindings, follows edits,
+# selects and reveals on click, removes through undoable commands.
+if(TARGET score_plugin_media AND TARGET score_plugin_dataflow)
+  score_add_test(test_integration_mapping_panel
+    SOURCES MappingPanelTest.cpp
+    GUI
+    PLUGINS score_plugin_scenario score_plugin_dataflow score_plugin_deviceexplorer score_lib_device
+            score_lib_process score_plugin_media)
+endif()
+
 # An interval's nodal slot goes with its last node.
 if(TARGET score_plugin_fx)
   score_add_test(test_integration_interval_nodal_slot
@@ -1584,6 +1594,27 @@ score_add_test(test_integration_audio_outlet_chaining
   GUI
   PLUGINS score_plugin_scenario score_lib_process score_plugin_media)
 
+# Delete and Shift+Delete on processes in chains: sub-chains relinked as a
+# whole, no duplicate cable, the tail's propagation and address handed back.
+score_add_test(test_integration_process_removal
+  SOURCES ProcessRemovalTest.cpp
+  GUI
+  PLUGINS score_plugin_scenario score_lib_process score_plugin_media
+          score_plugin_dataflow)
+
+# The ports in the inspector and in the audio output panel: their cables, when
+# those cables keep the address from being used, the texture settings drawer.
+set(_port_inspector_plugins
+    score_plugin_scenario score_lib_process score_plugin_media score_plugin_dataflow
+    score_plugin_engine)
+if(TARGET score_plugin_gfx)
+  list(APPEND _port_inspector_plugins score_plugin_gfx)
+endif()
+score_add_test(test_integration_port_inspector
+  SOURCES PortInspectorTest.cpp
+  GUI
+  PLUGINS ${_port_inspector_plugins})
+
 # score's video output against gstreamer consumers of several shapes. Needs the
 # PipewirePublish tool, which only exists when the pipewire tester is built.
 if(SCORE_HAS_SHELL_HARNESS AND TARGET PipewirePublish)
@@ -2018,3 +2049,12 @@ foreach(_t test_integration_faust_library_path_saving test_integration_consolida
     set_property(TEST ${_t} APPEND PROPERTY RESOURCE_LOCK score_library_root)
   endif()
 endforeach()
+
+# Editing a patch in a nodal slot: cables over nodes, highlighting, the
+# background's process picker, cables dropped away, reconnecting removal, learn.
+score_add_test(test_integration_nodal_editing
+  SOURCES NodalEditingTest.cpp
+  GUI
+  PLUGINS score_plugin_scenario score_lib_process score_plugin_dataflow
+          score_plugin_deviceexplorer score_lib_device score_plugin_nodal
+          score_plugin_ui)

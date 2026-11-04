@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Connections panel: three links, each from a source port (disc) to a sink port (ring) -->
+
+<svg
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="24"
+   height="24"
+   viewBox="0 0 6.3499998 6.3500001"
+   version="1.1"
+   id="svg16">
+  <g
+     inkscape:label="Icon"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(0,-290.64998)"
+     style="display:inline">
+    <circle
+       style="opacity:1;vector-effect:none;fill:#f6a019;fill-opacity:1;stroke:none;paint-order:stroke fill markers"
+       id="source1"
+       cx="1.058333"
+       cy="291.9729"
+       r="0.5291666" />
+    <circle
+       style="opacity:1;vector-effect:none;fill:none;fill-opacity:1;stroke:#f6a019;stroke-width:0.26458332;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:stroke fill markers"
+       id="sink2"
+       cx="5.291666"
+       cy="291.9729"
+       r="0.396875" />
+    <circle
+       style="opacity:1;vector-effect:none;fill:#f6a019;fill-opacity:1;stroke:none;paint-order:stroke fill markers"
+       id="source3"
+       cx="1.058333"
+       cy="293.82498"
+       r="0.5291666" />
+    <circle
+       style="opacity:1;vector-effect:none;fill:none;fill-opacity:1;stroke:#f6a019;stroke-width:0.26458332;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:stroke fill markers"
+       id="sink4"
+       cx="5.291666"
+       cy="293.82498"
+       r="0.396875" />
+    <circle
+       style="opacity:1;vector-effect:none;fill:#f6a019;fill-opacity:1;stroke:none;paint-order:stroke fill markers"
+       id="source5"
+       cx="1.058333"
+       cy="295.67706"
+       r="0.5291666" />
+    <circle
+       style="opacity:1;vector-effect:none;fill:none;fill-opacity:1;stroke:#f6a019;stroke-width:0.26458332;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:stroke fill markers"
+       id="sink6"
+       cx="5.291666"
+       cy="295.67706"
+       r="0.396875" />
+    <path
+       style="fill:none;stroke:#f6a019;stroke-width:0.52916664;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="M 1.5875,291.9729 H 4.894792"
+       id="link7" />
+    <path
+       style="fill:none;stroke:#f6a019;stroke-width:0.52916664;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="M 1.5875,293.82498 C 3.175,293.82498 3.175,295.67706 4.894792,295.67706"
+       id="link8" />
+    <path
+       style="fill:none;stroke:#f6a019;stroke-width:0.52916664;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="M 1.5875,295.67706 C 2.19075,295.67706 2.564765,295.40962 2.891023,295.078"
+       id="link9" />
+    <path
+       style="fill:none;stroke:#f6a019;stroke-width:0.52916664;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="M 3.497765,294.42405 C 3.836088,294.09242 4.241271,293.82498 4.894792,293.82498"
+       id="link10" />
+  </g>
+</svg>

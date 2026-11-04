@@ -11,6 +11,7 @@
 #include <Dataflow/ControlOutletItem.hpp>
 #include <Dataflow/CurveInlet.hpp>
 #include <Dataflow/DropPortInScenario.hpp>
+#include <Dataflow/MappingPanel/ConnectionsPanel.hpp>
 #include <Dataflow/MidiInletItem.hpp>
 #include <Dataflow/MidiOutletItem.hpp>
 #include <Dataflow/PortInspectorFactory.hpp>
@@ -34,6 +35,7 @@ std::vector<score::InterfaceBase*> score_plugin_dataflow::factories(
          Dataflow::InletInspectorFactory, Dataflow::OutletInspectorFactory>,
       FW<Scenario::IntervalDropHandler, Dataflow::DropPortInInterval>,
       FW<Scenario::DropHandler, Dataflow::DropPortInScenario>,
+      FW<score::PanelDelegateFactory, Dataflow::ConnectionsPanelFactory>,
       FW<Process::PortFactory, Dataflow::ControlInletFactory, Dataflow::MidiInletFactory,
          Dataflow::MidiOutletFactory, Dataflow::ValueInletFactory,
          Dataflow::ValueOutletFactory, Dataflow::AudioInletFactory,

@@ -71,19 +71,18 @@ ObjectMenuActions::ObjectMenuActions(ScenarioApplicationPlugin* parent)
   using namespace score;
 
   // REMOVE - todo, put me in "core application plugin" instead
-  m_removeElements = new QAction{tr("Remove selected elements"), this};
-  // NOTE : the shortcut is defined in ScenarioActions.hpp
+  // The texts and shortcuts of the remove actions come from ScenarioActions.hpp
+  m_removeElements = new QAction{this};
   m_removeElements->setShortcutContext(Qt::WidgetWithChildrenShortcut);
-  connect(
-      m_removeElements, &QAction::triggered, this,
-      &ObjectMenuActions::removeSelectedElements);
+  connect(m_removeElements, &QAction::triggered, this, [this] {
+    removeSelectedElements(RemovalLinks::Reconnect);
+  });
 
-  m_removeElementsKeepLinked = new QAction{tr("Remove cable (keep link)"), this};
-  // NOTE : the shortcut is defined in ScenarioActions.hpp
-  m_removeElementsKeepLinked->setShortcutContext(Qt::WidgetWithChildrenShortcut);
-  connect(
-      m_removeElementsKeepLinked, &QAction::triggered, this,
-      &ObjectMenuActions::removeSelectedElements);
+  m_removeElementsAndCables = new QAction{this};
+  m_removeElementsAndCables->setShortcutContext(Qt::WidgetWithChildrenShortcut);
+  connect(m_removeElementsAndCables, &QAction::triggered, this, [this] {
+    removeSelectedElements(RemovalLinks::Disconnect);
+  });
 
   // COPY/CUT
   m_copyContent = new QAction{tr("Copy"), this};
@@ -269,7 +268,7 @@ void ObjectMenuActions::makeGUIElements(score::GUIElements& e)
             .condition<score::EnableWhenDocumentIs<Scenario::ScenarioDocumentModel>>();
 
   actions.add<Actions::RemoveElements>(m_removeElements);
-  actions.add<Actions::RemoveElementsKeepLinked>(m_removeElementsKeepLinked);
+  actions.add<Actions::RemoveElementsAndCables>(m_removeElementsAndCables);
   actions.add<Actions::CopyContent>(m_copyContent);
   actions.add<Actions::CutContent>(m_cutContent);
   actions.add<Actions::PasteElements>(m_pasteElements);
@@ -293,7 +292,7 @@ void ObjectMenuActions::makeGUIElements(score::GUIElements& e)
   Menu& object = base_menus.at(Menus::Object());
   object.menu()->addAction(m_elementsToJson);
   object.menu()->addAction(m_removeElements);
-  object.menu()->addAction(m_removeElementsKeepLinked);
+  object.menu()->addAction(m_removeElementsAndCables);
   object.menu()->addSeparator();
   object.menu()->addAction(m_copyContent);
   object.menu()->addAction(m_cutContent);
@@ -408,7 +407,7 @@ void ObjectMenuActions::copySelectedElementsToJson(JSONReader& r)
   }
 }
 
-void ObjectMenuActions::removeSelectedElements()
+void ObjectMenuActions::removeSelectedElements(score::RemovalLinks links)
 {
   auto doc = m_parent->currentDocument();
   if(!doc)
@@ -420,7 +419,7 @@ void ObjectMenuActions::removeSelectedElements()
   auto& rm = ctx.app.interfaces<score::ObjectEditorList>();
   for(auto& iface : rm)
   {
-    if(iface.remove(cur_sel, ctx))
+    if(iface.remove(cur_sel, ctx, links))
       break;
   }
 }
@@ -439,7 +438,9 @@ void ObjectMenuActions::cutSelectedElementsToJson(JSONReader& r)
   {
     if(iface.copy(r, cur_sel, ctx))
     {
-      iface.remove(cur_sel, ctx);
+      // A cut leaves no cable in place of what it took: pasting it back gives
+      // the patch it came from
+      iface.remove(cur_sel, ctx, score::RemovalLinks::Disconnect);
       break;
     }
   }

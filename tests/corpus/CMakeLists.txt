@@ -72,8 +72,8 @@ if(TARGET score_plugin_gfx AND TARGET score_plugin_engine AND TARGET score_plugi
   set_target_properties(score_corpus_tester PROPERTIES FOLDER "Tests")
 endif()
 
-# Adversarial editing of real documents while they play: removals (plain and
-# keep-link), cable edits, undo/redo storms, transport changes; then undo-all /
+# Adversarial editing of real documents while they play: removals (reconnecting
+# and disconnecting), cable edits, undo/redo storms, transport changes; then undo-all /
 # redo-all structural checks. Same one-document-per-process shape as the
 # tester above; run-edit-fuzz.sh drives a directory.
 if(TARGET score_plugin_engine AND TARGET score_plugin_scenario)

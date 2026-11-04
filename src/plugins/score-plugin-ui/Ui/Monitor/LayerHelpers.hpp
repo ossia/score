@@ -58,11 +58,20 @@ inline bool boolValue(const Process::ControlInlet* c, bool fallback) noexcept
   return c ? ossia::convert<bool>(c->value()) : fallback;
 }
 
+//! Where a fully custom item puts its first inlet: centered on the strip at
+//! its top where the mode switch is, as the inlets of a node with a title are
+//! on its title.
+inline constexpr double firstInletY
+    = Process::ModeSwitch::position.y() + Process::ModeSwitch::height / 2.
+      - Dataflow::PortItem::portCenter().y();
+//! Distance between two inlets shown one under the other
+inline constexpr double inletSpacing = 10.;
+
 //! A fully custom item draws no inlets of its own: show the one it
 //! monitors at its top-left corner.
 inline void showInlet(
     const Process::ProcessModel& p, std::size_t index, const Process::Context& doc,
-    QGraphicsItem* parent, QObject* owner, double y = 5.)
+    QGraphicsItem* parent, QObject* owner, double y = firstInletY)
 {
   if(index >= p.inlets().size())
     return;

@@ -43,10 +43,16 @@
 namespace
 {
 //! The inspector field of the row labelled `row`.
-QWidget* rowField(QWidget& parent, Inspector::Layout& lay, const QString& row)
+QWidget* rowField(QWidget& parent, QFormLayout& lay, const QString& row)
 {
   for(int i = 0; i < lay.rowCount(); i++)
   {
+    // The settings of a port are in the drawer under its row
+    if(auto* span = lay.itemAt(i, QFormLayout::SpanningRole); span && span->widget())
+      for(auto* inner : span->widget()->findChildren<QFormLayout*>())
+        if(auto* w = rowField(parent, *inner, row))
+          return w;
+
     auto* label = lay.itemAt(i, QFormLayout::LabelRole);
     auto* field = lay.itemAt(i, QFormLayout::FieldRole);
     if(!label || !field)

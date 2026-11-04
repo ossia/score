@@ -1,9 +1,14 @@
 #pragma once
+#include <QString>
 #include <QWidget>
 
 #include <score_lib_process_export.h>
 
 class QLabel;
+namespace score
+{
+class ArrowButton;
+}
 
 namespace Inspector
 {
@@ -25,9 +30,73 @@ namespace Process
 {
 class ProcessModel;
 
+/**
+ * @brief Whether the cables of a port keep its address from taking effect.
+ *
+ * The execution engine reads the address of an inlet only when it has no
+ * cable, or when the process at the other end of one of its immediate glutton
+ * cables is not playing. An outlet writes to its address under the same
+ * condition on its outgoing cables; a propagated audio outlet has a cable to
+ * its parent interval, which plays whenever the process does. Texture and
+ * geometry ports use their address next to their cables.
+ */
+struct SCORE_LIB_PROCESS_EXPORT AddressStatus
+{
+  enum Kind
+  {
+    //! No address, or the address is used
+    Used,
+    //! Used only while a process at the other end of a cable is not playing
+    WhileCablesIdle,
+    //! Never used while the cables are there
+    Unused
+  } kind{Used};
+
+  //! Explanation for the user, empty when kind is Used
+  QString reason;
+
+  static AddressStatus of(const Process::Port& port, const score::DocumentContext& ctx);
+};
+
 class SCORE_LIB_PROCESS_EXPORT PortWidgetSetup final
 {
 public:
+  //! A collapsible group of rows shown under a port
+  struct Drawer
+  {
+    QWidget* widget{};
+    Inspector::Layout* layout{};
+    score::ArrowButton* button{};
+
+    void setOpen(bool open) const;
+  };
+
+  /**
+   * @brief Adds the row of a port: its name, then `main` (the address picker,
+   * a control...), and the row of its cables.
+   *
+   * The drawer it returns is not added: the caller fills its layout and adds
+   * its widget where the settings go.
+   */
+  static Drawer setupWithDrawer(
+      const Process::Port& port, QWidget* main, const score::DocumentContext& ctx,
+      Inspector::Layout& lay, QWidget* parent);
+
+  //! The row of a port whose only setting is the address picker, and its cables.
+  static void setupAddressPort(
+      const Process::Port& port, const score::DocumentContext& ctx,
+      Inspector::Layout& lay, QWidget* parent);
+
+  //! The cables of a port, each with a link to the other end; hidden without cables.
+  static QWidget* makeCablesWidget(
+      const Process::Port& port, const score::DocumentContext& ctx, QWidget* parent);
+
+  //! `address_widget` followed by an indicator shown when AddressStatus says
+  //! the cables bypass the address.
+  static QWidget* withAddressStatus(
+      const Process::Port& port, QWidget* address_widget,
+      const score::DocumentContext& ctx, QWidget* parent);
+
   static void setupAlone(
       const Process::Port& port, const score::DocumentContext& ctx,
       Inspector::Layout& lay, QWidget* parent);
@@ -51,7 +120,10 @@ public:
 private:
   static QLabel* setupImpl(
       const QString& txt, const Port& port, const score::DocumentContext& ctx,
-      Inspector::Layout& lay, QWidget* parent);
+      Inspector::Layout& lay, QWidget* parent, bool withCables);
+  static void setupControlImpl(
+      const Process::Port& port, QWidget* inlet_widget,
+      const score::DocumentContext& ctx, Inspector::Layout& lay, QWidget* parent);
 };
 /**
  * @brief Show the list of ports / addresses

@@ -47,6 +47,8 @@ class SCORE_LIB_PROCESS_EXPORT NodeItem
   W_OBJECT(NodeItem)
   Q_INTERFACES(QGraphicsItem)
 public:
+  //! Whether the node is drawn as selected
+  bool isNodeSelected() const noexcept { return m_selected; }
   NodeItem(
       const Process::ProcessModel& model, const Process::Context& ctx, TimeVal parentDur,
       QGraphicsItem* parent);

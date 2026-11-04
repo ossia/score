@@ -370,7 +370,8 @@ Layer::Layer(
   setAcceptedMouseButtons({});
   setAcceptHoverEvents(true);
   Ui::Monitor::showInlet(process, 0, doc, this, this);
-  Ui::Monitor::showInlet(process, 1, doc, this, this, 15.);
+  Ui::Monitor::showInlet(
+      process, 1, doc, this, this, Ui::Monitor::firstInletY + Ui::Monitor::inletSpacing);
   Ui::Monitor::ModeSwitch::make(process, doc, this, this);
   if(process.outlets().size() > 1)
     m_resolution = qobject_cast<const Process::ControlOutlet*>(process.outlets()[1]);

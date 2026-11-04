@@ -592,11 +592,42 @@ void SetupContext::register_outlet_impl(
   OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
   SCORE_ASSERT(node);
   SCORE_ASSERT(ossia_port);
-  bind_address(
-      proc_port, ossia_port, node, runtime_connections[node].outlets[proc_port.id()],
-      impl);
+  auto& cons = runtime_connections[node].outlets[proc_port.id()];
+  bind_address(proc_port, ossia_port, node, cons, impl);
 
   outlets.insert({&proc_port, std::make_pair(node, ossia_port)});
+
+  // The gain trim of every audio output, process or interval, scales what it
+  // sends. The commands hold the node weakly and check that it still owns the
+  // port when they run, as in set_destination_impl.
+  if(auto audio = qobject_cast<Process::AudioOutlet*>(&proc_port);
+     audio && ossia_port->which() == ossia::audio_port::which)
+  {
+    auto exec = static_cast<ossia::audio_outlet*>(ossia_port);
+    impl([exec, wn = std::weak_ptr{node}, g = audio->gain()]() noexcept {
+      OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Audio);
+      if(auto n = wn.lock(); n && hasPort(*n, exec))
+        exec->gain = g;
+    });
+    cons.push_back(connect(
+        audio, &Process::AudioOutlet::gainChanged, this, [this, audio](double g) {
+      OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
+      if(context.retired)
+        return;
+      // The ossia port is looked up when this runs, as in rebind()
+      auto it = outlets.find(audio);
+      if(it == outlets.end() || !it->second.second
+         || it->second.second->which() != ossia::audio_port::which)
+        return;
+      auto exec = static_cast<ossia::audio_outlet*>(it->second.second);
+      context.executionQueue.enqueue(
+          [exec, wn = std::weak_ptr{it->second.first}, g]() noexcept {
+        OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Audio);
+        if(auto n = wn.lock(); n && hasPort(*n, exec))
+          exec->gain = g;
+      });
+    }));
+  }
 
   proc_port.mapExecution(
       *ossia_port, [&](Process::Inlet& model_inl, ossia::inlet& ossia_inl) {

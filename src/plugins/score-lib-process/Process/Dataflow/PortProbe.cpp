@@ -32,6 +32,15 @@ PortProbeHover::PortProbeHover()
   m_closeTimer.setSingleShot(true);
   m_closeTimer.setInterval(250);
   connect(&m_closeTimer, &QTimer::timeout, this, [this] { closeUnlessHeld(); });
+  connect(
+      &Process::PreviewSettings::instance(), &Process::PreviewSettings::hoverProbesChanged,
+      this, [this](bool on) {
+    if(!on)
+    {
+      m_openTimer.stop();
+      close();
+    }
+  });
   m_checkTimer.setInterval(500);
   connect(&m_checkTimer, &QTimer::timeout, this, [this] { checkHovered(); });
 }
@@ -40,7 +49,11 @@ void PortProbeHover::enter(
     const Process::Port& port, const Process::Context& ctx, QGraphicsScene& scene,
     QPointF scenePos)
 {
-  if(!Process::PreviewSettings::instance().enabled())
+  // Textures are shown by rendering a preview, which has its own switch
+  auto& settings = Process::PreviewSettings::instance();
+  if(!settings.hoverProbes())
+    return;
+  if(port.type() == Process::PortType::Texture && !settings.enabled())
     return;
   m_closeTimer.stop();
   if(m_port == &port && m_item)

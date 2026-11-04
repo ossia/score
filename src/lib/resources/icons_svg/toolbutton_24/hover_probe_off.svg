@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   height="48"
+   width="48"
+   viewBox="0 0 48.000001 48.000001"
+   version="1.1"
+   id="Calque_1"><title id="title4">boutons</title><defs id="defs15" />
+<g
+   inkscape:label="Icon"
+   id="layer1"
+   inkscape:groupmode="layer"><path
+     id="cable"
+     d="M 15,35 C 24,35 26,40 40,40"
+     style="fill:none;stroke:#f0f0f0;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1" /><circle
+     id="port"
+     cx="11" cy="35" r="4.5"
+     style="fill:none;stroke:#f0f0f0;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1" /><path
+     id="bubble"
+     d="M 18,8 H 40 V 24 H 24 L 18,29 V 8 Z"
+     style="fill:none;stroke:#f0f0f0;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1" /><path
+     id="trace"
+     d="M 22,19 25,14 29,20 32,13 36,18"
+     style="fill:none;stroke:#f0f0f0;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1" /></g></svg>

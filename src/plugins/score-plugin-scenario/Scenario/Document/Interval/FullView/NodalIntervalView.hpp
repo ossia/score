@@ -64,6 +64,10 @@ public:
   QPointF pastePosition(QPointF scenePos) const;
   int type() const override { return ItemType::Type::NodalIntervalView; }
 
+  //! Asks which process to add, and adds it with its node at `nodePos`
+  //! (nodeContainer() coordinates).
+  void openProcessPicker(QPointF nodePos);
+
 private:
   void setupNode(Process::NodeItem* item);
   //! Shows all the nodes when `item` is outside of the visible part.
@@ -95,6 +99,7 @@ private:
   void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
+  void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event) override;
   void contextMenuEvent(QGraphicsSceneContextMenuEvent* event) override;
   void wheelEvent(QGraphicsSceneWheelEvent* event) override;
 

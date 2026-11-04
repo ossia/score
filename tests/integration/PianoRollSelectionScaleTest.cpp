@@ -268,7 +268,7 @@ TEST_CASE(
     t.start();
     bool removed = false;
     for(auto& iface : ctx.interfaces<score::ObjectEditorList>())
-      if((removed = iface.remove(sel, doc->context())))
+      if((removed = iface.remove(sel, doc->context(), score::RemovalLinks::Reconnect)))
         break;
     QCoreApplication::processEvents();
     const auto elapsed = t.elapsed();
