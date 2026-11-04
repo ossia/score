@@ -8,7 +8,9 @@ cmake .. \
   -DCMAKE_BUILD_TYPE=Release \
   -DCMAKE_INSTALL_PREFIX=install \
   -DSCORE_DYNAMIC_PLUGINS=1 \
-  -DCMAKE_UNITY_BUILD=1
+  -DCMAKE_UNITY_BUILD=1 \
+  -DSCORE_COMPILE_JOBS=2 \
+  -DSCORE_HEAVY_COMPILE_JOBS=1
 
 cmake --build .
 cmake --build . --target install

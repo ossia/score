@@ -105,7 +105,26 @@ struct Verdicts
   bool supportsDmabuf{};
   bool supportsHostImport{};
   bool supportsCudaFd{};
+  //! The extension alone does not say which handle types a semaphore exports:
+  //! lavapipe has VK_KHR_external_semaphore_fd yet cannot export the OPAQUE_FD
+  //! handle the CUDA semaphore is made of.
+  bool supportsCudaSemaphore{};
 };
+
+bool exportsOpaqueFdSemaphore(QVulkanInstance& inst, VkPhysicalDevice pd)
+{
+  auto get = reinterpret_cast<PFN_vkGetPhysicalDeviceExternalSemaphoreProperties>(
+      inst.getInstanceProcAddr("vkGetPhysicalDeviceExternalSemaphoreProperties"));
+  if(!get)
+    return false;
+  VkPhysicalDeviceExternalSemaphoreInfo info{};
+  info.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTERNAL_SEMAPHORE_INFO;
+  info.handleType = VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_OPAQUE_FD_BIT;
+  VkExternalSemaphoreProperties props{};
+  props.sType = VK_STRUCTURE_TYPE_EXTERNAL_SEMAPHORE_PROPERTIES;
+  get(pd, &info, &props);
+  return props.externalSemaphoreFeatures & VK_EXTERNAL_SEMAPHORE_FEATURE_EXPORTABLE_BIT;
+}
 
 std::set<std::string> supportedExtensions(QVulkanInstance& inst, VkPhysicalDevice pd)
 {
@@ -201,6 +220,8 @@ Verdicts probe(Device d)
     out.supportsHostImport = has(VK_EXT_EXTERNAL_MEMORY_HOST_EXTENSION_NAME);
     out.supportsCudaFd = has(VK_KHR_EXTERNAL_MEMORY_FD_EXTENSION_NAME)
                          && has(VK_KHR_EXTERNAL_SEMAPHORE_FD_EXTENSION_NAME);
+    out.supportsCudaSemaphore
+        = out.supportsCudaFd && exportsOpaqueFdSemaphore(*nh->inst, nh->physDev);
 
     out.dmabuf = score::gfx::DMABufPlaneImporter::isAvailable(rhi);
     out.hostImport = score::gfx::interop::VkHostImportUpload::requiredAlignment(rhi) != 0;
@@ -554,7 +575,7 @@ TEST_CASE("Vulkan importers follow the device's enabled extensions",
       if(r.cudaDecoder)
         CHECK(*r.cudaDecoder == r.supportsCudaFd);
       if(r.cudaSemaphore)
-        CHECK(*r.cudaSemaphore == r.supportsCudaFd);
+        CHECK(*r.cudaSemaphore == r.supportsCudaSemaphore);
     }
   }
 }
