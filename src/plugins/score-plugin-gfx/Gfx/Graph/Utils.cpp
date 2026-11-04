@@ -200,6 +200,81 @@ createRenderTarget(const RenderState& state, QRhiTexture* tex, int samples, bool
   return ret;
 }
 
+static int zeroUploadBytesPerPixel(QRhiTexture::Format f) noexcept
+{
+  switch(f)
+  {
+    case QRhiTexture::R8:
+    case QRhiTexture::RED_OR_ALPHA8:
+      return 1;
+    case QRhiTexture::RG8:
+    case QRhiTexture::R16:
+    case QRhiTexture::R16F:
+      return 2;
+    case QRhiTexture::RGBA8:
+    case QRhiTexture::BGRA8:
+    case QRhiTexture::RG16:
+    case QRhiTexture::R32F:
+    case QRhiTexture::RGB10A2:
+      return 4;
+    case QRhiTexture::RGBA16F:
+      return 8;
+    case QRhiTexture::RGBA32F:
+      return 16;
+#if QT_VERSION >= QT_VERSION_CHECK(6, 10, 0)
+    case QRhiTexture::R8SI:
+    case QRhiTexture::R8UI:
+      return 1;
+    case QRhiTexture::R32SI:
+    case QRhiTexture::R32UI:
+      return 4;
+    case QRhiTexture::RG32SI:
+    case QRhiTexture::RG32UI:
+      return 8;
+    case QRhiTexture::RGBA32SI:
+    case QRhiTexture::RGBA32UI:
+      return 16;
+#endif
+    default:
+      return 0;
+  }
+}
+
+bool zeroTexture(QRhi& rhi, QRhiResourceUpdateBatch& res, QRhiTexture& tex)
+{
+  const int bpp = zeroUploadBytesPerPixel(tex.format());
+  const QSize size = tex.pixelSize();
+  if(bpp == 0 || size.isEmpty())
+    return false;
+
+  const auto flags = tex.flags();
+  const bool is3D = flags.testFlag(QRhiTexture::ThreeDimensional);
+  const int layers = flags.testFlag(QRhiTexture::CubeMap)        ? 6
+                     : flags.testFlag(QRhiTexture::TextureArray) ? std::max(1, tex.arraySize())
+                                                                 : 1;
+  const int levels = flags.testFlag(QRhiTexture::MipMapped) ? rhi.mipLevelsForSize(size) : 1;
+
+  QVarLengthArray<QRhiTextureUploadEntry, 16> entries;
+  for(int level = 0; level < levels; ++level)
+  {
+    const QSize sz = rhi.sizeForMipLevel(level, size);
+    // One zero buffer per level, shared by every layer through QByteArray's
+    // implicit sharing.
+    QRhiTextureSubresourceUploadDescription desc(
+        QByteArray(qsizetype(sz.width()) * sz.height() * bpp, 0));
+    desc.setSourceSize(sz);
+    // A 3D texture takes one upload per depth slice, its index as the layer.
+    const int count = is3D ? std::max(1, tex.depth() >> level) : layers;
+    for(int layer = 0; layer < count; ++layer)
+      entries.append(QRhiTextureUploadEntry(layer, level, desc));
+  }
+
+  QRhiTextureUploadDescription upload;
+  upload.setEntries(entries.cbegin(), entries.cend());
+  res.uploadTexture(&tex, upload);
+  return true;
+}
+
 TextureRenderTarget createRenderTarget(
     const RenderState& state, QRhiTexture::Format fmt, QSize sz, int samples, bool depth,
     bool samplableDepth, QRhiTexture::Flags flags)
