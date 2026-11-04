@@ -79,11 +79,20 @@ public:
 
   std::size_t size() const noexcept { return available.size_approx(); }
 
+  //! Follows one frame given out by the decoding thread: watched() is null
+  //! once newFrame() has handed that frame out again, the consumer having
+  //! taken and released it. Decoding thread only.
+  void watch(AVFrame* f) noexcept { m_watched = f; }
+  AVFrame* watched() const noexcept { return m_watched; }
+
 private:
+  AVFramePointer newFrameImpl() noexcept;
+
   ossia::mpmc_queue<AVFrame*> available;
   ossia::mpmc_queue<AVFrame*> released;
 
   std::vector<AVFrame*> m_decodeThreadFrameBuffer;
+  AVFrame* m_watched{};
   std::atomic<AVFrame*> m_discardUntil{};
   std::atomic_int m_generation{};
 };

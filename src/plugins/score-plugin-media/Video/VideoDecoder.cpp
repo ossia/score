@@ -223,9 +223,46 @@ LibAVDecoder::open_hwdec(const AVCodec& detected_codec) noexcept
 #endif
 }
 
+static void convertDecodedFrame(
+    Rescale& rescale, FrameQueue& frames, AVFramePointer& frame, ReadFrame& read)
+{
+  if(rescale)
+    rescale.rescale(frames, frame, read);
+  else if(read.frame == frame.get())
+    frame.release();
+}
+
+void LibAVDecoder::dropSkipCandidate() noexcept
+{
+  if(m_skipCandidate)
+    m_frames.enqueue_decoding_error(std::exchange(m_skipCandidate, nullptr));
+}
+
+void LibAVDecoder::landSkip(AVFrame* f) noexcept
+{
+  m_skipLandingPts = f ? f->pts : AV_NOPTS_VALUE;
+  m_frames.watch(f);
+}
+
+ReadFrame LibAVDecoder::takeSkipCandidate() noexcept
+{
+  AVFramePointer frame{std::exchange(m_skipCandidate, nullptr)};
+  ReadFrame read{frame.get(), 0};
+  if(read.frame)
+    convertDecodedFrame(m_rescale, m_frames, frame, read);
+  return read;
+}
+
 ReadFrame LibAVDecoder::enqueue_frame(const AVPacket* pkt) noexcept
 {
-  auto receive = [this]() -> ReadFrame
+  ReadFrame last{nullptr, AVERROR(EAGAIN)};
+  auto keepInOrder = [this, &last](ReadFrame read) {
+    if(last.frame)
+      m_frames.enqueue(last.frame);
+    last = read;
+  };
+
+  auto receive = [this, &keepInOrder]() -> ReadFrame
   {
     auto frame = m_frames.newFrame();
     auto read
@@ -242,39 +279,32 @@ ReadFrame LibAVDecoder::enqueue_frame(const AVPacket* pkt) noexcept
 
     if(m_skipBefore != AV_NOPTS_VALUE && read.frame->pts != AV_NOPTS_VALUE)
     {
-#if(LIBAVUTIL_VERSION_MAJOR < 58)
-      const int64_t duration = read.frame->pkt_duration;
-#else
-      const int64_t duration = read.frame->duration;
-#endif
-      const int64_t span = duration > 0 ? duration : m_missingTimestamps.step;
-      if(read.frame->pts + span <= m_skipBefore)
+      if(read.frame->pts <= m_skipBefore)
       {
-        // Decoded, so that the frames after it can reference it, and dropped
-        // like a frame with a negative timestamp.
-        m_frames.enqueue_decoding_error(frame.release());
+        // Decoded, so that the frames after it can reference it, and held
+        // back until a later frame shows whether it is the one at the target.
+        dropSkipCandidate();
+        m_skipCandidate = frame.release();
         return {nullptr, 0};
       }
       m_skipBefore = AV_NOPTS_VALUE;
+      if(m_skipCandidate)
+      {
+        auto held = takeSkipCandidate();
+        landSkip(held.frame);
+        keepInOrder(held);
+        convertDecodedFrame(m_rescale, m_frames, frame, read);
+      }
+      else
+      {
+        convertDecodedFrame(m_rescale, m_frames, frame, read);
+        landSkip(read.frame);
+      }
+      return read;
     }
 
-    if(m_rescale)
-    {
-      m_rescale.rescale(m_frames, frame, read);
-    }
-    else if(read.frame == frame.get())
-    {
-      frame.release();
-    }
-
+    convertDecodedFrame(m_rescale, m_frames, frame, read);
     return read;
-  };
-
-  ReadFrame last{nullptr, AVERROR(EAGAIN)};
-  auto keepInOrder = [this, &last](ReadFrame read) {
-    if(last.frame)
-      m_frames.enqueue(last.frame);
-    last = read;
   };
 
   // A decoder may refuse a new packet until every pending frame has been
@@ -727,6 +757,12 @@ int seek_to_frame(AVFormatContext* format, AVStream* stream, int frameIndex)
 
 bool VideoDecoder::seek_impl(int64_t flicks) noexcept
 {
+  struct count_done
+  {
+    std::atomic_int& done;
+    ~count_done() { done.fetch_add(1, std::memory_order_release); }
+  } count_done_on_exit{seeks_done};
+
   if(m_avstream->index >= int(m_formatContext->nb_streams))
     return false;
 
@@ -790,16 +826,44 @@ bool VideoDecoder::seek_impl(int64_t flicks) noexcept
   // The frames between the keyframe the demuxer lands on and the target are
   // decoded and dropped here rather than queued: queued, the reader would
   // show them, late, one after the other, until it reached the target.
-  m_skipBefore = target;
+  auto start_skip = [this, target] {
+    dropSkipCandidate();
+    landSkip(nullptr);
+    m_skipBefore = target;
+  };
+  start_skip();
   struct reset_skip
   {
-    int64_t& skip;
-    ~reset_skip() { skip = AV_NOPTS_VALUE; }
-  } reset_skip_on_exit{m_skipBefore};
+    LibAVDecoder& self;
+    ~reset_skip()
+    {
+      self.m_skipBefore = AV_NOPTS_VALUE;
+      self.dropSkipCandidate();
+      self.landSkip(nullptr);
+    }
+  } reset_skip_on_exit{*this};
+
+  // The end came before a frame starting after the target: the last frame
+  // held back is the one at the target.
+  auto take_held_at_end = [this](ReadFrame& r) {
+    if(m_skipBefore == AV_NOPTS_VALUE || r.frame || r.error != AVERROR_EOF
+       || !m_skipCandidate)
+      return;
+    m_skipBefore = AV_NOPTS_VALUE;
+    r = takeSkipCandidate();
+    landSkip(r.frame);
+  };
+  // The pts of the first frame of the seek: the frames read with it may be
+  // queued already.
+  auto landing_pts = [this](const ReadFrame& r) {
+    if(m_skipLandingPts != AV_NOPTS_VALUE)
+      return m_skipLandingPts;
+    return r.frame ? r.frame->pts : AV_NOPTS_VALUE;
+  };
 
   // Every frame enqueued from here on is after the seek; the reader drops
   // the ones before, held back or still queued.
-  const int generation = m_frames.start_generation();
+  int generation = m_frames.start_generation();
   const int64_t lead_flicks = av_rescale_q(m_ptsLead, stream_tb, flicks_time_base);
   if(!seek_to(absolute_flicks - lead_flicks))
   {
@@ -817,25 +881,32 @@ bool VideoDecoder::seek_impl(int64_t flicks) noexcept
                               ? std::max(target, m_avstream->start_time)
                               : target;
   ReadFrame r = read_first();
+  take_held_at_end(r);
   int64_t back = 0;
-  for(int attempt = 0; attempt < 6 && r.frame && r.frame->pts != AV_NOPTS_VALUE
-                       && r.frame->pts > landing && absolute_flicks - back > 0;
+  for(int attempt = 0; attempt < 6 && landing_pts(r) != AV_NOPTS_VALUE
+                       && landing_pts(r) > landing && absolute_flicks - back > 0;
       attempt++)
   {
+    // The frames this attempt queued are older than the next one's.
+    generation = m_frames.start_generation();
     SCORE_LIBAV_FRAME_DEALLOC_CHECK(r.frame);
     av_frame_free(&r.frame);
+    landSkip(nullptr);
     back = back ? back * 2
                 : 2 * av_rescale_q(m_missingTimestamps.step, stream_tb, flicks_time_base);
     if(!seek_to(std::max<int64_t>(0, absolute_flicks - lead_flicks - back)))
       break;
-    m_skipBefore = target;
+    start_skip();
     r = read_first();
+    take_held_at_end(r);
   }
-  // The end came before the target, the container's duration being longer
-  // than the stream: from the keyframe, everything up to the end is shown.
+  // The end came before the target with no frame at all, the container's
+  // duration being longer than the stream: from the keyframe, everything up to
+  // the end is shown.
   if(m_skipBefore != AV_NOPTS_VALUE && r.error == AVERROR_EOF)
   {
     m_skipBefore = AV_NOPTS_VALUE;
+    landSkip(nullptr);
     if(seek_to(absolute_flicks - lead_flicks))
       r = read_first();
   }
@@ -843,10 +914,20 @@ bool VideoDecoder::seek_impl(int64_t flicks) noexcept
   {
     SCORE_LIBAV_FRAME_DEALLOC_CHECK(r.frame);
     av_frame_free(&r.frame);
+    landSkip(nullptr);
     r = read_first();
   }
 
-  if(r.frame)
+  if(m_skipLandingPts != AV_NOPTS_VALUE && m_frames.watched() != r.frame)
+  {
+    // The frame at the target went into the queue before r, with the frames
+    // read along with it. Gone from the queue, the consumer already took it.
+    if(r.frame)
+      m_frames.enqueue(r.frame);
+    if(AVFrame* first = m_frames.watched())
+      m_frames.set_discard_frame(first);
+  }
+  else if(r.frame)
   {
     // Enqueue BEFORE publishing the discard marker. Otherwise the GFX thread's
     // discard_and_dequeue* can observe the marker for a frame not yet in

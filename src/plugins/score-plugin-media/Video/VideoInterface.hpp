@@ -99,6 +99,10 @@ struct SCORE_PLUGIN_MEDIA_EXPORT VideoInterface : VideoMetadata
   //! The generation (frameGeneration) of the last seek done: a frame of an
   //! earlier one is from before it, and is not to be shown.
   std::atomic_int seek_generation{};
+  //! The seek requests taken and done, one each, whether they moved the
+  //! stream or found the frames queued already at the time: a request replaced
+  //! before it was taken is done with the one that replaced it.
+  std::atomic_int seeks_done{};
 };
 
 struct SCORE_PLUGIN_MEDIA_EXPORT ReadFrame
