@@ -12,8 +12,9 @@ namespace score::gfx
  * Row order of the 2D image textures that travel between nodes.
  *
  * A render target holds its image bottom row first in memory on OpenGL, Metal
- * and Direct3D -- the GL framebuffer origin, and the isf_vertShaderFinish()
- * negation on the others: QRhi::isYUpInNDC() -- and top row first on Vulkan.
+ * and Direct3D -- the GL framebuffer origin, and the Y negation of
+ * isf_vertShaderApplyClipSpace() on the others: QRhi::isYUpInNDC() -- and top
+ * row first on Vulkan.
  * Every 2D image texture a node publishes has the row order of a rendered one,
  * whoever produced it, so a consumer (IMG_NORM_PIXEL, the output blits, a
  * STATIC binding, a readback, a material slot) never needs to know whether it

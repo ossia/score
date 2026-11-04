@@ -338,7 +338,7 @@ void main()
   // The direct (single-output) raw-raster path does not go through this blit
   // and is correctly oriented on all four backends, so the correction belongs
   // here and nowhere else. SimpleRenderedISFNode.cpp's twin blit is NOT the
-  // same case: the ISF vertex prelude carries isf_vertShaderFinish, which
+  // same case: the ISF vertex prelude carries isf_vertShaderApplyClipSpace, which
   // already flips for QSHADER_HLSL/QSHADER_MSL, and GfxMrtPattern -- the ISF
   // twin of this test, same closed form -- passes on both D3D backends.
   v_texcoord.y = 1. - v_texcoord.y;

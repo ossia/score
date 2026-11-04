@@ -1166,7 +1166,9 @@ static Pipeline buildPipelineImpl(
   // and we have to trust the renderlist value.
   const int rtSamplesQueried = rt.sampleCount();
   const int pipelineSamples = (rtSamplesQueried > 0) ? rtSamplesQueried : renderer.samples();
-  if(rtSamplesQueried > 0 && rtSamplesQueried != renderer.samples())
+  // A single-sample target is either chosen (the passes that copy an output's
+  // resolved picture) or a degradation createRenderTarget already reported.
+  if(rtSamplesQueried > 1 && rtSamplesQueried != renderer.samples())
   {
     qWarning() << "buildPipeline: RT sampleCount=" << rtSamplesQueried
                << "differs from renderer.samples()=" << renderer.samples()
@@ -1438,25 +1440,24 @@ Pipeline buildPipelineWithState(
       rhi, *ps, state, rt.colorAttachmentCount(), depthAvailable, wantsDepthByDefault);
   dropStencilWithoutAttachment(*ps, rt.hasStencil(), ps->name().toStdString());
 
-  // The ISF vertex epilogue mirrors Y under QSHADER_SPIRV / QSHADER_HLSL /
-  // QSHADER_MSL, i.e. on Vulkan, D3D11/12 and Metal -- every backend except
-  // OpenGL and GLES, which are the two that consume GLSL directly. The mirror
-  // reverses window-space winding and so inverts which faces a given FrontFace
-  // culls, measured as CCW on OpenGL against CW on Vulkan and Metal for the
-  // same geometry. Compensate over exactly the epilogue's guard set so a
-  // CULL_MODE means the same thing everywhere.
+  // isf_vertShaderApplyClipSpace() maps OpenGL's clip space to the backend's
+  // with clipSpaceCorrMatrix, which QRhi defines so that winding is preserved
+  // (its Y negation on Vulkan cancels against Vulkan's Y-down viewport), then
+  // negates Y under QSHADER_HLSL / QSHADER_MSL. That extra mirror on D3D11/12
+  // and Metal reverses window-space winding, and so which faces a FrontFace
+  // culls and what gl_FrontFacing reports; the swap undoes it so that
+  // CULL_MODE, FRONT_FACE and gl_FrontFacing mean what they mean on OpenGL.
+  // It applies under CULL_MODE none too, for gl_FrontFacing.
   // RenderedRawRasterPipelineNode compensates for itself and does not come
   // through here.
   switch(renderer.state.api)
   {
-    case score::gfx::Vulkan:
     case score::gfx::D3D11:
     case score::gfx::D3D12:
     case score::gfx::Metal:
-      if(ps->cullMode() != QRhiGraphicsPipeline::None)
-        ps->setFrontFace(
-            ps->frontFace() == QRhiGraphicsPipeline::CCW ? QRhiGraphicsPipeline::CW
-                                                         : QRhiGraphicsPipeline::CCW);
+      ps->setFrontFace(
+          ps->frontFace() == QRhiGraphicsPipeline::CCW ? QRhiGraphicsPipeline::CW
+                                                       : QRhiGraphicsPipeline::CCW);
       break;
     default:
       break;
