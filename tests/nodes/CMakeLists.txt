@@ -3,9 +3,9 @@
 # in <build>/plugins are discovered at runtime and ALL factories are registered.
 
 score_add_test(test_nodes_processes
-  SOURCES Processes.cpp
+  SOURCES Processes.cpp ValidationPlugins.cpp
   APP
-  PLUGINS score_plugin_scenario score_lib_process)
+  PLUGINS score_plugin_scenario score_plugin_media score_lib_process)
 
 # The views of every process: layers in every mode and size, nodes,
 # inspectors; then the monitoring views while the document plays.
@@ -23,19 +23,29 @@ target_include_directories(test_nodes_process_views PRIVATE
   "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-ui")
 
 # The CLAP, VST 2 and VST 3 hosts scan their plug-ins in a puppet they look
-# for next to the executable: the exec sweep runs validation plug-ins
-# (ValidationPlugins.hpp) through them.
-if(TARGET test_nodes_process_views AND UNIX AND NOT APPLE)
+# for next to the executable: the process sweeps run validation plug-ins
+# (ValidationPlugins.hpp) through them. Both sweeps are built in this
+# directory, so they share one set of links.
+if(UNIX AND NOT APPLE)
+  set(_puppet_links)
   foreach(_puppet ossia-score-clappuppet ossia-score-vstpuppet ossia-score-vst3puppet)
     if(TARGET ${_puppet})
-      add_dependencies(test_nodes_process_views ${_puppet})
-      add_custom_command(TARGET test_nodes_process_views POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E create_symlink
-                $<TARGET_FILE:${_puppet}>
-                $<TARGET_FILE_DIR:test_nodes_process_views>/$<TARGET_FILE_NAME:${_puppet}>
+      set(_link "${CMAKE_CURRENT_BINARY_DIR}/${_puppet}")
+      add_custom_command(OUTPUT "${_link}"
+        COMMAND ${CMAKE_COMMAND} -E create_symlink $<TARGET_FILE:${_puppet}> "${_link}"
+        DEPENDS ${_puppet}
         VERBATIM)
+      list(APPEND _puppet_links "${_link}")
     endif()
   endforeach()
+  if(_puppet_links)
+    add_custom_target(test_nodes_puppets DEPENDS ${_puppet_links})
+    foreach(_sweep test_nodes_processes test_nodes_process_views)
+      if(TARGET ${_sweep})
+        add_dependencies(${_sweep} test_nodes_puppets)
+      endif()
+    endforeach()
+  endif()
 endif()
 
 # Every process run, its document ticked by the test: a test case of the same

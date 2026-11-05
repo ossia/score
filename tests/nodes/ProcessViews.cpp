@@ -2,7 +2,8 @@
 // size and in each value of its mode-like controls, its node in the nodal view,
 // and its inspector; each built and painted under the crash guard of
 // SweepGuard.hpp, so that one broken view is reported by name instead of
-// ending the sweep.
+// ending the sweep. The hosts of audio plug-ins are swept once for each
+// validation plug-in of their format (ValidationPlugins.hpp).
 //
 // The monitoring processes are also swept while the document plays, each fed
 // by a source of the kind of its first inlet, or by a compute shader's storage
@@ -48,6 +49,7 @@
 
 #include <Dataflow/Commands/EditConnection.hpp>
 #include <Audio/AudioApplicationPlugin.hpp>
+#include <Audio/AudioDevice.hpp>
 #include <Audio/Settings/Model.hpp>
 
 #include <ossia/audio/audio_engine.hpp>
@@ -127,6 +129,9 @@ struct ViewResult
   bool monitored = false;
   bool crashed = false;
   std::string detail;
+  //! It hosts a validation plug-in, and the ports the plug-in gave it
+  bool plugin = false;
+  std::size_t ports = 0;
 };
 
 void settle(int ms = 0)
@@ -299,6 +304,7 @@ void report(const std::vector<ViewResult>& results, const char* what)
 {
   REQUIRE(!results.empty());
   int swept = 0, skipped = 0, crashed = 0, layers = 0, modes = 0, paints = 0;
+  std::string skips;
   for(const auto& r : results)
   {
     INFO("Process: " << r.name << "  {" << r.uuid << "}");
@@ -307,6 +313,8 @@ void report(const std::vector<ViewResult>& results, const char* what)
     if(r.skipped)
     {
       ++skipped;
+      if(!r.skip_reason.starts_with("not selected"))
+        skips += "\n  " + r.name + " {" + r.uuid + "}: " + r.skip_reason;
       continue;
     }
     ++swept;
@@ -328,11 +336,20 @@ void report(const std::vector<ViewResult>& results, const char* what)
     if(r.has_layer)
       CHECK(r.layer);
     CHECK(r.node);
+    // A host that loaded its plug-in has the ports of the plug-in, and an
+    // inspector to edit them in
+    if(r.plugin && r.constructed && !r.crashed)
+    {
+      CHECK(r.ports > 0);
+      CHECK(r.inspector);
+    }
   }
   WARN(
       what << ": " << results.size() << " factories, " << swept << " swept, " << layers
            << " layers, " << modes << " modes, " << paints << " paints, " << crashed
            << " crashed, " << skipped << " skipped.");
+  if(!skips.empty())
+    WARN("Skipped:" << skips);
 }
 }
 
@@ -349,19 +366,34 @@ TEST_CASE("Every process view builds and paints in every mode", "[nodes][views]"
     auto& pl = ctx.interfaces<Process::ProcessFactoryList>();
 
     const bool trace = qEnvironmentVariableIsSet("SWEEP_TRACE");
-    for(auto& factory : pl)
+    // The hosts of audio plug-ins are made once for each validation plug-in
+    const auto plugins = sweep::ValidationPlugins::make(
+        ctx, pl, [&](const std::string& uuid) { return only.empty() || only.contains(uuid); });
+    for(auto [factory_ptr, plugin] : sweep::jobs(pl, plugins.get()))
     {
+      auto& factory = *factory_ptr;
       auto& r = results.emplace_back(resultFor(factory));
+      if(plugin)
+      {
+        r.name += " (" + plugin->label() + ")";
+        r.plugin = true;
+      }
       if(!only.empty() && !only.contains(r.uuid))
       {
         r.skipped = true;
         r.skip_reason = "not selected (SWEEP_ONLY)";
         continue;
       }
-      if(sweep::construction_denylist.contains(r.uuid))
+      if(plugin && !plugin->skip.empty())
       {
         r.skipped = true;
-        r.skip_reason = "construction denylist";
+        r.skip_reason = plugin->skip;
+        continue;
+      }
+      if(!plugin && sweep::construction_denylist.contains(r.uuid))
+      {
+        r.skipped = true;
+        r.skip_reason = "construction denylist: needs an external plug-in";
         continue;
       }
       if(trace)
@@ -373,10 +405,12 @@ TEST_CASE("Every process view builds and paints in every mode", "[nodes][views]"
       if(!sweep::guarded(
              [&] {
         auto* proc = score::test::add_process(
-            *doc, QString::fromStdString(r.uuid), factory.customConstructionData());
+            *doc, QString::fromStdString(r.uuid),
+            plugin ? plugin->data : factory.customConstructionData());
         if(!proc)
           return;
         r.constructed = true;
+        r.ports = proc->inlets().size() + proc->outlets().size();
         paintViews(*proc, doc->context(), duration, r);
         doc->commandStack().undo();
         settle();
@@ -880,13 +914,13 @@ const std::map<std::string, std::string> no_component = {
 };
 
 //! What the processes that are made from a file or a name get
-struct Media
+struct MediaFiles
 {
   QString wav;
   QString pd_patch;
   QString splats = splat_fixture();
 
-  explicit Media(const score::GUIApplicationContext& ctx)
+  explicit MediaFiles(const score::GUIApplicationContext& ctx)
   {
     const QString dir = QDir::temp().filePath(QStringLiteral("process-exec-media"));
     wav = dir + QStringLiteral("/tone.wav");
@@ -940,7 +974,7 @@ TEST_CASE("Every process runs with each inlet fed", "[.][nodes][exec]")
   auto run = [&](const score::GUIApplicationContext& ctx) {
     auto& pl = ctx.interfaces<Process::ProcessFactoryList>();
     ctx.settings<Scenario::Settings::Model>().setExecutionUpdate(true);
-    const Media media{ctx};
+    const MediaFiles media{ctx};
 
     score::Document* doc{};
     std::unique_ptr<Sources> sources;
@@ -961,30 +995,9 @@ TEST_CASE("Every process runs with each inlet fed", "[.][nodes][exec]")
     const auto selected = [&](const std::string& uuid) {
       return (only.empty() || only.contains(uuid)) && sweep::in_shard(uuid);
     };
-    std::unique_ptr<sweep::ValidationPlugins> plugins;
-    for(auto& factory : pl)
-    {
-      const auto uuid = score::uuids::toByteArray(factory.concreteKey().impl()).toStdString();
-      if(sweep::hosts_plugins(uuid) && selected(uuid))
-      {
-        plugins = std::make_unique<sweep::ValidationPlugins>(ctx, selected);
-        break;
-      }
-    }
-    std::vector<std::pair<const Process::ProcessModelFactory*, const sweep::ValidationPlugins::Found*>> jobs;
-    for(auto& factory : pl)
-    {
-      const auto uuid = score::uuids::toByteArray(factory.concreteKey().impl()).toStdString();
-      std::vector<const sweep::ValidationPlugins::Found*> found;
-      if(plugins)
-        found = plugins->forHost(uuid);
-      if(found.empty())
-        jobs.emplace_back(&factory, nullptr);
-      for(auto* f : found)
-        jobs.emplace_back(&factory, f);
-    }
+    const auto plugins = sweep::ValidationPlugins::make(ctx, pl, selected);
 
-    for(auto [factory_ptr, plugin] : jobs)
+    for(auto [factory_ptr, plugin] : sweep::jobs(pl, plugins.get()))
     {
       auto& factory = *factory_ptr;
       auto& r = results.emplace_back(resultFor(factory));

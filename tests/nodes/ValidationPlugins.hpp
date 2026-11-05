@@ -1,8 +1,8 @@
 #pragma once
-// The audio plug-ins the CLAP, LV2, VST 2 and VST 3 hosts run in the exec
-// sweep: an effect and an instrument of DPF-Plugins, which builds all four
-// formats from one source, and two of the LV2 examples. Ubuntu packages them
-// as dpf-plugins-{clap,lv2,vst,vst3} and lv2-examples, in /usr/lib.
+// The audio plug-ins the CLAP, LV2, VST 2 and VST 3 hosts are made from in the
+// process sweeps: an effect and an instrument of DPF-Plugins, which builds all
+// four formats from one source, and two of the LV2 examples. Ubuntu packages
+// them as dpf-plugins-{clap,lv2,vst,vst3} and lv2-examples, in /usr/lib.
 //
 // SCORE_VALIDATION_PLUGINS=<dir> looks for them in <dir>/{clap,lv2,vst,vst3}
 // instead. A plug-in that is not there is skipped, and the sweep says so.
@@ -13,20 +13,24 @@
 // for them is what they are made from. An LV2 plug-in is made from its
 // bundle, which the host loads without a scan.
 //
-// The construction lives in ValidationPlugins.cpp: the headers of the media
-// plug-in declare a namespace Media, which ProcessViews.cpp names a struct.
+// The construction lives in ValidationPlugins.cpp, so that the sweeps do not
+// include the headers of the media plug-in.
 
 #include <ossia/dataflow/audio_port.hpp>
 #include <ossia/dataflow/graph_node.hpp>
 #include <ossia/dataflow/port.hpp>
+
+#include <score/plugins/UuidKey.hpp>
 
 #include <QString>
 
 #include <algorithm>
 #include <cmath>
 #include <functional>
+#include <memory>
 #include <string>
 #include <string_view>
+#include <type_traits>
 #include <vector>
 
 namespace score
@@ -117,7 +121,54 @@ public:
     return res;
   }
 
+  //! The plug-ins of the hosts among `factories` that `wanted` accepts; null
+  //! when it accepts none of them, so that no scan runs
+  template <typename Factories>
+  static std::unique_ptr<ValidationPlugins> make(
+      const score::GUIApplicationContext& ctx, const Factories& factories,
+      const std::function<bool(const std::string&)>& wanted)
+  {
+    for(auto& factory : factories)
+    {
+      const auto uuid
+          = score::uuids::toByteArray(factory.concreteKey().impl()).toStdString();
+      if(hosts_plugins(uuid) && wanted(uuid))
+        return std::make_unique<ValidationPlugins>(ctx, wanted);
+    }
+    return nullptr;
+  }
+
 private:
   std::vector<Found> m_found;
 };
+
+//! A factory, and the validation plug-in the process is made from when it is
+//! the host of one
+template <typename Factory>
+struct Job
+{
+  Factory* factory{};
+  const ValidationPlugins::Found* plugin{};
+};
+
+//! Every factory once, but a host of audio plug-ins once for each validation
+//! plug-in of its format, and once with no plug-in when `plugins` has none
+template <typename Factories>
+auto jobs(Factories& factories, const ValidationPlugins* plugins)
+{
+  using factory_type = std::remove_reference_t<decltype(*std::begin(factories))>;
+  std::vector<Job<factory_type>> res;
+  for(auto& factory : factories)
+  {
+    std::vector<const ValidationPlugins::Found*> found;
+    if(plugins)
+      found = plugins->forHost(
+          score::uuids::toByteArray(factory.concreteKey().impl()).toStdString());
+    if(found.empty())
+      res.push_back({&factory, nullptr});
+    for(auto* f : found)
+      res.push_back({&factory, f});
+  }
+  return res;
+}
 }
