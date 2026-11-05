@@ -409,11 +409,12 @@ private:
   };
   std::vector<GeometryBinding> m_geometryBindings;
   //! The column tables the shader is specialized to, per geometry input with
-  //! COLUMNS, as resolved now: an empty entry when the layout is not known (no
-  //! upstream yet) or differs between the meshes read.
+  //! COLUMNS, as resolved now, each followed by the row length its data block
+  //! is read as: an empty entry when the layout is not known (no upstream
+  //! yet) or differs between the meshes read.
   std::vector<std::vector<uint32_t>> columnSpecialization() const;
-  //! `src` with the COLUMNS table lookups of each geometry input replaced by
-  //! the constants of `spec` (isf::column_meta_function).
+  //! `src` with the COLUMNS accessors of each geometry input generated from
+  //! `spec` (isf::column_accessors).
   QString specializeColumns(
       QString src, const std::vector<std::vector<uint32_t>>& spec) const;
   //! Recompiles the passes' pipelines, keeping their bindings.

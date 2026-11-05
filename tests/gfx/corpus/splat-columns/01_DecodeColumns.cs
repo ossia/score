@@ -334,17 +334,28 @@ uint shRestPerChannel()
     return 0u;
 }
 
-// Coefficient j of R, G, B, or 0 past the file's K. Every coefficient is read
-// before any is used, as a struct load would: the reads overlap.
-#define SH_REST(j) r[j] = (j < K) ? vec3(ISF_COLUMN_AT(geoIn, k0 + j, i), ISF_COLUMN_AT(geoIn, k0 + K + j, i), ISF_COLUMN_AT(geoIn, k0 + 2u * K + j, i)) : vec3(0.0)
+// Coefficient j of R, G, B: the columns f_rest_j, f_rest_g, f_rest_b. Every
+// coefficient is read before any is used, as a struct load would: the reads
+// overlap. One branch per K, each naming its columns: once the shader is
+// compiled for the file's layout K is a constant, one branch is left, and its
+// reads are loads at constant offsets.
+#define SH_REST(j, g, b) r[j] = vec3(COL(f_rest_##j, i), COL(f_rest_##g, i), COL(f_rest_##b, i))
 
 vec3 evaluateSH(uint i, vec3 dc, vec3 dir, uint deg, uint K)
 {
-    const uint k0 = ISF_COLUMN_INDEX(geoIn, f_rest_0);
     vec3 r[15];
-    SH_REST(0u);  SH_REST(1u);  SH_REST(2u);  SH_REST(3u);  SH_REST(4u);
-    SH_REST(5u);  SH_REST(6u);  SH_REST(7u);  SH_REST(8u);  SH_REST(9u);
-    SH_REST(10u); SH_REST(11u); SH_REST(12u); SH_REST(13u); SH_REST(14u);
+    for (int j = 0; j < 15; j++)
+        r[j] = vec3(0.0);
+    if (K == 15u) {
+        SH_REST(0, 15, 30); SH_REST(1, 16, 31); SH_REST(2, 17, 32); SH_REST(3, 18, 33); SH_REST(4, 19, 34);
+        SH_REST(5, 20, 35); SH_REST(6, 21, 36); SH_REST(7, 22, 37); SH_REST(8, 23, 38); SH_REST(9, 24, 39);
+        SH_REST(10, 25, 40); SH_REST(11, 26, 41); SH_REST(12, 27, 42); SH_REST(13, 28, 43); SH_REST(14, 29, 44);
+    } else if (K == 8u) {
+        SH_REST(0, 8, 16); SH_REST(1, 9, 17); SH_REST(2, 10, 18); SH_REST(3, 11, 19); SH_REST(4, 12, 20);
+        SH_REST(5, 13, 21); SH_REST(6, 14, 22); SH_REST(7, 15, 23);
+    } else if (K == 3u) {
+        SH_REST(0, 3, 6); SH_REST(1, 4, 7); SH_REST(2, 5, 8);
+    }
 
     vec3 result = SH_C0 * dc;
     if (deg >= 1u) {

@@ -234,6 +234,12 @@ struct hash<Gfx::ProgramCacheKey>
 
 namespace Gfx
 {
+//! Gives the varyings a generated ISF stage pair declares without a layout
+//! their locations, from 1 in declaration order, the fragment inputs taking
+//! the location of the vertex output of the same name.
+SCORE_PLUGIN_GFX_EXPORT
+void updateToGlsl45(ShaderSource& program);
+
 struct SCORE_PLUGIN_GFX_EXPORT ProgramCache
 {
   static ProgramCache& instance() noexcept;

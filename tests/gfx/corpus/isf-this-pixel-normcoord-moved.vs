@@ -1,6 +1,9 @@
+out vec2 user_uv;
+
 void main()
 {
   isf_vertShaderInit();
+  user_uv = isf_FragNormCoord;
   // The shader keeps isf_FragNormCoord for its own use; IMG_THIS_PIXEL must
   // still read at the quad position init wrote.
   isf_FragNormCoord = vec2(0.0);

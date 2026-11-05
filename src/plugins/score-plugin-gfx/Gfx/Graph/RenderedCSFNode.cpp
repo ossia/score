@@ -1318,17 +1318,20 @@ void RenderedCSFNode::registerCommonExpressionVariables(
             true, ub->layout);
 
     // Then nested auxiliaries on every geometry input (the "upstream side"
-    // of filters), for the names no top-level resource took.
+    // of filters), for the names no top-level resource took. The COLUMNS
+    // blocks are not resources of the shader: every name costs each
+    // expression evaluated, every frame.
     for(const auto& binding : m_geometryBindings)
     {
       for(const auto& aux : binding.auxiliary_ssbos)
       {
-        register_buffer(aux.name, aux.size, aux.is_uniform, aux.layout);
+        if(!aux.column_block)
+          register_buffer(aux.name, aux.size, aux.is_uniform, aux.layout);
       }
     }
 
     auto register_pending = [&](const isf::geometry_input::auxiliary_request& aux) {
-      if(aux.access == "read_only")
+      if(aux.access == "read_only" && !aux.column_block)
         register_buffer(aux.name, 0, aux.is_uniform, aux.layout);
     };
     for(const auto& inp : eff_desc.inputs)
@@ -1741,15 +1744,21 @@ void RenderedCSFNode::resolveColumns(
   if(!data || !meta)
     return;
 
-  // The geometry's layout: which attributes, where its buffers are. Producers
-  // rebuild the attribute list when it changes, so its storage stands for its
-  // contents; buffers can be swapped under it.
+  // The geometry's layout: which attributes, where its buffers are. Hashed by
+  // content: upstream nodes may hand over a new geometry object, with a new
+  // attribute list, every frame for the same layout.
   uint64_t signature = 0;
   if(mesh)
   {
-    signature = (uint64_t)(uintptr_t)mesh;
-    ossia::hash_combine(signature, (uint64_t)(uintptr_t)mesh->attributes.data());
-    ossia::hash_combine(signature, (uint64_t)mesh->attributes.size());
+    signature = (uint64_t)mesh->attributes.size();
+    for(const auto& a : mesh->attributes)
+    {
+      ossia::hash_combine(signature, (uint64_t)std::hash<std::string>{}(a.name));
+      ossia::hash_combine(signature, (uint64_t)a.format);
+      ossia::hash_combine(signature, (uint64_t)a.binding);
+      ossia::hash_combine(signature, (uint64_t)a.byte_offset);
+      ossia::hash_combine(signature, (uint64_t)a.semantic);
+    }
     for(const auto& b : mesh->buffers)
     {
       if(auto* g = ossia::get_if<ossia::geometry::gpu_buffer>(&b.data))
@@ -4448,6 +4457,24 @@ QString RenderedCSFNode::updateShaderWithImageFormats(QString current)
 
 }
 
+//! The row length, in 32-bit words, the COLUMNS data block is read as: the
+//! stride the word-aligned 32-bit columns of `table` share, 0 when they do
+//! not share one (isf::column_accessors).
+static uint32_t columnRowWords(const std::vector<uint32_t>& table) noexcept
+{
+  uint32_t stride = 0;
+  for(std::size_t k = 0; k + 3 < table.size(); k += 4)
+  {
+    const uint32_t code = table[k + 2];
+    if(table[k + 3] != 1 || (code != 1 && code != 8 && code != 9))
+      continue;
+    if(stride != 0 && table[k + 1] != stride)
+      return 0;
+    stride = table[k + 1];
+  }
+  return stride / 4;
+}
+
 std::vector<std::vector<uint32_t>> RenderedCSFNode::columnSpecialization() const
 {
   std::vector<std::vector<uint32_t>> spec;
@@ -4490,8 +4517,12 @@ std::vector<std::vector<uint32_t>> RenderedCSFNode::columnSpecialization() const
       if(!lt || *lt != *t)
         same = false;
     }
+    // The table, then the row length.
     if(same)
+    {
       out = *t;
+      out.push_back(columnRowWords(*t));
+    }
   }
   return spec;
 }
@@ -4505,11 +4536,16 @@ QString RenderedCSFNode::specializeColumns(
     auto* g = ossia::get_if<isf::geometry_input>(&inp.data);
     if(!g || g->columns.empty())
       continue;
-    if(m_specializeColumns && k < spec.size() && !spec[k].empty())
+    if(m_specializeColumns && k < spec.size() && spec[k].size() == 4 * g->columns.size() + 1)
     {
-      const auto generic = isf::column_meta_function(inp.name, g->columns.size(), {});
-      const auto fixed = isf::column_meta_function(inp.name, g->columns.size(), spec[k]);
+      const std::vector<uint32_t> table(spec[k].begin(), spec[k].end() - 1);
+      const uint32_t rowWords = spec[k].back();
+      const auto generic = isf::column_accessors(inp.name, g->columns);
+      const auto fixed = isf::column_accessors(inp.name, g->columns, table, rowWords);
       src.replace(QString::fromStdString(generic), QString::fromStdString(fixed));
+      src.replace(
+          QString::fromStdString(isf::column_data_block(inp.name, 0)),
+          QString::fromStdString(isf::column_data_block(inp.name, rowWords)));
     }
     k++;
   }
