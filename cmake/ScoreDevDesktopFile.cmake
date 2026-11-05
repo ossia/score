@@ -39,6 +39,16 @@ foreach(_dir "${_score_data_home}" ${_score_data_dirs})
   endif()
 endforeach()
 
+# One entry for all configurations: a multi-configuration generator's points
+# at the binary of the first one.
+get_property(_score_multi_config GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
+if(_score_multi_config AND CMAKE_CONFIGURATION_TYPES)
+  list(GET CMAKE_CONFIGURATION_TYPES 0 _score_desktop_config)
+  set(_score_desktop_condition "$<CONFIG:${_score_desktop_config}>")
+else()
+  set(_score_desktop_condition 1)
+endif()
+
 file(GENERATE
   OUTPUT "${_score_dev_desktop}"
   CONTENT "[Desktop Entry]
@@ -49,4 +59,5 @@ Icon=${CMAKE_SOURCE_DIR}/src/lib/resources/ossia-score.png
 Terminal=false
 NoDisplay=true
 X-Score-Developer-Build=true
-")
+"
+  CONDITION "${_score_desktop_condition}")

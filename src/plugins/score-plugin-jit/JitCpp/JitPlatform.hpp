@@ -49,6 +49,7 @@
 #endif
 
 #include <JitCpp/JitOptions.hpp>
+#include <JitCpp/JitSearchPaths.hpp>
 
 #include <score_git_info.hpp>
 #include <score_plugin_jit_build_tree.hpp>
@@ -220,25 +221,21 @@ static inline std::string locateOrcRuntime()
   if(sdk.path.empty())
     return {};
 
+  // orc_rt lives under the clang resource dir: <root>/lib/clang/<v>/lib/<t>/,
+  // and multilib installs have one per architecture.
   const QString base = QString::fromStdString(sdk.path);
   const QString parent = QFileInfo(base).absolutePath();
   const QStringList roots{base,           parent,
                           parent + "/llvm", parent + "/llvm-libs",
                           base + "/llvm",   base + "/llvm-libs"};
-  for(const QString& root : roots)
-  {
-    // orc_rt lives under the clang resource dir: <root>/lib/clang/<v>/lib/<t>/.
-    const QString clangLibs = root + "/lib/clang";
-    if(!QDir(clangLibs).exists())
-      continue;
-    // Debian's /usr/lib/clang/<v>/lib links to /usr/lib/llvm-<v>/lib/clang/<v>/lib
-    QDirIterator it(
-        clangLibs, {"liborc_rt*.a"}, QDir::Files,
-        QDirIterator::Subdirectories | QDirIterator::FollowSymlinks);
-    if(it.hasNext())
-      return it.next().toStdString();
-  }
-  return {};
+  const QString arch = QString::fromStdString(
+      llvm::Triple::getArchTypeName(llvm::Triple{llvm::sys::getProcessTriple()}.getArch())
+          .str());
+  return findClangRuntimeArchive(
+             roots, LLVM_VERSION_MAJOR, QStringLiteral(SCORE_LLVM_VERSION),
+             QStringLiteral("liborc_rt*.a"),
+             {"/" + arch + "-", "-" + arch + ".a"})
+      .toStdString();
 }
 
 // Locate compiler-rt's builtins archive (libclang_rt.builtins-<arch>.a). clang's driver
@@ -265,25 +262,10 @@ static inline std::string locateBuiltinsRuntime()
   const QString archive = QString::fromStdString(
       "libclang_rt.builtins-" + llvm::Triple::getArchTypeName(host.getArch()).str()
       + ".a");
-  QString fallback;
-  for(const QString& root : roots)
-  {
-    const QString clangLibs = root + "/lib/clang";
-    if(!QDir(clangLibs).exists())
-      continue;
-    QDirIterator it(
-        clangLibs, {archive}, QDir::Files,
-        QDirIterator::Subdirectories | QDirIterator::FollowSymlinks);
-    while(it.hasNext())
-    {
-      const QString f = it.next();
-      if(f.contains("/windows/") || f.contains("\\windows\\"))
-        return f.toStdString(); // prefer the COFF/windows variant
-      if(fallback.isEmpty())
-        fallback = f;
-    }
-  }
-  return fallback.toStdString();
+  return findClangRuntimeArchive(
+             roots, LLVM_VERSION_MAJOR, QStringLiteral(SCORE_LLVM_VERSION), archive,
+             {"/windows/"})
+      .toStdString();
 }
 
 // Locates a mingw-w64 CRT-support archive (libmingwex.a, libucrt.a, ...) that
@@ -821,11 +803,14 @@ static inline void populateDefinitions(std::vector<std::string>& args)
 #elif defined(FFTW_DOUBLE_ONLY)
   args.push_back("-DFFTW_DOUBLE_ONLY");
 #endif
+
+  removeRepeatedDefinitions(args);
 }
 
 static inline auto getPotentialTriples()
 {
   std::vector<QString> triples;
+  triples.push_back(QString::fromStdString(llvm::sys::getProcessTriple()));
   triples.push_back(LLVM_DEFAULT_TARGET_TRIPLE);
   triples.push_back(LLVM_HOST_TRIPLE);
 #if defined(__x86_64__)
@@ -919,15 +904,31 @@ static inline void populateIncludeDirs(std::vector<std::string>& args)
   auto qsdk = QString::fromStdString(sdk);
 
   qDebug() << "SDK located: " << qsdk;
+  // The resource directory of the clang the JIT is built with: Debian
+  // installs those of several clang side by side
+#if LLVM_VERSION_MAJOR >= 16
+  std::string llvm_lib_version = std::to_string(LLVM_VERSION_MAJOR);
+#else
   std::string llvm_lib_version = SCORE_LLVM_VERSION;
+#endif
 #if defined(__APPLE__) && SCORE_FHS_BUILD
   llvm_lib_version = "13.0.0";
 #endif
 
-  QDir resDir = QString(qsdk + "/lib/clang");
-  auto entries = resDir.entryList(QDir::Dirs | QDir::NoDotAndDotDot);
-  if(!entries.empty() && !entries.contains(SCORE_LLVM_VERSION))
-    llvm_lib_version = entries.front().toStdString();
+  {
+    const QString clangDir = qsdk + "/lib/clang";
+    QString v = selectClangResourceDir(
+        clangDir, LLVM_VERSION_MAJOR, QStringLiteral(SCORE_LLVM_VERSION));
+    if(v.isEmpty())
+    {
+      v = newestClangResourceDir(clangDir);
+      if(!v.isEmpty())
+        qDebug() << "JIT: no resource directory of clang" << LLVM_VERSION_MAJOR << "in"
+                 << clangDir << ", using" << v;
+    }
+    if(!v.isEmpty())
+      llvm_lib_version = v.toStdString();
+  }
 
 #if defined(__APPLE__) && SCORE_FHS_BUILD
   std::string appleSharedSdk
@@ -953,17 +954,13 @@ static inline void populateIncludeDirs(std::vector<std::string>& args)
   // libc++'s per-target __config_site lives at include/<triple>/c++/v1 (multiarch
   // layout) and is #include'd by the main libc++ headers, so that dir must also be
   // on the search path.
+  if(const QString d = selectMultiarchDir(
+         qsdk + "/include", QStringLiteral("c++/v1/__config_site"),
+         getPotentialTriples());
+     !d.isEmpty())
   {
-    const QDir incdir(qsdk + "/include");
-    for(const auto& d : incdir.entryList(QDir::Dirs | QDir::NoDotAndDotDot))
-    {
-      if(QFileInfo::exists(qsdk + "/include/" + d + "/c++/v1/__config_site"))
-      {
-        args.push_back("-internal-isystem");
-        args.push_back(sdk + "/include/" + d.toStdString() + "/c++/v1");
-        break;
-      }
-    }
+    args.push_back("-internal-isystem");
+    args.push_back(sdk + "/include/" + d.toStdString() + "/c++/v1");
   }
 
 #elif defined(_GLIBCXX_RELEASE)
@@ -1004,17 +1001,14 @@ static inline void populateIncludeDirs(std::vector<std::string>& args)
         }
 
         // e.g. /usr/include/x86_64-linux-gnu/c++/15
-        const QDir incdir{"/usr/include"};
-        for(const auto& d : incdir.entryList(QDir::Dirs | QDir::NoDotAndDotDot))
+        if(const QString d = selectMultiarchDir(
+               QStringLiteral("/usr/include"), "c++/" + ver + "/bits/c++config.h",
+               getPotentialTriples());
+           !d.isEmpty())
         {
-          if(QFileInfo::exists(
-                 "/usr/include/" + d + "/c++/" + ver + "/bits/c++config.h"))
-          {
-            args.push_back("-internal-isystem");
-            args.push_back("/usr/include/" + d.toStdString() + "/c++/" + gcc);
-            multiarch_include = "/usr/include/" + d.toStdString();
-            break;
-          }
+          args.push_back("-internal-isystem");
+          args.push_back("/usr/include/" + d.toStdString() + "/c++/" + gcc);
+          multiarch_include = "/usr/include/" + d.toStdString();
         }
 
         break;
@@ -1090,19 +1084,11 @@ static inline void populateIncludeDirs(std::vector<std::string>& args)
     // those of the Qt and the third-party libraries score was built with
     const std::string source_tree = std::string(SCORE_ROOT_SOURCE_DIR) + "/src/";
     const std::string binary_tree = std::string(SCORE_ROOT_BINARY_DIR);
-    for(std::string_view dir : build_tree::include_dirs)
-    {
-      if(dir.empty())
-        continue;
-      std::string path(dir);
-      if(QDir::cleanPath(QString::fromStdString(path))
-         == QDir::cleanPath(QString::fromStdString(sdk + "/include")))
-        continue;
-      if(path.starts_with(source_tree) || path.starts_with(binary_tree))
-        args.push_back("-I" + path);
-      else
-        args.push_back("-isystem" + path);
-    }
+    const std::vector<std::string_view> dirs(
+        std::begin(build_tree::include_dirs), std::end(build_tree::include_dirs));
+    for(auto& arg :
+        buildTreeIncludeArgs(dirs, source_tree, binary_tree, sdk + "/include"))
+      args.push_back(std::move(arg));
     return;
   }
 

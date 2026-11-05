@@ -2560,6 +2560,12 @@ if(TARGET score_plugin_jit)
     PLUGINS score_plugin_jit score_plugin_engine score_plugin_scenario score_lib_process)
   target_include_directories(test_unit_bytebeat PRIVATE
     "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-jit")
+
+  # The JIT's resource directory, runtimes, multiarch and build tree arguments
+  score_add_test(test_unit_jit_search_paths
+    SOURCES JitSearchPathsTest.cpp)
+  target_include_directories(test_unit_jit_search_paths PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-jit")
 endif()
 
 # The GLSL libisf generates for accepted headers bakes on every backend:
