@@ -126,7 +126,7 @@ ShmdataOutputNode::ShmdataOutputNode(const SharedOutputSettings& set)
 ShmdataOutputNode::~ShmdataOutputNode() { }
 bool ShmdataOutputNode::canRender() const
 {
-  return bool(m_writer);
+  return m_writer && m_renderTarget;
 }
 
 void ShmdataOutputNode::startRendering() { }

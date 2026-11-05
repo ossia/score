@@ -1,7 +1,9 @@
 // A GPU Javascript script lays its scene out in render-size units, drawn 1:1
 // into its render-size texture, whatever the device pixel ratio of the screen
 // the output window is on. Qt Quick takes the ratio from the render window it
-// is given, and the script's render window is the output window.
+// is given, and the script's render window is the output window. The ratio
+// the script itself sees is 1 too, from its tick: a script choosing an @2x
+// image or sizing a Canvas by it would otherwise lay out at twice its size.
 //
 // Drives the application binary through --script, with an on-screen Window
 // device, at QT_SCALE_FACTOR 1 and 2.
@@ -25,9 +27,17 @@ namespace app = score::test::app;
 const char* const k_script = R"QML(import QtQuick
 import Score
 Script {
+  property bool reported: false
+  tick: function(token, state) {
+    if(!reported && scene.Window.window) {
+      reported = true;
+      console.log("JS-GPU-TICK-DPR " + scene.Window.window.devicePixelRatio);
+    }
+  }
   TextureOutlet {
     objectName: "Output"
     item: Item {
+      id: scene
       anchors.fill: parent
       Rectangle { anchors.fill: parent; color: "black" }
       Rectangle {
@@ -116,6 +126,8 @@ TEST_CASE(
   INFO(res.output.toStdString());
   REQUIRE(res.finished);
   REQUIRE(res.output.contains("JS-GPU-GRABBED"));
+  // The ratio the script's own code sees.
+  CHECK(res.output.contains("JS-GPU-TICK-DPR 1\n"));
 
   REQUIRE(QFile::exists(png));
   const QImage img = QImage{png}.convertToFormat(QImage::Format_RGB32);

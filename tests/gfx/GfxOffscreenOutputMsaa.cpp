@@ -71,7 +71,8 @@ enum class OutPath
 {
   Preview,
   Sink,
-  Encoder
+  Encoder,
+  UiPreview
 };
 
 const char* pathName(OutPath p)
@@ -84,6 +85,8 @@ const char* pathName(OutPath p)
       return "sink (SinkNode)";
     case OutPath::Encoder:
       return "encoder (I420 Y plane)";
+    case OutPath::UiPreview:
+      return "UI preview (single-sample BackgroundNode)";
   }
   return "?";
 }
@@ -235,13 +238,14 @@ QRhiReadbackResult readTexture(QRhi& rhi, QRhiTexture& tex)
   return rb;
 }
 
-void runPreview(Shot& s, score::gfx::GraphicsApi api)
+void runPreview(Shot& s, score::gfx::GraphicsApi api, bool singleSample)
 {
   GfxPipeline p;
   const int edge = p.addIsf(edgeShader());
   const int sink = p.addSink({kSize, kSize});
   if(edge >= 0)
     p.wire(p.imageOut(edge, 0), p.sinkInput(sink));
+  p.sink(sink)->setSingleSample(singleSample);
   if(!p.create(api))
   {
     s.skipped = p.skipped();
@@ -295,7 +299,8 @@ void runGraph(Shot& s, score::gfx::GraphicsApi api, Output* out, Read read)
   }
   else
   {
-    s.skipped = true;
+    // The backend probed fine: an output that cannot come up on it is a
+    // failure, not an absent backend.
     s.error = "the output could not create its render state";
   }
 
@@ -313,7 +318,8 @@ Shot render(score::gfx::GraphicsApi api, OutPath path, int samples)
     switch(path)
     {
       case OutPath::Preview:
-        runPreview(s, api);
+      case OutPath::UiPreview:
+        runPreview(s, api, path == OutPath::UiPreview);
         break;
       case OutPath::Sink: {
         auto* sink = new score::gfx::SinkNode{1000.};
@@ -433,4 +439,28 @@ TEST_CASE(
   // The four edges cross about width + height pixels, most of them partly
   // covered.
   CHECK(l.between >= (s.width + s.height) / 3);
+}
+
+// Previews in the UI (inspector texture previews, the shader and camera
+// preview widgets) render at one sample whatever the setting: a small picture
+// gains nothing from the multisampled colour and depth pair.
+TEST_CASE("a UI preview renders at one sample", "[gfx][output][msaa]")
+{
+  const auto api = GENERATE(from_range(platform_backends()));
+  CAPTURE(backend_name(api));
+
+  const auto s = render(api, OutPath::UiPreview, 4);
+  if(s.skipped)
+  {
+    WARN("skipped: " << s.error);
+    return;
+  }
+  INFO("error=" << s.error);
+  REQUIRE(s.error.empty());
+  REQUIRE(s.width > 0);
+  const auto l = levels(s);
+  CHECK(s.stateSamples == 1);
+  CHECK(s.targetSamples == 1);
+  CHECK(l.hi - l.lo > 150);
+  CHECK(l.between == 0);
 }

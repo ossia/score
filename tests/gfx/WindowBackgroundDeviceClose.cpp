@@ -10,11 +10,15 @@
 // Covered: a device added to a fresh document, and the same document saved
 // and loaded back (the path a user opening a .score takes), each closed with
 // and without a shader rendering into it, and the view resized while the
-// device is alive so the size connection is known to be live.
+// device is alive so the size connection is known to be live. A device removed
+// from the tree of a document that stays open leaves no slot on the view: the
+// view's signals have as many receivers as before the device was added, which
+// a slot outliving its parameters would break with or without a sanitizer.
 
 #include "WindowedOutputCommon.hpp"
 
 #include <Explorer/Commands/Add/LoadDevice.hpp>
+#include <Explorer/Commands/Remove.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentView.hpp>
 
@@ -71,6 +75,37 @@ ossia::net::parameter_base* size_parameter(WindowDevice& dev)
   if(auto* d = dev.getDevice())
     if(auto* n = ossia::net::find_node(d->get_root_node(), "/size"))
       return n->get_parameter();
+  return nullptr;
+}
+
+// Receivers of each view signal the background device connects to.
+std::array<int, 5> view_receivers(const Scenario::ProcessGraphicsView& v)
+{
+  // QObject::receivers is protected; a pointer to it named through a derived
+  // class is still a pointer to QObject's member.
+  struct Peek : QObject
+  {
+    using QObject::receivers;
+  };
+  constexpr auto receivers = &Peek::receivers;
+  const auto count = [&](QMetaMethod m) {
+    return (v.*receivers)(QByteArray("2" + m.methodSignature()).constData());
+  };
+  using V = Scenario::ProcessGraphicsView;
+  return {
+      count(QMetaMethod::fromSignal(&V::sizeChanged)),
+      count(QMetaMethod::fromSignal(&V::hoverMove)),
+      count(QMetaMethod::fromSignal(&V::keyPress)),
+      count(QMetaMethod::fromSignal(&V::keyRelease)),
+      count(QMetaMethod::fromSignal(&V::tabletMove))};
+}
+
+Device::Node* device_node(const score::DocumentContext& doc, const QString& name)
+{
+  auto& plug = doc.plugin<Explorer::DeviceDocumentPlugin>();
+  for(auto& n : plug.rootNode())
+    if(n.get<Device::DeviceSettings>().name == name)
+      return &n;
   return nullptr;
 }
 
@@ -170,4 +205,53 @@ TEST_CASE(
   if(o.skipped)
     SKIP(o.skipReason);
   CHECK(o.sizeFollowedView);
+}
+
+TEST_CASE(
+    "a removed Background window device leaves no slot on the view",
+    "[gfx][window][device][lifecycle][background]")
+{
+  bool skipped{};
+  std::string skipReason;
+  std::array<int, 5> before{}, alive{}, after{};
+  run_in_gui_app([&](const score::GUIApplicationContext& ctx) {
+    auto* doc = score::test::new_document(ctx);
+    if(!doc || !scenario_view(*doc))
+    {
+      skipped = true;
+      skipReason = "no document with a scenario view";
+      return;
+    }
+    auto& gv = scenario_view(*doc)->view();
+    before = view_receivers(gv);
+
+    auto* dev = add_background_device(doc->context(), QStringLiteral("Win"));
+    REQUIRE(dev);
+    REQUIRE(dev->getDevice());
+    pump_for(100);
+    alive = view_receivers(gv);
+
+    auto* node = device_node(doc->context(), QStringLiteral("Win"));
+    REQUIRE(node);
+    CommandDispatcher<> disp{doc->context().commandStack};
+    disp.submit(new Explorer::Command::Remove{
+        doc->context().plugin<Explorer::DeviceDocumentPlugin>(), *node});
+    pump_for(100);
+    after = view_receivers(gv);
+
+    // Reaches a freed parameter if a slot survived.
+    gv.resize(gv.width() + 11, gv.height() + 7);
+    pump_for(50);
+
+    ctx.docManager.forceCloseDocument(ctx, *doc);
+    pump_for(200);
+  });
+
+  if(skipped)
+    SKIP(skipReason);
+  CAPTURE(before, alive, after);
+  // The device listens to the view while it is alive, so the counts below are
+  // the ones that matter.
+  CHECK(alive[0] > before[0]);
+  CHECK(after == before);
 }

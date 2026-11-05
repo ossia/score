@@ -38,6 +38,7 @@
 
 #include <algorithm>
 #include <set>
+#include <utility>
 #include <JS/Qml/VariantToJs.hpp>
 namespace JS
 {
@@ -46,12 +47,20 @@ namespace
 // The output window stands in for the offscreen QQuickWindow where Qt Quick
 // needs a real one: keyboard focus, cursor shape, shortcuts, input method.
 //
-// While the scene is polished, synchronized and rendered it must not: Qt Quick
-// takes the device pixel ratio from the render window when there is one
-// (QQuickWindow::effectiveDevicePixelRatio), while the scene is laid out in
+// While the scene itself is worked on it must not: Qt Quick takes the device
+// pixel ratio from the render window when there is one
+// (QQuickWindow::effectiveDevicePixelRatio; neither QQuickWindow nor
+// QQuickRenderControl can override it), while the scene is laid out in
 // render-size units that map 1:1 to the pixels of a render-size texture,
 // whatever screen the output window is on. Without a render window the ratio
-// is the render target's, 1.
+// is the render target's, set to 1. The scene is worked on when the script is
+// loaded, when its messages and its tick run, and when it is polished,
+// synchronized and rendered: everything but the delivery of input, which
+// needs the window for focus and the cursor.
+//
+// The scope is the calling thread's: with SCORE_THREADED_GFX the scene is
+// worked on in the render thread while the GUI thread asks for the window
+// to match a shortcut or to set a cursor.
 class WindowRenderControl final : public QQuickRenderControl
 {
 public:
@@ -64,25 +73,26 @@ public:
   {
     if(offset)
       *offset = {};
-    if(m_drawing)
+    if(t_sceneWork == this)
       return nullptr;
     return m_window.data();
   }
 
-  struct DrawingScope
+  struct SceneScope
   {
-    explicit DrawingScope(WindowRenderControl& rc)
-        : rc{rc}
+    explicit SceneScope(QQuickRenderControl* rc)
+        : previous{std::exchange(t_sceneWork, rc)}
     {
-      rc.m_drawing = true;
     }
-    ~DrawingScope() { rc.m_drawing = false; }
-    WindowRenderControl& rc;
+    ~SceneScope() { t_sceneWork = previous; }
+    SceneScope(const SceneScope&) = delete;
+    SceneScope& operator=(const SceneScope&) = delete;
+    const QQuickRenderControl* previous;
   };
 
 private:
   QPointer<QWindow> m_window;
-  bool m_drawing{};
+  static inline thread_local const QQuickRenderControl* t_sceneWork{};
 };
 }
 
@@ -502,10 +512,14 @@ void main ()
     m_window->setHeight(sz.height());
     m_window->contentItem()->setWidth(sz.width());
     m_window->contentItem()->setHeight(sz.height());
-    m_window->setRenderTarget(
-        QQuickRenderTarget::fromRhiRenderTarget(m_internalTex.renderTarget));
+    auto quickTarget = QQuickRenderTarget::fromRhiRenderTarget(m_internalTex.renderTarget);
+    quickTarget.setDevicePixelRatio(1.);
+    m_window->setRenderTarget(quickTarget);
 
-    m_engine->init(*this, node, m_window, renderer);
+    {
+      const WindowRenderControl::SceneScope scene{m_renderControl};
+      m_engine->init(*this, node, m_window, renderer);
+    }
     // Tolerant of script/port mismatches (live-edited QML may not line up
     // with the node's declared ports): skip bad inlets instead of aborting.
     // Mirrors Engine::setupComponent's guards.
@@ -635,11 +649,15 @@ void main ()
     }
 
     // 0. Copy the values in the inputs
-    processMessages();
+    {
+      const WindowRenderControl::SceneScope scene{m_renderControl};
+      processMessages();
+    }
 
     // 1. Run our object
     if(m_engine)
     {
+      const WindowRenderControl::SceneScope scene{m_renderControl};
       m_engine->tick();
       if(m_engine->m_item)
         m_engine->m_item->update();
@@ -660,8 +678,7 @@ void main ()
 
     cd->deliveryAgentPrivate()->flushFrameSynchronousEvents(m_window);
 
-    const WindowRenderControl::DrawingScope drawing{
-        static_cast<WindowRenderControl&>(*m_renderControl)};
+    const WindowRenderControl::SceneScope scene{m_renderControl};
     cd->polishItems();
     m_window->afterRendering();
     m_window->afterAnimating();

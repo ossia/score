@@ -42,6 +42,13 @@ void InvertYRenderer::init(
       m_inputTarget = cur;
   }
 
+  // An output whose own target the backend refused has nothing to copy from.
+  if(!m_inputTarget.texture)
+  {
+    qWarning() << "InvertYRenderer: the output has no render target, it will not render";
+    return;
+  }
+
   // The input target is where the scene is drawn, at the render list's sample
   // count, and it resolves into m_inputTarget.texture. This pass only copies
   // that picture, flipped, so it draws at one sample and without depth.

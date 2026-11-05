@@ -8,14 +8,14 @@
 //  - "latest frame wins". dequeue() drains everything and returns the newest,
 //    releasing the ones it skipped back into the pool. dequeue_one() is the
 //    single-step form the video process uses when it must not drop frames.
-//  - the seek discard marker. set_discard_frame(f) says "everything before f is
-//    stale". discard_and_dequeue*() must return f only if f is actually still
-//    in the queue: returning a frame the queue does not hold is a double
-//    ownership of the pixels a zero-copy GPU upload may be reading (the
-//    ordering comment in VideoDecoder::seek_impl() exists for exactly this).
+//  - the seek discard marker. set_discard_before(pts) says "the frames of an
+//    earlier seek, and those of this one before pts, are stale".
+//    discard_and_dequeue*() returns only frames the queue holds, the first one
+//    past the marker, and a consumer that took the landing frame before the
+//    marker was set must still get the frames after it.
 //
 // Frames are plain av_frame_alloc()ed carriers here: the queue never looks at
-// pixel data, only at pointer identity.
+// pixel data, only at the date and the seek generation.
 
 #include <Video/FrameQueue.hpp>
 
@@ -39,6 +39,7 @@ AVFrame* freshFrame(int marker)
   f->buf[0] = nullptr;
   f->data[0] = nullptr;
   f->pkt_dts = marker;
+  f->pts = marker;
   return f;
 }
 }
@@ -192,7 +193,7 @@ TEST_CASE("the discard marker drops everything before it", "[video][framequeue]"
 
   AVFrame* target = freshFrame(99);
   q.enqueue(target);
-  q.set_discard_frame(target);
+  q.set_discard_before(99);
 
   CHECK(q.discard_and_dequeue_one() == target);
   CHECK(q.size() == 0);
@@ -219,12 +220,13 @@ TEST_CASE("the marker is consumed once", "[video][framequeue]")
   FrameQueue q;
   AVFrame* target = freshFrame(1);
   q.enqueue(target);
-  q.set_discard_frame(target);
+  q.set_discard_before(1);
 
   CHECK(q.discard_and_dequeue_one() == target);
 
-  // A second call must behave as a plain dequeue: the marker is gone.
-  AVFrame* next = freshFrame(2);
+  // A second call must behave as a plain dequeue: the marker is gone, even for
+  // a frame dated before it.
+  AVFrame* next = freshFrame(0);
   q.enqueue(next);
   CHECK(q.discard_and_dequeue_one() == next);
 
@@ -233,33 +235,57 @@ TEST_CASE("the marker is consumed once", "[video][framequeue]")
   q.drain();
 }
 
-// The guard the ordering comment in VideoDecoder::seek_impl() is about: if the
-// marker is published for a frame that is NOT in `available` (already consumed
-// by a normal dequeue, or a torn set_discard_frame/enqueue), returning it would
-// hand the render thread a frame the decode thread still owns.
-TEST_CASE("a marker for an absent frame yields nothing, not the frame",
+// The render thread can take the landing frame between its enqueue and the
+// marker: the marker then must not drop the frames that follow it, and waits
+// for one when none is queued yet.
+TEST_CASE("a marker whose frame was already taken keeps the frames after it",
           "[video][framequeue]")
 {
   FrameQueue q;
-  AVFrame* consumed = freshFrame(1);
-  q.enqueue(consumed);
-  REQUIRE(q.dequeue_one() == consumed);
+  AVFrame* landing = freshFrame(10);
+  q.enqueue(landing);
+  REQUIRE(q.dequeue_one() == landing);
 
-  AVFrame* stale = freshFrame(2);
-  q.enqueue(stale);
-
-  // Marker names a frame the queue no longer holds.
-  q.set_discard_frame(consumed);
-
+  q.set_discard_before(10);
   CHECK(q.discard_and_dequeue_one() == nullptr);
-  CHECK(q.discard_and_dequeue() == nullptr);
-  // The queue was drained looking for it, and the frames it passed were
-  // recycled rather than returned.
-  CHECK(q.size() == 0);
 
-  q.release(consumed);
+  AVFrame* after = freshFrame(11);
+  AVFrame* later = freshFrame(12);
+  q.enqueue(after);
+  q.enqueue(later);
+  CHECK(q.discard_and_dequeue_one() == after);
+  CHECK(q.discard_and_dequeue_one() == later);
+
+  q.release(landing);
+  q.release(after);
+  q.release(later);
   q.drain();
-  (void)stale;
+}
+
+// Frames of an earlier seek go whatever their date; a frame of a later one
+// ends the discard.
+TEST_CASE("the marker drops the frames of earlier seeks", "[video][framequeue]")
+{
+  FrameQueue q;
+  AVFrame* old_late = freshFrame(50);
+  q.enqueue(old_late);
+  q.start_generation();
+  AVFrame* early = freshFrame(3);
+  AVFrame* landing = freshFrame(5);
+  q.enqueue(early);
+  q.enqueue(landing);
+  q.set_discard_before(5);
+  CHECK(q.discard_and_dequeue() == landing);
+
+  q.set_discard_before(100);
+  q.start_generation();
+  AVFrame* next_seek = freshFrame(0);
+  q.enqueue(next_seek);
+  CHECK(q.discard_and_dequeue_one() == next_seek);
+
+  q.release(landing);
+  q.release(next_seek);
+  q.drain();
 }
 
 TEST_CASE("discard_and_dequeue without a marker is latest-frame-wins",

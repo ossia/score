@@ -24,6 +24,17 @@ struct BackgroundNode : OutputNode
 
   virtual ~BackgroundNode() { destroyOutput(); }
 
+  /**
+   * @brief Render at one sample whatever the anti-aliasing setting.
+   *
+   * For previews: small pictures in the UI, where a multisampled colour and
+   * depth pair costs tens of megabytes per preview and shows nothing the
+   * picture's size can carry. The preview hub renders at one sample too, so
+   * a preview looks the same whichever of the two serves it. Takes effect at
+   * the next createOutput.
+   */
+  void setSingleSample(bool b) noexcept { m_singleSample = b; }
+
   void startRendering() override { }
   void render() override
   {
@@ -64,7 +75,7 @@ struct BackgroundNode : OutputNode
     }
   }
   void onRendererChange() override { }
-  bool canRender() const override { return true; }
+  bool canRender() const override { return m_renderState && m_renderTarget; }
   void stopRendering() override { }
 
   void setRenderer(std::shared_ptr<RenderList> r) override { m_renderer = r; }
@@ -96,6 +107,8 @@ struct BackgroundNode : OutputNode
       return;
     }
     m_renderState->outputSize = m_renderState->renderSize;
+    if(m_singleSample)
+      m_renderState->samples = 1;
     m_renderState->renderFormat
         = (m_swapchainFormat != Gfx::SwapchainFormat::SDR)
               ? QRhiTexture::RGBA32F
@@ -261,6 +274,7 @@ struct BackgroundNode : OutputNode
 private:
   Configuration m_conf;
   SharedDeviceMode m_deviceMode{SharedDeviceMode::Owned};
+  bool m_singleSample{};
 
   std::weak_ptr<score::gfx::RenderList> m_renderer{};
   QRhiTexture* m_texture{};

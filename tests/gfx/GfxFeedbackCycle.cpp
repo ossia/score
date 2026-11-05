@@ -56,21 +56,77 @@ int center_level(const ReadbackImage& img)
   return int(img.center()[0]);
 }
 
-// Renders full-scale magenta into targets the size of the cycle's, then frees
-// them: on a driver that recycles memory without clearing it (lavapipe, most
-// mobile drivers) the textures the cycle allocates next start out holding it.
-void leave_garbage_behind(score::gfx::GraphicsApi be)
+// Fills one texture with full-scale magenta and reads it back, in a frame of
+// its own. False when the format is not one the test knows how to fill, or
+// when the readback does not return what was uploaded.
+bool fill_with_magenta(QRhi& rhi, QRhiTexture& tex)
 {
-  GfxPipeline p;
-  const int a = p.addIsf(corpus("isf-solid-color.fs"));
-  const int b = p.addIsf(corpus("isf-solid-color.fs"));
-  const int sink = p.addSink({32, 32});
-  if(a < 0 || b < 0)
-    return;
-  p.wire(p.imageOut(a, 0), p.sinkInput(sink));
-  p.wire(p.imageOut(b, 0), p.sinkInput(sink));
-  if(p.create(be))
-    p.render(2);
+  int bpp = 0;
+  QByteArray texel;
+  switch(tex.format())
+  {
+    case QRhiTexture::RGBA8:
+    case QRhiTexture::BGRA8:
+      texel = QByteArray("\xff\x00\xff\xff", 4);
+      bpp = 4;
+      break;
+    case QRhiTexture::RGBA16F: {
+      const uint16_t one = 0x3c00;
+      const uint16_t h[4]{one, 0, one, one};
+      texel = QByteArray(reinterpret_cast<const char*>(h), sizeof(h));
+      bpp = 8;
+      break;
+    }
+    case QRhiTexture::RGBA32F: {
+      const float f[4]{1.f, 0.f, 1.f, 1.f};
+      texel = QByteArray(reinterpret_cast<const char*>(f), sizeof(f));
+      bpp = 16;
+      break;
+    }
+    default:
+      return false;
+  }
+  const QSize sz = tex.pixelSize();
+  QByteArray data;
+  data.reserve(qsizetype(sz.width()) * sz.height() * bpp);
+  for(int i = 0; i < sz.width() * sz.height(); ++i)
+    data.append(texel);
+
+  QRhiCommandBuffer* cb{};
+  if(rhi.beginOffscreenFrame(&cb) != QRhi::FrameOpSuccess)
+    return false;
+  auto* res = rhi.nextResourceUpdateBatch();
+  QRhiTextureSubresourceUploadDescription desc(data);
+  desc.setSourceSize(sz);
+  res->uploadTexture(&tex, QRhiTextureUploadEntry(0, 0, desc));
+  QRhiReadbackResult rb;
+  res->readBackTexture(QRhiReadbackDescription(&tex), &rb);
+  cb->resourceUpdate(res);
+  rhi.endOffscreenFrame();
+  return rb.data.size() >= bpp && rb.data.left(bpp) == texel;
+}
+
+// Puts garbage into the target `in` is sampled from, in every render list,
+// after the graph is created and before its first frame: whatever the driver
+// does with fresh memory, the first frame sees magenta unless the render list
+// clears the target before anything reads it. False if nothing was filled.
+bool plant_garbage(GfxPipeline& p, const score::gfx::Port* in)
+{
+  if(!in)
+    return false;
+  bool planted = false;
+  for(auto& rl : p.graph().renderLists())
+  {
+    if(!rl || !rl->state.rhi)
+      continue;
+    auto rt = rl->renderTargetForInputPort(*in);
+    if(!rt.texture)
+      continue;
+    if(!fill_with_magenta(*rl->state.rhi, *rt.texture))
+      return false;
+    planted = true;
+  }
+  return planted;
 }
 
 //! The level at the sink after each of the first `frames` frames
@@ -79,14 +135,13 @@ struct FirstFrames
   bool skipped = false;
   std::string skip_reason, backend, error;
   std::vector<int> levels;
+  bool planted = false;
 };
 
 FirstFrames render_first_frames(score::gfx::GraphicsApi be, Topology t, int frames)
 {
   FirstFrames r;
   score::test::run_in_gui_app([&](const score::GUIApplicationContext&) {
-    leave_garbage_behind(be);
-
     GfxPipeline p;
     const int a = p.addIsf(corpus("feedback-step-add.fs"));
     const bool pair = t == Topology::DelayedPair || t == Topology::ImmediatePair;
@@ -114,6 +169,12 @@ FirstFrames render_first_frames(score::gfx::GraphicsApi be, Topology t, int fram
       return;
     }
     r.backend = p.backend();
+    // The textures the cycle can read before anything draws into them: the
+    // input the loop re-enters through, whichever edge breaks it, or the
+    // front of the self-fed port.
+    r.planted = plant_garbage(p, p.imageIn(a, 0));
+    if(pair)
+      r.planted = plant_garbage(p, p.imageIn(b, 0)) && r.planted;
     for(int f = 0; f < frames; ++f)
     {
       p.render(1);
@@ -272,8 +333,8 @@ TEST_CASE("a self-cable added live carries its state", "[gfx][feedback]")
 // The textures a cycle reads before anything has drawn into them (the input
 // of the node the loop re-enters, the front of a self-fed port) start out
 // black, so the level is exact from the first frame on: one step of 8 (1/32 of
-// 255, rounded) per pass. Memory left over from an earlier pipeline is put
-// there first; a target not cleared at creation reads it.
+// 255, rounded) per pass. They are filled with magenta between the creation of
+// the graph and its first frame; a target not cleared at creation reads it.
 TEST_CASE("a feedback loop starts from black", "[gfx][feedback]")
 {
   const auto backend = GENERATE(from_range(platform_backends()));
@@ -287,6 +348,7 @@ TEST_CASE("a feedback loop starts from black", "[gfx][feedback]")
     SKIP(s.skip_reason);
   REQUIRE(s.error.empty());
   CAPTURE(s.backend, s.levels);
+  REQUIRE(s.planted);
   REQUIRE(s.levels.size() == 4);
 
   // A self-cable: one pass per frame, the first one reading black.
@@ -300,4 +362,58 @@ TEST_CASE("a feedback loop starts from black", "[gfx][feedback]")
     CAPTURE(f);
     CHECK(s.levels[f] == (pair ? 8 + 16 * (f + 1) : 8 * (f + 1)));
   }
+}
+
+// A self-fed raw raster sampling its own depth reads, on its first frame, the
+// depth its input target was created with. It must be the far end of the
+// compare the node draws with, as the clears of every later frame: 0 under
+// greater (reverse-Z), 1 under less. The near end would read as a scene
+// touching the camera.
+TEST_CASE("a self-fed depth input starts at the far plane", "[gfx][feedback][depth]")
+{
+  const auto backend = GENERATE(from_range(platform_backends()));
+  const bool less = GENERATE(false, true);
+  CAPTURE(backend_name(backend), less);
+
+  FirstFrames s;
+  score::test::run_in_gui_app([&](const score::GUIApplicationContext&) {
+    GfxPipeline p;
+    const int a = p.addRaster(
+        corpus("selffb-depth.vs"),
+        corpus(less ? "selffb-depth-less.fs" : "selffb-depth.fs"));
+    const int sink = p.addSink({32, 32});
+    if(a < 0)
+    {
+      s.error = p.error();
+      return;
+    }
+    p.wire(p.imageOut(a, 0), p.imageIn(a, 0), Process::CableType::DelayedGlutton);
+    p.wire(p.imageOut(a, 0), p.sinkInput(sink));
+    if(!p.create(backend))
+    {
+      s.skipped = p.skipped();
+      s.skip_reason = p.skipReason();
+      s.error = p.skipped() ? std::string{} : p.error();
+      return;
+    }
+    s.backend = p.backend();
+    for(int f = 0; f < 2; ++f)
+    {
+      p.render(1);
+      s.levels.push_back(center_level(p.readback(sink)));
+    }
+    if(s.error.empty())
+      s.error = p.error();
+  });
+  if(s.skipped)
+    SKIP(s.skip_reason);
+  REQUIRE(s.error.empty());
+  CAPTURE(s.backend, s.levels);
+  REQUIRE(s.levels.size() == 2);
+
+  // Red is the sampled depth: the far plane first, then the 0.5 (128) the node
+  // wrote the frame before.
+  CHECK(s.levels[0] == (less ? 255 : 0));
+  CHECK(s.levels[1] >= 120);
+  CHECK(s.levels[1] <= 136);
 }

@@ -276,6 +276,8 @@ struct SpoutNode final : score::gfx::OutputNode
   void onRendererChange() override { }
   bool canRender() const override
   {
+    if(!m_renderTarget)
+      return false;
     switch(m_backend)
     {
       case QRhi::OpenGLES2:

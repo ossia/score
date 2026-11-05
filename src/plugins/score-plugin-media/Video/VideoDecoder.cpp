@@ -582,33 +582,33 @@ void VideoDecoder::buffer_thread() noexcept
 {
   while(m_running.load(std::memory_order_acquire))
   {
+    // Seek requests are only taken under m_condMut (holdSeekRequests).
+    std::unique_lock lck{m_condMut};
+    if(int64_t seek = m_seekTo.exchange(-1); seek >= 0)
+    {
+      seek_impl(seek);
+      continue;
+    }
+
+    m_condVar.wait(lck, [&] {
+      return (m_frames.size() < frames_to_buffer / 2 && !m_finished)
+             || !m_running.load(std::memory_order_acquire) || (m_seekTo != -1);
+    });
+    if(!m_running.load(std::memory_order_acquire))
+      return;
+
     if(int64_t seek = m_seekTo.exchange(-1); seek >= 0)
     {
       seek_impl(seek);
     }
-    else
+
+    if(m_frames.size() < (frames_to_buffer / 2) && !m_finished)
     {
-      std::unique_lock lck{m_condMut};
-      m_condVar.wait(lck, [&] {
-        return (m_frames.size() < frames_to_buffer / 2 && !m_finished)
-               || !m_running.load(std::memory_order_acquire) || (m_seekTo != -1);
-      });
-      if(!m_running.load(std::memory_order_acquire))
-        return;
-
-      if(int64_t seek = m_seekTo.exchange(-1); seek >= 0)
+      if(auto f = read_frame_impl())
       {
-        seek_impl(seek);
+        m_frames.enqueue(f);
       }
-
-      if(m_frames.size() < (frames_to_buffer / 2) && !m_finished)
-      {
-        if(auto f = read_frame_impl())
-        {
-          m_frames.enqueue(f);
-        }
-        std::this_thread::sleep_for(std::chrono::milliseconds(4));
-      }
+      std::this_thread::sleep_for(std::chrono::milliseconds(4));
     }
   }
 }
@@ -801,7 +801,15 @@ bool VideoDecoder::seek_impl(int64_t flicks) noexcept
         avcodec_flush_buffers(m_codecContext);
       m_missingTimestamps.next = start_pts;
     }
+    // Packets come again: an end seen before the seek is not this read's.
+    m_finished = false;
     return true;
+  };
+  // The read ran into the end of the stream: EOF, or the demux error a
+  // truncated or corrupt tail gives forever instead, for which read_one_frame
+  // sets m_finished too. A packet that fails to decode is not an end.
+  auto at_end = [this](const ReadFrame& r) {
+    return !r.frame && r.error < 0 && r.error != AVERROR(EAGAIN) && m_finished;
   };
 
   auto read_first = [&] {
@@ -824,8 +832,11 @@ bool VideoDecoder::seek_impl(int64_t flicks) noexcept
   };
 
   // The frames between the keyframe the demuxer lands on and the target are
-  // decoded and dropped here rather than queued: queued, the reader would
-  // show them, late, one after the other, until it reached the target.
+  // decoded, for the frames after them to reference, and not queued: queued,
+  // the reader would show them, late, one after the other, until it reached
+  // the target. The last one starting at or before the target is held back
+  // (m_skipCandidate) until a later frame, or the end, shows it is the one at
+  // the target; it is then the first frame queued.
   auto start_skip = [this, target] {
     dropSkipCandidate();
     landSkip(nullptr);
@@ -845,9 +856,8 @@ bool VideoDecoder::seek_impl(int64_t flicks) noexcept
 
   // The end came before a frame starting after the target: the last frame
   // held back is the one at the target.
-  auto take_held_at_end = [this](ReadFrame& r) {
-    if(m_skipBefore == AV_NOPTS_VALUE || r.frame || r.error != AVERROR_EOF
-       || !m_skipCandidate)
+  auto take_held_at_end = [this, &at_end](ReadFrame& r) {
+    if(m_skipBefore == AV_NOPTS_VALUE || !at_end(r) || !m_skipCandidate)
       return;
     m_skipBefore = AV_NOPTS_VALUE;
     r = takeSkipCandidate();
@@ -875,8 +885,10 @@ bool VideoDecoder::seek_impl(int64_t flicks) noexcept
   // A demuxer seeking on dts (MPEG-TS, MPEG-PS) can land on a frame shown
   // after the target while m_ptsLead is not yet known: back off until the
   // first frame is not later. A video starting after its container
-  // legitimately shows its first frame after an earlier target. Frames queued
-  // by a retry are discarded by the consumer up to the frame marked below.
+  // legitimately shows its first frame after an earlier target. Each attempt
+  // starts a generation: the frames an attempt queued are older than the
+  // next one's, and the consumer drops them (seek_generation and the discard
+  // marker set below).
   const int64_t landing = m_avstream->start_time != AV_NOPTS_VALUE
                               ? std::max(target, m_avstream->start_time)
                               : target;
@@ -903,7 +915,7 @@ bool VideoDecoder::seek_impl(int64_t flicks) noexcept
   // The end came before the target with no frame at all, the container's
   // duration being longer than the stream: from the keyframe, everything up to
   // the end is shown.
-  if(m_skipBefore != AV_NOPTS_VALUE && r.error == AVERROR_EOF)
+  if(m_skipBefore != AV_NOPTS_VALUE && at_end(r))
   {
     m_skipBefore = AV_NOPTS_VALUE;
     landSkip(nullptr);
@@ -921,24 +933,19 @@ bool VideoDecoder::seek_impl(int64_t flicks) noexcept
   if(m_skipLandingPts != AV_NOPTS_VALUE && m_frames.watched() != r.frame)
   {
     // The frame at the target went into the queue before r, with the frames
-    // read along with it. Gone from the queue, the consumer already took it.
+    // read along with it; the consumer may have taken it already, and then
+    // the marker, a date, drops none of the frames after it.
     if(r.frame)
       m_frames.enqueue(r.frame);
-    if(AVFrame* first = m_frames.watched())
-      m_frames.set_discard_frame(first);
+    m_frames.set_discard_before(m_skipLandingPts);
   }
   else if(r.frame)
   {
-    // Enqueue BEFORE publishing the discard marker. Otherwise the GFX thread's
-    // discard_and_dequeue* can observe the marker for a frame not yet in
-    // `available`, drain the queue and return r.frame as current while the
-    // decoder still owns it and is about to enqueue it → double ownership /
-    // UAF of the pixels a live zero-copy GPU upload references. With this
-    // order the marker is only ever visible once its frame is already in the
-    // queue, and the consumer falls through to a normal dequeue when the
-    // marker frame isn't found.
+    // Enqueued before the marker is set, so that a consumer seeing the marker
+    // finds the frame it waits for.
+    const int64_t pts = r.frame->pts;
     m_frames.enqueue(r.frame);
-    m_frames.set_discard_frame(r.frame);
+    m_frames.set_discard_before(pts);
   }
   else
   {

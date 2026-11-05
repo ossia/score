@@ -934,6 +934,103 @@ TEST_CASE(
   fs::remove(path, ec);
 }
 
+// A file that ends in garbage instead of at a frame boundary: the demuxer
+// returns AVERROR_INVALIDDATA there, for ever, never AVERROR_EOF (y4m reads a
+// frame header that is not one). A seek into the last frame holds that frame
+// back until a later one or the end shows it is the one at the target; the
+// end here is that error, and the frame must still be shown, once.
+TEST_CASE(
+    "a seek into the last frame of a file ending in garbage shows that frame",
+    "[video][decoder]")
+{
+  namespace fs = std::filesystem;
+  constexpr int N = 30;
+  const auto path = (uniqueTempPath("score_videodecoder_garbage_tail") += ".y4m").string();
+  {
+    FILE* f = std::fopen(path.c_str(), "wb");
+    REQUIRE(f);
+    std::fprintf(f, "YUV4MPEG2 W%d H%d F25:1 Ip A1:1 C420jpeg\n", W, H);
+    std::vector<unsigned char> picture(W * H * 3 / 2);
+    for(int i = 0; i < N; i++)
+    {
+      std::fill(picture.begin(), picture.end(), (unsigned char)(i * 8));
+      std::fputs("FRAME\n", f);
+      std::fwrite(picture.data(), 1, picture.size(), f);
+    }
+    // Not a frame header: the demuxer stops on it.
+    std::vector<unsigned char> garbage(3000);
+    for(std::size_t i = 0; i < garbage.size(); i++)
+      garbage[i] = (unsigned char)(i * 37 + 11);
+    std::fwrite(garbage.data(), 1, garbage.size(), f);
+    std::fclose(f);
+  }
+
+  // The tail is what this test is about: the demuxer must end on an error
+  // that is not AVERROR_EOF.
+  {
+    AVFormatContext* fmt{};
+    REQUIRE(avformat_open_input(&fmt, path.c_str(), nullptr, nullptr) == 0);
+    REQUIRE(avformat_find_stream_info(fmt, nullptr) >= 0);
+    AVPacket* pkt = av_packet_alloc();
+    int packets = 0, end = 0;
+    while((end = av_read_frame(fmt, pkt)) >= 0)
+    {
+      packets++;
+      av_packet_unref(pkt);
+    }
+    av_packet_free(&pkt);
+    avformat_close_input(&fmt);
+    REQUIRE(packets == N);
+    REQUIRE(end != AVERROR_EOF);
+    REQUIRE(end != AVERROR(EAGAIN));
+  }
+
+  using namespace std::chrono;
+  using namespace std::chrono_literals;
+
+  Video::VideoDecoder dec{Video::DecoderConfiguration{}};
+  REQUIRE(dec.load(path));
+
+  // Half a frame into the last one: no frame starts after it.
+  const int64_t last = dec.start_pts + (N - 1);
+  const int64_t target
+      = (Video::ptsToFlicks(last, dec.time_base, dec.start_pts)
+         + Video::ptsToFlicks(last + 1, dec.time_base, dec.start_pts))
+        / 2;
+  const int before = dec.seeks_done.load();
+  dec.seek(target);
+  const auto deadline = steady_clock::now() + 30s;
+  while(dec.seeks_done.load() == before && steady_clock::now() < deadline)
+    std::this_thread::sleep_for(1ms);
+  REQUIRE(dec.seeks_done.load() == before + 1);
+  const int generation = dec.seek_generation.load();
+
+  std::vector<int64_t> pts;
+  int idle = 0;
+  while(steady_clock::now() < deadline && idle < 200)
+  {
+    if(AVFrame* f = dec.dequeue_frame())
+    {
+      if(Video::frameGeneration(*f) >= generation)
+        pts.push_back(f->pts);
+      dec.release_frame(f);
+      idle = 0;
+    }
+    else
+    {
+      idle++;
+      std::this_thread::sleep_for(1ms);
+    }
+  }
+  // Shown once: a reader asking for the same seek again would mean the seek
+  // landed on nothing.
+  CHECK(pts == std::vector<int64_t>{last});
+  CHECK(dec.seeks_done.load() == before + 1);
+
+  std::error_code ec;
+  fs::remove(path, ec);
+}
+
 #else
 
 #include <catch2/catch_test_macros.hpp>
