@@ -34,9 +34,14 @@ private:
 //!
 //! Destroying a Driver ends its ExecutionSession and unmaps the code it compiled,
 //! which nothing ever takes back out of the executor or the component lists.
+//!
+//! The list is never destroyed, not even at exit: a Driver's destructor runs
+//! the deinitializers of its JITDylib, which compiles them on the LLJIT's
+//! threads, and by the time static destructors run LLVM's own statics may be
+//! gone already.
 inline void parkCompiler(std::shared_ptr<void> compiler)
 {
-  static std::list<std::shared_ptr<void>> parked;
+  static auto& parked = *new std::list<std::shared_ptr<void>>;
   if(compiler)
     parked.push_back(std::move(compiler));
 }
