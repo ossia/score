@@ -16,7 +16,6 @@
 #include <vector>
 
 class QComboBox;
-class QLabel;
 class QLineEdit;
 class QMenu;
 class QModelIndex;
@@ -145,7 +144,6 @@ private:
   QLineEdit* m_search{};
   QComboBox* m_grouping{};
   QComboBox* m_kinds{};
-  QLabel* m_summary{};
   QTreeView* m_view{};
   QStandardItemModel* m_model{};
   QSortFilterProxyModel* m_proxy{};

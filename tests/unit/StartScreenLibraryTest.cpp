@@ -539,7 +539,7 @@ TEST_CASE("an online example's menu outlives its card", "[startscreen]")
       opened.push_back(path);
     });
     menu = menuWithoutItsCard();
-    auto open = menuAction(*menu, "Open the example file itself");
+    auto open = menuAction(*menu, "Open the example file");
     REQUIRE(open);
     open->trigger();
     REQUIRE(waitFor([&] { return opened.size() == 1; }));

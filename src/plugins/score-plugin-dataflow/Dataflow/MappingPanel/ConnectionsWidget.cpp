@@ -38,7 +38,6 @@
 #include <QComboBox>
 #include <QHBoxLayout>
 #include <QHeaderView>
-#include <QLabel>
 #include <QLineEdit>
 #include <QScrollBar>
 #include <QMenu>
@@ -93,12 +92,10 @@ ConnectionsWidget::ConnectionsWidget(QWidget* parent)
   m_search->setClearButtonEnabled(true);
   m_kinds = new QComboBox{bar};
   m_kinds->addItems({tr("All"), tr("Cables"), tr("Addresses")});
-  m_kinds->setToolTip(tr("Kind of connections to show"));
   m_grouping = new QComboBox{bar};
   m_grouping->addItems(
       {tr("No grouping"), tr("Group by kind"), tr("Group by source"),
        tr("Group by target"), tr("Group by device")});
-  m_grouping->setToolTip(tr("How to group the connections"));
   barLay->addWidget(m_search, 1);
   barLay->addWidget(m_kinds);
   barLay->addWidget(m_grouping);
@@ -124,9 +121,6 @@ ConnectionsWidget::ConnectionsWidget(QWidget* parent)
   m_view->setContextMenuPolicy(Qt::CustomContextMenu);
   m_view->header()->setStretchLastSection(true);
   lay->addWidget(m_view, 1);
-
-  m_summary = new QLabel{this};
-  lay->addWidget(m_summary);
 
   connect(m_search, &QLineEdit::textChanged, this, [this](const QString& txt) {
     m_proxy->setFilterFixedString(txt);
@@ -406,9 +400,6 @@ void ConnectionsWidget::populate(const ossia::hash_set<const QObject*>& selected
   m_model->setHorizontalHeaderLabels(
       {tr("Kind"), tr("From"), tr("To"), tr("Type"), tr("Mode"), tr("Status"),
        tr("Location")});
-  m_model->horizontalHeaderItem(ModeColumn)->setToolTip(tr("Mode of the cable"));
-  m_model->horizontalHeaderItem(StatusColumn)
-      ->setToolTip(tr("Whether the bound address exists in the device explorer"));
 
   const auto grouping = Grouping(m_grouping->currentIndex());
   const auto kinds = KindFilter(m_kinds->currentIndex());
@@ -530,16 +521,7 @@ void ConnectionsWidget::populate(const ossia::hash_set<const QObject*>& selected
 void ConnectionsWidget::updateCounts()
 {
   if(!alive())
-  {
-    m_summary->setText(tr("No document"));
     return;
-  }
-
-  // What the search shows, which is everything when it is empty
-  int cables = 0, addresses = 0;
-  for(int i = 0, n = std::ssize(m_items); i < n; i++)
-    if(m_items[i] && m_proxy->mapFromSource(m_items[i]->index()).isValid())
-      (m_rows[i].kind == ConnectionRow::Cable ? cables : addresses)++;
 
   for(const auto& [g, key] : m_groups)
   {
@@ -551,13 +533,6 @@ void ConnectionsWidget::updateCounts()
     if(g->text() != text)
       g->setText(text);
   }
-
-  const QString c = cables == 1 ? tr("1 cable") : tr("%1 cables").arg(cables);
-  const QString a = addresses == 1 ? tr("1 address binding")
-                                   : tr("%1 address bindings").arg(addresses);
-  m_summary->setText(
-      m_search->text().isEmpty() ? tr("%1, %2").arg(c, a)
-                                 : tr("%1, %2 shown").arg(c, a));
 }
 
 int ConnectionsWidget::rowAt(const QModelIndex& viewIndex) const

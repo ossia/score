@@ -239,9 +239,8 @@ vec4 isf_unpremultiply(vec4 c) { return c.a > 0.0 ? vec4(c.rgb / c.a, c.a) : vec
 // from the interpolated isf_FragNormCoord, which init sets from the quad
 // before the shader's own vertex code moves gl_Position: the image then
 // follows a warped or rotated quad, as in VVISF. On an unwarped quad it is
-// isf_FragCoord.xy -- the vertices map to 0 and RENDERSIZE, so the value
-// interpolated at a pixel centre is that centre, (i + 0.5) -- on every
-// backend. Stages without that varying (RAW_RASTER, its resolve pass, a vertex
+// isf_FragCoord.xy on every backend: the vertices map to 0 and RENDERSIZE,
+// so the value interpolated at a pixel centre is that centre, (i + 0.5). Stages without that varying (RAW_RASTER, its resolve pass, a vertex
 // shader that does not call isf_vertShaderInit) leave
 // ISF_THIS_PIXEL_FROM_NORM_COORD undefined and use the fragment's position.
 #if defined(ISF_THIS_PIXEL_FROM_NORM_COORD)

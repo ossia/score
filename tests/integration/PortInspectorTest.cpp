@@ -63,6 +63,8 @@ namespace
 const QString mergerUuid = QStringLiteral("fa02fc21-80ab-41e7-a3c9-5d2fa34ecda7");
 // Gfx::Filter::Model, whose default shader has a texture input
 const QString isfUuid = QStringLiteral("74ca45ff-92c9-44a0-8f1a-754dea05ee1b");
+// Nodes::LFO v3: control inlets, a value outlet
+const QString lfoUuid = QStringLiteral("0b1b1816-c33e-4796-a16d-5aab27fe600f");
 
 const State::AddressAccessor someAddress{State::Address{"audio", {"out", "main"}}};
 
@@ -435,6 +437,61 @@ TEST_CASE("texture input settings are in a drawer", "[integration][inspector][gf
     CHECK(drawer->isVisibleTo(list));
     button->click();
     CHECK(!drawer->isVisibleTo(list));
+  });
+}
+
+TEST_CASE("a control lists its cables in its drawer", "[integration][inspector]")
+{
+  score::test::run_in_gui_app([](const score::GUIApplicationContext& ctx) {
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    auto* a = score::test::add_process(*doc, lfoUuid, {});
+    auto* b = score::test::add_process(*doc, lfoUuid, {});
+    if(!a || !b)
+      SKIP("the fx plug-in is not built");
+    a->metadata().setName("Source");
+
+    Process::Port* out{};
+    for(auto o : a->outlets())
+      if(o->type() == Process::PortType::Message && !out)
+        out = o;
+    Process::Port* in{};
+    for(auto i : b->inlets())
+      if(qobject_cast<Process::ControlInlet*>(i) && !in)
+        in = i;
+    REQUIRE(out);
+    REQUIRE(in);
+    cable(*doc, *out, *in);
+
+    QWidget window;
+    auto list = new Process::PortListWidget{*b, doc->context(), &window};
+    window.show();
+    settle();
+
+    // The control's cable is in its drawer, closed with it
+    QWidget* drawer{};
+    for(auto d : list->findChildren<QWidget*>("PortDrawer"))
+      if(auto c = d->findChild<QWidget*>("PortCables"); c && c->isVisibleTo(d))
+        drawer = d;
+    REQUIRE(drawer);
+    CHECK(!drawer->isVisibleTo(list));
+    CHECK(visible<QLabel>(*list, "PortCable").empty());
+
+    // Opening the drawer of that control shows the cable
+    for(auto btn : list->findChildren<score::ArrowButton*>("PortDrawerButton"))
+    {
+      if(!btn->isVisibleTo(list))
+        continue;
+      btn->click();
+      if(drawer->isVisibleTo(list))
+        break;
+      btn->click();
+    }
+    REQUIRE(drawer->isVisibleTo(list));
+    settle();
+    auto rows = visible<QLabel>(*list, "PortCable");
+    REQUIRE(rows.size() == 1);
+    CHECK(rows.front()->text().contains("Source"));
   });
 }
 
