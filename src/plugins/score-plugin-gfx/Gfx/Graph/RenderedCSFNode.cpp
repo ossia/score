@@ -2,6 +2,7 @@
 #include <Gfx/Graph/MipGeneration.hpp>
 
 #include <Gfx/Graph/CommonUBOs.hpp>
+#include <Gfx/Graph/GpuResourceRegistry.hpp>
 #include <Gfx/Graph/ISFNode.hpp>
 #include <Gfx/Graph/ISFVisitors.hpp>
 #include <Gfx/Graph/IsfBindingsBuilder.hpp>
@@ -1001,8 +1002,8 @@ int RenderedCSFNode::resolveCountExpression(
     {
       // Skip past geometry inlet port (exists if any attr reads from upstream)
       int cur = p.inlet_i;
-      for(const auto& attr : geo.attributes)
-        if(attr.access == "read_only" || attr.access == "read_write") { cur++; break; }
+      if(geo.reads_upstream())
+        cur++;
 
       if(fieldName == "vertex_count" && geo.vertex_count.find("$USER") != std::string::npos)
       {
@@ -1696,8 +1697,212 @@ static int geometryFormatSizeBytes(const ossia::geometry::attribute& a) noexcept
     case F::half2: return 4;
     case F::half1: return 2;
     case F::user_struct: return (int)a.element_byte_size;
+    case F::ubyte1: return 1;
+    case F::sbyte1: return 1;
+    case F::double1: return 8;
     default: return 4;
   }
+}
+
+//! The COLUMNS format code of an attribute (isf_emit_column_accessors), 0
+//! for one a column cannot read: vectors and structs.
+static uint32_t columnFormatCode(const ossia::geometry::attribute& a) noexcept
+{
+  using F = ossia::geometry::attribute;
+  switch(a.format)
+  {
+    case F::float1: return 1;
+    case F::double1: return 2;
+    case F::half1: return 3;
+    case F::sbyte1: return 4;
+    case F::ubyte1: return 5;
+    case F::sshort1: return 6;
+    case F::ushort1: return 7;
+    case F::sint1: return 8;
+    case F::uint1: return 9;
+    case F::unormbyte1: return 10;
+    default: return 0;
+  }
+}
+
+void RenderedCSFNode::resolveColumns(
+    RenderList& renderer, QRhiResourceUpdateBatch& res, GeometryBinding& binding,
+    const isf::geometry_input& geo, const ossia::geometry* mesh)
+{
+  GeometryBinding::AuxiliarySSBO* data{};
+  GeometryBinding::AuxiliarySSBO* meta{};
+  for(auto& aux : binding.auxiliary_ssbos)
+  {
+    if(aux.column_block == 1)
+      data = &aux;
+    else if(aux.column_block == 2)
+      meta = &aux;
+  }
+  if(!data || !meta)
+    return;
+
+  // The geometry's layout: which attributes, where its buffers are. Producers
+  // rebuild the attribute list when it changes, so its storage stands for its
+  // contents; buffers can be swapped under it.
+  uint64_t signature = 0;
+  if(mesh)
+  {
+    signature = (uint64_t)(uintptr_t)mesh;
+    ossia::hash_combine(signature, (uint64_t)(uintptr_t)mesh->attributes.data());
+    ossia::hash_combine(signature, (uint64_t)mesh->attributes.size());
+    for(const auto& b : mesh->buffers)
+    {
+      if(auto* g = ossia::get_if<ossia::geometry::gpu_buffer>(&b.data))
+      {
+        ossia::hash_combine(signature, (uint64_t)(uintptr_t)g->handle);
+        ossia::hash_combine(signature, (uint64_t)g->byte_size);
+      }
+      else
+        ossia::hash_combine(signature, (uint64_t)1);
+    }
+    for(const auto& in : mesh->input)
+    {
+      ossia::hash_combine(signature, (uint64_t)in.buffer);
+      ossia::hash_combine(signature, (uint64_t)in.byte_offset);
+    }
+    for(const auto& b : mesh->bindings)
+      ossia::hash_combine(signature, (uint64_t)b.byte_stride);
+    if(signature == 0)
+      signature = 1;
+  }
+  if(signature != 0 && signature == data->column_signature
+     && data->buffer == data->column_bound && meta->buffer == meta->column_table_buffer
+     && meta->buffer)
+    return;
+
+  // One uvec4 per declared column: byte offset of row 0, byte stride, format
+  // code, 1 when both are word multiples. All zero: the column is absent.
+  const std::size_t count = geo.columns.size();
+  std::vector<uint32_t> table(4 * count, 0u);
+  QRhiBuffer* source{};
+  int64_t sourceSize{};
+  QString why;
+  if(mesh)
+  {
+    for(std::size_t k = 0; k < count; k++)
+    {
+      const auto& name = geo.columns[k].name;
+      const auto* attr = score::gfx::findGeometryAttribute(*mesh, name, "custom");
+      if(!attr)
+        continue;
+      const QString col = QString::fromStdString(name);
+      const uint32_t code = columnFormatCode(*attr);
+      if(code == 0)
+      {
+        why = QStringLiteral("column %1 is not a scalar attribute").arg(col);
+        continue;
+      }
+      const int b = attr->binding;
+      if(b < 0 || b >= (int)mesh->input.size() || b >= (int)mesh->bindings.size())
+        continue;
+      const auto& in = mesh->input[b];
+      if(in.buffer < 0 || in.buffer >= (int)mesh->buffers.size())
+        continue;
+      const auto* gpu
+          = ossia::get_if<ossia::geometry::gpu_buffer>(&mesh->buffers[in.buffer].data);
+      auto* buf = gpu ? static_cast<QRhiBuffer*>(gpu->handle) : nullptr;
+      if(!buf)
+      {
+        why = QStringLiteral("column %1 is not in a GPU buffer").arg(col);
+        continue;
+      }
+      if(!(buf->usage() & QRhiBuffer::StorageBuffer))
+      {
+        why = QStringLiteral("column %1 is in a buffer without StorageBuffer usage").arg(col);
+        continue;
+      }
+      if(!source)
+      {
+        source = buf;
+        sourceSize = gpu->byte_size;
+      }
+      else if(buf != source)
+      {
+        why = QStringLiteral("column %1 is in another buffer than the first column")
+                  .arg(col);
+        continue;
+      }
+      const int64_t offset = in.byte_offset + attr->byte_offset;
+      const int64_t stride = mesh->bindings[b].byte_stride != 0
+                                 ? mesh->bindings[b].byte_stride
+                                 : geometryFormatSizeBytes(*attr);
+      if(offset < 0 || offset > (int64_t)UINT32_MAX || stride > (int64_t)UINT32_MAX)
+        continue;
+      table[4 * k + 0] = (uint32_t)offset;
+      table[4 * k + 1] = (uint32_t)stride;
+      table[4 * k + 2] = code;
+      table[4 * k + 3] = (offset % 4 == 0 && stride % 4 == 0) ? 1u : 0u;
+    }
+  }
+  if(why != meta->column_refusal)
+  {
+    if(!why.isEmpty())
+      qWarning().noquote() << "score.gfx: CSF COLUMNS of"
+                           << QString::fromStdString(binding.input_name) << ":" << why
+                           << "; it reads as absent";
+    meta->column_refusal = why;
+  }
+
+  // The rows are read where they are: the upstream buffer itself is bound.
+  if(source)
+  {
+    adoptIntoSlot(renderer, *data, source, sourceSize);
+    data->offset = 0;
+  }
+  else if(!data->owned || !data->buffer)
+  {
+    releaseSlot(renderer, *data);
+    auto* buf = renderer.state.rhi->newBuffer(
+        QRhiBuffer::Static, QRhiBuffer::StorageBuffer, 16);
+    buf->setName("CSF_ColumnsAbsent");
+    if(buf->create())
+    {
+      const char zero[16]{};
+      res.uploadStaticBuffer(buf, 0, 16, zero);
+      data->buffer = buf;
+      data->size = 16;
+    }
+    else
+    {
+      delete buf;
+    }
+    data->owned = true;
+  }
+
+  const int64_t tableBytes = (int64_t)(table.size() * sizeof(uint32_t));
+  if(!meta->owned || !meta->buffer || meta->size < tableBytes)
+  {
+    releaseSlot(renderer, *meta);
+    auto* buf = renderer.state.rhi->newBuffer(
+        QRhiBuffer::Static, QRhiBuffer::StorageBuffer, tableBytes);
+    buf->setName("CSF_ColumnTable");
+    if(!buf->create())
+    {
+      delete buf;
+      meta->owned = true;
+      return;
+    }
+    meta->buffer = buf;
+    meta->size = tableBytes;
+    meta->owned = true;
+  }
+  if(meta->column_table_buffer != meta->buffer || meta->column_table != table)
+  {
+    res.uploadStaticBuffer(meta->buffer, 0, tableBytes, table.data());
+    ++renderer.registry().columnTableUploads.tables;
+    renderer.registry().columnTableUploads.bytes += (uint64_t)tableBytes;
+    meta->column_table = std::move(table);
+    meta->column_table_buffer = meta->buffer;
+  }
+  if(data->column_signature != signature)
+    ++m_columnTablesGeneration;
+  data->column_signature = signature;
+  data->column_bound = data->buffer;
 }
 
 void RenderedCSFNode::updateGeometryBindings(
@@ -1893,6 +2098,7 @@ void RenderedCSFNode::updateGeometryBindings(
 
     if(!binding_has_upstream)
     {
+      resolveColumns(renderer, res, binding, *geo_input, nullptr);
       // No upstream geometry on this binding's port: never wired, or the
       // producer was just removed. Unowned pointers adopted from a departed
       // upstream may already be DANGLING -- reconcile /
@@ -2400,9 +2606,10 @@ void RenderedCSFNode::updateGeometryBindings(
       // their own buffers for auxiliaries they didn't receive (e.g. ColorByLife
       // doesn't forward dead/alive_b, so ParticleFeedback creates empty ones).
       // Adopting those would replace our live data with zeros.
+      resolveColumns(renderer, res, binding, *geo_input, &mesh);
       for(auto& aux : binding.auxiliary_ssbos)
       {
-        if(binding.is_feedback_receiver)
+        if(binding.is_feedback_receiver || aux.column_block)
           continue;
 
         if(auto* geo_aux = mesh.find_auxiliary(aux.name))
@@ -2645,7 +2852,7 @@ void RenderedCSFNode::updateGeometryBindings(
         {
           for(auto& aux : binding.auxiliary_ssbos)
           {
-            if(aux.buffer && aux.size > 0)
+            if(aux.buffer && aux.size > 0 && !aux.column_block)
             {
               QByteArray zero(aux.size, 0);
               res.uploadStaticBuffer(aux.buffer, 0, aux.size, zero.constData());
@@ -2970,9 +3177,15 @@ void RenderedCSFNode::pushOutputGeometry(RenderList& renderer, QRhiResourceUpdat
         }
       }
 
-      // Attach geometry-level auxiliary SSBOs
+      // Attach geometry-level auxiliary SSBOs. The COLUMNS blocks are how this
+      // shader reads its input, not data it publishes.
       for(const auto& aux : binding.auxiliary_ssbos)
       {
+        if(aux.column_block)
+        {
+          slots.auxiliary.push_back(-1);
+          continue;
+        }
         slots.auxiliary.push_back(aux.buffer ? (int)out_geo.buffers.size() : -1);
         if(aux.buffer)
         {
@@ -4235,6 +4448,109 @@ QString RenderedCSFNode::updateShaderWithImageFormats(QString current)
 
 }
 
+std::vector<std::vector<uint32_t>> RenderedCSFNode::columnSpecialization() const
+{
+  std::vector<std::vector<uint32_t>> spec;
+  const auto tableOf = [](const GeometryBinding& b) -> const std::vector<uint32_t>* {
+    const GeometryBinding::AuxiliarySSBO* data{};
+    const GeometryBinding::AuxiliarySSBO* meta{};
+    for(const auto& a : b.auxiliary_ssbos)
+    {
+      if(a.column_block == 1)
+        data = &a;
+      else if(a.column_block == 2)
+        meta = &a;
+    }
+    // A table resolved against an upstream geometry (signature != 0).
+    if(!data || !meta || data->column_signature == 0)
+      return nullptr;
+    return &meta->column_table;
+  };
+  int idx = 0;
+  for(const auto& inp : n.m_descriptor.inputs)
+  {
+    auto* g = ossia::get_if<isf::geometry_input>(&inp.data);
+    if(!g)
+      continue;
+    const int b = idx++;
+    if(g->columns.empty())
+      continue;
+    auto& out = spec.emplace_back();
+    if(b >= (int)m_geometryBindings.size())
+      continue;
+    const auto* t = tableOf(m_geometryBindings[b]);
+    if(!t)
+      continue;
+    bool same = true;
+    for(const auto& layer : m_meshLayers)
+    {
+      if(layer.passthrough || b >= (int)layer.bindings.size())
+        continue;
+      const auto* lt = tableOf(layer.bindings[b]);
+      if(!lt || *lt != *t)
+        same = false;
+    }
+    if(same)
+      out = *t;
+  }
+  return spec;
+}
+
+QString RenderedCSFNode::specializeColumns(
+    QString src, const std::vector<std::vector<uint32_t>>& spec) const
+{
+  std::size_t k = 0;
+  for(const auto& inp : n.m_descriptor.inputs)
+  {
+    auto* g = ossia::get_if<isf::geometry_input>(&inp.data);
+    if(!g || g->columns.empty())
+      continue;
+    if(m_specializeColumns && k < spec.size() && !spec[k].empty())
+    {
+      const auto generic = isf::column_meta_function(inp.name, g->columns.size(), {});
+      const auto fixed = isf::column_meta_function(inp.name, g->columns.size(), spec[k]);
+      src.replace(QString::fromStdString(generic), QString::fromStdString(fixed));
+    }
+    k++;
+  }
+  return src;
+}
+
+void RenderedCSFNode::rebuildComputePipelines(RenderList& renderer)
+{
+  auto old = std::move(m_ownedPipelines);
+  m_ownedPipelines.clear();
+  m_computePipeline = nullptr;
+  createComputePipeline(renderer);
+  if(!m_computePipeline || m_perPassPipelines.size() < m_computePasses.size())
+  {
+    // Keep running the previous shader rather than nothing.
+    for(auto* p : m_ownedPipelines)
+      p->deleteLater();
+    m_ownedPipelines = std::move(old);
+    m_perPassPipelines.clear();
+    for(auto& [e, pass] : m_computePasses)
+      m_perPassPipelines.push_back(pass.pipeline);
+    m_computePipeline = m_perPassPipelines.empty() ? nullptr : m_perPassPipelines[0];
+    return;
+  }
+  for(std::size_t i = 0; i < m_computePasses.size(); i++)
+  {
+    auto& pass = m_computePasses[i].second;
+    auto* fresh = m_perPassPipelines[i];
+    if(pass.srb)
+      fresh->setShaderResourceBindings(pass.srb);
+    if(!fresh->create())
+      qWarning() << "CSF: could not create the compute pipeline of pass" << i;
+    for(auto& layer : m_meshLayers)
+      if(i < layer.passes.size() && layer.passes[i].pipeline == pass.pipeline)
+        layer.passes[i].pipeline = fresh;
+    pass.pipeline = fresh;
+  }
+  for(auto* p : old)
+    p->deleteLater();
+}
+
 void RenderedCSFNode::createComputePipeline(RenderList& renderer)
 {
   QRhi& rhi = *renderer.state.rhi;
@@ -4250,6 +4566,12 @@ void RenderedCSFNode::createComputePipeline(RenderList& renderer)
     // Prepare the shader template with image format substitution.
     // LOCAL_SIZE placeholders will be substituted per-pass below.
     m_computeShaderSource = updateShaderWithImageFormats(n.m_computeS);
+    if(m_hasColumns)
+    {
+      m_columnSpec = columnSpecialization();
+      m_columnSpecGeneration = m_columnTablesGeneration;
+      m_computeShaderSource = specializeColumns(m_computeShaderSource, m_columnSpec);
+    }
     warnStorageImageUnits(rhi, "CSF", {&m_computeShaderSource});
 
     // Compile one pipeline per unique LOCAL_SIZE, reuse when passes share the same size.
@@ -5087,19 +5409,7 @@ void RenderedCSFNode::buildComputeSrbBindings(
       // the geometry input owns exactly one entry in node.input, which the following
       // storage_input / texture_input entries address by position, so the cursor must
       // advance past it.
-      bool geo_creates_inlet = geo_input->attributes.empty();
-      if(!geo_creates_inlet)
-      {
-        for(const auto& attr : geo_input->attributes)
-        {
-          if(attr.access == "read_only" || attr.access == "read_write")
-          {
-            geo_creates_inlet = true;
-            break;
-          }
-        }
-      }
-      if(geo_creates_inlet)
+      if(geo_input->passes_through() || geo_input->reads_upstream())
         input_port_index++;
       // Skip $USER ports for this geometry input. INDIRECT.COUNT is not
       // counted: ISFNode's visitor creates no port for a $USER in
@@ -5211,6 +5521,19 @@ void RenderedCSFNode::initComputeSRBAndPasses(
     RenderList& renderer, QRhiResourceUpdateBatch& res)
 {
   QRhi& rhi = *renderer.state.rhi;
+
+  m_hasColumns = false;
+  for(const auto& inp : n.m_descriptor.inputs)
+    if(auto* g = ossia::get_if<isf::geometry_input>(&inp.data); g && !g->columns.empty())
+      m_hasColumns = true;
+
+  // COLUMNS compile against the upstream layout when it is already known:
+  // resolve the geometry first.
+  if(m_hasColumns)
+  {
+    updateStorageBuffers(renderer, res);
+    updateGeometryBindings(renderer, res);
+  }
 
   if(!m_computePipeline)
   {
@@ -5420,18 +5743,12 @@ void RenderedCSFNode::initState(RenderList& renderer, QRhiResourceUpdateBatch& r
     {
       // Determine if this geometry_input creates an input port
       // (mirrors ISFNode visitor logic: input port if any attribute is read_only or read_write)
-      bool needs_input = geo->attributes.empty(); // empty = pass-through, always has input
-      if(!needs_input)
-      {
-        for(const auto& attr : geo->attributes)
-          if(attr.access == "read_only" || attr.access == "read_write")
-          { needs_input = true; break; }
-      }
+      const bool needs_input = geo->passes_through() || geo->reads_upstream();
 
       GeometryBinding binding;
       binding.input_name = input.name;
       binding.input_port_index = needs_input ? input_port_index : -1;
-      binding.has_output = geo->attributes.empty(); // Empty attributes = pure pass-through with output
+      binding.has_output = geo->passes_through();
       binding.has_vertex_count_spec = !geo->vertex_count.empty();
       binding.has_instance_count_spec = !geo->instance_count.empty();
 
@@ -5502,6 +5819,7 @@ void RenderedCSFNode::initState(RenderList& renderer, QRhiResourceUpdateBatch& r
         ssbo.is_uniform = aux.is_uniform;
         ssbo.layout = aux.layout;
         ssbo.size_expr = aux.size;
+        ssbo.column_block = aux.column_block;
 
         // Create the buffer immediately so it's available for the first dispatch.
         // Usage flag matches the aux kind — UBO path uses UniformBuffer,
@@ -5538,6 +5856,12 @@ void RenderedCSFNode::initState(RenderList& renderer, QRhiResourceUpdateBatch& r
           ssbo.buffer = buf;
           ssbo.size = requiredSize;
           ssbo.owned = true;
+          // The column table starts zeroed: every column absent.
+          if(aux.column_block == 2)
+          {
+            ssbo.column_table.assign(requiredSize / sizeof(uint32_t), 0u);
+            ssbo.column_table_buffer = buf;
+          }
         }
 
         binding.auxiliary_ssbos.push_back(std::move(ssbo));
@@ -5701,7 +6025,7 @@ void RenderedCSFNode::initState(RenderList& renderer, QRhiResourceUpdateBatch& r
       // writable AUXILIARY (see isf_input_port_count_vis). binding.has_output is
       // broader -- it is also set for writable aux SSBOs, which publish no geometry
       // outlet -- so outlet_index must not advance on it.
-      bool geo_creates_outlet = geo->attributes.empty();
+      bool geo_creates_outlet = geo->passes_through();
       if(!geo_creates_outlet)
         for(const auto& attr : geo->attributes)
           if(attr.access == "write_only" || attr.access == "read_write")
@@ -6085,6 +6409,14 @@ void RenderedCSFNode::update(
   if(!m_geometryBindings.empty())
     updateMeshLayers(renderer, res);
 
+  // A new upstream column layout: the shader is specialized to it again.
+  if(m_hasColumns && m_computePipeline && m_columnSpecGeneration != m_columnTablesGeneration)
+  {
+    m_columnSpecGeneration = m_columnTablesGeneration;
+    if(columnSpecialization() != m_columnSpec)
+      rebuildComputePipelines(renderer);
+  }
+
   // Update uniform buffer with current input values
   if(m_materialUBO && n.m_material_data)
   {
@@ -6386,6 +6718,7 @@ void RenderedCSFNode::updateMeshLayers(RenderList& renderer, QRhiResourceUpdateB
         x.is_uniform = a.is_uniform;
         x.layout = a.layout;
         x.size_expr = a.size_expr;
+        x.column_block = a.column_block;
       }
       // Sampled or read-only: the samplers stay the first mesh's.
       c.auxiliary_textures = b.auxiliary_textures;

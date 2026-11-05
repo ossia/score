@@ -1346,6 +1346,8 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
       case A::ushort3: case A::sshort3:          return 6;
       case A::ushort2: case A::sshort2:          return 4;
       case A::ushort1: case A::sshort1:          return 2;
+      case A::ubyte1: case A::sbyte1:            return 1;
+      case A::double1:                           return 8;
       default:                                   return 0; // user_struct / unknown
     }
   }
@@ -1772,6 +1774,19 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
                    << "got" << d.cloud->row_stride;
         continue;
       }
+      else if(const auto h = b.draws.front()->cloud->columns_hash;
+              h != 0 && d.cloud->columns_hash != 0 && h != d.cloud->columns_hash)
+      {
+        // The bucket publishes one set of column attributes: a cloud whose
+        // columns are elsewhere in the row would be read wrong. A family tag
+        // ("3dgs") covers many layouts; give one of the clouds its own
+        // format id (Asset Loader "Format override") to draw both.
+        qWarning() << "ScenePreprocessor::rebuildPrimitiveClouds: "
+                      "column layout mismatch within bucket"
+                   << QString::fromStdString(d.cloud->format_id)
+                   << "; the cloud is not drawn";
+        continue;
+      }
       b.draws.push_back(&d);
       b.total_primitives += d.cloud->primitive_count;
     }
@@ -2130,6 +2145,7 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
         bb.raw_fingerprint = rawFp;
         bb.meta_fingerprint = 0;
         ++renderer.registry().primitiveCloudUploads.rows;
+        renderer.registry().primitiveCloudUploads.rowBytes += (uint64_t)rawBytes;
       }
 
       const uint64_t metaFp = packCloudMeta(b, cmData, worldBounds);
@@ -2190,6 +2206,7 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
       // block, so shaders read rows as ISF_READ(geoIn, splat)[idx].field. The
       // AUXILIARY entry above stays for presets that predate TYPES.
       const auto* rep = b.draws[0]->cloud.get();
+      int rowBindingIdx = -1;
       if(rep && !rep->struct_type_name.empty())
       {
         ossia::geometry::binding splatBinding{};
@@ -2213,6 +2230,71 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
         splatAttr.semantic          = ossia::attribute_semantic::custom;
         splatAttr.name              = "splat";
         g.attributes.push_back(splatAttr);
+        rowBindingIdx = splatBindingIdx;
+      }
+
+      // Every column of the row as its own named per-vertex attribute: a view
+      // into raw_splats (stride row_stride, offset the column's), so a CSF
+      // reads columns by name (COLUMNS) whatever their order, type or count.
+      // Nothing is copied or allocated per column. A column whose name is
+      // already taken (cloud_id, splat, or an earlier column) is published as
+      // <name>_2, <name>_3, ...: the first free suffix, in row order.
+      if(rep && !rep->columns.empty())
+      {
+        if(rowBindingIdx < 0)
+        {
+          ossia::geometry::binding rowBinding{};
+          rowBinding.byte_stride    = (uint32_t)b.row_stride;
+          rowBinding.classification = ossia::geometry::binding::per_vertex;
+          rowBindingIdx = (int)g.bindings.size();
+          g.bindings.push_back(rowBinding);
+
+          struct ossia::geometry::input rowInput{};
+          rowInput.buffer      = rawSplatsBufIdx;
+          rowInput.byte_offset = 0;
+          g.input.push_back(rowInput);
+        }
+
+        using A = ossia::geometry::attribute;
+        using C = ossia::primitive_cloud_component::column;
+        const auto formatOf = [](C::scalar_type t) {
+          switch(t)
+          {
+            case C::f64: return A::double1;
+            case C::f16: return A::half1;
+            case C::i8:  return A::sbyte1;
+            case C::u8:  return A::ubyte1;
+            case C::i16: return A::sshort1;
+            case C::u16: return A::ushort1;
+            case C::i32: return A::sint1;
+            case C::u32: return A::uint1;
+            default:     return A::float1;
+          }
+        };
+        const auto taken = [&g](std::string_view n) {
+          for(const auto& a : g.attributes)
+            if(a.name == n)
+              return true;
+          return false;
+        };
+
+        g.attributes.reserve(g.attributes.size() + rep->columns.size());
+        int location = (int)g.attributes.size();
+        for(const auto& col : rep->columns)
+        {
+          if(col.byte_offset + C::byte_size(col.type) > b.row_stride)
+            continue;
+          A a{};
+          a.binding     = rowBindingIdx;
+          a.location    = location++;
+          a.format      = formatOf(col.type);
+          a.byte_offset = col.byte_offset;
+          a.semantic    = ossia::attribute_semantic::custom;
+          a.name        = col.name;
+          for(int k = 2; taken(a.name); ++k)
+            a.name = col.name + "_" + std::to_string(k);
+          g.attributes.push_back(std::move(a));
+        }
       }
 
       // Forward the camera UBO (uploaded earlier in update() before

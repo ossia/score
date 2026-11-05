@@ -36,6 +36,9 @@ void isf_vertShaderInit()
 {
   gl_Position = vec4(position, 0.0, 1.0);
   isf_FragNormCoord = vec2((position.x+1.0)/2.0, (position.y+1.0)/2.0);
+#if defined(ISF_THIS_PIXEL_VARYING)
+  isf_ThisPixelNormCoord = isf_FragNormCoord;
+#endif
 }
 
 // Kept for the ISF vertex shaders that end their main with it; the clip-space
@@ -44,18 +47,23 @@ void isf_vertShaderFinish()
 {
 }
 
-// OpenGL clip space to the backend's, so that OpenGL's y = +1 lands on the
-// picture's top row in the row order of RowOrder.hpp: clipSpaceCorrMatrix
-// (Z to [0, 1] on Vulkan, Metal and D3D; Y negated on Vulkan, whose render
-// targets are top row first), then a Y negation on Metal and D3D, whose
-// render targets are bottom row first behind a top-left framebuffer origin.
-// Both are linear in homogeneous coordinates, so they hold for any w.
-void isf_vertShaderApplyClipSpace()
+// OpenGL clip space to the backend's (isf_vertShaderApplyClipSpace), so that
+// OpenGL's y = +1 lands on the picture's top row in the row order of
+// RowOrder.hpp: clipSpaceCorrMatrix (Z to [0, 1] on Vulkan, Metal and D3D; Y
+// negated on Vulkan, whose render targets are top row first), then a Y
+// negation on Metal and D3D, whose render targets are bottom row first behind
+// a top-left framebuffer origin (isf_vertShaderApplyFramebufferY). Both are
+// linear in homogeneous coordinates, so they hold for any w.
+void isf_vertShaderApplyFramebufferY()
 {
-  gl_Position = clipSpaceCorrMatrix * gl_Position;
 #if defined(QSHADER_HLSL) || defined(QSHADER_MSL)
   gl_Position.y = -gl_Position.y;
 #endif
+}
+void isf_vertShaderApplyClipSpace()
+{
+  gl_Position = clipSpaceCorrMatrix * gl_Position;
+  isf_vertShaderApplyFramebufferY();
 }
 )_";
 
@@ -76,6 +84,17 @@ void main()
 {
   isf_user_vertex_main();
   isf_vertShaderApplyClipSpace();
+}
+)_";
+
+  // The entry point for a shader that multiplies by clipSpaceCorrMatrix
+  // itself: what is left of isf_vertShaderApplyClipSpace.
+  static constexpr auto vertexUserMainWrapperOwnClipSpace = R"_(
+#undef main
+void main()
+{
+  isf_user_vertex_main();
+  isf_vertShaderApplyFramebufferY();
 }
 )_";
 
@@ -236,14 +255,19 @@ vec4 isf_unpremultiply(vec4 c) { return c.a > 0.0 ? vec4(c.rgb / c.a, c.a) : vec
 //
 // isf_ThisPixelCoord is the quad's position in output pixels, in the ISF
 // (Y-up) convention. Where the vertex stage is isf_vertShaderInit, it comes
-// from the interpolated isf_FragNormCoord, which init sets from the quad
-// before the shader's own vertex code moves gl_Position: the image then
-// follows a warped or rotated quad, as in VVISF. On an unwarped quad it is
-// isf_FragCoord.xy on every backend: the vertices map to 0 and RENDERSIZE,
-// so the value interpolated at a pixel centre is that centre, (i + 0.5). Stages without that varying (RAW_RASTER, its resolve pass, a vertex
-// shader that does not call isf_vertShaderInit) leave
-// ISF_THIS_PIXEL_FROM_NORM_COORD undefined and use the fragment's position.
-#if defined(ISF_THIS_PIXEL_FROM_NORM_COORD)
+// from the quad position init writes, interpolated: the image then follows
+// a warped or rotated quad, as in VVISF. That is isf_FragNormCoord, or, when
+// the shader's vertex code touches isf_FragNormCoord after init, the copy
+// init also writes into isf_ThisPixelNormCoord (ISF_THIS_PIXEL_VARYING), so
+// that the shader's later writes do not move the image. On an unwarped quad
+// it is isf_FragCoord.xy on every backend: the vertices map to 0 and
+// RENDERSIZE, so the value interpolated at a pixel centre is that centre,
+// (i + 0.5). Stages without either varying (RAW_RASTER, its resolve pass, a
+// vertex shader that does not call isf_vertShaderInit) use the fragment's
+// position.
+#if defined(ISF_THIS_PIXEL_VARYING)
+#define isf_ThisPixelCoord (isf_ThisPixelNormCoord * RENDERSIZE)
+#elif defined(ISF_THIS_PIXEL_FROM_NORM_COORD)
 #define isf_ThisPixelCoord (isf_FragNormCoord * RENDERSIZE)
 #else
 #define isf_ThisPixelCoord (isf_FragCoord.xy)

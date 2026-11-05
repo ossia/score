@@ -258,7 +258,7 @@ struct isf_input_port_vis
   {
     if(self.m_descriptor.mode != isf::descriptor::RawRaster)
     {
-      if(in.attributes.empty())
+      if(in.passes_through())
       {
         // No attributes declared: pure pass-through (input + output, forwards everything)
         self.input.push_back(new Port{&self, {}, Types::Geometry, {}});
@@ -267,12 +267,7 @@ struct isf_input_port_vis
       else
       {
         // Create geometry input port if any attribute needs upstream data (read_only or read_write)
-        bool needs_input = false;
-        for(const auto& attr : in.attributes)
-          if(attr.access == "read_only" || attr.access == "read_write")
-          { needs_input = true; break; }
-
-        if(needs_input)
+        if(in.reads_upstream())
           self.input.push_back(new Port{&self, {}, Types::Geometry, {}});
 
         // If any attributes are writable, create a geometry output port

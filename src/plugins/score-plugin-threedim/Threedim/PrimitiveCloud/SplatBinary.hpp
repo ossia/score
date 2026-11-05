@@ -18,6 +18,9 @@ namespace Threedim::PrimitiveCloud
 //                  (q + 1) * 127.5 around index 0; recipient
 //                  reconstructs by (b - 128) / 128)
 //
+// Columns: x y z (float), scale_linear_0..2 (float), red green blue alpha
+// (uint8), rot_u8_0..3 (uint8, w x y z).
+//
 // We pass these bytes through verbatim. The "3dgs.splat-binary" preset's
 // CSF declares the matching LAYOUT, dequantizes color8 to color, and
 // reconstructs the quat from the int8s.

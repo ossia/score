@@ -5,6 +5,7 @@
 #include <cstdint>
 #include <cstring>
 #include <memory>
+#include <string>
 #include <vector>
 
 namespace Threedim::PrimitiveCloud
@@ -150,6 +151,25 @@ ossia::primitive_cloud_component_ptr parse_spz(std::string_view bytes)
   out->row_stride      = CanonicalRow::kBytes;
   out->primitive_count = N;
   out->topology        = ossia::primitive_topology::points;
+  {
+    using C = ossia::primitive_cloud_component::column;
+    const auto names = [] {
+      std::vector<std::string> c{"x", "y", "z", "nx", "ny", "nz", "f_dc_0", "f_dc_1", "f_dc_2"};
+      for(int i = 0; i < 45; ++i)
+        c.push_back("f_rest_" + std::to_string(i));
+      c.push_back("opacity");
+      for(int i = 0; i < 3; ++i)
+        c.push_back("scale_" + std::to_string(i));
+      for(int i = 0; i < 4; ++i)
+        c.push_back("rot_" + std::to_string(i));
+      return c;
+    }();
+    out->columns.reserve(names.size());
+    for(std::size_t i = 0; i < names.size(); ++i)
+      out->columns.push_back({names[i], C::f32, uint32_t(i * sizeof(float))});
+    out->columns_hash = ossia::primitive_cloud_component::column_layout_hash(
+        out->columns, CanonicalRow::kBytes);
+  }
   out->format_id        = "3dgs.classic";
   out->struct_type_name = "Splat3DGS";
   out->bounds           = bounds;

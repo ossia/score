@@ -962,7 +962,19 @@ bool remapVertexInputs(
         return false;
       }
       // A bool, matrix or struct element has no vertex format: casting the
-      // enum would hand QRhi an unrelated format (C42).
+      // enum would hand QRhi an unrelated format (C42). Nor have the raw 8-bit
+      // and 64-bit columns of a primitive cloud.
+      using GA = ossia::geometry::attribute;
+      if(match->format == GA::ubyte1 || match->format == GA::sbyte1
+         || match->format == GA::double1)
+      {
+        qWarning().noquote()
+            << "score.gfx: VERTEX_INPUT"
+            << QString::fromUtf8(var_name.data(), (int)var_name.size())
+            << "matches an unnormalised 8-bit or a 64-bit column, which has no "
+               "vertex format; read it in a compute shader (COLUMNS)";
+        return false;
+      }
       if(match->format == ossia::geometry::attribute::user_struct)
       {
         qWarning().noquote()

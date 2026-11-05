@@ -493,7 +493,18 @@ public:
   {
     uint64_t rows{0};
     uint64_t meta{0};
+    //! Bytes of raw_splats uploaded from the CPU.
+    uint64_t rowBytes{0};
   } primitiveCloudUploads;
+
+  //! Monotonic counts of the COLUMNS tables the compute shaders on this render
+  //! list uploaded (one per resolved layout), and their bytes: the only GPU
+  //! data reading columns by name adds.
+  struct ColumnTableUploads
+  {
+    uint64_t tables{0};
+    uint64_t bytes{0};
+  } columnTableUploads;
 
   //! Every channel resolves to the same pool. Which channel a ref belongs to
   //! still decides its colourspace: see textureChannelFlags, which the caller

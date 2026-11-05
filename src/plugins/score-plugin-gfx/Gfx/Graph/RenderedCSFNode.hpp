@@ -308,6 +308,19 @@ private:
       std::string access;
       std::vector<isf::storage_input::layout_field> layout;
       std::string size_expr; // expression for flexible array count, may contain $USER
+
+      //! isf::geometry_input::auxiliary_request::column_block: 1 = the COLUMNS
+      //! row words (the upstream buffer, adopted), 2 = the column table.
+      int column_block{0};
+      //! Column table: what was last uploaded, and into which buffer.
+      std::vector<uint32_t> column_table;
+      QRhiBuffer* column_table_buffer{};
+      //! Why columns read as absent, as last reported.
+      QString column_refusal;
+      //! The upstream layout the table was resolved against, and the buffers
+      //! it left bound: an unchanged upstream is not resolved again.
+      uint64_t column_signature{};
+      QRhiBuffer* column_bound{};
     };
 
     // Auxiliary textures that travel with the geometry (resolved from
@@ -395,6 +408,29 @@ private:
     bool uses_indirect_count{false};
   };
   std::vector<GeometryBinding> m_geometryBindings;
+  //! The column tables the shader is specialized to, per geometry input with
+  //! COLUMNS, as resolved now: an empty entry when the layout is not known (no
+  //! upstream yet) or differs between the meshes read.
+  std::vector<std::vector<uint32_t>> columnSpecialization() const;
+  //! `src` with the COLUMNS table lookups of each geometry input replaced by
+  //! the constants of `spec` (isf::column_meta_function).
+  QString specializeColumns(
+      QString src, const std::vector<std::vector<uint32_t>>& spec) const;
+  //! Recompiles the passes' pipelines, keeping their bindings.
+  void rebuildComputePipelines(RenderList& renderer);
+  std::vector<std::vector<uint32_t>> m_columnSpec;
+  //! Bumped whenever a column table is resolved anew; the value
+  //! m_columnSpec was computed at.
+  uint64_t m_columnTablesGeneration{1};
+  uint64_t m_columnSpecGeneration{0};
+  bool m_hasColumns{false};
+  //! false keeps the COLUMNS reads table-driven (tests compare the two).
+  bool m_specializeColumns{true};
+
+  //! Binds the COLUMNS blocks of `binding` to `mesh` (nullptr: no upstream).
+  void resolveColumns(
+      RenderList& renderer, QRhiResourceUpdateBatch& res, GeometryBinding& binding,
+      const isf::geometry_input& geo, const ossia::geometry* mesh);
 
   // The meshes after the first of a multi-mesh upstream. Each one runs the
   // passes over its own geometry bindings and SRBs, which are swapped in
