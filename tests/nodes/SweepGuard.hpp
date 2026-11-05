@@ -84,8 +84,8 @@ inline void restore_crash_handlers()
 inline constexpr unsigned watchdog_seconds = 20;
 
 //! Factories that cannot be constructed headlessly without blocking or crashing
-//! outside of the guard; all of them need an external plug-in. The exec sweep
-//! gives them one (ValidationPlugins.hpp) when it is installed.
+//! outside of the guard; all of them need an external plug-in. The sweeps give
+//! them one (ValidationPlugins.hpp) when it is installed.
 inline const std::set<std::string> construction_denylist = {
     // LV2: the lilv world scans the system plug-in directories, forever
     "fd5243ba-70b5-4164-b44a-ecb0dcdc0494",

@@ -60,7 +60,7 @@ ValidationPlugins::ValidationPlugins(
 
   // Emptied first, so that a plug-in a previous run failed to scan is scanned
   // again: a path already known is not
-  auto& set = ctx.settings<Media::Settings::Model>();
+  auto& set = ctx.settings<::Media::Settings::Model>();
   if(clap)
   {
     set.setClapPaths({});
