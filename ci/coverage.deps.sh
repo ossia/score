@@ -9,15 +9,14 @@
 #   links to.
 # - Qt, Mesa and the rest from the distribution, through ci/ubuntu.2604.deps.sh,
 #   whose package names 26.10 shares.
-# - CMake and gcovr from PyPI, where their releases land first.
+# - CMake and gcovr from PyPI, where their releases land first, at the versions
+#   and hashes of ci/coverage.requirements.txt.
 
 source ci/common.setup.sh
 
 LLVM_VERSION=23
 LLVM_REPO=llvm-toolchain-resolute-${LLVM_VERSION}
 LLVM_KEY_FINGERPRINT=6084F3CF814B57C1CF12EFD515CF4D18AF4F7421
-CMAKE_VERSION=4.4.4
-GCOVR_VERSION=8.8
 
 echo 'debconf debconf/frontend select Noninteractive' | $SUDO debconf-set-selections
 
@@ -65,19 +64,35 @@ $SUDO apt-get install -y --no-install-recommends \
 # The process sweeps (tests/nodes/{Processes,ProcessViews}.cpp) run the CLAP,
 # LV2, VST 2 and VST 3 hosts with DPF-Plugins' MaFreeverb and Kars, and LV2's
 # eg-amp and eg-midigate (tests/nodes/ValidationPlugins.hpp). Pinned so that a
-# plug-in update cannot change what the sweeps test without a commit here.
-$SUDO apt-get install -y --no-install-recommends \
-  dpf-plugins-clap=1.7+ds-3build2 dpf-plugins-lv2=1.7+ds-3build2 \
+# plug-in update cannot change what the sweeps test without a commit here: these
+# are the versions of the release pocket of 26.10, which is never rewritten, and
+# moves to old-releases.ubuntu.com with the rest of the release (see the first
+# step of .github/workflows/coverage.yml). Should a version not be there, the
+# archive's own is installed, and its version and checksums are printed as a
+# warning so that a change in what the sweeps ran is visible.
+VALIDATION_PLUGINS="dpf-plugins-clap=1.7+ds-3build2 dpf-plugins-lv2=1.7+ds-3build2 \
   dpf-plugins-vst=1.7+ds-3build2 dpf-plugins-vst3=1.7+ds-3build2 \
-  lv2-examples=1.18.10-3
+  lv2-examples=1.18.10-3"
+# shellcheck disable=SC2086
+if ! $SUDO apt-get install -y --no-install-recommends $VALIDATION_PLUGINS; then
+  unpinned=$(for p in $VALIDATION_PLUGINS; do echo "${p%%=*}"; done)
+  # shellcheck disable=SC2086
+  $SUDO apt-get install -y --no-install-recommends $unpinned
+  for p in $VALIDATION_PLUGINS; do
+    installed=$(dpkg-query -W -f='${Version}' "${p%%=*}")
+    [ "$installed" = "${p#*=}" ] && continue
+    echo "::warning::${p%%=*} ${installed} is installed instead of ${p#*=}; the process sweeps run it."
+    dpkg-query -L "${p%%=*}" | grep -E '\.(so|clap)$' | xargs -r sha256sum
+  done
+fi
 # <<< validation audio plug-ins
 
 # >>> CMake and gcovr
 # /usr/local/bin comes before /usr/bin, where ubuntu.2604.deps.sh puts the
 # distribution's CMake.
 $SUDO python3 -m venv /opt/coverage-tools
-$SUDO /opt/coverage-tools/bin/pip install --no-cache-dir \
-  "cmake==${CMAKE_VERSION}" "gcovr==${GCOVR_VERSION}"
+$SUDO /opt/coverage-tools/bin/pip install --no-cache-dir --require-hashes \
+  -r ci/coverage.requirements.txt
 for tool in cmake ctest cpack gcovr; do
   $SUDO ln -sf "/opt/coverage-tools/bin/$tool" "/usr/local/bin/$tool"
 done

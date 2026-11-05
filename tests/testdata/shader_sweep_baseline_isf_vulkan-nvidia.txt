@@ -32,7 +32,6 @@ Presets/GLSL_shaders/grigm/computer_grid_wtB3zw.fs	blank
 Presets/GLSL_shaders/grigm/font_morph_ltcXzs.fs	blank
 Presets/GLSL_shaders/grigm/fx_Fluid_Warp_ltKfR1.fs	blank-mid
 Presets/GLSL_shaders/grigm/gs_24524.0.fs	blank
-Presets/GLSL_shaders/grigm/gs_34134.0.fs	blank
 Presets/GLSL_shaders/grigm/gs_34631.0.fs	blank
 Presets/GLSL_shaders/grigm/gs_34940.0.fs	blank
 Presets/GLSL_shaders/grigm/gs_34973.5.fs	blank
@@ -40,7 +39,6 @@ Presets/GLSL_shaders/grigm/gs_35137.0.fs	blank-mid
 Presets/GLSL_shaders/grigm/gs_36473.0.fs	blank-mid
 Presets/GLSL_shaders/grigm/gs_37458.1.fs	blank-mid
 Presets/GLSL_shaders/grigm/gs_39196.0.fs	blank
-Presets/GLSL_shaders/grigm/gs_39446.1.fs	blank
 Presets/GLSL_shaders/grigm/gs_39651.0.fs	blank
 Presets/GLSL_shaders/grigm/gs_39881.0.fs	blank
 Presets/GLSL_shaders/grigm/gs_39891.0.fs	blank
@@ -52,7 +50,6 @@ Presets/GLSL_shaders/grigm/gs_52534.0.fs	blank
 Presets/GLSL_shaders/grigm/gs_5359.8.fs	blank
 Presets/GLSL_shaders/grigm/gs_54077.0.fs	blank
 Presets/GLSL_shaders/grigm/gs_54370.0.fs	blank
-Presets/GLSL_shaders/grigm/gs_55915.1.fs	blank-mid
 Presets/GLSL_shaders/grigm/pixel-spirit_00-Void.fs	blank
 Presets/GLSL_shaders/grigm/pixel-spirit_48-Enlightenment.fs	blank
 Presets/GLSL_shaders/icalvin102/RadialSpectrogram.fs	blank

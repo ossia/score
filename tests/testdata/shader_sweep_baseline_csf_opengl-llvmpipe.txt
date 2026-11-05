@@ -35,7 +35,6 @@ Presets/GLSL_shaders/volumetric/01-noise/01-23_tileable_noise.cs	gles300
 Presets/GLSL_shaders/volumetric/01-noise/01-24_anisotropic_noise.cs	gles300
 Presets/GLSL_shaders/volumetric/01-noise/01-25_worley_of_fbm.cs	gles300
 Presets/GLSL_shaders/volumetric/01-noise/01-26_sparse_convolution.cs	gles300
-Presets/GLSL_shaders/volumetric/02-structured/02-01_checkerboard3d.cs	blank
 Presets/GLSL_shaders/volumetric/02-structured/02-01_checkerboard3d.cs	gles300
 Presets/GLSL_shaders/volumetric/02-structured/02-02_bricks3d.cs	blank
 Presets/GLSL_shaders/volumetric/02-structured/02-02_bricks3d.cs	gles300
@@ -233,7 +232,6 @@ Presets/GLSL_shaders/volumetric/16-projection/16-05_swept_2d.cs	gles300
 Presets/GLSL_shaders/volumetric/17-exotic/17-01_tunnel.cs	gles300
 Presets/GLSL_shaders/volumetric/17-exotic/17-02_rave_strobe.cs	blank
 Presets/GLSL_shaders/volumetric/17-exotic/17-02_rave_strobe.cs	gles300
-Presets/GLSL_shaders/volumetric/17-exotic/17-03_bit_glitch.cs	blank
 Presets/GLSL_shaders/volumetric/17-exotic/17-03_bit_glitch.cs	gles300
 Presets/GLSL_shaders/volumetric/17-exotic/17-04_truchet_pipes.cs	gles300
 Presets/GLSL_shaders/volumetric/17-exotic/17-05_plasma3d.cs	gles300

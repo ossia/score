@@ -1,0 +1,65 @@
+Presets/GLSL_shaders/basic/filter/Show Alpha.fs	blank
+Presets/GLSL_shaders/basic/generator/BitStreamer.fs	blank
+Presets/GLSL_shaders/basic/generator/Color Organ Polyphonic.fs	blank
+Presets/GLSL_shaders/basic/generator/Solid Color.fs	blank
+Presets/GLSL_shaders/basic/multipass/Circle Trails.fs	blank
+Presets/GLSL_shaders/basic/multipass/FFT Spectrogram.fs	blank
+Presets/GLSL_shaders/basic/multipass/Life.fs	blank-mid
+Presets/GLSL_shaders/basic/multipass/Optical Flow Generator.fs	blank
+Presets/GLSL_shaders/basic/multipass/Radial Spectrogram.fs	blank
+Presets/GLSL_shaders/computer-vision/Filters/FrameDiff.fs	blank
+Presets/GLSL_shaders/grigm/01_Strobosphere.fs	blank
+Presets/GLSL_shaders/grigm/07_4tSXWt.fs	blank
+Presets/GLSL_shaders/grigm/BitStreamer.fs	blank
+Presets/GLSL_shaders/grigm/Chimera's_Breath_4tGfDW.fs	blank
+Presets/GLSL_shaders/grigm/Circle_bullshit2_4lfBzX.fs	blank
+Presets/GLSL_shaders/grigm/Crystal_Form_4tKGDD.fs	blank
+Presets/GLSL_shaders/grigm/Hyperellipse_visual_XtG3Ry.fs	blank
+Presets/GLSL_shaders/grigm/LightningFlash.fs	blank
+Presets/GLSL_shaders/grigm/Mystery_Mountains_llsGW7.fs	blank
+Presets/GLSL_shaders/grigm/Rave_Sickness-Oropendola_VIZU_3lXXWX.fs	blank
+Presets/GLSL_shaders/grigm/Reflect_Learning_MsdyW2.fs	blank
+Presets/GLSL_shaders/grigm/RetroTechicolorComputer.fs	blank
+Presets/GLSL_shaders/grigm/Shatter_MsfGz7.fs	blank
+Presets/GLSL_shaders/grigm/Space_Curvature_Planet_+_MoonÂ²_XddXWf.fs	blank
+Presets/GLSL_shaders/grigm/Test-Audio.fs	blank
+Presets/GLSL_shaders/grigm/Test-Bool.fs	blank
+Presets/GLSL_shaders/grigm/Test-Functionality.fs	blank
+Presets/GLSL_shaders/grigm/TextileMutationLattice.fs	blank
+Presets/GLSL_shaders/grigm/Triangular_Voronoi_Lighted_ltK3WD.fs	blank
+Presets/GLSL_shaders/grigm/Voro_Tri_Tunnel_XtGGWy.fs	blank
+Presets/GLSL_shaders/grigm/font_morph_ltcXzs.fs	blank
+Presets/GLSL_shaders/grigm/fx_Fluid_Warp_ltKfR1.fs	blank-mid
+Presets/GLSL_shaders/grigm/gs_24524.0.fs	blank
+Presets/GLSL_shaders/grigm/gs_34134.0.fs	blank
+Presets/GLSL_shaders/grigm/gs_34631.0.fs	blank
+Presets/GLSL_shaders/grigm/gs_34940.0.fs	blank
+Presets/GLSL_shaders/grigm/gs_34973.5.fs	blank
+Presets/GLSL_shaders/grigm/gs_35137.0.fs	blank-mid
+Presets/GLSL_shaders/grigm/gs_36473.0.fs	blank-mid
+Presets/GLSL_shaders/grigm/gs_39196.0.fs	blank
+Presets/GLSL_shaders/grigm/gs_39446.1.fs	blank
+Presets/GLSL_shaders/grigm/gs_39651.0.fs	blank
+Presets/GLSL_shaders/grigm/gs_39881.0.fs	blank
+Presets/GLSL_shaders/grigm/gs_39891.0.fs	blank
+Presets/GLSL_shaders/grigm/gs_43504.0.fs	blank
+Presets/GLSL_shaders/grigm/gs_46297.0.fs	blank
+Presets/GLSL_shaders/grigm/gs_48496.0.fs	blank
+Presets/GLSL_shaders/grigm/gs_48892.1.fs	blank
+Presets/GLSL_shaders/grigm/gs_52534.0.fs	blank
+Presets/GLSL_shaders/grigm/gs_54077.0.fs	blank
+Presets/GLSL_shaders/grigm/gs_54370.0.fs	blank
+Presets/GLSL_shaders/grigm/pixel-spirit_00-Void.fs	blank
+Presets/GLSL_shaders/grigm/pixel-spirit_48-Enlightenment.fs	blank
+Presets/GLSL_shaders/icalvin102/RadialSpectrogram.fs	blank
+Presets/GLSL_shaders/sophia-digital-art/Template.fs	blank
+Presets/GLSL_shaders/volumetric/18-viewers/18-01_slice_viewer.fs	blank
+Presets/GLSL_shaders/volumetric/18-viewers/18-02_slice_grid.fs	blank
+Presets/GLSL_shaders/volumetric/18-viewers/18-03_mip_raymarch.fs	blank
+Presets/GLSL_shaders/volumetric/18-viewers/18-04_emission_raymarch.fs	blank
+Presets/GLSL_shaders/volumetric/18-viewers/18-05_iso_raymarch.fs	blank
+Presets/GLSL_shaders/volumetric/18-viewers/18-06_orbit_raymarch.fs	blank
+Presets/GLSL_shaders/volumetric/18-viewers/18-07_triplanar_quad.fs	blank
+Presets/GLSL_shaders/volumetric/18-viewers/18-08_volume_lit.fs	blank
+Presets/GLSL_shaders/volumetric/18-viewers/18-09_raymarch_palette.fs	blank
+Presets/Javascript/rect-mapper/edgeblend.frag	parse

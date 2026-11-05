@@ -54,6 +54,7 @@ inline void sweepRaster(
   if(!gfx_settings)
     FAIL("score_plugin_gfx registered no settings model: run from the build root.");
   const auto api = gfx_settings->graphicsApiEnum();
+  const QString baselineFile = backendBaseline(baseline, api);
 
   // The producer lives in the library too; without it there is nothing to draw.
   QString producer;
@@ -114,7 +115,7 @@ inline void sweepRaster(
       report(rel, it2->second);
   }
 
-  diffAgainstBaseline(failures, baseline);
+  diffAgainstBaseline(failures, baselineFile);
 }
 
 //! The stock geometry producer the JS testers use for raster shaders. Emits a

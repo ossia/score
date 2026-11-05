@@ -71,10 +71,14 @@ done
 
 # >>> shader sweeps against the user library
 # The test_integration_shader_sweep_* harnesses render every shader of the
-# library in SCORE_SHADER_LIBRARY_DIR and diff the failures against
-# tests/testdata/shader_sweep_baseline_*.txt. SCORE_USER_LIBRARY_REF pins a
-# commit or branch; the default branch otherwise.
-# They run in a ctest pass of their own: test_integration_object_csf_sweep reads
+# library in SCORE_SHADER_LIBRARY_DIR and diff the failures against the
+# baseline of the backend they run on,
+# tests/testdata/shader_sweep_baseline_<kind>_<api>-<device>.txt. Those are
+# recorded against one commit of the library, which SCORE_USER_LIBRARY_REF
+# names (.github/workflows/coverage.yml): the default branch otherwise, which
+# the baselines may no longer match.
+# They run once on OpenGL (llvmpipe) and once on Vulkan (lavapipe), and in a
+# ctest pass of their own: test_integration_object_csf_sweep reads
 # the same variable as a csf-testers corpus, and handed the whole library it
 # would render two thousand shaders twice over, one process each. A sweep is
 # one test that renders the whole library on a software rasteriser, hence its
@@ -99,13 +103,15 @@ test_rc=$?
 
 # >>> shader sweeps against the user library
 if [ -d "$sweep_library/Presets" ]; then
-  (
-    cd build
-    SCORE_SHADER_LIBRARY_DIR="$sweep_library" \
-      xvfb-run -a ctest --output-on-failure --timeout 1800 -R "$sweep_tests"
-  )
-  sweep_rc=$?
-  [ "$test_rc" -eq 0 ] && test_rc=$sweep_rc
+  for backend in opengl vulkan; do
+    (
+      cd build
+      QSG_RHI_BACKEND=$backend SCORE_SHADER_LIBRARY_DIR="$sweep_library" \
+        xvfb-run -a ctest --output-on-failure --timeout 1800 -R "$sweep_tests"
+    )
+    sweep_rc=$?
+    [ "$test_rc" -eq 0 ] && test_rc=$sweep_rc
+  done
 else
   echo "::warning::score-user-library could not be fetched; the shader sweeps did not run."
 fi
