@@ -637,6 +637,8 @@ void TextureInletFactory::setupInletInspector(
     settings.addRow(QObject::tr("Mipmaps"), combo);
   }
 
+  settings.addRow(Process::PortWidgetSetup::makeCablesWidget(port, ctx, parent));
+
   lay.addRow(drawer.widget);
   // Open when the inlet does not leave everything to the shader
   drawer.setOpen(

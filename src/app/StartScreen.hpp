@@ -2143,7 +2143,7 @@ QWidget* StartScreen::makeCardGrid(
             changed ? StartScreenColors::Accent : StartScreenColors::Muted);
         tip += "\n\n";
         if(changed)
-          tip += tr("Changed online since it was downloaded") + "\n";
+          tip += tr("Changed online. Right-click to download it again.") + "\n";
         tip += QDir::toNativeSeparators(doc.path);
       }
       card->setToolTip(tip);
