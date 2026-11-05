@@ -22,6 +22,7 @@
 
 #include <score/plugins/UuidKey.hpp>
 
+#include <QDir>
 #include <QString>
 
 #include <algorithm>
@@ -69,6 +70,30 @@ inline constexpr ValidationPlugin validation_plugins[] = {
     {vst3_host, "vst3", "MaFreeverb.vst3", "MaFreeverb", "dpf-plugins-vst3"},
     {vst3_host, "vst3", "Kars.vst3", "Kars", "dpf-plugins-vst3"},
 };
+
+//! Why this process does not run in the private profile the test fixture
+//! makes (score_test/App.hpp: the application name score-test, a settings
+//! directory of its own), or nothing when it does. The sweeps set plug-in
+//! search paths and add files to the default library: run as score, or with the
+//! developer's own settings directory, they would write those of the developer.
+inline std::string outside_test_profile()
+{
+  const QString name
+      = qEnvironmentVariable("SCORE_CUSTOM_APP_APPLICATION_NAME", "score-test");
+  if(name != QLatin1String("score-test"))
+    return "the application name is " + name.toStdString()
+           + ", not score-test: its settings and library are not the tests' own";
+#if defined(__linux__) || defined(__FreeBSD__)
+  // Unset, the fixture sets one in the temporary directory
+  if(const QString cfg = qEnvironmentVariable("XDG_CONFIG_HOME"); !cfg.isEmpty())
+  {
+    const QString own = QDir{QDir::homePath() + "/.config"}.canonicalPath();
+    if(!own.isEmpty() && QDir{cfg}.canonicalPath() == own)
+      return "XDG_CONFIG_HOME is the user's own configuration directory";
+  }
+#endif
+  return {};
+}
 
 inline bool hosts_plugins(const std::string& uuid)
 {
