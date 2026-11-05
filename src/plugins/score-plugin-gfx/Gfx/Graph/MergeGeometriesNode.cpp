@@ -134,6 +134,9 @@ const char* formatName(decltype(ossia::geometry::attribute::format) f) noexcept
     case A::sshort2: return "sshort2";
     case A::sshort1: return "sshort1";
     case A::user_struct: return "user_struct";
+    case A::ubyte1: return "ubyte1";
+    case A::sbyte1: return "sbyte1";
+    case A::double1: return "double1";
   }
   return "unknown";
 }

@@ -139,8 +139,15 @@ void check_classic_cloud(const ossia::primitive_cloud_component_ptr& cloud)
   CHECK(cloud->primitive_count == 2);
   CHECK(cloud->row_stride == kClassicCols * 4);
   CHECK(cloud->topology == ossia::primitive_topology::points);
-  CHECK(cloud->format_id == "3dgs.classic");
-  CHECK(cloud->struct_type_name == "Splat3DGS");
+  // 15 columns are not the 62-float Splat3DGS row: the family tag, no struct,
+  // the columns listed for reading by name.
+  CHECK(cloud->format_id == "3dgs");
+  CHECK(cloud->struct_type_name.empty());
+  REQUIRE(cloud->columns.size() == kClassicCols);
+  CHECK(cloud->columns[7].name == "opacity");
+  CHECK(cloud->columns[7].byte_offset == 28);
+  CHECK(cloud->columns[7].type == ossia::primitive_cloud_component::column::f32);
+  CHECK(cloud->columns_hash != 0);
   CHECK(cloud->stable_id != 0);
 
   const auto* bd = raw_bytes(cloud);

@@ -151,3 +151,49 @@ TEST_CASE("ISF IMG_THIS_PIXEL follows the vertex shader's warp", "[gfx][isf][U30
   CHECK(int(px(32, 4)[1]) < 25);
   CHECK(int(px(32, mid)[1]) > 40);
 }
+
+// A vertex shader that writes isf_FragNormCoord after isf_vertShaderInit
+// leaves IMG_THIS_PIXEL alone: the read stays at the quad position init
+// computed, as VVISF's per-image coordinates do, so the gradient comes through
+// unchanged instead of the single texel at (0, 0).
+TEST_CASE(
+    "ISF IMG_THIS_PIXEL ignores later writes to isf_FragNormCoord", "[gfx][isf][U30]")
+{
+  const auto be = GENERATE(from_range(platform_backends()));
+  ReadbackImage img;
+  std::string error, backend;
+  bool skipped = false;
+  score::test::run_in_gui_app([&](const score::GUIApplicationContext&) {
+    GfxPipeline p;
+    const int gradient = p.addIsf(QStringLiteral(GFX_TEST_CORPUS_DIR "/isf-gradient-x.fs"));
+    const int reader = p.addIsf(
+        QStringLiteral(GFX_TEST_CORPUS_DIR "/isf-this-pixel-normcoord-moved.fs"));
+    const int sink = p.addSink({64, 64});
+    p.wire(p.imageOut(gradient, 0), p.imageIn(reader, 0));
+    p.wire(p.imageOut(reader, 0), p.sinkInput(sink));
+    if(!p.create(be))
+    {
+      skipped = p.skipped();
+      error = skipped ? p.skipReason() : p.error();
+      backend = p.backend();
+      return;
+    }
+    backend = p.backend();
+    p.render(4);
+    error = p.error();
+    img = p.readback(sink);
+  });
+  if(skipped)
+    SKIP(backend << ": " << error);
+  INFO("backend=" << backend << " error=" << error);
+  REQUIRE(error.empty());
+  REQUIRE(img.valid());
+
+  const int mid = img.height / 2;
+  const auto red = [&](int x) { return int(img.at(x, mid)[0]); };
+  INFO("red at 4: " << red(4) << ", at 32: " << red(32) << ", at 60: " << red(60));
+  // red = x / width at the pixel centre.
+  CHECK(std::abs(red(4) - 18) <= 4);
+  CHECK(std::abs(red(32) - 130) <= 4);
+  CHECK(std::abs(red(60) - 243) <= 4);
+}

@@ -24,14 +24,19 @@ bool ply_is_splat_shaped(std::string_view path);
 //
 // Returns nullptr if the PLY is not splat-shaped, or if parsing fails.
 //
-// Sets format_id to a recognized signature when columns match a known
-// fingerprint:
-//   - has f_dc_0/1/2 + f_rest_* + scale_0/1/2 + rot_0/1/2/3 + opacity
+// Every scalar column is listed in `columns` (name, PLY scalar type, byte
+// offset in the row), so a consumer can read any layout by column name.
+//
+// Sets format_id from the column layout:
+//   - exactly the 62 float32 columns of the INRIA export, in its order
 //     -> "3dgs.classic" / "Splat3DGS"
-//   - the same with a filter_3D column (Mip-Splatting, GOF)
+//   - the same followed by filter_3D (Mip-Splatting, GOF)
 //     -> "3dgs.mip" / "SplatMip"
-//   - the same with scale_0/1 but no scale_2 (2DGS)
+//   - the same with scale_0/1 and no scale_2 (2DGS)
 //     -> "2dgs.surfel" / "Splat2DGS"
+//   - any other layout with x/y/z, f_dc_0..2, opacity, scale_0..2 and
+//     rot_0..3 (no normals, SH degree 0 to 2, reordered, extra columns,
+//     double or integer columns): "3dgs", with no struct type
 //   - else empty (the user wires the chain by hand or saves a preset)
 ossia::primitive_cloud_component_ptr parse_ply(std::string_view path);
 

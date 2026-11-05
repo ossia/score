@@ -1503,6 +1503,28 @@ if(TARGET score_plugin_threedim AND TARGET test_unit_threedim_3rdparty)
     "${SCORE_ROOT_SOURCE_DIR}/3rdparty/eigen"
     $<TARGET_PROPERTY:score_plugin_threedim,INCLUDE_DIRECTORIES>
     $<TARGET_PROPERTY:score_plugin_gfx,INCLUDE_DIRECTORIES>)
+
+  # Every gaussian column layout (INRIA, no normals, SH 0-2, double,
+  # reordered, .splat, .spz) read by name through COLUMNS, compared with the
+  # INRIA file; and the proof that reading by name binds the rows in place.
+  score_add_test(test_gfx_splat_columns
+    SOURCES GfxSplatColumns.cpp ${_splat_hidden}
+    GUI
+    PLUGINS score_plugin_gfx score_plugin_threedim score_plugin_avnd
+            score_plugin_scenario score_lib_process
+    LIBS test_gfx_engine_glue test_unit_threedim_3rdparty fastgltf spz
+         "${QT_PREFIX}::Gui")
+  target_compile_definitions(test_gfx_splat_columns PRIVATE
+    GFX_TEST_CORPUS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/corpus")
+  target_include_directories(test_gfx_splat_columns SYSTEM PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-threedim"
+    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-threedim"
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-gfx"
+    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-gfx"
+    "${SCORE_ROOT_SOURCE_DIR}/3rdparty/vcglib"
+    "${SCORE_ROOT_SOURCE_DIR}/3rdparty/eigen"
+    $<TARGET_PROPERTY:score_plugin_threedim,INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:score_plugin_gfx,INCLUDE_DIRECTORIES>)
 endif()
 
 # The panel's edge-blend overlay is a QPainter gradient, and stopped one pixel
@@ -1572,6 +1594,10 @@ endif()
 # Image feedback loops: an all-Immediate cycle is broken at one edge and
 # warned about; a Delayed self-cable carries state.
 score_add_gfx_test(feedback_cycle GfxFeedbackCycle.cpp)
+
+# Storage images loaded before their first store start at zero: zeroTexture on
+# every layout, and a read_write image read on its first frame.
+score_add_gfx_test(csf_storage_image_zero GfxCsfStorageImageZero.cpp)
 
 # Library preset fixes (blinn_phong lights, the shading tiers' texture
 # fallback and unwired shadows, openpbr light scale, cubemap_orbit
@@ -2264,6 +2290,17 @@ score_add_gfx_test(isf_img_pixel GfxIsfImgPixel.cpp)
 
 # A vertex shader's own projection lands on the same pixels on every backend.
 score_add_gfx_test(isf_vertex_projection GfxIsfVertexProjection.cpp)
+
+# How an ISF-mode vertex shader is wrapped: decided past its comments, one
+# clip-space correction when it applies clipSpaceCorrMatrix itself, and
+# IMG_THIS_PIXEL kept on init's position. Parser level, no device.
+score_add_test(test_gfx_isf_vertex_wrapping
+  SOURCES GfxIsfVertexWrapping.cpp
+  PLUGINS score_plugin_gfx score_lib_process
+  LIBS test_gfx_engine_glue)
+score_link_plugins_for_static(test_gfx_isf_vertex_wrapping)
+target_compile_definitions(test_gfx_isf_vertex_wrapping PRIVATE
+  GFX_TEST_CORPUS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/corpus")
 
 # ISF-mode CULL_MODE none/back/front and gl_FrontFacing follow OpenGL, with
 # and without a vertex shader of the shader's own.

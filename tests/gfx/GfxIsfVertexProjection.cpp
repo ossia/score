@@ -3,7 +3,10 @@
 // w = 1, and the shader's own rotation and perspective projection (VIDVOX
 // 3d Rotate) act on that. The backend's clip-space correction comes after the
 // shader's main, so the projected quad lands on the same pixels on every
-// backend, whether or not the shader ends with isf_vertShaderFinish.
+// backend, whether or not the shader ends with isf_vertShaderFinish. A shader
+// that multiplies by clipSpaceCorrMatrix itself, as was once needed, gets only
+// the rest of that correction and lands on the same pixels too: not mirrored
+// on Vulkan by a second Y flip.
 #include <score_test/Gfx.hpp>
 
 #include <catch2/catch_test_macros.hpp>
@@ -133,7 +136,8 @@ TEST_CASE(
     "[gfx][isf]")
 {
   const auto shader = GENERATE(
-      std::string("isf-vertex-projection"), std::string("isf-vertex-projection-vvisf"));
+      std::string("isf-vertex-projection"), std::string("isf-vertex-projection-vvisf"),
+      std::string("isf-vertex-projection-clipcorr"));
   constexpr int w = 80, h = 60;
   const Box expected = expected_box(w, h);
 

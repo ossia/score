@@ -90,40 +90,98 @@ bool detect_splat_shape(miniply::PLYReader& reader)
   return has_extra || !has_face;
 }
 
-// Recognise a known column-name fingerprint and return the canonical
-// format_id. Empty result means "unknown / wired by hand".
+// The column sequence of a struct-typed format: the INRIA 3DGS export
+// (graphdeco-inria gaussian-splatting save_ply), with `scales` scale columns
+// and an optional trailing filter_3D (Mip-Splatting, GOF), all float32.
+std::vector<std::string> inria_columns(int scales, bool filter)
+{
+  std::vector<std::string> c{"x", "y", "z", "nx", "ny", "nz", "f_dc_0", "f_dc_1", "f_dc_2"};
+  for(int i = 0; i < 45; ++i)
+    c.push_back("f_rest_" + std::to_string(i));
+  c.push_back("opacity");
+  for(int i = 0; i < scales; ++i)
+    c.push_back("scale_" + std::to_string(i));
+  for(int i = 0; i < 4; ++i)
+    c.push_back("rot_" + std::to_string(i));
+  if(filter)
+    c.push_back("filter_3D");
+  return c;
+}
+
+// Whether the scalar columns of `vtx` are exactly `expected`, in order, all
+// float32: the row is then byte for byte the struct that format's shaders
+// declare.
+bool columns_are(const miniply::PLYElement& vtx, const std::vector<std::string>& expected)
+{
+  std::size_t k = 0;
+  for(auto& p : vtx.properties)
+  {
+    if(p.countType != miniply::PLYPropertyType::None)
+      continue;
+    if(k >= expected.size() || p.name != expected[k]
+       || p.type != miniply::PLYPropertyType::Float)
+      return false;
+    ++k;
+  }
+  return k == expected.size();
+}
+
+// Recognise a column layout and return its format_id. A struct-typed tag
+// ("3dgs.classic", "3dgs.mip", "2dgs.surfel") is given only when the row is
+// exactly that format's struct. Any other 3DGS layout (no normals, lower SH
+// degree, other column order, extra columns, other scalar types) gets the
+// family tag "3dgs": its columns are read by name. Other 2DGS layouts have no
+// by-name decoder and stay untagged. Empty result means "unknown / wired by
+// hand".
 std::string detect_format_id(const miniply::PLYElement& vtx)
 {
-  bool has_f_dc = false;
-  bool has_f_rest = false;
-  bool has_scale_01[2] = {false, false};
-  bool has_scale_2 = false;
-  bool has_rot = false;
+  if(columns_are(vtx, inria_columns(3, false)))
+    return "3dgs.classic";
+  if(columns_are(vtx, inria_columns(3, true)))
+    return "3dgs.mip";
+  if(columns_are(vtx, inria_columns(2, false)))
+    return "2dgs.surfel";
+
+  bool has_pos[3]{}, has_dc[3]{}, has_rot[4]{}, has_scale[3]{};
   bool has_opacity = false;
-  bool has_filter_3d = false;
   for(auto& p : vtx.properties)
   {
     if(p.countType != miniply::PLYPropertyType::None)
       continue;
     const auto& n = p.name;
-    if(n == "f_dc_0" || n == "f_dc_1" || n == "f_dc_2") has_f_dc = true;
-    else if(n.rfind("f_rest_", 0) == 0) has_f_rest = true;
-    else if(n == "scale_0") has_scale_01[0] = true;
-    else if(n == "scale_1") has_scale_01[1] = true;
-    else if(n == "scale_2") has_scale_2 = true;
-    else if(n == "rot_0" || n == "rot_1" || n == "rot_2" || n == "rot_3") has_rot = true;
-    else if(n == "opacity") has_opacity = true;
-    else if(n == "filter_3D") has_filter_3d = true;
+    if(n.size() == 1 && n[0] >= 'x' && n[0] <= 'z')
+      has_pos[n[0] - 'x'] = true;
+    else if(n.size() == 6 && n.rfind("f_dc_", 0) == 0 && n[5] >= '0' && n[5] <= '2')
+      has_dc[n[5] - '0'] = true;
+    else if(n.size() == 5 && n.rfind("rot_", 0) == 0 && n[4] >= '0' && n[4] <= '3')
+      has_rot[n[4] - '0'] = true;
+    else if(n.size() == 7 && n.rfind("scale_", 0) == 0 && n[6] >= '0' && n[6] <= '2')
+      has_scale[n[6] - '0'] = true;
+    else if(n == "opacity")
+      has_opacity = true;
   }
-  if(!(has_f_dc && has_f_rest && has_rot && has_opacity))
+  auto all = [](const auto& a) { return std::all_of(std::begin(a), std::end(a), [](bool b) { return b; }); };
+  if(!all(has_pos) || !all(has_dc) || !all(has_rot) || !has_opacity || !all(has_scale))
     return {};
-  if(!has_scale_01[0] || !has_scale_01[1])
-    return {};
-  if(!has_scale_2)
-    return has_filter_3d ? std::string{} : std::string{"2dgs.surfel"};
-  if(has_filter_3d)
-    return "3dgs.mip";
-  return "3dgs.classic";
+  return "3dgs";
+}
+
+ossia::primitive_cloud_component::column::scalar_type
+column_type_for(miniply::PLYPropertyType t) noexcept
+{
+  using PT = miniply::PLYPropertyType;
+  using C = ossia::primitive_cloud_component::column;
+  switch(t)
+  {
+    case PT::Char:   return C::i8;
+    case PT::UChar:  return C::u8;
+    case PT::Short:  return C::i16;
+    case PT::UShort: return C::u16;
+    case PT::Int:    return C::i32;
+    case PT::UInt:   return C::u32;
+    case PT::Double: return C::f64;
+    default:         return C::f32;
+  }
 }
 
 std::string struct_type_for(std::string_view format_id)
@@ -272,6 +330,11 @@ ossia::primitive_cloud_component_ptr parse_ply(std::string_view path)
   out->row_stride = row_stride;
   out->primitive_count = N;
   out->topology = ossia::primitive_topology::points;
+  out->columns.reserve(cols.size());
+  for(const auto& c : cols)
+    out->columns.push_back({c.name, column_type_for(c.type), c.offset_in_row});
+  out->columns_hash
+      = ossia::primitive_cloud_component::column_layout_hash(out->columns, row_stride);
   out->format_id = detect_format_id(*vtx);
   // For known formats, name the per-row struct so ScenePreprocessor
   // exposes raw_data as a per-vertex `splat: <Type>` ATTRIBUTE and the

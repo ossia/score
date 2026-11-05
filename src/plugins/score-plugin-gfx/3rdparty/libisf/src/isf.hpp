@@ -4,6 +4,7 @@
 #include <score_plugin_gfx_export.h>
 
 #include <array>
+#include <cstdint>
 #include <optional>
 #include <stdexcept>
 #include <string>
@@ -385,6 +386,12 @@ struct geometry_input
     // If set, this auxiliary is forwarded from another geometry's upstream.
     std::optional<copy_from> forward;
 
+    // Set on the two blocks the parser adds for COLUMNS (see
+    // geometry_input::columns): 1 = the row words, bound to the upstream
+    // buffer the columns live in; 2 = the per-column table. They are not
+    // matched by name against the upstream auxiliaries.
+    int column_block{0};
+
     // Raw-raster only: when true the node owns a ping-pong pair of buffers
     // (allocated from the LAYOUT + SIZE) that are swapped each frame, and
     // the auxiliary is NOT resolved from upstream geometry. In GLSL,
@@ -462,9 +469,48 @@ struct geometry_input
     bool owns_ladder() const noexcept { return ladder_index == 0 && in_ladder(); }
   };
 
+  // COLUMNS (compute shaders): scalar attributes read in place, wherever
+  // and however the upstream stores them. Each column is resolved by name
+  // against the upstream geometry's attributes like an ATTRIBUTES entry, but
+  // nothing is copied: the buffer holding the columns is bound as is, and a
+  // small table gives each column's byte offset, byte stride and scalar
+  // format. Reads go through generated accessors:
+  //   ISF_COLUMN(geo, name, idx)     the value of row idx, as TYPE
+  //   ISF_HAS_COLUMN(geo, name)      whether the upstream has the column
+  //   ISF_COLUMN_AT(geo, k, idx)     the k-th declared column, k computed
+  //   ISF_COLUMN_INDEX(geo, name)    k of a declared column
+  // A column the upstream lacks reads as 0. Columns must share one upstream
+  // buffer (those in another read as absent). Interleaved rows, mixed
+  // scalar types and unaligned columns are all read where they are.
+  struct column_request
+  {
+    std::string name; // GLSL identifier and upstream attribute name
+    std::string type; // "float" (default), "int" or "uint"
+  };
+  std::vector<column_request> columns;
+
   std::vector<attribute_request> attributes;
   std::vector<auxiliary_request> auxiliary;
   std::vector<auxiliary_texture_request> auxiliary_textures;
+
+  // Nothing declared: the geometry is forwarded as is (an input and an
+  // output port).
+  bool passes_through() const noexcept
+  {
+    return attributes.empty() && columns.empty();
+  }
+
+  // Whether this geometry reads an upstream geometry, and so has an input
+  // port: a read_only or read_write attribute, or a column.
+  bool reads_upstream() const noexcept
+  {
+    if(!columns.empty())
+      return true;
+    for(const auto& a : attributes)
+      if(a.access == "read_only" || a.access == "read_write")
+        return true;
+    return false;
+  }
 
   std::string vertex_count;   // expression string, may contain $USER
   std::string instance_count; // expression string, may contain $USER
@@ -1132,6 +1178,15 @@ struct array_type
 };
 SCORE_PLUGIN_GFX_EXPORT
 array_type parse_array_type(std::string_view type);
+
+// The GLSL function the COLUMNS accessors of geometry `geo` take each
+// column's (byte offset, byte stride, format, aligned) from: the table the
+// engine fills when `table` is empty, else these values, 4 per column, as
+// constants. The CSF source holds the first form on one line; replacing it
+// with the second specializes the shader to one upstream layout.
+SCORE_PLUGIN_GFX_EXPORT
+std::string column_meta_function(
+    std::string_view geo, std::size_t count, const std::vector<uint32_t>& table);
 
 // The ALPHA convention of a colour output: the OUTPUTS entry's, else the
 // descriptor's, else the mode's default.

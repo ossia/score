@@ -98,7 +98,7 @@ struct isf_input_port_count_vis
     port_counts c{};
     if(!raw_raster)
     {
-      if(in.attributes.empty())
+      if(in.passes_through())
       {
         // Pass-through: 1 inlet + 1 outlet
         c.inlets = 1;
@@ -106,9 +106,8 @@ struct isf_input_port_count_vis
       }
       else
       {
-        for(const auto& attr : in.attributes)
-          if(attr.access == "read_only" || attr.access == "read_write")
-          { c.inlets = 1; break; }
+        if(in.reads_upstream())
+          c.inlets = 1;
         for(const auto& attr : in.attributes)
           if(attr.access == "write_only" || attr.access == "read_write")
           { c.outlets = 1; break; }
