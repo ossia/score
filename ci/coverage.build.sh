@@ -55,17 +55,17 @@ vulkaninfo --summary 2>&1 | sed -n '/^Devices:/,$p' || true
 # <<< software Vulkan (lavapipe)
 
 # >>> validation audio plug-ins
-# Where the exec sweep finds the plug-ins it runs the CLAP, LV2, VST 2 and
+# Where the process sweeps find the plug-ins they run the CLAP, LV2, VST 2 and
 # VST 3 hosts with: <dir>/{clap,lv2,vst,vst3}, as the dpf-plugins-* and
-# lv2-examples packages install them (.github/workflows/coverage.yml). A
-# missing one is skipped by the sweep, which is what the warning is for.
+# lv2-examples packages install them (ci/coverage.deps.sh). A missing one is
+# skipped by the sweeps, which is what the warning is for.
 export SCORE_VALIDATION_PLUGINS="${SCORE_VALIDATION_PLUGINS:-/usr/lib}"
 for p in clap/MaFreeverb.clap clap/Kars.clap \
          vst/MaFreeverb-vst.so vst/Kars-vst.so \
          vst3/MaFreeverb.vst3 vst3/Kars.vst3 \
          lv2/MaFreeverb.lv2 lv2/Kars.lv2 lv2/eg-amp.lv2 lv2/eg-midigate.lv2; do
   [ -e "$SCORE_VALIDATION_PLUGINS/$p" ] \
-    || echo "::warning::validation plug-in $SCORE_VALIDATION_PLUGINS/$p is missing; the exec sweep skips it."
+    || echo "::warning::validation plug-in $SCORE_VALIDATION_PLUGINS/$p is missing; the process sweeps skip it."
 done
 # <<< validation audio plug-ins
 
