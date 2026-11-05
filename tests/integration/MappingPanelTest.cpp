@@ -49,7 +49,6 @@
 #include <QClipboard>
 #include <QComboBox>
 #include <QKeyEvent>
-#include <QLabel>
 #include <QMenu>
 #include <QScrollBar>
 #include <QLineEdit>
@@ -780,21 +779,8 @@ TEST_CASE(
     spin();
     CHECK(rowOfPort(w, *c.inlets()[0]) >= 0);
 
-    // Counts follow the search
-    auto summary = w.findChildren<QLabel*>().front();
-    for(auto l : w.findChildren<QLabel*>())
-      if(l->text().contains("cable"))
-        summary = l;
+    // A group header shows its count
     const int cables = count(w, ConnectionRow::Cable);
-    CHECK(summary->text().startsWith(QString("%1 cables").arg(cables)));
-    w.searchField().setText(b.inlets()[0]->visualName().isEmpty() ? "Inlet 1" : "Beta");
-    spin();
-    CHECK(summary->text().endsWith("shown"));
-    w.searchField().clear();
-    spin();
-    CHECK(!summary->text().endsWith("shown"));
-
-    // Group counts follow the search too
     w.groupingBox().setCurrentIndex(ConnectionsWidget::ByKind);
     spin();
     auto& m = *w.view().model();

@@ -430,7 +430,7 @@ struct erase_layer_button : halp::impulse_button<"Erase layer">
 {
   halp_meta(
       description,
-      "Removes the layer Layer says, on the grid, as the x of its lane does: "
+      "Removes the layer Layer says, on the grid, as the x of its lane does. "
       "Undo brings it back. The layer being overdubbed is dropped and the "
       "overdub goes on in a new one, as with Undo.")
 };

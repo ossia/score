@@ -73,9 +73,6 @@ public:
     m_gain->setRange(0., 1., 1.);
     m_gain->setValue(port.gain());
     m_gain->setPos({52, gainY - 11});
-    m_gain->setToolTip(QObject::tr(
-        "Gain applied to this output. A cable or an automation plugged into the "
-        "Gain port sets it while it plays."));
     QObject::connect(m_gain, &score::QGraphicsSlider::sliderMoved, this, [this] {
       m_ctx.dispatcher.submit<Process::SetGain>(m_port, m_gain->value());
     });
@@ -92,8 +89,7 @@ public:
     // Inside the panel: a click on an item whose origin is outside closes it
     // (ProcessGraphicsView::checkAndRemoveCurrentDialog)
     m_propagate->setPos({1, propagateY});
-    m_propagate->setToolTip(QObject::tr(
-        "Send this output to the audio output of the parent interval."));
+    m_propagate->setToolTip(QObject::tr("Send this output to the parent interval"));
     QObject::connect(m_propagate, &score::QGraphicsCheckBox::toggled, this, [this](bool b) {
       if(b != m_port.propagate())
         CommandDispatcher<>{m_ctx.commandStack}.submit<Process::SetPropagate>(m_port, b);
@@ -257,8 +253,7 @@ void AudioOutletFactory::setupOutletInspector(
 
   auto cb = new QCheckBox{QObject::tr("Propagate"), parent};
   cb->setObjectName(QStringLiteral("Propagate"));
-  score::setHelp(
-      cb, QObject::tr("Send this output to the audio output of the parent interval."));
+  score::setHelp(cb, QObject::tr("Send this output to the parent interval"));
   cb->setChecked(outlet.propagate());
   lay.addRow("", cb);
   QObject::connect(cb, &QCheckBox::toggled, &outlet, [&ctx, &out = outlet](auto ok) {
@@ -280,10 +275,6 @@ void AudioOutletFactory::setupOutletInspector(
   gain->setObjectName(QStringLiteral("Gain"));
   gain->setRange(0., 1., 1.);
   gain->setValue(outlet.gain());
-  score::setHelp(
-      gain, QObject::tr(
-                "Gain applied to this output. A cable or an automation plugged "
-                "into its Gain port sets it while it plays."));
   QObject::connect(gain, &score::DoubleSlider::sliderMoved, gain, [&ctx, &outlet](double v) {
     ctx.dispatcher.submit<Process::SetGain>(outlet, v);
   });

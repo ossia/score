@@ -269,8 +269,8 @@ TEST_CASE("a self-cable added live carries its state", "[gfx][feedback]")
   CHECK(after <= 10);
 }
 
-// The textures a cycle reads before anything has drawn into them -- the input
-// of the node the loop re-enters, the front of a self-fed port -- start out
+// The textures a cycle reads before anything has drawn into them (the input
+// of the node the loop re-enters, the front of a self-fed port) start out
 // black, so the level is exact from the first frame on: one step of 8 (1/32 of
 // 255, rounded) per pass. Memory left over from an earlier pipeline is put
 // there first; a target not cleared at creation reads it.

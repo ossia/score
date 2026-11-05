@@ -201,10 +201,9 @@ void PluginSettingsModel::firstTimeLibraryDownload()
 
     auto dl = score::question(
         qApp->activeWindow(), tr("Download the default library?"),
-        tr("The default library is not installed. It provides the templates, and "
-           "the presets and media that many examples use.\n"
-           "Do you want to download it from the internet?\n\n"
-           "It can also be installed later from the Packages page of the settings."));
+        tr("The default library is not installed. It provides the templates, "
+           "presets and media used by the examples. Download it now?\n\n"
+           "It can also be installed later from the Packages settings."));
 
     if(dl == QMessageBox::Yes)
       defaultLibrary.install();

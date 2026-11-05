@@ -14,9 +14,8 @@ ConnectionsPanel::ConnectionsPanel(const score::GUIApplicationContext& ctx)
 {
   m_widget->setObjectName("ConnectionsPanel");
   score::setHelp(
-      m_widget, QObject::tr("This panel lists the cables of the document and the "
-                            "ports bound to device addresses. Select a row to show "
-                            "it in the score, press Delete to remove it."));
+      m_widget,
+      QObject::tr("The cables of the document and the ports bound to addresses."));
 }
 
 ConnectionsPanel::~ConnectionsPanel() = default;

@@ -90,17 +90,11 @@ struct Node : Looper::looper_node<Node>
 
     struct : halp::impulse_button<"Undo">
     {
-      halp_meta(
-          description,
-          "Takes back what was done to the layers, the last first: a pass, the "
-          "one in progress included, an erased layer, which comes back as it "
-          "was, or a mute")
+      halp_meta(description, "Undoes the last pass, erase or mute")
     } undo;
     struct : halp::impulse_button<"Redo">
     {
-      halp_meta(
-          description,
-          "Does again what Undo took back last, until something else is done")
+      halp_meta(description, "Redoes what Undo took back")
     } redo;
     struct : halp::impulse_button<"Clear">
     {

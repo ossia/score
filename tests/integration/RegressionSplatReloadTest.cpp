@@ -62,8 +62,8 @@ TEST_CASE(
   });
 }
 
-// The C++ Splat process is replaced by the Asset Loader -> Scene Preprocessor
-// -> Compute Shader -> Render Pipeline chain: it is deprecated, so the library
+// The C++ Splat process is replaced by the chain of Asset Loader, Scene
+// Preprocessor, Compute Shader and Render Pipeline: it is deprecated, so the library
 // and the Add Process dialog no longer offer it, while documents that use it
 // still create and load it.
 TEST_CASE(
