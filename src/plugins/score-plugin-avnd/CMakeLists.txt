@@ -391,8 +391,7 @@ score_register_license(Avendish URL "https://github.com/celtera/avendish" FILES 
 score_register_license(csv2 URL "https://github.com/p-ranav/csv2" NOTICES "${3RDPARTY_FOLDER}/csv2/include/csv2/csv2.hpp")
 score_register_license(Alphanum NOTICES "${CMAKE_CURRENT_SOURCE_DIR}/AvndProcesses/Alphanum.hpp")
 
-if(SCORE_PCH)
-if(NOT TARGET avnd_source_parser)
+if((SCORE_PCH OR SCORE_AVND_PCH) AND NOT TARGET avnd_source_parser)
 set(SCORE_AVND_PCH_HEADERS
   "${CMAKE_CURRENT_SOURCE_DIR}/Avnd/Factories.hpp"
 
@@ -412,7 +411,9 @@ set(SCORE_AVND_PCH_HEADERS
   ${HALP_HEADERS}
 )
 
-target_precompile_headers(score_plugin_avnd PRIVATE ${SCORE_AVND_PCH_HEADERS})
+if(SCORE_PCH)
+  target_precompile_headers(score_plugin_avnd PRIVATE ${SCORE_AVND_PCH_HEADERS})
+endif()
 
 # The plug-in's own PCH bakes in SCORE_PLUGIN_AVND_EXPORTS, which the export
 # header tests: gcc refuses that PCH in any other target. avnd_score_plugin
@@ -423,9 +424,12 @@ file(CONFIGURE
 add_library(score_plugin_avnd_pch STATIC
   "${CMAKE_CURRENT_BINARY_DIR}/score_plugin_avnd_pch_dummy.cpp")
 target_link_libraries(score_plugin_avnd_pch PUBLIC score_plugin_avnd)
-target_precompile_headers(score_plugin_avnd_pch PUBLIC ${SCORE_AVND_PCH_HEADERS})
+# The headers are C++: the C and Objective-C sources of those targets get none.
+list(TRANSFORM SCORE_AVND_PCH_HEADERS
+  REPLACE "^(.+)$" "$<$<COMPILE_LANGUAGE:CXX>:\\1>"
+  OUTPUT_VARIABLE _avnd_pch_cxx_headers)
+target_precompile_headers(score_plugin_avnd_pch PUBLIC ${_avnd_pch_cxx_headers})
 set_target_properties(score_plugin_avnd_pch PROPERTIES FOLDER "Plugins")
-endif()
 endif()
 
 set(AVND_ADDITIONAL_CLASSES)
