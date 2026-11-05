@@ -21,7 +21,11 @@
 
 #include <catch2/catch_test_macros.hpp>
 
+#include <cmath>
 #include <set>
+#include <string>
+#include <string_view>
+#include <typeinfo>
 #include <vector>
 
 using V = Video::VideoPixelFormat;
@@ -102,6 +106,66 @@ TEST_CASE("the late planar and chroma-swapped decoders exist", "[gfx][decoders]"
     INFO("format " << Video::formatName(f));
     CHECK(makeWireDecoder(f, meta) != nullptr);
   }
+}
+
+namespace
+{
+// By type name rather than dynamic_cast: with the plug-in built as a shared
+// library its typeinfo is hidden. A hidden type's name starts with '*'.
+std::string_view typeName(const std::type_info& t)
+{
+  std::string_view n = t.name();
+  if(n.starts_with('*'))
+    n.remove_prefix(1);
+  return n;
+}
+
+template <typename T>
+T* as(const std::unique_ptr<score::gfx::GPUVideoDecoder>& d)
+{
+  if(!d || typeName(typeid(*d)) != typeName(typeid(T)))
+    return nullptr;
+  return static_cast<T*>(d.get());
+}
+} // namespace
+
+// NDI's 16-bit layouts. Their words are the 8-bit code shifted left by 8, so
+// limited-range white is 60160 and black 4096, and the R16 sampler's
+// word / 65535 has to be scaled by 65535 / 65280 to land back on the codes.
+// The pixel sweep in tests/gfx/VideoDecoderPixels.cpp renders the same scale.
+TEST_CASE("P216 and PA16 decode their words at the 8-bit code scale", "[gfx][decoders]")
+{
+  Video::ImageFormat meta;
+  meta.width = 1920;
+  meta.height = 1080;
+
+  auto p216 = makeWireDecoder(V::P216, meta);
+  auto* dec = as<score::gfx::P210Decoder>(p216);
+  REQUIRE(dec);
+  REQUIRE(dec->scale);
+  CHECK(std::string_view(dec->scale) == SCORE_GFX_MSB_ALIGNED_SCALE);
+
+  const float s = std::stof(dec->scale);
+  struct Word
+  {
+    unsigned word;
+    double code;
+  };
+  for(auto [word, code] : {Word{4096, 16}, Word{32768, 128}, Word{60160, 235},
+                           Word{61440, 240}, Word{65280, 255}})
+  {
+    const double got = double(s * (float(word) / 65535.f)) * 255.;
+    INFO("P216 word " << word << " decodes to code " << got << ", want " << code);
+    CHECK(std::abs(got - code) < 1e-3);
+  }
+
+  // PA16's colour planes are P216's; its shader carries the constant inline.
+  auto pa16 = makeWireDecoder(V::PA16, meta);
+  REQUIRE(as<score::gfx::PA16Decoder>(pa16));
+  CHECK(
+      std::string_view(score::gfx::PA16Decoder::frag)
+          .find("const float s = " SCORE_GFX_MSB_ALIGNED_SCALE ";")
+      != std::string_view::npos);
 }
 
 // A card that can be fed a format can normally also deliver it. The exceptions

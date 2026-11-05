@@ -614,6 +614,8 @@ TEST_CASE(
 #if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(57, 17, 100)
       {"p210le", AV_PIX_FMT_P210LE, 10, 2, 1},
       {"p410le", AV_PIX_FMT_P410LE, 10, 1, 1},
+      // What NDI delivers for a 16-bit source, through P210Decoder.
+      {"p216le", AV_PIX_FMT_P216LE, 16, 2, 1},
 #endif
       {"p016le", AV_PIX_FMT_P016LE, 16, 2, 2},
   };

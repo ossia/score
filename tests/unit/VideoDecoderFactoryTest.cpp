@@ -41,7 +41,9 @@
 
 #include <catch2/catch_test_macros.hpp>
 
+#include <cmath>
 #include <cstring>
+#include <string>
 #include <string_view>
 #include <typeinfo>
 
@@ -155,6 +157,37 @@ TEST_CASE("Semi-planar decoder selection", "[gfx][video][decoderfactory]")
   CHECK(as<P410Decoder>(make(AV_PIX_FMT_P410LE)));
 #endif
 }
+
+#if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(57, 17, 100)
+// P216 words are the 8-bit code shifted left by 8: limited-range black is
+// 4096, neutral chroma 32768, white 60160, full scale 65280. The R16 sampler
+// returns word / 65535, so the decoder's scale is what puts each word back on
+// its code; a scale of 1 reads white as 234.1 and black as 15.9.
+TEST_CASE("P216LE renormalises its words to the 8-bit codes", "[gfx][video][decoderfactory]")
+{
+  auto d = make(AV_PIX_FMT_P216LE);
+  auto* p216 = as<P210Decoder>(d);
+  REQUIRE(p216);
+  REQUIRE(p216->scale);
+  CHECK(std::string_view(p216->scale) == SCORE_GFX_MSB_ALIGNED_SCALE);
+
+  // What the shader computes, in the float precision it computes it in.
+  const float s = std::stof(p216->scale);
+  struct Word
+  {
+    unsigned word;
+    double code;
+  };
+  for(auto [word, code] : {Word{4096, 16}, Word{32768, 128}, Word{60160, 235},
+                           Word{61440, 240}, Word{65280, 255}})
+  {
+    const float sampled = float(word) / 65535.f;
+    const double got = double(s * sampled) * 255.;
+    INFO("word " << word << " decodes to code " << got << ", want " << code);
+    CHECK(std::abs(got - code) < 1e-3);
+  }
+}
+#endif
 
 TEST_CASE("Packed RGB decoder parameterisation", "[gfx][video][decoderfactory]")
 {
