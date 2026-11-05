@@ -146,6 +146,8 @@ struct pass_stack
     //! A mute: the pass is muted after it.
     bool muted{};
     uint32_t group{};
+    //! The id of the pass made, erased or muted.
+    uint32_t id{};
   };
   std::array<action, max_history> history{};
   //! Actions done; the ones from `done` to `recorded` are what redo does
@@ -198,6 +200,8 @@ struct pass_stack
   }
   bool can_undo() const noexcept { return done > 0 || count > 0; }
   bool can_redo() const noexcept { return recorded > done || total > count; }
+  //! Redo does an action again, rather than showing a pass undo hid.
+  bool redoes_action() const noexcept { return recorded > done; }
 
   Pass* top() noexcept { return count > 0 ? &layers[count - 1] : nullptr; }
 
@@ -237,8 +241,9 @@ struct pass_stack
     if(k < 0 || k >= count || layers[k].muted == m)
       return false;
     drop_redo();
+    const uint32_t id = layers[k].id;
     apply_mute(k, m);
-    record(action{.kind = action::mute, .at = int8_t(k), .muted = m});
+    record(action{.kind = action::mute, .at = int8_t(k), .muted = m, .id = id});
     return true;
   }
 
@@ -262,7 +267,7 @@ struct pass_stack
     total = 1;
     layers[0] = Pass{};
     layers[0].id = ++last_id;
-    record(action{.kind = action::pass});
+    record(action{.kind = action::pass, .id = layers[0].id});
     return layers[0];
   }
 
@@ -279,7 +284,7 @@ struct pass_stack
     pushes++;
     aside.by = count - 1;
     recorded = done;
-    record(action{.kind = action::pass});
+    record(action{.kind = action::pass, .id = l.id});
     self().passes_changed();
     return l;
   }
@@ -289,6 +294,16 @@ struct pass_stack
   void drop_redo() noexcept
   {
     const bool keep_aside = aside.valid && !aside.returned;
+    // Without a pass for redo to show again, no material is to go: the
+    // actions redo does again hold none.
+    if(total == count)
+    {
+      recorded = done;
+      if(!keep_aside)
+        aside.valid = false;
+      drop_unmerge();
+      return;
+    }
     self().redo_dropped(keep_aside);
     total = count;
     recorded = done;
@@ -392,7 +407,8 @@ struct pass_stack
     {
       // Past the actions kept, what redo would do again of them is not
       // where it was any more.
-      recorded = 0;
+      if(count > 0)
+        recorded = 0;
       return undo_top();
     }
     step s;
@@ -468,22 +484,17 @@ struct pass_stack
   }
 
   //! The pass being taken in, the newest, goes, without being an action redo
-  //! does again: with it what was done to it.
+  //! does again: with it what was done to it. Its actions are found by its
+  //! id: the oldest ones may be forgotten, its own among them.
   step drop_top() noexcept
   {
-    const int top = count - 1;
-    int marker = -1;
-    for(int i = done - 1; i >= 0; i--)
-      if(history[i].kind == action::pass)
-      {
-        marker = i;
-        break;
-      }
-    if(marker >= 0)
+    if(count > 0)
     {
-      int out = marker;
-      for(int i = marker + 1; i < done; i++)
-        if(!(history[i].kind == action::mute && history[i].at == top))
+      const uint32_t id = layers[count - 1].id;
+      int out = 0;
+      for(int i = 0; i < done; i++)
+        if(!(history[i].id == id
+             && (history[i].kind == action::pass || history[i].kind == action::mute)))
           history[out++] = history[i];
       done = recorded = out;
     }
@@ -560,8 +571,9 @@ struct pass_stack
     drop_redo();
     forget_aside();
     const int j = take_kept();
+    const uint32_t id = layers[k].id;
     keep(k, j);
-    record(action{.kind = action::erase, .at = int8_t(k), .kept = int8_t(j)});
+    record(action{.kind = action::erase, .at = int8_t(k), .kept = int8_t(j), .id = id});
     return true;
   }
 
@@ -1017,6 +1029,9 @@ struct tagged_pass_stack : pass_stack<Store, Pass, MaxLayers>
     const bool lost_b = was_b.muted && !was_a.muted;
     store().for_each_material([=](auto& e) { tags::merge(e, a, lost_a, lost_b); });
     this->merged(a, this->merged_pass(was_a, was_b), undoable, was_a, was_b);
+    // What the merge lost is for undo only.
+    if(!undoable)
+      unmerge_dropped();
   }
 
   void begin_pass_state(int64_t start) noexcept

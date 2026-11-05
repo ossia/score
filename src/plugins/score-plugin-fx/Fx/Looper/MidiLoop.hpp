@@ -207,9 +207,19 @@ struct midi_loop : tagged_pass_stack<midi_loop, midi_pass, 32>
     touched_count = o.touched_count;
   }
 
+  //! Room for one more event in a store holding `used` of `max`: the events
+  //! of the erased passes kept for undo go for it, the oldest pass first.
+  bool make_room(const int& used, int max) noexcept
+  {
+    while(used >= max)
+      if(!forget_oldest_kept())
+        return false;
+    return true;
+  }
+
   midi_note* add_note(int64_t pos, int channel, int pitch, int velocity) noexcept
   {
-    if(note_count >= max_notes)
+    if(!make_room(note_count, max_notes))
     {
       full = true;
       return nullptr;
@@ -242,7 +252,7 @@ struct midi_loop : tagged_pass_stack<midi_loop, midi_pass, 32>
 
   void add_control(int64_t pos, uint8_t status, uint8_t d1, uint8_t d2) noexcept
   {
-    if(control_count >= max_controls)
+    if(!make_room(control_count, max_controls))
     {
       full = true;
       return;

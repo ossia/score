@@ -2166,6 +2166,60 @@ TEST_CASE("MIDI looper: a muted pass merged into the one under it leaves what th
   CHECK(l.heard(l.controls[0]));
 }
 
+TEST_CASE("MIDI looper: the events of an erased pass make room for new ones once the "
+          "store is full",
+          "[fx][midi][looper][erase][undo]")
+{
+  using Nodes::Looper::midi_loop;
+  for(const bool notes : {true, false})
+  {
+    INFO((notes ? "notes" : "controls"));
+    auto loop = std::make_unique<midi_loop>();
+    auto& l = *loop;
+    const int max = notes ? midi_loop::max_notes : midi_loop::max_controls;
+    const int& used = notes ? l.note_count : l.control_count;
+    auto add = [&](int64_t pos) {
+      if(notes)
+        return l.add_note(pos, 1, 60, 100) != nullptr;
+      l.full = false;
+      l.add_control(pos, 0xB0, 7, uint8_t(pos & 127));
+      return !l.full;
+    };
+    l.begin_recording();
+    REQUIRE(add(0));
+    l.length = 1000;
+    l.pass_written = 1000;
+    l.end_pass(OverdubMode::Merge);
+
+    // A second pass fills the store, then is erased: undo can bring it back
+    l.begin_overdub(0);
+    while(used < max)
+      REQUIRE(add(used % 1000));
+    l.advance_pass(1000.);
+    l.end_pass(OverdubMode::Merge);
+    REQUIRE(l.erase(1));
+    REQUIRE(l.count == 1);
+    REQUIRE(used == max);
+    REQUIRE(l.kept_used != 0);
+
+    // A new pass records: the erased pass goes for good for it
+    l.begin_overdub(0);
+    CHECK(add(10));
+    CHECK(!l.full);
+    CHECK(l.kept_used == 0);
+    CHECK(used == 2);
+    l.advance_pass(1000.);
+    l.end_pass(OverdubMode::Merge);
+    CHECK(l.count == 2);
+
+    // Without anything kept for undo, a full store drops what comes in
+    while(used < max)
+      REQUIRE(add(used % 1000));
+    CHECK(!add(20));
+    CHECK(l.full);
+  }
+}
+
 TEST_CASE("MIDI looper switches: recording a loop", "[fx][midi][looper][switches]")
 {
   switches_harness h;
