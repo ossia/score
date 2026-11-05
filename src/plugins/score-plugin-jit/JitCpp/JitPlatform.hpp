@@ -231,8 +231,10 @@ static inline std::string locateOrcRuntime()
     const QString clangLibs = root + "/lib/clang";
     if(!QDir(clangLibs).exists())
       continue;
+    // Debian's /usr/lib/clang/<v>/lib links to /usr/lib/llvm-<v>/lib/clang/<v>/lib
     QDirIterator it(
-        clangLibs, {"liborc_rt*.a"}, QDir::Files, QDirIterator::Subdirectories);
+        clangLibs, {"liborc_rt*.a"}, QDir::Files,
+        QDirIterator::Subdirectories | QDirIterator::FollowSymlinks);
     if(it.hasNext())
       return it.next().toStdString();
   }
@@ -269,7 +271,9 @@ static inline std::string locateBuiltinsRuntime()
     const QString clangLibs = root + "/lib/clang";
     if(!QDir(clangLibs).exists())
       continue;
-    QDirIterator it(clangLibs, {archive}, QDir::Files, QDirIterator::Subdirectories);
+    QDirIterator it(
+        clangLibs, {archive}, QDir::Files,
+        QDirIterator::Subdirectories | QDirIterator::FollowSymlinks);
     while(it.hasNext())
     {
       const QString f = it.next();
@@ -965,6 +969,10 @@ static inline void populateIncludeDirs(std::vector<std::string>& args)
 #elif defined(_GLIBCXX_RELEASE)
   // Try to locate the correct libstdc++ folder
   // TODO these are only heuristics. how to make them better ?
+  // Debian and Ubuntu put the target-specific halves of libstdc++ and glibc
+  // in a multiarch directory, /usr/include/x86_64-linux-gnu, which is then
+  // searched after the clang headers, as clang's driver does.
+  std::string multiarch_include;
   {
     const auto libstdcpp_major = QString::number(_GLIBCXX_RELEASE);
 
@@ -995,6 +1003,20 @@ static inline void populateIncludeDirs(std::vector<std::string>& args)
           }
         }
 
+        // e.g. /usr/include/x86_64-linux-gnu/c++/15
+        const QDir incdir{"/usr/include"};
+        for(const auto& d : incdir.entryList(QDir::Dirs | QDir::NoDotAndDotDot))
+        {
+          if(QFileInfo::exists(
+                 "/usr/include/" + d + "/c++/" + ver + "/bits/c++config.h"))
+          {
+            args.push_back("-internal-isystem");
+            args.push_back("/usr/include/" + d.toStdString() + "/c++/" + gcc);
+            multiarch_include = "/usr/include/" + d.toStdString();
+            break;
+          }
+        }
+
         break;
       }
     }
@@ -1011,6 +1033,13 @@ static inline void populateIncludeDirs(std::vector<std::string>& args)
 #else
   args.push_back("-internal-isystem");
   args.push_back(sdk + "/lib/clang/" + llvm_lib_version + "/include");
+#if defined(_GLIBCXX_RELEASE)
+  if(!multiarch_include.empty())
+  {
+    args.push_back("-internal-externc-isystem");
+    args.push_back(multiarch_include);
+  }
+#endif
   args.push_back("-internal-externc-isystem");
   args.push_back(sdk + "/include");
 #endif
