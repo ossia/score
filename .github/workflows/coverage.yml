@@ -15,16 +15,16 @@ jobs:
     name: Coverage (Coveralls)
     runs-on: [self-hosted, linux, x64, sat-builder]
     container:
-      image: ubuntu:noble
+      image: ubuntu:26.10
 
     steps:
       - name: Install git
         run: |
           apt-get update -qq
-          apt-get install -qq --no-install-recommends --force-yes git ca-certificates curl
+          apt-get install -qq -y --no-install-recommends git ca-certificates curl
 
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           submodules: 'recursive'
 
@@ -35,40 +35,17 @@ jobs:
         run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
 
       - name: Dependencies
-        run: |
-          ./ci/ubuntu.noble.deps.sh
-          # Coverage report generator + a clang/llvm toolchain (llvm-cov gcov)
-          # + software OpenGL (llvmpipe) + a virtual X display (xvfb) so the
-          # SCORE_TESTING ctest suite (incl. GUI-labelled tests) can run.
-          apt-get install -y --no-install-recommends \
-            gcovr clang lld llvm \
-            libgl1-mesa-dri libglx-mesa0 mesa-utils xvfb \
-            qml6-module-qtqml-workerscript
-          # >>> software Vulkan (lavapipe)
-          # So that the gfx tests run on Vulkan as well as on OpenGL, and the
-          # ones comparing two backends run at all. vulkan-tools is for the
-          # device summary coverage.build.sh logs.
-          apt-get install -y --no-install-recommends \
-            mesa-vulkan-drivers libvulkan1 vulkan-tools
-          # <<< software Vulkan (lavapipe)
-          # >>> validation audio plug-ins
-          # The exec sweep (test_nodes_process_views_exec_*) runs the CLAP,
-          # LV2, VST 2 and VST 3 hosts with DPF-Plugins' MaFreeverb and Kars,
-          # and LV2's eg-amp and eg-midigate (tests/nodes/ValidationPlugins.hpp).
-          apt-get install -y --no-install-recommends \
-            dpf-plugins-clap=1.7+ds-2build3 dpf-plugins-lv2=1.7+ds-2build3 \
-            dpf-plugins-vst=1.7+ds-2build3 dpf-plugins-vst3=1.7+ds-2build3 \
-            lv2-examples=1.18.10-2build1
-          # <<< validation audio plug-ins
+        run: ./ci/coverage.deps.sh
 
       - name: Build, run tests, generate Coveralls report
         env:
-          # clang-19 comes from ubuntu.noble.deps.sh; the distro's default
-          # clang-18 miscompiles the target("default")/target("avx2") function
-          # multiversioning in FileContains.cpp as a redefinition.
-          CC: clang-19
-          CXX: clang++-19
-          GCOV: "llvm-cov-19 gcov"
+          # LLVM 23 from apt.llvm.org (ci/coverage.deps.sh), which the JIT
+          # plug-in builds against. LLVM_DIR because ubuntu.2604.deps.sh also
+          # installs the distribution's LLVM 22 development packages.
+          CC: clang-23
+          CXX: clang++-23
+          GCOV: "llvm-cov-23 gcov"
+          CMAKEFLAGS: "-DLLVM_DIR=/usr/lib/llvm-23/lib/cmake/llvm"
         run: ./ci/coverage.build.sh
 
       # Uploads via the Coveralls GitHub App (github.token) — no secret needed
