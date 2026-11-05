@@ -681,6 +681,10 @@ struct audio_layers : pass_stack<audio_layers, audio_layer, max_audio_layers>
     }
     if(oldest && count >= slots && !merging.active)
       start_merge(0);
+    // The buffers of erased passes kept for undo go first, the oldest first:
+    // finishing a merge at once works the whole loop out in this tick.
+    while(take_slot_count() == 0 && forget_oldest_kept())
+      ;
     // No buffer left for the pass, e.g. one more overdub while the last merge
     // is not done: it is finished at once, which makes room.
     if(take_slot_count() == 0)

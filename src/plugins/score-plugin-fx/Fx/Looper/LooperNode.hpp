@@ -219,6 +219,12 @@ protected:
   bool pass_pending() const noexcept { return m_pass_pending; }
   //! A pass is open in the stack.
   bool pass_open() const noexcept { return transport.is_taking() && !m_pass_pending; }
+  //! Redo acts: while a pass is taken in, only on what was undone since it
+  //! started, the actions done over it.
+  bool may_redo() const noexcept
+  {
+    return pass_open() ? stack().redoes_action() : stack().can_redo();
+  }
 
   //! Something comes in for the pass being taken in: a pass still waiting
   //! for it becomes a layer, from where the overdub began.
@@ -525,7 +531,7 @@ void looper_node<Node>::apply_buttons()
     }
   }
 
-  if(in.redo.value && !pass_open())
+  if(in.redo.value && may_redo())
   {
     passes_changing();
     const auto step = stack().redo();
@@ -1166,7 +1172,7 @@ void looper_node<Node>::fill_view(Looper::view_message& v) const noexcept
   v.requested = int(transport.quantizedPlayMode);
   v.wanted = int(m_mode);
   v.layers = st.count;
-  v.redo = st.can_redo() ? std::max(1, st.total - st.count) : 0;
+  v.redo = may_redo() ? std::max(1, st.total - st.count) : 0;
   v.full = self().view_full();
   v.length_seconds = float(st.length / m_rate);
   v.position
@@ -1184,6 +1190,18 @@ void looper_node<Node>::fill_view(Looper::view_message& v) const noexcept
   v.new_pass_pending = transport.new_pass_pending();
   const int lanes = std::min(st.count, Looper::view_message::max_lanes);
   const int merged = st.count - lanes;
+  v.queued.fill(0);
+  {
+    std::size_t q = 0;
+    const auto add = [&](uint32_t id) {
+      if(id != 0 && q < v.queued.size())
+        v.queued[q++] = id;
+    };
+    for(int i = 0; i < m_erase_count; i++)
+      add(m_erase_requests[std::size_t(i)].id);
+    for(int i = 0; i < m_switches.action_count; i++)
+      add(m_switches.actions[std::size_t(i)].id);
+  }
   v.muted.fill(0);
   v.lane_id.fill(0);
   for(int l = merged > 0 ? 1 : 0; l < lanes; l++)

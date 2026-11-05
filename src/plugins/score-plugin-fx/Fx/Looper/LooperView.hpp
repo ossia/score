@@ -137,6 +137,11 @@ struct view_message
   std::array<uint32_t, max_lanes> lane_id;
   //! The pass Layer says, from the oldest one, which the layer actions act on.
   int selected;
+  //! The passes an m or x was asked for, that the looper got and did not do
+  //! yet, by id, 0 past them: an m or x the looper turned down is not among
+  //! them.
+  static constexpr int max_queued = 32;
+  std::array<uint32_t, max_queued> queued;
   //! Waiting for the grid point besides a mode: back to the loop's start, a
   //! new pass.
   bool restart_pending;
@@ -285,7 +290,14 @@ struct looper_view
     uint32_t id{};
     bool erase{};
     bool muted{};
+    //! The looper showed it queued.
+    bool seen{};
+    //! Messages that came without it queued.
+    uint8_t unseen{};
   };
+  //! Messages an m or x may take to reach the looper and come back in what it
+  //! shows queued: past them, the looper did not take it.
+  static constexpr int max_unseen = 15;
   static constexpr int max_pending = 16;
   std::array<pending_action, max_pending> m_pending{};
   int m_pending_count{};
@@ -321,13 +333,29 @@ struct looper_view
     int out = 0;
     for(int i = 0; i < m_pending_count; i++)
     {
-      const auto& a = m_pending[i];
+      auto a = m_pending[i];
       const int lane = lane_of_id(a.id);
       const bool done = lane < 0 || (!a.erase && bool(state.muted[lane]) == a.muted);
-      if(!done)
-        m_pending[out++] = a;
+      if(done)
+        continue;
+      if(queued(a.id))
+        a.seen = true;
+      else if(a.seen || ++a.unseen > max_unseen)
+        continue;
+      m_pending[out++] = a;
     }
     m_pending_count = out;
+  }
+  bool queued(uint32_t id) const noexcept
+  {
+    for(uint32_t q : state.queued)
+    {
+      if(q == 0)
+        return false;
+      if(q == id)
+        return true;
+    }
+    return false;
   }
   int lane_of_id(uint32_t id) const noexcept
   {
