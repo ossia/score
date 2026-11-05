@@ -291,6 +291,8 @@ function(score_jit_write_build_tree_flags)
 
   get_target_property(_bin score_plugin_jit BINARY_DIR)
   set(_sep ")__\"$<COMMA>\n    R\"__(")
+  # file(GENERATE) evaluates once per enabled language: the C++ evaluation is
+  # the one the JIT compiles with, e.g. NOMINMAX is C++-only on Windows.
   file(GENERATE
     OUTPUT "${_bin}/score_plugin_jit_build_tree.hpp"
     CONTENT "#pragma once
@@ -312,6 +314,7 @@ inline constexpr const char* flags[] = {
 };
 }
 "
+    CONDITION "$<COMPILE_LANGUAGE:CXX>"
     TARGET score_plugin_jit)
 endfunction()
 cmake_language(DEFER DIRECTORY "${SCORE_ROOT_SOURCE_DIR}"
