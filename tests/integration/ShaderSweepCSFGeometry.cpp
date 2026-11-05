@@ -68,6 +68,7 @@ inline void sweepCSFGeometry(
   if(!gfx_settings)
     FAIL("score_plugin_gfx registered no settings model: run from the build root.");
   const auto api = gfx_settings->graphicsApiEnum();
+  const QString baselineFile = backendBaseline(baseline, api);
 
   // Locate the consumer pair; without it there is nothing to rasterize into.
   QString consumerFs;
@@ -128,7 +129,7 @@ inline void sweepCSFGeometry(
       report(rel, it2->second);
   }
 
-  diffAgainstBaseline(failures, baseline);
+  diffAgainstBaseline(failures, baselineFile);
 }
 }
 

@@ -18,9 +18,16 @@ jobs:
       image: ubuntu:26.10
 
     steps:
+      # Once 26.10 is out of support its archive moves to old-releases, and the
+      # mirrors of the image answer 404 for it.
       - name: Install git
         run: |
-          apt-get update -qq
+          if ! apt-get update -qq; then
+            for f in /etc/apt/sources.list.d/ubuntu.sources /etc/apt/sources.list; do
+              [ -f "$f" ] && sed -i -E 's#https?://(archive|security)\.ubuntu\.com#http://old-releases.ubuntu.com#g' "$f"
+            done
+            apt-get update -qq
+          fi
           apt-get install -qq -y --no-install-recommends git ca-certificates curl
 
       - name: Checkout code
@@ -46,6 +53,12 @@ jobs:
           CXX: clang++-23
           GCOV: "llvm-cov-23 gcov"
           CMAKEFLAGS: "-DLLVM_DIR=/usr/lib/llvm-23/lib/cmake/llvm"
+          # The library the shader-sweep baselines were recorded against
+          # (tests/testdata/shader_sweep_baseline_*): bumped together with them.
+          # The head of ossia/score-user-library#36, which the baselines need;
+          # it stays fetchable from refs/pull/36/head whatever becomes of the
+          # branch, and is to be replaced by the merge commit once it lands.
+          SCORE_USER_LIBRARY_REF: f73ce686171402f0b441fb2eebad653203f4015c
         run: ./ci/coverage.build.sh
 
       # Uploads via the Coveralls GitHub App (github.token) — no secret needed

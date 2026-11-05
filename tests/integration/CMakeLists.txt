@@ -154,10 +154,9 @@ score_add_test(test_integration_graphical_zoom
   GUI
   PLUGINS score_plugin_scenario)
 
-# A process whose factory is not installed is dropped on load, with its
-# cables, silently. Asserting "the document opened" cannot see that, so this one
-# asserts on the content that came back. EXPECTED RED on this branch: the fix
-# lives in PR #2179, which is not merged here. See the file header.
+# A process whose factory is not installed is kept on load, with its ports and
+# cables, and saved back unchanged. Asserting "the document opened" cannot see a
+# loss, so this one asserts on the content that came back.
 score_add_test(test_integration_missing_process_roundtrip
   SOURCES MissingProcessRoundtripTest.cpp
   GUI
@@ -228,13 +227,6 @@ if(TARGET score_plugin_media)
     SOURCES MissingFilesTest.cpp
     GUI
     PLUGINS score_plugin_scenario score_plugin_media score_lib_process)
-
-  # Processes this build cannot provide are left out of a loaded document, and
-  # the document keeps a list of them for the missing-files window.
-  score_add_test(test_integration_missing_processes
-    SOURCES MissingProcessesTest.cpp
-    GUI
-    PLUGINS score_plugin_scenario score_plugin_automation score_lib_process)
 
   # Trimming is the one operation here that can destroy audio: it runs with
   # the filesystem read-only outside /tmp so a regression cannot reach any
@@ -1023,14 +1015,20 @@ foreach(kind ISF VSA CSF Raster CSFGeometry Wired)
   endif()
 
   if(NOT kind STREQUAL "Wired")
-    set(_baseline "${CMAKE_CURRENT_SOURCE_DIR}/../testdata/shader_sweep_baseline_${lc}.txt")
+    # A prefix: the sweep appends _<api>-<device>.txt for the backend it runs on.
+    set(_baseline_dir "${CMAKE_CURRENT_SOURCE_DIR}/../testdata")
+    set(_baseline "${_baseline_dir}/shader_sweep_baseline_${lc}")
 
-    # On wasm there is no filesystem to read the baseline from: bake it into the
-    # test's own MEMFS image, the way the application does.
+    # On wasm there is no filesystem to read the baselines from: bake them into
+    # the test's own MEMFS image, the way the application does.
     if(EMSCRIPTEN)
-      target_link_options(test_integration_shader_sweep_${lc} PRIVATE
-        "SHELL:--preload-file ${_baseline}@/shader_sweep_baseline_${lc}.txt")
-      set(_baseline "/shader_sweep_baseline_${lc}.txt")
+      file(GLOB _backend_baselines "${_baseline}_*.txt")
+      foreach(_file ${_backend_baselines})
+        get_filename_component(_name "${_file}" NAME)
+        target_link_options(test_integration_shader_sweep_${lc} PRIVATE
+          "SHELL:--preload-file ${_file}@/${_name}")
+      endforeach()
+      set(_baseline "/shader_sweep_baseline_${lc}")
     endif()
 
     target_compile_definitions(test_integration_shader_sweep_${lc} PRIVATE

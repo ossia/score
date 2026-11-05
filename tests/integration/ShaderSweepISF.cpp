@@ -21,8 +21,11 @@
 //
 // The library is not part of the repository, so the test skips when it is
 // absent. Point it somewhere explicitly with SCORE_SHADER_LIBRARY_DIR.
-// Known-bad shaders are tolerated through a baseline file: the test fails on
-// *new* failures only. Refresh it with SCORE_SHADER_SWEEP_WRITE_BASELINE=1.
+// Known-bad shaders are tolerated through a baseline file per backend
+// (tests/testdata/shader_sweep_baseline_<kind>_<api>-<device>.txt, see
+// backendKey): the test fails on *new* failures only, and skips on a device that
+// has no baseline. Record or refresh one with SCORE_SHADER_SWEEP_WRITE_BASELINE=1,
+// against the score-user-library commit ci/coverage.build.sh pins.
 // Every shader is named on stdout before it is rendered, so one that takes the
 // process down with it can still be identified.
 
