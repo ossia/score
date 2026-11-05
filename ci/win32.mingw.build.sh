@@ -3,8 +3,13 @@
 export SCORE_DIR=$PWD
 
 CXX_ADDITIONAL_FLAGS=
+# GCC needs several GB for each of the larger avnd translation units: at
+# Ninja's default of cores + 2 jobs, three of them at once exhaust the 16 GB of
+# the windows-latest runners (cc1plus: out of memory).
+COMPILE_JOBS=$(nproc)
 if c++ --version | grep clang; then 
   CXX_ADDITIONAL_FLAGS=-fexperimental-library
+  COMPILE_JOBS=
 fi
 
 cmake -S "$SCORE_DIR" -B build \
@@ -18,6 +23,7 @@ cmake -S "$SCORE_DIR" -B build \
   -DCMAKE_NINJA_FORCE_RESPONSE_FILE=1 \
   -DSCORE_DISABLE_SNMALLOC=1 \
   -DSCORE_PCH=1 \
+  -DSCORE_COMPILE_JOBS="$COMPILE_JOBS" \
   -DFETCHCONTENT_FULLY_DISCONNECTED=1
 
 cmake --build build
