@@ -495,6 +495,63 @@ TEST_CASE("a control lists its cables in its drawer", "[integration][inspector]"
   });
 }
 
+TEST_CASE("a texture input lists its cables in its drawer", "[integration][inspector][gfx]")
+{
+  score::test::run_in_gui_app([](const score::GUIApplicationContext& ctx) {
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    auto* a = score::test::add_process(*doc, isfUuid, {});
+    auto* b = score::test::add_process(*doc, isfUuid, {});
+    if(!a || !b)
+      SKIP("the gfx plug-in is not built");
+    a->metadata().setName("Source");
+
+    Process::Port* out{};
+    for(auto o : a->outlets())
+      if(o->type() == Process::PortType::Texture && !out)
+        out = o;
+    auto* in = b->inlets().front();
+    REQUIRE(out);
+    REQUIRE(in->type() == Process::PortType::Texture);
+    cable(*doc, *out, *in);
+
+    QWidget window;
+    auto list = new Process::PortListWidget{*b, doc->context(), &window};
+    window.show();
+    settle();
+
+    // The cable is in the drawer of the texture input, after its settings
+    QWidget* drawer{};
+    for(auto d : list->findChildren<QWidget*>("PortDrawer"))
+      if(auto c = d->findChild<QWidget*>("PortCables"); c && c->isVisibleTo(d)
+         && d->findChildren<QComboBox*>().size() >= 4)
+        drawer = d;
+    REQUIRE(drawer);
+    CHECK(!drawer->isVisibleTo(list));
+    CHECK(visible<QLabel>(*list, "PortCable").empty());
+    // Not listed a second time outside of the drawer
+    for(auto c : list->findChildren<QWidget*>("PortCables"))
+      if(c->isVisibleTo(list))
+        CHECK(drawer->isAncestorOf(c));
+
+    for(auto btn : list->findChildren<score::ArrowButton*>("PortDrawerButton"))
+    {
+      if(!btn->isVisibleTo(list))
+        continue;
+      btn->click();
+      if(drawer->isVisibleTo(list))
+        break;
+      btn->click();
+    }
+    REQUIRE(drawer->isVisibleTo(list));
+    settle();
+    auto rows = visible<QLabel>(*list, "PortCable");
+    REQUIRE(rows.size() == 1);
+    CHECK(rows.front()->text().contains("Source"));
+    CHECK(drawer->isAncestorOf(rows.front()));
+  });
+}
+
 // Some older documents saved texture and geometry ports with no name at all:
 // the inspector names them as their node does.
 TEST_CASE("a port saved without a name is labelled as its node shows it", "[integration][inspector][gfx]")
