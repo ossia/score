@@ -69,7 +69,7 @@ struct SyphonNode final : score::gfx::OutputNode
   void onRendererChange() override { }
   bool canRender() const override
   {
-    return m_syphon || m_mtlSyphon;
+    return (m_syphon || m_mtlSyphon) && m_renderTarget;
   }
 
 

@@ -10,6 +10,7 @@
 
 #include <algorithm>
 #include <iterator>
+#include <utility>
 
 #if defined(Q_OS_WIN)
 // clang-format off
@@ -344,17 +345,19 @@ TextureRenderTarget createOutputRenderTarget(
 
   if(samples > 1 && !canMultisample(rhi, depth))
   {
-    qWarning() << "createOutputRenderTarget: this backend cannot multisample an"
-               << "offscreen target; the output renders without anti-aliasing";
+    if(!std::exchange(state.warnedSampleFallback, true))
+      qWarning() << "createOutputRenderTarget: this backend cannot multisample an"
+                 << "offscreen target; the output renders without anti-aliasing";
     samples = 1;
   }
 
   auto t = tryOutputRenderTarget(rhi, texture, depth, samples);
   if(!t && samples > 1)
   {
-    qWarning() << "createOutputRenderTarget: the backend refused a" << samples
-               << "sample target of format" << texture.format()
-               << "; the output renders without anti-aliasing";
+    if(!std::exchange(state.warnedSampleFallback, true))
+      qWarning() << "createOutputRenderTarget: the backend refused a" << samples
+                 << "sample target of format" << texture.format()
+                 << "; the output renders without anti-aliasing";
     t = tryOutputRenderTarget(rhi, texture, depth, 1);
   }
   if(!t)

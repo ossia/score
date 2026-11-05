@@ -615,22 +615,48 @@ void RenderList::clearNewTargets(QRhiCommandBuffer& commands, QRhiResourceUpdate
   if(m_targetsToClear.empty())
     return;
 
+  // The far value of the compare the port's producers draw with, as the
+  // per-frame passes clear it: a depth read through a delayed cable on the
+  // first frame then sees an empty scene, not one touching the camera.
+  const auto clearDepth = [&](const Port* port) {
+    auto compare = QRhiGraphicsPipeline::Greater;
+    bool seen = false;
+    for(auto* edge : port->edges)
+    {
+      auto src = edge->source->node->renderedNodes.find(this);
+      if(src == edge->source->node->renderedNodes.end())
+        continue;
+      const auto c = src->second->depthCompare();
+      if(!seen)
+      {
+        compare = c;
+        seen = true;
+      }
+      else if(c != compare)
+      {
+        compare = QRhiGraphicsPipeline::Greater;
+        break;
+      }
+    }
+    return depthClearForCompare(compare);
+  };
+
   // Only the targets this list still holds: one released before its first
   // frame is gone, and its address may since name another texture.
-  const auto clear = [&](const TextureRenderTarget& rt) {
+  const auto clear = [&](const Port* port, const TextureRenderTarget& rt) {
     if(!rt.texture || !rt.renderTarget || !m_targetsToClear.contains(rt.texture))
       return;
     m_targetsToClear.erase(rt.texture);
-    commands.beginPass(rt.renderTarget, Qt::transparent, {1.0f, 0});
+    commands.beginPass(rt.renderTarget, Qt::transparent, {clearDepth(port), 0});
     commands.endPass();
     // The pass writes level 0 only; generateMips fills the others from it.
     if(rt.texture->flags().testFlag(QRhiTexture::UsedWithGenerateMips))
       res.generateMips(rt.texture);
   };
   for(auto& [port, rt] : m_inputRenderTargets)
-    clear(rt);
+    clear(port, rt);
   for(auto& [port, fb] : m_selfFeedbackTargets)
-    clear(fb.back);
+    clear(port, fb.back);
   m_targetsToClear.clear();
 }
 

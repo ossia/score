@@ -134,7 +134,7 @@ Sh4ltOutputNode::Sh4ltOutputNode(const SharedOutputSettings& set)
 Sh4ltOutputNode::~Sh4ltOutputNode() { }
 bool Sh4ltOutputNode::canRender() const
 {
-  return bool(m_writer);
+  return m_writer && m_renderTarget;
 }
 
 void Sh4ltOutputNode::startRendering() { }

@@ -572,7 +572,7 @@ struct GStreamerOutputNode : score::gfx::OutputNode
   }
 
   // OutputNode interface
-  bool canRender() const override { return true; }
+  bool canRender() const override { return bool(m_renderTarget); }
   void startRendering() override { start_pipeline(); }
   void onRendererChange() override { }
   // Graph::createAllRenderLists stops and restarts every output around each

@@ -44,7 +44,7 @@ void SinkNode::stopRendering() { }
 void SinkNode::onRendererChange() { }
 bool SinkNode::canRender() const
 {
-  return bool(m_renderState);
+  return m_renderState && m_renderTarget;
 }
 
 void SinkNode::render()

@@ -84,7 +84,7 @@ LibavEncoderNode::LibavEncoderNode(
 LibavEncoderNode::~LibavEncoderNode() { }
 bool LibavEncoderNode::canRender() const
 {
-  return true;
+  return bool(m_renderTarget);
 }
 
 void LibavEncoderNode::startRendering() { }
@@ -315,13 +315,6 @@ score::gfx::OutputNodeRenderer*
 LibavEncoderNode::createRenderer(score::gfx::RenderList& r) const noexcept
 {
   const score::gfx::TextureRenderTarget rt = m_renderTarget;
-
-  //       .texture = m_texture,
-  //       .renderPass = m_renderState->renderPassDescriptor,
-  //       .renderTarget = m_renderTarget};
-  //   return new Gfx::InvertYRenderer{
-  //       *this, rt, const_cast<QRhiReadbackResult&>(m_readback)};
-  //
   if(m_encoder[0])
   {
     // GPU encoder active: BasicRenderer (no Y-flip, no readback)

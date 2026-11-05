@@ -1453,8 +1453,18 @@ struct PwWireRenderer final : score::gfx::OutputNodeRenderer
     // One sample and no depth: this pass copies the input target's resolved
     // picture, and the pipeline built against this target also draws into the
     // single-sample pipewire buffers of the dma-buf path.
+    if(!m_inputTarget.texture)
+    {
+      qWarning() << "PipeWire output: the output has no render target, it will not render";
+      return;
+    }
     m_renderTarget = score::gfx::createRenderTarget(
         renderer.state, m_wireFormat, m_inputTarget.texture->pixelSize(), 1, false);
+    if(!m_renderTarget)
+    {
+      qWarning() << "PipeWire output: no wire render target, this output will not render";
+      return;
+    }
 
     const auto& mesh = renderer.defaultTriangle();
     m_mesh = renderer.initMeshBuffer(mesh, res);
@@ -1515,6 +1525,8 @@ struct PwWireRenderer final : score::gfx::OutputNodeRenderer
   {
     auto* target = m_externalTarget.renderTarget ? m_externalTarget.renderTarget
                                                  : m_renderTarget.renderTarget;
+    if(!target || !m_p.pipeline)
+      return;
     cb.beginPass(target, Qt::black, {0.0f, 0}, res);
     res = nullptr;
     {
@@ -1636,7 +1648,7 @@ PipewireOutputNode::~PipewireOutputNode() = default;
 
 bool PipewireOutputNode::canRender() const
 {
-  return bool(m_producer);
+  return m_producer && m_renderTarget;
 }
 
 void PipewireOutputNode::startRendering() { }

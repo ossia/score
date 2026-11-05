@@ -42,6 +42,14 @@ public:
   AVFrame* dequeue_frame() noexcept override;
   void release_frame(AVFrame*) noexcept override;
 
+  //! While the returned lock is held the decoding thread takes no seek
+  //! request: the requests made meanwhile replace one another, and the last
+  //! one is taken once the lock is released.
+  [[nodiscard]] std::unique_lock<std::mutex> holdSeekRequests() noexcept
+  {
+    return std::unique_lock{m_condMut};
+  }
+
 private:
   void buffer_thread() noexcept;
   void close_file() noexcept;

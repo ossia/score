@@ -54,6 +54,9 @@ struct RenderState
   QSize renderSize{};
   QSize outputSize{};
   int samples{1};
+  //! createOutputRenderTarget fell back to one sample for this output once
+  //! already: it is rebuilt on every resize, and says so the first time only.
+  bool warnedSampleFallback{};
   QRhiTexture::Format renderFormat{QRhiTexture::RGBA8};
   GraphicsApi api{};
   QShaderVersion version{};

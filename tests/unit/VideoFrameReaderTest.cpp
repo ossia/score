@@ -274,13 +274,20 @@ TEST_CASE(
     REQUIRE(shown > 0.);
 
     // Going back a second: the reader asks for a seek. A transport to a bit
-    // after the frame on screen replaces it at once, before the decoding
-    // thread takes it; the frames already queued reach that time, so the
-    // decoder takes it without seeking.
-    node.standardUBO.time = shown - 1.;
-    node.reader.readNextFrame(node);
-    dec->seek(int64_t((shown + 0.06) * ossia::flicks_per_second<double>));
-    std::this_thread::sleep_for(100ms);
+    // after the frame on screen replaces it before the decoding thread takes
+    // it, which holding the seek requests makes certain; the frames already
+    // queued reach that time, so the decoder takes it without seeking.
+    const int taken = dec->seeks_done.load();
+    {
+      auto hold = dec->holdSeekRequests();
+      node.standardUBO.time = shown - 1.;
+      node.reader.readNextFrame(node);
+      dec->seek(int64_t((shown + 0.06) * ossia::flicks_per_second<double>));
+    }
+    for(auto until = steady_clock::now() + 5s;
+        dec->seeks_done.load() == taken && steady_clock::now() < until;)
+      std::this_thread::sleep_for(1ms);
+    REQUIRE(dec->seeks_done.load() == taken + 1);
 
     // Further back: the reader must seek there, and show it.
     const double back = std::max(0.2, shown - 3.);
