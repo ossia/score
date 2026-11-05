@@ -1179,14 +1179,23 @@ struct array_type
 SCORE_PLUGIN_GFX_EXPORT
 array_type parse_array_type(std::string_view type);
 
-// The GLSL function the COLUMNS accessors of geometry `geo` take each
-// column's (byte offset, byte stride, format, aligned) from: the table the
-// engine fills when `table` is empty, else these values, 4 per column, as
-// constants. The CSF source holds the first form on one line; replacing it
-// with the second specializes the shader to one upstream layout.
+// The GLSL accessors of the COLUMNS of geometry `geo`. With an empty `table`
+// they take each column's (byte offset, byte stride, format, aligned) from
+// the table the engine fills; given those values, 4 per column, they read
+// each column at constant offsets, and with `row_words` != 0 read the data
+// block as rows of that many 32-bit words. The CSF source holds the first
+// form; replacing it with the second, and column_data_block(geo, 0) with
+// column_data_block(geo, row_words), specializes the shader to one upstream
+// layout.
 SCORE_PLUGIN_GFX_EXPORT
-std::string column_meta_function(
-    std::string_view geo, std::size_t count, const std::vector<uint32_t>& table);
+std::string column_accessors(
+    std::string_view geo, const std::vector<geometry_input::column_request>& columns,
+    const std::vector<uint32_t>& table = {}, uint32_t row_words = 0);
+
+// The head of the COLUMNS data block of geometry `geo`: one array of words,
+// or rows of `row_words` words.
+SCORE_PLUGIN_GFX_EXPORT
+std::string column_data_block(std::string_view geo, uint32_t row_words);
 
 // The ALPHA convention of a colour output: the OUTPUTS entry's, else the
 // descriptor's, else the mode's default.

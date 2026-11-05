@@ -8,15 +8,18 @@
 // * A shader that multiplies by clipSpaceCorrMatrix itself gets only the
 //   framebuffer Y flip after its main, not the matrix a second time, and a
 //   warning.
-// * A shader that touches isf_FragNormCoord after init gets the position init
-//   wrote in a varying of its own, at a location none of its own varyings use,
-//   which IMG_THIS_PIXEL reads.
+// * A shader that writes isf_FragNormCoord after init gets the position init
+//   wrote in a varying of its own, which IMG_THIS_PIXEL reads, at a location
+//   none of its own varyings use: past the explicit ones and past those the
+//   shader compiler numbers itself for varyings without a layout. One that
+//   only reads isf_FragNormCoord (the library's Edges, Bloom...) gets none.
 //
 // The generated stages are also baked for every backend, so the wrapping is
 // known to compile.
 #include "IsfTestCommon.hpp"
 
 #include <Gfx/Graph/ShaderCache.hpp>
+#include <Gfx/ShaderProgram.hpp>
 #include <Gfx/Settings/Model.hpp>
 
 #include <isf.hpp>
@@ -45,10 +48,16 @@ struct Generated
   std::vector<std::string> warnings;
 };
 
-Generated generate(const std::string& vertex)
+// The stages as the engine bakes them: generated, then given the locations of
+// the varyings declared without a layout (Gfx::updateToGlsl45).
+Generated generate(const std::string& vertex, const std::string& fragment = kFragment)
 {
-  ::isf::parser p{vertex, kFragment, 450, ::isf::parser::ShaderType::ISF};
-  return {p.vertex(), p.fragment(), p.data().warnings};
+  ::isf::parser p{vertex, fragment, 450, ::isf::parser::ShaderType::ISF};
+  Gfx::ShaderSource src{
+      ::isf::parser::ShaderType::ISF, QString::fromStdString(p.vertex()),
+      QString::fromStdString(p.fragment())};
+  Gfx::updateToGlsl45(src);
+  return {src.vertex.toStdString(), src.fragment.toStdString(), p.data().warnings};
 }
 
 bool contains(const std::string& s, const char* what)
@@ -127,8 +136,8 @@ void main()
   CHECK(contains(g.vertex, "isf_user_vertex_main();\n  isf_vertShaderApplyClipSpace();"));
   CHECK(contains(g.fragment, "#define ISF_THIS_PIXEL_FROM_NORM_COORD"));
   CHECK_FALSE(warns_about_clip_space(g));
-  CHECK(bake(g.vertex, QShader::VertexStage).empty());
-  CHECK(bake(g.fragment, QShader::FragmentStage).empty());
+  CHECK(bake(g.vertex, QShader::VertexStage) == std::string{});
+  CHECK(bake(g.fragment, QShader::FragmentStage) == std::string{});
 }
 
 TEST_CASE(
@@ -147,7 +156,7 @@ void main()
   CHECK(contains(g.vertex, "isf_user_vertex_main();\n  isf_vertShaderApplyFramebufferY();"));
   CHECK_FALSE(contains(g.vertex, "isf_user_vertex_main();\n  isf_vertShaderApplyClipSpace();"));
   CHECK(warns_about_clip_space(g));
-  CHECK(bake(g.vertex, QShader::VertexStage).empty());
+  CHECK(bake(g.vertex, QShader::VertexStage) == std::string{});
 }
 
 TEST_CASE(
@@ -168,6 +177,83 @@ void main()
   CHECK(contains(g.fragment, "layout(location = 4) in vec2 isf_ThisPixelNormCoord;"));
   CHECK(contains(g.fragment, "#define ISF_THIS_PIXEL_VARYING"));
   CHECK_FALSE(contains(g.fragment, "#define ISF_THIS_PIXEL_FROM_NORM_COORD"));
-  CHECK(bake(g.vertex, QShader::VertexStage).empty());
-  CHECK(bake(g.fragment, QShader::FragmentStage).empty());
+  CHECK(bake(g.vertex, QShader::VertexStage) == std::string{});
+  CHECK(bake(g.fragment, QShader::FragmentStage) == std::string{});
+}
+
+namespace
+{
+// The library's Edges filter: varyings without a layout, numbered by the
+// shader compiler, and isf_FragNormCoord only read.
+const std::string kUnqualifiedFragment = R"_(/*{
+  "ISFVSN": "2.0",
+  "INPUTS": [ { "NAME": "inputImage", "TYPE": "image" } ]
+}*/
+in vec2 left_coord;
+in vec2 right_coord;
+in vec2 above_coord;
+in vec2 below_coord;
+in vec2 taps[3];
+void main()
+{
+  gl_FragColor = IMG_THIS_PIXEL(inputImage) + IMG_NORM_PIXEL(inputImage, left_coord)
+                 + IMG_NORM_PIXEL(inputImage, right_coord + above_coord + below_coord)
+                 + vec4(taps[0] + taps[1] + taps[2], 0.0, 0.0);
+}
+)_";
+
+const std::string kUnqualifiedVertexDecls = R"_(
+out vec2 left_coord;
+out vec2 right_coord;
+out vec2 above_coord;
+out vec2 below_coord;
+out vec2 taps[3];
+void set_coords()
+{
+  vec2 texc = isf_FragNormCoord;
+  left_coord = texc; right_coord = texc; above_coord = texc; below_coord = texc;
+  taps[0] = texc; taps[1] = texc; taps[2] = texc;
+}
+)_";
+}
+
+TEST_CASE(
+    "a shader reading isf_FragNormCoord beside unqualified varyings gets no "
+    "extra varying",
+    "[gfx][isf][vertex]")
+{
+  const Generated g = generate(kUnqualifiedVertexDecls + R"_(
+void main()
+{
+  isf_vertShaderInit();
+  set_coords();
+  isf_vertShaderFinish();
+}
+)_", kUnqualifiedFragment);
+  CAPTURE(g.vertex, g.fragment);
+  CHECK_FALSE(contains(g.vertex, "out vec2 isf_ThisPixelNormCoord"));
+  CHECK(contains(g.fragment, "#define ISF_THIS_PIXEL_FROM_NORM_COORD"));
+  CHECK(bake(g.vertex, QShader::VertexStage) == std::string{});
+  CHECK(bake(g.fragment, QShader::FragmentStage) == std::string{});
+}
+
+TEST_CASE(
+    "the captured position does not overlap varyings the compiler numbers",
+    "[gfx][isf][vertex]")
+{
+  const Generated g = generate(kUnqualifiedVertexDecls + R"_(
+void main()
+{
+  isf_vertShaderInit();
+  set_coords();
+  isf_FragNormCoord.y = 1.0 - isf_FragNormCoord.y;
+  isf_vertShaderFinish();
+}
+)_", kUnqualifiedFragment);
+  CAPTURE(g.vertex, g.fragment);
+  // Location 0, then seven locations without a layout, numbered from 1.
+  CHECK(contains(g.vertex, "layout(location = 8) out vec2 isf_ThisPixelNormCoord;"));
+  CHECK(contains(g.fragment, "layout(location = 8) in vec2 isf_ThisPixelNormCoord;"));
+  CHECK(bake(g.vertex, QShader::VertexStage) == std::string{});
+  CHECK(bake(g.fragment, QShader::FragmentStage) == std::string{});
 }
