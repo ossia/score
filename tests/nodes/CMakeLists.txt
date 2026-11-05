@@ -69,10 +69,15 @@ if(TEST test_nodes_process_views)
       WORKING_DIRECTORY "${_exec_WORKING_DIRECTORY}"
       SKIP_RETURN_CODE "${_exec_SKIP_RETURN_CODE}"
       LABELS "gui;gpu")
-    if(_exec_ENVIRONMENT_MODIFICATION)
-      set_property(TEST ${_name} PROPERTY
-        ENVIRONMENT_MODIFICATION ${_exec_ENVIRONMENT_MODIFICATION})
-    endif()
+    # A settings and temporary directory per shard, after the shared ones of
+    # the test environment: each shard sets the plug-in paths and writes its
+    # media files there, and ctest -j may run two of them at once.
+    set(_home "${SCORE_ROOT_BINARY_DIR}/test-home/${_name}")
+    file(MAKE_DIRECTORY "${_home}/config" "${_home}/tmp")
+    set_property(TEST ${_name} PROPERTY
+      ENVIRONMENT_MODIFICATION ${_exec_ENVIRONMENT_MODIFICATION}
+        "XDG_CONFIG_HOME=set:${_home}/config"
+        "TMPDIR=set:${_home}/tmp")
   endforeach()
 endif()
 

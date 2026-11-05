@@ -22,6 +22,8 @@ ValidationPlugins::ValidationPlugins(
   const QString env = qEnvironmentVariable("SCORE_VALIDATION_PLUGINS");
   const QString root = env.isEmpty() ? QStringLiteral("/usr/lib") : env;
   const QString links = QDir::temp().filePath(QStringLiteral("validation-plugins"));
+  // Finding the plug-ins sets the search paths of the hosts, which are saved
+  const std::string profile = outside_test_profile();
 
   bool clap = false, vst = false, vst3 = false;
   for(const auto& p : validation_plugins)
@@ -30,6 +32,11 @@ ValidationPlugins::ValidationPlugins(
       continue;
     auto& f = m_found.emplace_back();
     f.plugin = &p;
+    if(!profile.empty())
+    {
+      f.skip = "the plug-in paths are not set outside the test profile: " + profile;
+      continue;
+    }
     const QString src = root + "/" + p.format + "/" + p.file;
     if(!QFileInfo::exists(src))
     {

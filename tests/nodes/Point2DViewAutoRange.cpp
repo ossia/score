@@ -32,6 +32,7 @@
 #include <catch2/catch_test_macros.hpp>
 
 #include <memory>
+#include <vector>
 
 namespace
 {
@@ -170,6 +171,44 @@ TEST_CASE(
       CHECK(r.x1 == Catch::Approx(12.5));
       CHECK(r.y0 == Catch::Approx(3.));
       CHECK(r.y1 == Catch::Approx(25.));
+    }
+
+    {
+      INFO("far from zero, a single point or a tight cluster still gets a range");
+      for(auto pts : {std::vector<float>{12345.f, -20000.f},
+                      std::vector<float>{2e6f, 2e6f, 2e6f, 2e6f},
+                      std::vector<float>{-3e7f, 5e6f}})
+      {
+        auto v = make();
+        v.control(9)->setValue(false);
+        v.proc->startExecution();
+        v.control(0)->executionValueChanged([&] {
+          std::vector<ossia::value> l;
+          for(float f : pts)
+            l.push_back(f);
+          return ossia::value{l};
+        }());
+
+        const int commands = stack.size();
+        doubleClick(*v.layer);
+        CHECK(stack.size() == commands + 1);
+        const float x0 = ossia::convert<float>(v.control(1)->value());
+        const float y0 = ossia::convert<float>(v.control(2)->value());
+        const float x1 = ossia::convert<float>(v.control(3)->value());
+        const float y1 = ossia::convert<float>(v.control(4)->value());
+        CHECK(x0 < pts[0]);
+        CHECK(x1 > pts[0]);
+        CHECK(y0 < pts[1]);
+        CHECK(y1 > pts[1]);
+        CHECK(uo::axisUsable(x0, x1));
+        CHECK(uo::axisUsable(y0, y1));
+
+        // The auto range shows it too
+        v.control(9)->setValue(true);
+        const auto r = v.layer->range();
+        CHECK(uo::axisUsable(r.x0, r.x1));
+        CHECK(uo::axisUsable(r.y0, r.y1));
+      }
     }
 
     delete root;

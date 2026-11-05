@@ -82,6 +82,7 @@
 
 #include <QApplication>
 #include <QDir>
+#include <QFile>
 #include <QFileInfo>
 #include <QElapsedTimer>
 #include <QGraphicsRectItem>
@@ -911,6 +912,18 @@ const std::map<std::string, std::string> execution_denylist = {
 const std::map<std::string, std::string> no_component = {
     {"14bcc6d2-cb34-4bc6-8c70-e512f11d1ceb",
      "the tempo curve of an interval: the interval executes it"},
+    {"7c3f6a2e-5b1d-4c8e-9a47-2e6d0f1b8c35",
+     "stands in for a process this build cannot load: it does not play"},
+};
+
+//! Processes whose node runs but processes no frame in the sweep, and why.
+//! Every other node must process frames.
+const std::map<std::string, std::string> idle_allowed = {
+};
+
+//! Processes whose texture outlets get no image in the sweep, and why. Every
+//! other texture outlet must render.
+const std::map<std::string, std::string> unrendered_allowed = {
 };
 
 //! What the processes that are made from a file or a name get
@@ -938,13 +951,29 @@ struct MediaFiles
                   "#X connect 2 0 3 0;\n");
 
     // The metronome plays the sounds of the default library, which the
-    // private profile of the tests does not have
+    // private profile of the tests does not have. Any other profile's library
+    // is the user's: nothing is added to it.
+    if(const auto why = sweep::outside_test_profile(); !why.empty())
+    {
+      qWarning().noquote() << "the metronome sounds are not added to the library:"
+                           << QString::fromStdString(why);
+      return;
+    }
     const QString util
         = ctx.settings<Library::Settings::Model>().getDefaultLibraryPath()
           + QStringLiteral("/Util/");
     for(auto name : {"metro_tick.wav", "metro_tock.wav"})
-      if(!QFileInfo::exists(util + name))
-        score::test::write_wav(util + name, 0.05, 0x40);
+    {
+      if(QFileInfo::exists(util + name))
+        continue;
+      // Written beside and renamed, so that a sweep running at the same time
+      // never reads half of one
+      const QString part = util + name + QStringLiteral(".%1.part")
+                                             .arg(QCoreApplication::applicationPid());
+      score::test::write_wav(part, 0.05, 0x40);
+      if(!QFile::rename(part, util + name))
+        QFile::remove(part);
+    }
   }
 
   //! The data `f` is made from
@@ -966,6 +995,10 @@ struct MediaFiles
 
 TEST_CASE("Every process runs with each inlet fed", "[.][nodes][exec]")
 {
+  // The sweep sets settings of its own and adds files to the default library
+  if(const auto why = sweep::outside_test_profile(); !why.empty())
+    SKIP("not run outside the test profile: " << why);
+
   std::vector<ViewResult> results;
   std::vector<ExecResult> runs;
   const std::set<std::string> only = sweep::only();
@@ -1158,7 +1191,7 @@ TEST_CASE("Every process runs with each inlet fed", "[.][nodes][exec]")
 
   REQUIRE(!results.empty());
   int swept = 0, executed = 0, nodes = 0, ran = 0, textures = 0, rendered = 0;
-  std::string skipped, crashed, idle, unrendered, without, hosted;
+  std::string skipped, crashed, idle, unrendered, without, hosted, allowed;
   for(std::size_t i = 0; i < results.size(); i++)
   {
     const auto& r = results[i];
@@ -1181,9 +1214,25 @@ TEST_CASE("Every process runs with each inlet fed", "[.][nodes][exec]")
     textures += x.textures;
     rendered += x.rendered;
     if(x.has_node && !x.node_ran)
-      idle += " " + r.name + ",";
+    {
+      if(auto it = idle_allowed.find(r.uuid); it != idle_allowed.end())
+        allowed += "\n  " + r.name + " processed no frame: " + it->second;
+      else
+      {
+        idle += " " + r.name + ",";
+        FAIL_CHECK("its node processed no frame");
+      }
+    }
     if(x.rendered < x.textures)
-      unrendered += " " + r.name + ",";
+    {
+      if(auto it = unrendered_allowed.find(r.uuid); it != unrendered_allowed.end())
+        allowed += "\n  " + r.name + " rendered no image: " + it->second;
+      else
+      {
+        unrendered += " " + r.name + ",";
+        FAIL_CHECK(x.rendered << " of its " << x.textures << " texture outlets rendered");
+      }
+    }
     if(trace)
       qWarning().noquote() << "SWEEP exec result" << QString::fromStdString(r.name)
                            << "executed" << x.executed << "node" << x.has_node << "ran"
@@ -1218,6 +1267,8 @@ TEST_CASE("Every process runs with each inlet fed", "[.][nodes][exec]")
     WARN("Skipped:" << skipped);
   if(!without.empty())
     WARN("Run with no component of their own:" << without);
+  if(!allowed.empty())
+    WARN("Allowed to do nothing:" << allowed);
   // A crash can leave state shared by the whole application broken, a lock
   // held or a queue marked busy, and the processes after it crash in turn: the
   // first one listed is the one to look at.
