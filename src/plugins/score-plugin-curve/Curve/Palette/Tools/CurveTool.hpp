@@ -62,11 +62,12 @@ protected:
       const Model& model, const Selection& selected,
       bool multi = CommonSelectionState::multiSelection())
   {
-    score::SelectionDispatcher{context().selectionStack}.select(
+    score::SelectionDispatcher{selectionStack()}.select(
         filterSelections(&model, selected, multi));
   }
 
   const Curve::ToolPalette& m_parentSM;
   const score::DocumentContext& context() const noexcept;
+  score::SelectionStack& selectionStack() const noexcept;
 };
 }

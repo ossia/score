@@ -24,7 +24,7 @@ UUID_METADATA(
 
 namespace WidgetFactory
 {
-struct CurveInletItems
+struct SCORE_PLUGIN_DATAFLOW_EXPORT CurveInletItems
 {
   static constexpr Process::PortItemLayout layout() noexcept
   {
@@ -43,6 +43,13 @@ struct CurveInletItems
 
 namespace Dataflow
 {
+//! Rebind / resize an item created by CurveInletItems::make_item.
+//! Binding stays on the actual document model, including undo command paths.
+SCORE_PLUGIN_DATAFLOW_EXPORT
+void setCurveItemModel(QGraphicsItem& item, Curve::Model& model);
+SCORE_PLUGIN_DATAFLOW_EXPORT
+void setCurveItemRect(QGraphicsItem& item, const QRectF& rect);
+
 struct SCORE_PLUGIN_DATAFLOW_EXPORT CurveInlet : public Process::ControlInlet
 {
   MODEL_METADATA_IMPL(CurveInlet)

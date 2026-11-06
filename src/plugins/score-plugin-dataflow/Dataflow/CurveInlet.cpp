@@ -3,6 +3,7 @@
 #include <Process/Commands/SetControlValue.hpp>
 
 #include <Curve/CurveModel.hpp>
+#include <Curve/CurveEditor.hpp>
 #include <Curve/CurvePresenter.hpp>
 #include <Curve/CurveStyle.hpp>
 #include <Curve/CurveView.hpp>
@@ -10,18 +11,30 @@
 #include <Curve/Segment/CurveSegmentData.hpp>
 #include <Curve/Segment/CurveSegmentList.hpp>
 #include <Curve/Segment/Power/PowerSegment.hpp>
+#include <Curve/Segment/PointArray/PointArraySegment.hpp>
 
 #include <score/application/GUIApplicationContext.hpp>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/document/DocumentContext.hpp>
-#include <score/document/DocumentInterface.hpp>
 #include <score/graphics/RectItem.hpp>
 #include <score/graphics/TextItem.hpp>
+#include <score/model/ObjectEditor.hpp>
+#include <score/model/Skin.hpp>
+#include <score/selection/SelectionStack.hpp>
 
+#include <ossia/math/safe_math.hpp>
 #include <ossia/network/value/value_conversion.hpp>
 
-#include <QLabel>
-#include <QTimer>
+#include <QApplication>
+#include <QClipboard>
+#include <QGraphicsScene>
+#include <QGraphicsView>
+#include <QKeyEvent>
+#include <QMenu>
+#include <QMimeData>
+#include <QPainter>
+#include <QResizeEvent>
+#include <QScopedValueRollback>
 
 #include <wobjectimpl.h>
 
@@ -130,58 +143,301 @@ struct CurveItem
   private:
     Curve::Style m_style;
   } m_colors;
-  Curve::Model& m_model;
+  const score::DocumentContext& m_context;
+  score::SelectionStack* m_selectionStack{};
+  Curve::Model* m_model{};
   Curve::View* m_view{};
   Curve::Presenter* m_presenter{};
-  CommandDispatcher<> m_commandDispatcher;
-
   Curve::ToolPalette* m_sm{};
-  BasicToolPaletteInputDispatcher<Curve::Tool, Curve::ToolPalette, Curve::View>*
-      m_disp{};
+  BasicToolPaletteInputDispatcher<Curve::Tool, Curve::ToolPalette, Curve::View>* m_disp{};
+  QRectF m_rect{0., 0., 100., 60.};
 
+  //! selectionStack: where point and segment selections go; the document's
+  //! when null.
   CurveItem(
-      Curve::Model& model, const score::DocumentContext& ctx, QGraphicsItem* parent)
+      Curve::Model& model, const score::DocumentContext& ctx, QGraphicsItem* parent,
+      score::SelectionStack* selectionStack = nullptr)
       : QGraphicsItem{parent}
       , m_colors{score::Skin::instance()}
-      , m_model{model}
-      , m_commandDispatcher{ctx.commandStack}
+      , m_context{ctx}
+      , m_selectionStack{selectionStack}
   {
-    m_view = new Curve::View{this};
+    setModel(model);
+  }
 
-    m_presenter = new Curve::Presenter{ctx, m_colors.style(), m_model, m_view, this};
-    m_presenter->setRect(QRectF{0, 0, 100, 60});
+  ~CurveItem() override { clearEditor(); }
+
+  void setModel(Curve::Model& model)
+  {
+    if(m_model == &model)
+      return;
+    clearEditor();
+    m_model = &model;
+    m_view = new Curve::View{this};
+    m_presenter = new Curve::Presenter{m_context, m_colors.style(), model, m_view, this};
+    m_presenter->setRect(m_rect);
     m_presenter->enable();
     m_presenter->enableActions(true);
-    m_presenter->editionSettings().setTool(Curve::Tool::Select);
     m_presenter->setBoundedMove(true);
 
-    m_view->setRect(QRectF{0, 0, 100, 60});
-    m_view->setDefaultWidth(100);
+    // The edition settings are the application's, shared with the automation
+    // editors, and start disabled: the palette ignores the mouse until a
+    // tool that edits is chosen.
+    auto& settings = m_presenter->editionSettings();
+    switch(settings.tool())
+    {
+      case Curve::Tool::Select:
+      case Curve::Tool::Create:
+      case Curve::Tool::SetSegment:
+      case Curve::Tool::CreatePen:
+        break;
+      default:
+        settings.setTool(Curve::Tool::Select);
+        break;
+    }
 
-    // Needed because scene() is null at this point in time
-    QTimer::singleShot(100, this, [this, &ctx] {
-      m_sm = new Curve::ToolPalette{ctx, *m_presenter};
-      m_disp = new BasicToolPaletteInputDispatcher<
-          Curve::Tool, Curve::ToolPalette, Curve::View>{*m_view, *m_sm};
-    });
-
+    m_view->setRect(m_rect);
+    m_view->setDefaultWidth(m_rect.width());
     connect(m_view, &Curve::View::doubleClick, this, [this](QPointF pt) {
-      m_sm->createPoint(pt);
+      initializeTools();
+      if(m_sm)
+        m_sm->createPoint(pt);
     });
+    connect(
+        m_presenter, &Curve::Presenter::contextMenuRequested, this,
+        [this](const QPoint& screenPos, const QPointF& scenePos) {
+      QMenu menu;
+      m_presenter->fillContextMenu(menu, screenPos, scenePos);
+      menu.exec(screenPos);
+    });
+    initializeTools();
+    update();
   }
 
-  ~CurveItem()
+  void setRect(const QRectF& rect)
   {
+    prepareGeometryChange();
+    m_rect = rect;
+    m_presenter->setRect(rect);
+    m_view->setRect(rect);
+    m_view->setDefaultWidth(rect.width());
+    update();
+  }
+
+  QRectF boundingRect() const override { return m_rect; }
+
+  void paint(QPainter* painter, const QStyleOptionGraphicsItem*, QWidget*) override
+  {
+    // Same box as the XY chooser control.
+    auto& skin = score::Skin::instance();
+    painter->fillRect(m_rect, skin.Dark.main.brush);
+
+    const auto& pen = skin.DarkGray.main.pen0;
+    const QPen previous = painter->pen();
+    painter->setPen(pen);
+    for(int i = 1; i < 4; i++)
+    {
+      const double x = m_rect.left() + m_rect.width() * i / 4.;
+      const double y = m_rect.top() + m_rect.height() * i / 4.;
+      painter->drawLine(QPointF{x, m_rect.top()}, QPointF{x, m_rect.bottom()});
+      painter->drawLine(QPointF{m_rect.left(), y}, QPointF{m_rect.right(), y});
+    }
+    painter->setPen(previous);
+  }
+
+  void rollbackGesture()
+  {
+    if(m_sm)
+      m_sm->cancelGesture();
+  }
+
+protected:
+  QVariant itemChange(GraphicsItemChange change, const QVariant& value) override
+  {
+    // The palette is bound to the scene it was made in.
+    if(change == ItemSceneChange)
+      clearTools();
+    else if(change == ItemSceneHasChanged)
+      initializeTools();
+    return QGraphicsItem::itemChange(change, value);
+  }
+
+private:
+  // The palette works on the scene of the view: it can only exist once the
+  // item is in one.
+  void initializeTools()
+  {
+    if(m_sm || !m_view || !m_view->scene())
+      return;
+    m_sm = new Curve::ToolPalette{m_context, *m_presenter, m_selectionStack};
+    m_disp = new BasicToolPaletteInputDispatcher<
+        Curve::Tool, Curve::ToolPalette, Curve::View>{*m_view, *m_sm};
+  }
+
+  void clearTools()
+  {
+    rollbackGesture();
     delete m_disp;
+    m_disp = nullptr;
     delete m_sm;
-    delete m_presenter;
+    m_sm = nullptr;
   }
 
-  QRectF boundingRect() const override { return m_view->boundingRect(); }
-  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
-      override
+  void clearEditor()
   {
+    clearTools();
+    // The presenter owns its view and removes it from the scene.
+    delete m_presenter;
+    m_presenter = nullptr;
+    m_view = nullptr;
   }
+};
+
+void setCurveItemModel(QGraphicsItem& item, Curve::Model& model)
+{
+  auto* curve = dynamic_cast<CurveItem*>(&item);
+  SCORE_ASSERT(curve);
+  curve->setModel(model);
+}
+
+void setCurveItemRect(QGraphicsItem& item, const QRectF& rect)
+{
+  auto* curve = dynamic_cast<CurveItem*>(&item);
+  SCORE_ASSERT(curve);
+  curve->setRect(rect);
+}
+
+//! The inspector hosts the same editor as the process, on the same model and
+//! commands. Its point selection stays local: in the document's, it would
+//! make the inspector show the point instead of this widget, mid-gesture.
+class CurveWidget final : public QGraphicsView
+{
+public:
+  CurveWidget(Curve::Model& model, const score::DocumentContext& ctx, QWidget* parent)
+      : QGraphicsView{parent}
+      , m_item{new CurveItem{model, ctx, nullptr, &m_selection}}
+  {
+    connect(
+        &m_selection, &score::SelectionStack::currentSelectionChanged, &model,
+        [&model](const Selection&, const Selection& selected) {
+      model.setSelection(selected);
+    });
+
+    auto* scene = new QGraphicsScene{this};
+    setScene(scene);
+    scene->addItem(m_item);
+    m_item->setPos(margin, margin);
+    // CurveEditor::paste looks for the presenter under the focused widget.
+    m_item->QObject::setParent(scene);
+
+    setFrameShape(QFrame::NoFrame);
+    setBackgroundBrush(score::Skin::instance().Dark.main.brush);
+    setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    setAlignment(Qt::AlignLeft | Qt::AlignTop);
+    setRenderHint(QPainter::Antialiasing);
+    setFocusPolicy(Qt::ClickFocus);
+    setMinimumHeight(100);
+    setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+  }
+
+  ~CurveWidget() override
+  {
+    m_item->rollbackGesture();
+    scene()->clear();
+    m_selection.clear();
+  }
+
+  QSize sizeHint() const override { return {200, 120}; }
+
+protected:
+  void resizeEvent(QResizeEvent* event) override
+  {
+    QGraphicsView::resizeEvent(event);
+    const QSizeF size = viewport()->size();
+    setSceneRect({QPointF{}, size});
+    // Room for the handles of the points at the bounds.
+    m_item->setRect(
+        {0., 0., std::max(1., size.width() - 2. * margin),
+         std::max(1., size.height() - 2. * margin)});
+  }
+
+  bool event(QEvent* event) override
+  {
+    // Keep these from the application's Edit actions, which act on the
+    // document selection, not on this editor's.
+    if(event->type() == QEvent::ShortcutOverride
+       && editKey(*static_cast<QKeyEvent*>(event)))
+    {
+      event->accept();
+      return true;
+    }
+    return QGraphicsView::event(event);
+  }
+
+  void keyPressEvent(QKeyEvent* event) override
+  {
+    if(!editKey(*event))
+      return QGraphicsView::keyPressEvent(event);
+    event->accept();
+
+    auto& presenter = *m_item->m_presenter;
+    if(event->matches(QKeySequence::SelectAll))
+    {
+      Selection all;
+      for(auto& segment : m_item->m_model->segments())
+        all.append(&segment);
+      for(auto* point : m_item->m_model->points())
+        all.append(point);
+      m_selection.pushNewSelection(all);
+      return;
+    }
+    if(event->matches(QKeySequence::Delete) || event->key() == Qt::Key_Backspace)
+    {
+      presenter.removeSelection();
+      return;
+    }
+
+    auto& ctx = m_item->m_context;
+    auto* editor = ctx.app.interfaces<score::ObjectEditorList>().get(
+        Curve::CurveEditor::static_concreteKey());
+    if(!editor)
+      return;
+    if(event->matches(QKeySequence::Paste))
+    {
+      if(const auto* mime = QApplication::clipboard()->mimeData())
+      {
+        // Pasted where the mouse is when over the curve, else at its start.
+        QPoint pos = QCursor::pos();
+        if(!viewport()->rect().contains(viewport()->mapFromGlobal(pos)))
+          pos = viewport()->mapToGlobal(mapFromScene(m_item->mapToScene(QPointF{})));
+        editor->paste(pos, this, *mime, ctx);
+      }
+      return;
+    }
+
+    JSONReader reader;
+    if(editor->copy(reader, m_selection.currentSelection(), ctx))
+    {
+      auto* mime = new QMimeData;
+      mime->setData("text/plain", reader.toByteArray());
+      QApplication::clipboard()->setMimeData(mime);
+      if(event->matches(QKeySequence::Cut))
+        presenter.removeSelection();
+    }
+  }
+
+private:
+  static bool editKey(const QKeyEvent& event)
+  {
+    return event.matches(QKeySequence::Copy) || event.matches(QKeySequence::Cut)
+           || event.matches(QKeySequence::Paste) || event.matches(QKeySequence::Delete)
+           || event.matches(QKeySequence::SelectAll) || event.key() == Qt::Key_Backspace;
+  }
+
+  static constexpr double margin = 4.;
+  score::SelectionStack m_selection;
+  CurveItem* m_item{};
 };
 
 CurveInlet::CurveInlet(DataStream::Deserializer& vis, QObject* parent)
@@ -263,14 +519,9 @@ void CurveInlet::on_valueChange(const ossia::value& v)
   if(m_syncing)
     return;
 
+  // An empty list is no curve: the model keeps the one it has.
   const auto* segments = v.target<std::vector<ossia::value>>();
   if(!segments || segments->empty())
-    return;
-
-  // Curve::Model::fromCurveData resolves the document context from its parent
-  // chain, so it cannot run before the port has been inserted in a document --
-  // which happens when a preset is applied as the process is being created.
-  if(!score::IDocument::documentFromObject(*this))
     return;
 
   auto& csl = score::GUIAppContext().interfaces<Curve::SegmentList>();
@@ -289,6 +540,9 @@ void CurveInlet::on_valueChange(const ossia::value& v)
     const auto start = curveInletPoint((*arr)[0]);
     const auto end = curveInletPoint((*arr)[1]);
     if(!start || !end)
+      return;
+    if(!ossia::safe_isfinite(start->x()) || !ossia::safe_isfinite(start->y())
+       || !ossia::safe_isfinite(end->x()) || !ossia::safe_isfinite(end->y()))
       return;
 
     auto type = Curve::PowerSegment::static_concreteKey();
@@ -324,8 +578,8 @@ void CurveInlet::on_valueChange(const ossia::value& v)
         std::move(specific)});
   }
 
-  // Drop anything degenerate: Curve::Model cannot represent a segment that does
-  // not advance in x, and would assert on it.
+  // Drop anything degenerate: the curve editor cannot handle a segment that
+  // does not advance in x.
   std::erase_if(data, [](const Curve::SegmentData& s) {
     return s.end.x() - s.start.x() < 0.0001;
   });
@@ -348,9 +602,10 @@ void CurveInlet::on_valueChange(const ossia::value& v)
         = (i < N - 1) ? OptionalId<Curve::SegmentModel>{data[i + 1].id} : std::nullopt;
   }
 
-  m_syncing = true;
+  // Also when the port is not in a document yet, e.g. a preset applied to a
+  // process being created.
+  QScopedValueRollback guard{m_syncing, true};
   m_curve->fromCurveData(data);
-  m_syncing = false;
 }
 
 void CurveInlet::on_curveChange()
@@ -358,6 +613,7 @@ void CurveInlet::on_curveChange()
   // Rebuilding the model from the value must not write it straight back
   if(m_syncing)
     return;
+  QScopedValueRollback guard{m_syncing, true};
 
   const auto& sorted = m_curve->sortedSegments();
 
@@ -366,6 +622,16 @@ void CurveInlet::on_curveChange()
   auto& fact = score::GUIAppContext().interfaces<Curve::SegmentList>();
   for(const Curve::SegmentModel* v : sorted)
   {
+    if(auto samples = qobject_cast<const Curve::PointArraySegment*>(v))
+    {
+      // The pen tool uses a sampled segment while dragging. Preserve its
+      // shape in the same linear/power value format used after release.
+      for(const auto& data : samples->toPowerSegments())
+        segments.emplace_back(std::vector<ossia::value>{
+            ossia::vec2f{float(data.start.x()), float(data.start.y())},
+            ossia::vec2f{float(data.end.x()), float(data.end.y())}, 1.f});
+      continue;
+    }
     std::vector<ossia::value> segment;
     segment.reserve(3);
     segment.push_back(ossia::vec2f{(float)v->start().x(), (float)v->start().y()});
@@ -391,7 +657,8 @@ QWidget* WidgetFactory::CurveInletItems::make_widget(
     const Dataflow::CurveInlet& inlet, const score::DocumentContext& ctx,
     QWidget* parent, QObject* context)
 {
-  return new QLabel{"Unimplemented"};
+  SCORE_ASSERT(inlet.m_curve);
+  return new Dataflow::CurveWidget{*inlet.m_curve, ctx, parent};
 }
 
 QGraphicsItem* WidgetFactory::CurveInletItems::make_item(
