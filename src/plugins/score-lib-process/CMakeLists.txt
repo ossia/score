@@ -56,6 +56,7 @@ set(PROCESS_HDRS
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Dataflow/PortAddressComboBox.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Dataflow/CableData.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Dataflow/Port.hpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Process/Dataflow/Wavetable.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Dataflow/PortSerialization.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Dataflow/PrettyPortName.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Dataflow/TimeSignature.hpp"
