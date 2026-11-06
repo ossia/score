@@ -29,7 +29,7 @@ SmartTool::SmartTool(Curve::ToolPalette& sm, const score::DocumentContext& conte
     , m_segmentCo{sm.model(), &sm.presenter(), context.commandStack}
 {
   m_state = new Curve::SelectionState{
-      context.selectionStack, m_parentSM, m_parentSM.presenter().view(), &localSM()};
+      sm.selectionStack(), m_parentSM, m_parentSM.presenter().view(), &localSM()};
 
   localSM().setInitialState(m_state);
 

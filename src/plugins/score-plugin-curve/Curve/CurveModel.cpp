@@ -510,7 +510,7 @@ void Model::applyChanges(
       }
 
       if(!csl)
-        csl = &score::IDocument::documentContext(*this).app.interfaces<SegmentList>();
+        csl = &score::AppContext().interfaces<SegmentList>();
       if(auto seg = createCurveSegment(*csl, *d, this))
       {
         m_segments.insert(seg);
@@ -554,7 +554,7 @@ void Model::fromCurveData(const std::vector<SegmentData>& curve)
     if(it == m_segments.end() || it->concreteKey() != d.type)
     {
       if(!csl)
-        csl = &score::IDocument::documentContext(*this).app.interfaces<SegmentList>();
+        csl = &score::AppContext().interfaces<SegmentList>();
       if(!csl->get(d.type))
       {
         qWarning() << "Curve::Model: refusing a curve with an unknown segment type";
