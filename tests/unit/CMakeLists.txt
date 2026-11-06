@@ -487,6 +487,15 @@ score_add_test(test_unit_control_entry_index
   SOURCES ControlEntryIndexTest.cpp
   PLUGINS score_lib_process score_lib_state score_lib_device)
 
+score_add_test(test_unit_wavetable
+  SOURCES WavetableTest.cpp
+  PLUGINS score_lib_process)
+
+score_add_test(test_unit_waveform_inlet
+  SOURCES WaveformInletTest.cpp
+  APP
+  PLUGINS score_plugin_dataflow score_plugin_scenario score_lib_process)
+
 score_add_test(test_unit_curve_inlet
   SOURCES CurveInletTest.cpp
   APP

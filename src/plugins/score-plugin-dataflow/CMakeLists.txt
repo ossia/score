@@ -10,6 +10,7 @@ set(HDRS
     Dataflow/ControlInletItem.hpp
     Dataflow/ControlOutletItem.hpp
     Dataflow/CurveInlet.hpp
+    Dataflow/WaveformInlet.hpp
     Dataflow/MidiInletItem.hpp
     Dataflow/MidiOutletItem.hpp
     Dataflow/AudioInletItem.hpp
@@ -29,6 +30,7 @@ set(SRCS
     Dataflow/ControlInletItem.cpp
     Dataflow/ControlOutletItem.cpp
     Dataflow/CurveInlet.cpp
+    Dataflow/WaveformInlet.cpp
     Dataflow/MidiInletItem.cpp
     Dataflow/MidiOutletItem.cpp
     Dataflow/AudioInletItem.cpp
