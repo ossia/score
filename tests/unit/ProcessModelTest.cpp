@@ -476,7 +476,7 @@ public:
     score::serialize_dyn(vis, *this);
   }
 
-  QString prettyShortName() const noexcept override { return "Test"; }
+  QString prettyShortName() const noexcept override { return QStringLiteral("Tést"); }
   QString category() const noexcept override { return "Test"; }
   QStringList tags() const noexcept override { return {}; }
   Process::ProcessFlags flags() const noexcept override
@@ -485,6 +485,8 @@ public:
   }
 };
 }
+
+TYPED_METADATA(, TestProcess, PrettyName_k, QString, QStringLiteral("Tést"))
 
 // Serialization of the derived part: exactly the shape real processes use.
 template <>
@@ -615,6 +617,35 @@ TEST_CASE("Concrete process: JSON round-trip", "[process][model][serialization]"
   JSONObject::Deserializer des{doc};
   TestProcess loaded{des, &owner};
   checkProcessEquality(loaded, proc);
+}
+
+TEST_CASE("Unicode default titles preserve scripting names and authored overrides", "[process][model][names]")
+{
+  QObject owner;
+  TestProcess proc{TimeVal::fromMsecs(3000), Id<Process::ProcessModel>{4}, &owner};
+  proc.metadata().setInstanceName(proc);
+  CHECK(proc.metadata().getName() == QStringLiteral("T_st.4"));
+  CHECK(proc.prettyName() == QStringLiteral("Tést.4"));
+
+  SECTION("authored names take precedence")
+  {
+    proc.metadata().setName(QStringLiteral("MyVoice"));
+    CHECK(proc.prettyName() == QStringLiteral("MyVoice"));
+  }
+
+  SECTION("default names stay untouched")
+  {
+    CHECK_FALSE(proc.metadata().touchedName());
+  }
+
+  const auto reader
+      = score::marshall<JSONObject>(static_cast<const Process::ProcessModel&>(proc));
+  const auto json = readJson(reader.toByteArray());
+  JSONObject::Deserializer des{json};
+  TestProcess restored{des, &owner};
+  CHECK(restored.metadata().getName() == proc.metadata().getName());
+  CHECK(restored.metadata().touchedName() == proc.metadata().touchedName());
+  CHECK(restored.prettyName() == proc.prettyName());
 }
 
 TEST_CASE("Ports vector round-trip via readPorts/writePorts", "[process][port][serialization]")
