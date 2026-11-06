@@ -86,6 +86,12 @@ public:
       Process::ControlOutlet& port, const Process::Context& ctx, QGraphicsItem* parent,
       QObject* context, const ControlPresentation& presentation = {});
 
+  //! Reapply native geometry after resizing a control or moving it into this assembly.
+  //! The port item and label must still belong to the supplied document port.
+  void layoutFullItem(
+      ControlLayout& item, const Process::Port& port,
+      const ControlPresentation& presentation = {}) const;
+
   // Port + text
   ControlLayout makeLabelItem(
       Process::Inlet& port, const Process::Context& ctx, QGraphicsItem* parent,

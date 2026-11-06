@@ -992,9 +992,9 @@ static QGraphicsItem* makePresentationWidget(
 static auto makeFullItemImpl(
     const Process::Port& portModel, Process::PortItemLayout layout,
     QGraphicsItem& port, QGraphicsItem& control, auto& item,
-    const Process::ControlPresentation& presentation)
+    const Process::ControlPresentation& presentation,
+    score::SimpleTextItem* lab = nullptr)
 {
-  score::SimpleTextItem* lab{};
   using namespace score;
 
   if(!presentation.isDefault())
@@ -1026,7 +1026,9 @@ static auto makeFullItemImpl(
   // Text
   if(layout.labelVisible)
   {
-    lab = Dataflow::makePortLabel(portModel, &item);
+    if(!lab)
+      lab = Dataflow::makePortLabel(portModel, &item);
+    lab->setVisible(true);
     if(presentation.label)
       lab->setText(*presentation.label);
     lab->setToolTip(portModel.description());
@@ -1055,6 +1057,10 @@ static auto makeFullItemImpl(
         control.setPos(port.x() - widg_w, control.pos().y());
       }
     }
+  }
+  else if(lab)
+  {
+    lab->setVisible(false);
   }
 
   const bool moved = !presentation.labelVisible
@@ -1179,6 +1185,31 @@ Process::ControlLayout PortFactory::makeFullItem(
     }
   }
   return ret;
+}
+
+void PortFactory::layoutFullItem(
+    ControlLayout& item, const Process::Port& port,
+    const ControlPresentation& presentation) const
+{
+  if(!item.container || !item.port_item || !item.control)
+    return;
+
+  auto layout = defaultLayout();
+  if(presentation.widget == ControlPresentation::Widget::Knob
+     && (qobject_cast<const Process::FloatSlider*>(&port)
+         || qobject_cast<const Process::LogFloatSlider*>(&port)))
+    layout = Process::DefaultControlLayouts::knob();
+  else if(presentation.widget == ControlPresentation::Widget::Combo
+          && qobject_cast<const Process::Enum*>(&port))
+    layout = Process::DefaultControlLayouts::combo();
+
+#if defined(SCORE_DEBUG_CONTROL_RECTS)
+  auto& container = static_cast<score::GraphicsLayout&>(*item.container);
+#else
+  auto& container = static_cast<score::EmptyRectItem&>(*item.container);
+#endif
+  item.label = makeFullItemImpl(
+      port, layout, *item.port_item, *item.control, container, presentation, item.label);
 }
 
 static constexpr auto defaultInletLabelLayout = Process::PortItemLayout{
