@@ -320,7 +320,7 @@ void GraphicsTableLayout::layout()
   {
     const int c = t + first_titled;
     if(std::ssize(col_w) <= c)
-      col_w.push_back(0.);
+      col_w.resize(c + 1, 0.);
     col_w[c] = std::max(col_w[c], fm.horizontalAdvance(m_titles[t]));
   }
   if(m_rowTitles && !m_title.isEmpty())
