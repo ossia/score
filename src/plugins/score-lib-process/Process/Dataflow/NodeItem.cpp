@@ -126,7 +126,7 @@ void NodeItem::createWithDecorations()
 
   updateLabel();
 
-  con(process.metadata(), &score::ModelMetadata::NameChanged, this,
+  con(process, &Process::ProcessModel::prettyNameChanged, this,
       &NodeItem::updateLabel);
   con(process.metadata(), &score::ModelMetadata::LabelChanged, this,
       &NodeItem::updateLabel);
@@ -358,7 +358,7 @@ void NodeItem::updateLabel()
 {
   if(const auto& name = m_model.metadata().getName(); !name.isEmpty())
   {
-    m_label->setText(name);
+    m_label->setText(m_model.metadata().touchedName() ? name : m_model.prettyName());
   }
   else if(const auto& label = m_model.metadata().getLabel(); !label.isEmpty())
   {

@@ -138,6 +138,10 @@ ProcessModel::ProcessModel(JSONObject::Deserializer& vis, QObject* parent)
 
 QString ProcessModel::prettyName() const noexcept
 {
+  // Default scripting names are address-safe; titles retain the original Unicode.
+  // Authored names and serialized scripting identifiers must stay unchanged.
+  if(!metadata().touchedName() && !metadata().getName().isEmpty())
+    return QStringLiteral("%1.%2").arg(prettyShortName()).arg(id().val());
   return metadata().getName();
 }
 
