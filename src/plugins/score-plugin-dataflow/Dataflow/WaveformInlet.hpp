@@ -8,6 +8,10 @@
 #include <score/serialization/VisitorCommon.hpp>
 
 #include <QGraphicsItem>
+#include <QRectF>
+#include <QString>
+
+class QMenu;
 
 namespace Dataflow
 {
@@ -32,8 +36,9 @@ namespace Dataflow
 //! observers receive valueChanged. Values the port cannot hold are ignored.
 //!
 //! The editor, in the scene and in the inspector, draws samples with optional
-//! amplitude quantization, and adds, removes, reorders and resamples frames,
-//! each edit being an undoable SetControlValue command.
+//! amplitude quantization; its context menu generates and transforms frames,
+//! resamples them and adds, removes and reorders the frames of a bank, each
+//! edit being an undoable SetControlValue command.
 //!
 //! Like any control inlet, these ports take cables and addresses and are
 //! registered for execution: a list of numbers arriving there is one frame,
@@ -99,6 +104,24 @@ SCORE_PLUGIN_DATAFLOW_EXPORT
 void setWaveformItemModel(QGraphicsItem& item, WaveformInlet& model);
 SCORE_PLUGIN_DATAFLOW_EXPORT
 void setWaveformItemRect(QGraphicsItem& item, const QRectF& rect);
+
+//! What a waveform editor item currently shows, in item coordinates.
+struct WaveformItemState
+{
+  //! Where samples are drawn and edited: one equal column per sample.
+  QRectF plot;
+  //! The frame chooser of a bank; null for a single frame.
+  QRectF frames;
+  std::size_t frame{};
+  QString label;
+  //! The hovered sample, empty when none is.
+  QString readout;
+};
+SCORE_PLUGIN_DATAFLOW_EXPORT
+WaveformItemState waveformItemState(const QGraphicsItem& item);
+//! The item's right-click menu: shapes, transforms, resampling and frames.
+SCORE_PLUGIN_DATAFLOW_EXPORT
+void fillWaveformItemMenu(QGraphicsItem& item, QMenu& menu);
 }
 
 namespace WidgetFactory

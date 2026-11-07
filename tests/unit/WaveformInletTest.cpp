@@ -24,15 +24,13 @@
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
 #include <score/serialization/VisitorCommon.hpp>
+#include <score/model/Skin.hpp>
 
 #include <QGraphicsScene>
 #include <QGraphicsProxyWidget>
 #include <QKeyEvent>
 #include <QGraphicsView>
-#include <QComboBox>
-#include <QPushButton>
-#include <QSpinBox>
-#include <QToolButton>
+#include <QMenu>
 #include <QImage>
 #include <QPainter>
 
@@ -40,6 +38,8 @@
 
 #include <algorithm>
 #include <array>
+#include <cmath>
+#include <functional>
 #include <limits>
 
 TEST_CASE("Waveform ports reject invalid content without splitting their model and value", "[wavetable][port]")
@@ -320,18 +320,64 @@ TEST_CASE("Sample edits undo against the document port after editor rebinding", 
 
 namespace
 {
-template <typename T>
-T* editorControl(QGraphicsView& view, const char* name)
+QAction* menuAction(QMenu& menu, const QString& path)
 {
-  for(auto* item : view.scene()->items())
-    if(auto* proxy = dynamic_cast<QGraphicsProxyWidget*>(item); proxy && proxy->widget())
-      if(auto* control = proxy->widget()->findChild<T*>(QString::fromLatin1(name)))
-        return control;
+  const auto parts = path.split(QLatin1Char('/'));
+  QMenu* current = &menu;
+  for(int i = 0; i < parts.size(); ++i)
+  {
+    QAction* found{};
+    for(auto* action : current->actions())
+      if(action->text() == parts[i])
+        found = action;
+    if(!found || i + 1 == parts.size())
+      return found;
+    current = found->menu();
+    if(!current)
+      return nullptr;
+  }
   return nullptr;
+}
+
+//! Triggers an enabled action of the editor's context menu.
+bool triggerMenu(QGraphicsItem& editor, const QString& path)
+{
+  QMenu menu;
+  Dataflow::fillWaveformItemMenu(editor, menu);
+  auto* action = menuAction(menu, path);
+  if(!action || !action->isEnabled())
+    return false;
+  action->trigger();
+  return true;
+}
+
+QGraphicsItem* waveformEditor(QGraphicsScene& scene)
+{
+  for(auto* item : scene.items())
+    if(item->data(0).toString() == QStringLiteral("WaveformEditor"))
+      return item;
+  return nullptr;
+}
+
+bool onLevels(std::span<const float> frame, int levels)
+{
+  return std::all_of(frame.begin(), frame.end(), [levels](float sample) {
+    const double step = (sample + 1.) * .5 * (levels - 1);
+    return std::abs(step - std::round(step)) < 1e-4;
+  });
+}
+
+void click(QGraphicsView& view, QGraphicsItem& editor, QPointF point)
+{
+  const auto position = view.mapFromScene(editor.mapToScene(point));
+  score::test::mouseEvent(*view.viewport(), QEvent::MouseButtonPress, position,
+                         Qt::LeftButton, Qt::LeftButton, {});
+  score::test::mouseEvent(*view.viewport(), QEvent::MouseButtonRelease, position,
+                         Qt::LeftButton, Qt::NoButton, {});
 }
 }
 
-TEST_CASE("Bank editor operations preserve frame order and share document undo", "[wavetable][gui]")
+TEST_CASE("Bank frames are chosen in the strip and edited from the context menu", "[wavetable][gui]")
 {
   score::test::run_in_gui_app([](const score::GUIApplicationContext& ctx) {
     auto* document = score::test::new_document(ctx);
@@ -348,30 +394,63 @@ TEST_CASE("Bank editor operations preserve frame order and share document undo",
     REQUIRE(view);
     view->resize(560, 260);
     REQUIRE(score::test::showAndActivate(*view));
-    auto* frames = editorControl<QComboBox>(*view, "WaveformFrameSelector");
-    auto* duplicate = editorControl<QToolButton>(*view, "WaveformDuplicateFrame");
-    auto* right = editorControl<QToolButton>(*view, "WaveformMoveFrameRight");
-    auto* remove = editorControl<QToolButton>(*view, "WaveformRemoveFrame");
-    auto* resolution = editorControl<QSpinBox>(*view, "WaveformResolution");
-    REQUIRE(frames); REQUIRE(duplicate); REQUIRE(right); REQUIRE(remove); REQUIRE(resolution);
-    frames->setCurrentIndex(0);
-    duplicate->click();
+    auto* editor = waveformEditor(*view->scene());
+    REQUIRE(editor);
+    for(auto* item : view->scene()->items())
+      CHECK_FALSE(dynamic_cast<QGraphicsProxyWidget*>(item));
+
+    auto state = Dataflow::waveformItemState(*editor);
+    REQUIRE_FALSE(state.frames.isNull());
+    CHECK(state.frames.bottom() <= state.plot.top());
+    CHECK(state.frame == 0);
+    const auto commands = document->commandStack().currentIndex();
+    // Two frames fit as thumbnails, side by side from the left.
+    const auto thumbnail = [&](int frame) {
+      return QPointF{state.frames.left() + 24. + 48. * frame, state.frames.center().y()};
+    };
+    click(*view, *editor, thumbnail(1));
+    CHECK(Dataflow::waveformItemState(*editor).frame == 1);
+    click(*view, *editor, thumbnail(0));
+    CHECK(Dataflow::waveformItemState(*editor).frame == 0);
+    CHECK(document->commandStack().currentIndex() == commands);
+
+    REQUIRE(triggerMenu(*editor, QStringLiteral("Duplicate frame")));
+    CHECK(document->commandStack().currentIndex() == commands + 1);
+    CHECK(Dataflow::waveformItemState(*editor).frame == 1);
     auto expected = first;
     expected.samples.insert(expected.samples.end(), original.samples.begin(), original.samples.end());
     CHECK(inlet->wavetable() == expected);
-    right->click();
+    REQUIRE(triggerMenu(*editor, QStringLiteral("Move frame right")));
     expected = original;
     expected.samples.insert(expected.samples.end(), first.samples.begin(), first.samples.end());
     CHECK(inlet->wavetable() == expected);
-    remove->click();
+    CHECK(Dataflow::waveformItemState(*editor).frame == 2);
+    CHECK_FALSE(triggerMenu(*editor, QStringLiteral("Move frame right")));
+    REQUIRE(triggerMenu(*editor, QStringLiteral("Remove frame")));
     CHECK(inlet->wavetable() == original);
+    CHECK(document->commandStack().currentIndex() == commands + 3);
     document->commandStack().undo();
     CHECK(inlet->wavetable() == expected);
     document->commandStack().redo();
     CHECK(inlet->wavetable() == original);
 
-    resolution->setValue(16);
-    REQUIRE(QMetaObject::invokeMethod(resolution, "editingFinished", Qt::DirectConnection));
+    // Transforms apply to the chosen frame only.
+    click(*view, *editor, thumbnail(1));
+    REQUIRE(triggerMenu(*editor, QStringLiteral("Invert")));
+    auto inverted = first;
+    inverted.samples.insert(inverted.samples.end(), first.samples.begin(), first.samples.end());
+    CHECK(inlet->wavetable() == inverted);
+    document->commandStack().undo();
+    CHECK(inlet->wavetable() == original);
+
+    {
+      QMenu menu;
+      Dataflow::fillWaveformItemMenu(*editor, menu);
+      auto* sixteen = menuAction(menu, QStringLiteral("Resample/16 samples"));
+      REQUIRE(sixteen);
+      CHECK_FALSE(sixteen->isChecked());
+      sixteen->trigger();
+    }
     const auto& resized = inlet->wavetable();
     REQUIRE(resized.frameSize == 16);
     REQUIRE(resized.frameCount() == 2);
@@ -379,14 +458,256 @@ TEST_CASE("Bank editor operations preserve frame order and share document undo",
       for(std::size_t sample = 0; sample < 16; ++sample)
         CHECK(resized.frame(frame)[sample]
               == Process::sampleWavetable(original, frame, double(sample) / 16));
+    CHECK(Dataflow::waveformItemState(*editor).label == QStringLiteral("16 smp"));
     document->commandStack().undo();
     CHECK(inlet->wavetable() == original);
-    frames->setCurrentIndex(1);
-    remove->click();
+    REQUIRE(triggerMenu(*editor, QStringLiteral("Remove frame")));
     CHECK(inlet->wavetable() == first);
-    CHECK_FALSE(remove->isEnabled());
-    remove->click();
+    CHECK(Dataflow::waveformItemState(*editor).frame == 0);
+    CHECK_FALSE(triggerMenu(*editor, QStringLiteral("Remove frame")));
     CHECK(inlet->wavetable() == first);
+
+    // Too many frames for thumbnails: arrows either side of the frame number.
+    auto many = first;
+    for(int i = 0; i < 11; ++i) many.samples.insert(many.samples.end(), first.samples.begin(), first.samples.end());
+    inlet->setWaveform(many);
+    view->resize(220, 140);
+    QCoreApplication::processEvents();
+    state = Dataflow::waveformItemState(*editor);
+    REQUIRE(state.frames.width() < 12 * 24.);
+    const QPointF next{state.frames.right() - 4., state.frames.center().y()};
+    const QPointF previous{state.frames.left() + 4., state.frames.center().y()};
+    click(*view, *editor, next);
+    click(*view, *editor, next);
+    CHECK(Dataflow::waveformItemState(*editor).frame == 2);
+    click(*view, *editor, previous);
+    CHECK(Dataflow::waveformItemState(*editor).frame == 1);
+    click(*view, *editor, previous);
+    click(*view, *editor, previous);
+    CHECK(Dataflow::waveformItemState(*editor).frame == 0);
+  });
+}
+
+TEST_CASE("Waveform columns are drawn where they are edited", "[wavetable][gui]")
+{
+  score::test::run_in_gui_app([](const score::GUIApplicationContext& ctx) {
+    auto* document = score::test::new_document(ctx);
+    REQUIRE(document);
+    auto* inlet = new Dataflow::WaveformInlet{
+        Id<Process::Port>{907}, &score::test::base_interval(*document)};
+    inlet->setAmplitudeLevels(16);
+    inlet->setFrameSizeConstraint(32);
+    Process::WavetableData flat{32, std::vector<float>(32, -1.f)};
+    flat.samples[5] = 1.f;
+    inlet->setWaveform(flat);
+    QGraphicsScene scene;
+    auto* editor = WidgetFactory::WaveformInletItems::make_item(
+        *inlet, *inlet, document->context(), nullptr, inlet);
+    scene.addItem(editor);
+    Dataflow::setWaveformItemRect(*editor, {0., 0., 400., 120.});
+    const auto plot = Dataflow::waveformItemState(*editor).plot;
+    REQUIRE(plot.width() > 380.);
+    REQUIRE(plot.height() > 110.);
+    const double column = plot.width() / 32.;
+
+    QImage image{400, 120, QImage::Format_ARGB32_Premultiplied};
+    image.fill(Qt::black);
+    {
+      QPainter painter{&image};
+      editor->paint(&painter, nullptr, nullptr);
+    }
+    const QColor bar = score::Skin::instance().Base4.color();
+    const auto capAt = [&](double x, double y) {
+      for(int row = int(y) - 1; row <= int(y) + 1; ++row)
+        if(row >= 0 && row < image.height() && image.pixelColor(int(x), row) == bar)
+          return true;
+      return false;
+    };
+    // Sample 5 is raised over its whole column, its neighbours are not.
+    for(double offset : {.2, .5, .8})
+    {
+      CHECK(capAt(plot.left() + column * (5. + offset), plot.top()));
+      CHECK_FALSE(capAt(plot.left() + column * (4. + offset), plot.top()));
+      CHECK_FALSE(capAt(plot.left() + column * (6. + offset), plot.top()));
+      CHECK(capAt(plot.left() + column * (4. + offset), plot.bottom() - 1.));
+    }
+
+    QGraphicsView view{&scene};
+    view.setSceneRect(0., 0., 400., 120.);
+    view.resize(440, 160);
+    REQUIRE(score::test::showAndActivate(view));
+    const auto commands = document->commandStack().currentIndex();
+    // Either side of a column centre edits that column, as drawn.
+    for(double offset : {.1, .9})
+    {
+      click(view, *editor, {plot.left() + column * (9. + offset), plot.top() + 1.});
+      auto expected = flat;
+      expected.samples[9] = 1.f;
+      CHECK(inlet->wavetable() == expected);
+      CHECK(document->commandStack().currentIndex() == commands + 1);
+      document->commandStack().undo();
+      CHECK(inlet->wavetable() == flat);
+    }
+  });
+}
+
+TEST_CASE("Hovering a sample reads out its index and level", "[wavetable][gui]")
+{
+  score::test::run_in_gui_app([](const score::GUIApplicationContext& ctx) {
+    auto* document = score::test::new_document(ctx);
+    REQUIRE(document);
+    auto& interval = score::test::base_interval(*document);
+    auto* chip = new Dataflow::WaveformInlet{Id<Process::Port>{908}, &interval};
+    chip->setAmplitudeLevels(32);
+    chip->setFrameSizeConstraint(32);
+    auto wave = chip->wavetable();
+    wave.samples[12] = Process::quantizeSample(2. * 23 / 31 - 1., 32);
+    chip->setWaveform(wave);
+    auto* continuous = new Dataflow::WaveformInlet{Id<Process::Port>{909}, &interval};
+    auto smooth = Process::makeTriangleWavetable(64);
+    smooth.samples[3] = .5f;
+    continuous->setWaveform(smooth);
+
+    QGraphicsScene scene;
+    auto* editor = WidgetFactory::WaveformInletItems::make_item(
+        *chip, *chip, document->context(), nullptr, chip);
+    scene.addItem(editor);
+    Dataflow::setWaveformItemRect(*editor, {0., 0., 320., 120.});
+    QGraphicsView view{&scene};
+    view.setSceneRect(-40., -40., 400., 200.);
+    view.resize(420, 220);
+    REQUIRE(score::test::showAndActivate(view));
+    const auto hover = [&](QPointF point) {
+      score::test::mouseEvent(*view.viewport(), QEvent::MouseMove,
+                             view.mapFromScene(editor->mapToScene(point)), Qt::NoButton,
+                             Qt::NoButton, {});
+      QCoreApplication::processEvents();
+      return Dataflow::waveformItemState(*editor);
+    };
+    const auto commands = document->commandStack().currentIndex();
+    auto state = Dataflow::waveformItemState(*editor);
+    CHECK(state.label == QStringLiteral("32 smp, 5 bit"));
+    CHECK(state.readout.isEmpty());
+    const auto column = [&](std::size_t sample, std::size_t size) {
+      return QPointF{state.plot.left() + state.plot.width() * (sample + .5) / size,
+                     state.plot.center().y()};
+    };
+    CHECK(hover(column(12, 32)).readout == QStringLiteral("#12 23/31"));
+    CHECK(hover(column(0, 32)).readout == QStringLiteral("#0 0/31"));
+    CHECK(hover({-20., -20.}).readout.isEmpty());
+
+    Dataflow::setWaveformItemModel(*editor, *continuous);
+    state = Dataflow::waveformItemState(*editor);
+    CHECK(state.label == QStringLiteral("64 smp"));
+    CHECK(hover(column(3, 64)).readout == QStringLiteral("#3 0.50"));
+    CHECK(document->commandStack().currentIndex() == commands);
+
+    chip->setAmplitudeLevels(24);
+    Dataflow::setWaveformItemModel(*editor, *chip);
+    CHECK(Dataflow::waveformItemState(*editor).label == QStringLiteral("32 smp, 24 levels"));
+  });
+}
+
+TEST_CASE("Each waveform menu action is one undoable command on the port's levels", "[wavetable][gui][undo]")
+{
+  score::test::run_in_gui_app([](const score::GUIApplicationContext& ctx) {
+    auto* document = score::test::new_document(ctx);
+    REQUIRE(document);
+    auto* inlet = new Dataflow::WaveformInlet{
+        Id<Process::Port>{910}, &score::test::base_interval(*document)};
+    inlet->setAmplitudeLevels(16);
+    inlet->setFrameSizeConstraint(32);
+    QGraphicsScene scene;
+    auto* editor = WidgetFactory::WaveformInletItems::make_item(
+        *inlet, *inlet, document->context(), nullptr, inlet);
+    scene.addItem(editor);
+    auto& stack = document->commandStack();
+
+    {
+      QMenu menu;
+      Dataflow::fillWaveformItemMenu(*editor, menu);
+      CHECK_FALSE(menuAction(menu, QStringLiteral("Resample")));
+      CHECK_FALSE(menuAction(menu, QStringLiteral("Add frame")));
+    }
+
+    using Shape = Process::WaveformShape;
+    for(auto [name, shape] : std::initializer_list<std::pair<const char*, Shape>>{
+            {"Sine", Shape::Sine}, {"Triangle", Shape::Triangle}, {"Saw up", Shape::SawUp},
+            {"Saw down", Shape::SawDown}, {"Square", Shape::Square},
+            {"Pulse 25%", Shape::Pulse25}, {"Pulse 12.5%", Shape::Pulse12},
+            {"Noise", Shape::Noise}})
+    {
+      INFO(name);
+      const auto before = inlet->wavetable();
+      const auto index = stack.currentIndex();
+      REQUIRE(triggerMenu(*editor, QStringLiteral("Shape/") + QString::fromLatin1(name)));
+      CHECK(stack.currentIndex() == index + 1);
+      const auto after = inlet->wavetable();
+      CHECK(after.frameSize == 32);
+      CHECK(onLevels(after.samples, 16));
+      if(shape != Shape::Noise)
+      {
+        std::vector<float> expected(32);
+        Process::generateWaveform(expected, shape, 16);
+        CHECK(after.samples == expected);
+      }
+      stack.undo();
+      CHECK(inlet->wavetable() == before);
+      stack.redo();
+      CHECK(inlet->wavetable() == after);
+    }
+
+    // Levels 3 to 10 of 16: neither centred nor at full scale.
+    Process::WavetableData start{32, std::vector<float>(32)};
+    for(std::size_t i = 0; i < 32; ++i)
+      start.samples[i] = Process::quantizeSample(2. * (3 + (i * 5) % 8) / 15. - 1., 16);
+    CommandDispatcher<> dispatcher{document->context().commandStack};
+    using Transform = std::function<void(std::span<float>)>;
+    for(auto [name, transform] : std::initializer_list<std::pair<const char*, Transform>>{
+            {"Normalize", [](std::span<float> f) { Process::normalizeWaveform(f, 16); }},
+            {"Invert", [](std::span<float> f) { Process::invertWaveform(f, 16); }},
+            {"Reverse", [](std::span<float> f) { Process::reverseWaveform(f); }},
+            {"Rotate left", [](std::span<float> f) { Process::rotateWaveform(f, true); }},
+            {"Rotate right", [](std::span<float> f) { Process::rotateWaveform(f, false); }},
+            {"Smooth", [](std::span<float> f) { Process::smoothWaveform(f, 16); }},
+            {"Clear", [](std::span<float> f) { Process::clearWaveform(f, 16); }}})
+    {
+      INFO(name);
+      dispatcher.submit<Process::SetControlValue>(*inlet, Process::wavetableToValue(start));
+      REQUIRE(inlet->wavetable() == start);
+      auto expected = start;
+      transform(expected.samples);
+      for(float& sample : expected.samples)
+        sample = Process::quantizeSample(sample, 16);
+      REQUIRE(expected != start);
+      const auto index = stack.currentIndex();
+      REQUIRE(triggerMenu(*editor, QString::fromLatin1(name)));
+      CHECK(stack.currentIndex() == index + 1);
+      CHECK(inlet->wavetable() == expected);
+      CHECK(onLevels(inlet->wavetable().samples, 16));
+      stack.undo();
+      CHECK(inlet->wavetable() == start);
+      stack.redo();
+      CHECK(inlet->wavetable() == expected);
+    }
+    // An action that changes nothing adds no command.
+    const auto index = stack.currentIndex();
+    REQUIRE(triggerMenu(*editor, QStringLiteral("Clear")));
+    CHECK(stack.currentIndex() == index);
+
+    auto* unconstrained = new Dataflow::WaveformInlet{
+        Id<Process::Port>{916}, &score::test::base_interval(*document)};
+    Dataflow::setWaveformItemModel(*editor, *unconstrained);
+    QMenu menu;
+    Dataflow::fillWaveformItemMenu(*editor, menu);
+    auto* current = menuAction(menu, QStringLiteral("Resample/32 samples"));
+    REQUIRE(current);
+    CHECK(current->isChecked());
+    auto* larger = menuAction(menu, QStringLiteral("Resample/64 samples"));
+    REQUIRE(larger);
+    larger->trigger();
+    CHECK(unconstrained->wavetable().frameSize == 64);
+    CHECK(stack.currentIndex() == index + 1);
   });
 }
 
