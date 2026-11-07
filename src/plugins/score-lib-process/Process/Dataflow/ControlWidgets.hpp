@@ -691,6 +691,11 @@ struct TimeChooserT
     ConcreteNormalizer<Normalizer, T> norm{slider};
     sl->positionToSeconds = [norm](double p) { return norm.from01(p); };
     sl->secondsToPosition = [norm](double s) { return norm.to01(s); };
+    if constexpr(requires { inlet.offersBarSync; })
+    {
+      sl->offersBarSync = inlet.offersBarSync;
+      sl->barSyncDefault = inlet.barSyncDefault;
+    }
 
     sl->setValue(mapTimeToUI(norm, ossia::convert<ossia::vec2f>(inlet.value())));
 

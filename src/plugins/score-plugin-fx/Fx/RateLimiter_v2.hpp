@@ -42,7 +42,8 @@ struct Node
   struct ins
   {
     ossia_port<"in", ossia::value_port> port{};
-    struct : halp::time_chooser<"Interval", halp::range{0., 10., 0.01}>
+    struct : halp::time_chooser<
+                 "Interval", halp::range{0., 10., 0.01}, halp::bar_sync::restart>
     {
       halp_meta(
           description,
@@ -232,8 +233,39 @@ struct Node
     // The rate of the musical grid (1 a whole note, 4 a quarter...) for the
     // length of the interval at this tempo.
     const double rate = (seconds > 0. && t.tempo > 0.) ? 240. / (seconds * t.tempo) : 0.;
-    return t.forward() ? t.get_quantification_dates(rate)
-                       : ossia::quantification_points{};
+    if(!t.forward())
+      return {};
+    if(!inputs.interval.bar_sync && rate > 1.)
+      return pulse(t, 4. / rate);
+    return t.get_quantification_dates(rate);
+  }
+
+  //! The grid as one pulse of `unit` quarters from the last signature change,
+  //! across the bar lines. Each point is computed as origin + k * unit in
+  //! every tick, so the half-open [start; end[ comparisons put it in exactly
+  //! one of them.
+  static ossia::quantification_points pulse(const tick& t, double unit) noexcept
+  {
+    ossia::quantification_points res;
+    const double start = t.musical_start_position;
+    const double end = t.musical_end_position;
+    if(!(end > start) || !(unit > 0.))
+      return res;
+    const double origin = t.musical_start_last_signature;
+    const auto point = [&](int64_t k) { return origin + double(k) * unit; };
+    auto k = int64_t(std::ceil((start - origin) / unit));
+    while(point(k - 1) >= start)
+      k--;
+    while(point(k) < start)
+      k++;
+    const double scale = double((t.date - t.prev_date).impl) / (end - start);
+    for(; res.size() < 1024 && point(k) < end; k++)
+    {
+      const double p = point(k);
+      res.push_back(
+          {t.prev_date + ossia::time_value{int64_t((p - start) * scale)}, k, p});
+    }
+    return res;
   }
 
   //! The latest value goes out on each grid point.

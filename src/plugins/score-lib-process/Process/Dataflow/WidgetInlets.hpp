@@ -357,6 +357,23 @@ public:
   //! becomes that note, synced, as value and as init. For controls created
   //! where the time is musical. Returns whether it did.
   bool preferSynced(double tempo = 120.);
+
+  //! The second component of the value, the mode. A synced value says what
+  //! its steps do at a bar line they do not fill: 1 what the object declares,
+  //! 2 they start again from it, 3 they go on as one pulse across it.
+  enum Mode : int
+  {
+    Free = 0,
+    Synced = 1,
+    SyncedBarRestart = 2,
+    SyncedPulse = 3
+  };
+
+  //! Whether the object reads modes 2 and 3, and what 1 means for it. They
+  //! follow the object's declaration and are not saved.
+  bool offersBarSync{};
+  bool barSyncDefault{true};
+
   using Process::ControlInlet::ControlInlet;
 };
 

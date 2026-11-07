@@ -12,6 +12,7 @@
 #include <avnd/common/aggregates.hpp>
 #include <avnd/introspection/range.hpp>
 #include <avnd/introspection/widgets.hpp>
+#include <avnd/binding/ossia/time_controls.hpp>
 
 #include <ossia/network/value/value.hpp>
 
@@ -150,6 +151,9 @@ void assign(
         field.sync = a[1].toDouble() > 0.5;
         field.value = field.sync ? V(4. * a[0].toDouble() * 60. / tempo)
                                  : V(a[0].toDouble());
+        if constexpr(requires { field.bar_sync; })
+          if(field.sync)
+            field.bar_sync = oscr::bar_sync_of<Field>(float(a[1].toDouble()));
       }
       else
       {

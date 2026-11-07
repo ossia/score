@@ -597,7 +597,8 @@ TimeChooser::TimeChooser(
   // work-around for exactly this.
   setValue(ossia::vec2f{init, 0.f});
   setInit(value());
-  setDomain(ossia::make_domain(ossia::vec2f{min, 0.f}, ossia::vec2f{max, 1.f}));
+  setDomain(ossia::make_domain(
+      ossia::vec2f{min, float(Free)}, ossia::vec2f{max, float(SyncedPulse)}));
 }
 
 TimeChooser::~TimeChooser() { }

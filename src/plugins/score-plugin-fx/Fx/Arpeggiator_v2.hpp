@@ -139,8 +139,11 @@ struct Node
     halp::hslider_i32<"Octave", halp::irange{1, 7, 1}> octave;
     OctaveMode octave_mode;
     halp::hslider_i32<"Repeat", halp::irange{1, 8, 1}> repeat;
-    //! Between two steps: seconds, or a note value, on the bars' grid.
-    halp::time_chooser<"Rate", halp::range{0.01, 4., 0.125}> rate;
+    //! Between two steps: seconds, or a note value. A note value that does not
+    //! fill the bar goes on across the bar lines, unless the user has it
+    //! restart at each of them.
+    halp::time_chooser<"Rate", halp::range{0.01, 4., 0.125}, halp::bar_sync::pulse>
+        rate;
 
     struct : halp::knob_f32<"Gate", halp::range{0.01, 2., 1.}>
     {
@@ -282,7 +285,17 @@ struct Node
     const double secs = inputs.rate.value;
     if(!(secs > 0.) || !(tk.tempo > 0.))
       return 0.;
-    return 240. / (secs * tk.tempo);
+    double whole_notes = secs * tk.tempo / 240.;
+    if(inputs.rate.sync)
+    {
+      // A note value reaches the object as seconds in a float, a few
+      // millionths off: steps that much short or long drift off the beat by
+      // a frame every few minutes. Every note value, tuplets of 3, 5, 7 and 9
+      // and dots down to 1/256, is a whole number of these units.
+      constexpr double unit = 256. * 9. * 5. * 7.;
+      whole_notes = std::max(1., std::round(whole_notes * unit)) / unit;
+    }
+    return 1. / whole_notes;
   }
 
   using tick = halp::tick_musical;
@@ -383,14 +396,12 @@ struct Node
 
     if(frames > 0)
     {
-      for(auto [date, grid_point] : tk.get_quantification_date(rate))
-      {
-        if(date >= frames)
-          break;
+      const bool bar_restart = inputs.rate.sync && inputs.rate.bar_sync;
+      for_each_step(tk, rate, quarters_in_bar, bar_restart, [&](int date, int64_t grid_point) {
         take_inputs_until(date);
         refresh();
         if(engine.arpeggio.empty())
-          continue;
+          return;
         if(engine.index >= engine.arpeggio.size())
           engine.index = 0;
 
@@ -443,7 +454,7 @@ struct Node
         m_pending = s;
         if(s.at < m_now + frames)
           fire_pending();
-      }
+      });
     }
     take_inputs_until(frames);
     refresh();
@@ -453,6 +464,61 @@ struct Node
   }
 
 private:
+  //! Calls f(frame, index in the bar) for each step starting in the tick.
+  //!
+  //! With `bar_restart`, the steps are the quantification grid, which starts
+  //! again at each bar line: the last step of a bar a dotted rate does not
+  //! fill is cut short (a 4/4 bar holds 10 2/3 dotted sixteenths). Otherwise,
+  //! shorter than a bar, they are a pulse: one lattice from the last signature
+  //! change, crossing the bar lines. The index still counts from the bar line,
+  //! so that the swing pairs follow the bars.
+  template <typename F>
+  static void for_each_step(
+      const halp::tick_musical& tk, double rate, double quarters_in_bar,
+      bool bar_restart, F&& f) noexcept
+  {
+    const double start = tk.start_position_in_quarters;
+    const double end = tk.end_position_in_quarters;
+    const double unit = rate > 1. ? 4. / rate : 0.;
+    if(bar_restart || !(end > start) || !(unit > 0.) || !(quarters_in_bar > 0.))
+    {
+      for(auto [date, grid_point] : tk.get_quantification_date(rate))
+      {
+        if(date >= tk.frames)
+          break;
+        f(date, grid_point);
+      }
+      return;
+    }
+
+    // Each point is computed as origin + k * unit in every tick, so the
+    // half-open [start; end[ comparisons put it in exactly one of them.
+    const double origin = tk.last_signature_change;
+    const auto point = [&](int64_t k) { return origin + double(k) * unit; };
+    auto k = int64_t(std::ceil((start - origin) / unit));
+    while(point(k - 1) >= start)
+      k--;
+    while(point(k) < start)
+      k++;
+
+    // The rate arrives rounded, so a step meant for a bar line can land a few
+    // millionths of a step from it: that close, it is on it.
+    constexpr double tolerance = 1e-4;
+    for(int count = 0; count < 1024; count++, k++)
+    {
+      const double p = point(k);
+      if(p >= end)
+        break;
+      const double bar = origin
+                         + std::floor((p - origin) / quarters_in_bar + tolerance)
+                               * quarters_in_bar;
+      const auto first_in_bar = int64_t(std::ceil((bar - origin) / unit - tolerance));
+      const int64_t frame = std::clamp<int64_t>(
+          halp::musical_to_frame(p, start, end, tk.frames), 0, tk.frames - 1);
+      f(int(frame), k - first_in_bar);
+    }
+  }
+
   struct Step
   {
     bool valid{};

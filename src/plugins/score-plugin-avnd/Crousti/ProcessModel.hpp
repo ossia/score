@@ -398,6 +398,22 @@ private:
     init_controller_ports();
     init_folder_comboboxes();
     init_single_cable_ports();
+    init_time_choosers();
+  }
+
+  //! What a time chooser offers follows the object, also in a loaded document.
+  void init_time_choosers()
+  {
+    avnd::input_introspection<Info>::for_all(
+        [this]<std::size_t Idx, typename P>(avnd::field_reflection<Idx, P>) {
+      if constexpr(requires { requires bool(P::offers_bar_sync); })
+        for(auto* port : avnd_input_idx_to_model_ports(Idx))
+          if(auto* tc = qobject_cast<Process::TimeChooser*>(port))
+          {
+            tc->offersBarSync = true;
+            tc->barSyncDefault = P::bar_sync_default;
+          }
+    });
   }
 
   void init_single_cable_ports()

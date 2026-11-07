@@ -2348,6 +2348,19 @@ if(TARGET score_plugin_avnd AND TARGET score_plugin_fx AND TARGET score_plugin_e
     "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-avnd")
 endif()
 
+# "Restart at bar lines" on a synced time chooser: which objects offer it, the
+# mode the binding reads, the menu and its command, and the modes through a
+# save and a load, values saved before the choice existed included.
+if(TARGET score_plugin_avnd AND TARGET score_plugin_fx)
+  score_add_test(test_unit_time_chooser_bar_sync
+    SOURCES TimeChooserBarSyncTest.cpp
+    APP
+    PLUGINS score_plugin_avnd score_plugin_fx score_plugin_dataflow score_plugin_scenario score_lib_process)
+  target_include_directories(test_unit_time_chooser_bar_sync PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish"
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-avnd")
+endif()
+
 # The MIDI objects whose controls changed kind, loaded from older scores and
 # presets, and a score with an object that is no more.
 if(TARGET score_plugin_avnd AND TARGET score_plugin_engine)

@@ -6,6 +6,7 @@
 #include <ossia/detail/math.hpp>
 
 #include <QGraphicsSceneMouseEvent>
+#include <QMenu>
 #include <string_view>
 #include <QPainter>
 
@@ -101,16 +102,48 @@ void QGraphicsTimeChooser::setValue(ossia::vec2f v)
   m_sync = v[1] != 0.f;
   m_value = position(v);
   if(m_sync)
+  {
     m_feel = feelOf(syncIndex());
+    m_syncMode = (v[1] == 2.f || v[1] == 3.f) ? v[1] : 1.f;
+  }
   update();
 }
 
 ossia::vec2f QGraphicsTimeChooser::value() const noexcept
 {
   if(m_sync)
-    return {divisions[syncIndex()].fraction, 1.f};
+    return {divisions[syncIndex()].fraction, m_syncMode};
   else
     return {float(m_value), 0.f};
+}
+
+bool QGraphicsTimeChooser::barSync() const noexcept
+{
+  if(m_syncMode == 2.f)
+    return true;
+  if(m_syncMode == 3.f)
+    return false;
+  return barSyncDefault;
+}
+
+void QGraphicsTimeChooser::setBarSync(bool restart)
+{
+  m_syncMode = restart ? 2.f : 3.f;
+  if(!m_sync)
+    return;
+  sliderMoved();
+  sliderReleased();
+  update();
+}
+
+QMenu* QGraphicsTimeChooser::makeSyncMenu()
+{
+  auto menu = new QMenu;
+  auto act = menu->addAction(QObject::tr("Restart at bar lines"));
+  act->setCheckable(true);
+  act->setChecked(barSync());
+  connect(act, &QAction::triggered, this, [this](bool on) { setBarSync(on); });
+  return menu;
 }
 
 void QGraphicsTimeChooser::setExecutionValue(ossia::vec2f v)
@@ -283,10 +316,11 @@ void QGraphicsTimeChooser::mousePressEvent(QGraphicsSceneMouseEvent* event)
       }
       break;
     case Qt::RightButton:
-      // Typing a time in: seconds only, a note value is picked on the knob
+      // Typing a time in: seconds only, a note value is picked on the knob.
+      // A synced time has the bar lines menu instead, if the object reads it.
       if(m_sync)
       {
-        event->ignore();
+        event->setAccepted(offersBarSync);
         return;
       }
       break;
@@ -342,14 +376,20 @@ void QGraphicsTimeChooser::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
   {
     DefaultGraphicsKnobImpl::contextMenuEvent(*this, event->scenePos());
   }
+  else if(event->button() == Qt::RightButton && offersBarSync)
+  {
+    auto menu = makeSyncMenu();
+    menu->setAttribute(Qt::WA_DeleteOnClose);
+    menu->popup(event->screenPos());
+  }
   event->accept();
 }
 
 void QGraphicsTimeChooser::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
 {
-  // Free: the right-click types the time in. Synced: whatever is below
-  // handles it, as before.
-  event->setAccepted(!m_sync);
+  // Free: the right-click types the time in. Synced: the bar lines menu if
+  // the object reads it, else whatever is below handles it.
+  event->setAccepted(!m_sync || offersBarSync);
 }
 
 //! QEvent::UngrabMouse: the scene took the implicit grab away and there will be

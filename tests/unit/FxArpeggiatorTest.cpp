@@ -11,6 +11,7 @@
 
 #include <algorithm>
 #include <atomic>
+#include <cmath>
 #include <cstdlib>
 #include <map>
 #include <new>
@@ -838,5 +839,159 @@ TEST_CASE(
     CHECK(per_tick == std::vector<int>(10, 0));
     CHECK(out.errors.empty());
     CHECK(out.still_sounding() == 0);
+  }
+}
+
+namespace
+{
+//! A note the arpeggiator played: where it starts and how long it lasts.
+struct PlayedNote
+{
+  int64_t on;
+  int64_t length;
+};
+
+//! Plays the Latched pad arp settings (Up/Down, two octaves above, gate 0.9,
+//! toggle latch) on a held C E G at `note` (a fraction of a whole note, as a
+//! synced Rate holds it) and returns the notes of the first `bars` bars of 4/4.
+//! `bar_restart`: the Rate's "Restart at bar lines".
+std::vector<PlayedNote> play_pad(
+    double note, int buffer, double sr, double tempo, int bars,
+    bool bar_restart = false)
+{
+  Arp a;
+  a.prepare({.input_channels = 0, .output_channels = 0, .frames = buffer, .rate = sr});
+  a.inputs.arpeggios.value = 6;
+  a.inputs.octave.value = 2;
+  a.inputs.octave_mode.value = 1;
+  a.inputs.gate.value = 0.9f;
+  a.inputs.latch.value = Nodes::Arpeggiator::v2::LatchToggle;
+  // What the host hands over for a synced rate
+  a.inputs.rate.value = float(4. * note * 60. / tempo);
+  a.inputs.rate.sync = true;
+  a.inputs.rate.bar_sync = bar_restart;
+
+  const double frames_per_quarter = sr * 60. / tempo;
+  const auto end = int64_t(bars * 4 * frames_per_quarter);
+  std::map<int, int64_t> started;
+  std::vector<PlayedNote> notes;
+  for(int64_t pos = 0; pos < end;)
+  {
+    const int frames = int(std::min<int64_t>(buffer, end - pos));
+    a.inputs.midi.midi_messages.clear();
+    if(pos == 0)
+      for(int p : {60, 64, 67})
+        a.inputs.midi.midi_messages.push_back(note_on(p, 100));
+    a.outputs.midi.midi_messages.clear();
+    halp::tick_musical tk{};
+    tk.frames = frames;
+    tk.position_in_frames = pos;
+    tk.start_position_in_quarters = pos / frames_per_quarter;
+    tk.end_position_in_quarters = (pos + frames) / frames_per_quarter;
+    tk.bar_at_start = 4. * std::floor(tk.start_position_in_quarters / 4.);
+    tk.bar_at_end = 4. * std::floor(tk.end_position_in_quarters / 4.);
+    tk.tempo = tempo;
+    tk.signature = {4, 4};
+    a(tk);
+    for(auto& m : a.outputs.midi.midi_messages)
+    {
+      const auto e = event_of(m, pos + m.timestamp);
+      if(e.status == 0x90)
+        started[e.pitch] = e.at;
+      else if(e.status == 0x80)
+        if(auto it = started.find(e.pitch); it != started.end())
+        {
+          notes.push_back({it->second, e.at - it->second});
+          started.erase(it);
+        }
+    }
+    pos += frames;
+  }
+  std::sort(notes.begin(), notes.end(), [](auto& l, auto& r) { return l.on < r.on; });
+  return notes;
+}
+}
+
+TEST_CASE(
+    "Arpeggiator v2: every step of a rate lasts as long, across the bar lines",
+    "[fx][arpeggiator]")
+{
+  struct rate
+  {
+    const char* name;
+    double note;
+  };
+  for(auto [name, note] :
+      {rate{"1/16", 1. / 16.}, rate{"1/16.", 3. / 32.}, rate{"1/8.", 3. / 16.},
+       rate{"1/4.", 3. / 8.}, rate{"1/16t", 1. / 24.}, rate{"1/8t", 1. / 12.}})
+    for(double sr : {44100., 48000.})
+      for(double tempo : {120., 133.})
+        for(int buffer : {64, 441, 512})
+        {
+          INFO(name << " at " << sr << " Hz, " << tempo << " BPM, buffer " << buffer);
+          const double step = 4. * note * sr * 60. / tempo;
+          const double length = 0.9 * step;
+          const auto notes = play_pad(note, buffer, sr, tempo, 4);
+          // Four bars of 4/4: every step that starts in them, but the last,
+          // ended by the next one
+          const int expected = int(std::ceil(16. / (4. * note) - 1e-9)) - 1;
+          REQUIRE(int(notes.size()) >= expected);
+          for(int k = 0; k < expected; k++)
+          {
+            INFO("step " << k << " at " << notes[k].on << ", " << notes[k].length
+                         << " frames long");
+            CHECK(std::abs(double(notes[k].on) - k * step) <= 1.);
+            CHECK(std::abs(double(notes[k].length) - length) <= 1.);
+          }
+        }
+}
+
+TEST_CASE("Arpeggiator v2: the Rate goes on across the bar lines by default", "[fx][arpeggiator]")
+{
+  Arp a;
+  CHECK(decltype(a.inputs.rate)::offers_bar_sync);
+  CHECK(!decltype(a.inputs.rate)::bar_sync_default);
+  CHECK(!a.inputs.rate.bar_sync);
+}
+
+TEST_CASE(
+    "Arpeggiator v2: restarting at the bar lines, a dotted rate starts each bar again",
+    "[fx][arpeggiator]")
+{
+  // 48 kHz, 120 BPM: a dotted sixteenth is 9000 frames, a bar 96000. The bar
+  // holds ten of them and a step of 6000 frames, which the bar line ends.
+  for(int buffer : {64, 441, 512})
+  {
+    INFO("buffer " << buffer);
+    const auto notes = play_pad(3. / 32., buffer, 48000., 120., 4, true);
+    REQUIRE(notes.size() >= 43);
+    for(int bar = 0; bar < 4; bar++)
+      for(int k = 0; k < 11 && bar * 11 + k < int(notes.size()); k++)
+      {
+        const auto& n = notes[bar * 11 + k];
+        INFO("bar " << bar << " step " << k);
+        CHECK(n.on == bar * 96000 + k * 9000);
+        CHECK(n.length == (k == 10 ? 6000 : 8100));
+      }
+    // Eleven steps a bar, 44 in four, the pulse 43: the last one of each has
+    // not ended yet
+    CHECK(notes.size() == 43);
+    CHECK(play_pad(3. / 32., buffer, 48000., 120., 4, false).size() == 42);
+  }
+  SECTION("a straight or triplet rate gives the same steps both ways")
+  {
+    for(double note : {1. / 16., 1. / 24., 1. / 8.})
+      for(double tempo : {120., 133.})
+      {
+        INFO(note << " at " << tempo);
+        const auto bars = play_pad(note, 441, 44100., tempo, 4, true);
+        const auto pulse = play_pad(note, 441, 44100., tempo, 4, false);
+        REQUIRE(bars.size() == pulse.size());
+        for(std::size_t i = 0; i < bars.size(); i++)
+        {
+          CHECK(std::abs(bars[i].on - pulse[i].on) <= 1);
+          CHECK(std::abs(bars[i].length - pulse[i].length) <= 1);
+        }
+      }
   }
 }

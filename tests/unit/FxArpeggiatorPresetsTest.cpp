@@ -316,3 +316,79 @@ TEST_CASE("Arpeggiator preset: Latched pad arp", "[presets][arpeggiator]")
   for(std::size_t i = 0; i < d.size(); i++)
     CHECK(d[i] == int64_t(i) * eighth);
 }
+
+namespace
+{
+//! Latched pad arp with its Rate set to 1/16. in the inspector, `mode` the
+//! second component of the Rate's value; the onsets of its first four bars.
+std::vector<int64_t> dotted_pad(float mode, Rig& r)
+{
+  auto p = find(folder, uuid, "Latched pad arp");
+  QJsonArray values;
+  for(const auto& entry : p.values)
+  {
+    auto pair = entry.toArray();
+    if(pair[0].toInt() == 5)
+      pair[1] = QJsonObject{{"Vec2f", QJsonArray{3. / 32., double(mode)}}};
+    values.push_back(pair);
+  }
+  p.values = values;
+  const auto errors = r.load(p);
+  INFO(errors.join("; ").toStdString());
+  REQUIRE(errors.isEmpty());
+  const Rig::input in{
+      {0, on(60)}, {0, on(64)}, {0, on(67)},
+      {quarter - 100, off(60)}, {quarter - 100, off(64)}, {quarter - 100, off(67)}};
+  r.run(4 * bar, in);
+  return r.on_dates();
+}
+}
+
+TEST_CASE(
+    "Arpeggiator preset: Latched pad arp at a dotted sixteenth, every step as long",
+    "[presets][arpeggiator]")
+{
+  // A dotted sixteenth is 9000 frames, the gate 90% of it; 4/4 bars hold
+  // 10 2/3 of them, so the steps cross the bar lines: by default (a value
+  // saved before the choice existed, 1) and when asked to (3).
+  const int64_t step = 3 * sixteenth / 2;
+  for(float mode : {1.f, 3.f})
+  {
+    INFO("mode " << mode);
+    Rig r;
+    const auto d = dotted_pad(mode, r);
+    REQUIRE(d.size() == 43);
+    for(std::size_t i = 0; i < d.size(); i++)
+    {
+      INFO("step " << i);
+      CHECK(d[i] == int64_t(i) * step);
+      if(i + 1 < d.size())
+        CHECK(r.end_of(r.ons()[i].data1, d[i]) == d[i] + step * 9 / 10);
+    }
+    r.stop();
+    r.check_clean();
+  }
+}
+
+TEST_CASE(
+    "Arpeggiator preset: Latched pad arp at a dotted sixteenth, restarting at the bar lines",
+    "[presets][arpeggiator]")
+{
+  // Ten steps of 9000 frames, then one of 6000 that the bar line ends
+  const int64_t step = 3 * sixteenth / 2;
+  Rig r;
+  const auto d = dotted_pad(2.f, r);
+  REQUIRE(d.size() == 44);
+  for(std::size_t i = 0; i < d.size(); i++)
+  {
+    INFO("step " << i);
+    const int64_t b = int64_t(i) / 11, k = int64_t(i) % 11;
+    CHECK(d[i] == b * bar + k * step);
+    if(i + 1 < d.size())
+      CHECK(
+          r.end_of(r.ons()[i].data1, d[i])
+          == d[i] + (k == 10 ? bar - 10 * step : step * 9 / 10));
+  }
+  r.stop();
+  r.check_clean();
+}

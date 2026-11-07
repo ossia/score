@@ -389,11 +389,12 @@ using Sent = std::vector<std::pair<int64_t, float>>; // absolute frame, value
 //! from quarter `q_start`.
 Sent run_limiter(
     bool latest, bool sync, float interval, int64_t buffer, const Sent& sent,
-    int64_t until, double q_start = 0.)
+    int64_t until, double q_start = 0., bool bar_restart = true)
 {
   Limiter l{buffer};
   l.rl.inputs.interval.value = interval;
   l.rl.inputs.interval.sync = sync;
+  l.rl.inputs.interval.bar_sync = bar_restart;
   l.rl.inputs.latest.value = latest;
   const double quarters_per_frame = 1. / 500.;
   for(int64_t t = 0; t * buffer < until; t++)
@@ -497,4 +498,25 @@ TEST_CASE("Rate Limiter v2: turning Send latest off drops the held value", "[fx]
   for(int i = 0; i < 5; i++)
     l.tick({});
   CHECK(l.out == Sent{{0, 1.f}});
+}
+
+TEST_CASE(
+    "Rate Limiter v2: a synced interval restarts at the bar lines unless asked not to",
+    "[fx][ratelimiter]")
+{
+  // A dotted quarter, 750 frames: a 4/4 bar of 2000 holds 2 2/3 of them
+  CHECK(Nodes::RateLimiter::v2::Node{}.inputs.interval.bar_sync);
+  const Sent sent{{1700, 1.f}, {2100, 2.f}};
+  for(int64_t buffer : {1, 64, 333})
+  {
+    INFO("buffer " << buffer);
+    // Points at 1500, then the bar line at 2000, then 2750
+    CHECK(
+        run_limiter(true, true, 0.75f, buffer, sent, 3000)
+        == Sent{{2000, 1.f}, {2750, 2.f}});
+    // Points at 1500, 2250: one pulse across the bar line
+    CHECK(
+        run_limiter(true, true, 0.75f, buffer, sent, 3000, 0., false)
+        == Sent{{2250, 2.f}});
+  }
 }

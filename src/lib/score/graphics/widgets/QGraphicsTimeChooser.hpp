@@ -8,6 +8,8 @@
 #include <QGraphicsItem>
 #include <QObject>
 
+class QMenu;
+
 #include <score_lib_base_export.h>
 
 #include <verdigris>
@@ -20,10 +22,13 @@ namespace score
 // readout toggles the mode (with per-mode memory so no value jumps). In
 // sync mode the knob steps through the whole division table: straight,
 // dotted and triplet, from 1/64th to four bars. A right-click on a free time
-// types it in, in seconds.
+// types it in, in seconds; on a synced time of an object that offers it, it
+// opens a menu to choose whether the steps restart at the bar lines.
 //
-// The value is vec2f{x, sync}: x is a normalized 0..1 position when free
+// The value is vec2f{x, mode}: x is a normalized 0..1 position when free
 // (the consumer maps it to seconds), a fraction of a whole note when synced.
+// The mode is 0 when free; synced, 1 leaves the bar lines to the object,
+// 2 restarts the steps at each of them, 3 keeps one pulse across them.
 class SCORE_LIB_BASE_EXPORT QGraphicsTimeChooser final
     : public QObject
     , public QGraphicsItem
@@ -42,6 +47,11 @@ public:
   //! them from it, so that the readout and the value agree).
   std::function<double(double)> positionToSeconds;
   std::function<double(double)> secondsToPosition;
+
+  //! Whether a right-click on a synced time offers the bar lines choice, and
+  //! what mode 1 means.
+  bool offersBarSync{};
+  bool barSyncDefault{true};
 
   explicit QGraphicsTimeChooser(QGraphicsItem* parent);
   ~QGraphicsTimeChooser();
@@ -67,6 +77,13 @@ public:
   //! The readout in free mode: seconds, milliseconds, one decimal under 10 ms.
   [[nodiscard]] QString freeText() const;
   [[nodiscard]] Feel feel() const noexcept { return m_feel; }
+
+  //! Synced: whether the steps restart at each bar line.
+  [[nodiscard]] bool barSync() const noexcept;
+  //! An edit, as a drag's: the mode becomes 2 or 3.
+  void setBarSync(bool restart);
+  //! The right-click menu of a synced time.
+  [[nodiscard]] QMenu* makeSyncMenu();
 
   QRectF boundingRect() const override;
 
@@ -101,6 +118,7 @@ private:
   double m_execValue{};
   double m_other01{};   // remembered position of the inactive mode
   bool m_sync{};
+  float m_syncMode{1.f}; // the mode a synced value carries, kept while free
   Feel m_feel{Feel::Straight};
   bool m_grab{};
   bool m_hasExec{};
