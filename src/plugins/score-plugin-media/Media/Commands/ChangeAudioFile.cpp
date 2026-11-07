@@ -31,9 +31,9 @@ ChangeAudioFile::ChangeAudioFile(
     m_olddur = p->duration.defaultDuration();
   }
 
-  const auto& db = AudioDecoder::database();
-  auto& info = db[score::locateFilePath(m_new, ctx)];
-  m_newdur = info.duration();
+  m_newdur = AudioDecoder::find_info(score::locateFilePath(m_new, ctx))
+                 .value_or(AudioInfo{})
+                 .duration();
 
   if(auto itv = qobject_cast<Scenario::IntervalModel*>(model.parent()))
   {

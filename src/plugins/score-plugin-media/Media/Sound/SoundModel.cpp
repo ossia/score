@@ -159,10 +159,9 @@ void ProcessModel::setFile(const QString& file)
       // Loop the file itself, not the parent interval, so RubberBand reads
       // the correct loop_duration before ChangeAudioFile::redo settles it.
       auto& ctx = score::IDocument::documentContext(*this);
-      const auto& db = AudioDecoder::database();
-      if(auto it = db.find(score::locateFilePath(file, ctx)); it != db.end())
+      if(auto info = AudioDecoder::find_info(score::locateFilePath(file, ctx)))
       {
-        const auto file_duration = it->duration();
+        const auto file_duration = info->duration();
         if(file_duration > TimeVal::zero())
           setLoopDuration(file_duration);
       }

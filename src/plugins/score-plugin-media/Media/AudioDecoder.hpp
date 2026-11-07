@@ -55,7 +55,10 @@ public:
   static std::optional<std::pair<AudioInfo, audio_array>>
   decode_synchronous(const QString& path, int rate);
 
-  static QHash<QString, AudioInfo>& database();
+  //! What probing a file found, by path. The threads that decode read and
+  //! write it concurrently; the audio thread never does.
+  static std::optional<AudioInfo> find_info(const QString& path);
+  static void store_info(const QString& path, const AudioInfo& info);
 
   int32_t fileSampleRate{};
   int32_t convertedSampleRate{};

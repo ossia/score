@@ -6,8 +6,11 @@
 #include <score/tools/Debug.hpp>
 
 #include <ossia/dataflow/sample_to_float.hpp>
+#include <ossia/detail/hash.hpp>
 #include <ossia/detail/libav.hpp>
 #include <ossia/detail/variant.hpp>
+
+#include <boost/unordered/concurrent_flat_map.hpp>
 
 #include <QHash>
 
@@ -493,10 +496,34 @@ catch(...)
   return {};
 }
 
-QHash<QString, AudioInfo>& AudioDecoder::database()
+namespace
 {
-  static QHash<QString, AudioInfo> db;
+struct qstring_hash
+{
+  using is_avalanching = std::true_type;
+  std::size_t operator()(const QString& s) const noexcept
+  {
+    return ossia::hash_bytes(s.constData(), (std::size_t)s.size() * sizeof(QChar));
+  }
+};
+
+auto& info_cache()
+{
+  static boost::concurrent_flat_map<QString, AudioInfo, qstring_hash> db;
   return db;
+}
+}
+
+std::optional<AudioInfo> AudioDecoder::find_info(const QString& path)
+{
+  std::optional<AudioInfo> res;
+  info_cache().cvisit(path, [&](const auto& kv) { res = kv.second; });
+  return res;
+}
+
+void AudioDecoder::store_info(const QString& path, const AudioInfo& info)
+{
+  info_cache().insert_or_assign(path, info);
 }
 
 auto debug_ffmpeg(int ret, QString ctx)
@@ -540,8 +567,8 @@ void AudioDecoder::decode(const QString& path, int trackToUse, audio_handle hdl)
 #if SCORE_HAS_LIBAV
   SCORE_ASSERT(hdl);
   AudioInfo info;
-  auto it = database().find(path);
-  if(it == database().end())
+  auto known = find_info(path);
+  if(!known)
   {
     try
     {
@@ -557,7 +584,7 @@ void AudioDecoder::decode(const QString& path, int trackToUse, audio_handle hdl)
   }
   else
   {
-    info = *it;
+    info = *known;
   }
 
   track = trackToUse;

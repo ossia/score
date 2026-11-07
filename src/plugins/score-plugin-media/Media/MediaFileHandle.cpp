@@ -303,11 +303,8 @@ std::shared_ptr<const WaveformSummary> AudioFile::waveformSummary() const noexce
 
 std::optional<double> AudioFile::knownTempo() const noexcept
 {
-  auto& db = AudioDecoder::database();
-  if(auto it = db.find(this->m_file); it != db.end())
-  {
-    return it->tempo;
-  }
+  if(auto info = AudioDecoder::find_info(this->m_file))
+    return info->tempo;
   return {};
 }
 
@@ -443,9 +440,8 @@ std::optional<AudioInfo> probe(const QString& path)
 {
   // FIXME we have to reload everything when the sample rate changes !!
   QString real_path = QFileInfo{path}.canonicalFilePath();
-  auto& db = AudioDecoder::database();
-  auto it = db.find(real_path);
-  if(it == db.end())
+  auto known = AudioDecoder::find_info(real_path);
+  if(!known)
   {
     QFileInfo fi{path};
     if(!fi.exists() || !fi.isFile() || !fi.isReadable())
@@ -456,9 +452,9 @@ std::optional<AudioInfo> probe(const QString& path)
     {
       if(auto ret = probe_drwav(fi))
       {
-        db.insert(path, *ret);
+        AudioDecoder::store_info(path, *ret);
         if(path != real_path)
-          db.insert(real_path, *ret);
+          AudioDecoder::store_info(real_path, *ret);
         return ret;
       }
     }
@@ -468,25 +464,25 @@ std::optional<AudioInfo> probe(const QString& path)
     {
       if(auto ret = SndfileDecoder::do_probe(path))
       {
-        db.insert(path, *ret);
+        AudioDecoder::store_info(path, *ret);
         if(path != real_path)
-          db.insert(real_path, *ret);
+          AudioDecoder::store_info(real_path, *ret);
         return ret;
       }
     }
 
     if(auto ret = AudioDecoder::do_probe(path))
     {
-      db.insert(path, *ret);
+      AudioDecoder::store_info(path, *ret);
       if(path != real_path)
-        db.insert(real_path, *ret);
+        AudioDecoder::store_info(real_path, *ret);
       return ret;
     }
     return std::nullopt;
   }
   else
   {
-    return *it;
+    return known;
   }
 }
 }
