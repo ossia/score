@@ -7,6 +7,7 @@
 #include <cassert>
 #include <cmath>
 #include <cstddef>
+#include <cstdint>
 #include <limits>
 #include <optional>
 #include <span>
@@ -208,6 +209,141 @@ inline WavetableData makeTriangleWavetable(std::size_t frameSize = 32)
   return table;
 }
 
+//! Rounds a bipolar amplitude to the nearest of `levels` evenly spaced values
+//! spanning [-1, 1]. Zero levels means continuous: the value is only clamped.
+inline float quantizeSample(double value, int levels) noexcept
+{
+  value = std::isfinite(value) ? std::clamp(value, -1., 1.) : 0.;
+  if(levels >= 2)
+    value = 2. * std::round((value + 1.) * .5 * (levels - 1)) / (levels - 1) - 1.;
+  return std::clamp(float(value), -1.f, 1.f);
+}
+
+//! Index of the amplitude level a quantized sample sits on, from 0 (-1) to
+//! levels - 1 (+1).
+inline int sampleLevel(float value, int levels) noexcept
+{
+  assert(levels >= 2);
+  return int(std::lround((std::clamp(value, -1.f, 1.f) + 1.) * .5 * (levels - 1)));
+}
+
+enum class WaveformShape
+{
+  Sine,
+  Triangle,
+  SawUp,
+  SawDown,
+  Square,
+  Pulse25,
+  Pulse12,
+  Noise
+};
+
+//! Fills one frame with a periodic shape, quantized to `levels`. Noise is a
+//! deterministic function of `seed`.
+inline void generateWaveform(
+    std::span<float> frame, WaveformShape shape, int levels, std::uint32_t seed = 1) noexcept
+{
+  const std::size_t size = frame.size();
+  if(size == 0)
+    return;
+  std::uint32_t state = seed ? seed : 0x9E3779B9u;
+  for(std::size_t i = 0; i < size; ++i)
+  {
+    const double phase = double(i) / size;
+    const double ramp = size > 1 ? double(i) / (size - 1) : 0.;
+    double value{};
+    switch(shape)
+    {
+      case WaveformShape::Sine:
+        value = std::sin(2. * 3.14159265358979323846 * phase);
+        break;
+      case WaveformShape::Triangle:
+        value = 1. - 4. * std::abs(phase - .5);
+        break;
+      case WaveformShape::SawUp:
+        value = 2. * ramp - 1.;
+        break;
+      case WaveformShape::SawDown:
+        value = 1. - 2. * ramp;
+        break;
+      case WaveformShape::Square:
+        value = phase < .5 ? 1. : -1.;
+        break;
+      case WaveformShape::Pulse25:
+        value = phase < .25 ? 1. : -1.;
+        break;
+      case WaveformShape::Pulse12:
+        value = phase < .125 ? 1. : -1.;
+        break;
+      case WaveformShape::Noise:
+        // xorshift32: the same seed always draws the same frame.
+        state ^= state << 13;
+        state ^= state >> 17;
+        state ^= state << 5;
+        value = 2. * (double(state) / 4294967295.) - 1.;
+        break;
+    }
+    frame[i] = quantizeSample(value, levels);
+  }
+}
+
+//! Scales the frame around zero so that its largest magnitude reaches 1. A
+//! silent frame is left as it is.
+inline void normalizeWaveform(std::span<float> frame, int levels) noexcept
+{
+  float peak{};
+  for(float sample : frame)
+    peak = std::max(peak, std::abs(sample));
+  if(peak <= 0.f)
+    return;
+  for(float& sample : frame)
+    sample = quantizeSample(double(sample) / peak, levels);
+}
+
+inline void invertWaveform(std::span<float> frame, int levels) noexcept
+{
+  for(float& sample : frame)
+    sample = quantizeSample(-double(sample), levels);
+}
+
+inline void reverseWaveform(std::span<float> frame) noexcept
+{
+  std::reverse(frame.begin(), frame.end());
+}
+
+//! Moves every sample one position earlier (left) or later, wrapping.
+inline void rotateWaveform(std::span<float> frame, bool left) noexcept
+{
+  if(frame.size() < 2)
+    return;
+  if(left)
+    std::rotate(frame.begin(), frame.begin() + 1, frame.end());
+  else
+    std::rotate(frame.rbegin(), frame.rbegin() + 1, frame.rend());
+}
+
+//! One pass of a periodic [1 2 1] / 4 low-pass.
+inline void smoothWaveform(std::span<float> frame, int levels)
+{
+  const std::size_t size = frame.size();
+  if(size < 3)
+    return;
+  const std::vector<float> source(frame.begin(), frame.end());
+  for(std::size_t i = 0; i < size; ++i)
+  {
+    const double previous = source[(i + size - 1) % size];
+    const double next = source[(i + 1) % size];
+    frame[i] = quantizeSample((previous + 2. * source[i] + next) * .25, levels);
+  }
+}
+
+//! Sets every sample to the level nearest to zero.
+inline void clearWaveform(std::span<float> frame, int levels) noexcept
+{
+  std::fill(frame.begin(), frame.end(), quantizeSample(0., levels));
+}
+
 //! Periodic linear interpolation. The caller supplies a validated table,
 //! existing frame and finite phase. No preparation or allocation occurs here.
 inline float sampleWavetable(
@@ -220,6 +356,18 @@ inline float sampleWavetable(
   const auto right = (left + 1) % table.frameSize;
   const auto samples = table.frame(frame);
   return float(samples[left] + (samples[right] - samples[left]) * (position - left));
+}
+
+//! Every frame of a valid table resampled to `size` samples by periodic
+//! linear interpolation.
+inline WavetableData resampleWavetable(const WavetableData& source, std::size_t size)
+{
+  WavetableData result{size, std::vector<float>(source.frameCount() * size)};
+  for(std::size_t frame = 0; frame < source.frameCount(); ++frame)
+    for(std::size_t sample = 0; sample < size; ++sample)
+      result.samples[frame * size + sample]
+          = sampleWavetable(source, frame, double(sample) / size);
+  return result;
 }
 
 namespace detail
