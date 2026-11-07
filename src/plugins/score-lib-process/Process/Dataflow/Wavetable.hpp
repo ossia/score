@@ -57,7 +57,35 @@ struct WavetableData
   bool operator==(const WavetableData&) const = default;
 };
 
+//! A number as waveform values hold one: a float, an int or a bool. Empty for
+//! anything else and for a value that is not finite.
+inline std::optional<float> waveformNumber(const ossia::value& value) noexcept
+{
+  float number;
+  if(const auto* real = value.target<float>())
+    number = *real;
+  else if(const auto* integer = value.target<int>())
+    number = float(*integer);
+  else if(const auto* flag = value.target<bool>())
+    number = *flag ? 1.f : 0.f;
+  else
+    return std::nullopt;
+  if(!std::isfinite(number))
+    return std::nullopt;
+  return number;
+}
+
+//! A sample of a waveform value: a waveformNumber clamped to [-1, 1].
+inline std::optional<float> waveformSample(const ossia::value& value) noexcept
+{
+  if(const auto number = waveformNumber(value))
+    return std::clamp(*number, -1.f, 1.f);
+  return std::nullopt;
+}
+
 //! Canonical control value: a list of frames, each a list of bipolar samples.
+//! Stricter than waveformFromValue: a flat list or a sample outside [-1, 1]
+//! is not canonical.
 inline std::optional<WavetableData> wavetableFromValue(const ossia::value& value)
 {
   const auto* frames = value.target<std::vector<ossia::value>>();
@@ -78,16 +106,10 @@ inline std::optional<WavetableData> wavetableFromValue(const ossia::value& value
       return std::nullopt;
     for(const auto& sample : *frame)
     {
-      float amplitude;
-      if(const auto* number = sample.target<float>())
-        amplitude = *number;
-      else if(const auto* number = sample.target<int>())
-        amplitude = *number;
-      else
+      const auto amplitude = waveformNumber(sample);
+      if(!amplitude || *amplitude < -1.f || *amplitude > 1.f)
         return std::nullopt;
-      if(!std::isfinite(amplitude) || amplitude < -1.f || amplitude > 1.f)
-        return std::nullopt;
-      result.samples.push_back(amplitude);
+      result.samples.push_back(*amplitude);
     }
   }
   return result;
@@ -112,22 +134,6 @@ inline ossia::value wavetableToValue(const WavetableData& table)
 
 namespace detail
 {
-inline std::optional<float> waveformSample(const ossia::value& sample) noexcept
-{
-  float amplitude;
-  if(const auto* number = sample.target<float>())
-    amplitude = *number;
-  else if(const auto* number = sample.target<int>())
-    amplitude = float(*number);
-  else if(const auto* flag = sample.target<bool>())
-    amplitude = *flag ? 1.f : 0.f;
-  else
-    return std::nullopt;
-  if(!std::isfinite(amplitude))
-    return std::nullopt;
-  return std::clamp(amplitude, -1.f, 1.f);
-}
-
 inline bool isWaveformFrame(std::span<const ossia::value> samples) noexcept
 {
   return samples.size() >= 2 && samples.size() <= WavetableData::maxFrameSize
@@ -191,7 +197,7 @@ inline std::optional<WavetableData> waveformFromValue(const ossia::value& value)
       return std::nullopt;
     result.frameSize = samples->size();
     for(const auto& sample : *samples)
-      result.samples.push_back(*detail::waveformSample(sample));
+      result.samples.push_back(*waveformSample(sample));
   }
   return result;
 }
@@ -430,7 +436,7 @@ bool prepareWaveform(
     return false;
   return detail::resampleWaveform(
       samples->size(),
-      [samples](std::size_t i) { return *detail::waveformSample((*samples)[i]); },
+      [samples](std::size_t i) { return *waveformSample((*samples)[i]); },
       destination, low, high);
 }
 }

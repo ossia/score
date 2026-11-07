@@ -56,9 +56,17 @@ TEST_CASE("Malformed table content cannot partially replace prepared samples", "
   using Values = std::vector<ossia::value>;
   for(const auto& invalid : std::vector<ossia::value>{
           Values{}, Values{Values{0.f}}, Values{Values{-1.f, 1.f}, Values{0.f, 0.f, 0.f}},
-          Values{Values{-1.f, 1.1f}}, Values{Values{false, 1.f}},
+          Values{Values{-1.f, 1.1f}}, Values{-1.f, 1.f}, Values{Values{std::string{"a"}, 1.f}},
           Values{Values{std::numeric_limits<float>::infinity(), 1.f}}})
     CHECK_FALSE(Process::wavetableFromValue(invalid));
+  // The canonical form reads its numbers as every waveform value does.
+  CHECK(Process::wavetableFromValue(Values{Values{false, 1}})
+        == Process::WavetableData{2, {0.f, 1.f}});
+  CHECK(Process::waveformNumber(ossia::value{true}) == 1.f);
+  CHECK(Process::waveformNumber(ossia::value{-3}) == -3.f);
+  CHECK(Process::waveformSample(ossia::value{-3}) == -1.f);
+  CHECK_FALSE(Process::waveformNumber(ossia::value{std::string{"1"}}));
+  CHECK_FALSE(Process::waveformNumber(ossia::value{std::numeric_limits<float>::quiet_NaN()}));
 
   table = Process::makeTriangleWavetable(4);
   CHECK_FALSE(Process::prepareWaveform(table, prepared, 15., 0.));

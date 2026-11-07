@@ -2,6 +2,8 @@
 
 #include <Process/Commands/SetControlValue.hpp>
 
+#include <State/Value.hpp>
+
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/command/Dispatchers/OngoingCommandDispatcher.hpp>
 #include <score/document/DocumentContext.hpp>
@@ -26,6 +28,7 @@
 #include <QPainter>
 #include <QPointer>
 #include <QRandomGenerator>
+#include <QRegularExpression>
 #include <QResizeEvent>
 #include <QToolButton>
 #include <QVBoxLayout>
@@ -130,14 +133,38 @@ bool WaveformInlet::accepts(const Process::WavetableData& data) const noexcept
 
 void WaveformInlet::setValue(const ossia::value& value)
 {
-  auto data = Process::wavetableFromValue(value);
-  if(!data || !accepts(*data))
+  // The canonical value this port holds, as undo and documents give it back,
+  // is taken as it is.
+  if(auto canonical = Process::wavetableFromValue(value); canonical && accepts(*canonical))
+  {
+    setWaveform(*canonical);
     return;
-  if(*data == m_waveform)
+  }
+
+  // Any other shape execution plays (Process::waveformFrame) is adapted to
+  // this port as a cable's value would be: the first frame of a bank for a
+  // single frame, the frame size of the constraint, the amplitude levels.
+  auto data = Process::waveformFromValue(value);
+  if(!data)
+  {
+    qWarning() << "Waveform port: ignoring a value that holds no list of numbers";
     return;
-  auto canonical = Process::wavetableToValue(*data);
-  m_waveform = std::move(*data);
-  ControlInlet::setValue(canonical);
+  }
+  if(!m_bank && data->frameCount() > 1)
+    data->samples.resize(data->frameSize);
+  if(m_frameSizeConstraint && data->frameSize != m_frameSizeConstraint)
+  {
+    if(data->frameCount() > Process::WavetableData::maxSamples / m_frameSizeConstraint)
+    {
+      qWarning() << "Waveform port: ignoring a bank too large for its frame size";
+      return;
+    }
+    *data = Process::resampleWavetable(*data, m_frameSizeConstraint);
+  }
+  if(m_amplitudeLevels >= 2)
+    for(float& sample : data->samples)
+      sample = Process::quantizeSample(sample, m_amplitudeLevels);
+  setWaveform(*data);
 }
 
 void WaveformInlet::setWaveform(const Process::WavetableData& waveform)
@@ -219,45 +246,63 @@ waveformFrameFromText(QStringView text, std::size_t size, int levels)
 {
   if(size < 2)
     return std::nullopt;
-  std::vector<float> values;
-  qsizetype start = -1;
-  const auto take = [&](qsizetype end) {
-    if(start < 0)
-      return true;
-    bool ok{};
-    const double value = text.mid(start, end - start).toDouble(&ok);
-    start = -1;
-    if(!ok || !std::isfinite(value) || values.size() >= Process::WavetableData::maxFrameSize)
-      return false;
-    values.push_back(std::clamp(float(value), -1.f, 1.f));
-    return true;
-  };
-  for(qsizetype i = 0; i < text.size(); ++i)
-  {
-    const QChar c = text[i];
-    const bool separator = c.isSpace() || c == u',' || c == u';' || c == u'[' || c == u']'
-                           || c == u'(' || c == u')' || c == u'{' || c == u'}';
-    if(separator)
+
+  // A list message, with or without a pair of brackets: numbers separated by
+  // spaces, commas or semicolons, each read exactly so that copied frames
+  // paste back unchanged. Anything else, a bank's nested lists or bools, is
+  // read as score reads a value.
+  const auto plainList = [&]() -> std::optional<ossia::value> {
+    if(text.count(u'[') > 1 || text.count(u'(') > 1)
+      return std::nullopt;
+    static const QRegularExpression separators{QStringLiteral("[\\s,;()\\[\\]]+")};
+    const auto tokens = text.toString().split(separators, Qt::SkipEmptyParts);
+    if(tokens.empty() || std::size_t(tokens.size()) > Process::WavetableData::maxFrameSize)
+      return std::nullopt;
+    std::vector<ossia::value> numbers;
+    numbers.reserve(tokens.size());
+    for(const auto& token : tokens)
     {
-      if(!take(i))
+      const auto latin = token.toLatin1();
+      const char* end = latin.constData() + latin.size();
+      float number{};
+      const auto res = std::from_chars(latin.constData(), end, number);
+      if(res.ec != std::errc{} || res.ptr != end)
         return std::nullopt;
+      numbers.emplace_back(number);
     }
-    else if(start < 0)
-      start = i;
+    return numbers;
+  };
+  auto value = plainList();
+  if(!value)
+  {
+    const auto utf8 = text.toUtf8();
+    value = State::parseValue(std::string_view{utf8.constData(), std::size_t(utf8.size())});
+    if(!value)
+      return std::nullopt;
   }
-  if(!take(text.size()) || values.empty())
-    return std::nullopt;
+
+  // One number, alone or in a list, fills the frame.
+  std::optional<float> constant = Process::waveformSample(*value);
+  if(const auto* list = value->target<std::vector<ossia::value>>(); list && list->size() == 1)
+    constant = Process::waveformSample(list->front());
 
   std::vector<float> frame(size);
-  if(values.size() == 1)
-    std::fill(frame.begin(), frame.end(), values.front());
-  else if(values.size() == size)
-    frame = std::move(values);
+  if(constant)
+    std::fill(frame.begin(), frame.end(), *constant);
   else
   {
-    const Process::WavetableData source{values.size(), std::move(values)};
-    for(std::size_t i = 0; i < size; ++i)
-      frame[i] = Process::sampleWavetable(source, 0, double(i) / size);
+    const auto samples = Process::waveformFrame(*value);
+    if(!samples)
+      return std::nullopt;
+    Process::WavetableData source{samples->size(), {}};
+    source.samples.reserve(samples->size());
+    for(const auto& sample : *samples)
+      source.samples.push_back(*Process::waveformSample(sample));
+    if(source.frameSize == size)
+      frame = std::move(source.samples);
+    else
+      for(std::size_t i = 0; i < size; ++i)
+        frame[i] = Process::sampleWavetable(source, 0, double(i) / size);
   }
   for(float& sample : frame)
     sample = Process::quantizeSample(sample, levels);
@@ -365,7 +410,7 @@ public:
     if(m_model)
       disconnect(m_model, nullptr, this, nullptr);
     m_model = &model;
-    m_execution.reset();
+    endLive();
     m_cursor.reset();
     m_strip.reset();
     connect(&model, &Process::ControlInlet::executionValueChanged, this,
@@ -373,25 +418,36 @@ public:
       if(auto received = Process::waveformFromValue(value))
       {
         m_execution = std::move(*received);
+        m_liveStale = true;
         update();
       }
     });
-    connect(&model, &Process::Port::executionReset, this, [this] {
-      m_execution.reset();
-      update();
-    });
+    connect(&model, &Process::Port::executionReset, this, [this] { endLive(); });
+    // Nothing reaches the port any more: what it last received is no longer
+    // what plays from it.
+    const auto unwired = [this] {
+      if(m_model && m_model->cables().empty() && !m_model->address().isSet())
+        endLive();
+    };
+    connect(&model, &Process::Port::cablesChanged, this, unwired);
+    connect(&model, &Process::Port::addressChanged, this, unwired);
     connect(&model, &Process::ControlInlet::valueChanged, this, [this] {
       if(!m_submitting)
       {
         finish(false);
         commitNudge();
       }
+      // An edit, an undo or a preset shows: execution shows again when it
+      // next receives something.
+      m_execution.reset();
+      m_liveStale = true;
       if(m_frame >= m_model->wavetable().frameCount())
         setFrame(m_model->wavetable().frameCount() - 1);
       clampHover();
       update();
     });
     connect(&model, &WaveformInlet::constraintsChanged, this, [this] {
+      m_liveStale = true;
       finish(false);
       clampHover();
       update();
@@ -401,6 +457,7 @@ public:
       m_nudging = false;
       m_preview.clear();
       m_execution.reset();
+      m_liveFrame.clear();
       m_hover.reset();
       m_cursor.reset();
       m_strip.reset();
@@ -844,25 +901,34 @@ private:
     return m_dragging ? std::span<const float>{m_preview} : m_model->wavetable().frame(m_frame);
   }
 
-  //! What execution last received, at the size of the edited frame.
-  std::vector<float> liveFrame() const
+  void endLive()
   {
-    const auto& received = *m_execution;
-    const auto size = m_model->wavetable().frameSize;
-    const auto frame = std::min(m_frame, received.frameCount() - 1);
-    std::vector<float> resampled(size);
-    for(std::size_t i = 0; i < size; ++i)
-      resampled[i] = Process::sampleWavetable(received, frame, double(i) / size);
-    return resampled;
+    m_execution.reset();
+    m_liveStale = true;
+    update();
+  }
+
+  //! What execution last received, at the size of the edited frame. Kept
+  //! until what it depends on changes, as each paint reads it twice.
+  std::span<const float> liveFrame() const
+  {
+    if(m_liveStale)
+    {
+      const auto& received = *m_execution;
+      const auto size = m_model->wavetable().frameSize;
+      const auto frame = std::min(m_frame, received.frameCount() - 1);
+      m_liveFrame.resize(size);
+      for(std::size_t i = 0; i < size; ++i)
+        m_liveFrame[i] = Process::sampleWavetable(received, frame, double(i) / size);
+      m_liveStale = false;
+    }
+    return m_liveFrame;
   }
 
   //! The frame drawn in front: the edit preview, what plays, or the document.
-  std::vector<float> displayedFrame() const
+  std::span<const float> displayedFrame() const
   {
-    if(live())
-      return liveFrame();
-    const auto values = shownFrame();
-    return {values.begin(), values.end()};
+    return live() ? liveFrame() : shownFrame();
   }
 
   qreal columnLeft(const QRectF& area, std::size_t column, std::size_t count) const
@@ -1133,6 +1199,7 @@ private:
     if(frame == m_frame)
       return;
     m_frame = frame;
+    m_liveStale = true;
     update();
     if(frameChanged)
       frameChanged();
@@ -1375,6 +1442,8 @@ private:
   std::pair<std::size_t, float> m_lineStart{};
   std::vector<float> m_preview;
   std::optional<Process::WavetableData> m_execution;
+  mutable std::vector<float> m_liveFrame;
+  mutable bool m_liveStale{true};
   std::optional<StripDrag> m_strip;
   bool m_dragging{};
   bool m_line{};

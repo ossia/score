@@ -17,6 +17,8 @@
 #include <score/document/DocumentInterface.hpp>
 #include <Process/Commands/SetControlValue.hpp>
 #include <Process/Dataflow/PortFactory.hpp>
+#include <Process/Dataflow/WidgetInlets.hpp>
+#include <score/graphics/TextItem.hpp>
 #include <Process/Dataflow/PortSerialization.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
@@ -59,12 +61,13 @@ TEST_CASE("Waveform ports reject invalid content without splitting their model a
     int changes{};
     QObject::connect(&inlet, &Process::ControlInlet::valueChanged, &inlet,
                      [&](const ossia::value&) { ++changes; });
-    auto wrongSize = Process::makeTriangleWavetable(64);
-    inlet.setValue(Process::wavetableToValue(wrongSize));
-    auto bank = wave;
-    bank.samples.insert(bank.samples.end(), wave.samples.begin(), wave.samples.end());
-    inlet.setValue(Process::wavetableToValue(bank));
-    inlet.setValue(std::vector<ossia::value>{});
+    using Values = std::vector<ossia::value>;
+    for(const auto& invalid : std::vector<ossia::value>{
+            Values{}, ossia::value{.5f}, ossia::value{std::string{"sine"}},
+            Values{0.f}, Values{0.f, std::string{"a"}},
+            Values{0.f, std::numeric_limits<float>::quiet_NaN()},
+            Values{Values{0.f, 1.f}, Values{0.f, 1.f, 0.f}}})
+      inlet.setValue(invalid);
     CHECK(inlet.wavetable() == wave);
     CHECK(inlet.value() == value);
     CHECK(changes == 0);
@@ -72,6 +75,73 @@ TEST_CASE("Waveform ports reject invalid content without splitting their model a
     inlet.setWaveform(wave);
     CHECK(inlet.wavetable() == wave);
     CHECK(changes == 1);
+  });
+}
+
+TEST_CASE("Waveform ports take a value as execution reads it", "[wavetable][port]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext&) {
+    using Values = std::vector<ossia::value>;
+    const auto onLevels = [](const Process::WavetableData& table, int levels) {
+      return std::all_of(table.samples.begin(), table.samples.end(), [=](float s) {
+        return Process::quantizeSample(s, levels) == s;
+      });
+    };
+    Dataflow::WaveformInlet inlet{Id<Process::Port>{92}, nullptr};
+    inlet.setFrameSizeConstraint(32);
+    inlet.setAmplitudeLevels(16);
+
+    // A flat list of the constraint's size, as setValue([...]) in a script.
+    Values flat;
+    for(int i = 0; i < 32; ++i)
+      flat.push_back(float(i % 8) / 7.f);
+    inlet.setValue(flat);
+    CHECK(inlet.wavetable().frameSize == 32);
+    CHECK(inlet.wavetable().frameCount() == 1);
+    CHECK(inlet.wavetable().samples[7] == 1.f);
+    CHECK(inlet.wavetable().samples[0] == Process::quantizeSample(0., 16));
+    CHECK(onLevels(inlet.wavetable(), 16));
+    CHECK(Process::wavetableFromValue(inlet.value()) == inlet.wavetable());
+
+    // Another size is resampled to the constraint.
+    inlet.setValue(Values{-1.f, 1.f, -1.f, 1.f});
+    CHECK(inlet.wavetable().frameSize == 32);
+    CHECK(inlet.wavetable().samples[0] == -1.f);
+    CHECK(inlet.wavetable().samples[8] == 1.f);
+    CHECK(onLevels(inlet.wavetable(), 16));
+
+    // Bools, ints and samples a hair out of range are read and clamped.
+    Values mixed(32, ossia::value{0.f});
+    mixed[0] = true;
+    mixed[1] = -1;
+    mixed[2] = 1.0001f;
+    mixed[3] = -1.5f;
+    inlet.setValue(mixed);
+    CHECK(inlet.wavetable().samples[0] == 1.f);
+    CHECK(inlet.wavetable().samples[1] == -1.f);
+    CHECK(inlet.wavetable().samples[2] == 1.f);
+    CHECK(inlet.wavetable().samples[3] == -1.f);
+
+    // A single frame port keeps the first frame of a bank.
+    auto bank = Process::makeTriangleWavetable(32);
+    for(int i = 0; i < 32; ++i)
+      bank.samples.push_back(-1.f);
+    inlet.setValue(Process::wavetableToValue(bank));
+    CHECK(inlet.wavetable().frameCount() == 1);
+    CHECK(inlet.wavetable().samples[16] == Process::quantizeSample(1., 16));
+
+    // The canonical value of a port reads back unchanged.
+    Dataflow::WaveformInlet free{Id<Process::Port>{93}, nullptr};
+    auto canonical = Process::makeTriangleWavetable(64);
+    canonical.samples[5] = .123f;
+    free.setValue(Process::wavetableToValue(canonical));
+    CHECK(free.wavetable() == canonical);
+    CHECK(free.value() == Process::wavetableToValue(canonical));
+
+    // A bank port takes every frame.
+    Dataflow::WavetableInlet banks{Id<Process::Port>{94}, nullptr};
+    banks.setValue(Process::wavetableToValue(bank));
+    CHECK(banks.wavetable() == bank);
   });
 }
 
@@ -203,6 +273,50 @@ TEST_CASE("Waveform ports show their port item when cables are shown", "[wavetab
     layout.port_item->setPortVisible(true);
     CHECK(layout.port_item->isVisible());
     Dataflow::CableItem::g_cables_enabled = cablesShown;
+  });
+}
+
+TEST_CASE("Laying a control item out again follows the presentation it is given", "[port][layout][gui]")
+{
+  score::test::run_in_gui_app([](const score::GUIApplicationContext& ctx) {
+    auto* document = score::test::new_document(ctx);
+    REQUIRE(document);
+    auto* slider = new Process::FloatSlider{
+        0.f, 1.f, .5f, QStringLiteral("Gain"), Id<Process::Port>{922},
+        &score::test::base_interval(*document)};
+    auto* factory = ctx.interfaces<Process::PortFactoryList>().get(slider->concreteKey());
+    REQUIRE(factory);
+    Process::DataflowManager dataflow;
+    FocusDispatcher focus;
+    Process::Context context{document->context(), dataflow, focus};
+    QGraphicsScene scene;
+    auto* root = new QGraphicsRectItem{QRectF{0., 0., 400., 200.}};
+    scene.addItem(root);
+
+    // A custom label goes back to the port's name with a default presentation.
+    Process::ControlPresentation custom;
+    custom.label = QStringLiteral("Custom");
+    auto item = factory->makeFullItem(*slider, context, root, slider, custom);
+    REQUIRE(item.label);
+    CHECK(item.label->text() == QStringLiteral("Custom"));
+    factory->layoutFullItem(item, *slider, {});
+    CHECK(item.label->text() == Process::displayName(*slider));
+    factory->layoutFullItem(item, *slider, custom);
+    CHECK(item.label->text() == QStringLiteral("Custom"));
+
+    // A knob is laid out again where it was made.
+    Process::ControlPresentation knob;
+    knob.widget = Process::ControlPresentation::Widget::Knob;
+    auto made = factory->makeFullItem(*slider, context, root, slider, knob);
+    REQUIRE(made.label);
+    REQUIRE(made.control);
+    const auto label = made.label->pos();
+    const auto control = made.control->pos();
+    const auto port = made.port_item->pos();
+    factory->layoutFullItem(made, *slider, knob);
+    CHECK(made.label->pos() == label);
+    CHECK(made.control->pos() == control);
+    CHECK(made.port_item->pos() == port);
   });
 }
 
@@ -930,9 +1044,11 @@ TEST_CASE("Frames read and write as lists of numbers", "[wavetable]")
   const auto plain = Dataflow::waveformFrameFromText(u"0.5 -0.25 1 0", 4, 0);
   REQUIRE(plain);
   CHECK(std::equal(plain->begin(), plain->end(), frame.begin(), frame.end()));
-  // A score or JSON list, nested lists of a bank, comma or semicolon lists.
-  for(auto text : {u"[0.5, -0.25, 1, 0]", u"[[0.5, -0.25], [1, 0]]", u"0.5;-0.25;1;0",
-                   u"(0.5,-0.25,1,0)\n"})
+  // A score or JSON list, the first frame of a bank as a cable plays it,
+  // comma or semicolon lists, bools as numbers.
+  for(auto text : {u"[0.5, -0.25, 1, 0]", u"[[0.5, -0.25, 1, 0], [1, 1]]", u"0.5;-0.25;1;0",
+                   u"(0.5,-0.25,1,0)\n", u"[0.5 -0.25 1 0]", u"0.5, -0.25, 1, 0;",
+                   u"[0.5, -0.25, 1, false]"})
   {
     INFO(QString::fromUtf16(text).toStdString());
     const auto read = Dataflow::waveformFrameFromText(text, 4, 0);
@@ -1243,18 +1359,132 @@ TEST_CASE("What execution plays is drawn in front, the document behind", "[wavet
     CHECK(state().label == QStringLiteral("32 smp, 4 bit"));
     CHECK(inlet->value() == value);
 
-    // Drawing shows the edit, not what plays, until released.
+    // Drawing shows the edit, not what plays; once released the edit stays
+    // in front until execution receives something again.
     editor.mouse(QEvent::MouseButtonPress, editor.sample(20, 32, .5));
     CHECK_FALSE(state().live);
     editor.mouse(QEvent::MouseButtonRelease, editor.sample(20, 32, .5));
-    CHECK(state().live);
+    CHECK_FALSE(state().live);
     CHECK(document->commandStack().currentIndex() == commands + 1);
+    inlet->setExecutionValue(square);
+    CHECK(state().live);
 
     inlet->executionReset();
     CHECK_FALSE(state().live);
     editor.hover(editor.sample(2, 32, 0.));
     CHECK(state().readout == authored);
     CHECK(document->commandStack().currentIndex() == commands + 1);
+  });
+}
+
+TEST_CASE("What execution received stops showing once nothing reaches the port", "[wavetable][gui][execution]")
+{
+  score::test::run_in_gui_app([](const score::GUIApplicationContext& ctx) {
+    auto* document = score::test::new_document(ctx);
+    REQUIRE(document);
+    auto& interval = score::test::base_interval(*document);
+    auto* inlet = new Dataflow::WaveformInlet{Id<Process::Port>{948}, &interval};
+    inlet->setAmplitudeLevels(16);
+    inlet->setFrameSizeConstraint(32);
+    auto* source = new Process::ControlOutlet{QStringLiteral("Value"), Id<Process::Port>{949}, &interval};
+    SceneEditor editor{*inlet, document->context(), {0., 0., 400., 180.}};
+    REQUIRE(score::test::showAndActivate(editor.view));
+    const auto state = [&] { return Dataflow::waveformItemState(*editor.editor); };
+    const auto render = [&] {
+      QImage image{400, 180, QImage::Format_ARGB32_Premultiplied};
+      image.fill(Qt::black);
+      QPainter painter{&image};
+      editor.editor->paint(&painter, nullptr, nullptr);
+      return image;
+    };
+    const auto authored = render();
+    std::vector<ossia::value> square(32, -1.f);
+    std::fill(square.begin(), square.begin() + 16, 1.f);
+
+    auto& scenario = score::IDocument::get<Scenario::ScenarioDocumentModel>(*document);
+    CommandDispatcher<> dispatcher{document->context().commandStack};
+    const auto connect = [&](int id) {
+      dispatcher.submit<Dataflow::CreateCable>(
+          scenario, Id<Process::Cable>{id}, Process::CableType::ImmediateGlutton, *source,
+          *inlet);
+    };
+
+    // A multislider cabled in, then removed.
+    connect(950);
+    inlet->setExecutionValue(square);
+    CHECK(state().live);
+    CHECK(render() != authored);
+    document->commandStack().undo();
+    REQUIRE(inlet->cables().empty());
+    CHECK_FALSE(state().live);
+    CHECK(render() == authored);
+
+    // Two cables: removing one keeps what the other sends.
+    connect(951);
+    connect(952);
+    inlet->setExecutionValue(square);
+    document->commandStack().undo();
+    REQUIRE(inlet->cables().size() == 1);
+    CHECK(state().live);
+    document->commandStack().undo();
+    CHECK_FALSE(state().live);
+
+    // An address, then unset; a cable keeps it live.
+    State::AddressAccessor address;
+    address.address.device = QStringLiteral("osc");
+    address.address.path = QStringList{QStringLiteral("wave")};
+    inlet->setAddress(address);
+    inlet->setExecutionValue(square);
+    CHECK(state().live);
+    connect(953);
+    inlet->setAddress({});
+    CHECK(state().live);
+    document->commandStack().undo();
+    CHECK_FALSE(state().live);
+    CHECK(render() == authored);
+
+    // With the stale wave still in front, an edit shows: a key, a stroke, a
+    // menu entry and a paste each draw the document again.
+    const auto commands = document->commandStack().currentIndex();
+    editor.editor->setFocus();
+    editor.hover(editor.sample(3, 32, 0.));
+    const auto edits = std::vector<std::function<void()>>{
+        [&] { editor.press(Qt::Key_Up); },
+        [&] {
+          editor.mouse(QEvent::MouseButtonPress, editor.sample(20, 32, .5));
+          editor.mouse(QEvent::MouseButtonRelease, editor.sample(20, 32, .5));
+        },
+        [&] {
+          QMenu menu;
+          Dataflow::fillWaveformItemMenu(*editor.editor, menu);
+          auto* invert = menuAction(menu, QStringLiteral("Invert"));
+          REQUIRE(invert);
+          invert->trigger();
+        },
+        [&] {
+          QGuiApplication::clipboard()->setText(QStringLiteral("0.5 -0.5"));
+          editor.press(Qt::Key_V, Qt::ControlModifier);
+        }};
+    std::size_t done{};
+    for(const auto& edit : edits)
+    {
+      CAPTURE(done);
+      inlet->setExecutionValue(square);
+      REQUIRE(state().live);
+      const auto before = inlet->wavetable();
+      edit();
+      QCoreApplication::processEvents();
+      CHECK(inlet->wavetable() != before);
+      CHECK_FALSE(state().live);
+      // The front frame is the document's.
+      editor.hover(editor.sample(20, 32, 0.));
+      const float shown = inlet->wavetable().samples[20];
+      CHECK(state().readout
+            == QStringLiteral("#20 %1/15").arg(Process::sampleLevel(shown, 16)));
+      ++done;
+    }
+    CHECK(done == edits.size());
+    CHECK(document->commandStack().currentIndex() > commands);
   });
 }
 

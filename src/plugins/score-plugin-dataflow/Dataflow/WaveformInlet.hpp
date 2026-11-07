@@ -37,7 +37,12 @@ namespace Dataflow
 //!
 //! The value is the canonical form of Process::WavetableData (a list of frame
 //! lists) and is the only persisted content; wavetable() is updated before
-//! observers receive valueChanged. Values the port cannot hold are ignored.
+//! observers receive valueChanged. setValue takes its canonical value as it
+//! is, and any other shape execution takes (Process::waveformFrame) adapted
+//! to the port: a flat list is one frame, a single frame port keeps the first
+//! frame of a bank, samples are clamped, then resampled to the frame size
+//! constraint and put on the amplitude levels. A value that holds no list of
+//! numbers is ignored with a warning.
 //!
 //! The editor, in the scene and in the inspector, draws samples with optional
 //! amplitude quantization; its context menu generates and transforms frames,
@@ -143,11 +148,14 @@ void fillWaveformItemMenu(QGraphicsItem& item, QMenu& menu);
 //! in Max, Pd or OSC tools, in the shortest form that reads back exactly.
 SCORE_PLUGIN_DATAFLOW_EXPORT
 QString waveformFrameText(std::span<const float> frame);
-//! Reads numbers separated by spaces, commas or semicolons, brackets ignored,
-//! so that a score or JSON list, a multislider's value and a list message all
-//! read. Amplitudes are bipolar and clamped, as a cable's are; the frame is
-//! resampled periodically to `size` samples and put on the port's `levels`.
-//! Empty when the text holds anything but numbers.
+//! Reads numbers separated by spaces, commas or semicolons, in one pair of
+//! brackets or none, as a multislider's value or a list message in Max or Pd;
+//! anything else, such as a bank's nested lists, as State::parseValue reads a
+//! value. The value then reads as execution reads a cable's
+//! (Process::waveformFrame): a bank gives its first frame, amplitudes are
+//! bipolar and clamped. The frame is resampled periodically to `size` samples
+//! and put on the port's `levels`; a single number fills it. Empty when the
+//! text holds anything but numbers.
 SCORE_PLUGIN_DATAFLOW_EXPORT
 std::optional<std::vector<float>>
 waveformFrameFromText(QStringView text, std::size_t size, int levels);
