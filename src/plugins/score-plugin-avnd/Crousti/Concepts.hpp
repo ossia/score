@@ -16,6 +16,7 @@
 
 #include <avnd/binding/ossia/dynamic_ports.hpp>
 #include <avnd/binding/ossia/qt.hpp>
+#include <avnd/binding/ossia/time_controls.hpp>
 #include <avnd/binding/ossia/to_value.hpp>
 #include <avnd/binding/ossia/uuid.hpp>
 #include <avnd/common/concepts_polyfill.hpp>
@@ -273,7 +274,17 @@ make_control_in(avnd::field_index<N>, Id<Process::Port>&& id, QObject* parent)
   else if constexpr(widg.widget == avnd::widget_type::time_chooser)
   {
     static constexpr auto c = avnd::get_range<T>();
-    return new Process::TimeChooser{c.min, c.max, c.init, qname, id, parent};
+    auto tc = new Process::TimeChooser{c.min, c.max, c.init, qname, id, parent};
+    // A synced value whose mode is 1 restarts at the bar lines, as every one
+    // saved before the choice existed did: an object that wants one pulse
+    // across them starts its new controls as a pulse, its init a note value.
+    if constexpr(oscr::starts_as_pulse<T>)
+    {
+      const ossia::vec2f pulse{c.init, float(Process::TimeChooser::SyncedPulse)};
+      tc->setValue(pulse);
+      tc->setInit(pulse);
+    }
+    return tc;
   }
   else if constexpr(widg.widget == avnd::widget_type::grid_chooser)
   {

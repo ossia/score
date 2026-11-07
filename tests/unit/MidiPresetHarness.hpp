@@ -153,7 +153,7 @@ void assign(
                                  : V(a[0].toDouble());
         if constexpr(requires { field.bar_sync; })
           if(field.sync)
-            field.bar_sync = oscr::bar_sync_of<Field>(float(a[1].toDouble()));
+            field.bar_sync = oscr::bar_sync_of(float(a[1].toDouble()));
       }
       else
       {

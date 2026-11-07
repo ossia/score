@@ -520,3 +520,37 @@ TEST_CASE(
         == Sent{{2250, 2.f}});
   }
 }
+
+TEST_CASE(
+    "Rate Limiter v2: a synced pulse stays on its note value a thousand bars on",
+    "[fx][ratelimiter]")
+{
+  // A sixteenth triplet at 133 BPM reaches the object as seconds in a float,
+  // a few millionths off: unrounded, the pulse would be a few thousandths of
+  // a quarter off its bar line after a thousand bars.
+  for(double tempo : {120., 133., 97.})
+  {
+    INFO(tempo << " BPM");
+    Nodes::RateLimiter::v2::Node rl;
+    rl.inputs.interval.value = float(4. * (1. / 24.) * 60. / tempo);
+    rl.inputs.interval.sync = true;
+    rl.inputs.interval.bar_sync = false;
+
+    ossia::token_request t{};
+    t.prev_date = ossia::time_value{0};
+    t.date = ossia::time_value{705'600};
+    t.speed = 1.;
+    t.tempo = tempo;
+    t.signature.upper = 4;
+    t.signature.lower = 4;
+    t.musical_start_position = 4000. - 0.01;
+    t.musical_end_position = 4000. + 0.01;
+    t.musical_start_last_bar = 3996.;
+    t.musical_end_last_bar = 4000.;
+    t.musical_start_last_signature = 0.;
+    const auto points = rl.grid(t);
+    REQUIRE(points.size() == 1);
+    CHECK(std::abs(points[0].position - 4000.) < 1e-9);
+    CHECK(points[0].index == 0);
+  }
+}

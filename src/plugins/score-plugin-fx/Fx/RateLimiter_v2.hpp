@@ -1,4 +1,5 @@
 #pragma once
+#include <Fx/NoteValueGrid.hpp>
 #include <Fx/Types.hpp>
 
 #include <ossia/dataflow/exec_state_facade.hpp>
@@ -229,42 +230,27 @@ struct Node
   //! Synced, the interval is a note value: the points of that grid in the tick.
   ossia::quantification_points grid(const tick& t) const noexcept
   {
-    const double seconds = std::max(0.f, inputs.interval.value);
-    // The rate of the musical grid (1 a whole note, 4 a quarter...) for the
-    // length of the interval at this tempo.
-    const double rate = (seconds > 0. && t.tempo > 0.) ? 240. / (seconds * t.tempo) : 0.;
     if(!t.forward())
       return {};
-    if(!inputs.interval.bar_sync && rate > 1.)
-      return pulse(t, 4. / rate);
-    return t.get_quantification_dates(rate);
-  }
+    const double rate
+        = grid_rate(std::max(0.f, inputs.interval.value), t.tempo, inputs.interval.sync);
+    if(inputs.interval.bar_sync || !(rate > 1.))
+      return t.get_quantification_dates(rate);
 
-  //! The grid as one pulse of `unit` quarters from the last signature change,
-  //! across the bar lines. Each point is computed as origin + k * unit in
-  //! every tick, so the half-open [start; end[ comparisons put it in exactly
-  //! one of them.
-  static ossia::quantification_points pulse(const tick& t, double unit) noexcept
-  {
+    // One pulse across the bar lines
     ossia::quantification_points res;
     const double start = t.musical_start_position;
     const double end = t.musical_end_position;
-    if(!(end > start) || !(unit > 0.))
-      return res;
-    const double origin = t.musical_start_last_signature;
-    const auto point = [&](int64_t k) { return origin + double(k) * unit; };
-    auto k = int64_t(std::ceil((start - origin) / unit));
-    while(point(k - 1) >= start)
-      k--;
-    while(point(k) < start)
-      k++;
+    const bool valid_sig = t.signature.upper > 0 && t.signature.lower > 0;
+    const double quarters_in_bar
+        = valid_sig ? 4. * t.signature.upper / t.signature.lower : 4.;
     const double scale = double((t.date - t.prev_date).impl) / (end - start);
-    for(; res.size() < 1024 && point(k) < end; k++)
-    {
-      const double p = point(k);
+    for_each_pulse_point(
+        start, end, t.musical_start_last_signature, 4. / rate, quarters_in_bar,
+        [&](double p, int64_t index) {
       res.push_back(
-          {t.prev_date + ossia::time_value{int64_t((p - start) * scale)}, k, p});
-    }
+          {t.prev_date + ossia::time_value{int64_t((p - start) * scale)}, index, p});
+    });
     return res;
   }
 

@@ -349,46 +349,47 @@ TEST_CASE(
     "[presets][arpeggiator]")
 {
   // A dotted sixteenth is 9000 frames, the gate 90% of it; 4/4 bars hold
-  // 10 2/3 of them, so the steps cross the bar lines: by default (a value
-  // saved before the choice existed, 1) and when asked to (3).
+  // 10 2/3 of them, so the steps cross the bar lines when asked to (3).
   const int64_t step = 3 * sixteenth / 2;
-  for(float mode : {1.f, 3.f})
+  Rig r;
+  const auto d = dotted_pad(3.f, r);
+  REQUIRE(d.size() == 43);
+  for(std::size_t i = 0; i < d.size(); i++)
   {
-    INFO("mode " << mode);
-    Rig r;
-    const auto d = dotted_pad(mode, r);
-    REQUIRE(d.size() == 43);
-    for(std::size_t i = 0; i < d.size(); i++)
-    {
-      INFO("step " << i);
-      CHECK(d[i] == int64_t(i) * step);
-      if(i + 1 < d.size())
-        CHECK(r.end_of(r.ons()[i].data1, d[i]) == d[i] + step * 9 / 10);
-    }
-    r.stop();
-    r.check_clean();
+    INFO("step " << i);
+    CHECK(d[i] == int64_t(i) * step);
+    if(i + 1 < d.size())
+      CHECK(r.end_of(r.ons()[i].data1, d[i]) == d[i] + step * 9 / 10);
   }
+  r.stop();
+  r.check_clean();
 }
 
 TEST_CASE(
     "Arpeggiator preset: Latched pad arp at a dotted sixteenth, restarting at the bar lines",
     "[presets][arpeggiator]")
 {
-  // Ten steps of 9000 frames, then one of 6000 that the bar line ends
+  // Ten steps of 9000 frames, then one of 6000 that the bar line ends: when
+  // asked to (2), and for a value saved before the choice existed (1), as the
+  // arpeggiator always did then
   const int64_t step = 3 * sixteenth / 2;
-  Rig r;
-  const auto d = dotted_pad(2.f, r);
-  REQUIRE(d.size() == 44);
-  for(std::size_t i = 0; i < d.size(); i++)
+  for(float mode : {1.f, 2.f})
   {
-    INFO("step " << i);
-    const int64_t b = int64_t(i) / 11, k = int64_t(i) % 11;
-    CHECK(d[i] == b * bar + k * step);
-    if(i + 1 < d.size())
-      CHECK(
-          r.end_of(r.ons()[i].data1, d[i])
-          == d[i] + (k == 10 ? bar - 10 * step : step * 9 / 10));
+    INFO("mode " << mode);
+    Rig r;
+    const auto d = dotted_pad(mode, r);
+    REQUIRE(d.size() == 44);
+    for(std::size_t i = 0; i < d.size(); i++)
+    {
+      INFO("step " << i);
+      const int64_t b = int64_t(i) / 11, k = int64_t(i) % 11;
+      CHECK(d[i] == b * bar + k * step);
+      if(i + 1 < d.size())
+        CHECK(
+            r.end_of(r.ons()[i].data1, d[i])
+            == d[i] + (k == 10 ? bar - 10 * step : step * 9 / 10));
+    }
+    r.stop();
+    r.check_clean();
   }
-  r.stop();
-  r.check_clean();
 }

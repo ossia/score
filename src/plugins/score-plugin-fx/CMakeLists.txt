@@ -28,6 +28,7 @@ set(HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/Fx/MidiHiRes.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Fx/MidiToArray.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Fx/NoiseFilter.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Fx/NoteValueGrid.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Fx/FactorOracle.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Fx/LFO.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Fx/LFO_v2.hpp"

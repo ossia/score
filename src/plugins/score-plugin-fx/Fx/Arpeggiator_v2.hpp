@@ -3,6 +3,7 @@
 #include <Advanced/MidiScaler/MidiCommon/Messages.hpp>
 #include <Advanced/MidiScaler/MidiCommon/Rhythm.hpp>
 #include <Fx/Arpeggiator.hpp>
+#include <Fx/NoteValueGrid.hpp>
 #include <halp/layout.hpp>
 
 #include <cmath>
@@ -140,8 +141,8 @@ struct Node
     OctaveMode octave_mode;
     halp::hslider_i32<"Repeat", halp::irange{1, 8, 1}> repeat;
     //! Between two steps: seconds, or a note value. A note value that does not
-    //! fill the bar goes on across the bar lines, unless the user has it
-    //! restart at each of them.
+    //! fill the bar restarts at each bar line; a new Arpeggiator's goes on as
+    //! one pulse across them, and the user picks either.
     halp::time_chooser<"Rate", halp::range{0.01, 4., 0.125}, halp::bar_sync::pulse>
         rate;
 
@@ -282,20 +283,7 @@ struct Node
   //! synced step is a note value; a free one, its length at the tempo.
   double grid_rate(const halp::tick_musical& tk) const noexcept
   {
-    const double secs = inputs.rate.value;
-    if(!(secs > 0.) || !(tk.tempo > 0.))
-      return 0.;
-    double whole_notes = secs * tk.tempo / 240.;
-    if(inputs.rate.sync)
-    {
-      // A note value reaches the object as seconds in a float, a few
-      // millionths off: steps that much short or long drift off the beat by
-      // a frame every few minutes. Every note value, tuplets of 3, 5, 7 and 9
-      // and dots down to 1/256, is a whole number of these units.
-      constexpr double unit = 256. * 9. * 5. * 7.;
-      whole_notes = std::max(1., std::round(whole_notes * unit)) / unit;
-    }
-    return 1. / whole_notes;
+    return Nodes::grid_rate(inputs.rate.value, tk.tempo, inputs.rate.sync);
   }
 
   using tick = halp::tick_musical;
@@ -396,7 +384,7 @@ struct Node
 
     if(frames > 0)
     {
-      const bool bar_restart = inputs.rate.sync && inputs.rate.bar_sync;
+      const bool bar_restart = !inputs.rate.sync || inputs.rate.bar_sync;
       for_each_step(tk, rate, quarters_in_bar, bar_restart, [&](int date, int64_t grid_point) {
         take_inputs_until(date);
         refresh();
@@ -491,32 +479,13 @@ private:
       return;
     }
 
-    // Each point is computed as origin + k * unit in every tick, so the
-    // half-open [start; end[ comparisons put it in exactly one of them.
-    const double origin = tk.last_signature_change;
-    const auto point = [&](int64_t k) { return origin + double(k) * unit; };
-    auto k = int64_t(std::ceil((start - origin) / unit));
-    while(point(k - 1) >= start)
-      k--;
-    while(point(k) < start)
-      k++;
-
-    // The rate arrives rounded, so a step meant for a bar line can land a few
-    // millionths of a step from it: that close, it is on it.
-    constexpr double tolerance = 1e-4;
-    for(int count = 0; count < 1024; count++, k++)
-    {
-      const double p = point(k);
-      if(p >= end)
-        break;
-      const double bar = origin
-                         + std::floor((p - origin) / quarters_in_bar + tolerance)
-                               * quarters_in_bar;
-      const auto first_in_bar = int64_t(std::ceil((bar - origin) / unit - tolerance));
+    for_each_pulse_point(
+        start, end, tk.last_signature_change, unit, quarters_in_bar,
+        [&](double p, int64_t index) {
       const int64_t frame = std::clamp<int64_t>(
           halp::musical_to_frame(p, start, end, tk.frames), 0, tk.frames - 1);
-      f(int(frame), k - first_in_bar);
-    }
+      f(int(frame), index);
+    });
   }
 
   struct Step

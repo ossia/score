@@ -854,10 +854,11 @@ struct PlayedNote
 //! Plays the Latched pad arp settings (Up/Down, two octaves above, gate 0.9,
 //! toggle latch) on a held C E G at `note` (a fraction of a whole note, as a
 //! synced Rate holds it) and returns the notes of the first `bars` bars of 4/4.
-//! `bar_restart`: the Rate's "Restart at bar lines".
+//! `bar_restart`: the Rate's "Restart at bar lines". Not `sync`: the Rate is
+//! free, as many seconds as the note value lasts.
 std::vector<PlayedNote> play_pad(
     double note, int buffer, double sr, double tempo, int bars,
-    bool bar_restart = false)
+    bool bar_restart = false, bool sync = true)
 {
   Arp a;
   a.prepare({.input_channels = 0, .output_channels = 0, .frames = buffer, .rate = sr});
@@ -868,7 +869,7 @@ std::vector<PlayedNote> play_pad(
   a.inputs.latch.value = Nodes::Arpeggiator::v2::LatchToggle;
   // What the host hands over for a synced rate
   a.inputs.rate.value = float(4. * note * 60. / tempo);
-  a.inputs.rate.sync = true;
+  a.inputs.rate.sync = sync;
   a.inputs.rate.bar_sync = bar_restart;
 
   const double frames_per_quarter = sr * 60. / tempo;
@@ -992,6 +993,25 @@ TEST_CASE(
           CHECK(std::abs(bars[i].on - pulse[i].on) <= 1);
           CHECK(std::abs(bars[i].length - pulse[i].length) <= 1);
         }
+      }
+  }
+}
+
+TEST_CASE(
+    "Arpeggiator v2: a free rate is on the bar grid, as it always was", "[fx][arpeggiator]")
+{
+  // 0.1875 s at 120 BPM is a dotted sixteenth: free, the steps restart at
+  // each bar line whatever the restart choice, eleven a bar
+  for(bool bar_restart : {false, true})
+  {
+    INFO("restart " << bar_restart);
+    const auto notes = play_pad(3. / 32., 512, 48000., 120., 4, bar_restart, false);
+    REQUIRE(notes.size() == 43);
+    for(int bar = 0; bar < 4; bar++)
+      for(int k = 0; k < 11 && bar * 11 + k < int(notes.size()); k++)
+      {
+        INFO("bar " << bar << " step " << k);
+        CHECK(notes[bar * 11 + k].on == bar * 96000 + k * 9000);
       }
   }
 }

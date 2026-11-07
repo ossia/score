@@ -28,6 +28,7 @@
 
 #include <avnd/binding/ossia/data_node.hpp>
 #include <avnd/binding/ossia/dynamic_ports.hpp>
+#include <avnd/binding/ossia/time_controls.hpp>
 #include <avnd/common/for_nth.hpp>
 #include <avnd/concepts/gfx.hpp>
 #include <avnd/concepts/ui.hpp>
@@ -406,13 +407,10 @@ private:
   {
     avnd::input_introspection<Info>::for_all(
         [this]<std::size_t Idx, typename P>(avnd::field_reflection<Idx, P>) {
-      if constexpr(requires { requires bool(P::offers_bar_sync); })
+      if constexpr(oscr::offers_bar_sync<P>)
         for(auto* port : avnd_input_idx_to_model_ports(Idx))
           if(auto* tc = qobject_cast<Process::TimeChooser*>(port))
-          {
             tc->offersBarSync = true;
-            tc->barSyncDefault = P::bar_sync_default;
-          }
     });
   }
 
