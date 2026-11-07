@@ -580,24 +580,32 @@ void VideoDecoder::release_frame(AVFrame* frame) noexcept
 
 void VideoDecoder::buffer_thread() noexcept
 {
+  // A seek request is taken under m_condMut, which holdSeekRequests takes to
+  // hold them; the lock is not held while seeking or decoding.
+  const auto takeSeek = [this]() -> int64_t {
+    std::lock_guard l{m_condMut};
+    return m_holdSeeks ? -1 : m_seekTo.exchange(-1);
+  };
   while(m_running.load(std::memory_order_acquire))
   {
-    // Seek requests are only taken under m_condMut (holdSeekRequests).
-    std::unique_lock lck{m_condMut};
-    if(int64_t seek = m_seekTo.exchange(-1); seek >= 0)
+    if(int64_t seek = takeSeek(); seek >= 0)
     {
       seek_impl(seek);
       continue;
     }
 
-    m_condVar.wait(lck, [&] {
-      return (m_frames.size() < frames_to_buffer / 2 && !m_finished)
-             || !m_running.load(std::memory_order_acquire) || (m_seekTo != -1);
-    });
+    {
+      std::unique_lock lck{m_condMut};
+      m_condVar.wait(lck, [&] {
+        return (m_frames.size() < frames_to_buffer / 2 && !m_finished)
+               || !m_running.load(std::memory_order_acquire)
+               || (m_seekTo != -1 && !m_holdSeeks);
+      });
+    }
     if(!m_running.load(std::memory_order_acquire))
       return;
 
-    if(int64_t seek = m_seekTo.exchange(-1); seek >= 0)
+    if(int64_t seek = takeSeek(); seek >= 0)
     {
       seek_impl(seek);
     }

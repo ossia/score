@@ -42,12 +42,32 @@ public:
   AVFrame* dequeue_frame() noexcept override;
   void release_frame(AVFrame*) noexcept override;
 
-  //! While the returned lock is held the decoding thread takes no seek
-  //! request: the requests made meanwhile replace one another, and the last
-  //! one is taken once the lock is released.
-  [[nodiscard]] std::unique_lock<std::mutex> holdSeekRequests() noexcept
+  //! While the returned object lives the decoding thread takes no seek
+  //! request, and keeps decoding: the requests made meanwhile replace one
+  //! another, and the last one is taken once it is destroyed.
+  struct SeekHold
   {
-    return std::unique_lock{m_condMut};
+    VideoDecoder* decoder{};
+    SeekHold(VideoDecoder* d) noexcept
+        : decoder{d}
+    {
+    }
+    SeekHold(const SeekHold&) = delete;
+    SeekHold& operator=(const SeekHold&) = delete;
+    ~SeekHold()
+    {
+      {
+        std::lock_guard l{decoder->m_condMut};
+        decoder->m_holdSeeks = false;
+      }
+      decoder->m_condVar.notify_one();
+    }
+  };
+  [[nodiscard]] SeekHold holdSeekRequests() noexcept
+  {
+    std::lock_guard l{m_condMut};
+    m_holdSeeks = true;
+    return SeekHold{this};
   }
 
 private:
@@ -65,6 +85,8 @@ private:
   std::thread m_thread;
   std::mutex m_condMut;
   std::condition_variable m_condVar;
+  //! holdSeekRequests; read and written under m_condMut.
+  bool m_holdSeeks{};
 
   int64_t m_duration{}; // in flicks
 
