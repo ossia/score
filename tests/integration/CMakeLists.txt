@@ -1009,6 +1009,12 @@ foreach(kind ISF VSA CSF Raster CSFGeometry Wired)
     target_include_directories(test_integration_shader_sweep_${lc}
       PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../fixtures")
   endif()
+  # The user library has no raster or geometry shader: those two sweep the
+  # gfx corpus when the library does not hold the partner shader they need.
+  if((kind STREQUAL "Raster" OR kind STREQUAL "CSFGeometry") AND NOT EMSCRIPTEN)
+    target_compile_definitions(test_integration_shader_sweep_${lc} PRIVATE
+      "GFX_TEST_CORPUS_DIR=\"${CMAKE_CURRENT_SOURCE_DIR}/../gfx/corpus\"")
+  endif()
   if(EMSCRIPTEN AND SCORE_WASM_PRELOAD_LIBRARY)
     target_link_options(test_integration_shader_sweep_${lc} PRIVATE
       "SHELL:--preload-file ${SCORE_WASM_PRELOAD_LIBRARY}@/score-library")

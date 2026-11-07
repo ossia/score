@@ -53,3 +53,8 @@ TEST_CASE("Every ISF shader in the library renders", "[integration][gfx][shaders
     sweepLibrary(ctx, {"*.fs", "*.frag"}, &loadISF, QStringLiteral(SCORE_SHADER_SWEEP_BASELINE_ISF));
   });
 }
+
+TEST_CASE("The ISF sweep has a baseline for every CI backend", "[integration][gfx][shaders]")
+{
+  checkCIBaselines(QStringLiteral(SCORE_SHADER_SWEEP_BASELINE_ISF));
+}

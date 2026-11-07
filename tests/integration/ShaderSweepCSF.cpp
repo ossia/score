@@ -60,3 +60,8 @@ TEST_CASE("Every CSF shader in the library renders", "[integration][gfx][shaders
         QStringLiteral("COMPUTE_SHADER"));
   });
 }
+
+TEST_CASE("The CSF sweep has a baseline for every CI backend", "[integration][gfx][shaders]")
+{
+  checkCIBaselines(QStringLiteral(SCORE_SHADER_SWEEP_BASELINE_CSF));
+}

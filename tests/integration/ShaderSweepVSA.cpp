@@ -32,3 +32,8 @@ TEST_CASE("Every VSA shader in the library renders", "[integration][gfx][shaders
         QStringLiteral("VERTEX_SHADER_ART"));
   });
 }
+
+TEST_CASE("The VSA sweep has a baseline for every CI backend", "[integration][gfx][shaders]")
+{
+  checkCIBaselines(QStringLiteral(SCORE_SHADER_SWEEP_BASELINE_VSA));
+}

@@ -60,9 +60,11 @@ inline void sweepCSFGeometry(
     const score::GUIApplicationContext& ctx, const QString& baseline,
     const QString& consumerName)
 {
-  const QString root = libraryRoot(ctx);
-  if(root.isEmpty() || !QFileInfo::exists(root))
-    SKIP("no shader library available (set SCORE_SHADER_LIBRARY_DIR)");
+  const QString root = rasterSweepRoot(ctx, consumerName + QStringLiteral(".fs"));
+  if(root.isEmpty())
+    SKIP(
+        "raster consumer " << consumerName.toStdString()
+                           << ".fs is neither in the library nor in the corpus");
 
   const auto* gfx_settings = ctx.findSettings<Gfx::Settings::Model>();
   if(!gfx_settings)
@@ -143,4 +145,9 @@ TEST_CASE(
         ctx, QStringLiteral(SCORE_SHADER_SWEEP_BASELINE_CSFGEOMETRY),
         QString::fromUtf8(kRasterConsumer));
   });
+}
+
+TEST_CASE("The CSFGeometry sweep has a baseline for every CI backend", "[integration][gfx][shaders]")
+{
+  checkCIBaselines(QStringLiteral(SCORE_SHADER_SWEEP_BASELINE_CSFGEOMETRY));
 }

@@ -125,6 +125,30 @@ QString libraryRoot(const score::ApplicationContext& ctx)
 #endif
 }
 
+//! The directory the raster and CSF-geometry sweeps read. Both need a fixed
+//! partner shader (@p anchor: the geometry producer, or the raster consumer),
+//! and the user library has neither those nor any raster or geometry shader:
+//! when the library does not hold @p anchor, score's own shader corpus,
+//! tests/gfx/corpus, is swept, which holds both partners and every raster and
+//! geometry tester. Empty when neither has it.
+QString rasterSweepRoot(const score::ApplicationContext& ctx, const QString& anchor)
+{
+  const auto holds = [&](const QString& root) {
+    if(root.isEmpty() || !QFileInfo::exists(root))
+      return false;
+    QDirIterator it{root, {anchor}, QDir::Files,
+                    QDirIterator::Subdirectories | QDirIterator::FollowSymlinks};
+    return it.hasNext();
+  };
+  if(const QString library = libraryRoot(ctx); holds(library))
+    return library;
+#if defined(GFX_TEST_CORPUS_DIR)
+  if(holds(QStringLiteral(GFX_TEST_CORPUS_DIR)))
+    return QStringLiteral(GFX_TEST_CORPUS_DIR);
+#endif
+  return {};
+}
+
 QImage testcard()
 {
   initScoreResources();
@@ -462,23 +486,59 @@ inline QString backendKey(score::gfx::GraphicsApi api)
   return key;
 }
 
+//! The backends the coverage job sweeps on (ci/coverage.build.sh), which must
+//! have a baseline of every sweep kind: without one the sweep would skip, and
+//! CI would stop testing that kind without anything turning red.
+inline const QStringList& ciBackendKeys()
+{
+  static const QStringList keys{"opengl-llvmpipe", "vulkan-lavapipe"};
+  return keys;
+}
+
+//! The baseline file of @p prefix for the backend @p key
+inline QString baselineFile(const QString& prefix, const QString& key)
+{
+  return prefix + '_' + key + ".txt";
+}
+
 //! The baseline of the backend the sweep runs on: @p prefix + "_<backend>.txt".
 //! A device nobody has recorded a baseline for has nothing to be compared with,
-//! so the sweep is skipped there rather than reported as failing everything.
+//! so the sweep is skipped there rather than reported as failing everything;
+//! on a CI backend a missing baseline fails.
 inline QString backendBaseline(const QString& prefix, score::gfx::GraphicsApi api)
 {
   const QString key = backendKey(api);
   if(key.isEmpty())
     FAIL("could not create a QRhi to identify the backend");
 
-  const QString file = prefix + '_' + key + ".txt";
+  const QString file = baselineFile(prefix, key);
   qInfo().noquote() << "[sweep] backend" << key << "baseline" << file;
   if(!QFileInfo::exists(file) && !qEnvironmentVariableIsSet("SCORE_SHADER_SWEEP_WRITE_BASELINE"))
+  {
+    if(ciBackendKeys().contains(key))
+      FAIL(
+          "no baseline for the CI backend " << key.toStdString() << " ("
+                                            << file.toStdString()
+                                            << "): run with SCORE_SHADER_SWEEP_WRITE_BASELINE=1 "
+                                               "to record one");
     SKIP(
         "no baseline for backend " << key.toStdString() << " (" << file.toStdString()
                                    << "): run with SCORE_SHADER_SWEEP_WRITE_BASELINE=1 "
                                       "to record one");
+  }
   return file;
+}
+
+//! Every CI backend has a baseline for @p prefix. Needs no display: it runs
+//! wherever the sweep is built, so a deleted baseline is caught even on a
+//! machine that cannot render.
+inline void checkCIBaselines(const QString& prefix)
+{
+  for(const QString& key : ciBackendKeys())
+  {
+    INFO(baselineFile(prefix, key).toStdString());
+    CHECK(QFileInfo::exists(baselineFile(prefix, key)));
+  }
 }
 
 //! The baseline records only the failure KINDS per file, so the test fails on

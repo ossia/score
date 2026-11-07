@@ -46,9 +46,11 @@ inline void sweepRaster(
     const score::GUIApplicationContext& ctx, const QString& baseline,
     const QString& producerName)
 {
-  const QString root = libraryRoot(ctx);
-  if(root.isEmpty() || !QFileInfo::exists(root))
-    SKIP("no shader library available (set SCORE_SHADER_LIBRARY_DIR)");
+  const QString root = rasterSweepRoot(ctx, producerName);
+  if(root.isEmpty())
+    SKIP(
+        "geometry producer " << producerName.toStdString()
+                             << " is neither in the library nor in the corpus");
 
   const auto* gfx_settings = ctx.findSettings<Gfx::Settings::Model>();
   if(!gfx_settings)
@@ -56,7 +58,7 @@ inline void sweepRaster(
   const auto api = gfx_settings->graphicsApiEnum();
   const QString baselineFile = backendBaseline(baseline, api);
 
-  // The producer lives in the library too; without it there is nothing to draw.
+  // The producer lives in the swept directory; without it there is nothing to draw.
   QString producer;
   {
     QDirIterator it{root, {producerName}, QDir::Files,
@@ -67,7 +69,7 @@ inline void sweepRaster(
   if(producer.isEmpty())
     SKIP(
         "geometry producer " << producerName.toStdString()
-                            << " not found in the library");
+                            << " not found in " << root.toStdString());
 
   QStringList shaders;
   QDirIterator it{root, {"*.fs", "*.frag"}, QDir::Files,
@@ -134,4 +136,9 @@ TEST_CASE(
         ctx, QStringLiteral(SCORE_SHADER_SWEEP_BASELINE_RASTER),
         QString::fromUtf8(kGeometryProducer));
   });
+}
+
+TEST_CASE("The Raster sweep has a baseline for every CI backend", "[integration][gfx][shaders]")
+{
+  checkCIBaselines(QStringLiteral(SCORE_SHADER_SWEEP_BASELINE_RASTER));
 }
