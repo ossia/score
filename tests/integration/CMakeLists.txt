@@ -1046,6 +1046,12 @@ score_add_test(test_integration_lost_mouse_grab
   GUI
   PLUGINS score_plugin_scenario score_lib_process score_plugin_fx)
 
+# New documents start on a 1 bar sync; loaded ones keep their own.
+score_add_test(test_integration_new_document_defaults
+  SOURCES NewDocumentDefaultsTest.cpp
+  GUI
+  PLUGINS score_plugin_scenario score_lib_process)
+
 score_add_test(test_integration_interval_brace_drag
   SOURCES IntervalBraceDragTest.cpp
   GUI

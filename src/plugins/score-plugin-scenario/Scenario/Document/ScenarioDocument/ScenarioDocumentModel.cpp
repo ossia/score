@@ -55,6 +55,9 @@ ScenarioDocumentModel::ScenarioDocumentModel(
 
   itv.addSignature(TimeVal::zero(), {4, 4});
   itv.setHasTimeSignature(true);
+  // What a new document starts and stops on: the bar. Loaded documents keep
+  // what they saved.
+  itv.setQuantizationRate(1.);
 
   using namespace Scenario::Command;
 
