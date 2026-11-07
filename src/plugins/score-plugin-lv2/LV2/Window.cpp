@@ -223,7 +223,7 @@ Window::Window(const Model& fx, const score::DocumentContext& ctx, QWidget* pare
   // TODO not good, because not all available controls are created as score ports
   for(auto& e : fx.control_map)
   {
-    float f = ossia::convert<float>(e.second.first->value());
+    float f = fx.toPlugin(e.first, ossia::convert<float>(e.second.first->value()));
     suil.instance_port_event(
         fx.effectContext.ui_instance, e.first, sizeof(float), 0, &f);
   }
@@ -280,7 +280,7 @@ void Window::drainUiEvents()
         auto port = m_model.control_map.at(ev.index).first;
         SCORE_ASSERT(port);
 
-        float f = *(float*)ev.body.data();
+        float f = m_model.fromPlugin(ev.index, *(float*)ev.body.data());
         port->setValue(f);
       }
       else

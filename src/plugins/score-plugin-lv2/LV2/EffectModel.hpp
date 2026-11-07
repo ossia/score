@@ -89,6 +89,12 @@ public:
   //! A port value handed to lilv while it saves a state, which copies it
   mutable float portValueForState{};
   ossia::hash_map<uint32_t, Process::ControlOutlet*> control_out_map;
+  //! lv2:sampleRate ports: their controls hold a fraction of the sample rate
+  ossia::hash_set<uint32_t> sample_rate_ports;
+
+  //! A control value as the plug-in, its UI and its state have it
+  float toPlugin(uint32_t port_index, float v) const noexcept;
+  float fromPlugin(uint32_t port_index, float v) const noexcept;
 
 private:
   void reload();

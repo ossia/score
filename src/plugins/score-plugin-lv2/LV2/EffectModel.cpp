@@ -61,7 +61,8 @@ static const void* lv2_get_port_value(
   if(it == self->control_map.end() || !it->second.first)
     return nullptr;
 
-  self->portValueForState = ossia::convert<float>(it->second.first->value());
+  self->portValueForState = self->toPlugin(
+      it->first, ossia::convert<float>(it->second.first->value()));
   *size = sizeof(float);
   *type = self->hostContext->atom_Float_id;
   return &self->portValueForState;
@@ -110,7 +111,7 @@ static void lv2_set_port_value(
 
   // suil port-event guard: on_uiMessage drops UI writes when we're writing
   it->second.second = true;
-  it->second.first->setValue(ossia::value{fvalue});
+  it->second.first->setValue(ossia::value{self->fromPlugin(idx, fvalue)});
   it->second.second = false;
 }
 QString get_lv2_plugin_name(const Lilv::Plugin& node)
@@ -622,6 +623,20 @@ bool Model::hasExternalUI() const noexcept
   return supported;
 }
 
+float Model::toPlugin(uint32_t port_index, float v) const noexcept
+{
+  if(hostContext && hostContext->global && sample_rate_ports.contains(port_index))
+    return v * hostContext->global->sampleRate;
+  return v;
+}
+
+float Model::fromPlugin(uint32_t port_index, float v) const noexcept
+{
+  if(hostContext && hostContext->global && sample_rate_ports.contains(port_index))
+    return v / hostContext->global->sampleRate;
+  return v;
+}
+
 void Model::readPlugin()
 {
   auto& app_plug = score::AppComponents().applicationPlugin<LV2::ApplicationPlugin>();
@@ -646,6 +661,7 @@ void Model::readPlugin()
 
   auto old_inlets = score::clearAndDeleteLater(m_inlets);
   auto old_outlets = score::clearAndDeleteLater(m_outlets);
+  sample_rate_ports.clear();
 
   int in_id = 0;
   int out_id = 0;
@@ -788,6 +804,8 @@ void Model::readPlugin()
     }
 
     control_map.insert({(uint32_t)port_id, {port, false}});
+    if(data.isSampleRatePort(port_id))
+      sample_rate_ports.insert(port_id);
     connect(
         port, &Process::ControlInlet::valueChanged, this,
         [this, port_id](const ossia::value& v) {
@@ -795,7 +813,7 @@ void Model::readPlugin()
       {
         auto& writing = control_map[port_id].second;
         writing = true;
-        float f = ossia::convert<float>(v);
+        float f = toPlugin(port_id, ossia::convert<float>(v));
 
         static auto& suil = libsuil::instance();
         suil.instance_port_event(
@@ -825,6 +843,8 @@ void Model::readPlugin()
     }
 
     control_out_map.insert({port_id, port});
+    if(data.isSampleRatePort(port_id))
+      sample_rate_ports.insert(port_id);
 
     m_outlets.push_back(port);
   }
@@ -1162,7 +1182,7 @@ void on_finish::operator()()
     for(std::size_t k = 0; k < node.data.control_out_ports.size(); k++)
     {
       auto port = (uint32_t)node.data.control_out_ports[k];
-      float val = v0.fOutControls[k];
+      float val = v0.fOutControls[k] / node.fOutScale[k];
 
       auto cport = static_cast<Model&>(p->process()).control_out_map[port];
       SCORE_ASSERT(cport);
@@ -1233,7 +1253,7 @@ void LV2EffectComponent::lazy_init()
 
     for(auto& v : node->voices)
       if(ctrl_idx < v->fInControls.size())
-        v->fInControls[ctrl_idx] = init_val;
+        v->fInControls[ctrl_idx] = init_val * node->fInScale[ctrl_idx];
 
     auto inl = node->root_inputs()[i];
     auto& vp = *inl->target<ossia::value_port>();

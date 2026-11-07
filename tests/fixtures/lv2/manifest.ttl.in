@@ -30,3 +30,13 @@
     a lv2:Plugin ;
     lv2:binary <@LV2_TEST_BINARY_NAME@> ;
     rdfs:seeAlso <score_test_gain.ttl> .
+
+<urn:score:test:rate>
+    a lv2:Plugin ;
+    lv2:binary <@LV2_TEST_BINARY_NAME@> ;
+    rdfs:seeAlso <score_test_gain.ttl> .
+
+<urn:score:test:thru>
+    a lv2:Plugin ;
+    lv2:binary <@LV2_TEST_BINARY_NAME@> ;
+    rdfs:seeAlso <score_test_gain.ttl> .

@@ -32,6 +32,8 @@
 
 #include <ossia/network/value/value_conversion.hpp>
 
+#include <libremidi/detail/conversion.hpp>
+
 #include <ossia/dataflow/exec_state_facade.hpp>
 #include <ossia/dataflow/execution_state.hpp>
 
@@ -43,7 +45,11 @@
 #include <catch2/catch_test_macros.hpp>
 
 #include <cstring>
+#if defined(__linux__)
+#include <dlfcn.h>
+#endif
 #include <functional>
+#include <map>
 
 namespace
 {
@@ -940,5 +946,183 @@ TEST_CASE("an LV2 preset keeps its control values, through a file or a drag", "[
     legacy.data = QByteArray{doc["State"].GetString()};
     model->loadPreset(legacy);
     CHECK(ossia::convert<float>(gain->value()) == Catch::Approx(0.25f));
+  });
+}
+
+// lv2:sampleRate: the bounds of a port are fractions of the sample rate. The
+// control keeps the fraction, the plug-in, its state and its UI get Hz.
+TEST_CASE("LV2 sample rate ports are given in Hz to the plug-in", "[lv2]")
+{
+  prepare_lv2_test_environment();
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    auto& plug = setupLV2(ctx);
+    fixture_plugin p{plug, "urn:score:test:rate", "Score Test Rate"};
+    LV2::LV2Data data{plug.lv2_host_context, p.effect};
+    // rate, gain; rate_echo, gain_echo
+    REQUIRE(data.control_in_ports.size() == 2);
+    REQUIRE(data.control_out_ports.size() == 2);
+    CHECK(data.isSampleRatePort(0));
+    CHECK(!data.isSampleRatePort(1));
+    CHECK(data.isSampleRatePort(3));
+    CHECK(!data.isSampleRatePort(4));
+
+    SECTION("node")
+    {
+      ossia::execution_state st;
+      {
+        test_node node{data, 48000, {LV2::voice_routing::single, 1}, {}, {}};
+        REQUIRE(node.root_inputs().size() == 2);
+        REQUIRE(node.root_outputs().size() == 3);
+        auto& out = node.root_outputs()[0]->cast<ossia::audio_port>();
+        auto& rate_echo = node.root_outputs()[1]->cast<ossia::value_port>();
+        auto& gain_echo = node.root_outputs()[2]->cast<ossia::value_port>();
+        auto last = [](ossia::value_port& p) {
+          REQUIRE(!p.get_data().empty());
+          return ossia::convert<float>(p.get_data().back().value);
+        };
+
+        // The default, 1, is the sample rate
+        run_node(node, st);
+        REQUIRE(out.channels() == 1);
+        REQUIRE(out.channel(0).size() == 64);
+        CHECK(out.channel(0)[0] == Catch::Approx(48000.));
+        CHECK(last(rate_echo) == Catch::Approx(1.f));
+        CHECK(last(gain_echo) == Catch::Approx(0.5f));
+
+        rate_echo.get_data().clear();
+        gain_echo.get_data().clear();
+        node.root_inputs()[0]->cast<ossia::value_port>().write_value(0.25f, 0);
+        node.root_inputs()[1]->cast<ossia::value_port>().write_value(0.3f, 0);
+        run_node(node, st);
+        CHECK(out.channel(0)[63] == Catch::Approx(12000.));
+        CHECK(last(rate_echo) == Catch::Approx(0.25f));
+        CHECK(last(gain_echo) == Catch::Approx(0.3f));
+      }
+      QCoreApplication::processEvents();
+    }
+
+    SECTION("model")
+    {
+      QObject parent;
+      auto* model = new LV2::Model{
+          TimeVal::fromMsecs(1000), "urn:score:test:rate",
+          Id<Process::ProcessModel>{1}, &parent};
+      REQUIRE(model->plugin);
+      REQUIRE(model->effectContext.instance);
+      REQUIRE(model->inlets().size() == 2);
+      auto* rate = dynamic_cast<Process::FloatSlider*>(model->inlets()[0]);
+      auto* gain = dynamic_cast<Process::FloatSlider*>(model->inlets()[1]);
+      REQUIRE(rate);
+      REQUIRE(gain);
+      CHECK(rate->getMin() == 0.f);
+      CHECK(rate->getMax() == 1.f);
+      CHECK(ossia::convert<float>(rate->value()) == 1.f);
+
+      const float sr = plug.lv2_context->sampleRate;
+      CHECK(model->toPlugin(0, 0.5f) == Catch::Approx(sr / 2));
+      CHECK(model->fromPlugin(0, sr / 4) == Catch::Approx(0.25f));
+      CHECK(model->toPlugin(1, 0.5f) == 0.5f);
+      CHECK(model->fromPlugin(1, 0.5f) == 0.5f);
+      CHECK(model->toPlugin(3, 0.5f) == Catch::Approx(sr / 2));
+      CHECK(model->fromPlugin(4, 0.5f) == 0.5f);
+
+      SECTION("a preset holds Hz and comes back as the fraction")
+      {
+        rate->setValue(0.25f);
+        gain->setValue(0.3f);
+        const auto saved = model->savePreset();
+        rapidjson::Document doc;
+        doc.Parse(saved.data.constData(), saved.data.size());
+        REQUIRE(doc.HasMember("State"));
+
+        auto& map = plug.lv2_context->map;
+        LilvState* state = lilv_state_new_from_string(
+            plug.lilv.me, &map, doc["State"].GetString());
+        REQUIRE(state);
+        std::map<std::string, float> values;
+        lilv_state_emit_port_values(
+            state,
+            [](const char* sym, void* ud, const void* v, uint32_t, uint32_t) {
+          (*static_cast<std::map<std::string, float>*>(ud))[sym]
+              = *static_cast<const float*>(v);
+            },
+            &values);
+        lilv_state_free(state);
+        CHECK(values["rate"] == Catch::Approx(sr / 4));
+        CHECK(values["gain"] == Catch::Approx(0.3f));
+
+        rate->setValue(0.75f);
+        gain->setValue(0.75f);
+        model->loadPreset(saved);
+        CHECK(ossia::convert<float>(rate->value()) == Catch::Approx(0.25f));
+        CHECK(ossia::convert<float>(gain->value()) == Catch::Approx(0.3f));
+      }
+    }
+  });
+}
+
+// An event monitor forwards what it receives, positions included: its output
+// says it may carry one, and stays an output. Its input is typed as a
+// sequence. The run telling a stop lasts a tick, not one frame. Between two
+// plays its ports point at nothing that is gone.
+TEST_CASE("LV2 event ports: sequences, outputs supporting time:Position, a stop runs a tick", "[lv2]")
+{
+  prepare_lv2_test_environment();
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    auto& plug = setupLV2(ctx);
+    fixture_plugin p{plug, "urn:score:test:thru", "Score Test Thru", true};
+    LV2::LV2Data data{plug.lv2_host_context, p.effect};
+    REQUIRE(data.midi_in_ports.size() == 1);
+    REQUIRE(data.midi_out_ports.size() == 1);
+    REQUIRE(data.time_Position_ports.size() == 1);
+    CHECK(data.time_Position_ports[0] == 0);
+
+    ossia::execution_state st;
+    const void* gone{};
+    {
+      test_node node{data, 48000, {LV2::voice_routing::single, 1}, {}, {}};
+      auto& in = node.root_inputs()[0]->cast<ossia::midi_port>();
+      const uint64_t on = cmidi2_ump_midi2_note_on(0, 0, 60, 0, 100 << 9, 0);
+      libremidi::ump u{uint32_t(on >> 32), uint32_t(on & 0xffffffff)};
+      u.timestamp = 3;
+      in.messages.push_back(u);
+      run_node(node, st);
+
+      auto& out = node.root_outputs()[0]->cast<ossia::midi_port>();
+      std::vector<int> notes;
+      for(auto& m : out.messages)
+        if(((m.data[0] >> 20) & 0xF) == 0x9)
+          notes.push_back(int((m.data[0] >> 8) & 0x7F));
+      CHECK(notes == std::vector<int>{60});
+      // What the plug-in is given is an atom:Sequence, whatever it holds
+      CHECK(node.voices[0]->fOutControls[1] == 1.f);
+
+      node.mustStop = true;
+      run_node(node, st, false);
+      CHECK(node.voices[0]->fOutControls[0] == 64.f);
+      gone = &node.voices[0]->fOutControls[0];
+    }
+    QCoreApplication::processEvents();
+
+#if defined(__linux__)
+    // The instance lives on to the next play: the buffers of the play that
+    // ended are not written by the ports connected for this one
+    {
+      const auto so = QString::fromUtf8(SCORE_TEST_LV2_BUNDLE) + "/score_test_gain.so";
+      void* lib = dlopen(so.toUtf8().constData(), RTLD_NOW | RTLD_NOLOAD);
+      REQUIRE(lib);
+      auto first_write = reinterpret_cast<const void* (*)()>(
+          dlsym(lib, "score_test_thru_first_write"));
+      auto forget = reinterpret_cast<void (*)()>(dlsym(lib, "score_test_thru_forget"));
+      REQUIRE(first_write);
+      REQUIRE(forget);
+      forget();
+      test_node node{data, 48000, {LV2::voice_routing::single, 1}, {}, {}};
+      REQUIRE(first_write());
+      CHECK(first_write() != gone);
+      dlclose(lib);
+    }
+    QCoreApplication::processEvents();
+#endif
   });
 }

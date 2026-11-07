@@ -27,9 +27,6 @@
 #include <cmath>
 #include <iostream>
 
-uint32_t LV2_Atom_Buffer::chunk_type;
-uint32_t LV2_Atom_Buffer::sequence_type;
-
 namespace LV2
 {
 namespace
@@ -446,7 +443,9 @@ LV2Data::LV2Data(HostContext& h, EffectContext& ctx)
         }
       }
 
-      if(port.supports_event(host.time_Position_class))
+      // The transport goes to the plug-in: an output that may carry a
+      // position (Sherlock forwards what it receives) is not one of these
+      if(port.is_a(host.input_class) && port.supports_event(host.time_Position_class))
       {
         time_Position_ports.push_back(i);
       }
@@ -482,6 +481,13 @@ LV2Data::LV2Data(HostContext& h, EffectContext& ctx)
       debug_port();
     }
   }
+}
+
+bool LV2Data::isSampleRatePort(int port_index) const
+{
+  const LilvPort* port = lilv_plugin_get_port_by_index(effect.plugin.me, port_index);
+  return port
+         && lilv_port_has_property(effect.plugin.me, port, host.sampleRate_property.me);
 }
 
 void LV2Data::portRanges(

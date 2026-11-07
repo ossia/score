@@ -354,6 +354,177 @@ static const LV2_Descriptor descriptor_envelope
     = {"urn:score:test:envelope", instantiate_envelope, connect_port_envelope, NULL,
        run_envelope,              NULL,                 cleanup,               NULL};
 
+/* urn:score:test:rate
+ *   0  control in "rate" (lv2:sampleRate)
+ *   1  control in "gain"
+ *   2  audio out "out" = rate
+ *   3  control out "rate_echo" (lv2:sampleRate) = rate
+ *   4  control out "gain_echo" = gain
+ */
+typedef struct
+{
+  const float* rate;
+  const float* gain;
+  float* out;
+  float* rate_echo;
+  float* gain_echo;
+} test_rate;
+
+static LV2_Handle instantiate_rate(
+    const LV2_Descriptor* descriptor, double rate, const char* bundle_path,
+    const LV2_Feature* const* features)
+{
+  (void)descriptor;
+  (void)rate;
+  (void)bundle_path;
+  (void)features;
+  return calloc(1, sizeof(test_rate));
+}
+
+static void connect_port_rate(LV2_Handle instance, uint32_t port, void* data)
+{
+  test_rate* self = (test_rate*)instance;
+  switch(port)
+  {
+    case 0:
+      self->rate = (const float*)data;
+      break;
+    case 1:
+      self->gain = (const float*)data;
+      break;
+    case 2:
+      self->out = (float*)data;
+      break;
+    case 3:
+      self->rate_echo = (float*)data;
+      break;
+    case 4:
+      self->gain_echo = (float*)data;
+      break;
+    default:
+      break;
+  }
+}
+
+static void run_rate(LV2_Handle instance, uint32_t n_samples)
+{
+  test_rate* self = (test_rate*)instance;
+  for(uint32_t i = 0; i < n_samples; i++)
+    self->out[i] = *self->rate;
+  *self->rate_echo = *self->rate;
+  *self->gain_echo = *self->gain;
+}
+
+static const LV2_Descriptor descriptor_rate
+    = {"urn:score:test:rate", instantiate_rate, connect_port_rate, NULL,
+       run_rate,              NULL,             cleanup,           NULL};
+
+/* urn:score:test:thru
+ *   0  atom in "in" (MIDI, time:Position)
+ *   1  atom out "out" (MIDI, time:Position): every event of "in"
+ *   2  control out "shortest": the fewest frames of a run so far
+ *   3  control out "sequence": 1 when "in" is an atom:Sequence, as plug-ins
+ *      checking the type of their input (JUCE's) require
+ * Connecting any port writes "shortest" where it is connected so far, as
+ * Rubber Band updates its latency: score_test_thru_first_write() says where
+ * the first of those went since score_test_thru_forget().
+ */
+static const void* thru_first_write;
+LV2_SYMBOL_EXPORT const void* score_test_thru_first_write(void)
+{
+  return thru_first_write;
+}
+LV2_SYMBOL_EXPORT void score_test_thru_forget(void)
+{
+  thru_first_write = NULL;
+}
+
+typedef struct
+{
+  const LV2_Atom_Sequence* in;
+  LV2_Atom_Sequence* out;
+  float* shortest;
+  float* sequence;
+  uint32_t min_frames;
+  LV2_URID atom_Sequence;
+} test_thru;
+
+static LV2_Handle instantiate_thru(
+    const LV2_Descriptor* descriptor, double rate, const char* bundle_path,
+    const LV2_Feature* const* features)
+{
+  (void)descriptor;
+  (void)rate;
+  (void)bundle_path;
+  test_thru* self = (test_thru*)calloc(1, sizeof(test_thru));
+  if(!self)
+    return NULL;
+  self->min_frames = UINT32_MAX;
+  for(int i = 0; features && features[i]; i++)
+    if(!strcmp(features[i]->URI, LV2_URID__map))
+    {
+      LV2_URID_Map* map = (LV2_URID_Map*)features[i]->data;
+      self->atom_Sequence = map->map(map->handle, LV2_ATOM__Sequence);
+    }
+  return self;
+}
+
+static void connect_port_thru(LV2_Handle instance, uint32_t port, void* data)
+{
+  test_thru* self = (test_thru*)instance;
+  if(self->shortest)
+  {
+    *self->shortest = (float)self->min_frames;
+    if(!thru_first_write)
+      thru_first_write = self->shortest;
+  }
+  switch(port)
+  {
+    case 0:
+      self->in = (const LV2_Atom_Sequence*)data;
+      break;
+    case 1:
+      self->out = (LV2_Atom_Sequence*)data;
+      break;
+    case 2:
+      self->shortest = (float*)data;
+      break;
+    case 3:
+      self->sequence = (float*)data;
+      break;
+    default:
+      break;
+  }
+}
+
+// Present so that the instance lives from one play to the next
+static void activate_thru(LV2_Handle instance)
+{
+  (void)instance;
+}
+
+static void run_thru(LV2_Handle instance, uint32_t n_samples)
+{
+  test_thru* self = (test_thru*)instance;
+  if(n_samples < self->min_frames)
+    self->min_frames = n_samples;
+  *self->shortest = (float)self->min_frames;
+  *self->sequence = self->in->atom.type == self->atom_Sequence ? 1.f : 0.f;
+
+  const uint32_t capacity = self->out->atom.size;
+  const LV2_URID type = self->in->atom.type;
+  lv2_atom_sequence_clear(self->out);
+  self->out->atom.type = type;
+  LV2_ATOM_SEQUENCE_FOREACH(self->in, ev)
+  {
+    lv2_atom_sequence_append_event(self->out, capacity, ev);
+  }
+}
+
+static const LV2_Descriptor descriptor_thru
+    = {"urn:score:test:thru", instantiate_thru, connect_port_thru, activate_thru,
+       run_thru,              NULL,             cleanup,           NULL};
+
 LV2_SYMBOL_EXPORT const LV2_Descriptor* lv2_descriptor(uint32_t index)
 {
   switch(index)
@@ -370,6 +541,10 @@ LV2_SYMBOL_EXPORT const LV2_Descriptor* lv2_descriptor(uint32_t index)
       return &descriptor_counter;
     case 5:
       return &descriptor_envelope;
+    case 6:
+      return &descriptor_rate;
+    case 7:
+      return &descriptor_thru;
     default:
       return NULL;
   }

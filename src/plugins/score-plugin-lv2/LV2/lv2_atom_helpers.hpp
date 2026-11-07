@@ -52,21 +52,26 @@
 //
 struct LV2_Atom_Buffer
 {
-  SCORE_PLUGIN_LV2_EXPORT static uint32_t sequence_type;
-  SCORE_PLUGIN_LV2_EXPORT static uint32_t chunk_type;
-
   uint32_t capacity;
+  //! The URIDs of atom:Sequence, what an input holds, and of atom:Chunk, the
+  //! space an output is given
+  uint32_t sequence_type;
+  uint32_t chunk_type;
   alignas(8) LV2_Atom_Sequence atoms;
   LV2_Atom_Buffer(uint32_t capacity, uint32_t ct, uint32_t seq_type, bool input)
       : capacity{capacity}
+      , sequence_type{seq_type}
+      , chunk_type{ct}
   {
-    chunk_type = ct;
-    sequence_type = seq_type;
     reset(input);
   }
 
   void reset(bool input)
   {
+    // Event times in frames: a plug-in told another unit (a URID of
+    // units:beat...) reads them as such, or drops them
+    atoms.body.unit = 0;
+    atoms.body.pad = 0;
     if(input)
     {
       atoms.atom.size = sizeof(LV2_Atom_Sequence_Body);
@@ -94,7 +99,7 @@ struct LV2_Atom_Buffer
   LV2_Atom_Sequence* get_sequence(LV2_Atom_Buffer* buf) { return &buf->atoms; }
 };
 
-static_assert(__builtin_offsetof(LV2_Atom_Buffer, atoms) == 8);
+static_assert(__builtin_offsetof(LV2_Atom_Buffer, atoms) % 8 == 0);
 // An iterator over an atom:Sequence buffer.
 //
 struct Iterator

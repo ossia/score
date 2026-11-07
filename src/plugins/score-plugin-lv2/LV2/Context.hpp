@@ -113,6 +113,7 @@ struct HostContext
       make_node("http://lv2plug.in/ns/lv2core#enumeration")};
   Lilv::Node logarithmic_property{make_node(LV2_PORT_PROPS__logarithmic)};
   Lilv::Node notOnGUI_property{make_node(LV2_PORT_PROPS__notOnGUI)};
+  Lilv::Node sampleRate_property{make_node(LV2_CORE__sampleRate)};
 
   Lilv::Node host_ui_type{make_node("http://lv2plug.in/ns/extensions/ui#Qt6UI")};
 
@@ -168,6 +169,9 @@ struct InstanceHandle
 {
   LilvInstance* instance{};
   bool activated{false};
+  //! What its ports are connected to now: the buffers of this voice of an
+  //! lv2_node, or nothing
+  const void* connected_to{};
 
   InstanceHandle() = default;
   explicit InstanceHandle(LilvInstance* i) noexcept
@@ -300,6 +304,10 @@ struct SCORE_PLUGIN_LV2_TEST_EXPORT LV2Data
   void portRanges(
       ossia::float_vector& min, ossia::float_vector& max,
       ossia::float_vector& init) const;
+
+  //! lv2:sampleRate: the bounds of the port are fractions of the sample rate.
+  //! score keeps its value so, the plug-in gets it times the sample rate.
+  bool isSampleRatePort(int port_index) const;
 
   //! rsz:minimumSize of each port, by port index; 0 when not given.
   std::vector<uint32_t> atom_minimum_sizes;

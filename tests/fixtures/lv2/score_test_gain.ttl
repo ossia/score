@@ -174,3 +174,81 @@
         lv2:minimum 0.0 ;
         lv2:maximum 1.0
     ] .
+
+# A frequency given as a fraction of the sample rate (lv2:sampleRate), a plain
+# gain, and both echoed on control outputs. out = rate.
+<urn:score:test:rate>
+    a lv2:Plugin, lv2:UtilityPlugin ;
+    doap:name "Score Test Rate" ;
+    lv2:port [
+        a lv2:ControlPort, lv2:InputPort ;
+        lv2:index 0 ;
+        lv2:symbol "rate" ;
+        lv2:name "Rate" ;
+        lv2:default 1.0 ;
+        lv2:minimum 0.0 ;
+        lv2:maximum 1.0 ;
+        lv2:portProperty lv2:sampleRate
+    ] , [
+        a lv2:ControlPort, lv2:InputPort ;
+        lv2:index 1 ;
+        lv2:symbol "gain" ;
+        lv2:name "Gain" ;
+        lv2:default 0.5 ;
+        lv2:minimum 0.0 ;
+        lv2:maximum 1.0
+    ] , [
+        a lv2:AudioPort, lv2:OutputPort ;
+        lv2:index 2 ;
+        lv2:symbol "out" ;
+        lv2:name "Out"
+    ] , [
+        a lv2:ControlPort, lv2:OutputPort ;
+        lv2:index 3 ;
+        lv2:symbol "rate_echo" ;
+        lv2:name "Rate Echo" ;
+        lv2:minimum 0.0 ;
+        lv2:maximum 1.0 ;
+        lv2:portProperty lv2:sampleRate
+    ] , [
+        a lv2:ControlPort, lv2:OutputPort ;
+        lv2:index 4 ;
+        lv2:symbol "gain_echo" ;
+        lv2:name "Gain Echo" ;
+        lv2:minimum 0.0 ;
+        lv2:maximum 1.0
+    ] .
+
+# Forwards every event it receives, as an event monitor does: its output says
+# it may carry a time:Position. "shortest" is the fewest frames of a run.
+<urn:score:test:thru>
+    a lv2:Plugin, lv2:UtilityPlugin ;
+    doap:name "Score Test Thru" ;
+    lv2:requiredFeature urid:map ;
+    lv2:port [
+        a lv2:InputPort, atom:AtomPort ;
+        atom:bufferType atom:Sequence ;
+        atom:supports time:Position ;
+        atom:supports midi:MidiEvent ;
+        lv2:index 0 ;
+        lv2:symbol "in" ;
+        lv2:name "In"
+    ] , [
+        a lv2:OutputPort, atom:AtomPort ;
+        atom:bufferType atom:Sequence ;
+        atom:supports time:Position ;
+        atom:supports midi:MidiEvent ;
+        lv2:index 1 ;
+        lv2:symbol "out" ;
+        lv2:name "Out"
+    ] , [
+        a lv2:ControlPort, lv2:OutputPort ;
+        lv2:index 2 ;
+        lv2:symbol "shortest" ;
+        lv2:name "Shortest"
+    ] , [
+        a lv2:ControlPort, lv2:OutputPort ;
+        lv2:index 3 ;
+        lv2:symbol "sequence" ;
+        lv2:name "Sequence"
+    ] .

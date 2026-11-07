@@ -63,6 +63,10 @@ struct voice
   const LV2_Worker_Interface* worker{};
   ossia::mpmc_queue<std::vector<char>> worker_datas;
 
+  //! The ports of the plug-in, all of them: what is parked when the instance
+  //! outlives this voice
+  uint32_t port_count{};
+
   voice() = default;
   voice(const voice&) = delete;
   voice& operator=(const voice&) = delete;
@@ -77,6 +81,23 @@ struct voice
       lilv_instance_deactivate(instance);
       instance_holder->activated = false;
     }
+    park_ports();
+  }
+
+  //! The Model's instance lives on to the next play, connected to the
+  //! buffers of this voice, which go now. A plug-in may write to its outputs
+  //! whenever a port is connected (Rubber Band updates its latency): until
+  //! the next play connects its own, they are connected to a buffer that
+  //! never goes. Not when a newer voice already took the instance.
+  void park_ports() noexcept
+  {
+    if(!instance_holder || !instance || instance_holder.use_count() < 2
+       || instance_holder->connected_to != this)
+      return;
+    alignas(64) static float parking[2 * 4096 + 64]{};
+    for(uint32_t p = 0; p < port_count; p++)
+      lilv_instance_connect_port(instance, p, parking);
+    instance_holder->connected_to = nullptr;
   }
 };
 
@@ -112,6 +133,9 @@ struct lv2_node final : public ossia::graph_node
   voice_routing routing{voice_routing::single};
 
   ossia::float_vector fParamMin, fParamMax, fParamInit;
+  //! What a control value is multiplied by for the plug-in, by control index:
+  //! the sample rate for a lv2:sampleRate port, 1 otherwise.
+  ossia::float_vector fInScale, fOutScale;
   std::unique_ptr<uint8_t[]> timePositionBuffer{};
   //! The same position with a speed of 0: the transport is stopped.
   std::unique_ptr<uint8_t[]> stoppedPositionBuffer{};
@@ -182,6 +206,12 @@ struct lv2_node final : public ossia::graph_node
       m_outlets.push_back(new ossia::audio_outlet);
 
     data.portRanges(fParamMin, fParamMax, fParamInit);
+    fInScale.resize(control_in_size);
+    for(std::size_t i = 0; i < control_in_size; i++)
+      fInScale[i] = data.isSampleRatePort(data.control_in_ports[i]) ? sampleRate : 1.f;
+    fOutScale.resize(control_out_size);
+    for(std::size_t i = 0; i < control_out_size; i++)
+      fOutScale[i] = data.isSampleRatePort(data.control_out_ports[i]) ? sampleRate : 1.f;
 
     if(!data.effect.instance_holder)
       throw std::runtime_error("Error while creating a LV2 plug-in");
@@ -244,8 +274,10 @@ struct lv2_node final : public ossia::graph_node
     auto v = std::make_unique<voice>();
     v->instance_holder = std::move(handle);
     v->instance = v->instance_holder->instance;
+    v->port_count = data.effect.plugin.get_num_ports();
     allocate_voice_buffers(*v);
     connect_voice_ports(*v);
+    v->instance_holder->connected_to = v.get();
     activate_voice(*v);
     return v;
   }
@@ -364,27 +396,27 @@ struct lv2_node final : public ossia::graph_node
     for(std::size_t i = 0; i < midi_in_size; i++)
       v.midi_atom_ins.emplace_back(
           data.atomBufferSize(data.midi_in_ports[i]), data.host.atom_chunk_id,
-          data.host.midi_event_id, true);
+          data.host.atom_sequence_id, true);
 
     v.midi_atom_outs.reserve(midi_out_size);
     v.midi_1to2.resize(midi_out_size);
     for(std::size_t i = 0; i < midi_out_size; i++)
       v.midi_atom_outs.emplace_back(
           data.atomBufferSize(data.midi_out_ports[i]), data.host.atom_chunk_id,
-          data.host.midi_event_id, false);
+          data.host.atom_sequence_id, false);
 
     v.atom_ins.reserve(atom_in_size);
     v.message_for_atom_ins.resize(atom_in_size);
     for(std::size_t i = 0; i < atom_in_size; i++)
       v.atom_ins.emplace_back(
           data.atomBufferSize(data.atom_in_ports[i]), data.host.atom_chunk_id,
-          data.host.atom_object_id, true);
+          data.host.atom_sequence_id, true);
 
     v.atom_outs.reserve(atom_out_size);
     for(std::size_t i = 0; i < atom_out_size; i++)
       v.atom_outs.emplace_back(
           data.atomBufferSize(data.atom_out_ports[i]), data.host.atom_chunk_id,
-          data.host.atom_object_id, false);
+          data.host.atom_sequence_id, false);
 
     // time:Position may share a MIDI port (atom:supports midi+time) or have its own atom port
     v.atom_timePosition_owned_buffers.reserve(data.time_Position_ports.size());
@@ -403,7 +435,7 @@ struct lv2_node final : public ossia::graph_node
       if(!shared)
       {
         v.atom_timePosition_owned_buffers.emplace_back(
-            256, data.host.atom_chunk_id, data.host.time_Position_id, true);
+            256, data.host.atom_chunk_id, data.host.atom_sequence_id, true);
         v.atom_timePosition_owned.push_back(
             {port_index, &v.atom_timePosition_owned_buffers.back()});
       }
@@ -418,7 +450,7 @@ struct lv2_node final : public ossia::graph_node
     }
 
     for(std::size_t i = 0; i < control_in_size; i++)
-      v.fInControls[i] = fParamInit[data.control_in_ports[i]];
+      v.fInControls[i] = fParamInit[data.control_in_ports[i]] * fInScale[i];
 
     (void)control_out_size;
     (void)audio_in_size;
@@ -644,7 +676,7 @@ struct lv2_node final : public ossia::graph_node
       if(in.empty())
         continue;
       if(auto new_val = voice_control_value(in.back().value, voice_idx))
-        v.fInControls[i] = *new_val;
+        v.fInControls[i] = *new_val * fInScale[i];
     }
 
     (void)atom_in_size;
@@ -792,12 +824,21 @@ struct lv2_node final : public ossia::graph_node
     {
       auto& out
           = m_outlets[control_start + i]->template cast<ossia::value_port>();
-      out.write_value(v0.fOutControls[i], offset);
+      out.write_value(v0.fOutControls[i] / fOutScale[i], offset);
     }
   }
 
   //! The transport stopped: the plug-in hears it (a position with a speed of
   //! 0, what all_notes_off queued) in a run of one frame.
+  //! The frames of the run that tells a stop: the outputs go to scratch
+  //! buffers, the length only has to be one the plug-in handles well
+  uint32_t stop_run_samples() const noexcept
+  {
+    constexpr int64_t fallback = 64;
+    const int64_t n = m_span.samples > 0 ? m_span.samples : fallback;
+    return uint32_t(std::min<int64_t>(n, int64_t(max_block_size)));
+  }
+
   void stop_voices() noexcept
   {
     data.host.current = &data.effect;
@@ -834,9 +875,12 @@ struct lv2_node final : public ossia::graph_node
         lilv_instance_connect_port(
             v.instance, data.audio_out_ports[i], v.audio_out_scratch[i].data());
 
+      // As long as the last tick, not a single frame: plug-ins dividing by
+      // (sample_count - 1) to ramp a parameter (SWH's Constant Signal
+      // Generator) turn their state to NaN on a run of one frame
       {
         worker_routing_scope ws{data.host, v};
-        lilv_instance_run(v.instance, 1);
+        lilv_instance_run(v.instance, stop_run_samples());
       }
       postProcessVoice(v);
     }
