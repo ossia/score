@@ -24,6 +24,11 @@
 #include <Scenario/Document/BaseScenario/BaseScenario.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <Scenario/Commands/Interval/LayoutNodes.hpp>
+#include <Scenario/Document/Interval/FullView/NodalIntervalView.hpp>
+#include <Scenario/Document/Interval/NodeLayout.hpp>
+#include <Scenario/Document/ScenarioDocument/CentralNodalDisplay.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
@@ -32,6 +37,10 @@
 
 #include <JS/ApplicationPlugin.hpp>
 
+#include <core/document/Document.hpp>
+
+#include <QCoreApplication>
+#include <QElapsedTimer>
 #include <QJsonArray>
 #include <JS/Commands/ScriptCommand.hpp>
 #include <JS/Commands/ScriptMacro.hpp>
@@ -39,6 +48,7 @@
 #include <JS/Qml/ParseDuration.hpp>
 
 #include <score/application/GUIApplicationContext.hpp>
+#include <score/document/DocumentInterface.hpp>
 #include <score/model/EntityMap.hpp>
 
 #include <ossia/dataflow/texture_port.hpp>
@@ -472,6 +482,71 @@ void EditJsContext::setComment(QObject* sel, QString comment)
     apply(ts);
   else if(auto p = qobject_cast<Process::ProcessModel*>(sel))
     apply(p);
+}
+
+void EditJsContext::setFolded(QObject* process, bool folded)
+{
+  auto doc = ctx();
+  if(!doc)
+    return;
+  auto p = qobject_cast<Process::ProcessModel*>(process);
+  if(!p)
+    return;
+  const auto mode = folded ? Process::FoldMode::Folded : Process::FoldMode::Unfolded;
+  if(p->foldMode() == mode)
+    return;
+  auto [m, _] = macro(*doc);
+  m->submit(new Process::SetNodeFoldMode{*p, mode});
+}
+
+void EditJsContext::autoLayout(QObject* interval)
+{
+  autoLayout(interval, {});
+}
+
+void EditJsContext::autoLayout(QObject* interval, QVariantList processes)
+{
+  auto doc = ctx();
+  if(!doc)
+    return;
+  auto itv = qobject_cast<Scenario::IntervalModel*>(interval);
+  if(!itv)
+    return;
+
+  std::vector<const Process::ProcessModel*> nodes;
+  for(const auto& v : processes)
+    if(auto p = qobject_cast<Process::ProcessModel*>(v.value<QObject*>()))
+      if(p->parent() == itv)
+        nodes.push_back(p);
+  if(!processes.empty() && nodes.empty())
+    return;
+
+  // The nodes of a freshly shown nodal view size themselves on a timer, and
+  // only the view knows where the ports of a node showing its controls are.
+  Scenario::NodeGeometry geometry;
+  Scenario::NodalIntervalView* view{};
+  if(auto pres = score::IDocument::try_presenterDelegate<Scenario::ScenarioDocumentPresenter>(
+         doc->document);
+     pres && &pres->displayedInterval() == itv)
+  {
+    if(auto nodal = ossia::get_if<Scenario::CentralNodalDisplay>(&pres->display()))
+    {
+      QElapsedTimer settle;
+      settle.start();
+      while(settle.elapsed() < 50)
+        QCoreApplication::processEvents(QEventLoop::ExcludeUserInputEvents, 10);
+      view = nodal->presenter;
+      geometry = view->nodeGeometry();
+    }
+  }
+
+  auto placements = Scenario::layoutNodes(*itv, std::move(nodes), *doc, geometry);
+  if(placements.empty())
+    return;
+  auto [m, _] = macro(*doc);
+  m->submit(new Scenario::Command::LayoutNodes{placements});
+  if(view && processes.empty())
+    view->recenter();
 }
 
 void EditJsContext::setName(QObject* sel, QString new_name)
