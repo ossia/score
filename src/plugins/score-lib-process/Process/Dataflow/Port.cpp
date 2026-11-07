@@ -955,37 +955,45 @@ static QGraphicsItem* makeEnumCombo(
   return sl;
 }
 
+//! The item layout of the widget the presentation asks for, when the port
+//! supports that widget.
+static std::optional<Process::PortItemLayout> presentationLayout(
+    const Process::Port& port, const Process::ControlPresentation& presentation)
+{
+  using Widget = Process::ControlPresentation::Widget;
+  switch(presentation.widget)
+  {
+    case Widget::Knob:
+      if(qobject_cast<const Process::FloatSlider*>(&port)
+         || qobject_cast<const Process::LogFloatSlider*>(&port))
+        return Process::DefaultControlLayouts::knob();
+      break;
+    case Widget::Combo:
+      if(qobject_cast<const Process::Enum*>(&port))
+        return Process::DefaultControlLayouts::combo();
+      break;
+    default:
+      break;
+  }
+  return std::nullopt;
+}
+
 //! Widget override requested by the presentation, or null if unsupported.
 //! Sets the matching item layout.
 static QGraphicsItem* makePresentationWidget(
     Process::ControlInlet& port, const Process::Context& ctx, QObject* context,
     const Process::ControlPresentation& presentation, Process::PortItemLayout& layout)
 {
-  using Widget = Process::ControlPresentation::Widget;
-  switch(presentation.widget)
-  {
-    case Widget::Knob:
-      if(auto s = qobject_cast<Process::FloatSlider*>(&port))
-      {
-        layout = Process::DefaultControlLayouts::knob();
-        return WidgetFactory::FloatKnob::make_item(*s, *s, ctx, nullptr, context);
-      }
-      if(auto s = qobject_cast<Process::LogFloatSlider*>(&port))
-      {
-        layout = Process::DefaultControlLayouts::knob();
-        return WidgetFactory::LogFloatKnob::make_item(*s, *s, ctx, nullptr, context);
-      }
-      break;
-    case Widget::Combo:
-      if(auto e = qobject_cast<Process::Enum*>(&port))
-      {
-        layout = Process::DefaultControlLayouts::combo();
-        return makeEnumCombo(*e, ctx, context);
-      }
-      break;
-    default:
-      break;
-  }
+  const auto widgetLayout = presentationLayout(port, presentation);
+  if(!widgetLayout)
+    return nullptr;
+  layout = *widgetLayout;
+  if(auto s = qobject_cast<Process::FloatSlider*>(&port))
+    return WidgetFactory::FloatKnob::make_item(*s, *s, ctx, nullptr, context);
+  if(auto s = qobject_cast<Process::LogFloatSlider*>(&port))
+    return WidgetFactory::LogFloatKnob::make_item(*s, *s, ctx, nullptr, context);
+  if(auto e = qobject_cast<Process::Enum*>(&port))
+    return makeEnumCombo(*e, ctx, context);
   return nullptr;
 }
 
@@ -1029,8 +1037,8 @@ static auto makeFullItemImpl(
     if(!lab)
       lab = Dataflow::makePortLabel(portModel, &item);
     lab->setVisible(true);
-    if(presentation.label)
-      lab->setText(*presentation.label);
+    // A label kept from an earlier presentation may hold its custom text.
+    lab->setText(presentation.label ? *presentation.label : Process::displayName(portModel));
     lab->setToolTip(portModel.description());
     lab->setPos(layout.label);
     auto widg_r = control.boundingRect();
@@ -1194,14 +1202,7 @@ void PortFactory::layoutFullItem(
   if(!item.container || !item.port_item || !item.control)
     return;
 
-  auto layout = defaultLayout();
-  if(presentation.widget == ControlPresentation::Widget::Knob
-     && (qobject_cast<const Process::FloatSlider*>(&port)
-         || qobject_cast<const Process::LogFloatSlider*>(&port)))
-    layout = Process::DefaultControlLayouts::knob();
-  else if(presentation.widget == ControlPresentation::Widget::Combo
-          && qobject_cast<const Process::Enum*>(&port))
-    layout = Process::DefaultControlLayouts::combo();
+  const auto layout = presentationLayout(port, presentation).value_or(defaultLayout());
 
 #if defined(SCORE_DEBUG_CONTROL_RECTS)
   auto& container = static_cast<score::GraphicsLayout&>(*item.container);
