@@ -5031,30 +5031,6 @@ static bool isf_glsl_calls(std::string_view code, std::string_view name)
   return false;
 }
 
-// The highest `location = N` of a layout qualifier in `code`, -1 if none.
-static int isf_glsl_max_location(std::string_view code)
-{
-  int max = -1;
-  for(std::size_t p = isf_glsl_find_identifier(code, "location");
-      p != std::string_view::npos;
-      p = isf_glsl_find_identifier(code, "location", p + 1))
-  {
-    std::size_t a = p + 8;
-    while(a < code.size() && std::isspace((unsigned char)code[a]))
-      a++;
-    if(a >= code.size() || code[a] != '=')
-      continue;
-    a++;
-    while(a < code.size() && std::isspace((unsigned char)code[a]))
-      a++;
-    int v = 0;
-    const auto [ptr, ec] = std::from_chars(code.data() + a, code.data() + code.size(), v);
-    if(ec == std::errc{})
-      max = std::max(max, v);
-  }
-  return max;
-}
-
 // Locations one varying of a GLSL type takes.
 static int isf_glsl_type_slots(std::string_view type) noexcept
 {
@@ -5075,18 +5051,150 @@ static int isf_glsl_type_slots(std::string_view type) noexcept
   return 1;
 }
 
+// The locations taken by `[qualifiers] type name [N] (, name [N])*`: a
+// varying declaration, or an interface block member.
+static int isf_glsl_declaration_slots(std::string_view decl)
+{
+  static constexpr std::string_view qualifiers[]
+      = {"in", "out", "varying", "flat", "smooth", "noperspective", "centroid",
+         "sample", "patch", "highp", "mediump", "lowp", "invariant", "precise"};
+  const auto is_qualifier = [](std::string_view w) {
+    return std::find(std::begin(qualifiers), std::end(qualifiers), w)
+           != std::end(qualifiers);
+  };
+  std::vector<std::string_view> words;
+  std::vector<int> counts;
+  for(std::size_t a = 0; a < decl.size();)
+  {
+    if(isf_is_ident_char(decl[a]))
+    {
+      std::size_t b = a;
+      while(b < decl.size() && isf_is_ident_char(decl[b]))
+        b++;
+      words.push_back(decl.substr(a, b - a));
+      counts.push_back(1);
+      a = b;
+    }
+    else if(decl[a] == '[' && !counts.empty())
+    {
+      // The array size belongs to the name before it.
+      std::size_t b = a + 1;
+      while(b < decl.size() && std::isspace((unsigned char)decl[b]))
+        b++;
+      int n = 1;
+      std::from_chars(decl.data() + b, decl.data() + decl.size(), n);
+      counts.back() *= std::max(1, n);
+      while(a < decl.size() && decl[a] != ']')
+        a++;
+    }
+    else
+      a++;
+  }
+  std::size_t t = 0;
+  while(t < words.size() && is_qualifier(words[t]))
+    t++;
+  int slots = 0;
+  if(t < words.size())
+  {
+    const int per = isf_glsl_type_slots(words[t]);
+    for(std::size_t n = t + 1; n < words.size(); n++)
+      if(!is_qualifier(words[n]))
+        slots += per * counts[t] * counts[n];
+  }
+  return slots;
+}
+
+// The locations taken by the interface block whose `{` is at `brace` in
+// `code`: its members, times its instance array size. `end` is set to the
+// `;` closing the declaration; npos when it is not closed.
+static int isf_glsl_block_slots(std::string_view code, std::size_t brace, std::size_t& end)
+{
+  end = std::string_view::npos;
+  std::size_t close = brace + 1;
+  for(int d = 1; close < code.size(); close++)
+  {
+    if(code[close] == '{')
+      d++;
+    else if(code[close] == '}' && --d == 0)
+      break;
+  }
+  if(close >= code.size())
+    return 0;
+  end = code.find(';', close);
+  if(end == std::string_view::npos)
+    return 0;
+  int members = 0;
+  const std::string_view body = code.substr(brace + 1, close - brace - 1);
+  for(std::size_t m = 0; m < body.size();)
+  {
+    std::size_t me = body.find(';', m);
+    if(me == std::string_view::npos)
+      me = body.size();
+    members += isf_glsl_declaration_slots(body.substr(m, me - m));
+    m = me + 1;
+  }
+  // An instance array repeats the block: `} v[3];`.
+  int instances = 1;
+  const std::string_view tail = code.substr(close + 1, end - close - 1);
+  if(const auto lb = tail.find('['); lb != std::string_view::npos)
+  {
+    std::size_t c = lb + 1;
+    while(c < tail.size() && std::isspace((unsigned char)tail[c]))
+      c++;
+    int n = 1;
+    std::from_chars(tail.data() + c, tail.data() + tail.size(), n);
+    instances = std::max(1, n);
+  }
+  return members * instances;
+}
+
+// One past the last location a `layout(location = N)` declaration of `code`
+// takes (N plus the locations of its type, of every member for a block); 0
+// if there is none.
+static int isf_glsl_location_end(std::string_view code)
+{
+  int max = 0;
+  for(std::size_t p = isf_glsl_find_identifier(code, "location");
+      p != std::string_view::npos;
+      p = isf_glsl_find_identifier(code, "location", p + 1))
+  {
+    std::size_t a = p + 8;
+    while(a < code.size() && std::isspace((unsigned char)code[a]))
+      a++;
+    if(a >= code.size() || code[a] != '=')
+      continue;
+    a++;
+    while(a < code.size() && std::isspace((unsigned char)code[a]))
+      a++;
+    int v = 0;
+    const auto [ptr, ec] = std::from_chars(code.data() + a, code.data() + code.size(), v);
+    if(ec != std::errc{})
+      continue;
+    // The declaration after the layout qualifier.
+    int slots = 1;
+    const std::size_t paren = code.find(')', a);
+    if(paren != std::string_view::npos)
+    {
+      const std::size_t semi = code.find(';', paren);
+      const std::size_t brace = code.find('{', paren);
+      if(brace != std::string_view::npos && (semi == std::string_view::npos || brace < semi))
+      {
+        std::size_t end{};
+        slots = isf_glsl_block_slots(code, brace, end);
+      }
+      else if(semi != std::string_view::npos)
+        slots = isf_glsl_declaration_slots(code.substr(paren + 1, semi - paren - 1));
+    }
+    max = std::max(max, v + std::max(1, slots));
+  }
+  return max;
+}
+
 // The locations taken by the top-level `keyword` declarations of `code` that
 // have no layout qualifier: the varyings the shader compiler numbers itself.
 static int isf_glsl_unqualified_slots(
     std::string_view code, std::initializer_list<std::string_view> keywords)
 {
-  static constexpr std::string_view qualifiers[]
-      = {"flat", "smooth", "noperspective", "centroid", "sample", "patch",
-         "highp", "mediump", "lowp", "invariant", "precise"};
-  const auto is_qualifier = [](std::string_view w) {
-    return std::find(std::begin(qualifiers), std::end(qualifiers), w)
-           != std::end(qualifiers);
-  };
   const auto is_keyword = [&](std::string_view w) {
     return std::find(keywords.begin(), keywords.end(), w) != keywords.end();
   };
@@ -5138,49 +5246,24 @@ static int isf_glsl_unqualified_slots(
       continue;
     }
 
-    // `keyword [qualifiers] type name [N] (, name [N])* ;`
-    const std::size_t end = code.find(';', e);
+    // `keyword [qualifiers] type name [N] (, name [N])* ;`, or an interface
+    // block: `keyword Block { member; ... } [instance [N]] ;`.
+    const std::size_t semi = code.find(';', e);
+    const std::size_t brace = code.find('{', e);
+    if(brace != std::string_view::npos && (semi == std::string_view::npos || brace < semi))
+    {
+      std::size_t end{};
+      slots += isf_glsl_block_slots(code, brace, end);
+      if(end == std::string_view::npos)
+        break;
+      i = end + 1;
+      statement = i;
+      continue;
+    }
+    const std::size_t end = semi;
     if(end == std::string_view::npos)
       break;
-    const std::string_view decl = code.substr(e, end - e);
-    std::vector<std::string_view> words;
-    std::vector<int> counts;
-    for(std::size_t a = 0; a < decl.size();)
-    {
-      if(isf_is_ident_char(decl[a]))
-      {
-        std::size_t b = a;
-        while(b < decl.size() && isf_is_ident_char(decl[b]))
-          b++;
-        words.push_back(decl.substr(a, b - a));
-        counts.push_back(1);
-        a = b;
-      }
-      else if(decl[a] == '[' && !counts.empty())
-      {
-        // The array size belongs to the name before it.
-        std::size_t b = a + 1;
-        while(b < decl.size() && std::isspace((unsigned char)decl[b]))
-          b++;
-        int n = 1;
-        std::from_chars(decl.data() + b, decl.data() + decl.size(), n);
-        counts.back() *= std::max(1, n);
-        while(a < decl.size() && decl[a] != ']')
-          a++;
-      }
-      else
-        a++;
-    }
-    std::size_t t = 0;
-    while(t < words.size() && is_qualifier(words[t]))
-      t++;
-    if(t < words.size())
-    {
-      const int per = isf_glsl_type_slots(words[t]);
-      for(std::size_t n = t + 1; n < words.size(); n++)
-        if(!is_qualifier(words[n]))
-          slots += per * counts[t] * counts[n];
-    }
+    slots += isf_glsl_declaration_slots(code.substr(e, end - e));
     i = end + 1;
     statement = i;
   }
@@ -5360,9 +5443,8 @@ void parser::parse_isf()
   {
     const std::string fragmentCode = isf_glsl_without_comments(fragWithoutISF);
     thisPixelLocation
-        = 1
-          + std::max(
-              {0, isf_glsl_max_location(vertexCode), isf_glsl_max_location(fragmentCode)})
+        = std::max(
+              {1, isf_glsl_location_end(vertexCode), isf_glsl_location_end(fragmentCode)})
           + std::max(
               isf_glsl_unqualified_slots(vertexCode, {"out", "varying"}),
               isf_glsl_unqualified_slots(fragmentCode, {"in", "varying"}));
@@ -8440,14 +8522,19 @@ std::string column_accessors(
          + "; }\n";
   }
   // n bytes from byte address b, any alignment; reads the next word only
-  // when the value straddles it.
+  // when the value straddles it. Rows of whole words make a buffer of whole
+  // words. A flat buffer may end inside a word, which words[] does not cover:
+  // the next word is not read past the end of words[] (a producer pads its
+  // buffer to whole words so that no value is cut).
   s += "uint " + geo + "_isf_col_bits(uint b, uint n)\n"
        "{\n"
        "  uint w = b >> 2u;\n"
        "  uint sh = (b & 3u) * 8u;\n"
        "  uint lo = " + geo + "_isf_word(w) >> sh;\n"
-       "  if(sh + n * 8u <= 32u) return lo;\n"
-       "  return lo | (" + geo + "_isf_word(w + 1u) << (32u - sh));\n"
+       "  if(sh + n * 8u <= 32u) return lo;\n";
+  if(row_words == 0)
+    s += "  if(w + 1u >= uint(" + words + ".length())) return lo;\n";
+  s += "  return lo | (" + geo + "_isf_word(w + 1u) << (32u - sh));\n"
        "}\n";
   // Format codes: 1 f32, 2 f64, 3 f16, 4 i8, 5 u8, 6 i16, 7 u16, 8 i32,
   // 9 u32, 10 unorm8 (RenderedCSFNode columnFormatCode).

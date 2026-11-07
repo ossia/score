@@ -257,3 +257,89 @@ void main()
   CHECK(bake(g.vertex, QShader::VertexStage) == std::string{});
   CHECK(bake(g.fragment, QShader::FragmentStage) == std::string{});
 }
+
+namespace
+{
+// Blocks a matrix and an array of: vec2 1, vec3 1, mat4 4, vec4[2] 2 = 8
+// locations.
+const std::string kBlockMembers = R"_({
+  vec2 a;
+  vec3 b;
+  mat4 c;
+  vec4 d[2];
+})_";
+
+std::string blockFragment(const std::string& decl)
+{
+  return R"_(/*{
+  "ISFVSN": "2.0",
+  "INPUTS": [ { "NAME": "inputImage", "TYPE": "image" } ]
+}*/
+)_" + decl + R"_(
+void main()
+{
+  gl_FragColor = IMG_THIS_PIXEL(inputImage) + vec4(v.a, v.b.x, v.c[3].x)
+                 + v.d[0] + v.d[1];
+}
+)_";
+}
+
+std::string blockVertex(const std::string& decl)
+{
+  return decl + R"_(
+void main()
+{
+  isf_vertShaderInit();
+  v.a = vec2(0.0); v.b = vec3(0.0); v.c = mat4(1.0);
+  v.d[0] = vec4(0.0); v.d[1] = vec4(0.0);
+  isf_FragNormCoord = vec2(0.0);
+}
+)_";
+}
+}
+
+TEST_CASE(
+    "the captured position does not overlap an interface block's members",
+    "[gfx][isf][vertex]")
+{
+  SECTION("a block the compiler numbers")
+  {
+    // The shader compiler gives the block's members locations from where the
+    // explicit ones end: 1 (isf_FragNormCoord takes 0), then 8 more.
+    const Generated g = generate(
+        blockVertex("out Block " + kBlockMembers + " v;"),
+        blockFragment("in Block " + kBlockMembers + " v;"));
+    CAPTURE(g.vertex, g.fragment);
+    CHECK(contains(g.vertex, "layout(location = 9) out vec2 isf_ThisPixelNormCoord;"));
+    CHECK(contains(g.fragment, "layout(location = 9) in vec2 isf_ThisPixelNormCoord;"));
+  }
+
+  SECTION("a block at an explicit location")
+  {
+    // Locations 2 to 9.
+    const Generated g = generate(
+        blockVertex("layout(location = 2) out Block " + kBlockMembers + " v;"),
+        blockFragment("layout(location = 2) in Block " + kBlockMembers + " v;"));
+    CAPTURE(g.vertex, g.fragment);
+    CHECK(contains(g.vertex, "layout(location = 10) out vec2 isf_ThisPixelNormCoord;"));
+    CHECK(contains(g.fragment, "layout(location = 10) in vec2 isf_ThisPixelNormCoord;"));
+    CHECK(bake(g.vertex, QShader::VertexStage) == std::string{});
+    CHECK(bake(g.fragment, QShader::FragmentStage) == std::string{});
+  }
+
+  SECTION("a matrix at an explicit location")
+  {
+    // Locations 3 to 6.
+    const Generated g = generate(R"_(
+layout(location = 3) out mat4 m;
+void main()
+{
+  isf_vertShaderInit();
+  m = mat4(1.0);
+  isf_FragNormCoord = vec2(0.0);
+}
+)_");
+    CAPTURE(g.vertex);
+    CHECK(contains(g.vertex, "layout(location = 7) out vec2 isf_ThisPixelNormCoord;"));
+  }
+}
