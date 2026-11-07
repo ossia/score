@@ -46,6 +46,8 @@
 #include <Gfx/Graph/RenderList.hpp>
 #include <Gfx/Graph/ScenePreprocessorNode.hpp>
 
+#include <score_test/GfxBufferSink.hpp>
+
 #define private public
 #include <Gfx/Graph/RenderedCSFNode.hpp>
 #undef private
@@ -909,6 +911,147 @@ TEST_CASE(
     CHECK(std::abs(diff) <= 64 * 1024);
     CHECK(std::abs(diff) < rows);
   }
+}
+
+namespace
+{
+// One scene holding the roots of both.
+ossia::scene_spec mergeScenes(const ossia::scene_spec& a, const ossia::scene_spec& b)
+{
+  auto st = std::make_shared<ossia::scene_state>(*a.state);
+  auto roots = std::make_shared<std::vector<ossia::scene_node_ptr>>(*a.state->roots);
+  roots->insert(roots->end(), b.state->roots->begin(), b.state->roots->end());
+  st->roots = std::move(roots);
+  st->version++;
+  st->dirty_index++;
+  ossia::scene_spec out = a;
+  out.state = std::move(st);
+  return out;
+}
+}
+
+// Reads four columns of every splat of every mesh, by name, into `vals`.
+constexpr const char* kColumnProbe = R"(/*{
+  "ISFVSN": "2.0",
+  "MODE": "COMPUTE_SHADER",
+  "RESOURCES": [
+    { "NAME": "geo", "TYPE": "geometry",
+      "ATTRIBUTES": [
+        { "NAME": "vals", "SEMANTIC": "custom", "TYPE": "vec4", "ACCESS": "write_only" } ],
+      "COLUMNS": [ "x", "opacity", "f_dc_0", "rot_3" ] }
+  ],
+  "PASSES": [ { "LOCAL_SIZE": [64, 1, 1], "EXECUTION_MODEL": { "TYPE": "PER_VERTEX" } } ]
+}*/
+void main()
+{
+  uint i = gl_GlobalInvocationID.x;
+  if(i >= uint(ISF_WRITE(geo, vals).length())) return;
+  ISF_WRITE(geo, vals)[i] = vec4(
+      ISF_COLUMN(geo, x, i), ISF_COLUMN(geo, opacity, i), ISF_COLUMN(geo, f_dc_0, i),
+      ISF_COLUMN(geo, rot_3, i));
+}
+)";
+
+TEST_CASE(
+    "two by-name clouds of different column layouts in one scene are each read "
+    "through their own layout",
+    "[gfx][threedim][splat][primitivecloud][columns]")
+{
+  const auto api = GENERATE(from_range(platform_backends()));
+  if(const char* why = computeSkip(api))
+    SKIP(why);
+  const bool specialize = GENERATE(true, false);
+  CAPTURE(backend_name(api), specialize);
+
+  QTemporaryDir tmp;
+  REQUIRE(tmp.isValid());
+  const QString dir = tmp.path();
+
+  // The left and right halves of the grid, told apart by the sign of x.
+  const auto all = makeSplats(kGrid);
+  std::vector<Splat> left, right;
+  for(std::size_t k = 0; k < all.size(); ++k)
+    (int(k) % kGrid < kGrid / 2 ? left : right).push_back(all[k]);
+
+  // Two "3dgs" layouts: no normals, and the same columns in reverse order.
+  auto reversed = inriaColumns(false, 3);
+  std::reverse(reversed.begin(), reversed.end());
+  const auto a = load(writeFile(dir, "left.ply", makePly(left, inriaColumns(false, 3), 15)));
+  const auto b = load(writeFile(dir, "right.ply", makePly(right, reversed, 15)));
+  REQUIRE(a.cloud);
+  REQUIRE(b.cloud);
+  REQUIRE(a.cloud->format_id == "3dgs");
+  REQUIRE(b.cloud->format_id == "3dgs");
+  REQUIRE(a.cloud->columns_hash != b.cloud->columns_hash);
+
+  const QString cs = dir + "/probe.cs";
+  {
+    QFile f(cs);
+    REQUIRE(f.open(QIODevice::WriteOnly | QIODevice::Truncate));
+    f.write(kColumnProbe);
+  }
+
+  bool skipped{};
+  std::string error;
+  std::vector<std::vector<float>> meshes;
+  score::test::run_in_gui_app([&](const score::GUIApplicationContext&) {
+    GfxPipeline p;
+    const int producer
+        = p.addNode(std::make_unique<AssetSceneNode>(mergeScenes(a.scene, b.scene)));
+    const int preproc = p.addNode(std::make_unique<score::gfx::ScenePreprocessorNode>());
+    auto filterNode = std::make_unique<score::gfx::FlattenedSceneFilterNode>();
+    filterNode->m_mode = 12;
+    filterNode->m_match = 0;
+    filterNode->m_match_str = "3dgs";
+    const int filter = p.addNode(std::move(filterNode));
+    const int csf = p.addCsf(cs);
+    auto sink = attach_buffer_sink(p);
+    if(producer < 0 || preproc < 0 || filter < 0 || csf < 0 || !sink.node)
+    {
+      error = "chain build failed: " + p.error();
+      return;
+    }
+    p.wire(p.nodeSceneOut(producer, 0), p.nodeSceneIn(preproc, 0));
+    p.wire(p.nodeGeometryOut(preproc, 0), p.nodeGeometryIn(filter, 0));
+    p.wire(p.nodeGeometryOut(filter, 0), p.geometryIn(csf, 0));
+    p.wire(p.geometryOut(csf, 0), sink.node->sinkInput());
+    if(!p.create(api))
+    {
+      skipped = p.skipped();
+      error = skipped ? std::string{} : p.error();
+      return;
+    }
+    for(auto& [rl, nr] : p.isf(csf)->renderedNodes)
+      if(auto* r = dynamic_cast<score::gfx::RenderedCSFNode*>(nr))
+        r->m_specializeColumns = specialize;
+    render_with_buffer_sink(p, *sink.node, 4);
+    for(const auto& mr : sink.node->harvest->meshes)
+      for(const auto& at : mr.attributes)
+        if(at.name == "vals")
+          meshes.push_back(as_floats(at.rb.data));
+  });
+  if(skipped)
+    SKIP("backend unavailable");
+  INFO(error);
+  REQUIRE(error.empty());
+
+  // One bucket, and one mesh, per layout, both routed on "3dgs".
+  REQUIRE(meshes.size() == 2);
+  for(const auto& m : meshes)
+  {
+    REQUIRE(m.size() >= 4);
+    const auto& expected = m[0] < 0.f ? left : right;
+    REQUIRE(m.size() >= expected.size() * 4);
+    for(std::size_t i = 0; i < expected.size(); i++)
+    {
+      CAPTURE(i, m[0] < 0.f);
+      CHECK(m[4 * i + 0] == expected[i].pos[0]);
+      CHECK(m[4 * i + 1] == expected[i].opacity);
+      CHECK(m[4 * i + 2] == expected[i].dc[0]);
+      CHECK(m[4 * i + 3] == expected[i].rot[3]);
+    }
+  }
+  CHECK((meshes[0][0] < 0.f) != (meshes[1][0] < 0.f));
 }
 
 // ---------------------------------------------------------------------------

@@ -590,8 +590,9 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
   MDIState m_mdi;
 
   // ─── Primitive cloud (splat) bucket resources ───────────────────────
-  // One entry per bucket_key = hash(format_id), or the cloud's address when
-  // format_id is empty so each unformatted cloud gets its own bucket. A
+  // One entry per primitiveCloudBucketKey: format_id and column layout, or
+  // the cloud's address when format_id is empty so each unformatted cloud
+  // gets its own bucket. A
   // bucket holds raw_splats (concatenated raw_data), cloud_meta
   // (CloudMetaGPU[]), cloud_id_lookup (uint per primitive -> cloud_meta
   // index) and one IndirectCmd {total_primitives, 1, 0, 0, 0}.
@@ -634,7 +635,7 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
     // Index of the bucket geometry in m_outputSpec.meshes->meshes.
     std::size_t mesh_index{};
   };
-  ossia::flat_map<uint32_t, PrimitiveCloudBucketBuffers> m_primitiveCloudBuckets;
+  ossia::flat_map<uint64_t, PrimitiveCloudBucketBuffers> m_primitiveCloudBuckets;
   uint64_t m_primitiveCloudFrame{0};
 
   struct PrimitiveCloudBucket
@@ -1735,23 +1736,27 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
     return it->second;
   }
 
-  // Bucket key of a cloud: hash(format_id), or the cloud's address when
-  // format_id is empty. The hash matches the canonical filter_tag stamp
-  // (ossia::hash_string truncated to 32 bits) so a downstream
-  // FlattenedSceneFilterNode "format_id == match_str" route lines up
-  // byte-for-byte with this bucket key.
-  static uint32_t primitiveCloudBucketKey(
+  // Bucket key of a cloud: its format_id and column layout, or the cloud's
+  // address when format_id is empty. A bucket publishes one set of column
+  // attributes, so a family tag ("3dgs") covering several layouts gives each
+  // layout its own bucket and draw. The key is not the filter_tag a
+  // FlattenedSceneFilterNode routes on: that stays hash(format_id), the same
+  // for every layout of a format.
+  static uint64_t primitiveCloudBucketKey(
       const ossia::primitive_cloud_component& cloud) noexcept
   {
-    if(!cloud.format_id.empty())
-      return (uint32_t)ossia::hash_string(cloud.format_id);
-    return (uint32_t)((uintptr_t)&cloud & 0xffffffffu);
+    if(cloud.format_id.empty())
+      return (uint64_t)(uintptr_t)&cloud;
+    uint64_t key = (uint32_t)ossia::hash_string(cloud.format_id);
+    if(cloud.columns_hash != 0)
+      ossia::hash_combine(key, cloud.columns_hash);
+    return key;
   }
 
-  static ossia::flat_map<uint32_t, PrimitiveCloudBucket>
+  static ossia::flat_map<uint64_t, PrimitiveCloudBucket>
   bucketPrimitiveClouds(const FlatScene& fs)
   {
-    ossia::flat_map<uint32_t, PrimitiveCloudBucket> buckets;
+    ossia::flat_map<uint64_t, PrimitiveCloudBucket> buckets;
     for(const auto& d : fs.primitive_clouds)
     {
       if(!d.cloud || d.cloud->primitive_count == 0)
@@ -1772,19 +1777,6 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
                    << QString::fromStdString(d.cloud->format_id)
                    << " expected" << b.row_stride
                    << "got" << d.cloud->row_stride;
-        continue;
-      }
-      else if(const auto h = b.draws.front()->cloud->columns_hash;
-              h != 0 && d.cloud->columns_hash != 0 && h != d.cloud->columns_hash)
-      {
-        // The bucket publishes one set of column attributes: a cloud whose
-        // columns are elsewhere in the row would be read wrong. A family tag
-        // ("3dgs") covers many layouts; give one of the clouds its own
-        // format id (Asset Loader "Format override") to draw both.
-        qWarning() << "ScenePreprocessor::rebuildPrimitiveClouds: "
-                      "column layout mismatch within bucket"
-                   << QString::fromStdString(d.cloud->format_id)
-                   << "; the cloud is not drawn";
         continue;
       }
       b.draws.push_back(&d);
@@ -1895,7 +1887,7 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
     }
   }
 
-  // Bucket fs.primitive_clouds by format_id and emit one indirect-draw
+  // Bucket fs.primitive_clouds by format_id and column layout and emit one indirect-draw
   // geometry per bucket, appended to m_outputSpec.meshes after the mesh MDI
   // entry. Per bucket: `raw_splats`, `cloud_meta` and `cloud_id_lookup`
   // auxiliary SSBOs plus one indirect cmd
@@ -2007,9 +1999,14 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
           = (int64_t)b.total_primitives * (int64_t)sizeof(uint32_t);
       const int64_t icBytes = (int64_t)sizeof(IndirectCmd);
 
+      // Rows read as 32-bit words (CSF COLUMNS) need the last row's bytes in
+      // a whole word: the buffer is padded to one, the padding never read as
+      // a value.
+      const int64_t rawBufBytes = (rawBytes + 3) & ~int64_t(3);
+
       // Exact sizes: a consumer binds these whole, so the buffer size is
       // what a shader's .length() reports.
-      growBuf(renderer, res,bb.raw_splats, bb.rawSplatsCap, rawBytes,
+      growBuf(renderer, res,bb.raw_splats, bb.rawSplatsCap, rawBufBytes,
               UF(QRhiBuffer::StorageBuffer | QRhiBuffer::VertexBuffer),
               "ScenePreprocessor::cloud.raw_splats", /*exact=*/true);
       growBuf(renderer, res,bb.cloud_meta, bb.cloudMetaCap, cmBytes,
@@ -2159,7 +2156,7 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
       // ── Build the bucket geometry ─────────────────────────────────
       ossia::geometry g;
       const int rawSplatsBufIdx     = (int)g.buffers.size();
-      g.buffers.push_back(wrapGpu(bb.raw_splats, rawBytes));
+      g.buffers.push_back(wrapGpu(bb.raw_splats, rawBufBytes));
       const int cloudMetaBufIdx     = (int)g.buffers.size();
       g.buffers.push_back(wrapGpu(bb.cloud_meta, cmBytes));
       const int cloudLookupBufIdx   = (int)g.buffers.size();
@@ -2361,9 +2358,9 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
 
       // Surface format_id as filter_tag (rapidhash truncated to 32 bits) so a
       // downstream FlattenedSceneFilterNode in "format_id == match_str" mode
-      // routes this bucket to its format-specific chain. Same hash as the
-      // bucket key, so bucketing and filtering agree. Empty format_id leaves
-      // filter_tag at the 0 "untagged" sentinel.
+      // routes this bucket to its format-specific chain. Every layout of a
+      // format has its own bucket and the same tag, so one route reaches them
+      // all. Empty format_id leaves filter_tag at the 0 "untagged" sentinel.
       if(rep && !rep->format_id.empty())
         g.filter_tag = (uint32_t)ossia::hash_string(rep->format_id);
 
@@ -5827,13 +5824,7 @@ struct RenderedScenePreprocessorNode final : NodeRenderer
           ossia::hash_combine(freshCloudFingerprint, (uint64_t)0);
           continue;
         }
-        // Bucket key (mirrors rebuildPrimitiveClouds): hash(format_id), or
-        // the cloud pointer when format_id is empty.
-        const uint64_t bucket_key
-            = !d.cloud->format_id.empty()
-                  ? (uint64_t)(uint32_t)ossia::hash_string(d.cloud->format_id)
-                  : (uint64_t)(uintptr_t)d.cloud.get();
-        ossia::hash_combine(freshCloudFingerprint, bucket_key);
+        ossia::hash_combine(freshCloudFingerprint, primitiveCloudBucketKey(*d.cloud));
 
         const auto* raw = d.cloud->raw_data.get();
         ossia::hash_combine(freshCloudFingerprint, (uint64_t)(uintptr_t)raw);
