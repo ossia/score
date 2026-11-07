@@ -899,6 +899,17 @@ struct tagged_pass_stack : pass_stack<Store, Pass, MaxLayers>
   bool pass_backwards{};
   bool taking{};
 
+  //! Room for one more piece in a store holding `used` of `max`: the
+  //! material of the erased passes kept for undo goes for it, the oldest
+  //! pass first. `used` is the store's count, which that lowers.
+  bool make_room(const int& used, int max) noexcept
+  {
+    while(used >= max)
+      if(!this->forget_oldest_kept())
+        return false;
+    return true;
+  }
+
   // pass_stack's hooks: the material moves with its passes.
   void passes_changed() noexcept { edits++; }
   bool may_remove(int k) const noexcept { return !(taking && k == this->count - 1); }
