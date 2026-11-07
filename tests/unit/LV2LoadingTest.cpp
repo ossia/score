@@ -18,6 +18,7 @@
 #include <LV2/Node.hpp>
 #include <LV2/Window.hpp>
 
+#include <Audio/Settings/Model.hpp>
 #include <Media/AudioPluginCache.hpp>
 
 #include <Process/Dataflow/WidgetInlets.hpp>
@@ -1020,6 +1021,18 @@ TEST_CASE("LV2 sample rate ports are given in Hz to the plug-in", "[lv2]")
 
       const float sr = plug.lv2_context->sampleRate;
       CHECK(model->toPlugin(0, 0.5f) == Catch::Approx(sr / 2));
+
+      // The rate follows the one the device runs at
+      {
+        auto& audio = ctx.settings<Audio::Settings::Model>();
+        const int before = audio.getRate();
+        const int other = before == 96000 ? 88200 : 96000;
+        audio.adoptRate(other);
+        CHECK(model->toPlugin(0, 0.5f) == Catch::Approx(other / 2.));
+        CHECK(model->fromPlugin(0, other / 4.f) == Catch::Approx(0.25f));
+        audio.adoptRate(before);
+        CHECK(model->toPlugin(0, 0.5f) == Catch::Approx(sr / 2));
+      }
       CHECK(model->fromPlugin(0, sr / 4) == Catch::Approx(0.25f));
       CHECK(model->toPlugin(1, 0.5f) == 0.5f);
       CHECK(model->fromPlugin(1, 0.5f) == 0.5f);
@@ -1126,3 +1139,80 @@ TEST_CASE("LV2 event ports: sequences, outputs supporting time:Position, a stop 
 #endif
   });
 }
+
+#if defined(__linux__)
+// Two plays of one instance overlap: the voices of the one that ended go
+// after the next one took the instance. They leave it active, and every port
+// of the instance, those with no direction included, is run with the buffers
+// of the voice that plays, never with the one ports are parked on.
+TEST_CASE("LV2 instance handed over: it stays active, no port runs parked", "[lv2]")
+{
+  prepare_lv2_test_environment();
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    auto& plug = setupLV2(ctx);
+    fixture_plugin p{plug, "urn:score:test:handover", "Score Test Handover"};
+    LV2::LV2Data data{plug.lv2_host_context, p.effect};
+    REQUIRE(data.control_out_ports.size() == 1);
+    REQUIRE(data.midi_other_ports.size() == 1);
+    REQUIRE(data.atom_other_ports.size() == 2);
+
+    const auto so = QString::fromUtf8(SCORE_TEST_LV2_BUNDLE) + "/score_test_gain.so";
+    void* lib = dlopen(so.toUtf8().constData(), RTLD_NOW | RTLD_NOLOAD);
+    REQUIRE(lib);
+    auto connected = reinterpret_cast<const void* (*)(uint32_t)>(
+        dlsym(lib, "score_test_handover_connected"));
+    auto ran_with = reinterpret_cast<const void* (*)(uint32_t)>(
+        dlsym(lib, "score_test_handover_ran_with"));
+    REQUIRE(connected);
+    REQUIRE(ran_with);
+
+    ossia::execution_state st;
+    auto active = [](test_node& n) { return n.voices[0]->fOutControls[0]; };
+
+    auto first = std::make_unique<test_node>(
+        data, 48000, LV2::voice_strategy{LV2::voice_routing::single, 1},
+        noop_hook{}, noop_hook{});
+    run_node(*first, st);
+    CHECK(active(*first) == 1.f);
+    for(uint32_t port : {1u, 2u})
+    {
+      INFO("port " << port);
+      CHECK(ran_with(port) == &first->voices[0]->atom_others[port - 1].buf->atoms);
+    }
+
+    // The next play takes the instance before the voices of this one go
+    auto second = std::make_unique<test_node>(
+        data, 48000, LV2::voice_strategy{LV2::voice_routing::single, 1},
+        noop_hook{}, noop_hook{});
+    REQUIRE(second->voices[0]->instance == first->voices[0]->instance);
+    first.reset();
+    QCoreApplication::processEvents();
+    CHECK(p.effect.instance_holder->activated);
+    run_node(*second, st);
+    CHECK(active(*second) == 1.f);
+    for(uint32_t port : {1u, 2u})
+    {
+      INFO("port " << port);
+      CHECK(ran_with(port) == &second->voices[0]->atom_others[port - 1].buf->atoms);
+    }
+
+    // Its voices go: the instance is parked until the next play takes it
+    second.reset();
+    QCoreApplication::processEvents();
+    const void* parked = connected(1);
+    REQUIRE(parked);
+    {
+      test_node third{data, 48000, {LV2::voice_routing::single, 1}, {}, {}};
+      run_node(third, st);
+      CHECK(active(third) == 1.f);
+      for(uint32_t port : {0u, 1u, 2u})
+      {
+        INFO("port " << port);
+        CHECK(ran_with(port) != parked);
+      }
+    }
+    QCoreApplication::processEvents();
+    dlclose(lib);
+  });
+}
+#endif

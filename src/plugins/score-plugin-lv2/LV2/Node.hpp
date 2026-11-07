@@ -50,6 +50,8 @@ struct voice
   std::vector<AtomBuffer> atom_ins;
   std::vector<AtomBuffer> atom_outs;
   std::vector<ossia::small_vector<Message, 2>> message_for_atom_ins;
+  //! The atom ports with no direction: an empty sequence, every run.
+  std::vector<AtomBuffer> atom_others;
 
   struct TimePort
   {
@@ -73,10 +75,14 @@ struct voice
   voice(voice&&) = delete;
   voice& operator=(voice&&) = delete;
 
-  // Voice 0's instance survives via Model's shared ref and is re-activated next play
+  //! Voice 0's instance survives via the Model's shared ref and is activated
+  //! again on the next play. A newer voice that took the instance already
+  //! runs it: it stays active, its ports where that voice put them.
   ~voice() noexcept
   {
-    if(instance_holder && instance && instance_holder->activated)
+    if(!instance_holder || !instance || instance_holder->connected_to != this)
+      return;
+    if(instance_holder->activated)
     {
       lilv_instance_deactivate(instance);
       instance_holder->activated = false;
@@ -88,7 +94,9 @@ struct voice
   //! buffers of this voice, which go now. A plug-in may write to its outputs
   //! whenever a port is connected (Rubber Band updates its latency): until
   //! the next play connects its own, they are connected to a buffer that
-  //! never goes. Not when a newer voice already took the instance.
+  //! never goes. That buffer is shared by every parked instance and never
+  //! run with: the voice that takes the instance connects each of its ports.
+  //! Not when a newer voice already took the instance.
   void park_ports() noexcept
   {
     if(!instance_holder || !instance || instance_holder.use_count() < 2
@@ -418,6 +426,12 @@ struct lv2_node final : public ossia::graph_node
           data.atomBufferSize(data.atom_out_ports[i]), data.host.atom_chunk_id,
           data.host.atom_sequence_id, false);
 
+    v.atom_others.reserve(data.atom_other_ports.size());
+    for(int port : data.atom_other_ports)
+      v.atom_others.emplace_back(
+          data.atomBufferSize(port), data.host.atom_chunk_id,
+          data.host.atom_sequence_id, true);
+
     // time:Position may share a MIDI port (atom:supports midi+time) or have its own atom port
     v.atom_timePosition_owned_buffers.reserve(data.time_Position_ports.size());
     for(int port_index : data.time_Position_ports)
@@ -457,9 +471,17 @@ struct lv2_node final : public ossia::graph_node
     (void)audio_out_size;
   }
 
+  //! Every port of the plug-in, to this voice's buffers: none is left on the
+  //! buffer it was parked on. The audio ports are connected again before each
+  //! run, to the same scratch buffers.
   void connect_voice_ports(voice& v) noexcept
   {
     auto* inst = v.instance;
+    for(std::size_t i = 0; i < data.audio_in_ports.size(); i++)
+      lilv_instance_connect_port(inst, data.audio_in_ports[i], v.audio_in_scratch[i].data());
+    for(std::size_t i = 0; i < data.audio_out_ports.size(); i++)
+      lilv_instance_connect_port(
+          inst, data.audio_out_ports[i], v.audio_out_scratch[i].data());
     for(std::size_t i = 0; i < data.control_in_ports.size(); i++)
       lilv_instance_connect_port(inst, data.control_in_ports[i], &v.fInControls[i]);
     for(std::size_t i = 0; i < data.control_out_ports.size(); i++)
@@ -485,6 +507,9 @@ struct lv2_node final : public ossia::graph_node
           inst, data.atom_out_ports[i], &v.atom_outs[i].buf->atoms);
     for(auto& [port, buf] : v.atom_timePosition_owned)
       lilv_instance_connect_port(inst, port, &buf->buf->atoms);
+    for(std::size_t i = 0; i < v.atom_others.size(); i++)
+      lilv_instance_connect_port(
+          inst, data.atom_other_ports[i], &v.atom_others[i].buf->atoms);
   }
 
   void activate_voice(voice& v) noexcept
@@ -777,6 +802,8 @@ struct lv2_node final : public ossia::graph_node
       port.buf->reset(false);
     for(auto& port : v.atom_outs)
       port.buf->reset(false);
+    for(auto& port : v.atom_others)
+      port.buf->reset(true);
     for(auto& mqueue : v.message_for_midi_atom_ins)
       mqueue.clear();
   }
@@ -828,8 +855,6 @@ struct lv2_node final : public ossia::graph_node
     }
   }
 
-  //! The transport stopped: the plug-in hears it (a position with a speed of
-  //! 0, what all_notes_off queued) in a run of one frame.
   //! The frames of the run that tells a stop: the outputs go to scratch
   //! buffers, the length only has to be one the plug-in handles well
   uint32_t stop_run_samples() const noexcept
@@ -839,6 +864,8 @@ struct lv2_node final : public ossia::graph_node
     return uint32_t(std::min<int64_t>(n, int64_t(max_block_size)));
   }
 
+  //! The transport stopped: the plug-in hears it (a position with a speed of
+  //! 0, what all_notes_off queued) in one run of stop_run_samples().
   void stop_voices() noexcept
   {
     data.host.current = &data.effect;

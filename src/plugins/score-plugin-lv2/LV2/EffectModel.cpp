@@ -626,14 +626,14 @@ bool Model::hasExternalUI() const noexcept
 float Model::toPlugin(uint32_t port_index, float v) const noexcept
 {
   if(hostContext && hostContext->global && sample_rate_ports.contains(port_index))
-    return v * hostContext->global->sampleRate;
+    return float(v * hostContext->global->sampleRate);
   return v;
 }
 
 float Model::fromPlugin(uint32_t port_index, float v) const noexcept
 {
   if(hostContext && hostContext->global && sample_rate_ports.contains(port_index))
-    return v / hostContext->global->sampleRate;
+    return float(v / hostContext->global->sampleRate);
   return v;
 }
 
@@ -1228,11 +1228,17 @@ void LV2EffectComponent::lazy_init()
 {
   auto& ctx = system();
   LV2::Model& proc = process();
+  auto& host = ctx.context().doc.app.applicationPlugin<LV2::ApplicationPlugin>();
+
+  // What the controls of lv2:sampleRate ports are scaled by, in the model, its
+  // presets and its UI: the rate this plays at, which the device may have
+  // chosen over the one asked for.
+  if(host.lv2_context && ctx.execState->sampleRate > 0)
+    host.lv2_context->sampleRate = ctx.execState->sampleRate;
 
   if(!proc.effectContext.instance)
     return;
 
-  auto& host = ctx.context().doc.app.applicationPlugin<LV2::ApplicationPlugin>();
   on_start os;
   on_finish of;
   os.self = std::dynamic_pointer_cast<LV2EffectComponent>(shared_from_this());

@@ -425,6 +425,7 @@ LV2Data::LV2Data(HostContext& h, EffectContext& ctx)
         else
         {
           midi_other_ports.push_back(i);
+          atom_other_ports.push_back(i);
           qDebug() << "LV2: MIDI port not input or output" << i;
           debug_port();
         }
@@ -440,6 +441,12 @@ LV2Data::LV2Data(HostContext& h, EffectContext& ctx)
         {
           qDebug() << "LV2: Atom output port not MIDI, not supported yet." << i;
           atom_out_ports.push_back(i);
+        }
+        else
+        {
+          atom_other_ports.push_back(i);
+          qDebug() << "LV2: Atom port not input or output" << i;
+          debug_port();
         }
       }
 

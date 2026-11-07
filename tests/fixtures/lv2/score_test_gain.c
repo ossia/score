@@ -525,6 +525,76 @@ static const LV2_Descriptor descriptor_thru
     = {"urn:score:test:thru", instantiate_thru, connect_port_thru, activate_thru,
        run_thru,              NULL,             cleanup,           NULL};
 
+/* urn:score:test:handover
+ *   0  control out "active": 1 between activate() and deactivate()
+ *   1  atom port "side" (MIDI), neither an input nor an output
+ *   2  atom port "aux", neither an input nor an output
+ * score_test_handover_connected(p) says where port p was last connected,
+ * score_test_handover_ran_with(p) where it pointed in the last run.
+ */
+static const void* handover_connected[3];
+static const void* handover_ran_with[3];
+LV2_SYMBOL_EXPORT const void* score_test_handover_connected(uint32_t port)
+{
+  return port < 3 ? handover_connected[port] : NULL;
+}
+LV2_SYMBOL_EXPORT const void* score_test_handover_ran_with(uint32_t port)
+{
+  return port < 3 ? handover_ran_with[port] : NULL;
+}
+
+typedef struct
+{
+  void* ports[3];
+  float active;
+} test_handover;
+
+static LV2_Handle instantiate_handover(
+    const LV2_Descriptor* descriptor, double rate, const char* bundle_path,
+    const LV2_Feature* const* features)
+{
+  (void)descriptor;
+  (void)rate;
+  (void)bundle_path;
+  (void)features;
+  return calloc(1, sizeof(test_handover));
+}
+
+static void connect_port_handover(LV2_Handle instance, uint32_t port, void* data)
+{
+  test_handover* self = (test_handover*)instance;
+  if(port < 3)
+  {
+    self->ports[port] = data;
+    handover_connected[port] = data;
+  }
+}
+
+static void activate_handover(LV2_Handle instance)
+{
+  ((test_handover*)instance)->active = 1.f;
+}
+
+static void deactivate_handover(LV2_Handle instance)
+{
+  ((test_handover*)instance)->active = 0.f;
+}
+
+static void run_handover(LV2_Handle instance, uint32_t n_samples)
+{
+  (void)n_samples;
+  test_handover* self = (test_handover*)instance;
+  for(int p = 0; p < 3; p++)
+    handover_ran_with[p] = self->ports[p];
+  if(self->ports[0])
+    *(float*)self->ports[0] = self->active;
+}
+
+static const LV2_Descriptor descriptor_handover
+    = {"urn:score:test:handover", instantiate_handover, connect_port_handover,
+       activate_handover,         run_handover,         deactivate_handover,
+       cleanup,                   NULL};
+
 LV2_SYMBOL_EXPORT const LV2_Descriptor* lv2_descriptor(uint32_t index)
 {
   switch(index)
@@ -545,6 +615,8 @@ LV2_SYMBOL_EXPORT const LV2_Descriptor* lv2_descriptor(uint32_t index)
       return &descriptor_rate;
     case 7:
       return &descriptor_thru;
+    case 8:
+      return &descriptor_handover;
     default:
       return NULL;
   }

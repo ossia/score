@@ -252,3 +252,26 @@
         lv2:symbol "sequence" ;
         lv2:name "Sequence"
     ] .
+
+<urn:score:test:handover>
+    a lv2:Plugin, lv2:UtilityPlugin ;
+    doap:name "Score Test Handover" ;
+    lv2:port [
+        a lv2:ControlPort, lv2:OutputPort ;
+        lv2:index 0 ;
+        lv2:symbol "active" ;
+        lv2:name "Active"
+    ] , [
+        a atom:AtomPort ;
+        atom:bufferType atom:Sequence ;
+        atom:supports midi:MidiEvent ;
+        lv2:index 1 ;
+        lv2:symbol "side" ;
+        lv2:name "Side"
+    ] , [
+        a atom:AtomPort ;
+        atom:bufferType atom:Sequence ;
+        lv2:index 2 ;
+        lv2:symbol "aux" ;
+        lv2:name "Aux"
+    ] .

@@ -221,7 +221,9 @@ public:
 
   using urid_map_t = boost::bimap<std::string, LV2_URID>;
   LV2::HostContext& host;
-  int sampleRate = 44100;
+  //! The rate the audio runs at; a double, as the lv2:sampleRate option
+  //! points at it as an atom:Double.
+  double sampleRate = 44100.;
 
   std::vector<LV2_Options_Option> options;
 
@@ -285,6 +287,8 @@ struct SCORE_PLUGIN_LV2_TEST_EXPORT LV2Data
   //! CV inputs (and audio ports with no direction); CV outputs.
   ossia::small_vector<int, 2> cv_ports, cv_out_ports;
   ossia::small_vector<int, 2> atom_in_ports, atom_out_ports;
+  //! Atom ports, MIDI or not, that are neither an input nor an output.
+  ossia::small_vector<int, 2> atom_other_ports;
 
   ossia::small_vector<int, 2> time_Position_ports{};
 

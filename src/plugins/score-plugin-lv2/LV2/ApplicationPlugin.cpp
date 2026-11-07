@@ -177,7 +177,13 @@ void ApplicationPlugin::forceRescan()
 
 void ApplicationPlugin::initialize()
 {
-  lv2_context->sampleRate = context.settings<Audio::Settings::Model>().getRate();
+  // The rate the audio device runs at, as it starts or changes
+  auto& audio = context.settings<Audio::Settings::Model>();
+  lv2_context->sampleRate = audio.getRate();
+  con(audio, &Audio::Settings::Model::RateChanged, this, [this](int rate) {
+    if(rate > 0)
+      lv2_context->sampleRate = rate;
+  });
 
   if(!qEnvironmentVariableIsEmpty("SCORE_DISABLE_AUDIOPLUGINS"))
     return;
