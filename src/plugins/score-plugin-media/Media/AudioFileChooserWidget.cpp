@@ -1,8 +1,7 @@
 #include "AudioFileChooserWidget.hpp"
 
 #include <Media/MediaFileHandle.hpp>
-#include <Media/Sound/QImagePool.hpp>
-#include <Media/Sound/WaveformComputer.hpp>
+#include <Media/Sound/WaveformRenderer.hpp>
 
 #include <QGraphicsView>
 #include <QMimeData>
@@ -17,7 +16,7 @@ namespace score
 QGraphicsWaveformButton::QGraphicsWaveformButton(QGraphicsItem* parent)
     : QGraphicsItem{parent}
     , m_rect{0, 0, 400, 200}
-    , m_computer{new Media::Sound::WaveformComputer{false}}
+    , m_waveform{std::make_unique<Media::Sound::WaveformRenderer>(m_rect.size(), false)}
 {
   setAcceptDrops(true);
   auto& skin = score::Skin::instance();
@@ -25,28 +24,15 @@ QGraphicsWaveformButton::QGraphicsWaveformButton(QGraphicsItem* parent)
   setCursor(skin.CursorPointingHand);
 
   connect(
-      m_computer, &Media::Sound::WaveformComputer::ready, this,
-      [this](QVector<QImage*> img, Media::Sound::ComputedWaveform wf) {
-    m_computer->claim(img);
-    Media::Sound::QImagePool::instance().giveBack(m_images);
-    m_images = std::move(img);
-
-    // We display the image at the device ratio of the view
-    if(auto view = ::getView(*this))
-    {
-      for(auto image : m_images)
-      {
-        image->setDevicePixelRatio(view->devicePixelRatioF());
-      }
-    }
-    update();
-      });
+      m_waveform.get(), &Media::Sound::WaveformRenderer::updated, this,
+      [this] { update(); });
 }
 
-QGraphicsWaveformButton::~QGraphicsWaveformButton()
+QGraphicsWaveformButton::~QGraphicsWaveformButton() = default;
+
+bool QGraphicsWaveformButton::hasWaveform() const noexcept
 {
-  delete m_computer;
-  Media::Sound::QImagePool::instance().giveBack(m_images);
+  return m_waveform->hasWaveform();
 }
 
 void QGraphicsWaveformButton::bang()
@@ -117,16 +103,9 @@ void QGraphicsWaveformButton::dropEvent(QGraphicsSceneDragDropEvent* event)
 void QGraphicsWaveformButton::paint(
     QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
-  if(!m_images.empty())
+  if(m_waveform->hasWaveform())
   {
-    painter->setRenderHint(QPainter::SmoothPixmapTransform, 0);
-    int channels = m_images.size();
-    auto h = m_rect.height() / channels;
-    for(int i = 0; i < channels; i++)
-    {
-      painter->drawImage(QRectF{0, h * i, m_rect.width(), h}, *m_images[i]);
-    }
-    painter->setRenderHint(QPainter::SmoothPixmapTransform, 1);
+    m_waveform->paint(*painter, m_rect, widget ? widget->devicePixelRatioF() : 1.);
   }
   else
   {
@@ -145,57 +124,13 @@ QRectF QGraphicsWaveformButton::boundingRect() const
   return m_rect;
 }
 
-void QGraphicsWaveformButton::on_finishedDecoding()
-{
-  double ms = ossia::flicks_per_second<double>
-              * m_file->decodedSamples() / double(m_file->sampleRate());
-  Media::Sound::WaveformRequest req{
-      .file = m_file,
-      .zoom = ms / this->m_rect.width(),
-      .tempo_ratio = 1.,
-      .layerSize = this->m_rect.size(),
-      .devicePixelRatio = 1.,
-      .view_x0 = 0,
-      .view_xmax = 1e12,
-      .startOffset = TimeVal{},
-      .loopDuration = TimeVal::fromMsecs(
-          1000. * m_file->decodedSamples() / double(m_file->sampleRate())),
-      .loops = false,
-      .colors = true};
-  m_computer->recompute(req);
-}
-
 void QGraphicsWaveformButton::setFile(const QString& s, const QString& absolute)
 {
-  if(m_file)
-    m_file->on_finishedDecoding
-        .disconnect<&QGraphicsWaveformButton::on_finishedDecoding>(*this);
-
-  Media::Sound::QImagePool::instance().giveBack(m_images);
-  m_images.clear();
-
   m_string = std::move(s);
-  // The RESOLVED path: this overload of get() opens what it is handed, so a
+  // The RESOLVED path: the audio file manager opens what it is handed, so a
   // "<PROJECT>:" path reached it as a filename that does not exist and the
   // waveform stayed empty with no error anywhere.
-  m_file = Media::AudioFileManager::instance().get(
-      absolute.isEmpty() ? m_string : absolute, 0);
-  if(!m_file)
-  {
-    update();
-    return;
-  }
-
-  m_file->on_finishedDecoding.connect<&QGraphicsWaveformButton::on_finishedDecoding>(
-      *this);
-
-  // The file may be decoded already -- the manager caches it, and on loading a
-  // document the same sound is often shared with a sound process that pulled it
-  // in first. Waiting for a signal that has already been emitted is how the
-  // waveform stayed blank until the file was picked again.
-  if(m_file->finishedDecoding())
-    on_finishedDecoding();
-  else
-    update();
+  m_waveform->setFile(absolute.isEmpty() ? m_string : absolute);
+  update();
 }
 }

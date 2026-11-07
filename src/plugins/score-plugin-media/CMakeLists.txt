@@ -34,6 +34,7 @@ set(HDRS ${HDRS}
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Sound/SoundPresenter.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Sound/SoundView.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Sound/WaveformComputer.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Sound/WaveformRenderer.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Sound/QImagePool.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Sound/Drop/SoundDrop.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Sound/SoundComponent.hpp"
@@ -114,6 +115,7 @@ set(SRCS
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Sound/SoundPresenter.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Sound/SoundView.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Sound/WaveformComputer.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Sound/WaveformRenderer.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Sound/Drop/SoundDrop.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Sound/SoundComponent.cpp"
 

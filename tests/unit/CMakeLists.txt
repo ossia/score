@@ -169,6 +169,12 @@ if(TARGET score_plugin_media)
     APP
     PLUGINS score_plugin_media score_lib_process)
 
+  # The waveform renderer the soundfile control and custom items draw with.
+  score_add_test(test_unit_waveform_renderer
+    SOURCES WaveformRendererTest.cpp
+    APP
+    PLUGINS score_plugin_media score_lib_process)
+
   # Which decoding backend a file lands on, and that each one either hands back
   # a usable handle or fails without leaving a half-built one behind.
   score_add_test(test_unit_audio_file_backend

@@ -11,7 +11,7 @@
 #include <score_plugin_media_export.h>
 namespace Media::Sound
 {
-struct WaveformComputer;
+class WaveformRenderer;
 }
 namespace score
 {
@@ -36,7 +36,7 @@ public:
   const QString& text() const noexcept { return m_string; }
   //! Whether there is a waveform to draw, as opposed to the "drop a file here"
   //! placeholder.
-  bool hasWaveform() const noexcept { return !m_images.empty(); }
+  bool hasWaveform() const noexcept;
   //! \p s is what the document stores and what text() returns -- it may be a
   //! "<PROJECT>:" or document-relative path. \p absolute is the same file
   //! resolved against the document, which is the only form the audio file
@@ -45,7 +45,6 @@ public:
   QRectF boundingRect() const override;
 
 private:
-  void on_finishedDecoding();
   void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
@@ -59,9 +58,7 @@ private:
       final override;
   QRectF m_rect;
   QString m_string;
-  std::shared_ptr<Media::AudioFile> m_file;
-  QVector<QImage*> m_images;
-  Media::Sound::WaveformComputer* m_computer{};
+  std::unique_ptr<Media::Sound::WaveformRenderer> m_waveform;
 };
 
 }
