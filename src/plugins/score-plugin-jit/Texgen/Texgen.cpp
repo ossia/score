@@ -192,6 +192,11 @@ TexgenExecutor::TexgenExecutor(
       *ctx.execState, ctx.doc.plugin<Gfx::DocumentPlugin>().exec);
   this->node = bb;
 
+  // What shows the texture of the outlet, e.g. its preview, finds it there
+  for(auto* outlet : proc.outlets())
+    if(auto out = qobject_cast<Gfx::TextureOutlet*>(outlet))
+      out->nodeId = bb->id;
+
   if(auto tgt
      = proc.factory.target<void (*)(unsigned char* rgb, int width, int height, int t)>())
     bb->set_function(*tgt);
@@ -203,12 +208,20 @@ TexgenExecutor::TexgenExecutor(
        = proc.factory
              .target<void (*)(unsigned char* rgb, int width, int height, int t)>())
     {
-      in_exec([tgt, bb] { bb->set_function(*tgt); });
+      in_exec([f = *tgt, bb] { bb->set_function(f); });
     }
   });
 }
 
 TexgenExecutor::~TexgenExecutor() { }
+
+void TexgenExecutor::cleanup()
+{
+  for(auto* outlet : this->process().outlets())
+    if(auto out = qobject_cast<Gfx::TextureOutlet*>(outlet))
+      out->nodeId = score::gfx::invalid_node_index;
+  ProcessComponent_T::cleanup();
+}
 
 }
 

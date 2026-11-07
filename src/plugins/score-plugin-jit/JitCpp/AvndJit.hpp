@@ -36,7 +36,8 @@ PROCESS_METADATA(
 namespace AvndJit
 {
 using NodeCompiler = Jit::Driver;
-using NodeFunction = ossia::graph_node*(int, double);
+// The node is prepared for the execution state given, when there is one
+using NodeFunction = ossia::graph_node*(int, double, ossia::execution_state*);
 using NodeFactory = std::function<NodeFunction>;
 class Model : public Process::ProcessModel
 {

@@ -48,6 +48,27 @@ ossia::primitive_cloud_component_ptr parse_splat_binary(std::string_view bytes)
   out->primitive_count = N;
   out->topology = ossia::primitive_topology::points;
   out->format_id = "3dgs.splat-binary";
+  // The names say how each field is stored, since it is not stored as in a
+  // 3DGS PLY: linear scales, 8-bit colour and opacity, 8-bit quaternion.
+  using C = ossia::primitive_cloud_component::column;
+  out->columns = {
+      {"x", C::f32, 0},
+      {"y", C::f32, 4},
+      {"z", C::f32, 8},
+      {"scale_linear_0", C::f32, 12},
+      {"scale_linear_1", C::f32, 16},
+      {"scale_linear_2", C::f32, 20},
+      {"red", C::u8, 24},
+      {"green", C::u8, 25},
+      {"blue", C::u8, 26},
+      {"alpha", C::u8, 27},
+      {"rot_u8_0", C::u8, 28},
+      {"rot_u8_1", C::u8, 29},
+      {"rot_u8_2", C::u8, 30},
+      {"rot_u8_3", C::u8, 31},
+  };
+  out->columns_hash
+      = ossia::primitive_cloud_component::column_layout_hash(out->columns, kRowSize);
   out->bounds = bounds;
   out->stable_id = ossia::mint_stable_id();
   return out;

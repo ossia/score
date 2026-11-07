@@ -33,10 +33,13 @@
  * The looper (the Engine below) provides, besides the transport's engine:
  *
  *   int looper_passes() const;                // passes heard
+ *   int looper_pass_of(uint32_t id) const;    // the pass heard of that id, or -1
  *   bool looper_muted(int pass) const;
  *   void looper_set_muted(int pass, bool muted);
- *   void looper_mute(int pass);               // toggles
+ *   void looper_mute(int pass, int muted);    // muted: 1, 0, or -1 to toggle
  *   void looper_erase(int pass);
+ *   void looper_begin_actions();              // what follows is one action
+ *   void looper_end_actions();                // for undo, until this
  */
 namespace Nodes::Looper
 {
@@ -428,8 +431,8 @@ struct erase_layer_button : halp::impulse_button<"Erase layer">
   halp_meta(
       description,
       "Removes the layer Layer says, on the grid, as the x of its lane does. "
-      "The layer being overdubbed is dropped and the overdub goes on in a new "
-      "one, as with Undo.")
+      "Undo brings it back. The layer being overdubbed is dropped and the "
+      "overdub goes on in a new one, as with Undo.")
 };
 
 struct solo_layer_button : halp::impulse_button<"Solo layer">
@@ -507,7 +510,9 @@ struct solo_memory
 };
 
 //! A layer action waiting for the grid: on the layer Layer says then, or on
-//! the pass a lane of the view showed, when the loop still has `layers`.
+//! the pass a lane of the view showed: the one of id `id` wherever it is
+//! then, or else pass `pass` when the loop still has `layers`. A mute sets
+//! `muted` when it is 0 or 1, and toggles else.
 struct layer_action
 {
   enum kind_t : uint8_t
@@ -518,6 +523,8 @@ struct layer_action
   } kind;
   int pass;
   int layers;
+  uint32_t id{};
+  int8_t muted{-1};
 };
 
 /**
@@ -587,11 +594,11 @@ struct switches
     }
 
     if(in.mute_layer.value)
-      add({layer_action::mute, -1, -1}, t);
+      add({.kind = layer_action::mute, .pass = -1, .layers = -1}, t);
     if(in.erase_layer.value)
-      add({layer_action::erase, -1, -1}, t);
+      add({.kind = layer_action::erase, .pass = -1, .layers = -1}, t);
     if(in.solo_layer.value)
-      add({layer_action::solo, -1, -1}, t);
+      add({.kind = layer_action::solo, .pass = -1, .layers = -1}, t);
 
     bool asked = false;
     if(in.reverse_toggle.value)
@@ -617,21 +624,34 @@ struct switches
     for(int i = 0; i < action_count; i++)
     {
       const auto& a = actions[i];
-      const int n = e.looper_passes();
-      if(a.layers >= 0 && a.layers != n)
-        continue;
-      // A Layer past the layers there are names none.
-      const int pass = a.pass >= 0 ? a.pass : in.layer.value - 1;
+      int pass = -1;
+      if(a.id != 0)
+      {
+        // The pass is gone, e.g. merged with another: nothing is left of it
+        // to act on.
+        pass = e.looper_pass_of(a.id);
+        if(pass < 0)
+          continue;
+      }
+      else
+      {
+        if(a.layers >= 0 && a.layers != e.looper_passes())
+          continue;
+        // A Layer past the layers there are names none.
+        pass = a.pass >= 0 ? a.pass : in.layer.value - 1;
+      }
       switch(a.kind)
       {
         case layer_action::mute:
-          e.looper_mute(pass);
+          e.looper_mute(pass, a.muted);
           break;
         case layer_action::erase:
           e.looper_erase(pass);
           break;
         case layer_action::solo:
+          e.looper_begin_actions();
           soloed.toggle(e, pass);
+          e.looper_end_actions();
           break;
       }
       follow(in, e.looper_passes());
@@ -680,6 +700,7 @@ struct switches
   template <typename Inputs>
   void inserted(Inputs& in, int pass, int passes)
   {
+    seen_passes = passes;
     if(pass <= in.layer.value - 1 && in.layer.value < passes)
       show_control(in.layer, in.layer.value + 1);
   }

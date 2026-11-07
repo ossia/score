@@ -39,8 +39,9 @@ namespace score::gfx
 struct P216Encoder : GPUVideoEncoder
 {
   // %1 = colorMatrixOut() shader defining convert_from_rgb(vec3).
-  // R16 is UNORM: writing v in [0,1] stores round(v * 65535), which is the
-  // 16-bit sample. No packing helper needed, unlike the 10-bit encoders.
+  // R16 is UNORM: writing v in [0,1] stores round(v * 65535). The sample is the
+  // 8-bit code shifted left by 8 (see SCORE_GFX_MSB_ALIGNED_SCALE), so v is
+  // scaled by 65280/65535 first: limited-range white is 235 << 8 == 60160.
   static constexpr const char* y_frag = R"_(#version 450
     layout(location = 0) in vec2 v_texcoord;
     layout(location = 0) out vec4 fragColor;
@@ -61,7 +62,7 @@ struct P216Encoder : GPUVideoEncoder
     void main() {
       vec3 rgb = texture(src_tex, flip_y(v_texcoord)).rgb;
       vec3 yuv = convert_from_rgb(rgb);
-      fragColor = vec4(clamp(yuv.x, 0.0, 1.0), 0.0, 0.0, 1.0);
+      fragColor = vec4(clamp(yuv.x, 0.0, 1.0) * (65280.0 / 65535.0), 0.0, 0.0, 1.0);
     }
   )_";
 
@@ -92,7 +93,7 @@ struct P216Encoder : GPUVideoEncoder
       vec3 yuv1 = convert_from_rgb(
           texelFetch(src_tex, ivec2(min(x0 + 1, sz.x - 1), sy), 0).rgb);
       vec2 uv = clamp((yuv0.yz + yuv1.yz) * 0.5, 0.0, 1.0);
-      fragColor = vec4(uv, 0.0, 1.0);
+      fragColor = vec4(uv * (65280.0 / 65535.0), 0.0, 1.0);
     }
   )_";
 
@@ -259,11 +260,12 @@ struct P216Encoder : GPUVideoEncoder
       return h - 1 - y;
     #endif
     }
-    // Component (0=Y,1=U,2=V) as a full-range 16-bit word.
+    // Component (0=Y,1=U,2=V) as a 16-bit word: the 8-bit code shifted left
+    // by 8, so limited-range white is 235 << 8 == 60160.
     uint s16(vec3 rgb, int c) {
       vec3 yuv = clamp(convert_from_rgb(rgb), 0.0, 1.0);
       float v = (c == 0) ? yuv.x : (c == 1 ? yuv.y : yuv.z);
-      return uint(v * 65535.0 + 0.5);
+      return uint(v * 65280.0 + 0.5);
     }
     vec4 pack2(uint a, uint b) {
       return vec4(float(a & 0xFFu), float((a >> 8u) & 0xFFu),

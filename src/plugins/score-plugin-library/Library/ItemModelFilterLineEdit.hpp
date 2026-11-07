@@ -19,7 +19,9 @@ public:
       , m_proxy{proxy}
       , m_view{tv}
   {
-    connect(this, &QLineEdit::textEdited, this, [this] { search(); });
+    // Any change of the text, typed or not, so that what is listed always
+    // matches what the field shows
+    connect(this, &QLineEdit::textChanged, this, [this] { search(); });
   }
 
   void search() override

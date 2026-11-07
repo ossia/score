@@ -82,6 +82,14 @@ void FreeAVFrame::operator()(AVFrame* f) const noexcept
 }
 AVFramePointer FrameQueue::newFrame() noexcept
 {
+  auto f = newFrameImpl();
+  if(f.get() == m_watched)
+    m_watched = nullptr;
+  return f;
+}
+
+AVFramePointer FrameQueue::newFrameImpl() noexcept
+{
   // We were working on a frame in this thread (e.g. during a seek, when retrying with EAGAIN..)
   if(!m_decodeThreadFrameBuffer.empty())
   {
@@ -144,62 +152,73 @@ AVFrame* FrameQueue::dequeue_one() noexcept
   return f;
 }
 
-void FrameQueue::set_discard_frame(AVFrame* f)
+void FrameQueue::set_discard_before(int64_t pts) noexcept
 {
-  m_discardUntil.exchange(f);
+  const uint32_t s = m_discardSequence.load(std::memory_order_relaxed);
+  m_discardSequence.store(s + 1, std::memory_order_relaxed);
+  std::atomic_thread_fence(std::memory_order_release);
+  m_discardPts.store(pts, std::memory_order_relaxed);
+  m_discardGeneration.store(m_generation.load(), std::memory_order_relaxed);
+  m_discardSequence.store(s + 2, std::memory_order_release);
+}
+
+bool FrameQueue::pendingDiscard(Discard& d) const noexcept
+{
+  for(;;)
+  {
+    const uint32_t s = m_discardSequence.load(std::memory_order_acquire);
+    if(s & 1)
+      continue;
+    if(s == m_discardDone.load(std::memory_order_relaxed))
+      return false;
+    d.pts = m_discardPts.load(std::memory_order_relaxed);
+    d.generation = m_discardGeneration.load(std::memory_order_relaxed);
+    std::atomic_thread_fence(std::memory_order_acquire);
+    if(m_discardSequence.load(std::memory_order_relaxed) == s)
+    {
+      d.sequence = s;
+      return true;
+    }
+  }
+}
+
+bool FrameQueue::before(const AVFrame& f, const Discard& d) noexcept
+{
+  const int g = frameGeneration(f);
+  if(g != d.generation)
+    return g < d.generation;
+  return f.pts != AV_NOPTS_VALUE && d.pts != AV_NOPTS_VALUE && f.pts < d.pts;
+}
+
+template <typename Dequeue>
+AVFrame* FrameQueue::dequeueDiscarding(const Dequeue& dequeue) noexcept
+{
+  Discard d;
+  if(!pendingDiscard(d))
+    return dequeue();
+
+  AVFrame* f{};
+  while(available.try_dequeue(f))
+  {
+    if(before(*f, d))
+    {
+      release(f);
+      continue;
+    }
+    m_discardDone.store(d.sequence, std::memory_order_relaxed);
+    return f;
+  }
+  return nullptr;
 }
 
 AVFrame* FrameQueue::discard_and_dequeue() noexcept
 {
-  AVFrame* f{};
-  AVFrame* prev_f{};
-
-  if(auto to_discard = m_discardUntil.exchange(nullptr))
-  {
-    // Drain up to and including the marker frame and return it — but only if
-    // we actually find it in the queue. If it isn't there (already consumed by
-    // a prior normal dequeue, or a torn set_discard_frame/enqueue), we must NOT
-    // return it: we don't own it and doing so would double-own the frame.
-    // Fall through to a normal dequeue instead (the queue is drained here, so
-    // that yields nullptr — no new frame this tick, safe seek behaviour).
-    while(available.try_dequeue(f))
-    {
-      if(f == to_discard)
-        return to_discard;
-      release(f);
-    }
-    return nullptr;
-  }
-  // We only want the latest frame
-  while(available.try_dequeue(f))
-  {
-    if(prev_f)
-      release(prev_f);
-    prev_f = f;
-  }
-  return f;
+  return dequeueDiscarding([this] { return dequeue(); });
 }
 
 AVFrame* FrameQueue::discard_and_dequeue_one() noexcept
 {
-  AVFrame* f{};
-
-  if(auto to_discard = m_discardUntil.exchange(nullptr))
-  {
-    // Same contract as discard_and_dequeue(): return the marker frame only if
-    // it is actually present, otherwise fall through rather than returning a
-    // frame we don't own (double-ownership / UAF guard).
-    while(available.try_dequeue(f))
-    {
-      if(f == to_discard)
-        return to_discard;
-      release(f);
-    }
-    return nullptr;
-  }
-
-  available.try_dequeue(f);
-  return f;
+  return dequeueDiscarding([this] { return dequeue_one(); });
 }
 
 void FrameQueue::release(AVFrame* frame) noexcept
@@ -241,6 +260,7 @@ void FrameQueue::drain()
     frames_to_free.insert(frame);
   }
   m_decodeThreadFrameBuffer.clear();
+  m_watched = nullptr;
 
   for(auto frame : frames_to_free)
     av_frame_free(&frame);

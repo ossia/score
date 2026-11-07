@@ -2057,11 +2057,14 @@ TEST_CASE("Looper: erasing the middle pass gives the passes under it back what i
   CHECK(h.node.layers.layers[0].gain == Approx(1.));
   CHECK(h.node.layers.mix(0, 320) == Approx(0.25 + 0.125));
 
-  // Undo goes on with the passes left.
+  // Undo puts it back, with what it took from the pass under it; redo takes
+  // it out again.
   press(h.node.inputs.undo, h);
-  CHECK(h.node.layers.count == 1);
-  CHECK(h.node.layers.mix(0, 320) == Approx(0.25));
+  CHECK(h.node.layers.count == 3);
+  CHECK(h.node.layers.layers[0].gain == Approx(0.5));
+  CHECK(h.node.layers.mix(0, 320) == Approx(0.25 * 0.5 + 0.5 + 0.125));
   press(h.node.inputs.redo, h);
+  CHECK(h.node.layers.count == 2);
   CHECK(h.node.layers.mix(0, 320) == Approx(0.375));
 }
 
@@ -2139,7 +2142,8 @@ TEST_CASE("Looper: erasing the only pass empties the loop", "[fx][audio][looper]
   CHECK(h.node.layers.count == 2);
 }
 
-TEST_CASE("Looper: erasing a pass keeps what redo brings back",
+TEST_CASE("Looper: erasing a pass is done after what undo took back, which redo "
+          "does not bring back any more",
           "[fx][audio][looper][layers][erase]")
 {
   looper_harness h{1, 64};
@@ -2151,11 +2155,14 @@ TEST_CASE("Looper: erasing a pass keeps what redo brings back",
 
   erase_layer(h, 1);
   CHECK(h.node.layers.count == 1);
-  CHECK(h.node.layers.total == 2);
+  CHECK(h.node.layers.total == 1);
   CHECK(h.node.layers.mix(0, 320) == Approx(0.5));
   press(h.node.inputs.redo, h);
+  CHECK(h.node.layers.count == 1);
+  CHECK(h.node.layers.mix(0, 320) == Approx(0.5));
+  press(h.node.inputs.undo, h);
   CHECK(h.node.layers.count == 2);
-  CHECK(h.node.layers.mix(0, 320) == Approx(0.625));
+  CHECK(h.node.layers.mix(0, 320) == Approx(0.75));
 }
 
 TEST_CASE("Looper: erasing an extending pass keeps the loop it made",
@@ -2938,6 +2945,13 @@ TEST_CASE("Looper switches: Mute layer and Erase layer, the newest or a stepped 
 {
   switches_harness h;
   looper_switches::mute_and_erase(h);
+}
+
+TEST_CASE("Looper switches: Undo takes back the last action, an erase or a mute as a pass",
+          "[fx][audio][looper][switches]")
+{
+  switches_harness h;
+  looper_switches::undo_actions(h);
 }
 
 TEST_CASE("Looper switches: Solo layer", "[fx][audio][looper][switches]")
@@ -4029,4 +4043,573 @@ TEST_CASE("Looper: passes per cycle with Record passthrough play on across the s
   // its last.
   CHECK(worst_step(live, seam_period) <= 1.);
   CHECK(worst_dip(live) >= 0.9);
+}
+
+// ---------------------------------------------------------------------------
+// The m and x of the view, and undo of what was done to the layers.
+// ---------------------------------------------------------------------------
+
+namespace
+{
+//! A view that sends what it asks for to the harness' looper, and is sent
+//! what the looper shows.
+struct view_link
+{
+  looper_harness& h;
+  Nodes::Looper::looper_view v;
+  int sent{};
+  explicit view_link(looper_harness& h)
+      : h{h}
+  {
+    v.erase = [this](Nodes::Looper::erase_request r) {
+      sent++;
+      this->h.node.process_message(r);
+    };
+    h.node.send_message = [this](Nodes::Looper::view_message m) { v.receive(m); };
+  }
+  //! Runs until the looper has sent a message.
+  void refresh()
+  {
+    for(int i = 0; i < 30; i++)
+      h.run(64);
+  }
+  bool press(Nodes::Looper::looper_view::box b)
+  {
+    return v.mouse_press(b.x + b.size / 2., b.y + b.size / 2.);
+  }
+  bool press_x(int lane) { return press(v.erase_box(lane)); }
+  bool press_m(int lane) { return press(v.mute_box(lane)); }
+};
+}
+
+TEST_CASE("Looper view: the x of two lanes pressed before the grid erase both passes",
+          "[fx][audio][looper][view][erase]")
+{
+  looper_harness h{1, 64};
+  record_and_overdub(h, 512, 0.25, 0.5);
+  overdub_pass(h, 512, 0.125);
+  REQUIRE(h.node.layers.count == 3);
+  view_link l{h};
+  l.refresh();
+  // The grid is the loop: what is pressed now waits for its end.
+  h.node.inputs.quantif.value = halp::grid_value::period(1.);
+  h.run(64);
+  REQUIRE(l.v.state.layers == 3);
+
+  CHECK(l.press_x(0));
+  CHECK(l.press_x(1));
+  CHECK(l.sent == 2);
+  // The lanes show it before the looper does it.
+  CHECK(l.v.lane_erasing(0));
+  CHECK(l.v.lane_erasing(1));
+  CHECK(!l.v.lane_erasing(2));
+  CHECK(h.node.layers.count == 3);
+
+  for(int i = 0; i < 12; i++)
+    h.run(64);
+  CHECK(h.node.layers.count == 1);
+  CHECK(h.node.layers.mix(0, 320) == Approx(0.125));
+  l.refresh();
+  CHECK(l.v.state.layers == 1);
+  CHECK(!l.v.lane_erasing(0));
+}
+
+TEST_CASE("Looper view: the m shows at once what it asks for, and a second press "
+          "takes it back",
+          "[fx][audio][looper][view][mute]")
+{
+  looper_harness h{1, 64};
+  record_and_overdub(h, 512, 0.25, 0.5);
+  view_link l{h};
+  l.refresh();
+  h.node.inputs.quantif.value = halp::grid_value::period(1.);
+  h.run(64);
+
+  CHECK(l.press_m(0));
+  CHECK(l.v.lane_muted(0));
+  CHECK(!h.node.layers.layers[0].muted);
+  for(int i = 0; i < 12; i++)
+    h.run(64);
+  CHECK(h.node.layers.layers[0].muted);
+  l.refresh();
+  CHECK(l.v.lane_muted(0));
+  CHECK(!l.v.lane_pending(0));
+
+  // Pressed twice before the grid: unmuted, then muted again, as shown.
+  CHECK(l.press_m(0));
+  CHECK(!l.v.lane_muted(0));
+  CHECK(l.press_m(0));
+  CHECK(l.v.lane_muted(0));
+  for(int i = 0; i < 12; i++)
+    h.run(64);
+  CHECK(h.node.layers.layers[0].muted);
+  l.refresh();
+  CHECK(l.v.lane_muted(0));
+
+  // And once more, so that the second press undoes what the first asked.
+  CHECK(l.press_m(0));
+  for(int i = 0; i < 12; i++)
+    h.run(64);
+  l.refresh();
+  CHECK(!h.node.layers.layers[0].muted);
+  CHECK(!l.v.lane_muted(0));
+}
+
+TEST_CASE("Looper view: an m the looper did not take is not pending for long, one it "
+          "took is until the grid",
+          "[fx][audio][looper][view][mute]")
+{
+  {
+    looper_harness h{1, 64};
+    record_and_overdub(h, 512, 0.25, 0.5);
+    view_link l{h};
+    l.refresh();
+    h.node.inputs.quantif.value = halp::grid_value::period(200.);
+    h.run(64);
+
+    // The requests the looper takes in a tick are all there already
+    for(uint32_t i = 0; i < 16; i++)
+      h.node.process_message(
+          Nodes::Looper::erase_request{
+              .pass = 0, .layers = -1, .mute = true, .id = 0xFFFF0000u + i});
+    REQUIRE(l.press_m(0));
+    CHECK(l.v.lane_pending(0));
+    CHECK(l.v.lane_muted(0));
+    for(int i = 0; i < 40 && l.v.lane_pending(0); i++)
+      l.refresh();
+    CHECK(!l.v.lane_pending(0));
+    CHECK(!l.v.lane_muted(0));
+    CHECK(!h.node.layers.layers[0].muted);
+  }
+
+  looper_harness h{1, 64};
+  record_and_overdub(h, 512, 0.25, 0.5);
+  view_link l{h};
+  l.refresh();
+  // The grid is far: two hundred rounds of the loop.
+  h.node.inputs.quantif.value = halp::grid_value::period(200.);
+  h.run(64);
+
+  // Taken, it stays pending past that, while the grid is not there
+  REQUIRE(l.press_m(1));
+  for(int i = 0; i < 20; i++)
+    l.refresh();
+  REQUIRE(!h.node.layers.layers[1].muted);
+  CHECK(l.v.lane_pending(1));
+  CHECK(l.v.lane_muted(1));
+  for(int i = 0; i < 200 && !h.node.layers.layers[1].muted; i++)
+    l.refresh();
+  REQUIRE(h.node.layers.layers[1].muted);
+  l.refresh();
+  CHECK(!l.v.lane_pending(1));
+  CHECK(l.v.lane_muted(1));
+}
+
+TEST_CASE("Looper view: a pass the view showed is muted where it is when the grid comes",
+          "[fx][audio][looper][view][mute]")
+{
+  looper_harness h{1, 64};
+  h.node.inputs.passthrough = Passthrough::None;
+  h.node.inputs.passes.value = Nodes::Looper::Passes::PerCycle;
+  record_with(h, 512, [](int64_t) { return 0.25; });
+  h.run(64);
+  view_link l{h};
+  h.node.inputs.mode = LoopMode::Overdub;
+  run_with(h, 512 + 64, [](int64_t) { return 0.1; });
+  l.refresh();
+  const int shown = l.v.state.layers;
+  REQUIRE(shown >= 2);
+  // The view asks for the second pass while the loop goes round, with a
+  // pass on each round; on the grid, two rounds on, the loop has more
+  // passes than shown.
+  h.node.inputs.quantif.value = halp::grid_value::period(2.);
+  CHECK(l.press_m(shown - 1));
+  const uint32_t id = l.v.state.lane_id[shown - 1];
+  REQUIRE(id != 0);
+  run_with(h, 3 * 512, [](int64_t) { return 0.1; });
+  REQUIRE(h.node.layers.count != shown);
+  const int at = h.node.layers.index_of(id);
+  REQUIRE(at >= 0);
+  CHECK(h.node.layers.layers[at].muted);
+  for(int i = 0; i < h.node.layers.count; i++)
+    CHECK(h.node.layers.layers[i].muted == (i == at));
+}
+
+TEST_CASE("Looper view: a looper stopped with the score, or silent, has no m and x",
+          "[fx][looper][view]")
+{
+  Nodes::Looper::view_message m{};
+  m.layers = 2;
+  m.lanes = 2;
+  m.length_seconds = 2.f;
+  m.lane_id = {1, 2};
+  int sent = 0;
+  Nodes::Looper::looper_view v;
+  v.erase = [&](Nodes::Looper::erase_request) { sent++; };
+  v.receive(m);
+  const auto x = v.erase_box(1);
+  CHECK(v.erase_lane_at(x.x + x.size / 2., x.y + x.size / 2.) == 1);
+
+  // Silent for a while, e.g. its box ended: nothing would act on a press.
+  v.m_last_message -= std::chrono::seconds(3);
+  CHECK(!v.layer_buttons());
+  CHECK(v.erase_lane_at(x.x + x.size / 2., x.y + x.size / 2.) < 0);
+  v.receive(m);
+  CHECK(v.layer_buttons());
+
+  m.stopped = true;
+  m.looper = 1;
+  m.stops = 1;
+  v.receive(m);
+  CHECK(!v.layer_buttons());
+  CHECK(v.erase_lane_at(x.x + x.size / 2., x.y + x.size / 2.) < 0);
+  const auto mb = v.mute_box(0);
+  CHECK(v.mute_lane_at(mb.x + mb.size / 2., mb.y + mb.size / 2.) < 0);
+  v.mouse_press(x.x + x.size / 2., x.y + x.size / 2.);
+  v.mouse_press(mb.x + mb.size / 2., mb.y + mb.size / 2.);
+  // A press there is a lane's: it asks for its file, never for an erase.
+  CHECK(sent == 0);
+}
+
+TEST_CASE("Looper: undo brings back a layer erased by mistake, with its audio, and "
+          "nothing else",
+          "[fx][audio][looper][layers][erase][undo]")
+{
+  looper_harness h{1, 64};
+  record_and_overdub(h, 512, 0.25, 0.5);
+  REQUIRE(h.node.layers.count == 2);
+  const uint32_t a = h.node.layers.layers[0].id, b = h.node.layers.layers[1].id;
+  REQUIRE(a != b);
+
+  erase_layer(h, 2);
+  CHECK(h.node.layers.count == 1);
+  CHECK(h.node.layers.mix(0, 320) == Approx(0.25));
+
+  press(h.node.inputs.undo, h);
+  CHECK(h.node.layers.count == 2);
+  CHECK(h.node.layers.layers[0].id == a);
+  CHECK(h.node.layers.layers[1].id == b);
+  CHECK(h.node.layers.mix(0, 320) == Approx(0.75));
+  h.reset_output();
+  h.run(64);
+  for(int j = 0; j < 64; j++)
+    CHECK(h.out_buf[0][j] == Approx(0.75));
+
+  // Redo erases it again, and undo brings it back again.
+  press(h.node.inputs.redo, h);
+  CHECK(h.node.layers.count == 1);
+  CHECK(h.node.layers.layers[0].id == a);
+  press(h.node.inputs.undo, h);
+  CHECK(h.node.layers.count == 2);
+  CHECK(h.node.layers.mix(0, 320) == Approx(0.75));
+
+  // Past the erase, undo goes on through the passes.
+  press(h.node.inputs.undo, h);
+  CHECK(h.node.layers.count == 1);
+  CHECK(h.node.layers.mix(0, 320) == Approx(0.25));
+}
+
+TEST_CASE("Looper: undo takes back the last action, whichever it was",
+          "[fx][audio][looper][layers][undo]")
+{
+  looper_harness h{1, 64};
+  record_and_overdub(h, 512, 0.25, 0.5);
+  overdub_pass(h, 512, 0.125);
+  REQUIRE(h.node.layers.count == 3);
+
+  // The first layer erased, then the newest muted.
+  erase_layer(h, 1);
+  h.node.inputs.layer.value = 2;
+  press(h.node.inputs.mute_layer, h);
+  REQUIRE(h.node.layers.count == 2);
+  REQUIRE(h.node.layers.layers[1].muted);
+  CHECK(h.node.layers.mix(0, 320) == Approx(0.5));
+
+  press(h.node.inputs.undo, h);
+  CHECK(!h.node.layers.layers[1].muted);
+  CHECK(h.node.layers.count == 2);
+  CHECK(h.node.layers.mix(0, 320) == Approx(0.625));
+
+  press(h.node.inputs.undo, h);
+  CHECK(h.node.layers.count == 3);
+  CHECK(h.node.layers.mix(0, 320) == Approx(0.875));
+  // Layer stays on the layer it named.
+  CHECK(h.node.inputs.layer.value == 3);
+
+  press(h.node.inputs.undo, h);
+  CHECK(h.node.layers.count == 2);
+  CHECK(h.node.layers.mix(0, 320) == Approx(0.75));
+
+  // Redo does it all again, in its order.
+  press(h.node.inputs.redo, h);
+  CHECK(h.node.layers.count == 3);
+  press(h.node.inputs.redo, h);
+  CHECK(h.node.layers.count == 2);
+  CHECK(h.node.layers.mix(0, 320) == Approx(0.625));
+  press(h.node.inputs.redo, h);
+  CHECK(h.node.layers.layers[1].muted);
+  CHECK(h.node.layers.mix(0, 320) == Approx(0.5));
+  press(h.node.inputs.redo, h);
+  CHECK(h.node.layers.mix(0, 320) == Approx(0.5));
+
+  // Something new done drops what redo would do.
+  press(h.node.inputs.undo, h);
+  h.node.inputs.layer.value = 1;
+  press(h.node.inputs.mute_layer, h);
+  press(h.node.inputs.redo, h);
+  CHECK(!h.node.layers.layers[1].muted);
+  CHECK(h.node.layers.layers[0].muted);
+}
+
+TEST_CASE("Looper: an Undo with nothing left to undo keeps what Redo does again",
+          "[fx][audio][looper][layers][undo]")
+{
+  looper_harness h{1, 64};
+  record_and_overdub(h, 512, 0.25, 0.5);
+  h.node.inputs.layer.value = 2;
+  press(h.node.inputs.mute_layer, h);
+  REQUIRE(h.node.layers.layers[1].muted);
+  for(int i = 0; i < 3; i++)
+    press(h.node.inputs.undo, h);
+  REQUIRE(h.node.layers.count == 0);
+
+  press(h.node.inputs.undo, h);
+  CHECK(h.node.layers.can_redo());
+  for(int i = 0; i < 3; i++)
+    press(h.node.inputs.redo, h);
+  CHECK(h.node.layers.count == 2);
+  CHECK(h.node.layers.layers[1].muted);
+}
+
+TEST_CASE("Looper: the pass taken in goes with its own actions, whichever are forgotten",
+          "[fx][audio][looper][layers][undo]")
+{
+  looper_harness h{1, 64};
+  record_and_overdub(h, 512, 0.25, 0.5);
+  for(auto& v : h.in_buf[0])
+    v = 0.125;
+  h.node.inputs.mode = LoopMode::Overdub;
+  h.run(64);
+  REQUIRE(h.node.layers.count == 3);
+  const uint32_t dropped = h.node.layers.layers[2].id;
+
+  // More mutes of the pass than undo keeps actions: its own pass action is
+  // forgotten
+  h.node.inputs.layer.value = 3;
+  for(int i = 0; i < 70; i++)
+    press(h.node.inputs.mute_layer, h);
+  REQUIRE(h.node.layers.done == h.node.layers.max_history);
+
+  // Erasing it drops it, and every action on it
+  erase_layer(h, 3);
+  for(int i = 0; i < h.node.layers.done; i++)
+    CHECK(h.node.layers.history[i].id != dropped);
+  h.reset_input();
+  h.node.inputs.mode = LoopMode::Play;
+  h.run(64);
+  REQUIRE(h.node.layers.count == 3);
+  REQUIRE(h.node.layers.layers[2].id != dropped);
+
+  // Undo hides the pass that went on, then the overdub under it
+  press(h.node.inputs.undo, h);
+  CHECK(h.node.layers.count == 2);
+  press(h.node.inputs.undo, h);
+  CHECK(h.node.layers.count == 1);
+}
+
+TEST_CASE("Looper: Redo while overdubbing does again what was undone since the pass "
+          "started, as the view shows",
+          "[fx][audio][looper][layers][undo][view]")
+{
+  looper_harness h{1, 64};
+  record_and_overdub(h, 512, 0.25, 0.5);
+  view_link l{h};
+  for(auto& v : h.in_buf[0])
+    v = 0.125;
+  h.node.inputs.mode = LoopMode::Overdub;
+  h.run(64);
+  REQUIRE(h.node.layers.count == 3);
+  l.refresh();
+  CHECK(l.v.state.redo == 0);
+
+  h.node.inputs.layer.value = 1;
+  press(h.node.inputs.mute_layer, h);
+  REQUIRE(h.node.layers.layers[0].muted);
+  press(h.node.inputs.undo, h);
+  REQUIRE(!h.node.layers.layers[0].muted);
+  REQUIRE(h.node.layers.count == 3);
+  l.refresh();
+  CHECK(l.v.state.redo > 0);
+
+  press(h.node.inputs.redo, h);
+  CHECK(h.node.layers.layers[0].muted);
+  CHECK(h.node.layers.count == 3);
+  CHECK(h.node.transport.actualMode == LoopMode::Overdub);
+  l.refresh();
+  CHECK(l.v.state.redo == 0);
+}
+
+TEST_CASE("Looper: a mute with nothing for redo to drop leaves the passes alone",
+          "[fx][audio][looper][layers][undo]")
+{
+  looper_harness h{1, 64};
+  record_and_overdub(h, 512, 0.25, 0.5);
+  overdub_pass(h, 512, 0.125);
+  auto& st = h.node.layers;
+  REQUIRE(st.total == st.count);
+  const auto changes = st.changes;
+  REQUIRE(st.set_muted(0, true));
+  // The mute alone changed what is heard
+  CHECK(st.changes == changes + 1);
+
+  // With a pass hidden by undo, the mute drops it
+  press(h.node.inputs.undo, h);
+  press(h.node.inputs.undo, h);
+  REQUIRE(st.total == st.count + 1);
+  REQUIRE(st.set_muted(1, true));
+  CHECK(st.total == st.count);
+  CHECK(!st.can_redo());
+}
+
+TEST_CASE("Looper: a solo is undone at once", "[fx][audio][looper][layers][undo]")
+{
+  looper_harness h{1, 64};
+  record_and_overdub(h, 512, 0.25, 0.5);
+  overdub_pass(h, 512, 0.125);
+  h.node.inputs.layer.value = 2;
+  press(h.node.inputs.solo_layer, h);
+  CHECK(h.node.layers.mix(0, 320) == Approx(0.5));
+  press(h.node.inputs.undo, h);
+  CHECK(h.node.layers.count == 3);
+  for(int i = 0; i < 3; i++)
+    CHECK(!h.node.layers.layers[i].muted);
+  CHECK(h.node.layers.mix(0, 320) == Approx(0.875));
+}
+
+TEST_CASE("Looper: undo while overdubbing brings back the layer just erased, the "
+          "overdub going on",
+          "[fx][audio][looper][layers][erase][undo]")
+{
+  looper_harness h{1, 64};
+  record_and_overdub(h, 512, 0.25, 0.5);
+  for(auto& v : h.in_buf[0])
+    v = 0.125;
+  h.node.inputs.mode = LoopMode::Overdub;
+  h.run(64);
+  REQUIRE(h.node.layers.count == 3);
+
+  erase_layer(h, 1);
+  REQUIRE(h.node.layers.count == 2);
+  press(h.node.inputs.undo, h);
+  CHECK(h.node.layers.count == 3);
+  CHECK(h.node.transport.actualMode == LoopMode::Overdub);
+  CHECK(h.node.layers.top()->written == 192);
+  CHECK(h.node.layer_data(0, 0)[320] == Approx(0.25));
+
+  // With nothing done since it started, undo drops the pass being taken in.
+  press(h.node.inputs.undo, h);
+  CHECK(h.node.layers.count == 3);
+  CHECK(h.node.layers.top()->written == 64);
+}
+
+TEST_CASE("Looper: the buffer of an erased layer goes to a new pass when there is no "
+          "other",
+          "[fx][audio][looper][layers][erase][undo]")
+{
+  looper_harness h{1, 64};
+  // Three passes, and two spare buffers.
+  h.node.layers.allocate(1, 3, 4096);
+  record_and_overdub(h, 512, 0.25, 0.5);
+  overdub_pass(h, 512, 0.125);
+  REQUIRE(h.node.layers.count == 3);
+  erase_layer(h, 3);
+  erase_layer(h, 2);
+  REQUIRE(h.node.layers.count == 1);
+  CHECK(h.node.layers.take_slot_count() == 2);
+
+  int allocated = 0;
+  {
+    alloc_counter::scope counter;
+    overdub_pass(h, 512, 0.0625);
+    overdub_pass(h, 512, 0.03125);
+    overdub_pass(h, 512, 0.015625);
+    allocated = counter.allocations();
+  }
+  CHECK(allocated == 0);
+  // Each new pass got a buffer of its own; the erased ones are gone.
+  for(int i = 0; i < h.node.layers.count; i++)
+    for(int j = i + 1; j < h.node.layers.count; j++)
+      CHECK(h.node.layers.layers[i].slot != h.node.layers.layers[j].slot);
+  for(int i = 0; i < 8; i++)
+    press(h.node.inputs.undo, h);
+  CHECK(h.node.layers.count == 0);
+}
+
+TEST_CASE("Looper: the buffer of an erased layer goes to an overdub before a merge is "
+          "finished at once",
+          "[fx][audio][looper][layers][erase][undo]")
+{
+  // Long enough for a merge to take several ticks.
+  constexpr int64_t len = 600000;
+  looper_harness h{1, 4096};
+  h.node.layers.allocate(1, 3, 700000);
+  record_and_overdub(h, len, 0.25, 0.5);
+  overdub_pass(h, len, 0.125);
+  REQUIRE(h.node.layers.count == 3);
+  erase_layer(h, 3);
+  erase_layer(h, 2);
+  REQUIRE(h.node.layers.count == 1);
+  REQUIRE(std::popcount(h.node.layers.kept_used) == 2);
+  overdub_pass(h, len, 0.0625);
+  overdub_pass(h, len, 0.03125);
+  REQUIRE(h.node.layers.count == 3);
+  REQUIRE(!h.node.layers.merging.active);
+
+  // At Max layers, the two oldest start merging into one of the kept
+  // buffers, the pass going into the other.
+  for(auto& v : h.in_buf[0])
+    v = 0.015625;
+  h.node.inputs.mode = LoopMode::Overdub;
+  h.run(4096);
+  CHECK(h.node.layers.count == 4);
+  CHECK(h.node.layers.merging.active);
+  CHECK(h.node.layers.kept_used == 0);
+  for(int i = 0; i < h.node.layers.count; i++)
+  {
+    CHECK(h.node.layers.layers[i].slot != h.node.layers.merging.target);
+    for(int j = i + 1; j < h.node.layers.count; j++)
+      CHECK(h.node.layers.layers[i].slot != h.node.layers.layers[j].slot);
+  }
+
+  // The merge goes on over the next ticks
+  for(int i = 0; i < 4 && h.node.layers.merging.active; i++)
+    h.run(4096);
+  CHECK(!h.node.layers.merging.active);
+  CHECK(h.node.layers.count == 3);
+}
+
+TEST_CASE("Looper: undo and redo of an erase allocate nothing",
+          "[fx][audio][looper][layers][erase][undo]")
+{
+  looper_harness h{2, 64};
+  record_and_overdub(h, 512, 0.25, 0.5);
+  overdub_pass(h, 512, 0.125);
+  int allocated = 0;
+  {
+    alloc_counter::scope counter;
+    erase_layer(h, 2);
+    h.node.process_message(
+        Nodes::Looper::erase_request{
+            .pass = 0, .layers = 2, .mute = true, .id = h.node.layers.layers[0].id,
+            .muted = 1});
+    h.run(64);
+    for(int i = 0; i < 3; i++)
+      press(h.node.inputs.undo, h);
+    for(int i = 0; i < 3; i++)
+      press(h.node.inputs.redo, h);
+    allocated = counter.allocations();
+  }
+  CHECK(allocated == 0);
+  CHECK(h.node.layers.count == 2);
+  CHECK(h.node.layers.layers[0].muted);
 }

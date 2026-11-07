@@ -87,6 +87,7 @@ void RhiPreviewWidget::attach()
   // thread. Take a reference on the process-wide device cache instead.
   auto node = std::make_unique<score::gfx::BackgroundNode>(
       score::gfx::SharedDeviceMode::Cached);
+  node->setSingleSample(true);
   node->shared_readback = m_readback;
   // Match the offscreen render size to the widget's pixel size; the
   // BackgroundNode allocates its own QRhi target at this size.

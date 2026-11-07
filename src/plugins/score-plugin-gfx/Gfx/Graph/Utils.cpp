@@ -200,6 +200,81 @@ createRenderTarget(const RenderState& state, QRhiTexture* tex, int samples, bool
   return ret;
 }
 
+static int zeroUploadBytesPerPixel(QRhiTexture::Format f) noexcept
+{
+  switch(f)
+  {
+    case QRhiTexture::R8:
+    case QRhiTexture::RED_OR_ALPHA8:
+      return 1;
+    case QRhiTexture::RG8:
+    case QRhiTexture::R16:
+    case QRhiTexture::R16F:
+      return 2;
+    case QRhiTexture::RGBA8:
+    case QRhiTexture::BGRA8:
+    case QRhiTexture::RG16:
+    case QRhiTexture::R32F:
+    case QRhiTexture::RGB10A2:
+      return 4;
+    case QRhiTexture::RGBA16F:
+      return 8;
+    case QRhiTexture::RGBA32F:
+      return 16;
+#if QT_VERSION >= QT_VERSION_CHECK(6, 10, 0)
+    case QRhiTexture::R8SI:
+    case QRhiTexture::R8UI:
+      return 1;
+    case QRhiTexture::R32SI:
+    case QRhiTexture::R32UI:
+      return 4;
+    case QRhiTexture::RG32SI:
+    case QRhiTexture::RG32UI:
+      return 8;
+    case QRhiTexture::RGBA32SI:
+    case QRhiTexture::RGBA32UI:
+      return 16;
+#endif
+    default:
+      return 0;
+  }
+}
+
+bool zeroTexture(QRhi& rhi, QRhiResourceUpdateBatch& res, QRhiTexture& tex)
+{
+  const int bpp = zeroUploadBytesPerPixel(tex.format());
+  const QSize size = tex.pixelSize();
+  if(bpp == 0 || size.isEmpty())
+    return false;
+
+  const auto flags = tex.flags();
+  const bool is3D = flags.testFlag(QRhiTexture::ThreeDimensional);
+  const int layers = flags.testFlag(QRhiTexture::CubeMap)        ? 6
+                     : flags.testFlag(QRhiTexture::TextureArray) ? std::max(1, tex.arraySize())
+                                                                 : 1;
+  const int levels = flags.testFlag(QRhiTexture::MipMapped) ? rhi.mipLevelsForSize(size) : 1;
+
+  QVarLengthArray<QRhiTextureUploadEntry, 16> entries;
+  for(int level = 0; level < levels; ++level)
+  {
+    const QSize sz = rhi.sizeForMipLevel(level, size);
+    // One zero buffer per level, shared by every layer through QByteArray's
+    // implicit sharing.
+    QRhiTextureSubresourceUploadDescription desc(
+        QByteArray(qsizetype(sz.width()) * sz.height() * bpp, 0));
+    desc.setSourceSize(sz);
+    // A 3D texture takes one upload per depth slice, its index as the layer.
+    const int count = is3D ? std::max(1, tex.depth() >> level) : layers;
+    for(int layer = 0; layer < count; ++layer)
+      entries.append(QRhiTextureUploadEntry(layer, level, desc));
+  }
+
+  QRhiTextureUploadDescription upload;
+  upload.setEntries(entries.cbegin(), entries.cend());
+  res.uploadTexture(&tex, upload);
+  return true;
+}
+
 TextureRenderTarget createRenderTarget(
     const RenderState& state, QRhiTexture::Format fmt, QSize sz, int samples, bool depth,
     bool samplableDepth, QRhiTexture::Flags flags)
@@ -887,7 +962,19 @@ bool remapVertexInputs(
         return false;
       }
       // A bool, matrix or struct element has no vertex format: casting the
-      // enum would hand QRhi an unrelated format (C42).
+      // enum would hand QRhi an unrelated format (C42). Nor have the raw 8-bit
+      // and 64-bit columns of a primitive cloud.
+      using GA = ossia::geometry::attribute;
+      if(match->format == GA::ubyte1 || match->format == GA::sbyte1
+         || match->format == GA::double1)
+      {
+        qWarning().noquote()
+            << "score.gfx: VERTEX_INPUT"
+            << QString::fromUtf8(var_name.data(), (int)var_name.size())
+            << "matches an unnormalised 8-bit or a 64-bit column, which has no "
+               "vertex format; read it in a compute shader (COLUMNS)";
+        return false;
+      }
       if(match->format == ossia::geometry::attribute::user_struct)
       {
         qWarning().noquote()
@@ -1166,7 +1253,9 @@ static Pipeline buildPipelineImpl(
   // and we have to trust the renderlist value.
   const int rtSamplesQueried = rt.sampleCount();
   const int pipelineSamples = (rtSamplesQueried > 0) ? rtSamplesQueried : renderer.samples();
-  if(rtSamplesQueried > 0 && rtSamplesQueried != renderer.samples())
+  // A single-sample target is either chosen (the passes that copy an output's
+  // resolved picture) or a degradation createRenderTarget already reported.
+  if(rtSamplesQueried > 1 && rtSamplesQueried != renderer.samples())
   {
     qWarning() << "buildPipeline: RT sampleCount=" << rtSamplesQueried
                << "differs from renderer.samples()=" << renderer.samples()
@@ -1438,25 +1527,24 @@ Pipeline buildPipelineWithState(
       rhi, *ps, state, rt.colorAttachmentCount(), depthAvailable, wantsDepthByDefault);
   dropStencilWithoutAttachment(*ps, rt.hasStencil(), ps->name().toStdString());
 
-  // The ISF vertex epilogue mirrors Y under QSHADER_SPIRV / QSHADER_HLSL /
-  // QSHADER_MSL, i.e. on Vulkan, D3D11/12 and Metal -- every backend except
-  // OpenGL and GLES, which are the two that consume GLSL directly. The mirror
-  // reverses window-space winding and so inverts which faces a given FrontFace
-  // culls, measured as CCW on OpenGL against CW on Vulkan and Metal for the
-  // same geometry. Compensate over exactly the epilogue's guard set so a
-  // CULL_MODE means the same thing everywhere.
+  // isf_vertShaderApplyClipSpace() maps OpenGL's clip space to the backend's
+  // with clipSpaceCorrMatrix, which QRhi defines so that winding is preserved
+  // (its Y negation on Vulkan cancels against Vulkan's Y-down viewport), then
+  // negates Y under QSHADER_HLSL / QSHADER_MSL. That extra mirror on D3D11/12
+  // and Metal reverses window-space winding, and so which faces a FrontFace
+  // culls and what gl_FrontFacing reports; the swap undoes it so that
+  // CULL_MODE, FRONT_FACE and gl_FrontFacing mean what they mean on OpenGL.
+  // It applies under CULL_MODE none too, for gl_FrontFacing.
   // RenderedRawRasterPipelineNode compensates for itself and does not come
   // through here.
   switch(renderer.state.api)
   {
-    case score::gfx::Vulkan:
     case score::gfx::D3D11:
     case score::gfx::D3D12:
     case score::gfx::Metal:
-      if(ps->cullMode() != QRhiGraphicsPipeline::None)
-        ps->setFrontFace(
-            ps->frontFace() == QRhiGraphicsPipeline::CCW ? QRhiGraphicsPipeline::CW
-                                                         : QRhiGraphicsPipeline::CCW);
+      ps->setFrontFace(
+          ps->frontFace() == QRhiGraphicsPipeline::CCW ? QRhiGraphicsPipeline::CW
+                                                       : QRhiGraphicsPipeline::CCW);
       break;
     default:
       break;

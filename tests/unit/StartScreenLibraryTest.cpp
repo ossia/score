@@ -345,6 +345,8 @@ TEST_CASE("a downloaded online example stays on the online page", "[startscreen]
       copies++;
       CHECK(card->path().endsWith("Examples/score-docs/examples/audio/looper.score"));
       CHECK(card->badge() == "Updated online");
+      // The way to get the new version
+      CHECK(card->toolTip().contains("Right-click to download it again"));
     }
     CHECK(copies == 1);
 
@@ -539,7 +541,7 @@ TEST_CASE("an online example's menu outlives its card", "[startscreen]")
       opened.push_back(path);
     });
     menu = menuWithoutItsCard();
-    auto open = menuAction(*menu, "Open the example file itself");
+    auto open = menuAction(*menu, "Open the example file");
     REQUIRE(open);
     open->trigger();
     REQUIRE(waitFor([&] { return opened.size() == 1; }));

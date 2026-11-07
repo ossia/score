@@ -16,10 +16,10 @@ namespace score::gfx
  * - Plane 0: Y (16-bit words), full resolution
  * - Plane 1: UV interleaved (16-bit per component), half width, full height
  *
- * P210 puts 10 bits in the HIGH bits of each word, so R16 unorm returns a value
- * that is short of 1.0 at full scale and has to be renormalized -- that is what
- * the scale is for. P216 uses all 16 bits and wants no scaling at all, which is
- * the only difference between the two and why they share this decoder.
+ * Both store the 8-bit code shifted left by 8 -- P210 has ten significant bits
+ * at the top of each word, P216 sixteen -- so R16 unorm returns code/65535 for
+ * a sample whose 8-bit-normalised value is code/65280, and both need the same
+ * renormalization (SCORE_GFX_MSB_ALIGNED_SCALE).
  *
  * P216 is what NDI delivers for a 16-bit source, and NDI delivers it as
  * individual FIELDS: half-height frames at twice the rate. Those are uploaded
@@ -58,8 +58,7 @@ void main()
 
   Video::ImageFormat& decoder;
 
-  /// "1.0" for P216, which uses every bit; the MSB-aligned renormalization for
-  /// P210, whose ten bits sit at the top of a 16-bit word.
+  /// The MSB-aligned renormalization, which P210 and P216 share.
   const char* scale{SCORE_GFX_MSB_ALIGNED_SCALE};
 
   explicit P210Decoder(

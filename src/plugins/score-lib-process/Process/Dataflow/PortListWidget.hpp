@@ -73,10 +73,11 @@ public:
 
   /**
    * @brief Adds the row of a port: its name, then `main` (the address picker,
-   * a control...), and the row of its cables.
+   * a control...).
    *
-   * The drawer it returns is not added: the caller fills its layout and adds
-   * its widget where the settings go.
+   * The drawer it returns is not added: the caller fills its layout, ending
+   * with makeCablesWidget so that the cables of the port are listed inside it,
+   * and adds its widget where the settings go.
    */
   static Drawer setupWithDrawer(
       const Process::Port& port, QWidget* main, const score::DocumentContext& ctx,

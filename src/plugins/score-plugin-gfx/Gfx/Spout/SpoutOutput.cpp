@@ -276,6 +276,8 @@ struct SpoutNode final : score::gfx::OutputNode
   void onRendererChange() override { }
   bool canRender() const override
   {
+    if(!m_renderTarget)
+      return false;
     switch(m_backend)
     {
       case QRhi::OpenGLES2:
@@ -598,11 +600,12 @@ struct SpoutNode final : score::gfx::OutputNode
         format, m_renderState->renderSize, 1,
         QRhiTexture::RenderTarget | QRhiTexture::UsedAsTransferSource);
     m_texture->create();
-    m_renderTarget = rhi->newTextureRenderTarget({m_texture});
-    m_renderState->renderPassDescriptor
-        = m_renderTarget->newCompatibleRenderPassDescriptor();
-    m_renderTarget->setRenderPassDescriptor(m_renderState->renderPassDescriptor);
-    m_renderTarget->create();
+    // On D3D and Vulkan a ScaledRenderer draws the scene's resolved picture
+    // into m_texture with a single-sample pass of its own (createRenderer), so
+    // only OpenGL, which renders the scene straight into it, multisamples here.
+    m_renderTarget = score::gfx::createOutputRenderTarget(
+        *m_renderState, *m_texture, score::gfx::OutputDepth::None,
+        m_backend == QRhi::OpenGLES2 ? 0 : 1);
 
     if(conf.onReady)
       conf.onReady();
@@ -796,11 +799,7 @@ struct SpoutNode final : score::gfx::OutputNode
     // RenderState::destroy() (called below) frees the device.
     releaseRegistry();
 
-    delete m_renderTarget;
-    m_renderTarget = nullptr;
-
-    delete m_renderState->renderPassDescriptor;
-    m_renderState->renderPassDescriptor = nullptr;
+    score::gfx::releaseOutputRenderTarget(*m_renderState, m_renderTarget);
 
     delete m_texture;
     m_texture = nullptr;
@@ -822,10 +821,8 @@ struct SpoutNode final : score::gfx::OutputNode
     public:
       SpoutRenderer(const score::gfx::RenderState& state, const SpoutNode& parent)
           : score::gfx::OutputNodeRenderer{parent}
+          , m_rt{parent.m_renderTarget}
       {
-        m_rt.texture = parent.m_texture;
-        m_rt.renderTarget = parent.m_renderTarget;
-        m_rt.renderPass = state.renderPassDescriptor;
       }
 
       score::gfx::TextureRenderTarget
@@ -849,11 +846,7 @@ struct SpoutNode final : score::gfx::OutputNode
       score::gfx::TextureRenderTarget m_rt;
     };
 
-    score::gfx::TextureRenderTarget m_rt;
-
-    m_rt.texture = m_texture;
-    m_rt.renderTarget = m_renderTarget;
-    m_rt.renderPass = r.state.renderPassDescriptor;
+    const score::gfx::TextureRenderTarget m_rt = m_renderTarget;
 
     switch(m_backend)
     {
@@ -1063,7 +1056,7 @@ private:
 
   std::weak_ptr<score::gfx::RenderList> m_renderer{};
   QRhiTexture* m_texture{};
-  QRhiTextureRenderTarget* m_renderTarget{};
+  score::gfx::TextureRenderTarget m_renderTarget;
   std::shared_ptr<score::gfx::RenderState> m_renderState{};
 
   // OpenGL backend

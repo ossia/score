@@ -717,6 +717,21 @@ private:
   ossia::small_flat_map<const Port*, QRhiTexture*, 2> m_selfFeedbackPlaceholders;
   ossia::flat_set<const Port*> m_selfFeedbackWarned;
 
+  /**
+   * @brief Input and feedback targets created since the last frame, not yet
+   * cleared.
+   *
+   * A new texture holds whatever memory the driver hands out, and a target can
+   * be sampled before anything draws into it: the input of a node fed through
+   * a delayed or cycle-breaking cable, the front of a self-fed port. Each one
+   * gets a single clear pass at the start of the frame that follows its
+   * creation (clearNewTargets), which costs a load-op clear and no staging
+   * memory, whatever its size.
+   */
+  ossia::flat_set<const QRhiTexture*> m_targetsToClear;
+  void clearOnFirstUse(const TextureRenderTarget& rt);
+  void clearNewTargets(QRhiCommandBuffer& commands, QRhiResourceUpdateBatch& res);
+
   void updateSelfFeedbackTargets(QRhiResourceUpdateBatch& res);
   void updateSelfFeedbackGrabs(QRhiResourceUpdateBatch& res);
   void removeSelfFeedbackTarget(const Port* port);

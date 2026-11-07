@@ -74,6 +74,7 @@ QStringList shaderIncludePaths()
 
   return shaderIncludePath;
 }
+}
 
 void updateToGlsl45(ShaderSource& program)
 {
@@ -170,6 +171,8 @@ void updateToGlsl45(ShaderSource& program)
   program.fragment.remove("highp ");
 }
 
+namespace
+{
 // Resolver state shared across recursive include expansion.
 //
 // `searchPaths` holds roots applied to both quoted and bracketed

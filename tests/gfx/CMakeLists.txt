@@ -1149,6 +1149,9 @@ score_add_gfx_test(window_device_tree WindowDeviceTree.cpp)
 # window that has stopped presenting in the running app still reads as healthy.
 score_add_gfx_test(window_device_lifecycle WindowDeviceLifecycle.cpp)
 target_link_libraries(test_gfx_window_device_lifecycle PRIVATE score_plugin_deviceexplorer score_plugin_engine score_plugin_js)
+# Closing a document whose Window device draws into the scenario view.
+score_add_gfx_test(window_background_device_close WindowBackgroundDeviceClose.cpp)
+target_link_libraries(test_gfx_window_background_device_close PRIVATE score_plugin_deviceexplorer score_plugin_engine score_plugin_js)
 target_link_libraries(test_gfx_window_device_tree PRIVATE score_plugin_deviceexplorer)
 
 
@@ -1500,6 +1503,28 @@ if(TARGET score_plugin_threedim AND TARGET test_unit_threedim_3rdparty)
     "${SCORE_ROOT_SOURCE_DIR}/3rdparty/eigen"
     $<TARGET_PROPERTY:score_plugin_threedim,INCLUDE_DIRECTORIES>
     $<TARGET_PROPERTY:score_plugin_gfx,INCLUDE_DIRECTORIES>)
+
+  # Every gaussian column layout (INRIA, no normals, SH 0-2, double,
+  # reordered, .splat, .spz) read by name through COLUMNS, compared with the
+  # INRIA file; and the proof that reading by name binds the rows in place.
+  score_add_test(test_gfx_splat_columns
+    SOURCES GfxSplatColumns.cpp ${_splat_hidden}
+    GUI
+    PLUGINS score_plugin_gfx score_plugin_threedim score_plugin_avnd
+            score_plugin_scenario score_lib_process
+    LIBS test_gfx_engine_glue test_unit_threedim_3rdparty fastgltf spz
+         "${QT_PREFIX}::Gui")
+  target_compile_definitions(test_gfx_splat_columns PRIVATE
+    GFX_TEST_CORPUS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/corpus")
+  target_include_directories(test_gfx_splat_columns SYSTEM PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-threedim"
+    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-threedim"
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-gfx"
+    "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-gfx"
+    "${SCORE_ROOT_SOURCE_DIR}/3rdparty/vcglib"
+    "${SCORE_ROOT_SOURCE_DIR}/3rdparty/eigen"
+    $<TARGET_PROPERTY:score_plugin_threedim,INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:score_plugin_gfx,INCLUDE_DIRECTORIES>)
 endif()
 
 # The panel's edge-blend overlay is a QPainter gradient, and stopped one pixel
@@ -1528,6 +1553,11 @@ score_add_csf_test(sampled_inputs GfxCsfSampledInputs.cpp)
 # reported at warning level.
 score_add_gfx_test(raw_raster_output_and_vertex_input GfxRawRasterOutputAndVertexInput.cpp)
 score_add_gfx_test(msaa_samples_uniform GfxMsaaSamplesUniform.cpp)
+# Offscreen outputs (previews, SinkNode, the encoder outputs) render at the
+# Samples setting and resolve into the texture their readers read.
+score_add_gfx_plugin_test(offscreen_output_msaa
+  SOURCES GfxOffscreenOutputMsaa.cpp
+  PLUGINS score_plugin_media)
 
 # Merge Geometries bakes each input's transform into its meshes. No device:
 # the renderer runs on a RenderList without a QRhi (GfxCpuRenderList.hpp).
@@ -1564,6 +1594,10 @@ endif()
 # Image feedback loops: an all-Immediate cycle is broken at one edge and
 # warned about; a Delayed self-cable carries state.
 score_add_gfx_test(feedback_cycle GfxFeedbackCycle.cpp)
+
+# Storage images loaded before their first store start at zero: zeroTexture on
+# every layout, and a read_write image read on its first frame.
+score_add_gfx_test(csf_storage_image_zero GfxCsfStorageImageZero.cpp)
 
 # Library preset fixes (blinn_phong lights, the shading tiers' texture
 # fallback and unwired shadows, openpbr light scale, cubemap_orbit
@@ -2253,6 +2287,24 @@ score_add_gfx_test(process_uniforms GfxProcessUniforms.cpp)
 
 # ISF IMG_PIXEL / IMG_THIS_PIXEL sample in the image's own pixels.
 score_add_gfx_test(isf_img_pixel GfxIsfImgPixel.cpp)
+
+# A vertex shader's own projection lands on the same pixels on every backend.
+score_add_gfx_test(isf_vertex_projection GfxIsfVertexProjection.cpp)
+
+# How an ISF-mode vertex shader is wrapped: decided past its comments, one
+# clip-space correction when it applies clipSpaceCorrMatrix itself, and
+# IMG_THIS_PIXEL kept on init's position. Parser level, no device.
+score_add_test(test_gfx_isf_vertex_wrapping
+  SOURCES GfxIsfVertexWrapping.cpp
+  PLUGINS score_plugin_gfx score_lib_process
+  LIBS test_gfx_engine_glue)
+score_link_plugins_for_static(test_gfx_isf_vertex_wrapping)
+target_compile_definitions(test_gfx_isf_vertex_wrapping PRIVATE
+  GFX_TEST_CORPUS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/corpus")
+
+# ISF-mode CULL_MODE none/back/front and gl_FrontFacing follow OpenGL, with
+# and without a vertex shader of the shader's own.
+score_add_gfx_test(isf_front_facing GfxIsfFrontFacing.cpp)
 
 # Classic ISF refuses PIPELINE_STATE VERTEX_COUNT (F16).
 score_add_gfx_test(isf_vertex_count GfxIsfVertexCount.cpp)

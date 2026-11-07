@@ -66,6 +66,7 @@ enum class ReadbackPath
   HostCopy, ///< driver buffer + memcpy + fence on the render thread
   Import    ///< caller pages imported; GPU writes them directly
 };
+SCORE_PLUGIN_GFX_EXPORT
 ReadbackPath readbackPath(QRhi& rhi) noexcept;
 
 /// Required alignment of `dst` and granularity of `bytes` for

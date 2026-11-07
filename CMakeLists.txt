@@ -340,6 +340,28 @@ if(NOT WIN32)
       $<IF:$<CONFIG:Debug>,BOOST_ASIO_ENABLE_BUFFER_DEBUGGING,OSSIA_ASIO_BUFFER_DEBUGGING_UNSET>)
 endif()
 
+# Compile concurrency for memory-bound hosts, Ninja only. The unity files of
+# the targets in SCORE_HEAVY_COMPILE_TARGETS need 2.5 to 5 GB each at -O3; a
+# few of them together exceed the 7 GB of GitHub's macOS runners, which then
+# swap for hours. SCORE_HEAVY_COMPILE_JOBS caps how many of those compile at
+# once, SCORE_COMPILE_JOBS caps all the other compilations. The shared avendish
+# PCH, score_plugin_avnd_pch, is as heavy as those: it is in the pool whenever
+# score_plugin_avnd is.
+set(SCORE_COMPILE_JOBS "" CACHE STRING "Ninja: maximum concurrent compilations, outside of the heavy targets (empty: no limit)")
+set(SCORE_HEAVY_COMPILE_JOBS "" CACHE STRING "Ninja: maximum concurrent compilations of SCORE_HEAVY_COMPILE_TARGETS (empty: no limit)")
+set(SCORE_HEAVY_COMPILE_TARGETS
+    score_plugin_avnd score_plugin_avnd_pch score_plugin_fx score_plugin_threedim score_plugin_gfx score_plugin_scenario
+    CACHE STRING "Targets compiled in the SCORE_HEAVY_COMPILE_JOBS pool")
+if(CMAKE_GENERATOR MATCHES "Ninja")
+  if(SCORE_COMPILE_JOBS)
+    set_property(GLOBAL APPEND PROPERTY JOB_POOLS score_compile=${SCORE_COMPILE_JOBS})
+    set(CMAKE_JOB_POOL_COMPILE score_compile)
+  endif()
+  if(SCORE_HEAVY_COMPILE_JOBS)
+    set_property(GLOBAL APPEND PROPERTY JOB_POOLS score_heavy_compile=${SCORE_HEAVY_COMPILE_JOBS})
+  endif()
+endif()
+
 include(3rdparty/3rdparty.cmake)
 
 include_directories("${SCORE_ROOT_BINARY_DIR}")
@@ -359,6 +381,19 @@ endif()
 
 add_subdirectory(src)
 score_generate_licenses("${CMAKE_BINARY_DIR}/score_licenses.hpp")
+
+if(SCORE_HEAVY_COMPILE_JOBS AND CMAKE_GENERATOR MATCHES "Ninja")
+  set(_heavy_targets ${SCORE_HEAVY_COMPILE_TARGETS})
+  if(score_plugin_avnd IN_LIST _heavy_targets)
+    list(APPEND _heavy_targets score_plugin_avnd_pch)
+  endif()
+  list(REMOVE_DUPLICATES _heavy_targets)
+  foreach(_heavy_target IN LISTS _heavy_targets)
+    if(TARGET ${_heavy_target})
+      set_property(TARGET ${_heavy_target} PROPERTY JOB_POOL_COMPILE score_heavy_compile)
+    endif()
+  endforeach()
+endif()
 
 # Static builds: complete application-based tester links with the full plugin
 # list after add_subdirectory(src) has populated SCORE_PLUGINS_LIST.

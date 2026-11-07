@@ -42,11 +42,19 @@ void InvertYRenderer::init(
       m_inputTarget = cur;
   }
 
+  // An output whose own target the backend refused has nothing to copy from.
+  if(!m_inputTarget.texture)
+  {
+    qWarning() << "InvertYRenderer: the output has no render target, it will not render";
+    return;
+  }
+
+  // The input target is where the scene is drawn, at the render list's sample
+  // count, and it resolves into m_inputTarget.texture. This pass only copies
+  // that picture, flipped, so it draws at one sample and without depth.
   m_renderTarget = score::gfx::createRenderTarget(
       renderer.state, renderer.state.renderFormat, m_inputTarget.texture->pixelSize(),
-      renderer.samples(),
-      renderer.requiresDepth(*this->node.input[0])
-          || renderer.anyNodeRequiresDepth());
+      1, false);
 
   // The backend can refuse the configuration -- createRenderTarget says so and
   // hands back an empty target. There is nothing to render into, so stop here
@@ -126,6 +134,11 @@ void InvertYRenderer::finishFrame(
   // one. beginPass would dereference it.
   if(!m_renderTarget.renderTarget)
     return;
+
+  // An empty pass at one sample after the multisampled passes of the scene is
+  // the sequence some drivers lose the device on (Quirks).
+  if(!m_p.pipeline)
+    renderer.isolateFollowingPasses();
 
   cb.beginPass(m_renderTarget.renderTarget, Qt::black, {0.0f, 0}, res);
   res = nullptr;

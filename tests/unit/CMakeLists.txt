@@ -487,6 +487,21 @@ score_add_test(test_unit_control_entry_index
   SOURCES ControlEntryIndexTest.cpp
   PLUGINS score_lib_process score_lib_state score_lib_device)
 
+score_add_test(test_unit_wavetable
+  SOURCES WavetableTest.cpp
+  PLUGINS score_lib_process)
+
+score_add_test(test_unit_waveform_inlet
+  SOURCES WaveformInletTest.cpp
+  APP
+  PLUGINS score_plugin_dataflow score_plugin_scenario score_lib_process)
+
+score_add_test(test_unit_curve_inlet
+  SOURCES CurveInletTest.cpp
+  APP
+  PLUGINS score_plugin_dataflow score_plugin_curve score_plugin_avnd score_plugin_scenario
+          score_lib_process)
+
 score_add_test(test_unit_curve_sample
   SOURCES CurveSampleTest.cpp
   PLUGINS score_plugin_curve)
@@ -1469,6 +1484,16 @@ if(TARGET score_plugin_media)
     SOURCES VideoDecoderTest.cpp
     PLUGINS score_plugin_media
     LIBS avutil avcodec avformat)
+
+  # score::gfx::VideoFrameReader::nextFrame(): the queued frame the frame-queue
+  # renderer shows at a time, the last one starting at or before it, also when
+  # a rounded time base ends a frame's duration before the next frame starts.
+  if(TARGET score_plugin_gfx)
+    score_add_test(test_unit_video_frame_reader
+      SOURCES VideoFrameReaderTest.cpp
+      PLUGINS score_plugin_gfx score_plugin_media
+      LIBS avutil avcodec avformat)
+  endif()
 
   # Video::chooseDecoderThreading(): frame vs slice threads vs the codec's own
   # pool, per consumer, checked against the linked libavcodec's real decoders.
@@ -2549,6 +2574,12 @@ if(TARGET score_plugin_jit)
     APP
     PLUGINS score_plugin_jit score_plugin_engine score_plugin_scenario score_lib_process)
   target_include_directories(test_unit_bytebeat PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-jit")
+
+  # The JIT's resource directory, runtimes, multiarch and build tree arguments
+  score_add_test(test_unit_jit_search_paths
+    SOURCES JitSearchPathsTest.cpp)
+  target_include_directories(test_unit_jit_search_paths PRIVATE
     "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-jit")
 endif()
 

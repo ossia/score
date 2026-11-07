@@ -43,7 +43,7 @@
 //       driven as tests/unit/AssetLoaderFailure.cpp and the avnd runtime drive
 //       it.
 //     * Threedim::PrimitiveCloud::parse_ply (PlyParser.cpp) -- autodetects
-//       format_id "3dgs.classic" and struct_type_name "Splat3DGS", sets
+//       format_id "3dgs" (3DGS columns, not the 62-float Splat3DGS row), sets
 //       primitive_count and row_stride from the column set (60 B for the
 //       15-column classic schema, pinned by tests/unit/PrimitiveCloudTest.cpp).
 //     * score::gfx::ScenePreprocessorNode -- the whole primitive-cloud branch,
@@ -53,8 +53,9 @@
 //       1) and the emitted bucket geometry (`g.vertices =
 //       (int)b.total_primitives`, `g.instances = 1`, points topology).
 //     * score::gfx::FlattenedSceneFilterNode in mode 12 with match_str
-//       "3dgs.classic" (`case 12: return g.filter_tag == match_str_hash;`),
-//       the configuration both corpus documents carry.
+//       "3dgs" (`case 12: return g.filter_tag == match_str_hash;`), the
+//       configuration both corpus documents carry ("3dgs.classic" there: their
+//       files are INRIA exports), on this fixture's format id.
 //     * The CSF node (Gfx::ProgramCache + score::gfx::ISFNode compute path)
 //       and the RAW_RASTER_PIPELINE consumer and draw.
 //   Harness, stated so nobody mistakes it for coverage:
@@ -99,9 +100,9 @@
 //   * The 15 all-float classic-3DGS columns, in this order:
 //       x y z f_dc_0 f_dc_1 f_dc_2 f_rest_0 opacity
 //       scale_0 scale_1 scale_2 rot_0 rot_1 rot_2 rot_3
-//     PlyParser's fingerprint (PlyParser.hpp: f_dc_0/1/2 + f_rest_* +
-//     scale_0/1/2 + rot_0/1/2/3 + opacity) stamps format_id "3dgs.classic" and
-//     struct_type_name "Splat3DGS"; PrimitiveCloudTest.cpp pins that this
+//     PlyParser's fingerprint (PlyParser.hpp: x/y/z + f_dc_0/1/2 + opacity +
+//     scale_0/1/2 + rot_0/1/2/3, not the exact 62-float INRIA row) stamps
+//     format_id "3dgs" and no struct type; PrimitiveCloudTest.cpp pins that this
 //     header yields row_stride 60 and points topology. ply_is_splat_shaped
 //     accepts it because there is no `face` element and the columns fall
 //     outside the standard mesh set.
@@ -739,8 +740,8 @@ struct Outcome
   uint32_t plySplatCount = 0;        // M1: GaussianSplatsFromPly
   std::size_t plyBufferFloats = 0;   // M1 corroboration: N * 64 floats
   bool loaderPublished = false;      // AssetLoader produced a scene at all
-  std::string cloudFormatId;         // must be autodetected "3dgs.classic"
-  std::string cloudStructType;       // must be "Splat3DGS"
+  std::string cloudFormatId;         // must be autodetected "3dgs"
+  std::string cloudStructType;       // must be empty
   int64_t cloudPrimitiveCount = -1;  // PlyParser's own count (NOT the oracle)
   uint32_t cloudRowStride = 0;
 
@@ -858,14 +859,15 @@ Outcome run_chain(
         = p.addNode(std::make_unique<score::gfx::ScenePreprocessorNode>());
 
     auto filterNode = std::make_unique<score::gfx::FlattenedSceneFilterNode>();
-    // The exact configuration both corpus documents carry: mode 12
-    // (format_id == match_str), match 0, "3dgs.classic".
+    // The configuration both corpus documents carry: mode 12
+    // (format_id == match_str), match 0, on the fixture's format id, "3dgs"
+    // (the corpus files are INRIA exports, "3dgs.classic").
     // FlattenedSceneFilterNode compares g.filter_tag against
     // hash_string(match_str) truncated to 32 bits -- the same key
     // ScenePreprocessorNode stamps on the bucket.
     filterNode->m_mode = 12;
     filterNode->m_match = 0;
-    filterNode->m_match_str = "3dgs.classic";
+    filterNode->m_match_str = "3dgs";
     const int filter = p.addNode(std::move(filterNode));
 
     const int csf = p.addCsf(csfPath);
@@ -978,8 +980,10 @@ TEST_CASE(
   // The live path's own parse, REPORTED (not the oracle): if these are wrong
   // the failure below is attributable to the parser rather than to the graph.
   CHECK(fwd.loaderPublished);
-  CHECK(fwd.cloudFormatId == "3dgs.classic");   // PlyParser.hpp fingerprint
-  CHECK(fwd.cloudStructType == "Splat3DGS");
+  // 15 columns are 3DGS-shaped but not the 62-float Splat3DGS row: the family
+  // tag, no struct (PlyParser.hpp).
+  CHECK(fwd.cloudFormatId == "3dgs");
+  CHECK(fwd.cloudStructType.empty());
   CHECK(fwd.cloudRowStride == uint32_t(kCols * 4)); // 60 B, PrimitiveCloudTest.cpp
   CHECK(fwd.cloudPrimitiveCount == int64_t(kSplats));
 

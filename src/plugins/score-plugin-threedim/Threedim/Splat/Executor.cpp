@@ -43,13 +43,6 @@ ProcessExecutorComponent::ProcessExecutorComponent(
   auto n = ossia::make_node<model_display_node>(
       *ctx.execState, ctx.doc.plugin<DocumentPlugin>().exec);
 
-  for(auto* outlet : element.outlets())
-  {
-    if(auto out = qobject_cast<Gfx::TextureOutlet*>(outlet))
-    {
-      out->nodeId = n->id;
-    }
-  }
   // Buffer input (port 0)
   element.inlets()[0]->setupExecution(*n->add_texture(), this);
 
@@ -68,7 +61,15 @@ ProcessExecutorComponent::ProcessExecutorComponent(
 
   n->add_texture_out();
 
+  // init() registers the node: its id is only valid from there on
   n->init();
+  for(auto* outlet : element.outlets())
+  {
+    if(auto out = qobject_cast<Gfx::TextureOutlet*>(outlet))
+    {
+      out->nodeId = n->id;
+    }
+  }
   this->node = n;
   m_ossia_process = std::make_shared<ossia::node_process>(n);
 }

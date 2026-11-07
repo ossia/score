@@ -84,7 +84,7 @@ LibavEncoderNode::LibavEncoderNode(
 LibavEncoderNode::~LibavEncoderNode() { }
 bool LibavEncoderNode::canRender() const
 {
-  return true;
+  return bool(m_renderTarget);
 }
 
 void LibavEncoderNode::startRendering() { }
@@ -245,18 +245,8 @@ void LibavEncoderNode::createOutput(score::gfx::OutputConfiguration conf)
       QRhiTexture::RenderTarget | QRhiTexture::UsedAsTransferSource);
   m_texture->create();
 
-  m_depthStencil = rhi->newRenderBuffer(
-      QRhiRenderBuffer::DepthStencil, m_renderState->renderSize, 1,
-      score::gfx::depthStencilRenderBufferFlags(*rhi));
-  m_depthStencil->create();
-
-  QRhiTextureRenderTargetDescription desc{m_texture};
-  desc.setDepthStencilBuffer(m_depthStencil);
-  m_renderTarget = rhi->newTextureRenderTarget(desc);
-  m_renderState->renderPassDescriptor
-      = m_renderTarget->newCompatibleRenderPassDescriptor();
-  m_renderTarget->setRenderPassDescriptor(m_renderState->renderPassDescriptor);
-  m_renderTarget->create();
+  m_renderTarget = score::gfx::createOutputRenderTarget(
+      *m_renderState, *m_texture, score::gfx::OutputDepth::DepthStencil);
 
   // Try to create GPU encoder for the target pixel format
   if(!m_settings.video_converted_pixfmt.isEmpty())
@@ -305,12 +295,7 @@ void LibavEncoderNode::destroyOutput()
     // RenderState::destroy() (called below) frees the device.
     releaseRegistry();
 
-    delete m_renderTarget;
-    m_renderTarget = nullptr;
-    delete m_renderState->renderPassDescriptor;
-    m_renderState->renderPassDescriptor = nullptr;
-    delete m_depthStencil;
-    m_depthStencil = nullptr;
+    score::gfx::releaseOutputRenderTarget(*m_renderState, m_renderTarget);
     delete m_texture;
     m_texture = nullptr;
     // RenderState::destroy() flushes the pipeline cache via preRhiDestroy
@@ -329,17 +314,7 @@ std::shared_ptr<score::gfx::RenderState> LibavEncoderNode::renderState() const
 score::gfx::OutputNodeRenderer*
 LibavEncoderNode::createRenderer(score::gfx::RenderList& r) const noexcept
 {
-  score::gfx::TextureRenderTarget rt{
-      .texture = m_texture,
-      .renderPass = m_renderState->renderPassDescriptor,
-      .renderTarget = m_renderTarget};
-
-  //       .texture = m_texture,
-  //       .renderPass = m_renderState->renderPassDescriptor,
-  //       .renderTarget = m_renderTarget};
-  //   return new Gfx::InvertYRenderer{
-  //       *this, rt, const_cast<QRhiReadbackResult&>(m_readback)};
-  //
+  const score::gfx::TextureRenderTarget rt = m_renderTarget;
   if(m_encoder[0])
   {
     // GPU encoder active: BasicRenderer (no Y-flip, no readback)

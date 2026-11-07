@@ -4,13 +4,18 @@
 
 #include <score/tools/Debug.hpp>
 
+#include <QCoreApplication>
+
 #include <ossia/math/safe_math.hpp>
 namespace Curve
 {
 
-ToolPalette::ToolPalette(const score::DocumentContext& ctx, Presenter& pres)
+ToolPalette::ToolPalette(
+    const score::DocumentContext& ctx, Presenter& pres,
+    score::SelectionStack* selectionStack)
     : GraphicsSceneToolPalette{*pres.view().scene()}
     , m_presenter{pres}
+    , m_selectionStack{selectionStack ? *selectionStack : ctx.selectionStack}
     , m_selectTool{*this, ctx}
     , m_createTool{*this, ctx}
     , m_setSegmentTool{*this, ctx}
@@ -125,6 +130,25 @@ void ToolPalette::on_cancel()
   m_selectTool.on_cancel();
   m_setSegmentTool.on_cancel();
   m_createPenTool.on_cancel();
+}
+
+void ToolPalette::cancelGesture()
+{
+  if(!m_pressed)
+    return;
+  m_pressed = false;
+  const auto cancel = [](auto& tool) {
+    auto& sm = tool.localSM();
+    if(!sm.isRunning())
+      return;
+    sm.postEvent(new score::Cancel_Event);
+    // Only this machine's queued transition runs: no other event is dispatched.
+    QCoreApplication::sendPostedEvents(&sm);
+  };
+  cancel(m_createTool);
+  cancel(m_selectTool);
+  cancel(m_setSegmentTool);
+  cancel(m_createPenTool);
 }
 
 void ToolPalette::activate(Curve::Tool) { }

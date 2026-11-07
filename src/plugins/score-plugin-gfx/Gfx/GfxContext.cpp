@@ -402,6 +402,7 @@ void GfxContext::startPreviewFallback(Preview& p)
     // instead of creating one each time
     auto node = std::make_unique<score::gfx::BackgroundNode>(
         score::gfx::SharedDeviceMode::Cached);
+    node->setSingleSample(true);
     node->shared_readback = p.readback;
     if(p.size.width() > 0 && p.size.height() > 0)
       node->setSize(p.size);

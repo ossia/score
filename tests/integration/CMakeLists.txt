@@ -154,10 +154,9 @@ score_add_test(test_integration_graphical_zoom
   GUI
   PLUGINS score_plugin_scenario)
 
-# A process whose factory is not installed is dropped on load, with its
-# cables, silently. Asserting "the document opened" cannot see that, so this one
-# asserts on the content that came back. EXPECTED RED on this branch: the fix
-# lives in PR #2179, which is not merged here. See the file header.
+# A process whose factory is not installed is kept on load, with its ports and
+# cables, and saved back unchanged. Asserting "the document opened" cannot see a
+# loss, so this one asserts on the content that came back.
 score_add_test(test_integration_missing_process_roundtrip
   SOURCES MissingProcessRoundtripTest.cpp
   GUI
@@ -642,6 +641,14 @@ score_add_test(test_integration_preset_button_library
   PLUGINS score_plugin_scenario score_plugin_library score_plugin_fx score_plugin_avnd
           score_lib_process)
 
+# A folder of the process library describes no process, even with one
+# registered under the nil uuid.
+score_add_test(test_integration_library_category_info
+  SOURCES LibraryCategoryInfoTest.cpp
+  GUI
+  PLUGINS score_plugin_scenario score_plugin_library score_plugin_fx score_plugin_avnd
+          score_lib_process)
+
 # Where nodes land when score picks the position itself (library double-click,
 # "create after this process", drops on a cable).
 score_add_test(test_integration_nodal_placement
@@ -1008,14 +1015,20 @@ foreach(kind ISF VSA CSF Raster CSFGeometry Wired)
   endif()
 
   if(NOT kind STREQUAL "Wired")
-    set(_baseline "${CMAKE_CURRENT_SOURCE_DIR}/../testdata/shader_sweep_baseline_${lc}.txt")
+    # A prefix: the sweep appends _<api>-<device>.txt for the backend it runs on.
+    set(_baseline_dir "${CMAKE_CURRENT_SOURCE_DIR}/../testdata")
+    set(_baseline "${_baseline_dir}/shader_sweep_baseline_${lc}")
 
-    # On wasm there is no filesystem to read the baseline from: bake it into the
-    # test's own MEMFS image, the way the application does.
+    # On wasm there is no filesystem to read the baselines from: bake them into
+    # the test's own MEMFS image, the way the application does.
     if(EMSCRIPTEN)
-      target_link_options(test_integration_shader_sweep_${lc} PRIVATE
-        "SHELL:--preload-file ${_baseline}@/shader_sweep_baseline_${lc}.txt")
-      set(_baseline "/shader_sweep_baseline_${lc}.txt")
+      file(GLOB _backend_baselines "${_baseline}_*.txt")
+      foreach(_file ${_backend_baselines})
+        get_filename_component(_name "${_file}" NAME)
+        target_link_options(test_integration_shader_sweep_${lc} PRIVATE
+          "SHELL:--preload-file ${_file}@/${_name}")
+      endforeach()
+      set(_baseline "/shader_sweep_baseline_${lc}")
     endif()
 
     target_compile_definitions(test_integration_shader_sweep_${lc} PRIVATE
@@ -1789,6 +1802,23 @@ if(TARGET score AND TARGET score_plugin_js AND TARGET score_plugin_gfx AND NOT E
     TIMEOUT 300 RUN_SERIAL TRUE LABELS "gui")
 endif()
 
+# A GPU Javascript scene is placed the same in an on-screen output window at
+# every device pixel ratio.
+if(TARGET score AND TARGET score_plugin_js AND TARGET score_plugin_gfx AND NOT EMSCRIPTEN)
+  score_add_test(test_integration_js_gpu_device_pixel_ratio
+    SOURCES JsGpuDevicePixelRatioTest.cpp
+    GUI
+    LIBS ${QT_PREFIX}::Gui)
+  target_compile_definitions(test_integration_js_gpu_device_pixel_ratio PRIVATE
+    "SCORE_APP_BINARY=\"$<TARGET_FILE:score>\"")
+  get_target_property(_js_definitions_dpr score_plugin_js COMPILE_DEFINITIONS)
+  if("SCORE_HAS_GPU_JS" IN_LIST _js_definitions_dpr)
+    target_compile_definitions(test_integration_js_gpu_device_pixel_ratio PRIVATE SCORE_HAS_GPU_JS)
+  endif()
+  set_tests_properties(test_integration_js_gpu_device_pixel_ratio PROPERTIES
+    TIMEOUT 300 RUN_SERIAL TRUE LABELS "gui")
+endif()
+
 # A text-mode avnd file port hands the object exactly the bytes that were read
 # (QIODevice::Text drops '\r'), both through oscr::executePortPreprocess and
 # through oscr::raw_file_storage::load.
@@ -2058,3 +2088,13 @@ score_add_test(test_integration_nodal_editing
   PLUGINS score_plugin_scenario score_lib_process score_plugin_dataflow
           score_plugin_deviceexplorer score_lib_device score_plugin_nodal
           score_plugin_ui)
+
+# Cables between nodal slots of the timeline end on their ports whatever the
+# scroll, zoom and slot heights; scrolling up or down never moves the nodes.
+if(TARGET score_plugin_fx)
+  score_add_test(test_integration_timeline_cable_endpoints
+    SOURCES TimelineCableEndpointsTest.cpp
+    GUI
+    PLUGINS score_plugin_fx score_plugin_scenario score_lib_process
+            score_plugin_dataflow)
+endif()

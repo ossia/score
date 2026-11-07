@@ -21,7 +21,10 @@
 #include <map>
 #include <set>
 #include <sstream>
+#include <functional>
+#include <mutex>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 extern "C" {
 #include <glsl-parser/glsl_ast.h>
@@ -1597,6 +1600,56 @@ static void parse_input(geometry_input& inp, const sajson::value& v)
     else if(k == "AUXILIARY")
     {
       parse_auxiliary_array(v.get_object_value(i), inp.auxiliary, inp.auxiliary_textures);
+    }
+    else if(k == "COLUMNS")
+    {
+      auto val = v.get_object_value(i);
+      if(val.get_type() != sajson::TYPE_ARRAY)
+        throw invalid_file{"COLUMNS must be an array of { NAME, TYPE } objects or names."};
+      const auto identifier = [](const std::string& n) {
+        if(n.empty() || !(std::isalpha((unsigned char)n[0]) || n[0] == '_'))
+          return false;
+        for(char c : n)
+          if(!(std::isalnum((unsigned char)c) || c == '_'))
+            return false;
+        return n.find("__") == std::string::npos;
+      };
+      for(std::size_t j = 0; j < val.get_length(); j++)
+      {
+        auto c = val.get_array_element(j);
+        geometry_input::column_request col;
+        if(c.get_type() == sajson::TYPE_STRING)
+        {
+          col.name = c.as_string();
+        }
+        else if(c.get_type() == sajson::TYPE_OBJECT)
+        {
+          for(std::size_t f = 0; f < c.get_length(); f++)
+          {
+            auto fkey = header_key(c.get_object_key(f));
+            auto fval = c.get_object_value(f);
+            if(fkey == "NAME" && fval.get_type() == sajson::TYPE_STRING)
+              col.name = fval.as_string();
+            else if(fkey == "TYPE" && fval.get_type() == sajson::TYPE_STRING)
+              col.type = fval.as_string();
+          }
+        }
+        if(col.type.empty())
+          col.type = "float";
+        if(!identifier(col.name))
+          throw invalid_file{
+              "COLUMNS entry \"" + col.name
+              + "\" is not a GLSL identifier; a column is read as "
+                "ISF_COLUMN(geo, name, idx)."};
+        if(col.type != "float" && col.type != "int" && col.type != "uint")
+          throw invalid_file{
+              "COLUMNS entry \"" + col.name + "\" declares TYPE \"" + col.type
+              + "\"; a column reads one scalar as float, int or uint."};
+        for(const auto& other : inp.columns)
+          if(other.name == col.name)
+            throw invalid_file{"COLUMNS entry \"" + col.name + "\" is declared twice."};
+        inp.columns.push_back(std::move(col));
+      }
     }
     else if(k == "INDIRECT")
     {
@@ -4913,6 +4966,279 @@ static void isf_rewrite_straight_sampling(std::string& src, const descriptor& d)
   src = std::move(out);
 }
 
+// A GLSL source with its comments blanked out by spaces, newlines kept: what
+// the compiler reads, for the scans that decide how to wrap the source.
+static std::string isf_glsl_without_comments(std::string_view src)
+{
+  std::string out{src};
+  const std::size_t n = out.size();
+  for(std::size_t i = 0; i + 1 < n; i++)
+  {
+    if(out[i] != '/')
+      continue;
+    if(out[i + 1] == '/')
+    {
+      for(; i < n && out[i] != '\n'; i++)
+        out[i] = ' ';
+    }
+    else if(out[i + 1] == '*')
+    {
+      out[i] = out[i + 1] = ' ';
+      for(i += 2; i < n; i++)
+      {
+        if(out[i] == '*' && i + 1 < n && out[i + 1] == '/')
+        {
+          out[i] = out[i + 1] = ' ';
+          i++;
+          break;
+        }
+        if(out[i] != '\n')
+          out[i] = ' ';
+      }
+    }
+  }
+  return out;
+}
+
+// Where `name` occurs in `code` as a whole identifier, from `from`; npos if
+// it does not.
+static std::size_t
+isf_glsl_find_identifier(std::string_view code, std::string_view name, std::size_t from = 0)
+{
+  for(std::size_t p = code.find(name, from); p != std::string_view::npos;
+      p = code.find(name, p + 1))
+  {
+    const std::size_t e = p + name.size();
+    if((p == 0 || !isf_is_ident_char(code[p - 1]))
+       && (e == code.size() || !isf_is_ident_char(code[e])))
+      return p;
+  }
+  return std::string_view::npos;
+}
+
+// True when `code` calls the function `name`.
+static bool isf_glsl_calls(std::string_view code, std::string_view name)
+{
+  for(std::size_t p = isf_glsl_find_identifier(code, name); p != std::string_view::npos;
+      p = isf_glsl_find_identifier(code, name, p + 1))
+  {
+    std::size_t a = p + name.size();
+    while(a < code.size() && std::isspace((unsigned char)code[a]))
+      a++;
+    if(a < code.size() && code[a] == '(')
+      return true;
+  }
+  return false;
+}
+
+// The highest `location = N` of a layout qualifier in `code`, -1 if none.
+static int isf_glsl_max_location(std::string_view code)
+{
+  int max = -1;
+  for(std::size_t p = isf_glsl_find_identifier(code, "location");
+      p != std::string_view::npos;
+      p = isf_glsl_find_identifier(code, "location", p + 1))
+  {
+    std::size_t a = p + 8;
+    while(a < code.size() && std::isspace((unsigned char)code[a]))
+      a++;
+    if(a >= code.size() || code[a] != '=')
+      continue;
+    a++;
+    while(a < code.size() && std::isspace((unsigned char)code[a]))
+      a++;
+    int v = 0;
+    const auto [ptr, ec] = std::from_chars(code.data() + a, code.data() + code.size(), v);
+    if(ec == std::errc{})
+      max = std::max(max, v);
+  }
+  return max;
+}
+
+// Locations one varying of a GLSL type takes.
+static int isf_glsl_type_slots(std::string_view type) noexcept
+{
+  if(type.starts_with("dmat") || type.starts_with("mat"))
+  {
+    // matN and matCxR take one location per column, twice for doubles with
+    // three or four rows.
+    const bool dbl = type.front() == 'd';
+    const auto dims = type.substr(dbl ? 4 : 3);
+    if(dims.empty())
+      return 1;
+    const int cols = dims[0] - '0';
+    const int rows = dims.size() >= 3 ? dims[2] - '0' : cols;
+    return std::max(1, cols) * (dbl && rows > 2 ? 2 : 1);
+  }
+  if(type == "dvec3" || type == "dvec4")
+    return 2;
+  return 1;
+}
+
+// The locations taken by the top-level `keyword` declarations of `code` that
+// have no layout qualifier: the varyings the shader compiler numbers itself.
+static int isf_glsl_unqualified_slots(
+    std::string_view code, std::initializer_list<std::string_view> keywords)
+{
+  static constexpr std::string_view qualifiers[]
+      = {"flat", "smooth", "noperspective", "centroid", "sample", "patch",
+         "highp", "mediump", "lowp", "invariant", "precise"};
+  const auto is_qualifier = [](std::string_view w) {
+    return std::find(std::begin(qualifiers), std::end(qualifiers), w)
+           != std::end(qualifiers);
+  };
+  const auto is_keyword = [&](std::string_view w) {
+    return std::find(keywords.begin(), keywords.end(), w) != keywords.end();
+  };
+
+  int slots = 0;
+  int depth = 0;
+  std::size_t statement = 0;
+  for(std::size_t i = 0; i < code.size();)
+  {
+    const char c = code[i];
+    if(c == '{' || c == '(')
+    {
+      depth++;
+      i++;
+      continue;
+    }
+    if(c == '}' || c == ')')
+    {
+      depth = std::max(0, depth - 1);
+      if(c == '}' && depth == 0)
+        statement = i + 1;
+      i++;
+      continue;
+    }
+    if(c == ';' || c == '#')
+    {
+      if(c == '#')
+        while(i < code.size() && code[i] != '\n')
+          i++;
+      if(depth == 0)
+        statement = i + 1;
+      i++;
+      continue;
+    }
+    if(!isf_is_ident_char(c) || (i > 0 && isf_is_ident_char(code[i - 1])))
+    {
+      i++;
+      continue;
+    }
+    std::size_t e = i;
+    while(e < code.size() && isf_is_ident_char(code[e]))
+      e++;
+    const std::string_view word = code.substr(i, e - i);
+    if(depth != 0 || !is_keyword(word)
+       || isf_glsl_find_identifier(code.substr(statement, i - statement), "layout")
+              != std::string_view::npos)
+    {
+      i = e;
+      continue;
+    }
+
+    // `keyword [qualifiers] type name [N] (, name [N])* ;`
+    const std::size_t end = code.find(';', e);
+    if(end == std::string_view::npos)
+      break;
+    const std::string_view decl = code.substr(e, end - e);
+    std::vector<std::string_view> words;
+    std::vector<int> counts;
+    for(std::size_t a = 0; a < decl.size();)
+    {
+      if(isf_is_ident_char(decl[a]))
+      {
+        std::size_t b = a;
+        while(b < decl.size() && isf_is_ident_char(decl[b]))
+          b++;
+        words.push_back(decl.substr(a, b - a));
+        counts.push_back(1);
+        a = b;
+      }
+      else if(decl[a] == '[' && !counts.empty())
+      {
+        // The array size belongs to the name before it.
+        std::size_t b = a + 1;
+        while(b < decl.size() && std::isspace((unsigned char)decl[b]))
+          b++;
+        int n = 1;
+        std::from_chars(decl.data() + b, decl.data() + decl.size(), n);
+        counts.back() *= std::max(1, n);
+        while(a < decl.size() && decl[a] != ']')
+          a++;
+      }
+      else
+        a++;
+    }
+    std::size_t t = 0;
+    while(t < words.size() && is_qualifier(words[t]))
+      t++;
+    if(t < words.size())
+    {
+      const int per = isf_glsl_type_slots(words[t]);
+      for(std::size_t n = t + 1; n < words.size(); n++)
+        if(!is_qualifier(words[n]))
+          slots += per * counts[t] * counts[n];
+    }
+    i = end + 1;
+    statement = i;
+  }
+  return slots;
+}
+
+// True when `code` assigns to `name` or one of its components.
+static bool isf_glsl_writes(std::string_view code, std::string_view name)
+{
+  for(std::size_t p = isf_glsl_find_identifier(code, name); p != std::string_view::npos;
+      p = isf_glsl_find_identifier(code, name, p + 1))
+  {
+    // Skip a swizzle or an index: name.xy, name[0].
+    std::size_t a = p + name.size();
+    for(;;)
+    {
+      while(a < code.size() && std::isspace((unsigned char)code[a]))
+        a++;
+      if(a < code.size() && code[a] == '.')
+      {
+        a++;
+        while(a < code.size() && isf_is_ident_char(code[a]))
+          a++;
+      }
+      else if(a < code.size() && code[a] == '[')
+      {
+        int depth = 0;
+        for(; a < code.size(); a++)
+        {
+          if(code[a] == '[')
+            depth++;
+          else if(code[a] == ']' && --depth == 0)
+          {
+            a++;
+            break;
+          }
+        }
+      }
+      else
+        break;
+    }
+    if(a >= code.size())
+      continue;
+    const char c = code[a];
+    const char n = a + 1 < code.size() ? code[a + 1] : '\0';
+    if(c == '=' && n != '=')
+      return true;
+    if((c == '+' || c == '-') && n == c)
+      return true;
+    if(std::string_view{"+-*/%&|^"}.find(c) != std::string_view::npos && n == '=')
+      return true;
+    // ++name / --name, and the name passed as an out argument is not seen.
+    if(p >= 2 && (code.substr(p - 2, 2) == "++" || code.substr(p - 2, 2) == "--"))
+      return true;
+  }
+  return false;
+}
+
 void parser::parse_isf()
 {
   using namespace std::literals;
@@ -5008,6 +5334,59 @@ void parser::parse_isf()
   m_vertex.clear();
   m_fragment.clear();
 
+  // How the shader's own vertex code is wrapped, decided on what the compiler
+  // reads: a mention in a comment is no call.
+  //  - one calling isf_vertShaderInit gets the quad prelude and works in
+  //    OpenGL's clip space, which the generated entry point maps to the
+  //    backend's after the shader's main;
+  //  - one that also multiplies by clipSpaceCorrMatrix has done most of that
+  //    mapping itself: the entry point only adds the framebuffer Y flip of
+  //    Metal and D3D, which a second clipSpaceCorrMatrix would otherwise turn
+  //    into a flip on Vulkan and a squeezed depth range;
+  //  - one that also writes isf_FragNormCoord gets the quad position init
+  //    wrote into a varying of its own, which IMG_THIS_PIXEL reads, as VVISF's
+  //    per-image texture coordinates are computed in init. Its location is
+  //    past every location the shader's varyings can take: the explicit ones
+  //    and, after them, those the shader compiler numbers itself.
+  const std::string vertexCode = isf_glsl_without_comments(m_sourceVertex);
+  const bool callsVertInit = isf_glsl_calls(vertexCode, "isf_vertShaderInit");
+  const bool ownsClipSpace
+      = callsVertInit
+        && isf_glsl_find_identifier(vertexCode, "clipSpaceCorrMatrix") != std::string::npos;
+  const bool movesNormCoord
+      = callsVertInit && isf_glsl_writes(vertexCode, "isf_FragNormCoord");
+  int thisPixelLocation = -1;
+  if(movesNormCoord)
+  {
+    const std::string fragmentCode = isf_glsl_without_comments(fragWithoutISF);
+    thisPixelLocation
+        = 1
+          + std::max(
+              {0, isf_glsl_max_location(vertexCode), isf_glsl_max_location(fragmentCode)})
+          + std::max(
+              isf_glsl_unqualified_slots(vertexCode, {"out", "varying"}),
+              isf_glsl_unqualified_slots(fragmentCode, {"in", "varying"}));
+  }
+  if(ownsClipSpace)
+  {
+    std::string w
+        = "the vertex shader calls isf_vertShaderInit and multiplies by "
+          "clipSpaceCorrMatrix: isf_vertShaderInit's quad is in OpenGL clip space "
+          "and the engine maps the result to the backend's after main, so "
+          "clipSpaceCorrMatrix is not needed. It is honoured: only the Metal and "
+          "D3D framebuffer flip is added.";
+    static std::mutex warned_mutex;
+    static std::unordered_set<std::size_t> warned;
+    bool first{};
+    {
+      std::lock_guard lock{warned_mutex};
+      first = warned.insert(std::hash<std::string>{}(m_sourceVertex)).second;
+    }
+    if(first)
+      fprintf(stderr, "[isf] %s\n", w.c_str());
+    m_desc.warnings.push_back(std::move(w));
+  }
+
   // Create the GLSL prelude
   switch(m_version)
   {
@@ -5029,9 +5408,13 @@ void parser::parse_isf()
           m_vertex += GLSL45.vertexPrelude;
           simpleVS = true;
         }
-        else if(m_sourceVertex.find("isf_vertShaderInit()") != std::string::npos)
+        else if(callsVertInit)
         {
           m_vertex += GLSL45.vertexPrelude;
+          if(thisPixelLocation > 0)
+            m_vertex += "layout(location = " + std::to_string(thisPixelLocation)
+                        + ") out vec2 isf_ThisPixelNormCoord;\n"
+                          "#define ISF_THIS_PIXEL_VARYING 1\n";
         }
       }
 
@@ -5251,6 +5634,14 @@ void parser::parse_isf()
       }
 
       m_fragment += material_ubos;
+      // isf_vertShaderInit writes isf_FragNormCoord from the quad; IMG_THIS_PIXEL
+      // reads through it so that the image follows the shader's vertex warp.
+      if(thisPixelLocation > 0)
+        m_fragment += "layout(location = " + std::to_string(thisPixelLocation)
+                      + ") in vec2 isf_ThisPixelNormCoord;\n"
+                        "#define ISF_THIS_PIXEL_VARYING 1\n";
+      else if(simpleVS || callsVertInit)
+        m_fragment += "#define ISF_THIS_PIXEL_FROM_NORM_COORD 1\n";
       m_fragment += GLSL45.defaultFunctions;
       break;
     }
@@ -5259,7 +5650,15 @@ void parser::parse_isf()
   // Add the actual vert / frag code
   if(!simpleVS)
   {
+    // A shader built on isf_vertShaderInit writes gl_Position in OpenGL's clip
+    // space; the generated entry point maps it to the backend's after the
+    // shader's main has returned.
+    if(callsVertInit)
+      m_vertex += GLSL45.vertexUserMainRename;
     m_vertex += m_sourceVertex;
+    if(callsVertInit)
+      m_vertex += ownsClipSpace ? GLSL45.vertexUserMainWrapperOwnClipSpace
+                                : GLSL45.vertexUserMainWrapper;
   }
   isf_refuse_sampled_storage_images(fragWithoutISF, m_desc);
   if(!simpleVS)
@@ -5297,6 +5696,16 @@ void parser::parse_raw_raster_pipeline()
   auto [end, desc] = parse_isf_header(m_sourceFragment);
   default_image_visibility(desc, "fragment");
   m_desc = std::move(desc);
+
+  // A vertex stage reads interleaved attributes in place through its vertex
+  // inputs: ATTRIBUTES already do what COLUMNS do in a compute shader.
+  for(const auto& inp : m_desc.inputs)
+    if(auto* geo = ossia::get_if<geometry_input>(&inp.data); geo && !geo->columns.empty())
+      throw invalid_file{
+          "geometry \"" + inp.name
+          + "\": COLUMNS are read by compute shaders. A render pipeline reads "
+            "the same attributes in place as vertex inputs: declare them in "
+            "ATTRIBUTES."};
 
   std::string& fragWithoutISF = m_sourceFragment;
   fragWithoutISF.erase(0, end + 2);
@@ -6219,16 +6628,14 @@ void parser::parse_raw_raster_pipeline()
 
   // Multiview wrapper main: writes the injected view-index varying, then
   // runs the user's (renamed) main. See the VIEW_INDEX plumbing note above.
-  // Generated entry point for every raw-raster vertex shader. Two jobs:
-  //   1. multiview: publish gl_ViewIndex to the fragment stage;
-  //   2. the Y correction that ISF-mode shaders get from isf_vertShaderFinish().
-  //      That prelude is only injected for an EMPTY vertex source or one calling
-  //      isf_vertShaderInit(), so a RAW_RASTER shader -- which always writes its
-  //      own main() -- never received it. Every node class lands its picture in
-  //      the same memory order, so this one must too, on the APIs whose clip
-  //      space does not already do it: Vulkan is covered by clipSpaceCorrMatrix
-  //      (ccmY = -1), Metal and D3D are not (ccmY = +1), and those two share
-  //      Vulkan's framebuffer origin rather than cancelling against it.
+  // Generated entry point for every raw-raster vertex shader: it runs the
+  // shader's (renamed) main, publishes gl_ViewIndex to the fragment stage for
+  // multiview, gives points their default size and, on D3D, grows them into
+  // quads. It applies no clip-space correction. A raw-raster shader multiplies
+  // by clipSpaceCorrMatrix itself, which covers Vulkan (ccmY = -1); the Metal
+  // and D3D Y flip, which ISF mode gets from isf_vertShaderApplyClipSpace, is
+  // the shader's own call to the isf_vertShaderFinish() defined above. Every
+  // node class lands its picture in the same memory order that way.
   m_vertex += "#undef main\n";
   m_vertex += "void main()\n{\n";
   if(point_quads)
@@ -7303,10 +7710,24 @@ std::string parser::write_isf() const
             }
             oss << "      ]";
           }
-          if(!geo.auxiliary.empty() || !geo.auxiliary_textures.empty())
+          if(!geo.columns.empty())
+          {
+            oss << ",\n      \"COLUMNS\": [";
+            for(size_t i = 0; i < geo.columns.size(); ++i)
+            {
+              oss << (i == 0 ? "" : ", ") << "{\"NAME\": \""
+                  << escape_json(geo.columns[i].name) << "\", \"TYPE\": \""
+                  << escape_json(geo.columns[i].type) << "\"}";
+            }
+            oss << "]";
+          }
+          // The COLUMNS blocks are the parser's, last in the list.
+          const size_t nb = std::count_if(
+              geo.auxiliary.begin(), geo.auxiliary.end(),
+              [](const auto& a) { return a.column_block == 0; });
+          if(nb > 0 || !geo.auxiliary_textures.empty())
           {
             oss << ",\n      \"AUXILIARY\": [\n";
-            const size_t nb = geo.auxiliary.size();
             const size_t nt = geo.auxiliary_textures.size();
             for(size_t i = 0; i < nb; ++i)
             {
@@ -7910,6 +8331,238 @@ void main() {
   m_fragment += "}\n";
 }
 
+// <geo>_isf_colmeta(k): column k's uvec4 (byte offset of row 0, byte stride,
+// format, 1 when both are word multiples), from the table the engine fills,
+// or the constants of `table`. A switch, not an array: with a constant k it
+// folds to the literal.
+static std::string isf_column_meta_function(
+    const std::string& geo, std::size_t count, const std::vector<uint32_t>& table)
+{
+  const std::string last = std::to_string(count == 0 ? 0 : count - 1) + "u";
+  std::string s = "uvec4 " + geo + "_isf_colmeta(uint k) { ";
+  if(table.size() != 4 * count || count == 0)
+  {
+    s += "return " + geo + "_isf_columns_meta.entries[min(k, " + last + ")];";
+  }
+  else
+  {
+    s += "switch(k) { ";
+    for(std::size_t k = 0; k < count; k++)
+    {
+      s += "case " + std::to_string(k) + "u: return uvec4(";
+      for(int c = 0; c < 4; c++)
+        s += (c == 0 ? "" : ", ") + std::to_string(table[4 * k + c]) + "u";
+      s += "); ";
+    }
+    s += "default: return uvec4(0u); }";
+  }
+  s += " }";
+  return s;
+}
+
+// The vector a row of `row_words` words is read in: the widest that divides it.
+static uint32_t isf_column_row_vector(uint32_t row_words) noexcept
+{
+  return row_words % 4 == 0 ? 4 : row_words % 2 == 0 ? 2 : 1;
+}
+
+std::string column_data_block(std::string_view geo, uint32_t row_words)
+{
+  std::string s = std::string{geo} + "_isf_columns_data_buf {\n    ";
+  if(row_words == 0)
+    return s + "uint words[];\n";
+  const uint32_t v = isf_column_row_vector(row_words);
+  s += v == 4 ? "uvec4" : v == 2 ? "uvec2" : "uint";
+  return s + " words[][" + std::to_string(row_words / v) + "];\n";
+}
+
+// Accessors of a geometry input's COLUMNS. Each declared column k has a
+// uvec4: x = byte offset of row 0, y = byte stride, z = format (0 when the
+// upstream lacks the column), w = 1 when x and y are multiples of 4.
+// <geo>_isf_colmeta(k) reads it from the table the engine fills
+// (<geo>_isf_columns_meta). <geo>_isf_columns_data.words is the upstream
+// buffer, bound as is, read one 32-bit word at a time.
+//
+// Once the upstream layout is known, the engine recompiles the shader with
+// these accessors generated from that layout: the table becomes constants,
+// and ISF_HAS_COLUMN a literal. When the word-aligned 32-bit columns share
+// one stride of `row_words` words, the data block is declared as rows of
+// that many words (in uvec4 or uvec2 when they divide it), and such a column
+// reads words[i][c]: one row address per splat and a constant offset per
+// column, as the members of a struct are read. A flat words[i * S + c] costs
+// an address per column: the driver cannot fold c into the address of a
+// 32-bit index that may wrap. Other columns fold to the table-driven decode
+// with constants.
+std::string column_accessors(
+    std::string_view geo_v, const std::vector<geometry_input::column_request>& columns,
+    const std::vector<uint32_t>& table, uint32_t row_words)
+{
+  const std::string geo{geo_v};
+  const bool fixed = !columns.empty() && table.size() == 4 * columns.size();
+  if(!fixed)
+    row_words = 0;
+  const std::string words = geo + "_isf_columns_data.words";
+  const std::string S = std::to_string(row_words) + "u";
+  const uint32_t V = isf_column_row_vector(row_words);
+  std::string s;
+  s += "// COLUMNS of geometry \"" + geo + "\", read in place.\n";
+  s += "#ifndef ISF_COLUMN\n";
+  s += "#define ISF_COLUMN(geo, col, idx) geo ## _col_ ## col(idx)\n";
+  s += "#define ISF_HAS_COLUMN(geo, col) geo ## _has_ ## col()\n";
+  s += "#define ISF_COLUMN_AT(geo, k, idx) geo ## _column(k, idx)\n";
+  s += "#define ISF_COLUMN_INDEX(geo, col) geo ## _COLUMN_ ## col\n";
+  s += "float isf_f64_to_f32(uint lo, uint hi)\n"
+       "{\n"
+       "  uint sgn = hi & 0x80000000u;\n"
+       "  int e = int((hi >> 20u) & 0x7FFu);\n"
+       "  uint mh = hi & 0xFFFFFu;\n"
+       "  if(e == 0x7FF)\n"
+       "    return uintBitsToFloat(sgn | 0x7F800000u | ((mh | lo) != 0u ? 0x400000u : 0u));\n"
+       "  int fe = e - 896;\n"
+       "  if(fe >= 255) return uintBitsToFloat(sgn | 0x7F800000u);\n"
+       "  if(fe <= 0) return uintBitsToFloat(sgn);\n"
+       "  uint m = (mh << 3u) | (lo >> 29u);\n"
+       "  uint rest = lo & 0x1FFFFFFFu;\n"
+       "  uint bits = sgn | (uint(fe) << 23u) | m;\n"
+       "  if(rest > 0x10000000u || (rest == 0x10000000u && (m & 1u) != 0u)) bits += 1u;\n"
+       "  return uintBitsToFloat(bits);\n"
+       "}\n";
+  s += "#endif\n";
+
+  // 32-bit word w of the rows.
+  if(row_words == 0)
+    s += "uint " + geo + "_isf_word(uint w) { return " + words + "[w]; }\n";
+  else
+  {
+    const std::string vs = std::to_string(V) + "u";
+    s += "uint " + geo + "_isf_word(uint w) { uint c = w % " + S + "; return " + words
+         + "[w / " + S + "]" + (V == 1 ? std::string{"[c]"} : "[c / " + vs + "][c % " + vs + "]")
+         + "; }\n";
+  }
+  // n bytes from byte address b, any alignment; reads the next word only
+  // when the value straddles it.
+  s += "uint " + geo + "_isf_col_bits(uint b, uint n)\n"
+       "{\n"
+       "  uint w = b >> 2u;\n"
+       "  uint sh = (b & 3u) * 8u;\n"
+       "  uint lo = " + geo + "_isf_word(w) >> sh;\n"
+       "  if(sh + n * 8u <= 32u) return lo;\n"
+       "  return lo | (" + geo + "_isf_word(w + 1u) << (32u - sh));\n"
+       "}\n";
+  // Format codes: 1 f32, 2 f64, 3 f16, 4 i8, 5 u8, 6 i16, 7 u16, 8 i32,
+  // 9 u32, 10 unorm8 (RenderedCSFNode columnFormatCode).
+  s += "float " + geo + "_isf_col_decode(uvec4 m, uint i)\n"
+       "{\n"
+       "  if(m.z == 1u && m.w == 1u)\n"
+       "    return uintBitsToFloat(" + geo + "_isf_word((m.x >> 2u) + i * (m.y >> 2u)));\n"
+       "  uint b = m.x + i * m.y;\n"
+       "  switch(m.z)\n"
+       "  {\n"
+       "    case 1u: return uintBitsToFloat(" + geo + "_isf_col_bits(b, 4u));\n"
+       "    case 2u: return isf_f64_to_f32(" + geo + "_isf_col_bits(b, 4u), " + geo + "_isf_col_bits(b + 4u, 4u));\n"
+       "    case 3u: return unpackHalf2x16(" + geo + "_isf_col_bits(b, 2u)).x;\n"
+       "    case 4u: return float(int(" + geo + "_isf_col_bits(b, 1u) << 24u) >> 24);\n"
+       "    case 5u: return float(" + geo + "_isf_col_bits(b, 1u) & 0xFFu);\n"
+       "    case 6u: return float(int(" + geo + "_isf_col_bits(b, 2u) << 16u) >> 16);\n"
+       "    case 7u: return float(" + geo + "_isf_col_bits(b, 2u) & 0xFFFFu);\n"
+       "    case 8u: return float(int(" + geo + "_isf_col_bits(b, 4u)));\n"
+       "    case 9u: return float(" + geo + "_isf_col_bits(b, 4u));\n"
+       "    case 10u: return float(" + geo + "_isf_col_bits(b, 1u) & 0xFFu) / 255.0;\n"
+       "    default: return 0.0;\n"
+       "  }\n"
+       "}\n";
+  s += "int " + geo + "_isf_col_decode_int(uvec4 m, uint i)\n"
+       "{\n"
+       "  uint b = m.x + i * m.y;\n"
+       "  switch(m.z)\n"
+       "  {\n"
+       "    case 4u: return int(" + geo + "_isf_col_bits(b, 1u) << 24u) >> 24;\n"
+       "    case 5u: return int(" + geo + "_isf_col_bits(b, 1u) & 0xFFu);\n"
+       "    case 6u: return int(" + geo + "_isf_col_bits(b, 2u) << 16u) >> 16;\n"
+       "    case 7u: return int(" + geo + "_isf_col_bits(b, 2u) & 0xFFFFu);\n"
+       "    case 8u: case 9u: return int(" + geo + "_isf_col_bits(b, 4u));\n"
+       "    default: return int(" + geo + "_isf_col_decode(m, i));\n"
+       "  }\n"
+       "}\n";
+  s += "uint " + geo + "_isf_col_decode_uint(uvec4 m, uint i)\n"
+       "{\n"
+       "  if(m.z == 9u) return " + geo + "_isf_col_bits(m.x + i * m.y, 4u);\n"
+       "  if(m.z >= 4u && m.z <= 8u) return uint(" + geo + "_isf_col_decode_int(m, i));\n"
+       "  return uint(" + geo + "_isf_col_decode(m, i));\n"
+       "}\n";
+  s += isf_column_meta_function(geo, columns.size(), fixed ? table : std::vector<uint32_t>{})
+       + "\n";
+
+  // Column k read as `type` (float, int or uint) at row i, with the same
+  // conversions as the table-driven decode.
+  const auto read = [&](std::size_t k, const std::string& type) -> std::string {
+    const std::string fn = type == "int"    ? "_isf_col_decode_int"
+                           : type == "uint" ? "_isf_col_decode_uint"
+                                            : "_isf_col_decode";
+    if(!fixed)
+      return geo + fn + "(" + geo + "_isf_colmeta(" + std::to_string(k) + "u), i)";
+    const uint32_t x = table[4 * k], y = table[4 * k + 1], z = table[4 * k + 2],
+                   a = table[4 * k + 3];
+    if(z == 0)
+      return type == "float" ? "0.0" : type == "int" ? "0" : "0u";
+    if(a == 1 && (z == 1 || z == 8 || z == 9) && row_words > 0 && y == 4 * row_words)
+    {
+      const uint32_t w = x / 4;
+      const uint32_t q = w / row_words;
+      const std::string row = q == 0 ? std::string{"i"} : "i + " + std::to_string(q) + "u";
+      std::string bits
+          = words + "[" + row + "][" + std::to_string((w % row_words) / V) + "]";
+      if(V > 1)
+        bits += std::string{'.', "xyzw"[(w % row_words) % V]};
+      if(z == 1)
+        return type == "float" ? "uintBitsToFloat(" + bits + ")"
+                               : type + "(uintBitsToFloat(" + bits + "))";
+      if(type == "float")
+        return z == 8 ? "float(int(" + bits + "))" : "float(" + bits + ")";
+      return type == "int" ? "int(" + bits + ")" : bits;
+    }
+    return geo + fn + "(uvec4(" + std::to_string(x) + "u, " + std::to_string(y) + "u, "
+           + std::to_string(z) + "u, " + std::to_string(a) + "u), i)";
+  };
+  const auto by_index = [&](const std::string& type, const char* zero) {
+    std::string f = type + " " + geo + (type == "float" ? "_column" : "_column_" + type)
+                    + "(uint k, uint i) { ";
+    if(!fixed)
+    {
+      const std::string fn = type == "int"    ? "_isf_col_decode_int"
+                             : type == "uint" ? "_isf_col_decode_uint"
+                                              : "_isf_col_decode";
+      return f + "return " + geo + fn + "(" + geo + "_isf_colmeta(k), i); }\n";
+    }
+    f += "switch(k) { ";
+    for(std::size_t k = 0; k < columns.size(); k++)
+      f += "case " + std::to_string(k) + "u: return " + read(k, type) + "; ";
+    return f + "default: return " + zero + "; } }\n";
+  };
+  s += by_index("float", "0.0");
+  s += by_index("int", "0");
+  s += by_index("uint", "0u");
+  for(std::size_t k = 0; k < columns.size(); k++)
+  {
+    const auto& c = columns[k];
+    const std::string ks = std::to_string(k) + "u";
+    s += "const uint " + geo + "_COLUMN_" + c.name + " = " + ks + ";\n";
+    s += c.type + " " + geo + "_col_" + c.name + "(uint i) { return " + read(k, c.type)
+         + "; }\n";
+    // Specialized, ISF_HAS_COLUMN is a literal: what the shader derives from it
+    // (an SH degree, a layout) is a constant even across calls the driver
+    // does not inline.
+    if(fixed)
+      s += "#define " + geo + "_has_" + c.name + "() "
+           + (table[4 * k + 2] != 0 ? "true" : "false") + "\n";
+    else
+      s += "bool " + geo + "_has_" + c.name + "() { return " + geo + "_isf_colmeta(" + ks
+           + ").z != 0u; }\n";
+  }
+  s += "\n";
+  return s;
+}
+
 void parser::parse_csf()
 {
   using namespace std::literals;
@@ -7968,6 +8621,39 @@ void parser::parse_csf()
             "needs its members, e.g. \"LAYOUT\": [ { \"NAME\": \"xyz\", "
             "\"TYPE\": \"uint[3]\" } ] for dispatch_args."};
     }
+  }
+
+  // COLUMNS read the upstream rows through two storage blocks of the
+  // geometry input: the row words, bound to the upstream buffer itself, and
+  // one uvec4 per column (byte offset, byte stride, format, flags) filled by
+  // the engine. They travel as auxiliaries, last, so that they are declared
+  // and bound like any other. (A uniform block would not do: the OpenGL
+  // backend sets uniform blocks member by member and drops uvec4 arrays.)
+  for(auto& inp : m_desc.inputs)
+  {
+    auto* geo = ossia::get_if<geometry_input>(&inp.data);
+    if(!geo || geo->columns.empty())
+      continue;
+    for(const auto& aux : geo->auxiliary)
+      if(aux.name.rfind("isf_columns_", 0) == 0)
+        throw invalid_file{
+            "geometry \"" + inp.name + "\": the AUXILIARY name \"" + aux.name
+            + "\" is reserved for COLUMNS."};
+    geometry_input::auxiliary_request data;
+    data.name = "isf_columns_data";
+    data.access = "read_only";
+    data.layout.push_back({.name = "words", .type = "uint[]"});
+    data.size = "1";
+    data.column_block = 1;
+    geo->auxiliary.push_back(std::move(data));
+
+    geometry_input::auxiliary_request meta;
+    meta.name = "isf_columns_meta";
+    meta.access = "read_only";
+    meta.layout.push_back({.name = "entries", .type = "uvec4[]"});
+    meta.size = std::to_string(geo->columns.size());
+    meta.column_block = 2;
+    geo->auxiliary.push_back(std::move(meta));
   }
 
   std::string& compWithoutCSF = m_sourceFragment;
@@ -8536,6 +9222,9 @@ void parser::parse_csf()
 
         binding++;
       }
+
+      if(!geo.columns.empty())
+        m_fragment += column_accessors(inp.name, geo.columns);
 
       // Auxiliary textures (travel with the geometry; resolved by the
       // renderer from ossia::geometry::auxiliary_textures by name).

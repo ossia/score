@@ -76,13 +76,15 @@ struct EncoderSettings
   int max_b_frames{0};
   // What a muxer with AVFMT_GLOBALHEADER (mp4...) requires of its encoder.
   bool global_header{false};
+  //! Frames per second, and the encoder's time base 1/rate.
+  int rate{25};
 };
 
 constexpr int W = 64;
 constexpr int H = 48;
 
 // Encode `frames` yuv420p pictures, one packet per call order, pts 0..N-1 in
-// a 1/25 time base.
+// a 1/rate time base.
 static void encode(const EncoderSettings& s, Packets& out, AVCodecContext** keep_par)
 {
   const AVCodec* codec = avcodec_find_encoder(s.codec);
@@ -93,8 +95,8 @@ static void encode(const EncoderSettings& s, Packets& out, AVCodecContext** keep
   ctx->width = W;
   ctx->height = H;
   ctx->pix_fmt = AV_PIX_FMT_YUV420P;
-  ctx->time_base = {1, 25};
-  ctx->framerate = {25, 1};
+  ctx->time_base = {1, s.rate};
+  ctx->framerate = {s.rate, 1};
   ctx->bit_rate = 400000;
   ctx->gop_size = s.gop_size;
   ctx->max_b_frames = s.max_b_frames;
@@ -119,7 +121,7 @@ static void encode(const EncoderSettings& s, Packets& out, AVCodecContext** keep
       if(ret == AVERROR(EAGAIN) || ret == AVERROR_EOF)
         break;
       REQUIRE(ret == 0);
-      // One frame per tick of the 1/25 time base. Without a duration the mp4
+      // One frame per tick of the 1/rate time base. Without a duration the mp4
       // muxer ends the track's edit list one frame early and the demuxer
       // flags the last packet AV_PKT_FLAG_DISCARD: its frame then never
       // leaves libavcodec, by design.
@@ -798,6 +800,232 @@ TEST_CASE(
     REQUIRE(!pts.empty());
     CHECK(pts.front() == all.back());
   }
+
+  std::error_code ec;
+  fs::remove(path, ec);
+}
+
+TEST_CASE(
+    "a seek between the end of a frame's duration and the next frame shows that "
+    "frame",
+    "[video][decoder]")
+{
+  namespace fs = std::filesystem;
+  constexpr int N = 60;
+
+  // 30 frames per second in matroska's millisecond time base: the frames are
+  // 33 or 34 ms apart and each lasts 33 ms, so a time can fall after the end
+  // of a frame's duration and before the next frame. The frame shown there is
+  // the last one starting before it.
+  const auto path = (uniqueTempPath("score_videodecoder_gap") += ".mkv").string();
+  {
+    Packets p;
+    AVCodecContext* enc{};
+    encode(
+        {.codec = AV_CODEC_ID_MPEG4, .frames = N, .gop_size = 1000, .max_b_frames = 2,
+         .global_header = true, .rate = 30},
+        p, &enc);
+
+    AVFormatContext* mux{};
+    REQUIRE(avformat_alloc_output_context2(&mux, nullptr, "matroska", path.c_str()) >= 0);
+    AVStream* st = avformat_new_stream(mux, nullptr);
+    REQUIRE(st);
+    REQUIRE(avcodec_parameters_from_context(st->codecpar, enc) == 0);
+    st->time_base = enc->time_base;
+    REQUIRE(avio_open(&mux->pb, path.c_str(), AVIO_FLAG_WRITE) >= 0);
+    REQUIRE(avformat_write_header(mux, nullptr) >= 0);
+    for(auto* pkt : p.pkts)
+    {
+      av_packet_rescale_ts(pkt, enc->time_base, st->time_base);
+      pkt->stream_index = st->index;
+      REQUIRE(av_interleaved_write_frame(mux, pkt) >= 0);
+    }
+    REQUIRE(av_write_trailer(mux) >= 0);
+    avio_closep(&mux->pb);
+    avformat_free_context(mux);
+    avcodec_free_context(&enc);
+  }
+
+  using namespace std::chrono;
+  using namespace std::chrono_literals;
+
+  Video::VideoDecoder dec{Video::DecoderConfiguration{}};
+  REQUIRE(dec.load(path));
+
+  std::vector<int64_t> all;
+  std::vector<int64_t> durations;
+  {
+    const auto deadline = steady_clock::now() + 30s;
+    int idle_after_finish = 0;
+    while(steady_clock::now() < deadline)
+    {
+      if(AVFrame* f = dec.dequeue_frame())
+      {
+        all.push_back(f->pts);
+#if(LIBAVUTIL_VERSION_MAJOR < 58)
+        durations.push_back(f->pkt_duration);
+#else
+        durations.push_back(f->duration);
+#endif
+        dec.release_frame(f);
+        idle_after_finish = 0;
+      }
+      else
+      {
+        if(dec.m_finished && ++idle_after_finish > 100)
+          break;
+        std::this_thread::sleep_for(1ms);
+      }
+    }
+  }
+  REQUIRE(all.size() == N);
+
+  // A frame whose duration ends before the next frame starts.
+  size_t gap = 0;
+  for(size_t i = N / 2; i + 1 < all.size(); i++)
+  {
+    if(durations[i] > 0 && all[i] + durations[i] < all[i + 1])
+    {
+      gap = i;
+      break;
+    }
+  }
+  REQUIRE(gap > 0);
+
+  auto timeOf = [&](int64_t pts) {
+    return Video::ptsToFlicks(pts, dec.time_base, dec.start_pts);
+  };
+  // Half a tick before the next frame.
+  const int64_t target
+      = (timeOf(all[gap] + durations[gap]) + timeOf(all[gap + 1])) / 2;
+  REQUIRE(target > timeOf(all[gap] + durations[gap]));
+  REQUIRE(target < timeOf(all[gap + 1]));
+
+  const int before = dec.seek_generation.load();
+  dec.seek(target);
+  const auto deadline = steady_clock::now() + 30s;
+  while(dec.seek_generation.load() == before && steady_clock::now() < deadline)
+    std::this_thread::sleep_for(1ms);
+  REQUIRE(dec.seek_generation.load() != before);
+  const int generation = dec.seek_generation.load();
+
+  std::vector<int64_t> pts;
+  int idle = 0;
+  while(steady_clock::now() < deadline && idle < 200)
+  {
+    if(AVFrame* f = dec.dequeue_frame())
+    {
+      if(Video::frameGeneration(*f) >= generation)
+        pts.push_back(f->pts);
+      dec.release_frame(f);
+      idle = 0;
+    }
+    else
+    {
+      idle++;
+      std::this_thread::sleep_for(1ms);
+    }
+  }
+  REQUIRE(!pts.empty());
+  CHECK(pts.front() == all[gap]);
+  CHECK(pts == std::vector<int64_t>(all.begin() + gap, all.end()));
+
+  std::error_code ec;
+  fs::remove(path, ec);
+}
+
+// A file that ends in garbage instead of at a frame boundary: the demuxer
+// returns AVERROR_INVALIDDATA there, for ever, never AVERROR_EOF (y4m reads a
+// frame header that is not one). A seek into the last frame holds that frame
+// back until a later one or the end shows it is the one at the target; the
+// end here is that error, and the frame must still be shown, once.
+TEST_CASE(
+    "a seek into the last frame of a file ending in garbage shows that frame",
+    "[video][decoder]")
+{
+  namespace fs = std::filesystem;
+  constexpr int N = 30;
+  const auto path = (uniqueTempPath("score_videodecoder_garbage_tail") += ".y4m").string();
+  {
+    FILE* f = std::fopen(path.c_str(), "wb");
+    REQUIRE(f);
+    std::fprintf(f, "YUV4MPEG2 W%d H%d F25:1 Ip A1:1 C420jpeg\n", W, H);
+    std::vector<unsigned char> picture(W * H * 3 / 2);
+    for(int i = 0; i < N; i++)
+    {
+      std::fill(picture.begin(), picture.end(), (unsigned char)(i * 8));
+      std::fputs("FRAME\n", f);
+      std::fwrite(picture.data(), 1, picture.size(), f);
+    }
+    // Not a frame header: the demuxer stops on it.
+    std::vector<unsigned char> garbage(3000);
+    for(std::size_t i = 0; i < garbage.size(); i++)
+      garbage[i] = (unsigned char)(i * 37 + 11);
+    std::fwrite(garbage.data(), 1, garbage.size(), f);
+    std::fclose(f);
+  }
+
+  // The tail is what this test is about: the demuxer must end on an error
+  // that is not AVERROR_EOF.
+  {
+    AVFormatContext* fmt{};
+    REQUIRE(avformat_open_input(&fmt, path.c_str(), nullptr, nullptr) == 0);
+    REQUIRE(avformat_find_stream_info(fmt, nullptr) >= 0);
+    AVPacket* pkt = av_packet_alloc();
+    int packets = 0, end = 0;
+    while((end = av_read_frame(fmt, pkt)) >= 0)
+    {
+      packets++;
+      av_packet_unref(pkt);
+    }
+    av_packet_free(&pkt);
+    avformat_close_input(&fmt);
+    REQUIRE(packets == N);
+    REQUIRE(end != AVERROR_EOF);
+    REQUIRE(end != AVERROR(EAGAIN));
+  }
+
+  using namespace std::chrono;
+  using namespace std::chrono_literals;
+
+  Video::VideoDecoder dec{Video::DecoderConfiguration{}};
+  REQUIRE(dec.load(path));
+
+  // Half a frame into the last one: no frame starts after it.
+  const int64_t last = dec.start_pts + (N - 1);
+  const int64_t target
+      = (Video::ptsToFlicks(last, dec.time_base, dec.start_pts)
+         + Video::ptsToFlicks(last + 1, dec.time_base, dec.start_pts))
+        / 2;
+  const int before = dec.seeks_done.load();
+  dec.seek(target);
+  const auto deadline = steady_clock::now() + 30s;
+  while(dec.seeks_done.load() == before && steady_clock::now() < deadline)
+    std::this_thread::sleep_for(1ms);
+  REQUIRE(dec.seeks_done.load() == before + 1);
+  const int generation = dec.seek_generation.load();
+
+  std::vector<int64_t> pts;
+  int idle = 0;
+  while(steady_clock::now() < deadline && idle < 200)
+  {
+    if(AVFrame* f = dec.dequeue_frame())
+    {
+      if(Video::frameGeneration(*f) >= generation)
+        pts.push_back(f->pts);
+      dec.release_frame(f);
+      idle = 0;
+    }
+    else
+    {
+      idle++;
+      std::this_thread::sleep_for(1ms);
+    }
+  }
+  // Shown once: a reader asking for the same seek again would mean the seek
+  // landed on nothing.
+  CHECK(pts == std::vector<int64_t>{last});
+  CHECK(dec.seeks_done.load() == before + 1);
 
   std::error_code ec;
   fs::remove(path, ec);

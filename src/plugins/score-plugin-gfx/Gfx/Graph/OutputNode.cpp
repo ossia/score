@@ -1,11 +1,16 @@
 #include <Gfx/Graph/GpuResourceRegistry.hpp>
 #include <Gfx/Graph/OutputNode.hpp>
+#include <Gfx/Graph/RenderState.hpp>
+#include <Gfx/Graph/RhiIndirectCompat.hpp>
 #include <Gfx/Graph/Utils.hpp>
+
+#include <QDebug>
 
 #include <QCoreApplication>
 
 #include <algorithm>
 #include <iterator>
+#include <utility>
 
 #if defined(Q_OS_WIN)
 // clang-format off
@@ -224,6 +229,154 @@ void OutputNode::releaseRegistry()
     m_registry->destroyOwned();
     m_registry.reset();
   }
+}
+
+namespace
+{
+template <typename T>
+void releaseResource(T*& r, bool deferred) noexcept
+{
+  if(!r)
+    return;
+  if(deferred)
+    r->deleteLater();
+  else
+    delete r;
+  r = nullptr;
+}
+
+void releaseAttachments(TextureRenderTarget& t, bool deferred) noexcept
+{
+  releaseResource(t.renderTarget, deferred);
+  releaseResource(t.renderPass, deferred);
+  releaseResource(t.colorRenderBuffer, deferred);
+  releaseResource(t.depthRenderBuffer, deferred);
+  releaseResource(t.depthTexture, deferred);
+  t = {};
+}
+
+TextureRenderTarget
+tryOutputRenderTarget(QRhi& rhi, QRhiTexture& texture, OutputDepth depth, int samples)
+{
+  TextureRenderTarget t;
+  t.texture = &texture;
+  const QSize size = texture.pixelSize();
+
+  QRhiColorAttachment color{&texture};
+  if(samples > 1)
+  {
+    t.colorRenderBuffer = rhi.newRenderBuffer(
+        QRhiRenderBuffer::Color, size, samples, {}, texture.format());
+    t.colorRenderBuffer->setName("OutputRenderTarget::msaaColor");
+    if(!t.colorRenderBuffer->create())
+    {
+      releaseAttachments(t, false);
+      return {};
+    }
+    color = QRhiColorAttachment{t.colorRenderBuffer};
+    color.setResolveTexture(&texture);
+  }
+
+  QRhiTextureRenderTargetDescription desc{color};
+  switch(depth)
+  {
+    case OutputDepth::None:
+      break;
+    case OutputDepth::Texture:
+      t.depthTexture
+          = rhi.newTexture(QRhiTexture::D32F, size, samples, QRhiTexture::RenderTarget);
+      t.depthTexture->setName("OutputRenderTarget::depth");
+      if(!t.depthTexture->create())
+      {
+        releaseAttachments(t, false);
+        return {};
+      }
+      desc.setDepthTexture(t.depthTexture);
+      break;
+    case OutputDepth::DepthStencil:
+      t.depthRenderBuffer = rhi.newRenderBuffer(
+          QRhiRenderBuffer::DepthStencil, size, samples,
+          depthStencilRenderBufferFlags(rhi));
+      t.depthRenderBuffer->setName("OutputRenderTarget::depthStencil");
+      if(!t.depthRenderBuffer->create())
+      {
+        releaseAttachments(t, false);
+        return {};
+      }
+      desc.setDepthStencilBuffer(t.depthRenderBuffer);
+      break;
+  }
+
+  auto* rt = rhi.newTextureRenderTarget(desc);
+  rt->setName("OutputRenderTarget::renderTarget");
+  t.renderTarget = rt;
+  t.renderPass = rt->newCompatibleRenderPassDescriptor();
+  if(!t.renderPass)
+  {
+    releaseAttachments(t, false);
+    return {};
+  }
+  rt->setRenderPassDescriptor(t.renderPass);
+  if(!rt->create())
+  {
+    releaseAttachments(t, false);
+    return {};
+  }
+  return t;
+}
+
+bool canMultisample(QRhi& rhi, OutputDepth depth) noexcept
+{
+  if(!rhi.isFeatureSupported(QRhi::MultisampleRenderBuffer))
+    return false;
+  if(depth == OutputDepth::Texture && !rhi.isFeatureSupported(QRhi::MultisampleTexture))
+    return false;
+  return true;
+}
+}
+
+TextureRenderTarget createOutputRenderTarget(
+    RenderState& state, QRhiTexture& texture, OutputDepth depth, int samples)
+{
+  SCORE_ASSERT(state.rhi);
+  auto& rhi = *state.rhi;
+  if(samples < 1)
+    samples = std::max(state.samples, 1);
+
+  if(samples > 1 && !canMultisample(rhi, depth))
+  {
+    if(!std::exchange(state.warnedSampleFallback, true))
+      qWarning() << "createOutputRenderTarget: this backend cannot multisample an"
+                 << "offscreen target; the output renders without anti-aliasing";
+    samples = 1;
+  }
+
+  auto t = tryOutputRenderTarget(rhi, texture, depth, samples);
+  if(!t && samples > 1)
+  {
+    if(!std::exchange(state.warnedSampleFallback, true))
+      qWarning() << "createOutputRenderTarget: the backend refused a" << samples
+                 << "sample target of format" << texture.format()
+                 << "; the output renders without anti-aliasing";
+    t = tryOutputRenderTarget(rhi, texture, depth, 1);
+  }
+  if(!t)
+  {
+    qWarning() << "createOutputRenderTarget: the backend would not create the"
+               << "render target; this output will not render";
+    return {};
+  }
+
+  state.renderPassDescriptor = t.renderPass;
+  return t;
+}
+
+void releaseOutputRenderTarget(
+    RenderState& state, TextureRenderTarget& target, bool deferred) noexcept
+{
+  if(target.renderPass && state.renderPassDescriptor == target.renderPass)
+    state.renderPassDescriptor = nullptr;
+  releaseAttachments(target, deferred);
 }
 
 }

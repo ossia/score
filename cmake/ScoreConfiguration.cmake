@@ -16,6 +16,21 @@ endif()
 
 option(SCORE_PCH "Use precompiled headers. Will make the build faster." OFF)
 
+# Every avendish object's generated TU includes Avnd/Factories.hpp, which costs
+# more time and memory than the object itself; the add-ons compile most of
+# their objects as separate TUs, also in unity builds. This precompiles it once,
+# in score_plugin_avnd_pch, for all the add-on targets, whatever SCORE_PCH and
+# CMAKE_UNITY_BUILD say. MSVC is left out: a /Yu consumer must be compiled with
+# the options of the PCH, and the add-ons add their own. So is Emscripten: kfr
+# adds -msimd128 to the targets that link it, and clang refuses a PCH built
+# without the target features of its consumer.
+if(MSVC OR EMSCRIPTEN)
+  set(_score_avnd_pch_default OFF)
+else()
+  set(_score_avnd_pch_default ON)
+endif()
+option(SCORE_AVND_PCH "Precompile the avendish factories header once for every add-on object" ${_score_avnd_pch_default})
+
 option(INTEGRATION_TESTING "Run integration tests" OFF)
 
 option(SCORE_BUILD_FOR_PACKAGE_MANAGER "Set FHS-friendly install paths, plugins will go in /usr/lib/score/lib<blabla>.so" OFF)

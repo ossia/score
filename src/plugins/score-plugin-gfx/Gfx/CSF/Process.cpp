@@ -484,7 +484,7 @@ void Model::setupCSF(const isf::descriptor& desc)
 
     void operator()(const geometry_input& v)
     {
-      if(v.attributes.empty())
+      if(v.passes_through())
       {
         // No attributes declared: pure pass-through (input + output, forwards everything)
         auto in_port = new Gfx::GeometryInlet(
@@ -499,16 +499,7 @@ void Model::setupCSF(const isf::descriptor& desc)
       else
       {
         // Create a geometry inlet if any attribute needs upstream data (read_only or read_write)
-        bool needs_input = false;
-        for(const auto& attr : v.attributes)
-        {
-          if(attr.access == "read_only" || attr.access == "read_write")
-          {
-            needs_input = true;
-            break;
-          }
-        }
-        if(needs_input)
+        if(v.reads_upstream())
         {
           auto in_port = new Gfx::GeometryInlet(
               QString::fromStdString(input.name), Id<Process::Port>(input_i++), &self);

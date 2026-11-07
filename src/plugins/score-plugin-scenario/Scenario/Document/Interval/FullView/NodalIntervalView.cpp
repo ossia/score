@@ -197,8 +197,29 @@ QRectF NodalIntervalView::visibleRect() const
 
 QPointF NodalIntervalView::viewportCenter() const
 {
-  const auto visible = visibleRect();
-  return visible.isEmpty() ? boundingRect().center() : visible.center();
+  const QRectF r = boundingRect();
+  if(m_itemsToShow == AllItems)
+  {
+    // The nodal display: the middle of what is shown.
+    const auto visible = visibleRect();
+    return visible.isEmpty() ? r.center() : visible.center();
+  }
+
+  // A slot of the timeline can be much wider than the view: horizontally the
+  // canvas follows the part of the slot the view spans, so that a long
+  // interval keeps its nodes in sight. That point moves continuously, and
+  // stays on the slot's edge once the view is past it. Vertically it is the
+  // middle of the slot: scrolling the timeline up or down, or until the slot
+  // is out of sight, must not move the nodes, nor the cables going to them.
+  auto v = getView(*this);
+  if(!v || r.isEmpty())
+    return r.center();
+
+  const double viewLeft = mapFromScene(v->mapToScene(0, 0)).x();
+  const double viewRight = mapFromScene(v->mapToScene(v->width(), 0)).x();
+  const double lo = std::max(r.left(), std::min(viewLeft, viewRight));
+  const double hi = std::min(r.right(), std::max(viewLeft, viewRight));
+  return {std::clamp((lo + hi) / 2., r.left(), r.right()), r.center().y()};
 }
 
 QPointF NodalIntervalView::pastePosition(QPointF scenePos) const
@@ -340,16 +361,56 @@ void NodalIntervalView::on_processAdded(const Process::ProcessModel& proc)
   if(!m_autoCenter && !m_dropping)
   {
     m_nodeToShow = item;
-    showNode(*item);
+    // The command creating the node may still move it (chaining before a
+    // port places it once it knows its size): look where it ends up.
+    QTimer::singleShot(0, item, [this, item] {
+      if(m_nodeToShow == item)
+        showNode(*item);
+    });
   }
 }
 
 void NodalIntervalView::showNode(const Process::NodeItem& item)
 {
-  // As the zoom's center button does: all the nodes fit
   const QRectF visible = visibleRect();
-  if(!visible.isEmpty() && !visible.contains(mapRectFromScene(item.sceneBoundingRect())))
-    recenter();
+  if(visible.isEmpty())
+    return;
+  QRectF r = mapRectFromScene(item.sceneBoundingRect());
+  if(r.isEmpty() || visible.contains(r))
+    return;
+
+  if(r.width() > visible.width() || r.height() > visible.height())
+  {
+    // Too large for the view at this zoom: zoom out around the middle of the
+    // view until it just fits.
+    const double ratio
+        = std::min(visible.width() / r.width(), visible.height() / r.height());
+    const double z = std::max(m_container->scale() * ratio, 0.01);
+    const QPointF anchor = visible.center();
+    const QPointF localAnchor = m_container->mapFromParent(anchor);
+    m_container->setScale(z);
+    m_container->setPos(
+        m_container->pos() + (anchor - m_container->mapToParent(localAnchor)));
+    m_zoomLevel = std::log(z) / std::log(g_zoom_base);
+    const_cast<IntervalModel&>(m_model).setNodalScale(z);
+    r = mapRectFromScene(item.sceneBoundingRect());
+  }
+
+  // On each axis, pan by the least that brings the node in, leaving a small
+  // gap to the edge when there is room for one.
+  const auto shift = [](double lo, double hi, double vlo, double vhi) {
+    if(lo >= vlo && hi <= vhi)
+      return 0.;
+    const double gap = std::clamp(((vhi - vlo) - (hi - lo)) / 2., 0., 8.);
+    if(lo < vlo || hi - lo > vhi - vlo)
+      return vlo + gap - lo;
+    return vhi - gap - hi;
+  };
+  const QPointF delta{
+      shift(r.left(), r.right(), visible.left(), visible.right()),
+      shift(r.top(), r.bottom(), visible.top(), visible.bottom())};
+  m_container->setPos(m_container->pos() + delta);
+  storeCenterFromContainer();
 }
 
 void NodalIntervalView::on_processRemoving(const Process::ProcessModel& model)
@@ -554,6 +615,7 @@ void NodalIntervalView::wheelEvent(QGraphicsSceneWheelEvent* event)
     return;
   }
 
+  m_nodeToShow = nullptr;
   QPointF anchor = event->pos();
   QPointF localAnchor = m_container->mapFromParent(anchor);
 

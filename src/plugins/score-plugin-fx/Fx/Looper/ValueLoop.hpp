@@ -237,11 +237,23 @@ struct value_loop : tagged_pass_stack<value_loop, tagged_pass, 32>
     return nullptr;
   }
 
+  //! Room for one more piece in a store holding `used` of `max`: the
+  //! material of the erased passes kept for undo goes for it, the oldest
+  //! pass first.
+  bool make_room(const int& used, int max) noexcept
+  {
+    while(used >= max)
+      if(!forget_oldest_kept())
+        return false;
+    return true;
+  }
+
   //! The pass being taken in has its first new value of `key` at `pos`,
   //! `at` frames into it: it holds the key from there on.
   void touch_key(uint16_t key, int64_t pos, int64_t at, bool backwards) noexcept
   {
-    if(touched(key) || touch_count >= max_touched || stretch_count >= max_stretches)
+    if(touched(key) || touch_count >= max_touched
+       || !make_room(stretch_count, max_stretches))
       return;
     auto& s = stretches[stretch_count];
     s = value_stretch{
@@ -338,7 +350,7 @@ struct value_loop : tagged_pass_stack<value_loop, tagged_pass, 32>
         return &e;
       }
     }
-    if(event_count >= max_events)
+    if(!make_room(event_count, max_events))
     {
       full = true;
       return nullptr;

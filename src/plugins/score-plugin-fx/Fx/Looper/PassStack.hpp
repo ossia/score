@@ -13,6 +13,9 @@ namespace Nodes::Looper
 //! What a loop whose material is kept apart keeps of a pass besides it.
 struct tagged_pass
 {
+  //! Tells the pass from every other of its loop, wherever it moves: a view
+  //! names the pass it shows by it.
+  uint32_t id{};
   //! Length it repeats with: zero while it is the loop's length. A pass made
   //! before the loop was extended plays again over the longer loop.
   int64_t period{};
@@ -27,14 +30,23 @@ struct tagged_pass
 /**
  * The passes of a loop, one over the other, whatever they hold.
  *
- * A pass is the first recording or an overdub on top of it. Undo hides the
- * newest one and redo shows it again; erase takes one out for good; mute
- * keeps one but does not hear it; a pass past Max layers is merged with
- * another, or takes the place of one, which is set aside for undo to put
+ * A pass is the first recording or an overdub on top of it. Erase takes one
+ * out, mute keeps one but does not hear it; a pass past Max layers is merged
+ * with another, or takes the place of one, which is set aside for undo to put
  * back. The stack does the bookkeeping of all of it, the same for every
  * looper: which passes are heard and which redo brings back, the length each
  * one repeats with, the length of the loop before and after each one, which
  * ones are muted, the layer set aside and the merge undo can take apart.
+ *
+ * Undo goes back through what was done, the last first: a pass is hidden, an
+ * erased pass comes back where it was, with what it recorded, and a mute is
+ * taken back; redo does it again, until something else is done. An erased
+ * pass is kept for that, at most max_kept of them, the oldest going for
+ * good, with the actions before it, when another is erased or when its
+ * memory is wanted for a new pass. A merge, a pass set aside to make room or
+ * a clear change the passes in a way the actions before cannot be taken back
+ * over: undo then hides passes from the newest, as it does past the oldest
+ * action kept.
  *
  * `Pass` holds, besides what the looper keeps of its own for a pass (a
  * buffer, a gain...), `period`, `loop_before`, `loop_after` and `muted`, and
@@ -49,7 +61,10 @@ struct tagged_pass
  *   void muting(int k);             // pass k is about to be muted or unmuted
  *   void removing(int k);           // pass k is about to be erased or set
  *                                   // aside: the passes over it move down
- *   void erased(int k);             // pass k is erased: its material goes
+ *   void kept_taken(int k, int j);  // pass k is erased: kept in place j
+ *   void kept_returned(int k, int j); // the pass kept in place j comes back
+ *                                   // at k, the passes from there moving up
+ *   void kept_forgotten(int j);     // the pass kept in place j is gone for good
  *   void aside_taken(int k);        // pass k goes to the side
  *   void aside_returned(int k);     // the pass set aside comes back at k
  *   void aside_forgotten();         // the pass set aside is gone for good
@@ -109,7 +124,84 @@ struct pass_stack
 
   merge_log merged_passes;
 
+  //! Erased passes kept for undo, at most.
+  static constexpr int max_kept = 8;
+  //! Actions undo goes back through, at most.
+  static constexpr int max_history = 64;
+
+  //! What undo and redo take back and do again. The actions of one press
+  //! share a group, which undo takes back together.
+  struct action
+  {
+    enum kind_t : uint8_t
+    {
+      pass,
+      erase,
+      mute
+    } kind{};
+    //! The pass erased or muted.
+    int8_t at{};
+    //! Where an erased pass is kept, while undo can bring it back.
+    int8_t kept{-1};
+    //! A mute: the pass is muted after it.
+    bool muted{};
+    uint32_t group{};
+    //! The id of the pass made, erased or muted.
+    uint32_t id{};
+  };
+  std::array<action, max_history> history{};
+  //! Actions done; the ones from `done` to `recorded` are what redo does
+  //! again.
+  int done{};
+  int recorded{};
+  uint32_t group{};
+  bool grouping{};
+  //! The erased passes undo can bring back, `kept_used` saying which places
+  //! hold one.
+  std::array<Pass, max_kept> kept_passes{};
+  uint32_t kept_used{};
+  //! The id of the last pass made.
+  uint32_t last_id{};
+
+  //! What an undo or a redo did: whether anything, and the pass that came
+  //! back or went, which the passes from there on moved for.
+  struct step
+  {
+    bool done{};
+    int inserted{-1};
+    int removed{-1};
+  };
+
   bool empty() const noexcept { return count == 0 || length == 0; }
+
+  //! Index of the pass heard whose id is `id`, -1 when none is.
+  int index_of(uint32_t id) const noexcept
+  {
+    if(id == 0)
+      return -1;
+    for(int i = 0; i < count; i++)
+      if(layers[i].id == id)
+        return i;
+    return -1;
+  }
+
+  //! The actions until end_group() are one for undo.
+  void begin_group() noexcept
+  {
+    group++;
+    grouping = true;
+  }
+  void end_group() noexcept { grouping = false; }
+
+  //! Undo takes back an action: its last one is not the pass being taken in.
+  bool undoes_action() const noexcept
+  {
+    return done > 0 && history[done - 1].kind != action::pass;
+  }
+  bool can_undo() const noexcept { return done > 0 || count > 0; }
+  bool can_redo() const noexcept { return recorded > done || total > count; }
+  //! Redo does an action again, rather than showing a pass undo hid.
+  bool redoes_action() const noexcept { return recorded > done; }
 
   Pass* top() noexcept { return count > 0 ? &layers[count - 1] : nullptr; }
 
@@ -143,20 +235,21 @@ struct pass_stack
     return true;
   }
 
-  //! Mutes or unmutes pass k, k being heard.
+  //! Mutes or unmutes pass k, k being heard: an action undo takes back.
   bool set_muted(int k, bool m) noexcept
   {
     if(k < 0 || k >= count || layers[k].muted == m)
       return false;
-    self().muting(k);
-    layers[k].muted = m;
-    drop_unmerge();
-    self().passes_changed();
+    drop_redo();
+    const uint32_t id = layers[k].id;
+    apply_mute(k, m);
+    record(action{.kind = action::mute, .at = int8_t(k), .muted = m, .id = id});
     return true;
   }
 
   void clear() noexcept
   {
+    forget_history();
     unmerge.valid = false;
     aside.valid = false;
     count = 0;
@@ -173,6 +266,8 @@ struct pass_stack
     count = 1;
     total = 1;
     layers[0] = Pass{};
+    layers[0].id = ++last_id;
+    record(action{.kind = action::pass, .id = layers[0].id});
     return layers[0];
   }
 
@@ -181,12 +276,15 @@ struct pass_stack
   {
     auto& l = layers[count];
     l = Pass{};
+    l.id = ++last_id;
     l.loop_before = length;
     l.loop_after = length;
     count++;
     total = count;
     pushes++;
     aside.by = count - 1;
+    recorded = done;
+    record(action{.kind = action::pass, .id = l.id});
     self().passes_changed();
     return l;
   }
@@ -196,12 +294,44 @@ struct pass_stack
   void drop_redo() noexcept
   {
     const bool keep_aside = aside.valid && !aside.returned;
+    // Without a pass for redo to show again, no material is to go: the
+    // actions redo does again hold none.
+    if(total == count)
+    {
+      recorded = done;
+      if(!keep_aside)
+        aside.valid = false;
+      drop_unmerge();
+      return;
+    }
     self().redo_dropped(keep_aside);
     total = count;
+    recorded = done;
     if(!keep_aside)
       aside.valid = false;
     drop_unmerge();
     self().passes_changed();
+  }
+
+  //! Forgets every action: undo hides passes from the newest. The erased
+  //! passes kept for it are gone for good.
+  void forget_history() noexcept
+  {
+    drop_oldest(done);
+    done = recorded = 0;
+  }
+
+  //! Forgets the actions up to the oldest erase undo can take back, the
+  //! memory of its pass being wanted. False when there is none.
+  bool forget_oldest_kept() noexcept
+  {
+    for(int i = 0; i < done; i++)
+      if(history[i].kind == action::erase && history[i].kept >= 0)
+      {
+        drop_oldest(i + 1);
+        return true;
+      }
+    return false;
   }
 
   //! Forgets the layer set aside.
@@ -227,6 +357,7 @@ struct pass_stack
   {
     if(k < 0 || k >= count || count < 2 || !self().may_remove(k))
       return;
+    forget_history();
     forget_aside();
     drop_unmerge();
     move_aside(k);
@@ -268,10 +399,115 @@ struct pass_stack
     self().passes_changed();
   }
 
-  bool undo() noexcept
+  //! Undoes the last action, or hides the newest pass once there is none.
+  //! The actions of a group are undone together.
+  step undo() noexcept
+  {
+    if(done == 0)
+    {
+      // Past the actions kept, what redo would do again of them is not
+      // where it was any more.
+      if(count > 0)
+        recorded = 0;
+      return undo_top();
+    }
+    step s;
+    const uint32_t g = history[done - 1].group;
+    while(done > 0 && history[done - 1].group == g)
+    {
+      auto& a = history[--done];
+      switch(a.kind)
+      {
+        case action::pass: {
+          const step t = undo_top();
+          s.done |= t.done;
+          if(t.inserted >= 0)
+            s.inserted = t.inserted;
+          break;
+        }
+        case action::erase:
+          if(a.kept >= 0 && unkeep(a.at, a.kept))
+          {
+            a.kept = -1;
+            s.done = true;
+            s.inserted = a.at;
+          }
+          break;
+        case action::mute:
+          s.done |= apply_mute(a.at, !a.muted);
+          break;
+      }
+    }
+    return s;
+  }
+
+  //! Does again what undo took back last, or shows the pass it hid.
+  step redo() noexcept
+  {
+    if(recorded <= done)
+      return redo_top();
+    step s;
+    const uint32_t g = history[done].group;
+    while(done < recorded && history[done].group == g)
+    {
+      switch(history[done].kind)
+      {
+        case action::pass: {
+          const step t = redo_top();
+          s.done |= t.done;
+          if(t.removed >= 0)
+            s.removed = t.removed;
+          break;
+        }
+        case action::erase: {
+          const int k = history[done].at;
+          if(k >= count || count < 2 || !self().may_remove(k))
+            break;
+          // Room for it may cost the oldest actions.
+          const int j = take_kept();
+          auto& a = history[done];
+          drop_unmerge();
+          forget_aside();
+          keep(k, j);
+          a.kept = int8_t(j);
+          s.done = true;
+          s.removed = k;
+          break;
+        }
+        case action::mute:
+          s.done |= apply_mute(history[done].at, history[done].muted);
+          break;
+      }
+      done++;
+    }
+    return s;
+  }
+
+  //! The pass being taken in, the newest, goes, without being an action redo
+  //! does again: with it what was done to it. Its actions are found by its
+  //! id: the oldest ones may be forgotten, its own among them.
+  step drop_top() noexcept
+  {
+    if(count > 0)
+    {
+      const uint32_t id = layers[count - 1].id;
+      int out = 0;
+      for(int i = 0; i < done; i++)
+        if(!(history[i].id == id
+             && (history[i].kind == action::pass || history[i].kind == action::mute)))
+          history[out++] = history[i];
+      done = recorded = out;
+    }
+    const step s = undo_top();
+    drop_redo();
+    return s;
+  }
+
+  //! Hides the newest pass: a layer it replaced comes back in its place.
+  step undo_top() noexcept
   {
     if(count == 0)
-      return false;
+      return {};
     self().undoing();
     // The pass merged into the newest one comes out of it.
     if(unmerge.valid && unmerge.at == count - 1)
@@ -286,10 +522,10 @@ struct pass_stack
       length = unmerge.b.loop_before;
       total = count + 1;
       self().passes_changed();
-      return true;
+      return {.done = true};
     }
     drop_unmerge();
-    const bool back = returns_on_undo() >= 0;
+    const int back = returns_on_undo();
     auto& l = layers[count - 1];
     if(count > 1)
     {
@@ -297,20 +533,22 @@ struct pass_stack
       length = l.loop_before;
     }
     count--;
-    if(back)
+    if(back >= 0)
       put_back();
     self().passes_changed();
-    return true;
+    return {.done = true, .inserted = back};
   }
 
-  bool redo() noexcept
+  //! Shows the pass undo_top() hid last.
+  step redo_top() noexcept
   {
     if(count >= total)
-      return false;
+      return {};
     self().undoing();
     drop_unmerge();
     // The pass that replaced a layer takes its place again.
-    if(const int k = leaves_on_redo(); k >= 0)
+    const int k = leaves_on_redo();
+    if(k >= 0)
     {
       const int by = aside.by;
       move_aside(k);
@@ -320,28 +558,29 @@ struct pass_stack
       length = layers[count].loop_after;
     count++;
     self().passes_changed();
-    return true;
+    return {.done = true, .removed = k};
   }
 
   //! Takes pass k out of the loop, k being heard and not the only one heard:
-  //! the passes over it and the ones redo brings back move down a place, and
-  //! the loop keeps its length.
+  //! the passes over it move down a place, and the loop keeps its length.
+  //! The pass is kept for undo to put back.
   bool erase(int k) noexcept
   {
     if(k < 0 || k >= count || count < 2 || !self().may_remove(k))
       return false;
-    drop_unmerge();
+    drop_redo();
     forget_aside();
-    self().removing(k);
-    self().erased(k);
-    shift_down(k);
-    self().passes_changed();
+    const int j = take_kept();
+    const uint32_t id = layers[k].id;
+    keep(k, j);
+    record(action{.kind = action::erase, .at = int8_t(k), .kept = int8_t(j), .id = id});
     return true;
   }
 
   //! A merge is about to be worked out: what it would make stale goes.
   void begin_merge() noexcept
   {
+    forget_history();
     if(total > count)
       drop_redo();
     drop_unmerge();
@@ -396,6 +635,92 @@ struct pass_stack
 private:
   Store& self() noexcept { return static_cast<Store&>(*this); }
 
+  bool apply_mute(int k, bool m) noexcept
+  {
+    if(k < 0 || k >= count || layers[k].muted == m)
+      return false;
+    self().muting(k);
+    layers[k].muted = m;
+    drop_unmerge();
+    self().passes_changed();
+    return true;
+  }
+
+  void record(action a) noexcept
+  {
+    if(done >= max_history)
+      drop_oldest(1);
+    a.group = grouping ? group : ++group;
+    history[done++] = a;
+    recorded = done;
+  }
+
+  //! Forgets the `n` oldest actions; the passes their erases kept are gone.
+  void drop_oldest(int n) noexcept
+  {
+    n = std::clamp(n, 0, recorded);
+    for(int i = 0; i < n; i++)
+      if(history[i].kind == action::erase && history[i].kept >= 0)
+      {
+        const int j = history[i].kept;
+        kept_used &= ~(uint32_t(1) << j);
+        self().kept_forgotten(j);
+      }
+    for(int i = n; i < recorded; i++)
+      history[i - n] = history[i];
+    done = std::max(0, done - n);
+    recorded -= n;
+  }
+
+  //! A place to keep an erased pass in, the oldest kept one going when all
+  //! are taken.
+  int take_kept() noexcept
+  {
+    for(;;)
+    {
+      for(int j = 0; j < max_kept; j++)
+        if(!(kept_used & (uint32_t(1) << j)))
+          return j;
+      if(!forget_oldest_kept())
+      {
+        // Kept by actions redo would do again: those go.
+        recorded = done;
+        for(int j = 0; j < max_kept; j++)
+          self().kept_forgotten(j);
+        kept_used = 0;
+      }
+    }
+  }
+
+  //! Pass k goes to place j of the kept passes.
+  void keep(int k, int j) noexcept
+  {
+    self().removing(k);
+    kept_passes[j] = layers[k];
+    kept_used |= uint32_t(1) << j;
+    self().kept_taken(k, j);
+    shift_down(k);
+    self().passes_changed();
+  }
+
+  //! The pass kept in place j comes back at k.
+  bool unkeep(int k, int j) noexcept
+  {
+    if(k < 0 || k > count || total + 1 >= int(layers.size()))
+      return false;
+    drop_unmerge();
+    forget_aside();
+    self().kept_returned(k, j);
+    for(int i = total; i > k; i--)
+      layers[i] = layers[i - 1];
+    layers[k] = kept_passes[j];
+    kept_used &= ~(uint32_t(1) << j);
+    count++;
+    total++;
+    self().passes_changed();
+    return true;
+  }
+
   void shift_down(int k) noexcept
   {
     for(int i = k; i + 1 < total; i++)
@@ -447,49 +772,57 @@ enum merge_mark : uint8_t
  * index of its pass, `replaced_by`, the passes that replace it, a bit each,
  * and `merged`, its merge_marks: how a pass_stack's hooks move it along.
  *
- * Two indices past every pass there can be hold the material of the layer
- * set aside, and that of a muted pass a merge lost, which undoing the merge
- * gives back.
+ * Indices past every pass there can be hold the material of the layer set
+ * aside, that of a muted pass a merge lost, which undoing the merge gives
+ * back, and that of the erased passes undo can bring back, which the passes
+ * moving leave where it is.
  */
-template <int MaxPasses>
+template <int MaxPasses, int MaxKept>
 struct tagged_material
 {
   static constexpr int aside_pass = MaxPasses;
   static constexpr int lost_pass = MaxPasses + 1;
-  static_assert(lost_pass < 64);
+  static constexpr int kept_pass = MaxPasses + 2;
+  static_assert(kept_pass + MaxKept <= 64);
   static constexpr uint64_t bit(int k) noexcept { return uint64_t(1) << k; }
+  //! The bits of the passes, under the ones of the material kept apart.
+  static constexpr uint64_t passes_mask = bit(aside_pass) - 1;
 
-  template <typename T>
-  static void erase(T& e, int k) noexcept
+  static constexpr uint64_t without(uint64_t m, int k) noexcept
   {
-    e.replaced_by = without_pass(e.replaced_by, k);
-    if(e.pass > k)
-      e.pass--;
+    return (without_pass(m & passes_mask, k) & passes_mask) | (m & ~passes_mask);
+  }
+  static constexpr uint64_t with_room(uint64_t m, int k) noexcept
+  {
+    return (with_room_at(m & passes_mask, k) & passes_mask) | (m & ~passes_mask);
   }
 
+  //! Pass k goes to index `to` past the passes, the side or a place of the
+  //! kept passes: the passes over it move down.
   template <typename T>
-  static void set_aside(T& e, int k) noexcept
+  static void set_aside(T& e, int k, int to = aside_pass) noexcept
   {
     const bool by_k = e.replaced_by & bit(k);
-    e.replaced_by = without_pass(e.replaced_by, k);
+    e.replaced_by = without(e.replaced_by, k);
     if(by_k)
-      e.replaced_by |= bit(aside_pass);
+      e.replaced_by |= bit(to);
     if(e.pass == k)
-      e.pass = uint8_t(aside_pass);
-    else if(e.pass > k)
+      e.pass = uint8_t(to);
+    else if(e.pass > k && e.pass < aside_pass)
       e.pass--;
   }
 
+  //! The pass at index `from` past the passes comes back at k.
   template <typename T>
-  static void put_back(T& e, int k) noexcept
+  static void put_back(T& e, int k, int from = aside_pass) noexcept
   {
-    const bool by_aside = e.replaced_by & bit(aside_pass);
-    e.replaced_by = with_room_at(e.replaced_by & ~bit(aside_pass), k);
-    if(by_aside)
+    const bool by_it = e.replaced_by & bit(from);
+    e.replaced_by = with_room(e.replaced_by & ~bit(from), k);
+    if(by_it)
       e.replaced_by |= bit(k);
-    if(e.pass == aside_pass)
+    if(e.pass == from)
       e.pass = uint8_t(k);
-    else if(e.pass >= k)
+    else if(e.pass >= k && e.pass < aside_pass)
       e.pass++;
   }
 
@@ -509,7 +842,7 @@ struct tagged_material
     uint64_t r = e.replaced_by & ~(bit(a) | bit(b));
     if((had_a && !lost_a) || (had_b && !lost_b))
       r |= bit(a);
-    e.replaced_by = without_pass(r, b);
+    e.replaced_by = without(r, b);
     if((e.pass == a && lost_a) || (e.pass == b && lost_b))
       e.pass = uint8_t(lost_pass);
     else if(e.pass >= b && e.pass < aside_pass)
@@ -521,7 +854,7 @@ struct tagged_material
   static void unmerge(T& e, int a) noexcept
   {
     const int b = a + 1;
-    uint64_t r = with_room_at(e.replaced_by, b) & ~bit(a);
+    uint64_t r = with_room(e.replaced_by, b) & ~bit(a);
     if(e.merged & replaced_by_lower)
       r |= bit(a);
     if(e.merged & replaced_by_upper)
@@ -548,7 +881,7 @@ template <typename Store, typename Pass, int MaxLayers>
 struct tagged_pass_stack : pass_stack<Store, Pass, MaxLayers>
 {
   using stack = pass_stack<Store, Pass, MaxLayers>;
-  using tags = tagged_material<stack::max_passes>;
+  using tags = tagged_material<stack::max_passes, stack::max_kept>;
   //! Where the material of a pass set aside is, past every pass there can be.
   static constexpr int aside_pass = tags::aside_pass;
 
@@ -571,10 +904,19 @@ struct tagged_pass_stack : pass_stack<Store, Pass, MaxLayers>
   bool may_remove(int k) const noexcept { return !(taking && k == this->count - 1); }
   void muting(int) noexcept { }
   void removing(int) noexcept { }
-  void erased(int k) noexcept
+  void kept_taken(int k, int j) noexcept
   {
-    store().remove_material([k](const auto& e) { return e.pass == k; });
-    store().for_each_material([k](auto& e) { tags::erase(e, k); });
+    store().for_each_material([k, j](auto& e) { tags::set_aside(e, k, tags::kept_pass + j); });
+  }
+  void kept_returned(int k, int j) noexcept
+  {
+    store().for_each_material([k, j](auto& e) { tags::put_back(e, k, tags::kept_pass + j); });
+  }
+  void kept_forgotten(int j) noexcept
+  {
+    const int p = tags::kept_pass + j;
+    store().remove_material([p](const auto& e) { return e.pass == p; });
+    store().for_each_material([p](auto& e) { e.replaced_by &= ~tags::bit(p); });
   }
   void aside_taken(int k) noexcept
   {
@@ -593,13 +935,15 @@ struct tagged_pass_stack : pass_stack<Store, Pass, MaxLayers>
   {
     const int heard_passes = this->count;
     store().remove_material([heard_passes, keep_aside](const auto& e) {
-      return e.pass >= heard_passes && !(keep_aside && e.pass == aside_pass);
+      return e.pass >= heard_passes && e.pass < tags::kept_pass
+             && !(keep_aside && e.pass == aside_pass);
     });
-    uint64_t kept
+    uint64_t still
         = this->count >= 64 ? ~uint64_t(0) : (uint64_t(1) << this->count) - 1;
+    still |= ~(tags::bit(tags::kept_pass) - 1);
     if(keep_aside)
-      kept |= tags::bit(aside_pass);
-    store().for_each_material([kept](auto& e) { e.replaced_by &= kept; });
+      still |= tags::bit(aside_pass);
+    store().for_each_material([still](auto& e) { e.replaced_by &= still; });
   }
   void unmerge_dropped() noexcept
   {
@@ -685,6 +1029,9 @@ struct tagged_pass_stack : pass_stack<Store, Pass, MaxLayers>
     const bool lost_b = was_b.muted && !was_a.muted;
     store().for_each_material([=](auto& e) { tags::merge(e, a, lost_a, lost_b); });
     this->merged(a, this->merged_pass(was_a, was_b), undoable, was_a, was_b);
+    // What the merge lost is for undo only.
+    if(!undoable)
+      unmerge_dropped();
   }
 
   void begin_pass_state(int64_t start) noexcept
@@ -723,6 +1070,13 @@ struct tagged_pass_stack : pass_stack<Store, Pass, MaxLayers>
     this->layers = o.layers;
     this->unmerge = o.unmerge;
     this->aside = o.aside;
+    this->history = o.history;
+    this->done = o.done;
+    this->recorded = o.recorded;
+    this->group = o.group;
+    this->kept_passes = o.kept_passes;
+    this->kept_used = o.kept_used;
+    this->last_id = o.last_id;
     edits = o.edits;
     pass_start = o.pass_start;
     pass_written = o.pass_written;

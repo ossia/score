@@ -1480,7 +1480,7 @@ TEST_CASE("AssetLoader: .ply forks on ply_is_splat_shaped()",
     const auto* cloud = find_first_cloud(*loader->m_parsed_state);
     REQUIRE(cloud);
     CHECK(cloud->primitive_count == 2);
-    CHECK(cloud->format_id == "3dgs.classic");
+    CHECK(cloud->format_id == "3dgs");
     CHECK(cloud->topology == ossia::primitive_topology::points);
     // ...and NOT the mesh path.
     CHECK(find_first_mesh(*loader->m_parsed_state) == nullptr);

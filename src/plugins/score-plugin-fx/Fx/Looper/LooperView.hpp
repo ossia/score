@@ -51,7 +51,10 @@ enum class TakeFiles
 
 //! Sent by the view to the looper: erase pass `pass`, counting from the
 //! oldest one, of a loop the view showed with `layers` passes, or mute it or
-//! unmute it when `mute` is set. A loop that has changed since is left alone.
+//! unmute it when `mute` is set. With `id`, the pass of that id is the one,
+//! wherever it is when the grid comes; without, a loop that has changed
+//! since is left alone. A mute sets the pass muted when `muted` is 1, heard
+//! when it is 0, and toggles it else.
 //! With `take` set, it asks instead for a take of the loop as it is heard
 //! now, the pass being taken in included as far as it went: `take` numbers
 //! the request, which view_message::answered gives back once it is written.
@@ -64,6 +67,8 @@ struct erase_request
   bool mute{};
   int take{};
   int last{-1};
+  uint32_t id{};
+  int8_t muted{-1};
 };
 
 //! What a looper shows of itself, sent about thirty times a second. Trivial,
@@ -128,8 +133,15 @@ struct view_message
   float speed;
   //! Lanes of a single pass that is muted.
   std::array<uint8_t, max_lanes> muted;
+  //! The id of the pass of each lane of a single pass, 0 for the others.
+  std::array<uint32_t, max_lanes> lane_id;
   //! The pass Layer says, from the oldest one, which the layer actions act on.
   int selected;
+  //! The passes an m or x was asked for, that the looper got and did not do
+  //! yet, by id, 0 past them: an m or x the looper turned down is not among
+  //! them.
+  static constexpr int max_queued = 32;
+  std::array<uint32_t, max_queued> queued;
   //! Waiting for the grid point besides a mode: back to the loop's start, a
   //! new pass.
   bool restart_pending;
@@ -271,6 +283,90 @@ struct looper_view
   uint64_t m_stopped_looper{};
   int m_stopped_stops{-1};
 
+  //! An m or x pressed, until the looper shows it done: the lane shows what
+  //! it asked for at once, though the looper waits for the grid.
+  struct pending_action
+  {
+    uint32_t id{};
+    bool erase{};
+    bool muted{};
+    //! The looper showed it queued.
+    bool seen{};
+    //! Messages that came without it queued.
+    uint8_t unseen{};
+  };
+  //! Messages an m or x may take to reach the looper and come back in what it
+  //! shows queued: past them, the looper did not take it.
+  static constexpr int max_unseen = 15;
+  static constexpr int max_pending = 16;
+  std::array<pending_action, max_pending> m_pending{};
+  int m_pending_count{};
+
+  const pending_action* pending_of(uint32_t id) const noexcept
+  {
+    if(id == 0 || !layer_buttons())
+      return nullptr;
+    for(int i = m_pending_count - 1; i >= 0; i--)
+      if(m_pending[i].id == id)
+        return &m_pending[i];
+    return nullptr;
+  }
+  void add_pending(pending_action a) noexcept
+  {
+    for(int i = 0; i < m_pending_count; i++)
+      if(m_pending[i].id == a.id && !m_pending[i].erase)
+      {
+        m_pending[i] = a;
+        return;
+      }
+    if(m_pending_count < max_pending)
+      m_pending[m_pending_count++] = a;
+  }
+  //! What the looper shows done, or cannot do any more, is not pending.
+  void settle_pending() noexcept
+  {
+    if(!has_state || state.stopped || state.empty)
+    {
+      m_pending_count = 0;
+      return;
+    }
+    int out = 0;
+    for(int i = 0; i < m_pending_count; i++)
+    {
+      auto a = m_pending[i];
+      const int lane = lane_of_id(a.id);
+      const bool done = lane < 0 || (!a.erase && bool(state.muted[lane]) == a.muted);
+      if(done)
+        continue;
+      if(queued(a.id))
+        a.seen = true;
+      else if(a.seen || ++a.unseen > max_unseen)
+        continue;
+      m_pending[out++] = a;
+    }
+    m_pending_count = out;
+  }
+  bool queued(uint32_t id) const noexcept
+  {
+    for(uint32_t q : state.queued)
+    {
+      if(q == 0)
+        return false;
+      if(q == id)
+        return true;
+    }
+    return false;
+  }
+  int lane_of_id(uint32_t id) const noexcept
+  {
+    if(id == 0)
+      return -1;
+    for(int l = 0; l < std::min(state.lanes, view_message::max_lanes); l++)
+      if(state.lane_id[l] == id)
+        return l;
+    return -1;
+  }
+
   //! A running looper sends some thirty messages a second. One that has sent
   //! none for longer is paused or gone with the score's stop: what it showed
   //! last is not being taken in any more, and a take asked of it may never
@@ -300,6 +396,7 @@ struct looper_view
       m_part_waiting = 0;
       state = m;
       has_state = true;
+      settle_pending();
       if(update)
         update();
       return;
@@ -315,6 +412,7 @@ struct looper_view
     m_last_message = clock::now();
     state = m;
     has_state = true;
+    settle_pending();
     if(m_waiting > 0 && m.answered >= m_waiting)
     {
       m_waiting = 0;
@@ -772,9 +870,38 @@ struct looper_view
     return {e.x - e.size - 4., e.y, e.size};
   }
 
+  //! Muted, or about to be, the looper waiting for the grid.
   bool lane_muted(int lane) const noexcept
   {
-    return lane >= 0 && lane < view_message::max_lanes && state.muted[lane];
+    if(lane < 0 || lane >= view_message::max_lanes)
+      return false;
+    if(const auto* p = pending_of(state.lane_id[lane]); p && !p->erase)
+      return p->muted;
+    return state.muted[lane];
+  }
+  //! Erased once the grid comes.
+  bool lane_erasing(int lane) const noexcept
+  {
+    if(lane < 0 || lane >= view_message::max_lanes)
+      return false;
+    const auto* p = pending_of(state.lane_id[lane]);
+    return p && p->erase;
+  }
+  bool lane_pending(int lane) const noexcept
+  {
+    return lane >= 0 && lane < view_message::max_lanes && pending_of(state.lane_id[lane]);
+  }
+
+  //! The m and x act on a looper that runs: a looper stopped with the score
+  //! has no passes any more, only the take its stop left, and one whose box
+  //! ended, or that is paused, would only act once it runs again. A looper
+  //! is taken for running a while after its last message, longer than
+  //! live(): a busy UI may take a press before the messages that came first.
+  static constexpr auto buttons_after = std::chrono::seconds(2);
+  bool layer_buttons() const noexcept
+  {
+    return erase && has_state && !state.stopped
+           && clock::now() - m_last_message < buttons_after;
   }
 
   //! The lane of the pass Layer says, when it has one of its own, else -1.
@@ -806,7 +933,7 @@ struct looper_view
   //! The lane whose erase button is at (x, y), -1 for none.
   int erase_lane_at(double x, double y) const noexcept
   {
-    if(!erase)
+    if(!layer_buttons())
       return -1;
     for(int l = 0; l < lane_count(); l++)
       if(pass_of_lane(l) >= 0 && erase_box(l).contains(x, y))
@@ -817,7 +944,7 @@ struct looper_view
   //! The lane whose mute button is at (x, y), -1 for none.
   int mute_lane_at(double x, double y) const noexcept
   {
-    if(!erase)
+    if(!layer_buttons())
       return -1;
     for(int l = 0; l < lane_count(); l++)
       if(pass_of_lane(l) >= 0 && mute_box(l).contains(x, y))
@@ -827,12 +954,21 @@ struct looper_view
 
   void paint_erase_boxes(auto& ctx)
   {
-    if(!erase)
+    if(!layer_buttons())
       return;
     for(int l = 0; l < lane_count(); l++)
     {
       if(pass_of_lane(l) < 0)
         continue;
+      if(lane_erasing(l))
+      {
+        // Going on the grid: dimmed, its x lit.
+        const double lh = lane_height();
+        ctx.set_fill_color({24, 24, 26, 150});
+        ctx.begin_path();
+        ctx.draw_rect(lanes_x, lanes_top + l * lh + 1., lanes_width(), lh - 2.);
+        ctx.fill();
+      }
       {
         const auto b = mute_box(l);
         const bool muted = lane_muted(l);
@@ -857,8 +993,18 @@ struct looper_view
         ctx.stroke();
         ctx.set_stroke_width(1.);
       }
+      if(lane_pending(l) && !lane_erasing(l))
+      {
+        // Waiting for the grid: a ring round the m.
+        const auto m = mute_box(l);
+        ctx.set_stroke_color({230, 160, 60, 255});
+        ctx.begin_path();
+        ctx.draw_rounded_rect(m.x - 1.5, m.y - 1.5, m.size + 3., m.size + 3., 3.);
+        ctx.stroke();
+      }
       const auto b = erase_box(l);
-      ctx.set_fill_color({44, 44, 50, 230});
+      const rgba xfill = lane_erasing(l) ? rgba{200, 70, 60, 255} : rgba{44, 44, 50, 230};
+      ctx.set_fill_color({xfill.r, xfill.g, xfill.b, xfill.a});
       ctx.begin_path();
       ctx.draw_rounded_rect(b.x, b.y, b.size, b.size, 2.);
       ctx.fill();
@@ -1094,12 +1240,35 @@ struct looper_view
     }
     if(const int lane = erase_lane_at(x, y); lane >= 0)
     {
-      erase(erase_request{.pass = pass_of_lane(lane), .layers = state.layers, .mute = false});
+      const uint32_t id = state.lane_id[lane];
+      if(!lane_erasing(lane))
+      {
+        erase(erase_request{
+            .pass = pass_of_lane(lane), .layers = state.layers, .mute = false, .id = id});
+        add_pending({.id = id, .erase = true});
+      }
+      if(update)
+        update();
       return true;
     }
     if(const int lane = mute_lane_at(x, y); lane >= 0)
     {
-      erase(erase_request{.pass = pass_of_lane(lane), .layers = state.layers, .mute = true});
+      // What the lane shows, the looper may not have done yet: the press
+      // asks for the other.
+      const uint32_t id = state.lane_id[lane];
+      const bool muted = !lane_muted(lane);
+      if(!lane_erasing(lane))
+      {
+        erase(erase_request{
+            .pass = pass_of_lane(lane),
+            .layers = state.layers,
+            .mute = true,
+            .id = id,
+            .muted = int8_t(muted ? 1 : 0)});
+        add_pending({.id = id, .erase = false, .muted = muted});
+      }
+      if(update)
+        update();
       return true;
     }
     // A press on a lane is the start of a drag of its passes.

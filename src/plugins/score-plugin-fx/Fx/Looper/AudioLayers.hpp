@@ -44,6 +44,8 @@ struct audio_seam_end
 //! it recorded.
 struct audio_layer
 {
+  //! Tells the pass from every other of its loop, wherever it moves.
+  uint32_t id{};
   //! Which buffer of the pool holds it.
   int slot{-1};
   //! Gain it is played with: the product of the decays of the passes heard
@@ -195,6 +197,9 @@ struct audio_layers : pass_stack<audio_layers, audio_layer, max_audio_layers>
     unmerge = {};
     aside = {};
     merged_passes = {};
+    done = 0;
+    recorded = 0;
+    kept_used = 0;
   }
 
   // pass_stack's hooks: the buffers of the passes move with them, and a
@@ -216,7 +221,13 @@ struct audio_layers : pass_stack<audio_layers, audio_layer, max_audio_layers>
     if(k <= merging.at + 1)
       merging.active = false;
   }
-  void erased(int) noexcept { }
+  void kept_taken(int, int) noexcept { }
+  void kept_returned(int k, int) noexcept
+  {
+    if(k <= merging.at + 1)
+      merging.active = false;
+  }
+  void kept_forgotten(int) noexcept { }
   void aside_taken(int) noexcept { }
   void aside_returned(int) noexcept { }
   void aside_forgotten() noexcept { }
@@ -445,33 +456,43 @@ struct audio_layers : pass_stack<audio_layers, audio_layer, max_audio_layers>
     for(int i = 0; i < count; i++)
       if(layers[i].slot == s)
         return true;
+    for(int j = 0; j < max_kept; j++)
+      if(((kept_used >> j) & 1u) && kept_passes[j].slot == s)
+        return true;
     return false;
   }
 
   bool is_reserved(int s) const noexcept { return ((reserved | held) >> s) & 1u; }
 
-  //! A buffer no pass uses, one nothing else reads when there is one.
+  //! A buffer no pass uses, one nothing else reads when there is one. The
+  //! buffers of erased passes kept for undo are taken back when there is
+  //! none, the oldest first.
   int take_slot() noexcept
   {
-    int fallback = -1;
-    for(int s = 0; s < buffers(); s++)
+    for(;;)
     {
-      if(slot_used(s))
-        continue;
-      if(!is_reserved(s))
+      int fallback = -1;
+      for(int s = 0; s < buffers(); s++)
       {
-        buffer_reused(s);
-        return s;
+        if(slot_used(s))
+          continue;
+        if(!is_reserved(s))
+        {
+          buffer_reused(s);
+          return s;
+        }
+        if(fallback < 0)
+          fallback = s;
       }
-      if(fallback < 0)
-        fallback = s;
+      if(fallback >= 0)
+      {
+        reserved_overwritten = true;
+        buffer_reused(fallback);
+        return fallback;
+      }
+      if(!forget_oldest_kept())
+        return -1;
     }
-    if(fallback >= 0)
-    {
-      reserved_overwritten = true;
-      buffer_reused(fallback);
-    }
-    return fallback;
   }
 
   //! Every pass kept: heard, brought back by redo, set aside or merged.
@@ -487,6 +508,9 @@ struct audio_layers : pass_stack<audio_layers, audio_layer, max_audio_layers>
       f(unmerge.a);
       f(unmerge.b);
     }
+    for(int j = 0; j < max_kept; j++)
+      if((kept_used >> j) & 1u)
+        f(kept_passes[j]);
   }
 
   //! The buffer a merge forwarded buffer `s` to.
@@ -657,6 +681,10 @@ struct audio_layers : pass_stack<audio_layers, audio_layer, max_audio_layers>
     }
     if(oldest && count >= slots && !merging.active)
       start_merge(0);
+    // The buffers of erased passes kept for undo go first, the oldest first:
+    // finishing a merge at once works the whole loop out in this tick.
+    while(take_slot_count() == 0 && forget_oldest_kept())
+      ;
     // No buffer left for the pass, e.g. one more overdub while the last merge
     // is not done: it is finished at once, which makes room.
     if(take_slot_count() == 0)

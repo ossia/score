@@ -146,37 +146,30 @@ AddressStatus::of(const Process::Port& port, const score::DocumentContext& ctx)
     // other end is not running this tick (graph_util::init_inlet,
     // graph_util::teardown_outlet)
     st.kind = WhileCablesIdle;
-    st.reason
-        = inlet ? QObject::tr(
-                      "This input has cables: its address is only read while a "
-                      "process it is connected to is not playing.")
-                : QObject::tr(
-                      "This output has cables: it only writes to its address while "
-                      "a process it is connected to is not playing.");
+    st.reason = inlet ? QObject::tr("The address is read while the cables are idle")
+                      : QObject::tr("The address is written while the cables are idle");
     return st;
   }
 
   st.kind = Unused;
   if(inlet)
   {
-    st.reason = QObject::tr(
-        "This input only has strict or delayed cables: its address is not read. "
-        "Remove the cables to read the address.");
+    st.reason
+        = QObject::tr("The address is not read: the cables are strict or delayed");
   }
   else if(other == 0)
   {
-    st.reason = QObject::tr(
-        "This output is propagated to its parent: it does not write to its "
-        "address. Uncheck Propagate to write to the address.");
+    st.reason = QObject::tr("The address is not written while Propagate is checked");
   }
   else
   {
-    st.reason = QObject::tr(
-        "This output only has strict or delayed cables: it does not write to its "
-        "address. Remove the cables to write to the address.");
-    if(propagated)
-      st.reason += QStringLiteral(" ")
-                   + QObject::tr("Propagate has to be unchecked too.");
+    st.reason
+        = propagated
+              ? QObject::tr(
+                    "The address is not written: the cables are strict or delayed "
+                    "and Propagate is checked")
+              : QObject::tr(
+                    "The address is not written: the cables are strict or delayed");
   }
   return st;
 }
@@ -336,7 +329,6 @@ private:
       delete item->widget();
       delete item;
     }
-    const bool inlet = qobject_cast<const Inlet*>(&port) != nullptr;
     int shown = 0;
     forEachCable(port, [&](const Cable& cable, const Port* other) {
       if(!other)
@@ -356,9 +348,7 @@ private:
           QStringLiteral(":/icons/show_cables_disabled.png")));
       sel->setIconSize(QSize{16, 16});
       sel->setAutoRaise(true);
-      score::setHelp(
-          sel, inlet ? tr("Select the cable coming from %1").arg(displayName(*other))
-                     : tr("Select the cable going to %1").arg(displayName(*other)));
+      score::setHelp(sel, tr("Select the cable"));
       connect(
           sel, &QToolButton::clicked, sel,
           [&ctx = m_ctx, c = QPointer<const IdentifiedObjectAbstract>{&cable}] {
@@ -378,8 +368,6 @@ private:
       if(auto t = cableTypeName(cable.type()); !t.isEmpty())
         str += QStringLiteral(" (%1)").arg(t);
       text->setText(str);
-      if(owner)
-        text->setToolTip(tr("Click to select %1").arg(ownerName(*owner)));
       connect(
           text, &QLabel::linkActivated, text,
           [&ctx = m_ctx, o = QPointer<const IdentifiedObjectAbstract>{owner}] {
@@ -473,7 +461,7 @@ PortWidgetSetup::Drawer PortWidgetSetup::setupWithDrawer(
   auto header = new QWidget;
   auto advBtn = new score::ArrowButton{Qt::RightArrow, header};
   advBtn->setObjectName(QStringLiteral("PortDrawerButton"));
-  score::setHelp(advBtn, QObject::tr("Show or hide the settings of this port"));
+  score::setHelp(advBtn, QObject::tr("Port settings"));
 
   auto lab = new TextLabel{QString{}, header};
   showDisplayName(port, *lab);
@@ -501,7 +489,6 @@ PortWidgetSetup::Drawer PortWidgetSetup::setupWithDrawer(
   });
 
   lay.addRow(header, main);
-  lay.addRow(static_cast<QWidget*>(nullptr), makeCablesWidget(port, ctx, parent));
 
   Drawer d{sw, inner, advBtn};
   d.setOpen(false);
@@ -545,6 +532,7 @@ void PortWidgetSetup::setupControlImpl(
 {
   auto drawer = setupWithDrawer(port, inlet_widget, ctx, vlay, parent);
   Process::PortWidgetSetup::setupInLayout(port, ctx, *drawer.layout, drawer.widget);
+  drawer.layout->addRow(makeCablesWidget(port, ctx, drawer.widget));
   drawer.layout->addRow(makeScriptableWidget(port, ctx, drawer.widget));
   drawer.setOpen(port.address().isSet() || port.scriptable());
   vlay.addRow(drawer.widget);

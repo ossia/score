@@ -1287,6 +1287,16 @@ TEST_CASE("GStreamer names resolve to the right layout", "[gfx][pixfmt][gst]")
   // twins, which is what routing through AVPixelFormat would have done.
   CHECK(iop::fromGStreamerFormat("YV12") == V::YVU420P);
   CHECK(iop::fromGStreamerFormat("YVU9") == V::YVU410P);
+  // P012 and P016 are 4:2:0, read through P010's layout; never a 4:2:2 one.
+  for(const char* name : {"P012_LE", "P016_LE"})
+  {
+    INFO(name);
+    const auto f = iop::fromGStreamerFormat(name);
+    CHECK(f == V::P010);
+    CHECK(vpf::formatInfo(f).horizontalSubsampling == 2);
+    CHECK(vpf::formatInfo(f).verticalSubsampling == 2);
+  }
+  CHECK(iop::toGStreamerFormat(V::P010) == std::string_view{"P010_10LE"});
   CHECK(iop::fromGStreamerFormat("YV12") != iop::fromGStreamerFormat("I420"));
   CHECK(vpf::chromaSwappedTwin(iop::fromGStreamerFormat("YV12"))
         == iop::fromGStreamerFormat("I420"));

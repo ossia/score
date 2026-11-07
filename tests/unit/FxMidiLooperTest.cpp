@@ -1114,26 +1114,40 @@ TEST_CASE("MIDI looper: erasing the middle pass brings back what only it replace
   CHECK(h.node.loop.count == 2);
   CHECK(h.node.loop.total == 2);
   CHECK(h.node.loop.length == length);
-  // Its notes are gone; the 60 of the first pass is still replaced by the
-  // last one, and its 64 is heard again.
+  // Its notes are gone, kept apart for undo; the 60 of the first pass is
+  // still replaced by the last one, and its 64 is heard again.
   CHECK(round_pitches(h, 640) == std::multiset<int>{60, 64});
+  constexpr uint64_t heard_passes = 0b11;
   for(int i = 0; i < h.node.loop.note_count; i++)
   {
     const auto& n = h.node.loop.notes[i];
-    CHECK(n.pass < 2);
+    CHECK((n.pass < 2 || n.pass >= h.node.loop.max_passes));
     if(n.pass == 0 && n.pitch == 60)
-      CHECK(n.replaced_by == (uint64_t(1) << 1));
+      CHECK((n.replaced_by & heard_passes) == (uint64_t(1) << 1));
     if(n.pass == 0 && n.pitch == 64)
-      CHECK(n.replaced_by == 0);
+      CHECK((n.replaced_by & heard_passes) == 0);
   }
 
-  // Undo and redo go on with the passes left.
+  // Undo brings it back with its notes, and what they replace; redo takes
+  // it out again.
   h.press(h.node.inputs.undo);
-  CHECK(round_pitches(h, 640) == std::multiset<int>{60, 64});
+  CHECK(h.node.loop.count == 3);
+  CHECK(round_pitches(h, 640) == std::multiset<int>{60, 64, 67});
+  for(int i = 0; i < h.node.loop.note_count; i++)
+  {
+    const auto& n = h.node.loop.notes[i];
+    CHECK(n.pass < 3);
+    if(n.pass == 0)
+      CHECK(n.replaced_by
+            == (n.pitch == 60 ? (uint64_t(1) << 1) | (uint64_t(1) << 2) : uint64_t(1) << 1));
+  }
   h.press(h.node.inputs.redo);
+  CHECK(h.node.loop.count == 2);
   CHECK(round_pitches(h, 640) == std::multiset<int>{60, 64});
-  erase_layer(h, 2);
-  CHECK(round_pitches(h, 640) == std::multiset<int>{60, 64});
+  h.press(h.node.inputs.undo);
+  h.press(h.node.inputs.undo);
+  CHECK(h.node.loop.count == 2);
+  CHECK(round_pitches(h, 640) == std::multiset<int>{60, 64, 67});
 }
 
 TEST_CASE("MIDI looper: the view shows a lane per pass, and follows an erase",
@@ -1257,7 +1271,8 @@ TEST_CASE("MIDI looper: the notes of an erased pass that are sounding end at onc
   CHECK(round_pitches(h, 640) == std::multiset<int>{60, 72});
 }
 
-TEST_CASE("MIDI looper: erasing a pass keeps what redo brings back",
+TEST_CASE("MIDI looper: erasing a pass is done after what undo took back, which redo "
+          "does not bring back any more",
           "[fx][midi][looper][erase]")
 {
   midi_harness h;
@@ -1271,11 +1286,13 @@ TEST_CASE("MIDI looper: erasing a pass keeps what redo brings back",
 
   erase_layer(h, 1);
   CHECK(h.node.loop.count == 1);
-  CHECK(h.node.loop.total == 2);
+  CHECK(h.node.loop.total == 1);
   CHECK(round_pitches(h, 640) == std::multiset<int>{64});
   h.press(h.node.inputs.redo);
+  CHECK(h.node.loop.count == 1);
+  h.press(h.node.inputs.undo);
   CHECK(h.node.loop.count == 2);
-  CHECK(round_pitches(h, 640) == std::multiset<int>{64, 67});
+  CHECK(round_pitches(h, 640) == std::multiset<int>{60, 64});
 }
 
 TEST_CASE("MIDI looper: the view asks for a pass to be erased, a changed loop is left alone",
@@ -2149,6 +2166,60 @@ TEST_CASE("MIDI looper: a muted pass merged into the one under it leaves what th
   CHECK(l.heard(l.controls[0]));
 }
 
+TEST_CASE("MIDI looper: the events of an erased pass make room for new ones once the "
+          "store is full",
+          "[fx][midi][looper][erase][undo]")
+{
+  using Nodes::Looper::midi_loop;
+  for(const bool notes : {true, false})
+  {
+    INFO((notes ? "notes" : "controls"));
+    auto loop = std::make_unique<midi_loop>();
+    auto& l = *loop;
+    const int max = notes ? midi_loop::max_notes : midi_loop::max_controls;
+    const int& used = notes ? l.note_count : l.control_count;
+    auto add = [&](int64_t pos) {
+      if(notes)
+        return l.add_note(pos, 1, 60, 100) != nullptr;
+      l.full = false;
+      l.add_control(pos, 0xB0, 7, uint8_t(pos & 127));
+      return !l.full;
+    };
+    l.begin_recording();
+    REQUIRE(add(0));
+    l.length = 1000;
+    l.pass_written = 1000;
+    l.end_pass(OverdubMode::Merge);
+
+    // A second pass fills the store, then is erased: undo can bring it back
+    l.begin_overdub(0);
+    while(used < max)
+      REQUIRE(add(used % 1000));
+    l.advance_pass(1000.);
+    l.end_pass(OverdubMode::Merge);
+    REQUIRE(l.erase(1));
+    REQUIRE(l.count == 1);
+    REQUIRE(used == max);
+    REQUIRE(l.kept_used != 0);
+
+    // A new pass records: the erased pass goes for good for it
+    l.begin_overdub(0);
+    CHECK(add(10));
+    CHECK(!l.full);
+    CHECK(l.kept_used == 0);
+    CHECK(used == 2);
+    l.advance_pass(1000.);
+    l.end_pass(OverdubMode::Merge);
+    CHECK(l.count == 2);
+
+    // Without anything kept for undo, a full store drops what comes in
+    while(used < max)
+      REQUIRE(add(used % 1000));
+    CHECK(!add(20));
+    CHECK(l.full);
+  }
+}
+
 TEST_CASE("MIDI looper switches: recording a loop", "[fx][midi][looper][switches]")
 {
   switches_harness h;
@@ -2201,6 +2272,13 @@ TEST_CASE("MIDI looper switches: Mute layer and Erase layer, the newest or a ste
 {
   switches_harness h;
   looper_switches::mute_and_erase(h);
+}
+
+TEST_CASE("MIDI looper switches: Undo takes back the last action, an erase or a mute as a pass",
+          "[fx][midi][looper][switches]")
+{
+  switches_harness h;
+  looper_switches::undo_actions(h);
 }
 
 TEST_CASE("MIDI looper switches: Solo layer", "[fx][midi][looper][switches]")

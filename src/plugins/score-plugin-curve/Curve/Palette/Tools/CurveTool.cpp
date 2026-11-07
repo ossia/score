@@ -18,4 +18,9 @@ const score::DocumentContext& CurveTool::context() const noexcept
 {
   return m_parentSM.presenter().context();
 }
+
+score::SelectionStack& CurveTool::selectionStack() const noexcept
+{
+  return m_parentSM.selectionStack();
+}
 }

@@ -10,6 +10,7 @@
 #include <Dataflow/ControlInletItem.hpp>
 #include <Dataflow/ControlOutletItem.hpp>
 #include <Dataflow/CurveInlet.hpp>
+#include <Dataflow/WaveformInlet.hpp>
 #include <Dataflow/DropPortInScenario.hpp>
 #include <Dataflow/MappingPanel/ConnectionsPanel.hpp>
 #include <Dataflow/MidiInletItem.hpp>
@@ -84,6 +85,10 @@ std::vector<score::InterfaceBase*> score_plugin_dataflow::factories(
          Dataflow::WidgetInletFactory<Process::PathGeneratorXY, WidgetFactory::PathGeneratorXY>,
          Dataflow::WidgetInletFactory<
              Dataflow::CurveInlet, WidgetFactory::CurveInletItems>,
+         Dataflow::WidgetInletFactory<
+             Dataflow::WaveformInlet, WidgetFactory::WaveformInletItems>,
+         Dataflow::WidgetInletFactory<
+             Dataflow::WavetableInlet, WidgetFactory::WaveformInletItems>,
          Dataflow::WidgetOutletFactory<Process::Bargraph, WidgetFactory::Bargraph>>>(
       ctx, key);
 }

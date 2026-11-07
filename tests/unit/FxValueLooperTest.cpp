@@ -969,6 +969,13 @@ TEST_CASE("Value looper switches: Mute layer and Erase layer, the newest or a st
   looper_switches::mute_and_erase(h);
 }
 
+TEST_CASE("Value looper switches: Undo takes back the last action, an erase or a mute as a pass",
+          "[fx][values][looper][switches]")
+{
+  switches_harness h;
+  looper_switches::undo_actions(h);
+}
+
 TEST_CASE("Value looper switches: Solo layer", "[fx][values][looper][switches]")
 {
   switches_harness h;
@@ -1237,4 +1244,50 @@ TEST_CASE("Value looper: Capture over a loop lays its last round where it came",
       CHECK(same(e[i].second, expected[i].second));
     }
   }
+}
+
+TEST_CASE("Value looper: the values of an erased pass make room for new ones once the "
+          "store is full",
+          "[fx][values][looper][erase][undo]")
+{
+  using Nodes::Looper::value_loop;
+  auto loop = std::make_unique<value_loop>();
+  auto& l = *loop;
+  constexpr int max = value_loop::max_events;
+  auto add = [&](int64_t pos) {
+    return l.add_value(pos, pos, 1, ossia::value{float(pos)}) != nullptr;
+  };
+  l.begin_recording();
+  REQUIRE(add(0));
+  l.length = max;
+  l.pass_written = max;
+  l.end_pass();
+
+  // A second pass fills the store, then is erased: undo can bring it back
+  l.begin_overdub(0);
+  while(l.event_count < max)
+    REQUIRE(add(l.event_count));
+  l.advance_pass(double(max));
+  l.end_pass();
+  REQUIRE(l.erase(1));
+  REQUIRE(l.count == 1);
+  REQUIRE(l.event_count == max);
+  REQUIRE(l.kept_used != 0);
+
+  // A new pass records: the erased pass goes for good for it
+  l.begin_overdub(0);
+  CHECK(add(10));
+  CHECK(!l.full);
+  CHECK(l.kept_used == 0);
+  CHECK(l.event_count == 2);
+  l.advance_pass(double(max));
+  l.end_pass();
+  CHECK(l.count == 2);
+
+  // Without anything kept for undo, a full store drops what comes in
+  l.begin_overdub(0);
+  while(l.event_count < max)
+    REQUIRE(add(l.event_count));
+  CHECK(!add(max + 1));
+  CHECK(l.full);
 }

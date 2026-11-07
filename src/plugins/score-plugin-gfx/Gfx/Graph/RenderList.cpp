@@ -471,6 +471,7 @@ void RenderList::createAllInputRenderTargets()
         state, spec.format, spec.size, samples(),
         wantsDepth || wantsSamplableDepth, wantsSamplableDepth,
         inputRenderTargetFlags(spec));
+    clearOnFirstUse(rt);
     m_inputRenderTargets[port] = std::move(rt);
   }
 
@@ -598,8 +599,65 @@ bool RenderList::ensureSelfFeedbackTarget(const Port& in)
     back.release();
     return false;
   }
+  clearOnFirstUse(back);
   m_selfFeedbackTargets[&in] = {std::move(back), false};
   return true;
+}
+
+void RenderList::clearOnFirstUse(const TextureRenderTarget& rt)
+{
+  if(rt.texture && rt.renderTarget)
+    m_targetsToClear.insert(rt.texture);
+}
+
+void RenderList::clearNewTargets(QRhiCommandBuffer& commands, QRhiResourceUpdateBatch& res)
+{
+  if(m_targetsToClear.empty())
+    return;
+
+  // The far value of the compare the port's producers draw with, as the
+  // per-frame passes clear it: a depth read through a delayed cable on the
+  // first frame then sees an empty scene, not one touching the camera.
+  const auto clearDepth = [&](const Port* port) {
+    auto compare = QRhiGraphicsPipeline::Greater;
+    bool seen = false;
+    for(auto* edge : port->edges)
+    {
+      auto src = edge->source->node->renderedNodes.find(this);
+      if(src == edge->source->node->renderedNodes.end())
+        continue;
+      const auto c = src->second->depthCompare();
+      if(!seen)
+      {
+        compare = c;
+        seen = true;
+      }
+      else if(c != compare)
+      {
+        compare = QRhiGraphicsPipeline::Greater;
+        break;
+      }
+    }
+    return depthClearForCompare(compare);
+  };
+
+  // Only the targets this list still holds: one released before its first
+  // frame is gone, and its address may since name another texture.
+  const auto clear = [&](const Port* port, const TextureRenderTarget& rt) {
+    if(!rt.texture || !rt.renderTarget || !m_targetsToClear.contains(rt.texture))
+      return;
+    m_targetsToClear.erase(rt.texture);
+    commands.beginPass(rt.renderTarget, Qt::transparent, {clearDepth(port), 0});
+    commands.endPass();
+    // The pass writes level 0 only; generateMips fills the others from it.
+    if(rt.texture->flags().testFlag(QRhiTexture::UsedWithGenerateMips))
+      res.generateMips(rt.texture);
+  };
+  for(auto& [port, rt] : m_inputRenderTargets)
+    clear(port, rt);
+  for(auto& [port, fb] : m_selfFeedbackTargets)
+    clear(port, fb.back);
+  m_targetsToClear.clear();
 }
 
 static int copyLayerCount(const QRhiTexture& tex, int level) noexcept
@@ -801,6 +859,10 @@ void RenderList::updateSelfFeedbackGrabs(QRhiResourceUpdateBatch& res)
         if(snapshot)
           snapshot->deleteLater();
         m_selfFeedbackGrabs[in] = fresh;
+        // The node has not rendered into an output of this shape yet: its
+        // previous frame is black, not whatever the new output's memory holds.
+        if(score::gfx::zeroTexture(*state.rhi, res, *fresh))
+          continue;
         snapshot = fresh;
       }
       copyTextureLevels(*state.rhi, res, snapshot, tex);
@@ -921,6 +983,7 @@ void RenderList::release()
   m_selfFeedbackGrabs.clear();
   m_selfFeedbackPlaceholders.clear();
   m_selfFeedbackWarned.clear();
+  m_targetsToClear.clear();
 
   for(auto& bufs : m_vertexBuffers)
   {
@@ -2513,6 +2576,7 @@ void RenderList::renderImpl(QRhiCommandBuffer& commands, bool force)
             oldIt->second = score::gfx::createRenderTarget(
                 state, newSpec.format, newSpec.size, samples(),
                 wantsDepth || wantsSamplableDepth, wantsSamplableDepth, newFlags);
+            clearOnFirstUse(oldIt->second);
             ensureSelfFeedbackTarget(*in);
           }
         }
@@ -2586,6 +2650,10 @@ void RenderList::renderImpl(QRhiCommandBuffer& commands, bool force)
   update(*updateBatch);
 
   updateSelfFeedbackTargets(*updateBatch);
+
+  // Before any pass of the frame: the clears are recorded ahead of the uploads
+  // and copies queued in updateBatch, which the first pass commits.
+  clearNewTargets(commands, *updateBatch);
 
   // For each texture input port
   //  For all previous node

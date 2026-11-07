@@ -1810,8 +1810,7 @@ QWidget* StartScreen::createExamplesPage(bool online)
   lay->addWidget(makeHint(
       online ? tr("Each example is downloaded into your library the first time it "
                   "is opened, then opens as a new, untitled score. Ctrl-click opens "
-                  "the example file itself, Alt-click does not open its web page. "
-                  "Right-click an example to download it again.")
+                  "the example file itself, Alt-click does not open its web page.")
              : tr("Each example opens as a new, untitled score. Ctrl-click opens the "
                   "example file itself, Alt-click does not open its web page."),
       page));
@@ -1995,12 +1994,11 @@ void StartScreen::showOnlineExampleMenu(const OnlineExample& ex, const QPoint& g
 
   add(local ? tr("Open your copy as a new score") : tr("Download and open as a new score"),
       [this, ex] { openOnlineExample(ex, false, false); });
-  add(local ? tr("Open the example file itself")
-            : tr("Download and open the example file itself"),
+  add(local ? tr("Open the example file") : tr("Download and open the example file"),
       [this, ex] { openOnlineExample(ex, true, false); });
   if(!ex.page.isEmpty())
   {
-    add(tr("Open its web page"), [ex] {
+    add(tr("Open the web page"), [ex] {
       if(const QUrl url{ex.page}; url.isValid() && !url.scheme().isEmpty())
         QDesktopServices::openUrl(url);
     });
@@ -2010,7 +2008,7 @@ void StartScreen::showOnlineExampleMenu(const OnlineExample& ex, const QPoint& g
     menu->addSeparator();
     if(m_online.isDownloading(ex))
     {
-      menu->addAction(tr("Downloading the online version"))->setEnabled(false);
+      menu->addAction(tr("Downloading"))->setEnabled(false);
     }
     else
     {
@@ -2037,11 +2035,10 @@ void StartScreen::replaceLocalCopy(const OnlineExample& ex)
     m_replaceAsked.insert(ex.id);
     const auto answer = score::question(
         this, tr("Download again"),
-        (folder ? tr("Replace your copy of %1 with the online version? The whole "
-                     "folder of your copy is replaced: changes made to it and files "
-                     "added to it are lost.\n\n%2")
-                : tr("Replace your copy of %1 with the online version? Changes made "
-                     "to your copy are lost.\n\n%2"))
+        (folder ? tr("Replace your copy of %1 with the online version? Changes and "
+                     "files added to its folder are lost.\n\n%2")
+                : tr("Replace your copy of %1 with the online version? Changes to "
+                     "it are lost.\n\n%2"))
             .arg(ex.name, QDir::toNativeSeparators(copy)));
     m_replaceAsked.erase(ex.id);
     if(answer != QMessageBox::Yes)
@@ -2055,8 +2052,7 @@ void StartScreen::replaceLocalCopy(const OnlineExample& ex)
     {
       score::warning(
           self, tr("Download failed"),
-          tr("This example could not be downloaded. Your copy was kept as it was. "
-             "Check your connection and try again."));
+          tr("The example could not be downloaded. Your copy is unchanged."));
       return;
     }
     self->m_infos.erase(path);
@@ -2145,12 +2141,10 @@ QWidget* StartScreen::makeCardGrid(
         card->setBadge(
             changed ? tr("Updated online") : tr("In your library"),
             changed ? StartScreenColors::Accent : StartScreenColors::Muted);
-        tip += "\n\n"
-               + (changed ? tr("The online version changed since it was downloaded. "
-                               "Right-click to download it again.")
-                          : tr("Opens the copy in your library. Right-click to "
-                               "download the online version again."))
-               + "\n" + QDir::toNativeSeparators(doc.path);
+        tip += "\n\n";
+        if(changed)
+          tip += tr("Changed online. Right-click to download it again.") + "\n";
+        tip += QDir::toNativeSeparators(doc.path);
       }
       card->setToolTip(tip);
       if(!online->image.isEmpty())
@@ -2485,15 +2479,14 @@ void StartScreen::updateLibraryNotices()
       break;
     case State::Missing:
       hint = tr("The default library is not installed. It provides the templates, "
-                "and the presets and media that many examples use.");
+                "presets and media used by the examples.");
       action = lib.downloadSize() > 0
                    ? tr("Install the default library (%1)")
                          .arg(QLocale{}.formattedDataSize(lib.downloadSize()))
                    : tr("Install the default library");
       break;
     case State::UpdateAvailable:
-      hint = tr("A new version of the default library is available, with its "
-                "templates, presets and media.");
+      hint = tr("A new version of the default library is available.");
       action = lib.downloadSize() > 0
                    ? tr("Update the default library (%1)")
                          .arg(QLocale{}.formattedDataSize(lib.downloadSize()))
@@ -2517,7 +2510,7 @@ void StartScreen::updateLibraryNotices()
                              || state == State::Failed;
   if(installAction && !lib.canInstall())
   {
-    hint += " " + tr("It can be installed from the Packages page of the settings.");
+    hint += " " + tr("Install it from the Packages settings.");
     action.clear();
   }
 

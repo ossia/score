@@ -20,6 +20,7 @@
 #include <Gfx/Graph/ISFNode.hpp>
 #include <Gfx/Graph/ISFVisitors.hpp>
 #include <Gfx/Graph/ImageNode.hpp>
+#include <Gfx/Graph/RenderState.hpp>
 #include <Gfx/Graph/ShaderCache.hpp>
 #include <Gfx/Settings/Model.hpp>
 #include <Gfx/ShaderProgram.hpp>
@@ -427,6 +428,59 @@ report(const QString& shader, const std::map<std::string, std::string>& kinds)
                       << QString::fromStdString(message);
 }
 
+//! Names the device a sweep renders on, as "<api>-<device>": opengl-llvmpipe,
+//! vulkan-lavapipe, vulkan-nvidia... Drivers disagree on which shaders they
+//! compile and on what undefined behaviour draws, so each one keeps its own
+//! baseline: one list for every backend would let a shader that breaks on one
+//! of them hide behind its failure on another.
+inline QString backendKey(score::gfx::GraphicsApi api)
+{
+  auto state = score::gfx::createRenderState(api, QSize{16, 16}, nullptr);
+  if(!state || !state->rhi)
+    return {};
+
+  const auto info = state->rhi->driverInfo();
+  const QString name = QString::fromUtf8(info.deviceName).toLower();
+  const bool vulkan = state->rhi->backend() == QRhi::Vulkan;
+  QString device;
+  // Mesa's software rasteriser calls itself llvmpipe on both APIs.
+  if(name.contains("llvmpipe"))
+    device = vulkan ? "lavapipe" : "llvmpipe";
+  else if(info.vendorId == 0x10de || name.contains("nvidia"))
+    device = "nvidia";
+  else if(info.vendorId == 0x1002 || name.contains("amd") || name.contains("radeon"))
+    device = "amd";
+  else if(info.vendorId == 0x8086 || name.contains("intel"))
+    device = "intel";
+  else if(info.vendorId == 0x106b || name.contains("apple"))
+    device = "apple";
+  else
+    device = name.section(' ', 0, 0).remove(QRegularExpression{"[^a-z0-9]"});
+
+  const QString key = QString::fromLatin1(state->rhi->backendName()).toLower() + '-' + device;
+  state->destroy();
+  return key;
+}
+
+//! The baseline of the backend the sweep runs on: @p prefix + "_<backend>.txt".
+//! A device nobody has recorded a baseline for has nothing to be compared with,
+//! so the sweep is skipped there rather than reported as failing everything.
+inline QString backendBaseline(const QString& prefix, score::gfx::GraphicsApi api)
+{
+  const QString key = backendKey(api);
+  if(key.isEmpty())
+    FAIL("could not create a QRhi to identify the backend");
+
+  const QString file = prefix + '_' + key + ".txt";
+  qInfo().noquote() << "[sweep] backend" << key << "baseline" << file;
+  if(!QFileInfo::exists(file) && !qEnvironmentVariableIsSet("SCORE_SHADER_SWEEP_WRITE_BASELINE"))
+    SKIP(
+        "no baseline for backend " << key.toStdString() << " (" << file.toStdString()
+                                   << "): run with SCORE_SHADER_SWEEP_WRITE_BASELINE=1 "
+                                      "to record one");
+  return file;
+}
+
 //! The baseline records only the failure KINDS per file, so the test fails on
 //! *new* failures rather than on a known-bad corpus. Shared by every sweep.
 inline void diffAgainstBaseline(
@@ -481,7 +535,7 @@ inline void diffAgainstBaseline(
 //! belongs to the JS-wiring harness, which assembles the whole scene chain.
 inline void sweepLibrary(
     const score::GUIApplicationContext& ctx, const QStringList& patterns,
-    ProgramLoader load, const QString& baseline, const QString& wantMode = {},
+    ProgramLoader load, const QString& baselinePrefix, const QString& wantMode = {},
     bool blankIsFailure = true)
 {
   // The sweeps render for real. Under the offscreen platform the GL context has
@@ -520,6 +574,8 @@ inline void sweepLibrary(
         "score_plugin_gfx registered no settings model: the gfx plug-in was not "
         "loaded. Plug-ins are discovered in <cwd>/plugins -- run this from the "
         "build root, as ctest does.");
+
+  const QString baseline = backendBaseline(baselinePrefix, gfx_settings->graphicsApiEnum());
 
   g_previous = qInstallMessageHandler(capture);
   // The QRhi is reused across shaders, but a lost device never comes back:

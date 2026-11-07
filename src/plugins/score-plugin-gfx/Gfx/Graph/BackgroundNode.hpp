@@ -24,6 +24,17 @@ struct BackgroundNode : OutputNode
 
   virtual ~BackgroundNode() { destroyOutput(); }
 
+  /**
+   * @brief Render at one sample whatever the anti-aliasing setting.
+   *
+   * For previews: small pictures in the UI, where a multisampled colour and
+   * depth pair costs tens of megabytes per preview and shows nothing the
+   * picture's size can carry. The preview hub renders at one sample too, so
+   * a preview looks the same whichever of the two serves it. Takes effect at
+   * the next createOutput.
+   */
+  void setSingleSample(bool b) noexcept { m_singleSample = b; }
+
   void startRendering() override { }
   void render() override
   {
@@ -64,7 +75,7 @@ struct BackgroundNode : OutputNode
     }
   }
   void onRendererChange() override { }
-  bool canRender() const override { return true; }
+  bool canRender() const override { return m_renderState && m_renderTarget; }
   void stopRendering() override { }
 
   void setRenderer(std::shared_ptr<RenderList> r) override { m_renderer = r; }
@@ -96,6 +107,8 @@ struct BackgroundNode : OutputNode
       return;
     }
     m_renderState->outputSize = m_renderState->renderSize;
+    if(m_singleSample)
+      m_renderState->samples = 1;
     m_renderState->renderFormat
         = (m_swapchainFormat != Gfx::SwapchainFormat::SDR)
               ? QRhiTexture::RGBA32F
@@ -107,25 +120,11 @@ struct BackgroundNode : OutputNode
         QRhiTexture::RenderTarget | QRhiTexture::UsedAsTransferSource);
     m_texture->create();
 
-    // Reverse-Z project rule: depth attachment is D32F (float). Fixed-point
+    // Reverse-Z project rule: the depth attachment is D32F (float). Fixed-point
     // D24 combined with reverse-Z gives strictly worse precision than
-    // standard-Z, so we must allocate a float texture here. RenderTarget
-    // flag is required for attaching as a depth target.
-    m_depthTexture = rhi->newTexture(
-        QRhiTexture::D32F, m_renderState->renderSize, 1,
-        QRhiTexture::RenderTarget);
-    m_depthTexture->setName("BackgroundNode::m_depthTexture");
-    m_depthTexture->create();
-
-    QRhiTextureRenderTargetDescription desc;
-    desc.setColorAttachments({QRhiColorAttachment(m_texture)});
-
-    desc.setDepthTexture(m_depthTexture);
-    m_renderTarget = rhi->newTextureRenderTarget(desc);
-    m_renderState->renderPassDescriptor
-        = m_renderTarget->newCompatibleRenderPassDescriptor();
-    m_renderTarget->setRenderPassDescriptor(m_renderState->renderPassDescriptor);
-    m_renderTarget->create();
+    // standard-Z.
+    m_renderTarget
+        = createOutputRenderTarget(*m_renderState, *m_texture, OutputDepth::Texture);
 
     conf.onReady();
   }
@@ -152,17 +151,10 @@ struct BackgroundNode : OutputNode
       // QRhi: destroyOwned() `delete`s the wrappers while the device is alive.
       releaseRegistry();
 
-      delete m_renderTarget;
-      m_renderTarget = nullptr;
-
-      delete m_depthTexture;
-      m_depthTexture = nullptr;
+      releaseOutputRenderTarget(*m_renderState, m_renderTarget);
 
       delete m_texture;
       m_texture = nullptr;
-
-      delete m_renderState->renderPassDescriptor;
-      m_renderState->renderPassDescriptor = nullptr;
 
       m_renderState->destroy();
       m_renderState.reset();
@@ -236,41 +228,23 @@ struct BackgroundNode : OutputNode
 
       auto rhi = m_renderState->rhi;
 
-      // Drain the GPU before destroying m_renderTarget / m_texture /
-      // m_depthTexture, as destroyOutput does: the current frame's offscreen
-      // CB, or a queued one, may still reference these resources, and the
-      // setPixelSize + create below does not drain internally. Without this,
-      // validation fires on the next vkCmd* recording (-recording /
-      // -commandBuffer-recording / -in-use) and can lose the device.
+      // Drain the GPU before destroying the render target and m_texture, as
+      // destroyOutput does: the current frame's offscreen CB, or a queued one,
+      // may still reference these resources, and the setPixelSize + create
+      // below does not drain internally. Without this, validation fires on
+      // the next vkCmd* recording (-recording / -commandBuffer-recording /
+      // -in-use) and can lose the device.
       rhi->finish();
 
-      m_renderTarget->destroy();
+      if(m_renderTarget.renderTarget)
+        m_renderTarget.renderTarget->destroy();
+      releaseOutputRenderTarget(*m_renderState, m_renderTarget, true);
       m_texture->destroy();
       m_texture->setPixelSize(newSz);
       m_texture->create();
 
-      if(m_depthTexture)
-        m_depthTexture->destroy();
-      else
-        m_depthTexture = rhi->newTexture(
-            QRhiTexture::D32F, newSz, 1, QRhiTexture::RenderTarget);
-      m_depthTexture->setPixelSize(newSz);
-      m_depthTexture->create();
-
-      m_renderTarget->deleteLater();
-      if(auto* rpd = m_renderState->renderPassDescriptor)
-        rpd->deleteLater();
-      m_renderState->renderPassDescriptor = nullptr;
-      m_renderTarget = nullptr;
-
-      QRhiTextureRenderTargetDescription desc;
-      desc.setColorAttachments({QRhiColorAttachment(m_texture)});
-      desc.setDepthTexture(m_depthTexture);
-      m_renderTarget = rhi->newTextureRenderTarget(desc);
-      m_renderState->renderPassDescriptor
-          = m_renderTarget->newCompatibleRenderPassDescriptor();
-      m_renderTarget->setRenderPassDescriptor(m_renderState->renderPassDescriptor);
-      m_renderTarget->create();
+      m_renderTarget
+          = createOutputRenderTarget(*m_renderState, *m_texture, OutputDepth::Texture);
     }
 
     if(m_onResize)
@@ -283,11 +257,7 @@ struct BackgroundNode : OutputNode
   {
     if(!m_renderState)
       return {};
-    return score::gfx::TextureRenderTarget{
-        .texture = m_texture,
-        .renderPass = m_renderState->renderPassDescriptor,
-        .renderTarget = m_renderTarget,
-        .depthTexture = m_depthTexture};
+    return m_renderTarget;
   }
 
   score::gfx::OutputNodeRenderer* createRenderer(RenderList& r) const noexcept override
@@ -304,11 +274,11 @@ struct BackgroundNode : OutputNode
 private:
   Configuration m_conf;
   SharedDeviceMode m_deviceMode{SharedDeviceMode::Owned};
+  bool m_singleSample{};
 
   std::weak_ptr<score::gfx::RenderList> m_renderer{};
   QRhiTexture* m_texture{};
-  QRhiTexture* m_depthTexture{};
-  QRhiTextureRenderTarget* m_renderTarget{};
+  score::gfx::TextureRenderTarget m_renderTarget;
   std::shared_ptr<score::gfx::RenderState> m_renderState{};
 
   std::function<void()> m_onResize;

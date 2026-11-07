@@ -56,12 +56,11 @@ score::GUIElements ApplicationPlugin::makeGUIElements()
     Process::PreviewSettings::instance().setEnabled(checked);
   });
 
-  auto probe_act = new QAction{QObject::tr("Show what goes through a port on hover"), bar};
+  auto probe_act = new QAction{QObject::tr("Show port previews on hover"), bar};
   probe_act->setCheckable(true);
   probe_act->setChecked(Process::PreviewSettings::instance().hoverProbes());
   score::setHelp(
-      probe_act,
-      QObject::tr("Hovering a port or a cable shows what goes through it"));
+      probe_act, QObject::tr("Preview what goes through a port or a cable on hover"));
   setIcons(
       probe_act, QStringLiteral(":/icons/hover_probe_on.png"),
       QStringLiteral(":/icons/hover_probe_hover.png"),

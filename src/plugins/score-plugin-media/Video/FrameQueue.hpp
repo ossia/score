@@ -69,7 +69,14 @@ public:
   AVFrame* discard_and_dequeue() noexcept;
   AVFrame* discard_and_dequeue_one() noexcept;
 
-  void set_discard_frame(AVFrame*);
+  //! The next discard_and_dequeue* drops the queued frames that come before
+  //! a seek's landing frame: those of an earlier generation, and those of the
+  //! current one shown before `pts`. The first frame past them is returned and
+  //! ends the discard; until one is queued the discard waits. A date rather
+  //! than the landing frame itself, so that a consumer which took that frame
+  //! before the marker was set keeps the frames after it. Decoding thread
+  //! only.
+  void set_discard_before(int64_t pts) noexcept;
   void release(AVFrame* frame) noexcept;
 
   //! Frames enqueued from now on belong to a new seek. Each frame carries the
@@ -79,12 +86,39 @@ public:
 
   std::size_t size() const noexcept { return available.size_approx(); }
 
+  //! Follows one frame given out by the decoding thread: watched() is null
+  //! once newFrame() has handed that frame out again, the consumer having
+  //! taken and released it. Decoding thread only.
+  void watch(AVFrame* f) noexcept { m_watched = f; }
+  AVFrame* watched() const noexcept { return m_watched; }
+
 private:
+  AVFramePointer newFrameImpl() noexcept;
+
   ossia::mpmc_queue<AVFrame*> available;
   ossia::mpmc_queue<AVFrame*> released;
 
+  //! The discard marker: true when `f` comes before it. Consumer side.
+  struct Discard
+  {
+    int64_t pts{};
+    int generation{};
+    uint32_t sequence{};
+  };
+  bool pendingDiscard(Discard& d) const noexcept;
+  static bool before(const AVFrame& f, const Discard& d) noexcept;
+  template <typename Dequeue>
+  AVFrame* dequeueDiscarding(const Dequeue& dequeue) noexcept;
+
   std::vector<AVFrame*> m_decodeThreadFrameBuffer;
-  std::atomic<AVFrame*> m_discardUntil{};
+  AVFrame* m_watched{};
+  // A sequence lock around the marker: odd while the decoding thread writes
+  // it; a marker is pending while its sequence is not the one the consumer
+  // last finished.
+  std::atomic<uint32_t> m_discardSequence{};
+  std::atomic<int64_t> m_discardPts{};
+  std::atomic_int m_discardGeneration{};
+  std::atomic<uint32_t> m_discardDone{};
   std::atomic_int m_generation{};
 };
 

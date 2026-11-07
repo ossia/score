@@ -46,7 +46,12 @@ constexpr std::array kRows{
     Row{"NV12", V::NV12}, Row{"NV21", V::NV21},
     Row{"NV16", V::NV16}, Row{"NV61", V::NV61},
     Row{"NV24", V::NV24},
-    Row{"P010_10LE", V::P010}, Row{"P016_LE", V::P216},
+    Row{"P010_10LE", V::P010},
+    // P012 and P016 are P010's 4:2:0 layout with more of each 16-bit word
+    // significant. The samples are MSB-aligned at every depth, so P010's
+    // decoder reads them exactly; P010 maps back to its own name, the first
+    // row naming it.
+    Row{"P012_LE", V::P010}, Row{"P016_LE", V::P010},
     // greyscale
     Row{"GRAY8", V::Mono8},
     Row{"GRAY16_LE", V::Mono16}, Row{"GRAY16_BE", V::Mono16BE},

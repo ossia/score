@@ -32,9 +32,12 @@ class View;
 class SCORE_PLUGIN_CURVE_EXPORT ToolPalette : public GraphicsSceneToolPalette
 {
 public:
-  ToolPalette(const score::DocumentContext& ctx, Presenter& pres);
+  ToolPalette(
+      const score::DocumentContext& ctx, Presenter& pres,
+      score::SelectionStack* selectionStack = nullptr);
   ~ToolPalette();
   Presenter& presenter() const;
+  score::SelectionStack& selectionStack() const noexcept { return m_selectionStack; }
 
   Curve::EditionSettings& editionSettings() const;
 
@@ -44,6 +47,10 @@ public:
   void on_released(QPointF point);
 
   void on_cancel();
+
+  //! Rolls back a gesture in progress before returning, for an editor that is
+  //! destroyed or rebound right after: on_cancel only queues the cancellation.
+  void cancelGesture();
 
   void activate(Curve::Tool);
   void desactivate(Curve::Tool);
@@ -59,6 +66,7 @@ private:
   }
 
   Presenter& m_presenter;
+  score::SelectionStack& m_selectionStack;
   bool m_pressed{};
 
   SmartTool m_selectTool;

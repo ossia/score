@@ -554,6 +554,74 @@ void mute_and_erase(H& h)
   }
 }
 
+//! Undo takes back the last action, whichever it was: a mute, an erase,
+//! whose layer comes back with what it holds, a solo, a pass; Redo does them
+//! again in their order.
+template <typename H>
+void undo_actions(H& h)
+{
+  auto& in = h.node.inputs;
+  four_layers(h);
+  const double second = h.signature(1);
+  const double newest = h.signature(3);
+
+  in.layer.value = 2;
+  at_beat(h, in.erase_layer);
+  REQUIRE(h.passes() == 3);
+  in.layer.value = 1;
+  at_beat(h, in.mute_layer);
+  REQUIRE(h.muted(0));
+
+  press(h, in.undo);
+  CHECK(!h.muted(0));
+  CHECK(h.passes() == 3);
+  press(h, in.undo);
+  REQUIRE(h.passes() == 4);
+  CHECK(same(h.signature(1), second));
+  CHECK(same(h.signature(3), newest));
+  // Layer stays on the layer it named, which moved up.
+  CHECK(in.layer.value == 1);
+  press(h, in.undo);
+  CHECK(h.passes() == 3);
+
+  press(h, in.redo);
+  CHECK(h.passes() == 4);
+  press(h, in.redo);
+  CHECK(h.passes() == 3);
+  press(h, in.redo);
+  CHECK(h.muted(0));
+  press(h, in.redo);
+  CHECK(h.passes() == 3);
+  CHECK(h.muted(0));
+
+  // A solo is one action.
+  press(h, in.undo);
+  in.layer.value = 3;
+  at_beat(h, in.solo_layer);
+  CHECK(h.muted(0));
+  CHECK(h.muted(1));
+  CHECK(!h.muted(2));
+  press(h, in.undo);
+  for(int k = 0; k < 3; k++)
+    CHECK(!h.muted(k));
+
+  // While overdubbing, an erase done since the pass started is undone
+  // first, then the pass is dropped, the overdub going on.
+  at_beat(h, in.overdub);
+  beats(h, 1);
+  REQUIRE(h.passes() == 4);
+  in.layer.value = 1;
+  at_beat(h, in.erase_layer);
+  REQUIRE(h.passes() == 3);
+  press(h, in.undo);
+  CHECK(h.passes() == 4);
+  CHECK(mode(h) == LoopMode::Overdub);
+  press(h, in.undo);
+  CHECK(h.passes() == 4);
+  CHECK(mode(h) == LoopMode::Overdub);
+  CHECK(h.node.transport.is_taking());
+}
+
 //! Solo layer mutes every layer but the selected one; again on that layer,
 //! the mutes from before come back; on another, that one is soloed.
 template <typename H>

@@ -87,7 +87,7 @@ protected:
   std::weak_ptr<RenderList> m_renderer;
   QRhi* m_rhi{};
   QRhiTexture* m_texture{};
-  QRhiTextureRenderTarget* m_renderTarget{};
+  TextureRenderTarget m_renderTarget;
 
   std::unique_ptr<interop::CpuStagedVideoOutput> m_hostStaged;
   std::unique_ptr<interop::VideoOutputStrategy> m_rdma;

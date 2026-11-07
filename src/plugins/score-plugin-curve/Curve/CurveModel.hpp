@@ -54,7 +54,8 @@ public:
   void toCurveData(std::vector<SegmentData>& out) const;
 
   //! Replaces the curve. Refused, with a warning, if `curve` is not valid
-  //! (see isValidCurve) or uses an unknown segment type.
+  //! (see isValidCurve) or uses an unknown segment type. Works on a model that
+  //! is not in a document yet: the segment factories are the application's.
   void fromCurveData(const std::vector<SegmentData>& curve);
 
   //! Removes the `removed` segments, then updates each of `upserted` in place

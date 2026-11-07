@@ -364,6 +364,19 @@ std::shared_ptr<RenderState> createRenderState(
     score::GLCapabilities caps;
     caps.setupFormat(params.format);
 
+    // Only ask for an explicit sample count when MSAA is actually wanted.
+    // Requesting samples=1 is NOT the same request as leaving it unset, and on
+    // macOS it makes a later present crash inside Apple's GL-on-Metal shim
+    // (gldUpdateReadFramebuffer, NULL colour attachment) once an offscreen
+    // frame has been interleaved with window frames on the same QRhi. Both
+    // conditions are necessary.
+    //
+    // Set before the fallback surface is built from this format: GLX refuses
+    // to make a multisample context current on a single-sample pbuffer, and
+    // QRhi::create then fails for every windowless output.
+    if(state.samples > 1)
+      params.format.setSamples(state.samples);
+
 #if defined(__EMSCRIPTEN__)
     // Qt for wasm binds a QOpenGLContext to the *first* surface it is ever made
     // current with (QWasmOpenGLContext::m_contextOwningSurface) and then refuses
@@ -403,14 +416,6 @@ std::shared_ptr<RenderState> createRenderState(
     params.fallbackSurface = state.surface;
 #endif
 
-    // Only ask for an explicit sample count when MSAA is actually wanted.
-    // Requesting samples=1 is NOT the same request as leaving it unset, and on
-    // macOS it makes a later present crash inside Apple's GL-on-Metal shim
-    // (gldUpdateReadFramebuffer, NULL colour attachment) once an offscreen
-    // frame has been interleaved with window frames on the same QRhi. Both
-    // conditions are necessary.
-    if(state.samples > 1)
-      params.format.setSamples(state.samples);
     if(gpuDebugRequested())
       params.format.setOption(QSurfaceFormat::DebugContext);
     state.rhi = QRhi::create(QRhi::OpenGLES2, &params, flags);
