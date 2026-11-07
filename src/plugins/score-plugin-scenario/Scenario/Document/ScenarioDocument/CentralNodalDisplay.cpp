@@ -1,6 +1,7 @@
 #include <Scenario/Commands/CommandAPI.hpp>
 #include <Scenario/Commands/Interval/AddProcessToInterval.hpp>
 #include <Scenario/Document/Interval/FullView/NodalIntervalView.hpp>
+#include <Scenario/Document/Interval/NodeLayout.hpp>
 #include <Scenario/Document/ScenarioDocument/CentralNodalDisplay.hpp>
 #include <Scenario/Document/ScenarioDocument/ProcessCreation.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
@@ -52,6 +53,9 @@ void CentralNodalDisplay::init()
       [this, &gv](const QPoint& pos) {
     QMenu contextMenu(&gv);
     auto recenter = contextMenu.addAction(QObject::tr("Recenter"));
+    addNodeLayoutActions(
+        contextMenu, parent.displayedInterval(), parent.context(),
+        presenter->nodeGeometry(), [this] { presenter->recenter(); });
 
     auto act = contextMenu.exec(gv.mapToGlobal(pos));
     if(act == recenter)
