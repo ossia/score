@@ -2,6 +2,7 @@
 // view: each port lists its cables, says when those cables keep its address
 // from being used, and every edit is one command.
 
+#include <cmath>
 #include <score_test/App.hpp>
 #include <score_test/Document.hpp>
 #include <score_test/Execution.hpp>
@@ -304,6 +305,65 @@ TEST_CASE("the audio output inspector edits through commands", "[integration][in
     CHECK(out.gain() == 0.5);
     CHECK(gain->value() == 0.5);
     settle();
+  });
+}
+
+TEST_CASE(
+    "the audio output panel sits above its port in a zoomed out nodal view",
+    "[integration][inspector][gui]")
+{
+  score::test::run_in_gui_app([](const score::GUIApplicationContext& ctx) {
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    auto* a = score::test::add_process(*doc, mergerUuid, {});
+    if(!a)
+      SKIP("the media plug-in is not built");
+    auto& out = *qobject_cast<Process::AudioOutlet*>(a->outlets().front());
+
+    Process::DataflowManager dfm;
+    FocusDispatcher fd;
+    Process::Context pctx{doc->context(), dfm, fd};
+
+    // The nodal view zooms by scaling the container of its nodes
+    QGraphicsScene scene;
+    auto container = new QGraphicsRectItem{};
+    scene.addItem(container);
+    auto item = new Dataflow::AudioOutletItem{out, pctx, container};
+    item->setPos(100, 200);
+
+    for(double zoom : {0.5, 0.25, 1., 1.5})
+    {
+      container->setScale(zoom);
+      QGraphicsSceneMouseEvent press{QEvent::GraphicsSceneMousePress};
+      press.setButton(Qt::LeftButton);
+      press.setButtons(Qt::LeftButton);
+      press.setPos({5, 5});
+      press.setScenePos(item->mapToScene(5, 5));
+      item->mousePressEvent(&press);
+      QGraphicsSceneMouseEvent release{QEvent::GraphicsSceneMouseRelease};
+      release.setButton(Qt::LeftButton);
+      release.setPos({5, 5});
+      release.setScenePos(item->mapToScene(5, 5));
+      item->mouseReleaseEvent(&release);
+      settle();
+
+      INFO("zoom " << zoom);
+      REQUIRE(item->m_subView);
+      const QRectF p = item->m_subView->sceneBoundingRect();
+      const QRectF port = item->sceneBoundingRect();
+      CHECK(p.bottom() < port.top());
+      CHECK(port.top() - p.bottom() < 10.);
+      CHECK(std::abs(p.left() - item->scenePos().x()) < 1e-6);
+
+      // A second click closes it
+      item->mousePressEvent(&press);
+      item->mouseReleaseEvent(&release);
+      settle();
+      CHECK(!item->m_subView);
+    }
+
+    delete item;
+    delete container;
   });
 }
 

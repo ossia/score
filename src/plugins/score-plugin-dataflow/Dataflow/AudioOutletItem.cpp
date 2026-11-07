@@ -213,11 +213,13 @@ private:
     update();
   }
 
-  //! The panel points at the port from above: it moves when it grows
+  //! The panel points at the port from above: it moves when it grows. The
+  //! panel is a scene item, unscaled: the gap is in scene units, not in the
+  //! port's, which shrink when the nodal view zooms out.
   void positionChanged()
   {
     if(auto item = m_anchor)
-      setPos(item->mapToScene(0, -(m_height + 7)));
+      setPos(item->scenePos() - QPointF{0., m_height + 7.});
   }
 
 public:
@@ -401,7 +403,7 @@ void MinMaxFloatOutletItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
       m_subView = new MinMaxFloatOutletMiniPanel{
           safe_cast<const Process::MinMaxFloatOutlet&>(m_port), m_context,
           this->scene()};
-      m_subView->setPos(this->mapToScene(0, -42));
+      m_subView->setPos(scenePos() - QPointF{0., 42.});
     }
     else
     {
@@ -431,7 +433,7 @@ QVariant MinMaxFloatOutletItem::itemChange(
     case QGraphicsItem::ItemScenePositionHasChanged:
       if(m_subView)
       {
-        m_subView->setPos(this->mapToScene(0, -42));
+        m_subView->setPos(scenePos() - QPointF{0., 42.});
       }
     default:
       break;
