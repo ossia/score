@@ -5511,6 +5511,13 @@ void RenderedRawRasterPipelineNode::drawWithPerMeshAuxRebind(
   // meshes and instance groups all ride one drawIndexedIndirect. The SRB is
   // bound once and the draw fans out through the indirect cmd list.
   cb.setShaderResources(&srb);
+#if QT_VERSION >= QT_VERSION_CHECK(6, 9, 0)
+  if(pipeline.flags() & QRhiGraphicsPipeline::UsesShadingRate)
+  {
+    if(const auto& sr = n.descriptor().default_state.shading_rate)
+      cb.setShadingRate(QSize((*sr)[0], (*sr)[1]));
+  }
+#endif
 
   // PIPELINE_STATE: { "VERTEX_COUNT": N, "INSTANCE_COUNT": M, "TOPOLOGY": ... }
   // is a procedural draw override: issue one cb.draw(N, M, 0, 0) and ignore the
