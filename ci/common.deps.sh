@@ -199,7 +199,7 @@ then
   clone_addon https://github.com/ossia/score-addon-sysinfo
   clone_addon https://github.com/ossia/score-addon-trackingprotocols
   clone_addon https://github.com/ossia/score-addon-videoio
-  clone_addon https://github.com/sat-mtl/carto-tcp-avendish.git update-avendish-packaging
+  clone_addon https://github.com/sat-mtl/carto-tcp-avendish.git
   NO_SUBMODULES=1 clone_addon https://github.com/ossia/score-addon-orbbec
 fi
 
