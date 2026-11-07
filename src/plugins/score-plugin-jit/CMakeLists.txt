@@ -26,31 +26,41 @@ else()
   return()
 endif()
 
-find_package(Clang PATHS
-  ${LLVM_DIR}
-  ${LLVM_DIR}/../Clang
-  ${LLVM_DIR}/../clang
-  ${LLVM_DIR}/lib/cmake/clang
-  ${LLVM_PREFIX}
-  ${LLVM_PREFIX}/../Clang
-  ${LLVM_PREFIX}/../clang
-  ${LLVM_PREFIX}/lib/cmake/clang
+# Clang and Polly are searched next to the LLVM that was found first: with
+# several LLVMs installed (a distribution's and apt.llvm.org's, say) the default
+# search can find another version's, which does not link with this LLVM.
+# LLVM_DIR is the directory find_package(LLVM) found LLVMConfig.cmake in.
+set(_score_jit_llvm_cmake_dirs
+  "${LLVM_DIR}"
+  "${LLVM_DIR}/.."
+  "${LLVM_INSTALL_PREFIX}/lib/cmake"
+  "${LLVM_INSTALL_PREFIX}/lib64/cmake"
 )
+find_package(Clang CONFIG QUIET NO_DEFAULT_PATH
+  PATHS ${_score_jit_llvm_cmake_dirs}
+  PATH_SUFFIXES clang Clang
+)
+if(NOT Clang_FOUND)
+  find_package(Clang CONFIG)
+  if(Clang_FOUND)
+    message(WARNING
+      "Clang was not found next to LLVM ${LLVM_PACKAGE_VERSION} (${LLVM_DIR}) "
+      "but in ${Clang_DIR}: set Clang_DIR if it is another version's.")
+  endif()
+endif()
 if(NOT Clang_FOUND)
   message(" -- libclang was not found, skipping JIT plug-in")
   return()
 endif()
+message(" -- Clang: ${Clang_DIR}")
 
-find_package(Polly PATHS
-  ${LLVM_DIR}
-  ${LLVM_DIR}/../Polly
-  ${LLVM_DIR}/../polly
-  ${LLVM_DIR}/lib/cmake/polly
-  ${LLVM_PREFIX}
-  ${LLVM_PREFIX}/../Polly
-  ${LLVM_PREFIX}/../polly
-  ${LLVM_PREFIX}/lib/cmake/polly
+find_package(Polly CONFIG QUIET NO_DEFAULT_PATH
+  PATHS ${_score_jit_llvm_cmake_dirs}
+  PATH_SUFFIXES polly Polly
 )
+if(NOT Polly_FOUND)
+  find_package(Polly CONFIG)
+endif()
 if(NOT Polly_FOUND)
   message(" -- Polly was not found, not all optimizations may be available")
 endif()

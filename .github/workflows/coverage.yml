@@ -45,20 +45,9 @@ jobs:
         run: ./ci/coverage.deps.sh
 
       - name: Build, run tests, generate Coveralls report
-        env:
-          # LLVM 23 from apt.llvm.org (ci/coverage.deps.sh), which the JIT
-          # plug-in builds against. LLVM_DIR because ubuntu.2604.deps.sh also
-          # installs the distribution's LLVM 22 development packages.
-          CC: clang-23
-          CXX: clang++-23
-          GCOV: "llvm-cov-23 gcov"
-          CMAKEFLAGS: "-DLLVM_DIR=/usr/lib/llvm-23/lib/cmake/llvm"
-          # The library the shader-sweep baselines were recorded against
-          # (tests/testdata/shader_sweep_baseline_*): bumped together with them.
-          # The head of ossia/score-user-library#36, which the baselines need;
-          # it stays fetchable from refs/pull/36/head whatever becomes of the
-          # branch, and is to be replaced by the merge commit once it lands.
-          SCORE_USER_LIBRARY_REF: f73ce686171402f0b441fb2eebad653203f4015c
+        # CC, CXX, GCOV and CMAKEFLAGS are those of the newest LLVM of
+        # apt.llvm.org, which ci/coverage.deps.sh installs and writes to
+        # $GITHUB_ENV.
         run: ./ci/coverage.build.sh
 
       # Uploads via the Coveralls GitHub App (github.token) — no secret needed

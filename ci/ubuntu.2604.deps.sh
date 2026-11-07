@@ -4,8 +4,10 @@ source ci/common.setup.sh
 
 echo 'debconf debconf/frontend select Noninteractive' | $SUDO debconf-set-selections
 
+# PKGS holds the compiler and the LLVM / libclang development packages the JIT
+# plug-in builds against, e.g. "libclang-dev llvm-dev" for the distribution's.
 if [[ -z "$PKGS" ]]; then
-  echo "PKGS must be defined (for instance PKGS=clang-21, PKGS=gcc...)"
+  echo "PKGS must be defined (for instance PKGS=\"clang-22 libclang-22-dev llvm-22-dev\")"
   exit 1
 fi
 
@@ -38,7 +40,6 @@ $SUDO apt install -y \
      libavahi-compat-libdnssd-dev libsamplerate0-dev \
      portaudio19-dev \
      libpipewire-0.3-dev \
-     libclang-dev llvm-dev \
      libvulkan-dev \
      libavcodec-dev libavdevice-dev libavutil-dev libavfilter-dev libavformat-dev libswresample-dev \
      file \

@@ -6,7 +6,11 @@
 #   process sweeps also run the JIT, Avendish and C++ texture generator
 #   processes. apt.llvm.org has no 26.10 repository; its 26.04 one installs
 #   cleanly on 26.10, which only carries newer versions of the libraries it
-#   links to.
+#   links to. The newest release branch it carries is taken (LLVM_VERSION
+#   overrides it), not the unversioned snapshot repository, which follows LLVM's
+#   main branch. It is the only LLVM development package set installed: the
+#   compiler, llvm-cov and the CMake directories of the build step come from it,
+#   through $GITHUB_ENV.
 # - Qt, Mesa and the rest from the distribution, through ci/ubuntu.2604.deps.sh,
 #   whose package names 26.10 shares.
 # - CMake and gcovr from PyPI, where their releases land first, at the versions
@@ -14,8 +18,7 @@
 
 source ci/common.setup.sh
 
-LLVM_VERSION=23
-LLVM_REPO=llvm-toolchain-resolute-${LLVM_VERSION}
+LLVM_APT_URL=https://apt.llvm.org/resolute
 LLVM_KEY_FINGERPRINT=6084F3CF814B57C1CF12EFD515CF4D18AF4F7421
 
 echo 'debconf debconf/frontend select Noninteractive' | $SUDO debconf-set-selections
@@ -31,10 +34,14 @@ if ! gpg --show-keys --with-colons "$keyring" | grep -q "^fpr:::::::::${LLVM_KEY
   echo "apt.llvm.org key does not have the fingerprint ${LLVM_KEY_FINGERPRINT}" >&2
   exit 1
 fi
+if [ -z "${LLVM_VERSION:-}" ]; then
+  LLVM_VERSION=$(./ci/coverage.llvm-version.sh "$LLVM_APT_URL")
+fi
+echo "LLVM ${LLVM_VERSION} from ${LLVM_APT_URL}"
 $SUDO tee /etc/apt/sources.list.d/apt.llvm.org.sources >/dev/null <<EOF
 Types: deb
-URIs: https://apt.llvm.org/resolute/
-Suites: ${LLVM_REPO}
+URIs: ${LLVM_APT_URL}/
+Suites: llvm-toolchain-resolute-${LLVM_VERSION}
 Components: main
 Signed-By: ${keyring}
 EOF
@@ -98,6 +105,38 @@ for tool in cmake ctest cpack gcovr; do
 done
 # <<< CMake and gcovr
 
+# >>> LLVM
+# The distribution's LLVM must not be installed beside it: CMake could find
+# its Clang or Polly packages, and the JIT would link two LLVMs.
+llvm_prefix=/usr/lib/llvm-${LLVM_VERSION}
+others=$(dpkg-query -W -f='${db:Status-Abbrev} ${Package}\n' \
+           'llvm-*-dev' 'libclang-*-dev' 'libpolly-*-dev' 2>/dev/null \
+         | awk -v v="$LLVM_VERSION" '$1 ~ /^ii/ && $2 !~ ("-" v "-dev$") { print $2 }' | tr '\n' ' ')
+if [ -n "$others" ]; then
+  echo "::error::LLVM development packages of another version are installed: ${others}"
+  exit 1
+fi
+cmake_dirs="-DLLVM_DIR=${llvm_prefix}/lib/cmake/llvm -DClang_DIR=${llvm_prefix}/lib/cmake/clang"
+if [ -d "${llvm_prefix}/lib/cmake/polly" ]; then
+  cmake_dirs="$cmake_dirs -DPolly_DIR=${llvm_prefix}/lib/cmake/polly"
+fi
+if [ -n "${GITHUB_ENV:-}" ]; then
+  {
+    echo "LLVM_VERSION=${LLVM_VERSION}"
+    echo "CC=clang-${LLVM_VERSION}"
+    echo "CXX=clang++-${LLVM_VERSION}"
+    echo "GCOV=llvm-cov-${LLVM_VERSION} gcov"
+    echo "CMAKEFLAGS=${CMAKEFLAGS:+$CMAKEFLAGS }${cmake_dirs}"
+  } >> "$GITHUB_ENV"
+fi
+
+# apt.llvm.org's packages are not pinned: what this run built and measured with
+# is printed here.
+apt-cache policy "clang-${LLVM_VERSION}" "llvm-${LLVM_VERSION}-dev" \
+  "libclang-${LLVM_VERSION}-dev" "libclang-rt-${LLVM_VERSION}-dev" "lld-${LLVM_VERSION}"
+"clang++-${LLVM_VERSION}" --version
+"llvm-config-${LLVM_VERSION}" --version
+# <<< LLVM
+
 cmake --version
 gcovr --version
-"clang++-${LLVM_VERSION}" --version
