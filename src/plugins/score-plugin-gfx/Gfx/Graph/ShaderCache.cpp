@@ -87,7 +87,7 @@ static QByteArray restoreNumWorkGroupsBuiltin(QByteArray src)
 
 const std::pair<QShader, QString>& ShaderCache::get(
     GraphicsApi api, const QShaderVersion& version, const QByteArray& shader,
-    QShader::Stage stage, int multiViewCount)
+    QShader::Stage stage, int multiViewCount, bool rhiHasMultiView)
 {
   static std::mutex mut;
   static ShaderCache self TS_GUARDED_BY(mut);
@@ -99,12 +99,14 @@ const std::pair<QShader, QString>& ShaderCache::get(
   // SPIR-V, so the same source at two view counts is two different shaders.
   auto ver_it = ossia::find_if(self.m_bakers, [&](const auto& p) {
     return p->api == api && p->version == version
-           && p->multiViewCount == multiViewCount;
+           && p->multiViewCount == multiViewCount
+           && p->rhiHasMultiView == rhiHasMultiView;
   });
   Baker* bb{};
   if(ver_it == self.m_bakers.end())
   {
-    self.m_bakers.push_back(std::make_unique<Baker>(api, version, multiViewCount));
+    self.m_bakers.push_back(
+        std::make_unique<Baker>(api, version, multiViewCount, rhiHasMultiView));
     bb = self.m_bakers.back().get();
   }
   else
@@ -133,7 +135,8 @@ const std::pair<QShader, QString>& ShaderCache::get(
   // already per-(api, version, multiViewCount), so each backend caches its
   // own bake of the same node.
   QByteArray source = renameReservedIdentifiers(shader, api);
-  if(multiViewCount >= 2 && viewIndexNeedsPassIndexFallback(api, version, multiViewCount))
+  if(multiViewCount >= 2
+     && viewIndexNeedsPassIndexFallback(api, version, multiViewCount, rhiHasMultiView))
     source = lowerViewIndexToPassIndex(std::move(source));
   if(stage == QShader::ComputeStage && !numWorkGroupsThroughUniform(api))
     source = restoreNumWorkGroupsBuiltin(std::move(source));
@@ -151,16 +154,19 @@ const std::pair<QShader, QString>& ShaderCache::get(
     const RenderState& v, const QByteArray& shader, QShader::Stage stage,
     int multiViewCount)
 {
-  return ShaderCache::get(v.api, v.version, shader, stage, multiViewCount);
+  return ShaderCache::get(
+      v.api, v.version, shader, stage, multiViewCount, v.caps.multiview);
 }
 
 ShaderCache::ShaderCache() { }
 
 ShaderCache::Baker::Baker(
-    GraphicsApi api, const QShaderVersion& version, int multiViewCount)
+    GraphicsApi api, const QShaderVersion& version, int multiViewCount,
+    bool rhiHasMultiView)
     : api{api}
     , version{version}
     , multiViewCount{multiViewCount}
+    , rhiHasMultiView{rhiHasMultiView}
 {
   switch(api)
   {
@@ -202,7 +208,8 @@ ShaderCache::Baker::Baker(
   // gl_ViewIndex left to give a view count to, the target cannot express
   // multiview anyway, and asking for it makes QRhi expect a multiview render
   // target the N-pass fallback does not build.
-  if(multiViewCount >= 2 && !viewIndexNeedsPassIndexFallback(api, version, multiViewCount))
+  if(multiViewCount >= 2
+     && !viewIndexNeedsPassIndexFallback(api, version, multiViewCount, rhiHasMultiView))
     baker.setMultiViewCount(multiViewCount);
 #endif
 }

@@ -360,6 +360,10 @@ inline bool numWorkGroupsThroughUniform(GraphicsApi api) noexcept
  *     Vertex shader error: View Index input is only supported in VS and PS
  *     6.1 or higher.
  *
+ * The same holds wherever QRhi reports no MultiView at all, e.g. OpenGL
+ * without GL_OVR_multiview2 (Mesa's Intel driver): the baked GLSL requires the
+ * extension and the driver refuses it.
+ *
  * ShaderCache answers this by rewriting gl_ViewIndex to the VIEWINDEX uniform,
  * which the N-pass path stamps per invocation.
  *
@@ -371,8 +375,12 @@ inline bool numWorkGroupsThroughUniform(GraphicsApi api) noexcept
  * this function in both places.
  */
 inline bool viewIndexNeedsPassIndexFallback(
-    GraphicsApi api, const QShaderVersion& version, int multiViewCount) noexcept
+    GraphicsApi api, const QShaderVersion& version, int multiViewCount,
+    bool rhiHasMultiView) noexcept
 {
+  if(!rhiHasMultiView)
+    return true;
+
   // SCORE_GFX_DISABLE_MULTIVIEW means "pretend this backend has no multiview".
   // It also makes this path -- otherwise reachable only on a D3D target --
   // testable everywhere.
