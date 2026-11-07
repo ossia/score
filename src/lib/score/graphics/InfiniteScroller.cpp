@@ -52,6 +52,21 @@ QPointF virtualPos{};
 // Long enough for the release the platform sends through its normal channel.
 constexpr int relativeReleaseGraceMs = 50;
 
+// Whether a move shows the pointer away from the press point, which a held
+// pointer cannot be. Only a position the platform reported can say so: a move
+// synthesized from the relative motion, or the view replaying one, sits
+// wherever that motion has taken the virtual pointer, however firmly the real
+// one is held.
+bool pointerEscaped(QGraphicsSceneMouseEvent* event) noexcept
+{
+  const QPointF pos = event->screenPos();
+  if(std::abs(pos.x() - virtualPos.x()) < 1. && std::abs(pos.y() - virtualPos.y()) < 1.)
+    return false;
+
+  const QPointF drift = pos - event->buttonDownScreenPos(Qt::LeftButton);
+  return std::abs(drift.x()) + std::abs(drift.y()) > escapedPointerDistance;
+}
+
 // Only worth doing once the pointer is actually being held: a hidden cursor
 // that then wanders off across the screen is harder to follow than a visible
 // one, and where no lock is granted that is exactly what happens.
@@ -228,12 +243,11 @@ void InfiniteScroller::move_free(QGraphicsSceneMouseEvent* event)
   // positions below still work when it is not held.
   if(relativeSession && PointerLock::active())
   {
-    const double delta = ratio * PointerLock::takeDelta().y();
-    const QPointF drift
-        = event->screenPos() - event->buttonDownScreenPos(Qt::LeftButton);
-    const bool escaped
-        = std::abs(drift.x()) + std::abs(drift.y()) > escapedPointerDistance;
-    if(delta == 0. && escaped
+    // Sideways motion does not change the value, but it is still motion: the
+    // lock is delivering, whatever the vertical part of it.
+    const QPointF motion = PointerLock::takeDelta();
+    const double delta = ratio * motion.y();
+    if(motion.isNull() && pointerEscaped(event)
        && ++silentLockedMoves >= silentLockedMovesBeforeFallback)
     {
       endRelativeSession();
@@ -241,7 +255,7 @@ void InfiniteScroller::move_free(QGraphicsSceneMouseEvent* event)
     }
     else
     {
-      if(delta != 0.)
+      if(!motion.isNull())
         silentLockedMoves = 0;
       hideCursorForHeldPointer();
       currentSpeed = delta;
@@ -294,12 +308,7 @@ QPointF InfiniteScroller::relativeMotion(QGraphicsSceneMouseEvent* event)
   if(holdsPointer())
   {
     const QPointF delta = PointerLock::takeDelta();
-    const QPointF drift
-        = event->screenPos() - event->buttonDownScreenPos(Qt::LeftButton);
-    const bool escaped
-        = std::abs(drift.x()) + std::abs(drift.y()) > escapedPointerDistance;
-
-    if(!(delta.isNull() && escaped
+    if(!(delta.isNull() && pointerEscaped(event)
          && ++silentLockedMoves >= silentLockedMovesBeforeFallback))
     {
       if(!delta.isNull())

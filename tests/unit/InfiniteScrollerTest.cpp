@@ -2,8 +2,11 @@
 #include <score/tools/PointerLock.hpp>
 
 #include <QApplication>
+#include <QCursor>
 #include <QEventLoop>
 #include <QGraphicsRectItem>
+#include <QGraphicsScene>
+#include <QGraphicsView>
 #include <QGraphicsSceneMouseEvent>
 #include <QTimer>
 
@@ -318,4 +321,114 @@ TEST_CASE("infinite scroller applies the first delta of the drag after a teardow
   score::InfiniteScroller::stop(item, &m2);
 
   REQUIRE(v == Catch::Approx(0.5 + 10. / h));
+}
+
+// A locked drag as the platform delivers it: each relative motion is reported
+// to the scroller, which synthesizes a move at the virtual pointer, while the
+// real pointer stays on the press point.
+struct LockedDrag
+{
+  QGraphicsScene scene;
+  QGraphicsView view{&scene};
+  QGraphicsRectItem item{0., 0., 10., 10.};
+  QPoint press{400, 300};
+  QPointF virtualPos{press};
+  double height{};
+
+  LockedDrag()
+  {
+    app();
+    reset(true);
+    scene.addItem(&item);
+    view.setGeometry(0, 0, 1000, 800);
+    view.show();
+    QCursor::setPos(press);
+    score::InfiniteScroller::start(item, 0.5);
+    height = score::InfiniteScroller::currentGeometry.height();
+  }
+
+  ~LockedDrag()
+  {
+    QGraphicsSceneMouseEvent release{QEvent::GraphicsSceneMouseRelease};
+    setPositions(release, press, virtualPos.toPoint(), press);
+    score::InfiniteScroller::stop(item, &release);
+    scene.removeItem(&item);
+  }
+
+  double synthesized(QPointF delta)
+  {
+    if(score::PointerLock::active())
+    {
+      g_lock.delta += delta;
+      g_lock.motion(delta);
+    }
+    const QPoint last = virtualPos.toPoint();
+    virtualPos += delta;
+
+    QGraphicsSceneMouseEvent move{QEvent::GraphicsSceneMouseMove};
+    setPositions(move, virtualPos.toPoint(), last, press);
+    return score::InfiniteScroller::move(&move);
+  }
+
+  double replayed()
+  {
+    QGraphicsSceneMouseEvent move{QEvent::GraphicsSceneMouseMove};
+    setPositions(move, virtualPos.toPoint(), virtualPos.toPoint(), press);
+    return score::InfiniteScroller::move(&move);
+  }
+
+  double held()
+  {
+    QGraphicsSceneMouseEvent move{QEvent::GraphicsSceneMouseMove};
+    setPositions(move, press, virtualPos.toPoint(), press);
+    return score::InfiniteScroller::move(&move);
+  }
+};
+
+// A drag that has gone down and then wanders sideways must stay on the lock:
+// dropping it there would read the real pointer back on the press point, and
+// apply that as the whole drag, backwards.
+TEST_CASE("infinite scroller keeps the lock through sideways motion")
+{
+  LockedDrag drag;
+  REQUIRE(QCursor::pos() == drag.press);
+  REQUIRE(drag.view.window()->windowHandle() != nullptr);
+  const double h = drag.height;
+  REQUIRE(h > 400.);
+
+  double v = 0.5;
+  for(int i = 0; i < 10; i++)
+    v = drag.synthesized({0., 10.});
+  REQUIRE(v == Catch::Approx(0.5 - 100. / h));
+
+  for(int i = 0; i < 4; i++)
+    v = drag.synthesized({1., 0.});
+  REQUIRE(v == Catch::Approx(0.5 - 100. / h));
+
+  REQUIRE(drag.held() == Catch::Approx(0.5 - 100. / h));
+  REQUIRE(score::PointerLock::active());
+
+  REQUIRE(drag.synthesized({0., 1.}) == Catch::Approx(0.5 - 101. / h));
+}
+
+// The view replays its last mouse event when it scrolls: during a locked drag
+// that is a synthesized move, sent again with no motion behind it. However far
+// it is from the press point, it says nothing about the real pointer.
+TEST_CASE("infinite scroller keeps the lock through replayed moves")
+{
+  LockedDrag drag;
+  REQUIRE(QCursor::pos() == drag.press);
+  REQUIRE(drag.view.window()->windowHandle() != nullptr);
+  const double h = drag.height;
+  REQUIRE(h > 400.);
+
+  REQUIRE(drag.synthesized({0., 60.}) == Catch::Approx(0.5 - 60. / h));
+
+  for(int i = 0; i < 4; i++)
+    REQUIRE(drag.replayed() == Catch::Approx(0.5 - 60. / h));
+
+  REQUIRE(drag.held() == Catch::Approx(0.5 - 60. / h));
+  REQUIRE(score::PointerLock::active());
+
+  REQUIRE(drag.synthesized({0., 1.}) == Catch::Approx(0.5 - 61. / h));
 }
