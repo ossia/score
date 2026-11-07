@@ -73,4 +73,14 @@ TEST_CASE(
     SKIP("this GPU has no VK_KHR_fragment_shading_rate");
   CHECK(p.resolved);
 }
+
+TEST_CASE("the Vulkan device reports device faults where the GPU does", "[gfx][vulkan][device]")
+{
+  const auto p = probeDeviceFunction("VK_EXT_device_fault", "vkGetDeviceFaultInfoEXT");
+  if(p.skipped)
+    SKIP("no Vulkan");
+  if(!p.supported)
+    SKIP("this GPU has no VK_EXT_device_fault");
+  CHECK(p.resolved);
+}
 #endif

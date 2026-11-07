@@ -240,6 +240,9 @@ inline std::vector<const char*> sharedVulkanDeviceExtensions()
 #ifdef VK_KHR_FRAGMENT_SHADING_RATE_EXTENSION_NAME
       VK_KHR_FRAGMENT_SHADING_RATE_EXTENSION_NAME,
 #endif
+#ifdef VK_EXT_DEVICE_FAULT_EXTENSION_NAME
+      VK_EXT_DEVICE_FAULT_EXTENSION_NAME,
+#endif
   });
   return exts;
 }
@@ -403,6 +406,15 @@ inline SharedVulkanDevice createSharedVulkanDevice(
   {
     fsr.pNext = features2.pNext;
     features2.pNext = &fsr;
+  }
+#endif
+#ifdef VK_EXT_DEVICE_FAULT_EXTENSION_NAME
+  VkPhysicalDeviceFaultFeaturesEXT fault{};
+  fault.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FAULT_FEATURES_EXT;
+  if(hasExt(VK_EXT_DEVICE_FAULT_EXTENSION_NAME))
+  {
+    fault.pNext = features2.pNext;
+    features2.pNext = &fault;
   }
 #endif
 
