@@ -413,6 +413,16 @@ if(SCORE_TESTING)
   include(ScoreTests)
   add_subdirectory(tests)
 
+  # Which add-ons ScoreAvndHelper.cmake lets reuse the shared avendish PCH, on a
+  # project of its own whose configure fails on a wrong decision
+  add_test(NAME test_cmake_avnd_shared_pch
+    COMMAND "${CMAKE_COMMAND}"
+      -S "${CMAKE_CURRENT_SOURCE_DIR}/cmake/tests/avnd-pch"
+      -B "${CMAKE_CURRENT_BINARY_DIR}/tests/cmake-avnd-pch"
+      -G "${CMAKE_GENERATOR}"
+      "-DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}")
+  set_tests_properties(test_cmake_avnd_shared_pch PROPERTIES LABELS "cmake")
+
   # The test-tree guards below stop a CI configure; a developer build gets a
   # warning, since another test being written in the same tree must not block it.
   if(DEFINED ENV{CI})

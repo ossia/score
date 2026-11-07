@@ -90,22 +90,57 @@ function(avnd_score_plugin_finalize)
           DESTINATION .)
 endfunction()
 
-# The definitions a target compiles with that can change what the shared
-# avendish PCH's headers declare: those of the avendish, halp and ossia macros.
-# Definitions coming from the targets it links, transitively, are included;
-# generator expressions are kept whole, unevaluated.
-function(_score_avnd_pch_sensitive_definitions _out _target)
+# What a target compiles with that the shared avendish PCH must agree with, in
+# _out_defs and _out_opts:
+# - the definitions of the avendish, halp and ossia macros, which change what
+#   the PCH's headers declare;
+# - the options clang refuses to load a PCH built without, or that change the
+#   code it holds: language standard and dialect, exceptions, RTTI, floating
+#   point model, target and code model. MSVC's equivalents too.
+# From the target's own COMPILE_DEFINITIONS / COMPILE_OPTIONS (the latter
+# start as its directory's, add_compile_options), from its directory's
+# COMPILE_DEFINITIONS, which apply to it whenever they are added
+# (add_definitions -D, add_compile_definitions), and from the
+# INTERFACE_COMPILE_DEFINITIONS / INTERFACE_COMPILE_OPTIONS of the targets it
+# links, transitively. Generator expressions are kept whole, unevaluated: one
+# matches if a flag of it does. The flags add_definitions takes that are not
+# definitions cannot be read back, and are not seen.
+set(_SCORE_AVND_PCH_FLAG_REGEX
+  "(^|[:,;>])(-std=|-f(no-)?(fast-math|finite-math-only|unsafe-math-optimizations|associative-math|reciprocal-math|signed-zeros|trapping-math|math-errno|exceptions|cxx-exceptions|rtti|char8_t|signed-char|unsigned-char|sized-deallocation|aligned-allocation|aligned-new|coroutines|modules|threadsafe-statics|ms-extensions|ms-compatibility|delayed-template-parsing|openmp|PIC|pic|PIE|pie|sanitize=|strict-enums|wchar-type|short-wchar|gnu-keywords|operator-names|new-infallible|assume-sane-operator-new)|-m|--target=|-target |-arch |/std:|/EH|/GR|/arch:|/fp:|/Zc:|/permissive|/clang:)")
+
+function(_score_avnd_pch_sensitive_definitions _out_defs _out_opts _target)
   set(_regex "(^-U|^|[^A-Za-z0-9_])(AVND|HALP|OSSIA)_[A-Za-z0-9_]")
 
-  get_target_property(_defs ${_target} COMPILE_DEFINITIONS)
-  if(NOT _defs)
-    set(_defs)
+  set(_defs)
+  set(_opts)
+  get_target_property(_dir ${_target} SOURCE_DIR)
+  get_property(_dir_defs DIRECTORY "${_dir}" PROPERTY COMPILE_DEFINITIONS)
+  get_target_property(_tgt_defs ${_target} COMPILE_DEFINITIONS)
+  get_target_property(_tgt_opts ${_target} COMPILE_OPTIONS)
+  foreach(_v _dir_defs _tgt_defs)
+    if(${_v})
+      list(APPEND _defs ${${_v}})
+    endif()
+  endforeach()
+  if(_tgt_opts)
+    list(APPEND _opts ${_tgt_opts})
   endif()
-  get_target_property(_opts ${_target} COMPILE_OPTIONS)
-  if(_opts)
-    list(FILTER _opts INCLUDE REGEX "^-[DU]")
-    list(APPEND _defs ${_opts})
+
+  # Properties that become flags of the same kind
+  get_target_property(_val ${_target} CXX_STANDARD)
+  if(_val)
+    list(APPEND _opts "CXX_STANDARD=${_val}")
   endif()
+  foreach(_prop CXX_EXTENSIONS POSITION_INDEPENDENT_CODE)
+    get_target_property(_val ${_target} ${_prop})
+    if(NOT _val STREQUAL "_val-NOTFOUND")
+      if(_val)
+        list(APPEND _opts "${_prop}=ON")
+      else()
+        list(APPEND _opts "${_prop}=OFF")
+      endif()
+    endif()
+  endforeach()
 
   get_target_property(_pending ${_target} LINK_LIBRARIES)
   if(NOT _pending)
@@ -128,35 +163,78 @@ function(_score_avnd_pch_sensitive_definitions _out _target)
     if(_idefs)
       list(APPEND _defs ${_idefs})
     endif()
+    get_target_property(_iopts "${_lib}" INTERFACE_COMPILE_OPTIONS)
+    if(_iopts)
+      list(APPEND _opts ${_iopts})
+    endif()
     get_target_property(_ilibs "${_lib}" INTERFACE_LINK_LIBRARIES)
     if(_ilibs)
       list(APPEND _pending ${_ilibs})
     endif()
   endwhile()
 
+  # Definitions given as options
+  set(_opt_defs ${_opts})
+  list(FILTER _opt_defs INCLUDE REGEX "^[-/][DU]")
+  list(TRANSFORM _opt_defs REPLACE "^[-/]D" "")
+  list(TRANSFORM _opt_defs REPLACE "^/U" "-U")
+  list(APPEND _defs ${_opt_defs})
   list(TRANSFORM _defs REPLACE "^-D" "")
   list(FILTER _defs INCLUDE REGEX "${_regex}")
   list(REMOVE_DUPLICATES _defs)
-  set(${_out} "${_defs}" PARENT_SCOPE)
+
+  set(_flags ${_opts})
+  list(FILTER _flags INCLUDE REGEX "${_SCORE_AVND_PCH_FLAG_REGEX}|^(CXX_STANDARD|CXX_EXTENSIONS|POSITION_INDEPENDENT_CODE)=")
+  list(REMOVE_DUPLICATES _flags)
+
+  set(${_out_defs} "${_defs}" PARENT_SCOPE)
+  set(${_out_opts} "${_flags}" PARENT_SCOPE)
 endfunction()
 
 # Deferred to the end of the configuration. A consumer that defines one of
 # those macros differently from score_plugin_avnd_pch would get the PCH's view
-# of the headers, not its own: it is compiled without the PCH.
+# of the headers, not its own, and one whose options differ would be refused
+# the PCH by clang, or get code built for other options: it is compiled
+# without the PCH.
 function(_score_avnd_apply_shared_pch)
   get_property(_consumers GLOBAL PROPERTY SCORE_AVND_PCH_CONSUMERS)
   if(NOT TARGET score_plugin_avnd_pch)
     return()
   endif()
-  _score_avnd_pch_sensitive_definitions(_pch_defs score_plugin_avnd_pch)
+  _score_avnd_pch_sensitive_definitions(_pch_defs _pch_opts score_plugin_avnd_pch)
   foreach(_t IN LISTS _consumers)
-    _score_avnd_pch_sensitive_definitions(_defs ${_t})
+    _score_avnd_pch_sensitive_definitions(_defs _opts ${_t})
     if(_pch_defs)
       list(REMOVE_ITEM _defs ${_pch_defs})
     endif()
+
+    # Options must be the same both ways: one the PCH has and the consumer
+    # lacks is as much a mismatch as the reverse.
+    set(_extra ${_opts})
+    set(_missing ${_pch_opts})
+    if(_pch_opts)
+      list(REMOVE_ITEM _extra ${_pch_opts})
+    endif()
+    if(_opts)
+      list(REMOVE_ITEM _missing ${_opts})
+    endif()
+
+    set(_why)
     if(_defs)
-      list(JOIN _defs " " _defs)
-      message(STATUS "${_t}: not using the shared avendish PCH, it defines ${_defs}")
+      list(JOIN _defs " " _j)
+      list(APPEND _why "it defines ${_j}")
+    endif()
+    if(_extra)
+      list(JOIN _extra " " _j)
+      list(APPEND _why "it compiles with ${_j}")
+    endif()
+    if(_missing)
+      list(JOIN _missing " " _j)
+      list(APPEND _why "it compiles without ${_j}")
+    endif()
+    if(_why)
+      list(JOIN _why "; " _why)
+      message(STATUS "${_t}: not using the shared avendish PCH, ${_why}")
     else()
       target_precompile_headers(${_t} REUSE_FROM score_plugin_avnd_pch)
     endif()
