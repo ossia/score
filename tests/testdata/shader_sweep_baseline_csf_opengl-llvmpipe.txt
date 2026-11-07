@@ -69,15 +69,10 @@ Presets/GLSL_shaders/volumetric/03-fractals/03-07_apollonian.cs	gles300
 Presets/GLSL_shaders/volumetric/03-fractals/03-09_pseudo_kleinian.cs	gles300
 Presets/GLSL_shaders/volumetric/03-fractals/03-11_noise_folded_fractal.cs	blank
 Presets/GLSL_shaders/volumetric/03-fractals/03-11_noise_folded_fractal.cs	gles300
-Presets/GLSL_shaders/volumetric/04-simulations/04-01_gray_scott.cs	blank-mid
 Presets/GLSL_shaders/volumetric/04-simulations/04-01_gray_scott.cs	gles300
-Presets/GLSL_shaders/volumetric/04-simulations/04-02_fitzhugh_nagumo.cs	blank-mid
 Presets/GLSL_shaders/volumetric/04-simulations/04-02_fitzhugh_nagumo.cs	gles300
-Presets/GLSL_shaders/volumetric/04-simulations/04-03_belousov_zhabotinsky.cs	blank-mid
 Presets/GLSL_shaders/volumetric/04-simulations/04-03_belousov_zhabotinsky.cs	gles300
-Presets/GLSL_shaders/volumetric/04-simulations/04-04_cellular_automaton.cs	blank-mid
 Presets/GLSL_shaders/volumetric/04-simulations/04-04_cellular_automaton.cs	gles300
-Presets/GLSL_shaders/volumetric/04-simulations/04-05_dla_crystal.cs	blank-mid
 Presets/GLSL_shaders/volumetric/04-simulations/04-05_dla_crystal.cs	gles300
 Presets/GLSL_shaders/volumetric/04-simulations/04-06_advect_diffuse.cs	gles300
 Presets/GLSL_shaders/volumetric/04-simulations/04-07_curl_noise_advect.cs	gles300
