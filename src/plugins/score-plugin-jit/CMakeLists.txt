@@ -64,6 +64,7 @@ score_common_setup()
 # Source files
 set(HDRS
     JitCpp/AddonCompiler.hpp
+    JitCpp/JitBuildTree.hpp
     JitCpp/EditScript.hpp
     JitCpp/ClangDriver.hpp
     JitCpp/JitModel.hpp
@@ -87,6 +88,7 @@ set(SRCS
     JitCpp/Compiler/Compiler.cpp
     JitCpp/Compiler/MinGWCOFFPlatform.cpp
     JitCpp/AddonCompiler.cpp
+    JitCpp/JitBuildTree.cpp
     JitCpp/JitModel.cpp
     JitCpp/ApplicationPlugin.cpp
 
@@ -259,7 +261,9 @@ setup_score_plugin(${PROJECT_NAME})
 #
 # The definitions differ between configurations (NDEBUG, QT_NO_DEBUG...):
 # multi-configuration generators get one header per configuration, in a
-# directory only the compilation of that configuration searches.
+# directory only the compilation of that configuration searches. Only
+# JitBuildTree.cpp includes it, so the directory stays private and no header
+# an SDK installs refers to it.
 get_property(_jit_multi_config GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
 if(_jit_multi_config)
   target_include_directories(score_plugin_jit PRIVATE

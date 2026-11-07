@@ -1,5 +1,6 @@
 // What the JIT puts on its compiler's command line from what is on disk and
 // from score's build tree, on fake directory trees.
+#include <JitCpp/JitBuildTree.hpp>
 #include <JitCpp/JitSearchPaths.hpp>
 
 #include <QDir>
@@ -7,6 +8,9 @@
 #include <QTemporaryDir>
 
 #include <catch2/catch_test_macros.hpp>
+
+#include <algorithm>
+#include <string_view>
 
 namespace
 {
@@ -154,4 +158,31 @@ TEST_CASE("A definition already in effect is not repeated", "[jit]")
       "-UFOO",         "-DFOO=3",         "-DBAR=",
   };
   CHECK(args == expected);
+}
+
+// The generated values are reached through the plug-in, not through a header a
+// dependent or an SDK would need the generated file for: this file includes
+// JitBuildTree.hpp without the generated header's directory.
+TEST_CASE("The build tree's values are those score was configured with", "[jit]")
+{
+  const auto has = [](auto range, std::string_view v) {
+    return std::any_of(range.begin(), range.end(), [&](const char* e) {
+      return std::string_view{e} == v;
+    });
+  };
+
+  const std::string lib = std::string(SCORE_ROOT_SOURCE_DIR) + "/src/lib";
+  CHECK(has(Jit::buildTreeIncludeDirs(), lib));
+
+  // A PUBLIC definition of the JIT plug-in, whose value is a path
+  CHECK(std::any_of(
+      Jit::buildTreeDefinitions().begin(), Jit::buildTreeDefinitions().end(),
+      [](const char* e) {
+        return std::string_view{e}.starts_with("SCORE_ROOT_SOURCE_DIR=");
+      }));
+
+  // Export macros are the plug-ins' own
+  CHECK(std::none_of(
+      Jit::buildTreeDefinitions().begin(), Jit::buildTreeDefinitions().end(),
+      [](const char* e) { return std::string_view{e}.ends_with("_EXPORTS"); }));
 }

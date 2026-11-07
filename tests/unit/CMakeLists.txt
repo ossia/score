@@ -2591,7 +2591,8 @@ if(TARGET score_plugin_jit)
 
   # The JIT's resource directory, runtimes, multiarch and build tree arguments
   score_add_test(test_unit_jit_search_paths
-    SOURCES JitSearchPathsTest.cpp)
+    SOURCES JitSearchPathsTest.cpp
+    PLUGINS score_plugin_jit)
   target_include_directories(test_unit_jit_search_paths PRIVATE
     "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-jit")
 endif()

@@ -48,11 +48,11 @@
 #endif
 #endif
 
+#include <JitCpp/JitBuildTree.hpp>
 #include <JitCpp/JitOptions.hpp>
 #include <JitCpp/JitSearchPaths.hpp>
 
 #include <score_git_info.hpp>
-#include <score_plugin_jit_build_tree.hpp>
 
 namespace Jit
 {
@@ -781,10 +781,10 @@ static inline void populateDefinitions(std::vector<std::string>& args)
   if(compilesAgainstBuildTree(locateSDKWithFallback()))
   {
     // All the definitions the JIT plug-in is compiled with
-    for(std::string_view def : build_tree::definitions)
+    for(std::string_view def : buildTreeDefinitions())
       if(!def.empty())
         args.push_back("-D" + std::string(def));
-    for(std::string_view flag : build_tree::flags)
+    for(std::string_view flag : buildTreeFlags())
       if(!flag.empty())
         args.push_back(std::string(flag));
   }
@@ -1084,8 +1084,8 @@ static inline void populateIncludeDirs(std::vector<std::string>& args)
     // those of the Qt and the third-party libraries score was built with
     const std::string source_tree = std::string(SCORE_ROOT_SOURCE_DIR) + "/src/";
     const std::string binary_tree = std::string(SCORE_ROOT_BINARY_DIR);
-    const std::vector<std::string_view> dirs(
-        std::begin(build_tree::include_dirs), std::end(build_tree::include_dirs));
+    const auto tree_dirs = buildTreeIncludeDirs();
+    const std::vector<std::string_view> dirs(tree_dirs.begin(), tree_dirs.end());
     for(auto& arg :
         buildTreeIncludeArgs(dirs, source_tree, binary_tree, sdk + "/include"))
       args.push_back(std::move(arg));
