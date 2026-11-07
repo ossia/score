@@ -74,6 +74,20 @@ struct SCORE_PLUGIN_GFX_TEST_EXPORT RenderedCSFNode : score::gfx::NodeRenderer
 private:
   void initComputeSRBAndPasses(RenderList& renderer, QRhiResourceUpdateBatch& res);
   void createComputePipeline(RenderList& renderer);
+  //! Compute pipelines compiled and not yet given to the passes; the ones in
+  //! `owned` are freed with it unless committed.
+  struct CompiledComputePipelines
+  {
+    std::vector<std::unique_ptr<QRhiComputePipeline>> owned;
+    std::vector<QRhiComputePipeline*> perPass;
+    QString source;
+    std::vector<std::vector<uint32_t>> spec;
+  };
+  //! Compiles one pipeline per pass against the current column layout,
+  //! changing nothing in the node but the work-group uniform mode.
+  bool compileComputePipelines(RenderList& renderer, CompiledComputePipelines& out);
+  //! Makes `c` the node's pipelines, source and column specialization.
+  void commitComputePipelines(CompiledComputePipelines& c);
   void createGraphicsPass(const TextureRenderTarget& rt, RenderList& renderer, Edge& edge, QRhiResourceUpdateBatch& res);
   void updateDescriptorSet(RenderList& renderer, Edge& edge);
   void bindInputSampler(std::size_t samplerIndex, QRhiTexture* tex);
@@ -317,9 +331,24 @@ private:
       QRhiBuffer* column_table_buffer{};
       //! Why columns read as absent, as last reported.
       QString column_refusal;
-      //! The upstream layout the table was resolved against, and the buffers
-      //! it left bound: an unchanged upstream is not resolved again.
-      uint64_t column_signature{};
+      //! The upstream layout the table was resolved against (its attributes;
+      //! its inputs' buffer and offset, then its bindings' strides; its
+      //! buffers), and the buffers it left bound: an unchanged upstream is not
+      //! resolved again. Compared field by field, as upstream nodes may hand
+      //! over a new geometry object every frame for the same layout.
+      struct ColumnAttribute
+      {
+        std::string name;
+        uint32_t byte_offset{};
+        int format{};
+        int binding{};
+        int semantic{};
+      };
+      std::vector<ColumnAttribute> column_attributes;
+      std::vector<int64_t> column_layout;
+      std::vector<std::pair<const void*, int64_t>> column_buffers;
+      //! The table was resolved against an upstream geometry.
+      bool column_from_mesh{};
       QRhiBuffer* column_bound{};
     };
 
@@ -420,9 +449,11 @@ private:
   //! Recompiles the passes' pipelines, keeping their bindings.
   void rebuildComputePipelines(RenderList& renderer);
   std::vector<std::vector<uint32_t>> m_columnSpec;
-  //! Bumped whenever a column table is resolved anew; the value
-  //! m_columnSpec was computed at.
+  //! Bumped whenever a column table changes, or starts or stops being
+  //! resolved against an upstream; the value m_columnSpec was computed at.
   uint64_t m_columnTablesGeneration{1};
+  //! The table resolveColumns builds, kept for its capacity.
+  std::vector<uint32_t> m_columnTableScratch;
   uint64_t m_columnSpecGeneration{0};
   bool m_hasColumns{false};
   //! false keeps the COLUMNS reads table-driven (tests compare the two).

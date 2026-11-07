@@ -31,6 +31,8 @@ struct Layout
   QRhiTexture::Flags flags;
   int layers;
   int depth;
+  //! Past 256, more than one of zeroTexture's tiles cover a level.
+  int edge{16};
 };
 
 int bytes_per_pixel(QRhiTexture::Format f)
@@ -112,10 +114,10 @@ ZeroResult zero_texture(score::gfx::GraphicsApi be, const Layout& l)
       return;
     }
 
-    const QSize size{16, 16};
+    const QSize size{l.edge, l.edge};
     std::unique_ptr<QRhiTexture> tex;
     if(l.flags.testFlag(QRhiTexture::ThreeDimensional))
-      tex.reset(rhi.newTexture(l.format, 16, 16, l.depth, 1, l.flags));
+      tex.reset(rhi.newTexture(l.format, l.edge, l.edge, l.depth, 1, l.flags));
     else if(l.flags.testFlag(QRhiTexture::TextureArray))
       tex.reset(rhi.newTextureArray(l.format, l.layers, size, 1, l.flags));
     else
@@ -258,7 +260,11 @@ TEST_CASE("zeroTexture clears every level and layer", "[gfx][csf][zero]")
              QRhiTexture::TextureArray | QRhiTexture::UsedWithLoadStore, 3, 1},
       Layout{"cube map", QRhiTexture::RGBA8, QRhiTexture::CubeMap, 6, 1},
       Layout{"3D, 4 slices", QRhiTexture::RGBA8,
-             QRhiTexture::ThreeDimensional | QRhiTexture::UsedWithLoadStore, 1, 4});
+             QRhiTexture::ThreeDimensional | QRhiTexture::UsedWithLoadStore, 1, 4},
+      Layout{"2D mipmapped, 300 wide", QRhiTexture::RGBA8,
+             QRhiTexture::MipMapped | QRhiTexture::UsedWithLoadStore, 1, 1, 300},
+      Layout{"3D, 300 wide, 3 slices", QRhiTexture::RGBA8,
+             QRhiTexture::ThreeDimensional | QRhiTexture::UsedWithLoadStore, 1, 3, 300});
   CAPTURE(backend_name(be), layout.name);
   REQUIRE(bytes_per_pixel(layout.format) > 0);
 

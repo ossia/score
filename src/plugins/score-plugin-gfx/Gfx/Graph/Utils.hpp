@@ -478,6 +478,8 @@ createRenderTarget(const RenderState& state, QRhiTexture* tex, int samples, bool
  * A new QRhiTexture holds whatever memory the driver hands out: zeros on most
  * desktop drivers, the previous owner's pixels on lavapipe and others. Use
  * this on a texture that can be sampled or loaded before anything writes it.
+ * The zeros are copied from a small zeroed tile of the same format, so the
+ * staging cost is bounded whatever the texture size.
  * Returns false and queues nothing for depth and block-compressed formats.
  */
 SCORE_PLUGIN_GFX_EXPORT

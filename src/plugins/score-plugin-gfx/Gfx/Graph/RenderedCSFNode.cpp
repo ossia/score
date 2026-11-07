@@ -1728,6 +1728,77 @@ static uint32_t columnFormatCode(const ossia::geometry::attribute& a) noexcept
   }
 }
 
+template <typename ColumnSlot>
+static bool sameColumnLayout(const ColumnSlot& slot, const ossia::geometry& mesh) noexcept
+{
+  if(slot.column_attributes.size() != mesh.attributes.size()
+     || slot.column_layout.size() != 2 * mesh.input.size() + mesh.bindings.size())
+    return false;
+  for(std::size_t i = 0; i < mesh.attributes.size(); i++)
+  {
+    const auto& a = mesh.attributes[i];
+    const auto& c = slot.column_attributes[i];
+    if(c.byte_offset != a.byte_offset || c.format != (int)a.format
+       || c.binding != a.binding || c.semantic != (int)a.semantic || c.name != a.name)
+      return false;
+  }
+  std::size_t k = 0;
+  for(const auto& in : mesh.input)
+  {
+    if(slot.column_layout[k++] != in.buffer || slot.column_layout[k++] != in.byte_offset)
+      return false;
+  }
+  for(const auto& b : mesh.bindings)
+    if(slot.column_layout[k++] != (int64_t)b.byte_stride)
+      return false;
+  return true;
+}
+
+static std::pair<const void*, int64_t> columnBufferKey(const ossia::geometry::buffer& b) noexcept
+{
+  if(auto* g = ossia::get_if<ossia::geometry::gpu_buffer>(&b.data))
+    return {g->handle, g->byte_size};
+  return {nullptr, -1};
+}
+
+template <typename ColumnSlot>
+static bool sameColumnBuffers(const ColumnSlot& slot, const ossia::geometry& mesh) noexcept
+{
+  if(slot.column_buffers.size() != mesh.buffers.size())
+    return false;
+  for(std::size_t i = 0; i < mesh.buffers.size(); i++)
+    if(slot.column_buffers[i] != columnBufferKey(mesh.buffers[i]))
+      return false;
+  return true;
+}
+
+template <typename ColumnSlot>
+static void storeColumnLayout(ColumnSlot& slot, const ossia::geometry& mesh)
+{
+  slot.column_attributes.resize(mesh.attributes.size());
+  for(std::size_t i = 0; i < mesh.attributes.size(); i++)
+  {
+    const auto& a = mesh.attributes[i];
+    auto& c = slot.column_attributes[i];
+    c.name = a.name;
+    c.byte_offset = a.byte_offset;
+    c.format = (int)a.format;
+    c.binding = a.binding;
+    c.semantic = (int)a.semantic;
+  }
+  slot.column_layout.clear();
+  for(const auto& in : mesh.input)
+  {
+    slot.column_layout.push_back(in.buffer);
+    slot.column_layout.push_back(in.byte_offset);
+  }
+  for(const auto& b : mesh.bindings)
+    slot.column_layout.push_back((int64_t)b.byte_stride);
+  slot.column_buffers.clear();
+  for(const auto& b : mesh.buffers)
+    slot.column_buffers.push_back(columnBufferKey(b));
+}
+
 void RenderedCSFNode::resolveColumns(
     RenderList& renderer, QRhiResourceUpdateBatch& res, GeometryBinding& binding,
     const isf::geometry_input& geo, const ossia::geometry* mesh)
@@ -1744,50 +1815,26 @@ void RenderedCSFNode::resolveColumns(
   if(!data || !meta)
     return;
 
-  // The geometry's layout: which attributes, where its buffers are. Hashed by
-  // content: upstream nodes may hand over a new geometry object, with a new
-  // attribute list, every frame for the same layout.
-  uint64_t signature = 0;
+  // The geometry's layout: which attributes, where its buffers are.
+  const bool sameBound = data->buffer == data->column_bound
+                         && meta->buffer == meta->column_table_buffer && meta->buffer;
   if(mesh)
   {
-    signature = (uint64_t)mesh->attributes.size();
-    for(const auto& a : mesh->attributes)
-    {
-      ossia::hash_combine(signature, (uint64_t)std::hash<std::string>{}(a.name));
-      ossia::hash_combine(signature, (uint64_t)a.format);
-      ossia::hash_combine(signature, (uint64_t)a.binding);
-      ossia::hash_combine(signature, (uint64_t)a.byte_offset);
-      ossia::hash_combine(signature, (uint64_t)a.semantic);
-    }
-    for(const auto& b : mesh->buffers)
-    {
-      if(auto* g = ossia::get_if<ossia::geometry::gpu_buffer>(&b.data))
-      {
-        ossia::hash_combine(signature, (uint64_t)(uintptr_t)g->handle);
-        ossia::hash_combine(signature, (uint64_t)g->byte_size);
-      }
-      else
-        ossia::hash_combine(signature, (uint64_t)1);
-    }
-    for(const auto& in : mesh->input)
-    {
-      ossia::hash_combine(signature, (uint64_t)in.buffer);
-      ossia::hash_combine(signature, (uint64_t)in.byte_offset);
-    }
-    for(const auto& b : mesh->bindings)
-      ossia::hash_combine(signature, (uint64_t)b.byte_stride);
-    if(signature == 0)
-      signature = 1;
+    if(sameBound && data->column_from_mesh && sameColumnLayout(*data, *mesh)
+       && sameColumnBuffers(*data, *mesh))
+      return;
   }
-  if(signature != 0 && signature == data->column_signature
-     && data->buffer == data->column_bound && meta->buffer == meta->column_table_buffer
-     && meta->buffer)
+  else if(sameBound && data->column_bound && !data->column_from_mesh)
+  {
+    // Already bound to the absent block.
     return;
+  }
 
   // One uvec4 per declared column: byte offset of row 0, byte stride, format
   // code, 1 when both are word multiples. All zero: the column is absent.
   const std::size_t count = geo.columns.size();
-  std::vector<uint32_t> table(4 * count, 0u);
+  auto& table = m_columnTableScratch;
+  table.assign(4 * count, 0u);
   QRhiBuffer* source{};
   int64_t sourceSize{};
   QString why;
@@ -1799,11 +1846,11 @@ void RenderedCSFNode::resolveColumns(
       const auto* attr = score::gfx::findGeometryAttribute(*mesh, name, "custom");
       if(!attr)
         continue;
-      const QString col = QString::fromStdString(name);
+      const auto col = [&] { return QString::fromStdString(name); };
       const uint32_t code = columnFormatCode(*attr);
       if(code == 0)
       {
-        why = QStringLiteral("column %1 is not a scalar attribute").arg(col);
+        why = QStringLiteral("column %1 is not a scalar attribute").arg(col());
         continue;
       }
       const int b = attr->binding;
@@ -1817,12 +1864,12 @@ void RenderedCSFNode::resolveColumns(
       auto* buf = gpu ? static_cast<QRhiBuffer*>(gpu->handle) : nullptr;
       if(!buf)
       {
-        why = QStringLiteral("column %1 is not in a GPU buffer").arg(col);
+        why = QStringLiteral("column %1 is not in a GPU buffer").arg(col());
         continue;
       }
       if(!(buf->usage() & QRhiBuffer::StorageBuffer))
       {
-        why = QStringLiteral("column %1 is in a buffer without StorageBuffer usage").arg(col);
+        why = QStringLiteral("column %1 is in a buffer without StorageBuffer usage").arg(col());
         continue;
       }
       if(!source)
@@ -1833,7 +1880,7 @@ void RenderedCSFNode::resolveColumns(
       else if(buf != source)
       {
         why = QStringLiteral("column %1 is in another buffer than the first column")
-                  .arg(col);
+                  .arg(col());
         continue;
       }
       const int64_t offset = in.byte_offset + attr->byte_offset;
@@ -1900,17 +1947,28 @@ void RenderedCSFNode::resolveColumns(
     meta->size = tableBytes;
     meta->owned = true;
   }
-  if(meta->column_table_buffer != meta->buffer || meta->column_table != table)
+  const bool tableChanged = meta->column_table != table;
+  if(meta->column_table_buffer != meta->buffer || tableChanged)
   {
     res.uploadStaticBuffer(meta->buffer, 0, tableBytes, table.data());
     ++renderer.registry().columnTableUploads.tables;
     renderer.registry().columnTableUploads.bytes += (uint64_t)tableBytes;
-    meta->column_table = std::move(table);
+    meta->column_table = table;
     meta->column_table_buffer = meta->buffer;
   }
-  if(data->column_signature != signature)
+  // Only the table and whether it comes from an upstream specialize the
+  // shader: a new buffer handle (a ping-pong upstream) does not.
+  if(tableChanged || data->column_from_mesh != (mesh != nullptr))
     ++m_columnTablesGeneration;
-  data->column_signature = signature;
+  if(mesh)
+    storeColumnLayout(*data, *mesh);
+  else
+  {
+    data->column_attributes.clear();
+    data->column_layout.clear();
+    data->column_buffers.clear();
+  }
+  data->column_from_mesh = mesh != nullptr;
   data->column_bound = data->buffer;
 }
 
@@ -4488,8 +4546,8 @@ std::vector<std::vector<uint32_t>> RenderedCSFNode::columnSpecialization() const
       else if(a.column_block == 2)
         meta = &a;
     }
-    // A table resolved against an upstream geometry (signature != 0).
-    if(!data || !meta || data->column_signature == 0)
+    // A table resolved against an upstream geometry.
+    if(!data || !meta || !data->column_from_mesh)
       return nullptr;
     return &meta->column_table;
   };
@@ -4554,66 +4612,65 @@ QString RenderedCSFNode::specializeColumns(
 
 void RenderedCSFNode::rebuildComputePipelines(RenderList& renderer)
 {
-  auto old = std::move(m_ownedPipelines);
-  m_ownedPipelines.clear();
-  m_computePipeline = nullptr;
-  createComputePipeline(renderer);
-  if(!m_computePipeline || m_perPassPipelines.size() < m_computePasses.size())
-  {
-    // Keep running the previous shader rather than nothing.
-    for(auto* p : m_ownedPipelines)
-      p->deleteLater();
-    m_ownedPipelines = std::move(old);
-    m_perPassPipelines.clear();
-    for(auto& [e, pass] : m_computePasses)
-      m_perPassPipelines.push_back(pass.pipeline);
-    m_computePipeline = m_perPassPipelines.empty() ? nullptr : m_perPassPipelines[0];
+  // Whatever fails below, the passes keep running the previous shader, and
+  // the specialization it was compiled for stays the one compared against.
+  CompiledComputePipelines fresh;
+  if(!compileComputePipelines(renderer, fresh)
+     || fresh.perPass.size() < m_computePasses.size())
     return;
-  }
   for(std::size_t i = 0; i < m_computePasses.size(); i++)
   {
     auto& pass = m_computePasses[i].second;
-    auto* fresh = m_perPassPipelines[i];
     if(pass.srb)
-      fresh->setShaderResourceBindings(pass.srb);
-    if(!fresh->create())
-      qWarning() << "CSF: could not create the compute pipeline of pass" << i;
+      fresh.perPass[i]->setShaderResourceBindings(pass.srb);
+    if(!fresh.perPass[i]->create())
+    {
+      qWarning() << "CSF: could not create the compute pipeline of pass" << i
+                 << "; keeping the previous one";
+      return;
+    }
+  }
+
+  auto old = std::move(m_ownedPipelines);
+  commitComputePipelines(fresh);
+  for(std::size_t i = 0; i < m_computePasses.size(); i++)
+  {
+    auto& pass = m_computePasses[i].second;
+    auto* p = m_perPassPipelines[i];
     for(auto& layer : m_meshLayers)
       if(i < layer.passes.size() && layer.passes[i].pipeline == pass.pipeline)
-        layer.passes[i].pipeline = fresh;
-    pass.pipeline = fresh;
+        layer.passes[i].pipeline = p;
+    pass.pipeline = p;
   }
   for(auto* p : old)
     p->deleteLater();
 }
 
-void RenderedCSFNode::createComputePipeline(RenderList& renderer)
+bool RenderedCSFNode::compileComputePipelines(
+    RenderList& renderer, CompiledComputePipelines& out)
 {
   QRhi& rhi = *renderer.state.rhi;
-  
+
   if(!rhi.isFeatureSupported(QRhi::Compute))
   {
     qWarning() << "Compute shaders not supported on this backend";
-    return;
+    return false;
   }
-  
+
   try
   {
     // Prepare the shader template with image format substitution.
     // LOCAL_SIZE placeholders will be substituted per-pass below.
-    m_computeShaderSource = updateShaderWithImageFormats(n.m_computeS);
+    out.source = updateShaderWithImageFormats(n.m_computeS);
     if(m_hasColumns)
     {
-      m_columnSpec = columnSpecialization();
-      m_columnSpecGeneration = m_columnTablesGeneration;
-      m_computeShaderSource = specializeColumns(m_computeShaderSource, m_columnSpec);
+      out.spec = columnSpecialization();
+      out.source = specializeColumns(out.source, out.spec);
     }
-    warnStorageImageUnits(rhi, "CSF", {&m_computeShaderSource});
+    warnStorageImageUnits(rhi, "CSF", {&out.source});
 
     // Compile one pipeline per unique LOCAL_SIZE, reuse when passes share the same size.
-    m_perPassPipelines.clear();
-    std::map<std::array<int,3>, QRhiComputePipeline*> pipelineCache;
-
+    std::map<std::array<int, 3>, QRhiComputePipeline*> pipelineCache;
     for(std::size_t passIdx = 0; passIdx < n.m_descriptor.csf_passes.size(); passIdx++)
     {
       const auto& passDesc = n.m_descriptor.csf_passes[passIdx];
@@ -4622,40 +4679,54 @@ void RenderedCSFNode::createComputePipeline(RenderList& renderer)
       auto it = pipelineCache.find(key);
       if(it != pipelineCache.end())
       {
-        m_perPassPipelines.push_back(it->second);
+        out.perPass.push_back(it->second);
       }
       else
       {
-        QString src = m_computeShaderSource;
+        QString src = out.source;
         src.replace("ISF_LOCAL_SIZE_X", QString::number(key[0]));
         src.replace("ISF_LOCAL_SIZE_Y", QString::number(key[1]));
         src.replace("ISF_LOCAL_SIZE_Z", QString::number(key[2]));
 
         QShader compiled = score::gfx::makeCompute(renderer.state, src);
-        m_numWorkGroupsUniform = numWorkGroupsThroughUniform(renderer.state.api);
 
-        auto* pipeline = rhi.newComputePipeline();
+        auto& pipeline = out.owned.emplace_back(rhi.newComputePipeline());
         pipeline->setShaderStage(QRhiShaderStage(QRhiShaderStage::Compute, compiled));
-
-        pipelineCache[key] = pipeline;
-        m_perPassPipelines.push_back(pipeline);
+        pipelineCache[key] = pipeline.get();
+        out.perPass.push_back(pipeline.get());
       }
     }
-
-    m_ownedPipelines.clear();
-    for(auto& [k, v] : pipelineCache)
-      m_ownedPipelines.push_back(v);
-
-    // For backward compat
-    m_computePipeline = m_perPassPipelines.empty() ? nullptr : m_perPassPipelines[0];
-    if(!m_perPassPipelines.empty())
-      m_computeShader = m_perPassPipelines[0]->shaderStage().shader();
   }
   catch(const std::exception& e)
   {
     qWarning() << "Failed to create compute shader:" << e.what();
-    m_computePipeline = nullptr;
+    return false;
   }
+  m_numWorkGroupsUniform = numWorkGroupsThroughUniform(renderer.state.api);
+  return !out.perPass.empty();
+}
+
+void RenderedCSFNode::commitComputePipelines(CompiledComputePipelines& c)
+{
+  m_ownedPipelines.clear();
+  for(auto& p : c.owned)
+    m_ownedPipelines.push_back(p.release());
+  c.owned.clear();
+  m_perPassPipelines = std::move(c.perPass);
+  m_computePipeline = m_perPassPipelines[0];
+  m_computeShader = m_computePipeline->shaderStage().shader();
+  m_computeShaderSource = std::move(c.source);
+  m_columnSpec = std::move(c.spec);
+  m_columnSpecGeneration = m_columnTablesGeneration;
+}
+
+void RenderedCSFNode::createComputePipeline(RenderList& renderer)
+{
+  CompiledComputePipelines c;
+  if(compileComputePipelines(renderer, c))
+    commitComputePipelines(c);
+  else
+    m_computePipeline = nullptr;
 }
 
 void RenderedCSFNode::dropSrbAdoptions(RenderList& renderer)
@@ -5005,8 +5076,9 @@ void RenderedCSFNode::buildComputeSrbBindings(
               return nullptr;
             }
             // A read_write or persistent image is loaded before the first
-            // dispatch stores into it.
-            score::gfx::zeroTexture(rhi, res, *t);
+            // dispatch stores into it. A write_only one is only stored.
+            if(image->access != "write_only" || image->persistent)
+              score::gfx::zeroTexture(rhi, res, *t);
             return t;
           };
 
@@ -5999,7 +6071,8 @@ void RenderedCSFNode::initState(RenderList& renderer, QRhiResourceUpdateBatch& r
             {
               // Loaded by the shader before its first store, like the
               // storage images above.
-              score::gfx::zeroTexture(rhi, res, *alloc);
+              if(atx.access != "write_only")
+                score::gfx::zeroTexture(rhi, res, *alloc);
               at.texture = alloc;
               at.owned = true;
             }

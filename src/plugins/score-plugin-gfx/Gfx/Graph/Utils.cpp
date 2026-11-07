@@ -240,6 +240,72 @@ static int zeroUploadBytesPerPixel(QRhiTexture::Format f) noexcept
   }
 }
 
+namespace
+{
+// Edge of the zeroed tile that zeroTexture copies over a texture: the staging
+// a clear costs is one tile (1 MiB at 16 bytes per pixel), whatever the size
+// of the texture.
+constexpr int zeroTileEdge = 256;
+
+struct ZeroTile
+{
+  QRhiTexture* texture{};
+  QByteArray bytes;
+};
+
+// One tile per format and QRhi, released with the QRhi.
+QMutex zeroTilesMutex;
+ossia::hash_map<QRhi*, ossia::hash_map<int, ZeroTile>> zeroTiles;
+
+const ZeroTile* zeroTileFor(QRhi& rhi, QRhiTexture::Format format, int bpp)
+{
+  QMutexLocker lock{&zeroTilesMutex};
+  auto [perRhi, firstUse] = zeroTiles.try_emplace(&rhi);
+  if(firstUse)
+  {
+    rhi.addCleanupCallback([](QRhi* r) {
+      QMutexLocker lock{&zeroTilesMutex};
+      if(auto it = zeroTiles.find(r); it != zeroTiles.end())
+      {
+        for(auto& [fmt, tile] : it->second)
+          delete tile.texture;
+        zeroTiles.erase(it);
+      }
+    });
+  }
+
+  auto& tiles = perRhi->second;
+  if(auto it = tiles.find((int)format); it != tiles.end())
+    return it->second.texture ? &it->second : nullptr;
+
+  auto& tile = tiles[(int)format];
+  auto* t = rhi.newTexture(
+      format, QSize(zeroTileEdge, zeroTileEdge), 1, QRhiTexture::UsedAsTransferSource);
+  t->setName("zeroTexture::tile");
+  if(!t->create())
+  {
+    delete t;
+    return nullptr;
+  }
+  tile.texture = t;
+  tile.bytes = QByteArray(qsizetype(zeroTileEdge) * zeroTileEdge * bpp, 0);
+  return &tile;
+}
+
+int zeroLayerCount(const QRhiTexture& tex, int level) noexcept
+{
+  const auto flags = tex.flags();
+  if(flags.testFlag(QRhiTexture::CubeMap))
+    return 6;
+  if(flags.testFlag(QRhiTexture::TextureArray))
+    return std::max(1, tex.arraySize());
+  // A 3D texture is addressed one depth slice at a time, its index as the layer.
+  if(flags.testFlag(QRhiTexture::ThreeDimensional))
+    return std::max(1, tex.depth() >> level);
+  return 1;
+}
+}
+
 bool zeroTexture(QRhi& rhi, QRhiResourceUpdateBatch& res, QRhiTexture& tex)
 {
   const int bpp = zeroUploadBytesPerPixel(tex.format());
@@ -247,13 +313,44 @@ bool zeroTexture(QRhi& rhi, QRhiResourceUpdateBatch& res, QRhiTexture& tex)
   if(bpp == 0 || size.isEmpty())
     return false;
 
-  const auto flags = tex.flags();
-  const bool is3D = flags.testFlag(QRhiTexture::ThreeDimensional);
-  const int layers = flags.testFlag(QRhiTexture::CubeMap)        ? 6
-                     : flags.testFlag(QRhiTexture::TextureArray) ? std::max(1, tex.arraySize())
-                                                                 : 1;
-  const int levels = flags.testFlag(QRhiTexture::MipMapped) ? rhi.mipLevelsForSize(size) : 1;
+  const int levels
+      = tex.flags().testFlag(QRhiTexture::MipMapped) ? rhi.mipLevelsForSize(size) : 1;
 
+  if(auto* tile = zeroTileFor(rhi, tex.format(), bpp))
+  {
+    // The tile is zeroed again in this batch, so that the copies below never
+    // depend on another batch having been submitted first.
+    QRhiTextureSubresourceUploadDescription zeros(tile->bytes);
+    zeros.setSourceSize(QSize(zeroTileEdge, zeroTileEdge));
+    res.uploadTexture(
+        tile->texture, QRhiTextureUploadDescription(QRhiTextureUploadEntry(0, 0, zeros)));
+
+    for(int level = 0; level < levels; ++level)
+    {
+      const QSize sz = rhi.sizeForMipLevel(level, size);
+      const int layers = zeroLayerCount(tex, level);
+      for(int layer = 0; layer < layers; ++layer)
+      {
+        for(int y = 0; y < sz.height(); y += zeroTileEdge)
+        {
+          for(int x = 0; x < sz.width(); x += zeroTileEdge)
+          {
+            QRhiTextureCopyDescription desc;
+            desc.setPixelSize(QSize(
+                std::min(zeroTileEdge, sz.width() - x),
+                std::min(zeroTileEdge, sz.height() - y)));
+            desc.setDestinationLevel(level);
+            desc.setDestinationLayer(layer);
+            desc.setDestinationTopLeft(QPoint(x, y));
+            res.copyTexture(&tex, tile->texture, desc);
+          }
+        }
+      }
+    }
+    return true;
+  }
+
+  // No tile for this format: upload zeros to every subresource.
   QVarLengthArray<QRhiTextureUploadEntry, 16> entries;
   for(int level = 0; level < levels; ++level)
   {
@@ -263,8 +360,7 @@ bool zeroTexture(QRhi& rhi, QRhiResourceUpdateBatch& res, QRhiTexture& tex)
     QRhiTextureSubresourceUploadDescription desc(
         QByteArray(qsizetype(sz.width()) * sz.height() * bpp, 0));
     desc.setSourceSize(sz);
-    // A 3D texture takes one upload per depth slice, its index as the layer.
-    const int count = is3D ? std::max(1, tex.depth() >> level) : layers;
+    const int count = zeroLayerCount(tex, level);
     for(int layer = 0; layer < count; ++layer)
       entries.append(QRhiTextureUploadEntry(layer, level, desc));
   }
