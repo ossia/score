@@ -512,14 +512,14 @@ TEST_CASE(
     t.putAAt({shown.left() + 0.25 * shown.width(), shown.center().y()});
 
     const QPointF pos = t.view->nodeContainer().pos();
-    const double scale = t.view->nodeContainer().scale();
+    const double scale = t.view->zoom();
 
     auto& added = t.addAfterA();
     auto* node = nodeOf(*t.doc, added);
     REQUIRE(node);
     REQUIRE(shown.contains(nodeRectIn(*t.view, *node)));
 
-    CHECK(t.view->nodeContainer().scale() == scale);
+    CHECK(t.view->zoom() == scale);
     CHECK(QLineF{t.view->nodeContainer().pos(), pos}.length() < 0.5);
   });
 }
@@ -538,7 +538,7 @@ TEST_CASE(
     const QRectF ra = nodeRectIn(*t.view, *na);
     t.putAAt({shown.right() - ra.width() / 2. - 2., shown.center().y()});
 
-    const double scale = t.view->nodeContainer().scale();
+    const double scale = t.view->zoom();
     const QPointF pos = t.view->nodeContainer().pos();
 
     auto& added = t.addAfterA();
@@ -549,7 +549,7 @@ TEST_CASE(
                   << shown.height() << ", node " << r.x() << " " << r.y() << " "
                   << r.width() << "x" << r.height());
 
-    CHECK(t.view->nodeContainer().scale() == scale);
+    CHECK(t.view->zoom() == scale);
     CHECK(shown.contains(r));
     // Only as far as needed: the node ends up against the edge it came from,
     // and the view did not move on the axis where the node was already shown.
@@ -576,7 +576,7 @@ TEST_CASE(
     REQUIRE(!shown.isEmpty());
     t.putAAt(shown.center());
 
-    const double scale = t.view->nodeContainer().scale();
+    const double scale = t.view->zoom();
 
     auto& added = t.addAfterA();
     auto* node = nodeOf(*t.doc, added);
@@ -585,9 +585,9 @@ TEST_CASE(
     const QRectF shownAfter = shownPart(*t.doc, *t.view);
     INFO("shown " << shownAfter.width() << "x" << shownAfter.height() << ", node "
                   << r.width() << "x" << r.height() << ", scale "
-                  << t.view->nodeContainer().scale() << " from " << scale);
+                  << t.view->zoom() << " from " << scale);
 
-    CHECK(t.view->nodeContainer().scale() < scale);
+    CHECK(t.view->zoom() < scale);
     CHECK(shownAfter.adjusted(-0.5, -0.5, 0.5, 0.5).contains(r));
     // No further than needed: the node still fills the view in one direction,
     // which fitting every node (5000 units apart) would not.

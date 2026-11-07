@@ -191,7 +191,7 @@ TEST_CASE(
     const QSizeF sz = proc->size();
     proc->setSize(QSizeF{sz.width() + 100., sz.height() + 60.});
     run_events_for(50);
-    const double followedScale = container.scale();
+    const double followedScale = nodal->zoom();
 
     // The user presses in the view (to resize the node, say): from then on the
     // canvas stays put under the cursor, whatever the node's size does.
@@ -219,11 +219,11 @@ TEST_CASE(
     // Neither the canvas nor the slot around it follow the node any more.
     CHECK(slotHeight() == slotBefore);
     CHECK(container.pos() == pinned);
-    CHECK(container.scale() == Approx(followedScale));
+    CHECK(nodal->zoom() == Approx(followedScale));
     proc->setSize(sz);
     run_events_for(50);
     CHECK(container.pos() == pinned);
-    CHECK(container.scale() == Approx(followedScale));
+    CHECK(nodal->zoom() == Approx(followedScale));
   });
 }
 
@@ -494,7 +494,7 @@ TEST_CASE(
     CHECK(visible.contains(n2->sceneBoundingRect()));
     // It fits at this zoom: the view only scrolls to it, it does not zoom
     // out to show every node.
-    CHECK(nodal->nodeContainer().scale() == 1.);
+    CHECK(nodal->zoom() == 1.);
     CHECK(!visible.intersects(n1->sceneBoundingRect()));
   });
 }
@@ -514,7 +514,7 @@ TEST_CASE(
     REQUIRE(nodal);
     nodal->rescale();
     run_events_for(100);
-    const auto scaleBefore = nodal->nodeContainer().scale();
+    const auto scaleBefore = nodal->zoom();
     const auto posBefore = nodal->nodeContainer().pos();
 
     // Dropped just inside the visible corner: the node itself sticks out
@@ -527,7 +527,7 @@ TEST_CASE(
     run_events_for(300);
 
     REQUIRE(itv.processes.size() == 2);
-    CHECK(nodal->nodeContainer().scale() == Approx(scaleBefore));
+    CHECK(nodal->zoom() == Approx(scaleBefore));
     CHECK(nodal->nodeContainer().pos() == posBefore);
   });
 }

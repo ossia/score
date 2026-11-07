@@ -57,6 +57,10 @@ public:
   QRectF enclosingRect() const noexcept;
 
   QGraphicsItem& nodeContainer() const noexcept { return *m_container; }
+  //! The scale of nodeContainer(). It is set as its transform, not its scale:
+  //! Qt tells the items inside about a new transform (ports keep their
+  //! panels and cables on them), never about a new scale.
+  double zoom() const noexcept { return m_container->transform().m11(); }
   const IntervalModel& model() const noexcept { return m_model; }
 
   //! Where to put what is pasted, in nodeContainer() coordinates: at `scenePos`
@@ -69,6 +73,7 @@ public:
   void openProcessPicker(QPointF nodePos);
 
 private:
+  void setZoom(double z);
   void setupNode(Process::NodeItem* item);
   //! Brings `item` into the visible part by panning as little as possible,
   //! zooming out only when it is larger than that part.

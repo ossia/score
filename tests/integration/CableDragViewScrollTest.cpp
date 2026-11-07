@@ -106,7 +106,7 @@ TEST_CASE("The nodal canvas pans when a cable is dragged against an edge", "[int
     const QPointF pos0 = nodal->nodeContainer().pos();
     REQUIRE(itv.nodalCenter().has_value());
     const QPointF center0 = *itv.nodalCenter();
-    const double scale = nodal->nodeContainer().scale();
+    const double scale = nodal->zoom();
 
     // Revealing what is to the right / below moves the canvas left / up
     CHECK(Dataflow::CableDragAutoScroller::scrollViewBy(gv, {24, 10}));

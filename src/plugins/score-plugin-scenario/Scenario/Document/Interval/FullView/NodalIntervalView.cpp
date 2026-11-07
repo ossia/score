@@ -132,7 +132,7 @@ NodalIntervalView::NodalIntervalView(
   if(const double savedScale = m_model.nodalScale();
      savedScale != 1.0 && std::isfinite(savedScale) && savedScale > 0.)
   {
-    m_container->setScale(savedScale);
+    setZoom(savedScale);
     m_zoomLevel = std::log(savedScale) / std::log(g_zoom_base);
   }
   else if(savedScale != 1.0)
@@ -242,20 +242,20 @@ void NodalIntervalView::pickInitialViewport()
     recenter();
     return;
   }
-  const QPointF center = enclosingRect().center() - offset / m_container->scale();
+  const QPointF center = enclosingRect().center() - offset / zoom();
   const_cast<IntervalModel&>(m_model).setNodalCenter(center);
   placeContainer(center);
 }
 
 void NodalIntervalView::placeContainer(QPointF center)
 {
-  // No rotation: mapToParent(p) == pos() + scale() * p
-  m_container->setPos(viewportCenter() - center * m_container->scale());
+  // No rotation: mapToParent(p) == pos() + zoom() * p
+  m_container->setPos(viewportCenter() - center * zoom());
 }
 
 void NodalIntervalView::storeCenterFromContainer()
 {
-  const QPointF center = (viewportCenter() - m_container->pos()) / m_container->scale();
+  const QPointF center = (viewportCenter() - m_container->pos()) / zoom();
   const_cast<IntervalModel&>(m_model).setNodalCenter(center);
 }
 
@@ -278,6 +278,11 @@ void NodalIntervalView::recenterRelativeToView()
   // else: not laid out yet, sizeChanged brings us back here.
 }
 
+void NodalIntervalView::setZoom(double z)
+{
+  m_container->setTransform(QTransform::fromScale(z, z));
+}
+
 void NodalIntervalView::recenter()
 {
   auto parentRect = boundingRect();
@@ -286,7 +291,7 @@ void NodalIntervalView::recenter()
   double w_ratio = parentRect.width() / childRect.width();
   double h_ratio = parentRect.height() / childRect.height();
   double z = std::clamp(std::min(w_ratio, h_ratio), 0.01, 1.0);
-  m_container->setScale(z);
+  setZoom(z);
   m_zoomLevel = std::log(z) / std::log(g_zoom_base);
   const_cast<IntervalModel&>(m_model).setNodalScale(z);
 
@@ -302,7 +307,7 @@ void NodalIntervalView::rescale()
   // Back to 1:1, around what is currently at the center of the view
   recenterRelativeToView();
   const QPointF center = m_model.nodalCenter().value_or(enclosingRect().center());
-  m_container->setScale(1.0);
+  setZoom(1.0);
   m_zoomLevel = 0.;
   const_cast<IntervalModel&>(m_model).setNodalScale(1.0);
   placeContainer(center);
@@ -385,10 +390,10 @@ void NodalIntervalView::showNode(const Process::NodeItem& item)
     // view until it just fits.
     const double ratio
         = std::min(visible.width() / r.width(), visible.height() / r.height());
-    const double z = std::max(m_container->scale() * ratio, 0.01);
+    const double z = std::max(zoom() * ratio, 0.01);
     const QPointF anchor = visible.center();
     const QPointF localAnchor = m_container->mapFromParent(anchor);
-    m_container->setScale(z);
+    setZoom(z);
     m_container->setPos(
         m_container->pos() + (anchor - m_container->mapToParent(localAnchor)));
     m_zoomLevel = std::log(z) / std::log(g_zoom_base);
@@ -622,7 +627,7 @@ void NodalIntervalView::wheelEvent(QGraphicsSceneWheelEvent* event)
   double scrollStep = numDegrees / sensitivity;
   m_zoomLevel = std::clamp(m_zoomLevel + scrollStep, -10.0, 5.0);
   double newScale = std::pow(g_zoom_base, m_zoomLevel);
-  m_container->setScale(newScale);
+  setZoom(newScale);
 
   QPointF newAnchorPos = m_container->mapToParent(localAnchor);
   m_container->setPos(m_container->pos() + (anchor - newAnchorPos));
@@ -658,7 +663,7 @@ void NodalIntervalView::zoomTo(double newZoomLevel)
 
   m_zoomLevel = newZoomLevel;
   double newScale = std::pow(g_zoom_base, m_zoomLevel);
-  m_container->setScale(newScale);
+  setZoom(newScale);
 
   const QPointF newAnchorPos = m_container->mapToParent(localAnchor);
   m_container->setPos(m_container->pos() + (anchor - newAnchorPos));

@@ -114,7 +114,7 @@ Viewport viewportOf(Scenario::ScenarioDocumentPresenter& p)
   const QPointF tl = nodal->mapFromScene(gv.mapToScene(0, 0));
   const QPointF br = nodal->mapFromScene(gv.mapToScene(gv.width(), gv.height()));
   const QRectF visible = QRectF{tl, br}.intersected(nodal->boundingRect());
-  return {container.scale(), container.mapFromParent(visible.center())};
+  return {nodal->zoom(), container.mapFromParent(visible.center())};
 }
 
 void checkSameViewport(const Viewport& a, const Viewport& b)
@@ -327,7 +327,7 @@ TEST_CASE(
         1.0);
     REQUIRE(fit < 1.0);
     CHECK(itv.nodalScale() == Approx(fit));
-    CHECK(nodal->nodeContainer().scale() == Approx(fit));
+    CHECK(nodal->zoom() == Approx(fit));
     checkCenteredOnNodes(p, itv);
 
     // Every node is on screen

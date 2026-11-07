@@ -324,16 +324,16 @@ TEST_CASE(
     FocusDispatcher fd;
     Process::Context pctx{doc->context(), dfm, fd};
 
-    // The nodal view zooms by scaling the container of its nodes
     QGraphicsScene scene;
     auto container = new QGraphicsRectItem{};
     scene.addItem(container);
     auto item = new Dataflow::AudioOutletItem{out, pctx, container};
     item->setPos(100, 200);
 
+    // Zoomed as the nodal view does: a transform, which Qt reports to the port
     for(double zoom : {0.5, 0.25, 1., 1.5})
     {
-      container->setScale(zoom);
+      container->setTransform(QTransform::fromScale(zoom, zoom));
       QGraphicsSceneMouseEvent press{QEvent::GraphicsSceneMousePress};
       press.setButton(Qt::LeftButton);
       press.setButtons(Qt::LeftButton);
@@ -354,6 +354,18 @@ TEST_CASE(
       CHECK(p.bottom() < port.top());
       CHECK(port.top() - p.bottom() < 10.);
       CHECK(std::abs(p.left() - item->scenePos().x()) < 1e-6);
+
+      // Zooming while it is open keeps it on its port
+      const double other = zoom * 0.6;
+      container->setTransform(QTransform::fromScale(other, other));
+      settle();
+      {
+        const QRectF p = item->m_subView->sceneBoundingRect();
+        const QRectF port = item->sceneBoundingRect();
+        CHECK(p.bottom() < port.top());
+        CHECK(port.top() - p.bottom() < 10.);
+        CHECK(std::abs(p.left() - item->scenePos().x()) < 1e-6);
+      }
 
       // A second click closes it
       item->mousePressEvent(&press);
