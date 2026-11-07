@@ -492,10 +492,6 @@ bool stateAffectsPipeline(const isf::pipeline_state& s) noexcept
       || s.topology.has_value()
       || s.color_write.has_value()
 #if QT_VERSION >= QT_VERSION_CHECK(6, 9, 0)
-      // shading_rate toggles the QRhiGraphicsPipeline::UsesShadingRate opt-in
-      // flag (set in Utils.cpp buildPipelineWithState), so it does affect the
-      // pipeline even though the per-draw rate itself is recorded on the
-      // command buffer at draw time.
       || s.shading_rate.has_value()
 #endif
       ;
@@ -536,6 +532,11 @@ void applyPipelineState(
     bool depthAttachmentAvailable,
     bool wantsDepthByDefault) noexcept
 {
+#if QT_VERSION >= QT_VERSION_CHECK(6, 9, 0)
+  if(state.shading_rate.has_value() && rhi.isFeatureSupported(QRhi::VariableRateShading))
+    pip.setFlags(pip.flags() | QRhiGraphicsPipeline::UsesShadingRate);
+#endif
+
   // ── Depth ──────────────────────────────────────────────────────────
   // Only override depth state when explicitly set, OR when we need to force
   // it off (no depth attachment, or upstream doesn't require depth). This
@@ -646,19 +647,6 @@ void applyPipelineState(
     pip.setStencilReadMask(*state.stencil_read_mask);
   if(state.stencil_write_mask.has_value())
     pip.setStencilWriteMask(*state.stencil_write_mask);
-
-  // ── Variable-rate shading (per-draw rate) ───────────────────────────
-  // There is NO QRhiGraphicsPipeline::setShadingRate() and no
-  // QRhiGraphicsPipeline::ShadingRate enum in ANY Qt version.
-  // The pipeline only carries the opt-in flag
-  // QRhiGraphicsPipeline::UsesShadingRate, which Utils.cpp's
-  // buildPipelineWithState() already sets when caps.variableRateShading is
-  // true. The actual per-draw coarse-pixel rate is the command-buffer state
-  // QRhiCommandBuffer::setShadingRate(QSize), which must be recorded between
-  // setGraphicsPipeline() and draw() at the draw site (CustomMesh::draw /
-  // Mesh::draw). applyPipelineState() has no command buffer in scope, so it
-  // intentionally does nothing with state.shading_rate here. The requested
-  // {w,h} maps directly to the coarse-pixel QSize (clamped to {1,2,4}).
 }
 
 }
