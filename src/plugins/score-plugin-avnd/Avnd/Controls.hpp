@@ -108,6 +108,12 @@ private:
     score::DefaultGraphicsSliderImpl::mouseReleaseEvent(*this, event);
   }
 
+  // Must be overridden so that the reset to init goes through our mapped unmap()
+  void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event) override
+  {
+    score::DefaultGraphicsSliderImpl::mouseDoubleClickEvent(*this, event);
+  }
+
   void contextMenuEvent(QGraphicsSceneContextMenuEvent* event) override
   {
     event->accept();
@@ -156,6 +162,12 @@ private:
   void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override
   {
     score::DefaultGraphicsKnobImpl::mouseReleaseEvent(*this, event);
+  }
+
+  // Must be overridden so that the reset to init goes through our mapped unmap()
+  void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event) override
+  {
+    score::DefaultGraphicsKnobImpl::mouseDoubleClickEvent(*this, event);
   }
 
   void contextMenuEvent(QGraphicsSceneContextMenuEvent* event) override
