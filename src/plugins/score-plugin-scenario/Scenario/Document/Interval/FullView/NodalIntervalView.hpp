@@ -1,6 +1,7 @@
 #pragma once
 #include <Process/Dataflow/NodeItem.hpp>
 
+#include <Scenario/Document/Interval/NodeLayout.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentViewConstants.hpp>
 
 #include <score/graphics/RectItem.hpp>
@@ -66,6 +67,7 @@ public:
   //! panels and cables on them), never about a new scale.
   double zoom() const noexcept { return m_container->transform().m11(); }
   const IntervalModel& model() const noexcept { return m_model; }
+  NodeGeometry nodeGeometry() const;
 
   //! Where to put what is pasted, in nodeContainer() coordinates: at `scenePos`
   //! when it is over the visible part of this item, else in the middle of it.

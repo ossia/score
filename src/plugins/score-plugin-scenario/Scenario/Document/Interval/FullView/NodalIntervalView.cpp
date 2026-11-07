@@ -1,5 +1,8 @@
 #include "NodalIntervalView.hpp"
 
+#include <Process/Dataflow/NodeItem.hpp>
+#include <Process/Dataflow/PortItem.hpp>
+
 #include <Scenario/Application/Drops/DropOnCable.hpp>
 #include <Scenario/Application/Drops/DropProcessInInterval.hpp>
 #include <Scenario/Application/Drops/ScenarioDropHandler.hpp>
@@ -8,6 +11,7 @@
 #include <Scenario/DialogWidget/AddProcessDialog.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/Interval/IntervalPresenter.hpp>
+#include <Scenario/Document/Interval/NodeLayout.hpp>
 #include <Scenario/Document/ScenarioDocument/ProcessCreation.hpp>
 #include <Scenario/Document/ScenarioDocument/ProcessFocusManager.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
@@ -29,8 +33,10 @@
 #include <QApplication>
 #include <QGraphicsRectItem>
 #include <QPointer>
+#include <QGraphicsSceneContextMenuEvent>
 #include <QGraphicsSceneDragDropEvent>
 #include <QGraphicsView>
+#include <QMenu>
 #include <QPainter>
 #include <QScopedValueRollback>
 #include <QTimer>
@@ -630,6 +636,12 @@ void NodalIntervalView::openProcessPicker(QPointF nodePos)
 void NodalIntervalView::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
 {
   event->accept();
+  QMenu menu;
+  addNodeLayoutActions(menu, m_model, m_context, nodeGeometry(), [this] {
+    if(m_itemsToShow == AllItems)
+      recenter();
+  });
+  menu.exec(event->screenPos());
 }
 
 void NodalIntervalView::wheelEvent(QGraphicsSceneWheelEvent* event)
@@ -697,6 +709,41 @@ void NodalIntervalView::zoomTo(double newZoomLevel)
   m_container->setPos(m_container->pos() + (anchor - newAnchorPos));
   const_cast<IntervalModel&>(m_model).setNodalScale(newScale);
   storeCenterFromContainer();
+}
+
+NodeGeometry NodalIntervalView::nodeGeometry() const
+{
+  auto itemOf = [this](const QObject* obj) -> Process::NodeItem* {
+    for(; obj; obj = obj->parent())
+      for(auto* item : m_nodeItems)
+        if(&item->model() == obj)
+          return item;
+    return nullptr;
+  };
+
+  NodeGeometry g;
+  g.bounds = [itemOf](const Process::ProcessModel& p) -> std::optional<QRectF> {
+    if(auto* item = itemOf(&p))
+      return static_cast<const QGraphicsItem*>(item)->boundingRect();
+    return std::nullopt;
+  };
+  g.portY = [itemOf](const Process::Port& port) -> std::optional<double> {
+    auto* item = itemOf(&port);
+    if(!item)
+      return std::nullopt;
+    std::vector<QGraphicsItem*> stack{item};
+    while(!stack.empty())
+    {
+      auto* cur = stack.back();
+      stack.pop_back();
+      if(auto* p = dynamic_cast<Dataflow::PortItem*>(cur); p && &p->port() == &port)
+        return item->mapFromItem(p, p->boundingRect().center()).y();
+      for(auto* child : cur->childItems())
+        stack.push_back(child);
+    }
+    return std::nullopt;
+  };
+  return g;
 }
 
 void NodalIntervalView::setupNode(Process::NodeItem* item)
