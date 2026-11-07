@@ -108,18 +108,21 @@ std::vector<std::string> inria_columns(int scales, bool filter)
   return c;
 }
 
-// Whether the scalar columns of `vtx` are exactly `expected`, in order, all
-// float32: the row is then byte for byte the struct that format's shaders
-// declare.
-bool columns_are(const miniply::PLYElement& vtx, const std::vector<std::string>& expected)
+// Whether the first scalar columns of `vtx` are `expected`, in order, all
+// float32. They then sit at the offsets of that format's struct, which is a
+// prefix of the row: columns after it only lengthen the row stride, which the
+// struct binding reads as its element stride.
+bool columns_start_with(
+    const miniply::PLYElement& vtx, const std::vector<std::string>& expected)
 {
   std::size_t k = 0;
   for(auto& p : vtx.properties)
   {
     if(p.countType != miniply::PLYPropertyType::None)
       continue;
-    if(k >= expected.size() || p.name != expected[k]
-       || p.type != miniply::PLYPropertyType::Float)
+    if(k == expected.size())
+      return true;
+    if(p.name != expected[k] || p.type != miniply::PLYPropertyType::Float)
       return false;
     ++k;
   }
@@ -127,19 +130,21 @@ bool columns_are(const miniply::PLYElement& vtx, const std::vector<std::string>&
 }
 
 // Recognise a column layout and return its format_id. A struct-typed tag
-// ("3dgs.classic", "3dgs.mip", "2dgs.surfel") is given only when the row is
-// exactly that format's struct. Any other 3DGS layout (no normals, lower SH
-// degree, other column order, extra columns, other scalar types) gets the
-// family tag "3dgs": its columns are read by name. Other 2DGS layouts have no
-// by-name decoder and stay untagged. Empty result means "unknown / wired by
-// hand".
+// ("3dgs.classic", "3dgs.mip", "2dgs.surfel") is given when the row starts
+// with that format's struct, optionally followed by extra columns. Any other
+// 3DGS layout (no normals, lower SH degree, other column order, other scalar
+// types) gets the family tag "3dgs": its columns are read by name. Other 2DGS
+// layouts have no by-name decoder and stay untagged. Empty result means
+// "unknown / wired by hand".
 std::string detect_format_id(const miniply::PLYElement& vtx)
 {
-  if(columns_are(vtx, inria_columns(3, false)))
-    return "3dgs.classic";
-  if(columns_are(vtx, inria_columns(3, true)))
+  // Mip is the classic struct plus filter_3D: test it first so that a mip row
+  // is not taken for a classic row with one extra column.
+  if(columns_start_with(vtx, inria_columns(3, true)))
     return "3dgs.mip";
-  if(columns_are(vtx, inria_columns(2, false)))
+  if(columns_start_with(vtx, inria_columns(3, false)))
+    return "3dgs.classic";
+  if(columns_start_with(vtx, inria_columns(2, false)))
     return "2dgs.surfel";
 
   bool has_pos[3]{}, has_dc[3]{}, has_rot[4]{}, has_scale[3]{};

@@ -24,6 +24,7 @@
 #include <catch2/catch_approx.hpp>
 #include <catch2/catch_test_macros.hpp>
 
+#include <algorithm>
 #include <cstdint>
 #include <cstring>
 #include <fstream>
@@ -451,6 +452,109 @@ TEST_CASE("PLY: vertex element with only list columns is rejected", "[ply]")
 
   CHECK(PC::ply_is_splat_shaped(path)); // no face element
   CHECK(PC::parse_ply(path) == nullptr); // but no scalar column to pack
+}
+
+// One-row binary-LE PLY whose scalar columns are `cols` (all float unless
+// listed in `uchars`); column k holds the value k.
+static std::string ply_with_columns(
+    const std::vector<std::string>& cols, const std::vector<std::string>& uchars = {})
+{
+  std::string s = "ply\nformat binary_little_endian 1.0\nelement vertex 1\n";
+  auto is_uchar = [&](const std::string& c) {
+    return std::find(uchars.begin(), uchars.end(), c) != uchars.end();
+  };
+  for(auto& c : cols)
+    s += (is_uchar(c) ? "property uchar " : "property float ") + c + "\n";
+  s += "end_header\n";
+  for(std::size_t k = 0; k < cols.size(); ++k)
+  {
+    if(is_uchar(cols[k]))
+      append_u8(s, (uint8_t)k);
+    else
+      append_f32_le(s, (float)k);
+  }
+  return s;
+}
+
+static std::vector<std::string> inria_cols(int scales, bool filter)
+{
+  std::vector<std::string> c{"x", "y", "z", "nx", "ny", "nz", "f_dc_0", "f_dc_1", "f_dc_2"};
+  for(int i = 0; i < 45; ++i)
+    c.push_back("f_rest_" + std::to_string(i));
+  c.push_back("opacity");
+  for(int i = 0; i < scales; ++i)
+    c.push_back("scale_" + std::to_string(i));
+  for(int i = 0; i < 4; ++i)
+    c.push_back("rot_" + std::to_string(i));
+  if(filter)
+    c.push_back("filter_3D");
+  return c;
+}
+
+TEST_CASE("PLY: INRIA rows keep their struct tag with trailing extra columns", "[ply]")
+{
+  TempTree t;
+  auto parse = [&](const char* name, const std::vector<std::string>& cols,
+                   const std::vector<std::string>& uchars = {}) {
+    auto cloud = PC::parse_ply(t.write(name, ply_with_columns(cols, uchars)));
+    REQUIRE(cloud);
+    return cloud;
+  };
+  auto with = [](std::vector<std::string> c, std::initializer_list<const char*> extra) {
+    for(auto e : extra)
+      c.push_back(e);
+    return c;
+  };
+
+  SECTION("exact rows")
+  {
+    auto c = parse("classic.ply", inria_cols(3, false));
+    CHECK(c->format_id == "3dgs.classic");
+    CHECK(c->struct_type_name == "Splat3DGS");
+    CHECK(c->row_stride == 62 * 4);
+    auto m = parse("mip.ply", inria_cols(3, true));
+    CHECK(m->format_id == "3dgs.mip");
+    CHECK(m->struct_type_name == "SplatMip");
+    auto s = parse("surfel.ply", inria_cols(2, false));
+    CHECK(s->format_id == "2dgs.surfel");
+    CHECK(s->struct_type_name == "Splat2DGS");
+  }
+
+  SECTION("struct prefix followed by extra columns")
+  {
+    auto c = parse("classic_extra.ply", with(inria_cols(3, false), {"seg_id", "conf"}));
+    CHECK(c->format_id == "3dgs.classic");
+    CHECK(c->struct_type_name == "Splat3DGS");
+    CHECK(c->row_stride == 64 * 4);
+    const auto* bd = raw_bytes(c);
+    CHECK(read_f32(bd, 61 * 4) == 61.f); // rot_3 stays at its struct offset
+    CHECK(read_f32(bd, 63 * 4) == 63.f);
+
+    auto m = parse("mip_extra.ply", with(inria_cols(3, true), {"label"}), {"label"});
+    CHECK(m->format_id == "3dgs.mip");
+    CHECK(m->struct_type_name == "SplatMip");
+    CHECK(m->row_stride == 64 * 4); // 63 floats + 1 byte, aligned to 4
+
+    auto s = parse("surfel_extra.ply", with(inria_cols(2, false), {"extra"}));
+    CHECK(s->format_id == "2dgs.surfel");
+    CHECK(s->struct_type_name == "Splat2DGS");
+  }
+
+  SECTION("a column inside the struct makes it a by-name layout")
+  {
+    auto cols = inria_cols(3, false);
+    cols.insert(cols.begin() + 3, "extra");
+    auto c = parse("classic_inner.ply", cols);
+    CHECK(c->format_id == "3dgs");
+    CHECK(c->struct_type_name.empty());
+  }
+
+  SECTION("a non-float struct column makes it a by-name layout")
+  {
+    auto c = parse("classic_uchar.ply", inria_cols(3, false), {"opacity"});
+    CHECK(c->format_id == "3dgs");
+    CHECK(c->struct_type_name.empty());
+  }
 }
 
 TEST_CASE("PLY: error paths return false / nullptr without crashing", "[ply]")
