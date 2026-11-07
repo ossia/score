@@ -16,6 +16,26 @@
 // TODO: check that rendering e.g. sponza still works
 namespace score::gfx{
 
+namespace
+{
+void resolvePerViewIndirect(const ossia::geometry& mesh, MeshBuffers& bufs) noexcept
+{
+  bufs.perViewIndirectBuffer = nullptr;
+  bufs.perViewIndirectOffset = 0;
+  bufs.perViewIndirectBytes = 0;
+  const auto* aux = mesh.find_auxiliary("indirect_draw_cmds_per_view");
+  if(!aux || aux->buffer < 0 || aux->buffer >= (int)mesh.buffers.size())
+    return;
+  const auto* gpu
+      = ossia::get_if<ossia::geometry::gpu_buffer>(&mesh.buffers[aux->buffer].data);
+  if(!gpu || !gpu->handle)
+    return;
+  bufs.perViewIndirectBuffer = static_cast<QRhiBuffer*>(gpu->handle);
+  bufs.perViewIndirectOffset = (quint32)std::max<int64_t>(0, aux->byte_offset);
+  bufs.perViewIndirectBytes = (quint32)std::max<int64_t>(0, aux->byte_size);
+}
+}
+
 bool buftrace_enabled()
 {
   static const bool on = [] {
@@ -191,6 +211,7 @@ MeshBuffers CustomMesh::init(QRhi &rhi) const noexcept
           = (quint32)std::max<int64_t>(0, cnt_aux->byte_offset);
     }
   }
+  resolvePerViewIndirect(first_mesh, ret);
   if(!first_mesh.cpu_draw_commands.empty())
     ret.cpuDrawCommands.assign(
         first_mesh.cpu_draw_commands.begin(), first_mesh.cpu_draw_commands.end());
@@ -474,6 +495,7 @@ void CustomMesh::update(
     }
   }
 
+  resolvePerViewIndirect(first_mesh, output_meshbuf);
   if(!first_mesh.cpu_draw_commands.empty())
   {
     output_meshbuf.cpuDrawCommands.assign(
@@ -754,6 +776,19 @@ bool CustomMesh::drawSingleMesh(
     effCpuCmds = &perMeshCmds;
   }
 
+  bool perView = false;
+  quint32 perViewOffset = 0;
+  if(bufs.activeView >= 0 && bufs.perViewIndirectBuffer)
+  {
+    const quint64 block = quint64(effIndirectCount) * bufs.indirectDrawStride;
+    if(block > 0 && quint64(bufs.activeView + 1) * block <= bufs.perViewIndirectBytes)
+    {
+      effIndirectBuf = bufs.perViewIndirectBuffer;
+      perViewOffset = bufs.perViewIndirectOffset + quint32(bufs.activeView * block);
+      perView = true;
+    }
+  }
+
   // Multi-draw indirect: runtime capability check, not compile-time.
   // Only meaningful for single-sub-mesh MDI-mode geometries.
   // A mesh carrying its own CPU commands draws them even without an indirect
@@ -795,7 +830,8 @@ bool CustomMesh::drawSingleMesh(
         // count buffer it was clamped with.
         const bool clamped = bufs.clampedIndirectBuffer
                              && effIndirectBuf == bufs.indirectDrawBuffer;
-        const quint32 cmdOffset = clamped ? 0 : bufs.indirectDrawOffset;
+        const quint32 cmdOffset
+            = perView ? perViewOffset : (clamped ? 0 : bufs.indirectDrawOffset);
         if(clamped)
           effIndirectBuf = bufs.clampedIndirectBuffer;
         if(!bufs.gpuIndirectMultiSupported && cmdCount > 1)
