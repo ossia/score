@@ -4,6 +4,8 @@
 
 #include <score/serialization/DataStreamVisitor.hpp>
 
+#include <ossia/detail/variant.hpp>
+
 #include <boost/pfr.hpp>
 
 #include <avnd/common/function_reflection.hpp>
@@ -223,6 +225,13 @@ struct Serializer
     r.stream().stream << (int)f.index();
     std::visit(*this, f);
   }
+
+  template <typename... Args>
+  void operator()(const ossia::variant<Args...>& f)
+  {
+    r.stream().stream << (int)f.index();
+    ossia_variant_alias::visit(*this, f);
+  }
 };
 
 struct MessageBusSender
@@ -339,6 +348,29 @@ struct Deserializer
 
   template <typename... Args>
   void operator()(std::variant<Args...>& f)
+  {
+    int index{};
+    r.stream().stream >> index;
+
+    SCORE_ASSERT(index >= 0);
+    SCORE_ASSERT(index < sizeof...(Args));
+    [&]<std::size_t... I>(std::index_sequence<I...>)
+    {
+      (((index == I) && write_variant<I>(f)) || ...);
+    }
+    (std::make_index_sequence<sizeof...(Args)>{});
+  }
+
+  template <std::size_t I, typename... Args>
+  bool write_variant(ossia::variant<Args...>& f)
+  {
+    auto& elt = f.template emplace<I>();
+    (*this)(elt);
+    return true;
+  }
+
+  template <typename... Args>
+  void operator()(ossia::variant<Args...>& f)
   {
     int index{};
     r.stream().stream >> index;
