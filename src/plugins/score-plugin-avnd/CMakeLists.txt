@@ -153,6 +153,7 @@ set(HALP_HEADERS
   "${AVND_FOLDER}/include/halp/texture.hpp"
   "${AVND_FOLDER}/include/halp/texture_formats.hpp"
   "${AVND_FOLDER}/include/halp/value_types.hpp"
+  "${AVND_FOLDER}/include/halp/sound_set.hpp"
   "${AVND_FOLDER}/include/halp/waveform_view.hpp"
 )
 add_library(
@@ -205,6 +206,8 @@ add_library(
   Crousti/ProcessModel.hpp
   Crousti/ProcessModelPortInit.hpp
   Crousti/ScoreLayer.hpp
+  Crousti/SoundSet.cpp
+  Crousti/SoundSet.hpp
   Crousti/Waveform.cpp
   Crousti/Waveform.hpp
 

@@ -5,6 +5,7 @@
 #include <Crousti/File.hpp>
 #include <Crousti/MessageBus.hpp>
 #include <Crousti/ProcessModel.hpp>
+#include <Crousti/SoundSet.hpp>
 
 #include <ossia/detail/flat_map.hpp>
 
@@ -654,6 +655,73 @@ struct setup_control_for_exec<Node, Field, N, NField>
       // path (from_ossia_value + control_updated_from_ui) via con_unvalidated.
       con_unvalidated<Node, Field, N, NField>{ctx, weak_node, *field}(
           resolveControlPath<Field>(val, ctx.doc));
+    });
+  }
+};
+
+// halp::sound_set: a folder_port whose files the host lists, decodes and
+// watches. A SoundSetLoader does it on the UI side and the task pool, and
+// publishes each new set into the port between two ticks.
+template <typename T>
+concept sound_set_control_port = folder_control_port<T> && avnd::sound_set_port<T>;
+
+template <typename Node, sound_set_control_port Field, std::size_t N, std::size_t NField>
+struct setup_control_for_exec<Node, Field, N, NField>
+    : setup_control_for_exec_base<Node, Field>
+{
+  using ExecNode = safe_node<Node>;
+
+  void initialize_control(Field& param, Process::ControlInlet* inlet, int k)
+  {
+    this->node_ptr->from_ossia_value(
+        param, resolveControlPath<Field>(inlet->value(), this->ctx.doc), param.value,
+        avnd::field_index<NField>{});
+  }
+
+  void connect_control_to_ui(
+      dynamic_ports_component_data<Node>&, Field& param, Process::ControlInlet* inlet,
+      int k)
+  {
+    auto& ctx = this->ctx;
+    std::weak_ptr<ExecNode> weak_node = this->node_ptr;
+
+    SoundSetOptions opts;
+    opts.extensions = soundSetExtensions(Field::extensions());
+    opts.recursive = Field::recursive();
+    opts.decoding = Field::decoding();
+    opts.rate = int(ossia::exec_state_facade{ctx.execState.get()}.sampleRate());
+
+    // The command keeps the snapshot alive while it is in flight; it is retired
+    // to the UI thread with it. The loader keeps its own reference.
+    auto publish = [&ctx, weak_node](
+                       std::shared_ptr<SoundSetSnapshot> next,
+                       SoundSetSnapshot* previous) {
+      ctx.executionQueue.enqueue(
+          [weak_node, next = std::move(next), previous]() mutable {
+        if(auto n = weak_node.lock())
+          for(auto state : n->impl.full_state())
+            avnd::pfr::get<NField>(state.inputs).files = next->view();
+        if(previous)
+          previous->superseded.store(true, std::memory_order_release);
+      });
+    };
+    // When the loader goes, the node is being removed: what it may still read
+    // is freed with a command, which runs after the node's last tick.
+    auto dispose = [&ctx](std::vector<std::shared_ptr<SoundSetSnapshot>> snaps) {
+      ctx.executionQueue.enqueue([snaps = std::move(snaps)] {});
+    };
+
+    auto loader = new SoundSetLoader{
+        std::move(opts), std::move(publish), std::move(dispose), this->parent};
+    loader->setPath(QString::fromStdString(ossia::convert<std::string>(
+        resolveControlPath<Field>(inlet->value(), ctx.doc))));
+
+    QObject::connect(
+        inlet, &Process::ControlInlet::valueChanged, loader,
+        [&ctx, weak_node, field = &param, loader](const ossia::value& val) {
+      const auto resolved = resolveControlPath<Field>(val, ctx.doc);
+      con_unvalidated<Node, Field, N, NField>{ctx, weak_node, *field}(resolved);
+      loader->setPath(QString::fromStdString(ossia::convert<std::string>(resolved)));
     });
   }
 };

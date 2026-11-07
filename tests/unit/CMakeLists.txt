@@ -175,6 +175,14 @@ if(TARGET score_plugin_media)
     APP
     PLUGINS score_plugin_media score_lib_process)
 
+  # The folders of sound files halp::sound_set ports name.
+  if(TARGET score_plugin_avnd)
+    score_add_test(test_unit_sound_set
+      SOURCES SoundSetTest.cpp
+      APP
+      PLUGINS score_plugin_avnd score_plugin_media score_lib_process)
+  endif()
+
   # Which decoding backend a file lands on, and that each one either hands back
   # a usable handle or fails without leaving a half-built one behind.
   score_add_test(test_unit_audio_file_backend
