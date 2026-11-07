@@ -1,56 +1,100 @@
+Presets/GLSL_shaders/basic/blend/Butterfly Wave Scrawler.fs	blank
+Presets/GLSL_shaders/basic/blend/Crazy Parametric Fun.fs	blank
 Presets/GLSL_shaders/basic/filter/Show Alpha.fs	blank
+Presets/GLSL_shaders/basic/filter/Sorting Smear.fs	blank-mid
 Presets/GLSL_shaders/basic/generator/BitStreamer.fs	blank
 Presets/GLSL_shaders/basic/generator/Color Organ Polyphonic.fs	blank
+Presets/GLSL_shaders/basic/generator/Random Shape.fs	blank
 Presets/GLSL_shaders/basic/generator/Solid Color.fs	blank
 Presets/GLSL_shaders/basic/multipass/Circle Trails.fs	blank
 Presets/GLSL_shaders/basic/multipass/FFT Spectrogram.fs	blank
+Presets/GLSL_shaders/basic/multipass/Flipbook.fs	blank-mid
 Presets/GLSL_shaders/basic/multipass/Life.fs	blank-mid
 Presets/GLSL_shaders/basic/multipass/Optical Flow Generator.fs	blank
 Presets/GLSL_shaders/basic/multipass/Radial Spectrogram.fs	blank
+Presets/GLSL_shaders/basic/multipass/Sorting Smear.fs	blank-mid
 Presets/GLSL_shaders/computer-vision/Filters/FrameDiff.fs	blank
+Presets/GLSL_shaders/gitizenme/CubicMatrixModulatorRedux.fs	blank
 Presets/GLSL_shaders/grigm/01_Strobosphere.fs	blank
 Presets/GLSL_shaders/grigm/07_4tSXWt.fs	blank
 Presets/GLSL_shaders/grigm/BitStreamer.fs	blank
 Presets/GLSL_shaders/grigm/Chimera's_Breath_4tGfDW.fs	blank
 Presets/GLSL_shaders/grigm/Circle_bullshit2_4lfBzX.fs	blank
+Presets/GLSL_shaders/grigm/Creepy_Mountains_Xlf3Rj.fs	blank
 Presets/GLSL_shaders/grigm/Crystal_Form_4tKGDD.fs	blank
+Presets/GLSL_shaders/grigm/Edge_Detection_(RGB)_4t3XDM.fs	blank
+Presets/GLSL_shaders/grigm/Feedback GLSL.fs	blank
+Presets/GLSL_shaders/grigm/Filling_Tiles_Xd3SW8.fs	blank
+Presets/GLSL_shaders/grigm/Fire-y_pixel_art_filter_MlGSW1.fs	blank
 Presets/GLSL_shaders/grigm/Hyperellipse_visual_XtG3Ry.fs	blank
 Presets/GLSL_shaders/grigm/LightningFlash.fs	blank
+Presets/GLSL_shaders/grigm/Linocut_MttXRB.fs	blank
+Presets/GLSL_shaders/grigm/Liquid_Crystal_Glitch_4ljczt.fs	blank-mid
 Presets/GLSL_shaders/grigm/Mystery_Mountains_llsGW7.fs	blank
 Presets/GLSL_shaders/grigm/Rave_Sickness-Oropendola_VIZU_3lXXWX.fs	blank
+Presets/GLSL_shaders/grigm/Re_Cypher_MlGSzW.fs	blank
 Presets/GLSL_shaders/grigm/Reflect_Learning_MsdyW2.fs	blank
 Presets/GLSL_shaders/grigm/RetroTechicolorComputer.fs	blank
+Presets/GLSL_shaders/grigm/SDF_2D_demo_WdfSRM.fs	blank
 Presets/GLSL_shaders/grigm/Shatter_MsfGz7.fs	blank
+Presets/GLSL_shaders/grigm/Snek_2_ls2cWz.fs	blank
 Presets/GLSL_shaders/grigm/Space_Curvature_Planet_+_MoonÂ²_XddXWf.fs	blank
+Presets/GLSL_shaders/grigm/Space_fungus_lslcWj.fs	blank
+Presets/GLSL_shaders/grigm/Stripes.fs	blank
 Presets/GLSL_shaders/grigm/Test-Audio.fs	blank
 Presets/GLSL_shaders/grigm/Test-Bool.fs	blank
 Presets/GLSL_shaders/grigm/Test-Functionality.fs	blank
 Presets/GLSL_shaders/grigm/TextileMutationLattice.fs	blank
+Presets/GLSL_shaders/grigm/The_walking_polygons_MsBfDG.fs	blank
+Presets/GLSL_shaders/grigm/Trainpoints_MdlyRj.fs	blank
 Presets/GLSL_shaders/grigm/Triangular_Voronoi_Lighted_ltK3WD.fs	blank
+Presets/GLSL_shaders/grigm/TwoPointPerspectiveZoom.fs	blank
+Presets/GLSL_shaders/grigm/Unwraveling_Inward_llGSDd.fs	blank
+Presets/GLSL_shaders/grigm/Viscous_Fingering_Xst3Dj.fs	blank-mid
 Presets/GLSL_shaders/grigm/Voro_Tri_Tunnel_XtGGWy.fs	blank
+Presets/GLSL_shaders/grigm/Voronoi-Hexagons_to_polygons_MdlcDB.fs	blank
+Presets/GLSL_shaders/grigm/cellular_mass_tdd3DS.fs	blank-mid
+Presets/GLSL_shaders/grigm/crystaline_growth_4lXyRM.fs	blank-mid
+Presets/GLSL_shaders/grigm/foggy_glass_WdcGD4.fs	blank-mid
 Presets/GLSL_shaders/grigm/font_morph_ltcXzs.fs	blank
 Presets/GLSL_shaders/grigm/fx_Fluid_Warp_ltKfR1.fs	blank-mid
+Presets/GLSL_shaders/grigm/fx_Image_Diffusion_Warp_Msd3W2.fs	blank-mid
 Presets/GLSL_shaders/grigm/gs_24524.0.fs	blank
 Presets/GLSL_shaders/grigm/gs_34631.0.fs	blank
 Presets/GLSL_shaders/grigm/gs_34940.0.fs	blank
 Presets/GLSL_shaders/grigm/gs_34973.5.fs	blank
 Presets/GLSL_shaders/grigm/gs_35137.0.fs	blank-mid
+Presets/GLSL_shaders/grigm/gs_35184.0.fs	blank
+Presets/GLSL_shaders/grigm/gs_35226.0.fs	blank
 Presets/GLSL_shaders/grigm/gs_36473.0.fs	blank-mid
 Presets/GLSL_shaders/grigm/gs_39196.0.fs	blank
 Presets/GLSL_shaders/grigm/gs_39651.0.fs	blank
 Presets/GLSL_shaders/grigm/gs_39881.0.fs	blank
 Presets/GLSL_shaders/grigm/gs_39891.0.fs	blank
 Presets/GLSL_shaders/grigm/gs_43504.0.fs	blank
+Presets/GLSL_shaders/grigm/gs_45657.0.fs	blank
+Presets/GLSL_shaders/grigm/gs_45805.0.fs	blank
 Presets/GLSL_shaders/grigm/gs_46297.0.fs	blank
 Presets/GLSL_shaders/grigm/gs_48496.0.fs	blank
 Presets/GLSL_shaders/grigm/gs_48892.1.fs	blank
+Presets/GLSL_shaders/grigm/gs_50097.0.fs	blank
 Presets/GLSL_shaders/grigm/gs_52534.0.fs	blank
 Presets/GLSL_shaders/grigm/gs_54077.0.fs	blank
 Presets/GLSL_shaders/grigm/gs_54370.0.fs	blank
+Presets/GLSL_shaders/grigm/gs_54590.0.fs	blank
 Presets/GLSL_shaders/grigm/gs_55915.1.fs	blank-mid
+Presets/GLSL_shaders/grigm/gs_60646.4.fs	blank
+Presets/GLSL_shaders/grigm/gs_60651.0.fs	blank
+Presets/GLSL_shaders/grigm/gs_60652.0.fs	blank
+Presets/GLSL_shaders/grigm/gs_9616.3.fs	blank
 Presets/GLSL_shaders/grigm/pixel-spirit_00-Void.fs	blank
 Presets/GLSL_shaders/grigm/pixel-spirit_48-Enlightenment.fs	blank
+Presets/GLSL_shaders/grigm/solar_flare_in_starfield_ltj3DK.fs	blank
+Presets/GLSL_shaders/grigm/star_field_5_4scXWB.fs	blank
+Presets/GLSL_shaders/grigm/throughColor_tdd3W8.fs	blank
 Presets/GLSL_shaders/icalvin102/RadialSpectrogram.fs	blank
+Presets/GLSL_shaders/sophia-digital-art/NovaFractal.fs	blank
+Presets/GLSL_shaders/sophia-digital-art/PlasmaGlobe.fs	blank
 Presets/GLSL_shaders/sophia-digital-art/Template.fs	blank
 Presets/GLSL_shaders/volumetric/18-viewers/18-01_slice_viewer.fs	blank
 Presets/GLSL_shaders/volumetric/18-viewers/18-02_slice_grid.fs	blank

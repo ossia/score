@@ -80,6 +80,7 @@ Presets/Vertex Shader Art/audioreactive/It_s_So_In_Vogue_To_Be_Dead-4.vs	blank
 Presets/Vertex Shader Art/audioreactive/It_s_So_In_Vogue_To_Be_Dead-5.vs	blank
 Presets/Vertex Shader Art/audioreactive/It_s_So_In_Vogue_To_Be_Dead-9.vs	blank
 Presets/Vertex Shader Art/audioreactive/Kringu.vs	blank
+Presets/Vertex Shader Art/audioreactive/Lee.vs	blank
 Presets/Vertex Shader Art/audioreactive/Lesson05.vs	blank
 Presets/Vertex Shader Art/audioreactive/Lesson05a.vs	blank
 Presets/Vertex Shader Art/audioreactive/Lesson05b.vs	blank
@@ -102,6 +103,7 @@ Presets/Vertex Shader Art/audioreactive/Pixel_Stormx.vs	blank
 Presets/Vertex Shader Art/audioreactive/Pixel_Waves.vs	blank
 Presets/Vertex Shader Art/audioreactive/Pump_Woofer-1.vs	blank
 Presets/Vertex Shader Art/audioreactive/Pump_Woofer.vs	blank
+Presets/Vertex Shader Art/audioreactive/Rain_old.vs	blank
 Presets/Vertex Shader Art/audioreactive/Shrill.vs	blank
 Presets/Vertex Shader Art/audioreactive/Sound_Texture-1.vs	blank
 Presets/Vertex Shader Art/audioreactive/Sound_Texture.vs	blank
@@ -231,6 +233,7 @@ Presets/Vertex Shader Art/audioreactive/h-t.vs	blank
 Presets/Vertex Shader Art/audioreactive/headrush.vs	blank
 Presets/Vertex Shader Art/audioreactive/hexalicious.vs	blank
 Presets/Vertex Shader Art/audioreactive/hexit.vs	blank
+Presets/Vertex Shader Art/audioreactive/hexit2.vs	blank
 Presets/Vertex Shader Art/audioreactive/hourglass_attack_mouse.xy.vs	blank
 Presets/Vertex Shader Art/audioreactive/in_trouble.vs	blank
 Presets/Vertex Shader Art/audioreactive/incId-1.vs	bake
@@ -305,6 +308,7 @@ Presets/Vertex Shader Art/audioreactive/perc2-8.vs	blank
 Presets/Vertex Shader Art/audioreactive/perc2.vs	blank
 Presets/Vertex Shader Art/audioreactive/perc2_2_stripp.vs	blank
 Presets/Vertex Shader Art/audioreactive/perc2_stripp.vs	blank
+Presets/Vertex Shader Art/audioreactive/perc2xxx.vs	blank
 Presets/Vertex Shader Art/audioreactive/petl-2.vs	blank
 Presets/Vertex Shader Art/audioreactive/petl.vs	blank
 Presets/Vertex Shader Art/audioreactive/ping.vs	blank
@@ -437,6 +441,7 @@ Presets/Vertex Shader Art/audioreactive/wip3.vs	blank
 Presets/Vertex Shader Art/audioreactive/xduel-1.vs	blank
 Presets/Vertex Shader Art/audioreactive/xduel.vs	blank
 Presets/Vertex Shader Art/audioreactive/xercise_-_Vertexshaderart_Circles_from_Triangles.vs	blank
+Presets/Vertex Shader Art/audioreactive/影_流_の_花-1.vs	blank
 Presets/Vertex Shader Art/audioreactive/测试.vs	blank
 Presets/Vertex Shader Art/basic/Africa.vs	bake
 Presets/Vertex Shader Art/basic/Colors-4.vs	blank
@@ -473,8 +478,13 @@ Presets/Vertex Shader Art/basic/learning.vs	blank
 Presets/Vertex Shader Art/basic/lesson01_1.vs	blank
 Presets/Vertex Shader Art/basic/lesson1-2.vs	blank
 Presets/Vertex Shader Art/basic/overdraw.vs	bake
+Presets/Vertex Shader Art/basic/point_cloud_vs_spheres-11.vs	blank
+Presets/Vertex Shader Art/basic/point_cloud_vs_spheres-19.vs	blank
+Presets/Vertex Shader Art/basic/point_cloud_vs_spheres-33.vs	blank
 Presets/Vertex Shader Art/basic/point_cloud_vs_spheres-34.vs	blank
+Presets/Vertex Shader Art/basic/points-1.vs	blank
 Presets/Vertex Shader Art/basic/projection.vs	blank
+Presets/Vertex Shader Art/basic/sea_urkin.vs	blank
 Presets/Vertex Shader Art/basic/shapeshift.vs	blank
 Presets/Vertex Shader Art/basic/sloncePawel3.vs	blank
 Presets/Vertex Shader Art/basic/study01.vs	blank

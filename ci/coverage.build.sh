@@ -20,6 +20,7 @@ mkdir -p build
   # Dynamic plugins: the CI environment clones src/addons/*, and in a
   # static-plugin build every test executable would have to link the whole
   # addon set (score_init_static_plugins references them all).
+  # shellcheck disable=SC2086 # CMAKEFLAGS is a list of arguments
   cmake .. \
     -GNinja \
     -DCMAKE_BUILD_TYPE=Debug \
@@ -73,10 +74,11 @@ done
 # The test_integration_shader_sweep_* harnesses render every shader of the
 # library in SCORE_SHADER_LIBRARY_DIR and diff the failures against the
 # baseline of the backend they run on,
-# tests/testdata/shader_sweep_baseline_<kind>_<api>-<device>.txt. Those are
-# recorded against one commit of the library, which SCORE_USER_LIBRARY_REF
-# names (.github/workflows/coverage.yml): the default branch otherwise, which
-# the baselines may no longer match.
+# tests/testdata/shader_sweep_baseline_<kind>_<api>-<device>.txt. The library
+# is the head of its default branch, whose commit is printed: a sweep that
+# goes red on a library change is refreshed with the baselines it needs. The
+# library has no raster or geometry shader: test_integration_shader_sweep_raster
+# and _csfgeometry sweep tests/gfx/corpus instead.
 # They run once on OpenGL (llvmpipe) and once on Vulkan (lavapipe), and in a
 # ctest pass of their own: test_integration_object_csf_sweep reads
 # the same variable as a csf-testers corpus, and handed the whole library it
@@ -86,17 +88,17 @@ done
 sweep_library="$PWD/build/score-user-library"
 if [ ! -d "$sweep_library/.git" ]; then
   git clone --depth 1 https://github.com/ossia/score-user-library.git "$sweep_library"
+else
+  # A workspace kept from an earlier run: move it to the current head
+  git -C "$sweep_library" fetch --depth 1 origin HEAD \
+    && git -C "$sweep_library" checkout --detach --force FETCH_HEAD
 fi
-if [ -n "${SCORE_USER_LIBRARY_REF:-}" ]; then
-  git -C "$sweep_library" fetch --depth 1 origin "$SCORE_USER_LIBRARY_REF" \
-    && git -C "$sweep_library" checkout --detach FETCH_HEAD
-fi
-git -C "$sweep_library" log -1 --format='score-user-library at %H' || true
+git -C "$sweep_library" log -1 --format='score-user-library at %H (%cs, %s)' || true
 sweep_tests='^test_integration_shader_sweep_'
 # <<< shader sweeps against the user library
 
 (
-  cd build
+  cd build || exit 1
   xvfb-run -a ctest --output-on-failure --timeout 240 -E "$sweep_tests"
 )
 test_rc=$?
@@ -105,7 +107,7 @@ test_rc=$?
 if [ -d "$sweep_library/Presets" ]; then
   for backend in opengl vulkan; do
     (
-      cd build
+      cd build || exit 1
       QSG_RHI_BACKEND=$backend SCORE_SHADER_LIBRARY_DIR="$sweep_library" \
         xvfb-run -a ctest --output-on-failure --timeout 1800 -R "$sweep_tests"
     )
