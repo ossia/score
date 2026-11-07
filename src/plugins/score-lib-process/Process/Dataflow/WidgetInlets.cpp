@@ -17,6 +17,7 @@
 #include <QCoreApplication>
 #include <QDir>
 #include <QFileSystemWatcher>
+#include <QTimer>
 
 #include <cmath>
 #include <optional>
@@ -827,26 +828,39 @@ void FileChooserBase::enableFileWatch()
     });
   });
 
-  auto& f = score::FileWatch::instance();
-  f.add(QString::fromStdString(ossia::convert<std::string>(this->value())), fun);
-
-  connect(
-      this, &Process::FileChooser::valueChanged, this,
-      [cur_s = ossia::convert<std::string>(this->value()),
-       fun](const ossia::value& v) mutable {
-    auto new_s = ossia::convert<std::string>(v);
-    if(new_s != cur_s)
+  // The stored path may be "<PROJECT>:..." or relative to the document: the
+  // watch needs the file it names. The port is built before its process is in
+  // a document, so this resolves once the event loop runs, then at each change.
+  auto watched = std::make_shared<QString>();
+  auto rewatch = [this, fun, watched] {
+    QString path = QString::fromStdString(ossia::convert<std::string>(this->value()));
+    if(!path.isEmpty())
     {
-      auto& f = score::FileWatch::instance();
-      f.remove(QString::fromStdString(cur_s), fun);
-      f.add(QString::fromStdString(new_s), fun);
-      cur_s = new_s;
+      for(QObject* o = this->parent(); o; o = o->parent())
+      {
+        if(auto doc = qobject_cast<score::Document*>(o))
+        {
+          path = score::locateFilePath(path, doc->context());
+          break;
+        }
+      }
     }
-      });
+    if(path == *watched)
+      return;
 
-  connect(this, &Process::FileChooser::destroying, this, [this, fun] {
     auto& f = score::FileWatch::instance();
-    f.remove(QString::fromStdString(ossia::convert<std::string>(this->value())), fun);
+    if(!watched->isEmpty())
+      f.remove(*watched, fun);
+    *watched = path;
+    if(!path.isEmpty())
+      f.add(path, fun);
+  };
+
+  QTimer::singleShot(0, this, rewatch);
+  connect(this, &Process::FileChooser::valueChanged, this, rewatch);
+  connect(this, &Process::FileChooser::destroying, this, [fun, watched] {
+    if(!watched->isEmpty())
+      score::FileWatch::instance().remove(*watched, fun);
   });
 }
 
