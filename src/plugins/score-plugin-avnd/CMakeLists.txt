@@ -153,6 +153,7 @@ set(HALP_HEADERS
   "${AVND_FOLDER}/include/halp/texture.hpp"
   "${AVND_FOLDER}/include/halp/texture_formats.hpp"
   "${AVND_FOLDER}/include/halp/value_types.hpp"
+  "${AVND_FOLDER}/include/halp/waveform_view.hpp"
 )
 add_library(
   score_plugin_avnd
@@ -204,6 +205,8 @@ add_library(
   Crousti/ProcessModel.hpp
   Crousti/ProcessModelPortInit.hpp
   Crousti/ScoreLayer.hpp
+  Crousti/Waveform.cpp
+  Crousti/Waveform.hpp
 
 # score_plugin_avnd.graph.cpp
   score_plugin_avnd.aether.cpp

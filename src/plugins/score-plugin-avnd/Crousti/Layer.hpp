@@ -715,6 +715,7 @@ struct LayoutBuilder final : Process::LayoutBuilderBase
       };
     }
     auto res = new oscr::CustomItem<Item&>{item};
+    res->setDocument(this->doc);
     setupItem(item, *res);
     if constexpr(requires { Item::watched(); })
       std::apply([&](auto... m) { (watchControl(item, m), ...); }, Item::watched());

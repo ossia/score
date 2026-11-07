@@ -11,12 +11,16 @@
 #include <QMimeData>
 #include <QPixmap>
 #include <QUrl>
+#include <QWidget>
 #include <QPainter>
 #include <QPolygon>
 
 #include <avnd/concepts/painter.hpp>
 #include <avnd/wrappers/colors.hpp>
 #include <halp/custom_widgets.hpp>
+#include <halp/waveform_view.hpp>
+
+#include <Crousti/Waveform.hpp>
 
 #include <algorithm>
 #include <cmath>
@@ -51,6 +55,17 @@ struct QPainterAdapter
   QGraphicsItem& item;
   QPainterPath path;
   score::Skin& skin = score::Skin::instance();
+
+  //! What draw_waveform() draws with: set by the items that can.
+  CustomItemWaveforms* waveforms{};
+  double device_pixel_ratio{1.};
+
+  //! Draws a sound file with score's waveform renderer, see halp::waveform_view.
+  void draw_waveform(halp::waveform_view& view, double x, double y, double w, double h)
+  {
+    if(waveforms)
+      waveforms->draw(painter, view, QRectF{x, y, w, h}, device_pixel_ratio);
+  }
 
   void begin_path() { path = QPainterPath{}; }
   void close_path() { path.closeSubpath(); }
@@ -404,6 +419,7 @@ public:
   // Case T&
   explicit CustomItem(Item t)
       : impl{t}
+      , m_waveforms{*this}
   {
     this->setFlag(QGraphicsItem::ItemClipsToShape);
     this->setFlag(QGraphicsItem::ItemClipsChildrenToShape);
@@ -419,6 +435,12 @@ public:
     return {0., 0., item_type::width(), item_type::height()};
   }
 
+  //! The document the sound files drawn with draw_waveform() are looked up in.
+  void setDocument(const score::DocumentContext& doc) noexcept
+  {
+    m_waveforms.setDocument(&doc);
+  }
+
   void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
       override
   {
@@ -427,7 +449,9 @@ public:
     painter->setPen(skin.Dark.main.pen1);
     // Views set DontSavePainterState: else the previous item's font leaks
     painter->setFont(skin.Medium8Pt);
-    impl.paint(QPainterAdapter{*painter, *this, {}});
+    impl.paint(QPainterAdapter{
+        *painter, *this, {}, skin, &m_waveforms,
+        widget ? widget->devicePixelRatioF() : 1.});
     painter->setRenderHint(QPainter::Antialiasing, false);
   }
 
@@ -639,6 +663,7 @@ protected:
 private:
   //! Expires with the item: tells a drag's event loop that it was deleted
   std::shared_ptr<char> m_alive;
+  CustomItemWaveforms m_waveforms;
 };
 
 template <typename Item>
@@ -651,6 +676,7 @@ public:
       : CustomItem<Item>{item_init}
       , cmd{ctx.commandStack}
   {
+    this->setDocument(ctx);
     if constexpr(requires { this->impl.transaction; })
     {
       this->impl.transaction.start = [] {
