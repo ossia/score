@@ -4,6 +4,7 @@
 #include <QFlags>
 #include <QGradient>
 #include <QGraphicsItem>
+#include <QGraphicsSceneDragDropEvent>
 #include <QGraphicsSceneMouseEvent>
 #include <QApplication>
 #include <QDrag>
@@ -25,6 +26,8 @@
 #include <algorithm>
 #include <cmath>
 #include <memory>
+#include <string>
+#include <vector>
 
 namespace oscr
 {
@@ -428,6 +431,8 @@ public:
     {
       this->impl.update = [this] { this->update(); };
     }
+    if constexpr(accepts_drops)
+      this->setAcceptDrops(true);
   }
 
   QRectF boundingRect() const override
@@ -639,6 +644,42 @@ protected:
       event->ignore();
     }
     update();
+  }
+
+  //! Widgets that define drop(paths) take files dropped on them: drop() gets
+  //! their local paths and returns whether it used them.
+  static constexpr bool accepts_drops
+      = requires(Item i) { i.drop(std::vector<std::string>{}); };
+
+  void dragEnterEvent(QGraphicsSceneDragDropEvent* event) override
+  {
+    if(accepts_drops && event->mimeData()->hasUrls())
+      event->acceptProposedAction();
+    else
+      event->ignore();
+  }
+
+  void dragMoveEvent(QGraphicsSceneDragDropEvent* event) override
+  {
+    dragEnterEvent(event);
+  }
+
+  void dropEvent(QGraphicsSceneDragDropEvent* event) override
+  {
+    if constexpr(accepts_drops)
+    {
+      std::vector<std::string> paths;
+      for(const auto& url : event->mimeData()->urls())
+        if(url.isLocalFile())
+          paths.push_back(url.toLocalFile().toStdString());
+      if(!paths.empty() && impl.drop(paths))
+      {
+        event->acceptProposedAction();
+        update();
+        return;
+      }
+    }
+    event->ignore();
   }
 
   //! Only widgets that define wheel() take the event: everything else keeps
