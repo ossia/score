@@ -7,6 +7,7 @@ add_subdirectory(unit)
 add_subdirectory(integration)
 add_subdirectory(library)
 add_subdirectory(nodes)
+add_subdirectory(lv2-sweep)
 add_subdirectory(hardware)
 add_subdirectory(corpus)
 

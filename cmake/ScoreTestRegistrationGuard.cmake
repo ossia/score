@@ -118,6 +118,9 @@ set(SCORE_TEST_GUARD_ALLOWED_TARGETS
   test_unit_curve_bench
   # Driven by corpus/run-edit-fuzz.sh, one process per (document, seed).
   score_edit_fuzzer
+  # Driven by tests/lv2-sweep/lv2_sweep.py, the test_lv2_system_sweep entry,
+  # which probes the installed plug-ins with it in batches.
+  test_lv2_sweep_worker
 )
 
 # Every directory the buildsystem created below `dir`, `dir` included.
