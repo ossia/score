@@ -22,6 +22,9 @@ public:
   void on_moved(QPointF scene, Curve::Point sp);
   void on_released(QPointF scene, Curve::Point sp);
 
+  //! Undoes what the gesture in progress did to the model, at once.
+  void rollback();
+
 private:
   Curve::SelectionState* m_state{};
   Curve::OngoingState* m_moveState{};

@@ -128,4 +128,18 @@ CreatePenTool::CreatePenTool(
 
   localSM().start();
 }
+void CreateTool::rollback()
+{
+  m_co.cancel();
+}
+
+void SetSegmentTool::rollback()
+{
+  m_co.cancel();
+}
+
+void CreatePenTool::rollback()
+{
+  m_co.cancel();
+}
 }

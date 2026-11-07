@@ -124,4 +124,10 @@ void SmartTool::on_released(QPointF scenePoint, Curve::Point curvePoint)
   },
       [&]() { localSM().postEvent(new ReleaseOnNothing_Event(curvePoint, nullptr)); });
 }
+
+void SmartTool::rollback()
+{
+  m_co.cancel();
+  m_segmentCo.cancel();
+}
 }

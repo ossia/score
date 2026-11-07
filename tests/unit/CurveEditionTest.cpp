@@ -745,6 +745,71 @@ TEST_CASE(
   });
 }
 
+TEST_CASE(
+    "Cancelling a gesture rolls it back even with its events still queued",
+    "[curve][edition][cancel]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    CurveDoc d{ctx};
+    d.setPolyline({{0., 0.}, {0.5, 1.}, {1., 0.}});
+    const auto shape = [&] {
+      std::vector<std::pair<QPointF, QPointF>> res;
+      for(const auto& s : Curve::orderedSegments(d.curve()))
+        res.emplace_back(s.start, s.end);
+      return res;
+    };
+    const auto before = shape();
+    const auto index = d.stack().currentIndex();
+
+    struct Gesture
+    {
+      Curve::Tool tool;
+      QPointF press;
+      Points path;
+    };
+    for(const auto& [tool, start, path] : {
+            Gesture{Curve::Tool::Select, {0.5, 1.}, {{0.6, 0.4}, {0.65, 0.3}, {0.7, 0.2}}},
+            Gesture{Curve::Tool::CreatePen, {0.2, 0.9}, {{0.3, 0.9}, {0.4, 0.9}, {0.45, 0.8}}}})
+    {
+      CAPTURE(int(tool));
+      CurveUi ui{d};
+      ui.settings().setTool(tool);
+      bool canUndo = true;
+      QObject::connect(
+          &d.stack(), &score::CommandStack::canUndoChanged, &ui.focus,
+          [&](bool b) { canUndo = b; });
+
+      // Drag in progress, already applied to the model.
+      ui.press(start);
+      ui.move(path[0]);
+      ui.move(path[1]);
+      CHECK(shape() != before);
+
+      // Then a move and a release the tool has not handled yet, as when the
+      // editor goes away from inside one of the tool's transitions.
+      ui.palette->on_moved(ui.toScene(path[2]));
+      ui.palette->on_released(ui.toScene(path[2]));
+      ui.palette->cancelGesture();
+      CHECK(shape() == before);
+      CHECK(d.stack().currentIndex() == index);
+      CHECK(canUndo);
+
+      // What was queued runs after: nothing is committed.
+      settle();
+      CHECK(shape() == before);
+      CHECK(d.stack().currentIndex() == index);
+      CHECK(curveError(d.curve()) == "");
+
+      // The tool is back to idle: a new drag works and commits once.
+      ui.drag(start, path);
+      CHECK(d.stack().currentIndex() == index + 1);
+      d.stack().undo();
+      settle();
+      CHECK(shape() == before);
+    }
+  });
+}
+
 TEST_CASE("A pen stroke across points keeps the curve valid", "[curve][edition]")
 {
   score::test::run_in_app([](const score::GUIApplicationContext& ctx) {

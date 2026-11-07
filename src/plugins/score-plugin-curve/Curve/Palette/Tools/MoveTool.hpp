@@ -26,6 +26,9 @@ class CreateTool final : public Curve::EditionToolForCreate
 public:
   explicit CreateTool(Curve::ToolPalette& sm, const score::DocumentContext& context);
 
+  //! Undoes what the gesture in progress did to the model, at once.
+  void rollback();
+
 private:
   CreatePointCommandObject m_co;
 };
@@ -35,6 +38,9 @@ class SetSegmentTool final : public Curve::EditionToolForCreate
 public:
   explicit SetSegmentTool(Curve::ToolPalette& sm, const score::DocumentContext& context);
 
+  //! Undoes what the gesture in progress did to the model, at once.
+  void rollback();
+
 private:
   SetSegmentParametersCommandObject m_co;
 };
@@ -43,6 +49,9 @@ class CreatePenTool final : public Curve::EditionToolForCreate
 {
 public:
   explicit CreatePenTool(Curve::ToolPalette& sm, const score::DocumentContext& context);
+
+  //! Undoes what the gesture in progress did to the model, at once.
+  void rollback();
 
 private:
   PenCommandObject m_co;

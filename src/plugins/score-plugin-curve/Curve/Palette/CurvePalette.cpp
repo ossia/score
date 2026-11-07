@@ -4,8 +4,6 @@
 
 #include <score/tools/Debug.hpp>
 
-#include <QCoreApplication>
-
 #include <ossia/math/safe_math.hpp>
 namespace Curve
 {
@@ -134,21 +132,28 @@ void ToolPalette::on_cancel()
 
 void ToolPalette::cancelGesture()
 {
-  if(!m_pressed)
-    return;
   m_pressed = false;
-  const auto cancel = [](auto& tool) {
+  // The command objects are rolled back directly: an event posted to a state
+  // machine that is inside one of its transitions is only handled once that
+  // transition returns, which may be after this palette is gone. So is a
+  // release still queued: its gesture is rolled back, not committed.
+  m_createTool.rollback();
+  m_selectTool.rollback();
+  m_setSegmentTool.rollback();
+  m_createPenTool.rollback();
+
+  // Takes each machine back to its idle state whenever it next runs. The
+  // cancelled state rolls back again, which does nothing on a command object
+  // that holds no command.
+  const auto leave = [](auto& tool) {
     auto& sm = tool.localSM();
-    if(!sm.isRunning())
-      return;
-    sm.postEvent(new score::Cancel_Event);
-    // Only this machine's queued transition runs: no other event is dispatched.
-    QCoreApplication::sendPostedEvents(&sm);
+    if(sm.isRunning())
+      sm.postEvent(new score::Cancel_Event);
   };
-  cancel(m_createTool);
-  cancel(m_selectTool);
-  cancel(m_setSegmentTool);
-  cancel(m_createPenTool);
+  leave(m_createTool);
+  leave(m_selectTool);
+  leave(m_setSegmentTool);
+  leave(m_createPenTool);
 }
 
 void ToolPalette::activate(Curve::Tool) { }

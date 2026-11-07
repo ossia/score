@@ -48,9 +48,12 @@ public:
 
   void on_cancel();
 
-  //! Rolls back a gesture in progress before returning, for an editor that is
-  //! destroyed or rebound right after: on_cancel only queues the cancellation.
+  //! Rolls back a gesture in progress before returning, also one whose
+  //! release is still queued or from inside a transition of a tool, for an
+  //! editor that is destroyed or rebound right after: on_cancel only queues
+  //! the cancellation.
   void cancelGesture();
+  bool gestureInProgress() const noexcept { return m_pressed; }
 
   void activate(Curve::Tool);
   void desactivate(Curve::Tool);
