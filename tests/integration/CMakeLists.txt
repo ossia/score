@@ -154,9 +154,11 @@ score_add_test(test_integration_graphical_zoom
   GUI
   PLUGINS score_plugin_scenario)
 
-# A process whose factory is not installed is kept on load, with its ports and
-# cables, and saved back unchanged. Asserting "the document opened" cannot see a
-# loss, so this one asserts on the content that came back.
+# A process whose factory is not installed should be kept on load, with its
+# ports and cables, and saved back unchanged. The loader still drops it
+# (ProcessFactory::loadMissing returns nullptr), so the test is [!shouldfail]
+# and listed in ScoreExpectedRedGuard.cmake until PR #2179 lands. It asserts on
+# the content that came back, since "the document opened" cannot see a loss.
 score_add_test(test_integration_missing_process_roundtrip
   SOURCES MissingProcessRoundtripTest.cpp
   GUI
