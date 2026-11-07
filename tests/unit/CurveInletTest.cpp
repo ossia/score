@@ -17,7 +17,13 @@
 #include <score/document/DocumentContext.hpp>
 #include <score/selection/SelectionStack.hpp>
 
+#include <Scenario/Commands/Interval/RemoveProcessFromInterval.hpp>
+
+#include <core/command/CommandStack.hpp>
 #include <core/document/Document.hpp>
+
+#include <QKeyEvent>
+#include <QPointer>
 
 #include <QGraphicsScene>
 #include <QGraphicsView>
@@ -230,5 +236,89 @@ TEST_CASE(
     REQUIRE(first);
     CHECK(first->gamma == Catch::Approx(2.));
     CHECK(sorted[1]->end().y() == Catch::Approx(.5));
+  });
+}
+
+TEST_CASE(
+    "An inspector curve editor outlives its port, also in a drag",
+    "[curve][dataflow][gui][lifetime]")
+{
+  score::test::run_in_gui_app([](const score::GUIApplicationContext& ctx) {
+    for(bool dragging : {false, true})
+    {
+      CAPTURE(dragging);
+      auto* doc = score::test::new_document(ctx);
+      REQUIRE(doc);
+      auto* process = score::test::add_process(*doc, midiEnvelope, {});
+      if(!process)
+        SKIP("Midi Envelope is not built in this configuration");
+      auto* inlet = curveInlet(*process);
+      REQUIRE(inlet);
+      ctx.guiApplicationPlugin<Curve::ApplicationPlugin>().editionSettings().setTool(
+          Curve::Tool::Select);
+      CommandDispatcher<>{doc->context().commandStack}.submit(
+          new Process::SetControlValue{*inlet, peak()});
+
+      std::unique_ptr<QWidget> widget{WidgetFactory::CurveInletItems::make_widget(
+          *inlet, doc->context(), nullptr, nullptr)};
+      auto* view = qobject_cast<QGraphicsView*>(widget.get());
+      REQUIRE(view);
+      view->resize(308, 128);
+      REQUIRE(score::test::showAndActivate(*view));
+      score::test::settle();
+
+      QGraphicsItem* curve{};
+      for(auto* item : view->scene()->items())
+        if(!item->parentItem())
+          curve = item;
+      REQUIRE(curve);
+      const QSizeF size = curve->boundingRect().size();
+      const auto at = [&](double x, double y) {
+        return view->mapFromScene(
+            curve->scenePos() + QPointF{x * size.width(), (1. - y) * size.height()});
+      };
+      auto& vp = *view->viewport();
+      if(dragging)
+      {
+        score::test::mouseEvent(
+            vp, QEvent::MouseButtonPress, at(.5, .6), Qt::LeftButton, Qt::LeftButton,
+            {});
+        score::test::settle();
+        score::test::mouseEvent(
+            vp, QEvent::MouseMove, at(.6, .75), Qt::NoButton, Qt::LeftButton, {});
+        score::test::settle();
+      }
+
+      bool canUndo = true;
+      QObject::connect(
+          &doc->commandStack(), &score::CommandStack::canUndoChanged, view,
+          [&](bool b) { canUndo = b; });
+
+      // The port goes with its process.
+      QPointer<QObject> gone{inlet};
+      CommandDispatcher<>{doc->context().commandStack}.submit(
+          new Scenario::Command::RemoveProcessFromInterval{
+              score::test::base_interval(*doc), process->id()});
+      score::test::settle();
+      CHECK(!gone);
+
+      // Repainted, then given the rest of the gesture and a key, then closed.
+      view->viewport()->repaint();
+      score::test::mouseEvent(
+          vp, QEvent::MouseMove, at(.7, .9), Qt::NoButton, Qt::LeftButton, {});
+      score::test::mouseEvent(
+          vp, QEvent::MouseButtonRelease, at(.7, .9), Qt::LeftButton, Qt::NoButton, {});
+      score::test::settle();
+      QKeyEvent selectAll{QEvent::KeyPress, Qt::Key_A, Qt::ControlModifier};
+      QCoreApplication::sendEvent(view, &selectAll);
+      view->resize(200, 100);
+      view->viewport()->repaint();
+      score::test::settle();
+      widget.reset();
+      score::test::settle();
+      // Undo and redo are available again once the gesture is gone.
+      CHECK(canUndo);
+      CHECK(doc->commandStack().canUndo());
+    }
   });
 }

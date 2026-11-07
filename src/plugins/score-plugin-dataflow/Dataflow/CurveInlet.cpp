@@ -33,6 +33,7 @@
 #include <QMenu>
 #include <QMimeData>
 #include <QPainter>
+#include <QPointer>
 #include <QResizeEvent>
 #include <QScopedValueRollback>
 
@@ -145,7 +146,7 @@ struct CurveItem
   } m_colors;
   const score::DocumentContext& m_context;
   score::SelectionStack* m_selectionStack{};
-  Curve::Model* m_model{};
+  QPointer<Curve::Model> m_model;
   Curve::View* m_view{};
   Curve::Presenter* m_presenter{};
   Curve::ToolPalette* m_sm{};
@@ -173,6 +174,7 @@ struct CurveItem
       return;
     clearEditor();
     m_model = &model;
+    connect(&model, &QObject::destroyed, this, &CurveItem::modelDestroyed);
     m_view = new Curve::View{this};
     m_presenter = new Curve::Presenter{m_context, m_colors.style(), model, m_view, this};
     m_presenter->setRect(m_rect);
@@ -218,9 +220,12 @@ struct CurveItem
   {
     prepareGeometryChange();
     m_rect = rect;
-    m_presenter->setRect(rect);
-    m_view->setRect(rect);
-    m_view->setDefaultWidth(rect.width());
+    if(m_presenter)
+    {
+      m_presenter->setRect(rect);
+      m_view->setRect(rect);
+      m_view->setDefaultWidth(rect.width());
+    }
     update();
   }
 
@@ -274,6 +279,25 @@ private:
         Curve::Tool, Curve::ToolPalette, Curve::View>{*m_view, *m_sm};
   }
 
+  //! The curve goes with its port: what a gesture did to it goes too, so there
+  //! is nothing to roll back, and the editor shows an empty box.
+  void modelDestroyed()
+  {
+    const bool gesture = m_sm && m_sm->gestureInProgress();
+    delete m_disp;
+    m_disp = nullptr;
+    delete m_sm;
+    m_sm = nullptr;
+    delete m_presenter;
+    m_presenter = nullptr;
+    m_view = nullptr;
+    m_model = nullptr;
+    // A gesture in progress disabled undo and redo until its end.
+    if(gesture)
+      m_context.commandStack.enableActions();
+    update();
+  }
+
   void clearTools()
   {
     rollbackGesture();
@@ -285,6 +309,8 @@ private:
 
   void clearEditor()
   {
+    if(m_model)
+      disconnect(m_model, &QObject::destroyed, this, nullptr);
     clearTools();
     // The presenter owns its view and removes it from the scene.
     delete m_presenter;
@@ -380,6 +406,8 @@ protected:
     if(!editKey(*event))
       return QGraphicsView::keyPressEvent(event);
     event->accept();
+    if(!m_item->m_presenter || !m_item->m_model)
+      return;
 
     auto& presenter = *m_item->m_presenter;
     if(event->matches(QKeySequence::SelectAll))
