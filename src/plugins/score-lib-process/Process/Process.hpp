@@ -141,6 +141,12 @@ public:
   //! is one, the port-count heuristic otherwise.
   bool folded() const noexcept;
 
+  //! The size a node item draws the process at while folded. size() keeps the
+  //! unfolded size the node goes back to; this one is not saved, and stays
+  //! empty until a node item has laid the folded process out.
+  QSizeF foldedSize() const noexcept { return m_foldedSize; }
+  void setFoldedSize(QSizeF v) noexcept { m_foldedSize = v; }
+
   /// States. The process has ownership.
   virtual ProcessStateDataInterface* startStateData() const noexcept;
   virtual ProcessStateDataInterface* endStateData() const noexcept;
@@ -339,6 +345,7 @@ private:
   TimeVal m_loopDuration{};
   QPointF m_position{};
   QSizeF m_size{};
+  QSizeF m_foldedSize{};
   QString m_scriptEditorPlacement;
   QString m_processUIPlacement;
   std::shared_ptr<Monitor> m_monitor;

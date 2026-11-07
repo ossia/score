@@ -876,7 +876,10 @@ void NodeItem::publishSize()
   // off the model: keep it in sync with what is actually drawn. A folded node
   // must not overwrite the unfolded size it will go back to.
   if(m_folded)
+  {
+    const_cast<Process::ProcessModel&>(m_model).setFoldedSize(m_contentSize);
     return;
+  }
   if(m_model.flags() & Process::ProcessFlags::FullyCustomItem)
     return;
   if(m_model.size() == m_contentSize)

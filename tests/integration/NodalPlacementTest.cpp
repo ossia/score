@@ -20,10 +20,12 @@
 
 #include <Scenario/Commands/CommandAPI.hpp>
 #include <Scenario/Commands/Interval/AddProcessToInterval.hpp>
+#include <Scenario/Document/Interval/FullView/NodalIntervalView.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ProcessCreation.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentView.hpp>
 
 #include <Library/Panel/LibraryPanelDelegate.hpp>
 #include <Library/ProcessTreeView.hpp>
@@ -43,6 +45,7 @@
 #include <QStandardPaths>
 #include <QFileInfo>
 #include <QGraphicsScene>
+#include <QGraphicsView>
 
 #include <catch2/catch_approx.hpp>
 #include <catch2/catch_test_macros.hpp>
@@ -571,5 +574,150 @@ TEST_CASE("A node item publishes the size it draws", "[integration][nodal][gui]"
 
     delete item;
     spin(20);
+  });
+}
+
+namespace
+{
+QGraphicsScene& documentScene(score::Document& doc)
+{
+  auto pr = score::IDocument::try_presenterDelegate<Scenario::ScenarioDocumentPresenter>(doc);
+  REQUIRE(pr);
+  return pr->view().scene();
+}
+
+Process::NodeItem* nodeOf(score::Document& doc, const Process::ProcessModel& p)
+{
+  for(auto item : documentScene(doc).items())
+    if(auto node = dynamic_cast<Process::NodeItem*>(item); node && &node->model() == &p)
+      return node;
+  return nullptr;
+}
+
+Scenario::NodalIntervalView* nodalViewOf(score::Document& doc, const Process::ProcessModel& p)
+{
+  for(auto item : documentScene(doc).items())
+    if(auto n = dynamic_cast<Scenario::NodalIntervalView*>(item))
+      for(auto child : n->nodeContainer().childItems())
+        if(auto node = dynamic_cast<Process::NodeItem*>(child); node && &node->model() == &p)
+          return n;
+  return nullptr;
+}
+
+//! Part of `view` shown in the document's view, in `view` coordinates
+QRectF shownPart(score::Document& doc, Scenario::NodalIntervalView& view)
+{
+  auto& gv = score::IDocument::try_presenterDelegate<Scenario::ScenarioDocumentPresenter>(doc)
+                 ->view()
+                 .view();
+  const QRectF r{
+      view.mapFromScene(gv.mapToScene(0, 0)),
+      view.mapFromScene(gv.mapToScene(gv.width(), gv.height()))};
+  return r.intersected(view.boundingRect());
+}
+}
+
+TEST_CASE(
+    "A node added after a folded one lands beside it, in view",
+    "[integration][nodal][gui][reveal]")
+{
+  // A folded node keeps its unfolded size in the model, to unfold back to it:
+  // a plug-in with a bank of controls is drawn as a small box of its ports
+  // while its stored size is several times larger. Chaining after it from the
+  // stored size dropped the new node far to the right of what is drawn, and
+  // scrolled the view away from the selected node to show it.
+  score::test::run_in_gui_app([](const score::GUIApplicationContext& ctx) {
+    auto panel = ctx.findPanel<Library::ProcessPanel>();
+    if(!panel)
+    {
+      WARN("no library panel: score_plugin_library not loaded");
+      return;
+    }
+
+    score::Document* doc = score::test::new_document(ctx);
+    REQUIRE(doc != nullptr);
+    auto& itv = baseInterval(*doc);
+
+    auto presenter
+        = score::IDocument::try_presenterDelegate<Scenario::ScenarioDocumentPresenter>(
+            *doc);
+    REQUIRE(presenter != nullptr);
+    presenter->setNodalMode(true);
+    spin(50);
+
+    Library::ProcessData dat;
+    static_cast<Process::ProcessData&>(dat) = automationData();
+
+    auto first = createProcess(*doc, itv, dat, QPointF{52., -27.});
+    REQUIRE(first);
+    first->setFoldMode(Process::FoldMode::Folded);
+    spin(200);
+    // The size a large unfolded node published before it was folded
+    first->setSize({791., 388.});
+    spin(50);
+
+    auto* view = nodalViewOf(*doc, *first);
+    REQUIRE(view);
+    auto* firstNode = nodeOf(*doc, *first);
+    REQUIRE(firstNode);
+
+    // Zoomed in, the folded node on the left of the view, with room after it
+    view->zoomTo(1.5);
+    spin(50);
+    const QRectF shown = shownPart(*doc, *view);
+    REQUIRE(!shown.isEmpty());
+    {
+      const QRectF r = view->mapRectFromScene(firstNode->sceneBoundingRect());
+      view->panBy(QPointF{shown.left() + 0.2 * shown.width(), shown.center().y()}
+                  - r.center());
+      spin(50);
+    }
+    const QRectF firstRect = view->mapRectFromScene(firstNode->sceneBoundingRect());
+    REQUIRE(firstRect.width() < 0.5 * first->size().width() * view->zoom());
+    REQUIRE(shown.contains(firstRect));
+
+    const double zoom = view->zoom();
+    const QPointF containerPos = view->nodeContainer().pos();
+
+    score::SelectionDispatcher{doc->context().selectionStack}.select(*first);
+    spin(20);
+
+    const auto before = itv.processes.size();
+    // What a double-click in the library panel emits.
+    panel->processWidget().processView().doubleClicked(dat);
+    spin(300);
+    REQUIRE(itv.processes.size() == before + 1);
+
+    const Process::ProcessModel* added{};
+    for(const Process::ProcessModel& p : itv.processes)
+      if(&p != first && p.concreteKey() == dat.key)
+        added = &p;
+    REQUIRE(added != nullptr);
+    auto* addedNode = nodeOf(*doc, *added);
+    REQUIRE(addedNode);
+
+    const QRectF drawnFirst = view->mapRectFromScene(firstNode->sceneBoundingRect());
+    const QRectF drawnAdded = view->mapRectFromScene(addedNode->sceneBoundingRect());
+    const QRectF shownAfter = shownPart(*doc, *view);
+    INFO("first " << drawnFirst.x() << " " << drawnFirst.y() << " " << drawnFirst.width()
+                  << "x" << drawnFirst.height() << ", added " << drawnAdded.x() << " "
+                  << drawnAdded.y() << ", shown " << shownAfter.x() << " "
+                  << shownAfter.y() << " " << shownAfter.width() << "x"
+                  << shownAfter.height());
+
+    // Beside what is drawn: past its right edge, by no more than the margin
+    // between chained nodes.
+    CHECK(!drawnAdded.intersects(drawnFirst));
+    CHECK(drawnAdded.left() >= drawnFirst.right());
+    CHECK(
+        drawnAdded.left() - drawnFirst.right()
+        <= (Scenario::nodeHorizontalMargin + 10.) * zoom);
+    CHECK(std::abs(drawnAdded.top() - drawnFirst.top()) < 1.);
+
+    // There was room for it in the view: neither node moved off screen.
+    CHECK(view->zoom() == zoom);
+    CHECK(QLineF{view->nodeContainer().pos(), containerPos}.length() < 0.5);
+    CHECK(shownAfter.contains(drawnFirst));
+    CHECK(shownAfter.contains(drawnAdded));
   });
 }

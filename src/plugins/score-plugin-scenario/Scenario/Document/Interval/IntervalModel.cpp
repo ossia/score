@@ -1108,7 +1108,8 @@ static const constexpr QSizeF minimumNodeFootprint{75., 42.};
 
 QSizeF nodeFootprint(const Process::ProcessModel& process) noexcept
 {
-  const auto sz = process.size();
+  // A folded node is drawn much smaller than the unfolded size it keeps.
+  const auto sz = process.folded() ? process.foldedSize() : process.size();
   return {
       std::max(sz.width(), minimumNodeFootprint.width()),
       std::max(sz.height(), minimumNodeFootprint.height())};
