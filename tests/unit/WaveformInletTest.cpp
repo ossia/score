@@ -26,7 +26,12 @@
 #include <score/serialization/VisitorCommon.hpp>
 #include <score/model/Skin.hpp>
 
+#include <QClipboard>
 #include <QGraphicsScene>
+#include <QGuiApplication>
+#include <QLineEdit>
+#include <QToolButton>
+#include <QWheelEvent>
 #include <QGraphicsProxyWidget>
 #include <QKeyEvent>
 #include <QGraphicsView>
@@ -390,10 +395,10 @@ TEST_CASE("Bank frames are chosen in the strip and edited from the context menu"
     inlet->setWaveform(original);
     std::unique_ptr<QWidget> widget{WidgetFactory::WaveformInletItems::make_widget(
         *inlet, document->context(), nullptr, inlet)};
-    auto* view = qobject_cast<QGraphicsView*>(widget.get());
+    auto* view = widget->findChild<QGraphicsView*>();
     REQUIRE(view);
-    view->resize(560, 260);
-    REQUIRE(score::test::showAndActivate(*view));
+    widget->resize(560, 320);
+    REQUIRE(score::test::showAndActivate(*widget));
     auto* editor = waveformEditor(*view->scene());
     REQUIRE(editor);
     for(auto* item : view->scene()->items())
@@ -471,7 +476,7 @@ TEST_CASE("Bank frames are chosen in the strip and edited from the context menu"
     auto many = first;
     for(int i = 0; i < 11; ++i) many.samples.insert(many.samples.end(), first.samples.begin(), first.samples.end());
     inlet->setWaveform(many);
-    view->resize(220, 140);
+    widget->resize(220, 200);
     QCoreApplication::processEvents();
     state = Dataflow::waveformItemState(*editor);
     REQUIRE(state.frames.width() < 12 * 24.);
@@ -844,5 +849,583 @@ TEST_CASE("Waveform content a port cannot hold is replaced on load, not fatal", 
     CHECK(Process::wavetableFromValue(port->init()) == port->wavetable());
     CHECK(port->amplitudeLevels() == 0);
     CHECK(port->frameSizeConstraint() == 0);
+  });
+}
+
+namespace
+{
+//! An editor alone in a shown view, the item filling `rect`.
+struct SceneEditor
+{
+  QGraphicsScene scene;
+  QGraphicsView view{&scene};
+  QGraphicsItem* editor{};
+
+  SceneEditor(Dataflow::WaveformInlet& inlet, const score::DocumentContext& ctx, QRectF rect)
+  {
+    editor = WidgetFactory::WaveformInletItems::make_item(inlet, inlet, ctx, nullptr, &inlet);
+    scene.addItem(editor);
+    Dataflow::setWaveformItemRect(*editor, rect);
+    view.setSceneRect(rect);
+    view.resize(int(rect.width()) + 40, int(rect.height()) + 40);
+  }
+
+  QPoint at(QPointF point) const { return view.mapFromScene(editor->mapToScene(point)); }
+
+  //! The centre of a sample's column at an amplitude.
+  QPointF sample(std::size_t index, std::size_t size, double amplitude) const
+  {
+    const auto plot = Dataflow::waveformItemState(*editor).plot;
+    return {plot.left() + plot.width() * (index + .5) / size,
+            plot.top() + plot.height() * (1. - amplitude) * .5};
+  }
+
+  void mouse(QEvent::Type type, QPointF point, Qt::KeyboardModifiers modifiers = {})
+  {
+    const auto button = type == QEvent::MouseMove ? Qt::NoButton : Qt::LeftButton;
+    const Qt::MouseButtons buttons
+        = type == QEvent::MouseButtonRelease ? Qt::NoButton : Qt::MouseButtons{Qt::LeftButton};
+    score::test::mouseEvent(*view.viewport(), type, at(point), button, buttons, modifiers);
+  }
+
+  void hover(QPointF point)
+  {
+    score::test::mouseEvent(*view.viewport(), QEvent::MouseMove, at(point), Qt::NoButton,
+                           Qt::NoButton, {});
+    QCoreApplication::processEvents();
+  }
+
+  void key(QEvent::Type type, int key, Qt::KeyboardModifiers modifiers = {}, bool repeat = false)
+  {
+    QKeyEvent event{type, key, modifiers, QString{}, repeat};
+    QCoreApplication::sendEvent(&view, &event);
+  }
+
+  void press(int key, Qt::KeyboardModifiers modifiers = {})
+  {
+    this->key(QEvent::KeyPress, key, modifiers);
+    this->key(QEvent::KeyRelease, key, modifiers);
+  }
+
+  //! Whether the editor takes `key` over from the application's shortcuts.
+  bool overrides(int key, Qt::KeyboardModifiers modifiers = {})
+  {
+    QKeyEvent event{QEvent::ShortcutOverride, key, modifiers};
+    event.ignore();
+    QCoreApplication::sendEvent(&view, &event);
+    return event.isAccepted();
+  }
+};
+
+float level(int index, int levels)
+{
+  return Process::quantizeSample(2. * index / (levels - 1) - 1., levels);
+}
+}
+
+TEST_CASE("Frames read and write as lists of numbers", "[wavetable]")
+{
+  const std::array<float, 4> frame{.5f, -.25f, 1.f, 0.f};
+  CHECK(Dataflow::waveformFrameText(frame) == QStringLiteral("0.5 -0.25 1 0"));
+  const auto plain = Dataflow::waveformFrameFromText(u"0.5 -0.25 1 0", 4, 0);
+  REQUIRE(plain);
+  CHECK(std::equal(plain->begin(), plain->end(), frame.begin(), frame.end()));
+  // A score or JSON list, nested lists of a bank, comma or semicolon lists.
+  for(auto text : {u"[0.5, -0.25, 1, 0]", u"[[0.5, -0.25], [1, 0]]", u"0.5;-0.25;1;0",
+                   u"(0.5,-0.25,1,0)\n"})
+  {
+    INFO(QString::fromUtf16(text).toStdString());
+    const auto read = Dataflow::waveformFrameFromText(text, 4, 0);
+    REQUIRE(read);
+    CHECK(std::equal(read->begin(), read->end(), frame.begin(), frame.end()));
+  }
+  CHECK_FALSE(Dataflow::waveformFrameFromText(u"0.5 sine", 4, 0));
+  CHECK_FALSE(Dataflow::waveformFrameFromText(u"", 4, 0));
+  CHECK_FALSE(Dataflow::waveformFrameFromText(u"[ ]", 4, 0));
+  CHECK_FALSE(Dataflow::waveformFrameFromText(u"0.5 nan", 4, 0));
+
+  // Amplitudes are bipolar and clamped as a cable's are; a multislider's
+  // 0 to 1 list keeps its values.
+  const auto clamped = Dataflow::waveformFrameFromText(u"2 -3", 4, 0);
+  REQUIRE(clamped);
+  CHECK(*clamped == std::vector<float>{1.f, 0.f, -1.f, 0.f});
+  const auto slider = Dataflow::waveformFrameFromText(u"[0, 0.5, 1, 0.5]", 8, 0);
+  REQUIRE(slider);
+  CHECK(*slider == std::vector<float>{0.f, .25f, .5f, .75f, 1.f, .75f, .5f, .25f});
+  const auto constant = Dataflow::waveformFrameFromText(u"0.3", 3, 0);
+  REQUIRE(constant);
+  CHECK(*constant == std::vector<float>(3, .3f));
+  const auto quantized = Dataflow::waveformFrameFromText(u"0.1 -0.9", 2, 4);
+  REQUIRE(quantized);
+  CHECK(*quantized == std::vector<float>{level(2, 4), level(0, 4)});
+
+  // The text reads back to the same floats.
+  std::vector<float> noise(64);
+  Process::generateWaveform(noise, Process::WaveformShape::Noise, 0, 1234);
+  const auto back = Dataflow::waveformFrameFromText(Dataflow::waveformFrameText(noise), 64, 0);
+  REQUIRE(back);
+  CHECK(*back == noise);
+}
+
+TEST_CASE("A Shift drag draws one straight quantized line", "[wavetable][gui]")
+{
+  score::test::run_in_gui_app([](const score::GUIApplicationContext& ctx) {
+    auto* document = score::test::new_document(ctx);
+    REQUIRE(document);
+    auto* inlet = new Dataflow::WaveformInlet{
+        Id<Process::Port>{940}, &score::test::base_interval(*document)};
+    inlet->setAmplitudeLevels(16);
+    inlet->setFrameSizeConstraint(32);
+    const Process::WavetableData flat{32, std::vector<float>(32, level(0, 16))};
+    inlet->setWaveform(flat);
+    SceneEditor editor{*inlet, document->context(), {0., 0., 400., 180.}};
+    REQUIRE(score::test::showAndActivate(editor.view));
+    auto& stack = document->commandStack();
+    const auto commands = stack.currentIndex();
+
+    editor.mouse(QEvent::MouseButtonPress, editor.sample(4, 32, -.8), Qt::ShiftModifier);
+    editor.mouse(QEvent::MouseMove, editor.sample(16, 32, .95), Qt::ShiftModifier);
+    editor.mouse(QEvent::MouseMove, editor.sample(28, 32, .8), Qt::ShiftModifier);
+    CHECK(inlet->wavetable() == flat);
+    CHECK(stack.currentIndex() == commands);
+    CHECK(Dataflow::waveformItemState(*editor.editor).readout.startsWith(QStringLiteral("#28 ")));
+    editor.mouse(QEvent::MouseButtonRelease, editor.sample(28, 32, .8), Qt::ShiftModifier);
+    CHECK(stack.currentIndex() == commands + 1);
+
+    // Only the line's own samples, the first drag point left behind.
+    const auto& drawn = inlet->wavetable().samples;
+    const float start = drawn[4];
+    const float end = drawn[28];
+    CHECK(std::abs(start + .8f) <= 1.f / 15.f);
+    CHECK(std::abs(end - .8f) <= 1.f / 15.f);
+    for(std::size_t i = 0; i < 32; ++i)
+    {
+      INFO(i);
+      if(i < 4 || i > 28)
+        CHECK(drawn[i] == flat.samples[i]);
+      else
+        CHECK(drawn[i] == Process::quantizeSample(start + (i - 4.) / 24. * (end - start), 16));
+    }
+    CHECK(onLevels(drawn, 16));
+    stack.undo();
+    CHECK(inlet->wavetable() == flat);
+  });
+}
+
+TEST_CASE("A continuous pen catches the reference lines unless Alt is held", "[wavetable][gui]")
+{
+  score::test::run_in_gui_app([](const score::GUIApplicationContext& ctx) {
+    auto* document = score::test::new_document(ctx);
+    REQUIRE(document);
+    auto* continuous = new Dataflow::WaveformInlet{
+        Id<Process::Port>{941}, &score::test::base_interval(*document)};
+    auto* chip = new Dataflow::WaveformInlet{
+        Id<Process::Port>{942}, &score::test::base_interval(*document)};
+    chip->setAmplitudeLevels(16);
+    SceneEditor editor{*continuous, document->context(), {0., 0., 400., 180.}};
+    REQUIRE(score::test::showAndActivate(editor.view));
+    // Two pixels from a line: caught; Alt draws where the pen is.
+    const double near = 2. * 2. / Dataflow::waveformItemState(*editor.editor).plot.height();
+    const auto draw = [&](std::size_t sample, double amplitude, Qt::KeyboardModifiers modifiers) {
+      editor.mouse(QEvent::MouseButtonPress, editor.sample(sample, 32, amplitude), modifiers);
+      editor.mouse(QEvent::MouseButtonRelease, editor.sample(sample, 32, amplitude), modifiers);
+    };
+    draw(5, near, {});
+    CHECK(continuous->wavetable().samples[5] == 0.f);
+    draw(6, .5 - near, {});
+    CHECK(continuous->wavetable().samples[6] == .5f);
+    draw(7, near, Qt::AltModifier);
+    CHECK(continuous->wavetable().samples[7] != 0.f);
+    CHECK(std::abs(continuous->wavetable().samples[7] - near) < .015);
+    draw(8, .3, {});
+    CHECK(std::abs(continuous->wavetable().samples[8] - .3) < .015);
+
+    // Levels are the port's own: Alt changes nothing.
+    Dataflow::setWaveformItemModel(*editor.editor, *chip);
+    draw(9, .3, Qt::AltModifier);
+    CHECK(chip->wavetable().samples[9] == Process::quantizeSample(.3, 16));
+  });
+}
+
+TEST_CASE("Focused waveform editors take keys, each edit one command", "[wavetable][gui][undo]")
+{
+  score::test::run_in_gui_app([](const score::GUIApplicationContext& ctx) {
+    auto* document = score::test::new_document(ctx);
+    REQUIRE(document);
+    auto* inlet = new Dataflow::WaveformInlet{
+        Id<Process::Port>{943}, &score::test::base_interval(*document)};
+    inlet->setAmplitudeLevels(16);
+    inlet->setFrameSizeConstraint(32);
+    auto start = inlet->wavetable();
+    start.samples[10] = level(5, 16);
+    inlet->setWaveform(start);
+    SceneEditor editor{*inlet, document->context(), {0., 0., 400., 180.}};
+    REQUIRE(score::test::showAndActivate(editor.view));
+    auto& stack = document->commandStack();
+    const auto sample10 = [&] { return inlet->wavetable().samples[10]; };
+    const auto state = [&] { return Dataflow::waveformItemState(*editor.editor); };
+
+    // Without focus the application's shortcuts stay.
+    editor.hover(editor.sample(10, 32, 0.));
+    CHECK_FALSE(editor.overrides(Qt::Key_Delete));
+    CHECK_FALSE(editor.overrides(Qt::Key_Up));
+    editor.press(Qt::Key_Up);
+    CHECK(sample10() == level(5, 16));
+
+    editor.editor->setFocus();
+    REQUIRE(editor.editor->hasFocus());
+    for(int key : {Qt::Key_Up, Qt::Key_Down, Qt::Key_Left, Qt::Key_Right, Qt::Key_Delete,
+                   Qt::Key_Backspace, Qt::Key_Escape})
+      CHECK(editor.overrides(key));
+    CHECK(editor.overrides(Qt::Key_C, Qt::ControlModifier));
+    CHECK(editor.overrides(Qt::Key_V, Qt::ControlModifier));
+    CHECK(editor.overrides(Qt::Key_Up, Qt::ShiftModifier));
+    CHECK_FALSE(editor.overrides(Qt::Key_Z, Qt::ControlModifier));
+    CHECK_FALSE(editor.overrides(Qt::Key_Left, Qt::ControlModifier));
+    CHECK_FALSE(editor.overrides(Qt::Key_PageUp));
+    CHECK_FALSE(editor.overrides(Qt::Key_Space));
+
+    auto commands = stack.currentIndex();
+    editor.press(Qt::Key_Up);
+    CHECK(sample10() == level(6, 16));
+    CHECK(stack.currentIndex() == ++commands);
+    CHECK(state().readout == QStringLiteral("#10 6/15"));
+    editor.press(Qt::Key_Up, Qt::ShiftModifier);
+    CHECK(sample10() == level(8, 16));
+    CHECK(stack.currentIndex() == ++commands);
+
+    // A held key is one command; the edited sample stays the keyboard's
+    // after the pointer leaves.
+    editor.hover({-20., -20.});
+    CHECK(state().readout == QStringLiteral("#10 8/15"));
+    editor.key(QEvent::KeyPress, Qt::Key_Down);
+    for(int i = 0; i < 3; ++i)
+    {
+      editor.key(QEvent::KeyRelease, Qt::Key_Down, {}, true);
+      editor.key(QEvent::KeyPress, Qt::Key_Down, {}, true);
+    }
+    CHECK(sample10() == level(4, 16));
+    editor.key(QEvent::KeyRelease, Qt::Key_Down);
+    CHECK(stack.currentIndex() == ++commands);
+    stack.undo();
+    CHECK(sample10() == level(8, 16));
+    stack.redo();
+    CHECK(sample10() == level(4, 16));
+    // The bottom level does not move further and adds nothing.
+    for(int i = 0; i < 6; ++i)
+      editor.press(Qt::Key_Down);
+    CHECK(sample10() == level(0, 16));
+    commands = stack.currentIndex();
+    editor.press(Qt::Key_Down);
+    CHECK(stack.currentIndex() == commands);
+
+    // On the port's levels, so that rotations are exact.
+    {
+      auto onPort = inlet->wavetable();
+      for(float& sample : onPort.samples)
+        sample = Process::quantizeSample(sample, 16);
+      CommandDispatcher<> dispatcher{document->context().commandStack};
+      dispatcher.submit<Process::SetControlValue>(*inlet, Process::wavetableToValue(onPort));
+      ++commands;
+    }
+    const auto before = inlet->wavetable();
+    const auto expect = [&](auto function) {
+      auto expected = before;
+      function(std::span<float>{expected.samples});
+      return expected;
+    };
+    editor.press(Qt::Key_Left);
+    CHECK(inlet->wavetable() == expect([](std::span<float> f) { Process::rotateWaveform(f, true); }));
+    CHECK(stack.currentIndex() == ++commands);
+    editor.press(Qt::Key_Right);
+    CHECK(inlet->wavetable() == before);
+    CHECK(stack.currentIndex() == ++commands);
+
+    // Copy, clear, paste: the same frame.
+    editor.press(Qt::Key_C, Qt::ControlModifier);
+    CHECK(QGuiApplication::clipboard()->text()
+          == Dataflow::waveformFrameText(inlet->wavetable().frame(0)));
+    CHECK(stack.currentIndex() == commands);
+    editor.press(Qt::Key_Delete);
+    CHECK(inlet->wavetable() == expect([](std::span<float> f) { Process::clearWaveform(f, 16); }));
+    CHECK(stack.currentIndex() == ++commands);
+    editor.press(Qt::Key_V, Qt::ControlModifier);
+    CHECK(inlet->wavetable() == before);
+    CHECK(stack.currentIndex() == ++commands);
+
+    // A multislider's value pasted: resampled to the frame, on the levels.
+    QGuiApplication::clipboard()->setText(QStringLiteral("[0.1, 0.4, 0.9, 0.4]"));
+    editor.press(Qt::Key_V, Qt::ControlModifier);
+    CHECK(stack.currentIndex() == ++commands);
+    const auto pasted = Dataflow::waveformFrameFromText(u"0.1 0.4 0.9 0.4", 32, 16);
+    REQUIRE(pasted);
+    CHECK(inlet->wavetable().samples == *pasted);
+    CHECK(onLevels(inlet->wavetable().samples, 16));
+    // Text that is not a list changes nothing.
+    QGuiApplication::clipboard()->setText(QStringLiteral("sine"));
+    editor.press(Qt::Key_V, Qt::ControlModifier);
+    CHECK(stack.currentIndex() == commands);
+    CHECK(inlet->wavetable().samples == *pasted);
+
+    // Continuous ports move by a 64th, or an eighth with Shift.
+    auto* continuous = new Dataflow::WaveformInlet{
+        Id<Process::Port>{944}, &score::test::base_interval(*document)};
+    Process::WavetableData zero{32, std::vector<float>(32, 0.f)};
+    continuous->setWaveform(zero);
+    Dataflow::setWaveformItemModel(*editor.editor, *continuous);
+    editor.hover(editor.sample(3, 32, 0.));
+    editor.press(Qt::Key_Up);
+    CHECK(continuous->wavetable().samples[3] == 1.f / 64.f);
+    editor.press(Qt::Key_Down, Qt::ShiftModifier);
+    CHECK(continuous->wavetable().samples[3] == 1.f / 64.f - 1.f / 8.f);
+    CHECK(state().readout == QStringLiteral("#3 -0.11"));
+
+    // Losing focus gives the keys back.
+    editor.editor->clearFocus();
+    CHECK_FALSE(editor.overrides(Qt::Key_Delete));
+  });
+}
+
+TEST_CASE("Page keys choose the frame of a bank", "[wavetable][gui]")
+{
+  score::test::run_in_gui_app([](const score::GUIApplicationContext& ctx) {
+    auto* document = score::test::new_document(ctx);
+    REQUIRE(document);
+    auto* bank = new Dataflow::WavetableInlet{
+        Id<Process::Port>{945}, &score::test::base_interval(*document)};
+    auto table = Process::makeTriangleWavetable(8);
+    for(int i = 0; i < 2; ++i)
+      table.samples.insert(table.samples.end(), table.samples.begin(), table.samples.begin() + 8);
+    bank->setWaveform(table);
+    SceneEditor editor{*bank, document->context(), {0., 0., 400., 180.}};
+    REQUIRE(score::test::showAndActivate(editor.view));
+    editor.editor->setFocus();
+    const auto commands = document->commandStack().currentIndex();
+    CHECK(editor.overrides(Qt::Key_PageDown));
+    editor.press(Qt::Key_PageDown);
+    editor.press(Qt::Key_PageDown);
+    CHECK(Dataflow::waveformItemState(*editor.editor).frame == 2);
+    editor.press(Qt::Key_PageDown);
+    CHECK(Dataflow::waveformItemState(*editor.editor).frame == 2);
+    editor.press(Qt::Key_PageUp);
+    CHECK(Dataflow::waveformItemState(*editor.editor).frame == 1);
+    CHECK(document->commandStack().currentIndex() == commands);
+    // Edits go to the chosen frame.
+    editor.press(Qt::Key_Delete);
+    CHECK(bank->wavetable().frame(0)[2] == table.samples[2]);
+    CHECK(bank->wavetable().frame(1)[2] == 0.f);
+  });
+}
+
+TEST_CASE("What execution plays is drawn in front, the document behind", "[wavetable][gui][execution]")
+{
+  score::test::run_in_gui_app([](const score::GUIApplicationContext& ctx) {
+    auto* document = score::test::new_document(ctx);
+    REQUIRE(document);
+    auto* inlet = new Dataflow::WaveformInlet{
+        Id<Process::Port>{946}, &score::test::base_interval(*document)};
+    inlet->setAmplitudeLevels(16);
+    inlet->setFrameSizeConstraint(32);
+    SceneEditor editor{*inlet, document->context(), {0., 0., 400., 180.}};
+    REQUIRE(score::test::showAndActivate(editor.view));
+    const auto value = inlet->value();
+    const auto commands = document->commandStack().currentIndex();
+    const auto state = [&] { return Dataflow::waveformItemState(*editor.editor); };
+    CHECK_FALSE(state().live);
+    editor.hover(editor.sample(2, 32, 0.));
+    const auto authored = state().readout;
+
+    std::vector<ossia::value> square(32, -1.f);
+    std::fill(square.begin(), square.begin() + 16, 1.f);
+    inlet->setExecutionValue(square);
+    CHECK(state().live);
+    CHECK(state().readout == QStringLiteral("#2 15/15"));
+    CHECK(state().label == QStringLiteral("32 smp, 4 bit"));
+    CHECK(inlet->value() == value);
+
+    // Drawing shows the edit, not what plays, until released.
+    editor.mouse(QEvent::MouseButtonPress, editor.sample(20, 32, .5));
+    CHECK_FALSE(state().live);
+    editor.mouse(QEvent::MouseButtonRelease, editor.sample(20, 32, .5));
+    CHECK(state().live);
+    CHECK(document->commandStack().currentIndex() == commands + 1);
+
+    inlet->executionReset();
+    CHECK_FALSE(state().live);
+    editor.hover(editor.sample(2, 32, 0.));
+    CHECK(state().readout == authored);
+    CHECK(document->commandStack().currentIndex() == commands + 1);
+  });
+}
+
+TEST_CASE("Bank thumbnails move by drag, duplicate by double-click, scroll by wheel", "[wavetable][gui][undo]")
+{
+  score::test::run_in_gui_app([](const score::GUIApplicationContext& ctx) {
+    auto* document = score::test::new_document(ctx);
+    REQUIRE(document);
+    auto* bank = new Dataflow::WavetableInlet{
+        Id<Process::Port>{947}, &score::test::base_interval(*document)};
+    Process::WavetableData table{8, {}};
+    for(int frame = 0; frame < 3; ++frame)
+      for(int i = 0; i < 8; ++i)
+        table.samples.push_back(float(frame) / 4.f);
+    bank->setWaveform(table);
+    SceneEditor editor{*bank, document->context(), {0., 0., 400., 180.}};
+    REQUIRE(score::test::showAndActivate(editor.view));
+    auto& stack = document->commandStack();
+    const auto strip = Dataflow::waveformItemState(*editor.editor).frames;
+    const auto thumbnail = [&](int frame) {
+      return QPointF{strip.left() + 24. + 48. * frame, strip.center().y()};
+    };
+    const auto frame = [&] { return Dataflow::waveformItemState(*editor.editor).frame; };
+    const auto order = [&] {
+      std::vector<float> firsts;
+      for(std::size_t i = 0; i < bank->wavetable().frameCount(); ++i)
+        firsts.push_back(bank->wavetable().frame(i)[0] * 4.f);
+      return firsts;
+    };
+    const auto commands = stack.currentIndex();
+
+    // A press that hardly moves only chooses.
+    editor.mouse(QEvent::MouseButtonPress, thumbnail(0));
+    editor.mouse(QEvent::MouseMove, thumbnail(0) + QPointF{2., 0.});
+    editor.mouse(QEvent::MouseButtonRelease, thumbnail(0) + QPointF{2., 0.});
+    CHECK(stack.currentIndex() == commands);
+
+    editor.mouse(QEvent::MouseButtonPress, thumbnail(0));
+    editor.mouse(QEvent::MouseMove, thumbnail(1));
+    editor.mouse(QEvent::MouseMove, thumbnail(2));
+    CHECK(order() == std::vector<float>{0.f, 1.f, 2.f});
+    editor.mouse(QEvent::MouseButtonRelease, thumbnail(2));
+    CHECK(order() == std::vector<float>{1.f, 2.f, 0.f});
+    CHECK(frame() == 2);
+    CHECK(stack.currentIndex() == commands + 1);
+    editor.mouse(QEvent::MouseButtonPress, thumbnail(2));
+    editor.mouse(QEvent::MouseMove, thumbnail(1));
+    editor.mouse(QEvent::MouseButtonRelease, thumbnail(1));
+    CHECK(order() == std::vector<float>{1.f, 0.f, 2.f});
+    CHECK(frame() == 1);
+    stack.undo();
+    CHECK(order() == std::vector<float>{1.f, 2.f, 0.f});
+    stack.undo();
+    CHECK(bank->wavetable() == table);
+
+    editor.mouse(QEvent::MouseButtonPress, thumbnail(1));
+    editor.mouse(QEvent::MouseButtonRelease, thumbnail(1));
+    editor.mouse(QEvent::MouseButtonDblClick, thumbnail(1));
+    editor.mouse(QEvent::MouseButtonRelease, thumbnail(1));
+    CHECK(order() == std::vector<float>{0.f, 1.f, 1.f, 2.f});
+    CHECK(frame() == 2);
+    CHECK(stack.currentIndex() == commands + 1);
+
+    const auto wheel = [&](QPointF point, int delta) {
+      const auto position = editor.at(point);
+      QWheelEvent event{QPointF(position), QPointF(editor.view.viewport()->mapToGlobal(position)),
+                        QPoint{}, QPoint{0, delta}, Qt::NoButton, Qt::NoModifier,
+                        Qt::NoScrollPhase, false};
+      QCoreApplication::sendEvent(editor.view.viewport(), &event);
+    };
+    wheel(thumbnail(0), -120);
+    CHECK(frame() == 3);
+    wheel(thumbnail(0), -120);
+    CHECK(frame() == 3);
+    wheel(thumbnail(0), 120);
+    wheel(thumbnail(0), 120);
+    CHECK(frame() == 1);
+    // The plot leaves the wheel to the view.
+    wheel(editor.sample(3, 8, 0.), 120);
+    CHECK(frame() == 1);
+    CHECK(stack.currentIndex() == commands + 1);
+  });
+}
+
+TEST_CASE("The inspector's shapes, menu and number list edit the chosen frame", "[wavetable][gui][undo]")
+{
+  score::test::run_in_gui_app([](const score::GUIApplicationContext& ctx) {
+    auto* document = score::test::new_document(ctx);
+    REQUIRE(document);
+    auto* bank = new Dataflow::WavetableInlet{
+        Id<Process::Port>{948}, &score::test::base_interval(*document)};
+    bank->setAmplitudeLevels(16);
+    bank->setFrameSizeConstraint(8);
+    Process::WavetableData table{8, std::vector<float>(16, level(4, 16))};
+    table.samples[9] = level(12, 16);
+    bank->setWaveform(table);
+    std::unique_ptr<QWidget> panel{WidgetFactory::WaveformInletItems::make_widget(
+        *bank, document->context(), nullptr, bank)};
+    panel->resize(420, 260);
+    REQUIRE(score::test::showAndActivate(*panel));
+    auto* view = panel->findChild<QGraphicsView*>();
+    REQUIRE(view);
+    auto* editor = waveformEditor(*view->scene());
+    REQUIRE(editor);
+    auto* shapes = panel->findChild<QToolButton*>(QStringLiteral("WaveformShape"));
+    auto* text = panel->findChild<QLineEdit*>(QStringLiteral("WaveformText"));
+    REQUIRE(shapes);
+    REQUIRE(shapes->menu());
+    REQUIRE(text);
+    // Narrow enough for the inspector's value column.
+    CHECK(panel->minimumSizeHint().width() <= 110);
+    auto* edit = panel->findChild<QToolButton*>(QStringLiteral("WaveformEdit"));
+    REQUIRE(edit);
+    REQUIRE(edit->menu());
+    // The context menu without its shapes, which the row has.
+    const auto action = [&](const QString& name) {
+      edit->menu()->aboutToShow();
+      CHECK_FALSE(menuAction(*edit->menu(), QStringLiteral("Shape")));
+      return menuAction(*edit->menu(), name);
+    };
+    auto& stack = document->commandStack();
+    CHECK(text->text() == Dataflow::waveformFrameText(bank->wavetable().frame(0)));
+
+    // The second frame, chosen in the editor.
+    const auto strip = Dataflow::waveformItemState(*editor).frames;
+    click(*view, *editor, {strip.left() + 72., strip.center().y()});
+    REQUIRE(Dataflow::waveformItemState(*editor).frame == 1);
+    CHECK(text->text() == Dataflow::waveformFrameText(bank->wavetable().frame(1)));
+
+    auto commands = stack.currentIndex();
+    using Transform = std::function<void(std::span<float>)>;
+    for(auto [name, transform] : std::initializer_list<std::pair<const char*, Transform>>{
+            {"Normalize", [](std::span<float> f) { Process::normalizeWaveform(f, 16); }},
+            {"Invert", [](std::span<float> f) { Process::invertWaveform(f, 16); }},
+            {"Reverse", [](std::span<float> f) { Process::reverseWaveform(f); }},
+            {"Smooth", [](std::span<float> f) { Process::smoothWaveform(f, 16); }}})
+    {
+      INFO(name);
+      auto* tool = action(QString::fromLatin1(name));
+      REQUIRE(tool);
+      auto expected = bank->wavetable();
+      std::span<float> second{expected.samples.data() + 8, 8};
+      transform(second);
+      for(float& sample : second)
+        sample = Process::quantizeSample(sample, 16);
+      tool->trigger();
+      CHECK(bank->wavetable() == expected);
+      CHECK(stack.currentIndex() == ++commands);
+      CHECK(text->text() == Dataflow::waveformFrameText(bank->wavetable().frame(1)));
+    }
+
+    auto* square = menuAction(*shapes->menu(), QStringLiteral("Square"));
+    REQUIRE(square);
+    square->trigger();
+    std::vector<float> expected(8);
+    Process::generateWaveform(expected, Process::WaveformShape::Square, 16);
+    CHECK(std::equal(expected.begin(), expected.end(), bank->wavetable().frame(1).begin()));
+    CHECK(bank->wavetable().frame(0)[0] == level(4, 16));
+    CHECK(stack.currentIndex() == ++commands);
+
+    text->setText(QStringLiteral("-1 1"));
+    text->returnPressed();
+    const auto read = Dataflow::waveformFrameFromText(u"-1 1", 8, 16);
+    REQUIRE(read);
+    CHECK(std::equal(read->begin(), read->end(), bank->wavetable().frame(1).begin()));
+    CHECK(stack.currentIndex() == ++commands);
+    text->setText(QStringLiteral("not a list"));
+    text->returnPressed();
+    CHECK(stack.currentIndex() == commands);
+    CHECK(text->text() == Dataflow::waveformFrameText(bank->wavetable().frame(1)));
+    stack.undo();
+    CHECK(text->text() == Dataflow::waveformFrameText(bank->wavetable().frame(1)));
   });
 }

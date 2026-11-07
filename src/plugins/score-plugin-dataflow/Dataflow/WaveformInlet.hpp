@@ -11,6 +11,10 @@
 #include <QRectF>
 #include <QString>
 
+#include <optional>
+#include <span>
+#include <vector>
+
 class QMenu;
 
 namespace Dataflow
@@ -39,6 +43,16 @@ namespace Dataflow
 //! amplitude quantization; its context menu generates and transforms frames,
 //! resamples them and adds, removes and reorders the frames of a bank, each
 //! edit being an undoable SetControlValue command.
+//!
+//! Editor gestures: drag draws, Shift-drag draws a straight line; on a
+//! continuous port the pen catches the zero, half and full amplitude lines
+//! unless Alt is held. With keyboard focus (click the editor): Up and Down
+//! move the hovered or last edited sample by one level (one 64th of the range
+//! when continuous; Shift for an eighth), a held key being one undo step;
+//! Left and Right rotate the frame, Page Up and Page Down choose the frame of
+//! a bank, Delete clears, and Copy and Paste exchange the frame as text (see
+//! waveformFrameText). In a bank's frame strip, drag a thumbnail to move the
+//! frame, double-click to duplicate it, and use the wheel to choose.
 //!
 //! Like any control inlet, these ports take cables and addresses and are
 //! registered for execution: a list of numbers arriving there is one frame,
@@ -114,14 +128,29 @@ struct WaveformItemState
   QRectF frames;
   std::size_t frame{};
   QString label;
-  //! The hovered sample, empty when none is.
+  //! The hovered sample, or with focus the last edited one; empty when none is.
   QString readout;
+  //! Execution values are shown in place of the document's frame.
+  bool live{};
 };
 SCORE_PLUGIN_DATAFLOW_EXPORT
 WaveformItemState waveformItemState(const QGraphicsItem& item);
 //! The item's right-click menu: shapes, transforms, resampling and frames.
 SCORE_PLUGIN_DATAFLOW_EXPORT
 void fillWaveformItemMenu(QGraphicsItem& item, QMenu& menu);
+
+//! A frame as text: its samples separated by spaces, as a list message reads
+//! in Max, Pd or OSC tools, in the shortest form that reads back exactly.
+SCORE_PLUGIN_DATAFLOW_EXPORT
+QString waveformFrameText(std::span<const float> frame);
+//! Reads numbers separated by spaces, commas or semicolons, brackets ignored,
+//! so that a score or JSON list, a multislider's value and a list message all
+//! read. Amplitudes are bipolar and clamped, as a cable's are; the frame is
+//! resampled periodically to `size` samples and put on the port's `levels`.
+//! Empty when the text holds anything but numbers.
+SCORE_PLUGIN_DATAFLOW_EXPORT
+std::optional<std::vector<float>>
+waveformFrameFromText(QStringView text, std::size_t size, int levels);
 }
 
 namespace WidgetFactory

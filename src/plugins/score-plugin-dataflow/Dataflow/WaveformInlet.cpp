@@ -3,9 +3,11 @@
 #include <Process/Commands/SetControlValue.hpp>
 
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
+#include <score/command/Dispatchers/OngoingCommandDispatcher.hpp>
 #include <score/document/DocumentContext.hpp>
 #include <score/model/Skin.hpp>
 
+#include <QClipboard>
 #include <QDebug>
 #include <QFocusEvent>
 #include <QFontMetricsF>
@@ -14,16 +16,24 @@
 #include <QGraphicsSceneContextMenuEvent>
 #include <QGraphicsSceneHoverEvent>
 #include <QGraphicsSceneMouseEvent>
+#include <QGraphicsSceneWheelEvent>
 #include <QGraphicsView>
+#include <QGuiApplication>
+#include <QHBoxLayout>
 #include <QKeyEvent>
+#include <QLineEdit>
 #include <QMenu>
 #include <QPainter>
 #include <QPointer>
 #include <QRandomGenerator>
 #include <QResizeEvent>
+#include <QToolButton>
+#include <QVBoxLayout>
 
 #include <algorithm>
+#include <charconv>
 #include <cmath>
+#include <functional>
 
 #include <wobjectimpl.h>
 
@@ -189,6 +199,71 @@ WavetableInlet::WavetableInlet(JSONObject::Deserializer&& vis, QObject* parent)
 {
 }
 
+QString waveformFrameText(std::span<const float> frame)
+{
+  QString text;
+  text.reserve(frame.size() * 8);
+  for(std::size_t i = 0; i < frame.size(); ++i)
+  {
+    char buffer[32];
+    const auto end = std::to_chars(buffer, buffer + sizeof(buffer), frame[i]).ptr;
+    if(i)
+      text += QLatin1Char(' ');
+    text += QLatin1String{buffer, end};
+  }
+  return text;
+}
+
+std::optional<std::vector<float>>
+waveformFrameFromText(QStringView text, std::size_t size, int levels)
+{
+  if(size < 2)
+    return std::nullopt;
+  std::vector<float> values;
+  qsizetype start = -1;
+  const auto take = [&](qsizetype end) {
+    if(start < 0)
+      return true;
+    bool ok{};
+    const double value = text.mid(start, end - start).toDouble(&ok);
+    start = -1;
+    if(!ok || !std::isfinite(value) || values.size() >= Process::WavetableData::maxFrameSize)
+      return false;
+    values.push_back(std::clamp(float(value), -1.f, 1.f));
+    return true;
+  };
+  for(qsizetype i = 0; i < text.size(); ++i)
+  {
+    const QChar c = text[i];
+    const bool separator = c.isSpace() || c == u',' || c == u';' || c == u'[' || c == u']'
+                           || c == u'(' || c == u')' || c == u'{' || c == u'}';
+    if(separator)
+    {
+      if(!take(i))
+        return std::nullopt;
+    }
+    else if(start < 0)
+      start = i;
+  }
+  if(!take(text.size()) || values.empty())
+    return std::nullopt;
+
+  std::vector<float> frame(size);
+  if(values.size() == 1)
+    std::fill(frame.begin(), frame.end(), values.front());
+  else if(values.size() == size)
+    frame = std::move(values);
+  else
+  {
+    const Process::WavetableData source{values.size(), std::move(values)};
+    for(std::size_t i = 0; i < size; ++i)
+      frame[i] = Process::sampleWavetable(source, 0, double(i) / size);
+  }
+  for(float& sample : frame)
+    sample = Process::quantizeSample(sample, levels);
+  return frame;
+}
+
 namespace
 {
 //! Frames up to this size are drawn as one bar per sample; larger ones as a
@@ -197,6 +272,9 @@ constexpr std::size_t maxBarFrameSize = 128;
 constexpr qreal stripHeight = 16.;
 constexpr qreal minThumbnailWidth = 24.;
 constexpr qreal arrowWidth = 16.;
+//! How far, in pixels, a continuous pen is caught by a reference line.
+constexpr qreal snapDistance = 3.;
+constexpr qreal dragDistance = 4.;
 
 QString levelDescription(int levels)
 {
@@ -212,18 +290,52 @@ QString levelDescription(int levels)
   return QObject::tr("%1 levels").arg(levels);
 }
 
+enum class Transform { Normalize, Invert, Reverse, RotateLeft, RotateRight, Smooth, Clear };
+
+void applyTransform(Transform transform, std::span<float> frame, int levels)
+{
+  switch(transform)
+  {
+    case Transform::Normalize: Process::normalizeWaveform(frame, levels); break;
+    case Transform::Invert: Process::invertWaveform(frame, levels); break;
+    case Transform::Reverse: Process::reverseWaveform(frame); break;
+    case Transform::RotateLeft: Process::rotateWaveform(frame, true); break;
+    case Transform::RotateRight: Process::rotateWaveform(frame, false); break;
+    case Transform::Smooth: Process::smoothWaveform(frame, levels); break;
+    case Transform::Clear: Process::clearWaveform(frame, levels); break;
+  }
+}
+
+const std::initializer_list<std::pair<const char*, Process::WaveformShape>>& shapeNames()
+{
+  using Shape = Process::WaveformShape;
+  static const std::initializer_list<std::pair<const char*, Shape>> names{
+      {QT_TR_NOOP("Sine"), Shape::Sine},
+      {QT_TR_NOOP("Triangle"), Shape::Triangle},
+      {QT_TR_NOOP("Saw up"), Shape::SawUp},
+      {QT_TR_NOOP("Saw down"), Shape::SawDown},
+      {QT_TR_NOOP("Square"), Shape::Square},
+      {QT_TR_NOOP("Pulse 25%"), Shape::Pulse25},
+      {QT_TR_NOOP("Pulse 12.5%"), Shape::Pulse12},
+      {QT_TR_NOOP("Noise"), Shape::Noise}};
+  return names;
+}
+
 //! Both scene and inspector own this same editor. Its selection never enters
 //! the document selection stack, and every edit targets the real port path.
 //!
 //! Samples occupy equal columns of the plot; drawing and hit testing share
 //! that geometry. Banks add a strip above the plot to choose the frame being
 //! edited. Shapes, transforms, resampling and frame operations are in the
-//! context menu, each one undoable command.
+//! context menu, each one undoable command. Key repeats of a nudge go through
+//! the document's ongoing dispatcher, so that a held key is one command.
 class WaveformItem final : public QGraphicsObject
 {
 public:
   WaveformItem(WaveformInlet& model, const score::DocumentContext& ctx, QGraphicsItem* parent)
-      : QGraphicsObject{parent}, m_dispatcher{ctx.commandStack}
+      : QGraphicsObject{parent}
+      , m_dispatcher{ctx.commandStack}
+      , m_ongoing{ctx.dispatcher}
   {
     setObjectName(QStringLiteral("WaveformEditor"));
     setData(0, QStringLiteral("WaveformEditor"));
@@ -233,34 +345,49 @@ public:
     setModel(model);
   }
 
-  ~WaveformItem() override { finish(false); }
+  ~WaveformItem() override
+  {
+    finish(false);
+    commitNudge();
+  }
+
+  //! Called when the edited frame of a bank changes.
+  std::function<void()> frameChanged;
+
+  WaveformInlet* model() const noexcept { return m_model; }
 
   void setModel(WaveformInlet& model)
   {
     if(m_model == &model)
       return;
     finish(false);
+    commitNudge();
     if(m_model)
       disconnect(m_model, nullptr, this, nullptr);
     m_model = &model;
-    m_frame = 0;
     m_execution.reset();
+    m_cursor.reset();
+    m_strip.reset();
     connect(&model, &Process::ControlInlet::executionValueChanged, this,
             [this](const ossia::value& value) {
       if(auto received = Process::waveformFromValue(value))
       {
         m_execution = std::move(*received);
-        update(plotRect());
+        update();
       }
     });
     connect(&model, &Process::Port::executionReset, this, [this] {
       m_execution.reset();
-      update(plotRect());
+      update();
     });
     connect(&model, &Process::ControlInlet::valueChanged, this, [this] {
       if(!m_submitting)
+      {
         finish(false);
-      m_frame = std::min(m_frame, m_model->wavetable().frameCount() - 1);
+        commitNudge();
+      }
+      if(m_frame >= m_model->wavetable().frameCount())
+        setFrame(m_model->wavetable().frameCount() - 1);
       clampHover();
       update();
     });
@@ -271,12 +398,16 @@ public:
     });
     connect(&model, &QObject::destroyed, this, [this] {
       m_dragging = false;
+      m_nudging = false;
       m_preview.clear();
       m_execution.reset();
       m_hover.reset();
+      m_cursor.reset();
+      m_strip.reset();
       m_model = nullptr;
       update();
     });
+    setFrame(0);
     clampHover();
     update();
   }
@@ -308,6 +439,7 @@ public:
   }
 
   std::size_t frame() const noexcept { return m_frame; }
+  bool live() const noexcept { return m_model && m_execution && !m_dragging; }
 
   QString label() const
   {
@@ -319,19 +451,60 @@ public:
     return text;
   }
 
+  //! What the readout and the column highlight describe.
+  std::optional<std::size_t> pointed() const
+  {
+    if(m_hover)
+      return m_hover;
+    if(hasFocus())
+      return m_cursor;
+    return std::nullopt;
+  }
+
   QString readout() const
   {
-    if(!m_model || !m_hover)
+    const auto sample = pointed();
+    if(!m_model || !sample)
       return {};
-    const auto values = shownFrame();
-    if(*m_hover >= values.size())
+    const auto values = displayedFrame();
+    if(*sample >= values.size())
       return {};
-    const float value = quantize(values[*m_hover]);
+    const float value = quantize(values[*sample]);
     const int levels = m_model->amplitudeLevels();
     const QString amplitude = levels >= 2
         ? QStringLiteral("%1/%2").arg(Process::sampleLevel(value, levels)).arg(levels - 1)
         : QString::number(value, 'f', 2);
-    return QStringLiteral("#%1 %2").arg(*m_hover).arg(amplitude);
+    return QStringLiteral("#%1 %2").arg(*sample).arg(amplitude);
+  }
+
+  QString frameText() const
+  {
+    return m_model ? waveformFrameText(m_model->wavetable().frame(m_frame)) : QString{};
+  }
+
+  //! Replaces the edited frame with a list of numbers; false if it is not one.
+  bool pasteText(QStringView text)
+  {
+    if(!m_model)
+      return false;
+    auto frame = waveformFrameFromText(text, m_model->wavetable().frameSize, m_model->amplitudeLevels());
+    if(!frame)
+      return false;
+    editFrame([&](std::span<float> target, int) { std::copy(frame->begin(), frame->end(), target.begin()); });
+    return true;
+  }
+
+  void applyShape(Process::WaveformShape shape)
+  {
+    const auto seed = QRandomGenerator::global()->generate();
+    editFrame([shape, seed](std::span<float> frame, int levels) {
+      Process::generateWaveform(frame, shape, levels, seed);
+    });
+  }
+
+  void transform(Transform transform)
+  {
+    editFrame([transform](std::span<float> frame, int levels) { applyTransform(transform, frame, levels); });
   }
 
   void paint(QPainter* painter, const QStyleOptionGraphicsItem*, QWidget*) override
@@ -353,41 +526,30 @@ public:
     painter->restore();
   }
 
-  void fillContextMenu(QMenu& menu)
+  void fillContextMenu(QMenu& menu, bool withShapes = true)
   {
     if(!m_model)
       return;
     finish(true);
-    using Shape = Process::WaveformShape;
-    auto* shapes = menu.addMenu(tr("Shape"));
-    for(auto [name, shape] : std::initializer_list<std::pair<QString, Shape>>{
-            {tr("Sine"), Shape::Sine},
-            {tr("Triangle"), Shape::Triangle},
-            {tr("Saw up"), Shape::SawUp},
-            {tr("Saw down"), Shape::SawDown},
-            {tr("Square"), Shape::Square},
-            {tr("Pulse 25%"), Shape::Pulse25},
-            {tr("Pulse 12.5%"), Shape::Pulse12},
-            {tr("Noise"), Shape::Noise}})
-      connect(shapes->addAction(name), &QAction::triggered, this, [this, shape] {
-        const auto seed = QRandomGenerator::global()->generate();
-        editFrame([shape, seed](std::span<float> frame, int levels) {
-          Process::generateWaveform(frame, shape, levels, seed);
-        });
-      });
-
-    menu.addSeparator();
-    const auto transform = [&](const QString& name, auto function) {
+    commitNudge();
+    if(withShapes)
+    {
+      auto* shapes = menu.addMenu(tr("Shape"));
+      for(auto [name, shape] : shapeNames())
+        connect(shapes->addAction(tr(name)), &QAction::triggered, this,
+                [this, shape] { applyShape(shape); });
+      menu.addSeparator();
+    }
+    for(auto [name, function] : std::initializer_list<std::pair<QString, Transform>>{
+            {tr("Normalize"), Transform::Normalize},
+            {tr("Invert"), Transform::Invert},
+            {tr("Reverse"), Transform::Reverse},
+            {tr("Rotate left"), Transform::RotateLeft},
+            {tr("Rotate right"), Transform::RotateRight},
+            {tr("Smooth"), Transform::Smooth},
+            {tr("Clear"), Transform::Clear}})
       connect(menu.addAction(name), &QAction::triggered, this,
-              [this, function] { editFrame(function); });
-    };
-    transform(tr("Normalize"), Process::normalizeWaveform);
-    transform(tr("Invert"), Process::invertWaveform);
-    transform(tr("Reverse"), [](std::span<float> frame, int) { Process::reverseWaveform(frame); });
-    transform(tr("Rotate left"), [](std::span<float> frame, int) { Process::rotateWaveform(frame, true); });
-    transform(tr("Rotate right"), [](std::span<float> frame, int) { Process::rotateWaveform(frame, false); });
-    transform(tr("Smooth"), Process::smoothWaveform);
-    transform(tr("Clear"), Process::clearWaveform);
+              [this, function] { transform(function); });
 
     const auto& table = m_model->wavetable();
     if(!m_model->frameSizeConstraint())
@@ -407,18 +569,18 @@ public:
     if(m_model->supportsFrames())
     {
       menu.addSeparator();
-      const bool canAdd = table.frameCount() < Process::WavetableData::maxFrames
-          && table.samples.size() <= Process::WavetableData::maxSamples - table.frameSize;
-      const auto frameAction = [&](const QString& name, BankAction action, bool enabled) {
+      const bool canAdd = this->canAdd();
+      const auto frameAction = [&](const QString& name, auto action, bool enabled) {
         auto* item = menu.addAction(name);
         item->setEnabled(enabled);
-        connect(item, &QAction::triggered, this, [this, action] { editBank(action); });
+        connect(item, &QAction::triggered, this, action);
       };
-      frameAction(tr("Add frame"), BankAction::Add, canAdd);
-      frameAction(tr("Duplicate frame"), BankAction::Duplicate, canAdd);
-      frameAction(tr("Remove frame"), BankAction::Remove, table.frameCount() > 1);
-      frameAction(tr("Move frame left"), BankAction::Earlier, m_frame > 0);
-      frameAction(tr("Move frame right"), BankAction::Later, m_frame + 1 < table.frameCount());
+      frameAction(tr("Add frame"), [this] { insertFrame(m_frame, false); }, canAdd);
+      frameAction(tr("Duplicate frame"), [this] { insertFrame(m_frame, true); }, canAdd);
+      frameAction(tr("Remove frame"), [this] { removeFrame(); }, table.frameCount() > 1);
+      frameAction(tr("Move frame left"), [this] { moveFrame(m_frame, m_frame - 1); }, m_frame > 0);
+      frameAction(tr("Move frame right"), [this] { moveFrame(m_frame, m_frame + 1); },
+                  m_frame + 1 < table.frameCount());
     }
   }
 
@@ -430,9 +592,12 @@ protected:
       return;
     setFocus(Qt::MouseFocusReason);
     finish(true);
+    commitNudge();
     if(stripRect().contains(event->pos()))
     {
       clickStrip(event->pos());
+      if(thumbnails())
+        m_strip = StripDrag{m_frame, event->pos(), std::nullopt};
       return;
     }
     if(!plotRect().contains(event->pos()))
@@ -440,18 +605,29 @@ protected:
     const auto frame = m_model->wavetable().frame(m_frame);
     m_preview.assign(frame.begin(), frame.end());
     m_dragging = true;
-    m_previous = sampleAt(event->pos());
-    m_hover = m_previous.first;
+    m_line = event->modifiers() & Qt::ShiftModifier;
+    m_previous = sampleAt(event->pos(), event->modifiers());
+    m_lineStart = m_previous;
+    m_hover = m_cursor = m_previous.first;
     paintSamples(m_previous);
   }
 
   void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override
   {
     event->accept();
+    if(m_strip && m_model)
+    {
+      if(m_strip->target || std::abs(event->pos().x() - m_strip->press.x()) >= dragDistance)
+      {
+        m_strip->target = thumbnailAt(event->pos().x());
+        update(stripRect());
+      }
+      return;
+    }
     if(m_dragging && m_model)
     {
-      const auto sample = sampleAt(event->pos());
-      m_hover = sample.first;
+      const auto sample = sampleAt(event->pos(), event->modifiers());
+      m_hover = m_cursor = sample.first;
       paintSamples(sample);
     }
   }
@@ -459,15 +635,50 @@ protected:
   void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override
   {
     event->accept();
+    if(m_strip)
+    {
+      const auto drag = *m_strip;
+      m_strip.reset();
+      if(m_model && drag.target && *drag.target != drag.frame)
+        moveFrame(drag.frame, *drag.target);
+      update();
+      return;
+    }
     if(m_dragging && m_model)
-      paintSamples(sampleAt(event->pos()));
+      paintSamples(sampleAt(event->pos(), event->modifiers()));
     finish(true);
     hover(event->pos());
   }
 
   void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event) override
   {
+    if(m_model && event->button() == Qt::LeftButton && stripRect().contains(event->pos())
+       && thumbnails())
+    {
+      event->accept();
+      setFocus(Qt::MouseFocusReason);
+      finish(true);
+      commitNudge();
+      clickStrip(event->pos());
+      if(canAdd())
+        insertFrame(m_frame, true);
+      return;
+    }
     mousePressEvent(event);
+  }
+
+  void wheelEvent(QGraphicsSceneWheelEvent* event) override
+  {
+    if(!m_model || !stripRect().contains(event->pos()) || event->orientation() != Qt::Vertical
+       || event->delta() == 0)
+    {
+      event->ignore();
+      return;
+    }
+    event->accept();
+    finish(true);
+    commitNudge();
+    stepFrame(event->delta() > 0 ? -1 : 1);
   }
 
   void hoverEnterEvent(QGraphicsSceneHoverEvent* event) override { hover(event->pos()); }
@@ -491,42 +702,167 @@ protected:
     menu.exec(event->screenPos());
   }
 
+  //! The keys the editor takes over from the application's shortcuts. Only
+  //! the focus item is asked, so these stay global while it is not focused.
+  bool handlesKey(const QKeyEvent& event) const
+  {
+    if(!m_model)
+      return false;
+    if(event.matches(QKeySequence::Copy) || event.matches(QKeySequence::Paste))
+      return true;
+    const auto modifiers = event.modifiers() & ~Qt::KeypadModifier;
+    switch(event.key())
+    {
+      case Qt::Key_Escape:
+        return true;
+      case Qt::Key_Up:
+      case Qt::Key_Down:
+        return modifiers == Qt::NoModifier || modifiers == Qt::ShiftModifier;
+      case Qt::Key_Left:
+      case Qt::Key_Right:
+      case Qt::Key_Delete:
+      case Qt::Key_Backspace:
+        return modifiers == Qt::NoModifier;
+      case Qt::Key_PageUp:
+      case Qt::Key_PageDown:
+        return modifiers == Qt::NoModifier && m_model->supportsFrames();
+      default:
+        return false;
+    }
+  }
+
   void keyPressEvent(QKeyEvent* event) override
   {
+    if(!handlesKey(*event))
+    {
+      QGraphicsObject::keyPressEvent(event);
+      return;
+    }
+    event->accept();
+    const bool nudge = event->key() == Qt::Key_Up || event->key() == Qt::Key_Down;
+    if(!nudge)
+      commitNudge();
     if(event->key() == Qt::Key_Escape)
     {
       finish(false);
-      event->accept();
+      return;
     }
-    else
-      QGraphicsObject::keyPressEvent(event);
+    finish(true);
+    if(event->matches(QKeySequence::Copy))
+    {
+      if(auto* clipboard = QGuiApplication::clipboard())
+        clipboard->setText(frameText());
+      return;
+    }
+    if(event->matches(QKeySequence::Paste))
+    {
+      if(auto* clipboard = QGuiApplication::clipboard())
+        pasteText(clipboard->text());
+      return;
+    }
+    switch(event->key())
+    {
+      case Qt::Key_Up:
+      case Qt::Key_Down:
+        nudgeSample(event->key() == Qt::Key_Up ? 1 : -1, event->modifiers() & Qt::ShiftModifier);
+        break;
+      case Qt::Key_Left:
+        transform(Transform::RotateLeft);
+        break;
+      case Qt::Key_Right:
+        transform(Transform::RotateRight);
+        break;
+      case Qt::Key_Delete:
+      case Qt::Key_Backspace:
+        transform(Transform::Clear);
+        break;
+      case Qt::Key_PageUp:
+        stepFrame(-1);
+        break;
+      case Qt::Key_PageDown:
+        stepFrame(1);
+        break;
+      default:
+        break;
+    }
+  }
+
+  void keyReleaseEvent(QKeyEvent* event) override
+  {
+    if((event->key() == Qt::Key_Up || event->key() == Qt::Key_Down) && !event->isAutoRepeat())
+    {
+      commitNudge();
+      event->accept();
+      return;
+    }
+    QGraphicsObject::keyReleaseEvent(event);
   }
 
   void focusOutEvent(QFocusEvent* event) override
   {
     finish(true);
+    commitNudge();
+    update();
     QGraphicsObject::focusOutEvent(event);
+  }
+
+  void focusInEvent(QFocusEvent* event) override
+  {
+    update();
+    QGraphicsObject::focusInEvent(event);
   }
 
   bool sceneEvent(QEvent* event) override
   {
-    if(event->type() == QEvent::ShortcutOverride
-       && static_cast<QKeyEvent*>(event)->key() == Qt::Key_Escape)
+    if(event->type() == QEvent::ShortcutOverride && handlesKey(*static_cast<QKeyEvent*>(event)))
     {
       event->accept();
       return true;
     }
     if(event->type() == QEvent::UngrabMouse)
+    {
       finish(true);
+      if(m_strip)
+      {
+        m_strip.reset();
+        update();
+      }
+    }
     return QGraphicsObject::sceneEvent(event);
   }
 
 private:
-  enum class BankAction { Add, Duplicate, Remove, Earlier, Later };
+  struct StripDrag
+  {
+    std::size_t frame{};
+    QPointF press;
+    std::optional<std::size_t> target;
+  };
 
   std::span<const float> shownFrame() const
   {
     return m_dragging ? std::span<const float>{m_preview} : m_model->wavetable().frame(m_frame);
+  }
+
+  //! What execution last received, at the size of the edited frame.
+  std::vector<float> liveFrame() const
+  {
+    const auto& received = *m_execution;
+    const auto size = m_model->wavetable().frameSize;
+    const auto frame = std::min(m_frame, received.frameCount() - 1);
+    std::vector<float> resampled(size);
+    for(std::size_t i = 0; i < size; ++i)
+      resampled[i] = Process::sampleWavetable(received, frame, double(i) / size);
+    return resampled;
+  }
+
+  //! The frame drawn in front: the edit preview, what plays, or the document.
+  std::vector<float> displayedFrame() const
+  {
+    if(live())
+      return liveFrame();
+    const auto values = shownFrame();
+    return {values.begin(), values.end()};
   }
 
   qreal columnLeft(const QRectF& area, std::size_t column, std::size_t count) const
@@ -547,12 +883,23 @@ private:
     return strip.width() >= m_model->wavetable().frameCount() * minThumbnailWidth;
   }
 
+  qreal thumbnailWidth() const
+  {
+    return std::min(48., stripRect().width() / m_model->wavetable().frameCount());
+  }
+
   QRectF thumbnailRect(std::size_t frame) const
   {
     const auto strip = stripRect();
-    const auto count = m_model->wavetable().frameCount();
-    const qreal width = std::min(48., strip.width() / count);
+    const qreal width = thumbnailWidth();
     return {strip.left() + frame * width, strip.top(), width - 2., strip.height()};
+  }
+
+  std::size_t thumbnailAt(qreal x) const
+  {
+    const auto count = m_model->wavetable().frameCount();
+    const double index = std::floor((x - stripRect().left()) / thumbnailWidth());
+    return std::size_t(std::clamp(index, 0., double(count - 1)));
   }
 
   void paintStrip(QPainter& painter, const score::Skin& skin)
@@ -585,6 +932,14 @@ private:
         painter.drawPolyline(line);
       }
       painter.setBrush(skin.NoBrush);
+      // Where the dragged frame lands: before the hovered thumbnail when
+      // moving left, after it when moving right.
+      if(m_strip && m_strip->target && *m_strip->target != m_strip->frame)
+      {
+        const auto box = thumbnailRect(*m_strip->target);
+        const qreal x = *m_strip->target > m_strip->frame ? box.right() : box.left() - 2.;
+        painter.fillRect(QRectF{x, strip.top(), 2., strip.height()}, skin.Base4.main.brush);
+      }
       return;
     }
     const QRectF previous{strip.left(), strip.top(), arrowWidth, strip.height()};
@@ -599,17 +954,18 @@ private:
 
   void paintPlot(QPainter& painter, const score::Skin& skin, const QRectF& area)
   {
-    const auto values = shownFrame();
+    const bool playing = live();
+    const auto values = displayedFrame();
     const auto size = values.size();
     const int levels = m_model->amplitudeLevels();
     const bool bars = size <= maxBarFrameSize && area.width() / size >= 2.;
     const qreal zero = amplitudeY(area, 0.);
 
     painter.setRenderHint(QPainter::Antialiasing, false);
-    if(m_hover && *m_hover < size)
+    if(const auto sample = pointed(); sample && *sample < size)
       painter.fillRect(
-          QRectF{QPointF{columnLeft(area, *m_hover, size), area.top()},
-                 QPointF{columnLeft(area, *m_hover + 1, size), area.bottom()}},
+          QRectF{QPointF{columnLeft(area, *sample, size), area.top()},
+                 QPointF{columnLeft(area, *sample + 1, size), area.bottom()}},
           skin.Emphasis2.main.brush);
 
     // Sparse, as the curve box: zero, the quarters of the period, and either
@@ -637,16 +993,21 @@ private:
         painter.drawLine(QPointF{area.left(), amplitudeY(area, half)},
                          QPointF{area.right(), amplitudeY(area, half)});
 
-    if(m_dragging)
+    // Behind the front frame: the document, dimmed while execution plays
+    // something else, grey while being edited.
+    if(m_dragging || playing)
     {
-      QColor faint = skin.Gray.color();
-      faint.setAlphaF(.6);
+      QColor faint = playing ? skin.Base4.color() : skin.Gray.color();
+      faint.setAlphaF(playing ? .45 : .6);
       paintOutline(painter, QPen{faint, 1.}, area, m_model->wavetable().frame(m_frame), bars);
     }
 
+    // What plays takes another hue than the authored frame, so that the two
+    // read apart at a glance.
+    const QColor front = playing ? skin.Base1.color() : skin.Base4.color();
     if(bars)
     {
-      QColor fill = skin.Base4.color();
+      QColor fill = front;
       fill.setAlphaF(.35);
       const qreal gap = area.width() / size >= 5. ? 1. : 0.;
       for(std::size_t i = 0; i < size; ++i)
@@ -655,30 +1016,29 @@ private:
         const qreal right = columnLeft(area, i + 1, size) - gap;
         const qreal y = amplitudeY(area, quantize(values[i]));
         painter.fillRect(QRectF{QPointF{left, std::min(y, zero)}, QPointF{right, std::max(y, zero)}}, fill);
-        painter.fillRect(QRectF{left, y - 1., right - left, 2.}, skin.Base4.main.brush);
+        painter.fillRect(QRectF{left, y - 1., right - left, 2.}, front);
       }
     }
     else
     {
       painter.setRenderHint(QPainter::Antialiasing, true);
-      paintOutline(painter, skin.Base4.main.pen1_5, area, values, false);
+      paintOutline(painter, QPen{front, 1.5}, area, values, false);
       painter.setRenderHint(QPainter::Antialiasing, false);
     }
 
-    if(m_execution && !m_dragging)
+    if(m_dragging && m_line)
     {
-      // What execution last received, at the size of the edited frame.
-      const auto& received = *m_execution;
-      const auto frame = std::min(m_frame, received.frameCount() - 1);
-      std::vector<float> resampled(size);
-      for(std::size_t i = 0; i < size; ++i)
-        resampled[i] = Process::sampleWavetable(received, frame, double(i) / size);
-      painter.setRenderHint(QPainter::Antialiasing, !bars);
-      paintOutline(painter, skin.Base1.main.pen1, area, resampled, bars);
+      const auto centre = [&](std::pair<std::size_t, float> sample) {
+        return QPointF{area.left() + area.width() * (sample.first + .5) / size,
+                       amplitudeY(area, sample.second)};
+      };
+      painter.setRenderHint(QPainter::Antialiasing, true);
+      painter.setPen(skin.HalfLight.main.pen1);
+      painter.drawLine(centre(m_lineStart), centre(m_previous));
       painter.setRenderHint(QPainter::Antialiasing, false);
     }
 
-    paintText(painter, skin, area);
+    paintText(painter, skin, area, playing);
   }
 
   //! Steps along the tops of the columns, or a periodic line through their
@@ -714,33 +1074,44 @@ private:
   }
 
   //! On a translucent backing, so that bars under the text do not hide it.
-  void paintText(QPainter& painter, const score::Skin& skin, const QRectF& area)
+  void paintText(QPainter& painter, const score::Skin& skin, const QRectF& area, bool playing)
   {
     painter.setFont(skin.MonoFontSmall);
     const QFontMetricsF metrics{skin.MonoFontSmall};
     const auto box = area.adjusted(6., 2., -3., -2.);
     const auto status = readout();
     const auto description = label();
+    const QString marker = playing ? tr("live") : QString{};
     const qreal statusWidth = status.isEmpty() ? 0. : metrics.horizontalAdvance(status) + 8.;
+    const qreal markerWidth = marker.isEmpty() ? 0. : metrics.horizontalAdvance(marker) + 8.;
     QColor backing = skin.Dark.color();
     backing.setAlphaF(.6);
-    const auto draw = [&](const QString& text, Qt::Alignment alignment, const QPen& pen) {
-      const auto bounds = metrics.boundingRect(box, int(alignment | Qt::AlignTop), text);
+    const auto draw = [&](const QRectF& where, const QString& text, Qt::Alignment alignment,
+                          const QPen& pen) {
+      const auto bounds = metrics.boundingRect(where, int(alignment | Qt::AlignTop), text);
       painter.fillRect(bounds.adjusted(-2., 0., 2., 0.), backing);
       painter.setPen(pen);
-      painter.drawText(box, int(alignment | Qt::AlignTop), text);
+      painter.drawText(where, int(alignment | Qt::AlignTop), text);
     };
-    if(metrics.horizontalAdvance(description) + statusWidth <= box.width())
-      draw(description, Qt::AlignLeft, skin.Gray.main.pen1);
+    qreal left = 0.;
+    if(markerWidth && markerWidth + statusWidth <= box.width() + 8.)
+    {
+      draw(box, marker, Qt::AlignLeft, QPen{skin.Base1.color(), 1.});
+      left = markerWidth;
+    }
+    if(left + metrics.horizontalAdvance(description) + statusWidth <= box.width())
+      draw(box.adjusted(left, 0., 0., 0.), description, Qt::AlignLeft, skin.Gray.main.pen1);
     if(!status.isEmpty() && statusWidth <= box.width() + 8.)
-      draw(status, Qt::AlignRight, skin.HalfLight.main.pen1);
+      draw(box, status, Qt::AlignRight, skin.HalfLight.main.pen1);
   }
 
   void hover(QPointF point)
   {
     std::optional<std::size_t> column;
     if(m_model && plotRect().contains(point))
-      column = sampleAt(point).first;
+      column = sampleAt(point, {}).first;
+    if(column)
+      m_cursor = column;
     if(column != m_hover)
     {
       m_hover = column;
@@ -750,33 +1121,47 @@ private:
 
   void clampHover()
   {
-    if(m_hover && (!m_model || *m_hover >= m_model->wavetable().frameSize))
+    const auto size = m_model ? m_model->wavetable().frameSize : 0;
+    if(m_hover && *m_hover >= size)
       m_hover.reset();
+    if(m_cursor && *m_cursor >= size)
+      m_cursor.reset();
+  }
+
+  void setFrame(std::size_t frame)
+  {
+    if(frame == m_frame)
+      return;
+    m_frame = frame;
+    update();
+    if(frameChanged)
+      frameChanged();
+  }
+
+  void stepFrame(int direction)
+  {
+    const auto count = m_model->wavetable().frameCount();
+    if(direction < 0 && m_frame > 0)
+      setFrame(m_frame - 1);
+    else if(direction > 0 && m_frame + 1 < count)
+      setFrame(m_frame + 1);
   }
 
   void clickStrip(QPointF point)
   {
     const auto count = m_model->wavetable().frameCount();
-    std::size_t selected = m_frame;
     if(thumbnails())
     {
       for(std::size_t i = 0; i < count; ++i)
         if(thumbnailRect(i).adjusted(0., 0., 2., 0.).contains(point))
-          selected = i;
+          setFrame(i);
+      return;
     }
-    else
-    {
-      const auto strip = stripRect();
-      if(point.x() < strip.left() + arrowWidth && m_frame > 0)
-        selected = m_frame - 1;
-      else if(point.x() > strip.right() - arrowWidth && m_frame + 1 < count)
-        selected = m_frame + 1;
-    }
-    if(selected != m_frame)
-    {
-      m_frame = selected;
-      update();
-    }
+    const auto strip = stripRect();
+    if(point.x() < strip.left() + arrowWidth)
+      stepFrame(-1);
+    else if(point.x() > strip.right() - arrowWidth)
+      stepFrame(1);
   }
 
   float quantize(double value) const
@@ -784,17 +1169,34 @@ private:
     return Process::quantizeSample(value, m_model->amplitudeLevels());
   }
 
-  std::pair<std::size_t, float> sampleAt(QPointF point) const
+  //! The sample under `point` and the amplitude it draws. A continuous pen is
+  //! caught by the zero, half and full amplitude lines; Alt draws freely.
+  std::pair<std::size_t, float> sampleAt(QPointF point, Qt::KeyboardModifiers modifiers) const
   {
     const auto area = plotRect();
     const auto size = m_model->wavetable().frameSize;
     const double phase = std::clamp((point.x() - area.left()) / area.width(), 0., 1.);
-    return {std::min(std::size_t(phase * size), size - 1),
-        quantize(1. - 2. * (point.y() - area.top()) / area.height())};
+    double amplitude = 1. - 2. * (point.y() - area.top()) / area.height();
+    if(m_model->amplitudeLevels() < 2 && !(modifiers & Qt::AltModifier))
+    {
+      const double tolerance = 2. * snapDistance / area.height();
+      for(double line : {-1., -.5, 0., .5, 1.})
+        if(std::abs(amplitude - line) <= tolerance)
+          amplitude = line;
+    }
+    return {std::min(std::size_t(phase * size), size - 1), quantize(amplitude)};
   }
 
+  //! Draws from the previous sample to `current`, or for a line from where
+  //! the drag started over the frame as it was.
   void paintSamples(std::pair<std::size_t, float> current)
   {
+    if(m_line)
+    {
+      const auto frame = m_model->wavetable().frame(m_frame);
+      std::copy(frame.begin(), frame.end(), m_preview.begin());
+      m_previous = m_lineStart;
+    }
     const auto low = std::min(m_previous.first, current.first);
     const auto high = std::max(m_previous.first, current.first);
     for(auto i = low; i <= high; ++i)
@@ -822,6 +1224,7 @@ private:
     if(!m_dragging)
       return;
     m_dragging = false;
+    m_line = false;
     if(commit && m_model)
     {
       const auto& table = m_model->wavetable();
@@ -837,6 +1240,40 @@ private:
     update();
   }
 
+  //! Moves one sample by a level, or a 64th of the range on a continuous
+  //! port; `large` moves an eighth of the range.
+  void nudgeSample(int direction, bool large)
+  {
+    if(!m_model)
+      return;
+    auto data = m_model->wavetable();
+    if(!m_cursor)
+      m_cursor = 0;
+    const auto index = m_frame * data.frameSize + *m_cursor;
+    const int levels = m_model->amplitudeLevels();
+    const double step = levels >= 2
+        ? 2. / (levels - 1) * (large ? std::max(1l, std::lround((levels - 1) / 8.)) : 1)
+        : (large ? 1. / 8. : 1. / 64.);
+    const float value = quantize(data.samples[index] + direction * step);
+    update();
+    if(value == data.samples[index])
+      return;
+    data.samples[index] = value;
+    m_submitting = true;
+    m_ongoing.submit<Process::SetControlValue>(*m_model, Process::wavetableToValue(data));
+    m_submitting = false;
+    m_nudging = true;
+  }
+
+  void commitNudge()
+  {
+    if(!m_nudging)
+      return;
+    m_nudging = false;
+    if(m_model && m_ongoing.watching(m_model))
+      m_ongoing.commit();
+  }
+
   //! Applies `function` to the edited frame, quantized to the port's levels.
   template <typename Function>
   void editFrame(Function function)
@@ -844,6 +1281,7 @@ private:
     if(!m_model)
       return;
     finish(true);
+    commitNudge();
     auto data = m_model->wavetable();
     const int levels = m_model->amplitudeLevels();
     const std::span<float> frame{data.samples.data() + m_frame * data.frameSize, data.frameSize};
@@ -853,42 +1291,63 @@ private:
     submit(data);
   }
 
-  void editBank(BankAction action)
+  bool canAdd() const
+  {
+    const auto& table = m_model->wavetable();
+    return table.frameCount() < Process::WavetableData::maxFrames
+           && table.samples.size() <= Process::WavetableData::maxSamples - table.frameSize;
+  }
+
+  //! A silent frame, or a copy of `after`, inserted after it and chosen.
+  void insertFrame(std::size_t after, bool duplicate)
+  {
+    if(!m_model || !m_model->supportsFrames() || !canAdd())
+      return;
+    finish(true);
+    commitNudge();
+    auto data = m_model->wavetable();
+    const auto size = data.frameSize;
+    std::vector<float> frame(size, quantize(0.));
+    if(duplicate)
+      std::copy_n(data.samples.begin() + after * size, size, frame.begin());
+    data.samples.insert(data.samples.begin() + (after + 1) * size, frame.begin(), frame.end());
+    submit(data);
+    setFrame(after + 1);
+  }
+
+  void removeFrame()
+  {
+    if(!m_model || !m_model->supportsFrames() || m_model->wavetable().frameCount() < 2)
+      return;
+    finish(true);
+    commitNudge();
+    auto data = m_model->wavetable();
+    const auto size = data.frameSize;
+    data.samples.erase(data.samples.begin() + m_frame * size, data.samples.begin() + (m_frame + 1) * size);
+    const auto selected = std::min(m_frame, data.frameCount() - 1);
+    submit(data);
+    setFrame(selected);
+  }
+
+  //! Moves frame `from` to index `to`, the frames between shifting over.
+  void moveFrame(std::size_t from, std::size_t to)
   {
     if(!m_model || !m_model->supportsFrames())
       return;
-    finish(true);
-    auto data = m_model->wavetable();
-    auto selected = m_frame;
-    const auto size = data.frameSize;
-    if(action == BankAction::Add || action == BankAction::Duplicate)
-    {
-      if(data.frameCount() >= Process::WavetableData::maxFrames
-         || data.samples.size() > Process::WavetableData::maxSamples - size)
-        return;
-      std::vector<float> frame(size, quantize(0.));
-      if(action == BankAction::Duplicate)
-        std::copy_n(data.samples.begin() + selected * size, size, frame.begin());
-      data.samples.insert(data.samples.begin() + (++selected) * size, frame.begin(), frame.end());
-    }
-    else if(action == BankAction::Remove && data.frameCount() > 1)
-    {
-      data.samples.erase(data.samples.begin() + selected * size, data.samples.begin() + (selected + 1) * size);
-      selected = std::min(selected, data.frameCount() - 1);
-    }
-    else if((action == BankAction::Earlier && selected > 0)
-            || (action == BankAction::Later && selected + 1 < data.frameCount()))
-    {
-      const auto target = action == BankAction::Earlier ? selected - 1 : selected + 1;
-      std::swap_ranges(data.samples.begin() + selected * size,
-          data.samples.begin() + (selected + 1) * size, data.samples.begin() + target * size);
-      selected = target;
-    }
-    else
+    const auto count = m_model->wavetable().frameCount();
+    if(from >= count || to >= count || from == to)
       return;
+    finish(true);
+    commitNudge();
+    auto data = m_model->wavetable();
+    const auto size = data.frameSize;
+    const auto begin = data.samples.begin();
+    if(from < to)
+      std::rotate(begin + from * size, begin + (from + 1) * size, begin + (to + 1) * size);
+    else
+      std::rotate(begin + to * size, begin + from * size, begin + (from + 1) * size);
     submit(data);
-    m_frame = selected;
-    update();
+    setFrame(to);
   }
 
   void resizeFrames(std::size_t size)
@@ -896,6 +1355,7 @@ private:
     if(!m_model || m_model->frameSizeConstraint())
       return;
     finish(true);
+    commitNudge();
     const auto& current = m_model->wavetable();
     if(size < 2 || size == current.frameSize || size > Process::WavetableData::maxFrameSize
        || size > Process::WavetableData::maxSamples / current.frameCount())
@@ -905,20 +1365,27 @@ private:
 
   QPointer<WaveformInlet> m_model;
   CommandDispatcher<> m_dispatcher;
+  OngoingCommandDispatcher& m_ongoing;
   QRectF m_rect{0., 0., 240., 120.};
   std::size_t m_frame{};
   std::optional<std::size_t> m_hover;
+  //! The sample the keyboard edits: the hovered or last edited one.
+  std::optional<std::size_t> m_cursor;
   std::pair<std::size_t, float> m_previous{};
+  std::pair<std::size_t, float> m_lineStart{};
   std::vector<float> m_preview;
   std::optional<Process::WavetableData> m_execution;
+  std::optional<StripDrag> m_strip;
   bool m_dragging{};
+  bool m_line{};
+  bool m_nudging{};
   bool m_submitting{};
 };
 
-class WaveformWidget final : public QGraphicsView
+class WaveformView final : public QGraphicsView
 {
 public:
-  WaveformWidget(WaveformInlet& model, const score::DocumentContext& ctx, QWidget* parent)
+  WaveformView(WaveformInlet& model, const score::DocumentContext& ctx, QWidget* parent)
       : QGraphicsView{parent}, m_item{new WaveformItem{model, ctx, nullptr}}
   {
     auto* graphicsScene = new QGraphicsScene{this};
@@ -934,6 +1401,7 @@ public:
     setRenderHint(QPainter::Antialiasing);
   }
   QSize sizeHint() const override { return {320, 160}; }
+  WaveformItem& item() const noexcept { return *m_item; }
 
 protected:
   void resizeEvent(QResizeEvent* event) override
@@ -946,6 +1414,79 @@ protected:
 
 private:
   WaveformItem* m_item{};
+};
+
+//! The inspector's editor: the same item, a row with the shapes and the
+//! context menu, and the frame as an editable list of numbers.
+class WaveformPanel final : public QWidget
+{
+public:
+  WaveformPanel(WaveformInlet& model, const score::DocumentContext& ctx, QWidget* parent)
+      : QWidget{parent}
+  {
+    setObjectName(QStringLiteral("WaveformPanel"));
+    setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+    auto* layout = new QVBoxLayout{this};
+    layout->setContentsMargins(0, 0, 0, 0);
+    layout->setSpacing(2);
+    auto* view = new WaveformView{model, ctx, this};
+    layout->addWidget(view);
+    auto& item = view->item();
+
+    auto* tools = new QHBoxLayout;
+    tools->setSpacing(2);
+    // Menu buttons, narrow enough for the inspector's value column.
+    auto* shapes = new QToolButton{this};
+    shapes->setObjectName(QStringLiteral("WaveformShape"));
+    shapes->setText(tr("Shape"));
+    shapes->setPopupMode(QToolButton::InstantPopup);
+    auto* shapeMenu = new QMenu{shapes};
+    for(auto [name, shape] : shapeNames())
+      connect(shapeMenu->addAction(tr(name)), &QAction::triggered, this,
+              [&item, shape] { item.applyShape(shape); });
+    shapes->setMenu(shapeMenu);
+    tools->addWidget(shapes);
+    // The context menu's transforms, resampling and frames.
+    auto* edit = new QToolButton{this};
+    edit->setObjectName(QStringLiteral("WaveformEdit"));
+    edit->setText(tr("Edit"));
+    edit->setPopupMode(QToolButton::InstantPopup);
+    auto* menu = new QMenu{edit};
+    edit->setMenu(menu);
+    connect(menu, &QMenu::aboutToShow, this, [menu, &item] {
+      qDeleteAll(menu->findChildren<QMenu*>(Qt::FindDirectChildrenOnly));
+      menu->clear();
+      item.fillContextMenu(*menu, false);
+    });
+    tools->addWidget(edit);
+    tools->addStretch(1);
+    layout->addLayout(tools);
+
+    m_text = new QLineEdit{this};
+    m_text->setObjectName(QStringLiteral("WaveformText"));
+    m_text->setToolTip(tr("The frame as a list of numbers, from -1 to 1. Enter applies."));
+    layout->addWidget(m_text);
+    const auto refresh = [this, &item] {
+      if(!m_text->hasFocus())
+        m_text->setText(item.frameText());
+      m_text->setCursorPosition(0);
+    };
+    refresh();
+    item.frameChanged = refresh;
+    connect(&model, &Process::ControlInlet::valueChanged, this, refresh);
+    connect(m_text, &QLineEdit::returnPressed, this, [this, &item] {
+      if(!item.pasteText(m_text->text()))
+        m_text->setText(item.frameText());
+      m_text->clearFocus();
+    });
+    connect(m_text, &QLineEdit::editingFinished, this, [this, &item] {
+      if(!m_text->hasFocus())
+        m_text->setText(item.frameText());
+    });
+  }
+
+private:
+  QLineEdit* m_text{};
 };
 
 WaveformItem& waveformItem(const QGraphicsItem& item)
@@ -970,7 +1511,7 @@ WaveformItemState waveformItemState(const QGraphicsItem& item)
 {
   const auto& waveform = waveformItem(item);
   return {waveform.plotRect(), waveform.stripRect(), waveform.frame(), waveform.label(),
-          waveform.readout()};
+          waveform.readout(), waveform.live()};
 }
 
 void fillWaveformItemMenu(QGraphicsItem& item, QMenu& menu)
@@ -983,7 +1524,7 @@ QWidget* WidgetFactory::WaveformInletItems::make_widget(
     const Dataflow::WaveformInlet& inlet, const score::DocumentContext& ctx,
     QWidget* parent, QObject*)
 {
-  return new Dataflow::WaveformWidget{const_cast<Dataflow::WaveformInlet&>(inlet), ctx, parent};
+  return new Dataflow::WaveformPanel{const_cast<Dataflow::WaveformInlet&>(inlet), ctx, parent};
 }
 
 QGraphicsItem* WidgetFactory::WaveformInletItems::make_item(
