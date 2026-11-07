@@ -5171,7 +5171,12 @@ void RenderedRawRasterPipelineNode::runInitialPasses(
     // Pass the per-invocation SRB so each draw reads its own UBO.
     // Forward the pass's fallback-binding plan so "REQUIRED: false"
     // VERTEX_INPUTS get their identity buffers bound.
+    m_meshbufs.activeView = (m_executionMode == ExecutionMode::PerCubeFace
+                             || m_executionMode == ExecutionMode::PerLayer)
+                                ? i
+                                : -1;
     drawWithPerMeshAuxRebind(*pass.p.pipeline, passViewport, *invSRB, cb, pass.p.plan);
+    m_meshbufs.activeView = -1;
 
     cb.endPass();
   }
