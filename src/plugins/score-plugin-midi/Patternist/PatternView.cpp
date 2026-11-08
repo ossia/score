@@ -1700,7 +1700,7 @@ void View::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
   }
   else if(m_editingField)
     editFieldAt(event->pos());
-  else if(m_fieldDrag != FieldDrag::None)
+  else if(m_fieldDrag)
     dragField(event->pos());
   else if(m_painting)
     paintAt(event->pos());
@@ -1739,25 +1739,28 @@ void View::startFieldDrag(QPointF pos, Qt::KeyboardModifiers mods)
   if(!p || !ossia::valid_index(m_selectedLane, p->lanes))
     return;
   const Lane& l = p->lanes[m_selectedLane];
-  m_fieldDrag = (mods & Qt::ShiftModifier) ? FieldDrag::Offset : FieldDrag::Random;
-  m_dragOrigin = pos;
-  m_dragBase.resize(l.params.size());
-  m_dragTarget.resize(l.params.size());
+  std::vector<float> base(l.params.size());
   for(std::size_t i = 0; i < l.params.size(); i++)
-    m_dragBase[i] = stepField(l.params[i], field());
+    base[i] = stepField(l.params[i], field());
 
   std::mt19937 rng{std::random_device{}()};
-  for(auto& v : m_dragTarget)
+  std::vector<float> target(l.params.size());
+  for(auto& v : target)
     v = anyFieldValue(field(), rng);
 
-  m_dragSteps.clear();
+  std::vector<int> steps;
   const auto& sel = selection();
   if(sel.valid() && m_selectedLane >= sel.lane0
      && m_selectedLane < sel.lane0 + int(sel.steps.size()))
-    m_dragSteps = sel.steps[m_selectedLane - sel.lane0];
-  if(m_dragSteps.empty())
+    steps = sel.steps[m_selectedLane - sel.lane0];
+  if(steps.empty())
     for(int i = 0; i < std::min<int>(laneLength(*p, l), l.params.size()); i++)
-      m_dragSteps.push_back(i);
+      steps.push_back(i);
+
+  m_fieldDrag.start(
+      (mods & Qt::ShiftModifier) ? score::BarsDrag::Kind::Offset
+                                 : score::BarsDrag::Kind::Random,
+      pos, std::move(base), std::move(target), std::move(steps));
 }
 
 void View::dragField(QPointF pos)
@@ -1766,26 +1769,7 @@ void View::dragField(QPointF pos)
   if(area.height() <= 0.)
     return;
   const auto range = fieldRange(field());
-  auto& values = m_dragValues;
-  values = m_dragBase;
-
-  if(m_fieldDrag == FieldDrag::Offset)
-  {
-    const float delta
-        = (m_dragOrigin.y() - pos.y()) / area.height() * (range.max - range.min);
-    for(int i : m_dragSteps)
-      if(i < std::ssize(values))
-        values[i] = std::clamp(m_dragBase[i] + delta, range.min, range.max);
-  }
-  else
-  {
-    const QPointF d = pos - m_dragOrigin;
-    const float t = std::clamp(
-        float(std::hypot(d.x(), d.y()) / std::max(80., area.height())), 0.f, 1.f);
-    for(int i : m_dragSteps)
-      if(i < std::ssize(values))
-        values[i] = m_dragBase[i] + t * (m_dragTarget[i] - m_dragBase[i]);
-  }
+  m_dragValues = m_fieldDrag.values(pos, area.height(), range.min, range.max);
   fieldValuesEdited(m_selectedLane, int(field()));
 }
 
@@ -1819,10 +1803,10 @@ void View::endPainting()
     laneValueEditFinished();
     update();
   }
-  if(m_editingField || m_fieldDrag != FieldDrag::None)
+  if(m_editingField || m_fieldDrag)
   {
     m_editingField = false;
-    m_fieldDrag = FieldDrag::None;
+    m_fieldDrag.stop();
     fieldEditFinished();
   }
   if(m_painting)

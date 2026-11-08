@@ -3,6 +3,8 @@
 #include <Process/LayerView.hpp>
 #include <Process/ZoomHelper.hpp>
 
+#include <score/tools/BarsDrag.hpp>
+
 #include <Patternist/PatternEdit.hpp>
 #include <Patternist/PatternGrid.hpp>
 #include <Patternist/PatternModel.hpp>
@@ -276,16 +278,7 @@ private:
   std::optional<Note> m_painting;
   Cell m_lastPainted;
   bool m_editingField{};
-  enum class FieldDrag
-  {
-    None,
-    Offset,
-    Random
-  } m_fieldDrag{FieldDrag::None};
-  QPointF m_dragOrigin;
-  std::vector<float> m_dragBase;
-  std::vector<float> m_dragTarget;
-  std::vector<int> m_dragSteps;
+  score::BarsDrag m_fieldDrag;
   std::vector<float> m_dragValues;
   bool m_swallowContextMenu{};
 };

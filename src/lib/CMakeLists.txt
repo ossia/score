@@ -234,6 +234,7 @@ set(HEADERS
     "${CMAKE_CURRENT_SOURCE_DIR}/score/statemachine/GraphicsSceneToolPalette.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/statemachine/StateMachineTools.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/statemachine/StateMachineUtils.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/BarsDrag.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/Clamp.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/Cuda.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/Cursor.hpp"
