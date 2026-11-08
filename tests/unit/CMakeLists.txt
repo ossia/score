@@ -1597,6 +1597,13 @@ if(TARGET score_plugin_avnd)
     "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/examples")
 endif()
 
+# The order a folder's files are indexed in, shared by the sound sets and the
+# folder comboboxes, and the index a number sent to such a combobox picks
+score_add_test(test_unit_folder_files
+  SOURCES FolderFilesTest.cpp)
+target_include_directories(test_unit_folder_files SYSTEM PRIVATE
+  "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/include")
+
 # Execution side: the exec node is rebuilt in place, the setup context maps
 # every model port to its exec port, cables are re-made, and values set on
 # ports that appeared reach the object. Pulls in the avendish binding headers

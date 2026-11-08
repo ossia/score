@@ -3,7 +3,7 @@
 #include <Media/AudioDecoder.hpp>
 #include <Media/Sound/Drop/SoundDrop.hpp>
 
-#include <score/tools/NaturalSort.hpp>
+#include <score/tools/FolderFiles.hpp>
 #include <score/tools/ThreadPool.hpp>
 
 #include <ossia-qt/invoke.hpp>
@@ -39,20 +39,9 @@ QStringList nameFilters(const SoundSetOptions& opts)
   return filters;
 }
 
-//! Relative paths of the folder's files, in natural order
 QStringList listFiles(const QString& folder, const SoundSetOptions& opts)
 {
-  const QDir root{folder};
-  QStringList files;
-  QDirIterator it{
-      folder, nameFilters(opts), QDir::Files | QDir::Readable,
-      opts.recursive ? QDirIterator::Subdirectories | QDirIterator::FollowSymlinks
-                     : QDirIterator::NoIteratorFlags};
-  while(it.hasNext())
-    files.push_back(root.relativeFilePath(it.next()));
-
-  score::sortNaturally(files);
-  return files;
+  return score::folderFiles(folder, nameFilters(opts), opts.recursive);
 }
 
 //! A decoded copy of `e`: published entries are never modified
