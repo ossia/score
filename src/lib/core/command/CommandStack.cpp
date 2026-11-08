@@ -114,12 +114,22 @@ void CommandStack::endPendingEdit()
 void CommandStack::setIndexQuiet(int index)
 {
   aboutToChange();
+  // What commits on aboutToChange pushes a command, which replaces the redo
+  // history: the index may be out of reach
   while(index >= 0 && currentIndex() != index)
   {
     if(index < currentIndex())
+    {
+      if(!canUndo())
+        break;
       undoQuiet();
+    }
     else
+    {
+      if(!canRedo())
+        break;
       redoQuiet();
+    }
   }
 
   saveIndexChanged(isAtSavedIndex());
@@ -152,6 +162,8 @@ struct Replaying
 void CommandStack::undoQuiet()
 {
   aboutToChange();
+  if(m_undoable.empty())
+    return;
   updateStack([&]() {
     auto cmd = m_undoable.pop();
     {
@@ -169,6 +181,9 @@ void CommandStack::undoQuiet()
 void CommandStack::redoQuiet()
 {
   aboutToChange();
+  // An edit committed on aboutToChange replaces the redo history
+  if(m_redoable.empty())
+    return;
   updateStack([&]() {
     auto cmd = m_redoable.pop();
     {
