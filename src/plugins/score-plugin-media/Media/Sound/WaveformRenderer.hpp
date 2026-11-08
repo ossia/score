@@ -17,11 +17,6 @@
 class QImage;
 class QPainter;
 
-namespace Media
-{
-class AudioFile;
-}
-
 namespace Media::Sound
 {
 /**
