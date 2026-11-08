@@ -12,11 +12,15 @@
 #include <score/tools/File.hpp>
 #include <score/tools/FilePath.hpp>
 
-#include <QRegularExpression>
 
 #if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
 #include <QLatin1StringMatcher>
 #endif
+
+#include <ctre.hpp>
+
+#include <charconv>
+#include <string>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Media::Sound::ProcessModel)
@@ -60,11 +64,17 @@ static const struct default_stretch_modes
 std::optional<double> estimateTempo(const QString& path)
 {
   // we live in a society
-  static const QRegularExpression e{"([0-9]+) ?(bpm|BPM|Bpm)"};
-  const auto res = e.match(path);
-  if(res.hasMatch())
+  // A compile-time regex: files are probed from several decoding threads at
+  // once, and matching on one shared QRegularExpression from several threads
+  // corrupts the heap.
+  const std::string str = path.toStdString();
+  if(auto m = ctre::search<"([0-9]+) ?(bpm|BPM|Bpm)">(str))
   {
-    return res.captured(1).toInt();
+    const auto digits = m.get<1>().to_view();
+    int bpm{};
+    if(std::from_chars(digits.data(), digits.data() + digits.size(), bpm).ec
+       == std::errc{})
+      return bpm;
   }
 
   return {};
