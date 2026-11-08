@@ -66,7 +66,7 @@ Model::Model(
           std::make_unique<Process::ValueOutlet>("Step Out", Id<Process::Port>(0), this)}
 {
   m_sequences = {{0.5f, 0.3f, 0.5f, 0.8f, 1.f, 0.f, 0.5f, 0.1f}};
-  m_min = -1.;
+  m_min = 0.;
   m_max = 1.;
   metadata().setInstanceName(*this);
   init();

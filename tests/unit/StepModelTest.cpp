@@ -208,3 +208,33 @@ TEST_CASE("step sequencer: a document from before sequences plays as it did", "[
     delete r;
   });
 }
+
+TEST_CASE("step sequencer: new processes go from 0 to 1, saved ones keep theirs", "[step]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    auto doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    QObject* owner = new QObject{&doc->model()};
+    Model m{TimeVal::fromMsecs(1000), Id<Process::ProcessModel>{1}, owner};
+    CHECK(m.min() == 0.);
+    CHECK(m.max() == 1.);
+
+    // A document saved when the range started at -1.
+    auto jdoc = save(m);
+    jdoc["StepMin"] = -1.;
+    auto* r = reload(ctx, *doc, owner, jdoc);
+    CHECK(r->min() == -1.);
+    CHECK(r->max() == 1.);
+    delete r;
+
+    m.setMin(-1.);
+    const Process::ProcessModel& as_base = m;
+    auto bytes = score::marshall<DataStream>(as_base);
+    DataStreamWriter w{bytes};
+    auto& pl = ctx.interfaces<Process::ProcessFactoryList>();
+    auto* d = dynamic_cast<Model*>(deserialize_interface(pl, w, doc->context(), owner));
+    REQUIRE(d);
+    CHECK(d->min() == -1.);
+    delete d;
+  });
+}
