@@ -5,9 +5,18 @@
 #include <Media/Step/Model.hpp>
 #include <Media/Step/View.hpp>
 
+#include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/tools/Bind.hpp>
 
 #include <ossia/detail/math.hpp>
+
+#include <QGraphicsScene>
+#include <QGraphicsSceneContextMenuEvent>
+#include <QMenu>
+#include <QTimer>
+
+#include <numeric>
+#include <random>
 
 #include <wobjectimpl.h>
 
@@ -87,32 +96,74 @@ void View::paint_impl(QPainter* p) const
   }
 }
 
+int View::stepAt(double x) const noexcept
+{
+  const auto n = m_model.steps().size();
+  if(m_barWidth <= 2. || n == 0)
+    return -1;
+  // The repetitions past the end of the sequence edit the step they repeat.
+  return int(std::size_t(std::max(0., x) / m_barWidth) % n);
+}
+
 void View::mousePressEvent(QGraphicsSceneMouseEvent* ev)
 {
   ev->accept();
   pressed(ev->pos());
-  std::size_t pos = std::size_t(ev->pos().x() / m_barWidth) % m_model.steps().size();
-  if(pos < m_model.steps().size())
-  {
-    change(pos, ev->pos().y() / boundingRect().height());
-  }
+  if(ev->button() != Qt::LeftButton)
+    return;
+  m_editing = true;
+  if(auto v = m_gesture.press(
+         m_model, stepAt(ev->pos().x()), ev->pos(), ev->modifiers(),
+         boundingRect().height()))
+    stepsEdited(*v);
 }
 
 void View::mouseMoveEvent(QGraphicsSceneMouseEvent* ev)
 {
   ev->accept();
-
-  std::size_t pos = std::size_t(ev->pos().x() / m_barWidth) % m_model.steps().size();
-  if(pos < m_model.steps().size())
-  {
-    change(pos, ev->pos().y() / boundingRect().height());
-  }
+  if(!m_editing)
+    return;
+  if(auto v = m_gesture.move(
+         m_model, stepAt(ev->pos().x()), ev->pos(), boundingRect().height()))
+    stepsEdited(*v);
 }
 
 void View::mouseReleaseEvent(QGraphicsSceneMouseEvent* ev)
 {
   ev->accept();
-  released(ev->pos());
+  endGesture();
+}
+
+void View::endGesture()
+{
+  if(!m_editing)
+    return;
+  m_editing = false;
+  m_gesture.release();
+  released({});
+}
+
+//! A button-less move makes the scene drop the grab without any release: the
+//! edit has to end there too, or the next press would extend it.
+bool View::sceneEvent(QEvent* ev)
+{
+  if(ev->type() == QEvent::UngrabMouse)
+    endGesture();
+  return LayerView::sceneEvent(ev);
+}
+
+void View::contextMenuEvent(QGraphicsSceneContextMenuEvent* ev)
+{
+  // The press asked for focus through a queued connection, and the menu only
+  // opens on the focused layer: ask once the focus is through. The press also
+  // grabbed the mouse, which the menu needs to highlight what it hovers.
+  ev->accept();
+  endGesture();
+  if(scene() && scene()->mouseGrabberItem() == this)
+    ungrabMouse();
+  QTimer::singleShot(0, this, [this, screen = ev->screenPos(), sp = ev->scenePos()] {
+    askContextMenu(screen, sp);
+  });
 }
 
 Item::Item(const Model& m, const Process::Context& ctx, QGraphicsItem* parent)
@@ -149,39 +200,133 @@ void Item::paint(QPainter* p, const QStyleOptionGraphicsItem* option, QWidget* w
     paintStep(p, stepRect(i * bar_w, bar_w, h), steps[i], int(i) == m_playing, false);
 }
 
+int Item::stepAt(double x) const noexcept
+{
+  const auto n = m_model.steps().size();
+  const double w = boundingRect().width();
+  if(n == 0 || w <= 0.)
+    return -1;
+  return std::min(int(n) - 1, int(std::clamp(x / w, 0., 1.) * n));
+}
+
 void Item::mousePressEvent(QGraphicsSceneMouseEvent* ev)
 {
   ev->accept();
-  std::size_t pos
-      = qBound(0., ev->pos().x() / boundingRect().width(), 1.) * m_model.steps().size();
-  updateSteps(m_model, m_disp, pos, ev->pos().y() / boundingRect().height());
+  if(auto v = m_gesture.press(
+         m_model, stepAt(ev->pos().x()), ev->pos(), ev->modifiers(),
+         boundingRect().height()))
+    m_disp.submit(m_model, std::move(*v));
 }
 
 void Item::mouseMoveEvent(QGraphicsSceneMouseEvent* ev)
 {
   ev->accept();
-
-  std::size_t pos
-      = qBound(0., ev->pos().x() / boundingRect().width(), 1.) * m_model.steps().size();
-  updateSteps(m_model, m_disp, pos, ev->pos().y() / boundingRect().height());
+  if(auto v = m_gesture.move(
+         m_model, stepAt(ev->pos().x()), ev->pos(), boundingRect().height()))
+    m_disp.submit(m_model, std::move(*v));
 }
 
 void Item::mouseReleaseEvent(QGraphicsSceneMouseEvent* ev)
 {
   ev->accept();
+  endGesture();
+}
+
+void Item::endGesture()
+{
+  m_gesture.release();
   m_disp.commit();
 }
 
-void updateSteps(
-    const Model& m, SingleOngoingCommandDispatcher<ChangeSteps>& disp, std::size_t num,
-    float v)
+bool Item::sceneEvent(QEvent* ev)
 {
-  if(num < m.steps().size())
+  if(ev->type() == QEvent::UngrabMouse)
+    endGesture();
+  return score::EmptyRectItem::sceneEvent(ev);
+}
+
+void Item::contextMenuEvent(QGraphicsSceneContextMenuEvent* ev)
+{
+  ev->accept();
+  endGesture();
+  QMenu menu;
+  fillStepsMenu(menu, m_model, m_disp.stack());
+  menu.exec(ev->screenPos());
+}
+
+std::optional<ossia::float_vector> StepsGesture::press(
+    const Model& m, int step, QPointF pos, Qt::KeyboardModifiers mods, double height)
+{
+  release();
+  if(height <= 0.)
+    return std::nullopt;
+  if(mods & (Qt::ShiftModifier | Qt::AltModifier))
   {
-    auto vec = m.steps();
-    vec[num] = ossia::clamp(v, 0.f, 1.f);
-    disp.submit(m, std::move(vec));
+    const auto& cur = m.steps();
+    std::vector<float> base(cur.begin(), cur.end());
+    std::vector<float> target(base.size());
+    std::mt19937 rng{std::random_device{}()};
+    std::uniform_real_distribution<float> dist{0.f, 1.f};
+    for(auto& v : target)
+      v = dist(rng);
+    std::vector<int> steps(base.size());
+    std::iota(steps.begin(), steps.end(), 0);
+    m_drag.start(
+        (mods & Qt::ShiftModifier) ? score::BarsDrag::Kind::Offset
+                                   : score::BarsDrag::Kind::Random,
+        pos, std::move(base), std::move(target), std::move(steps));
+    // Nothing moves until the mouse does.
+    return std::nullopt;
   }
+  m_setting = true;
+  return move(m, step, pos, height);
+}
+
+std::optional<ossia::float_vector>
+StepsGesture::move(const Model& m, int step, QPointF pos, double height)
+{
+  if(height <= 0.)
+    return std::nullopt;
+  if(m_drag)
+  {
+    // Stored as drawn: 1 at the bottom, 0 at the top.
+    const auto v = m_drag.values(pos, height, 1.f, 0.f);
+    const auto& cur = m.steps();
+    if(v.size() != cur.size() || std::equal(v.begin(), v.end(), cur.begin()))
+      return std::nullopt;
+    return ossia::float_vector(v.begin(), v.end());
+  }
+  if(!m_setting || step < 0 || step >= std::ssize(m.steps()))
+    return std::nullopt;
+  auto vec = m.steps();
+  vec[step] = ossia::clamp(float(pos.y() / height), 0.f, 1.f);
+  if(vec == m.steps())
+    return std::nullopt;
+  return vec;
+}
+
+void StepsGesture::release() noexcept
+{
+  m_drag.stop();
+  m_setting = false;
+}
+
+void randomizeSteps(const Model& m, const score::CommandStackFacade& stack)
+{
+  std::mt19937 rng{std::random_device{}()};
+  std::uniform_real_distribution<float> dist{0.f, 1.f};
+  auto vec = m.steps();
+  for(auto& v : vec)
+    v = dist(rng);
+  CommandDispatcher<>{stack}.submit<ChangeSteps>(m, vec);
+}
+
+void fillStepsMenu(QMenu& menu, const Model& m, const score::CommandStackFacade& stack)
+{
+  auto act = menu.addAction(QObject::tr("Randomize"));
+  QObject::connect(act, &QAction::triggered, &menu, [&m, &stack] {
+    randomizeSteps(m, stack);
+  });
 }
 
 }
