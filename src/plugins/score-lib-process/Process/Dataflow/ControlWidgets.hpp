@@ -1266,7 +1266,8 @@ struct FileChooser
 {
   static Process::PortItemLayout layout() noexcept
   {
-    return Process::DefaultControlLayouts::lineedit();
+    // As a combobox: the label above, the port beside the button
+    return Process::DefaultControlLayouts::combo();
   }
   template <typename T>
   static auto make_widget(
@@ -1377,7 +1378,8 @@ struct FolderChooser
 {
   static Process::PortItemLayout layout() noexcept
   {
-    return Process::DefaultControlLayouts::lineedit();
+    // As a combobox: the label above, the port beside the button
+    return Process::DefaultControlLayouts::combo();
   }
   template <typename T>
   static auto make_widget(

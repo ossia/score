@@ -362,6 +362,70 @@ TEST_CASE("A knob in a layout aligned left has its label and value at its left e
   });
 }
 
+TEST_CASE("File and folder choosers sit in a row of comboboxes: same height, port beside", "[port][layout][gui]")
+{
+  score::test::run_in_gui_app([](const score::GUIApplicationContext& ctx) {
+    auto* document = score::test::new_document(ctx);
+    REQUIRE(document);
+    auto& parent = score::test::base_interval(*document);
+    auto* combo = new Process::ComboBox{
+        {{QStringLiteral("One"), 1}, {QStringLiteral("Two"), 2}}, 1, QStringLiteral("Mode"),
+        Id<Process::Port>{931}, &parent};
+    auto* file = new Process::FileChooser{
+        QStringLiteral("/tmp/a.wav"), QStringLiteral("*.wav"), QStringLiteral("File"),
+        Id<Process::Port>{932}, &parent};
+    auto* folder = new Process::FolderChooser{
+        QStringLiteral("/tmp"), QStringLiteral("Folder"), Id<Process::Port>{933}, &parent};
+    Process::DataflowManager dataflow;
+    FocusDispatcher focus;
+    Process::Context context{document->context(), dataflow, focus};
+    QGraphicsScene scene;
+    auto* root = new QGraphicsRectItem{QRectF{0., 0., 600., 100.}};
+    scene.addItem(root);
+
+    std::vector<Process::ControlLayout> items;
+    double x = 0.;
+    for(Process::ControlInlet* port : std::initializer_list<Process::ControlInlet*>{combo, file, folder})
+    {
+      auto* factory = ctx.interfaces<Process::PortFactoryList>().get(port->concreteKey());
+      REQUIRE(factory);
+      auto item = factory->makeFullItem(*port, context, root, port, {});
+      REQUIRE(item.control);
+      REQUIRE(item.port_item);
+      item.container->setPos(x, 0.);
+      x += item.container->boundingRect().width() + 10.;
+      items.push_back(item);
+    }
+    const auto& c = items[0];
+    for(std::size_t k = 1; k < items.size(); k++)
+    {
+      CAPTURE(k);
+      const auto& i = items[k];
+      // As tall as the combobox, at its height, its port beside it as the
+      // combobox's, its label above
+      CHECK(i.control->boundingRect().height() == c.control->boundingRect().height());
+      CHECK(i.control->pos().y() == c.control->pos().y());
+      CHECK(i.port_item->pos() == c.port_item->pos());
+      CHECK(i.control->pos().x() > i.port_item->pos().x());
+      REQUIRE(i.label);
+      CHECK(i.label->pos().y() == c.label->pos().y());
+      CHECK(i.label->pos().y() + i.label->boundingRect().height() <= i.control->pos().y() + 1.);
+    }
+
+    // SCORE_TEST_PNG=path: the row as drawn
+    if(const auto path = qEnvironmentVariable("SCORE_TEST_PNG"); !path.isEmpty())
+    {
+      const QRectF r = root->childrenBoundingRect().adjusted(-4, -4, 4, 4);
+      QImage img((r.size() * 3).toSize(), QImage::Format_ARGB32);
+      img.fill(QColor{40, 40, 40});
+      QPainter p(&img);
+      scene.render(&p, QRectF{QPointF{}, r.size() * 3}, root->mapRectToScene(r));
+      p.end();
+      img.save(path);
+    }
+  });
+}
+
 TEST_CASE("Execution values are read in place: a flat list is one frame, nested lists a bank", "[wavetable][execution]")
 {
   // What a multislider sends: one frame of numbers in its own range.

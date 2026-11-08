@@ -1,3 +1,4 @@
+#include <score/graphics/widgets/Constants.hpp>
 #include <score/graphics/widgets/QGraphicsTextButton.hpp>
 #include <score/model/Skin.hpp>
 
@@ -124,7 +125,11 @@ void QGraphicsTextButton::updateBounds()
   auto line = layout.createLine();
   layout.endLayout();
 
+  // As tall as a combobox, its text on the same line: the file and folder
+  // choosers sit in rows of controls
   m_rect = line.naturalTextRect();
+  m_rect.setHeight(defaultSliderSize.height());
+  m_rect.moveTopLeft({0., 0.});
 }
 
 QRectF QGraphicsTextButton::boundingRect() const
