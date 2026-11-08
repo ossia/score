@@ -4,6 +4,7 @@
 
 #include <Control/Layout.hpp>
 
+#include <score/graphics/GraphicsLayout.hpp>
 #include <score/graphics/RectItem.hpp>
 #include <score/graphics/layouts/GraphicsBoxLayout.hpp>
 #include <score/graphics/layouts/GraphicsGridLayout.hpp>
@@ -306,5 +307,84 @@ TEST_CASE("Laying out a grid again leaves it as it was", "[graphics][layout]")
     CHECK(alignmentTestPlace(*grid, b) == first);
 
     delete grid;
+  });
+}
+
+namespace
+{
+//! A score::FillsWidth item, at least 50 wide
+struct FillingItem final
+    : QGraphicsItem
+    , score::FillsWidth
+{
+  using QGraphicsItem::QGraphicsItem;
+  static constexpr qreal min_width = 50.;
+  qreal width = min_width;
+  QRectF boundingRect() const override { return {0., 0., width, 10.}; }
+  void paint(QPainter*, const QStyleOptionGraphicsItem*, QWidget*) override { }
+  void fillWidth(qreal w) override
+  {
+    prepareGeometryChange();
+    width = std::max(w, min_width);
+  }
+};
+}
+
+TEST_CASE("Items that fill a column follow its width both ways", "[graphics][layout]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext&) {
+    QGraphicsScene scene;
+    // Laid out as relayoutAround does: the column takes its children's width
+    const auto relayout = [](score::GraphicsLayout& box) {
+      box.layout();
+      const auto cld = box.childrenBoundingRect();
+      box.setRect({0., 0., cld.right(), cld.bottom()});
+      box.centerContent();
+    };
+
+    SECTION("vbox")
+    {
+      auto* box = new score::GraphicsVBoxLayout{nullptr};
+      scene.addItem(box);
+      auto* fill = new FillingItem{box};
+      auto* row = new score::EmptyRectItem{box};
+      row->setRect({0., 0., 200., 10.});
+
+      relayout(*box);
+      CHECK(fill->width == 200.);
+
+      // The widest row narrows: so does the item, rather than holding the
+      // column at the width it filled
+      row->setRect({0., 0., 120., 10.});
+      relayout(*box);
+      CHECK(fill->width == 120.);
+      CHECK(box->rect().width() == 120.);
+
+      // Never below its own smallest
+      row->setRect({0., 0., 10., 10.});
+      relayout(*box);
+      CHECK(fill->width == FillingItem::min_width);
+      delete box;
+    }
+    SECTION("section")
+    {
+      auto* box = new score::GraphicsSectionLayout{nullptr};
+      scene.addItem(box);
+      auto* fill = new FillingItem{box};
+      auto* row = new score::EmptyRectItem{box};
+      row->setRect({0., 0., 200., 10.});
+
+      box->layout();
+      box->centerContent();
+      const double padding = fill->pos().x();
+      CHECK(fill->width == 200.);
+
+      row->setRect({0., 0., 120., 10.});
+      box->layout();
+      box->centerContent();
+      CHECK(fill->width == 120.);
+      CHECK(box->rect().width() == 120. + 2. * padding);
+      delete box;
+    }
   });
 }

@@ -63,7 +63,7 @@ class SCORE_LIB_BASE_EXPORT FillsWidth
 public:
   virtual ~FillsWidth();
   //! \p width: the column's, less the item's margins. Below the item's own
-  //! smallest width, it keeps that.
+  //! smallest width, it keeps that: 0 gives the smallest.
   virtual void fillWidth(qreal width) = 0;
 };
 

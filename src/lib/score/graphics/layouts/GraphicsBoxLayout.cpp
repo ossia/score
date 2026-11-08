@@ -110,6 +110,15 @@ void GraphicsHBoxLayout::centerContent()
 
 GraphicsVBoxLayout::~GraphicsVBoxLayout() { }
 
+//! A column is as wide as its widest item: one that fills it is measured at its
+//! smallest, as what it filled the last time is no reason to stay that wide
+static void shrinkFillingItems(const QList<QGraphicsItem*>& items)
+{
+  for(auto item : items)
+    if(auto fill = dynamic_cast<FillsWidth*>(item))
+      fill->fillWidth(0.);
+}
+
 void GraphicsVBoxLayout::layout()
 {
   const double x = 0 + m_padding;
@@ -117,6 +126,7 @@ void GraphicsVBoxLayout::layout()
 
   auto items = this->childItems();
   updateChildrenRects(items);
+  shrinkFillingItems(items);
 
   double max_w = 0.;
   bool first = true;
@@ -202,6 +212,7 @@ void GraphicsSectionLayout::layout()
   updateTitleFont();
   auto items = this->childItems();
   updateChildrenRects(items);
+  shrinkFillingItems(items);
 
   const double x = m_padding;
   double y = m_padding + titleHeight();
