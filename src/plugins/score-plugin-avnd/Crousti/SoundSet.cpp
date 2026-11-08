@@ -3,6 +3,7 @@
 #include <Media/AudioDecoder.hpp>
 #include <Media/Sound/Drop/SoundDrop.hpp>
 
+#include <score/tools/NaturalSort.hpp>
 #include <score/tools/ThreadPool.hpp>
 
 #include <ossia-qt/invoke.hpp>
@@ -38,48 +39,6 @@ QStringList nameFilters(const SoundSetOptions& opts)
   return filters;
 }
 
-//! Natural order: runs of digits compare by value, the rest without case. Not
-//! QCollator: its numeric mode depends on the platform and locale, and indices
-//! must be the same on every machine.
-bool naturalLess(const QString& a, const QString& b)
-{
-  qsizetype i = 0, j = 0;
-  while(i < a.size() && j < b.size())
-  {
-    if(a[i].isDigit() && b[j].isDigit())
-    {
-      qsizetype i2 = i, j2 = j;
-      while(i2 < a.size() && a[i2] == '0')
-        i2++;
-      while(j2 < b.size() && b[j2] == '0')
-        j2++;
-      qsizetype ie = i2, je = j2;
-      while(ie < a.size() && a[ie].isDigit())
-        ie++;
-      while(je < b.size() && b[je].isDigit())
-        je++;
-      // More significant digits: larger
-      if(ie - i2 != je - j2)
-        return ie - i2 < je - j2;
-      for(qsizetype k = 0; k < ie - i2; k++)
-        if(a[i2 + k] != b[j2 + k])
-          return a[i2 + k] < b[j2 + k];
-      i = ie;
-      j = je;
-      continue;
-    }
-    const auto ca = a[i].toCaseFolded(), cb = b[j].toCaseFolded();
-    if(ca != cb)
-      return ca < cb;
-    i++;
-    j++;
-  }
-  if((a.size() - i) != (b.size() - j))
-    return (a.size() - i) < (b.size() - j);
-  // Equal but for case or leading zeros: still a strict order
-  return a < b;
-}
-
 //! Relative paths of the folder's files, in natural order
 QStringList listFiles(const QString& folder, const SoundSetOptions& opts)
 {
@@ -92,7 +51,7 @@ QStringList listFiles(const QString& folder, const SoundSetOptions& opts)
   while(it.hasNext())
     files.push_back(root.relativeFilePath(it.next()));
 
-  std::sort(files.begin(), files.end(), naturalLess);
+  score::sortNaturally(files);
   return files;
 }
 

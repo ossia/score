@@ -239,6 +239,7 @@ set(HEADERS
     "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/Cursor.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/DeleteAll.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/File.hpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/score/tools/NaturalSort.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/FindStringInFile.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/IdentifierGeneration.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/MapCopy.hpp"

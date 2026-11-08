@@ -1,5 +1,6 @@
 #include <Process/Dataflow/WidgetInlets.hpp>
 
+#include <score/tools/NaturalSort.hpp>
 #include <score/document/DocumentContext.hpp>
 #include <score/document/DocumentInterface.hpp>
 #include <score/plugins/SerializableHelpers.hpp>
@@ -273,9 +274,12 @@ void ComboBox::repopulateFromFolder(const QString& folderPath)
   if(!folderPath.isEmpty())
   {
     QDir dir(folderPath);
-    const auto files = fileExtensions.isEmpty()
-                           ? dir.entryList(QDir::Files, QDir::Name)
-                           : dir.entryList(fileExtensions, QDir::Files, QDir::Name);
+    // In the order a folder's sounds are indexed in (score::naturalLess):
+    // a number sent to the combobox picks the file at that place
+    auto files = fileExtensions.isEmpty()
+                     ? dir.entryList(QDir::Files, QDir::Name)
+                     : dir.entryList(fileExtensions, QDir::Files, QDir::Name);
+    score::sortNaturally(files);
     for(const auto& f : files)
       alts.emplace_back(f, f.toStdString()); // value = the file name itself
   }
