@@ -1,6 +1,5 @@
 #pragma once
 #include <Gfx/Graph/RenderState.hpp>
-#include <Gfx/Hashes.hpp>
 
 #include <score/tools/Debug.hpp>
 
@@ -183,11 +182,11 @@ struct hash<Gfx::ShaderSource>
 {
   std::size_t operator()(const Gfx::ShaderSource& program) const noexcept
   {
-    // rapidhash via the gfx Qt-aware adapters; same primitive that
-    // produces content_hash values throughout the gfx pipeline.
+    // rapidhash, the primitive that produces content_hash values throughout
+    // the gfx pipeline.
     std::size_t seed{(std::size_t)program.type};
-    ossia::hash_combine(seed, score::gfx::hash_qstring(program.vertex));
-    ossia::hash_combine(seed, score::gfx::hash_qstring(program.fragment));
+    ossia::hash_combine(seed, ossia::hash<QString>{}(program.vertex));
+    ossia::hash_combine(seed, ossia::hash<QString>{}(program.fragment));
     return seed;
   }
 };
@@ -226,7 +225,7 @@ struct hash<Gfx::ProgramCacheKey>
   std::size_t operator()(const Gfx::ProgramCacheKey& k) const noexcept
   {
     std::size_t seed = std::hash<Gfx::ShaderSource>{}(k.source);
-    ossia::hash_combine(seed, score::gfx::hash_qstring(k.originDir));
+    ossia::hash_combine(seed, ossia::hash<QString>{}(k.originDir));
     return seed;
   }
 };

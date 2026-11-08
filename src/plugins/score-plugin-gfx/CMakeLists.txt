@@ -414,7 +414,6 @@ set(HDRS
     
     Gfx/AssetTable.hpp
     Gfx/FormatRegistry.hpp
-    Gfx/Hashes.hpp
     Gfx/Window/BackgroundDevice.hpp
     Gfx/Window/CollapsibleSection.hpp
     Gfx/Window/DesktopLayout.hpp

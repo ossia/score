@@ -1,6 +1,5 @@
 #include <Gfx/Graph/TextureLoader.hpp>
 #include <Gfx/Graph/MipGeneration.hpp>
-#include <Gfx/Hashes.hpp>
 
 #include <ossia/detail/hash.hpp>
 
@@ -327,7 +326,7 @@ QRhiTexture* loadAndUploadTexture(
 
 std::size_t TextureCache::KeyHash::operator()(const Key& k) const noexcept
 {
-  std::size_t seed = hash_qstring(k.origin);
+  std::size_t seed = ossia::hash<QString>{}(k.origin);
   ossia::hash_combine(seed, (uint8_t)(k.srgb ? 1 : 0));
   return seed;
 }

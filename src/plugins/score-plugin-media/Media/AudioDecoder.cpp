@@ -498,18 +498,9 @@ catch(...)
 
 namespace
 {
-struct qstring_hash
-{
-  using is_avalanching = std::true_type;
-  std::size_t operator()(const QString& s) const noexcept
-  {
-    return ossia::hash_bytes(s.constData(), (std::size_t)s.size() * sizeof(QChar));
-  }
-};
-
 auto& info_cache()
 {
-  static boost::concurrent_flat_map<QString, AudioInfo, qstring_hash> db;
+  static boost::concurrent_flat_map<QString, AudioInfo, ossia::hash<QString>> db;
   return db;
 }
 }
