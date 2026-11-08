@@ -27,6 +27,13 @@ inline bool showsValue(
   return option && (option->state & QStyle::State_MouseOver);
 }
 
+//! data() key: where a knob draws its value under it, as a Qt::Alignment
+inline constexpr int ValueAlignmentDataKey = 0x5C0F;
+
+//! Where a knob draws its value under it: Qt::AlignLeft puts it at the knob's
+//! left edge. No-op for widgets other than knobs.
+SCORE_LIB_BASE_EXPORT void setValueAlignment(QGraphicsItem& control, Qt::Alignment align);
+
 //! No-op for widgets other than knobs and sliders
 SCORE_LIB_BASE_EXPORT void setValueOnHover(QGraphicsItem& control, bool onHover);
 

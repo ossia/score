@@ -32,6 +32,14 @@ void setValueOnHover(QGraphicsItem& control, bool onHover)
   control.update();
 }
 
+void setValueAlignment(QGraphicsItem& control, Qt::Alignment align)
+{
+  if(!isKnob(control))
+    return;
+  control.setData(ValueAlignmentDataKey, int(align & Qt::AlignHorizontal_Mask));
+  control.update();
+}
+
 void setControlSize(QGraphicsItem& control, ControlSize size)
 {
   if(size == ControlSize::Normal)

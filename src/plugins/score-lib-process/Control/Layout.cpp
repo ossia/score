@@ -8,6 +8,18 @@
 
 namespace Process
 {
+//! The presentation of a control in the current container: in a layout
+//! aligned left, its label and value at its left edge as well
+static Process::ControlPresentation
+inContainer(const Process::ControlPresentation& presentation, QGraphicsItem* layout)
+{
+  auto res = presentation;
+  if(!res.alignment)
+    if(auto* l = dynamic_cast<score::GraphicsLayout*>(layout))
+      res.alignment = l->alignment();
+  return res;
+}
+
 Process::ControlLayout LayoutBuilderBase::makePort(
     Process::Inlet& port, const Process::ControlPresentation& presentation)
 {
@@ -15,7 +27,8 @@ Process::ControlLayout LayoutBuilderBase::makePort(
   {
     if(auto control = qobject_cast<Process::ControlInlet*>(&port))
       return f->makeFullItem(
-          *control, this->doc, this->layout, &this->context, presentation);
+          *control, this->doc, this->layout, &this->context,
+          inContainer(presentation, this->layout));
     else
       return f->makeLabelItem(port, this->doc, this->layout, &this->context);
   }
@@ -29,7 +42,8 @@ Process::ControlLayout LayoutBuilderBase::makePort(
   {
     if(auto control = qobject_cast<Process::ControlOutlet*>(&port))
       return f->makeFullItem(
-          *control, this->doc, this->layout, &this->context, presentation);
+          *control, this->doc, this->layout, &this->context,
+          inContainer(presentation, this->layout));
     else
       return f->makeLabelItem(port, this->doc, this->layout, &this->context);
   }

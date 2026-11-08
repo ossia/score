@@ -320,6 +320,48 @@ TEST_CASE("Laying a control item out again follows the presentation it is given"
   });
 }
 
+TEST_CASE("A knob in a layout aligned left has its label and value at its left edge", "[port][layout][gui]")
+{
+  score::test::run_in_gui_app([](const score::GUIApplicationContext& ctx) {
+    auto* document = score::test::new_document(ctx);
+    REQUIRE(document);
+    auto* slider = new Process::FloatSlider{
+        0.f, 1.f, .5f, QStringLiteral("Gain"), Id<Process::Port>{923},
+        &score::test::base_interval(*document)};
+    auto* factory = ctx.interfaces<Process::PortFactoryList>().get(slider->concreteKey());
+    REQUIRE(factory);
+    Process::DataflowManager dataflow;
+    FocusDispatcher focus;
+    Process::Context context{document->context(), dataflow, focus};
+    QGraphicsScene scene;
+    auto* root = new QGraphicsRectItem{QRectF{0., 0., 400., 200.}};
+    scene.addItem(root);
+
+    Process::ControlPresentation knob;
+    knob.widget = Process::ControlPresentation::Widget::Knob;
+    knob.size = score::ControlSize::Small;
+
+    // Alone: a short label centred over the knob, and its value under it
+    auto centred = factory->makeFullItem(*slider, context, root, slider, knob);
+    REQUIRE(centred.label);
+    CHECK(centred.label->x() > centred.control->x());
+    CHECK(centred.control->data(score::ValueAlignmentDataKey).toInt() == Qt::AlignHCenter);
+
+    // In a layout aligned left: both at the knob's left edge
+    knob.alignment = Qt::AlignLeft;
+    auto left = factory->makeFullItem(*slider, context, root, slider, knob);
+    REQUIRE(left.label);
+    CHECK(left.label->x() == left.control->x());
+    CHECK(left.control->data(score::ValueAlignmentDataKey).toInt() == Qt::AlignLeft);
+
+    // Laid out again without it: centred again
+    knob.alignment = {};
+    factory->layoutFullItem(left, *slider, knob);
+    CHECK(left.label->x() == centred.label->x());
+    CHECK(left.control->data(score::ValueAlignmentDataKey).toInt() == Qt::AlignHCenter);
+  });
+}
+
 TEST_CASE("Execution values are read in place: a flat list is one frame, nested lists a bank", "[wavetable][execution]")
 {
   // What a multislider sends: one frame of numbers in its own range.

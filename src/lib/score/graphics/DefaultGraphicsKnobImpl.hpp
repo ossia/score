@@ -117,8 +117,14 @@ struct DefaultGraphicsKnobImpl
       painter->setFont(skin.Medium8Pt);
       const double text_y
           = srect.height() > srect.width() ? side : srect.height() + textDelta;
+      // Centred under the knob, or where setValueAlignment() puts it
+      Qt::Alignment align = Qt::AlignHCenter;
+      if constexpr(std::is_base_of_v<QGraphicsItem, std::remove_cvref_t<T>>)
+        if(const auto a = self.data(ValueAlignmentDataKey).toInt())
+          align = Qt::Alignment(a);
       painter->drawText(
-          QRectF{0., text_y, srect.width(), 10.}, text, QTextOption(Qt::AlignCenter));
+          QRectF{0., text_y, srect.width(), 10.}, text,
+          QTextOption(align | Qt::AlignVCenter));
     }
 
     painter->setRenderHint(QPainter::Antialiasing, false);

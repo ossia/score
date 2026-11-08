@@ -38,6 +38,10 @@ struct ControlPresentation
   score::ControlSize size{score::ControlSize::Normal};
   bool valueOnHover{false};
   Widget widget{Widget::Default};
+  //! Where the label and the value sit across the control: Qt::AlignLeft at
+  //! its left edge, else as its widget places them. From the layout the
+  //! control is in, e.g. a grid aligned left.
+  Qt::Alignment alignment{};
 
   bool isDefault() const noexcept
   {

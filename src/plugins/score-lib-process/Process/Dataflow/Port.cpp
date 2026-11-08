@@ -1069,7 +1069,15 @@ static auto makeFullItemImpl(
     auto lab_w = lab_r.width();
     auto widg_w = widg_r.width();
 
-    if(lab_w < widg_w && layout.labelAlignment == Qt::AlignCenter)
+    // In a layout aligned left: at the control's left edge, as its value
+    const bool left
+        = layout.labelAlignment == Qt::AlignCenter && (presentation.alignment & Qt::AlignLeft);
+    score::setValueAlignment(control, left ? Qt::AlignLeft : Qt::AlignHCenter);
+    if(left)
+    {
+      lab->setX(control.pos().x());
+    }
+    else if(lab_w < widg_w && layout.labelAlignment == Qt::AlignCenter)
     {
       lab->setX(control.pos().x() + (widg_w - lab_w) / 2.);
     }
