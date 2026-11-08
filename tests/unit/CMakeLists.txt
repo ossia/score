@@ -233,11 +233,15 @@ score_add_test(test_unit_preset_step
 # <PRESET>: paths: a preset saved next to its sound by the library stores it
 # relative to the preset file, and the library finds it again wherever the
 # folder has been moved or copied.
-if(TARGET score_plugin_fx AND TARGET score_plugin_library)
+if(TARGET score_plugin_fx AND TARGET score_plugin_library AND TARGET score_plugin_avnd)
   score_add_test(test_unit_preset_relative_paths
     SOURCES PresetRelativePathsTest.cpp
     APP
-    PLUGINS score_plugin_library score_plugin_fx score_plugin_scenario score_lib_process)
+    PLUGINS score_plugin_library score_plugin_avnd score_plugin_fx score_plugin_scenario
+            score_lib_process)
+  target_include_directories(test_unit_preset_relative_paths PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish"
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-avnd")
 endif()
 
 # Where a downloaded package lands: unwrapping the folder archives are built

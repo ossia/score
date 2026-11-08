@@ -1607,6 +1607,15 @@ score_add_test(test_integration_drop_start_on_play
   GUI
   PLUGINS score_plugin_scenario score_lib_process score_plugin_dataflow)
 
+# A .scp file dropped in the scenario or on a box: its <PRESET>: paths name
+# the files next to it, as when the library reads it.
+if(TARGET score_plugin_fx)
+  score_add_test(test_integration_preset_file_drop
+    SOURCES PresetFileDropTest.cpp
+    GUI
+    PLUGINS score_plugin_fx score_plugin_scenario score_lib_process score_plugin_dataflow)
+endif()
+
 # Dragging the start of an interval moves it whole, or resizes it with Shift
 # held: the modifiers held decide, whichever widget got their key events.
 score_add_test(test_integration_scenario_lock_modifier
