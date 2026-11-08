@@ -7,6 +7,7 @@
 #include <Process/Dataflow/PortListWidget.hpp>
 #include <Process/Dataflow/PortSerialization.hpp>
 #include <Process/Dataflow/PrettyPortName.hpp>
+#include <Process/Dataflow/WidgetInlets.hpp>
 #include <Process/ProcessContext.hpp>
 
 #include <LocalTree/ScriptableReference.hpp>
@@ -955,12 +956,24 @@ static QGraphicsItem* makeEnumCombo(
   return sl;
 }
 
+//! A sound file shown small: its name as a button, as for any file, rather
+//! than its waveform
+static bool isCompactSoundFile(
+    const Process::Port& port, const Process::ControlPresentation& presentation)
+{
+  return presentation.widget == Process::ControlPresentation::Widget::Default
+         && presentation.size == score::ControlSize::Small
+         && qobject_cast<const Process::AudioFileChooser*>(&port);
+}
+
 //! The item layout of the widget the presentation asks for, when the port
 //! supports that widget.
 static std::optional<Process::PortItemLayout> presentationLayout(
     const Process::Port& port, const Process::ControlPresentation& presentation)
 {
   using Widget = Process::ControlPresentation::Widget;
+  if(isCompactSoundFile(port, presentation))
+    return WidgetFactory::FileChooser::layout();
   switch(presentation.widget)
   {
     case Widget::Knob:
@@ -993,6 +1006,11 @@ static QGraphicsItem* makePresentationWidget(
   layout = *widgetLayout;
   if(presentation.widget == Process::ControlPresentation::Widget::None)
     return new score::EmptyItem{nullptr};
+  if(isCompactSoundFile(port, presentation))
+  {
+    auto& f = static_cast<Process::AudioFileChooser&>(port);
+    return WidgetFactory::FileChooser::make_item(f, f, ctx, nullptr, context);
+  }
   if(auto s = qobject_cast<Process::FloatSlider*>(&port))
     return WidgetFactory::FloatKnob::make_item(*s, *s, ctx, nullptr, context);
   if(auto s = qobject_cast<Process::LogFloatSlider*>(&port))
@@ -1158,9 +1176,12 @@ Process::ControlLayout PortFactory::makeFullItem(
 
     if(ret.control)
     {
+      // A small sound file is another widget, of its own size
+      auto shown = presentation;
+      if(isCompactSoundFile(portModel, presentation))
+        shown.size = score::ControlSize::Normal;
       ret.label
-          = makeFullItemImpl(
-              portModel, layout, *ret.port_item, *ret.control, *item, presentation);
+          = makeFullItemImpl(portModel, layout, *ret.port_item, *ret.control, *item, shown);
     }
   }
 

@@ -11,6 +11,8 @@
 #include <Crousti/ProcessModel.hpp>
 
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
+#include <core/command/CommandStack.hpp>
+#include <core/document/Document.hpp>
 #include <score/graphics/layouts/GraphicsBoxLayout.hpp>
 #include <score/graphics/layouts/GraphicsGridLayout.hpp>
 #include <score/graphics/layouts/GraphicsSplitLayout.hpp>
@@ -29,6 +31,7 @@
 #include <avnd/common/enum_reflection.hpp>
 
 #include <QFileInfo>
+#include <QTimer>
 #include <QMimeData>
 #include <QRegularExpression>
 #include <QUrl>
@@ -377,15 +380,25 @@ struct LayoutBuilder final : Process::LayoutBuilderBase
       // An edit from the ui: one undo step, like the control's own widget's.
       // Setting the port directly would leave it out of the document's
       // history: undoing and redoing an earlier command would lose it.
+      //
+      // A ui may also edit in response to a change, in on_control_update.
+      // That change can be an undo or a redo: the edit is dropped, as it
+      // would replace the redo history. Else it comes after the command
+      // being applied, as a command of its own: pushed while another one is
+      // applied, it would come before it.
       if constexpr(
           requires { item.set = {}; } && std::is_base_of_v<Process::ControlInlet, Port_T>)
       {
         item.set = [port, &ctx = static_cast<const score::DocumentContext&>(this->doc)](
                        const auto& val) {
+          if(ctx.document.commandStack().isReplaying())
+            return;
           auto v = GetGUIValue<avnd_port_type>{ctx}(oscr::to_ossia_value(val));
-          if(v != port->value())
-            CommandDispatcher<>{ctx.commandStack}.submit<Process::SetControlValue>(
-                *port, std::move(v));
+          QTimer::singleShot(0, port, [port, &ctx, v = std::move(v)]() mutable {
+            if(v != port->value())
+              CommandDispatcher<>{ctx.commandStack}.submit<Process::SetControlValue>(
+                  *port, std::move(v));
+          });
         };
       }
     }

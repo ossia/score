@@ -555,6 +555,16 @@ make_control_in(avnd::field_index<N>, Id<Process::Port>&& id, QObject* parent)
       return new Process::XYSlider{
           {c.min, c.min}, {c.max, c.max}, {c.init, c.init}, qname, id, parent};
     }
+    else if constexpr(requires {
+                        c.min == 0.f;
+                        c.max == 0.f;
+                      })
+    {
+      // The same bounds on both axes, a point to start from
+      auto [ix, iy] = c.init;
+      return new Process::XYSlider{
+          {c.min, c.min}, {c.max, c.max}, {ix, iy}, qname, id, parent};
+    }
     else
     {
       auto [mx, my] = c.min;
