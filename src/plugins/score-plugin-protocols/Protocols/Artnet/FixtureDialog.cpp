@@ -3,15 +3,19 @@
 #include "FixtureDialog.hpp"
 
 #include <Protocols/Artnet/ArtnetProtocolSettingsWidget.hpp>
+#include <Protocols/Artnet/DMXFixtureInstantiation.hpp>
 #include <Protocols/Artnet/FixtureDatabase.hpp>
 
 #include <score/application/ApplicationContext.hpp>
+
+#include <Library/ItemModelFilterLineEdit.hpp>
 
 #include <QComboBox>
 #include <QDialogButtonBox>
 #include <QFormLayout>
 #include <QHeaderView>
-#include <QLabel>
+#include <QPlainTextEdit>
+#include <QPointer>
 #include <QPushButton>
 #include <QTableWidget>
 #include <QTimer>
@@ -35,24 +39,20 @@ public:
     setUniformRowHeights(true);
   }
 
-  std::function<void(const FixtureNode&)> onSelectionChanged;
-  void selectionChanged(const QItemSelection& selected, const QItemSelection& deselected)
+  std::function<void(const QModelIndex&)> onSelectionChanged;
+  void selectionChanged(
+      const QItemSelection& selected, const QItemSelection& deselected) override
   {
-    auto sel = this->selectedIndexes();
-    if(!sel.empty())
-    {
-      auto obj = (FixtureNode*)sel.at(0).internalPointer();
-      if(obj)
-      {
-        onSelectionChanged(*obj);
-      }
-    }
+    QTreeView::selectionChanged(selected, deselected);
+    if(const auto sel = selectedIndexes(); !sel.empty() && onSelectionChanged)
+      onSelectionChanged(sel.front());
   }
 };
 
 AddFixtureDialog::AddFixtureDialog(
     int startUniverse, int startAddress, ArtnetProtocolSettingsWidget& parent)
     : QDialog{&parent}
+    , m_proxy{new FixtureFilterProxy{this}}
     , m_availableFixtures{new FixtureTreeView{this}}
     , m_name{this}
     , m_buttons{
@@ -60,28 +60,39 @@ AddFixtureDialog::AddFixtureDialog(
               | QDialogButtonBox::StandardButton::Cancel,
           this}
 {
+  auto& db = FixtureDatabase::instance();
+  m_proxy->setSourceModel(&db);
+  m_availableFixtures->setModel(m_proxy);
+
+  auto search = new Library::ItemModelFilterLineEdit{*m_proxy, *m_availableFixtures, this};
+  search->setPlaceholderText(tr("Search"));
+
+  auto fixturesLayout = new QVBoxLayout;
+  fixturesLayout->addWidget(search);
+  fixturesLayout->addWidget(m_availableFixtures);
+
   this->setLayout(&m_layout);
-  m_layout.addWidget(m_availableFixtures);
+  m_layout.addLayout(fixturesLayout);
   m_layout.addLayout(&m_setupLayoutContainer);
   m_layout.setStretch(0, 3);
   m_layout.setStretch(1, 5);
 
-  auto* db = &FixtureDatabase::instance();
-  m_availableFixtures->setModel(db);
-
   m_availableFixtures->header()->resizeSection(0, 180);
-  m_availableFixtures->onSelectionChanged = [&](const FixtureNode& newFixt) {
-    // Manufacturer, do nothing
-    if(newFixt.childCount() > 0)
+  m_availableFixtures->onSelectionChanged = [this](const QModelIndex& idx) {
+    const auto* node = m_proxy->nodeAt(idx);
+    if(!node || node->parent() == &FixtureDatabase::instance().rootNode())
       return;
 
-    updateParameters(newFixt);
+    updateParameters(*node);
   };
 
   m_count.setRange(1, 512);
   m_spacing.setRange(0, 512);
-  m_address.setRange(1, 512);
+  m_channelsPerUniverse = std::max(1, parent.channelsPerUniverse());
+  m_address.setRange(1, m_channelsPerUniverse);
   m_address.setValue(startAddress + 1);
+  m_content.setReadOnly(true);
+  m_content.setLineWrapMode(QPlainTextEdit::NoWrap);
   auto [umin, umax] = parent.universeRange();
   m_universe.setRange(umin, umax);
   m_universe.setValue(startUniverse);
@@ -108,7 +119,9 @@ AddFixtureDialog::AddFixtureDialog(
 void AddFixtureDialog::setCurrentFixture(QString manufacture, QString fixtureName)
 {
   auto& db = FixtureDatabase::instance();
-  db.onPopulated([this, manufacture, fixtureName] {
+  db.onPopulated([self = QPointer{this}, manufacture, fixtureName] {
+    if(!self)
+      return;
     auto fixtureNode = [&]() -> const FixtureNode* {
       auto& db = FixtureDatabase::instance();
 
@@ -132,8 +145,9 @@ void AddFixtureDialog::setCurrentFixture(QString manufacture, QString fixtureNam
     if(fixtureNode)
     {
       auto& db = FixtureDatabase::instance();
-      auto idx = db.modelIndexFromNode(*fixtureNode);
-      this->m_availableFixtures->setCurrentIndex(idx);
+      auto idx = self->m_proxy->mapFromSource(db.modelIndexFromNode(*fixtureNode));
+      self->m_availableFixtures->setCurrentIndex(idx);
+      self->m_availableFixtures->scrollTo(idx, QAbstractItemView::PositionAtCenter);
     }
   });
 }
@@ -160,10 +174,17 @@ void AddFixtureDialog::setMode(int mode_index)
     return;
 
   const FixtureMode& mode = m_currentFixture->modes[mode_index];
-  int numChannels = mode.allChannels.size();
-  m_address.setRange(1, 513 - numChannels);
+  const int numChannels = mode.allChannels.size();
+  const auto [universe, address] = Artnet::fitInUniverse(
+      m_universe.value(), m_address.value() - 1, numChannels, m_channelsPerUniverse);
+  if(universe <= m_universe.maximum())
+  {
+    m_universe.setValue(universe);
+    m_address.setValue(address + 1);
+  }
+  m_address.setRange(1, std::max(1, m_channelsPerUniverse + 1 - numChannels));
 
-  m_content.setText(mode.content());
+  m_content.setPlainText(mode.content());
 }
 
 QSize AddFixtureDialog::sizeHint() const
@@ -194,14 +215,9 @@ std::vector<Artnet::Fixture> AddFixtureDialog::fixtures() const noexcept
   f.mode.channelNames = mode.allChannels;
   f.universe = m_universe.value();
 
-  for(int i = 0; i < m_count.value(); i++)
-  {
-    f.address
-        = m_address.value() - 1 + i * (f.mode.channelNames.size() + m_spacing.value());
-    res.push_back(f);
-  }
-
-  return res;
+  return Artnet::repeatFixture(
+      std::move(f), m_address.value() - 1, m_count.value(), m_spacing.value(),
+      m_channelsPerUniverse);
 }
 }
 #endif

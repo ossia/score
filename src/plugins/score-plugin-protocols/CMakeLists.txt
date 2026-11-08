@@ -236,6 +236,7 @@ set(ARTNET_HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Artnet/FixtureDatabase.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Artnet/FixtureDialog.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Artnet/LEDDialog.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Artnet/OpenFixtureLibrary.hpp"
 )
 
 set(ARTNET_SRCS
@@ -248,6 +249,7 @@ set(ARTNET_SRCS
   "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Artnet/FixtureDatabase.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Artnet/FixtureDialog.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Artnet/LEDDialog.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Artnet/OpenFixtureLibrary.cpp"
 )
 
 set(SIMPLEIO_HDRS

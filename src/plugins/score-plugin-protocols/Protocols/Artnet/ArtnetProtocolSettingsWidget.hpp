@@ -29,10 +29,12 @@ public:
   void setSettings(const Device::DeviceSettings& settings) override;
 
   std::pair<int, int> universeRange() const noexcept;
+  int channelsPerUniverse() const noexcept;
 
 private:
   void addLEDs(int mode);
   void addFixture(QString manufacturer, QString name);
+  void addNewFixture(Artnet::Fixture fixt, int channels_per_universe);
   void addDimmer();
   void updateHosts(int protocolindex);
   void updateTable();
