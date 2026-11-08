@@ -110,9 +110,9 @@ TEST_CASE("An aligned grid sizes each column to its widest item", "[graphics][la
       CHECK(sceneX(b[2]) == 4.);
       CHECK(sceneX(b[1]) == 48.);
       CHECK(sceneX(b[3]) == 48.);
-      CHECK(sceneY(b[0]) == 6.);
-      CHECK(sceneY(b[1]) == 6.);
-      CHECK(sceneY(b[2]) == 20.);
+      CHECK(sceneY(b[0]) == 4.);
+      CHECK(sceneY(b[1]) == 4.);
+      CHECK(sceneY(b[2]) == 18.);
     }
     SECTION("right")
     {
@@ -133,8 +133,8 @@ TEST_CASE("An aligned grid sizes each column to its widest item", "[graphics][la
       grid->layout();
       CHECK(sceneX(b[0]) == 4.);
       CHECK(sceneX(b[1]) == 54.);
-      CHECK(sceneY(b[0]) == 9.);
-      CHECK(sceneY(b[2]) == 29.);
+      CHECK(sceneY(b[0]) == 4.);
+      CHECK(sceneY(b[2]) == 24.);
     }
     SECTION("center")
     {
@@ -166,18 +166,45 @@ TEST_CASE("An aligned grid puts its cells at the top of their row", "[graphics][
       static_cast<score::EmptyRectItem*>(b[0])->setRect({0., 0., 20., 30.});
       static_cast<score::EmptyRectItem*>(b[3])->setRect({0., 0., 20., 50.});
       grid->layout();
-      // Half the padding above each row, the tallest item's place
-      CHECK(sceneY(b[0]) == 6.);
-      CHECK(sceneY(b[1]) == 6.);
+      // At the top of each row
+      CHECK(sceneY(b[0]) == 4.);
+      CHECK(sceneY(b[1]) == 4.);
       // The second row after the first one's 30, and its padding
-      CHECK(sceneY(b[2]) == 6. + 34.);
-      CHECK(sceneY(b[3]) == 6. + 34.);
+      CHECK(sceneY(b[2]) == 4. + 34.);
+      CHECK(sceneY(b[3]) == 4. + 34.);
       // As it was when laid out again
       grid->layout();
-      CHECK(sceneY(b[1]) == 6.);
-      CHECK(sceneY(b[2]) == 40.);
+      CHECK(sceneY(b[1]) == 4.);
+      CHECK(sceneY(b[2]) == 38.);
       delete grid;
     }
+  });
+}
+
+TEST_CASE("An aligned grid in a cell of another has its first row where the other's is", "[graphics][layout]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext&) {
+    QGraphicsScene scene;
+    auto* outer = new score::GraphicsGridColumnsLayout{nullptr};
+    scene.addItem(outer);
+    outer->setColumns(2);
+    outer->setPadding(4.);
+    outer->setAlignment(Qt::AlignLeft);
+    const auto b = alignmentTestBoxes(outer, {20.});
+    auto* inner = new score::GraphicsGridColumnsLayout{outer};
+    inner->setColumns(2);
+    inner->setPadding(0.);
+    inner->setSpacing(6.);
+    inner->setAlignment(Qt::AlignLeft);
+    const auto c = alignmentTestBoxes(inner, {20., 20.});
+    inner->layout();
+    inner->setRect(inner->childrenBoundingRect());
+    outer->layout();
+    CHECK(sceneY(c[0]) == sceneY(b[0]));
+    CHECK(sceneY(c[1]) == sceneY(b[0]));
+    // Spaced apart all the same
+    CHECK(sceneX(c[1]) == sceneX(c[0]) + 26.);
+    delete outer;
   });
 }
 
