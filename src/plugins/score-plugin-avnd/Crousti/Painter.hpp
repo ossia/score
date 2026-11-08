@@ -22,6 +22,7 @@
 #include <halp/custom_widgets.hpp>
 #include <halp/waveform_view.hpp>
 
+#include <Crousti/UiEdits.hpp>
 #include <Crousti/Waveform.hpp>
 
 #include <algorithm>
@@ -727,32 +728,52 @@ private:
   CustomItemWaveforms m_waveforms;
 };
 
+//! A custom item editing one control through its halp::transaction: a
+//! gesture is one undo step, in the ui's edits (see UiEdits)
 template <typename Item>
 class CustomControl : public CustomItem<Item>
 {
 public:
-  OngoingCommandDispatcher cmd;
+  template <typename Port>
   explicit CustomControl(
-      Item item_init, Process::ControlInlet& ctl, const score::DocumentContext& ctx)
+      Item item_init, Port& ctl, const score::DocumentContext& ctx, UiEdits& edits)
       : CustomItem<Item>{item_init}
-      , cmd{ctx.commandStack}
+      , m_edits{edits}
   {
     this->setDocument(ctx);
     if constexpr(requires { this->impl.transaction; })
     {
-      this->impl.transaction.start = [] {
-
+      this->impl.transaction.start = [this] {
+        if(!m_active)
+          m_edits.beginGesture();
+        m_active = true;
       };
       this->impl.transaction.update = [this, &ctl](const auto& value) {
-        auto val = oscr::to_ossia_value(value);
-        cmd.submit<Process::SetControlValue>(ctl, val);
-
-        this->impl.value = value; //impl.value_to_control(Control{}
+        m_edits.set(ctl, oscr::to_ossia_value(value));
+        this->impl.value = value;
         this->update();
       };
-      this->impl.transaction.commit = [this] { cmd.commit(); };
-      this->impl.transaction.rollback = [this] { cmd.rollback(); };
+      this->impl.transaction.commit = [this] {
+        if(m_active)
+          m_edits.endGesture();
+        m_active = false;
+      };
+      this->impl.transaction.rollback = [this] {
+        if(m_active)
+          m_edits.rollback();
+        m_active = false;
+      };
     }
   }
+
+  ~CustomControl()
+  {
+    if(m_active)
+      m_edits.endGesture();
+  }
+
+private:
+  UiEdits& m_edits;
+  bool m_active{};
 };
 }

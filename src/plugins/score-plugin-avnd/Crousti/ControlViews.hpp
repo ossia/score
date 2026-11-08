@@ -2,12 +2,12 @@
 #include <Process/Commands/SetControlValue.hpp>
 #include <Process/Dataflow/Port.hpp>
 
-#include <score/command/Dispatchers/SendStrategy.hpp>
 #include <score/model/Skin.hpp>
 
 #include <ossia/network/domain/domain.hpp>
 
 #include <Crousti/Painter.hpp>
+#include <Crousti/UiEdits.hpp>
 #include <avnd/binding/ossia/from_value.hpp>
 #include <avnd/binding/ossia/to_value.hpp>
 
@@ -103,13 +103,13 @@ class CustomMultiControl
     , public CustomItem<Item>
 {
 public:
+  //! \p edits: where the ui's edits go, so that its gestures are one undo step
+  //! each, and come before any other command
   CustomMultiControl(
-      Item item_init, std::vector<Process::ControlInlet*> ports,
-      const score::DocumentContext& ctx)
+      Item item_init, std::vector<Process::ControlInlet*> ports, UiEdits& edits)
       : CustomItem<Item>{item_init}
       , m_ports{std::move(ports)}
-      , m_ctx{ctx}
-      , m_cmds(m_ports.size(), nullptr)
+      , m_edits{edits}
   {
     using values_type = std::decay_t<decltype(this->impl.values)>;
     if constexpr(is_value_tuple<values_type>)
@@ -124,9 +124,9 @@ public:
 
   ~CustomMultiControl()
   {
-    // Destroyed mid-gesture (UI rebuilt on inlet change): roll back
+    // Destroyed mid-gesture (UI rebuilt on inlet change): what it did stays
     if(m_active)
-      rollback();
+      m_edits.endGesture();
   }
 
 private:
@@ -139,8 +139,20 @@ private:
   template <std::size_t I>
   void setupRawPort()
   {
+    using transactions_type = std::decay_t<decltype(this->impl.transactions)>;
     if(I >= m_ports.size())
+    {
+      // No control to edit: the item's calls do nothing
+      if constexpr(I < std::tuple_size_v<transactions_type>)
+      {
+        auto& tr = std::get<I>(this->impl.transactions);
+        tr.start = [] { };
+        tr.update = [](const auto&) { };
+        tr.commit = [] { };
+        tr.rollback = [] { };
+      }
       return;
+    }
     auto* port = m_ports[I];
     using value_type = std::decay_t<decltype(std::get<I>(this->impl.values))>;
     auto show = [this](const ossia::value& v) {
@@ -152,7 +164,6 @@ private:
     show(port->value());
     QObject::connect(port, &Process::ControlInlet::valueChanged, this, show);
 
-    using transactions_type = std::decay_t<decltype(this->impl.transactions)>;
     if constexpr(I < std::tuple_size_v<transactions_type>)
       setupRawTransaction<I>(port);
   }
@@ -162,41 +173,14 @@ private:
   {
     using value_type = std::decay_t<decltype(std::get<I>(this->impl.values))>;
     auto& tr = std::get<I>(this->impl.transactions);
-    tr.start = [this] {
-      if(!m_active)
-        m_ctx.commandStack.disableActions();
-      m_active = true;
-    };
+    tr.start = [this] { start(); };
     tr.update = [this, port](const value_type& val) {
       std::get<I>(this->impl.values) = val;
-      const ossia::value v = oscr::to_ossia_value(val);
-      if(!m_cmds[I])
-        m_cmds[I] = new Process::SetControlValue{*port, v};
-      else
-        m_cmds[I]->update(*port, v);
-      m_cmds[I]->redo(m_ctx);
+      m_edits.set(*port, oscr::to_ossia_value(val));
       this->update();
     };
     tr.commit = [this] { commit(); };
     tr.rollback = [this] { rollback(); };
-  }
-
-  void commit()
-  {
-    // A click that moved nothing leaves no undo step
-    if(std::ranges::any_of(m_cmds, [](auto* cmd) { return cmd != nullptr; }))
-    {
-      auto* all = new Process::SetControlValues;
-      for(auto& cmd : m_cmds)
-      {
-        if(cmd)
-          all->addCommand(std::exchange(cmd, nullptr));
-      }
-      SendStrategy::Quiet::send(m_ctx.commandStack, all);
-    }
-    if(m_active)
-      m_ctx.commandStack.enableActions();
-    m_active = false;
   }
 
   void setupNormalized()
@@ -216,50 +200,34 @@ private:
       QObject::connect(port, &Process::ControlInlet::valueChanged, this, show);
     }
 
-    this->impl.transaction.start = [this] {
-      m_ctx.commandStack.disableActions();
-      m_active = true;
-    };
+    this->impl.transaction.start = [this] { start(); };
     this->impl.transaction.update = [this, n](int i, double normalized) {
       if(i < 0 || std::size_t(i) >= n)
         return;
       auto& port = *m_ports[i];
-      const ossia::value v = denormalize(port, normalized);
-      if(!m_cmds[i])
-        m_cmds[i] = new Process::SetControlValue{port, v};
-      else
-        m_cmds[i]->update(port, v);
-      m_cmds[i]->redo(m_ctx);
+      m_edits.set(port, denormalize(port, normalized));
     };
-    this->impl.transaction.commit = [this] {
-      // A click that moved nothing leaves no undo step
-      if(std::ranges::any_of(m_cmds, [](auto* cmd) { return cmd != nullptr; }))
-      {
-        auto* all = new Process::SetControlValues;
-        for(auto& cmd : m_cmds)
-        {
-          if(cmd)
-            all->addCommand(std::exchange(cmd, nullptr));
-        }
-        SendStrategy::Quiet::send(m_ctx.commandStack, all);
-      }
-      m_ctx.commandStack.enableActions();
-      m_active = false;
-    };
+    this->impl.transaction.commit = [this] { commit(); };
     this->impl.transaction.rollback = [this] { rollback(); };
   }
 
+  //! One gesture of the item, whichever of its transactions it goes through
+  void start()
+  {
+    if(!m_active)
+      m_edits.beginGesture();
+    m_active = true;
+  }
+  void commit()
+  {
+    if(m_active)
+      m_edits.endGesture();
+    m_active = false;
+  }
   void rollback()
   {
-    for(auto it = m_cmds.rbegin(); it != m_cmds.rend(); ++it)
-    {
-      if(auto cmd = std::exchange(*it, nullptr))
-      {
-        cmd->undo(m_ctx);
-        delete cmd;
-      }
-    }
-    m_ctx.commandStack.enableActions();
+    if(m_active)
+      m_edits.rollback();
     m_active = false;
   }
 
@@ -297,8 +265,7 @@ private:
   }
 
   std::vector<Process::ControlInlet*> m_ports;
-  const score::DocumentContext& m_ctx;
-  std::vector<Process::SetControlValue*> m_cmds;
+  UiEdits& m_edits;
   bool m_active{};
 };
 }

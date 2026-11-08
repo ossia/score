@@ -19,15 +19,19 @@ class CommandStack;
 namespace oscr
 {
 /**
- * @brief The edits a custom ui makes to its process's controls through `set`
+ * @brief The edits a custom ui makes to its process's controls
  *
- * Each edit applies at once. The edits of one gesture are one undo step: they
- * are pushed together once the gesture is over, i.e. at the end of the event
- * that made them, or at the mouse release while a button is held. An edit of a
- * control already edited in the gesture replaces it.
+ * Through `set`, and through the transactions of its custom controls. Each
+ * edit applies at once. The edits of one gesture are one undo step: they are
+ * pushed together once the gesture is over. A transaction says when that is,
+ * from its start to its commit. Otherwise it is the end of the event that made
+ * them, or the mouse release while a button is held. An edit of a control
+ * already edited in the gesture replaces it. Until they are pushed, the
+ * document counts as modified.
  *
  * Anything else changing the history, a command, an undo or a redo, pushes
- * them first, so that they come before it.
+ * them first, so that they come before it. So does the deletion of a port
+ * they edit.
  *
  * A ui reacting to a change, in on_control_update, makes no edit: the change
  * may come from execution, or be an undo or a redo, and neither edits the
@@ -41,6 +45,12 @@ public:
 
   void set(Process::ControlInlet& port, ossia::value v);
   void set(Process::ControlOutlet& port, ossia::value v);
+
+  //! A transaction: its edits are pushed at endGesture, not before
+  void beginGesture();
+  void endGesture();
+  //! Takes back the pending edits, without an undo step
+  void rollback();
 
   //! Pushes the pending edits as one undo step, if there are any
   void commit();
@@ -69,14 +79,17 @@ public:
 private:
   template <typename Command, typename Port>
   void edit(Port& port, ossia::value v);
-  void begin();
+  void open();
+  void close();
   void scheduleCommit();
+  void stopWaitingForRelease();
   bool eventFilter(QObject* watched, QEvent* event) override;
 
   struct Edit
   {
     const QObject* port{};
     score::Command* cmd{};
+    QMetaObject::Connection destroyed;
   };
 
   const score::DocumentContext& m_ctx;
@@ -84,6 +97,8 @@ private:
   std::vector<Edit> m_cmds;
   QMetaObject::Connection m_aboutToChange;
   int m_reacting{};
+  int m_gestures{};
+  bool m_open{};
   bool m_scheduled{};
   bool m_waitingForRelease{};
 };

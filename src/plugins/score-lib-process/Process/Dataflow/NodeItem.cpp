@@ -725,8 +725,11 @@ void NodeItem::setupItem(score::ResizeableItem* resizeable)
   {
     if(auto lay = dynamic_cast<score::GraphicsLayout*>(resizeable))
       connect(lay, &score::ResizeableItem::childrenSizeChanged, this, [this, lay] {
+        // As GraphicsLayout::relayoutAround does: the items are placed in
+        // the width they make, then aligned and stretched to it
         lay->layout();
         lay->fitChildrenRect();
+        lay->centerContent();
         m_contentSize = lay->rect().size();
 
         resizeAsync();

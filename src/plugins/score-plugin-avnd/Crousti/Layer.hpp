@@ -725,7 +725,7 @@ struct LayoutBuilder final : Process::LayoutBuilderBase
     std::apply(
         [&](auto... models) { (addControlInlet(ports, recursive_members..., models), ...); },
         Item::models());
-    auto* qitem = new oscr::CustomMultiControl<Item&>{item, std::move(ports), this->doc};
+    auto* qitem = new oscr::CustomMultiControl<Item&>{item, std::move(ports), *uiEdits};
     setupItem(item, *qitem);
   }
 
@@ -785,7 +785,7 @@ struct LayoutBuilder final : Process::LayoutBuilderBase
       {
         if(auto* port = qobject_cast<Process::ControlInlet*>(p))
         {
-          auto qitem = new oscr::CustomControl<Item&>{item, *port, this->doc};
+          auto qitem = new oscr::CustomControl<Item&>{item, *port, this->doc, *uiEdits};
           Process::ControlLayout lay{.container = qitem};
           if(auto* f = portFactory.get(port->concreteKey()))
           {
@@ -806,7 +806,7 @@ struct LayoutBuilder final : Process::LayoutBuilderBase
       {
         if(auto* port = qobject_cast<Process::ControlOutlet*>(p))
         {
-          auto qitem = new oscr::CustomControl<Item&>{item, *port, this->doc};
+          auto qitem = new oscr::CustomControl<Item&>{item, *port, this->doc, *uiEdits};
           Process::ControlLayout lay{.container = qitem};
           if(auto* f = portFactory.get(port->concreteKey()))
           {

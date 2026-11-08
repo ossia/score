@@ -3,12 +3,15 @@
 // And how a ui's presentations lay its controls out.
 
 #include <Process/Commands/SetControlValue.hpp>
+#include <Process/Dataflow/NodeItem.hpp>
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Dataflow/PortItem.hpp>
 #include <Process/Dataflow/WidgetInlets.hpp>
 #include <Process/DocumentPlugin.hpp>
 #include <Process/Focus/FocusDispatcher.hpp>
+#include <Process/LayerPresenter.hpp>
 #include <Process/ProcessContext.hpp>
+#include <Process/ProcessList.hpp>
 
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 
@@ -120,13 +123,16 @@ struct PresentationObject
 
   void operator()() { }
 
-  //! Edits P and Q as their own values, one transaction each
+  //! Edits P and Q as their own values, one transaction each; a third value
+  //! and transaction have no control
   struct RawPair
   {
     static constexpr double width() { return 40.; }
     static constexpr double height() { return 20.; }
-    std::tuple<float, float> values{};
-    std::tuple<halp::transaction<float>, halp::transaction<float>> transactions;
+    std::tuple<float, float, float> values{};
+    std::tuple<
+        halp::transaction<float>, halp::transaction<float>, halp::transaction<float>>
+        transactions;
     void paint(auto ctx) { }
   };
 
@@ -139,6 +145,49 @@ struct PresentationObject
     halp::item<&outs::shown> shown_out;
     halp::item<&outs::hidden, none> hidden_out;
     halp::custom_multi_control<RawPair, &ins::p, &ins::q> pair;
+  };
+};
+
+//! A ui with an item filling its column, beside a wider one
+struct FillObject
+{
+  halp_meta(name, "Ui fill test")
+  halp_meta(c_name, "avnd_ui_fill_test")
+  halp_meta(category, "Test")
+  halp_meta(author, "ossia score")
+  halp_meta(description, "A ui with an item as wide as its column")
+  halp_meta(uuid, "c2f8e1d4-6a37-4b90-b5e2-71d0c9a3f468")
+
+  struct ins
+  {
+    halp::hslider_f32<"A", halp::range{0., 1., 0.}> a;
+  } inputs;
+  struct
+  {
+  } outputs;
+  void operator()() { }
+
+  struct Filling
+  {
+    static constexpr double min_width = 50.;
+    double w{min_width};
+    double width() const noexcept { return w; }
+    void set_width(double x) noexcept { w = std::max(x, min_width); }
+    static constexpr double height() { return 10.; }
+    void paint(auto ctx) { }
+  };
+  struct Wide
+  {
+    static constexpr double width() { return 200.; }
+    static constexpr double height() { return 10.; }
+    void paint(auto ctx) { }
+  };
+
+  struct ui
+  {
+    halp_meta(layout, halp::layouts::vbox)
+    halp::custom_actions_item<Filling> fill;
+    halp::custom_actions_item<Wide> wide;
   };
 };
 
@@ -459,7 +508,7 @@ TEST_CASE("A multi-control on raw values edits them as one undo step", "[avnd][u
     p.setValue(0.25f);
     CHECK(std::get<0>(pair.values) == 0.25f);
 
-    auto& [tp, tq] = pair.transactions;
+    auto& [tp, tq, none] = pair.transactions;
     REQUIRE(tp.start);
     REQUIRE(tq.commit);
     tp.start();
@@ -481,5 +530,137 @@ TEST_CASE("A multi-control on raw values edits them as one undo step", "[avnd][u
     tp.rollback();
     CHECK(value(p) == 0.75f);
     CHECK(f.steps() == before + 1);
+
+    // A transaction without a control does nothing
+    REQUIRE(none.update);
+    none.start();
+    none.update(0.5f);
+    none.commit();
+    spin();
+    CHECK(f.steps() == before + 1);
+
+    // A command made during a gesture comes after it
+    tp.start();
+    tp.update(0.5f);
+    CommandDispatcher<>{doc->context().commandStack}.submit<Process::SetControlValue>(
+        q, 0.25f);
+    tp.update(0.6f);
+    tp.commit();
+    spin();
+    REQUIRE(f.steps() == before + 4);
+    doc->commandStack().undo();
+    CHECK(value(p) == 0.5f);
+    CHECK(value(q) == 0.25f);
+    doc->commandStack().undo();
+    CHECK(value(q) == 0.5f);
+    doc->commandStack().undo();
+    CHECK(value(p) == 0.75f);
+  });
+}
+
+TEST_CASE("An item filling its column stays as wide as it in the nodal view", "[avnd][ui][layout]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    auto& layers = const_cast<Process::LayerFactoryList&>(
+        ctx.interfaces<Process::LayerFactoryList>());
+    layers.insert(std::make_unique<oscr::LayerFactory<FillObject>>());
+    const_cast<Process::ProcessFactoryList&>(ctx.interfaces<Process::ProcessFactoryList>())
+        .insert(std::make_unique<oscr::ProcessFactory<FillObject>>());
+
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    auto& interval = score::test::base_interval(*doc);
+    auto* proc = new oscr::ProcessModel<FillObject>{
+        TimeVal::fromMsecs(1000), Id<Process::ProcessModel>{4243}, doc->context(),
+        &interval};
+    interval.processes.add(proc);
+
+    Process::DataflowManager dfm;
+    FocusDispatcher fd;
+    Process::Context pctx{doc->context(), dfm, fd};
+    QGraphicsScene scene;
+    auto* parent = new QGraphicsRectItem{QRectF{0., 0., 1000., 1000.}};
+    scene.addItem(parent);
+    auto* node = new Process::NodeItem{*proc, pctx, TimeVal::fromMsecs(1000.), parent};
+    spin();
+
+    score::FillsWidth* fill{};
+    QGraphicsItem* fillItem{};
+    for(auto* item : scene.items())
+      if(auto f = dynamic_cast<score::FillsWidth*>(item))
+      {
+        fill = f;
+        fillItem = item;
+      }
+    REQUIRE(fillItem);
+    CHECK(fillItem->boundingRect().width() >= 200.);
+    CHECK(fillItem->boundingRect().width() < 210.);
+
+    // A child changing size lays the node out again, through its root: the
+    // item stays as wide as the widest row, rather than at its smallest
+    score::GraphicsLayout::relayoutAround(fillItem);
+    spin();
+    CHECK(fillItem->boundingRect().width() >= 200.);
+    CHECK(fillItem->boundingRect().width() < 210.);
+
+    (void)node;
+    scene.removeItem(parent);
+    delete parent;
+    interval.processes.remove(proc);
+  });
+}
+
+TEST_CASE("Pending ui edits and the history", "[avnd][ui][command]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    Fixture<Object> f{*doc};
+    auto& stack = doc->commandStack();
+    CommandDispatcher<>{doc->context().commandStack}.submit<Process::SetControlValue>(
+        f.b(), 0.5f);
+    stack.markCurrentIndexAsSaved();
+    const int before = f.steps();
+
+    SECTION("they count as a change of the document")
+    {
+      f.ui().a.set(0.25f);
+      CHECK(!stack.isAtSavedIndex());
+      spin();
+      CHECK(!stack.isAtSavedIndex());
+      stack.undo();
+      CHECK(stack.isAtSavedIndex());
+    }
+    SECTION("a redo pushes them, and has nothing left to redo")
+    {
+      stack.undo();
+      REQUIRE(stack.canRedo());
+      f.ui().a.set(0.25f);
+      stack.redoQuiet();
+      CHECK(!stack.canRedo());
+      CHECK(value(f.a()) == 0.25f);
+      CHECK(value(f.b()) == 0.f);
+      CHECK(f.steps() == before);
+    }
+    SECTION("moving forward in the history pushes them, and stops")
+    {
+      stack.undo();
+      f.ui().a.set(0.25f);
+      stack.setIndex(stack.currentIndex() + 1);
+      CHECK(!stack.canRedo());
+      CHECK(value(f.a()) == 0.25f);
+      CHECK(f.steps() == before);
+    }
+    SECTION("moving back in the history reaches the state it names")
+    {
+      // The index names a state of the history as it was: before the edit
+      // of B. The pending edit is pushed after it, and undone too.
+      const int target = stack.currentIndex() - 1;
+      f.ui().a.set(0.25f);
+      stack.setIndex(target);
+      CHECK(stack.currentIndex() == target);
+      CHECK(value(f.a()) == 0.f);
+      CHECK(value(f.b()) == 0.f);
+    }
   });
 }
