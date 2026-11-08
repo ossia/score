@@ -3,9 +3,13 @@
 #include "ArtnetSpecificSettings.hpp"
 
 #include <score/serialization/DataStreamVisitor.hpp>
+#include <score/serialization/JSONParse.hpp>
 #include <score/serialization/JSONVisitor.hpp>
 #include <score/serialization/StdVariantSerialization.hpp>
 #include <score/serialization/VariantSerialization.hpp>
+
+#include <QDataStream>
+#include <QIODevice>
 
 JSON_METADATA(Protocols::Artnet::SingleCapability, "SingleCapability")
 JSON_METADATA(std::vector<Protocols::Artnet::RangeCapability>, "RangeCapabilities")
@@ -35,7 +39,7 @@ void JSONReader::read(const Protocols::Artnet::SingleCapability& n)
   if(!n.comment.isEmpty())
     obj["Comment"] = n.comment;
   if(!n.effectName.isEmpty())
-    obj["EffectName"] = n.comment;
+    obj["EffectName"] = n.effectName;
   stream.EndObject();
 }
 
@@ -73,9 +77,11 @@ void JSONReader::read(const Protocols::Artnet::RangeCapability& n)
   if(!n.comment.isEmpty())
     obj["Comment"] = n.comment;
   if(!n.effectName.isEmpty())
-    obj["EffectName"] = n.comment;
+    obj["EffectName"] = n.effectName;
 
   obj["Range"] = n.range;
+  if(n.menuClick != Protocols::Artnet::MenuClick::Start)
+    obj["MenuClick"] = int(n.menuClick);
   stream.EndObject();
 }
 
@@ -89,6 +95,10 @@ void JSONWriter::write(Protocols::Artnet::RangeCapability& n)
     n.effectName <<= *val;
 
   n.range <<= obj["Range"];
+  int menuClick = 0;
+  score::parseJsonField(obj, "MenuClick", menuClick);
+  n.menuClick = Protocols::Artnet::MenuClick(
+      std::clamp(menuClick, 0, int(Protocols::Artnet::MenuClick::Hidden)));
 }
 
 template <>
@@ -189,10 +199,42 @@ void JSONWriter::write(Protocols::Artnet::LEDVolumeLayout& n)
   n.depth <<= obj["Depth"];
 }
 
+namespace
+{
+bool nextIsDelimiter(QDataStream& stream)
+{
+  auto* dev = stream.device();
+  if(!dev)
+    return true;
+  QByteArray delimiter;
+  {
+    QDataStream d{&delimiter, QIODevice::WriteOnly};
+    d.setByteOrder(stream.byteOrder());
+    d << int32_t(0xDEADBEEF);
+  }
+  const QByteArray next = dev->peek(delimiter.size());
+  return next.size() < delimiter.size() || next == delimiter;
+}
+
+std::vector<Protocols::Artnet::RangeCapability>*
+rangeCapabilities(Protocols::Artnet::Channel& n)
+{
+  return ossia::get_if<std::vector<Protocols::Artnet::RangeCapability>>(&n.capabilities);
+}
+}
+
 template <>
 void DataStreamReader::read(const Protocols::Artnet::Channel& n)
 {
-  m_stream << n.name << n.defaultValue << n.capabilities << n.fineChannels;
+  m_stream << n.name << n.defaultValue << n.capabilities << n.fineChannels
+           << n.resolution << n.constant;
+
+  std::vector<int8_t> menuClicks;
+  if(auto* caps = ossia::get_if<std::vector<Protocols::Artnet::RangeCapability>>(
+         &n.capabilities))
+    for(const auto& c : *caps)
+      menuClicks.push_back(int8_t(c.menuClick));
+  m_stream << menuClicks;
   insertDelimiter();
 }
 
@@ -200,6 +242,15 @@ template <>
 void DataStreamWriter::write(Protocols::Artnet::Channel& n)
 {
   m_stream >> n.name >> n.defaultValue >> n.capabilities >> n.fineChannels;
+  if(!nextIsDelimiter(m_stream.stream))
+  {
+    std::vector<int8_t> menuClicks;
+    m_stream >> n.resolution >> n.constant >> menuClicks;
+    if(auto* caps = rangeCapabilities(n); caps && caps->size() == menuClicks.size())
+      for(std::size_t i = 0; i < menuClicks.size(); i++)
+        (*caps)[i].menuClick = Protocols::Artnet::MenuClick(
+            std::clamp<int8_t>(menuClicks[i], 0, int8_t(Protocols::Artnet::MenuClick::Hidden)));
+  }
   checkDelimiter();
 }
 
@@ -211,6 +262,10 @@ void JSONReader::read(const Protocols::Artnet::Channel& n)
   obj["DefaultValue"] = n.defaultValue;
   obj["Capabilities"] = n.capabilities;
   obj["FineChannels"] = n.fineChannels;
+  if(n.resolution > 0)
+    obj["Resolution"] = int(n.resolution);
+  if(n.constant)
+    obj["Constant"] = n.constant;
   stream.EndObject();
 }
 
@@ -222,6 +277,8 @@ void JSONWriter::write(Protocols::Artnet::Channel& n)
   n.capabilities <<= obj["Capabilities"];
   if(auto fc = obj.tryGet("FineChannels"))
     n.fineChannels <<= *fc;
+  score::parseJsonField(obj, "Resolution", n.resolution);
+  score::parseJsonField(obj, "Constant", n.constant);
 }
 
 template <>

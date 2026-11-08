@@ -1,6 +1,7 @@
 #include <ossia/detail/config.hpp>
 #if defined(OSSIA_PROTOCOL_ARTNET)
 #include <Protocols/Artnet/ArtnetProtocolSettingsWidget.hpp>
+#include <Protocols/Artnet/DMXFixtureInstantiation.hpp>
 #include <Protocols/Artnet/LEDDialog.hpp>
 
 namespace Protocols
@@ -30,6 +31,7 @@ AddLEDStripDialog::AddLEDStripDialog(
   {
     case Mode::Strip: {
       m_layout.addRow(tr("Pixel count"), &m_pixels);
+      m_layout.addRow(tr("Reverse"), &m_reverse);
       m_pixels.setVisible(true);
       m_width.setVisible(false);
       m_height.setVisible(false);
@@ -57,8 +59,6 @@ AddLEDStripDialog::AddLEDStripDialog(
     }
   }
 
-  m_layout.addRow(tr("Reverse"), &m_reverse);
-
   m_layout.addItem(
       new QSpacerItem{0, 100, QSizePolicy::Expanding, QSizePolicy::Expanding});
 
@@ -76,6 +76,7 @@ AddLEDStripDialog::AddLEDStripDialog(
   m_spacing.setRange(0, 512);
   m_address.setRange(1, 65539 * 512);
   m_address.setValue(startAddress + 1);
+  m_channelsPerUniverse = std::max(1, parent.channelsPerUniverse());
   auto [umin, umax] = parent.universeRange();
   m_universe.setRange(umin, umax);
   m_universe.setValue(startUniverse);
@@ -131,13 +132,10 @@ void AddLEDStripDialog::on_channelsChanged(int count)
 
 std::vector<Artnet::Fixture> AddLEDStripDialog::fixtures() const noexcept
 {
-  std::vector<Artnet::Fixture> res;
   Artnet::Fixture f;
   f.fixtureName = this->m_name.text();
-  f.modeName = "LED Strip";
   f.universe = m_universe.value();
 
-  int channels_used = 0;
   switch(m_mode)
   {
     case Mode::Strip: {
@@ -148,8 +146,7 @@ std::vector<Artnet::Fixture> AddLEDStripDialog::fixtures() const noexcept
       capa.length = m_pixels.value();
       capa.reverse = m_reverse.isChecked();
 
-      channels_used = capa.channels();
-
+      f.modeName = QStringLiteral("LED Strip");
       f.led = std::move(capa);
       break;
     }
@@ -161,8 +158,7 @@ std::vector<Artnet::Fixture> AddLEDStripDialog::fixtures() const noexcept
       capa.width = m_width.value();
       capa.height = m_height.value();
 
-      channels_used = capa.channels();
-
+      f.modeName = QStringLiteral("LED Pane");
       f.led = std::move(capa);
       break;
     }
@@ -175,19 +171,15 @@ std::vector<Artnet::Fixture> AddLEDStripDialog::fixtures() const noexcept
       capa.height = m_height.value();
       capa.depth = m_depth.value();
 
-      channels_used = capa.channels();
-
+      f.modeName = QStringLiteral("LED Box");
       f.led = std::move(capa);
       break;
     }
   }
 
-  for(int i = 0; i < m_count.value(); i++)
-  {
-    f.address = m_address.value() - 1 + i * channels_used;
-    res.push_back(f);
-  }
-  return res;
+  return Artnet::repeatFixture(
+      std::move(f), m_address.value() - 1, m_count.value(), m_spacing.value(),
+      m_channelsPerUniverse);
 }
 }
 #endif

@@ -12,12 +12,13 @@
 #include <QDialogButtonBox>
 #include <QFormLayout>
 #include <QHBoxLayout>
-#include <QLabel>
+#include <QPlainTextEdit>
 #include <QSpinBox>
 
 namespace Protocols
 {
 class FixtureTreeView;
+class FixtureFilterProxy;
 class FixtureData;
 
 using FixtureNode = TreeNode<FixtureData>;
@@ -40,6 +41,7 @@ public:
 
 private:
   QHBoxLayout m_layout;
+  FixtureFilterProxy* m_proxy{};
   FixtureTreeView* m_availableFixtures{};
 
   QVBoxLayout m_setupLayoutContainer;
@@ -50,10 +52,11 @@ private:
   QSpinBox m_address;
   QSpinBox m_universe;
   QComboBox m_mode;
-  QLabel m_content;
+  QPlainTextEdit m_content;
   QDialogButtonBox m_buttons;
 
   const FixtureData* m_currentFixture{};
+  int m_channelsPerUniverse{512};
 };
 
 }

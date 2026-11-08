@@ -53,6 +53,7 @@ private:
   QCheckBox m_reverse;
 
   QDialogButtonBox m_buttons;
+  int m_channelsPerUniverse{512};
 };
 }
 #endif
