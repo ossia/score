@@ -208,6 +208,8 @@ add_library(
   Crousti/ScoreLayer.hpp
   Crousti/SoundSet.cpp
   Crousti/SoundSet.hpp
+  Crousti/UiEdits.cpp
+  Crousti/UiEdits.hpp
   Crousti/Waveform.cpp
   Crousti/Waveform.hpp
 

@@ -1604,6 +1604,16 @@ score_add_test(test_unit_folder_files
 target_include_directories(test_unit_folder_files SYSTEM PRIVATE
   "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/include")
 
+# A custom ui's edits through set: one undo step per gesture, none from a
+# reaction to a change
+if(TARGET score_plugin_avnd)
+  score_add_test(test_unit_avnd_ui_edits
+    SOURCES AvndUiEditsTest.cpp
+    APP
+    PLUGINS score_plugin_avnd score_plugin_scenario score_lib_process)
+  target_link_libraries(test_unit_avnd_ui_edits PRIVATE ${QT_PREFIX}::GuiPrivate)
+endif()
+
 # Execution side: the exec node is rebuilt in place, the setup context maps
 # every model port to its exec port, cables are re-made, and values set on
 # ports that appeared reach the object. Pulls in the avendish binding headers

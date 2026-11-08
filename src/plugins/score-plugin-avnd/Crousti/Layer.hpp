@@ -9,10 +9,9 @@
 #include <Crousti/ControlViews.hpp>
 #include <Crousti/Painter.hpp>
 #include <Crousti/ProcessModel.hpp>
+#include <Crousti/UiEdits.hpp>
 
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
-#include <core/command/CommandStack.hpp>
-#include <core/document/Document.hpp>
 #include <score/graphics/layouts/GraphicsBoxLayout.hpp>
 #include <score/graphics/layouts/GraphicsGridLayout.hpp>
 #include <score/graphics/layouts/GraphicsSplitLayout.hpp>
@@ -31,7 +30,6 @@
 #include <avnd/common/enum_reflection.hpp>
 
 #include <QFileInfo>
-#include <QTimer>
 #include <QMimeData>
 #include <QRegularExpression>
 #include <QUrl>
@@ -72,6 +70,9 @@ struct RootItem
   //! Context object of the connections to the current UI build's widgets;
   //! deleted on rebuild.
   QObject* uiConnections{};
+  //! What the ui edits through set; kept across rebuilds, as a gesture may be
+  //! under way
+  UiEdits* uiEdits{};
 };
 
 template <typename Item>
@@ -313,6 +314,7 @@ struct LayoutBuilder final : Process::LayoutBuilderBase
   typename Info::ui* rootUi{};
   //! Context object of the connections to this build's widgets.
   QObject* connections{};
+  UiEdits* uiEdits{};
 
   //! Depth in titled tables: controls there hide their labels
   int tableDepth{};
@@ -356,12 +358,15 @@ struct LayoutBuilder final : Process::LayoutBuilderBase
       {
         QObject::connect(
             port, &Port_T::valueChanged, lifetime,
-            [rui = rootUi, layout = this->layout, &item,
+            [rui = rootUi, layout = this->layout, &item, edits = uiEdits,
              &ctx = static_cast<const score::DocumentContext&>(this->doc)](
                 const ossia::value& v) {
           SetGUIValue<avnd_port_type>{ctx}(v, item.value);
 
-          rui->on_control_update();
+          {
+            UiEdits::Reacting r{edits};
+            rui->on_control_update();
+          }
           layout->update();
         });
       }
@@ -377,28 +382,16 @@ struct LayoutBuilder final : Process::LayoutBuilderBase
         });
       }
 
-      // An edit from the ui: one undo step, like the control's own widget's.
-      // Setting the port directly would leave it out of the document's
-      // history: undoing and redoing an earlier command would lose it.
-      //
-      // A ui may also edit in response to a change, in on_control_update.
-      // That change can be an undo or a redo: the edit is dropped, as it
-      // would replace the redo history. Else it comes after the command
-      // being applied, as a command of its own: pushed while another one is
-      // applied, it would come before it.
-      if constexpr(
-          requires { item.set = {}; } && std::is_base_of_v<Process::ControlInlet, Port_T>)
+      // An edit from the ui, in the document's history: the edits of one
+      // gesture are one undo step (see UiEdits)
+      if constexpr(requires { item.set = {}; })
       {
-        item.set = [port, &ctx = static_cast<const score::DocumentContext&>(this->doc)](
+        item.set = [port, edits = uiEdits,
+                    &ctx = static_cast<const score::DocumentContext&>(this->doc)](
                        const auto& val) {
-          if(ctx.document.commandStack().isReplaying())
-            return;
-          auto v = GetGUIValue<avnd_port_type>{ctx}(oscr::to_ossia_value(val));
-          QTimer::singleShot(0, port, [port, &ctx, v = std::move(v)]() mutable {
-            if(v != port->value())
-              CommandDispatcher<>{ctx.commandStack}.submit<Process::SetControlValue>(
-                  *port, std::move(v));
-          });
+          if(edits)
+            edits->set(
+                *port, GetGUIValue<avnd_port_type>{ctx}(oscr::to_ossia_value(val)));
         };
       }
     }
@@ -1204,6 +1197,8 @@ private:
         // FIXME this is not enough as the message may be sent from another thread?
         if(!ptr)
           return;
+        // What the processor tells the ui does not edit the document
+        UiEdits::Reacting r{ptr->uiEdits};
 
         if constexpr(requires { ptr->bus.process_message(); })
         {
@@ -1244,18 +1239,21 @@ private:
     if constexpr(requires { new_l->ui.start(); })
     {
       QObject::connect(&proc, &Process::ProcessModel::startExecution, new_l, [new_l] {
+        UiEdits::Reacting r{new_l->uiEdits};
         new_l->ui.start();
       });
     }
     if constexpr(requires { new_l->ui.stop(); })
     {
       QObject::connect(&proc, &Process::ProcessModel::stopExecution, new_l, [new_l] {
+        UiEdits::Reacting r{new_l->uiEdits};
         new_l->ui.stop();
       });
     }
     if constexpr(requires { new_l->ui.reset(); })
     {
       QObject::connect(&proc, &Process::ProcessModel::resetExecution, new_l, [new_l] {
+        UiEdits::Reacting r{new_l->uiEdits};
         new_l->ui.reset();
       });
     }
@@ -1270,6 +1268,7 @@ private:
     auto& process = static_cast<const ProcessModel<Info>&>(proc);
 
     auto rootItem = makeItemImpl(const_cast<ProcessModel<Info>&>(process), parent);
+    rootItem->uiEdits = new UiEdits{ctx, rootItem};
 
     auto recreate = [parent, &proc, &ctx, rootItem] {
       delete rootItem->uiConnections;
@@ -1281,6 +1280,7 @@ private:
       };
       b.rootUi = &rootItem->ui;
       b.connections = rootItem->uiConnections;
+      b.uiEdits = rootItem->uiEdits;
       b.layout = parent;
       // avnd UIs declare their own spacing
       b.marginOnNestedLayouts = false;
@@ -1291,7 +1291,10 @@ private:
 
       rootItem->fitChildrenRect();
 
-      if_possible(b.rootUi->on_control_update());
+      {
+        UiEdits::Reacting r{rootItem->uiEdits};
+        if_possible(b.rootUi->on_control_update());
+      }
     };
 
     // Delete the connections before the widgets: a widget losing focus while
