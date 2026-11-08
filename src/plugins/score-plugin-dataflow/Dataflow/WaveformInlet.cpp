@@ -9,6 +9,9 @@
 #include <score/document/DocumentContext.hpp>
 #include <score/model/Skin.hpp>
 
+#include <ossia/detail/fmt.hpp>
+#include <ossia/detail/parse_strict.hpp>
+
 #include <QClipboard>
 #include <QDebug>
 #include <QFocusEvent>
@@ -34,7 +37,6 @@
 #include <QVBoxLayout>
 
 #include <algorithm>
-#include <charconv>
 #include <cmath>
 #include <functional>
 
@@ -233,7 +235,7 @@ QString waveformFrameText(std::span<const float> frame)
   for(std::size_t i = 0; i < frame.size(); ++i)
   {
     char buffer[32];
-    const auto end = std::to_chars(buffer, buffer + sizeof(buffer), frame[i]).ptr;
+    const auto end = fmt::format_to_n(buffer, sizeof(buffer), "{}", frame[i]).out;
     if(i)
       text += QLatin1Char(' ');
     text += QLatin1String{buffer, end};
@@ -263,12 +265,11 @@ waveformFrameFromText(QStringView text, std::size_t size, int levels)
     for(const auto& token : tokens)
     {
       const auto latin = token.toLatin1();
-      const char* end = latin.constData() + latin.size();
-      float number{};
-      const auto res = std::from_chars(latin.constData(), end, number);
-      if(res.ec != std::errc{} || res.ptr != end)
+      const auto number = ossia::parse_strict<float>(
+          std::string_view{latin.constData(), std::size_t(latin.size())});
+      if(!number)
         return std::nullopt;
-      numbers.emplace_back(number);
+      numbers.emplace_back(*number);
     }
     return numbers;
   };
