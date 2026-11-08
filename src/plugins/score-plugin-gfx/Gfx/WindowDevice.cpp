@@ -52,6 +52,14 @@ static bool shouldForceOffscreen(const QString& name)
   return false;
 }
 
+// SCORE_FORCE_BACKGROUND_WINDOW, set to anything, creates every window device set to a single
+// window in the background of score's main view instead, so that working on a
+// document does not open windows over the editor. The document keeps its mode.
+static bool shouldForceBackground()
+{
+  return qEnvironmentVariableIsSet("SCORE_FORCE_BACKGROUND_WINDOW");
+}
+
 score::gfx::ScreenNode* WindowDevice::screenNode() const noexcept
 {
   if(m_dev)
@@ -412,7 +420,10 @@ bool WindowDevice::reconnect()
         return connected();
       }
 
-      switch(set.mode)
+      const auto mode = set.mode == WindowMode::Single && shouldForceBackground()
+                            ? WindowMode::Background
+                            : set.mode;
+      switch(mode)
       {
         case WindowMode::Background: {
           if(main_view)

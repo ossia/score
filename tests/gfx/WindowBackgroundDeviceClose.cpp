@@ -23,6 +23,7 @@
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentView.hpp>
 
 #include <Gfx/GfxParameter.hpp>
+#include <Gfx/Window/BackgroundDevice.hpp>
 #include <Gfx/WindowDevice.hpp>
 
 #include <JS/Qml/EditContext.hpp>
@@ -45,14 +46,15 @@ using namespace score::test::gfx;
 
 namespace
 {
-WindowDevice* add_background_device(const score::DocumentContext& doc, QString name)
+WindowDevice* add_window_device(
+    const score::DocumentContext& doc, QString name, WindowMode mode)
 {
   auto& plug = doc.plugin<Explorer::DeviceDocumentPlugin>();
   Device::DeviceSettings set;
   set.name = name;
   set.protocol = WindowProtocolFactory::static_concreteKey();
   WindowSettings ws;
-  ws.mode = WindowMode::Background;
+  ws.mode = mode;
   ws.inputWidth = 1920;
   ws.inputHeight = 1080;
   set.deviceSpecificSettings = QVariant::fromValue(ws);
@@ -61,6 +63,11 @@ WindowDevice* add_background_device(const score::DocumentContext& doc, QString n
   disp.submit(new Explorer::Command::LoadDevice{plug, std::move(set)});
 
   return dynamic_cast<WindowDevice*>(plug.list().findDevice(name));
+}
+
+WindowDevice* add_background_device(const score::DocumentContext& doc, QString name)
+{
+  return add_window_device(doc, std::move(name), WindowMode::Background);
 }
 
 Scenario::ScenarioDocumentView* scenario_view(score::Document& doc)
@@ -254,4 +261,37 @@ TEST_CASE(
   // the ones that matter.
   CHECK(alive[0] > before[0]);
   CHECK(after == before);
+}
+
+TEST_CASE(
+    "SCORE_FORCE_BACKGROUND_WINDOW makes single windows background ones",
+    "[gfx][window][device][background]")
+{
+  run_in_gui_app([&](const score::GUIApplicationContext& ctx) {
+    auto* doc = score::test::new_document(ctx);
+    if(!doc || !scenario_view(*doc))
+      SKIP("the document has no scenario view to draw a background in");
+
+    const auto settings_mode = [](WindowDevice& dev) {
+      return dev.settings().deviceSpecificSettings.value<WindowSettings>().mode;
+    };
+
+    qputenv("SCORE_FORCE_BACKGROUND_WINDOW", "1");
+    auto* forced = add_window_device(doc->context(), QStringLiteral("Forced"), WindowMode::Single);
+    qunsetenv("SCORE_FORCE_BACKGROUND_WINDOW");
+    REQUIRE(forced);
+    REQUIRE(forced->getDevice());
+    CHECK(dynamic_cast<background_device*>(forced->getDevice()));
+    // The document keeps what it was set to
+    CHECK(settings_mode(*forced) == WindowMode::Single);
+
+    // Without it, a single window is a window
+    auto* plain = add_window_device(doc->context(), QStringLiteral("Plain"), WindowMode::Single);
+    REQUIRE(plain);
+    REQUIRE(plain->getDevice());
+    CHECK(!dynamic_cast<background_device*>(plain->getDevice()));
+
+    ctx.docManager.forceCloseDocument(ctx, *doc);
+    QApplication::processEvents();
+  });
 }
