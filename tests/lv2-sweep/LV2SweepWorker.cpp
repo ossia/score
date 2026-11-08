@@ -35,6 +35,7 @@
 #include <ossia/dataflow/exec_state_facade.hpp>
 #include <ossia/dataflow/execution_state.hpp>
 #include <ossia/detail/flicks.hpp>
+#include <ossia/math/safe_math.hpp>
 #include <ossia/network/value/value_conversion.hpp>
 
 #include <QCoreApplication>
@@ -126,7 +127,7 @@ struct json
   json& num(std::string_view k, double v)
   {
     key(k);
-    if(std::isfinite(v))
+    if(ossia::safe_isfinite(v))
       s << v;
     else
       s << "null";
@@ -252,7 +253,7 @@ struct audio_stats
 
   void add(double v, double t)
   {
-    if(!std::isfinite(v))
+    if(!ossia::safe_isfinite(v))
     {
       nonfinite++;
       return;
@@ -293,7 +294,7 @@ struct control_stats
   int64_t nonfinite{};
   void add(int port, float v)
   {
-    if(!std::isfinite(v))
+    if(!ossia::safe_isfinite(v))
     {
       nonfinite++;
       return;
@@ -462,7 +463,7 @@ run_stats play(
         int nf = 0;
         for(std::size_t c = 0; c < out.channels(); c++)
           for(double v : out.channel(c))
-            std::isfinite(v) ? void(pk = std::max(pk, std::abs(v))) : void(nf++);
+            ossia::safe_isfinite(v) ? void(pk = std::max(pk, std::abs(v))) : void(nf++);
         std::fprintf(
             stderr, "TRACE frame %lld channels %zu peak %g nonfinite %d\n",
             (long long)frame, out.channels(), pk, nf);
@@ -477,7 +478,7 @@ run_stats play(
           if(c == 0 && in_channels > 0)
           {
             res.audio.compared_input = true;
-            if(std::isfinite(v))
+            if(ossia::safe_isfinite(v))
               res.audio.max_diff_input = std::max(
                   res.audio.max_diff_input, std::abs(v - stim.audio(0, frame + k)));
           }
@@ -601,7 +602,7 @@ struct reference_host
       else if(lilv_port_is_a(plugin, p, h.control_class.me))
       {
         kind[i] = in ? 5 : 6;
-        float d = std::isnan(def[i]) ? (std::isnan(lo[i]) ? 0.f : lo[i]) : def[i];
+        float d = ossia::safe_isnan(def[i]) ? (ossia::safe_isnan(lo[i]) ? 0.f : lo[i]) : def[i];
         if(in && lilv_port_has_property(plugin, p, sr_prop))
           d *= rate;
         controls[i] = d;

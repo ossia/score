@@ -1604,6 +1604,15 @@ score_add_test(test_unit_folder_files
 target_include_directories(test_unit_folder_files SYSTEM PRIVATE
   "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/include")
 
+# ossia's and halp's NaN and infinity tests, in a file built with -ffast-math
+if(CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
+  score_add_test(test_unit_safe_math
+    SOURCES SafeMathTest.cpp)
+  target_compile_options(test_unit_safe_math PRIVATE -ffast-math)
+  target_include_directories(test_unit_safe_math SYSTEM PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/include")
+endif()
+
 # A custom ui's edits through set: one undo step per gesture, none from a
 # reaction to a change
 if(TARGET score_plugin_avnd)

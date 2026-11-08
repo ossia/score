@@ -19,6 +19,7 @@
 #include <ossia/dataflow/audio_port.hpp>
 #include <ossia/dataflow/graph_node.hpp>
 #include <ossia/dataflow/port.hpp>
+#include <ossia/math/safe_math.hpp>
 
 #include <score/plugins/UuidKey.hpp>
 
@@ -110,7 +111,7 @@ inline double audio_peak(const ossia::graph_node& node)
     if(auto* audio = out->target<ossia::audio_port>())
       for(std::size_t c = 0; c < audio->channels(); c++)
         for(double v : audio->channel(c))
-          if(std::isfinite(v))
+          if(ossia::safe_isfinite(v))
             peak = std::max(peak, std::abs(v));
   return peak;
 }

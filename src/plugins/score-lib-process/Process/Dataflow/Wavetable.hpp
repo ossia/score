@@ -1,6 +1,7 @@
 #pragma once
 
 #include <ossia/network/value/value.hpp>
+#include <ossia/math/safe_math.hpp>
 
 #include <algorithm>
 #include <array>
@@ -50,7 +51,7 @@ struct WavetableData
            && !samples.empty() && samples.size() <= maxSamples
            && samples.size() % frameSize == 0 && frameCount() <= maxFrames
            && std::all_of(samples.begin(), samples.end(), [](float value) {
-                return std::isfinite(value) && value >= -1.f && value <= 1.f;
+                return ossia::safe_isfinite(value) && value >= -1.f && value <= 1.f;
               });
   }
 
@@ -70,7 +71,7 @@ inline std::optional<float> waveformNumber(const ossia::value& value) noexcept
     number = *flag ? 1.f : 0.f;
   else
     return std::nullopt;
-  if(!std::isfinite(number))
+  if(!ossia::safe_isfinite(number))
     return std::nullopt;
   return number;
 }
@@ -219,7 +220,7 @@ inline WavetableData makeTriangleWavetable(std::size_t frameSize = 32)
 //! spanning [-1, 1]. Zero levels means continuous: the value is only clamped.
 inline float quantizeSample(double value, int levels) noexcept
 {
-  value = std::isfinite(value) ? std::clamp(value, -1., 1.) : 0.;
+  value = ossia::safe_isfinite(value) ? std::clamp(value, -1., 1.) : 0.;
   if(levels >= 2)
     value = 2. * std::round((value + 1.) * .5 * (levels - 1)) / (levels - 1) - 1.;
   return std::clamp(float(value), -1.f, 1.f);
@@ -355,7 +356,7 @@ inline void clearWaveform(std::span<float> frame, int levels) noexcept
 inline float sampleWavetable(
     const WavetableData& table, std::size_t frame, double phase) noexcept
 {
-  assert(table.frameSize >= 2 && frame < table.frameCount() && std::isfinite(phase));
+  assert(table.frameSize >= 2 && frame < table.frameCount() && ossia::safe_isfinite(phase));
   phase -= std::floor(phase);
   const double position = phase * table.frameSize;
   const auto left = std::min(std::size_t(position), table.frameSize - 1);
@@ -384,7 +385,7 @@ bool resampleWaveform(
     double high) noexcept
 {
   static_assert(N > 0 && std::is_arithmetic_v<T>);
-  if(size < 2 || !std::isfinite(low) || !std::isfinite(high) || low >= high
+  if(size < 2 || !ossia::safe_isfinite(low) || !ossia::safe_isfinite(high) || low >= high
      || low < double(std::numeric_limits<T>::lowest())
      || high > double(std::numeric_limits<T>::max()))
     return false;
