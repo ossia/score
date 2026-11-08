@@ -95,7 +95,8 @@ inline constexpr bool is_value_tuple<std::tuple<T...>> = true;
 //!
 //! Or, when the item's `values` is a std::tuple, each value is the control's
 //! own (a list, a 2D point...), kept up to date, and edited through
-//! `transactions`, a tuple of halp::transaction, one per control.
+//! `transactions`, a tuple of halp::transaction, one per control. It may be
+//! shorter: the controls past its end are only shown.
 template <typename Item>
 class CustomMultiControl
     : public QObject
@@ -151,6 +152,15 @@ private:
     show(port->value());
     QObject::connect(port, &Process::ControlInlet::valueChanged, this, show);
 
+    using transactions_type = std::decay_t<decltype(this->impl.transactions)>;
+    if constexpr(I < std::tuple_size_v<transactions_type>)
+      setupRawTransaction<I>(port);
+  }
+
+  template <std::size_t I>
+  void setupRawTransaction(Process::ControlInlet* port)
+  {
+    using value_type = std::decay_t<decltype(std::get<I>(this->impl.values))>;
     auto& tr = std::get<I>(this->impl.transactions);
     tr.start = [this] {
       if(!m_active)
