@@ -972,6 +972,9 @@ static std::optional<Process::PortItemLayout> presentationLayout(
       if(qobject_cast<const Process::Enum*>(&port))
         return Process::DefaultControlLayouts::combo();
       break;
+    case Widget::None:
+      // The port, its label beside it, nothing under them
+      return Process::PortItemLayout{.port = QPointF{0., 1.}, .label = QPointF{12., 0.}};
     default:
       break;
   }
@@ -988,6 +991,8 @@ static QGraphicsItem* makePresentationWidget(
   if(!widgetLayout)
     return nullptr;
   layout = *widgetLayout;
+  if(presentation.widget == Process::ControlPresentation::Widget::None)
+    return new score::EmptyItem{nullptr};
   if(auto s = qobject_cast<Process::FloatSlider*>(&port))
     return WidgetFactory::FloatKnob::make_item(*s, *s, ctx, nullptr, context);
   if(auto s = qobject_cast<Process::LogFloatSlider*>(&port))

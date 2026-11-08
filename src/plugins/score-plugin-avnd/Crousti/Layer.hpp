@@ -293,6 +293,8 @@ static Process::ControlPresentation controlPresentation()
       p.widget = Process::ControlPresentation::Widget::Knob;
     else if(look.widget == halp::control_widget::combo)
       p.widget = Process::ControlPresentation::Widget::Combo;
+    else if(look.widget == halp::control_widget::none)
+      p.widget = Process::ControlPresentation::Widget::None;
   }
   return p;
 }

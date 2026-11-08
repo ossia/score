@@ -27,8 +27,9 @@ struct ControlPresentation
   enum class Widget
   {
     Default,
-    Knob, //!< float sliders
-    Combo //!< enumerations
+    Knob,  //!< float sliders
+    Combo, //!< enumerations
+    None   //!< the port and its label only, for any control
   };
 
   //! Display only: the port name is unchanged

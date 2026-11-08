@@ -8,12 +8,16 @@
 #include <ossia/network/domain/domain.hpp>
 
 #include <Crousti/Painter.hpp>
+#include <avnd/binding/ossia/from_value.hpp>
+#include <avnd/binding/ossia/to_value.hpp>
 
 #include <QGraphicsItem>
 #include <QObject>
 #include <QPainter>
 
 #include <algorithm>
+#include <tuple>
+#include <utility>
 #include <vector>
 
 namespace oscr
@@ -82,7 +86,16 @@ inline double normalizedValue(const Process::ControlInlet& port, const ossia::va
   return h == l ? 0. : std::clamp((scalarValue(v) - l) / (h - l), 0., 1.);
 }
 
+template <typename T>
+inline constexpr bool is_value_tuple = false;
+template <typename... T>
+inline constexpr bool is_value_tuple<std::tuple<T...>> = true;
+
 //! halp::custom_multi_control. Values are normalized; a gesture is one undo step.
+//!
+//! Or, when the item's `values` is a std::tuple, each value is the control's
+//! own (a list, a 2D point...), kept up to date, and edited through
+//! `transactions`, a tuple of halp::transaction, one per control.
 template <typename Item>
 class CustomMultiControl
     : public QObject
@@ -96,6 +109,87 @@ public:
       , m_ports{std::move(ports)}
       , m_ctx{ctx}
       , m_cmds(m_ports.size(), nullptr)
+  {
+    using values_type = std::decay_t<decltype(this->impl.values)>;
+    if constexpr(is_value_tuple<values_type>)
+    {
+      setupRaw(std::make_index_sequence<std::tuple_size_v<values_type>>{});
+    }
+    else
+    {
+      setupNormalized();
+    }
+  }
+
+  ~CustomMultiControl()
+  {
+    // Destroyed mid-gesture (UI rebuilt on inlet change): roll back
+    if(m_active)
+      rollback();
+  }
+
+private:
+  template <std::size_t... I>
+  void setupRaw(std::index_sequence<I...>)
+  {
+    (setupRawPort<I>(), ...);
+  }
+
+  template <std::size_t I>
+  void setupRawPort()
+  {
+    if(I >= m_ports.size())
+      return;
+    auto* port = m_ports[I];
+    using value_type = std::decay_t<decltype(std::get<I>(this->impl.values))>;
+    auto show = [this](const ossia::value& v) {
+      value_type val{};
+      oscr::from_ossia_value(v, val);
+      std::get<I>(this->impl.values) = std::move(val);
+      this->update();
+    };
+    show(port->value());
+    QObject::connect(port, &Process::ControlInlet::valueChanged, this, show);
+
+    auto& tr = std::get<I>(this->impl.transactions);
+    tr.start = [this] {
+      if(!m_active)
+        m_ctx.commandStack.disableActions();
+      m_active = true;
+    };
+    tr.update = [this, port](const value_type& val) {
+      std::get<I>(this->impl.values) = val;
+      const ossia::value v = oscr::to_ossia_value(val);
+      if(!m_cmds[I])
+        m_cmds[I] = new Process::SetControlValue{*port, v};
+      else
+        m_cmds[I]->update(*port, v);
+      m_cmds[I]->redo(m_ctx);
+      this->update();
+    };
+    tr.commit = [this] { commit(); };
+    tr.rollback = [this] { rollback(); };
+  }
+
+  void commit()
+  {
+    // A click that moved nothing leaves no undo step
+    if(std::ranges::any_of(m_cmds, [](auto* cmd) { return cmd != nullptr; }))
+    {
+      auto* all = new Process::SetControlValues;
+      for(auto& cmd : m_cmds)
+      {
+        if(cmd)
+          all->addCommand(std::exchange(cmd, nullptr));
+      }
+      SendStrategy::Quiet::send(m_ctx.commandStack, all);
+    }
+    if(m_active)
+      m_ctx.commandStack.enableActions();
+    m_active = false;
+  }
+
+  void setupNormalized()
   {
     const std::size_t n = std::min(m_ports.size(), std::size(this->impl.values));
     for(std::size_t i = 0; i < n; i++)
@@ -145,14 +239,6 @@ public:
     this->impl.transaction.rollback = [this] { rollback(); };
   }
 
-  ~CustomMultiControl()
-  {
-    // Destroyed mid-gesture (UI rebuilt on inlet change): roll back
-    if(m_active)
-      rollback();
-  }
-
-private:
   void rollback()
   {
     for(auto it = m_cmds.rbegin(); it != m_cmds.rend(); ++it)
