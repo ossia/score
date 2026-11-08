@@ -30,10 +30,12 @@ public:
   void bang();
 
   const QString& text() const noexcept { return m_string; }
+  //! Its size stays the one of its first text, which a layout placed it
+  //! with: a longer one is cut at its end
   void setText(const QString& s)
   {
-    m_string = std::move(s);
-    updateBounds();
+    m_string = s;
+    update();
   }
   QRectF boundingRect() const override;
 

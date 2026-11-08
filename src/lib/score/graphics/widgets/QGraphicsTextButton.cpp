@@ -3,6 +3,7 @@
 #include <score/model/Skin.hpp>
 
 #include <QFileInfo>
+#include <QFontMetricsF>
 #include <QGraphicsSceneMouseEvent>
 #include <QMimeData>
 #include <QPainter>
@@ -19,7 +20,7 @@ QGraphicsTextButton::QGraphicsTextButton(QString text, QGraphicsItem* parent)
     : QGraphicsItem{parent}
 {
   setAcceptDrops(true);
-  setText(std::move(text));
+  m_string = std::move(text);
   auto& skin = score::Skin::instance();
   updateBounds();
   setCursor(skin.CursorPointingHand);
@@ -111,7 +112,10 @@ void QGraphicsTextButton::paint(
     painter->setPen(skin.Base4.main.pen2);
     painter->setRenderHint(QPainter::Antialiasing, false);
     painter->setFont(skin.Medium10Pt);
-    painter->drawText(brect, m_string, QTextOption(Qt::AlignCenter));
+    const QRectF inner = brect.adjusted(3, 0, -3, 0);
+    const QString text = QFontMetricsF{skin.Medium10Pt}.elidedText(
+        m_string, Qt::ElideRight, inner.width());
+    painter->drawText(inner, text, QTextOption(Qt::AlignCenter));
   }
 }
 

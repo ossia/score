@@ -412,6 +412,13 @@ TEST_CASE("File and folder choosers sit in a row of comboboxes: same height, por
       CHECK(i.label->pos().y() + i.label->boundingRect().height() <= i.control->pos().y() + 1.);
     }
 
+    // A long name: the button keeps its size, the layout its place, and the
+    // name is cut in it
+    const double width = items[1].control->boundingRect().width();
+    file->setValue(std::string{"/tmp/a name longer than any button would be wide.wav"});
+    QApplication::processEvents();
+    CHECK(items[1].control->boundingRect().width() == width);
+
     // SCORE_TEST_PNG=path: the row as drawn
     if(const auto path = qEnvironmentVariable("SCORE_TEST_PNG"); !path.isEmpty())
     {
