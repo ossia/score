@@ -203,6 +203,45 @@ struct TSerializer<
 namespace oscr
 {
 
+struct xy_bounds
+{
+  ossia::vec2f min, max, init;
+};
+
+//! The bounds of an xy control from its range: one for both axes, one for both
+//! axes with a point to start from, or one per axis
+template <typename T>
+static constexpr xy_bounds xyBounds() noexcept
+{
+  constexpr auto c = avnd::get_range<T>();
+  if constexpr(requires {
+                 c.min == 0.f;
+                 c.max == 0.f;
+                 c.init == 0.f;
+               })
+  {
+    return {
+        {float(c.min), float(c.min)},
+        {float(c.max), float(c.max)},
+        {float(c.init), float(c.init)}};
+  }
+  else if constexpr(requires {
+                      c.min == 0.f;
+                      c.max == 0.f;
+                    })
+  {
+    auto [ix, iy] = c.init;
+    return {{float(c.min), float(c.min)}, {float(c.max), float(c.max)}, {float(ix), float(iy)}};
+  }
+  else
+  {
+    auto [mx, my] = c.min;
+    auto [Mx, My] = c.max;
+    auto [ix, iy] = c.init;
+    return {{float(mx), float(my)}, {float(Mx), float(My)}, {float(ix), float(iy)}};
+  }
+}
+
 template <typename Node, typename T, std::size_t N>
 static inline auto
 make_control_in(avnd::field_index<N>, Id<Process::Port>&& id, QObject* parent)
@@ -545,33 +584,8 @@ make_control_in(avnd::field_index<N>, Id<Process::Port>&& id, QObject* parent)
   }
   else if constexpr(widg.widget == avnd::widget_type::xy)
   {
-    static constexpr auto c = avnd::get_range<T>();
-    if constexpr(requires {
-                   c.min == 0.f;
-                   c.max == 0.f;
-                   c.init == 0.f;
-                 })
-    {
-      return new Process::XYSlider{
-          {c.min, c.min}, {c.max, c.max}, {c.init, c.init}, qname, id, parent};
-    }
-    else if constexpr(requires {
-                        c.min == 0.f;
-                        c.max == 0.f;
-                      })
-    {
-      // The same bounds on both axes, a point to start from
-      auto [ix, iy] = c.init;
-      return new Process::XYSlider{
-          {c.min, c.min}, {c.max, c.max}, {ix, iy}, qname, id, parent};
-    }
-    else
-    {
-      auto [mx, my] = c.min;
-      auto [Mx, My] = c.max;
-      auto [ix, iy] = c.init;
-      return new Process::XYSlider{{mx, my}, {Mx, My}, {ix, iy}, qname, id, parent};
-    }
+    static constexpr auto b = xyBounds<T>();
+    return new Process::XYSlider{b.min, b.max, b.init, qname, id, parent};
   }
   else if constexpr(widg.widget == avnd::widget_type::xyz)
   {
@@ -602,31 +616,9 @@ make_control_in(avnd::field_index<N>, Id<Process::Port>&& id, QObject* parent)
   else if constexpr(widg.widget == avnd::widget_type::xy_spinbox)
   {
     using data_type = std::decay_t<decltype(value_type{}.x)>;
-    static constexpr auto c = avnd::get_range<T>();
-    if constexpr(requires {
-                   c.min == 0.f;
-                   c.max == 0.f;
-                   c.init == 0.f;
-                 })
-    {
-      return new Process::XYSpinboxes{
-          {c.min, c.min},
-          {c.max, c.max},
-          {c.init, c.init},
-          std::is_integral_v<data_type>,
-          qname,
-          id,
-          parent};
-    }
-    else
-    {
-      auto [mx, my] = c.min;
-      auto [Mx, My] = c.max;
-      auto [ix, iy] = c.init;
-      return new Process::XYSpinboxes{
-          {mx, my}, {Mx, My}, {ix, iy}, std::is_integral_v<data_type>,
-          qname,    id,       parent};
-    }
+    static constexpr auto b = xyBounds<T>();
+    return new Process::XYSpinboxes{
+        b.min, b.max, b.init, std::is_integral_v<data_type>, qname, id, parent};
   }
   else if constexpr(widg.widget == avnd::widget_type::xyz_spinbox)
   {

@@ -1202,13 +1202,23 @@ Process::ControlLayout PortFactory::makeFullItem(
 #endif
   ret.container = item;
 
-  const auto& layout = defaultLayout();
+  auto layout = defaultLayout();
   ret.port_item = makePortItem(portModel, ctx, item, context);
   SCORE_SOFT_ASSERT(ret.port_item);
 
   if(ret.port_item)
   {
-    ret.control = makeControlItem(portModel, ctx, item, context);
+    // An outlet's widget shows its value: the one presentation that applies is
+    // none at all
+    if(presentation.widget == Process::ControlPresentation::Widget::None)
+    {
+      layout = *presentationLayout(portModel, presentation);
+      ret.control = new score::EmptyItem{item};
+    }
+    else
+    {
+      ret.control = makeControlItem(portModel, ctx, item, context);
+    }
     SCORE_SOFT_ASSERT(ret.control);
 
     if(ret.control)
