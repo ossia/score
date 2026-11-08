@@ -99,3 +99,30 @@ if(UNIX AND NOT EMSCRIPTEN)
   target_compile_definitions(bitfocus_module_driver
     PRIVATE SCORE_TEST_BINARY_DIR="${SCORE_ROOT_BINARY_DIR}")
 endif()
+
+# The Open Fixture Library reader and the DMX parameters its fixtures become.
+if(OSSIA_PROTOCOL_ARTNET)
+  set(ARTNET_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../Protocols/Artnet")
+  score_add_test(test_protocol_dmx_fixtures
+    SOURCES
+      "${CMAKE_CURRENT_SOURCE_DIR}/DMXFixtureTest.cpp"
+      "${ARTNET_DIR}/OpenFixtureLibrary.cpp"
+      "${ARTNET_DIR}/DMXFixtureInstantiation.cpp"
+      "${ARTNET_DIR}/ArtnetSpecificSettingsSerialization.cpp"
+    PLUGINS score_lib_base score_lib_process
+    LIBS ossia re2 ${QT_PREFIX}::Core
+    APP)
+  target_include_directories(test_protocol_dmx_fixtures
+    PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/.." "${SCORE_ROOT_SOURCE_DIR}/tests/fixtures")
+  target_compile_definitions(test_protocol_dmx_fixtures
+    PRIVATE SCORE_TEST_BINARY_DIR="${SCORE_ROOT_BINARY_DIR}")
+
+  score_add_test(test_protocol_dmx_fixture_filter
+    SOURCES
+      "${CMAKE_CURRENT_SOURCE_DIR}/FixtureFilterTest.cpp"
+      "${ARTNET_DIR}/OpenFixtureLibrary.cpp"
+    PLUGINS score_lib_base score_plugin_library
+    LIBS ossia re2 ${QT_PREFIX}::Core)
+  target_include_directories(test_protocol_dmx_fixture_filter
+    PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/..")
+endif()

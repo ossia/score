@@ -53,7 +53,8 @@ bool ArtnetDevice::reconnect()
 
       for(auto& fixt : set.fixtures)
       {
-        addArtnetFixture(*dev, proto.buffer(), fixt, set.channels_per_universe);
+        addArtnetFixture(
+            *dev, proto.buffer(), fixt, set.start_universe, set.channels_per_universe);
       }
 
       if(set.mode == ArtnetSpecificSettings::Sink)
