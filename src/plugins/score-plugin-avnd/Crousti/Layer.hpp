@@ -18,6 +18,7 @@
 #include <score/graphics/layouts/GraphicsTabLayout.hpp>
 #include <score/graphics/layouts/LayoutSelection.hpp>
 #include <score/graphics/RectItem.hpp>
+#include <score/graphics/widgets/QGraphicsCombo.hpp>
 #include <score/graphics/widgets/QGraphicsEnum.hpp>
 #include <score/graphics/widgets/QGraphicsLineEdit.hpp>
 #include <score/tools/File.hpp>
@@ -371,11 +372,18 @@ struct LayoutBuilder final : Process::LayoutBuilderBase
         });
       }
 
-      if constexpr(requires { item.set = {}; })
+      // An edit from the ui: one undo step, like the control's own widget's.
+      // Setting the port directly would leave it out of the document's
+      // history: undoing and redoing an earlier command would lose it.
+      if constexpr(
+          requires { item.set = {}; } && std::is_base_of_v<Process::ControlInlet, Port_T>)
       {
         item.set = [port, &ctx = static_cast<const score::DocumentContext&>(this->doc)](
                        const auto& val) {
-          port->setValue(GetGUIValue<avnd_port_type>{ctx}(oscr::to_ossia_value(val)));
+          auto v = GetGUIValue<avnd_port_type>{ctx}(oscr::to_ossia_value(val));
+          if(v != port->value())
+            CommandDispatcher<>{ctx.commandStack}.submit<Process::SetControlValue>(
+                *port, std::move(v));
         };
       }
     }
@@ -394,6 +402,16 @@ struct LayoutBuilder final : Process::LayoutBuilderBase
     {
       if(auto edit = qgraphicsitem_cast<score::QGraphicsLineEdit*>(lay.control))
         edit->setTextWidth(Item::width());
+      // A combobox whose entries change, e.g. the files of a folder: a width
+      // of its own rather than the one of its first entries
+      else if(auto combo = dynamic_cast<score::QGraphicsCombo*>(lay.control))
+      {
+        auto r = combo->boundingRect();
+        r.setWidth(Item::width());
+        combo->setRect(r);
+        if(auto container = dynamic_cast<score::EmptyRectItem*>(lay.container))
+          container->fitChildrenRect();
+      }
     }
     // An enumeration shown as buttons, so many a row
     if constexpr(requires { Item::columns(); })

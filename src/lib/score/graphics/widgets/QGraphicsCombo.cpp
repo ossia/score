@@ -536,7 +536,12 @@ void QGraphicsCombo::paint(
   painter->setFont(font());
   if(int n = value(); n >= 0 && n < array.size())
   {
-    painter->drawText(textRect, array[value()], QTextOption(Qt::AlignCenter));
+    // Entries that came after the width was fitted, e.g. a folder's files
+    // listed again, may not fit: cut at the end rather than at both sides
+    const QRectF inner = textRect.adjusted(4, 0, -2, 0);
+    const QString text
+        = QFontMetricsF{font()}.elidedText(array[n], Qt::ElideRight, inner.width());
+    painter->drawText(inner, text, QTextOption(Qt::AlignCenter));
   }
 
   painter->drawLine(2, 2, 2, boundingRect().height() - 2);
