@@ -53,7 +53,8 @@ static QList<QGraphicsItem*> takeGridItems(QGraphicsItem& grid)
 }
 
 //! Cells of a column as wide as its widest item, of a row as tall as its
-//! tallest, items aligned in their column and centred in their row.
+//! tallest, items aligned in their column and at the top of their row: the
+//! labels above controls of different heights line up across a row.
 //! gap: after each cell, as the padding is in the uniform grid.
 template <typename CellOf>
 static void layoutAlignedGridCells(
@@ -91,9 +92,8 @@ static void layoutAlignedGridCells(
     item->setParentItem(cell);
 
     const auto r = item->boundingRect();
-    item->setPos(
-        alignedOffset(grid.alignment(), col_w[col], r.width()),
-        (row_h[row] + gap - r.height()) / 2.);
+    // Where the tallest item of the row is, centred in its cell
+    item->setPos(alignedOffset(grid.alignment(), col_w[col], r.width()), gap / 2.);
 
     // Exactly the row span, else it overhangs the cell
     if(auto it = dynamic_cast<score::GraphicsLayout*>(item))

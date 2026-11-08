@@ -149,6 +149,38 @@ TEST_CASE("An aligned grid sizes each column to its widest item", "[graphics][la
   });
 }
 
+TEST_CASE("An aligned grid puts its cells at the top of their row", "[graphics][layout]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext&) {
+    QGraphicsScene scene;
+    for(auto align : {Qt::AlignLeft, Qt::AlignHCenter, Qt::AlignRight})
+    {
+      CAPTURE(int(align));
+      auto* grid = new score::GraphicsGridColumnsLayout{nullptr};
+      scene.addItem(grid);
+      grid->setColumns(2);
+      grid->setPadding(4.);
+      grid->setAlignment(align);
+      // Rows of items 30 and 10 tall, then 10 and 50
+      const auto b = alignmentTestBoxes(grid, {20., 20., 20., 20.});
+      static_cast<score::EmptyRectItem*>(b[0])->setRect({0., 0., 20., 30.});
+      static_cast<score::EmptyRectItem*>(b[3])->setRect({0., 0., 20., 50.});
+      grid->layout();
+      // Half the padding above each row, the tallest item's place
+      CHECK(sceneY(b[0]) == 6.);
+      CHECK(sceneY(b[1]) == 6.);
+      // The second row after the first one's 30, and its padding
+      CHECK(sceneY(b[2]) == 6. + 34.);
+      CHECK(sceneY(b[3]) == 6. + 34.);
+      // As it was when laid out again
+      grid->layout();
+      CHECK(sceneY(b[1]) == 6.);
+      CHECK(sceneY(b[2]) == 40.);
+      delete grid;
+    }
+  });
+}
+
 TEST_CASE("An aligned row-major grid lines up its columns", "[graphics][layout]")
 {
   score::test::run_in_app([](const score::GUIApplicationContext&) {
