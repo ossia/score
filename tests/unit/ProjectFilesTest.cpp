@@ -467,3 +467,196 @@ TEST_CASE("Relative paths that stay inside their folder", "[unit][projectfiles]"
   CHECK_FALSE(isContainedRelativePath("..\\kick.wav"));
   CHECK_FALSE(isContainedRelativePath("/abs/kick.wav"));
 }
+
+// <PRESET>: paths, relative to the folder of the preset file that stores them.
+namespace
+{
+QByteArray json(const QString& s)
+{
+  return s.toUtf8();
+}
+}
+
+TEST_CASE("<PRESET>: is a root of its own", "[unit][projectfiles][preset]")
+{
+  CHECK(isPresetRelativePath("<PRESET>:kick.wav"));
+  CHECK_FALSE(isPresetRelativePath("<PROJECT>:kick.wav"));
+  CHECK_FALSE(isPresetRelativePath("kick.wav"));
+
+  // Nothing to resolve it against outside of a preset file: kept, not
+  // anchored to the document's folder.
+  QTemporaryDir doc;
+  REQUIRE(doc.isValid());
+  const PathRoots roots{canonical(doc) + "/a.score", canonical(doc)};
+  CHECK(locateFilePath("<PRESET>:kick.wav", roots) == "<PRESET>:kick.wav");
+  CHECK(locateFilePath("<PRESET>:kick.wav", PathRoots{}) == "<PRESET>:kick.wav");
+  CHECK(relativizeFilePath("<PRESET>:kick.wav", roots) == "<PRESET>:kick.wav");
+}
+
+TEST_CASE("<PRESET>: paths resolve next to the preset file", "[unit][projectfiles][preset]")
+{
+  QTemporaryDir tmp;
+  REQUIRE(tmp.isValid());
+  const QString root = canonical(tmp);
+  write_file(root + "/kit/kick.wav", "kick");
+  write_file(root + "/kit/sub/snare.wav", "snare");
+  QDir{}.mkpath(root + "/kit/loops");
+  const QString preset = root + "/kit/drums.scp";
+  const PathRoots none;
+
+  SECTION("at any depth, in objects and arrays, files and folders")
+  {
+    const auto data = json(QStringLiteral(
+        R"([[0,"<PRESET>:kick.wav","Loop file"],[1,{"String":"<PRESET>:sub/snare.wav"}],)"
+        R"({"a":{"b":["<PRESET>:loops","<PRESET>:.","<PRESET>:",3,null,"plain"]}}])"));
+    const auto expected = json(QStringLiteral(
+        R"([[0,"%1/kit/kick.wav","Loop file"],[1,{"String":"%1/kit/sub/snare.wav"}],)"
+        R"({"a":{"b":["%1/kit/loops","%1/kit","%1/kit",3,null,"plain"]}}])")
+                                   .arg(root));
+    CHECK(resolvePresetPaths(data, preset, none) == expected);
+  }
+
+  SECTION("as a library path when the preset is in the library")
+  {
+    const PathRoots lib{{}, root};
+    CHECK(
+        resolvePresetPaths(R"(["<PRESET>:sub/snare.wav"])", preset, lib)
+        == R"(["<LIBRARY>:kit/sub/snare.wav"])");
+  }
+
+  SECTION("whatever the separators of the file")
+  {
+    CHECK(
+        resolvePresetPaths(R"(["<PRESET>:sub\\snare.wav"])", preset, none)
+        == json(QStringLiteral(R"(["%1/kit/sub/snare.wav"])").arg(root)));
+  }
+
+  SECTION("out of the folder when it says so")
+  {
+    CHECK(
+        resolvePresetPaths(R"(["<PRESET>:../other.wav"])", preset, none)
+        == json(QStringLiteral(R"(["%1/other.wav"])").arg(root)));
+  }
+
+  SECTION("a file that is missing is still named")
+  {
+    CHECK(
+        resolvePresetPaths(R"(["<PRESET>:gone.wav"])", preset, none)
+        == json(QStringLiteral(R"(["%1/kit/gone.wav"])").arg(root)));
+  }
+
+  SECTION("data with none is returned byte for byte")
+  {
+    for(const QByteArray& data :
+        {QByteArray(R"( [ [0 , "/abs/kick.wav" ] ,  {"k" : 1.50} ] )"),
+         QByteArray(R"({"<PRESET>:key":"value"})"), QByteArray("not json <PRESET>:x"),
+         QByteArray("\x01\x00\xff", 3), QByteArray()})
+    {
+      INFO(data.toStdString());
+      CHECK(resolvePresetPaths(data, preset, none) == data);
+    }
+  }
+}
+
+TEST_CASE("Paths next to a preset file become <PRESET>:", "[unit][projectfiles][preset]")
+{
+  QTemporaryDir tmp;
+  REQUIRE(tmp.isValid());
+  const QString root = canonical(tmp);
+  write_file(root + "/kit/kick.wav", "kick");
+  write_file(root + "/kit/sub/snare.wav", "snare");
+  write_file(root + "/kit2/hat.wav", "hat");
+  write_file(root + "/other.wav", "other");
+  QDir{}.mkpath(root + "/kit/loops");
+  const QString preset = root + "/kit/drums.scp";
+  const PathRoots roots{root + "/project.score", root + "/lib"};
+
+  const auto relativize = [&](const QString& value, const PathRoots& r) {
+    const auto data = json(QStringLiteral(R"([[0,"%1"]])").arg(value));
+    const auto out = relativizePresetPaths(data, preset, r);
+    return QString::fromUtf8(out.mid(5, out.size() - 8));
+  };
+
+  SECTION("files and folders in the folder, at any depth")
+  {
+    CHECK(relativize(root + "/kit/kick.wav", roots) == "<PRESET>:kick.wav");
+    CHECK(relativize(root + "/kit/sub/snare.wav", roots) == "<PRESET>:sub/snare.wav");
+    CHECK(relativize(root + "/kit/loops", roots) == "<PRESET>:loops");
+    CHECK(relativize(root + "/kit", roots) == "<PRESET>:.");
+
+    const auto data = json(QStringLiteral(
+        R"({"a":[1,{"b":"%1/kit/kick.wav"},["%1/other.wav"]],"c":"%1/kit/sub"})")
+                               .arg(root));
+    CHECK(
+        relativizePresetPaths(data, preset, roots)
+        == json(QStringLiteral(
+                    R"({"a":[1,{"b":"<PRESET>:kick.wav"},["%1/other.wav"]],"c":"<PRESET>:sub"})")
+                    .arg(root)));
+  }
+
+  SECTION("whatever root the document stores them with")
+  {
+    CHECK(relativize("<PROJECT>:kit/kick.wav", roots) == "<PRESET>:kick.wav");
+    const PathRoots lib{{}, root};
+    CHECK(relativize("<LIBRARY>:kit/sub/snare.wav", lib) == "<PRESET>:sub/snare.wav");
+  }
+
+  SECTION("and nothing else")
+  {
+    const QStringList values{
+        root + "/other.wav",
+        root + "/kit/../other.wav",
+        root + "/kit2/hat.wav",
+        root + "/kit/missing.wav",
+        "kick.wav",
+        "kit/kick.wav",
+        "<PRESET>:kick.wav",
+        "<LIBRARY>:kit/kick.wav",
+        "file:///kick.wav",
+        "plain text"};
+    for(const QString& value : values)
+    {
+      INFO(value.toStdString());
+      const auto data = json(QStringLiteral(R"([[0, "%1" ] ])").arg(value));
+      // Byte for byte: not even written again.
+      CHECK(relativizePresetPaths(data, preset, roots) == data);
+    }
+  }
+
+  SECTION("data that is not JSON is returned byte for byte")
+  {
+    for(const QByteArray& data :
+         {QByteArray("not json /kit/kick.wav"), QByteArray("\x01\x00\xff", 3), QByteArray()})
+      CHECK(relativizePresetPaths(data, preset, roots) == data);
+  }
+
+#if !defined(_WIN32)
+  SECTION("through symbolic links")
+  {
+    // A link in the folder to a file elsewhere: it travels with the folder.
+    REQUIRE(QFile::link(root + "/other.wav", root + "/kit/linked.wav"));
+    CHECK(relativize(root + "/kit/linked.wav", roots) == "<PRESET>:linked.wav");
+
+    // The folder through another name.
+    REQUIRE(QFile::link(root + "/kit", root + "/alias"));
+    CHECK(relativize(root + "/alias/kick.wav", roots) == "<PRESET>:kick.wav");
+    const auto data = json(QStringLiteral(R"(["%1/kit/sub/snare.wav"])").arg(root));
+    CHECK(
+        relativizePresetPaths(data, root + "/alias/drums.scp", roots)
+        == R"(["<PRESET>:sub/snare.wav"])");
+  }
+#endif
+
+  SECTION("back and forth, and to where the folder has gone")
+  {
+    const auto data = json(QStringLiteral(R"([[0,"%1/kit/kick.wav"]])").arg(root));
+    const auto stored = relativizePresetPaths(data, preset, roots);
+    CHECK(stored == R"([[0,"<PRESET>:kick.wav"]])");
+    CHECK(resolvePresetPaths(stored, preset, PathRoots{}) == data);
+
+    REQUIRE(QDir{}.rename(root + "/kit", root + "/moved"));
+    CHECK(
+        resolvePresetPaths(stored, root + "/moved/drums.scp", PathRoots{})
+        == json(QStringLiteral(R"([[0,"%1/moved/kick.wav"]])").arg(root)));
+  }
+}

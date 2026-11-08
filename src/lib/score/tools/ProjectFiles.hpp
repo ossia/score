@@ -74,7 +74,8 @@ SCORE_LIB_BASE_EXPORT
 PathRoots pathRoots() noexcept;
 
 //! Resolve a stored path (absolute, document-relative, <PROJECT>: or
-//! <LIBRARY>:-prefixed) into an absolute one.
+//! <LIBRARY>:-prefixed) into an absolute one. A <PRESET>: path has nothing to
+//! resolve against here and is returned as it is.
 SCORE_LIB_BASE_EXPORT
 QString locateFilePath(const QString& filename, const PathRoots& roots) noexcept;
 
@@ -107,6 +108,38 @@ SCORE_LIB_BASE_EXPORT
 bool isProjectRelativePath(const QString& path) noexcept;
 SCORE_LIB_BASE_EXPORT
 bool isLibraryRelativePath(const QString& path) noexcept;
+//! <PRESET>: names a file relative to the folder of the preset file (.scp)
+//! that stores it, so that a preset can ship with the sounds, images or
+//! folders it uses next to it. It only exists in preset files: the data is
+//! rewritten with resolvePresetPaths when it is read and with
+//! relativizePresetPaths when it is written, and locateFilePath leaves such a
+//! path as it is.
+SCORE_LIB_BASE_EXPORT
+bool isPresetRelativePath(const QString& path) noexcept;
+
+//! A preset's data as read from `presetFile`: each JSON string in it, at any
+//! depth, that is a <PRESET>: path becomes the file it names, as a <LIBRARY>:
+//! path when that file is under `roots.library` and as an absolute one
+//! otherwise. Only `roots.library` is used. Data with no such string, or that
+//! is not JSON, comes back as it was, byte for byte.
+SCORE_LIB_BASE_EXPORT
+QByteArray resolvePresetPaths(
+    const QByteArray& data, const QString& presetFile, const PathRoots& roots) noexcept;
+//! Same, with the user library of the application settings.
+SCORE_LIB_BASE_EXPORT
+QByteArray resolvePresetPaths(const QByteArray& data, const QString& presetFile) noexcept;
+
+//! A preset's data as it is to be written to `presetFile`: each JSON string in
+//! it, at any depth, that is an absolute, <PROJECT>: or <LIBRARY>: path
+//! (resolved against `roots`) naming a file or folder that exists in the
+//! preset file's folder or below it becomes a <PRESET>: path, with forward
+//! slashes; the folder itself is "<PRESET>:.". A symbolic link counts as in
+//! the folder when either the path that names it or its target is.
+//! Everything else is kept, and data in which nothing changes, or that is not
+//! JSON, comes back byte for byte.
+SCORE_LIB_BASE_EXPORT
+QByteArray relativizePresetPaths(
+    const QByteArray& data, const QString& presetFile, const PathRoots& roots) noexcept;
 
 //! Rewrite `name` into something creatable on every filesystem score runs on:
 //! no reserved characters, no Windows device names, no trailing dot or space,

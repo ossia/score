@@ -19,9 +19,12 @@
 #include <score/selection/SelectionStack.hpp>
 #include <score/widgets/Pixmap.hpp>
 #include <score/tools/File.hpp>
+#include <score/tools/ProjectFiles.hpp>
 #include <score/widgets/HelpInteraction.hpp>
 #include <score/widgets/MarginLess.hpp>
 
+#include <core/document/Document.hpp>
+#include <core/presenter/DocumentManager.hpp>
 #include <core/view/FixedTabWidget.hpp>
 #include <core/view/Window.hpp>
 
@@ -577,16 +580,9 @@ void PresetLibraryHandler::setup(
 
 void PresetLibraryHandler::addPath(std::string_view path)
 {
-  QFile f{QString::fromUtf8(path.data(), path.length())};
-
-  if(!f.open(QIODevice::ReadOnly))
-    return;
-
-  if(auto p = Process::Preset::fromJson(*processes, score::mapAsByteArray(f)))
-  {
-    p->path = f.fileName();
+  if(auto p = Process::Preset::fromFile(
+         *processes, QString::fromUtf8(path.data(), qsizetype(path.length()))))
     presetLib->addPreset(std::move(*p));
-  }
 }
 
 bool PresetLibraryHandler::onDrop(
@@ -606,6 +602,24 @@ bool PresetLibraryHandler::onDrop(
     return false;
   const QString filename
       = score::addUniqueSuffix(parent.absolutePath() + "/" + basename + ".scp");
+
+  // Files next to the new preset file are stored relative to it, as for a
+  // preset saved from the presets panel. A process is dragged from the
+  // document being edited: its paths are relative to that one.
+  if(processes)
+  {
+    if(auto p = Process::Preset::fromJson(*processes, data))
+    {
+      auto* doc = score::GUIAppContext().docManager.currentDocument();
+      const auto roots = doc ? score::pathRoots(doc->context()) : score::pathRoots();
+      if(auto stored = score::relativizePresetPaths(p->data, filename, roots);
+         stored != p->data)
+      {
+        p->data = std::move(stored);
+        return writePresetData(filename, p->toJson());
+      }
+    }
+  }
   return writePresetData(filename, data);
 }
 

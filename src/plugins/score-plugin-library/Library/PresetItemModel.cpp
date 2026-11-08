@@ -10,10 +10,12 @@
 #include <Library/PresetFile.hpp>
 
 #include <score/application/GUIApplicationContext.hpp>
+#include <score/document/DocumentInterface.hpp>
 #include <score/model/path/PathSerialization.hpp>
 #include <score/tools/Bind.hpp>
 #include <score/tools/File.hpp>
 #include <score/tools/FilePath.hpp>
+#include <score/tools/ProjectFiles.hpp>
 
 #include <core/document/Document.hpp>
 #include <core/presenter/DocumentManager.hpp>
@@ -38,6 +40,19 @@ namespace Library
 {
 //! Which file a preset dragged within the library comes from
 static constexpr auto presetFileMime = "application/x-score-preset-file";
+
+//! What is written in the file of a preset: the paths in its data that name
+//! files next to that file become <PRESET>: paths, which keep naming them
+//! wherever the folder is moved or copied. The preset in memory keeps the
+//! paths it is applied with. `roots` are those of the document whose paths
+//! the data holds.
+static QByteArray presetFileContents(
+    const Process::Preset& preset, const QString& file, const score::PathRoots& roots)
+{
+  auto stored = preset;
+  stored.data = score::relativizePresetPaths(preset.data, file, roots);
+  return stored.toJson();
+}
 
 struct PresetItemModel::Node
 {
@@ -374,7 +389,7 @@ bool PresetItemModel::movePreset(int row, const QString& category)
 
   auto moved = preset;
   moved.category = category;
-  if(!writePresetData(preset.path, moved.toJson()))
+  if(!writePresetData(preset.path, presetFileContents(moved, preset.path, score::pathRoots())))
     return false;
   preset = std::move(moved);
   m_plugin->presetChanged(row);
@@ -538,7 +553,8 @@ static bool isValidForFilename(const QString& name)
 //! file `replaced`, if `path` is it (a rename that only changes the case of
 //! its name on a file system that ignores it), is written over.
 static bool writePresetFile(
-    Process::Preset& preset, const QString& path, const QString& replaced = {})
+    Process::Preset& preset, const QString& path, const score::PathRoots& roots,
+    const QString& replaced = {})
 {
   const bool same = !replaced.isEmpty() && QFileInfo::exists(path)
                     && QFileInfo{path}.canonicalFilePath()
@@ -548,14 +564,14 @@ static bool writePresetFile(
   written.name = QFileInfo{unique}.completeBaseName();
   written.path = unique;
 
-  if(!writePresetData(unique, written.toJson()))
+  if(!writePresetData(unique, presetFileContents(written, unique, roots)))
     return false;
   preset = std::move(written);
   return true;
 }
 
 //! A new preset goes in the user folder, under its process (and plug-in)
-static bool writeNewPreset(Process::Preset& preset)
+static bool writeNewPreset(Process::Preset& preset, const score::PathRoots& roots)
 {
   const auto& ctx = score::GUIAppContext();
 
@@ -574,7 +590,7 @@ static bool writeNewPreset(Process::Preset& preset)
     presetFolder += "/" + desc.prettyName;
 
   QDir{}.mkpath(presetFolder);
-  return writePresetFile(preset, presetFolder + "/" + preset.name + ".scp");
+  return writePresetFile(preset, presetFolder + "/" + preset.name + ".scp", roots);
 }
 
 bool PresetItemModel::canEdit(int row) const
@@ -625,7 +641,9 @@ bool PresetItemModel::setData(const QModelIndex& index, const QVariant& value, i
   const QString old = preset.path;
   auto renamed = preset;
   renamed.name = str;
-  if(!writePresetFile(renamed, QFileInfo{old}.absolutePath() + "/" + str + ".scp", old))
+  if(!writePresetFile(
+         renamed, QFileInfo{old}.absolutePath() + "/" + str + ".scp", score::pathRoots(),
+         old))
     return false;
   // Only once the new file is there, and unless it is the same one
   if(QFileInfo{renamed.path}.canonicalFilePath() != QFileInfo{old}.canonicalFilePath())
@@ -668,7 +686,7 @@ bool PresetItemModel::savePreset(const Process::ProcessModel& proc, const QStrin
 {
   auto preset = proc.savePreset();
   preset.category = category;
-  if(!writeNewPreset(preset))
+  if(!writeNewPreset(preset, score::pathRoots(score::IDocument::documentContext(proc))))
     return false;
 
   m_plugin->addPreset(std::move(preset));

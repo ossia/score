@@ -54,14 +54,18 @@ bool DropPresetInInterval::drop(
   else if(mime.hasUrls())
   {
     Scenario::Command::Macro m{new Scenario::Command::DropProcessInIntervalMacro, ctx};
+    auto& procs = ctx.app.interfaces<Process::ProcessFactoryList>();
     bool ok = false;
     for(const QUrl& u : mime.urls())
     {
-      auto path = u.toLocalFile();
-      if(QFile f{path}; QFileInfo{f}.suffix() == "scp" && f.open(QIODevice::ReadOnly))
+      const QString path = u.toLocalFile();
+      if(QFileInfo{path}.suffix() != "scp")
+        continue;
+      if(auto preset = Process::Preset::fromFile(procs, path))
       {
         ok = true;
-        perform(interval, ctx, m, score::mapAsByteArray(f), pos);
+        m.loadProcessFromPreset(interval, *preset, pos);
+        m.showRack(interval);
       }
     }
 

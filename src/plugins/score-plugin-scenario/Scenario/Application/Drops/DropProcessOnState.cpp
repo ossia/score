@@ -123,9 +123,9 @@ droppedPreset(const QMimeData& mime, const Process::ProcessFactoryList& factorie
     return Process::Preset::fromJson(factories, mime.data(score::mime::processpreset()));
 
   for(const QUrl& u : mime.urls())
-    if(QFile f{u.toLocalFile()};
-       QFileInfo{f}.suffix() == "scp" && f.open(QIODevice::ReadOnly))
-      return Process::Preset::fromJson(factories, f.readAll());
+    if(const QString file = u.toLocalFile(); QFileInfo{file}.suffix() == "scp")
+      if(auto p = Process::Preset::fromFile(factories, file))
+        return p;
   return {};
 }
 

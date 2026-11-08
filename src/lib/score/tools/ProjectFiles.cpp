@@ -8,14 +8,18 @@
 #include <QObject>
 #include <QSettings>
 
+#include <ossia/detail/json.hpp>
+
 #include <algorithm>
 #include <cstring>
 #include <filesystem>
+#include <optional>
 
 namespace score
 {
 static const QString project_prefix = QStringLiteral("<PROJECT>:");
 static const QString library_prefix = QStringLiteral("<LIBRARY>:");
+static const QString preset_prefix = QStringLiteral("<PRESET>:");
 
 bool isRemoteUrl(const QString& path) noexcept
 {
@@ -54,6 +58,11 @@ bool isProjectRelativePath(const QString& path) noexcept
 bool isLibraryRelativePath(const QString& path) noexcept
 {
   return path.startsWith(library_prefix);
+}
+
+bool isPresetRelativePath(const QString& path) noexcept
+{
+  return path.startsWith(preset_prefix);
 }
 
 FileKind guessFileKind(const QString& path) noexcept
@@ -183,6 +192,11 @@ QString locateFilePath(const QString& filename, const PathRoots& roots) noexcept
   if(filename.isEmpty())
     return {};
 
+  // Only meaningful next to the preset file it was read from: anchoring it to
+  // the document folder would name a file that has nothing to do with it.
+  if(isPresetRelativePath(filename))
+    return filename;
+
   QString path = filename;
   if(isProjectRelativePath(filename))
   {
@@ -281,6 +295,146 @@ QString relativizeFilePath(const QString& filename, const PathRoots& roots) noex
 
   // Under no root: returned as given, symlinks unresolved.
   return filename;
+}
+
+namespace
+{
+//! Calls `f` on every string of `v`, at any depth, and replaces the ones for
+//! which it returns a value. Object keys are names, not values: left alone.
+template <typename F>
+bool rewriteJsonStrings(
+    rapidjson::Value& v, rapidjson::Document::AllocatorType& alloc, const F& f)
+{
+  bool changed = false;
+  if(v.IsString())
+  {
+    const auto s = QString::fromUtf8(v.GetString(), qsizetype(v.GetStringLength()));
+    if(const std::optional<QString> res = f(s))
+    {
+      const QByteArray utf8 = res->toUtf8();
+      v.SetString(utf8.constData(), rapidjson::SizeType(utf8.size()), alloc);
+      changed = true;
+    }
+  }
+  else if(v.IsArray())
+  {
+    for(auto& e : v.GetArray())
+      changed |= rewriteJsonStrings(e, alloc, f);
+  }
+  else if(v.IsObject())
+  {
+    for(auto& m : v.GetObject())
+      changed |= rewriteJsonStrings(m.value, alloc, f);
+  }
+  return changed;
+}
+
+//! `data` with its strings rewritten by `f`, in the format score writes JSON
+//! in (the writer of JSONReader, which saves a process's controls); `data`
+//! itself, unparsed and unwritten, when `f` changes nothing.
+template <typename F>
+QByteArray rewritePresetStrings(const QByteArray& data, const F& f)
+{
+  rapidjson::Document doc;
+  doc.Parse<rapidjson::kParseNanAndInfFlag>(data.constData(), std::size_t(data.size()));
+  if(doc.HasParseError())
+    return data;
+
+  if(!rewriteJsonStrings(doc, doc.GetAllocator(), f))
+    return data;
+
+  rapidjson::StringBuffer buf;
+  ossia::json_writer w{buf};
+  doc.Accept(w);
+  return QByteArray(buf.GetString(), qsizetype(buf.GetSize()));
+}
+
+//! The folder of a preset file, lexically and with its links resolved: what
+//! lies below either of them is in it.
+struct PresetFolder
+{
+  QString lexical;
+  QString canonical;
+
+  explicit PresetFolder(const QString& presetFile)
+      : lexical{QDir::cleanPath(QFileInfo{presetFile}.absolutePath())}
+      , canonical{QFileInfo{lexical}.canonicalFilePath()}
+  {
+    if(canonical.isEmpty())
+      canonical = lexical;
+  }
+};
+}
+
+QByteArray resolvePresetPaths(
+    const QByteArray& data, const QString& presetFile, const PathRoots& roots) noexcept
+{
+  // Most presets have none: no need to parse them.
+  if(presetFile.isEmpty() || !data.contains(preset_prefix.toUtf8()))
+    return data;
+
+  const PresetFolder folder{presetFile};
+  const PathRoots library{.documentFile = {}, .library = roots.library};
+  return rewritePresetStrings(data, [&](const QString& s) -> std::optional<QString> {
+    if(!isPresetRelativePath(s))
+      return {};
+    // Written with forward slashes; a file edited by hand on Windows may not be.
+    const QString rest = s.mid(preset_prefix.size()).replace('\\', '/');
+    const QString abs = QDir::cleanPath(folder.canonical + '/' + rest);
+    return relativizeFilePath(abs, library);
+  });
+}
+
+QByteArray resolvePresetPaths(const QByteArray& data, const QString& presetFile) noexcept
+{
+  if(!data.contains(preset_prefix.toUtf8()))
+    return data;
+  return resolvePresetPaths(data, presetFile, pathRoots());
+}
+
+QByteArray relativizePresetPaths(
+    const QByteArray& data, const QString& presetFile, const PathRoots& roots) noexcept
+{
+  if(presetFile.isEmpty())
+    return data;
+
+  const PresetFolder folder{presetFile};
+  const auto relative = [](const QString& path, const QString& root) -> QString {
+    QString out = path.mid(root.size());
+    while(out.startsWith('/'))
+      out.remove(0, 1);
+    return preset_prefix + (out.isEmpty() ? QStringLiteral(".") : out);
+  };
+
+  return rewritePresetStrings(data, [&](const QString& s) -> std::optional<QString> {
+    // Only what is a path for sure: a bare word ("kick", a script's name) is
+    // a value, even if a file of that name happens to sit next to the preset.
+    // A script's source has line breaks: not a path either, and not worth
+    // asking the file system about.
+    if(s.isEmpty() || s.size() > 4096 || s.contains('\n'))
+      return {};
+    if(!isProjectRelativePath(s) && !isLibraryRelativePath(s) && !QDir::isAbsolutePath(s))
+      return {};
+    if(isRemoteUrl(s))
+      return {};
+
+    const QString path = locateFilePath(s, roots);
+    if(path.isEmpty() || !QDir::isAbsolutePath(path))
+      return {};
+    const QFileInfo info{path};
+    if(!info.exists())
+      return {};
+
+    // cleanPath has removed any "..": a path that climbs out of the folder
+    // is not in it.
+    const QString lexical = QDir::cleanPath(path);
+    if(isUnderFolder(lexical, folder.lexical))
+      return relative(lexical, folder.lexical);
+    if(const QString canonical = info.canonicalFilePath();
+       !canonical.isEmpty() && isUnderFolder(canonical, folder.canonical))
+      return relative(canonical, folder.canonical);
+    return {};
+  });
 }
 
 QString sanitizeFileName(const QString& name) noexcept

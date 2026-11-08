@@ -49,6 +49,12 @@ struct SCORE_LIB_PROCESS_EXPORT Preset
   static std::shared_ptr<Process::Preset>
   fromJson(const Process::ProcessFactoryList& procs, const QByteArray& obj) noexcept;
 
+  //! The preset stored in this file (.scp), with `path` set to it and its
+  //! <PRESET>: paths resolved against its folder: what every preset read from
+  //! disk goes through.
+  static std::shared_ptr<Process::Preset>
+  fromFile(const Process::ProcessFactoryList& procs, const QString& file) noexcept;
+
   QByteArray toJson() const noexcept;
 
   friend bool operator==(const Preset& lhs, const Preset& rhs) noexcept

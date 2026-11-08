@@ -25,32 +25,29 @@ bool DropPresetInScenario::drop(
 {
   if(isProcessesDrag(mime))
     return false;
-  QByteArray presetData;
-  QString filename;
+  auto& procs = pres.context().context.app.interfaces<Process::ProcessFactoryList>();
+  std::shared_ptr<Process::Preset> preset;
 
   if(mime.hasUrls())
   {
-    QFile f{mime.urls()[0].toLocalFile()};
-    const auto ext = QFileInfo{f}.suffix();
-    if(ext == "scp" && f.open(QIODevice::ReadOnly))
-    {
-      filename = QFileInfo{f}.fileName();
-      presetData = f.readAll();
-    }
-    else
-    {
-      // We do not want to catch every file
+    const QString file = mime.urls()[0].toLocalFile();
+    const QFileInfo info{file};
+    // We do not want to catch every file
+    if(info.suffix() != "scp" || !info.isReadable())
       return false;
-    }
+    preset = Process::Preset::fromFile(procs, file);
   }
   else if(mime.hasFormat(score::mime::processpreset()))
   {
-    presetData = mime.data(score::mime::processpreset());
+    preset = Process::Preset::fromJson(procs, mime.data(score::mime::processpreset()));
   }
   else
   {
     return false;
   }
+
+  if(!preset)
+    return true;
 
   Scenario::Command::Macro m{
       new Scenario::Command::AddProcessInNewBoxMacro, pres.context().context};
@@ -66,15 +63,10 @@ bool DropPresetInScenario::drop(
   // The box is always in the void, not after anything that would start it
   addStartOnPlayTrigger(m, Scenario::startTimeSync(interval, scenar));
 
-  auto& procs = pres.context().context.app.interfaces<Process::ProcessFactoryList>();
-
-  if(auto preset = Process::Preset::fromJson(procs, presetData))
-  {
-    m.loadProcessFromPreset(interval, *preset);
-    m.showRack(interval);
-    m.submit(new Scenario::Command::ChangeElementName{interval, preset->name});
-    m.commit();
-  }
+  m.loadProcessFromPreset(interval, *preset);
+  m.showRack(interval);
+  m.submit(new Scenario::Command::ChangeElementName{interval, preset->name});
+  m.commit();
 
   return true;
 }

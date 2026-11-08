@@ -3,6 +3,10 @@
 #include <Process/ProcessList.hpp>
 
 #include <score/serialization/JSONVisitor.hpp>
+#include <score/tools/File.hpp>
+#include <score/tools/ProjectFiles.hpp>
+
+#include <QFile>
 
 namespace Process
 {
@@ -51,6 +55,21 @@ Preset::fromJson(const ProcessFactoryList& procs, const QByteArray& obj) noexcep
     p.description = wr.obj["Description"].toString();
 
   return std::make_shared<Process::Preset>(std::move(p));
+}
+
+std::shared_ptr<Preset>
+Preset::fromFile(const ProcessFactoryList& procs, const QString& file) noexcept
+{
+  QFile f{file};
+  if(!f.open(QIODevice::ReadOnly))
+    return {};
+
+  auto p = fromJson(procs, score::mapAsByteArray(f));
+  if(!p)
+    return {};
+  p->data = score::resolvePresetPaths(p->data, file);
+  p->path = file;
+  return p;
 }
 
 QByteArray Preset::toJson() const noexcept

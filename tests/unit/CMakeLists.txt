@@ -230,6 +230,16 @@ score_add_test(test_unit_preset_step
   APP
   PLUGINS score_plugin_fx score_plugin_scenario score_lib_process)
 
+# <PRESET>: paths: a preset saved next to its sound by the library stores it
+# relative to the preset file, and the library finds it again wherever the
+# folder has been moved or copied.
+if(TARGET score_plugin_fx AND TARGET score_plugin_library)
+  score_add_test(test_unit_preset_relative_paths
+    SOURCES PresetRelativePathsTest.cpp
+    APP
+    PLUGINS score_plugin_library score_plugin_fx score_plugin_scenario score_lib_process)
+endif()
+
 # Where a downloaded package lands: unwrapping the folder archives are built
 # with, over a previous install and over entries a listing does not show.
 if(TARGET score_plugin_packagemanager)
