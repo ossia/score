@@ -145,12 +145,19 @@ void GraphicsVBoxLayout::layout()
 
 void GraphicsVBoxLayout::centerContent()
 {
+  const auto items = this->childItems();
+
+  // Items that fill the column: as wide as it, with the margin they have on
+  // its left on their right as well
+  for(auto item : items)
+    if(auto fill = dynamic_cast<FillsWidth*>(item))
+      fill->fillWidth(rect().width() - 2. * item->pos().x());
+
   // Default: against the left edge, where layout() put them
   if(!m_alignment)
     return;
 
   // In the width a parent may have stretched the column to
-  const auto items = this->childItems();
   double max_w = 0.;
   for(auto item : items)
     max_w = std::max(max_w, item->boundingRect().width());

@@ -55,6 +55,18 @@ protected:
   Qt::Alignment m_alignment{};
 };
 
+//! An item that takes the width of the column it is in (a vbox or a
+//! section), e.g. a waveform as wide as the widest row of its panel, rather
+//! than leaving the space beside it empty.
+class SCORE_LIB_BASE_EXPORT FillsWidth
+{
+public:
+  virtual ~FillsWidth();
+  //! \p width: the column's, less the item's margins. Below the item's own
+  //! smallest width, it keeps that.
+  virtual void fillWidth(qreal width) = 0;
+};
+
 //! Offset of a box of width w in a span of width avail, for the horizontal
 //! flags of a; left when none is set.
 SCORE_LIB_BASE_EXPORT

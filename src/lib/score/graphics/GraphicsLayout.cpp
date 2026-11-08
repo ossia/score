@@ -23,6 +23,8 @@ GraphicsLayout::~GraphicsLayout()
   delete m_pix;
 }
 
+FillsWidth::~FillsWidth() = default;
+
 void GraphicsLayout::layout()
 {
   //fitChildrenRect();

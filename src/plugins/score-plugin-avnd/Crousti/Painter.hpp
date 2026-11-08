@@ -1,4 +1,5 @@
 #pragma once
+#include <score/graphics/GraphicsLayout.hpp>
 #include <score/model/Skin.hpp>
 
 #include <QFlags>
@@ -410,7 +411,9 @@ struct QPainterAdapter
 static_assert(avnd::painter<QPainterAdapter>);
 
 template <typename Item, typename Control = void>
-class CustomItem : public QGraphicsItem
+class CustomItem
+    : public QGraphicsItem
+    , public score::FillsWidth
 {
 public:
   // Item may be T::item_type or T&
@@ -437,7 +440,24 @@ public:
 
   QRectF boundingRect() const override
   {
-    return {0., 0., item_type::width(), item_type::height()};
+    if constexpr(requires { item_type::width(); })
+      return {0., 0., item_type::width(), item_type::height()};
+    else
+      return {0., 0., impl.width(), item_type::height()};
+  }
+
+  //! An item with set_width(double) and a width() of its own takes the width
+  //! of its column; set_width keeps it above the item's smallest.
+  void fillWidth(qreal width) override
+  {
+    if constexpr(requires { this->impl.set_width(width); })
+    {
+      if(width == this->impl.width())
+        return;
+      this->prepareGeometryChange();
+      this->impl.set_width(width);
+      this->update();
+    }
   }
 
   //! The document the sound files drawn with draw_waveform() are looked up in.
