@@ -356,10 +356,10 @@ void ysfx_node::run(
       {
         chan.resize(estate.bufferSize(), boost::container::default_init);
       }
-      else
+      else if(chan.size() != std::size_t(estate.bufferSize()))
       {
+        // The other ticks of this buffer write the rest of it
         chan.resize(estate.bufferSize());
-        std::fill_n(chan.data(), estate.bufferSize(), 0.);
       }
       outs[i] = chan.data() + tick_start;
     }
