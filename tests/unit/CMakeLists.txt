@@ -3032,3 +3032,8 @@ foreach(_t test_unit_locate_file_path test_unit_midi_device_picker test_unit_pac
     set_property(TEST ${_t} APPEND PROPERTY RESOURCE_LOCK score_library_root)
   endif()
 endforeach()
+
+# --- score::PluginWindow, the window of every plug-in host's editor ----------
+score_add_test(test_unit_plugin_window
+  SOURCES PluginWindowTest.cpp
+  LIBS ${QT_PREFIX}::Gui ${QT_PREFIX}::Widgets)
