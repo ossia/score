@@ -95,6 +95,12 @@ struct driver
     fx.inputs.scala.update(fx);
   }
 
+  void load_mapping(std::string_view kbm)
+  {
+    fx.inputs.kbm.file.bytes = kbm;
+    fx.inputs.kbm.update(fx);
+  }
+
   void tick(int frames = 512)
   {
     fx.outputs.midi.midi_messages.clear();
@@ -416,6 +422,47 @@ TEST_CASE("Midi scaler: control changes and stop end held notes", "[midi_scaler]
   d.tick(0);
   CHECK(d.total_sounding() == 0);
   REQUIRE(d.of_kind(mtk::midi_kind::note_off).size() == 1);
+}
+
+TEST_CASE(
+    "Midi scaler: a linear keyboard mapping applies whatever its formal octave",
+    "[midi_scaler]")
+{
+  // A mapping of size 0 maps the keys one to one onto the scale degrees, so
+  // its formal octave describes no pattern; files in circulation set it to
+  // 127, as the "128.kbm" of the score examples does. Here it reaches past the
+  // 7 degrees of the scale. The reference key keeps its frequency.
+  constexpr std::string_view linear_256 = R"(! linear.kbm
+! Size:
+0
+! First and last MIDI note to retune:
+0
+127
+! Middle note:
+0
+! Reference note and its frequency:
+60
+256.0
+! Formal octave degree:
+127
+)";
+  driver d;
+  d.load_scale(pythagorean);
+  d.load_mapping(linear_256);
+  REQUIRE(d.fx.scale);
+  REQUIRE(d.fx.mapping);
+  CHECK(d.fx.mapping->octaveDegrees == 127);
+
+  d.note_on(60);
+  d.note_on(61);
+  d.note_on(63);
+  d.tick();
+  REQUIRE(d.fx.outputs.freq.value.size() == 3);
+  // Key 0 is degree 0, so key 60 is degree 4 (3/2), 61 is 27/16, 63 is the
+  // 2/1 that starts the next period.
+  CHECK(d.fx.outputs.freq.value[0] == Approx(256.).epsilon(1e-5));
+  CHECK(d.fx.outputs.freq.value[1] == Approx(256. * (27. / 16.) / (3. / 2.)).epsilon(1e-5));
+  CHECK(d.fx.outputs.freq.value[2] == Approx(256. * 2. / (3. / 2.)).epsilon(1e-5));
 }
 
 TEST_CASE("Midi scaler: MTS sysex", "[midi_scaler]")

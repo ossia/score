@@ -2121,3 +2121,13 @@ if(TARGET score_plugin_fx)
     PLUGINS score_plugin_fx score_plugin_scenario score_lib_process
             score_plugin_dataflow)
 endif()
+
+# The Midi scaler retunes notes with the project's .scl and .kbm files: its frequency
+# output, a Wavecycle's rendered pitch and its MTS data.
+if(TARGET score_plugin_avnd)
+  score_add_test(test_integration_midi_scaler_tuning
+    SOURCES MidiScalerTuningTest.cpp
+    APP
+    PLUGINS score_plugin_avnd score_plugin_dataflow score_plugin_engine
+            score_plugin_scenario score_lib_process)
+endif()
