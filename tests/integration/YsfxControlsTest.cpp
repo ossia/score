@@ -9,6 +9,8 @@
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Dataflow/WidgetInlets.hpp>
 
+#include <ossia/network/value/value_conversion.hpp>
+
 #include <QTemporaryDir>
 
 #include <YSFX/ProcessModel.hpp>
@@ -21,6 +23,7 @@ const QString ysfx_uuid = QStringLiteral("cb6b50d3-82c0-4356-a282-317da8b8022f")
 constexpr auto script = R"(desc:controls test
 slider1:0.5<0,1,0.01>Gain
 slider2:2<0,3,1{Off,Low,Mid,High}>Mode
+slider3:-1<-1,3,1{None,0,1,2,3}>Excluded
 out_pin:out
 @sample
 spl0 = slider1;
@@ -81,6 +84,73 @@ TEST_CASE(
       CHECK(slider(*p, 1) == 0.75f);
       control(*p, 2).setValue(3);
       CHECK(slider(*p, 2) == 3.);
+    }
+  });
+}
+
+TEST_CASE("a JSFX choice control starts on the slider's default", "[integration][ysfx]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    QTemporaryDir dir;
+    REQUIRE(dir.isValid());
+    const QString path = dir.filePath("controls.jsfx");
+    score::test::write_file(path, script);
+
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    auto* proc = static_cast<YSFX::ProcessModel*>(
+        score::test::add_process(*doc, ysfx_uuid, path));
+    if(!proc || !proc->fx)
+      SKIP("YSFX not built");
+
+    // slider2 defaults to its third choice, "Mid"
+    auto& mode = control(*proc, 2);
+    CHECK(ossia::convert<int>(mode.init()) == 2);
+    CHECK(ossia::convert<int>(mode.value()) == 2);
+    CHECK(slider(*proc, 2) == 2.);
+  });
+}
+
+TEST_CASE(
+    "a JSFX choice control holds a default out of its choices as the script does",
+    "[integration][ysfx]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    QTemporaryDir dir;
+    REQUIRE(dir.isValid());
+    const QString path = dir.filePath("controls.jsfx");
+    score::test::write_file(path, script);
+
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    auto* proc = static_cast<YSFX::ProcessModel*>(
+        score::test::add_process(*doc, ysfx_uuid, path));
+    if(!proc || !proc->fx)
+      SKIP("YSFX not built");
+
+    // slider3 is written <-1,3,1> with -1 for "None": its choices are 0 to 4
+    // and the script starts on -1, which none of them is
+    REQUIRE(slider(*proc, 3) == -1.);
+    auto& excluded = control(*proc, 3);
+    CHECK(ossia::convert<int>(excluded.value()) == -1);
+
+    // A preset of the process gives the script what it held
+    const auto preset = static_cast<Process::ProcessModel&>(*proc).savePreset();
+    control(*proc, 3).setValue(2);
+    REQUIRE(slider(*proc, 3) == 2.);
+    static_cast<Process::ProcessModel&>(*proc).loadPreset(preset);
+    CHECK(slider(*proc, 3) == -1.);
+    CHECK(ossia::convert<int>(control(*proc, 3).value()) == -1);
+
+    for(auto* loaded : {score::test::reload_via_json(ctx, *doc),
+                        score::test::reload_via_bytes(ctx, *doc)})
+    {
+      REQUIRE(loaded);
+      auto* p = find_ysfx(*loaded);
+      REQUIRE(p);
+      REQUIRE(p->fx);
+      CHECK(slider(*p, 3) == -1.);
+      CHECK(ossia::convert<int>(control(*p, 3).value()) == -1);
     }
   });
 }
