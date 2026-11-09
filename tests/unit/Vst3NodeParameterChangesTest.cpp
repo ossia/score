@@ -61,6 +61,8 @@ public:
   std::vector<std::vector<point>> applied;
   //! The (bus, channel) of the note-offs of each process() call
   std::vector<std::vector<std::pair<int32, int32>>> note_offs;
+  //! The project time, in samples, each process() call was given
+  std::vector<int64> project_times;
 
   tresult PLUGIN_API queryInterface(const TUID, void** obj) override
   {
@@ -126,6 +128,7 @@ public:
     auto& set = applied.emplace_back();
     had_events.push_back(data.inputEvents != nullptr);
     auto& offs = note_offs.emplace_back();
+    project_times.push_back(data.processContext ? data.processContext->projectTimeSamples : -1);
     if(auto* ev = data.inputEvents)
     {
       for(int32 i = 0; i < ev->getEventCount(); i++)
@@ -587,4 +590,23 @@ TEST_CASE(
   f.fx.events_to_send = {e};
   f.tick();
   CHECK(f.node->root_outputs()[0]->cast<ossia::midi_port>().messages.empty());
+}
+
+TEST_CASE(
+    "VST3: a block is told the position of its own first sample", "[vst3][transport]")
+{
+  fixture f;
+  // As the graph runs a node: the time it covered is accounted for after it ran
+  for(int64_t start : {0, 64, 128, 1000})
+  {
+    ossia::token_request tk;
+    tk.prev_date = ossia::time_value{start};
+    tk.date = ossia::time_value{start + 64};
+    tk.start_sample = 0;
+    tk.length_sample = 64;
+    tk.speed = 1.;
+    f.node->run(tk, ossia::exec_state_facade{&f.state});
+    f.node->process_time(tk, f.state);
+  }
+  CHECK(f.fx.project_times == std::vector<int64>{0, 64, 128, 1000});
 }
