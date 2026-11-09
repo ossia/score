@@ -175,14 +175,6 @@ public:
 
   bool currentlyReadingValues{};
 
-  struct GestureState
-  {
-    QTimer* endTimer{};
-    bool active{};
-    void* cookie{};
-  };
-  ossia::hash_map<clap_id, GestureState> gestures;
-
   void markStateDirty();
   void stateSnapshotChanged(const QByteArray& blob)
       W_SIGNAL(stateSnapshotChanged, blob);
@@ -207,7 +199,6 @@ private:
       Process::ControlOutlet* ctl);
 
   void sendParamChange(const clap_param_info_t& info, double value);
-  void endGesture(clap_id param_id, void* cookie);
 
   QTimer* m_stateDirtyTimer{};
 
