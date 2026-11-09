@@ -2280,6 +2280,11 @@ score_add_gfx_test(gpu_only_particles GfxGpuOnlyParticles.cpp)
 # input are refused (C42 points 2-5).
 score_add_gfx_test(csf_typed_attributes GfxCsfTypedAttributes.cpp)
 
+# An optional CSF attribute the upstream lacks reads its typed DEFAULT; one the
+# upstream provides reads the upstream's values, zeros included, and switching
+# between the two follows the change.
+score_add_gfx_test(csf_attribute_default GfxCsfAttributeDefault.cpp)
+
 # A CSF storage buffer too large to allocate stops the node's passes.
 score_add_gfx_test(csf_storage_too_large GfxCsfStorageTooLarge.cpp)
 

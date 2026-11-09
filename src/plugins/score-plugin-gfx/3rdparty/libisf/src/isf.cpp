@@ -13,12 +13,14 @@
 #include <fmt/format.h>
 #include <algorithm>
 #include <array>
+#include <bit>
 #include <cctype>
 #include <charconv>
 #include <cmath>
 #include <limits>
 #include <iostream>
 #include <map>
+#include <optional>
 #include <set>
 #include <sstream>
 #include <functional>
@@ -1451,6 +1453,90 @@ static void validate_attribute_types(const descriptor& d)
   }
 }
 
+// The component kind ('f', 'i' or 'u') and count of an attribute type that can
+// take a DEFAULT, or {0, 0}.
+static std::pair<char, int> attribute_default_shape(std::string_view t) noexcept
+{
+  if(t == "float")
+    return {'f', 1};
+  if(t == "int")
+    return {'i', 1};
+  if(t == "uint")
+    return {'u', 1};
+  if(t.size() == 4 && t.starts_with("vec") && t[3] >= '2' && t[3] <= '4')
+    return {'f', t[3] - '0'};
+  if(t.size() == 5 && (t[0] == 'i' || t[0] == 'u') && t.substr(1, 3) == "vec"
+     && t[4] >= '2' && t[4] <= '4')
+    return {t[0], t[4] - '0'};
+  return {0, 0};
+}
+
+// An attribute's DEFAULT: a number, or one number per component, stored as
+// the declared type's words. A read_write attribute the upstream lacks starts
+// from it and then keeps what the shader writes, as a missing one starts from
+// zeros. A number the type cannot hold exactly (a fraction
+// or an out-of-range value for int and uint, a value past float's range) is
+// refused rather than rounded.
+static std::vector<uint32_t> parse_attribute_default(
+    const geometry_input::attribute_request& ar, const sajson::value& v)
+{
+  const auto fail = [&](const std::string& why) {
+    return invalid_file{"geometry attribute \"" + ar.name + "\" DEFAULT: " + why};
+  };
+  const auto [kind, components] = attribute_default_shape(ar.type);
+  if(components == 0)
+    throw fail(
+        "only float, int and uint scalars and vectors take a DEFAULT, not \"" + ar.type
+        + "\".");
+  if((ar.access != "read_only" && ar.access != "read_write") || ar.required)
+    throw fail(
+        "a DEFAULT is what an optional attribute the shader reads holds when the "
+        "upstream lacks it: declare ACCESS read_only, read_write or gather, and "
+        "REQUIRED false.");
+
+  std::vector<double> values;
+  const auto number = [&](const sajson::value& x) {
+    if(x.get_type() != sajson::TYPE_INTEGER && x.get_type() != sajson::TYPE_DOUBLE)
+      throw fail("expected a number or an array of numbers.");
+    values.push_back(x.get_number_value());
+  };
+  if(v.get_type() == sajson::TYPE_ARRAY)
+    for(std::size_t i = 0; i < v.get_length(); i++)
+      number(v.get_array_element(i));
+  else
+    number(v);
+  if(values.size() != 1 && values.size() != std::size_t(components))
+    throw fail(
+        "expected one number or " + std::to_string(components) + ", got "
+        + std::to_string(values.size()) + ".");
+
+  std::vector<uint32_t> words(components);
+  for(int c = 0; c < components; c++)
+  {
+    const double x = values[values.size() == 1 ? 0 : c];
+    switch(kind)
+    {
+      case 'f':
+        if(!std::isfinite(x) || std::abs(x) > std::numeric_limits<float>::max())
+          throw fail(fmt::format("{} is not a float.", x));
+        words[c] = std::bit_cast<uint32_t>(float(x));
+        break;
+      case 'i':
+        if(x != std::trunc(x) || x < std::numeric_limits<int32_t>::min()
+           || x > std::numeric_limits<int32_t>::max())
+          throw fail(fmt::format("{} is not an int.", x));
+        words[c] = std::bit_cast<uint32_t>(int32_t(x));
+        break;
+      default:
+        if(x != std::trunc(x) || x < 0 || x > std::numeric_limits<uint32_t>::max())
+          throw fail(fmt::format("{} is not a uint.", x));
+        words[c] = uint32_t(x);
+        break;
+    }
+  }
+  return words;
+}
+
 static void parse_input(geometry_input& inp, const sajson::value& v)
 {
   std::size_t N = v.get_length();
@@ -1473,6 +1559,7 @@ static void parse_input(geometry_input& inp, const sajson::value& v)
             continue;
 
           geometry_input::attribute_request ar;
+          std::optional<sajson::value> default_value;
 
           for(std::size_t f = 0; f < attr_obj.get_length(); f++)
           {
@@ -1499,6 +1586,10 @@ static void parse_input(geometry_input& inp, const sajson::value& v)
             else if(fkey == "COPY_FROM")
             {
               ar.forward = parse_copy_from(fval);
+            }
+            else if(fkey == "DEFAULT")
+            {
+              default_value.emplace(fval);
             }
           }
 
@@ -1540,6 +1631,9 @@ static void parse_input(geometry_input& inp, const sajson::value& v)
           // Default semantic to the attribute name if not specified
           if(ar.semantic.empty())
             ar.semantic = ar.name;
+
+          if(default_value)
+            ar.default_value = parse_attribute_default(ar, *default_value);
 
           inp.attributes.push_back(std::move(ar));
         }
@@ -5782,12 +5876,22 @@ void parser::parse_raw_raster_pipeline()
   // A vertex stage reads interleaved attributes in place through its vertex
   // inputs: ATTRIBUTES already do what COLUMNS do in a compute shader.
   for(const auto& inp : m_desc.inputs)
-    if(auto* geo = ossia::get_if<geometry_input>(&inp.data); geo && !geo->columns.empty())
+  {
+    auto* geo = ossia::get_if<geometry_input>(&inp.data);
+    if(!geo)
+      continue;
+    if(!geo->columns.empty())
       throw invalid_file{
           "geometry \"" + inp.name
           + "\": COLUMNS are read by compute shaders. A render pipeline reads "
             "the same attributes in place as vertex inputs: declare them in "
             "ATTRIBUTES."};
+    for(const auto& attr : geo->attributes)
+      if(!attr.default_value.empty())
+        throw invalid_file{
+            "geometry \"" + inp.name + "\" attribute \"" + attr.name
+            + "\": DEFAULT is only supported in compute shaders."};
+  }
 
   std::string& fragWithoutISF = m_sourceFragment;
   fragWithoutISF.erase(0, end + 2);
@@ -7785,6 +7889,24 @@ std::string parser::write_isf() const
                 oss << ", \"RATE\": \"" << escape_json(attr.rate) << "\"";
               if(!attr.required)
                 oss << ", \"REQUIRED\": false";
+              if(!attr.default_value.empty())
+              {
+                const char kind = attribute_default_shape(attr.type).first;
+                oss << ", \"DEFAULT\": [";
+                for(std::size_t c = 0; c < attr.default_value.size(); c++)
+                {
+                  const uint32_t w = attr.default_value[c];
+                  if(c > 0)
+                    oss << ", ";
+                  if(kind == 'f')
+                    oss << fmt::format("{}", std::bit_cast<float>(w));
+                  else if(kind == 'i')
+                    oss << std::bit_cast<int32_t>(w);
+                  else
+                    oss << w;
+                }
+                oss << "]";
+              }
               oss << "}";
               if(i < geo.attributes.size() - 1)
                 oss << ",";

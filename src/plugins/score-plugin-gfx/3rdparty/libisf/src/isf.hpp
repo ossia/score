@@ -357,6 +357,12 @@ struct geometry_input
     std::string rate;     // "vertex" (default) or "instance"
     bool required{true};  // false = optional, zero fallback if missing
 
+    // DEFAULT: what an optional attribute the shader reads holds where the
+    // upstream lacks it, one 32-bit word per component of the declared type,
+    // in that type's own representation (float, int or uint bits). Empty:
+    // zeros. A read_write one starts from it and keeps what the shader writes.
+    std::vector<uint32_t> default_value;
+
     // ACCESS "gather": read_write, and the shader reads indices other than its
     // own invocation's. Those reads must not observe this dispatch's writes, so
     // _in and _out become two buffers and the engine keeps them apart -- a

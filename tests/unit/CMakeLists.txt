@@ -2782,6 +2782,14 @@ if(TARGET score_plugin_gfx)
     LIBS ${QT_PREFIX}::Gui)
 endif()
 
+# A CSF geometry attribute's DEFAULT is stored as its declared type's words;
+# values the type cannot hold and non-optional attributes are refused. Pure CPU.
+if(TARGET score_plugin_gfx)
+  score_add_test(test_unit_csf_attribute_default
+    SOURCES CsfAttributeDefaultTest.cpp
+    PLUGINS score_plugin_gfx)
+endif()
+
 # The ISF drop handler leaves .glsl to geometry filters and includes (F01).
 if(TARGET score_plugin_gfx)
   score_add_test(test_unit_shader_drop_extensions
