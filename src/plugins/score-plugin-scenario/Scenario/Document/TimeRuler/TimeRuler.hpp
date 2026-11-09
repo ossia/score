@@ -115,6 +115,23 @@ private:
   std::deque<std::pair<std::chrono::nanoseconds, QGlyphRun>> m_stringCache;
 };
 
+//! How the time ruler divides time at a zoom level.
+struct TimeRulerGraduations
+{
+  //! Pixels between two ticks.
+  double spacing{};
+  //! Milliseconds between two ticks.
+  double delta{};
+  //! Ticks from one label to the next.
+  int marksEvery{};
+  TimeRuler::Format format{};
+};
+
+//! The graduations at `pixelsPerSecond`; no ticks (spacing 0) when it is not a
+//! positive finite number.
+SCORE_PLUGIN_SCENARIO_EXPORT
+TimeRulerGraduations timeRulerGraduations(double pixelsPerSecond) noexcept;
+
 class MusicalRuler final : public TimeRulerBase
 {
   Q_INTERFACES(QGraphicsItem)

@@ -202,13 +202,13 @@ static const constexpr std::array<std::pair<double, std::chrono::nanoseconds>, 3
         {200000, std::chrono::microseconds(50)},
         {500000, std::chrono::microseconds(20)},
 
-        {1000000, std::chrono::nanoseconds(1000)},
-        {2000000, std::chrono::nanoseconds(500)},
-        {5000000, std::chrono::nanoseconds(200)},
+        {1000000, std::chrono::nanoseconds(10000)},
+        {2000000, std::chrono::nanoseconds(5000)},
+        {5000000, std::chrono::nanoseconds(2000)},
 
-        {10000000, std::chrono::nanoseconds(100)},
-        {20000000, std::chrono::nanoseconds(50)},
-        {50000000, std::chrono::nanoseconds(20)},
+        {10000000, std::chrono::nanoseconds(1000)},
+        {20000000, std::chrono::nanoseconds(500)},
+        {50000000, std::chrono::nanoseconds(200)},
     }};
 
 void TimeRulerBase::setWidth(qreal newWidth)
@@ -317,48 +317,66 @@ void TimeRuler::setZoomRatio(double factor)
   }
 }
 
-void TimeRuler::computeGraduationSpacing()
+TimeRulerGraduations timeRulerGraduations(double pixPerSec) noexcept
 {
-  double pixPerSec = 1000. * m_pixelPerMillis;
-  m_graduationsSpacing = pixPerSec;
+  if(!(pixPerSec > 0.) || !std::isfinite(pixPerSec))
+    return {0., 0., 1, TimeRuler::Format::Seconds};
 
-  m_graduationDelta = 100.;
-  m_intervalsBetweenMark = 5;
-
-  int i = 0;
+  // Each row holds from its own threshold up to the next one, the last one
+  // up from its threshold: every positive zoom has a row.
   const constexpr int n = std::ssize(graduations);
-  for(i = 0; i < n - 1; i++)
+  int i = n - 1;
+  while(i > 0 && pixPerSec < graduations[i].first)
+    i--;
+
+  TimeRulerGraduations res;
+  res.delta = graduations[i].second.count() / 1e6;
+  res.spacing = pixPerSec * res.delta / 1e3;
+
+  // Below the first threshold the ticks of the first row would close up:
+  // longer ones, still whole minutes.
+  while(res.spacing < 10.)
   {
-    if(pixPerSec > graduations[i].first && pixPerSec < graduations[i + 1].first)
-    {
-      m_graduationDelta = graduations[i].second.count() / double(1e6);
-      m_graduationsSpacing = pixPerSec * graduations[i].second.count() / double(1e9);
-      break;
-    }
+    res.delta *= 2.;
+    res.spacing *= 2.;
+    // Past centuries between two ticks the nanoseconds of a tick overflow.
+    if(res.delta > 1e12)
+      return {0., 0., 1, TimeRuler::Format::Hours};
   }
 
-  auto oldFormat = m_timeFormat;
   if(i > 17)
   {
-    m_timeFormat = Format::Microseconds;
-    m_intervalsBetweenMark = 10;
+    res.format = TimeRuler::Format::Microseconds;
+    res.marksEvery = 10;
   }
   else if(i > 7)
   {
-    m_timeFormat = Format::Milliseconds;
-    m_intervalsBetweenMark = 10;
+    res.format = TimeRuler::Format::Milliseconds;
+    res.marksEvery = 10;
   }
   else if(i >= 1)
   {
-    m_timeFormat = Format::Seconds;
+    res.format = TimeRuler::Format::Seconds;
+    res.marksEvery = 5;
   }
   else
   {
-    m_timeFormat = Format::Hours;
+    res.format = TimeRuler::Format::Hours;
+    res.marksEvery = 5;
   }
+  return res;
+}
 
-  if(oldFormat != m_timeFormat)
+void TimeRuler::computeGraduationSpacing()
+{
+  const auto g = timeRulerGraduations(1000. * m_pixelPerMillis);
+  m_graduationsSpacing = g.spacing;
+  m_graduationDelta = g.delta;
+  m_intervalsBetweenMark = g.marksEvery;
+
+  if(g.format != m_timeFormat)
     m_stringCache.clear();
+  m_timeFormat = g.format;
 
   createRulerPath();
 }
@@ -370,7 +388,7 @@ void TimeRuler::createRulerPath()
 
   m_path.clear();
 
-  if(m_width == 0)
+  if(m_width == 0 || m_graduationsSpacing <= 0.)
   {
     update();
     return;

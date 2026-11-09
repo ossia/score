@@ -1153,6 +1153,12 @@ score_add_test(test_unit_musical_grid
   APP
   PLUGINS score_plugin_scenario)
 
+# The time ruler's ticks are a few pixels apart and labelled with their time at
+# every zoom, on its graduation thresholds too.
+score_add_test(test_unit_time_ruler
+  SOURCES TimeRulerTest.cpp
+  PLUGINS score_plugin_scenario)
+
 # --- PipeWire quantum handling ---------------------------------------------
 # Only built where pipewire headers are available (pipewire::pipewire is
 # created by libossia's deps when they are found).
