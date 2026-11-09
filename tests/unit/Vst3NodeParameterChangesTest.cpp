@@ -21,6 +21,7 @@
 #include <pluginterfaces/vst/ivsteditcontroller.h>
 
 #include <map>
+#include <set>
 #include <vector>
 
 namespace
@@ -54,6 +55,8 @@ public:
   //! The values each process() call set its parameters to, read as JUCE's
   //! wrapper reads them: the last point of every queue it is given
   std::vector<std::vector<point>> applied;
+  //! The (bus, channel) of the note-offs of each process() call
+  std::vector<std::vector<std::pair<int32, int32>>> note_offs;
 
   tresult PLUGIN_API queryInterface(const TUID, void** obj) override
   {
@@ -116,6 +119,16 @@ public:
     auto& block = received.emplace_back();
     auto& set = applied.emplace_back();
     had_events.push_back(data.inputEvents != nullptr);
+    auto& offs = note_offs.emplace_back();
+    if(auto* ev = data.inputEvents)
+    {
+      for(int32 i = 0; i < ev->getEventCount(); i++)
+      {
+        Event e{};
+        if(ev->getEvent(i, e) == kResultOk && e.type == Event::kNoteOffEvent)
+          offs.emplace_back(e.busIndex, e.noteOff.channel);
+      }
+    }
     if(auto* in = data.inputParameterChanges)
     {
       for(int32 i = 0; i < in->getParameterCount(); i++)
@@ -496,4 +509,21 @@ TEST_CASE(
   // processor: the value the host sent last must not undo that
   f.tick();
   CHECK(f.fx.applied.back().empty());
+}
+
+TEST_CASE(
+    "VST3: a stop sends notes off on every event input, on valid channels",
+    "[vst3][midi]")
+{
+  fixture f{{}, 3};
+  f.node->all_notes_off();
+  REQUIRE(f.fx.note_offs.size() == 1);
+  std::set<int32> buses;
+  for(auto [bus, channel] : f.fx.note_offs.back())
+  {
+    buses.insert(bus);
+    CHECK(channel >= 0);
+    CHECK(channel < 16);
+  }
+  CHECK(buses == std::set<int32>{0, 1, 2});
 }
