@@ -35,6 +35,7 @@
 #include <libremidi/detail/conversion.hpp>
 
 #include <algorithm>
+#include <limits>
 #include <vector>
 
 namespace YSFX
@@ -57,7 +58,10 @@ public:
 
   void all_notes_off() noexcept override;
   void release_notes() noexcept;
-  void stash_midi() noexcept;
+  //! The events of the input this tick takes, [from; to[ in the buffer
+  std::pair<int64_t, int64_t>
+  midi_span(ossia::exec_state_facade estate, int64_t tick_start, int64_t d) noexcept;
+  void stash_midi(int64_t from, int64_t to) noexcept;
   void clear() noexcept override
   {
     graph_node::clear();
@@ -74,6 +78,12 @@ public:
   //! Events from ticks that covered no whole sample, waiting for the next block
   //! that does cover one.
   ossia::small_vector<libremidi::ump, 8> m_deferred_midi;
+  //! Every tick of a buffer sees all of the buffer's events: the buffer the
+  //! last tick was in, where it started, and up to where it took them
+  int64_t m_midiBuffer{-1};
+  int64_t m_midiTickStart{};
+  int64_t m_midiFrom{};
+  bool m_midiTickEmpty{};
   ossia::midi_outlet* midi_out{};
   ossia::audio_outlet* audio_out{};
   //! One port per control of the process, in the same order; slider_index is
@@ -289,11 +299,12 @@ void ysfx_node::run(
   auto y = this->fx.get();
 
   const auto [tick_start, d] = estate.timings(tk);
+  const auto [midi_from, midi_to] = midi_span(estate, tick_start, d);
   if(d <= 0)
   {
     // Nothing to render, but the tick's events still belong to the sample the
     // span starts on, which is offset 0 of the next block that covers one.
-    stash_midi();
+    stash_midi(midi_from, midi_to);
     return;
   }
 
@@ -301,7 +312,7 @@ void ysfx_node::run(
   // this tick is silent, its events go to the next one.
   if(!m_guard->try_enter())
   {
-    stash_midi();
+    stash_midi(midi_from, midi_to);
     if(audio_out)
       for(auto& chan : audio_out->data)
       {
@@ -405,9 +416,10 @@ void ysfx_node::run(
       for(const auto& mess : m_deferred_midi)
         to_send.push_back({&mess, 0});
       for(const auto& mess : msgs)
-        to_send.push_back(
-            {&mess,
-             std::clamp<int64_t>(mess.timestamp - tick_start, 0, d > 0 ? d - 1 : 0)});
+        if(mess.timestamp >= midi_from && mess.timestamp < midi_to)
+          to_send.push_back(
+              {&mess,
+               std::clamp<int64_t>(mess.timestamp - tick_start, 0, d > 0 ? d - 1 : 0)});
 
       // alloca is function-scoped
       auto msg_space
@@ -460,7 +472,29 @@ void ysfx_node::run(
   }
 }
 
-void ysfx_node::stash_midi() noexcept
+std::pair<int64_t, int64_t> ysfx_node::midi_span(
+    ossia::exec_state_facade estate, int64_t tick_start, int64_t d) noexcept
+{
+  // The ticks of a buffer come in order and do not overlap: each takes the
+  // events from where the one before it ended, and the first one of a buffer
+  // also those before it, which no tick of this node covers. A tick that
+  // covers no sample takes those of the sample it is on.
+  const int64_t buffer = estate.samplesSinceStart();
+  const bool new_buffer
+      = buffer != m_midiBuffer || tick_start < m_midiTickStart
+        || (tick_start == m_midiTickStart && !m_midiTickEmpty);
+  if(new_buffer)
+    m_midiFrom = std::numeric_limits<int64_t>::min();
+  m_midiBuffer = buffer;
+  m_midiTickStart = tick_start;
+  m_midiTickEmpty = d <= 0;
+
+  const int64_t from = m_midiFrom;
+  m_midiFrom = tick_start + std::max<int64_t>(d, 1);
+  return {from, m_midiFrom};
+}
+
+void ysfx_node::stash_midi(int64_t from, int64_t to) noexcept
 {
   if(!this->midi_in)
     return;
@@ -468,7 +502,8 @@ void ysfx_node::stash_midi() noexcept
   {
     if(m_deferred_midi.size() >= 1024)
       break;
-    m_deferred_midi.push_back(mess);
+    if(mess.timestamp >= from && mess.timestamp < to)
+      m_deferred_midi.push_back(mess);
   }
 }
 
