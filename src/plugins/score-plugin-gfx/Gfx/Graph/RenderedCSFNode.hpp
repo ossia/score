@@ -385,9 +385,46 @@ private:
     std::vector<AttributeSSBO> attribute_ssbos;
     std::vector<AuxiliarySSBO> auxiliary_ssbos;
     std::vector<AuxiliaryTexture> auxiliary_textures;
+
+    //! A RUNTIME geometry's two bindings (isf.cpp runtime_accessors).
+    struct RuntimeSlot
+    {
+      QRhiBuffer* buffer{};
+      int64_t size{};
+      bool owned{true};
+      QRhiBuffer* restore_source{};
+      int64_t restore_offset{};
+      int64_t restore_size{};
+      bool restore_seen{false};
+    };
+    bool runtime{false};
+    //! Owned: the header, presence words and draw records. The upstream's GPU
+    //! draw records and GPU draw count are copied into it before the passes.
+    RuntimeSlot runtime_info;
+    //! The upstream's index buffer, borrowed, or an owned copy: CPU data
+    //! uploaded when it changes, a GPU buffer the shader cannot bind copied
+    //! every frame. Empty without one; runtime_info is bound in its place.
+    RuntimeSlot runtime_index;
+    //! The words runtime_info last received from the CPU.
+    std::vector<uint32_t> runtime_words;
+    //! Adopted GPU sources copied into runtime_info: draw records (to the
+    //! record area, runtime_draw_bytes of them) and draw count (to word 5).
+    QRhiBuffer* runtime_draw_source{};
+    int64_t runtime_draw_bytes{};
+    int64_t runtime_draw_offset{};
+    QRhiBuffer* runtime_count_source{};
+    int64_t runtime_count_offset{};
+    //! The CPU index data runtime_index holds.
+    const void* runtime_index_data{};
+    int64_t runtime_index_bytes{};
+
     std::string input_name;    // RESOURCES[].NAME (e.g. "geoIn", "geoOut") — used by PER_VERTEX/PER_INSTANCE TARGET filtering
     int vertex_count{0};       // Number of elements (vertices) in the geometry
     int instance_count{1};      // Number of instances
+    //! $ELEMENT_COUNT_ / $TRIANGLE_COUNT_: what the draws can reach, as far
+    //! as the CPU knows (drawCapacity in RenderedCSFNode.cpp).
+    int element_count{0};
+    int triangle_count{0};
     int input_port_index{-1};   // Input port index for this binding (-1 = no input port, e.g. write_only generator)
     int outlet_index{-1};       // Geometry outlet this binding publishes on (-1 = none)
     //! Whether the input port's upstream is downstream of this node, as of
@@ -466,6 +503,12 @@ private:
   void resolveColumns(
       RenderList& renderer, QRhiResourceUpdateBatch& res, GeometryBinding& binding,
       const isf::geometry_input& geo, const ossia::geometry* mesh);
+  //! Fills the RUNTIME bindings of `binding` from `mesh` (nullptr: no upstream).
+  void resolveRuntime(
+      RenderList& renderer, QRhiResourceUpdateBatch& res, GeometryBinding& binding,
+      const isf::geometry_input& geo, const ossia::geometry* mesh);
+  //! The words resolveRuntime builds, kept for its capacity.
+  std::vector<uint32_t> m_runtimeScratch;
 
   // The meshes after the first of a multi-mesh upstream. Each one runs the
   // passes over its own geometry bindings and SRBs, which are swapped in
