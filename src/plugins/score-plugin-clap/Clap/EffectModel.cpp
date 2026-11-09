@@ -1538,6 +1538,11 @@ void Model::createControls(bool loading)
       {
         if(info.flags & CLAP_PARAM_IS_HIDDEN)
           continue;
+        // A control finds its parameter by its rank among the writable
+        // parameters, an outlet among the read-only ones
+        const int index = int(
+            info.flags & CLAP_PARAM_IS_READONLY ? m_plugin->m_parameters_outs.size()
+                                                : m_plugin->m_parameters_ins.size());
         if(!(info.flags & CLAP_PARAM_IS_READONLY))
         {
           if(!loading)
@@ -1552,14 +1557,14 @@ void Model::createControls(bool loading)
               inlet = new Process::FloatSlider(
                   param_name, Id<Process::Port>(getStrongId(m_inlets)), this);
 
-            setupControlInlet(*params, info, i, inlet);
+            setupControlInlet(*params, info, index, inlet);
 
             m_inlets.push_back(inlet);
           }
           else
           {
             setupControlInlet(
-                *params, info, i,
+                *params, info, index,
                 qobject_cast<Process::ControlInlet*>(m_inlets[cur_inlet]));
           }
 
@@ -1577,14 +1582,14 @@ void Model::createControls(bool loading)
             port = new Process::Bargraph(
                 param_name, Id<Process::Port>(getStrongId(m_outlets)), this);
 
-            setupControlOutlet(*params, info, i, port);
+            setupControlOutlet(*params, info, index, port);
 
             m_outlets.push_back(port);
           }
           else
           {
             setupControlOutlet(
-                *params, info, i,
+                *params, info, index,
                 qobject_cast<Process::ControlOutlet*>(m_outlets[cur_outlet]));
           }
 
