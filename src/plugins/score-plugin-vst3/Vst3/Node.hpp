@@ -224,7 +224,6 @@ protected:
       const auto idx = m_inputChanges.queues.size();
       m_inputChanges.queues.emplace_back(pid);
       queue_map[pid] = idx;
-      m_midi_only_queues.push_back(idx);
     }
   }
 
@@ -246,11 +245,6 @@ protected:
 
   ossia::hash_map<Steinberg::Vst::ParamID, std::size_t> queue_map;
 
-  //! Queues that exist only to carry MIDI controllers. Nothing else clears
-  //! them - setControls() only touches the ones a control port backs - so
-  //! dispatchMidi has to, or points accumulate block after block.
-  ossia::small_vector<std::size_t, 8> m_midi_only_queues;
-
 public:
   ossia::small_vector<vst_control, 16> controls;
 
@@ -261,14 +255,10 @@ public:
 
     // The parameter may already own a queue because it is MIDI-mapped too.
     // Reuse it, so a controller and the automation port for the same id do not
-    // write to two queues the plug-in then sees as conflicting. Ownership of
-    // the per-block clearing passes to setControls().
+    // write to two queues the plug-in then sees as conflicting.
     if(auto it = queue_map.find(id); it != queue_map.end())
     {
       const auto queue_idx = it->second;
-      m_midi_only_queues.erase(
-          std::remove(m_midi_only_queues.begin(), m_midi_only_queues.end(), queue_idx),
-          m_midi_only_queues.end());
       this->m_inputChanges.queues[queue_idx].lastValue = v;
       controls.push_back({id, queue_idx, inlet->target<ossia::value_port>()});
       root_inputs().push_back(std::move(inlet));
@@ -286,7 +276,8 @@ public:
     return queue_idx;
   }
 
-  // Used when a control is changed from the ui.
+  //! A control changed from the UI, applied from the execution queue: it
+  //! reaches the plug-in in the next block that runs.
   void set_control(std::size_t queue_idx, float value)
   {
     auto& queue = this->m_inputChanges.queues[queue_idx];
@@ -318,9 +309,6 @@ public:
     m_inputEvents.clear();
     m_sysexArena.clear();
     m_outputEvents.clear();
-
-    for(auto idx : m_midi_only_queues)
-      m_inputChanges.queues[idx].data.clear();
 
     int k = 0;
     int audioBusCount = std::ssize(m_audioInputChannels);
@@ -495,6 +483,17 @@ public:
           break;
       }
     }
+  }
+
+  //! A parameter change is delivered in the process() call that follows it,
+  //! and in that one only: the plug-in must not see it again in the next
+  //! blocks. A DPF plug-in turns a change of its program parameter into a
+  //! MIDI program change, so a change it kept seeing would reload the program
+  //! every block, undoing any program picked in its own editor.
+  void clearInputChanges() noexcept
+  {
+    for(auto& queue : m_inputChanges.queues)
+      queue.data.clear();
   }
 
   void readbackMidi(int64_t tick_start)
@@ -743,6 +742,7 @@ public:
         }
 
         fx.processor->process(dat);
+        this->clearInputChanges();
       }
     }
   }
@@ -774,6 +774,7 @@ public:
         processFloat(tick_start, samples, st.bufferSize());
       }
 
+      this->clearInputChanges();
       this->readbackMidi(tick_start);
     }
   }

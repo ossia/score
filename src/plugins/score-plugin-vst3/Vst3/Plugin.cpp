@@ -358,6 +358,4 @@ void Plugin::stop()
   }
 }
 
-Plugin::~Plugin() { }
-
 }

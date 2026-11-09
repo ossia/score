@@ -1271,6 +1271,15 @@ if(TARGET score_plugin_vst3)
     LIBS sdk_common)
   target_include_directories(test_unit_vst3_midi_events PRIVATE
     "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-vst3")
+
+  # The parameter changes the node gives a plug-in reach it in one block, and
+  # the ones the plug-in gives back do not pile up.
+  score_add_test(test_unit_vst3_node_parameter_changes
+    SOURCES Vst3NodeParameterChangesTest.cpp
+    PLUGINS score_plugin_vst3 score_lib_process
+    LIBS sdk_common sdk_hosting)
+  target_include_directories(test_unit_vst3_node_parameter_changes PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-vst3")
 endif()
 
 if(TARGET score_plugin_clap)

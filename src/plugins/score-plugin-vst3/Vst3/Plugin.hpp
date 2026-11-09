@@ -54,7 +54,7 @@ struct Plugin
   Plugin& operator=(const Plugin&) = default;
   Plugin& operator=(Plugin&&) = default;
 
-  ~Plugin();
+  ~Plugin() = default;
 
   void load(
       Model& model, ApplicationPlugin& ctx, const std::string& path,
