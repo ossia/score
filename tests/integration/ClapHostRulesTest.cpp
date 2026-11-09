@@ -216,3 +216,32 @@ TEST_CASE(
     CHECK(report().gestures == 0);
   });
 }
+
+TEST_CASE(
+    "CLAP: a rescan of the parameters' information keeps a plug-in with hidden ones",
+    "[integration][clap][params]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    auto& proc = *add_mono_gain(*doc);
+
+    // A plug-in whose parameters changed is told so in a warning
+    static std::atomic<int> layout_changes{};
+    static QtMessageHandler previous{};
+    layout_changes = 0;
+    previous = qInstallMessageHandler(
+        [](QtMsgType t, const QMessageLogContext& c, const QString& msg) {
+      if(msg.contains(QStringLiteral("parameter layout changed")))
+        layout_changes++;
+      if(previous)
+        previous(t, c, msg);
+    });
+
+    plugin_function<void(const clap_plugin_t*, uint32_t)>("clap_mono_gain_rescan")(
+        proc.handle()->plugin, CLAP_PARAM_RESCAN_INFO);
+    spin(50);
+    qInstallMessageHandler(previous);
+    CHECK(layout_changes == 0);
+  });
+}

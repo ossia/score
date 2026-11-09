@@ -2001,12 +2001,8 @@ bool Model::refreshParamInfoIfStable()
   if(!params || !params->count || !params->get_info)
     return true;
 
+  // The hidden parameters have no port: only the shown ones are compared
   const uint32_t new_count = params->count(plugin);
-  const std::size_t old_count
-      = m_plugin->m_parameters_ins.size() + m_plugin->m_parameters_outs.size();
-  if(new_count != old_count)
-    return false;
-
   std::size_t in_idx = 0, out_idx = 0;
   for(uint32_t i = 0; i < new_count; ++i)
   {
