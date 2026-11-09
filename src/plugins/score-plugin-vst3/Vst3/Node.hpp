@@ -522,7 +522,9 @@ public:
       queue.lastValue = value;
     };
 
-    VstEvent e;
+    // Every field the plug-in may read has a value: the flags, a note's
+    // length, which a plug-in may take as when to end it
+    VstEvent e{};
     e.busIndex = index;
     e.sampleOffset = 0;
     e.ppqPosition = 0; // FIXME
@@ -871,7 +873,7 @@ public:
         for(int i = 0; i <= 127; i++)
         {
           using VstEvent = Steinberg::Vst::Event;
-          VstEvent e;
+          VstEvent e{};
           e.busIndex = bus;
           e.sampleOffset = 0;
           e.ppqPosition = 0; // FIXME
