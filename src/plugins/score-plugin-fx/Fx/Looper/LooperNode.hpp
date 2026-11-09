@@ -225,6 +225,12 @@ protected:
   {
     return pass_open() ? stack().redoes_action() : stack().can_redo();
   }
+  //! Where the passes and the actions undo goes back through are.
+  Looper::undo_mark undo_mark() const noexcept
+  {
+    const auto& st = stack();
+    return {.group = st.group, .done = st.done, .count = st.count};
+  }
 
   //! Something comes in for the pass being taken in: a pass still waiting
   //! for it becomes a layer, from where the overdub began.
@@ -518,10 +524,11 @@ void looper_node<Node>::apply_buttons()
 
   if(in.undo.value || in.redo.value)
     m_switches.soloed.forget();
-  if(in.undo.value)
+  // An m, an x or a layer action still waiting for the grid was done last:
+  // undo takes it back first. While a pass is taken in, undo drops it, unless
+  // what was done last is an action, done since it started.
+  if(in.undo.value && !m_switches.withdraw_last(undo_mark()))
   {
-    // While a pass is taken in, undo drops it, unless what was done last is
-    // an action, done since it started.
     if(pass_open() && !stack().undoes_action())
       drop_taken_pass();
     else
@@ -531,7 +538,9 @@ void looper_node<Node>::apply_buttons()
     }
   }
 
-  if(in.redo.value && may_redo())
+  if(in.redo.value && m_switches.may_press_again(undo_mark()))
+    m_switches.press_again(transport);
+  else if(in.redo.value && may_redo())
   {
     passes_changing();
     const auto step = stack().redo();
@@ -550,6 +559,7 @@ template <typename Node>
 void looper_node<Node>::clear_loop()
 {
   m_switches.soloed.forget();
+  m_switches.withdrawn_count = 0;
   passes_changing();
   self().cleared();
   stack().clear();
@@ -1172,7 +1182,9 @@ void looper_node<Node>::fill_view(Looper::view_message& v) const noexcept
   v.requested = int(transport.quantizedPlayMode);
   v.wanted = int(m_mode);
   v.layers = st.count;
-  v.redo = may_redo() ? std::max(1, st.total - st.count) : 0;
+  v.redo = may_redo() ? std::max(1, st.total - st.count)
+           : m_switches.may_press_again(undo_mark()) ? 1
+                                                      : 0;
   v.full = self().view_full();
   v.length_seconds = float(st.length / m_rate);
   v.position

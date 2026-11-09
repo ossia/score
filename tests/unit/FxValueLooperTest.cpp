@@ -1291,3 +1291,47 @@ TEST_CASE("Value looper: the values of an erased pass make room for new ones onc
   CHECK(!add(max + 1));
   CHECK(l.full);
 }
+
+// Erasing and undoing, by the x of a lane and by Layer and Erase layer, the
+// same scenarios for the three loopers.
+TEST_CASE("Value looper switches: Undo brings an erased layer back, Redo erases it again",
+          "[fx][values][looper][switches][undo]")
+{
+  for(const bool by_x : {true, false})
+    DYNAMIC_SECTION((by_x ? "the x" : "Erase layer"))
+    {
+      switches_harness h;
+      looper_switches::erase_undo(h, by_x);
+    }
+}
+
+TEST_CASE("Value looper switches: Undo takes back an erase still waiting for the grid",
+          "[fx][values][looper][switches][undo]")
+{
+  for(const bool by_x : {true, false})
+    DYNAMIC_SECTION((by_x ? "the x" : "Erase layer"))
+    {
+      switches_harness h;
+      looper_switches::undo_waiting_erase(h, by_x);
+    }
+}
+
+TEST_CASE("Value looper switches: erase and Undo while stopped", "[fx][values][looper][switches][undo]")
+{
+  for(const bool by_x : {true, false})
+    DYNAMIC_SECTION((by_x ? "the x" : "Erase layer"))
+    {
+      switches_harness h;
+      looper_switches::erase_undo_stopped(h, by_x);
+    }
+}
+
+TEST_CASE("Value looper switches: erase and Undo while overdubbing", "[fx][values][looper][switches][undo]")
+{
+  for(const bool by_x : {true, false})
+    DYNAMIC_SECTION((by_x ? "the x" : "Erase layer"))
+    {
+      switches_harness h;
+      looper_switches::erase_undo_overdubbing(h, by_x);
+    }
+}

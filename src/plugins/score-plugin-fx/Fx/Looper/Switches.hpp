@@ -527,10 +527,24 @@ struct layer_action
   int8_t muted{-1};
 };
 
+//! Where the passes and what undo goes back through are: what was undone
+//! is to be done again from there only. `group` counts the actions done.
+struct undo_mark
+{
+  uint32_t group{};
+  int done{};
+  int count{};
+  bool operator==(const undo_mark&) const noexcept = default;
+};
+
 /**
  * The actions of the Switches tab, read each tick. What changes what is
  * heard waits for the grid point, the transport calling looper_point();
  * selecting a layer is done at once.
+ *
+ * A layer action waiting for the grid is the last thing done to the layers:
+ * Undo takes it back before anything the passes went through, and Redo
+ * presses it again, to wait for the grid once more.
  */
 struct switches
 {
@@ -542,18 +556,55 @@ struct switches
   solo_memory soloed;
   //! Passes when Layer was last made to follow them.
   int seen_passes{};
+  //! The actions Undo took back before their grid point, the one Redo
+  //! presses again first at the end, and where the passes were then.
+  std::array<layer_action, max_actions> withdrawn{};
+  int withdrawn_count{};
+  undo_mark withdrawn_at{};
 
   void reset() noexcept
   {
     action_count = 0;
+    withdrawn_count = 0;
     reverse = false;
     speed.reset();
   }
 
+  //! A new action: what Undo took back before the grid cannot be done again.
   void add(layer_action a, transport& t) noexcept
   {
+    withdrawn_count = 0;
     if(action_count < max_actions)
       actions[action_count++] = a;
+    t.request_point();
+  }
+
+  //! Undo: the action pressed last, if it still waits for the grid, is not
+  //! to be done. False when none waits.
+  bool withdraw_last(undo_mark at) noexcept
+  {
+    if(action_count == 0)
+      return false;
+    if(withdrawn_count > 0 && !(withdrawn_at == at))
+      withdrawn_count = 0;
+    withdrawn_at = at;
+    const auto a = actions[std::size_t(--action_count)];
+    if(withdrawn_count < max_actions)
+      withdrawn[std::size_t(withdrawn_count++)] = a;
+    return true;
+  }
+
+  //! Redo presses again what Undo took back last before its grid point, when
+  //! the passes are where they were then.
+  bool may_press_again(undo_mark now) const noexcept
+  {
+    return withdrawn_count > 0 && withdrawn_at == now;
+  }
+  void press_again(transport& t) noexcept
+  {
+    const auto a = withdrawn[std::size_t(--withdrawn_count)];
+    if(action_count < max_actions)
+      actions[std::size_t(action_count++)] = a;
     t.request_point();
   }
 

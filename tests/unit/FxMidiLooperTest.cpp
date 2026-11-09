@@ -3704,3 +3704,47 @@ TEST_CASE("MIDI looper: a held key outlasts the notes played over it before the 
   CHECK(h.node.loop.notes[0].start == 0);
   CHECK(h.node.loop.notes[0].length >= 128);
 }
+
+// Erasing and undoing, by the x of a lane and by Layer and Erase layer, the
+// same scenarios for the three loopers.
+TEST_CASE("MIDI looper switches: Undo brings an erased layer back, Redo erases it again",
+          "[fx][midi][looper][switches][undo]")
+{
+  for(const bool by_x : {true, false})
+    DYNAMIC_SECTION((by_x ? "the x" : "Erase layer"))
+    {
+      switches_harness h;
+      looper_switches::erase_undo(h, by_x);
+    }
+}
+
+TEST_CASE("MIDI looper switches: Undo takes back an erase still waiting for the grid",
+          "[fx][midi][looper][switches][undo]")
+{
+  for(const bool by_x : {true, false})
+    DYNAMIC_SECTION((by_x ? "the x" : "Erase layer"))
+    {
+      switches_harness h;
+      looper_switches::undo_waiting_erase(h, by_x);
+    }
+}
+
+TEST_CASE("MIDI looper switches: erase and Undo while stopped", "[fx][midi][looper][switches][undo]")
+{
+  for(const bool by_x : {true, false})
+    DYNAMIC_SECTION((by_x ? "the x" : "Erase layer"))
+    {
+      switches_harness h;
+      looper_switches::erase_undo_stopped(h, by_x);
+    }
+}
+
+TEST_CASE("MIDI looper switches: erase and Undo while overdubbing", "[fx][midi][looper][switches][undo]")
+{
+  for(const bool by_x : {true, false})
+    DYNAMIC_SECTION((by_x ? "the x" : "Erase layer"))
+    {
+      switches_harness h;
+      looper_switches::erase_undo_overdubbing(h, by_x);
+    }
+}

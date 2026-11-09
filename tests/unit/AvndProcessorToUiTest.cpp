@@ -1237,3 +1237,94 @@ TEST_CASE("Midi scale through the binding: Fifth up above C4 only", "[avnd][exec
   });
 }
 #endif
+
+TEMPLATE_TEST_CASE(
+    "Loopers through the binding: the x of a lane and Erase layer are undone and redone",
+    "[avnd][message_bus][execution][looper][undo]", Nodes::AudioLooper::Node,
+    Nodes::MidiLooper::Node)
+{
+  const QString uuid = std::is_same_v<TestType, Nodes::AudioLooper::Node>
+                           ? QStringLiteral("a0ad4227-ac3d-448b-a19b-19581ed4e2c6")
+                           : QStringLiteral("0c0b7d3e-5a52-4b8f-9d1f-6e3a2b8c4f71");
+  for(const bool by_x : {true, false})
+    DYNAMIC_SECTION((by_x ? "the x" : "Erase layer"))
+    {
+      with<TestType>(uuid, [by_x](auto& e) {
+        auto& model = static_cast<oscr::ProcessModel<TestType>&>(e.proc);
+        Nodes::Looper::looper_view view;
+        model.to_ui = [&](QByteArray b) {
+          auto m = std::make_unique<Nodes::Looper::view_message>();
+          oscr::MessageBusReader{b}(*m);
+          view.receive(*m);
+        };
+        view.erase = [&](Nodes::Looper::erase_request r) {
+          oscr::MessageBusSender{model.from_ui}(r);
+        };
+        e.gui("Quantize", ossia::value{0.f});
+        int pitch = 60;
+        auto run = [&](int n) {
+          for(int i = 0; i < n; i++)
+          {
+            // A MIDI pass is a layer once a note comes in.
+            if constexpr(std::is_same_v<TestType, Nodes::MidiLooper::Node>)
+            {
+              if(i == 2)
+                e.midi({note_on(pitch)});
+              if(i == 4)
+                e.midi({note_off(pitch++)});
+            }
+            e.tick(256);
+            e.ui();
+            run_exec(e.plug);
+          }
+          QApplication::processEvents();
+        };
+        // Pressed in the process's UI: a bang.
+        auto bang = [&](const char* name) {
+          e.control(name).valueChanged(ossia::impulse{});
+          run_exec(e.plug);
+          run(20);
+        };
+        auto layers = [&] { return e.object().looper_passes(); };
+
+        e.gui("Mode", ossia::value{std::string{"Record"}});
+        run(100);
+        for(int i = 0; i < 2; i++)
+        {
+          e.gui("Mode", ossia::value{std::string{"Play"}});
+          run(20);
+          e.gui("Mode", ossia::value{std::string{"Overdub"}});
+          run(100);
+        }
+        e.gui("Mode", ossia::value{std::string{"Play"}});
+        run(20);
+        REQUIRE(layers() == 3);
+        REQUIRE(view.state.lanes == 3);
+        const uint32_t erased = view.state.lane_id[1];
+
+        if(by_x)
+        {
+          const auto b = view.erase_box(1);
+          REQUIRE(view.mouse_press(b.x + b.size / 2., b.y + b.size / 2.));
+          run(20);
+        }
+        else
+        {
+          e.gui("Layer", ossia::value{2});
+          bang("Erase layer");
+        }
+        CHECK(layers() == 2);
+        CHECK(view.state.lanes == 2);
+
+        bang("Undo");
+        CHECK(layers() == 3);
+        CHECK(view.state.lanes == 3);
+        CHECK(view.state.lane_id[1] == erased);
+        bang("Redo");
+        CHECK(layers() == 2);
+        bang("Undo");
+        CHECK(layers() == 3);
+        CHECK(view.state.lane_id[1] == erased);
+      });
+    }
+}

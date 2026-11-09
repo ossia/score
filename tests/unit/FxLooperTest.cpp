@@ -4667,3 +4667,90 @@ TEST_CASE("Looper: undo and redo of an erase allocate nothing",
   CHECK(h.node.layers.count == 2);
   CHECK(h.node.layers.layers[0].muted);
 }
+
+// Erasing and undoing, by the x of a lane and by Layer and Erase layer, the
+// same scenarios for the three loopers.
+TEST_CASE("Looper switches: Undo brings an erased layer back, Redo erases it again",
+          "[fx][audio][looper][switches][undo]")
+{
+  for(const bool by_x : {true, false})
+    DYNAMIC_SECTION((by_x ? "the x" : "Erase layer"))
+    {
+      switches_harness h;
+      looper_switches::erase_undo(h, by_x);
+    }
+}
+
+TEST_CASE("Looper switches: Undo takes back an erase still waiting for the grid",
+          "[fx][audio][looper][switches][undo]")
+{
+  for(const bool by_x : {true, false})
+    DYNAMIC_SECTION((by_x ? "the x" : "Erase layer"))
+    {
+      switches_harness h;
+      looper_switches::undo_waiting_erase(h, by_x);
+    }
+}
+
+TEST_CASE("Looper switches: erase and Undo while stopped", "[fx][audio][looper][switches][undo]")
+{
+  for(const bool by_x : {true, false})
+    DYNAMIC_SECTION((by_x ? "the x" : "Erase layer"))
+    {
+      switches_harness h;
+      looper_switches::erase_undo_stopped(h, by_x);
+    }
+}
+
+TEST_CASE("Looper switches: erase and Undo while overdubbing", "[fx][audio][looper][switches][undo]")
+{
+  for(const bool by_x : {true, false})
+    DYNAMIC_SECTION((by_x ? "the x" : "Erase layer"))
+    {
+      switches_harness h;
+      looper_switches::erase_undo_overdubbing(h, by_x);
+    }
+}
+
+TEST_CASE("Looper view: the x of a lane undone before the grid leaves the layer as heard",
+          "[fx][audio][looper][view][erase][undo]")
+{
+  looper_harness h{1, 64};
+  h.node.inputs.feedback.value = 0.5f;
+  record_and_overdub(h, 512, 0.25, 0.5);
+  h.node.inputs.feedback.value = 1.f;
+  overdub_pass(h, 512, 0.125);
+  REQUIRE(h.node.layers.count == 3);
+  const double heard = 0.25 * 0.5 + 0.5 + 0.125;
+  REQUIRE(h.node.layers.mix(0, 320) == Approx(heard));
+  view_link l{h};
+  l.refresh();
+  // The grid is every eight rounds of the loop: the x waits for it.
+  h.node.inputs.quantif.value = halp::grid_value::period(8.);
+  h.run(64);
+
+  CHECK(l.press_x(1));
+  CHECK(l.v.lane_erasing(1));
+  press(h.node.inputs.undo, h);
+  // Past several grid points, and past the messages the view waits for a
+  // press to show up in.
+  for(int i = 0; i < 400; i++)
+    h.run(64);
+  CHECK(h.node.layers.count == 3);
+  CHECK(h.node.layers.layers[0].gain == Approx(0.5));
+  CHECK(h.node.layers.mix(0, 320) == Approx(heard));
+  CHECK(!l.v.lane_erasing(1));
+
+  // Redo asks for it again: on the loop's end, the pass under it gets back
+  // what it took.
+  press(h.node.inputs.redo, h);
+  CHECK(h.node.layers.count == 3);
+  for(int i = 0; i < 80; i++)
+    h.run(64);
+  CHECK(h.node.layers.count == 2);
+  CHECK(h.node.layers.layers[0].gain == Approx(1.));
+  press(h.node.inputs.undo, h);
+  CHECK(h.node.layers.count == 3);
+  CHECK(h.node.layers.layers[0].gain == Approx(0.5));
+  CHECK(h.node.layers.mix(0, 320) == Approx(heard));
+}

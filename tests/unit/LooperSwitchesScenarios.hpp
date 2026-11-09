@@ -34,7 +34,9 @@
 
 #include <algorithm>
 #include <cmath>
+#include <string>
 #include <string_view>
+#include <vector>
 
 namespace looper_switches
 {
@@ -2061,5 +2063,253 @@ void capture_exercise(H& h)
   beats(h, 2);
   press_off_beat(h, in.capture);
   beats(h, 2);
+}
+
+//! The passes of the looper, in whatever keeps them.
+template <typename H>
+const auto& passes_of(const H& h)
+{
+  if constexpr(requires { h.node.layers.history; })
+    return h.node.layers;
+  else
+    return h.node.loop;
+}
+
+//! The x of the lane of pass k, as the view asks for it: by the pass's id.
+template <typename H>
+void press_x(H& h, int k)
+{
+  const auto& st = passes_of(h);
+  h.node.process_message(Nodes::Looper::erase_request{
+      .pass = k, .layers = st.count, .mute = false, .id = st.layers[k].id});
+  h.tick_once();
+}
+
+/**
+ * Erasing a layer and undoing it, the same for every looper: what is done to
+ * the layers is written as the layers heard, oldest first, each by the order
+ * it was made in among the four of four_layers(), "m" after a muted one and
+ * "?" for a newer one, e.g. "1 3m 4".
+ */
+template <typename H>
+struct erase_undo_script
+{
+  H& h;
+  bool by_x;
+  std::vector<uint32_t> made;
+  std::vector<double> held;
+
+  explicit erase_undo_script(H& h, bool by_x)
+      : h{h}
+      , by_x{by_x}
+  {
+    four_layers(h);
+    const auto& st = passes_of(h);
+    for(int k = 0; k < st.count; k++)
+    {
+      made.push_back(st.layers[k].id);
+      held.push_back(h.signature(k));
+    }
+  }
+
+  std::string layers() const
+  {
+    const auto& st = passes_of(h);
+    std::string s;
+    for(int k = 0; k < st.count; k++)
+    {
+      if(k > 0)
+        s += ' ';
+      const auto it = std::find(made.begin(), made.end(), st.layers[k].id);
+      s += it == made.end() ? std::string{"?"} : std::to_string(it - made.begin() + 1);
+      if(st.layers[k].muted)
+        s += 'm';
+    }
+    return s;
+  }
+
+  //! Every one of the four passes heard holds what it held when it was made.
+  void check_held() const
+  {
+    const auto& st = passes_of(h);
+    for(int k = 0; k < st.count; k++)
+    {
+      const auto it = std::find(made.begin(), made.end(), st.layers[k].id);
+      if(it != made.end())
+      {
+        INFO("layer " << (it - made.begin() + 1) << " at " << k);
+        CHECK(same(h.signature(k), held[std::size_t(it - made.begin())]));
+      }
+    }
+  }
+
+  //! Asks for the erase of pass k between two beats: it waits for the next.
+  void ask_erase(int k)
+  {
+    auto& in = h.node.inputs;
+    if(h.now % H::beat == 0)
+      h.tick_once();
+    if(by_x)
+      press_x(h, k);
+    else
+    {
+      in.layer.value = k + 1;
+      press(h, in.erase_layer);
+    }
+  }
+  void erase(int k)
+  {
+    ask_erase(k);
+    next_beat(h);
+  }
+  void mute(int k)
+  {
+    h.node.inputs.layer.value = k + 1;
+    at_beat(h, h.node.inputs.mute_layer);
+  }
+  void undo() { press(h, h.node.inputs.undo); }
+  void redo() { press(h, h.node.inputs.redo); }
+};
+
+//! Undo brings an erased layer back where it was, with what it held; Redo
+//! erases it again, as many times as asked.
+template <typename H>
+void erase_undo(H& h, bool by_x)
+{
+  erase_undo_script s{h, by_x};
+  REQUIRE(s.layers() == "1 2 3 4");
+
+  s.ask_erase(1);
+  CHECK(s.layers() == "1 2 3 4");
+  next_beat(h);
+  CHECK(s.layers() == "1 3 4");
+  for(int i = 0; i < 3; i++)
+  {
+    s.undo();
+    CHECK(s.layers() == "1 2 3 4");
+    s.check_held();
+    s.redo();
+    CHECK(s.layers() == "1 3 4");
+  }
+  s.undo();
+  CHECK(s.layers() == "1 2 3 4");
+
+  // A mute and an erase are undone in turn, the last first.
+  s.mute(2);
+  CHECK(s.layers() == "1 2 3m 4");
+  s.erase(0);
+  CHECK(s.layers() == "2 3m 4");
+  s.undo();
+  CHECK(s.layers() == "1 2 3m 4");
+  s.undo();
+  CHECK(s.layers() == "1 2 3 4");
+  s.redo();
+  CHECK(s.layers() == "1 2 3m 4");
+  s.redo();
+  CHECK(s.layers() == "2 3m 4");
+  s.undo();
+  s.undo();
+  CHECK(s.layers() == "1 2 3 4");
+  s.check_held();
+}
+
+//! An erase still waiting for the grid is the last thing done: Undo takes it
+//! back, and no layer goes; Redo asks for it again, on the grid.
+template <typename H>
+void undo_waiting_erase(H& h, bool by_x)
+{
+  erase_undo_script s{h, by_x};
+  s.ask_erase(1);
+  s.undo();
+  next_beat(h);
+  beats(h, 2);
+  CHECK(s.layers() == "1 2 3 4");
+  s.check_held();
+  CHECK(h.node.transport.actualMode == LoopMode::Play);
+
+  // Asked for again, it waits for the grid again.
+  if(h.now % H::beat == 0)
+    h.tick_once();
+  s.redo();
+  CHECK(s.layers() == "1 2 3 4");
+  next_beat(h);
+  CHECK(s.layers() == "1 3 4");
+  s.undo();
+  CHECK(s.layers() == "1 2 3 4");
+  s.check_held();
+
+  // Two lanes' x pressed, one undone before the grid: the other is done on
+  // it, and undone next. (Erase layer reads Layer on the grid: two presses
+  // erase the same layer.)
+  if(by_x)
+  {
+    s.ask_erase(3);
+    s.ask_erase(0);
+    s.undo();
+    next_beat(h);
+    CHECK(s.layers() == "1 2 3");
+    s.undo();
+    CHECK(s.layers() == "1 2 3 4");
+    s.check_held();
+  }
+  // Something new done: what Undo took back before the grid is not redone.
+  s.ask_erase(0);
+  s.undo();
+  s.mute(1);
+  s.redo();
+  next_beat(h);
+  CHECK(s.layers() == "1 2m 3 4");
+}
+
+//! A stopped looper erases on the grid and undoes as a playing one does.
+template <typename H>
+void erase_undo_stopped(H& h, bool by_x)
+{
+  erase_undo_script s{h, by_x};
+  at_beat(h, h.node.inputs.stop);
+  for(int i = 0; i < 100 && h.node.transport.actualMode != LoopMode::Stop; i++)
+    h.tick_once();
+  REQUIRE(h.node.transport.actualMode == LoopMode::Stop);
+  s.erase(3);
+  CHECK(s.layers() == "1 2 3");
+  s.undo();
+  CHECK(s.layers() == "1 2 3 4");
+  s.check_held();
+  s.redo();
+  CHECK(s.layers() == "1 2 3");
+  s.undo();
+  CHECK(s.layers() == "1 2 3 4");
+  CHECK(h.node.transport.actualMode == LoopMode::Stop);
+}
+
+//! While overdubbing, an erase done since the pass started is undone first,
+//! the overdub going on; the next Undo drops the pass being taken in.
+template <typename H>
+void erase_undo_overdubbing(H& h, bool by_x)
+{
+  erase_undo_script s{h, by_x};
+  at_beat(h, h.node.inputs.overdub);
+  beats(h, 1);
+  REQUIRE(s.layers() == "1 2 3 4 ?");
+  s.erase(1);
+  CHECK(s.layers() == "1 3 4 ?");
+  CHECK(h.node.transport.actualMode == LoopMode::Overdub);
+  s.undo();
+  CHECK(s.layers() == "1 2 3 4 ?");
+  s.check_held();
+  CHECK(h.node.transport.is_taking());
+  s.redo();
+  CHECK(s.layers() == "1 3 4 ?");
+  s.undo();
+  CHECK(s.layers() == "1 2 3 4 ?");
+  // Asked for and undone before the grid: the overdub is left alone.
+  s.ask_erase(2);
+  s.undo();
+  next_beat(h);
+  CHECK(s.layers() == "1 2 3 4 ?");
+  CHECK(h.node.transport.is_taking());
+  at_beat(h, h.node.inputs.play);
+  CHECK(s.layers() == "1 2 3 4 ?");
+  s.check_held();
 }
 }
