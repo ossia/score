@@ -1439,6 +1439,12 @@ if(TARGET score_plugin_engine)
     SOURCES ExecutionStateStaleMidiTest.cpp
     LIBS ossia)
 
+  # What a state pushes to an address reaches the event inlets reading it in
+  # the tick the state runs, once; what reaches it from elsewhere too.
+  score_add_test(test_unit_execution_state_state_tick
+    SOURCES ExecutionStateStateTickTest.cpp
+    LIBS ossia)
+
   # The base scenario is released after the audio thread's cleanup of its time
   # syncs, never concurrently with it.
   score_add_test(test_unit_base_scenario_cleanup
