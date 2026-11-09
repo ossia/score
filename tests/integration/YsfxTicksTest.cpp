@@ -20,6 +20,8 @@
 
 #include <QTemporaryDir>
 
+#include <libremidi/detail/conversion.hpp>
+
 #include <YSFX/ProcessModel.hpp>
 #include <catch2/catch_test_macros.hpp>
 
@@ -122,5 +124,56 @@ spl0 = 1;
     for(double v : out)
       ones += v == 1.;
     CHECK(ones == frames);
+  });
+}
+
+TEST_CASE(
+    "a JSFX node takes each event of a buffer cut in ticks once",
+    "[integration][ysfx]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    played_script p;
+    if(!p.open(ctx, R"(desc:note counter
+in_pin:none
+out_pin:out
+@init
+notes = 0;
+@block
+while(midirecv(ofs, msg1, msg2)) (
+  (msg1 & 0xF0) == 0x90 ? (
+    notes += 1;
+    last_offset = ofs;
+  );
+);
+@sample
+spl0 = 0;
+)"))
+      SKIP("YSFX not built");
+    REQUIRE(p.midi_in);
+    const auto note_at = [&](int64_t frame) {
+      const uint64_t w = cmidi2_ump_midi2_note_on(0, 0, 60, 0, 100 << 9, 0);
+      libremidi::ump u{uint32_t(w >> 32), uint32_t(w & 0xffffffff)};
+      u.timestamp = frame;
+      p.midi_in->messages.push_back(u);
+    };
+    const auto var = [&](const char* name) { return ysfx_read_var(p.proc->fx.get(), name); };
+
+    // A loop point at 200: the note at 300 is the second tick's, 100 in
+    note_at(300);
+    p.buffer({{0, 200}, {200, frames - 200}});
+    CHECK(var("notes") == 1.);
+    CHECK(var("last_offset") == 100.);
+
+    // The process starts at 200: a note before it goes at its start
+    note_at(50);
+    p.buffer({{200, frames - 200}});
+    CHECK(var("notes") == 2.);
+    CHECK(var("last_offset") == 0.);
+
+    // One tick for the whole buffer
+    note_at(10);
+    p.buffer({{0, frames}});
+    CHECK(var("notes") == 3.);
+    CHECK(var("last_offset") == 10.);
   });
 }
