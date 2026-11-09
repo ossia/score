@@ -4271,6 +4271,60 @@ TEST_CASE("Looper view: a looper stopped with the score, or silent, has no m and
   CHECK(sent == 0);
 }
 
+TEST_CASE("Looper view: the m and x of a lane are in its top right corner",
+          "[fx][looper][view]")
+{
+  using view_t = Nodes::Looper::looper_view;
+  for(const int lanes : {1, 2, 3, 5, 8, 16})
+  {
+    DYNAMIC_SECTION(lanes << " lanes")
+    {
+      Nodes::Looper::view_message m{};
+      m.layers = lanes;
+      m.lanes = lanes;
+      m.length_seconds = 2.f;
+      for(int i = 0; i < lanes; i++)
+        m.lane_id[i] = uint32_t(i + 1);
+      view_t v;
+      v.erase = [](Nodes::Looper::erase_request) { };
+      v.receive(m);
+      REQUIRE(v.layer_buttons());
+
+      const double lh = v.lane_height();
+      const double right = view_t::lanes_x + v.lanes_width();
+      for(int l = 0; l < lanes; l++)
+      {
+        INFO("lane " << l << " of " << lanes << ", " << lh << " pixels high");
+        const double top = view_t::lanes_top + l * lh;
+        const auto x = v.erase_box(l);
+        const auto mb = v.mute_box(l);
+
+        // As far from the top of the lane as from its right edge, and in it.
+        CHECK(x.y >= top);
+        CHECK(x.y - top <= right - (x.x + x.size) + 1e-9);
+        CHECK(x.y + x.size <= top + lh);
+        CHECK(right - (x.x + x.size) == Approx(3.));
+        // The m on the same row, left of the x.
+        CHECK(mb.y == x.y);
+        CHECK(mb.size == x.size);
+        CHECK(mb.x + mb.size < x.x);
+
+        // What is pressed is what is drawn.
+        CHECK(v.erase_lane_at(x.x + x.size / 2., x.y + x.size / 2.) == l);
+        CHECK(v.mute_lane_at(mb.x + mb.size / 2., mb.y + mb.size / 2.) == l);
+        // Below the buttons of a lane taller than them, the lane is the lane.
+        if(lh >= 2. * x.size + 6.)
+        {
+          const double below = x.y + x.size + 3.;
+          CHECK(v.erase_lane_at(x.x + x.size / 2., below) < 0);
+          CHECK(v.mute_lane_at(mb.x + mb.size / 2., below) < 0);
+          CHECK(v.erase_lane_at(x.x + x.size / 2., top + lh / 2.) < 0);
+        }
+      }
+    }
+  }
+}
+
 TEST_CASE("Looper: undo brings back a layer erased by mistake, with its audio, and "
           "nothing else",
           "[fx][audio][looper][layers][erase][undo]")

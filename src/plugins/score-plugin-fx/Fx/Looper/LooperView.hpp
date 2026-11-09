@@ -854,13 +854,15 @@ struct looper_view
     }
   };
 
-  //! The erase button of a lane, at its right edge.
+  //! The erase button of a lane, in its top right corner: as far from its top
+  //! as from its right edge, or centred in a lane too short for that.
   box erase_box(int lane) const noexcept
   {
     const double lh = lane_height();
     const double size = std::clamp(lh - 3., 5., 12.);
-    const double y = lanes_top + lane * lh + (lh - size) / 2.;
-    return {lanes_x + lanes_width() - size - 3., y, size};
+    constexpr double margin = 3.;
+    const double y = lanes_top + lane * lh + std::min(margin, (lh - size) / 2.);
+    return {lanes_x + lanes_width() - size - margin, y, size};
   }
 
   //! The mute button of a lane, left of its erase button.
