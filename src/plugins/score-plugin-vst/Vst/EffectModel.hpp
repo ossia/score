@@ -33,7 +33,23 @@ namespace vst
 struct SCORE_PLUGIN_VST_EXPORT AEffectWrapper
 {
   AEffect* fx{};
-  VstTimeInfo info;
+  //! What audioMasterGetTime answers. Until the process plays, and once it
+  //! has stopped: a transport stopped at 0, at 120 BPM in 4/4.
+  VstTimeInfo info{
+      .samplePos = 0.,
+      .sampleRate = 44100.,
+      .nanoSeconds = 0.,
+      .ppqPos = 0.,
+      .tempo = 120.,
+      .barStartPos = 0.,
+      .cycleStartPos = 0.,
+      .cycleEndPos = 0.,
+      .timeSigNumerator = 4,
+      .timeSigDenominator = 4,
+      .smpteOffset = 0,
+      .smpteFrameRate = 0,
+      .samplesToNextClock = 0,
+      .flags = kVstPpqPosValid | kVstTempoValid | kVstBarsValid | kVstTimeSigValid};
   bool ui_opened{};
 
   AEffectWrapper(AEffect* f) noexcept
