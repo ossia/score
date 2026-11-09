@@ -12,6 +12,7 @@ add_subdirectory(vst3-sweep)
 add_subdirectory(jsfx-sweep)
 add_subdirectory(vst-sweep)
 add_subdirectory(clap-sweep)
+add_subdirectory(plugin-gui-sweep)
 add_subdirectory(hardware)
 add_subdirectory(corpus)
 
