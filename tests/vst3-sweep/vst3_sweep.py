@@ -377,6 +377,8 @@ def judge(r):
             add("bug", "nonfinite", "NaN or infinite samples in both hosts")
     elif replay_nf:
         add("host", "nonfinite-after-stop", "NaN or infinite samples only on the second play")
+    if (r.get("play_bad_events_in") or 0) > 0:
+        add("host", "bad-events", f"{r['play_bad_events_in']} events given with fields score never meant to set")
     if (r.get("play_params_nonfinite") or 0) > 0:
         add("warn", "param-nonfinite", "NaN or infinite parameter values reported")
     if (r.get("play_params_out_of_range") or 0) > 0:

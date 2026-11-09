@@ -18,14 +18,19 @@
 //                                  a hang can be told where it happened, then a
 //                                  "result" record.
 //
-//  SCORE_VST3_SWEEP_TRACE=1        print the peak of every block of score's
-//                                  host on stderr, to look closer at one.
+//  SCORE_VST3_SWEEP_TRACE=1        print, on stderr, the peak of every block,
+//                                  the process context and the events of both
+//                                  hosts, to look closer at one.
 //  SCORE_VST3_SWEEP_REF_INPLACE=1  the reference host writes its main output
 //                                  over its main input, as score's float path
 //                                  does.
 //  SCORE_VST3_SWEEP_REF_MAX_BLOCK=n the reference host sets the plug-in up for
 //                                  blocks of up to n samples, still playing
 //                                  blocks of 512.
+//  SCORE_VST3_SWEEP_REF_ON_SCORE=1  the reference host also plays score's own
+//                                  instance once score is done with it: a
+//                                  difference that stays is in how score set
+//                                  the instance up, not in how it processes.
 //
 // Neither set, the test case has nothing to do and passes: ctest runs the
 // driver, not this.
@@ -62,6 +67,7 @@
 #include <QThread>
 
 #include <libremidi/detail/conversion.hpp>
+#include <libremidi/ump_events.hpp>
 #include <pluginterfaces/vst/ivstaudioprocessor.h>
 #include <pluginterfaces/vst/ivstcomponent.h>
 #include <pluginterfaces/vst/ivsteditcontroller.h>
@@ -353,7 +359,7 @@ struct run_stats
   audio_stats audio;
   output_param_stats params;
   int64_t events_out{};
-  int64_t bad_events_out{};
+  int64_t bad_events_in{};
   double seconds{};
   double wall_seconds{};
 
@@ -366,14 +372,16 @@ struct run_stats
     j.num(k("params_nonfinite"), double(params.nonfinite));
     j.num(k("params_out_of_range"), double(params.out_of_range));
     j.num(k("events_out"), double(events_out));
+    j.num(k("bad_events_in"), double(bad_events_in));
     j.num(k("rt_factor"), seconds > 0 ? wall_seconds / seconds : 0.);
   }
 };
 
-uint64_t midi2_note(bool on, int pitch)
+//! As a MIDI 1 device's note reaches score: upscaled to MIDI 2
+libremidi::ump midi2_note(bool on, int pitch)
 {
-  return on ? cmidi2_ump_midi2_note_on(0, 0, pitch, 0, 100 << 9, 0)
-            : cmidi2_ump_midi2_note_off(0, 0, pitch, 0, 0, 0);
+  return on ? libremidi::from_midi1::note_on(0, pitch, 100)
+            : libremidi::from_midi1::note_off(0, pitch, 0);
 }
 
 struct bus_layout
@@ -406,6 +414,61 @@ struct bus_layout
   int first_audio_out_channels() const { return audio_out.empty() ? 0 : audio_out[0]; }
 };
 
+void trace_context(const char* who, int64_t frame, const ProcessContext& c, const ProcessData& d)
+{
+  if(!qEnvironmentVariableIsSet("SCORE_VST3_SWEEP_TRACE") || frame > 1024)
+    return;
+  std::fprintf(
+      stderr,
+      "TRACE %s ctx frame %lld state %x sr %g pts %lld sys %lld cts %lld ptm %g bar %g "
+      "tempo %g sig %d/%d | mode %d size %d n %d ins %d outs %d\n",
+      who, (long long)frame, c.state, c.sampleRate, (long long)c.projectTimeSamples,
+      (long long)c.systemTime, (long long)c.continousTimeSamples, c.projectTimeMusic,
+      c.barPositionMusic, c.tempo, c.timeSigNumerator, c.timeSigDenominator,
+      d.processMode, d.symbolicSampleSize, d.numSamples, d.numInputs, d.numOutputs);
+  for(int b = 0; b < d.numInputs; b++)
+    std::fprintf(stderr, "TRACE %s   in %d: %d ch, silence %llx\n", who, b, d.inputs[b].numChannels, (unsigned long long)d.inputs[b].silenceFlags);
+  for(int b = 0; b < d.numOutputs; b++)
+    std::fprintf(stderr, "TRACE %s   out %d: %d ch, silence %llx\n", who, b, d.outputs[b].numChannels, (unsigned long long)d.outputs[b].silenceFlags);
+}
+
+//! The events with fields the host has no reason to set: flags beyond
+//! kIsLive, a note length, a tuning; or a channel out of 0-15
+int64_t bad_events(IEventList& events)
+{
+  int64_t n = 0;
+  for(int32 i = 0; i < events.getEventCount(); i++)
+  {
+    Event e{};
+    if(events.getEvent(i, e) != kResultOk)
+      continue;
+    bool bad = (e.flags & ~Event::kIsLive) != 0;
+    if(e.type == Event::kNoteOnEvent)
+      bad |= e.noteOn.length != 0 || e.noteOn.tuning != 0.f || e.noteOn.channel < 0
+             || e.noteOn.channel > 15;
+    else if(e.type == Event::kNoteOffEvent)
+      bad |= e.noteOff.tuning != 0.f || e.noteOff.channel < 0 || e.noteOff.channel > 15;
+    n += bad;
+  }
+  return n;
+}
+
+void trace_events(const char* who, int64_t frame, IEventList& events)
+{
+  for(int32 i = 0; i < events.getEventCount(); i++)
+  {
+    Event e{};
+    events.getEvent(i, e);
+    std::fprintf(
+        stderr,
+        "TRACE %s ev frame %lld bus %d off %d ppq %g flags %x type %d ch %d pitch %d vel %g "
+        "len %d tun %g id %d\n",
+        who, (long long)frame, e.busIndex, e.sampleOffset, e.ppqPosition, e.flags, e.type,
+        e.noteOn.channel, e.noteOn.pitch, e.noteOn.velocity, e.noteOn.length,
+        e.noteOn.tuning, e.noteOn.noteId);
+  }
+}
+
 //! One play of score's host: a node made as vst3::Executor makes it, with the
 //! controls of the process, then stopped as ossia::node_process::stop() does.
 template <bool UseDouble>
@@ -419,8 +482,9 @@ run_stats play_t(
   ossia::execution_state st;
   st.sampleRate = rate;
   st.bufferSize = block;
-  st.modelToSamplesRatio = 1.;
-  st.samplesToModelRatio = 1.;
+  // The dates of the ticks are in flicks, as the engine's
+  st.modelToSamplesRatio = rate / ossia::flicks_per_second<double>;
+  st.samplesToModelRatio = ossia::flicks_per_second<double> / rate;
 
   auto node = std::make_shared<vst3::vst_node<UseDouble>>(model.fx, rate);
   for(auto* inlet : model.inlets())
@@ -461,8 +525,7 @@ run_stats play_t(
       m.messages.clear();
       for(auto& n : stim.notes(frame, block))
       {
-        const uint64_t w = midi2_note(n.on, n.pitch);
-        libremidi::ump u{uint32_t(w >> 32), uint32_t(w & 0xffffffff)};
+        libremidi::ump u = midi2_note(n.on, n.pitch);
         u.timestamp = n.frame;
         m.messages.push_back(u);
       }
@@ -478,8 +541,18 @@ run_stats play_t(
         120.};
     tk.start_sample = 0;
     tk.length_sample = block;
+    // 120 BPM in 4/4, as the reference host says
+    tk.musical_start_position = double(frame) / rate * 2.;
+    tk.musical_end_position = double(frame + block) / rate * 2.;
+    tk.musical_start_last_bar = std::floor(tk.musical_start_position / 4.) * 4.;
+    tk.musical_end_last_bar = std::floor(tk.musical_end_position / 4.) * 4.;
     ossia::set_thread_pinned(ossia::thread_type::Audio, 0);
     static_cast<ossia::graph_node&>(*node).run(tk, ossia::exec_state_facade{&st});
+    node->process_time(tk, st);
+    trace_context("score", frame, node->m_context, node->m_vstData);
+    if(qEnvironmentVariableIsSet("SCORE_VST3_SWEEP_TRACE"))
+      trace_events("score", frame, node->m_inputEvents);
+    res.bad_events_in += bad_events(node->m_inputEvents);
     ossia::set_thread_pinned(ossia::thread_type::Ui, 0);
 
     for(auto* in : node->root_inputs())
@@ -499,6 +572,9 @@ run_stats play_t(
         std::fprintf(
             stderr, "TRACE frame %lld channels %zu peak %g nonfinite %d\n",
             (long long)frame, port.channels(), pk, nf);
+        if(frame == 0)
+          for(std::size_t c = 0; c < port.channels(); c++)
+            std::fprintf(stderr, "TRACE score out %d: %g %g %g %g\n", int(c), port.channel(c)[0], port.channel(c)[1], port.channel(c)[100], port.channel(c)[511]);
       }
       // The main bus is what the process outputs; the others are counted for
       // NaN only
@@ -556,6 +632,26 @@ run_stats play(
              : play_t<false>(model, stim, seconds, out, uri, stop_phase);
 }
 
+//! A digest of the processor's state, to tell whether two instances start
+//! from the same one
+std::string state_digest(IComponent& comp)
+{
+  ResizableMemoryIBStream st;
+  if(comp.getState(&st) != kResultOk)
+    return "none";
+  int64 size{};
+  st.tell(&size);
+  st.rewind();
+  std::vector<char> bytes(size);
+  int32 read{};
+  if(size > 0)
+    st.read(bytes.data(), int32(size), &read);
+  uint64_t h = 1469598103934665603ull;
+  for(char c : bytes)
+    h = (h ^ uint8_t(c)) * 1099511628211ull;
+  return std::to_string(size) + ":" + std::to_string(h);
+}
+
 //! A host written against the SDK's hosting classes, sharing nothing with
 //! score's but the plug-in factory: the call sequence of the SDK's
 //! documentation, the buses active by default, the plug-in's own default
@@ -566,6 +662,7 @@ struct reference_host
   VST3::UID uid;
   int rate;
   bool use_double;
+  std::string state{};
 
   template <typename T>
   static T* query(FUnknown* o)
@@ -574,6 +671,176 @@ struct reference_host
     if(o && o->queryInterface(T::iid, (void**)&res) == kResultOk && res)
       return res;
     return nullptr;
+  }
+
+  //! Plays the stimulus through an active instance, as this host does
+  void play_on(
+      IComponent& comp_ref, IAudioProcessor& proc_ref, IEditController* ctl,
+      int event_in, int32 sample_size, const stimulus& stim, run_stats& res)
+  {
+    auto* comp = &comp_ref;
+    auto* proc = &proc_ref;
+    struct
+    {
+      int event_in;
+    } buses{event_in};
+    proc->setProcessing(true);
+
+    HostProcessData data;
+    data.prepare(*comp, block, sample_size);
+    data.processMode = kRealtime;
+    data.numSamples = block;
+    EventList in_events{512};
+    EventList out_events{512};
+    ParameterChanges in_params{0};
+    ParameterChanges out_params{ctl ? std::max(1, int(ctl->getParameterCount())) : 64};
+    ProcessContext ctx{};
+    data.inputEvents = &in_events;
+    data.outputEvents = &out_events;
+    data.inputParameterChanges = &in_params;
+    data.outputParameterChanges = &out_params;
+    data.processContext = &ctx;
+
+    auto each_channel = [&](AudioBusBuffers& bus, int c, auto&& f) {
+      if(use_double)
+      {
+        if(bus.channelBuffers64 && bus.channelBuffers64[c])
+          f(bus.channelBuffers64[c]);
+      }
+      else if(bus.channelBuffers32 && bus.channelBuffers32[c])
+        f(bus.channelBuffers32[c]);
+    };
+
+    // To look closer at one: the main output written over the main input,
+    // as a host processing in place does
+    std::vector<void*> own_outputs;
+    if(qEnvironmentVariableIsSet("SCORE_VST3_SWEEP_REF_INPLACE") && data.numInputs > 0
+       && data.numOutputs > 0)
+    {
+      auto& in = data.inputs[0];
+      auto& o = data.outputs[0];
+      for(int c = 0; c < std::min(in.numChannels, o.numChannels); c++)
+      {
+        own_outputs.push_back(o.channelBuffers32[c]);
+        o.channelBuffers32[c] = in.channelBuffers32[c];
+      }
+    }
+
+    const int64_t total = int64_t(play_seconds * rate);
+    const auto t0 = std::chrono::steady_clock::now();
+    for(int64_t frame = 0; frame < total; frame += block)
+    {
+      for(int b = 0; b < data.numOutputs; b++)
+        for(int c = 0; c < data.outputs[b].numChannels; c++)
+          each_channel(data.outputs[b], c, [&](auto* buf) {
+            std::fill_n(buf, block, 0);
+          });
+      for(int b = 0; b < data.numInputs; b++)
+        for(int c = 0; c < data.inputs[b].numChannels; c++)
+          each_channel(data.inputs[b], c, [&](auto* buf) {
+            for(int k = 0; k < block; k++)
+              buf[k] = b == 0 ? stim.audio(c, frame + k) : 0.;
+          });
+      for(int b = 0; b < data.numInputs; b++)
+        data.inputs[b].silenceFlags = 0;
+      for(int b = 0; b < data.numOutputs; b++)
+        data.outputs[b].silenceFlags = 0;
+
+      in_events.clear();
+      out_events.clear();
+      out_params.clearQueue();
+      if(buses.event_in > 0)
+      {
+        for(auto& n : stim.notes(frame, block))
+        {
+          Event e{};
+          e.busIndex = 0;
+          e.sampleOffset = int32(n.frame);
+          if(n.on)
+          {
+            e.type = Event::kNoteOnEvent;
+            e.noteOn.channel = 0;
+            e.noteOn.pitch = int16(n.pitch);
+            e.noteOn.velocity = 100.f / 127.f;
+            e.noteOn.noteId = -1;
+          }
+          else
+          {
+            e.type = Event::kNoteOffEvent;
+            e.noteOff.channel = 0;
+            e.noteOff.pitch = int16(n.pitch);
+            e.noteOff.velocity = 0.f;
+            e.noteOff.noteId = -1;
+          }
+          in_events.addEvent(e);
+        }
+      }
+
+      ctx.state = ProcessContext::kPlaying | ProcessContext::kTempoValid
+                  | ProcessContext::kTimeSigValid | ProcessContext::kProjectTimeMusicValid
+                  | ProcessContext::kContTimeValid | ProcessContext::kBarPositionValid;
+      ctx.sampleRate = rate;
+      ctx.projectTimeSamples = frame;
+      ctx.continousTimeSamples = frame;
+      ctx.tempo = 120.;
+      ctx.timeSigNumerator = 4;
+      ctx.timeSigDenominator = 4;
+      ctx.projectTimeMusic = double(frame) / rate * 2.;
+      ctx.barPositionMusic = std::floor(ctx.projectTimeMusic / 4.) * 4.;
+
+      proc->process(data);
+      trace_context("ref", frame, ctx, data);
+      if(qEnvironmentVariableIsSet("SCORE_VST3_SWEEP_TRACE"))
+        trace_events("ref", frame, in_events);
+
+      if(data.numOutputs > 0 && qEnvironmentVariableIsSet("SCORE_VST3_SWEEP_TRACE"))
+      {
+        double pk = 0;
+        auto& bus = data.outputs[0];
+        for(int c = 0; c < bus.numChannels; c++)
+          each_channel(bus, c, [&](auto* buf) {
+            for(int k = 0; k < block; k++)
+              pk = std::max(pk, std::abs(double(buf[k])));
+          });
+        std::fprintf(stderr, "TRACE ref frame %lld peak %g\n", (long long)frame, pk);
+        if(frame == 0)
+          for(int c = 0; c < bus.numChannels; c++)
+            each_channel(bus, c, [&](auto* buf) {
+              std::fprintf(stderr, "TRACE ref out %d: %g %g %g %g\n", c, double(buf[0]), double(buf[1]), double(buf[100]), double(buf[511]));
+            });
+      }
+      if(data.numOutputs > 0)
+      {
+        auto& bus = data.outputs[0];
+        for(int c = 0; c < bus.numChannels; c++)
+          each_channel(bus, c, [&](auto* buf) {
+            for(int k = 0; k < block; k++)
+              res.audio.add(double(buf[k]), double(frame + k) / rate);
+          });
+      }
+      res.events_out += out_events.getEventCount();
+      for(int32 i = 0; i < out_params.getParameterCount(); i++)
+      {
+        if(auto* q = out_params.getParameterData(i))
+        {
+          const int32 n = q->getPointCount();
+          if(n <= 0)
+            continue;
+          int32 off{};
+          ParamValue v{};
+          q->getPoint(n - 1, off, v);
+          res.params.add(q->getParameterId(), v);
+        }
+      }
+    }
+    res.seconds = double(total) / rate;
+    res.wall_seconds
+        = std::chrono::duration<double>(std::chrono::steady_clock::now() - t0).count();
+
+    proc->setProcessing(false);
+    for(std::size_t c = 0; c < own_outputs.size(); c++)
+      data.outputs[0].channelBuffers32[c] = (Sample32*)own_outputs[c];
+    data.unprepare();
   }
 
   std::string run(const stimulus& stim, run_stats& res)
@@ -642,6 +909,7 @@ struct reference_host
       }
     }
 
+    state = state_digest(*comp);
     const int32 sample_size = use_double ? kSample64 : kSample32;
     // To look closer at one: another largest block than the one played
     const int32 max_block = qEnvironmentVariableIsSet("SCORE_VST3_SWEEP_REF_MAX_BLOCK")
@@ -677,144 +945,8 @@ struct reference_host
 
     if(err.empty())
     {
-      proc->setProcessing(true);
-
-      HostProcessData data;
-      data.prepare(*comp, block, sample_size);
-      data.processMode = kRealtime;
-      data.numSamples = block;
-      EventList in_events{512};
-      EventList out_events{512};
-      ParameterChanges in_params{0};
-      ParameterChanges out_params{ctl ? std::max(1, int(ctl->getParameterCount())) : 64};
-      ProcessContext ctx{};
-      data.inputEvents = &in_events;
-      data.outputEvents = &out_events;
-      data.inputParameterChanges = &in_params;
-      data.outputParameterChanges = &out_params;
-      data.processContext = &ctx;
-
-      auto each_channel = [&](AudioBusBuffers& bus, int c, auto&& f) {
-        if(use_double)
-        {
-          if(bus.channelBuffers64 && bus.channelBuffers64[c])
-            f(bus.channelBuffers64[c]);
-        }
-        else if(bus.channelBuffers32 && bus.channelBuffers32[c])
-          f(bus.channelBuffers32[c]);
-      };
-
-      // To look closer at one: the main output written over the main input,
-      // as a host processing in place does
-      std::vector<void*> own_outputs;
-      if(qEnvironmentVariableIsSet("SCORE_VST3_SWEEP_REF_INPLACE") && data.numInputs > 0
-         && data.numOutputs > 0)
-      {
-        auto& in = data.inputs[0];
-        auto& o = data.outputs[0];
-        for(int c = 0; c < std::min(in.numChannels, o.numChannels); c++)
-        {
-          own_outputs.push_back(o.channelBuffers32[c]);
-          o.channelBuffers32[c] = in.channelBuffers32[c];
-        }
-      }
-
-      const int64_t total = int64_t(play_seconds * rate);
-      const auto t0 = std::chrono::steady_clock::now();
-      for(int64_t frame = 0; frame < total; frame += block)
-      {
-        for(int b = 0; b < data.numOutputs; b++)
-          for(int c = 0; c < data.outputs[b].numChannels; c++)
-            each_channel(data.outputs[b], c, [&](auto* buf) {
-              std::fill_n(buf, block, 0);
-            });
-        for(int b = 0; b < data.numInputs; b++)
-          for(int c = 0; c < data.inputs[b].numChannels; c++)
-            each_channel(data.inputs[b], c, [&](auto* buf) {
-              for(int k = 0; k < block; k++)
-                buf[k] = b == 0 ? stim.audio(c, frame + k) : 0.;
-            });
-        for(int b = 0; b < data.numInputs; b++)
-          data.inputs[b].silenceFlags = 0;
-        for(int b = 0; b < data.numOutputs; b++)
-          data.outputs[b].silenceFlags = 0;
-
-        in_events.clear();
-        out_events.clear();
-        out_params.clearQueue();
-        if(buses.event_in > 0)
-        {
-          for(auto& n : stim.notes(frame, block))
-          {
-            Event e{};
-            e.busIndex = 0;
-            e.sampleOffset = int32(n.frame);
-            if(n.on)
-            {
-              e.type = Event::kNoteOnEvent;
-              e.noteOn.channel = 0;
-              e.noteOn.pitch = int16(n.pitch);
-              e.noteOn.velocity = 100.f / 127.f;
-              e.noteOn.noteId = -1;
-            }
-            else
-            {
-              e.type = Event::kNoteOffEvent;
-              e.noteOff.channel = 0;
-              e.noteOff.pitch = int16(n.pitch);
-              e.noteOff.velocity = 0.f;
-              e.noteOff.noteId = -1;
-            }
-            in_events.addEvent(e);
-          }
-        }
-
-        ctx.state = ProcessContext::kPlaying | ProcessContext::kTempoValid
-                    | ProcessContext::kTimeSigValid | ProcessContext::kProjectTimeMusicValid
-                    | ProcessContext::kContTimeValid;
-        ctx.sampleRate = rate;
-        ctx.projectTimeSamples = frame;
-        ctx.continousTimeSamples = frame;
-        ctx.tempo = 120.;
-        ctx.timeSigNumerator = 4;
-        ctx.timeSigDenominator = 4;
-        ctx.projectTimeMusic = double(frame) / rate * 2.;
-
-        proc->process(data);
-
-        if(data.numOutputs > 0)
-        {
-          auto& bus = data.outputs[0];
-          for(int c = 0; c < bus.numChannels; c++)
-            each_channel(bus, c, [&](auto* buf) {
-              for(int k = 0; k < block; k++)
-                res.audio.add(double(buf[k]), double(frame + k) / rate);
-            });
-        }
-        res.events_out += out_events.getEventCount();
-        for(int32 i = 0; i < out_params.getParameterCount(); i++)
-        {
-          if(auto* q = out_params.getParameterData(i))
-          {
-            const int32 n = q->getPointCount();
-            if(n <= 0)
-              continue;
-            int32 off{};
-            ParamValue v{};
-            q->getPoint(n - 1, off, v);
-            res.params.add(q->getParameterId(), v);
-          }
-        }
-      }
-      res.seconds = double(total) / rate;
-      res.wall_seconds
-          = std::chrono::duration<double>(std::chrono::steady_clock::now() - t0).count();
-
-      proc->setProcessing(false);
+      play_on(*comp, *proc, ctl, buses.event_in, sample_size, stim, res);
       comp->setActive(false);
-      for(std::size_t c = 0; c < own_outputs.size(); c++)
-        data.outputs[0].channelBuffers32[c] = (Sample32*)own_outputs[c];
-      data.unprepare();
     }
 
     if(comp_cp && ctl_cp)
@@ -965,6 +1097,9 @@ void probe(
     j.raw("ports", ports.str());
   }
   j.boolean("double", model->fx.supports_double);
+  j.num("max_block", model->fx.max_block);
+  j.num("setup_rate", model->fx.sample_rate);
+  j.str("state", state_digest(*model->fx.component));
   j.boolean("controller", model->fx.controller != nullptr);
   j.boolean("view", model->fx.view != nullptr);
 
@@ -987,6 +1122,15 @@ void probe(
   second.write(j, "replay_");
   QCoreApplication::processEvents();
 
+  if(qEnvironmentVariableIsSet("SCORE_VST3_SWEEP_REF_ON_SCORE"))
+  {
+    run_stats on_score;
+    reference_host{mdl->getFactory(), *uid, rate, model->fx.supports_double}.play_on(
+        *model->fx.component, *model->fx.processor, model->fx.controller, buses.event_in,
+        model->fx.supports_double ? kSample64 : kSample32, stim, on_score);
+    j.num("ref_on_score_rms", on_score.audio.samples ? std::sqrt(on_score.audio.sumsq / on_score.audio.samples) : 0.);
+  }
+
   out.phase(uri, "teardown");
   const bool use_double = model->fx.supports_double;
   remove();
@@ -1004,6 +1148,7 @@ void probe(
   run_stats ref;
   reference_host ref_host{mdl->getFactory(), *uid, rate, use_double};
   const auto ref_skip = ref_host.run(stim, ref);
+  j.str("ref_state", ref_host.state);
   if(ref_skip.empty())
     ref.write(j, "ref_");
   else
