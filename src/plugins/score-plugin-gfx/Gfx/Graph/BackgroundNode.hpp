@@ -204,6 +204,7 @@ struct BackgroundNode : OutputNode
       resize();
     }
   }
+  QSize size() const noexcept { return m_size; }
   void setRenderSize(QSize newSz)
   {
     if(m_renderSize != newSz)

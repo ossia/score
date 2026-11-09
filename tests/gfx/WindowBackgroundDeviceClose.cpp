@@ -40,6 +40,9 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/generators/catch_generators.hpp>
 
+#include <QFileInfo>
+#include <QProcess>
+
 using namespace Gfx;
 using namespace score::test;
 using namespace score::test::gfx;
@@ -294,4 +297,216 @@ TEST_CASE(
     ctx.docManager.forceCloseDocument(ctx, *doc);
     QApplication::processEvents();
   });
+}
+
+// A Background window device renders at the size of the view it draws in.
+//
+// Its "size" node is saved with the document like every other node, and the
+// saved tree is put back into the device when the document or the device is
+// loaded. That value is the size the view had on the machine and the window
+// layout the document was saved from: it is not the size of the view the
+// device draws in now. The device takes its size from that view, the moment
+// it is created, so restoring the tree must not change it.
+//
+// "size" is in device-independent pixels, as the view's size is; the picture
+// is rendered at the screen's resolution, the view's size times its device
+// pixel ratio, as a window's swapchain is.
+//
+// Covered: the paths that put a saved tree back into a device - a document or
+// .device file being loaded, a removal being undone after the view was
+// resized - with the view already laid out, so that no resize comes after to
+// hide a wrong size. Then a resize of the view, which the device follows. All
+// of it again at a device pixel ratio of 2, in a child process started with
+// QT_SCALE_FACTOR=2.
+namespace
+{
+Device::Node saved_background_device(const QString& name, ossia::vec2f size)
+{
+  Device::DeviceSettings set;
+  set.name = name;
+  set.protocol = WindowProtocolFactory::static_concreteKey();
+  WindowSettings ws;
+  ws.mode = WindowMode::Background;
+  set.deviceSpecificSettings = QVariant::fromValue(ws);
+
+  Device::Node node{set, nullptr};
+  Device::AddressSettings as;
+  as.name = QStringLiteral("size");
+  as.value = size;
+  as.ioType = ossia::access_mode::BI;
+  node.emplace_back(std::move(as), nullptr);
+  return node;
+}
+
+struct DeviceSizes
+{
+  qreal dpr{};
+  QSize view;
+  QSize pixels;
+  QSize parameter;
+  QSize node;
+  QSize renderTarget;
+};
+
+DeviceSizes device_sizes(Scenario::ScenarioDocumentView& view, WindowDevice& dev)
+{
+  DeviceSizes s;
+  s.dpr = view.view().devicePixelRatioF();
+  s.view = view.view().size();
+  s.pixels = QSize(qRound(s.view.width() * s.dpr), qRound(s.view.height() * s.dpr));
+  if(auto* p = size_parameter(dev))
+  {
+    const auto v = p->value();
+    if(auto sz = v.target<ossia::vec2f>())
+      s.parameter = QSize(int((*sz)[0]), int((*sz)[1]));
+  }
+  if(auto* bd = dynamic_cast<background_device*>(dev.getDevice()))
+  {
+    s.node = bd->node()->size();
+    // The output is created when the graph first takes the node in
+    QElapsedTimer t;
+    t.start();
+    while(!bd->node()->currentRenderTarget().texture && t.elapsed() < 2000)
+      pump_for(10);
+    if(auto* tex = bd->node()->currentRenderTarget().texture)
+      s.renderTarget = tex->pixelSize();
+  }
+  return s;
+}
+
+void show_laid_out(Scenario::ScenarioDocumentView& view)
+{
+  if(auto* w = view.view().window())
+  {
+    w->show();
+    w->resize(900, 700);
+  }
+  pump_for(200);
+}
+
+std::string to_string(QSize s)
+{
+  return std::to_string(s.width()) + "x" + std::to_string(s.height());
+}
+}
+
+namespace Catch
+{
+template <>
+struct StringMaker<DeviceSizes>
+{
+  static std::string convert(const DeviceSizes& s)
+  {
+    return "dpr " + std::to_string(s.dpr) + ", view " + to_string(s.view) + " ("
+           + to_string(s.pixels) + " pixels), parameter " + to_string(s.parameter)
+           + ", node " + to_string(s.node) + ", render target "
+           + to_string(s.renderTarget);
+  }
+};
+}
+
+TEST_CASE(
+    "a Background window device renders at its view's size, not at the size it was saved with",
+    "[gfx][window][device][background][size]")
+{
+  const auto path = GENERATE(as<std::string>{}, "load", "undo removal");
+  CAPTURE(path);
+
+  bool skipped{};
+  DeviceSizes loaded{}, resized{};
+  run_in_gui_app([&](const score::GUIApplicationContext& ctx) {
+    auto* doc = score::test::new_document(ctx);
+    if(!doc || !scenario_view(*doc))
+    {
+      skipped = true;
+      return;
+    }
+    auto& view = *scenario_view(*doc);
+    auto& gv = view.view();
+    auto& plug = doc->context().plugin<Explorer::DeviceDocumentPlugin>();
+    show_laid_out(view);
+
+    if(path == "load")
+    {
+      // What a document or a .device file saved with another view size holds
+      CommandDispatcher<> disp{doc->context().commandStack};
+      disp.submit(new Explorer::Command::LoadDevice{
+          plug, saved_background_device(QStringLiteral("Win"), {300.f, 200.f})});
+    }
+    else
+    {
+      auto* dev = add_background_device(doc->context(), QStringLiteral("Win"));
+      REQUIRE(dev);
+      pump_for(100);
+      gv.resize(gv.width() + 37, gv.height() + 23);
+      pump_for(100);
+
+      auto* node = device_node(doc->context(), QStringLiteral("Win"));
+      REQUIRE(node);
+      CommandDispatcher<> disp{doc->context().commandStack};
+      disp.submit(new Explorer::Command::Remove{plug, *node});
+      pump_for(100);
+
+      gv.resize(gv.width() - 61, gv.height() - 41);
+      pump_for(100);
+      doc->commandStack().undo();
+    }
+    pump_for(100);
+
+    auto* dev = dynamic_cast<WindowDevice*>(plug.list().findDevice(QStringLiteral("Win")));
+    REQUIRE(dev);
+    REQUIRE(dynamic_cast<background_device*>(dev->getDevice()));
+    loaded = device_sizes(view, *dev);
+
+    gv.resize(gv.width() + 53, gv.height() + 29);
+    pump_for(100);
+    resized = device_sizes(view, *dev);
+
+    ctx.docManager.forceCloseDocument(ctx, *doc);
+    pump_for(200);
+  });
+
+  if(skipped)
+    SKIP("the document has no scenario view to draw a background in");
+
+  CAPTURE(loaded, resized);
+  if(const auto expected = qgetenv("SCORE_TEST_EXPECT_DPR"); !expected.isEmpty())
+    REQUIRE(loaded.dpr == expected.toDouble());
+
+  CHECK(loaded.parameter == loaded.view);
+  CHECK(loaded.node == loaded.pixels);
+  CHECK(loaded.renderTarget == loaded.pixels);
+
+  CHECK(resized.view != loaded.view);
+  CHECK(resized.parameter == resized.view);
+  CHECK(resized.node == resized.pixels);
+  CHECK(resized.renderTarget == resized.pixels);
+}
+
+TEST_CASE(
+    "a Background window device renders at its view's size at a device pixel ratio of 2",
+    "[gfx][window][device][background][hidpi]")
+{
+  const QString self = QFileInfo{QStringLiteral("/proc/self/exe")}.canonicalFilePath();
+  if(self.isEmpty())
+    SKIP("cannot start this test binary again: /proc/self/exe is unavailable");
+
+  auto env = QProcessEnvironment::systemEnvironment();
+  env.insert(QStringLiteral("QT_SCALE_FACTOR"), QStringLiteral("2"));
+  env.insert(QStringLiteral("QT_SCREEN_SCALE_FACTORS"), QString{});
+  env.insert(QStringLiteral("SCORE_TEST_EXPECT_DPR"), QStringLiteral("2"));
+
+  QProcess child;
+  child.setProcessEnvironment(env);
+  child.setProcessChannelMode(QProcess::MergedChannels);
+  child.start(self, {QStringLiteral("[size]")});
+  REQUIRE(child.waitForStarted(30000));
+  const bool finished = child.waitForFinished(300000);
+  if(!finished)
+    child.kill();
+  const auto log = QString::fromUtf8(child.readAll()).toStdString();
+  INFO(log);
+  REQUIRE(finished);
+  REQUIRE(child.exitStatus() == QProcess::NormalExit);
+  CHECK(child.exitCode() == 0);
 }

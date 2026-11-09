@@ -97,8 +97,14 @@ void WindowDevice::addAddress(const Device::FullAddressSettings& settings)
   if(!m_dev)
     return;
 
-  if(dynamic_cast<offscreen_device*>(m_dev.get()) && settings.address.path.size() == 1
-     && settings.address.path.front() == QStringLiteral("size"))
+  // The saved tree carries the size of the view or window the output had when
+  // it was saved. An offscreen output renders at its settings' size and a
+  // background one at the size of the view it draws in, both set when the
+  // device is created: a saved size would replace them until the next resize.
+  if(settings.address.path.size() == 1
+     && settings.address.path.front() == QStringLiteral("size")
+     && (dynamic_cast<offscreen_device*>(m_dev.get())
+         || dynamic_cast<background_device*>(m_dev.get())))
     return;
 
   updateAddress(settings.address, settings);

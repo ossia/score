@@ -119,6 +119,15 @@ class background_device : public ossia::net::device_base
     }
   }
 
+  // "size" is the view's size in device-independent pixels, as the cursor
+  // positions are. The picture is rendered at the screen's resolution so that
+  // it covers the view pixel for pixel, as a window's swapchain does.
+  QSize pixelSize(ossia::vec2f logical) const
+  {
+    const qreal dpr = m_view ? m_view->view().devicePixelRatioF() : 1.;
+    return QSize{qRound(logical[0] * dpr), qRound(logical[1] * dpr)};
+  }
+
 public:
   background_device(
       Scenario::ScenarioDocumentView& view, std::unique_ptr<gfx_protocol_base> proto,
@@ -138,13 +147,14 @@ public:
       auto size_node = std::make_unique<ossia::net::generic_node>("size", *this, m_root);
       size_param = size_node->create_parameter(ossia::val_type::VEC2F);
       const auto sz = view.view().size();
-      m_screen->setSize(sz);
-      size_param->push_value(ossia::vec2f{(float)sz.width(), (float)sz.height()});
+      const ossia::vec2f logical{(float)sz.width(), (float)sz.height()};
+      m_screen->setSize(pixelSize(logical));
+      size_param->push_value(logical);
       size_param->add_callback([this](const ossia::value& v) {
         if(auto val = v.target<ossia::vec2f>())
         {
-          ossia::qt::run_async(&m_qtContext, [screen = this->m_screen, v = *val] {
-            screen->setSize({(int)v[0], (int)v[1]});
+          ossia::qt::run_async(&m_qtContext, [this, v = *val] {
+            m_screen->setSize(pixelSize(v));
           });
 
           update_viewport();
@@ -433,6 +443,8 @@ public:
 
   const gfx_node_base& get_root_node() const override { return m_root; }
   gfx_node_base& get_root_node() override { return m_root; }
+
+  score::gfx::BackgroundNode* node() const noexcept { return m_screen; }
 };
 
 }
