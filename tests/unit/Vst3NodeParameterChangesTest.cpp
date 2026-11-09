@@ -20,8 +20,11 @@
 #include <pluginterfaces/vst/ivstcomponent.h>
 #include <pluginterfaces/vst/ivsteditcontroller.h>
 
+#include <ossia/detail/fmt.hpp>
+
 #include <map>
 #include <set>
+#include <string>
 #include <vector>
 
 namespace
@@ -63,6 +66,13 @@ public:
   std::vector<std::vector<std::pair<int32, int32>>> note_offs;
   //! The project time, in samples, each process() call was given
   std::vector<int64> project_times;
+  //! The numSamples of each process() call
+  std::vector<int32> block_sizes;
+  //! The flags of every note-off it was given
+  std::vector<uint16> note_off_flags;
+  //! The set-up calls, in order, with whether it was active for each
+  std::vector<std::string> calls;
+  bool active{};
 
   tresult PLUGIN_API queryInterface(const TUID, void** obj) override
   {
@@ -99,11 +109,22 @@ public:
   {
     return kNotImplemented;
   }
-  tresult PLUGIN_API activateBus(MediaType, BusDirection, int32, TBool) override
+  tresult PLUGIN_API
+  activateBus(MediaType type, BusDirection dir, int32 index, TBool state) override
   {
+    calls.push_back(
+        fmt::format(
+            "activateBus {} {} {} {}{}", type == kAudio ? "audio" : "event",
+            dir == kInput ? "in" : "out", index, int(state),
+            active ? " while active" : ""));
     return kResultOk;
   }
-  tresult PLUGIN_API setActive(TBool) override { return kResultOk; }
+  tresult PLUGIN_API setActive(TBool state) override
+  {
+    calls.push_back(fmt::format("setActive {}", int(state)));
+    active = state;
+    return kResultOk;
+  }
   tresult PLUGIN_API setState(IBStream*) override { return kResultOk; }
   tresult PLUGIN_API getState(IBStream*) override { return kResultOk; }
 
@@ -118,12 +139,20 @@ public:
   }
   tresult PLUGIN_API canProcessSampleSize(int32) override { return kResultOk; }
   uint32 PLUGIN_API getLatencySamples() override { return 0; }
-  tresult PLUGIN_API setupProcessing(ProcessSetup&) override { return kResultOk; }
+  tresult PLUGIN_API setupProcessing(ProcessSetup& setup) override
+  {
+    calls.push_back(
+        fmt::format(
+            "setupProcessing {} {}{}", setup.sampleRate, setup.maxSamplesPerBlock,
+            active ? " while active" : ""));
+    return kResultOk;
+  }
   tresult PLUGIN_API setProcessing(TBool) override { return kResultOk; }
   uint32 PLUGIN_API getTailSamples() override { return 0; }
 
   tresult PLUGIN_API process(ProcessData& data) override
   {
+    block_sizes.push_back(data.numSamples);
     auto& block = received.emplace_back();
     auto& set = applied.emplace_back();
     had_events.push_back(data.inputEvents != nullptr);
@@ -135,7 +164,10 @@ public:
       {
         Event e{};
         if(ev->getEvent(i, e) == kResultOk && e.type == Event::kNoteOffEvent)
+        {
           offs.emplace_back(e.busIndex, e.noteOff.channel);
+          note_off_flags.push_back(e.flags);
+        }
       }
     }
     if(auto* in = data.inputParameterChanges)
@@ -541,6 +573,10 @@ TEST_CASE(
     CHECK(channel < 16);
   }
   CHECK(buses == std::set<int32>{0, 1, 2});
+  // Nothing but a note-off: no stray flags
+  REQUIRE(!f.fx.note_off_flags.empty());
+  for(auto flags : f.fx.note_off_flags)
+    CHECK(flags == 0);
 }
 
 TEST_CASE(
@@ -609,4 +645,103 @@ TEST_CASE(
     f.node->process_time(tk, f.state);
   }
   CHECK(f.fx.project_times == std::vector<int64>{0, 64, 128, 1000});
+}
+
+namespace
+{
+//! A plug-in as Plugin::load leaves it, before start()
+struct loaded_plugin
+{
+  fake_processor fx;
+  vst3::Plugin p;
+  explicit loaded_plugin(int32 event_inputs = 0, int32 event_outputs = 0)
+  {
+    fx.event_inputs = event_inputs;
+    fx.event_outputs = event_outputs;
+    p.component = &fx;
+    p.processor = &fx;
+  }
+  ~loaded_plugin()
+  {
+    p.component = nullptr;
+    p.processor = nullptr;
+  }
+};
+}
+
+TEST_CASE(
+    "VST3: a plug-in is set up, then its buses switched on, then it is activated",
+    "[vst3][setup]")
+{
+  loaded_plugin l{1, 1};
+  l.p.start(44100, 512);
+  CHECK(
+      l.fx.calls
+      == std::vector<std::string>{
+          "setupProcessing 44100 512", "activateBus event in 0 1",
+          "activateBus event out 0 1", "setActive 1"});
+  CHECK(l.p.sample_rate == 44100);
+  CHECK(l.p.max_block == 512);
+}
+
+TEST_CASE(
+    "VST3: a plug-in is set up again, inactive, only for another rate or block size",
+    "[vst3][setup]")
+{
+  loaded_plugin l;
+  l.p.start(44100, 512);
+  l.fx.calls.clear();
+
+  // What it was set up for: nothing to do, activating can be costly
+  l.p.restart(44100, 512);
+  CHECK(l.fx.calls.empty());
+
+  // setupProcessing() only while inactive
+  l.p.restart(48000, 256);
+  CHECK(
+      l.fx.calls
+      == std::vector<std::string>{
+          "setActive 0", "setupProcessing 48000 256", "setActive 1"});
+  CHECK(l.fx.active);
+  l.fx.calls.clear();
+
+  l.p.restart(48000, 256);
+  CHECK(l.fx.calls.empty());
+
+  l.p.restart(48000, 1024);
+  CHECK(
+      l.fx.calls
+      == std::vector<std::string>{
+          "setActive 0", "setupProcessing 48000 1024", "setActive 1"});
+  l.fx.calls.clear();
+
+  // Nothing to set it up for
+  l.p.restart(0, 512);
+  l.p.restart(48000, 0);
+  CHECK(l.fx.calls.empty());
+}
+
+TEST_CASE(
+    "VST3: the notes off of a stop fit in the largest block the plug-in was set "
+    "up for",
+    "[vst3][midi][setup]")
+{
+  for(int max_block : {16, 32, 64, 512})
+  {
+    fake_processor fx;
+    fx.event_inputs = 1;
+    vst3::Plugin p;
+    p.component = &fx;
+    p.processor = &fx;
+    p.start(44100, max_block);
+    {
+      vst3::vst_node<false> node{p, 44100};
+      node.all_notes_off();
+    }
+    p.component = nullptr;
+    p.processor = nullptr;
+    REQUIRE(fx.block_sizes.size() == 1);
+    CHECK(fx.block_sizes[0] > 0);
+    CHECK(fx.block_sizes[0] <= max_block);
+  }
 }
