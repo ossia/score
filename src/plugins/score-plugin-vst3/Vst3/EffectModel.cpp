@@ -830,12 +830,13 @@ struct InputCopier
     {
       Steinberg::Vst::ParameterInfo inf;
       controller->getParameterInfo(i, inf);
-      auto& queue = m_inputChanges.queues.emplace_back(inf.id);
+      auto& queue = m_inputChanges.queues[m_inputChanges.add_queue(inf.id)];
       Steinberg::int32 x;
       queue.lastValue = controller->getParamNormalized(inf.id);
       queue.addPoint(0, queue.lastValue, x);
     }
 
+    m_inputChanges.collect();
     processor->process(m_vstData);
   }
 };
