@@ -38,6 +38,7 @@
 #include <ossia/dataflow/exec_state_facade.hpp>
 #include <ossia/dataflow/execution_state.hpp>
 
+#include <QFile>
 #include <QSettings>
 #include <QTemporaryDir>
 #include <QUrl>
@@ -1070,6 +1071,101 @@ TEST_CASE("LV2 sample rate ports are given in Hz to the plug-in", "[lv2]")
         CHECK(ossia::convert<float>(rate->value()) == Catch::Approx(0.25f));
         CHECK(ossia::convert<float>(gain->value()) == Catch::Approx(0.3f));
       }
+    }
+  });
+}
+
+// A plug-in's presets come in the order of their URIs, as banks and slots are
+// numbered: lilv gives them in an order that changes from run to run.
+// Presets are referred to by URI, so the order does not change what loads.
+TEST_CASE("LV2 presets are listed in the natural order of their URIs", "[lv2][presets]")
+{
+  prepare_lv2_test_environment();
+  QTemporaryDir dir;
+  REQUIRE(dir.isValid());
+
+  // Written out of order; lexicographically preset10 to preset12 would come
+  // before preset2
+  constexpr auto gain2_uri = "urn:score:test:gain2";
+  const std::vector<int> written{7, 10, 2, 12, 1, 9, 11, 3, 5, 8, 4, 6};
+  {
+    QFile f{dir.filePath("manifest.ttl")};
+    REQUIRE(f.open(QIODevice::WriteOnly));
+    QByteArray ttl
+        = "@prefix lv2: <http://lv2plug.in/ns/lv2core#> .\n"
+          "@prefix pset: <http://lv2plug.in/ns/ext/presets#> .\n"
+          "@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n";
+    for(int i : written)
+      ttl += QStringLiteral(
+                 "<urn:score:test:gain2:preset%1> a pset:Preset ;\n"
+                 "  lv2:appliesTo <urn:score:test:gain2> ;\n"
+                 "  rdfs:label \"Slot %1\" ;\n"
+                 "  lv2:port [ lv2:symbol \"gain\" ; pset:value %2 ] .\n")
+                 .arg(i)
+                 .arg(i / 4.)
+                 .toUtf8();
+    f.write(ttl);
+  }
+
+  score::test::run_in_app([&](const score::GUIApplicationContext& ctx) {
+    auto& plug = ctx.applicationPlugin<LV2::ApplicationPlugin>();
+    plug.lv2_context->loadPlugins();
+    auto info = makeGainInfo();
+    info.uri = gain2_uri;
+    info.preset_bundles = {QUrl::fromLocalFile(dir.path()).toString() + "/"};
+    plug.setCachedDescriptors({makeGainInfo(), info});
+
+    QObject parent;
+    auto* model = new LV2::Model{
+        TimeVal::fromMsecs(1000), gain2_uri, Id<Process::ProcessModel>{1}, &parent};
+    REQUIRE(model->plugin);
+    REQUIRE(model->effectContext.instance);
+    auto* gain = dynamic_cast<Process::ControlInlet*>(model->inlets()[1]);
+    REQUIRE(gain);
+
+    const auto uriOf = [](const Process::Preset& p) {
+      rapidjson::Document doc;
+      doc.Parse(p.data.constData(), p.data.size());
+      REQUIRE(doc.IsObject());
+      REQUIRE(doc.HasMember("Uri"));
+      return QString::fromUtf8(doc["Uri"].GetString());
+    };
+
+    const auto presets = model->builtinPresets();
+    REQUIRE(presets.size() == 12);
+    for(int i = 0; i < 12; i++)
+    {
+      INFO(i);
+      CHECK(presets[i].name == QStringLiteral("Slot %1").arg(i + 1));
+      CHECK(uriOf(presets[i]) == QStringLiteral("urn:score:test:gain2:preset%1").arg(i + 1));
+    }
+
+    // The same every time it is asked
+    const auto again = model->builtinPresets();
+    REQUIRE(again.size() == presets.size());
+    for(std::size_t i = 0; i < presets.size(); i++)
+      CHECK(again[i].data == presets[i].data);
+
+    SECTION("a preset saved before still loads the same one")
+    {
+      const QByteArray uri = "urn:score:test:gain2:preset10";
+
+      // In a preset file or a drag: {"Uri": ...}
+      Process::Preset saved = presets[9];
+      gain->setValue(0.f);
+      const auto read = Process::Preset::fromJson(
+          ctx.interfaces<Process::ProcessFactoryList>(), saved.toJson());
+      REQUIRE(read);
+      CHECK(uriOf(*read) == QString::fromUtf8(uri));
+      model->loadPreset(*read);
+      CHECK(ossia::convert<float>(gain->value()) == Catch::Approx(10 / 4.));
+
+      // From before the JSON data: the URI itself
+      gain->setValue(0.f);
+      Process::Preset legacy = saved;
+      legacy.data = uri;
+      model->loadPreset(legacy);
+      CHECK(ossia::convert<float>(gain->value()) == Catch::Approx(10 / 4.));
     }
   });
 }

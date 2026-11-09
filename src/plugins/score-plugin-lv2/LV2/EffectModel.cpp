@@ -14,6 +14,7 @@
 #include <score/serialization/JSONVisitor.hpp>
 #include <score/tools/Bind.hpp>
 #include <score/tools/DeleteAll.hpp>
+#include <score/tools/NaturalSort.hpp>
 #include <score/tools/std/StringHash.hpp>
 
 #include <ossia/dataflow/execution_state.hpp>
@@ -454,11 +455,23 @@ std::vector<Process::Preset> Model::builtinPresets() const noexcept
 
   if(LilvNodes* presets = lilv_plugin_get_related(plugin, pset_node))
   {
-    result.reserve(lilv_nodes_size(presets));
-    int unlabelled = 0;
+    // lilv gives them in no stable order: by their URIs, as banks and slots
+    // are numbered, "preset2" before "preset10"
+    std::vector<std::pair<QString, const LilvNode*>> sorted;
+    sorted.reserve(lilv_nodes_size(presets));
     LILV_FOREACH(nodes, it, presets)
     {
       const LilvNode* preset_node = lilv_nodes_get(presets, it);
+      sorted.emplace_back(QString::fromUtf8(lilv_node_as_uri(preset_node)), preset_node);
+    }
+    std::sort(sorted.begin(), sorted.end(), [](const auto& a, const auto& b) {
+      return score::naturalLess(a.first, b.first);
+    });
+
+    result.reserve(sorted.size());
+    int unlabelled = 0;
+    for(const auto& [uri, preset_node] : sorted)
+    {
       // rdfs:seeAlso file (with the rdfs:label) is loaded via lilv_world_load_resource
       lilv_world_load_resource(world, preset_node);
 
@@ -479,7 +492,6 @@ std::vector<Process::Preset> Model::builtinPresets() const noexcept
       if(label.isEmpty())
       {
         // What ends its URI, "preset1" rather than the whole URI
-        const QString uri = QString::fromUtf8(lilv_node_as_uri(preset_node));
         p.name = uri.mid(uri.lastIndexOf(QRegularExpression{"[:#/]"}) + 1);
         unlabelled++;
       }
@@ -494,7 +506,7 @@ std::vector<Process::Preset> Model::builtinPresets() const noexcept
       {
         JSONReader w;
         w.stream.StartObject();
-        w.obj["Uri"] = QString::fromUtf8(lilv_node_as_uri(preset_node));
+        w.obj["Uri"] = uri;
         w.stream.EndObject();
         p.data = w.toByteArray();
       }
