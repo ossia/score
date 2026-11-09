@@ -895,6 +895,45 @@ PluginHandle::PluginHandle()
   };
 }
 
+namespace
+{
+// clap/entry.h: the host calls init() once and deinit() once, in a matched
+// pair, however many plug-ins it makes from the library. One count per
+// library, as two processes of one .clap share its entry. [main-thread]
+ossia::hash_map<const clap_plugin_entry_t*, int>& entry_users()
+{
+  static ossia::hash_map<const clap_plugin_entry_t*, int> users;
+  return users;
+}
+
+bool acquire_entry(const clap_plugin_entry_t* entry, const char* path)
+{
+  auto& users = entry_users();
+  if(auto it = users.find(entry); it != users.end())
+  {
+    it->second++;
+    return true;
+  }
+  if(!entry->init(path))
+    return false;
+  users[entry] = 1;
+  return true;
+}
+
+void release_entry(const clap_plugin_entry_t* entry)
+{
+  auto& users = entry_users();
+  auto it = users.find(entry);
+  if(it == users.end())
+    return;
+  if(--it->second == 0)
+  {
+    users.erase(it);
+    entry->deinit();
+  }
+}
+}
+
 PluginHandle::~PluginHandle()
 {
   if(plugin)
@@ -905,7 +944,7 @@ PluginHandle::~PluginHandle()
 
   if(entry)
   {
-    entry->deinit();
+    release_entry(entry);
     entry = nullptr;
   }
 
@@ -1096,7 +1135,7 @@ void PluginHandle::load(Model& context, QByteArray path, QByteArray id)
     return;
   }
 
-  if(!entry->init(path.data()))
+  if(!acquire_entry(entry, path.data()))
   {
     // init() failed: entry pointer is valid but the DSO is uninitialized,
     // so we must NOT call entry->deinit() later. Forget the entry pointer

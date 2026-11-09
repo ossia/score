@@ -16,6 +16,7 @@
 #include <Execution/DocumentPlugin.hpp>
 
 #include <core/document/Document.hpp>
+#include <core/presenter/DocumentManager.hpp>
 
 #include <ossia/dataflow/data_copy.hpp>
 #include <ossia/dataflow/execution_state.hpp>
@@ -265,5 +266,29 @@ TEST_CASE(
     for(double o : out)
       CHECK(o == Catch::Approx(0.5));
     p.stop();
+  });
+}
+
+TEST_CASE(
+    "CLAP: the library of two processes of one plug-in is initialised once",
+    "[integration][clap][library]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    const int before = report().initialised;
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    add_mono_gain(*doc);
+    add_mono_gain(*doc);
+
+    auto e = report();
+    CHECK(e.initialised == before + 1);
+    CHECK(e.double_init == 0);
+
+    ctx.docManager.forceCloseDocument(ctx, *doc);
+    spin(50);
+    e = report();
+    CHECK(e.initialised == before);
+    CHECK(e.bad_state == 0);
+    CHECK(e.late_calls == 0);
   });
 }
