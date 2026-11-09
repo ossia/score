@@ -683,6 +683,7 @@ void Model::initFx()
   auto& ctx = score::GUIAppContext();
   auto& media = ctx.settings<Audio::Settings::Model>();
   const int blockSize = media.getBufferSize();
+  fx->info.sampleRate = media.getRate();
 
   // JUCE hosts do it before effOpen
   dispatch(effSetSampleRate, 0, media.getRate(), nullptr, media.getRate());

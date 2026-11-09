@@ -253,6 +253,7 @@ public:
   ~vst_node()
   {
     fx->fx->resvd2 = 0;
+    fx->info.flags = (fx->info.flags & ~kVstTransportPlaying) | kVstTransportChanged;
     dispatch(effStopProcess);
     dispatch(effMainsChanged, 0, 0);
   }

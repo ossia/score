@@ -1248,6 +1248,13 @@ if(TARGET score_plugin_vst)
   target_include_directories(test_unit_vst_node_blocks PRIVATE
     "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-vst")
 
+  # The time info a VST 2 plug-in reads is a stopped transport until it plays.
+  score_add_test(test_unit_vst_time_info
+    SOURCES VstTimeInfoTest.cpp
+    PLUGINS score_lib_process score_plugin_vst)
+  target_include_directories(test_unit_vst_time_info PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-vst")
+
   # A VST 2 plug-in that receives MIDI events gets a MIDI input, synth or not.
   if(UNIX AND NOT APPLE)
     add_library(score_test_vst_unflagged_instrument MODULE
