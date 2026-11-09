@@ -78,6 +78,8 @@ public:
   //! Events from ticks that covered no whole sample, waiting for the next block
   //! that does cover one.
   ossia::small_vector<libremidi::ump, 8> m_deferred_midi;
+  //! What the script sent from the @block it ran when it was loaded
+  std::vector<libremidi::ump> m_midiBeforePlay;
   //! Every tick of a buffer sees all of the buffer's events: the buffer the
   //! last tick was in, where it started, and up to where it took them
   int64_t m_midiBuffer{-1};
@@ -173,6 +175,12 @@ void Component::reload(Execution::Transaction& transaction)
       *ctx.execState, has_audio_in, has_midi_in, has_audio_out, has_midi_out,
       std::move(sliders), proc.fx, proc.stateGuard, *ctx.execState);
   node->generation = this->generation;
+  for(const auto& bytes : proc.takeMidiBeforePlay())
+  {
+    libremidi::ump msg;
+    if(cmidi2_midi1_channel_voice_to_midi2(bytes.data(), bytes.size(), msg.data))
+      node->m_midiBeforePlay.push_back(msg);
+  }
   this->node = node;
 
   if(!m_ossia_process)
@@ -468,6 +476,8 @@ void ysfx_node::run(
 
   if(midi_out)
   {
+    auto& out = this->midi_out->data.messages;
+    const auto sent_before = out.size();
     ysfx_midi_event_t ev;
     while(ysfx_receive_midi(y, &ev))
     {
@@ -476,8 +486,22 @@ void ysfx_node::run(
 
       if(cmidi2_midi1_channel_voice_to_midi2(ev.data, ev.size, msg.data))
       {
-        this->midi_out->data.messages.push_back(msg);
+        out.push_back(msg);
       }
+    }
+
+    // What the script sent when it was loaded is heard when it first plays.
+    // A script that starts over when it plays (its @init runs again) sends
+    // it again from this block; one that keeps what it did sends nothing new.
+    if(!m_midiBeforePlay.empty())
+    {
+      if(out.size() == sent_before)
+        for(auto msg : m_midiBeforePlay)
+        {
+          msg.timestamp = tick_start;
+          out.push_back(msg);
+        }
+      m_midiBeforePlay.clear();
     }
   }
 }

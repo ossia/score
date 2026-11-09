@@ -43,6 +43,7 @@ struct played_script
   ossia::audio_port* audio_in{};
   ossia::audio_port* audio_out{};
   ossia::midi_port* midi_in{};
+  ossia::midi_port* midi_out{};
 
   bool open(const score::GUIApplicationContext& ctx, const char* script)
   {
@@ -66,8 +67,12 @@ struct played_script
     REQUIRE(it->second->node);
     node = it->second->node.get();
     for(auto* o : node->root_outputs())
+    {
       if(auto* a = o->target<ossia::audio_port>())
         audio_out = a;
+      else if(auto* m = o->target<ossia::midi_port>())
+        midi_out = m;
+    }
     for(auto* i : node->root_inputs())
     {
       if(auto* m = i->target<ossia::midi_port>())
@@ -211,5 +216,98 @@ blocks += 1;
     for(double v : out)
       through += v == 0.5;
     CHECK(through == frames);
+  });
+}
+
+TEST_CASE(
+    "a JSFX script's @slider runs when it is loaded, before it plays",
+    "[integration][ysfx]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    QTemporaryDir dir;
+    REQUIRE(dir.isValid());
+    const QString path = dir.filePath("slider.jsfx");
+    score::test::write_file(path, R"(desc:shown
+slider1:3<0,10,1>Value
+in_pin:left
+in_pin:right
+out_pin:left
+out_pin:right
+@slider
+shown = slider1 * 2;
+channels = num_ch;
+@gfx 100 100
+gfx_x = gfx_y = 0;
+gfx_drawnumber(shown, 0);
+)");
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    auto* proc = static_cast<YSFX::ProcessModel*>(
+        score::test::add_process(*doc, ysfx_uuid, path));
+    if(!proc || !proc->fx)
+      SKIP("YSFX not built");
+
+    // What @gfx draws before the script plays
+    CHECK(ysfx_read_var(proc->fx.get(), "shown") == 6.);
+    CHECK(ysfx_read_var(proc->fx.get(), "channels") == 2.);
+  });
+}
+
+TEST_CASE(
+    "what a JSFX script sends from its first @block is heard once, when it plays",
+    "[integration][ysfx]")
+{
+  // Each sends one note from its first @block. The first records it in a
+  // variable that @init does not set, as a script sending a program change
+  // on load does; the second also with ext_noinit, so @init does not run
+  // again; the third starts over when it plays, and sends it again then.
+  const char* scripts[] = {
+      R"(desc:once
+in_pin:none
+out_pin:none
+@block
+!sent ? (
+  midisend(0, 0x90, 60 + 100 * 256);
+  sent = 1;
+);
+)",
+      R"(desc:once without init
+in_pin:none
+out_pin:none
+@init
+ext_noinit = 1;
+sent = 0;
+@block
+!sent ? (
+  midisend(0, 0x90, 60 + 100 * 256);
+  sent = 1;
+);
+)",
+      R"(desc:on each start
+in_pin:none
+out_pin:none
+@init
+sent = 0;
+@block
+!sent ? (
+  midisend(0, 0x90, 60 + 100 * 256);
+  sent = 1;
+);
+)"};
+  score::test::run_in_app([&](const score::GUIApplicationContext& ctx) {
+    for(const char* script : scripts)
+    {
+      INFO(script);
+      played_script p;
+      if(!p.open(ctx, script))
+        SKIP("YSFX not built");
+      REQUIRE(p.midi_out);
+
+      p.buffer({{0, frames}});
+      CHECK(p.midi_out->messages.size() == 1);
+      p.midi_out->messages.clear();
+      p.buffer({{0, frames}});
+      CHECK(p.midi_out->messages.empty());
+    }
   });
 }

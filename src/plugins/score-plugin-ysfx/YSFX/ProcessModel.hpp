@@ -15,6 +15,7 @@
 
 #include <bitset>
 #include <memory>
+#include <vector>
 #include <verdigris>
 
 #if __has_include(<ysfx-s.h>)
@@ -75,10 +76,16 @@ public:
 
   std::vector<Process::Preset> builtinPresets() const noexcept override;
 
+  //! The MIDI the script sent when it was loaded, before it could play: its
+  //! first @block runs then
+  std::vector<std::vector<uint8_t>> takeMidiBeforePlay() noexcept;
+
   PROPERTY(QString, script READ text WRITE setText NOTIFY scriptChanged)
 
 private:
   friend class Window;
+  //! @init, then @slider and @block on no frames
+  void startScript();
   void recreatePorts();
   //! A change of the control sets the slider of the script
   void connectSlider(Process::ControlInlet& control, uint32_t slider);
@@ -100,6 +107,7 @@ private:
   QByteArray m_saved_state;
 
   std::bitset<ysfx_max_sliders> m_sliderBeingChanged{};
+  std::vector<std::vector<uint8_t>> m_midiBeforePlay;
 };
 
 class Window : public score::PluginWindow
