@@ -59,7 +59,7 @@ struct SCORE_PLUGIN_VST_EXPORT AEffectWrapper
 
 class CreateControl;
 class ControlInlet;
-class Model final : public Process::ProcessModel
+class SCORE_PLUGIN_VST_TEST_EXPORT Model final : public Process::ProcessModel
 {
   W_OBJECT(Model)
   SCORE_SERIALIZE_FRIENDS
@@ -173,6 +173,9 @@ template <>
 Process::Descriptor
 EffectProcessFactory_T<vst::Model>::descriptor(QString d) const noexcept;
 }
+
+template <>
+SCORE_PLUGIN_VST_TEST_EXPORT void JSONWriter::write(vst::Model& eff);
 
 namespace vst
 {
