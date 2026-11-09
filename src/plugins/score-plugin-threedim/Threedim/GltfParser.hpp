@@ -45,6 +45,9 @@ public:
     std::shared_ptr<std::vector<uint32_t>> joints0;
     std::shared_ptr<std::vector<float>> weights0;
     std::shared_ptr<std::vector<uint32_t>> indices; // optional
+    //! Triangle lists, points, lines or line strips (extract_primitive turns
+    //! strips, fans and loops into these).
+    ossia::primitive_topology topology{ossia::primitive_topology::triangles};
     uint32_t vertex_count{0};
     uint32_t index_count{0};
     int material_index{-1};
