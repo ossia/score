@@ -932,6 +932,8 @@ PluginHandle::~PluginHandle()
 {
   if(plugin)
   {
+    if(activated)
+      plugin->deactivate(plugin);
     plugin->destroy(plugin);
     plugin = nullptr;
   }
@@ -1058,7 +1060,9 @@ Model::~Model()
 {
   closeUI();
 
-  if(m_plugin->plugin && m_plugin->activated)
+  // Still processing, the node keeps the handle and the last owner
+  // deactivates it
+  if(m_plugin->plugin && m_plugin->activated && !m_plugin->processing)
   {
     m_plugin->plugin->deactivate(m_plugin->plugin);
     m_plugin->activated = false;
@@ -1237,19 +1241,37 @@ void Model::loadPlugin()
   }
 
   // Connect the restart signal
-  connect(this, &Process::ProcessModel::resetExecution, this, [this] {
-    if(m_plugin->plugin && m_plugin->activated)
-    {
-      m_plugin->plugin->deactivate(m_plugin->plugin);
-      m_plugin->activated = false;
-    }
-    // Drain RESCAN_ALL deferred during execution (spec needs deactivate).
-    if(m_pendingRescanFlags != 0)
-    {
-      auto pending = std::exchange(m_pendingRescanFlags, 0u);
-      onParamRescan(pending);
-    }
-  }, Qt::QueuedConnection);
+  connect(
+      this, &Process::ProcessModel::resetExecution, this,
+      &Model::deactivateOnceStopped, Qt::QueuedConnection);
+}
+
+void Model::deactivateOnceStopped()
+{
+  // A new play activates the plug-in again by itself
+  if(executing())
+    return;
+
+  // The stop reaches the audio thread through the execution queue, maybe
+  // after the main thread had its turn. clap/plugin.h: stop_processing is
+  // [audio-thread & active & processing], so it comes before deactivate
+  if(m_plugin->processing)
+  {
+    QTimer::singleShot(5, this, &Model::deactivateOnceStopped);
+    return;
+  }
+
+  if(m_plugin->plugin && m_plugin->activated)
+  {
+    m_plugin->plugin->deactivate(m_plugin->plugin);
+    m_plugin->activated = false;
+  }
+  // Drain RESCAN_ALL deferred during execution (spec needs deactivate).
+  if(m_pendingRescanFlags != 0)
+  {
+    auto pending = std::exchange(m_pendingRescanFlags, 0u);
+    onParamRescan(pending);
+  }
 }
 
 namespace

@@ -13,6 +13,8 @@
 #include <ossia/detail/flat_map.hpp>
 #include <ossia/detail/hash_map.hpp>
 
+#include <atomic>
+
 #include <QSocketNotifier>
 
 #include <clap/all.h>
@@ -74,6 +76,9 @@ struct PluginHandle
   QPointer<Model> model;
 
   bool activated{};
+  //! Between start_processing and stop_processing, which the audio thread
+  //! calls: the main thread deactivates the plug-in only after
+  std::atomic_bool processing{};
 };
 
 class Model final : public Process::ProcessModel
@@ -183,6 +188,7 @@ public:
 
 private:
   void loadPlugin();
+  void deactivateOnceStopped();
   void createControls(bool loading);
 
   void refreshParamValues();

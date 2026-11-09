@@ -10,7 +10,10 @@
 
 #include <Process/Dataflow/Port.hpp>
 
+#include <Scenario/Commands/Interval/RemoveProcessFromInterval.hpp>
 #include <Scenario/Document/Interval/IntervalExecution.hpp>
+
+#include <score/command/Dispatchers/CommandDispatcher.hpp>
 
 #include <Execution/BaseScenarioComponent.hpp>
 #include <Execution/DocumentPlugin.hpp>
@@ -440,6 +443,28 @@ TEST_CASE(
 }
 
 TEST_CASE(
+    "CLAP: a stop deactivates a plug-in once it stopped processing",
+    "[integration][clap][stop]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    auto& proc = *add_mono_gain(*doc);
+    const int before = report().active;
+    {
+      playing p{*doc, proc};
+      for(int i = 0; i < 2; i++)
+        p.block(2);
+      p.stop();
+    }
+    spin(100);
+    const auto e = report();
+    CHECK(e.bad_state == 0);
+    CHECK(e.active == before);
+  });
+}
+
+TEST_CASE(
     "CLAP: a plug-in without note ports is sent no note when the notes are stopped",
     "[integration][clap][notes]")
 {
@@ -455,6 +480,43 @@ TEST_CASE(
     p.block(2);
     CHECK(report().bad_events == 0);
     p.stop();
+  });
+}
+
+TEST_CASE(
+    "CLAP: a mono plug-in removed while it plays is stopped, then destroyed with its "
+    "instances",
+    "[integration][clap][library][mono]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    const auto before = report();
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    auto& proc = *add_mono_gain(*doc);
+    {
+      playing p{*doc, proc};
+      p.block(4);
+      p.node.reset();
+      CommandDispatcher<>{doc->context().commandStack}.submit(
+          new Scenario::Command::RemoveProcessFromInterval{
+              score::test::base_interval(*doc), proc.id()});
+      for(int i = 0; i < 3; i++)
+      {
+        score::test::run_exec(p.plug);
+        spin(20);
+      }
+      p.plug.baseScenario()->baseInterval().stop();
+      score::test::run_exec(p.plug);
+      p.plug.clear();
+      spin(50);
+    }
+
+    const auto e = report();
+    CHECK(e.bad_state == 0);
+    CHECK(e.late_calls == 0);
+    CHECK(e.wrong_thread == 0);
+    CHECK(e.instances == before.instances);
+    CHECK(e.active == before.active);
   });
 }
 

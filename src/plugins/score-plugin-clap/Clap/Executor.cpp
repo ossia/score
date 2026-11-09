@@ -849,7 +849,9 @@ public:
   {
     // We do not deactivate in the audio thread where the dtor of clap_node runs
     // but later in the main thread (driven by Model::resetExecution / ~Model
-    // through the synced handle.activated flag set in the constructor).
+    // through the synced handle.activated flag set in the constructor), once
+    // the plug-in stopped processing or its node is gone.
+    m_instance.processing = false;
   }
 
   void do_process(
@@ -1111,6 +1113,7 @@ public:
     if(!m_processing)
     {
       m_processing = start_plugin(m_instance.plugin);
+      m_instance.processing = m_processing;
       if(!m_processing)
         return;
     }
@@ -1339,6 +1342,7 @@ public:
     if(!m_processing)
     {
       m_processing = start_plugin(m_instance.plugin);
+      m_instance.processing = m_processing;
       if(!m_processing)
         return;
     }
@@ -1621,6 +1625,7 @@ public:
         m_poly[i].processing = false;
       }
     }
+    m_instance.processing = false;
 
     // m_poly[0] is the Model's shared handle; deactivated by Model::~Model.
     // Orphaned grower output is cleaned up via grow_pool_tick's weak_ptr.
@@ -1898,6 +1903,8 @@ public:
       if(!cur.processing)
       {
         cur.processing = start_plugin(cur.plugin, current_channel == 0);
+        if(current_channel == 0)
+          m_instance.processing = cur.processing;
         if(!cur.processing)
           return;
       }
@@ -2021,6 +2028,8 @@ public:
       if(!cur.processing)
       {
         cur.processing = start_plugin(cur.plugin, current_channel == 0);
+        if(current_channel == 0)
+          m_instance.processing = cur.processing;
         if(!cur.processing)
           return;
       }
@@ -2065,6 +2074,7 @@ struct clap_process final : public ossia::node_process
       clap->stop_plugin(clap->m_instance.plugin);
       clap->m_processing = false;
     }
+    clap->m_instance.processing = false;
   }
   void pause() override { }
   void resume() override { }
@@ -2089,6 +2099,7 @@ struct clap_mono_process final : public ossia::node_process
         plug.processing = false;
       }
     }
+    clap->m_instance.processing = false;
   }
   void pause() override { }
   void resume() override { }
