@@ -328,6 +328,8 @@ void Model::on_addControl_impl(ControlInlet* ctrl)
 
 void Model::on_controlChangedFromScore(int i, float newval)
 {
+  if(m_updatingFromPlugin)
+    return;
   if(std::abs(newval - fx->getParameter(i)) > 0.0001)
     fx->setParameter(i, newval);
 }
@@ -340,7 +342,89 @@ void Model::reloadControls()
   for(auto ctrl : controls)
   {
     setControlName(ctrl.first, ctrl.second);
-    ctrl.second->setValue(fx->getParameter(ctrl.first));
+    const float v = fx->getParameter(ctrl.first);
+    controlReadFromPlugin(ctrl.first, v);
+    ctrl.second->setValue(v);
+  }
+}
+
+void Model::parameterChangedByPlugin(int32_t index) noexcept
+{
+  auto* c = m_changedParams.load(std::memory_order_acquire);
+  if(c && index >= 0 && index < c->count)
+  {
+    c->flags[index].store(true, std::memory_order_release);
+  }
+  else
+  {
+    if(index >= 0)
+      m_otherParam.store(index, std::memory_order_relaxed);
+    m_otherParamChanged.store(true, std::memory_order_release);
+  }
+  m_paramsChanged.store(true, std::memory_order_release);
+}
+
+bool Model::trackParameters(int32_t count)
+{
+  auto* old = m_changedParams.load(std::memory_order_relaxed);
+  if(count <= 0 || (old && old->count >= count))
+    return false;
+
+  auto block = std::make_unique<changed_params>();
+  block->count = count;
+  block->flags = std::make_unique<std::atomic_bool[]>(count);
+  if(old)
+    for(int32_t i = 0; i < old->count; i++)
+      block->flags[i].store(
+          old->flags[i].load(std::memory_order_acquire), std::memory_order_relaxed);
+  m_changedParams.store(block.get(), std::memory_order_release);
+  m_changedParamBlocks.push_back(std::move(block));
+  return true;
+}
+
+void Model::updateControlsChangedByPlugin()
+{
+  if(!m_paramsChanged.exchange(false, std::memory_order_acquire))
+    return;
+  if(!fx || !fx->fx)
+    return;
+
+  // A plug-in may have more parameters than when it was opened: a flag raised
+  // while they are made may be lost, so each control is read again
+  const int32_t count = fx->fx->numParams;
+  bool all = trackParameters(count);
+
+  // An index the flags did not cover: each control is read again, and the
+  // last such index is a parameter changed
+  int32_t other = -1;
+  if(m_otherParamChanged.exchange(false, std::memory_order_acquire))
+  {
+    all = true;
+    other = m_otherParam.exchange(-1, std::memory_order_relaxed);
+  }
+  auto* raised = m_changedParams.load(std::memory_order_relaxed);
+  for(int32_t i = 0; i < count; i++)
+  {
+    const bool changed
+        = i == other
+          || (raised && i < raised->count
+              && raised->flags[i].exchange(false, std::memory_order_acquire));
+    if(!changed && !all)
+      continue;
+
+    const float v = fx->getParameter(i);
+    if(auto ctrl_it = controls.find(i); ctrl_it != controls.end())
+    {
+      controlReadFromPlugin(i, v);
+      m_updatingFromPlugin = true;
+      ctrl_it->second->setValue(v);
+      m_updatingFromPlugin = false;
+    }
+    else if(changed && (flags() & Process::CreateControls))
+    {
+      auto& ctx = score::IDocument::documentContext(*this);
+      CommandDispatcher<>{ctx.commandStack}.submit<CreateControl>(*this, i, v);
+    }
   }
 }
 
@@ -419,26 +503,13 @@ intptr_t vst_host_callback(
       }
 
       case audioMasterAutomate: {
+        // Sent from the editor, but also from the audio thread. The value is
+        // read back from the plug-in later, on the main thread: opt is not
+        // always the normalized value, e.g. DPF plug-ins built with a host
+        // callback that takes an int32_t in its place leave whatever the
+        // float register holds, often the parameter in its own unit.
         if(auto vst = reinterpret_cast<Model*>(effect->resvd1))
-        {
-          if(vst->flags() & Process::CreateControls)
-          {
-            ossia::qt::run_async(vst, [vst, index, opt] {
-              auto ctrl_it = vst->controls.find(index);
-              if(ctrl_it != vst->controls.end())
-              {
-                ctrl_it->second->setValue(opt);
-              }
-              else
-              {
-                auto& ctx = score::IDocument::documentContext(*vst);
-                CommandDispatcher<>{ctx.commandStack}.submit<CreateControl>(
-                    *vst, index, opt);
-              }
-            });
-          }
-        }
-
+          vst->parameterChangedByPlugin(index);
         break;
       }
     }
@@ -677,6 +748,12 @@ void Model::initFx()
       return;
     }
   }
+
+  // Before the plug-in can call the host with this process
+  trackParameters(fx->fx->numParams);
+  m_otherParam.store(-1, std::memory_order_relaxed);
+  m_otherParamChanged.store(false, std::memory_order_relaxed);
+  m_paramsChanged.store(false, std::memory_order_relaxed);
 
   fx->fx->resvd1 = reinterpret_cast<intptr_t>(this);
 
