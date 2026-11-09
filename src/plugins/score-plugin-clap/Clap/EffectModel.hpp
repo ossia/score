@@ -95,6 +95,9 @@ public:
 
   ~Model() override;
 
+  //! "<path>:::<id>", what the factory makes this plug-in from
+  QString effect() const noexcept override;
+
   QString prettyShortName() const noexcept override
   {
     return Metadata<PrettyName_k, Model>::get();
@@ -148,6 +151,9 @@ public:
   {
     return false;
   }
+  //! Also a preset that does not name its plug-in, as any of them may have
+  //! saved it
+  bool presetMatches(const Process::Preset& preset) const noexcept override;
   Process::Preset savePreset() const noexcept override;
   std::vector<Process::Preset> builtinPresets() const noexcept override;
 

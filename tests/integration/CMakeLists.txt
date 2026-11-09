@@ -473,6 +473,13 @@ if(TARGET score_plugin_clap)
   add_dependencies(test_integration_clap_tick_blocks clap_block_recorder)
   target_compile_definitions(test_integration_clap_tick_blocks PRIVATE
     CLAP_BLOCK_RECORDER_PATH="$<TARGET_FILE:clap_block_recorder>")
+
+  # A CLAP process names its plug-in, so that its presets recreate it and are
+  # only listed for it.
+  score_add_test(test_integration_clap_preset_effect
+    SOURCES ClapPresetEffectTest.cpp
+    GUI
+    PLUGINS score_plugin_clap score_plugin_scenario score_lib_process)
 endif()
 
 # A preset of the script a process already runs keeps its ports.

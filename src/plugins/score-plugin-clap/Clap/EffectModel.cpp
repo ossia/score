@@ -1616,6 +1616,13 @@ void Model::mapExternalFiles(Process::ExternalFileMap& map)
     map.readOnly(m_pluginPath, score::FileKind::Plugin);
 }
 
+QString Model::effect() const noexcept
+{
+  if(m_pluginPath.isEmpty() || m_pluginId.isEmpty())
+    return {};
+  return m_pluginPath + QStringLiteral(":::") + m_pluginId;
+}
+
 Process::ProcessFlags Model::flags() const noexcept
 {
   auto flags = Metadata<Process::ProcessFlags_k, Model>::get();
@@ -1712,6 +1719,12 @@ void Model::loadPreset(const Process::Preset& preset)
         refreshParamValues();
     }
   }
+}
+
+bool Model::presetMatches(const Process::Preset& preset) const noexcept
+{
+  return preset.key.key == concreteKey()
+         && (preset.key.effect.isEmpty() || preset.key.effect == effect());
 }
 
 Process::Preset Model::savePreset() const noexcept
