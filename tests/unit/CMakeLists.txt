@@ -1712,6 +1712,16 @@ if(TARGET score_plugin_avnd AND TARGET score_plugin_engine)
       target_include_directories(test_unit_looper_timeline PRIVATE
         "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish"
         "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/examples")
+
+      # A state on a bar line asking a bar-synced looper to record starts the
+      # recording on that bar line, not on the next one.
+      score_add_test(test_unit_looper_state_sync
+        SOURCES LooperStateSyncTest.cpp
+        APP
+        PLUGINS score_plugin_avnd score_plugin_fx score_plugin_engine score_plugin_scenario score_lib_process score_lib_localtree)
+      target_include_directories(test_unit_looper_state_sync PRIVATE
+        "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish"
+        "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/examples")
     endif()
   endif()
 
