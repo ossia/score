@@ -8,6 +8,7 @@
 #include <Process/Dataflow/Port.hpp>
 #include <Process/ExecutionContext.hpp>
 
+#include <Vst3/ApplicationPlugin.hpp>
 #include <Vst3/Executor.hpp>
 #include <Vst3/Node.hpp>
 
@@ -19,6 +20,10 @@
 
 #include <pluginterfaces/vst/ivstcomponent.h>
 #include <pluginterfaces/vst/ivsteditcontroller.h>
+#include <pluginterfaces/vst/ivstmidilearn.h>
+#include <pluginterfaces/vst/ivstmidimapping2.h>
+#include <pluginterfaces/vst/ivstnoteexpression.h>
+#include <pluginterfaces/vst/ivstpluginterfacesupport.h>
 
 #include <ossia/detail/fmt.hpp>
 
@@ -763,6 +768,38 @@ TEST_CASE(
   l.p.restart(0, 512);
   l.p.restart(48000, 0);
   CHECK(l.fx.calls.empty());
+}
+
+TEST_CASE(
+    "VST3: the host hands out only the interfaces it has, and says which of the "
+    "plug-in's it calls",
+    "[vst3][host]")
+{
+  vst3::HostApp host;
+
+  void* obj = &host;
+  CHECK(host.queryInterface(IComponent::iid, &obj) != kResultOk);
+  CHECK(obj == nullptr);
+  obj = &host;
+  CHECK(host.queryInterface(IMidiMapping::iid, &obj) != kResultOk);
+  CHECK(obj == nullptr);
+
+  obj = nullptr;
+  REQUIRE(host.queryInterface(IHostApplication::iid, &obj) == kResultOk);
+  CHECK(obj == static_cast<IHostApplication*>(&host));
+
+  obj = nullptr;
+  REQUIRE(host.queryInterface(IPlugInterfaceSupport::iid, &obj) == kResultOk);
+  REQUIRE(obj);
+  auto* support = static_cast<IPlugInterfaceSupport*>(obj);
+  for(const FUID* iid :
+      {&IComponent::iid, &IAudioProcessor::iid, &IEditController::iid,
+       &IConnectionPoint::iid, &IUnitInfo::iid, &IMidiMapping::iid})
+    CHECK(support->isPlugInterfaceSupported(*iid) == kResultTrue);
+  for(const FUID* iid :
+      {&INoteExpressionController::iid, &IMidiLearn::iid, &IKeyswitchController::iid,
+       &IProcessContextRequirements::iid, &IMidiMapping2::iid})
+    CHECK(support->isPlugInterfaceSupported(*iid) == kResultFalse);
 }
 
 TEST_CASE(
