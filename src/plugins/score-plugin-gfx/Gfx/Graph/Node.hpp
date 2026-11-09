@@ -61,6 +61,10 @@ struct Message
   int32_t node_id{};
   Timings token{};
   std::vector<gfx_input> input;
+  //! The execution tick that sent it. A parallel execution sends a node's
+  //! messages from whichever thread ran it, and the queue keeps the order of
+  //! each thread only: the receiver applies them by tick.
+  uint64_t tick{};
 };
 
 struct RenderTargetSpecs

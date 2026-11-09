@@ -10,11 +10,15 @@
 // A Javascript process whose first tick takes 500 ms does not change the
 // frame count: the grab is frame N-1, with no settling frames added.
 // Stopping and playing again starts the step count over.
+// With score's Parallel execution setting on, the frames are the same.
 //
 // Drives the application binary through --script.
 
+#include <QDir>
 #include <QFile>
 #include <QImage>
+#include <QRegularExpression>
+#include <QStandardPaths>
 #include <QTemporaryDir>
 
 #include <catch2/catch_approx.hpp>
@@ -77,7 +81,41 @@ QString grabBody(int frames, Order order)
   return src;
 }
 
-Grab run(const QTemporaryDir& dir, const QString& name, const QString& body, bool slowStart)
+//! A configuration directory holding a copy of the score profile the test
+//! runs with, with the Parallel execution setting on.
+QString parallelConfig(const QTemporaryDir& dir)
+{
+  const QString app
+      = qEnvironmentVariable("SCORE_CUSTOM_APP_APPLICATION_NAME", QStringLiteral("score"));
+  const QString rel = QStringLiteral("ossia/") + app + QStringLiteral(".conf");
+  QString conf;
+  {
+    QFile f{QStandardPaths::writableLocation(QStandardPaths::GenericConfigLocation) + "/" + rel};
+    if(f.open(QIODevice::ReadOnly))
+      conf = QString::fromUtf8(f.readAll());
+  }
+  const QString section = QStringLiteral("[score_plugin_engine]\n");
+  if(!conf.contains(section))
+    conf += QStringLiteral("\n") + section;
+  const auto start = conf.indexOf(section) + section.size();
+  const auto next = conf.indexOf(QStringLiteral("\n["), start);
+  const auto end = next < 0 ? conf.size() : next + 1;
+  QString body = conf.mid(start, end - start);
+  body.remove(QRegularExpression{QStringLiteral("^Parallel=.*\n"),
+                                 QRegularExpression::MultilineOption});
+  conf = conf.left(start) + QStringLiteral("Parallel=true\n") + body + conf.mid(end);
+
+  const QString root = dir.filePath(QStringLiteral("parallel-config"));
+  QDir{}.mkpath(root + "/ossia");
+  QFile out{root + "/" + rel};
+  REQUIRE(out.open(QIODevice::WriteOnly));
+  out.write(conf.toUtf8());
+  return root;
+}
+
+Grab run(
+    const QTemporaryDir& dir, const QString& name, const QString& body, bool slowStart,
+    bool parallel = false)
 {
   const QString png = dir.filePath(name + ".png");
 
@@ -114,6 +152,8 @@ Grab run(const QTemporaryDir& dir, const QString& name, const QString& body, boo
   src += "Qt.exit(0);\n";
   app::options opts;
   opts.offscreen_windows = QStringLiteral("Window");
+  if(parallel)
+    opts.environment.append({QStringLiteral("XDG_CONFIG_HOME"), parallelConfig(dir)});
   const auto res = app::run_script(app::write_file(dir, name + ".js", src.toUtf8()), opts);
 
   Grab r;
@@ -221,4 +261,38 @@ TEST_CASE(
   INFO("value: " << r.value() << " frame index: " << r.frameIndex());
   CHECK(r.value() == Catch::Approx(expectedValue(30)).margin(3e-4));
   CHECK(r.frameIndex() == 29);
+}
+
+TEST_CASE(
+    "stepped execution: Parallel execution draws the same frames",
+    "[integration][gfx][stepped][parallel]")
+{
+  if(!ready())
+    SKIP("needs the score binary, the gfx corpus and a display");
+
+  QTemporaryDir dir;
+  REQUIRE(dir.isValid());
+
+  auto seq = run(dir, "sequential", grabBody(120, Order::StepThenPlay), false);
+  INFO(seq.log.toStdString());
+  REQUIRE(seq.ok);
+  REQUIRE_FALSE(seq.img.isNull());
+
+  for(int frames : {120, 30})
+  {
+    for(bool slow : {false, true})
+    {
+      const QString name = QStringLiteral("parallel-%1-%2").arg(frames).arg(slow);
+      auto r = run(dir, name, grabBody(frames, Order::StepThenPlay), slow, true);
+      INFO(r.log.toStdString());
+      REQUIRE(r.ok);
+      REQUIRE_FALSE(r.img.isNull());
+      INFO(frames << " frames, slow first tick: " << slow << ", value: " << r.value()
+                  << " frame index: " << r.frameIndex());
+      CHECK(r.frameIndex() == frames - 1);
+      CHECK(r.value() == Catch::Approx(expectedValue(frames)).margin(3e-4));
+      if(frames == 120)
+        CHECK(r.img == seq.img);
+    }
+  }
 }

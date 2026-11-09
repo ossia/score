@@ -43,6 +43,7 @@ score::gfx::Message GfxExecutionAction::allocateMessage(int inputs)
       .node_id = {},
       .token = {},
       .input = ui->m_buffers.acquire(),
+      .tick = ticks.load(std::memory_order_relaxed),
   };
 
   for(auto& in : m.input)

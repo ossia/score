@@ -283,6 +283,8 @@ private:
   moodycamel::ConcurrentQueue<Command> tick_commands;
   moodycamel::ConcurrentQueue<score::gfx::Message> tick_messages;
   std::vector<std::pair<score::gfx::Message, int>> m_deferredMessages;
+  //! What update_inputs took from tick_messages, in tick order.
+  std::vector<score::gfx::Message> m_drainedMessages;
   std::vector<std::pair<EdgeSpec, int>> m_deferredEdges;
 
   std::mutex m_disownedLock;

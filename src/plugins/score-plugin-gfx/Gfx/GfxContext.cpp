@@ -1097,8 +1097,24 @@ void GfxContext::update_inputs()
     }
   }
 
-  score::gfx::Message msg;
-  while(tick_messages.try_dequeue(msg))
+  // The queue is FIFO for each sending thread only, and a parallel execution
+  // runs a node on any of its threads: a node's message of one tick can come
+  // out after the one of the next tick, and would undo it. Every message of
+  // a tick is in the queue before the next tick starts, so ordering what one
+  // drain takes is enough.
+  {
+    score::gfx::Message m;
+    while(tick_messages.try_dequeue(m))
+      m_drainedMessages.push_back(std::move(m));
+  }
+  constexpr auto by_tick
+      = [](const score::gfx::Message& a, const score::gfx::Message& b) noexcept {
+    return a.tick < b.tick;
+  };
+  if(!std::is_sorted(m_drainedMessages.begin(), m_drainedMessages.end(), by_tick))
+    std::stable_sort(m_drainedMessages.begin(), m_drainedMessages.end(), by_tick);
+
+  for(auto& msg : m_drainedMessages)
   {
     if(auto it = nodes.find(msg.node_id); it != nodes.end())
     {
@@ -1114,6 +1130,7 @@ void GfxContext::update_inputs()
     if(msg.input.capacity() > 0)
       m_buffers.release(std::move(msg).input);
   }
+  m_drainedMessages.clear();
 
   for(auto& n : nodes)
   {

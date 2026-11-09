@@ -1328,6 +1328,10 @@ score_add_gfx_process_test(drop_empty_nodelist GfxDropEmptyNodelistAbort.cpp)
 # GfxContext through GfxExecutionAction, observed via SCORE_GFX_TRACE.
 score_add_gfx_process_test(edge_consume_latch GfxEdgeConsumeLatch.cpp)
 
+# The messages of the execution reach a node in tick order, also when a
+# parallel execution sends them from several threads.
+score_add_gfx_process_test(messages_tick_order GfxMessagesTickOrder.cpp)
+
 # Within one incremental frame, every renderer (initState) precedes
 # every pass creation. Observed via the GFX-RECONCILE / GFX-PASS trace lines.
 score_add_gfx_process_test(renderers_before_passes GfxRenderersBeforePasses.cpp)
