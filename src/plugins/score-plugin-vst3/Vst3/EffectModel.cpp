@@ -290,9 +290,12 @@ void Model::initControl(ControlInlet* ctrl, const Steinberg::Vst::ParameterInfo*
       [this, i = ctrl->fxNum](const ossia::value& vv) {
     auto newval = ossia::convert<float>(vv);
     auto& c = *fx.controller;
+    // A value the controller already has came from the plug-in, which
+    // reported or restored it: only those set here are for the processor
     if(std::abs(newval - c.getParamNormalized(i)) > 0.0001)
     {
       c.setParamNormalized(i, newval);
+      fx.unsentParameters.insert(i);
     }
   });
 

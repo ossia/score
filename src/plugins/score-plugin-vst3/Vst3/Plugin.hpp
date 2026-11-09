@@ -2,6 +2,7 @@
 
 #define RELEASE 1
 #include <ossia/detail/flat_map.hpp>
+#include <ossia/detail/flat_set.hpp>
 
 #include <QString>
 
@@ -113,6 +114,11 @@ struct Plugin
   int event_outs = 0;
 
   MIDIControls midiControls{};
+
+  //! Parameters set on the edit controller, from score or from the plug-in's
+  //! editor, since the last execution: the processor only learns a value
+  //! through process(), so the next execution gives it these first.
+  ossia::flat_set<Steinberg::Vst::ParamID> unsentParameters;
 
   Steinberg::Vst::ProgramListInfo programs;
 };
