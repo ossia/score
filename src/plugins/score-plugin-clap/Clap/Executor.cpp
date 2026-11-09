@@ -267,7 +267,9 @@ public:
     return false;
   }
 
-  [[nodiscard]] bool start_plugin(const clap_plugin_t* plugin)
+  //! A plug-in instance other than the one the parameters were listed from
+  //! does not get their cookies: they point into that one
+  [[nodiscard]] bool start_plugin(const clap_plugin_t* plugin, bool own_cookies = true)
   {
     // CLAP spec (plugin.h): reset() "clears all buffers, performs a full
     // reset of the processing state (filters, oscillators, envelopes,
@@ -280,7 +282,7 @@ public:
 
     if(plugin->start_processing(plugin))
     {
-      init_parameter_values(plugin);
+      init_parameter_values(plugin, own_cookies);
       return true;
     }
     return false;
@@ -288,7 +290,7 @@ public:
 
   void stop_plugin(const clap_plugin_t* plugin) { plugin->stop_processing(plugin); }
 
-  void init_parameter_values(const clap_plugin_t* plugin)
+  void init_parameter_values(const clap_plugin_t* plugin, bool own_cookies)
   {
     if(!plugin || m_param_ins.empty())
       return;
@@ -317,7 +319,7 @@ public:
       ev.header.type = CLAP_EVENT_PARAM_VALUE;
       ev.header.flags = 0;
       ev.param_id = param_info.id;
-      ev.cookie = param_info.cookie;
+      ev.cookie = own_cookies ? param_info.cookie : nullptr;
       ev.note_id = -1;
       ev.port_index = -1;
       ev.channel = -1;
@@ -667,11 +669,7 @@ public:
     m_input_events.midi_events.reserve(midi_event_count * 1.1);
     m_input_events.midi2_events.reserve(midi_event_count * 1.1);
     m_input_events.note_events.reserve(midi_event_count * 1.1);
-    m_input_events.param_events.reserve(
-        param_event_count * 1.1
-        + 2
-              * this->parameter_ins
-                    .size()); // Important to reserve one additional buffer of parameters for the mono case
+    m_input_events.param_events.reserve(param_event_count * 1.1 + 1);
     m_input_events.all_events.reserve((param_event_count + midi_event_count + 1) * 1.1);
 
     if(m_pending_all_notes_off.exchange(false, std::memory_order_acq_rel))
@@ -1494,6 +1492,7 @@ public:
     // any audio-thread malloc; beyond that vector will still grow, just
     // with a non-RT-friendly reallocation cost each doubling.
     m_poly.reserve(256);
+    m_voice0_changes.reserve(256);
     m_poly.push_back({handle.plugin, false});
     if(handle.activated)
       (void)deactivate_plugin(handle.plugin);
@@ -1669,59 +1668,26 @@ public:
     (void)current_channel;
   }
 
-  // Snapshot voice-0 params into voices 1+ so UI edits propagate (CLAP UI binds to voice 0).
-  void replicate_voice0_state(
-      const clap_plugin_t* plug, event_storage& input_storage) noexcept
+  //! What the first instance's editor changed in this block, from the values
+  //! it sent out: the other instances get them in the same block. Polling its
+  //! values instead would call main-thread functions from the audio thread.
+  void forward_voice0_changes() noexcept
   {
-    auto params = this->handle->ext_params;
-    if(!params)
-      return;
-    const int param_count = params->count(plug);
-    if(param_count <= 0)
-      return;
-
-    const int orig = input_storage.param_events.size();
-    int cur = orig;
-    input_storage.param_events.resize(orig + param_count);
-    clap_event_param_value_t* cur_p = &input_storage.param_events[cur];
-    for(auto& p : m_param_ins)
+    m_voice0_changes.clear();
+    for(const auto& ev : m_output_events.param_events)
     {
-      // Per-voice slice would be clobbered by voice-0's value here.
-      if(m_overridden_params.contains(p.id))
+      if(m_voice0_changes.size() >= m_voice0_changes.capacity())
+        break;
+      if(m_overridden_params.contains(ev.param_id))
         continue;
-      double current_value;
-      if(params->get_value(plug, p.id, &current_value))
-      {
-        clap_event_param_value_t& param_event = *cur_p;
-        param_event.header.size = sizeof(clap_event_param_value_t);
-        param_event.header.time = 0;
-        param_event.header.space_id = CLAP_CORE_EVENT_SPACE_ID;
-        param_event.header.type = CLAP_EVENT_PARAM_VALUE;
-        param_event.header.flags = CLAP_EVENT_IS_LIVE;
-        param_event.param_id = p.id;
-        param_event.cookie = p.cookie;
-        param_event.note_id = -1;
-        param_event.port_index = -1;
-        param_event.channel = -1;
-        param_event.key = -1;
-        param_event.value = current_value;
-        ++cur;
-        ++cur_p;
-      }
-    }
-
-    if(cur > orig)
-    {
-      auto it = std::upper_bound(
-          input_storage.all_events.begin(), input_storage.all_events.end(), 0,
-          [](auto& t1, auto& ev2) { return t1 < ev2->time; });
-      const auto r = std::span<clap_event_param_value_t>(
-                         input_storage.param_events.data() + orig,
-                         input_storage.param_events.data() + cur)
-                     | std::views::transform([](clap_event_param_value_t& elem) {
-        return &elem.header;
-      });
-      input_storage.all_events.insert(it, std::begin(r), std::end(r));
+      const bool writable = std::any_of(
+          m_param_ins.begin(), m_param_ins.end(),
+          [&](const clap_param_info_t& p) { return p.id == ev.param_id; });
+      if(!writable)
+        continue;
+      auto& fwd = m_voice0_changes.emplace_back(ev);
+      fwd.header.size = sizeof(clap_event_param_value_t);
+      fwd.cookie = nullptr;
     }
   }
 
@@ -1788,6 +1754,14 @@ public:
     const auto& overrides = m_voice_overrides[voice_idx];
     dst.param_events.insert(
         dst.param_events.end(), overrides.begin(), overrides.end());
+    if(voice_idx > 0)
+    {
+      dst.param_events.insert(
+          dst.param_events.end(), m_voice0_changes.begin(), m_voice0_changes.end());
+      // The cookies are the first instance's
+      for(auto& ev : dst.param_events)
+        ev.cookie = nullptr;
+    }
 
     dst.all_events.clear();
     dst.all_events.reserve(
@@ -1819,6 +1793,8 @@ public:
   std::vector<std::vector<clap_event_param_value_t>> m_voice_overrides;
 
   ossia::hash_set<clap_id> m_overridden_params;
+
+  std::vector<clap_event_param_value_t> m_voice0_changes;
 
   event_storage m_voice_input;
 };
@@ -1897,7 +1873,7 @@ public:
 
       if(!cur.processing)
       {
-        cur.processing = start_plugin(cur.plugin);
+        cur.processing = start_plugin(cur.plugin, current_channel == 0);
         if(!cur.processing)
           return;
       }
@@ -1928,7 +1904,7 @@ public:
       build_voice_input(m_voice_input, current_channel);
       do_process(cur, process, m_voice_input, m_output_events, current_channel);
       if(current_channel == 0)
-        replicate_voice0_state(cur, m_input_events);
+        forward_voice0_changes();
 
       // 4. Copy float back to matching output channel. Resize to the full
       //    block size first — writing samples frames starting at `offset`
@@ -2020,7 +1996,7 @@ public:
 
       if(!cur.processing)
       {
-        cur.processing = start_plugin(cur.plugin);
+        cur.processing = start_plugin(cur.plugin, current_channel == 0);
         if(!cur.processing)
           return;
       }
@@ -2045,7 +2021,7 @@ public:
       build_voice_input(m_voice_input, current_channel);
       do_process(cur, process, m_voice_input, m_output_events, current_channel);
       if(current_channel == 0)
-        replicate_voice0_state(cur, m_input_events);
+        forward_voice0_changes();
     }
 
     dispatch_param_outputs();
