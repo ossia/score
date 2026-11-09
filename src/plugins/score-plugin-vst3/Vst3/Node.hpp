@@ -671,7 +671,10 @@ public:
         continue;
       VstEvent& e = *event_p;
 
-      int bus = e.busIndex;
+      // A plug-in may say any bus
+      const int bus = e.busIndex;
+      if(bus < 0 || bus >= m_totalEventOuts)
+        continue;
       auto& port = *m_outlets[bus + audioBusCount]->template target<ossia::midi_port>();
 
       libremidi::ump mess;
@@ -693,11 +696,41 @@ public:
         }
         case VstEvent::kPolyPressureEvent: {
           mess = libremidi::from_01::poly_pressure(
-              e.noteOff.channel, e.polyPressure.pitch, e.polyPressure.pressure);
+              e.polyPressure.channel, e.polyPressure.pitch, e.polyPressure.pressure);
           break;
         }
-        default:
+        // How a plug-in sends controllers, pitch bend and the like out, with
+        // their MIDI 1 values
+        case VstEvent::kLegacyMIDICCOutEvent: {
+          const auto& cc = e.midiCCOut;
+          const uint8_t channel = cc.channel & 0xf;
+          const uint8_t value = cc.value & 0x7f;
+          const uint8_t value2 = cc.value2 & 0x7f;
+          switch(cc.controlNumber)
+          {
+            case Steinberg::Vst::kAfterTouch:
+              mess = libremidi::from_midi1::aftertouch(channel, value);
+              break;
+            case Steinberg::Vst::kPitchBend:
+              mess = libremidi::from_midi1::pitch_bend(channel, value | (value2 << 7));
+              break;
+            case Steinberg::Vst::kCtrlProgramChange:
+              mess = libremidi::from_midi1::program_change(channel, value);
+              break;
+            case Steinberg::Vst::kCtrlPolyPressure:
+              mess = libremidi::from_midi1::poly_pressure(channel, value, value2);
+              break;
+            default:
+              if(cc.controlNumber >= 128)
+                continue;
+              mess = libremidi::from_midi1::control_change(channel, cc.controlNumber, value);
+              break;
+          }
           break;
+        }
+        // Nothing a MIDI port carries
+        default:
+          continue;
       }
 
       mess.timestamp = tick_start + e.sampleOffset;

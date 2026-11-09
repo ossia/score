@@ -50,6 +50,10 @@ public:
   std::vector<int32> output_counts;
   //! The event input buses it declares
   int32 event_inputs{};
+  //! The event output buses it declares, and the events to write to them in
+  //! the next process() call
+  int32 event_outputs{};
+  std::vector<Event> events_to_send;
   //! Whether each process() call was given a list of input events
   std::vector<bool> had_events;
   //! The values each process() call set its parameters to, read as JUCE's
@@ -72,16 +76,18 @@ public:
   tresult PLUGIN_API setIoMode(IoMode) override { return kResultOk; }
   int32 PLUGIN_API getBusCount(MediaType type, BusDirection dir) override
   {
-    return type == kEvent && dir == kInput ? event_inputs : 0;
+    if(type != kEvent)
+      return 0;
+    return dir == kInput ? event_inputs : event_outputs;
   }
   tresult PLUGIN_API
   getBusInfo(MediaType type, BusDirection dir, int32 index, BusInfo& info) override
   {
-    if(type != kEvent || dir != kInput || index < 0 || index >= event_inputs)
+    if(type != kEvent || index < 0 || index >= getBusCount(type, dir))
       return kResultFalse;
     info = {};
     info.mediaType = kEvent;
-    info.direction = kInput;
+    info.direction = dir;
     info.channelCount = 16;
     info.busType = kMain;
     info.flags = BusInfo::kDefaultActive;
@@ -167,6 +173,10 @@ public:
       output_counts.push_back(out->getParameterCount());
     }
     to_send.clear();
+    if(auto* out = data.outputEvents)
+      for(Event& e : events_to_send)
+        out->addEvent(e);
+    events_to_send.clear();
     return kResultOk;
   }
 };
@@ -222,10 +232,12 @@ struct fixture
   ossia::execution_state state;
   std::shared_ptr<vst3::vst_node<false>> node;
 
-  explicit fixture(std::vector<ParamID> ids = {}, int32 event_inputs = 0)
+  explicit fixture(
+      std::vector<ParamID> ids = {}, int32 event_inputs = 0, int32 event_outputs = 0)
   {
     controller.ids = std::move(ids);
     fx.event_inputs = event_inputs;
+    fx.event_outputs = event_outputs;
     state.bufferSize = 64;
     state.sampleRate = 44100;
     state.modelToSamplesRatio = 1.;
@@ -526,4 +538,53 @@ TEST_CASE(
     CHECK(channel < 16);
   }
   CHECK(buses == std::set<int32>{0, 1, 2});
+}
+
+TEST_CASE(
+    "VST3: a controller a plug-in sends out reaches its MIDI output", "[vst3][midi]")
+{
+  fixture f{{}, 0, 1};
+  Event cc{};
+  cc.busIndex = 0;
+  cc.sampleOffset = 3;
+  cc.type = Event::kLegacyMIDICCOutEvent;
+  cc.midiCCOut.controlNumber = 7;
+  cc.midiCCOut.channel = 2;
+  cc.midiCCOut.value = 100;
+  Event bend = cc;
+  bend.midiCCOut.controlNumber = kPitchBend;
+  bend.midiCCOut.value = 0;
+  bend.midiCCOut.value2 = 0x40;
+  // Nothing a MIDI port carries
+  Event data{};
+  data.type = Event::kDataEvent;
+  f.fx.events_to_send = {cc, bend, data};
+  f.tick();
+
+  auto& out = f.node->root_outputs()[0]->cast<ossia::midi_port>();
+  REQUIRE(out.messages.size() == 2);
+  const auto& m = out.messages[0];
+  CHECK(m.get_type() == libremidi::midi2::message_type::MIDI_2_CHANNEL);
+  CHECK(libremidi::message_type(m.get_status_code()) == libremidi::message_type::CONTROL_CHANGE);
+  CHECK(m.get_channel_0_15() == 2);
+  CHECK(libremidi::as_midi1::control_change(m).control == 7);
+  CHECK(libremidi::as_midi1::control_change(m).value == 100);
+  CHECK(m.timestamp == 3);
+  CHECK(libremidi::message_type(out.messages[1].get_status_code()) == libremidi::message_type::PITCH_BEND);
+  CHECK(libremidi::as_midi1::pitch_bend(out.messages[1]).value == 0x2000);
+}
+
+TEST_CASE(
+    "VST3: an event a plug-in sends to a bus it does not have goes nowhere",
+    "[vst3][midi]")
+{
+  fixture f{{}, 0, 1};
+  Event e{};
+  e.busIndex = 3;
+  e.type = Event::kNoteOnEvent;
+  e.noteOn.pitch = 60;
+  e.noteOn.velocity = 1.f;
+  f.fx.events_to_send = {e};
+  f.tick();
+  CHECK(f.node->root_outputs()[0]->cast<ossia::midi_port>().messages.empty());
 }
