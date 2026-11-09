@@ -54,6 +54,7 @@
 //      -> the external .bin no longer resolves -> red.
 
 #include <Threedim/GltfParser.hpp>
+#include <Gfx/Graph/SceneGPUState.hpp>
 
 #include <ossia/dataflow/geometry_port.hpp>
 
@@ -65,6 +66,7 @@
 #include <catch2/catch_test_macros.hpp>
 
 #include <algorithm>
+#include <cmath>
 #include <cstdint>
 #include <cstdlib>
 #include <cstring>
@@ -886,4 +888,156 @@ TEST_CASE(
   CHECK(mats[1]->normal_scale == 1.f);
   CHECK(mats[1]->occlusion_strength == 1.f);
   CHECK(mats[1]->clearcoat.normal_scale == 1.f);
+}
+
+TEST_CASE(
+    "glTF primitive modes become the topology every consumer draws",
+    "[threedim][gltf][topology]")
+{
+  // Six vertices in the z = 0 plane, normals +Z, texcoords = xy; the source
+  // indices permute them, and the parser numbers the vertices of a primitive
+  // without indices itself. Triangle strips and fans become triangle lists
+  // wound as the rasterizer winds them, a line loop the strip closed by its
+  // first index; points, lines and line strips keep their topology. Indices of
+  // any source width are stored as uint32. Only triangles get tangents.
+  const float positions[]{0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 1, 0, 2, 1.5f, 0, 2, 0, 0};
+  const std::vector<uint32_t> source{1, 2, 0, 4, 3, 5};
+  struct Expect
+  {
+    int mode;
+    ossia::primitive_topology topology;
+    std::vector<uint32_t> indexed;    // from `source`
+    std::vector<uint32_t> nonindexed; // from the vertices in order
+  };
+  using T = ossia::primitive_topology;
+  const Expect expectations[]{
+      {0, T::points, {1, 2, 0, 4, 3, 5}, {0, 1, 2, 3, 4, 5}},
+      {1, T::lines, {1, 2, 0, 4, 3, 5}, {0, 1, 2, 3, 4, 5}},
+      {2, T::line_strip, {1, 2, 0, 4, 3, 5, 1}, {0, 1, 2, 3, 4, 5, 0}},
+      {3, T::line_strip, {1, 2, 0, 4, 3, 5}, {0, 1, 2, 3, 4, 5}},
+      {4, T::triangles, {1, 2, 0, 4, 3, 5}, {0, 1, 2, 3, 4, 5}},
+      {5, T::triangles, {1, 2, 0, 0, 2, 4, 0, 4, 3, 3, 4, 5},
+       {0, 1, 2, 2, 1, 3, 2, 3, 4, 4, 3, 5}},
+      {6, T::triangles, {1, 2, 0, 1, 0, 4, 1, 4, 3, 1, 3, 5},
+       {0, 1, 2, 0, 2, 3, 0, 3, 4, 0, 4, 5}},
+  };
+  for(const auto& e : expectations)
+  {
+    for(const int component : {0, 5121, 5123, 5125})
+    {
+      CAPTURE(e.mode, component);
+      const int width = component == 5121 ? 1 : component == 5123 ? 2 : 4;
+      TempDir tmp;
+      std::string bin;
+      for(float v : positions)
+        put(bin, v);
+      for(int i = 0; i < 6; ++i)
+        for(float v : {0.f, 0.f, 1.f})
+          put(bin, v);
+      for(int i = 0; i < 6; ++i)
+        for(float v : {positions[i * 3], positions[i * 3 + 1]})
+          put(bin, v);
+      const std::size_t index_offset = bin.size();
+      if(component)
+      {
+        // One unused index first: the accessor's byteOffset is honoured.
+        for(uint32_t v : {uint32_t(7)})
+          width == 1 ? put(bin, uint8_t(v)) : width == 2 ? put(bin, uint16_t(v)) : put(bin, v);
+        for(uint32_t v : source)
+          width == 1 ? put(bin, uint8_t(v)) : width == 2 ? put(bin, uint16_t(v)) : put(bin, v);
+        while(bin.size() % 4)
+          bin.push_back('\0');
+      }
+      tmp.write("mesh.bin", bin);
+      std::string json
+          = R"({"asset":{"version":"2.0"},"scene":0,"scenes":[{"nodes":[0]}],)"
+            R"("nodes":[{"mesh":0}],"meshes":[{"primitives":[{)"
+            R"("attributes":{"POSITION":0,"NORMAL":1,"TEXCOORD_0":2},)"
+            + std::string(component ? R"("indices":3,)" : "") + R"("mode":)"
+            + std::to_string(e.mode) + R"(}]}],"buffers":[{"uri":"mesh.bin","byteLength":)"
+            + std::to_string(bin.size()) + R"(}],"bufferViews":[)"
+            R"({"buffer":0,"byteOffset":0,"byteLength":72},)"
+            R"({"buffer":0,"byteOffset":72,"byteLength":72},)"
+            R"({"buffer":0,"byteOffset":144,"byteLength":48})";
+      if(component)
+        json += R"(,{"buffer":0,"byteOffset":)" + std::to_string(index_offset)
+                + R"(,"byteLength":)" + std::to_string(bin.size() - index_offset) + "}";
+      json += R"(],"accessors":[)"
+              R"({"bufferView":0,"componentType":5126,"count":6,"type":"VEC3","min":[0,0,0],"max":[2,1.5,0]},)"
+              R"({"bufferView":1,"componentType":5126,"count":6,"type":"VEC3"},)"
+              R"({"bufferView":2,"componentType":5126,"count":6,"type":"VEC2"})";
+      if(component)
+        json += R"(,{"bufferView":3,"componentType":)" + std::to_string(component)
+                + R"(,"byteOffset":)" + std::to_string(width) + R"(,"count":6,"type":"SCALAR"})";
+      json += "]}";
+
+      auto parser = load_gltf(tmp.write("mesh.gltf", json));
+      REQUIRE(parser);
+      REQUIRE(parser->m_raw_state);
+      const auto* mesh = find_first_mesh(*parser->m_raw_state);
+      REQUIRE(mesh);
+      REQUIRE(mesh->primitives.size() == 1);
+      const auto& prim = mesh->primitives.front();
+      CHECK(prim.topology == e.topology);
+      CHECK(prim.vertex_count == 6);
+
+      const auto& want = component ? e.indexed : e.nonindexed;
+      CHECK(prim.index_type == ossia::index_format::uint32);
+      CHECK(prim.index_count == want.size());
+      REQUIRE(prim.index_buffer);
+      const auto* data = ossia::get_if<ossia::buffer_data>(&prim.index_buffer->resource);
+      REQUIRE(data);
+      REQUIRE(data->byte_size == int64_t(want.size() * sizeof(uint32_t)));
+      const auto* got = static_cast<const uint32_t*>(data->data.get());
+      CHECK(std::vector<uint32_t>(got, got + want.size()) == want);
+
+      const auto* tangent = find_attr(prim, ossia::attribute_semantic::tangent);
+      if(e.topology == T::triangles)
+      {
+        REQUIRE(tangent);
+        const float* t = attr_floats(prim, *tangent);
+        REQUIRE(t);
+        // Along the u direction; the sign of w follows each triangle's
+        // winding in texture space.
+        for(int v = 0; v < 6; ++v)
+        {
+          CHECK(std::abs(t[v * 4]) > 0.999f);
+          CHECK(std::abs(t[v * 4 + 3]) == 1.f);
+        }
+      }
+      else
+      {
+        CHECK(tangent == nullptr);
+      }
+
+      auto geometry = score::gfx::primitiveToGeometry(prim);
+      REQUIRE(geometry);
+      CHECK(int(geometry->topology) == int(e.topology == T::points ? ossia::geometry::points
+                                           : e.topology == T::lines ? ossia::geometry::lines
+                                           : e.topology == T::line_strip
+                                               ? ossia::geometry::line_strip
+                                               : ossia::geometry::triangles));
+      CHECK(geometry->indices == int(want.size()));
+    }
+  }
+}
+
+TEST_CASE("a glTF strip with no whole triangle is skipped", "[threedim][gltf][topology]")
+{
+  TempDir tmp;
+  std::string bin;
+  for(float v : {0.f, 0.f, 0.f, 1.f, 0.f, 0.f})
+    put(bin, v);
+  tmp.write("mesh.bin", bin);
+  const std::string json
+      = R"({"asset":{"version":"2.0"},"scene":0,"scenes":[{"nodes":[0]}],)"
+        R"("nodes":[{"mesh":0}],"meshes":[{"primitives":[{"attributes":{"POSITION":0},"mode":5}]}],)"
+        R"("buffers":[{"uri":"mesh.bin","byteLength":24}],)"
+        R"("bufferViews":[{"buffer":0,"byteOffset":0,"byteLength":24}],)"
+        R"("accessors":[{"bufferView":0,"componentType":5126,"count":2,"type":"VEC3","min":[0,0,0],"max":[1,0,0]}]})";
+  // Nothing to draw: the scene has no primitive, if it loads at all.
+  auto parser = load_gltf(tmp.write("mesh.gltf", json));
+  const auto* mesh
+      = parser && parser->m_raw_state ? find_first_mesh(*parser->m_raw_state) : nullptr;
+  CHECK((!mesh || mesh->primitives.empty()));
 }
