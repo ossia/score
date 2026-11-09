@@ -58,6 +58,9 @@ public:
   Steinberg::tresult PLUGIN_API performEdit(
       Steinberg::Vst::ParamID id, Steinberg::Vst::ParamValue valueNormalized) override
   {
+    // The editor set it on the controller only: the host hands it to the
+    // processor
+    m_model.fx.unsentParameters.insert(id);
     if(auto ctrl = m_model.controls.find(id); ctrl != m_model.controls.end())
     {
       ctrl->second->setValue(valueNormalized);

@@ -66,8 +66,9 @@ void Executor::setupNode(Node_T& node)
   {
     if(auto ctrl = qobject_cast<vst3::ControlInlet*>(model_inlet))
     {
-      auto queue_idx
-          = node->add_control(new ossia::value_inlet, ctrl->fxNum, ctrl->value());
+      auto queue_idx = node->add_control(
+          new ossia::value_inlet, ctrl->fxNum, ctrl->value(),
+          proc.fx.unsentParameters.contains(ctrl->fxNum));
       connectControl(*ctrl, this, system().executionQueue, node, queue_idx);
     }
   }
@@ -109,7 +110,9 @@ void Executor::setupNode(Node_T& node)
         auto qed = qed_ptr.lock();
         if(!qed)
           return;
-        auto queue_idx = n->add_control(inlet, num, val);
+        // Made while this runs, from the plug-in's editor as often as not:
+        // the processor has not seen the value it was made with
+        auto queue_idx = n->add_control(inlet, num, val, true);
         qed->enqueue(ConnectValueChanged<Node_T>{self, queue_idx, n, ctrl});
       });
 
@@ -169,6 +172,16 @@ Executor::Executor(vst3::Model& proc, const Execution::Context& ctx, QObject* pa
     node = std::move(n);
   }
   m_ossia_process = std::make_shared<ossia::node_process>(node);
+
+  // Given to the processor in the first block
+  proc.fx.unsentParameters.clear();
+}
+
+void Executor::cleanup()
+{
+  // What was set while this ran reached the processor through it
+  process().fx.unsentParameters.clear();
+  ProcessComponent_T::cleanup();
 }
 
 }

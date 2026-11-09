@@ -380,7 +380,12 @@ protected:
 public:
   ossia::small_vector<vst_control, 16> controls;
 
-  std::size_t add_control(ossia::value_inlet* inlet, Steinberg::Vst::ParamID id, float v)
+  //! `unsent`: the processor was not given v yet, and gets it in the next
+  //! block. Its value only ever reaches it through process(): one set on the
+  //! edit controller while nothing ran is not known to it.
+  std::size_t add_control(
+      ossia::value_inlet* inlet, Steinberg::Vst::ParamID id, float v,
+      bool unsent = false)
   {
     (**inlet).domain = ossia::domain_base<float>{0.f, 1.f};
     (**inlet).type = ossia::val_type::FLOAT;
@@ -388,20 +393,26 @@ public:
     // The parameter may already own a queue because it is MIDI-mapped too.
     // Reuse it, so a controller and the automation port for the same id do not
     // write to two queues the plug-in then sees as conflicting.
+    std::size_t queue_idx{};
     if(auto it = queue_map.find(id); it != queue_map.end())
     {
-      const auto queue_idx = it->second;
-      this->m_inputChanges.queues[queue_idx].lastValue = v;
-      controls.push_back({id, queue_idx, inlet->target<ossia::value_port>()});
-      root_inputs().push_back(std::move(inlet));
-      return queue_idx;
+      queue_idx = it->second;
+    }
+    else
+    {
+      // FIXME this allocates a lot :[
+      queue_idx = this->m_inputChanges.add_queue(id);
+      queue_map[id] = queue_idx;
     }
 
-    // FIXME this allocates a lot :[
-    auto queue_idx = this->m_inputChanges.add_queue(id);
-    this->m_inputChanges.queues.back().lastValue = v;
+    auto& queue = this->m_inputChanges.queues[queue_idx];
+    queue.lastValue = v;
+    if(unsent)
+    {
+      queue.data.clear();
+      queue.data.emplace_back(0, v);
+    }
 
-    queue_map[id] = queue_idx;
     controls.push_back({id, queue_idx, inlet->target<ossia::value_port>()});
     root_inputs().push_back(std::move(inlet));
     return queue_idx;
