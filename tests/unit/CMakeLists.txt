@@ -1270,6 +1270,26 @@ if(TARGET score_plugin_vst)
     add_dependencies(test_unit_vst_midi_input score_test_vst_unflagged_instrument)
     target_compile_definitions(test_unit_vst_midi_input PRIVATE
       SCORE_VST_UNFLAGGED_INSTRUMENT="$<TARGET_FILE:score_test_vst_unflagged_instrument>")
+
+    # A new VST 2 process is on the program the plug-in opens on, or on its
+    # first when it opens on none.
+    add_library(score_test_vst_unprogrammed_instrument MODULE
+      vst-fixtures/UnflaggedInstrument.cpp)
+    target_include_directories(score_test_vst_unprogrammed_instrument PRIVATE
+      "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-vst")
+    target_compile_definitions(score_test_vst_unprogrammed_instrument PRIVATE
+      SCORE_TEST_VST_NO_INITIAL_PROGRAM)
+    score_add_test(test_unit_vst_fresh_state
+      SOURCES VstFreshStateTest.cpp
+      APP
+      PLUGINS score_lib_process score_plugin_vst)
+    target_include_directories(test_unit_vst_fresh_state PRIVATE
+      "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-vst")
+    add_dependencies(test_unit_vst_fresh_state
+      score_test_vst_unflagged_instrument score_test_vst_unprogrammed_instrument)
+    target_compile_definitions(test_unit_vst_fresh_state PRIVATE
+      SCORE_VST_UNFLAGGED_INSTRUMENT="$<TARGET_FILE:score_test_vst_unflagged_instrument>"
+      SCORE_VST_UNPROGRAMMED_INSTRUMENT="$<TARGET_FILE:score_test_vst_unprogrammed_instrument>")
   endif()
 
   # A system-exclusive message reaches a VST 2 synth as one VstMidiSysexEvent.
