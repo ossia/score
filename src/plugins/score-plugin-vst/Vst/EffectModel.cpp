@@ -183,6 +183,11 @@ QString Model::prettyName() const noexcept
   return metadata().getLabel();
 }
 
+bool Model::takesMidi() const noexcept
+{
+  return m_inlets.size() > 1 && m_inlets[1]->type() == Process::PortType::Midi;
+}
+
 bool Model::hasExternalUI() const noexcept
 {
   if(!fx)
@@ -713,7 +718,13 @@ void Model::create()
 
   m_inlets.push_back(
       new Process::AudioInlet("Audio In", Id<Process::Port>{inlet_i++}, this));
-  if(fx->fx->flags & effFlagsIsSynth)
+  // An instrument may not say it is one (JuceOPL): what decides is whether
+  // it takes MIDI
+  const auto canDo = [this](const char* what) {
+    return dispatch(effCanDo, 0, 0, const_cast<char*>(what)) > 0;
+  };
+  if((fx->fx->flags & effFlagsIsSynth) || canDo(HostCanDos::canDoReceiveVstMidiEvent)
+     || canDo(HostCanDos::canDoReceiveVstEvents))
   {
     m_inlets.push_back(
         new Process::MidiInlet("MIDI In", Id<Process::Port>{inlet_i++}, this));
@@ -743,8 +754,7 @@ void Model::load()
     return;
   }
 
-  const bool isSynth = fx->fx->flags & effFlagsIsSynth;
-  for(std::size_t i = VST_FIRST_CONTROL_INDEX(isSynth); i < m_inlets.size(); i++)
+  for(std::size_t i = VST_FIRST_CONTROL_INDEX(takesMidi()); i < m_inlets.size(); i++)
   {
     auto inlet = safe_cast<ControlInlet*>(m_inlets[i]);
     int ctrl = inlet->fxNum;
@@ -869,8 +879,8 @@ static void loadVstChunkFromDatastream(DataStreamOutput& stream, vst::Model& eff
   // Then reload our UI controls at the correct values.
   if(eff.fx && eff.fx->fx)
   {
-    const bool isSynth = eff.fx->fx->flags & effFlagsIsSynth;
-    for(std::size_t i = VST_FIRST_CONTROL_INDEX(isSynth); i < eff.inlets().size(); i++)
+    for(std::size_t i = VST_FIRST_CONTROL_INDEX(eff.takesMidi()); i < eff.inlets().size();
+        i++)
     {
       auto inlet = safe_cast<vst::ControlInlet*>(eff.inlets()[i]);
       inlet->setValue(eff.fx->getParameter(inlet->fxNum));
@@ -1096,8 +1106,8 @@ void JSONWriter::write(vst::Model& eff)
     }
 
     // Reload the vst parameters in the score UI controls
-    const bool isSynth = eff.fx->fx->flags & effFlagsIsSynth;
-    for(std::size_t i = VST_FIRST_CONTROL_INDEX(isSynth); i < eff.inlets().size(); i++)
+    for(std::size_t i = VST_FIRST_CONTROL_INDEX(eff.takesMidi()); i < eff.inlets().size();
+        i++)
     {
       auto inlet = safe_cast<vst::ControlInlet*>(eff.inlets()[i]);
       inlet->setValue(eff.fx->getParameter(inlet->fxNum));

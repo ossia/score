@@ -102,7 +102,7 @@ Executor::Executor(vst::Model& proc, const Execution::Context& ctx, QObject* par
 
   if(fx.flags & effFlagsCanDoubleReplacing)
   {
-    if(fx.flags & effFlagsIsSynth)
+    if(proc.takesMidi())
     {
       auto n = vst::make_vst_fx<true, true>(
           *ctx.execState, proc.fx, ctx.execState->sampleRate, block_size);
@@ -119,7 +119,7 @@ Executor::Executor(vst::Model& proc, const Execution::Context& ctx, QObject* par
   }
   else
   {
-    if(fx.flags & effFlagsIsSynth)
+    if(proc.takesMidi())
     {
       auto n = vst::make_vst_fx<false, true>(
           *ctx.execState, proc.fx, ctx.execState->sampleRate, block_size);
