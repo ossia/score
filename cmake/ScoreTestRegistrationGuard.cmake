@@ -134,6 +134,10 @@ set(SCORE_TEST_GUARD_ALLOWED_TARGETS
   # Driven by tests/clap-sweep/clap_sweep.py, the test_clap_system_sweep
   # entry, which probes the installed CLAP plug-ins with it in batches.
   test_clap_sweep_worker
+  # Driven by tests/plugin-gui-sweep/plugin_gui_sweep.py, the
+  # test_plugin_gui_sweep entry, which opens the editors of the installed
+  # plug-ins with it on a private X server, in batches.
+  test_plugin_gui_sweep_worker
 )
 
 # Every directory the buildsystem created below `dir`, `dir` included.
