@@ -1,6 +1,8 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "DeviceExplorerWidget.hpp"
+#include <core/view/Window.hpp>
+#include <core/view/FixedTabWidget.hpp>
 
 #include "DeviceExplorerFilterProxyModel.hpp"
 #include "DeviceExplorerView.hpp"
@@ -1522,6 +1524,118 @@ void DeviceExplorerWidget::addAddress(InsertMode insert)
     }
     updateActions();
   }
+}
+
+namespace
+{
+//! A node reached along a path, and how many segments of it led there
+struct PathMatch
+{
+  const Device::Node* node{};
+  int depth{-1};
+};
+
+bool segmentMatches(const QString& pattern, const QString& name)
+{
+  if(!pattern.contains(QRegularExpression{QStringLiteral("[*?\\[]")}))
+    return pattern == name;
+  // A segment has no '/', which the default conversion of Qt before 6.6
+  // would not let a '*' match: both read it the same
+#if QT_VERSION >= QT_VERSION_CHECK(6, 6, 0)
+  const QRegularExpression re{QRegularExpression::wildcardToRegularExpression(
+      pattern, QRegularExpression::NonPathWildcardConversion)};
+#else
+  const QRegularExpression re{QRegularExpression::wildcardToRegularExpression(pattern)};
+#endif
+  return re.match(name).hasMatch();
+}
+
+//! The node `path` leads to from `node`: the first full match in the order of
+//! the tree, else the deepest partial one
+PathMatch
+matchPath(const Device::Node& node, const QStringList& path, int depth)
+{
+  PathMatch best{&node, depth};
+  if(depth == path.size())
+    return best;
+  for(const auto& child : node)
+  {
+    if(!segmentMatches(path[depth], child.displayName()))
+      continue;
+    const auto m = matchPath(child, path, depth + 1);
+    if(m.depth == path.size())
+      return m;
+    if(m.depth > best.depth)
+      best = m;
+  }
+  return best;
+}
+}
+
+const Device::Node* DeviceExplorerWidget::reveal(const State::Address& addr)
+{
+  auto model = this->model();
+  if(!model)
+    return nullptr;
+
+  // The explorer's children of the root hold device settings
+  const Device::Node* device{};
+  for(const auto& n : model->rootNode())
+    if(n.is<Device::DeviceSettings>() && n.get<Device::DeviceSettings>().name == addr.device)
+      device = &n;
+  if(!device)
+    return nullptr;
+
+  const auto* node = matchPath(*device, addr.path, 0).node;
+  const auto source
+      = model->modelIndexFromNode(const_cast<Device::Node&>(*node), 0);
+  if(!source.isValid())
+    return nullptr;
+
+  // A search that filters it out
+  if(!proxyIndex(source).isValid() && m_nameLEdit && !m_nameLEdit->text().isEmpty())
+  {
+    m_nameLEdit->clear();
+    m_nameLEdit->search();
+  }
+  const auto index = proxyIndex(source);
+  if(!index.isValid())
+    return node;
+
+  for(auto p = index.parent(); p.isValid(); p = p.parent())
+    m_ntView->expand(p);
+  m_ntView->setSelectedIndex(source);
+  // Shown under the tree, which it shrinks, from a queued connection: now,
+  // so that the tree has its final height before it scrolls
+  updateAddressView();
+
+  // The rows just unfolded count in the scroll range only once laid out,
+  // and the panel settles its height on the next turn of the event loop
+  auto scroll = [this, index = QPersistentModelIndex{index}] {
+    if(!index.isValid())
+      return;
+    if(auto l = layout())
+      l->activate();
+    m_ntView->doItemsLayout();
+    m_ntView->scrollTo(index, QAbstractItemView::PositionAtCenter);
+  };
+  scroll();
+  QTimer::singleShot(0, m_ntView, scroll);
+  return node;
+}
+
+const Device::Node*
+revealInDeviceExplorer(const score::GUIApplicationContext& ctx, const State::Address& addr)
+{
+  auto widget = findDeviceExplorerWidgetInstance(ctx);
+  if(!widget)
+    return nullptr;
+  // Wherever the panel is docked
+  if(auto view = qobject_cast<score::View*>(ctx.mainWindow))
+    for(auto tabs : {view->leftTabs, view->rightTabs, view->bottomTabs})
+      if(tabs && tabs->actionFor(widget))
+        tabs->showTab(widget);
+  return widget->reveal(addr);
 }
 
 DeviceExplorerWidget*

@@ -4,10 +4,12 @@
 #include <Process/Dataflow/Cable.hpp>
 #include <Process/Dataflow/CableItem.hpp>
 #include <Process/Dataflow/NodeItem.hpp>
+#include <Process/Dataflow/PortItem.hpp>
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Process.hpp>
 
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+#include <Explorer/Explorer/DeviceExplorerWidget.hpp>
 
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
@@ -180,6 +182,10 @@ ConnectionsWidget::ConnectionsWidget(QWidget* parent)
   connect(
       m_view->selectionModel(), &QItemSelectionModel::selectionChanged, this,
       [this] { onViewSelectionChanged(); });
+  connect(m_view, &QTreeView::doubleClicked, this, [this](const QModelIndex& idx) {
+    if(idx.column() == FromColumn || idx.column() == ToColumn)
+      goToEnd(rowAt(idx), idx.column() == FromColumn);
+  });
   connect(m_view, &QTreeView::customContextMenuRequested, this, [this](QPoint p) {
     contextMenu(p);
   });
@@ -800,6 +806,85 @@ void ConnectionsWidget::reveal(const ConnectionRow& r)
   const QRectF visible = gv.mapToScene(gv.viewport()->rect()).boundingRect();
   if(!visible.contains(target->sceneBoundingRect()))
     gv.centerOn(target);
+}
+
+void ConnectionsWidget::goToEnd(int row, bool from)
+{
+  if(!alive() || row < 0 || row >= std::ssize(m_rows))
+    return;
+  const auto& r = m_rows[row];
+
+  // An address binding lists the address on the side it comes from
+  if(r.kind == ConnectionRow::Address && from == r.addressIsSource)
+  {
+    if(r.sourcePort)
+      Explorer::revealInDeviceExplorer(m_ctx->app, r.sourcePort->address().address);
+    return;
+  }
+
+  const QPointer<Process::Port> port
+      = (r.kind == ConnectionRow::Cable && !from) ? r.sinkPort : r.sourcePort;
+  const QObject* owner
+      = (r.kind == ConnectionRow::Cable && !from) ? r.sinkOwner.data() : r.sourceOwner.data();
+  if(!port || !owner)
+    return;
+
+  auto pres = score::IDocument::try_presenterDelegate<Scenario::ScenarioDocumentPresenter>(
+      m_ctx->document);
+  if(!pres)
+    return;
+
+  // The interval whose view shows the port: an interval's own ports are on it
+  const Scenario::IntervalModel* itv
+      = qobject_cast<const Scenario::IntervalModel*>(owner);
+  if(!itv)
+  {
+    const auto above = intervalsAbove(owner);
+    if(!above.empty())
+      itv = above.back();
+  }
+  if(itv && &pres->displayedInterval() != itv)
+    pres->setDisplayedInterval(const_cast<Scenario::IntervalModel*>(itv));
+
+  Selection sel;
+  if(auto proc = Process::parentProcess(port.data()))
+    sel.append(proc);
+  sel.append(port.data());
+  score::SelectionDispatcher{m_ctx->selectionStack}.select(sel);
+
+  // Once the displayed interval is laid out
+  QTimer::singleShot(0, this, [this, port] {
+    if(port && alive())
+      centerOn(*port);
+  });
+}
+
+void ConnectionsWidget::centerOn(const Process::Port& port)
+{
+  auto docView = m_ctx->document.view();
+  if(!docView)
+    return;
+  auto view = qobject_cast<Scenario::ScenarioDocumentView*>(&docView->viewDelegate());
+  if(!view)
+    return;
+
+  // The port in the timeline or in a nodal view; else its node
+  QGraphicsItem* target{};
+  for(auto item : view->scene().items())
+  {
+    if(!item->isVisible())
+      continue;
+    if(auto p = dynamic_cast<Dataflow::PortItem*>(item); p && &p->port() == &port)
+    {
+      target = p;
+      break;
+    }
+    if(auto n = qgraphicsitem_cast<Process::NodeItem*>(item);
+       !target && n && &n->model() == Process::parentProcess(&port))
+      target = n;
+  }
+  if(target)
+    view->view().centerOn(target);
 }
 
 void ConnectionsWidget::removeConnections(const std::vector<ConnectionRow>& rows)

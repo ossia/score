@@ -10,6 +10,7 @@
 #include <Process/Commands/EditPort.hpp>
 #include <Process/Dataflow/Cable.hpp>
 #include <Process/Dataflow/Port.hpp>
+#include <Process/Dataflow/PortItem.hpp>
 #include <Process/Dataflow/PortType.hpp>
 #include <Process/Process.hpp>
 #include <Process/ProcessList.hpp>
@@ -20,6 +21,9 @@
 #include <Explorer/Commands/Add/LoadDevice.hpp>
 #include <Explorer/Commands/Remove.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+#include <Explorer/Explorer/DeviceExplorerModel.hpp>
+#include <Explorer/Explorer/DeviceExplorerView.hpp>
+#include <Explorer/Explorer/DeviceExplorerWidget.hpp>
 
 #include <Scenario/Commands/CommandAPI.hpp>
 #include <Scenario/Commands/Interval/AddProcessToInterval.hpp>
@@ -27,6 +31,7 @@
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentView.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 
 #include <Dataflow/Commands/EditConnection.hpp>
@@ -42,6 +47,9 @@
 #include <core/command/CommandStack.hpp>
 #include <core/document/Document.hpp>
 #include <core/document/DocumentModel.hpp>
+#include <core/document/DocumentView.hpp>
+#include <core/view/FixedTabWidget.hpp>
+#include <core/view/Window.hpp>
 #include <core/presenter/DocumentManager.hpp>
 
 #include <score/plugins/documentdelegate/DocumentDelegateFactory.hpp>
@@ -57,6 +65,9 @@
 #include <QImage>
 #include <QKeyEvent>
 #include <QMenu>
+#include <QPainter>
+#include <QGraphicsView>
+#include <QMainWindow>
 #include <QScrollBar>
 #include <QLineEdit>
 #include <QSortFilterProxyModel>
@@ -1295,5 +1306,312 @@ TEST_CASE(
     auto& m = *w.view().model();
     for(int i = 0; i < m.rowCount(); i++)
       CHECK(w.view().isFirstColumnSpanned(i, {}));
+  });
+}
+
+namespace
+{
+void doubleClickCell(ConnectionsWidget& w, int row, int column)
+{
+  const auto idx = w.viewIndexOf(row).siblingAtColumn(column);
+  REQUIRE(idx.isValid());
+  w.view().scrollTo(idx);
+  const QPoint p = w.view().visualRect(idx).center();
+  auto& vp = *w.view().viewport();
+  using score::test::mouseEvent;
+  mouseEvent(vp, QEvent::MouseButtonPress, p, Qt::LeftButton, Qt::LeftButton, {});
+  mouseEvent(vp, QEvent::MouseButtonRelease, p, Qt::LeftButton, Qt::NoButton, {});
+  mouseEvent(vp, QEvent::MouseButtonDblClick, p, Qt::LeftButton, Qt::LeftButton, {});
+  mouseEvent(vp, QEvent::MouseButtonRelease, p, Qt::LeftButton, Qt::NoButton, {});
+  spin();
+}
+
+//! The main window, shown so that the views it holds have a size
+struct ShownMainWindow
+{
+  QMainWindow& window;
+  explicit ShownMainWindow(const score::GUIApplicationContext& ctx)
+      : window{*ctx.mainWindow}
+  {
+    window.resize(1400, 900);
+    window.show();
+    spin();
+  }
+  ~ShownMainWindow() { window.hide(); }
+};
+}
+
+TEST_CASE(
+    "Connections panel: a double click on From or To goes to that port",
+    "[integration][gui][dataflow]")
+{
+  score::test::run_in_gui_app([](const score::GUIApplicationContext& ctx) {
+    ShownMainWindow shown{ctx};
+    score::Document* doc = score::test::new_document(ctx);
+    REQUIRE(doc != nullptr);
+    auto& dm
+        = static_cast<Scenario::ScenarioDocumentModel&>(doc->model().modelDelegate());
+    auto& base = dm.baseInterval();
+    auto presenter
+        = score::IDocument::try_presenterDelegate<Scenario::ScenarioDocumentPresenter>(
+            *doc);
+    REQUIRE(presenter != nullptr);
+    auto docView = doc->view();
+    REQUIRE(docView);
+    auto sview = qobject_cast<Scenario::ScenarioDocumentView*>(&docView->viewDelegate());
+    REQUIRE(sview);
+
+    Scenario::ProcessModel* scenario{};
+    for(auto& p : base.processes)
+      if((scenario = qobject_cast<Scenario::ProcessModel*>(&p)))
+        break;
+    REQUIRE(scenario != nullptr);
+    Scenario::IntervalModel* box{};
+    {
+      Scenario::Command::Macro m{
+          new Scenario::Command::DropProcessInIntervalMacro, doc->context()};
+      box = &m.createBox(*scenario, TimeVal::fromMsecs(20000), TimeVal::fromMsecs(30000), 0.6);
+      m.commit();
+    }
+    REQUIRE(box != nullptr);
+
+    auto& outer = addMerger(*doc, base);
+    auto& inner = addMerger(*doc, *box);
+    outer.metadata().setName("Outer");
+    inner.metadata().setName("Inner");
+    CommandDispatcher<> disp{doc->context().commandStack};
+    const auto cid = getStrongId(dm.cables);
+    disp.submit<Dataflow::CreateCable>(
+        dm, cid, Process::CableType::ImmediateGlutton, *inner.outlets().front(),
+        *outer.inlets().front());
+    auto& innerOut = *inner.outlets().front();
+    auto& outerIn = *outer.inlets().front();
+
+    ConnectionsWidget w;
+    w.resize(900, 300);
+    w.setDocument(&doc->context());
+    w.show();
+    spin();
+    presenter->setDisplayedInterval(&base);
+    spin();
+    const int row = rowOfCable(w, dm.cables.at(cid));
+    REQUIRE(row >= 0);
+
+    auto shot = [&](const QString& name) {
+      if(const auto dir = qEnvironmentVariable("SCORE_TEST_SHOT_DIR"); !dir.isEmpty())
+      {
+        QDir{}.mkpath(dir);
+        ctx.mainWindow->grab().save(dir + "/" + name + ".png");
+        // The scene, which a grab of a GPU viewport leaves out
+        auto& gv = sview->view();
+        QImage img{gv.viewport()->size(), QImage::Format_ARGB32};
+        img.fill(Qt::black);
+        {
+          QPainter p{&img};
+          gv.render(&p, {}, gv.viewport()->rect());
+          // The port it went to
+          p.setPen(QPen{Qt::cyan, 2});
+          for(auto item : sview->scene().items())
+            if(auto port = dynamic_cast<Dataflow::PortItem*>(item);
+               port && port->isVisible()
+               && doc->context().selectionStack.currentSelection().contains(&port->port()))
+              p.drawEllipse(gv.mapFromScene(port->sceneBoundingRect().center()), 12, 12);
+        }
+        img.save(dir + "/" + name + "-view.png");
+      }
+    };
+    shot("goto-port-before");
+
+    auto portItem = [&](const Process::Port& port) -> QGraphicsItem* {
+      for(auto item : sview->scene().items())
+        if(auto p = dynamic_cast<Dataflow::PortItem*>(item);
+           p && p->isVisible() && &p->port() == &port)
+          return p;
+      return nullptr;
+    };
+    auto checkCentered = [&](const Process::Port& port) {
+      auto item = portItem(port);
+      REQUIRE(item);
+      auto& gv = sview->view();
+      const QRectF visible = gv.mapToScene(gv.viewport()->rect()).boundingRect();
+      const QPointF pos = item->sceneBoundingRect().center();
+      CHECK(visible.contains(pos));
+      // Centered, as far as the scroll bars go at the edges of the scene
+      const QPointF d = pos - visible.center();
+      INFO("visible " << visible.x() << "," << visible.y() << " " << visible.width()
+                      << "x" << visible.height() << ", port " << pos.x() << "," << pos.y());
+      auto centered = [](double delta, double extent, const QScrollBar& bar) {
+        return std::abs(delta) <= extent / 4 || (delta < 0 && bar.value() == bar.minimum())
+               || (delta > 0 && bar.value() == bar.maximum());
+      };
+      CHECK(centered(d.x(), visible.width(), *gv.horizontalScrollBar()));
+      CHECK(centered(d.y(), visible.height(), *gv.verticalScrollBar()));
+    };
+    auto selected = [&](const QObject* o) {
+      return doc->context().selectionStack.currentSelection().contains(o);
+    };
+
+    // From: the inner merger, in the box: the box is displayed
+    doubleClickCell(w, row, ConnectionsWidget::FromColumn);
+    spin();
+    CHECK(&presenter->displayedInterval() == box);
+    CHECK(selected(&inner));
+    CHECK(selected(&innerOut));
+    checkCentered(innerOut);
+    shot("goto-port-after");
+
+    // To: the outer merger, back in the base interval
+    doubleClickCell(w, rowOfCable(w, dm.cables.at(cid)), ConnectionsWidget::ToColumn);
+    spin();
+    CHECK(&presenter->displayedInterval() == &base);
+    CHECK(selected(&outer));
+    CHECK(selected(&outerIn));
+    checkCentered(outerIn);
+
+    // Again: already the displayed interval, it stays
+    doubleClickCell(w, rowOfCable(w, dm.cables.at(cid)), ConnectionsWidget::ToColumn);
+    spin();
+    CHECK(&presenter->displayedInterval() == &base);
+    CHECK(selected(&outerIn));
+
+    // Another column: what a click does, the cable selected, nothing more
+    w.view().selectionModel()->clearSelection();
+    spin();
+    doubleClickCell(w, rowOfCable(w, dm.cables.at(cid)), ConnectionsWidget::LocationColumn);
+    spin();
+    CHECK(&presenter->displayedInterval() == &base);
+    CHECK(selected(&dm.cables.at(cid)));
+    CHECK(!selected(&outerIn));
+  });
+}
+
+TEST_CASE(
+    "Connections panel: a double click on an address reveals it in the device explorer",
+    "[integration][gui][dataflow]")
+{
+  score::test::run_in_gui_app([](const score::GUIApplicationContext& ctx) {
+    ShownMainWindow shown{ctx};
+    score::Document* doc = score::test::new_document(ctx);
+    REQUIRE(doc != nullptr);
+    auto& dm
+        = static_cast<Scenario::ScenarioDocumentModel&>(doc->model().modelDelegate());
+    auto& devplug = doc->context().plugin<Explorer::DeviceDocumentPlugin>();
+    auto* fact = oscFactory(ctx);
+    REQUIRE(fact != nullptr);
+
+    // Enough nodes before the one looked for that it starts out of view
+    CommandDispatcher<> disp{doc->context().commandStack};
+    {
+      auto settings = fact->defaultSettings();
+      settings.name = "synth";
+      Device::Node dev{settings, nullptr};
+      for(int i = 0; i < 80; i++)
+        dev.push_back(Device::Node{parameter(QString("p%1").arg(i, 2, 10, QChar('0'))), &dev});
+      auto& voices = dev.emplace_back(parameter("voices"), &dev);
+      for(QString v : {"1", "2"})
+      {
+        auto& voice = voices.emplace_back(parameter(v), &voices);
+        voice.push_back(Device::Node{parameter("level"), &voice});
+      }
+      disp.submit(new Explorer::Command::LoadDevice{devplug, std::move(dev)});
+    }
+
+    auto& p = addMerger(*doc, dm.baseInterval());
+    auto& bound = *p.inlets()[0];
+    auto& missing = *p.inlets()[1];
+    auto& pattern = *p.inlets()[2];
+    auto& noDevice = *p.inlets()[3];
+    disp.submit<Process::ChangePortAddress>(
+        bound, State::AddressAccessor{State::Address{"synth", {"voices", "2", "level"}}});
+    disp.submit<Process::ChangePortAddress>(
+        missing, State::AddressAccessor{State::Address{"synth", {"voices", "9", "level"}}});
+    disp.submit<Process::ChangePortAddress>(
+        pattern, State::AddressAccessor{State::Address{"synth", {"voices", "*", "level"}}});
+    disp.submit<Process::ChangePortAddress>(
+        noDevice, State::AddressAccessor{State::Address{"nodevice", {"x"}}});
+
+    auto explorer = Explorer::findDeviceExplorerWidgetInstance(ctx);
+    REQUIRE(explorer);
+    REQUIRE(explorer->model() == &devplug.explorer());
+    auto& tree = *explorer->view();
+
+    // Another left panel in front of the explorer
+    auto view = qobject_cast<score::View*>(ctx.mainWindow);
+    REQUIRE(view);
+    for(auto act : view->leftTabs->actionGroup()->actions())
+      if(!act->isChecked() && view->leftTabs->actionFor(explorer) != act)
+      {
+        act->trigger();
+        break;
+      }
+    spin();
+
+    ConnectionsWidget w;
+    w.resize(900, 300);
+    w.setDocument(&doc->context());
+    w.show();
+    spin();
+
+    // Inlets list the address as the source: in From
+    auto revealFrom = [&](const Process::Port& port) {
+      const int row = rowOfPort(w, port);
+      REQUIRE(row >= 0);
+      REQUIRE(w.rows()[row].addressIsSource);
+      tree.collapseAll();
+      tree.scrollToTop();
+      tree.clearSelection();
+      spin();
+      doubleClickCell(w, row, ConnectionsWidget::FromColumn);
+    };
+    auto selectedPath = [&]() -> QStringList {
+      const auto idx = tree.selectedIndex();
+      if(!idx.isValid())
+        return {};
+      return Device::address(explorer->model()->nodeFromModelIndex(idx)).address.path;
+    };
+    auto checkShown = [&] {
+      CHECK(explorer->isVisible());
+      const auto idx = explorer->proxyIndex(tree.selectedIndex());
+      REQUIRE(idx.isValid());
+      for(auto p = idx.parent(); p.isValid(); p = p.parent())
+        CHECK(tree.isExpanded(p));
+      INFO("viewport " << tree.viewport()->width() << "x" << tree.viewport()->height()
+                        << " item at " << tree.visualRect(idx).y());
+      CHECK(tree.viewport()->rect().contains(tree.visualRect(idx).center()));
+    };
+
+    revealFrom(bound);
+    CHECK(selectedPath() == QStringList{"voices", "2", "level"});
+    checkShown();
+    if(const auto dir = qEnvironmentVariable("SCORE_TEST_SHOT_DIR"); !dir.isEmpty())
+    {
+      QDir{}.mkpath(dir);
+      ctx.mainWindow->grab().save(dir + "/goto-address-explorer.png");
+    }
+
+    // Not bound: its deepest existing parent; the warning stays on the row
+    revealFrom(missing);
+    CHECK(selectedPath() == QStringList{"voices"});
+    checkShown();
+    CHECK(w.viewIndexOf(rowOfPort(w, missing))
+              .siblingAtColumn(ConnectionsWidget::StatusColumn)
+              .data(Qt::ToolTipRole)
+              .toString()
+              .contains("Not bound"));
+
+    // A pattern: its first match
+    revealFrom(pattern);
+    CHECK(selectedPath() == QStringList{"voices", "1", "level"});
+    checkShown();
+
+    // A device the explorer does not have: nothing to select
+    revealFrom(noDevice);
+    CHECK(tree.selectionModel()->selectedRows().empty());
+
+    // To on an inlet's row is the port: the explorer is left alone
+    revealFrom(bound);
+    tree.clearSelection();
+    doubleClickCell(w, rowOfPort(w, bound), ConnectionsWidget::ToColumn);
+    CHECK(tree.selectionModel()->selectedRows().empty());
   });
 }

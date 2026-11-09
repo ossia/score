@@ -65,6 +65,18 @@ public:
 
   ListeningManager& listeningManager() const { return *m_listeningManager; }
 
+  /**
+   * @brief Shows the node of an address: unfolds its parents, selects it and
+   * scrolls to it, clearing a search that hides it.
+   *
+   * A pattern shows the first node it matches, in the order of the tree
+   * (`*`, `?` and `[...]` per path segment). An address the explorer does not
+   * have shows its deepest existing parent.
+   *
+   * @return The node shown, null when the explorer does not have the device.
+   */
+  const Device::Node* reveal(const State::Address& addr);
+
 private:
   friend class ExplorerSearchLineEdit;
   QSize sizeHint() const override;
@@ -157,4 +169,10 @@ private:
 SCORE_PLUGIN_DEVICEEXPLORER_EXPORT
 DeviceExplorerWidget*
 findDeviceExplorerWidgetInstance(const score::GUIApplicationContext& ctx) noexcept;
+
+//! Brings the device explorer panel to the front and reveals an address in it
+//! (DeviceExplorerWidget::reveal).
+SCORE_PLUGIN_DEVICEEXPLORER_EXPORT
+const Device::Node*
+revealInDeviceExplorer(const score::GUIApplicationContext& ctx, const State::Address& addr);
 }

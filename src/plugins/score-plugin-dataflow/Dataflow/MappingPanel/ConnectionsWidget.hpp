@@ -106,6 +106,14 @@ public:
   void selectInDocument(const std::vector<int>& rows);
   //! Shows the processes of a row in the scenario or nodal view
   void reveal(const ConnectionRow& row);
+  /**
+   * @brief Goes to one end of a row, what a double click on From or To does.
+   *
+   * A port: displays the interval holding its process, selects the process
+   * and the port, centers the view on the port. An address: reveals it in
+   * the device explorer.
+   */
+  void goToEnd(int row, bool from);
   //! Cables are removed, address bindings cleared, in one command
   void removeConnections(const std::vector<ConnectionRow>& rows);
   //! Sets the mode of the cables of the rows in one command
@@ -125,6 +133,7 @@ private:
   void untrack();
   void updateCounts();
   void spanGroups();
+  void centerOn(const Process::Port& port);
   void watchDocument();
   void unwatchDocument();
   void onViewSelectionChanged();
