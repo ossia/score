@@ -297,3 +297,81 @@ TEST_CASE(
   CHECK(f.tick() == std::vector<point>{{1, 0, 0.25}});
   CHECK(f.tick().empty());
 }
+
+TEST_CASE(
+    "VST3: the output parameter changes of a block do not carry to the next",
+    "[vst3][parameters]")
+{
+  fixture f{{1, 2}};
+
+  f.fx.to_send = {{1, 0, 0.3}};
+  f.tick();
+  CHECK(f.fx.output_counts.back() == 1);
+
+  // The plug-in starts each block from an empty list
+  f.tick();
+  CHECK(f.fx.output_counts.back() == 0);
+
+  // A plug-in that reports two parameters every block, as a meter does
+  for(int i = 0; i < 1000; i++)
+  {
+    f.fx.to_send = {{1, 0, i / 1000.}, {2, 3, 1. - i / 1000.}};
+    f.tick();
+    REQUIRE(f.fx.output_counts.back() == 2);
+  }
+  CHECK(f.node->m_outputChanges.getParameterCount() == 0);
+}
+
+TEST_CASE(
+    "VST3: the output parameter changes use the storage made with the node",
+    "[vst3][parameters]")
+{
+  fixture f{{1, 2, 3}};
+  auto& out = f.node->m_outputChanges;
+  const auto queues = out.queues.size();
+  const auto queues_data = out.queues.data();
+  std::vector<std::size_t> capacities;
+  for(auto& q : out.queues)
+    capacities.push_back(q.data.capacity());
+
+  // More points in a block than there is room for, and parameters the
+  // controller does not list
+  for(int i = 0; i < 100; i++)
+  {
+    for(int k = 0; k < 50; k++)
+      f.fx.to_send.push_back({ParamID(1 + k % 3), k, k / 50.});
+    for(ParamID unlisted = 100; unlisted < 120; unlisted++)
+      f.fx.to_send.push_back({unlisted, 0, 0.5});
+    f.tick();
+  }
+
+  CHECK(out.queues.size() == queues);
+  CHECK(out.queues.data() == queues_data);
+  for(std::size_t i = 0; i < out.queues.size(); i++)
+    CHECK(out.queues[i].data.capacity() == capacities[i]);
+}
+
+TEST_CASE(
+    "VST3: the UI gets the last value the plug-in reported for a parameter, once",
+    "[vst3][parameters]")
+{
+  fixture f{{1, 2}};
+  std::map<ParamID, ParamValue> got;
+  const auto consume = [&] {
+    got.clear();
+    f.node->consumeOutputValues([&](ParamID id, ParamValue v) { got[id] = v; });
+    return got;
+  };
+
+  CHECK(consume().empty());
+
+  f.fx.to_send = {{1, 0, 0.1}, {1, 10, 0.2}};
+  f.tick();
+  f.fx.to_send = {{2, 0, 0.7}};
+  f.tick();
+  f.fx.to_send = {{1, 5, 0.4}, {42, 0, 1.}};
+  f.tick();
+
+  CHECK(consume() == std::map<ParamID, ParamValue>{{1, 0.4}, {2, 0.7}});
+  CHECK(consume().empty());
+}

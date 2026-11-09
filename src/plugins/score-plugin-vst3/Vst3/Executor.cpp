@@ -13,6 +13,8 @@
 #include <ossia/detail/logger.hpp>
 #include <ossia/network/domain/domain.hpp>
 
+#include <QTimer>
+
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(vst3::Executor)
 namespace vst3
@@ -34,7 +36,10 @@ struct ConnectValueChanged
   {
     QObject::connect(
         ctrl, &vst3::ControlInlet::valueChanged, self,
-        [queue_idx = this->queue_idx, n = this->n](const ossia::value& v) {
+        [self = this->self, queue_idx = this->queue_idx,
+         n = this->n](const ossia::value& v) {
+      if(self->m_applyingOutputValues)
+        return;
       n->set_control(queue_idx, ossia::convert<float>(v));
     });
   }
@@ -55,13 +60,36 @@ void Executor::setupNode(Node_T& node)
           = node->add_control(new ossia::value_inlet, ctrl->fxNum, ctrl->value());
       connect(
           ctrl, &vst3::ControlInlet::valueChanged, this,
-          [queue_idx, node](const ossia::value& v) {
+          [this, queue_idx, node](const ossia::value& v) {
+        if(m_applyingOutputValues)
+          return;
         node->set_control(queue_idx, ossia::convert<float>(v));
       });
     }
   }
 
   std::weak_ptr<std::remove_reference_t<decltype(*node)>> wp = node;
+
+  // The values the processor reports for its parameters reach the edit
+  // controller and the controls, at the UI rate. They are not sent back to
+  // the processor: it is where they come from.
+  connect(
+      &system().doc.coarseUpdateTimer, &QTimer::timeout, this, [this, &proc, wp] {
+    auto n = wp.lock();
+    if(!n)
+      return;
+    n->consumeOutputValues(
+        [this, &proc](Steinberg::Vst::ParamID id, Steinberg::Vst::ParamValue v) {
+      if(auto* ctl = proc.fx.controller)
+        ctl->setParamNormalized(id, v);
+      if(auto it = proc.controls.find(id); it != proc.controls.end())
+      {
+        m_applyingOutputValues = true;
+        it->second->setValue(v);
+        m_applyingOutputValues = false;
+      }
+    });
+  });
   connect(
       &proc, &vst3::Model::controlAdded, this,
       [this, &proc, wp](const Id<Process::Port>& id) {

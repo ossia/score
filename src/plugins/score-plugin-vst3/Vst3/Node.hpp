@@ -14,12 +14,15 @@
 #include <ossia/editor/scenario/time_signature.hpp>
 
 #include <libremidi/ump_events.hpp>
+#include <pluginterfaces/vst/ivsteditcontroller.h>
 #include <pluginterfaces/vst/ivstmidicontrollers.h>
 
 #include <public.sdk/source/vst/hosting/eventlist.h>
 #include <public.sdk/source/vst/hosting/parameterchanges.h>
 
 #include <algorithm>
+#include <atomic>
+#include <memory>
 namespace vst3
 {
 
@@ -64,6 +67,15 @@ public:
       Steinberg::int32 sampleOffset, Steinberg::Vst::ParamValue value,
       Steinberg::int32& index) override
   {
+    // The plug-in adds points from the audio thread, into room reserved up
+    // front: once it is full, a point replaces the last one, which keeps the
+    // value the parameter ends the block on.
+    if(!data.empty() && data.size() == data.capacity())
+    {
+      index = data.size() - 1;
+      data.back() = {sampleOffset, value};
+      return Steinberg::kResultOk;
+    }
     index = data.size();
     data.emplace_back(sampleOffset, value);
     return Steinberg::kResultOk;
@@ -94,6 +106,74 @@ public:
     index = queues.size();
     queues.emplace_back(id);
     return &queues.back();
+  }
+};
+
+//! The parameter changes a plug-in gives back from one process() call. The
+//! plug-in fills it from the audio thread, so all of its storage is made
+//! beforehand, in reserve(), and a block only uses the queues it needs.
+class output_param_changes final : public Steinberg::Vst::IParameterChanges
+{
+public:
+  std::vector<param_queue> queues;
+  std::size_t count{};
+
+  //! Room for `parameters` parameters of `points` points each in a block
+  void reserve(std::size_t parameters, std::size_t points)
+  {
+    queues.clear();
+    queues.reserve(parameters);
+    for(std::size_t i = 0; i < parameters; i++)
+      queues.emplace_back(Steinberg::Vst::ParamID{}).data.reserve(points);
+    count = 0;
+  }
+
+  void clear() noexcept
+  {
+    for(std::size_t i = 0; i < count; i++)
+      queues[i].data.clear();
+    count = 0;
+  }
+
+  Steinberg::tresult PLUGIN_API queryInterface(const Steinberg::TUID _iid, void** obj) override
+  {
+    return Steinberg::kResultOk;
+  }
+  Steinberg::uint32 PLUGIN_API addRef() override { return 1; }
+  Steinberg::uint32 PLUGIN_API release() override { return 1; }
+
+  Steinberg::int32 PLUGIN_API getParameterCount() override { return count; }
+
+  param_queue* PLUGIN_API getParameterData(Steinberg::int32 index) override
+  {
+    if(index < 0 || std::size_t(index) >= count)
+      return nullptr;
+    return &queues[index];
+  }
+
+  param_queue* PLUGIN_API addParameterData(
+      const Steinberg::Vst::ParamID& id, Steinberg::int32& index /*out*/) override
+  {
+    for(std::size_t i = 0; i < count; i++)
+    {
+      if(queues[i].id == id)
+      {
+        index = i;
+        return &queues[i];
+      }
+    }
+
+    if(count == queues.size())
+    {
+      index = -1;
+      return nullptr;
+    }
+
+    auto& queue = queues[count];
+    queue.id = id;
+    queue.data.clear();
+    index = count++;
+    return &queue;
   }
 };
 
@@ -204,6 +284,27 @@ protected:
     m_inputEvents.setMaxSize(17 * 128 * m_totalEventIns);
     m_outputEvents.setMaxSize(128 * m_totalEventOuts);
     m_sysexStreams.resize(m_totalEventIns);
+
+    // Every parameter the controller knows gets a slot through which the
+    // value the processor reports for it reaches the UI, and a queue in which
+    // the processor can report it. A few more queues are there for parameters
+    // the controller does not list, whose values go nowhere.
+    if(auto* ctl = ptr.controller)
+    {
+      const int N = std::max(0, int(ctl->getParameterCount()));
+      m_outputValues = std::make_unique<output_value[]>(N);
+      m_outputValueCount = N;
+      for(int i = 0; i < N; i++)
+      {
+        Steinberg::Vst::ParameterInfo info{};
+        if(ctl->getParameterInfo(i, info) == Steinberg::kResultOk)
+        {
+          m_outputValues[i].id = info.id;
+          m_outputValueIndex[info.id] = i;
+        }
+      }
+    }
+    m_outputChanges.reserve(m_outputValueCount + 8, 4);
 
     // Give every MIDI-mapped parameter a queue up front.
     //
@@ -496,6 +597,39 @@ public:
       queue.data.clear();
   }
 
+  //! Hands the values the plug-in reported for its parameters over to the UI,
+  //! the last of each block, and empties the output changes for the next
+  //! process() call.
+  void readOutputChanges() noexcept
+  {
+    for(std::size_t i = 0; i < m_outputChanges.count; i++)
+    {
+      const param_queue& queue = m_outputChanges.queues[i];
+      if(queue.data.empty())
+        continue;
+      auto it = m_outputValueIndex.find(queue.id);
+      if(it == m_outputValueIndex.end())
+        continue;
+      output_value& slot = m_outputValues[it->second];
+      slot.value.store(queue.data.back().second, std::memory_order_relaxed);
+      slot.changed.store(true, std::memory_order_release);
+    }
+    m_outputChanges.clear();
+  }
+
+  //! Calls f(id, value) on the UI thread for each parameter the plug-in
+  //! reported a value for since the previous call, with the latest value.
+  template <typename F>
+  void consumeOutputValues(F&& f)
+  {
+    for(std::size_t i = 0; i < m_outputValueCount; i++)
+    {
+      output_value& slot = m_outputValues[i];
+      if(slot.changed.exchange(false, std::memory_order_acquire))
+        f(slot.id, slot.value.load(std::memory_order_relaxed));
+    }
+  }
+
   void readbackMidi(int64_t tick_start)
   {
     using VstEvent = Steinberg::Vst::Event;
@@ -590,7 +724,19 @@ public:
 
   Steinberg::Vst::ProcessContext m_context;
   param_changes m_inputChanges;
-  param_changes m_outputChanges;
+  output_param_changes m_outputChanges;
+
+  //! The latest value the plug-in reported for a parameter, from the audio
+  //! thread to the UI one.
+  struct output_value
+  {
+    Steinberg::Vst::ParamID id{};
+    std::atomic<Steinberg::Vst::ParamValue> value{};
+    std::atomic_bool changed{};
+  };
+  std::unique_ptr<output_value[]> m_outputValues;
+  std::size_t m_outputValueCount{};
+  ossia::hash_map<Steinberg::Vst::ParamID, std::size_t> m_outputValueIndex;
   Steinberg::Vst::EventList m_inputEvents;
   Steinberg::Vst::EventList m_outputEvents;
 
@@ -743,6 +889,7 @@ public:
 
         fx.processor->process(dat);
         this->clearInputChanges();
+        this->readOutputChanges();
       }
     }
   }
@@ -775,6 +922,7 @@ public:
       }
 
       this->clearInputChanges();
+      this->readOutputChanges();
       this->readbackMidi(tick_start);
     }
   }

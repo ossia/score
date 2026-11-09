@@ -20,6 +20,10 @@ public:
 
   Executor(vst3::Model& proc, const Execution::Context& ctx, QObject* parent);
 
+  //! Set while the controls take the values the processor reported, which
+  //! must not go back to it as changes.
+  bool m_applyingOutputValues{};
+
 private:
   template <typename Node_T>
   void setupNode(Node_T& node);
