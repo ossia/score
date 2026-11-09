@@ -33,6 +33,12 @@
 #include <Process/Dataflow/Port.hpp>
 #include <Process/ProcessList.hpp>
 
+#include <Scenario/Commands/Interval/AddOnlyProcessToInterval.hpp>
+#include <Scenario/Commands/Interval/RemoveProcessFromInterval.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
+
+#include <score/command/Dispatchers/CommandDispatcher.hpp>
+
 #include <Audio/Settings/Model.hpp>
 #include <Vst3/ApplicationPlugin.hpp>
 #include <Vst3/Control.hpp>
@@ -64,6 +70,7 @@
 #include <pluginterfaces/vst/ivstprocesscontext.h>
 #include <score_test/App.hpp>
 #include <score_test/Document.hpp>
+#include <score_test/Project.hpp>
 
 #include <catch2/catch_test_macros.hpp>
 
@@ -907,20 +914,35 @@ void probe(
 
   out.phase(uri, "model");
   const auto t0 = std::chrono::steady_clock::now();
-  // Through its factory, as the library makes it: vst3::Model is not exported
-  auto* factory = ctx.interfaces<Process::ProcessFactoryList>().get(
-      Metadata<ConcreteKey_k, vst3::Model>::get());
-  REQUIRE(factory);
-  auto* model = static_cast<vst3::Model*>(factory->make(
-      TimeVal::fromMsecs(10000), QString::fromStdString(uid_str),
-      Id<Process::ProcessModel>{1}, doc.context(), &doc.model()));
+  // In the document, as the library puts it there: a plug-in may change its
+  // parameters while it loads, which score records as commands on the process
+  auto& interval = score::test::base_interval(doc);
+  const auto key = Metadata<ConcreteKey_k, vst3::Model>::get();
+  CommandDispatcher<>{doc.context().commandStack}
+      .submit<Scenario::Command::AddOnlyProcessToInterval>(
+          interval, key, QString::fromStdString(uid_str), QPointF{});
+  // The probes before this one removed theirs
+  auto found = ossia::find_if(
+      interval.processes, [&](const auto& p) { return p.concreteKey() == key; });
+  if(found == interval.processes.end())
+  {
+    out.write(j.str("status", "instantiate-failed").done());
+    return;
+  }
+  const auto id = found->id();
+  // vst3::Model is not exported: no qobject_cast
+  auto* model = static_cast<vst3::Model*>(const_cast<Process::ProcessModel*>(&*found));
+  const auto remove = [&] {
+    CommandDispatcher<>{doc.context().commandStack}
+        .submit<Scenario::Command::RemoveProcessFromInterval>(interval, id);
+  };
   j.num(
       "instantiate_ms",
       std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - t0)
           .count());
   if(!model->fx)
   {
-    delete static_cast<Process::ProcessModel*>(model);
+    remove();
     out.write(j.str("status", "instantiate-failed").done());
     return;
   }
@@ -965,19 +987,28 @@ void probe(
   second.write(j, "replay_");
   QCoreApplication::processEvents();
 
+  out.phase(uri, "teardown");
+  const bool use_double = model->fx.supports_double;
+  remove();
+  // What the plug-in left on the event loop runs now, while it is still the
+  // one to blame
+  for(int i = 0; i < 10; i++)
+  {
+    QCoreApplication::processEvents();
+    score::test::flush_deferred_deletes();
+    QThread::msleep(20);
+  }
+
+  // Alone, as score's instance is gone
   out.phase(uri, "reference");
   run_stats ref;
-  reference_host ref_host{mdl->getFactory(), *uid, rate, model->fx.supports_double};
+  reference_host ref_host{mdl->getFactory(), *uid, rate, use_double};
   const auto ref_skip = ref_host.run(stim, ref);
   if(ref_skip.empty())
     ref.write(j, "ref_");
   else
     j.str("ref_skipped", ref_skip);
 
-  out.phase(uri, "teardown");
-  delete static_cast<Process::ProcessModel*>(model);
-  QCoreApplication::processEvents();
-  score::test::flush_deferred_deletes();
   out.write(j.str("status", "ran").done());
 }
 
