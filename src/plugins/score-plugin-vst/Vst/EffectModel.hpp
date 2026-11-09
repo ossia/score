@@ -97,6 +97,11 @@ public:
   QString prettyName() const noexcept override;
   bool hasExternalUI() const noexcept;
 
+  //! Whether the process has a MIDI input, after its audio input. A process
+  //! is made with one for a plug-in flagged as a synth or that can receive
+  //! MIDI events; a saved process keeps the ports it was saved with.
+  bool takesMidi() const noexcept;
+
   std::shared_ptr<AEffectWrapper> fx{};
 
   ossia::hash_map<int, ControlInlet*> controls;

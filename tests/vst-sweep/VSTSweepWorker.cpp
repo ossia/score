@@ -860,7 +860,7 @@ run_stats play(vst::Model& model, const stimulus& stim, int block, double second
   const bool trace = qEnvironmentVariableIsSet("SCORE_VST_SWEEP_TRACE");
   const auto flags = model.fx->fx->flags;
   const bool dbl = flags & effFlagsCanDoubleReplacing;
-  const bool synth = flags & effFlagsIsSynth;
+  const bool synth = model.takesMidi();
   if(dbl && synth)
     return score_player<true, true>::play(model, stim, block, seconds, trace);
   if(dbl)
@@ -1008,7 +1008,7 @@ void probe(
     for(auto* p : model->inlets())
       controls += bool(dynamic_cast<vst::ControlInlet*>(p));
     j.num("score_controls", controls);
-    j.boolean("score_midi_in", model->fx->fx->flags & effFlagsIsSynth);
+    j.boolean("score_midi_in", model->takesMidi());
     j.boolean("score_double", model->fx->fx->flags & effFlagsCanDoubleReplacing);
   }
 

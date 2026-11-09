@@ -1248,6 +1248,23 @@ if(TARGET score_plugin_vst)
   target_include_directories(test_unit_vst_node_blocks PRIVATE
     "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-vst")
 
+  # A VST 2 plug-in that receives MIDI events gets a MIDI input, synth or not.
+  if(UNIX AND NOT APPLE)
+    add_library(score_test_vst_unflagged_instrument MODULE
+      vst-fixtures/UnflaggedInstrument.cpp)
+    target_include_directories(score_test_vst_unflagged_instrument PRIVATE
+      "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-vst")
+    score_add_test(test_unit_vst_midi_input
+      SOURCES VstMidiInputTest.cpp
+      APP
+      PLUGINS score_lib_process score_plugin_vst)
+    target_include_directories(test_unit_vst_midi_input PRIVATE
+      "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-vst")
+    add_dependencies(test_unit_vst_midi_input score_test_vst_unflagged_instrument)
+    target_compile_definitions(test_unit_vst_midi_input PRIVATE
+      SCORE_VST_UNFLAGGED_INSTRUMENT="$<TARGET_FILE:score_test_vst_unflagged_instrument>")
+  endif()
+
   # A system-exclusive message reaches a VST 2 synth as one VstMidiSysexEvent.
   score_add_test(test_unit_vst_midi_events
     SOURCES VstMidiEventsTest.cpp
