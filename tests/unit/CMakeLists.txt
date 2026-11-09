@@ -1146,6 +1146,13 @@ score_add_test(test_unit_graphics_item_delete
   SOURCES GraphicsItemDeleteTest.cpp
   APP)
 
+# The bar lines and sub-divisions of the full view reach the right edge of
+# what it shows, however far in it is zoomed.
+score_add_test(test_unit_musical_grid
+  SOURCES MusicalGridTest.cpp
+  APP
+  PLUGINS score_plugin_scenario)
+
 # --- PipeWire quantum handling ---------------------------------------------
 # Only built where pipewire headers are available (pipewire::pipewire is
 # created by libossia's deps when they are found).

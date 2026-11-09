@@ -12,7 +12,7 @@ struct Timebars;
 class LightBars;
 class LighterBars;
 
-class MusicalGrid : public QObject
+class SCORE_PLUGIN_SCENARIO_EXPORT MusicalGrid : public QObject
 {
   W_OBJECT(MusicalGrid)
 public:

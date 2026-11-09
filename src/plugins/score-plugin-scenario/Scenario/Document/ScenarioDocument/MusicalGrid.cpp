@@ -159,7 +159,7 @@ void addBars(ossia::bar_time& time, ossia::bar_time& increment)
 void computeAll(
     MusicalGrid& grid, TimeSignatureMap::const_iterator last_sig_change_it,
     TimeVal last_delim, TimeVal division, TimeVal timeDelta, double zoom,
-    ossia::bar_time increment, QRectF rect)
+    ossia::bar_time increment, QRectF rect, double x0_px)
 {
   //qDebug("\n\n\n starting \n");
   auto& bars = *grid.timebars.lightBars;
@@ -192,9 +192,10 @@ void computeAll(
     sub_increment_t.impl /= 2.;
     sub_increment_px = sub_increment_t.toPixels(zoom);
   }
-  // ossia::bar_time main_time = grid.start;
-  auto isVisible
-      = [&](double bar_x_pos) { return (bar_x_pos - last_delim_px) < rect.width(); };
+  // The first line can be up to a division left of the rect: what is visible
+  // is measured from the rect's left edge, so that the division at its right
+  // end gets its lines too.
+  auto isVisible = [&](double bar_x_pos) { return (bar_x_pos - x0_px) < rect.width(); };
 
   // This function adds a main vertical line, and adds
   // the sub-bars between the new main and the previous one.
@@ -398,7 +399,7 @@ void MusicalGrid::compute(
 
   computeAll(
       *this, last_signature_change, first_main_delim, main_division, timeDelta, zoom,
-      inc, sceneRect);
+      inc, sceneRect, (x0_time - timeDelta).toPixels(zoom));
 
   ossia::remove_duplicates(timebars.magneticTimings);
   //, [] (auto t1, auto t2) { return t1 < t2});

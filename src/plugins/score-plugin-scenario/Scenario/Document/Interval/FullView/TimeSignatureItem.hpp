@@ -172,6 +172,8 @@ class FullViewIntervalPresenter;
 struct Timebars
 {
   Timebars(FullViewIntervalPresenter& self);
+  //! Bars no interval shows, for a grid computed on its own.
+  Timebars() = default;
 
   // Owned by Qt, not by value. These are QGraphicsItems parented to the
   // interval view, and QGraphicsItem's destructor deletes its children: as
