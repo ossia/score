@@ -480,6 +480,30 @@ if(TARGET score_plugin_clap)
     SOURCES ClapPresetEffectTest.cpp
     GUI
     PLUGINS score_plugin_clap score_plugin_scenario score_lib_process)
+
+  # A mono CLAP effect that counts what its host does wrong; its gain is its
+  # second parameter, after a read-only one.
+  add_library(clap_mono_gain MODULE clap-mono-gain/MonoGain.cpp)
+  target_include_directories(clap_mono_gain PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/3rdparty/clap/include")
+  set_target_properties(clap_mono_gain PROPERTIES PREFIX "" SUFFIX ".clap")
+
+  # Controls reach the parameter they show, as values; each instance of a
+  # mono plug-in gets parameters of its own, without main-thread calls from
+  # the audio thread.
+  if(NOT WIN32)
+    score_add_test(test_integration_clap_host_rules
+      SOURCES ClapHostRulesTest.cpp
+      APP
+      PLUGINS score_plugin_clap score_plugin_engine score_plugin_scenario score_lib_process
+      LIBS ${CMAKE_DL_LIBS})
+    add_dependencies(test_integration_clap_host_rules clap_mono_gain)
+    target_include_directories(test_integration_clap_host_rules PRIVATE
+      "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-clap"
+      "${SCORE_ROOT_SOURCE_DIR}/3rdparty/clap/include")
+    target_compile_definitions(test_integration_clap_host_rules PRIVATE
+      CLAP_MONO_GAIN_PATH="$<TARGET_FILE:clap_mono_gain>")
+  endif()
 endif()
 
 # A preset of the script a process already runs keeps its ports.

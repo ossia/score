@@ -1,0 +1,83 @@
+// What score's CLAP host gives a plug-in, seen from the plug-in: a mono effect
+// (clap-mono-gain) that counts what a host does wrong. Its gain is its second
+// parameter, after a read-only one, and score runs it as one instance per
+// channel.
+
+#include <score_test/App.hpp>
+#include <score_test/Document.hpp>
+#include <score_test/Execution.hpp>
+#include <score_test/Project.hpp>
+
+#include <Process/Dataflow/Port.hpp>
+
+#include <Scenario/Document/Interval/IntervalExecution.hpp>
+
+#include <Execution/BaseScenarioComponent.hpp>
+#include <Execution/DocumentPlugin.hpp>
+
+#include <core/document/Document.hpp>
+
+#include <ossia/dataflow/data_copy.hpp>
+#include <ossia/dataflow/execution_state.hpp>
+#include <ossia/dataflow/graph_node.hpp>
+#include <ossia/dataflow/port.hpp>
+#include <ossia/detail/thread.hpp>
+
+#include <QCoreApplication>
+#include <QElapsedTimer>
+
+#include <Clap/EffectModel.hpp>
+#include <catch2/catch_approx.hpp>
+#include <catch2/catch_test_macros.hpp>
+
+#include <dlfcn.h>
+
+namespace
+{
+const QString clap_uuid = QStringLiteral("10e8d26d-1d82-4bfc-a9fb-d85ffdf04e5f");
+
+Clap::Model* add_mono_gain(score::Document& doc)
+{
+  auto* proc = score::test::add_process(
+      doc, clap_uuid, QStringLiteral(CLAP_MONO_GAIN_PATH ":::io.ossia.test.mono-gain"));
+  REQUIRE(proc);
+  auto* clap = static_cast<Clap::Model*>(proc);
+  REQUIRE(clap->handle());
+  REQUIRE(clap->handle()->plugin);
+  return clap;
+}
+
+Process::ControlInlet& gain_control(Clap::Model& proc)
+{
+  for(auto* inlet : proc.inlets())
+    if(auto* ctl = qobject_cast<Process::ControlInlet*>(inlet))
+      return *ctl;
+  FAIL("no control");
+  throw;
+}
+
+double plugin_gain(Clap::Model& proc)
+{
+  auto& h = *proc.handle();
+  double v{};
+  REQUIRE(h.ext_params->get_value(h.plugin, 3, &v));
+  return v;
+}
+
+}
+
+TEST_CASE(
+    "CLAP: a control after a read-only parameter sets its own parameter",
+    "[integration][clap][params]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    auto& proc = *add_mono_gain(*doc);
+    REQUIRE(proc.parameterInputs().size() == 1);
+    REQUIRE(proc.parameterOutputs().size() == 1);
+
+    gain_control(proc).setValue(0.25);
+    CHECK(plugin_gain(proc) == Catch::Approx(0.25));
+  });
+}
