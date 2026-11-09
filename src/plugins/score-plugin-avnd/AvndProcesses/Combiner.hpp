@@ -2,6 +2,7 @@
 #include <ossia/network/base/osc_address.hpp>
 
 #include <AvndProcesses/AddressTools.hpp>
+#include <halp/layout.hpp>
 
 #include <algorithm>
 #include <cmath>
@@ -23,7 +24,7 @@ struct PatternCombiner : PatternObject
   halp_meta(uuid, "18efe965-9acc-4703-9af3-3cef658b301a")
   halp_meta(manual_url, "https://ossia.io/score-docs/processes/pattern-combiner.html#pattern-combiner")
 
-  struct
+  struct ins
   {
     PatternSelector pattern;
 
@@ -73,6 +74,39 @@ struct PatternCombiner : PatternObject
   {
     halp::val_port<"Output", std::optional<ossia::value>> output;
   } outputs;
+
+  // The controls a mode does not read are greyed out while it is selected.
+  struct ui
+  {
+    using mode = decltype(ins::mode);
+    halp_meta(layout, halp::layouts::vbox)
+    halp::item<&ins::pattern> pattern;
+    halp::item<&ins::mode> mode_choice;
+    struct
+    {
+      halp_meta(layout, halp::layouts::vbox)
+      static constexpr auto condition()
+      {
+        return halp::enabled_when<&ins::mode, mode::TopN>{};
+      }
+      halp::item<&ins::n> n;
+    } top;
+    struct
+    {
+      halp_meta(layout, halp::layouts::vbox)
+      static constexpr auto condition()
+      {
+        return halp::enabled_when<&ins::mode, mode::Count, mode::Any, mode::All>{};
+      }
+      halp::item<&ins::test> test;
+      struct
+      {
+        halp_meta(layout, halp::layouts::hbox)
+        halp::item<&ins::min> min;
+        halp::item<&ins::max> max;
+      } bounds;
+    } threshold;
+  };
 
   std::vector<ossia::value> current_values;
   std::vector<ossia::net::node_base*> current_nodes;
