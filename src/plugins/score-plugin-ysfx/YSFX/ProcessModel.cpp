@@ -86,13 +86,28 @@ bool ProcessModel::validate(const QString& txt) const noexcept
   return true;
 }
 
+namespace
+{
+//! Each script has a configuration of its own: ysfx guesses the import and
+//! data roots from the path of the script, and only when they are not set yet
+ysfx_config_u scriptConfig(const QString& path)
+{
+  ysfx_config_u config{ysfx_config_new()};
+  ysfx_register_builtin_audio_formats(config.get());
+
+  const auto c = config.get();
+  ysfx_guess_file_roots(c, path.toStdString().c_str());
+  if(auto import = ysfx_get_import_root(c); !import || strlen(import) == 0)
+    ysfx_set_import_root(c, QFileInfo{path}.dir().canonicalPath().toStdString().c_str());
+  return config;
+}
+}
+
 void ProcessModel::setInitialScript(const QString& script)
 {
   ossia::disable_fpe();
   auto path_to_jsfx = script.toStdString();
-  auto& config
-      = score::GUIAppContext().applicationPlugin<YSFX::ApplicationPlugin>().config;
-  ysfx_guess_file_roots(config.get(), path_to_jsfx.c_str());
+  auto config = scriptConfig(script);
 
   fx.reset(ysfx_new(config.get()), ysfx_u_deleter{});
   if(!ysfx_load_file(fx.get(), path_to_jsfx.c_str(), 0))
@@ -443,15 +458,8 @@ Process::ScriptChangeResult ProcessModel::reload()
     tempFile.write(m_text.toUtf8());
   }
 
-  // Create a new config with the proper roots
-  ysfx_config_u config{ysfx_config_new()};
-  ysfx_register_builtin_audio_formats(config.get());
-
-  // Set import and data roots from the original file
-  const auto& c = config.get();
-  ysfx_guess_file_roots(c, m_jsfx_path.toStdString().c_str());
-  if(auto import = ysfx_get_import_root(c); !import || strlen(import) == 0)
-    ysfx_set_import_root(c, QFileInfo{m_jsfx_path}.dir().canonicalPath().toStdString().c_str());
+  // The roots of the original file, wherever the code is loaded from
+  auto config = scriptConfig(m_jsfx_path);
 
   // Create a new fx instance
   auto new_fx = std::shared_ptr<ysfx_t>(ysfx_new(config.get()), ysfx_u_deleter{});
