@@ -271,6 +271,9 @@ private:
       bool read_buffer_is_snapshot{false};
       bool warned_size_mismatch{false};
       bool warned_borrowed_pair{false};
+      //! `buffer` is owned and holds what the attribute reads when the
+      //! upstream lacks it (zeros or its DEFAULT), not upstream data.
+      bool fallback{false};
       int64_t size{};             // Current buffer size in bytes
       int64_t offset{};           // Start of the attribute data in a borrowed buffer
       bool owned{true};           // true = we created it; false = referencing upstream gpu_buffer

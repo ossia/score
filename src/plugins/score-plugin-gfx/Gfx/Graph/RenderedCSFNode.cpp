@@ -507,6 +507,21 @@ static void applyDeclaredTopology(ossia::geometry& geo, const std::string& t) no
     geo.topology = ossia::geometry::points;
 }
 
+// What an attribute the upstream lacks reads: zeros, or its DEFAULT in every
+// element. `stride` is the std430 array stride, so a vec3 keeps its pad word.
+static QByteArray attributeFallbackData(
+    const isf::geometry_input::attribute_request& req, int64_t size, int64_t stride)
+{
+  QByteArray data(size, 0);
+  const auto& words = req.default_value;
+  const int64_t bytes = int64_t(words.size() * sizeof(uint32_t));
+  if(words.empty() || stride < bytes)
+    return data;
+  for(int64_t offset = 0; offset + bytes <= size; offset += stride)
+    std::memcpy(data.data() + offset, words.data(), bytes);
+  return data;
+}
+
 template <typename Slot>
 static void releaseSlot(score::gfx::RenderList& renderer, Slot& slot) noexcept
 {
@@ -2213,8 +2228,26 @@ void RenderedCSFNode::updateGeometryBindings(
         }
         ssbo.owned = true;
       };
-      for(auto& ssbo : binding.attribute_ssbos)
+      for(std::size_t a = 0; a < binding.attribute_ssbos.size(); a++)
+      {
+        auto& ssbo = binding.attribute_ssbos[a];
+        const bool borrowed = ssbo.buffer && !ssbo.owned;
         orphan(ssbo, "attr");
+        if(borrowed)
+          ssbo.fallback = true;
+        if(a >= geo_input->attributes.size())
+          continue;
+        const auto& req = geo_input->attributes[a];
+        if(!req.default_value.empty() && ssbo.buffer && ssbo.owned
+           && (borrowed || !ssbo.fallback))
+        {
+          const QByteArray data = attributeFallbackData(
+              req, ssbo.size, std430ArrayStride(req.type, n.m_descriptor));
+          res.uploadStaticBuffer(ssbo.buffer, 0, ssbo.size, data.constData());
+          ssbo.fallback = true;
+          ssbo.lastUploadSrc = nullptr;
+        }
+      }
       for(auto& aux : binding.auxiliary_ssbos)
         orphan(aux, "aux");
       if(!binding.has_vertex_count_spec)
@@ -2265,13 +2298,19 @@ void RenderedCSFNode::updateGeometryBindings(
 
         if(!geo_attr)
         {
-          // Create or keep a zero-filled fallback buffer. std430ArrayStride
-          // ensures vec3 attributes get 16-byte stride to match what the
-          // shader's `T array[]` SSBO actually reads in std430.
+          // Create or keep a fallback buffer of zeros or of the DEFAULT.
+          // std430ArrayStride ensures vec3 attributes get 16-byte stride to
+          // match what the shader's `T array[]` SSBO actually reads in std430.
+          // A slot still holding an earlier upstream's data, or its buffer, is
+          // replaced when the shader only reads it, or reads it from a DEFAULT:
+          // that data would read as present.
           const int64_t elem_stride = std430ArrayStride(req.type, n.m_descriptor);
           const int fallback_count = ssbo.per_instance ? std::max(1, mesh.instances) : std::max(1, mesh.vertices);
           const int64_t needed = elem_stride * fallback_count;
-          if(!ssbo.buffer || ssbo.size < needed)
+          const bool stale
+              = !ssbo.fallback && !binding.is_feedback_receiver
+                && (req.access == "read_only" || !req.default_value.empty());
+          if(!ssbo.buffer || ssbo.size < needed || stale)
           {
             if(req.required && req.access == "read_only")
               qWarning() << "CSF geometry: required read_only attribute"
@@ -2284,11 +2323,13 @@ void RenderedCSFNode::updateGeometryBindings(
                 QRhiBuffer::StorageBuffer | QRhiBuffer::VertexBuffer, needed);
             buf->setName(QByteArray("CSF_GeomFallback_") + req.name.c_str());
             buf->create();
-            QByteArray zero(needed, 0);
+            const QByteArray zero = attributeFallbackData(req, needed, elem_stride);
             res.uploadStaticBuffer(buf, 0, needed, zero.constData());
             ssbo.buffer = buf;
             ssbo.size = needed;
             ssbo.owned = true;
+            ssbo.fallback = true;
+            ssbo.lastUploadSrc = nullptr;
 
             // Keep read_buffer in sync for feedback receivers
             if(ssbo.read_buffer)
@@ -2303,6 +2344,7 @@ void RenderedCSFNode::updateGeometryBindings(
         // Found the attribute — extract its buffer data.
         // The attribute's binding index maps to a binding (stride/classification)
         // and an input entry (which buffer + byte offset within that buffer).
+        ssbo.fallback = false;
         const int binding_idx = geo_attr->binding;
         if(binding_idx < 0 || binding_idx >= (int)mesh.input.size())
           continue;
@@ -5283,6 +5325,12 @@ void RenderedCSFNode::buildComputeSrbBindings(
             ssbo.buffer->create();
             ssbo.size = elem_stride;
             ssbo.owned = true;
+            if(!req.default_value.empty())
+            {
+              const QByteArray data = attributeFallbackData(req, elem_stride, elem_stride);
+              res.uploadStaticBuffer(ssbo.buffer, 0, elem_stride, data.constData());
+              ssbo.fallback = true;
+            }
           }
 
           // read_only and write_only bind one buffer; every read_write binds
