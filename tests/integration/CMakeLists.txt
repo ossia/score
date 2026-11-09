@@ -553,6 +553,14 @@ if(TARGET score_plugin_ysfx)
     PLUGINS score_plugin_ysfx score_plugin_engine score_plugin_scenario score_lib_process)
   target_include_directories(test_integration_ysfx_ticks PRIVATE
     "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-ysfx")
+
+  # A JSFX process loaded with its document keeps the presets of its script.
+  score_add_test(test_integration_ysfx_reload
+    SOURCES YsfxReloadTest.cpp
+    APP
+    PLUGINS score_plugin_ysfx score_plugin_scenario score_lib_process)
+  target_include_directories(test_integration_ysfx_reload PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-ysfx")
 endif()
 
 if(TARGET score_plugin_fx)

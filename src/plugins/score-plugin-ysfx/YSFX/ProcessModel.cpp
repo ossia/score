@@ -414,24 +414,30 @@ Process::ScriptChangeResult ProcessModel::reload()
   if(m_text.isEmpty())
     return res;
 
-  // Create a temporary file for the edited code
-  static QTemporaryDir tempDir;
-  if(!tempDir.isValid())
-  {
-    qDebug() << "ysfx: could not create temp directory";
-    return res;
-  }
+  // The script as its file holds it is loaded from that file, as it was the
+  // first time: what ysfx finds next to the file (its presets, the files it
+  // opens) is found again. Edited code is loaded from a file of its own.
+  QString scriptPath = m_jsfx_path;
+  bool unchanged = false;
+  if(QFile f{m_jsfx_path}; !m_jsfx_path.isEmpty() && f.open(QIODevice::ReadOnly))
+    unchanged = QString::fromUtf8(f.readAll()) == m_text;
 
-  // Generate a unique filename
-  QString tempFilePath = tempDir.filePath(
-      QStringLiteral("ysfx_%1.jsfx").arg(reinterpret_cast<quintptr>(this), 0, 16));
-
-  // Write the text to the temp file
+  if(!unchanged)
   {
-    QFile tempFile{tempFilePath};
+    static QTemporaryDir tempDir;
+    if(!tempDir.isValid())
+    {
+      qDebug() << "ysfx: could not create temp directory";
+      return res;
+    }
+
+    scriptPath = tempDir.filePath(
+        QStringLiteral("ysfx_%1.jsfx").arg(reinterpret_cast<quintptr>(this), 0, 16));
+
+    QFile tempFile{scriptPath};
     if(!tempFile.open(QIODevice::WriteOnly | QIODevice::Truncate))
     {
-      qDebug() << "ysfx: reload: could not write temp file" << tempFilePath;
+      qDebug() << "ysfx: reload: could not write temp file" << scriptPath;
       return res;
     }
     tempFile.write(m_text.toUtf8());
@@ -450,10 +456,10 @@ Process::ScriptChangeResult ProcessModel::reload()
   // Create a new fx instance
   auto new_fx = std::shared_ptr<ysfx_t>(ysfx_new(config.get()), ysfx_u_deleter{});
 
-  auto tempPath = tempFilePath.toStdString();
-  if(!ysfx_load_file(new_fx.get(), tempPath.c_str(), 0))
+  const auto path = scriptPath.toStdString();
+  if(!ysfx_load_file(new_fx.get(), path.c_str(), 0))
   {
-    qDebug() << "ysfx: reload: could not load temp file" << tempFilePath;
+    qDebug() << "ysfx: reload: could not load" << scriptPath;
     return res;
   }
 
@@ -484,6 +490,12 @@ Process::ScriptChangeResult ProcessModel::reload()
 
   recreatePorts();
 
+  // The presets of the script loaded now, if it has any
+  if(m_bank)
+  {
+    ysfx_bank_free(m_bank);
+    m_bank = nullptr;
+  }
   if(auto bank = ysfx_get_bank_path(this->fx.get()))
   {
     m_bank = ysfx_load_bank(bank);
