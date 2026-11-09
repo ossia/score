@@ -107,6 +107,7 @@ public:
       const IntervalModel& m, const score::DocumentContext& fac, QFormLayout& lay,
       const Scenario::EditionSettings& set)
       : m_model{m}
+      , m_form{lay}
       , m_dur{m.duration}
       , m_editionSettings{set}
       , m_moveFactory{fac.app.interfaces<IntervalResizerList>().find(m)}
@@ -148,7 +149,7 @@ public:
 
     editableGrid->addRow(tr("Duration"), m_valueSpin);
 
-    auto minstack = new QStackedWidget;
+    auto minstack = m_minStack = new QStackedWidget;
     minstack->setSizePolicy(
         QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
     minstack->addWidget(m_minNull);
@@ -158,7 +159,7 @@ public:
     minboxlay->addWidget(m_minNonNullBox);
     editableGrid->addRow(minboxwidg, minstack);
 
-    auto maxstack = new QStackedWidget;
+    auto maxstack = m_maxStack = new QStackedWidget;
     maxstack->addWidget(m_maxInfinity);
     maxstack->addWidget(m_maxSpin);
     auto maxboxwidg = new QWidget;
@@ -222,17 +223,12 @@ public:
     }
   }
 
+  //! A rigid interval has no Min and Max: their rows go, spacing included
   void on_modelRigidityChanged(bool b)
   {
-    if(b)
-    {
-      m_minNonNullBox->setHidden(b);
-      m_minSpin->setHidden(b);
-
-      m_maxSpin->setHidden(b);
-      m_maxFiniteBox->setHidden(b);
-    }
-    else
+    m_form.setRowVisible(m_minStack, !b);
+    m_form.setRowVisible(m_maxStack, !b);
+    if(!b)
     {
       on_modelMinNullChanged(m_dur.isMinNull());
       on_modelMaxInfiniteChanged(m_dur.isMaxInfinite());
@@ -350,6 +346,7 @@ public:
   }
 
   const IntervalModel& m_model;
+  QFormLayout& m_form;
   const IntervalDurations& m_dur;
   const Scenario::EditionSettings& m_editionSettings;
   IntervalResizer* m_moveFactory{};
@@ -364,6 +361,9 @@ public:
   QCheckBox* m_maxFiniteBox{};
   QLabel* m_maxInfinity{};
   score::TimeSpinBox* m_maxSpin{};
+
+  QStackedWidget* m_minStack{};
+  QStackedWidget* m_maxStack{};
 
   TimeVal m_max;
   TimeVal m_min;
@@ -447,6 +447,9 @@ DurationWidget::DurationWidget(
 // , m_playingWidget{new PlayGrid{parent->model().duration}}
 {
   using namespace score;
+  // The rows are in `lay`; this widget only owns the grid and its connections,
+  // and shown in the form it would add an empty row and its spacing.
+  setVisible(false);
   auto mainWidg = this;
   auto mainLay = new score::MarginLess<QHBoxLayout>{mainWidg};
   auto& model = parent->model();

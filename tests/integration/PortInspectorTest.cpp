@@ -2,6 +2,8 @@
 // view: each port lists its cables, says when those cables keep its address
 // from being used, and every edit is one command.
 
+#include <algorithm>
+#include <climits>
 #include <cmath>
 #include <score_test/App.hpp>
 #include <score_test/Document.hpp>
@@ -22,6 +24,7 @@
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Scenario/Commands/CommandAPI.hpp>
 #include <Scenario/Commands/Interval/AddProcessToInterval.hpp>
+#include <Scenario/Commands/Interval/SetRigidity.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 
@@ -52,6 +55,7 @@
 #include <QCheckBox>
 #include <QComboBox>
 #include <QDir>
+#include <QFormLayout>
 #include <QVBoxLayout>
 #include <QDoubleSpinBox>
 #include <QGraphicsScene>
@@ -574,6 +578,148 @@ TEST_CASE("the interval inspector shows its audio output", "[integration][inspec
       settle();
       QDir{}.mkpath(dir);
       window.grab().save(dir + "/interval-inspector-output.png");
+    }
+  });
+}
+
+namespace
+{
+//! Pixels between the bottom of the row of `above` and the top of the row of `below`
+int gapBetweenRows(QFormLayout& form, QWidget* above, QWidget* below)
+{
+  int ra{-1}, rb{-1};
+  QFormLayout::ItemRole role{};
+  form.getWidgetPosition(above, &ra, &role);
+  form.getWidgetPosition(below, &rb, &role);
+  REQUIRE(ra >= 0);
+  REQUIRE(rb > ra);
+  int bottom = 0;
+  for(auto r : {QFormLayout::LabelRole, QFormLayout::FieldRole, QFormLayout::SpanningRole})
+    if(auto it = form.itemAt(ra, r))
+      bottom = std::max(bottom, it->geometry().bottom() + 1);
+  int top = INT_MAX;
+  for(auto r : {QFormLayout::LabelRole, QFormLayout::FieldRole, QFormLayout::SpanningRole})
+    if(auto it = form.itemAt(rb, r))
+      top = std::min(top, it->geometry().top());
+  return top - bottom;
+}
+
+QLabel* labelWithText(QWidget& root, const QString& text)
+{
+  for(auto l : root.findChildren<QLabel*>())
+    if(l->text() == text && l->isVisibleTo(&root))
+      return l;
+  return nullptr;
+}
+
+void shot(QWidget& w, const QString& name)
+{
+  if(const auto dir = qEnvironmentVariable("SCORE_TEST_SHOT_DIR"); !dir.isEmpty())
+  {
+    QDir{}.mkpath(dir);
+    w.grab().save(dir + "/" + name + ".png");
+  }
+}
+}
+
+TEST_CASE(
+    "the interval inspector has no gap between its durations and its output",
+    "[integration][inspector]")
+{
+  score::test::run_in_gui_app([](const score::GUIApplicationContext& ctx) {
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    auto& dc = doc->context();
+
+    Scenario::ProcessModel* scenario{};
+    for(auto& p : score::test::base_interval(*doc).processes)
+      if((scenario = qobject_cast<Scenario::ProcessModel*>(&p)))
+        break;
+    REQUIRE(scenario);
+    Scenario::IntervalModel* box{};
+    {
+      Scenario::Command::Macro m{new Scenario::Command::DropProcessInIntervalMacro, dc};
+      box = &m.createBox(*scenario, TimeVal::fromMsecs(1000), TimeVal::fromMsecs(3000), 0.2);
+      m.commit();
+    }
+    REQUIRE(box);
+
+    auto inspect = [&](QWidget& window) {
+      auto wl = new QVBoxLayout{&window};
+      auto widgets
+          = ctx.interfaces<Inspector::InspectorWidgetList>().make(dc, {box}, &window);
+      REQUIRE(!widgets.empty());
+      for(auto w : widgets)
+        wl->addWidget(w);
+      window.resize(360, 640);
+      window.show();
+      settle();
+    };
+
+    // A rigid interval: Duration, then Output at the normal row spacing
+    {
+      if(!box->duration.isRigid())
+        CommandDispatcher<>{dc.commandStack}.submit<Scenario::Command::SetRigidity>(
+            *box, true);
+      REQUIRE(box->duration.isRigid());
+      QWidget window;
+      inspect(window);
+      auto dur = labelWithText(window, "Duration");
+      auto output = labelWithText(window, "<b>Output</b>");
+      REQUIRE(dur);
+      REQUIRE(output);
+      REQUIRE(dur->parentWidget() == output->parentWidget());
+      auto form = qobject_cast<QFormLayout*>(dur->parentWidget()->layout());
+      REQUIRE(form);
+      shot(window, "interval-inspector-rigid");
+      CHECK(gapBetweenRows(*form, dur, output) <= form->verticalSpacing());
+
+      // Min and Max come back between them when the interval stops being rigid,
+      // and go away again on undo
+      CommandDispatcher<>{dc.commandStack}.submit<Scenario::Command::SetRigidity>(
+          *box, false);
+      settle();
+      auto min = visible<QCheckBox>(window, {});
+      CHECK(std::count_if(min.begin(), min.end(), [](auto c) {
+        return c->text() == "Min" || c->text() == "Max";
+      }) == 2);
+      CHECK(gapBetweenRows(*form, dur, output) > 2 * form->verticalSpacing());
+      doc->commandStack().undo();
+      settle();
+      CHECK(gapBetweenRows(*form, dur, output) <= form->verticalSpacing());
+    }
+
+    // A flexible interval: the Max row, then Output at the normal row spacing
+    {
+      CommandDispatcher<>{dc.commandStack}.submit<Scenario::Command::SetRigidity>(
+          *box, false);
+      QWidget window;
+      inspect(window);
+      shot(window, "interval-inspector-flexible");
+      QCheckBox* max{};
+      for(auto c : visible<QCheckBox>(window, {}))
+        if(c->text() == "Max")
+          max = c;
+      REQUIRE(max);
+      auto output = labelWithText(window, "<b>Output</b>");
+      REQUIRE(output);
+      auto form = qobject_cast<QFormLayout*>(output->parentWidget()->layout());
+      REQUIRE(form);
+      // The checkbox sits in a widget of its own, which is the label of its row
+      CHECK(gapBetweenRows(*form, max->parentWidget(), output) <= form->verticalSpacing());
+    }
+
+    // A process inspector, for comparison
+    if(auto* merger = score::test::add_process(*doc, mergerUuid, {}))
+    {
+      QWidget window;
+      auto wl = new QVBoxLayout{&window};
+      for(auto w : ctx.interfaces<Inspector::InspectorWidgetList>().make(dc, {merger}, &window))
+        wl->addWidget(w);
+      window.resize(360, 640);
+      window.show();
+      settle();
+      shot(window, "process-inspector-merger");
     }
   });
 }
