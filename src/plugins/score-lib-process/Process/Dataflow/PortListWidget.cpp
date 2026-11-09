@@ -64,40 +64,18 @@ void PortListWidget::reload()
   QWidget{}.setLayout(&old_lay);
   setLayout(&lay);
 
-  auto& pf = m_ctx.app.interfaces<PortFactoryList>();
-
   if(!m_process.inlets().empty())
   {
     lay.addRow(tr("<b>Inputs</b>"), (QWidget*)nullptr);
     for(auto port : m_process.inlets())
-    {
-      auto fact = pf.get(port->concreteKey());
-      if(fact)
-      {
-        fact->setupInletInspector(*port, m_ctx, this, lay, this);
-      }
-      else
-      {
-        PortWidgetSetup::setupAlone(*port, m_ctx, lay, this);
-      }
-    }
+      PortWidgetSetup::setupInInspector(*port, m_ctx, lay, this);
   }
 
   if(!m_process.outlets().empty())
   {
     lay.addRow(tr("<b>Outputs</b>"), (QWidget*)nullptr);
     for(auto port : m_process.outlets())
-    {
-      auto fact = pf.get(port->concreteKey());
-      if(fact)
-      {
-        fact->setupOutletInspector(*port, m_ctx, this, lay, this);
-      }
-      else
-      {
-        PortWidgetSetup::setupAlone(*port, m_ctx, lay, this);
-      }
-    }
+      PortWidgetSetup::setupInInspector(*port, m_ctx, lay, this);
   }
 }
 
@@ -517,6 +495,21 @@ void PortWidgetSetup::setupAlone(
 {
   auto label = setupImpl(displayName(port), port, ctx, lay, parent, true);
   showDisplayName(port, *label);
+}
+
+void PortWidgetSetup::setupInInspector(
+    const Port& port, const score::DocumentContext& ctx, Inspector::Layout& lay,
+    QWidget* parent)
+{
+  auto fact = ctx.app.interfaces<PortFactoryList>().get(port.concreteKey());
+  if(fact)
+  {
+    if(auto inlet = qobject_cast<const Inlet*>(&port))
+      return fact->setupInletInspector(*inlet, ctx, parent, lay, parent);
+    if(auto outlet = qobject_cast<const Outlet*>(&port))
+      return fact->setupOutletInspector(*outlet, ctx, parent, lay, parent);
+  }
+  setupAlone(port, ctx, lay, parent);
 }
 
 void PortWidgetSetup::setupInLayout(

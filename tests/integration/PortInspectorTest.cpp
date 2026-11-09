@@ -11,6 +11,7 @@
 #include <Process/Commands/EditPort.hpp>
 #include <Process/Dataflow/Cable.hpp>
 #include <Process/Dataflow/Port.hpp>
+#include <Process/Dataflow/PortAddressComboBox.hpp>
 #include <Process/Dataflow/PortListWidget.hpp>
 #include <Process/DocumentPlugin.hpp>
 #include <Process/Execution/ProcessComponent.hpp>
@@ -19,6 +20,12 @@
 #include <Process/ProcessContext.hpp>
 #include <Scenario/Document/Interval/IntervalExecution.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
+#include <Scenario/Commands/CommandAPI.hpp>
+#include <Scenario/Commands/Interval/AddProcessToInterval.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
+
+#include <Inspector/InspectorWidgetList.hpp>
 
 #include <Execution/BaseScenarioComponent.hpp>
 #include <Execution/DocumentPlugin.hpp>
@@ -44,6 +51,8 @@
 #include <QApplication>
 #include <QCheckBox>
 #include <QComboBox>
+#include <QDir>
+#include <QVBoxLayout>
 #include <QDoubleSpinBox>
 #include <QGraphicsScene>
 #include <QGraphicsSceneMouseEvent>
@@ -470,6 +479,102 @@ TEST_CASE("the audio output panel of the nodal view", "[integration][inspector][
     CHECK(panel->sceneBoundingRect().bottom() < item->sceneBoundingRect().top());
 
     delete item;
+  });
+}
+
+TEST_CASE("the interval inspector shows its audio output", "[integration][inspector]")
+{
+  score::test::run_in_gui_app([](const score::GUIApplicationContext& ctx) {
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    auto& dc = doc->context();
+    auto* merger = score::test::add_process(*doc, mergerUuid, {});
+    if(!merger)
+      SKIP("the media plug-in is not built");
+    merger->metadata().setName("Mixdown");
+
+    Scenario::ProcessModel* scenario{};
+    for(auto& p : score::test::base_interval(*doc).processes)
+      if((scenario = qobject_cast<Scenario::ProcessModel*>(&p)))
+        break;
+    REQUIRE(scenario);
+    Scenario::IntervalModel* box{};
+    {
+      Scenario::Command::Macro m{new Scenario::Command::DropProcessInIntervalMacro, dc};
+      box = &m.createBox(*scenario, TimeVal::fromMsecs(1000), TimeVal::fromMsecs(3000), 0.2);
+      m.commit();
+    }
+    REQUIRE(box);
+    box->metadata().setName("Strings");
+    REQUIRE(box->outlet);
+    auto& out = *box->outlet;
+
+    QWidget window;
+    auto wl = new QVBoxLayout{&window};
+    auto widgets = ctx.interfaces<Inspector::InspectorWidgetList>().make(dc, {box}, &window);
+    REQUIRE(!widgets.empty());
+    for(auto w : widgets)
+      wl->addWidget(w);
+    window.resize(360, 640);
+    window.show();
+    settle();
+
+    // The same rows as the output of a process: address, cables, Propagate, Gain
+    auto combos = visible<Process::PortAddressComboBox>(window, {});
+    REQUIRE(combos.size() == 1);
+    auto checks = visible<QCheckBox>(window, "Propagate");
+    REQUIRE(checks.size() == 1);
+    auto gains = visible<score::DoubleSlider>(window, "Gain");
+    REQUIRE(gains.size() == 1);
+    CHECK(visible<QWidget>(window, "PortCables").empty());
+
+    // Propagate: one command, undoable, shown after the undo
+    auto cb = checks.front();
+    const bool before = out.propagate();
+    CHECK(cb->isChecked() == before);
+    const int n = doc->commandStack().currentIndex();
+    cb->click();
+    CHECK(out.propagate() == !before);
+    CHECK(doc->commandStack().currentIndex() == n + 1);
+    doc->commandStack().undo();
+    CHECK(out.propagate() == before);
+    CHECK(cb->isChecked() == before);
+
+    // Gain: an ongoing command committed on release, one undo step
+    auto gain = gains.front();
+    CHECK(gain->value() == out.gain());
+    const double gainBefore = out.gain();
+    Q_EMIT gain->sliderMoved(0.25);
+    Q_EMIT gain->sliderMoved(0.4);
+    Q_EMIT gain->sliderReleased();
+    CHECK(out.gain() == 0.4);
+    CHECK(doc->commandStack().currentIndex() == n + 1);
+    doc->commandStack().undo();
+    CHECK(out.gain() == gainBefore);
+    CHECK(gain->value() == gainBefore);
+
+    // The address: one command, undoable
+    Q_EMIT combos.front()->addressChanged(someAddress);
+    CHECK(out.address() == someAddress);
+    CHECK(doc->commandStack().currentIndex() == n + 1);
+    doc->commandStack().undo();
+    CHECK(!out.address().isSet());
+    CHECK(combos.front()->address() == out.address());
+
+    // Its cables are listed, with the process at the other end
+    cable(*doc, out, *merger->inlets().front());
+    settle();
+    auto rows = visible<QLabel>(window, "PortCable");
+    REQUIRE(rows.size() == 1);
+    CHECK(rows.front()->text().contains("Mixdown"));
+
+    if(const auto dir = qEnvironmentVariable("SCORE_TEST_SHOT_DIR"); !dir.isEmpty())
+    {
+      out.setAddress(someAddress);
+      settle();
+      QDir{}.mkpath(dir);
+      window.grab().save(dir + "/interval-inspector-output.png");
+    }
   });
 }
 

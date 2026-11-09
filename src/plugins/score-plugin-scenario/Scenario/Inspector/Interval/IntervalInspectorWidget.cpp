@@ -16,6 +16,9 @@
 #include <Scenario/Inspector/MetadataWidget.hpp>
 #include <Scenario/Process/ScenarioInterface.hpp>
 
+#include <Process/Dataflow/Port.hpp>
+#include <Process/Dataflow/PortListWidget.hpp>
+
 #include <Inspector/InspectorLayout.hpp>
 
 #include <score/model/Skin.hpp>
@@ -211,6 +214,14 @@ IntervalInspectorWidget::IntervalInspectorWidget(
          "Min: Define the minimal duration before evaluating the trigger\n"
          "Max: Define the duration before triggering automatically\n"));
   lay->addWidget(dur);
+
+  // The audio output of the interval, laid out as a process inspector lays out
+  // its outlets: address, cables, propagation and gain
+  if(m_model.outlet)
+  {
+    lay->addRow(tr("<b>Output</b>"), (QWidget*)nullptr);
+    Process::PortWidgetSetup::setupInInspector(*m_model.outlet, ctx, *lay, w);
+  }
 
   // Display data
   updateAreaLayout(parts);

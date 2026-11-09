@@ -101,6 +101,15 @@ public:
   static void setupAlone(
       const Process::Port& port, const score::DocumentContext& ctx,
       Inspector::Layout& lay, QWidget* parent);
+
+  /**
+   * @brief The rows of a port in an inspector, as its PortFactory lays them
+   * out: the gain and propagation of an audio outlet, the control of a
+   * control inlet... Ports without a factory get setupAlone.
+   */
+  static void setupInInspector(
+      const Process::Port& port, const score::DocumentContext& ctx,
+      Inspector::Layout& lay, QWidget* parent);
   static void setupInLayout(
       const Process::Port& port, const score::DocumentContext& ctx,
       Inspector::Layout& lay, QWidget* parent);
