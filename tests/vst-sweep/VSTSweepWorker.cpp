@@ -17,6 +17,13 @@
 //  SCORE_VST_SWEEP_TRACE=1        print the peak of every block of score's
 //                                  host on stderr, to look closer at one.
 //
+//  To tell what a difference between the hosts comes from, the reference
+//  host can do as other hosts or score's float path do:
+//  SCORE_VST_SWEEP_REF_PROGRAM0=1  select program 0 once the plug-in is open,
+//                                  as JUCE and Carla do
+//  SCORE_VST_SWEEP_REF_INPLACE=1   process in place, the outputs over the
+//                                  inputs, as score's float path does
+//
 // Neither set, the test case has nothing to do and passes: ctest runs the
 // driver, not this.
 
@@ -469,6 +476,8 @@ struct reference_host
       return "no instance";
     set_time(0, false);
     fx->dispatcher(fx, effOpen, 0, 0, nullptr, 0.f);
+    if(qEnvironmentVariableIsSet("SCORE_VST_SWEEP_REF_PROGRAM0") && fx->numPrograms > 0)
+      fx->dispatcher(fx, effSetProgram, 0, 0, nullptr, 0.f);
     fx->dispatcher(fx, effSetSampleRate, 0, 0, nullptr, float(rate));
     fx->dispatcher(fx, effSetBlockSize, 0, block, nullptr, 0.f);
     if(use_double)
@@ -623,8 +632,20 @@ struct reference_host
       int ni, int no, std::vector<float*>& fin, std::vector<float*>& fout,
       std::vector<double*>& din, std::vector<double*>& dout)
   {
-    (void)ni;
-    (void)no;
+    if(qEnvironmentVariableIsSet("SCORE_VST_SWEEP_REF_INPLACE"))
+    {
+      // The outputs written over the inputs, as score's float path does
+      for(int c = 0; c < std::min(ni, no); c++)
+      {
+        std::copy_n(fin[c], block, fout[c]);
+        std::copy_n(din[c], block, dout[c]);
+      }
+      if(use_double)
+        fx->processDoubleReplacing(fx, dout.data(), dout.data(), block);
+      else
+        fx->processReplacing(fx, fout.data(), fout.data(), block);
+      return;
+    }
     if(use_double)
       fx->processDoubleReplacing(fx, din.data(), dout.data(), block);
     else
