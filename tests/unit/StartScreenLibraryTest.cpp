@@ -606,3 +606,109 @@ TEST_CASE("an online example's menu outlives its card", "[startscreen]")
 
   qunsetenv("SCORE_EXAMPLES_MANIFEST");
 }
+
+
+TEST_CASE("the example list's rows are evenly spaced bands and cards", "[startscreen]")
+{
+  QTemporaryDir site;
+  REQUIRE(site.isValid());
+  const auto file = site.filePath("example.score");
+  writeFile(file, "{}");
+  // A section with two groups, one with one, one without any; enough cards in
+  // a group for two rows.
+  QStringList ids{"a/x/1", "a/x/2", "a/y/3", "b/z/4", "c/5"};
+  for(int i = 0; i < 12; i++)
+    ids.push_back(QStringLiteral("a/y/many%1").arg(i));
+  QString list;
+  for(const auto& id : ids)
+  {
+    const auto parts = id.split('/');
+    if(!list.isEmpty())
+      list += ",";
+    list += QStringLiteral(
+                R"({"id":"%1","name":"%1","section":"%2","group":"%3","file":"%4",)"
+                R"("format":"score","size":2,"platforms":[]})")
+                .arg(id, parts[0], parts.size() == 3 ? parts[1] : QString{},
+                     QUrl::fromLocalFile(file).toString());
+  }
+  writeFile(
+      site.filePath("index.json"),
+      QStringLiteral(R"({"version":1,"examples":[%1]})").arg(list).toUtf8());
+  qputenv(
+      "SCORE_EXAMPLES_MANIFEST",
+      QUrl::fromLocalFile(site.filePath("index.json")).toString().toUtf8());
+  qputenv("XDG_CACHE_HOME", site.filePath("cache").toUtf8());
+
+  score::test::run_in_app([&](const score::GUIApplicationContext&) {
+    UserLibrary lib;
+    Screen s;
+    showPage(*s.screen, "Online examples");
+    REQUIRE(waitFor([&] { return visibleCards(*s.screen).size() == std::size_t(ids.size()); }));
+    QApplication::processEvents();
+
+    using Drawer = score::CategoryDrawer;
+    std::vector<Drawer*> drawers;
+    for(auto* w : s.screen->findChildren<QWidget*>())
+      if(auto d = dynamic_cast<Drawer*>(w); d && d->isVisibleTo(s.screen))
+        drawers.push_back(d);
+    REQUIRE(drawers.size() == 3 + 3);
+    QWidget* list = drawers.front()->parentWidget();
+    while(dynamic_cast<Drawer*>(list))
+      list = list->parentWidget();
+    auto* viewport = list->parentWidget();
+    REQUIRE(viewport);
+    CHECK(list->width() == viewport->width());
+
+    struct row
+    {
+      QRect rect;
+      bool band{};
+    };
+    std::vector<row> rows;
+    for(auto* d : drawers)
+    {
+      const QRect r{d->header()->mapTo(list, QPoint{}), d->header()->size()};
+      const bool section = d->parentWidget() == list;
+      INFO("band at " << r.x() << "," << r.y() << " " << r.width() << "x" << r.height());
+      // Sections start at the list's edge, subsections a step in; every band
+      // runs to the scroll bar.
+      CHECK(r.left() == (section ? 0 : Drawer::Step));
+      CHECK(r.right() == list->width() - 1);
+      CHECK(r.height() == Drawer::BandHeight);
+      rows.push_back({r, true});
+    }
+    for(auto* c : visibleCards(*s.screen))
+    {
+      const QRect r{c->mapTo(list, QPoint{}), c->size()};
+      auto it = std::find_if(rows.begin(), rows.end(), [&](const row& x) {
+        return !x.band && x.rect.top() == r.top();
+      });
+      if(it == rows.end())
+        rows.push_back({r, false});
+      else
+        it->rect |= r;
+    }
+    std::sort(rows.begin(), rows.end(), [](auto& a, auto& b) {
+      return a.rect.top() < b.rect.top();
+    });
+
+    // The first band is a gap from the top; every row, band or cards, is a gap
+    // below the row before it, and cards start at their band's left edge.
+    REQUIRE(rows.front().band);
+    CHECK(rows.front().rect.top() == Drawer::Gap);
+    QRect band;
+    for(std::size_t i = 0; i < rows.size(); i++)
+    {
+      const auto& r = rows[i];
+      INFO("row " << i << " at " << r.rect.y() << (r.band ? " band" : " cards"));
+      if(r.band)
+        band = r.rect;
+      else
+        CHECK(r.rect.left() == band.left());
+      if(i > 0 && (r.band || rows[i - 1].band))
+        CHECK(r.rect.top() - rows[i - 1].rect.bottom() - 1 == Drawer::Gap);
+    }
+  });
+
+  qunsetenv("SCORE_EXAMPLES_MANIFEST");
+}

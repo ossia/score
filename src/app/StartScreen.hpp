@@ -570,7 +570,12 @@ private:
 /**
  * @brief A score presented as a card: thumbnail, name, author.
  */
-//! A titled section that folds its content away.
+//! A titled section that folds its content away. Its title sits on a band
+//! that runs from the left edge of its content to the right edge of the list:
+//! a section's band is tinted and edged with the accent colour, a
+//! subsection's is fainter. Every row of the list, band or cards, is `Gap`
+//! below the previous one; a subsection steps `Step` to the right of its
+//! section, and the cards of a band start at its left edge.
 class CategoryDrawer final : public QWidget
 {
 public:
@@ -583,25 +588,27 @@ public:
       , m_depth{depth}
   {
     m_font.setCapitalization(depth == 0 ? QFont::AllUppercase : QFont::MixedCase);
+    m_font.setBold(true);
 
     auto lay = new QVBoxLayout{this};
-    lay->setContentsMargins(depth * Indent, 0, 0, 0);
-    lay->setSpacing(0);
+    lay->setContentsMargins(depth > 0 ? Step : 0, 0, 0, 0);
+    lay->setSpacing(Gap);
 
     m_header = new QWidget{this};
-    m_header->setFixedHeight(HeaderHeight);
+    m_header->setFixedHeight(BandHeight);
     m_header->setCursor(score::Skin::instance().CursorPointingHand);
     m_header->installEventFilter(this);
     lay->addWidget(m_header);
 
     m_body = new QWidget{this};
     m_bodyLayout = new QVBoxLayout{m_body};
-    m_bodyLayout->setContentsMargins(Indent, 2, 0, 8);
-    m_bodyLayout->setSpacing(6);
+    m_bodyLayout->setContentsMargins(0, 0, 0, 0);
+    m_bodyLayout->setSpacing(Gap);
     lay->addWidget(m_body);
   }
 
   QVBoxLayout* body() const noexcept { return m_bodyLayout; }
+  QWidget* header() const noexcept { return m_header; }
 
   bool expanded() const noexcept { return m_expanded; }
   void setExpanded(bool e)
@@ -617,8 +624,11 @@ public:
     m_header->update();
   }
 
-  static constexpr int HeaderHeight = 26;
-  static constexpr int Indent = 12;
+  static constexpr int BandHeight = 24;
+  //! Vertical space between two rows of the list.
+  static constexpr int Gap = 8;
+  //! How far a subsection steps right of its section.
+  static constexpr int Step = 16;
 
 protected:
   bool eventFilter(QObject* obj, QEvent* ev) override
@@ -631,36 +641,56 @@ protected:
       case QEvent::Paint: {
         QPainter p{m_header};
         p.setRenderHint(QPainter::Antialiasing, true);
+        const int w = m_header->width();
+        const int h = m_header->height();
 
-        const qreal cy = m_header->height() / 2.;
+        p.setPen(Qt::NoPen);
+        p.setBrush(m_depth == 0 ? StartScreenColors::Outline : StartScreenColors::Card);
+        p.drawRoundedRect(QRectF{0, 0, qreal(w), qreal(h)}, 3, 3);
+        if(m_depth == 0)
+        {
+          p.setBrush(StartScreenColors::Accent);
+          p.drawRoundedRect(QRectF{0, 0, 3, qreal(h)}, 1.5, 1.5);
+        }
+
+        // A subsection's triangle sits under its section's title.
+        const qreal cy = h / 2.;
+        constexpr qreal tx = TextX - Step;
         QPainterPath tri;
         if(m_expanded)
         {
-          tri.moveTo(2, cy - 2);
-          tri.lineTo(12, cy - 2);
-          tri.lineTo(7, cy + 4);
+          tri.moveTo(tx - 5, cy - 3);
+          tri.lineTo(tx + 5, cy - 3);
+          tri.lineTo(tx, cy + 3);
         }
         else
         {
-          tri.moveTo(4, cy - 5);
-          tri.lineTo(10, cy);
-          tri.lineTo(4, cy + 5);
+          tri.moveTo(tx - 3, cy - 5);
+          tri.lineTo(tx + 3, cy);
+          tri.lineTo(tx - 3, cy + 5);
         }
         tri.closeSubpath();
         p.fillPath(
             tri, m_hovered ? StartScreenColors::Hover : StartScreenColors::Muted);
 
+        // Capitals and digits centred on the band.
+        const QFontMetrics fm{m_font};
+        const int baseline = (h + fm.capHeight()) / 2;
+        const QString count = QString::number(m_count);
+        const int countWidth = fm.horizontalAdvance(count);
+        const QString title = fm.elidedText(
+            m_title, Qt::ElideRight, std::max(0, w - TextX - CountGap - countWidth - 8));
+
         p.setFont(m_font);
         p.setPen(m_hovered ? StartScreenColors::Hover : StartScreenColors::Text);
-        const QFontMetrics fm{m_font};
-        p.drawText(
-            QRect{18, 0, m_header->width() - 60, m_header->height()},
-            Qt::AlignLeft | Qt::AlignVCenter, m_title);
+        p.drawText(QPointF(TextX, baseline), title);
 
+        QFont countFont = m_font;
+        countFont.setBold(false);
+        p.setFont(countFont);
         p.setPen(StartScreenColors::Muted);
         p.drawText(
-            QRect{18 + fm.horizontalAdvance(m_title) + 8, 0, 50, m_header->height()},
-            Qt::AlignLeft | Qt::AlignVCenter, QString::number(m_count));
+            QPointF(TextX + fm.horizontalAdvance(title) + CountGap, baseline), count);
         return true;
       }
       case QEvent::Enter:
@@ -681,6 +711,10 @@ protected:
   }
 
 private:
+  //! Where the title starts in the band.
+  static constexpr int TextX = 26;
+  static constexpr int CountGap = 8;
+
   QFont m_font;
   QString m_title;
   int m_count{};
@@ -1827,8 +1861,10 @@ QWidget* StartScreen::createExamplesPage(bool online)
   auto container = new QWidget;
   container->setAutoFillBackground(false);
   auto containerLay = new QVBoxLayout{container};
-  containerLay->setContentsMargins(0, 4, 8, 4);
-  containerLay->setSpacing(2);
+  // Bands reach the scroll bar; the first one is a row's gap from the top.
+  containerLay->setContentsMargins(
+      0, CategoryDrawer::Gap, 0, CategoryDrawer::Gap);
+  containerLay->setSpacing(CategoryDrawer::Gap);
 
   // Two levels at most; anything deeper folds into its parent.
   std::map<QString, std::map<QString, std::vector<ExampleEntry>>> tree;
