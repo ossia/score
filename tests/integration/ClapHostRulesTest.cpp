@@ -1,7 +1,7 @@
 // What score's CLAP host gives a plug-in, seen from the plug-in: a mono effect
-// (clap-mono-gain) that counts what a host does wrong. Its gain is its second
-// parameter, after a read-only one, and score runs it as one instance per
-// channel.
+// (clap-mono-gain) that counts what a host does wrong. Its gain is its third
+// parameter, after a read-only and a hidden one, and score runs it as one
+// instance per channel.
 
 #include <score_test/App.hpp>
 #include <score_test/Document.hpp>
@@ -42,16 +42,39 @@ struct errors
   int gestures;
   int foreign_cookies;
   int bad_events;
+  int bad_state;
+  int late_calls;
+  int double_init;
+  int most_params;
+  int activations;
+  int instances;
+  int active;
+  int initialised;
+  double last_rate;
 };
+
+template <typename F>
+F* plugin_function(const char* name)
+{
+  void* lib = dlopen(CLAP_MONO_GAIN_PATH, RTLD_LAZY);
+  REQUIRE(lib);
+  auto f = reinterpret_cast<F*>(dlsym(lib, name));
+  REQUIRE(f);
+  return f;
+}
 
 //! What the plug-in counted since the last call
 errors report()
 {
-  void* lib = dlopen(CLAP_MONO_GAIN_PATH, RTLD_LAZY);
-  REQUIRE(lib);
-  auto f = reinterpret_cast<errors (*)()>(dlsym(lib, "clap_mono_gain_report"));
-  REQUIRE(f);
-  return f();
+  return plugin_function<errors()>("clap_mono_gain_report")();
+}
+
+void spin(int ms)
+{
+  QElapsedTimer t;
+  t.start();
+  while(t.elapsed() < ms)
+    QCoreApplication::processEvents(QEventLoop::AllEvents, 10);
 }
 
 Clap::Model* add_mono_gain(score::Document& doc)
@@ -82,10 +105,81 @@ double plugin_gain(Clap::Model& proc)
   return v;
 }
 
+//! A document playing one mono gain, driven block by block
+struct playing
+{
+  score::Document& doc;
+  Clap::Model& proc;
+  Execution::DocumentPlugin& plug;
+  std::shared_ptr<ossia::graph_node> node;
+  int64_t frame{};
+
+  playing(score::Document& d, Clap::Model& p)
+      : doc{d}
+      , proc{p}
+      , plug{d.context().plugin<Execution::DocumentPlugin>()}
+  {
+    plug.reload(true, score::test::base_interval(doc));
+    score::test::run_exec(plug);
+    REQUIRE(plug.baseScenario());
+    auto& procs = plug.baseScenario()->baseInterval().processes();
+    auto it = procs.find(proc.id());
+    REQUIRE(it != procs.end());
+    REQUIRE(it->second->node);
+    node = it->second->node;
+  }
+
+  //! One block of an input at 1 on each channel through the node, as the
+  //! graph runs it, with the main thread's turn after it: the output, per
+  //! channel
+  std::vector<double> block(int channels)
+  {
+    auto& st = *plug.contextData()->execState;
+    const int bs = st.bufferSize;
+    for(auto* o : node->root_outputs())
+      o->visit(ossia::clear_data{});
+    auto& in = *node->root_inputs()[0]->target<ossia::audio_port>();
+    in.set_channels(channels);
+    for(auto& c : in)
+      c.assign(bs, 1.);
+
+    ossia::token_request tk;
+    tk.prev_date = ossia::time_value{frame * 1000};
+    tk.date = ossia::time_value{(frame + bs) * 1000};
+    tk.start_sample = 0;
+    tk.length_sample = bs;
+    ossia::set_thread_pinned(ossia::thread_type::Audio, 0);
+    plug.runAllCommands();
+    node->run(tk, ossia::exec_state_facade{&st});
+    ossia::set_thread_pinned(ossia::thread_type::Ui, 0);
+    frame += bs;
+
+    std::vector<double> res;
+    auto& out = *node->root_outputs()[0]->target<ossia::audio_port>();
+    for(auto& c : out)
+      res.push_back(c.empty() ? 0. : c[bs - 1]);
+    for(auto* i : node->root_inputs())
+      i->visit(ossia::clear_data{});
+    QCoreApplication::processEvents();
+    return res;
+  }
+
+  //! What the clock's stop does: the interval stops on the execution thread,
+  //! and the main thread may get its turn first
+  void stop()
+  {
+    node.reset();
+    plug.baseScenario()->baseInterval().stop();
+    QCoreApplication::processEvents();
+    score::test::run_exec(plug);
+    plug.clear();
+    spin(50);
+  }
+};
 }
 
 TEST_CASE(
-    "CLAP: a control after a read-only parameter sets its own parameter",
+    "CLAP: a control after a read-only and a hidden parameter sets its own parameter",
     "[integration][clap][params]")
 {
   score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
@@ -114,10 +208,7 @@ TEST_CASE(
     ctl.setValue(0.25);
     ctl.setValue(0.3);
     // Whatever the host sends some time after a change is sent by then
-    QElapsedTimer t;
-    t.start();
-    while(t.elapsed() < 400)
-      QCoreApplication::processEvents(QEventLoop::AllEvents, 20);
+    spin(400);
 
     CHECK(plugin_gain(proc) == Catch::Approx(0.3));
     // clap/ext/params.h: gestures are the plug-in telling the host its own
