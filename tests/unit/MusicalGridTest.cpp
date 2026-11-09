@@ -78,8 +78,9 @@ TEST_CASE(
   score::test::run_in_app([](const score::GUIApplicationContext&) {
     for(const auto [num, den] : {std::pair{4, 4}, std::pair{3, 4}, std::pair{7, 8}})
     {
-      // A bar many times wider than the view, the view centred on bar 3's line.
-      for(const double bar_px : {1200., 4000., 50000.})
+      // A bar many times wider than the view, the view centred on bar 3's line,
+      // its finest sub-divisions narrower than half the view.
+      for(const double bar_px : {1200., 4000., 16000.})
       {
         DYNAMIC_SECTION(num << "/" << den << ", a bar " << bar_px << " pixels wide")
         {
@@ -213,8 +214,6 @@ TEST_CASE(
               const auto lines = draw_at(*m, zoom, seconds, width);
               CHECK(lines.bars.size() <= 4);
               CHECK(lines.subs.size() <= max_lines(width));
-              // Still every sub-division of the view.
-              CHECK(lines.subs.size() >= std::size_t(width / 40.));
             }
           }
         }
@@ -365,5 +364,449 @@ TEST_CASE(
           TimeVal::fromPixels(left + i, zoom));
     // Some tens of microseconds each, even unoptimised: a frame is 16 ms.
     CHECK(timer.elapsed() < 100);
+  });
+}
+
+namespace
+{
+constexpr int64_t whole_note = 4 * ossia::quarter_duration<int64_t>;
+
+struct signature
+{
+  int64_t start;
+  int num, den;
+};
+
+struct model_bar
+{
+  int64_t start, end;
+  int number;
+  int num, den;
+  int64_t length() const { return whole_note * num / den; }
+};
+
+//! A timeline of time signatures, and the bars it should show.
+struct meter_map
+{
+  std::vector<signature> signatures;
+  Scenario::TimeSignatureMap measures;
+  std::vector<model_bar> bars;
+
+  explicit meter_map(std::vector<signature> s, int64_t horizon)
+      : signatures{std::move(s)}
+  {
+    for(auto& sig : signatures)
+      measures[TimeVal{sig.start}]
+          = ossia::time_signature{uint16_t(sig.num), uint16_t(sig.den)};
+
+    int number = 0;
+    for(std::size_t i = 0; i < signatures.size(); i++)
+    {
+      const auto& sig = signatures[i];
+      const int64_t end = i + 1 < signatures.size() ? signatures[i + 1].start : horizon;
+      const int64_t bar = whole_note * sig.num / sig.den;
+      for(int64_t t = sig.start; t < end; t += bar)
+        bars.push_back({t, std::min(t + bar, end), number++, sig.num, sig.den});
+    }
+  }
+
+  //! Back to back signatures from `start`, each `bars_each` bars long, cycling
+  //! through `cycle` up to `until`.
+  static std::vector<signature> cycling(
+      int64_t start, int64_t until, int bars_each,
+      std::vector<std::pair<int, int>> cycle)
+  {
+    std::vector<signature> res;
+    for(std::size_t i = 0; start < until; i++)
+    {
+      auto [num, den] = cycle[i % cycle.size()];
+      res.push_back({start, num, den});
+      start += bars_each * (whole_note * num / den);
+    }
+    return res;
+  }
+
+  const model_bar* bar_at(int64_t t) const
+  {
+    auto it = std::upper_bound(
+        bars.begin(), bars.end(), t,
+        [](int64_t t, const model_bar& b) { return t < b.start; });
+    if(it == bars.begin())
+      return nullptr;
+    --it;
+    return t < it->end ? &*it : nullptr;
+  }
+};
+
+int64_t seconds(double s)
+{
+  return int64_t(s * ossia::flicks_per_second<double>);
+}
+
+struct drawn
+{
+  double left{}, width{};
+  std::vector<double> bars, subs;
+  //! The bar lines with their number on the ruler, in the pixels of the
+  //! lines.
+  std::vector<std::pair<double, int>> labels;
+};
+
+drawn draw_from(Scenario::MusicalGrid& grid, double zoom, TimeVal x0, double width)
+{
+  const double left = x0.toPixelsRaw(zoom);
+  grid.compute(TimeVal::zero(), zoom, QRectF{left, 0., width, 100.}, x0);
+
+  drawn res{left, width};
+  for(auto& l : grid.timebars.lightBars->positions)
+    res.bars.push_back(l.x1());
+  for(auto& l : grid.timebars.lighterBars->positions)
+    res.subs.push_back(l.x1());
+  for(auto& m : grid.mainPositions)
+    res.labels.push_back({m.pos_x + left + 100., m.timings.bars});
+  return res;
+}
+
+//! The finest sub-division of a bar: its beat halved as long as there are
+//! at most 64 in the bar.
+int64_t finest_subdivision(int num, int den)
+{
+  int64_t per_beat = 1;
+  while(num * per_beat * 2 <= 64)
+    per_beat *= 2;
+  return whole_note / (den * per_beat);
+}
+
+//! Checks what the grid drew against what the map holds.
+void check_grid(const meter_map& map, double zoom, const drawn& d)
+{
+  constexpr double eps = 1e-6;
+  const double right = d.left + d.width;
+  auto px = [&](int64_t t) { return t / zoom; };
+  // The map goes on past its last bar with the last signature: lines past
+  // it are left out.
+  auto in_view = [&](double x) {
+    return x >= d.left - eps && x <= right + eps && x < px(map.bars.back().end);
+  };
+  INFO("zoom " << zoom << ", view from " << d.left << " px, " << d.width << " px wide");
+
+  // Bounded by what the view can show.
+  CHECK(d.bars.size() + d.subs.size() <= 2 * (std::size_t(d.width / 5.) + 4));
+
+  // Bar lines: increasing, each on a bar of the map, labelled with its number.
+  for(std::size_t i = 1; i < d.bars.size(); i++)
+    REQUIRE(d.bars[i] - d.bars[i - 1] >= 5. - eps);
+  for(auto [x, number] : d.labels)
+  {
+    if(!in_view(x))
+      continue;
+    INFO("bar line at " << x << " px, labelled " << number);
+    const auto* bar = map.bar_at(int64_t(std::llround(x * zoom)));
+    REQUIRE(bar);
+    // Zoomed in far enough that every bar line is drawn, each is on its bar.
+    if(zoom * 30. <= whole_note / 16.)
+    {
+      CHECK(std::abs(px(bar->start) - x) < 1e-3);
+      CHECK(bar->number == number);
+    }
+  }
+
+  // Zoomed in so that the shortest bar is 30 pixels wide, every bar line of
+  // the view is drawn, once.
+  if(zoom * 30. <= whole_note / 16.)
+  {
+    for(const auto& bar : map.bars)
+    {
+      if(!in_view(px(bar.start)))
+        continue;
+      INFO(
+          "bar " << bar.number << " (" << bar.num << "/" << bar.den << ") at "
+                 << px(bar.start));
+      CHECK(std::count_if(d.bars.begin(), d.bars.end(), [&](double x) {
+        return std::abs(x - px(bar.start)) < 1e-3;
+      }) == 1);
+    }
+  }
+
+  // Sub-divisions: strictly inside a bar, in steps of a power of two of its
+  // beat, no finer than a 64th of it, evenly spaced from its bar line.
+  for(double x : d.subs)
+  {
+    if(!in_view(x))
+      continue;
+    INFO("sub-division at " << x << " px");
+    const auto* bar = map.bar_at(int64_t(std::llround(x * zoom)));
+    REQUIRE(bar);
+    CHECK(x > px(bar->start) + eps);
+    CHECK(x < px(bar->end) - eps);
+
+    // Its step: the gap to the next line of the same bar.
+    auto next_sub = std::upper_bound(d.subs.begin(), d.subs.end(), x + eps);
+    double next = px(bar->end);
+    if(next_sub != d.subs.end() && *next_sub < next)
+      next = *next_sub;
+    if(next > right)
+      continue;
+    const double step_px = next - x;
+    // The last one before a bar cut short by a signature change can be
+    // closer to it.
+    if(next == px(bar->end) && bar->end != bar->start + bar->length())
+      continue;
+
+    INFO("step " << step_px << " px in a bar of " << bar->num << "/" << bar->den);
+    const double finest = finest_subdivision(bar->num, bar->den) / zoom;
+    CHECK(step_px >= finest - 1e-3);
+    const double halvings = std::log2((whole_note / double(bar->den)) / zoom / step_px);
+    CHECK(std::abs(halvings - std::round(halvings)) < 1e-6);
+    // On the grid of that step from the bar line: evenly spaced.
+    const double from_bar = (x - px(bar->start)) / step_px;
+    CHECK(std::abs(from_bar - std::round(from_bar)) < 0.5 / step_px);
+  }
+}
+
+//! The ways the view meets a signature change: around it, starting on it,
+//! ending on it.
+std::vector<TimeVal> views_around(int64_t t, double zoom, double width)
+{
+  const int64_t w = int64_t(width * zoom);
+  return {TimeVal{t - w / 2}, TimeVal{t}, TimeVal{t - w}, TimeVal{t - w / 3}};
+}
+
+void check_map_at_zooms(const meter_map& map, std::size_t max_changes = 12)
+{
+  Scenario::Timebars bars;
+  std::unique_ptr<Scenario::LightBars> light{new Scenario::LightBars};
+  std::unique_ptr<Scenario::LighterBars> lighter{new Scenario::LighterBars};
+  bars.lightBars = light.get();
+  bars.lighterBars = lighter.get();
+  Scenario::MusicalGrid grid{bars};
+  grid.setMeasures(map.measures);
+
+  const double width = 1000.;
+  // From the closest the timeline zooms to bars of a few pixels.
+  for(const double zoom : {1000., 1e4, 1e5, 1e6, 3e6, 1e7, 1e8})
+  {
+    std::vector<int64_t> times;
+    for(std::size_t i = 0; i < map.signatures.size() && i < max_changes; i++)
+      times.push_back(map.signatures[i].start);
+    for(std::size_t i
+        = map.signatures.size() > max_changes ? map.signatures.size() - max_changes : 0;
+        i < map.signatures.size(); i++)
+      times.push_back(map.signatures[i].start);
+    // Bar lines away from the changes.
+    for(std::size_t i = 1; i < map.bars.size(); i += map.bars.size() / 7 + 1)
+      times.push_back(map.bars[i].start);
+
+    for(int64_t t : times)
+      for(TimeVal x0 : views_around(t, zoom, width))
+      {
+        if(x0.impl < 0)
+          continue;
+        check_grid(map, zoom, draw_from(grid, zoom, x0, width));
+      }
+  }
+}
+}
+
+TEST_CASE(
+    "Odd meters: bar lines, numbers and even sub-divisions", "[scenario][musical-grid]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext&) {
+    for(auto [num, den] :
+        {std::pair{4, 4}, std::pair{3, 4}, std::pair{5, 4}, std::pair{7, 8},
+         std::pair{7, 16}, std::pair{9, 8}, std::pair{11, 8}, std::pair{13, 16},
+         std::pair{15, 16}, std::pair{17, 16}, std::pair{21, 16}})
+    {
+      DYNAMIC_SECTION(num << "/" << den)
+      {
+        const meter_map map{{{0, num, den}}, seconds(4000)};
+        check_map_at_zooms(map);
+      }
+    }
+  });
+}
+
+TEST_CASE(
+    "Mixed denominators back to back, two bars each, for forty minutes",
+    "[scenario][musical-grid]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext&) {
+    const meter_map map{
+        meter_map::cycling(
+            0, seconds(2400), 2, {{7, 8}, {4, 4}, {5, 16}, {3, 2}, {6, 8}, {13, 16}}),
+        seconds(3000)};
+    check_map_at_zooms(map);
+  });
+}
+
+TEST_CASE(
+    "A signature change every bar, short bars next to long ones",
+    "[scenario][musical-grid]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext&) {
+    const meter_map map{
+        meter_map::cycling(
+            0, seconds(2400), 1,
+            {{7, 8},
+             {5, 16},
+             {11, 8},
+             {2, 16},
+             {12, 8},
+             {1, 16},
+             {4, 2},
+             {13, 16},
+             {9, 8}}),
+        seconds(3000)};
+    check_map_at_zooms(map);
+  });
+}
+
+TEST_CASE(
+    "Signature changes half an hour in, one of them inside a bar",
+    "[scenario][musical-grid]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext&) {
+    // 4/4 up to 30 minutes, 7/16 from half a second later (a 4/4 bar cut
+    // short), 21/16 from 45 minutes, 3/2 a 16th later.
+    const meter_map map{
+        {{0, 4, 4},
+         {seconds(1800.5), 7, 16},
+         {seconds(2700), 21, 16},
+         {seconds(2700) + whole_note / 16, 3, 2}},
+        seconds(4500)};
+    check_map_at_zooms(map);
+  });
+}
+
+TEST_CASE(
+    "Zoomed in to the closest, sub-divisions are 64ths of the bar and the same width",
+    "[scenario][musical-grid]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext&) {
+    for(auto [num, den] : {std::pair{4, 4}, std::pair{3, 4}, std::pair{7, 8}})
+      for(const double at : {6., 1800., 3600.})
+      {
+        DYNAMIC_SECTION(num << "/" << den << ", " << at << " s in")
+        {
+          const meter_map map{{{0, num, den}}, seconds(3700)};
+          // Around the bar line nearest to `at`, wide enough for a few 64ths.
+          const auto* bar = map.bar_at(seconds(at));
+          REQUIRE(bar);
+          const double zoom = 1000.;
+          const double step = finest_subdivision(num, den) / zoom;
+          const double width = 8. * step;
+          const auto d = [&] {
+            Scenario::Timebars bars;
+            std::unique_ptr<Scenario::LightBars> light{new Scenario::LightBars};
+            std::unique_ptr<Scenario::LighterBars> lighter{new Scenario::LighterBars};
+            bars.lightBars = light.get();
+            bars.lighterBars = lighter.get();
+            Scenario::MusicalGrid grid{bars};
+            grid.setMeasures(map.measures);
+            return draw_from(
+                grid, zoom, TimeVal{bar->start - int64_t(width / 2 * zoom)}, width);
+          }();
+
+          // 4/4: a 64th of the bar. 3/4 and 7/8: the beat halved down to no
+          // finer than that, so that the beats keep their lines.
+          if(num == 4 && den == 4)
+            CHECK(std::abs(step - bar_flicks(4, 4) / 64. / zoom) < 1e-6);
+          CHECK(step >= bar_flicks(num, den) / 64. / zoom - 1e-6);
+          CHECK(step < 2. * bar_flicks(num, den) / 64. / zoom);
+
+          // Every line of the view, bar line included, the same step apart.
+          std::vector<double> lines = d.subs;
+          lines.insert(lines.end(), d.bars.begin(), d.bars.end());
+          std::sort(lines.begin(), lines.end());
+          std::erase_if(
+              lines, [&](double x) { return x < d.left || x > d.left + width; });
+          REQUIRE(lines.size() >= 6);
+          for(std::size_t i = 1; i < lines.size(); i++)
+          {
+            INFO("gap " << i << ": " << lines[i] - lines[i - 1] << " px");
+            CHECK(std::abs((lines[i] - lines[i - 1]) - step) < 0.5);
+          }
+        }
+      }
+  });
+}
+
+TEST_CASE(
+    "Zoomed in near a bar line, its sub-divisions are the same width on both sides",
+    "[scenario][musical-grid]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext&) {
+    // Bars of 740 to 1930 pixels: sub-divisions between 5 and 40 pixels that
+    // do not fall on whole pixels.
+    for(const double zoom : {1e6, 7.3e5, 1.9e6})
+      for(const double at : {6., 1800., 3600.})
+      {
+        DYNAMIC_SECTION(zoom << " flicks per pixel, " << at << " s in")
+        {
+          const meter_map map{{{0, 4, 4}}, seconds(3700)};
+          const auto* bar = map.bar_at(seconds(at));
+          REQUIRE(bar);
+          const double width = 1200.;
+          Scenario::Timebars bars;
+          std::unique_ptr<Scenario::LightBars> light{new Scenario::LightBars};
+          std::unique_ptr<Scenario::LighterBars> lighter{new Scenario::LighterBars};
+          bars.lightBars = light.get();
+          bars.lighterBars = lighter.get();
+          Scenario::MusicalGrid grid{bars};
+          grid.setMeasures(map.measures);
+          const auto d = draw_from(
+              grid, zoom, TimeVal{bar->start - int64_t(width / 2 * zoom)}, width);
+
+          std::vector<double> lines = d.subs;
+          lines.insert(lines.end(), d.bars.begin(), d.bars.end());
+          std::sort(lines.begin(), lines.end());
+          std::erase_if(
+              lines, [&](double x) { return x < d.left || x > d.left + width; });
+          REQUIRE(lines.size() >= 10);
+          const double step = lines[1] - lines[0];
+          for(std::size_t i = 1; i < lines.size(); i++)
+          {
+            INFO(
+                "gap " << i << ": " << lines[i] - lines[i - 1] << " px, first " << step);
+            CHECK(std::abs((lines[i] - lines[i - 1]) - step) < 0.5);
+          }
+        }
+      }
+  });
+}
+
+TEST_CASE(
+    "Odd meters: a signature changed in place shows at once", "[scenario][musical-grid]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext&) {
+    auto sigs
+        = meter_map::cycling(0, seconds(600), 1, {{7, 8}, {5, 16}, {11, 8}, {13, 16}});
+    meter_map map{sigs, seconds(700)};
+
+    Scenario::Timebars bars;
+    std::unique_ptr<Scenario::LightBars> light{new Scenario::LightBars};
+    std::unique_ptr<Scenario::LighterBars> lighter{new Scenario::LighterBars};
+    bars.lightBars = light.get();
+    bars.lighterBars = lighter.get();
+    Scenario::MusicalGrid grid{bars};
+    // The grid reads the map it is given, changed in place below.
+    Scenario::TimeSignatureMap measures = map.measures;
+    grid.setMeasures(measures);
+
+    const double zoom = 2e6;
+    const TimeVal x0{sigs[40].start - int64_t(300 * zoom)};
+    const auto before = draw_from(grid, zoom, x0, 1000.);
+    check_grid(map, zoom, before);
+
+    // The 13/16 of change 40 becomes 15/16, then 7/8 to the end.
+    std::vector<signature> changed{sigs.begin(), sigs.begin() + 41};
+    changed[40].num = 15;
+    changed.push_back({changed[40].start + whole_note * 15 / 16, 7, 8});
+    const meter_map map2{changed, seconds(700)};
+    measures = map2.measures;
+
+    const auto after = draw_from(grid, zoom, x0, 1000.);
+    CHECK(after.bars != before.bars);
+    check_grid(map2, zoom, after);
   });
 }
