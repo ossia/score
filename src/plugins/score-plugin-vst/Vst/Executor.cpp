@@ -99,20 +99,21 @@ Executor::Executor(vst::Model& proc, const Execution::Context& ctx, QObject* par
 
   AEffect& fx = *proc.fx->fx;
   int block_size = ctx.execState->setupBufferSize();
+  bool midiOutput = proc.sendsMidi();
 
   if(fx.flags & effFlagsCanDoubleReplacing)
   {
     if(proc.takesMidi())
     {
       auto n = vst::make_vst_fx<true, true>(
-          *ctx.execState, proc.fx, ctx.execState->sampleRate, block_size);
+          *ctx.execState, proc.fx, ctx.execState->sampleRate, block_size, midiOutput);
       setupNode(n);
       node = std::move(n);
     }
     else
     {
       auto n = vst::make_vst_fx<true, false>(
-          *ctx.execState, proc.fx, ctx.execState->sampleRate, block_size);
+          *ctx.execState, proc.fx, ctx.execState->sampleRate, block_size, midiOutput);
       setupNode(n);
       node = std::move(n);
     }
@@ -122,14 +123,14 @@ Executor::Executor(vst::Model& proc, const Execution::Context& ctx, QObject* par
     if(proc.takesMidi())
     {
       auto n = vst::make_vst_fx<false, true>(
-          *ctx.execState, proc.fx, ctx.execState->sampleRate, block_size);
+          *ctx.execState, proc.fx, ctx.execState->sampleRate, block_size, midiOutput);
       setupNode(n);
       node = std::move(n);
     }
     else
     {
       auto n = vst::make_vst_fx<false, false>(
-          *ctx.execState, proc.fx, ctx.execState->sampleRate, block_size);
+          *ctx.execState, proc.fx, ctx.execState->sampleRate, block_size, midiOutput);
       setupNode(n);
       node = std::move(n);
     }

@@ -13,6 +13,7 @@
 #include <Vst/Commands.hpp>
 #include <Vst/Control.hpp>
 #include <Vst/Loader.hpp>
+#include <Vst/Node.hpp>
 #include <Vst/Window.hpp>
 
 #include <score/tools/DeleteAll.hpp>
@@ -186,6 +187,11 @@ QString Model::prettyName() const noexcept
 bool Model::takesMidi() const noexcept
 {
   return m_inlets.size() > 1 && m_inlets[1]->type() == Process::PortType::Midi;
+}
+
+bool Model::sendsMidi() const noexcept
+{
+  return m_outlets.size() > 1 && m_outlets[1]->type() == Process::PortType::Midi;
 }
 
 bool Model::hasExternalUI() const noexcept
@@ -441,6 +447,10 @@ intptr_t vst_host_callback(
   switch(opcode)
   {
     case audioMasterProcessEvents:
+      if(effect)
+        if(auto node = reinterpret_cast<vst_node_base*>(effect->resvd2))
+          node->receiveEvents(static_cast<const VstEvents*>(ptr));
+      result = 1;
       break;
     case audioMasterIOChanged:
       break;
@@ -742,6 +752,9 @@ void Model::create()
   auto out = new Process::AudioOutlet("Audio Out", Id<Process::Port>{}, this);
   out->setPropagate(true);
   m_outlets.push_back(out);
+
+  if(canDo(HostCanDos::canDoSendVstMidiEvent) || canDo(HostCanDos::canDoSendVstEvents))
+    m_outlets.push_back(new Process::MidiOutlet("MIDI Out", Id<Process::Port>{1}, this));
 }
 
 void Model::load()

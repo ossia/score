@@ -14,7 +14,9 @@
 #include <libremidi/detail/conversion.hpp>
 
 #include <algorithm>
+#include <atomic>
 #include <cmath>
+#include <thread>
 namespace vst
 {
 
@@ -48,6 +50,77 @@ protected:
 
 public:
   ossia::small_vector<vst_control, 16> controls;
+
+  //! The MIDI output of the process, when it has one
+  ossia::midi_outlet* midi_out{};
+
+  //! The events the plug-in sends (audioMasterProcessEvents) while it
+  //! processes a block, dated in the tick. Sent from any other thread, or at
+  //! any other time, they have no date and are dropped.
+  void receiveEvents(const VstEvents* events) noexcept
+  {
+    if(!midi_out || !events
+       || m_processThread.load(std::memory_order_relaxed) != std::this_thread::get_id())
+      return;
+    auto& out = midi_out->data.messages;
+    const auto push = [&](const libremidi::ump& u) {
+      if(out.size() < 4096)
+        out.push_back(u);
+    };
+    for(int i = 0; i < events->numEvents; i++)
+    {
+      const VstEvent* e = events->events[i];
+      if(!e)
+        continue;
+      const int64_t date = m_blockStart + std::max(0, e->deltaFrames);
+      if(e->type == kVstMidiType)
+      {
+        const auto* m = reinterpret_cast<const VstMidiEvent*>(e);
+        const auto* bytes = reinterpret_cast<const unsigned char*>(m->midiData);
+        m_toUmp.convert_packets(bytes, midiMessageSize(bytes[0]), date, push);
+      }
+      else if(e->type == kVstSysExType)
+      {
+        const auto* s = reinterpret_cast<const VstMidiSysexEvent*>(e);
+        if(s->sysexDump && s->dumpBytes > 0)
+          m_toUmp.convert_packets(
+              reinterpret_cast<const unsigned char*>(s->sysexDump),
+              std::size_t(s->dumpBytes), date, push);
+      }
+    }
+  }
+
+  static std::size_t midiMessageSize(unsigned char status) noexcept
+  {
+    switch(status & 0xF0)
+    {
+      case 0xC0:
+      case 0xD0:
+        return 2;
+      case 0xF0:
+        switch(status)
+        {
+          case 0xF1:
+          case 0xF3:
+            return 2;
+          case 0xF2:
+            return 3;
+          default:
+            return 1;
+        }
+      default:
+        return 3;
+    }
+  }
+
+protected:
+  //! The thread that is in a process call of the plug-in, and where in the
+  //! tick the block it processes starts
+  std::atomic<std::thread::id> m_processThread{};
+  int64_t m_blockStart{};
+  libremidi::midi1_to_midi2 m_toUmp;
+
+public:
 
   void setControls()
   {
@@ -133,7 +206,8 @@ public:
   VstSpeakerArrangement o_arr{};
   int m_bs{};
 
-  vst_node(std::shared_ptr<AEffectWrapper> dat, int sampleRate, int bs)
+  vst_node(
+      std::shared_ptr<AEffectWrapper> dat, int sampleRate, int bs, bool midiOutput = false)
       : vst_node_base{std::move(dat)}
       , m_bs{bs}
   {
@@ -144,6 +218,11 @@ public:
 
     // audio output
     m_outlets.push_back(new ossia::audio_outlet);
+    if(midiOutput)
+    {
+      midi_out = new ossia::midi_outlet;
+      m_outlets.push_back(midi_out);
+    }
 
     {
       memset(&i_arr, 0, sizeof(i_arr));
@@ -168,7 +247,7 @@ public:
     dispatch(effMainsChanged, 0, 1);
     dispatch(effStartProcess);
 
-    fx->fx->resvd2 = reinterpret_cast<intptr_t>(this);
+    fx->fx->resvd2 = reinterpret_cast<intptr_t>(static_cast<vst_node_base*>(this));
   }
 
   ~vst_node()
@@ -419,9 +498,11 @@ public:
                                      ? time_info.tempo / (60. * time_info.sampleRate)
                                      : 0.;
     const int64_t block = std::max(m_bs, 1);
+    m_processThread.store(std::this_thread::get_id(), std::memory_order_relaxed);
     for(int64_t done = 0; done < samples;)
     {
       const int64_t n = std::min(block, samples - done);
+      m_blockStart = offset + done;
       f(offset + done, n);
       done += n;
       if(done < samples)
@@ -441,6 +522,7 @@ public:
         }
       }
     }
+    m_processThread.store(std::thread::id{}, std::memory_order_relaxed);
   }
 
   void processFloat(int64_t offset, int64_t samples)

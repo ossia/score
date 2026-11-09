@@ -102,6 +102,10 @@ public:
   //! MIDI events; a saved process keeps the ports it was saved with.
   bool takesMidi() const noexcept;
 
+  //! Whether the process has a MIDI output, after its audio output: made for
+  //! a plug-in that can send MIDI events.
+  bool sendsMidi() const noexcept;
+
   std::shared_ptr<AEffectWrapper> fx{};
 
   ossia::hash_map<int, ControlInlet*> controls;
