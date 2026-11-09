@@ -416,6 +416,29 @@ TEST_CASE(
   });
 }
 
+TEST_CASE(
+    "CLAP: a restart a plug-in asks for while stopped waits for the next play",
+    "[integration][clap][restart]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    auto& proc = *add_mono_gain(*doc);
+    report();
+
+    // It is activated when score plays, with the engine's rate and block size
+    plugin_function<void(const clap_plugin_t*)>("clap_mono_gain_request_restart")(
+        proc.handle()->plugin);
+    spin(50);
+    CHECK(report().activations == 0);
+
+    // An inactive plug-in is flushed from the main thread
+    gain_control(proc).setValue(0.3);
+    CHECK(plugin_gain(proc) == Catch::Approx(0.3));
+    CHECK(report().bad_state == 0);
+  });
+}
+
 // An entry that gives its plug-in factory for any id, preset discovery's
 // included (SpectMorph): read as a preset discovery factory, its plug-in
 // descriptors were taken for providers and the indexer for a host.

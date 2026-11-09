@@ -838,41 +838,24 @@ PluginHandle::PluginHandle()
     return nullptr;
   };
   host.request_restart = [](const clap_host* host) {
-    // Per clap/host.h: deactivate then reactivate the plug-in. This is
-    // [thread-safe] but the actual deactivate/activate must run on the
-    // main thread. We refuse to do the cycle while score is executing —
-    // a live audio thread is using the plug-in in CLAP-active state, and
-    // tearing it down underneath would race with process(). The plug-in
-    // sees the request as deferred (per spec it may be delayed by the
-    // host), and will get the restart on the next stop transition.
+    // clap/host.h: "Request the host to deactivate and then reactivate the
+    // plugin. The operation may be delayed by the host." [thread-safe]
+    // The plug-in is active only while score plays, with the engine's rate
+    // and block size: a stop deactivates it and the next play activates it,
+    // which is the restart. Stopped, an active plug-in is only deactivated
+    // here, since nothing would process it and a flush from the main thread
+    // is only allowed while it is inactive.
     auto& m = *static_cast<Clap::PluginHandle*>(host->host_data);
     if(!m.model)
       return;
     QMetaObject::invokeMethod(m.model, [model = QPointer<Model>{m.model}] {
-      if(!model)
-        return;
-      if(model->executing())
+      if(!model || model->executing())
         return;
       auto h = model->handle();
-      if(!h || !h->plugin)
+      if(!h || !h->plugin || !h->activated)
         return;
-
-      const auto plug = h->plugin;
-      if(h->activated)
-      {
-        plug->deactivate(plug);
-        h->activated = false;
-      }
-      // Re-activate with the rate/buffer the executor was last using.
-      // We don't have an audio context outside of execution, so fall
-      // back to the standard 44.1k / 1024 frames if nothing else is
-      // known (matches DPF's d_nextSampleRate fallback).
-      const double sr = 44100.0;
-      const uint32_t bs = 1024;
-      if(plug->activate(plug, sr, 1, bs))
-      {
-        h->activated = true;
-      }
+      h->plugin->deactivate(h->plugin);
+      h->activated = false;
     }, Qt::QueuedConnection);
   };
   host.request_process = [](const clap_host* host) {
