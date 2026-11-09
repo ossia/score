@@ -2289,6 +2289,11 @@ score_add_test(test_unit_graphics_knob_paint
   SOURCES GraphicsKnobPaintTest.cpp
   APP)
 
+# The value a slider or a knob draws fits its width: smaller, then cut.
+score_add_test(test_unit_value_text_fit
+  SOURCES ValueTextFitTest.cpp
+  APP)
+
 # The Bitfocus host's IPC framing and non-blocking writes, against a shell
 # script standing in for the companion module.
 if(UNIX AND NOT EMSCRIPTEN AND TARGET score_plugin_protocols)

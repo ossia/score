@@ -114,7 +114,8 @@ struct DefaultGraphicsKnobImpl
     }
     if(showValue && !text.isEmpty())
     {
-      painter->setFont(skin.Medium8Pt);
+      const auto fitted = fitValueText(skin.Medium8Pt, text, srect.width());
+      painter->setFont(*fitted.font);
       const double text_y
           = srect.height() > srect.width() ? side : srect.height() + textDelta;
       // Centred under the knob, or where setValueAlignment() puts it
@@ -123,7 +124,7 @@ struct DefaultGraphicsKnobImpl
         if(const auto a = self.data(ValueAlignmentDataKey).toInt())
           align = Qt::Alignment(a);
       painter->drawText(
-          QRectF{0., text_y, srect.width(), 10.}, text,
+          QRectF{0., text_y, srect.width(), 10.}, fitted.text,
           QTextOption(align | Qt::AlignVCenter));
     }
 

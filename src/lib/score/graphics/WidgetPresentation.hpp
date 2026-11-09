@@ -1,5 +1,7 @@
 #pragma once
+#include <QFont>
 #include <QGraphicsItem>
+#include <QString>
 #include <QStyleOptionGraphicsItem>
 
 #include <score_lib_base_export.h>
@@ -26,6 +28,18 @@ inline bool showsValue(
     return true;
   return option && (option->state & QStyle::State_MouseOver);
 }
+
+//! The font and the text with which a control draws its value in `width`
+//! pixels: the usual font if it fits, else smaller ones, else the smallest
+//! with the end cut off. Decided from the number of characters and the width
+//! of a digit, which is cheap enough for every paint.
+struct FittedText
+{
+  const QFont* font{};
+  QString text;
+};
+SCORE_LIB_BASE_EXPORT FittedText
+fitValueText(const QFont& font, const QString& text, qreal width);
 
 //! data() key: where a knob draws its value under it, as a Qt::Alignment
 inline constexpr int ValueAlignmentDataKey = 0x5C0F;
