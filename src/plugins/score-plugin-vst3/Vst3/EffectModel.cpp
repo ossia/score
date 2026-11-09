@@ -409,46 +409,6 @@ void Model::initFx()
   /// this->fx.controller->setComponentState(...);
 }
 
-struct BusActivationVisitor
-{
-  Plugin& fx;
-
-  void audioIn(const Steinberg::Vst::BusInfo& bus, int idx)
-  {
-    if(bus.flags & Steinberg::Vst::BusInfo::kDefaultActive)
-    {
-      fx.component->activateBus(
-          Steinberg::Vst::kAudio, Steinberg::Vst::kInput, idx, true);
-    }
-  }
-  void eventIn(const Steinberg::Vst::BusInfo& bus, int idx)
-  {
-    if(bus.flags & Steinberg::Vst::BusInfo::kDefaultActive)
-    {
-      fx.component->activateBus(
-          Steinberg::Vst::kEvent, Steinberg::Vst::kInput, idx, true);
-    }
-  }
-
-  void audioOut(const Steinberg::Vst::BusInfo& bus, int idx)
-  {
-    if(bus.flags & Steinberg::Vst::BusInfo::kDefaultActive)
-    {
-      fx.component->activateBus(
-          Steinberg::Vst::kAudio, Steinberg::Vst::kOutput, idx, true);
-    }
-  }
-
-  void eventOut(const Steinberg::Vst::BusInfo& bus, int idx)
-  {
-    if(bus.flags & Steinberg::Vst::BusInfo::kDefaultActive)
-    {
-      fx.component->activateBus(
-          Steinberg::Vst::kEvent, Steinberg::Vst::kOutput, idx, true);
-    }
-  }
-};
-
 struct PortCreationVisitor
 {
   Model& model;
@@ -459,8 +419,6 @@ struct PortCreationVisitor
 
   void audioIn(const Steinberg::Vst::BusInfo& bus, int idx)
   {
-    BusActivationVisitor{fx}.audioIn(bus, idx);
-
     auto port = new Process::AudioInlet(
         fromString(bus.name), Id<Process::Port>{inlet_i++}, &model);
     model.m_inlets.push_back(port);
@@ -468,8 +426,6 @@ struct PortCreationVisitor
 
   void eventIn(const Steinberg::Vst::BusInfo& bus, int idx)
   {
-    BusActivationVisitor{fx}.eventIn(bus, idx);
-
     auto port = new Process::MidiInlet(
         fromString(bus.name), Id<Process::Port>{inlet_i++}, &model);
     model.m_inlets.push_back(port);
@@ -506,8 +462,6 @@ struct PortCreationVisitor
 
   void audioOut(const Steinberg::Vst::BusInfo& bus, int idx)
   {
-    BusActivationVisitor{fx}.audioOut(bus, idx);
-
     auto port = new Process::AudioOutlet(
         fromString(bus.name), Id<Process::Port>{outlet_i++}, &model);
     model.m_outlets.push_back(port);
@@ -518,8 +472,6 @@ struct PortCreationVisitor
 
   void eventOut(const Steinberg::Vst::BusInfo& bus, int idx)
   {
-    BusActivationVisitor{fx}.eventOut(bus, idx);
-
     auto port = new Process::MidiOutlet(
         fromString(bus.name), Id<Process::Port>{outlet_i++}, &model);
     model.m_outlets.push_back(port);
@@ -584,8 +536,6 @@ void Model::load()
     qDebug() << "not loading (no fx)";
     return;
   }
-
-  forEachBus(BusActivationVisitor{fx}, *fx.component);
 
   writeState();
 

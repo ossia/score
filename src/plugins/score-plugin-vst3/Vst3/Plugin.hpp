@@ -88,6 +88,8 @@ struct Plugin
 
   void loadProcessorStateToController();
 
+  //! Switches on the buses the plug-in says are on by default
+  void activateBuses();
   void start(double sample_rate, int max_bs);
   //! Sets the plug-in up again if it was not for this rate and largest block
   void restart(double sample_rate, int max_bs);
