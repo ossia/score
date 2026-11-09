@@ -1170,6 +1170,62 @@ TEST_CASE("LV2 presets are listed in the natural order of their URIs", "[lv2][pr
   });
 }
 
+// What the plug-ins and their UIs are given: param:sampleRate, an atom:Float,
+// is where DPF's UIs and others read the rate from.
+TEST_CASE("LV2 options carry param:sampleRate as a float", "[lv2]")
+{
+  prepare_lv2_test_environment();
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    auto& plug = setupLV2(ctx);
+    auto& lv2 = *plug.lv2_context;
+    auto& map = lv2.map;
+    const LV2_URID key = map.map(map.handle, LV2_PARAMETERS__sampleRate);
+    const LV2_URID float_type = map.map(map.handle, LV2_ATOM__Float);
+
+    // The array the options feature points at, for instances and UIs alike
+    REQUIRE(lv2.options_feature.data == lv2.options.data());
+    REQUIRE(!lv2.options.empty());
+    CHECK(lv2.options.back().key == 0);
+    CHECK(lv2.options.back().value == nullptr);
+
+    const auto rate_option = [&]() -> const LV2_Options_Option* {
+      const auto* opts = static_cast<const LV2_Options_Option*>(lv2.options_feature.data);
+      const LV2_Options_Option* found = nullptr;
+      for(; opts->key != 0 || opts->value != nullptr; ++opts)
+        if(opts->key == key)
+        {
+          REQUIRE(!found);
+          found = opts;
+        }
+      return found;
+    };
+
+    auto& audio = ctx.settings<Audio::Settings::Model>();
+    const int before = audio.getRate();
+    {
+      const auto* opt = rate_option();
+      REQUIRE(opt);
+      CHECK(opt->context == LV2_OPTIONS_INSTANCE);
+      CHECK(opt->type == float_type);
+      CHECK(opt->size == sizeof(float));
+      REQUIRE(opt->value);
+      CHECK(*static_cast<const float*>(opt->value) == float(before));
+      CHECK(*static_cast<const float*>(opt->value) == float(lv2.sampleRate));
+    }
+
+    // It follows the rate the device runs at
+    const int other = before == 96000 ? 88200 : 96000;
+    audio.adoptRate(other);
+    {
+      const auto* opt = rate_option();
+      REQUIRE(opt);
+      CHECK(*static_cast<const float*>(opt->value) == float(other));
+    }
+    audio.adoptRate(before);
+    CHECK(*static_cast<const float*>(rate_option()->value) == float(before));
+  });
+}
+
 // An event monitor forwards what it receives, positions included: its output
 // says it may carry one, and stays an output. Its input is typed as a
 // sequence. The run telling a stop lasts a tick, not one frame. Between two

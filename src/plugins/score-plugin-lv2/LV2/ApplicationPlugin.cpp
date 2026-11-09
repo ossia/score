@@ -179,10 +179,10 @@ void ApplicationPlugin::initialize()
 {
   // The rate the audio device runs at, as it starts or changes
   auto& audio = context.settings<Audio::Settings::Model>();
-  lv2_context->sampleRate = audio.getRate();
+  lv2_context->setSampleRate(audio.getRate());
   con(audio, &Audio::Settings::Model::RateChanged, this, [this](int rate) {
     if(rate > 0)
-      lv2_context->sampleRate = rate;
+      lv2_context->setSampleRate(rate);
   });
 
   if(!qEnvironmentVariableIsEmpty("SCORE_DISABLE_AUDIOPLUGINS"))

@@ -233,6 +233,10 @@ GlobalContext::GlobalContext(int buffer_size, LV2::HostContext& host)
       LV2_OPTIONS_INSTANCE, 0, map.map(map.handle, LV2_CORE__sampleRate),
       sizeof(sampleRate), map.map(map.handle, LV2_ATOM__Double), &sampleRate});
   options.push_back(LV2_Options_Option{
+      LV2_OPTIONS_INSTANCE, 0, map.map(map.handle, LV2_PARAMETERS__sampleRate),
+      sizeof(paramSampleRate), map.map(map.handle, LV2_ATOM__Float),
+      &paramSampleRate});
+  options.push_back(LV2_Options_Option{
       LV2_OPTIONS_INSTANCE, 0, map.map(map.handle, LV2_BUF_SIZE__sequenceSize),
       sizeof(host.midi_buffer_size), map.map(map.handle, LV2_ATOM__Int),
       &host.midi_buffer_size});

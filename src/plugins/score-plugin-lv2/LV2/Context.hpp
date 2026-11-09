@@ -224,6 +224,15 @@ public:
   //! The rate the audio runs at; a double, as the lv2:sampleRate option
   //! points at it as an atom:Double.
   double sampleRate = 44100.;
+  //! The same, for the param:sampleRate option, an atom:Float: what the
+  //! UIs read it from, DPF's among others.
+  float paramSampleRate = 44100.f;
+  //! Sets both, as the options plug-ins and UIs are given point at them
+  void setSampleRate(double rate) noexcept
+  {
+    sampleRate = rate;
+    paramSampleRate = float(rate);
+  }
 
   std::vector<LV2_Options_Option> options;
 

@@ -1246,7 +1246,7 @@ void LV2EffectComponent::lazy_init()
   // presets and its UI: the rate this plays at, which the device may have
   // chosen over the one asked for.
   if(host.lv2_context && ctx.execState->sampleRate > 0)
-    host.lv2_context->sampleRate = ctx.execState->sampleRate;
+    host.lv2_context->setSampleRate(ctx.execState->sampleRate);
 
   if(!proc.effectContext.instance)
     return;
