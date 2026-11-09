@@ -41,8 +41,8 @@ class SCORE_PLUGIN_DATAFLOW_EXPORT ConnectionsWidget final
 public:
   enum Column
   {
-    //! "Cable" or "Address", after a square of the color of the port type;
-    //! the type and the cable mode are in its tooltip
+    //! An icon for a cable or for an address, in the color of the port type;
+    //! the words, the type and the cable mode are in its tooltip
     KindColumn,
     //! A warning icon when an address is not bound, an information icon for
     //! a pattern, empty otherwise; its tooltip says why
@@ -73,7 +73,7 @@ public:
   //! Item data role holding the text the search matches: what the cell shows,
   //! and for the Kind cell the port type and cable mode of its tooltip
   static constexpr int SearchRole = Qt::UserRole + 3;
-  //! Item data role holding the Process::PortType shown by the Kind cell's square
+  //! Item data role holding the Process::PortType shown by the Kind cell's icon
   static constexpr int PortTypeRole = Qt::UserRole + 4;
 
   explicit ConnectionsWidget(QWidget* parent = nullptr);
@@ -124,6 +124,7 @@ private:
   void track();
   void untrack();
   void updateCounts();
+  void spanGroups();
   void watchDocument();
   void unwatchDocument();
   void onViewSelectionChanged();

@@ -40,6 +40,7 @@
 #include <QHeaderView>
 #include <QIcon>
 #include <QPainter>
+#include <QImage>
 #include <QPixmap>
 #include <QLineEdit>
 #include <QScrollBar>
@@ -67,17 +68,44 @@ ossia::small_vector<Scenario::IntervalModel*, 8> intervalsAbove(const QObject* o
   return res;
 }
 
-//! A square of the color of a port type, inset in an icon so that the
-//! squares of consecutive rows stay apart whatever the row height
-QIcon typeIndicator(Process::PortType t)
+//! The shape of an icon (its alpha) filled with a color, without the margins
+//! of the toolbar icon it comes from
+QPixmap tinted(const QString& path, const QColor& color)
 {
-  QPixmap pix{16, 16};
-  pix.fill(Qt::transparent);
+  QImage src = QImage{path}.convertToFormat(QImage::Format_ARGB32_Premultiplied);
+  if(src.isNull())
+    return {};
+  QRect box;
+  for(int y = 0; y < src.height(); y++)
+    for(int x = 0; x < src.width(); x++)
+      if(qAlpha(src.pixel(x, y)) > 0)
+        box |= QRect{x, y, 1, 1};
+  if(box.isEmpty())
+    return {};
+
+  QImage img = src.copy(box);
   {
-    QPainter p{&pix};
-    p.fillRect(QRect{3, 3, 10, 10}, Process::portBrush(t).color());
+    QPainter p{&img};
+    p.setCompositionMode(QPainter::CompositionMode_SourceIn);
+    p.fillRect(img.rect(), color);
   }
-  return QIcon{pix};
+  return QPixmap::fromImage(std::move(img));
+}
+
+//! A cable (a curve between two dots) or an address ("a:/"), in the color of
+//! the port type: the icons of the cables button and of the address ports
+QIcon kindIcon(ConnectionRow::Kind kind, Process::PortType t)
+{
+  const QString base = kind == ConnectionRow::Cable
+                           ? QStringLiteral(":/icons/show_cables_off")
+                           : QStringLiteral(":/icons/port_address");
+  const QColor color = Process::portBrush(t).color();
+  QIcon icon;
+  // Both resolutions, so that HiDPI screens get the sharp one
+  for(const auto& suffix : {QStringLiteral(".png"), QStringLiteral("@2x.png")})
+    if(auto pix = tinted(base + suffix, color); !pix.isNull())
+      icon.addPixmap(pix);
+  return icon;
 }
 
 bool isAncestor(const QObject* ancestor, const QObject* obj)
@@ -124,6 +152,7 @@ ConnectionsWidget::ConnectionsWidget(QWidget* parent)
   m_proxy->setRecursiveFilteringEnabled(true);
   m_proxy->setFilterKeyColumn(-1);
   m_proxy->setFilterRole(SearchRole);
+  m_proxy->setSortRole(SearchRole);
   m_proxy->setFilterCaseSensitivity(Qt::CaseInsensitive);
   m_proxy->setSortCaseSensitivity(Qt::CaseInsensitive);
 
@@ -142,6 +171,7 @@ ConnectionsWidget::ConnectionsWidget(QWidget* parent)
 
   connect(m_search, &QLineEdit::textChanged, this, [this](const QString& txt) {
     m_proxy->setFilterFixedString(txt);
+    spanGroups();
     m_view->expandAll();
     updateCounts();
   });
@@ -416,14 +446,15 @@ void ConnectionsWidget::populate(const ossia::hash_set<const QObject*>& selected
   m_items.assign(m_rows.size(), nullptr);
   m_rowsOf.clear();
   m_model->setHorizontalHeaderLabels(
-      {tr("Kind"), QString{}, tr("From"), tr("To"), tr("Location")});
+      {QString{}, QString{}, tr("From"), tr("To"), tr("Location")});
+  m_model->setHeaderData(KindColumn, Qt::Horizontal, tr("Kind"), Qt::ToolTipRole);
   m_model->setHeaderData(StatusColumn, Qt::Horizontal, tr("Binding"), Qt::ToolTipRole);
 
   const auto grouping = Grouping(m_grouping->currentIndex());
   const auto kinds = KindFilter(m_kinds->currentIndex());
   ossia::hash_map<QString, QStandardItem*> groups;
   auto& skin = score::Skin::instance();
-  ossia::hash_map<int, QIcon> indicators;
+  ossia::hash_map<int, QIcon> kindIcons;
 
   for(int i = 0, n = std::ssize(m_rows); i < n; i++)
   {
@@ -441,21 +472,21 @@ void ConnectionsWidget::populate(const ossia::hash_set<const QObject*>& selected
     const QString type = portTypeName(r.portType);
     QList<QStandardItem*> items;
     items.reserve(ColumnCount);
-    items.push_back(item(kind));
+    items.push_back(item({}));
     items.push_back(item({}));
     items.push_back(item(r.from));
     items.push_back(item(r.to));
     items.push_back(item(r.location));
     items[KindColumn]->setData(i, RowRole);
-    auto& indicator = indicators[int(r.portType)];
-    if(indicator.isNull())
-      indicator = typeIndicator(r.portType);
-    items[KindColumn]->setIcon(indicator);
+    auto& icon = kindIcons[int(r.portType) * 2 + int(r.kind)];
+    if(icon.isNull())
+      icon = kindIcon(r.kind, r.portType);
+    items[KindColumn]->setIcon(icon);
     items[KindColumn]->setData(int(r.portType), PortTypeRole);
     items[LocationColumn]->setToolTip(r.location);
     if(isCable)
     {
-      items[KindColumn]->setToolTip(QStringLiteral("%1\n%2").arg(type, r.mode));
+      items[KindColumn]->setToolTip(QStringList{kind, type, r.mode}.join('\n'));
       items[KindColumn]->setData(
           QStringList{kind, type, r.mode}.join('\n'), SearchRole);
     }
@@ -463,7 +494,7 @@ void ConnectionsWidget::populate(const ossia::hash_set<const QObject*>& selected
     {
       const QString dir = r.addressIsSource ? tr("The address feeds the port")
                                             : tr("The port writes to the address");
-      items[KindColumn]->setToolTip(QStringLiteral("%1\n%2").arg(type, dir));
+      items[KindColumn]->setToolTip(QStringList{kind, type, dir}.join('\n'));
       items[KindColumn]->setData(QStringList{kind, type}.join('\n'), SearchRole);
 
       auto& status = *items[StatusColumn];
@@ -545,6 +576,7 @@ void ConnectionsWidget::populate(const ossia::hash_set<const QObject*>& selected
 
   updateCounts();
 
+  spanGroups();
   m_view->expandAll();
   for(const auto& [g, key] : m_groups)
     if(m_collapsed.contains(key))
@@ -575,6 +607,15 @@ void ConnectionsWidget::populate(const ossia::hash_set<const QObject*>& selected
     m_view->selectionModel()->select(sel, QItemSelectionModel::ClearAndSelect);
   }
   m_syncingSelection = false;
+}
+
+void ConnectionsWidget::spanGroups()
+{
+  // The Kind column is as narrow as an icon: a group name spans the row.
+  // Filtering removes and re-adds rows, which forget it.
+  for(const auto& [g, key] : m_groups)
+    if(auto idx = m_proxy->mapFromSource(g->index()); idx.isValid())
+      m_view->setFirstColumnSpanned(idx.row(), idx.parent(), true);
 }
 
 void ConnectionsWidget::updateCounts()

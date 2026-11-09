@@ -12,6 +12,7 @@
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Dataflow/PortType.hpp>
 #include <Process/Process.hpp>
+#include <Process/ProcessList.hpp>
 
 #include <Device/Protocol/ProtocolFactoryInterface.hpp>
 #include <Device/Protocol/ProtocolList.hpp>
@@ -62,6 +63,8 @@
 #include <QTreeView>
 
 #include <catch2/catch_test_macros.hpp>
+
+#include <set>
 
 namespace
 {
@@ -1008,22 +1011,19 @@ TEST_CASE(
     const QString glutton
         = Dataflow::cableTypeName(int(Process::CableType::ImmediateGlutton));
 
-    // The type: a color square in the Kind cell, its name in the tooltip only
+    // The type: the color of the Kind cell's icon, its name in the tooltip only
     for(int row : {rc, rb, ru})
     {
       const auto kind = cell(row, ConnectionsWidget::KindColumn);
-      // A square of the type's color in the middle of the icon
-      const auto img = iconImage(kind.data(Qt::DecorationRole));
-      REQUIRE(!img.isNull());
-      CHECK(QColor{img.pixel(img.width() / 2, img.height() / 2)}
-            == Process::portBrush(Process::PortType::Audio).color());
+      CHECK(!iconImage(kind.data(Qt::DecorationRole)).isNull());
       CHECK(kind.data(ConnectionsWidget::PortTypeRole).toInt()
             == int(Process::PortType::Audio));
       CHECK(kind.data(Qt::ToolTipRole).toString().contains(audio));
       for(int c = 0; c < m.columnCount(); c++)
         CHECK(cell(row, c).data(Qt::DisplayRole).toString() != audio);
     }
-    CHECK(cell(rc, ConnectionsWidget::KindColumn).data().toString() == "Cable");
+    CHECK(cell(rc, ConnectionsWidget::KindColumn).data().toString().isEmpty());
+    CHECK(cell(rc, ConnectionsWidget::KindColumn).data(Qt::ToolTipRole).toString().contains("Cable"));
     // The mode of a cable, which had its own column
     CHECK(cell(rc, ConnectionsWidget::KindColumn)
               .data(Qt::ToolTipRole)
@@ -1085,5 +1085,215 @@ TEST_CASE(
     CHECK(w.view().columnWidth(ConnectionsWidget::StatusColumn) <= 40);
     if(const auto dir = qEnvironmentVariable("SCORE_TEST_SHOT_DIR"); !dir.isEmpty())
       w.grab().save(dir + "/connections-panel-columns-grouped.png");
+  });
+}
+
+namespace
+{
+Process::ProcessModel*
+addProcessIfBuilt(score::Document& doc, Scenario::IntervalModel& itv, const char* uuid)
+{
+  const auto key = UuidKey<Process::ProcessModel>::fromString(QString::fromLatin1(uuid));
+  if(!doc.context().app.interfaces<Process::ProcessFactoryList>().get(key))
+    return nullptr;
+  Scenario::Command::Macro m{
+      new Scenario::Command::DropProcessInIntervalMacro, doc.context()};
+  auto* proc = m.createProcessInNewSlot(itv, key, {});
+  m.commit();
+  return proc;
+}
+
+Process::Port* firstPort(const Process::ProcessModel* p, Process::PortType t, bool inlet)
+{
+  if(!p)
+    return nullptr;
+  if(inlet)
+  {
+    for(auto port : p->inlets())
+      if(port->type() == t)
+        return port;
+  }
+  else
+  {
+    for(auto port : p->outlets())
+      if(port->type() == t)
+        return port;
+  }
+  return nullptr;
+}
+
+//! The color of most of the opaque pixels of an icon
+QColor dominantColor(const QImage& src)
+{
+  const QImage img = src.convertToFormat(QImage::Format_ARGB32);
+  ossia::hash_map<QRgb, int> counts;
+  for(int y = 0; y < img.height(); y++)
+    for(int x = 0; x < img.width(); x++)
+      if(const QRgb px = img.pixel(x, y); qAlpha(px) > 200)
+        counts[qRgb(qRed(px), qGreen(px), qBlue(px))]++;
+  QRgb best{};
+  int n = 0;
+  for(auto [c, k] : counts)
+    if(k > n)
+      best = c, n = k;
+  return QColor{best};
+}
+
+//! The opaque pixels of an icon, whatever their color
+QImage shapeOf(const QImage& src)
+{
+  QImage img = src.convertToFormat(QImage::Format_ARGB32);
+  for(int y = 0; y < img.height(); y++)
+    for(int x = 0; x < img.width(); x++)
+      img.setPixel(x, y, qAlpha(img.pixel(x, y)) > 127 ? 0xff000000 : 0);
+  return img;
+}
+
+bool closeTo(QColor a, QColor b)
+{
+  return std::abs(a.red() - b.red()) <= 3 && std::abs(a.green() - b.green()) <= 3
+         && std::abs(a.blue() - b.blue()) <= 3;
+}
+}
+
+TEST_CASE(
+    "Connections panel: the Kind cell is an icon in the color of the port type",
+    "[integration][gui][dataflow]")
+{
+  score::test::run_in_gui_app([](const score::GUIApplicationContext& ctx) {
+    score::Document* doc = score::test::new_document(ctx);
+    REQUIRE(doc != nullptr);
+    auto& dm
+        = static_cast<Scenario::ScenarioDocumentModel&>(doc->model().modelDelegate());
+    auto& itv = dm.baseInterval();
+    CommandDispatcher<> disp{doc->context().commandStack};
+    using PT = Process::PortType;
+
+    // Audio: mergers. Value: LFOs. MIDI: the MIDI process. Texture: ISF filters.
+    auto* a1 = &addMerger(*doc, itv);
+    auto* a2 = &addMerger(*doc, itv);
+    auto* lfo1 = addProcessIfBuilt(*doc, itv, "0b1b1816-c33e-4796-a16d-5aab27fe600f");
+    auto* lfo2 = addProcessIfBuilt(*doc, itv, "0b1b1816-c33e-4796-a16d-5aab27fe600f");
+    auto* midi = addProcessIfBuilt(*doc, itv, "c189e507-3afa-4a53-9369-e38860e6bb2d");
+    auto* isf1 = addProcessIfBuilt(*doc, itv, "74ca45ff-92c9-44a0-8f1a-754dea05ee1b");
+    auto* isf2 = addProcessIfBuilt(*doc, itv, "74ca45ff-92c9-44a0-8f1a-754dea05ee1b");
+
+    struct Expected
+    {
+      PT type;
+      ConnectionRow::Kind kind;
+      Process::Port* port;
+    };
+    std::vector<Expected> expected;
+    auto cable = [&](Process::Port* from, Process::Port* to) {
+      if(!from || !to)
+        return;
+      const auto id = getStrongId(dm.cables);
+      disp.submit<Dataflow::CreateCable>(
+          dm, id, Process::CableType::ImmediateGlutton, *from, *to);
+      expected.push_back({from->type(), ConnectionRow::Cable, from});
+    };
+    auto bind = [&](Process::Port* port, State::Address addr) {
+      if(!port)
+        return;
+      disp.submit<Process::ChangePortAddress>(*port, State::AddressAccessor{addr});
+      expected.push_back({port->type(), ConnectionRow::Address, port});
+    };
+    cable(a1->outlets().front(), a2->inlets()[0]);
+    bind(a2->inlets()[1], State::Address{"audio", {"in", "main"}});
+    cable(firstPort(lfo1, PT::Message, false), firstPort(lfo2, PT::Message, true));
+    bind(firstPort(lfo2, PT::Message, false), State::Address{"nodevice", {"value"}});
+    bind(firstPort(midi, PT::Midi, false), State::Address{"nodevice", {"midi"}});
+    cable(firstPort(isf1, PT::Texture, false), firstPort(isf2, PT::Texture, true));
+    bind(firstPort(isf2, PT::Texture, false), State::Address{"nodevice", {"texture"}});
+
+    ConnectionsWidget w;
+    w.resize(900, 260);
+    w.setDocument(&doc->context());
+    w.show();
+    spin();
+
+    if(const auto dir = qEnvironmentVariable("SCORE_TEST_SHOT_DIR"); !dir.isEmpty())
+    {
+      QDir{}.mkpath(dir);
+      w.grab().save(dir + "/connections-panel-kinds.png");
+      w.groupingBox().setCurrentIndex(ConnectionsWidget::ByKind);
+      spin();
+      w.grab().save(dir + "/connections-panel-kinds-grouped.png");
+      w.groupingBox().setCurrentIndex(ConnectionsWidget::NoGrouping);
+      spin();
+    }
+
+    auto rowOf = [&](const Expected& e) {
+      if(e.kind == ConnectionRow::Address)
+        return rowOfPort(w, *e.port);
+      for(int i = 0; i < std::ssize(w.rows()); i++)
+        if(w.rows()[i].kind == ConnectionRow::Cable && w.rows()[i].sourcePort == e.port)
+          return i;
+      return -1;
+    };
+
+    std::set<PT> types;
+    ossia::hash_map<int, QImage> shapes;
+    for(const auto& e : expected)
+    {
+      INFO("type " << int(e.type) << " kind " << int(e.kind));
+      const int row = rowOf(e);
+      REQUIRE(row >= 0);
+      types.insert(e.type);
+      const auto kind = w.viewIndexOf(row).siblingAtColumn(ConnectionsWidget::KindColumn);
+
+      // An icon without text, in the color of the type
+      CHECK(kind.data(Qt::DisplayRole).toString().isEmpty());
+      const auto img = kind.data(Qt::DecorationRole).value<QIcon>().pixmap(QSize{16, 16}).toImage();
+      REQUIRE(!img.isNull());
+      CHECK(closeTo(dominantColor(img), Process::portBrush(e.type).color()));
+      // A sharper image for HiDPI screens
+      CHECK(kind.data(Qt::DecorationRole).value<QIcon>().availableSizes().size() >= 2);
+
+      // The words, in the tooltip and found by the search
+      const QString tip = kind.data(Qt::ToolTipRole).toString();
+      const QString word = e.kind == ConnectionRow::Cable ? "Cable" : "Address";
+      CHECK(tip.contains(word));
+      CHECK(tip.contains(Dataflow::portTypeName(e.type)));
+      w.searchField().setText(Dataflow::portTypeName(e.type));
+      spin();
+      CHECK(w.viewIndexOf(row).isValid());
+      w.searchField().setText(word);
+      spin();
+      CHECK(w.viewIndexOf(row).isValid());
+      w.searchField().clear();
+      spin();
+
+      shapes[int(e.type) * 2 + int(e.kind)] = shapeOf(img);
+    }
+    // Every type the plug-ins of this build provide
+    CHECK(types.contains(PT::Audio));
+    if(lfo1 && lfo2)
+      CHECK(types.contains(PT::Message));
+    if(midi)
+      CHECK(types.contains(PT::Midi));
+    if(isf1 && isf2)
+      CHECK(types.contains(PT::Texture));
+
+    // One shape for cables, another for addresses, whatever the type
+    const auto cableShape = shapes.at(int(PT::Audio) * 2 + int(ConnectionRow::Cable));
+    const auto addressShape = shapes.at(int(PT::Audio) * 2 + int(ConnectionRow::Address));
+    CHECK(cableShape != addressShape);
+    for(auto& [key, shape] : shapes)
+      CHECK(shape == (key % 2 == int(ConnectionRow::Cable) ? cableShape : addressShape));
+
+    // Narrow: as wide as an icon and the tree's indentation
+    CHECK(w.view().columnWidth(ConnectionsWidget::KindColumn)
+          <= w.view().indentation() + 40);
+    CHECK(w.view().model()->headerData(ConnectionsWidget::KindColumn, Qt::Horizontal, Qt::ToolTipRole).toString()
+          == "Kind");
+
+    // Grouped: the group names are not cut by the narrow column
+    w.groupingBox().setCurrentIndex(ConnectionsWidget::ByKind);
+    spin();
+    auto& m = *w.view().model();
+    for(int i = 0; i < m.rowCount(); i++)
+      CHECK(w.view().isFirstColumnSpanned(i, {}));
   });
 }
