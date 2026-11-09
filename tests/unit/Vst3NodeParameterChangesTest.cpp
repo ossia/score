@@ -51,6 +51,9 @@ public:
   int32 event_inputs{};
   //! Whether each process() call was given a list of input events
   std::vector<bool> had_events;
+  //! The values each process() call set its parameters to, read as JUCE's
+  //! wrapper reads them: the last point of every queue it is given
+  std::vector<std::vector<point>> applied;
 
   tresult PLUGIN_API queryInterface(const TUID, void** obj) override
   {
@@ -111,9 +114,20 @@ public:
   tresult PLUGIN_API process(ProcessData& data) override
   {
     auto& block = received.emplace_back();
+    auto& set = applied.emplace_back();
     had_events.push_back(data.inputEvents != nullptr);
     if(auto* in = data.inputParameterChanges)
     {
+      for(int32 i = 0; i < in->getParameterCount(); i++)
+      {
+        if(auto* q = in->getParameterData(i))
+        {
+          point p{q->getParameterId()};
+          if(q->getPoint(q->getPointCount() - 1, p.offset, p.value) == kResultTrue)
+            set.push_back(p);
+        }
+      }
+
       for(int32 i = 0; i < in->getParameterCount(); i++)
       {
         auto* q = in->getParameterData(i);
@@ -462,4 +476,24 @@ TEST_CASE(
   REQUIRE(f.fx.had_events.size() == 4);
   for(bool had : f.fx.had_events)
     CHECK(had);
+}
+
+TEST_CASE(
+    "VST3: a parameter the host does not change is not set again", "[vst3][parameters]")
+{
+  fixture f;
+  const auto queue = f.node->add_control(new ossia::value_inlet, 7, 0.5f);
+  f.node->add_control(new ossia::value_inlet, 8, 0.5f);
+
+  f.tick();
+  CHECK(f.fx.applied.back().empty());
+
+  f.node->set_control(queue, 0.25f);
+  f.tick();
+  CHECK(f.fx.applied.back() == std::vector<point>{{7, 0, 0.25}});
+
+  // The plug-in may have changed it since, from its own editor or its
+  // processor: the value the host sent last must not undo that
+  f.tick();
+  CHECK(f.fx.applied.back().empty());
 }

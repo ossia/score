@@ -52,14 +52,9 @@ public:
       Steinberg::int32 index, Steinberg::int32& sampleOffset,
       Steinberg::Vst::ParamValue& value) override
   {
-    if(ossia::valid_index(index, data))
-      std::tie(sampleOffset, value) = data[index];
-    else if(index == -1)
-    {
-      sampleOffset = 0;
-      value = lastValue;
-    }
-
+    if(!ossia::valid_index(index, data))
+      return Steinberg::kInvalidArgument;
+    std::tie(sampleOffset, value) = data[index];
     return Steinberg::kResultOk;
   }
 
@@ -82,10 +77,43 @@ public:
   }
 };
 
+//! The parameter changes given to a plug-in in one process() call: a queue
+//! per parameter the host may change, of which the plug-in only sees those
+//! with points in the block. A plug-in reads the last point of each queue it
+//! is given as the new value of its parameter, so a queue without one would
+//! set the parameter back, every block, to whatever the host last sent.
 class param_changes final : public Steinberg::Vst::IParameterChanges
 {
 public:
   std::vector<param_queue> queues;
+
+  //! The queues the plug-in sees, by index in queues
+  std::vector<std::size_t> changed;
+
+  //! Its storage is made here, so that collect() does not allocate
+  std::size_t add_queue(Steinberg::Vst::ParamID id)
+  {
+    queues.emplace_back(id);
+    changed.reserve(queues.size());
+    return queues.size() - 1;
+  }
+
+  //! Lists the queues with points, for the process() call to come
+  void collect() noexcept
+  {
+    changed.clear();
+    for(std::size_t i = 0; i < queues.size(); i++)
+      if(!queues[i].data.empty())
+        changed.push_back(i);
+  }
+
+  void clear() noexcept
+  {
+    for(auto& queue : queues)
+      queue.data.clear();
+    changed.clear();
+  }
+
   Steinberg::tresult PLUGIN_API queryInterface(const Steinberg::TUID _iid, void** obj) override
   {
     return Steinberg::kResultOk;
@@ -93,19 +121,21 @@ public:
   Steinberg::uint32 PLUGIN_API addRef() override { return 1; }
   Steinberg::uint32 PLUGIN_API release() override { return 1; }
 
-  Steinberg::int32 PLUGIN_API getParameterCount() override { return queues.size(); }
+  Steinberg::int32 PLUGIN_API getParameterCount() override { return changed.size(); }
 
   param_queue* PLUGIN_API getParameterData(Steinberg::int32 index) override
   {
-    return &queues[index];
+    if(!ossia::valid_index(index, changed))
+      return nullptr;
+    return &queues[changed[index]];
   }
 
+  //! The changes are the host's to write
   param_queue* PLUGIN_API addParameterData(
       const Steinberg::Vst::ParamID& id, Steinberg::int32& index /*out*/) override
   {
-    index = queues.size();
-    queues.emplace_back(id);
-    return &queues.back();
+    index = -1;
+    return nullptr;
   }
 };
 
@@ -322,9 +352,7 @@ protected:
     {
       if(queue_map.find(pid) != queue_map.end())
         continue;
-      const auto idx = m_inputChanges.queues.size();
-      m_inputChanges.queues.emplace_back(pid);
-      queue_map[pid] = idx;
+      queue_map[pid] = m_inputChanges.add_queue(pid);
     }
   }
 
@@ -367,8 +395,7 @@ public:
     }
 
     // FIXME this allocates a lot :[
-    auto queue_idx = this->m_inputChanges.queues.size();
-    this->m_inputChanges.queues.emplace_back(id);
+    auto queue_idx = this->m_inputChanges.add_queue(id);
     this->m_inputChanges.queues.back().lastValue = v;
 
     queue_map[id] = queue_idx;
@@ -592,11 +619,7 @@ public:
   //! blocks. A DPF plug-in turns a change of its program parameter into a
   //! MIDI program change, so a change it kept seeing would reload the program
   //! every block, undoing any program picked in its own editor.
-  void clearInputChanges() noexcept
-  {
-    for(auto& queue : m_inputChanges.queues)
-      queue.data.clear();
-  }
+  void clearInputChanges() noexcept { m_inputChanges.clear(); }
 
   //! Hands the values the plug-in reported for its parameters over to the UI,
   //! the last of each block, and empties the output changes for the next
@@ -846,6 +869,7 @@ public:
       memcpy(&dat, &m_vstData, sizeof(m_vstData));
       dat.inputEvents = &m_inputEvents;
       dat.numSamples = samples;
+      m_inputChanges.collect();
 
       {
         double** input{};
@@ -912,6 +936,7 @@ public:
       this->setupTimeInfo(tk, st);
 
       this->dispatchMidi(tick_start, samples);
+      m_inputChanges.collect();
 
       if constexpr(UseDouble)
       {
