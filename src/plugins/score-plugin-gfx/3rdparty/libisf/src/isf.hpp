@@ -1040,6 +1040,18 @@ struct descriptor
   // Every PASSES entry read as a dispatch, in authored order; parse_csf
   // makes it csf_passes (a header key handler cannot know the MODE).
   std::vector<dispatch_info> csf_pass_candidates;
+  // REPEAT groups of a compute shader's PASSES, parents before children:
+  // the passes [first, end) run `count` times in a row inside the group
+  // `parent` (-1: at the top level). `count` is a literal or an expression.
+  // ITERATIONINDEX is the innermost group's iteration.
+  struct pass_repeat
+  {
+    int parent{-1};
+    std::size_t first{};
+    std::size_t end{};
+    std::string count;
+  };
+  std::vector<pass_repeat> csf_repeats;
   // The CSF's own code names gl_NumWorkGroups / isf_NumWorkGroups.
   bool csf_reads_num_workgroups{};
 

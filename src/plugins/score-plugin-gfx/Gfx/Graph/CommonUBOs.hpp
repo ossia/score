@@ -42,7 +42,8 @@ struct alignas(4) ProcessUBO
 
   // The view index a lowered MULTIVIEW shader reads instead of gl_ViewIndex
   // (ShaderCache's pass-per-view fallback): the face / layer this pass
-  // renders. 0 everywhere else.
+  // renders. In a compute pass, the iteration of its innermost REPEAT group
+  // (ITERATIONINDEX). 0 everywhere else.
   int32_t viewIndex{};
 };
 
