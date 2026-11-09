@@ -2290,6 +2290,10 @@ score_add_gfx_test(csf_attribute_default GfxCsfAttributeDefault.cpp)
 # GPU draw records and counts, zero instances and no upstream.
 score_add_gfx_test(csf_geometry_runtime GfxCsfGeometryRuntime.cpp)
 
+# CSF REPEAT groups: every dispatch reads its own PASSINDEX and ITERATIONINDEX,
+# with a control count, a zero count, nesting and a count changed mid-run.
+score_add_gfx_test(csf_repeat GfxCsfRepeat.cpp)
+
 # A CSF storage buffer too large to allocate stops the node's passes.
 score_add_gfx_test(csf_storage_too_large GfxCsfStorageTooLarge.cpp)
 

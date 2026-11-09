@@ -3577,229 +3577,265 @@ static const ossia::string_map<root_fun>& root_parse{[] {
 
   p.insert({"PASSES", [](descriptor& d, const sajson::value& v) {
     using namespace std::literals;
-    if(v.get_type() == sajson::TYPE_ARRAY)
-    {
-      std::size_t n = v.get_length();
-      for(std::size_t i = 0; i < n; i++)
+    // A REPEAT group's passes are read in place, as the leaves they are;
+    // `group` is the innermost group being read, -1 at the top level.
+    auto read_passes = [&](auto& self, const sajson::value& list, int group) -> void {
+      if(list.get_type() == sajson::TYPE_ARRAY)
       {
-        auto obj = v.get_array_element(i);
-        if(obj.get_type() == sajson::TYPE_OBJECT)
+        std::size_t n = list.get_length();
+        for(std::size_t i = 0; i < n; i++)
         {
-          // A pass with LOCAL_SIZE is a CSF dispatch pass. Every pass is also
-          // read as one, in authored order, into csf_pass_candidates: in a
-          // COMPUTE_SHADER (whose MODE may come after PASSES) parse_csf takes
-          // that list, so a pass without LOCAL_SIZE is a compute pass there
-          // too, with the default local size.
-          const auto ls_k = obj.find_object_key_insensitive(sajson::literal("LOCAL_SIZE"));
-          const bool has_local_size = ls_k != obj.get_length();
+          auto obj = list.get_array_element(i);
+          if(obj.get_type() == sajson::TYPE_OBJECT)
           {
-            descriptor::dispatch_info dispatch;
-
-            // Parse LOCAL_SIZE
-            if(has_local_size)
+            if(const auto repeat_k = obj.find_object_key_insensitive(sajson::literal("REPEAT"));
+               repeat_k != obj.get_length())
             {
-              auto ls_val = obj.get_object_value(ls_k);
-              if(ls_val.get_type() == sajson::TYPE_ARRAY && ls_val.get_length() >= 3)
-              {
-                for(int idx = 0; idx < 3; idx++)
-                {
-                  auto elem = ls_val.get_array_element(idx);
-                  if(elem.get_type() == sajson::TYPE_INTEGER)
-                    dispatch.local_size[idx] = elem.get_integer_value();
-                }
-              }
+              const auto count = obj.get_object_value(repeat_k);
+              const auto passes_k = obj.find_object_key_insensitive(sajson::literal("PASSES"));
+              if(passes_k == obj.get_length()
+                 || obj.get_object_value(passes_k).get_type() != sajson::TYPE_ARRAY
+                 || obj.get_object_value(passes_k).get_length() == 0)
+                throw invalid_file{"A REPEAT group needs a non-empty PASSES array."};
+              descriptor::pass_repeat r;
+              r.parent = group;
+              r.first = d.csf_pass_candidates.size();
+              if(count.get_type() == sajson::TYPE_INTEGER && count.get_integer_value() >= 0)
+                r.count = std::to_string(count.get_integer_value());
+              else if(count.get_type() == sajson::TYPE_STRING && !count.as_string().empty())
+                r.count = count.as_string();
+              else
+                throw invalid_file{
+                    "REPEAT is a count: an integer of at least 0 or an expression."};
+              const int index = d.csf_repeats.size();
+              d.csf_repeats.push_back(std::move(r));
+              self(self, obj.get_object_value(passes_k), index);
+              d.csf_repeats[index].end = d.csf_pass_candidates.size();
+              if(d.csf_repeats[index].end == d.csf_repeats[index].first)
+                throw invalid_file{"A REPEAT group needs a non-empty PASSES array."};
+              continue;
             }
+            if(group >= 0 && obj.find_object_key_insensitive(sajson::literal("LOCAL_SIZE"))
+                                 == obj.get_length())
+              throw invalid_file{"The passes of a REPEAT group are compute passes: give them a LOCAL_SIZE."};
 
-            // Parse EXECUTION_MODEL
-            if(auto em_k
-               = obj.find_object_key_insensitive(sajson::literal("EXECUTION_MODEL"));
-               em_k != obj.get_length())
+            // A pass with LOCAL_SIZE is a CSF dispatch pass. Every pass is also
+            // read as one, in authored order, into csf_pass_candidates: in a
+            // COMPUTE_SHADER (whose MODE may come after PASSES) parse_csf takes
+            // that list, so a pass without LOCAL_SIZE is a compute pass there
+            // too, with the default local size.
+            const auto ls_k = obj.find_object_key_insensitive(sajson::literal("LOCAL_SIZE"));
+            const bool has_local_size = ls_k != obj.get_length();
             {
-              auto em_val = obj.get_object_value(em_k);
-              if(em_val.get_type() == sajson::TYPE_OBJECT)
+              descriptor::dispatch_info dispatch;
+
+              // Parse LOCAL_SIZE
+              if(has_local_size)
               {
-                // Parse TYPE
-                if(auto type_k
-                   = em_val.find_object_key_insensitive(sajson::literal("TYPE"));
-                   type_k != em_val.get_length())
+                auto ls_val = obj.get_object_value(ls_k);
+                if(ls_val.get_type() == sajson::TYPE_ARRAY && ls_val.get_length() >= 3)
                 {
-                  auto type_val = em_val.get_object_value(type_k);
-                  if(type_val.get_type() == sajson::TYPE_STRING)
-                    dispatch.execution_type = upper_value(type_val);
-                }
-
-                // Parse TARGET
-                if(auto target_k
-                   = em_val.find_object_key_insensitive(sajson::literal("TARGET"));
-                   target_k != em_val.get_length())
-                {
-                  auto target_val = em_val.get_object_value(target_k);
-                  if(target_val.get_type() == sajson::TYPE_STRING)
-                    dispatch.target_resource = target_val.as_string();
-                }
-
-                // Parse STRIDE (legacy, sets X only) and STRIDE_X/Y/Z (per-axis, supports formulas)
-                if(auto stride_k
-                   = em_val.find_object_key_insensitive(sajson::literal("STRIDE"));
-                   stride_k != em_val.get_length())
-                {
-                  auto stride_val = em_val.get_object_value(stride_k);
-                  if(stride_val.get_type() == sajson::TYPE_INTEGER)
-                    dispatch.stride[0] = std::to_string(stride_val.get_integer_value());
-                  else if(stride_val.get_type() == sajson::TYPE_STRING)
-                    dispatch.stride[0] = stride_val.as_string();
-                }
-                {
-                  auto parse_stride_axis = [&](const sajson::string& key, int axis) {
-                    if(auto sk = em_val.find_object_key_insensitive(key);
-                       sk != em_val.get_length())
-                    {
-                      auto sv = em_val.get_object_value(sk);
-                      if(sv.get_type() == sajson::TYPE_INTEGER)
-                        dispatch.stride[axis] = std::to_string(sv.get_integer_value());
-                      else if(sv.get_type() == sajson::TYPE_STRING)
-                        dispatch.stride[axis] = sv.as_string();
-                    }
-                  };
-                  parse_stride_axis(sajson::literal("STRIDE_X"), 0);
-                  parse_stride_axis(sajson::literal("STRIDE_Y"), 1);
-                  parse_stride_axis(sajson::literal("STRIDE_Z"), 2);
-                }
-
-                // Parse WORKGROUPS
-                if(auto wg_k
-                   = em_val.find_object_key_insensitive(sajson::literal("WORKGROUPS"));
-                   wg_k != em_val.get_length())
-                {
-                  auto wg_val = em_val.get_object_value(wg_k);
-                  if(wg_val.get_type() == sajson::TYPE_ARRAY && wg_val.get_length() >= 3)
+                  for(int idx = 0; idx < 3; idx++)
                   {
-                    for(int idx = 0; idx < 3; idx++)
-                    {
-                      auto elem = wg_val.get_array_element(idx);
-                      if(elem.get_type() == sajson::TYPE_INTEGER)
-                        dispatch.workgroups[idx] = elem.get_integer_value();
-                    }
+                    auto elem = ls_val.get_array_element(idx);
+                    if(elem.get_type() == sajson::TYPE_INTEGER)
+                      dispatch.local_size[idx] = elem.get_integer_value();
                   }
                 }
-                if(auto off_k
-                   = em_val.find_object_key_insensitive(sajson::literal("OFFSET"));
-                   off_k != em_val.get_length())
+              }
+
+              // Parse EXECUTION_MODEL
+              if(auto em_k
+                 = obj.find_object_key_insensitive(sajson::literal("EXECUTION_MODEL"));
+                 em_k != obj.get_length())
+              {
+                auto em_val = obj.get_object_value(em_k);
+                if(em_val.get_type() == sajson::TYPE_OBJECT)
                 {
-                  auto off_val = em_val.get_object_value(off_k);
-                  if(off_val.get_type() == sajson::TYPE_INTEGER)
-                    dispatch.indirect_byte_offset = off_val.get_integer_value();
+                  // Parse TYPE
+                  if(auto type_k
+                     = em_val.find_object_key_insensitive(sajson::literal("TYPE"));
+                     type_k != em_val.get_length())
+                  {
+                    auto type_val = em_val.get_object_value(type_k);
+                    if(type_val.get_type() == sajson::TYPE_STRING)
+                      dispatch.execution_type = upper_value(type_val);
+                  }
+
+                  // Parse TARGET
+                  if(auto target_k
+                     = em_val.find_object_key_insensitive(sajson::literal("TARGET"));
+                     target_k != em_val.get_length())
+                  {
+                    auto target_val = em_val.get_object_value(target_k);
+                    if(target_val.get_type() == sajson::TYPE_STRING)
+                      dispatch.target_resource = target_val.as_string();
+                  }
+
+                  // Parse STRIDE (legacy, sets X only) and STRIDE_X/Y/Z (per-axis, supports formulas)
+                  if(auto stride_k
+                     = em_val.find_object_key_insensitive(sajson::literal("STRIDE"));
+                     stride_k != em_val.get_length())
+                  {
+                    auto stride_val = em_val.get_object_value(stride_k);
+                    if(stride_val.get_type() == sajson::TYPE_INTEGER)
+                      dispatch.stride[0] = std::to_string(stride_val.get_integer_value());
+                    else if(stride_val.get_type() == sajson::TYPE_STRING)
+                      dispatch.stride[0] = stride_val.as_string();
+                  }
+                  {
+                    auto parse_stride_axis = [&](const sajson::string& key, int axis) {
+                      if(auto sk = em_val.find_object_key_insensitive(key);
+                         sk != em_val.get_length())
+                      {
+                        auto sv = em_val.get_object_value(sk);
+                        if(sv.get_type() == sajson::TYPE_INTEGER)
+                          dispatch.stride[axis] = std::to_string(sv.get_integer_value());
+                        else if(sv.get_type() == sajson::TYPE_STRING)
+                          dispatch.stride[axis] = sv.as_string();
+                      }
+                    };
+                    parse_stride_axis(sajson::literal("STRIDE_X"), 0);
+                    parse_stride_axis(sajson::literal("STRIDE_Y"), 1);
+                    parse_stride_axis(sajson::literal("STRIDE_Z"), 2);
+                  }
+
+                  // Parse WORKGROUPS
+                  if(auto wg_k
+                     = em_val.find_object_key_insensitive(sajson::literal("WORKGROUPS"));
+                     wg_k != em_val.get_length())
+                  {
+                    auto wg_val = em_val.get_object_value(wg_k);
+                    if(wg_val.get_type() == sajson::TYPE_ARRAY && wg_val.get_length() >= 3)
+                    {
+                      for(int idx = 0; idx < 3; idx++)
+                      {
+                        auto elem = wg_val.get_array_element(idx);
+                        if(elem.get_type() == sajson::TYPE_INTEGER)
+                          dispatch.workgroups[idx] = elem.get_integer_value();
+                      }
+                    }
+                  }
+                  if(auto off_k
+                     = em_val.find_object_key_insensitive(sajson::literal("OFFSET"));
+                     off_k != em_val.get_length())
+                  {
+                    auto off_val = em_val.get_object_value(off_k);
+                    if(off_val.get_type() == sajson::TYPE_INTEGER)
+                      dispatch.indirect_byte_offset = off_val.get_integer_value();
+                  }
                 }
               }
-            }
 
-            d.csf_pass_candidates.push_back(dispatch);
-            if(has_local_size)
-            {
-              d.mode = descriptor::CSF;
-              d.csf_passes.push_back(std::move(dispatch));
-            }
-          }
-          if(!has_local_size)
-          {
-            // This is an ISF pass
-            pass p;
-            if(auto target_k
-               = obj.find_object_key_insensitive(sajson::literal("TARGET"));
-               target_k != obj.get_length())
-            {
-              if(get_str(obj.get_object_value(target_k), p.target)
-                 && !p.target.empty())
+              d.csf_pass_candidates.push_back(dispatch);
+              if(has_local_size)
               {
-                d.pass_targets.push_back(p.target);
+                d.mode = descriptor::CSF;
+                d.csf_passes.push_back(std::move(dispatch));
               }
             }
-
-            if(auto persistent_k
-               = obj.find_object_key_insensitive(sajson::literal("PERSISTENT"));
-               persistent_k != obj.get_length())
+            if(!has_local_size)
             {
-              p.persistent
-                  = obj.get_object_value(persistent_k).get_type() == sajson::TYPE_TRUE;
+              // This is an ISF pass
+              pass p;
+              if(auto target_k
+                 = obj.find_object_key_insensitive(sajson::literal("TARGET"));
+                 target_k != obj.get_length())
+              {
+                if(get_str(obj.get_object_value(target_k), p.target)
+                   && !p.target.empty())
+                {
+                  d.pass_targets.push_back(p.target);
+                }
+              }
+
+              if(auto persistent_k
+                 = obj.find_object_key_insensitive(sajson::literal("PERSISTENT"));
+                 persistent_k != obj.get_length())
+              {
+                p.persistent
+                    = obj.get_object_value(persistent_k).get_type() == sajson::TYPE_TRUE;
+              }
+
+              if(auto float_k = obj.find_object_key_insensitive(sajson::literal("FLOAT"));
+                 float_k != obj.get_length())
+              {
+                p.float_storage
+                    = obj.get_object_value(float_k).get_type() == sajson::TYPE_TRUE;
+              }
+
+              if(auto float_k = obj.find_object_key_insensitive(sajson::literal("FILTER"));
+                 float_k != obj.get_length())
+              {
+                const auto& val = obj.get_object_value(float_k);
+                p.nearest_filter = val.get_type() == sajson::TYPE_STRING
+                                   && boost::algorithm::iequals(val.as_string(), "nearest");
+              }
+
+              if(auto width_k = obj.find_object_key_insensitive(sajson::literal("WIDTH"));
+                 width_k != obj.get_length())
+                get_size_expression(obj.get_object_value(width_k), p.width_expression);
+
+              if(auto height_k
+                 = obj.find_object_key_insensitive(sajson::literal("HEIGHT"));
+                 height_k != obj.get_length())
+                get_size_expression(obj.get_object_value(height_k), p.height_expression);
+
+              // LAYER: render to a specific layer of a texture-array output.
+              if(auto layer_k
+                 = obj.find_object_key_insensitive(sajson::literal("LAYER"));
+                 layer_k != obj.get_length())
+              {
+                int lyr{};
+                if(get_int(obj.get_object_value(layer_k), lyr))
+                  p.layer = lyr;
+              }
+
+              // Z: render to a specific Z-slice of a 3D target. Stored as an
+              // expression so it can reference $USER or input sizes; resolved
+              // at render time.
+              if(auto z_k = obj.find_object_key_insensitive(sajson::literal("Z"));
+                 z_k != obj.get_length())
+              {
+                auto t = obj.get_object_value(z_k).get_type();
+                if(t == sajson::TYPE_STRING)
+                  p.z_expression = obj.get_object_value(z_k).as_string();
+                else if(t == sajson::TYPE_INTEGER)
+                  p.z_expression
+                      = std::to_string(obj.get_object_value(z_k).get_integer_value());
+                else if(t == sajson::TYPE_DOUBLE)
+                  p.z_expression
+                      = std::to_string((int)obj.get_object_value(z_k).get_double_value());
+              }
+
+              // FORMAT: override the intermediate-render-target format for
+              // this pass only. Useful for separable-filter chains where one
+              // intermediate wants extra precision (rgba16f) but the final
+              // output is RGBA8.
+              if(auto fmt_k
+                 = obj.find_object_key_insensitive(sajson::literal("FORMAT"));
+                 fmt_k != obj.get_length())
+              {
+                auto v2 = obj.get_object_value(fmt_k);
+                if(v2.get_type() == sajson::TYPE_STRING)
+                  p.format = lower_value(v2);
+              }
+
+              // PIPELINE_STATE: per-pass pipeline state overrides.
+              if(auto ps_k
+                 = obj.find_object_key_insensitive(sajson::literal("PIPELINE_STATE"));
+                 ps_k != obj.get_length())
+              {
+                parse_pipeline_state(obj.get_object_value(ps_k), p.override_state);
+              }
+
+              d.passes.push_back(std::move(p));
             }
-
-            if(auto float_k = obj.find_object_key_insensitive(sajson::literal("FLOAT"));
-               float_k != obj.get_length())
-            {
-              p.float_storage
-                  = obj.get_object_value(float_k).get_type() == sajson::TYPE_TRUE;
-            }
-
-            if(auto float_k = obj.find_object_key_insensitive(sajson::literal("FILTER"));
-               float_k != obj.get_length())
-            {
-              const auto& val = obj.get_object_value(float_k);
-              p.nearest_filter = val.get_type() == sajson::TYPE_STRING
-                                 && boost::algorithm::iequals(val.as_string(), "nearest");
-            }
-
-            if(auto width_k = obj.find_object_key_insensitive(sajson::literal("WIDTH"));
-               width_k != obj.get_length())
-              get_size_expression(obj.get_object_value(width_k), p.width_expression);
-
-            if(auto height_k
-               = obj.find_object_key_insensitive(sajson::literal("HEIGHT"));
-               height_k != obj.get_length())
-              get_size_expression(obj.get_object_value(height_k), p.height_expression);
-
-            // LAYER: render to a specific layer of a texture-array output.
-            if(auto layer_k
-               = obj.find_object_key_insensitive(sajson::literal("LAYER"));
-               layer_k != obj.get_length())
-            {
-              int lyr{};
-              if(get_int(obj.get_object_value(layer_k), lyr))
-                p.layer = lyr;
-            }
-
-            // Z: render to a specific Z-slice of a 3D target. Stored as an
-            // expression so it can reference $USER or input sizes; resolved
-            // at render time.
-            if(auto z_k = obj.find_object_key_insensitive(sajson::literal("Z"));
-               z_k != obj.get_length())
-            {
-              auto t = obj.get_object_value(z_k).get_type();
-              if(t == sajson::TYPE_STRING)
-                p.z_expression = obj.get_object_value(z_k).as_string();
-              else if(t == sajson::TYPE_INTEGER)
-                p.z_expression
-                    = std::to_string(obj.get_object_value(z_k).get_integer_value());
-              else if(t == sajson::TYPE_DOUBLE)
-                p.z_expression
-                    = std::to_string((int)obj.get_object_value(z_k).get_double_value());
-            }
-
-            // FORMAT: override the intermediate-render-target format for
-            // this pass only. Useful for separable-filter chains where one
-            // intermediate wants extra precision (rgba16f) but the final
-            // output is RGBA8.
-            if(auto fmt_k
-               = obj.find_object_key_insensitive(sajson::literal("FORMAT"));
-               fmt_k != obj.get_length())
-            {
-              auto v2 = obj.get_object_value(fmt_k);
-              if(v2.get_type() == sajson::TYPE_STRING)
-                p.format = lower_value(v2);
-            }
-
-            // PIPELINE_STATE: per-pass pipeline state overrides.
-            if(auto ps_k
-               = obj.find_object_key_insensitive(sajson::literal("PIPELINE_STATE"));
-               ps_k != obj.get_length())
-            {
-              parse_pipeline_state(obj.get_object_value(ps_k), p.override_state);
-            }
-
-            d.passes.push_back(std::move(p));
           }
         }
       }
-    }
+    };
+    read_passes(read_passes, v, -1);
   }});
 
   p.insert({"OUTPUTS", [](descriptor& d, const sajson::value& v) {
@@ -4526,6 +4562,7 @@ static void check_input_names(const descriptor& d)
   // Built-in uniforms and macros of the generated preludes.
   static const ossia::flat_set<std::string_view> engine_names{
       "TIME", "TIMEDELTA", "PROGRESS", "SAMPLERATE", "PASSINDEX", "FRAMEINDEX",
+      "ITERATIONINDEX",
       "RENDERSIZE", "DATE", "MSAA_SAMPLES", "NUM_VIEWS", "VIEW_INDEX", "LAYER_INDEX",
       "MODEL_MATRIX", "VIEW_MATRIX", "PROJECTION_MATRIX", "VIEWPROJECTION_MATRIX",
       "CAMERA_POSITION", "PRIMITIVE_ID", "BARYCENTRIC", "TEX_DIMENSIONS",
@@ -9077,6 +9114,9 @@ void parser::parse_csf()
 
   // Add standard ProcessUBO uniforms (same as ISF/VSA)
   m_fragment += GLSL45.defaultUniforms;
+  // Compute passes have no views: the view index slot holds the iteration of
+  // the innermost REPEAT group a pass belongs to.
+  m_fragment += "#define ITERATIONINDEX isf_process_uniforms.VIEWINDEX_\n";
   m_fragment += "\n";
 
   // Storage-image and sampling macros. A CSF that uses them is orientation-

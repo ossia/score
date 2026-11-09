@@ -8,6 +8,8 @@
 #include <ossia/detail/small_flat_map.hpp>
 #include <ossia/detail/small_vector.hpp>
 
+#include <optional>
+
 namespace ossia { class math_expression; }
 
 namespace score::gfx
@@ -163,7 +165,34 @@ private:
     // previous frame. 0 = "never built / unknown" — first call always
     // rebuilds. See RenderedCSFNode.cpp recreateShaderResourceBindings.
     size_t srbBindingsHash{0};
+    //! ProcessUBO slices processUBO holds: with REPEAT groups, one per
+    //! dispatch of the pass in a frame, read through a dynamic offset.
+    uint32_t uboSlices{1};
   };
+
+  //! REPEAT groups (isf::descriptor::csf_repeats) unrolled for this frame: each
+  //! dispatch in order, the ITERATIONINDEX it reads and the slice of its pass's
+  //! ProcessUBO it reads it from.
+  struct ScheduledDispatch
+  {
+    uint32_t pass{};
+    int32_t iteration{};
+    uint32_t slice{};
+  };
+  std::vector<ScheduledDispatch> m_schedule;
+  //! Dispatches of each pass in m_schedule.
+  std::vector<uint32_t> m_passDispatches;
+  std::vector<int64_t> m_repeatCounts;
+  //! A REPEAT count did not resolve to a dispatch count: no pass runs.
+  bool m_scheduleRefused{false};
+  std::string m_scheduleRefusal;
+  //! Byte distance between two ProcessUBO slices.
+  uint32_t m_uboStride{};
+  bool hasRepeats() const noexcept;
+  void buildSchedule();
+  void ensureProcessUBOSlices(RenderList& renderer);
+  QRhiShaderResourceBinding processUBOBinding(QRhiBuffer* ubo) const noexcept;
+  std::optional<double> evaluateExpression(const std::string& expr) const;
 
   struct GraphicsPass
   {
