@@ -32,6 +32,7 @@
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentView.hpp>
+#include <Scenario/Document/Minimap/Minimap.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 
 #include <Dataflow/Commands/EditConnection.hpp>
@@ -74,6 +75,7 @@
 #include <QSortFilterProxyModel>
 #include <QTreeView>
 
+#include <catch2/catch_approx.hpp>
 #include <catch2/catch_test_macros.hpp>
 
 #include <set>
@@ -1649,5 +1651,158 @@ TEST_CASE(
     tree.clearSelection();
     doubleClickCell(w, rowOfPort(w, bound), ConnectionsWidget::ToColumn);
     CHECK(tree.selectionModel()->selectedRows().empty());
+  });
+}
+
+TEST_CASE(
+    "Connections panel: going to a port of a timeline slot out of the time window scrolls to it",
+    "[integration][gui][dataflow]")
+{
+  score::test::run_in_gui_app([](const score::GUIApplicationContext& ctx) {
+    ShownMainWindow shown{ctx};
+    score::Document* doc = score::test::new_document(ctx);
+    REQUIRE(doc != nullptr);
+    auto& dm
+        = static_cast<Scenario::ScenarioDocumentModel&>(doc->model().modelDelegate());
+    auto& base = dm.baseInterval();
+    auto presenter
+        = score::IDocument::try_presenterDelegate<Scenario::ScenarioDocumentPresenter>(
+            *doc);
+    REQUIRE(presenter != nullptr);
+    auto sview
+        = qobject_cast<Scenario::ScenarioDocumentView*>(&doc->view()->viewDelegate());
+    REQUIRE(sview);
+
+    Scenario::ProcessModel* scenario{};
+    for(auto& p : base.processes)
+      if((scenario = qobject_cast<Scenario::ProcessModel*>(&p)))
+        break;
+    REQUIRE(scenario != nullptr);
+    Scenario::IntervalModel* box{};
+    {
+      Scenario::Command::Macro m{
+          new Scenario::Command::DropProcessInIntervalMacro, doc->context()};
+      box = &m.createBox(*scenario, TimeVal::fromMsecs(2000), TimeVal::fromMsecs(60000), 0.6);
+      m.commit();
+    }
+    REQUIRE(box != nullptr);
+
+    // Automations have a timeline slot whose header holds their ports; LFOs
+    // are nodes, with value inlets
+    const char* automationUuid = "d2a67bd8-5d3f-404e-b6e9-e350cf2a833f";
+    const char* lfoUuid = "0b1b1816-c33e-4796-a16d-5aab27fe600f";
+    auto* rootAutomation = addProcessIfBuilt(*doc, base, automationUuid);
+    auto* boxAutomation = addProcessIfBuilt(*doc, *box, automationUuid);
+    auto* lfo = addProcessIfBuilt(*doc, base, lfoUuid);
+    if(!rootAutomation || !boxAutomation || !lfo)
+      SKIP("the automation or LFO plug-in is not built");
+    auto* rootOut = firstPort(rootAutomation, Process::PortType::Message, false);
+    auto* boxOut = firstPort(boxAutomation, Process::PortType::Message, false);
+    REQUIRE(rootOut);
+    REQUIRE(boxOut);
+    std::vector<Process::Port*> lfoIns;
+    for(auto port : lfo->inlets())
+      if(port->type() == Process::PortType::Message)
+        lfoIns.push_back(port);
+    REQUIRE(lfoIns.size() >= 2);
+
+    CommandDispatcher<> disp{doc->context().commandStack};
+    const auto rootCable = getStrongId(dm.cables);
+    disp.submit<Dataflow::CreateCable>(
+        dm, rootCable, Process::CableType::ImmediateGlutton, *rootOut, *lfoIns[0]);
+    const auto boxCable = getStrongId(dm.cables);
+    disp.submit<Dataflow::CreateCable>(
+        dm, boxCable, Process::CableType::ImmediateGlutton, *boxOut, *lfoIns[1]);
+
+    auto panel = ctx.findPanel<Dataflow::ConnectionsPanel>();
+    REQUIRE(panel);
+    auto mainView = qobject_cast<score::View*>(ctx.mainWindow);
+    REQUIRE(mainView);
+    for(auto tabs : {mainView->leftTabs, mainView->rightTabs, mainView->bottomTabs})
+      if(tabs && tabs->actionFor(static_cast<score::PanelDelegate*>(panel)->widget()))
+        tabs->showTab(static_cast<score::PanelDelegate*>(panel)->widget());
+    auto& w = panel->connections();
+
+    auto& minimap = sview->minimap();
+    // The end of the displayed interval, zoomed in: its start is out of view
+    auto lookAtTheEnd = [&] {
+      settle();
+      const double mw = minimap.width();
+      minimap.modifyHandles(mw * 0.8, mw);
+      settle();
+    };
+    presenter->setDisplayedInterval(box);
+    lookAtTheEnd();
+    presenter->setDisplayedInterval(&base);
+    lookAtTheEnd();
+    w.refresh();
+    spin();
+
+    auto portItem = [&](const Process::Port& port) -> QGraphicsItem* {
+      for(auto item : sview->scene().items())
+        if(auto p = dynamic_cast<Dataflow::PortItem*>(item);
+           p && p->isVisible() && &p->port() == &port)
+          return p;
+      return nullptr;
+    };
+    auto shot = [&](const QString& name) {
+      if(const auto dir = qEnvironmentVariable("SCORE_TEST_SHOT_DIR"); !dir.isEmpty())
+      {
+        QDir{}.mkpath(dir);
+        auto& gv = sview->view();
+        QPixmap window = ctx.mainWindow->grab();
+        {
+          QPainter p{&window};
+          const QRect target{
+              gv.viewport()->mapTo(ctx.mainWindow, QPoint{0, 0}), gv.viewport()->size()};
+          p.fillRect(target, Qt::black);
+          gv.render(&p, target, gv.viewport()->rect());
+          p.setPen(QPen{Qt::cyan, 2});
+          for(auto item : sview->scene().items())
+            if(auto port = dynamic_cast<Dataflow::PortItem*>(item);
+               port && port->isVisible()
+               && doc->context().selectionStack.currentSelection().contains(&port->port()))
+              p.drawEllipse(
+                  target.topLeft() + gv.mapFromScene(port->sceneBoundingRect().center()), 12,
+                  12);
+        }
+        window.save(dir + "/" + name + ".png");
+      }
+    };
+    auto checkShown = [&](const Process::Port& port) {
+      auto item = portItem(port);
+      REQUIRE(item);
+      auto& gv = sview->view();
+      const QRectF visible = gv.mapToScene(gv.viewport()->rect()).boundingRect();
+      const QPointF pos = item->sceneBoundingRect().center();
+      INFO("visible " << visible.x() << "," << visible.y() << " " << visible.width()
+                      << "x" << visible.height() << ", port " << pos.x() << "," << pos.y()
+                      << ", handles " << minimap.leftHandle() << "-" << minimap.rightHandle()
+                      << " of " << minimap.width());
+      CHECK(visible.contains(pos));
+      // Horizontally centered, or the time window against an end of the interval
+      const double dx = pos.x() - visible.center().x();
+      CHECK(
+          (std::abs(dx) <= visible.width() / 4 || (dx < 0 && minimap.leftHandle() <= 0.5)
+           || (dx > 0 && minimap.rightHandle() >= minimap.width() - 0.5)));
+      // The zoom is kept: the window is as wide as it was
+      CHECK(minimap.rightHandle() - minimap.leftHandle()
+            == Catch::Approx(minimap.width() * 0.2).margin(1.));
+    };
+
+    // In the displayed interval
+    shot("timeline-port-root-before");
+    doubleClickCell(w, rowOfCable(w, dm.cables.at(rootCable)), ConnectionsWidget::FromColumn);
+    settle();
+    CHECK(&presenter->displayedInterval() == &base);
+    shot("timeline-port-root-after");
+    checkShown(*rootOut);
+
+    // In a sub-interval, whose own time window was left at its end
+    doubleClickCell(w, rowOfCable(w, dm.cables.at(boxCable)), ConnectionsWidget::FromColumn);
+    settle();
+    CHECK(&presenter->displayedInterval() == box);
+    shot("timeline-port-box-after");
+    checkShown(*boxOut);
   });
 }
