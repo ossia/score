@@ -830,7 +830,7 @@ public:
     if(!ok)
     {
       // Send manual note off events
-      for(int k = 0; k <= 16; k++)
+      for(int k = 0; k < 16; k++)
         for(int i = 0; i <= 127; i++)
         {
           using VstEvent = Steinberg::Vst::Event;
@@ -838,7 +838,6 @@ public:
           e.busIndex = bus;
           e.sampleOffset = 0;
           e.ppqPosition = 0; // FIXME
-          e.sampleOffset = 0;
           e.type = VstEvent::kNoteOffEvent;
           e.noteOff.channel = k;
           e.noteOff.pitch = i;
@@ -858,67 +857,49 @@ public:
     m_inputEvents.clear();
 
     // Put messages into each MIDI in's event queues
-    {
-      for(int i = 0; i < m_totalEventIns; i++)
-      {
-        all_notes_off(i++);
-      }
-    }
+    for(int i = 0; i < m_totalEventIns; i++)
+      all_notes_off(i);
 
-    // Run a process cycle
+    // Run a process cycle, on silence, in the sample size and within the
+    // largest block the plug-in was set up for
     {
+      using sample_t = std::conditional_t<UseDouble, double, float>;
       const int samples = m_maxBlock > 0 ? std::min(m_maxBlock, 64) : 64;
       Steinberg::Vst::ProcessData dat;
       memcpy(&dat, &m_vstData, sizeof(m_vstData));
       dat.inputEvents = &m_inputEvents;
       dat.numSamples = samples;
-      m_inputChanges.collect();
 
+      const int channels = std::max(m_totalAudioIns, m_totalAudioOuts);
+      auto** buffers = (sample_t**)alloca(sizeof(sample_t*) * std::max(1, channels));
+      for(int k = 0; k < channels; k++)
       {
-        double** input{};
-        double** output{};
-
-        // Copy inputs
-        if(m_totalAudioIns > 0)
-        {
-          input = (double**)alloca(sizeof(double*) * m_totalAudioIns);
-
-          for(int k = 0; k < m_totalAudioIns; k++)
-          {
-            input[k] = (double*)alloca(sizeof(double) * samples);
-            memset(input[k], 0, sizeof(double) * samples);
-          }
-
-          for(std::size_t i = 0; i < m_audioInputChannels.size(); i++)
-          {
-            Steinberg::Vst::AudioBusBuffers& vst_in = dat.inputs[i];
-            vst_in.channelBuffers64 = input;
-            vst_in.silenceFlags = ~0ULL;
-          }
-        }
-
-        // Prepare outputs
-        if(m_totalAudioOuts > 0)
-        {
-          output = (double**)alloca(sizeof(double*) * m_totalAudioOuts);
-          for(int k = 0; k < m_totalAudioOuts; k++)
-          {
-            output[k] = (double*)alloca(sizeof(double) * samples);
-            memset(output[k], 0, sizeof(double) * samples);
-          }
-
-          for(std::size_t i = 0; i < m_audioOutputChannels.size(); i++)
-          {
-            Steinberg::Vst::AudioBusBuffers& vst_out = dat.outputs[i];
-            vst_out.channelBuffers64 = output;
-            vst_out.silenceFlags = ~0ULL;
-          }
-        }
-
-        fx.processor->process(dat);
-        this->clearInputChanges();
-        this->readOutputChanges();
+        buffers[k] = (sample_t*)alloca(sizeof(sample_t) * samples);
+        std::fill_n(buffers[k], samples, sample_t{});
       }
+
+      const auto set_buffers = [](Steinberg::Vst::AudioBusBuffers& bus, sample_t** b) {
+        if constexpr(UseDouble)
+          bus.channelBuffers64 = b;
+        else
+          bus.channelBuffers32 = b;
+        bus.silenceFlags = ~0ULL;
+      };
+      for(std::size_t i = 0, k = 0; i < m_audioInputChannels.size(); i++)
+      {
+        set_buffers(dat.inputs[i], buffers + k);
+        k += m_audioInputChannels[i];
+      }
+      for(std::size_t i = 0, k = 0; i < m_audioOutputChannels.size(); i++)
+      {
+        set_buffers(dat.outputs[i], buffers + k);
+        k += m_audioOutputChannels[i];
+      }
+
+      m_inputChanges.collect();
+      fx.processor->process(dat);
+      this->clearInputChanges();
+      this->readOutputChanges();
     }
   }
 
