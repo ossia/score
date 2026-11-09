@@ -393,8 +393,7 @@ TEST_CASE(
   Execution::ExecutionCommandQueue queue{64};
   QObject context;
   Process::ControlInlet ctrl{"Control", Id<Process::Port>{0}, &context};
-  bool skip = false;
-  vst3::connectControl(ctrl, &context, queue, f.node, queue_idx, skip);
+  vst3::connectControl(ctrl, &context, queue, f.node, queue_idx);
 
   const auto run_queue = [&] {
     int n = 0;
@@ -420,10 +419,15 @@ TEST_CASE(
   CHECK(f.tick() == std::vector<point>{{5, 0, 0.25}});
   CHECK(f.tick().empty());
 
-  // Values the processor reported, given back to the control, stay on the UI
-  skip = true;
-  ctrl.setValue(0.5f);
-  skip = false;
+  // A value the processor reported is shown on the control: the document
+  // keeps the control's value, and nothing goes back to the processor
+  ossia::value shown;
+  QObject::connect(
+      &ctrl, &Process::ControlInlet::executionValueChanged, &context,
+      [&](const ossia::value& v) { shown = v; });
+  ctrl.setExecutionValue(0.5f);
+  CHECK(shown == ossia::value{0.5f});
+  CHECK(ctrl.value() == ossia::value{0.25f});
   CHECK(run_queue() == 0);
   CHECK(f.tick().empty());
 }

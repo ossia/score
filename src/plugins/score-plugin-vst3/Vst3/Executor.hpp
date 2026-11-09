@@ -18,12 +18,12 @@ class vst_node_base;
 //! Sends the changes made on the UI to `ctrl` to the parameter queue
 //! `queue_idx` of `node`, through the execution queue: the node is only
 //! touched from the audio thread, between two ticks, and the plug-in gets
-//! the change in the next block. Nothing is sent while `skip` is set.
+//! the change in the next block.
 SCORE_PLUGIN_VST3_EXPORT
 QMetaObject::Connection connectControl(
     const Process::ControlInlet& ctrl, QObject* context,
     Execution::ExecutionCommandQueue& queue, std::weak_ptr<vst_node_base> node,
-    std::size_t queue_idx, const bool& skip);
+    std::size_t queue_idx);
 
 class Executor final
     : public Execution::ProcessComponent_T<vst3::Model, ossia::node_process>
@@ -35,10 +35,6 @@ public:
   static constexpr bool is_unique = true;
 
   Executor(vst3::Model& proc, const Execution::Context& ctx, QObject* parent);
-
-  //! Set while the controls take the values the processor reported, which
-  //! must not go back to it as changes.
-  bool m_applyingOutputValues{};
 
 private:
   template <typename Node_T>

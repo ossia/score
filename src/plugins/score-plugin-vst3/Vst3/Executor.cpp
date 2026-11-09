@@ -36,9 +36,7 @@ struct ConnectValueChanged
   {
     if(!ctrl)
       return;
-    connectControl(
-        *ctrl, self, self->system().executionQueue, n, queue_idx,
-        self->m_applyingOutputValues);
+    connectControl(*ctrl, self, self->system().executionQueue, n, queue_idx);
   }
 };
 }
@@ -46,13 +44,11 @@ struct ConnectValueChanged
 QMetaObject::Connection connectControl(
     const Process::ControlInlet& ctrl, QObject* context,
     Execution::ExecutionCommandQueue& queue, std::weak_ptr<vst_node_base> node,
-    std::size_t queue_idx, const bool& skip)
+    std::size_t queue_idx)
 {
   return QObject::connect(
       &ctrl, &Process::ControlInlet::valueChanged, context,
-      [&queue, &skip, node = std::move(node), queue_idx](const ossia::value& v) {
-    if(skip)
-      return;
+      [&queue, node = std::move(node), queue_idx](const ossia::value& v) {
     queue.enqueue([node, queue_idx, val = ossia::convert<float>(v)] {
       if(auto n = node.lock())
         n->set_control(queue_idx, val);
@@ -72,32 +68,27 @@ void Executor::setupNode(Node_T& node)
     {
       auto queue_idx
           = node->add_control(new ossia::value_inlet, ctrl->fxNum, ctrl->value());
-      connectControl(
-          *ctrl, this, system().executionQueue, node, queue_idx,
-          m_applyingOutputValues);
+      connectControl(*ctrl, this, system().executionQueue, node, queue_idx);
     }
   }
 
   std::weak_ptr<std::remove_reference_t<decltype(*node)>> wp = node;
 
   // The values the processor reports for its parameters reach the edit
-  // controller and the controls, at the UI rate. They are not sent back to
-  // the processor: it is where they come from.
+  // controller, and are shown on the controls, at the UI rate. They are
+  // execution values: the document keeps the controls' own values, and
+  // nothing goes back to the processor, which is where they come from.
   connect(
       &system().doc.coarseUpdateTimer, &QTimer::timeout, this, [this, &proc, wp] {
     auto n = wp.lock();
     if(!n)
       return;
     n->consumeOutputValues(
-        [this, &proc](Steinberg::Vst::ParamID id, Steinberg::Vst::ParamValue v) {
+        [&proc](Steinberg::Vst::ParamID id, Steinberg::Vst::ParamValue v) {
       if(auto* ctl = proc.fx.controller)
         ctl->setParamNormalized(id, v);
       if(auto it = proc.controls.find(id); it != proc.controls.end())
-      {
-        m_applyingOutputValues = true;
-        it->second->setValue(v);
-        m_applyingOutputValues = false;
-      }
+        it->second->setExecutionValue(v);
     });
   });
   connect(
