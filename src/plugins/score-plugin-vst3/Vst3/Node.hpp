@@ -419,8 +419,9 @@ public:
           *m_inlets[i]->template target<ossia::midi_port>(), k++, tick_start, samples);
     }
     m_deferred.clear();
-    m_vstData.inputEvents
-        = (m_inputEvents.getEventCount() > 0) ? &m_inputEvents : nullptr;
+    // Empty or not: plug-ins such as Geonkick read the list of a block
+    // without checking it is there
+    m_vstData.inputEvents = &m_inputEvents;
     m_vstData.outputEvents = &m_outputEvents;
   }
 

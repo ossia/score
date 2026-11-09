@@ -47,6 +47,10 @@ public:
   std::vector<point> to_send;
   //! The parameter count the output changes had in each process() call
   std::vector<int32> output_counts;
+  //! The event input buses it declares
+  int32 event_inputs{};
+  //! Whether each process() call was given a list of input events
+  std::vector<bool> had_events;
 
   tresult PLUGIN_API queryInterface(const TUID, void** obj) override
   {
@@ -60,10 +64,22 @@ public:
   tresult PLUGIN_API terminate() override { return kResultOk; }
   tresult PLUGIN_API getControllerClassId(TUID) override { return kNotImplemented; }
   tresult PLUGIN_API setIoMode(IoMode) override { return kResultOk; }
-  int32 PLUGIN_API getBusCount(MediaType, BusDirection) override { return 0; }
-  tresult PLUGIN_API getBusInfo(MediaType, BusDirection, int32, BusInfo&) override
+  int32 PLUGIN_API getBusCount(MediaType type, BusDirection dir) override
   {
-    return kResultFalse;
+    return type == kEvent && dir == kInput ? event_inputs : 0;
+  }
+  tresult PLUGIN_API
+  getBusInfo(MediaType type, BusDirection dir, int32 index, BusInfo& info) override
+  {
+    if(type != kEvent || dir != kInput || index < 0 || index >= event_inputs)
+      return kResultFalse;
+    info = {};
+    info.mediaType = kEvent;
+    info.direction = kInput;
+    info.channelCount = 16;
+    info.busType = kMain;
+    info.flags = BusInfo::kDefaultActive;
+    return kResultOk;
   }
   tresult PLUGIN_API getRoutingInfo(RoutingInfo&, RoutingInfo&) override
   {
@@ -95,6 +111,7 @@ public:
   tresult PLUGIN_API process(ProcessData& data) override
   {
     auto& block = received.emplace_back();
+    had_events.push_back(data.inputEvents != nullptr);
     if(auto* in = data.inputParameterChanges)
     {
       for(int32 i = 0; i < in->getParameterCount(); i++)
@@ -178,9 +195,10 @@ struct fixture
   ossia::execution_state state;
   std::shared_ptr<vst3::vst_node<false>> node;
 
-  explicit fixture(std::vector<ParamID> ids = {})
+  explicit fixture(std::vector<ParamID> ids = {}, int32 event_inputs = 0)
   {
     controller.ids = std::move(ids);
+    fx.event_inputs = event_inputs;
     state.bufferSize = 64;
     state.sampleRate = 44100;
     state.modelToSamplesRatio = 1.;
@@ -430,4 +448,18 @@ TEST_CASE(
   CHECK(ctrl.value() == ossia::value{0.25f});
   CHECK(run_queue() == 0);
   CHECK(f.tick().empty());
+}
+
+TEST_CASE(
+    "VST3: a plug-in with an event input is given a list of events in every block",
+    "[vst3][midi]")
+{
+  // Plug-ins such as Geonkick read the list without checking it is there,
+  // including in blocks with no events
+  fixture f{{}, 1};
+  for(int i = 0; i < 4; i++)
+    f.tick();
+  REQUIRE(f.fx.had_events.size() == 4);
+  for(bool had : f.fx.had_events)
+    CHECK(had);
 }
