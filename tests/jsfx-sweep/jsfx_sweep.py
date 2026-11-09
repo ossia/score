@@ -101,9 +101,9 @@ def discover(roots):
 
 
 def interleave(effects):
-    """Effects of the different roots one after the other: score keeps one ysfx
-    configuration for every effect it loads, as a session loading effects of
-    several folders does"""
+    """Effects of the different roots one after the other, as a session loading
+    effects of several folders does: each must find the files of its own tree,
+    whichever were loaded before it"""
     by_root = defaultdict(list)
     for e in effects:
         by_root[e["root"]].append(e)

@@ -561,6 +561,15 @@ if(TARGET score_plugin_ysfx)
     PLUGINS score_plugin_ysfx score_plugin_scenario score_lib_process)
   target_include_directories(test_integration_ysfx_reload PRIVATE
     "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-ysfx")
+
+  # A JSFX script finds the files of its own tree, whichever were loaded
+  # before it.
+  score_add_test(test_integration_ysfx_roots
+    SOURCES YsfxRootsTest.cpp
+    APP
+    PLUGINS score_plugin_ysfx score_plugin_scenario score_lib_process)
+  target_include_directories(test_integration_ysfx_roots PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-ysfx")
 endif()
 
 if(TARGET score_plugin_fx)

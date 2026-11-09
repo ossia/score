@@ -355,8 +355,8 @@ bool close_enough(const slider_info& s, double a, double b)
   return std::abs(a - b) <= 1e-4 * span + 1e-6;
 }
 
-//! The engine used directly: the configuration score gives it (its import and
-//! data roots guessed from the effect's path, the builtin audio formats), the
+//! The engine used directly: the configuration ysfx guesses for it (its import
+//! and data roots guessed from the effect's path, the builtin audio formats), the
 //! same rate and block size, the same stimulus, no wrapper
 struct reference_host
 {
