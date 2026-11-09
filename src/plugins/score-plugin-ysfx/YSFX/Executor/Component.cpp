@@ -46,7 +46,8 @@ class ysfx_node final : public ossia::graph_node
 public:
   ysfx_node(
       bool audio_in, bool midi_in, bool audio_out, bool midi_out,
-      std::shared_ptr<ysfx_t>, std::shared_ptr<StateGuard>, ossia::execution_state& st);
+      std::vector<uint32_t> sliders, std::shared_ptr<ysfx_t>, std::shared_ptr<StateGuard>,
+      ossia::execution_state& st);
 
   void run(const ossia::token_request& t, ossia::exec_state_facade) noexcept override;
   [[nodiscard]] std::string label() const noexcept override
@@ -75,7 +76,10 @@ public:
   ossia::small_vector<libremidi::ump, 8> m_deferred_midi;
   ossia::midi_outlet* midi_out{};
   ossia::audio_outlet* audio_out{};
+  //! One port per control of the process, in the same order; slider_index is
+  //! the number of the script's slider each one sets
   std::vector<ossia::value_port*> sliders;
+  std::vector<uint32_t> slider_index;
   int generation = 0;
   //! An all-notes-off that came while the script's state was in use
   bool m_pendingNotesOff{};
@@ -147,9 +151,17 @@ void Component::reload(Execution::Transaction& transaction)
     has_midi_out |= bool(qobject_cast<Process::MidiOutlet*>(proc.outlets()[i]));
   }
 
+  // A control sets the slider its id names (see ProcessModel::recreatePorts):
+  // a script may skip slider numbers, and the controls of a loaded document
+  // are the ones it was saved with.
+  const int firstControlIndex = int(has_audio_in) + int(has_midi_in);
+  std::vector<uint32_t> sliders;
+  for(int i = firstControlIndex; i < N_in; i++)
+    sliders.push_back(uint32_t(proc.inlets()[i]->id().val() - 4));
+
   std::shared_ptr<ysfx_node> node = ossia::make_node<ysfx_node>(
-      *ctx.execState, has_audio_in, has_midi_in, has_audio_out, has_midi_out, proc.fx,
-      proc.stateGuard, *ctx.execState);
+      *ctx.execState, has_audio_in, has_midi_in, has_audio_out, has_midi_out,
+      std::move(sliders), proc.fx, proc.stateGuard, *ctx.execState);
   node->generation = this->generation;
   this->node = node;
 
@@ -158,7 +170,6 @@ void Component::reload(Execution::Transaction& transaction)
   else
     ctx.setup.replace_node(m_ossia_process, node, transaction);
 
-  const int firstControlIndex = int(has_audio_in) + int(has_midi_in);
   for(std::size_t i = firstControlIndex; i < N_in; i++)
   {
     auto inlet = static_cast<Process::ControlInlet*>(proc.inlets()[i]);
@@ -218,8 +229,8 @@ Component::~Component() { }
 
 ysfx_node::ysfx_node(
     bool has_audio_in, bool has_midi_in, bool has_audio_out, bool has_midi_out,
-    std::shared_ptr<ysfx_t> ffx, std::shared_ptr<StateGuard> guard,
-    ossia::execution_state& st)
+    std::vector<uint32_t> slider_numbers, std::shared_ptr<ysfx_t> ffx,
+    std::shared_ptr<StateGuard> guard, ossia::execution_state& st)
     : fx{std::move(ffx)}
     , m_guard{std::move(guard)}
     , m_st{st}
@@ -227,6 +238,7 @@ ysfx_node::ysfx_node(
   auto y = this->fx.get();
 
   m_deferred_midi.reserve(1024);
+  slider_index = std::move(slider_numbers);
 
   // The node it replaces may still be running the same script
   {
@@ -249,18 +261,13 @@ ysfx_node::ysfx_node(
   if(has_midi_out)
     this->m_outlets.push_back(midi_out = new ossia::midi_outlet);
 
-  for(uint32_t i = 0; i < ysfx_max_sliders; ++i)
+  for(const uint32_t i : slider_index)
   {
     auto inl = new ossia::value_inlet;
     this->m_inlets.push_back(inl);
     this->sliders.push_back(&**inl);
-    if(ysfx_slider_is_enum(y, i))
-    {
-    }
-    else if(ysfx_slider_is_path(y, i))
-    {
-    }
-    else
+    if(ysfx_slider_exists(y, i) && !ysfx_slider_is_enum(y, i)
+       && !ysfx_slider_is_path(y, i))
     {
       ysfx_slider_range_t range{};
       ysfx_slider_get_range(y, i, &range);
@@ -367,20 +374,21 @@ void ysfx_node::run(
     if(!dat.empty())
     {
       auto& val = dat.back().value;
+      const uint32_t index = slider_index[i];
       if(float* v = val.target<float>())
       {
 #if __has_include(<ysfx-s.h>)
-        ysfx_slider_set_value(y, i, *v, true);
+        ysfx_slider_set_value(y, index, *v, true);
 #else
-        ysfx_slider_set_value(y, i, *v);
+        ysfx_slider_set_value(y, index, *v);
 #endif
       }
       else if(int* v = val.target<int>())
       {
 #if __has_include(<ysfx-s.h>)
-        ysfx_slider_set_value(y, i, *v, true);
+        ysfx_slider_set_value(y, index, *v, true);
 #else
-        ysfx_slider_set_value(y, i, *v);
+        ysfx_slider_set_value(y, index, *v);
 #endif
       }
     }

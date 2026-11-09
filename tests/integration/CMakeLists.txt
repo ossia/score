@@ -527,6 +527,14 @@ if(TARGET score_plugin_ysfx)
     PLUGINS score_plugin_ysfx score_plugin_engine score_plugin_scenario score_lib_process)
   target_include_directories(test_integration_ysfx_state_guard PRIVATE
     "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-ysfx")
+
+  # A slider's port sets that slider when the script skips slider numbers.
+  score_add_test(test_integration_ysfx_slider_ports
+    SOURCES YsfxSliderPortsTest.cpp
+    APP
+    PLUGINS score_plugin_ysfx score_plugin_engine score_plugin_scenario score_lib_process)
+  target_include_directories(test_integration_ysfx_slider_ports PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-ysfx")
 endif()
 
 if(TARGET score_plugin_fx)
