@@ -150,6 +150,11 @@ Executor::Executor(vst3::Model& proc, const Execution::Context& ctx, QObject* pa
   if(!proc.fx)
     throw std::runtime_error("Unable to load VST");
 
+  // The plug-in was set up when it was loaded, for the audio settings of then;
+  // the engine may run at another rate or with larger blocks. Plug-ins size
+  // their buffers, and some their processing, from the largest block.
+  proc.fx.restart(ctx.execState->sampleRate, ctx.execState->bufferSize);
+
   if(proc.fx.supports_double)
   {
     auto n = vst3::make_vst_fx<true>(*ctx.execState, proc.fx, ctx.execState->sampleRate);

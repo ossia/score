@@ -385,7 +385,9 @@ void Model::initFx()
 
   try
   {
-    this->fx.load(*this, p, m_vstPath.toStdString(), m_uid, media.getRate(), 4096);
+    this->fx.load(
+        *this, p, m_vstPath.toStdString(), m_uid, media.getRate(),
+        media.getBufferSize());
   }
   catch(std::exception& e)
   {

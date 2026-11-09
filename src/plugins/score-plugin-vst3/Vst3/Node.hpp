@@ -238,6 +238,8 @@ public:
   };
 
   PluginHandle fx;
+  //! The largest block the plug-in was set up for, if known
+  int m_maxBlock{};
   // Each element is the amount of channels in a given in/out port
   ossia::small_pod_vector<int, 2> m_audioInputChannels{};
   ossia::small_pod_vector<int, 2> m_audioOutputChannels{};
@@ -249,6 +251,7 @@ public:
 protected:
   explicit vst_node_base(const Plugin& ptr)
       : fx{std::move(ptr)}
+      , m_maxBlock{ptr.max_block}
   {
     this->set_not_fp_safe();
     m_inlets.reserve(10);
@@ -864,7 +867,7 @@ public:
 
     // Run a process cycle
     {
-      constexpr int samples = 64;
+      const int samples = m_maxBlock > 0 ? std::min(m_maxBlock, 64) : 64;
       Steinberg::Vst::ProcessData dat;
       memcpy(&dat, &m_vstData, sizeof(m_vstData));
       dat.inputEvents = &m_inputEvents;
