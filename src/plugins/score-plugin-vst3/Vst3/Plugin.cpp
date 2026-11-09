@@ -249,6 +249,25 @@ void Plugin::load(
   start(sample_rate, max_bs);
 }
 
+void Plugin::activateBuses()
+{
+  using namespace Steinberg::Vst;
+  for(auto type : {kAudio, kEvent})
+  {
+    for(auto dir : {kInput, kOutput})
+    {
+      const int count = component->getBusCount(type, dir);
+      for(int i = 0; i < count; i++)
+      {
+        BusInfo bus{};
+        if(component->getBusInfo(type, dir, i, bus) == Steinberg::kResultOk
+           && (bus.flags & BusInfo::kDefaultActive))
+          component->activateBus(type, dir, i, true);
+      }
+    }
+  }
+}
+
 void Plugin::start(double_t sample_rate, int max_bs)
 {
   // Some level of introspection
@@ -265,6 +284,10 @@ void Plugin::start(double_t sample_rate, int max_bs)
 
   if(processor->setupProcessing(setup) != Steinberg::kResultOk)
     throw std::runtime_error(fmt::format("Couldn't setup VST3 processing ({})", path));
+
+  // Buses are switched on once set up, before the plug-in is active: it
+  // allocates for those it is active with
+  activateBuses();
 
   if(component->setActive(true) != Steinberg::kResultOk)
     throw std::runtime_error(fmt::format("Couldn't set VST3 active ({})", path));
