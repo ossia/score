@@ -175,29 +175,7 @@ void ProcessModel::recreatePorts()
         values.push_back({val, k++});
 
       auto slider = new Process::ComboBox{values, 0, slider_name, id, this};
-
-      connect(
-          slider, &Process::ComboBox::valueChanged, this,
-          [this, i](const ossia::value& v) {
-        if(!this->fx)
-          return;
-        if(this->m_sliderBeingChanged.test(i))
-          return;
-        this->m_sliderBeingChanged.set(i, true);
-
-        auto old_val = (int)ysfx_slider_get_value(this->fx.get(), i);
-        auto new_val = ossia::convert<int>(v);
-        if(old_val != new_val)
-        {
-#if __has_include(<ysfx-s.h>)
-          ysfx_slider_set_value(this->fx.get(), i, new_val, true);
-#else
-          ysfx_slider_set_value(this->fx.get(), i, new_val);
-#endif
-        }
-        this->m_sliderBeingChanged.set(i, false);
-      });
-
+      connectSlider(*slider, i);
       this->m_inlets.push_back(slider);
     }
     else
@@ -208,30 +186,51 @@ void ProcessModel::recreatePorts()
       auto slider = new Process::FloatSlider(
           range.min, range.max, range.def, slider_name, id, this);
       // TODO increment
-      connect(
-          slider, &Process::FloatSlider::valueChanged, this,
-          [this, i](const ossia::value& v) {
-        if(!this->fx)
-          return;
-        if(this->m_sliderBeingChanged.test(i))
-          return;
-        this->m_sliderBeingChanged.set(i, true);
-
-        auto old_val = ysfx_slider_get_value(this->fx.get(), i);
-        auto new_val = ossia::convert<float>(v);
-        if(old_val != new_val)
-        {
-#if __has_include(<ysfx-s.h>)
-          ysfx_slider_set_value(this->fx.get(), i, new_val, true);
-#else
-          ysfx_slider_set_value(this->fx.get(), i, new_val);
-#endif
-        }
-        this->m_sliderBeingChanged.set(i, false);
-      });
-
+      connectSlider(*slider, i);
       this->m_inlets.push_back(slider);
     }
+  }
+}
+
+void ProcessModel::connectSlider(Process::ControlInlet& control, uint32_t i)
+{
+  const bool choice = ysfx_slider_is_enum(fx.get(), i) || ysfx_slider_is_path(fx.get(), i);
+  connect(
+      &control, &Process::ControlInlet::valueChanged, this,
+      [this, i, choice](const ossia::value& v) {
+    if(!this->fx)
+      return;
+    if(this->m_sliderBeingChanged.test(i))
+      return;
+    this->m_sliderBeingChanged.set(i, true);
+
+    const auto old_val = ysfx_slider_get_value(this->fx.get(), i);
+    const double new_val
+        = choice ? double(ossia::convert<int>(v)) : double(ossia::convert<float>(v));
+    if(choice ? int(old_val) != int(new_val) : old_val != new_val)
+    {
+#if __has_include(<ysfx-s.h>)
+      ysfx_slider_set_value(this->fx.get(), i, new_val, true);
+#else
+      ysfx_slider_set_value(this->fx.get(), i, new_val);
+#endif
+    }
+    this->m_sliderBeingChanged.set(i, false);
+  });
+}
+
+void ProcessModel::connectSliders()
+{
+  if(!fx)
+    return;
+  // See recreatePorts: slider i is the control with id 4 + i
+  for(auto* inlet : m_inlets)
+  {
+    const int i = inlet->id().val() - 4;
+    if(i < 0 || i >= int(ysfx_max_sliders) || !ysfx_slider_exists(fx.get(), i))
+      continue;
+    if(auto* control = qobject_cast<Process::ControlInlet*>(inlet))
+      connectSlider(*control, i);
   }
 }
 QString ProcessModel::script() const noexcept

@@ -536,6 +536,15 @@ if(TARGET score_plugin_ysfx)
   target_include_directories(test_integration_ysfx_slider_ports PRIVATE
     "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-ysfx")
 
+  # The controls of a JSFX process and the sliders of its script agree, in a
+  # document just made as in one loaded from a file.
+  score_add_test(test_integration_ysfx_controls
+    SOURCES YsfxControlsTest.cpp
+    APP
+    PLUGINS score_plugin_ysfx score_plugin_scenario score_lib_process)
+  target_include_directories(test_integration_ysfx_controls PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-ysfx")
+
   # A buffer cut in several ticks: each computes its part of the buffer and
   # takes the MIDI of its part.
   score_add_test(test_integration_ysfx_ticks

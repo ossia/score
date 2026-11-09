@@ -125,6 +125,7 @@ void DataStreamWriter::write(YSFX::ProcessModel& proc)
   writePorts(
       *this, components.interfaces<Process::PortFactoryList>(), proc.m_inlets,
       proc.m_outlets, &proc);
+  proc.connectSliders();
 
   checkDelimiter();
 }
@@ -170,4 +171,5 @@ void JSONWriter::write(YSFX::ProcessModel& proc)
   writePorts(
       *this, components.interfaces<Process::PortFactoryList>(), proc.m_inlets,
       proc.m_outlets, &proc);
+  proc.connectSliders();
 }
