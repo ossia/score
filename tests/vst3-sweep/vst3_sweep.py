@@ -349,7 +349,7 @@ def judge(r):
             # The first play went through: what breaks is score's stop (notes
             # off, then the node torn down) or the node made again after it
             add("host", f"{status}-on-{where}", f"{status}: {what}, the first play went through")
-        elif where == "reference":
+        elif where in ("reference", "reference-first"):
             add("info", f"{status}-in-reference", what)
         else:
             add("bug", status, what)
@@ -408,7 +408,11 @@ def judge(r):
             elif abs(diff) > LEVEL_MISMATCH_DB:
                 add("info", "level-mismatch", f"{diff:+.1f} dB from the reference host")
             elif abs(diff) > DIFFERS_DB:
-                add("warn", "differs", f"{diff:+.1f} dB from the reference host")
+                first = r.get("ref_first_rms")
+                if first is not None and abs(db(r.get("play_rms", 0), first)) <= DIFFERS_DB:
+                    add("info", "first-instance-differs", f"{diff:+.1f} dB from the reference host, as its first instance in the process: state shared between instances")
+                else:
+                    add("warn", "differs", f"{diff:+.1f} dB from the reference host")
         if role == "instrument" and play_peak >= SILENT and (r.get("play_peak_tail") or 0) >= 0.5 * play_peak and (r.get("play_rms_held") or 0) > 0:
             add("info", "no-release", "as loud at the end as while notes were held: notes may hang")
 
