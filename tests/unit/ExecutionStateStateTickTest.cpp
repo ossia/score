@@ -4,10 +4,12 @@
 // A state pushes its messages to the parameters; the parameters' callbacks
 // queue the values for the event inlets reading them, and those queues are
 // read at the start of a tick. The static graphs run the nodes without ports,
-// the states, first, then read the queues again before running the others.
-// Every value is received once, whoever pushed it.
+// the states, first, then read the queues again before running the others;
+// the parallel graphs run them first too, on the calling thread. Every value is
+// received once, whoever pushed it.
 
 #include <ossia/dataflow/bench_map.hpp>
+#include <ossia/dataflow/connection.hpp>
 #include <ossia/dataflow/execution_state.hpp>
 #include <ossia/dataflow/graph/graph_interface.hpp>
 #include <ossia/dataflow/graph_node.hpp>
@@ -84,6 +86,22 @@ struct pusher final : ossia::graph_node
   [[nodiscard]] std::string label() const noexcept override { return "pusher"; }
 };
 
+//! A node writing a value on its outlet each time it runs.
+struct writer final : ossia::graph_node
+{
+  ossia::value_outlet* out{};
+  explicit writer()
+  {
+    out = new ossia::value_outlet;
+    m_outlets.push_back(out);
+  }
+  void run(const ossia::token_request&, ossia::exec_state_facade) noexcept override
+  {
+    (*out)->write_value(9.f, 0);
+  }
+  [[nodiscard]] std::string label() const noexcept override { return "writer"; }
+};
+
 std::shared_ptr<ossia::nodes::state_writer>
 make_state(ossia::net::parameter_base& p, const values& vals)
 {
@@ -105,36 +123,37 @@ std::vector<config> configs()
 {
   std::vector<config> res;
   using opts = ossia::graph_setup_options;
-  for(auto sched : {opts::StaticFixed, opts::StaticBFS, opts::StaticTC})
+#if defined(OSSIA_PARALLEL)
+  const bool parallel[] = {false, true};
+#else
+  const bool parallel[] = {false};
+#endif
+  for(bool par : parallel)
   {
-    for(int variant = 0; variant < 4; variant++)
+    for(auto sched : {opts::StaticFixed, opts::StaticBFS, opts::StaticTC})
     {
-      ossia::graph_setup_options opt;
-      opt.scheduling = sched;
-      if(variant & 1)
-        opt.log = ossia::logger_ptr();
-      if(variant & 2)
-        opt.bench = std::make_shared<ossia::bench_map>();
-      res.push_back({"static", opt, 0});
+      for(int variant = 0; variant < 4; variant++)
+      {
+        ossia::graph_setup_options opt;
+        opt.scheduling = sched;
+        opt.parallel = par;
+        opt.parallel_threads = 2;
+        if(variant & 1)
+          opt.log = ossia::logger_ptr();
+        if(variant & 2)
+          opt.bench = std::make_shared<ossia::bench_map>();
+        res.push_back({par ? "parallel" : "static", opt, 0});
+      }
     }
   }
 
-  // Runs the states alongside the other nodes: what they push comes a tick later.
+  // Runs the states alongside the other nodes: what they push comes a tick
+  // later. score never uses it: its execution always asks for StaticFixed.
   {
     ossia::graph_setup_options opt;
     opt.scheduling = opts::Dynamic;
     res.push_back({"dynamic", opt, 1});
   }
-#if defined(OSSIA_PARALLEL)
-  for(auto sched : {opts::StaticFixed, opts::StaticBFS, opts::StaticTC})
-  {
-    ossia::graph_setup_options opt;
-    opt.scheduling = sched;
-    opt.parallel = true;
-    opt.parallel_threads = 2;
-    res.push_back({"parallel", opt, 1});
-  }
-#endif
   return res;
 }
 
@@ -229,8 +248,8 @@ TEST_CASE(
     if(c.delay != 0)
       continue;
     DYNAMIC_SECTION(
-        "scheduling " << int(c.opt.scheduling) << ", log " << bool(c.opt.log)
-                      << ", bench " << bool(c.opt.bench))
+        c.name << " graph, scheduling " << int(c.opt.scheduling) << ", log "
+               << bool(c.opt.log) << ", bench " << bool(c.opt.bench))
     {
       fixture f{c.opt};
       auto r = f.add_reader(*f.x);
@@ -303,6 +322,44 @@ TEST_CASE(
         r->received.clear();
         f.tick({r.get()});
         CHECK(r->received.empty());
+      }
+
+      SECTION("A state added or removed while playing")
+      {
+        f.tick({r.get()});
+        auto s = make_state(*f.x, {5.f});
+        f.graph->add_node(s);
+        r->received.clear();
+        f.tick({s.get(), r.get()});
+        CHECK(r->received == values{5.f});
+
+        auto s2 = make_state(*f.x, {6.f});
+        f.graph->add_node(s2);
+        f.graph->remove_node(s);
+        r->received.clear();
+        f.tick({s2.get(), r.get()});
+        CHECK(r->received == values{6.f});
+
+        f.graph->remove_node(s2);
+        r->received.clear();
+        f.tick({r.get()});
+        CHECK(r->received.empty());
+      }
+
+      SECTION("A cable still orders the nodes it joins, and wins over the address")
+      {
+        auto w = std::make_shared<writer>();
+        f.graph->add_node(w);
+        f.graph->connect(f.graph->allocate_edge(
+            ossia::immediate_strict_connection{}, w->out, r->in, w, r));
+        auto s = make_state(*f.x, {5.f});
+        f.graph->add_node(s);
+        for(int t = 0; t < 3; t++)
+        {
+          r->received.clear();
+          f.tick({w.get(), s.get(), r.get()});
+          CHECK(r->received == values{9.f});
+        }
       }
 
       SECTION("Several inlets on the address each receive the value once")

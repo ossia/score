@@ -17,6 +17,7 @@
 
 #include <Execution/BaseScenarioComponent.hpp>
 #include <Execution/DocumentPlugin.hpp>
+#include <Execution/Settings/ExecutorModel.hpp>
 
 #include <LocalTree/ScriptableProcessComponent.hpp>
 
@@ -25,6 +26,7 @@
 #include <core/document/Document.hpp>
 
 #include <ossia/dataflow/execution_state.hpp>
+#include <ossia/dataflow/graph/graph_parallel_impl.hpp>
 #include <ossia/dataflow/graph/tick_setup.hpp>
 #include <ossia/dataflow/graph_node.hpp>
 #include <ossia/detail/thread.hpp>
@@ -106,8 +108,24 @@ struct recording
   }
 };
 
-recording record_from_state(const score::GUIApplicationContext& ctx, const sync_case& c)
+//! Plays with score's Parallel execution setting as given, then puts it back.
+struct parallel_setting
 {
+  Execution::Settings::Model& settings;
+  bool before{};
+  parallel_setting(const score::GUIApplicationContext& ctx, bool parallel)
+      : settings{ctx.settings<Execution::Settings::Model>()}
+      , before{settings.getParallel()}
+  {
+    settings.setParallel(parallel);
+  }
+  ~parallel_setting() { settings.setParallel(before); }
+};
+
+recording record_from_state(
+    const score::GUIApplicationContext& ctx, const sync_case& c, bool parallel)
+{
+  const parallel_setting setting{ctx, parallel};
   auto* doc = score::test::new_document(ctx);
   REQUIRE(doc);
   auto& scenario = score::test::base_scenario(*doc);
@@ -175,6 +193,12 @@ recording record_from_state(const score::GUIApplicationContext& ctx, const sync_
   looper.inputs.quantif.value = halp::grid_value::bars(1);
 
   auto& ectx = plug.context();
+  {
+    // What score's execution asks for: StaticFixed, run in parallel or not.
+    using parallel_graph = ossia::graph_static<
+        ossia::custom_parallel_update<ossia::simple_update>, ossia::custom_parallel_exec>;
+    REQUIRE(bool(dynamic_cast<parallel_graph*>(ectx.execGraph.get())) == parallel);
+  }
   auto& st = *ectx.execState;
   REQUIRE(c.buffer <= st.bufferSize);
   auto& itv = *plug.baseScenario()->baseInterval().OSSIAInterval();
@@ -236,13 +260,15 @@ TEST_CASE(
           sync_case{120., 4, 4, 512, 0.6, 0.},
           sync_case{97., 3, 4, 300, 1.4, 0.},
       })
+  for(const bool parallel : {false, true})
   {
     DYNAMIC_SECTION(
         c.tempo << " bpm, " << c.num << "/" << c.den << ", buffers of " << c.buffer
-                << ", box at quarter " << c.box_start_quarters)
+                << ", box at quarter " << c.box_start_quarters
+                << (parallel ? ", parallel" : ""))
     {
       score::test::run_in_app([&](const score::GUIApplicationContext& ctx) {
-        const auto rec = record_from_state(ctx, c);
+        const auto rec = record_from_state(ctx, c, parallel);
         REQUIRE(rec.start);
         const auto bar3 = rec.frame_of_bar(c, 3);
         INFO("recording from frame " << *rec.start << ", bar 3 at frame " << bar3);
@@ -264,13 +290,15 @@ TEST_CASE(
           sync_case{97., 3, 4, 300, 0., 0.05},
           sync_case{140., 7, 8, 128, 0.6, 0.02},
       })
+  for(const bool parallel : {false, true})
   {
     DYNAMIC_SECTION(
         c.tempo << " bpm, " << c.num << "/" << c.den << ", buffers of " << c.buffer
-                << ", " << c.state_after_quarters << " quarters after the bar line")
+                << ", " << c.state_after_quarters << " quarters after the bar line"
+                << (parallel ? ", parallel" : ""))
     {
       score::test::run_in_app([&](const score::GUIApplicationContext& ctx) {
-        const auto rec = record_from_state(ctx, c);
+        const auto rec = record_from_state(ctx, c, parallel);
         REQUIRE(rec.start);
         const auto bar4 = rec.frame_of_bar(c, 4);
         INFO("recording from frame " << *rec.start << ", bar 4 at frame " << bar4);
