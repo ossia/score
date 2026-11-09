@@ -11,6 +11,10 @@
 
 #include <ossia/detail/hash_map.hpp>
 
+#include <atomic>
+#include <memory>
+#include <vector>
+
 #include <score_plugin_vst_export.h>
 
 #include <verdigris>
@@ -138,6 +142,16 @@ public:
   void reloadControls();
   void reloadPrograms();
 
+  //! The plug-in says it changed a parameter (audioMasterAutomate). Callable
+  //! from any thread, the audio one included: it neither allocates nor locks.
+  void parameterChangedByPlugin(int32_t index) noexcept;
+
+  //! Moves the control of each parameter the plug-in said it changed to the
+  //! value the plug-in has for it now, without sending it back to the
+  //! plug-in; a parameter without a control gets one while the process
+  //! creates them. Main thread.
+  void updateControlsChangedByPlugin();
+
   auto dispatch(
       int32_t opcode, int32_t index = 0, intptr_t value = 0, void* ptr = nullptr,
       float opt = 0.0f)
@@ -150,6 +164,11 @@ public:
   void selectProgram(int index);
 
   std::atomic_bool needIdle{};
+
+  //! Emitted on the main thread with the value the plug-in has for a
+  //! parameter, before its control takes it
+  void controlReadFromPlugin(int32_t fxNum, float value)
+      W_SIGNAL(controlReadFromPlugin, fxNum, value);
 
   //! State saved with a plug-in that could not be loaded, written back as is
   //! by the serializers (JSON "Data": base64 chunk, "Params": values,
@@ -181,6 +200,27 @@ private:
   int32_t m_effectId{};
   bool m_createControls{};
 
+  //! One flag per parameter, raised by parameterChangedByPlugin;
+  //! m_otherParamChanged for an index past them, the last such index in
+  //! m_otherParam, m_paramsChanged for any. The flags grow on the main thread
+  //! with the parameters of the plug-in: each block made is kept, as a call
+  //! from another thread may still be in an older one.
+  struct changed_params
+  {
+    int32_t count{};
+    std::unique_ptr<std::atomic_bool[]> flags;
+  };
+  std::atomic<changed_params*> m_changedParams{};
+  std::vector<std::unique_ptr<changed_params>> m_changedParamBlocks;
+  //! Makes flags for the first `count` parameters; returns whether it made
+  //! more, in which case a flag raised meanwhile may be lost
+  bool trackParameters(int32_t count);
+  std::atomic<int32_t> m_otherParam{-1};
+  std::atomic_bool m_otherParamChanged{};
+  std::atomic_bool m_paramsChanged{};
+  //! A control is being moved to the plug-in's value: not sent back to it
+  bool m_updatingFromPlugin{};
+
   struct vst_context_handler
   {
     Model& self;
@@ -191,6 +231,8 @@ private:
 
 // VSTModule* getPlugin(QString path);
 AEffect* getPluginInstance(int32_t id);
+//! What score answers a plug-in calling its host
+SCORE_PLUGIN_VST_TEST_EXPORT
 intptr_t vst_host_callback(
     AEffect* effect, int32_t opcode, int32_t index, intptr_t value, void* ptr,
     float opt);

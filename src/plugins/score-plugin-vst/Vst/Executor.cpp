@@ -35,7 +35,7 @@ void Executor::setupNode(Node_T& node)
     (**inlet).type = ossia::val_type::FLOAT;
 
     node->controls.push_back(
-        {ctrl->fxNum, ctrl->value(), inlet->target<ossia::value_port>()});
+        {.idx = ctrl->fxNum, .port = inlet->target<ossia::value_port>()});
     node->root_inputs().push_back(inlet);
   }
 
@@ -55,8 +55,8 @@ void Executor::setupNode(Node_T& node)
 
       Execution::Transaction commands{system()};
 
-      commands.push_back([n, inlet, val = ctrl->value(), num = ctrl->fxNum] {
-        n->controls.push_back({num, val, inlet->target<ossia::value_port>()});
+      commands.push_back([n, inlet, num = ctrl->fxNum] {
+        n->controls.push_back({.idx = num, .port = inlet->target<ossia::value_port>()});
         n->root_inputs().push_back(inlet);
       });
 
@@ -64,6 +64,17 @@ void Executor::setupNode(Node_T& node)
 
       commands.run_all();
     }
+      });
+  // What the plug-in has is not given to it again when the control's value
+  // reaches the node: queued before the control takes the value
+  connect(
+      &proc, &vst::Model::controlReadFromPlugin, this, [this, wp](int32_t num, float v) {
+        if(auto n = wp.lock())
+          in_exec([n, num, v] {
+            for(auto& c : n->controls)
+              if(c.idx == num)
+                c.value = v;
+          });
       });
   connect(
       &proc, &vst::Model::controlRemoved, this, [this, wp](const Process::Port& port) {
