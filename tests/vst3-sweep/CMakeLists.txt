@@ -10,7 +10,7 @@ score_add_test(test_vst3_sweep_worker
   SOURCES VST3SweepWorker.cpp
   APP
   NO_CTEST
-  PLUGINS score_plugin_vst3 score_plugin_dataflow score_plugin_engine
+  PLUGINS score_plugin_vst3 score_plugin_dataflow score_plugin_engine score_plugin_scenario
     score_plugin_media score_plugin_audio score_lib_process
   LIBS sdk_common sdk_hosting)
 target_include_directories(test_vst3_sweep_worker PRIVATE

@@ -176,6 +176,24 @@ class Slot:
             pass
         self.proc.wait()
 
+    def crashed_in_earlier(self, current_bundle):
+        """The plug-in of this batch, already probed, in whose bundle the
+        backtrace of the crash starts, if not the one being probed"""
+        try:
+            lines = self.log.read_text(errors="replace").splitlines()
+        except OSError:
+            return None
+        for l in lines:
+            m = re.search(r"^\s*#\d+ .*?(/\S+?\.vst3)/Contents/", l)
+            if not m:
+                continue
+            bundle = m.group(1)
+            if bundle == current_bundle:
+                return None
+            done = [p["uri"] for p in self.batch if p.get("bundle") == bundle and p["uri"] in self.done]
+            return done[-1] if done else None
+        return None
+
     def log_tail(self, n=15):
         try:
             lines = self.log.read_text(errors="replace").splitlines()
@@ -248,20 +266,28 @@ def run_stage(args, items, stage, env_var, line, batch_size):
                     + s.log_tail(40)
                 )
             if rest:
-                # The item being worked on takes the blame; the others go back
+                # The item being worked on takes the blame, unless the crash
+                # is in another plug-in's code: one probed before, whose
+                # timer or thread outlived it. The others go back.
                 culprit = s.current or rest[0]["uri"]
+                phase = s.phase
+                if not hung:
+                    earlier = s.crashed_in_earlier(by_uri.get(culprit, {}).get("bundle"))
+                    if earlier:
+                        queue[:0] = [by_uri[culprit]] if culprit in by_uri else []
+                        culprit, phase = earlier, "after-teardown"
                 finish(
                     {
                         "type": "result",
                         "uri": culprit,
                         "status": "hang" if hung else "crash",
-                        "phase": s.phase,
+                        "phase": phase,
                         "exit": "timeout" if hung else describe_exit(code),
                         "log": s.log_tail(),
                         "workdir": s.scratch,
                     }
                 )
-                queue[:0] = [p for p in rest if p["uri"] != culprit]
+                queue[:0] = [p for p in rest if p["uri"] != culprit and p not in queue]
             s.proc = None
             if queue:
                 s.start(next_batch())
@@ -369,7 +395,9 @@ def judge(r):
                 if r.get("ref_skipped"):
                     why += f"; reference host: {r['ref_skipped']}"
                 add("warn", "silent", why)
-        elif replay_peak < SILENT:
+        elif replay_peak < SILENT and max(r.get("play_rms_held") or 0, r.get("play_peak_tail") or 0) >= SILENT:
+            # Sound all along the first play, not only at its start: a plug-in
+            # fading out on its own is as silent the second time
             add("host", "silent-on-replay", f"sound on the first play (peak {play_peak:.3g}), silent on the second")
         elif ref_ran and ref_peak >= SILENT:
             diff = db(r.get("play_rms", 0), r.get("ref_rms", 0))
