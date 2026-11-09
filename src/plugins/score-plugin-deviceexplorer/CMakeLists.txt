@@ -103,6 +103,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Explorer/DeviceExplorerDelegate.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Explorer/ValueEditors.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Explorer/DeviceExplorerWidget.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Explorer/ExplorerModelProvider.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Explorer/LearnRollback.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Explorer/ListeningManager.cpp"
 

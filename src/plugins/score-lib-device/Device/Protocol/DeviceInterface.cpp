@@ -814,7 +814,8 @@ Device::Node DeviceInterface::getNodeWithoutChildren(const State::Address& addre
   return {};
 }
 
-void DeviceInterface::setListening(const State::Address& addr, bool b)
+void DeviceInterface::setListening(
+    const State::Address& addr, bool b, bool reportCurrentValue)
 {
   static const bool gui = score::AppContext().applicationSettings.gui;
   if(!gui)
@@ -827,7 +828,7 @@ void DeviceInterface::setListening(const State::Address& addr, bool b)
   else
     m_listeningRequests.erase(addr);
 
-  listen_impl(addr, b);
+  listen_impl(addr, b, reportCurrentValue);
 }
 
 std::vector<State::Address> DeviceInterface::listeningRequests() const
@@ -848,7 +849,7 @@ void DeviceInterface::restoreListening()
     listen_impl(addr, true);
 }
 
-bool DeviceInterface::listen_impl(const State::Address& addr, bool b)
+bool DeviceInterface::listen_impl(const State::Address& addr, bool b, bool report)
 {
   if(auto dev = getDevice())
   {
@@ -906,7 +907,7 @@ bool DeviceInterface::listen_impl(const State::Address& addr, bool b)
       // Both the declared type and what it happens to hold: a parameter of
       // another type carrying an impulse is still an event nobody sent.
       const auto v = ossia_addr->value();
-      if(ossia_addr->get_value_type() != ossia::val_type::IMPULSE
+      if(report && ossia_addr->get_value_type() != ossia::val_type::IMPULSE
          && v.get_type() != ossia::val_type::IMPULSE)
       {
         valueUpdated(addr, v);

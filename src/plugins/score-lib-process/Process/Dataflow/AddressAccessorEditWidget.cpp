@@ -37,6 +37,7 @@ namespace Process
 AddressAccessorEditWidget::AddressAccessorEditWidget(
     const score::DocumentContext& ctx, QWidget* parent)
     : QWidget{parent}
+    , m_ctx{ctx}
 {
   {
     auto& plist = ctx.app.interfaces<Device::DeviceModelProviderList>();
@@ -245,8 +246,11 @@ public:
   std::optional<State::Address> selectedAddress;
 };
 }
-static std::optional<Device::FullAddressAccessorSettings>
-learnAddress(Device::NodeBasedItemModel& model, QWidget* parent)
+//! \p listening keeps the devices listening to the addresses the model does
+//! not otherwise get the values of, for as long as the dialog is open.
+static std::optional<Device::FullAddressAccessorSettings> learnAddress(
+    Device::NodeBasedItemModel& model, std::shared_ptr<void> listening,
+    QWidget* parent)
 {
   // On the heap: its parent, or the document the model belongs to, may be
   // deleted while the dialog runs its own event loop
@@ -254,6 +258,7 @@ learnAddress(Device::NodeBasedItemModel& model, QWidget* parent)
   QPointer<LearnDialog> dialog = new LearnDialog{model, parent};
   dialog->setWindowTitle(QObject::tr("Learn"));
   dialog->exec();
+  listening.reset();
   if(!dialog)
     return std::nullopt;
   const auto picked = dialog->selectedAddress;
@@ -272,14 +277,14 @@ learnAddress(const score::DocumentContext& ctx, QWidget* parent)
   auto& plist = ctx.app.interfaces<Device::DeviceModelProviderList>();
   if(auto provider = plist.getBestProvider(ctx))
     if(auto model = provider->getNodeModel(ctx))
-      return learnAddress(*model, parent);
+      return learnAddress(*model, provider->listenToAllAddresses(ctx), parent);
   return std::nullopt;
 }
 
 void AddressAccessorEditWidget::startLearn()
 {
   QPointer<AddressAccessorEditWidget> self = this;
-  auto res = learnAddress(*m_model, this);
+  auto res = learnAddress(m_ctx, this);
   if(!self)
     return;
   if(res)

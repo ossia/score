@@ -3,6 +3,8 @@
 #include <score/plugins/InterfaceList.hpp>
 
 #include <score_lib_device_export.h>
+
+#include <memory>
 namespace score
 {
 struct DocumentContext;
@@ -26,6 +28,21 @@ public:
   findDevice(const QString& name, const score::DocumentContext& ctx) const noexcept
   {
     return nullptr;
+  }
+
+  /**
+   * @brief Listens to every address of every device of the document.
+   *
+   * The model only gets the values of the addresses listened to, which are
+   * otherwise only those the explorer shows. Listening lasts as long as the
+   * returned object; destroying it puts each device back to listening to what
+   * it listened to before. The values the addresses hold already are not
+   * reported, only those that arrive afterwards.
+   */
+  virtual std::shared_ptr<void>
+  listenToAllAddresses(const score::DocumentContext& ctx) const noexcept
+  {
+    return {};
   }
 };
 

@@ -56,6 +56,7 @@ private:
   void customContextMenuEvent(const QPoint& p);
   void startLearn();
 
+  const score::DocumentContext& m_ctx;
   AddressAccessorLineEdit<AddressAccessorEditWidget>* m_lineEdit{};
   Device::FullAddressAccessorSettings m_address;
   Device::NodeBasedItemModel* m_model{};

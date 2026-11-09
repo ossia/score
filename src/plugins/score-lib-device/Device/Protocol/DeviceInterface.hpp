@@ -142,8 +142,12 @@ public:
    * callbacks are re-installed by restoreListening() whenever the device is
    * rebuilt (reconnect, recreate, refresh...), so that an address the explorer
    * shows keeps being listened to across those.
+   *
+   * Starting to listen reports the value the address holds through
+   * valueUpdated, unless reportCurrentValue is false: then only the values
+   * that arrive afterwards are.
    */
-  void setListening(const State::Address&, bool);
+  void setListening(const State::Address&, bool, bool reportCurrentValue = true);
   void addToListening(const std::vector<State::Address>&);
   //! The addresses actually being listened to right now.
   std::vector<State::Address> listening() const;
@@ -238,7 +242,7 @@ protected:
   Device::Node simple_refresh();
 
 private:
-  bool listen_impl(const State::Address& addr, bool b);
+  bool listen_impl(const State::Address& addr, bool b, bool report = true);
 
   // What the explorer asked to listen to; outlives the callbacks, which die
   // with the ossia nodes on reconnect / refresh.

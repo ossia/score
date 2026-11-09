@@ -31,5 +31,8 @@ public:
       return plug->list().findDevice(name);
     return nullptr;
   }
+
+  std::shared_ptr<void>
+  listenToAllAddresses(const score::DocumentContext& ctx) const noexcept override;
 };
 }
