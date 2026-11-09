@@ -8,6 +8,9 @@
 
 #include <QLineF>
 
+#include <cmath>
+#include <limits>
+
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Scenario::MusicalGrid)
 
@@ -16,44 +19,56 @@ namespace Scenario
 namespace
 {
 
-ossia::bar_time timeToMetrics(MusicalGrid& grid, TimeVal x0_time)
+//! Lines closer than this to the line before them are not drawn: they could
+//! not be told apart, and zoomed out on many time signature changes there
+//! would be one per change.
+constexpr double min_line_spacing_px = 5.;
+
+//! For each time signature, the bars counted before it.
+void countBarsAtSignatures(
+    const TimeSignatureMap& measures, std::vector<int32_t>& bars_at_signature)
 {
-  auto& measures = *grid.m_measures;
-  // Compute the amount of bars before so that we can index them
+  bars_at_signature.clear();
+  if(measures.empty())
+    return;
+  bars_at_signature.reserve(measures.size());
+  bars_at_signature.push_back(0);
+
+  int32_t start_bars = 0;
+  int64_t prev_bar_date = 0;
+  ossia::time_signature prev_sig = measures.begin()->second;
+
+  for(auto it = measures.begin() + 1; it != measures.end(); ++it)
+  {
+    const auto sig_upper = prev_sig.upper;
+    const auto sig_lower = prev_sig.lower;
+    int64_t this_bar_date = it->first.impl;
+    auto [quarters, qrem]
+        = std::div((this_bar_date - prev_bar_date), ossia::quarter_duration<int64_t>);
+    auto [bars, brem] = std::div(quarters, (4. * double(sig_upper) / sig_lower));
+
+    start_bars += bars;
+    // If the signature change falls on "not a previous bar",
+    // we increment the bar counter
+    if(qrem != 0 || brem != 0)
+    {
+      start_bars += 1;
+    }
+
+    if(bars * (4. * double(sig_upper) / sig_lower))
+      prev_bar_date = this_bar_date;
+    prev_sig = it->second;
+    bars_at_signature.push_back(start_bars);
+  }
+}
+
+ossia::bar_time timeToMetrics(
+    const TimeSignatureMap& measures, const std::vector<int32_t>& bars_at_signature,
+    TimeVal x0_time)
+{
   ossia::bar_time start{};
   auto last_before = ossia::last_before(measures, x0_time);
-
-  if(last_before != measures.begin())
-  {
-    int64_t prev_bar_date = 0;
-    ossia::time_signature prev_sig = measures.begin()->second;
-
-    auto it = measures.begin() + 1;
-    for(; it <= last_before; ++it)
-    {
-      const auto sig_upper = prev_sig.upper;
-      const auto sig_lower = prev_sig.lower;
-      int64_t this_bar_date = it->first.impl;
-      auto [quarters, qrem]
-          = std::div((this_bar_date - prev_bar_date), ossia::quarter_duration<int64_t>);
-      auto [bars, brem] = std::div(quarters, (4. * double(sig_upper) / sig_lower));
-
-      //int32_t quarters = (this_bar_date - prev_bar_date) / ossia::quarter_duration<int64_t>;
-      //int32_t bars = quarters / (4. * double(sig_upper) / sig_lower);
-
-      start.bars += bars;
-      // If the signature change falls on "not a previous bar",
-      // we increment the bar counter
-      if(qrem != 0 || brem != 0)
-      {
-        start.bars += 1;
-      }
-
-      if(bars * (4. * double(sig_upper) / sig_lower))
-        prev_bar_date = this_bar_date;
-      prev_sig = it->second;
-    }
-  }
+  start.bars = bars_at_signature[std::distance(measures.begin(), last_before)];
   {
     const auto sig_upper = last_before->second.upper;
     const auto sig_lower = last_before->second.lower;
@@ -195,18 +210,26 @@ void computeAll(
   // The first line can be up to a division left of the rect: what is visible
   // is measured from the rect's left edge, so that the division at its right
   // end gets its lines too.
-  auto isVisible = [&](double bar_x_pos) { return (bar_x_pos - x0_px) < rect.width(); };
+  const double view_left_px = x0_px;
+  const double view_right_px = x0_px + rect.width();
+  auto isVisible = [&](double bar_x_pos) { return bar_x_pos < view_right_px; };
+  double last_line_px = -std::numeric_limits<double>::infinity();
 
   // This function adds a main vertical line, and adds
   // the sub-bars between the new main and the previous one.
   auto addNewMain = [&](double new_bar_x_pos, TimeVal prev_t, TimeVal cur_t) {
-    //qDebug() << " !!! adding main bar" << new_bar_x_pos;
-    bars.positions.push_back(QLineF(new_bar_x_pos, y0, new_bar_x_pos, y1));
-    // Lines are drawn in the interval shown, bars counted in the one that
-    // holds the time signatures.
-    grid.mainPositions.push_back(
-        {new_bar_x_pos, timeToMetrics(grid, cur_t + timeDelta), increment});
-    magneticTimings.push_back(cur_t + timeDelta);
+    if(new_bar_x_pos - last_line_px >= min_line_spacing_px)
+    {
+      bars.positions.push_back(QLineF(new_bar_x_pos, y0, new_bar_x_pos, y1));
+      // Lines are drawn in the interval shown, bars counted in the one that
+      // holds the time signatures.
+      grid.mainPositions.push_back(
+          {new_bar_x_pos,
+           timeToMetrics(measures, grid.m_barsAtSignature, cur_t + timeDelta),
+           increment});
+      magneticTimings.push_back(cur_t + timeDelta);
+      last_line_px = new_bar_x_pos;
+    }
 
     if(increment.bars != 1)
     {
@@ -220,16 +243,26 @@ void computeAll(
 
     // We display the quarter notes
     // Only display sub bars if there is enough visual space.
-    if(sub_increment_px >= 5.)
+    if(sub_increment_px >= 5. && sub_increment_t.impl > 0)
     {
       // auto sub_time = main_time;
       // addBars(sub_time, sub_increment);
 
-      TimeVal sub_bar_t = prev_t + sub_increment_t;
-      //double pos = prev_bar_x_pos;
+      // Zoomed in, a bar holds far more sub-divisions than the view shows:
+      // only the ones in the view are made.
+      int64_t first = 1;
+      const double view_left_t = view_left_px * zoom;
+      if(view_left_t > prev_t.impl)
+        first = std::max(
+            first,
+            int64_t(std::floor((view_left_t - prev_t.impl) / sub_increment_t.impl)));
+
+      TimeVal sub_bar_t{prev_t.impl + sub_increment_t.impl * first};
       while(sub_bar_t < cur_t)
       {
         double kp = sub_bar_t.toPixels(zoom);
+        if(kp > view_right_px)
+          break;
         sub.positions.push_back(QLineF(kp, y0, kp, y1));
         magneticTimings.push_back(sub_bar_t + timeDelta);
         sub_bar_t += sub_increment_t;
@@ -371,8 +404,25 @@ void MusicalGrid::compute(
 {
   SCORE_ASSERT(m_measures);
   auto& measures = *m_measures;
-  // Find the last measure change before x0_time.
-  // this->start = computeStart(*this, x0_time, last_signature_change);
+
+  // Scrolling in the rest of the view, or moving something in the interval,
+  // asks for the grid again with nothing it depends on changed.
+  const bool same_measures = m_computed && !(m_computedMeasures != measures);
+  if(same_measures && m_computedTimeDelta == timeDelta && m_computedZoom == zoom
+     && m_computedRect == sceneRect && m_computedX0 == x0_time)
+    return;
+
+  if(!same_measures)
+  {
+    m_computedMeasures = measures;
+    countBarsAtSignatures(measures, m_barsAtSignature);
+  }
+  m_computed = true;
+  m_computedTimeDelta = timeDelta;
+  m_computedZoom = zoom;
+  m_computedRect = sceneRect;
+  m_computedX0 = x0_time;
+
   mainPositions.clear();
   //subPositions.clear();
   timebars.lightBars->positions.clear();

@@ -9,6 +9,7 @@
 #include <ossia/editor/scenario/time_signature.hpp>
 
 #include <QApplication>
+#include <QElapsedTimer>
 
 #include <catch2/catch_test_macros.hpp>
 #include <score_test/App.hpp>
@@ -16,6 +17,7 @@
 #include <algorithm>
 #include <cmath>
 #include <memory>
+#include <utility>
 #include <vector>
 
 namespace
@@ -149,5 +151,219 @@ TEST_CASE(
       CHECK(lines.has_bar_at(x));
     }
     CHECK(grid_lines::between(lines.subs, left + width - bar_px, left + width) > 0);
+  });
+}
+
+namespace
+{
+//! The lines of a view `width` pixels wide whose left edge is `seconds` into
+//! the timeline.
+grid_lines draw_at(
+    const Scenario::TimeSignatureMap& measures, double zoom, double seconds,
+    double width)
+{
+  const double left
+      = TimeVal(int64_t(seconds * ossia::flicks_per_second<double>)).toPixels(zoom);
+  return draw(measures, zoom, left, width);
+}
+
+//! A time signature change every few bars over an hour, as in an imported
+//! MIDI file.
+Scenario::TimeSignatureMap hour_of_signature_changes()
+{
+  Scenario::TimeSignatureMap measures;
+  TimeVal t = TimeVal::zero();
+  for(int i = 0; t.impl < 3600 * ossia::flicks_per_second<int64_t>; i++)
+  {
+    const auto sig = (i % 2) ? ossia::time_signature{3, 4} : ossia::time_signature{4, 4};
+    measures[t] = sig;
+    t.impl += 4 * int64_t(bar_flicks(sig.upper, sig.lower));
+  }
+  return measures;
+}
+
+//! What a view can show: a line every few pixels, and the one before it.
+std::size_t max_lines(double width)
+{
+  return std::size_t(width / 5.) + 2;
+}
+}
+
+TEST_CASE(
+    "Zoomed in as far as the timeline goes, only the lines in the view are made",
+    "[scenario][musical-grid]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext&) {
+    Scenario::TimeSignatureMap measures;
+    measures[TimeVal::zero()] = ossia::time_signature{4, 4};
+    const auto changes = hour_of_signature_changes();
+
+    // 1000 flicks per pixel is the closest the timeline zooms: a 4/4 bar is
+    // then 1.4 million pixels wide.
+    for(const double zoom : {100., 1000., 10000.})
+      for(const double seconds : {0., 1.3, 1800.5})
+        for(const double width : {800., 3840.})
+        {
+          DYNAMIC_SECTION(
+              zoom << " flicks per pixel, " << seconds << " s, " << width << " px")
+          {
+            for(const Scenario::TimeSignatureMap* m :
+                {&std::as_const(measures), &changes})
+            {
+              const auto lines = draw_at(*m, zoom, seconds, width);
+              CHECK(lines.bars.size() <= 4);
+              CHECK(lines.subs.size() <= max_lines(width));
+              // Still every sub-division of the view.
+              CHECK(lines.subs.size() >= std::size_t(width / 40.));
+            }
+          }
+        }
+  });
+}
+
+TEST_CASE(
+    "Zoomed out on many time signature changes, the lines are a few pixels apart",
+    "[scenario][musical-grid]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext&) {
+    const auto changes = hour_of_signature_changes();
+    const double width = 1600.;
+    const double hour = 3600. * ossia::flicks_per_second<double>;
+    // From the whole hour in the view to a bar a pixel and a half wide.
+    for(const double zoom : {1.1 * hour / width, 1e9, 3e8})
+    {
+      DYNAMIC_SECTION(zoom << " flicks per pixel")
+      {
+        const auto lines = draw_at(changes, zoom, 0., width);
+        INFO(lines.bars.size() << " bar lines");
+        CHECK(lines.bars.size() <= max_lines(width));
+        CHECK(lines.bars.size() > 10);
+        for(std::size_t i = 1; i < lines.bars.size(); i++)
+        {
+          INFO("line " << i << " at " << lines.bars[i]);
+          REQUIRE(lines.bars[i] - lines.bars[i - 1] >= 5.);
+        }
+      }
+    }
+  });
+}
+
+TEST_CASE(
+    "After a time signature change, its bar line is drawn once and counted from the "
+    "start",
+    "[scenario][musical-grid]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext&) {
+    // 3 bars of 4/4, 2 of 3/4, then 6/8 from half-way in a bar of 3/4.
+    Scenario::TimeSignatureMap measures;
+    const double b44 = bar_flicks(4, 4), b34 = bar_flicks(3, 4);
+    measures[TimeVal::zero()] = ossia::time_signature{4, 4};
+    measures[TimeVal(int64_t(3 * b44))] = ossia::time_signature{3, 4};
+    const TimeVal six_eight{int64_t(3 * b44 + 2.5 * b34)};
+    measures[six_eight] = ossia::time_signature{6, 8};
+
+    Scenario::Timebars bars;
+    std::unique_ptr<Scenario::LightBars> light{new Scenario::LightBars};
+    std::unique_ptr<Scenario::LighterBars> lighter{new Scenario::LighterBars};
+    bars.lightBars = light.get();
+    bars.lighterBars = lighter.get();
+    Scenario::MusicalGrid grid{bars};
+    grid.setMeasures(measures);
+
+    // A bar of 6/8 is 300 pixels wide: the main lines are bars.
+    const double zoom = bar_flicks(6, 8) / 300.;
+    const double left = six_eight.toPixels(zoom) - 50.;
+    grid.compute(
+        TimeVal::zero(), zoom, QRectF{left, 0., 1000., 100.},
+        TimeVal::fromPixels(left, zoom));
+
+    // The ruler's 0 is 100 pixels left of the view.
+    const double first = six_eight.toPixels(zoom) - left - 100.;
+    std::vector<int> counted;
+    for(auto& m : grid.mainPositions)
+      if(m.pos_x >= first - 0.5)
+        counted.push_back(m.timings.bars);
+    // The half bar of 3/4 is a bar too: the 6/8 starts at the 7th. The last
+    // line is the one past the right of the view.
+    CHECK(counted == std::vector<int>{6, 7, 8, 9, 10});
+  });
+}
+
+TEST_CASE(
+    "Asked again for the same view, the grid is not computed again",
+    "[scenario][musical-grid]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext&) {
+    Scenario::TimeSignatureMap measures;
+    measures[TimeVal::zero()] = ossia::time_signature{4, 4};
+
+    Scenario::Timebars bars;
+    std::unique_ptr<Scenario::LightBars> light{new Scenario::LightBars};
+    std::unique_ptr<Scenario::LighterBars> lighter{new Scenario::LighterBars};
+    bars.lightBars = light.get();
+    bars.lighterBars = lighter.get();
+    Scenario::MusicalGrid grid{bars};
+    grid.setMeasures(measures);
+
+    // Whether the last call computed the lines: a computation fills them in
+    // again.
+    auto computed = [&] {
+      const bool res = !light->positions.empty();
+      light->positions.clear();
+      return res;
+    };
+
+    const double zoom = bar_flicks(4, 4) / 150.;
+    const QRectF view{0., 0., 1000., 100.};
+    grid.compute(TimeVal::zero(), zoom, view, TimeVal::zero());
+    CHECK(computed());
+    grid.compute(TimeVal::zero(), zoom, view, TimeVal::zero());
+    CHECK(!computed());
+
+    // The same map, changed in place.
+    measures[TimeVal(int64_t(2 * bar_flicks(4, 4)))] = ossia::time_signature{3, 4};
+    grid.compute(TimeVal::zero(), zoom, view, TimeVal::zero());
+    CHECK(computed());
+
+    grid.compute(TimeVal::zero(), zoom / 2., view, TimeVal::zero());
+    CHECK(computed());
+    grid.compute(TimeVal::zero(), zoom / 2., view.translated(10., 0.), TimeVal::zero());
+    CHECK(computed());
+    grid.compute(
+        TimeVal(int64_t(1000)), zoom / 2., view.translated(10., 0.), TimeVal::zero());
+    CHECK(computed());
+    grid.compute(
+        TimeVal(int64_t(1000)), zoom / 2., view.translated(10., 0.),
+        TimeVal::fromPixels(1., zoom));
+    CHECK(computed());
+  });
+}
+
+TEST_CASE(
+    "Zoomed in on an hour of time signature changes, a view is computed quickly",
+    "[scenario][musical-grid]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext&) {
+    const auto changes = hour_of_signature_changes();
+    Scenario::Timebars bars;
+    std::unique_ptr<Scenario::LightBars> light{new Scenario::LightBars};
+    std::unique_ptr<Scenario::LighterBars> lighter{new Scenario::LighterBars};
+    bars.lightBars = light.get();
+    bars.lighterBars = lighter.get();
+    Scenario::MusicalGrid grid{bars};
+    grid.setMeasures(changes);
+
+    // Scrolling a pixel at a time, at the closest zoom, half an hour in.
+    const double zoom = 1000.;
+    const double left
+        = TimeVal(int64_t(1800 * ossia::flicks_per_second<double>)).toPixels(zoom);
+    QElapsedTimer timer;
+    timer.start();
+    for(int i = 0; i < 50; i++)
+      grid.compute(
+          TimeVal::zero(), zoom, QRectF{left + i, 0., 1920., 100.},
+          TimeVal::fromPixels(left + i, zoom));
+    // Some tens of microseconds each, even unoptimised: a frame is 16 ms.
+    CHECK(timer.elapsed() < 100);
   });
 }
