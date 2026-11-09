@@ -265,7 +265,8 @@ std::vector<ConnectionRow> collectConnections(
 
     const QString srcPath = r.sourceOwner ? hierarchyPath(*r.sourceOwner) : QString{};
     const QString sinkPath = r.sinkOwner ? hierarchyPath(*r.sinkOwner) : QString{};
-    r.location = srcPath == sinkPath ? srcPath : tr("%1 to %2").arg(srcPath, sinkPath);
+    r.location = srcPath == sinkPath ? srcPath
+                                     : QStringLiteral("%1 \u2192 %2").arg(srcPath, sinkPath);
     rows.push_back(std::move(r));
   }
 

@@ -48,6 +48,9 @@
 #include <QAction>
 #include <QClipboard>
 #include <QComboBox>
+#include <QDir>
+#include <QFontMetrics>
+#include <QHeaderView>
 #include <QKeyEvent>
 #include <QMenu>
 #include <QScrollBar>
@@ -443,6 +446,106 @@ TEST_CASE(
     clickRow(w, rowOfCable(w, dm.cables.at(cid)));
     CHECK(&presenter->displayedInterval() == &base);
     CHECK(doc->context().selectionStack.currentSelection().contains(&dm.cables.at(cid)));
+  });
+}
+
+TEST_CASE(
+    "Connections panel: a cable between intervals shows an arrow in its location",
+    "[integration][gui][dataflow]")
+{
+  score::test::run_in_gui_app([](const score::GUIApplicationContext& ctx) {
+    score::Document* doc = score::test::new_document(ctx);
+    REQUIRE(doc != nullptr);
+    auto& dm
+        = static_cast<Scenario::ScenarioDocumentModel&>(doc->model().modelDelegate());
+    auto& base = dm.baseInterval();
+
+    Scenario::ProcessModel* scenario{};
+    for(auto& p : base.processes)
+      if((scenario = qobject_cast<Scenario::ProcessModel*>(&p)))
+        break;
+    REQUIRE(scenario != nullptr);
+
+    Scenario::IntervalModel* box{};
+    {
+      Scenario::Command::Macro m{
+          new Scenario::Command::DropProcessInIntervalMacro, doc->context()};
+      box = &m.createBox(*scenario, TimeVal::fromMsecs(1000), TimeVal::fromMsecs(3000), 0.2);
+      m.commit();
+    }
+    REQUIRE(box != nullptr);
+    box->metadata().setName("Inner box");
+
+    auto& outer = addMerger(*doc, base);
+    auto& inner = addMerger(*doc, *box);
+    auto& inner2 = addMerger(*doc, *box);
+    CommandDispatcher<> disp{doc->context().commandStack};
+    const auto across = getStrongId(dm.cables);
+    disp.submit<Dataflow::CreateCable>(
+        dm, across, Process::CableType::ImmediateGlutton, *inner.outlets().front(),
+        *outer.inlets().front());
+    const auto within = getStrongId(dm.cables);
+    disp.submit<Dataflow::CreateCable>(
+        dm, within, Process::CableType::ImmediateGlutton, *inner.outlets().front(),
+        *inner2.inlets().front());
+
+    ConnectionsWidget w;
+    w.resize(900, 400);
+    w.setDocument(&doc->context());
+    w.show();
+    spin();
+
+    const QString innerPath = Dataflow::hierarchyPath(inner);
+    const QString outerPath = Dataflow::hierarchyPath(outer);
+    REQUIRE(innerPath != outerPath);
+    REQUIRE(innerPath.contains("Inner box"));
+
+    const int acrossRow = rowOfCable(w, dm.cables.at(across));
+    const int withinRow = rowOfCable(w, dm.cables.at(within));
+    REQUIRE(acrossRow >= 0);
+    REQUIRE(withinRow >= 0);
+
+    // U+2192 RIGHTWARDS ARROW between the two ends
+    const QString arrow = QString(QChar(0x2192));
+    const QString location = w.rows()[acrossRow].location;
+    CHECK(location == innerPath + " " + arrow + " " + outerPath);
+    CHECK(!location.contains(" to "));
+    // Both ends in the same interval: a single path, no arrow
+    CHECK(w.rows()[withinRow].location == innerPath);
+
+    // What the view shows in the Location column, and its tooltip
+    const auto cell = w.viewIndexOf(acrossRow).siblingAtColumn(ConnectionsWidget::LocationColumn);
+    REQUIRE(cell.isValid());
+    CHECK(cell.data(Qt::DisplayRole).toString() == location);
+    CHECK(cell.data(Qt::ToolTipRole).toString() == location);
+
+    // The font of the view has a glyph for the arrow
+    CHECK(QFontMetrics{w.view().font()}.inFontUcs4(0x2192));
+
+    // A narrow column elides the text instead of cutting the arrow apart
+    CHECK(w.view().textElideMode() != Qt::ElideNone);
+
+    // The search still finds a cable by either end of its location
+    w.searchField().setText("Inner box");
+    spin();
+    CHECK(w.viewIndexOf(acrossRow).isValid());
+    CHECK(w.viewIndexOf(withinRow).isValid());
+    w.searchField().setText(arrow);
+    spin();
+    CHECK(w.viewIndexOf(acrossRow).isValid());
+    CHECK(!w.viewIndexOf(withinRow).isValid());
+    w.searchField().clear();
+    spin();
+
+    if(const auto dir = qEnvironmentVariable("SCORE_TEST_SHOT_DIR"); !dir.isEmpty())
+    {
+      QDir{}.mkpath(dir);
+      w.grab().save(dir + "/connections-location-arrow-elided.png");
+      w.resize(1400, 200);
+      w.view().header()->resizeSections(QHeaderView::ResizeToContents);
+      spin();
+      w.grab().save(dir + "/connections-location-arrow.png");
+    }
   });
 }
 
