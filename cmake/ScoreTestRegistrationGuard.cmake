@@ -125,6 +125,9 @@ set(SCORE_TEST_GUARD_ALLOWED_TARGETS
   # entry, which scans and probes the installed VST3 plug-ins with it in
   # batches.
   test_vst3_sweep_worker
+  # Driven by tests/jsfx-sweep/jsfx_sweep.py, the test_jsfx_system_sweep
+  # entry, which probes the installed JSFX effects with it in batches.
+  test_jsfx_sweep_worker
   # Driven by tests/vst-sweep/vst_sweep.py, the test_vst_system_sweep entry,
   # which probes the installed VST 2 plug-ins with it in batches.
   test_vst_sweep_worker
