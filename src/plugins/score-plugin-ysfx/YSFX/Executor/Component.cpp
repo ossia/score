@@ -376,6 +376,16 @@ void ysfx_node::run(
     }
   }
 
+  // ysfx writes the outputs only from @sample: without one, the signal goes
+  // through as it came in, as in a host that processes in place
+  for(int i = 0; i < out_count; i++)
+  {
+    if(i < in_count)
+      std::copy_n(ins[i], d, outs[i]);
+    else
+      std::fill_n(outs[i], d, 0.);
+  }
+
   // Setup controls
   for(std::size_t i = 0; i < sliders.size(); i++)
   {

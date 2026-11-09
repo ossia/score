@@ -1,5 +1,6 @@
-// A buffer the engine runs a JSFX node in may be cut in several ticks, at a
-// loop point or where the process starts: each tick computes its part of the
+// What a JSFX node writes in the buffer the engine runs it in, and the events
+// of the buffer it takes. The buffer may be cut in several ticks, at a loop
+// point or where the process starts: each tick computes its part of the
 // buffer and takes the MIDI of its part of the buffer.
 
 #include <score_test/App.hpp>
@@ -39,6 +40,7 @@ struct played_script
   YSFX::ProcessModel* proc{};
   Execution::DocumentPlugin* plug{};
   ossia::graph_node* node{};
+  ossia::audio_port* audio_in{};
   ossia::audio_port* audio_out{};
   ossia::midi_port* midi_in{};
 
@@ -67,8 +69,12 @@ struct played_script
       if(auto* a = o->target<ossia::audio_port>())
         audio_out = a;
     for(auto* i : node->root_inputs())
+    {
       if(auto* m = i->target<ossia::midi_port>())
         midi_in = m;
+      else if(auto* a = i->target<ossia::audio_port>())
+        audio_in = a;
+    }
     plug->contextData()->execState->bufferSize = frames;
     return true;
   }
@@ -175,5 +181,35 @@ spl0 = 0;
     p.buffer({{0, frames}});
     CHECK(var("notes") == 3.);
     CHECK(var("last_offset") == 10.);
+  });
+}
+
+TEST_CASE(
+    "a JSFX script without @sample code lets its input through",
+    "[integration][ysfx]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    played_script p;
+    if(!p.open(ctx, R"(desc:no sample code
+in_pin:in
+out_pin:out
+@block
+blocks += 1;
+@sample
+)"))
+      SKIP("YSFX not built");
+    REQUIRE(p.audio_in);
+    REQUIRE(p.audio_out);
+
+    p.audio_in->set_channels(1);
+    p.audio_in->channel(0).assign(frames, 0.5);
+    p.buffer({{0, frames}});
+    REQUIRE(p.audio_out->channels() == 1);
+    auto& out = p.audio_out->channel(0);
+    REQUIRE(out.size() == std::size_t(frames));
+    int through = 0;
+    for(double v : out)
+      through += v == 0.5;
+    CHECK(through == frames);
   });
 }
