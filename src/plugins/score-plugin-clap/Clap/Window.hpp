@@ -29,7 +29,7 @@ private:
   void hideEvent(QHideEvent* event) override;
   void contextMenuEvent(QContextMenuEvent* event) override;
 
-  static void setup_rect(QWidget* container, int width, int height);
+  void setup_rect(int width, int height);
 
   bool queryExtensions();
   void initializeGui();

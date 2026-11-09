@@ -504,6 +504,26 @@ if(TARGET score_plugin_clap)
     target_compile_definitions(test_integration_clap_host_rules PRIVATE
       CLAP_MONO_GAIN_PATH="$<TARGET_FILE:clap_mono_gain>")
   endif()
+
+  # Two editors that only report a size, one fixed and one resizable, and the
+  # windows score gives them.
+  add_library(clap_sized_editor MODULE clap-sized-editor/SizedEditor.cpp)
+  target_include_directories(clap_sized_editor PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/3rdparty/clap/include")
+  set_target_properties(clap_sized_editor PROPERTIES PREFIX "" SUFFIX ".clap")
+  if(UNIX AND NOT APPLE)
+    score_add_test(test_integration_clap_editor_window
+      SOURCES ClapEditorWindowTest.cpp
+      GUI
+      PLUGINS score_plugin_clap score_plugin_scenario score_lib_process
+      LIBS ${CMAKE_DL_LIBS})
+    add_dependencies(test_integration_clap_editor_window clap_sized_editor)
+    target_include_directories(test_integration_clap_editor_window PRIVATE
+      "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-clap"
+      "${SCORE_ROOT_SOURCE_DIR}/3rdparty/clap/include")
+    target_compile_definitions(test_integration_clap_editor_window PRIVATE
+      CLAP_SIZED_EDITOR_PATH="$<TARGET_FILE:clap_sized_editor>")
+  endif()
 endif()
 
 # VST 2 processes with MIDI ports in documents: one saved before they had them
