@@ -256,7 +256,83 @@ TEST_CASE(
 }
 
 TEST_CASE(
-    "CLAP: each instance of a mono plug-in gets its own parameters, from the audio thread",
+    "CLAP: the instances of a mono plug-in call no main-thread function from the "
+    "audio thread",
+    "[integration][clap][mono]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    auto& proc = *add_mono_gain(*doc);
+    playing p{*doc, proc};
+    report();
+
+    for(int i = 0; i < 4; i++)
+      p.block(4);
+    gain_control(proc).setValue(0.4);
+    set_from_ui(proc, 0.6);
+    for(int i = 0; i < 4; i++)
+      p.block(4);
+
+    CHECK(report().wrong_thread == 0);
+    p.stop();
+  });
+}
+
+TEST_CASE(
+    "CLAP: each instance of a mono plug-in gets the events of its block, well formed",
+    "[integration][clap][mono]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    auto& proc = *add_mono_gain(*doc);
+    playing p{*doc, proc};
+    // The first block has the value the control starts with as well
+    p.block(4);
+    CHECK(report().bad_events == 0);
+
+    // One change of the one control in each block: one value in each call
+    for(int i = 0; i < 6; i++)
+    {
+      gain_control(proc).setValue(0.1 * (i + 1));
+      p.block(4);
+    }
+    const auto e = report();
+    CHECK(e.bad_events == 0);
+    CHECK(e.most_params == 1);
+    p.stop();
+  });
+}
+
+TEST_CASE(
+    "CLAP: an instance of a mono plug-in is given no cookie of another one",
+    "[integration][clap][mono]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    auto& proc = *add_mono_gain(*doc);
+    gain_control(proc).setValue(0.25);
+    report();
+    playing p{*doc, proc};
+
+    // When each starts, when a control changes, when the editor changes
+    p.block(4);
+    gain_control(proc).setValue(0.5);
+    p.block(4);
+    set_from_ui(proc, 0.75);
+    for(int i = 0; i < 3; i++)
+      p.block(4);
+
+    CHECK(report().foreign_cookies == 0);
+    p.stop();
+  });
+}
+
+TEST_CASE(
+    "CLAP: every instance of a mono plug-in follows score's controls and the first "
+    "one's editor",
     "[integration][clap][mono]")
 {
   score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
@@ -265,20 +341,26 @@ TEST_CASE(
     auto& proc = *add_mono_gain(*doc);
     gain_control(proc).setValue(0.25);
     playing p{*doc, proc};
-    report();
 
-    // The value the control had when the play started, in both channels
-    auto out = p.block(2);
-    REQUIRE(out.size() == 2);
-    CHECK(out[0] == Catch::Approx(0.25));
-    CHECK(out[1] == Catch::Approx(0.25));
+    auto all_at = [](const std::vector<double>& out, double v) {
+      REQUIRE(out.size() == 4);
+      for(double o : out)
+        CHECK(o == Catch::Approx(v));
+    };
 
-    // The editor of the first instance changes the gain: the other follows
+    // The value the control had when the play started
+    all_at(p.block(4), 0.25);
+
+    // A control changed in score during the play
+    gain_control(proc).setValue(0.5);
+    all_at(p.block(4), 0.5);
+
+    // The editor of the first instance
     set_from_ui(proc, 0.75);
+    std::vector<double> out;
     for(int i = 0; i < 3; i++)
-      out = p.block(2);
-    CHECK(out[0] == Catch::Approx(0.75));
-    CHECK(out[1] == Catch::Approx(0.75));
+      out = p.block(4);
+    all_at(out, 0.75);
 
     const auto e = report();
     CHECK(e.wrong_thread == 0);
