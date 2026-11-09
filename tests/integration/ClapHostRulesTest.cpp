@@ -70,6 +70,14 @@ errors report()
   return plugin_function<errors()>("clap_mono_gain_report")();
 }
 
+//! The editor of the process's instance, the first of a mono node, sets the
+//! gain
+void set_from_ui(Clap::Model& proc, double v)
+{
+  plugin_function<void(const clap_plugin_t*, double)>("clap_mono_gain_set_from_ui")(
+      proc.handle()->plugin, v);
+}
+
 void spin(int ms)
 {
   QElapsedTimer t;
@@ -244,6 +252,39 @@ TEST_CASE(
     spin(50);
     qInstallMessageHandler(previous);
     CHECK(layout_changes == 0);
+  });
+}
+
+TEST_CASE(
+    "CLAP: each instance of a mono plug-in gets its own parameters, from the audio thread",
+    "[integration][clap][mono]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    auto& proc = *add_mono_gain(*doc);
+    gain_control(proc).setValue(0.25);
+    playing p{*doc, proc};
+    report();
+
+    // The value the control had when the play started, in both channels
+    auto out = p.block(2);
+    REQUIRE(out.size() == 2);
+    CHECK(out[0] == Catch::Approx(0.25));
+    CHECK(out[1] == Catch::Approx(0.25));
+
+    // The editor of the first instance changes the gain: the other follows
+    set_from_ui(proc, 0.75);
+    for(int i = 0; i < 3; i++)
+      out = p.block(2);
+    CHECK(out[0] == Catch::Approx(0.75));
+    CHECK(out[1] == Catch::Approx(0.75));
+
+    const auto e = report();
+    CHECK(e.wrong_thread == 0);
+    CHECK(e.foreign_cookies == 0);
+    CHECK(e.bad_events == 0);
+    p.stop();
   });
 }
 
