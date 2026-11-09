@@ -3075,6 +3075,19 @@ score_add_test(test_unit_plugin_window
   SOURCES PluginWindowTest.cpp
   LIBS ${QT_PREFIX}::Gui ${QT_PREFIX}::Widgets)
 
+# A parameter a VST 2 editor changes reaches its control.
+if(TARGET score_plugin_vst AND TARGET score_test_vst_unflagged_instrument)
+  score_add_test(test_unit_vst_editor_automate
+    SOURCES VstEditorAutomateTest.cpp
+    APP
+    PLUGINS score_lib_process score_plugin_vst)
+  target_include_directories(test_unit_vst_editor_automate PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-vst")
+  add_dependencies(test_unit_vst_editor_automate score_test_vst_unflagged_instrument)
+  target_compile_definitions(test_unit_vst_editor_automate PRIVATE
+    SCORE_VST_UNFLAGGED_INSTRUMENT="$<TARGET_FILE:score_test_vst_unflagged_instrument>")
+endif()
+
 # A VST3 gain made with the SDK's AudioEffect and EditController, and a
 # parameter its editor moves while nothing plays, through a save and a load.
 if(TARGET score_plugin_vst3 AND TARGET base AND TARGET pluginterfaces AND UNIX AND NOT APPLE)

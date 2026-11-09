@@ -419,24 +419,23 @@ intptr_t vst_host_callback(
       }
 
       case audioMasterAutomate: {
+        // A parameter with a control moves it; one without gets a control
+        // only while the process creates them
         if(auto vst = reinterpret_cast<Model*>(effect->resvd1))
         {
-          if(vst->flags() & Process::CreateControls)
-          {
-            ossia::qt::run_async(vst, [vst, index, opt] {
-              auto ctrl_it = vst->controls.find(index);
-              if(ctrl_it != vst->controls.end())
-              {
-                ctrl_it->second->setValue(opt);
-              }
-              else
-              {
-                auto& ctx = score::IDocument::documentContext(*vst);
-                CommandDispatcher<>{ctx.commandStack}.submit<CreateControl>(
-                    *vst, index, opt);
-              }
-            });
-          }
+          ossia::qt::run_async(vst, [vst, index, opt] {
+            auto ctrl_it = vst->controls.find(index);
+            if(ctrl_it != vst->controls.end())
+            {
+              ctrl_it->second->setValue(opt);
+            }
+            else if(vst->flags() & Process::CreateControls)
+            {
+              auto& ctx = score::IDocument::documentContext(*vst);
+              CommandDispatcher<>{ctx.commandStack}.submit<CreateControl>(
+                  *vst, index, opt);
+            }
+          });
         }
 
         break;

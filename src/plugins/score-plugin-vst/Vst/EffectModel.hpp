@@ -191,6 +191,8 @@ private:
 
 // VSTModule* getPlugin(QString path);
 AEffect* getPluginInstance(int32_t id);
+//! What score answers a plug-in calling its host
+SCORE_PLUGIN_VST_TEST_EXPORT
 intptr_t vst_host_callback(
     AEffect* effect, int32_t opcode, int32_t index, intptr_t value, void* ptr,
     float opt);
