@@ -1506,21 +1506,18 @@ public:
     // The constructor runs on the main thread, so create_plugin/init are
     // spec-correct here. If any of the extra instances fail to construct we
     // tear down the ones we already built so we never leak plugin handles.
+    // Each starts from the first one's state, as the ones grown later do.
     try
     {
+      const QByteArray state = snapshot_clap_state(handle.plugin);
       for(int i = 0; i < 7; i++)
-        add_poly_instance(sampleRate, bs);
+        m_poly.push_back(make_poly_instance(sampleRate, bs, state));
     }
     catch(...)
     {
       destroy_extra_instances();
       throw;
     }
-  }
-
-  void add_poly_instance(int sampleRate, int bs)
-  {
-    m_poly.push_back(make_poly_instance(sampleRate, bs, /*state*/ {}));
   }
 
   // [main-thread] Build a fresh, init'd, activated polyphonic instance.

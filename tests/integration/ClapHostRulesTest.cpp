@@ -245,3 +245,25 @@ TEST_CASE(
     CHECK(layout_changes == 0);
   });
 }
+
+TEST_CASE(
+    "CLAP: every instance of a mono plug-in starts with the state of the first one",
+    "[integration][clap][mono]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    auto& proc = *add_mono_gain(*doc);
+    gain_control(proc).setValue(0.25);
+    // What only the plug-in's state keeps, as a loaded model
+    plugin_function<void(const clap_plugin_t*, double)>("clap_mono_gain_set_trim")(
+        proc.handle()->plugin, 2.);
+    playing p{*doc, proc};
+
+    const auto out = p.block(4);
+    REQUIRE(out.size() == 4);
+    for(double o : out)
+      CHECK(o == Catch::Approx(0.5));
+    p.stop();
+  });
+}
