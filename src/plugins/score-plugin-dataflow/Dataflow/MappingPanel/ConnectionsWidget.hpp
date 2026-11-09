@@ -41,12 +41,14 @@ class SCORE_PLUGIN_DATAFLOW_EXPORT ConnectionsWidget final
 public:
   enum Column
   {
+    //! "Cable" or "Address", after a square of the color of the port type;
+    //! the type and the cable mode are in its tooltip
     KindColumn,
+    //! A warning icon when an address is not bound, an information icon for
+    //! a pattern, empty otherwise; its tooltip says why
+    StatusColumn,
     FromColumn,
     ToColumn,
-    TypeColumn,
-    ModeColumn,
-    StatusColumn,
     LocationColumn,
     ColumnCount
   };
@@ -68,6 +70,11 @@ public:
   static constexpr int RowRole = Qt::UserRole + 1;
   //! Item data role holding the name of a group item, without its count
   static constexpr int GroupRole = Qt::UserRole + 2;
+  //! Item data role holding the text the search matches: what the cell shows,
+  //! and for the Kind cell the port type and cable mode of its tooltip
+  static constexpr int SearchRole = Qt::UserRole + 3;
+  //! Item data role holding the Process::PortType shown by the Kind cell's square
+  static constexpr int PortTypeRole = Qt::UserRole + 4;
 
   explicit ConnectionsWidget(QWidget* parent = nullptr);
   ~ConnectionsWidget() override;
@@ -88,7 +95,7 @@ public:
 
   //! Index in rows() of a view index, -1 for a group or nothing
   int rowAt(const QModelIndex& viewIndex) const;
-  //! View index of the first column of a row, invalid when filtered out
+  //! View index of the Kind column of a row, invalid when filtered out
   QModelIndex viewIndexOf(int row) const;
 
   //! Rows selected in the view

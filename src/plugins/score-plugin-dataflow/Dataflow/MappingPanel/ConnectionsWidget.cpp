@@ -38,11 +38,15 @@
 #include <QComboBox>
 #include <QHBoxLayout>
 #include <QHeaderView>
+#include <QIcon>
+#include <QPainter>
+#include <QPixmap>
 #include <QLineEdit>
 #include <QScrollBar>
 #include <QMenu>
 #include <QKeyEvent>
 #include <QSortFilterProxyModel>
+#include <QStyle>
 #include <QStandardItemModel>
 #include <QTimer>
 #include <QTreeView>
@@ -61,6 +65,19 @@ ossia::small_vector<Scenario::IntervalModel*, 8> intervalsAbove(const QObject* o
       res.push_back(itv);
   std::reverse(res.begin(), res.end());
   return res;
+}
+
+//! A square of the color of a port type, inset in an icon so that the
+//! squares of consecutive rows stay apart whatever the row height
+QIcon typeIndicator(Process::PortType t)
+{
+  QPixmap pix{16, 16};
+  pix.fill(Qt::transparent);
+  {
+    QPainter p{&pix};
+    p.fillRect(QRect{3, 3, 10, 10}, Process::portBrush(t).color());
+  }
+  return QIcon{pix};
 }
 
 bool isAncestor(const QObject* ancestor, const QObject* obj)
@@ -106,6 +123,7 @@ ConnectionsWidget::ConnectionsWidget(QWidget* parent)
   m_proxy->setSourceModel(m_model);
   m_proxy->setRecursiveFilteringEnabled(true);
   m_proxy->setFilterKeyColumn(-1);
+  m_proxy->setFilterRole(SearchRole);
   m_proxy->setFilterCaseSensitivity(Qt::CaseInsensitive);
   m_proxy->setSortCaseSensitivity(Qt::CaseInsensitive);
 
@@ -398,13 +416,14 @@ void ConnectionsWidget::populate(const ossia::hash_set<const QObject*>& selected
   m_items.assign(m_rows.size(), nullptr);
   m_rowsOf.clear();
   m_model->setHorizontalHeaderLabels(
-      {tr("Kind"), tr("From"), tr("To"), tr("Type"), tr("Mode"), tr("Status"),
-       tr("Location")});
+      {tr("Kind"), QString{}, tr("From"), tr("To"), tr("Location")});
+  m_model->setHeaderData(StatusColumn, Qt::Horizontal, tr("Binding"), Qt::ToolTipRole);
 
   const auto grouping = Grouping(m_grouping->currentIndex());
   const auto kinds = KindFilter(m_kinds->currentIndex());
   ossia::hash_map<QString, QStandardItem*> groups;
   auto& skin = score::Skin::instance();
+  ossia::hash_map<int, QIcon> indicators;
 
   for(int i = 0, n = std::ssize(m_rows); i < n; i++)
   {
@@ -413,34 +432,64 @@ void ConnectionsWidget::populate(const ossia::hash_set<const QObject*>& selected
     if((kinds == CablesOnly && !isCable) || (kinds == AddressesOnly && isCable))
       continue;
 
+    auto item = [](const QString& text) {
+      auto it = new QStandardItem{text};
+      it->setData(text, SearchRole);
+      return it;
+    };
+    const QString kind = isCable ? tr("Cable") : tr("Address");
+    const QString type = portTypeName(r.portType);
     QList<QStandardItem*> items;
     items.reserve(ColumnCount);
-    items.push_back(new QStandardItem{isCable ? tr("Cable") : tr("Address")});
-    items.push_back(new QStandardItem{r.from});
-    items.push_back(new QStandardItem{r.to});
-    items.push_back(new QStandardItem{portTypeName(r.portType)});
-    items.push_back(new QStandardItem{isCable ? r.mode : QString{}});
-    items.push_back(new QStandardItem{isCable ? QString{} : r.mode});
-    items.push_back(new QStandardItem{r.location});
+    items.push_back(item(kind));
+    items.push_back(item({}));
+    items.push_back(item(r.from));
+    items.push_back(item(r.to));
+    items.push_back(item(r.location));
     items[KindColumn]->setData(i, RowRole);
-    items[TypeColumn]->setData(
-        Process::portBrush(r.portType).color(), Qt::DecorationRole);
+    auto& indicator = indicators[int(r.portType)];
+    if(indicator.isNull())
+      indicator = typeIndicator(r.portType);
+    items[KindColumn]->setIcon(indicator);
+    items[KindColumn]->setData(int(r.portType), PortTypeRole);
     items[LocationColumn]->setToolTip(r.location);
-    if(!isCable)
+    if(isCable)
+    {
+      items[KindColumn]->setToolTip(QStringLiteral("%1\n%2").arg(type, r.mode));
+      items[KindColumn]->setData(
+          QStringList{kind, type, r.mode}.join('\n'), SearchRole);
+    }
+    else
     {
       const QString dir = r.addressIsSource ? tr("The address feeds the port")
                                             : tr("The port writes to the address");
-      items[KindColumn]->setToolTip(dir);
-      if(r.status != ConnectionRow::Resolved)
+      items[KindColumn]->setToolTip(QStringLiteral("%1\n%2").arg(type, dir));
+      items[KindColumn]->setData(QStringList{kind, type}.join('\n'), SearchRole);
+
+      auto& status = *items[StatusColumn];
+      switch(r.status)
       {
-        const QBrush warn = skin.Warn1.color();
-        for(auto it : items)
-          it->setForeground(warn);
-        items[StatusColumn]->setToolTip(
-            r.status == ConnectionRow::Pattern
-                ? tr("The address is a pattern, it may match several nodes")
-                : tr("The device explorer does not have this address"));
+        case ConnectionRow::Resolved:
+          break;
+        case ConnectionRow::Pattern:
+          status.setIcon(QIcon{QStringLiteral(":/icons/message_information.png")});
+          status.setToolTip(tr("The address is a pattern, it may match several nodes"));
+          break;
+        case ConnectionRow::MissingDevice:
+        case ConnectionRow::MissingNode: {
+          status.setIcon(QIcon{QStringLiteral(":/icons/message_warning.png")});
+          status.setToolTip(
+              r.status == ConnectionRow::MissingDevice
+                  ? tr("Not bound: the device explorer has no device %1").arg(r.device)
+                  : tr("Not bound: the device explorer does not have %1").arg(r.address));
+          const QBrush warn = skin.Warn1.color();
+          for(auto it : items)
+            it->setForeground(warn);
+          break;
+        }
       }
+      if(r.status != ConnectionRow::Resolved)
+        status.setData(statusName(r.status), SearchRole);
     }
     for(auto it : items)
       it->setEditable(false);
@@ -479,6 +528,7 @@ void ConnectionsWidget::populate(const ossia::hash_set<const QObject*>& selected
         g = new QStandardItem{group};
         g->setEditable(false);
         g->setData(group, GroupRole);
+        g->setData(group, SearchRole);
         QList<QStandardItem*> row{g};
         for(int c = 1; c < ColumnCount; c++)
         {
@@ -500,7 +550,16 @@ void ConnectionsWidget::populate(const ossia::hash_set<const QObject*>& selected
     if(m_collapsed.contains(key))
       m_view->collapse(m_proxy->mapFromSource(g->index()));
   for(int c = 0; c < ColumnCount - 1; c++)
-    m_view->resizeColumnToContents(c);
+    if(c != StatusColumn)
+      m_view->resizeColumnToContents(c);
+  // Icons only: as wide as one, below the style's smallest section
+  {
+    auto& header = *m_view->header();
+    const int w = m_view->style()->pixelMetric(QStyle::PM_SmallIconSize) + 8;
+    header.setMinimumSectionSize(std::min(header.minimumSectionSize(), w));
+    header.setSectionResizeMode(StatusColumn, QHeaderView::Fixed);
+    header.resizeSection(StatusColumn, w);
+  }
   m_view->doItemsLayout();
   m_view->verticalScrollBar()->setValue(vscroll);
   m_view->horizontalScrollBar()->setValue(hscroll);

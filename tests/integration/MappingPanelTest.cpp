@@ -10,6 +10,7 @@
 #include <Process/Commands/EditPort.hpp>
 #include <Process/Dataflow/Cable.hpp>
 #include <Process/Dataflow/Port.hpp>
+#include <Process/Dataflow/PortType.hpp>
 #include <Process/Process.hpp>
 
 #include <Device/Protocol/ProtocolFactoryInterface.hpp>
@@ -51,6 +52,8 @@
 #include <QDir>
 #include <QFontMetrics>
 #include <QHeaderView>
+#include <QIcon>
+#include <QImage>
 #include <QKeyEvent>
 #include <QMenu>
 #include <QScrollBar>
@@ -741,21 +744,24 @@ TEST_CASE(
     REQUIRE(r2 >= 0);
     REQUIRE(rp >= 0);
 
-    // Mode and binding status are separate columns
+    // The mode of a cable is in its tooltip, the binding of an address in its status
     {
-      auto& m = *w.view().model();
       auto cableIdx = w.viewIndexOf(r1);
       auto portIdx = w.viewIndexOf(rp);
-      CHECK(m.data(cableIdx.siblingAtColumn(ConnectionsWidget::ModeColumn)).toString()
-            == Dataflow::cableTypeName(int(Process::CableType::ImmediateGlutton)));
-      CHECK(m.data(cableIdx.siblingAtColumn(ConnectionsWidget::StatusColumn))
+      CHECK(cableIdx.data(Qt::ToolTipRole)
+                .toString()
+                .contains(Dataflow::cableTypeName(int(Process::CableType::ImmediateGlutton))));
+      CHECK(cableIdx.siblingAtColumn(ConnectionsWidget::StatusColumn)
+                .data(Qt::ToolTipRole)
                 .toString()
                 .isEmpty());
-      CHECK(m.data(portIdx.siblingAtColumn(ConnectionsWidget::ModeColumn))
+      CHECK(!portIdx.data(Qt::ToolTipRole)
+                 .toString()
+                 .contains(Dataflow::cableTypeName(int(Process::CableType::ImmediateGlutton))));
+      CHECK(portIdx.siblingAtColumn(ConnectionsWidget::StatusColumn)
+                .data(Qt::ToolTipRole)
                 .toString()
-                .isEmpty());
-      CHECK(m.data(portIdx.siblingAtColumn(ConnectionsWidget::StatusColumn)).toString()
-            == Dataflow::statusName(ConnectionRow::MissingDevice));
+                .contains("nodevice"));
     }
 
     // The mode of both selected cables, from the menu: one undo step
@@ -920,5 +926,164 @@ TEST_CASE(
     spin();
     CHECK(!w.refreshPending());
     CHECK(bar->value() == scrolled);
+  });
+}
+
+namespace
+{
+QImage iconImage(const QVariant& v)
+{
+  return v.value<QIcon>().pixmap(QSize{16, 16}).toImage();
+}
+}
+
+TEST_CASE(
+    "Connections panel: the type in the Kind cell, a warning for unbound addresses",
+    "[integration][gui][dataflow]")
+{
+  score::test::run_in_gui_app([](const score::GUIApplicationContext& ctx) {
+    score::Document* doc = score::test::new_document(ctx);
+    REQUIRE(doc != nullptr);
+    auto& dm
+        = static_cast<Scenario::ScenarioDocumentModel&>(doc->model().modelDelegate());
+    auto& itv = dm.baseInterval();
+    CommandDispatcher<> disp{doc->context().commandStack};
+
+    auto& a = addMerger(*doc, itv);
+    auto& b = addMerger(*doc, itv);
+    const auto cid = getStrongId(dm.cables);
+    disp.submit<Dataflow::CreateCable>(
+        dm, cid, Process::CableType::ImmediateGlutton, *a.outlets().front(),
+        *b.inlets()[0]);
+    REQUIRE(itv.outlet);
+    auto& bound = *itv.outlet;
+    auto& unbound = *b.inlets()[1];
+    auto& pattern = *b.inlets()[2];
+    disp.submit<Process::ChangePortAddress>(
+        bound, State::AddressAccessor{State::Address{"audio", {"out", "main"}}});
+    disp.submit<Process::ChangePortAddress>(
+        unbound, State::AddressAccessor{State::Address{"nodevice", {"x"}}});
+    disp.submit<Process::ChangePortAddress>(
+        pattern, State::AddressAccessor{State::Address{"audio", {"out", "*"}}});
+
+    ConnectionsWidget w;
+    w.resize(900, 220);
+    w.setDocument(&doc->context());
+    w.show();
+    spin();
+
+    const int rc = rowOfCable(w, dm.cables.at(cid));
+    const int rb = rowOfPort(w, bound);
+    const int ru = rowOfPort(w, unbound);
+    const int rp = rowOfPort(w, pattern);
+    REQUIRE(rc >= 0);
+    REQUIRE(rb >= 0);
+    REQUIRE(ru >= 0);
+    REQUIRE(rp >= 0);
+    REQUIRE(w.rows()[rb].status == ConnectionRow::Resolved);
+    REQUIRE(w.rows()[ru].status == ConnectionRow::MissingDevice);
+    REQUIRE(w.rows()[rp].status == ConnectionRow::Pattern);
+
+    if(const auto dir = qEnvironmentVariable("SCORE_TEST_SHOT_DIR"); !dir.isEmpty())
+    {
+      QDir{}.mkpath(dir);
+      w.grab().save(dir + "/connections-panel-columns.png");
+    }
+
+    auto& m = *w.view().model();
+
+    // No Type, Mode or Status text column
+    QStringList headers;
+    for(int c = 0; c < m.columnCount(); c++)
+      headers << m.headerData(c, Qt::Horizontal).toString();
+    CHECK(!headers.contains("Type"));
+    CHECK(!headers.contains("Mode"));
+    CHECK(!headers.contains("Status"));
+    CHECK(m.columnCount() == ConnectionsWidget::ColumnCount);
+
+    auto cell = [&](int row, int col) {
+      return w.viewIndexOf(row).siblingAtColumn(col);
+    };
+    const QString audio = Dataflow::portTypeName(Process::PortType::Audio);
+    const QString glutton
+        = Dataflow::cableTypeName(int(Process::CableType::ImmediateGlutton));
+
+    // The type: a color square in the Kind cell, its name in the tooltip only
+    for(int row : {rc, rb, ru})
+    {
+      const auto kind = cell(row, ConnectionsWidget::KindColumn);
+      // A square of the type's color in the middle of the icon
+      const auto img = iconImage(kind.data(Qt::DecorationRole));
+      REQUIRE(!img.isNull());
+      CHECK(QColor{img.pixel(img.width() / 2, img.height() / 2)}
+            == Process::portBrush(Process::PortType::Audio).color());
+      CHECK(kind.data(ConnectionsWidget::PortTypeRole).toInt()
+            == int(Process::PortType::Audio));
+      CHECK(kind.data(Qt::ToolTipRole).toString().contains(audio));
+      for(int c = 0; c < m.columnCount(); c++)
+        CHECK(cell(row, c).data(Qt::DisplayRole).toString() != audio);
+    }
+    CHECK(cell(rc, ConnectionsWidget::KindColumn).data().toString() == "Cable");
+    // The mode of a cable, which had its own column
+    CHECK(cell(rc, ConnectionsWidget::KindColumn)
+              .data(Qt::ToolTipRole)
+              .toString()
+              .contains(glutton));
+
+    // The warning: an icon without text, only on the unbound address
+    const auto warning = QIcon{QStringLiteral(":/icons/message_warning.png")}
+                             .pixmap(QSize{16, 16})
+                             .toImage();
+    REQUIRE(!warning.isNull());
+    for(int row : {rc, rb, ru, rp})
+      CHECK(cell(row, ConnectionsWidget::StatusColumn).data().toString().isEmpty());
+    {
+      const auto st = cell(ru, ConnectionsWidget::StatusColumn);
+      CHECK(iconImage(st.data(Qt::DecorationRole)) == warning);
+      CHECK(st.data(Qt::ToolTipRole).toString().contains("nodevice"));
+    }
+    for(int row : {rc, rb})
+    {
+      const auto st = cell(row, ConnectionsWidget::StatusColumn);
+      CHECK(st.data(Qt::DecorationRole).value<QIcon>().isNull());
+      CHECK(st.data(Qt::ToolTipRole).toString().isEmpty());
+    }
+    // A pattern is bound, maybe to several nodes: information, not a warning
+    {
+      const auto st = cell(rp, ConnectionsWidget::StatusColumn);
+      CHECK(iconImage(st.data(Qt::DecorationRole)) != warning);
+      CHECK(st.data(Qt::ToolTipRole).toString().contains("pattern"));
+    }
+
+    // Narrow: as wide as its icon
+    CHECK(w.view().columnWidth(ConnectionsWidget::StatusColumn) <= 40);
+
+    // The search still finds what moved to tooltips
+    auto shown = [&](int row) { return w.viewIndexOf(row).isValid(); };
+    w.searchField().setText(glutton);
+    spin();
+    CHECK(shown(rc));
+    CHECK(!shown(rb));
+    w.searchField().setText(audio);
+    spin();
+    CHECK(shown(rc));
+    CHECK(shown(rb));
+    w.searchField().setText(Dataflow::statusName(ConnectionRow::MissingDevice));
+    spin();
+    CHECK(shown(ru));
+    CHECK(!shown(rc));
+    CHECK(!shown(rb));
+    w.searchField().clear();
+    spin();
+    CHECK(shown(rc));
+
+    // Grouped: the group names are in the Kind column, the icons stay in theirs
+    w.groupingBox().setCurrentIndex(ConnectionsWidget::ByDevice);
+    spin();
+    CHECK(iconImage(cell(ru, ConnectionsWidget::StatusColumn).data(Qt::DecorationRole))
+          == warning);
+    CHECK(w.view().columnWidth(ConnectionsWidget::StatusColumn) <= 40);
+    if(const auto dir = qEnvironmentVariable("SCORE_TEST_SHOT_DIR"); !dir.isEmpty())
+      w.grab().save(dir + "/connections-panel-columns-grouped.png");
   });
 }
