@@ -34,16 +34,30 @@ struct ConnectValueChanged
 
   void operator()() const noexcept
   {
-    QObject::connect(
-        ctrl, &vst3::ControlInlet::valueChanged, self,
-        [self = this->self, queue_idx = this->queue_idx,
-         n = this->n](const ossia::value& v) {
-      if(self->m_applyingOutputValues)
-        return;
-      n->set_control(queue_idx, ossia::convert<float>(v));
-    });
+    if(!ctrl)
+      return;
+    connectControl(
+        *ctrl, self, self->system().executionQueue, n, queue_idx,
+        self->m_applyingOutputValues);
   }
 };
+}
+
+QMetaObject::Connection connectControl(
+    const Process::ControlInlet& ctrl, QObject* context,
+    Execution::ExecutionCommandQueue& queue, std::weak_ptr<vst_node_base> node,
+    std::size_t queue_idx, const bool& skip)
+{
+  return QObject::connect(
+      &ctrl, &Process::ControlInlet::valueChanged, context,
+      [&queue, &skip, node = std::move(node), queue_idx](const ossia::value& v) {
+    if(skip)
+      return;
+    queue.enqueue([node, queue_idx, val = ossia::convert<float>(v)] {
+      if(auto n = node.lock())
+        n->set_control(queue_idx, val);
+    });
+  });
 }
 template <typename Node_T>
 void Executor::setupNode(Node_T& node)
@@ -58,13 +72,9 @@ void Executor::setupNode(Node_T& node)
     {
       auto queue_idx
           = node->add_control(new ossia::value_inlet, ctrl->fxNum, ctrl->value());
-      connect(
-          ctrl, &vst3::ControlInlet::valueChanged, this,
-          [this, queue_idx, node](const ossia::value& v) {
-        if(m_applyingOutputValues)
-          return;
-        node->set_control(queue_idx, ossia::convert<float>(v));
-      });
+      connectControl(
+          *ctrl, this, system().executionQueue, node, queue_idx,
+          m_applyingOutputValues);
     }
   }
 

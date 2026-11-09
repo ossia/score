@@ -5,6 +5,10 @@
 // whose process() records the input parameter changes it was given and plays
 // back the output parameter changes the test asks for.
 
+#include <Process/Dataflow/Port.hpp>
+#include <Process/ExecutionContext.hpp>
+
+#include <Vst3/Executor.hpp>
 #include <Vst3/Node.hpp>
 
 #include <ossia/dataflow/execution_state.hpp>
@@ -374,4 +378,52 @@ TEST_CASE(
 
   CHECK(consume() == std::map<ParamID, ParamValue>{{1, 0.4}, {2, 0.7}});
   CHECK(consume().empty());
+}
+
+TEST_CASE(
+    "VST3: a control changed on the UI reaches the node through the execution "
+    "queue",
+    "[vst3][parameters][threads]")
+{
+  // The UI thread only enqueues; the node is touched by what the audio
+  // thread dequeues, between two ticks, as the engine does before a tick.
+  fixture f;
+  const auto queue_idx = f.node->add_control(new ossia::value_inlet, 5, 0.f);
+
+  Execution::ExecutionCommandQueue queue{64};
+  QObject context;
+  Process::ControlInlet ctrl{"Control", Id<Process::Port>{0}, &context};
+  bool skip = false;
+  vst3::connectControl(ctrl, &context, queue, f.node, queue_idx, skip);
+
+  const auto run_queue = [&] {
+    int n = 0;
+    ossia::set_thread_pinned(ossia::thread_type::Audio, 0);
+    Execution::ExecutionCommand cmd;
+    while(queue.try_dequeue(cmd))
+    {
+      cmd();
+      n++;
+    }
+    ossia::set_thread_pinned(ossia::thread_type::Ui, 0);
+    return n;
+  };
+
+  ossia::set_thread_pinned(ossia::thread_type::Ui, 0);
+  ctrl.setValue(0.25f);
+
+  // Nothing reached the node from the UI thread
+  CHECK(f.node->m_inputChanges.queues[queue_idx].data.empty());
+  CHECK(f.tick().empty());
+
+  CHECK(run_queue() == 1);
+  CHECK(f.tick() == std::vector<point>{{5, 0, 0.25}});
+  CHECK(f.tick().empty());
+
+  // Values the processor reported, given back to the control, stay on the UI
+  skip = true;
+  ctrl.setValue(0.5f);
+  skip = false;
+  CHECK(run_queue() == 0);
+  CHECK(f.tick().empty());
 }
