@@ -527,6 +527,13 @@ struct geometry_input
   // of the upstream data refreshed every frame.
   bool persistent{false};
 
+  // RUNTIME (compute shaders): the shader also reads how the upstream is
+  // drawn -- its draw commands, live draw count, index buffer and topology --
+  // and which declared attributes it provides, through the ISF_*_COUNT,
+  // ISF_*_INDEX and ISF_HAS_ATTRIBUTE accessors parse_csf generates. Only on a
+  // geometry that reads an upstream.
+  bool runtime{false};
+
   // Optional format identity stamped onto the consumer geometry's
   // filter_tag (rapidhash truncated to 32 bits). Only meaningful on
   // RESOURCES of TYPE: geometry used as outputs (geoOut). Empty leaves

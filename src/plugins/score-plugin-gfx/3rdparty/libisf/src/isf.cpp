@@ -1663,6 +1663,13 @@ static void parse_input(geometry_input& inp, const sajson::value& v)
     {
       inp.persistent = v.get_object_value(i).get_type() == sajson::TYPE_TRUE;
     }
+    else if(k == "RUNTIME")
+    {
+      const auto val = v.get_object_value(i);
+      if(val.get_type() != sajson::TYPE_TRUE && val.get_type() != sajson::TYPE_FALSE)
+        throw invalid_file{"geometry RUNTIME is true or false."};
+      inp.runtime = val.get_type() == sajson::TYPE_TRUE;
+    }
     else if(k == "FORMAT_ID")
     {
       // String tag stamped on the consumer geometry's filter_tag
@@ -1792,6 +1799,11 @@ static void parse_input(geometry_input& inp, const sajson::value& v)
         inp.indirect = geometry_input::indirect_request{.count = "1"};
     }
   }
+
+  if(inp.runtime && !inp.reads_upstream())
+    throw invalid_file{
+        "geometry RUNTIME describes the upstream geometry, and this one reads "
+        "none: it needs a read_only, read_write or gather attribute, or COLUMNS."};
 }
 
 // Known GLSL image format qualifiers. Used for a parse-time sanity check —
@@ -5891,6 +5903,9 @@ void parser::parse_raw_raster_pipeline()
         throw invalid_file{
             "geometry \"" + inp.name + "\" attribute \"" + attr.name
             + "\": DEFAULT is only supported in compute shaders."};
+    if(geo->runtime)
+      throw invalid_file{
+          "geometry \"" + inp.name + "\": RUNTIME is only supported in compute shaders."};
   }
 
   std::string& fragWithoutISF = m_sourceFragment;
@@ -7872,6 +7887,8 @@ std::string parser::write_isf() const
             oss << ",\n      \"TOPOLOGY\": \"" << escape_json(geo.topology) << "\"";
           if(geo.persistent)
             oss << ",\n      \"PERSISTENT\": true";
+          if(geo.runtime)
+            oss << ",\n      \"RUNTIME\": true";
           if(!geo.attributes.empty())
           {
             oss << ",\n      \"ATTRIBUTES\": [\n";
@@ -8568,6 +8585,172 @@ static std::string isf_column_meta_function(
 static uint32_t isf_column_row_vector(uint32_t row_words) noexcept
 {
   return row_words % 4 == 0 ? 4 : row_words % 2 == 0 ? 2 : 1;
+}
+
+// RUNTIME accessors of geometry input `geo`, bound at `binding` (its header,
+// presence flags and draw records) and `binding + 1` (the upstream's index
+// buffer). The header words, filled by RenderedCSFNode, are:
+//   0 stored vertex count       1 topology (ossia::geometry order)
+//   2 index width in bytes, 0 when not indexed
+//   3 byte offset of the indices in the index buffer
+//   4 draw records held         5 live draw count, min-ed with word 4
+//   6 declared attribute count  7 unused
+// then one presence word per declared attribute, then the draw records, five
+// words each: { count, instances, first, baseVertex or firstInstance,
+// firstInstance or unused }, the indexed or the non-indexed layout of an
+// indirect draw.
+//
+// Every index or count is what the draws reach, in draw order, so several
+// draws reaching one vertex or instance enumerate it once per draw. A vertex
+// enumeration of an indexed geometry is its stored vertices instead. An index
+// past what a draw or the index buffer holds reads 0xffffffff, never another
+// element; strips and fans touching a primitive-restart index have no
+// triangles there.
+static std::string runtime_accessors(
+    const std::string& geo, const geometry_input& g, int binding)
+{
+  std::string s = R"_GLSL_(
+// RUNTIME geometry "@G@": how its upstream is drawn.
+layout(binding = @B0@, std430) readonly buffer @G@_isf_rt_buf { uint @G@_isf_rt[]; };
+layout(binding = @B1@, std430) readonly buffer @G@_isf_rt_index_buf { uint @G@_isf_rt_index[]; };
+#ifndef ISF_VERTEX_COUNT
+#define ISF_VERTEX_COUNT(g) g ## _isf_rt_vertex_count()
+#define ISF_VERTEX_INDEX(g, i) g ## _isf_rt_vertex_index(uint(i))
+#define ISF_ELEMENT_COUNT(g) g ## _isf_rt_element_count()
+#define ISF_INDEX(g, e) g ## _isf_rt_index_of(uint(e))
+#define ISF_INSTANCE_COUNT(g) g ## _isf_rt_instance_count()
+#define ISF_INSTANCE_INDEX(g, i) g ## _isf_rt_instance_index(uint(i))
+#define ISF_TRIANGLE_COUNT(g) g ## _isf_rt_triangle_count()
+#define ISF_TRIANGLE_INDEX(g, t, c) g ## _isf_rt_triangle_index(uint(t), uint(c))
+#define ISF_HAS_ATTRIBUTE(g, a) g ## _isf_rt_has_ ## a()
+#endif
+uint @G@_isf_rt_word(uint i) { return i < uint(@G@_isf_rt.length()) ? @G@_isf_rt[i] : 0u; }
+uint @G@_isf_rt_draws() { return min(@G@_isf_rt_word(4u), @G@_isf_rt_word(5u)); }
+uint @G@_isf_rt_cmd(uint d, uint k) { return @G@_isf_rt_word(8u + @G@_isf_rt_word(6u) + d * 5u + k); }
+bool @G@_isf_rt_indexed() { return @G@_isf_rt_word(2u) != 0u; }
+uint @G@_isf_rt_stored_index(uint d, uint k)
+{
+  uint width = @G@_isf_rt_word(2u);
+  uint byte_index = @G@_isf_rt_word(3u) + (@G@_isf_rt_cmd(d, 2u) + k) * width;
+  uint word = byte_index >> 2u;
+  if(word >= uint(@G@_isf_rt_index.length()))
+    return 0xffffffffu;
+  uint v = @G@_isf_rt_index[word];
+  return width == 2u ? (v >> ((byte_index & 2u) * 8u)) & 0xffffu : v;
+}
+uint @G@_isf_rt_element(uint d, uint k)
+{
+  if(k >= @G@_isf_rt_cmd(d, 0u))
+    return 0xffffffffu;
+  if(!@G@_isf_rt_indexed())
+    return @G@_isf_rt_cmd(d, 2u) + k;
+  uint v = @G@_isf_rt_stored_index(d, k);
+  if(v == 0xffffffffu)
+    return v;
+  int vertex = int(v) + int(@G@_isf_rt_cmd(d, 3u));
+  return vertex < 0 ? 0xffffffffu : uint(vertex);
+}
+uint @G@_isf_rt_element_count()
+{
+  uint n = 0u;
+  for(uint d = 0u; d < @G@_isf_rt_draws(); ++d)
+    n += @G@_isf_rt_cmd(d, 0u);
+  return n;
+}
+uint @G@_isf_rt_index_of(uint e)
+{
+  for(uint d = 0u; d < @G@_isf_rt_draws(); ++d)
+  {
+    uint n = @G@_isf_rt_cmd(d, 0u);
+    if(e < n)
+      return @G@_isf_rt_element(d, e);
+    e -= n;
+  }
+  return 0xffffffffu;
+}
+uint @G@_isf_rt_vertex_count()
+{
+  return @G@_isf_rt_indexed() ? @G@_isf_rt_word(0u) : @G@_isf_rt_element_count();
+}
+uint @G@_isf_rt_vertex_index(uint i)
+{
+  if(@G@_isf_rt_indexed())
+    return i < @G@_isf_rt_word(0u) ? i : 0xffffffffu;
+  return @G@_isf_rt_index_of(i);
+}
+uint @G@_isf_rt_instance_count()
+{
+  uint n = 0u;
+  for(uint d = 0u; d < @G@_isf_rt_draws(); ++d)
+    n += @G@_isf_rt_cmd(d, 1u);
+  return n;
+}
+uint @G@_isf_rt_instance_index(uint i)
+{
+  for(uint d = 0u; d < @G@_isf_rt_draws(); ++d)
+  {
+    uint n = @G@_isf_rt_cmd(d, 1u);
+    if(i < n)
+      return @G@_isf_rt_cmd(d, @G@_isf_rt_indexed() ? 4u : 3u) + i;
+    i -= n;
+  }
+  return 0xffffffffu;
+}
+uint @G@_isf_rt_draw_triangles(uint d)
+{
+  uint n = @G@_isf_rt_cmd(d, 0u);
+  uint topology = @G@_isf_rt_word(1u);
+  if(topology == 0u)
+    return n / 3u;
+  return (topology == 1u || topology == 2u) && n >= 3u ? n - 2u : 0u;
+}
+uint @G@_isf_rt_triangle_count()
+{
+  uint n = 0u;
+  for(uint d = 0u; d < @G@_isf_rt_draws(); ++d)
+    n += @G@_isf_rt_draw_triangles(d);
+  return n;
+}
+uint @G@_isf_rt_triangle_index(uint t, uint c)
+{
+  if(c >= 3u)
+    return 0xffffffffu;
+  uint topology = @G@_isf_rt_word(1u);
+  for(uint d = 0u; d < @G@_isf_rt_draws(); ++d)
+  {
+    uint n = @G@_isf_rt_draw_triangles(d);
+    if(t >= n)
+    {
+      t -= n;
+      continue;
+    }
+    if(topology == 0u)
+      return @G@_isf_rt_element(d, t * 3u + c);
+    uint first = topology == 2u ? 0u : t;
+    if(@G@_isf_rt_indexed())
+    {
+      uint restart = @G@_isf_rt_word(2u) == 2u ? 0xffffu : 0xffffffffu;
+      if(@G@_isf_rt_stored_index(d, first) == restart
+         || @G@_isf_rt_stored_index(d, t + 1u) == restart
+         || @G@_isf_rt_stored_index(d, t + 2u) == restart)
+        return 0xffffffffu;
+    }
+    // The rasterizer's winding: odd strip triangles swap their first two
+    // corners, fan triangles all start at the fan's first element.
+    if(topology == 2u)
+      return @G@_isf_rt_element(d, c == 0u ? 0u : t + c);
+    return @G@_isf_rt_element(d, t + ((t & 1u) != 0u && c < 2u ? 1u - c : c));
+  }
+  return 0xffffffffu;
+}
+)_GLSL_";
+  for(std::size_t a = 0; a < g.attributes.size(); a++)
+    s += "bool @G@_isf_rt_has_" + g.attributes[a].name + "() { return @G@_isf_rt_word("
+         + std::to_string(8 + a) + "u) != 0u; }\n";
+  boost::algorithm::replace_all(s, "@B0@", std::to_string(binding));
+  boost::algorithm::replace_all(s, "@B1@", std::to_string(binding + 1));
+  boost::algorithm::replace_all(s, "@G@", geo);
+  return s;
 }
 
 std::string column_data_block(std::string_view geo, uint32_t row_words)
@@ -9312,6 +9495,13 @@ void parser::parse_csf()
       // texture()/textureLod()/etc.). Symmetric to ISF_IMG — separate
       // macro because the GLSL type differs (samplerXY vs imageXY).
       m_fragment += "#define ISF_TEX(geo, name) geo ## _ ## name\n";
+
+      // Bound before the attributes: RenderedCSFNode::buildComputeSrbBindings.
+      if(geo.runtime)
+      {
+        m_fragment += runtime_accessors(inp.name, geo, binding);
+        binding += 2;
+      }
 
       for(const auto& attr : geo.attributes)
       {

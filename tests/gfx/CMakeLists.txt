@@ -2285,6 +2285,11 @@ score_add_gfx_test(csf_typed_attributes GfxCsfTypedAttributes.cpp)
 # between the two follows the change.
 score_add_gfx_test(csf_attribute_default GfxCsfAttributeDefault.cpp)
 
+# A RUNTIME CSF geometry input reads how its upstream is drawn: index widths
+# and offsets, base vertices, several draws, strips, fans, restart indices,
+# GPU draw records and counts, zero instances and no upstream.
+score_add_gfx_test(csf_geometry_runtime GfxCsfGeometryRuntime.cpp)
+
 # A CSF storage buffer too large to allocate stops the node's passes.
 score_add_gfx_test(csf_storage_too_large GfxCsfStorageTooLarge.cpp)
 
