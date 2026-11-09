@@ -183,10 +183,11 @@ public:
       this->insertItem(dist, new_item);
       this->scrollToBottom();
 
-      // Select the first message to be learned
+      // The first message is the one learned unless another is picked: it is
+      // made current, which is what OK reads, and not only selected
       if(messages.size() == 1)
       {
-        new_item->setSelected(true);
+        this->setCurrentItem(new_item);
       }
     }
     else

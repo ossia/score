@@ -1351,6 +1351,13 @@ score_add_test(test_unit_learn_rollback
   APP
   PLUGINS score_plugin_deviceexplorer score_lib_device score_lib_state)
 
+# A port's Learn dialog returns the address picked, the first one listed if
+# none is clicked.
+score_add_test(test_unit_learn_address_dialog
+  SOURCES LearnAddressDialogTest.cpp
+  APP
+  PLUGINS score_plugin_deviceexplorer score_lib_process score_lib_device score_lib_state)
+
 # Two processes that a user can add must not carry the same label.
 score_add_test(test_unit_process_name_uniqueness
   SOURCES ProcessNameUniquenessTest.cpp
