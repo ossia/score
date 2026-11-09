@@ -647,6 +647,50 @@ TEST_CASE(
   CHECK(f.fx.project_times == std::vector<int64>{0, 64, 128, 1000});
 }
 
+TEST_CASE(
+    "VST3: a value the processor was not given reaches it in the first block only",
+    "[vst3][parameters]")
+{
+  // Set on the edit controller while nothing ran: from score's own control,
+  // or from the plug-in's editor
+  fixture f;
+  f.node->add_control(new ossia::value_inlet, 7, 0.5f, true);
+  f.node->add_control(new ossia::value_inlet, 8, 0.25f);
+
+  CHECK(f.tick() == std::vector<point>{{7, 0, 0.5}});
+  CHECK(f.fx.applied.back() == std::vector<point>{{7, 0, 0.5}});
+  CHECK(f.tick().empty());
+  CHECK(f.tick().empty());
+}
+
+TEST_CASE(
+    "VST3: a MIDI-mapped parameter the host does not change is not set again",
+    "[vst3][parameters]")
+{
+  // Uhhyou's synths map controllers to parameters of their own: a value they
+  // were given for those every block, 0, left them silent
+  fixture f;
+  vst3::Plugin p;
+  p.component = &f.fx;
+  p.processor = &f.fx;
+  p.controller = &f.controller;
+  p.midiControls[{0, 0, 1}] = 100;
+  p.midiControls[{0, 0, Steinberg::Vst::kPitchBend}] = 101;
+  f.fx.event_inputs = 1;
+  auto node = std::make_shared<vst3::vst_node<false>>(p, 44100);
+  p.component = nullptr;
+  p.processor = nullptr;
+  p.controller = nullptr;
+  f.node = node;
+  f.node->add_control(new ossia::value_inlet, 7, 0.5f);
+
+  for(int i = 0; i < 3; i++)
+  {
+    CHECK(f.tick().empty());
+    CHECK(f.fx.applied.back().empty());
+  }
+}
+
 namespace
 {
 //! A plug-in as Plugin::load leaves it, before start()
