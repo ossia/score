@@ -1426,6 +1426,142 @@ int RenderedCSFNode::resolveDispatchExpression(const std::string& expr) const
   return 1;
 }
 
+std::optional<double> RenderedCSFNode::evaluateExpression(const std::string& expr) const
+{
+  ossia::math_expression e;
+  ossia::small_pod_vector<double, 16> data;
+  data.reserve(expressionSymbolReserveCount());
+  registerCommonExpressionVariables(e, data);
+  auto eval_expr = expr;
+  boost::algorithm::replace_all(eval_expr, "$", "var_");
+  e.register_symbol_table();
+  if(!e.set_expression(eval_expr))
+    return std::nullopt;
+  return e.value();
+}
+
+bool RenderedCSFNode::hasRepeats() const noexcept
+{
+  return !n.m_descriptor.csf_repeats.empty();
+}
+
+QRhiShaderResourceBinding
+RenderedCSFNode::processUBOBinding(QRhiBuffer* ubo) const noexcept
+{
+  constexpr auto stage = QRhiShaderResourceBinding::ComputeStage;
+  if(hasRepeats())
+    return QRhiShaderResourceBinding::uniformBufferWithDynamicOffset(
+        1, stage, ubo, sizeof(ProcessUBO));
+  return QRhiShaderResourceBinding::uniformBuffer(1, stage, ubo);
+}
+
+// More dispatches than this in one frame is a count gone wrong, not an
+// algorithm: the node's passes are refused instead.
+static constexpr std::size_t maxScheduledDispatches = 1 << 16;
+
+void RenderedCSFNode::buildSchedule()
+{
+  const auto& desc = n.m_descriptor;
+  const auto& groups = desc.csf_repeats;
+  const std::size_t passes = desc.csf_passes.size();
+  m_schedule.clear();
+  m_passDispatches.assign(passes, 0);
+  m_repeatCounts.resize(groups.size());
+
+  std::string refusal;
+  for(std::size_t g = 0; g < groups.size() && refusal.empty(); g++)
+  {
+    const auto& expr = groups[g].count;
+    const auto value = evaluateExpression(expr);
+    if(!value)
+      refusal = "does not evaluate";
+    else if(!std::isfinite(*value) || *value < 0.)
+      refusal = "is " + std::to_string(*value) + ", not a count";
+    else if(*value != std::floor(*value))
+      refusal = "is " + std::to_string(*value)
+                + ", not a whole number: round it in the expression";
+    else if(*value > double(maxScheduledDispatches))
+      refusal = "is " + std::to_string(*value) + ", more dispatches than a frame runs";
+    else
+      m_repeatCounts[g] = int64_t(*value);
+    if(!refusal.empty())
+      refusal = "REPEAT \"" + expr + "\" " + refusal;
+  }
+
+  bool overflow = false;
+  auto emit = [&](auto& self, std::size_t first, std::size_t end, int parent,
+                  int32_t iteration) -> void {
+    for(std::size_t p = first; p < end && !overflow;)
+    {
+      int child = -1;
+      for(std::size_t g = 0; g < groups.size(); g++)
+        if(groups[g].parent == parent && groups[g].first == p)
+        {
+          child = int(g);
+          break;
+        }
+      if(child < 0)
+      {
+        if(m_schedule.size() >= maxScheduledDispatches)
+        {
+          overflow = true;
+          return;
+        }
+        m_schedule.push_back({uint32_t(p), iteration, m_passDispatches[p]++});
+        ++p;
+        continue;
+      }
+      for(int64_t it = 0; it < m_repeatCounts[child] && !overflow; it++)
+        self(self, groups[child].first, groups[child].end, child, int32_t(it));
+      p = groups[child].end;
+    }
+  };
+  if(refusal.empty())
+  {
+    emit(emit, 0, passes, -1, 0);
+    if(overflow)
+      refusal = "REPEAT counts amount to more than "
+                + std::to_string(maxScheduledDispatches) + " dispatches in a frame";
+  }
+
+  m_scheduleRefused = !refusal.empty();
+  if(m_scheduleRefused)
+  {
+    m_schedule.clear();
+    std::fill(m_passDispatches.begin(), m_passDispatches.end(), 0);
+    if(refusal != m_scheduleRefusal)
+      qWarning().noquote() << "CSF:" << QString::fromStdString(refusal)
+                           << "; the passes do not run.";
+  }
+  m_scheduleRefusal = std::move(refusal);
+}
+
+void RenderedCSFNode::ensureProcessUBOSlices(RenderList& renderer)
+{
+  if(!hasRepeats())
+    return;
+  auto& rhi = *renderer.state.rhi;
+  for(std::size_t p = 0; p < m_computePasses.size(); p++)
+  {
+    auto& pass = m_computePasses[p].second;
+    const uint32_t needed
+        = std::max<uint32_t>(1, p < m_passDispatches.size() ? m_passDispatches[p] : 1);
+    if(!pass.processUBO || pass.uboSlices >= needed)
+      continue;
+    auto* ubo = rhi.newBuffer(
+        QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, needed * m_uboStride);
+    ubo->setName(pass.processUBO->name());
+    if(!ubo->create())
+    {
+      delete ubo;
+      continue;
+    }
+    renderer.releaseBuffer(pass.processUBO);
+    pass.processUBO = ubo;
+    pass.uboSlices = needed;
+  }
+}
+
 QSize RenderedCSFNode::getImageSize(
     const isf::csf_image_input& img, QSize fallback) const noexcept
 {
@@ -6009,10 +6145,7 @@ void RenderedCSFNode::initComputeSRBAndPasses(
 
       // Replace the ProcessUBO binding (binding 1) with this pass's ProcessUBO
       // We know binding 1 is the ProcessUBO because we created it that way
-      {
-        bindings[1] = QRhiShaderResourceBinding::uniformBuffer(
-            1, QRhiShaderResourceBinding::ComputeStage, passProcessUBO);
-      }
+      bindings[1] = processUBOBinding(passProcessUBO);
 
       passSRB->setBindings(bindings.cbegin(), bindings.cend());
       if(!passSRB->create())
@@ -6062,6 +6195,7 @@ void RenderedCSFNode::initState(RenderList& renderer, QRhiResourceUpdateBatch& r
 
   // Initialize GPU buffer scatter for format conversion
   m_gpuScatterAvailable = m_gpuScatter.init(renderer.state);
+  m_uboStride = rhi.ubufAligned(sizeof(ProcessUBO));
 
   // Create the material UBO
   // Only the shader-visible part is bound: a USER pass appends dispatch-count
@@ -6835,6 +6969,14 @@ void RenderedCSFNode::update(
     this->geometryChanged = false;
   }
 
+  // REPEAT counts read the geometry counts just updated.
+  if(hasRepeats())
+  {
+    if(firstUpdateOfFrame || m_passDispatches.size() != n.m_descriptor.csf_passes.size())
+      buildSchedule();
+    ensureProcessUBOSlices(renderer);
+  }
+
   // Recreate SRBs once after all buffer mutations are finalized.
   // This prevents building intermediate SRBs with stale/dangling pointers.
   recreateShaderResourceBindings(renderer, res);
@@ -6961,10 +7103,7 @@ void RenderedCSFNode::recreateShaderResourceBindings(RenderList& renderer, QRhiR
     // Set the ProcessUBO binding for this pass — must happen BEFORE
     // hashing so a change in pass.processUBO triggers a rebuild.
     if(pass.processUBO)
-    {
-      bindings[1] = QRhiShaderResourceBinding::uniformBuffer(
-          1, QRhiShaderResourceBinding::ComputeStage, pass.processUBO);
-    }
+      bindings[1] = processUBOBinding(pass.processUBO);
 
     std::size_t newHash = hashBindings(bindings);
     ossia::hash_combine(newHash, m_srbRangeHash);
@@ -7081,6 +7220,7 @@ void RenderedCSFNode::swapMeshLayer(MeshLayer& layer) noexcept
     std::swap(mine.srb, theirs.srb);
     std::swap(mine.processUBO, theirs.processUBO);
     std::swap(mine.srbBindingsHash, theirs.srbBindingsHash);
+    std::swap(mine.uboSlices, theirs.uboSlices);
   }
   std::swap(m_auxSizeUnresolved, layer.auxSizeUnresolved);
   std::swap(m_meshIndex, layer.meshIndex);
@@ -7197,6 +7337,7 @@ void RenderedCSFNode::updateMeshLayers(RenderList& renderer, QRhiResourceUpdateB
     if(layer.passthrough)
       continue;
     updateGeometryBindings(renderer, res);
+    ensureProcessUBOSlices(renderer);
     recreateShaderResourceBindings(renderer, res);
   }
   if(!m_computePasses.empty() && m_computePasses[0].second.srb)
@@ -7449,11 +7590,16 @@ void RenderedCSFNode::runGeometryPasses(
       prepareSelfFeedbackInputs(renderer, *res);
   }
 
-  // Run all passes sequentially
-  for(std::size_t passIndex = 0; passIndex < n.m_descriptor.csf_passes.size(); passIndex++)
+  // Run all passes sequentially: with REPEAT groups, the frame's schedule.
+  const bool repeats = hasRepeats();
+  const std::size_t dispatchCount
+      = !repeats ? n.m_descriptor.csf_passes.size()
+                 : m_scheduleRefused ? 0 : m_schedule.size();
+  for(std::size_t dispatchIndex = 0; dispatchIndex < dispatchCount; dispatchIndex++)
   {
+    const std::size_t passIndex = repeats ? m_schedule[dispatchIndex].pass : dispatchIndex;
     const auto& passDesc = n.m_descriptor.csf_passes[passIndex];
-    
+
     // Find the compute pass for this specific CSF pass index
     // Since we created one ComputePass per CSF pass, we can index directly
     if(passIndex >= m_computePasses.size())
@@ -7463,10 +7609,15 @@ void RenderedCSFNode::runGeometryPasses(
     }
     
     const auto& pass = m_computePasses[passIndex].second;
+    // The slice of the pass's ProcessUBO this dispatch reads.
+    const uint32_t slice = repeats ? m_schedule[dispatchIndex].slice : 0;
+    if(slice >= pass.uboSlices)
+      continue;
+    const quint32 uboOffset = slice * m_uboStride;
 
     // D3D11: what this pass reads in place on other backends is what the
-    // previous passes wrote. Pass 0 was seeded above.
-    if(d3d11 && passIndex > 0 && pass.pipeline && pass.srb)
+    // previous passes wrote. The first dispatch was seeded above.
+    if(d3d11 && dispatchIndex > 0 && pass.pipeline && pass.srb)
       copyBuffers(d3d11InPlaceBuffers());
     if(pass.pipeline && pass.srb)
     {
@@ -7865,8 +8016,10 @@ void RenderedCSFNode::runGeometryPasses(
       n.standardUBO.numWorkgroups[0] = static_cast<uint32_t>(dispatchX);
       n.standardUBO.numWorkgroups[1] = static_cast<uint32_t>(dispatchY);
       n.standardUBO.numWorkgroups[2] = static_cast<uint32_t>(dispatchZ);
+      if(repeats)
+        n.standardUBO.viewIndex = m_schedule[dispatchIndex].iteration;
       res->updateDynamicBuffer(
-          pass.processUBO, 0, sizeof(ProcessUBO), &n.standardUBO);
+          pass.processUBO, uboOffset, sizeof(ProcessUBO), &n.standardUBO);
     }
 
     // QRhi inserts no compute-to-compute barrier across pass boundaries on the
@@ -7904,7 +8057,15 @@ void RenderedCSFNode::runGeometryPasses(
     if(!renderer.checkBindingsLive(*pass.srb, m_liveCheckLabel.constData())
        && RenderList::strictBindingsEnabled())
       throw std::runtime_error("CSF compute pass binds a retired buffer");
-    commands.setShaderResources(pass.srb);
+    if(repeats)
+    {
+      const QRhiCommandBuffer::DynamicOffset offset{1, uboOffset};
+      commands.setShaderResources(pass.srb, 1, &offset);
+    }
+    else
+    {
+      commands.setShaderResources(pass.srb);
+    }
     // Qt's GL backend binds layered (3D / cube / array) storage images non-layered,
     // so an image3D / imageCube / image2DArray imageStore would only write slice 0.
     // When a pass writes such an image on GL, dispatchComputeLayeredImages rebinds

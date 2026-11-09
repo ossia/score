@@ -2799,6 +2799,15 @@ if(TARGET score_plugin_gfx)
     LIBS ${QT_PREFIX}::Gui)
 endif()
 
+# REPEAT groups of CSF passes: authored order kept, groups recorded,
+# ITERATIONINDEX baked on every backend, malformed groups refused. Pure CPU.
+if(TARGET score_plugin_gfx)
+  score_add_test(test_unit_csf_repeat
+    SOURCES CsfRepeatTest.cpp
+    PLUGINS score_plugin_gfx
+    LIBS ${QT_PREFIX}::Gui)
+endif()
+
 # The ISF drop handler leaves .glsl to geometry filters and includes (F01).
 if(TARGET score_plugin_gfx)
   score_add_test(test_unit_shader_drop_extensions
