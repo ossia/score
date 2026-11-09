@@ -1851,7 +1851,7 @@ QWidget* StartScreen::createExamplesPage(bool online)
   auto drawers = std::make_shared<std::vector<Drawer>>();
   auto cards = std::make_shared<std::vector<ExampleCard*>>();
 
-  bool first = true;
+  // Every drawer starts open.
   for(const auto& [top, subs] : tree)
   {
     int total = 0;
@@ -1879,9 +1879,6 @@ QWidget* StartScreen::createExamplesPage(bool online)
       }
     }
     drawers->push_back({drawer, {cards->begin() + topCards, cards->end()}});
-
-    drawer->setExpanded(first);
-    first = false;
   }
 
   // While filtering, every drawer with a match is open; clearing the filter

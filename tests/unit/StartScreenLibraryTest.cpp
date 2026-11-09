@@ -33,6 +33,8 @@
 
 #include <catch2/catch_test_macros.hpp>
 
+#include <set>
+
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(score::StartScreen)
 W_OBJECT_IMPL(score::InteractiveLabel)
@@ -352,6 +354,59 @@ TEST_CASE("a downloaded online example stays on the online page", "[startscreen]
 
     showPage(*s.screen, "Local examples");
     REQUIRE(waitFor([&] { return visibleCards(*s.screen).size() == 1; }));
+  });
+
+  qunsetenv("SCORE_EXAMPLES_MANIFEST");
+}
+
+TEST_CASE("every section of the online examples is open at first", "[startscreen]")
+{
+  QTemporaryDir site;
+  REQUIRE(site.isValid());
+  const auto file = site.filePath("example.score");
+  writeFile(file, "{}");
+  // Three sections, one of them with two groups and one without any.
+  const char* entries[][3] = {
+      {"common-practices/3d/a", "common-practices", "3d"},
+      {"examples/audio/b", "examples", "audio"},
+      {"examples/video/c", "examples", "video"},
+      {"examples/video/d", "examples", "video"},
+      {"in-depth/e", "in-depth", ""},
+      {"reference/processes/f", "reference", "processes"},
+  };
+  QString list;
+  for(auto& [id, section, group] : entries)
+  {
+    if(!list.isEmpty())
+      list += ",";
+    list += QStringLiteral(
+                R"({"id":"%1","name":"%1","section":"%2","group":"%3","file":"%4",)"
+                R"("format":"score","size":2,"platforms":[]})")
+                .arg(id, section, group, QUrl::fromLocalFile(file).toString());
+  }
+  writeFile(
+      site.filePath("index.json"),
+      QStringLiteral(R"({"version":1,"examples":[%1]})").arg(list).toUtf8());
+  qputenv(
+      "SCORE_EXAMPLES_MANIFEST",
+      QUrl::fromLocalFile(site.filePath("index.json")).toString().toUtf8());
+  qputenv("XDG_CACHE_HOME", site.filePath("cache").toUtf8());
+
+  score::test::run_in_app([&](const score::GUIApplicationContext&) {
+    UserLibrary lib;
+    Screen s;
+    showPage(*s.screen, "Online examples");
+    REQUIRE(waitFor([&] { return !visibleCards(*s.screen).empty(); }));
+    QApplication::processEvents();
+
+    std::set<QString> shown;
+    for(auto* card : visibleCards(*s.screen))
+      shown.insert(card->toolTip().section(QLatin1Char('\n'), 0, 0));
+    for(auto& e : entries)
+    {
+      INFO(e[0]);
+      CHECK(shown.count(e[0]) == 1);
+    }
   });
 
   qunsetenv("SCORE_EXAMPLES_MANIFEST");
