@@ -109,7 +109,7 @@ bool Window::createClapWindow()
   {
     if(width > 0 && height > 0)
     {
-      setup_rect(this, width, height);
+      setup_rect(width, height);
     }
     else
     {
@@ -275,14 +275,25 @@ void Window::resizeEvent(QResizeEvent* event)
 
 void Window::resize(int w, int h)
 {
-  setup_rect(this, w, h);
+  setup_rect(w, h);
 }
 
-void Window::setup_rect(QWidget* container, int width, int height)
+void Window::setup_rect(int width, int height)
 {
-  width = width / container->devicePixelRatio();
-  height = height / container->devicePixelRatio();
-  container->setFixedSize(width, height);
+  width = width / devicePixelRatio();
+  height = height / devicePixelRatio();
+  // A window manager lets the user resize the window of an editor that can
+  // be resized, and resizeEvent tells the plug-in
+  if(m_gui_ext && m_gui_ext->can_resize && m_gui_ext->can_resize(m_handle->plugin))
+  {
+    setMinimumSize(0, 0);
+    setMaximumSize(QWIDGETSIZE_MAX, QWIDGETSIZE_MAX);
+    QWidget::resize(width, height);
+  }
+  else
+  {
+    setFixedSize(width, height);
+  }
 }
 
 void Window::contextMenuEvent(QContextMenuEvent* event)
