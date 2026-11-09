@@ -28,7 +28,7 @@
 //                                  blocks of up to n samples, still playing
 //                                  blocks of 512.
 //  SCORE_VST3_SWEEP_REF_ON_SCORE=1  the reference host also plays score's own
-//                                  instance once score is done with it: a
+//                                  instance before score plays it: a
 //                                  difference that stays is in how score set
 //                                  the instance up, not in how it processes.
 //
@@ -1044,6 +1044,20 @@ void probe(
     }
   j.str("subcategories", subcategories);
 
+  // The first instance of a plug-in in a process may not play as the next
+  // ones do (Uhhyou's EsPhaser): the reference host plays one before score's,
+  // so that a difference of that kind is not taken for score's
+  out.phase(uri, "reference-first");
+  {
+    const int rate = ctx.settings<Audio::Settings::Model>().getRate();
+    run_stats first;
+    reference_host first_host{mdl->getFactory(), *uid, rate, false};
+    if(first_host.run(stimulus{rate}, first).empty())
+      j.num(
+          "ref_first_rms",
+          first.audio.samples ? std::sqrt(first.audio.sumsq / first.audio.samples) : 0.);
+  }
+
   out.phase(uri, "model");
   const auto t0 = std::chrono::steady_clock::now();
   // In the document, as the library puts it there: a plug-in may change its
@@ -1112,6 +1126,16 @@ void probe(
   j.num("rate", rate);
   stimulus stim{rate};
 
+  if(qEnvironmentVariableIsSet("SCORE_VST3_SWEEP_REF_ON_SCORE"))
+  {
+    run_stats on_score;
+    // Before score plays it: what differs then is in how score set it up
+    reference_host{mdl->getFactory(), *uid, rate, model->fx.supports_double}.play_on(
+        *model->fx.component, *model->fx.processor, model->fx.controller, buses.event_in,
+        model->fx.supports_double ? kSample64 : kSample32, stim, on_score);
+    j.num("ref_on_score_rms", on_score.audio.samples ? std::sqrt(on_score.audio.sumsq / on_score.audio.samples) : 0.);
+  }
+
   out.phase(uri, "play");
   const auto first = play(*model, stim, play_seconds, out, uri, "stop");
   first.write(j, "play_");
@@ -1121,15 +1145,6 @@ void probe(
   const auto second = play(*model, stim, replay_seconds, out, uri, "restop");
   second.write(j, "replay_");
   QCoreApplication::processEvents();
-
-  if(qEnvironmentVariableIsSet("SCORE_VST3_SWEEP_REF_ON_SCORE"))
-  {
-    run_stats on_score;
-    reference_host{mdl->getFactory(), *uid, rate, model->fx.supports_double}.play_on(
-        *model->fx.component, *model->fx.processor, model->fx.controller, buses.event_in,
-        model->fx.supports_double ? kSample64 : kSample32, stim, on_score);
-    j.num("ref_on_score_rms", on_score.audio.samples ? std::sqrt(on_score.audio.sumsq / on_score.audio.samples) : 0.);
-  }
 
   out.phase(uri, "teardown");
   const bool use_double = model->fx.supports_double;
