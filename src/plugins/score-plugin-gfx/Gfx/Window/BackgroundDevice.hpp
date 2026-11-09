@@ -15,6 +15,9 @@
 
 #include <ossia-qt/invoke.hpp>
 
+#include <QEvent>
+#include <QWindow>
+
 namespace Gfx
 {
 class DeviceBackgroundRenderer : public score::BackgroundRenderer
@@ -75,6 +78,47 @@ class background_device : public ossia::net::device_base
 
   boost::container::static_vector<QMetaObject::Connection, 8> con;
 
+  // The device pixel ratio changes without a resize when score's window moves
+  // to a screen of another density: the view gets a DevicePixelRatioChange
+  // event, its window a screenChanged signal. Either renders again at the
+  // view's resolution; the other one then finds the size unchanged.
+  struct PixelRatioWatcher final : QObject
+  {
+    background_device& self;
+    explicit PixelRatioWatcher(background_device& s)
+        : self{s}
+    {
+    }
+
+    bool eventFilter(QObject*, QEvent* e) override
+    {
+      switch(e->type())
+      {
+#if QT_VERSION >= QT_VERSION_CHECK(6, 6, 0)
+        case QEvent::DevicePixelRatioChange:
+          self.updatePixelSize();
+          break;
+#endif
+        // The view may now be in another window, or its window may have
+        // just been given a native handle.
+        case QEvent::Show:
+        case QEvent::ParentChange:
+        case QEvent::WinIdChange:
+          self.bindWindow();
+          break;
+        default:
+          break;
+      }
+      return false;
+    }
+  };
+  std::unique_ptr<PixelRatioWatcher> m_pixelRatioWatcher;
+  QPointer<QWindow> m_window;
+  QMetaObject::Connection m_screenChanged;
+
+  // The last "size", which the device pixel ratio multiplies
+  ossia::vec2f m_logicalSize{};
+
   void update_viewport()
   {
     auto v = rendersize_param->value();
@@ -128,6 +172,29 @@ class background_device : public ossia::net::device_base
     return QSize{qRound(logical[0] * dpr), qRound(logical[1] * dpr)};
   }
 
+  void updatePixelSize()
+  {
+    if(m_view)
+      m_screen->setSize(pixelSize(m_logicalSize));
+  }
+
+  void bindWindow()
+  {
+    QWindow* w{};
+    if(m_view)
+      if(auto* top = m_view->view().window())
+        w = top->windowHandle();
+    if(w == m_window)
+      return;
+
+    QObject::disconnect(m_screenChanged);
+    m_window = w;
+    if(w)
+      m_screenChanged = QObject::connect(
+          w, &QWindow::screenChanged, &m_qtContext, [this] { updatePixelSize(); });
+    updatePixelSize();
+  }
+
 public:
   background_device(
       Scenario::ScenarioDocumentView& view, std::unique_ptr<gfx_protocol_base> proto,
@@ -148,12 +215,14 @@ public:
       size_param = size_node->create_parameter(ossia::val_type::VEC2F);
       const auto sz = view.view().size();
       const ossia::vec2f logical{(float)sz.width(), (float)sz.height()};
+      m_logicalSize = logical;
       m_screen->setSize(pixelSize(logical));
       size_param->push_value(logical);
       size_param->add_callback([this](const ossia::value& v) {
         if(auto val = v.target<ossia::vec2f>())
         {
           ossia::qt::run_async(&m_qtContext, [this, v = *val] {
+            m_logicalSize = v;
             m_screen->setSize(pixelSize(v));
           });
 
@@ -172,6 +241,10 @@ public:
       }, Qt::DirectConnection));
 
       m_root.add_child(std::move(size_node));
+
+      m_pixelRatioWatcher = std::make_unique<PixelRatioWatcher>(*this);
+      v.installEventFilter(m_pixelRatioWatcher.get());
+      bindWindow();
     }
     {
       auto size_node
@@ -428,6 +501,10 @@ public:
     for(auto& c : con)
       QObject::disconnect(c);
     con.clear();
+    QObject::disconnect(m_screenChanged);
+    if(m_view)
+      m_view->view().removeEventFilter(m_pixelRatioWatcher.get());
+    m_pixelRatioWatcher.reset();
 
     if(m_view)
     {

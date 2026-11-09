@@ -42,6 +42,8 @@
 
 #include <QFileInfo>
 #include <QProcess>
+#include <QScreen>
+#include <QWindow>
 
 using namespace Gfx;
 using namespace score::test;
@@ -509,4 +511,215 @@ TEST_CASE(
   REQUIRE(finished);
   REQUIRE(child.exitStatus() == QProcess::NormalExit);
   CHECK(child.exitCode() == 0);
+}
+
+// The device pixel ratio changes without a resize when score's window moves to
+// a screen of another density, and the picture follows it as it follows a
+// resize.
+//
+// Covered: the window moved from a screen at a device pixel ratio of 1 to one
+// at 2, in a child process: the parent splits its X screen into two RandR
+// monitors and the child gives them their ratios with QT_SCREEN_SCALE_FACTORS.
+// Where that cannot be set up, what the move delivers instead: the view's
+// DevicePixelRatioChange event and its window's screenChanged signal, each on
+// a picture rendered at a size that no longer matches.
+namespace
+{
+constexpr auto kMoveSkip = "DPR-MOVE-SKIP";
+constexpr auto kMoveDone = "DPR-MOVE-DONE";
+
+void say(const char* marker, const std::string& detail = {})
+{
+  std::printf("%s %s\n", marker, detail.c_str());
+  std::fflush(stdout);
+}
+}
+
+TEST_CASE(
+    "a Background window device follows a device pixel ratio change without a resize",
+    "[gfx][window][device][background][dpr]")
+{
+  bool skipped{};
+  DeviceSizes initial{}, afterEvent{}, afterSignal{};
+  QSize staleEvent, staleSignal;
+  run_in_gui_app([&](const score::GUIApplicationContext& ctx) {
+    auto* doc = score::test::new_document(ctx);
+    if(!doc || !scenario_view(*doc))
+    {
+      skipped = true;
+      return;
+    }
+    auto& view = *scenario_view(*doc);
+    auto& gv = view.view();
+    show_laid_out(view);
+
+    auto* dev = add_background_device(doc->context(), QStringLiteral("Win"));
+    REQUIRE(dev);
+    auto* bd = dynamic_cast<background_device*>(dev->getDevice());
+    REQUIRE(bd);
+    pump_for(100);
+    initial = device_sizes(view, *dev);
+
+    // A picture rendered for another ratio than the view's
+    bd->node()->setSize({17, 13});
+    staleEvent = bd->node()->size();
+    QEvent ev{QEvent::DevicePixelRatioChange};
+    QCoreApplication::sendEvent(&gv, &ev);
+    pump_for(100);
+    afterEvent = device_sizes(view, *dev);
+
+    auto* w = gv.window() ? gv.window()->windowHandle() : nullptr;
+    REQUIRE(w);
+    bd->node()->setSize({19, 11});
+    staleSignal = bd->node()->size();
+    Q_EMIT w->screenChanged(w->screen());
+    pump_for(100);
+    afterSignal = device_sizes(view, *dev);
+
+    ctx.docManager.forceCloseDocument(ctx, *doc);
+    pump_for(200);
+  });
+
+  if(skipped)
+    SKIP("the document has no scenario view to draw a background in");
+
+  CAPTURE(initial, staleEvent, afterEvent, staleSignal, afterSignal);
+  CHECK(initial.node == initial.pixels);
+  CHECK(afterEvent.view == initial.view);
+  CHECK(afterEvent.node == afterEvent.pixels);
+  CHECK(afterEvent.renderTarget == afterEvent.pixels);
+  CHECK(afterSignal.view == initial.view);
+  CHECK(afterSignal.node == afterSignal.pixels);
+  CHECK(afterSignal.renderTarget == afterSignal.pixels);
+}
+
+TEST_CASE(
+    "child: a Background window device on a window moved to a denser screen",
+    "[.][dpr-move-child]")
+{
+  bool skipped{};
+  std::string skipReason;
+  DeviceSizes before{}, after{};
+  qreal dprBefore{}, dprAfter{};
+  run_in_gui_app([&](const score::GUIApplicationContext& ctx) {
+    QScreen* low{};
+    QScreen* high{};
+    for(auto* s : QGuiApplication::screens())
+    {
+      if(s->devicePixelRatio() == 1.)
+        low = s;
+      else if(s->devicePixelRatio() == 2.)
+        high = s;
+    }
+    if(!low || !high)
+    {
+      skipped = true;
+      skipReason = "no pair of screens at device pixel ratios 1 and 2";
+      return;
+    }
+
+    auto* doc = score::test::new_document(ctx);
+    if(!doc || !scenario_view(*doc))
+    {
+      skipped = true;
+      skipReason = "no document with a scenario view";
+      return;
+    }
+    auto& view = *scenario_view(*doc);
+    auto* top = view.view().window();
+    REQUIRE(top);
+    // Small enough for either screen
+    top->resize(440, 420);
+    top->move(low->geometry().topLeft() + QPoint{20, 20});
+    top->show();
+    pump_for(300);
+    REQUIRE(top->windowHandle());
+    REQUIRE(top->windowHandle()->screen() == low);
+
+    auto* dev = add_background_device(doc->context(), QStringLiteral("Win"));
+    REQUIRE(dev);
+    pump_for(100);
+    before = device_sizes(view, *dev);
+    dprBefore = view.view().devicePixelRatioF();
+
+    top->move(high->geometry().topLeft() + QPoint{20, 20});
+    QElapsedTimer t;
+    t.start();
+    while(top->windowHandle()->screen() != high && t.elapsed() < 3000)
+      pump_for(20);
+    pump_for(300);
+    REQUIRE(top->windowHandle()->screen() == high);
+    after = device_sizes(view, *dev);
+    dprAfter = view.view().devicePixelRatioF();
+
+    ctx.docManager.forceCloseDocument(ctx, *doc);
+    pump_for(200);
+  });
+
+  if(skipped)
+  {
+    say(kMoveSkip, skipReason);
+    return;
+  }
+  CAPTURE(before, after, dprBefore, dprAfter);
+  REQUIRE(dprBefore == 1.);
+  REQUIRE(dprAfter == 2.);
+  CHECK(before.node == before.pixels);
+  CHECK(after.node == after.pixels);
+  CHECK(after.renderTarget == after.pixels);
+  say(kMoveDone, "view " + to_string(before.view) + " -> " + to_string(after.view));
+}
+
+TEST_CASE(
+    "a Background window device follows its window to a screen of another density",
+    "[gfx][window][device][background][dpr]")
+{
+  if(QGuiApplication::platformName() != QStringLiteral("xcb")
+     && !qEnvironmentVariableIsSet("DISPLAY"))
+    SKIP("needs an X server to split into two monitors");
+  const QString self = QFileInfo{QStringLiteral("/proc/self/exe")}.canonicalFilePath();
+  if(self.isEmpty())
+    SKIP("cannot start this test binary again: /proc/self/exe is unavailable");
+
+  const auto xrandr = [](const QStringList& args) {
+    QProcess p;
+    p.setProcessChannelMode(QProcess::MergedChannels);
+    p.start(QStringLiteral("xrandr"), args);
+    if(!p.waitForFinished(10000) || p.exitStatus() != QProcess::NormalExit)
+      return false;
+    return p.exitCode() == 0;
+  };
+  // Two monitors side by side on the X screen of the private Xvfb the tests
+  // run on, whose only output is named "screen"
+  if(!xrandr({"--setmonitor", "DPR1", "960/254x1080/286+0+0", "screen"}))
+    SKIP("xrandr cannot split this X screen into monitors");
+  const auto restore = qScopeGuard([&] {
+    xrandr({"--delmonitor", "DPR2"});
+    xrandr({"--delmonitor", "DPR1"});
+  });
+  if(!xrandr({"--setmonitor", "DPR2", "960/254x1080/286+960+0", "none"}))
+    SKIP("xrandr cannot add a second monitor to this X screen");
+
+  auto env = QProcessEnvironment::systemEnvironment();
+  env.insert(QStringLiteral("QT_QPA_PLATFORM"), QStringLiteral("xcb"));
+  env.insert(QStringLiteral("QT_SCREEN_SCALE_FACTORS"), QStringLiteral("DPR1=1;DPR2=2"));
+  env.remove(QStringLiteral("QT_SCALE_FACTOR"));
+  env.remove(QStringLiteral("SCORE_TEST_EXPECT_DPR"));
+
+  QProcess child;
+  child.setProcessEnvironment(env);
+  child.setProcessChannelMode(QProcess::MergedChannels);
+  child.start(self, {QStringLiteral("[dpr-move-child]")});
+  REQUIRE(child.waitForStarted(30000));
+  const bool finished = child.waitForFinished(300000);
+  if(!finished)
+    child.kill();
+  const auto log = QString::fromUtf8(child.readAll());
+  INFO(log.toStdString());
+  REQUIRE(finished);
+  REQUIRE(child.exitStatus() == QProcess::NormalExit);
+  if(log.contains(QString::fromLatin1(kMoveSkip)))
+    SKIP("the child could not set up two screens: see its output");
+  CHECK(child.exitCode() == 0);
+  CHECK(log.contains(QString::fromLatin1(kMoveDone)));
 }
