@@ -477,9 +477,10 @@ def judge(r):
     if role == "midi-controlled-effect" and not r.get("score_midi_in"):
         add("host", "no-midi-input", "takes MIDI (canDo receiveVstMidiEvent) but score's host gives it no MIDI input")
     if role in ("midi-effect", "midi-generator"):
-        if (r.get("ref_midi_out") or 0) > 0:
-            add("host", "midi-output-dropped", f"{r['ref_midi_out']} MIDI events out in the reference host; score's host has no MIDI output for VST 2")
-        elif role == "midi-effect":
+        ref_out, play_out = r.get("ref_midi_out") or 0, r.get("play_midi_out") or 0
+        if ref_out > 0 and play_out == 0:
+            add("host", "midi-output-dropped", f"{ref_out} MIDI events out in the reference host, none in score's host")
+        elif ref_out == 0 and play_out == 0 and role == "midi-effect":
             add("warn", "no-midi", "notes in, no MIDI out in the reference host either")
         if not r.get("score_midi_in") and role == "midi-effect":
             add("host", "no-midi-input", "takes MIDI but score's host gives it no MIDI input")

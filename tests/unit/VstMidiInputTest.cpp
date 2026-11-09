@@ -1,17 +1,27 @@
 // A VST 2 plug-in that takes MIDI gets a MIDI input, whether or not it sets
 // effFlagsIsSynth, as JuceOPL, an instrument that does not.
 // A process saved without one loads with the ports it was saved with.
+//
+// One that can send MIDI events gets a MIDI output, which carries what it
+// sends while it processes, dated in the tick.
 
 #include <Process/Dataflow/Port.hpp>
 
 #include <Vst/ApplicationPlugin.hpp>
 #include <Vst/Control.hpp>
 #include <Vst/EffectModel.hpp>
+#include <Vst/Node.hpp>
+
+#include <ossia/dataflow/execution_state.hpp>
+#include <ossia/dataflow/port.hpp>
 
 #include <score/model/EntitySerialization.hpp>
 #include <score/serialization/JSONVisitor.hpp>
 
 #include <QCoreApplication>
+
+#include <libremidi/message.hpp>
+#include <libremidi/ump.hpp>
 
 #include <catch2/catch_test_macros.hpp>
 #include <score_test/App.hpp>
@@ -90,6 +100,61 @@ TEST_CASE(
       REQUIRE(control_of(*loaded));
       CHECK(control_of(*loaded)->fxNum == 0);
       delete loaded;
+    }
+
+    delete model;
+    QCoreApplication::processEvents();
+  });
+}
+
+TEST_CASE(
+    "VST 2: the MIDI events a plug-in sends while it processes reach its MIDI output",
+    "[vst][midi]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    register_fixture(ctx.applicationPlugin<vst::ApplicationPlugin>());
+
+    QObject parent;
+    auto* model = new vst::Model{
+        TimeVal::fromMsecs(1000), QString::number(fixture_id),
+        Id<Process::ProcessModel>{1}, &parent};
+    REQUIRE(model->fx);
+    REQUIRE(model->outlets().size() == 2);
+    CHECK(model->outlets()[1]->type() == Process::PortType::Midi);
+    REQUIRE(model->sendsMidi());
+
+    constexpr int block = 256;
+    ossia::execution_state state;
+    state.sampleRate = 48000;
+    state.bufferSize = 1000;
+    {
+      // As the executor makes it
+      auto node = std::make_shared<vst::vst_node<false, true>>(
+          model->fx, 48000, block, model->sendsMidi());
+      REQUIRE(node->root_outputs().size() == 2);
+      auto& in = static_cast<ossia::midi_inlet*>(node->root_inputs()[1])->data.messages;
+      auto u = libremidi::ump_from_midi1(libremidi::channel_events::note_on(1, 64, 100));
+      u.timestamp = 300;
+      in.push_back(u);
+
+      ossia::token_request tk;
+      tk.prev_date = ossia::time_value{0};
+      tk.date = ossia::time_value{1000};
+      tk.start_sample = 0;
+      tk.length_sample = 1000;
+      tk.tempo = 120.;
+      node->run(tk, ossia::exec_state_facade{&state});
+
+      // Sent from the block that starts at 256, one frame after the note
+      auto& out = node->root_outputs()[1]->cast<ossia::midi_port>().messages;
+      REQUIRE(out.size() == 1);
+      CHECK(out[0].timestamp == 301);
+      CHECK(cmidi2_ump_get_midi2_note_note((const cmidi2_ump*)out[0].data) == 64);
+
+      // Outside a process call, nothing is dated: nothing is kept
+      out.clear();
+      node->all_notes_off();
+      CHECK(out.empty());
     }
 
     delete model;

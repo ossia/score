@@ -740,7 +740,7 @@ struct score_player
     st.samplesToModelRatio = ossia::flicks_per_second<double> / rate;
 
     // Made on the main thread, as the executor is
-    auto node = std::make_shared<node_t>(model.fx, rate, block);
+    auto node = std::make_shared<node_t>(model.fx, rate, block, model.sendsMidi());
     std::vector<std::unique_ptr<ossia::value_inlet>> keep;
     for(std::size_t i = VST_FIRST_CONTROL_INDEX(IsSynth); i < model.inlets().size(); i++)
     {
@@ -835,6 +835,11 @@ struct score_player
               }
             }
           }
+        }
+        if(node->midi_out)
+        {
+          res.midi_out += node->midi_out->data.messages.size();
+          node->midi_out->data.messages.clear();
         }
         for(auto& p : node->root_inputs())
           if(auto vp = p->template target<ossia::value_port>())
@@ -1009,6 +1014,7 @@ void probe(
       controls += bool(dynamic_cast<vst::ControlInlet*>(p));
     j.num("score_controls", controls);
     j.boolean("score_midi_in", model->takesMidi());
+    j.boolean("score_midi_out", model->sendsMidi());
     j.boolean("score_double", model->fx->fx->flags & effFlagsCanDoubleReplacing);
   }
 
