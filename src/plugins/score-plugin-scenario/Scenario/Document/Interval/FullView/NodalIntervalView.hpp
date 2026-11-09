@@ -54,6 +54,10 @@ public:
   void zoomPlus();
   void zoomMinus();
   void zoomTo(double newZoomLevel);
+  //! Pans, and zooms out if needed, so that the node is in the visible part,
+  //! and keeps it there while it is laid out; the canvas stops following all
+  //! of its nodes, as after a pan by the user.
+  void reveal(const Process::NodeItem& item);
   QRectF enclosingRect() const noexcept;
 
   QGraphicsItem& nodeContainer() const noexcept { return *m_container; }
@@ -135,4 +139,11 @@ private:
   bool m_dropping{false};
 };
 
+/**
+ * @brief Brings an item of a nodal view (a node, a port...) into the visible
+ * part of that view (NodalIntervalView::reveal).
+ *
+ * @return false when the item is not in a nodal view.
+ */
+SCORE_PLUGIN_SCENARIO_EXPORT bool revealInNodalView(const QGraphicsItem& item);
 }

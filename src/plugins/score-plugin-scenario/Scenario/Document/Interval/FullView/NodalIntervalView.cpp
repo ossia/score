@@ -375,6 +375,34 @@ void NodalIntervalView::on_processAdded(const Process::ProcessModel& proc)
   }
 }
 
+void NodalIntervalView::reveal(const Process::NodeItem& item)
+{
+  m_autoCenter = false;
+  // A node just created computes its size a moment later: kept in view
+  // until then, as a node added by the user is
+  m_nodeToShow = const_cast<Process::NodeItem*>(&item);
+  showNode(item);
+}
+
+bool revealInNodalView(const QGraphicsItem& item)
+{
+  const Process::NodeItem* node{};
+  for(auto p = &item; p; p = p->parentItem())
+  {
+    if(!node)
+      node = dynamic_cast<const Process::NodeItem*>(p);
+    if(p->type() == ItemType::Type::NodalIntervalView)
+    {
+      if(!node)
+        return false;
+      const_cast<NodalIntervalView*>(static_cast<const NodalIntervalView*>(p))
+          ->reveal(*node);
+      return true;
+    }
+  }
+  return false;
+}
+
 void NodalIntervalView::showNode(const Process::NodeItem& item)
 {
   const QRectF visible = visibleRect();

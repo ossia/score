@@ -390,6 +390,8 @@ void ScenarioDocumentPresenter::switchMode(bool nodal)
     view().view().timebarVisible = false;
 
     m_centralDisplay.emplace<CentralNodalDisplay>(*this);
+    // Its nodes are placed when it is laid out, on the next turn
+    QTimer::singleShot(0, this, [this] { viewSettled(); });
   }
   else
   {
@@ -857,7 +859,10 @@ void ScenarioDocumentPresenter::restoreZoom()
 
   // What the layout still does in answer to this (the queued minimap nudge,
   // the scroll bars settling) is not a user change either.
-  QTimer::singleShot(0, this, [this] { m_restoringView = false; });
+  QTimer::singleShot(0, this, [this] {
+    m_restoringView = false;
+    viewSettled();
+  });
 }
 
 void ScenarioDocumentPresenter::on_viewReady()

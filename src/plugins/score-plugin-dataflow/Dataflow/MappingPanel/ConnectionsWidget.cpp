@@ -11,6 +11,7 @@
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Explorer/Explorer/DeviceExplorerWidget.hpp>
 
+#include <Scenario/Document/Interval/FullView/NodalIntervalView.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
@@ -54,6 +55,8 @@
 #include <QTimer>
 #include <QTreeView>
 #include <QVBoxLayout>
+
+#include <memory>
 
 namespace Dataflow
 {
@@ -843,20 +846,36 @@ void ConnectionsWidget::goToEnd(int row, bool from)
     if(!above.empty())
       itv = above.back();
   }
+  auto center = [this, port] {
+    if(port && alive())
+      centerOn(*port);
+  };
   if(itv && &pres->displayedInterval() != itv)
+  {
+    // The new display restores the interval's zoom and position, and lays
+    // itself out, over the next turns of the event loop: centering before
+    // that is undone.
+    auto once = std::make_shared<QMetaObject::Connection>();
+    *once = connect(
+        pres, &Scenario::ScenarioDocumentPresenter::viewSettled, this,
+        [once, center] {
+      QObject::disconnect(*once);
+      center();
+    });
     pres->setDisplayedInterval(const_cast<Scenario::IntervalModel*>(itv));
+  }
+  else
+  {
+    // Once the selection has been shown
+    QTimer::singleShot(0, this, center);
+  }
 
+  // After displaying the interval, which would drop it
   Selection sel;
   if(auto proc = Process::parentProcess(port.data()))
     sel.append(proc);
   sel.append(port.data());
   score::SelectionDispatcher{m_ctx->selectionStack}.select(sel);
-
-  // Once the displayed interval is laid out
-  QTimer::singleShot(0, this, [this, port] {
-    if(port && alive())
-      centerOn(*port);
-  });
 }
 
 void ConnectionsWidget::centerOn(const Process::Port& port)
@@ -883,8 +902,22 @@ void ConnectionsWidget::centerOn(const Process::Port& port)
        !target && n && &n->model() == Process::parentProcess(&port))
       target = n;
   }
-  if(target)
-    view->view().centerOn(target);
+  if(!target)
+    return;
+  // A nodal view pans its own canvas within the part of it that is on
+  // screen, and the node may be outside of it: that part first, then the
+  // node into it
+  auto& gv = view->view();
+  for(auto p = target->parentItem(); p; p = p->parentItem())
+  {
+    if(p->type() == Scenario::ItemType::Type::NodalIntervalView)
+    {
+      gv.centerOn(p);
+      Scenario::revealInNodalView(*target);
+      break;
+    }
+  }
+  gv.centerOn(target);
 }
 
 void ConnectionsWidget::removeConnections(const std::vector<ConnectionRow>& rows)

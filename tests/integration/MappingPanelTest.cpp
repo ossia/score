@@ -59,6 +59,7 @@
 #include <QClipboard>
 #include <QComboBox>
 #include <QDir>
+#include <QElapsedTimer>
 #include <QFontMetrics>
 #include <QHeaderView>
 #include <QIcon>
@@ -1311,6 +1312,15 @@ TEST_CASE(
 
 namespace
 {
+//! What the event loop does over a moment: queued calls, zero and short timers
+void settle()
+{
+  QElapsedTimer t;
+  t.start();
+  while(t.elapsed() < 400)
+    QApplication::processEvents(QEventLoop::AllEvents, 20);
+}
+
 void doubleClickCell(ConnectionsWidget& w, int row, int column)
 {
   const auto idx = w.viewIndexOf(row).siblingAtColumn(column);
@@ -1375,6 +1385,12 @@ TEST_CASE(
     }
     REQUIRE(box != nullptr);
 
+    // Slots above the ones looked for: they start out of view
+    for(int i = 0; i < 8; i++)
+    {
+      addMerger(*doc, base);
+      addMerger(*doc, *box);
+    }
     auto& outer = addMerger(*doc, base);
     auto& inner = addMerger(*doc, *box);
     outer.metadata().setName("Outer");
@@ -1387,37 +1403,50 @@ TEST_CASE(
     auto& innerOut = *inner.outlets().front();
     auto& outerIn = *outer.inlets().front();
 
-    ConnectionsWidget w;
-    w.resize(900, 300);
-    w.setDocument(&doc->context());
-    w.show();
-    spin();
+    // The docked panel, in front
+    auto panel = ctx.findPanel<Dataflow::ConnectionsPanel>();
+    REQUIRE(panel);
+    auto mainView = qobject_cast<score::View*>(ctx.mainWindow);
+    REQUIRE(mainView);
+    for(auto tabs : {mainView->leftTabs, mainView->rightTabs, mainView->bottomTabs})
+      if(tabs && tabs->actionFor(static_cast<score::PanelDelegate*>(panel)->widget()))
+        tabs->showTab(static_cast<score::PanelDelegate*>(panel)->widget());
+    auto& w = panel->connections();
     presenter->setDisplayedInterval(&base);
+    settle();
+    w.refresh();
     spin();
+    REQUIRE(w.isVisible());
     const int row = rowOfCable(w, dm.cables.at(cid));
     REQUIRE(row >= 0);
+    sview->view().verticalScrollBar()->setValue(0);
+    settle();
 
     auto shot = [&](const QString& name) {
       if(const auto dir = qEnvironmentVariable("SCORE_TEST_SHOT_DIR"); !dir.isEmpty())
       {
         QDir{}.mkpath(dir);
-        ctx.mainWindow->grab().save(dir + "/" + name + ".png");
-        // The scene, which a grab of a GPU viewport leaves out
+        // The window, with the scene painted where the view is: a grab of a
+        // GPU viewport leaves it blank
         auto& gv = sview->view();
-        QImage img{gv.viewport()->size(), QImage::Format_ARGB32};
-        img.fill(Qt::black);
+        QPixmap window = ctx.mainWindow->grab();
         {
-          QPainter p{&img};
-          gv.render(&p, {}, gv.viewport()->rect());
+          QPainter p{&window};
+          const QRect target{
+              gv.viewport()->mapTo(ctx.mainWindow, QPoint{0, 0}), gv.viewport()->size()};
+          p.fillRect(target, Qt::black);
+          gv.render(&p, target, gv.viewport()->rect());
           // The port it went to
           p.setPen(QPen{Qt::cyan, 2});
           for(auto item : sview->scene().items())
             if(auto port = dynamic_cast<Dataflow::PortItem*>(item);
                port && port->isVisible()
                && doc->context().selectionStack.currentSelection().contains(&port->port()))
-              p.drawEllipse(gv.mapFromScene(port->sceneBoundingRect().center()), 12, 12);
+              p.drawEllipse(
+                  target.topLeft() + gv.mapFromScene(port->sceneBoundingRect().center()), 12,
+                  12);
         }
-        img.save(dir + "/" + name + "-view.png");
+        window.save(dir + "/" + name + ".png");
       }
     };
     shot("goto-port-before");
@@ -1435,11 +1464,11 @@ TEST_CASE(
       auto& gv = sview->view();
       const QRectF visible = gv.mapToScene(gv.viewport()->rect()).boundingRect();
       const QPointF pos = item->sceneBoundingRect().center();
+      INFO("visible " << visible.x() << "," << visible.y() << " " << visible.width()
+                      << "x" << visible.height() << ", port " << pos.x() << "," << pos.y());
       CHECK(visible.contains(pos));
       // Centered, as far as the scroll bars go at the edges of the scene
       const QPointF d = pos - visible.center();
-      INFO("visible " << visible.x() << "," << visible.y() << " " << visible.width()
-                      << "x" << visible.height() << ", port " << pos.x() << "," << pos.y());
       auto centered = [](double delta, double extent, const QScrollBar& bar) {
         return std::abs(delta) <= extent / 4 || (delta < 0 && bar.value() == bar.minimum())
                || (delta > 0 && bar.value() == bar.maximum());
@@ -1453,26 +1482,33 @@ TEST_CASE(
 
     // From: the inner merger, in the box: the box is displayed
     doubleClickCell(w, row, ConnectionsWidget::FromColumn);
-    spin();
+    settle();
     CHECK(&presenter->displayedInterval() == box);
     CHECK(selected(&inner));
     CHECK(selected(&innerOut));
-    checkCentered(innerOut);
     shot("goto-port-after");
+    checkCentered(innerOut);
 
     // To: the outer merger, back in the base interval
     doubleClickCell(w, rowOfCable(w, dm.cables.at(cid)), ConnectionsWidget::ToColumn);
-    spin();
+    settle();
     CHECK(&presenter->displayedInterval() == &base);
     CHECK(selected(&outer));
     CHECK(selected(&outerIn));
+    shot("goto-port-back");
     checkCentered(outerIn);
 
-    // Again: already the displayed interval, it stays
+    // Again, scrolled away: already the displayed interval, it stays, the
+    // view comes back to the port
+    sview->view().verticalScrollBar()->setValue(0);
+    settle();
+    shot("goto-port-same-before");
     doubleClickCell(w, rowOfCable(w, dm.cables.at(cid)), ConnectionsWidget::ToColumn);
-    spin();
+    settle();
     CHECK(&presenter->displayedInterval() == &base);
     CHECK(selected(&outerIn));
+    shot("goto-port-same-after");
+    checkCentered(outerIn);
 
     // Another column: what a click does, the cable selected, nothing more
     w.view().selectionModel()->clearSelection();

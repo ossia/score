@@ -124,6 +124,11 @@ public:
   void setFocusedPresenter(QPointer<Process::LayerPresenter> arg_1)
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, setFocusedPresenter, arg_1)
 
+  //! The displayed interval has its zoom and position back, and what the
+  //! layout did in answer has run: what moves the view from here is not the
+  //! display being set up.
+  void viewSettled() E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, viewSettled)
+
 private:
   void on_windowSizeChanged(QSize);
   W_SLOT(on_windowSizeChanged);
