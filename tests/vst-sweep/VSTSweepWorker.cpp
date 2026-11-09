@@ -351,6 +351,8 @@ struct reference_host
   int64_t midi_out{};
   int64_t automate{};
   std::set<int> opcodes;
+  //! Those asked from the thread that processes
+  std::set<int> audio_thread_opcodes;
   std::set<std::string> can_dos;
   std::mutex mutex;
   AEffect* fx{};
@@ -375,6 +377,8 @@ struct reference_host
     {
       std::lock_guard l{mutex};
       opcodes.insert(opcode);
+      if(std::this_thread::get_id() != main_thread)
+        audio_thread_opcodes.insert(opcode);
       if(opcode == audioMasterCanDo && ptr)
         can_dos.insert(static_cast<const char*>(ptr));
     }
@@ -991,6 +995,10 @@ void probe(
       for(int o : host.opcodes)
         ops.push_back(std::to_string(o));
       j.strings("ref_opcodes", ops);
+      ops.clear();
+      for(int o : host.audio_thread_opcodes)
+        ops.push_back(std::to_string(o));
+      j.strings("ref_audio_thread_opcodes", ops);
       j.strings("ref_can_dos", {host.can_dos.begin(), host.can_dos.end()});
       if(host.state_ran)
         j.num("ref_state_param_mismatch", host.state_mismatch);
