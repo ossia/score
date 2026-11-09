@@ -1,5 +1,7 @@
 project(score_plugin_ysfx LANGUAGES CXX)
-
+if(MSVC)
+  return()
+endif()
 if(NOT TARGET score_plugin_engine)
   return()
 endif()
