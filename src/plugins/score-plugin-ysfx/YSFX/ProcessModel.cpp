@@ -47,6 +47,7 @@
 
 #include <bitset>
 #include <cmath>
+#include <utility>
 #include <vector>
 W_OBJECT_IMPL(YSFX::ProcessModel)
 namespace YSFX
@@ -132,8 +133,7 @@ void ProcessModel::setInitialScript(const QString& script)
   }
 
 
-  ysfx_init(fx.get());
-  ysfx_process_double(fx.get(), 0, 0, 0, 0, 0);
+  startScript();
   auto name = ysfx_get_name(fx.get());
   metadata().setName(name);
 
@@ -146,6 +146,34 @@ void ProcessModel::setInitialScript(const QString& script)
 
   programChanged();
   flagsChanged(); // For UI
+}
+
+void ProcessModel::startScript()
+{
+  auto y = fx.get();
+  ysfx_set_midi_capacity(y, 512, true);
+  ysfx_init(y);
+
+  // @slider follows @init, as when REAPER loads a script: what it computes is
+  // what @gfx shows before the script plays. ysfx runs @slider only before a
+  // @block, so the script runs a block of no frames, with its own channels.
+  const uint32_t ins = ysfx_get_num_inputs(y);
+  const uint32_t outs = ysfx_get_num_outputs(y);
+  double none{};
+  std::vector<double*> in_ptrs(ins, &none);
+  std::vector<double*> out_ptrs(outs, &none);
+  ysfx_process_double(y, in_ptrs.data(), out_ptrs.data(), ins, outs, 0);
+
+  // What that @block sent, kept until the script plays
+  m_midiBeforePlay.clear();
+  ysfx_midi_event_t ev;
+  while(ysfx_receive_midi(y, &ev))
+    m_midiBeforePlay.emplace_back(ev.data, ev.data + ev.size);
+}
+
+std::vector<std::vector<uint8_t>> ProcessModel::takeMidiBeforePlay() noexcept
+{
+  return std::exchange(m_midiBeforePlay, {});
 }
 
 void ProcessModel::recreatePorts()
@@ -491,8 +519,7 @@ Process::ScriptChangeResult ProcessModel::reload()
   // Replace the fx
   fx = std::move(new_fx);
 
-  ysfx_init(fx.get());
-  ysfx_process_double(fx.get(), 0, 0, 0, 0, 0);
+  startScript();
   auto name = ysfx_get_name(fx.get());
   metadata().setName(name);
 
