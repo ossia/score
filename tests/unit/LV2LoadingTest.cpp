@@ -1368,3 +1368,24 @@ TEST_CASE("LV2 instance handed over: it stays active, no port runs parked", "[lv
   });
 }
 #endif
+
+TEST_CASE("An LV2 UI asking for a port by its symbol gets that port's index", "[lv2][ui]")
+{
+  prepare_lv2_test_environment();
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    setupLV2(ctx);
+
+    QObject parent;
+    auto* model = new LV2::Model{
+        TimeVal::fromMsecs(1000), gain_name, Id<Process::ProcessModel>{1}, &parent};
+    REQUIRE(model->plugin);
+
+    // What suil hands to the UIs that use ui:portMap (DPF ones, Cardinal)
+    const SuilController controller = model;
+    CHECK(LV2::port_index(controller, "in") == 0);
+    CHECK(LV2::port_index(controller, "gain") == 2);
+    CHECK(LV2::port_index(controller, "mode") == 4);
+    CHECK(LV2::port_index(controller, "lv2_enabled") == LV2UI_INVALID_PORT_INDEX);
+    CHECK(LV2::port_index(controller, "no such port") == LV2UI_INVALID_PORT_INDEX);
+  });
+}

@@ -30,6 +30,15 @@ namespace LV2
 struct HostContext;
 struct GlobalContext;
 
+//! What suil calls when a UI writes to a port, given to suil_host_new
+SCORE_PLUGIN_LV2_TEST_EXPORT
+void on_uiMessage(
+    SuilController controller, uint32_t port_index, uint32_t buffer_size,
+    uint32_t protocol, const void* buffer);
+//! The index of the port of that symbol, for the UIs that ask with ui:portMap
+SCORE_PLUGIN_LV2_TEST_EXPORT
+uint32_t port_index(SuilController controller, const char* symbol);
+
 // Cached descriptor from a lv2puppet scan; persisted to QSettings("Effect/KnownLV2")
 struct PluginInfo
 {
