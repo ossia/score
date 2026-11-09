@@ -1205,10 +1205,6 @@ void Model::loadPlugin()
   }, Qt::QueuedConnection);
 }
 
-// Gesture debounce window: a slider drag is treated as one gesture if changes
-// keep arriving within this window after the last sample.
-static constexpr int CLAP_GESTURE_DEBOUNCE_MS = 200;
-
 namespace
 {
 // Build a clap_input_events_t backed by a std::vector of event pointers.
@@ -1248,21 +1244,11 @@ make_param_value(const clap_param_info_t& info, double value)
   ev.value = value;
   return ev;
 }
-
-inline clap_event_param_gesture_t
-make_param_gesture(clap_id pid, uint16_t type)
-{
-  clap_event_param_gesture_t ev{};
-  ev.header.size = sizeof(clap_event_param_gesture_t);
-  ev.header.time = 0;
-  ev.header.space_id = CLAP_CORE_EVENT_SPACE_ID;
-  ev.header.type = type;
-  ev.header.flags = CLAP_EVENT_IS_LIVE;
-  ev.param_id = pid;
-  return ev;
-}
 } // namespace
 
+// clap/ext/params.h: a knob turned on the host's interface is a value sent
+// through process() or flush(). Gestures are the plug-in telling the host its
+// own editor is being used: they are not sent to it.
 void Model::sendParamChange(const clap_param_info_t& info, double value)
 {
   auto plugin = m_plugin->plugin;
@@ -1273,67 +1259,10 @@ void Model::sendParamChange(const clap_param_info_t& info, double value)
   if(!params || !params->flush)
     return;
 
-  // Manage the gesture state for this parameter.
-  auto& gs = gestures[info.id];
-  if(!gs.endTimer)
-  {
-    gs.endTimer = new QTimer{this};
-    gs.endTimer->setSingleShot(true);
-    gs.endTimer->setInterval(CLAP_GESTURE_DEBOUNCE_MS);
-    QObject::connect(gs.endTimer, &QTimer::timeout, this, [this, pid = info.id] {
-      auto it = gestures.find(pid);
-      if(it == gestures.end())
-        return;
-      endGesture(pid, it->second.cookie);
-    });
-  }
-  gs.cookie = info.cookie;
-
-  const bool was_active = gs.active;
-  if(!gs.active)
-    gs.active = true;
-  gs.endTimer->start();
-
-  // Build event stream: optional GESTURE_BEGIN + PARAM_VALUE.
-  clap_event_param_gesture_t begin_ev{};
   clap_event_param_value_t value_ev = make_param_value(info, value);
   ParamInputCtx ctx;
-  ctx.events.reserve(2);
-  if(!was_active)
-  {
-    begin_ev = make_param_gesture(info.id, CLAP_EVENT_PARAM_GESTURE_BEGIN);
-    ctx.events.push_back(&begin_ev.header);
-  }
   ctx.events.push_back(&value_ev.header);
 
-  clap_input_events_t ip = make_input_events(ctx);
-  clap_output_events_t op{
-      .ctx = this,
-      .try_push = [](const struct clap_output_events*,
-                     const clap_event_header_t*) { return false; }};
-  params->flush(plugin, &ip, &op);
-}
-
-void Model::endGesture(clap_id param_id, void* cookie)
-{
-  auto plugin = m_plugin->plugin;
-  if(!plugin)
-    return;
-  auto params
-      = (const clap_plugin_params_t*)plugin->get_extension(plugin, CLAP_EXT_PARAMS);
-  if(!params || !params->flush)
-    return;
-
-  auto it = gestures.find(param_id);
-  if(it != gestures.end())
-    it->second.active = false;
-
-  clap_event_param_gesture_t end_ev = make_param_gesture(
-      param_id, CLAP_EVENT_PARAM_GESTURE_END);
-  end_ev.header.flags = 0;
-
-  ParamInputCtx ctx;
-  ctx.events.push_back(&end_ev.header);
   clap_input_events_t ip = make_input_events(ctx);
   clap_output_events_t op{
       .ctx = this,

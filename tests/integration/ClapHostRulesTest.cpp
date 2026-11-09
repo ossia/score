@@ -36,6 +36,24 @@ namespace
 {
 const QString clap_uuid = QStringLiteral("10e8d26d-1d82-4bfc-a9fb-d85ffdf04e5f");
 
+struct errors
+{
+  int wrong_thread;
+  int gestures;
+  int foreign_cookies;
+  int bad_events;
+};
+
+//! What the plug-in counted since the last call
+errors report()
+{
+  void* lib = dlopen(CLAP_MONO_GAIN_PATH, RTLD_LAZY);
+  REQUIRE(lib);
+  auto f = reinterpret_cast<errors (*)()>(dlsym(lib, "clap_mono_gain_report"));
+  REQUIRE(f);
+  return f();
+}
+
 Clap::Model* add_mono_gain(score::Document& doc)
 {
   auto* proc = score::test::add_process(
@@ -79,5 +97,31 @@ TEST_CASE(
 
     gain_control(proc).setValue(0.25);
     CHECK(plugin_gain(proc) == Catch::Approx(0.25));
+  });
+}
+
+TEST_CASE(
+    "CLAP: a control set on score's interface reaches the plug-in as a value only",
+    "[integration][clap][params]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    auto& proc = *add_mono_gain(*doc);
+    report();
+
+    auto& ctl = gain_control(proc);
+    ctl.setValue(0.25);
+    ctl.setValue(0.3);
+    // Whatever the host sends some time after a change is sent by then
+    QElapsedTimer t;
+    t.start();
+    while(t.elapsed() < 400)
+      QCoreApplication::processEvents(QEventLoop::AllEvents, 20);
+
+    CHECK(plugin_gain(proc) == Catch::Approx(0.3));
+    // clap/ext/params.h: gestures are the plug-in telling the host its own
+    // editor is being used
+    CHECK(report().gestures == 0);
   });
 }
