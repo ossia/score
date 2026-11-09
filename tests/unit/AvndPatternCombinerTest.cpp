@@ -1,5 +1,5 @@
 // Pattern combiner: the output of every mode over float, vector, list, map
-// and string inputs.
+// and string inputs, and what a tick that sorts the values allocates.
 
 #include <ossia/network/base/node_functions.hpp>
 #include <ossia/network/generic/generic_device.hpp>
@@ -8,7 +8,10 @@
 #include <AvndProcesses/Combiner.hpp>
 #include <catch2/catch_test_macros.hpp>
 
+#include <atomic>
 #include <cmath>
+#include <cstdlib>
+#include <new>
 #include <limits>
 #include <string>
 #include <string_view>
@@ -19,6 +22,24 @@ struct Catch::StringMaker<ossia::value>
 {
   static std::string convert(const ossia::value& v) { return fmt::format("{}", v); }
 };
+
+//! Every allocation of the test, to tell what a tick allocates.
+static std::atomic<long> allocation_count{0};
+void* operator new(std::size_t n)
+{
+  allocation_count++;
+  if(void* p = std::malloc(n ? n : 1))
+    return p;
+  throw std::bad_alloc{};
+}
+void operator delete(void* p) noexcept
+{
+  std::free(p);
+}
+void operator delete(void* p, std::size_t) noexcept
+{
+  std::free(p);
+}
 
 namespace
 {
@@ -189,6 +210,76 @@ TEST_CASE("sort and top N", "[pattern_combiner]")
   // More than there are: all of them
   f.c.inputs.n.value = 10;
   CHECK(f.run(M::TopN).get<ossia::value_map_type>().size() == 3);
+}
+
+TEST_CASE("ascending and descending sort the values themselves", "[pattern_combiner]")
+{
+  Fixture f;
+  f.add("a", ossia::val_type::FLOAT, 3.f);
+  f.add("b", ossia::val_type::INT, 1);
+  f.add("c", ossia::val_type::FLOAT, 2.f);
+  f.add("d", ossia::val_type::BOOL, false);
+  f.add("s", ossia::val_type::STRING, std::string{"x"});
+  f.add("i", ossia::val_type::IMPULSE, ossia::impulse{});
+
+  // Each value as it is, without its address; what has no rank is left out
+  CHECK(f.run(M::Ascending) == ossia::value{list{false, 1, 2.f, 3.f}});
+  CHECK(f.run(M::Descending) == ossia::value{list{3.f, 2.f, 1, false}});
+  // Every value, tick after tick: none of them is lost to the one before
+  CHECK(f.run(M::Ascending) == ossia::value{list{false, 1, 2.f, 3.f}});
+  f.set("c", 10.f);
+  CHECK(f.run(M::Descending) == ossia::value{list{10.f, 3.f, 1, false}});
+  CHECK(f.run(M::List).get<list>().size() == 6);
+}
+
+TEST_CASE("ascending and descending rank vectors by their length", "[pattern_combiner]")
+{
+  Fixture f;
+  // b and a are as long: they stay in address order, both ways
+  f.add("a", ossia::val_type::VEC2F, ossia::vec2f{4.f, 3.f});
+  f.add("b", ossia::val_type::VEC2F, ossia::vec2f{3.f, 4.f});
+  f.add("c", ossia::val_type::VEC2F, ossia::vec2f{-6.f, 0.f});
+  f.add("d", ossia::val_type::VEC2F, ossia::vec2f{0.f, 1.f});
+
+  CHECK(
+      f.run(M::Ascending)
+      == ossia::value{list{
+          ossia::vec2f{0.f, 1.f}, ossia::vec2f{4.f, 3.f}, ossia::vec2f{3.f, 4.f},
+          ossia::vec2f{-6.f, 0.f}}});
+  CHECK(
+      f.run(M::Descending)
+      == ossia::value{list{
+          ossia::vec2f{-6.f, 0.f}, ossia::vec2f{4.f, 3.f}, ossia::vec2f{3.f, 4.f},
+          ossia::vec2f{0.f, 1.f}}});
+}
+
+TEST_CASE("ascending with nothing to rank sends an empty list", "[pattern_combiner][edge]")
+{
+  Fixture f;
+  f.add("a", ossia::val_type::STRING, std::string{"x"});
+  f.add("b", ossia::val_type::FLOAT, std::numeric_limits<float>::quiet_NaN());
+  CHECK(f.run(M::Ascending) == ossia::value{list{}});
+  CHECK(f.run(M::Descending) == ossia::value{list{}});
+}
+
+TEST_CASE("sorting the values allocates the list sent, nothing else", "[pattern_combiner][rt]")
+{
+  Fixture f;
+  for(int i = 0; i < 100; i++)
+    f.add("n" + std::to_string(i), ossia::val_type::FLOAT, float((i * 37) % 100));
+
+  auto allocations = [&](M m) {
+    // Warmed up: the buffers that keep their memory have it
+    for(int i = 0; i < 3; i++)
+      f.tick(m);
+    f.c.outputs.output.value.reset();
+    // The tick alone: tick() copies what was sent out
+    const auto before = allocation_count.load();
+    f.c();
+    return allocation_count.load() - before;
+  };
+  CHECK(allocations(M::Ascending) == 1);
+  CHECK(allocations(M::Descending) == 1);
 }
 
 TEST_CASE("median, range and standard deviation", "[pattern_combiner]")
@@ -424,7 +515,7 @@ TEST_CASE("nothing matched: nothing goes out", "[pattern_combiner][edge]")
 {
   for(auto m : {M::List, M::Average, M::Sum, M::Min, M::Max, M::Map, M::ArgMax,
                 M::ArgMin, M::Median, M::Count, M::Any, M::All, M::Range, M::StdDev,
-                M::Changed, M::Vote, M::Sort, M::TopN})
+                M::Changed, M::Vote, M::Sort, M::TopN, M::Ascending, M::Descending})
   {
     CAPTURE(int(m));
     Fixture f;
@@ -608,7 +699,7 @@ TEST_CASE("every mode, tick after tick, from mode to mode", "[pattern_combiner][
   f.add("b", ossia::val_type::FLOAT, 2.f);
   const M all[]{M::List, M::Average, M::Sum, M::Min, M::Max, M::Map, M::ArgMax,
                 M::ArgMin, M::Median, M::Count, M::Any, M::All, M::Range, M::StdDev,
-                M::Changed, M::Vote, M::Sort, M::TopN};
+                M::Changed, M::Vote, M::Sort, M::TopN, M::Ascending, M::Descending};
   for(int round = 0; round < 3; round++)
     for(auto m : all)
       for(auto m2 : {m, M::List, M::Average})

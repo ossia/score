@@ -31,7 +31,8 @@ struct PatternCombiner : PatternObject
     {
       halp__enum(
           "Mode", List, List, Average, Sum, Min, Max, Map, ArgMax, ArgMin, Median,
-          Count, Any, All, Range, StdDev, Changed, Vote, Sort, TopN);
+          Count, Any, All, Range, StdDev, Changed, Vote, Sort, TopN, Ascending,
+          Descending);
       halp_meta(
           description,
           "List, Map: every value, as a list or keyed by address. "
@@ -43,7 +44,9 @@ struct PatternCombiner : PatternObject
           "Changed: the values that changed since the last tick, by address. "
           "Vote: the most frequent value. "
           "Sort, TopN: the values by address, smallest first, or the N largest "
-          "first. Vectors and lists are ranked by their length.")
+          "first. Ascending, Descending: the values alone, as a list, smallest "
+          "or largest first. Vectors and lists are ranked by their length; "
+          "what has no rank, such as a string, is left out.")
     } mode{};
 
     struct : halp::spinbox_i32<"N", halp::irange{1, 1024, 3}>
@@ -180,7 +183,9 @@ struct PatternCombiner : PatternObject
   // Sort: every value that has a magnitude, smallest first. TopN: the n
   // largest, largest first. Equal ones stay in address order.
   std::vector<std::pair<double, std::size_t>> m_ranked;
-  void process_sorted(bool largest_first, std::size_t n)
+  //! The first n of m_ranked are the n first of the values that have a
+  //! magnitude, in order; the others are dropped.
+  void rank(bool largest_first, std::size_t n)
   {
     m_ranked.clear();
     for(std::size_t i = 0; i < current_values.size(); i++)
@@ -197,7 +202,13 @@ struct PatternCombiner : PatternObject
       std::partial_sort(m_ranked.begin(), m_ranked.begin() + n, m_ranked.end(), order);
     else
       std::sort(m_ranked.begin(), m_ranked.end(), order);
+    m_ranked.resize(n);
+  }
 
+  void process_sorted(bool largest_first, std::size_t n)
+  {
+    rank(largest_first, n);
+    n = m_ranked.size();
     ossia::value_map_type res;
     res.reserve(n);
     for(std::size_t k = 0; k < n; k++)
@@ -205,6 +216,20 @@ struct PatternCombiner : PatternObject
       const auto i = m_ranked[k].second;
       res.emplace_back(address(i), current_values[i]);
     }
+    outputs.output.value = std::move(res);
+  }
+
+  // Ascending, Descending: the values that have a magnitude, as a list, equal
+  // ones in address order. The values are moved, not copied, and the ranking
+  // and the gathered values keep their memory for the next tick: the list
+  // sent is the one allocation.
+  void process_sorted_values(bool largest_first)
+  {
+    rank(largest_first, current_values.size());
+    std::vector<ossia::value> res;
+    res.reserve(m_ranked.size());
+    for(const auto& [m, i] : m_ranked)
+      res.push_back(std::move(current_values[i]));
     outputs.output.value = std::move(res);
   }
 
@@ -703,6 +728,12 @@ struct PatternCombiner : PatternObject
         break;
       case mode::TopN:
         process_sorted(true, std::size_t(std::max(1, inputs.n.value)));
+        break;
+      case mode::Ascending:
+        process_sorted_values(false);
+        break;
+      case mode::Descending:
+        process_sorted_values(true);
         break;
     }
   }
