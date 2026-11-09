@@ -46,6 +46,7 @@
 #include <wobjectimpl.h>
 
 #include <bitset>
+#include <cmath>
 #include <vector>
 W_OBJECT_IMPL(YSFX::ProcessModel)
 namespace YSFX
@@ -164,7 +165,6 @@ void ProcessModel::recreatePorts()
     if(ysfx_slider_is_enum(fx.get(), i) || ysfx_slider_is_path(fx.get(), i))
     {
       std::vector<std::pair<QString, ossia::value>> values;
-      ossia::value init;
 
       uint32_t count = ysfx_slider_get_enum_size(fx.get(), i);
       std::vector<const char*> names(count);
@@ -174,7 +174,15 @@ void ProcessModel::recreatePorts()
       for(const char* val : names)
         values.push_back({val, k++});
 
-      auto slider = new Process::ComboBox{values, 0, slider_name, id, this};
+      // The value of a choice is its index, whatever range the script writes
+      // (ysfx makes it [0, count - 1], as REAPER reads it). A default out of
+      // that range is kept as the script holds it: it is no choice's value,
+      // and the widgets show their first choice until another is picked.
+      ysfx_slider_range_t range{};
+      ysfx_slider_get_range(fx.get(), i, &range);
+      const int init = int(std::lround(range.def));
+
+      auto slider = new Process::ComboBox{values, init, slider_name, id, this};
       connectSlider(*slider, i);
       this->m_inlets.push_back(slider);
     }
