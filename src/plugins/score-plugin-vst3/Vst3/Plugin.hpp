@@ -88,7 +88,13 @@ struct Plugin
   void loadProcessorStateToController();
 
   void start(double sample_rate, int max_bs);
+  //! Sets the plug-in up again if it was not for this rate and largest block
+  void restart(double sample_rate, int max_bs);
   void stop();
+
+  //! What the plug-in is set up for, in start()
+  double sample_rate{};
+  int max_block{};
 
   bool supports_double{};
   bool ui_available{};

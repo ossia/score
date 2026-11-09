@@ -268,6 +268,21 @@ void Plugin::start(double_t sample_rate, int max_bs)
 
   if(component->setActive(true) != Steinberg::kResultOk)
     throw std::runtime_error(fmt::format("Couldn't set VST3 active ({})", path));
+
+  this->sample_rate = sample_rate;
+  this->max_block = max_bs;
+}
+
+void Plugin::restart(double sample_rate, int max_bs)
+{
+  if(!component || !processor || sample_rate <= 0 || max_bs <= 0)
+    return;
+  if(sample_rate == this->sample_rate && max_bs == this->max_block)
+    return;
+
+  // setupProcessing() is only allowed while the plug-in is inactive
+  component->setActive(false);
+  start(sample_rate, max_bs);
 }
 
 void Plugin::stop()
