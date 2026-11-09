@@ -1,0 +1,67 @@
+{
+    "cables": [
+        "kars:Audio Out->freeverb:Audio In",
+        "lfo:Out->unflagged:Level",
+        "notes:MIDI Out->kars:MIDI In",
+        "unflagged:Audio Out->freeverb:Audio In"
+    ],
+    "presets": {
+        "freeverb": {
+            "0": 0.20000000298023224,
+            "1": 0.5,
+            "2": 0.8999999761581421,
+            "3": 0
+        },
+        "kars": {
+            "0": 1,
+            "1": 0.001999999862164259,
+            "2": 0.75
+        },
+        "unflagged": {
+            "0": 0.30000001192092896
+        }
+    },
+    "processes": {
+        "freeverb": {
+            "ports": [
+                "in:audio:Audio In",
+                "in:control:fb2",
+                "in:control:damp",
+                "in:control:fb1",
+                "in:control:spread",
+                "out:audio:Audio Out"
+            ],
+            "values": {
+                "0": 0.20000000298023224,
+                "1": 0.5,
+                "2": 0.8999999761581421,
+                "3": 0
+            }
+        },
+        "kars": {
+            "ports": [
+                "in:audio:Audio In",
+                "in:midi:MIDI In",
+                "in:control:Sustain",
+                "in:control:Release",
+                "in:control:Volume",
+                "out:audio:Audio Out"
+            ],
+            "values": {
+                "0": 1,
+                "1": 0.001999999862164259,
+                "2": 0.75
+            }
+        },
+        "unflagged": {
+            "ports": [
+                "in:audio:Audio In",
+                "in:control:Level",
+                "out:audio:Audio Out"
+            ],
+            "values": {
+                "0": 0.30000001192092896
+            }
+        }
+    }
+}

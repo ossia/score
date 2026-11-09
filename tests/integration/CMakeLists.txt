@@ -506,6 +506,24 @@ if(TARGET score_plugin_clap)
   endif()
 endif()
 
+# VST 2 processes with MIDI ports in documents: one saved before they had them
+# loads as it was saved; new ones are saved, copied, duplicated, removed and
+# given presets with their cables.
+if(TARGET score_plugin_vst AND TARGET score_test_vst_unflagged_instrument)
+  score_add_test(test_integration_vst2_documents
+    SOURCES Vst2DocumentTest.cpp
+    GUI
+    APP
+    PLUGINS score_plugin_vst score_plugin_scenario score_plugin_engine score_plugin_audio
+      score_lib_process)
+  target_include_directories(test_integration_vst2_documents PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-vst")
+  add_dependencies(test_integration_vst2_documents score_test_vst_unflagged_instrument)
+  target_compile_definitions(test_integration_vst2_documents PRIVATE
+    SCORE_VST_UNFLAGGED_INSTRUMENT="$<TARGET_FILE:score_test_vst_unflagged_instrument>"
+    SCORE_VST2_DOCUMENTS_DIR="${SCORE_ROOT_SOURCE_DIR}/tests/testdata/vst2")
+endif()
+
 # A preset of the script a process already runs keeps its ports.
 score_add_test(test_integration_script_preset_ports
   SOURCES ScriptPresetPortsTest.cpp
