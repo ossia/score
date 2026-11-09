@@ -26,12 +26,14 @@ public:
   static constexpr bool is_unique = true;
 
   Executor(Clap::Model& proc, const Execution::Context& ctx, QObject* parent);
+  ~Executor();
 
   void cleanup() override;
 
 private:
-  template <typename Node_T>
-  void setupNode(Node_T& node);
+  //! The plug-in is no more held by this executor's node
+  void releaseHandle();
+  std::shared_ptr<PluginHandle> m_handle;
 
   // Monophonic polyphonic-pool growth (see clap_node_mono in Executor.cpp).
   // Audio thread sets m_requested_pool on the node; this timer (main thread)
