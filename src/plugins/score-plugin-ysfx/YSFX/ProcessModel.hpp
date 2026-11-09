@@ -80,6 +80,10 @@ public:
 private:
   friend class Window;
   void recreatePorts();
+  //! A change of the control sets the slider of the script
+  void connectSlider(Process::ControlInlet& control, uint32_t slider);
+  //! The controls loaded with the process, connected to the script's sliders
+  void connectSliders();
   QString effect() const noexcept override;
   void loadPreset(const Process::Preset&) override;
   //! A preset of its bank, or of the same script, sets sliders: only another
