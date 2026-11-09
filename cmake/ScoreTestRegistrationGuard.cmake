@@ -121,6 +121,9 @@ set(SCORE_TEST_GUARD_ALLOWED_TARGETS
   # Driven by tests/lv2-sweep/lv2_sweep.py, the test_lv2_system_sweep entry,
   # which probes the installed plug-ins with it in batches.
   test_lv2_sweep_worker
+  # Driven by tests/vst-sweep/vst_sweep.py, the test_vst_system_sweep entry,
+  # which probes the installed VST 2 plug-ins with it in batches.
+  test_vst_sweep_worker
 )
 
 # Every directory the buildsystem created below `dir`, `dir` included.

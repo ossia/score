@@ -39,7 +39,7 @@ SCORE_PLUGIN_VST_TEST_EXPORT
 VSTInfo parseVstReply(const QString& path, const QJsonObject& obj);
 
 class Model;
-class ApplicationPlugin
+class SCORE_PLUGIN_VST_TEST_EXPORT ApplicationPlugin
     : public QObject
     , public score::ApplicationPlugin
 {

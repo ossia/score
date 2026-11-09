@@ -15,7 +15,7 @@ struct Context;
 namespace vst
 {
 
-class ControlInlet final : public Process::ControlInlet
+class SCORE_PLUGIN_VST_TEST_EXPORT ControlInlet final : public Process::ControlInlet
 {
   W_OBJECT(ControlInlet)
   SCORE_SERIALIZE_FRIENDS
