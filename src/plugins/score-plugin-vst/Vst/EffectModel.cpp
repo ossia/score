@@ -713,8 +713,17 @@ void Model::initFx()
 
   reloadPrograms();
 
+  // Some plug-ins only play once a program is selected. The one selected is
+  // the one the plug-in says it is on, or its first when it names none: a
+  // plug-in that opens on another than its first (Permut8, TAL-Reverb-2)
+  // stays there.
   if(fx->fx->numPrograms > 0)
-    fx->dispatch(effSetProgram, 0, 0);
+  {
+    const auto current = dispatch(effGetProgram);
+    dispatch(
+        effSetProgram, 0,
+        current >= 0 && current < fx->fx->numPrograms ? current : 0);
+  }
 }
 
 void Model::create()

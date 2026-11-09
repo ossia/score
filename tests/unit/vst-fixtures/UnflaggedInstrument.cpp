@@ -1,13 +1,28 @@
 // A VST 2 instrument that does not set effFlagsIsSynth, as JuceOPL: no audio
 // input, one output, and it can receive MIDI events. It plays a constant 0.5
 // while a note is held, and sends back each note it gets, from its process
-// call, one frame later.
+// call, one frame later. Its two programs set its level to 0.75 and 0.5; it
+// opens on the second, as Permut8 opens on another than its first.
+//
+// Built with SCORE_TEST_VST_NO_INITIAL_PROGRAM, it opens on no program, as the
+// plug-ins of the VST SDK that only set themselves up in setProgram: it says
+// it is on its first, but its level is 0 until a program is selected.
 
 #include <Vst/vst-compat.hpp>
 
 #include <cstring>
 #include <string_view>
 #include <vector>
+
+#if defined(SCORE_TEST_VST_NO_INITIAL_PROGRAM)
+#define SCORE_TEST_VST_OPENING_PROGRAM 0
+#define SCORE_TEST_VST_OPENING_LEVEL 0.f
+#define SCORE_TEST_VST_ID "sUnP"_4c
+#else
+#define SCORE_TEST_VST_OPENING_PROGRAM 1
+#define SCORE_TEST_VST_OPENING_LEVEL 0.5f
+#define SCORE_TEST_VST_ID "sUnI"_4c
+#endif
 
 namespace
 {
@@ -16,7 +31,8 @@ struct instrument
   AEffect effect{};
   audioMasterCallback master{};
   int held{};
-  float param{0.25f};
+  int program{SCORE_TEST_VST_OPENING_PROGRAM};
+  float param{SCORE_TEST_VST_OPENING_LEVEL};
   std::vector<VstMidiEvent> echo;
 };
 
@@ -25,7 +41,7 @@ instrument& self(AEffect* e)
   return *static_cast<instrument*>(e->object);
 }
 
-intptr_t dispatcher(AEffect* e, int32_t op, int32_t, intptr_t, void* ptr, float)
+intptr_t dispatcher(AEffect* e, int32_t op, int32_t idx, intptr_t v, void* ptr, float)
 {
   switch(op)
   {
@@ -39,6 +55,15 @@ intptr_t dispatcher(AEffect* e, int32_t op, int32_t, intptr_t, void* ptr, float)
                  ? 1
                  : 0;
     }
+    case effSetProgram:
+      self(e).program = int(v);
+      self(e).param = v == 0 ? 0.75f : 0.5f;
+      return 0;
+    case effGetProgram:
+      return self(e).program;
+    case effGetProgramNameIndexed:
+      std::strcpy(static_cast<char*>(ptr), idx == 0 ? "Loud" : "Medium");
+      return 1;
     case effGetPlugCategory:
       return kPlugCategEffect;
     case effGetParamName:
@@ -104,12 +129,12 @@ VSTPluginMain(audioMasterCallback master)
   e.setParameter = set_parameter;
   e.getParameter = get_parameter;
   e.processReplacing = process;
-  e.numPrograms = 0;
+  e.numPrograms = 2;
   e.numParams = 1;
   e.numInputs = 0;
   e.numOutputs = 1;
   e.flags = effFlagsCanReplacing;
-  e.uniqueID = "sUnI"_4c;
+  e.uniqueID = SCORE_TEST_VST_ID;
   e.version = 1;
   e.object = p;
   return &e;
