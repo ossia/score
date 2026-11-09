@@ -659,20 +659,32 @@ public:
 
     int param_event_count = 0;
     // all_events holds pointers into the per-kind vectors, so these
-    // reservations have to cover what is held back as well: a reallocation
-    // would leave every pointer already pushed dangling.
+    // reservations have to cover what is held back and the notes off as
+    // well: a reallocation would leave every pointer already pushed dangling.
     int midi_event_count = int(m_deferred_midi.size());
     for(auto port : this->parameter_ins)
       param_event_count += port->data.get_data().size();
     for(auto port : this->midi_ins)
       midi_event_count += port->data.messages.size();
-    m_input_events.midi_events.reserve(midi_event_count * 1.1);
+    const bool notes_off
+        = m_pending_all_notes_off.exchange(false, std::memory_order_acq_rel);
+    int chokes = 0, controllers = 0;
+    if(notes_off)
+    {
+      for(const auto& port : m_midi_ins)
+      {
+        chokes += bool(port.supported_dialects & CLAP_NOTE_DIALECT_CLAP);
+        controllers += bool(port.supported_dialects & CLAP_NOTE_DIALECT_MIDI) * 32;
+      }
+    }
+    m_input_events.midi_events.reserve(midi_event_count * 1.1 + controllers);
     m_input_events.midi2_events.reserve(midi_event_count * 1.1);
-    m_input_events.note_events.reserve(midi_event_count * 1.1);
+    m_input_events.note_events.reserve(midi_event_count * 1.1 + chokes);
     m_input_events.param_events.reserve(param_event_count * 1.1 + 1);
-    m_input_events.all_events.reserve((param_event_count + midi_event_count + 1) * 1.1);
+    m_input_events.all_events.reserve(
+        (param_event_count + midi_event_count + 1) * 1.1 + chokes + controllers);
 
-    if(m_pending_all_notes_off.exchange(false, std::memory_order_acq_rel))
+    if(notes_off)
       inject_all_notes_off();
 
     // Process parameter changes
@@ -690,42 +702,54 @@ public:
     });
   }
 
-  // NOTE_CHOKE wildcard + CC#120/123 on all 16 channels covers every dialect.
+  //! Each note input gets what its dialects say ends every note: a
+  //! NOTE_CHOKE of all its keys, CC#120/123 on its 16 channels, or both, as
+  //! a plug-in may take both dialects and ignore chokes. A plug-in without
+  //! note inputs gets nothing.
   void inject_all_notes_off()
   {
+    for(std::size_t i = 0; i < m_midi_ins.size(); ++i)
     {
-      clap_event_note_t ev{};
-      ev.header.size = sizeof(clap_event_note_t);
-      ev.header.time = 0;
-      ev.header.space_id = CLAP_CORE_EVENT_SPACE_ID;
-      ev.header.type = CLAP_EVENT_NOTE_CHOKE;
-      ev.header.flags = 0;
-      ev.note_id = -1;
-      ev.port_index = -1;
-      ev.channel = -1;
-      ev.key = -1;
-      ev.velocity = 0.0;
-      m_input_events.note_events.push_back(ev);
-      m_input_events.all_events.push_back(
-          reinterpret_cast<clap_event_header_t*>(&m_input_events.note_events.back()));
-    }
-    for(uint8_t ch = 0; ch < 16; ++ch)
-    {
-      for(uint8_t cc : {uint8_t(120), uint8_t(123)})
+      const auto dialects = m_midi_ins[i].supported_dialects;
+      const auto port = int16_t(i);
+      if(dialects & CLAP_NOTE_DIALECT_CLAP)
       {
-        clap_event_midi_t ev{};
-        ev.header.size = sizeof(clap_event_midi_t);
+        clap_event_note_t ev{};
+        ev.header.size = sizeof(clap_event_note_t);
         ev.header.time = 0;
         ev.header.space_id = CLAP_CORE_EVENT_SPACE_ID;
-        ev.header.type = CLAP_EVENT_MIDI;
+        ev.header.type = CLAP_EVENT_NOTE_CHOKE;
         ev.header.flags = 0;
-        ev.port_index = 0;
-        ev.data[0] = uint8_t(0xB0 | ch);
-        ev.data[1] = cc;
-        ev.data[2] = 0;
-        m_input_events.midi_events.push_back(ev);
+        ev.note_id = -1;
+        ev.port_index = port;
+        ev.channel = -1;
+        ev.key = -1;
+        ev.velocity = 0.0;
+        m_input_events.note_events.push_back(ev);
         m_input_events.all_events.push_back(
-            reinterpret_cast<clap_event_header_t*>(&m_input_events.midi_events.back()));
+            reinterpret_cast<clap_event_header_t*>(&m_input_events.note_events.back()));
+      }
+      if(dialects & CLAP_NOTE_DIALECT_MIDI)
+      {
+        for(uint8_t ch = 0; ch < 16; ++ch)
+        {
+          for(uint8_t cc : {uint8_t(120), uint8_t(123)})
+          {
+            clap_event_midi_t ev{};
+            ev.header.size = sizeof(clap_event_midi_t);
+            ev.header.time = 0;
+            ev.header.space_id = CLAP_CORE_EVENT_SPACE_ID;
+            ev.header.type = CLAP_EVENT_MIDI;
+            ev.header.flags = 0;
+            ev.port_index = uint16_t(port);
+            ev.data[0] = uint8_t(0xB0 | ch);
+            ev.data[1] = cc;
+            ev.data[2] = 0;
+            m_input_events.midi_events.push_back(ev);
+            m_input_events.all_events.push_back(reinterpret_cast<clap_event_header_t*>(
+                &m_input_events.midi_events.back()));
+          }
+        }
       }
     }
   }

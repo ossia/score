@@ -439,6 +439,25 @@ TEST_CASE(
   });
 }
 
+TEST_CASE(
+    "CLAP: a plug-in without note ports is sent no note when the notes are stopped",
+    "[integration][clap][notes]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    auto& proc = *add_mono_gain(*doc);
+    playing p{*doc, proc};
+    p.block(2);
+    report();
+
+    p.node->all_notes_off();
+    p.block(2);
+    CHECK(report().bad_events == 0);
+    p.stop();
+  });
+}
+
 // An entry that gives its plug-in factory for any id, preset discovery's
 // included (SpectMorph): read as a preset discovery factory, its plug-in
 // descriptors were taken for providers and the indexer for a host.
