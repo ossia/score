@@ -11,7 +11,9 @@
 #include <score_plugin_vst3_export.h>
 
 #include <base/source/fstring.h>
+#include <pluginterfaces/vst/ivsteditcontroller.h>
 #include <pluginterfaces/vst/ivstmessage.h>
+#include <pluginterfaces/vst/ivstpluginterfacesupport.h>
 
 #include <memory>
 #include <stdexcept>
@@ -43,7 +45,36 @@ AvailablePlugin parseVst3Reply(const QString& path, const QJsonObject& obj);
 
 struct HostApp final : public Steinberg::Vst::IHostApplication
 {
-  Steinberg::Vst::PlugInterfaceSupport m_support;
+  //! What a plug-in learns through IPlugInterfaceSupport: which of its own
+  //! interfaces score calls
+  struct InterfaceSupport final : public Steinberg::Vst::IPlugInterfaceSupport
+  {
+    Steinberg::tresult PLUGIN_API
+    isPlugInterfaceSupported(const Steinberg::TUID _iid) override
+    {
+      using namespace Steinberg;
+      using namespace Steinberg::Vst;
+      for(const FUID* iid :
+          {&IComponent::iid, &IAudioProcessor::iid, &IEditController::iid,
+           &IConnectionPoint::iid, &IUnitInfo::iid, &IMidiMapping::iid})
+        if(FUnknownPrivate::iidEqual(_iid, static_cast<const TUID&>(*iid)))
+          return kResultTrue;
+      return kResultFalse;
+    }
+
+    Steinberg::tresult PLUGIN_API queryInterface(const char* _iid, void** obj) override
+    {
+      using namespace Steinberg;
+      using namespace Steinberg::Vst;
+      QUERY_INTERFACE(_iid, obj, FUnknown::iid, IPlugInterfaceSupport)
+      QUERY_INTERFACE(_iid, obj, IPlugInterfaceSupport::iid, IPlugInterfaceSupport)
+      *obj = nullptr;
+      return kNoInterface;
+    }
+    Steinberg::uint32 PLUGIN_API addRef() override { return 1; }
+    Steinberg::uint32 PLUGIN_API release() override { return 1; }
+  } m_support;
+
   HostApp() { }
   virtual ~HostApp() { }
   Steinberg::tresult PLUGIN_API getName(Steinberg::Vst::String128 name) override
@@ -82,7 +113,7 @@ struct HostApp final : public Steinberg::Vst::IHostApplication
     QUERY_INTERFACE(_iid, obj, FUnknown::iid, IHostApplication)
     QUERY_INTERFACE(_iid, obj, IHostApplication::iid, IHostApplication)
 
-    if(m_support.isPlugInterfaceSupported(_iid) == kResultTrue)
+    if(m_support.queryInterface(_iid, obj) == kResultOk)
       return kResultOk;
 
     *obj = nullptr;
