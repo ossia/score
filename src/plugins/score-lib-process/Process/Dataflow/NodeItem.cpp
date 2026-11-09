@@ -323,6 +323,15 @@ void NodeItem::resetInlets()
   updateTitlePos();
 }
 
+bool NodeItem::contentShowsPort(const Process::Port& port) const noexcept
+{
+  if(!m_fx)
+    return false;
+  auto& ports = m_context.dataflow.ports();
+  auto it = ports.find(&port);
+  return it != ports.end() && it->second && m_fx->isAncestorOf(it->second);
+}
+
 void NodeItem::resetOutlets()
 {
   // if(!m_presenter)
@@ -342,7 +351,7 @@ void NodeItem::resetOutlets()
   auto& portFactory = score::AppContext().interfaces<Process::PortFactoryList>();
   for(Process::Outlet* port : m_model.outlets())
   {
-    if(port->displayHandledExplicitly)
+    if(port->displayHandledExplicitly || contentShowsPort(*port))
       continue;
     Process::PortFactory* fact = portFactory.get(port->concreteKey());
     auto item = fact->makePortItem(*port, m_context, this, this);

@@ -1,9 +1,11 @@
 // Pattern combiner in a document: a process saved by score 3.9.0, whose only
 // controls were Pattern and Mode, and a preset of it, load with the mode and
-// the pattern they were saved with; and its controls are greyed out while the
-// selected mode does not read them, through mode changes and their undo.
+// the pattern they were saved with; its controls are greyed out while the
+// selected mode does not read them, through mode changes and their undo; and
+// its node shows its outlet once, with its name, at its top right.
 
 #include <Process/Commands/SetControlValue.hpp>
+#include <Process/Dataflow/NodeItem.hpp>
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Dataflow/PortItem.hpp>
 #include <Process/Dataflow/WidgetInlets.hpp>
@@ -16,6 +18,7 @@
 
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/graphics/RectItem.hpp>
+#include <score/graphics/TextItem.hpp>
 #include <score/model/EntitySerialization.hpp>
 #include <score/plugins/SerializableHelpers.hpp>
 #include <score/serialization/JSONVisitor.hpp>
@@ -25,6 +28,7 @@
 #include <core/document/DocumentModel.hpp>
 
 #include <QGraphicsRectItem>
+#include <QCoreApplication>
 #include <QGraphicsScene>
 
 #include <catch2/catch_test_macros.hpp>
@@ -32,6 +36,7 @@
 #include <score_test/Document.hpp>
 #include <score_test/Project.hpp>
 
+#include <cmath>
 #include <map>
 #include <string>
 
@@ -247,6 +252,72 @@ TEST_CASE(
       CHECK(enabled() == expected(m));
     }
 
+    scene.removeItem(root);
+    delete root;
+  });
+}
+
+TEST_CASE(
+    "the Pattern combiner's node shows its outlet once, named, at its top right",
+    "[avnd][pattern_combiner][ui]")
+{
+  score::test::run_in_gui_app([](const score::GUIApplicationContext& ctx) {
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    auto* proc = score::test::add_process(*doc, combiner_uuid, {});
+    if(!proc)
+      SKIP("the Pattern combiner is not built");
+    REQUIRE(proc->outlets().size() == 1);
+    const Process::Port& output = *proc->outlets()[0];
+
+    Process::DataflowManager dfm;
+    FocusDispatcher fd;
+    Process::Context pctx{doc->context(), dfm, fd};
+    QGraphicsScene scene;
+    auto* root = new QGraphicsRectItem{QRectF{0., 0., 1000., 1000.}};
+    scene.addItem(root);
+    auto* node = new Process::NodeItem{*proc, pctx, TimeVal::fromMsecs(1000.), root};
+    QCoreApplication::processEvents();
+
+    //! The items of the node showing a port.
+    auto itemsOf = [&](const Process::Port& port) {
+      std::vector<Dataflow::PortItem*> res;
+      QList<QGraphicsItem*> items = node->childItems();
+      while(!items.empty())
+      {
+        auto* i = items.takeLast();
+        items.append(i->childItems());
+        if(auto* p = dynamic_cast<Dataflow::PortItem*>(i); p && &p->port() == &port)
+          res.push_back(p);
+      }
+      return res;
+    };
+
+    // The layout shows it: the node does not add a bare one on its side
+    const auto outs = itemsOf(output);
+    REQUIRE(outs.size() == 1);
+    auto* out = outs[0];
+    CHECK(out->isVisible());
+
+    // Its name next to it
+    bool named = false;
+    for(auto* sibling : out->parentItem()->childItems())
+      if(auto* t = dynamic_cast<score::SimpleTextItem*>(sibling))
+        named |= t->isVisible() && t->text() == "Output";
+    CHECK(named);
+
+    // At the top right: by the pattern's port, above the mode
+    const auto pattern = itemsOf(*control(*proc, "Pattern"));
+    const auto mode = itemsOf(*control(*proc, "Mode"));
+    REQUIRE(pattern.size() == 1);
+    REQUIRE(mode.size() == 1);
+    const QPointF o = out->sceneBoundingRect().center();
+    const QPointF p = pattern[0]->sceneBoundingRect().center();
+    CHECK(o.x() > p.x() + 100.);
+    CHECK(std::abs(o.y() - p.y()) < 8.);
+    CHECK(o.y() < mode[0]->sceneBoundingRect().top());
+
+    delete node;
     scene.removeItem(root);
     delete root;
   });

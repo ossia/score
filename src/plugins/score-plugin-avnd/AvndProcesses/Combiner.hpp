@@ -70,7 +70,7 @@ struct PatternCombiner : PatternObject
     halp::spinbox_f32<"Max", halp::range{-1e6, 1e6, 0.5}> max;
   } inputs;
 
-  struct
+  struct outs
   {
     halp::val_port<"Output", std::optional<ossia::value>> output;
   } outputs;
@@ -80,7 +80,17 @@ struct PatternCombiner : PatternObject
   {
     using mode = decltype(ins::mode);
     halp_meta(layout, halp::layouts::vbox)
-    halp::item<&ins::pattern> pattern;
+    struct
+    {
+      halp_meta(layout, halp::layouts::hbox)
+      halp::item<&ins::pattern> pattern;
+      // In a column of its own: at the top of the row, by the pattern's name
+      struct
+      {
+        halp_meta(layout, halp::layouts::vbox)
+        halp::item<&outs::output> output;
+      } out;
+    } top_row;
     halp::item<&ins::mode> mode_choice;
     struct
     {

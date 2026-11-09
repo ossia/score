@@ -519,12 +519,17 @@ struct LayoutBuilder final : Process::LayoutBuilderBase
       auto ports = proc.avnd_output_idx_to_model_ports(index);
       for(auto p : ports)
       {
-        auto [port, qitem] = makeOutlet(p, presentationFor<Item>());
+        if(auto [port, qitem] = makeOutlet(p, presentationFor<Item>()); port)
         {
-          SCORE_ASSERT(port);
           SCORE_ASSERT(qitem.container);
           setupControl(this->layout, port, qitem, item);
           setupItem(item, *qitem.container);
+        }
+        // An outlet without a widget, e.g. a value outlet: its port and name,
+        // where the node would otherwise show a bare port on its side
+        else if(auto lay = makePort(*p, presentationFor<Item>()); lay.container)
+        {
+          setupItem(item, *lay.container);
         }
       }
     }

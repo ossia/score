@@ -31,6 +31,7 @@ class CableItem;
 namespace Process
 {
 class Cable;
+class Port;
 class ProcessModel;
 class LayerPresenter;
 struct LayerContext;
@@ -112,6 +113,9 @@ private:
   bool isInSelectionCorner(QPointF f, QRectF r) const;
   //! Outlets take a strip on the right, which also holds the resize corner.
   bool hasRightSide() const noexcept;
+  //! Whether the content item draws this port itself, e.g. a custom layout
+  //! that places an outlet with its name: the node then does not repeat it.
+  bool contentShowsPort(const Process::Port& port) const noexcept;
   //! Without that strip, the corner goes over the content.
   void updateResizeCorner();
   friend class NodeResizeCorner;

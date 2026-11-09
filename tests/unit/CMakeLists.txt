@@ -2622,11 +2622,12 @@ if(TARGET score_plugin_avnd)
     "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/include")
 endif()
 
-# Pattern combiner in a document: 3.9.0 documents and presets, and the controls
-# greyed out while the mode does not read them.
+# Pattern combiner in a document: 3.9.0 documents and presets, the controls
+# greyed out while the mode does not read them, and its outlet in its node.
 if(TARGET score_plugin_avnd)
   score_add_test(test_unit_avnd_pattern_combiner_ui
     SOURCES AvndPatternCombinerUiTest.cpp
+    GUI
     APP
     PLUGINS score_plugin_avnd score_plugin_scenario score_lib_process)
 endif()
