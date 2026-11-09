@@ -6,6 +6,8 @@
 
 #include <QString>
 
+#include <score_plugin_vst3_export.h>
+
 #include <pluginterfaces/base/funknown.h>
 #include <pluginterfaces/gui/iplugview.h>
 #include <pluginterfaces/vst/ivstaudioprocessor.h>
@@ -47,7 +49,7 @@ using MIDIControls
     = ossia::flat_map<std::tuple<int, int, int>, Steinberg::Vst::ParamID>;
 class PlugFrame;
 class ComponentHandler;
-struct Plugin
+struct SCORE_PLUGIN_VST3_TEST_EXPORT Plugin
 {
   Plugin() = default;
   Plugin(const Plugin&) = default;
