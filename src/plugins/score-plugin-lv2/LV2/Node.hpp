@@ -62,8 +62,10 @@ struct voice
   std::vector<AtomBuffer> atom_timePosition_owned_buffers;
   std::vector<TimePort> atom_timePosition_owned;
 
+  //! The worker interface of the instance, when it has a worker
   const LV2_Worker_Interface* worker{};
-  ossia::mpmc_queue<std::vector<char>> worker_datas;
+  //! The instance ran in this cycle: end_run is called
+  bool ran{};
 
   //! The ports of the plug-in, all of them: what is parked when the instance
   //! outlives this voice
@@ -84,6 +86,7 @@ struct voice
       return;
     if(instance_holder->activated)
     {
+      std::lock_guard l{instance_holder->instantiation_lock};
       lilv_instance_deactivate(instance);
       instance_holder->activated = false;
     }
@@ -156,6 +159,8 @@ struct lv2_node final : public ossia::graph_node
   bool mustStop{};
   //! The position buffers hold a position: a run happened.
   bool m_timeForged{};
+  //! What the positions are written with
+  LV2_Atom_Forge m_forge{};
 
   // Matches LV2_BUF_SIZE__maxBlockLength advertised in Context.cpp
   std::size_t max_block_size{4096};
@@ -261,6 +266,8 @@ struct lv2_node final : public ossia::graph_node
     {
       timePositionBuffer = std::make_unique<uint8_t[]>(256);
       stoppedPositionBuffer = std::make_unique<uint8_t[]>(256);
+      if(data.host.global)
+        lv2_atom_forge_init(&m_forge, &data.host.global->map);
     }
 
     requested_voices.store(voices.size(), std::memory_order_relaxed);
@@ -293,9 +300,10 @@ struct lv2_node final : public ossia::graph_node
   // [main thread]
   SharedInstance instantiate_handle(int sampleRate)
   {
-    auto* inst = lilv_plugin_instantiate(
-        data.effect.plugin.me, sampleRate,
-        data.host.global ? data.host.global->features() : data.host.features);
+    if(data.host.global)
+      return data.host.global->instantiate(data.effect.plugin.me, sampleRate);
+    auto* inst
+        = lilv_plugin_instantiate(data.effect.plugin.me, sampleRate, data.host.features);
     if(!inst)
       return {};
     return std::make_shared<InstanceHandle>(inst);
@@ -455,13 +463,8 @@ struct lv2_node final : public ossia::graph_node
       }
     }
 
-    if(lilv_plugin_has_feature(data.effect.plugin.me, data.host.work_schedule)
-       && lilv_plugin_has_extension_data(
-           data.effect.plugin.me, data.host.work_interface))
-    {
-      v.worker = static_cast<const LV2_Worker_Interface*>(
-          lilv_instance_get_extension_data(v.instance, LV2_WORKER__interface));
-    }
+    if(v.instance_holder->worker.requests)
+      v.worker = v.instance_holder->worker.iface;
 
     for(std::size_t i = 0; i < control_in_size; i++)
       v.fInControls[i] = fParamInit[data.control_in_ports[i]] * fInScale[i];
@@ -516,6 +519,7 @@ struct lv2_node final : public ossia::graph_node
   {
     if(v.instance_holder && v.instance && !v.instance_holder->activated)
     {
+      std::lock_guard l{v.instance_holder->instantiation_lock};
       lilv_instance_activate(v.instance);
       v.instance_holder->activated = true;
     }
@@ -570,7 +574,7 @@ struct lv2_node final : public ossia::graph_node
       float speed)
   {
     LV2::HostContext& host = data.host;
-    auto& forge = host.forge;
+    auto& forge = m_forge;
     lv2_atom_forge_set_buffer(&forge, buffer, 256);
     LV2_Atom_Forge_Frame frame;
     lv2_atom_forge_object(&forge, &frame, 0, host.time_Position_id);
@@ -784,14 +788,15 @@ struct lv2_node final : public ossia::graph_node
 
   void postProcessVoice(voice& v) noexcept
   {
-    if(v.worker && v.worker->work_response)
+    // Answers reach an instance that did not run this cycle too: in the
+    // audio threading class, as work_response() is
+    if(v.worker)
     {
-      std::vector<char> vec;
-      while(v.worker_datas.try_dequeue(vec))
-        v.worker->work_response(v.instance->lv2_handle, vec.size(), vec.data());
+      v.instance_holder->worker.deliver_responses(v.instance->lv2_handle);
+      if(v.ran && v.worker->end_run)
+        v.worker->end_run(v.instance->lv2_handle);
     }
-    if(v.worker && v.worker->end_run)
-      v.worker->end_run(v.instance->lv2_handle);
+    v.ran = false;
 
     for(auto& port : v.midi_atom_ins)
       port.buf->reset(true);
@@ -868,7 +873,6 @@ struct lv2_node final : public ossia::graph_node
   //! 0, what all_notes_off queued) in one run of stop_run_samples().
   void stop_voices() noexcept
   {
-    data.host.current = &data.effect;
     for(auto& vp : voices)
     {
       auto& v = *vp;
@@ -905,10 +909,8 @@ struct lv2_node final : public ossia::graph_node
       // As long as the last tick, not a single frame: plug-ins dividing by
       // (sample_count - 1) to ramp a parameter (SWH's Constant Signal
       // Generator) turn their state to NaN on a run of one frame
-      {
-        worker_routing_scope ws{data.host, v};
-        lilv_instance_run(v.instance, stop_run_samples());
-      }
+      lilv_instance_run(v.instance, stop_run_samples());
+      v.ran = true;
       postProcessVoice(v);
     }
   }
@@ -926,7 +928,6 @@ struct lv2_node final : public ossia::graph_node
     if(tk.paused())
       return;
 
-    data.host.current = &data.effect;
     if(!data.time_Position_ports.empty())
       updateTime(tk, st);
 
@@ -964,17 +965,6 @@ struct lv2_node final : public ossia::graph_node
     m_sendStopped = false;
   }
 
-  struct worker_routing_scope
-  {
-    LV2::HostContext& host;
-    worker_routing_scope(LV2::HostContext& h, voice& v) noexcept
-        : host{h}
-    {
-      host.current_worker_datas = &v.worker_datas;
-    }
-    ~worker_routing_scope() noexcept { host.current_worker_datas = nullptr; }
-  };
-
   void runSingle(int samples) noexcept
   {
     auto& v = *voices[0];
@@ -1001,10 +991,8 @@ struct lv2_node final : public ossia::graph_node
       lilv_instance_connect_port(
           v.instance, data.audio_out_ports[i], v.audio_out_scratch[i].data());
 
-    {
-      worker_routing_scope ws{data.host, v};
-      lilv_instance_run(v.instance, samples);
-    }
+    lilv_instance_run(v.instance, samples);
+    v.ran = true;
     writeCVOutputs(v);
 
     if(audio_outs > 0)
@@ -1055,10 +1043,8 @@ struct lv2_node final : public ossia::graph_node
       lilv_instance_connect_port(
           v.instance, data.audio_out_ports[0], out_scratch.data());
 
-      {
-        worker_routing_scope ws{data.host, v};
-        lilv_instance_run(v.instance, samples);
-      }
+      lilv_instance_run(v.instance, samples);
+      v.ran = true;
 
       writeChannel(out.channel(c), out_scratch.data(), m_span);
       if(c == 0)

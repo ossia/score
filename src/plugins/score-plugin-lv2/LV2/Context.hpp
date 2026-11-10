@@ -41,6 +41,7 @@
 
 #include <lilv/lilvmm.hpp>
 
+#include <lightweightsemaphore.h>
 #include <readerwriterqueue.h>
 
 #include <atomic>
@@ -48,6 +49,8 @@
 #include <cstdio>
 #include <functional>
 #include <memory>
+#include <mutex>
+#include <thread>
 #include <vector>
 
 #include <score_plugin_lv2_export.h>
@@ -57,6 +60,12 @@ namespace LV2
 {
 struct EffectContext;
 struct GlobalContext;
+struct InstanceHandle;
+class WorkerThread;
+//! Refcounted LilvInstance. The instance is freed on the main thread, whichever
+//! thread lets go of it last (see InstanceDeleter).
+using SharedInstance = std::shared_ptr<InstanceHandle>;
+
 struct HostContext
 {
   Lilv::Node make_node(const char* desc)
@@ -67,11 +76,8 @@ struct HostContext
   }
 
   LV2::GlobalContext* global{};
-  LV2::EffectContext* current{};
   LV2_Feature const* const* features{};
   Lilv::World& world;
-
-  LV2_Atom_Forge forge{};
 
   Lilv::Node input_class{make_node(LILV_URI_INPUT_PORT)};
   Lilv::Node output_class{make_node(LILV_URI_OUTPUT_PORT)};
@@ -144,27 +150,53 @@ struct HostContext
   LV2_URID time_frame_id{};
   LV2_URID time_framesPerSecond_id{};
   LV2_URID time_speed_id{};
-
-  std::vector<char> acquire_worker_data(const char* data, uint32_t s) noexcept
-  {
-    std::vector<char> cp;
-    worker_datas_pool.try_dequeue(cp);
-    cp.assign(data, data + s);
-    return cp;
-  }
-
-  void release_worker_data(std::vector<char>&& v) noexcept
-  {
-    worker_datas_pool.enqueue(std::move(v));
-  }
-
-  ossia::mpmc_queue<std::vector<char>> worker_datas_pool{};
-
-  // Set by the audio node per-voice so work_schedule routes to the right queue
-  ossia::mpmc_queue<std::vector<char>>* current_worker_datas{};
 };
 
-// shared_ptr<InstanceHandle>: refcounted LilvInstance. Last drop MUST be on the main thread.
+//! One request to work(), or one answer to work_response(): a copy of what
+//! the plug-in gives, at most `capacity` bytes.
+struct WorkerPacket
+{
+  static constexpr uint32_t capacity = 4096 - sizeof(uint32_t);
+  uint32_t size{};
+  alignas(8) char data[capacity];
+};
+
+//! The worker:schedule feature of one instance, and the two queues between the
+//! threads that run the instance and the worker thread: requests one way,
+//! answers the other. Both are allocated with the instance, a fixed number of
+//! packets each; when one is full, schedule_work or respond answer
+//! LV2_WORKER_ERR_NO_SPACE.
+struct SCORE_PLUGIN_LV2_EXPORT InstanceWorker
+{
+  static constexpr std::size_t queue_size = 7;
+  using queue = ossia::spsc_queue<WorkerPacket>;
+
+  LV2_Worker_Schedule schedule{this, &InstanceWorker::schedule_work};
+  LV2_Feature feature{LV2_WORKER__schedule, &schedule};
+
+  WorkerThread* thread{};
+  const LV2_Worker_Interface* iface{};
+  std::unique_ptr<queue> requests;
+  std::unique_ptr<queue> responses;
+  //! Where the worker thread reads a request, and the audio thread an answer
+  std::unique_ptr<WorkerPacket> request_scratch, response_scratch;
+
+  //! [main thread] Requests can be queued once this is done.
+  void start(WorkerThread& t, const LV2_Worker_Interface* i);
+
+  //! [run context] What the plug-in's schedule_work calls.
+  static LV2_Worker_Status
+  schedule_work(LV2_Worker_Schedule_Handle h, uint32_t size, const void* data) noexcept;
+  //! [worker thread] What the plug-in's work calls to answer.
+  static LV2_Worker_Status
+  respond(LV2_Worker_Respond_Handle h, uint32_t size, const void* data) noexcept;
+
+  //! [worker thread] Calls work() for each request queued.
+  void run_works(LV2_Handle handle) noexcept;
+  //! [run context] Calls work_response() for each answer queued.
+  void deliver_responses(LV2_Handle handle) noexcept;
+};
+
 struct InstanceHandle
 {
   LilvInstance* instance{};
@@ -172,6 +204,16 @@ struct InstanceHandle
   //! What its ports are connected to now: the buffers of this voice of an
   //! lv2_node, or nothing
   const void* connected_to{};
+
+  //! What the instance was created with: the features of the host, with the
+  //! worker:schedule of this instance.
+  std::vector<const LV2_Feature*> features;
+  InstanceWorker worker;
+  //! Held by the worker thread while work() runs for this instance, and by
+  //! the main thread around its Instantiation functions (activate,
+  //! deactivate, state restore), which may not run concurrently with any
+  //! other function of the instance. Never taken by the audio thread.
+  std::mutex instantiation_lock;
 
   InstanceHandle() = default;
   explicit InstanceHandle(LilvInstance* i) noexcept
@@ -192,21 +234,54 @@ struct InstanceHandle
   }
 };
 
-using SharedInstance = std::shared_ptr<InstanceHandle>;
-
 struct EffectContext
 {
   Lilv::Plugin plugin{nullptr};
   // alias for instance_holder->instance
   LilvInstance* instance{};
   SharedInstance instance_holder{};
-  const LV2_Worker_Interface* worker{};
   LV2_Extension_Data_Feature data{};
   const LilvUI* ui{};
   const LilvNode* ui_type{};
   SuilInstance* ui_instance{};
+};
 
-  ossia::mpmc_queue<std::vector<char>> worker_datas;
+//! Frees an instance on the main thread: lilv_instance_free calls the
+//! plug-in's cleanup(), of the instantiation threading class.
+struct SCORE_PLUGIN_LV2_EXPORT InstanceDeleter
+{
+  void operator()(InstanceHandle* h) const noexcept;
+};
+
+//! Runs the works the plug-ins schedule, one after the other: an instance
+//! never has two at once, as the worker extension requires, and the
+//! convolvers that plan their FFTs in a work (zita-convolver) never run FFTW's
+//! planner, which is not reentrant, on two threads.
+class SCORE_PLUGIN_LV2_EXPORT WorkerThread
+{
+public:
+  WorkerThread();
+  ~WorkerThread();
+  WorkerThread(const WorkerThread&) = delete;
+  WorkerThread& operator=(const WorkerThread&) = delete;
+
+  //! [main thread] The works of this instance are run from now on. It is
+  //! held only while one runs.
+  void add(const SharedInstance& h);
+
+  //! [run context] A request was queued. Wait-free: wakes the thread up.
+  void notify() noexcept { m_sem.signal(); }
+
+private:
+  void run_pending();
+
+  moodycamel::LightweightSemaphore m_sem;
+  //! Shared by the main thread and the worker thread only
+  std::mutex m_lock;
+  std::vector<std::weak_ptr<InstanceHandle>> m_instances;
+  std::vector<SharedInstance> m_pending;
+  std::atomic_bool m_running{true};
+  std::thread m_thread;
 };
 
 struct SCORE_PLUGIN_LV2_TEST_EXPORT GlobalContext
@@ -219,8 +294,13 @@ public:
   void mapHostUrids();
   LV2_Feature const* const* features() const { return lv2_features.data(); }
 
+  //! [main thread] An instance of the plug-in, with a worker of its own when
+  //! it has the worker interface; null when lilv cannot make one.
+  SharedInstance instantiate(const LilvPlugin* plugin, double rate);
+
   using urid_map_t = boost::bimap<std::string, LV2_URID>;
   LV2::HostContext& host;
+  WorkerThread works;
   //! The rate the audio runs at; a double, as the lv2:sampleRate option
   //! points at it as an atom:Double.
   double sampleRate = 44100.;
@@ -247,6 +327,7 @@ public:
   LV2_URID_Map map{};
   LV2_URID_Unmap unmap{};
   LV2_Event_Feature event{};
+  //! What an instance not made by instantiate() is given: it cannot schedule.
   LV2_Worker_Schedule worker{};
   LV2_Worker_Schedule worker_state{};
 
