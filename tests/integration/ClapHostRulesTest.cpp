@@ -679,3 +679,31 @@ TEST_CASE(
     CHECK(e.wrong_thread == 0);
   });
 }
+
+// A control moved while the node of its process runs, its process not marked
+// executing (as after a reset): an active plug-in is not flushed from the main
+// thread.
+TEST_CASE(
+    "CLAP: a control moved while the plug-in is active is not flushed from the main "
+    "thread",
+    "[integration][clap][params]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    auto& proc = *add_gain(*doc, QStringLiteral("io.ossia.test.stereo-gain"));
+    report();
+    {
+      playing p{*doc, proc};
+      p.block(2);
+      proc.setExecuting(false);
+      gain_control(proc).setValue(0.3);
+      spin(20);
+      p.block(2);
+      p.stop();
+    }
+    const auto e = report();
+    CHECK(e.bad_state == 0);
+    CHECK(e.wrong_thread == 0);
+  });
+}

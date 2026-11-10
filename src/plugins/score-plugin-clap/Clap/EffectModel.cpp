@@ -1323,8 +1323,10 @@ make_param_value(const clap_param_info_t& info, double value)
 // own editor is being used: they are not sent to it.
 void Model::sendParamChange(const clap_param_info_t& info, double value)
 {
+  // Active, the plug-in is flushed from the audio thread only: its node
+  // sends it the control's value
   auto plugin = m_plugin->plugin;
-  if(!plugin)
+  if(!plugin || m_plugin->activated)
     return;
   auto params
       = (const clap_plugin_params_t*)plugin->get_extension(plugin, CLAP_EXT_PARAMS);
