@@ -269,6 +269,11 @@ void Window::resizeEvent(QResizeEvent* event)
       {
         m_gui_ext->set_size(m_handle->plugin, width, height);
       }
+
+      // The plug-in may only take some sizes: the window takes the one it
+      // chose, or the editor is cut or leaves a blank border
+      if(QSize(width, height) != event->size())
+        QWidget::resize(width, height);
     }
   }
 }

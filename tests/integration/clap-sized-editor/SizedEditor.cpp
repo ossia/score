@@ -48,13 +48,19 @@ instance& self(const clap_plugin_t* p)
   return *static_cast<instance*>(p->plugin_data);
 }
 
+#if defined(__APPLE__)
+const char* const window_api = CLAP_WINDOW_API_COCOA;
+#else
+const char* const window_api = CLAP_WINDOW_API_X11;
+#endif
+
 bool gui_is_api_supported(const clap_plugin_t*, const char* api, bool floating)
 {
-  return !floating && std::strcmp(api, CLAP_WINDOW_API_X11) == 0;
+  return !floating && std::strcmp(api, window_api) == 0;
 }
 bool gui_get_preferred_api(const clap_plugin_t*, const char** api, bool* floating)
 {
-  *api = CLAP_WINDOW_API_X11;
+  *api = window_api;
   *floating = false;
   return true;
 }

@@ -524,7 +524,7 @@ if(TARGET score_plugin_clap)
   target_include_directories(clap_sized_editor PRIVATE
     "${SCORE_ROOT_SOURCE_DIR}/3rdparty/clap/include")
   set_target_properties(clap_sized_editor PROPERTIES PREFIX "" SUFFIX ".clap")
-  if(UNIX AND NOT APPLE)
+  if(UNIX)
     score_add_test(test_integration_clap_editor_window
       SOURCES ClapEditorWindowTest.cpp
       GUI

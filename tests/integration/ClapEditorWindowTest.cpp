@@ -84,6 +84,34 @@ TEST_CASE(
   });
 }
 
+TEST_CASE(
+    "CLAP: the window of a resizable editor takes the size the editor chose",
+    "[integration][clap][gui]")
+{
+  score::test::run_in_gui_app([](const score::GUIApplicationContext& ctx) {
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    auto& proc = add_editor(*doc, "io.ossia.test.resizable-editor");
+
+    Process::setupExternalUI(proc, doc->context(), true);
+    spin(200);
+    QWidget* win = proc.externalUI;
+    REQUIRE(win);
+
+    // Smaller than the 100 x 100 the editor takes at least
+    win->resize(60, 250);
+    spin(200);
+    uint32_t w{}, h{};
+    CHECK(plugin_size(proc, w, h) > 0);
+    CHECK(w == 100);
+    CHECK(h == 250);
+    CHECK(win->size() == QSize(100, 250));
+
+    Process::setupExternalUI(proc, doc->context(), false);
+    spin(100);
+  });
+}
+
 TEST_CASE("CLAP: the window of a fixed-size editor keeps its size", "[integration][clap][gui]")
 {
   score::test::run_in_gui_app([](const score::GUIApplicationContext& ctx) {
