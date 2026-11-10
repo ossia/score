@@ -30,6 +30,9 @@ Severities:
   info     worth knowing, often fine: compiles nowhere, bit-exact at defaults
 
 Results: <out>/results.json (every record and verdict), <out>/report.md.
+
+With --live, each effect is instead added to a playing document in every way
+a user can: see tests/tools/live_phases.py.
 """
 
 import argparse
@@ -42,6 +45,9 @@ import sys
 import time
 from collections import Counter, defaultdict
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "tools"))
+import live_phases  # noqa: E402
 
 SILENT = 1e-5  # -100 dBFS
 LOUD = 4.0  # +12 dBFS
@@ -173,6 +179,7 @@ class Slot:
                 {
                     "SCORE_JSFX_SWEEP_JOBS": str(self.jobs),
                     "SCORE_JSFX_SWEEP_RESULTS": str(self.results),
+                    **live_phases.worker_env(self.args),
                 },
             ),
             stdout=self.logf,
@@ -340,6 +347,8 @@ def role_of(r):
 
 def judge(r):
     """The verdicts on one record: (severity, code, message)"""
+    if live_phases.is_live(r):
+        return live_phases.judge(r)
     v = []
     add = lambda sev, code, msg: v.append({"severity": sev, "code": code, "message": msg})
     status = r.get("status")
@@ -509,6 +518,7 @@ def report(args, results, files):
             for r, v in items:
                 lines.append(f"- **{r.get('name') or Path(r['path']).name}** `{r['path']}` ({r.get('role', '?')}): {v['message']}")
             lines.append("")
+    lines += live_phases.report_lines(records, lambda r: r.get("name") or Path(r["path"]).name)
     lines.append("## files that are not effects")
     lines.append("")
     why = Counter((f["kind"], f["why"]) for f in files if f["kind"] != "effect")
@@ -541,6 +551,7 @@ def main():
     ap.add_argument("--rejudge", action="store_true", help="judge <out>/results.json again, no sweep")
     ap.add_argument("--require-opt-in", action="store_true", help="skip (77) unless SCORE_JSFX_SWEEP=1")
     ap.add_argument("--no-progress", dest="progress", action="store_false")
+    live_phases.add_arguments(ap)
     args = ap.parse_args()
 
     if args.require_opt_in and os.environ.get("SCORE_JSFX_SWEEP") != "1":

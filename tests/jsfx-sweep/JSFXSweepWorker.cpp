@@ -13,6 +13,10 @@
 //                                  a hang can be told where it happened, then a
 //                                  "result" record.
 //
+//  SCORE_SWEEP_LIVE=1             instead, add each effect to a playing
+//                                  document in every way a user can
+//                                  (score_test/LivePlugin.hpp).
+//
 // Not set, the test case has nothing to do and passes: ctest runs the driver,
 // not this.
 
@@ -30,6 +34,7 @@
 #include <score_test/App.hpp>
 #include <score_test/Document.hpp>
 #include <score_test/Execution.hpp>
+#include <score_test/LivePlugin.hpp>
 #include <score_test/Project.hpp>
 
 #include <ossia/dataflow/exec_state_facade.hpp>
@@ -1242,6 +1247,33 @@ void probe(const score::GUIApplicationContext& ctx, results_file& out, const std
 }
 }
 
+namespace
+{
+void probe_live(
+    const score::GUIApplicationContext& ctx, results_file& out, const std::string& path)
+{
+  json j;
+  j.str("type", "result").str("path", path).str("mode", "live");
+
+  const auto file = QString::fromStdString(path);
+  score::test::live::options opt;
+  opt.what = {Metadata<ConcreteKey_k, YSFX::ProcessModel>::get(), {}, file};
+  // Only .jsfx files are taken by a file drop
+  if(file.endsWith(QLatin1String(".jsfx"), Qt::CaseInsensitive))
+    opt.files = {QUrl::fromLocalFile(file)};
+  opt.only = score::test::live::requested_phases();
+  score::test::live::verdicts res;
+  score::test::live::recorder rec;
+  rec.phase = [&](std::string_view phase) { out.phase(path, std::string{phase}.c_str()); };
+  rec.result = [&](std::string_view phase, std::string_view verdict, std::string_view detail) {
+    res.add(phase, verdict, detail);
+  };
+  score::test::live::run(ctx, opt, rec);
+  j.raw("live", res.json());
+  out.write(j.str("status", "ran").done());
+}
+}
+
 TEST_CASE("JSFX system sweep worker", "[ysfx][sweep]")
 {
   const QString jobs = qEnvironmentVariable("SCORE_JSFX_SWEEP_JOBS");
@@ -1257,7 +1289,13 @@ TEST_CASE("JSFX system sweep worker", "[ysfx][sweep]")
 
   score::test::run_in_app([&](const score::GUIApplicationContext& ctx) {
     results_file out{results};
+    const bool live = score::test::live::requested();
     for(auto& path : todo)
-      probe(ctx, out, path);
+    {
+      if(live)
+        probe_live(ctx, out, path);
+      else
+        probe(ctx, out, path);
+    }
   });
 }
