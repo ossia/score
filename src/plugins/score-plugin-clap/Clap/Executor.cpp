@@ -181,6 +181,10 @@ class clap_node_base : public ossia::graph_node
 {
 public:
   std::shared_ptr<Clap::PluginHandle> handle;
+  //! Its process was stopped: the ticks still running before the engine
+  //! takes the next one do not start the plug-in again, as the main thread
+  //! may deactivate it meanwhile. A start of its process clears it.
+  bool m_stopped{};
   explicit clap_node_base(const Clap::Model& proc)
       : handle{proc.handle()}
       , m_param_ins{handle->m_parameters_ins}
@@ -1109,7 +1113,7 @@ public:
 
   void run(const ossia::token_request& t, ossia::exec_state_facade e) noexcept override
   {
-    if(!m_instance.plugin)
+    if(!m_instance.plugin || m_stopped)
       return;
     if(run_in_blocks(t, e))
       return;
@@ -1338,7 +1342,7 @@ public:
   ~clap_node_64() { }
   void run(const ossia::token_request& t, ossia::exec_state_facade e) noexcept override
   {
-    if(!m_instance.plugin)
+    if(!m_instance.plugin || m_stopped)
       return;
     if(run_in_blocks(t, e))
       return;
@@ -1849,7 +1853,7 @@ public:
 
   void run(const ossia::token_request& t, ossia::exec_state_facade e) noexcept override
   {
-    if(!m_instance.plugin)
+    if(!m_instance.plugin || m_stopped)
       return;
     if(run_in_blocks(t, e))
       return;
@@ -1971,7 +1975,7 @@ public:
   using clap_node_mono::clap_node_mono;
   void run(const ossia::token_request& t, ossia::exec_state_facade e) noexcept override
   {
-    if(!m_instance.plugin)
+    if(!m_instance.plugin || m_stopped)
       return;
     if(run_in_blocks(t, e))
       return;
@@ -2075,10 +2079,11 @@ public:
 struct clap_process final : public ossia::node_process
 {
   using ossia::node_process::node_process;
-  void start() override { }
+  void start() override { static_cast<clap_node*>(this->node.get())->m_stopped = false; }
   void stop() override
   {
     auto* clap = static_cast<clap_node*>(this->node.get());
+    clap->m_stopped = true;
 
     if(clap->m_processing)
     {
@@ -2093,10 +2098,14 @@ struct clap_process final : public ossia::node_process
 struct clap_mono_process final : public ossia::node_process
 {
   using ossia::node_process::node_process;
-  void start() override { }
+  void start() override
+  {
+    static_cast<clap_node_mono*>(this->node.get())->m_stopped = false;
+  }
   void stop() override
   {
     auto* clap = static_cast<clap_node_mono*>(this->node.get());
+    clap->m_stopped = true;
 
     // Stop each polyphonic instance individually. The old version always
     // stopped m_instance.plugin (m_poly[0]) once per processing entry,

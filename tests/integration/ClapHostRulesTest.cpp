@@ -589,6 +589,50 @@ TEST_CASE(
   });
 }
 
+// The clock's stop may find the audio thread in a tick that takes longer than
+// it waits (a plug-in loading its samples in its process call): that tick runs
+// the interval's stop, then the graph once more, while the main thread
+// deactivates what stopped processing. A stopped plug-in does not start again
+// there.
+TEST_CASE(
+    "CLAP: a plug-in its process stopped does not start processing again",
+    "[integration][clap][state]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    for(auto id : {"io.ossia.test.stereo-gain", "io.ossia.test.mono-gain"})
+    {
+      INFO(id);
+      auto* doc = score::test::new_document(ctx);
+      REQUIRE(doc);
+      auto& proc = *add_gain(*doc, QString::fromUtf8(id));
+      report();
+      {
+        playing p{*doc, proc};
+        p.block(2);
+
+        auto& procs = p.plug.baseScenario()->baseInterval().processes();
+        auto it = procs.find(proc.id());
+        REQUIRE(it != procs.end());
+        ossia::set_thread_pinned(ossia::thread_type::Audio, 0);
+        it->second->OSSIAProcess().stop();
+        ossia::set_thread_pinned(ossia::thread_type::Ui, 0);
+
+        // What reset() does to the processes of the stopped interval
+        proc.setExecuting(false);
+        proc.resetExecution();
+        spin(30);
+
+        p.block(2);
+        p.stop();
+      }
+      const auto e = report();
+      CHECK(e.bad_state == 0);
+      CHECK(e.wrong_thread == 0);
+      ctx.docManager.forceCloseDocument(ctx, *doc);
+    }
+  });
+}
+
 // An entry that gives its plug-in factory for any id, preset discovery's
 // included (SpectMorph): read as a preset discovery factory, its plug-in
 // descriptors were taken for providers and the indexer for a host.
