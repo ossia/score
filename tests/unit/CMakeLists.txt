@@ -419,6 +419,16 @@ if(TARGET score_plugin_protocols AND TARGET score_plugin_library)
     "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-protocols")
 endif()
 
+# The DMX device's settings: the universes each transport can output.
+if(TARGET score_plugin_protocols AND OSSIA_PROTOCOL_ARTNET)
+  score_add_test(test_unit_artnet_settings_widget
+    APP
+    SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/ArtnetSettingsWidgetTest.cpp"
+    PLUGINS score_plugin_protocols score_lib_device)
+  target_include_directories(test_unit_artnet_settings_widget PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-protocols")
+endif()
+
 # The WebSocket device's settings: the script's host fills the address.
 if(TARGET score_plugin_protocols AND OSSIA_PROTOCOL_WEBSOCKETS)
   score_add_test(test_unit_ws_protocol_settings_widget

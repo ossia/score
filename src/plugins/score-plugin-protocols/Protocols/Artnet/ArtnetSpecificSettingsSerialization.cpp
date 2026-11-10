@@ -372,6 +372,7 @@ void DataStreamWriter::write(Protocols::ArtnetSpecificSettings& n)
 {
   m_stream >> n.fixtures >> n.host >> n.rate >> n.start_universe >> n.universe_count
       >> n.channels_per_universe >> n.multicast >> n.transport >> n.mode;
+  n.clampUniverses();
   checkDelimiter();
 }
 
@@ -410,6 +411,7 @@ void JSONWriter::write(Protocols::ArtnetSpecificSettings& n)
     n.transport = (decltype(n.transport))u->toInt();
   if(auto u = obj.tryGet("Mode"))
     n.mode = (decltype(n.mode))u->toInt();
+  n.clampUniverses();
 
   // score 3.4.2: fixtures can be in multiple universes
   for(auto& fix : n.fixtures)

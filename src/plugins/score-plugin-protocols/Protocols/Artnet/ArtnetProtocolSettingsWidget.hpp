@@ -37,6 +37,7 @@ private:
   void addNewFixture(Artnet::Fixture fixt, int channels_per_universe);
   void addDimmer();
   void updateHosts(int protocolindex);
+  void updateUniverseCountRange();
   void updateTable();
 
   void addressChanged(int row);
