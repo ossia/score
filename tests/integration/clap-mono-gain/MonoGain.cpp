@@ -488,6 +488,14 @@ CLAP_EXPORT void clap_mono_gain_rescan(const clap_plugin_t* p, uint32_t flags)
          s.host->get_extension(s.host, CLAP_EXT_PARAMS)))
     hp->rescan(s.host, flags);
 }
+//! An instance asks its host for a flush, as after loading a preset
+CLAP_EXPORT void clap_mono_gain_request_flush(const clap_plugin_t* p)
+{
+  auto& s = *static_cast<instance*>(p->plugin_data);
+  if(auto* hp = static_cast<const clap_host_params_t*>(
+         s.host->get_extension(s.host, CLAP_EXT_PARAMS)))
+    hp->request_flush(s.host);
+}
 
 //! What the host did wrong since the last call, and where it left the
 //! plug-in

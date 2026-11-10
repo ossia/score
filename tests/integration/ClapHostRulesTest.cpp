@@ -707,3 +707,32 @@ TEST_CASE(
     CHECK(e.wrong_thread == 0);
   });
 }
+
+// A flush the plug-in asks for, loading a preset, while its node already runs
+// and its process is not marked executing yet (a process dropped while the
+// document plays): an active plug-in is not flushed from the main thread.
+TEST_CASE(
+    "CLAP: a flush asked for while the plug-in is active is not done from the main "
+    "thread",
+    "[integration][clap][params]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    auto& proc = *add_gain(*doc, QStringLiteral("io.ossia.test.stereo-gain"));
+    report();
+    {
+      playing p{*doc, proc};
+      p.block(2);
+      proc.setExecuting(false);
+      plugin_function<void(const clap_plugin_t*)>("clap_mono_gain_request_flush")(
+          proc.handle()->plugin);
+      spin(20);
+      p.block(2);
+      p.stop();
+    }
+    const auto e = report();
+    CHECK(e.bad_state == 0);
+    CHECK(e.wrong_thread == 0);
+  });
+}

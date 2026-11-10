@@ -2202,7 +2202,9 @@ void Model::flushFromPluginToHost()
       = (const clap_plugin_params_t*)plugin->get_extension(plugin, CLAP_EXT_PARAMS);
   if(!params || !params->flush)
     return;
-  if(this->executing())
+  // Active, the plug-in is flushed from the audio thread only: what it says
+  // comes back through its node
+  if(this->executing() || m_plugin->activated)
     return;
 
   ParamInputCtx in_ctx; // empty
