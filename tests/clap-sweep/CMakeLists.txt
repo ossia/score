@@ -25,6 +25,7 @@ score_add_test(test_clap_sweep_worker
   APP
   NO_CTEST
   PLUGINS score_plugin_clap score_plugin_audio score_plugin_engine score_plugin_scenario score_lib_process
+    score_plugin_dataflow score_plugin_deviceexplorer
   LIBS ${CMAKE_DL_LIBS})
 target_include_directories(test_clap_sweep_worker PRIVATE
   "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-clap"

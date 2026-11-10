@@ -23,8 +23,11 @@
 //  SCORE_CLAP_SWEEP_TRACE=1
 //      print the controls before each play of score's host, and the peak of
 //      each of its blocks, on stderr
+//  SCORE_SWEEP_LIVE=1
+//      instead, add each plug-in, still through the checker, to a playing
+//      document in every way a user can (score_test/LivePlugin.hpp)
 //
-// Neither set, the test case has nothing to do and passes: ctest runs the
+// None set, the test case has nothing to do and passes: ctest runs the
 // driver, not this.
 
 #include <Clap/EffectModel.hpp>
@@ -41,6 +44,7 @@
 #include <score_test/App.hpp>
 #include <score_test/Document.hpp>
 #include <score_test/Execution.hpp>
+#include <score_test/LivePlugin.hpp>
 #include <score_test/Project.hpp>
 
 #include <core/document/Document.hpp>
@@ -1412,6 +1416,35 @@ void probe(
   out.write(j.str("status", "ran").done());
 }
 
+void probe_live(
+    const score::GUIApplicationContext& ctx, results_file& out, const std::string& checker,
+    const std::string& path, const std::string& id)
+{
+  const std::string uri = path + ":::" + id;
+  json j;
+  j.str("type", "result").str("uri", uri).str("path", path).str("id", id);
+  j.str("mode", "live");
+
+  out.phase(uri, "load");
+  checker_set_target(checker, path);
+  score::test::live::options opt;
+  opt.what = {
+      UuidKey<Process::ProcessModel>::fromString(clap_uuid), {},
+      QString::fromStdString(checker + ":::" + id)};
+  opt.only = score::test::live::requested_phases();
+  score::test::live::verdicts res;
+  score::test::live::recorder rec;
+  rec.phase = [&](std::string_view phase) { out.phase(uri, std::string{phase}.c_str()); };
+  rec.result = [&](std::string_view phase, std::string_view verdict, std::string_view detail) {
+    res.add(phase, verdict, detail);
+  };
+  score::test::live::run(ctx, opt, rec);
+  ossia::set_thread_pinned(ossia::thread_type::Ui, 0);
+  j.raw("live", res.json());
+  j.raw("score_violations", checker_take(checker));
+  out.write(j.str("status", "ran").done());
+}
+
 void list_plugins(const std::string& file, const QString& out_path)
 {
   std::ofstream f{out_path.toStdString()};
@@ -1482,7 +1515,13 @@ TEST_CASE("CLAP system sweep worker", "[clap][sweep]")
   score::test::run_in_app([&](const score::GUIApplicationContext& ctx) {
     ossia::set_thread_pinned(ossia::thread_type::Ui, 0);
     results_file out{results};
+    const bool live = score::test::live::requested();
     for(auto& [path, id] : todo)
-      probe(ctx, out, checker, path, id);
+    {
+      if(live)
+        probe_live(ctx, out, checker, path, id);
+      else
+        probe(ctx, out, checker, path, id);
+    }
   });
 }
