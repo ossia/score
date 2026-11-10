@@ -11,6 +11,7 @@
 #include <cstddef>
 #include <mutex>
 #include <iostream>
+#include <optional>
 #include <set>
 
 #if __has_include(<version>)
@@ -367,6 +368,43 @@ struct AsyncScanState
 };
 }
 
+//! The watches a file goes to: those of the extension of its name, or those
+//! registered for "" when its name has none. What follows the last dot of a
+//! name is an extension only when it looks like one: "Auto-Pan v1.1
+//! (Receiver)" and "Wideness v1.0" have none. A file without an extension in
+//! a hidden folder under the root (.git and the like) goes to none.
+static std::optional<std::string_view>
+watched_suffix(std::string_view path, std::string_view root) noexcept
+{
+  const auto slash = path.find_last_of('/');
+  const auto name = slash == path.npos ? path : path.substr(slash + 1);
+  if(name.empty())
+    return std::nullopt;
+
+  if(const auto dot = name.find_last_of('.'); dot != name.npos)
+  {
+    if(dot == name.size() - 1)
+      return std::nullopt;
+    const auto suffix = name.substr(dot + 1);
+    bool letter = false;
+    bool extension = suffix.size() <= 16;
+    for(char c : suffix)
+    {
+      if((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z'))
+        letter = true;
+      else if(!(c >= '0' && c <= '9') && c != '-' && c != '_' && c != '+')
+        extension = false;
+    }
+    if(dot == 0 || (extension && letter))
+      return suffix;
+  }
+
+  const auto from = path.starts_with(root) ? root.size() : 0;
+  if(path.find("/.", from) != path.npos)
+    return std::nullopt;
+  return std::string_view{};
+}
+
 void RecursiveWatch::scan() const
 {
 #if !defined(SCORE_DEPLOYMENT_BUILD)
@@ -376,17 +414,14 @@ void RecursiveWatch::scan() const
 #endif
 
   for_all_files(m_root, [this](std::string_view path) {
-    if(path.empty())
+    const auto suffix = watched_suffix(path, m_root);
+    if(!suffix)
       return;
-    if(auto last_dot = path.find_last_of('.'); last_dot < path.size() - 1)
+    if(auto it = m_watched.find(*suffix); it != m_watched.end())
     {
-      std::string_view suffix = path.substr(last_dot + 1);
-      if(auto it = m_watched.find(suffix); it != m_watched.end())
+      for(auto& handler : it->second)
       {
-        for(auto& handler : it->second)
-        {
-          handler.added(path);
-        }
+        handler.added(path);
       }
     }
   });
@@ -429,14 +464,10 @@ void RecursiveWatch::scanAsync(QObject* context)
       std::lock_guard handler_lock{state.scan->handler_mutex};
       if(!state.ctx || state.scan->cancelled)
         return;
-      if(path.empty())
+      const auto suffix = watched_suffix(path, state.root);
+      if(!suffix)
         return;
-      auto last_dot = path.find_last_of('.');
-      if(last_dot >= path.size() - 1)
-        return;
-
-      std::string_view suffix = path.substr(last_dot + 1);
-      auto it = state.watched.find(suffix);
+      auto it = state.watched.find(*suffix);
       if(it == state.watched.end())
         return;
       for(auto& handler : it->second)
