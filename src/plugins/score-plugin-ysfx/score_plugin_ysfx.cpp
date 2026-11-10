@@ -19,6 +19,7 @@
 #include <score/plugins/StringFactoryKey.hpp>
 #include <score/tools/std/HashMap.hpp>
 
+#include <QFile>
 #include <QFileInfo>
 #include <QQmlListProperty>
 #include <QTimer>
@@ -28,13 +29,42 @@
 
 namespace YSFX
 {
+//! A file without the .jsfx extension, as REAPER's own effects are, is an
+//! effect when it is text with a desc: line, which REAPER lists effects by,
+//! in its first 16 kB: REAPER's and ATK's effects have it in their first 4 kB,
+//! after a comment block at most.
+static bool isExtensionlessJsfx(std::string_view path)
+{
+  QFile f{QString::fromUtf8(path.data(), path.size())};
+  if(!f.open(QIODevice::ReadOnly))
+    return false;
+  const QByteArray head = f.read(16384);
+  if(head.contains('\0'))
+    return false;
+
+  for(qsizetype line = 0; line < head.size();)
+  {
+    qsizetype i = line;
+    while(i < head.size() && (head[i] == ' ' || head[i] == '\t'))
+      i++;
+    if(QByteArrayView{head}.sliced(i).startsWith("desc:"))
+      return true;
+    const auto next = head.indexOf('\n', i);
+    if(next < 0)
+      break;
+    line = next + 1;
+  }
+  return false;
+}
+
 class LibraryHandler final
     : public QObject
     , public Library::LibraryInterface
 {
   SCORE_CONCRETE("95cc72d2-ab43-47fc-ad16-b8f7ef34a1e1")
 
-  QSet<QString> acceptedFiles() const noexcept override { return {"jsfx"}; }
+  //! "": the files whose name has no extension
+  QSet<QString> acceptedFiles() const noexcept override { return {"jsfx", ""}; }
 
   Library::CategoryPaths categories;
 
@@ -48,9 +78,13 @@ class LibraryHandler final
   std::optional<Library::ProcessEntry> scanPath(std::string_view path) override
   {
     score::PathInfo file{path};
+    const bool extension = file.fileName.ends_with(".jsfx");
+    if(!extension && !isExtensionlessJsfx(path))
+      return std::nullopt;
+
+    const auto name = extension ? file.completeBaseName : file.fileName;
     Library::ProcessData pdata;
-    pdata.prettyName
-        = QString::fromUtf8(file.completeBaseName.data(), file.completeBaseName.size());
+    pdata.prettyName = QString::fromUtf8(name.data(), name.size());
     pdata.key = Metadata<ConcreteKey_k, YSFX::ProcessModel>::get();
     pdata.customData
         = QString::fromUtf8(file.absoluteFilePath.data(), file.absoluteFilePath.size());

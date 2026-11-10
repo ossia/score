@@ -722,6 +722,14 @@ if(TARGET score_plugin_ysfx)
     PLUGINS score_plugin_ysfx)
   target_include_directories(test_unit_ysfx_credits PRIVATE
     "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-ysfx")
+
+  # The JSFX library takes effects with or without the .jsfx extension.
+  score_add_test(test_unit_ysfx_library_scan
+    SOURCES YsfxLibraryScanTest.cpp
+    APP
+    PLUGINS score_plugin_ysfx score_plugin_library score_plugin_scenario score_lib_process)
+  target_include_directories(test_unit_ysfx_library_scan PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-ysfx")
 endif()
 
 # --- cross-implementation quantification grid parity ------------------------
