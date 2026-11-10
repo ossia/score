@@ -28,6 +28,9 @@ Severities:
   info     worth knowing, often fine: bit-exact at defaults, not a plug-in
 
 Results: <out>/results.json (every record and verdict), <out>/report.md.
+
+With --live, each plug-in is instead added to a playing document in every way
+a user can: see tests/tools/live_phases.py.
 """
 
 import argparse
@@ -42,6 +45,9 @@ import tempfile
 import time
 from collections import Counter, defaultdict
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "tools"))
+import live_phases  # noqa: E402
 
 SILENT = 1e-5  # -100 dBFS
 LOUD = 4.0  # +12 dBFS
@@ -205,6 +211,7 @@ class Slot:
                 {
                     "SCORE_VST_SWEEP_JOBS": str(self.jobs),
                     "SCORE_VST_SWEEP_RESULTS": str(self.results),
+                    **live_phases.worker_env(self.args),
                 },
             ),
             stdout=self.logf,
@@ -377,7 +384,8 @@ def backtrace(args, rec):
                "-ex", "run", "-ex", "bt 40", "-ex", "thread apply all bt 12", "--args", args.worker]
         env = worker_env(
             args, scratch,
-            {"SCORE_VST_SWEEP_JOBS": str(jobs), "SCORE_VST_SWEEP_RESULTS": str(results)})
+            {"SCORE_VST_SWEEP_JOBS": str(jobs), "SCORE_VST_SWEEP_RESULTS": str(results),
+             **live_phases.worker_env(args)})
         try:
             if rec.get("status") == "hang":
                 # Interrupt it once the hang is certain
@@ -412,6 +420,8 @@ def db(a, b):
 
 def judge(r):
     """The verdicts on one record: (severity, code, message)"""
+    if live_phases.is_live(r):
+        return live_phases.judge(r)
     v = []
     add = lambda sev, code, msg: v.append({"severity": sev, "code": code, "message": msg})
     status = r.get("status")
@@ -593,6 +603,7 @@ def report(args, results):
                         lines.append("  " + l)
                     lines.append("  ```")
             lines.append("")
+    lines += live_phases.report_lines(records, name=lambda r: r.get("name") or r.get("path") or "?")
     Path(args.out, "report.md").write_text("\n".join(lines))
 
     print(f"{len(records)} libraries; " + ", ".join(f"{s}: {sev_count[s]}" for s in SEVERITIES))
@@ -622,6 +633,7 @@ def main():
     ap.add_argument("--rejudge", action="store_true", help="judge <out>/results.json again, no sweep")
     ap.add_argument("--require-opt-in", action="store_true", help="skip (77) unless SCORE_VST_SWEEP=1")
     ap.add_argument("--no-progress", dest="progress", action="store_false")
+    live_phases.add_arguments(ap)
     args = ap.parse_args()
 
     if args.require_opt_in and os.environ.get("SCORE_VST_SWEEP") != "1":

@@ -557,6 +557,24 @@ if(TARGET score_plugin_vst AND TARGET score_test_vst_unflagged_instrument)
     SCORE_VST2_DOCUMENTS_DIR="${SCORE_ROOT_SOURCE_DIR}/tests/testdata/vst2")
 endif()
 
+# VST 2 plug-ins added, edited and removed while the document plays.
+if(TARGET score_plugin_vst AND TARGET score_test_vst_unflagged_instrument
+   AND TARGET score_test_vst_chunk_instrument)
+  score_add_test(test_integration_vst2_add_while_playing
+    SOURCES Vst2AddWhilePlayingTest.cpp
+    APP
+    PLUGINS score_plugin_vst score_plugin_scenario score_plugin_engine score_plugin_audio
+      score_plugin_dataflow score_plugin_deviceexplorer score_lib_process
+    LIBS ${CMAKE_DL_LIBS})
+  target_include_directories(test_integration_vst2_add_while_playing PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-vst")
+  add_dependencies(test_integration_vst2_add_while_playing
+    score_test_vst_unflagged_instrument score_test_vst_chunk_instrument)
+  target_compile_definitions(test_integration_vst2_add_while_playing PRIVATE
+    SCORE_VST_UNFLAGGED_INSTRUMENT="$<TARGET_FILE:score_test_vst_unflagged_instrument>"
+    SCORE_VST_CHUNK_INSTRUMENT="$<TARGET_FILE:score_test_vst_chunk_instrument>")
+endif()
+
 # A preset of the script a process already runs keeps its ports.
 score_add_test(test_integration_script_preset_ports
   SOURCES ScriptPresetPortsTest.cpp
@@ -2047,6 +2065,22 @@ if(TARGET score_plugin_lv2)
   add_dependencies(test_integration_plugin_add_while_playing score_test_gain_lv2)
   target_compile_definitions(test_integration_plugin_add_while_playing PRIVATE
     SCORE_TEST_LV2_BUNDLE="${SCORE_ROOT_BINARY_DIR}/tests/lv2/score-test-gain.lv2")
+endif()
+
+# A VST3 plug-in added, edited and removed while the document plays.
+if(TARGET score_test_vst3_edited_gain)
+  score_add_test(test_integration_vst3_add_while_playing
+    SOURCES Vst3AddWhilePlayingTest.cpp
+    APP
+    PLUGINS score_plugin_vst3 score_plugin_engine score_plugin_scenario score_lib_process
+            score_plugin_audio score_plugin_deviceexplorer score_plugin_dataflow
+            score_plugin_media
+    LIBS sdk_common sdk_hosting)
+  target_include_directories(test_integration_vst3_add_while_playing PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-vst3")
+  add_dependencies(test_integration_vst3_add_while_playing score_test_vst3_edited_gain)
+  target_compile_definitions(test_integration_vst3_add_while_playing PRIVATE
+    SCORE_VST3_EDITED_GAIN="${SCORE_ROOT_BINARY_DIR}/tests/unit/score-test-edited-gain.vst3")
 endif()
 
 # Triggers and conditions on an absent or disconnected device do not hold.

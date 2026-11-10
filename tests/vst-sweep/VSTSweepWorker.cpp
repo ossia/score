@@ -14,6 +14,10 @@
 //                                  can be told where it happened, then a
 //                                  "result" record.
 //
+//  SCORE_SWEEP_LIVE=1             instead, add each plug-in to a playing
+//                                  document in every way a user can
+//                                  (score_test/LivePlugin.hpp).
+//
 //  SCORE_VST_SWEEP_TRACE=1        print the peak of every block of score's
 //                                  host on stderr, to look closer at one.
 //
@@ -41,6 +45,7 @@
 #include <score/serialization/JSONVisitor.hpp>
 
 #include <score_test/App.hpp>
+#include <score_test/LivePlugin.hpp>
 
 #include <ossia/dataflow/exec_state_facade.hpp>
 #include <ossia/dataflow/execution_state.hpp>
@@ -1103,6 +1108,80 @@ void probe(
   QCoreApplication::processEvents();
   out.write(j.str("status", "ran").done());
 }
+
+//! The library added to a playing document in every way a user can
+void probe_live(
+    const score::GUIApplicationContext& ctx, vst::ApplicationPlugin& app,
+    results_file& out, const std::string& path)
+{
+  json j;
+  j.str("type", "result").str("path", path).str("mode", "live");
+  const QString qpath = QString::fromStdString(path);
+  j.str("name", QFileInfo(qpath).completeBaseName().toStdString());
+
+  out.phase(path, "load");
+  std::unique_ptr<vst::Module> module;
+  try
+  {
+    module = std::make_unique<vst::Module>(path);
+  }
+  catch(const std::exception& e)
+  {
+    out.write(j.str("status", "not-a-plugin").str("reason", e.what()).done());
+    return;
+  }
+  auto main = module->getMain();
+  if(!main)
+  {
+    out.write(
+        j.str("status", "not-a-plugin").str("reason", "no VST 2 entry point").done());
+    return;
+  }
+
+  out.phase(path, "identify");
+  const auto id = identify(main);
+  if(id.status != "ok")
+  {
+    out.write(j.str("status", id.status).str("reason", id.reason).done());
+    return;
+  }
+  if(id.category == kPlugCategShell)
+  {
+    out.write(j.str("status", "shell").done());
+    return;
+  }
+
+  // What a scan of this library would have added to the library
+  vst::VSTInfo info;
+  info.path = qpath;
+  info.prettyName = QFileInfo(qpath).completeBaseName();
+  info.displayName = QString::fromStdString(id.product);
+  info.author = QString::fromStdString(id.vendor);
+  info.uniqueID = id.unique_id;
+  info.controls = id.params;
+  info.isSynth = id.flags & effFlagsIsSynth;
+  info.isValid = true;
+  app.vst_infos = {info};
+  app.vst_modules.erase(id.unique_id);
+  app.vst_modules.insert({id.unique_id, nullptr});
+
+  score::test::live::options opt;
+  opt.what = {
+      Metadata<ConcreteKey_k, vst::Model>::get(), info.prettyName,
+      QString::number(id.unique_id)};
+  opt.only = score::test::live::requested_phases();
+  score::test::live::verdicts res;
+  score::test::live::recorder rec;
+  rec.phase = [&](std::string_view phase) { out.phase(path, std::string{phase}.c_str()); };
+  rec.result = [&](std::string_view phase, std::string_view verdict, std::string_view detail) {
+    res.add(phase, verdict, detail);
+  };
+  score::test::live::run(ctx, opt, rec);
+  j.raw("live", res.json());
+  score::test::flush_deferred_deletes();
+  QCoreApplication::processEvents();
+  out.write(j.str("status", "ran").done());
+}
 }
 
 TEST_CASE("VST system sweep worker", "[vst][sweep]")
@@ -1127,7 +1206,13 @@ TEST_CASE("VST system sweep worker", "[vst][sweep]")
   score::test::run_in_app([&](const score::GUIApplicationContext& ctx) {
     auto& app = ctx.applicationPlugin<vst::ApplicationPlugin>();
     results_file out{results};
+    const bool live = score::test::live::requested();
     for(auto& [path, noref] : todo)
-      probe(app, out, path, noref);
+    {
+      if(live)
+        probe_live(ctx, app, out, path);
+      else
+        probe(app, out, path, noref);
+    }
   });
 }
