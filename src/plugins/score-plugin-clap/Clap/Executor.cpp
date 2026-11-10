@@ -197,6 +197,8 @@ public:
     parameter_ins.reserve(m_param_ins.size());
     parameter_outs.reserve(m_param_outs.size());
     m_input_events.all_events.reserve(4096);
+    m_initial_values.param_events.reserve(m_param_ins.size());
+    m_initial_values.all_events.reserve(m_param_ins.size());
 
     // Create ports based on the model
     for(auto inlet : proc.inlets())
@@ -268,8 +270,12 @@ public:
   }
 
   //! A plug-in instance other than the one the parameters were listed from
-  //! does not get their cookies: they point into that one
-  [[nodiscard]] bool start_plugin(const clap_plugin_t* plugin, bool own_cookies = true)
+  //! does not get their cookies: they point into that one. Its params
+  //! extension is queried beforehand on the main thread: clap-helpers before
+  //! 1.2 terminates a host calling get_extension from another one (Odin2).
+  [[nodiscard]] bool start_plugin(
+      const clap_plugin_t* plugin, const clap_plugin_params_t* params,
+      bool own_cookies = true)
   {
     // CLAP spec (plugin.h): reset() "clears all buffers, performs a full
     // reset of the processing state (filters, oscillators, envelopes,
@@ -282,7 +288,7 @@ public:
 
     if(plugin->start_processing(plugin))
     {
-      init_parameter_values(plugin, own_cookies);
+      init_parameter_values(plugin, params, own_cookies);
       return true;
     }
     return false;
@@ -290,7 +296,8 @@ public:
 
   void stop_plugin(const clap_plugin_t* plugin) { plugin->stop_processing(plugin); }
 
-  void init_parameter_values(const clap_plugin_t* plugin, bool own_cookies)
+  void init_parameter_values(
+      const clap_plugin_t* plugin, const clap_plugin_params_t* params, bool own_cookies)
   {
     if(!plugin || m_param_ins.empty())
       return;
@@ -301,14 +308,13 @@ public:
     // audio rendering; flush() exists precisely to set parameters with no
     // audio. We're on the audio thread, active and not concurrently
     // processing, which is a legal context for flush.
-    auto params = static_cast<const clap_plugin_params_t*>(
-        plugin->get_extension(plugin, CLAP_EXT_PARAMS));
     if(!params || !params->flush)
       return;
 
-    event_storage in;
-    in.param_events.reserve(m_param_ins.size());
-    in.all_events.reserve(m_param_ins.size());
+    // Reserved for every parameter when the node is made
+    auto& in = m_initial_values;
+    in.param_events.clear();
+    in.all_events.clear();
     for(std::size_t i = 0; i < m_param_ins.size(); ++i)
     {
       const auto& param_info = m_param_ins[i];
@@ -806,6 +812,7 @@ public:
 
   event_storage m_input_events;
   event_storage m_output_events;
+  event_storage m_initial_values;
 
   const std::vector<clap_param_info_t>& m_param_ins;
   const std::vector<clap_param_info_t>& m_param_outs;
@@ -1112,7 +1119,7 @@ public:
       return;
     if(!m_processing)
     {
-      m_processing = start_plugin(m_instance.plugin);
+      m_processing = start_plugin(m_instance.plugin, m_instance.ext_params);
       m_instance.processing = m_processing;
       if(!m_processing)
         return;
@@ -1341,7 +1348,7 @@ public:
       return;
     if(!m_processing)
     {
-      m_processing = start_plugin(m_instance.plugin);
+      m_processing = start_plugin(m_instance.plugin, m_instance.ext_params);
       m_instance.processing = m_processing;
       if(!m_processing)
         return;
@@ -1504,6 +1511,8 @@ public:
     const clap_plugin_t* plugin{};
     bool activated{};
     bool processing{};
+    //! Queried on the main thread, where the instance is made
+    const clap_plugin_params_t* params{};
     operator const clap_plugin_t*() const noexcept { return plugin; }
   };
 
@@ -1521,7 +1530,7 @@ public:
     // with a non-RT-friendly reallocation cost each doubling.
     m_poly.reserve(256);
     m_voice0_changes.reserve(256);
-    m_poly.push_back({handle.plugin, false});
+    m_poly.push_back({handle.plugin, false, false, handle.ext_params});
     if(handle.activated)
       (void)deactivate_plugin(handle.plugin);
     m_poly.back().activated = activate_plugin(m_instance.plugin, sampleRate, bs);
@@ -1553,7 +1562,7 @@ public:
   // Throws std::runtime_error on create_plugin / init failure.
   poly_plugin make_poly_instance(int sampleRate, int bs, const QByteArray& state)
   {
-    poly_plugin p{nullptr, false, false};
+    poly_plugin p{nullptr, false, false, nullptr};
     p.plugin = m_instance.factory->create_plugin(
         m_instance.factory, &m_instance.host, m_plugin_id.data());
     if(!p.plugin)
@@ -1564,6 +1573,8 @@ public:
       p.plugin->destroy(p.plugin);
       throw std::runtime_error("Could not init plug-in instance");
     }
+    p.params = static_cast<const clap_plugin_params_t*>(
+        p.plugin->get_extension(p.plugin, CLAP_EXT_PARAMS));
     // Apply the snapshot *before* activate, matching how Model::loadPlugin
     // restores state for the primary instance.
     apply_clap_state(p.plugin, state);
@@ -1902,7 +1913,7 @@ public:
 
       if(!cur.processing)
       {
-        cur.processing = start_plugin(cur.plugin, current_channel == 0);
+        cur.processing = start_plugin(cur.plugin, cur.params, current_channel == 0);
         if(current_channel == 0)
           m_instance.processing = cur.processing;
         if(!cur.processing)
@@ -2027,7 +2038,7 @@ public:
 
       if(!cur.processing)
       {
-        cur.processing = start_plugin(cur.plugin, current_channel == 0);
+        cur.processing = start_plugin(cur.plugin, cur.params, current_channel == 0);
         if(current_channel == 0)
           m_instance.processing = cur.processing;
         if(!cur.processing)

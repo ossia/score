@@ -590,8 +590,8 @@ static constexpr clap_host_thread_pool host_thread_pool_ext
   auto& h = *static_cast<PluginHandle*>(host->host_data);
   if(!h.plugin)
     return false;
-  auto ext = static_cast<const clap_plugin_thread_pool_t*>(
-      h.plugin->get_extension(h.plugin, CLAP_EXT_THREAD_POOL));
+  // Queried when the plug-in was loaded: this is called from its process()
+  auto ext = h.ext_thread_pool;
   if(!ext || !ext->exec)
     return false;
   if(num_tasks == 0)
@@ -1163,6 +1163,8 @@ void PluginHandle::load(Model& context, QByteArray path, QByteArray id)
       plugin, CLAP_EXT_TIMER_SUPPORT);
   ext_params
       = (const clap_plugin_params_t*)plugin->get_extension(plugin, CLAP_EXT_PARAMS);
+  ext_thread_pool = (const clap_plugin_thread_pool_t*)plugin->get_extension(
+      plugin, CLAP_EXT_THREAD_POOL);
 
   desc = plugin->desc;
 }

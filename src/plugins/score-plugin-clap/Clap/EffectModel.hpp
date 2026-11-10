@@ -62,6 +62,8 @@ struct PluginHandle
   // Common plugin extensions
   const clap_plugin_params_t* ext_params{};
   const clap_plugin_timer_support_t* ext_timer_support{};
+  //! Queried on the main thread: the audio thread uses them as they are
+  const clap_plugin_thread_pool_t* ext_thread_pool{};
 
   // Metadata we parsed
   std::vector<clap_param_info_t> m_parameters_ins;

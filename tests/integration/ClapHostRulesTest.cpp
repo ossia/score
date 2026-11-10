@@ -89,15 +89,20 @@ void spin(int ms)
     QCoreApplication::processEvents(QEventLoop::AllEvents, 10);
 }
 
-Clap::Model* add_mono_gain(score::Document& doc)
+Clap::Model* add_gain(score::Document& doc, const QString& id)
 {
   auto* proc = score::test::add_process(
-      doc, clap_uuid, QStringLiteral(CLAP_MONO_GAIN_PATH ":::io.ossia.test.mono-gain"));
+      doc, clap_uuid, QStringLiteral(CLAP_MONO_GAIN_PATH ":::") + id);
   REQUIRE(proc);
   auto* clap = static_cast<Clap::Model*>(proc);
   REQUIRE(clap->handle());
   REQUIRE(clap->handle()->plugin);
   return clap;
+}
+
+Clap::Model* add_mono_gain(score::Document& doc)
+{
+  return add_gain(doc, QStringLiteral("io.ossia.test.mono-gain"));
 }
 
 Process::ControlInlet& gain_control(Clap::Model& proc)
@@ -517,6 +522,70 @@ TEST_CASE(
     CHECK(e.wrong_thread == 0);
     CHECK(e.instances == before.instances);
     CHECK(e.active == before.active);
+  });
+}
+
+namespace
+{
+//! A play of the whole life of a plug-in: its start, a control changed in
+//! score, its editor, a restart it asks for and its own thread pool while it
+//! plays, and its stop
+void play_all_of_it(score::Document& doc, Clap::Model& proc, int channels)
+{
+  playing p{doc, proc};
+  p.block(channels);
+  gain_control(proc).setValue(0.4);
+  p.block(channels);
+  set_from_ui(proc, 0.6);
+  p.block(channels);
+  plugin_function<void(const clap_plugin_t*)>("clap_mono_gain_request_restart")(
+      proc.handle()->plugin);
+  spin(20);
+  p.block(channels);
+  p.stop();
+}
+}
+
+TEST_CASE(
+    "CLAP: the audio thread calls a plug-in only for what it may, from its start to "
+    "its stop",
+    "[integration][clap][threads]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    auto& proc = *add_gain(*doc, QStringLiteral("io.ossia.test.stereo-gain"));
+    plugin_function<void(const clap_plugin_t*)>("clap_mono_gain_use_thread_pool")(
+        proc.handle()->plugin);
+    plugin_function<int()>("clap_mono_gain_pool_tasks")();
+    report();
+
+    play_all_of_it(*doc, proc, 2);
+
+    const auto e = report();
+    CHECK(e.wrong_thread == 0);
+    CHECK(e.bad_state == 0);
+    // Its thread pool ran its tasks
+    CHECK(plugin_function<int()>("clap_mono_gain_pool_tasks")() > 0);
+  });
+}
+
+TEST_CASE(
+    "CLAP: the audio thread calls the instances of a mono plug-in only for what it "
+    "may, from their start to their stop",
+    "[integration][clap][threads][mono]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    auto& proc = *add_mono_gain(*doc);
+    report();
+
+    play_all_of_it(*doc, proc, 4);
+
+    const auto e = report();
+    CHECK(e.wrong_thread == 0);
+    CHECK(e.bad_state == 0);
   });
 }
 

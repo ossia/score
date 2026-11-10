@@ -76,6 +76,8 @@ struct instance
   std::atomic<bool> ui_pending{};
   std::atomic<double> ui_value{};
   uint32_t channels{1};
+  //! Whether its process calls run tasks in the host's thread pool
+  std::atomic<bool> use_pool{};
 };
 
 std::atomic<int> g_instances{};
@@ -99,13 +101,15 @@ void main_thread_only(const clap_plugin_t* p)
     g_wrong_thread++;
 }
 
-uint32_t audio_count(const clap_plugin_t*, bool)
+uint32_t audio_count(const clap_plugin_t* p, bool)
 {
+  main_thread_only(p);
   return 1;
 }
 bool audio_get(
     const clap_plugin_t* p, uint32_t index, bool is_input, clap_audio_port_info_t* info)
 {
+  main_thread_only(p);
   if(index > 0)
     return false;
   const auto channels = self(p).channels;
@@ -332,6 +336,13 @@ clap_process_status process(const clap_plugin_t* p, const clap_process_t* proces
     process->out_events->try_push(process->out_events, &ev.header);
   }
 
+  if(s.use_pool)
+  {
+    if(auto* pool = static_cast<const clap_host_thread_pool_t*>(
+           s.host->get_extension(s.host, CLAP_EXT_THREAD_POOL)))
+      pool->request_exec(s.host, 2);
+  }
+
   auto& in = process->audio_inputs[0];
   auto& out = process->audio_outputs[0];
   const double k = s.gain * s.trim;
@@ -349,14 +360,27 @@ clap_process_status process(const clap_plugin_t* p, const clap_process_t* proces
   return CLAP_PROCESS_CONTINUE;
 }
 
-const void* get_extension(const clap_plugin_t*, const char* id)
+std::atomic<int> g_pool_tasks{};
+void pool_exec(const clap_plugin_t*, uint32_t)
 {
+  g_pool_tasks++;
+}
+const clap_plugin_thread_pool_t thread_pool = {pool_exec};
+
+// [thread-safe] in clap/plugin.h, but clap-helpers before 1.2 has it
+// [main-thread] and terminates the host that does otherwise: Odin2 and the
+// plug-ins of clap-juce-extensions of that time
+const void* get_extension(const clap_plugin_t* p, const char* id)
+{
+  main_thread_only(p);
   if(!std::strcmp(id, CLAP_EXT_AUDIO_PORTS))
     return &audio_ports;
   if(!std::strcmp(id, CLAP_EXT_PARAMS))
     return &params;
   if(!std::strcmp(id, CLAP_EXT_STATE))
     return &state;
+  if(!std::strcmp(id, CLAP_EXT_THREAD_POOL))
+    return &thread_pool;
   return nullptr;
 }
 void on_main_thread(const clap_plugin_t*) { }
@@ -433,6 +457,16 @@ CLAP_EXPORT void clap_mono_gain_set_from_ui(const clap_plugin_t* p, double v)
   auto& s = *static_cast<instance*>(p->plugin_data);
   s.ui_value = v;
   s.ui_pending = true;
+}
+
+//! An instance runs tasks in the host's thread pool from its process calls
+CLAP_EXPORT void clap_mono_gain_use_thread_pool(const clap_plugin_t* p)
+{
+  static_cast<instance*>(p->plugin_data)->use_pool = true;
+}
+CLAP_EXPORT int clap_mono_gain_pool_tasks()
+{
+  return g_pool_tasks.exchange(0);
 }
 
 //! An instance loads something that only its state keeps
