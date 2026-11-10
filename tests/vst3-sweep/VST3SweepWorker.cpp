@@ -1026,7 +1026,15 @@ void probe(
 
   out.phase(uri, "load");
   auto uid = VST3::UID::fromString(uid_str);
-  auto mdl = plug.getModule(bundle.toStdString());
+  VST3::Hosting::Module::Ptr mdl;
+  try
+  {
+    mdl = plug.getModule(bundle.toStdString());
+  }
+  catch(const std::exception& e)
+  {
+    j.str("error", e.what());
+  }
   if(!mdl || !uid)
   {
     out.write(j.str("status", "not-found").done());
@@ -1181,10 +1189,20 @@ void scan(vst3::ApplicationPlugin& plug, const QStringList& bundles, results_fil
     out.phase(path, "scan");
     json j;
     j.str("type", "result").str("uri", path);
-    auto mdl = plug.getModule(path);
+    // getModule throws what the SDK says of a bundle that does not load
+    VST3::Hosting::Module::Ptr mdl;
+    std::string error;
+    try
+    {
+      mdl = plug.getModule(path);
+    }
+    catch(const std::exception& e)
+    {
+      error = e.what();
+    }
     if(!mdl)
     {
-      out.write(j.str("status", "load-failed").done());
+      out.write(j.str("status", "load-failed").str("error", error).done());
       continue;
     }
     std::ostringstream classes;
