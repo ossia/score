@@ -55,7 +55,7 @@ void check_new_process(
 
   const auto presets
       = static_cast<const Process::ProcessModel*>(model)->builtinPresets();
-  CHECK(presets.size() == 2);
+  CHECK(presets.size() == 8);
 
   // A program chosen among its presets too
   static_cast<Process::ProcessModel*>(model)->loadPreset(presets[0]);
