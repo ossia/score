@@ -42,6 +42,10 @@
 //  SCORE_GUI_SWEEP_HOLD=<ms>
 //      keep each editor open that long once it is shown, to look at it by
 //      hand (its window id is printed on stderr)
+//  SCORE_SWEEP_LIVE=1
+//      instead, add each plug-in to a playing document as a user does, and
+//      open its editor right after the drop (score_test/LivePlugin.hpp): the
+//      phases of SCORE_SWEEP_LIVE_PHASES, or those about the editor
 //
 // Neither set, the test case has nothing to do and passes: ctest runs the
 // driver, not this.
@@ -80,6 +84,7 @@
 #include <core/presenter/DocumentManager.hpp>
 
 #include <score_test/App.hpp>
+#include <score_test/LivePlugin.hpp>
 #include <score_test/Document.hpp>
 #include <score_test/Project.hpp>
 
@@ -1274,15 +1279,13 @@ public:
     return r;
   }
 
-  //! Puts the plug-in in a new document; empty on success, else the status
-  std::string create(std::unique_ptr<vst::Module>& vst_module)
+  //! What the library drags for the plug-in, once score knows it as a scan
+  //! would have listed it; empty on success, else the status
+  std::string prepare(
+      std::unique_ptr<vst::Module>& vst_module, UuidKey<Process::ProcessModel>& key,
+      QString& data)
   {
     auto& ctx = pc.ctx;
-    doc = score::test::new_document(ctx);
-    if(!doc)
-      return "no-document";
-    UuidKey<Process::ProcessModel> key;
-    QString data;
     if(jb.format == "clap")
     {
       key = Metadata<ConcreteKey_k, Clap::Model>::get();
@@ -1349,6 +1352,19 @@ public:
     }
     else
       return "unknown-format";
+    return {};
+  }
+
+  //! Puts the plug-in in a new document; empty on success, else the status
+  std::string create(std::unique_ptr<vst::Module>& vst_module)
+  {
+    UuidKey<Process::ProcessModel> key;
+    QString data;
+    if(auto err = prepare(vst_module, key, data); !err.empty())
+      return err;
+    doc = score::test::new_document(pc.ctx);
+    if(!doc)
+      return "no-document";
 
     auto& interval = score::test::base_interval(*doc);
     auto* cmd = new Scenario::Command::AddOnlyProcessToInterval{
@@ -1623,6 +1639,67 @@ public:
     h.num("undo_steps", undo_index() - idx);
     h.raw("gestures", t.gestures());
     j.raw("host", h.done());
+  }
+
+  //! Through the phases of score_test/LivePlugin.hpp that involve the
+  //! editor, which opens right after the drop, while the document plays
+  void run_live()
+  {
+    std::unique_ptr<vst::Module> vst_module;
+    j.str("mode", "live");
+    phase("load");
+    UuidKey<Process::ProcessModel> key;
+    QString data;
+    if(auto err = prepare(vst_module, key, data); !err.empty())
+    {
+      j.str("status", err);
+      pc.out.write(j.done());
+      return;
+    }
+
+    score::test::live::options opt;
+    opt.what = {key, {}, data};
+    opt.only = score::test::live::requested_phases();
+    if(opt.only.empty())
+      opt.only = {
+          "live-drop-interval", "live-editor", "live-preset-change",
+          "live-remove-undo-redo"};
+    opt.open_editor = [this](Process::ProcessModel& proc) {
+      auto& ctx = score::IDocument::documentContext(proc);
+      auto& fact = pc.ctx.interfaces<Process::LayerFactoryList>();
+      auto* f = fact.findDefaultFactory(proc);
+      if(!f || !f->hasExternalUI(proc, ctx))
+        throw score::test::live::skip{"no editor"};
+      Process::setupExternalUI(proc, ctx, true);
+      score::test::live::spin(1500);
+      QPointer<QWidget> win = proc.externalUI;
+      score::test::live::expect(win, "the editor did not open");
+      const auto x = query_window(win->winId());
+      score::test::live::expect(x.exists && x.viewable, "the editor window is not mapped");
+      score::test::live::expect(x.w > 0 && x.h > 0, "the editor window has no size");
+    };
+    opt.close_editor = [](Process::ProcessModel& proc) {
+      if(proc.externalUI)
+        Process::setupExternalUI(proc, score::IDocument::documentContext(proc), false);
+      score::test::live::spin(400);
+      score::test::live::expect(!proc.externalUI, "the editor did not close");
+    };
+
+    score::test::live::verdicts res;
+    score::test::live::recorder rec;
+    rec.phase = [&](std::string_view ph) { phase(std::string{ph}.c_str()); };
+    rec.result = [&](std::string_view ph, std::string_view verdict, std::string_view detail) {
+      res.add(ph, verdict, detail);
+    };
+    score::test::live::run(pc.ctx, opt, rec);
+    j.raw("live", res.json());
+    j.str("status", "ran");
+    pc.out.write(j.done());
+    phase("teardown");
+    while(!pc.ctx.docManager.documents().empty())
+      pc.ctx.docManager.forceCloseDocument(pc.ctx, *pc.ctx.docManager.documents().front());
+    spin(300);
+    pc.out.phase(uri, "done");
   }
 
   void run()
@@ -2085,7 +2162,10 @@ TEST_CASE("Plug-in editor sweep worker", "[plugin][gui][sweep]")
         continue;
       job jb{l[0].toStdString(), l[1].toStdString(), l.size() > 2 ? l[2].toStdString() : ""};
       prober p{pc, jb};
-      p.run();
+      if(score::test::live::requested())
+        p.run_live();
+      else
+        p.run();
     }
   });
 }
