@@ -183,6 +183,7 @@ Window::Window(const Model& fx, const score::DocumentContext& ctx, QWidget* pare
 
   if(!fx.effectContext.ui_instance)
     throw std::runtime_error("UI creation error");
+  fx.uiListening.store(true, std::memory_order_release);
 
   // Setup the widget stuff
   auto widget = (QWidget*)suil.instance_get_widget(fx.effectContext.ui_instance);
@@ -306,6 +307,7 @@ void Window::closeEvent(QCloseEvent* event)
 
   auto& p = score::GUIAppContext().applicationPlugin<LV2::ApplicationPlugin>();
 
+  m_model.uiListening.store(false, std::memory_order_release);
   p.suil.instance_free(m_model.effectContext.ui_instance);
   m_model.effectContext.ui_instance = nullptr;
 

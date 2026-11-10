@@ -1202,6 +1202,8 @@ void on_finish::operator()()
     }
   });
 
+  if(!p->process().uiListening.load(std::memory_order_acquire))
+    return;
   auto nn = p->node;
   if(!nn)
     return;

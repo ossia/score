@@ -16,6 +16,7 @@
 
 #include <score_plugin_lv2_export.h>
 
+#include <atomic>
 #include <optional>
 
 #include <verdigris>
@@ -82,6 +83,9 @@ public:
   std::size_t m_controlOutStart{};
   mutable moodycamel::ReaderWriterQueue<Message> ui_events;     // from ui to score
   mutable moodycamel::ReaderWriterQueue<Message> plugin_events; // from plug-in
+  //! Whether a UI reads plugin_events: without one, the audio thread does not
+  //! queue there what the plug-in says for it
+  mutable std::atomic_bool uiListening{false};
   mutable moodycamel::ReaderWriterQueue<Message>
       to_process_events; // from score to process
 
