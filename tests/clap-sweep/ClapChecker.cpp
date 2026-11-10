@@ -719,6 +719,14 @@ const void* plugin_get_extension(const clap_plugin_t* p, const char* id)
   auto* w = W(p);
   if(!w->inited)
     return nullptr;
+  // clap/plugin.h has it [thread-safe], but clap-helpers before 1.2 checks it
+  // is called on the main thread and terminates the host otherwise: Odin2,
+  // SpectMorph and the plug-ins of clap-juce-extensions of that time
+  if(const auto t = w->thread(); t != th::main && t != th::unknown)
+    report(
+        "thread:get_extension",
+        "get_extension called on the " + std::string(name(t))
+            + " thread, which clap-helpers before 1.2 forbids");
   const std::string_view s{id};
   if(s == CLAP_EXT_PARAMS)
     return w->params_ext ? &params_wrap : nullptr;
