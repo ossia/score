@@ -446,7 +446,11 @@ public:
     }
   }
 
-  void dispatchMidi(int64_t tick_start, int64_t samples)
+  //! The events of [tick_start; tick_start + samples[ of the tick. When the
+  //! tick is processed in several blocks, `first` and `last` say whether this
+  //! is its first or last one: those take what falls before or after it.
+  void dispatchMidi(
+      int64_t tick_start, int64_t samples, bool first = true, bool last = true)
   {
     m_inputEvents.clear();
     m_sysexArena.clear();
@@ -457,9 +461,11 @@ public:
     for(int i = audioBusCount; i < audioBusCount + m_totalEventIns; i++)
     {
       dispatchMidi(
-          *m_inlets[i]->template target<ossia::midi_port>(), k++, tick_start, samples);
+          *m_inlets[i]->template target<ossia::midi_port>(), k++, tick_start, samples,
+          first, last);
     }
-    m_deferred.clear();
+    if(first)
+      m_deferred.clear();
     // Empty or not: plug-ins such as Geonkick read the list of a block
     // without checking it is there
     m_vstData.inputEvents = &m_inputEvents;
@@ -486,7 +492,9 @@ public:
     }
   }
 
-  void dispatchMidi(ossia::midi_port& port, int index, int64_t tick_start, int64_t samples)
+  void dispatchMidi(
+      ossia::midi_port& port, int index, int64_t tick_start, int64_t samples,
+      bool first, bool last)
   {
     // copy midi data
     auto& ip = port.messages;
@@ -495,13 +503,18 @@ public:
     // [tick_start; tick_start + samples[ of it and indexes from 0. Anything
     // held back from an empty tick goes first, at offset 0.
     ossia::small_vector<std::pair<const libremidi::ump*, int64_t>, 16> to_send;
-    for(const auto& [bus, mess] : m_deferred)
-      if(bus == index)
-        to_send.push_back({&mess, 0});
+    if(first)
+      for(const auto& [bus, mess] : m_deferred)
+        if(bus == index)
+          to_send.push_back({&mess, 0});
     for(const libremidi::ump& mess : ip)
+    {
+      const int64_t offset = mess.timestamp - tick_start;
+      if((offset < 0 && !first) || (offset >= samples && !last))
+        continue;
       to_send.push_back(
-          {&mess, std::clamp<int64_t>(
-               mess.timestamp - tick_start, 0, samples > 0 ? samples - 1 : 0)});
+          {&mess, std::clamp<int64_t>(offset, 0, samples > 0 ? samples - 1 : 0)});
+    }
 
     if(to_send.empty())
       return;
@@ -969,21 +982,49 @@ public:
       this->setControls();
       this->setupTimeInfo(tk, st);
 
-      this->dispatchMidi(tick_start, samples);
-      m_inputChanges.collect();
-
-      if constexpr(UseDouble)
+      // The plug-in never gets more than the largest block it was set up for:
+      // an audio backend may call with more than the settings' buffer size
+      // (JACK once its buffer size changed, PulseAudio's write requests)
+      const int64_t max_block = m_maxBlock > 0 ? m_maxBlock : samples;
+      const auto start_time = m_context;
+      for(int64_t done = 0; done < samples; done += max_block)
       {
-        processDouble(tick_start, samples, st.bufferSize());
-      }
-      else
-      {
-        processFloat(tick_start, samples, st.bufferSize());
-      }
+        const int64_t n = std::min(max_block, samples - done);
+        if(done > 0)
+          advanceTimeInfo(start_time, done);
 
-      this->clearInputChanges();
-      this->readOutputChanges();
-      this->readbackMidi(tick_start);
+        this->dispatchMidi(tick_start + done, n, done == 0, done + n >= samples);
+        m_inputChanges.collect();
+
+        if constexpr(UseDouble)
+        {
+          processDouble(tick_start + done, n, st.bufferSize());
+        }
+        else
+        {
+          processFloat(tick_start + done, n, st.bufferSize());
+        }
+
+        this->clearInputChanges();
+        this->readOutputChanges();
+        this->readbackMidi(tick_start + done);
+      }
+    }
+  }
+
+  //! The time of a block that starts `offset` samples into the tick whose
+  //! time is `start`
+  void advanceTimeInfo(const Steinberg::Vst::ProcessContext& start, int64_t offset)
+  {
+    auto& t = this->m_context;
+    t = start;
+    t.projectTimeSamples += offset;
+    t.continousTimeSamples += offset;
+    if(t.sampleRate > 0)
+    {
+      const double seconds = offset / t.sampleRate;
+      t.systemTime += Steinberg::int64(seconds * 1e9);
+      t.projectTimeMusic += seconds * t.tempo / 60.;
     }
   }
 
