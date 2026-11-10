@@ -46,6 +46,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <cstddef>
 #include <memory>
 
 // An abstract/opaque LV2 atom:Sequence buffer.
@@ -97,6 +98,31 @@ struct LV2_Atom_Buffer
 
   // Return the actual LV2 atom:Sequence implementation.
   LV2_Atom_Sequence* get_sequence(LV2_Atom_Buffer* buf) { return &buf->atoms; }
+
+  //! Calls f on each event of the sequence a plug-in wrote in this output.
+  //! A plug-in that wrote none leaves the atom:Chunk that reset(false) gave
+  //! it, whose bytes are whatever the buffer held, not events.
+  template <typename F>
+  void for_each_output_event(F&& f) const
+  {
+    if(atoms.atom.type != sequence_type)
+      return;
+    const uint32_t size = atoms.atom.size;
+    if(size < sizeof(LV2_Atom_Sequence_Body) || size > capacity)
+      return;
+
+    const auto* it = reinterpret_cast<const uint8_t*>(&atoms.body + 1);
+    const auto* end = reinterpret_cast<const uint8_t*>(&atoms.body) + size;
+    while(end - it >= std::ptrdiff_t(sizeof(LV2_Atom_Event)))
+    {
+      const auto& ev = *reinterpret_cast<const LV2_Atom_Event*>(it);
+      const auto room = std::size_t(end - it) - sizeof(LV2_Atom_Event);
+      if(ev.body.size > room)
+        return;
+      f(ev);
+      it += sizeof(LV2_Atom_Event) + lv2_atom_pad_size(ev.body.size);
+    }
+  }
 };
 
 static_assert(__builtin_offsetof(LV2_Atom_Buffer, atoms) % 8 == 0);

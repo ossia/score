@@ -619,6 +619,49 @@ static const LV2_Descriptor descriptor_handover
        activate_handover,         run_handover,         deactivate_handover,
        cleanup,                   NULL};
 
+/* urn:score:test:mute
+ *   0  audio in   "in"
+ *   1  audio out  "out": the input
+ *   2  atom out   "midi_out" (MIDI): never written, as some plug-ins leave an
+ *      output they have nothing to say on
+ */
+typedef struct
+{
+  const float* in;
+  float* out;
+} test_mute;
+
+static LV2_Handle instantiate_mute(
+    const LV2_Descriptor* descriptor, double rate, const char* bundle_path,
+    const LV2_Feature* const* features)
+{
+  (void)descriptor;
+  (void)rate;
+  (void)bundle_path;
+  (void)features;
+  return calloc(1, sizeof(test_mute));
+}
+
+static void connect_port_mute(LV2_Handle instance, uint32_t port, void* data)
+{
+  test_mute* self = (test_mute*)instance;
+  if(port == 0)
+    self->in = (const float*)data;
+  else if(port == 1)
+    self->out = (float*)data;
+}
+
+static void run_mute(LV2_Handle instance, uint32_t n_samples)
+{
+  test_mute* self = (test_mute*)instance;
+  if(self->in && self->out)
+    memmove(self->out, self->in, n_samples * sizeof(float));
+}
+
+static const LV2_Descriptor descriptor_mute
+    = {"urn:score:test:mute", instantiate_mute, connect_port_mute, NULL,
+       run_mute,              NULL,             cleanup,           NULL};
+
 LV2_SYMBOL_EXPORT const LV2_Descriptor* lv2_descriptor(uint32_t index)
 {
   switch(index)
@@ -641,6 +684,8 @@ LV2_SYMBOL_EXPORT const LV2_Descriptor* lv2_descriptor(uint32_t index)
       return &descriptor_thru;
     case 8:
       return &descriptor_handover;
+    case 9:
+      return &descriptor_mute;
     default:
       return NULL;
   }
