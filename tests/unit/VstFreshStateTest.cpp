@@ -2,7 +2,9 @@
 // its first when it names none. Permut8 opens on another than its first, its
 // first being an empty one; plug-ins made with the
 // VST SDK may set themselves up only when a program is selected. Either way
-// the programs are still there to choose from.
+// the programs are still there to choose from. A program is selected as a
+// program change, between effBeginSetProgram and effEndSetProgram, as Carla,
+// Audacity and OpenMPT do.
 
 #include <Process/Dataflow/Port.hpp>
 
@@ -46,9 +48,20 @@ void check_new_process(
   REQUIRE(control);
   CHECK(ossia::convert<float>(control->value()) == level);
 
+  // Selected as a program change: between effBeginSetProgram and
+  // effEndSetProgram
+  CHECK(model->dispatch(effVendorSpecific, 1) == 1);
+  CHECK(model->dispatch(effVendorSpecific, 0) == 0);
+
   const auto presets
       = static_cast<const Process::ProcessModel*>(model)->builtinPresets();
   CHECK(presets.size() == 2);
+
+  // A program chosen among its presets too
+  static_cast<Process::ProcessModel*>(model)->loadPreset(presets[0]);
+  CHECK(model->fx->getParameter(0) == 0.75f);
+  CHECK(model->dispatch(effVendorSpecific, 1) == 2);
+  CHECK(model->dispatch(effVendorSpecific, 0) == 0);
 
   delete model;
   QCoreApplication::processEvents();

@@ -720,10 +720,15 @@ void Model::initFx()
   if(fx->fx->numPrograms > 0)
   {
     const auto current = dispatch(effGetProgram);
-    dispatch(
-        effSetProgram, 0,
-        current >= 0 && current < fx->fx->numPrograms ? current : 0);
+    selectProgram(current >= 0 && current < fx->fx->numPrograms ? int(current) : 0);
   }
+}
+
+void Model::selectProgram(int index)
+{
+  dispatch(effBeginSetProgram);
+  dispatch(effSetProgram, 0, index);
+  dispatch(effEndSetProgram);
 }
 
 void Model::create()
@@ -929,7 +934,7 @@ void Model::loadPreset(const Process::Preset& preset)
   {
     auto idx = JsonValue{it->value}.toInt();
     if(this->fx)
-      this->fx->dispatch(effSetProgram, 0, idx);
+      selectProgram(idx);
   }
 }
 

@@ -7,6 +7,10 @@
 // Built with SCORE_TEST_VST_NO_INITIAL_PROGRAM, it opens on no program, as the
 // plug-ins of the VST SDK that only set themselves up in setProgram: it says
 // it is on its first, but its level is 0 until a program is selected.
+//
+// It counts the programs it is told to select between effBeginSetProgram and
+// effEndSetProgram, and outside them: effVendorSpecific with index 1 and 0
+// gives them.
 
 #include <Vst/vst-compat.hpp>
 
@@ -32,6 +36,9 @@ struct instrument
   audioMasterCallback master{};
   int held{};
   int program{SCORE_TEST_VST_OPENING_PROGRAM};
+  bool changing_program{};
+  intptr_t wrapped_selections{};
+  intptr_t unwrapped_selections{};
   float param{SCORE_TEST_VST_OPENING_LEVEL};
   std::vector<VstMidiEvent> echo;
 };
@@ -55,7 +62,17 @@ intptr_t dispatcher(AEffect* e, int32_t op, int32_t idx, intptr_t v, void* ptr, 
                  ? 1
                  : 0;
     }
+    case effBeginSetProgram:
+      self(e).changing_program = true;
+      return 1;
+    case effEndSetProgram:
+      self(e).changing_program = false;
+      return 1;
+    case effVendorSpecific:
+      return idx == 1 ? self(e).wrapped_selections : self(e).unwrapped_selections;
     case effSetProgram:
+      (self(e).changing_program ? self(e).wrapped_selections
+                                : self(e).unwrapped_selections)++;
       self(e).program = int(v);
       self(e).param = v == 0 ? 0.75f : 0.5f;
       return 0;

@@ -144,6 +144,11 @@ public:
   {
     return fx->dispatch(opcode, index, value, ptr, opt);
   }
+
+  //! Selects a program of the plug-in, between effBeginSetProgram and
+  //! effEndSetProgram
+  void selectProgram(int index);
+
   std::atomic_bool needIdle{};
 
   //! State saved with a plug-in that could not be loaded, written back as is
