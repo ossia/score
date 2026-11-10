@@ -17,7 +17,10 @@ public:
   Window(const Model& e, const score::DocumentContext& ctx, QWidget* parent);
   ~Window() override;
   
+  //! A size in the editor's own pixels
   void resize(int w, int h);
+  //! Whether the window can be resized follows the editor again
+  void resizeHintsChanged();
 
 private:
   bool createClapWindow();

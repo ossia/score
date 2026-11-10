@@ -288,6 +288,12 @@ void Window::resize(int w, int h)
   setup_rect(w, h);
 }
 
+void Window::resizeHintsChanged()
+{
+  const double ratio = editorPixelRatio(*this);
+  setup_rect(std::lround(width() * ratio), std::lround(height() * ratio));
+}
+
 void Window::setup_rect(int width, int height)
 {
   // A size from the plug-in, in its own pixels
