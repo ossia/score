@@ -1,4 +1,5 @@
-// A mono CLAP effect, which score runs as one instance per channel: its
+// A mono CLAP effect, which score runs as one instance per channel (and a
+// stereo one, which score runs as a single instance): its
 // output is its input times its gain and its trim. Its parameters are a
 // read-only level, a hidden bypass and the gain, so that the gain is the
 // third parameter but the first control. The trim is not a parameter: it is
@@ -28,6 +29,8 @@ namespace
 const char* const features[]
     = {CLAP_PLUGIN_FEATURE_AUDIO_EFFECT, CLAP_PLUGIN_FEATURE_MONO, nullptr};
 
+const char* const stereo_features[] = {CLAP_PLUGIN_FEATURE_AUDIO_EFFECT, nullptr};
+
 const clap_plugin_descriptor_t descriptor = {
     .clap_version = CLAP_VERSION_INIT,
     .id = "io.ossia.test.mono-gain",
@@ -39,6 +42,20 @@ const clap_plugin_descriptor_t descriptor = {
     .version = "1.0.0",
     .description = "Its input times its gain",
     .features = features,
+};
+
+//! The same on a stereo port, which score runs as one instance
+const clap_plugin_descriptor_t stereo_descriptor = {
+    .clap_version = CLAP_VERSION_INIT,
+    .id = "io.ossia.test.stereo-gain",
+    .name = "Stereo gain",
+    .vendor = "ossia",
+    .url = "",
+    .manual_url = "",
+    .support_url = "",
+    .version = "1.0.0",
+    .description = "Its input times its gain",
+    .features = stereo_features,
 };
 
 constexpr clap_id level_param = 9;
@@ -58,6 +75,7 @@ struct instance
   //! What its editor set, sent from its next process call
   std::atomic<bool> ui_pending{};
   std::atomic<double> ui_value{};
+  uint32_t channels{1};
 };
 
 std::atomic<int> g_instances{};
@@ -86,15 +104,16 @@ uint32_t audio_count(const clap_plugin_t*, bool)
   return 1;
 }
 bool audio_get(
-    const clap_plugin_t*, uint32_t index, bool is_input, clap_audio_port_info_t* info)
+    const clap_plugin_t* p, uint32_t index, bool is_input, clap_audio_port_info_t* info)
 {
   if(index > 0)
     return false;
+  const auto channels = self(p).channels;
   info->id = 0;
   std::strcpy(info->name, is_input ? "In" : "Out");
-  info->channel_count = 1;
+  info->channel_count = channels;
   info->flags = CLAP_AUDIO_PORT_IS_MAIN;
-  info->port_type = CLAP_PORT_MONO;
+  info->port_type = channels == 1 ? CLAP_PORT_MONO : CLAP_PORT_STEREO;
   info->in_place_pair = CLAP_INVALID_ID;
   return true;
 }
@@ -316,13 +335,16 @@ clap_process_status process(const clap_plugin_t* p, const clap_process_t* proces
   auto& in = process->audio_inputs[0];
   auto& out = process->audio_outputs[0];
   const double k = s.gain * s.trim;
-  for(uint32_t i = 0; i < process->frames_count; i++)
+  for(uint32_t c = 0; c < s.channels; c++)
   {
-    const double v = in.data32 ? in.data32[0][i] : in.data64[0][i];
-    if(out.data32)
-      out.data32[0][i] = float(v * k);
-    else
-      out.data64[0][i] = v * k;
+    for(uint32_t i = 0; i < process->frames_count; i++)
+    {
+      const double v = in.data32 ? in.data32[c][i] : in.data64[c][i];
+      if(out.data32)
+        out.data32[c][i] = float(v * k);
+      else
+        out.data64[c][i] = v * k;
+    }
   }
   return CLAP_PROCESS_CONTINUE;
 }
@@ -341,25 +363,27 @@ void on_main_thread(const clap_plugin_t*) { }
 
 uint32_t factory_count(const clap_plugin_factory_t*)
 {
-  return 1;
+  return 2;
 }
 const clap_plugin_descriptor_t*
-factory_descriptor(const clap_plugin_factory_t*, uint32_t)
+factory_descriptor(const clap_plugin_factory_t*, uint32_t index)
 {
-  return &descriptor;
+  return index == 0 ? &descriptor : index == 1 ? &stereo_descriptor : nullptr;
 }
 const clap_plugin_t*
 factory_create(const clap_plugin_factory_t*, const clap_host_t* host, const char* id)
 {
   if(g_initialised.load() <= 0)
     g_late_calls++;
-  if(std::strcmp(id, descriptor.id) != 0)
+  const bool stereo = !std::strcmp(id, stereo_descriptor.id);
+  if(!stereo && std::strcmp(id, descriptor.id) != 0)
     return nullptr;
   auto* s = new instance;
   s->host = host;
+  s->channels = stereo ? 2 : 1;
   g_instances++;
   auto& p = s->plugin;
-  p.desc = &descriptor;
+  p.desc = stereo ? &stereo_descriptor : &descriptor;
   p.plugin_data = s;
   p.init = init;
   p.destroy = destroy;
