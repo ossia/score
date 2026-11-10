@@ -474,6 +474,30 @@ if(TARGET score_plugin_clap)
   target_compile_definitions(test_integration_clap_tick_blocks PRIVATE
     CLAP_BLOCK_RECORDER_PATH="$<TARGET_FILE:clap_block_recorder>")
 
+  # A CLAP entry is initialised with its library's path, its bundle's on
+  # macOS.
+  add_library(clap_init_path MODULE clap-init-path/InitPath.cpp)
+  target_include_directories(clap_init_path PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/3rdparty/clap/include")
+  if(APPLE)
+    set_target_properties(clap_init_path PROPERTIES BUNDLE TRUE BUNDLE_EXTENSION clap)
+    set(_clap_init_path_expected "$<TARGET_BUNDLE_DIR:clap_init_path>")
+  else()
+    set_target_properties(clap_init_path PROPERTIES PREFIX "" SUFFIX ".clap")
+    set(_clap_init_path_expected "$<TARGET_FILE:clap_init_path>")
+  endif()
+  if(NOT WIN32)
+    score_add_test(test_integration_clap_entry_path
+      SOURCES ClapEntryPathTest.cpp
+      APP
+      PLUGINS score_plugin_clap score_plugin_scenario score_lib_process
+      LIBS ${CMAKE_DL_LIBS})
+    add_dependencies(test_integration_clap_entry_path clap_init_path)
+    target_compile_definitions(test_integration_clap_entry_path PRIVATE
+      CLAP_INIT_PATH_BINARY="$<TARGET_FILE:clap_init_path>"
+      CLAP_INIT_PATH_EXPECTED="${_clap_init_path_expected}")
+  endif()
+
   # On macOS a CLAP library is never unloaded: Cocoa outlives the plug-ins
   # that showed an editor.
   if(APPLE)

@@ -1452,7 +1452,13 @@ void list_plugins(const std::string& file, const QString& out_path)
   if(!lib)
     return;
   auto* entry = static_cast<const clap_plugin_entry_t*>(dlsym(lib, "clap_entry"));
-  if(!entry || !entry->init(file.c_str()))
+  // clap/entry.h: on macOS init() takes the bundle, not the binary in it
+  std::string init_path = file;
+#if defined(__APPLE__)
+  if(auto p = file.rfind(".clap/Contents/MacOS/"); p != std::string::npos)
+    init_path = file.substr(0, p + 5);
+#endif
+  if(!entry || !entry->init(init_path.c_str()))
     return;
   if(auto* factory = static_cast<const clap_plugin_factory_t*>(
          entry->get_factory(CLAP_PLUGIN_FACTORY_ID)))

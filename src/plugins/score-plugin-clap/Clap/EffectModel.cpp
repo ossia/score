@@ -906,6 +906,17 @@ ossia::hash_map<const clap_plugin_entry_t*, int>& entry_users()
   return users;
 }
 
+//! clap/entry.h: what init() is given is the library on Linux and Windows,
+//! the bundle on macOS, of which score keeps the binary in Contents/MacOS
+std::string entry_init_path(std::string_view library)
+{
+#if defined(__APPLE__)
+  if(auto p = library.rfind(".clap/Contents/MacOS/"); p != std::string_view::npos)
+    return std::string(library.substr(0, p + 5));
+#endif
+  return std::string(library);
+}
+
 bool acquire_entry(const clap_plugin_entry_t* entry, const char* path)
 {
   auto& users = entry_users();
@@ -914,7 +925,7 @@ bool acquire_entry(const clap_plugin_entry_t* entry, const char* path)
     it->second++;
     return true;
   }
-  if(!entry->init(path))
+  if(!entry->init(entry_init_path(path).c_str()))
     return false;
   users[entry] = 1;
   return true;

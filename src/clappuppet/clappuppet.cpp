@@ -94,7 +94,13 @@ std::string load_clap(const std::string& path, int id, const std::string& token)
       return error_json("No clap_entry found");
     }
 
-    if(!entry_fn->init(path.c_str()))
+    // clap/entry.h: on macOS init() takes the bundle, not the binary in it
+    std::string init_path = path;
+#if defined(__APPLE__)
+    if(auto p = path.rfind(".clap/Contents/MacOS/"); p != std::string::npos)
+      init_path = path.substr(0, p + 5);
+#endif
+    if(!entry_fn->init(init_path.c_str()))
     {
       std::cerr << "Failed to initialize CLAP plugin: " << path << std::endl;
 #if defined(_WIN32)
