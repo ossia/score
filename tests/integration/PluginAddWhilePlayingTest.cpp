@@ -5,6 +5,7 @@
 
 #include <score_test/App.hpp>
 #include <score_test/Document.hpp>
+#include <score_test/LivePlugin.hpp>
 
 #include <Process/ProcessMimeSerialization.hpp>
 
@@ -234,5 +235,42 @@ TEST_CASE(
     REQUIRE(p);
     spin(500);
     CHECK(p->plugin_events.size_approx() == 0);
+  });
+}
+
+namespace
+{
+//! Every phase of score_test/LivePlugin.hpp: the ones that do not apply to the
+//! plug-in are skipped, none fails
+void all_phases_hold(
+    const score::GUIApplicationContext& ctx, score::test::live::options opt)
+{
+  std::vector<std::string> failures;
+  int ok = 0;
+  score::test::live::recorder rec;
+  rec.result = [&](std::string_view phase, std::string_view verdict, std::string_view detail) {
+    if(verdict == "fail")
+      failures.push_back(std::string{phase} + ": " + std::string{detail});
+    else if(verdict == "ok")
+      ok++;
+  };
+  score::test::live::run(ctx, opt, rec);
+  for(auto& f : failures)
+    UNSCOPED_INFO(f);
+  CHECK(failures.empty());
+  CHECK(ok > 0);
+}
+}
+
+TEST_CASE(
+    "an LV2 plug-in added, edited and removed while playing, in every way",
+    "[integration][execution][lv2]")
+{
+  qputenv("LV2_PATH", lv2_bundle().toUtf8());
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    setup_lv2(ctx, {{lv2_bundle(), "urn:score:test:gain"}});
+    score::test::live::options opt;
+    opt.what = process_data(lv2_key, "urn:score:test:gain");
+    all_phases_hold(ctx, opt);
   });
 }
