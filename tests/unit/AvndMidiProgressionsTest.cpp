@@ -77,15 +77,15 @@ void check_progression(
 
 constexpr int C = 0;
 constexpr int A = 9;
-constexpr auto major = mtk::mode::ionian;
-constexpr auto minor = mtk::mode::aeolian;
+constexpr auto major_mode = mtk::mode::ionian;
+constexpr auto minor_mode = mtk::mode::aeolian;
 
 std::vector<int> pitches(const mtk::voicing& v)
 {
   return {v.all().begin(), v.all().end()};
 }
 
-mtk::realized_chord chord_of(std::string_view sym, int key = C, mtk::mode m = major)
+mtk::realized_chord chord_of(std::string_view sym, int key = C, mtk::mode m = major_mode)
 {
   mtk::chord_symbol s;
   REQUIRE(!mtk::parse_symbol(sym, s));
@@ -129,7 +129,7 @@ TEST_CASE("Every progression of the table parses and realizes", "[progressions]"
     const auto err = mtk::parse_progression(e.symbols, p);
     CHECK(!err);
     CHECK(p.count >= 3);
-    const auto m = e.family == mtk::progression_family::minor ? minor : major;
+    const auto m = e.family == mtk::progression_family::minor ? minor_mode : major_mode;
     for(const auto& s : p.symbols())
     {
       CHECK(!s.rest);
@@ -157,14 +157,14 @@ TEST_CASE("Every progression of the table parses and realizes", "[progressions]"
 
 TEST_CASE("Major progressions in C, as mingus renders them", "[progressions]")
 {
-  check_progression("I V vi IV", C, major, {{"C E G"}, {"G B D"}, {"A C E"}, {"F A C"}});
-  check_progression("ii V I", C, major, {{"D F A"}, {"G B D"}, {"C E G"}});
+  check_progression("I V vi IV", C, major_mode, {{"C E G"}, {"G B D"}, {"A C E"}, {"F A C"}});
+  check_progression("ii V I", C, major_mode, {{"D F A"}, {"G B D"}, {"C E G"}});
   // I7 is chords.I7, the diatonic seventh (Cmaj7); dom7 is dominant_seventh
   check_progression(
-      "I I7 Idom7 IV", C, major, {{"C E G"}, {"C E G B"}, {"C E G Bb"}, {"F A C"}});
+      "I I7 Idom7 IV", C, major_mode, {{"C E G"}, {"C E G B"}, {"C E G Bb"}, {"F A C"}});
   // vii: the diatonic triad of B, diminished
   check_progression(
-      "I IV vii iii vi ii V I", C, major,
+      "I IV vii iii vi ii V I", C, major_mode,
       {{"C E G"},
        {"F A C"},
        {"B D F"},
@@ -174,7 +174,7 @@ TEST_CASE("Major progressions in C, as mingus renders them", "[progressions]")
        {"G B D"},
        {"C E G"}});
   check_progression(
-      "iim7 V7 iiim7 vi7 iim7 V7", C, major,
+      "iim7 V7 iiim7 vi7 iim7 V7", C, major_mode,
       {{"D F A C"},
        {"G B D F"},
        {"E G B D"},
@@ -183,11 +183,11 @@ TEST_CASE("Major progressions in C, as mingus renders them", "[progressions]")
        {"G B D F"}});
   // viadd9 is major_add_ninth on A: the lower case does not make it minor
   check_progression(
-      "I7 V7 viadd9 IV7", C, major,
+      "I7 V7 viadd9 IV7", C, major_mode,
       {{"C E G B"}, {"G B D F"}, {"A C# E B"}, {"F A C E"}});
   // M-5 is major_diminished_triad
   check_progression(
-      "I I IM-5 IM-5 IV IV V Vsus2", C, major,
+      "I I IM-5 IM-5 IV IV V Vsus2", C, major_mode,
       {{"C E G"},
        {"C E G"},
        {"C E Gb"},
@@ -198,19 +198,19 @@ TEST_CASE("Major progressions in C, as mingus renders them", "[progressions]")
        {"G A D"}});
   // 6 is major_sixth, add9 major_add_ninth
   check_progression(
-      "IV I IV6 Iadd9", C, major, {{"F A C"}, {"C E G"}, {"F A C D"}, {"C E G D"}});
+      "IV I IV6 Iadd9", C, major_mode, {{"F A C"}, {"C E G"}, {"F A C D"}, {"C E G D"}});
   check_progression(
-      "Isus2 I vi7 visus4", C, major, {{"C D G"}, {"C E G"}, {"A C E G"}, {"A D E"}});
-  check_progression("ii7 Vadd9 I7", C, major, {{"D F A C"}, {"G B D A"}, {"C E G B"}});
+      "Isus2 I vi7 visus4", C, major_mode, {{"C D G"}, {"C E G"}, {"A C E G"}, {"A D E"}});
+  check_progression("ii7 Vadd9 I7", C, major_mode, {{"D F A C"}, {"G B D A"}, {"C E G B"}});
 }
 
 TEST_CASE("Minor progressions in A minor, as mingus renders them", "[progressions]")
 {
-  check_progression("i VI III VII", A, minor, {{"A C E"}, {"F A C"}, {"C E G"}, {"G B D"}});
+  check_progression("i VI III VII", A, minor_mode, {{"A C E"}, {"F A C"}, {"C E G"}, {"G B D"}});
   // v7 is the diatonic seventh of E in A natural minor (Em7); 5 is root and
   // fifth
   check_progression(
-      "i i iv iv v7 ii5 v v7", A, minor,
+      "i i iv iv v7 ii5 v v7", A, minor_mode,
       {{"A C E"},
        {"A C E"},
        {"D F A"},
@@ -219,10 +219,10 @@ TEST_CASE("Minor progressions in A minor, as mingus renders them", "[progression
        {"B F#"},
        {"E G B"},
        {"E G B D"}});
-  check_progression("i vdim iv VI", A, minor, {{"A C E"}, {"E G Bb"}, {"D F A"}, {"F A C"}});
+  check_progression("i vdim iv VI", A, minor_mode, {{"A C E"}, {"E G Bb"}, {"D F A"}, {"F A C"}});
   // 69 is sixth_ninth; III7 the diatonic seventh of C in A minor (Cmaj7)
   check_progression(
-      "i VI III VII i VI69 III7 VII", A, minor,
+      "i VI III VII i VI69 III7 VII", A, minor_mode,
       {{"A C E"},
        {"F A C"},
        {"C E G"},
@@ -232,7 +232,7 @@ TEST_CASE("Minor progressions in A minor, as mingus renders them", "[progression
        {"C E G B"},
        {"G B D"}});
   check_progression(
-      "i7 VI III7 VII6 i i7 III7 iv7", A, minor,
+      "i7 VI III7 VII6 i i7 III7 iv7", A, minor_mode,
       {{"A C E G"},
        {"F A C"},
        {"C E G B"},
@@ -242,9 +242,9 @@ TEST_CASE("Minor progressions in A minor, as mingus renders them", "[progression
        {"C E G B"},
        {"D F A C"}});
   check_progression(
-      "im7 ivsus4 v7 isus4", A, minor, {{"A C E G"}, {"D G A"}, {"E G B D"}, {"A D E"}});
+      "im7 ivsus4 v7 isus4", A, minor_mode, {{"A C E G"}, {"D G A"}, {"E G B D"}, {"A D E"}});
   check_progression(
-      "i VII VIadd9 VII i v VI VIIsus4", A, minor,
+      "i VII VIadd9 VII i v VI VIIsus4", A, minor_mode,
       {{"A C E"},
        {"G B D"},
        {"F A C G"},
@@ -254,28 +254,28 @@ TEST_CASE("Minor progressions in A minor, as mingus renders them", "[progression
        {"F A C"},
        {"G C D"}});
   check_progression(
-      "VI7 VII6 i VII6", A, minor, {{"F A C E"}, {"G B D E"}, {"A C E"}, {"G B D E"}});
+      "VI7 VII6 i VII6", A, minor_mode, {{"F A C E"}, {"G B D E"}, {"A C E"}, {"G B D E"}});
   check_progression(
-      "i III7 VI7 iv", A, minor, {{"A C E"}, {"C E G B"}, {"F A C E"}, {"D F A"}});
+      "i III7 VI7 iv", A, minor_mode, {{"A C E"}, {"C E G B"}, {"F A C E"}, {"D F A"}});
 }
 
 TEST_CASE("Modal progressions and cadences in C, as mingus renders them", "[progressions]")
 {
   check_progression(
-      "bIIIM ii bIIM I", C, major, {{"Eb G Bb"}, {"D F A"}, {"Db F Ab"}, {"C E G"}});
+      "bIIIM ii bIIM I", C, major_mode, {{"Eb G Bb"}, {"D F A"}, {"Db F Ab"}, {"C E G"}});
   // biii: the E minor triad lowered (Eb minor); bviim: B minor lowered
   check_progression(
-      "bIIM bVIM biii bviim", C, major,
+      "bIIM bVIM biii bviim", C, major_mode,
       {{"Db F Ab"}, {"Ab C Eb"}, {"Eb Gb Bb"}, {"Bb Db F"}});
   check_progression(
-      "bviim I/bVII bviim I/bVII", C, major,
+      "bviim I/bVII bviim I/bVII", C, major_mode,
       {{"Bb Db F"}, {"C E G", "Bb"}, {"Bb Db F"}, {"C E G", "Bb"}});
   // bIdom7: C7 lowered, i.e. B7; III7: the diatonic seventh of E (Em7)
   check_progression(
-      "I7 bIdom7 III7 ii7 V7", C, major,
+      "I7 bIdom7 III7 ii7 V7", C, major_mode,
       {{"C E G B"}, {"B D# F# A"}, {"E G B D"}, {"D F A C"}, {"G B D F"}});
   check_progression(
-      "I5 iii II5 #IVm IV5 vi V5 viim", C, major,
+      "I5 iii II5 #IVm IV5 vi V5 viim", C, major_mode,
       {{"C G"},
        {"E G B"},
        {"D A"},
@@ -286,15 +286,15 @@ TEST_CASE("Modal progressions and cadences in C, as mingus renders them", "[prog
        {"B D F#"}});
   // bi: the C major triad lowered, B major
   check_progression(
-      "im VIM bi V", C, major, {{"C Eb G"}, {"A C# E"}, {"B D# F#"}, {"G B D"}});
+      "im VIM bi V", C, major_mode, {{"C Eb G"}, {"A C# E"}, {"B D# F#"}, {"G B D"}});
   // bii: D minor lowered, Db minor; the bass after / is the root of i
   check_progression(
-      "im viim/i im bii/i", C, major,
+      "im viim/i im bii/i", C, major_mode,
       {{"C Eb G"}, {"B D F#", "C"}, {"C Eb G"}, {"Db E Ab", "C"}});
   check_progression(
-      "bVIM7 ivmadd9 I", C, major, {{"Ab C Eb G"}, {"F Ab C G"}, {"C E G"}});
+      "bVIM7 ivmadd9 I", C, major_mode, {{"Ab C Eb G"}, {"F Ab C G"}, {"C E G"}});
   check_progression(
-      "I bIIM7 bIIIM6 bIIM7 I im bVIIM bIIM", C, major,
+      "I bIIM7 bIIIM6 bIIM7 I im bVIIM bIIM", C, major_mode,
       {{"C E G"},
        {"Db F Ab C"},
        {"Eb G Bb C"},
@@ -305,21 +305,21 @@ TEST_CASE("Modal progressions and cadences in C, as mingus renders them", "[prog
        {"Db F Ab"}});
   // biim6: D F A B lowered
   check_progression(
-      "im bIIM biim6 ivm", C, major, {{"C Eb G"}, {"Db F Ab"}, {"Db E Ab Bb"}, {"F Ab C"}});
+      "im bIIM biim6 ivm", C, major_mode, {{"C Eb G"}, {"Db F Ab"}, {"Db E Ab Bb"}, {"F Ab C"}});
   // #IVdim: F Ab Cb raised
   check_progression(
-      "vi viim V vi #IVdim V", C, major,
+      "vi viim V vi #IVdim V", C, major_mode,
       {{"A C E"}, {"B D F#"}, {"G B D"}, {"A C E"}, {"F# A C"}, {"G B D"}});
-  check_progression("im bIIIsus2 IV", C, major, {{"C Eb G"}, {"Eb F Bb"}, {"F A C"}});
+  check_progression("im bIIIsus2 IV", C, major_mode, {{"C Eb G"}, {"Eb F Bb"}, {"F A C"}});
   check_progression(
-      "IIIM V VIsus4 VIM I IIM", C, major,
+      "IIIM V VIsus4 VIM I IIM", C, major_mode,
       {{"E G# B"}, {"G B D"}, {"A D E"}, {"A C# E"}, {"C E G"}, {"D F# A"}});
   // I9 is dominant_ninth
   check_progression(
-      "I I7 I9 IV ivm", C, major,
+      "I I7 I9 IV ivm", C, major_mode,
       {{"C E G"}, {"C E G B"}, {"C E G Bb D"}, {"F A C"}, {"F Ab C"}});
   check_progression(
-      "I I7 Idom7 IV ivm I ivm6 Vdom7", C, major,
+      "I I7 Idom7 IV ivm I ivm6 Vdom7", C, major_mode,
       {{"C E G"},
        {"C E G B"},
        {"C E G Bb"},
@@ -328,9 +328,9 @@ TEST_CASE("Modal progressions and cadences in C, as mingus renders them", "[prog
        {"C E G"},
        {"F Ab C D"},
        {"G B D F"}});
-  check_progression("bIIIM V7 I", C, major, {{"Eb G Bb"}, {"G B D F"}, {"C E G"}});
+  check_progression("bIIIM V7 I", C, major_mode, {{"Eb G Bb"}, {"G B D F"}, {"C E G"}});
   check_progression(
-      "ivm IIIM bIIM I", C, major, {{"F Ab C"}, {"E G# B"}, {"Db F Ab"}, {"C E G"}});
+      "ivm IIIM bIIM I", C, major_mode, {{"F Ab C"}, {"E G# B"}, {"Db F Ab"}, {"C E G"}});
 }
 
 TEST_CASE("Symbols follow the key and the mode", "[progressions]")
@@ -339,7 +339,7 @@ TEST_CASE("Symbols follow the key and the mode", "[progressions]")
   check_progression(
       "i IV v VII", 2, mtk::mode::dorian, {{"D F A"}, {"G B D"}, {"A C E"}, {"C E G"}});
   // E major
-  check_progression("I V vi IV", 4, major, {{"E G# B"}, {"B D# F#"}, {"C# E G#"}, {"A C# E"}});
+  check_progression("I V vi IV", 4, major_mode, {{"E G# B"}, {"B D# F#"}, {"C# E G#"}, {"A C# E"}});
   // Harmonic minor: V is major, vii diminished
   check_progression("i V7 vii", A, mtk::mode::harmonic_minor, {{"A C E"}, {"E G# B D"}, {"G# B D"}});
 }
@@ -360,7 +360,7 @@ TEST_CASE("Rests, moods and spacing", "[progressions]")
   REQUIRE(p.count == 4);
   CHECK(p.chords[1].rest);
   CHECK(p.chords[2].rest);
-  CHECK(mtk::realize(p.chords[1], C, major).rest);
+  CHECK(mtk::realize(p.chords[1], C, major_mode).rest);
 
   // A line of chords.py, moods included
   REQUIRE(!mtk::parse_progression("I V vi IV =Hopeful Romantic", p));
@@ -454,7 +454,7 @@ TEST_CASE("Suffix lookup: mingus first, then Theory's names", "[progressions]")
 
 TEST_CASE("Chord names", "[progressions]")
 {
-  auto name = [](std::string_view sym, int key = C, mtk::mode m = major) {
+  auto name = [](std::string_view sym, int key = C, mtk::mode m = major_mode) {
     const auto c = chord_of(sym, key, m);
     std::array<char, 32> buf{};
     const auto n
@@ -473,16 +473,16 @@ TEST_CASE("Chord names", "[progressions]")
   CHECK(name("IM-5") == "CM-5");
   CHECK(name("iii", 4) == "G#m");
   CHECK(name("IV", 5) == "Bb");
-  CHECK(name("III", 0, minor) == "Eb");
-  CHECK(name("v", 4, minor) == "Bm");
+  CHECK(name("III", 0, minor_mode) == "Eb");
+  CHECK(name("v", 4, minor_mode) == "Bm");
   CHECK(mtk::key_prefers_flats(2, mtk::mode::dorian));   // D dorian: C major
-  CHECK(!mtk::key_prefers_flats(4, minor));               // E minor: G major
-  CHECK(mtk::key_prefers_flats(5, minor));                // F minor: Ab major
+  CHECK(!mtk::key_prefers_flats(4, minor_mode));               // E minor: G major
+  CHECK(mtk::key_prefers_flats(5, minor_mode));                // F minor: Ab major
 
   mtk::chord_symbol rest;
   REQUIRE(!mtk::parse_symbol("X", rest));
   std::array<char, 8> buf{};
-  CHECK(mtk::format_chord_name(mtk::realize(rest, C, major), false, buf) == 0);
+  CHECK(mtk::format_chord_name(mtk::realize(rest, C, major_mode), false, buf) == 0);
 }
 
 TEST_CASE("Voicing: ii V I leads each voice to the nearest note", "[progressions][voicing]")
@@ -541,7 +541,7 @@ TEST_CASE("Voicing: the register never drifts", "[progressions][voicing]")
   for(int round = 0; round < 50; round++)
     for(const auto& s : p.symbols())
     {
-      prev = mtk::voice(mtk::realize(s, C, major), prev, o);
+      prev = mtk::voice(mtk::realize(s, C, major_mode), prev, o);
       double mean = 0;
       for(int x : prev.all())
         mean += x;
@@ -610,7 +610,7 @@ TEST_CASE("Voicing: bass, slash chords, note count, range", "[progressions][voic
   // A rest has no notes
   mtk::chord_symbol rest;
   REQUIRE(!mtk::parse_symbol("X", rest));
-  CHECK(mtk::voice(mtk::realize(rest, C, major), {}, o).count == 0);
+  CHECK(mtk::voice(mtk::realize(rest, C, major_mode), {}, o).count == 0);
 }
 
 TEST_CASE("Nearest chord tone, scale tone, chord tones over octaves", "[progressions]")
@@ -623,9 +623,9 @@ TEST_CASE("Nearest chord tone, scale tone, chord tones over octaves", "[progress
   CHECK(mtk::nearest_chord_tone(0, am) == 0);
   CHECK(mtk::nearest_chord_tone(127, am) == 124); // E, G is not a tone of Am
 
-  CHECK(mtk::nearest_scale_tone(61, C, major) == 60);
-  CHECK(mtk::nearest_scale_tone(66, C, major) == 65);
-  CHECK(mtk::nearest_scale_tone(61, 2, major) == 61); // C# is in D major
+  CHECK(mtk::nearest_scale_tone(61, C, major_mode) == 60);
+  CHECK(mtk::nearest_scale_tone(66, C, major_mode) == 65);
+  CHECK(mtk::nearest_scale_tone(61, 2, major_mode) == 61); // C# is in D major
 
   const auto g7 = chord_of("V7");
   CHECK(mtk::chord_tone(g7, 55, 0) == 55);
