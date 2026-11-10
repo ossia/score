@@ -597,6 +597,15 @@ if(TARGET score_plugin_ysfx)
   target_include_directories(test_integration_ysfx_state_guard PRIVATE
     "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-ysfx")
 
+  # A JSFX effect added, edited and removed while the document plays.
+  score_add_test(test_integration_ysfx_add_while_playing
+    SOURCES JsfxAddWhilePlayingTest.cpp
+    APP
+    PLUGINS score_plugin_ysfx score_plugin_engine score_plugin_scenario score_lib_process
+            score_plugin_audio score_plugin_dataflow score_plugin_deviceexplorer)
+  target_include_directories(test_integration_ysfx_add_while_playing PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-ysfx")
+
   # A slider's port sets that slider when the script skips slider numbers.
   score_add_test(test_integration_ysfx_slider_ports
     SOURCES YsfxSliderPortsTest.cpp
