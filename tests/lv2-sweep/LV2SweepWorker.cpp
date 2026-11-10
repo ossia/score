@@ -19,6 +19,10 @@
 //  SCORE_LV2_SWEEP_TRACE=1        print the peak of every block of score's
 //                                  host on stderr, to look closer at one.
 //
+//  SCORE_SWEEP_LIVE=1             instead, add each plug-in to a playing
+//                                  document in every way a user can
+//                                  (score_test/LivePlugin.hpp).
+//
 // Neither set, the test case has nothing to do and passes: ctest runs the
 // driver, not this.
 
@@ -31,6 +35,7 @@
 #include <Process/Dataflow/Port.hpp>
 
 #include <score_test/App.hpp>
+#include <score_test/LivePlugin.hpp>
 
 #include <ossia/dataflow/exec_state_facade.hpp>
 #include <ossia/dataflow/execution_state.hpp>
@@ -907,6 +912,42 @@ void probe(
   out.write(j.str("status", "ran").done());
 }
 
+void probe_live(
+    const score::GUIApplicationContext& ctx, LV2::ApplicationPlugin& plug,
+    results_file& out, const std::string& uri, const QString& bundle)
+{
+  json j;
+  j.str("type", "result").str("uri", uri).str("bundle", bundle.toStdString());
+  j.str("mode", "live");
+
+  out.phase(uri, "load");
+  LV2::PluginInfo info;
+  info.bundle = bundle;
+  info.uri = QString::fromStdString(uri);
+  info.valid = true;
+  plug.setCachedDescriptors({info});
+  auto found = LV2::find_lv2_plugin(plug.lilv, QString::fromStdString(uri));
+  if(!found)
+  {
+    out.write(j.str("status", "not-found").done());
+    return;
+  }
+  j.str("name", LV2::get_lv2_plugin_name(*found).toStdString());
+
+  score::test::live::options opt;
+  opt.what = {Metadata<ConcreteKey_k, LV2::Model>::get(), {}, QString::fromStdString(uri)};
+  opt.only = score::test::live::requested_phases();
+  score::test::live::verdicts res;
+  score::test::live::recorder rec;
+  rec.phase = [&](std::string_view phase) { out.phase(uri, std::string{phase}.c_str()); };
+  rec.result = [&](std::string_view phase, std::string_view verdict, std::string_view detail) {
+    res.add(phase, verdict, detail);
+  };
+  score::test::live::run(ctx, opt, rec);
+  j.raw("live", res.json());
+  out.write(j.str("status", "ran").done());
+}
+
 void list_plugins(const QString& path)
 {
   LilvWorld* world = lilv_world_new();
@@ -959,7 +1000,13 @@ TEST_CASE("LV2 system sweep worker", "[lv2][sweep]")
     auto& plug = ctx.applicationPlugin<LV2::ApplicationPlugin>();
     plug.lv2_context->loadPlugins();
     results_file out{results};
+    const bool live = score::test::live::requested();
     for(auto& [uri, bundle] : todo)
-      probe(plug, out, uri, bundle);
+    {
+      if(live)
+        probe_live(ctx, plug, out, uri, bundle);
+      else
+        probe(plug, out, uri, bundle);
+    }
   });
 }

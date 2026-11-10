@@ -65,6 +65,7 @@
 #include <score_test/Document.hpp>
 
 #include <algorithm>
+#include <array>
 #include <functional>
 #include <stdexcept>
 #include <string>
@@ -672,6 +673,63 @@ inline std::vector<std::string> phase_names()
     names.push_back(name);
   return names;
 }
+
+//! What a sweep worker records of the phases: SCORE_SWEEP_LIVE=1 asks for
+//! them, SCORE_SWEEP_LIVE_PHASES=a,b,c for only some of them.
+inline bool requested()
+{
+  return qEnvironmentVariableIntValue("SCORE_SWEEP_LIVE") != 0;
+}
+inline std::vector<std::string> requested_phases()
+{
+  std::vector<std::string> res;
+  for(auto& p : qEnvironmentVariable("SCORE_SWEEP_LIVE_PHASES").split(',', Qt::SkipEmptyParts))
+    res.push_back(p.trimmed().toStdString());
+  return res;
+}
+
+//! The verdicts of the phases, as the JSON object the sweep drivers read:
+//! {"live-drop-interval": {"verdict": "ok", "detail": ""}, ...}
+struct verdicts
+{
+  std::vector<std::array<std::string, 3>> list;
+
+  void add(std::string_view phase, std::string_view verdict, std::string_view detail)
+  {
+    list.push_back({std::string{phase}, std::string{verdict}, std::string{detail}});
+  }
+
+  static std::string escape(std::string_view s)
+  {
+    std::string r;
+    for(unsigned char c : s)
+    {
+      if(c == '"' || c == '\\')
+      {
+        r += '\\';
+        r += char(c);
+      }
+      else if(c < 0x20)
+        r += ' ';
+      else
+        r += char(c);
+    }
+    return r;
+  }
+
+  std::string json() const
+  {
+    std::string r = "{";
+    for(std::size_t i = 0; i < list.size(); i++)
+    {
+      if(i > 0)
+        r += ',';
+      r += '"' + escape(list[i][0]) + "\":{\"verdict\":\"" + escape(list[i][1])
+           + "\",\"detail\":\"" + escape(list[i][2]) + "\"}";
+    }
+    return r + "}";
+  }
+};
 
 //! Runs every phase, each on a document of its own that plays. A phase that
 //! fails or throws is recorded and the next one runs.
