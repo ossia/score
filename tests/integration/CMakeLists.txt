@@ -568,6 +568,20 @@ if(TARGET score_plugin_clap)
     target_compile_definitions(test_integration_clap_editor_window PRIVATE
       CLAP_SIZED_EDITOR_PATH="$<TARGET_FILE:clap_sized_editor>")
   endif()
+
+  # The fixtures added, edited and removed while the document plays.
+  if(NOT WIN32)
+    score_add_test(test_integration_clap_add_while_playing
+      SOURCES ClapAddWhilePlayingTest.cpp
+      APP
+      PLUGINS score_plugin_clap score_plugin_engine score_plugin_scenario score_lib_process
+        score_plugin_audio score_plugin_dataflow score_plugin_deviceexplorer
+      LIBS ${CMAKE_DL_LIBS})
+    add_dependencies(test_integration_clap_add_while_playing clap_mono_gain clap_sized_editor)
+    target_compile_definitions(test_integration_clap_add_while_playing PRIVATE
+      CLAP_MONO_GAIN_PATH="$<TARGET_FILE:clap_mono_gain>"
+      CLAP_SIZED_EDITOR_PATH="$<TARGET_FILE:clap_sized_editor>")
+  endif()
 endif()
 
 # VST 2 processes with MIDI ports in documents: one saved before they had them

@@ -27,6 +27,8 @@ public:
 
   Executor(Clap::Model& proc, const Execution::Context& ctx, QObject* parent);
 
+  void cleanup() override;
+
 private:
   template <typename Node_T>
   void setupNode(Node_T& node);
