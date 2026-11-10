@@ -4,6 +4,8 @@
 #include <score/application/GUIApplicationContext.hpp>
 
 #include <QTimer>
+
+#include <cmath>
 #include <QWindow>
 #include <QResizeEvent>
 #include <QContextMenuEvent>
@@ -102,7 +104,13 @@ bool Window::createClapWindow()
     return false;
     
   m_gui_created = true;
-  
+
+  // Before the size is asked for, as clap/ext/gui.h orders it: the plug-in
+  // scales its size by it. Cocoa "uses logical size, don't call
+  // clap_plugin_gui->set_scale()"; Win32 and X11 use physical sizes.
+  if(!m_is_floating && m_gui_ext->set_scale && m_gui_api != CLAP_WINDOW_API_COCOA)
+    m_gui_ext->set_scale(m_handle->plugin, devicePixelRatioF());
+
   // Get initial size
   uint32_t width = 0, height = 0;
   if(m_gui_ext->get_size && m_gui_ext->get_size(m_handle->plugin, &width, &height))
@@ -138,11 +146,6 @@ bool Window::createClapWindow()
     
     // Platform-specific window handle will be set in show event
     
-    // Set scale if supported
-    if(m_gui_ext->set_scale)
-    {
-      m_gui_ext->set_scale(m_handle->plugin, devicePixelRatio());
-    }
   }
   
   return true;
@@ -254,17 +257,18 @@ void Window::resizeEvent(QResizeEvent* event)
   
   if(m_gui_ext && m_gui_created && !m_is_floating)
   {
-    // For embedded windows, we might need to resize the plugin GUI
-    uint32_t width = event->size().width();
-    uint32_t height = event->size().height();
-    
+    // The plug-in counts in its own pixels
+    const double ratio = editorPixelRatio(*this);
+    uint32_t width = std::lround(event->size().width() * ratio);
+    uint32_t height = std::lround(event->size().height() * ratio);
+
     if(m_gui_ext->can_resize && m_gui_ext->can_resize(m_handle->plugin))
     {
       if(m_gui_ext->adjust_size)
       {
         m_gui_ext->adjust_size(m_handle->plugin, &width, &height);
       }
-      
+
       if(m_gui_ext->set_size)
       {
         m_gui_ext->set_size(m_handle->plugin, width, height);
@@ -272,8 +276,9 @@ void Window::resizeEvent(QResizeEvent* event)
 
       // The plug-in may only take some sizes: the window takes the one it
       // chose, or the editor is cut or leaves a blank border
-      if(QSize(width, height) != event->size())
-        QWidget::resize(width, height);
+      const QSize chosen(std::lround(width / ratio), std::lround(height / ratio));
+      if(chosen != event->size())
+        QWidget::resize(chosen);
     }
   }
 }
@@ -285,8 +290,10 @@ void Window::resize(int w, int h)
 
 void Window::setup_rect(int width, int height)
 {
-  width = width / devicePixelRatio();
-  height = height / devicePixelRatio();
+  // A size from the plug-in, in its own pixels
+  const double ratio = editorPixelRatio(*this);
+  width = std::lround(width / ratio);
+  height = std::lround(height / ratio);
   // A window manager lets the user resize the window of an editor that can
   // be resized, and resizeEvent tells the plug-in
   if(m_gui_ext && m_gui_ext->can_resize && m_gui_ext->can_resize(m_handle->plugin))
