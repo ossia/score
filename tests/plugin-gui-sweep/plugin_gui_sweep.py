@@ -68,6 +68,9 @@ MIN_SIDE = 32
 MIN_DIFF = 30
 # A window, its embedded child and the plug-in's own size agree within this
 SIZE_SLACK = 16
+# ...and once resized from outside, within this: the rounding of Qt's pixels to
+# the screen's at a fractional scaling
+RESIZE_SLACK = 2
 
 
 def describe(p):
@@ -501,11 +504,11 @@ def judge(r):
     if rs:
         ok = rs.get("alive") and not rs.get("shot_blank", True)
         if r.get("format") != "jsfx":
-            ok = ok and abs((rs.get("x_child_w") or 0) - (rs.get("x_w") or 0)) <= SIZE_SLACK \
-                and abs((rs.get("x_child_h") or 0) - (rs.get("x_h") or 0)) <= SIZE_SLACK
+            ok = ok and abs((rs.get("x_child_w") or 0) - (rs.get("x_w") or 0)) <= RESIZE_SLACK \
+                and abs((rs.get("x_child_h") or 0) - (rs.get("x_h") or 0)) <= RESIZE_SLACK
         pw = rs.get("plugin_w")
         if pw and pw > 0:
-            ok = ok and abs(pw - (rs.get("x_w") or 0)) <= SIZE_SLACK
+            ok = ok and abs(pw - (rs.get("x_w") or 0)) <= RESIZE_SLACK
         v["resize"] = bool(ok)
     it = r.get("interact")
     if it:
