@@ -184,3 +184,39 @@ TEST_CASE(
   wrapper->fx = nullptr;
   delete wrapper;
 }
+
+TEST_CASE(
+    "VST 2: the blocks of a tick played backwards go back in time", "[vst]")
+{
+  position_recorder plugin;
+  auto* wrapper = new vst::AEffectWrapper{&plugin.effect};
+  plugin.wrapper = wrapper;
+  std::shared_ptr<vst::AEffectWrapper> shared{wrapper, [](vst::AEffectWrapper*) { }};
+
+  ossia::execution_state state;
+  state.sampleRate = 48000;
+  state.bufferSize = 1024;
+  state.modelToSamplesRatio = 1.;
+  state.samplesToModelRatio = 1.;
+  {
+    // Blocks of 256: a tick of 1024 reaches the plug-in in four
+    vst::vst_node<false, false> node{shared, 48000, 256};
+    for(double speed : {1., -1.})
+    {
+      ossia::token_request tk;
+      tk.prev_date = ossia::time_value{4096};
+      tk.date = ossia::time_value{speed > 0 ? 5120 : 3072};
+      tk.start_sample = 0;
+      tk.length_sample = 1024;
+      tk.speed = speed;
+      node.run(tk, ossia::exec_state_facade{&state});
+      node.process_time(tk, state);
+    }
+  }
+  CHECK(
+      plugin.sample_pos
+      == std::vector<double>{4096, 4352, 4608, 4864, 4096, 3840, 3584, 3328});
+
+  wrapper->fx = nullptr;
+  delete wrapper;
+}
