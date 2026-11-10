@@ -651,3 +651,31 @@ TEST_CASE(
     CHECK(proc->builtinPresets().empty());
   });
 }
+
+// A restart the plug-in asks for while a process of a stopped interval, or one
+// the main thread did not see start yet, is processing: the stop that ends its
+// processing deactivates it, not the request.
+TEST_CASE(
+    "CLAP: a restart asked for while processing does not deactivate the plug-in",
+    "[integration][clap][state]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    auto& proc = *add_gain(*doc, QStringLiteral("io.ossia.test.stereo-gain"));
+    report();
+    {
+      playing p{*doc, proc};
+      p.block(2);
+      proc.setExecuting(false);
+      plugin_function<void(const clap_plugin_t*)>("clap_mono_gain_request_restart")(
+          proc.handle()->plugin);
+      spin(30);
+      p.block(2);
+      p.stop();
+    }
+    const auto e = report();
+    CHECK(e.bad_state == 0);
+    CHECK(e.wrong_thread == 0);
+  });
+}

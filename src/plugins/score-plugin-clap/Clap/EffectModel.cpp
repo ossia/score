@@ -844,7 +844,8 @@ PluginHandle::PluginHandle()
     // and block size: a stop deactivates it and the next play activates it,
     // which is the restart. Stopped, an active plug-in is only deactivated
     // here, since nothing would process it and a flush from the main thread
-    // is only allowed while it is inactive.
+    // is only allowed while it is inactive. Still processing, its node runs:
+    // the stop that ends its processing deactivates it.
     auto& m = *static_cast<Clap::PluginHandle*>(host->host_data);
     if(!m.model)
       return;
@@ -852,7 +853,7 @@ PluginHandle::PluginHandle()
       if(!model || model->executing())
         return;
       auto h = model->handle();
-      if(!h || !h->plugin || !h->activated)
+      if(!h || !h->plugin || !h->activated || h->processing)
         return;
       h->plugin->deactivate(h->plugin);
       h->activated = false;
