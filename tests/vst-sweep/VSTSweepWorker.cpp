@@ -829,9 +829,12 @@ struct score_player
         tk.musical_start_position = double(frame) / rate * 2.;
         tk.musical_end_position = double(frame + block) / rate * 2.;
         tk.musical_start_last_bar = std::floor(tk.musical_start_position / 4.) * 4.;
-        node->process_time(tk, st);
+        // As the graph runs a node: where the tick starts, the run, then the
+        // frames it covered
+        node->begin_request(tk, st);
         ossia::exec_state_facade fac{&st};
         static_cast<ossia::graph_node&>(*node).run(tk, fac);
+        node->process_time(tk, st);
 
         auto& out = node->root_outputs()[0]->template cast<ossia::audio_port>();
         if(trace)
