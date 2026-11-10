@@ -1,7 +1,9 @@
 // Two CLAP plug-ins with an editor that only reports sizes: one whose editor
 // has a fixed size, one whose editor can be resized. They draw nothing; the
 // host's window is what is checked. clap_sized_editor_size() says the last
-// size the host set.
+// size the host set, clap_sized_editor_scale() the last scale (0 for none).
+// Sizes are in the pixels of the platform's window API: physical on X11,
+// points on Cocoa.
 
 #include <clap/clap.h>
 
@@ -41,6 +43,7 @@ struct instance
   bool created{};
   uint32_t width{320}, height{200};
   int set_sizes{};
+  double scale{};
 };
 
 instance& self(const clap_plugin_t* p)
@@ -73,8 +76,9 @@ void gui_destroy(const clap_plugin_t* p)
 {
   self(p).created = false;
 }
-bool gui_set_scale(const clap_plugin_t*, double)
+bool gui_set_scale(const clap_plugin_t* p, double scale)
 {
+  self(p).scale = scale;
   return false;
 }
 bool gui_get_size(const clap_plugin_t* p, uint32_t* w, uint32_t* h)
@@ -220,5 +224,10 @@ CLAP_EXPORT int clap_sized_editor_size(const clap_plugin_t* p, uint32_t* w, uint
   *w = self(p).width;
   *h = self(p).height;
   return self(p).set_sizes;
+}
+
+CLAP_EXPORT double clap_sized_editor_scale(const clap_plugin_t* p)
+{
+  return self(p).scale;
 }
 }
