@@ -3037,3 +3037,44 @@ endforeach()
 score_add_test(test_unit_plugin_window
   SOURCES PluginWindowTest.cpp
   LIBS ${QT_PREFIX}::Gui ${QT_PREFIX}::Widgets)
+
+# A VST3 gain made with the SDK's AudioEffect and EditController, and a
+# parameter its editor moves while nothing plays, through a save and a load.
+if(TARGET score_plugin_vst3 AND TARGET base AND TARGET pluginterfaces AND UNIX AND NOT APPLE)
+  set(_sdk "${SCORE_ROOT_SOURCE_DIR}/3rdparty/vst3/public.sdk/source")
+  add_library(score_test_vst3_edited_gain MODULE
+    vst3-fixtures/EditedGain.cpp
+    "${_sdk}/vst/vstaudioeffect.cpp"
+    "${_sdk}/vst/vstbus.cpp"
+    "${_sdk}/vst/vstcomponent.cpp"
+    "${_sdk}/vst/vstcomponentbase.cpp"
+    "${_sdk}/vst/vsteditcontroller.cpp"
+    "${_sdk}/vst/vstinitiids.cpp"
+    "${_sdk}/vst/vstparameters.cpp"
+    "${_sdk}/main/linuxmain.cpp"
+    "${_sdk}/main/moduleinit.cpp"
+    "${_sdk}/main/pluginfactory.cpp"
+    "${_sdk}/common/commoniids.cpp"
+    "${_sdk}/common/pluginview.cpp")
+  target_link_options(score_test_vst3_edited_gain PRIVATE "-Wl,--no-undefined")
+  target_include_directories(score_test_vst3_edited_gain PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/3rdparty/vst3")
+  target_link_libraries(score_test_vst3_edited_gain PRIVATE base pluginterfaces)
+  set(_bundle "${CMAKE_CURRENT_BINARY_DIR}/score-test-edited-gain.vst3")
+  set_target_properties(score_test_vst3_edited_gain PROPERTIES
+    PREFIX ""
+    OUTPUT_NAME "score-test-edited-gain"
+    LIBRARY_OUTPUT_DIRECTORY "${_bundle}/Contents/x86_64-linux")
+
+  score_add_test(test_unit_vst3_editor_state
+    SOURCES Vst3EditorStateTest.cpp
+    APP
+    PLUGINS score_plugin_vst3 score_plugin_dataflow score_plugin_engine score_plugin_scenario
+      score_plugin_media score_plugin_audio score_lib_process
+    LIBS sdk_common sdk_hosting)
+  target_include_directories(test_unit_vst3_editor_state PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-vst3")
+  add_dependencies(test_unit_vst3_editor_state score_test_vst3_edited_gain)
+  target_compile_definitions(test_unit_vst3_editor_state PRIVATE
+    SCORE_VST3_EDITED_GAIN="${_bundle}")
+endif()

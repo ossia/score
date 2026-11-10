@@ -547,7 +547,14 @@ void Model::load()
   {
     if(auto ctl = qobject_cast<ControlInlet*>(inlet))
     {
+      // The processor's state was saved with the last values it was given,
+      // which it only learns from process(): a parameter moved in the editor
+      // since nothing played is only in the control. It goes back to the
+      // controller, and to the processor once it plays.
+      const float saved = ctl->value();
       initControl(ctl, nullptr);
+      if(std::abs(saved - ctl->value()) > 0.0001)
+        ctl->setValue(saved);
     }
   }
 
