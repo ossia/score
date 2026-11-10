@@ -413,7 +413,13 @@ void entry_deinit()
 }
 const void* entry_get_factory(const char* id)
 {
+#if defined(CLAP_MONO_GAIN_ANY_FACTORY)
+  // As some plug-ins do: the plug-in factory, whatever the id asked for
+  (void)id;
+  return &factory;
+#else
   return std::strcmp(id, CLAP_PLUGIN_FACTORY_ID) ? nullptr : &factory;
+#endif
 }
 }
 

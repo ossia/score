@@ -292,3 +292,22 @@ TEST_CASE(
     CHECK(e.late_calls == 0);
   });
 }
+
+// An entry that gives its plug-in factory for any id, preset discovery's
+// included (SpectMorph): read as a preset discovery factory, its plug-in
+// descriptors were taken for providers and the indexer for a host.
+TEST_CASE(
+    "CLAP: a plug-in factory given for preset discovery is not used as one",
+    "[integration][clap][presets]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    auto* proc = score::test::add_process(
+        *doc, clap_uuid,
+        QStringLiteral(CLAP_MONO_GAIN_ANY_FACTORY_PATH ":::io.ossia.test.stereo-gain"));
+    REQUIRE(proc);
+    REQUIRE(static_cast<Clap::Model*>(proc)->handle());
+    CHECK(proc->builtinPresets().empty());
+  });
+}

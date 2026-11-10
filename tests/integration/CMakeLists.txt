@@ -524,6 +524,12 @@ if(TARGET score_plugin_clap)
   target_include_directories(clap_mono_gain PRIVATE
     "${SCORE_ROOT_SOURCE_DIR}/3rdparty/clap/include")
   set_target_properties(clap_mono_gain PROPERTIES PREFIX "" SUFFIX ".clap")
+  # The same, whose entry gives its plug-in factory for any factory id
+  add_library(clap_mono_gain_any_factory MODULE clap-mono-gain/MonoGain.cpp)
+  target_include_directories(clap_mono_gain_any_factory PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/3rdparty/clap/include")
+  target_compile_definitions(clap_mono_gain_any_factory PRIVATE CLAP_MONO_GAIN_ANY_FACTORY)
+  set_target_properties(clap_mono_gain_any_factory PROPERTIES PREFIX "" SUFFIX ".clap")
 
   # Controls reach the parameter they show, as values; each instance of a
   # mono plug-in gets parameters of its own, without main-thread calls from
@@ -534,12 +540,13 @@ if(TARGET score_plugin_clap)
       APP
       PLUGINS score_plugin_clap score_plugin_engine score_plugin_scenario score_lib_process
       LIBS ${CMAKE_DL_LIBS})
-    add_dependencies(test_integration_clap_host_rules clap_mono_gain)
+    add_dependencies(test_integration_clap_host_rules clap_mono_gain clap_mono_gain_any_factory)
     target_include_directories(test_integration_clap_host_rules PRIVATE
       "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-clap"
       "${SCORE_ROOT_SOURCE_DIR}/3rdparty/clap/include")
     target_compile_definitions(test_integration_clap_host_rules PRIVATE
-      CLAP_MONO_GAIN_PATH="$<TARGET_FILE:clap_mono_gain>")
+      CLAP_MONO_GAIN_PATH="$<TARGET_FILE:clap_mono_gain>"
+      CLAP_MONO_GAIN_ANY_FACTORY_PATH="$<TARGET_FILE:clap_mono_gain_any_factory>")
   endif()
 
   # Two editors that only report a size, one fixed and one resizable, and the
