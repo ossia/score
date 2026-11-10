@@ -1044,3 +1044,62 @@ TEST_CASE("a bool input reads a numeric DEFAULT as non-zero = true")
   CHECK(parse("true") == true);
   CHECK(parse("false") == false);
 }
+
+// point4D: a vec4 that is not a colour (a matrix column). DEFAULT, MIN and MAX
+// are four-element arrays; the TYPE is case-insensitive like every other.
+TEST_CASE("point4D: a vec4 uniform with four-element DEFAULT, MIN and MAX", "[isf][point4D]")
+{
+  const std::string src = R"_(/*{
+  "ISFVSN": "2.0",
+  "INPUTS": [
+    { "NAME": "level", "TYPE": "float", "DEFAULT": 0.5 },
+    { "NAME": "col0", "TYPE": "point4D", "DEFAULT": [1.0, 0.0, 0.0, 0.0],
+      "MIN": [-2.0, -2.0, -2.0, -2.0], "MAX": [2.0, 2.0, 2.0, 3.0] },
+    { "NAME": "col3", "TYPE": "point4d", "DEFAULT": [0.0, 0.0, 0.0, 1.0] }
+  ]
+}*/
+void main() { gl_FragColor = col0 + col3 * level; }
+)_";
+  parser p{{}, src, 450, parser::ShaderType::ISF};
+  REQUIRE(p.data().inputs.size() == 3);
+  CHECK(contains(p.fragment(), "vec4 col0;"));
+  CHECK(contains(p.fragment(), "vec4 col3;"));
+
+  const std::string written = p.write_isf();
+  CHECK(contains(written, "\"TYPE\": \"point4D\""));
+  CHECK(contains(written, "\"MIN\": [-2, -2, -2, -2]"));
+  CHECK(contains(written, "\"MAX\": [2, 2, 2, 3]"));
+  CHECK(contains(written, "\"DEFAULT\": [1, 0, 0, 0]"));
+  // Without MIN / MAX the range is inferred from the DEFAULT, per component.
+  CHECK(contains(written, "\"MAX\": [1, 1, 1, 2]"));
+  CHECK(contains(written, "\"DEFAULT\": [0, 0, 0, 1]"));
+
+  // Read back, the same four numbers.
+  parser p2{{}, written, 450, parser::ShaderType::ISF};
+  const std::string rewritten = p2.write_isf();
+  CHECK(contains(rewritten, "\"MIN\": [-2, -2, -2, -2]"));
+  CHECK(contains(rewritten, "\"MAX\": [2, 2, 2, 3]"));
+  CHECK(contains(rewritten, "\"DEFAULT\": [1, 0, 0, 0]"));
+  CHECK(contains(rewritten, "\"DEFAULT\": [0, 0, 0, 1]"));
+}
+
+TEST_CASE("point4D: a compute shader RESOURCE is a vec4 in its Params block", "[isf][csf][point4D]")
+{
+  const std::string src = R"_(/*{
+  "ISFVSN": "2.0",
+  "MODE": "COMPUTE_SHADER",
+  "RESOURCES": [
+    { "NAME": "level", "TYPE": "float", "DEFAULT": 0.5 },
+    { "NAME": "objectToWorld0", "TYPE": "point4D", "DEFAULT": [1, 0, 0, 0] },
+    { "NAME": "outputImage", "TYPE": "image", "ACCESS": "write_only", "WIDTH": "4", "HEIGHT": "4" }
+  ],
+  "PASSES": [ { "LOCAL_SIZE": [1, 1, 1], "EXECUTION_MODEL": { "TYPE": "2D_IMAGE" } } ]
+}*/
+void main() { imageStore(outputImage, ivec2(gl_GlobalInvocationID.xy), objectToWorld0 * level); }
+)_";
+  parser p{{}, src, 450, parser::ShaderType::CSF};
+  const std::string cs = p.compute_shader();
+  CHECK(contains(cs, "uniform Params"));
+  CHECK(contains(cs, "float level;"));
+  CHECK(contains(cs, "vec4 objectToWorld0;"));
+}

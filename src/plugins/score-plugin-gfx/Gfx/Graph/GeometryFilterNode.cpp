@@ -97,6 +97,23 @@ struct geometry_input_port_vis
     sz += 3 * 4;
   }
 
+  void operator()(const isf::point4d_input& in) noexcept
+  {
+    while(sz % 16 != 0)
+    {
+      sz += 4;
+      data += 4;
+    }
+    const auto& arr = in.def.value_or(std::array<double, 4>{0., 0., 0., 0.});
+    *reinterpret_cast<float*>(data) = arr[0];
+    *reinterpret_cast<float*>(data + 4) = arr[1];
+    *reinterpret_cast<float*>(data + 8) = arr[2];
+    *reinterpret_cast<float*>(data + 12) = arr[3];
+    self.input.push_back(new Port{&self, data, Types::Vec4, {}});
+    data += 4 * 4;
+    sz += 4 * 4;
+  }
+
   void operator()(const isf::color_input& in) noexcept
   {
     while(sz % 16 != 0)

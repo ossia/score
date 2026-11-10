@@ -74,3 +74,20 @@ TEST_CASE("ISF render node defaults match the UI controls", "[gfx][isf][U13]")
   CHECK(values<4>(n, 4)
         == ui<4>(ossia::get<isf::color_input>(in[4].data), {0.5f, 0.5f, 0.5f, 1.f}));
 }
+
+// A point4D after a float: its vec4 port starts on the next 16-byte boundary
+// of the std140 block, at its DEFAULT, or 0 without one.
+TEST_CASE("ISF point4D port: vec4 on a 16-byte boundary, at its DEFAULT", "[gfx][isf][point4D]")
+{
+  const auto n = make(R"_({ "NAME": "level", "TYPE": "float", "DEFAULT": 0.25 },
+                          { "NAME": "col", "TYPE": "point4D", "DEFAULT": [0.5, -1.0, 2.0, 1.0] },
+                          { "NAME": "nodef", "TYPE": "point4D" })_");
+  REQUIRE(n.node->input.size() >= 3);
+  CHECK(n.node->input[1]->type == score::gfx::Types::Vec4);
+  CHECK(n.node->input[2]->type == score::gfx::Types::Vec4);
+  const auto* base = reinterpret_cast<const char*>(n.node->input[0]->value);
+  CHECK(reinterpret_cast<const char*>(n.node->input[1]->value) - base == 16);
+  CHECK(reinterpret_cast<const char*>(n.node->input[2]->value) - base == 32);
+  CHECK(values<4>(n, 1) == std::array<float, 4>{0.5f, -1.f, 2.f, 1.f});
+  CHECK(values<4>(n, 2) == std::array<float, 4>{0.f, 0.f, 0.f, 0.f});
+}

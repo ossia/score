@@ -232,6 +232,38 @@ struct ISFHelpers
         return port;
       }
 
+      Process::Inlet* operator()(const point4d_input& v)
+      {
+        auto nm = QString::fromStdString(input.name);
+        ossia::vec4f min{-100., -100., -100., -100.};
+        ossia::vec4f max{100., 100., 100., 100.};
+        ossia::vec4f init{0., 0., 0., 0.};
+        if(v.def)
+          std::copy_n(v.def->begin(), 4, init.begin());
+        if(v.min)
+          std::copy_n(v.min->begin(), 4, min.begin());
+        if(v.max)
+          std::copy_n(v.max->begin(), 4, max.begin());
+        // No control has four free numeric fields: a color control would read the
+        // value as RGBA and convert it, a multi-slider holds values in 0..1. The
+        // plain control keeps the four numbers as they are, for cables, addresses,
+        // presets and scripts.
+        auto port = new Process::ControlInlet{
+            nm, Id<Process::Port>(i), &self};
+        port->setValue(init);
+        port->setInit(init);
+        port->setDomain(ossia::make_domain(min, max));
+
+        if(auto it = previous_values.find(nm);
+           it != previous_values.end()
+           && it->second.get_type() == port->value().get_type())
+          port->setValue(it->second);
+
+        self.m_inlets.push_back(port);
+        self.controlAdded(port->id());
+        return port;
+      }
+
       Process::Inlet* operator()(const color_input& v)
       {
         auto nm = QString::fromStdString(input.name);

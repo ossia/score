@@ -1,5 +1,5 @@
 // =============================================================================
-// L3 ISF CONTROL-VALUE injection: the float / color / point2D / point3D /
+// L3 ISF CONTROL-VALUE injection: the float / color / point2D / point3D / point4D /
 // bool / long control-inlet families.
 //
 // An ISF float/color/point/bool/long INPUT becomes a *control* inlet whose value
@@ -285,4 +285,116 @@ TEST_CASE("ISF two control inlets (color*gain) pack and inject correctly", "[gfx
   REQUIRE(r.error.empty());
   REQUIRE(r.outputs.size() == 1);
   check_uniform(r.outputs[0], {102, 51, 26, 255}, 3);
+}
+
+// -----------------------------------------------------------------------------
+// POINT4D control inlet, after a float: the vec4 starts on the next 16-byte
+// boundary of the std140 block. Left half (p4.x, p4.y, p4.z, 1), right half
+// (p4.w, level, 0, 1). The ISF filter reads them from its fragment UBO, the
+// compute shader from its generated Params block.
+// -----------------------------------------------------------------------------
+namespace
+{
+IsfResult control_render_csf(
+    score::gfx::GraphicsApi backend, const QString& path,
+    std::vector<ControlSetting> controls, QSize size = {64, 64}, int frames = 3)
+{
+  IsfResult r;
+  score::test::run_in_gui_app([&](const score::GUIApplicationContext&) {
+    r.backend = backend_name(backend);
+    GfxPipeline p;
+    const int n = p.addCsf(path);
+    if(n < 0)
+    {
+      r.error = p.error();
+      return;
+    }
+    auto* out = p.imageOut(n, 0);
+    if(!out)
+    {
+      r.error = "compute shader '" + path.toStdString() + "' has no image output port";
+      return;
+    }
+    const int s = p.addSink(size);
+    p.wire(out, p.sinkInput(s));
+    if(!p.create(backend))
+    {
+      r.backend = p.backend();
+      r.skipped = p.skipped();
+      r.skip_reason = p.skipReason();
+      r.error = p.error();
+      return;
+    }
+    r.backend = p.backend();
+    for(const auto& c : controls)
+      setControl(*p.isf(n), c.port, c.value);
+    p.render(frames);
+    ReadbackImage img = p.readback(s);
+    if(!img.valid())
+      r.error = "compute control render sink readback empty/short";
+    r.outputs.push_back(std::move(img));
+  });
+  return r;
+}
+
+void check_halves(
+    const IsfResult& r, std::array<uint8_t, 4> left, std::array<uint8_t, 4> right)
+{
+  INFO("backend=" << r.backend);
+  REQUIRE(r.error.empty());
+  REQUIRE(r.outputs.size() == 1);
+  const auto& img = r.outputs[0];
+  REQUIRE(img.valid());
+  for(int y = 4; y < img.height - 4; y += 9)
+  {
+    for(const auto& [x, expect] :
+        {std::pair{img.width / 4, left}, std::pair{3 * img.width / 4, right}})
+    {
+      const auto p = img.at(x, y);
+      INFO("pixel (" << x << ", " << y << ") = " << int(p[0]) << " " << int(p[1]) << " "
+                     << int(p[2]) << " " << int(p[3]));
+      for(int c = 0; c < 4; c++)
+        CHECK(std::abs(int(p[c]) - int(expect[c])) <= 2);
+    }
+  }
+}
+
+// DEFAULT p4 = (0.2, 0.4, 0.6, 0.8), level = 1.
+constexpr std::array<uint8_t, 4> k_p4_default_left{51, 102, 153, 255};
+constexpr std::array<uint8_t, 4> k_p4_default_right{204, 255, 0, 255};
+// Injected p4 = (0.6, 0.2, 1.0, 0.4), level = 0.
+const std::vector<ControlSetting> k_p4_injected{
+    {0, ossia::value{0.f}}, {1, ossia::value{ossia::vec4f{0.6f, 0.2f, 1.f, 0.4f}}}};
+constexpr std::array<uint8_t, 4> k_p4_injected_left{153, 51, 255, 255};
+constexpr std::array<uint8_t, 4> k_p4_injected_right{102, 0, 0, 255};
+}
+
+TEST_CASE("ISF point4D control inlet reads its DEFAULT and an injected vec4", "[gfx][l3][isf][control][point4D]")
+{
+  const auto backend = GENERATE(from_range(platform_backends()));
+  CAPTURE(backend_name(backend));
+
+  const IsfResult d = control_render(backend, corpus("isf-control-point4d.fs"), {});
+  if(d.skipped)
+    SKIP(d.backend + ": " + d.skip_reason);
+  check_halves(d, k_p4_default_left, k_p4_default_right);
+
+  const IsfResult r
+      = control_render(backend, corpus("isf-control-point4d.fs"), k_p4_injected);
+  check_halves(r, k_p4_injected_left, k_p4_injected_right);
+}
+
+TEST_CASE("CSF point4D resource reads its DEFAULT and an injected vec4", "[gfx][l3][csf][control][point4D]")
+{
+  const auto backend = GENERATE(from_range(platform_backends()));
+  CAPTURE(backend_name(backend));
+
+  const IsfResult d = control_render_csf(backend, corpus("csf-control-point4d.cs"), {});
+  if(d.skipped)
+    SKIP(d.backend + ": " + d.skip_reason);
+  check_halves(d, k_p4_default_left, k_p4_default_right);
+
+  const IsfResult r
+      = control_render_csf(backend, corpus("csf-control-point4d.cs"), k_p4_injected);
+  check_halves(r, k_p4_injected_left, k_p4_injected_right);
 }
