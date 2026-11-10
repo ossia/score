@@ -933,6 +933,19 @@ void probe_live(
     return;
   }
   j.str("name", LV2::get_lv2_plugin_name(*found).toStdString());
+  {
+    // What fails to instantiate fails every phase alike: the usual probe
+    // tells it
+    QObject parent;
+    auto* model = new LV2::Model{
+        TimeVal::fromMsecs(10000), QString::fromStdString(uri),
+        Id<Process::ProcessModel>{1}, &parent};
+    if(!model->plugin || !model->effectContext.instance)
+    {
+      out.write(j.str("status", "instantiate-failed").done());
+      return;
+    }
+  }
 
   score::test::live::options opt;
   opt.what = {Metadata<ConcreteKey_k, LV2::Model>::get(), {}, QString::fromStdString(uri)};
