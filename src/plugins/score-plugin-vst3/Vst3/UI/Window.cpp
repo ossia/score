@@ -38,7 +38,9 @@ WindowContainer createVstWindowContainer(
     wc.setSizeFromQt(view, r, parentWindow);
   }
 
+  wc.setAttached();
   view.attached((void*)wc.qwindow->winId(), currentPlatform());
+  wc.sendPendingSize(view);
 
   QTimer::singleShot(16, &parentWindow, [&, wc]() mutable {
     Steinberg::ViewRect r;
@@ -46,8 +48,7 @@ WindowContainer createVstWindowContainer(
     if(r.getWidth() != 0 && r.getHeight() != 0)
     {
       wc.setSizeFromQt(view, r, parentWindow);
-
-      view.onSize(&r);
+      wc.sendSize(view, r);
     }
   });
 
@@ -69,7 +70,7 @@ WindowContainer createVstWindowContainer(
       if(r.getWidth() != 0 && r.getHeight() != 0)
       {
         wc.setSizeFromQt(*view, r, parentWindow);
-        view->onSize(&r);
+        wc.sendSize(*view, r);
       }
     });
   }

@@ -59,8 +59,9 @@ Window::~Window()
 
 void Window::resizeEvent(QResizeEvent* event)
 {
-  Steinberg::IPlugView& view = *m_model.fx.view;
-  container.setSizeFromUser(view, event->size(), *this);
+  // The view is gone once the window is closing
+  if(auto* view = m_model.fx.view)
+    container.setSizeFromUser(*view, event->size(), *this);
   event->accept();
 }
 
