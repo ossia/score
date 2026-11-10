@@ -98,3 +98,89 @@ TEST_CASE("VST 2: the time info is a stopped transport until the process plays",
   wrapper->fx = nullptr;
   wrapper->~AEffectWrapper();
 }
+
+namespace
+{
+//! Records the transport position of each of its process calls
+struct position_recorder
+{
+  AEffect effect{};
+  vst::AEffectWrapper* wrapper{};
+  std::vector<double> sample_pos;
+
+  static position_recorder& self(AEffect* e)
+  {
+    return *static_cast<position_recorder*>(e->user);
+  }
+  static intptr_t dispatcher(AEffect*, int32_t, int32_t, intptr_t, void*, float) { return 0; }
+  static void process(AEffect* e, float**, float**, int32_t)
+  {
+    self(e).sample_pos.push_back(self(e).wrapper->info.samplePos);
+  }
+  static void setParameter(AEffect*, int32_t, float) { }
+  static float getParameter(AEffect*, int32_t) { return 0.f; }
+
+  position_recorder()
+  {
+    effect.magic = kEffectMagic;
+    effect.dispatcher = dispatcher;
+    effect.processReplacing = process;
+    effect.setParameter = setParameter;
+    effect.getParameter = getParameter;
+    effect.numInputs = 2;
+    effect.numOutputs = 2;
+    effect.user = this;
+  }
+};
+}
+
+TEST_CASE(
+    "VST 2: a block is told the transport position of its own first sample", "[vst]")
+{
+  position_recorder plugin;
+  auto* wrapper = new vst::AEffectWrapper{&plugin.effect};
+  plugin.wrapper = wrapper;
+  std::shared_ptr<vst::AEffectWrapper> shared{wrapper, [](vst::AEffectWrapper*) { }};
+
+  ossia::execution_state state;
+  state.sampleRate = 48000;
+  state.bufferSize = 512;
+  state.modelToSamplesRatio = 1.;
+  state.samplesToModelRatio = 1.;
+
+  struct tick_t
+  {
+    int64_t prev, date, start_sample, length;
+    double speed;
+  };
+  // Dates in samples: a play from 0, a tick starting inside its buffer, a
+  // loop back to 0, a seek, twice the speed, then backwards
+  const tick_t ticks[]{
+      {0, 512, 0, 512, 1.},         {512, 1024, 0, 512, 1.},
+      {1024, 1388, 148, 364, 1.},   {1388, 1900, 0, 512, 1.},
+      {0, 512, 0, 512, 1.},         {48000, 48512, 0, 512, 1.},
+      {48512, 49536, 0, 512, 2.},   {49536, 49024, 0, 512, -1.},
+      {49024, 48512, 0, 512, -1.}};
+
+  std::vector<double> expected;
+  {
+    vst::vst_node<false, false> node{shared, 48000, 512};
+    for(const auto& t : ticks)
+    {
+      ossia::token_request tk;
+      tk.prev_date = ossia::time_value{t.prev};
+      tk.date = ossia::time_value{t.date};
+      tk.start_sample = t.start_sample;
+      tk.length_sample = t.length;
+      tk.speed = t.speed;
+      // As the graph runs a node: the time it covered is accounted for after
+      node.run(tk, ossia::exec_state_facade{&state});
+      node.process_time(tk, state);
+      expected.push_back(double(tk.start_date_to_physical(state.modelToSamplesRatio)));
+    }
+  }
+  CHECK(plugin.sample_pos == expected);
+
+  wrapper->fx = nullptr;
+  delete wrapper;
+}
