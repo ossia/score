@@ -870,10 +870,14 @@ const void* entry_get_factory(const char* id)
   if(std::string_view{id} == CLAP_PLUGIN_FACTORY_ID)
     return &factory;
   // Presets are discovered without plug-in instances: those factories are
-  // the target's own
-  if(g_lib.entry)
-    return g_lib.entry->get_factory(id);
-  return nullptr;
+  // the target's own. A target that gives its plug-in factory for any id
+  // gives the wrapped one, as the host would see it without the checker.
+  if(!g_lib.entry)
+    return nullptr;
+  auto* f = g_lib.entry->get_factory(id);
+  if(f && f == g_lib.entry->get_factory(CLAP_PLUGIN_FACTORY_ID))
+    return &factory;
+  return f;
 }
 }
 
