@@ -10,7 +10,8 @@ score_add_test(test_lv2_sweep_worker
   SOURCES LV2SweepWorker.cpp
   APP
   NO_CTEST
-  PLUGINS score_plugin_lv2 score_lib_process
+  PLUGINS score_plugin_lv2 score_lib_process score_plugin_scenario score_plugin_engine
+    score_plugin_audio score_plugin_dataflow score_plugin_deviceexplorer
   LIBS Lilv)
 target_include_directories(test_lv2_sweep_worker PRIVATE
   "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-lv2"
