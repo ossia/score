@@ -1125,3 +1125,50 @@ TEST_CASE(
   addArtnetFixture(rig.dev, rig.buffer, f, 0, 512);
   CHECK(rig.max("/G/Gobo") == 65535);
 }
+
+TEST_CASE("Each transport outputs the universes its protocol defines", "[dmx][universe]")
+{
+  using S = ArtnetSpecificSettings;
+  CHECK(S::universeLimits(S::ArtNetV2) == std::pair{0, 32767});
+  CHECK(S::universeLimits(S::ArtNet) == std::pair{0, 32767});
+  CHECK(S::universeLimits(S::E131) == std::pair{1, 63999});
+  CHECK(S::universeLimits(S::DMXUSBPRO) == std::pair{0, 0});
+  CHECK(S::universeLimits(S::OpenDMX_USB) == std::pair{0, 0});
+  CHECK(S::universeLimits(S::DMXUSBPRO_Mk2) == std::pair{0, 1});
+}
+
+TEST_CASE(
+    "Universes past what the protocol allows are brought back on load",
+    "[dmx][universe][serialization]")
+{
+  auto load = [](int transport, int universe, int count) {
+    const auto json = fmt::format(
+        R"_({{"Fixtures":[],"Host":"","Rate":44,"Universe":{},"UniverseCount":{},"ChannelsPerUniverse":512,"Transport":{},"Mode":0}})_",
+        universe, count, transport);
+    ArtnetSpecificSettings s;
+    score::test::run_in_app([&](const score::GUIApplicationContext&) {
+      s = JSONWriter::unmarshall<ArtnetSpecificSettings>(
+          readJson(QByteArray::fromStdString(json)));
+    });
+    return std::pair{s.start_universe, s.universe_count};
+  };
+
+  CHECK(load(ArtnetSpecificSettings::ArtNetV2, 40000, 4) == std::pair{32767, 1});
+  CHECK(load(ArtnetSpecificSettings::ArtNetV2, 32760, 100) == std::pair{32760, 8});
+  CHECK(load(ArtnetSpecificSettings::ArtNetV2, 0, 3) == std::pair{0, 3});
+  CHECK(load(ArtnetSpecificSettings::E131, 0, 2) == std::pair{1, 2});
+  CHECK(load(ArtnetSpecificSettings::E131, 65539, 1) == std::pair{63999, 1});
+  CHECK(load(ArtnetSpecificSettings::E131, 63990, 20) == std::pair{63990, 10});
+  CHECK(load(ArtnetSpecificSettings::DMXUSBPRO, 3, 4) == std::pair{0, 1});
+
+  ArtnetSpecificSettings bin;
+  bin.transport = ArtnetSpecificSettings::E131;
+  bin.start_universe = 70000;
+  bin.universe_count = 9;
+  score::test::run_in_app([&](const score::GUIApplicationContext&) {
+    bin = DataStreamWriter::unmarshall<ArtnetSpecificSettings>(
+        DataStreamReader::marshall(bin));
+  });
+  CHECK(bin.start_universe == 63999);
+  CHECK(bin.universe_count == 1);
+}

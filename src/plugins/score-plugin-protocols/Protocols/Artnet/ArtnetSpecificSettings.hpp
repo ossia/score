@@ -150,7 +150,7 @@ struct ArtnetSpecificSettings
   int channels_per_universe{512};
   bool multicast{};
 
-  enum
+  enum Transport
   {
     ArtNet, // Artnet:/Channel-{}
     E131,
@@ -164,6 +164,43 @@ struct ArtnetSpecificSettings
     Source, // score sends DMX
     Sink    // score receives DMX
   } mode{Source};
+
+  //! First and last universe a transport can output, numbered as on the wire:
+  //! an Art-Net Port-Address has 15 bits, E1.31 reserves universe 0 and those
+  //! from 64000, a DMX USB Pro has a single output and a Pro Mk2 two.
+  static constexpr std::pair<int, int> universeLimits(Transport t) noexcept
+  {
+    switch(t)
+    {
+      case ArtNet:
+      case ArtNetV2:
+        return {0, 32767};
+      case E131:
+        return {1, 63999};
+      case DMXUSBPRO_Mk2:
+        return {0, 1};
+      case DMXUSBPRO:
+      case OpenDMX_USB:
+      default:
+        return {0, 0};
+    }
+  }
+
+  //! The universes this device can output: from its start universe to the last
+  //! one its transport allows.
+  constexpr std::pair<int, int> outputUniverses() const noexcept
+  {
+    const auto [first, last] = universeLimits(transport);
+    return {std::clamp(start_universe, first, last), last};
+  }
+
+  //! Brings the start universe and the universe count within the transport's limits.
+  constexpr void clampUniverses() noexcept
+  {
+    const auto [first, last] = outputUniverses();
+    start_universe = first;
+    universe_count = std::clamp(universe_count, 1, last - first + 1);
+  }
 };
 }
 
