@@ -152,9 +152,11 @@ public:
   std::atomic_bool needIdle{};
 
   //! State saved with a plug-in that could not be loaded, written back as is
-  //! by the serializers (JSON "Data": base64 chunk, "Params": values).
+  //! by the serializers (JSON "Data": base64 chunk, "Params": values,
+  //! "Program": the program it was on, -1 for none).
   std::string m_backup_chunk;
   ossia::float_vector m_backup_float_data;
+  int32_t m_backup_program{-1};
 
 private:
   void loadPreset(const Process::Preset& preset) override;

@@ -366,10 +366,22 @@ add(score::Document& doc, Scenario::IntervalModel& itv, const QString& uuid,
   return &*it;
 }
 
+//! The program the plug-in of a VST process is on, -1 for none
+int program_of(const Process::ProcessModel& proc)
+{
+  auto* vst = qobject_cast<const vst::Model*>(&proc);
+  if(!vst || !vst->fx || vst->fx->fx->numPrograms <= 0)
+    return -1;
+  return int(vst->fx->dispatch(effGetProgram, 0, 0, nullptr, 0.f));
+}
+
 //! A piano roll "notes" and an LFO "lfo" drive "unflagged", whose MIDI output
 //! plays "kars" as the notes do; both go through "freeverb". Cables are made
-//! to the ports the processes have.
-void make_patch(score::Document& doc, Scenario::IntervalModel& itv, const Plugins& plugs)
+//! to the ports the processes have. "unflagged" is put on its sixth program
+//! first, unless `program` is false.
+void make_patch(
+    score::Document& doc, Scenario::IntervalModel& itv, const Plugins& plugs,
+    bool program = true)
 {
   auto* notes = add(doc, itv, midi_uuid, {}, "notes");
   auto* lfo = add(doc, itv, lfo_uuid, {}, "lfo");
@@ -398,6 +410,8 @@ void make_patch(score::Document& doc, Scenario::IntervalModel& itv, const Plugin
   if(auto* out = outlet(*unflagged, "MIDI Out"))
     connect(doc, out, inlet(*kars, "MIDI In"));
 
+  if(program)
+    qobject_cast<vst::Model*>(unflagged)->selectProgram(5);
   controls(*unflagged).at(0)->setValue(unflagged_level);
   controls(*kars).at(0)->setValue(kars_first);
   controls(*freeverb).at(0)->setValue(freeverb_first);
@@ -419,7 +433,9 @@ QJsonObject describe(score::Document& doc, const Scenario::IntervalModel& itv)
     for(auto [num, v] : values(*p))
       vals[QString::number(num)] = double(v);
     procs[label] = QJsonObject{
-        {"ports", QJsonArray::fromStringList(ports(*p))}, {"values", vals}};
+        {"ports", QJsonArray::fromStringList(ports(*p))},
+        {"values", vals},
+        {"program", program_of(*p)}};
   }
   QJsonArray cs;
   for(auto& c : cables(doc, itv))
@@ -441,6 +457,9 @@ void check_patch(
     const auto e = eprocs[label].toObject();
     const auto n = nprocs[label].toObject();
     CHECK(n["ports"].toArray().toVariantList() == e["ports"].toArray().toVariantList());
+    // Not in the documents saved before programs were
+    if(e.contains("program"))
+      CHECK(n["program"].toInt() == e["program"].toInt());
     const auto ev = e["values"].toObject();
     const auto nv = n["values"].toObject();
     CHECK(nv.keys() == ev.keys());
@@ -659,7 +678,7 @@ TEST_CASE("VST 2: write the documents", "[.vst-documents]")
     auto* doc = score::test::new_document(ctx);
     REQUIRE(doc);
     auto& itv = new_interval(*doc);
-    make_patch(*doc, itv, plugs);
+    make_patch(*doc, itv, plugs, false);
 
     QDir{}.mkpath(out);
     score::test::write_file(out + "/document.score", score::test::save_as_json(*doc));
@@ -708,6 +727,10 @@ void old_document(const score::GUIApplicationContext& ctx, int part)
   REQUIRE(unflagged);
   CHECK(!unflagged->takesMidi());
   CHECK(!unflagged->sendsMidi());
+  // On the program it was set up on, selected once, as before programs were saved
+  CHECK(program_of(*unflagged) == 1);
+  CHECK(unflagged->dispatch(effVendorSpecific, 1) == 1);
+  CHECK(unflagged->dispatch(effVendorSpecific, 0) == 0);
   CHECK(qobject_cast<vst::Model*>(by_label(itv, "kars"))->takesMidi());
 
   check_execution(*doc, itv);
@@ -929,6 +952,7 @@ void new_processes(const score::GUIApplicationContext& ctx, int part)
       CHECK(ports(*k) == ports(*by_label(itv, "kars")));
       CHECK(values(*u) == values(*unflagged));
       CHECK(values(*k) == values(*by_label(itv, "kars")));
+      CHECK(program_of(*u) == 5);
       CHECK(cables(*doc, t) == between_copies);
     };
     check_pasted(target);
@@ -952,6 +976,7 @@ void new_processes(const score::GUIApplicationContext& ctx, int part)
       REQUIRE(d);
       CHECK(ports(*d) == ports(*unflagged));
       CHECK(values(*d) == values(*unflagged));
+      CHECK(program_of(*d) == 5);
       CHECK(d->takesMidi());
       CHECK(d->sendsMidi());
     };
@@ -976,6 +1001,7 @@ void new_processes(const score::GUIApplicationContext& ctx, int part)
         {
           CHECK(ports(*p) == ports(*by_label(itv, label)));
           CHECK(values(*p) == values(*by_label(itv, label)));
+          CHECK(program_of(*p) == program_of(*by_label(itv, label)));
         }
       }
     };
@@ -1036,7 +1062,7 @@ void dragged_presets(const score::GUIApplicationContext& ctx)
   unflagged = qobject_cast<vst::Model*>(by_label(itv, "unflagged"));
   const auto programs
       = static_cast<const Process::ProcessModel*>(unflagged)->builtinPresets();
-  REQUIRE(programs.size() == 2);
+  REQUIRE(programs.size() == 8);
   drop_preset_on(*doc, *unflagged, programs[0]);
   CHECK(unflagged->fx->getParameter(0) == Catch::Approx(0.75f).margin(1e-4));
   CHECK(cables(*doc, itv) == patched);

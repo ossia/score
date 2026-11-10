@@ -1290,6 +1290,28 @@ if(TARGET score_plugin_vst)
     target_compile_definitions(test_unit_vst_fresh_state PRIVATE
       SCORE_VST_UNFLAGGED_INSTRUMENT="$<TARGET_FILE:score_test_vst_unflagged_instrument>"
       SCORE_VST_UNPROGRAMMED_INSTRUMENT="$<TARGET_FILE:score_test_vst_unprogrammed_instrument>")
+
+    # A VST 2 process saves the program its plug-in is on and restores it
+    # before its state, parameters or chunk.
+    add_library(score_test_vst_chunk_instrument MODULE
+      vst-fixtures/UnflaggedInstrument.cpp)
+    target_include_directories(score_test_vst_chunk_instrument PRIVATE
+      "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-vst")
+    target_compile_definitions(score_test_vst_chunk_instrument PRIVATE
+      SCORE_TEST_VST_CHUNKS)
+    score_add_test(test_unit_vst_program_state
+      SOURCES VstProgramStateTest.cpp
+      GUI
+      APP
+      PLUGINS score_lib_process score_plugin_vst)
+    target_include_directories(test_unit_vst_program_state PRIVATE
+      "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-vst")
+    add_dependencies(test_unit_vst_program_state
+      score_test_vst_unflagged_instrument score_test_vst_chunk_instrument)
+    target_compile_definitions(test_unit_vst_program_state PRIVATE
+      SCORE_VST_UNFLAGGED_INSTRUMENT="$<TARGET_FILE:score_test_vst_unflagged_instrument>"
+      SCORE_VST_CHUNK_INSTRUMENT="$<TARGET_FILE:score_test_vst_chunk_instrument>"
+      SCORE_VST2_DOCUMENTS_DIR="${SCORE_ROOT_SOURCE_DIR}/tests/testdata/vst2")
   endif()
 
   # A system-exclusive message reaches a VST 2 synth as one VstMidiSysexEvent.

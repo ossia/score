@@ -1,12 +1,15 @@
 // A VST 2 instrument that does not set effFlagsIsSynth, as JuceOPL: no audio
 // input, one output, and it can receive MIDI events. It plays a constant 0.5
 // while a note is held, and sends back each note it gets, from its process
-// call, one frame later. Its two programs set its level to 0.75 and 0.5; it
-// opens on the second, as Permut8 opens on another than its first.
+// call, one frame later. Its eight programs set its level: 0.75 for "Loud",
+// 0.5 for "Medium", 0.05 times its index for the others. It opens on the
+// second, as Permut8 opens on another than its first.
 //
 // Built with SCORE_TEST_VST_NO_INITIAL_PROGRAM, it opens on no program, as the
 // plug-ins of the VST SDK that only set themselves up in setProgram: it says
 // it is on its first, but its level is 0 until a program is selected.
+//
+// Built with SCORE_TEST_VST_CHUNKS, its state is a chunk: its level.
 //
 // It counts the programs it is told to select between effBeginSetProgram and
 // effEndSetProgram, and outside them: effVendorSpecific with index 1 and 0
@@ -14,6 +17,7 @@
 
 #include <Vst/vst-compat.hpp>
 
+#include <cstdio>
 #include <cstring>
 #include <string_view>
 #include <vector>
@@ -22,6 +26,10 @@
 #define SCORE_TEST_VST_OPENING_PROGRAM 0
 #define SCORE_TEST_VST_OPENING_LEVEL 0.f
 #define SCORE_TEST_VST_ID "sUnP"_4c
+#elif defined(SCORE_TEST_VST_CHUNKS)
+#define SCORE_TEST_VST_OPENING_PROGRAM 1
+#define SCORE_TEST_VST_OPENING_LEVEL 0.5f
+#define SCORE_TEST_VST_ID "sUnC"_4c
 #else
 #define SCORE_TEST_VST_OPENING_PROGRAM 1
 #define SCORE_TEST_VST_OPENING_LEVEL 0.5f
@@ -40,6 +48,7 @@ struct instrument
   intptr_t wrapped_selections{};
   intptr_t unwrapped_selections{};
   float param{SCORE_TEST_VST_OPENING_LEVEL};
+  float chunk{};
   std::vector<VstMidiEvent> echo;
 };
 
@@ -74,12 +83,25 @@ intptr_t dispatcher(AEffect* e, int32_t op, int32_t idx, intptr_t v, void* ptr, 
       (self(e).changing_program ? self(e).wrapped_selections
                                 : self(e).unwrapped_selections)++;
       self(e).program = int(v);
-      self(e).param = v == 0 ? 0.75f : 0.5f;
+      self(e).param = v == 0 ? 0.75f : v == 1 ? 0.5f : 0.05f * float(v);
+      return 0;
+    case effGetChunk:
+      self(e).chunk = self(e).param;
+      *static_cast<void**>(ptr) = &self(e).chunk;
+      return sizeof(float);
+    case effSetChunk:
+      if(v == sizeof(float))
+        std::memcpy(&self(e).param, ptr, sizeof(float));
       return 0;
     case effGetProgram:
       return self(e).program;
     case effGetProgramNameIndexed:
-      std::strcpy(static_cast<char*>(ptr), idx == 0 ? "Loud" : "Medium");
+      if(idx == 0)
+        std::strcpy(static_cast<char*>(ptr), "Loud");
+      else if(idx == 1)
+        std::strcpy(static_cast<char*>(ptr), "Medium");
+      else
+        std::snprintf(static_cast<char*>(ptr), 24, "Program %d", idx + 1);
       return 1;
     case effGetPlugCategory:
       return kPlugCategEffect;
@@ -146,11 +168,14 @@ VSTPluginMain(audioMasterCallback master)
   e.setParameter = set_parameter;
   e.getParameter = get_parameter;
   e.processReplacing = process;
-  e.numPrograms = 2;
+  e.numPrograms = 8;
   e.numParams = 1;
   e.numInputs = 0;
   e.numOutputs = 1;
   e.flags = effFlagsCanReplacing;
+#if defined(SCORE_TEST_VST_CHUNKS)
+  e.flags |= effFlagsProgramChunks;
+#endif
   e.uniqueID = SCORE_TEST_VST_ID;
   e.version = 1;
   e.object = p;

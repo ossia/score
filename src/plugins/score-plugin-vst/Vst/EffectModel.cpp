@@ -800,9 +800,39 @@ void Model::load()
 #define SCORE_DATASTREAM_IDENTIFY_VST_PARAMS int32_t(0x10101010)
 // The plug-in could not be loaded: the state it was saved with, kept as is
 #define SCORE_DATASTREAM_IDENTIFY_VST_BACKUP int32_t(0x0BAC0BAC)
+// Before one of the above: the program the plug-in is on. A state saved
+// without it leaves the plug-in on the program it was set up on.
+#define SCORE_DATASTREAM_IDENTIFY_VST_PROGRAM int32_t(0x50524F47)
+
+//! The program the plug-in is on, or the one it was saved on when it could
+//! not be loaded; -1 for none
+static int32_t savedProgram(const vst::Model& eff)
+{
+  if(!eff.fx)
+    return eff.m_backup_program;
+  if(eff.fx->fx->numPrograms <= 0)
+    return -1;
+  const auto p = eff.fx->dispatch(effGetProgram, 0, 0, nullptr, 0.f);
+  return p >= 0 && p < eff.fx->fx->numPrograms ? int32_t(p) : -1;
+}
+
+//! Puts the plug-in back on the program it was saved on, before its chunk or
+//! its parameters are set, as Carla, Tracktion, LMMS and Ardour do: a program
+//! selected after them would replace them. Kept as is when it could not be
+//! loaded.
+static void restoreProgram(vst::Model& eff, int32_t program)
+{
+  if(!eff.fx)
+    eff.m_backup_program = program;
+  else if(program >= 0 && program < eff.fx->fx->numPrograms)
+    eff.selectProgram(program);
+}
 
 static void saveVstChunkToDatastream(DataStreamInput& stream, const vst::Model& eff)
 {
+  if(const auto program = savedProgram(eff); program >= 0)
+    stream << SCORE_DATASTREAM_IDENTIFY_VST_PROGRAM << program;
+
   if(eff.fx)
   {
     if(eff.fx->fx->flags & effFlagsProgramChunks)
@@ -842,6 +872,13 @@ static void loadVstChunkFromDatastream(DataStreamOutput& stream, vst::Model& eff
 {
   int32_t kind = 0;
   stream >> kind;
+
+  if(kind == SCORE_DATASTREAM_IDENTIFY_VST_PROGRAM)
+  {
+    int32_t program = -1;
+    stream >> program >> kind;
+    restoreProgram(eff, program);
+  }
 
   // First set the values in the VST
   if(kind == SCORE_DATASTREAM_IDENTIFY_VST_CHUNK)
@@ -1040,6 +1077,8 @@ void JSONReader::read(const vst::Model& eff)
 {
   readPorts(*this, eff.m_inlets, eff.m_outlets);
   obj["EffectId"] = eff.m_effectId;
+  if(const auto program = savedProgram(eff); program >= 0)
+    obj["Program"] = program;
 
   if(eff.fx)
   {
@@ -1106,6 +1145,9 @@ void JSONWriter::write(vst::Model& eff)
       eff.m_outlets, &eff);
 
   eff.load();
+
+  if(auto program_it = base.FindMember("Program"); program_it != base.MemberEnd())
+    restoreProgram(eff, program_it->value.GetInt());
 
   // Reload controls
   auto data_it = base.FindMember("Data");
