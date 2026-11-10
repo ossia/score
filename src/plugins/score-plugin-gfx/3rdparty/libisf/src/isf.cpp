@@ -3094,8 +3094,8 @@ static const ossia::string_map<root_fun>& root_parse{[] {
         std::string{section} + "[" + std::to_string(index) + "]"
         + (name.empty() ? std::string{} : " \"" + name + "\"") + ": unknown TYPE \""
         + type
-        + "\". Known types: float, long, bool, event, color, point2D, point3D, image, "
-          "cubemap, audio, audioFFT, audioHistogram, storage, uniform, texture, "
+        + "\". Known types: float, long, bool, event, color, point2D, point3D, point4D, "
+          "image, cubemap, audio, audioFFT, audioHistogram, storage, uniform, texture, "
           "geometry, image_cube (RESOURCES)."};
   };
 
@@ -3109,6 +3109,7 @@ static const ossia::string_map<root_fun>& root_parse{[] {
     i.insert({"cubemap", [](const auto& s) { return parse<cubemap_input>(s); }});
     i.insert({"point2d", [](const auto& s) { return parse<point2d_input>(s); }});
     i.insert({"point3d", [](const auto& s) { return parse<point3d_input>(s); }});
+    i.insert({"point4d", [](const auto& s) { return parse<point4d_input>(s); }});
     i.insert({"color", [](const auto& s) { return parse<color_input>(s); }});
     i.insert({"audio", [](const auto& s) { return parse<audio_input>(s); }});
     i.insert({"audiofft", [](const auto& s) { return parse<audioFFT_input>(s); }});
@@ -4228,6 +4229,7 @@ struct create_val_visitor_450
   return_type operator()(const bool_input&) { return {"bool", false}; }
   return_type operator()(const point2d_input&) { return {"vec2", false}; }
   return_type operator()(const point3d_input&) { return {"vec3", false}; }
+  return_type operator()(const point4d_input&) { return {"vec4", false}; }
   return_type operator()(const color_input&) { return {"vec4", false}; }
   return_type operator()(const image_input& i)
   {
@@ -7750,6 +7752,27 @@ std::string parser::write_isf() const
           oss << "\n";
         }
 
+        void operator()(const point4d_input& p)
+        {
+          oss << "      \"TYPE\": \"point4D\"";
+          if(p.min)
+          {
+            oss << ",\n      \"MIN\": [" << (*p.min)[0] << ", " << (*p.min)[1] << ", "
+                << (*p.min)[2] << ", " << (*p.min)[3] << "]";
+          }
+          if(p.max)
+          {
+            oss << ",\n      \"MAX\": [" << (*p.max)[0] << ", " << (*p.max)[1] << ", "
+                << (*p.max)[2] << ", " << (*p.max)[3] << "]";
+          }
+          if(p.def)
+          {
+            oss << ",\n      \"DEFAULT\": [" << (*p.def)[0] << ", " << (*p.def)[1]
+                << ", " << (*p.def)[2] << ", " << (*p.def)[3] << "]";
+          }
+          oss << "\n";
+        }
+
         void operator()(const color_input& c)
         {
           oss << "      \"TYPE\": \"color\"";
@@ -9252,6 +9275,11 @@ void parser::parse_csf()
       {
         k++;
         material_block += "    vec3 " + inp.name + ";\n";
+      }
+      else if(ossia::get_if<point4d_input>(&inp.data))
+      {
+        k++;
+        material_block += "    vec4 " + inp.name + ";\n";
       }
       else if(ossia::get_if<color_input>(&inp.data))
       {

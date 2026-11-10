@@ -88,6 +88,17 @@ struct point3d_input
   bool as_color{false};
 };
 
+// A four-component vector (vec4) that is not a colour: a matrix column, a
+// plane equation, a quaternion. DEFAULT / MIN / MAX are four-element arrays.
+struct point4d_input
+{
+  using value_type = std::array<double, 4>;
+  using has_minmax = std::true_type;
+  std::optional<value_type> def{};
+  std::optional<value_type> min{};
+  std::optional<value_type> max{};
+};
+
 struct color_input
 {
   using value_type = std::array<double, 4>;
@@ -579,7 +590,7 @@ struct input
       float_input, long_input, event_input, bool_input, color_input, point2d_input,
       point3d_input, image_input, cubemap_input, audio_input, audioFFT_input,
       audioHist_input, storage_input, texture_input, csf_image_input,
-      geometry_input, uniform_input>;
+      geometry_input, uniform_input, point4d_input>;
 
   std::string name;
   std::string label;
