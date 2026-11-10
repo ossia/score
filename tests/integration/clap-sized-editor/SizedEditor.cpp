@@ -1,13 +1,16 @@
 // Two CLAP plug-ins with an editor that only reports sizes: one whose editor
 // has a fixed size, one whose editor can be resized. They draw nothing; the
 // host's window is what is checked. clap_sized_editor_size() says the last
-// size the host set, clap_sized_editor_scale() the last scale (0 for none).
+// size the host set, clap_sized_editor_scale() the last scale (0 for none),
+// clap_sized_editor_off_main_thread() how many calls of the gui extension,
+// all [main-thread] in clap/ext/gui.h, the host made from another thread.
 // Sizes are in the pixels of the platform's window API: physical on X11,
 // points on Cocoa.
 
 #include <clap/clap.h>
 
 #include <algorithm>
+#include <atomic>
 #include <cstring>
 
 namespace
@@ -39,6 +42,8 @@ const clap_plugin_descriptor_t descriptors[]
 struct instance
 {
   clap_plugin_t plugin{};
+  const clap_host_t* host{};
+  std::atomic_int off_main_thread{};
   bool resizable{};
   bool created{};
   uint32_t width{320}, height{200};
@@ -51,56 +56,69 @@ instance& self(const clap_plugin_t* p)
   return *static_cast<instance*>(p->plugin_data);
 }
 
+//! Counts a call of the gui extension made off the main thread
+instance& gui_self(const clap_plugin_t* p)
+{
+  auto& s = self(p);
+  auto* check = static_cast<const clap_host_thread_check_t*>(
+      s.host->get_extension(s.host, CLAP_EXT_THREAD_CHECK));
+  if(check && !check->is_main_thread(s.host))
+    s.off_main_thread++;
+  return s;
+}
+
 #if defined(__APPLE__)
 const char* const window_api = CLAP_WINDOW_API_COCOA;
 #else
 const char* const window_api = CLAP_WINDOW_API_X11;
 #endif
 
-bool gui_is_api_supported(const clap_plugin_t*, const char* api, bool floating)
+bool gui_is_api_supported(const clap_plugin_t* p, const char* api, bool floating)
 {
+  gui_self(p);
   return !floating && std::strcmp(api, window_api) == 0;
 }
-bool gui_get_preferred_api(const clap_plugin_t*, const char** api, bool* floating)
+bool gui_get_preferred_api(const clap_plugin_t* p, const char** api, bool* floating)
 {
+  gui_self(p);
   *api = window_api;
   *floating = false;
   return true;
 }
 bool gui_create(const clap_plugin_t* p, const char*, bool)
 {
-  self(p).created = true;
+  gui_self(p).created = true;
   return true;
 }
 void gui_destroy(const clap_plugin_t* p)
 {
-  self(p).created = false;
+  gui_self(p).created = false;
 }
 bool gui_set_scale(const clap_plugin_t* p, double scale)
 {
-  self(p).scale = scale;
+  gui_self(p).scale = scale;
   return false;
 }
 bool gui_get_size(const clap_plugin_t* p, uint32_t* w, uint32_t* h)
 {
-  *w = self(p).width;
-  *h = self(p).height;
+  *w = gui_self(p).width;
+  *h = gui_self(p).height;
   return true;
 }
 bool gui_can_resize(const clap_plugin_t* p)
 {
-  return self(p).resizable;
+  return gui_self(p).resizable;
 }
 bool gui_get_resize_hints(const clap_plugin_t* p, clap_gui_resize_hints_t* hints)
 {
-  if(!self(p).resizable)
+  if(!gui_self(p).resizable)
     return false;
   *hints = {true, true, false, 0, 0};
   return true;
 }
 bool gui_adjust_size(const clap_plugin_t* p, uint32_t* w, uint32_t* h)
 {
-  if(!self(p).resizable)
+  if(!gui_self(p).resizable)
     return false;
   *w = std::max<uint32_t>(*w, 100);
   *h = std::max<uint32_t>(*h, 100);
@@ -108,7 +126,7 @@ bool gui_adjust_size(const clap_plugin_t* p, uint32_t* w, uint32_t* h)
 }
 bool gui_set_size(const clap_plugin_t* p, uint32_t w, uint32_t h)
 {
-  auto& s = self(p);
+  auto& s = gui_self(p);
   if(!s.resizable)
     return false;
   s.width = w;
@@ -116,21 +134,28 @@ bool gui_set_size(const clap_plugin_t* p, uint32_t w, uint32_t h)
   s.set_sizes++;
   return true;
 }
-bool gui_set_parent(const clap_plugin_t*, const clap_window_t*)
+bool gui_set_parent(const clap_plugin_t* p, const clap_window_t*)
 {
+  gui_self(p);
   return true;
 }
-bool gui_set_transient(const clap_plugin_t*, const clap_window_t*)
+bool gui_set_transient(const clap_plugin_t* p, const clap_window_t*)
 {
+  gui_self(p);
   return false;
 }
-void gui_suggest_title(const clap_plugin_t*, const char*) { }
-bool gui_show(const clap_plugin_t*)
+void gui_suggest_title(const clap_plugin_t* p, const char*)
 {
+  gui_self(p);
+}
+bool gui_show(const clap_plugin_t* p)
+{
+  gui_self(p);
   return true;
 }
-bool gui_hide(const clap_plugin_t*)
+bool gui_hide(const clap_plugin_t* p)
 {
+  gui_self(p);
   return true;
 }
 const clap_plugin_gui_t gui
@@ -178,12 +203,13 @@ factory_descriptor(const clap_plugin_factory_t*, uint32_t index)
   return index < 2 ? &descriptors[index] : nullptr;
 }
 const clap_plugin_t*
-factory_create(const clap_plugin_factory_t*, const clap_host_t*, const char* id)
+factory_create(const clap_plugin_factory_t*, const clap_host_t* host, const char* id)
 {
   const bool resizable = std::strcmp(id, resizable_id) == 0;
   if(!resizable && std::strcmp(id, fixed_id) != 0)
     return nullptr;
   auto* s = new instance;
+  s->host = host;
   s->resizable = resizable;
   s->plugin = {
       .desc = &descriptors[resizable ? 1 : 0],
@@ -229,5 +255,10 @@ CLAP_EXPORT int clap_sized_editor_size(const clap_plugin_t* p, uint32_t* w, uint
 CLAP_EXPORT double clap_sized_editor_scale(const clap_plugin_t* p)
 {
   return self(p).scale;
+}
+
+CLAP_EXPORT int clap_sized_editor_off_main_thread(const clap_plugin_t* p)
+{
+  return self(p).off_main_thread;
 }
 }

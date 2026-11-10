@@ -18,6 +18,7 @@
 #include <ossia/detail/thread.hpp>
 #include <ossia/network/domain/domain.hpp>
 
+#include <QApplication>
 #include <QDir>
 #include <QDirIterator>
 #include <QFileInfo>
@@ -76,66 +77,74 @@ clap_safe_name(const char* raw, const QString& fallback) noexcept
   return name;
 }
 
-// Host GUI callbacks
+// Host GUI callbacks. clap/ext/gui.h has them all [thread-safe]: from
+// another thread than the main one, the request is acknowledged and carried
+// out on the main thread, where the window lives.
+namespace
+{
+template <typename F>
+bool on_window(const clap_host_t* host, F f)
+{
+  auto& h = *static_cast<Clap::PluginHandle*>(host->host_data);
+  if(QThread::currentThread() == qApp->thread())
+  {
+    Clap::Model* model = h.model;
+    return model && model->window && f(*model->window);
+  }
+
+  if(!h.model)
+    return false;
+  QMetaObject::invokeMethod(h.model, [model = QPointer<Clap::Model>{h.model}, f] {
+    if(model && model->window)
+      f(*model->window);
+  }, Qt::QueuedConnection);
+  return true;
+}
+}
+
 extern "C" {
 static void resize_hints_changed(const clap_host_t* host)
 {
-  // Handle resize hints change if needed
+  on_window(host, [](Clap::Window& window) {
+    window.resizeHintsChanged();
+    return true;
+  });
 }
 
+// Off the main thread, true only says that the request is taken: the window
+// then takes a size the editor accepts, which resizeEvent gives it
 static bool request_resize(const clap_host_t* host, uint32_t width, uint32_t height)
 {
-  Clap::Model* model = static_cast<Clap::PluginHandle*>(host->host_data)->model;
-  if(!model)
-    return false;
-  auto* window = model->window;
-  if(window)
-  {
-    window->resize(width, height);
+  return on_window(host, [width, height](Clap::Window& window) {
+    window.resize(width, height);
     return true;
-  }
-  return false;
+  });
 }
 
 static bool request_show(const clap_host_t* host)
 {
-  Clap::Model* model = static_cast<Clap::PluginHandle*>(host->host_data)->model;
-  if(!model)
-    return false;
-  auto* window = model->window;
-  if(window)
-  {
-    window->show();
+  return on_window(host, [](Clap::Window& window) {
+    window.show();
     return true;
-  }
-  return false;
+  });
 }
 
 static bool request_hide(const clap_host_t* host)
 {
-  Clap::Model* model = static_cast<Clap::PluginHandle*>(host->host_data)->model;
-  if(!model)
-    return false;
-  auto* window = model->window;
-  if(window)
-  {
-    window->hide();
+  return on_window(host, [](Clap::Window& window) {
+    window.hide();
     return true;
-  }
-  return false;
+  });
 }
 
 static void closed(const clap_host_t* host, bool was_destroyed)
 {
-  Clap::Model* model = static_cast<Clap::PluginHandle*>(host->host_data)->model;
-  if(!model)
-    return;
-  auto* window = model->window;
-  if(window && was_destroyed)
-  {
-    // The plugin GUI was destroyed, we need to clean up
-    window->close();
-  }
+  // The editor destroyed its GUI: closing the window destroys it on our side
+  on_window(host, [was_destroyed](Clap::Window& window) {
+    if(was_destroyed)
+      window.close();
+    return true;
+  });
 }
 
 static std::atomic<uint32_t> g_next_timer_id{};
