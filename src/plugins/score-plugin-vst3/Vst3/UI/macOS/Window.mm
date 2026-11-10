@@ -69,7 +69,10 @@ WindowContainer createVstWindowContainer(
 
     // need to adjust the superview frame to be the same as the view frame
 
-    adjustSize(parentWindow.geometry().width(), parentWindow.geometry().height());
+    // The window's size in the editor's points
+    const double ratio = score::PluginWindow::editorPixelRatio(parentWindow);
+    adjustSize(
+        parentWindow.geometry().width() * ratio, parentWindow.geometry().height() * ratio);
 
     [superview setFrame:[m_view frame]];
 
