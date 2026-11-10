@@ -1,5 +1,5 @@
-// The DMX device's settings: the universes each transport lets one pick, and the
-// addresses the LED dialog places strips at.
+// The DMX device's settings: the universes each transport lets one pick, the
+// addresses the LED dialog places strips at, and the fixtures a device cannot output.
 
 #include <Device/Protocol/DeviceSettings.hpp>
 #include <Device/Protocol/ProtocolList.hpp>
@@ -13,6 +13,7 @@
 #include <QApplication>
 #include <QComboBox>
 #include <QDialog>
+#include <QLabel>
 #include <QPushButton>
 #include <QSpinBox>
 #include <QTimer>
@@ -212,5 +213,64 @@ TEST_CASE("An LED address stays within the device's universes", "[dmx][gui][led]
     REQUIRE(s.fixtures.size() == 1);
     CHECK(s.fixtures[0].universe == 32767);
     CHECK(s.fixtures[0].address == 512 - 48);
+  });
+}
+
+TEST_CASE("A DMX USB Pro outputs one universe and a Pro Mk2 two", "[dmx][gui][dmxusbpro]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    auto w = makeWidget(ctx);
+    Controls c{*w};
+
+    c.transport->setCurrentIndex(DMXUSBProMk2);
+    CHECK(c.universe->minimum() == 0);
+    CHECK(c.universe->maximum() == 1);
+    CHECK(c.count->maximum() == 2);
+    c.universe->setValue(1);
+    CHECK(c.count->maximum() == 1);
+
+    c.transport->setCurrentIndex(DMXUSBPro);
+    CHECK(c.universe->maximum() == 0);
+    CHECK(c.count->maximum() == 1);
+  });
+}
+
+TEST_CASE("Fixtures in a universe the device cannot output are pointed out", "[dmx][gui][dmxusbpro]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    auto w = makeWidget(ctx);
+    auto* warning = w->findChild<QLabel*>("universeWarning");
+    REQUIRE(warning);
+
+    Protocols::Artnet::Fixture first;
+    first.fixtureName = "First";
+    first.mode.channelNames = {"Dimmer"};
+    first.universe = 0;
+    Protocols::Artnet::Fixture second = first;
+    second.fixtureName = "Second";
+    second.universe = 1;
+
+    Device::DeviceSettings set;
+    set.name = "DMX";
+    set.protocol = Protocols::ArtnetProtocolFactory::static_concreteKey();
+    Protocols::ArtnetSpecificSettings in;
+    in.fixtures = {first, second};
+    in.universe_count = 2;
+
+    in.transport = Protocols::ArtnetSpecificSettings::DMXUSBPRO_Mk2;
+    set.deviceSpecificSettings = QVariant::fromValue(in);
+    w->setSettings(set);
+    CHECK(warning->isHidden());
+
+    in.transport = Protocols::ArtnetSpecificSettings::DMXUSBPRO;
+    set.deviceSpecificSettings = QVariant::fromValue(in);
+    w->setSettings(set);
+    CHECK(!warning->isHidden());
+    CHECK(warning->text().contains("Second"));
+    CHECK(!warning->text().contains("First"));
+
+    Controls c{*w};
+    c.transport->setCurrentIndex(DMXUSBProMk2);
+    CHECK(warning->isHidden());
   });
 }
