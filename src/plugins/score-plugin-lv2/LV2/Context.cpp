@@ -116,13 +116,15 @@ struct worker
     // Give back the worker buffer
     host->release_worker_data(std::move(dat));
 
-    // The instance is freed on the main thread, should this be the last of it
-    if(auto app = qApp)
-      QMetaObject::invokeMethod(
-          app, [h = std::move(instance), q = std::move(response_queue)]() mutable {
-        h.reset();
-        q.reset();
-      });
+    // The instance is freed on the main thread, when the process went away
+    // during the work: only then is this the last reference to it
+    response_queue.reset();
+    if(instance.use_count() == 1)
+    {
+      if(auto app = qApp)
+        QMetaObject::invokeMethod(app, [h = std::move(instance)]() mutable { h.reset(); });
+    }
+    instance.reset();
   }
 
   static LV2_Worker_Status
