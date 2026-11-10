@@ -17,9 +17,13 @@ csf-aux-flexible-fallback.cs	render
 csf-auxiliary-buffer.cs	blank
 csf-buffer-range-probe.cs	render
 csf-copyfrom-aux-middle.cs	blank
+csf-default-probe.cs	blank
+csf-default-producer-bare.cs	blank
+csf-default-producer-full.cs	blank
 csf-geo-aux-image-binding.cs	render
 csf-geo-aux-image-rendersize.cs	render
 csf-procgeo-producer.cs	blank
+csf-runtime-probe.cs	render
 csf-rw-copy-aux-consumer.cs	blank
 csf-rw-copy-consumer-persistent.cs	blank
 csf-rw-copy-consumer.cs	blank
