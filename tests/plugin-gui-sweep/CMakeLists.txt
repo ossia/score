@@ -25,7 +25,7 @@ score_add_test(test_plugin_gui_sweep_worker
   NO_CTEST
   PLUGINS score_plugin_clap score_plugin_vst score_plugin_vst3 score_plugin_lv2
     score_plugin_ysfx score_plugin_engine score_plugin_scenario score_plugin_media
-    score_plugin_audio score_lib_process
+    score_plugin_audio score_plugin_dataflow score_plugin_deviceexplorer score_lib_process
   LIBS Lilv sdk_common sdk_hosting ${SCORE_GUI_SWEEP_XCB} ${CMAKE_DL_LIBS})
 target_include_directories(test_plugin_gui_sweep_worker PRIVATE
   "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-clap"

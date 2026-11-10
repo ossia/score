@@ -30,6 +30,9 @@ worker is recorded as such, with the step it was in, and the worker restarts
 with the rest of its batch.
 
 Results: <out>/results.json, <out>/report.md, screenshots below <out>/shots.
+
+With --live, each plug-in is instead added to a playing document as a user
+does, its editor opened right after the drop: see tests/tools/live_phases.py.
 """
 
 import argparse
@@ -43,6 +46,9 @@ import sys
 import time
 from collections import Counter, defaultdict
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "tools"))
+import live_phases  # noqa: E402
 
 FORMATS = ("vst", "vst3", "clap", "lv2", "jsfx")
 DEFAULT_PATHS = {
@@ -377,10 +383,12 @@ def list_plugins(args, display):
 
 
 def run_jobs(args, display, plugins, mode, save=None):
-    """mode: "" or "gestures" (CLAP only)"""
+    """mode: "", "gestures" (CLAP only) or "live" """
     extra = {}
     if mode == "gestures":
         extra["SCORE_GUI_SWEEP_CLAP_GESTURES"] = "1"
+    if mode == "live":
+        extra.update(live_phases.worker_env(args))
     if args.steps:
         extra["SCORE_GUI_SWEEP_STEPS"] = args.steps
     queue = list(plugins)
@@ -592,7 +600,8 @@ def write_report(args, data, results, compare):
         out.append("| " + " | ".join(row) + " |")
     out.append("\n" + "\n".join(f"- `{c}`: {d}" for c, d in CHECKS) + "\n")
 
-    crashes = [r for r in results.values() if r.get("status") in ("crash", "hang")]
+    crashes = [r for r in results.values()
+               if r.get("status") in ("crash", "hang") and r.get("mode") != "live"]
     if crashes:
         out.append(f"## Crashes and hangs ({len(crashes)})\n")
         for r in sorted(crashes, key=lambda r: (r.get("format"), r.get("name", ""))):
@@ -675,6 +684,9 @@ def write_report(args, data, results, compare):
         rows.sort(key=lambda x: not x[0])
         out += [r for _, r in rows]
         out.append("")
+    out += live_phases.report_lines(
+        [r for r in results.values() if r.get("mode") == "live"],
+        name=lambda r: f"{r.get('format', '?')}: {r.get('name') or r.get('key') or r.get('uri')}")
     report = Path(args.out) / "report.md"
     report.write_text("\n".join(out) + "\n")
     return report
@@ -705,6 +717,7 @@ def main():
                     help="keep the results.json there and probe only what it lacks")
     ap.add_argument("--progress", action="store_true")
     ap.add_argument("--require-opt-in", action="store_true", help="skip (77) unless SCORE_PLUGIN_GUI_SWEEP=1")
+    live_phases.add_arguments(ap)
     args = ap.parse_args()
     if args.require_opt_in and os.environ.get("SCORE_PLUGIN_GUI_SWEEP") != "1":
         print("skipped: set SCORE_PLUGIN_GUI_SWEEP=1 to run the plug-in editor sweep")
@@ -768,6 +781,13 @@ def main():
                         {"plugins": data["plugins"], "list_failed": data.get("list_failed", []),
                          "results": list(merged.values())}, indent=1))
 
+                if args.live:
+                    todo = [p for p in batch if f"{p['format']}|{p['key']}#live" not in results]
+                    for uri, r in run_jobs(args, display, todo, "live",
+                                           lambda f: save(f, "#live")).items():
+                        results[uri + "#live"] = r
+                    finish_report(args, data, results, res_path)
+                    continue
                 for uri, r in run_jobs(args, display, todo, "", save).items():
                     results[uri] = r
                 if fmt == "clap" and not args.no_compare:
@@ -788,10 +808,14 @@ def main():
 
 def finish_report(args, data, results, res_path):
     for r in results.values():
-        r["verdict"] = judge(r)
+        if r.get("mode") == "live":
+            r["verdict"] = {}
+            r["live_verdicts"] = live_phases.judge(r)
+        else:
+            r["verdict"] = judge(r)
     compare = {}
     for key, r in results.items():
-        if r.get("format") != "clap":
+        if r.get("format") != "clap" or r.get("mode") == "live":
             continue
         uri = r["uri"]
         a, b = compare.get(uri, (None, None))
