@@ -31,6 +31,9 @@
 //                                  instance before score plays it: a
 //                                  difference that stays is in how score set
 //                                  the instance up, not in how it processes.
+//  SCORE_SWEEP_LIVE=1              instead of the probe, add each plug-in to a
+//                                  playing document in every way a user can
+//                                  (score_test/LivePlugin.hpp).
 //
 // Neither set, the test case has nothing to do and passes: ctest runs the
 // driver, not this.
@@ -76,6 +79,7 @@
 #include <pluginterfaces/vst/ivstprocesscontext.h>
 #include <score_test/App.hpp>
 #include <score_test/Document.hpp>
+#include <score_test/LivePlugin.hpp>
 #include <score_test/Project.hpp>
 
 #include <catch2/catch_test_macros.hpp>
@@ -1180,6 +1184,53 @@ void probe(
   out.write(j.str("status", "ran").done());
 }
 
+//! The plug-in added to a playing document in every way a user can
+void probe_live(
+    const score::GUIApplicationContext& ctx, vst3::ApplicationPlugin& plug,
+    results_file& out, const QString& bundle, const std::string& uid_str)
+{
+  const std::string uri = bundle.toStdString() + "::" + uid_str;
+  json j;
+  j.str("type", "result").str("uri", uri).str("bundle", bundle.toStdString());
+  j.str("uid", uid_str).str("mode", "live");
+
+  out.phase(uri, "load");
+  auto uid = VST3::UID::fromString(uid_str);
+  VST3::Hosting::Module::Ptr mdl;
+  try
+  {
+    mdl = plug.getModule(bundle.toStdString());
+  }
+  catch(const std::exception& e)
+  {
+    j.str("error", e.what());
+  }
+  if(!mdl || !uid)
+  {
+    out.write(j.str("status", "not-found").done());
+    return;
+  }
+  plug.vst_infos = {available_plugin(bundle, *mdl)};
+  for(const auto& cls : mdl->getFactory().classInfos())
+    if(cls.ID() == *uid)
+      j.str("name", cls.name()).str("vendor", cls.vendor());
+
+  // What the library drags for it
+  score::test::live::options opt;
+  opt.what = {
+      Metadata<ConcreteKey_k, vst3::Model>::get(), {}, QString::fromStdString(uid_str)};
+  opt.only = score::test::live::requested_phases();
+  score::test::live::verdicts res;
+  score::test::live::recorder rec;
+  rec.phase = [&](std::string_view phase) { out.phase(uri, std::string{phase}.c_str()); };
+  rec.result = [&](std::string_view phase, std::string_view verdict, std::string_view detail) {
+    res.add(phase, verdict, detail);
+  };
+  score::test::live::run(ctx, opt, rec);
+  j.raw("live", res.json());
+  out.write(j.str("status", "ran").done());
+}
+
 //! The audio classes of each bundle, loaded as score's scanner loads them
 void scan(vst3::ApplicationPlugin& plug, const QStringList& bundles, results_file& out)
 {
@@ -1263,6 +1314,13 @@ TEST_CASE("VST3 system sweep worker", "[vst3][sweep]")
     {
       results_file out{results};
       scan(plug, read_lines(scan_jobs), out);
+      return;
+    }
+    if(score::test::live::requested())
+    {
+      results_file out{results};
+      for(auto& [bundle, uid] : todo)
+        probe_live(ctx, plug, out, bundle, uid);
       return;
     }
     auto* doc = score::test::new_document(ctx);

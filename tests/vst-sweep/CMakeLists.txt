@@ -18,7 +18,8 @@ score_add_test(test_vst_sweep_worker
   SOURCES VSTSweepWorker.cpp ${_vst_sweep_loader}
   APP
   NO_CTEST
-  PLUGINS score_plugin_vst score_plugin_audio score_lib_process)
+  PLUGINS score_plugin_vst score_plugin_audio score_lib_process score_plugin_scenario
+    score_plugin_engine score_plugin_dataflow score_plugin_deviceexplorer)
 target_include_directories(test_vst_sweep_worker PRIVATE
   "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-vst")
 

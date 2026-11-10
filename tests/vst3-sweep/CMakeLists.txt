@@ -11,7 +11,7 @@ score_add_test(test_vst3_sweep_worker
   APP
   NO_CTEST
   PLUGINS score_plugin_vst3 score_plugin_dataflow score_plugin_engine score_plugin_scenario
-    score_plugin_media score_plugin_audio score_lib_process
+    score_plugin_media score_plugin_audio score_plugin_deviceexplorer score_lib_process
   LIBS sdk_common sdk_hosting)
 target_include_directories(test_vst3_sweep_worker PRIVATE
   "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-vst3")
