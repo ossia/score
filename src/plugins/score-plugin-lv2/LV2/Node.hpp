@@ -575,8 +575,12 @@ struct lv2_node final : public ossia::graph_node
     LV2_Atom_Forge_Frame frame;
     lv2_atom_forge_object(&forge, &frame, 0, host.time_Position_id);
 
+    // The playhead at the first sample of this run. m_transport_frames is
+    // only updated once a node has run: it is that of the previous tick.
     lv2_atom_forge_key(&forge, host.time_frame_id);
-    lv2_atom_forge_long(&forge, this->m_transport_frames);
+    lv2_atom_forge_long(
+        &forge, tk.speed != 0. ? tk.start_date_to_physical(st.modelToSamples())
+                               : this->m_transport_frames);
 
     lv2_atom_forge_key(&forge, host.time_framesPerSecond_id);
     lv2_atom_forge_long(&forge, st.sampleRate());

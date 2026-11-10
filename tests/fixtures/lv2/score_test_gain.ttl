@@ -131,6 +131,16 @@
         lv2:index 2 ;
         lv2:symbol "starts" ;
         lv2:name "Starts"
+    ] , [
+        a lv2:ControlPort, lv2:OutputPort ;
+        lv2:index 3 ;
+        lv2:symbol "frame" ;
+        lv2:name "Frame"
+    ] , [
+        a lv2:ControlPort, lv2:OutputPort ;
+        lv2:index 4 ;
+        lv2:symbol "beat" ;
+        lv2:name "Beat"
     ] .
 
 # No activate(): counts its runs since it was instantiated.

@@ -175,15 +175,21 @@ static const LV2_Descriptor descriptor_notify
  *   0  atom in     "control"  atom:Sequence, supports time:Position
  *   1  control out "speed"    the last time:speed received
  *   2  control out "starts"   how many times the speed went from 0 to non-0
+ *   3  control out "frame"    the last time:frame received
+ *   4  control out "beat"     the last time:beat received
  */
 typedef struct
 {
   const LV2_Atom_Sequence* in;
   float* speed_out;
   float* starts_out;
-  LV2_URID object, position, speed_key;
+  float* frame_out;
+  float* beat_out;
+  LV2_URID object, position, speed_key, frame_key, beat_key;
   float speed;
   float starts;
+  float frame;
+  float beat;
 } test_transport;
 
 static LV2_Handle instantiate_transport(
@@ -203,6 +209,8 @@ static LV2_Handle instantiate_transport(
   self->object = map->map(map->handle, LV2_ATOM__Object);
   self->position = map->map(map->handle, LV2_TIME__Position);
   self->speed_key = map->map(map->handle, LV2_TIME__speed);
+  self->frame_key = map->map(map->handle, LV2_TIME__frame);
+  self->beat_key = map->map(map->handle, LV2_TIME__beat);
   return self;
 }
 
@@ -215,6 +223,10 @@ static void connect_port_transport(LV2_Handle instance, uint32_t port, void* dat
     self->speed_out = (float*)data;
   else if(port == 2)
     self->starts_out = (float*)data;
+  else if(port == 3)
+    self->frame_out = (float*)data;
+  else if(port == 4)
+    self->beat_out = (float*)data;
 }
 
 static void run_transport(LV2_Handle instance, uint32_t n_samples)
@@ -231,7 +243,15 @@ static void run_transport(LV2_Handle instance, uint32_t n_samples)
       if(obj->body.otype != self->position)
         continue;
       const LV2_Atom* speed = NULL;
-      lv2_atom_object_get(obj, self->speed_key, &speed, 0);
+      const LV2_Atom* frame = NULL;
+      const LV2_Atom* beat = NULL;
+      lv2_atom_object_get(
+          obj, self->speed_key, &speed, self->frame_key, &frame, self->beat_key, &beat,
+          0);
+      if(frame && frame->size == sizeof(int64_t))
+        self->frame = (float)((const LV2_Atom_Long*)frame)->body;
+      if(beat && beat->size == sizeof(double))
+        self->beat = (float)((const LV2_Atom_Double*)beat)->body;
       if(!speed || speed->size != sizeof(float))
         continue;
       const float s = ((const LV2_Atom_Float*)speed)->body;
@@ -244,6 +264,10 @@ static void run_transport(LV2_Handle instance, uint32_t n_samples)
     *self->speed_out = self->speed;
   if(self->starts_out)
     *self->starts_out = self->starts;
+  if(self->frame_out)
+    *self->frame_out = self->frame;
+  if(self->beat_out)
+    *self->beat_out = self->beat;
 }
 
 /* activate() leaves the transport state alone, so the instance keeps it
