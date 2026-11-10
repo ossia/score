@@ -1,7 +1,9 @@
-// A parameter moved in a VST3 plug-in's editor while nothing plays is in the
-// document saved then: its processor, whose state is what gets saved, only
-// learns values from process(), but the control has it. Made with
-// vst3-fixtures/EditedGain, a gain written with the SDK's classes.
+// What a VST3 plug-in's editor does is kept and let go of as it should be.
+// A parameter moved in the editor while nothing plays is in the document
+// saved then: its processor, whose state is what gets saved, only learns
+// values from process(), but the control has it. What the editor registered
+// with the host's run loop goes with it. Made with vst3-fixtures/EditedGain, a
+// gain written with the SDK's classes.
 
 #include <Process/Dataflow/Port.hpp>
 
@@ -10,6 +12,8 @@
 #include <Vst3/ApplicationPlugin.hpp>
 #include <Vst3/EditHandler.hpp>
 #include <Vst3/EffectModel.hpp>
+
+#include <Effect/EffectLayer.hpp>
 
 #include <core/document/Document.hpp>
 
@@ -20,10 +24,13 @@
 #include <ossia/network/value/value_conversion.hpp>
 
 #include <QCoreApplication>
+#include <QElapsedTimer>
 
 #include <catch2/catch_approx.hpp>
 #include <catch2/catch_test_macros.hpp>
 #include <pluginterfaces/vst/ivstaudioprocessor.h>
+
+#include <dlfcn.h>
 
 namespace
 {
@@ -46,6 +53,32 @@ QString processor_uid(vst3::ApplicationPlugin& plug)
   p.isValid = true;
   plug.vst_infos = {p};
   return uid;
+}
+
+void spin(int ms)
+{
+  QElapsedTimer t;
+  t.start();
+  while(t.elapsed() < ms)
+    QCoreApplication::processEvents();
+}
+
+struct handler_calls
+{
+  int stale, live, refused;
+};
+handler_calls calls()
+{
+  void* lib = dlopen(
+      SCORE_VST3_EDITED_GAIN "/Contents/x86_64-linux/score-test-edited-gain.so",
+      RTLD_LAZY | RTLD_NOLOAD);
+  REQUIRE(lib);
+  auto f = reinterpret_cast<void (*)(int*, int*, int*)>(
+      dlsym(lib, "score_test_edited_gain_handler_calls"));
+  REQUIRE(f);
+  handler_calls c{};
+  f(&c.stale, &c.live, &c.refused);
+  return c;
 }
 
 Process::ControlInlet* gain_control(Process::ProcessModel& proc)
@@ -101,5 +134,39 @@ TEST_CASE(
     CHECK(loaded.fx.controller->getParamNormalized(0) == Catch::Approx(0.8));
     // The processor, which only learns it by playing, is given it then
     CHECK(loaded.fx.unsentParameters.contains(0));
+  });
+}
+
+TEST_CASE(
+    "VST3: what an editor registered with the run loop goes with the editor",
+    "[vst3][ui]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    auto& plug = ctx.applicationPlugin<vst3::ApplicationPlugin>();
+    const QString uid = processor_uid(plug);
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    auto* proc = score::test::add_process(*doc, vst3_uuid, uid);
+    REQUIRE(proc);
+
+    Process::setupExternalUI(*proc, doc->context(), true);
+    spin(200);
+    REQUIRE(proc->externalUI);
+    const auto opened = calls();
+    CHECK(opened.live > 0);
+
+    // The editor lets go of its handler without unregistering it
+    Process::setupExternalUI(*proc, doc->context(), false);
+    spin(300);
+    CHECK(calls().stale == 0);
+
+    // A new editor watches the same descriptor, as one reusing its
+    // connection to the X server does
+    Process::setupExternalUI(*proc, doc->context(), true);
+    spin(200);
+    CHECK(calls().refused == opened.refused);
+    Process::setupExternalUI(*proc, doc->context(), false);
+    spin(300);
+    CHECK(calls().stale == 0);
   });
 }

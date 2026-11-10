@@ -3,13 +3,26 @@
 // the gain only from process() and keeps it in its state; its controller
 // takes it from that state. An editor moving the gain sets it on the
 // controller and tells the host with performEdit, as the SDK's editors do.
+//
+// Its editor draws nothing. Attached, it has the host's run loop watch a
+// file descriptor that is always readable, the same for all its editors;
+// removed, it lets go of the handler without unregistering it, as the editors
+// of Swanky Amp and Vitalium do:
+// score_test_edited_gain_handler_calls() counts the calls it gets afterwards.
 
 #include <base/source/fstreamer.h>
 #include <pluginterfaces/base/ibstream.h>
+#include <pluginterfaces/gui/iplugview.h>
 #include <pluginterfaces/vst/ivstparameterchanges.h>
+#include <public.sdk/source/common/pluginview.h>
 #include <public.sdk/source/main/pluginfactory.h>
 #include <public.sdk/source/vst/vstaudioeffect.h>
 #include <public.sdk/source/vst/vsteditcontroller.h>
+
+#include <atomic>
+#include <cstring>
+
+#include <unistd.h>
 
 using namespace Steinberg;
 using namespace Steinberg::Vst;
@@ -83,9 +96,92 @@ public:
   double gain{0.5};
 };
 
+std::atomic<int> g_stale_calls{}, g_calls{}, g_refused{};
+
+//! Lives on after its view, as a handler a plug-in forgot does
+struct FdHandler final : public Linux::IEventHandler
+{
+  bool view_alive{true};
+  void PLUGIN_API onFDIsSet(Linux::FileDescriptor) override
+  {
+    (view_alive ? g_calls : g_stale_calls)++;
+  }
+  tresult PLUGIN_API queryInterface(const TUID iid, void** obj) override
+  {
+    if(FUnknownPrivate::iidEqual(iid, Linux::IEventHandler::iid)
+       || FUnknownPrivate::iidEqual(iid, FUnknown::iid))
+    {
+      *obj = this;
+      return kResultOk;
+    }
+    *obj = nullptr;
+    return kNoInterface;
+  }
+  uint32 PLUGIN_API addRef() override { return 1; }
+  uint32 PLUGIN_API release() override { return 1; }
+};
+
+class View final : public CPluginView
+{
+public:
+  View()
+      : CPluginView{nullptr}
+  {
+    ViewRect r{0, 0, 200, 100};
+    setRect(r);
+  }
+
+  tresult PLUGIN_API isPlatformTypeSupported(FIDString type) override
+  {
+    return std::strcmp(type, kPlatformTypeX11EmbedWindowID) == 0 ? kResultTrue
+                                                                 : kResultFalse;
+  }
+
+  tresult PLUGIN_API attached(void* parent, FIDString type) override
+  {
+    Linux::IRunLoop* loop{};
+    if(plugFrame
+       && plugFrame->queryInterface(Linux::IRunLoop::iid, (void**)&loop) == kResultOk
+       && loop)
+    {
+      // One descriptor for all its editors, as their connection to the X
+      // server is
+      static const int fd = [] {
+        int fds[2]{-1, -1};
+        if(::pipe(fds) == 0)
+          (void)!::write(fds[1], "x", 1);
+        return fds[0];
+      }();
+      if(fd >= 0)
+      {
+        handler = new FdHandler;
+        if(loop->registerEventHandler(handler, fd) != kResultTrue)
+          g_refused++;
+      }
+    }
+    return CPluginView::attached(parent, type);
+  }
+
+  tresult PLUGIN_API removed() override
+  {
+    // Not unregistered: the handler is left to the host's run loop
+    if(handler)
+      handler->view_alive = false;
+    handler = nullptr;
+    return CPluginView::removed();
+  }
+
+  FdHandler* handler{};
+};
+
 class Controller final : public EditController
 {
 public:
+  IPlugView* PLUGIN_API createView(FIDString name) override
+  {
+    return name && std::strcmp(name, ViewType::kEditor) == 0 ? new View : nullptr;
+  }
+
   static FUnknown* create(void*) { return static_cast<IEditController*>(new Controller); }
 
   tresult PLUGIN_API initialize(FUnknown* context) override
@@ -119,3 +215,13 @@ DEF_CLASS2(
     kVstComponentControllerClass, "Edited gain controller", 0, "", "1.0.0",
     kVstVersionString, Controller::create)
 END_FACTORY
+
+//! Calls a view's event handler got after the view was removed, calls while
+//! it was there, registrations the host refused
+extern "C" SMTG_EXPORT_SYMBOL void
+score_test_edited_gain_handler_calls(int* stale, int* live, int* refused)
+{
+  *stale = g_stale_calls;
+  *live = g_calls;
+  *refused = g_refused;
+}
