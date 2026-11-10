@@ -1438,7 +1438,9 @@ TEST_CASE("lv2_node tells each run the transport position of its own first sampl
         tk.musical_start_position = double(t.prev) / 24000.;
         tk.musical_end_position = double(t.date) / 24000.;
 
-        // As the graph runs a node: the time it covered is accounted for after
+        // As the graph runs a node: where the tick starts first, the time it
+        // covered after
+        node.begin_request(tk, st);
         static_cast<ossia::graph_node&>(node).run(tk, ossia::exec_state_facade{&st});
         node.process_time(tk, st);
         frames.push_back(node.voices[0]->fOutControls[2]);

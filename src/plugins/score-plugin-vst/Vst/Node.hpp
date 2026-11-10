@@ -181,10 +181,8 @@ public:
   void setupTimeInfo(const ossia::token_request& tk, ossia::exec_state_facade st)
   {
     auto& time_info = fx->info;
-    // The playhead at the first sample of this block. m_transport_frames is
-    // only updated once a node has run: it is that of the previous tick.
-    time_info.samplePos = tk.speed != 0. ? tk.start_date_to_physical(st.modelToSamples())
-                                         : this->m_transport_frames;
+    // The playhead at the first sample of this block
+    time_info.samplePos = this->m_transport_frames;
     m_backwards = tk.speed < 0.;
     time_info.sampleRate = st.sampleRate();
     time_info.nanoSeconds = st.currentDate() - st.startDate();

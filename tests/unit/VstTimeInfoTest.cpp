@@ -173,7 +173,9 @@ TEST_CASE(
       tk.start_sample = t.start_sample;
       tk.length_sample = t.length;
       tk.speed = t.speed;
-      // As the graph runs a node: the time it covered is accounted for after
+      // As the graph runs a node: where the tick starts first, the time it
+      // covered after
+      node.begin_request(tk, state);
       node.run(tk, ossia::exec_state_facade{&state});
       node.process_time(tk, state);
       expected.push_back(double(tk.start_date_to_physical(state.modelToSamplesRatio)));
@@ -209,6 +211,7 @@ TEST_CASE(
       tk.start_sample = 0;
       tk.length_sample = 1024;
       tk.speed = speed;
+      node.begin_request(tk, state);
       node.run(tk, ossia::exec_state_facade{&state});
       node.process_time(tk, state);
     }

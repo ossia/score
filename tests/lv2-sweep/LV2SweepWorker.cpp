@@ -361,6 +361,9 @@ run_stats play(
   ossia::execution_state st;
   st.sampleRate = rate;
   st.bufferSize = block;
+  // The dates of the ticks are in flicks, as the engine's
+  st.modelToSamplesRatio = rate / ossia::flicks_per_second<double>;
+  st.samplesToModelRatio = ossia::flicks_per_second<double> / rate;
 
   sweep_node node{data, rate, LV2::choose_voice_strategy(data), {}, {}};
   for(std::size_t i = model.m_controlInStart; i < model.inlets().size(); i++)
@@ -440,8 +443,12 @@ run_stats play(
         120.};
     tk.start_sample = 0;
     tk.length_sample = block;
+    // As the graph runs a node: where the tick starts, the run, then the
+    // frames it covered
+    node.begin_request(tk, st);
     ossia::exec_state_facade fac{&st};
     static_cast<ossia::graph_node&>(node).run(tk, fac);
+    node.process_time(tk, st);
 
     if(trace && midi_in > 0 && !stim.notes(frame, block).empty())
     {
