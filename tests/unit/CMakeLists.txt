@@ -1308,6 +1308,13 @@ if(TARGET score_plugin_vst3)
   target_include_directories(test_unit_vst3_scan_reply PRIVATE
     "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-vst3")
 
+  # A resizable editor follows its window, at a size it takes.
+  score_add_test(test_unit_vst3_window_resize
+    SOURCES Vst3WindowResizeTest.cpp
+    LIBS sdk_common ${QT_PREFIX}::Widgets)
+  target_include_directories(test_unit_vst3_window_resize PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-vst3")
+
   # A system-exclusive message reaches a VST 3 plug-in as one kMidiSysEx event.
   score_add_test(test_unit_vst3_midi_events
     SOURCES Vst3MidiEventsTest.cpp

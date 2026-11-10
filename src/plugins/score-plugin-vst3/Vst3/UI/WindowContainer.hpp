@@ -112,19 +112,22 @@ struct WindowContainer
   {
     if(view.canResize() != Steinberg::kResultTrue)
       return;
-    return;
 
     const double scale = qtScaleFactor(parentWindow);
-    int qw = sz.width();
-    int qh = sz.height();
     Steinberg::ViewRect r;
     r.top = 0;
     r.left = 0;
     r.right = sz.width() / scale;
     r.bottom = sz.height() / scale;
+    // The plug-in may only take some sizes: the window takes the one it chose
     view.checkSizeConstraint(&r);
+    if(r.getWidth() <= 0 || r.getHeight() <= 0)
+      return;
+    const int qw = r.getWidth() * scale;
+    const int qh = r.getHeight() * scale;
 
-    parentWindow.resize(QSize(qw, qh));
+    if(parentWindow.size() != QSize(qw, qh))
+      parentWindow.resize(QSize(qw, qh));
 
     if(qwindow)
     {
