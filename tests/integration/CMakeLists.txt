@@ -2031,6 +2031,23 @@ score_add_test(test_integration_record_while_playing
   GUI
   PLUGINS score_plugin_engine score_plugin_scenario score_lib_process)
 
+# Plug-ins added to a document while it plays.
+if(TARGET score_plugin_lv2)
+  score_add_test(test_integration_plugin_add_while_playing
+    SOURCES PluginAddWhilePlayingTest.cpp
+    APP
+    PLUGINS score_plugin_engine score_plugin_scenario score_lib_process
+            score_plugin_audio score_plugin_deviceexplorer score_plugin_lv2
+    LIBS Lilv)
+  target_include_directories(test_integration_plugin_add_while_playing PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-lv2"
+    "${LV2_PATH}"
+    $<TARGET_PROPERTY:Suil,INTERFACE_INCLUDE_DIRECTORIES>)
+  add_dependencies(test_integration_plugin_add_while_playing score_test_gain_lv2)
+  target_compile_definitions(test_integration_plugin_add_while_playing PRIVATE
+    SCORE_TEST_LV2_BUNDLE="${SCORE_ROOT_BINARY_DIR}/tests/lv2/score-test-gain.lv2")
+endif()
+
 # Triggers and conditions on an absent or disconnected device do not hold.
 if(TARGET score AND NOT EMSCRIPTEN)
   score_add_test(test_integration_missing_device_trigger

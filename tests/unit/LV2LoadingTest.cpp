@@ -1452,3 +1452,52 @@ TEST_CASE("lv2_node tells each run the transport position of its own first sampl
     QCoreApplication::processEvents();
   });
 }
+
+// An output a plug-in does not write keeps the atom:Chunk the host gave it:
+// its bytes are what the buffer held before, often the leftovers of other
+// allocations, not events. Read as a sequence, a leftover that looks like a
+// note goes out of the MIDI outlet, and one with a huge size had the host
+// grow a message to it and abort.
+TEST_CASE("an LV2 output the plug-in does not write holds no events", "[lv2]")
+{
+  prepare_lv2_test_environment();
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    auto& plug = setupLV2(ctx);
+    fixture_plugin p{plug, "urn:score:test:mute", "Score Test Mute", true};
+    LV2::LV2Data data{plug.lv2_host_context, p.effect};
+    REQUIRE(data.midi_out_ports.size() == 1);
+
+    {
+      hooked_node node{data, 48000, {LV2::voice_routing::single, 1}, {}, {}};
+      auto& buf = *node.voices[0]->midi_atom_outs[0].buf;
+      REQUIRE(buf.atoms.atom.type == plug.lv2_host_context.atom_chunk_id);
+
+      // Leftovers that read as a note-on, then as an event larger than the
+      // buffer
+      auto* ev = reinterpret_cast<LV2_Atom_Event*>(&buf.atoms.body + 1);
+      ev->time.frames = 0;
+      ev->body.type = plug.lv2_host_context.midi_event_id;
+      ev->body.size = 3;
+      const uint8_t note_on[3]{0x90, 60, 100};
+      std::memcpy(ev + 1, note_on, 3);
+      auto* next = reinterpret_cast<LV2_Atom_Event*>(
+          reinterpret_cast<uint8_t*>(ev) + sizeof(LV2_Atom_Event) + 8);
+      next->time.frames = 0;
+      next->body.type = plug.lv2_host_context.midi_event_id;
+      next->body.size = 0x7fffff00;
+
+      int seen = 0;
+      node.on_finished.fn = [&] {
+        node.voices[0]->midi_atom_outs[0].buf->for_each_output_event(
+            [&](const LV2_Atom_Event&) { seen++; });
+      };
+
+      ossia::execution_state st;
+      run_node(node, st);
+      CHECK(seen == 0);
+      auto& midi = node.root_outputs()[1]->cast<ossia::midi_port>();
+      CHECK(midi.messages.empty());
+    }
+    QCoreApplication::processEvents();
+  });
+}

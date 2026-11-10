@@ -828,13 +828,12 @@ struct lv2_node final : public ossia::graph_node
       auto& lv2_port = v0.midi_atom_outs[i];
       auto& conv = v0.midi_1to2[i];
 
-      LV2_ATOM_SEQUENCE_FOREACH(&lv2_port.buf->atoms, ev)
-      {
-        if(ev->body.type == data.host.midi_event_id)
+      lv2_port.buf->for_each_output_event([&](const LV2_Atom_Event& ev) {
+        if(ev.body.type == data.host.midi_event_id)
         {
-          auto bytes = (uint8_t*)LV2_ATOM_BODY_CONST(&ev->body);
+          auto bytes = (const uint8_t*)LV2_ATOM_BODY_CONST(&ev.body);
           conv.convert(
-              bytes, ev->body.size, ev->time.frames,
+              bytes, ev.body.size, ev.time.frames,
               [&](const uint32_t* ump, int count, int64_t ts) {
             libremidi::ump u;
             std::copy_n(ump, std::min(count, 4), u.data);
@@ -846,7 +845,7 @@ struct lv2_node final : public ossia::graph_node
         // Other events on a MIDI port are for the plug-in's UI (on_finish
         // forwards them); FIXME also forward them (patch:Set...) to a value
         // outlet.
-      }
+      });
     }
 
     const auto control_start

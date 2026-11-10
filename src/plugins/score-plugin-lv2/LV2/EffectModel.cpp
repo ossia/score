@@ -1215,10 +1215,8 @@ void on_finish::operator()()
     int port_index = node.data.midi_out_ports[k];
     auto& buf = v0.midi_atom_outs[k];
 
-    LV2_ATOM_SEQUENCE_FOREACH(&buf.buf->atoms, ev)
-    {
-      p->writeAtomToUi(port_index, ev->body);
-    }
+    buf.buf->for_each_output_event(
+        [&](const LV2_Atom_Event& ev) { p->writeAtomToUi(port_index, ev.body); });
   }
 }
 
@@ -1383,7 +1381,7 @@ void LV2EffectComponent::writeAtomToUi(
   process().plugin_events.enqueue(std::move(ev));
 }
 
-void LV2EffectComponent::writeAtomToUi(uint32_t port_index, LV2_Atom& atom)
+void LV2EffectComponent::writeAtomToUi(uint32_t port_index, const LV2_Atom& atom)
 {
   auto& p = score::GUIAppContext().applicationPlugin<LV2::ApplicationPlugin>();
 

@@ -119,7 +119,7 @@ public:
 
   void
   writeAtomToUi(uint32_t port_index, uint32_t type, uint32_t size, const void* body);
-  void writeAtomToUi(uint32_t port_index, LV2_Atom& atom);
+  void writeAtomToUi(uint32_t port_index, const LV2_Atom& atom);
 
 private:
   // per_channel voice-pool grower (main thread). Audio thread pushes high-water mark.
