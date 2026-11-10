@@ -41,13 +41,16 @@
 
 #include <lilv/lilvmm.hpp>
 
+#include <blockingconcurrentqueue.h>
 #include <readerwriterqueue.h>
+#include <smallfun.hpp>
 
 #include <atomic>
 #include <cstdarg>
 #include <cstdio>
 #include <functional>
 #include <memory>
+#include <thread>
 #include <vector>
 
 #include <score_plugin_lv2_export.h>
@@ -57,6 +60,21 @@ namespace LV2
 {
 struct EffectContext;
 struct GlobalContext;
+struct InstanceHandle;
+// shared_ptr<InstanceHandle>: refcounted LilvInstance. Last drop MUST be on the main thread.
+using SharedInstance = std::shared_ptr<InstanceHandle>;
+using WorkerResponses = ossia::mpmc_queue<std::vector<char>>;
+
+//! What a plug-in's schedule_work reaches: the instance of the voice that
+//! runs, its worker interface and the queue its answers go to. The audio node
+//! sets it around each run; outside of one, a plug-in cannot schedule work.
+struct WorkerRoute
+{
+  const SharedInstance* instance{};
+  const LV2_Worker_Interface* iface{};
+  const std::shared_ptr<WorkerResponses>* responses{};
+};
+
 struct HostContext
 {
   Lilv::Node make_node(const char* desc)
@@ -160,11 +178,9 @@ struct HostContext
 
   ossia::mpmc_queue<std::vector<char>> worker_datas_pool{};
 
-  // Set by the audio node per-voice so work_schedule routes to the right queue
-  ossia::mpmc_queue<std::vector<char>>* current_worker_datas{};
+  const WorkerRoute* current_worker{};
 };
 
-// shared_ptr<InstanceHandle>: refcounted LilvInstance. Last drop MUST be on the main thread.
 struct InstanceHandle
 {
   LilvInstance* instance{};
@@ -192,21 +208,37 @@ struct InstanceHandle
   }
 };
 
-using SharedInstance = std::shared_ptr<InstanceHandle>;
-
 struct EffectContext
 {
   Lilv::Plugin plugin{nullptr};
   // alias for instance_holder->instance
   LilvInstance* instance{};
   SharedInstance instance_holder{};
-  const LV2_Worker_Interface* worker{};
   LV2_Extension_Data_Feature data{};
   const LilvUI* ui{};
   const LilvNode* ui_type{};
   SuilInstance* ui_instance{};
+};
 
-  ossia::mpmc_queue<std::vector<char>> worker_datas;
+//! Runs the works the plug-ins schedule, one after the other: an instance
+//! never has two at once, as the worker extension requires, and the
+//! convolvers that plan their FFTs in a work (zita-convolver) never run FFTW's
+//! planner, which is not reentrant, on two threads.
+class SCORE_PLUGIN_LV2_EXPORT WorkerThread
+{
+public:
+  using task = smallfun::function<void(), 128, 8, smallfun::Methods::Move>;
+  WorkerThread();
+  ~WorkerThread();
+  WorkerThread(const WorkerThread&) = delete;
+  WorkerThread& operator=(const WorkerThread&) = delete;
+
+  void post(task&& t) { m_queue.enqueue(std::move(t)); }
+
+private:
+  moodycamel::BlockingConcurrentQueue<task> m_queue;
+  std::atomic_bool m_running{true};
+  std::thread m_thread;
 };
 
 struct SCORE_PLUGIN_LV2_TEST_EXPORT GlobalContext
@@ -221,6 +253,7 @@ public:
 
   using urid_map_t = boost::bimap<std::string, LV2_URID>;
   LV2::HostContext& host;
+  WorkerThread works;
   //! The rate the audio runs at; a double, as the lv2:sampleRate option
   //! points at it as an atom:Double.
   double sampleRate = 44100.;

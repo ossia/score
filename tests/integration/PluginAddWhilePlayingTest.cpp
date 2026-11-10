@@ -37,6 +37,10 @@
 
 #include <vector>
 
+#if __has_include(<dlfcn.h>)
+#include <dlfcn.h>
+#endif
+
 namespace
 {
 void spin(int ms)
@@ -195,6 +199,65 @@ TEST_CASE(
     }
   });
 }
+
+#if __has_include(<dlfcn.h>)
+// A plug-in that loads a file through its worker, as convolvers and amp
+// simulators do: the work is done on a thread of score's and its answer
+// reaches the plug-in. A work still running when the process is removed keeps
+// the instance it works on until it is done. Works run one at a time: those
+// of zita-convolver plan FFTs, which FFTW cannot do on two threads at once.
+TEST_CASE(
+    "an LV2 plug-in's work is done, and outlives the removal of its process",
+    "[integration][execution][lv2]")
+{
+  qputenv("LV2_PATH", lv2_bundle().toUtf8());
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    setup_lv2(ctx, {{lv2_bundle(), "urn:score:test:worker"}});
+    playing_document play{ctx};
+
+    const auto lib = (lv2_bundle() + "/score_test_gain.so").toUtf8();
+    void* h = dlopen(lib.constData(), RTLD_NOW);
+    REQUIRE(h);
+    using counter = int (*)();
+    auto done = reinterpret_cast<counter>(dlsym(h, "score_test_worker_done"));
+    auto responses = reinterpret_cast<counter>(dlsym(h, "score_test_worker_responses"));
+    auto after_cleanup
+        = reinterpret_cast<counter>(dlsym(h, "score_test_worker_after_cleanup"));
+    REQUIRE(done);
+    REQUIRE(responses);
+    REQUIRE(after_cleanup);
+    auto concurrent = reinterpret_cast<counter>(dlsym(h, "score_test_worker_concurrent"));
+    REQUIRE(concurrent);
+
+    // One that keeps playing: its work is done and answered
+    REQUIRE(drop_on_interval(
+                *play.doc, root(*play.doc), process_data(lv2_key, "urn:score:test:worker"))
+                .size()
+            == 1);
+    spin(800);
+    // Each instance the process runs schedules one
+    const int first = done();
+    CHECK(first >= 1);
+    CHECK(responses() == first);
+
+    // Two at once, whose works would overlap; the second removed while its
+    // work runs
+    drop_on_interval(
+        *play.doc, root(*play.doc), process_data(lv2_key, "urn:score:test:worker"));
+    auto added = drop_on_interval(
+        *play.doc, root(*play.doc), process_data(lv2_key, "urn:score:test:worker"));
+    REQUIRE(added.size() == 1);
+    spin(100);
+    CommandDispatcher<>{play.doc->context().commandStack}.submit(
+        new Scenario::Command::RemoveProcessFromInterval{root(*play.doc), added[0]->id()});
+    spin(1600);
+    CHECK(done() > first);
+    CHECK(after_cleanup() == 0);
+    CHECK(concurrent() == 0);
+    dlclose(h);
+  });
+}
+#endif
 
 TEST_CASE(
     "an installed LV2 plug-in dropped while playing runs",

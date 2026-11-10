@@ -11,11 +11,17 @@
 #include <lv2/lv2plug.in/ns/ext/atom/util.h>
 #include <lv2/lv2plug.in/ns/ext/time/time.h>
 #include <lv2/lv2plug.in/ns/ext/urid/urid.h>
+#include <lv2/lv2plug.in/ns/ext/worker/worker.h>
 #include <lv2/lv2plug.in/ns/lv2core/lv2.h>
 
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
+#ifdef _WIN32
+#include <windows.h>
+#else
+#include <unistd.h>
+#endif
 
 #define SCORE_TEST_GAIN_URI "urn:score:test:gain"
 
@@ -662,6 +668,143 @@ static const LV2_Descriptor descriptor_mute
     = {"urn:score:test:mute", instantiate_mute, connect_port_mute, NULL,
        run_mute,              NULL,             cleanup,           NULL};
 
+/* urn:score:test:worker
+ *   0  audio in   "in"
+ *   1  audio out  "out": the input
+ * Its first run schedules one work, which takes 300 ms, as loading a file
+ * does. score_test_worker_done() counts the works that ran,
+ * score_test_worker_responses() the answers that reached the plug-in,
+ * score_test_worker_after_cleanup() the works that ran on an instance
+ * already cleaned up: its memory is kept, marked, so that they can be told.
+ * score_test_worker_concurrent() counts the works that began while another
+ * one ran.
+ */
+#define SCORE_TEST_WORKER_ALIVE 0x600dU
+#define SCORE_TEST_WORKER_DEAD 0xdeadU
+static volatile int worker_done;
+static volatile int worker_responses;
+static volatile int worker_after_cleanup;
+static int worker_running;
+static volatile int worker_concurrent;
+LV2_SYMBOL_EXPORT int score_test_worker_concurrent(void)
+{
+  return worker_concurrent;
+}
+LV2_SYMBOL_EXPORT int score_test_worker_done(void)
+{
+  return worker_done;
+}
+LV2_SYMBOL_EXPORT int score_test_worker_responses(void)
+{
+  return worker_responses;
+}
+LV2_SYMBOL_EXPORT int score_test_worker_after_cleanup(void)
+{
+  return worker_after_cleanup;
+}
+
+typedef struct
+{
+  unsigned magic;
+  const float* in;
+  float* out;
+  LV2_Worker_Schedule* schedule;
+  int scheduled;
+} test_worker;
+
+static LV2_Handle instantiate_worker(
+    const LV2_Descriptor* descriptor, double rate, const char* bundle_path,
+    const LV2_Feature* const* features)
+{
+  (void)descriptor;
+  (void)rate;
+  (void)bundle_path;
+  test_worker* self = (test_worker*)calloc(1, sizeof(test_worker));
+  if(!self)
+    return NULL;
+  self->magic = SCORE_TEST_WORKER_ALIVE;
+  for(int i = 0; features && features[i]; i++)
+    if(!strcmp(features[i]->URI, LV2_WORKER__schedule))
+      self->schedule = (LV2_Worker_Schedule*)features[i]->data;
+  return self;
+}
+
+static void connect_port_worker(LV2_Handle instance, uint32_t port, void* data)
+{
+  test_worker* self = (test_worker*)instance;
+  if(port == 0)
+    self->in = (const float*)data;
+  else if(port == 1)
+    self->out = (float*)data;
+}
+
+static void run_worker(LV2_Handle instance, uint32_t n_samples)
+{
+  test_worker* self = (test_worker*)instance;
+  if(self->in && self->out)
+    memmove(self->out, self->in, n_samples * sizeof(float));
+  if(!self->scheduled && self->schedule)
+  {
+    static const char job[4] = "job";
+    if(self->schedule->schedule_work(self->schedule->handle, sizeof(job), job)
+       == LV2_WORKER_SUCCESS)
+      self->scheduled = 1;
+  }
+}
+
+static LV2_Worker_Status work_worker(
+    LV2_Handle instance, LV2_Worker_Respond_Function respond,
+    LV2_Worker_Respond_Handle handle, uint32_t size, const void* data)
+{
+  (void)size;
+  (void)data;
+  test_worker* self = (test_worker*)instance;
+  if(__atomic_add_fetch(&worker_running, 1, __ATOMIC_SEQ_CST) > 1)
+    worker_concurrent++;
+#ifdef _WIN32
+  Sleep(300);
+#else
+  usleep(300000);
+#endif
+  __atomic_sub_fetch(&worker_running, 1, __ATOMIC_SEQ_CST);
+  if(self->magic != SCORE_TEST_WORKER_ALIVE)
+  {
+    worker_after_cleanup++;
+    return LV2_WORKER_ERR_UNKNOWN;
+  }
+  worker_done++;
+  static const char answer[5] = "done";
+  return respond(handle, sizeof(answer), answer);
+}
+
+static LV2_Worker_Status
+work_response_worker(LV2_Handle instance, uint32_t size, const void* body)
+{
+  (void)instance;
+  (void)size;
+  (void)body;
+  worker_responses++;
+  return LV2_WORKER_SUCCESS;
+}
+
+static const LV2_Worker_Interface worker_interface
+    = {work_worker, work_response_worker, NULL};
+
+static const void* extension_data_worker(const char* uri)
+{
+  return !strcmp(uri, LV2_WORKER__interface) ? &worker_interface : NULL;
+}
+
+static void cleanup_worker(LV2_Handle instance)
+{
+  // Not freed: a work still running on it must find it marked
+  ((test_worker*)instance)->magic = SCORE_TEST_WORKER_DEAD;
+}
+
+static const LV2_Descriptor descriptor_worker
+    = {"urn:score:test:worker", instantiate_worker,    connect_port_worker, NULL,
+       run_worker,              NULL,                  cleanup_worker,      extension_data_worker};
+
 LV2_SYMBOL_EXPORT const LV2_Descriptor* lv2_descriptor(uint32_t index)
 {
   switch(index)
@@ -686,6 +829,8 @@ LV2_SYMBOL_EXPORT const LV2_Descriptor* lv2_descriptor(uint32_t index)
       return &descriptor_handover;
     case 9:
       return &descriptor_mute;
+    case 10:
+      return &descriptor_worker;
     default:
       return NULL;
   }

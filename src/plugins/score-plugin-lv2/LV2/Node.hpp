@@ -63,7 +63,8 @@ struct voice
   std::vector<TimePort> atom_timePosition_owned;
 
   const LV2_Worker_Interface* worker{};
-  ossia::mpmc_queue<std::vector<char>> worker_datas;
+  //! Shared with the works in flight, which may finish after this voice
+  std::shared_ptr<WorkerResponses> worker_datas{std::make_shared<WorkerResponses>()};
 
   //! The ports of the plug-in, all of them: what is parked when the instance
   //! outlives this voice
@@ -787,7 +788,7 @@ struct lv2_node final : public ossia::graph_node
     if(v.worker && v.worker->work_response)
     {
       std::vector<char> vec;
-      while(v.worker_datas.try_dequeue(vec))
+      while(v.worker_datas->try_dequeue(vec))
         v.worker->work_response(v.instance->lv2_handle, vec.size(), vec.data());
     }
     if(v.worker && v.worker->end_run)
@@ -967,12 +968,14 @@ struct lv2_node final : public ossia::graph_node
   struct worker_routing_scope
   {
     LV2::HostContext& host;
+    WorkerRoute route;
     worker_routing_scope(LV2::HostContext& h, voice& v) noexcept
         : host{h}
+        , route{&v.instance_holder, v.worker, &v.worker_datas}
     {
-      host.current_worker_datas = &v.worker_datas;
+      host.current_worker = &route;
     }
-    ~worker_routing_scope() noexcept { host.current_worker_datas = nullptr; }
+    ~worker_routing_scope() noexcept { host.current_worker = nullptr; }
   };
 
   void runSingle(int samples) noexcept

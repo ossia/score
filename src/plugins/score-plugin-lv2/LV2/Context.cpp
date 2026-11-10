@@ -10,7 +10,8 @@
 #include <LV2/Context.hpp>
 
 #include <score/tools/Debug.hpp>
-#include <score/tools/ThreadPool.hpp>
+
+#include <ossia/detail/thread.hpp>
 
 #include <QApplication>
 #include <QDebug>
@@ -99,20 +100,29 @@ static const char* do_unmap(LV2_URID_Unmap_Handle ptr, LV2_URID val)
 struct worker
 {
   LV2::HostContext* host;
-  LV2::EffectContext* fx;
-  LilvInstance* instance;
+  //! Kept until the work is done: the process may be removed meanwhile
+  LV2::SharedInstance instance;
   const LV2_Worker_Interface* worker_iface;
-  ossia::mpmc_queue<std::vector<char>>* response_queue;
+  std::shared_ptr<LV2::WorkerResponses> response_queue;
   std::vector<char> dat;
 
   void operator()()
   {
     // 3. Process the work
     worker_iface->work(
-        instance->lv2_handle, &worker::work_done, this, dat.size(), dat.data());
+        instance->instance->lv2_handle, &worker::work_done, this, dat.size(),
+        dat.data());
 
     // Give back the worker buffer
     host->release_worker_data(std::move(dat));
+
+    // The instance is freed on the main thread, should this be the last of it
+    if(auto app = qApp)
+      QMetaObject::invokeMethod(
+          app, [h = std::move(instance), q = std::move(response_queue)]() mutable {
+        h.reset();
+        q.reset();
+      });
   }
 
   static LV2_Worker_Status
@@ -132,34 +142,23 @@ static LV2_Worker_Status
 do_worker(LV2_Worker_Schedule_Handle ptr, uint32_t s, const void* data)
 {
   auto& c = *static_cast<LV2::GlobalContext*>(ptr);
-  LV2::EffectContext* cur = c.host.current;
+  const LV2::WorkerRoute* route = c.host.current_worker;
+  if(!route || !route->iface || !route->iface->work || !route->instance
+     || !*route->instance || !route->responses)
+    return LV2_WORKER_ERR_UNKNOWN;
 
-  if(cur && cur->worker)
-  {
-    auto& w = *cur->worker;
-    if(w.work)
-    {
-      // Per-voice queue if the audio node set one; shared effectContext otherwise
-      auto* response_queue
-          = c.host.current_worker_datas ? c.host.current_worker_datas : &cur->worker_datas;
+  // 1. Acquire a buffer to copy the data in audio thread
+  std::vector<char> cp = c.host.acquire_worker_data((const char*)data, s);
 
-      // 1. Acquire a buffer to copy the data in audio thread
-      std::vector<char> cp = c.host.acquire_worker_data((const char*)data, s);
+  // 2. Move that buffer to the worker thread
+  c.works.post(worker{
+      .host = &c.host,
+      .instance = *route->instance,
+      .worker_iface = route->iface,
+      .response_queue = *route->responses,
+      .dat = std::move(cp)});
 
-      // 2. Move that buffer to the thread pool
-      auto& tq = score::TaskPool::instance();
-      tq.post(worker{
-          .host = &c.host,
-          .fx = cur,
-          .instance = cur->instance,
-          .worker_iface = cur->worker,
-          .response_queue = response_queue,
-          .dat = std::move(cp)});
-
-      return LV2_WORKER_SUCCESS;
-    }
-  }
-  return LV2_WORKER_ERR_UNKNOWN;
+  return LV2_WORKER_SUCCESS;
 }
 
 static LV2_Worker_Status
@@ -201,6 +200,34 @@ static char* do_make_path(LV2_State_Make_Path_Handle handle, const char* path)
   SCORE_TODO;
   return nullptr;
 }
+}
+
+WorkerThread::WorkerThread()
+    : m_thread{[this] {
+      ossia::set_thread_name("ossia lv2 work");
+      task t{};
+      while(m_running.load(std::memory_order_acquire))
+      {
+        if(m_queue.wait_dequeue_timed(t, 100000))
+        {
+          try
+          {
+            t();
+          }
+          catch(...)
+          {
+          }
+          t = task{};
+        }
+      }
+    }}
+{
+}
+
+WorkerThread::~WorkerThread()
+{
+  m_running.store(false, std::memory_order_release);
+  m_thread.join();
 }
 
 GlobalContext::GlobalContext(int buffer_size, LV2::HostContext& host)
