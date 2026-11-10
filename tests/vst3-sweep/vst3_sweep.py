@@ -43,13 +43,16 @@ LEVEL_MISMATCH_DB = 12.0
 DIFFERS_DB = 3.0
 UNSTABLE_DB = 40.0
 
-DEFAULT_VST3_PATHS = [
-    "~/.vst3",
-    "/usr/lib/vst3",
-    "/usr/local/lib/vst3",
-    "/usr/lib64/vst3",
-    "/usr/local/lib64/vst3",
-]
+if sys.platform == "darwin":
+    DEFAULT_VST3_PATHS = ["~/Library/Audio/Plug-Ins/VST3", "/Library/Audio/Plug-Ins/VST3"]
+else:
+    DEFAULT_VST3_PATHS = [
+        "~/.vst3",
+        "/usr/lib/vst3",
+        "/usr/local/lib/vst3",
+        "/usr/lib64/vst3",
+        "/usr/local/lib64/vst3",
+    ]
 
 
 def vst3_paths(arg):

@@ -42,13 +42,16 @@ LOUD = 4.0  # +12 dBFS
 LEVEL_MISMATCH_DB = 12.0
 UNSTABLE_DB = 40.0
 
-DEFAULT_LV2_PATHS = [
-    "~/.lv2",
-    "/usr/lib/lv2",
-    "/usr/local/lib/lv2",
-    "/usr/lib64/lv2",
-    "/usr/local/lib64/lv2",
-]
+if sys.platform == "darwin":
+    DEFAULT_LV2_PATHS = ["~/Library/Audio/Plug-Ins/LV2", "/Library/Audio/Plug-Ins/LV2"]
+else:
+    DEFAULT_LV2_PATHS = [
+        "~/.lv2",
+        "/usr/lib/lv2",
+        "/usr/local/lib/lv2",
+        "/usr/lib64/lv2",
+        "/usr/local/lib64/lv2",
+    ]
 
 
 def lv2_path(arg):

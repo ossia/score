@@ -47,7 +47,10 @@ SILENT = 1e-5  # -100 dBFS
 LOUD = 4.0  # +12 dBFS
 LEVEL_MISMATCH_DB = 12.0
 
-DEFAULT_ROOTS = ["~/.config/REAPER/Effects", "~/Documents/jsfx"]
+if sys.platform == "darwin":
+    DEFAULT_ROOTS = ["~/Library/Application Support/REAPER/Effects", "~/Documents/jsfx"]
+else:
+    DEFAULT_ROOTS = ["~/.config/REAPER/Effects", "~/Documents/jsfx"]
 SKIP_DIRS = {".git", ".github", "__pycache__"}
 DATA_EXTENSIONS = {
     "png", "jpg", "jpeg", "gif", "bmp", "svg", "wav", "flac", "ogg", "mp3", "aif", "aiff",
