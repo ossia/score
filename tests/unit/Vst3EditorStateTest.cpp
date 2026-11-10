@@ -10,6 +10,7 @@
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 
 #include <Vst3/ApplicationPlugin.hpp>
+#include <Vst3/DataStream.hpp>
 #include <Vst3/EditHandler.hpp>
 #include <Vst3/EffectModel.hpp>
 
@@ -169,4 +170,28 @@ TEST_CASE(
     spin(300);
     CHECK(calls().stale == 0);
   });
+}
+
+// A plug-in restoring its state may learn its length by seeking to its end
+// (JUCE's OneTrick SIMIAN does), or skip parts of it from where it is: each
+// mode seeks from its own origin, and no position before the start is taken.
+TEST_CASE("a VST3 state stream seeks from its start, where it is and its end", "[vst3]")
+{
+  QByteArray bytes{"0123456789"};
+  QDataStream str{bytes};
+  vst3::Vst3DataStream stream{str};
+  Steinberg::int64 pos = -1;
+
+  REQUIRE(stream.seek(0, Steinberg::IBStream::kIBSeekEnd, &pos) == Steinberg::kResultTrue);
+  CHECK(pos == 10);
+  REQUIRE(stream.seek(-4, Steinberg::IBStream::kIBSeekCur, &pos) == Steinberg::kResultTrue);
+  CHECK(pos == 6);
+  char c{};
+  Steinberg::int32 read = 0;
+  stream.read(&c, 1, &read);
+  CHECK(read == 1);
+  CHECK(c == '6');
+  REQUIRE(stream.seek(2, Steinberg::IBStream::kIBSeekSet, &pos) == Steinberg::kResultTrue);
+  CHECK(pos == 2);
+  CHECK(stream.seek(-1, Steinberg::IBStream::kIBSeekSet, &pos) == Steinberg::kResultFalse);
 }
