@@ -3115,3 +3115,63 @@ if(TARGET score_plugin_vst3 AND TARGET base AND TARGET pluginterfaces AND UNIX A
   target_compile_definitions(test_unit_vst3_editor_state PRIVATE
     SCORE_VST3_EDITED_GAIN="${_bundle}")
 endif()
+
+# A VST3 editor that only takes some sizes, and its window resized from outside
+# at several scalings of Qt.
+find_library(SCORE_TEST_XCB xcb)
+if(TARGET score_plugin_vst3 AND TARGET base AND TARGET pluginterfaces AND UNIX AND NOT APPLE
+   AND SCORE_TEST_XCB)
+  set(_sdk "${SCORE_ROOT_SOURCE_DIR}/3rdparty/vst3/public.sdk/source")
+  add_library(score_test_vst3_resizable_view MODULE
+    vst3-fixtures/ResizableView.cpp
+    "${_sdk}/vst/vstaudioeffect.cpp"
+    "${_sdk}/vst/vstbus.cpp"
+    "${_sdk}/vst/vstcomponent.cpp"
+    "${_sdk}/vst/vstcomponentbase.cpp"
+    "${_sdk}/vst/vsteditcontroller.cpp"
+    "${_sdk}/vst/vstinitiids.cpp"
+    "${_sdk}/vst/vstparameters.cpp"
+    "${_sdk}/main/linuxmain.cpp"
+    "${_sdk}/main/moduleinit.cpp"
+    "${_sdk}/main/pluginfactory.cpp"
+    "${_sdk}/common/commoniids.cpp"
+    "${_sdk}/common/pluginview.cpp")
+  target_link_options(score_test_vst3_resizable_view PRIVATE "-Wl,--no-undefined")
+  target_include_directories(score_test_vst3_resizable_view PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/3rdparty/vst3")
+  target_link_libraries(score_test_vst3_resizable_view PRIVATE
+    base pluginterfaces ${SCORE_TEST_XCB})
+  set(_bundle "${CMAKE_CURRENT_BINARY_DIR}/score-test-resizable-view.vst3")
+  set_target_properties(score_test_vst3_resizable_view PROPERTIES
+    PREFIX ""
+    OUTPUT_NAME "score-test-resizable-view"
+    LIBRARY_OUTPUT_DIRECTORY "${_bundle}/Contents/x86_64-linux")
+
+  score_add_test(test_unit_vst3_editor_resize
+    SOURCES Vst3EditorResizeTest.cpp
+    GUI
+    PLUGINS score_plugin_vst3 score_plugin_dataflow score_plugin_engine score_plugin_scenario
+      score_plugin_media score_plugin_audio score_lib_process
+    LIBS sdk_common sdk_hosting ${SCORE_TEST_XCB} ${CMAKE_DL_LIBS})
+  target_include_directories(test_unit_vst3_editor_resize PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-vst3")
+  add_dependencies(test_unit_vst3_editor_resize score_test_vst3_resizable_view)
+  target_compile_definitions(test_unit_vst3_editor_resize PRIVATE
+    SCORE_VST3_RESIZABLE_VIEW="${_bundle}")
+  set_property(TEST test_unit_vst3_editor_resize APPEND PROPERTY
+    ENVIRONMENT_MODIFICATION "QT_SCALE_FACTOR=set:1")
+
+  # The same at the scalings where Qt's pixels and the editor's do not match
+  score_test_display_wrapper(_display_wrapper)
+  foreach(_scale 1.25 1.5 2)
+    add_test(NAME test_unit_vst3_editor_resize_${_scale}
+      COMMAND ${_display_wrapper} $<TARGET_FILE:test_unit_vst3_editor_resize>)
+    set_tests_properties(test_unit_vst3_editor_resize_${_scale} PROPERTIES
+      WORKING_DIRECTORY "${SCORE_ROOT_BINARY_DIR}"
+      ENVIRONMENT "SCORE_AUDIO_BACKEND=dummy;SCORE_DISABLE_AUDIOPLUGINS=1"
+      LABELS "gui"
+      SKIP_RETURN_CODE 4)
+    set_property(TEST test_unit_vst3_editor_resize_${_scale} APPEND PROPERTY
+      ENVIRONMENT_MODIFICATION ${SCORE_TEST_ENVIRONMENT} "QT_SCALE_FACTOR=set:${_scale}")
+  endforeach()
+endif()
