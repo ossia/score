@@ -11,11 +11,18 @@
 #include <lv2/lv2plug.in/ns/ext/atom/util.h>
 #include <lv2/lv2plug.in/ns/ext/time/time.h>
 #include <lv2/lv2plug.in/ns/ext/urid/urid.h>
+#include <lv2/lv2plug.in/ns/ext/worker/worker.h>
 #include <lv2/lv2plug.in/ns/lv2core/lv2.h>
 
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
+#ifdef _WIN32
+#include <windows.h>
+#else
+#include <sched.h>
+#include <unistd.h>
+#endif
 
 #define SCORE_TEST_GAIN_URI "urn:score:test:gain"
 
@@ -662,6 +669,337 @@ static const LV2_Descriptor descriptor_mute
     = {"urn:score:test:mute", instantiate_mute, connect_port_mute, NULL,
        run_mute,              NULL,             cleanup,           NULL};
 
+/* urn:score:test:worker
+ *   0  audio in   "in"
+ *   1  audio out  "out": the input
+ * Its first run schedules one work, which takes 300 ms, as loading a file
+ * does. score_test_worker_done() counts the works that ran,
+ * score_test_worker_responses() the answers that reached the plug-in,
+ * score_test_worker_after_cleanup() the works that ran on an instance
+ * already cleaned up: its memory is kept, marked, so that they can be told.
+ * score_test_worker_concurrent() counts the works that began while another
+ * one ran.
+ */
+#define SCORE_TEST_WORKER_ALIVE 0x600dU
+#define SCORE_TEST_WORKER_DEAD 0xdeadU
+static volatile int worker_done;
+static volatile int worker_responses;
+static volatile int worker_after_cleanup;
+static int worker_running;
+static volatile int worker_concurrent;
+LV2_SYMBOL_EXPORT int score_test_worker_concurrent(void)
+{
+  return worker_concurrent;
+}
+LV2_SYMBOL_EXPORT int score_test_worker_done(void)
+{
+  return worker_done;
+}
+LV2_SYMBOL_EXPORT int score_test_worker_responses(void)
+{
+  return worker_responses;
+}
+LV2_SYMBOL_EXPORT int score_test_worker_after_cleanup(void)
+{
+  return worker_after_cleanup;
+}
+
+typedef struct
+{
+  unsigned magic;
+  const float* in;
+  float* out;
+  LV2_Worker_Schedule* schedule;
+  int scheduled;
+} test_worker;
+
+static LV2_Handle instantiate_worker(
+    const LV2_Descriptor* descriptor, double rate, const char* bundle_path,
+    const LV2_Feature* const* features)
+{
+  (void)descriptor;
+  (void)rate;
+  (void)bundle_path;
+  test_worker* self = (test_worker*)calloc(1, sizeof(test_worker));
+  if(!self)
+    return NULL;
+  self->magic = SCORE_TEST_WORKER_ALIVE;
+  for(int i = 0; features && features[i]; i++)
+    if(!strcmp(features[i]->URI, LV2_WORKER__schedule))
+      self->schedule = (LV2_Worker_Schedule*)features[i]->data;
+  return self;
+}
+
+static void connect_port_worker(LV2_Handle instance, uint32_t port, void* data)
+{
+  test_worker* self = (test_worker*)instance;
+  if(port == 0)
+    self->in = (const float*)data;
+  else if(port == 1)
+    self->out = (float*)data;
+}
+
+static void run_worker(LV2_Handle instance, uint32_t n_samples)
+{
+  test_worker* self = (test_worker*)instance;
+  if(self->in && self->out)
+    memmove(self->out, self->in, n_samples * sizeof(float));
+  if(!self->scheduled && self->schedule)
+  {
+    static const char job[4] = "job";
+    if(self->schedule->schedule_work(self->schedule->handle, sizeof(job), job)
+       == LV2_WORKER_SUCCESS)
+      self->scheduled = 1;
+  }
+}
+
+static LV2_Worker_Status work_worker(
+    LV2_Handle instance, LV2_Worker_Respond_Function respond,
+    LV2_Worker_Respond_Handle handle, uint32_t size, const void* data)
+{
+  (void)size;
+  (void)data;
+  test_worker* self = (test_worker*)instance;
+  if(__atomic_add_fetch(&worker_running, 1, __ATOMIC_SEQ_CST) > 1)
+    worker_concurrent++;
+#ifdef _WIN32
+  Sleep(300);
+#else
+  usleep(300000);
+#endif
+  __atomic_sub_fetch(&worker_running, 1, __ATOMIC_SEQ_CST);
+  if(self->magic != SCORE_TEST_WORKER_ALIVE)
+  {
+    worker_after_cleanup++;
+    return LV2_WORKER_ERR_UNKNOWN;
+  }
+  worker_done++;
+  static const char answer[5] = "done";
+  return respond(handle, sizeof(answer), answer);
+}
+
+static LV2_Worker_Status
+work_response_worker(LV2_Handle instance, uint32_t size, const void* body)
+{
+  (void)instance;
+  (void)size;
+  (void)body;
+  worker_responses++;
+  return LV2_WORKER_SUCCESS;
+}
+
+static const LV2_Worker_Interface worker_interface
+    = {work_worker, work_response_worker, NULL};
+
+static const void* extension_data_worker(const char* uri)
+{
+  return !strcmp(uri, LV2_WORKER__interface) ? &worker_interface : NULL;
+}
+
+static void cleanup_worker(LV2_Handle instance)
+{
+  // Not freed: a work still running on it must find it marked
+  ((test_worker*)instance)->magic = SCORE_TEST_WORKER_DEAD;
+}
+
+static const LV2_Descriptor descriptor_worker
+    = {"urn:score:test:worker", instantiate_worker,    connect_port_worker, NULL,
+       run_worker,              NULL,                  cleanup_worker,      extension_data_worker};
+
+/* urn:score:test:worker-echo: copies its input; each run schedules a work
+ * that carries the instance, whose answer carries it back, as does the work
+ * that answer schedules in its turn from work_response().
+ *
+ * Ports:
+ *   0  audio  in   "in"
+ *   1  audio  out  "out"
+ *
+ * The counters are shared by all instances; "misrouted" counts the works and
+ * answers that reached an instance other than the one they carry;
+ * "overlapped" counts the calls to activate() and deactivate() made while a
+ * work ran, which the LV2 threading rules forbid. score_test_echo_hold(1)
+ * makes each work wait, from its start, until score_test_echo_hold(0);
+ * score_test_echo_running() gives the works running.
+ */
+typedef struct
+{
+  const void* self;
+  int from_response;
+} echo_packet;
+
+static int echo_scheduled;
+static int echo_schedule_unknown;
+static int echo_schedule_no_space;
+static int echo_works;
+static int echo_misrouted;
+static int echo_responses;
+static int echo_response_scheduled;
+static int echo_response_schedule_failed;
+static int echo_overlapped;
+static int echo_running;
+static int echo_held;
+
+#define ECHO_COUNTER(name)                                \
+  LV2_SYMBOL_EXPORT int score_test_echo_##name(void)      \
+  {                                                       \
+    return __atomic_load_n(&echo_##name, __ATOMIC_SEQ_CST); \
+  }
+ECHO_COUNTER(scheduled)
+ECHO_COUNTER(schedule_unknown)
+ECHO_COUNTER(schedule_no_space)
+ECHO_COUNTER(works)
+ECHO_COUNTER(misrouted)
+ECHO_COUNTER(responses)
+ECHO_COUNTER(response_scheduled)
+ECHO_COUNTER(response_schedule_failed)
+ECHO_COUNTER(overlapped)
+ECHO_COUNTER(running)
+#undef ECHO_COUNTER
+
+LV2_SYMBOL_EXPORT void score_test_echo_hold(int held)
+{
+  __atomic_store_n(&echo_held, held, __ATOMIC_SEQ_CST);
+}
+
+LV2_SYMBOL_EXPORT void score_test_echo_reset(void)
+{
+  int* all[] = {&echo_scheduled, &echo_schedule_unknown, &echo_schedule_no_space,
+                &echo_works,     &echo_misrouted,        &echo_responses,
+                &echo_response_scheduled, &echo_response_schedule_failed,
+                &echo_overlapped};
+  for(unsigned i = 0; i < sizeof(all) / sizeof(all[0]); i++)
+    __atomic_store_n(all[i], 0, __ATOMIC_SEQ_CST);
+}
+
+typedef struct
+{
+  const float* in;
+  float* out;
+  LV2_Worker_Schedule* schedule;
+} test_echo;
+
+static LV2_Handle instantiate_echo(
+    const LV2_Descriptor* descriptor, double rate, const char* bundle_path,
+    const LV2_Feature* const* features)
+{
+  (void)descriptor;
+  (void)rate;
+  (void)bundle_path;
+  test_echo* self = (test_echo*)calloc(1, sizeof(test_echo));
+  if(!self)
+    return NULL;
+  for(int i = 0; features && features[i]; i++)
+    if(!strcmp(features[i]->URI, LV2_WORKER__schedule))
+      self->schedule = (LV2_Worker_Schedule*)features[i]->data;
+  return self;
+}
+
+static void connect_port_echo(LV2_Handle instance, uint32_t port, void* data)
+{
+  test_echo* self = (test_echo*)instance;
+  if(port == 0)
+    self->in = (const float*)data;
+  else if(port == 1)
+    self->out = (float*)data;
+}
+
+static void run_echo(LV2_Handle instance, uint32_t n_samples)
+{
+  test_echo* self = (test_echo*)instance;
+  if(self->in && self->out)
+    memmove(self->out, self->in, n_samples * sizeof(float));
+  if(!self->schedule)
+    return;
+  echo_packet p = {self, 0};
+  switch(self->schedule->schedule_work(self->schedule->handle, sizeof(p), &p))
+  {
+    case LV2_WORKER_SUCCESS:
+      __atomic_add_fetch(&echo_scheduled, 1, __ATOMIC_SEQ_CST);
+      break;
+    case LV2_WORKER_ERR_NO_SPACE:
+      __atomic_add_fetch(&echo_schedule_no_space, 1, __ATOMIC_SEQ_CST);
+      break;
+    default:
+      __atomic_add_fetch(&echo_schedule_unknown, 1, __ATOMIC_SEQ_CST);
+      break;
+  }
+}
+
+static LV2_Worker_Status work_echo(
+    LV2_Handle instance, LV2_Worker_Respond_Function respond,
+    LV2_Worker_Respond_Handle handle, uint32_t size, const void* data)
+{
+  __atomic_add_fetch(&echo_running, 1, __ATOMIC_SEQ_CST);
+  while(__atomic_load_n(&echo_held, __ATOMIC_SEQ_CST))
+#ifdef _WIN32
+    Sleep(0);
+#else
+    sched_yield();
+#endif
+  __atomic_add_fetch(&echo_works, 1, __ATOMIC_SEQ_CST);
+  echo_packet p;
+  LV2_Worker_Status st = LV2_WORKER_ERR_UNKNOWN;
+  if(size != sizeof(p))
+  {
+    __atomic_add_fetch(&echo_misrouted, 1, __ATOMIC_SEQ_CST);
+  }
+  else
+  {
+    memcpy(&p, data, sizeof(p));
+    if(p.self != instance)
+      __atomic_add_fetch(&echo_misrouted, 1, __ATOMIC_SEQ_CST);
+    st = respond(handle, sizeof(p), &p);
+  }
+  __atomic_sub_fetch(&echo_running, 1, __ATOMIC_SEQ_CST);
+  return st;
+}
+
+static void instantiation_echo(LV2_Handle instance)
+{
+  (void)instance;
+  if(__atomic_load_n(&echo_running, __ATOMIC_SEQ_CST) > 0)
+    __atomic_add_fetch(&echo_overlapped, 1, __ATOMIC_SEQ_CST);
+}
+
+static LV2_Worker_Status
+work_response_echo(LV2_Handle instance, uint32_t size, const void* body)
+{
+  test_echo* self = (test_echo*)instance;
+  __atomic_add_fetch(&echo_responses, 1, __ATOMIC_SEQ_CST);
+  echo_packet p;
+  if(size != sizeof(p))
+  {
+    __atomic_add_fetch(&echo_misrouted, 1, __ATOMIC_SEQ_CST);
+    return LV2_WORKER_ERR_UNKNOWN;
+  }
+  memcpy(&p, body, sizeof(p));
+  if(p.self != instance)
+    __atomic_add_fetch(&echo_misrouted, 1, __ATOMIC_SEQ_CST);
+  if(!p.from_response && self->schedule)
+  {
+    p.from_response = 1;
+    if(self->schedule->schedule_work(self->schedule->handle, sizeof(p), &p)
+       == LV2_WORKER_SUCCESS)
+      __atomic_add_fetch(&echo_response_scheduled, 1, __ATOMIC_SEQ_CST);
+    else
+      __atomic_add_fetch(&echo_response_schedule_failed, 1, __ATOMIC_SEQ_CST);
+  }
+  return LV2_WORKER_SUCCESS;
+}
+
+static const LV2_Worker_Interface echo_interface
+    = {work_echo, work_response_echo, NULL};
+
+static const void* extension_data_echo(const char* uri)
+{
+  return !strcmp(uri, LV2_WORKER__interface) ? &echo_interface : NULL;
+}
+
+static const LV2_Descriptor descriptor_echo
+    = {"urn:score:test:worker-echo", instantiate_echo,   connect_port_echo,
+       instantiation_echo,           run_echo,           instantiation_echo,
+       cleanup,                      extension_data_echo};
+
 LV2_SYMBOL_EXPORT const LV2_Descriptor* lv2_descriptor(uint32_t index)
 {
   switch(index)
@@ -686,6 +1024,10 @@ LV2_SYMBOL_EXPORT const LV2_Descriptor* lv2_descriptor(uint32_t index)
       return &descriptor_handover;
     case 9:
       return &descriptor_mute;
+    case 10:
+      return &descriptor_worker;
+    case 11:
+      return &descriptor_echo;
     default:
       return NULL;
   }
