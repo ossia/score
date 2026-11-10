@@ -215,3 +215,24 @@ TEST_CASE(
     CHECK(play.exec.execution_time() > t0);
   });
 }
+
+// What a plug-in says on its outputs is queued for its UI: without one open,
+// nothing reads that queue, which grew by the events of every tick.
+TEST_CASE(
+    "an LV2 plug-in with no UI open queues nothing for one",
+    "[integration][execution][lv2]")
+{
+  qputenv("LV2_PATH", lv2_bundle().toUtf8());
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    // It forwards the time:Position the host gives it, a few events a tick
+    setup_lv2(ctx, {{lv2_bundle(), "urn:score:test:thru"}});
+    playing_document play{ctx};
+    auto added = drop_on_interval(
+        *play.doc, root(*play.doc), process_data(lv2_key, "urn:score:test:thru"));
+    REQUIRE(added.size() == 1);
+    auto p = qobject_cast<LV2::Model*>(added[0]);
+    REQUIRE(p);
+    spin(500);
+    CHECK(p->plugin_events.size_approx() == 0);
+  });
+}
