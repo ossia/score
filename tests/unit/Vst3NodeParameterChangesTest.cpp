@@ -71,6 +71,8 @@ public:
   std::vector<std::vector<std::pair<int32, int32>>> note_offs;
   //! The project time, in samples, each process() call was given
   std::vector<int64> project_times;
+  //! The process() call and offset of every note-on it was given
+  std::vector<std::pair<int, int32>> note_ons;
   //! The numSamples of each process() call
   std::vector<int32> block_sizes;
   //! The flags of every note-off it was given
@@ -168,7 +170,9 @@ public:
       for(int32 i = 0; i < ev->getEventCount(); i++)
       {
         Event e{};
-        if(ev->getEvent(i, e) == kResultOk && e.type == Event::kNoteOffEvent)
+        if(ev->getEvent(i, e) == kResultOk && e.type == Event::kNoteOnEvent)
+          note_ons.push_back({int(received.size() - 1), e.sampleOffset});
+        if(e.type == Event::kNoteOffEvent)
         {
           offs.emplace_back(e.busIndex, e.noteOff.channel);
           note_off_flags.push_back(e.flags);
@@ -825,4 +829,61 @@ TEST_CASE(
     CHECK(fx.block_sizes[0] > 0);
     CHECK(fx.block_sizes[0] <= max_block);
   }
+}
+
+TEST_CASE(
+    "VST3: a tick longer than the largest block is given in blocks that fit",
+    "[vst3][setup][midi]")
+{
+  // A backend may call with more than the buffer size the plug-in was set up
+  // for: JACK once its buffer size changed, PulseAudio
+  fake_processor fx;
+  fx.event_inputs = 1;
+  fake_controller controller;
+  vst3::Plugin p;
+  p.component = &fx;
+  p.processor = &fx;
+  p.controller = &controller;
+  p.start(44100, 64);
+  auto node = std::make_shared<vst3::vst_node<false>>(p, 44100);
+  p.component = nullptr;
+  p.processor = nullptr;
+  p.controller = nullptr;
+  const auto queue = node->add_control(new ossia::value_inlet, 7, 0.f);
+  node->set_control(queue, 0.5f);
+
+  auto& midi = *node->root_inputs()[0]->target<ossia::midi_port>();
+  for(int64_t date : {0, 63, 64, 130, 199})
+  {
+    auto m = libremidi::from_01::note_on(0, 60, 1.f);
+    m.timestamp = date;
+    midi.messages.push_back(m);
+  }
+
+  ossia::execution_state state;
+  state.bufferSize = 200;
+  state.sampleRate = 44100;
+  state.modelToSamplesRatio = 1.;
+  state.samplesToModelRatio = 1.;
+  ossia::token_request tk;
+  tk.prev_date = ossia::time_value{0};
+  tk.date = ossia::time_value{200};
+  tk.start_sample = 0;
+  tk.length_sample = 200;
+  ossia::set_thread_pinned(ossia::thread_type::Audio, 0);
+  node->run(tk, ossia::exec_state_facade{&state});
+  ossia::set_thread_pinned(ossia::thread_type::Ui, 0);
+
+  CHECK(fx.block_sizes == std::vector<int32>{64, 64, 64, 8});
+  CHECK(fx.project_times == std::vector<int64>{0, 64, 128, 192});
+  // Each event once, in the block it falls in
+  CHECK(
+      fx.note_ons
+      == std::vector<std::pair<int, int32>>{{0, 0}, {0, 63}, {1, 0}, {2, 2}, {3, 7}});
+  // The change in the first block only
+  REQUIRE(fx.received.size() == 4);
+  CHECK(fx.received[0] == std::vector<point>{{7, 0, 0.5}});
+  CHECK(fx.received[1].empty());
+  CHECK(fx.received[2].empty());
+  CHECK(fx.received[3].empty());
 }
