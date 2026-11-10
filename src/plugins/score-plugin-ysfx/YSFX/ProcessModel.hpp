@@ -13,6 +13,7 @@
 
 #include <score_plugin_ysfx_export.h>
 
+#include <array>
 #include <bitset>
 #include <memory>
 #include <vector>
@@ -128,6 +129,12 @@ private:
   bool m_mouseHeld{};
   bool m_retina{};
   void rebuild();
+#if __has_include(<ysfx-s.h>)
+  //! The controls of the sliders in masks show their value
+  void showSliders(const std::array<uint64_t, ysfx_max_slider_groups>& masks);
+  //! The controls of the sliders in masks take their value
+  void editSliders(const std::array<uint64_t, ysfx_max_slider_groups>& masks);
+#endif
   void resizeEvent(QResizeEvent* event) override;
   void closeEvent(QCloseEvent* event) override;
 
