@@ -274,3 +274,26 @@ TEST_CASE(
     all_phases_hold(ctx, opt);
   });
 }
+
+// The same for processes of score's own: what a plug-in host gets wrong when
+// added while playing may as well be in the scenario or the engine.
+TEST_CASE(
+    "score's own processes added, edited and removed while playing, in every way",
+    "[integration][execution]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    // LFO, MIDI clip, MIDI utility
+    for(const char* uuid :
+        {"0b1b1816-c33e-4796-a16d-5aab27fe600f", "c189e507-3afa-4a53-9369-e38860e6bb2d",
+         "06b33b83-bb67-4f7a-9980-f5d66e4266c5"})
+    {
+      INFO(uuid);
+      const auto key = UuidKey<Process::ProcessModel>::fromString(QString::fromLatin1(uuid));
+      if(!ctx.interfaces<Process::ProcessFactoryList>().get(key))
+        SKIP("process " << uuid << " is not built");
+      score::test::live::options opt;
+      opt.what = process_data(key, {});
+      all_phases_hold(ctx, opt);
+    }
+  });
+}

@@ -2065,7 +2065,7 @@ if(TARGET score_plugin_lv2)
     APP
     PLUGINS score_plugin_engine score_plugin_scenario score_lib_process
             score_plugin_audio score_plugin_deviceexplorer score_plugin_dataflow
-            score_plugin_lv2
+            score_plugin_lv2 score_plugin_fx score_plugin_avnd score_plugin_midi
     LIBS Lilv)
   target_include_directories(test_integration_plugin_add_while_playing PRIVATE
     "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-lv2"
