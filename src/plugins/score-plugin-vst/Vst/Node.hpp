@@ -175,6 +175,9 @@ public:
     return p.get();
   }
 
+  //! The tick being processed plays the timeline backwards
+  bool m_backwards{};
+
   void setupTimeInfo(const ossia::token_request& tk, ossia::exec_state_facade st)
   {
     auto& time_info = fx->info;
@@ -182,6 +185,7 @@ public:
     // only updated once a node has run: it is that of the previous tick.
     time_info.samplePos = tk.speed != 0. ? tk.start_date_to_physical(st.modelToSamples())
                                          : this->m_transport_frames;
+    m_backwards = tk.speed < 0.;
     time_info.sampleRate = st.sampleRate();
     time_info.nanoSeconds = st.currentDate() - st.startDate();
     time_info.ppqPos = tk.musical_start_position; // * ppq_reference;
@@ -511,16 +515,19 @@ public:
       done += n;
       if(done < samples)
       {
-        time_info.samplePos += n;
+        // Played backwards, the timeline runs from the end of each block to
+        // its start: the next block starts earlier
+        const double step = m_backwards ? -double(n) : double(n);
+        time_info.samplePos += step;
         if(ppq_per_frame > 0.)
         {
-          time_info.ppqPos += n * ppq_per_frame;
+          time_info.ppqPos += step * ppq_per_frame;
           // The bar the block starts in
           const double bar = time_info.timeSigDenominator > 0
                                  ? 4. * time_info.timeSigNumerator
                                        / time_info.timeSigDenominator
                                  : 0.;
-          if(bar > 0. && time_info.ppqPos >= time_info.barStartPos + bar)
+          if(bar > 0.)
             time_info.barStartPos
                 += std::floor((time_info.ppqPos - time_info.barStartPos) / bar) * bar;
         }
