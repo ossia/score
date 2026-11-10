@@ -13,6 +13,8 @@
 #include <QHBoxLayout>
 #include <QSpinBox>
 
+#include <cstdint>
+
 namespace Protocols
 {
 class ArtnetProtocolSettingsWidget;
@@ -34,6 +36,8 @@ public:
 
 private:
   void on_channelsChanged(int count);
+  void updateAddressRange();
+  int64_t channelsUsed() const noexcept;
   Mode m_mode{};
   QFormLayout m_layout;
   State::AddressFragmentLineEdit m_name;

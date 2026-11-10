@@ -167,8 +167,9 @@ std::unique_ptr<ossia::net::dmx_protocol_base> instantiateDMXProtocol(
   if(artnet_proto && !set.fixtures.empty())
   {
     auto& buffer = artnet_proto->buffer();
+    const auto [first, last] = set.outputUniverses();
     const int needed = requiredUniverses(
-        set.fixtures, set.start_universe, set.channels_per_universe);
+        set.fixtures, set.start_universe, set.channels_per_universe, last - first + 1);
     if(buffer.universes() < needed)
       buffer.set_universe_count(needed);
   }

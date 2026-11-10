@@ -206,25 +206,32 @@ void ensureUniverses(
 }
 }
 
-void addArtnetFixture(
+bool addArtnetFixture(
     ossia::net::generic_device& dev, ossia::net::dmx_buffer& buffer,
-    const Artnet::Fixture& fix, int start_universe, int channels_per_universe)
+    const Artnet::Fixture& fix, int start_universe, int channels_per_universe,
+    int max_universes)
 {
+  if(channels_per_universe <= 0)
+    return false;
   if(fix.led && Artnet::usedChannels(fix) > max_led_channels)
-    return;
-
-  auto fixt_node = dev.create_child(fix.fixtureName.toStdString());
-  if(!fixt_node)
-    return;
+    return false;
 
   const int64_t base = fixtureBase(fix, start_universe, channels_per_universe);
+  auto fits = [&](int64_t last_channel) {
+    return last_channel / channels_per_universe < max_universes;
+  };
 
   if(fix.led)
   {
-    const int size = Artnet::usedChannels(fix);
-    ensureUniverses(buffer, base + std::max(size, 1) - 1, channels_per_universe);
+    const int64_t last = base + std::max(Artnet::usedChannels(fix), 1) - 1;
+    if(!fits(last))
+      return false;
+    auto fixt_node = dev.create_child(fix.fixtureName.toStdString());
+    if(!fixt_node)
+      return false;
+    ensureUniverses(buffer, last, channels_per_universe);
     ossia::visit(led_visitor{*fixt_node, buffer, int(base)}, fix.led);
-    return;
+    return true;
   }
 
   ossia::hash_map<QString, int> slots;
@@ -268,6 +275,11 @@ void addArtnetFixture(
     layouts.emplace_back(&chan, layout);
   }
 
+  if(!fits(last_channel))
+    return false;
+  auto fixt_node = dev.create_child(fix.fixtureName.toStdString());
+  if(!fixt_node)
+    return false;
   ensureUniverses(buffer, last_channel, channels_per_universe);
 
   for(const auto& [chan, layout] : layouts)
@@ -278,11 +290,12 @@ void addArtnetFixture(
       ossia::visit(
           fixture_setup_visitor{*chan, *fixt_node, buffer, layout}, chan->capabilities);
   }
+  return true;
 }
 
 int requiredUniverses(
     std::span<const Artnet::Fixture> fixtures, int start_universe,
-    int channels_per_universe) noexcept
+    int channels_per_universe, int max_universes) noexcept
 {
   if(channels_per_universe <= 0)
     return 1;
@@ -292,9 +305,10 @@ int requiredUniverses(
     const int64_t size = Artnet::usedChannels(fix);
     if(fix.led && size > max_led_channels)
       continue;
-    last = std::max(
-        last, fixtureBase(fix, start_universe, channels_per_universe)
-                  + std::max<int64_t>(size, 1) - 1);
+    const int64_t end = fixtureBase(fix, start_universe, channels_per_universe)
+                        + std::max<int64_t>(size, 1) - 1;
+    if(end / channels_per_universe < max_universes)
+      last = std::max(last, end);
   }
   return int(1 + last / channels_per_universe);
 }

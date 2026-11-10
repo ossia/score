@@ -1,5 +1,5 @@
-// The DMX device's settings: the universes each transport lets one pick.
-
+// The DMX device's settings: the universes each transport lets one pick, and the
+// addresses the LED dialog places strips at.
 
 #include <Device/Protocol/DeviceSettings.hpp>
 #include <Device/Protocol/ProtocolList.hpp>
@@ -10,8 +10,12 @@
 
 #include <score/application/GUIApplicationContext.hpp>
 
+#include <QApplication>
 #include <QComboBox>
+#include <QDialog>
+#include <QPushButton>
 #include <QSpinBox>
+#include <QTimer>
 
 #include <catch2/catch_all.hpp>
 #include <score_test/App.hpp>
@@ -56,6 +60,33 @@ struct Controls
     REQUIRE(count);
   }
 };
+
+QPushButton* button(QWidget& w, const QString& text)
+{
+  for(auto* b : w.findChildren<QPushButton*>())
+    if(b->text() == text)
+      return b;
+  FAIL("no button " << text.toStdString());
+  return nullptr;
+}
+
+//! Clicks the button and runs `f` on the modal dialog it opens, then accepts it.
+//! `f` runs inside the dialog's event loop, so it must not throw: CHECK, not REQUIRE.
+template <typename F>
+void withDialog(QPushButton& b, F f)
+{
+  bool seen = false;
+  QTimer::singleShot(0, [&] {
+    auto* dial = qobject_cast<QDialog*>(QApplication::activeModalWidget());
+    if(!dial)
+      return;
+    seen = true;
+    f(*dial);
+    dial->accept();
+  });
+  b.click();
+  CHECK(seen);
+}
 
 Protocols::ArtnetSpecificSettings specific(const Device::ProtocolSettingsWidget& w)
 {
@@ -138,5 +169,48 @@ TEST_CASE("Settings past the transport's universes are shown within them", "[dmx
     w->setSettings(set);
     out = specific(*w);
     CHECK(out.start_universe == 1);
+  });
+}
+
+TEST_CASE("An LED address stays within the device's universes", "[dmx][gui][led]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    auto w = makeWidget(ctx);
+    Controls c{*w};
+    c.transport->setCurrentIndex(ArtNet);
+    c.universe->setValue(32766);
+    c.count->setValue(2);
+
+    withDialog(*button(*w, "Add LED strip"), [](QDialog& d) {
+      auto* address = d.findChild<QSpinBox*>("address");
+      auto* universe = d.findChild<QSpinBox*>("universe");
+      auto* pixels = d.findChild<QSpinBox*>("pixels");
+      CHECK(address);
+      CHECK(universe);
+      CHECK(pixels);
+      if(!address || !universe || !pixels)
+        return;
+      CHECK(universe->minimum() == 32766);
+      CHECK(universe->maximum() == 32767);
+      CHECK(universe->value() == 32766);
+
+      // 16 RGB pixels: 48 channels, which have to fit before the end of universe 32767.
+      pixels->setValue(16);
+      CHECK(address->maximum() == 2 * 512 - 48 + 1);
+      address->setValue(999999);
+      CHECK(address->value() == 2 * 512 - 48 + 1);
+
+      universe->setValue(32767);
+      CHECK(address->maximum() == 512 - 48 + 1);
+      pixels->setValue(10);
+      CHECK(address->maximum() == 512 - 30 + 1);
+      pixels->setValue(16);
+      address->setValue(999999);
+    });
+
+    const auto s = specific(*w);
+    REQUIRE(s.fixtures.size() == 1);
+    CHECK(s.fixtures[0].universe == 32767);
+    CHECK(s.fixtures[0].address == 512 - 48);
   });
 }
