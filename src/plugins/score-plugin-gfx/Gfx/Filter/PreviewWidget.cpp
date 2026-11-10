@@ -114,6 +114,8 @@ struct PreviewInputVisitor
 
   score::gfx::NodeModel* operator()(const isf::point3d_input& v) { return nullptr; }
 
+  score::gfx::NodeModel* operator()(const isf::point4d_input& v) { return nullptr; }
+
   score::gfx::NodeModel* operator()(const isf::color_input& v) { return nullptr; }
 
   score::gfx::NodeModel* operator()(const isf::image_input& v)
@@ -240,6 +242,18 @@ struct PreviewPresetVisitor
         dst[0] = (*val)[0];
         dst[1] = (*val)[1];
         dst[2] = (*val)[2];
+      }
+  }
+
+  void operator()(const isf::point4d_input& v)
+  {
+    if(float* dst = portValue(); dst)
+      if(ossia::vec4f* val = controls[i].target<ossia::vec4f>())
+      {
+        dst[0] = (*val)[0];
+        dst[1] = (*val)[1];
+        dst[2] = (*val)[2];
+        dst[3] = (*val)[3];
       }
   }
 
