@@ -1769,7 +1769,10 @@ std::vector<Process::Preset> Model::discoverPresets() const noexcept
   if(!preset_discovery_factory)
     preset_discovery_factory = static_cast<const clap_preset_discovery_factory_t*>(
         m_plugin->entry->get_factory("clap.preset-discovery-factory/draft-2"));
-  if(!preset_discovery_factory)
+  // Some entries give their plug-in factory for any id
+  if(!preset_discovery_factory
+     || static_cast<const void*>(preset_discovery_factory)
+            == m_plugin->entry->get_factory(CLAP_PLUGIN_FACTORY_ID))
     return presets;
 
   // What the providers declare, copied: their structs only live during the
