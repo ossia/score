@@ -1172,3 +1172,39 @@ TEST_CASE(
   CHECK(bin.start_universe == 63999);
   CHECK(bin.universe_count == 1);
 }
+
+TEST_CASE("Fixtures past the last universe of the device are not created", "[dmx][universe]")
+{
+  // An Art-Net device starting at universe 32760 outputs 8 universes.
+  constexpr int start = 32760;
+  constexpr int max_universes = 32767 - start + 1;
+
+  auto far = ledStrip(10, 3);
+  far.universe = 65000;
+  auto last = ledStrip(10, 3);
+  last.fixtureName = "Last";
+  last.universe = 32767;
+  last.address = 400;
+  auto straddling = ledStrip(10, 3);
+  straddling.fixtureName = "Straddling";
+  straddling.universe = 32767;
+  straddling.address = 505;
+
+  Rig rig;
+  CHECK(!addArtnetFixture(rig.dev, rig.buffer, far, start, 512, max_universes));
+  CHECK(rig.node("/L") == nullptr);
+  CHECK(rig.buffer.universes() == 1);
+
+  CHECK(!addArtnetFixture(rig.dev, rig.buffer, straddling, start, 512, max_universes));
+  CHECK(rig.node("/Straddling") == nullptr);
+  CHECK(rig.buffer.universes() == 1);
+
+  CHECK(addArtnetFixture(rig.dev, rig.buffer, last, start, 512, max_universes));
+  CHECK(rig.node("/Last") != nullptr);
+  CHECK(rig.buffer.universes() == max_universes);
+
+  std::vector<Artnet::Fixture> fixtures{far, last};
+  CHECK(requiredUniverses(fixtures, start, 512, max_universes) == max_universes);
+  fixtures = {far};
+  CHECK(requiredUniverses(fixtures, start, 512, max_universes) == 1);
+}

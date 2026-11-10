@@ -51,10 +51,16 @@ bool ArtnetDevice::reconnect()
       auto dev = std::make_unique<ossia::net::generic_device>(
           std::move(artnet_proto), settings().name.toStdString());
 
+      const auto [first, last] = set.outputUniverses();
       for(auto& fixt : set.fixtures)
       {
-        addArtnetFixture(
-            *dev, proto.buffer(), fixt, set.start_universe, set.channels_per_universe);
+        if(!addArtnetFixture(
+               *dev, proto.buffer(), fixt, set.start_universe,
+               set.channels_per_universe, last - first + 1))
+          qDebug() << "DMX:" << fixt.fixtureName
+                   << "is not created: it is past the last universe this device "
+                      "outputs ("
+                   << last << ")";
       }
 
       if(set.mode == ArtnetSpecificSettings::Sink)
