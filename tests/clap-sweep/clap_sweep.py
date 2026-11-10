@@ -47,7 +47,10 @@ LOUD = 4.0  # +12 dBFS
 LEVEL_MISMATCH_DB = 12.0
 LEVEL_WARN_DB = 30.0
 
-DEFAULT_CLAP_PATHS = ["~/.clap", "/usr/lib/clap", "/usr/local/lib/clap", "/usr/lib64/clap"]
+if sys.platform == "darwin":
+    DEFAULT_CLAP_PATHS = ["~/Library/Audio/Plug-Ins/CLAP", "/Library/Audio/Plug-Ins/CLAP"]
+else:
+    DEFAULT_CLAP_PATHS = ["~/.clap", "/usr/lib/clap", "/usr/local/lib/clap", "/usr/lib64/clap"]
 
 # The phases of score's host, as the worker names them
 SCORE_PHASES = {"load", "play", "replay", "edit", "state", "teardown"}
@@ -70,9 +73,18 @@ def clap_paths(arg):
 
 
 def clap_files(paths):
+    """The .clap libraries; of a macOS bundle, the binary in Contents/MacOS,
+    the path score's host keeps"""
     files = []
     for root in paths:
         for dirpath, dirnames, filenames in os.walk(root):
+            if sys.platform == "darwin":
+                for d in dirnames:
+                    if d.endswith(".clap"):
+                        inner = os.path.join(dirpath, d, "Contents", "MacOS", d[: -len(".clap")])
+                        if os.path.isfile(inner):
+                            files.append(inner)
+                dirnames[:] = [d for d in dirnames if not d.endswith(".clap")]
             for f in filenames:
                 if f.endswith(".clap"):
                     files.append(os.path.join(dirpath, f))

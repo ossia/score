@@ -48,13 +48,16 @@ LOUD = 4.0  # +12 dBFS
 LEVEL_MISMATCH_DB = 12.0
 UNSTABLE_DB = 40.0
 
-DEFAULT_VST_PATHS = [
-    "~/.vst",
-    "/usr/lib/vst",
-    "/usr/local/lib/vst",
-    "/usr/lib64/vst",
-    "/usr/local/lib64/vst",
-]
+if sys.platform == "darwin":
+    DEFAULT_VST_PATHS = ["~/Library/Audio/Plug-Ins/VST", "/Library/Audio/Plug-Ins/VST"]
+else:
+    DEFAULT_VST_PATHS = [
+        "~/.vst",
+        "/usr/lib/vst",
+        "/usr/local/lib/vst",
+        "/usr/lib64/vst",
+        "/usr/local/lib64/vst",
+    ]
 
 # The phases the worker goes through, in order. A crash or a hang in one of
 # score's phases, after the reference host played the plug-in, points at score.
@@ -72,12 +75,23 @@ def vst_paths(arg):
 
 
 def list_plugins(paths):
-    """Every .so below the directories, symbolic links followed, each once"""
+    """Every .so below the directories (.vst bundles on macOS), symbolic links
+    followed, each once"""
     seen = set()
     plugins = []
     for root in paths:
         for dirpath, dirnames, filenames in os.walk(root, followlinks=True):
             dirnames.sort()
+            if sys.platform == "darwin":
+                for d in dirnames:
+                    full = os.path.join(dirpath, d)
+                    real = os.path.realpath(full)
+                    if d.endswith(".vst") and real not in seen:
+                        seen.add(real)
+                        plugins.append({"path": full, "name": os.path.splitext(d)[0]})
+                # A bundle's own contents are not more plug-ins
+                dirnames[:] = [d for d in dirnames if not d.endswith(".vst")]
+                continue
             for f in sorted(filenames):
                 if not f.endswith(".so"):
                     continue
