@@ -44,7 +44,19 @@ public:
   Steinberg::tresult
   PLUGIN_API seek(Steinberg::int64 pos, Steinberg::int32 mode, Steinberg::int64* result) override
   {
-    bool ok = stream.device()->seek(pos);
+    auto& dev = *stream.device();
+    switch(mode)
+    {
+      case kIBSeekCur:
+        pos += dev.pos();
+        break;
+      case kIBSeekEnd:
+        pos += dev.size();
+        break;
+      default:
+        break;
+    }
+    bool ok = pos >= 0 && dev.seek(pos);
     if(result)
       *result = stream.device()->pos();
 
