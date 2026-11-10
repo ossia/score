@@ -9,6 +9,7 @@
 
 #include <verdigris>
 
+class QLabel;
 class QLineEdit;
 class QSpinBox;
 class QTableWidget;
@@ -38,6 +39,7 @@ private:
   void addDimmer();
   void updateHosts(int protocolindex);
   void updateUniverseCountRange();
+  void updateUniverseWarning();
   void updateTable();
 
   void addressChanged(int row);
@@ -55,6 +57,7 @@ private:
   QRadioButton* m_source{};
   QRadioButton* m_sink{};
   QTableWidget* m_fixturesWidget{};
+  QLabel* m_universeWarning{};
   QPushButton* m_addFixture{};
   QPushButton* m_addGenericDimmer{};
   QPushButton* m_addGenericRGB{};

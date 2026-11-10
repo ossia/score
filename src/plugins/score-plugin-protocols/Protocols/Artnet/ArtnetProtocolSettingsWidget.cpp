@@ -17,6 +17,8 @@
 
 #include <QComboBox>
 #include <QFormLayout>
+#include <QColor>
+#include <QLabel>
 #include <QPushButton>
 #include <QRadioButton>
 #include <QSerialPortInfo>
@@ -207,6 +209,20 @@ ArtnetProtocolSettingsWidget::ArtnetProtocolSettingsWidget(QWidget* parent)
   btns->addStretch(2);
   fixtures_layout->addLayout(btns);
   layout->addRow(fixtures_layout);
+
+  m_universeWarning = new QLabel{this};
+  m_universeWarning->setObjectName("universeWarning");
+  m_universeWarning->setWordWrap(true);
+  m_universeWarning->setVisible(false);
+  layout->addRow(m_universeWarning);
+
+  for(auto* spin : {m_universe, m_universe_count, m_channels_per_universe})
+    connect(
+        spin, &QSpinBox::valueChanged, this,
+        &ArtnetProtocolSettingsWidget::updateUniverseWarning);
+  connect(
+      m_transport, qOverload<int>(&QComboBox::currentIndexChanged), this,
+      &ArtnetProtocolSettingsWidget::updateUniverseWarning);
 
   // FIXME a cute widget for displaying used addresses in each universe
   connect(m_addGenericDimmer, &QPushButton::clicked, this, [this] {
@@ -404,6 +420,44 @@ void ArtnetProtocolSettingsWidget::updateTable()
     m_fixturesWidget->setItem(row, 4, controls);
     row++;
   }
+  updateUniverseWarning();
+}
+
+void ArtnetProtocolSettingsWidget::updateUniverseWarning()
+{
+  if(!m_fixturesWidget || !m_universeWarning)
+    return;
+
+  const auto [first, last]
+      = ArtnetSpecificSettings::universeLimits(transportForIndex(m_transport->currentIndex()));
+  const int start = std::clamp(m_universe->value(), first, last);
+  const int64_t channels_per_universe = std::max(1, m_channels_per_universe->value());
+
+  QStringList outside;
+  for(int row = 0; row < std::ssize(m_fixtures) && row < m_fixturesWidget->rowCount(); row++)
+  {
+    const auto& fixt = m_fixtures[row];
+    const int64_t end = int64_t(fixt.universe) * channels_per_universe + fixt.address
+                        + std::max(usedChannels(fixt), 1) - 1;
+    const bool fits = fixt.universe >= start && end / channels_per_universe <= last;
+    if(auto item = m_fixturesWidget->item(row, 3))
+    {
+      item->setData(Qt::ForegroundRole, fits ? QVariant{} : QVariant{QColor(Qt::red)});
+      item->setToolTip(
+          fits ? QString{}
+               : tr("This device outputs universes %1 to %2 only").arg(start).arg(last));
+    }
+    if(!fits)
+      outside.push_back(fixt.fixtureName);
+  }
+
+  m_universeWarning->setVisible(!outside.isEmpty());
+  if(!outside.isEmpty())
+    m_universeWarning->setText(
+        tr("This device outputs universes %1 to %2 only. Outside of them: %3")
+            .arg(start)
+            .arg(last)
+            .arg(outside.join(", ")));
 }
 
 void ArtnetProtocolSettingsWidget::addressChanged(int row)
