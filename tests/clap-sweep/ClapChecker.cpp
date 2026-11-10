@@ -836,7 +836,13 @@ bool entry_init(const char*)
                             : nullptr;
     g_lib.path = g_lib.entry ? target : std::string{};
   }
-  if(!g_lib.entry || !g_lib.entry->init(target.c_str()))
+  // clap/entry.h: on macOS init() takes the bundle, not the binary in it
+  std::string init_path = target;
+#if defined(__APPLE__)
+  if(auto p = target.rfind(".clap/Contents/MacOS/"); p != std::string::npos)
+    init_path = target.substr(0, p + 5);
+#endif
+  if(!g_lib.entry || !g_lib.entry->init(init_path.c_str()))
   {
     g_lib.entry = nullptr;
     g_lib.path.clear();
