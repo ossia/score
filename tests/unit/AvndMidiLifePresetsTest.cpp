@@ -67,7 +67,7 @@ int max_chord(const Rig& r)
 const std::set<int> major_penta{0, 2, 4, 7, 9};
 const std::set<int> minor_penta{0, 3, 5, 7, 10};
 const std::set<int> dorian{0, 2, 3, 5, 7, 9, 10};
-const std::set<int> minor{0, 2, 3, 5, 7, 8, 10};
+const std::set<int> minor_scale{0, 2, 3, 5, 7, 8, 10};
 const std::set<int> lydian{0, 2, 4, 6, 7, 9, 11};
 const std::set<int> mixolydian{0, 2, 4, 5, 7, 9, 10};
 const std::set<int> harmonic_minor{0, 2, 3, 5, 7, 8, 11};
@@ -143,7 +143,7 @@ TEST_CASE("Midi life preset: HighLife minor", "[presets][midi_life]")
   Rig r;
   setup(r, "HighLife minor");
   r.run(16 * bar);
-  check_scale(r, 9, minor);
+  check_scale(r, 9, minor_scale);
   check_grid(r, sixteenth);
   CHECK(max_chord(r) <= 3);
   CHECK(r.node.inputs.rule.value == Life::RuleHighLife);
