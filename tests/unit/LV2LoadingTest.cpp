@@ -734,7 +734,7 @@ TEST_CASE("lv2_node tells the plug-in the transport stopped and started", "[lv2]
     fixture_plugin p{plug, "urn:score:test:transport", "Score Test Transport"};
     LV2::LV2Data data{plug.lv2_host_context, p.effect};
     REQUIRE(data.time_Position_ports.size() == 1);
-    REQUIRE(data.control_out_ports.size() == 2);
+    REQUIRE(data.control_out_ports.size() == 4);
     ossia::execution_state st;
     auto speed = [](test_node& n) { return n.voices[0]->fOutControls[0]; };
     auto starts = [](test_node& n) { return n.voices[0]->fOutControls[1]; };
@@ -1387,5 +1387,68 @@ TEST_CASE("An LV2 UI asking for a port by its symbol gets that port's index", "[
     CHECK(LV2::port_index(controller, "mode") == 4);
     CHECK(LV2::port_index(controller, "lv2_enabled") == LV2UI_INVALID_PORT_INDEX);
     CHECK(LV2::port_index(controller, "no such port") == LV2UI_INVALID_PORT_INDEX);
+  });
+}
+
+// time:frame and time:beat are those of the first sample of the run they come
+// with: a sequencer following the frame would otherwise be a block late, and
+// lost after a loop or a seek for one block.
+TEST_CASE("lv2_node tells each run the transport position of its own first sample", "[lv2]")
+{
+  prepare_lv2_test_environment();
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    auto& plug = setupLV2(ctx);
+    fixture_plugin p{plug, "urn:score:test:transport", "Score Test Transport"};
+    LV2::LV2Data data{plug.lv2_host_context, p.effect};
+    REQUIRE(data.control_out_ports.size() == 4);
+
+    ossia::execution_state st;
+    st.sampleRate = 48000;
+    st.bufferSize = 512;
+    st.modelToSamplesRatio = 1.;
+    st.samplesToModelRatio = 1.;
+
+    struct tick_t
+    {
+      int64_t prev, date, start_sample, length;
+      double speed;
+    };
+    // Dates in samples: a play from 0, a tick starting inside its buffer, a
+    // loop back to 0, a seek, twice the speed, then backwards
+    const tick_t ticks[]{
+        {0, 512, 0, 512, 1.},       {512, 1024, 0, 512, 1.},
+        {1024, 1388, 148, 364, 1.}, {1388, 1900, 0, 512, 1.},
+        {0, 512, 0, 512, 1.},       {48000, 48512, 0, 512, 1.},
+        {48512, 49536, 0, 512, 2.}, {49536, 49024, 0, 512, -1.},
+        {49024, 48512, 0, 512, -1.}};
+
+    std::vector<float> frames, expected_frames;
+    std::vector<float> beats, expected_beats;
+    {
+      test_node node{data, 48000, {LV2::voice_routing::single, 1}, {}, {}};
+      for(const auto& t : ticks)
+      {
+        ossia::token_request tk{
+            ossia::time_value{t.prev}, ossia::time_value{t.date},
+            ossia::time_value{1000000}, ossia::time_value{0},
+            t.speed,                    ossia::time_signature{4, 4},
+            120.};
+        tk.start_sample = t.start_sample;
+        tk.length_sample = t.length;
+        tk.musical_start_position = double(t.prev) / 24000.;
+        tk.musical_end_position = double(t.date) / 24000.;
+
+        // As the graph runs a node: the time it covered is accounted for after
+        static_cast<ossia::graph_node&>(node).run(tk, ossia::exec_state_facade{&st});
+        node.process_time(tk, st);
+        frames.push_back(node.voices[0]->fOutControls[2]);
+        beats.push_back(node.voices[0]->fOutControls[3]);
+        expected_frames.push_back(float(tk.start_date_to_physical(st.modelToSamplesRatio)));
+        expected_beats.push_back(float(tk.musical_start_position));
+      }
+    }
+    CHECK(frames == expected_frames);
+    CHECK(beats == expected_beats);
+    QCoreApplication::processEvents();
   });
 }
