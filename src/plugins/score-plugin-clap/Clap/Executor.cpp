@@ -2222,6 +2222,16 @@ Executor::Executor(Clap::Model& proc, const Execution::Context& ctx, QObject* pa
   }
 }
 
+void Executor::cleanup()
+{
+  // A process removed from an interval that plays is not stopped by it: its
+  // plug-in stops processing here, on the audio thread, before the main
+  // thread deactivates it.
+  if(m_ossia_process)
+    in_exec([proc = m_ossia_process] { proc->stop(); });
+  ProcessComponent_T::cleanup();
+}
+
 void Executor::grow_pool_tick()
 {
   auto mono = std::dynamic_pointer_cast<clap_node_mono>(this->node);
