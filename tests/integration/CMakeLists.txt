@@ -474,6 +474,19 @@ if(TARGET score_plugin_clap)
   target_compile_definitions(test_integration_clap_tick_blocks PRIVATE
     CLAP_BLOCK_RECORDER_PATH="$<TARGET_FILE:clap_block_recorder>")
 
+  # On macOS a CLAP library is never unloaded: Cocoa outlives the plug-ins
+  # that showed an editor.
+  if(APPLE)
+    score_add_test(test_integration_clap_library_lifetime
+      SOURCES ClapLibraryLifetimeTest.cpp
+      APP
+      PLUGINS score_plugin_clap score_plugin_scenario score_lib_process
+      LIBS ${CMAKE_DL_LIBS})
+    add_dependencies(test_integration_clap_library_lifetime clap_block_recorder)
+    target_compile_definitions(test_integration_clap_library_lifetime PRIVATE
+      CLAP_BLOCK_RECORDER_PATH="$<TARGET_FILE:clap_block_recorder>")
+  endif()
+
   # A CLAP process names its plug-in, so that its presets recreate it and are
   # only listed for it.
   score_add_test(test_integration_clap_preset_effect

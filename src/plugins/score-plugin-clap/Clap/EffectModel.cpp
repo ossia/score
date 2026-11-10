@@ -904,6 +904,11 @@ PluginHandle::~PluginHandle()
   {
 #if defined(_WIN32)
     FreeLibrary((HMODULE)library);
+#elif defined(__APPLE__)
+    // Never unloaded: Cocoa keeps references into the image of a plug-in
+    // that showed an editor (its Objective-C classes, in weak tables and
+    // notification observers) past the plug-in's life. dyld ignores
+    // RTLD_NODELETE: the handle is kept instead.
 #else
     dlclose(library);
 #endif
