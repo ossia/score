@@ -641,19 +641,35 @@ TEST_CASE(
     "VST3: a block is told the position of its own first sample", "[vst3][transport]")
 {
   fixture f;
-  // As the graph runs a node: the time it covered is accounted for after it ran
-  for(int64_t start : {0, 64, 128, 1000})
+  struct tick_t
+  {
+    int64_t prev, date;
+    double speed;
+  };
+  // Dates in samples: a play from 0, a loop back to 0, a seek, twice the
+  // speed, then backwards
+  const tick_t ticks[]{{0, 64, 1.},       {64, 128, 1.},       {128, 192, 1.},
+                       {0, 64, 1.},       {1000, 1064, 1.},    {1064, 1192, 2.},
+                       {1192, 1128, -1.}, {1128, 1064, -1.}};
+  // As the graph runs a node: where the tick starts first, the time it covered
+  // after
+  for(const auto& t : ticks)
   {
     ossia::token_request tk;
-    tk.prev_date = ossia::time_value{start};
-    tk.date = ossia::time_value{start + 64};
+    tk.prev_date = ossia::time_value{t.prev};
+    tk.date = ossia::time_value{t.date};
     tk.start_sample = 0;
     tk.length_sample = 64;
-    tk.speed = 1.;
+    tk.speed = t.speed;
+    f.node->begin_request(tk, f.state);
     f.node->run(tk, ossia::exec_state_facade{&f.state});
     f.node->process_time(tk, f.state);
   }
-  CHECK(f.fx.project_times == std::vector<int64>{0, 64, 128, 1000});
+  // At twice the speed, the frames the tick's tempo turns into its musical
+  // position: half the timeline's
+  CHECK(
+      f.fx.project_times
+      == std::vector<int64>{0, 64, 128, 0, 1000, 532, 1192, 1128});
 }
 
 TEST_CASE(
