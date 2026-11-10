@@ -551,6 +551,7 @@ run_stats play_t(
     tk.musical_start_last_bar = std::floor(tk.musical_start_position / 4.) * 4.;
     tk.musical_end_last_bar = std::floor(tk.musical_end_position / 4.) * 4.;
     ossia::set_thread_pinned(ossia::thread_type::Audio, 0);
+    node->begin_request(tk, st);
     static_cast<ossia::graph_node&>(*node).run(tk, ossia::exec_state_facade{&st});
     node->process_time(tk, st);
     trace_context("score", frame, node->m_context, node->m_vstData);

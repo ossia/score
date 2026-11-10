@@ -780,11 +780,8 @@ public:
     Steinberg::Vst::ProcessContext& time_info = this->m_context;
     time_info.sampleRate = st.sampleRate();
 
-    // The playhead at the first sample of this block. m_transport_frames is
-    // only updated once a node has run: it is that of the previous tick.
-    time_info.projectTimeSamples
-        = tk.speed != 0. ? tk.start_date_to_physical(st.modelToSamples())
-                         : this->m_transport_frames;
+    // The playhead at the first sample of this block
+    time_info.projectTimeSamples = this->m_transport_frames;
 
     time_info.systemTime = st.currentDate() - st.startDate();
     time_info.continousTimeSamples = this->m_processed_frames; // TODO
