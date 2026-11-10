@@ -33,8 +33,10 @@ QSize sizeHint(NSView* m_view) {
 
 void Window::setup_rect(QWidget* container, int width, int height)
 {
-  width = width / container->devicePixelRatio();
-  height = height / container->devicePixelRatio();
+  // Cocoa editors count in points
+  const double ratio = score::PluginWindow::editorPixelRatio(*container);
+  width = width / ratio;
+  height = height / ratio;
   container->setFixedSize(width, height);
 
   auto c = container->findChild<QWidget*>("VSTWindow");
@@ -70,6 +72,9 @@ void Window::initNativeWindow(const Model& e, const score::DocumentContext& ctx)
 
   auto width = rect.right - rect.left;
   auto height = rect.bottom - rect.top;
+  // Points, which Qt's logical pixels are unless Qt scales them itself
+  const double ratio = score::PluginWindow::editorPixelRatio(*this);
+  const QSize qt_size(width / ratio, height / ratio);
 
   auto superview_window = QWindow::fromWinId(reinterpret_cast<WId>(superview));
   auto container = QWidget::createWindowContainer(superview_window, this);
@@ -79,7 +84,7 @@ void Window::initNativeWindow(const Model& e, const score::DocumentContext& ctx)
                             width, height);
 
   [superview setFrame:frame];
-  container->resize(width, height);
+  container->resize(qt_size);
 
   NSArray* subviews;
   subviews = [superview subviews];
@@ -91,7 +96,8 @@ void Window::initNativeWindow(const Model& e, const score::DocumentContext& ctx)
       //qDebug() << "adjust editor size to" << sizeHint();
       // need to adjust the superview frame to be the same as the view frame
       [superview setFrame:[m_view frame]];
-      setFixedSize(vst::sizeHint(m_view));
+      const QSize sz = vst::sizeHint(m_view);
+      setFixedSize(QSize(sz.width() / ratio, sz.height() / ratio));
       // adjust the size of the window to fit.
       // FIXME: this is indeed a bit dodgy ;)
       QApplication::processEvents();
@@ -100,7 +106,7 @@ void Window::initNativeWindow(const Model& e, const score::DocumentContext& ctx)
 
   //[superview setFrame:NSMakeRect(0, 0, width, height)];
 
-  setFixedSize(QSize(width, height));
+  setFixedSize(qt_size);
 
   show();
   container->setVisible(true);

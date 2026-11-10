@@ -4,6 +4,8 @@
 #include <QDialog>
 #include <QWindow>
 
+#include <score/widgets/PluginWindow.hpp>
+
 #include <pluginterfaces/gui/iplugview.h>
 #include <pluginterfaces/gui/iplugviewcontentscalesupport.h>
 
@@ -53,22 +55,11 @@ struct WindowContainer
   vst3::PlugFrame* frame{};
 
   //! Factor to go from the coordinates the plug-in gives us to the logical
-  //! pixels Qt lays out with
+  //! pixels Qt lays out with: device pixels on Windows and X11, points on
+  //! macOS, both scaled by Qt's own scaling
   static double qtScaleFactor(const QWidget& w) noexcept
   {
-#if defined(__APPLE__)
-    // Cocoa view rects are in points, which is exactly Qt's logical pixel:
-    // only an explicit QT_SCALE_FACTOR breaks that 1:1 mapping
-    const double r = qEnvironmentVariable("QT_SCALE_FACTOR").toDouble();
-    return r > 0.1 ? 1. / r : 1.;
-#else
-    // Everywhere else the plug-in sizes its window in device pixels. Handing
-    // those numbers to Qt as-is makes the container devicePixelRatio times too
-    // big on a hidpi screen, with the actual UI sitting in a corner of it.
-    // Note: devicePixelRatioF() already accounts for QT_SCALE_FACTOR.
-    const double dpr = w.devicePixelRatioF();
-    return dpr > 0.1 ? 1. / dpr : 1.;
-#endif
+    return 1. / score::PluginWindow::editorPixelRatio(w);
   }
 
   auto setSizeFromQt(
