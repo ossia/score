@@ -21,6 +21,21 @@ Window::Window(Model& e, const score::DocumentContext& ctx, QWidget* parent)
   e.externalUIVisible(true);
 }
 
+namespace
+{
+//! The view is gone: what it registered with the frame's run loop goes with
+//! it. A plug-in may free its handlers and timers without unregistering them
+//! (the editors of Swanky Amp, Vitalium, Odin2): they would be called
+//! once freed, and its next editor refused the same file descriptor.
+void releaseRunLoop([[maybe_unused]] Plugin& fx)
+{
+#if (!(defined(__APPLE__) || defined(_WIN32))) && __has_include(<xcb/xcb.h>)
+  if(fx.plugFrame)
+    fx.plugFrame->cleanup();
+#endif
+}
+}
+
 Window::~Window()
 {
   if(m_model.fx.view)
@@ -33,6 +48,7 @@ Window::~Window()
     view->release();
 
     const_cast<Plugin&>(m_model.fx).view = nullptr;
+    releaseRunLoop(m_model.fx);
   }
 
   if(container.frame)
@@ -62,6 +78,7 @@ void Window::closeEvent(QCloseEvent* event)
     view->release();
 
     const_cast<Plugin&>(m_model.fx).view = nullptr;
+    releaseRunLoop(m_model.fx);
   }
   container.frame = nullptr;
 
