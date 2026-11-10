@@ -33,8 +33,10 @@ public:
   Steinberg::tresult
   PLUGIN_API resizeView(Steinberg::IPlugView* view, Steinberg::ViewRect* newSize) override
   {
-    wc.setSizeFromVst(*view, *newSize, *w);
-    return Steinberg::kResultOk;
+    if(!view || !newSize)
+      return Steinberg::kInvalidArgument;
+    return wc.setSizeFromVst(*view, *newSize, *w) ? Steinberg::kResultTrue
+                                                  : Steinberg::kResultFalse;
   }
 };
 #endif

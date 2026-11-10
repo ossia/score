@@ -32,7 +32,9 @@ WindowContainer createVstWindowContainer(
   wc.container = QWidget::createWindowContainer(wc.qwindow, &parentWindow);
   wc.frame = new PlugFrame{parentWindow, wc};
   view.setFrame(wc.frame);
+  wc.setAttached();
   view.attached((void*)superview, currentPlatform());
+  wc.sendPendingSize(view);
 
   wc.qwindow->show();
 
@@ -49,13 +51,12 @@ WindowContainer createVstWindowContainer(
   subviews = [superview subviews];
   id m_view = [[subviews objectAtIndex:0] retain];
 
-  auto adjustSize= [v=&view] (double w, double h){
-    Steinberg::ViewRect r;
-    r.left = 0;
-    r.top = 0;
-    r.right = w;
-    r.bottom = h;
-    v->onSize(&r);
+  // The window's size in the editor's points, given to the editor unless it
+  // has it
+  auto adjustSize = [v = &view, wc](int w, int h) {
+    const Steinberg::ViewRect r{0, 0, w, h};
+    if(!WindowContainer::sameSize(r, wc.size->current))
+      wc.sendSize(*v, r);
   };
   [[NSNotificationCenter defaultCenter]
       addObserverForName:@"NSViewFrameDidChangeNotification"
@@ -69,10 +70,10 @@ WindowContainer createVstWindowContainer(
 
     // need to adjust the superview frame to be the same as the view frame
 
-    // The window's size in the editor's points
-    const double ratio = score::PluginWindow::editorPixelRatio(parentWindow);
+    const double scale = WindowContainer::qtScaleFactor(parentWindow);
     adjustSize(
-        parentWindow.geometry().width() * ratio, parentWindow.geometry().height() * ratio);
+        WindowContainer::toEditor(parentWindow.geometry().width(), scale),
+        WindowContainer::toEditor(parentWindow.geometry().height(), scale));
 
     [superview setFrame:[m_view frame]];
 
@@ -95,7 +96,7 @@ WindowContainer createVstWindowContainer(
     // For some reason in that case the plug-ins aren't centered...
     {
       qDebug() << r.getWidth() << r.getHeight();
-      view.onSize(&r);
+      wc.sendSize(view, r);
     }
   }
   [superview release];

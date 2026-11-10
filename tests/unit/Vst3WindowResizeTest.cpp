@@ -89,6 +89,10 @@ TEST_CASE("VST3: a resizable editor follows its window", "[vst3][editor][resize]
   QDialog window;
   window.resize(400, 300);
   vst3::WindowContainer wc;
+  // Before attached(), resizes of the window are score's own
+  wc.setSizeFromUser(view, QSize{537, 421}, window);
+  CHECK(view.sizes.empty());
+  wc.setAttached();
   const double scale = vst3::WindowContainer::qtScaleFactor(window);
   REQUIRE(scale == 1.);
 
