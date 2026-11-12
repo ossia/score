@@ -1,0 +1,49 @@
+# Keep sherpa and the system ONNX Runtime at the same ABI version. All downloads
+# are checked Flatpak sources, available before the network-isolated build.
+name: sherpa-onnx
+buildsystem: simple
+build-commands:
+  # The addon consumes this explicit tree and installs sherpa plus its phonemizer.
+  - install -d "${FLATPAK_DEST}/opt/sherpa-onnx"
+  - cp -a sherpa-onnx/. "${FLATPAK_DEST}/opt/sherpa-onnx/"
+  # The sherpa archive has no ONNX Runtime headers. Supply the matching official
+  # development headers and preserve the library's SONAME/development symlinks.
+  - install -d "${FLATPAK_DEST}/include/onnxruntime" "${FLATPAK_DEST}/lib"
+  - cp -a onnxruntime/include/. "${FLATPAK_DEST}/include/onnxruntime/"
+  - cp -a onnxruntime/lib/*.so* "${FLATPAK_DEST}/lib/"
+  - install -Dm644 onnxruntime/LICENSE "${FLATPAK_DEST}/share/licenses/onnxruntime/LICENSE"
+  - install -Dm644 onnxruntime/ThirdPartyNotices.txt "${FLATPAK_DEST}/share/licenses/onnxruntime/ThirdPartyNotices.txt"
+# Only a build-time input: score's install step bundles the sherpa runtime.
+cleanup:
+  - /opt/sherpa-onnx
+sources:
+  # sherpa archives have lib/ and include/ directly at their root.
+  - type: archive
+    url: https://github.com/sat-mtl/sherpa-plugins/releases/download/prebuilt-v1.13.8-a63f821-ort1.27.1/sherpa-onnx-cabi-linux-x64.tar.gz
+    sha256: 78af49684e6094680ede367b1e0efeee667d762eb5814ed6e78f98698e9cf8ac
+    dest: sherpa-onnx
+    strip-components: 0
+    only-arches:
+      - x86_64
+  - type: archive
+    url: https://github.com/sat-mtl/sherpa-plugins/releases/download/prebuilt-v1.13.8-a63f821-ort1.27.1/sherpa-onnx-cabi-linux-arm64.tar.gz
+    sha256: 74eb66bbf82b7e66145c239c276106fd004fbc6c77c2edc43d7370abdaefec55
+    dest: sherpa-onnx
+    strip-components: 0
+    only-arches:
+      - aarch64
+  # Official ONNX Runtime archives contain a versioned top-level directory.
+  - type: archive
+    url: https://github.com/microsoft/onnxruntime/releases/download/v1.27.1/onnxruntime-linux-x64-1.27.1.tgz
+    sha256: 25b1ef1fea1acd210d63f8f24dc870ad6e077795ce1f54876252c6d3803c15af
+    dest: onnxruntime
+    strip-components: 1
+    only-arches:
+      - x86_64
+  - type: archive
+    url: https://github.com/microsoft/onnxruntime/releases/download/v1.27.1/onnxruntime-linux-aarch64-1.27.1.tgz
+    sha256: 33c67e33d1e25b816878366ea276589a024f71f000e7ff955c4b33224d639edd
+    dest: onnxruntime
+    strip-components: 1
+    only-arches:
+      - aarch64
