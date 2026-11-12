@@ -200,6 +200,8 @@ then
   clone_addon https://github.com/ossia/score-addon-trackingprotocols
   clone_addon https://github.com/ossia/score-addon-videoio
   clone_addon https://github.com/sat-mtl/carto-tcp-avendish.git
+  # Speech processing through native sherpa-onnx libraries (no WebAssembly).
+  clone_addon https://github.com/sat-mtl/sherpa-plugins
   NO_SUBMODULES=1 clone_addon https://github.com/ossia/score-addon-orbbec
 fi
 
