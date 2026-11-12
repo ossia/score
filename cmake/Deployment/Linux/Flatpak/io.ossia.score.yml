@@ -123,6 +123,7 @@ modules:
   - modules/highfive.yaml
   - modules/ysfx.yaml
   - modules/faust.yaml
+  - modules/sherpa-onnx.yaml
 
   - name: ossia-score
     buildsystem: cmake-ninja
@@ -156,6 +157,9 @@ modules:
       - -DSCORE_NO_QTCONF=1
       - -DCMAKE_CXX_FLAGS="-Wl,--strip-all"
       - -DBOOST_ROOT=/app/include
+      # Use only the matching runtime staged by Flatpak sources, never configure downloads.
+      - -DSHERPA_ONNX_FETCH_LIBS=OFF
+      - -DSHERPA_ONNX_DIR=/app/opt/sherpa-onnx
 
     post-install:
       - install -Dm755 /usr/lib/sdk/llvm22/lib/libLLVM.so.22.1 "${FLATPAK_DEST}/lib/"
