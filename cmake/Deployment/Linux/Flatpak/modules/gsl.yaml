@@ -1,0 +1,5 @@
+type: archive
+url: https://github.com/microsoft/GSL/archive/refs/tags/v4.0.0.zip
+sha256: eb91fcb10a6aa5ccb1d224e07a56c8ecffe9a1bb601fa1848276ec46a2200bfb
+dest: flatpak-onnx-deps/gsl
+strip-components: 1

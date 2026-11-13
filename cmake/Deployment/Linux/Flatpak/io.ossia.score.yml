@@ -136,16 +136,8 @@ modules:
       # token_api_only enables GPT2 + the C API: GSL and JSON are its complete
       # external source dependencies. Prefetch both; CMake must not download in
       # the build sandbox. Keep versions aligned with onnxruntime-extensions.
-      - type: archive
-        url: https://github.com/microsoft/GSL/archive/refs/tags/v4.0.0.zip
-        sha256: eb91fcb10a6aa5ccb1d224e07a56c8ecffe9a1bb601fa1848276ec46a2200bfb
-        dest: flatpak-onnx-deps/gsl
-        strip-components: 1
-      - type: archive
-        url: https://github.com/nlohmann/json/archive/refs/tags/v3.11.3.zip
-        sha256: 04022b05d806eb5ff73023c280b68697d12b93e1b7267a0b22a1a39ec7578069
-        dest: flatpak-onnx-deps/nlohmann_json
-        strip-components: 1
+      - modules/gsl.yaml
+      - modules/nlohmann-json.yaml
 
       - type: script
         dest-filename: run
