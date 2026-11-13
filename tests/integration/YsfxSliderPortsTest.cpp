@@ -27,6 +27,7 @@
 #include <ossia/dataflow/execution_state.hpp>
 #include <ossia/dataflow/graph_node.hpp>
 #include <ossia/dataflow/port.hpp>
+#include <ossia/network/value/value_conversion.hpp>
 
 #include <QFile>
 #include <QJsonArray>
@@ -36,6 +37,7 @@
 
 #include <YSFX/ProcessModel.hpp>
 #include <algorithm>
+#include <map>
 #include <catch2/catch_test_macros.hpp>
 
 namespace
@@ -255,5 +257,67 @@ TEST_CASE(
     REQUIRE(procs.size() == 1);
     REQUIRE(procs[0]->inlet(Id<Process::Port>(3 + 3)) == nullptr);
     check_ports(*loaded, *procs[0]);
+  });
+}
+
+TEST_CASE(
+    "a JSFX slider past the 64th that @block changes is shown on its control",
+    "[integration][ysfx]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    QTemporaryDir dir;
+    REQUIRE(dir.isValid());
+    const QString path = dir.filePath("many.jsfx");
+    score::test::write_file(path, R"(desc:many sliders
+slider1:0<0,100,1>First
+slider70:0<0,100,1>Seventieth
+slider200:0<0,100,1>Two hundredth
+out_pin:out
+@block
+slider1 = 1; sliderchange(slider1);
+slider70 = 70; sliderchange(slider70);
+slider200 = 200; slider_automate(slider200);
+@sample
+spl0 = 0;
+)");
+
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    auto* proc = add_gaps(*doc, path);
+    if(!proc || !proc->fx)
+      SKIP("YSFX not built");
+
+    auto& plug = doc->context().plugin<Execution::DocumentPlugin>();
+    plug.reload(true, score::test::base_interval(*doc));
+    score::test::run_exec(plug);
+    REQUIRE(plug.baseScenario());
+    auto& procs = plug.baseScenario()->baseInterval().processes();
+    auto it = procs.find(proc->id());
+    REQUIRE(it != procs.end());
+    REQUIRE(it->second->node);
+    auto& state = *plug.contextData()->execState;
+
+    std::map<int, double> shown;
+    for(int n : {1, 70, 200})
+    {
+      auto* c = qobject_cast<Process::ControlInlet*>(proc->inlet(Id<Process::Port>(3 + n)));
+      REQUIRE(c);
+      QObject::connect(
+          c, &Process::ControlInlet::executionValueChanged, c,
+          [&shown, n](const ossia::value& v) { shown[n] = ossia::convert<double>(v); });
+    }
+
+    ossia::token_request tk;
+    tk.prev_date = ossia::time_value{0};
+    tk.date = ossia::time_value{state.bufferSize * 1000};
+    tk.start_sample = 0;
+    tk.length_sample = state.bufferSize;
+    it->second->node->run(tk, ossia::exec_state_facade{&state});
+    QMetaObject::invokeMethod(&doc->context().coarseUpdateTimer, "timeout");
+
+    CHECK(shown[1] == 1.);
+    CHECK(shown[70] == 70.);
+    CHECK(shown[200] == 200.);
+    plug.clear();
   });
 }
