@@ -382,6 +382,36 @@ struct LayoutBuilder final : Process::LayoutBuilderBase
         });
       }
 
+      // A custom item with an execution_value is given there what execution
+      // gives the port, and nothing once execution stops: it shows it apart
+      // from its value, which stays the one the user edits. on_control_update
+      // is not called: the value it reacts to does not change.
+      if constexpr(requires {
+                     item.execution_value = std::optional<std::decay_t<decltype(item.value)>>{};
+                   })
+      {
+        QObject* const lifetime = connections ? connections : &context;
+        auto repaint = [layout = this->layout, &item] {
+          if constexpr(requires { item.update(); })
+            if(item.update)
+              item.update();
+          layout->update();
+        };
+        QObject::connect(
+            port, &Port_T::executionValueChanged, lifetime,
+            [&item, repaint, &ctx = static_cast<const score::DocumentContext&>(this->doc)](
+                const ossia::value& v) {
+          std::decay_t<decltype(item.value)> val{};
+          SetGUIValue<avnd_port_type>{ctx}(v, val);
+          item.execution_value = std::move(val);
+          repaint();
+        });
+        QObject::connect(port, &Port_T::executionReset, lifetime, [&item, repaint] {
+          item.execution_value = std::nullopt;
+          repaint();
+        });
+      }
+
       // An edit from the ui, in the document's history: the edits of one
       // gesture are one undo step (see UiEdits)
       if constexpr(requires { item.set = {}; })

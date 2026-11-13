@@ -16,6 +16,7 @@
 #include <QPainter>
 
 #include <algorithm>
+#include <optional>
 #include <tuple>
 #include <utility>
 #include <vector>
@@ -164,6 +165,17 @@ private:
     show(port->value());
     QObject::connect(port, &Process::ControlInlet::valueChanged, this, show);
 
+    if constexpr(requires {
+                   std::get<I>(this->impl.execution_values) = std::optional<value_type>{};
+                 })
+    {
+      followExecution(port, std::get<I>(this->impl.execution_values), [](const ossia::value& v) {
+        value_type val{};
+        oscr::from_ossia_value(v, val);
+        return val;
+      });
+    }
+
     if constexpr(I < std::tuple_size_v<transactions_type>)
       setupRawTransaction<I>(port);
   }
@@ -198,6 +210,14 @@ private:
       };
       show(port->value());
       QObject::connect(port, &Process::ControlInlet::valueChanged, this, show);
+
+      if constexpr(requires { this->impl.execution_values[i] = std::optional<double>{}; })
+      {
+        if(i < std::size(this->impl.execution_values))
+          followExecution(port, this->impl.execution_values[i], [port](const ossia::value& v) {
+            return normalize(*port, v);
+          });
+      }
     }
 
     this->impl.transaction.start = [this] { start(); };
@@ -209,6 +229,24 @@ private:
     };
     this->impl.transaction.commit = [this] { commit(); };
     this->impl.transaction.rollback = [this] { rollback(); };
+  }
+
+  //! An item with execution_values, of the shape of its values, is given
+  //! there what execution gives the ports, and nothing once execution stops:
+  //! it shows it apart from the values the user edits, which it leaves as
+  //! they are, as the knobs and sliders do.
+  void followExecution(Process::ControlInlet* port, auto& shown, auto convert)
+  {
+    QObject::connect(
+        port, &Process::ControlInlet::executionValueChanged, this,
+        [this, &shown, convert](const ossia::value& v) {
+      shown = convert(v);
+      this->update();
+    });
+    QObject::connect(port, &Process::ControlInlet::executionReset, this, [this, &shown] {
+      shown = std::nullopt;
+      this->update();
+    });
   }
 
   //! One gesture of the item, whichever of its transactions it goes through
