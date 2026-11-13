@@ -1128,6 +1128,7 @@ struct score_side
     }
 
     const int64_t total = int64_t(seconds * rate);
+    const int64_t edit_period = std::max<int64_t>(1, (rate * 32 / 1000) / block);
     res.audio.seconds = seconds;
     const double flicks_per_frame = ossia::flicks_per_second<double> / rate;
     const auto t0 = std::chrono::steady_clock::now();
@@ -1211,6 +1212,10 @@ struct score_side
 
       const auto m0 = std::chrono::steady_clock::now();
       QCoreApplication::processEvents();
+      // What the execution's 32 ms timer does on the main thread, as often
+      // as a real-time play would give it its turn
+      if((frame / block) % edit_period == edit_period - 1)
+        plug.contextData()->processEditCommands();
       main_time += std::chrono::steady_clock::now() - m0;
     }
     res.seconds = double(total) / rate;
