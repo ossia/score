@@ -59,6 +59,9 @@ $SUDO apt-get install -y --no-install-recommends \
   libgl1-mesa-dri libglx-mesa0 mesa-utils xvfb \
   qml6-module-qtqml-workerscript
 
+# V4L2 loader tests dlopen libv4l2.so.0, including with no capture hardware.
+$SUDO apt-get install -y --no-install-recommends libv4l-0t64
+
 # >>> software Vulkan (lavapipe)
 # So that the gfx tests run on Vulkan as well as on OpenGL, and the ones
 # comparing two backends run at all. vulkan-tools is for the device summary
