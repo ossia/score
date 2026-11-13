@@ -123,6 +123,7 @@ modules:
   - modules/highfive.yaml
   - modules/ysfx.yaml
   - modules/faust.yaml
+  - modules/onnxruntime.yaml
   - modules/sherpa-onnx.yaml
 
   - name: ossia-score
@@ -131,6 +132,20 @@ modules:
     sources:
       - type: dir
         path: ../../../../
+
+      # token_api_only enables GPT2 + the C API: GSL and JSON are its complete
+      # external source dependencies. Prefetch both; CMake must not download in
+      # the build sandbox. Keep versions aligned with onnxruntime-extensions.
+      - type: archive
+        url: https://github.com/microsoft/GSL/archive/refs/tags/v4.0.0.zip
+        sha256: eb91fcb10a6aa5ccb1d224e07a56c8ecffe9a1bb601fa1848276ec46a2200bfb
+        dest: flatpak-onnx-deps/gsl
+        strip-components: 1
+      - type: archive
+        url: https://github.com/nlohmann/json/archive/refs/tags/v3.11.3.zip
+        sha256: 04022b05d806eb5ff73023c280b68697d12b93e1b7267a0b22a1a39ec7578069
+        dest: flatpak-onnx-deps/nlohmann_json
+        strip-components: 1
 
       - type: script
         dest-filename: run
@@ -160,6 +175,10 @@ modules:
       # Use only the matching runtime staged by Flatpak sources, never configure downloads.
       - -DSHERPA_ONNX_FETCH_LIBS=OFF
       - -DSHERPA_ONNX_DIR=/app/opt/sherpa-onnx
+      # Both addons and tokenizers use the same /app ONNX Runtime. FetchContent
+      # source overrides bypass the extension dependency download steps.
+      - -DFETCHCONTENT_SOURCE_DIR_GSL=/run/build/ossia-score/flatpak-onnx-deps/gsl
+      - -DFETCHCONTENT_SOURCE_DIR_NLOHMANN_JSON=/run/build/ossia-score/flatpak-onnx-deps/nlohmann_json
 
     post-install:
       - install -Dm755 /usr/lib/sdk/llvm22/lib/libLLVM.so.22.1 "${FLATPAK_DEST}/lib/"
