@@ -13,6 +13,7 @@
 #include <ossia/detail/hash_map.hpp>
 #include <ossia/detail/lockfree_queue.hpp>
 #include <ossia/detail/nullable_variant.hpp>
+#include <ossia/detail/thread.hpp>
 
 #include <QCoreApplication>
 #include <QDebug>
@@ -23,6 +24,7 @@
 #include <libremidi/detail/conversion.hpp>
 
 #include <atomic>
+#include <optional>
 #include <ranges>
 
 #if defined(_WIN32)
@@ -157,13 +159,15 @@ struct event_storage
   std::vector<clap_event_midi2_t> midi2_events;
   std::vector<clap_event_note_t> note_events;
   std::vector<clap_event_param_value_t> param_events;
-  // Sysex events captured from plug-in output. The CLAP spec says
-  // clap_event_midi_sysex_t.buffer is only valid for the duration of
-  // try_push, so we copy each payload into sysex_data and rewrite the
-  // event to point at our copy.
+  // Sysex events captured from plug-in output. clap/events.h has
+  // clap_event_midi_sysex_t.buffer valid only for the duration of try_push:
+  // each payload is copied in sysex_data, which the event points into.
   std::vector<clap_event_midi_sysex_t> sysex_events;
-  std::vector<std::vector<uint8_t>> sysex_data;
+  std::vector<uint8_t> sysex_data;
   std::vector<clap_event_header_t*> all_events;
+  //! What sorting all_events uses
+  std::vector<uint64_t> sort_keys;
+  std::vector<clap_event_header_t*> sort_scratch;
 
   void clear()
   {
@@ -175,23 +179,95 @@ struct event_storage
     sysex_data.clear();
     all_events.clear();
   }
+
+  //! What the plug-in sends out of a call goes in what was reserved for it
+  //! when the node was made: clap/events.h, try_push "returns false if the
+  //! event could not be pushed to the queue"
+  void reserve_outputs()
+  {
+    midi_events.reserve(1024);
+    midi2_events.reserve(1024);
+    note_events.reserve(1024);
+    param_events.reserve(1024);
+    sysex_events.reserve(128);
+    sysex_data.reserve(65536);
+  }
+
+  void reserve_sort(std::size_t n)
+  {
+    sort_keys.reserve(n);
+    sort_scratch.reserve(n);
+  }
+
+  //! By time, the events of a same time in the order they were queued, as a
+  //! note off has to stay before the note on that follows it; with no
+  //! allocation once reserve_sort made room for them
+  void sort()
+  {
+    auto by_time = [](const clap_event_header_t* a, const clap_event_header_t* b) {
+      return a->time < b->time;
+    };
+    const auto n = all_events.size();
+    if(n < 2 || std::is_sorted(all_events.begin(), all_events.end(), by_time))
+      return;
+    sort_keys.clear();
+    for(std::size_t i = 0; i < n; i++)
+      sort_keys.push_back((uint64_t(all_events[i]->time) << 32) | uint64_t(i));
+    std::sort(sort_keys.begin(), sort_keys.end());
+    sort_scratch.assign(all_events.begin(), all_events.end());
+    for(std::size_t i = 0; i < n; i++)
+      all_events[i] = sort_scratch[sort_keys[i] & 0xFFFFFFFFu];
+  }
 };
+
+//! Whether a list may take one more event without growing
+template <typename T>
+bool has_room(const std::vector<T>& v) noexcept
+{
+  return v.size() < v.capacity();
+}
+
+//! The events of a call to the plug-in, from where they are kept
+clap_input_events_t input_events_of(event_storage& storage) noexcept
+{
+  return clap_input_events_t{
+      .ctx = &storage,
+      .size = +[](const clap_input_events* list) -> uint32_t {
+    return static_cast<event_storage*>(list->ctx)->all_events.size();
+  },
+      .get = +[](const clap_input_events* list,
+                 uint32_t index) -> const clap_event_header_t* {
+    auto* storage = static_cast<event_storage*>(list->ctx);
+    return index < storage->all_events.size() ? storage->all_events[index] : nullptr;
+  }};
+}
+
+bool on_audio_thread() noexcept
+{
+  const auto t = ossia::get_current_thread_type();
+  return t == ossia::thread_type::Audio || t == ossia::thread_type::AudioTask;
+}
 
 class clap_node_base : public ossia::graph_node
 {
 public:
   std::shared_ptr<Clap::PluginHandle> handle;
   //! Its process was stopped: the ticks still running before the engine
-  //! takes the next one do not start the plug-in again, as the main thread
-  //! may deactivate it meanwhile. A start of its process clears it.
+  //! takes the next one do not start the plug-in again. A start of its
+  //! process clears it.
   bool m_stopped{};
-  explicit clap_node_base(const Clap::Model& proc)
+  //! Where the main thread hears that an instance stopped processing
+  std::weak_ptr<Execution::EditionCommandQueue> m_edit;
+
+  clap_node_base(const Clap::Model& proc, double sample_rate, uint32_t block_size)
       : handle{proc.handle()}
       , m_param_ins{handle->m_parameters_ins}
       , m_param_outs{handle->m_parameters_outs}
       , m_midi_ins{handle->m_midi_ins}
       , m_midi_outs{handle->m_midi_outs}
       , m_param_out_index{handle->param_outs_by_id}
+      , m_sample_rate{sample_rate}
+      , m_buffer_size{block_size}
   {
     set_not_fp_safe();
     midi_ins.reserve(m_midi_ins.size());
@@ -201,8 +277,13 @@ public:
     parameter_ins.reserve(m_param_ins.size());
     parameter_outs.reserve(m_param_outs.size());
     m_input_events.all_events.reserve(4096);
+    m_input_events.reserve_sort(4096);
+    m_output_events.reserve_outputs();
     m_initial_values.param_events.reserve(m_param_ins.size());
     m_initial_values.all_events.reserve(m_param_ins.size());
+    m_last_values.reserve(m_param_ins.size());
+    for(std::size_t i = 0; i < m_param_ins.size(); i++)
+      m_param_in_index.emplace(m_param_ins[i].id, uint32_t(i));
 
     // Create ports based on the model
     for(auto inlet : proc.inlets())
@@ -222,6 +303,13 @@ public:
         parameter_ins.push_back(new ossia::value_inlet);
         m_inlets.push_back(parameter_ins.back());
         parameter_ins.back()->data.write_value(inl->value(), 0);
+        if(m_last_values.size() < m_param_ins.size())
+        {
+          const auto& info = m_param_ins[m_last_values.size()];
+          m_last_values.push_back(std::clamp(
+              voice_control_value(inl->value(), 0).value_or(info.default_value),
+              info.min_value, info.max_value));
+        }
       }
     }
 
@@ -257,62 +345,82 @@ public:
     return "clap";
   }
 
-  [[nodiscard]] bool activate_plugin(
-      const clap_plugin_t* plugin, double sample_rate, uint32_t max_buffer_size)
+  //! Notes that the main thread may now deactivate an instance, or restart
+  //! it
+  void notify_stopped(PluginInstance& inst) noexcept
   {
-    if(!plugin)
+    if(auto q = m_edit.lock())
+      q->try_enqueue([w = inst.weak_from_this()] {
+        if(auto i = w.lock())
+          i->reconcile();
+      });
+  }
+
+  //! An instance this node processes, ready for this block: a restart asked
+  //! for stops it until the main thread did it, an instance not processing
+  //! yet starts with the values its parameters last had. A plug-in instance
+  //! other than the one the parameters were listed from does not get their
+  //! cookies: they point into that one.
+  [[nodiscard]] bool
+  ensure_processing(PluginInstance& inst, bool& processing, bool own_cookies) noexcept
+  {
+    if(inst.restart_pending.load(std::memory_order_acquire))
+    {
+      stop_instance(inst, processing);
       return false;
-
-    m_sample_rate = sample_rate;
-    m_buffer_size = max_buffer_size;
-
-    if(plugin->activate(plugin, sample_rate, 1, max_buffer_size))
-    {
-      return true;
     }
-    return false;
+    if(processing)
+      return true;
+    if(!inst.start_processing())
+      return false;
+    processing = true;
+    flush_last_values(inst.plugin, inst.ext_params, own_cookies);
+    return true;
   }
 
-  //! A plug-in instance other than the one the parameters were listed from
-  //! does not get their cookies: they point into that one. Its params
-  //! extension is queried beforehand on the main thread: clap-helpers before
-  //! 1.2 terminates a host calling get_extension from another one (Odin2).
-  [[nodiscard]] bool start_plugin(
-      const clap_plugin_t* plugin, const clap_plugin_params_t* params,
-      bool own_cookies = true)
+  void stop_instance(PluginInstance& inst, bool& processing) noexcept
   {
-    // CLAP spec (plugin.h): reset() "clears all buffers, performs a full
-    // reset of the processing state (filters, oscillators, envelopes,
-    // lfo, ...) and kills all voices" and is the right call when
-    // clap_process.steady_time may jump backward — exactly what happens
-    // when score (re)starts a transport that has been idle. It's a cheap
-    // mandatory entry point, and gets rid of residual reverb tails /
-    // filter ringing between plays.
-    plugin->reset(plugin);
-
-    if(plugin->start_processing(plugin))
-    {
-      init_parameter_values(plugin, params, own_cookies);
-      return true;
-    }
-    return false;
-  }
-
-  void stop_plugin(const clap_plugin_t* plugin) { plugin->stop_processing(plugin); }
-
-  void init_parameter_values(
-      const clap_plugin_t* plugin, const clap_plugin_params_t* params, bool own_cookies)
-  {
-    if(!plugin || m_param_ins.empty())
+    if(!processing)
       return;
+    inst.stop_processing();
+    processing = false;
+    notify_stopped(inst);
+  }
 
-    // Push initial parameter values via clap.params.flush, not process().
-    // process() requires the plugin's declared audio port layout (a plugin may
-    // assert on it, e.g. Floe), and the spec reserves process() for actual
-    // audio rendering; flush() exists precisely to set parameters with no
-    // audio. We're on the audio thread, active and not concurrently
-    // processing, which is a legal context for flush.
-    if(!params || !params->flush)
+  //! An instance this node let go of while it processed it, its stop for the
+  //! audio thread lost with the execution queue: no audio thread reaches it
+  //! any more, so this one is its audio thread. The main thread then
+  //! deactivates it if nothing else holds it.
+  static void release_instance(PluginInstance& inst, bool& processing) noexcept
+  {
+    if(!processing)
+      return;
+    {
+      std::optional<ActingAsAudioThread> acting;
+      if(!on_audio_thread())
+        acting.emplace();
+      inst.stop_processing();
+    }
+    processing = false;
+    QMetaObject::invokeMethod(qApp, [w = inst.weak_from_this()] {
+      if(auto i = w.lock())
+        i->reconcile();
+    }, Qt::QueuedConnection);
+  }
+
+  //! Stops every instance this node processes
+  virtual void stop_all() noexcept = 0;
+
+  //! The values the parameters last had, sent to the plug-in through
+  //! clap.params.flush rather than process(): process() requires the
+  //! plug-in's declared audio port layout (a plug-in may assert on it, e.g.
+  //! Floe). clap/ext/params.h: flush is [active ? audio-thread :
+  //! main-thread], and this is the audio thread, not within process().
+  void flush_last_values(
+      const clap_plugin_t* plugin, const clap_plugin_params_t* params,
+      bool own_cookies) noexcept
+  {
+    if(!plugin || m_param_ins.empty() || !params || !params->flush)
       return;
 
     // Reserved for every parameter when the node is made
@@ -334,25 +442,13 @@ public:
       ev.port_index = -1;
       ev.channel = -1;
       ev.key = -1;
-      const auto& v = parameter_ins[i]->data.get_data();
-      ev.value = v.empty() ? param_info.default_value
-                           : ossia::convert<float>(v.back().value);
+      ev.value = m_last_values[i];
       in.param_events.push_back(ev);
     }
     for(auto& ev : in.param_events)
       in.all_events.push_back(reinterpret_cast<clap_event_header_t*>(&ev));
 
-    clap_input_events evs{
-        .ctx = &in,
-        .size = +[](const clap_input_events* list) -> uint32_t {
-      return static_cast<event_storage*>(list->ctx)->all_events.size();
-    },
-        .get = +[](const clap_input_events* list,
-                   uint32_t index) -> const clap_event_header_t* {
-      auto* storage = static_cast<event_storage*>(list->ctx);
-      return index < storage->all_events.size() ? storage->all_events[index]
-                                                : nullptr;
-    }};
+    clap_input_events evs = input_events_of(in);
     clap_output_events_t o_evs{
         .ctx = nullptr,
         .try_push = [](const struct clap_output_events*,
@@ -361,14 +457,13 @@ public:
     params->flush(plugin, &evs, &o_evs);
   }
 
-  [[nodiscard]]
-  bool deactivate_plugin(const clap_plugin_t* plugin)
+  //! The values the plug-in sent out for its writable parameters, from its
+  //! editor: they are the ones it starts with again
+  void remember_plugin_values() noexcept
   {
-    if(!plugin)
-      return false;
-
-    plugin->deactivate(plugin);
-    return true;
+    for(const auto& ev : m_output_events.param_events)
+      if(auto it = m_param_in_index.find(ev.param_id); it != m_param_in_index.end())
+        m_last_values[it->second] = ev.value;
   }
 
   auto make_transport(const ossia::token_request& tk, ossia::exec_state_facade st)
@@ -397,6 +492,7 @@ public:
         double value = std::clamp(
             ossia::convert<double>(tv.value), param_info.min_value,
             param_info.max_value);
+        m_last_values[i] = value;
 
         // Map ossia's signed frame offset onto CLAP's unsigned uint32 time
         // field. Port timestamps are relative to the audio buffer while the
@@ -678,21 +774,24 @@ public:
       midi_event_count += port->data.messages.size();
     const bool notes_off
         = m_pending_all_notes_off.exchange(false, std::memory_order_acq_rel);
-    int chokes = 0, controllers = 0;
+    int chokes = 0, controllers = 0, controllers2 = 0;
     if(notes_off)
     {
       for(const auto& port : m_midi_ins)
       {
         chokes += bool(port.supported_dialects & CLAP_NOTE_DIALECT_CLAP);
         controllers += bool(port.supported_dialects & CLAP_NOTE_DIALECT_MIDI) * 32;
+        controllers2 += bool(port.supported_dialects & CLAP_NOTE_DIALECT_MIDI2) * 32;
       }
     }
     m_input_events.midi_events.reserve(midi_event_count * 1.1 + controllers);
-    m_input_events.midi2_events.reserve(midi_event_count * 1.1);
+    m_input_events.midi2_events.reserve(midi_event_count * 1.1 + controllers2);
     m_input_events.note_events.reserve(midi_event_count * 1.1 + chokes);
     m_input_events.param_events.reserve(param_event_count * 1.1 + 1);
-    m_input_events.all_events.reserve(
-        (param_event_count + midi_event_count + 1) * 1.1 + chokes + controllers);
+    const std::size_t all = (param_event_count + midi_event_count + 1) * 1.1 + chokes
+                            + controllers + controllers2;
+    m_input_events.all_events.reserve(all);
+    m_input_events.reserve_sort(all);
 
     if(notes_off)
       inject_all_notes_off();
@@ -701,21 +800,15 @@ public:
     process_controls(samples);
     process_midi();
 
-    // Events need to be sorted. Stably: events sharing a time must keep the
-    // order they were queued in, or a note-off can end up after the note-on
-    // that follows it. Deferral makes that routine rather than rare, since it
-    // puts everything it held back at time 0 alongside the block's own.
-    std::stable_sort(
-        m_input_events.all_events.begin(), m_input_events.all_events.end(),
-        [](const clap_event_header_t* a, const clap_event_header_t* b) {
-      return a->time < b->time;
-    });
+    // Deferral makes events sharing a time routine rather than rare, since
+    // it puts everything it held back at time 0 alongside the block's own
+    m_input_events.sort();
   }
 
   //! Each note input gets what its dialects say ends every note: a
-  //! NOTE_CHOKE of all its keys, CC#120/123 on its 16 channels, or both, as
-  //! a plug-in may take both dialects and ignore chokes. A plug-in without
-  //! note inputs gets nothing.
+  //! NOTE_CHOKE of all its keys, CC#120/123 on its 16 channels in MIDI 1 or
+  //! MIDI 2, or all of them, as a plug-in may take several dialects and
+  //! ignore chokes. A plug-in without note inputs gets nothing.
   void inject_all_notes_off()
   {
     for(std::size_t i = 0; i < m_midi_ins.size(); ++i)
@@ -758,6 +851,28 @@ public:
             m_input_events.midi_events.push_back(ev);
             m_input_events.all_events.push_back(reinterpret_cast<clap_event_header_t*>(
                 &m_input_events.midi_events.back()));
+          }
+        }
+      }
+      if(dialects & CLAP_NOTE_DIALECT_MIDI2)
+      {
+        for(uint8_t ch = 0; ch < 16; ++ch)
+        {
+          for(uint8_t cc : {uint8_t(120), uint8_t(123)})
+          {
+            const auto ump = uint64_t(cmidi2_ump_midi2_cc(0, ch, cc, 0));
+            clap_event_midi2_t ev{};
+            ev.header.size = sizeof(clap_event_midi2_t);
+            ev.header.time = 0;
+            ev.header.space_id = CLAP_CORE_EVENT_SPACE_ID;
+            ev.header.type = CLAP_EVENT_MIDI2;
+            ev.header.flags = 0;
+            ev.port_index = uint16_t(port);
+            ev.data[0] = uint32_t(ump >> 32);
+            ev.data[1] = uint32_t(ump & 0xFFFFFFFFu);
+            m_input_events.midi2_events.push_back(ev);
+            m_input_events.all_events.push_back(reinterpret_cast<clap_event_header_t*>(
+                &m_input_events.midi2_events.back()));
           }
         }
       }
@@ -818,8 +933,17 @@ public:
   event_storage m_output_events;
   event_storage m_initial_values;
 
-  const std::vector<clap_param_info_t>& m_param_ins;
-  const std::vector<clap_param_info_t>& m_param_outs;
+  //! Copied: the main thread updates the model's on a rescan of their
+  //! information, and nothing the audio thread reads changes then
+  //! (clap/ext/params.h: min, max and cookie change with RESCAN_ALL only,
+  //! "while the plugin is deactivated")
+  const std::vector<clap_param_info_t> m_param_ins;
+  const std::vector<clap_param_info_t> m_param_outs;
+  //! Each writable parameter's index, by its id
+  ossia::flat_map<clap_id, uint32_t> m_param_in_index;
+  //! The value each writable parameter last had, from score or from the
+  //! plug-in: what it starts processing with
+  std::vector<double> m_last_values;
   const std::vector<clap_note_port_info_t>& m_midi_ins;
   const std::vector<clap_note_port_info_t>& m_midi_outs;
   const ossia::flat_map<clap_id, std::uint32_t>& m_param_out_index;
@@ -842,53 +966,55 @@ class clap_node : public clap_node_base
 {
 public:
   std::vector<double> dummy_io_buffer;
+  //! The executor activates the instance for the engine's rate and block
+  //! size: the node only starts and stops its processing
   clap_node(const Clap::Model& proc, Clap::PluginHandle& handle, int sampleRate, int bs)
-      : clap_node_base{proc}
+      : clap_node_base{proc, double(sampleRate), uint32_t(bs)}
       , m_instance{handle}
   {
     m_expected_audio_inputs = proc.audioInputs();
     m_expected_audio_outputs = proc.audioOutputs();
-
-    if(handle.activated)
-      (void)deactivate_plugin(handle.plugin);
-    m_activated = activate_plugin(m_instance.plugin, sampleRate, bs);
-    handle.activated = m_activated;
     dummy_io_buffer.resize(2 * bs);
   }
 
-  ~clap_node()
+  //! On the main thread, where the execution's garbage is released, or on
+  //! the audio thread; the stop the executor queued for the audio thread
+  //! normally ended its processing already
+  ~clap_node() { release_instance(m_instance, m_processing); }
+
+  void stop_all() noexcept override { stop_instance(m_instance, m_processing); }
+
+  //! The prologue of every run: the plug-in processes this block
+  [[nodiscard]] bool ready(const ossia::token_request& t, ossia::exec_state_facade e)
   {
-    // We do not deactivate in the audio thread where the dtor of clap_node runs
-    // but later in the main thread (driven by Model::resetExecution / ~Model
-    // through the synced handle.activated flag set in the constructor), once
-    // the plug-in stopped processing or its node is gone.
-    m_instance.processing = false;
+    if(!m_instance.plugin || m_stopped)
+      return false;
+    if(run_in_blocks(t, e))
+      return false;
+    return ensure_processing(m_instance, m_processing, true);
+  }
+
+  //! Asleep: clap/process.h, CLAP_PROCESS_SLEEP "no more processing is
+  //! required, until the next event or variation in audio input", or until
+  //! the plug-in asks (clap/host.h, request_process). An effect is always
+  //! processed, as finding a variation in its input would cost about as
+  //! much as processing it.
+  bool asleep() noexcept
+  {
+    if(m_last_status != CLAP_PROCESS_SLEEP || !audio_ins.empty()
+       || !m_input_events.all_events.empty())
+      return false;
+    return !m_instance.wake.exchange(false, std::memory_order_acq_rel);
   }
 
   void do_process(
       clap_process_t& process, event_storage& input_storage,
       event_storage& output_storage)
   {
-    // Process audio
     process.steady_time = -1;
     process.transport = &m_current_transport;
 
-    // Setup input events
-    clap_input_events evs{
-        .ctx = &input_storage,
-        .size = +[](const clap_input_events* list) -> uint32_t {
-      auto* storage = static_cast<event_storage*>(list->ctx);
-      return storage->all_events.size();
-    },
-        .get = +[](const clap_input_events* list,
-                   uint32_t index) -> const clap_event_header_t* {
-      auto* storage = static_cast<event_storage*>(list->ctx);
-      if(index < storage->all_events.size())
-        return storage->all_events[index];
-      return nullptr;
-    }};
-
-    // Setup output events
+    clap_input_events evs = input_events_of(input_storage);
     clap_output_events_t o_evs{
         .ctx = &output_storage,
         .try_push = [](const struct clap_output_events* list,
@@ -899,21 +1025,18 @@ public:
       switch(event->type)
       {
         case CLAP_EVENT_MIDI:
-          if(event->size >= sizeof(clap_event_midi_t))
-          {
-            storage->midi_events.push_back(
-                *reinterpret_cast<const clap_event_midi_t*>(event));
-            return true;
-          }
-          return false;
+          if(event->size < sizeof(clap_event_midi_t) || !has_room(storage->midi_events))
+            return false;
+          storage->midi_events.push_back(
+              *reinterpret_cast<const clap_event_midi_t*>(event));
+          return true;
         case CLAP_EVENT_PARAM_VALUE:
-          if(event->size >= sizeof(clap_event_param_value_t))
-          {
-            storage->param_events.push_back(
-                *reinterpret_cast<const clap_event_param_value_t*>(event));
-            return true;
-          }
-          return false;
+          if(event->size < sizeof(clap_event_param_value_t)
+             || !has_room(storage->param_events))
+            return false;
+          storage->param_events.push_back(
+              *reinterpret_cast<const clap_event_param_value_t*>(event));
+          return true;
         case CLAP_EVENT_NOTE_ON:
         case CLAP_EVENT_NOTE_OFF:
         case CLAP_EVENT_NOTE_END:
@@ -921,41 +1044,39 @@ public:
           // Plug-in voice events: useful both as plain MIDI fanout to a
           // downstream MidiOutlet (we convert later) and, for NOTE_END
           // specifically, so polyphonic hosts can release a voice slot.
-          if(event->size >= sizeof(clap_event_note_t))
-          {
-            storage->note_events.push_back(
-                *reinterpret_cast<const clap_event_note_t*>(event));
-            return true;
-          }
-          return false;
+          if(event->size < sizeof(clap_event_note_t) || !has_room(storage->note_events))
+            return false;
+          storage->note_events.push_back(
+              *reinterpret_cast<const clap_event_note_t*>(event));
+          return true;
         case CLAP_EVENT_MIDI2:
           // MIDI 2.0 / UMP packets — forward 1:1 to libremidi::ump in
           // the post-process step below.
-          if(event->size >= sizeof(clap_event_midi2_t))
-          {
-            storage->midi2_events.push_back(
-                *reinterpret_cast<const clap_event_midi2_t*>(event));
-            return true;
-          }
-          return false;
-        case CLAP_EVENT_MIDI_SYSEX:
+          if(event->size < sizeof(clap_event_midi2_t)
+             || !has_room(storage->midi2_events))
+            return false;
+          storage->midi2_events.push_back(
+              *reinterpret_cast<const clap_event_midi2_t*>(event));
+          return true;
+        case CLAP_EVENT_MIDI_SYSEX: {
           // The buffer pointer is only valid for the duration of this
-          // try_push call (clap/events.h), so copy the bytes into our
-          // own storage and rewrite the event to point there.
-          if(event->size >= sizeof(clap_event_midi_sysex_t))
-          {
-            auto* sx
-                = reinterpret_cast<const clap_event_midi_sysex_t*>(event);
-            if(sx->size == 0 || sx->buffer == nullptr)
-              return false;
-            storage->sysex_data.emplace_back(
-                sx->buffer, sx->buffer + sx->size);
-            clap_event_midi_sysex_t copy = *sx;
-            copy.buffer = storage->sysex_data.back().data();
-            storage->sysex_events.push_back(copy);
-            return true;
-          }
-          return false;
+          // try_push call (clap/events.h): the bytes are copied where the
+          // event then points
+          if(event->size < sizeof(clap_event_midi_sysex_t)
+             || !has_room(storage->sysex_events))
+            return false;
+          auto* sx = reinterpret_cast<const clap_event_midi_sysex_t*>(event);
+          auto& bytes = storage->sysex_data;
+          if(sx->size == 0 || sx->buffer == nullptr
+             || bytes.capacity() - bytes.size() < sx->size)
+            return false;
+          const auto at = bytes.size();
+          bytes.insert(bytes.end(), sx->buffer, sx->buffer + sx->size);
+          clap_event_midi_sysex_t copy = *sx;
+          copy.buffer = bytes.data() + at;
+          storage->sysex_events.push_back(copy);
+          return true;
+        }
         default:
           return false;
       }
@@ -969,6 +1090,7 @@ public:
     // plug-in and must not be sent again.
     m_deferred_midi.clear();
 
+    remember_plugin_values();
     dispatch_param_outputs();
 
     // Process MIDI output
@@ -1091,14 +1213,13 @@ public:
   }
 
   PluginHandle& m_instance;
+  //! Whether this node started the processing of its instance
+  bool m_processing{};
   std::vector<clap_audio_port_info_t> m_expected_audio_inputs{};
   std::vector<clap_audio_port_info_t> m_expected_audio_outputs{};
 
   std::vector<clap_audio_buffer_t> input_buffers;
   std::vector<clap_audio_buffer_t> output_buffers;
-
-  bool m_activated{};
-  bool m_processing{};
 };
 
 class clap_node_32 final : public clap_node
@@ -1113,21 +1234,8 @@ public:
 
   void run(const ossia::token_request& t, ossia::exec_state_facade e) noexcept override
   {
-    if(!m_instance.plugin || m_stopped)
+    if(!ready(t, e))
       return;
-    if(run_in_blocks(t, e))
-      return;
-
-    // Activate plugin if needed
-    if(!m_activated)
-      return;
-    if(!m_processing)
-    {
-      m_processing = start_plugin(m_instance.plugin, m_instance.ext_params);
-      m_instance.processing = m_processing;
-      if(!m_processing)
-        return;
-    }
 
     auto [offset, samples] = e.timings(t);
     if(samples == 0)
@@ -1151,17 +1259,9 @@ public:
 
     prepare_input_events(offset, samples);
 
-    // Honour CLAP_PROCESS_SLEEP: the plug-in told us it needs no further
-    // work until an event arrives or audio input varies. We trust the
-    // event check; for audio-input variation we conservatively bail only
-    // on instruments (no audio input ports) — for effects, scanning every
-    // input frame for non-zero content would cost more than just running
-    // the plug-in's process() and is exactly what plug-ins themselves do.
-    if(m_last_status == CLAP_PROCESS_SLEEP && audio_ins.empty()
-       && m_input_events.all_events.empty())
+    if(asleep())
     {
-      // Stay asleep — emit silence on the audio outputs so downstream
-      // sees a clean signal instead of stale data from the last block.
+      // Silence on the audio outputs, rather than the last block
       std::size_t out_idx = 0;
       for(ossia::audio_outlet* audio_out : audio_outs)
       {
@@ -1342,21 +1442,8 @@ public:
   ~clap_node_64() { }
   void run(const ossia::token_request& t, ossia::exec_state_facade e) noexcept override
   {
-    if(!m_instance.plugin || m_stopped)
+    if(!ready(t, e))
       return;
-    if(run_in_blocks(t, e))
-      return;
-
-    // Activate plugin if needed
-    if(!m_activated)
-      return;
-    if(!m_processing)
-    {
-      m_processing = start_plugin(m_instance.plugin, m_instance.ext_params);
-      m_instance.processing = m_processing;
-      if(!m_processing)
-        return;
-    }
 
     auto [offset, samples] = e.timings(t);
     if(samples == 0)
@@ -1379,9 +1466,7 @@ public:
     // Process parameter changes
     prepare_input_events(offset, samples);
 
-    // Honour CLAP_PROCESS_SLEEP — see clap_node_32::run for rationale.
-    if(m_last_status == CLAP_PROCESS_SLEEP && audio_ins.empty()
-       && m_input_events.all_events.empty())
+    if(asleep())
     {
       std::size_t out_idx = 0;
       for(ossia::audio_outlet* audio_out : audio_outs)
@@ -1415,8 +1500,7 @@ public:
       auto& channels = audio_in->data.get();
       if(!channels.empty())
       {
-        // Pass exactly what the plugin expects. The previous code clamped
-        // this to 2 channels, dropping surround / multi-channel inputs.
+        // Exactly the channels the plug-in expects
         auto& ptrs = input_channel_ptrs.emplace_back();
         ptrs.resize(buffer.channel_count);
 
@@ -1504,90 +1588,84 @@ public:
   }
 };
 
-// Special case for monophonic nodes
+//! A mono plug-in run as one instance per channel: the first is the
+//! process's, the others this node's
 class clap_node_mono : public clap_node_base
 {
 public:
-  // Declared early so member function signatures (make_poly_instance) and the
-  // m_incoming queue declared further down can refer to it.
+  //! At most as many instances as this; the main thread grows the pool up
+  //! to it, with no reallocation on the audio thread
+  static constexpr std::size_t max_instances = 256;
+
   struct poly_plugin
   {
-    const clap_plugin_t* plugin{};
-    bool activated{};
+    std::shared_ptr<PluginInstance> inst;
+    //! Whether this node started its processing
     bool processing{};
-    //! Queried on the main thread, where the instance is made
-    const clap_plugin_params_t* params{};
-    operator const clap_plugin_t*() const noexcept { return plugin; }
   };
 
   clap_node_mono(
       const Clap::Model& proc, Clap::PluginHandle& handle, int sampleRate, int bs)
-      : clap_node_base{proc}
+      : clap_node_base{proc, double(sampleRate), uint32_t(bs)}
       , m_instance{handle}
       , m_plugin_id{proc.pluginId().toUtf8()}
   {
-    // Pre-reserve enough capacity that the dynamic grower (which feeds
-    // m_poly from the audio thread via drain_incoming → push_back) never
-    // triggers a reallocation in normal use. 256 * sizeof(poly_plugin)
-    // ≈ 4 kB up front, and covers up to 256 channels of polyphony without
-    // any audio-thread malloc; beyond that vector will still grow, just
-    // with a non-RT-friendly reallocation cost each doubling.
-    m_poly.reserve(256);
+    m_poly.reserve(max_instances);
+    m_voice_overrides.resize(max_instances);
     m_voice0_changes.reserve(256);
-    m_poly.push_back({handle.plugin, false, false, handle.ext_params});
-    if(handle.activated)
-      (void)deactivate_plugin(handle.plugin);
-    m_poly.back().activated = activate_plugin(m_instance.plugin, sampleRate, bs);
-    // Mirror the activation state on the shared handle so that
-    // Clap::Model::~Model / resetExecution can drive the deactivate of
-    // m_poly[0] from the main thread, symmetrically with clap_node.
-    handle.activated = m_poly.back().activated;
+    m_overridden.resize(m_param_ins.size());
+    m_voice_input.param_events.reserve(1024);
+    m_voice_input.all_events.reserve(1024);
+    m_voice_input.reserve_sort(1024);
+    m_poly.push_back({this->handle, false});
 
-    // The constructor runs on the main thread, so create_plugin/init are
-    // spec-correct here. If any of the extra instances fail to construct we
-    // tear down the ones we already built so we never leak plugin handles.
-    // Each starts from the first one's state, as the ones grown later do.
-    try
-    {
-      const QByteArray state = snapshot_clap_state(handle.plugin);
-      for(int i = 0; i < 7; i++)
-        m_poly.push_back(make_poly_instance(sampleRate, bs, state));
-    }
-    catch(...)
-    {
-      destroy_extra_instances();
-      throw;
-    }
+    // Each starts from the first one's state, as the ones grown later do
+    const QByteArray state = snapshot_clap_state(handle.plugin);
+    for(int i = 0; i < 7; i++)
+      if(auto p = make_poly_instance(sampleRate, bs, state))
+        m_poly.push_back({std::move(p), false});
   }
 
-  // [main-thread] Build a fresh, init'd, activated polyphonic instance.
-  // Optionally clones state into it via clap.state (so AIDA-X & friends
-  // keep their loaded model / preset on each instance).
-  // Throws std::runtime_error on create_plugin / init failure.
-  poly_plugin make_poly_instance(int sampleRate, int bs, const QByteArray& state)
+  //! [main-thread] A new instance, initialised, with the state of the first
+  //! one, then activated, as Model::loadPlugin restores the first one's
+  //! state before it is activated; null if the plug-in does not make one
+  std::shared_ptr<PluginInstance>
+  make_poly_instance(int sampleRate, int bs, const QByteArray& state)
   {
-    poly_plugin p{nullptr, false, false, nullptr};
-    p.plugin = m_instance.factory->create_plugin(
-        m_instance.factory, &m_instance.host, m_plugin_id.data());
-    if(!p.plugin)
-      throw std::runtime_error("Could not create plug-in instance");
-
-    if(!p.plugin->init(p.plugin))
+    auto p = std::make_shared<PluginInstance>();
+    p->owner = &m_instance;
+    p->plugin = m_instance.factory->create_plugin(
+        m_instance.factory, &p->host, m_plugin_id.data());
+    if(!p->plugin)
     {
-      p.plugin->destroy(p.plugin);
-      throw std::runtime_error("Could not init plug-in instance");
+      qWarning() << "CLAP: could not create a plug-in instance";
+      return {};
     }
-    p.params = static_cast<const clap_plugin_params_t*>(
-        p.plugin->get_extension(p.plugin, CLAP_EXT_PARAMS));
-    // Apply the snapshot *before* activate, matching how Model::loadPlugin
-    // restores state for the primary instance.
-    apply_clap_state(p.plugin, state);
-    p.activated = activate_plugin(p.plugin, sampleRate, bs);
+    if(!p->plugin->init(p->plugin))
+    {
+      qWarning() << "CLAP: could not init a plug-in instance";
+      p->plugin->destroy(p->plugin);
+      p->plugin = nullptr;
+      return {};
+    }
+    p->ext_params = static_cast<const clap_plugin_params_t*>(
+        p->plugin->get_extension(p->plugin, CLAP_EXT_PARAMS));
+    p->ext_thread_pool = static_cast<const clap_plugin_thread_pool_t*>(
+        p->plugin->get_extension(p->plugin, CLAP_EXT_THREAD_POOL));
+    apply_clap_state(p->plugin, state);
+    p->nodes = 1;
+    p->node_rate = sampleRate;
+    p->node_block = bs;
+    p->activate(sampleRate, bs);
     return p;
   }
 
   // [audio-thread] Called by grow_pool_tick via in_exec.
-  void append_poly(poly_plugin p) noexcept { m_poly.push_back(p); }
+  void append_poly(std::shared_ptr<PluginInstance>& p) noexcept
+  {
+    if(m_poly.size() < m_poly.capacity())
+      m_poly.push_back({std::move(p), false});
+  }
 
   // [audio-thread] Tell the grower we need at least `n` total instances.
   // Monotonically-increasing: a brief drop to a smaller channel count
@@ -1601,87 +1679,48 @@ public:
       ;
   }
 
-  // Tear down extra polyphonic instances (skipping m_poly[0], which is
-  // owned by the Clap::Model). Used by the constructor's catch and by the
-  // destructor's queued main-thread cleanup.
-  void destroy_extra_instances() noexcept
-  {
-    for(std::size_t i = 1; i < m_poly.size(); ++i)
-    {
-      auto& p = m_poly[i];
-      if(!p.plugin)
-        continue;
-      if(p.processing)
-      {
-        p.plugin->stop_processing(p.plugin);
-        p.processing = false;
-      }
-      if(p.activated)
-      {
-        p.plugin->deactivate(p.plugin);
-        p.activated = false;
-      }
-      p.plugin->destroy(p.plugin);
-      p.plugin = nullptr;
-    }
-  }
-
+  //! On the main thread, where the execution's garbage is released, or on
+  //! the audio thread. The instances other than the first are deactivated
+  //! and destroyed on the main thread.
   ~clap_node_mono()
   {
-    // Stop any instance that was still processing. ~clap_node_mono runs on
-    // the audio thread, so stop_processing is allowed here (it is the only
-    // CLAP entry point we may call from there). Deactivation and destruction
-    // of the extra instances is deferred to the main thread below.
-    for(std::size_t i = 0; i < m_poly.size(); ++i)
-    {
-      if(m_poly[i].processing)
-      {
-        m_poly[i].plugin->stop_processing(m_poly[i].plugin);
-        m_poly[i].processing = false;
-      }
-    }
-    m_instance.processing = false;
-
-    // m_poly[0] is the Model's shared handle; deactivated by Model::~Model.
-    // Orphaned grower output is cleaned up via grow_pool_tick's weak_ptr.
+    for(auto& p : m_poly)
+      release_instance(*p.inst, p.processing);
+    if(ossia::get_current_thread_type() == ossia::thread_type::Ui)
+      return;
     QMetaObject::invokeMethod(
-        QCoreApplication::instance(),
-        [poly = std::move(m_poly)]() mutable {
-      auto destroy = [](const poly_plugin& p) {
-        if(!p.plugin)
-          return;
-        if(p.activated)
-          p.plugin->deactivate(p.plugin);
-        p.plugin->destroy(p.plugin);
-      };
-      for(std::size_t i = 1; i < poly.size(); ++i)
-        destroy(poly[i]);
-    });
+        qApp, [poly = std::move(m_poly), h = this->handle]() mutable { poly.clear(); },
+        Qt::QueuedConnection);
+  }
+
+  void stop_all() noexcept override
+  {
+    for(auto& p : m_poly)
+      stop_instance(*p.inst, p.processing);
+  }
+
+  //! The prologue of every run, before the instances are processed
+  [[nodiscard]] bool ready(const ossia::token_request& t, ossia::exec_state_facade e)
+  {
+    if(!m_instance.plugin || m_stopped)
+      return false;
+    if(run_in_blocks(t, e))
+      return false;
+    // The instances this block does not use as well
+    for(auto& p : m_poly)
+      if(p.processing && p.inst->restart_pending.load(std::memory_order_acquire))
+        stop_instance(*p.inst, p.processing);
+    return true;
   }
 
   void do_process(
       const clap_plugin_t* plug, clap_process_t& process, event_storage& input_storage,
-      event_storage& output_storage, int current_channel)
+      event_storage& output_storage)
   {
-    // Process audio
     process.steady_time = -1;
     process.transport = &m_current_transport;
 
-    // Setup input events
-    clap_input_events evs{
-        .ctx = &input_storage,
-        .size = +[](const clap_input_events* list) -> uint32_t {
-      auto* storage = static_cast<event_storage*>(list->ctx);
-      return storage->all_events.size();
-    },
-        .get = +[](const clap_input_events* list,
-                   uint32_t index) -> const clap_event_header_t* {
-      auto* storage = static_cast<event_storage*>(list->ctx);
-      if(index < storage->all_events.size())
-        return storage->all_events[index];
-      return nullptr;
-    }};
-
+    clap_input_events evs = input_events_of(input_storage);
     clap_output_events_t o_evs{
         .ctx = &output_storage,
         .try_push = [](const struct clap_output_events* list,
@@ -1690,7 +1729,8 @@ public:
       if(!event || event->space_id != CLAP_CORE_EVENT_SPACE_ID)
         return false;
       if(event->type == CLAP_EVENT_PARAM_VALUE
-         && event->size >= sizeof(clap_event_param_value_t))
+         && event->size >= sizeof(clap_event_param_value_t)
+         && has_room(storage->param_events))
       {
         storage->param_events.push_back(
             *reinterpret_cast<const clap_event_param_value_t*>(event));
@@ -1702,14 +1742,10 @@ public:
     process.in_events = &evs;
     process.out_events = &o_evs;
 
-    // We track m_last_status mainly for diagnostics in the mono path. We
-    // don't act on CLAP_PROCESS_SLEEP for monophonic-faked plugins because
-    // each m_poly[i] has independent processing state and a per-channel
-    // skip would require per-channel status tracking + audio-input
-    // variation detection per channel — more bookkeeping than it's worth.
+    // CLAP_PROCESS_SLEEP is not acted on: each instance would need its own
+    // status and its own input variation detection
     m_last_status = plug->process(plug, &process);
     m_deferred_midi.clear();
-    (void)current_channel;
   }
 
   //! What the first instance's editor changed in this block, from the values
@@ -1717,17 +1753,14 @@ public:
   //! values instead would call main-thread functions from the audio thread.
   void forward_voice0_changes() noexcept
   {
+    remember_plugin_values();
     m_voice0_changes.clear();
     for(const auto& ev : m_output_events.param_events)
     {
-      if(m_voice0_changes.size() >= m_voice0_changes.capacity())
+      if(!has_room(m_voice0_changes))
         break;
-      if(m_overridden_params.contains(ev.param_id))
-        continue;
-      const bool writable = std::any_of(
-          m_param_ins.begin(), m_param_ins.end(),
-          [&](const clap_param_info_t& p) { return p.id == ev.param_id; });
-      if(!writable)
+      auto it = m_param_in_index.find(ev.param_id);
+      if(it == m_param_in_index.end() || m_overridden[it->second])
         continue;
       auto& fwd = m_voice0_changes.emplace_back(ev);
       fwd.header.size = sizeof(clap_event_param_value_t);
@@ -1738,10 +1771,9 @@ public:
   // Must run after prepare_input_events and before the per-voice loop.
   void prepare_voice_overrides(uint32_t samples) noexcept
   {
-    m_voice_overrides.resize(m_poly.size());
-    for(auto& vec : m_voice_overrides)
-      vec.clear();
-    m_overridden_params.clear();
+    for(std::size_t v = 0; v < m_poly.size(); ++v)
+      m_voice_overrides[v].clear();
+    std::fill(m_overridden.begin(), m_overridden.end(), false);
 
     for(std::size_t i = 0; i < parameter_ins.size(); ++i)
     {
@@ -1753,7 +1785,7 @@ public:
       {
         if(!is_vector_value(tv.value))
           continue;
-        m_overridden_params.insert(param_info.id);
+        m_overridden[i] = true;
         const int64_t t = tv.timestamp;
         const uint32_t time
             = t <= 0
@@ -1786,18 +1818,15 @@ public:
     }
   }
 
-  // Compose shared base + this voice's overrides into one sorted event stream.
+  //! This block's parameter values for one instance: the shared ones, its
+  //! own, and for the others than the first the changes of the first one's
+  //! editor. A mono node has no note input: parameters are its only events.
   void build_voice_input(event_storage& dst, std::size_t voice_idx)
   {
-    dst.midi_events = m_input_events.midi_events;
-    dst.midi2_events = m_input_events.midi2_events;
-    dst.note_events = m_input_events.note_events;
-    dst.param_events = m_input_events.param_events;
-    dst.sysex_events = m_input_events.sysex_events;
-    dst.sysex_data = m_input_events.sysex_data;
+    dst.param_events.assign(
+        m_input_events.param_events.begin(), m_input_events.param_events.end());
     const auto& overrides = m_voice_overrides[voice_idx];
-    dst.param_events.insert(
-        dst.param_events.end(), overrides.begin(), overrides.end());
+    dst.param_events.insert(dst.param_events.end(), overrides.begin(), overrides.end());
     if(voice_idx > 0)
     {
       dst.param_events.insert(
@@ -1808,24 +1837,10 @@ public:
     }
 
     dst.all_events.clear();
-    dst.all_events.reserve(
-        dst.midi_events.size() + dst.midi2_events.size() + dst.note_events.size()
-        + dst.param_events.size() + dst.sysex_events.size());
-    for(auto& ev : dst.midi_events)
-      dst.all_events.push_back(reinterpret_cast<clap_event_header_t*>(&ev));
-    for(auto& ev : dst.midi2_events)
-      dst.all_events.push_back(reinterpret_cast<clap_event_header_t*>(&ev));
-    for(auto& ev : dst.note_events)
-      dst.all_events.push_back(reinterpret_cast<clap_event_header_t*>(&ev));
     for(auto& ev : dst.param_events)
       dst.all_events.push_back(reinterpret_cast<clap_event_header_t*>(&ev));
-    for(auto& ev : dst.sysex_events)
-      dst.all_events.push_back(reinterpret_cast<clap_event_header_t*>(&ev));
-    std::sort(
-        dst.all_events.begin(), dst.all_events.end(),
-        [](const clap_event_header_t* a, const clap_event_header_t* b) {
-      return a->time < b->time;
-    });
+    dst.reserve_sort(dst.all_events.size());
+    dst.sort();
   }
 
   PluginHandle& m_instance;
@@ -1836,7 +1851,8 @@ public:
 
   std::vector<std::vector<clap_event_param_value_t>> m_voice_overrides;
 
-  ossia::hash_set<clap_id> m_overridden_params;
+  //! The parameters given a value per instance in this block, by index
+  std::vector<bool> m_overridden;
 
   std::vector<clap_event_param_value_t> m_voice0_changes;
 
@@ -1853,9 +1869,7 @@ public:
 
   void run(const ossia::token_request& t, ossia::exec_state_facade e) noexcept override
   {
-    if(!m_instance.plugin || m_stopped)
-      return;
-    if(run_in_blocks(t, e))
+    if(!ready(t, e))
       return;
 
     auto [offset, samples] = e.timings(t);
@@ -1910,19 +1924,9 @@ public:
     for(std::size_t current_channel = 0; current_channel < poly_channels;
         ++current_channel)
     {
-      // 0. Activate plug-in if necessary
       auto& cur = m_poly[current_channel];
-      if(!cur.activated)
+      if(!ensure_processing(*cur.inst, cur.processing, current_channel == 0))
         return;
-
-      if(!cur.processing)
-      {
-        cur.processing = start_plugin(cur.plugin, cur.params, current_channel == 0);
-        if(current_channel == 0)
-          m_instance.processing = cur.processing;
-        if(!cur.processing)
-          return;
-      }
 
       auto& channel = in_channels[current_channel];
 
@@ -1948,7 +1952,7 @@ public:
       process.audio_inputs_count = 1;
       process.audio_outputs_count = 1;
       build_voice_input(m_voice_input, current_channel);
-      do_process(cur, process, m_voice_input, m_output_events, current_channel);
+      do_process(cur.inst->plugin, process, m_voice_input, m_output_events);
       if(current_channel == 0)
         forward_voice0_changes();
 
@@ -1975,9 +1979,7 @@ public:
   using clap_node_mono::clap_node_mono;
   void run(const ossia::token_request& t, ossia::exec_state_facade e) noexcept override
   {
-    if(!m_instance.plugin || m_stopped)
-      return;
-    if(run_in_blocks(t, e))
+    if(!ready(t, e))
       return;
 
     auto [offset, samples] = e.timings(t);
@@ -2035,24 +2037,11 @@ public:
     for(std::size_t current_channel = 0; current_channel < poly_channels;
         ++current_channel)
     {
-      // 0. Activate plug-in if necessary
       auto& cur = m_poly[current_channel];
-      if(!cur.activated)
+      if(!ensure_processing(*cur.inst, cur.processing, current_channel == 0))
         return;
 
-      if(!cur.processing)
-      {
-        cur.processing = start_plugin(cur.plugin, cur.params, current_channel == 0);
-        if(current_channel == 0)
-          m_instance.processing = cur.processing;
-        if(!cur.processing)
-          return;
-      }
-
-      // 1. Point the plugin at the right slice of the buffer.
-      //    The previous code passed channel.data()/out_channel.data() with
-      //    no `offset`, which made the plugin process frames 0..samples
-      //    regardless of where the current tick actually started.
+      // 1. The slice of the buffers this tick covers
       ins_pointer[0] = const_cast<double*>(in_channels[current_channel].data())
                        + offset;
       auto* out_chan = out_channels[current_channel].data() + offset;
@@ -2067,7 +2056,7 @@ public:
       process.audio_inputs_count = 1;
       process.audio_outputs_count = 1;
       build_voice_input(m_voice_input, current_channel);
-      do_process(cur, process, m_voice_input, m_output_events, current_channel);
+      do_process(cur.inst->plugin, process, m_voice_input, m_output_events);
       if(current_channel == 0)
         forward_voice0_changes();
     }
@@ -2079,47 +2068,12 @@ public:
 struct clap_process final : public ossia::node_process
 {
   using ossia::node_process::node_process;
-  void start() override { static_cast<clap_node*>(this->node.get())->m_stopped = false; }
+  void start() override { static_cast<clap_node_base*>(this->node.get())->m_stopped = false; }
   void stop() override
   {
-    auto* clap = static_cast<clap_node*>(this->node.get());
+    auto* clap = static_cast<clap_node_base*>(this->node.get());
     clap->m_stopped = true;
-
-    if(clap->m_processing)
-    {
-      clap->stop_plugin(clap->m_instance.plugin);
-      clap->m_processing = false;
-    }
-    clap->m_instance.processing = false;
-  }
-  void pause() override { }
-  void resume() override { }
-};
-struct clap_mono_process final : public ossia::node_process
-{
-  using ossia::node_process::node_process;
-  void start() override
-  {
-    static_cast<clap_node_mono*>(this->node.get())->m_stopped = false;
-  }
-  void stop() override
-  {
-    auto* clap = static_cast<clap_node_mono*>(this->node.get());
-    clap->m_stopped = true;
-
-    // Stop each polyphonic instance individually. The old version always
-    // stopped m_instance.plugin (m_poly[0]) once per processing entry,
-    // leaving instances 1..N in {active, processing} on shutdown, which
-    // violates the CLAP state machine.
-    for(auto& plug : clap->m_poly)
-    {
-      if(plug.processing && plug.plugin)
-      {
-        plug.plugin->stop_processing(plug.plugin);
-        plug.processing = false;
-      }
-    }
-    clap->m_instance.processing = false;
+    clap->stop_all();
   }
   void pause() override { }
   void resume() override { }
@@ -2145,23 +2099,11 @@ Executor::Executor(Clap::Model& proc, const Execution::Context& ctx, QObject* pa
   if(monophonic)
   {
     if(proc.supports64())
-    {
-      qDebug() << "CLAP: clap_node_mono_64";
-      auto node = ossia::make_node<clap_node_mono_64>(
+      clap = ossia::make_node<clap_node_mono_64>(
           *ctx.execState, proc, *h, e.sampleRate, e.setupBufferSize());
-      clap = node;
-      this->node = node;
-      m_ossia_process = std::make_shared<clap_mono_process>(node);
-    }
     else
-    {
-      qDebug() << "CLAP: clap_node_mono_32";
-      auto node = ossia::make_node<clap_node_mono_32>(
+      clap = ossia::make_node<clap_node_mono_32>(
           *ctx.execState, proc, *h, e.sampleRate, e.setupBufferSize());
-      clap = node;
-      this->node = node;
-      m_ossia_process = std::make_shared<clap_mono_process>(node);
-    }
 
     // Drive the polyphonic-pool grower on the main thread. The mono node
     // pre-allocates 8 instances in its constructor; if the upstream channel
@@ -2181,30 +2123,32 @@ Executor::Executor(Clap::Model& proc, const Execution::Context& ctx, QObject* pa
   else
   {
     if(proc.supports64())
-    {
-      qDebug() << "CLAP: clap_node_64";
-      auto node = ossia::make_node<clap_node_64>(
+      clap = ossia::make_node<clap_node_64>(
           *ctx.execState, proc, *h, e.sampleRate, e.setupBufferSize());
-      clap = node;
-      this->node = node;
-      m_ossia_process = std::make_shared<clap_process>(node);
-    }
     else
-    {
-      qDebug() << "CLAP: clap_node_32";
-      auto node = ossia::make_node<clap_node_32>(
+      clap = ossia::make_node<clap_node_32>(
           *ctx.execState, proc, *h, e.sampleRate, e.setupBufferSize());
-      clap = node;
-      this->node = node;
-      m_ossia_process = std::make_shared<clap_process>(node);
-    }
   }
 
   SCORE_ASSERT(clap);
+  clap->m_edit = weak_edit;
+  this->node = clap;
+  m_ossia_process = std::make_shared<clap_process>(clap);
 
-  // Connect control inlet changes to the executor
-  // Note: only reelvant for the polyphonic mode as the main mode is done on the
-  // main thread
+  // Active while this node holds it, at the engine's rate and block size;
+  // again if it was active with others
+  h->nodes++;
+  if(h->state.load(std::memory_order_acquire) != PluginInstance::Inactive
+     && (h->node_rate != e.sampleRate || h->node_block != uint32_t(e.setupBufferSize())))
+    h->restart_pending.store(true, std::memory_order_release);
+  h->node_rate = e.sampleRate;
+  h->node_block = e.setupBufferSize();
+  h->reconcile();
+  m_handle = h;
+
+  // A control moved in score reaches the node, which keeps it as the value
+  // its parameter starts with; one that follows the plug-in's own value
+  // only sets that
   std::size_t control_idx = 0;
   for(auto* inlet : proc.inlets())
   {
@@ -2215,15 +2159,21 @@ Executor::Executor(Clap::Model& proc, const Execution::Context& ctx, QObject* pa
       control->setupExecution(*inl, this);
       connect(
           control, &Process::ControlInlet::valueChanged, this,
-          [this, inl](const ossia::value& v) {
-        if(this->process().currentlyReadingValues)
-          return;
-        auto weak_self = std::weak_ptr{this->node};
-        in_exec([inl, val = v, node = weak_self]() mutable {
-          if(auto n = node.lock())
+          [this, inl, idx = control_idx,
+           weak_node = std::weak_ptr{clap}](const ossia::value& v) {
+        const bool from_plugin = this->process().currentlyReadingValues;
+        in_exec([inl, val = v, weak_node, idx, from_plugin]() mutable {
+          auto n = weak_node.lock();
+          if(!n)
+            return;
+          if(!is_vector_value(val))
           {
-            inl->target<ossia::value_port>()->write_value(std::move(val), 0);
+            const auto& info = n->m_param_ins[idx];
+            n->m_last_values[idx] = std::clamp(
+                ossia::convert<double>(val), info.min_value, info.max_value);
           }
+          if(!from_plugin)
+            inl->target<ossia::value_port>()->write_value(std::move(val), 0);
         });
       });
       control_idx++;
@@ -2231,13 +2181,28 @@ Executor::Executor(Clap::Model& proc, const Execution::Context& ctx, QObject* pa
   }
 }
 
+Executor::~Executor()
+{
+  releaseHandle();
+}
+
+void Executor::releaseHandle()
+{
+  if(auto h = std::exchange(m_handle, nullptr))
+  {
+    h->nodes--;
+    h->reconcile();
+  }
+}
+
 void Executor::cleanup()
 {
   // A process removed from an interval that plays is not stopped by it: its
-  // plug-in stops processing here, on the audio thread, before the main
-  // thread deactivates it.
+  // plug-in stops processing here, on the audio thread, before the node is
+  // let go of, and the main thread then deactivates it
   if(m_ossia_process)
     in_exec([proc = m_ossia_process] { proc->stop(); });
+  releaseHandle();
   ProcessComponent_T::cleanup();
 }
 
@@ -2249,8 +2214,9 @@ void Executor::grow_pool_tick()
 
   // Promote brief spikes into the long-term high-water mark so we don't
   // miss a 2 → 512 → 2 transient.
-  const auto requested
-      = mono->m_requested_pool.load(std::memory_order_acquire);
+  const auto requested = std::min(
+      mono->m_requested_pool.load(std::memory_order_acquire),
+      clap_node_mono::max_instances);
   if(requested > m_pool_max_requested)
     m_pool_max_requested = requested;
 
@@ -2265,39 +2231,22 @@ void Executor::grow_pool_tick()
 
   // Few per tick: each instance can be expensive (e.g. AIDA-X neural model load).
   constexpr std::size_t kBatch = 4;
-  const std::size_t to_add
-      = std::min(kBatch, m_pool_max_requested - m_pool_pushed);
+  const std::size_t to_add = std::min(kBatch, m_pool_max_requested - m_pool_pushed);
   auto weak_node = std::weak_ptr{this->node};
   for(std::size_t i = 0; i < to_add; ++i)
   {
-    try
+    auto p = mono->make_poly_instance(m_pool_sample_rate, m_pool_buffer_size, state);
+    if(!p)
     {
-      auto p
-          = mono->make_poly_instance(m_pool_sample_rate, m_pool_buffer_size, state);
-      // Orphaned if the node dies before in_exec fires; post destroy to main thread.
-      in_exec([weak_node, p]() mutable {
-        if(auto n = weak_node.lock())
-        {
-          static_cast<clap_node_mono*>(n.get())->append_poly(p);
-        }
-        else
-        {
-          QMetaObject::invokeMethod(QCoreApplication::instance(), [p] {
-            if(!p.plugin)
-              return;
-            if(p.activated)
-              p.plugin->deactivate(p.plugin);
-            p.plugin->destroy(p.plugin);
-          });
-        }
-      });
-      ++m_pool_pushed;
-    }
-    catch(const std::exception& ex)
-    {
-      qWarning() << "CLAP: failed to grow polyphonic pool:" << ex.what();
+      qWarning() << "CLAP: failed to grow the instances of a mono plug-in";
       break;
     }
+    // Not taken, it goes with the command, which the main thread releases
+    in_exec([weak_node, p = std::move(p)]() mutable {
+      if(auto n = weak_node.lock())
+        static_cast<clap_node_mono*>(n.get())->append_poly(p);
+    });
+    ++m_pool_pushed;
   }
 }
 }

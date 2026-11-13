@@ -77,6 +77,38 @@ clap_safe_name(const char* raw, const QString& fallback) noexcept
   return name;
 }
 
+namespace
+{
+//! The instance a host callback is for
+PluginInstance& instance_of(const clap_host_t* host)
+{
+  return *static_cast<PluginInstance*>(host->host_data);
+}
+//! The handle of the process of that instance
+PluginHandle& handle_of(const clap_host_t* host)
+{
+  return *instance_of(host).owner;
+}
+
+thread_local bool t_acting_as_audio_thread{};
+}
+
+ActingAsAudioThread::ActingAsAudioThread() noexcept
+    : m_previous{t_acting_as_audio_thread}
+{
+  t_acting_as_audio_thread = true;
+}
+
+ActingAsAudioThread::~ActingAsAudioThread()
+{
+  t_acting_as_audio_thread = m_previous;
+}
+
+bool ActingAsAudioThread::active() noexcept
+{
+  return t_acting_as_audio_thread;
+}
+
 // Host GUI callbacks. clap/ext/gui.h has them all [thread-safe]: from
 // another thread than the main one, the request is acknowledged and carried
 // out on the main thread, where the window lives.
@@ -85,7 +117,7 @@ namespace
 template <typename F>
 bool on_window(const clap_host_t* host, F f)
 {
-  auto& h = *static_cast<Clap::PluginHandle*>(host->host_data);
+  auto& h = handle_of(host);
   if(QThread::currentThread() == qApp->thread())
   {
     Clap::Model* model = h.model;
@@ -150,7 +182,7 @@ static void closed(const clap_host_t* host, bool was_destroyed)
 static std::atomic<uint32_t> g_next_timer_id{};
 bool register_timer(const clap_host_t* host, uint32_t period_ms, clap_id* timer_id)
 {
-  auto& m = *static_cast<Clap::PluginHandle*>(host->host_data);
+  auto& m = handle_of(host);
   if(!m.model)
     return false;
 
@@ -173,7 +205,7 @@ bool register_timer(const clap_host_t* host, uint32_t period_ms, clap_id* timer_
 // [main-thread]
 bool unregister_timer(const clap_host_t* host, clap_id timer_id)
 {
-  auto& m = *static_cast<Clap::PluginHandle*>(host->host_data);
+  auto& m = handle_of(host);
   if(!m.model)
     return false;
   for(auto it = m.model->timers.begin(); it != m.model->timers.end(); ++it)
@@ -191,7 +223,7 @@ bool unregister_timer(const clap_host_t* host, clap_id timer_id)
 // POSIX fd support host extension
 bool register_fd(const clap_host_t* host, int fd, clap_posix_fd_flags_t flags)
 {
-  auto& m = *static_cast<Clap::PluginHandle*>(host->host_data);
+  auto& m = handle_of(host);
   if(!m.model)
     return false;
 
@@ -264,7 +296,7 @@ bool register_fd(const clap_host_t* host, int fd, clap_posix_fd_flags_t flags)
 
 bool modify_fd(const clap_host_t* host, int fd, clap_posix_fd_flags_t flags)
 {
-  auto& m = *static_cast<Clap::PluginHandle*>(host->host_data);
+  auto& m = handle_of(host);
   if(!m.model)
     return false;
 
@@ -355,7 +387,7 @@ bool modify_fd(const clap_host_t* host, int fd, clap_posix_fd_flags_t flags)
 
 bool unregister_fd(const clap_host_t* host, int fd)
 {
-  auto& m = *static_cast<Clap::PluginHandle*>(host->host_data);
+  auto& m = handle_of(host);
   if(!m.model)
     return false;
 
@@ -420,7 +452,7 @@ static constexpr clap_host_state_t host_state_ext
   // model, which debounces and snapshots. Plug-ins are known to spam
   // this — Vital fires it multiple times per knob movement — so the
   // debounce is mandatory.
-  auto& m = *static_cast<Clap::PluginHandle*>(host->host_data);
+  auto& m = handle_of(host);
   if(!m.model)
     return;
   m.model->markStateDirty();
@@ -430,7 +462,7 @@ static constexpr clap_host_params_t host_params_ext
   // Spec: [main-thread]. Defer — plug-ins may call from state.load().
   if(!host || !host->host_data)
     return;
-  auto& h = *static_cast<Clap::PluginHandle*>(host->host_data);
+  auto& h = handle_of(host);
   if(!h.model)
     return;
   QMetaObject::invokeMethod(h.model, [model = QPointer<Model>{h.model}, flags] {
@@ -442,7 +474,7 @@ static constexpr clap_host_params_t host_params_ext
   //  qDebug(Q_FUNC_INFO);
 }, .request_flush = [](const clap_host_t* host) {
   //  qDebug(Q_FUNC_INFO);
-  auto& m = *static_cast<Clap::PluginHandle*>(host->host_data);
+  auto& m = handle_of(host);
   if(!m.model)
     return;
 
@@ -469,7 +501,7 @@ static constexpr clap_host_gui_t host_gui_ext
 // what AIDA-X et al. show in the title bar.
 static constexpr clap_host_track_info_t host_track_info_ext
     = {.get = [](const clap_host_t* host, clap_track_info_t* info) -> bool {
-  auto& m = *static_cast<Clap::PluginHandle*>(host->host_data);
+  auto& m = handle_of(host);
   if(!m.model || !info)
     return false;
   auto* parent = Scenario::closestParentInterval(m.model);
@@ -572,12 +604,16 @@ static constexpr clap_host_tail_t host_tail_ext
 
 static constexpr clap_host_thread_check_t host_thread_check_ext = {
     .is_main_thread = [](const clap_host_t* host) -> bool {
+  if(ActingAsAudioThread::active())
+    return false;
   return ossia::get_current_thread_type() == ossia::thread_type::Ui;
 },
     .is_audio_thread = [](const clap_host_t* host) -> bool {
   // The shared task pool pins its workers as AudioTask; they run plug-in
   // process() / thread-pool exec() under the audio thread's umbrella, so both
   // count as "the audio thread" for the plug-in (matches ensure_current_thread_kind).
+  if(ActingAsAudioThread::active())
+    return true;
   const auto t = ossia::get_current_thread_type();
   return t == ossia::thread_type::Audio || t == ossia::thread_type::AudioTask;
 },
@@ -587,10 +623,11 @@ static constexpr clap_host_thread_pool host_thread_pool_ext
     = {.request_exec = [](const clap_host_t* host, uint32_t num_tasks) -> bool {
   if(!host || !host->host_data)
     return false;
-  auto& h = *static_cast<PluginHandle*>(host->host_data);
+  // The instance whose process() calls this, not the process's first one
+  auto& h = instance_of(host);
   if(!h.plugin)
     return false;
-  // Queried when the plug-in was loaded: this is called from its process()
+  // Queried when the instance was made: this is called from its process()
   auto ext = h.ext_thread_pool;
   if(!ext || !ext->exec)
     return false;
@@ -751,7 +788,7 @@ static constexpr clap_host_context_menu_t host_context_menu_ext = {
 
     .popup = [](const clap_host_t* host, const clap_context_menu_target_t* target,
                 int32_t screen_index, int32_t x, int32_t y) -> bool {
-  auto& m = *static_cast<Clap::PluginHandle*>(host->host_data);
+  auto& m = handle_of(host);
   if(!m.model)
     return false;
   auto& model = *m.model;
@@ -784,8 +821,9 @@ static constexpr clap_host_context_menu_t host_context_menu_ext = {
   return true;
 }};
 
-PluginHandle::PluginHandle()
+PluginInstance::PluginInstance()
 {
+  host.host_data = this;
   host.clap_version = CLAP_VERSION;
   host.name = "ossia score";
   host.vendor = "ossia.io";
@@ -840,43 +878,124 @@ PluginHandle::PluginHandle()
   host.request_restart = [](const clap_host* host) {
     // clap/host.h: "Request the host to deactivate and then reactivate the
     // plugin. The operation may be delayed by the host." [thread-safe]
-    // The plug-in is active only while score plays, with the engine's rate
-    // and block size: a stop deactivates it and the next play activates it,
-    // which is the restart. Stopped, an active plug-in is only deactivated
-    // here, since nothing would process it and a flush from the main thread
-    // is only allowed while it is inactive. Still processing, its node runs:
-    // the stop that ends its processing deactivates it.
-    auto& m = *static_cast<Clap::PluginHandle*>(host->host_data);
-    if(!m.model)
-      return;
-    QMetaObject::invokeMethod(m.model, [model = QPointer<Model>{m.model}] {
-      if(!model || model->executing())
-        return;
-      auto h = model->handle();
-      if(!h || !h->plugin || !h->activated || h->processing)
-        return;
-      h->plugin->deactivate(h->plugin);
-      h->activated = false;
+    // The instance that asks: while its node processes it, the node stops
+    // it first. Stopped, it is only deactivated, as the next play activates
+    // it with the engine's rate and block size.
+    auto& inst = instance_of(host);
+    inst.restart_pending.store(true, std::memory_order_release);
+    QMetaObject::invokeMethod(qApp, [w = inst.weak_from_this()] {
+      if(auto i = w.lock())
+        i->reconcile();
     }, Qt::QueuedConnection);
   };
   host.request_process = [](const clap_host* host) {
-    auto& m = *static_cast<Clap::PluginHandle*>(host->host_data);
-    if(!m.model)
-      return;
-    // unused in score
+    // clap/host.h: "useful if you have external IO and need to wake up the
+    // plugin from "sleep"." [thread-safe]
+    instance_of(host).wake.store(true, std::memory_order_release);
   };
   host.request_callback = [](const clap_host* host) {
-    auto& m = *static_cast<Clap::PluginHandle*>(host->host_data);
-    if(!m.model)
-      return;
-    QMetaObject::invokeMethod(m.model, [handle = std::weak_ptr{m.model->handle()}] {
-      if(auto h = handle.lock())
-      {
-        auto plug = h->plugin;
-        plug->on_main_thread(plug);
-      }
+    // clap/host.h: "schedule a call to plugin->on_main_thread(plugin)",
+    // the instance that asks. [thread-safe]
+    QMetaObject::invokeMethod(qApp, [w = instance_of(host).weak_from_this()] {
+      if(auto i = w.lock())
+        if(auto plug = i->plugin)
+          plug->on_main_thread(plug);
     }, Qt::QueuedConnection);
   };
+}
+
+PluginInstance::~PluginInstance()
+{
+  destroy();
+}
+
+bool PluginInstance::activate(double rate, uint32_t block)
+{
+  uint8_t expected = Inactive;
+  if(!plugin
+     || !state.compare_exchange_strong(expected, Busy, std::memory_order_acq_rel))
+    return false;
+  const bool ok = plugin->activate(plugin, rate, 1, block);
+  state.store(ok ? Active : Inactive, std::memory_order_release);
+  return ok;
+}
+
+bool PluginInstance::deactivate()
+{
+  uint8_t expected = Active;
+  if(!plugin
+     || !state.compare_exchange_strong(expected, Busy, std::memory_order_acq_rel))
+    return false;
+  plugin->deactivate(plugin);
+  state.store(Inactive, std::memory_order_release);
+  return true;
+}
+
+void PluginInstance::reconcile()
+{
+  const bool restart = restart_pending.load(std::memory_order_acquire);
+  bool deactivated = false;
+  if(restart || nodes == 0)
+  {
+    deactivated = deactivate();
+    // Processing, or claimed by the audio thread to be: its node stops it,
+    // then calls this again
+    if(!deactivated && state.load(std::memory_order_acquire) != Inactive)
+      return;
+  }
+  if(nodes > 0 && state.load(std::memory_order_acquire) == Inactive)
+    activate(node_rate, node_block);
+  if(restart)
+    restart_pending.store(false, std::memory_order_release);
+
+  if(deactivated && owner == this && owner->model)
+    owner->model->onDeactivated();
+}
+
+void PluginInstance::destroy()
+{
+  if(!plugin)
+    return;
+  if(state.load(std::memory_order_acquire) == Processing)
+  {
+    ActingAsAudioThread audio;
+    stop_processing();
+  }
+  deactivate();
+  plugin->destroy(plugin);
+  plugin = nullptr;
+}
+
+bool PluginInstance::start_processing()
+{
+  if(restart_pending.load(std::memory_order_acquire))
+    return false;
+  uint8_t expected = Active;
+  if(!state.compare_exchange_strong(expected, Busy, std::memory_order_acq_rel))
+    return false;
+  // clap/plugin.h: reset() "Clears all buffers, performs a full reset of the
+  // processing state (filters, oscillators, envelopes, lfo, ...) and kills
+  // all voices", "clap_process.steady_time may jump backward": what a play
+  // starting again after an idle transport needs, without the tails of the
+  // last one. "The parameter's value remain unchanged."
+  plugin->reset(plugin);
+  const bool ok = plugin->start_processing(plugin);
+  state.store(ok ? Processing : Active, std::memory_order_release);
+  return ok;
+}
+
+void PluginInstance::stop_processing()
+{
+  uint8_t expected = Processing;
+  if(!state.compare_exchange_strong(expected, Busy, std::memory_order_acq_rel))
+    return;
+  plugin->stop_processing(plugin);
+  state.store(Active, std::memory_order_release);
+}
+
+PluginHandle::PluginHandle()
+{
+  owner = this;
 }
 
 namespace
@@ -931,13 +1050,8 @@ void release_entry(const clap_plugin_entry_t* entry)
 
 PluginHandle::~PluginHandle()
 {
-  if(plugin)
-  {
-    if(activated)
-      plugin->deactivate(plugin);
-    plugin->destroy(plugin);
-    plugin = nullptr;
-  }
+  // Before its library goes
+  destroy();
 
   if(entry)
   {
@@ -1061,13 +1175,10 @@ Model::~Model()
 {
   closeUI();
 
-  // Still processing, the node keeps the handle and the last owner
-  // deactivates it
-  if(m_plugin->plugin && m_plugin->activated && !m_plugin->processing)
-  {
-    m_plugin->plugin->deactivate(m_plugin->plugin);
-    m_plugin->activated = false;
-  }
+  // A node that still runs it keeps the handle, and deactivates it once it
+  // stopped
+  m_plugin->model = nullptr;
+  m_plugin->reconcile();
 
   // Clean up timers
   for(auto& [id, timer] : timers)
@@ -1147,7 +1258,6 @@ void PluginHandle::load(Model& context, QByteArray path, QByteArray id)
   if(!factory)
     return;
 
-  host.host_data = this;
   plugin = factory->create_plugin(factory, &host, id.data());
   if(!plugin)
     return;
@@ -1181,8 +1291,6 @@ void Model::loadPlugin()
   {
     loadCLAPState(*m_plugin->plugin, m_loadedState);
   }
-
-  m_plugin->activated = false;
 
   // Connect parameter value feedback from executor to GUI
   if(auto params = m_plugin->ext_params)
@@ -1242,34 +1350,12 @@ void Model::loadPlugin()
       }
     });
   }
-
-  // Connect the restart signal
-  connect(
-      this, &Process::ProcessModel::resetExecution, this,
-      &Model::deactivateOnceStopped, Qt::QueuedConnection);
 }
 
-void Model::deactivateOnceStopped()
+void Model::onDeactivated()
 {
-  // A new play activates the plug-in again by itself
-  if(executing())
-    return;
-
-  // The stop reaches the audio thread through the execution queue, maybe
-  // after the main thread had its turn. clap/plugin.h: stop_processing is
-  // [audio-thread & active & processing], so it comes before deactivate
-  if(m_plugin->processing)
-  {
-    QTimer::singleShot(5, this, &Model::deactivateOnceStopped);
-    return;
-  }
-
-  if(m_plugin->plugin && m_plugin->activated)
-  {
-    m_plugin->plugin->deactivate(m_plugin->plugin);
-    m_plugin->activated = false;
-  }
-  // Drain RESCAN_ALL deferred during execution (spec needs deactivate).
+  // clap/ext/params.h: CLAP_PARAM_RESCAN_ALL "can only be used while the
+  // plugin is deactivated"
   if(m_pendingRescanFlags != 0)
   {
     auto pending = std::exchange(m_pendingRescanFlags, 0u);
@@ -1326,7 +1412,7 @@ void Model::sendParamChange(const clap_param_info_t& info, double value)
   // Active, the plug-in is flushed from the audio thread only: its node
   // sends it the control's value
   auto plugin = m_plugin->plugin;
-  if(!plugin || m_plugin->activated)
+  if(!plugin || m_plugin->state.load(std::memory_order_acquire) != PluginInstance::Inactive)
     return;
   auto params
       = (const clap_plugin_params_t*)plugin->get_extension(plugin, CLAP_EXT_PARAMS);
@@ -2204,7 +2290,8 @@ void Model::flushFromPluginToHost()
     return;
   // Active, the plug-in is flushed from the audio thread only: what it says
   // comes back through its node
-  if(this->executing() || m_plugin->activated)
+  if(this->executing()
+     || m_plugin->state.load(std::memory_order_acquire) != PluginInstance::Inactive)
     return;
 
   ParamInputCtx in_ctx; // empty

@@ -789,3 +789,272 @@ TEST_CASE(
     CHECK(e.wrong_thread == 0);
   });
 }
+
+// An interval of a scenario ends while the document plays, the plug-in asks
+// for a restart, and the interval plays again: clap/host.h has the host
+// "deactivate and then reactivate the plugin", which processes again only
+// once active.
+TEST_CASE(
+    "CLAP: a restart asked for between two plays of its interval is done before the "
+    "second",
+    "[integration][clap][restart][state]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    for(auto id : both_gains)
+    {
+      INFO(id);
+      const bool mono = std::string_view{id}.find("mono") != std::string_view::npos;
+      auto* doc = score::test::new_document(ctx);
+      REQUIRE(doc);
+      auto& proc = *add_gain(*doc, QString::fromUtf8(id));
+      report();
+      {
+        playing p{*doc, proc};
+        p.block(2);
+        p.stop_interval();
+        plugin_function<void(const clap_plugin_t*)>("clap_mono_gain_request_restart")(
+            proc.handle()->plugin);
+        spin(30);
+        p.start_interval();
+        all_at(p.block(2), 2, 0.5);
+        p.stop();
+      }
+      const auto e = report();
+      CHECK(e.bad_state == 0);
+      CHECK(e.wrong_thread == 0);
+      // Each instance made active for the play, and the first one again
+      CHECK(e.activations == (mono ? 8 : 1) + 1);
+      ctx.docManager.forceCloseDocument(ctx, *doc);
+    }
+  });
+}
+
+// clap/plugin.h: reset() "The parameter's value remain unchanged."; the
+// values a plug-in starts processing with are the ones it last had.
+TEST_CASE(
+    "CLAP: a plug-in that starts processing again keeps the values of its parameters",
+    "[integration][clap][params][state]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    for(auto id : both_gains)
+    {
+      INFO(id);
+      auto* doc = score::test::new_document(ctx);
+      REQUIRE(doc);
+      auto& proc = *add_gain(*doc, QString::fromUtf8(id));
+      gain_control(proc).setValue(0.25);
+      {
+        playing p{*doc, proc};
+        all_at(p.block(2), 2, 0.25);
+        p.block(2);
+
+        // Its interval played again
+        p.stop_interval();
+        p.start_interval();
+        all_at(p.block(2), 2, 0.25);
+
+        // A control moved in score while it is stopped
+        p.stop_interval();
+        gain_control(proc).setValue(0.4);
+        spin(20);
+        p.start_interval();
+        all_at(p.block(2), 2, 0.4);
+
+        // The plug-in's editor moved it
+        set_from_ui(proc, 0.75);
+        for(int i = 0; i < 3; i++)
+          p.block(2);
+        p.stop_interval();
+        p.start_interval();
+        const auto out = p.block(2);
+        REQUIRE(out.size() == 2);
+        // The first instance's editor, which the other ones follow
+        CHECK(out[0] == Catch::Approx(0.75));
+        CHECK(out[1] == Catch::Approx(0.75));
+        p.stop();
+      }
+      CHECK(report().bad_state == 0);
+      ctx.docManager.forceCloseDocument(ctx, *doc);
+    }
+  });
+}
+
+TEST_CASE(
+    "CLAP: the instances a mono plug-in grows start with the values of the parameters",
+    "[integration][clap][params][mono]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    auto& proc = *add_mono_gain(*doc);
+    gain_control(proc).setValue(0.25);
+    {
+      playing p{*doc, proc};
+      // More channels than the instances it starts with
+      std::vector<double> out;
+      for(int i = 0; i < 20 && out.size() < 10; i++)
+      {
+        out = p.block(10);
+        spin(60);
+      }
+      out = p.block(10);
+      all_at(out, 10, 0.25);
+      p.stop();
+    }
+    CHECK(report().bad_state == 0);
+  });
+}
+
+// clap/ext/thread-pool.h: request_exec "Schedule num_tasks jobs in the host
+// thread pool", for the plug-in calling it; clap/host.h: request_callback has
+// the host call "plugin->on_main_thread(plugin)", and request_restart
+// "deactivate and then reactivate the plugin": the one that asked.
+TEST_CASE(
+    "CLAP: what an instance of a mono plug-in asks its host is done for that instance",
+    "[integration][clap][mono][threads]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    auto& proc = *add_mono_gain(*doc);
+    report();
+    plugin_function<int()>("clap_mono_gain_pool_tasks")();
+    {
+      playing p{*doc, proc};
+      all_ask(true, false, true);
+      for(int i = 0; i < 3; i++)
+        p.block(4);
+      spin(50);
+      all_ask(false, false, false);
+      p.stop();
+    }
+    auto e = report();
+    CHECK(e.wrong_instance == 0);
+    CHECK(e.callbacks_done == 4);
+    CHECK(plugin_function<int()>("clap_mono_gain_pool_tasks")() == 4 * 3 * 2);
+
+    {
+      playing p{*doc, proc};
+      report();
+      all_ask(false, true, false);
+      p.block(4);
+      all_ask(false, false, false);
+      spin(50);
+      for(int i = 0; i < 3; i++)
+      {
+        p.block(4);
+        spin(20);
+      }
+      p.stop();
+    }
+    e = report();
+    CHECK(e.bad_state == 0);
+    CHECK(e.wrong_thread == 0);
+    // Each of the four that asked, again
+    CHECK(e.activations == 4);
+  });
+}
+
+// A play started again before the stop of the last one reached the audio
+// thread (a document reloaded, or closed, with the execution queue not yet
+// drained): the nodes of the last play are let go of with their processing
+// not stopped.
+TEST_CASE(
+    "CLAP: a play started before the last one's stop reached the audio thread",
+    "[integration][clap][state]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    for(auto id : both_gains)
+    {
+      INFO(id);
+      auto* doc = score::test::new_document(ctx);
+      REQUIRE(doc);
+      auto& proc = *add_gain(*doc, QString::fromUtf8(id));
+      report();
+      {
+        std::optional<playing> first{std::in_place, *doc, proc};
+        first->block(2);
+        first->node.reset();
+        first.reset();
+        playing second{*doc, proc};
+        all_at(second.block(2), 2, 0.5);
+        second.block(2);
+        second.stop();
+      }
+      spin(50);
+      const auto e = report();
+      CHECK(e.bad_state == 0);
+      CHECK(e.wrong_thread == 0);
+      ctx.docManager.forceCloseDocument(ctx, *doc);
+      spin(50);
+      CHECK(report().bad_state == 0);
+    }
+  });
+}
+
+TEST_CASE(
+    "CLAP: a document closed before its stop reached the audio thread",
+    "[integration][clap][state]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    for(auto id : both_gains)
+    {
+      INFO(id);
+      const auto before = report();
+      auto* doc = score::test::new_document(ctx);
+      REQUIRE(doc);
+      auto& proc = *add_gain(*doc, QString::fromUtf8(id));
+      report();
+      {
+        playing p{*doc, proc};
+        p.block(2);
+        p.node.reset();
+      }
+      ctx.docManager.forceCloseDocument(ctx, *doc);
+      spin(50);
+      const auto e = report();
+      CHECK(e.bad_state == 0);
+      CHECK(e.wrong_thread == 0);
+      CHECK(e.late_calls == 0);
+      CHECK(e.active == before.active);
+      CHECK(e.instances == before.instances);
+    }
+  });
+}
+
+// clap/host.h: request_restart, "The operation may be delayed by the host":
+// while it plays, its node stops it, the main thread deactivates and
+// activates it again, and it goes on processing.
+TEST_CASE(
+    "CLAP: a restart asked for while the plug-in plays is done while it plays",
+    "[integration][clap][restart]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    for(auto id : both_gains)
+    {
+      INFO(id);
+      auto* doc = score::test::new_document(ctx);
+      REQUIRE(doc);
+      auto& proc = *add_gain(*doc, QString::fromUtf8(id));
+      gain_control(proc).setValue(0.25);
+      {
+        playing p{*doc, proc};
+        p.block(2);
+        report();
+        plugin_function<void(const clap_plugin_t*)>("clap_mono_gain_request_restart")(
+            proc.handle()->plugin);
+        spin(30);
+        p.block(2);
+        spin(50);
+        all_at(p.block(2), 2, 0.25);
+        const auto e = report();
+        CHECK(e.activations == 1);
+        CHECK(e.bad_state == 0);
+        CHECK(e.wrong_thread == 0);
+        p.stop();
+      }
+      CHECK(report().bad_state == 0);
+      ctx.docManager.forceCloseDocument(ctx, *doc);
+    }
+  });
+}
