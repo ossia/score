@@ -390,26 +390,39 @@ struct LayoutBuilder final : Process::LayoutBuilderBase
                      item.execution_value = std::optional<std::decay_t<decltype(item.value)>>{};
                    })
       {
-        QObject* const lifetime = connections ? connections : &context;
-        auto repaint = [layout = this->layout, &item] {
-          if constexpr(requires { item.update(); })
+        using value_type = std::decay_t<decltype(item.value)>;
+        auto show = [layout = this->layout, &item](std::optional<value_type> v) {
+          // Values stream in at the control rate: repaint only on a change
+          if constexpr(requires { item.execution_value == v; })
+            if(item.execution_value == v)
+              return;
+          item.execution_value = std::move(v);
+          // A custom item repaints itself through the update its host gives it
+          if constexpr(requires { bool(item.update); item.update(); })
+          {
             if(item.update)
+            {
               item.update();
+              return;
+            }
+          }
+          else if constexpr(requires { item.update(); })
+          {
+            item.update();
+            return;
+          }
           layout->update();
         };
         QObject::connect(
             port, &Port_T::executionValueChanged, lifetime,
-            [&item, repaint, &ctx = static_cast<const score::DocumentContext&>(this->doc)](
+            [show, &ctx = static_cast<const score::DocumentContext&>(this->doc)](
                 const ossia::value& v) {
-          std::decay_t<decltype(item.value)> val{};
+          value_type val{};
           SetGUIValue<avnd_port_type>{ctx}(v, val);
-          item.execution_value = std::move(val);
-          repaint();
+          show(std::move(val));
         });
-        QObject::connect(port, &Port_T::executionReset, lifetime, [&item, repaint] {
-          item.execution_value = std::nullopt;
-          repaint();
-        });
+        QObject::connect(
+            port, &Port_T::executionReset, lifetime, [show] { show(std::nullopt); });
       }
 
       // An edit from the ui, in the document's history: the edits of one

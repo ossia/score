@@ -169,7 +169,9 @@ private:
                    std::get<I>(this->impl.execution_values) = std::optional<value_type>{};
                  })
     {
-      followExecution(port, std::get<I>(this->impl.execution_values), [](const ossia::value& v) {
+      followExecution(
+          port, [this] { return &std::get<I>(this->impl.execution_values); },
+          [](const ossia::value& v) {
         value_type val{};
         oscr::from_ossia_value(v, val);
         return val;
@@ -211,13 +213,15 @@ private:
       show(port->value());
       QObject::connect(port, &Process::ControlInlet::valueChanged, this, show);
 
+      // Looked up at each value: the item may resize its execution_values
       if constexpr(requires { this->impl.execution_values[i] = std::optional<double>{}; })
-      {
-        if(i < std::size(this->impl.execution_values))
-          followExecution(port, this->impl.execution_values[i], [port](const ossia::value& v) {
-            return normalize(*port, v);
-          });
-      }
+        followExecution(
+            port,
+            [this, i]() -> std::optional<double>* {
+          auto& shown = this->impl.execution_values;
+          return i < std::size(shown) ? &shown[i] : nullptr;
+            },
+            [port](const ossia::value& v) { return normalize(*port, v); });
     }
 
     this->impl.transaction.start = [this] { start(); };
@@ -235,18 +239,29 @@ private:
   //! there what execution gives the ports, and nothing once execution stops:
   //! it shows it apart from the values the user edits, which it leaves as
   //! they are, as the knobs and sliders do.
-  void followExecution(Process::ControlInlet* port, auto& shown, auto convert)
+  //! `shown` gives where the port's value goes, or nullptr when it has no
+  //! place there.
+  void followExecution(Process::ControlInlet* port, auto shown, auto convert)
   {
+    auto show = [this, shown](auto v) {
+      auto* dst = shown();
+      if(!dst)
+        return;
+      // Values stream in at the control rate: repaint only on a change
+      if constexpr(requires { *dst == v; })
+        if(*dst == v)
+          return;
+      *dst = std::move(v);
+      this->update();
+    };
     QObject::connect(
         port, &Process::ControlInlet::executionValueChanged, this,
-        [this, &shown, convert](const ossia::value& v) {
-      shown = convert(v);
-      this->update();
+        [show, convert](const ossia::value& v) {
+      show(std::make_optional(convert(v)));
     });
-    QObject::connect(port, &Process::ControlInlet::executionReset, this, [this, &shown] {
-      shown = std::nullopt;
-      this->update();
-    });
+    using shown_type = std::decay_t<decltype(*shown())>;
+    QObject::connect(
+        port, &Process::ControlInlet::executionReset, this, [show] { show(shown_type{}); });
   }
 
   //! One gesture of the item, whichever of its transactions it goes through
