@@ -210,7 +210,9 @@ TEST_CASE(
     {
       REQUIRE(p);
       CHECK(p->effectContext.instance);
-      CHECK(p->plugin_events.size_approx() == 0);
+      REQUIRE(p->uiChannel);
+      CHECK(!p->uiChannel->to_ui.try_read(
+          [](const auto&) { return std::optional<uint8_t*>{nullptr}; }));
     }
   });
 }
@@ -312,7 +314,54 @@ TEST_CASE(
     auto p = qobject_cast<LV2::Model*>(added[0]);
     REQUIRE(p);
     spin(500);
-    CHECK(p->plugin_events.size_approx() == 0);
+    REQUIRE(p->uiChannel);
+    CHECK(!p->uiChannel->to_ui.try_read(
+        [](const auto&) { return std::optional<uint8_t*>{nullptr}; }));
+  });
+}
+
+// A UI talks to its plug-in on atom ports that need not support MIDI, as
+// B.Choppr's: what it sends reaches the plug-in, the answer comes back.
+TEST_CASE(
+    "an LV2 plug-in and its UI talk on atom ports that are not MIDI",
+    "[integration][execution][lv2]")
+{
+  qputenv("LV2_PATH", lv2_bundle().toUtf8());
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    setup_lv2(ctx, {{lv2_bundle(), "urn:score:test:atom-notify"}});
+    playing_document play{ctx};
+    auto added = drop_on_interval(
+        *play.doc, root(*play.doc),
+        process_data(lv2_key, "urn:score:test:atom-notify"));
+    REQUIRE(added.size() == 1);
+    auto p = qobject_cast<LV2::Model*>(added[0]);
+    REQUIRE(p);
+    spin(200);
+
+    // What an open UI does: it listens, and sends a message to port 0
+    auto& lv2 = ctx.applicationPlugin<LV2::ApplicationPlugin>();
+    REQUIRE(p->uiChannel);
+    p->uiChannel->listening.store(true, std::memory_order_release);
+    LV2::Message msg;
+    msg.index = 0;
+    msg.protocol = lv2.lv2_host_context.atom_eventTransfer;
+    msg.body.resize(sizeof(LV2_Atom) + 4);
+    auto* atom = reinterpret_cast<LV2_Atom*>(msg.body.data());
+    atom->type = lv2.lv2_host_context.atom_chunk_id;
+    atom->size = 4;
+    p->uiChannel->send_to_plugin(std::move(msg));
+    spin(500);
+
+    // The fixture answers each message with one 10000-byte event on port 1
+    std::vector<std::pair<uint32_t, uint32_t>> got;
+    p->uiChannel->read_for_ui([&](uint32_t index, uint32_t protocol, uint32_t size, const void*) {
+      CHECK(protocol == lv2.lv2_host_context.atom_eventTransfer);
+      got.emplace_back(index, size);
+    });
+    REQUIRE(got.size() == 1);
+    CHECK(got[0].first == 1u);
+    CHECK(got[0].second == sizeof(LV2_Atom) + 10000);
+    p->uiChannel->listening.store(false, std::memory_order_release);
   });
 }
 
