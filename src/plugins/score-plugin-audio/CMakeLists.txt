@@ -60,9 +60,13 @@ if(OSSIA_PROTOCOL_AUDIO)
       "${CMAKE_CURRENT_SOURCE_DIR}/Audio/AudioDevice.cpp"
       "${CMAKE_CURRENT_SOURCE_DIR}/Audio/PortGain.hpp"
       "${CMAKE_CURRENT_SOURCE_DIR}/Audio/PortGain.cpp"
+      "${CMAKE_CURRENT_SOURCE_DIR}/Audio/RoutingMatrix.hpp"
+      "${CMAKE_CURRENT_SOURCE_DIR}/Audio/RoutingMatrix.cpp"
+      "${CMAKE_CURRENT_SOURCE_DIR}/Audio/AudioRouting.hpp"
+      "${CMAKE_CURRENT_SOURCE_DIR}/Audio/AudioRouting.cpp"
     )
     score_generate_command_list_file(${PROJECT_NAME}
-      "${CMAKE_CURRENT_SOURCE_DIR}/Audio/PortGain.hpp")
+      "${CMAKE_CURRENT_SOURCE_DIR}/Audio/PortGain.hpp;${CMAKE_CURRENT_SOURCE_DIR}/Audio/AudioRouting.hpp")
 else()
     score_generate_command_list_file(${PROJECT_NAME} "")
 endif()

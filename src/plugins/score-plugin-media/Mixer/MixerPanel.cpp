@@ -8,6 +8,7 @@
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 
 #include <Audio/AudioDevice.hpp>
+#include <Audio/AudioRouting.hpp>
 #include <Execution/DocumentPlugin.hpp>
 #include <Execution/Telemetry.hpp>
 
@@ -213,9 +214,23 @@ public:
         const std::string kind = Section(i) == Section::Virtual ? "virtual" : "in";
         connect(add, &QToolButton::clicked, this, [this, kind] {
           if(m_device)
-            addAudioPort(m_context, *m_device, this, kind);
+            Audio::addAudioPort(m_context, *m_device, this, kind);
         });
         side_lay->addWidget(add);
+      }
+      if(Section(i) == Section::Mapped)
+      {
+        auto routing = new QToolButton{side};
+        routing->setText(QStringLiteral("▦"));
+        routing->setAutoRaise(true);
+        routing->setFixedSize(tab_w, tab_w);
+        score::setHelp(
+            routing, tr("Audio routing: every input and output port against the "
+                        "channels of the sound card."));
+        connect(routing, &QToolButton::clicked, this, [this] {
+          Audio::showAudioRouting(m_context);
+        });
+        side_lay->addWidget(routing);
       }
       sec_lay->addWidget(side);
 
@@ -313,6 +328,11 @@ private:
   void widthMenu(QPoint at)
   {
     QMenu menu;
+    auto routing = menu.addAction(tr("Audio routing..."));
+    connect(routing, &QAction::triggered, this, [this] {
+      Audio::showAudioRouting(m_context);
+    });
+    menu.addSeparator();
     auto widths = menu.addMenu(tr("Width of every strip"));
     for(auto [w, name] :
         {std::pair{StripWidth::Narrow, tr("Narrow")},
