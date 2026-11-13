@@ -1058,3 +1058,49 @@ TEST_CASE(
     }
   });
 }
+
+// DPF's CLAP wrapper answers reset() with request_restart when its plug-in
+// has no reset parameter: a plug-in starts processing again after a restart
+// without the reset that would ask for another one.
+TEST_CASE(
+    "CLAP: a plug-in that asks for a restart when it is reset processes",
+    "[integration][clap][restart]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    for(auto id : both_gains)
+    {
+      INFO(id);
+      auto* doc = score::test::new_document(ctx);
+      REQUIRE(doc);
+      auto& proc = *add_gain(*doc, QString::fromUtf8(id));
+      plugin_function<void(bool)>("clap_mono_gain_restart_on_reset")(true);
+      report();
+      {
+        playing p{*doc, proc};
+        std::vector<double> out;
+        for(int i = 0; i < 6; i++)
+        {
+          out = p.block(2);
+          spin(50);
+        }
+        all_at(out, 2, 0.5);
+
+        // Its interval played again: reset, then restarted once
+        p.stop_interval();
+        p.start_interval();
+        for(int i = 0; i < 6; i++)
+        {
+          out = p.block(2);
+          spin(50);
+        }
+        all_at(out, 2, 0.5);
+        p.stop();
+      }
+      plugin_function<void(bool)>("clap_mono_gain_restart_on_reset")(false);
+      const auto e = report();
+      CHECK(e.bad_state == 0);
+      CHECK(e.wrong_thread == 0);
+      ctx.docManager.forceCloseDocument(ctx, *doc);
+    }
+  });
+}

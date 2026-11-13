@@ -82,6 +82,8 @@ struct PluginInstance : std::enable_shared_from_this<PluginInstance>
   std::atomic_bool restart_pending{};
   //! It asked to process while it sleeps
   std::atomic_bool wake{};
+  //! Activated and not processed since: there is nothing to reset
+  bool fresh{};
 
   //! [main-thread] The nodes that run it, and the rate and block size the
   //! last of them wants it active with

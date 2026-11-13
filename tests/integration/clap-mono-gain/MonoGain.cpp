@@ -98,6 +98,8 @@ std::atomic<int> g_wrong_thread{}, g_gestures{}, g_foreign_cookies{}, g_bad_even
 //! Every instance asks, from its first process call, for a main-thread
 //! callback, a restart, or runs tasks in the host's thread pool
 std::atomic<bool> g_all_ask_callback{}, g_all_ask_restart{}, g_all_use_pool{};
+//! A reset is answered with a restart, as DPF does without a reset parameter
+std::atomic<bool> g_restart_on_reset{};
 std::atomic<int> g_initialised{};
 std::atomic<int> g_active{};
 std::atomic<double> g_last_rate{};
@@ -339,8 +341,11 @@ void stop_processing(const clap_plugin_t* p)
 void reset(const clap_plugin_t* p)
 {
   audio_thread_only(p);
-  if(!self(p).active)
+  auto& s = self(p);
+  if(!s.active)
     g_bad_state++;
+  if(g_restart_on_reset)
+    s.host->request_restart(s.host);
 }
 
 clap_process_status process(const clap_plugin_t* p, const clap_process_t* process)
@@ -522,6 +527,10 @@ CLAP_EXPORT void clap_mono_gain_all_ask(bool callback, bool restart, bool pool)
   g_all_ask_callback = callback;
   g_all_ask_restart = restart;
   g_all_use_pool = pool;
+}
+CLAP_EXPORT void clap_mono_gain_restart_on_reset(bool on)
+{
+  g_restart_on_reset = on;
 }
 CLAP_EXPORT int clap_mono_gain_pool_tasks()
 {

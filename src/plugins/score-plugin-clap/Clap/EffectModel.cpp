@@ -916,6 +916,7 @@ bool PluginInstance::activate(double rate, uint32_t block)
      || !state.compare_exchange_strong(expected, Busy, std::memory_order_acq_rel))
     return false;
   const bool ok = plugin->activate(plugin, rate, 1, block);
+  fresh = ok;
   state.store(ok ? Active : Inactive, std::memory_order_release);
   return ok;
 }
@@ -977,8 +978,12 @@ bool PluginInstance::start_processing()
   // processing state (filters, oscillators, envelopes, lfo, ...) and kills
   // all voices", "clap_process.steady_time may jump backward": what a play
   // starting again after an idle transport needs, without the tails of the
-  // last one. "The parameter's value remain unchanged."
-  plugin->reset(plugin);
+  // last one. "The parameter's value remain unchanged." Just activated, it
+  // has none: a plug-in may answer reset() with a restart (DPF does, without
+  // a reset parameter), which would otherwise never end.
+  if(!fresh)
+    plugin->reset(plugin);
+  fresh = false;
   const bool ok = plugin->start_processing(plugin);
   state.store(ok ? Processing : Active, std::memory_order_release);
   return ok;
