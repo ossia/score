@@ -723,6 +723,59 @@ TEST_CASE("lv2_node gives atom ports the buffer size they ask for", "[lv2]")
   });
 }
 
+// A UI talks to its plug-in on atom ports that need not support MIDI:
+// B.Choppr's UI asks for the monitor data on such an input, and the plug-in
+// answers on such an output. Both directions go through, as on MIDI ports.
+TEST_CASE("lv2_node carries UI messages on atom ports that are not MIDI", "[lv2]")
+{
+  prepare_lv2_test_environment();
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    auto& plug = setupLV2(ctx);
+    fixture_plugin p{plug, "urn:score:test:atom-notify", "Score Test Atom Notify"};
+    LV2::LV2Data data{plug.lv2_host_context, p.effect};
+    REQUIRE(data.midi_in_ports.empty());
+    REQUIRE(data.midi_out_ports.empty());
+    REQUIRE(data.atom_in_ports.size() == 1);
+    REQUIRE(data.atom_out_ports.size() == 1);
+
+    {
+      hooked_node node{data, 48000, {LV2::voice_routing::single, 1}, {}, {}};
+      REQUIRE(node.voices.size() == 1);
+
+      // A message from the UI, given to the node as on_start does
+      LV2::Message msg;
+      msg.index = data.atom_in_ports[0];
+      msg.protocol = plug.lv2_host_context.atom_eventTransfer;
+      msg.body.resize(sizeof(LV2_Atom) + 4);
+      auto* atom = reinterpret_cast<LV2_Atom*>(msg.body.data());
+      atom->type = plug.lv2_host_context.atom_chunk_id;
+      atom->size = 4;
+      node.on_start.fn = [&] { node.queue_ui_message(msg); };
+
+      // What on_finish sends to the UI
+      std::vector<std::pair<uint32_t, uint32_t>> sent;
+      node.on_finished.fn = [&] {
+        node.for_each_ui_event([&](uint32_t port, const LV2_Atom& a) {
+          sent.emplace_back(port, a.size);
+        });
+      };
+
+      ossia::execution_state st;
+      run_node(node, st);
+      REQUIRE(sent.size() == 1);
+      CHECK(sent[0].first == uint32_t(data.atom_out_ports[0]));
+      CHECK(sent[0].second == 10000u);
+
+      // Given once: the next run has nothing to answer
+      sent.clear();
+      node.on_start.fn = {};
+      run_node(node, st);
+      CHECK(sent.empty());
+    }
+    QCoreApplication::processEvents();
+  });
+}
+
 // A sequencer following the host transport starts on a change of time:speed
 // from 0. The instance lives from one play to the next, so the transport
 // stopping must be told to it.

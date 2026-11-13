@@ -1156,18 +1156,7 @@ void on_start::operator()()
 
   LV2::Message msg;
   while(proc.try_dequeue(msg))
-  {
-    // Broadcast to every voice: per_channel needs the same MIDI on all instances
-    for(std::size_t k = 0; k < node.data.midi_in_ports.size(); ++k)
-    {
-      if(node.data.midi_in_ports[k] == int32_t(msg.index))
-      {
-        for(auto& v : node.voices)
-          v->message_for_midi_atom_ins[k].push_back(msg);
-        break;
-      }
-    }
-  }
+    node.queue_ui_message(msg);
 }
 void on_finish::operator()()
 {
@@ -1208,18 +1197,8 @@ void on_finish::operator()()
   if(!nn)
     return;
   auto& node = *static_cast<lv2_node_t*>(nn.get());
-  if(node.voices.empty())
-    return;
-  auto& v0 = *node.voices[0];
-
-  for(std::size_t k = 0; k < node.data.midi_out_ports.size(); ++k)
-  {
-    int port_index = node.data.midi_out_ports[k];
-    auto& buf = v0.midi_atom_outs[k];
-
-    buf.buf->for_each_output_event(
-        [&](const LV2_Atom_Event& ev) { p->writeAtomToUi(port_index, ev.body); });
-  }
+  node.for_each_ui_event(
+      [&](uint32_t port_index, const LV2_Atom& atom) { p->writeAtomToUi(port_index, atom); });
 }
 
 void lv2_node_process::stop()

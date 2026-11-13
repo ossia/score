@@ -109,6 +109,26 @@
         rsz:minimumSize 65536
     ] .
 
+# The same on atom ports that support no MIDI.
+<urn:score:test:atom-notify>
+    a lv2:Plugin, lv2:UtilityPlugin ;
+    doap:name "Score Test Atom Notify" ;
+    lv2:port [
+        a lv2:InputPort, atom:AtomPort ;
+        atom:bufferType atom:Sequence ;
+        lv2:index 0 ;
+        lv2:symbol "control" ;
+        lv2:name "Control" ;
+        rsz:minimumSize 65536
+    ] , [
+        a lv2:OutputPort, atom:AtomPort ;
+        atom:bufferType atom:Sequence ;
+        lv2:index 1 ;
+        lv2:symbol "notify" ;
+        lv2:name "Notify" ;
+        rsz:minimumSize 65536
+    ] .
+
 # Follows the host transport through time:Position.
 <urn:score:test:transport>
     a lv2:Plugin, lv2:UtilityPlugin ;

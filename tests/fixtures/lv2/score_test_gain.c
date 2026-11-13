@@ -173,6 +173,17 @@ static const LV2_Descriptor descriptor_notify
     = {"urn:score:test:notify", instantiate_notify, connect_port_notify, NULL,
        run_notify,              NULL,               cleanup,             NULL};
 
+/* urn:score:test:atom-notify: the same, on atom ports that support no MIDI,
+ * as B.Choppr's: a UI sends its messages there and reads the answers.
+ *
+ * Ports:
+ *   0  atom in  "control"  atom:Sequence
+ *   1  atom out "notify"   atom:Sequence
+ */
+static const LV2_Descriptor descriptor_atom_notify
+    = {"urn:score:test:atom-notify", instantiate_notify, connect_port_notify, NULL,
+       run_notify,                   NULL,               cleanup,             NULL};
+
 /* urn:score:test:transport: reads time:Position objects, as a sequencer
  * following the host transport does (starting on a change of time:speed
  * from 0).
@@ -831,6 +842,8 @@ LV2_SYMBOL_EXPORT const LV2_Descriptor* lv2_descriptor(uint32_t index)
       return &descriptor_mute;
     case 10:
       return &descriptor_worker;
+    case 11:
+      return &descriptor_atom_notify;
     default:
       return NULL;
   }

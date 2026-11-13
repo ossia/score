@@ -58,7 +58,9 @@ struct voice
     int port;
     AtomBuffer* buffer{};
   };
-  std::vector<TimePort> atom_timePosition_midi;
+  //! The inputs carrying time:Position that also carry MIDI or messages of
+  //! the UI: the position is written first in their sequence
+  std::vector<TimePort> atom_timePosition_shared;
   std::vector<AtomBuffer> atom_timePosition_owned_buffers;
   std::vector<TimePort> atom_timePosition_owned;
 
@@ -433,18 +435,26 @@ struct lv2_node final : public ossia::graph_node
           data.atomBufferSize(port), data.host.atom_chunk_id,
           data.host.atom_sequence_id, true);
 
-    // time:Position may share a MIDI port (atom:supports midi+time) or have its own atom port
+    // time:Position shares the sequence of the MIDI or atom input it comes
+    // on (B.Choppr's also carries what its UI sends)
     v.atom_timePosition_owned_buffers.reserve(data.time_Position_ports.size());
     for(int port_index : data.time_Position_ports)
     {
       bool shared = false;
-      for(std::size_t k = 0; k < data.midi_in_ports.size(); ++k)
+      for(std::size_t k = 0; k < data.midi_in_ports.size() && !shared; ++k)
       {
         if(data.midi_in_ports[k] == port_index)
         {
-          v.atom_timePosition_midi.push_back({port_index, &v.midi_atom_ins[k]});
+          v.atom_timePosition_shared.push_back({port_index, &v.midi_atom_ins[k]});
           shared = true;
-          break;
+        }
+      }
+      for(std::size_t k = 0; k < data.atom_in_ports.size() && !shared; ++k)
+      {
+        if(data.atom_in_ports[k] == port_index)
+        {
+          v.atom_timePosition_shared.push_back({port_index, &v.atom_ins[k]});
+          shared = true;
         }
       }
       if(!shared)
@@ -520,6 +530,46 @@ struct lv2_node final : public ossia::graph_node
       lilv_instance_activate(v.instance);
       v.instance_holder->activated = true;
     }
+  }
+
+  //! What the UI sent to one of the atom inputs, MIDI or not, for the next
+  //! run of every voice: per_channel needs the same on all instances.
+  void queue_ui_message(const Message& msg)
+  {
+    for(std::size_t k = 0; k < data.midi_in_ports.size(); ++k)
+    {
+      if(data.midi_in_ports[k] == int32_t(msg.index))
+      {
+        for(auto& v : voices)
+          v->message_for_midi_atom_ins[k].push_back(msg);
+        return;
+      }
+    }
+    for(std::size_t k = 0; k < data.atom_in_ports.size(); ++k)
+    {
+      if(data.atom_in_ports[k] == int32_t(msg.index))
+      {
+        for(auto& v : voices)
+          v->message_for_atom_ins[k].push_back(msg);
+        return;
+      }
+    }
+  }
+
+  //! What voice 0 wrote on its atom outputs, MIDI or not, for the UI:
+  //! f(port index, atom) for each event.
+  template <typename F>
+  void for_each_ui_event(F&& f) const
+  {
+    if(voices.empty())
+      return;
+    auto& v0 = *voices[0];
+    for(std::size_t k = 0; k < v0.midi_atom_outs.size(); ++k)
+      v0.midi_atom_outs[k].buf->for_each_output_event(
+          [&](const LV2_Atom_Event& ev) { f(uint32_t(data.midi_out_ports[k]), ev.body); });
+    for(std::size_t k = 0; k < v0.atom_outs.size(); ++k)
+      v0.atom_outs[k].buf->for_each_output_event(
+          [&](const LV2_Atom_Event& ev) { f(uint32_t(data.atom_out_ports[k]), ev.body); });
   }
 
   void all_notes_off() noexcept override
@@ -657,7 +707,7 @@ struct lv2_node final : public ossia::graph_node
 
       // The position first: the sequence is in time order, and the events of
       // this block are at this position.
-      if(ossia::any_of(v.atom_timePosition_midi, [&](const auto& t) {
+      if(ossia::any_of(v.atom_timePosition_shared, [&](const auto& t) {
            return t.buffer == &lv2_port;
          }))
         writeTime(it);
@@ -687,6 +737,7 @@ struct lv2_node final : public ossia::graph_node
       }
     }
 
+    writeAtomIns(v);
     for(auto& [_, buf] : v.atom_timePosition_owned)
     {
       Iterator it{buf->buf};
@@ -783,6 +834,26 @@ struct lv2_node final : public ossia::graph_node
       write(timePositionBuffer.get());
   }
 
+  //! The atom inputs that are not MIDI: the position first when they carry
+  //! one, then what the UI sent to them.
+  void writeAtomIns(voice& v) noexcept
+  {
+    for(std::size_t i = 0; i < v.atom_ins.size(); i++)
+    {
+      auto& lv2_port = v.atom_ins[i];
+      Iterator it{lv2_port.buf};
+      if(ossia::any_of(v.atom_timePosition_shared, [&](const auto& t) {
+           return t.buffer == &lv2_port;
+         }))
+        writeTime(it);
+      for(const Message& msg : v.message_for_atom_ins[i])
+      {
+        auto* atom = (const LV2_Atom*)msg.body.data();
+        it.write(0, 0, atom->type, atom->size, (const uint8_t*)LV2_ATOM_BODY_CONST(atom));
+      }
+    }
+  }
+
   void postProcessVoice(voice& v) noexcept
   {
     if(v.worker && v.worker->work_response)
@@ -807,6 +878,8 @@ struct lv2_node final : public ossia::graph_node
     for(auto& port : v.atom_others)
       port.buf->reset(true);
     for(auto& mqueue : v.message_for_midi_atom_ins)
+      mqueue.clear();
+    for(auto& mqueue : v.message_for_atom_ins)
       mqueue.clear();
   }
 
@@ -877,7 +950,7 @@ struct lv2_node final : public ossia::graph_node
       {
         auto& lv2_port = v.midi_atom_ins[i];
         Iterator it{lv2_port.buf};
-        if(ossia::any_of(v.atom_timePosition_midi, [&](const auto& t) {
+        if(ossia::any_of(v.atom_timePosition_shared, [&](const auto& t) {
              return t.buffer == &lv2_port;
            }))
           writeTime(it);
@@ -887,6 +960,7 @@ struct lv2_node final : public ossia::graph_node
           it.write(0, 0, atom->type, atom->size, (const uint8_t*)LV2_ATOM_BODY(atom));
         }
       }
+      writeAtomIns(v);
       for(auto& [_, buf] : v.atom_timePosition_owned)
       {
         Iterator it{buf->buf};

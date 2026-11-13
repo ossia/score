@@ -301,6 +301,50 @@ TEST_CASE(
   });
 }
 
+// A UI talks to its plug-in on atom ports that need not support MIDI, as
+// B.Choppr's: what it sends reaches the plug-in, the answer comes back.
+TEST_CASE(
+    "an LV2 plug-in and its UI talk on atom ports that are not MIDI",
+    "[integration][execution][lv2]")
+{
+  qputenv("LV2_PATH", lv2_bundle().toUtf8());
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    setup_lv2(ctx, {{lv2_bundle(), "urn:score:test:atom-notify"}});
+    playing_document play{ctx};
+    auto added = drop_on_interval(
+        *play.doc, root(*play.doc),
+        process_data(lv2_key, "urn:score:test:atom-notify"));
+    REQUIRE(added.size() == 1);
+    auto p = qobject_cast<LV2::Model*>(added[0]);
+    REQUIRE(p);
+    spin(200);
+
+    // What an open UI does: it listens, and sends a message to port 0
+    auto& lv2 = ctx.applicationPlugin<LV2::ApplicationPlugin>();
+    p->uiListening.store(true, std::memory_order_release);
+    LV2::Message msg;
+    msg.index = 0;
+    msg.protocol = lv2.lv2_host_context.atom_eventTransfer;
+    msg.body.resize(sizeof(LV2_Atom) + 4);
+    auto* atom = reinterpret_cast<LV2_Atom*>(msg.body.data());
+    atom->type = lv2.lv2_host_context.atom_chunk_id;
+    atom->size = 4;
+    p->to_process_events.enqueue(std::move(msg));
+    spin(500);
+
+    // The fixture answers each message with one 10000-byte event on port 1
+    std::vector<LV2::Message> got;
+    LV2::Message ev;
+    while(p->plugin_events.try_dequeue(ev))
+      got.push_back(std::move(ev));
+    REQUIRE(got.size() == 1);
+    CHECK(got[0].index == 1u);
+    CHECK(got[0].protocol == lv2.lv2_host_context.atom_eventTransfer);
+    CHECK(got[0].body.size() == sizeof(LV2_Atom) + 10000);
+    p->uiListening.store(false, std::memory_order_release);
+  });
+}
+
 namespace
 {
 //! Every phase of score_test/LivePlugin.hpp: the ones that do not apply to the
