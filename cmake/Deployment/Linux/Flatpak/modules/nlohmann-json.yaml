@@ -1,0 +1,5 @@
+type: archive
+url: https://github.com/nlohmann/json/archive/refs/tags/v3.11.3.zip
+sha256: 04022b05d806eb5ff73023c280b68697d12b93e1b7267a0b22a1a39ec7578069
+dest: flatpak-onnx-deps/nlohmann_json
+strip-components: 1
