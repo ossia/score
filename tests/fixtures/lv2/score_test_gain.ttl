@@ -4,6 +4,7 @@
 @prefix midi: <http://lv2plug.in/ns/ext/midi#> .
 @prefix rsz:  <http://lv2plug.in/ns/ext/resize-port#> .
 @prefix time: <http://lv2plug.in/ns/ext/time#> .
+@prefix ui:   <http://lv2plug.in/ns/extensions/ui#> .
 @prefix urid: <http://lv2plug.in/ns/ext/urid#> .
 @prefix work: <http://lv2plug.in/ns/ext/worker#> .
 
@@ -127,6 +128,21 @@
         lv2:symbol "notify" ;
         lv2:name "Notify" ;
         rsz:minimumSize 65536
+    ] .
+
+# A control read by an X11 UI that resizes itself (score_test_x11ui.c).
+<urn:score:test:x11ui>
+    a lv2:Plugin, lv2:UtilityPlugin ;
+    doap:name "Score Test X11 UI" ;
+    ui:ui <urn:score:test:x11ui#ui> ;
+    lv2:port [
+        a lv2:ControlPort, lv2:InputPort ;
+        lv2:index 0 ;
+        lv2:symbol "size" ;
+        lv2:name "Size" ;
+        lv2:default 0.0 ;
+        lv2:minimum 0.0 ;
+        lv2:maximum 1.0
     ] .
 
 # Follows the host transport through time:Position.

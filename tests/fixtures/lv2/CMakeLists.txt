@@ -24,5 +24,27 @@ else()
   set(LV2_TEST_BINARY_NAME "score_test_gain.so")
 endif()
 
+# The X11 UI of urn:score:test:x11ui, declared only where it is built
+set(LV2_TEST_X11UI "")
+if(UNIX AND NOT APPLE)
+  find_package(X11 QUIET)
+  if(X11_FOUND)
+    add_library(score_test_x11ui_lv2 MODULE score_test_x11ui.c)
+    set_target_properties(score_test_x11ui_lv2 PROPERTIES
+      PREFIX ""
+      SUFFIX ".so"
+      OUTPUT_NAME "score_test_x11ui"
+      LIBRARY_OUTPUT_DIRECTORY "${_bundle_dir}"
+      FOLDER "Tests")
+    target_include_directories(score_test_x11ui_lv2 PRIVATE "${LV2_PATH}" ${X11_INCLUDE_DIR})
+    target_link_libraries(score_test_x11ui_lv2 PRIVATE ${X11_LIBRARIES})
+    set(LV2_TEST_X11UI "
+<urn:score:test:x11ui#ui>
+    a ui:X11UI ;
+    ui:binary <score_test_x11ui.so> .
+")
+  endif()
+endif()
+
 configure_file(manifest.ttl.in "${_bundle_dir}/manifest.ttl" @ONLY)
 configure_file(score_test_gain.ttl "${_bundle_dir}/score_test_gain.ttl" COPYONLY)

@@ -19,6 +19,7 @@
 #include <suil-0/suil/suil.h>
 
 #include <array>
+#include <cstring>
 
 W_OBJECT_IMPL(LV2::Window)
 namespace LV2
@@ -188,8 +189,21 @@ Window::Window(const Model& fx, const score::DocumentContext& ctx, QWidget* pare
   // Setup the widget stuff
   auto widget = (QWidget*)suil.instance_get_widget(fx.effectContext.ui_instance);
 
-  const int default_w = widget->width();
-  const int default_h = widget->height();
+  // The size the UI made itself: what suil's widget says of the window it
+  // embeds. Its own size is Qt's default for a window never shown, 640x480.
+  QSize ui_size = widget->sizeHint();
+  if(ui_size.isEmpty())
+    ui_size = widget->size();
+  const int default_w = ui_size.width();
+  const int default_h = ui_size.height();
+
+  // An embedded window resizes itself (DPF's resize handle, a UI growing a
+  // panel) without telling the host: its size is read on each update, as
+  // Carla follows its ConfigureNotify.
+  m_followUiSize = strcmp(
+                       lilv_node_as_uri(fx.effectContext.ui_type), native_ui_type_uri)
+                   != 0;
+  m_uiSize = ui_size;
 
   lay->addWidget(widget);
   m_widget = widget;
@@ -218,6 +232,8 @@ Window::Window(const Model& fx, const score::DocumentContext& ctx, QWidget* pare
 
     // UI -> score
     drainUiEvents();
+
+    followUiSize();
   });
 
   // Set initial control port values
@@ -250,6 +266,32 @@ Window::Window(const Model& fx, const score::DocumentContext& ctx, QWidget* pare
 }
 
 Window::~Window() { }
+
+void Window::followUiSize()
+{
+  if(!m_followUiSize || !m_widget)
+    return;
+
+  const QSize ui = m_widget->sizeHint();
+  if(ui.isEmpty() || ui == m_uiSize)
+    return;
+  m_uiSize = ui;
+
+  const auto m = contentsMargins();
+  const QSize target = ui.grownBy(m);
+  if(target == size())
+    return;
+
+  if(minimumSize() == maximumSize())
+  {
+    m_widget->setFixedSize(ui);
+    setFixedSize(target);
+  }
+  else
+  {
+    resize(target);
+  }
+}
 
 void Window::resizeEvent(QResizeEvent* event)
 {

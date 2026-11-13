@@ -2129,6 +2129,23 @@ if(TARGET score_plugin_lv2)
     SCORE_TEST_LV2_BUNDLE="${SCORE_ROOT_BINARY_DIR}/tests/lv2/score-test-gain.lv2")
 endif()
 
+# The window an LV2 X11 UI is embedded in takes the size of the UI.
+if(TARGET score_test_x11ui_lv2)
+  score_add_test(test_integration_lv2_editor_window
+    SOURCES LV2EditorWindowTest.cpp
+    GUI
+    PLUGINS score_plugin_lv2 score_plugin_scenario score_lib_process
+    LIBS Lilv)
+  target_include_directories(test_integration_lv2_editor_window PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-lv2"
+    "${LV2_PATH}"
+    $<TARGET_PROPERTY:Suil,INTERFACE_INCLUDE_DIRECTORIES>)
+  add_dependencies(test_integration_lv2_editor_window
+    score_test_gain_lv2 score_test_x11ui_lv2)
+  target_compile_definitions(test_integration_lv2_editor_window PRIVATE
+    SCORE_TEST_LV2_BUNDLE="${SCORE_ROOT_BINARY_DIR}/tests/lv2/score-test-gain.lv2")
+endif()
+
 # A VST3 plug-in added, edited and removed while the document plays.
 if(TARGET score_test_vst3_edited_gain)
   score_add_test(test_integration_vst3_add_while_playing
