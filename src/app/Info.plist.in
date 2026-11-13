@@ -43,6 +43,11 @@
     <key>NSHumanReadableCopyright</key>
     <string>${MACOSX_BUNDLE_COPYRIGHT}</string>
 
+    <!-- What tools/create-app-macos.sh may rely on: 1 = LSEnvironment and
+         ScoreArguments are read at startup, $RESOURCES_DIR expanded -->
+    <key>ScoreCustomAppVersion</key>
+    <integer>1</integer>
+
     <key>NSAppleEventsUsageDescription</key>
     <string>ossia score needs assistive access for MIDI keyboard input and minimap movement</string>
 

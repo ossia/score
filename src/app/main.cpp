@@ -154,8 +154,15 @@ struct NSAutoreleasePool;
 #include <sys/resource.h>
 
 #define HAS_RLIMIT 1
+#include <CoreFoundation/CFBundle.h>
 #include <CoreFoundation/CFNumber.h>
 #include <CoreFoundation/CFPreferences.h>
+
+#include <climits>
+#include <cstdlib>
+#include <string>
+#include <string_view>
+#include <vector>
 void disableAppRestore()
 {
   CFPreferencesSetAppValue(
@@ -191,6 +198,116 @@ void ensureDyldPath()
     // dialog
     exit(1);
   }
+}
+
+// A custom application made with tools/create-app-macos.sh is this binary, as the
+// bundle's main executable: macOS only shows privacy prompts (camera, microphone...)
+// for that one. What a launcher script would set comes from the bundle's Info.plist:
+//   LSEnvironment:  environment variables. macOS applies them itself only when the
+//                   app is opened through Finder, the Dock or `open`, and caches them.
+//   ScoreArguments: arguments, put before those given on the command line.
+// $RESOURCES_DIR in either is replaced by the bundle's Contents/Resources.
+namespace custom_app
+{
+static std::string to_string(CFTypeRef value)
+{
+  if(!value || CFGetTypeID(value) != CFStringGetTypeID())
+    return {};
+  auto str = static_cast<CFStringRef>(value);
+  std::string res(
+      CFStringGetMaximumSizeForEncoding(CFStringGetLength(str), kCFStringEncodingUTF8)
+          + 1,
+      '\0');
+  if(!CFStringGetCString(str, res.data(), res.size(), kCFStringEncodingUTF8))
+    return {};
+  res.resize(std::char_traits<char>::length(res.data()));
+  return res;
+}
+
+static std::string expand(std::string str, const std::string& resources)
+{
+  for(std::string_view var : {"${RESOURCES_DIR}", "$RESOURCES_DIR"})
+    for(auto pos = str.find(var); pos != std::string::npos;
+        pos = str.find(var, pos + resources.size()))
+      str.replace(pos, var.size(), resources);
+  return str;
+}
+
+static std::string resources_dir(CFBundleRef bundle)
+{
+  std::string res;
+  if(CFURLRef url = CFBundleCopyResourcesDirectoryURL(bundle))
+  {
+    char path[PATH_MAX]{};
+    if(CFURLGetFileSystemRepresentation(url, true, (UInt8*)path, PATH_MAX))
+      res = path;
+    CFRelease(url);
+  }
+  return res;
+}
+
+// Qt keeps pointers into argv for the lifetime of the application
+static std::vector<std::string> arguments;
+static std::vector<char*> argv_storage;
+
+static void setup(int& argc, char**& argv)
+{
+  CFBundleRef bundle = CFBundleGetMainBundle();
+  if(!bundle)
+    return;
+  const auto resources = resources_dir(bundle);
+
+  // Set even when macOS already did: its values may be stale, and are not expanded
+  auto env = CFBundleGetValueForInfoDictionaryKey(bundle, CFSTR("LSEnvironment"));
+  if(env && CFGetTypeID(env) == CFDictionaryGetTypeID())
+  {
+    CFDictionaryApplyFunction(
+        static_cast<CFDictionaryRef>(env),
+        [](const void* key, const void* value, void* resources) {
+      const auto name = to_string(static_cast<CFTypeRef>(key));
+      if(!name.empty())
+        setenv(
+            name.c_str(),
+            expand(
+                to_string(static_cast<CFTypeRef>(value)),
+                *static_cast<const std::string*>(resources))
+                .c_str(),
+            1);
+    }, (void*)&resources);
+  }
+
+  auto args = CFBundleGetValueForInfoDictionaryKey(bundle, CFSTR("ScoreArguments"));
+  if(!args || CFGetTypeID(args) != CFArrayGetTypeID())
+    return;
+
+  // --debug opens the score editor window alongside the custom UI
+  bool debug = false;
+  std::vector<std::string> user_args;
+  for(int i = 1; i < argc; i++)
+  {
+    if(std::string_view{argv[i]} == "--debug")
+      debug = true;
+    else
+      user_args.emplace_back(argv[i]);
+  }
+
+  arguments.emplace_back(argv[0]);
+  for(CFIndex i = 0, n = CFArrayGetCount(static_cast<CFArrayRef>(args)); i < n; i++)
+  {
+    auto arg = to_string(CFArrayGetValueAtIndex(static_cast<CFArrayRef>(args), i));
+    if(debug && arg == "--ui")
+      arg = "--ui-debug";
+    arguments.push_back(expand(std::move(arg), resources));
+  }
+  arguments.insert(arguments.end(), user_args.begin(), user_args.end());
+
+  for(auto& arg : arguments)
+    argv_storage.push_back(arg.data());
+  argv_storage.push_back(nullptr);
+
+  argc = int(arguments.size());
+  argv = argv_storage.data();
+}
 }
 
 // Defined in mac_main.m
@@ -1063,6 +1180,7 @@ int main(int argc, char** argv)
   struct failsafe failsafe;
 
 #if defined(__APPLE__)
+  custom_app::setup(argc, argv);
   disableAppRestore();
   disableAppNap();
   ensureDyldPath();
