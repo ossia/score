@@ -620,7 +620,8 @@ if(TARGET score_plugin_vst AND TARGET score_test_vst_unflagged_instrument
     SCORE_VST_CHUNK_INSTRUMENT="$<TARGET_FILE:score_test_vst_chunk_instrument>")
 endif()
 
-# A VST 2 plug-in in a document that plays: what its editor changes.
+# A VST 2 plug-in in a document that plays: what its editor changes, and the
+# parameters it adds.
 if(TARGET score_plugin_vst AND TARGET score_test_vst_edited_effect)
   score_add_test(test_integration_vst2_playing
     SOURCES Vst2PlayingTest.cpp

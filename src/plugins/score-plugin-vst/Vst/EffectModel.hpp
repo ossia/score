@@ -13,6 +13,7 @@
 
 #include <atomic>
 #include <memory>
+#include <vector>
 
 #include <score_plugin_vst_export.h>
 
@@ -199,11 +200,22 @@ private:
   int32_t m_effectId{};
   bool m_createControls{};
 
-  //! One flag per parameter the plug-in had when it was opened, raised by
-  //! parameterChangedByPlugin; m_otherParamChanged for an index past them,
-  //! m_paramsChanged for any.
-  std::unique_ptr<std::atomic_bool[]> m_changedParams;
-  int32_t m_changedParamCount{};
+  //! One flag per parameter, raised by parameterChangedByPlugin;
+  //! m_otherParamChanged for an index past them, the last such index in
+  //! m_otherParam, m_paramsChanged for any. The flags grow on the main thread
+  //! with the parameters of the plug-in: each block made is kept, as a call
+  //! from another thread may still be in an older one.
+  struct changed_params
+  {
+    int32_t count{};
+    std::unique_ptr<std::atomic_bool[]> flags;
+  };
+  std::atomic<changed_params*> m_changedParams{};
+  std::vector<std::unique_ptr<changed_params>> m_changedParamBlocks;
+  //! Makes flags for the first `count` parameters; returns whether it made
+  //! more, in which case a flag raised meanwhile may be lost
+  bool trackParameters(int32_t count);
+  std::atomic<int32_t> m_otherParam{-1};
   std::atomic_bool m_otherParamChanged{};
   std::atomic_bool m_paramsChanged{};
   //! A control is being moved to the plug-in's value: not sent back to it

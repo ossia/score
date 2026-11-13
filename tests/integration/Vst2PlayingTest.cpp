@@ -1,5 +1,6 @@
 // A VST 2 plug-in in a document that plays: a parameter its editor changes is
-// not set back on it by the execution.
+// not set back on it by the execution, and a parameter it adds once open gets
+// a control when its editor moves it.
 
 #include <score_test/App.hpp>
 #include <score_test/LivePlugin.hpp>
@@ -26,6 +27,7 @@ enum vendor : int32_t
   move_normalized = 2,
   set_parameter_calls = 3,
   blocks = 4,
+  add_parameter = 5,
 };
 
 intptr_t ask(const vst::AEffectWrapper& fx, vendor v, float opt = 0.f)
@@ -122,3 +124,31 @@ TEST_CASE(
   });
 }
 
+
+TEST_CASE(
+    "VST 2: a parameter the plug-in adds once open gets a control when its editor "
+    "moves it",
+    "[integration][execution][vst]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    const auto opt = edited_effect(ctx);
+    score::test::live::session s{ctx, opt};
+    auto& proc = add_playing(s);
+    auto& fx = *proc.fx;
+    REQUIRE(control_of(proc, 0));
+    REQUIRE_FALSE(control_of(proc, 1));
+    proc.setCreatingControls(true);
+
+    ask(fx, add_parameter, 0.7f);
+    s.plays_on(200);
+    auto* added = control_of(proc, 1);
+    REQUIRE(added);
+    CHECK(ossia::convert<float>(added->value()) == Catch::Approx(0.7f));
+
+    // From now on it has a flag of its own
+    ask(fx, add_parameter, 0.2f);
+    s.plays_on(200);
+    CHECK(ossia::convert<float>(added->value()) == Catch::Approx(0.2f));
+    CHECK(fx.getParameter(1) == Catch::Approx(0.2f));
+  });
+}

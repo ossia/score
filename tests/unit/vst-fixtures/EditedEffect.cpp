@@ -10,7 +10,10 @@
 // - index 2: the editor moves it and calls audioMasterAutomate normalized, as
 //   a plug-in that follows the specification;
 // - index 3: gives the number of setParameter calls so far;
-// - index 4: gives the number of blocks processed so far.
+// - index 4: gives the number of blocks processed so far;
+// - index 5: the plug-in gets a second parameter, "Wet Level", and its editor
+//   moves it to opt and calls audioMasterAutomate, as a plug-in whose
+//   parameters depend on its state.
 
 #include <Vst/vst-compat.hpp>
 
@@ -25,6 +28,7 @@ struct effect
   AEffect effect{};
   audioMasterCallback master{};
   std::atomic<float> level{0.8f};
+  std::atomic<float> wet{0.f};
   std::atomic<intptr_t> set_calls{};
   std::atomic<intptr_t> blocks{};
 };
@@ -61,6 +65,11 @@ intptr_t dispatcher(AEffect* e, int32_t op, int32_t idx, intptr_t, void* ptr, fl
           return self(e).set_calls;
         case 4:
           return self(e).blocks;
+        case 5:
+          self(e).wet = opt;
+          e->numParams = 2;
+          self(e).master(e, audioMasterAutomate, 1, 0, nullptr, opt);
+          return 1;
       }
       return 0;
     default:
@@ -74,15 +83,15 @@ void process(AEffect* e, float** in, float** out, int32_t n)
   std::copy_n(in[0], n, out[0]);
 }
 
-void set_parameter(AEffect* e, int32_t, float v)
+void set_parameter(AEffect* e, int32_t i, float v)
 {
   self(e).set_calls++;
-  self(e).level = std::clamp(v, 0.f, 1.f);
+  (i == 1 ? self(e).wet : self(e).level) = std::clamp(v, 0.f, 1.f);
 }
 
-float get_parameter(AEffect* e, int32_t)
+float get_parameter(AEffect* e, int32_t i)
 {
-  return self(e).level;
+  return i == 1 ? self(e).wet : self(e).level;
 }
 }
 
