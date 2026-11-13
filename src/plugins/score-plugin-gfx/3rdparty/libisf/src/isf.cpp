@@ -13,12 +13,14 @@
 #include <fmt/format.h>
 #include <algorithm>
 #include <array>
+#include <bit>
 #include <cctype>
 #include <charconv>
 #include <cmath>
 #include <limits>
 #include <iostream>
 #include <map>
+#include <optional>
 #include <set>
 #include <sstream>
 #include <functional>
@@ -1451,6 +1453,90 @@ static void validate_attribute_types(const descriptor& d)
   }
 }
 
+// The component kind ('f', 'i' or 'u') and count of an attribute type that can
+// take a DEFAULT, or {0, 0}.
+static std::pair<char, int> attribute_default_shape(std::string_view t) noexcept
+{
+  if(t == "float")
+    return {'f', 1};
+  if(t == "int")
+    return {'i', 1};
+  if(t == "uint")
+    return {'u', 1};
+  if(t.size() == 4 && t.starts_with("vec") && t[3] >= '2' && t[3] <= '4')
+    return {'f', t[3] - '0'};
+  if(t.size() == 5 && (t[0] == 'i' || t[0] == 'u') && t.substr(1, 3) == "vec"
+     && t[4] >= '2' && t[4] <= '4')
+    return {t[0], t[4] - '0'};
+  return {0, 0};
+}
+
+// An attribute's DEFAULT: a number, or one number per component, stored as
+// the declared type's words. A read_write attribute the upstream lacks starts
+// from it and then keeps what the shader writes, as a missing one starts from
+// zeros. A number the type cannot hold exactly (a fraction
+// or an out-of-range value for int and uint, a value past float's range) is
+// refused rather than rounded.
+static std::vector<uint32_t> parse_attribute_default(
+    const geometry_input::attribute_request& ar, const sajson::value& v)
+{
+  const auto fail = [&](const std::string& why) {
+    return invalid_file{"geometry attribute \"" + ar.name + "\" DEFAULT: " + why};
+  };
+  const auto [kind, components] = attribute_default_shape(ar.type);
+  if(components == 0)
+    throw fail(
+        "only float, int and uint scalars and vectors take a DEFAULT, not \"" + ar.type
+        + "\".");
+  if((ar.access != "read_only" && ar.access != "read_write") || ar.required)
+    throw fail(
+        "a DEFAULT is what an optional attribute the shader reads holds when the "
+        "upstream lacks it: declare ACCESS read_only, read_write or gather, and "
+        "REQUIRED false.");
+
+  std::vector<double> values;
+  const auto number = [&](const sajson::value& x) {
+    if(x.get_type() != sajson::TYPE_INTEGER && x.get_type() != sajson::TYPE_DOUBLE)
+      throw fail("expected a number or an array of numbers.");
+    values.push_back(x.get_number_value());
+  };
+  if(v.get_type() == sajson::TYPE_ARRAY)
+    for(std::size_t i = 0; i < v.get_length(); i++)
+      number(v.get_array_element(i));
+  else
+    number(v);
+  if(values.size() != 1 && values.size() != std::size_t(components))
+    throw fail(
+        "expected one number or " + std::to_string(components) + ", got "
+        + std::to_string(values.size()) + ".");
+
+  std::vector<uint32_t> words(components);
+  for(int c = 0; c < components; c++)
+  {
+    const double x = values[values.size() == 1 ? 0 : c];
+    switch(kind)
+    {
+      case 'f':
+        if(!std::isfinite(x) || std::abs(x) > std::numeric_limits<float>::max())
+          throw fail(fmt::format("{} is not a float.", x));
+        words[c] = std::bit_cast<uint32_t>(float(x));
+        break;
+      case 'i':
+        if(x != std::trunc(x) || x < std::numeric_limits<int32_t>::min()
+           || x > std::numeric_limits<int32_t>::max())
+          throw fail(fmt::format("{} is not an int.", x));
+        words[c] = std::bit_cast<uint32_t>(int32_t(x));
+        break;
+      default:
+        if(x != std::trunc(x) || x < 0 || x > std::numeric_limits<uint32_t>::max())
+          throw fail(fmt::format("{} is not a uint.", x));
+        words[c] = uint32_t(x);
+        break;
+    }
+  }
+  return words;
+}
+
 static void parse_input(geometry_input& inp, const sajson::value& v)
 {
   std::size_t N = v.get_length();
@@ -1473,6 +1559,7 @@ static void parse_input(geometry_input& inp, const sajson::value& v)
             continue;
 
           geometry_input::attribute_request ar;
+          std::optional<sajson::value> default_value;
 
           for(std::size_t f = 0; f < attr_obj.get_length(); f++)
           {
@@ -1499,6 +1586,10 @@ static void parse_input(geometry_input& inp, const sajson::value& v)
             else if(fkey == "COPY_FROM")
             {
               ar.forward = parse_copy_from(fval);
+            }
+            else if(fkey == "DEFAULT")
+            {
+              default_value.emplace(fval);
             }
           }
 
@@ -1541,6 +1632,9 @@ static void parse_input(geometry_input& inp, const sajson::value& v)
           if(ar.semantic.empty())
             ar.semantic = ar.name;
 
+          if(default_value)
+            ar.default_value = parse_attribute_default(ar, *default_value);
+
           inp.attributes.push_back(std::move(ar));
         }
       }
@@ -1568,6 +1662,13 @@ static void parse_input(geometry_input& inp, const sajson::value& v)
     else if(k == "PERSISTENT")
     {
       inp.persistent = v.get_object_value(i).get_type() == sajson::TYPE_TRUE;
+    }
+    else if(k == "RUNTIME")
+    {
+      const auto val = v.get_object_value(i);
+      if(val.get_type() != sajson::TYPE_TRUE && val.get_type() != sajson::TYPE_FALSE)
+        throw invalid_file{"geometry RUNTIME is true or false."};
+      inp.runtime = val.get_type() == sajson::TYPE_TRUE;
     }
     else if(k == "FORMAT_ID")
     {
@@ -1698,6 +1799,11 @@ static void parse_input(geometry_input& inp, const sajson::value& v)
         inp.indirect = geometry_input::indirect_request{.count = "1"};
     }
   }
+
+  if(inp.runtime && !inp.reads_upstream())
+    throw invalid_file{
+        "geometry RUNTIME describes the upstream geometry, and this one reads "
+        "none: it needs a read_only, read_write or gather attribute, or COLUMNS."};
 }
 
 // Known GLSL image format qualifiers. Used for a parse-time sanity check —
@@ -2988,8 +3094,8 @@ static const ossia::string_map<root_fun>& root_parse{[] {
         std::string{section} + "[" + std::to_string(index) + "]"
         + (name.empty() ? std::string{} : " \"" + name + "\"") + ": unknown TYPE \""
         + type
-        + "\". Known types: float, long, bool, event, color, point2D, point3D, image, "
-          "cubemap, audio, audioFFT, audioHistogram, storage, uniform, texture, "
+        + "\". Known types: float, long, bool, event, color, point2D, point3D, point4D, "
+          "image, cubemap, audio, audioFFT, audioHistogram, storage, uniform, texture, "
           "geometry, image_cube (RESOURCES)."};
   };
 
@@ -3003,6 +3109,7 @@ static const ossia::string_map<root_fun>& root_parse{[] {
     i.insert({"cubemap", [](const auto& s) { return parse<cubemap_input>(s); }});
     i.insert({"point2d", [](const auto& s) { return parse<point2d_input>(s); }});
     i.insert({"point3d", [](const auto& s) { return parse<point3d_input>(s); }});
+    i.insert({"point4d", [](const auto& s) { return parse<point4d_input>(s); }});
     i.insert({"color", [](const auto& s) { return parse<color_input>(s); }});
     i.insert({"audio", [](const auto& s) { return parse<audio_input>(s); }});
     i.insert({"audiofft", [](const auto& s) { return parse<audioFFT_input>(s); }});
@@ -3471,229 +3578,265 @@ static const ossia::string_map<root_fun>& root_parse{[] {
 
   p.insert({"PASSES", [](descriptor& d, const sajson::value& v) {
     using namespace std::literals;
-    if(v.get_type() == sajson::TYPE_ARRAY)
-    {
-      std::size_t n = v.get_length();
-      for(std::size_t i = 0; i < n; i++)
+    // A REPEAT group's passes are read in place, as the leaves they are;
+    // `group` is the innermost group being read, -1 at the top level.
+    auto read_passes = [&](auto& self, const sajson::value& list, int group) -> void {
+      if(list.get_type() == sajson::TYPE_ARRAY)
       {
-        auto obj = v.get_array_element(i);
-        if(obj.get_type() == sajson::TYPE_OBJECT)
+        std::size_t n = list.get_length();
+        for(std::size_t i = 0; i < n; i++)
         {
-          // A pass with LOCAL_SIZE is a CSF dispatch pass. Every pass is also
-          // read as one, in authored order, into csf_pass_candidates: in a
-          // COMPUTE_SHADER (whose MODE may come after PASSES) parse_csf takes
-          // that list, so a pass without LOCAL_SIZE is a compute pass there
-          // too, with the default local size.
-          const auto ls_k = obj.find_object_key_insensitive(sajson::literal("LOCAL_SIZE"));
-          const bool has_local_size = ls_k != obj.get_length();
+          auto obj = list.get_array_element(i);
+          if(obj.get_type() == sajson::TYPE_OBJECT)
           {
-            descriptor::dispatch_info dispatch;
-
-            // Parse LOCAL_SIZE
-            if(has_local_size)
+            if(const auto repeat_k = obj.find_object_key_insensitive(sajson::literal("REPEAT"));
+               repeat_k != obj.get_length())
             {
-              auto ls_val = obj.get_object_value(ls_k);
-              if(ls_val.get_type() == sajson::TYPE_ARRAY && ls_val.get_length() >= 3)
-              {
-                for(int idx = 0; idx < 3; idx++)
-                {
-                  auto elem = ls_val.get_array_element(idx);
-                  if(elem.get_type() == sajson::TYPE_INTEGER)
-                    dispatch.local_size[idx] = elem.get_integer_value();
-                }
-              }
+              const auto count = obj.get_object_value(repeat_k);
+              const auto passes_k = obj.find_object_key_insensitive(sajson::literal("PASSES"));
+              if(passes_k == obj.get_length()
+                 || obj.get_object_value(passes_k).get_type() != sajson::TYPE_ARRAY
+                 || obj.get_object_value(passes_k).get_length() == 0)
+                throw invalid_file{"A REPEAT group needs a non-empty PASSES array."};
+              descriptor::pass_repeat r;
+              r.parent = group;
+              r.first = d.csf_pass_candidates.size();
+              if(count.get_type() == sajson::TYPE_INTEGER && count.get_integer_value() >= 0)
+                r.count = std::to_string(count.get_integer_value());
+              else if(count.get_type() == sajson::TYPE_STRING && !count.as_string().empty())
+                r.count = count.as_string();
+              else
+                throw invalid_file{
+                    "REPEAT is a count: an integer of at least 0 or an expression."};
+              const int index = d.csf_repeats.size();
+              d.csf_repeats.push_back(std::move(r));
+              self(self, obj.get_object_value(passes_k), index);
+              d.csf_repeats[index].end = d.csf_pass_candidates.size();
+              if(d.csf_repeats[index].end == d.csf_repeats[index].first)
+                throw invalid_file{"A REPEAT group needs a non-empty PASSES array."};
+              continue;
             }
+            if(group >= 0 && obj.find_object_key_insensitive(sajson::literal("LOCAL_SIZE"))
+                                 == obj.get_length())
+              throw invalid_file{"The passes of a REPEAT group are compute passes: give them a LOCAL_SIZE."};
 
-            // Parse EXECUTION_MODEL
-            if(auto em_k
-               = obj.find_object_key_insensitive(sajson::literal("EXECUTION_MODEL"));
-               em_k != obj.get_length())
+            // A pass with LOCAL_SIZE is a CSF dispatch pass. Every pass is also
+            // read as one, in authored order, into csf_pass_candidates: in a
+            // COMPUTE_SHADER (whose MODE may come after PASSES) parse_csf takes
+            // that list, so a pass without LOCAL_SIZE is a compute pass there
+            // too, with the default local size.
+            const auto ls_k = obj.find_object_key_insensitive(sajson::literal("LOCAL_SIZE"));
+            const bool has_local_size = ls_k != obj.get_length();
             {
-              auto em_val = obj.get_object_value(em_k);
-              if(em_val.get_type() == sajson::TYPE_OBJECT)
+              descriptor::dispatch_info dispatch;
+
+              // Parse LOCAL_SIZE
+              if(has_local_size)
               {
-                // Parse TYPE
-                if(auto type_k
-                   = em_val.find_object_key_insensitive(sajson::literal("TYPE"));
-                   type_k != em_val.get_length())
+                auto ls_val = obj.get_object_value(ls_k);
+                if(ls_val.get_type() == sajson::TYPE_ARRAY && ls_val.get_length() >= 3)
                 {
-                  auto type_val = em_val.get_object_value(type_k);
-                  if(type_val.get_type() == sajson::TYPE_STRING)
-                    dispatch.execution_type = upper_value(type_val);
-                }
-
-                // Parse TARGET
-                if(auto target_k
-                   = em_val.find_object_key_insensitive(sajson::literal("TARGET"));
-                   target_k != em_val.get_length())
-                {
-                  auto target_val = em_val.get_object_value(target_k);
-                  if(target_val.get_type() == sajson::TYPE_STRING)
-                    dispatch.target_resource = target_val.as_string();
-                }
-
-                // Parse STRIDE (legacy, sets X only) and STRIDE_X/Y/Z (per-axis, supports formulas)
-                if(auto stride_k
-                   = em_val.find_object_key_insensitive(sajson::literal("STRIDE"));
-                   stride_k != em_val.get_length())
-                {
-                  auto stride_val = em_val.get_object_value(stride_k);
-                  if(stride_val.get_type() == sajson::TYPE_INTEGER)
-                    dispatch.stride[0] = std::to_string(stride_val.get_integer_value());
-                  else if(stride_val.get_type() == sajson::TYPE_STRING)
-                    dispatch.stride[0] = stride_val.as_string();
-                }
-                {
-                  auto parse_stride_axis = [&](const sajson::string& key, int axis) {
-                    if(auto sk = em_val.find_object_key_insensitive(key);
-                       sk != em_val.get_length())
-                    {
-                      auto sv = em_val.get_object_value(sk);
-                      if(sv.get_type() == sajson::TYPE_INTEGER)
-                        dispatch.stride[axis] = std::to_string(sv.get_integer_value());
-                      else if(sv.get_type() == sajson::TYPE_STRING)
-                        dispatch.stride[axis] = sv.as_string();
-                    }
-                  };
-                  parse_stride_axis(sajson::literal("STRIDE_X"), 0);
-                  parse_stride_axis(sajson::literal("STRIDE_Y"), 1);
-                  parse_stride_axis(sajson::literal("STRIDE_Z"), 2);
-                }
-
-                // Parse WORKGROUPS
-                if(auto wg_k
-                   = em_val.find_object_key_insensitive(sajson::literal("WORKGROUPS"));
-                   wg_k != em_val.get_length())
-                {
-                  auto wg_val = em_val.get_object_value(wg_k);
-                  if(wg_val.get_type() == sajson::TYPE_ARRAY && wg_val.get_length() >= 3)
+                  for(int idx = 0; idx < 3; idx++)
                   {
-                    for(int idx = 0; idx < 3; idx++)
-                    {
-                      auto elem = wg_val.get_array_element(idx);
-                      if(elem.get_type() == sajson::TYPE_INTEGER)
-                        dispatch.workgroups[idx] = elem.get_integer_value();
-                    }
+                    auto elem = ls_val.get_array_element(idx);
+                    if(elem.get_type() == sajson::TYPE_INTEGER)
+                      dispatch.local_size[idx] = elem.get_integer_value();
                   }
                 }
-                if(auto off_k
-                   = em_val.find_object_key_insensitive(sajson::literal("OFFSET"));
-                   off_k != em_val.get_length())
+              }
+
+              // Parse EXECUTION_MODEL
+              if(auto em_k
+                 = obj.find_object_key_insensitive(sajson::literal("EXECUTION_MODEL"));
+                 em_k != obj.get_length())
+              {
+                auto em_val = obj.get_object_value(em_k);
+                if(em_val.get_type() == sajson::TYPE_OBJECT)
                 {
-                  auto off_val = em_val.get_object_value(off_k);
-                  if(off_val.get_type() == sajson::TYPE_INTEGER)
-                    dispatch.indirect_byte_offset = off_val.get_integer_value();
+                  // Parse TYPE
+                  if(auto type_k
+                     = em_val.find_object_key_insensitive(sajson::literal("TYPE"));
+                     type_k != em_val.get_length())
+                  {
+                    auto type_val = em_val.get_object_value(type_k);
+                    if(type_val.get_type() == sajson::TYPE_STRING)
+                      dispatch.execution_type = upper_value(type_val);
+                  }
+
+                  // Parse TARGET
+                  if(auto target_k
+                     = em_val.find_object_key_insensitive(sajson::literal("TARGET"));
+                     target_k != em_val.get_length())
+                  {
+                    auto target_val = em_val.get_object_value(target_k);
+                    if(target_val.get_type() == sajson::TYPE_STRING)
+                      dispatch.target_resource = target_val.as_string();
+                  }
+
+                  // Parse STRIDE (legacy, sets X only) and STRIDE_X/Y/Z (per-axis, supports formulas)
+                  if(auto stride_k
+                     = em_val.find_object_key_insensitive(sajson::literal("STRIDE"));
+                     stride_k != em_val.get_length())
+                  {
+                    auto stride_val = em_val.get_object_value(stride_k);
+                    if(stride_val.get_type() == sajson::TYPE_INTEGER)
+                      dispatch.stride[0] = std::to_string(stride_val.get_integer_value());
+                    else if(stride_val.get_type() == sajson::TYPE_STRING)
+                      dispatch.stride[0] = stride_val.as_string();
+                  }
+                  {
+                    auto parse_stride_axis = [&](const sajson::string& key, int axis) {
+                      if(auto sk = em_val.find_object_key_insensitive(key);
+                         sk != em_val.get_length())
+                      {
+                        auto sv = em_val.get_object_value(sk);
+                        if(sv.get_type() == sajson::TYPE_INTEGER)
+                          dispatch.stride[axis] = std::to_string(sv.get_integer_value());
+                        else if(sv.get_type() == sajson::TYPE_STRING)
+                          dispatch.stride[axis] = sv.as_string();
+                      }
+                    };
+                    parse_stride_axis(sajson::literal("STRIDE_X"), 0);
+                    parse_stride_axis(sajson::literal("STRIDE_Y"), 1);
+                    parse_stride_axis(sajson::literal("STRIDE_Z"), 2);
+                  }
+
+                  // Parse WORKGROUPS
+                  if(auto wg_k
+                     = em_val.find_object_key_insensitive(sajson::literal("WORKGROUPS"));
+                     wg_k != em_val.get_length())
+                  {
+                    auto wg_val = em_val.get_object_value(wg_k);
+                    if(wg_val.get_type() == sajson::TYPE_ARRAY && wg_val.get_length() >= 3)
+                    {
+                      for(int idx = 0; idx < 3; idx++)
+                      {
+                        auto elem = wg_val.get_array_element(idx);
+                        if(elem.get_type() == sajson::TYPE_INTEGER)
+                          dispatch.workgroups[idx] = elem.get_integer_value();
+                      }
+                    }
+                  }
+                  if(auto off_k
+                     = em_val.find_object_key_insensitive(sajson::literal("OFFSET"));
+                     off_k != em_val.get_length())
+                  {
+                    auto off_val = em_val.get_object_value(off_k);
+                    if(off_val.get_type() == sajson::TYPE_INTEGER)
+                      dispatch.indirect_byte_offset = off_val.get_integer_value();
+                  }
                 }
               }
-            }
 
-            d.csf_pass_candidates.push_back(dispatch);
-            if(has_local_size)
-            {
-              d.mode = descriptor::CSF;
-              d.csf_passes.push_back(std::move(dispatch));
-            }
-          }
-          if(!has_local_size)
-          {
-            // This is an ISF pass
-            pass p;
-            if(auto target_k
-               = obj.find_object_key_insensitive(sajson::literal("TARGET"));
-               target_k != obj.get_length())
-            {
-              if(get_str(obj.get_object_value(target_k), p.target)
-                 && !p.target.empty())
+              d.csf_pass_candidates.push_back(dispatch);
+              if(has_local_size)
               {
-                d.pass_targets.push_back(p.target);
+                d.mode = descriptor::CSF;
+                d.csf_passes.push_back(std::move(dispatch));
               }
             }
-
-            if(auto persistent_k
-               = obj.find_object_key_insensitive(sajson::literal("PERSISTENT"));
-               persistent_k != obj.get_length())
+            if(!has_local_size)
             {
-              p.persistent
-                  = obj.get_object_value(persistent_k).get_type() == sajson::TYPE_TRUE;
+              // This is an ISF pass
+              pass p;
+              if(auto target_k
+                 = obj.find_object_key_insensitive(sajson::literal("TARGET"));
+                 target_k != obj.get_length())
+              {
+                if(get_str(obj.get_object_value(target_k), p.target)
+                   && !p.target.empty())
+                {
+                  d.pass_targets.push_back(p.target);
+                }
+              }
+
+              if(auto persistent_k
+                 = obj.find_object_key_insensitive(sajson::literal("PERSISTENT"));
+                 persistent_k != obj.get_length())
+              {
+                p.persistent
+                    = obj.get_object_value(persistent_k).get_type() == sajson::TYPE_TRUE;
+              }
+
+              if(auto float_k = obj.find_object_key_insensitive(sajson::literal("FLOAT"));
+                 float_k != obj.get_length())
+              {
+                p.float_storage
+                    = obj.get_object_value(float_k).get_type() == sajson::TYPE_TRUE;
+              }
+
+              if(auto float_k = obj.find_object_key_insensitive(sajson::literal("FILTER"));
+                 float_k != obj.get_length())
+              {
+                const auto& val = obj.get_object_value(float_k);
+                p.nearest_filter = val.get_type() == sajson::TYPE_STRING
+                                   && boost::algorithm::iequals(val.as_string(), "nearest");
+              }
+
+              if(auto width_k = obj.find_object_key_insensitive(sajson::literal("WIDTH"));
+                 width_k != obj.get_length())
+                get_size_expression(obj.get_object_value(width_k), p.width_expression);
+
+              if(auto height_k
+                 = obj.find_object_key_insensitive(sajson::literal("HEIGHT"));
+                 height_k != obj.get_length())
+                get_size_expression(obj.get_object_value(height_k), p.height_expression);
+
+              // LAYER: render to a specific layer of a texture-array output.
+              if(auto layer_k
+                 = obj.find_object_key_insensitive(sajson::literal("LAYER"));
+                 layer_k != obj.get_length())
+              {
+                int lyr{};
+                if(get_int(obj.get_object_value(layer_k), lyr))
+                  p.layer = lyr;
+              }
+
+              // Z: render to a specific Z-slice of a 3D target. Stored as an
+              // expression so it can reference $USER or input sizes; resolved
+              // at render time.
+              if(auto z_k = obj.find_object_key_insensitive(sajson::literal("Z"));
+                 z_k != obj.get_length())
+              {
+                auto t = obj.get_object_value(z_k).get_type();
+                if(t == sajson::TYPE_STRING)
+                  p.z_expression = obj.get_object_value(z_k).as_string();
+                else if(t == sajson::TYPE_INTEGER)
+                  p.z_expression
+                      = std::to_string(obj.get_object_value(z_k).get_integer_value());
+                else if(t == sajson::TYPE_DOUBLE)
+                  p.z_expression
+                      = std::to_string((int)obj.get_object_value(z_k).get_double_value());
+              }
+
+              // FORMAT: override the intermediate-render-target format for
+              // this pass only. Useful for separable-filter chains where one
+              // intermediate wants extra precision (rgba16f) but the final
+              // output is RGBA8.
+              if(auto fmt_k
+                 = obj.find_object_key_insensitive(sajson::literal("FORMAT"));
+                 fmt_k != obj.get_length())
+              {
+                auto v2 = obj.get_object_value(fmt_k);
+                if(v2.get_type() == sajson::TYPE_STRING)
+                  p.format = lower_value(v2);
+              }
+
+              // PIPELINE_STATE: per-pass pipeline state overrides.
+              if(auto ps_k
+                 = obj.find_object_key_insensitive(sajson::literal("PIPELINE_STATE"));
+                 ps_k != obj.get_length())
+              {
+                parse_pipeline_state(obj.get_object_value(ps_k), p.override_state);
+              }
+
+              d.passes.push_back(std::move(p));
             }
-
-            if(auto float_k = obj.find_object_key_insensitive(sajson::literal("FLOAT"));
-               float_k != obj.get_length())
-            {
-              p.float_storage
-                  = obj.get_object_value(float_k).get_type() == sajson::TYPE_TRUE;
-            }
-
-            if(auto float_k = obj.find_object_key_insensitive(sajson::literal("FILTER"));
-               float_k != obj.get_length())
-            {
-              const auto& val = obj.get_object_value(float_k);
-              p.nearest_filter = val.get_type() == sajson::TYPE_STRING
-                                 && boost::algorithm::iequals(val.as_string(), "nearest");
-            }
-
-            if(auto width_k = obj.find_object_key_insensitive(sajson::literal("WIDTH"));
-               width_k != obj.get_length())
-              get_size_expression(obj.get_object_value(width_k), p.width_expression);
-
-            if(auto height_k
-               = obj.find_object_key_insensitive(sajson::literal("HEIGHT"));
-               height_k != obj.get_length())
-              get_size_expression(obj.get_object_value(height_k), p.height_expression);
-
-            // LAYER: render to a specific layer of a texture-array output.
-            if(auto layer_k
-               = obj.find_object_key_insensitive(sajson::literal("LAYER"));
-               layer_k != obj.get_length())
-            {
-              int lyr{};
-              if(get_int(obj.get_object_value(layer_k), lyr))
-                p.layer = lyr;
-            }
-
-            // Z: render to a specific Z-slice of a 3D target. Stored as an
-            // expression so it can reference $USER or input sizes; resolved
-            // at render time.
-            if(auto z_k = obj.find_object_key_insensitive(sajson::literal("Z"));
-               z_k != obj.get_length())
-            {
-              auto t = obj.get_object_value(z_k).get_type();
-              if(t == sajson::TYPE_STRING)
-                p.z_expression = obj.get_object_value(z_k).as_string();
-              else if(t == sajson::TYPE_INTEGER)
-                p.z_expression
-                    = std::to_string(obj.get_object_value(z_k).get_integer_value());
-              else if(t == sajson::TYPE_DOUBLE)
-                p.z_expression
-                    = std::to_string((int)obj.get_object_value(z_k).get_double_value());
-            }
-
-            // FORMAT: override the intermediate-render-target format for
-            // this pass only. Useful for separable-filter chains where one
-            // intermediate wants extra precision (rgba16f) but the final
-            // output is RGBA8.
-            if(auto fmt_k
-               = obj.find_object_key_insensitive(sajson::literal("FORMAT"));
-               fmt_k != obj.get_length())
-            {
-              auto v2 = obj.get_object_value(fmt_k);
-              if(v2.get_type() == sajson::TYPE_STRING)
-                p.format = lower_value(v2);
-            }
-
-            // PIPELINE_STATE: per-pass pipeline state overrides.
-            if(auto ps_k
-               = obj.find_object_key_insensitive(sajson::literal("PIPELINE_STATE"));
-               ps_k != obj.get_length())
-            {
-              parse_pipeline_state(obj.get_object_value(ps_k), p.override_state);
-            }
-
-            d.passes.push_back(std::move(p));
           }
         }
       }
-    }
+    };
+    read_passes(read_passes, v, -1);
   }});
 
   p.insert({"OUTPUTS", [](descriptor& d, const sajson::value& v) {
@@ -4086,6 +4229,7 @@ struct create_val_visitor_450
   return_type operator()(const bool_input&) { return {"bool", false}; }
   return_type operator()(const point2d_input&) { return {"vec2", false}; }
   return_type operator()(const point3d_input&) { return {"vec3", false}; }
+  return_type operator()(const point4d_input&) { return {"vec4", false}; }
   return_type operator()(const color_input&) { return {"vec4", false}; }
   return_type operator()(const image_input& i)
   {
@@ -4420,6 +4564,7 @@ static void check_input_names(const descriptor& d)
   // Built-in uniforms and macros of the generated preludes.
   static const ossia::flat_set<std::string_view> engine_names{
       "TIME", "TIMEDELTA", "PROGRESS", "SAMPLERATE", "PASSINDEX", "FRAMEINDEX",
+      "ITERATIONINDEX",
       "RENDERSIZE", "DATE", "MSAA_SAMPLES", "NUM_VIEWS", "VIEW_INDEX", "LAYER_INDEX",
       "MODEL_MATRIX", "VIEW_MATRIX", "PROJECTION_MATRIX", "VIEWPROJECTION_MATRIX",
       "CAMERA_POSITION", "PRIMITIVE_ID", "BARYCENTRIC", "TEX_DIMENSIONS",
@@ -5782,12 +5927,25 @@ void parser::parse_raw_raster_pipeline()
   // A vertex stage reads interleaved attributes in place through its vertex
   // inputs: ATTRIBUTES already do what COLUMNS do in a compute shader.
   for(const auto& inp : m_desc.inputs)
-    if(auto* geo = ossia::get_if<geometry_input>(&inp.data); geo && !geo->columns.empty())
+  {
+    auto* geo = ossia::get_if<geometry_input>(&inp.data);
+    if(!geo)
+      continue;
+    if(!geo->columns.empty())
       throw invalid_file{
           "geometry \"" + inp.name
           + "\": COLUMNS are read by compute shaders. A render pipeline reads "
             "the same attributes in place as vertex inputs: declare them in "
             "ATTRIBUTES."};
+    for(const auto& attr : geo->attributes)
+      if(!attr.default_value.empty())
+        throw invalid_file{
+            "geometry \"" + inp.name + "\" attribute \"" + attr.name
+            + "\": DEFAULT is only supported in compute shaders."};
+    if(geo->runtime)
+      throw invalid_file{
+          "geometry \"" + inp.name + "\": RUNTIME is only supported in compute shaders."};
+  }
 
   std::string& fragWithoutISF = m_sourceFragment;
   fragWithoutISF.erase(0, end + 2);
@@ -7594,6 +7752,27 @@ std::string parser::write_isf() const
           oss << "\n";
         }
 
+        void operator()(const point4d_input& p)
+        {
+          oss << "      \"TYPE\": \"point4D\"";
+          if(p.min)
+          {
+            oss << ",\n      \"MIN\": [" << (*p.min)[0] << ", " << (*p.min)[1] << ", "
+                << (*p.min)[2] << ", " << (*p.min)[3] << "]";
+          }
+          if(p.max)
+          {
+            oss << ",\n      \"MAX\": [" << (*p.max)[0] << ", " << (*p.max)[1] << ", "
+                << (*p.max)[2] << ", " << (*p.max)[3] << "]";
+          }
+          if(p.def)
+          {
+            oss << ",\n      \"DEFAULT\": [" << (*p.def)[0] << ", " << (*p.def)[1]
+                << ", " << (*p.def)[2] << ", " << (*p.def)[3] << "]";
+          }
+          oss << "\n";
+        }
+
         void operator()(const color_input& c)
         {
           oss << "      \"TYPE\": \"color\"";
@@ -7768,6 +7947,8 @@ std::string parser::write_isf() const
             oss << ",\n      \"TOPOLOGY\": \"" << escape_json(geo.topology) << "\"";
           if(geo.persistent)
             oss << ",\n      \"PERSISTENT\": true";
+          if(geo.runtime)
+            oss << ",\n      \"RUNTIME\": true";
           if(!geo.attributes.empty())
           {
             oss << ",\n      \"ATTRIBUTES\": [\n";
@@ -7785,6 +7966,24 @@ std::string parser::write_isf() const
                 oss << ", \"RATE\": \"" << escape_json(attr.rate) << "\"";
               if(!attr.required)
                 oss << ", \"REQUIRED\": false";
+              if(!attr.default_value.empty())
+              {
+                const char kind = attribute_default_shape(attr.type).first;
+                oss << ", \"DEFAULT\": [";
+                for(std::size_t c = 0; c < attr.default_value.size(); c++)
+                {
+                  const uint32_t w = attr.default_value[c];
+                  if(c > 0)
+                    oss << ", ";
+                  if(kind == 'f')
+                    oss << fmt::format("{}", std::bit_cast<float>(w));
+                  else if(kind == 'i')
+                    oss << std::bit_cast<int32_t>(w);
+                  else
+                    oss << w;
+                }
+                oss << "]";
+              }
               oss << "}";
               if(i < geo.attributes.size() - 1)
                 oss << ",";
@@ -8448,6 +8647,172 @@ static uint32_t isf_column_row_vector(uint32_t row_words) noexcept
   return row_words % 4 == 0 ? 4 : row_words % 2 == 0 ? 2 : 1;
 }
 
+// RUNTIME accessors of geometry input `geo`, bound at `binding` (its header,
+// presence flags and draw records) and `binding + 1` (the upstream's index
+// buffer). The header words, filled by RenderedCSFNode, are:
+//   0 stored vertex count       1 topology (ossia::geometry order)
+//   2 index width in bytes, 0 when not indexed
+//   3 byte offset of the indices in the index buffer
+//   4 draw records held         5 live draw count, min-ed with word 4
+//   6 declared attribute count  7 unused
+// then one presence word per declared attribute, then the draw records, five
+// words each: { count, instances, first, baseVertex or firstInstance,
+// firstInstance or unused }, the indexed or the non-indexed layout of an
+// indirect draw.
+//
+// Every index or count is what the draws reach, in draw order, so several
+// draws reaching one vertex or instance enumerate it once per draw. A vertex
+// enumeration of an indexed geometry is its stored vertices instead. An index
+// past what a draw or the index buffer holds reads 0xffffffff, never another
+// element; strips and fans touching a primitive-restart index have no
+// triangles there.
+static std::string runtime_accessors(
+    const std::string& geo, const geometry_input& g, int binding)
+{
+  std::string s = R"_GLSL_(
+// RUNTIME geometry "@G@": how its upstream is drawn.
+layout(binding = @B0@, std430) readonly buffer @G@_isf_rt_buf { uint @G@_isf_rt[]; };
+layout(binding = @B1@, std430) readonly buffer @G@_isf_rt_index_buf { uint @G@_isf_rt_index[]; };
+#ifndef ISF_VERTEX_COUNT
+#define ISF_VERTEX_COUNT(g) g ## _isf_rt_vertex_count()
+#define ISF_VERTEX_INDEX(g, i) g ## _isf_rt_vertex_index(uint(i))
+#define ISF_ELEMENT_COUNT(g) g ## _isf_rt_element_count()
+#define ISF_INDEX(g, e) g ## _isf_rt_index_of(uint(e))
+#define ISF_INSTANCE_COUNT(g) g ## _isf_rt_instance_count()
+#define ISF_INSTANCE_INDEX(g, i) g ## _isf_rt_instance_index(uint(i))
+#define ISF_TRIANGLE_COUNT(g) g ## _isf_rt_triangle_count()
+#define ISF_TRIANGLE_INDEX(g, t, c) g ## _isf_rt_triangle_index(uint(t), uint(c))
+#define ISF_HAS_ATTRIBUTE(g, a) g ## _isf_rt_has_ ## a()
+#endif
+uint @G@_isf_rt_word(uint i) { return i < uint(@G@_isf_rt.length()) ? @G@_isf_rt[i] : 0u; }
+uint @G@_isf_rt_draws() { return min(@G@_isf_rt_word(4u), @G@_isf_rt_word(5u)); }
+uint @G@_isf_rt_cmd(uint d, uint k) { return @G@_isf_rt_word(8u + @G@_isf_rt_word(6u) + d * 5u + k); }
+bool @G@_isf_rt_indexed() { return @G@_isf_rt_word(2u) != 0u; }
+uint @G@_isf_rt_stored_index(uint d, uint k)
+{
+  uint width = @G@_isf_rt_word(2u);
+  uint byte_index = @G@_isf_rt_word(3u) + (@G@_isf_rt_cmd(d, 2u) + k) * width;
+  uint word = byte_index >> 2u;
+  if(word >= uint(@G@_isf_rt_index.length()))
+    return 0xffffffffu;
+  uint v = @G@_isf_rt_index[word];
+  return width == 2u ? (v >> ((byte_index & 2u) * 8u)) & 0xffffu : v;
+}
+uint @G@_isf_rt_element(uint d, uint k)
+{
+  if(k >= @G@_isf_rt_cmd(d, 0u))
+    return 0xffffffffu;
+  if(!@G@_isf_rt_indexed())
+    return @G@_isf_rt_cmd(d, 2u) + k;
+  uint v = @G@_isf_rt_stored_index(d, k);
+  if(v == 0xffffffffu)
+    return v;
+  int vertex = int(v) + int(@G@_isf_rt_cmd(d, 3u));
+  return vertex < 0 ? 0xffffffffu : uint(vertex);
+}
+uint @G@_isf_rt_element_count()
+{
+  uint n = 0u;
+  for(uint d = 0u; d < @G@_isf_rt_draws(); ++d)
+    n += @G@_isf_rt_cmd(d, 0u);
+  return n;
+}
+uint @G@_isf_rt_index_of(uint e)
+{
+  for(uint d = 0u; d < @G@_isf_rt_draws(); ++d)
+  {
+    uint n = @G@_isf_rt_cmd(d, 0u);
+    if(e < n)
+      return @G@_isf_rt_element(d, e);
+    e -= n;
+  }
+  return 0xffffffffu;
+}
+uint @G@_isf_rt_vertex_count()
+{
+  return @G@_isf_rt_indexed() ? @G@_isf_rt_word(0u) : @G@_isf_rt_element_count();
+}
+uint @G@_isf_rt_vertex_index(uint i)
+{
+  if(@G@_isf_rt_indexed())
+    return i < @G@_isf_rt_word(0u) ? i : 0xffffffffu;
+  return @G@_isf_rt_index_of(i);
+}
+uint @G@_isf_rt_instance_count()
+{
+  uint n = 0u;
+  for(uint d = 0u; d < @G@_isf_rt_draws(); ++d)
+    n += @G@_isf_rt_cmd(d, 1u);
+  return n;
+}
+uint @G@_isf_rt_instance_index(uint i)
+{
+  for(uint d = 0u; d < @G@_isf_rt_draws(); ++d)
+  {
+    uint n = @G@_isf_rt_cmd(d, 1u);
+    if(i < n)
+      return @G@_isf_rt_cmd(d, @G@_isf_rt_indexed() ? 4u : 3u) + i;
+    i -= n;
+  }
+  return 0xffffffffu;
+}
+uint @G@_isf_rt_draw_triangles(uint d)
+{
+  uint n = @G@_isf_rt_cmd(d, 0u);
+  uint topology = @G@_isf_rt_word(1u);
+  if(topology == 0u)
+    return n / 3u;
+  return (topology == 1u || topology == 2u) && n >= 3u ? n - 2u : 0u;
+}
+uint @G@_isf_rt_triangle_count()
+{
+  uint n = 0u;
+  for(uint d = 0u; d < @G@_isf_rt_draws(); ++d)
+    n += @G@_isf_rt_draw_triangles(d);
+  return n;
+}
+uint @G@_isf_rt_triangle_index(uint t, uint c)
+{
+  if(c >= 3u)
+    return 0xffffffffu;
+  uint topology = @G@_isf_rt_word(1u);
+  for(uint d = 0u; d < @G@_isf_rt_draws(); ++d)
+  {
+    uint n = @G@_isf_rt_draw_triangles(d);
+    if(t >= n)
+    {
+      t -= n;
+      continue;
+    }
+    if(topology == 0u)
+      return @G@_isf_rt_element(d, t * 3u + c);
+    uint first = topology == 2u ? 0u : t;
+    if(@G@_isf_rt_indexed())
+    {
+      uint restart = @G@_isf_rt_word(2u) == 2u ? 0xffffu : 0xffffffffu;
+      if(@G@_isf_rt_stored_index(d, first) == restart
+         || @G@_isf_rt_stored_index(d, t + 1u) == restart
+         || @G@_isf_rt_stored_index(d, t + 2u) == restart)
+        return 0xffffffffu;
+    }
+    // The rasterizer's winding: odd strip triangles swap their first two
+    // corners, fan triangles all start at the fan's first element.
+    if(topology == 2u)
+      return @G@_isf_rt_element(d, c == 0u ? 0u : t + c);
+    return @G@_isf_rt_element(d, t + ((t & 1u) != 0u && c < 2u ? 1u - c : c));
+  }
+  return 0xffffffffu;
+}
+)_GLSL_";
+  for(std::size_t a = 0; a < g.attributes.size(); a++)
+    s += "bool @G@_isf_rt_has_" + g.attributes[a].name + "() { return @G@_isf_rt_word("
+         + std::to_string(8 + a) + "u) != 0u; }\n";
+  boost::algorithm::replace_all(s, "@B0@", std::to_string(binding));
+  boost::algorithm::replace_all(s, "@B1@", std::to_string(binding + 1));
+  boost::algorithm::replace_all(s, "@G@", geo);
+  return s;
+}
+
 std::string column_data_block(std::string_view geo, uint32_t row_words)
 {
   std::string s = std::string{geo} + "_isf_columns_data_buf {\n    ";
@@ -8772,6 +9137,9 @@ void parser::parse_csf()
 
   // Add standard ProcessUBO uniforms (same as ISF/VSA)
   m_fragment += GLSL45.defaultUniforms;
+  // Compute passes have no views: the view index slot holds the iteration of
+  // the innermost REPEAT group a pass belongs to.
+  m_fragment += "#define ITERATIONINDEX isf_process_uniforms.VIEWINDEX_\n";
   m_fragment += "\n";
 
   // Storage-image and sampling macros. A CSF that uses them is orientation-
@@ -8907,6 +9275,11 @@ void parser::parse_csf()
       {
         k++;
         material_block += "    vec3 " + inp.name + ";\n";
+      }
+      else if(ossia::get_if<point4d_input>(&inp.data))
+      {
+        k++;
+        material_block += "    vec4 " + inp.name + ";\n";
       }
       else if(ossia::get_if<color_input>(&inp.data))
       {
@@ -9190,6 +9563,13 @@ void parser::parse_csf()
       // texture()/textureLod()/etc.). Symmetric to ISF_IMG — separate
       // macro because the GLSL type differs (samplerXY vs imageXY).
       m_fragment += "#define ISF_TEX(geo, name) geo ## _ ## name\n";
+
+      // Bound before the attributes: RenderedCSFNode::buildComputeSrbBindings.
+      if(geo.runtime)
+      {
+        m_fragment += runtime_accessors(inp.name, geo, binding);
+        binding += 2;
+      }
 
       for(const auto& attr : geo.attributes)
       {

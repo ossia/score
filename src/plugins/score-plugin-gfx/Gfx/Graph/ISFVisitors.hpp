@@ -49,6 +49,7 @@ struct isf_input_port_count_vis
   port_counts operator()(const isf::bool_input&) const noexcept    { return {1, 0, 0}; }
   port_counts operator()(const isf::point2d_input&) const noexcept { return {1, 0, 0}; }
   port_counts operator()(const isf::point3d_input&) const noexcept { return {1, 0, 0}; }
+  port_counts operator()(const isf::point4d_input&) const noexcept { return {1, 0, 0}; }
   port_counts operator()(const isf::color_input&) const noexcept   { return {1, 0, 0}; }
   port_counts operator()(const isf::audio_input&) const noexcept    { return {1, 0, 0}; }
   port_counts operator()(const isf::audioHist_input&) const noexcept{ return {1, 0, 0}; }
@@ -203,6 +204,15 @@ struct isf_input_size_vis
       sz += 4;
     }
     sz += 3 * 4;
+  }
+
+  void operator()(const isf::point4d_input&) noexcept
+  {
+    while(sz % 16 != 0)
+    {
+      sz += 4;
+    }
+    sz += 4 * 4;
   }
 
   void operator()(const isf::color_input&) noexcept

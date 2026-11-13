@@ -510,7 +510,7 @@ score_add_gfx_test(vsa_cull  GfxVsaCull.cpp)
 # CONTROL-VALUE injection (Priority 2 inputs) + INCREMENTAL graph-edit (Priority
 # 5). Both reuse the fixture (GUI app, corpus dir).
 #
-#   test_gfx_control     ISF float/color/point2D/point3D/bool/long control inlets
+#   test_gfx_control     ISF float/color/point2D/point3D/point4D/bool/long control inlets
 #                        injected via setControl()/render_isf_controls() (the same
 #                        material-UBO path the exec engine drives) and asserted
 #                        analytically per backend. Closes the "control-value inputs
@@ -1302,6 +1302,8 @@ score_add_gfx_process_test(shader_commands GfxShaderCommands.cpp)
 # A shader process whose shader does not parse logs a warning naming it.
 score_add_gfx_process_test(shader_load_error GfxShaderLoadError.cpp)
 score_add_gfx_process_test(long_input_control GfxLongInputControl.cpp)
+# A point4D input is a vec4 control; its value survives save, reload and a re-read.
+score_add_gfx_process_test(point4d_control GfxPoint4dControl.cpp)
 score_add_gfx_process_test(images          GfxImagesProcess.cpp)
 score_add_gfx_process_test(video_text      GfxVideoTextProcess.cpp)
 
@@ -2279,6 +2281,20 @@ score_add_gfx_test(gpu_only_particles GfxGpuOnlyParticles.cpp)
 # their type name and size; a mismatched compute consumer and a raster vertex
 # input are refused (C42 points 2-5).
 score_add_gfx_test(csf_typed_attributes GfxCsfTypedAttributes.cpp)
+
+# An optional CSF attribute the upstream lacks reads its typed DEFAULT; one the
+# upstream provides reads the upstream's values, zeros included, and switching
+# between the two follows the change.
+score_add_gfx_test(csf_attribute_default GfxCsfAttributeDefault.cpp)
+
+# A RUNTIME CSF geometry input reads how its upstream is drawn: index widths
+# and offsets, base vertices, several draws, strips, fans, restart indices,
+# GPU draw records and counts, zero instances and no upstream.
+score_add_gfx_test(csf_geometry_runtime GfxCsfGeometryRuntime.cpp)
+
+# CSF REPEAT groups: every dispatch reads its own PASSINDEX and ITERATIONINDEX,
+# with a control count, a zero count, nesting and a count changed mid-run.
+score_add_gfx_test(csf_repeat GfxCsfRepeat.cpp)
 
 # A CSF storage buffer too large to allocate stops the node's passes.
 score_add_gfx_test(csf_storage_too_large GfxCsfStorageTooLarge.cpp)

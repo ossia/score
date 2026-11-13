@@ -88,6 +88,17 @@ struct point3d_input
   bool as_color{false};
 };
 
+// A four-component vector (vec4) that is not a colour: a matrix column, a
+// plane equation, a quaternion. DEFAULT / MIN / MAX are four-element arrays.
+struct point4d_input
+{
+  using value_type = std::array<double, 4>;
+  using has_minmax = std::true_type;
+  std::optional<value_type> def{};
+  std::optional<value_type> min{};
+  std::optional<value_type> max{};
+};
+
 struct color_input
 {
   using value_type = std::array<double, 4>;
@@ -357,6 +368,12 @@ struct geometry_input
     std::string rate;     // "vertex" (default) or "instance"
     bool required{true};  // false = optional, zero fallback if missing
 
+    // DEFAULT: what an optional attribute the shader reads holds where the
+    // upstream lacks it, one 32-bit word per component of the declared type,
+    // in that type's own representation (float, int or uint bits). Empty:
+    // zeros. A read_write one starts from it and keeps what the shader writes.
+    std::vector<uint32_t> default_value;
+
     // ACCESS "gather": read_write, and the shader reads indices other than its
     // own invocation's. Those reads must not observe this dispatch's writes, so
     // _in and _out become two buffers and the engine keeps them apart -- a
@@ -521,6 +538,13 @@ struct geometry_input
   // of the upstream data refreshed every frame.
   bool persistent{false};
 
+  // RUNTIME (compute shaders): the shader also reads how the upstream is
+  // drawn -- its draw commands, live draw count, index buffer and topology --
+  // and which declared attributes it provides, through the ISF_*_COUNT,
+  // ISF_*_INDEX and ISF_HAS_ATTRIBUTE accessors parse_csf generates. Only on a
+  // geometry that reads an upstream.
+  bool runtime{false};
+
   // Optional format identity stamped onto the consumer geometry's
   // filter_tag (rapidhash truncated to 32 bits). Only meaningful on
   // RESOURCES of TYPE: geometry used as outputs (geoOut). Empty leaves
@@ -566,7 +590,7 @@ struct input
       float_input, long_input, event_input, bool_input, color_input, point2d_input,
       point3d_input, image_input, cubemap_input, audio_input, audioFFT_input,
       audioHist_input, storage_input, texture_input, csf_image_input,
-      geometry_input, uniform_input>;
+      geometry_input, uniform_input, point4d_input>;
 
   std::string name;
   std::string label;
@@ -1027,6 +1051,18 @@ struct descriptor
   // Every PASSES entry read as a dispatch, in authored order; parse_csf
   // makes it csf_passes (a header key handler cannot know the MODE).
   std::vector<dispatch_info> csf_pass_candidates;
+  // REPEAT groups of a compute shader's PASSES, parents before children:
+  // the passes [first, end) run `count` times in a row inside the group
+  // `parent` (-1: at the top level). `count` is a literal or an expression.
+  // ITERATIONINDEX is the innermost group's iteration.
+  struct pass_repeat
+  {
+    int parent{-1};
+    std::size_t first{};
+    std::size_t end{};
+    std::string count;
+  };
+  std::vector<pass_repeat> csf_repeats;
   // The CSF's own code names gl_NumWorkGroups / isf_NumWorkGroups.
   bool csf_reads_num_workgroups{};
 

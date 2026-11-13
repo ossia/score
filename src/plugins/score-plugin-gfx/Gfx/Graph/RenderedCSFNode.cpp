@@ -26,6 +26,7 @@
 
 #include <boost/algorithm/string/replace.hpp>
 
+#include <limits>
 #include <unordered_map>
 #include <unordered_set>
 
@@ -505,6 +506,21 @@ static void applyDeclaredTopology(ossia::geometry& geo, const std::string& t) no
     geo.topology = ossia::geometry::line_strip;
   else if(t == "points")
     geo.topology = ossia::geometry::points;
+}
+
+// What an attribute the upstream lacks reads: zeros, or its DEFAULT in every
+// element. `stride` is the std430 array stride, so a vec3 keeps its pad word.
+static QByteArray attributeFallbackData(
+    const isf::geometry_input::attribute_request& req, int64_t size, int64_t stride)
+{
+  QByteArray data(size, 0);
+  const auto& words = req.default_value;
+  const int64_t bytes = int64_t(words.size() * sizeof(uint32_t));
+  if(words.empty() || stride < bytes)
+    return data;
+  for(int64_t offset = 0; offset + bytes <= size; offset += stride)
+    std::memcpy(data.data() + offset, words.data(), bytes);
+  return data;
 }
 
 template <typename Slot>
@@ -1060,7 +1076,7 @@ int RenderedCSFNode::resolveCountExpression(
 std::size_t RenderedCSFNode::expressionSymbolReserveCount() const noexcept
 {
   // registerCommonExpressionVariables emplaces up to 4 doubles per image-type
-  // input plus 4 one-time unsuffixed, 1 per scalar input, 2 per geometry binding
+  // input plus 4 one-time unsuffixed, 1 per scalar input, 4 per geometry binding
   // plus 2 one-time, and 2 ($COUNT/$BYTESIZE) per addressable SSBO or UBO.
   // Callers add a couple of $USER constants. Each descriptor input falls in
   // exactly one category, so 6*inputs bounds the image+scalar contribution and
@@ -1073,7 +1089,7 @@ std::size_t RenderedCSFNode::expressionSymbolReserveCount() const noexcept
   for(const auto& inp : desc.inputs)
     if(auto* geo = ossia::get_if<isf::geometry_input>(&inp.data))
       buffers += geo->auxiliary.size();
-  return 16 + 6 * desc.inputs.size() + 4 * m_geometryBindings.size() + 2 * buffers;
+  return 16 + 6 * desc.inputs.size() + 6 * m_geometryBindings.size() + 2 * buffers;
 }
 
 void RenderedCSFNode::registerCommonExpressionVariables(
@@ -1220,6 +1236,14 @@ void RenderedCSFNode::registerCommonExpressionVariables(
       e.add_constant(
           fmt::format("var_INSTANCE_COUNT_{}", input.name),
           data.emplace_back(instance_count));
+      // Capacities for allocations sized by what the draws reach.
+      const bool bound = geo_idx < (int)m_geometryBindings.size();
+      e.add_constant(
+          fmt::format("var_ELEMENT_COUNT_{}", input.name),
+          data.emplace_back(bound ? m_geometryBindings[geo_idx].element_count : 0));
+      e.add_constant(
+          fmt::format("var_TRIANGLE_COUNT_{}", input.name),
+          data.emplace_back(bound ? m_geometryBindings[geo_idx].triangle_count : 0));
       if(first_geo)
       {
         e.add_constant("var_VERTEX_COUNT", data.emplace_back(vertex_count));
@@ -1400,6 +1424,142 @@ int RenderedCSFNode::resolveDispatchExpression(const std::string& expr) const
 
   qDebug() << "resolveDispatchExpression failed:" << e.error().c_str() << eval_expr.c_str();
   return 1;
+}
+
+std::optional<double> RenderedCSFNode::evaluateExpression(const std::string& expr) const
+{
+  ossia::math_expression e;
+  ossia::small_pod_vector<double, 16> data;
+  data.reserve(expressionSymbolReserveCount());
+  registerCommonExpressionVariables(e, data);
+  auto eval_expr = expr;
+  boost::algorithm::replace_all(eval_expr, "$", "var_");
+  e.register_symbol_table();
+  if(!e.set_expression(eval_expr))
+    return std::nullopt;
+  return e.value();
+}
+
+bool RenderedCSFNode::hasRepeats() const noexcept
+{
+  return !n.m_descriptor.csf_repeats.empty();
+}
+
+QRhiShaderResourceBinding
+RenderedCSFNode::processUBOBinding(QRhiBuffer* ubo) const noexcept
+{
+  constexpr auto stage = QRhiShaderResourceBinding::ComputeStage;
+  if(hasRepeats())
+    return QRhiShaderResourceBinding::uniformBufferWithDynamicOffset(
+        1, stage, ubo, sizeof(ProcessUBO));
+  return QRhiShaderResourceBinding::uniformBuffer(1, stage, ubo);
+}
+
+// More dispatches than this in one frame is a count gone wrong, not an
+// algorithm: the node's passes are refused instead.
+static constexpr std::size_t maxScheduledDispatches = 1 << 16;
+
+void RenderedCSFNode::buildSchedule()
+{
+  const auto& desc = n.m_descriptor;
+  const auto& groups = desc.csf_repeats;
+  const std::size_t passes = desc.csf_passes.size();
+  m_schedule.clear();
+  m_passDispatches.assign(passes, 0);
+  m_repeatCounts.resize(groups.size());
+
+  std::string refusal;
+  for(std::size_t g = 0; g < groups.size() && refusal.empty(); g++)
+  {
+    const auto& expr = groups[g].count;
+    const auto value = evaluateExpression(expr);
+    if(!value)
+      refusal = "does not evaluate";
+    else if(!std::isfinite(*value) || *value < 0.)
+      refusal = "is " + std::to_string(*value) + ", not a count";
+    else if(*value != std::floor(*value))
+      refusal = "is " + std::to_string(*value)
+                + ", not a whole number: round it in the expression";
+    else if(*value > double(maxScheduledDispatches))
+      refusal = "is " + std::to_string(*value) + ", more dispatches than a frame runs";
+    else
+      m_repeatCounts[g] = int64_t(*value);
+    if(!refusal.empty())
+      refusal = "REPEAT \"" + expr + "\" " + refusal;
+  }
+
+  bool overflow = false;
+  auto emit = [&](auto& self, std::size_t first, std::size_t end, int parent,
+                  int32_t iteration) -> void {
+    for(std::size_t p = first; p < end && !overflow;)
+    {
+      int child = -1;
+      for(std::size_t g = 0; g < groups.size(); g++)
+        if(groups[g].parent == parent && groups[g].first == p)
+        {
+          child = int(g);
+          break;
+        }
+      if(child < 0)
+      {
+        if(m_schedule.size() >= maxScheduledDispatches)
+        {
+          overflow = true;
+          return;
+        }
+        m_schedule.push_back({uint32_t(p), iteration, m_passDispatches[p]++});
+        ++p;
+        continue;
+      }
+      for(int64_t it = 0; it < m_repeatCounts[child] && !overflow; it++)
+        self(self, groups[child].first, groups[child].end, child, int32_t(it));
+      p = groups[child].end;
+    }
+  };
+  if(refusal.empty())
+  {
+    emit(emit, 0, passes, -1, 0);
+    if(overflow)
+      refusal = "REPEAT counts amount to more than "
+                + std::to_string(maxScheduledDispatches) + " dispatches in a frame";
+  }
+
+  m_scheduleRefused = !refusal.empty();
+  if(m_scheduleRefused)
+  {
+    m_schedule.clear();
+    std::fill(m_passDispatches.begin(), m_passDispatches.end(), 0);
+    if(refusal != m_scheduleRefusal)
+      qWarning().noquote() << "CSF:" << QString::fromStdString(refusal)
+                           << "; the passes do not run.";
+  }
+  m_scheduleRefusal = std::move(refusal);
+}
+
+void RenderedCSFNode::ensureProcessUBOSlices(RenderList& renderer)
+{
+  if(!hasRepeats())
+    return;
+  auto& rhi = *renderer.state.rhi;
+  for(std::size_t p = 0; p < m_computePasses.size(); p++)
+  {
+    auto& pass = m_computePasses[p].second;
+    const uint32_t needed
+        = std::max<uint32_t>(1, p < m_passDispatches.size() ? m_passDispatches[p] : 1);
+    if(!pass.processUBO || pass.uboSlices >= needed)
+      continue;
+    auto* ubo = rhi.newBuffer(
+        QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, needed * m_uboStride);
+    ubo->setName(pass.processUBO->name());
+    if(!ubo->create())
+    {
+      delete ubo;
+      continue;
+    }
+    renderer.releaseBuffer(pass.processUBO);
+    pass.processUBO = ubo;
+    pass.uboSlices = needed;
+  }
 }
 
 QSize RenderedCSFNode::getImageSize(
@@ -1972,6 +2132,235 @@ void RenderedCSFNode::resolveColumns(
   data->column_bound = data->buffer;
 }
 
+static int64_t topologyTriangles(int topology, int64_t elements) noexcept
+{
+  switch(topology)
+  {
+    case ossia::geometry::triangles:
+      return elements / 3;
+    case ossia::geometry::triangle_strip:
+    case ossia::geometry::triangle_fan:
+      return elements >= 3 ? elements - 2 : 0;
+    default:
+      return 0;
+  }
+}
+
+// The elements and triangles the draws of `mesh` reach as far as the CPU
+// knows: its CPU draw commands, else its stored index or vertex count. GPU
+// draw records may reach fewer.
+static std::pair<int, int> drawCapacity(const ossia::geometry& mesh) noexcept
+{
+  int64_t elements = 0;
+  int64_t triangles = 0;
+  if(!mesh.cpu_draw_commands.empty())
+  {
+    for(const auto& c : mesh.cpu_draw_commands)
+    {
+      elements += c.index_or_vertex_count;
+      triangles += topologyTriangles(mesh.topology, c.index_or_vertex_count);
+    }
+  }
+  else
+  {
+    elements = std::max(0, mesh.index.buffer >= 0 ? mesh.indices : mesh.vertices);
+    triangles = topologyTriangles(mesh.topology, elements);
+  }
+  constexpr int64_t max = std::numeric_limits<int>::max();
+  return {int(std::min(elements, max)), int(std::min(triangles, max))};
+}
+
+void RenderedCSFNode::resolveRuntime(
+    RenderList& renderer, QRhiResourceUpdateBatch& res, GeometryBinding& binding,
+    const isf::geometry_input& geo, const ossia::geometry* mesh)
+{
+  auto& rhi = *renderer.state.rhi;
+  const auto adoptSource = [&](QRhiBuffer*& slot, QRhiBuffer* buf) {
+    if(slot == buf)
+      return;
+    if(slot)
+      RenderList::dropAdoptedBuffer(rhi, slot);
+    if(buf)
+      RenderList::adoptBuffer(buf);
+    slot = buf;
+  };
+
+  const bool indexed = mesh && mesh->index.buffer >= 0
+                       && mesh->index.buffer < (int)mesh->buffers.size();
+  const uint32_t attributes = geo.attributes.size();
+  const uint32_t header = 8 + attributes;
+  auto& words = m_runtimeScratch;
+  words.assign(header, 0);
+  words[6] = attributes;
+
+  QRhiBuffer* drawSource = nullptr;
+  int64_t drawBytes = 0;
+  QRhiBuffer* countSource = nullptr;
+  int64_t countOffset = 0;
+  uint32_t records = 0;
+  if(mesh)
+  {
+    words[0] = uint32_t(std::max(0, mesh->vertices));
+    words[1] = uint32_t(mesh->topology);
+    words[2] = !indexed ? 0 : mesh->index.format == decltype(mesh->index)::uint16 ? 2 : 4;
+    words[3] = indexed ? uint32_t(std::max<int64_t>(0, mesh->index.byte_offset)) : 0;
+    for(uint32_t a = 0; a < attributes; a++)
+    {
+      const auto& req = geo.attributes[a];
+      const auto* attr = findGeometryAttribute(*mesh, req.name, req.semantic);
+      words[8 + a] = attr && csfAttributeRefusal(*attr, req.type, n.m_descriptor).isEmpty();
+    }
+
+    if(mesh->indirect_count.handle)
+    {
+      // GPU draw records, copied every frame: they are what the GPU wrote.
+      drawSource = static_cast<QRhiBuffer*>(mesh->indirect_count.handle);
+      records = uint32_t(std::max<int64_t>(0, mesh->indirect_count.byte_size) / 20);
+      drawBytes = int64_t(records) * 20;
+      if(const auto* aux = mesh->find_auxiliary("_indirect_draw_count");
+         aux && aux->buffer >= 0 && aux->buffer < (int)mesh->buffers.size()
+         && aux->byte_offset >= 0 && aux->byte_offset % 4 == 0)
+        if(const auto* gpu
+           = ossia::get_if<ossia::geometry::gpu_buffer>(&mesh->buffers[aux->buffer].data);
+           gpu && gpu->handle && gpu->byte_size >= aux->byte_offset + 4)
+        {
+          countSource = static_cast<QRhiBuffer*>(gpu->handle);
+          countOffset = aux->byte_offset;
+        }
+    }
+    else if(!mesh->cpu_draw_commands.empty())
+    {
+      for(const auto& c : mesh->cpu_draw_commands)
+      {
+        words.push_back(c.index_or_vertex_count);
+        words.push_back(c.instance_count);
+        words.push_back(c.first_index_or_vertex);
+        words.push_back(indexed ? uint32_t(c.base_vertex) : c.first_instance);
+        words.push_back(indexed ? c.first_instance : 0);
+      }
+      records = mesh->cpu_draw_commands.size();
+    }
+    else
+    {
+      words.push_back(uint32_t(std::max(0, indexed ? mesh->indices : mesh->vertices)));
+      words.push_back(uint32_t(std::max(0, mesh->instances)));
+      words.push_back(0);
+      words.push_back(0);
+      words.push_back(0);
+      records = 1;
+    }
+    words[4] = records;
+    words[5] = records;
+  }
+  adoptSource(binding.runtime_draw_source, drawSource);
+  binding.runtime_draw_bytes = drawBytes;
+  binding.runtime_draw_offset = int64_t(header) * 4;
+  adoptSource(binding.runtime_count_source, countSource);
+  binding.runtime_count_offset = countOffset;
+
+  auto& info = binding.runtime_info;
+  const int64_t size = std::max<int64_t>(16, (int64_t(header) + 5 * int64_t(records)) * 4);
+  if(!info.buffer || info.size != size)
+  {
+    releaseSlot(renderer, info);
+    info.buffer = rhi.newBuffer(QRhiBuffer::Static, QRhiBuffer::StorageBuffer, size);
+    info.buffer->setName("CSF_GeomRuntime");
+    if(!info.buffer->create())
+    {
+      delete info.buffer;
+      info.buffer = nullptr;
+    }
+    info.size = info.buffer ? size : 0;
+    info.owned = true;
+    binding.runtime_words.clear();
+  }
+  if(info.buffer && words != binding.runtime_words)
+  {
+    // A fresh buffer is zero-filled past the words too, so a stale record
+    // never reads as a draw.
+    if(binding.runtime_words.empty())
+      RhiClearBuffer::clearBuffer(rhi, res, info.buffer, 0, (quint32)info.size);
+    res.uploadStaticBuffer(info.buffer, 0, words.size() * 4, words.data());
+    binding.runtime_words.assign(words.begin(), words.end());
+  }
+
+  auto& index = binding.runtime_index;
+  const ossia::geometry::buffer* indexBuffer
+      = indexed ? &mesh->buffers[mesh->index.buffer] : nullptr;
+  const auto* gpu = indexBuffer
+                        ? ossia::get_if<ossia::geometry::gpu_buffer>(&indexBuffer->data)
+                        : nullptr;
+  const auto* cpu = indexBuffer
+                        ? ossia::get_if<ossia::geometry::cpu_buffer>(&indexBuffer->data)
+                        : nullptr;
+  const auto ownIndexCopy = [&](int64_t bytes) {
+    const int64_t size = std::max<int64_t>(4, (bytes + 3) & ~int64_t(3));
+    if(index.owned && index.buffer && index.size == size)
+      return true;
+    releaseSlot(renderer, index);
+    index.buffer = rhi.newBuffer(QRhiBuffer::Static, QRhiBuffer::StorageBuffer, size);
+    index.buffer->setName("CSF_GeomRuntimeIndex");
+    if(!index.buffer->create())
+    {
+      delete index.buffer;
+      index.buffer = nullptr;
+      index.size = 0;
+      return false;
+    }
+    index.size = size;
+    index.owned = true;
+    binding.runtime_index_data = nullptr;
+    RhiClearBuffer::clearBuffer(rhi, res, index.buffer, 0, (quint32)size);
+    return true;
+  };
+  if(gpu && gpu->handle && gpu->byte_size > 0)
+  {
+    auto* buf = static_cast<QRhiBuffer*>(gpu->handle);
+    binding.runtime_index_data = nullptr;
+    if(buf->usage().testFlag(QRhiBuffer::StorageBuffer))
+    {
+      dropRestoreSource(renderer, index);
+      adoptIntoSlot(renderer, index, buf, gpu->byte_size);
+    }
+    else if(ownIndexCopy(gpu->byte_size))
+      setRestoreSource(renderer, index, buf, 0, gpu->byte_size);
+  }
+  else if(cpu && cpu->raw_data && cpu->byte_size > 0)
+  {
+    dropRestoreSource(renderer, index);
+    if(ownIndexCopy(cpu->byte_size)
+       && (binding.runtime_index_data != cpu->raw_data.get()
+           || binding.runtime_index_bytes != cpu->byte_size || indexBuffer->dirty))
+    {
+      res.uploadStaticBuffer(index.buffer, 0, cpu->byte_size, cpu->raw_data.get());
+      binding.runtime_index_data = cpu->raw_data.get();
+      binding.runtime_index_bytes = cpu->byte_size;
+    }
+  }
+  else
+  {
+    dropRestoreSource(renderer, index);
+    releaseSlot(renderer, index);
+    index.owned = true;
+    binding.runtime_index_data = nullptr;
+  }
+}
+
+static void releaseRuntime(score::gfx::RenderList& r, auto& binding) noexcept
+{
+  releaseSlot(r, binding.runtime_info);
+  releaseSlot(r, binding.runtime_index);
+  dropRestoreSource(r, binding.runtime_index);
+  for(QRhiBuffer** src : {&binding.runtime_draw_source, &binding.runtime_count_source})
+  {
+    if(*src)
+      score::gfx::RenderList::dropAdoptedBuffer(*r.state.rhi, *src);
+    *src = nullptr;
+  }
+  binding.runtime_words.clear();
+  binding.runtime_index_data = nullptr;
+}
+
 void RenderedCSFNode::updateGeometryBindings(
     RenderList& renderer, QRhiResourceUpdateBatch& res)
 {
@@ -1998,14 +2387,26 @@ void RenderedCSFNode::updateGeometryBindings(
       if(pre_idx >= (int)m_geometryBindings.size())
         break;
       auto& binding = m_geometryBindings[pre_idx];
-      if(binding.input_port_index >= 0 && !binding.has_vertex_count_spec)
+      const auto* mesh = upstreamMesh(binding.input_port_index);
+      if(mesh && !binding.has_vertex_count_spec)
       {
-        if(auto* mesh = upstreamMesh(binding.input_port_index))
-        {
-          binding.vertex_count = mesh->vertices;
-          if(mesh->instances > 0)
-            binding.instance_count = mesh->instances;
-        }
+        binding.vertex_count = mesh->vertices;
+        if(mesh->instances > 0)
+          binding.instance_count = mesh->instances;
+      }
+      if(mesh)
+      {
+        std::tie(binding.element_count, binding.triangle_count) = drawCapacity(*mesh);
+      }
+      else
+      {
+        const auto& t = geo_input->topology;
+        const int topology = t.empty() || t == "triangles" ? ossia::geometry::triangles
+                             : t == "triangle_strip"       ? ossia::geometry::triangle_strip
+                             : t == "triangle_fan"         ? ossia::geometry::triangle_fan
+                                                           : ossia::geometry::points;
+        binding.element_count = std::max(0, binding.vertex_count);
+        binding.triangle_count = int(topologyTriangles(topology, binding.element_count));
       }
       pre_idx++;
     }
@@ -2047,6 +2448,8 @@ void RenderedCSFNode::updateGeometryBindings(
         upstream_mesh = mesh;
       }
     }
+    if(binding.runtime)
+      resolveRuntime(renderer, res, binding, *geo_input, upstream_mesh);
 
     bool in_place = geo_input->persistent;
     if(!in_place && binding.input_port_index >= 0
@@ -2213,8 +2616,26 @@ void RenderedCSFNode::updateGeometryBindings(
         }
         ssbo.owned = true;
       };
-      for(auto& ssbo : binding.attribute_ssbos)
+      for(std::size_t a = 0; a < binding.attribute_ssbos.size(); a++)
+      {
+        auto& ssbo = binding.attribute_ssbos[a];
+        const bool borrowed = ssbo.buffer && !ssbo.owned;
         orphan(ssbo, "attr");
+        if(borrowed)
+          ssbo.fallback = true;
+        if(a >= geo_input->attributes.size())
+          continue;
+        const auto& req = geo_input->attributes[a];
+        if(!req.default_value.empty() && ssbo.buffer && ssbo.owned
+           && (borrowed || !ssbo.fallback))
+        {
+          const QByteArray data = attributeFallbackData(
+              req, ssbo.size, std430ArrayStride(req.type, n.m_descriptor));
+          res.uploadStaticBuffer(ssbo.buffer, 0, ssbo.size, data.constData());
+          ssbo.fallback = true;
+          ssbo.lastUploadSrc = nullptr;
+        }
+      }
       for(auto& aux : binding.auxiliary_ssbos)
         orphan(aux, "aux");
       if(!binding.has_vertex_count_spec)
@@ -2265,13 +2686,19 @@ void RenderedCSFNode::updateGeometryBindings(
 
         if(!geo_attr)
         {
-          // Create or keep a zero-filled fallback buffer. std430ArrayStride
-          // ensures vec3 attributes get 16-byte stride to match what the
-          // shader's `T array[]` SSBO actually reads in std430.
+          // Create or keep a fallback buffer of zeros or of the DEFAULT.
+          // std430ArrayStride ensures vec3 attributes get 16-byte stride to
+          // match what the shader's `T array[]` SSBO actually reads in std430.
+          // A slot still holding an earlier upstream's data, or its buffer, is
+          // replaced when the shader only reads it, or reads it from a DEFAULT:
+          // that data would read as present.
           const int64_t elem_stride = std430ArrayStride(req.type, n.m_descriptor);
           const int fallback_count = ssbo.per_instance ? std::max(1, mesh.instances) : std::max(1, mesh.vertices);
           const int64_t needed = elem_stride * fallback_count;
-          if(!ssbo.buffer || ssbo.size < needed)
+          const bool stale
+              = !ssbo.fallback && !binding.is_feedback_receiver
+                && (req.access == "read_only" || !req.default_value.empty());
+          if(!ssbo.buffer || ssbo.size < needed || stale)
           {
             if(req.required && req.access == "read_only")
               qWarning() << "CSF geometry: required read_only attribute"
@@ -2284,11 +2711,13 @@ void RenderedCSFNode::updateGeometryBindings(
                 QRhiBuffer::StorageBuffer | QRhiBuffer::VertexBuffer, needed);
             buf->setName(QByteArray("CSF_GeomFallback_") + req.name.c_str());
             buf->create();
-            QByteArray zero(needed, 0);
+            const QByteArray zero = attributeFallbackData(req, needed, elem_stride);
             res.uploadStaticBuffer(buf, 0, needed, zero.constData());
             ssbo.buffer = buf;
             ssbo.size = needed;
             ssbo.owned = true;
+            ssbo.fallback = true;
+            ssbo.lastUploadSrc = nullptr;
 
             // Keep read_buffer in sync for feedback receivers
             if(ssbo.read_buffer)
@@ -2303,6 +2732,7 @@ void RenderedCSFNode::updateGeometryBindings(
         // Found the attribute — extract its buffer data.
         // The attribute's binding index maps to a binding (stride/classification)
         // and an input entry (which buffer + byte offset within that buffer).
+        ssbo.fallback = false;
         const int binding_idx = geo_attr->binding;
         if(binding_idx < 0 || binding_idx >= (int)mesh.input.size())
           continue;
@@ -5261,6 +5691,27 @@ void RenderedCSFNode::buildComputeSrbBindings(
               type, bindingIndex++, buf, offset, size, m_srbRangeHash));
         };
 
+        // RUNTIME: the info words, then the index buffer (isf.cpp
+        // runtime_accessors). Before the first update, no draws.
+        if(geo_input->runtime)
+        {
+          auto& info = binding.runtime_info;
+          if(!info.buffer)
+          {
+            info.buffer = rhi.newBuffer(QRhiBuffer::Static, QRhiBuffer::StorageBuffer, 16);
+            info.buffer->setName("CSF_GeomRuntime");
+            info.buffer->create();
+            info.size = 16;
+            info.owned = true;
+            RhiClearBuffer::clearBuffer(rhi, res, info.buffer, 0, 16);
+            binding.runtime_words.clear();
+          }
+          appendBufBinding(info.buffer, "read_only");
+          appendBufBinding(
+              binding.runtime_index.buffer ? binding.runtime_index.buffer : info.buffer,
+              "read_only");
+        }
+
         for(int attr_idx = 0; attr_idx < (int)geo_input->attributes.size(); attr_idx++)
         {
           if(attr_idx >= (int)binding.attribute_ssbos.size())
@@ -5283,6 +5734,12 @@ void RenderedCSFNode::buildComputeSrbBindings(
             ssbo.buffer->create();
             ssbo.size = elem_stride;
             ssbo.owned = true;
+            if(!req.default_value.empty())
+            {
+              const QByteArray data = attributeFallbackData(req, elem_stride, elem_stride);
+              res.uploadStaticBuffer(ssbo.buffer, 0, elem_stride, data.constData());
+              ssbo.fallback = true;
+            }
           }
 
           // read_only and write_only bind one buffer; every read_write binds
@@ -5688,10 +6145,7 @@ void RenderedCSFNode::initComputeSRBAndPasses(
 
       // Replace the ProcessUBO binding (binding 1) with this pass's ProcessUBO
       // We know binding 1 is the ProcessUBO because we created it that way
-      {
-        bindings[1] = QRhiShaderResourceBinding::uniformBuffer(
-            1, QRhiShaderResourceBinding::ComputeStage, passProcessUBO);
-      }
+      bindings[1] = processUBOBinding(passProcessUBO);
 
       passSRB->setBindings(bindings.cbegin(), bindings.cend());
       if(!passSRB->create())
@@ -5741,6 +6195,7 @@ void RenderedCSFNode::initState(RenderList& renderer, QRhiResourceUpdateBatch& r
 
   // Initialize GPU buffer scatter for format conversion
   m_gpuScatterAvailable = m_gpuScatter.init(renderer.state);
+  m_uboStride = rhi.ubufAligned(sizeof(ProcessUBO));
 
   // Create the material UBO
   // Only the shader-visible part is bound: a USER pass appends dispatch-count
@@ -5859,6 +6314,7 @@ void RenderedCSFNode::initState(RenderList& renderer, QRhiResourceUpdateBatch& r
       binding.has_output = geo->passes_through();
       binding.has_vertex_count_spec = !geo->vertex_count.empty();
       binding.has_instance_count_spec = !geo->instance_count.empty();
+      binding.runtime = geo->runtime;
 
       for(const auto& attr : geo->attributes)
       {
@@ -6311,6 +6767,7 @@ void RenderedCSFNode::releaseState(RenderList& r)
       releaseSlot(r, aux);
       dropRestoreSource(r, aux);
     }
+    releaseRuntime(r, binding);
     for(auto& at : binding.auxiliary_textures)
     {
       if(at.sampler)
@@ -6512,6 +6969,14 @@ void RenderedCSFNode::update(
     this->geometryChanged = false;
   }
 
+  // REPEAT counts read the geometry counts just updated.
+  if(hasRepeats())
+  {
+    if(firstUpdateOfFrame || m_passDispatches.size() != n.m_descriptor.csf_passes.size())
+      buildSchedule();
+    ensureProcessUBOSlices(renderer);
+  }
+
   // Recreate SRBs once after all buffer mutations are finalized.
   // This prevents building intermediate SRBs with stale/dangling pointers.
   recreateShaderResourceBindings(renderer, res);
@@ -6638,10 +7103,7 @@ void RenderedCSFNode::recreateShaderResourceBindings(RenderList& renderer, QRhiR
     // Set the ProcessUBO binding for this pass — must happen BEFORE
     // hashing so a change in pass.processUBO triggers a rebuild.
     if(pass.processUBO)
-    {
-      bindings[1] = QRhiShaderResourceBinding::uniformBuffer(
-          1, QRhiShaderResourceBinding::ComputeStage, pass.processUBO);
-    }
+      bindings[1] = processUBOBinding(pass.processUBO);
 
     std::size_t newHash = hashBindings(bindings);
     ossia::hash_combine(newHash, m_srbRangeHash);
@@ -6758,6 +7220,7 @@ void RenderedCSFNode::swapMeshLayer(MeshLayer& layer) noexcept
     std::swap(mine.srb, theirs.srb);
     std::swap(mine.processUBO, theirs.processUBO);
     std::swap(mine.srbBindingsHash, theirs.srbBindingsHash);
+    std::swap(mine.uboSlices, theirs.uboSlices);
   }
   std::swap(m_auxSizeUnresolved, layer.auxSizeUnresolved);
   std::swap(m_meshIndex, layer.meshIndex);
@@ -6835,6 +7298,7 @@ void RenderedCSFNode::updateMeshLayers(RenderList& renderer, QRhiResourceUpdateB
       c.input_port_index = b.input_port_index;
       c.outlet_index = b.outlet_index;
       c.has_output = b.has_output;
+      c.runtime = b.runtime;
     }
     for(auto& [e, pass] : m_computePasses)
     {
@@ -6873,6 +7337,7 @@ void RenderedCSFNode::updateMeshLayers(RenderList& renderer, QRhiResourceUpdateB
     if(layer.passthrough)
       continue;
     updateGeometryBindings(renderer, res);
+    ensureProcessUBOSlices(renderer);
     recreateShaderResourceBindings(renderer, res);
   }
   if(!m_computePasses.empty() && m_computePasses[0].second.srb)
@@ -6903,6 +7368,7 @@ void RenderedCSFNode::releaseMeshLayer(RenderList& r, MeshLayer& layer)
       releaseSlot(r, aux);
       dropRestoreSource(r, aux);
     }
+    releaseRuntime(r, binding);
     for(auto* buf : binding.copyFromBuffers)
       r.releaseBuffer(buf);
     binding.copyFromBuffers.clear();
@@ -6978,6 +7444,10 @@ void RenderedCSFNode::runGeometryPasses(
       for(auto& aux : binding.auxiliary_ssbos)
         if(aux.restore_source && aux.owned && aux.buffer && aux.restore_size > 0)
           anyRestore = true;
+      if(binding.runtime && binding.runtime_info.buffer
+         && (binding.runtime_draw_source || binding.runtime_count_source
+             || binding.runtime_index.restore_source))
+        anyRestore = true;
     }
 
     if(anyRestore)
@@ -7004,6 +7474,24 @@ void RenderedCSFNode::runGeometryPasses(
           restore(ssbo);
         for(auto& aux : binding.auxiliary_ssbos)
           restore(aux);
+        if(!binding.runtime)
+          continue;
+        restore(binding.runtime_index);
+        // What the upstream's GPU wrote this frame: its draw records and its
+        // live draw count, into the RUNTIME words.
+        auto* info = binding.runtime_info.buffer;
+        if(!info)
+          continue;
+        const int64_t capacity = binding.runtime_info.size - binding.runtime_draw_offset;
+        const int64_t records = std::min(binding.runtime_draw_bytes, capacity);
+        if(binding.runtime_draw_source && records > 0)
+          copyBuffer(
+              *renderer.state.rhi, commands, binding.runtime_draw_source, info,
+              (int)records, 0, (int)binding.runtime_draw_offset, BufferCopyBarrier::None);
+        if(binding.runtime_count_source)
+          copyBuffer(
+              *renderer.state.rhi, commands, binding.runtime_count_source, info, 4,
+              (int)binding.runtime_count_offset, 20, BufferCopyBarrier::None);
       }
       endBufferCopyBarrier(*renderer.state.rhi, commands);
       commands.endExternal();
@@ -7102,11 +7590,16 @@ void RenderedCSFNode::runGeometryPasses(
       prepareSelfFeedbackInputs(renderer, *res);
   }
 
-  // Run all passes sequentially
-  for(std::size_t passIndex = 0; passIndex < n.m_descriptor.csf_passes.size(); passIndex++)
+  // Run all passes sequentially: with REPEAT groups, the frame's schedule.
+  const bool repeats = hasRepeats();
+  const std::size_t dispatchCount
+      = !repeats ? n.m_descriptor.csf_passes.size()
+                 : m_scheduleRefused ? 0 : m_schedule.size();
+  for(std::size_t dispatchIndex = 0; dispatchIndex < dispatchCount; dispatchIndex++)
   {
+    const std::size_t passIndex = repeats ? m_schedule[dispatchIndex].pass : dispatchIndex;
     const auto& passDesc = n.m_descriptor.csf_passes[passIndex];
-    
+
     // Find the compute pass for this specific CSF pass index
     // Since we created one ComputePass per CSF pass, we can index directly
     if(passIndex >= m_computePasses.size())
@@ -7116,10 +7609,15 @@ void RenderedCSFNode::runGeometryPasses(
     }
     
     const auto& pass = m_computePasses[passIndex].second;
+    // The slice of the pass's ProcessUBO this dispatch reads.
+    const uint32_t slice = repeats ? m_schedule[dispatchIndex].slice : 0;
+    if(slice >= pass.uboSlices)
+      continue;
+    const quint32 uboOffset = slice * m_uboStride;
 
     // D3D11: what this pass reads in place on other backends is what the
-    // previous passes wrote. Pass 0 was seeded above.
-    if(d3d11 && passIndex > 0 && pass.pipeline && pass.srb)
+    // previous passes wrote. The first dispatch was seeded above.
+    if(d3d11 && dispatchIndex > 0 && pass.pipeline && pass.srb)
       copyBuffers(d3d11InPlaceBuffers());
     if(pass.pipeline && pass.srb)
     {
@@ -7518,8 +8016,10 @@ void RenderedCSFNode::runGeometryPasses(
       n.standardUBO.numWorkgroups[0] = static_cast<uint32_t>(dispatchX);
       n.standardUBO.numWorkgroups[1] = static_cast<uint32_t>(dispatchY);
       n.standardUBO.numWorkgroups[2] = static_cast<uint32_t>(dispatchZ);
+      if(repeats)
+        n.standardUBO.viewIndex = m_schedule[dispatchIndex].iteration;
       res->updateDynamicBuffer(
-          pass.processUBO, 0, sizeof(ProcessUBO), &n.standardUBO);
+          pass.processUBO, uboOffset, sizeof(ProcessUBO), &n.standardUBO);
     }
 
     // QRhi inserts no compute-to-compute barrier across pass boundaries on the
@@ -7557,7 +8057,15 @@ void RenderedCSFNode::runGeometryPasses(
     if(!renderer.checkBindingsLive(*pass.srb, m_liveCheckLabel.constData())
        && RenderList::strictBindingsEnabled())
       throw std::runtime_error("CSF compute pass binds a retired buffer");
-    commands.setShaderResources(pass.srb);
+    if(repeats)
+    {
+      const QRhiCommandBuffer::DynamicOffset offset{1, uboOffset};
+      commands.setShaderResources(pass.srb, 1, &offset);
+    }
+    else
+    {
+      commands.setShaderResources(pass.srb);
+    }
     // Qt's GL backend binds layered (3D / cube / array) storage images non-layered,
     // so an image3D / imageCube / image2DArray imageStore would only write slice 0.
     // When a pass writes such an image on GL, dispatchComputeLayeredImages rebinds

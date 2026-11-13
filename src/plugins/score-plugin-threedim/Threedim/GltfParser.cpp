@@ -791,6 +791,30 @@ static std::shared_ptr<std::vector<uint32_t>> read_indices(
   return out;
 }
 
+// The triangle list a strip or fan draws, from its indices (null: the vertices
+// in order), each triangle wound as the rasterizer winds it. A triangle reaching
+// past the vertices is left out.
+static std::shared_ptr<std::vector<uint32_t>> triangle_list(
+    const std::shared_ptr<std::vector<uint32_t>>& indices, uint32_t vertex_count,
+    bool fan)
+{
+  const auto n = indices ? uint32_t(indices->size()) : vertex_count;
+  const auto at = [&](uint32_t i) { return indices ? (*indices)[i] : i; };
+  auto out = std::make_shared<std::vector<uint32_t>>();
+  if(n >= 3)
+    out->reserve(std::size_t(n - 2) * 3);
+  for(uint32_t t = 0; t + 2 < n; ++t)
+  {
+    const uint32_t a = fan ? at(0) : (t & 1) ? at(t + 1) : at(t);
+    const uint32_t b = fan ? at(t + 1) : (t & 1) ? at(t) : at(t + 1);
+    const uint32_t c = at(t + 2);
+    if(a >= vertex_count || b >= vertex_count || c >= vertex_count)
+      continue;
+    out->insert(out->end(), {a, b, c});
+  }
+  return out;
+}
+
 // Pull POSITION, NORMAL, TEXCOORD_0, COLOR_0, TANGENT for a primitive into a
 // ScenePart. Missing attributes leave the matching shared_ptr empty.
 static GltfParser::ScenePart extract_primitive(
@@ -916,6 +940,48 @@ static GltfParser::ScenePart extract_primitive(
     sp.index_count = uint32_t(ia.count);
   }
 
+  // Strips and fans are stored as the triangle lists they draw, which is what
+  // every consumer of a mesh primitive reads; a line loop as the strip it draws.
+  switch(prim.type)
+  {
+    case fastgltf::PrimitiveType::Triangles:
+      break;
+    case fastgltf::PrimitiveType::TriangleStrip:
+    case fastgltf::PrimitiveType::TriangleFan:
+      sp.indices = triangle_list(
+          sp.indices, sp.vertex_count, prim.type == fastgltf::PrimitiveType::TriangleFan);
+      if(sp.indices->empty())
+      {
+        qDebug() << "GltfParser: strip or fan without a triangle, skipping primitive";
+        return {};
+      }
+      sp.index_count = uint32_t(sp.indices->size());
+      break;
+    case fastgltf::PrimitiveType::Points:
+      sp.topology = ossia::primitive_topology::points;
+      break;
+    case fastgltf::PrimitiveType::Lines:
+      sp.topology = ossia::primitive_topology::lines;
+      break;
+    case fastgltf::PrimitiveType::LineStrip:
+      sp.topology = ossia::primitive_topology::line_strip;
+      break;
+    case fastgltf::PrimitiveType::LineLoop:
+    {
+      const auto n = sp.indices ? uint32_t(sp.indices->size()) : sp.vertex_count;
+      auto loop = std::make_shared<std::vector<uint32_t>>();
+      loop->reserve(std::size_t(n) + 1);
+      for(uint32_t i = 0; i < n; ++i)
+        loop->push_back(sp.indices ? (*sp.indices)[i] : i);
+      if(n > 0)
+        loop->push_back(loop->front());
+      sp.indices = std::move(loop);
+      sp.index_count = uint32_t(sp.indices->size());
+      sp.topology = ossia::primitive_topology::line_strip;
+      break;
+    }
+  }
+
   if(prim.materialIndex.has_value())
   {
     const std::size_t gltf_idx = *prim.materialIndex;
@@ -944,8 +1010,10 @@ static GltfParser::ScenePart extract_primitive(
   // them. Required for normal-mapped PBR: the fragment shader rebuilds
   // the TBN basis from (normal, tangent.xyz, cross(normal, tangent.xyz) *
   // tangent.w) before unpacking the sampled normal. Skipped when any
-  // prerequisite stream is missing (no UVs → no normal mapping anyway).
-  if(!sp.tangents && sp.positions && sp.normals && sp.texcoords)
+  // prerequisite stream is missing (no UVs → no normal mapping anyway), and
+  // for points and lines, which have no surface.
+  if(!sp.tangents && sp.positions && sp.normals && sp.texcoords
+     && sp.topology == ossia::primitive_topology::triangles)
   {
     sp.tangents = Threedim::generate_tangents_mikktspace(
         sp.positions, sp.normals, sp.texcoords, sp.indices,
@@ -993,7 +1061,7 @@ static ossia::mesh_primitive part_to_primitive(
   // Per-primitive id is not deterministic across reloads; the material /
   // transform fingerprints ARE, via the file-path hash.
   mp.stable_id = p.stable_id ? p.stable_id : ossia::mint_stable_id();
-  mp.topology    = ossia::primitive_topology::triangles;
+  mp.topology    = p.topology;
   mp.index_type  = p.indices ? ossia::index_format::uint32 : ossia::index_format::none;
   mp.vertex_count = p.vertex_count;
   mp.index_count  = p.index_count;
