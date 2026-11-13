@@ -249,6 +249,18 @@ void PortAddressComboBox::showAddress()
     setCurrentIndex(0);
   // Still shown when it is not in the list (device down, typed by hand...)
   setEditText(txt);
+  setToolTip(txt);
+}
+
+void PortAddressComboBox::showPopup()
+{
+  const auto typed = currentText();
+  reload();
+  {
+    const QSignalBlocker block{this};
+    setEditText(typed);
+  }
+  QComboBox::showPopup();
 }
 
 void PortAddressComboBox::setAddress(const State::AddressAccessor& addr)
