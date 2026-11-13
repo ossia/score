@@ -16,6 +16,7 @@
 #include <algorithm>
 #include <atomic>
 #include <cmath>
+#include <limits>
 #include <thread>
 namespace vst
 {
@@ -37,7 +38,9 @@ protected:
   struct vst_control
   {
     int idx{};
-    float value{};
+    //! The value the plug-in has, as far as the node knows: the last one it
+    //! was given, or that the process read back from it
+    float value{std::numeric_limits<float>::quiet_NaN()};
     ossia::value_port* port{};
   };
 
@@ -129,11 +132,14 @@ public:
       const auto& vec = p.port->get_data();
       if(vec.empty())
         continue;
-      auto t = ossia::convert<float>(last(vec));
-      {
-        p.value = ossia::clamp<float>(t, 0.f, 1.f);
-        fx->fx->setParameter(fx->fx, p.idx, p.value);
-      }
+      const float t = ossia::clamp<float>(ossia::convert<float>(last(vec)), 0.f, 1.f);
+      // A published control's port gets its value at each tick: a value the
+      // plug-in already has is not set again, which would undo what its
+      // editor did since the control last read it
+      if(t == p.value)
+        continue;
+      p.value = t;
+      fx->fx->setParameter(fx->fx, p.idx, p.value);
     }
   }
 

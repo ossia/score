@@ -342,7 +342,9 @@ void Model::reloadControls()
   for(auto ctrl : controls)
   {
     setControlName(ctrl.first, ctrl.second);
-    ctrl.second->setValue(fx->getParameter(ctrl.first));
+    const float v = fx->getParameter(ctrl.first);
+    controlReadFromPlugin(ctrl.first, v);
+    ctrl.second->setValue(v);
   }
 }
 
@@ -376,6 +378,7 @@ void Model::updateControlsChangedByPlugin()
     const float v = fx->getParameter(i);
     if(auto ctrl_it = controls.find(i); ctrl_it != controls.end())
     {
+      controlReadFromPlugin(i, v);
       m_updatingFromPlugin = true;
       ctrl_it->second->setValue(v);
       m_updatingFromPlugin = false;

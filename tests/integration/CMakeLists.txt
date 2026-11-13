@@ -620,6 +620,20 @@ if(TARGET score_plugin_vst AND TARGET score_test_vst_unflagged_instrument
     SCORE_VST_CHUNK_INSTRUMENT="$<TARGET_FILE:score_test_vst_chunk_instrument>")
 endif()
 
+# A VST 2 plug-in in a document that plays: what its editor changes.
+if(TARGET score_plugin_vst AND TARGET score_test_vst_edited_effect)
+  score_add_test(test_integration_vst2_playing
+    SOURCES Vst2PlayingTest.cpp
+    APP
+    PLUGINS score_plugin_vst score_plugin_scenario score_plugin_engine score_plugin_audio
+      score_plugin_dataflow score_plugin_deviceexplorer score_lib_process)
+  target_include_directories(test_integration_vst2_playing PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-vst")
+  add_dependencies(test_integration_vst2_playing score_test_vst_edited_effect)
+  target_compile_definitions(test_integration_vst2_playing PRIVATE
+    SCORE_VST_EDITED_EFFECT="$<TARGET_FILE:score_test_vst_edited_effect>")
+endif()
+
 # A preset of the script a process already runs keeps its ports.
 score_add_test(test_integration_script_preset_ports
   SOURCES ScriptPresetPortsTest.cpp

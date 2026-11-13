@@ -164,6 +164,11 @@ public:
 
   std::atomic_bool needIdle{};
 
+  //! Emitted on the main thread with the value the plug-in has for a
+  //! parameter, before its control takes it
+  void controlReadFromPlugin(int32_t fxNum, float value)
+      W_SIGNAL(controlReadFromPlugin, fxNum, value);
+
   //! State saved with a plug-in that could not be loaded, written back as is
   //! by the serializers (JSON "Data": base64 chunk, "Params": values,
   //! "Program": the program it was on, -1 for none).

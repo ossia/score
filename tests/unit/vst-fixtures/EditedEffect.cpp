@@ -9,11 +9,13 @@
 // - index 1: the editor moves it and calls audioMasterAutomate in percent;
 // - index 2: the editor moves it and calls audioMasterAutomate normalized, as
 //   a plug-in that follows the specification;
-// - index 3: gives the number of setParameter calls so far.
+// - index 3: gives the number of setParameter calls so far;
+// - index 4: gives the number of blocks processed so far.
 
 #include <Vst/vst-compat.hpp>
 
 #include <algorithm>
+#include <atomic>
 #include <cstring>
 
 namespace
@@ -22,8 +24,9 @@ struct effect
 {
   AEffect effect{};
   audioMasterCallback master{};
-  float level{0.8f};
-  intptr_t set_calls{};
+  std::atomic<float> level{0.8f};
+  std::atomic<intptr_t> set_calls{};
+  std::atomic<intptr_t> blocks{};
 };
 
 effect& self(AEffect* e)
@@ -56,6 +59,8 @@ intptr_t dispatcher(AEffect* e, int32_t op, int32_t idx, intptr_t, void* ptr, fl
           return 1;
         case 3:
           return self(e).set_calls;
+        case 4:
+          return self(e).blocks;
       }
       return 0;
     default:
@@ -63,8 +68,9 @@ intptr_t dispatcher(AEffect* e, int32_t op, int32_t idx, intptr_t, void* ptr, fl
   }
 }
 
-void process(AEffect*, float** in, float** out, int32_t n)
+void process(AEffect* e, float** in, float** out, int32_t n)
 {
+  self(e).blocks++;
   std::copy_n(in[0], n, out[0]);
 }
 
