@@ -1,5 +1,6 @@
 #pragma once
 #include <LV2/Context.hpp>
+#include <LV2/UiChannel.hpp>
 #include <LV2/lv2_atom_helpers.hpp>
 
 #include <ossia/dataflow/fx_node.hpp>
@@ -45,11 +46,9 @@ struct voice
   //! F7, once the last of its SysEx7 packets is in.
   std::vector<libremidi::midi2_to_midi1_assembler<>> midi_2to1;
   std::vector<libremidi::midi1_to_midi2> midi_1to2;
-  std::vector<ossia::small_vector<Message, 2>> message_for_midi_atom_ins;
 
   std::vector<AtomBuffer> atom_ins;
   std::vector<AtomBuffer> atom_outs;
-  std::vector<ossia::small_vector<Message, 2>> message_for_atom_ins;
   //! The atom ports with no direction: an empty sequence, every run.
   std::vector<AtomBuffer> atom_others;
 
@@ -58,7 +57,9 @@ struct voice
     int port;
     AtomBuffer* buffer{};
   };
-  std::vector<TimePort> atom_timePosition_midi;
+  //! The inputs carrying time:Position that also carry MIDI or messages of
+  //! the UI: the position is written first in their sequence
+  std::vector<TimePort> atom_timePosition_shared;
   std::vector<AtomBuffer> atom_timePosition_owned_buffers;
   std::vector<TimePort> atom_timePosition_owned;
 
@@ -171,6 +172,25 @@ struct lv2_node final : public ossia::graph_node
   OnExecStart on_start;
   OnExecFinished on_finished;
 
+  //! What the UI of the plug-in and the plug-in say to each other, when it
+  //! has one. Set on the main thread before the node runs.
+  std::shared_ptr<UiChannel> ui;
+
+  //! What the UI sent to an atom input, MIDI or not, for the voices of the
+  //! next run: the events of a sequence, in storage the size of the
+  //! sequence the input has. The MIDI inputs first, then the others.
+  struct ui_input
+  {
+    int port{};
+    uint32_t room{};
+    uint32_t used{};
+    std::unique_ptr<uint8_t[]> events;
+  };
+  std::vector<ui_input> m_uiInputs;
+  //! all_notes_off() was called: the next run turns off the notes of every
+  //! channel, on the first MIDI input.
+  bool m_notesOff{};
+
   // Avoids RT-unfriendly realloc in append_voice for common channel counts
   static constexpr std::size_t kVoicePoolReserve = 256;
 
@@ -270,17 +290,33 @@ struct lv2_node final : public ossia::graph_node
         lv2_atom_forge_init(&m_forge, &data.host.global->map);
     }
 
+    m_uiInputs.reserve(midi_in_size + atom_in_size);
+    for(int port : data.midi_in_ports)
+      add_ui_input(port);
+    for(int port : data.atom_in_ports)
+      add_ui_input(port);
+
     requested_voices.store(voices.size(), std::memory_order_relaxed);
+  }
+
+  // [main thread]
+  void add_ui_input(int port)
+  {
+    const auto room = UiChannel::sequence_room(data.atomBufferSize(port));
+    m_uiInputs.push_back({port, room, 0, std::make_unique<uint8_t[]>(room)});
   }
 
   ~lv2_node() noexcept override
   {
     // May run on audio thread; voice cleanup is main-thread-only per LV2 spec
-    if(voices.empty())
+    if(voices.empty() && !ui)
       return;
     QMetaObject::invokeMethod(
         QCoreApplication::instance(),
-        [pending = std::move(voices)]() mutable { pending.clear(); });
+        [pending = std::move(voices), ui = std::move(ui)]() mutable {
+      pending.clear();
+      ui.reset();
+    });
   }
 
   // [main thread]
@@ -408,7 +444,6 @@ struct lv2_node final : public ossia::graph_node
 
     v.midi_atom_ins.reserve(midi_in_size);
     v.midi_2to1.resize(midi_in_size);
-    v.message_for_midi_atom_ins.resize(midi_in_size);
     for(std::size_t i = 0; i < midi_in_size; i++)
       v.midi_atom_ins.emplace_back(
           data.atomBufferSize(data.midi_in_ports[i]), data.host.atom_chunk_id,
@@ -422,7 +457,6 @@ struct lv2_node final : public ossia::graph_node
           data.host.atom_sequence_id, false);
 
     v.atom_ins.reserve(atom_in_size);
-    v.message_for_atom_ins.resize(atom_in_size);
     for(std::size_t i = 0; i < atom_in_size; i++)
       v.atom_ins.emplace_back(
           data.atomBufferSize(data.atom_in_ports[i]), data.host.atom_chunk_id,
@@ -440,18 +474,26 @@ struct lv2_node final : public ossia::graph_node
           data.atomBufferSize(port), data.host.atom_chunk_id,
           data.host.atom_sequence_id, true);
 
-    // time:Position may share a MIDI port (atom:supports midi+time) or have its own atom port
+    // time:Position shares the sequence of the MIDI or atom input it comes
+    // on (B.Choppr's also carries what its UI sends)
     v.atom_timePosition_owned_buffers.reserve(data.time_Position_ports.size());
     for(int port_index : data.time_Position_ports)
     {
       bool shared = false;
-      for(std::size_t k = 0; k < data.midi_in_ports.size(); ++k)
+      for(std::size_t k = 0; k < data.midi_in_ports.size() && !shared; ++k)
       {
         if(data.midi_in_ports[k] == port_index)
         {
-          v.atom_timePosition_midi.push_back({port_index, &v.midi_atom_ins[k]});
+          v.atom_timePosition_shared.push_back({port_index, &v.midi_atom_ins[k]});
           shared = true;
-          break;
+        }
+      }
+      for(std::size_t k = 0; k < data.atom_in_ports.size() && !shared; ++k)
+      {
+        if(data.atom_in_ports[k] == port_index)
+        {
+          v.atom_timePosition_shared.push_back({port_index, &v.atom_ins[k]});
+          shared = true;
         }
       }
       if(!shared)
@@ -525,36 +567,99 @@ struct lv2_node final : public ossia::graph_node
     }
   }
 
-  void all_notes_off() noexcept override
+  //! [audio thread] What the UI sent, for this run: as much as the inputs
+  //! have room for, in order; the rest stays in the ring for the next runs.
+  void receive_ui_messages() noexcept
   {
-    // CC#120 (All Sound Off) + CC#123 (All Notes Off) on every channel of every voice
-    if(data.midi_in_ports.empty())
+    if(!ui)
       return;
-    const int midi_port_index = data.midi_in_ports[0];
-    for(auto& v : voices)
+    while(ui->to_plugin.try_read(
+        [this](const message_ring::header& h) -> std::optional<uint8_t*> {
+      auto it = std::find_if(m_uiInputs.begin(), m_uiInputs.end(), [&](const auto& in) {
+        return uint32_t(in.port) == h.index;
+      });
+      if(it == m_uiInputs.end() || h.size < sizeof(LV2_Atom))
+        return nullptr;
+      const uint32_t size = UiChannel::event_size(h.size);
+      if(size > it->room)
+        return nullptr;
+      if(it->used + size > it->room)
+        return std::nullopt;
+      uint8_t* ev = it->events.get() + it->used;
+      std::memset(ev, 0, sizeof(int64_t));
+      it->used += size;
+      return ev + sizeof(int64_t);
+    }))
     {
-      if(v->message_for_midi_atom_ins.empty())
-        continue;
-      auto& msg_queue = v->message_for_midi_atom_ins[0];
-      for(uint8_t ch = 0; ch < 16; ++ch)
+    }
+  }
+
+  //! What the UI sent to UI input `k`, at the start of the run
+  void write_ui_messages(Iterator& it, std::size_t k) noexcept
+  {
+    const auto& in = m_uiInputs[k];
+    for(uint32_t at = 0; at < in.used;)
+    {
+      const auto* atom
+          = reinterpret_cast<const LV2_Atom*>(in.events.get() + at + sizeof(int64_t));
+      it.write(0, 0, atom->type, atom->size, (const uint8_t*)LV2_ATOM_BODY_CONST(atom));
+      at += UiChannel::event_size(sizeof(LV2_Atom) + atom->size);
+    }
+  }
+
+  void clear_ui_messages() noexcept
+  {
+    for(auto& in : m_uiInputs)
+      in.used = 0;
+    m_notesOff = false;
+  }
+
+  //! CC#120 (All Sound Off) and CC#123 (All Notes Off) on every channel, when
+  //! all_notes_off() asked for them
+  void write_notes_off(Iterator& it) noexcept
+  {
+    if(!m_notesOff)
+      return;
+    for(uint8_t ch = 0; ch < 16; ++ch)
+    {
+      for(uint8_t cc : {uint8_t(120), uint8_t(123)})
       {
-        for(uint8_t cc : {uint8_t(120), uint8_t(123)})
-        {
-          Message m;
-          m.index = uint32_t(midi_port_index);
-          m.protocol = data.host.atom_eventTransfer;
-          m.body.resize(sizeof(LV2_Atom) + 3);
-          auto* atom = reinterpret_cast<LV2_Atom*>(m.body.data());
-          atom->type = data.host.midi_event_id;
-          atom->size = 3;
-          uint8_t* d = m.body.data() + sizeof(LV2_Atom);
-          d[0] = uint8_t(0xB0 | ch);
-          d[1] = cc;
-          d[2] = 0;
-          msg_queue.push_back(std::move(m));
-        }
+        const uint8_t d[3]{uint8_t(0xB0 | ch), cc, 0};
+        it.write(0, 0, data.host.midi_event_id, 3, d);
       }
     }
+  }
+
+  //! [audio thread] What voice 0 wrote on its atom outputs, for the UI that
+  //! listens
+  void send_ui_messages() noexcept
+  {
+    if(!ui || !ui->listening.load(std::memory_order_acquire))
+      return;
+    for_each_ui_event(
+        [this](uint32_t port, const LV2_Atom& atom) { ui->send_to_ui(port, atom); });
+  }
+
+  //! What voice 0 wrote on its atom outputs, MIDI or not, for the UI:
+  //! f(port index, atom) for each event.
+  template <typename F>
+  void for_each_ui_event(F&& f) const
+  {
+    if(voices.empty())
+      return;
+    auto& v0 = *voices[0];
+    for(std::size_t k = 0; k < v0.midi_atom_outs.size(); ++k)
+      v0.midi_atom_outs[k].buf->for_each_output_event(
+          [&](const LV2_Atom_Event& ev) { f(uint32_t(data.midi_out_ports[k]), ev.body); });
+    for(std::size_t k = 0; k < v0.atom_outs.size(); ++k)
+      v0.atom_outs[k].buf->for_each_output_event(
+          [&](const LV2_Atom_Event& ev) { f(uint32_t(data.atom_out_ports[k]), ev.body); });
+  }
+
+  void all_notes_off() noexcept override
+  {
+    if(!data.midi_in_ports.empty())
+      m_notesOff = true;
   }
 
   [[nodiscard]] std::string label() const noexcept override
@@ -660,17 +765,14 @@ struct lv2_node final : public ossia::graph_node
 
       // The position first: the sequence is in time order, and the events of
       // this block are at this position.
-      if(ossia::any_of(v.atom_timePosition_midi, [&](const auto& t) {
+      if(ossia::any_of(v.atom_timePosition_shared, [&](const auto& t) {
            return t.buffer == &lv2_port;
          }))
         writeTime(it);
 
-      for(const Message& msg : v.message_for_midi_atom_ins[i])
-      {
-        auto* atom = (LV2_Atom*)msg.body.data();
-        auto* atom_data = (const uint8_t*)LV2_ATOM_BODY(atom);
-        it.write(0, 0, atom->type, atom->size, atom_data);
-      }
+      write_ui_messages(it, i);
+      if(i == 0)
+        write_notes_off(it);
 
       // Port timestamps are relative to the buffer, the plug-in's to the tick:
       // as the VST3 host does, what falls outside it goes to its nearest end.
@@ -690,6 +792,7 @@ struct lv2_node final : public ossia::graph_node
       }
     }
 
+    writeAtomIns(v);
     for(auto& [_, buf] : v.atom_timePosition_owned)
     {
       Iterator it{buf->buf};
@@ -786,6 +889,22 @@ struct lv2_node final : public ossia::graph_node
       write(timePositionBuffer.get());
   }
 
+  //! The atom inputs that are not MIDI: the position first when they carry
+  //! one, then what the UI sent to them.
+  void writeAtomIns(voice& v) noexcept
+  {
+    for(std::size_t i = 0; i < v.atom_ins.size(); i++)
+    {
+      auto& lv2_port = v.atom_ins[i];
+      Iterator it{lv2_port.buf};
+      if(ossia::any_of(v.atom_timePosition_shared, [&](const auto& t) {
+           return t.buffer == &lv2_port;
+         }))
+        writeTime(it);
+      write_ui_messages(it, data.midi_in_ports.size() + i);
+    }
+  }
+
   void postProcessVoice(voice& v) noexcept
   {
     // Answers reach an instance that did not run this cycle too: in the
@@ -810,8 +929,6 @@ struct lv2_node final : public ossia::graph_node
       port.buf->reset(false);
     for(auto& port : v.atom_others)
       port.buf->reset(true);
-    for(auto& mqueue : v.message_for_midi_atom_ins)
-      mqueue.clear();
   }
 
   // per_channel: inputs broadcast -> voice 0 outputs are canonical
@@ -844,8 +961,8 @@ struct lv2_node final : public ossia::graph_node
             return stdx::error{};
           });
         }
-        // Other events on a MIDI port are for the plug-in's UI (on_finish
-        // forwards them); FIXME also forward them (patch:Set...) to a value
+        // Other events on a MIDI port are for the plug-in's UI
+        // (send_ui_messages forwards them); FIXME also forward them (patch:Set...) to a value
         // outlet.
       });
     }
@@ -880,16 +997,15 @@ struct lv2_node final : public ossia::graph_node
       {
         auto& lv2_port = v.midi_atom_ins[i];
         Iterator it{lv2_port.buf};
-        if(ossia::any_of(v.atom_timePosition_midi, [&](const auto& t) {
+        if(ossia::any_of(v.atom_timePosition_shared, [&](const auto& t) {
              return t.buffer == &lv2_port;
            }))
           writeTime(it);
-        for(const Message& msg : v.message_for_midi_atom_ins[i])
-        {
-          auto* atom = (LV2_Atom*)msg.body.data();
-          it.write(0, 0, atom->type, atom->size, (const uint8_t*)LV2_ATOM_BODY(atom));
-        }
+        write_ui_messages(it, i);
+        if(i == 0)
+          write_notes_off(it);
       }
+      writeAtomIns(v);
       for(auto& [_, buf] : v.atom_timePosition_owned)
       {
         Iterator it{buf->buf};
@@ -913,6 +1029,7 @@ struct lv2_node final : public ossia::graph_node
       v.ran = true;
       postProcessVoice(v);
     }
+    clear_ui_messages();
   }
 
   void run(const ossia::token_request& tk, ossia::exec_state_facade st) noexcept override
@@ -939,6 +1056,7 @@ struct lv2_node final : public ossia::graph_node
         std::max<int64_t>(st.bufferSize(), tick_start + samples)};
 
     on_start();
+    receive_ui_messages();
     for(std::size_t c = 0; c < voices.size(); ++c)
       preProcessVoice(*voices[c], c);
 
@@ -958,10 +1076,12 @@ struct lv2_node final : public ossia::graph_node
     }
 
     surfaceVoiceZeroOutputs(tk.physical_start(st.modelToSamples()));
+    send_ui_messages();
     on_finished();
 
     for(auto& v : voices)
       postProcessVoice(*v);
+    clear_ui_messages();
     m_sendStopped = false;
   }
 

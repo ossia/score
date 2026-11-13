@@ -34,6 +34,7 @@ set(HDRS
     "${CMAKE_CURRENT_SOURCE_DIR}/LV2/Context.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/LV2/Suil.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/LV2/Node.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/LV2/UiChannel.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/LV2/Window.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/LV2/Library.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/LV2/Settings.hpp"
