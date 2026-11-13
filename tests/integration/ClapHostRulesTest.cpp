@@ -36,6 +36,9 @@
 
 #include <dlfcn.h>
 
+#include <optional>
+#include <string_view>
+
 namespace
 {
 const QString clap_uuid = QStringLiteral("10e8d26d-1d82-4bfc-a9fb-d85ffdf04e5f");
@@ -55,12 +58,15 @@ struct errors
   int active;
   int initialised;
   double last_rate;
+  int wrong_instance;
+  int callbacks_done;
 };
 
 template <typename F>
 F* plugin_function(const char* name)
 {
-  void* lib = dlopen(CLAP_MONO_GAIN_PATH, RTLD_LAZY);
+  // Kept open once: the library stays loaded for the whole test
+  static void* const lib = dlopen(CLAP_MONO_GAIN_PATH, RTLD_LAZY);
   REQUIRE(lib);
   auto f = reinterpret_cast<F*>(dlsym(lib, name));
   REQUIRE(f);
@@ -192,7 +198,54 @@ struct playing
     plug.clear();
     spin(50);
   }
+
+  Execution::ProcessComponent& component()
+  {
+    auto& procs = plug.baseScenario()->baseInterval().processes();
+    auto it = procs.find(proc.id());
+    REQUIRE(it != procs.end());
+    return *it->second;
+  }
+
+  //! What an interval of the scenario does when it ends, on the audio thread
+  //! and then on the main one: its process stops and its node stays
+  void stop_interval()
+  {
+    ossia::set_thread_pinned(ossia::thread_type::Audio, 0);
+    component().OSSIAProcess().stop();
+    ossia::set_thread_pinned(ossia::thread_type::Ui, 0);
+    proc.setExecuting(false);
+    proc.stopExecution();
+  }
+
+  //! The same interval played again
+  void start_interval()
+  {
+    ossia::set_thread_pinned(ossia::thread_type::Audio, 0);
+    component().OSSIAProcess().start();
+    ossia::set_thread_pinned(ossia::thread_type::Ui, 0);
+    proc.setExecuting(true);
+    proc.startExecution();
+  }
 };
+
+void all_ask(bool callback, bool restart, bool pool)
+{
+  plugin_function<void(bool, bool, bool)>("clap_mono_gain_all_ask")(
+      callback, restart, pool);
+}
+
+void all_at(const std::vector<double>& out, std::size_t channels, double v)
+{
+  REQUIRE(out.size() == channels);
+  for(std::size_t i = 0; i < out.size(); i++)
+  {
+    INFO("channel " << i);
+    CHECK(out[i] == Catch::Approx(v));
+  }
+}
+
+const char* const both_gains[] = {"io.ossia.test.stereo-gain", "io.ossia.test.mono-gain"};
 }
 
 TEST_CASE(
