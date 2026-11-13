@@ -1269,6 +1269,13 @@ if(TARGET score_plugin_vst)
       vst-fixtures/UnflaggedInstrument.cpp)
     target_include_directories(score_test_vst_unflagged_instrument PRIVATE
       "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-vst")
+
+    # A VST 2 effect whose simulated editor sends audioMasterAutomate in the
+    # parameter's own unit, as some DPF builds do.
+    add_library(score_test_vst_edited_effect MODULE
+      vst-fixtures/EditedEffect.cpp)
+    target_include_directories(score_test_vst_edited_effect PRIVATE
+      "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-vst")
     score_add_test(test_unit_vst_midi_input
       SOURCES VstMidiInputTest.cpp
       APP
@@ -3075,17 +3082,20 @@ score_add_test(test_unit_plugin_window
   SOURCES PluginWindowTest.cpp
   LIBS ${QT_PREFIX}::Gui ${QT_PREFIX}::Widgets)
 
-# A parameter a VST 2 editor changes reaches its control.
-if(TARGET score_plugin_vst AND TARGET score_test_vst_unflagged_instrument)
+# A parameter a VST 2 editor changes reaches its control, as the plug-in has it.
+if(TARGET score_plugin_vst AND TARGET score_test_vst_unflagged_instrument
+   AND TARGET score_test_vst_edited_effect)
   score_add_test(test_unit_vst_editor_automate
     SOURCES VstEditorAutomateTest.cpp
     APP
     PLUGINS score_lib_process score_plugin_vst)
   target_include_directories(test_unit_vst_editor_automate PRIVATE
     "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-vst")
-  add_dependencies(test_unit_vst_editor_automate score_test_vst_unflagged_instrument)
+  add_dependencies(test_unit_vst_editor_automate
+    score_test_vst_unflagged_instrument score_test_vst_edited_effect)
   target_compile_definitions(test_unit_vst_editor_automate PRIVATE
-    SCORE_VST_UNFLAGGED_INSTRUMENT="$<TARGET_FILE:score_test_vst_unflagged_instrument>")
+    SCORE_VST_UNFLAGGED_INSTRUMENT="$<TARGET_FILE:score_test_vst_unflagged_instrument>"
+    SCORE_VST_EDITED_EFFECT="$<TARGET_FILE:score_test_vst_edited_effect>")
 endif()
 
 # A VST3 gain made with the SDK's AudioEffect and EditController, and a

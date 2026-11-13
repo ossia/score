@@ -325,6 +325,7 @@ void ApplicationPlugin::timerEvent(QTimerEvent* event)
     {
       vst->dispatch(effEditIdle);
     }
+    vst->updateControlsChangedByPlugin();
   }
 }
 

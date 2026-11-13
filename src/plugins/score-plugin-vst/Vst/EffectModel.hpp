@@ -11,6 +11,9 @@
 
 #include <ossia/detail/hash_map.hpp>
 
+#include <atomic>
+#include <memory>
+
 #include <score_plugin_vst_export.h>
 
 #include <verdigris>
@@ -138,6 +141,16 @@ public:
   void reloadControls();
   void reloadPrograms();
 
+  //! The plug-in says it changed a parameter (audioMasterAutomate). Callable
+  //! from any thread, the audio one included: it neither allocates nor locks.
+  void parameterChangedByPlugin(int32_t index) noexcept;
+
+  //! Moves the control of each parameter the plug-in said it changed to the
+  //! value the plug-in has for it now, without sending it back to the
+  //! plug-in; a parameter without a control gets one while the process
+  //! creates them. Main thread.
+  void updateControlsChangedByPlugin();
+
   auto dispatch(
       int32_t opcode, int32_t index = 0, intptr_t value = 0, void* ptr = nullptr,
       float opt = 0.0f)
@@ -180,6 +193,16 @@ private:
   std::vector<std::pair<std::string, int>> m_programs;
   int32_t m_effectId{};
   bool m_createControls{};
+
+  //! One flag per parameter the plug-in had when it was opened, raised by
+  //! parameterChangedByPlugin; m_otherParamChanged for an index past them,
+  //! m_paramsChanged for any.
+  std::unique_ptr<std::atomic_bool[]> m_changedParams;
+  int32_t m_changedParamCount{};
+  std::atomic_bool m_otherParamChanged{};
+  std::atomic_bool m_paramsChanged{};
+  //! A control is being moved to the plug-in's value: not sent back to it
+  bool m_updatingFromPlugin{};
 
   struct vst_context_handler
   {

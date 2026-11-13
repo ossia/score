@@ -328,6 +328,8 @@ void Model::on_addControl_impl(ControlInlet* ctrl)
 
 void Model::on_controlChangedFromScore(int i, float newval)
 {
+  if(m_updatingFromPlugin)
+    return;
   if(std::abs(newval - fx->getParameter(i)) > 0.0001)
     fx->setParameter(i, newval);
 }
@@ -341,6 +343,48 @@ void Model::reloadControls()
   {
     setControlName(ctrl.first, ctrl.second);
     ctrl.second->setValue(fx->getParameter(ctrl.first));
+  }
+}
+
+void Model::parameterChangedByPlugin(int32_t index) noexcept
+{
+  if(index >= 0 && index < m_changedParamCount)
+    m_changedParams[index].store(true, std::memory_order_release);
+  else
+    m_otherParamChanged.store(true, std::memory_order_release);
+  m_paramsChanged.store(true, std::memory_order_release);
+}
+
+void Model::updateControlsChangedByPlugin()
+{
+  if(!m_paramsChanged.exchange(false, std::memory_order_acquire))
+    return;
+  if(!fx || !fx->fx)
+    return;
+
+  // An index the flags do not cover: each control is read again
+  const bool all = m_otherParamChanged.exchange(false, std::memory_order_acquire);
+  const int32_t count = fx->fx->numParams;
+  for(int32_t i = 0; i < count; i++)
+  {
+    const bool changed
+        = i < m_changedParamCount
+          && m_changedParams[i].exchange(false, std::memory_order_acquire);
+    if(!changed && !all)
+      continue;
+
+    const float v = fx->getParameter(i);
+    if(auto ctrl_it = controls.find(i); ctrl_it != controls.end())
+    {
+      m_updatingFromPlugin = true;
+      ctrl_it->second->setValue(v);
+      m_updatingFromPlugin = false;
+    }
+    else if(changed && (flags() & Process::CreateControls))
+    {
+      auto& ctx = score::IDocument::documentContext(*this);
+      CommandDispatcher<>{ctx.commandStack}.submit<CreateControl>(*this, i, v);
+    }
   }
 }
 
@@ -419,25 +463,13 @@ intptr_t vst_host_callback(
       }
 
       case audioMasterAutomate: {
-        // A parameter with a control moves it; one without gets a control
-        // only while the process creates them
+        // Sent from the editor, but also from the audio thread. The value is
+        // read back from the plug-in later, on the main thread: opt is not
+        // always the normalized value, e.g. DPF plug-ins built with a host
+        // callback that takes an int32_t in its place leave whatever the
+        // float register holds, often the parameter in its own unit.
         if(auto vst = reinterpret_cast<Model*>(effect->resvd1))
-        {
-          ossia::qt::run_async(vst, [vst, index, opt] {
-            auto ctrl_it = vst->controls.find(index);
-            if(ctrl_it != vst->controls.end())
-            {
-              ctrl_it->second->setValue(opt);
-            }
-            else if(vst->flags() & Process::CreateControls)
-            {
-              auto& ctx = score::IDocument::documentContext(*vst);
-              CommandDispatcher<>{ctx.commandStack}.submit<CreateControl>(
-                  *vst, index, opt);
-            }
-          });
-        }
-
+          vst->parameterChangedByPlugin(index);
         break;
       }
     }
@@ -676,6 +708,12 @@ void Model::initFx()
       return;
     }
   }
+
+  // Before the plug-in can call the host with this process
+  m_changedParamCount = std::max(fx->fx->numParams, int32_t{0});
+  m_changedParams = std::make_unique<std::atomic_bool[]>(m_changedParamCount);
+  m_otherParamChanged.store(false, std::memory_order_relaxed);
+  m_paramsChanged.store(false, std::memory_order_relaxed);
 
   fx->fx->resvd1 = reinterpret_cast<intptr_t>(this);
 
