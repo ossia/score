@@ -261,6 +261,7 @@ set(HEADERS
     "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/ListNetworkAddresses.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/Platforms.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/Unused.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/CancellationToken.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/RecursiveWatch.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/ThreadPool.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/Timers.hpp"
@@ -500,6 +501,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/MDMEnrollmentDetection.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/PointerLock.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/RandomNameProvider.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/score/tools/CancellationToken.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/RecursiveWatch.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/ThreadPool.cpp"
 

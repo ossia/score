@@ -24,6 +24,7 @@ namespace Library
 struct ProcessData : Process::ProcessData
 {
   QIcon icon;
+  QString searchString;
 };
 
 //! A subtree of library entries. Pure data, safe to produce on any thread;
