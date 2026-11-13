@@ -200,6 +200,7 @@ public:
   void requestTransport(QPointF pt) W_SIGNAL(requestTransport, pt);
 
 private:
+  void on_viewSelection();
   void timerEvent(QTimerEvent* event) override;
   // Orphaned by CentralViewStack::releaseMainView on document close, after
   // which we are its only owner; deleted by Qt first if the window goes down
