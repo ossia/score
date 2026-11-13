@@ -27,9 +27,13 @@ private:
   void resizeEvent(QResizeEvent* event) override;
   void closeEvent(QCloseEvent* event) override;
   void drainUiEvents();
+  //! The window takes the size the embedded UI gave itself
+  void followUiSize();
 
   const Model& m_model;
   QWidget* m_widget{};
+  QSize m_uiSize;
+  bool m_followUiSize{};
 };
 
 using LayerFactory = Process::EffectLayerFactory_T<Model, Window>;

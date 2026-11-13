@@ -806,6 +806,40 @@ static const LV2_Descriptor descriptor_worker
     = {"urn:score:test:worker", instantiate_worker,    connect_port_worker, NULL,
        run_worker,              NULL,                  cleanup_worker,      extension_data_worker};
 
+/* urn:score:test:x11ui: a control the plug-in does nothing with, which its
+ * X11 UI (score_test_x11ui.c) reads.
+ *
+ * Ports:
+ *   0  control in  "size"  [0, 1] default 0
+ */
+static LV2_Handle instantiate_x11ui(
+    const LV2_Descriptor* descriptor, double rate, const char* bundle_path,
+    const LV2_Feature* const* features)
+{
+  (void)descriptor;
+  (void)rate;
+  (void)bundle_path;
+  (void)features;
+  return calloc(1, 1);
+}
+
+static void connect_port_x11ui(LV2_Handle instance, uint32_t port, void* data)
+{
+  (void)instance;
+  (void)port;
+  (void)data;
+}
+
+static void run_x11ui(LV2_Handle instance, uint32_t n_samples)
+{
+  (void)instance;
+  (void)n_samples;
+}
+
+static const LV2_Descriptor descriptor_x11ui
+    = {"urn:score:test:x11ui", instantiate_x11ui, connect_port_x11ui, NULL,
+       run_x11ui,              NULL,              cleanup,            NULL};
+
 /* urn:score:test:worker-echo: copies its input; each run schedules a work
  * that carries the instance, whose answer carries it back, as does the work
  * that answer schedules in its turn from work_response().
@@ -1027,6 +1061,8 @@ LV2_SYMBOL_EXPORT const LV2_Descriptor* lv2_descriptor(uint32_t index)
     case 10:
       return &descriptor_worker;
     case 11:
+      return &descriptor_x11ui;
+    case 12:
       return &descriptor_echo;
     default:
       return NULL;
