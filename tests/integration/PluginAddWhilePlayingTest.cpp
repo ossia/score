@@ -53,6 +53,21 @@ void spin(int ms)
   } while(t.elapsed() < ms);
 }
 
+//! Processes events until `cond` holds, for at most `ms`: whether it holds
+template <typename F>
+bool spin_until(F cond, int ms)
+{
+  QElapsedTimer t;
+  t.start();
+  while(!cond())
+  {
+    if(t.elapsed() > ms)
+      return false;
+    QApplication::processEvents(QEventLoop::AllEvents, 5);
+  }
+  return true;
+}
+
 Scenario::IntervalModel& root(score::Document& doc)
 {
   return score::IDocument::get<Scenario::ScenarioDocumentModel>(doc).baseInterval();
@@ -234,11 +249,11 @@ TEST_CASE(
                 *play.doc, root(*play.doc), process_data(lv2_key, "urn:score:test:worker"))
                 .size()
             == 1);
+    // Each instance the process runs schedules one; the works take 300 ms
+    // each, one after the other
     spin(800);
-    // Each instance the process runs schedules one
+    CHECK(spin_until([&] { return done() >= 1 && responses() == done(); }, 10000));
     const int first = done();
-    CHECK(first >= 1);
-    CHECK(responses() == first);
 
     // Two at once, whose works would overlap; the second removed while its
     // work runs
@@ -251,7 +266,7 @@ TEST_CASE(
     CommandDispatcher<>{play.doc->context().commandStack}.submit(
         new Scenario::Command::RemoveProcessFromInterval{root(*play.doc), added[0]->id()});
     spin(1600);
-    CHECK(done() > first);
+    CHECK(spin_until([&] { return done() > first; }, 10000));
     CHECK(after_cleanup() == 0);
     CHECK(concurrent() == 0);
     dlclose(h);

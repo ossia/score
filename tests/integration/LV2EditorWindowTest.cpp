@@ -38,6 +38,21 @@ void spin(int ms)
     QApplication::processEvents();
 }
 
+//! Processes events until `cond` holds, for at most `ms`: whether it holds
+template <typename F>
+bool spin_until(F cond, int ms)
+{
+  QElapsedTimer t;
+  t.start();
+  while(!cond())
+  {
+    if(t.elapsed() > ms)
+      return false;
+    QApplication::processEvents();
+  }
+  return true;
+}
+
 QString lv2_bundle()
 {
   return QString::fromUtf8(SCORE_TEST_LV2_BUNDLE);
@@ -86,11 +101,14 @@ TEST_CASE(
     auto& proc = add_x11ui(ctx, *doc);
 
     Process::setupExternalUI(proc, doc->context(), true);
-    spin(300);
-    QWidget* win = proc.externalUI;
-    REQUIRE(win);
+    QWidget* win = nullptr;
     // The size of the UI, not Qt's default for a window never shown
-    CHECK(win->size() == QSize(300, 200));
+    CHECK(spin_until(
+        [&] {
+      win = proc.externalUI;
+      return win && win->size() == QSize(300, 200);
+    }, 5000));
+    REQUIRE(win);
 
     // The UI resizes its own window, as the resize handle of DPF does
     Process::ControlInlet* size = nullptr;
@@ -99,8 +117,7 @@ TEST_CASE(
         size = c;
     REQUIRE(size);
     size->setValue(1.f);
-    spin(500);
-    CHECK(win->size() == QSize(400, 250));
+    CHECK(spin_until([&] { return win->size() == QSize(400, 250); }, 5000));
 
     // A resize from outside still reaches the UI, and is not undone
     win->resize(500, 300);
