@@ -850,6 +850,165 @@ static const LV2_Descriptor descriptor_x11ui
     = {"urn:score:test:x11ui", instantiate_x11ui, connect_port_x11ui, NULL,
        run_x11ui,              NULL,              cleanup,            NULL};
 
+/* urn:score:test:worker-echo: copies its input; each run schedules a work
+ * that carries the instance, whose answer carries it back, as does the work
+ * that answer schedules in its turn from work_response().
+ *
+ * Ports:
+ *   0  audio  in   "in"
+ *   1  audio  out  "out"
+ *
+ * The counters are shared by all instances; "misrouted" counts the works and
+ * answers that reached an instance other than the one they carry.
+ */
+typedef struct
+{
+  const void* self;
+  int from_response;
+} echo_packet;
+
+static int echo_scheduled;
+static int echo_schedule_unknown;
+static int echo_schedule_no_space;
+static int echo_works;
+static int echo_misrouted;
+static int echo_responses;
+static int echo_response_scheduled;
+static int echo_response_schedule_failed;
+
+#define ECHO_COUNTER(name)                                \
+  LV2_SYMBOL_EXPORT int score_test_echo_##name(void)      \
+  {                                                       \
+    return __atomic_load_n(&echo_##name, __ATOMIC_SEQ_CST); \
+  }
+ECHO_COUNTER(scheduled)
+ECHO_COUNTER(schedule_unknown)
+ECHO_COUNTER(schedule_no_space)
+ECHO_COUNTER(works)
+ECHO_COUNTER(misrouted)
+ECHO_COUNTER(responses)
+ECHO_COUNTER(response_scheduled)
+ECHO_COUNTER(response_schedule_failed)
+#undef ECHO_COUNTER
+
+LV2_SYMBOL_EXPORT void score_test_echo_reset(void)
+{
+  int* all[] = {&echo_scheduled, &echo_schedule_unknown, &echo_schedule_no_space,
+                &echo_works,     &echo_misrouted,        &echo_responses,
+                &echo_response_scheduled, &echo_response_schedule_failed};
+  for(unsigned i = 0; i < sizeof(all) / sizeof(all[0]); i++)
+    __atomic_store_n(all[i], 0, __ATOMIC_SEQ_CST);
+}
+
+typedef struct
+{
+  const float* in;
+  float* out;
+  LV2_Worker_Schedule* schedule;
+} test_echo;
+
+static LV2_Handle instantiate_echo(
+    const LV2_Descriptor* descriptor, double rate, const char* bundle_path,
+    const LV2_Feature* const* features)
+{
+  (void)descriptor;
+  (void)rate;
+  (void)bundle_path;
+  test_echo* self = (test_echo*)calloc(1, sizeof(test_echo));
+  if(!self)
+    return NULL;
+  for(int i = 0; features && features[i]; i++)
+    if(!strcmp(features[i]->URI, LV2_WORKER__schedule))
+      self->schedule = (LV2_Worker_Schedule*)features[i]->data;
+  return self;
+}
+
+static void connect_port_echo(LV2_Handle instance, uint32_t port, void* data)
+{
+  test_echo* self = (test_echo*)instance;
+  if(port == 0)
+    self->in = (const float*)data;
+  else if(port == 1)
+    self->out = (float*)data;
+}
+
+static void run_echo(LV2_Handle instance, uint32_t n_samples)
+{
+  test_echo* self = (test_echo*)instance;
+  if(self->in && self->out)
+    memmove(self->out, self->in, n_samples * sizeof(float));
+  if(!self->schedule)
+    return;
+  echo_packet p = {self, 0};
+  switch(self->schedule->schedule_work(self->schedule->handle, sizeof(p), &p))
+  {
+    case LV2_WORKER_SUCCESS:
+      __atomic_add_fetch(&echo_scheduled, 1, __ATOMIC_SEQ_CST);
+      break;
+    case LV2_WORKER_ERR_NO_SPACE:
+      __atomic_add_fetch(&echo_schedule_no_space, 1, __ATOMIC_SEQ_CST);
+      break;
+    default:
+      __atomic_add_fetch(&echo_schedule_unknown, 1, __ATOMIC_SEQ_CST);
+      break;
+  }
+}
+
+static LV2_Worker_Status work_echo(
+    LV2_Handle instance, LV2_Worker_Respond_Function respond,
+    LV2_Worker_Respond_Handle handle, uint32_t size, const void* data)
+{
+  __atomic_add_fetch(&echo_works, 1, __ATOMIC_SEQ_CST);
+  echo_packet p;
+  if(size != sizeof(p))
+  {
+    __atomic_add_fetch(&echo_misrouted, 1, __ATOMIC_SEQ_CST);
+    return LV2_WORKER_ERR_UNKNOWN;
+  }
+  memcpy(&p, data, sizeof(p));
+  if(p.self != instance)
+    __atomic_add_fetch(&echo_misrouted, 1, __ATOMIC_SEQ_CST);
+  return respond(handle, sizeof(p), &p);
+}
+
+static LV2_Worker_Status
+work_response_echo(LV2_Handle instance, uint32_t size, const void* body)
+{
+  test_echo* self = (test_echo*)instance;
+  __atomic_add_fetch(&echo_responses, 1, __ATOMIC_SEQ_CST);
+  echo_packet p;
+  if(size != sizeof(p))
+  {
+    __atomic_add_fetch(&echo_misrouted, 1, __ATOMIC_SEQ_CST);
+    return LV2_WORKER_ERR_UNKNOWN;
+  }
+  memcpy(&p, body, sizeof(p));
+  if(p.self != instance)
+    __atomic_add_fetch(&echo_misrouted, 1, __ATOMIC_SEQ_CST);
+  if(!p.from_response && self->schedule)
+  {
+    p.from_response = 1;
+    if(self->schedule->schedule_work(self->schedule->handle, sizeof(p), &p)
+       == LV2_WORKER_SUCCESS)
+      __atomic_add_fetch(&echo_response_scheduled, 1, __ATOMIC_SEQ_CST);
+    else
+      __atomic_add_fetch(&echo_response_schedule_failed, 1, __ATOMIC_SEQ_CST);
+  }
+  return LV2_WORKER_SUCCESS;
+}
+
+static const LV2_Worker_Interface echo_interface
+    = {work_echo, work_response_echo, NULL};
+
+static const void* extension_data_echo(const char* uri)
+{
+  return !strcmp(uri, LV2_WORKER__interface) ? &echo_interface : NULL;
+}
+
+static const LV2_Descriptor descriptor_echo
+    = {"urn:score:test:worker-echo", instantiate_echo, connect_port_echo, NULL,
+       run_echo,                     NULL,             cleanup,           extension_data_echo};
+
 LV2_SYMBOL_EXPORT const LV2_Descriptor* lv2_descriptor(uint32_t index)
 {
   switch(index)
@@ -880,6 +1039,8 @@ LV2_SYMBOL_EXPORT const LV2_Descriptor* lv2_descriptor(uint32_t index)
       return &descriptor_atom_notify;
     case 12:
       return &descriptor_x11ui;
+    case 13:
+      return &descriptor_echo;
     default:
       return NULL;
   }

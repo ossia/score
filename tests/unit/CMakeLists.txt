@@ -2782,6 +2782,24 @@ if(TARGET score_plugin_lv2)
     "${OSSIA_3RDPARTY_FOLDER}/readerwriterqueue")
 endif()
 
+# LV2 works are done on the instance that asked and answered to it, with two
+# nodes on two threads too, and cost the audio thread no allocation.
+if(TARGET score_plugin_lv2 AND NOT WIN32)
+  score_add_test(test_unit_lv2_worker
+    SOURCES LV2WorkerTest.cpp
+    APP
+    PLUGINS score_plugin_lv2 score_lib_process
+    LIBS Lilv ${CMAKE_DL_LIBS})
+  add_dependencies(test_unit_lv2_worker score_test_gain_lv2)
+  target_compile_definitions(test_unit_lv2_worker PRIVATE
+    SCORE_TEST_LV2_BUNDLE="${SCORE_ROOT_BINARY_DIR}/tests/lv2/score-test-gain.lv2")
+  target_include_directories(test_unit_lv2_worker PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-lv2"
+    "${LV2_PATH}"
+    $<TARGET_PROPERTY:Suil,INTERFACE_INCLUDE_DIRECTORIES>
+    "${OSSIA_3RDPARTY_FOLDER}/readerwriterqueue")
+endif()
+
 # Bytebeat formulas, JIT-compiled, against the sound of a JS engine and of C
 if(TARGET score_plugin_jit)
   score_add_test(test_unit_bytebeat

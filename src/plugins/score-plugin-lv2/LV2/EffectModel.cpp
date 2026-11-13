@@ -869,11 +869,10 @@ void Model::readPlugin()
   }
 
   auto sr = app_plug.context.settings<Audio::Settings::Model>().getRate();
-  if(auto* inst = lilv_plugin_instantiate(
-         effectContext.plugin.me, sr, app_plug.lv2_host_context.features))
+  if(auto inst = app_plug.lv2_context->instantiate(effectContext.plugin.me, sr))
   {
-    effectContext.instance_holder = std::make_shared<InstanceHandle>(inst);
-    effectContext.instance = inst;
+    effectContext.instance_holder = std::move(inst);
+    effectContext.instance = effectContext.instance_holder->instance;
   }
   else
   {

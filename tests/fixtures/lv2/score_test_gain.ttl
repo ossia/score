@@ -347,6 +347,24 @@
         lv2:name "MIDI Out"
     ] .
 
+# Copies its input; each run schedules a work, whose answer schedules another.
+<urn:score:test:worker-echo>
+    a lv2:Plugin, lv2:UtilityPlugin ;
+    doap:name "Score Test Worker Echo" ;
+    lv2:requiredFeature work:schedule ;
+    lv2:extensionData work:interface ;
+    lv2:port [
+        a lv2:AudioPort, lv2:InputPort ;
+        lv2:index 0 ;
+        lv2:symbol "in" ;
+        lv2:name "In"
+    ] , [
+        a lv2:AudioPort, lv2:OutputPort ;
+        lv2:index 1 ;
+        lv2:symbol "out" ;
+        lv2:name "Out"
+    ] .
+
 # Copies its input; its first run schedules a work of 300 ms.
 <urn:score:test:worker>
     a lv2:Plugin, lv2:UtilityPlugin ;
